@@ -79,6 +79,12 @@ SALT는 저축 목표 관리, 게임화 요소, 소셜 기능을 결합하여 �
 ## 아키텍처 다이어그램
 ```mermaid
 graph TB
+ RNA[React Native App] --> WV[WebView]
+   WV --> MF1[Shell MFE]
+   MF1 --> MF2[Goals MFE]
+   MF1 --> MF3[Game MFE]
+   MF1 --> MF4[Social MFE]
+   MF1 --> MF5[AI MFE]
    Client[Client] --> BFF[BFF Layer]
    BFF --> MS1[Goals Service]
    BFF --> MS2[Social Service]
