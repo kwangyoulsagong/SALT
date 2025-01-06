@@ -103,5 +103,26 @@ graph TB
 
    Kafka --> ES[Event Store]
 ```
+## 프로젝트 구조
+```
+salt/
+├── client/
+│   ├── mobile/              # 리액트 네이티브
+│   └── webview/             # Micro Frontends
+│       ├── shell/
+│       ├── goals/
+│       ├── game/
+│       ├── social/
+│       └── ai/
+├── server/
+│   ├── bff/                 # BFF Gateway
+│   └── services/            # Micro Services
+│       ├── goals/
+│       ├── game/
+│       ├── social/
+│       └── ai/
+└── k8s/                     # Kubernetes configs
+
+```
 ## 👥 팀 정보
 개인 프로젝트
