@@ -96,5 +96,6 @@ graph TB
    MS4 --> Kafka
 
    Kafka --> ES[Event Store]
+```
 ## 👥 팀 정보
 개인 프로젝트
