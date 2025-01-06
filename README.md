@@ -59,6 +59,7 @@ SALT는 저축 목표 관리, 게임화 요소, 소셜 기능을 결합하여 �
 - TailwindCSS
 - Redux (핵심 상태)
 - React-Query (서버 상태)
+- useBus(커스텀 훅 mfe 정보 전달)
 - Zustand (UI 상태)
 - Sentry (에러 추적)
 
