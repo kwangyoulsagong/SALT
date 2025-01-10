@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@module-federation/nextjs-mf": "^8.8.11",
+    "@vanilla-extract/next-plugin": "^2.4.8",
     "next": "14.2.23",
     "react": "^18",
     "react-dom": "^18"

@@ -8,7 +8,7 @@ const nextConfig = {
   webpack(config, options) {
     config.plugins.push(
       new NextFederationPlugin({
-        name: "goals",
+        name: "social",
         filename: "static/chunks/remoteEntry.js",
         exposes: {
           "./App": "./src/pages/_app.tsx",
