@@ -1,26 +1,22 @@
-import { Suspense, lazy } from "react";
-import { themeClass, container } from "@repo/ui/styles";
-import { Button } from "@repo/ui/button";
+"use client";
+import type { AppProps } from "next/app";
+import dynamic from "next/dynamic";
+const ReduxProvider = dynamic(
+  () => import("react-redux").then((mod) => mod.Provider),
+  {
+    ssr: false,
+  }
+);
 
-const Goals = lazy(() => import("goals/App"));
-const Game = lazy(() => import("game/App"));
-const Social = lazy(() => import("social/App"));
+import { store } from "../store/redux";
+import QueryClientProvider from "@/providers/QueryClientProvider";
 
-export default function Page() {
+export default function App({ Component, pageProps }: AppProps) {
   return (
-    <div className={themeClass}>
-      <h1> 여기는 쉘입니다 </h1>
-      <div className={container}>
-        {/* 레이아웃 스타일을 위한 컨테이너 */}
-        <Button appName="shell" variant="primary">
-          Primary Button
-        </Button>
-      </div>
-      <Suspense fallback={<div>is loading...</div>}>
-        <Goals />
-        <Game />
-        <Social />
-      </Suspense>
-    </div>
+    <QueryClientProvider>
+      <ReduxProvider store={store}>
+        <Component {...pageProps} />
+      </ReduxProvider>
+    </QueryClientProvider>
   );
 }

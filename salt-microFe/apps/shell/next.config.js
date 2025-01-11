@@ -5,6 +5,7 @@ const withVanillaExtract = createVanillaExtractPlugin();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   transpilePackages: ["@repo/ui", "@repo/store"],
   webpack(config, options) {
     config.plugins.push(
