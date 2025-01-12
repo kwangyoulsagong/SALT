@@ -8,20 +8,36 @@ interface ButtonProps {
   children: ReactNode;
   className?: string;
   variant?: keyof typeof buttonVariants;
-  routes: string;
+  eventType?: string;
+  eventValue?: string;
 }
 
 export const Button = ({
   children,
   className = "",
   variant = "primary",
-  routes = "",
+  eventType,
+  eventValue,
 }: ButtonProps) => {
   const router = useRouter();
+
+  const events = {
+    route: () => router.push(eventValue || "/"),
+    alert: () => alert(eventValue),
+    console: () => console.log(eventValue),
+  };
+
+  const handleClick = () => {
+    if (eventType && eventType in events) {
+      events[eventType as keyof typeof events]();
+    }
+  };
+
   return (
     <button
-      className={`${buttonVariants[variant]} ${className}`}
-      onClick={() => router.push(routes)}
+      className={`${buttonVariants[variant]} ${className}`.trim()}
+      onClick={handleClick}
+      type="button"
     >
       {children}
     </button>

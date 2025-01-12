@@ -25,7 +25,7 @@ export default function Home({ children }: { children?: React.ReactNode }) {
         <h1 style={{ color: "#ffffff" }}>{profile.user?.nickname}</h1>
 
         <Suspense fallback={<div>로딩 중...</div>}>
-          <Button variant="primary" routes="/goals">
+          <Button variant="primary" eventType="route" eventValue="/goals">
             Primary Button
           </Button>
 
