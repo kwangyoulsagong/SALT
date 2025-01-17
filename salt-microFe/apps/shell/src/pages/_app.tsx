@@ -10,12 +10,15 @@ const ReduxProvider = dynamic(
 
 import { store } from "../store/redux";
 import QueryClientProvider from "@/providers/QueryClientProvider";
+import Layout from "@/components/Layout";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <QueryClientProvider>
       <ReduxProvider store={store}>
-        <Component {...pageProps} />
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
       </ReduxProvider>
     </QueryClientProvider>
   );

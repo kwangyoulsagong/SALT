@@ -6,7 +6,6 @@ import { useRouter } from "next/router.js";
 
 interface ButtonProps {
   children: ReactNode;
-  className?: string;
   variant?: keyof typeof buttonVariants;
   eventType?: string;
   eventValue?: string;
@@ -14,7 +13,6 @@ interface ButtonProps {
 
 export const Button = ({
   children,
-  className = "",
   variant = "primary",
   eventType,
   eventValue,
@@ -35,7 +33,7 @@ export const Button = ({
 
   return (
     <button
-      className={`${buttonVariants[variant]} ${className}`.trim()}
+      className={`${buttonVariants[variant]}`}
       onClick={handleClick}
       type="button"
     >
