@@ -1,0 +1,25 @@
+"use client";
+import type { AppProps } from "next/app";
+import dynamic from "next/dynamic";
+const ReduxProvider = dynamic(
+  () => import("react-redux").then((mod) => mod.Provider),
+  {
+    ssr: false,
+  }
+);
+
+import { store } from "../store/redux";
+import QueryClientProvider from "@/providers/QueryClientProvider";
+import Layout from "@/components/Layout";
+
+export default function App({ Component, pageProps }: AppProps) {
+  return (
+    <QueryClientProvider>
+      <ReduxProvider store={store}>
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      </ReduxProvider>
+    </QueryClientProvider>
+  );
+}
