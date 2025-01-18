@@ -1,4 +1,4 @@
-import { User } from "./type";
+import { User } from "@/types/store/auth/types";
 
 const fetchUser = async (): Promise<User> => {
   try {

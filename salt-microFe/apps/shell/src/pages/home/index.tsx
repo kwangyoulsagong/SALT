@@ -14,7 +14,11 @@ const Notification = lazy(() => import("notification/App"));
 export default function Home() {
   const dispatch = useAppDispatch();
   const { data } = getUser();
-  console.log(data);
+  useEffect(() => {
+    if (data) {
+      dispatch(setUser(data));
+    }
+  }, [data, dispatch]);
   const profile = useAppSelector((state) => state.auth);
   return (
     <div className={`${themeClass} ${container}`}>
