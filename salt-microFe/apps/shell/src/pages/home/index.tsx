@@ -3,6 +3,7 @@ import { themeClass, container } from "@repo/ui/styles";
 import { Button } from "@repo/ui/button";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux/hooks";
 import { setUser } from "@/store/redux/features/auth/authSlice";
+import getUser from "@/hooks/api/auth/getUser";
 const Game = lazy(() => import("game/App"));
 const Social = lazy(() => import("social/App"));
 const Missions = lazy(() => import("missions/App"));
@@ -12,15 +13,8 @@ const Notification = lazy(() => import("notification/App"));
 
 export default function Home() {
   const dispatch = useAppDispatch();
-  useEffect(() => {
-    const userData = {
-      id: 1,
-      nickname: "광열",
-      email: "user@example.com",
-    }; // 예시 데이터
-
-    dispatch(setUser(userData)); // setUser 액션 호출
-  }, [dispatch]);
+  const { data } = getUser();
+  console.log(data);
   const profile = useAppSelector((state) => state.auth);
   return (
     <div className={`${themeClass} ${container}`}>

@@ -38,5 +38,10 @@
     "msw": "^2.7.0",
     "ts-jest": "^29.2.5",
     "typescript": "^5"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
