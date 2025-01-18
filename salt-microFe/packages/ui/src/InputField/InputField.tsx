@@ -1,23 +1,27 @@
 import { inputVariants } from "./styles/input.css";
+import { UseFormRegister } from "react-hook-form";
 type placeholder = "id" | "password";
 interface InputProps {
-  value: string;
+  register: UseFormRegister<any>;
+  name: string;
   variant?: keyof typeof inputVariants;
-  onChange: () => void;
   placeholder: placeholder;
 }
-const InputField = ({ value, variant, onChange, placeholder }: InputProps) => {
+export const InputField = ({
+  register,
+  name,
+  variant,
+  placeholder,
+}: InputProps) => {
   const placeHolderVariant = {
     id: "아이디를 입력해주세요",
     password: "비밀번호를 입력해주세요",
   };
   return (
     <input
-      value={value}
+      {...register(name)}
       className={`${inputVariants[variant]}`}
       placeholder={`${placeHolderVariant[placeholder]}`}
-      onChange={onChange}
     ></input>
   );
 };
-export default InputField;
