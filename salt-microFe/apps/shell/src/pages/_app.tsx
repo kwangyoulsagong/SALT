@@ -10,6 +10,7 @@ const ReduxProvider = dynamic(
 import { store } from "../store/redux";
 import QueryClientProvider from "@/providers/QueryClientProvider";
 import Layout from "@/components/Layout";
+import AuthWrapper from "@/components/Auth/AuthWrapper/AuthWrapper";
 
 if (process.env.NODE_ENV === "development") {
   // browser환경에서만 mocking
@@ -18,13 +19,16 @@ if (process.env.NODE_ENV === "development") {
     worker.start();
   }
 }
+
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <QueryClientProvider>
       <ReduxProvider store={store}>
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
+        <AuthWrapper>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </AuthWrapper>
       </ReduxProvider>
     </QueryClientProvider>
   );
