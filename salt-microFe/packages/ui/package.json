@@ -7,11 +7,11 @@
   "type": "module",
   "private": true,
   "exports": {
-    "./button": "./src/button.tsx",
+    "./button": "./src/Button/button.tsx",
     "./card": "./src/card.tsx",
     "./code": "./src/code.tsx",
-    "./styles": "./src/styles/index.css.ts",
-    "./styles/button": "./src/styles/button.css.ts"
+    "./styles": "./src/Button/styles/index.css.ts",
+    "./styles/button": "./src/Button/styles/button.css.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
