@@ -1,27 +1,28 @@
 import { useForm, SubmitHandler } from "react-hook-form";
 import { InputField } from "@repo/ui/input";
+import useAuth from "@/hooks/api/auth/useAuth";
 
 interface IFormInput {
   id: string;
-  gender: string;
+  password: string;
 }
 
 export default function App() {
   const { register, handleSubmit } = useForm<IFormInput>();
-  const onSubmit: SubmitHandler<IFormInput> = (data) => Mutate(data);
+  const { login } = useAuth();
+  const onSubmit: SubmitHandler<IFormInput> = (data) => login.mutate(data);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <label>ID</label>
-      <InputField register={register} name="id" placeholder="id" />
-
-      <label>Gender Selection</label>
-      <select {...register("gender")}>
-        <option value="female">female</option>
-        <option value="male">male</option>
-        <option value="other">other</option>
-      </select>
-
+      <label>아이디</label>
+      <InputField register={register} name="id" placeholder="id" type="text" />
+      <label>비밀번호</label>
+      <InputField
+        register={register}
+        name="password"
+        placeholder="password"
+        type="password"
+      />
       <input type="submit" />
     </form>
   );
