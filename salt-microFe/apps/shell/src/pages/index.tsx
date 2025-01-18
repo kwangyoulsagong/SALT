@@ -13,7 +13,7 @@ export default function App() {
   const onSubmit: SubmitHandler<IFormInput> = (data) => login.mutate(data);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} style={{ width: "100%" }}>
       <label>아이디</label>
       <InputField register={register} name="id" placeholder="id" type="text" />
       <label>비밀번호</label>

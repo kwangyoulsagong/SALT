@@ -1,14 +1,15 @@
 import { style, styleVariants } from "@vanilla-extract/css";
+import { vars } from "../../styles/tokens.css";
 
 // 버튼 variants
 export const buttonVariants = styleVariants({
   primary: {
     width: "50px",
     height: "30px",
-    background: "#7949FF",
+    background: vars.colors.brand.primary,
     borderRadius: "8px",
-    color: "#FFFFFF",
-    fontWeight: "bold",
+    color: vars.colors.text.primary,
+    fontWeight: vars.fontWeights.bold,
     borderStyle: "none",
     cursor: "pointer",
     transition: "all 0.2s ease", // 부드러운 전환 효과 추가

@@ -1,8 +1,10 @@
 export const authResponses = {
   loginSuccess: () => ({
-    id: 1,
-    nickname: "광열",
-    email: "user@example.com",
+    user: {
+      id: 1,
+      nickname: "광열",
+      email: "user@example.com",
+    },
     token: "mock-jwt-token",
   }),
   loginError: () => ({

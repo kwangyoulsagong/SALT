@@ -46,5 +46,5 @@ export const TOAST_MESSAGES = {
 export const ERROR_MESSAGE = "오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
 
 export const ACCESS_TOKEN_KEY = "ACCESS_TOKEN";
-export const USER_ID_KEY = "USER_ID";
+export const USER_KEY = "USER";
 export const REFRESH_TOKEN_KEY = "REFRESH_TOKEN";

@@ -1,9 +1,11 @@
-import { style, styleVariants } from "@vanilla-extract/css";
+import { vars } from "@/styles/tokens.css";
+import { style } from "@vanilla-extract/css";
+
 export const Container = style({
-  position: "absolute",
-  background: "#F2F4F6",
-  width: "100vw",
+  position: "relative",
+  display: "flex",
+  flexDirection: "column",
+  width: "100%",
   height: "100vh",
-  left: 0,
-  top: 0,
+  background: vars.colors.background.primary,
 });
