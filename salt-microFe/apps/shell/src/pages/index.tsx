@@ -8,7 +8,7 @@ interface IFormInput {
   password: string;
 }
 
-export default function App() {
+export default function ShellApp() {
   const { register, handleSubmit } = useForm<IFormInput>();
   const { login } = useAuth();
   const onSubmit: SubmitHandler<IFormInput> = (data) => login.mutate(data);

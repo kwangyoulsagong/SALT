@@ -9,7 +9,7 @@
   "exports": {
     "./button": "./src/Button/button.tsx",
     "./input": "./src/InputField/InputField.tsx",
-    "./card": "./src/card.tsx",
+    "./card": "./src/Card/Card.tsx",
     "./code": "./src/code.tsx",
     "./styles": "./src/Button/styles/index.css.ts",
     "./styles/button": "./src/Button/styles/button.css.ts"

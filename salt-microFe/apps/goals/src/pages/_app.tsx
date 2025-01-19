@@ -1,17 +1,29 @@
-import { useEffect, useState } from "react";
+import type { AppProps } from "next/app";
+import dynamic from "next/dynamic";
+import "@/styles/globals.css";
+const ReduxProvider = dynamic(
+  () => import("react-redux").then((mod) => mod.Provider),
+  {
+    ssr: false,
+  }
+);
+import { store } from "../store/redux";
+import QueryClientProvider from "@/providers/QueryClientProvider";
 
-function App({ nickname }: { nickname: string }) {
-  const [number, setNumber] = useState(0);
-  useEffect(() => {
-    setNumber(30);
-  }, []);
-  return (
-    <div style={{ backgroundColor: "blue", padding: "20px" }}>
-      <button onClick={() => setNumber((prev) => prev + 1)}></button>
-      <span>{number}</span>
-      <h1>{nickname}</h1>
-    </div>
-  );
+if (process.env.NODE_ENV === "development") {
+  // browser환경에서만 mocking
+  if (typeof window !== "undefined") {
+    const { worker } = require("@/mock/browser");
+    worker.start();
+  }
 }
 
-export default App;
+export default function App({ Component, pageProps }: AppProps) {
+  return (
+    <QueryClientProvider>
+      <ReduxProvider store={store}>
+        <Component {...pageProps} />
+      </ReduxProvider>
+    </QueryClientProvider>
+  );
+}

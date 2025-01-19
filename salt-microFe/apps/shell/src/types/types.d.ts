@@ -1,4 +1,4 @@
-declare module "goals/App";
+declare module "goals/GoalsApp";
 declare module "game/App";
 declare module "social/App";
 declare module "missions/App";

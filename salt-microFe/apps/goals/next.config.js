@@ -11,7 +11,7 @@ const nextConfig = {
         name: "goals",
         filename: "static/chunks/remoteEntry.js",
         exposes: {
-          "./App": "./src/pages/_app.tsx",
+          "./GoalsApp": "./src/pages/index.tsx",
         },
         shared: {
           react: {
