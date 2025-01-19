@@ -1,13 +1,12 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 import { vars } from "../../styles/tokens.css";
-
 // 버튼 variants
 export const buttonVariants = styleVariants({
   primary: {
     width: "50px",
     height: "30px",
     background: vars.colors.brand.primary,
-    borderRadius: "8px",
+    borderRadius: vars.radius.base,
     color: vars.colors.text.primary,
     fontWeight: vars.fontWeights.bold,
     borderStyle: "none",

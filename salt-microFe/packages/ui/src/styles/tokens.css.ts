@@ -1,6 +1,10 @@
 import { createGlobalTheme } from "@vanilla-extract/css";
 
 export const vars = createGlobalTheme(":root", {
+  radius: {
+    base: "8px",
+  },
+
   colors: {
     // 주요 배경색
     background: {
