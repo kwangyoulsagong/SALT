@@ -10,14 +10,6 @@ const ReduxProvider = dynamic(
 import { store } from "../store/redux";
 import QueryClientProvider from "@/providers/QueryClientProvider";
 
-if (process.env.NODE_ENV === "development") {
-  // browser환경에서만 mocking
-  if (typeof window !== "undefined") {
-    const { worker } = require("@/mock/browser");
-    worker.start();
-  }
-}
-
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <QueryClientProvider>

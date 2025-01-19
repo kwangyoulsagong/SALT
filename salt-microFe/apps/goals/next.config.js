@@ -22,6 +22,10 @@ const nextConfig = {
             singleton: true,
             requiredVersion: false,
           },
+          "@tanstack/react-query": {
+            singleton: true,
+            requiredVersion: false,
+          },
         },
       })
     );
