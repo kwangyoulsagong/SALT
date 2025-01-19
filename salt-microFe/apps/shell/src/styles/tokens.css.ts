@@ -14,7 +14,10 @@ export const vars = createGlobalTheme(":root", {
 
     // 텍스트 색상
     text: {
-      primary: "#FFFFFF",
+      base: "#FFFFFF",
+      nickname: "#2A282F",
+      email: "#A8A6AC",
+      primary: "#868E96",
     },
   },
 

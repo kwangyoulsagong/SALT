@@ -2,9 +2,7 @@ import Image from "next/image";
 import { ProfileContainer } from "./ProfileImage.css";
 import { useAppSelector } from "@/hooks/redux/hooks";
 
-const ProfileImage = () => {
-  const Profile = useAppSelector((state) => state.auth.user?.profile);
-  console.log(Profile);
+const ProfileImage = ({ Profile }: { Profile: string | undefined }) => {
   return (
     <>
       {Profile ? (
