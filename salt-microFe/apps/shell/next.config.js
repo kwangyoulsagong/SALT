@@ -5,6 +5,14 @@ const withVanillaExtract = createVanillaExtractPlugin();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**", // 모든 호스트를 허용
+      },
+    ],
+  },
   reactStrictMode: true,
   transpilePackages: ["@repo/ui", "@repo/store"],
   webpack(config, options) {

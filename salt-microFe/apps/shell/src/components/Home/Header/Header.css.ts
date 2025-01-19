@@ -4,4 +4,6 @@ export const Container = style({
   padding: "20px",
   height: "80px",
   border: "1px, solid,black",
+  display: "flex",
+  alignItems: "center",
 });

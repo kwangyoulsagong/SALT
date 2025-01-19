@@ -2,8 +2,9 @@ export const authResponses = {
   loginSuccess: () => ({
     user: {
       id: 1,
-      nickname: "광열",
-      email: "user@example.com",
+      nickname: "김솔트",
+      email: "salt@example.com",
+      profile: "https://static.toss.im/illusts/img-profile-07.png",
     },
     token: "mock-jwt-token",
   }),
