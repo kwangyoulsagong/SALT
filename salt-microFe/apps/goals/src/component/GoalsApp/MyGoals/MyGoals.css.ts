@@ -6,5 +6,5 @@ export const Container = style({
   display: "flex",
   alignItems: "center",
   flexDirection: "column",
-  border: "1px,solid,black",
+  justifyContent: "space-between",
 });
