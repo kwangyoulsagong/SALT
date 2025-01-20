@@ -1,12 +1,18 @@
 import Overlay from "./Overlay/Overlay";
 import { Wrapper } from "./Section.css";
 import { Icon } from "@repo/ui/icon";
-const Section = () => {
+interface savedProps {
+  saved: {
+    money: string;
+    thumbnail: string;
+  };
+}
+const Section = ({ saved }: savedProps) => {
   return (
     <section className={Wrapper}>
       <Overlay>
         <div>
-          <Icon />
+          <Icon url={saved.thumbnail} />
         </div>
       </Overlay>
     </section>

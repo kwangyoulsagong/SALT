@@ -14,7 +14,7 @@ const nextConfig = {
     ],
   },
   reactStrictMode: true,
-  transpilePackages: ["@repo/ui", "@repo/store"],
+  transpilePackages: ["@repo/ui", "@repo/store", "@repo/mocks"],
   webpack(config, options) {
     config.plugins.push(
       new NextFederationPlugin({

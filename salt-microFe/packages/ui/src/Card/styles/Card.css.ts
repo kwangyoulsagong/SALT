@@ -1,6 +1,6 @@
 import { styleVariants } from "@vanilla-extract/css";
 const commonStyles = {
-  width: "90%",
+  width: "92%",
   borderRadius: "20px",
   background: "#FFFFFF",
 };
@@ -8,10 +8,10 @@ const commonStyles = {
 export const CardSize = styleVariants({
   md: {
     ...commonStyles,
-    height: "119px",
+    height: "125px",
   },
   lg: {
     ...commonStyles,
-    height: "133px",
+    height: "139px",
   },
 });

@@ -6,7 +6,6 @@ export const goalsApi = {
       if (!response.ok) {
         throw new Error(data.message || "내 목표에 가져온는데 실패했습니다.");
       }
-
       return data;
     } catch (error) {
       throw new Error(

@@ -8,11 +8,10 @@ const MyGoals = () => {
 
   if (myGoals.isLoading) return <div>Loading...</div>;
   if (myGoals.error) return <div>Error loading goals</div>;
-  console.log(myGoals);
   return (
     <section className={Container}>
-      <Section />
-      <Footer />
+      <Section saved={myGoals.data.saved} />
+      <Footer process={myGoals.data.process} />
     </section>
   );
 };
