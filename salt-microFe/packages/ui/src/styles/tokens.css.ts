@@ -22,6 +22,7 @@ export const vars = createGlobalTheme(":root", {
       nickname: "#2A282F",
       email: "#A8A6AC",
       primary: "#868E96",
+      H2: "#191F28",
     },
   },
 

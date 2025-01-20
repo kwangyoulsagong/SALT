@@ -3,4 +3,5 @@ export const Wrapper = style({
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
+  gap: "5px",
 });
