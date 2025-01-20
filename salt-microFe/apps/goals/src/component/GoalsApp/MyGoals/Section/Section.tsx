@@ -5,6 +5,7 @@ import { Wrapper } from "./Section.css";
 import { Icon } from "@repo/ui/icon";
 import { P } from "@repo/ui/p";
 import { H2 } from "@repo/ui/h2";
+import { Button } from "@repo/ui/button";
 interface savedProps {
   saved: {
     money: string;
@@ -22,6 +23,7 @@ const Section = ({ saved }: savedProps) => {
             <P>현재 모은 금액</P>
           </SaveInformation>
         </Saved>
+        <Button variant="primary">목표</Button>
       </Overlay>
     </section>
   );

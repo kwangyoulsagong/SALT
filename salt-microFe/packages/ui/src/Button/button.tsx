@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import { buttonVariants } from "./styles/button.css";
-import { useRouter } from "next/router.js";
+import { useRouter } from "next/router";
 
 interface ButtonProps {
   children: ReactNode;
@@ -15,7 +15,7 @@ export const Button = ({
   children,
   variant = "primary",
   eventType,
-  eventValue,
+  eventValue = "",
 }: ButtonProps) => {
   const router = useRouter();
 

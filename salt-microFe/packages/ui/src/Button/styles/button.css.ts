@@ -3,12 +3,13 @@ import { vars } from "../../styles/tokens.css";
 // 버튼 variants
 export const buttonVariants = styleVariants({
   primary: {
-    width: "50px",
+    width: "60px",
     height: "30px",
     background: vars.colors.brand.primary,
     borderRadius: vars.radius.base,
-    color: vars.colors.text.primary,
-    fontWeight: vars.fontWeights.bold,
+    color: vars.colors.text.base,
+    fontSize: vars.fontSizes.h3,
+    fontWeight: vars.fontWeights.semibold,
     borderStyle: "none",
     cursor: "pointer",
     transition: "all 0.2s ease", // 부드러운 전환 효과 추가
