@@ -5,5 +5,5 @@ export const Container = style({
   background: "#FCFCFC",
   borderBottomLeftRadius: "20px",
   borderBottomRightRadius: "20px",
-  borderTop: "2px solid #F9F9FA",
+  borderTop: "2px solid #F7F7F7",
 });

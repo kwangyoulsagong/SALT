@@ -5,5 +5,4 @@ export const Wrapper = style({
   display: "flex",
   paddingLeft: "20px",
   paddingRight: "20px",
-  border: "1px solid black",
 });

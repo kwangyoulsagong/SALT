@@ -7,9 +7,15 @@ export const Card = style({
   flexDirection: "column",
   justifyContent: "center",
   alignItems: "center",
-  borderRight: "2px solid #F9F9FA",
+  borderRight: "2px solid #F7F7F7",
   gap: "2px",
+  selectors: {
+    "&:nth-child(4)": {
+      borderRight: "none",
+    },
+  },
 });
+
 export const Process = style({
   color: vars.colors.text.secondary,
   fontWeight: vars.fontWeights.bold,
