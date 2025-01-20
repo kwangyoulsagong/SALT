@@ -13,7 +13,8 @@
     "./icon": "./src/Icon/Icon.tsx",
     "./code": "./src/code.tsx",
     "./styles": "./src/Button/styles/index.css.ts",
-    "./styles/button": "./src/Button/styles/button.css.ts"
+    "./styles/button": "./src/Button/styles/button.css.ts",
+    "./h3": "./src/Typo/H3/H3.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
