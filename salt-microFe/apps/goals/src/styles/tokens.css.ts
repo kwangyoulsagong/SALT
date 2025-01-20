@@ -1,10 +1,6 @@
 import { createGlobalTheme } from "@vanilla-extract/css";
 
 export const vars = createGlobalTheme(":root", {
-  radius: {
-    base: "8px",
-  },
-
   colors: {
     // 주요 배경색
     background: {
@@ -13,7 +9,7 @@ export const vars = createGlobalTheme(":root", {
 
     // 주요 브랜드/액션 색상
     brand: {
-      primary: "#7949FF", // 주요 브랜드/버튼 색상
+      primary: "#007AFF", // 주요 브랜드/버튼 색상
     },
 
     // 텍스트 색상
@@ -22,7 +18,7 @@ export const vars = createGlobalTheme(":root", {
       nickname: "#2A282F",
       email: "#A8A6AC",
       primary: "#868E96",
-      H2: "#191F28",
+      secondary: "#191F28",
     },
   },
 
@@ -36,7 +32,6 @@ export const vars = createGlobalTheme(":root", {
   },
 
   fontSizes: {
-    xsmall: "10px",
     small: "12px",
     body: "14px",
     heading3: "16px",

@@ -4,6 +4,7 @@ import { vars } from "../../../styles/tokens.css";
 const commonStyles = {
   fontSize: vars.fontSizes.small,
   fontWeight: vars.fontWeights.medium,
+  color: vars.colors.text.primary,
 };
 export const pVariant = styleVariants({
   email: {
@@ -13,6 +14,10 @@ export const pVariant = styleVariants({
   },
   primary: {
     ...commonStyles,
-    color: vars.colors.text.primary,
+  },
+  third: {
+    ...commonStyles.color,
+    fontSize: vars.fontSizes.xsmall,
+    fontWeight: vars.fontWeights.bold,
   },
 });
