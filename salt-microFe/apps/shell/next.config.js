@@ -11,6 +11,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "**", // 모든 호스트를 허용
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
     ],
   },
   reactStrictMode: true,

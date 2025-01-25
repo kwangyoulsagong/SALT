@@ -1,13 +1,16 @@
+import { Icon } from "@repo/ui/icon";
 import { Container } from "./GoalsList.css";
 import ListWrapper from "./ListWrapper/ListWrapper";
-import { Icon } from "@repo/ui/icon";
+
 const GoalsList = () => {
   return (
     <section className={Container}>
       <ListWrapper>
-        <Icon variant="travel" />
+        <Icon variant="trip" />
       </ListWrapper>
-      <ListWrapper>afsdfas</ListWrapper>
+      <ListWrapper>
+        <Icon variant="car" />
+      </ListWrapper>
     </section>
   );
 };
