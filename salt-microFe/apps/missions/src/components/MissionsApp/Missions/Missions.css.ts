@@ -1,9 +1,10 @@
 import { style } from "@vanilla-extract/css";
-export const Container = style({
-  marginTop: "5%",
+export const Wrapper = style({
   width: "100%",
+  height: "100%",
+  borderRadius: "20px",
   display: "flex",
   alignItems: "center",
   flexDirection: "column",
-  gap: "20px",
+  border: "1px solid black",
 });
