@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { pVariant } from "./styles/P.css";
+import { pVariant } from "./styles/P.css.ts";
 type variantType = "email" | "primary" | "third";
 interface pProps {
   variant?: variantType;

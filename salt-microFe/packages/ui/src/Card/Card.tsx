@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { CardSize } from "./styles/Card.css";
+import { CardSize } from "./styles/Card.css.ts";
 
 type SizeType = "md" | "lg";
 interface CardProps {

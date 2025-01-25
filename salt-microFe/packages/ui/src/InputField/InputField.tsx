@@ -1,4 +1,4 @@
-import { inputVariants } from "./styles/input.css";
+import { inputVariants } from "./styles/input.css.ts";
 import { UseFormRegister } from "react-hook-form";
 type placeholder = "id" | "password";
 interface InputProps {
@@ -11,7 +11,7 @@ interface InputProps {
 export const InputField = ({
   register,
   name,
-  variant,
+  variant = "primary",
   placeholder,
   type,
 }: InputProps) => {

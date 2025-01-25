@@ -1,5 +1,5 @@
 import { style, styleVariants } from "@vanilla-extract/css";
-import { vars } from "../../styles/tokens.css";
+import { vars } from "../../styles/tokens.css.ts";
 // 버튼 variants
 export const buttonVariants = styleVariants({
   primary: {
@@ -8,7 +8,7 @@ export const buttonVariants = styleVariants({
     background: vars.colors.brand.primary,
     borderRadius: vars.radius.base,
     color: vars.colors.text.base,
-    fontSize: vars.fontSizes.h3,
+    fontSize: vars.fontSizes.heading3,
     fontWeight: vars.fontWeights.semibold,
     borderStyle: "none",
     cursor: "pointer",

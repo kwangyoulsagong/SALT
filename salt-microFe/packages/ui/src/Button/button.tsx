@@ -1,8 +1,8 @@
 "use client";
 
 import { ReactNode } from "react";
-import { buttonVariants } from "./styles/button.css";
-import { useRouter } from "next/router";
+import { buttonVariants } from "./styles/button.css.ts";
+import { useRouter } from "next/router.ts";
 
 interface ButtonProps {
   children: ReactNode;
