@@ -7,4 +7,6 @@ export const Wrapper = style({
   alignItems: "center",
   flexDirection: "column",
   border: "1px solid black",
+  paddingLeft: "8%",
+  paddingRight: "8%",
 });

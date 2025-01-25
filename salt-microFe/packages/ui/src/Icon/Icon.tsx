@@ -8,8 +8,8 @@ interface IconProps {
 
 export const Icon = ({ url, variant }: IconProps) => {
   const goalsVariant = {
-    trip: "/assets/goals/images/trip.png",
-    car: "/assets/goals/images/car.png",
+    trip: "/assets/goals/images/trip.svg",
+    car: "/assets/goals/images/car.svg",
   };
   const imgsrc = variant ? goalsVariant[variant] : url;
   return (
