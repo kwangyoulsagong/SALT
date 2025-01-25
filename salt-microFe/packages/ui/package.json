@@ -16,7 +16,8 @@
     "./styles/button": "./src/Button/styles/button.css.ts",
     "./h3": "./src/Typo/H3/H3.tsx",
     "./p": "./src/Typo/P/P.tsx",
-    "./h2": "./src/Typo/H2/H2.tsx"
+    "./h2": "./src/Typo/H2/H2.tsx",
+    "./assetsGoals": "./src/assets/goals/index.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -42,6 +43,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "next": "^14.2.23",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.54.2"

@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import { buttonVariants } from "./styles/button.css.ts";
-import { useRouter } from "next/router.ts";
+import { useRouter } from "next/router";
 
 interface ButtonProps {
   children: ReactNode;
