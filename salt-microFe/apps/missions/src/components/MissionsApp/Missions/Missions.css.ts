@@ -4,9 +4,9 @@ export const Wrapper = style({
   height: "100%",
   borderRadius: "20px",
   display: "flex",
-  alignItems: "center",
+  justifyContent: "center",
   flexDirection: "column",
-  border: "1px solid black",
+  gap: "5px",
   paddingLeft: "8%",
   paddingRight: "8%",
 });
