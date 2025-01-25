@@ -1,5 +1,11 @@
-import { createGlobalTheme } from "@vanilla-extract/css";
-
+import { createGlobalTheme, globalFontFace } from "@vanilla-extract/css";
+globalFontFace("Inter", {
+  src: 'url(https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQsN.woff2) format("woff2")',
+});
+globalFontFace("Noto Sans KR", {
+  src: 'url(https://fonts.gstatic.com/s/notosanskr/v36/PbykFmXiEBPT4gqyIkITq3XeXA.woff2) format("woff2")',
+  fontWeight: "100 900",
+});
 export const vars = createGlobalTheme(":root", {
   radius: {
     base: "8px",
@@ -50,5 +56,9 @@ export const vars = createGlobalTheme(":root", {
     medium: "500",
     semibold: "600",
     bold: "700",
+  },
+  fontFamily: {
+    base: "'Inter', sans-serif",
+    secondary: "'Noto Sans KR', sans-serif",
   },
 });

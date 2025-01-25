@@ -9,4 +9,10 @@ export const goalsHandlers = [
       return HttpResponse.json(goalResponses.myGoals());
     }
   }),
+  http.get("/api/v1/goals", async () => {
+    const accessToken = "fjasdfjadlfjlajl";
+    if (accessToken) {
+      return HttpResponse.json(goalResponses.GoalsProcess());
+    }
+  }),
 ];

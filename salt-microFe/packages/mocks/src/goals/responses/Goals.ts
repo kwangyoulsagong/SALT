@@ -11,4 +11,18 @@ export const goalResponses = {
       percent: 45,
     },
   }),
+  GoalsProcess: () => [
+    {
+      id: 1,
+      tag: "trip",
+      saved: "482,225",
+      target: "1,500,000",
+    },
+    {
+      id: 2,
+      tag: "car",
+      saved: "482,225",
+      target: "30,500,000",
+    },
+  ],
 };

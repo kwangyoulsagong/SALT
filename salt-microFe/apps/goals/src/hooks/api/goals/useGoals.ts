@@ -7,6 +7,10 @@ const useGoals = () => {
     queryKey: [querykeys.MyGoals],
     queryFn: goalsApi.myGoals,
   });
-  return { myGoals };
+  const goalsProcess = useQuery({
+    queryKey: [querykeys.Goals],
+    queryFn: goalsApi.GoalsProcess,
+  });
+  return { myGoals, goalsProcess };
 };
 export default useGoals;
