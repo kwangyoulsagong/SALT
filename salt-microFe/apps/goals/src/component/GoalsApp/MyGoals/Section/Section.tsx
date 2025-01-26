@@ -23,7 +23,7 @@ const Section = ({ saved }: savedProps) => {
             <P>현재 모은 금액</P>
           </SaveInformation>
         </Saved>
-        <Button>목표</Button>
+        <Button>추가</Button>
       </Overlay>
     </section>
   );

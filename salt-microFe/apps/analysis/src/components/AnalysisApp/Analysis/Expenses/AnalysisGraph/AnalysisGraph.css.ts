@@ -23,6 +23,7 @@ export const graphsWrapper = style({
 });
 export const bars = style({
   width: "20px",
+  height: "0%",
   background: "#15AABF",
   borderRadius: "5px",
 });

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   bars,
   category,
@@ -10,12 +11,32 @@ interface AnalysisGraphProps {
 }
 
 const AnalysisGraph = ({ data }: AnalysisGraphProps) => {
+  const transitionRefs = useRef<HTMLDivElement[]>([]);
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      transitionRefs.current.forEach((el, i) => {
+        if (el) {
+          setTimeout(() => {
+            el.style.transition = "1s ease";
+            el.style.height = `${data[i].percent}%`;
+          }, 100);
+        }
+      });
+    });
+  }, [data]);
   return (
     <section className={Wrapper}>
-      {data.map((value) => (
+      {data.map((value, index) => (
         <section key={value.id} className={graphsContainer}>
           <article className={graphsWrapper}>
-            <div className={bars} style={{ height: `${value.percent}%` }}></div>
+            <div
+              ref={(el) => {
+                if (el) {
+                  transitionRefs.current[index] = el;
+                }
+              }}
+              className={bars}
+            ></div>
           </article>
           <span className={category}>{value.category}</span>
         </section>
