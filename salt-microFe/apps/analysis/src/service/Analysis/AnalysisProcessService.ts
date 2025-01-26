@@ -17,7 +17,11 @@ interface AnalysisProcessProps {
 export class AnalysisProcessService {
   Analysis({
     data,
-  }: AnalysisProcessProps): { category: string; percent: string }[] {
+  }: AnalysisProcessProps): {
+    id: number;
+    category: string;
+    percent: string;
+  }[] {
     const { thisWeekData, lastWeekData } = data;
     if (
       !Array.isArray(thisWeekData) ||
@@ -39,6 +43,7 @@ export class AnalysisProcessService {
           100 -
         100;
       graphs.push({
+        id: i,
         category: thisWeekData[i].category,
         percent: percentage.toFixed(2),
       });

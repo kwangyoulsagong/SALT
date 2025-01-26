@@ -8,6 +8,7 @@ import { P } from "@repo/ui/p";
 import { H2 } from "@repo/ui/h2";
 import useAnalysis from "@/hooks/api/analysis/useAnalysis";
 import { AnalysisProcessService } from "@/service/Analysis/AnalysisProcessService";
+import AnalysisGraph from "./Expenses/AnalysisGraph/AnalysisGraph";
 const Analysis = () => {
   const { analysisPreview } = useAnalysis();
   if (analysisPreview.isLoading)
@@ -33,8 +34,9 @@ const Analysis = () => {
       <Expenses>
         <ExpensesWrapper>
           <P>지난주 대비</P>
-          <H2>{difference} 덜 썻어요</H2>
+          <H2>{difference}% 덜 썻어요</H2>
         </ExpensesWrapper>
+        <AnalysisGraph data={graphs} />
       </Expenses>
     </section>
   );
