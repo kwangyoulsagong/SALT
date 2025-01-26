@@ -16,7 +16,7 @@ const GoalsList = () => {
   return (
     <section className={Container}>
       {goalsProcess.data.map((value: goalsProps) => (
-        <ListWrapper>
+        <ListWrapper key={value.id}>
           <Icon variant={value.tag} />
           <Goals data={value} />
         </ListWrapper>
