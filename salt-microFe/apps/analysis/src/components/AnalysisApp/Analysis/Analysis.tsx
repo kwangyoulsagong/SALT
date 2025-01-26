@@ -6,7 +6,12 @@ import Expenses from "./Expenses/Expenses";
 import ExpensesWrapper from "./Expenses/ExpensesWrapper/ExpensesWrapper";
 import { P } from "@repo/ui/p";
 import { H2 } from "@repo/ui/h2";
+import useAnalysis from "@/hooks/api/analysis/useAnalysis";
 const Analysis = () => {
+  const { analysisPreview } = useAnalysis();
+  if (analysisPreview.isLoading) return <div>Loading...</div>;
+  if (analysisPreview.error) return <div>Error loading goals</div>;
+  console.log(analysisPreview.data);
   return (
     <section className={Wrapper}>
       <Header>

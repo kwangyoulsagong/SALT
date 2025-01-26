@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "exports": {
-    "./goals": "./src/goals/handlers/Goals.ts"
+    "./goals": "./src/goals/handlers/Goals.ts",
+    "./analysis":"./src/analysis/handlers/Analysis.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

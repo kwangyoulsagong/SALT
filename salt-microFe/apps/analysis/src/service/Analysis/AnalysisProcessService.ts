@@ -1,0 +1,3 @@
+class AnalysisProcessService {
+  Analysis;
+}
