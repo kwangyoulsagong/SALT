@@ -7,11 +7,23 @@ import ExpensesWrapper from "./Expenses/ExpensesWrapper/ExpensesWrapper";
 import { P } from "@repo/ui/p";
 import { H2 } from "@repo/ui/h2";
 import useAnalysis from "@/hooks/api/analysis/useAnalysis";
+import { AnalysisProcessService } from "@/service/Analysis/AnalysisProcessService";
 const Analysis = () => {
   const { analysisPreview } = useAnalysis();
-  if (analysisPreview.isLoading) return <div>Loading...</div>;
-  if (analysisPreview.error) return <div>Error loading goals</div>;
-  console.log(analysisPreview.data);
+  if (analysisPreview.isLoading)
+    return <div className="loading">Loading...</div>;
+  if (analysisPreview.error)
+    return (
+      <div className="error">
+        <p>분석 데이터를 불러오는 중 에러가 발생했습니다.</p>
+      </div>
+    );
+
+  const { difference, analysis } = analysisPreview.data;
+
+  const AnalysisProcess = new AnalysisProcessService();
+  const graphs = AnalysisProcess.Analysis({ data: analysis });
+
   return (
     <section className={Wrapper}>
       <Header>
@@ -21,7 +33,7 @@ const Analysis = () => {
       <Expenses>
         <ExpensesWrapper>
           <P>지난주 대비</P>
-          <H2>15% 덜 썻어요</H2>
+          <H2>{difference} 덜 썻어요</H2>
         </ExpensesWrapper>
       </Expenses>
     </section>

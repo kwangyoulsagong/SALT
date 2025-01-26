@@ -12,7 +12,6 @@ export const analysisHandlers = [
       );
 
       return HttpResponse.json({
-        totalAmount: totalAmountThisWeek,
         difference,
         analysis: analysisResponses.preview(),
       });
