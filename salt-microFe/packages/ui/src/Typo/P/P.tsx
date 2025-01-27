@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { pVariant } from "./styles/P.css.ts";
-type variantType = "email" | "primary" | "third";
+type variantType = "email" | "primary" | "secondary" | "third";
 interface pProps {
   variant?: variantType;
   children: ReactNode;

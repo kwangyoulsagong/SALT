@@ -21,4 +21,9 @@ export const pVariant = styleVariants({
     fontSize: vars.fontSizes.xsmall,
     fontWeight: vars.fontWeights.bold,
   },
+  secondary: {
+    color: commonStyles.color,
+    fontWeight: commonStyles.fontWeight,
+    fontSize: vars.fontSizes.body,
+  },
 });
