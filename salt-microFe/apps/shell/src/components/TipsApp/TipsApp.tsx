@@ -1,10 +1,13 @@
 import { Wrapper } from "@repo/ui/wrapper";
 import { Card } from "@repo/ui/card";
-const Tips = () => {
+import Tips from "./Tips/Tips";
+const Tip = () => {
   return (
     <Wrapper>
-      <Card size="lg">fasfads</Card>
+      <Card size="lg">
+        <Tips />
+      </Card>
     </Wrapper>
   );
 };
-export default Tips;
+export default Tip;

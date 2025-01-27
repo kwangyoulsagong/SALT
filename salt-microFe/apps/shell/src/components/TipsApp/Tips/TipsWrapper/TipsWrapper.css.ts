@@ -1,12 +1,14 @@
+import { vars } from "@/styles/tokens.css";
 import { style } from "@vanilla-extract/css";
 export const Wrapper = style({
   width: "100%",
-  height: "100%",
-  borderRadius: "20px",
+  height: "55px",
+  borderRadius: "10px",
+  background: vars.colors.background.third,
   display: "flex",
   justifyContent: "center",
   flexDirection: "column",
-  gap: "15px",
+  gap: "2px",
   paddingLeft: "8%",
   paddingRight: "8%",
 });
