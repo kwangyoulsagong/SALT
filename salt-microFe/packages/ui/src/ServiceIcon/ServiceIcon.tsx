@@ -1,5 +1,11 @@
 import { Icons } from "./Styles/Icon.css.ts";
-type serviceType = "mission" | "analysis" | "ranking" | "tip" | "social";
+type serviceType =
+  | "mission"
+  | "analysis"
+  | "ranking"
+  | "tip"
+  | "social"
+  | "game";
 interface IconProps {
   variant?: serviceType;
 }
@@ -11,6 +17,7 @@ export const ServiceIcon = ({ variant = "mission" }: IconProps) => {
     ranking: "/assets/Icons/ranking.svg",
     tip: "/assets/Icons/tip.svg",
     social: "/assets/Icons/social.svg",
+    game: "/assets/Icons/game.svg",
   };
 
   return (

@@ -3,7 +3,7 @@ import HomeContainer from "@/components/Home/Container/HomeContainer";
 import Header from "@/components/Home/Header/Header";
 import Tip from "@/components/TipsApp/TipsApp";
 const Goals = lazy(() => import("goals/GoalsApp"));
-const Game = lazy(() => import("game/App"));
+const Game = lazy(() => import("game/GameApp"));
 const Social = lazy(() => import("social/SocialApp"));
 const Missions = lazy(() => import("missions/MissionsApp"));
 const Analysis = lazy(() => import("analysis/AnalysisApp"));
@@ -21,6 +21,7 @@ export default function Home() {
         <Ranking />
         <Tip />
         <Social />
+        <Game />
       </Suspense>
     </HomeContainer>
   );
