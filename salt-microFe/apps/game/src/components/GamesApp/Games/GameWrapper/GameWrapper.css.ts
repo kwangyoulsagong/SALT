@@ -1,12 +1,12 @@
 import { style } from "@vanilla-extract/css";
 export const Wrapper = style({
   width: "100%",
-  height: "100%",
-  borderRadius: "20px",
+  height: "45px",
+  borderRadius: "10px",
+  background: "#FFEFE6",
   display: "flex",
-  justifyContent: "center",
-  flexDirection: "column",
-  gap: "10px",
+  justifyContent: "space-between",
+  alignItems: "center",
   paddingLeft: "8%",
   paddingRight: "8%",
 });
