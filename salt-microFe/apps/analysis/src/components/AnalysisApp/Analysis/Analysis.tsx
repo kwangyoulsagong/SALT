@@ -1,5 +1,5 @@
 import { Wrapper } from "./Analysis.css";
-import Header from "./Header/Header";
+import { Header } from "@repo/ui/header";
 import { ServiceIcon } from "@repo/ui/serviceicon";
 import { H3 } from "@repo/ui/h3";
 import Expenses from "./Expenses/Expenses";

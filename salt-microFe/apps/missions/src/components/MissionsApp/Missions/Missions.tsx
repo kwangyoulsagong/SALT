@@ -1,4 +1,4 @@
-import Header from "./Header/Header";
+import { Header } from "@repo/ui/header";
 import { Wrapper } from "./Missions.css";
 import { ServiceIcon } from "@repo/ui/serviceicon";
 import { H3 } from "@repo/ui/h3";

@@ -6,7 +6,7 @@ const Game = lazy(() => import("game/App"));
 const Social = lazy(() => import("social/App"));
 const Missions = lazy(() => import("missions/MissionsApp"));
 const Analysis = lazy(() => import("analysis/AnalysisApp"));
-const Ranking = lazy(() => import("ranking/App"));
+const Ranking = lazy(() => import("ranking/RankingApp"));
 const Notification = lazy(() => import("notification/App"));
 
 export default function Home() {
@@ -17,6 +17,7 @@ export default function Home() {
         <Goals />
         <Missions />
         <Analysis />
+        <Ranking />
       </Suspense>
     </HomeContainer>
   );

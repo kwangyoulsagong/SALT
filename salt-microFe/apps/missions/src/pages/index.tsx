@@ -1,5 +1,5 @@
 import Missions from "@/components/MissionsApp/Missions/Missions";
-import Wrapper from "@/components/MissionsApp/Wrapper/Wrapper";
+import { Wrapper } from "@repo/ui/wrapper";
 import { Card } from "@repo/ui/card";
 export default function MissionsApp() {
   return (

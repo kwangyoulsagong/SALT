@@ -11,7 +11,7 @@ const nextConfig = {
         name: "ranking",
         filename: "static/chunks/remoteEntry.js",
         exposes: {
-          "./App": "./src/pages/_app.tsx",
+          "./RankingApp": "./src/pages/index.tsx",
         },
         shared: {
           react: {
@@ -19,6 +19,10 @@ const nextConfig = {
             requiredVersion: false,
           },
           "react-dom": {
+            singleton: true,
+            requiredVersion: false,
+          },
+          "@tanstack/react-query": {
             singleton: true,
             requiredVersion: false,
           },
