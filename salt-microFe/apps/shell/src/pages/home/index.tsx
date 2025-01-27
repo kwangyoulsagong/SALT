@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useEffect } from "react";
 import HomeContainer from "@/components/Home/Container/HomeContainer";
 import Header from "@/components/Home/Header/Header";
+import Tips from "@/components/TipsApp/TipsApp";
 const Goals = lazy(() => import("goals/GoalsApp"));
 const Game = lazy(() => import("game/App"));
 const Social = lazy(() => import("social/App"));
@@ -18,6 +19,7 @@ export default function Home() {
         <Missions />
         <Analysis />
         <Ranking />
+        <Tips />
       </Suspense>
     </HomeContainer>
   );
