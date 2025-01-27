@@ -7,7 +7,20 @@ import { P } from "@repo/ui/p";
 import RankingWrapper from "./RankingWrapper/RankingWrapper";
 import GlobalRanks from "./RankingWrapper/GlobalRanks/GlobalRanks";
 import FriendRanks from "./RankingWrapper/FriendRanks /FriendRanks";
+import useRanking from "@/hooks/api/ranking/useRanking";
+import { RanksService } from "@/service/ranking/RanksService";
 const Ranking = () => {
+  const { myRanking } = useRanking();
+  if (myRanking.isLoading) return <div className="loading">Loading...</div>;
+  if (myRanking.error)
+    return (
+      <div className="error">
+        <p>랭킹 데이터를 불러오는 중 에러가 발생했습니다.</p>
+      </div>
+    );
+  const { globalRanks, familyRanks } = myRanking.data;
+  const ranksService = new RanksService();
+  const ranks = ranksService.ranks({ globalRanks, familyRanks });
   return (
     <section className={Wrapper}>
       <Header>
@@ -17,11 +30,29 @@ const Ranking = () => {
       <RankingWrapper>
         <GlobalRanks>
           <P variant="secondary">현재 순위</P>
-          <H2>상위 25%</H2>
+          <H2>
+            {ranks.globalRank.icon && (
+              <img
+                width={"15px"}
+                height={"15px"}
+                src={ranks.globalRank.icon}
+              ></img>
+            )}{" "}
+            {ranks.globalRank.text}
+          </H2>
         </GlobalRanks>
         <FriendRanks>
           <P variant="secondary">친구끼리 순위</P>
-          <H2>1등</H2>
+          <H2>
+            {ranks.familyRank.icon && (
+              <img
+                width={"15px"}
+                height={"15px"}
+                src={ranks.familyRank.icon}
+              ></img>
+            )}{" "}
+            {ranks.familyRank.text}
+          </H2>
         </FriendRanks>
       </RankingWrapper>
     </section>

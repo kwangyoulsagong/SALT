@@ -1,5 +1,5 @@
 export const RankingResponses = {
-  ranks: () => ({
+  MyRanks: () => ({
     globalRanks: {
       top: false,
       ranks: 25,

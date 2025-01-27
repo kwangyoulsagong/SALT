@@ -1,4 +1,3 @@
 export const querykeys = {
-  MyGoals: ["Mygoals"] as const,
-  Goals: ["Goals"] as const,
+  MyRanking: ["MyRanking"] as const,
 } as const;
