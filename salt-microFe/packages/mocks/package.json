@@ -5,7 +5,8 @@
   "private": true,
   "exports": {
     "./goals": "./src/goals/handlers/Goals.ts",
-    "./analysis":"./src/analysis/handlers/Analysis.ts"
+    "./analysis": "./src/analysis/handlers/Analysis.ts",
+    "./ranking": "./src/ranking/handlers/Ranking.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
