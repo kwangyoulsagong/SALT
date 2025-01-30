@@ -9,6 +9,8 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
+    "@repo/ui": "workspace:*",
+    "@repo/mocks": "workspace:*",
     "@module-federation/nextjs-mf": "^8.8.11",
     "@reduxjs/toolkit": "^2.5.0",
     "@sentry/nextjs": "^8.50.0",

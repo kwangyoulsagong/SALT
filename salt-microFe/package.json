@@ -1,11 +1,13 @@
 {
   "name": "salt-microFe",
   "private": true,
+  "packageManager": "pnpm@8.15.4",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@module-federation/nextjs-mf": "8.8.11",
@@ -19,15 +21,18 @@
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "14.2.23",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.4.3",
     "turbo": "latest",
     "typescript": "^5"
   },
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "npm@10.9.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+  "lint-staged": {
+    "apps/**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
 }
