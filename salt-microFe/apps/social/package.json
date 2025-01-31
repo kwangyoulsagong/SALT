@@ -9,6 +9,8 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
+    "@repo/ui": "workspace:*",
+    "@repo/mocks": "workspace:*",
     "@module-federation/nextjs-mf": "^8.8.11",
     "@reduxjs/toolkit": "^2.5.0",
     "@sentry/nextjs": "^8.50.0",
@@ -34,6 +36,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.23",
     "jest": "^29.7.0",
+    "msw": "^2.7.0",
     "ts-jest": "^29.2.5",
     "typescript": "^5"
   }

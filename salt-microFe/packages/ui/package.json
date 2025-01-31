@@ -7,11 +7,20 @@
   "type": "module",
   "private": true,
   "exports": {
-    "./button": "./src/button.tsx",
-    "./card": "./src/card.tsx",
+    "./button": "./src/Button/button.tsx",
+    "./input": "./src/InputField/InputField.tsx",
+    "./card": "./src/Card/Card.tsx",
+    "./icon": "./src/Icon/Icon.tsx",
     "./code": "./src/code.tsx",
-    "./styles": "./src/styles/index.css.ts",
-    "./styles/button": "./src/styles/button.css.ts"
+    "./styles": "./src/Button/styles/index.css.ts",
+    "./styles/button": "./src/Button/styles/button.css.ts",
+    "./h3": "./src/Typo/H3/H3.tsx",
+    "./p": "./src/Typo/P/P.tsx",
+    "./h2": "./src/Typo/H2/H2.tsx",
+    "./h4": "./src/Typo/H4/H4.tsx",
+    "./serviceicon": "./src/ServiceIcon/ServiceIcon.tsx",
+    "./wrapper": "./src/Wrapper/Wrapper.tsx",
+    "./header": "./src/Header/Header.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -37,7 +46,9 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "next": "^14.2.23",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "react-hook-form": "^7.54.2"
   }
 }

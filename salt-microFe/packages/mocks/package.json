@@ -1,0 +1,33 @@
+{
+  "name": "@repo/mocks",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./goals": "./src/goals/handlers/Goals.ts",
+    "./analysis": "./src/analysis/handlers/Analysis.ts",
+    "./ranking": "./src/ranking/handlers/Ranking.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "generate:component": "turbo gen react-component",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@turbo/gen": "^1.12.4",
+    "@types/node": "^20.11.24",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5",
+    "msw": "^2.7.0"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-hook-form": "^7.54.2"
+  }
+}

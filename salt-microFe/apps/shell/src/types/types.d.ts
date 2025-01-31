@@ -1,7 +1,7 @@
-declare module "goals/App";
-declare module "game/App";
-declare module "social/App";
-declare module "missions/App";
-declare module "analysis/App";
-declare module "ranking/App";
+declare module "goals/GoalsApp";
+declare module "game/GameApp";
+declare module "social/SocialApp";
+declare module "missions/MissionsApp";
+declare module "analysis/AnalysisApp";
+declare module "ranking/RankingApp";
 declare module "notification/App";

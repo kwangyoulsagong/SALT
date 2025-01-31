@@ -1,9 +1,21 @@
-function App() {
+import type { AppProps } from "next/app";
+import dynamic from "next/dynamic";
+import "@/styles/globals.css";
+const ReduxProvider = dynamic(
+  () => import("react-redux").then((mod) => mod.Provider),
+  {
+    ssr: false,
+  }
+);
+import { store } from "../store/redux";
+import QueryClientProvider from "@/providers/QueryClientProvider";
+
+export default function App({ Component, pageProps }: AppProps) {
   return (
-    <div style={{ backgroundColor: "orange", padding: "20px" }}>
-      <h1>저축 랭킹 모듈입니다..</h1>
-    </div>
+    <QueryClientProvider>
+      <ReduxProvider store={store}>
+        <Component {...pageProps} />
+      </ReduxProvider>
+    </QueryClientProvider>
   );
 }
-
-export default App;

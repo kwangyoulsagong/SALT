@@ -5,8 +5,20 @@ const withVanillaExtract = createVanillaExtractPlugin();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**", // 모든 호스트를 허용
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
+    ],
+  },
   reactStrictMode: true,
-  transpilePackages: ["@repo/ui", "@repo/store"],
+  transpilePackages: ["@repo/ui", "@repo/store", "@repo/mocks"],
   webpack(config, options) {
     config.plugins.push(
       new NextFederationPlugin({
@@ -56,6 +68,10 @@ const nextConfig = {
             requiredVersion: false,
           },
           "react-dom": {
+            singleton: true,
+            requiredVersion: false,
+          },
+          "@tanstack/react-query": {
             singleton: true,
             requiredVersion: false,
           },

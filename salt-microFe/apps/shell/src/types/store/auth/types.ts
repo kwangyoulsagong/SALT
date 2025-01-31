@@ -2,7 +2,7 @@ export interface User {
   id: number;
   nickname: string;
   email: string;
-  avatar?: string;
+  profile?: string;
 }
 
 export interface AuthState {
