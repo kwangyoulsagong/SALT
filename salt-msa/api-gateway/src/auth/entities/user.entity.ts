@@ -1,10 +1,13 @@
 import {
   Entity,
-  Column,
   PrimaryGeneratedColumn,
+  Column,
   CreateDateColumn,
   UpdateDateColumn,
+  BeforeInsert,
+  BeforeUpdate,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity('users')
 export class User {
@@ -15,14 +18,24 @@ export class User {
   email: string;
 
   @Column()
+  @Exclude() // 응답에서 제외
   password: string;
 
   @Column()
   nickname: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @Column({ default: true })
+  isActive: boolean;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  emailToLowerCase() {
+    this.email = this.email.toLowerCase();
+  }
 }
