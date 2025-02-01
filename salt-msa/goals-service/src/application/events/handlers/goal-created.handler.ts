@@ -14,9 +14,9 @@ export class GoalCreatedHandler implements IEventHandler<GoalCreatedEvent> {
     try {
       // Kafka로 이벤트 발행
       await this.kafkaClient.emit('goal.created', {
-        goalId: event.goal.id,
-        userId: event.goal.userId,
-        targetAmount: event.goal.targetAmount,
+        goalId: event.goalId,
+        userId: event.userId,
+        targetAmount: event.targetAmount,
         timestamp: new Date().toISOString(),
       });
 
