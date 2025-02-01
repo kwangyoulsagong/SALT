@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateGoalCommand } from '../create-goal.command';
 import { GoalRepository } from '../../../domain/repositories/goal.repository';
-import { Goal } from '../../../domain/entities/goal.entity';
+import { InternalServerErrorException } from '@nestjs/common';
 
 @CommandHandler(CreateGoalCommand)
 export class CreateGoalHandler implements ICommandHandler<CreateGoalCommand> {
@@ -12,17 +12,23 @@ export class CreateGoalHandler implements ICommandHandler<CreateGoalCommand> {
     private eventBus: EventBus,
   ) {}
 
-  async execute(command: CreateGoalCommand): Promise<Goal> {
-    const goal = this.goalRepository.create({
-      userId: command.userId,
-      title: command.title,
-      targetAmount: command.targetAmount,
-      deadline: command.deadline,
-    });
+  async execute(command: CreateGoalCommand) {
+    try {
+      const goal = await this.goalRepository.save(
+        this.goalRepository.create({
+          userId: command.userId,
+          title: command.title,
+          targetAmount: command.targetAmount,
+          deadline: command.deadline,
+        }),
+      );
 
-    await this.goalRepository.save(goal);
-    goal.createGoal(); // 이벤트 발행
+      // Event 발행
+      this.eventBus.publish(new GoalCreatedEvent(goal));
 
-    return goal;
+      return goal;
+    } catch (error) {
+      throw new InternalServerErrorException('목표 생성 실패');
+    }
   }
 }
