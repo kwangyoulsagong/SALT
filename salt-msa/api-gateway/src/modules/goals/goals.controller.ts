@@ -8,39 +8,51 @@ import {
   Inject,
   UseGuards,
   Logger,
-  Headers,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientKafka } from '@nestjs/microservices'; // ClientProxy 대신 ClientKafka import
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-
+import { OnModuleInit } from '@nestjs/common';
 import { CreateGoalDto } from './dto/create-goal.dto';
 import { UpdateGoalDto } from './dto/update-goal.dto';
 import { GetUser, UserPayload } from 'src/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { firstValueFrom } from 'rxjs';
+
 @Controller('goals')
 @ApiTags('목표 관리' as string)
-@ApiBearerAuth('JWT-auth' as string)
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-export class GoalsController {
+export class GoalsController implements OnModuleInit {
+  private readonly logger = new Logger(GoalsController.name);
+
   constructor(
-    @Inject('GOALS_SERVICE')
-    private readonly goalsClient: ClientProxy,
+    @Inject('KAFKA_SERVICE')
+    private readonly goalsClient: ClientKafka, // ClientProxy 대신 ClientKafka 사용
   ) {}
 
+  async onModuleInit() {
+    this.goalsClient.subscribeToResponseOf('createGoal');
+    this.goalsClient.subscribeToResponseOf('getGoals');
+    this.goalsClient.subscribeToResponseOf('updateGoal');
+    await this.goalsClient.connect();
+  }
   @Post()
   @ApiOperation({ summary: '목표 생성' })
-  createGoal(
-    @Body() dto: CreateGoalDto,
-    @GetUser() user: UserPayload,
-    @Headers('authorization') authorization: string,
-  ) {
-    const logger = new Logger('GoalsController');
-    logger.log(JSON.stringify(dto)); // 객체를 문자열로 변환
-    return this.goalsClient.send('createGoal', {
-      ...dto,
-      userId: user.id,
-      authorization,
-    });
+  async createGoal(@Body() dto: CreateGoalDto, @GetUser() user: UserPayload) {
+    this.logger.log(`Creating goal for user ${user.id}`);
+    try {
+      const response = await firstValueFrom(
+        this.goalsClient.send('createGoal', {
+          ...dto,
+          userId: user.id,
+        }),
+      );
+      this.logger.log(`Goal created successfully`);
+      return response;
+    } catch (error) {
+      this.logger.error(`Failed to create goal: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Get()

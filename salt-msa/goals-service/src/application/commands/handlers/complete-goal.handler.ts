@@ -4,13 +4,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CompleteGoalCommand } from '../complete-goal.command';
 import { GoalRepository } from '../../../domain/repositories/goal.repository';
 import { GoalCompletedEvent } from 'src/application/events/handlers/goal-completed.event';
+import { Goal } from 'src/domain/entities/goal.entity';
 
 @CommandHandler(CompleteGoalCommand)
 export class CompleteGoalHandler
   implements ICommandHandler<CompleteGoalCommand>
 {
   constructor(
-    @InjectRepository(GoalRepository)
     private readonly goalRepository: GoalRepository,
     private readonly eventBus: EventBus,
   ) {}

@@ -24,6 +24,7 @@
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
     "@nestjs/cqrs": "^11.0.0",
+    "@nestjs/jwt": "^11.0.0",
     "@nestjs/mapped-types": "github:nestjs/mapped-types",
     "@nestjs/microservices": "^11.0.7",
     "@nestjs/platform-express": "^11.0.1",

@@ -4,13 +4,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { GoalRepository } from 'src/domain/repositories/goal.repository';
 import { GoalResponseDto } from 'src/interfaces/dtos/goal-response.dto';
 import { GetGoalByIdQuery } from '../get-goal-by-id.query';
+import { Goal } from 'src/domain/entities/goal.entity';
 
 @QueryHandler(GetGoalByIdQuery)
 export class GetGoalByIdHandler implements IQueryHandler<GetGoalByIdQuery> {
-  constructor(
-    @InjectRepository(GoalRepository)
-    private goalRepository: GoalRepository,
-  ) {}
+  constructor(private goalRepository: GoalRepository) {}
 
   async execute(query: GetGoalByIdQuery) {
     const goal = await this.goalRepository.findOne({

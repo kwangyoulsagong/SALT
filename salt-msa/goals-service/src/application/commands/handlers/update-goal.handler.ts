@@ -11,7 +11,6 @@ import { GoalUpdatedEvent } from 'src/application/events/handlers/goal-updated.e
 @CommandHandler(UpdateGoalCommand)
 export class UpdateGoalHandler implements ICommandHandler<UpdateGoalCommand> {
   constructor(
-    @InjectRepository(GoalRepository)
     private goalRepository: GoalRepository,
     private eventBus: EventBus,
   ) {}
@@ -24,11 +23,10 @@ export class UpdateGoalHandler implements ICommandHandler<UpdateGoalCommand> {
     if (!goal) {
       throw new NotFoundException('목표를 찾을 수 없습니다');
     }
-
-    const updatedGoal = await this.goalRepository.save({
-      ...goal,
-      ...command.updateData,
-    });
+    // 엔티티의 속성들만 업데이트
+    Object.assign(goal, command.updateData);
+    // 수정된 엔티티 저장
+    const updatedGoal = await this.goalRepository.save(goal);
 
     this.eventBus.publish(new GoalUpdatedEvent(updatedGoal));
 

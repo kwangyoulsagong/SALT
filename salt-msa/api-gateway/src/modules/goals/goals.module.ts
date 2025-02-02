@@ -6,11 +6,16 @@ import { GoalsController } from './goals.controller';
   imports: [
     ClientsModule.register([
       {
-        name: 'GOALS_SERVICE',
-        transport: Transport.TCP,
+        name: 'KAFKA_SERVICE', // 이름 통일
+        transport: Transport.KAFKA,
         options: {
-          host: 'localhost',
-          port: 4001,
+          client: {
+            clientId: 'goals',
+            brokers: ['localhost:9092'],
+          },
+          consumer: {
+            groupId: 'goals-consumer',
+          },
         },
       },
     ]),

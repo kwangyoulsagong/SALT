@@ -7,10 +7,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 
 @QueryHandler(GetGoalsQuery)
 export class GetGoalsHandler implements IQueryHandler<GetGoalsQuery> {
-  constructor(
-    @InjectRepository(GoalRepository)
-    private goalRepository: GoalRepository,
-  ) {}
+  constructor(private goalRepository: GoalRepository) {}
 
   async execute(query: GetGoalsQuery) {
     try {
