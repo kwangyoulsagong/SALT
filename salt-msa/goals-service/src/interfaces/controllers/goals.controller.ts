@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Body, Param, Query, Put } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  Query,
+  Put,
+  Logger,
+} from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
   ApiTags,

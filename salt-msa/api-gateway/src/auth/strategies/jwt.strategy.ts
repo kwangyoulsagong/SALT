@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-jwt';
+import { Strategy, ExtractJwt } from 'passport-jwt';
 import type { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 // 같은 파일에 인터페이스 정의
 type JwtFromRequestFunction = (req: Request) => string | null;
@@ -25,22 +26,22 @@ interface ValidatedUser {
 }
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy<typeof Strategy>(Strategy) {
-  constructor() {
-    const options: JwtStrategyOptions = {
-      jwtFromRequest: (req: Request): string | null => {
-        const authHeader = req.headers.authorization;
-        return authHeader?.replace('Bearer ', '') ?? null;
-      },
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private configService: ConfigService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: 'your-secret-key',
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    super(options);
+      secretOrKey: configService.get<string>(
+        'JWT_SECRET',
+        'fallback-secret-key',
+      ),
+    });
   }
 
-  validate(payload: JwtPayload): ValidatedUser {
+  async validate(payload: JwtPayload): Promise<ValidatedUser> {
+    if (!payload) {
+      throw new UnauthorizedException('Invalid token');
+    }
     return {
       id: payload.sub,
       email: payload.email,

@@ -2,12 +2,23 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
 
+  // Swagger 설정
+  const config = new DocumentBuilder()
+    .setTitle('SALT API')
+    .setDescription('SALT 서비스 API 문서')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-docs', app, document);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // DTO에 정의되지 않은 속성 제거

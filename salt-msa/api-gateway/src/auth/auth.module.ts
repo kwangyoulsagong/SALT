@@ -7,6 +7,8 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { User } from './entities/user.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -16,14 +18,17 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     // Configure Passport module
     PassportModule.register({ defaultStrategy: 'jwt' }),
 
-    // Configure JWT module
-    JwtModule.register({
-      secret: 'your-secret-key', // Replace with a secure, environment-specific secret
-      signOptions: { expiresIn: '1h' }, // Token expiration time
+    JwtModule.registerAsync({
+      imports: [ConfigModule], // Make sure to import ConfigModule
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET', 'fallback-secret-key'),
+        signOptions: { expiresIn: '1h' },
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard],
   exports: [
     AuthService,
     JwtModule, // Export JwtModule to use jwt service in other modules if needed
