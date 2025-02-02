@@ -16,6 +16,7 @@ export class GetGoalsHandler implements IQueryHandler<GetGoalsQuery> {
     try {
       const goals = await this.goalRepository.findByUserId(query.userId);
       return goals.map((goal) => new GoalResponseDto(goal));
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       throw new InternalServerErrorException('목표 조회 실패');
     }

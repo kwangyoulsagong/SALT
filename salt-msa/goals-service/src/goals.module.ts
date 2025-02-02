@@ -2,12 +2,15 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { GoalsController } from './interfaces/controllers/goals.controller';
-import { GoalRepository } from './domain/repositories/goal.repository';
-import { CreateGoalHandler } from './application/commands/handlers/create-goal.handler';
-import { GetGoalsHandler } from './application/queries/handlers/get-goals.handler';
-import { GoalCreatedHandler } from './application/events/handlers/goal-created.handler';
+
 import { Goal } from './domain/entities/goal.entity';
+import { GoalRepository } from './domain/repositories/goal.repository';
+
+import { QueryHandlers } from './application/queries';
+
+import { GoalsController } from './interfaces/controllers/goals.controller';
+import { CommandHandlers } from './application/commands';
+import { EventHandlers } from './application/events';
 
 @Module({
   imports: [
@@ -32,9 +35,9 @@ import { Goal } from './domain/entities/goal.entity';
   controllers: [GoalsController],
   providers: [
     GoalRepository,
-    CreateGoalHandler,
-    GetGoalsHandler,
-    GoalCreatedHandler,
+    ...CommandHandlers,
+    ...QueryHandlers,
+    ...EventHandlers,
   ],
 })
 export class GoalsModule {}

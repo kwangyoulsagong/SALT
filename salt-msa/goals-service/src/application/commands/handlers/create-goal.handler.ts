@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateGoalCommand } from '../create-goal.command';
 import { GoalRepository } from '../../../domain/repositories/goal.repository';
 import { InternalServerErrorException } from '@nestjs/common';
+import { GoalCreatedEvent } from '../../../domain/events/goal-created.event';
 
 @CommandHandler(CreateGoalCommand)
 export class CreateGoalHandler implements ICommandHandler<CreateGoalCommand> {
@@ -27,6 +28,7 @@ export class CreateGoalHandler implements ICommandHandler<CreateGoalCommand> {
       this.eventBus.publish(new GoalCreatedEvent(goal));
 
       return goal;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       throw new InternalServerErrorException('목표 생성 실패');
     }

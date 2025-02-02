@@ -3,6 +3,7 @@ import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GoalRepository } from 'src/domain/repositories/goal.repository';
 import { GoalResponseDto } from 'src/interfaces/dtos/goal-response.dto';
+import { GetGoalByIdQuery } from '../get-goal-by-id.query';
 
 @QueryHandler(GetGoalByIdQuery)
 export class GetGoalByIdHandler implements IQueryHandler<GetGoalByIdQuery> {

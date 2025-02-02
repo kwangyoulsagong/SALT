@@ -10,17 +10,15 @@ export class GoalCreatedHandler implements IEventHandler<GoalCreatedEvent> {
     private readonly kafkaClient: ClientKafka,
   ) {}
 
-  async handle(event: GoalCreatedEvent) {
+  handle(event: GoalCreatedEvent) {
     try {
-      // Kafka로 이벤트 발행
-      await this.kafkaClient.emit('goal.created', {
+      this.kafkaClient.emit<string>('goal.created', {
         goalId: event.goalId,
         userId: event.userId,
         targetAmount: event.targetAmount,
+        title: event.title,
         timestamp: new Date().toISOString(),
       });
-
-      // Redis 캐시 업데이트 등 추가 작업 가능
     } catch (error) {
       console.error('Failed to process goal created event:', error);
     }

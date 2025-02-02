@@ -45,7 +45,7 @@ export class Goal extends AggregateRoot {
   updatedAt: Date;
 
   createGoal() {
-    this.apply(new GoalCreatedEvent(this.id, this.userId));
+    this.apply(new GoalCreatedEvent(this)); // goal 엔티티 전체를 전달
   }
 
   updateProgress(amount: number) {
