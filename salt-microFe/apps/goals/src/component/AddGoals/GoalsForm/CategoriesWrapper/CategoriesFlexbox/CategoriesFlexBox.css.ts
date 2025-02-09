@@ -1,8 +1,9 @@
 import { style } from "@vanilla-extract/css";
-export const Container = style({
-  marginTop: "15%",
+export const Flex = style({
   width: "100%",
   display: "flex",
+  flexDirection: "coloumn",
+  justifyContent: "center",
   alignItems: "center",
-  flexDirection: "column",
+  gap: "10px",
 });
