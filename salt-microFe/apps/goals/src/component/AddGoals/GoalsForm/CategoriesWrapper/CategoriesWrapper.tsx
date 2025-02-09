@@ -1,28 +1,26 @@
 import { Icon } from "@repo/ui/icon";
+import { H3 } from "@repo/ui/h3";
 import CategoriesFlexBox from "./CategoriesFlexbox/CategoriesFlexBox";
 import { Wrapper } from "./CategoriesWrapper.css";
+import { useState } from "react";
+import { CATEGORIES } from "@/utils/CategoriesMap";
 
 const CategoriesWrapper = () => {
+  const [selected, setSelected] = useState("");
+
+  const handleClick = (value: string) => {
+    setSelected(selected === value ? "" : value);
+  };
+
   return (
     <section className={Wrapper}>
-      <CategoriesFlexBox>
-        <Icon variant="trip" />
-      </CategoriesFlexBox>
-      <CategoriesFlexBox>
-        <Icon variant="car" />
-      </CategoriesFlexBox>
-      <CategoriesFlexBox>
-        <Icon variant="shopping" />
-      </CategoriesFlexBox>
-      <CategoriesFlexBox>
-        <Icon variant="home" />
-      </CategoriesFlexBox>
-      <CategoriesFlexBox>
-        <Icon variant="gift" />
-      </CategoriesFlexBox>
-      <CategoriesFlexBox>
-        <Icon variant="married" />
-      </CategoriesFlexBox>
+      {CATEGORIES.map((value) => (
+        <CategoriesFlexBox key={value.id}>
+          <Icon onClick={() => handleClick(value.id)} variant={value.variant} />
+          <H3>{value.label}</H3>
+          {selected == value.id && <div>선택</div>}
+        </CategoriesFlexBox>
+      ))}
     </section>
   );
 };

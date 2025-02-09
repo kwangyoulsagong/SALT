@@ -4,9 +4,10 @@ type goalsType = "trip" | "car" | "shopping" | "home" | "gift" | "married";
 interface IconProps {
   url?: string;
   variant?: goalsType;
+  onClick?: () => void;
 }
 
-export const Icon = ({ url, variant }: IconProps) => {
+export const Icon = ({ url, variant, onClick }: IconProps) => {
   const goalsVariant = {
     trip: "/assets/goals/images/trip.svg",
     car: "/assets/goals/images/car.svg",
@@ -18,6 +19,7 @@ export const Icon = ({ url, variant }: IconProps) => {
   const imgsrc = variant ? goalsVariant[variant] : url;
   return (
     <img
+      onClick={onClick}
       className={Icons}
       src={imgsrc}
       alt="도메인 이미지"
