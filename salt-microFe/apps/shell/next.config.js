@@ -72,7 +72,15 @@ const nextConfig = {
             requiredVersion: false,
           },
           "@tanstack/react-query": {
-            singleton: true,
+            singleton: false,
+            requiredVersion: false,
+          },
+          "@reduxjs/toolkit": {
+            singleton: false,
+            requiredVersion: false,
+          },
+          "react-redux": {
+            singleton: false,
             requiredVersion: false,
           },
         },

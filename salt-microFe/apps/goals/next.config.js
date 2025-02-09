@@ -27,6 +27,14 @@ const nextConfig = {
             singleton: true,
             requiredVersion: false,
           },
+          "@reduxjs/toolkit": {
+            singleton: false,
+            requiredVersion: false,
+          },
+          "react-redux": {
+            singleton: false,
+            requiredVersion: false,
+          },
         },
       })
     );
