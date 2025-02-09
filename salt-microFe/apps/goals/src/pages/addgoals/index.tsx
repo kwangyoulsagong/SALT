@@ -1,3 +1,5 @@
+import Wrapper from "@/component/AddGoals/Wrapper/Wrapper";
+
 export default function AddGoal() {
-  return <div>목표 추가</div>;
+  return <Wrapper>adf</Wrapper>;
 }
