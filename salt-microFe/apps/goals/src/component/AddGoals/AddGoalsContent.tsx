@@ -3,13 +3,15 @@ import CategoriesWrapper from "@/component/AddGoals/GoalsForm/CategoriesWrapper/
 import GoalsForm from "@/component/AddGoals/GoalsForm/GoalsForm";
 import Wrapper from "@/component/AddGoals/Wrapper/Wrapper";
 import { Button } from "@repo/ui/button";
+import { SubmitButton } from "@repo/ui/submitbutton";
 import { InputField } from "@repo/ui/input";
 import { BankIcon } from "@repo/ui/bankicon";
-import { useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import BankAccountValid from "@/component/AddGoals/GoalsForm/ButtonWrapper/BankAccountValid/BankAccountValid";
 import { H2 } from "@repo/ui/h2";
 import { ChevronRight } from "lucide-react";
 import { useAppSelector } from "@/hooks/redux/hooks";
+import SubmitButtonWrapper from "./SubmitButtonWrapper/SubmitButtonWrapper";
 interface IFormInput {
   title: string;
   amount: number;
@@ -17,10 +19,14 @@ interface IFormInput {
 const AddGoalsContent = () => {
   const { register, handleSubmit } = useForm<IFormInput>();
   const goals = useAppSelector((state) => state.goal);
-  console.log(goals);
+  const onSubmit: SubmitHandler<IFormInput> = (data) => {
+    console.log(data);
+    console.log(goals);
+  };
+
   return (
     <Wrapper>
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <GoalsForm>
           <CategoriesWrapper />
           <InputField
@@ -47,6 +53,9 @@ const AddGoalsContent = () => {
             </ButtonWrapper>
           </Button>
         </GoalsForm>
+        <SubmitButtonWrapper>
+          <SubmitButton type="submit">확인</SubmitButton>
+        </SubmitButtonWrapper>
       </form>
     </Wrapper>
   );

@@ -16,6 +16,7 @@ export const vars = createGlobalTheme(":root", {
     background: {
       primary: "#F2F4F6",
       bankAccount: "#F8F9FA",
+      submit: "#687AD7",
     },
 
     // 주요 브랜드/액션 색상

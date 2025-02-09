@@ -8,6 +8,7 @@
   "private": true,
   "exports": {
     "./button": "./src/Button/button.tsx",
+    "./submitbutton": "./src/SubmitButton/SubmitButton.tsx",
     "./input": "./src/InputField/InputField.tsx",
     "./card": "./src/Card/Card.tsx",
     "./icon": "./src/Icon/Icon.tsx",
