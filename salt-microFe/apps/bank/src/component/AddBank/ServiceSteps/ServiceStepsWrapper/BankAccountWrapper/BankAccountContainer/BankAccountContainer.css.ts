@@ -5,6 +5,6 @@ export const Wrapper = style({
   height: "50px",
   display: "flex",
   alignItems: "center",
-  justifyContent: "space-betwen",
+  justifyContent: "space-between",
   background: "#ffffff",
 });

@@ -3,6 +3,7 @@ import ServiceStepsWrapper from "./ServiceStepsWrapper/ServiceStepsWrapper";
 import { H2 } from "@repo/ui/h2";
 import { H3 } from "@repo/ui/h3";
 import { P } from "@repo/ui/p";
+import { RadioButton } from "@repo/ui/radiobutton";
 import { SubmitButton } from "@repo/ui/submitbutton";
 import TypoWrapper from "./ServiceStepsWrapper/TypoWrapper/TypoWrapper";
 import BankAccountWrapper from "./ServiceStepsWrapper/BankAccountWrapper/BankAccountWrapper";
@@ -10,12 +11,18 @@ import BankAccountContainer from "./ServiceStepsWrapper/BankAccountWrapper/BankA
 import Circle from "./ServiceStepsWrapper/BankAccountWrapper/BankAccountContainer/Circle/Circle";
 import { CreditCard } from "lucide-react";
 import BankAccountInfo from "./ServiceStepsWrapper/BankAccountWrapper/BankAccountContainer/BankAccountInfo/BankAccountInfo";
+import { useState } from "react";
 interface ServiceSteps {
   step: number;
   setStep: (number: number) => void;
 }
 const ServiceSteps = ({ step, setStep }: ServiceSteps) => {
   const currentStep = ServiceStep.find((v) => v.step === step);
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+
+  const handleAccountSelect = (accountId: string) => {
+    setSelectedAccount(accountId);
+  };
   return (
     <ServiceStepsWrapper>
       {currentStep?.step && (
@@ -28,7 +35,7 @@ const ServiceSteps = ({ step, setStep }: ServiceSteps) => {
         <BankAccountWrapper>
           <BankAccountContainer>
             <section
-              style={{ display: "flex", gap: "5px", alignItems: "center" }}
+              style={{ display: "flex", gap: "10px", alignItems: "center" }}
             >
               <Circle color="#687AD7">
                 <CreditCard width={15} height={15} color="#ffffff" />
@@ -38,6 +45,10 @@ const ServiceSteps = ({ step, setStep }: ServiceSteps) => {
                 <P>110-123-456789</P>
               </BankAccountInfo>
             </section>
+            <RadioButton
+              checked={selectedAccount === "account1"}
+              onChange={() => handleAccountSelect("account1")}
+            />
           </BankAccountContainer>
         </BankAccountWrapper>
       )}
