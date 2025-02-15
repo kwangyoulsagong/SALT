@@ -1,13 +1,18 @@
 import { ReactNode } from "react";
-import { Wrapper } from "./Styles/SubmitButton.css.ts";
+import { sizeVariants } from "./Styles/SubmitButton.css.ts";
 type Submit = "submit";
 interface SubmitButtonProps {
+  variant?: keyof typeof sizeVariants;
   type: Submit;
   children: ReactNode;
 }
-export const SubmitButton = ({ type, children }: SubmitButtonProps) => {
+export const SubmitButton = ({
+  variant = "lg",
+  type,
+  children,
+}: SubmitButtonProps) => {
   return (
-    <button className={Wrapper} type={type}>
+    <button className={sizeVariants[variant]} type={type}>
       {children}
     </button>
   );
