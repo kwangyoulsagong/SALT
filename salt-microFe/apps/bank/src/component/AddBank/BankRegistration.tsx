@@ -4,7 +4,7 @@ import Progress from "./Progress/Progress";
 import ServiceSteps from "./ServiceSteps/ServiceSteps";
 
 const BankRegistration = () => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(2);
   return (
     <BankRegistrationWrapper>
       <Progress step={step} />

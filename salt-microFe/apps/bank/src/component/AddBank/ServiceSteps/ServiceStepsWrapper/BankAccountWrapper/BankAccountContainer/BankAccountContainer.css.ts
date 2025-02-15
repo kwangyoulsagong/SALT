@@ -1,9 +1,10 @@
 import { style } from "@vanilla-extract/css";
 export const Wrapper = style({
+  padding: "5px",
   width: "100%",
+  height: "50px",
   display: "flex",
-  flexDirection: "column",
   alignItems: "center",
-  justifyContent: "center",
-  gap: "30px",
+  justifyContent: "space-betwen",
+  background: "#ffffff",
 });

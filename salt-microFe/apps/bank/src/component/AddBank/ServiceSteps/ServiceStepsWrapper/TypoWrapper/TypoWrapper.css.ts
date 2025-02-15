@@ -5,5 +5,5 @@ export const Wrapper = style({
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  gap: "30px",
+  gap: "10px",
 });
