@@ -1,4 +1,13 @@
+import { useState } from "react";
+import BankRegistrationWrapper from "./BankRegistrationWrapper/BankRegistrationWrapper";
+import Progress from "./Progress/Progress";
+
 const BankRegistration = () => {
-  return <div>뱅크 레지스트레이션</div>;
+  const [step, setStep] = useState(1);
+  return (
+    <BankRegistrationWrapper>
+      <Progress step={step} />
+    </BankRegistrationWrapper>
+  );
 };
 export default BankRegistration;
