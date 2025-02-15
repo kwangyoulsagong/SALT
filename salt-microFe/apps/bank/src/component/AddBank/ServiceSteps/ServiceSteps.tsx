@@ -12,6 +12,7 @@ import Circle from "./ServiceStepsWrapper/BankAccountWrapper/BankAccountContaine
 import { CreditCard } from "lucide-react";
 import BankAccountInfo from "./ServiceStepsWrapper/BankAccountWrapper/BankAccountContainer/BankAccountInfo/BankAccountInfo";
 import { useState } from "react";
+import AuthModal from "./ServiceStepsWrapper/authModal/authModal";
 interface ServiceSteps {
   step: number;
   setStep: (number: number) => void;
@@ -19,9 +20,18 @@ interface ServiceSteps {
 const ServiceSteps = ({ step, setStep }: ServiceSteps) => {
   const currentStep = ServiceStep.find((v) => v.step === step);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
-
+  const [modal, setModal] = useState(false);
   const handleAccountSelect = (accountId: string) => {
     setSelectedAccount(accountId);
+  };
+
+  const handleClick = (step: number) => {
+    if (step === 1) {
+      setModal(true);
+    }
+  };
+  const handleClose = () => {
+    setModal(false);
   };
   return (
     <ServiceStepsWrapper>
@@ -53,10 +63,15 @@ const ServiceSteps = ({ step, setStep }: ServiceSteps) => {
         </BankAccountWrapper>
       )}
       {currentStep?.step && (
-        <SubmitButton variant="sm" type="submit">
+        <SubmitButton
+          variant="sm"
+          type="submit"
+          onClick={() => handleClick(currentStep.step)}
+        >
           {currentStep.button}
         </SubmitButton>
       )}
+      {modal && <AuthModal onClose={handleClose} setStep={setStep} />}
     </ServiceStepsWrapper>
   );
 };

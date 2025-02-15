@@ -6,7 +6,8 @@
   "exports": {
     "./goals": "./src/goals/handlers/Goals.ts",
     "./analysis": "./src/analysis/handlers/Analysis.ts",
-    "./ranking": "./src/ranking/handlers/Ranking.ts"
+    "./ranking": "./src/ranking/handlers/Ranking.ts",
+    "./bank": "./src/openBank/handlers/openBank.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

@@ -1,5 +1,5 @@
 import { http, HttpResponse } from "msw";
-import { openBankingResponses } from "../responses/openBankingResponse.js";
+import { openBankingResponses } from "../responses/openBankingResponse";
 
 export const openBankHandlers = [
   // 인증 API

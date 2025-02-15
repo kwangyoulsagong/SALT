@@ -18,4 +18,12 @@ export const inputVariants = styleVariants({
     fontWeight: vars.fontWeights.semibold,
     borderBottom: "#F2F4F6 solid 2px",
   },
+  bank: {
+    padding: "15px",
+    width: "90%",
+    height: "40px",
+    border: `1px solid #E5E8EB`,
+    fontSize: vars.fontSizes.heading2,
+    borderRadius: "10px",
+  },
 });
