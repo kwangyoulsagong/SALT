@@ -43,7 +43,11 @@ const AddGoalsContent = () => {
             type="number"
             variant="goals"
           />
-          <Button variant="bankAccount">
+          <Button
+            eventType="route"
+            eventValue="/bank/addbank"
+            variant="bankAccount"
+          >
             <ButtonWrapper>
               <BankAccountValid>
                 <BankIcon />

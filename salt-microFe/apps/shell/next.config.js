@@ -60,6 +60,11 @@ const nextConfig = {
                 options.isServer ? "ssr" : "chunks"
               }/remoteEntry.js`
             : `notification@http://localhost:3007/_next/static/chunks/remoteEntry.js`,
+          bank: options.isServer
+            ? `bank@http://localhost:3008/_next/static/${
+                options.isServer ? "ssr" : "chunks"
+              }/remoteEntry.js`
+            : `bank@http://localhost:3008/_next/static/chunks/remoteEntry.js`,
         },
         exposes: {},
         shared: {

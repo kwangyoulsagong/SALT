@@ -1,5 +1,5 @@
 import { style } from "@vanilla-extract/css";
-export const Container = style({
+export const Wrapper = style({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",

@@ -1,13 +1,14 @@
 import { Header } from "@repo/ui/header";
-import React, { Suspense, lazy } from "react";
-const AddGoals = lazy(() => import("goals/AddGoals"));
 import { ServiceWrapper } from "@repo/ui/servicewrapper";
+import React, { Suspense, lazy } from "react";
+const AddBanks = lazy(() => import("bank/AddBank"));
+
 export default function AddGoalPage() {
   return (
     <ServiceWrapper>
-      <Header route={true}>목표 추가하기</Header>
+      <Header route={true}>계좌 등록</Header>
       <Suspense fallback={<div>로딩</div>}>
-        <AddGoals />
+        <AddBanks />
       </Suspense>
     </ServiceWrapper>
   );
