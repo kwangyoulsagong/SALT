@@ -26,10 +26,11 @@ interface AuthModalProps {
   setStep: (number: number) => void;
 }
 const AuthModal = ({ onClose, setStep }: AuthModalProps) => {
+  const bankToken = localStorage.getItem("bankToken");
   const { register, handleSubmit } = useForm<IFormInput>();
   const { auth } = useBank();
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
-    const result = await auth.mutate(data);
+    await auth.mutate(data);
     setStep(2);
     onClose();
   };

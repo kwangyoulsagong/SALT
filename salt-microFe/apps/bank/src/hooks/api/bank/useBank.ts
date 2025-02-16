@@ -6,7 +6,7 @@ const useBank = () => {
     mutationFn: bankApi.auth,
     onSuccess: (data) => {
       const { access_token } = data;
-      console.log(access_token);
+      localStorage.setItem("bankToken", access_token);
     },
   });
   return { auth };
