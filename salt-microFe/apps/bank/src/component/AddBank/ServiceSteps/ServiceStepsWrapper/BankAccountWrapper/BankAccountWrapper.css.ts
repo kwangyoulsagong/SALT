@@ -3,11 +3,12 @@ import { style } from "@vanilla-extract/css";
 export const Wrapper = style({
   padding: "12px",
   width: "75%",
-  height: "65px",
+  height: "300px",
+  overflowY: "scroll",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  justifyContent: "center",
-  gap: "10px",
+
+  gap: "20px",
   background: vars.colors.background.primary,
 });

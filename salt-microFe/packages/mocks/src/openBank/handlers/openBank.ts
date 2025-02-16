@@ -12,10 +12,9 @@ export const openBankHandlers = [
 
   // 계좌 목록 조회 API
   http.get("/api/v1/bank/account/list", async ({ request }) => {
-    const userId = request.headers.get("user-seq-no");
-    return HttpResponse.json(
-      openBankingResponses.generateAccountList(userId || "default")
-    );
+    const authorization = request.headers.get("Authorization");
+    const userId = authorization?.split(" ")[1] || "default";
+    return HttpResponse.json(openBankingResponses.generateAccountList(userId));
   }),
 
   // 계좌 상세정보 조회 API

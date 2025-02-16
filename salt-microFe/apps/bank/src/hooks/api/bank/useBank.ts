@@ -1,7 +1,9 @@
 import { bankApi } from "@/api/mock/bank/bank";
-import { useMutation } from "@tanstack/react-query";
+import { querykeys } from "@/constants/queryKeys";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 const useBank = () => {
+  const bankToken = localStorage.getItem("bankToken");
   const auth = useMutation({
     mutationFn: bankApi.auth,
     onSuccess: (data) => {
@@ -9,6 +11,11 @@ const useBank = () => {
       localStorage.setItem("bankToken", access_token);
     },
   });
-  return { auth };
+
+  const accountList = useQuery({
+    queryKey: [querykeys.AccountList, bankToken],
+    queryFn: bankApi.accountList,
+  });
+  return { auth, accountList };
 };
 export default useBank;

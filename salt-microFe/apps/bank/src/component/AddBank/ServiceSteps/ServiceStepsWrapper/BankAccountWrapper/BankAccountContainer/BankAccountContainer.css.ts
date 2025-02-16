@@ -7,4 +7,5 @@ export const Wrapper = style({
   alignItems: "center",
   justifyContent: "space-between",
   background: "#ffffff",
+  borderRadius: "15px",
 });

@@ -4,4 +4,5 @@ export const Wrapper = style({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
+  gap: "50px",
 });
