@@ -4,7 +4,6 @@ export const modalHeader = style({
   justifyContent: "space-between",
   alignItems: "center",
   padding: "10px",
-  borderBottom: `1px solid #E5E8EB`,
 });
 export const closeButton = style({
   width: "2rem",
@@ -14,6 +13,7 @@ export const closeButton = style({
   justifyContent: "center",
   borderRadius: "50%",
   border: "none",
+  background: "none",
   transition: "background-color 0.2s",
   ":hover": {
     backgroundColor: "#E5E8EB",

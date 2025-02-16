@@ -21,5 +21,6 @@ export const sizeVariants = styleVariants({
       height: "40px",
     },
   ],
+  md: [base, { width: "80%", height: "40px" }],
   lg: [base, { width: "100%", height: "60px" }],
 });

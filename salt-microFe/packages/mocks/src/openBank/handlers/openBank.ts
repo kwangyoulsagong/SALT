@@ -3,8 +3,11 @@ import { openBankingResponses } from "../responses/openBankingResponse";
 
 export const openBankHandlers = [
   // 인증 API
-  http.post("/api/v1/bank/auth", async () => {
-    return HttpResponse.json(openBankingResponses.generateAuthResponse());
+  http.post("/api/v1/bank/auth", async ({ request }) => {
+    const body = (await request.json()) as { name: string; birth: string };
+    const { name, birth } = body;
+    if (name === "사공광열" && birth === "990117")
+      return HttpResponse.json(openBankingResponses.generateAuthResponse());
   }),
 
   // 계좌 목록 조회 API

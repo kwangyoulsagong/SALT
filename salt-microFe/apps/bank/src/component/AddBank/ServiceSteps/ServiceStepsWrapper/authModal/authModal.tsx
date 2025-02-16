@@ -6,8 +6,16 @@ import ModalHeader from "./ModalOverlay/ModalContainer/ModalHeader/ModalHeader";
 import ModalOverlay from "./ModalOverlay/ModalOverlay";
 import { X } from "lucide-react";
 import { closeButton } from "./ModalOverlay/ModalContainer/ModalHeader/ModalHeader.css";
-import ModalInputContainer from "./ModalOverlay/ModalContainer/ModalInputContainer/ModalInputContainer";
-import { Container } from "./ModalOverlay/ModalContainer/ModalInputContainer/ModalInputContainer.css";
+import {
+  Container,
+  Label,
+} from "./ModalOverlay/ModalContainer/ModalInputContainer/ModalInputContainer.css";
+import InfoWrapper from "./ModalOverlay/ModalContainer/ModalInputContainer/InfoWrapper/InfoWrapper";
+import BirthWrapper from "./ModalOverlay/ModalContainer/ModalInputContainer/InfoWrapper/BirthWrapper/BirthWrapper";
+import BirthSecrete from "./ModalOverlay/ModalContainer/ModalInputContainer/InfoWrapper/BirthWrapper/BirthSecrete/BirthSecrete";
+import { SubmitButton } from "@repo/ui/submitbutton";
+import ModalFooter from "./ModalOverlay/ModalContainer/ModalFooter/ModalFooter";
+import useBank from "@/hooks/api/bank/useBank";
 interface IFormInput {
   name: string;
   birthDate: string;
@@ -19,8 +27,13 @@ interface AuthModalProps {
 }
 const AuthModal = ({ onClose, setStep }: AuthModalProps) => {
   const { register, handleSubmit } = useForm<IFormInput>();
+  const { auth } = useBank();
+  const onSubmit: SubmitHandler<IFormInput> = async (data) => {
+    const result = await auth.mutate(data);
+    setStep(2);
+    onClose();
+  };
 
-  const onSubmit: SubmitHandler<IFormInput> = (data) => console.log(data);
   return (
     <ModalOverlay>
       <ModalContainer>
@@ -32,24 +45,43 @@ const AuthModal = ({ onClose, setStep }: AuthModalProps) => {
         </ModalHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className={Container}>
-          <label>이름</label>
-          <InputField
-            register={register}
-            variant="bank"
-            name="name"
-            placeholder="name"
-            type="text"
-          />
-          <label>생년월일</label>
-          <InputField
-            register={register}
-            variant="bank"
-            name="birth"
-            placeholder="birth"
-            type="string"
-          />
-          <input type="submit" />
+          <InfoWrapper>
+            <label className={Label}>이름</label>
+            <InputField
+              register={register}
+              variant="bank"
+              name="name"
+              placeholder="name"
+              type="text"
+            />
+          </InfoWrapper>
+          <InfoWrapper>
+            <label className={Label}>생년월일 (YYMMDD)</label>
+            <BirthWrapper>
+              <InputField
+                register={register}
+                variant="birth"
+                name="birth"
+                placeholder="birth"
+                type="string"
+              />
+              <div style={{ display: "flex" }}>
+                <InputField
+                  register={register}
+                  variant="birthSecrete"
+                  name="birthSecrete"
+                  placeholder="birthSecrete"
+                  type="string"
+                />
+                <BirthSecrete />
+              </div>
+            </BirthWrapper>
+          </InfoWrapper>
+          <SubmitButton variant="md" type="submit">
+            다음
+          </SubmitButton>
         </form>
+        <ModalFooter />
       </ModalContainer>
     </ModalOverlay>
   );

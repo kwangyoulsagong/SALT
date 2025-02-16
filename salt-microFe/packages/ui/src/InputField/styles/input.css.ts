@@ -20,10 +20,29 @@ export const inputVariants = styleVariants({
   },
   bank: {
     padding: "15px",
-    width: "90%",
+    width: "80vw",
     height: "40px",
     border: `1px solid #E5E8EB`,
     fontSize: vars.fontSizes.heading2,
     borderRadius: "10px",
+  },
+
+  birth: {
+    padding: "15px",
+    width: "39vw",
+    height: "40px",
+    border: `1px solid #E5E8EB`,
+    fontSize: vars.fontSizes.heading2,
+    borderRadius: "10px",
+  },
+  birthSecrete: {
+    padding: "5px",
+    width: "10vw",
+    height: "40px",
+    border: `1px solid #E5E8EB`,
+    borderRight: "none",
+    borderTopLeftRadius: "10px",
+    borderBottomLeftRadius: "10px",
+    fontSize: vars.fontSizes.heading2,
   },
 });
