@@ -39,9 +39,12 @@ const ServiceSteps = ({ step, setStep }: ServiceSteps) => {
       setBankAccount(accountList.data.account_list);
     }
   }, [currentStep?.step, accountList.data]);
-  const handleClick = (step: number) => {
+  const handleClick = (step: number, accountId: string | null) => {
     if (step === 1) {
       setModal(true);
+    }
+    if (step === 2) {
+      window.alert(accountId);
     }
   };
   const handleClose = () => {
@@ -82,7 +85,12 @@ const ServiceSteps = ({ step, setStep }: ServiceSteps) => {
         <SubmitButton
           variant="sm"
           type="submit"
-          onClick={() => handleClick(currentStep.step)}
+          onClick={() =>
+            handleClick(
+              currentStep.step,
+              currentStep.step == 2 ? selectedAccount : ""
+            )
+          }
         >
           {currentStep.button}
         </SubmitButton>
