@@ -1,17 +1,17 @@
 import { EventCallbak, EventMessage } from "./types/type.js";
 
-class MessageBus {
+class MessageEventBus {
   private subscribers: Map<string, Set<EventCallbak>>;
-  private static instance: MessageBus;
+  private static instance: MessageEventBus;
   private constructor() {
     this.subscribers = new Map();
   }
 
-  public static getInstance(): MessageBus {
-    if (!MessageBus.instance) {
-      MessageBus.instance = new MessageBus();
+  public static getInstance(): MessageEventBus {
+    if (!MessageEventBus.instance) {
+      MessageEventBus.instance = new MessageEventBus();
     }
-    return MessageBus.instance;
+    return MessageEventBus.instance;
   }
 
   public subscribe<T = any>(
@@ -37,5 +37,12 @@ class MessageBus {
       payload,
       timestamp: Date.now(),
     };
+    if (this.subscribers.has(eventType)) {
+      this.subscribers.get(eventType)!.forEach((callback) => {
+        callback(message);
+      });
+    }
   }
 }
+export const messageEventBus = MessageEventBus.getInstance();
+export default messageEventBus;
