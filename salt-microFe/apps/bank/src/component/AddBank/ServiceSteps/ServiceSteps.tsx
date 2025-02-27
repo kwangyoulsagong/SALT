@@ -14,6 +14,9 @@ import BankAccountInfo from "./ServiceStepsWrapper/BankAccountWrapper/BankAccoun
 import { useEffect, useState } from "react";
 import AuthModal from "./ServiceStepsWrapper/authModal/authModal";
 import useBank from "@/hooks/api/bank/useBank";
+import { useMessageEventBus } from "@repo/message-event-bus/eventbus";
+import { useRouter } from "next/router";
+
 interface ServiceSteps {
   step: number;
   setStep: (number: number) => void;
@@ -25,6 +28,8 @@ interface BankAccount {
   account_num_masked: string;
 }
 const ServiceSteps = ({ step, setStep }: ServiceSteps) => {
+  const router = useRouter();
+  const { publish } = useMessageEventBus();
   const currentStep = ServiceStep.find((v) => v.step === step);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [modal, setModal] = useState(false);
@@ -43,8 +48,19 @@ const ServiceSteps = ({ step, setStep }: ServiceSteps) => {
     if (step === 1) {
       setModal(true);
     }
-    if (step === 2) {
-      window.alert(accountId);
+    if (step === 2 && accountId) {
+      // 선택된 계좌의 전체 정보를 찾아서 전송
+      const selectedBankAccount = bankAccount?.find(
+        (account) => account.fintech_use_num === accountId
+      );
+
+      if (selectedBankAccount) {
+        publish("ACCOUNT_SELECTED", selectedBankAccount);
+      }
+      setStep(3);
+    }
+    if (step == 3) {
+      router.push("/goals/addgoals");
     }
   };
   const handleClose = () => {

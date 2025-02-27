@@ -11,6 +11,7 @@
   "dependencies": {
     "@module-federation/nextjs-mf": "^8.8.11",
     "@reduxjs/toolkit": "^2.5.0",
+    "@repo/message-event-bus": "workspace:*",
     "@repo/mocks": "workspace:*",
     "@repo/ui": "workspace:*",
     "@sentry/nextjs": "^8.50.0",

@@ -18,7 +18,12 @@ const nextConfig = {
     ],
   },
   reactStrictMode: true,
-  transpilePackages: ["@repo/ui", "@repo/store", "@repo/mocks"],
+  transpilePackages: [
+    "@repo/ui",
+    "@repo/store",
+    "@repo/mocks",
+    "@repo/message-event-bus",
+  ],
   webpack(config, options) {
     config.plugins.push(
       new NextFederationPlugin({
@@ -86,6 +91,10 @@ const nextConfig = {
           },
           "react-redux": {
             singleton: false,
+            requiredVersion: false,
+          },
+          "@repo/message-event-bus": {
+            singleton: true,
             requiredVersion: false,
           },
         },

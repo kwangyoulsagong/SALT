@@ -1,9 +1,11 @@
 {
-  "name": "@repo/MessageEventBus",
+  "name": "@repo/message-event-bus",
   "version": "0.0.0",
   "type": "module",
   "private": true,
-  "exports": {},
+  "exports": {
+    "./eventbus": "./src/hooks/useMessageEventBus.ts"
+  },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "generate:component": "turbo gen react-component",

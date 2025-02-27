@@ -4,7 +4,7 @@ const { createVanillaExtractPlugin } = require("@vanilla-extract/next-plugin");
 const withVanillaExtract = createVanillaExtractPlugin();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@repo/ui", "@repo/store"],
+  transpilePackages: ["@repo/ui", "@repo/store", "@repo/message-event-bus"],
   webpack(config, options) {
     config.plugins.push(
       new NextFederationPlugin({
@@ -32,6 +32,10 @@ const nextConfig = {
           },
           "react-redux": {
             singleton: false,
+            requiredVersion: false,
+          },
+          "@repo/message-event-bus": {
+            singleton: true,
             requiredVersion: false,
           },
         },

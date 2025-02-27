@@ -12,16 +12,26 @@ import { H2 } from "@repo/ui/h2";
 import { ChevronRight } from "lucide-react";
 import { useAppSelector } from "@/hooks/redux/hooks";
 import SubmitButtonWrapper from "./SubmitButtonWrapper/SubmitButtonWrapper";
+import { useMessageEventBus } from "@repo/message-event-bus/eventbus";
+import { useEffect, useState } from "react";
 interface IFormInput {
   title: string;
   amount: number;
 }
 const AddGoalsContent = () => {
   const { register, handleSubmit } = useForm<IFormInput>();
+  const { useSubscription } = useMessageEventBus();
   const goals = useAppSelector((state) => state.goal);
+  const [accountData, setAccountData] = useState(null);
+
+  // 구독 설정
+  useSubscription("ACCOUNT_SELECTED", (data) => {
+    setAccountData(data);
+  });
   const onSubmit: SubmitHandler<IFormInput> = (data) => {
     console.log(data);
     console.log(goals);
+    console.log(accountData);
   };
 
   return (
