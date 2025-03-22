@@ -2,11 +2,7 @@ import {
   TransactionType,
   InOutType,
 } from '../../domain/entities/transaction.entity';
-import {
-  BANKS,
-  TRANSACTION_TYPES,
-  TransactionContents,
-} from '../constants/banks.constant';
+import { BANKS, TRANSACTION_TYPES } from '../constants/banks.constant';
 
 export class SimulationUtil {
   static generateDate(minusDays = 0): string {
@@ -30,7 +26,7 @@ export class SimulationUtil {
   }
 
   static generateTransactionContent(type: TransactionType): string {
-    const contents: TransactionContents = {
+    const contents = {
       [TransactionType.ACCOUNT_TRANSFER]: [
         '홍길동',
         '김철수',

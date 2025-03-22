@@ -18,25 +18,6 @@ export class GetBankAccountsHandler
     const { userId } = query;
     const accounts = await this.bankAccountRepository.findByUserId(userId);
 
-    return accounts.map((account) => {
-      const dto = new BankAccountDto();
-      dto.id = account.id;
-      dto.accountNumber = account.accountNumber;
-      dto.accountName = account.accountName;
-      dto.bankCode = account.bankCode;
-      dto.bankName = account.bankName;
-      dto.accountHolderName = account.accountHolderName;
-      dto.fintechUseNum = account.fintechUseNum;
-      dto.accountAlias = account.accountAlias;
-      dto.balance = account.balance;
-      dto.availableAmount = account.availableAmount;
-      dto.isActive = account.isActive;
-      dto.accountType = account.accountType;
-      dto.accountState = account.accountState;
-      dto.productName = account.productName;
-      dto.lastTransactionDate = account.lastTransactionDate;
-      dto.createdAt = account.createdAt;
-      return dto;
-    });
+    return accounts.map((account) => new BankAccountDto(account));
   }
 }

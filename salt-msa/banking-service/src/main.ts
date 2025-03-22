@@ -6,7 +6,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const logger = new Logger('Goals Service');
+  const logger = new Logger('Banking Service');
 
   // HTTP 서버 설정
   const app = await NestFactory.create(AppModule);
@@ -17,10 +17,10 @@ async function bootstrap() {
     options: {
       client: {
         brokers: ['localhost:9092'],
-        clientId: 'goals',
+        clientId: 'banking',
       },
       consumer: {
-        groupId: 'goals-consumer',
+        groupId: 'banking-consumer',
       },
     },
   });
@@ -35,8 +35,8 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Goals Service API')
-    .setDescription('저축 목표 관리 서비스 API 문서')
+    .setTitle('Banking Service API')
+    .setDescription('오픈뱅킹 관리 서비스 API 문서')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -52,10 +52,10 @@ async function bootstrap() {
   // 마이크로서비스와 HTTP 서버 모두 시작
   await app.startAllMicroservices();
 
-  const port = process.env.PORT || 4001;
+  const port = process.env.PORT || 4002;
   await app.listen(port);
 
-  logger.log(`Goals service is running on: ${await app.getUrl()}`);
+  logger.log(`Banking service is running on: ${await app.getUrl()}`);
   logger.log('Kafka microservice is running');
 }
 bootstrap();

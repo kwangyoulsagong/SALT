@@ -1,9 +1,4 @@
-import { GoalCompletedHandler } from './handlers/goal-completed.handler';
-import { GoalCreatedHandler } from './handlers/goal-created.handler';
-import { GoalUpdatedHandler } from './handlers/goal-updated.handler';
+import { AccountCreatedHandler } from './handlers/account-created.handler';
+import { AccountUpdatedHandler } from './handlers/account-updated.handler';
 
-export const EventHandlers = [
-  GoalCreatedHandler,
-  GoalUpdatedHandler,
-  GoalCompletedHandler,
-];
+export const EventHandlers = [AccountCreatedHandler, AccountUpdatedHandler];

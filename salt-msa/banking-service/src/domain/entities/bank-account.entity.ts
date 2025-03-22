@@ -1,4 +1,3 @@
-import { AggregateRoot } from '@nestjs/cqrs';
 import {
   Column,
   Entity,
@@ -7,12 +6,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
 import { Transaction } from './transaction.entity';
-import { AccountCreatedEvent } from '../events/account-created.event';
 
 @Entity('bank_accounts')
-export class BankAccount extends AggregateRoot {
+export class BankAccount {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -41,10 +38,10 @@ export class BankAccount extends AggregateRoot {
   accountAlias: string;
 
   @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
-  balance: number;
+  balance: number | string;
 
   @Column({ type: 'decimal', precision: 15, scale: 2, nullable: true })
-  availableAmount: number;
+  availableAmount: number | string;
 
   @Column({ default: true })
   isActive: boolean;
@@ -70,12 +67,20 @@ export class BankAccount extends AggregateRoot {
   @OneToMany(() => Transaction, (transaction) => transaction.bankAccount)
   transactions: Transaction[];
 
-  createAccount() {
-    this.apply(new AccountCreatedEvent(this));
-  }
-
   updateBalance(amount: number) {
-    this.balance += amount;
-    this.availableAmount = this.balance * 0.95;
+    const currentBalance =
+      typeof this.balance === 'string'
+        ? parseFloat(this.balance)
+        : this.balance;
+
+    this.balance = currentBalance + amount;
+
+    // availableAmount 업데이트
+    const newBalance =
+      typeof this.balance === 'string'
+        ? parseFloat(this.balance)
+        : this.balance;
+
+    this.availableAmount = newBalance * 0.95;
   }
 }

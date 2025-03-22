@@ -4,6 +4,7 @@ import { AddSimulatedAccountCommand } from '../impl/add-simulated-account.comman
 import { BankAccountRepository } from '../../../domain/repositories/bank-account.repository';
 import { TransactionRepository } from '../../../domain/repositories/transaction.repository';
 import { BankAccount } from '../../../domain/entities/bank-account.entity';
+import { AccountCreatedEvent } from '../../events/handlers/account-created.event';
 
 @CommandHandler(AddSimulatedAccountCommand)
 export class AddSimulatedAccountHandler
@@ -21,12 +22,16 @@ export class AddSimulatedAccountHandler
     try {
       this.logger.log(`Creating simulated account for user: ${command.userId}`);
 
-      // 시뮬레이션된 계좌 생성
-      const newAccount =
-        await this.bankAccountRepository.createSimulatedAccount(command.userId);
+      // 시뮬레이션 계좌 데이터 생성
+      const accountData =
+        this.bankAccountRepository.generateSimulatedAccountData(command.userId);
+      const account = this.bankAccountRepository.create(accountData);
 
-      // AggregateRoot에서 적용된 이벤트를 commit해서 발행
-      newAccount.commit();
+      // 계좌 저장
+      const newAccount = await this.bankAccountRepository.save(account);
+
+      // 이벤트 직접 발행
+      this.eventBus.publish(new AccountCreatedEvent(newAccount));
 
       // 계좌에 대한 거래 내역 생성
       await this.transactionRepository.createSimulatedTransactions(
@@ -36,10 +41,16 @@ export class AddSimulatedAccountHandler
 
       this.logger.log(`Simulated account created: ${newAccount.id}`);
       return newAccount;
-    } catch (error) {
+    } catch (error: unknown) {
+      // 에러에 타입 지정
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
       this.logger.error(
-        `Failed to create simulated account: ${error.message}`,
-        error.stack,
+        `Failed to create simulated account: ${errorMessage}`,
+        errorStack,
       );
       throw new InternalServerErrorException('계좌 생성에 실패했습니다.');
     }

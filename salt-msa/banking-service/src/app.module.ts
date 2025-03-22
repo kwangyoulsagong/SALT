@@ -1,10 +1,9 @@
-// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { GoalsModule } from './goals.module';
+import { BankingModule } from './banking.module';
 
 @Module({
   imports: [
@@ -30,7 +29,7 @@ import { GoalsModule } from './goals.module';
       inject: [ConfigService],
     }),
 
-    // Kafka 설정
+    // Kafka 설정 - 글로벌 설정으로 변경
     ClientsModule.registerAsync([
       {
         name: 'KAFKA_SERVICE',
@@ -39,11 +38,11 @@ import { GoalsModule } from './goals.module';
           transport: Transport.KAFKA,
           options: {
             client: {
-              clientId: 'goals',
+              clientId: 'banking',
               brokers: [configService.get('KAFKA_BROKER', 'localhost:9092')],
             },
             consumer: {
-              groupId: 'goals-consumer',
+              groupId: 'banking-consumer',
             },
           },
         }),
@@ -54,8 +53,7 @@ import { GoalsModule } from './goals.module';
     // CQRS 모듈
     CqrsModule,
 
-    // Goals 모듈
-    GoalsModule,
+    BankingModule,
   ],
 })
 export class AppModule {}

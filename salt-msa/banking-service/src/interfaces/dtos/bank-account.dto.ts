@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID } from 'class-validator';
+import { BankAccount } from '../../domain/entities/bank-account.entity';
 
 export class BankAccountDto {
   @ApiProperty()
@@ -49,11 +49,27 @@ export class BankAccountDto {
 
   @ApiProperty()
   createdAt: Date;
-}
 
-// 시뮬레이션 계좌 생성을 위한 DTO
-export class CreateAccountDto {
-  @ApiProperty()
-  @IsUUID()
-  userId: string;
+  constructor(account?: BankAccount) {
+    if (account) {
+      this.id = account.id;
+      this.accountNumber = account.accountNumber;
+      this.accountName = account.accountName;
+      this.bankCode = account.bankCode;
+      this.bankName = account.bankName;
+      this.accountHolderName = account.accountHolderName;
+      this.fintechUseNum = account.fintechUseNum;
+      this.accountAlias = account.accountAlias;
+      this.balance = Number(account.balance);
+      this.availableAmount = account.availableAmount
+        ? Number(account.availableAmount)
+        : undefined;
+      this.isActive = account.isActive;
+      this.accountType = account.accountType;
+      this.accountState = account.accountState;
+      this.productName = account.productName;
+      this.lastTransactionDate = account.lastTransactionDate;
+      this.createdAt = account.createdAt;
+    }
+  }
 }

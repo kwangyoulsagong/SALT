@@ -38,10 +38,10 @@ export class Transaction {
   inoutType: InOutType;
 
   @Column({ type: 'decimal', precision: 15, scale: 2 })
-  tranAmount: number;
+  tranAmount: number | string;
 
   @Column({ type: 'decimal', precision: 15, scale: 2 })
-  afterBalanceAmount: number;
+  afterBalanceAmount: number | string;
 
   @Column()
   printContent: string;

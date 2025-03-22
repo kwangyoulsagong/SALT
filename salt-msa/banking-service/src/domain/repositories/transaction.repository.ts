@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, MoreThanOrEqual } from 'typeorm';
+import {
+  Repository,
+  Between,
+  MoreThanOrEqual,
+  FindOptionsWhere,
+} from 'typeorm';
 import { Transaction } from '../entities/transaction.entity';
 import { SimulationUtil } from '../../infrastructure/utils/simulation.util';
 import { BankAccount } from '../entities/bank-account.entity';
@@ -23,13 +28,16 @@ export class TransactionRepository {
   ): Promise<[Transaction[], number]> {
     const skip = (page - 1) * limit;
 
-    const whereCondition: any = { bankAccountId };
+    // 명시적 타입 지정으로 any 타입 제거
+    const whereCondition: FindOptionsWhere<Transaction> = { bankAccountId };
 
     if (startDate && endDate) {
-      whereCondition.tranDate = Between(
-        startDate.toISOString().slice(0, 10).replace(/-/g, ''),
-        endDate.toISOString().slice(0, 10).replace(/-/g, ''),
-      );
+      const startDateStr = startDate
+        .toISOString()
+        .slice(0, 10)
+        .replace(/-/g, '');
+      const endDateStr = endDate.toISOString().slice(0, 10).replace(/-/g, '');
+      whereCondition.tranDate = Between(startDateStr, endDateStr);
     } else if (startDate) {
       const startDateStr = startDate
         .toISOString()
@@ -40,7 +48,10 @@ export class TransactionRepository {
 
     return this.repository.findAndCount({
       where: whereCondition,
-      order: { tranDate: 'DESC', tranTime: 'DESC' },
+      order: {
+        tranDate: 'DESC',
+        tranTime: 'DESC',
+      },
       skip,
       take: limit,
     });
@@ -61,19 +72,24 @@ export class TransactionRepository {
     let accountBalance = 0;
 
     if (account) {
-      accountBalance = Number(account.balance);
+      // 계좌 잔액 변환
+      accountBalance =
+        typeof account.balance === 'string'
+          ? parseFloat(account.balance)
+          : account.balance;
     } else {
       accountBalance = Math.floor(1000000 + Math.random() * 9000000);
     }
 
-    const simulatedTransactions = SimulationUtil.generateSimulatedTransactions(
-      bankAccountId,
-      accountBalance,
-    );
+    const simulatedTransactionsData =
+      SimulationUtil.generateSimulatedTransactions(
+        bankAccountId,
+        accountBalance,
+      );
 
     const createdTransactions: Transaction[] = [];
 
-    for (const transactionData of simulatedTransactions) {
+    for (const transactionData of simulatedTransactionsData) {
       const transaction = this.create(transactionData);
       const savedTransaction = await this.save(transaction);
       createdTransactions.push(savedTransaction);

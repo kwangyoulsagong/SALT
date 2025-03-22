@@ -28,24 +28,6 @@ export class GetBankAccountDetailsHandler
       throw new NotFoundException('Bank account not found');
     }
 
-    const dto = new BankAccountDto();
-    dto.id = account.id;
-    dto.accountNumber = account.accountNumber;
-    dto.accountName = account.accountName;
-    dto.bankCode = account.bankCode;
-    dto.bankName = account.bankName;
-    dto.accountHolderName = account.accountHolderName;
-    dto.fintechUseNum = account.fintechUseNum;
-    dto.accountAlias = account.accountAlias;
-    dto.balance = account.balance;
-    dto.availableAmount = account.availableAmount;
-    dto.isActive = account.isActive;
-    dto.accountType = account.accountType;
-    dto.accountState = account.accountState;
-    dto.productName = account.productName;
-    dto.lastTransactionDate = account.lastTransactionDate;
-    dto.createdAt = account.createdAt;
-
-    return dto;
+    return new BankAccountDto(account);
   }
 }

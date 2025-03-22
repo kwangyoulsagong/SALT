@@ -3,6 +3,7 @@ import {
   TransactionType,
   InOutType,
 } from '../../domain/entities/transaction.entity';
+import { Transaction } from '../../domain/entities/transaction.entity';
 
 export class TransactionDto {
   @ApiProperty()
@@ -37,4 +38,20 @@ export class TransactionDto {
 
   @ApiProperty()
   createdAt: Date;
+
+  constructor(transaction?: Transaction) {
+    if (transaction) {
+      this.id = transaction.id;
+      this.tranType = transaction.tranType;
+      this.inoutType = transaction.inoutType;
+      this.tranAmount = Number(transaction.tranAmount);
+      this.afterBalanceAmount = Number(transaction.afterBalanceAmount);
+      this.printContent = transaction.printContent;
+      this.branchName = transaction.branchName;
+      this.tranDate = transaction.tranDate;
+      this.tranTime = transaction.tranTime;
+      this.bankAccountId = transaction.bankAccountId;
+      this.createdAt = transaction.createdAt;
+    }
+  }
 }

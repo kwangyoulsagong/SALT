@@ -45,21 +45,9 @@ export class GetTransactionsHandler
         endDate,
       );
 
-    const items = transactions.map((transaction) => {
-      const dto = new TransactionDto();
-      dto.id = transaction.id;
-      dto.tranType = transaction.tranType;
-      dto.inoutType = transaction.inoutType;
-      dto.tranAmount = transaction.tranAmount;
-      dto.afterBalanceAmount = transaction.afterBalanceAmount;
-      dto.printContent = transaction.printContent;
-      dto.branchName = transaction.branchName;
-      dto.tranDate = transaction.tranDate;
-      dto.tranTime = transaction.tranTime;
-      dto.bankAccountId = transaction.bankAccountId;
-      dto.createdAt = transaction.createdAt;
-      return dto;
-    });
+    const items = transactions.map(
+      (transaction) => new TransactionDto(transaction),
+    );
 
     const totalPages = Math.ceil(total / limit);
 
