@@ -1,3 +1,3 @@
-export class GetGoalsQuery {
+export class GetBankAccountsQuery {
   constructor(public readonly userId: string) {}
 }

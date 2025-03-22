@@ -1,4 +1,9 @@
-import { GetGoalByIdHandler } from './handlers/get-goal-by-id.handler';
-import { GetGoalsHandler } from './handlers/get-goals.handler';
+import { GetBankAccountsHandler } from './handlers/get-bank-accounts.handler';
+import { GetBankAccountDetailsHandler } from './handlers/get-bank-account-details.handler';
+import { GetTransactionsHandler } from './handlers/get-transactions.handler';
 
-export const QueryHandlers = [GetGoalsHandler, GetGoalByIdHandler];
+export const QueryHandlers = [
+  GetBankAccountsHandler,
+  GetBankAccountDetailsHandler,
+  GetTransactionsHandler,
+];
