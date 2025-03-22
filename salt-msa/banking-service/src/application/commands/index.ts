@@ -1,9 +1,3 @@
-import { CompleteGoalHandler } from './handlers/complete-goal.handler';
-import { CreateGoalHandler } from './handlers/create-goal.handler';
-import { UpdateGoalHandler } from './handlers/update-goal.handler';
+import { AddSimulatedAccountHandler } from './handlers/add-simulated-account.handler';
 
-export const CommandHandlers = [
-  CreateGoalHandler,
-  UpdateGoalHandler,
-  CompleteGoalHandler,
-];
+export const CommandHandlers = [AddSimulatedAccountHandler];
