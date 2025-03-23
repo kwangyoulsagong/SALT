@@ -32,6 +32,9 @@ export class BankAccount {
   accountHolderName: string;
 
   @Column({ nullable: true })
+  birthDate: string; // 생년월일 (YYMMDD 형식)
+
+  @Column({ nullable: true })
   fintechUseNum: string;
 
   @Column({ nullable: true })
@@ -66,21 +69,4 @@ export class BankAccount {
 
   @OneToMany(() => Transaction, (transaction) => transaction.bankAccount)
   transactions: Transaction[];
-
-  updateBalance(amount: number) {
-    const currentBalance =
-      typeof this.balance === 'string'
-        ? parseFloat(this.balance)
-        : this.balance;
-
-    this.balance = currentBalance + amount;
-
-    // availableAmount 업데이트
-    const newBalance =
-      typeof this.balance === 'string'
-        ? parseFloat(this.balance)
-        : this.balance;
-
-    this.availableAmount = newBalance * 0.95;
-  }
 }

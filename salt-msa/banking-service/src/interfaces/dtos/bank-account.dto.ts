@@ -20,6 +20,9 @@ export class BankAccountDto {
   @ApiProperty({ required: false })
   accountHolderName?: string;
 
+  @ApiProperty({ required: false, description: '생년월일 (YYMMDD 형식)' })
+  birthDate?: string;
+
   @ApiProperty({ required: false })
   fintechUseNum?: string;
 
@@ -58,6 +61,7 @@ export class BankAccountDto {
       this.bankCode = account.bankCode;
       this.bankName = account.bankName;
       this.accountHolderName = account.accountHolderName;
+      this.birthDate = account.birthDate;
       this.fintechUseNum = account.fintechUseNum;
       this.accountAlias = account.accountAlias;
       this.balance = Number(account.balance);

@@ -52,20 +52,19 @@ export class BankAccountRepository {
   }
 
   // 시뮬레이션 계좌 데이터 생성
-  generateSimulatedAccountData(userId: string): Partial<BankAccount> {
+  generateSimulatedAccountData(
+    userId: string,
+    userName: string,
+    birthDate: string,
+  ): Partial<BankAccount> {
     const simulatedAccounts = SimulationUtil.generateSimulatedAccounts(
       userId,
+      userName,
+      birthDate,
       1,
     );
+
     const accountData = simulatedAccounts[0];
-
-    // 가용 금액 계산
-    const balance =
-      typeof accountData.balance === 'string'
-        ? parseFloat(accountData.balance)
-        : accountData.balance;
-
-    accountData.availableAmount = balance * 0.95;
 
     return accountData;
   }

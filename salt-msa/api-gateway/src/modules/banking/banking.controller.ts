@@ -24,6 +24,8 @@ import { GetUser, UserPayload } from 'src/auth/decorators/get-user.decorator';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { TransactionQueryDto } from './dto/transaction-query.dto';
+import { DepositDto } from './dto/deposit.dto';
+import { WithdrawDto } from './dto/withdraw.dto';
 
 @Controller('banking')
 @ApiTags('금융 계좌 관리')
@@ -44,6 +46,8 @@ export class BankingController implements OnModuleInit {
     this.bankingClient.subscribeToResponseOf('getBankAccountDetails');
     this.bankingClient.subscribeToResponseOf('getAccountTransactions');
     this.bankingClient.subscribeToResponseOf('updateAccount');
+    this.bankingClient.subscribeToResponseOf('deposit');
+    this.bankingClient.subscribeToResponseOf('withdraw');
     await this.bankingClient.connect();
   }
 
@@ -65,7 +69,6 @@ export class BankingController implements OnModuleInit {
       throw error;
     }
   }
-
   @Post('accounts/simulate')
   @ApiOperation({ summary: '시뮬레이션 계좌 추가 (테스트용)' })
   @ApiResponse({ status: 201, description: '계좌 추가 성공' })
@@ -73,12 +76,16 @@ export class BankingController implements OnModuleInit {
     @GetUser() user: UserPayload,
     @Body() createAccountDto: CreateAccountDto,
   ) {
-    this.logger.log(`Creating simulated account for user ${user.id}`);
+    this.logger.log(
+      `Creating simulated account for user ${user.id}, name: ${createAccountDto.userName}`,
+    );
     try {
       const response = await firstValueFrom(
         this.bankingClient.send('addSimulatedAccount', {
           userId: user.id,
-          ...createAccountDto,
+          userName: createAccountDto.userName,
+          birthDate: createAccountDto.birthDate,
+          accountAlias: createAccountDto.accountAlias,
         }),
       );
       this.logger.log('Simulated account created successfully');
@@ -172,6 +179,68 @@ export class BankingController implements OnModuleInit {
     } catch (error) {
       this.logger.error(
         `Failed to update account: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  @Post('accounts/:accountId/deposit')
+  @ApiOperation({ summary: '계좌 입금' })
+  @ApiResponse({ status: 200, description: '입금 성공' })
+  @ApiResponse({ status: 400, description: '잘못된 요청' })
+  @ApiResponse({ status: 404, description: '계좌를 찾을 수 없음' })
+  async deposit(
+    @GetUser() user: UserPayload,
+    @Param('accountId') accountId: string,
+    @Body() depositDto: DepositDto,
+  ) {
+    this.logger.log(`Processing deposit for account ${accountId}`);
+    try {
+      const response = await firstValueFrom(
+        this.bankingClient.send('deposit', {
+          userId: user.id,
+          accountId,
+          amount: depositDto.amount,
+          description: depositDto.description,
+        }),
+      );
+      this.logger.log(`Deposit processed successfully`);
+      return response;
+    } catch (error) {
+      this.logger.error(
+        `Failed to process deposit: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  @Post('accounts/:accountId/withdraw')
+  @ApiOperation({ summary: '계좌 출금' })
+  @ApiResponse({ status: 200, description: '출금 성공' })
+  @ApiResponse({ status: 400, description: '잘못된 요청 또는 잔액 부족' })
+  @ApiResponse({ status: 404, description: '계좌를 찾을 수 없음' })
+  async withdraw(
+    @GetUser() user: UserPayload,
+    @Param('accountId') accountId: string,
+    @Body() withdrawDto: WithdrawDto,
+  ) {
+    this.logger.log(`Processing withdrawal for account ${accountId}`);
+    try {
+      const response = await firstValueFrom(
+        this.bankingClient.send('withdraw', {
+          userId: user.id,
+          accountId,
+          amount: withdrawDto.amount,
+          description: withdrawDto.description,
+        }),
+      );
+      this.logger.log(`Withdrawal processed successfully`);
+      return response;
+    } catch (error) {
+      this.logger.error(
+        `Failed to process withdrawal: ${error.message}`,
         error.stack,
       );
       throw error;
