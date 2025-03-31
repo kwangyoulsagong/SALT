@@ -112,10 +112,20 @@
 
 <table>
   <tr>
-    <td><img src="https://velog.velcdn.com/images/tkrhdrhkdduf/post/50919b5d-41e1-4055-b723-cfd532f28d5d/image.png" alt="블록 에디터 1" /></td>
-    <td><img src="https://velog.velcdn.com/images/tkrhdrhkdduf/post/e9375921-e6ed-49f0-8e6f-732e16291fda/image.png" alt="블록 에디터 2" /></td>
+    <td><img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/bank.gif" alt="블록 에디터 1" /></td>
+    <td><img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/%EA%B3%84%EC%A2%8C%EC%84%A0%ED%83%9D.png" alt="블록 에디터 2" /></td>
   </tr>
 </table>
+
+#### **1. 저축 추가 기능**
+
+- 원하는 **저축 목표 태그**를 선택하고, 목표 금액과 기간을 입력하여 손쉽게 저축을 시작할 수 있습니다.
+- 직관적인 UI로 누구나 빠르게 저축 목표를 설정할 수 있습니다.
+
+#### **2. 계좌 선택 및 연동**
+
+- 다양한 은행 서비스와 연동하여 사용자가 직접 계좌를 선택하고 저축을 진행할 수 있습니다.
+- **원하는 계좌를 선택**한 후, 자동 저축 기능을 활용하여 더욱 편리하게 목표를 달성할 수 있습니다.
 
 ### [ 메인 페이지 ]
 
