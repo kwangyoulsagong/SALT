@@ -1,9 +1,8 @@
 <div align="center">
 
 <h1>SALT</h1>
-
+<img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/main.png">
 <h3> "금융과 재미를 결합한 새로운 방식의 자산 관리 플랫폼" </h3>
-
 <br />
 
 <h2>재미있고 지속 가능한 저축 습관을 위한 공간</h2>
