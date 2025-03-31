@@ -103,22 +103,19 @@
 - "소액 투자로 시작하는 저축 방법" 같은 실용적인 금융 정보를 매일 제공.
 - 저축과 재테크에 대한 다양한 팁을 받아볼 수 있습니다.
 
-#### 6. **게임 뱅킹**
+#### 6. **게임**
 
 - 저축을 재미있게 즐길 수 있도록 다양한 게임 요소 추가.
 - 저축 테트리스, 목표 달성 모험 게임 등으로 금전 관리를 놀이처럼 경험하세요.
 
-### [ 글 조회 ]
+### [ 저축 추가 및 뱅킹 ]
 
-<img src="https://github.com/kwangyoulsagong/Reflective/blob/main/readmeAssets/%EA%B8%80%EC%A1%B0%ED%9A%8C.gif" alt="글 작성 이미지">
-
-- 글은 블록 타입 형식으로 적용된 글을 볼 수 있습니다.
-- 헤딩(Heading) 내비게이션을 통해 해당 헤딩으로 라우팅 지원합니다.
-
-<img src="https://github.com/kwangyoulsagong/Reflective/blob/main/readmeAssets/%EB%8C%93%EA%B8%80%20%EB%8C%80%EB%8C%93%EA%B8%80.gif" alt="글 커스텀 이미지">
-
-- 해당 게시물에 댓글을 달 수 있습니다.
-- 답글도 지원해서 커뮤니티 활성화를 할 수 있습니다.
+<table>
+  <tr>
+    <td><img src="https://velog.velcdn.com/images/tkrhdrhkdduf/post/50919b5d-41e1-4055-b723-cfd532f28d5d/image.png" alt="블록 에디터 1" /></td>
+    <td><img src="https://velog.velcdn.com/images/tkrhdrhkdduf/post/e9375921-e6ed-49f0-8e6f-732e16291fda/image.png" alt="블록 에디터 2" /></td>
+  </tr>
+</table>
 
 ### [ 메인 페이지 ]
 
