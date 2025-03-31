@@ -127,29 +127,6 @@
 - 다양한 은행 서비스와 연동하여 사용자가 직접 계좌를 선택하고 저축을 진행할 수 있습니다.
 - **원하는 계좌를 선택**한 후, 자동 저축 기능을 활용하여 더욱 편리하게 목표를 달성할 수 있습니다.
 
-### [ 메인 페이지 ]
-
-<img src="https://github.com/kwangyoulsagong/Reflective/blob/main/readmeAssets/%EB%A9%94%EC%9D%B8%ED%8E%98%EC%9D%B4%EC%A7%80.gif" alt="메인 페이지">
-
-- Top 8 인기 게시물 최신 트렌드로 애니메이션 반영했습니다.
-- 최근 게시물들을 좋아요 순으로 탑 3을 먼저 표시하고,
-- 그 이후로는 최신 날짜 기준으로 정렬하는 방식으로 반영했습니다.
-
-### [ 실시간 알림 시스템 ]
-
-<img src="https://github.com/kwangyoulsagong/Reflective/blob/main/readmeAssets/%EC%95%8C%EB%A6%BC.gif" alt="실시간 알림 시스템"/>
-
-- 실시간 알림을 통한 댓글, 좋아요, 즐겨찾기 이벤트 발생시 즉시 전송했습니다.
-
-### [ 글 검색 ]
-
-<img src="https://github.com/kwangyoulsagong/Reflective/blob/main/readmeAssets/%EA%B2%80%EC%83%89.gif" alt="글 검색">
-
-- 검색은 제목 또는 작성자로 검색할 수 있습니다.
-- 검색해서 해당 블로그로 이동할 수 있습니다..
-
-<br />
-
 ## 프로젝트 실행 방법
 
 ```bash
