@@ -160,6 +160,13 @@ pnpm dev
 
 - [개인 프로젝트에 마이크로프론트엔드 도입하기: 새로운 아키텍처 탐구](https://velog.io/@tkrhdrhkdduf/%EA%B0%9C%EC%9D%B8-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%EC%97%90-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C-%EB%8F%84%EC%9E%85%ED%95%98%EA%B8%B0-%EC%83%88%EB%A1%9C%EC%9A%B4-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%ED%83%90%EA%B5%AC)
 
+<table>
+  <tr>
+    <td><img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/module-federation-clean.svg" alt="블록 에디터 1" /></td>
+    <td><img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/image-2.png" alt="블록 에디터 2" /></td>
+  </tr>
+</table>
+
 - [마이크로프론트엔드 정보 교환 방식 개선](https://velog.io/@tkrhdrhkdduf/%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C-%EC%A0%95%EB%B3%B4-%EA%B5%90%ED%99%98-%EB%B0%A9%EC%8B%9D-%EA%B0%9C%EC%84%A0)
 
 <br />
