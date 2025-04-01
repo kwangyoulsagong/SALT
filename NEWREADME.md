@@ -140,7 +140,47 @@ pnpm dev
 
 <img src="https://github.com/kwangyoulsagong/Reflective/blob/main/readmeAssets/skills.png" height="500" alt="기술스택 이미지"/>
 
-![Reflective 시스템 아키텍처](https://assetkungya.s3.ap-northeast-2.amazonaws.com/reflective.png)
+```
+graph TD
+    Shell["Shell 앱 (컨테이너)"]
+
+    %% 마이크로프론트엔드 앱들
+    Analysis["Analysis 마이크로앱"]
+    Bank["Bank 마이크로앱"]
+    Game["Game 마이크로앱"]
+    Goals["Goals 마이크로앱"]
+    Missions["Missions 마이크로앱"]
+    Notification["Notification 마이크로앱"]
+    Ranking["Ranking 마이크로앱"]
+    Social["Social 마이크로앱"]
+
+    %% 공통 서비스
+    AuthService["인증 서비스"]
+    MessageBus["이벤트 버스"]
+
+    %% 연결
+    Shell --> Analysis
+    Shell --> Bank
+    Shell --> Game
+    Shell --> Goals
+    Shell --> Missions
+    Shell --> Notification
+    Shell --> Ranking
+    Shell --> Social
+
+    %% 공통 서비스 연결
+    AuthService --> Shell
+    MessageBus --> Shell
+
+    %% 스타일링
+    classDef container fill:#1a2233,stroke:#4080ff,color:#4c8cff,stroke-width:2px;
+    classDef micro fill:#243042,stroke:#4c8cff,color:#4c8cff;
+    classDef service fill:#1f2935,stroke:#50a14f,color:#50a14f;
+
+    class Shell container;
+    class Analysis,Bank,Game,Goals,Missions,Notification,Ranking,Social micro;
+    class AuthService,MessageBus service;
+```
 
 # 💪🏻 기술적 경험
 
