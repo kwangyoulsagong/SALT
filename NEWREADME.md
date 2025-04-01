@@ -140,7 +140,7 @@ pnpm dev
 
 <img src="https://github.com/kwangyoulsagong/Reflective/blob/main/readmeAssets/skills.png" height="500" alt="기술스택 이미지"/>
 
-```
+```mermaid
 graph TD
     Shell["Shell 앱 (컨테이너)"]
 
