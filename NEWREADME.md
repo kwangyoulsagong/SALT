@@ -138,7 +138,7 @@ pnpm dev
 
 # ⚒️ 기술 스택
 
-<img src="https://github.com/kwangyoulsagong/Reflective/blob/main/readmeAssets/skills.png" height="500" alt="기술스택 이미지"/>
+<img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/SALT%20SKILLS.png" height="500" alt="기술스택 이미지"/>
 
 ```mermaid
 graph TD
