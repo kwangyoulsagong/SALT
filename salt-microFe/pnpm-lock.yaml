@@ -37,8 +37,8 @@ importers:
         specifier: 14.2.23
         version: 14.2.23(eslint@8.57.1)(typescript@5.7.3)
       husky:
-        specifier: ^9.1.7
-        version: 9.1.7
+        specifier: ^8.0.0
+        version: 8.0.3
       lint-staged:
         specifier: ^15.4.3
         version: 15.4.3
@@ -72,6 +72,103 @@ importers:
       '@vanilla-extract/next-plugin':
         specifier: ^2.4.8
         version: 2.4.9(next@14.2.23)(webpack@5.97.1)
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
+      next:
+        specifier: 14.2.23
+        version: 14.2.23(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18
+        version: 18.2.0
+      react-dom:
+        specifier: ^18
+        version: 18.2.0(react@18.2.0)
+      react-hook-form:
+        specifier: ^7.54.2
+        version: 7.54.2(react@18.2.0)
+      react-redux:
+        specifier: ^9.2.0
+        version: 9.2.0(@types/react@18.3.18)(react@18.2.0)(redux@5.0.1)
+      zustand:
+        specifier: ^5.0.3
+        version: 5.0.3(@types/react@18.3.18)(react@18.2.0)
+    devDependencies:
+      '@playwright/test':
+        specifier: ^1.49.1
+        version: 1.50.0
+      '@storybook/blocks':
+        specifier: ^8.5.0
+        version: 8.5.2(react-dom@18.2.0)(react@18.2.0)(storybook@8.5.2)
+      '@storybook/nextjs':
+        specifier: ^8.5.0
+        version: 8.5.2(@rspack/core@1.2.2)(esbuild@0.24.2)(next@14.2.23)(react-dom@18.2.0)(react@18.2.0)(storybook@8.5.2)(typescript@5.7.3)(webpack@5.97.1)
+      '@storybook/react':
+        specifier: ^8.5.0
+        version: 8.5.2(@storybook/test@8.5.2)(react-dom@18.2.0)(react@18.2.0)(storybook@8.5.2)(typescript@5.7.3)
+      '@testing-library/jest-dom':
+        specifier: ^6.6.3
+        version: 6.6.3
+      '@testing-library/react':
+        specifier: ^16.2.0
+        version: 16.2.0(@testing-library/dom@10.4.0)(@types/react-dom@18.3.5)(@types/react@18.3.18)(react-dom@18.2.0)(react@18.2.0)
+      '@types/node':
+        specifier: ^20
+        version: 20.17.16
+      '@types/react':
+        specifier: ^18
+        version: 18.3.18
+      '@types/react-dom':
+        specifier: ^18
+        version: 18.3.5(@types/react@18.3.18)
+      eslint:
+        specifier: ^8
+        version: 8.57.1
+      eslint-config-next:
+        specifier: 14.2.23
+        version: 14.2.23(eslint@8.57.1)(typescript@5.7.3)
+      jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@types/node@20.17.16)
+      msw:
+        specifier: ^2.7.0
+        version: 2.7.0(@types/node@20.17.16)(typescript@5.7.3)
+      ts-jest:
+        specifier: ^29.2.5
+        version: 29.2.5(@babel/core@7.26.7)(esbuild@0.24.2)(jest@29.7.0)(typescript@5.7.3)
+      typescript:
+        specifier: ^5
+        version: 5.7.3
+
+  apps/bank:
+    dependencies:
+      '@module-federation/nextjs-mf':
+        specifier: ^8.8.11
+        version: 8.8.12(@rspack/core@1.2.2)(next@14.2.23)(react-dom@18.2.0)(react@18.2.0)(typescript@5.7.3)(webpack@5.97.1)
+      '@reduxjs/toolkit':
+        specifier: ^2.5.0
+        version: 2.5.1(react-redux@9.2.0)(react@18.2.0)
+      '@repo/message-event-bus':
+        specifier: workspace:*
+        version: link:../../packages/message-event-bus
+      '@repo/mocks':
+        specifier: workspace:*
+        version: link:../../packages/mocks
+      '@repo/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@sentry/nextjs':
+        specifier: ^8.50.0
+        version: 8.52.1(@opentelemetry/core@1.30.1)(@opentelemetry/instrumentation@0.56.0)(@opentelemetry/sdk-trace-base@1.30.1)(next@14.2.23)(react@18.2.0)(webpack@5.97.1)
+      '@tanstack/react-query':
+        specifier: ^5.64.1
+        version: 5.65.1(react@18.2.0)
+      '@vanilla-extract/next-plugin':
+        specifier: ^2.4.8
+        version: 2.4.9(next@14.2.23)(webpack@5.97.1)
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
       next:
         specifier: 14.2.23
         version: 14.2.23(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
@@ -160,6 +257,9 @@ importers:
       '@vanilla-extract/next-plugin':
         specifier: ^2.4.8
         version: 2.4.9(next@14.2.23)(webpack@5.97.1)
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
       next:
         specifier: 14.2.23
         version: 14.2.23(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
@@ -233,6 +333,9 @@ importers:
       '@reduxjs/toolkit':
         specifier: ^2.5.0
         version: 2.5.1(react-redux@9.2.0)(react@18.2.0)
+      '@repo/message-event-bus':
+        specifier: workspace:*
+        version: link:../../packages/message-event-bus
       '@repo/mocks':
         specifier: workspace:*
         version: link:../../packages/mocks
@@ -248,6 +351,9 @@ importers:
       '@vanilla-extract/next-plugin':
         specifier: ^2.4.8
         version: 2.4.9(next@14.2.23)(webpack@5.97.1)
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
       next:
         specifier: 14.2.23
         version: 14.2.23(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
@@ -336,6 +442,9 @@ importers:
       '@vanilla-extract/next-plugin':
         specifier: ^2.4.8
         version: 2.4.9(next@14.2.23)(webpack@5.97.1)
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
       next:
         specifier: 14.2.23
         version: 14.2.23(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
@@ -424,6 +533,9 @@ importers:
       '@vanilla-extract/next-plugin':
         specifier: ^2.4.8
         version: 2.4.9(next@14.2.23)(webpack@5.97.1)
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
       next:
         specifier: 14.2.23
         version: 14.2.23(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
@@ -512,6 +624,9 @@ importers:
       '@vanilla-extract/next-plugin':
         specifier: ^2.4.8
         version: 2.4.9(next@14.2.23)(webpack@5.97.1)
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
       next:
         specifier: 14.2.23
         version: 14.2.23(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
@@ -585,6 +700,9 @@ importers:
       '@reduxjs/toolkit':
         specifier: ^2.5.0
         version: 2.5.1(react-redux@9.2.0)(react@18.2.0)
+      '@repo/message-event-bus':
+        specifier: workspace:*
+        version: link:../../packages/message-event-bus
       '@repo/mocks':
         specifier: workspace:*
         version: link:../../packages/mocks
@@ -600,6 +718,9 @@ importers:
       '@vanilla-extract/next-plugin':
         specifier: ^2.4.8
         version: 2.4.9(next@14.2.23)(webpack@5.97.1)
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
       next:
         specifier: 14.2.23
         version: 14.2.23(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
@@ -691,6 +812,9 @@ importers:
       '@vanilla-extract/next-plugin':
         specifier: ^2.4.8
         version: 2.4.9(next@14.2.23)(webpack@5.97.1)
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
       next:
         specifier: 14.2.23
         version: 14.2.23(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
@@ -781,7 +905,7 @@ importers:
         version: 5.1.0(eslint@9.19.0)
       eslint-plugin-turbo:
         specifier: ^2.3.0
-        version: 2.3.4(eslint@9.19.0)(turbo@2.3.4)
+        version: 2.3.4(eslint@9.19.0)(turbo@2.4.4)
       globals:
         specifier: ^15.12.0
         version: 15.14.0
@@ -791,6 +915,49 @@ importers:
       typescript-eslint:
         specifier: ^8.15.0
         version: 8.22.0(eslint@9.19.0)(typescript@5.7.3)
+
+  packages/message-event-bus:
+    dependencies:
+      react:
+        specifier: 18.2.0
+        version: 18.2.0
+      react-dom:
+        specifier: 18.2.0
+        version: 18.2.0(react@18.2.0)
+      react-hook-form:
+        specifier: ^7.54.2
+        version: 7.54.2(react@18.2.0)
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: '*'
+        version: link:../eslint-config
+      '@repo/typescript-config':
+        specifier: '*'
+        version: link:../typescript-config
+      '@turbo/gen':
+        specifier: ^1.12.4
+        version: 1.13.4(@types/node@20.17.16)(typescript@5.7.3)
+      '@types/node':
+        specifier: ^20.11.24
+        version: 20.17.16
+      '@types/react':
+        specifier: ^18
+        version: 18.3.18
+      '@types/react-dom':
+        specifier: ^18
+        version: 18.3.5(@types/react@18.3.18)
+      jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@types/node@20.17.16)
+      msw:
+        specifier: ^2.7.0
+        version: 2.7.0(@types/node@20.17.16)(typescript@5.7.3)
+      ts-jest:
+        specifier: ^29.2.5
+        version: 29.2.5(@babel/core@7.26.7)(esbuild@0.24.2)(jest@29.7.0)(typescript@5.7.3)
+      typescript:
+        specifier: ^5
+        version: 5.7.3
 
   packages/mocks:
     dependencies:
@@ -839,6 +1006,9 @@ importers:
 
   packages/ui:
     dependencies:
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
       next:
         specifier: ^14.2.23
         version: 14.2.23(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
@@ -8090,7 +8260,7 @@ packages:
       string.prototype.repeat: 1.0.0
     dev: true
 
-  /eslint-plugin-turbo@2.3.4(eslint@9.19.0)(turbo@2.3.4):
+  /eslint-plugin-turbo@2.3.4(eslint@9.19.0)(turbo@2.4.4):
     resolution: {integrity: sha512-9ncoUJkQGkC28NmlQiS17oB9mrE8XaSulRZiB5pv9vmRbYjOfUwyGhY3EIcoBRdww81igxOzXmAmvNNd6GFBPg==}
     peerDependencies:
       eslint: '>6.6.0'
@@ -8098,7 +8268,7 @@ packages:
     dependencies:
       dotenv: 16.0.3
       eslint: 9.19.0
-      turbo: 2.3.4
+      turbo: 2.4.4
     dev: true
 
   /eslint-scope@5.1.1:
@@ -9123,9 +9293,9 @@ packages:
     engines: {node: '>=16.17.0'}
     dev: true
 
-  /husky@9.1.7:
-    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
-    engines: {node: '>=18'}
+  /husky@8.0.3:
+    resolution: {integrity: sha512-+dQSyqPh4x1hlO1swXBiNb2HzTDN1I2IGLQx1GrBuiqFJfoMrnZWwVmatvSiO+Iz8fBUnf+lekwNo4c2LlXItg==}
+    engines: {node: '>=14'}
     hasBin: true
     dev: true
 
@@ -10490,6 +10660,14 @@ packages:
     resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
     engines: {node: '>=12'}
     dev: true
+
+  /lucide-react@0.475.0(react@18.2.0):
+    resolution: {integrity: sha512-NJzvVu1HwFVeZ+Gwq2q00KygM1aBhy/ZrhY9FsAgJtpB+E4R7uxRk9M2iKvHa6/vNxZydIB59htha4c2vvwvVg==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    dependencies:
+      react: 18.2.0
+    dev: false
 
   /luxon@3.5.0:
     resolution: {integrity: sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==}
@@ -12012,7 +12190,7 @@ packages:
     dependencies:
       debug: 4.4.0
       module-details-from-path: 1.0.3
-      resolve: 1.22.8
+      resolve: 1.22.10
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -12082,7 +12260,6 @@ packages:
       is-core-module: 2.16.1
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
-    dev: true
 
   /resolve@1.22.8:
     resolution: {integrity: sha512-oKWePCxqpd6FlLvGV1VU0x7bkPmmCNolxzjMf4NczoDnQcIWrAF+cPtZn5i6n+RfD2d9i0tzpKnG6Yk168yIyw==}
@@ -13163,8 +13340,24 @@ packages:
     dev: true
     optional: true
 
+  /turbo-darwin-64@2.4.4:
+    resolution: {integrity: sha512-5kPvRkLAfmWI0MH96D+/THnDMGXlFNmjeqNRj5grLKiry+M9pKj3pRuScddAXPdlxjO5Ptz06UNaOQrrYGTx1g==}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
   /turbo-darwin-arm64@2.3.4:
     resolution: {integrity: sha512-IIM1Lq5R+EGMtM1YFGl4x8Xkr0MWb4HvyU8N4LNoQ1Be5aycrOE+VVfH+cDg/Q4csn+8bxCOxhRp5KmUflrVTQ==}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /turbo-darwin-arm64@2.4.4:
+    resolution: {integrity: sha512-/gtHPqbGQXDFhrmy+Q/MFW2HUTUlThJ97WLLSe4bxkDrKHecDYhAjbZ4rN3MM93RV9STQb3Tqy4pZBtsd4DfCw==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
@@ -13179,8 +13372,24 @@ packages:
     dev: true
     optional: true
 
+  /turbo-linux-64@2.4.4:
+    resolution: {integrity: sha512-SR0gri4k0bda56hw5u9VgDXLKb1Q+jrw4lM7WAhnNdXvVoep4d6LmnzgMHQQR12Wxl3KyWPbkz9d1whL6NTm2Q==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
   /turbo-linux-arm64@2.3.4:
     resolution: {integrity: sha512-MxTpdKwxCaA5IlybPxgGLu54fT2svdqTIxRd0TQmpRJIjM0s4kbM+7YiLk0mOh6dGqlWPUsxz/A0Mkn8Xr5o7Q==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /turbo-linux-arm64@2.4.4:
+    resolution: {integrity: sha512-COXXwzRd3vslQIfJhXUklgEqlwq35uFUZ7hnN+AUyXx7hUOLIiD5NblL+ETrHnhY4TzWszrbwUMfe2BYWtaPQg==}
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
@@ -13195,8 +13404,24 @@ packages:
     dev: true
     optional: true
 
+  /turbo-windows-64@2.4.4:
+    resolution: {integrity: sha512-PV9rYNouGz4Ff3fd6sIfQy5L7HT9a4fcZoEv8PKRavU9O75G7PoDtm8scpHU10QnK0QQNLbE9qNxOAeRvF0fJg==}
+    cpu: [x64]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
   /turbo-windows-arm64@2.3.4:
     resolution: {integrity: sha512-PggC3qH+njPfn1PDVwKrQvvQby8X09ufbqZ2Ha4uSu+5TvPorHHkAbZVHKYj2Y+tvVzxRzi4Sv6NdHXBS9Be5w==}
+    cpu: [arm64]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /turbo-windows-arm64@2.4.4:
+    resolution: {integrity: sha512-403sqp9t5sx6YGEC32IfZTVWkRAixOQomGYB8kEc6ZD+//LirSxzeCHCnM8EmSXw7l57U1G+Fb0kxgTcKPU/Lg==}
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
@@ -13213,6 +13438,18 @@ packages:
       turbo-linux-arm64: 2.3.4
       turbo-windows-64: 2.3.4
       turbo-windows-arm64: 2.3.4
+    dev: true
+
+  /turbo@2.4.4:
+    resolution: {integrity: sha512-N9FDOVaY3yz0YCOhYIgOGYad7+m2ptvinXygw27WPLQvcZDl3+0Sa77KGVlLSiuPDChOUEnTKE9VJwLSi9BPGQ==}
+    hasBin: true
+    optionalDependencies:
+      turbo-darwin-64: 2.4.4
+      turbo-darwin-arm64: 2.4.4
+      turbo-linux-64: 2.4.4
+      turbo-linux-arm64: 2.4.4
+      turbo-windows-64: 2.4.4
+      turbo-windows-arm64: 2.4.4
     dev: true
 
   /type-check@0.4.0:

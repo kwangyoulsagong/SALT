@@ -21,4 +21,11 @@ const commonStyles = {
 export const buttonVariants = styleVariants({
   primary: { ...commonStyles, background: vars.colors.brand.primary },
   game: { ...commonStyles, background: "#F59D71" },
+  bankAccount: {
+    width: "100%",
+    height: "60px",
+    background: vars.colors.background.bankAccount,
+    borderRadius: "15px",
+    border: "none",
+  },
 });

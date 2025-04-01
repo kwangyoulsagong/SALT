@@ -8,6 +8,8 @@
   "private": true,
   "exports": {
     "./button": "./src/Button/button.tsx",
+    "./submitbutton": "./src/SubmitButton/SubmitButton.tsx",
+    "./radiobutton":"./src/RadioButton/RadioButton.tsx",
     "./input": "./src/InputField/InputField.tsx",
     "./card": "./src/Card/Card.tsx",
     "./icon": "./src/Icon/Icon.tsx",
@@ -19,8 +21,10 @@
     "./h2": "./src/Typo/H2/H2.tsx",
     "./h4": "./src/Typo/H4/H4.tsx",
     "./serviceicon": "./src/ServiceIcon/ServiceIcon.tsx",
+    "./bankicon": "./src/BankIcon/BankIcon.tsx",
     "./wrapper": "./src/Wrapper/Wrapper.tsx",
-    "./header": "./src/Header/Header.tsx"
+    "./header": "./src/Header/Header.tsx",
+    "./servicewrapper": "./src/ServiceWrapper/ServiceWrapper.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -46,6 +50,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "lucide-react": "^0.475.0",
     "next": "^14.2.23",
     "react": "18.2.0",
     "react-dom": "18.2.0",

@@ -18,7 +18,12 @@ const nextConfig = {
     ],
   },
   reactStrictMode: true,
-  transpilePackages: ["@repo/ui", "@repo/store", "@repo/mocks"],
+  transpilePackages: [
+    "@repo/ui",
+    "@repo/store",
+    "@repo/mocks",
+    "@repo/message-event-bus",
+  ],
   webpack(config, options) {
     config.plugins.push(
       new NextFederationPlugin({
@@ -60,6 +65,11 @@ const nextConfig = {
                 options.isServer ? "ssr" : "chunks"
               }/remoteEntry.js`
             : `notification@http://localhost:3007/_next/static/chunks/remoteEntry.js`,
+          bank: options.isServer
+            ? `bank@http://localhost:3008/_next/static/${
+                options.isServer ? "ssr" : "chunks"
+              }/remoteEntry.js`
+            : `bank@http://localhost:3008/_next/static/chunks/remoteEntry.js`,
         },
         exposes: {},
         shared: {
@@ -72,6 +82,18 @@ const nextConfig = {
             requiredVersion: false,
           },
           "@tanstack/react-query": {
+            singleton: false,
+            requiredVersion: false,
+          },
+          "@reduxjs/toolkit": {
+            singleton: false,
+            requiredVersion: false,
+          },
+          "react-redux": {
+            singleton: false,
+            requiredVersion: false,
+          },
+          "@repo/message-event-bus": {
             singleton: true,
             requiredVersion: false,
           },

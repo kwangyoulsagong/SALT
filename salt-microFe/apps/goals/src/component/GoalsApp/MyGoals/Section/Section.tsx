@@ -23,7 +23,9 @@ const Section = ({ saved }: savedProps) => {
             <P>현재 모은 금액</P>
           </SaveInformation>
         </Saved>
-        <Button>추가</Button>
+        <Button eventType="route" eventValue="/goals/addgoals">
+          추가
+        </Button>
       </Overlay>
     </section>
   );

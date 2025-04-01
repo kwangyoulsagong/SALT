@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <!-- 배경 -->
+  <rect width="800" height="450" fill="#ffffff"/>
+  
+  <!-- 제목 -->
+  <text x="400" y="40" text-anchor="middle" font-family="Arial" font-size="20" font-weight="bold">Module Federation 동작 원리</text>
+  
+  <!-- Shell 앱 (왼쪽) -->
+  <rect x="80" y="100" width="180" height="120" rx="6" fill="#e6f7ff" stroke="#1890ff" stroke-width="2"/>
+  <text x="170" y="130" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">Shell App</text>
+  <text x="170" y="155" text-anchor="middle" font-family="Arial" font-size="14">Host Container</text>
+  <text x="170" y="180" text-anchor="middle" font-family="Arial" font-size="14">원격 모듈 로드</text>
+  <text x="170" y="205" text-anchor="middle" font-family="Arial" font-size="14">remoteEntry.js 참조</text>
+  
+  <!-- Remote App A (오른쪽 위) -->
+  <rect x="540" y="100" width="180" height="120" rx="6" fill="#f6ffed" stroke="#52c41a" stroke-width="2"/>
+  <text x="630" y="130" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">Remote App A</text>
+  <text x="630" y="155" text-anchor="middle" font-family="Arial" font-size="14">모듈 노출</text>
+  <text x="630" y="180" text-anchor="middle" font-family="Arial" font-size="14">외부 접근 허용</text>
+  <text x="630" y="205" text-anchor="middle" font-family="Arial" font-size="14">remoteEntry.js 생성</text>
+  
+  <!-- Remote App B (오른쪽 아래) -->
+  <rect x="540" y="260" width="180" height="120" rx="6" fill="#fff2e8" stroke="#fa8c16" stroke-width="2"/>
+  <text x="630" y="290" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">Remote App B</text>
+  <text x="630" y="315" text-anchor="middle" font-family="Arial" font-size="14">모듈 노출</text>
+  <text x="630" y="340" text-anchor="middle" font-family="Arial" font-size="14">외부 접근 허용</text>
+  <text x="630" y="365" text-anchor="middle" font-family="Arial" font-size="14">remoteEntry.js 생성</text>
+  
+  <!-- 공유 라이브러리 (왼쪽 아래) -->
+  <rect x="80" y="260" width="180" height="120" rx="6" fill="#f9f0ff" stroke="#722ed1" stroke-width="2"/>
+  <text x="170" y="290" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">공유 라이브러리</text>
+  <text x="170" y="315" text-anchor="middle" font-family="Arial" font-size="14">React, React DOM</text>
+  <text x="170" y="340" text-anchor="middle" font-family="Arial" font-size="14">공통 컴포넌트</text>
+  <text x="170" y="365" text-anchor="middle" font-family="Arial" font-size="14">중복 로드 방지</text>
+  
+  <!-- 연결선: Shell -> Remote A (직접 연결) -->
+  <line x1="260" y1="140" x2="540" y2="140" stroke="#1890ff" stroke-width="2.5"/>
+  <polygon points="530,135 540,140 530,145" fill="#1890ff"/>
+  
+  <!-- 연결선: Shell -> Remote B (직접 연결) -->
+  <path d="M260 180 Q400 180, 540 300" stroke="#1890ff" stroke-width="2.5" fill="none"/>
+  <polygon points="532,295 540,300 534,306" fill="#1890ff"/>
+  
+  <!-- 연결선: 공유 라이브러리 -> Shell (직접 연결) -->
+  <line x1="170" y1="260" x2="170" y2="220" stroke="#722ed1" stroke-width="2.5"/>
+  <polygon points="165,230 170,220 175,230" fill="#722ed1"/>
+  
+  <!-- 연결선: 공유 라이브러리 -> Remote A (곡선으로 외부 우회) -->
+  <path d="M260 280 Q400 250, 540 160" stroke="#722ed1" stroke-width="2.5" fill="none"/>
+  <polygon points="532,155 540,160 534,166" fill="#722ed1"/>
+  
+  <!-- 연결선: 공유 라이브러리 -> Remote B (곡선으로 외부 우회) -->
+  <path d="M260 340 Q400 350, 540 340" stroke="#722ed1" stroke-width="2.5" fill="none"/>
+  <polygon points="532,335 540,340 532,345" fill="#722ed1"/>
+  
+  <!-- 단계 표시 -->
+  <!-- 1단계: 컨테이너 정의 -->
+  <circle cx="140" cy="420" r="15" fill="#1890ff"/>
+  <text x="140" cy="425" text-anchor="middle" font-family="Arial" font-size="14" fill="white">1</text>
+  <text x="170" y="425" font-family="Arial" font-size="14">컨테이너 정의</text>
+  
+  <!-- 2단계: 모듈 노출 -->
+  <circle cx="280" cy="420" r="15" fill="#52c41a"/>
+  <text x="280" cy="425" text-anchor="middle" font-family="Arial" font-size="14" fill="white">2</text>
+  <text x="310" y="425" font-family="Arial" font-size="14">모듈 노출</text>
+  
+  <!-- 3단계: 런타임 로딩 -->
+  <circle cx="420" cy="420" r="15" fill="#1890ff"/>
+  <text x="420" cy="425" text-anchor="middle" font-family="Arial" font-size="14" fill="white">3</text>
+  <text x="450" y="425" font-family="Arial" font-size="14">런타임 로딩</text>
+  
+  <!-- 4단계: 의존성 공유 -->
+  <circle cx="560" cy="420" r="15" fill="#722ed1"/>
+  <text x="560" cy="425" text-anchor="middle" font-family="Arial" font-size="14" fill="white">4</text>
+  <text x="590" y="425" font-family="Arial" font-size="14">의존성 공유</text>
+  
+  <!-- 런타임 로딩 과정 표시 -->
+  <rect x="310" y="170" width="180" height="60" rx="30" fill="#f0f5ff" stroke="#2f54eb" stroke-width="2"/>
+  <text x="400" y="205" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">런타임 동적 로딩</text>
+</svg>

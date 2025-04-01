@@ -10,7 +10,7 @@ const Analysis = lazy(() => import("analysis/AnalysisApp"));
 const Ranking = lazy(() => import("ranking/RankingApp"));
 const Notification = lazy(() => import("notification/App"));
 
-export default function Home() {
+export default function HomePage() {
   return (
     <HomeContainer>
       <Header />
