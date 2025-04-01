@@ -157,11 +157,11 @@ pnpm dev
 
 또한 SALT는 목표 저축, 게이미피케이션, 소셜 챌린지 등 다양한 기능 모듈을 가진 애플리케이션이었고, 개발을 진행하면서 서비스의 규모가 예상보다 커지고 있었습니다. 이런 상황에서 각 기능을 독립적으로 개발하고 관리할 수 있는 마이크로프론트엔드가 적합하다고 판단했습니다.
 
-먼저 아래는 블록 에디터 구현 과정입니다.
+먼저 아래는 마이크로 프론트엔드 구축 과정입니다.
 
-- [마크다운에서 블록 에디터로: 내 블로그 에디터 개발기](https://velog.io/@tkrhdrhkdduf/%EB%A7%88%ED%81%AC%EB%8B%A4%EC%9A%B4%EC%97%90%EC%84%9C-%EB%B8%94%EB%A1%9D-%EC%97%90%EB%94%94%ED%84%B0%EB%A1%9C-%EB%82%B4-%EB%B8%94%EB%A1%9C%EA%B7%B8-%EC%97%90%EB%94%94%ED%84%B0-%EA%B0%9C%EB%B0%9C%EA%B8%B0)
+- [개인 프로젝트에 마이크로프론트엔드 도입하기: 새로운 아키텍처 탐구](https://velog.io/@tkrhdrhkdduf/%EA%B0%9C%EC%9D%B8-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%EC%97%90-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C-%EB%8F%84%EC%9E%85%ED%95%98%EA%B8%B0-%EC%83%88%EB%A1%9C%EC%9A%B4-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%ED%83%90%EA%B5%AC)
 
-- [메인 페이지 최근 게시물 UX 개선 (가상 스크롤)](https://velog.io/@tkrhdrhkdduf/%EA%B0%80%EC%83%81-%EC%8A%A4%ED%81%AC%EB%A1%A4-Virtual-Scroll-%EA%B5%AC%ED%98%84)
+- [마이크로프론트엔드 정보 교환 방식 개선](https://velog.io/@tkrhdrhkdduf/%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C-%EC%A0%95%EB%B3%B4-%EA%B5%90%ED%99%98-%EB%B0%A9%EC%8B%9D-%EA%B0%9C%EC%84%A0)
 
 <br />
 
