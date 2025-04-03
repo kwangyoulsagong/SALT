@@ -6,7 +6,7 @@ export const openBankHandlers = [
   http.post("/api/v1/bank/auth", async ({ request }) => {
     const body = (await request.json()) as { name: string; birth: string };
     const { name, birth } = body;
-    if (name === "사공광열" && birth === "990117")
+    if (name === "김솔트" && birth === "010101")
       return HttpResponse.json(openBankingResponses.generateAuthResponse());
   }),
 
