@@ -8,7 +8,7 @@ import { useState } from "react";
 import AuthModal from "./ServiceStepsWrapper/authModal/authModal";
 import { useMessageEventBus } from "@repo/message-event-bus/eventbus";
 import { useRouter } from "next/router";
-import BankAccountSelector from "./ServiceStepsWrapper/\bBankAccountSelector/BankAccountSelector";
+import BankAccountSelector from "./ServiceStepsWrapper/BankAccountSelector/BankAccountSelector";
 interface BankAccount {
   fintech_use_num: string;
   account_alias: string;
