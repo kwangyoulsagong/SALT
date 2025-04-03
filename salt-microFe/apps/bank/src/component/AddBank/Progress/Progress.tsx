@@ -1,7 +1,6 @@
 import ProgressWrapper from "./ProgressWrapper/ProgressWrapper";
 import Circle from "./StepsBar/Circle/Circle";
 import StepsBar from "./StepsBar/StepsBar";
-import { Lock, CreditCard, CheckCircle } from "lucide-react";
 import { Typo } from "./StepsBar/StepsBar.css";
 import {
   ACTIVE_COLOR,
