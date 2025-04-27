@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>SALT</h1>
-<img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/main.png">
+<img src="https://github.com/kwangyoulsagong/SALT/blob/main/readmeAsset/main.png">
 <h3> "금융과 재미를 결합한 새로운 방식의 자산 관리 플랫폼" </h3>
 <br />
 
@@ -75,7 +75,7 @@
 
 ### [ 메인 페이지 ]
 
-  <img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/mainView.gif" alt="메인 뷰">
+  <img src="https://github.com/kwangyoulsagong/SALT/blob/main/readmeAsset/mainView.gif" alt="메인 뷰">
 
 #### 1. **저축 현황 한눈에 보기**
 
@@ -111,8 +111,8 @@
 
 <table>
   <tr>
-    <td><img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/bank.gif" alt="블록 에디터 1" /></td>
-    <td><img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/%EA%B3%84%EC%A2%8C%EC%84%A0%ED%83%9D.png" alt="블록 에디터 2" /></td>
+    <td><img src="https://github.com/kwangyoulsagong/SALT/blob/main/readmeAsset/bank.gif" alt="블록 에디터 1" /></td>
+    <td><img src="https://github.com/kwangyoulsagong/SALT/blob/main/readmeAsset/%EA%B3%84%EC%A2%8C%EC%84%A0%ED%83%9D.png" alt="블록 에디터 2" /></td>
   </tr>
 </table>
 
@@ -138,7 +138,7 @@ pnpm dev
 
 # ⚒️ 기술 스택
 
-<img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/SALT%20SKILLS.png" height="200" alt="기술스택 이미지"/>
+<img src="https://github.com/kwangyoulsagong/SALT/blob/main/readmeAsset/SALT%20SKILLS.png" height="200" alt="기술스택 이미지"/>
 
 ```mermaid
 graph TD
@@ -202,7 +202,7 @@ graph TD
 
 - [마이크로프론트엔드 정보 교환 방식 개선](https://velog.io/@tkrhdrhkdduf/%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C-%EC%A0%95%EB%B3%B4-%EA%B5%90%ED%99%98-%EB%B0%A9%EC%8B%9D-%EA%B0%9C%EC%84%A0)
 
-<img src="https://github.com/kwangyoulsagong/SALT/blob/feat2/adding-goals/readmeAsset/image-2.png" alt="블록 에디터 2" />
+<img src="https://github.com/kwangyoulsagong/SALT/blob/main/readmeAsset/image-2.png" alt="블록 에디터 2" />
 
 <br />
 
