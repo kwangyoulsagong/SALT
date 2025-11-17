@@ -11,7 +11,7 @@ const Tips = () => {
       <FlexBox direction="column" gap="md">
         <Header>
           <ServiceIcon variant="tip" />
-          <Heading level={3}>오늘의 저축 팁</Heading>
+          <Heading level={2}>오늘의 저축 팁</Heading>
         </Header>
         <TipsWrapper>
           <Heading level={4}>커피값 아끼기로 월 5만원 저축하기</Heading>

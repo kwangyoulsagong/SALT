@@ -1,4 +1,4 @@
-export const analysisResponses = {
+export const investmentsResponses = {
   preview: () => ({
     thisWeekData: [
       { category: "카페", amount: 50000 },
