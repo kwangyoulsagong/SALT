@@ -53,19 +53,6 @@ const AddGoalsContent = () => {
             type="number"
             variant="goals"
           />
-          <Button
-            eventType="route"
-            eventValue="/bank/addbank"
-            variant="bankAccount"
-          >
-            <ButtonWrapper>
-              <BankAccountValid>
-                <BankIcon />
-                <H2>계좌 추가하기</H2>
-              </BankAccountValid>
-              <ChevronRight />
-            </ButtonWrapper>
-          </Button>
         </GoalsForm>
         <SubmitButtonWrapper>
           <SubmitButton type="submit">확인</SubmitButton>
