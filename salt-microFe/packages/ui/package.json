@@ -13,6 +13,7 @@
     "./input": "./src/InputField/InputField.tsx",
     "./card": "./src/Card/Card.tsx",
     "./heading": "./src/Typo/Heading/Heading.tsx",
+    "./grid": "./src/Grid/Grid.tsx",
     "./icon": "./src/Icon/Icon.tsx",
     "./code": "./src/code.tsx",
     "./styles": "./src/Button/styles/index.css.ts",
@@ -23,6 +24,7 @@
     "./wrapper": "./src/Wrapper/Wrapper.tsx",
     "./header": "./src/Header/Header.tsx",
     "./flexBox": "./src/FlexBox/FlexBox.tsx",
+    "./padding": "./src/Padding/Padding.tsx",
     "./section": "./src/Section/Section.tsx",
     "./servicewrapper": "./src/ServiceWrapper/ServiceWrapper.tsx"
   },

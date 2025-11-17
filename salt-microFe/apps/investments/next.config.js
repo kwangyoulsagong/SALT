@@ -2,46 +2,17 @@ const NextFederationPlugin = require("@module-federation/nextjs-mf");
 const { createVanillaExtractPlugin } = require("@vanilla-extract/next-plugin");
 
 const withVanillaExtract = createVanillaExtractPlugin();
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**", // 모든 호스트를 허용
-      },
-      {
-        protocol: "http",
-        hostname: "localhost",
-      },
-    ],
-  },
-  reactStrictMode: true,
-  transpilePackages: [
-    "@repo/ui",
-    "@repo/store",
-    "@repo/mocks",
-    "@repo/message-event-bus",
-  ],
+  transpilePackages: ["@repo/ui", "@repo/store", "@repo/message-event-bus"],
   webpack(config, options) {
     config.plugins.push(
       new NextFederationPlugin({
-        name: "shell",
+        name: "investments",
         filename: "static/chunks/remoteEntry.js",
-        remotes: {
-          goals: options.isServer
-            ? `goals@http://localhost:3001/_next/static/${
-                options.isServer ? "ssr" : "chunks"
-              }/remoteEntry.js`
-            : `goals@http://localhost:3001/_next/static/chunks/remoteEntry.js`,
-          investments: options.isServer
-            ? `investments@http://localhost:3002/_next/static/${
-                options.isServer ? "ssr" : "chunks"
-              }/remoteEntry.js`
-            : `investments@http://localhost:3002/_next/static/chunks/remoteEntry.js`,
+        exposes: {
+          "./InvestmentsApp": "./src/pages/index.tsx",
         },
-        exposes: {},
         shared: {
           react: {
             singleton: true,
@@ -52,7 +23,7 @@ const nextConfig = {
             requiredVersion: false,
           },
           "@tanstack/react-query": {
-            singleton: false,
+            singleton: true,
             requiredVersion: false,
           },
           "@reduxjs/toolkit": {

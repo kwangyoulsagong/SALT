@@ -1,20 +1,13 @@
-import GoalsList from "@/component/GoalsApp/GoalsList/GoalsList";
-import MyGoals from "@/component/GoalsApp/MyGoals/MyGoals";
 import { Container } from "@repo/ui/container";
 import QueryClientProvider from "@/providers/QueryClientProvider";
-import { Card } from "@repo/ui/card";
 import { FlexBox } from "@repo/ui/flexBox";
-export default function GoalsApp() {
+import { Card } from "@repo/ui/card";
+export default function InvestmentsApp() {
   return (
     <QueryClientProvider>
       <Container size="full">
         <FlexBox direction="column" gap="lg">
-          <Card padding="none">
-            <MyGoals />
-          </Card>
-          <Card>
-            <GoalsList />
-          </Card>
+          <Card></Card>
         </FlexBox>
       </Container>
     </QueryClientProvider>

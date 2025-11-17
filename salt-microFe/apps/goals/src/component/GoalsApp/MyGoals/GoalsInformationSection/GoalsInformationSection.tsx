@@ -21,21 +21,19 @@ const GoalsInformationSection = ({ saved }: savedProps) => {
     router.push("/goals/addgoals");
   };
   return (
-    <Container>
-      <Section padding="xs">
-        <FlexBox justify="between" align="center">
-          <Saved>
-            <Icon url={saved.thumbnail} />
-            <SaveInformation>
-              <Heading level={2}>{saved.money}원</Heading>
-              <Text color="muted">현재 모은 금액</Text>
-            </SaveInformation>
-          </Saved>
-          <Button variant="primary" size="sm" onClick={handleClick}>
-            추가
-          </Button>
-        </FlexBox>
-      </Section>
+    <Container size="full">
+      <FlexBox justify="between" align="center">
+        <Saved>
+          <Icon url={saved.thumbnail} />
+          <SaveInformation>
+            <Heading level={2}>{saved.money}원</Heading>
+            <Text color="muted">현재 모은 금액</Text>
+          </SaveInformation>
+        </Saved>
+        <Button variant="primary" size="sm" onClick={handleClick}>
+          추가
+        </Button>
+      </FlexBox>
     </Container>
   );
 };

@@ -1,5 +1,6 @@
 declare module "goals/GoalsApp";
 declare module "goals/AddGoals";
+declare module "investments/InvestmentsApp";
 declare module "game/GameApp";
 declare module "social/SocialApp";
 declare module "missions/MissionsApp";
