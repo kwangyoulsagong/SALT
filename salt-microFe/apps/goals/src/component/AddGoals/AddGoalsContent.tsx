@@ -3,7 +3,6 @@ import CategoriesWrapper from "@/component/AddGoals/GoalsForm/CategoriesWrapper/
 import GoalsForm from "@/component/AddGoals/GoalsForm/GoalsForm";
 import Wrapper from "@/component/AddGoals/Wrapper/Wrapper";
 import { Button } from "@repo/ui/button";
-import { SubmitButton } from "@repo/ui/submitbutton";
 import { InputField } from "@repo/ui/input";
 import { SubmitHandler, useForm } from "react-hook-form";
 import BankAccountValid from "@/component/AddGoals/GoalsForm/ButtonWrapper/BankAccountValid/BankAccountValid";
@@ -52,9 +51,7 @@ const AddGoalsContent = () => {
             variant="goals"
           />
         </GoalsForm>
-        <SubmitButtonWrapper>
-          <SubmitButton type="submit">확인</SubmitButton>
-        </SubmitButtonWrapper>
+        <SubmitButtonWrapper></SubmitButtonWrapper>
       </form>
     </Wrapper>
   );

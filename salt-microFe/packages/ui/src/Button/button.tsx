@@ -1,41 +1,50 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, ButtonHTMLAttributes } from "react";
 import { buttonVariants } from "./styles/button.css.ts";
-import { useRouter } from "next/router";
 
-interface ButtonProps {
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "ghost"
+  | "outline"
+  | "warning"
+  | "danger"
+  | "success";
+
+export type ButtonSize = "xs" | "sm" | "md" | "lg";
+
+export interface ButtonProps
+  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> {
   children: ReactNode;
-  variant?: keyof typeof buttonVariants;
-  eventType?: string;
-  eventValue?: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  fullWidth?: boolean;
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  onClick?: () => void;
 }
 
 export const Button = ({
   children,
   variant = "primary",
-  eventType,
-  eventValue = "",
+  size = "md",
+  fullWidth = false,
+  type = "button",
+  disabled = false,
+  onClick,
+  className,
+  ...rest
 }: ButtonProps) => {
-  const router = useRouter();
-
-  const events = {
-    route: () => router.push(eventValue || "/"),
-    alert: () => alert(eventValue),
-    console: () => console.log(eventValue),
-  };
-
-  const handleClick = () => {
-    if (eventType && eventType in events) {
-      events[eventType as keyof typeof events]();
-    }
-  };
-
   return (
     <button
-      className={`${buttonVariants[variant]}`}
-      onClick={handleClick}
-      type="button"
+      className={`${buttonVariants({ variant, size, fullWidth })} ${
+        className || ""
+      }`}
+      type={type}
+      disabled={disabled}
+      onClick={onClick}
+      {...rest}
     >
       {children}
     </button>

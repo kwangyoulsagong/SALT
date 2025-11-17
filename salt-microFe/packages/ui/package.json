@@ -7,8 +7,8 @@
   "type": "module",
   "private": true,
   "exports": {
-    "./button": "./src/Button/button.tsx",
-    "./submitbutton": "./src/SubmitButton/SubmitButton.tsx",
+    "./button": "./src/Button/Button.tsx",
+    "./container": "./src/Container/Container.tsx",
     "./radiobutton": "./src/RadioButton/RadioButton.tsx",
     "./input": "./src/InputField/InputField.tsx",
     "./card": "./src/Card/Card.tsx",
@@ -22,6 +22,8 @@
     "./serviceicon": "./src/ServiceIcon/ServiceIcon.tsx",
     "./wrapper": "./src/Wrapper/Wrapper.tsx",
     "./header": "./src/Header/Header.tsx",
+    "./flexBox": "./src/FlexBox/FlexBox.tsx",
+    "./section": "./src/Section/Section.tsx",
     "./servicewrapper": "./src/ServiceWrapper/ServiceWrapper.tsx"
   },
   "scripts": {
