@@ -18,7 +18,7 @@
     "./styles": "./src/Button/styles/index.css.ts",
     "./styles/button": "./src/Button/styles/button.css.ts",
     "./styles/heading": "./src/Typo/Heading/styles/heading.css.ts",
-    "./p": "./src/Typo/P/P.tsx",
+    "./text": "./src/Typo/Text/Text.tsx",
     "./serviceicon": "./src/ServiceIcon/ServiceIcon.tsx",
     "./wrapper": "./src/Wrapper/Wrapper.tsx",
     "./header": "./src/Header/Header.tsx",

@@ -1,4 +1,4 @@
-import { P } from "@repo/ui/p";
+import { Text } from "@repo/ui/text";
 import { Container } from "./Footer.css";
 import ProcessCard from "./ProcessWrapper/ProcessCard/ProcessCard";
 import ProcessWrapper from "./ProcessWrapper/ProcessWrapper";
@@ -16,19 +16,27 @@ const Footer = ({ process }: FooterProps) => {
     <footer className={Container}>
       <ProcessWrapper>
         <ProcessCard>
-          <P variant="third">진행중</P>
+          <Text variant="caption" color="muted">
+            진행중
+          </Text>
           <span className={Process}>{process.progress}</span>
         </ProcessCard>
         <ProcessCard>
-          <P variant="third">달성</P>
+          <Text variant="caption" color="muted">
+            달성
+          </Text>
           <span className={Process}>{process.complete}</span>
         </ProcessCard>
         <ProcessCard>
-          <P variant="third">D-Day</P>
+          <Text variant="caption" color="muted">
+            D-Day
+          </Text>
           <span className={Process}>{process.dday}</span>
         </ProcessCard>
         <ProcessCard>
-          <P variant="third">달성률</P>
+          <Text variant="caption" color="muted">
+            달성률
+          </Text>
           <span className={Process}>{process.percent}%</span>
         </ProcessCard>
       </ProcessWrapper>
