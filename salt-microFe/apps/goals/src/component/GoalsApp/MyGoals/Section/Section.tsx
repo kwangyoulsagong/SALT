@@ -4,7 +4,7 @@ import SaveInformation from "./SaveInformation/SaveInformation";
 import { Wrapper } from "./Section.css";
 import { Icon } from "@repo/ui/icon";
 import { P } from "@repo/ui/p";
-import { H2 } from "@repo/ui/h2";
+import { Heading } from "@repo/ui/heading";
 import { Button } from "@repo/ui/button";
 interface savedProps {
   saved: {
@@ -19,7 +19,7 @@ const Section = ({ saved }: savedProps) => {
         <Saved>
           <Icon url={saved.thumbnail} />
           <SaveInformation>
-            <H2>{saved.money}원</H2>
+            <Heading level={2}>{saved.money}원</Heading>
             <P>현재 모은 금액</P>
           </SaveInformation>
         </Saved>

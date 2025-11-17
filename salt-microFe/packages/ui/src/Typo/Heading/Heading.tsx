@@ -1,0 +1,17 @@
+import { ReactNode } from "react";
+import { headingStyles } from "./styles/heading.css.ts";
+
+export interface HeadingProps {
+  children: ReactNode;
+  level: 1 | 2 | 3 | 4 | 5 | 6;
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
+  color?: "primary" | "secondary" | "tertiary" | "brand" | "white";
+}
+
+export const Heading = ({ children, level, size, color }: HeadingProps) => {
+  const Tag = `h${level}` as const;
+
+  return (
+    <Tag className={headingStyles({ level, size, color })}>{children}</Tag>
+  );
+};

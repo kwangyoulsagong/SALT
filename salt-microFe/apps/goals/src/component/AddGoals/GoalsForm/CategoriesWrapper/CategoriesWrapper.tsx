@@ -1,5 +1,5 @@
 import { Icon } from "@repo/ui/icon";
-import { H3 } from "@repo/ui/h3";
+import { Heading } from "@repo/ui/heading";
 import CategoriesFlexBox from "./CategoriesFlexbox/CategoriesFlexBox";
 import { Wrapper } from "./CategoriesWrapper.css";
 import { useState } from "react";
@@ -21,7 +21,7 @@ const CategoriesWrapper = () => {
       {CATEGORIES.map((value) => (
         <CategoriesFlexBox key={value.id}>
           <Icon onClick={() => handleClick(value.id)} variant={value.variant} />
-          <H3>{value.label}</H3>
+          <Heading level={3}>{value.label}</Heading>
           {selected == value.id && <div>선택</div>}
         </CategoriesFlexBox>
       ))}
