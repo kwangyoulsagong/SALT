@@ -1,0 +1,55 @@
+import express, { Application, Request, Response, NextFunction } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import { errorMiddleware } from "./middleware/error.middleware";
+import { loggerMiddleware } from "./middleware/logger.middleware";
+import { setupSwagger } from "./config/swagger";
+import { NotFoundError } from "./utils/error.util";
+
+// Routes
+import authRoutes from "./modules/auth/auth.routes";
+import goalsRoutes from "./modules/goals/goals.routes";
+import investmentRoutes from "./modules/investment/investment.routes";
+import missionRoutes from "./modules/mission/mission.routes";
+import userRoutes from "./modules/user/user.routes";
+
+const app: Application = express();
+
+// Security
+app.use(helmet());
+app.use(cors());
+
+// Body parser
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Custom middleware
+app.use(loggerMiddleware);
+
+// Swagger Documentation
+setupSwagger(app);
+
+// Health check
+app.get("/health", (req: Request, res: Response) => {
+  res.json({
+    status: "ok",
+    service: "salt-backend",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// API Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/goals", goalsRoutes);
+app.use("/api/investment", investmentRoutes);
+app.use("/api/missions", missionRoutes);
+app.use("/api/users", userRoutes);
+// 404 handler
+app.use((req: Request, res: Response, next: NextFunction) => {
+  next(new NotFoundError(`Route ${req.originalUrl} not found`));
+});
+
+// Error handler (must be last)
+app.use(errorMiddleware);
+
+export default app;
