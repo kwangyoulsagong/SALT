@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import { InvestmentController } from './investment.controller';
-import { authMiddleware } from '../../middleware/auth.middleware';
+import { Router } from "express";
+import { InvestmentController } from "./investment.controller";
+import { authMiddleware } from "../../middleware/auth.middleware";
 
 const router = Router();
 const investmentController = new InvestmentController();
@@ -35,7 +35,7 @@ const investmentController = new InvestmentController();
  *       201:
  *         description: 관심 목록 추가 성공
  */
-router.post('/watchlist', authMiddleware, investmentController.addToWatchlist);
+router.post("/watchlist", authMiddleware, investmentController.addToWatchlist);
 
 /**
  * @swagger
@@ -63,7 +63,7 @@ router.post('/watchlist', authMiddleware, investmentController.addToWatchlist);
  *       200:
  *         description: 관심 목록
  */
-router.get('/watchlist', authMiddleware, investmentController.getWatchlist);
+router.get("/watchlist", authMiddleware, investmentController.getWatchlist);
 
 /**
  * @swagger
@@ -83,7 +83,11 @@ router.get('/watchlist', authMiddleware, investmentController.getWatchlist);
  *       200:
  *         description: 제거 성공
  */
-router.delete('/watchlist/:id', authMiddleware, investmentController.removeFromWatchlist);
+router.delete(
+  "/watchlist/:id",
+  authMiddleware,
+  investmentController.removeFromWatchlist
+);
 
 /**
  * @swagger
@@ -104,7 +108,11 @@ router.delete('/watchlist/:id', authMiddleware, investmentController.removeFromW
  *       200:
  *         description: 실시간 가격 정보
  */
-router.get('/crypto/:symbol/price', authMiddleware, investmentController.getRealTimePrice);
+router.get(
+  "/crypto/:symbol/price",
+  authMiddleware,
+  investmentController.getRealTimePrice
+);
 
 /**
  * @swagger
@@ -133,9 +141,38 @@ router.get('/crypto/:symbol/price', authMiddleware, investmentController.getReal
  *       200:
  *         description: 차트 데이터
  */
-router.get('/crypto/:symbol/chart', authMiddleware, investmentController.getChartData);
+router.get(
+  "/crypto/:symbol/chart",
+  authMiddleware,
+  investmentController.getChartData
+);
 
-// 내부 API (BFF Worker용)
+/**
+ * @swagger
+ * /api/investment/market/overview:
+ *   get:
+ *     summary: 암호화폐 마켓 전체 조회
+ *     tags: [Investment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: number
+ *           default: 100
+ *         description: 조회할 코인 개수
+ *     responses:
+ *       200:
+ *         description: 마켓 전체 정보 (거래대금 순)
+ */
+router.get(
+  "/market/overview",
+  authMiddleware,
+  investmentController.getMarketOverview
+);
+
+// 내부 API (BFF용) - 인증 없이 호출 가능
 /**
  * @swagger
  * /api/investment/internal/symbols:
@@ -146,7 +183,7 @@ router.get('/crypto/:symbol/chart', authMiddleware, investmentController.getChar
  *       200:
  *         description: 심볼 목록
  */
-router.get('/internal/symbols', investmentController.getAllSymbols);
+router.get("/internal/symbols", investmentController.getAllSymbols);
 
 /**
  * @swagger
@@ -161,16 +198,23 @@ router.get('/internal/symbols', investmentController.getAllSymbols);
  *           schema:
  *             type: object
  *             required:
- *               - symbols
+ *               - priceData
  *             properties:
- *               symbols:
+ *               priceData:
  *                 type: array
  *                 items:
- *                   type: string
+ *                   type: object
+ *                   properties:
+ *                     symbol:
+ *                       type: string
+ *                     currentPrice:
+ *                       type: number
+ *                     priceChange24h:
+ *                       type: number
  *     responses:
  *       200:
  *         description: 업데이트 성공
  */
-router.post('/internal/update-prices', investmentController.updatePrices);
+router.post("/internal/update-prices", investmentController.updatePrices);
 
 export default router;
