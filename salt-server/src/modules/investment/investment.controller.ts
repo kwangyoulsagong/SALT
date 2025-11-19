@@ -1,10 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import { InvestmentService } from './investment.service';
-import { ResponseUtil } from '../../utils/response.util';
-import {
-  addToWatchlistSchema,
-  queryWatchlistSchema,
-} from './investment.dto';
+import { Request, Response, NextFunction } from "express";
+import { InvestmentService } from "./investment.service";
+import { ResponseUtil } from "../../utils/response.util";
+import { addToWatchlistSchema, queryWatchlistSchema } from "./investment.dto";
 
 export class InvestmentController {
   private investmentService = new InvestmentService();
@@ -15,7 +12,11 @@ export class InvestmentController {
       const data = addToWatchlistSchema.parse(req.body);
       const result = await this.investmentService.addToWatchlist(userId, data);
 
-      return ResponseUtil.created(res, result, 'Added to watchlist successfully');
+      return ResponseUtil.created(
+        res,
+        result,
+        "Added to watchlist successfully"
+      );
     } catch (error) {
       next(error);
     }
@@ -33,11 +34,18 @@ export class InvestmentController {
     }
   };
 
-  removeFromWatchlist = async (req: Request, res: Response, next: NextFunction) => {
+  removeFromWatchlist = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const userId = req.user!.userId;
       const { id } = req.params;
-      const result = await this.investmentService.removeFromWatchlist(userId, id);
+      const result = await this.investmentService.removeFromWatchlist(
+        userId,
+        id
+      );
 
       return ResponseUtil.success(res, result);
     } catch (error) {
@@ -45,7 +53,11 @@ export class InvestmentController {
     }
   };
 
-  getRealTimePrice = async (req: Request, res: Response, next: NextFunction) => {
+  getRealTimePrice = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { symbol } = req.params;
       const result = await this.investmentService.getRealTimePrice(symbol);
@@ -59,10 +71,14 @@ export class InvestmentController {
   getChartData = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { symbol } = req.params;
-      const period = (req.query.period as 'day' | 'hour') || 'day';
+      const period = (req.query.period as "day" | "hour") || "day";
       const count = req.query.count ? Number(req.query.count) : 30;
 
-      const result = await this.investmentService.getChartData(symbol, period, count);
+      const result = await this.investmentService.getChartData(
+        symbol,
+        period,
+        count
+      );
 
       return ResponseUtil.success(res, result);
     } catch (error) {
@@ -70,7 +86,7 @@ export class InvestmentController {
     }
   };
 
-  // 내부 API (BFF용)
+  // Internal API (BFF용)
   getAllSymbols = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await this.investmentService.getAllWatchlistSymbols();
@@ -82,8 +98,24 @@ export class InvestmentController {
 
   updatePrices = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { symbols } = req.body;
-      const result = await this.investmentService.updateWatchlistPrices(symbols);
+      const { priceData } = req.body;
+      const result = await this.investmentService.updateWatchlistPrices(
+        priceData
+      );
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+  getMarketOverview = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const limit = req.query.limit ? Number(req.query.limit) : 100;
+      const result = await this.investmentService.getMarketOverview(limit);
+
       return ResponseUtil.success(res, result);
     } catch (error) {
       next(error);
