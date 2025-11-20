@@ -1,10 +1,12 @@
 import express, { Application, Request, Response, NextFunction } from "express";
+import cron from "node-cron";
 import cors from "cors";
 import helmet from "helmet";
 import { errorMiddleware } from "./middleware/error.middleware";
 import { loggerMiddleware } from "./middleware/logger.middleware";
 import { setupSwagger } from "./config/swagger";
 import { NotFoundError } from "./utils/error.util";
+import { MarketSyncWorker } from "./workers/market-sync.worker";
 
 // Routes
 import authRoutes from "./modules/auth/auth.routes";
@@ -16,7 +18,12 @@ import portfolioRoutes from "./modules/portfolio/portfolio.routes";
 import newsRoutes from "./modules/news/news.routes";
 
 const app: Application = express();
-
+const marketWorker = new MarketSyncWorker();
+marketWorker.sync();
+cron.schedule("0 */6 * * *", () => {
+  marketWorker.sync();
+  console.log("⏱️ Market Sync executed");
+});
 // Security
 app.use(helmet());
 app.use(cors());

@@ -79,6 +79,15 @@ class BackendApiService {
     );
     return response.data;
   }
+  /**
+   * Market Overview 조회
+   */
+  async getMarketOverview(query: any) {
+    const response = await this.client.get("/investment/market/overview", {
+      params: query,
+    });
+    return response.data.data;
+  }
 }
 
 export const backendApi = new BackendApiService();

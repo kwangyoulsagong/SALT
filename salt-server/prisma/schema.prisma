@@ -373,3 +373,17 @@ model NewsBookmark {
   @@index([userId])
   @@map("news_bookmarks")
 }
+
+model MarketAsset {
+  symbol        String   @id                      // BTC, ETH
+  market        String                              // KRW-BTC
+  koreanName    String   @map("korean_name")
+  englishName   String   @map("english_name")
+  logoUrl       String?  @map("logo_url")
+  isActive      Boolean  @default(true) @map("is_active")
+  listedAt      DateTime? @map("listed_at")
+  delistedAt    DateTime? @map("delisted_at")
+
+  @@index([isActive])
+  @@map("market_assets")
+}

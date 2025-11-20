@@ -113,8 +113,16 @@ export class InvestmentController {
     next: NextFunction
   ) => {
     try {
-      const limit = req.query.limit ? Number(req.query.limit) : 100;
-      const result = await this.investmentService.getMarketOverview(limit);
+      const { page, limit, sort, order, period, search } = req.query;
+
+      const result = await this.investmentService.getMarketOverview({
+        page: page ? Number(page) : 1,
+        limit: limit ? Number(limit) : 100,
+        sort: (sort as any) || "trade_value",
+        order: (order as any) || "desc",
+        period: (period as any) || "1d",
+        search: (search as string) || undefined,
+      });
 
       return ResponseUtil.success(res, result);
     } catch (error) {
