@@ -12,6 +12,8 @@ import goalsRoutes from "./modules/goals/goals.routes";
 import investmentRoutes from "./modules/investment/investment.routes";
 import missionRoutes from "./modules/mission/mission.routes";
 import userRoutes from "./modules/user/user.routes";
+import portfolioRoutes from "./modules/portfolio/portfolio.routes";
+import newsRoutes from "./modules/news/news.routes";
 
 const app: Application = express();
 
@@ -44,6 +46,9 @@ app.use("/api/goals", goalsRoutes);
 app.use("/api/investment", investmentRoutes);
 app.use("/api/missions", missionRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/portfolio", portfolioRoutes);
+app.use("/api/news", newsRoutes);
+
 // 404 handler
 app.use((req: Request, res: Response, next: NextFunction) => {
   next(new NotFoundError(`Route ${req.originalUrl} not found`));
