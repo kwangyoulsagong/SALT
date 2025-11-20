@@ -1,5 +1,5 @@
-import { ExtendedWebSocket, WSMessage } from '../../types/websocket.types';
-import { logger } from '../../config/logger';
+import { ExtendedWebSocket, WSMessage } from "../../types/websocket.types";
+import { logger } from "../../config/logger";
 
 export class CryptoHandler {
   /**
@@ -10,10 +10,12 @@ export class CryptoHandler {
       const { symbols } = message;
 
       if (!Array.isArray(symbols)) {
-        ws.send(JSON.stringify({
-          type: 'error',
-          message: 'Invalid symbols format',
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: "Invalid symbols format",
+          })
+        );
         return;
       }
 
@@ -23,22 +25,26 @@ export class CryptoHandler {
       }
 
       // 심볼 추가
-      symbols.forEach(symbol => {
+      symbols.forEach((symbol) => {
         ws.subscribedSymbols!.add(symbol.toUpperCase());
       });
 
-      logger.info(`User ${ws.userId} subscribed to: ${symbols.join(', ')}`);
+      logger.info(`User ${ws.userId} subscribed to: ${symbols.join(", ")}`);
 
-      ws.send(JSON.stringify({
-        type: 'subscribed',
-        symbols: Array.from(ws.subscribedSymbols),
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "subscribed",
+          symbols: Array.from(ws.subscribedSymbols),
+        })
+      );
     } catch (error: any) {
-      logger.error('Subscribe error:', error);
-      ws.send(JSON.stringify({
-        type: 'error',
-        message: 'Failed to subscribe',
-      }));
+      logger.error("Subscribe error:", error);
+      ws.send(
+        JSON.stringify({
+          type: "error",
+          message: "Failed to subscribe",
+        })
+      );
     }
   }
 
@@ -53,18 +59,73 @@ export class CryptoHandler {
         return;
       }
 
-      symbols.forEach(symbol => {
+      symbols.forEach((symbol) => {
         ws.subscribedSymbols!.delete(symbol.toUpperCase());
       });
 
-      logger.info(`User ${ws.userId} unsubscribed from: ${symbols.join(', ')}`);
+      logger.info(`User ${ws.userId} unsubscribed from: ${symbols.join(", ")}`);
 
-      ws.send(JSON.stringify({
-        type: 'unsubscribed',
-        symbols,
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "unsubscribed",
+          symbols,
+        })
+      );
     } catch (error: any) {
-      logger.error('Unsubscribe error:', error);
+      logger.error("Unsubscribe error:", error);
+    }
+  }
+  /**
+   * 실시간 차트(캔들) 구독
+   */
+  handleSubscribeCandle(ws: ExtendedWebSocket, message: WSMessage) {
+    try {
+      const { symbol } = message;
+
+      if (!symbol) {
+        return ws.send(
+          JSON.stringify({ type: "error", message: "Missing symbol" })
+        );
+      }
+
+      if (!ws.subscribedCandles) ws.subscribedCandles = new Set();
+
+      ws.subscribedCandles.add(symbol.toUpperCase());
+
+      logger.info(`User ${ws.userId} subscribed candle: ${symbol}`);
+
+      ws.send(
+        JSON.stringify({
+          type: "subscribed_candle",
+          symbol,
+        })
+      );
+    } catch (error) {
+      logger.error("Subscribe candle error:", error);
+    }
+  }
+
+  /**
+   * 실시간 차트(캔들) 구독 해제
+   */
+  handleUnsubscribeCandle(ws: ExtendedWebSocket, message: WSMessage) {
+    try {
+      const { symbol } = message;
+
+      if (!symbol || !ws.subscribedCandles) return;
+
+      ws.subscribedCandles.delete(symbol.toUpperCase());
+
+      logger.info(`User ${ws.userId} unsubscribed candle: ${symbol}`);
+
+      ws.send(
+        JSON.stringify({
+          type: "unsubscribed_candle",
+          symbol,
+        })
+      );
+    } catch (error) {
+      logger.error("Unsubscribe candle error:", error);
     }
   }
 
@@ -73,7 +134,7 @@ export class CryptoHandler {
    */
   handlePing(ws: ExtendedWebSocket) {
     ws.isAlive = true;
-    ws.send(JSON.stringify({ type: 'pong' }));
+    ws.send(JSON.stringify({ type: "pong" }));
   }
 }
 
