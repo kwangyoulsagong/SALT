@@ -1,14 +1,14 @@
-import { upbitWSService } from '../services/upbit-ws.service';
-import { backendApi } from '../services/backend-api.service';
-import { connectionManager } from '../websocket/managers/connection.manager';
-import { logger } from '../config/logger';
+import { upbitWSService } from "../services/upbit-ws.service";
+import { backendApi } from "../services/backend-api.service";
+import { connectionManager } from "../websocket/managers/connection.manager";
+import { logger } from "../config/logger";
 
 class PriceUpdaterWorker {
   private updateInterval: NodeJS.Timeout | null = null;
   private subscriptionCheckInterval: NodeJS.Timeout | null = null;
 
   async start() {
-    logger.info('🔄 Price Updater Worker started');
+    logger.info("🔄 Price Updater Worker started");
 
     // 1. 초기 심볼 구독
     await this.updateSubscriptions();
@@ -23,40 +23,45 @@ class PriceUpdaterWorker {
       this.updateDatabase();
     }, 5000);
 
-    logger.info('✅ Price Updater Worker running');
+    logger.info("✅ Price Updater Worker running");
   }
 
   /**
    * 구독 심볼 업데이트
    */
-  private async updateSubscriptions() {
+  public async updateSubscriptions() {
     try {
-      // WebSocket 클라이언트들이 구독 중인 심볼
+      // 1) 화면(프론트)에서 실시간 구독 중인 심볼
       const clientSymbols = connectionManager.getAllSubscribedSymbols();
 
-      // Backend에서 관심목록 심볼 가져오기
+      // 2) 로그인 유저 관심종목 (optional)
       const watchlistSymbols = await backendApi.getWatchlistSymbols();
 
-      // 합치기 (중복 제거)
-      const allSymbols = Array.from(new Set([...clientSymbols, ...watchlistSymbols]));
+      // 3) 💥 Market 전체 목록 (로그인 불필요)
+      const marketSymbols = await backendApi.getMarketSymbols();
+
+      // 4) 합집합 (중복 제거)
+      const allSymbols = Array.from(
+        new Set([...clientSymbols, ...watchlistSymbols, ...marketSymbols])
+      );
 
       if (allSymbols.length === 0) {
-        logger.debug('No symbols to subscribe');
+        logger.debug("No symbols to subscribe");
         return;
       }
 
-      // Upbit 구독
+      // 5) 이미 구독 중인 것 제외하고 새로운 것만 Upbit subscribe
       const currentlySubscribed = upbitWSService.getSubscribedSymbols();
-      const newSymbols = allSymbols.filter(s => !currentlySubscribed.includes(s));
+      const newSymbols = allSymbols.filter(
+        (s) => !currentlySubscribed.includes(s)
+      );
 
       if (newSymbols.length > 0) {
         upbitWSService.subscribe(newSymbols);
         logger.info(`Added ${newSymbols.length} new symbols to subscription`);
       }
-
-      logger.debug(`Total subscribed symbols: ${allSymbols.length}`);
     } catch (error) {
-      logger.error('Failed to update subscriptions:', error);
+      logger.error("Failed to update subscriptions:", error);
     }
   }
 
@@ -72,7 +77,7 @@ class PriceUpdaterWorker {
       }
 
       // 캐시에서 가격 데이터 추출
-      const priceData = Array.from(priceCache.values()).map(data => ({
+      const priceData = Array.from(priceCache.values()).map((data) => ({
         symbol: data.symbol,
         currentPrice: data.currentPrice,
         priceChange24h: data.change24h,
@@ -83,7 +88,7 @@ class PriceUpdaterWorker {
 
       logger.debug(`Updated ${priceData.length} prices in database`);
     } catch (error) {
-      logger.error('Failed to update database:', error);
+      logger.error("Failed to update database:", error);
     }
   }
 
@@ -98,7 +103,7 @@ class PriceUpdaterWorker {
       clearInterval(this.subscriptionCheckInterval);
     }
     upbitWSService.close();
-    logger.info('Price Updater Worker stopped');
+    logger.info("Price Updater Worker stopped");
   }
 }
 
@@ -108,14 +113,15 @@ const worker = new PriceUpdaterWorker();
 worker.start();
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM: Stopping worker');
+process.on("SIGTERM", () => {
+  logger.info("SIGTERM: Stopping worker");
   worker.stop();
   process.exit(0);
 });
 
-process.on('SIGINT', () => {
-  logger.info('SIGINT: Stopping worker');
+process.on("SIGINT", () => {
+  logger.info("SIGINT: Stopping worker");
   worker.stop();
   process.exit(0);
 });
+export { worker };

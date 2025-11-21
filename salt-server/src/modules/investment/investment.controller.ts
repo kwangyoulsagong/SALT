@@ -129,4 +129,16 @@ export class InvestmentController {
       next(error);
     }
   };
+  getAllMarketSymbols = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const result = await this.investmentService.getAllMarketSymbols();
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

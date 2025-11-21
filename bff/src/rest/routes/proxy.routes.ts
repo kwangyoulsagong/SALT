@@ -57,8 +57,11 @@ router.get("/investment/watchlist", authMiddleware, proxyHandler);
 router.delete("/investment/watchlist/:id", authMiddleware, proxyHandler);
 router.get("/investment/crypto/:symbol/price", authMiddleware, proxyHandler);
 router.get("/investment/crypto/:symbol/chart", authMiddleware, proxyHandler);
-router.get("/investment/market/overview", authMiddleware, (req, res) =>
+router.get("/investment/market/overview", (req, res) =>
   marketController.overview(req, res)
+);
+router.get("/investment/market/symbols", (req, res) =>
+  marketController.symbols(req, res)
 );
 // Missions 관련
 router.get("/missions", authMiddleware, proxyHandler);

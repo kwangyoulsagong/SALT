@@ -242,6 +242,31 @@ router.get("/internal/symbols", investmentController.getAllSymbols);
  */
 router.post("/internal/update-prices", investmentController.updatePrices);
 /**
+ * @swagger
+ * /api/investment/internal/market/symbols:
+ *   get:
+ *     summary: 모든 마켓 심볼 조회 (내부 API)
+ *     tags: [Investment - Internal]
+ *     description: BFF Worker가 전체 실시간 구독을 위해 사용하는 API입니다. 인증이 필요하지 않습니다.
+ *     responses:
+ *       200:
+ *         description: 심볼 목록
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["BTC", "ETH", "DOGE", "XRP", "SOL"]
+ */
+router.get(
+  "/internal/market/symbols",
+  investmentController.getAllMarketSymbols
+);
+/**
  * 차트 드로잉 관련 라우트
  * /api/investment/drawings/*
  */

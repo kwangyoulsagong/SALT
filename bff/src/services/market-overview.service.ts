@@ -21,6 +21,10 @@ class MarketOverviewService {
 
     return { items: enriched, pagination };
   }
+  async getSymbols() {
+    const response = await backendApi.getMarketSymbols(); // BFF → Backend 요청
+    return response;
+  }
 }
 
 export const marketOverviewService = new MarketOverviewService();

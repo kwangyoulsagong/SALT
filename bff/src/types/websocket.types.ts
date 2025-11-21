@@ -1,7 +1,7 @@
 import WebSocket from "ws";
 
 export interface ExtendedWebSocket extends WebSocket {
-  userId?: string;
+  userId?: string | null;
   isAlive?: boolean;
   subscribedSymbols?: Set<string>;
   subscribedCandles?: Set<string>;

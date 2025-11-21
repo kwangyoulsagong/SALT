@@ -4,7 +4,7 @@ export class ResponseUtil {
   static success<T>(
     res: Response,
     data: T,
-    message?: string,
+    message: string = "success",
     statusCode: number = 200
   ) {
     return res.status(statusCode).json({

@@ -1,5 +1,6 @@
 import { ExtendedWebSocket, WSMessage } from "../../types/websocket.types";
 import { logger } from "../../config/logger";
+import { worker } from "../../workers/price-updater.worker";
 
 export class CryptoHandler {
   /**
@@ -10,26 +11,32 @@ export class CryptoHandler {
       const { symbols } = message;
 
       if (!Array.isArray(symbols)) {
-        ws.send(
+        return ws.send(
           JSON.stringify({
             type: "error",
             message: "Invalid symbols format",
           })
         );
-        return;
       }
 
-      // 기존 구독이 없으면 초기화
       if (!ws.subscribedSymbols) {
         ws.subscribedSymbols = new Set();
       }
 
-      // 심볼 추가
-      symbols.forEach((symbol) => {
-        ws.subscribedSymbols!.add(symbol.toUpperCase());
-      });
+      // 변경 전과 달라진 부분 🔥
+      const upper = symbols.map((s) => s.toUpperCase());
+      const before = new Set(ws.subscribedSymbols);
+      upper.forEach((s) => ws.subscribedSymbols!.add(s));
 
-      logger.info(`User ${ws.userId} subscribed to: ${symbols.join(", ")}`);
+      // 실제 추가된 심볼만 추출
+      const added = upper.filter((s) => !before.has(s));
+
+      if (added.length > 0) {
+        logger.info(`User ${ws.userId} subscribed to: ${added.join(", ")}`);
+
+        // 🔥 한 번만 요청하도록 변경
+        worker.updateSubscriptions();
+      }
 
       ws.send(
         JSON.stringify({
@@ -54,21 +61,31 @@ export class CryptoHandler {
   handleUnsubscribe(ws: ExtendedWebSocket, message: WSMessage) {
     try {
       const { symbols } = message;
+      if (!Array.isArray(symbols) || !ws.subscribedSymbols) return;
 
-      if (!Array.isArray(symbols) || !ws.subscribedSymbols) {
-        return;
+      const upper = symbols.map((s) => s.toUpperCase());
+      const before = new Set(ws.subscribedSymbols);
+
+      upper.forEach((s) => ws.subscribedSymbols!.delete(s));
+
+      const removed =
+        before.size > 0
+          ? upper.filter((s) => !ws.subscribedSymbols!.has(s))
+          : [];
+
+      if (removed.length > 0) {
+        logger.info(
+          `User ${ws.userId} unsubscribed from: ${removed.join(", ")}`
+        );
+
+        // 🔥 한 번만 호출
+        worker.updateSubscriptions();
       }
-
-      symbols.forEach((symbol) => {
-        ws.subscribedSymbols!.delete(symbol.toUpperCase());
-      });
-
-      logger.info(`User ${ws.userId} unsubscribed from: ${symbols.join(", ")}`);
 
       ws.send(
         JSON.stringify({
           type: "unsubscribed",
-          symbols,
+          symbols: removed,
         })
       );
     } catch (error: any) {

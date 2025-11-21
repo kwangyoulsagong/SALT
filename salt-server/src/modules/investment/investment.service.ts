@@ -370,4 +370,24 @@ export class InvestmentService {
       throw error;
     }
   }
+  async getAllMarketSymbols() {
+    try {
+      const rows = await prisma.marketAsset.findMany({
+        where: { isActive: true }, // 상폐된 코인 제외
+        select: { symbol: true }, // symbol만 추출
+      });
+
+      // 🔥 비어있거나 undefined면 fallback
+      if (!rows || rows.length === 0) return [];
+
+      // 🔧 null-safe Filtering
+      return rows
+        .map((r) => r.symbol)
+        .filter((s) => typeof s === "string" && s.trim() !== "");
+    } catch (err) {
+      // ⛑ 에러가 있어도 BFF는 죽지 않아야 함
+      console.error("❌ getAllMarketSymbols DB Error:", err);
+      return []; // fallback
+    }
+  }
 }
