@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { backendApi } from "../../services/backend-api.service";
 import { authMiddleware } from "../middleware/auth.middleware";
+import { marketController } from "../controllers/market.controller";
 
 const router = Router();
 
@@ -56,8 +57,9 @@ router.get("/investment/watchlist", authMiddleware, proxyHandler);
 router.delete("/investment/watchlist/:id", authMiddleware, proxyHandler);
 router.get("/investment/crypto/:symbol/price", authMiddleware, proxyHandler);
 router.get("/investment/crypto/:symbol/chart", authMiddleware, proxyHandler);
-router.get("/investment/market/overview", authMiddleware, proxyHandler);
-
+router.get("/investment/market/overview", authMiddleware, (req, res) =>
+  marketController.overview(req, res)
+);
 // Missions 관련
 router.get("/missions", authMiddleware, proxyHandler);
 router.get("/missions/today", authMiddleware, proxyHandler);

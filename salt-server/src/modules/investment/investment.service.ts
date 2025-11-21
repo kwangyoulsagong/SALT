@@ -5,6 +5,23 @@ import { UpbitService } from "./upbit.service";
 
 const UPBIT_IMAGE_URL = "https://static.upbit.com/logos/";
 
+type MarketOverviewSort =
+  | "trade_value" // 거래대금
+  | "change" // 변동률
+  | "price" // 가격
+  | "name"; // 가나다(이름)
+
+type MarketOverviewPeriod = "1d" | "7d" | "1m" | "3m" | "6m" | "1y";
+
+interface MarketOverviewQuery {
+  page?: number;
+  limit?: number;
+  sort?: MarketOverviewSort;
+  order?: "asc" | "desc";
+  period?: MarketOverviewPeriod;
+  search?: string;
+}
+
 export class InvestmentService {
   private upbitService = new UpbitService();
 
@@ -188,41 +205,167 @@ export class InvestmentService {
   }
 
   /**
-   * 암호화폐 마켓 전체 조회 (상위 100개)
+   * 암호화폐 마켓 전체 조회 (필터 + 정렬 + 페이지네이션)
    */
-  async getMarketOverview(limit: number = 100) {
+  async getMarketOverview(query: MarketOverviewQuery) {
+    const page = query.page && query.page > 0 ? query.page : 1;
+    const limit = query.limit && query.limit > 0 ? query.limit : 100;
+    const sort: MarketOverviewSort = query.sort || "trade_value";
+    const order: "asc" | "desc" = query.order || "desc";
+    const period: MarketOverviewPeriod = query.period || "1d";
+    const search = (query.search || "").trim().toLowerCase();
+
     try {
-      // 1. Upbit에서 모든 KRW 마켓 정보 가져오기
-      const markets = await this.upbitService.getAllKRWMarkets();
+      // 1. KRW 마켓 전체
+      const markets = await this.upbitService.getAllKRWMarkets(); // { symbol, koreanName, englishName }
 
-      // 2. 상위 N개 심볼 추출
-      const topSymbols = markets
-        .slice(0, limit)
-        .map((m: { symbol: string }) => m.symbol);
+      // 2. 검색 필터 (심볼 / 한글 / 영어)
+      let filtered = markets;
+      if (search) {
+        filtered = markets.filter((m: any) => {
+          return (
+            m.symbol.toLowerCase().includes(search) ||
+            m.koreanName.toLowerCase().includes(search) ||
+            m.englishName.toLowerCase().includes(search)
+          );
+        });
+      }
 
-      // 3. 현재가 일괄 조회
-      const prices = await this.upbitService.getCurrentPrices(topSymbols);
+      const total = filtered.length;
+      const totalPages = Math.ceil(total / limit);
 
-      // 4. 마켓 정보와 가격 정보 + 로고 합치기
-      const overview = prices.map((price: { symbol: string }) => {
-        const marketInfo = markets.find(
-          (m: { symbol: string }) => m.symbol === price.symbol
-        );
+      // 3. 페이지네이션
+      const start = (page - 1) * limit;
+      const pagedMarkets = filtered.slice(start, start + limit);
+      const symbols = pagedMarkets.map((m: any) => m.symbol);
+
+      if (symbols.length === 0) {
         return {
-          ...price,
+          items: [],
+          pagination: { page, limit, total, totalPages },
+        };
+      }
+
+      // 4. 현재가/거래대금/24h변동률 한번에 조회
+      const prices = await this.upbitService.getCurrentPrices(symbols);
+
+      // 5. 마켓 + 가격 + 로고 머지
+      const overview = prices.map((price: any) => {
+        const marketInfo = pagedMarkets.find(
+          (m: any) => m.symbol === price.symbol
+        );
+
+        return {
+          symbol: price.symbol,
+          market: price.market,
           koreanName: marketInfo?.koreanName,
           englishName: marketInfo?.englishName,
+          currentPrice: price.currentPrice,
+          change24h: price.change24h, // 24h 변동률
+          high24h: price.high24h,
+          low24h: price.low24h,
+          volume24h: price.volume24h,
+          tradeValue24h: price.tradeValue24h, // 거래대금
           logoUrl: `${UPBIT_IMAGE_URL}${price.symbol}.png`,
+          // 아래는 기간 수익률용 필드 (일단 null로 초기화)
+          changePeriod: null as number | null,
         };
       });
 
-      // 5. 거래대금 순으로 정렬
+      // 6. 기간 수익률 계산 (1d/7d/1m/3m/6m/1y)
+      if (period !== "1d") {
+        const daysMap: Record<MarketOverviewPeriod, number> = {
+          "1d": 1,
+          "7d": 7,
+          "1m": 30,
+          "3m": 90,
+          "6m": 180,
+          "1y": 365,
+        };
+        const days = daysMap[period] || 1;
+
+        await Promise.all(
+          overview.map(
+            async (item: { symbol: string; changePeriod: number | null }) => {
+              try {
+                const candles = await this.upbitService.getDailyCandles(
+                  item.symbol,
+                  days + 1
+                );
+                if (candles.length < 2) {
+                  item.changePeriod = null;
+                  return;
+                }
+                // Upbit 일봉은 최신 → 과거 순서라 가정
+                const latest = candles[0].close;
+                const past = candles[candles.length - 1].close;
+                if (!past || past === 0) {
+                  item.changePeriod = null;
+                  return;
+                }
+                item.changePeriod = ((latest - past) / past) * 100;
+              } catch (e) {
+                item.changePeriod = null;
+              }
+            }
+          )
+        );
+      } else {
+        // 1d는 24h 변동률 재사용
+        overview.forEach((item: { changePeriod: any; change24h: any }) => {
+          item.changePeriod = item.change24h;
+        });
+      }
+
+      // 7. 정렬
+      const dir = order === "asc" ? 1 : -1;
       overview.sort(
-        (a: { tradeValue24h: number }, b: { tradeValue24h: number }) =>
-          b.tradeValue24h - a.tradeValue24h
+        (
+          a: {
+            changePeriod: any;
+            currentPrice: any;
+            koreanName: any;
+            englishName: any;
+            tradeValue24h: any;
+          },
+          b: {
+            changePeriod: any;
+            currentPrice: any;
+            koreanName: any;
+            englishName: any;
+            tradeValue24h: any;
+          }
+        ) => {
+          switch (sort) {
+            case "change":
+              return (
+                dir *
+                (((a.changePeriod || 0) as number) -
+                  ((b.changePeriod || 0) as number))
+              );
+            case "price":
+              return dir * ((a.currentPrice || 0) - (b.currentPrice || 0));
+            case "name": {
+              const aName = (a.koreanName || a.englishName || "") as string;
+              const bName = (b.koreanName || b.englishName || "") as string;
+              return dir * aName.localeCompare(bName, "ko");
+            }
+            case "trade_value":
+            default:
+              return dir * ((a.tradeValue24h || 0) - (b.tradeValue24h || 0));
+          }
+        }
       );
 
-      return overview;
+      return {
+        items: overview,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+        },
+      };
     } catch (error) {
       throw error;
     }

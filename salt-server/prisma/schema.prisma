@@ -34,6 +34,10 @@ model User {
   missionProgress      UserMissionProgress[]
   achievements         UserAchievement[]
   pointTransactions    PointTransaction[]
+  chartDrawings        ChartDrawing[]
+  portfolioTransactions PortfolioTransaction[]
+  portfolioHoldings     PortfolioHolding[]
+  newsBookmarks         NewsBookmark[]
 
   @@index([email])
   @@map("users")
@@ -261,4 +265,125 @@ model PointTransaction {
 enum TransactionType {
   earn
   spend
+}
+
+// ==================== Chart Drawing ====================
+model ChartDrawing {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  symbol      String
+  name        String
+  description String?
+  chartPeriod String   @map("chart_period") // 'minute', 'hour', 'day', 'week', 'month'
+  drawingData Json     @map("drawing_data") // 드로잉 데이터 (JSON)
+  thumbnail   String?  // 썸네일 이미지 URL (선택)
+  isPublic    Boolean  @default(false) @map("is_public") // 공개 여부
+  viewCount   Int      @default(0) @map("view_count") // 조회수
+  likeCount   Int      @default(0) @map("like_count") // 좋아요 수
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, symbol])
+  @@index([userId, createdAt])
+  @@index([isPublic, likeCount])
+  @@map("chart_drawings")
+}
+// ==================== Portfolio Tracking ====================
+model PortfolioTransaction {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  symbol          String
+  transactionType String   @map("transaction_type") // 'buy' or 'sell'
+  quantity        Float    // 수량
+  price           Float    // 거래 단가
+  totalAmount     Float    @map("total_amount") // 총 금액 (수량 * 단가)
+  fee             Float    @default(0) // 수수료
+  note            String?  // 메모
+  transactionDate DateTime @map("transaction_date") // 거래 날짜
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, symbol])
+  @@index([userId, transactionDate])
+  @@index([transactionType])
+  @@map("portfolio_transactions")
+}
+
+model PortfolioHolding {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  symbol            String
+  totalQuantity     Float    @map("total_quantity") // 보유 수량
+  averageBuyPrice   Float    @map("average_buy_price") // 평균 매수가
+  totalInvested     Float    @map("total_invested") // 총 투자금액
+  currentPrice      Float    @default(0) @map("current_price") // 현재가 (실시간 업데이트)
+  currentValue      Float    @default(0) @map("current_value") // 현재 평가금액
+  unrealizedProfit  Float    @default(0) @map("unrealized_profit") // 미실현 손익
+  unrealizedProfitRate Float @default(0) @map("unrealized_profit_rate") // 미실현 손익률
+  realizedProfit    Float    @default(0) @map("realized_profit") // 실현 손익
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol])
+  @@index([userId])
+  @@map("portfolio_holdings")
+}
+
+// ==================== News ====================
+model NewsArticle {
+  id          String   @id @default(uuid())
+  title       String
+  content     String   @db.Text
+  summary     String?  @db.Text
+  url         String   @unique
+  imageUrl    String?  @map("image_url")
+  source      String   // 'coingecko', 'cryptopanic', 'coindesk', etc
+  author      String?
+  symbols     String[] // ['BTC', 'ETH', 'XRP']
+  sentiment   String?  // 'positive', 'neutral', 'negative'
+  viewCount   Int      @default(0) @map("view_count")
+  publishedAt DateTime @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  bookmarks NewsBookmark[]
+
+  @@index([publishedAt])
+  @@index([source])
+  @@index([symbols])
+  @@map("news_articles")
+}
+
+model NewsBookmark {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  newsId    String   @map("news_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  news NewsArticle @relation(fields: [newsId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, newsId])
+  @@index([userId])
+  @@map("news_bookmarks")
+}
+
+model MarketAsset {
+  symbol        String   @id                      // BTC, ETH
+  market        String                              // KRW-BTC
+  koreanName    String   @map("korean_name")
+  englishName   String   @map("english_name")
+  logoUrl       String?  @map("logo_url")
+  isActive      Boolean  @default(true) @map("is_active")
+  listedAt      DateTime? @map("listed_at")
+  delistedAt    DateTime? @map("delisted_at")
+
+  @@index([isActive])
+  @@map("market_assets")
 }

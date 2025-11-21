@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { InvestmentController } from "./investment.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
+import drawingRoutes from "./drawing.routes";
 
 const router = Router();
 const investmentController = new InvestmentController();
@@ -151,26 +152,50 @@ router.get(
  * @swagger
  * /api/investment/market/overview:
  *   get:
- *     summary: 암호화폐 마켓 전체 조회
+ *     summary: 암호화폐 마켓 전체 조회 (필터/정렬/페이지네이션)
  *     tags: [Investment]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
+ *         name: page
+ *         schema:
+ *           type: number
+ *           default: 1
+ *       - in: query
  *         name: limit
  *         schema:
  *           type: number
  *           default: 100
- *         description: 조회할 코인 개수
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [trade_value, change, price, name]
+ *         description: 정렬 기준 (거래대금, 변동률, 가격, 이름)
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         description: 정렬 방향
+ *       - in: query
+ *         name: period
+ *         schema:
+ *           type: string
+ *           enum: [1d, 7d, 1m, 3m, 6m, 1y]
+ *         description: 수익률 기준 기간
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: 심볼/한글/영문명 검색
  *     responses:
  *       200:
- *         description: 마켓 전체 정보 (거래대금 순)
+ *         description: 마켓 전체 정보
  */
-router.get(
-  "/market/overview",
-  authMiddleware,
-  investmentController.getMarketOverview
-);
+
+router.get("/market/overview", investmentController.getMarketOverview);
 
 // 내부 API (BFF용) - 인증 없이 호출 가능
 /**
@@ -216,5 +241,10 @@ router.get("/internal/symbols", investmentController.getAllSymbols);
  *         description: 업데이트 성공
  */
 router.post("/internal/update-prices", investmentController.updatePrices);
+/**
+ * 차트 드로잉 관련 라우트
+ * /api/investment/drawings/*
+ */
+router.use("/drawings", drawingRoutes);
 
 export default router;

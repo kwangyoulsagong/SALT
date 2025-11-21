@@ -1,5 +1,5 @@
-import { ExtendedWebSocket } from '../../types/websocket.types';
-import { logger } from '../../config/logger';
+import { ExtendedWebSocket } from "../../types/websocket.types";
+import { logger } from "../../config/logger";
 
 class ConnectionManager {
   private connections: Map<string, ExtendedWebSocket> = new Map();
@@ -17,7 +17,9 @@ class ConnectionManager {
    */
   removeConnection(userId: string) {
     this.connections.delete(userId);
-    logger.info(`User disconnected: ${userId}, Total: ${this.connections.size}`);
+    logger.info(
+      `User disconnected: ${userId}, Total: ${this.connections.size}`
+    );
   }
 
   /**
@@ -55,8 +57,7 @@ class ConnectionManager {
     let sent = 0;
 
     this.connections.forEach((ws) => {
-      if (ws.readyState === ws.OPEN && 
-          ws.subscribedSymbols?.has(symbol)) {
+      if (ws.readyState === ws.OPEN && ws.subscribedSymbols?.has(symbol)) {
         ws.send(messageStr);
         sent++;
       }
@@ -77,12 +78,32 @@ class ConnectionManager {
    */
   getAllSubscribedSymbols(): string[] {
     const symbols = new Set<string>();
-    
+
     this.connections.forEach((ws) => {
-      ws.subscribedSymbols?.forEach(symbol => symbols.add(symbol));
+      ws.subscribedSymbols?.forEach((symbol) => symbols.add(symbol));
     });
 
     return Array.from(symbols);
+  }
+  /**
+   * 특정 심볼 차트를 구독 중인 사용자에게만 캔들 업데이트 전송
+   */
+  broadcastCandleToSubscribers(symbol: string, candle: any) {
+    const messageStr = JSON.stringify({
+      type: "candle_update",
+      data: candle,
+    });
+
+    let sent = 0;
+
+    this.connections.forEach((ws) => {
+      if (ws.readyState === ws.OPEN && ws.subscribedCandles?.has(symbol)) {
+        ws.send(messageStr);
+        sent++;
+      }
+    });
+
+    logger.debug(`Sent ${symbol} candle update to ${sent} subscribers`);
   }
 }
 
