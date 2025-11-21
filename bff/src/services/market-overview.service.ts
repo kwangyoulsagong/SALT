@@ -14,8 +14,8 @@ class MarketOverviewService {
       const live = priceCache.get(m.symbol);
       return {
         ...m,
-        currentPrice: live?.currentPrice ?? null,
-        change24h: live?.change24h ?? null,
+        currentPrice: live?.currentPrice ?? m.currentPrice ?? null,
+        change24h: live?.change24h ?? m.change24h ?? null,
       };
     });
 

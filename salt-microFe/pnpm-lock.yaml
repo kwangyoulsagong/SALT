@@ -169,6 +169,9 @@ importers:
       '@vanilla-extract/next-plugin':
         specifier: ^2.4.8
         version: 2.4.9(next@14.2.23)(webpack@5.97.1)
+      lightweight-charts:
+        specifier: ^5.0.9
+        version: 5.0.9
       lucide-react:
         specifier: ^0.475.0
         version: 0.475.0(react@18.2.0)
@@ -3402,7 +3405,7 @@ packages:
       btoa: 1.2.1
       typescript: 5.7.3
       upath: 2.0.1
-      webpack: 5.97.1
+      webpack: 5.97.1(esbuild@0.24.2)
     transitivePeerDependencies:
       - '@rspack/core'
       - bufferutil
@@ -3547,10 +3550,10 @@ packages:
       '@module-federation/sdk': 0.8.8
       '@module-federation/webpack-bundler-runtime': 0.8.8
       fast-glob: 3.3.3
-      next: 14.2.23(react-dom@18.2.0)(react@18.2.0)
+      next: 14.2.23(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      webpack: 5.97.1
+      webpack: 5.97.1(esbuild@0.24.2)
     transitivePeerDependencies:
       - '@rspack/core'
       - bufferutil
@@ -3615,11 +3618,11 @@ packages:
       '@module-federation/utilities': 3.1.39(next@14.2.23)(react-dom@18.2.0)(react@18.2.0)(webpack@5.97.1)
       btoa: 1.2.1
       encoding: 0.1.13
-      next: 14.2.23(react-dom@18.2.0)(react@18.2.0)
+      next: 14.2.23(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
       node-fetch: 2.7.0(encoding@0.1.13)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      webpack: 5.97.1
+      webpack: 5.97.1(esbuild@0.24.2)
     transitivePeerDependencies:
       - '@rspack/core'
       - bufferutil
@@ -3827,10 +3830,10 @@ packages:
         optional: true
     dependencies:
       '@module-federation/sdk': 0.8.8
-      next: 14.2.23(react-dom@18.2.0)(react@18.2.0)
+      next: 14.2.23(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      webpack: 5.97.1
+      webpack: 5.97.1(esbuild@0.24.2)
     dev: false
 
   /@module-federation/utilities@3.1.40(next@14.2.23)(react-dom@18.2.0)(react@18.2.0)(webpack@5.97.1):
@@ -9471,6 +9474,10 @@ packages:
       tmp: 0.0.33
     dev: true
 
+  /fancy-canvas@2.1.0:
+    resolution: {integrity: sha512-nifxXJ95JNLFR2NgRV4/MxVP45G9909wJTEKz5fg/TZS20JJZA6hfgRVh/bC9bwl2zBtBNcYPjiBE4njQHVBwQ==}
+    dev: false
+
   /fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
 
@@ -11446,6 +11453,12 @@ packages:
       prelude-ls: 1.2.1
       type-check: 0.4.0
     dev: true
+
+  /lightweight-charts@5.0.9:
+    resolution: {integrity: sha512-8oQIis8jfZVfSwz8j9Z5x3O79dIRTkEYI9UY7DKtE4O3ZxlHjMK3L0+4nOVOOFq4FHI/oSIzz1RHeNImCk6/Jg==}
+    dependencies:
+      fancy-canvas: 2.1.0
+    dev: false
 
   /lilconfig@3.1.3:
     resolution: {integrity: sha512-/vlFKAoH5Cgt3Ie+JLhRbwOsCQePABiU3tJ1egGvyQ+33R/vcwM2Zl2QR/LzjsBeItPt3oSVXapn+m4nQDvpzw==}
@@ -14254,12 +14267,13 @@ packages:
       uglify-js:
         optional: true
     dependencies:
-      '@jridgewell/trace-mapping': 0.3.31
+      '@jridgewell/trace-mapping': 0.3.25
       jest-worker: 27.5.1
       schema-utils: 4.3.0
       serialize-javascript: 6.0.2
       terser: 5.37.0
       webpack: 5.97.1
+    dev: true
 
   /terser@5.37.0:
     resolution: {integrity: sha512-B8wRRkmre4ERucLM/uXx4MOV5cbnOlVAqUst+1+iLKPI0dOgFO28f84ptoQt9HEI537PMzfYa/d+GEPKTRXmYA==}
@@ -15229,11 +15243,11 @@ packages:
         optional: true
     dependencies:
       '@types/eslint-scope': 3.7.7
-      '@types/estree': 1.0.8
+      '@types/estree': 1.0.6
       '@webassemblyjs/ast': 1.14.1
       '@webassemblyjs/wasm-edit': 1.14.1
       '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.15.0
+      acorn: 8.14.0
       browserslist: 4.24.4
       chrome-trace-event: 1.0.4
       enhanced-resolve: 5.18.0
@@ -15255,6 +15269,7 @@ packages:
       - '@swc/core'
       - esbuild
       - uglify-js
+    dev: true
 
   /webpack@5.97.1(esbuild@0.24.2):
     resolution: {integrity: sha512-EksG6gFY3L1eFMROS/7Wzgrii5mBAFe4rIr3r2BTfo7bcc+DWwFZ4OJ/miOuHJO/A85HwyI4eQ0F6IKXesO7Fg==}

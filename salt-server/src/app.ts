@@ -7,6 +7,7 @@ import { loggerMiddleware } from "./middleware/logger.middleware";
 import { setupSwagger } from "./config/swagger";
 import { NotFoundError } from "./utils/error.util";
 import { MarketSyncWorker } from "./workers/market-sync.worker";
+import { marketPriceUpdater } from "./workers/market-price-updater.worker";
 
 // Routes
 import authRoutes from "./modules/auth/auth.routes";
@@ -24,6 +25,7 @@ cron.schedule("0 */6 * * *", () => {
   marketWorker.sync();
   console.log("⏱️ Market Sync executed");
 });
+marketPriceUpdater.start();
 // Security
 app.use(helmet());
 app.use(cors());

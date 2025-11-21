@@ -97,24 +97,45 @@ export class CryptoHandler {
    */
   handleSubscribeCandle(ws: ExtendedWebSocket, message: WSMessage) {
     try {
-      const { symbol } = message;
+      const { symbol, timeframe } = message;
+      console.log("📩 Received subscribe_candle from client:", message); // 👈 찍기!!
 
-      if (!symbol) {
+      if (!symbol || !timeframe) {
         return ws.send(
-          JSON.stringify({ type: "error", message: "Missing symbol" })
+          JSON.stringify({
+            type: "error",
+            message: "Missing symbol or timeframe",
+          })
         );
       }
 
-      if (!ws.subscribedCandles) ws.subscribedCandles = new Set();
+      const upper = symbol.toUpperCase();
 
-      ws.subscribedCandles.add(symbol.toUpperCase());
+      // 📌 Candle 구독 Map 초기화
+      if (!ws.subscribedCandles) ws.subscribedCandles = new Map();
 
-      logger.info(`User ${ws.userId} subscribed candle: ${symbol}`);
+      // 📌 해당 symbol에 대한 timeframe Set 준비
+      if (!ws.subscribedCandles.has(upper)) {
+        ws.subscribedCandles.set(upper, new Set());
+      }
+
+      const tfSet = ws.subscribedCandles.get(upper)!;
+      const isFirst = tfSet.size === 0;
+
+      tfSet.add(timeframe);
+
+      logger.info(`WS ${ws.userId} subscribed candle: ${upper} (${timeframe})`);
+
+      // 🟢 처음 구독하는 경우에만 Worker에 반영
+      if (isFirst) {
+        worker.updateSubscriptions();
+      }
 
       ws.send(
         JSON.stringify({
           type: "subscribed_candle",
-          symbol,
+          symbol: upper,
+          timeframe,
         })
       );
     } catch (error) {
@@ -122,23 +143,32 @@ export class CryptoHandler {
     }
   }
 
-  /**
-   * 실시간 차트(캔들) 구독 해제
-   */
   handleUnsubscribeCandle(ws: ExtendedWebSocket, message: WSMessage) {
     try {
-      const { symbol } = message;
+      const { symbol, timeframe } = message;
+      if (!symbol || !timeframe || !ws.subscribedCandles) return;
 
-      if (!symbol || !ws.subscribedCandles) return;
+      const upper = symbol.toUpperCase();
+      const tfSet = ws.subscribedCandles.get(upper);
+      if (!tfSet) return;
 
-      ws.subscribedCandles.delete(symbol.toUpperCase());
+      tfSet.delete(timeframe);
+      logger.info(
+        `WS ${ws.userId} unsubscribed candle: ${upper} (${timeframe})`
+      );
 
-      logger.info(`User ${ws.userId} unsubscribed candle: ${symbol}`);
+      // ❗️ 모두 제거되면 symbol 삭제
+      if (tfSet.size === 0) {
+        ws.subscribedCandles.delete(upper);
+        // 🔥 모두 제거된 경우 Worker에 반영
+        worker.updateSubscriptions();
+      }
 
       ws.send(
         JSON.stringify({
           type: "unsubscribed_candle",
-          symbol,
+          symbol: upper,
+          timeframe,
         })
       );
     } catch (error) {

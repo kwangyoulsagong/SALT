@@ -35,7 +35,7 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
   ws.userId = userId ?? "guest";
   ws.isAlive = true;
   ws.subscribedSymbols = new Set();
-  ws.subscribedCandles = new Set();
+  ws.subscribedCandles = new Map();
 
   // 게스트도 connectionManager에 넣기 (고유 ID 부여)
   const connectionId = userId ?? "guest_" + Date.now();
@@ -75,7 +75,13 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
         case "ping":
           cryptoHandler.handlePing(ws);
           break;
+        case "subscribe_candle":
+          cryptoHandler.handleSubscribeCandle(ws, message);
+          break;
 
+        case "unsubscribe_candle":
+          cryptoHandler.handleUnsubscribeCandle(ws, message);
+          break;
         default:
           ws.send(
             JSON.stringify({

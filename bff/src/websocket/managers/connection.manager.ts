@@ -88,22 +88,36 @@ class ConnectionManager {
   /**
    * 특정 심볼 차트를 구독 중인 사용자에게만 캔들 업데이트 전송
    */
-  broadcastCandleToSubscribers(symbol: string, candle: any) {
+  broadcastCandleToSubscribers(symbol: string, timeframe: string, candle: any) {
+    if (!symbol || !timeframe || !candle) return;
+
     const messageStr = JSON.stringify({
-      type: "candle_update",
+      type: "candle",
+      symbol,
+      timeframe,
       data: candle,
     });
 
     let sent = 0;
 
     this.connections.forEach((ws) => {
-      if (ws.readyState === ws.OPEN && ws.subscribedCandles?.has(symbol)) {
+      if (!ws.subscribedCandles) return;
+
+      if (!(ws.subscribedCandles instanceof Map)) return;
+
+      const tfSet = ws.subscribedCandles.get(symbol);
+      if (!tfSet) return;
+
+      if (!tfSet.has(timeframe)) return;
+
+      // 💚 이제 안전하게 보냄
+      if (ws.readyState === ws.OPEN) {
         ws.send(messageStr);
         sent++;
       }
     });
 
-    logger.debug(`Sent ${symbol} candle update to ${sent} subscribers`);
+    logger.debug(`Sent ${symbol} (${timeframe}) candle to ${sent} subscribers`);
   }
 }
 

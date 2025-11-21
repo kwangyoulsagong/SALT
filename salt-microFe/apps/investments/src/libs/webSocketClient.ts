@@ -160,6 +160,7 @@ class WSClient {
     listener: CandleListener
   ) {
     const upper = symbol.toUpperCase();
+
     let tfMap = this.candleListeners.get(upper);
     if (!tfMap) {
       tfMap = new Map();
@@ -167,17 +168,15 @@ class WSClient {
     }
 
     let set = tfMap.get(timeframe);
-    const isFirst = !set || set.size === 0;
-
     if (!set) {
       set = new Set();
       tfMap.set(timeframe, set);
     }
+
     set.add(listener);
 
-    if (isFirst && !this.reconnecting) {
-      this.send({ type: "subscribe_candle", symbol: upper, timeframe });
-    }
+    // 🔥 reconnect 상관없이 항상 서버에 구독 요청 전송
+    this.send({ type: "subscribe_candle", symbol: upper, timeframe });
   }
 
   unsubscribeCandle(

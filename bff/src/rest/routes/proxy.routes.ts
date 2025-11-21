@@ -56,7 +56,7 @@ router.post("/investment/watchlist", authMiddleware, proxyHandler);
 router.get("/investment/watchlist", authMiddleware, proxyHandler);
 router.delete("/investment/watchlist/:id", authMiddleware, proxyHandler);
 router.get("/investment/crypto/:symbol/price", authMiddleware, proxyHandler);
-router.get("/investment/crypto/:symbol/chart", authMiddleware, proxyHandler);
+router.get("/investment/crypto/:symbol/chart", proxyHandler);
 router.get("/investment/market/overview", (req, res) =>
   marketController.overview(req, res)
 );

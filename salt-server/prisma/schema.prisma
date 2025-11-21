@@ -375,8 +375,8 @@ model NewsBookmark {
 }
 
 model MarketAsset {
-  symbol        String   @id                      // BTC, ETH
-  market        String                              // KRW-BTC
+  symbol        String   @id
+  market        String
   koreanName    String   @map("korean_name")
   englishName   String   @map("english_name")
   logoUrl       String?  @map("logo_url")
@@ -384,6 +384,18 @@ model MarketAsset {
   listedAt      DateTime? @map("listed_at")
   delistedAt    DateTime? @map("delisted_at")
 
+  currentPrice     Decimal?  @map("current_price")
+  change24h        Decimal?  @map("change_24h")
+  high24h          Decimal?  @map("high_24h")
+  low24h           Decimal?  @map("low_24h")
+  volume24h        Decimal?  @map("volume_24h")
+  tradeValue24h    Decimal?  @map("trade_value_24h")
+  priceUpdatedAt   DateTime? @map("price_updated_at")
+
   @@index([isActive])
+  @@index([tradeValue24h])      // 🔥 TOP ranking 조회용
+  @@index([change24h])          // 변동률 정렬 시 빠르게
+  @@index([currentPrice])       // 가격 기준 정렬
+  @@index([priceUpdatedAt])     // 오래된 가격만 background update
   @@map("market_assets")
 }
