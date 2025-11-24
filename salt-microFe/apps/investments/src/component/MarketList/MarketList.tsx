@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import { wsClient } from "@/libs/webSocketClient/webSocketClient";
+
 import dynamic from "next/dynamic";
+import { wsClient } from "@/libs/webSocketClient/webSocketClient";
 
 // ⭐ 차트는 SSR 안되므로 dynamic import
 const MarketChart = dynamic(

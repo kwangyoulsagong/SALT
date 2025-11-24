@@ -33,6 +33,6 @@ export type WSClientReceiveMessage =
   | { type: "candle"; symbol: string; timeframe: Timeframe; data: Candle };
 
 export interface WSClientContext {
-  priceListners: Map<string, Set<PriceListener>>;
-  candleListners: Map<string, Map<Timeframe, Set<CandleListener>>>;
+  priceListeners: Map<string, Set<PriceListener>>;
+  candleListeners: Map<string, Map<Timeframe, Set<CandleListener>>>;
 }
