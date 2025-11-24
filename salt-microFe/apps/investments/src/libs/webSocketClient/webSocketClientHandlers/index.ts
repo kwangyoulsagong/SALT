@@ -19,6 +19,6 @@ export function dispatchMessage(
     default:
       // TypeScript의 exhaustive check
       const _exhaustiveCheck: never = msg;
-      console.warn("Unhandled message type:", _exhaustiveCheck);
+      console.warn("없는 타입:", _exhaustiveCheck);
   }
 }

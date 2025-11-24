@@ -17,6 +17,7 @@ import missionRoutes from "./modules/mission/mission.routes";
 import userRoutes from "./modules/user/user.routes";
 import portfolioRoutes from "./modules/portfolio/portfolio.routes";
 import newsRoutes from "./modules/news/news.routes";
+import marketIntelligenceRoutes from "./modules/market-intelligence/market-intelligence.routes";
 
 const app: Application = express();
 const marketWorker = new MarketSyncWorker();
@@ -57,6 +58,7 @@ app.use("/api/missions", missionRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/portfolio", portfolioRoutes);
 app.use("/api/news", newsRoutes);
+app.use("/api/market-intelligence", marketIntelligenceRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response, next: NextFunction) => {

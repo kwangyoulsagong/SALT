@@ -38,6 +38,8 @@ model User {
   portfolioTransactions PortfolioTransaction[]
   portfolioHoldings     PortfolioHolding[]
   newsBookmarks         NewsBookmark[]
+  sentimentAlerts      SentimentAlert[]
+  smartMoneyAlerts     SmartMoneyAlert[]
 
   @@index([email])
   @@map("users")
@@ -398,4 +400,76 @@ model MarketAsset {
   @@index([currentPrice])       // 가격 기준 정렬
   @@index([priceUpdatedAt])     // 오래된 가격만 background update
   @@map("market_assets")
+}
+
+// ==================== Market Intelligence ====================
+
+// 시장 심리 데이터
+model MarketSentiment {
+  id                String   @id @default(uuid())
+  symbol            String   // BTC, ETH, etc
+  sentimentScore    Int      @map("sentiment_score") // 0-100
+  fearGreedIndex    Int?     @map("fear_greed_index") // 0-100
+  volatility        Float    // 변동성 %
+  volume24h         Float    @map("volume_24h") // 24시간 거래량
+  priceChange24h    Float    @map("price_change_24h") // 24시간 가격변동 %
+  socialMentions    Int      @default(0) @map("social_mentions")
+  searchTrend       Int      @default(0) @map("search_trend")
+  sentimentLabel    String   @map("sentiment_label") // extreme_fear, fear, neutral, greed, extreme_greed
+  calculatedAt      DateTime @default(now()) @map("calculated_at")
+
+  @@index([symbol, calculatedAt])
+  @@index([calculatedAt])
+  @@map("market_sentiments")
+}
+
+// 고래 거래 추적
+model WhaleTransaction {
+  id              String   @id @default(uuid())
+  symbol          String
+  transactionType String   @map("transaction_type") // buy, sell
+  amount          Float    // 코인 수량
+  amountKRW       Float    @map("amount_krw") // 원화 환산
+  exchange        String?  // upbit, binance, etc
+  detectedAt      DateTime @default(now()) @map("detected_at")
+
+  @@index([symbol, detectedAt])
+  @@map("whale_transactions")
+}
+
+// 심리 알림 설정
+model SentimentAlert {
+  id             String    @id @default(uuid())
+  userId         String    @map("user_id")
+  symbol         String
+  triggerScore   Int       @map("trigger_score") // 트리거 점수
+  triggerType    String    @map("trigger_type") // below, above
+  isActive       Boolean   @default(true) @map("is_active")
+  lastTriggered  DateTime? @map("last_triggered")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol, triggerType])
+  @@index([userId])
+  @@map("sentiment_alerts")
+}
+
+// 스마트 머니 알림 설정
+model SmartMoneyAlert {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  symbol        String
+  minAmount     Float     @map("min_amount") // 최소 거래 금액
+  isActive      Boolean   @default(true) @map("is_active")
+  lastTriggered DateTime? @map("last_triggered")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol])
+  @@index([userId])
+  @@map("smart_money_alerts")
 }
