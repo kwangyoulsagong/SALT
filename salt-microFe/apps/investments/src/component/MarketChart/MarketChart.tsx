@@ -8,7 +8,7 @@ import {
   ColorType,
   UTCTimestamp,
 } from "lightweight-charts";
-import { wsClient } from "@/libs/webSocketClient";
+import { wsClient } from "@/libs/webSocketClient/webSocketClient";
 
 interface Props {
   symbol: string;
