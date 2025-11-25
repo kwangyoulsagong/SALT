@@ -139,12 +139,7 @@ class UpbitWebSocketService {
 
     // 캔들 구독자에게만 전송
     Object.entries(candle).forEach(([tf, lastCandle]) => {
-      connectionManager.broadcastCandleToSubscribers(symbol, {
-        type: "candle",
-        symbol,
-        timeframe: tf,
-        data: lastCandle,
-      });
+      connectionManager.broadcastCandleToSubscribers(symbol, tf, lastCandle);
     });
   }
 

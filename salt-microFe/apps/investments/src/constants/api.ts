@@ -1,5 +1,6 @@
 export const BASE_URL =
   process.env.EXPO_PUBLIC_BASE_URL || "http://localhost:8000";
+export const WEBSOCKET_URL = "ws://localhost:4002";
 export const END_POINTS = {} as const;
 
 export const NETWORK = {

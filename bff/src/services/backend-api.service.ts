@@ -4,7 +4,7 @@ import { logger } from "../config/logger";
 
 class BackendApiService {
   private client: AxiosInstance;
-
+  private logger = logger;
   constructor() {
     this.client = axios.create({
       baseURL: env.BACKEND_API_URL,
@@ -87,6 +87,17 @@ class BackendApiService {
       params: query,
     });
     return response.data.data;
+  }
+  async getMarketSymbols() {
+    try {
+      const response = await this.client.get(
+        "/investment/internal/market/symbols"
+      );
+      return Array.isArray(response.data.data) ? response.data.data : [];
+    } catch (e) {
+      this.logger.error("Failed to fetch market symbols, fallback empty list");
+      return []; // fallback
+    }
   }
 }
 

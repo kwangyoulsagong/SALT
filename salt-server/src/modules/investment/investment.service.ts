@@ -205,157 +205,79 @@ export class InvestmentService {
   }
 
   /**
-   * 암호화폐 마켓 전체 조회 (필터 + 정렬 + 페이지네이션)
+   * 🔥 IMPROVED: DB 우선 조회 + 비동기 가격 업데이트
+   * 1. DB에서 캐시된 가격 즉시 반환 (빠른 초기 로딩)
+   * 2. 백그라운드에서 Upbit API로 최신 가격 업데이트
    */
   async getMarketOverview(query: MarketOverviewQuery) {
     const page = query.page && query.page > 0 ? query.page : 1;
     const limit = query.limit && query.limit > 0 ? query.limit : 100;
     const sort: MarketOverviewSort = query.sort || "trade_value";
     const order: "asc" | "desc" = query.order || "desc";
-    const period: MarketOverviewPeriod = query.period || "1d";
     const search = (query.search || "").trim().toLowerCase();
 
     try {
-      // 1. KRW 마켓 전체
-      const markets = await this.upbitService.getAllKRWMarkets(); // { symbol, koreanName, englishName }
+      // 1. 🔥 DB에서 마켓 정보 조회 (가격 포함)
+      const where: any = { isActive: true };
 
-      // 2. 검색 필터 (심볼 / 한글 / 영어)
-      let filtered = markets;
+      // 검색 조건
       if (search) {
-        filtered = markets.filter((m: any) => {
-          return (
-            m.symbol.toLowerCase().includes(search) ||
-            m.koreanName.toLowerCase().includes(search) ||
-            m.englishName.toLowerCase().includes(search)
-          );
-        });
+        where.OR = [
+          { symbol: { contains: search, mode: "insensitive" } },
+          { koreanName: { contains: search, mode: "insensitive" } },
+          { englishName: { contains: search, mode: "insensitive" } },
+        ];
       }
 
-      const total = filtered.length;
-      const totalPages = Math.ceil(total / limit);
-
-      // 3. 페이지네이션
-      const start = (page - 1) * limit;
-      const pagedMarkets = filtered.slice(start, start + limit);
-      const symbols = pagedMarkets.map((m: any) => m.symbol);
-
-      if (symbols.length === 0) {
-        return {
-          items: [],
-          pagination: { page, limit, total, totalPages },
-        };
+      // 정렬 설정
+      let orderBy: any = {};
+      switch (sort) {
+        case "trade_value":
+          orderBy = { tradeValue24h: order };
+          break;
+        case "change":
+          orderBy = { change24h: order };
+          break;
+        case "price":
+          orderBy = { currentPrice: order };
+          break;
+        case "name":
+          orderBy = { koreanName: order };
+          break;
+        default:
+          orderBy = { tradeValue24h: "desc" };
       }
 
-      // 4. 현재가/거래대금/24h변동률 한번에 조회
-      const prices = await this.upbitService.getCurrentPrices(symbols);
+      // DB에서 페이징 처리하여 조회
+      const [items, total] = await Promise.all([
+        prisma.marketAsset.findMany({
+          where,
+          orderBy,
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+        prisma.marketAsset.count({ where }),
+      ]);
 
-      // 5. 마켓 + 가격 + 로고 머지
-      const overview = prices.map((price: any) => {
-        const marketInfo = pagedMarkets.find(
-          (m: any) => m.symbol === price.symbol
-        );
+      // 2. 응답 데이터 구성 (DB 데이터 그대로 사용)
+      const overview = items.map((item) => ({
+        symbol: item.symbol,
+        market: item.market,
+        koreanName: item.koreanName,
+        englishName: item.englishName,
+        currentPrice: item.currentPrice ? Number(item.currentPrice) : 0,
+        change24h: item.change24h ? Number(item.change24h) : 0,
+        high24h: item.high24h ? Number(item.high24h) : 0,
+        low24h: item.low24h ? Number(item.low24h) : 0,
+        volume24h: item.volume24h ? Number(item.volume24h) : 0,
+        tradeValue24h: item.tradeValue24h ? Number(item.tradeValue24h) : 0,
+        logoUrl:
+          item.logoUrl || `https://static.upbit.com/logos/${item.symbol}.png`,
+        priceUpdatedAt: item.priceUpdatedAt,
+      }));
 
-        return {
-          symbol: price.symbol,
-          market: price.market,
-          koreanName: marketInfo?.koreanName,
-          englishName: marketInfo?.englishName,
-          currentPrice: price.currentPrice,
-          change24h: price.change24h, // 24h 변동률
-          high24h: price.high24h,
-          low24h: price.low24h,
-          volume24h: price.volume24h,
-          tradeValue24h: price.tradeValue24h, // 거래대금
-          logoUrl: `${UPBIT_IMAGE_URL}${price.symbol}.png`,
-          // 아래는 기간 수익률용 필드 (일단 null로 초기화)
-          changePeriod: null as number | null,
-        };
-      });
-
-      // 6. 기간 수익률 계산 (1d/7d/1m/3m/6m/1y)
-      if (period !== "1d") {
-        const daysMap: Record<MarketOverviewPeriod, number> = {
-          "1d": 1,
-          "7d": 7,
-          "1m": 30,
-          "3m": 90,
-          "6m": 180,
-          "1y": 365,
-        };
-        const days = daysMap[period] || 1;
-
-        await Promise.all(
-          overview.map(
-            async (item: { symbol: string; changePeriod: number | null }) => {
-              try {
-                const candles = await this.upbitService.getDailyCandles(
-                  item.symbol,
-                  days + 1
-                );
-                if (candles.length < 2) {
-                  item.changePeriod = null;
-                  return;
-                }
-                // Upbit 일봉은 최신 → 과거 순서라 가정
-                const latest = candles[0].close;
-                const past = candles[candles.length - 1].close;
-                if (!past || past === 0) {
-                  item.changePeriod = null;
-                  return;
-                }
-                item.changePeriod = ((latest - past) / past) * 100;
-              } catch (e) {
-                item.changePeriod = null;
-              }
-            }
-          )
-        );
-      } else {
-        // 1d는 24h 변동률 재사용
-        overview.forEach((item: { changePeriod: any; change24h: any }) => {
-          item.changePeriod = item.change24h;
-        });
-      }
-
-      // 7. 정렬
-      const dir = order === "asc" ? 1 : -1;
-      overview.sort(
-        (
-          a: {
-            changePeriod: any;
-            currentPrice: any;
-            koreanName: any;
-            englishName: any;
-            tradeValue24h: any;
-          },
-          b: {
-            changePeriod: any;
-            currentPrice: any;
-            koreanName: any;
-            englishName: any;
-            tradeValue24h: any;
-          }
-        ) => {
-          switch (sort) {
-            case "change":
-              return (
-                dir *
-                (((a.changePeriod || 0) as number) -
-                  ((b.changePeriod || 0) as number))
-              );
-            case "price":
-              return dir * ((a.currentPrice || 0) - (b.currentPrice || 0));
-            case "name": {
-              const aName = (a.koreanName || a.englishName || "") as string;
-              const bName = (b.koreanName || b.englishName || "") as string;
-              return dir * aName.localeCompare(bName, "ko");
-            }
-            case "trade_value":
-            default:
-              return dir * ((a.tradeValue24h || 0) - (b.tradeValue24h || 0));
-          }
-        }
-      );
+      // 3. 🔥 백그라운드에서 가격 업데이트 (응답 대기하지 않음)
+      this.updateMarketPricesInBackground(items.map((i) => i.symbol));
 
       return {
         items: overview,
@@ -363,11 +285,204 @@ export class InvestmentService {
           page,
           limit,
           total,
-          totalPages,
+          totalPages: Math.ceil(total / limit),
         },
       };
     } catch (error) {
       throw error;
+    }
+  }
+
+  /**
+   * 🔥 백그라운드에서 마켓 가격 업데이트
+   * 응답을 기다리지 않고 비동기로 실행
+   */
+  private async updateMarketPricesInBackground(symbols: string[]) {
+    try {
+      // 10분 이내에 업데이트된 건 스킵
+      const TEN_MINUTES = 10 * 60 * 1000;
+      const now = new Date();
+
+      // 업데이트가 필요한 심볼만 필터
+      const needsUpdate = await prisma.marketAsset.findMany({
+        where: {
+          symbol: { in: symbols },
+          OR: [
+            { priceUpdatedAt: null },
+            { priceUpdatedAt: { lt: new Date(now.getTime() - TEN_MINUTES) } },
+          ],
+        },
+        select: { symbol: true },
+      });
+
+      if (needsUpdate.length === 0) return;
+
+      const symbolsToUpdate = needsUpdate.map((item) => item.symbol);
+
+      // Upbit API에서 최신 가격 조회
+      const prices = await this.upbitService.getCurrentPrices(symbolsToUpdate);
+
+      // DB 업데이트 (배치)
+      const updates = prices.map((price: any) =>
+        prisma.marketAsset.update({
+          where: { symbol: price.symbol },
+          data: {
+            currentPrice: price.currentPrice,
+            change24h: price.change24h,
+            high24h: price.high24h,
+            low24h: price.low24h,
+            volume24h: price.volume24h,
+            tradeValue24h: price.tradeValue24h,
+            priceUpdatedAt: new Date(),
+          },
+        })
+      );
+
+      await Promise.all(updates);
+      console.log(`Updated prices for ${updates.length} symbols`);
+    } catch (error) {
+      console.error("Background price update failed:", error);
+      // 백그라운드 작업이므로 에러를 throw하지 않음
+    }
+  }
+
+  /**
+   * 🔥 Worker가 주기적으로 호출할 전체 가격 업데이트
+   * (예: 1분마다 실행)
+   */
+  async updateAllMarketPrices() {
+    try {
+      // 모든 활성 마켓 조회
+      const markets = await prisma.marketAsset.findMany({
+        where: { isActive: true },
+        select: { symbol: true },
+      });
+
+      const symbols = markets.map((m) => m.symbol);
+
+      // 배치로 나누어 처리 (100개씩)
+      const BATCH_SIZE = 100;
+      for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
+        const batch = symbols.slice(i, i + BATCH_SIZE);
+
+        const prices = await this.upbitService.getCurrentPrices(batch);
+
+        const updates = prices.map((price: any) =>
+          prisma.marketAsset.update({
+            where: { symbol: price.symbol },
+            data: {
+              currentPrice: price.currentPrice,
+              change24h: price.change24h,
+              high24h: price.high24h,
+              low24h: price.low24h,
+              volume24h: price.volume24h,
+              tradeValue24h: price.tradeValue24h,
+              priceUpdatedAt: new Date(),
+            },
+          })
+        );
+
+        await Promise.all(updates);
+        console.log(
+          `Batch ${i / BATCH_SIZE + 1}: Updated ${updates.length} prices`
+        );
+
+        // API 제한 방지
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      return { updated: symbols.length };
+    } catch (error) {
+      console.error("Market price update error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🔥 NEW: 마켓 오버뷰 정렬 헬퍼 메서드
+   */
+  private sortMarketOverview(
+    overview: any[],
+    sort: MarketOverviewSort,
+    order: "asc" | "desc"
+  ) {
+    const dir = order === "asc" ? 1 : -1;
+
+    overview.sort((a, b) => {
+      switch (sort) {
+        case "change":
+          return dir * ((a.changePeriod || 0) - (b.changePeriod || 0));
+        case "price":
+          return dir * ((a.currentPrice || 0) - (b.currentPrice || 0));
+        case "name": {
+          const aName = a.koreanName || a.englishName || "";
+          const bName = b.koreanName || b.englishName || "";
+          return dir * aName.localeCompare(bName, "ko");
+        }
+        case "trade_value":
+        default:
+          return dir * ((a.tradeValue24h || 0) - (b.tradeValue24h || 0));
+      }
+    });
+  }
+
+  /**
+   * 🔥 NEW: 마켓 오버뷰 캐싱 (선택적 구현)
+   * 동일한 쿼리가 1분 이내에 오면 캐시된 데이터 반환
+   */
+  private marketCache = new Map<string, { data: any; timestamp: number }>();
+  private CACHE_TTL = 60 * 1000; // 1분
+
+  async getCachedMarketOverview(query: MarketOverviewQuery) {
+    const cacheKey = JSON.stringify(query);
+    const cached = this.marketCache.get(cacheKey);
+
+    // 캐시가 유효하면 반환
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      return cached.data;
+    }
+
+    // 새로 조회
+    const data = await this.getMarketOverview(query);
+
+    // 캐시 저장
+    this.marketCache.set(cacheKey, {
+      data,
+      timestamp: Date.now(),
+    });
+
+    // 오래된 캐시 정리
+    this.cleanupMarketCache();
+
+    return data;
+  }
+
+  private cleanupMarketCache() {
+    const now = Date.now();
+    for (const [key, value] of this.marketCache.entries()) {
+      if (now - value.timestamp > this.CACHE_TTL * 2) {
+        this.marketCache.delete(key);
+      }
+    }
+  }
+  async getAllMarketSymbols() {
+    try {
+      const rows = await prisma.marketAsset.findMany({
+        where: { isActive: true }, // 상폐된 코인 제외
+        select: { symbol: true }, // symbol만 추출
+      });
+
+      // 🔥 비어있거나 undefined면 fallback
+      if (!rows || rows.length === 0) return [];
+
+      // 🔧 null-safe Filtering
+      return rows
+        .map((r) => r.symbol)
+        .filter((s) => typeof s === "string" && s.trim() !== "");
+    } catch (err) {
+      // ⛑ 에러가 있어도 BFF는 죽지 않아야 함
+      console.error("❌ getAllMarketSymbols DB Error:", err);
+      return []; // fallback
     }
   }
 }

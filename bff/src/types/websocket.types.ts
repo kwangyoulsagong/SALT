@@ -1,10 +1,14 @@
 import WebSocket from "ws";
 
 export interface ExtendedWebSocket extends WebSocket {
-  userId?: string;
+  userId?: string | null;
   isAlive?: boolean;
+
+  // 시세 구독 (BTC, ETH 등)
   subscribedSymbols?: Set<string>;
-  subscribedCandles?: Set<string>;
+
+  // 캔들 구독 (BTC → ["1m","5m"], ETH → ["1m"])
+  subscribedCandles?: Map<string, Set<string>>;
 }
 
 export interface WSMessage {

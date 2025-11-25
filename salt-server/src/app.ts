@@ -7,6 +7,7 @@ import { loggerMiddleware } from "./middleware/logger.middleware";
 import { setupSwagger } from "./config/swagger";
 import { NotFoundError } from "./utils/error.util";
 import { MarketSyncWorker } from "./workers/market-sync.worker";
+import { marketPriceUpdater } from "./workers/market-price-updater.worker";
 
 // Routes
 import authRoutes from "./modules/auth/auth.routes";
@@ -16,6 +17,7 @@ import missionRoutes from "./modules/mission/mission.routes";
 import userRoutes from "./modules/user/user.routes";
 import portfolioRoutes from "./modules/portfolio/portfolio.routes";
 import newsRoutes from "./modules/news/news.routes";
+import marketIntelligenceRoutes from "./modules/market-intelligence/market-intelligence.routes";
 
 const app: Application = express();
 const marketWorker = new MarketSyncWorker();
@@ -24,6 +26,7 @@ cron.schedule("0 */6 * * *", () => {
   marketWorker.sync();
   console.log("⏱️ Market Sync executed");
 });
+marketPriceUpdater.start();
 // Security
 app.use(helmet());
 app.use(cors());
@@ -55,6 +58,7 @@ app.use("/api/missions", missionRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/portfolio", portfolioRoutes);
 app.use("/api/news", newsRoutes);
+app.use("/api/market-intelligence", marketIntelligenceRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response, next: NextFunction) => {
