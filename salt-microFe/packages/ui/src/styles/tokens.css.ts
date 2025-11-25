@@ -123,6 +123,8 @@ export const vars = createGlobalTheme(":root", {
       default: "#C8CCD1",
       dark: "#A8A6AC",
       focus: "#7949FF",
+      lightDark: "#E5E8EA",
+      black: "#191F28",
     },
 
     // 그림자 (투명도 포함)
