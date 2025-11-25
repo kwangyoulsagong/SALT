@@ -26,6 +26,8 @@
     "./flexBox": "./src/FlexBox/FlexBox.tsx",
     "./padding": "./src/Padding/Padding.tsx",
     "./section": "./src/Section/Section.tsx",
+    "./tabs": "./src/Tabs/Tabs.tsx",
+    "./margin": "./src/Margin/Margin.tsx",
     "./servicewrapper": "./src/ServiceWrapper/ServiceWrapper.tsx"
   },
   "scripts": {
