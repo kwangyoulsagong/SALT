@@ -7,7 +7,7 @@ import { TabPanel } from "./TabPanel/TabPanel.tsx";
 export interface TabItem {
   id: string;
   label: ReactNode;
-  content: ReactNode;
+  content?: ReactNode;
   disabled?: boolean;
   color?: HeadingProps["color"];
 }
@@ -17,6 +17,7 @@ export interface TabsProps {
   defaultActiveTab?: string;
   activeTab?: string;
   onTabChange?: (tabId: string) => void;
+  tabPanel?: boolean;
   className?: string;
 }
 
@@ -25,6 +26,7 @@ export const Tabs = ({
   defaultActiveTab,
   activeTab: controlledActiveTab,
   onTabChange,
+  tabPanel = false,
   className,
 }: TabsProps) => {
   const [internalActiveTab, setInternalActiveTab] = useState(
@@ -169,16 +171,17 @@ export const Tabs = ({
         </div>
       </div>
 
-      {tabs.map((tab) => (
-        <TabPanel
-          key={tab.id}
-          id={`${baseId}-panel-${tab.id}`}
-          tabId={`${baseId}-tab-${tab.id}`}
-          isActive={validActiveTab === tab.id}
-        >
-          {tab.content}
-        </TabPanel>
-      ))}
+      {tabPanel &&
+        tabs.map((tab) => (
+          <TabPanel
+            key={tab.id}
+            id={`${baseId}-panel-${tab.id}`}
+            tabId={`${baseId}-tab-${tab.id}`}
+            isActive={validActiveTab === tab.id}
+          >
+            {tab.content}
+          </TabPanel>
+        ))}
     </div>
   );
 };

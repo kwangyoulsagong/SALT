@@ -47,7 +47,7 @@ export const tabStyles = recipe({
           bottom: "-1px",
           left: 0,
           right: 0,
-          height: "2px",
+          height: "3px",
           background: vars.colors.border.black,
           transition: vars.transitions.base,
         },
@@ -120,7 +120,7 @@ export const tabPanelStyles = style({
 
 export const tabListStyles = style({
   display: "flex",
-  gap: vars.space.none,
+  gap: vars.space.lg,
   margin: 0,
   padding: 0,
   listStyle: "none",

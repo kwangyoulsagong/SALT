@@ -28,7 +28,11 @@
     "./section": "./src/Section/Section.tsx",
     "./tabs": "./src/Tabs/Tabs.tsx",
     "./margin": "./src/Margin/Margin.tsx",
-    "./servicewrapper": "./src/ServiceWrapper/ServiceWrapper.tsx"
+    "./filterTabs": "./src/FilterTabs/FilterTabs.tsx",
+    "./table": "./src/Table/Table.tsx",
+    "./servicewrapper": "./src/ServiceWrapper/ServiceWrapper.tsx",
+    "./starIcon": "./src/StarIcon/StarIcon.tsx",
+    "./image": "./src/Image/Image.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

@@ -25,6 +25,9 @@ const meta = {
     onTabChange: {
       description: "탭 변경 시 호출되는 콜백 함수",
     },
+    tabPanel: {
+      description: "탭 컨텐츠 표시 판넬",
+    },
     className: {
       control: "text",
       description: "추가 CSS 클래스명",
@@ -70,6 +73,7 @@ export const Default: Story = {
         ),
       },
     ],
+    tabPanel: true,
   },
 };
 
@@ -93,6 +97,7 @@ export const WithDisabledTab: Story = {
         content: <p>이 탭도 정상적으로 작동합니다.</p>,
       },
     ],
+    tabPanel: true,
   },
 };
 
@@ -209,6 +214,7 @@ export const StockMarketTabs: Story = {
         ),
       },
     ],
+    tabPanel: true,
   },
 };
 
@@ -362,6 +368,7 @@ export const ProductDetailTabs: Story = {
         ),
       },
     ],
+    tabPanel: true,
   },
 };
 

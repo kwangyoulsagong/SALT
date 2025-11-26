@@ -1,7 +1,30 @@
-export const BASE_URL =
-  process.env.EXPO_PUBLIC_BASE_URL || "http://localhost:8000";
+export const BASE_URL = "http://localhost:4001";
 export const WEBSOCKET_URL = "ws://localhost:4002";
-export const END_POINTS = {} as const;
+export const END_POINTS = {
+  marketOverview: ({
+    page,
+    limit,
+    sort,
+    order,
+    period,
+    search,
+  }: {
+    page: number;
+    limit: number;
+    sort?: string | null;
+    order?: string | null;
+    period?: string | null;
+    search?: string | null;
+  }) => {
+    return (
+      `/api/investment/market/overview?page=${page}&limit=${limit}` +
+      `&sort=${sort ?? ""}` +
+      `&order=${order ?? ""}` +
+      `&period=${period ?? ""}` +
+      `&search=${encodeURIComponent(search ?? "")}`
+    );
+  },
+} as const;
 
 export const NETWORK = {
   RETRY_COUNT: 2,

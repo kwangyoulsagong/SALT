@@ -31,6 +31,7 @@ export const vars = createGlobalTheme(":root", {
       tertiary: "#F0F1F3",
       white: "#FFFFFF",
       dark: "#191F28",
+      gray: "#F2F4F5",
     },
 
     // 브랜드 색상
@@ -71,6 +72,7 @@ export const vars = createGlobalTheme(":root", {
       disabled: "#A8A6AC",
       white: "#FFFFFF",
       inverse: "#FFFFFF", // 다크 배경 위의 텍스트
+      lightGray: "#66727C",
 
       // 기존 호환성 유지 (deprecated)
       base: "#FFFFFF",

@@ -8,7 +8,8 @@ export type TextColor =
   | "tertiary"
   | "muted"
   | "brand"
-  | "white";
+  | "white"
+  | "success";
 
 export interface TextProps {
   variant?: TextVariant;

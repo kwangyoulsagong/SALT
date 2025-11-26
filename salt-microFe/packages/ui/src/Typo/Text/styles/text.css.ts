@@ -46,6 +46,9 @@ export const textVariant = recipe({
       white: {
         color: vars.colors.text.base,
       },
+      success: {
+        color: vars.colors.status.success,
+      },
     },
   },
 
