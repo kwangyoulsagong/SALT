@@ -6,7 +6,7 @@ import { Tabs } from "@repo/ui/tabs";
 import { Margin } from "@repo/ui/margin";
 import React, { useState } from "react";
 import { tabs } from "./menu/investmentTabs";
-import RealtimeInvestment from "@/component/Investment/RealtimeInvestment/RealTimeInvestment";
+import RealtimeInvestment from "@/component/Investment/RealtimeInvestment/RealtimeInvestment";
 
 const Investment = () => {
   const [activeTab, setActiveTab] = useState("realtime");
