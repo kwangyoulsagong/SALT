@@ -30,7 +30,9 @@ export type WSClientSendMessage =
 
 export type WSClientReceiveMessage =
   | { type: "price_update"; data: PriceUpdate }
-  | { type: "candle"; symbol: string; timeframe: Timeframe; data: Candle };
+  | { type: "candle"; symbol: string; timeframe: Timeframe; data: Candle }
+  | { type: "subscribed"; symbols: string[] }
+  | { type: "unsubscribed"; symbols: string[] };
 
 export interface WSClientContext {
   priceListeners: Map<string, Set<PriceListener>>;

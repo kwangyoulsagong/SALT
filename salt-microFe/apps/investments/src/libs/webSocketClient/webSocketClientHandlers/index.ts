@@ -16,6 +16,9 @@ export function dispatchMessage(
     case "candle":
       handleCandle(ctx, msg);
       break;
+    case "subscribed":
+    case "unsubscribed":
+      return;
     default:
       // TypeScript의 exhaustive check
       const _exhaustiveCheck: never = msg;

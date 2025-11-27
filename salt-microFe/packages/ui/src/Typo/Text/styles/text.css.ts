@@ -49,6 +49,12 @@ export const textVariant = recipe({
       success: {
         color: vars.colors.status.success,
       },
+      up: {
+        color: vars.colors.special.up,
+      },
+      down: {
+        color: vars.colors.special.down,
+      },
     },
   },
 

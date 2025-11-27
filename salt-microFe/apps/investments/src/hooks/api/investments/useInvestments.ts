@@ -1,18 +1,10 @@
 import {
   investmentsAPi,
-  MarketOverviewItem,
   MarketOverviewParams,
-  MarketOverviewResponse,
 } from "@/api/investments/investments";
 import { investmentsApi } from "@/api/mock/investments/investments";
 import { querykeys } from "@/constants/queryKeys";
-import { wsClient } from "@/libs/webSocketClient/webSocketClient";
-import {
-  useQuery,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 
 const useInvestments = () => {
   const investmentsPreview = useQuery({

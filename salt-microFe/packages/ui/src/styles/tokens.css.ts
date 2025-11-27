@@ -117,6 +117,8 @@ export const vars = createGlobalTheme(":root", {
       teal: "#20C997",
       tealHover: "#12B886",
       tealLight: "#C3FAE8",
+      down: "#1677EE",
+      up: "#FF2E55",
     },
 
     // 테두리 색상

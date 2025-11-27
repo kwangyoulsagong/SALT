@@ -9,7 +9,9 @@ export type TextColor =
   | "muted"
   | "brand"
   | "white"
-  | "success";
+  | "success"
+  | "up"
+  | "down";
 
 export interface TextProps {
   variant?: TextVariant;

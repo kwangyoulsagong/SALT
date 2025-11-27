@@ -20,6 +20,7 @@ import {
   Sort,
 } from "../InvestmentFilterTabs/FilterTabsOptions/FilterTabsOptions";
 import useInvestments from "@/hooks/api/investments/useInvestments";
+import { useMarketOverviewRealtime } from "@/hooks/investments/useMarketOverviewRealtime";
 const TableHeaderCells = [
   {
     id: "currentPrice",
@@ -53,6 +54,15 @@ const RealtimeInvestment = () => {
     period: "",
   });
 
+  const [blink, setBlink] = useState<{ [symbol: string]: boolean }>({});
+
+  const handleBlink = (symbol: string) => {
+    setBlink((prev) => ({ ...prev, [symbol]: true }));
+    setTimeout(() => {
+      setBlink((prev) => ({ ...prev, [symbol]: false }));
+    }, 1000);
+  };
+
   const { investmentsMarketOverview } = useInvestments();
 
   const params = useMemo(
@@ -67,7 +77,7 @@ const RealtimeInvestment = () => {
   );
 
   const { data } = investmentsMarketOverview(params);
-
+  useMarketOverviewRealtime(params, handleBlink);
   return (
     <FlexBox direction="column">
       <InvestmentFilterTabs
@@ -118,9 +128,27 @@ const RealtimeInvestment = () => {
                     </Text>
                   </TableCell>
                   <TableCell align="right">
-                    <Text variant="bodyLarge">
-                      {item.change24h.toFixed(2)}%
-                    </Text>
+                    <div
+                      style={{
+                        padding: "2px 6px",
+                        borderRadius: "5px",
+                        display: "inline-block",
+                        background: blink[item.symbol]
+                          ? item.change24h < 0
+                            ? "#EAF3FF"
+                            : "#FFEFF1"
+                          : "transparent",
+                        transition: "background 0.3s ease",
+                      }}
+                    >
+                      <Text
+                        variant="bodyLarge"
+                        color={item.change24h > 0 ? "up" : "down"}
+                      >
+                        {item.change24h > 0 && "+"}
+                        {item.change24h.toFixed(2)} %
+                      </Text>
+                    </div>
                   </TableCell>
                   <TableCell align="right">
                     <Text variant="bodyLarge">
