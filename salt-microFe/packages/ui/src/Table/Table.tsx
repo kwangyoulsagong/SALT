@@ -1,4 +1,4 @@
-import {
+import React, {
   ReactNode,
   HTMLAttributes,
   ThHTMLAttributes,
@@ -171,9 +171,11 @@ export const TableBody = ({
     </tbody>
   );
 };
+export type MemoKey = string | number | boolean | null | undefined | MemoKey[];
 
 // ===== Table Row =====
 export interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
+  memoKey?: MemoKey;
   hoverable?: boolean;
   clickable?: boolean;
   selected?: boolean;
@@ -182,31 +184,35 @@ export interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
   children: ReactNode;
 }
 
-export const TableRow = ({
-  hoverable = false,
-  clickable = false,
-  selected = false,
-  striped = false,
-  bordered = false,
-  children,
-  className,
-  ...props
-}: TableRowProps) => {
-  return (
-    <tr
-      className={`${tableRowStyles({
-        hoverable,
-        clickable,
-        selected,
-        striped,
-        bordered,
-      })} ${className || ""}`}
-      {...props}
-    >
-      {children}
-    </tr>
-  );
-};
+export const TableRow = React.memo(
+  function TableRowComponent({
+    hoverable = false,
+    clickable = false,
+    selected = false,
+    striped = false,
+    bordered = false,
+    memoKey,
+    children,
+    className,
+    ...props
+  }: TableRowProps) {
+    return (
+      <tr
+        className={`${tableRowStyles({
+          hoverable,
+          clickable,
+          selected,
+          striped,
+          bordered,
+        })} ${className || ""}`}
+        {...props}
+      >
+        {children}
+      </tr>
+    );
+  },
+  (prev, next) => prev.memoKey === next.memoKey
+);
 
 // ===== Table Cell =====
 export interface TableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {

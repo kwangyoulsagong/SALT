@@ -12,8 +12,7 @@ import { Image } from "@repo/ui/image";
 import { StarIcon } from "@repo/ui/starIcon";
 import InvestmentFilterTabs from "../InvestmentFilterTabs/InvestmentFilterTabs";
 import { Text } from "@repo/ui/text";
-import { FormatPrice } from "@/utils/FormatPrice";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Order,
   Period,
@@ -21,6 +20,8 @@ import {
 } from "../InvestmentFilterTabs/FilterTabsOptions/FilterTabsOptions";
 import useInvestments from "@/hooks/api/investments/useInvestments";
 import { useMarketOverviewRealtime } from "@/hooks/investments/useMarketOverviewRealtime";
+import PriceCell from "../PriceCell/PriceCell";
+import ChangeRateCell from "../ChangeRateCell/ChangeRateCell";
 const TableHeaderCells = [
   {
     id: "currentPrice",
@@ -54,12 +55,15 @@ const RealtimeInvestment = () => {
     period: "",
   });
 
-  const [blink, setBlink] = useState<{ [symbol: string]: boolean }>({});
+  const blinkRef = useRef<{ [symbol: string]: boolean }>({});
+  const [, forceRender] = useState(0);
 
   const handleBlink = (symbol: string) => {
-    setBlink((prev) => ({ ...prev, [symbol]: true }));
+    blinkRef.current[symbol] = true;
+    forceRender((v) => v + 1);
     setTimeout(() => {
-      setBlink((prev) => ({ ...prev, [symbol]: false }));
+      blinkRef.current[symbol] = false;
+      forceRender((v) => v + 1);
     }, 1000);
   };
 
@@ -108,7 +112,12 @@ const RealtimeInvestment = () => {
             </TableHeader>
             <TableBody>
               {data?.items?.map((item) => (
-                <TableRow key={item.market}>
+                <TableRow
+                  key={item.market}
+                  memoKey={`${item.currentPrice}-${
+                    blinkRef.current[item.symbol]
+                  }`}
+                >
                   <TableCell align="left">
                     <FlexBox align="center" gap="md">
                       <StarIcon />
@@ -123,45 +132,22 @@ const RealtimeInvestment = () => {
                     </FlexBox>
                   </TableCell>
                   <TableCell align="right">
-                    <Text variant="bodyLarge">
-                      {FormatPrice(item.currentPrice)} 원
-                    </Text>
+                    <PriceCell value={item.currentPrice} />
                   </TableCell>
                   <TableCell align="right">
-                    <div
-                      style={{
-                        padding: "2px 6px",
-                        borderRadius: "5px",
-                        display: "inline-block",
-                        background: blink[item.symbol]
-                          ? item.change24h < 0
-                            ? "#EAF3FF"
-                            : "#FFEFF1"
-                          : "transparent",
-                        transition: "background 0.3s ease",
-                      }}
-                    >
-                      <Text
-                        variant="bodyLarge"
-                        color={item.change24h > 0 ? "up" : "down"}
-                      >
-                        {item.change24h > 0 && "+"}
-                        {item.change24h.toFixed(2)} %
-                      </Text>
-                    </div>
+                    <ChangeRateCell
+                      value={item.change24h}
+                      blink={blinkRef.current[item.symbol]}
+                    />
                   </TableCell>
                   <TableCell align="right">
-                    <Text variant="bodyLarge">
-                      {FormatPrice(item.high24h)} 원
-                    </Text>
+                    <PriceCell value={item.high24h} />
                   </TableCell>
                   <TableCell align="right">
-                    <Text variant="bodyLarge">
-                      {FormatPrice(item.low24h)} 원
-                    </Text>
+                    <PriceCell value={item.low24h} />
                   </TableCell>
                   <TableCell align="right">
-                    {FormatPrice(Number(item.volume24h.toFixed(0)))} 원
+                    <PriceCell value={Number(item.volume24h.toFixed(0))} />
                   </TableCell>
                 </TableRow>
               ))}

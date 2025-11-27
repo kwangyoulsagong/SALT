@@ -1,3 +1,2 @@
-export const FormatPrice = (num: number) => {
-  return new Intl.NumberFormat("ko-KR").format(num);
-};
+const formatter = new Intl.NumberFormat("ko-KR");
+export const FormatPrice = (num: number) => formatter.format(num);
