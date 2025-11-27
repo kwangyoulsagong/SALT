@@ -147,7 +147,7 @@ const RealtimeInvestment = () => {
                     <PriceCell value={item.low24h} />
                   </TableCell>
                   <TableCell align="right">
-                    <PriceCell value={Number(item.volume24h.toFixed(0))} />
+                    <PriceCell value={Number(item.tradeValue24h.toFixed(0))} />
                   </TableCell>
                 </TableRow>
               ))}
