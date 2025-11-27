@@ -11,6 +11,9 @@ importers:
       '@module-federation/nextjs-mf':
         specifier: 8.8.11
         version: 8.8.11(@rspack/core@1.2.2)(next@14.2.23)(react-dom@18.2.0)(react@18.2.0)(typescript@5.7.3)(webpack@5.97.1)
+      '@vanilla-extract/css':
+        specifier: ^1.14.0
+        version: 1.17.4
       next:
         specifier: ^14.2.23
         version: 14.2.23(react-dom@18.2.0)(react@18.2.0)
@@ -3408,7 +3411,7 @@ packages:
       btoa: 1.2.1
       typescript: 5.7.3
       upath: 2.0.1
-      webpack: 5.97.1(esbuild@0.24.2)
+      webpack: 5.97.1
     transitivePeerDependencies:
       - '@rspack/core'
       - bufferutil
@@ -3553,10 +3556,10 @@ packages:
       '@module-federation/sdk': 0.8.8
       '@module-federation/webpack-bundler-runtime': 0.8.8
       fast-glob: 3.3.3
-      next: 14.2.23(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
+      next: 14.2.23(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      webpack: 5.97.1(esbuild@0.24.2)
+      webpack: 5.97.1
     transitivePeerDependencies:
       - '@rspack/core'
       - bufferutil
@@ -3621,11 +3624,11 @@ packages:
       '@module-federation/utilities': 3.1.39(next@14.2.23)(react-dom@18.2.0)(react@18.2.0)(webpack@5.97.1)
       btoa: 1.2.1
       encoding: 0.1.13
-      next: 14.2.23(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
+      next: 14.2.23(react-dom@18.2.0)(react@18.2.0)
       node-fetch: 2.7.0(encoding@0.1.13)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      webpack: 5.97.1(esbuild@0.24.2)
+      webpack: 5.97.1
     transitivePeerDependencies:
       - '@rspack/core'
       - bufferutil
@@ -3833,10 +3836,10 @@ packages:
         optional: true
     dependencies:
       '@module-federation/sdk': 0.8.8
-      next: 14.2.23(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.2.0)(react@18.2.0)
+      next: 14.2.23(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      webpack: 5.97.1(esbuild@0.24.2)
+      webpack: 5.97.1
     dev: false
 
   /@module-federation/utilities@3.1.40(next@14.2.23)(react-dom@18.2.0)(react@18.2.0)(webpack@5.97.1):
@@ -6502,6 +6505,7 @@ packages:
       picocolors: 1.1.1
     transitivePeerDependencies:
       - babel-plugin-macros
+    dev: true
 
   /@vanilla-extract/css@1.17.4:
     resolution: {integrity: sha512-m3g9nQDWPtL+sTFdtCGRMI1Vrp86Ay4PBYq1Bo7Bnchj5ElNtAJpOqD+zg+apthVA4fB7oVpMWNjwpa6ElDWFQ==}
@@ -6520,7 +6524,6 @@ packages:
       picocolors: 1.1.1
     transitivePeerDependencies:
       - babel-plugin-macros
-    dev: true
 
   /@vanilla-extract/integration@8.0.0:
     resolution: {integrity: sha512-hsu5Cqs30RDTRgaOCtvdZttKIaMImObcZmylxPp693mr1pyRk+WEIEAzQAJkXE/JQ47xyqf+a63UxdI0Sf3PZw==}
@@ -6528,7 +6531,7 @@ packages:
       '@babel/core': 7.26.7
       '@babel/plugin-syntax-typescript': 7.25.9(@babel/core@7.26.7)
       '@vanilla-extract/babel-plugin-debug-ids': 1.2.0
-      '@vanilla-extract/css': 1.17.1
+      '@vanilla-extract/css': 1.17.4
       dedent: 1.5.3
       esbuild: 0.24.2
       eval: 0.1.8
@@ -6573,10 +6576,10 @@ packages:
 
   /@vanilla-extract/private@1.0.6:
     resolution: {integrity: sha512-ytsG/JLweEjw7DBuZ/0JCN4WAQgM9erfSTdS1NQY778hFQSZ6cfCDEZZ0sgVm4k54uNz6ImKB33AYvSR//fjxw==}
+    dev: true
 
   /@vanilla-extract/private@1.0.9:
     resolution: {integrity: sha512-gT2jbfZuaaCLrAxwXbRgIhGhcXbRZCG3v4TTUnjw0EJ7ArdBRxkq4msNJkbuRkCgfIK5ATmprB5t9ljvLeFDEA==}
-    dev: true
 
   /@vanilla-extract/recipes@0.5.7(@vanilla-extract/css@1.17.1):
     resolution: {integrity: sha512-Fvr+htdyb6LVUu+PhH61UFPhwkjgDEk8L4Zq9oIdte42sntpKrgFy90MyTRtGwjVALmrJ0pwRUVr8UoByYeW8A==}
@@ -14296,7 +14299,6 @@ packages:
       serialize-javascript: 6.0.2
       terser: 5.37.0
       webpack: 5.97.1
-    dev: true
 
   /terser@5.37.0:
     resolution: {integrity: sha512-B8wRRkmre4ERucLM/uXx4MOV5cbnOlVAqUst+1+iLKPI0dOgFO28f84ptoQt9HEI537PMzfYa/d+GEPKTRXmYA==}
@@ -15292,7 +15294,6 @@ packages:
       - '@swc/core'
       - esbuild
       - uglify-js
-    dev: true
 
   /webpack@5.97.1(esbuild@0.24.2):
     resolution: {integrity: sha512-EksG6gFY3L1eFMROS/7Wzgrii5mBAFe4rIr3r2BTfo7bcc+DWwFZ4OJ/miOuHJO/A85HwyI4eQ0F6IKXesO7Fg==}
