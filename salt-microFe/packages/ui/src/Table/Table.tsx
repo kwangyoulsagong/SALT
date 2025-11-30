@@ -15,7 +15,42 @@ import {
   emptyStateStyles,
   sortIconStyles,
   sortArrowStyles,
+  scrollTableContainerStyles,
+  scrollTableInnerStyles,
 } from "./styles/table.css.ts";
+
+// ===== Scroll Table Container =====
+export interface ScrollTableContainerProps
+  extends HTMLAttributes<HTMLDivElement> {
+  maxHeight?: "400px" | "600px" | "800px" | "1000px";
+  hideScrollbar?: boolean;
+  children: ReactNode;
+}
+
+export const ScrollTableContainer = ({
+  maxHeight = "600px",
+  hideScrollbar = false,
+  children,
+  className,
+  ...props
+}: ScrollTableContainerProps) => {
+  return (
+    <div
+      className={`${scrollTableContainerStyles({ maxHeight })} ${
+        className || ""
+      }`}
+      {...props}
+    >
+      <div
+        className={`${scrollTableInnerStyles({ hideScrollbar })} ${
+          className || ""
+        }`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
 
 // ===== Table Container =====
 export interface TableContainerProps extends HTMLAttributes<HTMLDivElement> {

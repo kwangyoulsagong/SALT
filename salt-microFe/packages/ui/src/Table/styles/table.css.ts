@@ -96,7 +96,10 @@ export const tableStyles = recipe({
 // Table Header
 export const tableHeaderStyles = recipe({
   base: {
-    // 공통 스타일
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    backgroundColor: "white" /* 필수 */,
   },
 
   variants: {
@@ -109,7 +112,7 @@ export const tableHeaderStyles = recipe({
       },
     },
 
-    /** 👇 Background variant 추가 */
+    /** Background variant 추가 */
     background: {
       white: { background: vars.colors.background.white },
       secondary: { background: vars.colors.background.secondary },
@@ -333,5 +336,77 @@ export const sortArrowStyles = recipe({
   defaultVariants: {
     direction: "up",
     active: false,
+  },
+});
+// Scroll Table Container
+export const scrollTableContainerStyles = recipe({
+  base: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: vars.colors.background.white,
+  },
+
+  variants: {
+    maxHeight: {
+      "400px": { maxHeight: "400px" },
+      "600px": { maxHeight: "600px" },
+      "800px": { maxHeight: "800px" },
+      "1000px": { maxHeight: "1000px" },
+    },
+  },
+
+  defaultVariants: {
+    maxHeight: "600px",
+  },
+});
+
+// Scroll Table Inner (실제 스크롤)
+export const scrollTableInnerStyles = recipe({
+  base: {
+    flex: 1,
+    minHeight: 0,
+    overflowX: "auto",
+    overflowY: "auto",
+    WebkitOverflowScrolling: "touch",
+    scrollBehavior: "smooth",
+
+    selectors: {
+      "&::-webkit-scrollbar": {
+        width: "8px",
+        height: "8px",
+      },
+      "&::-webkit-scrollbar-track": {
+        background: vars.colors.background.tertiary,
+        borderRadius: vars.radius.small,
+      },
+      "&::-webkit-scrollbar-thumb": {
+        background: vars.colors.border.default,
+        borderRadius: vars.radius.small,
+      },
+      "&::-webkit-scrollbar-thumb:hover": {
+        background: vars.colors.border.dark,
+      },
+    },
+  },
+
+  variants: {
+    hideScrollbar: {
+      true: {
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+
+        selectors: {
+          "&::-webkit-scrollbar": {
+            display: "none",
+          },
+        },
+      },
+      false: {},
+    },
+  },
+
+  defaultVariants: {
+    hideScrollbar: false,
   },
 });

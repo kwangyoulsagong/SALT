@@ -1,5 +1,6 @@
 import { FlexBox } from "@repo/ui/flexBox";
 import {
+  ScrollTableContainer,
   Table,
   TableBody,
   TableCell,
@@ -11,6 +12,7 @@ import {
 import { Image } from "@repo/ui/image";
 import { StarIcon } from "@repo/ui/starIcon";
 import InvestmentFilterTabs from "../InvestmentFilterTabs/InvestmentFilterTabs";
+import { ScrollContainer } from "@repo/ui/scrollContainer";
 import { Text } from "@repo/ui/text";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -91,7 +93,7 @@ const RealtimeInvestment = () => {
         onChange={(next) => setFilters((prev) => ({ ...prev, ...next }))}
       />
       <FlexBox justify="between">
-        <TableContainer>
+        <ScrollTableContainer maxHeight="800px" hideScrollbar>
           <Table>
             <TableHeader bordered={false}>
               <TableRow>
@@ -153,8 +155,49 @@ const RealtimeInvestment = () => {
               ))}
             </TableBody>
           </Table>
-        </TableContainer>
-        <div style={{ width: 400 }}></div>
+        </ScrollTableContainer>
+        <ScrollContainer direction="vertical" maxHeight="2xl">
+          <div>Hello</div>
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
+          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>
+        </ScrollContainer>
       </FlexBox>
     </FlexBox>
   );

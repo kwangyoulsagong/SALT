@@ -32,7 +32,10 @@
     "./table": "./src/Table/Table.tsx",
     "./servicewrapper": "./src/ServiceWrapper/ServiceWrapper.tsx",
     "./starIcon": "./src/StarIcon/StarIcon.tsx",
-    "./image": "./src/Image/Image.tsx"
+    "./image": "./src/Image/Image.tsx",
+    "./scrollContainer": "./src/ScrollContainer/ScrollContainer.tsx",
+    "./useThrottle": "./src/Utils/hooks/useThrottle.tsx",
+    "./useDebounce": "./src/Utils/hooks/useDebounce.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
