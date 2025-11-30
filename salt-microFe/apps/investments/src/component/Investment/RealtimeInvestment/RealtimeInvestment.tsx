@@ -14,7 +14,7 @@ import { StarIcon } from "@repo/ui/starIcon";
 import InvestmentFilterTabs from "../InvestmentFilterTabs/InvestmentFilterTabs";
 import { ScrollContainer } from "@repo/ui/scrollContainer";
 import { Text } from "@repo/ui/text";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Order,
   Period,
@@ -24,6 +24,7 @@ import useInvestments from "@/hooks/api/investments/useInvestments";
 import { useMarketOverviewRealtime } from "@/hooks/investments/useMarketOverviewRealtime";
 import PriceCell from "../PriceCell/PriceCell";
 import ChangeRateCell from "../ChangeRateCell/ChangeRateCell";
+import MarketPreview from "../MarketPreview/MarketPreview";
 const TableHeaderCells = [
   {
     id: "currentPrice",
@@ -56,18 +57,15 @@ const RealtimeInvestment = () => {
     order: "",
     period: "",
   });
+  const [selectedSymbol, setSelectedSymbol] = useState<string>("");
+  const [blinkingSymbol, setBlinkingSymbol] = useState<string>("");
 
-  const blinkRef = useRef<{ [symbol: string]: boolean }>({});
-  const [, forceRender] = useState(0);
-
-  const handleBlink = (symbol: string) => {
-    blinkRef.current[symbol] = true;
-    forceRender((v) => v + 1);
+  const handleBlink = useCallback((symbol: string) => {
+    setBlinkingSymbol(symbol);
     setTimeout(() => {
-      blinkRef.current[symbol] = false;
-      forceRender((v) => v + 1);
+      setBlinkingSymbol("");
     }, 1000);
-  };
+  }, []);
 
   const { investmentsMarketOverview } = useInvestments();
 
@@ -84,6 +82,11 @@ const RealtimeInvestment = () => {
 
   const { data } = investmentsMarketOverview(params);
   useMarketOverviewRealtime(params, handleBlink);
+  useEffect(() => {
+    if (data.items && data.items[0] && !selectedSymbol) {
+      setSelectedSymbol(data.items[0].symbol);
+    }
+  }, [data.items[0].symbol]);
   return (
     <FlexBox direction="column">
       <InvestmentFilterTabs
@@ -92,7 +95,7 @@ const RealtimeInvestment = () => {
         period={filters.period}
         onChange={(next) => setFilters((prev) => ({ ...prev, ...next }))}
       />
-      <FlexBox justify="between">
+      <FlexBox justify="between" gap="2xl">
         <ScrollTableContainer maxHeight="800px" hideScrollbar>
           <Table>
             <TableHeader bordered={false}>
@@ -117,8 +120,10 @@ const RealtimeInvestment = () => {
                 <TableRow
                   key={item.market}
                   memoKey={`${item.currentPrice}-${
-                    blinkRef.current[item.symbol]
+                    blinkingSymbol === item.symbol
                   }`}
+                  hoverable
+                  onMouseEnter={() => setSelectedSymbol(item.symbol)}
                 >
                   <TableCell align="left">
                     <FlexBox align="center" gap="md">
@@ -139,7 +144,7 @@ const RealtimeInvestment = () => {
                   <TableCell align="right">
                     <ChangeRateCell
                       value={item.change24h}
-                      blink={blinkRef.current[item.symbol]}
+                      blink={blinkingSymbol === item.symbol}
                     />
                   </TableCell>
                   <TableCell align="right">
@@ -157,46 +162,7 @@ const RealtimeInvestment = () => {
           </Table>
         </ScrollTableContainer>
         <ScrollContainer direction="vertical" maxHeight="2xl">
-          <div>Hello</div>
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>{" "}
-          <div>Hello</div> <div>Hello</div> <div>Hello</div> <div>Hello</div>
+          <MarketPreview symbol={selectedSymbol} />
         </ScrollContainer>
       </FlexBox>
     </FlexBox>
