@@ -24,6 +24,9 @@ export const END_POINTS = {
       `&search=${encodeURIComponent(search ?? "")}`
     );
   },
+  marketChartPreview: (symbol: string) => {
+    return `/api/investment/crypto/${symbol}/chart?period=hour&count=100`;
+  },
 } as const;
 
 export const NETWORK = {

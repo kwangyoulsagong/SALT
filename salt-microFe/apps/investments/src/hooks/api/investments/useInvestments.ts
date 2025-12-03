@@ -17,9 +17,15 @@ const useInvestments = () => {
       queryFn: () => investmentsAPi.marketOverview(params),
     });
 
+  const investmentsMarketChartPreview = (symbol: string) =>
+    useSuspenseQuery({
+      queryKey: [querykeys.MarketChartPreview, symbol],
+      queryFn: () => investmentsAPi.MarketChartPreview(symbol),
+    });
   return {
     investmentsPreview,
     investmentsMarketOverview,
+    investmentsMarketChartPreview,
   };
 };
 export default useInvestments;

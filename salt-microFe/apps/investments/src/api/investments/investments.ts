@@ -30,12 +30,34 @@ export interface MarketOverviewParams {
   period?: Period;
   search?: string;
 }
+
+export interface MarketChartPreviewItem {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface MarketChartPreviewResponse {
+  data: MarketChartPreviewItem[];
+}
+
 export const investmentsAPi = {
   marketOverview: async (
     params: MarketOverviewParams
   ): Promise<MarketOverviewResponse> => {
     const data = await axios.get(
       `${BASE_URL}${END_POINTS.marketOverview(params)}`
+    );
+    return data.data;
+  },
+  MarketChartPreview: async (
+    symbol: string
+  ): Promise<MarketChartPreviewResponse> => {
+    const data = await axios.get(
+      `${BASE_URL}${END_POINTS.marketChartPreview(symbol)}`
     );
     return data.data;
   },
