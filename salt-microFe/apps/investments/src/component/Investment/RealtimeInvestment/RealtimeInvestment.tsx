@@ -24,28 +24,8 @@ import { useMarketOverviewRealtime } from "@/hooks/investments/useMarketOverview
 import PriceCell from "../PriceCell/PriceCell";
 import ChangeRateCell from "../ChangeRateCell/ChangeRateCell";
 import MarketPreview from "../MarketPreview/MarketPreview";
-const TableHeaderCells = [
-  {
-    id: "currentPrice",
-    value: "현재가",
-  },
-  {
-    id: "changeRate",
-    value: "변동률",
-  },
-  {
-    id: "highPrice",
-    value: "최고가",
-  },
-  {
-    id: "lowPrice",
-    value: "최저가",
-  },
-  {
-    id: "trade_value",
-    value: "거래대금",
-  },
-];
+import { TableHeaderCells } from "./TableHeaderCells/TableHeaderCells";
+
 const RealtimeInvestment = () => {
   const [filters, setFilters] = useState<{
     sort: Sort;
