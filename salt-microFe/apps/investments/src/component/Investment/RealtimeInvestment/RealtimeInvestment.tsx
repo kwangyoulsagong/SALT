@@ -4,7 +4,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHeader,
   TableHeaderCell,
   TableRow,
@@ -14,7 +13,7 @@ import { StarIcon } from "@repo/ui/starIcon";
 import InvestmentFilterTabs from "../InvestmentFilterTabs/InvestmentFilterTabs";
 import { ScrollContainer } from "@repo/ui/scrollContainer";
 import { Text } from "@repo/ui/text";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Order,
   Period,
@@ -64,7 +63,7 @@ const RealtimeInvestment = () => {
     setBlinkingSymbol(symbol);
     setTimeout(() => {
       setBlinkingSymbol("");
-    }, 1000);
+    }, 2000);
   }, []);
 
   const { investmentsMarketOverview } = useInvestments();
@@ -87,6 +86,10 @@ const RealtimeInvestment = () => {
       setSelectedSymbol(data.items[0].symbol);
     }
   }, [data.items[0].symbol]);
+
+  const selectedSymbolItem = useMemo(() => {
+    return data.items.find((item) => item.symbol === selectedSymbol);
+  }, [selectedSymbol, data.items]);
   return (
     <FlexBox direction="column">
       <InvestmentFilterTabs
@@ -162,7 +165,7 @@ const RealtimeInvestment = () => {
           </Table>
         </ScrollTableContainer>
         <ScrollContainer direction="vertical" maxHeight="2xl">
-          <MarketPreview symbol={selectedSymbol} />
+          <MarketPreview selectedSymbolItem={selectedSymbolItem} />
         </ScrollContainer>
       </FlexBox>
     </FlexBox>
