@@ -89,7 +89,11 @@ router.get("/crypto/:symbol/price", investmentController.getRealTimePrice);
  *         name: period
  *         schema:
  *           type: string
- *           enum: [day, hour]
+ *           enum: [day, minute]
+ *       - in: query
+ *         name: unit
+ *         scehma: number
+ *         enum: [1,3,5, 15, 30, 60, 240]
  *       - in: query
  *         name: count
  *         schema:

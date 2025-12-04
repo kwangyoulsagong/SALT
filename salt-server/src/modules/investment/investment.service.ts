@@ -153,14 +153,16 @@ export class InvestmentService {
    */
   async getChartData(
     symbol: string,
-    period: "day" | "hour" = "day",
-    count: number = 30
+    period: "day" | "minute" = "day",
+    count: number = 30,
+    unit: 1 | 3 | 5 | 15 | 30 | 60 | 240 = 5
   ) {
     if (period === "day") {
       return await this.upbitService.getDailyCandles(symbol, count);
-    } else {
-      return await this.upbitService.getMinuteCandles(symbol, 60, count);
     }
+
+    // 분봉 요청
+    return await this.upbitService.getMinuteCandles(symbol, unit, count);
   }
 
   /**

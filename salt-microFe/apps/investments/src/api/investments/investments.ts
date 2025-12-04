@@ -32,7 +32,7 @@ export interface MarketOverviewParams {
 }
 
 export interface MarketChartPreviewItem {
-  date: string;
+  timestamp: string;
   open: number;
   high: number;
   low: number;

@@ -12,6 +12,7 @@
   "dependencies": {
     "@module-federation/nextjs-mf": "8.8.11",
     "@vanilla-extract/css": "^1.14.0",
+    "lightweight-charts": "^5.0.9",
     "next": "^14.2.23",
     "react": "^18",
     "react-dom": "^18"

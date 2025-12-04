@@ -71,13 +71,21 @@ export class InvestmentController {
   getChartData = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { symbol } = req.params;
-      const period = (req.query.period as "day" | "hour") || "day";
+      const period = (req.query.period as "day" | "minute") || "day";
+      const ALLOWED_UNITS = [1, 3, 5, 15, 30, 60, 240] as const;
+      type UpbitUnit = (typeof ALLOWED_UNITS)[number];
+      // 분봉일 때만 unit 사용
+      const rawUnit = req.query.unit ? Number(req.query.unit) : 5;
+      const unit: UpbitUnit = ALLOWED_UNITS.includes(rawUnit as any)
+        ? (rawUnit as UpbitUnit)
+        : 5;
       const count = req.query.count ? Number(req.query.count) : 30;
 
       const result = await this.investmentService.getChartData(
         symbol,
         period,
-        count
+        count,
+        unit
       );
 
       return ResponseUtil.success(res, result);
