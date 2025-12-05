@@ -35,6 +35,7 @@
     "./image": "./src/Image/Image.tsx",
     "./scrollContainer": "./src/ScrollContainer/ScrollContainer.tsx",
     "./root": "./src/Root/Root.tsx",
+    "./previewChart": "./src/PreviewChart/PreviewChart.tsx",
     "./useThrottle": "./src/Utils/hooks/useThrottle.tsx",
     "./useDebounce": "./src/Utils/hooks/useDebounce.tsx"
   },
@@ -80,6 +81,9 @@
     "vitest": "^4.0.9"
   },
   "dependencies": {
+    "@visx/group": "^3.12.0",
+    "@visx/scale": "^3.12.0",
+    "@visx/shape": "^3.12.0",
     "lightweight-charts": "^5.0.9",
     "lucide-react": "^0.475.0",
     "next": "^14.2.23",

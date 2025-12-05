@@ -144,12 +144,11 @@ const RealtimeInvestment = () => {
             </TableBody>
           </Table>
         </ScrollTableContainer>
-        <ScrollContainer direction="vertical" maxHeight="2xl">
-          <MarketPreview
-            selectedSymbolItem={selectedSymbolItem}
-            symbol={selectedSymbol}
-          />
-        </ScrollContainer>
+
+        <MarketPreview
+          selectedSymbolItem={selectedSymbolItem}
+          symbol={selectedSymbol}
+        />
       </FlexBox>
     </FlexBox>
   );

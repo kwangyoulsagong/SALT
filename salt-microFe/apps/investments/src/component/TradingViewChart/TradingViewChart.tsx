@@ -71,17 +71,16 @@ const TradingViewChart = ({ symbol, data }: TradingViewChartProps) => {
     });
 
     const raw = data.data ?? [];
-
-    // 🔥 공통으로 오름차순 정렬된 배열 만들기
     const sortedRaw = raw
       .filter((c) => c?.timestamp && !isNaN(new Date(c.timestamp).getTime()))
       .sort(
         (a, b) =>
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
       );
-
+    const parseTimestamp = (ts: string) =>
+      Math.floor(new Date(ts + "Z").getTime() / 1000) as UTCTimestamp;
     const candles = sortedRaw.map((c) => ({
-      time: Math.floor(new Date(c.timestamp).getTime() / 1000) as UTCTimestamp,
+      time: parseTimestamp(c.timestamp),
       open: c.open,
       high: c.high,
       low: c.low,
@@ -89,7 +88,7 @@ const TradingViewChart = ({ symbol, data }: TradingViewChartProps) => {
     }));
 
     const volumes = sortedRaw.map((c) => ({
-      time: Math.floor(new Date(c.timestamp).getTime() / 1000) as UTCTimestamp,
+      time: parseTimestamp(c.timestamp),
       value: c.volume,
     }));
 
