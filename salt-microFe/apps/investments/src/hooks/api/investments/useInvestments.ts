@@ -1,5 +1,6 @@
 import {
   investmentsAPi,
+  MarketChartPreviewResponse,
   MarketOverviewParams,
 } from "@/api/investments/investments";
 import { investmentsApi } from "@/api/mock/investments/investments";
@@ -20,7 +21,13 @@ const useInvestments = () => {
   const investmentsMarketChartPreview = (symbol: string) =>
     useSuspenseQuery({
       queryKey: [querykeys.MarketChartPreview, symbol],
-      queryFn: () => investmentsAPi.MarketChartPreview(symbol),
+      queryFn: async () => {
+        const res = await investmentsAPi.MarketChartPreview(symbol);
+        return {
+          ...res,
+          data: [...res.data].reverse(),
+        };
+      },
     });
   return {
     investmentsPreview,

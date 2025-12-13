@@ -8,7 +8,7 @@ export interface PriceUpdate {
 }
 
 export interface Candle {
-  timestamp: number;
+  timestamp: string;
   open: number;
   high: number;
   low: number;

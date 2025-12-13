@@ -11,7 +11,6 @@ import {
 import { Image } from "@repo/ui/image";
 import { StarIcon } from "@repo/ui/starIcon";
 import InvestmentFilterTabs from "../InvestmentFilterTabs/InvestmentFilterTabs";
-import { ScrollContainer } from "@repo/ui/scrollContainer";
 import { Text } from "@repo/ui/text";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
