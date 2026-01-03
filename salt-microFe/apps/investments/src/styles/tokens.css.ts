@@ -37,6 +37,7 @@ export const vars = createGlobalTheme(":root", {
     heading3: "16px",
     heading2: "18px",
     heading1: "20px",
+    extraHeadding: "30px",
     display: "24px",
   },
 
