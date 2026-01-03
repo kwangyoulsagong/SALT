@@ -27,6 +27,9 @@ export const END_POINTS = {
   marketChartPreview: (symbol: string) => {
     return `/api/investment/crypto/${symbol}/chart?period=miniute&unit=5&count=30`;
   },
+  marketIntelligencePreview: (symbol: string) => {
+    return `/api/market-intelligence/${symbol}/dashboard`;
+  },
 } as const;
 
 export const NETWORK = {

@@ -63,6 +63,9 @@ router.get("/investment/market/overview", (req, res) =>
 router.get("/investment/market/symbols", (req, res) =>
   marketController.symbols(req, res)
 );
+
+// Market Intelligence
+router.get("/market-intelligence/:symbol/dashboard", proxyHandler);
 // Missions 관련
 router.get("/missions", authMiddleware, proxyHandler);
 router.get("/missions/today", authMiddleware, proxyHandler);

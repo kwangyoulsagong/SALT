@@ -44,6 +44,71 @@ export interface MarketChartPreviewResponse {
   data: MarketChartPreviewItem[];
 }
 
+export interface SentimentInfo {
+  id: string;
+  symbol: string;
+
+  sentimentScore: number;
+  fearGreedIndex: number;
+  volatility: number;
+
+  volume24h: number;
+  priceChange24h: number;
+
+  socialMentions: number;
+  searchTrend: number;
+
+  sentimentLabel: "bullish" | "bearish" | "neutral" | string;
+
+  calculatedAt: string;
+
+  interpretation: InterpretationInfo;
+
+  components: SentimentComponents;
+}
+
+export interface SentimentComponents {
+  price: number;
+  volatility: number;
+  volume: number;
+  fearGreed: number;
+}
+
+export interface SmartMoneyInfo {
+  smartMoneyIndex: {
+    score: number;
+    signal: string;
+  };
+
+  signals: {
+    largeTrades: number;
+    largeBuys: number;
+    largeSells: number;
+    orderbookRatio: string;
+  };
+
+  interpretation: InterpretationInfo;
+}
+
+export interface InterpretationInfo {
+  emoji: string;
+  title: string;
+  message: string;
+  action: string;
+  color: string;
+}
+
+export interface MarketIntelligencePreviewItem {
+  symbol: string;
+  sentiment: SentimentInfo;
+  smartMoney: SmartMoneyInfo;
+  timestamp: string;
+}
+
+export interface MarketIntelligencePreviewResponse {
+  data: MarketIntelligencePreviewItem;
+}
+
 export const investmentsAPi = {
   marketOverview: async (
     params: MarketOverviewParams
@@ -53,11 +118,19 @@ export const investmentsAPi = {
     );
     return data.data;
   },
-  MarketChartPreview: async (
+  marketChartPreview: async (
     symbol: string
   ): Promise<MarketChartPreviewResponse> => {
     const data = await axios.get(
       `${BASE_URL}${END_POINTS.marketChartPreview(symbol)}`
+    );
+    return data.data;
+  },
+  marketIntelligencePreview: async (
+    symbol: string
+  ): Promise<MarketIntelligencePreviewResponse> => {
+    const data = await axios.get(
+      `${BASE_URL}${END_POINTS.marketIntelligencePreview(symbol)}`
     );
     return data.data;
   },
