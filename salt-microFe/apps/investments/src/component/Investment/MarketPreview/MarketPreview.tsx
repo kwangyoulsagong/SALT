@@ -7,6 +7,7 @@ import MarketPreviewHeader from "./MarketPreviewHeader/MarketPreviewHeader";
 import { Padding } from "@repo/ui/padding";
 import MarketPeviewChart from "./MarketPeviewChart/MarketPeviewChart";
 import { Heading } from "@repo/ui/heading";
+import MarketIntelligencePreview from "./MarketIntelligencePreview/MarketIntelligencePreview";
 interface MarketPreviewProps {
   selectedSymbolItem: MarketOverviewItem | undefined;
   symbol: string;
@@ -24,6 +25,7 @@ const MarketPreview = ({ selectedSymbolItem, symbol }: MarketPreviewProps) => {
             실시간 차트 (5분 봉)
           </Heading>
           <MarketPeviewChart symbol={symbol} />
+          <MarketIntelligencePreview symbol={symbol} />
         </FlexBox>
       </ScrollContainer>
     </Root>

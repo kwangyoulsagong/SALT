@@ -8,7 +8,6 @@ export const investmentsApi = {
           data.message || "이번주 지출 분석 가져오는데 실패했습니다."
         );
       }
-      console.log(data);
       return data;
     } catch (error) {
       throw new Error(
