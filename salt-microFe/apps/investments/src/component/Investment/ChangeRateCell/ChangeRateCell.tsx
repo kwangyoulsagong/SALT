@@ -26,4 +26,6 @@ const ChangeRateCell = React.memo(({ value, blink }: Props) => {
   );
 });
 
+ChangeRateCell.displayName = "changeRateCell";
+
 export default ChangeRateCell;

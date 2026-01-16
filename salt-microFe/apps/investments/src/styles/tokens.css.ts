@@ -12,6 +12,11 @@ export const vars = createGlobalTheme(":root", {
       primary: "#007AFF", // 주요 브랜드/버튼 색상
     },
 
+    extra: {
+      down: "#1677EE",
+      up: "#FF2E55",
+    },
+
     // 텍스트 색상
     text: {
       base: "#FFFFFF",
