@@ -18,7 +18,6 @@ import {
 } from "./style/MarketIntelligencePreview.css";
 import { Root } from "@repo/ui/root";
 import { vars } from "@/styles/tokens.css";
-import { Margin } from "@repo/ui/margin";
 import { Text } from "@repo/ui/text";
 
 interface MarketIntelligencePreivewProps {
