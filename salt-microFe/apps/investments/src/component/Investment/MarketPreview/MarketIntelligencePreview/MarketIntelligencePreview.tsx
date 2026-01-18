@@ -19,6 +19,7 @@ import {
 import { Root } from "@repo/ui/root";
 import { vars } from "@/styles/tokens.css";
 import { Text } from "@repo/ui/text";
+import MarketIntelligenceNewsPreview from "./component/MarketIntelligenceNewsPreview/MarketIntelligenceNewPreview";
 
 interface MarketIntelligencePreivewProps {
   symbol: string;
@@ -213,10 +214,18 @@ const MarketIntelligencePreview = React.memo(
               </FlexBox>
             </FlexBox>
           </Section>
+          <Section padding="none" noContainer>
+            <FlexBox direction="column" gap="xl">
+              <Heading level={5} color="tertiary">
+                뉴스
+              </Heading>
+              <MarketIntelligenceNewsPreview symbol={symbol} />
+            </FlexBox>
+          </Section>
         </FlexBox>
       </Root>
     );
-  }
+  },
 );
 
 export default MarketIntelligencePreview;

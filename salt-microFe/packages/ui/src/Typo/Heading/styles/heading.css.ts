@@ -88,6 +88,35 @@ export const headingStyles = recipe({
         color: vars.colors.text.base,
       },
     },
+
+    lineClamp: {
+      1: {
+        display: "block",
+        width: "100%",
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      },
+      2: {
+        display: "-webkit-box",
+        width: "100%",
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        WebkitBoxOrient: "vertical",
+        WebkitLineClamp: 2,
+      },
+      3: {
+        display: "-webkit-box",
+        width: "100%",
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        WebkitBoxOrient: "vertical",
+        WebkitLineClamp: 3,
+      },
+    },
   },
 
   defaultVariants: {

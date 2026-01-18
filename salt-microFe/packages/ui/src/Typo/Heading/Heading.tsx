@@ -6,12 +6,21 @@ export interface HeadingProps {
   level: 1 | 2 | 3 | 4 | 5 | 6;
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   color?: "primary" | "secondary" | "tertiary" | "brand" | "white";
+  lineClamp?: 1 | 2 | 3;
 }
 
-export const Heading = ({ children, level, size, color }: HeadingProps) => {
+export const Heading = ({
+  children,
+  level,
+  size,
+  color,
+  lineClamp,
+}: HeadingProps) => {
   const Tag = `h${level}` as const;
 
   return (
-    <Tag className={headingStyles({ level, size, color })}>{children}</Tag>
+    <Tag className={headingStyles({ level, size, color, lineClamp })}>
+      {children}
+    </Tag>
   );
 };
