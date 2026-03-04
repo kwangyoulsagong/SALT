@@ -1,9 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { InvestmentInsightService } from "./investment-insight.service";
 import { ResponseUtil } from "../../utils/response.util";
+import { WhaleSignalService } from "./whale-signal.service";
 
 export class InvestmentInsightController {
   private investmentInsightService = new InvestmentInsightService();
+  private whaleSignalService = new WhaleSignalService();
   /**
    * 위험 분석 실행 (테스트용)
    */
@@ -49,6 +51,20 @@ export class InvestmentInsightController {
       const result = await this.investmentInsightService.generateSmartBuyZone();
 
       return ResponseUtil.success(res, result, "Smart Buy Zone generated");
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  generateWhaleSignals = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const result = await this.whaleSignalService.generateWhaleSignals();
+
+      return ResponseUtil.success(res, result, "Whale signals generated");
     } catch (error) {
       next(error);
     }

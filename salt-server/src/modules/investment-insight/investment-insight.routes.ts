@@ -151,4 +151,22 @@ router.post(
   investmentInsightController.generateSmartBuyZone,
 );
 
+/**
+ * @swagger
+ * /api/investment-insight/whale-signal/generate:
+ *   post:
+ *     summary: Whale Signal 생성
+ *     tags: [Investment Insight]
+ *     security:
+ *       - bearerAuth: []
+ *     description: 거래량 급증과 가격 변화를 기반으로 고래 매수/매도 신호를 생성합니다.
+ *     responses:
+ *       200:
+ *         description: Whale signal 생성 완료
+ */
+router.post(
+  "/whale-signal/generate",
+  investmentInsightController.generateWhaleSignals,
+);
+
 export default router;
