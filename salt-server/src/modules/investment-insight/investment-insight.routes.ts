@@ -169,4 +169,56 @@ router.post(
   investmentInsightController.generateWhaleSignals,
 );
 
+/**
+ * @swagger
+ * /api/investment-insight/portfolio-rebalance/generate:
+ *   post:
+ *     summary: Portfolio Rebalance 생성
+ *     tags: [Investment Insight]
+ *     security:
+ *       - bearerAuth: []
+ *     description: 사용자의 포트폴리오 비중을 분석하여 리밸런싱 추천을 생성합니다.
+ *     responses:
+ *       200:
+ *         description: Rebalance 생성 완료
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Rebalance generated
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       symbol:
+ *                         type: string
+ *                         example: BTC
+ *                       type:
+ *                         type: string
+ *                         example: rebalance
+ *                       title:
+ *                         type: string
+ *                         example: 포트폴리오 리밸런싱 추천
+ *                       summary:
+ *                         type: string
+ *                         example: BTC 비중 조정 추천
+ *                       severity:
+ *                         type: number
+ *                         example: 50
+ *                       confidence:
+ *                         type: number
+ *                         example: 0.75
+ */
+router.post(
+  "/portfolio-rebalance/generate",
+  investmentInsightController.generateRebalance,
+);
+
 export default router;

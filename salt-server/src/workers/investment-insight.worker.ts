@@ -1,10 +1,13 @@
 import cron from "node-cron";
 import { InvestmentInsightService } from "../modules/investment-insight/investment-insight.service";
 import { WhaleSignalService } from "../modules/investment-insight/whale-signal.service";
+import { PortfolioRebalanceService } from "../modules/investment-insight/portfolio-rebalance.service";
+import prisma from "../config/database";
 
 export class InvestmentInsightWorker {
   private insightService = new InvestmentInsightService();
   private whaleService = new WhaleSignalService();
+  private portfolioRebalanceService = new PortfolioRebalanceService();
 
   private running = false;
 
@@ -31,6 +34,15 @@ export class InvestmentInsightWorker {
 
       console.log("🐋 Generating Whale Signals...");
       await this.whaleService.generateWhaleSignals();
+
+      console.log("⚖️ Generating Rebalance...");
+      const users = await prisma.user.findMany({
+        select: { id: true },
+      });
+
+      for (const user of users) {
+        await this.portfolioRebalanceService.generateRebalance(user.id);
+      }
 
       console.log("✅ Investment insights generated");
     } catch (error) {
