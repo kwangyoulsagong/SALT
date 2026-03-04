@@ -40,6 +40,10 @@ model User {
   newsBookmarks         NewsBookmark[]
   sentimentAlerts      SentimentAlert[]
   smartMoneyAlerts     SmartMoneyAlert[]
+  investmentProfile UserInvestmentProfile?
+  playbooks         InvestmentPlaybook[]
+  insights          InvestmentInsight[]
+  executionLogs     ExecutionLog[]
 
   @@index([email])
   @@map("users")
@@ -306,10 +310,11 @@ model PortfolioTransaction {
   transactionDate DateTime @map("transaction_date") // 거래 날짜
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
+  assetType         AssetType @map("asset_type")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, symbol])
+  @@index([userId, assetType, symbol])
   @@index([userId, transactionDate])
   @@index([transactionType])
   @@map("portfolio_transactions")
@@ -319,20 +324,26 @@ model PortfolioHolding {
   id                String   @id @default(uuid())
   userId            String   @map("user_id")
   symbol            String
-  totalQuantity     Float    @map("total_quantity") // 보유 수량
-  averageBuyPrice   Float    @map("average_buy_price") // 평균 매수가
-  totalInvested     Float    @map("total_invested") // 총 투자금액
-  currentPrice      Float    @default(0) @map("current_price") // 현재가 (실시간 업데이트)
-  currentValue      Float    @default(0) @map("current_value") // 현재 평가금액
-  unrealizedProfit  Float    @default(0) @map("unrealized_profit") // 미실현 손익
-  unrealizedProfitRate Float @default(0) @map("unrealized_profit_rate") // 미실현 손익률
-  realizedProfit    Float    @default(0) @map("realized_profit") // 실현 손익
+  assetType         AssetType @map("asset_type")
+
+  totalQuantity     Float    @map("total_quantity")
+  averageBuyPrice   Float    @map("average_buy_price")
+  totalInvested     Float    @map("total_invested")
+
+  currentPrice      Float    @default(0) @map("current_price")
+  currentValue      Float    @default(0) @map("current_value")
+
+  unrealizedProfit  Float    @default(0) @map("unrealized_profit")
+  unrealizedProfitRate Float @default(0) @map("unrealized_profit_rate")
+
+  realizedProfit    Float    @default(0) @map("realized_profit")
+
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, symbol])
+  @@unique([userId, symbol, assetType])
   @@index([userId])
   @@map("portfolio_holdings")
 }
@@ -393,6 +404,7 @@ model MarketAsset {
   volume24h        Decimal?  @map("volume_24h")
   tradeValue24h    Decimal?  @map("trade_value_24h")
   priceUpdatedAt   DateTime? @map("price_updated_at")
+  assetType AssetType @default(crypto) @map("asset_type")
 
   @@index([isActive])
   @@index([tradeValue24h])      // 🔥 TOP ranking 조회용
@@ -472,4 +484,185 @@ model SmartMoneyAlert {
   @@unique([userId, symbol])
   @@index([userId])
   @@map("smart_money_alerts")
+}
+
+// 가격 히스토리
+model PriceHistory {
+  id        String   @id @default(uuid())
+  symbol    String
+  assetType AssetType @map("asset_type")
+
+  timeframe String
+  open      Decimal
+  high      Decimal
+  low       Decimal
+  close     Decimal
+  volume    Decimal?
+  timestamp DateTime
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([symbol, timeframe, timestamp])
+  @@index([symbol, timeframe, timestamp])
+  @@map("price_history")
+}
+
+// 투자 성향
+model UserInvestmentProfile {
+  id                    String   @id @default(uuid())
+  userId                String   @unique @map("user_id")
+
+  riskTolerance         String   @default("medium")
+  maxSingleAssetWeight  Float    @default(0.6)
+  rebalanceBand         Float    @default(0.1)
+  panicSellWindowHours  Int      @default(24)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_investment_profiles")
+}
+
+// 투자 분석 결과 저장
+enum InsightType {
+  ai_coach
+  smart_buy_zone
+  behavior_analysis
+  risk_alert
+}
+
+model InvestmentInsight {
+  id        String      @id @default(uuid())
+  userId    String      @map("user_id")
+  symbol    String?
+  assetType AssetType?  @map("asset_type")
+
+  type      InsightType
+  title     String
+  summary   String
+
+  severity  Int         @default(0)
+  confidence Float?
+
+  payload   Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime? @map("expires_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([userId, createdAt])
+  @@map("investment_insights")
+}
+
+// 사용자 투자 전략
+model InvestmentPlaybook {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+
+  name      String
+  assetType AssetType
+  isActive  Boolean  @default(true) @map("is_active")
+
+  targetAllocation Json? @map("target_allocation")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  rules InvestmentRule[]
+
+  @@index([userId])
+  @@map("investment_playbooks")
+}
+
+enum RuleType {
+  buy_zone_entry
+  risk_limit
+  rebalance
+  stop_loss
+  take_profit
+  sentiment_filter
+  whale_filter
+}
+
+// 플레이북 규칙
+model InvestmentRule {
+  id          String   @id @default(uuid())
+  playbookId  String   @map("playbook_id")
+
+  type        RuleType
+  symbol      String?
+  params      Json
+
+  isEnabled   Boolean  @default(true) @map("is_enabled")
+  priority    Int      @default(0)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  playbook InvestmentPlaybook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+
+  @@index([playbookId])
+  @@map("investment_rules")
+}
+
+enum TriggerStatus {
+  open
+  resolved
+  dismissed
+}
+
+// 규칙 발생 기록
+model PlaybookTrigger {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  playbookId  String   @map("playbook_id")
+  ruleId      String   @map("rule_id")
+
+  symbol      String?
+  title       String
+  message     String
+  severity    Int      @default(0)
+
+  payload     Json?
+
+  status      TriggerStatus @default(open)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  resolvedAt  DateTime? @map("resolved_at")
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playbook InvestmentPlaybook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+  rule     InvestmentRule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([playbookId])
+  @@map("playbook_triggers")
+}
+
+// 투자 실행 기록
+model ExecutionLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  triggerId String?  @map("trigger_id")
+
+  symbol    String?
+
+  action    String
+  quantity  Float?
+  price     Float?
+
+  note      String?
+
+  executedAt DateTime @default(now()) @map("executed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trigger PlaybookTrigger? @relation(fields: [triggerId], references: [id])
+
+  @@index([userId, executedAt])
+  @@map("execution_logs")
 }
