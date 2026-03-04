@@ -92,4 +92,67 @@ export class InvestmentInsightService {
       take: 50,
     });
   }
+
+  async generateSmartBuyZone() {
+    const sentiments = await prisma.marketSentiment.findMany({
+      orderBy: {
+        calculatedAt: "desc",
+      },
+      take: 50,
+    });
+
+    const insights = [];
+
+    for (const s of sentiments) {
+      const isFear = (s.fearGreedIndex ?? 50) <= 35;
+      const priceDrop = s.priceChange24h <= -4;
+
+      const severity = Math.min(
+        100,
+        Math.round(Math.abs(s.priceChange24h) * 3),
+      );
+
+      if (isFear && priceDrop) {
+        const insight = await prisma.investmentInsight.upsert({
+          where: {
+            userId_type_dedupeKey: {
+              userId: "global",
+              type: "smart_buy_zone",
+              dedupeKey: `buy:${s.symbol}`,
+            },
+          },
+
+          create: {
+            userId: "global",
+            symbol: s.symbol,
+            assetType: "crypto",
+            type: "smart_buy_zone",
+            title: "Smart Buy Zone",
+            summary: `${s.symbol} 공포 구간 + 가격 하락 → 매수 구간 가능성`,
+            severity,
+            confidence: 0.7,
+            payload: {
+              fearGreedIndex: s.fearGreedIndex,
+              priceChange24h: s.priceChange24h,
+            },
+            expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+          },
+
+          update: {
+            summary: `${s.symbol} 공포 구간 + 가격 하락 → 매수 구간 가능성`,
+            confidence: 0.7,
+            payload: {
+              fearGreedIndex: s.fearGreedIndex,
+              priceChange24h: s.priceChange24h,
+            },
+            expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+          },
+        });
+
+        insights.push(insight);
+      }
+    }
+
+    return insights;
+  }
 }

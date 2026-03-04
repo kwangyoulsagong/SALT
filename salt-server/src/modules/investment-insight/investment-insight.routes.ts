@@ -102,4 +102,53 @@ router.get("/insights", investmentInsightController.list);
  */
 router.post("/insights/generate", investmentInsightController.generate);
 
+/**
+ * @swagger
+ * /api/investment-insight/smart-buy-zone/generate:
+ *   post:
+ *     summary: Smart Buy Zone 생성
+ *     tags: [Investment Insight]
+ *     security:
+ *       - bearerAuth: []
+ *     description: 시장 공포지수와 가격 하락을 기반으로 매수 가능 구간을 생성합니다.
+ *     responses:
+ *       200:
+ *         description: Smart Buy Zone 생성 완료
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Smart Buy Zone generated
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       symbol:
+ *                         type: string
+ *                         example: BTC
+ *                       type:
+ *                         type: string
+ *                         example: smart_buy_zone
+ *                       title:
+ *                         type: string
+ *                         example: Smart Buy Zone
+ *                       summary:
+ *                         type: string
+ *                         example: BTC 공포 구간 + 가격 하락 → 매수 구간 가능성
+ *                       confidence:
+ *                         type: number
+ *                         example: 0.7
+ */
+router.post(
+  "/smart-buy-zone/generate",
+  investmentInsightController.generateSmartBuyZone,
+);
+
 export default router;

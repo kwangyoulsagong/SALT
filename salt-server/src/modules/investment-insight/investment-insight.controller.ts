@@ -39,4 +39,18 @@ export class InvestmentInsightController {
       });
     }
   };
+
+  generateSmartBuyZone = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const result = await this.investmentInsightService.generateSmartBuyZone();
+
+      return ResponseUtil.success(res, result, "Smart Buy Zone generated");
+    } catch (error) {
+      next(error);
+    }
+  };
 }
