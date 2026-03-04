@@ -20,6 +20,7 @@ import newsRoutes from "./modules/news/news.routes";
 import marketIntelligenceRoutes from "./modules/market-intelligence/market-intelligence.routes";
 import investmentInsightRoutes from "./modules/investment-insight/investment-insight.routes";
 import { InvestmentInsightWorker } from "./workers/investment-insight.worker";
+import { PlaybookEngineWorker } from "./workers/playbook-engine.worker";
 
 const app: Application = express();
 const marketWorker = new MarketSyncWorker();
@@ -32,6 +33,10 @@ marketPriceUpdater.start();
 
 const insightsWorker = new InvestmentInsightWorker();
 insightsWorker.start();
+
+const playbookEngineWorker = new PlaybookEngineWorker();
+playbookEngineWorker.start();
+
 // Security
 app.use(helmet());
 app.use(cors());
