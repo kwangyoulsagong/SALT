@@ -534,25 +534,27 @@ enum InsightType {
 }
 
 model InvestmentInsight {
-  id        String      @id @default(uuid())
-  userId    String      @map("user_id")
-  symbol    String?
-  assetType AssetType?  @map("asset_type")
+  id         String      @id @default(uuid())
+  userId     String      @map("user_id")
+  symbol     String?
+  assetType  AssetType?  @map("asset_type")
 
-  type      InsightType
-  title     String
-  summary   String
+  type       InsightType
+  title      String
+  summary    String
 
-  severity  Int         @default(0)
+  severity   Int         @default(0)
   confidence Float?
+  payload    Json?
 
-  payload   Json?
+  dedupeKey  String      @default("default") @map("dedupe_key")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  expiresAt DateTime? @map("expires_at")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  expiresAt  DateTime?   @map("expires_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, type, dedupeKey])
   @@index([userId, type])
   @@index([userId, createdAt])
   @@map("investment_insights")
