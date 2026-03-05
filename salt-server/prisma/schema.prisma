@@ -486,6 +486,36 @@ model SmartMoneyAlert {
   @@map("smart_money_alerts")
 }
 
+// 투자 playbook notification
+model InvestmentNotification {
+  id        String   @id @default(cuid())
+
+  userId    String
+  symbol    String?
+
+  source    String?
+
+  type      String
+  title     String
+  message   String
+
+  severity  Int      @default(50)
+
+  isRead    Boolean  @default(false)
+
+  payload   Json?
+
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([symbol])
+  @@index([createdAt])
+}
+
 // 가격 히스토리
 model PriceHistory {
   id        String   @id @default(uuid())

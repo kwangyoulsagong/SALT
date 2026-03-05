@@ -22,6 +22,8 @@ export class PlaybookEngineWorker {
     if (this.running) return;
     this.running = true;
 
+    console.log("📊 Playbook Engine scanning...");
+
     try {
       const playbooks = await prisma.investmentPlaybook.findMany({
         where: { isActive: true },
@@ -32,48 +34,49 @@ export class PlaybookEngineWorker {
         },
       });
 
-      for (const pb of playbooks) {
-        for (const rule of pb.rules) {
-          switch (rule.type) {
-            case "sentiment_filter":
-              await this.evalSentimentRule(
-                pb.userId,
-                pb.id,
-                rule.id,
-                rule.symbol ?? null,
-                rule.params,
-              );
-              break;
-
-            case "whale_filter":
-              await this.evalWhaleRule(
-                pb.userId,
-                pb.id,
-                rule.id,
-                rule.symbol ?? null,
-                rule.params,
-              );
-              break;
-
-            case "rebalance":
-              await this.evalRebalanceRule(
-                pb.userId,
-                pb,
-                rule.id,
-                rule.symbol ?? null,
-                rule.params,
-              );
-              break;
-
-            default:
-              break;
-          }
-        }
-      }
+      await Promise.all(playbooks.map((pb: any) => this.runPlaybook(pb)));
     } catch (error) {
       console.error("Playbook Engine Worker error:", error);
     } finally {
       this.running = false;
+    }
+  }
+
+  private async runPlaybook(pb: any) {
+    await Promise.all(pb.rules.map((rule: any) => this.runRule(pb, rule)));
+  }
+
+  private async runRule(pb: any, rule: any) {
+    switch (rule.type) {
+      case "sentiment_filter":
+        return this.evalSentimentRule(
+          pb.userId,
+          pb.id,
+          rule.id,
+          rule.symbol ?? null,
+          rule.params,
+        );
+
+      case "whale_filter":
+        return this.evalWhaleRule(
+          pb.userId,
+          pb.id,
+          rule.id,
+          rule.symbol ?? null,
+          rule.params,
+        );
+
+      case "rebalance":
+        return this.evalRebalanceRule(
+          pb.userId,
+          pb,
+          rule.id,
+          rule.symbol ?? null,
+          rule.params,
+        );
+
+      default:
+        return;
     }
   }
 
@@ -105,7 +108,7 @@ export class PlaybookEngineWorker {
 
     if (exists) return;
 
-    await prisma.playbookTrigger.create({
+    const trigger = await prisma.playbookTrigger.create({
       data: {
         userId: opts.userId,
         playbookId: opts.playbookId,
@@ -117,6 +120,34 @@ export class PlaybookEngineWorker {
         payload: opts.payload,
       },
     });
+
+    const existingNotification = await prisma.investmentNotification.findFirst({
+      where: {
+        userId: opts.userId,
+        type: "trigger",
+        ...(opts.symbol ? { symbol: opts.symbol } : {}),
+        createdAt: { gt: since },
+      },
+    });
+
+    if (!existingNotification) {
+      await prisma.investmentNotification.create({
+        data: {
+          userId: opts.userId,
+          symbol: opts.symbol ?? undefined,
+          source: "playbook",
+          type: "trigger",
+          title: opts.title,
+          message: opts.message,
+          severity: opts.severity ?? 50,
+          payload: {
+            triggerId: trigger.id,
+            ...(opts.payload ?? {}),
+          },
+          expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000),
+        },
+      });
+    }
   }
 
   /**

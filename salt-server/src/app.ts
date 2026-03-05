@@ -8,6 +8,8 @@ import { setupSwagger } from "./config/swagger";
 import { NotFoundError } from "./utils/error.util";
 import { MarketSyncWorker } from "./workers/market-sync.worker";
 import { marketPriceUpdater } from "./workers/market-price-updater.worker";
+import { InvestmentInsightWorker } from "./workers/investment-insight.worker";
+import { PlaybookEngineWorker } from "./workers/playbook-engine.worker";
 
 // Routes
 import authRoutes from "./modules/auth/auth.routes";
@@ -19,8 +21,7 @@ import portfolioRoutes from "./modules/portfolio/portfolio.routes";
 import newsRoutes from "./modules/news/news.routes";
 import marketIntelligenceRoutes from "./modules/market-intelligence/market-intelligence.routes";
 import investmentInsightRoutes from "./modules/investment-insight/investment-insight.routes";
-import { InvestmentInsightWorker } from "./workers/investment-insight.worker";
-import { PlaybookEngineWorker } from "./workers/playbook-engine.worker";
+import investmentNotificationRoutes from "./modules/investment-notification/investment-notification.routes";
 
 const app: Application = express();
 const marketWorker = new MarketSyncWorker();
@@ -70,6 +71,7 @@ app.use("/api/portfolio", portfolioRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/market-intelligence", marketIntelligenceRoutes);
 app.use("/api/investment-insight", investmentInsightRoutes);
+app.use("/api/investment-notifications", investmentNotificationRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response, next: NextFunction) => {
