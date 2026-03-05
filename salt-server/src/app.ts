@@ -22,6 +22,7 @@ import newsRoutes from "./modules/news/news.routes";
 import marketIntelligenceRoutes from "./modules/market-intelligence/market-intelligence.routes";
 import investmentInsightRoutes from "./modules/investment-insight/investment-insight.routes";
 import investmentNotificationRoutes from "./modules/investment-notification/investment-notification.routes";
+import { PriceHistoryWorker } from "./workers/price-history.worker";
 
 const app: Application = express();
 const marketWorker = new MarketSyncWorker();
@@ -31,6 +32,9 @@ cron.schedule("0 */6 * * *", () => {
   console.log("⏱️ Market Sync executed");
 });
 marketPriceUpdater.start();
+
+const priceHistoryWorker = new PriceHistoryWorker();
+priceHistoryWorker.start();
 
 const insightsWorker = new InvestmentInsightWorker();
 insightsWorker.start();

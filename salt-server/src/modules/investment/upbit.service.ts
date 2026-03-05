@@ -3,6 +3,8 @@ import { logger } from "../../config/logger";
 
 const UPBIT_API_URL = "https://api.upbit.com/v1";
 
+export type PriceTimeframe = "5m" | "15m" | "1h" | "1d";
+
 export class UpbitService {
   /**
    * 현재가 정보 조회
@@ -65,13 +67,13 @@ export class UpbitService {
   async getMinuteCandles(
     symbol: string,
     unit: 1 | 3 | 5 | 15 | 30 | 60 | 240,
-    count: number = 200
+    count: number = 200,
   ) {
     try {
       const market = `KRW-${symbol.toUpperCase()}`;
       const response = await axios.get(
         `${UPBIT_API_URL}/candles/minutes/${unit}`,
-        { params: { market, count } }
+        { params: { market, count } },
       );
 
       return response.data.map((candle: any) => ({
@@ -108,7 +110,7 @@ export class UpbitService {
     try {
       const response = await axios.get(`${UPBIT_API_URL}/market/all`);
       const krwMarkets = response.data.filter((m: any) =>
-        m.market.startsWith("KRW-")
+        m.market.startsWith("KRW-"),
       );
 
       return krwMarkets.map((m: any) => ({
@@ -177,7 +179,7 @@ export class UpbitService {
 
     try {
       logger.info(
-        `Starting batch candle fetch for ${symbols.length} symbols, period: ${period}`
+        `Starting batch candle fetch for ${symbols.length} symbols, period: ${period}`,
       );
 
       // 심볼을 배치 단위로 나누어 처리
@@ -191,10 +193,10 @@ export class UpbitService {
             .catch((error) => {
               logger.warn(
                 `Failed to fetch candles for ${symbol}:`,
-                error.message
+                error.message,
               );
               return { symbol, data: [], success: false };
-            })
+            }),
         );
 
         // 배치 결과 수집
@@ -218,7 +220,7 @@ export class UpbitService {
       logger.info(
         `Batch candles fetched successfully for ${
           Object.keys(results).length
-        } symbols`
+        } symbols`,
       );
       return results;
     } catch (error: any) {
@@ -266,6 +268,29 @@ export class UpbitService {
       if (now - value.timestamp > this.CACHE_TTL * 2) {
         this.candleCache.delete(key);
       }
+    }
+  }
+
+  async getCandlesByTimeframe(
+    symbol: string,
+    timeframe: PriceTimeframe,
+    count: number,
+  ) {
+    switch (timeframe) {
+      case "1d":
+        return this.getDailyCandles(symbol, count);
+
+      case "5m":
+        return this.getMinuteCandles(symbol, 5, count);
+
+      case "15m":
+        return this.getMinuteCandles(symbol, 15, count);
+
+      case "1h":
+        return this.getMinuteCandles(symbol, 60, count);
+
+      default:
+        return this.getDailyCandles(symbol, count);
     }
   }
 }
