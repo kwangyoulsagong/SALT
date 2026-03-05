@@ -511,7 +511,7 @@ model InvestmentNotification {
 
   user User @relation(fields: [userId], references: [id])
 
-  @@index([userId])
+  @@index([userId, isRead])
   @@index([symbol])
   @@index([createdAt])
 }

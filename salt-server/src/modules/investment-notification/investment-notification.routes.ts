@@ -75,4 +75,18 @@ router.patch("/:id/read", controller.markRead.bind(controller));
  */
 router.patch("/read-all", controller.markAllRead.bind(controller));
 
+/**
+ * @swagger
+ * /investment-notifications/unread-count:
+ *   get:
+ *     summary: 읽지 않은 알림 개수 조회
+ *     tags: [InvestmentNotification]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: unread count 조회 성공
+ */
+router.get("/unread-count", controller.getUnreadCount.bind(controller));
+
 export default router;

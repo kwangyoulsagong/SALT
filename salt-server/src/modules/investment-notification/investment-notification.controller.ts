@@ -85,4 +85,24 @@ export class InvestmentNotificationController {
       return ResponseUtil.error(res, "NOTIFICATION_READ_ALL_FAILED");
     }
   }
+
+  /**
+   * 읽지 않은 알림 개수 조회
+   */
+  async getUnreadCount(req: Request, res: Response) {
+    try {
+      const userId = req.user!.userId;
+
+      const count = await prisma.investmentNotification.count({
+        where: {
+          userId,
+          isRead: false,
+        },
+      });
+
+      return ResponseUtil.success(res, { unreadCount: count });
+    } catch (error) {
+      return ResponseUtil.error(res, "NOTIFICATION_UNREAD_COUNT_FAILED");
+    }
+  }
 }
