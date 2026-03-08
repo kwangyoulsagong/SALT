@@ -1,7 +1,10 @@
-// workers/playbook-engine.worker.ts
-
 import cron from "node-cron";
 import prisma from "../config/database";
+import { Prisma } from "@prisma/client";
+
+type PlaybookWithRules = Prisma.InvestmentPlaybookGetPayload<{
+  include: { rules: true };
+}>;
 
 export class PlaybookEngineWorker {
   private running = false;
@@ -9,17 +12,19 @@ export class PlaybookEngineWorker {
   start() {
     console.log("🚀 Playbook Engine Worker started");
 
-    // 서버 시작 시 1회 실행
     this.run();
 
-    // 5분마다 실행
     cron.schedule("*/5 * * * *", () => {
       this.run();
     });
   }
 
   private async run() {
-    if (this.running) return;
+    if (this.running) {
+      console.log("⚠️ Playbook worker already running");
+      return;
+    }
+
     this.running = true;
 
     console.log("📊 Playbook Engine scanning...");
@@ -34,7 +39,21 @@ export class PlaybookEngineWorker {
         },
       });
 
-      await Promise.all(playbooks.map((pb: any) => this.runPlaybook(pb)));
+      const BATCH = 20;
+
+      for (let i = 0; i < playbooks.length; i += BATCH) {
+        const batch = playbooks.slice(i, i + BATCH);
+
+        await Promise.all(
+          batch.map(async (pb) => {
+            try {
+              await this.runPlaybook(pb);
+            } catch (err) {
+              console.error("playbook error", pb.id, err);
+            }
+          }),
+        );
+      }
     } catch (error) {
       console.error("Playbook Engine Worker error:", error);
     } finally {
@@ -42,38 +61,22 @@ export class PlaybookEngineWorker {
     }
   }
 
-  private async runPlaybook(pb: any) {
-    await Promise.all(pb.rules.map((rule: any) => this.runRule(pb, rule)));
+  private async runPlaybook(pb: PlaybookWithRules) {
+    for (const rule of pb.rules) {
+      await this.runRule(pb, rule);
+    }
   }
 
-  private async runRule(pb: any, rule: any) {
+  private async runRule(pb: PlaybookWithRules, rule: any) {
     switch (rule.type) {
       case "sentiment_filter":
-        return this.evalSentimentRule(
-          pb.userId,
-          pb.id,
-          rule.id,
-          rule.symbol ?? null,
-          rule.params,
-        );
+        return this.evalSentimentRule(pb.userId, pb.id, rule);
 
       case "whale_filter":
-        return this.evalWhaleRule(
-          pb.userId,
-          pb.id,
-          rule.id,
-          rule.symbol ?? null,
-          rule.params,
-        );
+        return this.evalWhaleRule(pb.userId, pb.id, rule);
 
       case "rebalance":
-        return this.evalRebalanceRule(
-          pb.userId,
-          pb,
-          rule.id,
-          rule.symbol ?? null,
-          rule.params,
-        );
+        return this.evalRebalanceRule(pb.userId, pb, rule);
 
       default:
         return;
@@ -81,26 +84,27 @@ export class PlaybookEngineWorker {
   }
 
   /**
-   * Trigger 생성 (중복 방지 포함)
+   * Trigger 생성
    */
   private async emitTrigger(opts: {
     userId: string;
     playbookId: string;
     ruleId: string;
-    symbol: string | null;
+    symbol?: string | null;
     title: string;
     message: string;
     severity?: number;
     payload?: any;
   }) {
     const cooldownMinutes = 10;
+
     const since = new Date(Date.now() - cooldownMinutes * 60 * 1000);
 
     const exists = await prisma.playbookTrigger.findFirst({
       where: {
         userId: opts.userId,
         ruleId: opts.ruleId,
-        ...(opts.symbol ? { symbol: opts.symbol } : {}),
+        symbol: opts.symbol ?? undefined,
         createdAt: { gt: since },
         status: "open",
       },
@@ -113,7 +117,7 @@ export class PlaybookEngineWorker {
         userId: opts.userId,
         playbookId: opts.playbookId,
         ruleId: opts.ruleId,
-        ...(opts.symbol ? { symbol: opts.symbol } : {}),
+        symbol: opts.symbol ?? undefined,
         title: opts.title,
         message: opts.message,
         severity: opts.severity ?? 50,
@@ -121,33 +125,22 @@ export class PlaybookEngineWorker {
       },
     });
 
-    const existingNotification = await prisma.investmentNotification.findFirst({
-      where: {
+    await prisma.investmentNotification.create({
+      data: {
         userId: opts.userId,
+        symbol: opts.symbol ?? undefined,
+        source: "playbook",
         type: "trigger",
-        ...(opts.symbol ? { symbol: opts.symbol } : {}),
-        createdAt: { gt: since },
+        title: opts.title,
+        message: opts.message,
+        severity: opts.severity ?? 50,
+        payload: {
+          triggerId: trigger.id,
+          ...(opts.payload ?? {}),
+        },
+        expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000),
       },
     });
-
-    if (!existingNotification) {
-      await prisma.investmentNotification.create({
-        data: {
-          userId: opts.userId,
-          symbol: opts.symbol ?? undefined,
-          source: "playbook",
-          type: "trigger",
-          title: opts.title,
-          message: opts.message,
-          severity: opts.severity ?? 50,
-          payload: {
-            triggerId: trigger.id,
-            ...(opts.payload ?? {}),
-          },
-          expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000),
-        },
-      });
-    }
   }
 
   /**
@@ -156,10 +149,10 @@ export class PlaybookEngineWorker {
   private async evalSentimentRule(
     userId: string,
     playbookId: string,
-    ruleId: string,
-    symbol: string | null,
-    params: any,
+    rule: any,
   ) {
+    const symbol = rule.symbol;
+
     if (!symbol) return;
 
     const latest = await prisma.marketSentiment.findFirst({
@@ -170,13 +163,13 @@ export class PlaybookEngineWorker {
     if (!latest) return;
 
     const fearGreed = latest.fearGreedIndex ?? 50;
-    const threshold = params?.fearGreedBelow ?? 30;
+    const threshold = rule.params?.fearGreedBelow ?? 30;
 
     if (fearGreed <= threshold) {
       await this.emitTrigger({
         userId,
         playbookId,
-        ruleId,
+        ruleId: rule.id,
         symbol,
         title: "Sentiment Alert",
         message: `${symbol} 공포지수(${fearGreed})가 기준(${threshold}) 이하입니다.`,
@@ -189,16 +182,12 @@ export class PlaybookEngineWorker {
   /**
    * Whale Rule
    */
-  private async evalWhaleRule(
-    userId: string,
-    playbookId: string,
-    ruleId: string,
-    symbol: string | null,
-    params: any,
-  ) {
+  private async evalWhaleRule(userId: string, playbookId: string, rule: any) {
+    const symbol = rule.symbol;
+
     if (!symbol) return;
 
-    const minAmountKRW = params?.minAmountKRW ?? 500000000;
+    const minAmountKRW = rule.params?.minAmountKRW ?? 500000000;
 
     const since = new Date(Date.now() - 30 * 60 * 1000);
 
@@ -211,52 +200,44 @@ export class PlaybookEngineWorker {
       orderBy: { detectedAt: "desc" },
     });
 
-    if (whale) {
-      await this.emitTrigger({
-        userId,
-        playbookId,
-        ruleId,
-        symbol,
-        title: "Whale Activity",
-        message: `${symbol} 고래 거래 감지 (₩${Math.round(
-          whale.amountKRW,
-        ).toLocaleString()})`,
-        severity: 70,
-        payload: whale,
-      });
-    }
+    if (!whale) return;
+
+    await this.emitTrigger({
+      userId,
+      playbookId,
+      ruleId: rule.id,
+      symbol,
+      title: "Whale Activity",
+      message: `${symbol} 고래 거래 감지 (₩${Math.round(
+        whale.amountKRW,
+      ).toLocaleString()})`,
+      severity: 70,
+      payload: whale,
+    });
   }
 
   /**
    * Rebalance Rule
    */
-  private async evalRebalanceRule(
-    userId: string,
-    playbook: any,
-    ruleId: string,
-    symbol: string | null,
-    params: any,
-  ) {
-    const band = params?.band ?? 0.1;
+  private async evalRebalanceRule(userId: string, playbook: any, rule: any) {
+    const band = rule.params?.band ?? 0.1;
 
     const holdings = await prisma.portfolioHolding.findMany({
       where: { userId },
     });
 
-    if (holdings.length === 0) return;
+    if (!holdings.length) return;
 
     const total = holdings.reduce((sum, h) => sum + (h.currentValue ?? 0), 0);
 
-    if (total <= 0) return;
-
-    const allocation = playbook.targetAllocation as any;
+    const allocation = playbook.targetAllocation as Record<string, number>;
 
     if (!allocation) return;
 
     for (const h of holdings) {
-      const target = allocation?.[h.symbol];
+      const target = allocation[h.symbol];
 
-      if (typeof target !== "number") continue;
+      if (!target) continue;
 
       const weight = (h.currentValue ?? 0) / total;
 
@@ -264,10 +245,10 @@ export class PlaybookEngineWorker {
         await this.emitTrigger({
           userId,
           playbookId: playbook.id,
-          ruleId,
+          ruleId: rule.id,
           symbol: h.symbol,
           title: "Rebalance Needed",
-          message: `${h.symbol} 현재비중 ${(weight * 100).toFixed(
+          message: `${h.symbol} 현재 ${(weight * 100).toFixed(
             1,
           )}% / 목표 ${(target * 100).toFixed(1)}%`,
           severity: 55,

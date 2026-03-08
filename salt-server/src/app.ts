@@ -10,6 +10,8 @@ import { MarketSyncWorker } from "./workers/market-sync.worker";
 import { marketPriceUpdater } from "./workers/market-price-updater.worker";
 import { InvestmentInsightWorker } from "./workers/investment-insight.worker";
 import { PlaybookEngineWorker } from "./workers/playbook-engine.worker";
+import { PriceHistoryWorker } from "./workers/price-history.worker";
+import { NotificationCleanupWorker } from "./workers/notification-cleanup.worker";
 
 // Routes
 import authRoutes from "./modules/auth/auth.routes";
@@ -22,7 +24,8 @@ import newsRoutes from "./modules/news/news.routes";
 import marketIntelligenceRoutes from "./modules/market-intelligence/market-intelligence.routes";
 import investmentInsightRoutes from "./modules/investment-insight/investment-insight.routes";
 import investmentNotificationRoutes from "./modules/investment-notification/investment-notification.routes";
-import { PriceHistoryWorker } from "./workers/price-history.worker";
+import playbookRoutes from "./modules/playbook/playbook.routes";
+import playbookTriggerRoutes from "./modules/playbook/playbook-trigger.routes";
 
 const app: Application = express();
 const marketWorker = new MarketSyncWorker();
@@ -41,6 +44,9 @@ insightsWorker.start();
 
 const playbookEngineWorker = new PlaybookEngineWorker();
 playbookEngineWorker.start();
+
+const notificationCleanupWorker = new NotificationCleanupWorker();
+notificationCleanupWorker.start();
 
 // Security
 app.use(helmet());
@@ -76,6 +82,8 @@ app.use("/api/news", newsRoutes);
 app.use("/api/market-intelligence", marketIntelligenceRoutes);
 app.use("/api/investment-insight", investmentInsightRoutes);
 app.use("/api/investment-notifications", investmentNotificationRoutes);
+app.use("/api/playbooks", playbookRoutes);
+app.use("/api/playbookTriggerRoutes", playbookTriggerRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response, next: NextFunction) => {
