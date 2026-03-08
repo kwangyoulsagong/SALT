@@ -12,6 +12,7 @@ import { InvestmentInsightWorker } from "./workers/investment-insight.worker";
 import { PlaybookEngineWorker } from "./workers/playbook-engine.worker";
 import { PriceHistoryWorker } from "./workers/price-history.worker";
 import { NotificationCleanupWorker } from "./workers/notification-cleanup.worker";
+import { TechnicalIndicatorWorker } from "./workers/technical-indicator.worker";
 
 // Routes
 import authRoutes from "./modules/auth/auth.routes";
@@ -38,6 +39,9 @@ marketPriceUpdater.start();
 
 const priceHistoryWorker = new PriceHistoryWorker();
 priceHistoryWorker.start();
+
+const technicalIndicatorWorker = new TechnicalIndicatorWorker();
+technicalIndicatorWorker.start();
 
 const insightsWorker = new InvestmentInsightWorker();
 insightsWorker.start();

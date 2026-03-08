@@ -706,3 +706,38 @@ model ExecutionLog {
   @@index([userId, executedAt])
   @@map("execution_logs")
 }
+
+enum Timeframe {
+  m1
+  m5
+  m15
+  h1
+  h4
+  d1
+}
+
+model TechnicalIndicator {
+  id         String   @id @default(uuid())
+
+  symbol     String
+  assetType  AssetType @map("asset_type")
+
+  timeframe  Timeframe
+  timestamp  DateTime
+
+  rsi14      Float?   @map("rsi_14")
+  ma20       Float?   @map("ma_20")
+  ma50       Float?   @map("ma_50")
+
+  macd       Float?
+  macdSignal Float?   @map("macd_signal")
+  macdHist   Float?   @map("macd_hist")
+
+  volumeAvg20 Float?  @map("volume_avg_20")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([symbol, timeframe, timestamp])
+  @@index([symbol, timeframe, timestamp])
+  @@map("technical_indicators")
+}
