@@ -44,6 +44,8 @@ model User {
   playbooks         InvestmentPlaybook[]
   insights          InvestmentInsight[]
   executionLogs     ExecutionLog[]
+  investmentNotifications InvestmentNotification[]
+  playbookTriggers PlaybookTrigger[]
 
   @@index([email])
   @@map("users")
@@ -608,6 +610,8 @@ model InvestmentPlaybook {
 
   rules InvestmentRule[]
 
+  triggers PlaybookTrigger[]
+
   @@index([userId])
   @@map("investment_playbooks")
 }
@@ -637,6 +641,8 @@ model InvestmentRule {
   createdAt   DateTime @default(now()) @map("created_at")
 
   playbook InvestmentPlaybook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+
+  triggers PlaybookTrigger[]
 
   @@index([playbookId])
   @@map("investment_rules")
@@ -670,6 +676,8 @@ model PlaybookTrigger {
   user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   playbook InvestmentPlaybook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
   rule     InvestmentRule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  executionLogs ExecutionLog[]
 
   @@index([userId, status])
   @@index([playbookId])

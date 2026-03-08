@@ -1,24 +1,27 @@
 import cron from "node-cron";
+import prisma from "../config/database";
+
 import { InvestmentInsightService } from "../modules/investment-insight/investment-insight.service";
 import { WhaleSignalService } from "../modules/investment-insight/whale-signal.service";
 import { PortfolioRebalanceService } from "../modules/investment-insight/portfolio-rebalance.service";
-import prisma from "../config/database";
 import { BehaviorAnalysisService } from "../modules/investment-insight/behavior-analysis.service";
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+import { RiskAlertService } from "../modules/investment-insight/risk-alert.service";
+import { AIInvestmentCoachService } from "../modules/investment-insight/ai-investment-coach.service";
 
 export class InvestmentInsightWorker {
   private insightService = new InvestmentInsightService();
   private whaleService = new WhaleSignalService();
   private portfolioRebalanceService = new PortfolioRebalanceService();
-  private behaviorAnalysisService = new BehaviorAnalysisService();
+  private behaviorService = new BehaviorAnalysisService();
+  private riskService = new RiskAlertService();
+  private aiCoachService = new AIInvestmentCoachService();
 
   private running = false;
 
   start() {
     console.log("🚀 Investment Insight Worker started");
 
-    // 서버 시작 시 바로 실행
+    // 서버 시작 시 1회 실행
     this.run();
 
     // 10분마다 실행
@@ -28,71 +31,76 @@ export class InvestmentInsightWorker {
   }
 
   private async run() {
-    if (this.running) return;
+    if (this.running) {
+      console.log("⚠️ Insight worker already running, skipping...");
+      return;
+    }
 
     this.running = true;
 
-    const start = Date.now();
-
     try {
+      /**
+       * 1️⃣ Smart Buy Zone
+       */
       console.log("📊 Generating Smart Buy Zones...");
       await this.insightService.generateSmartBuyZone();
 
+      /**
+       * 2️⃣ Whale Signals
+       */
       console.log("🐋 Generating Whale Signals...");
       await this.whaleService.generateWhaleSignals();
 
+      /**
+       * 사용자 목록
+       */
       const users = await prisma.user.findMany({
         select: { id: true },
       });
 
-      console.log(`👤 Processing ${users.length} users`);
+      /**
+       * 3️⃣ Portfolio Rebalance
+       */
+      console.log("⚖️ Generating Rebalance Insights...");
 
-      const BATCH = 20;
+      await Promise.all(
+        users.map((user) =>
+          this.portfolioRebalanceService.generateRebalance(user.id),
+        ),
+      );
 
-      console.log("⚖️ Generating Rebalance...");
-
-      for (let i = 0; i < users.length; i += BATCH) {
-        const batch = users.slice(i, i + BATCH);
-
-        await Promise.allSettled(
-          batch.map((u) =>
-            this.portfolioRebalanceService.generateRebalance(u.id),
-          ),
-        );
-
-        await sleep(100);
-      }
-
-      for (const user of users) {
-        await this.portfolioRebalanceService.generateRebalance(user.id);
-      }
-
+      /**
+       * 4️⃣ Behavior Analysis
+       */
       console.log("🧠 Generating Behavior Analysis...");
 
-      for (let i = 0; i < users.length; i += BATCH) {
-        const batch = users.slice(i, i + BATCH);
-
-        const results = await Promise.allSettled(
-          batch.map((u) =>
-            this.behaviorAnalysisService.generateBehaviorAnalysis(u.id),
-          ),
-        );
-
-        // (선택) 실패 로깅
-        results.forEach((r, idx) => {
-          if (r.status === "rejected") {
-            console.error("Behavior analysis failed:", batch[idx].id, r.reason);
-          }
-        });
-
-        await sleep(100);
-      }
-
-      console.log(
-        `✅ Investment insights generated in ${Date.now() - start}ms`,
+      await Promise.all(
+        users.map((user) =>
+          this.behaviorService.generateBehaviorAnalysis(user.id),
+        ),
       );
+
+      /**
+       * 5️⃣ Risk Alerts
+       */
+      console.log("⚠️ Generating Risk Alerts...");
+
+      await Promise.all(
+        users.map((user) => this.riskService.generateRiskAlerts(user.id)),
+      );
+
+      /**
+       * 6️⃣ AI Coach (마지막)
+       */
+      console.log("🤖 Generating AI Coach...");
+
+      await Promise.all(
+        users.map((user) => this.aiCoachService.generateCoach(user.id)),
+      );
+
+      console.log("✅ Investment insights generated successfully");
     } catch (error) {
-      console.error("Investment insight worker error:", error);
+      console.error("❌ Investment insight worker error:", error);
     } finally {
       this.running = false;
     }

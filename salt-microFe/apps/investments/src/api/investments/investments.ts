@@ -109,6 +109,39 @@ export interface MarketIntelligencePreviewResponse {
   data: MarketIntelligencePreviewItem;
 }
 
+export interface MarketSymbolNewsParams {
+  symbol:string;
+  source?: string;
+  search?: string;
+  page: number;
+  limit: number;
+}
+
+export interface MarketSymbolNewsItem {
+  articles: {
+    id: string;
+    title: string;
+    summary: string;
+    url: string;
+    source: string;
+    author: null|string;
+    symbols:string[];
+    sentiment: string
+    viewCount: number;
+    publishedAt: string;
+  }[],
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  }
+}
+
+export interface MarketSymbolNewsResponse {
+  data: MarketSymbolNewsItem
+}
+
 export const investmentsAPi = {
   marketOverview: async (
     params: MarketOverviewParams
@@ -134,4 +167,9 @@ export const investmentsAPi = {
     );
     return data.data;
   },
+  marketSymbolNews: async (
+    params:MarketSymbolNewsParams
+  ): Promise<MarketSymbolNewsItem> => {
+
+  }
 };
