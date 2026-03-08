@@ -69,6 +69,15 @@ export class PlaybookEngineWorker {
 
   private async runRule(pb: PlaybookWithRules, rule: any) {
     switch (rule.type) {
+      case "buy_zone_entry":
+        return this.evalBuyZoneRule(pb.userId, pb.id, rule);
+
+      case "stop_loss":
+        return this.evalStopLossRule(pb.userId, pb.id, rule);
+
+      case "take_profit":
+        return this.evalTakeProfitRule(pb.userId, pb.id, rule);
+
       case "sentiment_filter":
         return this.evalSentimentRule(pb.userId, pb.id, rule);
 
@@ -78,13 +87,25 @@ export class PlaybookEngineWorker {
       case "rebalance":
         return this.evalRebalanceRule(pb.userId, pb, rule);
 
+      case "rsi_oversold":
+        return this.evalRSIOversoldRule(pb.userId, pb.id, rule);
+
+      case "rsi_overbought":
+        return this.evalRSIOverboughtRule(pb.userId, pb.id, rule);
+
+      case "ma_cross":
+        return this.evalMACrossRule(pb.userId, pb.id, rule);
+
+      case "volume_spike":
+        return this.evalVolumeSpikeRule(pb.userId, pb.id, rule);
+
       default:
         return;
     }
   }
 
   /**
-   * Trigger 생성
+   * Trigger 생성 + Notification 생성
    */
   private async emitTrigger(opts: {
     userId: string;
@@ -141,6 +162,110 @@ export class PlaybookEngineWorker {
         expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000),
       },
     });
+  }
+
+  /**
+   * Smart Buy Zone Rule
+   */
+  private async evalBuyZoneRule(userId: string, playbookId: string, rule: any) {
+    const symbol = rule.symbol;
+
+    if (!symbol) return;
+
+    const insight = await prisma.investmentInsight.findFirst({
+      where: {
+        userId: "global",
+        symbol,
+        type: "smart_buy_zone",
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!insight) return;
+
+    await this.emitTrigger({
+      userId,
+      playbookId,
+      ruleId: rule.id,
+      symbol,
+      title: "Smart Buy Zone",
+      message: `${symbol} 매수 구간 진입`,
+      severity: 65,
+      payload: insight.payload,
+    });
+  }
+
+  /**
+   * Stop Loss Rule
+   */
+  private async evalStopLossRule(
+    userId: string,
+    playbookId: string,
+    rule: any,
+  ) {
+    const symbol = rule.symbol;
+
+    if (!symbol) return;
+
+    const threshold = rule.params?.lossRate ?? 0.1;
+
+    const holding = await prisma.portfolioHolding.findFirst({
+      where: { userId, symbol },
+    });
+
+    if (!holding) return;
+
+    const lossRate = Math.abs(holding.unrealizedProfitRate ?? 0);
+
+    if (lossRate >= threshold) {
+      await this.emitTrigger({
+        userId,
+        playbookId,
+        ruleId: rule.id,
+        symbol,
+        title: "Stop Loss Trigger",
+        message: `${symbol} 손실 ${(lossRate * 100).toFixed(1)}%`,
+        severity: 80,
+        payload: { lossRate },
+      });
+    }
+  }
+
+  /**
+   * Take Profit Rule
+   */
+  private async evalTakeProfitRule(
+    userId: string,
+    playbookId: string,
+    rule: any,
+  ) {
+    const symbol = rule.symbol;
+
+    if (!symbol) return;
+
+    const threshold = rule.params?.profitRate ?? 0.2;
+
+    const holding = await prisma.portfolioHolding.findFirst({
+      where: { userId, symbol },
+    });
+
+    if (!holding) return;
+
+    const profitRate = holding.unrealizedProfitRate ?? 0;
+
+    if (profitRate >= threshold) {
+      await this.emitTrigger({
+        userId,
+        playbookId,
+        ruleId: rule.id,
+        symbol,
+        title: "Take Profit Trigger",
+        message: `${symbol} 수익 ${(profitRate * 100).toFixed(1)}%`,
+        severity: 70,
+        payload: { profitRate },
+      });
+    }
   }
 
   /**
@@ -259,6 +384,136 @@ export class PlaybookEngineWorker {
           },
         });
       }
+    }
+  }
+
+  private async evalRSIOversoldRule(
+    userId: string,
+    playbookId: string,
+    rule: any,
+  ) {
+    const symbol = rule.symbol;
+    if (!symbol) return;
+
+    const threshold = rule.params?.rsiBelow ?? 30;
+
+    const indicator = await prisma.technicalIndicator.findFirst({
+      where: { symbol },
+      orderBy: { timestamp: "desc" },
+    });
+
+    if (!indicator?.rsi14) return;
+
+    if (indicator.rsi14 <= threshold) {
+      await this.emitTrigger({
+        userId,
+        playbookId,
+        ruleId: rule.id,
+        symbol,
+        title: "RSI Oversold",
+        message: `${symbol} RSI ${indicator.rsi14.toFixed(1)} 과매도 구간`,
+        severity: 65,
+        payload: { rsi: indicator.rsi14 },
+      });
+    }
+  }
+
+  private async evalRSIOverboughtRule(
+    userId: string,
+    playbookId: string,
+    rule: any,
+  ) {
+    const symbol = rule.symbol;
+    if (!symbol) return;
+
+    const threshold = rule.params?.rsiAbove ?? 70;
+
+    const indicator = await prisma.technicalIndicator.findFirst({
+      where: { symbol },
+      orderBy: { timestamp: "desc" },
+    });
+
+    if (!indicator?.rsi14) return;
+
+    if (indicator.rsi14 >= threshold) {
+      await this.emitTrigger({
+        userId,
+        playbookId,
+        ruleId: rule.id,
+        symbol,
+        title: "RSI Overbought",
+        message: `${symbol} RSI ${indicator.rsi14.toFixed(1)} 과열 구간`,
+        severity: 70,
+        payload: { rsi: indicator.rsi14 },
+      });
+    }
+  }
+
+  private async evalMACrossRule(userId: string, playbookId: string, rule: any) {
+    const symbol = rule.symbol;
+    if (!symbol) return;
+
+    const indicator = await prisma.technicalIndicator.findFirst({
+      where: { symbol },
+      orderBy: { timestamp: "desc" },
+    });
+
+    if (!indicator?.ma20 || !indicator?.ma50) return;
+
+    if (indicator.ma20 > indicator.ma50) {
+      await this.emitTrigger({
+        userId,
+        playbookId,
+        ruleId: rule.id,
+        symbol,
+        title: "Golden Cross",
+        message: `${symbol} MA20 > MA50 상승 추세`,
+        severity: 60,
+        payload: {
+          ma20: indicator.ma20,
+          ma50: indicator.ma50,
+        },
+      });
+    }
+  }
+
+  private async evalVolumeSpikeRule(
+    userId: string,
+    playbookId: string,
+    rule: any,
+  ) {
+    const symbol = rule.symbol;
+    if (!symbol) return;
+
+    const threshold = rule.params?.volumeMultiplier ?? 2;
+
+    const indicator = await prisma.technicalIndicator.findFirst({
+      where: { symbol },
+      orderBy: { timestamp: "desc" },
+    });
+
+    if (!indicator?.volumeAvg20) return;
+
+    const latestCandle = await prisma.priceHistory.findFirst({
+      where: { symbol },
+      orderBy: { timestamp: "desc" },
+    });
+
+    if (!latestCandle?.volume) return;
+
+    const ratio = Number(latestCandle.volume) / indicator.volumeAvg20;
+
+    if (ratio >= threshold) {
+      await this.emitTrigger({
+        userId,
+        playbookId,
+        ruleId: rule.id,
+        symbol,
+        title: "Volume Spike",
+        message: `${symbol} 거래량 급증 (${ratio.toFixed(1)}x)`,
+        severity: 60,
+        payload: { volumeRatio: ratio },
+      });
     }
   }
 }

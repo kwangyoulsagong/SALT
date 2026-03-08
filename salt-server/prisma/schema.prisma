@@ -624,6 +624,11 @@ enum RuleType {
   take_profit
   sentiment_filter
   whale_filter
+
+  rsi_oversold
+  rsi_overbought
+  ma_cross
+  volume_spike
 }
 
 // 플레이북 규칙
