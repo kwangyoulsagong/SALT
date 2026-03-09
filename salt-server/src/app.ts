@@ -27,6 +27,7 @@ import investmentInsightRoutes from "./modules/investment-insight/investment-ins
 import investmentNotificationRoutes from "./modules/investment-notification/investment-notification.routes";
 import playbookRoutes from "./modules/playbook/playbook.routes";
 import playbookTriggerRoutes from "./modules/playbook/playbook-trigger.routes";
+import dashboardRoutes from "./modules/dashboard/dashboard.routes";
 
 const app: Application = express();
 const marketWorker = new MarketSyncWorker();
@@ -88,6 +89,7 @@ app.use("/api/investment-insight", investmentInsightRoutes);
 app.use("/api/investment-notifications", investmentNotificationRoutes);
 app.use("/api/playbooks", playbookRoutes);
 app.use("/api/playbookTriggerRoutes", playbookTriggerRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response, next: NextFunction) => {

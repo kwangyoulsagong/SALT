@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { InvestmentInsightController } from "./investment-insight.controller";
+import { InsightRankingController } from "./insight-ranking.controller";
 
 const router = Router();
 const investmentInsightController = new InvestmentInsightController();
+const investmentInsightRankingController = new InsightRankingController();
 
 // 모든 라우트에 인증 필요
 router.use(authMiddleware);
@@ -220,5 +222,13 @@ router.post(
   "/portfolio-rebalance/generate",
   investmentInsightController.generateRebalance,
 );
+
+/**
+ * @swagger
+ * /api/investment-insight/top:
+ *   get:
+ *     summary: Top 투자 인사이트
+ */
+router.get("/top", investmentInsightRankingController.getTopInsights);
 
 export default router;
