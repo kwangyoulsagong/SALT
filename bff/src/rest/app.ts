@@ -7,6 +7,8 @@ import { logger } from "../config/logger";
 // Routes
 import healthRoutes from "./routes/health.routes";
 import proxyRoutes from "./routes/proxy.routes";
+import appRoutes from "./routes/app.routes";
+import portfolioRoutes from "./routes/portfolio.routes";
 
 const app: Application = express();
 
@@ -36,6 +38,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Routes
 app.use("/health", healthRoutes);
 app.use("/api", proxyRoutes);
+app.use("/api/app", appRoutes);
+app.use("/api/app/portfolio", portfolioRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
