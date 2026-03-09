@@ -1,9 +1,11 @@
-import { Router } from 'express';
-import { PortfolioController } from './portfolio.controller';
-import { authMiddleware } from '../../middleware/auth.middleware';
+import { Router } from "express";
+import { PortfolioController } from "./portfolio.controller";
+import { authMiddleware } from "../../middleware/auth.middleware";
+import { PortfolioPerformanceController } from "./portfolio-performance.controller";
 
 const router = Router();
 const portfolioController = new PortfolioController();
+const portfolioPerformanceController = new PortfolioPerformanceController();
 
 /**
  * @swagger
@@ -58,7 +60,11 @@ const portfolioController = new PortfolioController();
  *       201:
  *         description: 거래 내역 추가 성공
  */
-router.post('/transactions', authMiddleware, portfolioController.createTransaction);
+router.post(
+  "/transactions",
+  authMiddleware,
+  portfolioController.createTransaction,
+);
 
 /**
  * @swagger
@@ -103,7 +109,11 @@ router.post('/transactions', authMiddleware, portfolioController.createTransacti
  *       200:
  *         description: 거래 내역 목록
  */
-router.get('/transactions', authMiddleware, portfolioController.getTransactions);
+router.get(
+  "/transactions",
+  authMiddleware,
+  portfolioController.getTransactions,
+);
 
 /**
  * @swagger
@@ -138,7 +148,11 @@ router.get('/transactions', authMiddleware, portfolioController.getTransactions)
  *       200:
  *         description: 수정 성공
  */
-router.patch('/transactions/:id', authMiddleware, portfolioController.updateTransaction);
+router.patch(
+  "/transactions/:id",
+  authMiddleware,
+  portfolioController.updateTransaction,
+);
 
 /**
  * @swagger
@@ -158,7 +172,11 @@ router.patch('/transactions/:id', authMiddleware, portfolioController.updateTran
  *       200:
  *         description: 삭제 성공
  */
-router.delete('/transactions/:id', authMiddleware, portfolioController.deleteTransaction);
+router.delete(
+  "/transactions/:id",
+  authMiddleware,
+  portfolioController.deleteTransaction,
+);
 
 /**
  * @swagger
@@ -178,7 +196,7 @@ router.delete('/transactions/:id', authMiddleware, portfolioController.deleteTra
  *       200:
  *         description: 보유 자산 목록 + 요약
  */
-router.get('/holdings', authMiddleware, portfolioController.getHoldings);
+router.get("/holdings", authMiddleware, portfolioController.getHoldings);
 
 /**
  * @swagger
@@ -192,7 +210,7 @@ router.get('/holdings', authMiddleware, portfolioController.getHoldings);
  *       200:
  *         description: 포트폴리오 통계 (총 투자금, 수익률 등)
  */
-router.get('/stats', authMiddleware, portfolioController.getPortfolioStats);
+router.get("/stats", authMiddleware, portfolioController.getPortfolioStats);
 
 /**
  * @swagger
@@ -222,6 +240,18 @@ router.get('/stats', authMiddleware, portfolioController.getPortfolioStats);
  *       200:
  *         description: 업데이트 성공
  */
-router.post('/internal/update-prices', portfolioController.updateHoldingPrices);
+router.post("/internal/update-prices", portfolioController.updateHoldingPrices);
 
+/**
+ * @swagger
+ * /api/portfolio/performance:
+ *   get:
+ *     summary: Portfolio performance chart
+ *     tags: [Portfolio]
+ */
+router.get(
+  "/performance",
+  authMiddleware,
+  portfolioPerformanceController.getPerformance,
+);
 export default router;
