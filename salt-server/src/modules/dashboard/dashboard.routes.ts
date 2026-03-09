@@ -3,7 +3,7 @@ import { DashboardController } from "./dashboard.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
 
 const router = Router();
-const dashbaordController = new DashboardController();
+const dashboardController = new DashboardController();
 
 router.use(authMiddleware);
 
@@ -19,6 +19,6 @@ router.use(authMiddleware);
  *       200:
  *         description: Dashboard data
  */
-router.get("/", dashbaordController.getDashboard);
+router.get("/", dashboardController.getDashboard);
 
 export default router;
