@@ -5,7 +5,7 @@ import {
   Timeframe,
   WSClientSendMessage,
   WSClientReceiveMessage,
-} from "./type/webSokcetClient.type";
+} from "./type/webSocketClient.type";
 import { RECONNECT_TIME_PENDING } from "@/constants/util";
 import { dispatchMessage } from "./webSocketClientHandlers";
 
@@ -126,7 +126,7 @@ class WSClient {
   subscribeCandle(
     symbol: string,
     timeframe: Timeframe,
-    listener: CandleListener
+    listener: CandleListener,
   ) {
     const upper = symbol.toUpperCase();
     let tfMap = this.candleListeners.get(upper);
@@ -147,7 +147,7 @@ class WSClient {
   unsubscribeCandle(
     symbol: string,
     timeframe: Timeframe,
-    listener: CandleListener
+    listener: CandleListener,
   ) {
     if (this.reconnecting) return;
 

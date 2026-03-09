@@ -1,13 +1,13 @@
 import {
   WSClientContext,
   WSClientReceiveMessage,
-} from "../type/webSokcetClient.type";
+} from "../type/webSocketClient.type";
 import { handleCandle } from "./candle";
 import { handlePriceUpdate } from "./priceUpdate";
 
 export function dispatchMessage(
   ctx: WSClientContext,
-  msg: WSClientReceiveMessage
+  msg: WSClientReceiveMessage,
 ): void {
   switch (msg.type) {
     case "price_update":

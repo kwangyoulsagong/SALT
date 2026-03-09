@@ -1,13 +1,13 @@
 import { MarketChartPreviewResponse } from "@/api/investments/investments";
 import { querykeys } from "@/constants/queryKeys";
-import { Timeframe } from "@/libs/webSocketClient/type/webSokcetClient.type";
+import { Timeframe } from "@/libs/webSocketClient/type/webSocketClient.type";
 import { wsClient } from "@/libs/webSocketClient/webSocketClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 export const useMarketPreviewChartRealtime = (
   symbol: string,
-  timeframe: Timeframe
+  timeframe: Timeframe,
 ) => {
   const queryClient = useQueryClient();
   useEffect(() => {
@@ -38,7 +38,7 @@ export const useMarketPreviewChartRealtime = (
             ...prev,
             data: [...prev.data.slice(1), data.candle],
           };
-        }
+        },
       );
     };
     wsClient.subscribeCandle(symbol, timeframe, listener);
