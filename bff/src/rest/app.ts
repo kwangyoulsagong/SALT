@@ -10,6 +10,7 @@ import proxyRoutes from "./routes/proxy.routes";
 import appRoutes from "./routes/app.routes";
 import portfolioRoutes from "./routes/portfolio.routes";
 import feedRoutes from "./routes/feed.routes";
+import alertsRoutes from "./routes/alerts.routes";
 
 const app: Application = express();
 
@@ -42,6 +43,7 @@ app.use("/api", proxyRoutes);
 app.use("/api/app", appRoutes);
 app.use("/api/app/portfolio", portfolioRoutes);
 app.use("/api/app/feed", feedRoutes);
+app.use("/api/app/alerts", alertsRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
