@@ -11,7 +11,7 @@ const router = Router();
 const proxyHandler = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const token = req.token!;
@@ -23,7 +23,7 @@ const proxyHandler = async (
       method,
       url,
       token,
-      data
+      data,
     );
 
     return res.status(response.status).json(response.data);
@@ -58,10 +58,10 @@ router.delete("/investment/watchlist/:id", authMiddleware, proxyHandler);
 router.get("/investment/crypto/:symbol/price", authMiddleware, proxyHandler);
 router.get("/investment/crypto/:symbol/chart", proxyHandler);
 router.get("/investment/market/overview", (req, res) =>
-  marketController.overview(req, res)
+  marketController.overview(req, res),
 );
 router.get("/investment/market/symbols", (req, res) =>
-  marketController.symbols(req, res)
+  marketController.symbols(req, res),
 );
 
 // Market Intelligence
@@ -75,7 +75,7 @@ router.post("/missions/:id/start", authMiddleware, proxyHandler);
 router.post(
   "/missions/progress/:progressId/complete",
   authMiddleware,
-  proxyHandler
+  proxyHandler,
 );
 router.post("/missions/admin", authMiddleware, proxyHandler);
 router.patch("/missions/admin/:id", authMiddleware, proxyHandler);
@@ -90,5 +90,9 @@ router.get("/users/points/stats", authMiddleware, proxyHandler);
 router.get("/users/achievements", authMiddleware, proxyHandler);
 router.get("/users/dashboard", authMiddleware, proxyHandler);
 router.delete("/users/account", authMiddleware, proxyHandler);
+
+// ai-coach
+router.post("/ai-coach/generate", authMiddleware, proxyHandler);
+router.get("/ai-coach", authMiddleware, proxyHandler);
 
 export default router;
