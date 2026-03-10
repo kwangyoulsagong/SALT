@@ -11,4 +11,8 @@ router.get("/", authMiddleware, (req, res) =>
   appPortfolioController.getPortfolio(req, res),
 );
 
+router.get("/performance", authMiddleware, (req, res) =>
+  appPortfolioController.getPerformance(req, res),
+);
+
 export default router;

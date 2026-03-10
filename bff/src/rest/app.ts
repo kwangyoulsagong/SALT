@@ -11,6 +11,8 @@ import appRoutes from "./routes/app.routes";
 import portfolioRoutes from "./routes/portfolio.routes";
 import feedRoutes from "./routes/feed.routes";
 import alertsRoutes from "./routes/alerts.routes";
+import marketRoutes from "./routes/market.routes";
+import playbookRoutes from "./routes/playbook.routes";
 
 const app: Application = express();
 
@@ -44,6 +46,8 @@ app.use("/api/app", appRoutes);
 app.use("/api/app/portfolio", portfolioRoutes);
 app.use("/api/app/feed", feedRoutes);
 app.use("/api/app/alerts", alertsRoutes);
+app.use("/api/app/market", marketRoutes);
+app.use("/api/app/playbooks", playbookRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

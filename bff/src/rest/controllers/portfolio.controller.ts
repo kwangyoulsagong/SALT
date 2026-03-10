@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { appPortfolioService } from "../../services/app-portfolio.service";
+import { backendApi } from "../../services/backend-api.service";
 
 export class AppPortfolioController {
   async getPortfolio(req: Request, res: Response) {
@@ -15,6 +16,18 @@ export class AppPortfolioController {
         message: "Failed to fetch portfolio",
       });
     }
+  }
+
+  async getPerformance(req: Request, res: Response) {
+    const token = req.token!;
+
+    const response = await backendApi.proxyAuthRequest(
+      "GET",
+      "/portfolio/performance",
+      token,
+    );
+
+    res.json(response.data);
   }
 }
 
