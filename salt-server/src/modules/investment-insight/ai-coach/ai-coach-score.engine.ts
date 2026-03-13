@@ -141,6 +141,27 @@ export class AICoachScoreEngine {
       }
     }
 
+    const news = ctx.newsAnalysisMap?.get(feature.symbol);
+    if (news) {
+      if (news.sentiment === "bullish") {
+        const add = Math.min(15, Math.round(news.score / 8));
+        score += add;
+        positive.push({
+          key: "news_bullish",
+          score: add,
+          message: news.summary,
+        });
+      } else if (news.sentiment === "bearish") {
+        const minus = Math.min(15, Math.round(Math.abs(news.score) / 8));
+        score -= minus;
+        negative.push({
+          key: "news_bearish",
+          score: -minus,
+          message: news.summary,
+        });
+      }
+    }
+
     const whaleNet = this.getWhaleNet(feature);
     if (whaleNet > 0) {
       const add = Math.min(15, this.scaleWhaleScore(whaleNet));
@@ -255,6 +276,19 @@ export class AICoachScoreEngine {
         score: add,
         message: `평가수익 ${(profitRate * 100).toFixed(1)}%`,
       });
+    }
+
+    const news = ctx.newsAnalysisMap?.get(feature.symbol);
+    if (news) {
+      if (news.sentiment === "bearish") {
+        const add = Math.min(15, Math.round(Math.abs(news.score) / 8));
+        score += add;
+        positive.push({
+          key: "news_bearish",
+          score: add,
+          message: news.summary,
+        });
+      }
     }
 
     const whaleNet = this.getWhaleNet(feature);

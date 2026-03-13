@@ -6,6 +6,7 @@ import type {
 } from "@prisma/client";
 import type { MarketRegime } from "../market-regime.service";
 import type { PortfolioState } from "../portfolio-state.service";
+import { NewsAnalysisResult } from "../news-analysis.service";
 
 export type CoachAction = "buy" | "sell" | "hold" | "rebalance";
 
@@ -35,6 +36,7 @@ export type AICoachContext = {
   symbolFeatures: Map<string, SymbolFeature>;
   behaviorInsights: InvestmentInsight[];
   candidateSymbols: string[];
+  newsAnalysisMap: Map<string, NewsAnalysisResult>;
 };
 
 export type Candidate = {

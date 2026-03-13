@@ -2,15 +2,19 @@ import prisma from "../../../config/database";
 import { Timeframe } from "@prisma/client";
 import { MarketRegimeService } from "../market-regime.service";
 import { PortfolioStateService } from "../portfolio-state.service";
+import { NewsAnalysisService } from "../news-analysis.service";
+
 import type {
   AICoachContext,
   SymbolFeature,
   WhaleFlow,
 } from "./ai-coach.types";
+import type { NewsAnalysisResult } from "../news-analysis.service";
 
 export class AICoachFeatureExtractor {
   private regimeService = new MarketRegimeService();
   private portfolioStateService = new PortfolioStateService();
+  private newsAnalysisService = new NewsAnalysisService();
 
   async extract(userId: string): Promise<AICoachContext | null> {
     const [marketRegime, portfolioState, holdings, profile, insights] =
@@ -139,6 +143,7 @@ export class AICoachFeatureExtractor {
         ],
       });
     }
+    const newsAnalysisMap = await this.newsAnalysisService.analyzeAll();
 
     return {
       userId,
@@ -150,6 +155,7 @@ export class AICoachFeatureExtractor {
       symbolFeatures,
       behaviorInsights,
       candidateSymbols: symbols,
+      newsAnalysisMap,
     };
   }
 }

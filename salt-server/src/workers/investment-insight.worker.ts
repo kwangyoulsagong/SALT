@@ -7,6 +7,7 @@ import { PortfolioRebalanceService } from "../modules/investment-insight/portfol
 import { BehaviorAnalysisService } from "../modules/investment-insight/behavior-analysis.service";
 import { RiskAlertService } from "../modules/investment-insight/risk-alert.service";
 import { AIInvestmentCoachService } from "../modules/investment-insight/ai-investment-coach.service";
+import { NewsAnalysisService } from "./../modules/investment-insight/news-analysis.service";
 
 export class InvestmentInsightWorker {
   private insightService = new InvestmentInsightService();
@@ -15,6 +16,7 @@ export class InvestmentInsightWorker {
   private behaviorService = new BehaviorAnalysisService();
   private riskService = new RiskAlertService();
   private aiCoachService = new AIInvestmentCoachService();
+  private newsAnalysisService = new NewsAnalysisService();
 
   private running = false;
 
@@ -50,6 +52,9 @@ export class InvestmentInsightWorker {
        */
       console.log("🐋 Generating Whale Signals...");
       await this.whaleService.generateWhaleSignals();
+
+      console.log("📰 Analyzing news sentiment...");
+      await this.newsAnalysisService.analyzeAll();
 
       /**
        * 사용자 목록
