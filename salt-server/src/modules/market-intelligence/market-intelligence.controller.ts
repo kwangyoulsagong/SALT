@@ -88,4 +88,18 @@ export class MarketIntelligenceController {
       next(error);
     }
   };
+
+  getSymbolNews = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const symbol = String(req.params.symbol);
+      const limit = req.query.limit ? Number(req.query.limit) : 3;
+      const result = await this.service.getSymbolNews(
+        symbol.toUpperCase(),
+        limit,
+      );
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

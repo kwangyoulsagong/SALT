@@ -32,6 +32,32 @@ router.get('/:symbol/dashboard', controller.getDashboard);
 
 /**
  * @swagger
+ * /api/market-intelligence/{symbol}/news:
+ *   get:
+ *     summary: 종목별 뉴스 근거 조회
+ *     description: AI 코치 상세 근거에 사용할 최신 종목 뉴스 최대 N개를 조회합니다.
+ *     tags: [Market Intelligence]
+ *     parameters:
+ *       - in: path
+ *         name: symbol
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: BTC
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 3
+ *           maximum: 20
+ *     responses:
+ *       200:
+ *         description: 종목 뉴스 목록
+ */
+router.get('/:symbol/news', controller.getSymbolNews);
+
+/**
+ * @swagger
  * /api/market-intelligence/{symbol}/sentiment:
  *   get:
  *     summary: 시장 심리 온도계

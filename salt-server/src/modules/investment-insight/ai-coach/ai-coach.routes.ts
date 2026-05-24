@@ -2,20 +2,179 @@ import { Router } from "express";
 import { AIInvestmentCoachController } from "./ai-coach.controller";
 import { authMiddleware } from "../../../middleware/auth.middleware";
 
-const router = Router();
+const router: Router = Router();
 const aiInvestmentCoachController = new AIInvestmentCoachController();
 
 router.use(authMiddleware);
 
 /**
  * @swagger
- * /ai-coach/generate:
+ * /api/ai-coach/profile:
+ *   get:
+ *     summary: AI 투자 코치 프로필 조회
+ *     description: 인증 사용자의 투자 성향, 리스크 한도, 지원 모드를 조회합니다.
+ *     tags: [AI Coach]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 프로필 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     riskTolerance:
+ *                       type: string
+ *                       example: medium
+ *                     maxSingleAssetWeight:
+ *                       type: number
+ *                       example: 0.6
+ *                     rebalanceBand:
+ *                       type: number
+ *                       example: 0.1
+ *                     panicSellWindowHours:
+ *                       type: integer
+ *                       example: 24
+ *                     defaultMode:
+ *                       type: string
+ *                       enum: [scalp, long_term]
+ *                       example: scalp
+ *                     notificationLevel:
+ *                       type: string
+ *                       example: medium
+ *                     supportedModes:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: [scalp, long_term]
+ *       401:
+ *         description: 인증 실패
+ */
+router.get("/profile", aiInvestmentCoachController.getProfile);
+
+/**
+ * @swagger
+ * /api/ai-coach/profile:
+ *   patch:
+ *     summary: AI 투자 코치 프로필 저장
+ *     description: 투자 성향, 단일 자산 비중 한도, 리밸런싱 밴드, 패닉셀 분석 창을 저장합니다.
+ *     tags: [AI Coach]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               riskTolerance:
+ *                 type: string
+ *                 enum: [low, medium, high]
+ *               maxSingleAssetWeight:
+ *                 type: number
+ *                 minimum: 0.05
+ *                 maximum: 1
+ *               rebalanceBand:
+ *                 type: number
+ *                 minimum: 0.01
+ *                 maximum: 0.5
+ *               panicSellWindowHours:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 168
+ *               defaultMode:
+ *                 type: string
+ *                 enum: [scalp, long_term]
+ *               notificationLevel:
+ *                 type: string
+ *                 enum: [low, medium, high]
+ *     responses:
+ *       200:
+ *         description: 프로필 저장 성공
+ *       400:
+ *         description: 요청 검증 실패
+ *       401:
+ *         description: 인증 실패
+ */
+router.patch("/profile", aiInvestmentCoachController.updateProfile);
+
+/**
+ * @swagger
+ * /api/ai-coach/feedback:
+ *   post:
+ *     summary: AI 코치 피드백 기록
+ *     description: 사용자가 코치 판단을 저장, 무시, 실행 참고했는지 기록합니다. 주문 실행은 수행하지 않습니다.
+ *     tags: [AI Coach]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [symbol, mode, action]
+ *             properties:
+ *               insightId:
+ *                 type: string
+ *               symbol:
+ *                 type: string
+ *                 example: BTC
+ *               mode:
+ *                 type: string
+ *                 enum: [scalp, long_term]
+ *               action:
+ *                 type: string
+ *                 enum: [followed, ignored, saved, dismissed]
+ *               outcome:
+ *                 type: string
+ *                 enum: [unknown, profit, loss, breakeven]
+ *               note:
+ *                 type: string
+ *                 maxLength: 500
+ *     responses:
+ *       201:
+ *         description: 피드백 기록 성공
+ *       400:
+ *         description: 요청 검증 실패
+ *       401:
+ *         description: 인증 실패
+ */
+router.post("/feedback", aiInvestmentCoachController.feedback);
+
+/**
+ * @swagger
+ * /api/ai-coach/generate:
  *   post:
  *     summary: AI 투자 코치 분석 생성
  *     description: 사용자 포트폴리오, 시장 상태, 기술 지표 등을 기반으로 AI 투자 코치 분석을 생성합니다.
  *     tags: [AI Coach]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               symbol:
+ *                 type: string
+ *                 example: BTC
+ *               mode:
+ *                 type: string
+ *                 enum: [scalp, long_term]
  *     responses:
  *       200:
  *         description: AI 투자 코치 생성 성공
@@ -87,13 +246,29 @@ router.post("/generate", aiInvestmentCoachController.generate);
 
 /**
  * @swagger
- * /ai-coach:
+ * /api/ai-coach:
  *   get:
- *     summary: 최신 AI 투자 코치 조회
- *     description: 사용자의 최신 AI 투자 코치 분석 결과를 조회합니다.
+ *     summary: AI 투자 코치 조회
+ *     description: 쿼리가 없으면 최신 AI 코치를 조회하고, symbol/mode/preview 쿼리가 있으면 선택 종목의 단타/장기 판단을 조회합니다.
  *     tags: [AI Coach]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: symbol
+ *         schema:
+ *           type: string
+ *         example: BTC
+ *       - in: query
+ *         name: mode
+ *         schema:
+ *           type: string
+ *           enum: [scalp, long_term]
+ *       - in: query
+ *         name: preview
+ *         schema:
+ *           type: boolean
+ *         description: true이면 프리뷰 용도 응답
  *     responses:
  *       200:
  *         description: AI 투자 코치 조회 성공

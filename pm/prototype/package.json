@@ -1,0 +1,23 @@
+{
+  "name": "prototype",
+  "version": "1.0.0",
+  "description": "PM이 증권/투자 기능을 설명하고 검증하기 위한 React 프로토타입이다.",
+  "type": "module",
+  "main": "src/main.jsx",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "lightweight-charts": "^5.2.0",
+    "lucide-react": "^1.16.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "vite": "^8.0.14"
+  }
+}

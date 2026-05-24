@@ -3,6 +3,35 @@ import prisma from '../../config/database';
 import { logger } from '../../config/logger';
 
 export class MarketIntelligenceService {
+  async getSymbolNews(symbol: string, limit = 3) {
+    const upperSymbol = symbol.toUpperCase();
+    const articles = await prisma.newsArticle.findMany({
+      where: {
+        symbols: {
+          has: upperSymbol,
+        },
+      },
+      orderBy: { publishedAt: "desc" },
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        summary: true,
+        url: true,
+        source: true,
+        sentiment: true,
+        publishedAt: true,
+      },
+    });
+
+    return {
+      symbol: upperSymbol,
+      articles,
+      status: articles.length ? "active" : "empty",
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
   /**
    * 시장 심리 온도계 계산
    */

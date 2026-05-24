@@ -9,7 +9,6 @@ import { NotFoundError } from "./utils/error.util";
 import { MarketSyncWorker } from "./workers/market-sync.worker";
 import { marketPriceUpdater } from "./workers/market-price-updater.worker";
 import { InvestmentInsightWorker } from "./workers/investment-insight.worker";
-import { PlaybookEngineWorker } from "./workers/playbook-engine.worker";
 import { PriceHistoryWorker } from "./workers/price-history.worker";
 import { NotificationCleanupWorker } from "./workers/notification-cleanup.worker";
 import { TechnicalIndicatorWorker } from "./workers/technical-indicator.worker";
@@ -25,11 +24,13 @@ import newsRoutes from "./modules/news/news.routes";
 import marketIntelligenceRoutes from "./modules/market-intelligence/market-intelligence.routes";
 import investmentInsightRoutes from "./modules/investment-insight/investment-insight.routes";
 import investmentNotificationRoutes from "./modules/investment-notification/investment-notification.routes";
-import playbookRoutes from "./modules/playbook/playbook.routes";
-import playbookTriggerRoutes from "./modules/playbook/playbook-trigger.routes";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes";
 import investmentFeedRoutes from "./modules/feed/feed.routes";
 import aiInvestmentCoachRoutes from "./modules/investment-insight/ai-coach/ai-coach.routes";
+import tradePreflightRoutes from "./modules/trade-preflight/trade-preflight.routes";
+import behaviorCoachRoutes from "./modules/behavior-coach/behavior-coach.routes";
+import profitPlanRoutes from "./modules/profit-plan/profit-plan.routes";
+import signalPerformanceRoutes from "./modules/signal-performance/signal-performance.routes";
 
 const app: Application = express();
 const marketWorker = new MarketSyncWorker();
@@ -48,9 +49,6 @@ technicalIndicatorWorker.start();
 
 const insightsWorker = new InvestmentInsightWorker();
 insightsWorker.start();
-
-const playbookEngineWorker = new PlaybookEngineWorker();
-playbookEngineWorker.start();
 
 const notificationCleanupWorker = new NotificationCleanupWorker();
 notificationCleanupWorker.start();
@@ -89,11 +87,13 @@ app.use("/api/news", newsRoutes);
 app.use("/api/market-intelligence", marketIntelligenceRoutes);
 app.use("/api/investment-insight", investmentInsightRoutes);
 app.use("/api/investment-notifications", investmentNotificationRoutes);
-app.use("/api/playbooks", playbookRoutes);
-app.use("/api/playbookTriggerRoutes", playbookTriggerRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/feed", investmentFeedRoutes);
 app.use("/api/ai-coach", aiInvestmentCoachRoutes);
+app.use("/api/trade-preflight", tradePreflightRoutes);
+app.use("/api/behavior-coach", behaviorCoachRoutes);
+app.use("/api/profit-plan", profitPlanRoutes);
+app.use("/api/signal-performance", signalPerformanceRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response, next: NextFunction) => {
