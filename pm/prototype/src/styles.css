@@ -1028,6 +1028,113 @@ a { color: inherit; text-decoration: none; }
 .btnIcon:hover { background: #e7e9ec; }
 
 /* ============================================================
+   Gemini explain card
+============================================================ */
+.geminiExplain {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.geminiExplain .explainTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 8px;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.geminiExplain .explainBody {
+  font-size: 14px;
+  color: var(--sub);
+  line-height: 1.6;
+  padding: 14px 16px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(135deg, #f3f8ff 0%, #e8f1ff 100%);
+  border: 1px solid var(--brand-soft);
+}
+
+.geminiExplain .returnRange {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--r-lg);
+  background: var(--bg-soft);
+  border: 1px solid var(--line-soft);
+}
+
+.geminiExplain .rangeCell {
+  text-align: center;
+}
+
+.geminiExplain .rangeCell.mid {
+  border-left: 1px solid var(--line-soft);
+  border-right: 1px solid var(--line-soft);
+}
+
+.geminiExplain .rangeCell span {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.geminiExplain .rangeCell strong {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.geminiExplain .rangeCell strong.up { color: var(--up); }
+.geminiExplain .rangeCell strong.down { color: var(--down); }
+
+.geminiExplain .returnRange .rationale {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 12px;
+  color: var(--sub);
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line-soft);
+}
+
+.geminiExplain .explainList {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.geminiExplain .explainList li {
+  font-size: 13px;
+  color: var(--sub);
+  line-height: 1.55;
+}
+
+.geminiExplain .explainList.warn li {
+  color: #946400;
+}
+
+.geminiExplain .explainList.numbered {
+  list-style: decimal;
+}
+
+.geminiExplain .explainDisclaimer {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: var(--bg-frame);
+  margin: 8px 0 0;
+}
+
+/* ============================================================
    Smart buy zone overlays
 ============================================================ */
 .zoneLegend {

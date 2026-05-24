@@ -3,6 +3,11 @@ import { z } from "zod";
 
 dotenv.config();
 
+// Accept either GEMINI_API_KEY or GEMINI_FLASH for the Gemini key
+if (!process.env.GEMINI_API_KEY && process.env.GEMINI_FLASH) {
+  process.env.GEMINI_API_KEY = process.env.GEMINI_FLASH;
+}
+
 const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
@@ -14,6 +19,8 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string(),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
   LOG_LEVEL: z.string().default("info"),
+  GEMINI_API_KEY: z.string().min(10),
+  GEMINI_MODEL: z.string().default("gemini-2.5-flash-lite"),
 });
 
 const parsedEnv = envSchema.parse(process.env);

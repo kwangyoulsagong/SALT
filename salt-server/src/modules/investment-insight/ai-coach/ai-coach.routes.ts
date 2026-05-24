@@ -5,6 +5,52 @@ import { authMiddleware } from "../../../middleware/auth.middleware";
 const router: Router = Router();
 const aiInvestmentCoachController = new AIInvestmentCoachController();
 
+/**
+ * @swagger
+ * /api/ai-coach/explain:
+ *   post:
+ *     summary: AI 코치 해설 (Gemini)
+ *     description: 종목·모드·근거·뉴스를 받아 한국어 해설(왜 단타/장기, 예상 수익폭, 뉴스 5줄 요약)을 생성합니다. 5분 캐시.
+ *     tags: [AI Coach]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [symbol, koreanName, mode, currentPrice, change24h, tradeValue24h, confidence, evidence]
+ *             properties:
+ *               symbol: { type: string, example: BTC }
+ *               koreanName: { type: string, example: 비트코인 }
+ *               mode: { type: string, enum: [scalp, long_term] }
+ *               currentPrice: { type: number, example: 129913000 }
+ *               change24h: { type: number, example: -1.55 }
+ *               tradeValue24h: { type: number, example: 350100000000 }
+ *               confidence: { type: number, example: 82 }
+ *               evidence:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     label: { type: string }
+ *                     value: { type: string }
+ *               news:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     title: { type: string }
+ *                     summary: { type: string }
+ *                     source: { type: string }
+ *                     sentiment: { type: string }
+ *     responses:
+ *       200: { description: 해설 생성 성공 }
+ *       400: { description: 요청 검증 실패 }
+ *       500: { description: LLM 호출 실패 }
+ */
+// NOTE: public for prototype demo. TODO before prod: add rate-limit + auth.
+router.post("/explain", aiInvestmentCoachController.explain);
+
 router.use(authMiddleware);
 
 /**

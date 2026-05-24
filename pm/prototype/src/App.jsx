@@ -698,6 +698,154 @@ function AICoachPanel({ coach, intel, buyZones, news, mode, setMode, onDeepDive 
   );
 }
 
+function useGeminiExplain({ selected, coach, mode, news }) {
+  const [state, setState] = useState({ loading: false, error: null, data: null });
+  const lastKeyRef = useRef(null);
+
+  const trigger = useMemo(() => {
+    return async () => {
+      const key = `${selected.symbol}:${mode}:${selected.currentPrice}:${selected.change24h.toFixed(2)}`;
+      if (lastKeyRef.current === key && state.data) return;
+      lastKeyRef.current = key;
+      setState({ loading: true, error: null, data: null });
+      try {
+        const response = await fetch("/api/ai-coach/explain", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            symbol: selected.symbol,
+            koreanName: selected.koreanName,
+            mode: mode === "scalp" ? "scalp" : "long_term",
+            currentPrice: selected.currentPrice,
+            change24h: selected.change24h,
+            tradeValue24h: selected.tradeValue24h,
+            confidence: coach.confidence,
+            evidence: coach.evidence.map((item) => ({ label: item.label, value: String(item.value) })),
+            news: news.slice(0, 5).map((item) => ({
+              title: item.title,
+              summary: item.summary,
+              source: item.source,
+              sentiment: item.sentiment,
+            })),
+          }),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const json = await response.json();
+        if (!json.success) throw new Error(json.message ?? "응답 실패");
+        setState({ loading: false, error: null, data: json.data });
+      } catch (error) {
+        setState({ loading: false, error: error.message ?? "호출 실패", data: null });
+      }
+    };
+  }, [selected.symbol, selected.currentPrice, selected.change24h, mode, coach.confidence, news]);
+
+  return { ...state, trigger };
+}
+
+function GeminiExplainCard({ selected, coach, mode, news }) {
+  const explain = useGeminiExplain({ selected, coach, mode, news });
+  const data = explain.data;
+  const range = data?.expectedReturn;
+
+  return (
+    <div className="card lg">
+      <div className="cardHead">
+        <div>
+          <h2>🤖 Gemini 해설</h2>
+          <p>왜 {modeLabel(mode)}인지 · 예상 수익폭 · 뉴스 5줄 요약 (LLM 생성)</p>
+        </div>
+        <button className="btn primary" onClick={explain.trigger} disabled={explain.loading}>
+          {explain.loading ? "생성 중…" : data ? "다시 생성" : "해설 생성"}
+        </button>
+      </div>
+
+      {!data && !explain.loading && !explain.error && (
+        <div className="empty">
+          버튼을 눌러 Gemini가 이 종목·모드를 왜 그렇게 판단했는지 한국어 해설을 받아보세요.
+        </div>
+      )}
+
+      {explain.loading && <div className="empty">Gemini가 해설을 만들고 있어요…</div>}
+
+      {explain.error && (
+        <div className="checkItem">
+          <span className="iconWrap"><AlertTriangle size={16} /></span>
+          <div>
+            <b>해설 생성 실패</b>
+            <span>{explain.error} · salt-server(:4000) 와 GEMINI_API_KEY 설정을 확인해주세요.</span>
+          </div>
+        </div>
+      )}
+
+      {data && (
+        <div className="geminiExplain">
+          {data.cached && (
+            <span className="tag brand" style={{ marginBottom: 10, display: "inline-block" }}>5분 캐시 응답</span>
+          )}
+
+          <h3 className="explainTitle">왜 {modeLabel(mode)} 모드인지</h3>
+          <p className="explainBody">{data.modeReasoning}</p>
+
+          {range && (
+            <div className="returnRange">
+              <div className="rangeCell">
+                <span>예상 수익 하단</span>
+                <strong className={range.lowPercent < 0 ? "down" : "up"}>
+                  {range.lowPercent > 0 ? "+" : ""}{range.lowPercent}%
+                </strong>
+              </div>
+              <div className="rangeCell mid">
+                <span>기대 시간</span>
+                <strong>{range.timeframe}</strong>
+              </div>
+              <div className="rangeCell">
+                <span>예상 수익 상단</span>
+                <strong className="up">+{range.highPercent}%</strong>
+              </div>
+              <p className="rationale">{range.rationale}</p>
+            </div>
+          )}
+
+          {data.keyDrivers?.length > 0 && (
+            <>
+              <h3 className="explainTitle">핵심 근거</h3>
+              <ul className="explainList">
+                {data.keyDrivers.map((line, index) => (
+                  <li key={`driver-${index}`}>{line}</li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {data.risks?.length > 0 && (
+            <>
+              <h3 className="explainTitle">주의해야 할 점</h3>
+              <ul className="explainList warn">
+                {data.risks.map((line, index) => (
+                  <li key={`risk-${index}`}>{line}</li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {data.newsSummary?.length > 0 && (
+            <>
+              <h3 className="explainTitle">관련 뉴스 5줄 요약</h3>
+              <ol className="explainList numbered">
+                {data.newsSummary.map((line, index) => (
+                  <li key={`news-${index}`}>{line}</li>
+                ))}
+              </ol>
+            </>
+          )}
+
+          <p className="explainDisclaimer">{data.disclaimer}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ZoneLegend() {
   const items = [
     { color: "var(--brand)", label: "매수 적정가" },
@@ -1039,6 +1187,10 @@ function DetailView({
               </div>
             </div>
           </div>
+
+          {/* Gemini explain */}
+          <GeminiExplainCard selected={selected} coach={coach} mode={mode} news={news.filter((item) => item.symbol === selected.symbol)} />
+
 
           {/* Profit plan */}
           <div className="card lg">

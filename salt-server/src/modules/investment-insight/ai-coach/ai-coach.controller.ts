@@ -1,15 +1,18 @@
 import { NextFunction, Request, Response } from "express";
 import { AIInvestmentCoachService } from "../ai-investment-coach.service";
+import { AICoachGeminiExplainerService } from "./ai-coach-gemini-explainer.service";
 import { ResponseUtil } from "../../../utils/response.util";
 import {
   generateCoachSchema,
   getCoachQuerySchema,
   updateCoachProfileSchema,
   coachFeedbackSchema,
+  explainCoachSchema,
 } from "./ai-coach.dto";
 
 export class AIInvestmentCoachController {
   private aiInvestmentCoachService = new AIInvestmentCoachService();
+  private geminiExplainerService = new AICoachGeminiExplainerService();
 
   generate = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -78,6 +81,17 @@ export class AIInvestmentCoachController {
       );
       return ResponseUtil.created(res, result);
     } catch (error) {
+      next(error);
+    }
+  };
+
+  explain = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = explainCoachSchema.parse(req.body ?? {});
+      const result = await this.geminiExplainerService.explain(data);
+      return ResponseUtil.success(res, result, "AI Coach Explanation Success");
+    } catch (error) {
+      console.error("AI Coach Explain Error:", error);
       next(error);
     }
   };
