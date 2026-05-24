@@ -109,19 +109,20 @@ class PriceUpdaterWorker {
 
 const worker = new PriceUpdaterWorker();
 
-// 시작
-worker.start();
+if (require.main === module) {
+  worker.start();
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  logger.info("SIGTERM: Stopping worker");
-  worker.stop();
-  process.exit(0);
-});
+  process.on("SIGTERM", () => {
+    logger.info("SIGTERM: Stopping worker");
+    worker.stop();
+    process.exit(0);
+  });
 
-process.on("SIGINT", () => {
-  logger.info("SIGINT: Stopping worker");
-  worker.stop();
-  process.exit(0);
-});
+  process.on("SIGINT", () => {
+    logger.info("SIGINT: Stopping worker");
+    worker.stop();
+    process.exit(0);
+  });
+}
+
 export { worker };

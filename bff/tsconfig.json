@@ -14,9 +14,6 @@
     "declaration": true,
     "sourceMap": true
   },
-  "include": [
-    "src/**/*",
-    "../salt-server/src/workers/market-price-updater.worker.ts"
-  ],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
