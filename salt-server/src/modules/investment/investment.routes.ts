@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { InvestmentController } from "./investment.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
-import drawingRoutes from "./drawing.routes";
 
 const router = Router();
 const investmentController = new InvestmentController();
@@ -261,12 +260,5 @@ router.get(
   "/internal/market/symbols",
   investmentController.getAllMarketSymbols
 );
-
-// ==================== 🎨 CHART DRAWING ROUTES ====================
-/**
- * 차트 드로잉 관련 라우트
- * /api/investment/drawings/*
- */
-router.use("/drawings", drawingRoutes);
 
 export default router;

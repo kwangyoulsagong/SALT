@@ -12,7 +12,11 @@ import portfolioRoutes from "./routes/portfolio.routes";
 import feedRoutes from "./routes/feed.routes";
 import alertsRoutes from "./routes/alerts.routes";
 import marketRoutes from "./routes/market.routes";
-import playbookRoutes from "./routes/playbook.routes";
+import aiCoachRoutes from "./routes/ai-coach.routes";
+import tradePreflightRoutes from "./routes/trade-preflight.routes";
+import behaviorCoachRoutes from "./routes/behavior-coach.routes";
+import profitPlanRoutes from "./routes/profit-plan.routes";
+import signalPerformanceRoutes from "./routes/signal-performance.routes";
 
 const app: Application = express();
 
@@ -47,7 +51,11 @@ app.use("/api/app/portfolio", portfolioRoutes);
 app.use("/api/app/feed", feedRoutes);
 app.use("/api/app/alerts", alertsRoutes);
 app.use("/api/app/market", marketRoutes);
-app.use("/api/app/playbooks", playbookRoutes);
+app.use("/api/app/ai-coach", aiCoachRoutes);
+app.use("/api/app/trade-preflight", tradePreflightRoutes);
+app.use("/api/app/behavior-coach", behaviorCoachRoutes);
+app.use("/api/app/profit-plan", profitPlanRoutes);
+app.use("/api/app/signal-performance", signalPerformanceRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

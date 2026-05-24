@@ -58,19 +58,7 @@ export class DashboardService {
     });
 
     /**
-     * 4. 최근 전략 트리거
-     */
-    const triggers = await prisma.playbookTrigger.findMany({
-      where: {
-        userId,
-        status: "open",
-      },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    });
-
-    /**
-     * 5. 최고 / 최악 자산
+     * 4. 최고 / 최악 자산
      */
     const sortedByProfit = [...holdings].sort(
       (a, b) => (b.unrealizedProfitRate ?? 0) - (a.unrealizedProfitRate ?? 0),
@@ -96,8 +84,6 @@ export class DashboardService {
       },
 
       insights,
-
-      triggers,
     };
   }
 }

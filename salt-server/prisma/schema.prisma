@@ -34,18 +34,15 @@ model User {
   missionProgress      UserMissionProgress[]
   achievements         UserAchievement[]
   pointTransactions    PointTransaction[]
-  chartDrawings        ChartDrawing[]
   portfolioTransactions PortfolioTransaction[]
   portfolioHoldings     PortfolioHolding[]
   newsBookmarks         NewsBookmark[]
   sentimentAlerts      SentimentAlert[]
   smartMoneyAlerts     SmartMoneyAlert[]
   investmentProfile UserInvestmentProfile?
-  playbooks         InvestmentPlaybook[]
   insights          InvestmentInsight[]
   executionLogs     ExecutionLog[]
   investmentNotifications InvestmentNotification[]
-  playbookTriggers PlaybookTrigger[]
 
   @@index([email])
   @@map("users")
@@ -275,29 +272,6 @@ enum TransactionType {
   spend
 }
 
-// ==================== Chart Drawing ====================
-model ChartDrawing {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  symbol      String
-  name        String
-  description String?
-  chartPeriod String   @map("chart_period") // 'minute', 'hour', 'day', 'week', 'month'
-  drawingData Json     @map("drawing_data") // 드로잉 데이터 (JSON)
-  thumbnail   String?  // 썸네일 이미지 URL (선택)
-  isPublic    Boolean  @default(false) @map("is_public") // 공개 여부
-  viewCount   Int      @default(0) @map("view_count") // 조회수
-  likeCount   Int      @default(0) @map("like_count") // 좋아요 수
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, symbol])
-  @@index([userId, createdAt])
-  @@index([isPublic, likeCount])
-  @@map("chart_drawings")
-}
 // ==================== Portfolio Tracking ====================
 model PortfolioTransaction {
   id              String   @id @default(uuid())
@@ -592,108 +566,10 @@ model InvestmentInsight {
   @@map("investment_insights")
 }
 
-// 사용자 투자 전략
-model InvestmentPlaybook {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-
-  name      String
-  assetType AssetType
-  isActive  Boolean  @default(true) @map("is_active")
-
-  targetAllocation Json? @map("target_allocation")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  rules InvestmentRule[]
-
-  triggers PlaybookTrigger[]
-
-  @@index([userId])
-  @@map("investment_playbooks")
-}
-
-enum RuleType {
-  buy_zone_entry
-  risk_limit
-  rebalance
-  stop_loss
-  take_profit
-  sentiment_filter
-  whale_filter
-
-  rsi_oversold
-  rsi_overbought
-  ma_cross
-  volume_spike
-}
-
-// 플레이북 규칙
-model InvestmentRule {
-  id          String   @id @default(uuid())
-  playbookId  String   @map("playbook_id")
-
-  type        RuleType
-  symbol      String?
-  params      Json
-
-  isEnabled   Boolean  @default(true) @map("is_enabled")
-  priority    Int      @default(0)
-
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  playbook InvestmentPlaybook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
-
-  triggers PlaybookTrigger[]
-
-  @@index([playbookId])
-  @@map("investment_rules")
-}
-
-enum TriggerStatus {
-  open
-  resolved
-  dismissed
-}
-
-// 규칙 발생 기록
-model PlaybookTrigger {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  playbookId  String   @map("playbook_id")
-  ruleId      String   @map("rule_id")
-
-  symbol      String?
-  title       String
-  message     String
-  severity    Int      @default(0)
-
-  payload     Json?
-
-  status      TriggerStatus @default(open)
-
-  createdAt   DateTime @default(now()) @map("created_at")
-  resolvedAt  DateTime? @map("resolved_at")
-
-  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  playbook InvestmentPlaybook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
-  rule     InvestmentRule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-
-  executionLogs ExecutionLog[]
-
-  @@index([userId, status])
-  @@index([playbookId])
-  @@map("playbook_triggers")
-}
-
 // 투자 실행 기록
 model ExecutionLog {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
-  triggerId String?  @map("trigger_id")
 
   symbol    String?
 
@@ -706,7 +582,6 @@ model ExecutionLog {
   executedAt DateTime @default(now()) @map("executed_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trigger PlaybookTrigger? @relation(fields: [triggerId], references: [id])
 
   @@index([userId, executedAt])
   @@map("execution_logs")

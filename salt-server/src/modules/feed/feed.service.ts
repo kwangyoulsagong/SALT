@@ -16,7 +16,7 @@ export class InvestmentFeedService {
   async getFeed(userId: string, page = 1, size = 20) {
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    const [insights, triggers, notifications] = await Promise.all([
+    const [insights, notifications] = await Promise.all([
       prisma.investmentInsight.findMany({
         where: {
           AND: [
@@ -26,15 +26,6 @@ export class InvestmentFeedService {
         },
         orderBy: { createdAt: "desc" },
         take: 100,
-      }),
-
-      prisma.playbookTrigger.findMany({
-        where: {
-          userId,
-          status: "open",
-        },
-        orderBy: { createdAt: "desc" },
-        take: 50,
       }),
 
       prisma.investmentNotification.findMany({
@@ -55,18 +46,6 @@ export class InvestmentFeedService {
         severity: i.severity,
         createdAt: i.createdAt,
         payload: i.payload,
-      });
-    }
-
-    for (const t of triggers) {
-      feed.push({
-        id: t.id,
-        type: "playbook_trigger",
-        title: t.title,
-        summary: t.message,
-        severity: t.severity,
-        createdAt: t.createdAt,
-        payload: t.payload,
       });
     }
 
