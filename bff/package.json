@@ -1,0 +1,36 @@
+{
+  "name": "salt-bff",
+  "version": "1.0.0",
+  "description": "SALT Backend For Frontend",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev:rest": "tsx watch src/rest/server.ts",
+    "dev:ws": "tsx watch src/websocket/server.ts",
+    "dev:worker": "tsx watch src/workers/price-updater.worker.ts",
+    "dev": "concurrently \"npm run dev:rest\" \"npm run dev:ws\" \"npm run dev:worker\"",
+    "build": "tsc",
+    "start:rest": "node dist/rest/server.js",
+    "start:ws": "node dist/websocket/server.js",
+    "start:worker": "node dist/workers/price-updater.worker.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "tsx": "^4.20.6"
+  },
+  "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/helmet": "^0.0.48",
+    "@types/ws": "^8.18.1",
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "winston": "^3.18.3",
+    "ws": "^8.18.3"
+  }
+}

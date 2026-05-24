@@ -4,7 +4,5 @@ export const Container = style({
   height: "100%",
   borderRadius: "20px",
   display: "flex",
-  alignItems: "center",
   flexDirection: "column",
-  justifyContent: "space-between",
 });

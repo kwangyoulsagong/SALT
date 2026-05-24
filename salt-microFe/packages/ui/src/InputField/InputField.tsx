@@ -1,13 +1,6 @@
 import { inputVariants } from "./styles/input.css.ts";
 import { UseFormRegister } from "react-hook-form";
-type placeholder =
-  | "id"
-  | "password"
-  | "title"
-  | "amount"
-  | "name"
-  | "birth"
-  | "birthSecrete";
+type placeholder = "id" | "password" | "title" | "amount" | "name";
 interface InputProps {
   register: UseFormRegister<any>;
   name: string;
@@ -28,8 +21,6 @@ export const InputField = ({
     title: "제목을 입력해주세요",
     amount: "금액을 입력해주세요",
     name: "예: 김솔트",
-    birth: "예: 990117",
-    birthSecrete: "",
   };
   return (
     <input

@@ -1,0 +1,1 @@
+export const RECONNECT_TIME_PENDING = 3000;

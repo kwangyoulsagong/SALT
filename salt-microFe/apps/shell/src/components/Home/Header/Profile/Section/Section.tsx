@@ -1,6 +1,6 @@
 import { Name, Wrapper } from "./Section.css";
-import { H3 } from "@repo/ui/h3";
-import { P } from "@repo/ui/p";
+import { Heading } from "@repo/ui/heading";
+import { Text } from "@repo/ui/text";
 interface ProfileSectionProps {
   nickname: string | undefined;
   email: string | undefined;
@@ -8,8 +8,10 @@ interface ProfileSectionProps {
 const Section = ({ nickname, email }: ProfileSectionProps) => {
   return (
     <article className={Wrapper}>
-      <H3>{nickname}</H3>
-      <P variant="email">{email}</P>
+      <Heading level={3}>{nickname}</Heading>
+      <Text variant="bodyLarge" color="muted">
+        {email}
+      </Text>
     </article>
   );
 };

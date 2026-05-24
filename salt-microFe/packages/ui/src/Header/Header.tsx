@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { HeaderButton, NavWrapper, Wrapper } from "./Header.css.ts";
-import { H3 } from "../Typo/H3/H3.tsx";
+import { Heading } from "../Typo/Heading/Heading.tsx";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/router";
 interface HeaderProps {
@@ -14,7 +14,7 @@ export const Header = ({ route = false, children }: HeaderProps) => {
       <button className={HeaderButton} onClick={() => router.back()}>
         <ChevronLeft />
       </button>
-      <H3>{children}</H3>
+      <Heading level={3}>{children}</Heading>
     </header>
   ) : (
     <header className={Wrapper}>{children}</header>

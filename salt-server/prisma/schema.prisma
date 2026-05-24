@@ -1,0 +1,748 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== User ====================
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  nickname        String
+  passwordHash    String    @map("password_hash")
+  profileImageUrl String?   @map("profile_image_url")
+  totalPoints     Int       @default(0) @map("total_points")
+  userLevel       Int       @default(1) @map("user_level")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  lastLoginAt     DateTime? @map("last_login_at")
+
+  goals                Goal[]
+  savingTransactions   SavingTransaction[]
+  watchlist            InvestmentWatchlist[]
+  analysisSessions     AIAnalysisSession[]
+  aiAnalyses           AIAnalysis[]     
+  missionProgress      UserMissionProgress[]
+  achievements         UserAchievement[]
+  pointTransactions    PointTransaction[]
+  chartDrawings        ChartDrawing[]
+  portfolioTransactions PortfolioTransaction[]
+  portfolioHoldings     PortfolioHolding[]
+  newsBookmarks         NewsBookmark[]
+  sentimentAlerts      SentimentAlert[]
+  smartMoneyAlerts     SmartMoneyAlert[]
+  investmentProfile UserInvestmentProfile?
+  playbooks         InvestmentPlaybook[]
+  insights          InvestmentInsight[]
+  executionLogs     ExecutionLog[]
+  investmentNotifications InvestmentNotification[]
+  playbookTriggers PlaybookTrigger[]
+
+  @@index([email])
+  @@map("users")
+}
+
+// ==================== Goal ====================
+model Goal {
+  id            String       @id @default(uuid())
+  userId        String       @map("user_id")
+  title         String
+  category      GoalCategory
+  targetAmount  Decimal
+  currentAmount Decimal      @default(0) @map("current_amount")
+  startDate     DateTime     @map("start_date")
+  targetDate    DateTime     @map("target_date")
+  status        GoalStatus   @default(active)
+  themeColor    String       @default("#4A90E2") @map("theme_color")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  completedAt   DateTime?    @map("completed_at")
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions SavingTransaction[]
+
+  @@index([userId, status])
+  @@map("goals")
+}
+
+enum GoalCategory {
+  travel
+  first_car
+  startup
+  wedding
+  creative
+  other
+}
+
+enum GoalStatus {
+  active
+  completed
+  paused
+}
+
+// ==================== Saving Transaction ====================
+model SavingTransaction {
+  id              String   @id @default(uuid())
+  goalId          String   @map("goal_id")
+  userId          String   @map("user_id")
+  amount          Decimal
+  note            String?
+  transactionDate DateTime @map("transaction_date")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([goalId, transactionDate])
+  @@index([userId, transactionDate])
+  @@map("saving_transactions")
+}
+
+// ==================== Investment Watchlist ====================
+model InvestmentWatchlist {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  assetType       AssetType @map("asset_type")
+  symbol          String
+  name            String
+  currentPrice    Decimal?  @map("current_price")
+  priceChange24h  Decimal?  @map("price_change_24h")
+  lastUpdated     DateTime? @map("last_updated")
+  addedAt         DateTime  @default(now()) @map("added_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, assetType, symbol])
+  @@index([userId, assetType])
+  @@map("investment_watchlist")
+}
+
+enum AssetType {
+  crypto
+  stock
+}
+
+// ==================== AI Analysis Session ====================
+model AIAnalysisSession {
+  id           String         @id @default(uuid())
+  userId       String         @map("user_id")
+  assetType    AssetType      @map("asset_type")
+  symbol       String
+  status       AnalysisStatus @default(pending)
+  progress     Int            @default(0)
+  errorMessage String?        @map("error_message")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  startedAt    DateTime?      @map("started_at")
+  completedAt  DateTime?      @map("completed_at")
+
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analyses AIAnalysis[]
+
+  @@index([userId, createdAt])
+  @@map("ai_analysis_sessions")
+}
+
+enum AnalysisStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+// ==================== AI Analysis ====================
+model AIAnalysis {
+  id              String         @id @default(uuid())
+  sessionId       String         @map("session_id")
+  userId          String         @map("user_id")
+  assetType       AssetType      @map("asset_type")
+  symbol          String
+  prediction      PredictionType
+  confidenceScore Decimal?       @map("confidence_score")
+  analysisText    String         @map("analysis_text")
+  keyFactors      Json?          @map("key_factors")
+  priceAtAnalysis Decimal        @map("price_at_analysis")
+  analyzedAt      DateTime       @default(now()) @map("analyzed_at")
+
+  session AIAnalysisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([userId, analyzedAt])
+  @@map("ai_analyses")
+}
+
+enum PredictionType {
+  bullish
+  bearish
+  neutral
+}
+
+// ==================== Daily Mission ====================
+model DailyMission {
+  id           String      @id @default(uuid())
+  title        String
+  description  String
+  missionType  MissionType @map("mission_type")
+  pointsReward Int         @map("points_reward")
+  difficulty   Difficulty  @default(easy)
+  isActive     Boolean     @default(true) @map("is_active")
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  userProgress UserMissionProgress[]
+
+  @@map("daily_missions")
+}
+
+enum MissionType {
+  saving
+  investment
+  learning
+  social
+}
+
+enum Difficulty {
+  easy
+  medium
+  hard
+}
+
+// ==================== User Mission Progress ====================
+model UserMissionProgress {
+  id          String                @id @default(uuid())
+  userId      String                @map("user_id")
+  missionId   String                @map("mission_id")
+  status      MissionProgressStatus @default(pending)
+  startedAt   DateTime              @map("started_at")
+  completedAt DateTime?             @map("completed_at")
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission DailyMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missionId, startedAt])
+  @@index([userId, startedAt])
+  @@map("user_mission_progress")
+}
+
+enum MissionProgressStatus {
+  pending
+  completed
+  failed
+}
+
+// ==================== User Achievement ====================
+model UserAchievement {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  achievementType String   @map("achievement_type")
+  title           String
+  description     String?
+  iconUrl         String?  @map("icon_url")
+  earnedAt        DateTime @default(now()) @map("earned_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, earnedAt])
+  @@map("user_achievements")
+}
+
+// ==================== Point Transaction ====================
+model PointTransaction {
+  id              String          @id @default(uuid())
+  userId          String          @map("user_id")
+  amount          Int
+  transactionType TransactionType @map("transaction_type")
+  source          String
+  description     String?
+  createdAt       DateTime        @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("point_transactions")
+}
+
+enum TransactionType {
+  earn
+  spend
+}
+
+// ==================== Chart Drawing ====================
+model ChartDrawing {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  symbol      String
+  name        String
+  description String?
+  chartPeriod String   @map("chart_period") // 'minute', 'hour', 'day', 'week', 'month'
+  drawingData Json     @map("drawing_data") // 드로잉 데이터 (JSON)
+  thumbnail   String?  // 썸네일 이미지 URL (선택)
+  isPublic    Boolean  @default(false) @map("is_public") // 공개 여부
+  viewCount   Int      @default(0) @map("view_count") // 조회수
+  likeCount   Int      @default(0) @map("like_count") // 좋아요 수
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, symbol])
+  @@index([userId, createdAt])
+  @@index([isPublic, likeCount])
+  @@map("chart_drawings")
+}
+// ==================== Portfolio Tracking ====================
+model PortfolioTransaction {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  symbol          String
+  transactionType String   @map("transaction_type") // 'buy' or 'sell'
+  quantity        Float    // 수량
+  price           Float    // 거래 단가
+  totalAmount     Float    @map("total_amount") // 총 금액 (수량 * 단가)
+  fee             Float    @default(0) // 수수료
+  note            String?  // 메모
+  transactionDate DateTime @map("transaction_date") // 거래 날짜
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  assetType         AssetType @map("asset_type")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, assetType, symbol])
+  @@index([userId, transactionDate])
+  @@index([transactionType])
+  @@map("portfolio_transactions")
+}
+
+model PortfolioHolding {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  symbol            String
+  assetType         AssetType @map("asset_type")
+
+  totalQuantity     Float    @map("total_quantity")
+  averageBuyPrice   Float    @map("average_buy_price")
+  totalInvested     Float    @map("total_invested")
+
+  currentPrice      Float    @default(0) @map("current_price")
+  currentValue      Float    @default(0) @map("current_value")
+
+  unrealizedProfit  Float    @default(0) @map("unrealized_profit")
+  unrealizedProfitRate Float @default(0) @map("unrealized_profit_rate")
+
+  realizedProfit    Float    @default(0) @map("realized_profit")
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol, assetType])
+  @@index([userId])
+  @@map("portfolio_holdings")
+}
+
+// ==================== News ====================
+model NewsArticle {
+  id          String   @id @default(uuid())
+  title       String
+  content     String   @db.Text
+  summary     String?  @db.Text
+  url         String   @unique
+  imageUrl    String?  @map("image_url")
+  source      String   // 'coingecko', 'cryptopanic', 'coindesk', etc
+  author      String?
+  symbols     String[] // ['BTC', 'ETH', 'XRP']
+  sentiment   String?  // 'positive', 'neutral', 'negative'
+  viewCount   Int      @default(0) @map("view_count")
+  publishedAt DateTime @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  bookmarks NewsBookmark[]
+
+  @@index([publishedAt])
+  @@index([source])
+  @@index([symbols])
+  @@map("news_articles")
+}
+
+model NewsBookmark {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  newsId    String   @map("news_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  news NewsArticle @relation(fields: [newsId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, newsId])
+  @@index([userId])
+  @@map("news_bookmarks")
+}
+
+model MarketAsset {
+  symbol        String   @id
+  market        String
+  koreanName    String   @map("korean_name")
+  englishName   String   @map("english_name")
+  logoUrl       String?  @map("logo_url")
+  isActive      Boolean  @default(true) @map("is_active")
+  listedAt      DateTime? @map("listed_at")
+  delistedAt    DateTime? @map("delisted_at")
+
+  currentPrice     Decimal?  @map("current_price")
+  change24h        Decimal?  @map("change_24h")
+  high24h          Decimal?  @map("high_24h")
+  low24h           Decimal?  @map("low_24h")
+  volume24h        Decimal?  @map("volume_24h")
+  tradeValue24h    Decimal?  @map("trade_value_24h")
+  priceUpdatedAt   DateTime? @map("price_updated_at")
+  assetType AssetType @default(crypto) @map("asset_type")
+
+  @@index([isActive])
+  @@index([tradeValue24h])      // 🔥 TOP ranking 조회용
+  @@index([change24h])          // 변동률 정렬 시 빠르게
+  @@index([currentPrice])       // 가격 기준 정렬
+  @@index([priceUpdatedAt])     // 오래된 가격만 background update
+  @@map("market_assets")
+}
+
+// ==================== Market Intelligence ====================
+
+// 시장 심리 데이터
+model MarketSentiment {
+  id                String   @id @default(uuid())
+  symbol            String   // BTC, ETH, etc
+  sentimentScore    Int      @map("sentiment_score") // 0-100
+  fearGreedIndex    Int?     @map("fear_greed_index") // 0-100
+  volatility        Float    // 변동성 %
+  volume24h         Float    @map("volume_24h") // 24시간 거래량
+  priceChange24h    Float    @map("price_change_24h") // 24시간 가격변동 %
+  socialMentions    Int      @default(0) @map("social_mentions")
+  searchTrend       Int      @default(0) @map("search_trend")
+  sentimentLabel    String   @map("sentiment_label") // extreme_fear, fear, neutral, greed, extreme_greed
+  calculatedAt      DateTime @default(now()) @map("calculated_at")
+
+  @@index([symbol, calculatedAt])
+  @@index([calculatedAt])
+  @@map("market_sentiments")
+}
+
+// 고래 거래 추적
+model WhaleTransaction {
+  id              String   @id @default(uuid())
+  symbol          String
+  transactionType String   @map("transaction_type") // buy, sell
+  amount          Float    // 코인 수량
+  amountKRW       Float    @map("amount_krw") // 원화 환산
+  exchange        String?  // upbit, binance, etc
+  detectedAt      DateTime @default(now()) @map("detected_at")
+
+  @@index([symbol, detectedAt])
+  @@map("whale_transactions")
+}
+
+// 심리 알림 설정
+model SentimentAlert {
+  id             String    @id @default(uuid())
+  userId         String    @map("user_id")
+  symbol         String
+  triggerScore   Int       @map("trigger_score") // 트리거 점수
+  triggerType    String    @map("trigger_type") // below, above
+  isActive       Boolean   @default(true) @map("is_active")
+  lastTriggered  DateTime? @map("last_triggered")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol, triggerType])
+  @@index([userId])
+  @@map("sentiment_alerts")
+}
+
+// 스마트 머니 알림 설정
+model SmartMoneyAlert {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  symbol        String
+  minAmount     Float     @map("min_amount") // 최소 거래 금액
+  isActive      Boolean   @default(true) @map("is_active")
+  lastTriggered DateTime? @map("last_triggered")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol])
+  @@index([userId])
+  @@map("smart_money_alerts")
+}
+
+// 투자 playbook notification
+model InvestmentNotification {
+  id        String   @id @default(cuid())
+
+  userId    String
+  symbol    String?
+
+  source    String?
+
+  type      String
+  title     String
+  message   String
+
+  severity  Int      @default(50)
+
+  isRead    Boolean  @default(false)
+
+  payload   Json?
+
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([symbol])
+  @@index([createdAt])
+}
+
+// 가격 히스토리
+model PriceHistory {
+  id        String   @id @default(uuid())
+  symbol    String
+  assetType AssetType @map("asset_type")
+
+  timeframe String
+  open      Decimal
+  high      Decimal
+  low       Decimal
+  close     Decimal
+  volume    Decimal?
+  timestamp DateTime
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([symbol, timeframe, timestamp])
+  @@index([symbol, timeframe, timestamp])
+  @@map("price_history")
+}
+
+// 투자 성향
+model UserInvestmentProfile {
+  id                    String   @id @default(uuid())
+  userId                String   @unique @map("user_id")
+
+  riskTolerance         String   @default("medium")
+  maxSingleAssetWeight  Float    @default(0.6)
+  rebalanceBand         Float    @default(0.1)
+  panicSellWindowHours  Int      @default(24)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_investment_profiles")
+}
+
+// 투자 분석 결과 저장
+enum InsightType {
+  ai_coach
+  smart_buy_zone
+  behavior_analysis
+  risk_alert
+}
+
+model InvestmentInsight {
+  id         String      @id @default(uuid())
+  userId     String      @map("user_id")
+  symbol     String?
+  assetType  AssetType?  @map("asset_type")
+
+  type       InsightType
+  title      String
+  summary    String
+
+  severity   Int         @default(0)
+  confidence Float?
+  payload    Json?
+
+  dedupeKey  String      @default("default") @map("dedupe_key")
+
+  createdAt  DateTime    @default(now()) @map("created_at")
+  expiresAt  DateTime?   @map("expires_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, dedupeKey])
+  @@index([userId, type])
+  @@index([userId, createdAt])
+  @@map("investment_insights")
+}
+
+// 사용자 투자 전략
+model InvestmentPlaybook {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+
+  name      String
+  assetType AssetType
+  isActive  Boolean  @default(true) @map("is_active")
+
+  targetAllocation Json? @map("target_allocation")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  rules InvestmentRule[]
+
+  triggers PlaybookTrigger[]
+
+  @@index([userId])
+  @@map("investment_playbooks")
+}
+
+enum RuleType {
+  buy_zone_entry
+  risk_limit
+  rebalance
+  stop_loss
+  take_profit
+  sentiment_filter
+  whale_filter
+
+  rsi_oversold
+  rsi_overbought
+  ma_cross
+  volume_spike
+}
+
+// 플레이북 규칙
+model InvestmentRule {
+  id          String   @id @default(uuid())
+  playbookId  String   @map("playbook_id")
+
+  type        RuleType
+  symbol      String?
+  params      Json
+
+  isEnabled   Boolean  @default(true) @map("is_enabled")
+  priority    Int      @default(0)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  playbook InvestmentPlaybook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+
+  triggers PlaybookTrigger[]
+
+  @@index([playbookId])
+  @@map("investment_rules")
+}
+
+enum TriggerStatus {
+  open
+  resolved
+  dismissed
+}
+
+// 규칙 발생 기록
+model PlaybookTrigger {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  playbookId  String   @map("playbook_id")
+  ruleId      String   @map("rule_id")
+
+  symbol      String?
+  title       String
+  message     String
+  severity    Int      @default(0)
+
+  payload     Json?
+
+  status      TriggerStatus @default(open)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  resolvedAt  DateTime? @map("resolved_at")
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playbook InvestmentPlaybook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+  rule     InvestmentRule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  executionLogs ExecutionLog[]
+
+  @@index([userId, status])
+  @@index([playbookId])
+  @@map("playbook_triggers")
+}
+
+// 투자 실행 기록
+model ExecutionLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  triggerId String?  @map("trigger_id")
+
+  symbol    String?
+
+  action    String
+  quantity  Float?
+  price     Float?
+
+  note      String?
+
+  executedAt DateTime @default(now()) @map("executed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trigger PlaybookTrigger? @relation(fields: [triggerId], references: [id])
+
+  @@index([userId, executedAt])
+  @@map("execution_logs")
+}
+
+enum Timeframe {
+  m1
+  m5
+  m15
+  h1
+  h4
+  d1
+}
+
+model TechnicalIndicator {
+  id         String   @id @default(uuid())
+
+  symbol     String
+  assetType  AssetType @map("asset_type")
+
+  timeframe  Timeframe
+  timestamp  DateTime
+
+  rsi14      Float?   @map("rsi_14")
+  ma20       Float?   @map("ma_20")
+  ma50       Float?   @map("ma_50")
+
+  macd       Float?
+  macdSignal Float?   @map("macd_signal")
+  macdHist   Float?   @map("macd_hist")
+
+  volumeAvg20 Float?  @map("volume_avg_20")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([symbol, timeframe, timestamp])
+  @@index([symbol, timeframe, timestamp])
+  @@map("technical_indicators")
+}

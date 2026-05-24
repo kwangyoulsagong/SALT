@@ -1,12 +1,18 @@
 import { ReactNode } from "react";
-import { CardSize } from "./styles/Card.css.ts";
+import { cardStyles } from "./styles/Card.css.ts";
 
-type SizeType = "md" | "lg";
-interface CardProps {
-  size?: SizeType;
+export type CardPadding = "none" | "sm" | "md" | "lg" | "xl";
+
+export interface CardProps {
   children: ReactNode;
+  padding?: CardPadding;
+  className?: string;
 }
 
-export const Card = ({ size = "md", children }: CardProps) => {
-  return <section className={`${CardSize[size]}`}>{children}</section>;
+export const Card = ({ children, padding = "md", className }: CardProps) => {
+  return (
+    <section className={`${cardStyles({ padding })} ${className || ""}`}>
+      {children}
+    </section>
+  );
 };
