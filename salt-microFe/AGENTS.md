@@ -52,23 +52,26 @@ pnpm --filter @repo/ui storybook
 - `.codex/rules/a11y-policy.md` — 접근성
 - `.codex/rules/i18n-policy.md` — 문구/i18n 정책
 - `.codex/rules/requirements-management.md` — 요구사항/리포트 관리
+- `.codex/rules/study-report.md` — 요구사항 기반 학습 보고서 작성
 
 ## 문서 인덱스
 
 - `docs/design-system/style-tokens.md` — `packages/ui/src/styles/tokens.css.ts` 토큰 인덱스
 - `docs/design-system/component-index.md` — `@repo/ui` export별 컴포넌트 인덱스
+- `docs/study/study-report-template.md` — 스터디 보고서 템플릿
 - `packages/ui/AGENTS.md` — `@repo/ui` 패키지 로컬 작업 규칙
 - `packages/ui/.codex/rules/storybook.md` — `@repo/ui` Storybook 작성 규칙
 
 ## Skills
 
-`.codex/skills/` 하위 6종을 사용한다.
+`.codex/skills/` 하위 7종을 사용한다.
 
 - `plan` — 요구사항 분석 + 구현 계획
 - `orchestrate` — 계획 실행
 - `validate` — 타입/린트/빌드/MFE/SSR 검증
 - `deliver` — export/문서/커밋 준비
 - `retrospect` — 회고/기술부채 정리
+- `study` — REQ 구현 과정을 블로그형 학습 보고서로 작성
 - `pipeline` — 위 5단계 순차 실행
 
 작업 전 관련 rule을 먼저 읽고, 변경 후 가능한 검증 명령을 실행한다.

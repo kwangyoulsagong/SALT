@@ -11,6 +11,7 @@ requirements/
   reports/
     checklists/
     retrospects/
+    studies/
 ```
 
 없으면 필요한 시점에 생성한다.
@@ -33,3 +34,9 @@ requirements/
 - retrospect 단계에서 `requirements/reports/retrospects/REQ-{번호}.md`를 작성한다.
 - 개선점은 실행 가능한 action item만 적는다.
 - 과장된 리스크 표현을 피하고 실제 영향 범위를 쓴다.
+
+## 스터디 보고서
+
+- study 단계에서 `requirements/reports/studies/REQ-{번호}.md`를 작성한다.
+- 요구사항, 구현 diff, 검증 결과를 근거로 블로그형 학습 보고서를 작성한다.
+- 작성 규칙은 `.codex/rules/study-report.md`를 따른다.
