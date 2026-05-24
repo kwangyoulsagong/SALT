@@ -709,7 +709,7 @@ function useGeminiExplain({ selected, coach, mode, news }) {
       lastKeyRef.current = key;
       setState({ loading: true, error: null, data: null });
       try {
-        const response = await fetch("/api/ai-coach/explain", {
+        const response = await fetch("/api/app/ai-coach/explain", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

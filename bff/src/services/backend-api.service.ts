@@ -57,6 +57,19 @@ class BackendApiService {
   }
 
   /**
+   * Public proxy — 인증 토큰 없이 salt-server 호출
+   */
+  async proxyRequest(method: string, url: string, data?: any) {
+    return this.client.request({
+      method,
+      url,
+      data,
+      // LLM 호출은 응답 지연이 길 수 있어 별도 타임아웃
+      timeout: 30000,
+    });
+  }
+
+  /**
    * Internal API - 인증 없이 요청
    */
   async getWatchlistSymbols() {

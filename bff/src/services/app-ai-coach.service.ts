@@ -129,6 +129,16 @@ export class AppAICoachService {
     };
   }
 
+  // LLM(Gemini) 해설 — salt-server의 public 엔드포인트로 프록시
+  async explain(body: any) {
+    const response = await backendApi.proxyRequest(
+      "POST",
+      "/ai-coach/explain",
+      body,
+    );
+    return (response.data as BackendEnvelope<any>).data;
+  }
+
   private mapDecision(decision: any) {
     if (!decision) return null;
 

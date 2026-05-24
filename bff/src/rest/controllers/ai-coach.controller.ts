@@ -46,6 +46,15 @@ export class AppAICoachController {
       next(error);
     }
   };
+
+  explain = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await appAICoachService.explain(req.body);
+      return res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export const appAICoachController = new AppAICoachController();
