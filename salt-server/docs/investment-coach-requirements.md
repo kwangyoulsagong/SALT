@@ -31,23 +31,14 @@
 | SRV-REQ-205 | [api] | 신호 성과 추적 | `GET /api/signal-performance` 구현 |
 | SRV-REQ-206 | [api] | 코치 피드백 기록 | `POST /api/ai-coach/feedback` 구현 |
 | SRV-REQ-207 | [module] | data freshness/confidence 표준화 | AI coach/preflight response에 부분 구현 |
+| SRV-REQ-208 | [api] | Gemini 기반 코치 해설 | `POST /api/ai-coach/explain` 구현 |
 
 ## Non-Requirements
 
 - 국내 주식 실시간 시세.
 - KIS/키움/Toss provider.
 - 주문 실행, 자동매매, 거래소/증권사 주문 연동.
-- 사용자 노출 전략/플레이북 API와 차트 드로잉 API.
 - 신규 DB 모델 추가. 1차는 기존 `InvestmentInsight`, `PortfolioHolding`, `PortfolioTransaction`, `MarketAsset`, `MarketSentiment`, `TechnicalIndicator`, `WhaleTransaction`을 사용한다.
-
-## Removed Runtime Surface
-
-| 영역 | 제거 내용 | 이유 |
-|---|---|---|
-| Strategy/Playbook API | `/api/playbooks`, `/api/playbookTriggerRoutes` route 등록 제거 및 playbook module 삭제 | 사용자가 전략을 직접 설정하는 UX는 투자 코치 방향에서 제외 |
-| Playbook worker | `PlaybookEngineWorker` 자동 실행 제거 및 worker 파일 삭제 | 전략 룰 기반 자동 트리거 대신 AI 코치/알림으로 통합 |
-| Chart drawing API | `/api/investment/drawings/*` route 등록 제거 및 drawing module 삭제 | 차트 드로잉은 1차/2차 투자 코치 핵심 범위가 아님 |
-| Feed/Dashboard | playbook trigger 병합 제거 | 전략 트리거 노출 제거와 계약 일치 |
 
 ## Validation
 

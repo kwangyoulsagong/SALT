@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-현재 SALT 투자 영역은 시장 목록, 실시간 가격, 차트, 시장 심리, 스마트머니, 포트폴리오, 인사이트, 플레이북, 뉴스, 알림, 드로잉 등 백엔드 기능이 넓게 존재하지만 프론트 UX는 `/investment`의 실시간 마켓 테이블과 미리보기 중심으로 제한되어 있다. 사용자가 실제로 원하는 것은 “전략 설정 도구”가 아니라 지금 무엇을 봐야 하고, 왜 사거나 기다려야 하고, 언제 줄여야 하는지 쉽게 판단하는 의사결정 화면이다.
+현재 SALT 투자 영역은 시장 목록, 실시간 가격, 차트, 시장 심리, 스마트머니, 포트폴리오, 인사이트, AI 코치, Gemini 해설, 외부 주문 전 체크, 행동 코치, 익절/손절 플랜, 신호 성과, 뉴스, 알림 등 백엔드/BFF 기능이 넓게 존재하지만 실제 프론트 UX는 `/investment`의 실시간 마켓 테이블과 미리보기 중심으로 제한되어 있다. 사용자가 실제로 원하는 것은 “지금 무엇을 봐야 하고, 왜 사거나 기다려야 하고, 언제 줄여야 하는지”를 쉽게 판단하는 의사결정 화면이다.
 
 이번 기획의 방향은 현재 구현된 실시간 투자 화면을 유지하면서, 오른쪽 사이드 영역에 **AI 투자 코치 프리뷰**를 붙이고 클릭 시 **단타/장기 상세 코치 모드**로 들어가게 하는 것이다. 기존 서버 기능은 **AI 투자 코치 + 단타/장기 모드 + 수익 기회 레이더 + 외부 주문 전 체크리스트 + 매도/익절 판단 플랜 + 내 자산 리스크 가드 + 뉴스/고래/차트 근거 요약**으로 묶는다. 제품 목적은 사용자가 돈을 더 잘 벌 가능성을 높이는 것이다. 다만 SALT는 매수/매도 주문을 실행하지 않고, 사용자가 증권/거래소 앱에서 직접 주문하기 전에 “검증된 근거, 확률, 손익비, 리스크 한도”로 의사결정을 강하게 돕는다.
 
@@ -41,12 +41,11 @@
 
 ## 배경과 문제
 
-- `salt-server/prisma/schema.prisma`에는 투자 관련 모델이 매우 많다: `MarketAsset`, `PriceHistory`, `TechnicalIndicator`, `MarketSentiment`, `WhaleTransaction`, `PortfolioHolding`, `PortfolioTransaction`, `InvestmentInsight`, `InvestmentPlaybook`, `InvestmentRule`, `PlaybookTrigger`, `InvestmentNotification`, `NewsArticle`, `ChartDrawing` 등.
-- `bff/src/rest/routes/proxy.routes.ts`와 app routes에는 시장, AI 코치, 포트폴리오, 피드, 알림, 플레이북 aggregation 의도가 있다.
+- `salt-server/prisma/schema.prisma`에는 투자 관련 모델이 존재한다: `MarketAsset`, `PriceHistory`, `TechnicalIndicator`, `MarketSentiment`, `WhaleTransaction`, `PortfolioHolding`, `PortfolioTransaction`, `InvestmentInsight`, `InvestmentNotification`, `NewsArticle`, `UserInvestmentProfile`, `ExecutionLog` 등.
+- `bff/src/rest/routes/proxy.routes.ts`와 app routes에는 시장, AI 코치, 포트폴리오, 피드, 알림, 외부 주문 전 체크, 행동 코치, 익절/손절 플랜, 신호 성과 aggregation 의도가 있다.
 - `salt-microFe/apps/investments/src/pages/investment/index.tsx`는 현재 `RealtimeInvestment` 탭만 렌더링한다.
 - `MarketIntelligencePreview`는 심리 온도계, 스마트머니, 뉴스 섹션을 보여주지만, 사용자가 “그래서 지금 어떻게 해야 하는지”를 한 문장으로 결론 내리지 않는다.
 - `MyInvestments`는 과거 분석 UI 잔재로 보이며 현재 투자 포트폴리오 계약과 연결성이 약하다.
-- 사용자가 직접 전략/룰/플레이북을 이해하고 설정해야 하는 구조는 초보 투자자에게 어렵다.
 
 ## 목표
 
@@ -63,7 +62,7 @@
 
 - SALT 내부 매수/매도, 자동 투자, 자동 주문, 매매 대행은 범위 밖이다.
 - 증권사/거래소 주문 연동은 이번 단계에 포함하지 않는다. 사용자는 실제 주문을 외부 증권/거래소 앱에서 직접 실행한다.
-- 복잡한 차트 드로잉, 전략 빌더, 고급 백테스트는 MVP 핵심이 아니다.
+- 복잡한 전략 빌더와 고급 백테스트는 MVP 핵심이 아니다.
 - 서버에 없는 해외 주식 실시간 체결/호가 기능은 확정 기능처럼 쓰지 않는다.
 
 ## 사용자 시나리오
@@ -243,9 +242,6 @@
 
 | 기능 | 현재 상태 | 결정 | 이유 |
 |---|---|---|---|
-| 차트 드로잉 | 서버 route/model 있음, FE 확인 안 됨 | 숨김 | 초보자 의사결정 핵심이 아니며 복잡도만 높음 |
-| 플레이북 고급 룰 빌더 | Backend/BFF 있음, FE 없음 | 후순위 | 전략 설정은 어렵다. 먼저 AI 코치가 자동 추천해야 함 |
-| 수동 전략 상세 설정 | `InvestmentRule` 모델 있음 | 숨김 | 사용자가 룰을 직접 조합하는 UX는 MVP에 부적합 |
 | 실시간 시장 테이블 단독 홈 | FE 구현됨 | 유지 + 사이드 코치 추가 | 현재 실시간 화면은 맞다. 다만 옆에서 AI 코치가 판단을 압축해줘야 함 |
 | 기존 `MyInvestments` 분석 화면 | FE 잔재 | 교체 | 현재 포트폴리오 API와 제품 목표가 맞지 않음 |
 | 뉴스 전체 탐색 | Backend Only | 종목 근거 요약으로 축소 | 뉴스 피드는 투자 판단 근거로만 사용 |
@@ -329,7 +325,7 @@
 - 국내 주식 실시간 시세, KIS/키움/Toss API 연동.
 - SALT 내부 매수/매도/정정/취소 주문 기능.
 - 자동매매, 외부 증권/거래소 앱 딥링크 주문 실행.
-- 별도 `SignalPerformance` 신규 DB 모델. 1차는 기존 `InvestmentInsight`, `PortfolioTransaction`, `PlaybookTrigger` 기반 계산으로 제한한다.
+- 별도 `SignalPerformance` 신규 DB 모델. 1차는 기존 `InvestmentInsight`, `PriceHistory`, `PortfolioTransaction`, `ExecutionLog` 기반 계산으로 제한한다.
 
 ## 화면/프론트엔드 영향
 
@@ -359,16 +355,17 @@
 | 시장 인텔리전스 | `GET /api/market-intelligence/:symbol/dashboard` | path `symbol` | `{ data: sentiment, smartMoney }` | Public/BFF proxy | 구현됨 |
 | AI 코치 생성 | `POST /api/ai-coach/generate` | 없음 또는 profile 기반 | `{ success, data: InvestmentInsight }` | Required | BFF proxy 있음 |
 | 최신 AI 코치 | `GET /api/ai-coach` | 없음 | `{ success, data }` | Required | BFF proxy 있음 |
-| 모드별 AI 코치 | `GET /api/ai-coach?mode=scalp|long_term` | mode query | 모드별 코치 카드/근거/알림 기준 | Required | 확장 필요 |
-| 코치 온보딩 저장 | `PATCH /api/ai-coach/profile` 또는 `PATCH /api/users/investment-profile` | mode preference, risk limits, notification level | profile | Required | 신규/확장 필요 |
+| 모드별 AI 코치 | `GET /api/ai-coach?mode=scalp|long_term&symbol=BTC` | mode/symbol query | 모드별 코치 카드/근거/알림 기준 | Required | 구현됨 |
+| Gemini 코치 해설 | `POST /api/app/ai-coach/explain` → `POST /api/ai-coach/explain` | `symbol`, `koreanName`, `mode`, `currentPrice`, `change24h`, `tradeValue24h`, `confidence`, `evidence`, `news` | `modeReasoning`, `expectedReturn`, `keyDrivers`, `risks`, `newsSummary`, `disclaimer`, `cached` | Public for prototype | 구현됨. 5분 캐시, JSON 응답, 수익 보장 금지 프롬프트 |
+| 코치 온보딩 저장 | `GET/PATCH /api/app/ai-coach/profile` → `GET/PATCH /api/ai-coach/profile` | `riskTolerance`, `maxSingleAssetWeight`, `rebalanceBand`, `panicSellWindowHours`, `defaultMode`, `notificationLevel` | profile, `unsupportedPersistedFields` | Required | 구현됨. `defaultMode`, `notificationLevel`은 현재 DB 영속 필드 없음 |
 | 포트폴리오 요약 | `GET /api/app/portfolio` | 없음 | app portfolio aggregation | Required | BFF route 있음 |
 | 포트폴리오 성과 | `GET /api/app/portfolio/performance` | 기간 query 가능 | performance aggregation | Required | BFF route 있음 |
-| 외부 주문 전 체크 | `POST /api/app/trade-preflight` | `symbol`, `entryPrice`, `stopPrice`, `takeProfitPrices`, `amount` | 손익비, 예상 비중, 최대 손실, 경고 | Required | 신규 필요 |
-| 개인 편향 분석 | `GET /api/app/behavior-coach` | 없음 | 거래 습관 태그, 경고, 개선 액션 | Required | 신규 필요 |
-| 신호 성과 추적 | `GET /api/app/signal-performance` | `symbol`, `signalKey` | 표본 수, 승률, 평균 손익비, 최대 낙폭 | Required | 신규 필요 |
+| 외부 주문 전 체크 | `POST /api/app/trade-preflight` → `POST /api/trade-preflight` | `symbol`, `entryPrice`, `stopPrice`, `takeProfitPrices`, `amount`, `mode` | 손익비, 예상 비중, 최대 손실, 경고, checklist | Required | 구현됨 |
+| 개인 편향 분석 | `GET /api/app/behavior-coach` → `GET /api/behavior-coach` | 없음 | 거래 습관 태그, 경고, 개선 액션 | Required | 구현됨 |
+| 익절/손절 플랜 | `GET /api/app/profit-plan` → `GET /api/profit-plan` | optional `symbol` | 보유 종목별 단계형 손실 제한/익절/추세 유지 카드 | Required | 구현됨 |
+| 신호 성과 추적 | `GET /api/app/signal-performance` → `GET /api/signal-performance` | `symbol`, `signalKey` | 표본 수, 승률, 평균 수익률, 최대 낙폭 | Required | 구현됨 |
 | 피드 | `GET /api/app/feed` | cursor/limit 필요 | feed items | Required | BFF route 있음 |
 | 알림 | `GET /api/app/alerts` | unread/limit 필요 | alerts | Required | BFF route 있음 |
-| 플레이북 | `GET /api/app/playbooks` | 없음 | playbooks | Required | 후순위 |
 | 국내 주식 시세 조회 | `GET /api/stock/market/overview`, `GET /api/stock/:symbol/quote` | symbol/search/page/limit | 국내 주식 현재가/등락률/거래량 | 공급자별 인증 필요 | 1차 제외. KIS/키움 PoC 후 별도 기획 |
 | 국내 주식 차트 | `GET /api/stock/:symbol/chart` | period/unit/count | candle[] | 공급자별 인증 필요 | 1차 제외. 일봉/분봉 가능 범위 확인 필요 |
 
@@ -382,10 +379,9 @@
 | 포트폴리오 | `PortfolioTransaction`, `PortfolioHolding`, `portfolio.routes.ts` | 외부 앱에서 추가 진입할 때의 예상 비중 계산 API 필요 여부 검토 |
 | AI 코치 | `InvestmentInsight`, `UserInvestmentProfile`, `ai-coach.routes.ts` | coachMode, action enum, reason summary, missingData, expectedValue, riskRewardRatio 필드 표준화 필요 |
 | 알림 | `InvestmentNotification`, `notification-cleanup.worker.ts` | 판단 변화 알림 생성 규칙 추가 |
-| 플레이북 | `InvestmentPlaybook`, `InvestmentRule`, `PlaybookTrigger`, `playbook-engine.worker.ts` | 사용자 노출은 숨기고 코치 내부 판단 엔진으로 사용 |
 | 뉴스 | `NewsArticle`, `NewsBookmark`, news routes/crawler | 종목별 3개 요약과 감성 근거만 노출 |
 | 행동 분석 | `PortfolioTransaction`, `ExecutionLog`, `behavior-analysis.service.ts` | 단타/장기별 추격매수/물타기/빠른익절/늦은손절 탐지 규칙 추가 |
-| 신호 성과 | `InvestmentInsight`, `PlaybookTrigger`, `ExecutionLog` | 단타/장기별 추천 이후 N일 수익률과 사용자 실행 결과 추적 모델 필요 여부 검토 |
+| 신호 성과 | `InvestmentInsight`, `PriceHistory`, `ExecutionLog` | 단타/장기별 추천 이후 가격 변화와 사용자 실행 결과 추적 모델 필요 여부 검토 |
 
 ## 이벤트/상태 흐름
 
@@ -416,21 +412,22 @@ flowchart TD
 | 요구사항 | 화면/컴포넌트 | BFF/API | 서버/API | DB/Worker | 검증 |
 |---|---|---|---|---|---|
 | 실시간 화면 | `RealtimeInvestment` | `GET /api/investment/market/overview`, WS `4002` | `/api/investment/market/overview` | `MarketAsset`, price workers | 현재 화면 유지, 선택 종목 변경 확인 |
-| AI 코치 프리뷰 | 신규 AICoachPreviewPanel | `GET /api/ai-coach?symbol=&preview=true` 또는 기존 `/api/ai-coach` 확장 | `/api/ai-coach/*` 확장 | `InvestmentInsight`, `MarketSentiment`, `WhaleTransaction` | 선택 종목에 따라 한 줄 판단 변경 |
-| 선택 종목 듀얼 판단 | 신규 DualModeDecisionCard | `GET /api/ai-coach?symbol=&preview=true` | `/api/ai-coach/*` 확장 | `InvestmentInsight`, `TechnicalIndicator`, `MarketSentiment`, `WhaleTransaction` | 단타/장기 판단 조합별 문구 fixture |
-| 수익 기회 레이더 | 코치 상세 | `GET /api/ai-coach`, `POST /api/ai-coach/generate` | `/api/ai-coach/*` | `InvestmentInsight`, `UserInvestmentProfile` | 상세 진입 후 최신 코치 조회/생성 |
-| 단타/장기 모드 | 신규 CoachModeSwitch | `GET /api/ai-coach?mode=*` | `/api/ai-coach/*` 확장 | `UserInvestmentProfile`, `InvestmentInsight` | 모드 전환 시 카드/알림/시간축 변경 |
-| 코치 온보딩 | 신규 CoachOnboarding | Gap: profile update API | Gap: user profile or ai coach profile | `UserInvestmentProfile` | 목적/손실한도/알림강도 저장 |
-| 외부 주문 전 체크 | 신규 TradePreflight | `POST /api/app/trade-preflight` | Gap: 신규 aggregation 또는 portfolio service | `PortfolioHolding`, `UserInvestmentProfile` | 손익비/예상 비중/최대 손실 계산 테스트 |
+| AI 코치 프리뷰 | 신규 AICoachPreviewPanel | `GET /api/app/ai-coach/preview?symbol=` | `GET /api/ai-coach?symbol=&preview=true` | `InvestmentInsight`, `MarketSentiment`, `WhaleTransaction` | 선택 종목에 따라 한 줄 판단 변경 |
+| Gemini 코치 해설 | 신규 Explain panel | `POST /api/app/ai-coach/explain` | `POST /api/ai-coach/explain` | Gemini API, 5분 in-memory cache | 제공된 근거/뉴스만 바탕으로 기대 범위와 리스크를 JSON으로 반환 |
+| 선택 종목 듀얼 판단 | 신규 DualModeDecisionCard | `GET /api/app/ai-coach/preview?symbol=`, `GET /api/app/ai-coach/detail?symbol=&mode=` | `GET /api/ai-coach?symbol=&mode=&preview=true` | `InvestmentInsight`, `TechnicalIndicator`, `MarketSentiment`, `WhaleTransaction` | 단타/장기 판단 조합별 문구 fixture |
+| 수익 기회 레이더 | 코치 상세 | `GET /api/app/ai-coach/detail`, `POST /api/ai-coach/generate` proxy | `/api/ai-coach/*` | `InvestmentInsight`, `UserInvestmentProfile` | 상세 진입 후 최신 코치 조회/생성 |
+| 단타/장기 모드 | 신규 CoachModeSwitch | `GET /api/app/ai-coach/detail?mode=*` | `GET /api/ai-coach?mode=*` | `UserInvestmentProfile`, `InvestmentInsight` | 모드 전환 시 카드/알림/시간축 변경 |
+| 코치 온보딩 | 신규 CoachOnboarding | `GET/PATCH /api/app/ai-coach/profile` | `GET/PATCH /api/ai-coach/profile` | `UserInvestmentProfile` | 목적/손실한도/알림강도 저장. `defaultMode`, `notificationLevel` 영속화는 Gap |
+| 외부 주문 전 체크 | 신규 TradePreflight | `POST /api/app/trade-preflight` | `POST /api/trade-preflight` | `PortfolioHolding`, `UserInvestmentProfile`, `MarketAsset` | 손익비/예상 비중/최대 손실 계산 테스트 |
 | 시장 목록 메인 노출 | `RealtimeInvestment` | `GET /api/investment/market/overview` | `/api/investment/market/overview` | `MarketAsset` | 목록/정렬/검색 응답 확인 |
 | 실시간 가격 반영 | `useMarketOverviewRealtime` | BFF WS `4002` | internal update APIs | BFF Upbit WS, server price worker | 가격 변경 시 row blink 확인 |
 | 종목 판단 근거 | `MarketIntelligencePreview` 개편 | `GET /api/market-intelligence/:symbol/dashboard` | `/api/market-intelligence/:symbol/dashboard` | `MarketSentiment`, `WhaleTransaction` | sentiment/smartMoney 누락 상태 포함 |
 | 차트 신호 요약 | 신규 SignalSummary | `GET /api/investment/crypto/:symbol/chart` | `/api/investment/crypto/:symbol/chart` | `PriceHistory`, `TechnicalIndicator` | `period=minute` 계약으로 응답 확인 |
 | 포트폴리오 리스크 | 신규 RiskGuard | `GET /api/app/portfolio` | `/api/portfolio/holdings`, `/api/portfolio/stats` | `PortfolioHolding`, `PortfolioTransaction` | 집중 비중 경고 기준 테스트 |
-| 단계형 익절/손절 판단 | 신규 ProfitPlanCard | Gap: `GET /api/app/profit-plan` | Gap: portfolio/ai-coach 조합 | `PortfolioHolding`, `InvestmentInsight`, `ExecutionLog` | 수익/손실 상태별 판단 플랜 생성 테스트 |
-| 개인 편향 교정 | 신규 BehaviorCoach | `GET /api/app/behavior-coach` | `behavior-analysis.service.ts` 확장 | `PortfolioTransaction`, `ExecutionLog` | 추격매수/물타기/빠른익절 fixture 테스트 |
+| 단계형 익절/손절 판단 | 신규 ProfitPlanCard | `GET /api/app/profit-plan` | `GET /api/profit-plan` | `PortfolioHolding` | 수익/손실 상태별 판단 플랜 생성 테스트 |
+| 개인 편향 교정 | 신규 BehaviorCoach | `GET /api/app/behavior-coach` | `GET /api/behavior-coach` | `PortfolioTransaction`, `InvestmentInsight` | 추격매수/물타기/빠른익절 fixture 테스트 |
 | 판단 변화 알림 | 신규 Alerts drawer | `GET /api/app/alerts` | `/api/investment-notifications*` | `InvestmentNotification`, cleanup worker | unread/read all 플로우 확인 |
-| 뉴스 근거 | `MarketIntelligenceNewsPreview` | Gap: BFF proxy 미확정 | `/api/news*` 또는 feed | `NewsArticle` | 종목별 뉴스 3개 응답 계약 확정 필요 |
+| 뉴스 근거 | `MarketIntelligenceNewsPreview` | `GET /api/app/ai-coach/detail`에 `evidence.news` 병합 | `GET /api/market-intelligence/:symbol/news` | `NewsArticle` | 종목별 뉴스 3개 응답 계약 확인 |
 
 ## 수용 기준
 
@@ -468,10 +465,9 @@ flowchart TD
 - KIS/키움 API를 사용자 개인 AppKey로 연결할 것인가, SALT 서버 측 공용 조회 계정으로 연결할 것인가?
 - 국내 주식 실시간 시세 라이선스상 재배포/다중 사용자 서비스가 허용되는지 확인해야 한다.
 - AI 코치의 action enum을 서버 DTO로 고정할 것인가, FE에서 payload를 해석할 것인가?
-- 종목별 뉴스는 BFF `/api/app/feed`에 통합할 것인가, 별도 `/api/market-intelligence/:symbol/news`로 만들 것인가?
+- 코치 상세의 종목별 뉴스는 `GET /api/market-intelligence/:symbol/news`를 BFF detail 응답에 병합하는 현재 방식으로 충분한가?
 - 외부 앱 추가 진입 전 예상 비중 계산은 클라이언트 계산으로 충분한가, 서버 API가 필요한가?
-- 플레이북은 사용자가 직접 설정하지 못하게 숨길지, 고급 설정으로만 남길지?
-- 신호별 과거 성과를 저장할 별도 모델(`SignalPerformance`)을 만들 것인가, `InvestmentInsight`/`ExecutionLog`로 충분한가?
+- 신호별 과거 성과를 저장할 별도 모델(`SignalPerformance`)을 만들 것인가, 현재처럼 `InvestmentInsight`/`PriceHistory` 계산으로 충분한가?
 - 수익 목표형 UX에서 국가별 투자자문/광고 규제 문구를 어떻게 분리할 것인가?
 - 단타 모드의 기본 쿨다운과 하루 알림 상한을 몇 개로 둘 것인가?
 - 장기 모드에서 DCA/분할 진입 계획을 서버 모델로 저장할 것인가, 클라이언트 플랜으로 충분한가?
@@ -485,4 +481,4 @@ flowchart TD
 - 2026-05-24: 국내 주식 실시간 시세 API 리서치를 반영하고 KIS/키움 조회 전용 PoC, 토스증권 정식 오픈 후 재검토, 코스콤/KRX 라이선스 보류 방침을 추가.
 - 2026-05-24: 구현 전 요구사항을 먼저 확정하기 위해 한국 주식 제외 서버/BFF 1차 REQ를 추가하고, `/api/stock/*` 구현을 별도 PoC로 분리.
 - 2026-05-24: 한국 주식 제외 범위에서 AI 코치 preview/detail, 단타/장기 듀얼 판단, 외부 주문 전 체크, 행동 코치의 서버/BFF 1차 구현 결과를 반영.
-- 2026-05-24: 사용자 노출 전략/플레이북 API, Playbook worker, 차트 드로잉 API를 서버/BFF 런타임에서 제거하고 AI 코치/알림 중심으로 정리.
+- 2026-05-25: 현재 구현 범위에 맞춰 투자 코치 PM 문서를 정리하고, Gemini 기반 `POST /api/app/ai-coach/explain` / `POST /api/ai-coach/explain` 해설 기능을 AI 코치 계약에 반영.

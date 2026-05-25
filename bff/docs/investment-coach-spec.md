@@ -74,6 +74,55 @@ type CoachDetailView = {
 };
 ```
 
+## Endpoint: POST /api/app/ai-coach/explain
+
+Auth: public for prototype demo. Production 전 rate-limit/auth 검토 필요.
+
+Backend dependency:
+
+- `POST /api/ai-coach/explain`
+
+Body:
+
+```ts
+type ExplainCoachBody = {
+  symbol: string;
+  koreanName: string;
+  mode: "scalp" | "long_term";
+  currentPrice: number;
+  change24h: number;
+  tradeValue24h: number;
+  confidence: number;
+  evidence: Array<{ label: string; value: string }>;
+  news?: Array<{
+    title: string;
+    summary?: string;
+    source?: string;
+    sentiment?: string;
+  }>;
+};
+```
+
+Response data:
+
+```ts
+type ExplainCoachView = {
+  modeReasoning: string;
+  expectedReturn: {
+    lowPercent: number;
+    highPercent: number;
+    timeframe: string;
+    rationale: string;
+  };
+  keyDrivers: string[];
+  risks: string[];
+  newsSummary: string[];
+  disclaimer: string;
+  generatedAt: string;
+  cached: boolean;
+};
+```
+
 ## Endpoint: POST /api/app/trade-preflight
 
 Auth: required.
@@ -137,6 +186,7 @@ type BehaviorCoachView = {
 | `/api/app/ai-coach/profile` | GET | `GET /api/ai-coach/profile` | implemented |
 | `/api/app/ai-coach/profile` | PATCH | `PATCH /api/ai-coach/profile` | implemented |
 | `/api/app/ai-coach/feedback` | POST | `POST /api/ai-coach/feedback` | implemented |
+| `/api/app/ai-coach/explain` | POST | `POST /api/ai-coach/explain` | implemented |
 | `/api/app/profit-plan` | GET | `GET /api/profit-plan` | implemented |
 | `/api/app/signal-performance` | GET | `GET /api/signal-performance` | implemented |
 | `/api/app/ai-coach/detail` | GET | `GET /api/market-intelligence/:symbol/news` 병합 | implemented |

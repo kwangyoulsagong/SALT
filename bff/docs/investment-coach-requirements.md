@@ -29,6 +29,7 @@
 | BFF-REQ-205 | [rest] | 신호 성과 카드 | `GET /api/app/signal-performance` 구현 |
 | BFF-REQ-206 | [rest] | 코치 피드백 전달 | `POST /api/app/ai-coach/feedback` 구현 |
 | BFF-REQ-207 | [rest] | data freshness badge/message 표준화 | preview/detail/preflight에 부분 구현 |
+| BFF-REQ-208 | [rest] | Gemini 코치 해설 전달 | `POST /api/app/ai-coach/explain` 구현 |
 
 ## Non-Requirements
 
@@ -36,14 +37,6 @@
 - BFF worker 변경.
 - 국내 주식 시세 route.
 - 주문 실행 route.
-- 사용자 노출 전략/플레이북 route.
-
-## Removed Runtime Surface
-
-| 영역 | 제거 내용 | 이유 |
-|---|---|---|
-| Strategy/Playbook app API | `/api/app/playbooks` route/controller 삭제 | 전략 설정형 UX 제외 |
-| Alerts aggregation | `/playbook-triggers` backend 호출 제거 | 판단 변화 알림은 investment notifications로 통합 |
 
 ## Validation
 
