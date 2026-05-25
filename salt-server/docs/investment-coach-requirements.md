@@ -33,6 +33,19 @@
 | SRV-REQ-207 | [module] | data freshness/confidence 표준화 | AI coach/preflight response에 부분 구현 |
 | SRV-REQ-208 | [api] | Gemini 기반 코치 해설 | `POST /api/ai-coach/explain` 구현 |
 
+## AI Coach Explainer Requirements
+
+| ID | Scope | Requirement | Acceptance |
+|---|---|---|---|
+| SRV-EXPLAINER-001 | [api] | Gemini 기반 AI 코치 해설 endpoint를 제공한다. | `POST /api/ai-coach/explain`가 `symbol`, `koreanName`, `mode`, 가격/거래대금, `confidence`, `evidence`, `news` body를 검증한다. |
+| SRV-EXPLAINER-002 | [llm] | Gemini에 전달하는 prompt는 제공된 데이터만 근거로 해설하도록 제한한다. | system instruction에 데이터 외 추측 금지, 매수/매도 직접 권유 금지, 수익 보장 금지가 포함된다. |
+| SRV-EXPLAINER-003 | [contract] | Gemini 응답은 서버 계약에 맞는 JSON으로 정규화한다. | 응답에 `modeReasoning`, `expectedReturn.lowPercent/highPercent/timeframe/rationale`, `keyDrivers`, `risks`, `newsSummary`, `disclaimer`, `generatedAt`, `cached`가 포함된다. |
+| SRV-EXPLAINER-004 | [cache] | 동일한 해설 요청의 LLM 비용과 지연을 줄인다. | `symbol`, `mode`, 가격 bucket, 24h 변동률 bucket, 뉴스 title hash 기준으로 5분 in-memory cache를 사용하고 cache hit 시 `cached=true`를 반환한다. |
+| SRV-EXPLAINER-005 | [policy] | 투자 자문/주문 실행으로 오해될 표현을 막는다. | 해설은 판단 보조 문구로 제한하고 주문 실행 객체, 주문 상태, 매수/매도 확정 지시를 만들지 않는다. |
+| SRV-EXPLAINER-006 | [config] | Gemini 설정은 환경변수로 분리한다. | `GEMINI_API_KEY`, `GEMINI_MODEL`을 사용하며 API key는 로그/응답에 노출하지 않는다. |
+| SRV-EXPLAINER-007 | [error] | LLM 응답 파싱 실패를 명확히 처리한다. | Gemini 응답이 JSON으로 파싱되지 않으면 explainer service가 파싱 실패 에러를 발생시키고 error middleware로 전달한다. |
+| SRV-EXPLAINER-008 | [security] | 프로토타입 public endpoint의 운영 전환 조건을 명시한다. | 현재는 prototype demo용 public이며 production 전 auth 또는 rate-limit 적용 TODO가 route/spec에 남아 있다. |
+
 ## Non-Requirements
 
 - 국내 주식 실시간 시세.
