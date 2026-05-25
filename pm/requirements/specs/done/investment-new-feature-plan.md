@@ -281,10 +281,16 @@
 
 상세 요구사항과 계약은 각 작업 범위의 문서로 분리한다.
 
-- [Server requirements](/Users/sagong-gwang-yeol/Desktop/SALT/salt-server/docs/investment-coach-requirements.md)
-- [Server spec](/Users/sagong-gwang-yeol/Desktop/SALT/salt-server/docs/investment-coach-spec.md)
-- [BFF requirements](/Users/sagong-gwang-yeol/Desktop/SALT/bff/docs/investment-coach-requirements.md)
-- [BFF spec](/Users/sagong-gwang-yeol/Desktop/SALT/bff/docs/investment-coach-spec.md)
+- [Server AI Coach requirements](/Users/sagong-gwang-yeol/Desktop/SALT/salt-server/requirements/specs/done/SRV-REQ-001.md)
+- [Server trade preflight requirements](/Users/sagong-gwang-yeol/Desktop/SALT/salt-server/requirements/specs/done/SRV-REQ-002.md)
+- [Server behavior coach requirements](/Users/sagong-gwang-yeol/Desktop/SALT/salt-server/requirements/specs/done/SRV-REQ-003.md)
+- [Server profit plan requirements](/Users/sagong-gwang-yeol/Desktop/SALT/salt-server/requirements/specs/done/SRV-REQ-004.md)
+- [Server signal performance requirements](/Users/sagong-gwang-yeol/Desktop/SALT/salt-server/requirements/specs/done/SRV-REQ-005.md)
+- [BFF AI Coach requirements](/Users/sagong-gwang-yeol/Desktop/SALT/bff/requirements/specs/done/BFF-REQ-001.md)
+- [BFF trade preflight requirements](/Users/sagong-gwang-yeol/Desktop/SALT/bff/requirements/specs/done/BFF-REQ-002.md)
+- [BFF behavior coach requirements](/Users/sagong-gwang-yeol/Desktop/SALT/bff/requirements/specs/done/BFF-REQ-003.md)
+- [BFF profit plan requirements](/Users/sagong-gwang-yeol/Desktop/SALT/bff/requirements/specs/done/BFF-REQ-004.md)
+- [BFF signal performance requirements](/Users/sagong-gwang-yeol/Desktop/SALT/bff/requirements/specs/done/BFF-REQ-005.md)
 
 ### 서버 REQ
 

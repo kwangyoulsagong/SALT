@@ -26,6 +26,7 @@ npm run prisma:studio
 ## 구조 원칙
 
 - 서버 작업은 `salt-server/**` 범위에서 수행한다.
+- 서버 요구사항과 API spec은 `salt-server/requirements/specs/{to-do,in-progress,done}/`에서 관리하고, 검증/회고/학습 리포트는 `salt-server/requirements/reports/`에 둔다.
 - 검색은 `node_modules`, `dist`, `coverage`, `.git`을 제외하고 필요한 하위만 본다.
 - 모듈은 `src/modules/{domain}` 하위에 `*.routes.ts`, `*.controller.ts`, `*.service.ts`, `*.dto.ts` 패턴을 따른다.
 - 라우터는 경로/미들웨어/Swagger 선언만 담당한다.
