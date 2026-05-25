@@ -31,23 +31,27 @@
 | SRV-REQ-205 | [api] | 신호 성과 추적 | `GET /api/signal-performance` 구현 |
 | SRV-REQ-206 | [api] | 코치 피드백 기록 | `POST /api/ai-coach/feedback` 구현 |
 | SRV-REQ-207 | [module] | data freshness/confidence 표준화 | AI coach/preflight response에 부분 구현 |
+| SRV-REQ-208 | [api] | Gemini 기반 코치 해설 | `POST /api/ai-coach/explain` 구현 |
+
+## AI Coach Explainer Requirements
+
+| ID | Scope | Requirement | Acceptance |
+|---|---|---|---|
+| SRV-EXPLAINER-001 | [api] | Gemini 기반 AI 코치 해설 endpoint를 제공한다. | `POST /api/ai-coach/explain`가 `symbol`, `koreanName`, `mode`, 가격/거래대금, `confidence`, `evidence`, `news` body를 검증한다. |
+| SRV-EXPLAINER-002 | [llm] | Gemini에 전달하는 prompt는 제공된 데이터만 근거로 해설하도록 제한한다. | system instruction에 데이터 외 추측 금지, 매수/매도 직접 권유 금지, 수익 보장 금지가 포함된다. |
+| SRV-EXPLAINER-003 | [contract] | Gemini 응답은 서버 계약에 맞는 JSON으로 정규화한다. | 응답에 `modeReasoning`, `expectedReturn.lowPercent/highPercent/timeframe/rationale`, `keyDrivers`, `risks`, `newsSummary`, `disclaimer`, `generatedAt`, `cached`가 포함된다. |
+| SRV-EXPLAINER-004 | [cache] | 동일한 해설 요청의 LLM 비용과 지연을 줄인다. | `symbol`, `mode`, 가격 bucket, 24h 변동률 bucket, 뉴스 title hash 기준으로 5분 in-memory cache를 사용하고 cache hit 시 `cached=true`를 반환한다. |
+| SRV-EXPLAINER-005 | [policy] | 투자 자문/주문 실행으로 오해될 표현을 막는다. | 해설은 판단 보조 문구로 제한하고 주문 실행 객체, 주문 상태, 매수/매도 확정 지시를 만들지 않는다. |
+| SRV-EXPLAINER-006 | [config] | Gemini 설정은 환경변수로 분리한다. | `GEMINI_API_KEY`, `GEMINI_MODEL`을 사용하며 API key는 로그/응답에 노출하지 않는다. |
+| SRV-EXPLAINER-007 | [error] | LLM 응답 파싱 실패를 명확히 처리한다. | Gemini 응답이 JSON으로 파싱되지 않으면 explainer service가 파싱 실패 에러를 발생시키고 error middleware로 전달한다. |
+| SRV-EXPLAINER-008 | [security] | 프로토타입 public endpoint의 운영 전환 조건을 명시한다. | 현재는 prototype demo용 public이며 production 전 auth 또는 rate-limit 적용 TODO가 route/spec에 남아 있다. |
 
 ## Non-Requirements
 
 - 국내 주식 실시간 시세.
 - KIS/키움/Toss provider.
 - 주문 실행, 자동매매, 거래소/증권사 주문 연동.
-- 사용자 노출 전략/플레이북 API와 차트 드로잉 API.
 - 신규 DB 모델 추가. 1차는 기존 `InvestmentInsight`, `PortfolioHolding`, `PortfolioTransaction`, `MarketAsset`, `MarketSentiment`, `TechnicalIndicator`, `WhaleTransaction`을 사용한다.
-
-## Removed Runtime Surface
-
-| 영역 | 제거 내용 | 이유 |
-|---|---|---|
-| Strategy/Playbook API | `/api/playbooks`, `/api/playbookTriggerRoutes` route 등록 제거 및 playbook module 삭제 | 사용자가 전략을 직접 설정하는 UX는 투자 코치 방향에서 제외 |
-| Playbook worker | `PlaybookEngineWorker` 자동 실행 제거 및 worker 파일 삭제 | 전략 룰 기반 자동 트리거 대신 AI 코치/알림으로 통합 |
-| Chart drawing API | `/api/investment/drawings/*` route 등록 제거 및 drawing module 삭제 | 차트 드로잉은 1차/2차 투자 코치 핵심 범위가 아님 |
-| Feed/Dashboard | playbook trigger 병합 제거 | 전략 트리거 노출 제거와 계약 일치 |
 
 ## Validation
 

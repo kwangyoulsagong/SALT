@@ -29,6 +29,18 @@
 | BFF-REQ-205 | [rest] | 신호 성과 카드 | `GET /api/app/signal-performance` 구현 |
 | BFF-REQ-206 | [rest] | 코치 피드백 전달 | `POST /api/app/ai-coach/feedback` 구현 |
 | BFF-REQ-207 | [rest] | data freshness badge/message 표준화 | preview/detail/preflight에 부분 구현 |
+| BFF-REQ-208 | [rest] | Gemini 코치 해설 전달 | `POST /api/app/ai-coach/explain` 구현 |
+
+## AI Coach Explainer Requirements
+
+| ID | Scope | Requirement | Acceptance |
+|---|---|---|---|
+| BFF-EXPLAINER-001 | [rest] | 프론트가 Gemini 해설을 요청할 수 있는 app endpoint를 제공한다. | `POST /api/app/ai-coach/explain`가 `symbol`, `koreanName`, `mode`, 가격/거래대금, `confidence`, `evidence`, `news` body를 받는다. |
+| BFF-EXPLAINER-002 | [backend] | BFF는 해설을 직접 생성하지 않고 서버 explainer endpoint로 위임한다. | BFF service가 `POST /api/ai-coach/explain`를 호출하고 서버 응답의 `data`를 app response로 반환한다. |
+| BFF-EXPLAINER-003 | [contract] | 화면이 바로 쓸 수 있는 해설 view model을 유지한다. | 응답에 `modeReasoning`, `expectedReturn`, `keyDrivers`, `risks`, `newsSummary`, `disclaimer`, `generatedAt`, `cached`가 포함된다. |
+| BFF-EXPLAINER-004 | [policy] | 해설 endpoint는 주문 실행이나 매수/매도 확정 CTA를 만들지 않는다. | BFF response에는 주문 상태, 주문 ID, 거래소 딥링크, 자동 주문 관련 필드가 없다. |
+| BFF-EXPLAINER-005 | [security] | 프로토타입 public endpoint의 운영 전환 조건을 명시한다. | 현재는 prototype demo용 public이며 production 전 auth 또는 rate-limit 적용 TODO가 spec/route 주석에 남아 있다. |
+| BFF-EXPLAINER-006 | [error] | 서버/Gemini 장애 시 민감한 내부 정보를 노출하지 않는다. | backend error는 BFF error middleware 흐름으로 넘기고 API key, prompt 원문, stack trace를 응답하지 않는다. |
 
 ## Non-Requirements
 
@@ -36,14 +48,6 @@
 - BFF worker 변경.
 - 국내 주식 시세 route.
 - 주문 실행 route.
-- 사용자 노출 전략/플레이북 route.
-
-## Removed Runtime Surface
-
-| 영역 | 제거 내용 | 이유 |
-|---|---|---|
-| Strategy/Playbook app API | `/api/app/playbooks` route/controller 삭제 | 전략 설정형 UX 제외 |
-| Alerts aggregation | `/playbook-triggers` backend 호출 제거 | 판단 변화 알림은 investment notifications로 통합 |
 
 ## Validation
 

@@ -130,6 +130,63 @@ type TradePreflightResponse = {
 };
 ```
 
+## Endpoint: POST /api/ai-coach/explain
+
+Auth: public for prototype demo. Production 전 rate-limit/auth 검토 필요.
+
+LLM dependency:
+
+- Gemini SDK: `@google/generative-ai`
+- Env: `GEMINI_API_KEY`, `GEMINI_MODEL`
+- Cache: in-memory 5 minutes by symbol/mode/price/change/news bucket
+
+Body:
+
+```ts
+type ExplainCoachBody = {
+  symbol: string;
+  koreanName: string;
+  mode: "scalp" | "long_term";
+  currentPrice: number;
+  change24h: number;
+  tradeValue24h: number;
+  confidence: number;
+  evidence: Array<{ label: string; value: string }>;
+  news?: Array<{
+    title: string;
+    summary?: string;
+    source?: string;
+    sentiment?: string;
+  }>;
+};
+```
+
+Response data:
+
+```ts
+type ExplainCoachResponse = {
+  modeReasoning: string;
+  expectedReturn: {
+    lowPercent: number;
+    highPercent: number;
+    timeframe: string;
+    rationale: string;
+  };
+  keyDrivers: string[];
+  risks: string[];
+  newsSummary: string[];
+  disclaimer: string;
+  generatedAt: string;
+  cached: boolean;
+};
+```
+
+Behavior:
+
+- Gemini에 제공된 가격/거래대금/근거/뉴스만 사용하도록 지시한다.
+- 응답은 JSON 한 개로 파싱한다.
+- 수익 보장, 직접 매수/매도 권유 문구를 금지한다.
+
 ## Endpoint: GET /api/behavior-coach
 
 Auth: required.
@@ -164,6 +221,7 @@ type BehaviorCoachResponse = {
 | `/api/ai-coach/profile` | GET | 투자 코치 프로필 조회 | implemented |
 | `/api/ai-coach/profile` | PATCH | 투자 성향 저장 | implemented |
 | `/api/ai-coach/feedback` | POST | 코치 피드백 기록 | implemented |
+| `/api/ai-coach/explain` | POST | Gemini 기반 코치 판단 해설 | implemented |
 | `/api/profit-plan` | GET | 보유 종목 익절/손절 플랜 | implemented |
 | `/api/signal-performance` | GET | 코치 신호 성과 집계 | implemented |
 | `/api/market-intelligence/:symbol/news` | GET | 종목 뉴스 근거 3개 | implemented |
