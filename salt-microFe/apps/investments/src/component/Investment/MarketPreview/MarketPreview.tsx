@@ -5,7 +5,7 @@ import React, { Suspense } from "react";
 import { ScrollContainer } from "@repo/ui/scrollContainer";
 import MarketPreviewHeader from "./MarketPreviewHeader/MarketPreviewHeader";
 import { Padding } from "@repo/ui/padding";
-import MarketPeviewChart from "./MarketPeviewChart/MarketPeviewChart";
+import MarketPreviewChart from "./MarketPreviewChart/MarketPreviewChart";
 import { Heading } from "@repo/ui/heading";
 import MarketIntelligencePreview from "./MarketIntelligencePreview/MarketIntelligencePreview";
 interface MarketPreviewProps {
@@ -25,7 +25,7 @@ const MarketPreview = ({ selectedSymbolItem, symbol }: MarketPreviewProps) => {
             <Heading level={5} color="tertiary">
               실시간 차트 (5분 봉)
             </Heading>
-            <MarketPeviewChart symbol={symbol} />
+            <MarketPreviewChart symbol={symbol} />
             <MarketIntelligencePreview symbol={symbol} />
           </FlexBox>
         </Suspense>

@@ -1,15 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { PreviewChart } from "./PreviewChart";
 
-export default {
+const meta = {
   title: "Charts/PreviewChart",
   component: PreviewChart,
   parameters: {
     layout: "centered",
   },
+  tags: ["autodocs"],
 } satisfies Meta<typeof PreviewChart>;
 
-export const Default: StoryObj<typeof PreviewChart> = {
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
   args: {
     symbol: "BTC",
     timeframe: "5m",

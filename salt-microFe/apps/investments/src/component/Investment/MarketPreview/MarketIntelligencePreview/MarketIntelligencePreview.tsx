@@ -19,9 +19,9 @@ import {
 import { Root } from "@repo/ui/root";
 import { vars } from "@/styles/tokens.css";
 import { Text } from "@repo/ui/text";
-import MarketIntelligenceNewsPreview from "./component/MarketIntelligenceNewsPreview/MarketIntelligenceNewPreview";
+import MarketIntelligenceNewsPreview from "./component/MarketIntelligenceNewsPreview/MarketIntelligenceNewsPreview";
 
-interface MarketIntelligencePreivewProps {
+interface MarketIntelligencePreviewProps {
   symbol: string;
 }
 
@@ -31,7 +31,7 @@ const VISIBLE_ARC = 0.79; // 286도 (전체의 79%)
 const VISIBLE_CIRCUMFERENCE = CIRCUMFERENCE * VISIBLE_ARC;
 
 const MarketIntelligencePreview = React.memo(
-  ({ symbol }: MarketIntelligencePreivewProps) => {
+  ({ symbol }: MarketIntelligencePreviewProps) => {
     const temperatureProgressRef = useRef<HTMLDivElement>(null);
     const progressRef = useRef<SVGCircleElement>(null);
 
@@ -243,4 +243,4 @@ const MarketIntelligencePreview = React.memo(
 
 export default MarketIntelligencePreview;
 
-MarketIntelligencePreview.displayName = "marketIntelligencePreview";
+MarketIntelligencePreview.displayName = "MarketIntelligencePreview";

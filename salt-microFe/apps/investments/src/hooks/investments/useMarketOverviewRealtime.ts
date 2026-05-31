@@ -10,19 +10,18 @@ import { useEffect } from "react";
 
 export const useMarketOverviewRealtime = (
   params: MarketOverviewParams,
+  symbols: string[],
   onBlink?: (symbol: string) => void
 ) => {
   const queryClient = useQueryClient();
+  // 심볼 목록을 값 기준 키로 만든다.
+  // 첫 마운트엔 데이터가 없어 symbols가 비어 있고, 데이터가 도착해 symbols가
+  // 채워지면 symbolsKey가 바뀌며 effect가 재실행되어 구독이 등록된다.
+  const symbolsKey = symbols.join(",");
   useEffect(() => {
-    // 현재 캐시 가져오기
-    const cache = queryClient.getQueryData<MarketOverviewResponse>([
-      querykeys.MarketOverview,
-      params,
-    ]);
-
-    if (!cache?.items) return;
-    const symbols = cache.items.map((market) => market.symbol);
-    wsClient.subscribePriceBatch(symbols);
+    if (!symbolsKey) return;
+    const targetSymbols = symbolsKey.split(",");
+    wsClient.subscribePriceBatch(targetSymbols);
 
     let frameId: number | null = null;
     const priceQueue: Record<string, { price: number; change24h: number }> = {};
@@ -86,13 +85,16 @@ export const useMarketOverviewRealtime = (
     };
 
     /** 리스너 등록 */
-    symbols.forEach((symbol) => wsClient.addPriceListener(symbol, listener));
+    targetSymbols.forEach((symbol) =>
+      wsClient.addPriceListener(symbol, listener)
+    );
 
     /** 클린업 */
     return () => {
-      symbols.forEach((symbol) =>
+      if (frameId) cancelAnimationFrame(frameId);
+      targetSymbols.forEach((symbol) =>
         wsClient.removePriceListener(symbol, listener)
       );
     };
-  }, [params, queryClient, onBlink]);
+  }, [symbolsKey, params, queryClient, onBlink]);
 };

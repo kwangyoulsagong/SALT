@@ -59,8 +59,9 @@ const RealtimeInvestment = () => {
   );
 
   const { data, isLoading, isError } = investmentsMarketOverview(params);
-  useMarketOverviewRealtime(params, handleBlink);
   const items = useMemo(() => data?.items ?? [], [data?.items]);
+  const symbols = useMemo(() => items.map((item) => item.symbol), [items]);
+  useMarketOverviewRealtime(params, symbols, handleBlink);
   const firstSymbol = items[0]?.symbol;
 
   useEffect(() => {

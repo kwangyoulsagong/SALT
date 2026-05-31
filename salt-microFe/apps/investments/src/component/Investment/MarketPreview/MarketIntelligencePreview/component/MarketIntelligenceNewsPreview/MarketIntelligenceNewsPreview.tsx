@@ -50,6 +50,6 @@ const MarketIntelligenceNewsPreview = React.memo(
     );
   },
 );
-MarketIntelligenceNewsPreview.displayName = "marketIntelligenceNewsPreivew";
+MarketIntelligenceNewsPreview.displayName = "MarketIntelligenceNewsPreview";
 
 export default MarketIntelligenceNewsPreview;
