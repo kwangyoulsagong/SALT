@@ -1,7 +1,7 @@
 import { style } from "@vanilla-extract/css";
 import { vars } from "../../styles/tokens.css";
 
-export const preivewChartWrapper = style({
+export const previewChartWrapper = style({
   position: "relative",
   width: 447,
   height: 210,
@@ -9,7 +9,7 @@ export const preivewChartWrapper = style({
   overflow: "hidden",
 });
 
-export const tootTipBase = style({
+export const tooltipBase = style({
   position: "absolute",
   top: 40,
   width: "35%",

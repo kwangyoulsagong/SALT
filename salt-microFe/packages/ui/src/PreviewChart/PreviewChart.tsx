@@ -8,7 +8,7 @@ import React, {
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { Group } from "@visx/group";
 import { Line, Bar } from "@visx/shape";
-import { preivewChartWrapper, tootTipBase } from "./styles/previewChart.css";
+import { previewChartWrapper, tooltipBase } from "./styles/previewChart.css";
 import { vars } from "../styles/tokens.css";
 import { FlexBox } from "../FlexBox/FlexBox";
 import { Margin } from "../Margin/Margin";
@@ -41,7 +41,7 @@ const getMinYAndMaxY = (
     if (c.low < min) min = c.low;
     if (c.high > max) max = c.high;
   }
-  if (min == max) {
+  if (min === max) {
     min = min - 1;
     max = max + 1;
   }
@@ -83,7 +83,9 @@ export const PreviewChart = React.memo(
       [minY, maxY, candleHeight]
     );
 
-    const maxVolume = Math.max(...candles.map((c) => c.volume));
+    const maxVolume = candles.length
+      ? candles.reduce((max, c) => (c.volume > max ? c.volume : max), 0)
+      : 0;
 
     const yVolumeScale = useMemo(
       () =>
@@ -106,13 +108,11 @@ export const PreviewChart = React.memo(
     const formatTime = (timestamp: string) => {
       const date = new Date(timestamp);
 
-      return date
-        .toLocaleTimeString("ko-KR", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-        .replace(/:/, ":");
+      return date.toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
     };
     const timeLabels: { candle: MarketChartPreviewItem; idx: number }[] =
       useMemo(() => {
@@ -167,8 +167,15 @@ export const PreviewChart = React.memo(
       hoveredXCenter != null && hoveredXCenter < width / 2 ? "right" : "left";
 
     return (
-      <div className={preivewChartWrapper} style={{ width, height }}>
-        <svg ref={svgRef} width={width} height={height}>
+      <div className={previewChartWrapper} style={{ width, height }}>
+        <svg
+          ref={svgRef}
+          width={width}
+          height={height}
+          role="img"
+          aria-label={`${symbol} ${timeframe} 봉 미리보기 차트`}
+        >
+          <title>{`${symbol} ${timeframe} 봉 미리보기 차트`}</title>
           <Group>
             {/* 수평 그리드 라인 (연한 회색) */}
             {gridXYValue.map((v, idx) => {
@@ -271,6 +278,7 @@ export const PreviewChart = React.memo(
                   : x;
               return (
                 <text
+                  key={`time-${idx}`}
                   x={paddedX}
                   y={axisHeight / 2 + 4}
                   textAnchor="middle"
@@ -295,7 +303,7 @@ export const PreviewChart = React.memo(
         {/* Tooltip 카드 (HTML) */}
         {hoveredCandle && hoveredXCenter != null && (
           <div
-            className={tootTipBase}
+            className={tooltipBase}
             style={{
               left: hoveredXCenter,
               top: candleHeight * 0.3,
@@ -367,3 +375,5 @@ export const PreviewChart = React.memo(
     );
   }
 );
+
+PreviewChart.displayName = "PreviewChart";

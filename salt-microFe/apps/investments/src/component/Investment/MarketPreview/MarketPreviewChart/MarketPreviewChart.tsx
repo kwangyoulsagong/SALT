@@ -3,7 +3,7 @@ import { PreviewChart } from "@repo/ui/previewChart";
 import useInvestments from "@/hooks/api/investments/useInvestments";
 import { useMarketPreviewChartRealtime } from "@/hooks/investments/useMarketPreviewChartRealtime";
 
-const MarketPeviewChart = React.memo(
+const MarketPreviewChart = React.memo(
   ({ symbol }: { symbol: string }) => {
     const { investmentsMarketChartPreview } = useInvestments();
     const { data, isLoading, isError } = investmentsMarketChartPreview(symbol);
@@ -18,6 +18,6 @@ const MarketPeviewChart = React.memo(
   },
   (prevProps, nextProps) => prevProps.symbol === nextProps.symbol
 );
-MarketPeviewChart.displayName = "MarketPeviewChart";
+MarketPreviewChart.displayName = "MarketPreviewChart";
 
-export default MarketPeviewChart;
+export default MarketPreviewChart;
