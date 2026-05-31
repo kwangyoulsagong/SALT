@@ -3,7 +3,6 @@ import { FlexBox } from "@repo/ui/flexBox";
 import { Header } from "@repo/ui/header";
 import { Heading } from "@repo/ui/heading";
 import { ServiceIcon } from "@repo/ui/serviceicon";
-import { Section } from "@repo/ui/section";
 import { Text } from "@repo/ui/text";
 import { Padding } from "@repo/ui/padding";
 import AnalysisGraph from "../AnalysisGraph/AnalysisGraph";

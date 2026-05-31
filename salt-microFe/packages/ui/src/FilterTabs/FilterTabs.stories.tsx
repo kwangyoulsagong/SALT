@@ -1,6 +1,6 @@
 // stories/FilterTabs.stories.tsx
 import type { Meta, StoryObj } from "@storybook/react";
-import { FilterTabs } from "./FilterTabs.tsx";
+import { FilterTabs } from "./FilterTabs";
 import React, { useState } from "react";
 
 const meta: Meta<typeof FilterTabs> = {

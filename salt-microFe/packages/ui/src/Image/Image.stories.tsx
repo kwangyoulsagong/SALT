@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Image } from "./Image.tsx";
-import { vars } from "../styles/tokens.css.ts";
+import { Image } from "./Image";
+import { vars } from "../styles/tokens.css";
 
 const meta: Meta<typeof Image> = {
   title: "Components/Image",

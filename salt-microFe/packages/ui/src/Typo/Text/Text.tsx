@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { textVariant } from "./styles/text.css.ts";
+import { textVariant } from "./styles/text.css";
 
 export type TextVariant = "body" | "bodyLarge" | "caption";
 export type TextColor =

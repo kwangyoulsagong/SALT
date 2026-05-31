@@ -1,7 +1,7 @@
 import { ReactNode, HTMLAttributes } from "react";
-import { sectionStyles } from "./styles/section.css.ts";
-import { Container } from "../Container/Container.tsx";
-import { ContainerSize } from "../Container/Container.tsx";
+import { sectionStyles } from "./styles/section.css";
+import { Container } from "../Container/Container";
+import { ContainerSize } from "../Container/Container";
 
 export type SectionPadding = "none" | "xs" | "sm" | "md" | "lg" | "xl";
 export type SectionBackground =

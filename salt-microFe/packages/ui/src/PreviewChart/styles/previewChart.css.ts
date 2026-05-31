@@ -1,5 +1,5 @@
 import { style } from "@vanilla-extract/css";
-import { vars } from "../../styles/tokens.css.ts";
+import { vars } from "../../styles/tokens.css";
 
 export const preivewChartWrapper = style({
   position: "relative",

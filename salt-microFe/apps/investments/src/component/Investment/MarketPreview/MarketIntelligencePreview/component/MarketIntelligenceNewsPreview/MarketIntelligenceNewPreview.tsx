@@ -19,6 +19,7 @@ const MarketIntelligenceNewsPreview = React.memo(
               height={58}
               radius={5}
               src="https://cdn.sisajournal-e.com/news/photo/202601/418655_230288_3251.jpg"
+              alt={`${symbol} 뉴스 이미지`}
             />
             <FlexBox direction="column" gap="xs" style={{ minWidth: 0 }}>
               <Heading level={4} lineClamp={1}>
@@ -41,7 +42,7 @@ const MarketIntelligenceNewsPreview = React.memo(
               <Text color="tertiary">·</Text>
               <Text color="tertiary">조회 11.7천</Text>
               <Text color="tertiary">·</Text>
-              <Badge>BIT</Badge>
+              <Badge>{symbol}</Badge>
             </FlexBox>
           </Margin>
         </Section>

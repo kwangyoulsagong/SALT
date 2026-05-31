@@ -1,4 +1,7 @@
-import { AddGoal } from "@/types/store/goal/types";
+interface AddGoal {
+  category: string;
+  bankAccount: string;
+}
 
 export const initialState: AddGoal = {
   category: "",

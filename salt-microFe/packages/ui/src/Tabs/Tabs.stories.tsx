@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Tabs } from "./Tabs.tsx";
-import { Card } from "../Card/Card.tsx";
-import { FlexBox } from "../FlexBox/FlexBox.tsx";
+import { Tabs } from "./Tabs";
+import { Card } from "../Card/Card";
+import { FlexBox } from "../FlexBox/FlexBox";
 
 const meta = {
   title: "Components/Tabs",

@@ -36,19 +36,28 @@ const MarketIntelligencePreview = React.memo(
     const progressRef = useRef<SVGCircleElement>(null);
 
     const { investmentMarketIntelligencePreview } = useInvestments();
-    const { data } = investmentMarketIntelligencePreview(symbol);
+    const { data, isLoading, isError } =
+      investmentMarketIntelligencePreview(symbol);
+
+    const marketData = data?.data;
 
     const sentimentData = {
-      temperature: data.data.sentiment.sentimentScore,
-      emoji: data.data.sentiment.interpretation.emoji,
-      title: data.data.sentiment.interpretation.title,
+      temperature: marketData?.sentiment.sentimentScore ?? 0,
+      emoji: marketData?.sentiment.interpretation.emoji ?? "",
+      title: marketData?.sentiment.interpretation.title ?? "",
     };
 
     const smartMoneyData = {
-      score: data.data.smartMoney.smartMoneyIndex.score,
-      signal: data.data.smartMoney.smartMoneyIndex.signal,
-      signals: data.data.smartMoney.signals,
-      interpretation: data.data.smartMoney.interpretation,
+      score: marketData?.smartMoney.smartMoneyIndex.score ?? 0,
+      signal: marketData?.smartMoney.smartMoneyIndex.signal ?? "",
+      signals: marketData?.smartMoney.signals ?? {
+        largeBuys: 0,
+        largeSells: 0,
+        orderbookRatio: 0,
+      },
+      interpretation: marketData?.smartMoney.interpretation ?? {
+        message: "",
+      },
     };
 
     const smartMoneyText = useMemo(() => {
@@ -103,6 +112,10 @@ const MarketIntelligencePreview = React.memo(
         }
       });
     }, [smartMoneyPercent, progressColor]);
+
+    if (isLoading || isError || !marketData) {
+      return null;
+    }
 
     return (
       <Root width="full">

@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, ButtonHTMLAttributes } from "react";
-import { buttonVariants } from "./styles/button.css.ts";
+import { buttonVariants } from "./styles/button.css";
 
 export type ButtonVariant =
   | "primary"

@@ -17,7 +17,7 @@ import {
   sortArrowStyles,
   scrollTableContainerStyles,
   scrollTableInnerStyles,
-} from "./styles/table.css.ts";
+} from "./styles/table.css";
 
 // ===== Scroll Table Container =====
 export interface ScrollTableContainerProps

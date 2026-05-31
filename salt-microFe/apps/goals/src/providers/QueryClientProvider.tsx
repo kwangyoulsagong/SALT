@@ -1,10 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
+import { QueryClientProvider as TanStackQueryClientProvider } from "@tanstack/react-query";
 import { NETWORK } from "../constants/api";
-import dynamic from "next/dynamic";
-const OriginalQueryClientProvider = dynamic(
-  () => import("@tanstack/react-query").then((mod) => mod.QueryClientProvider),
-  { ssr: false }
-);
+
 const createQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -29,12 +26,27 @@ const createQueryClient = () =>
     },
   });
 
+let browserQueryClient: QueryClient | undefined;
+
+const getQueryClient = () => {
+  if (typeof window === "undefined") {
+    return createQueryClient();
+  }
+
+  if (!browserQueryClient) {
+    browserQueryClient = createQueryClient();
+  }
+
+  return browserQueryClient;
+};
+
 const QueryClientProvider = ({ children }: React.PropsWithChildren) => {
-  const queryClient = createQueryClient();
+  const queryClient = getQueryClient();
+
   return (
-    <OriginalQueryClientProvider client={queryClient}>
+    <TanStackQueryClientProvider client={queryClient}>
       {children}
-    </OriginalQueryClientProvider>
+    </TanStackQueryClientProvider>
   );
 };
 export default QueryClientProvider;

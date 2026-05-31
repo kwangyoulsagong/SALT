@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Grid, GridItem } from "./Grid.tsx";
-import { Card } from "../Card/Card.tsx";
+import { Grid, GridItem } from "./Grid";
+import { Card } from "../Card/Card";
 
 const meta = {
   title: "Layout/Grid",

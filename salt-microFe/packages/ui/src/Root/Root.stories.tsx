@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Root } from "./Root.tsx";
+import { Root } from "./Root";
 
 const meta = {
   title: "Layout/Root",

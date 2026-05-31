@@ -1,12 +1,6 @@
 import type { AppProps } from "next/app";
-import dynamic from "next/dynamic";
 import "@/styles/globals.css";
-const ReduxProvider = dynamic(
-  () => import("react-redux").then((mod) => mod.Provider),
-  {
-    ssr: false,
-  }
-);
+import { Provider as ReduxProvider } from "react-redux";
 import { store } from "../store/redux";
 import QueryClientProvider from "@/providers/QueryClientProvider";
 

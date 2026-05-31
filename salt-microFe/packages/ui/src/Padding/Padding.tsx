@@ -4,7 +4,7 @@ import {
   ComponentPropsWithoutRef,
   CSSProperties,
 } from "react";
-import { paddingStyles } from "./styles/padding.css.ts";
+import { paddingStyles } from "./styles/padding.css";
 
 export type PaddingSize =
   | "none"

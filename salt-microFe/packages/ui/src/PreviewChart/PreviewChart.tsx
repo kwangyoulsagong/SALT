@@ -8,11 +8,11 @@ import React, {
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { Group } from "@visx/group";
 import { Line, Bar } from "@visx/shape";
-import { preivewChartWrapper, tootTipBase } from "./styles/previewChart.css.ts";
-import { vars } from "../styles/tokens.css.ts";
-import { FlexBox } from "../FlexBox/FlexBox.tsx";
-import { Margin } from "../Margin/Margin.tsx";
-import { Text } from "../Typo/Text/Text.tsx";
+import { preivewChartWrapper, tootTipBase } from "./styles/previewChart.css";
+import { vars } from "../styles/tokens.css";
+import { FlexBox } from "../FlexBox/FlexBox";
+import { Margin } from "../Margin/Margin";
+import { Text } from "../Typo/Text/Text";
 type Timeframe = "1m" | "5m" | "1h";
 export interface MarketChartPreviewItem {
   timestamp: string;

@@ -12,10 +12,10 @@ import {
 import {
   scrollContainerStyles,
   scrollbarStyles,
-} from "./styles/scrollContainer.css.ts";
-import useThrottle from "../Utils/hooks/useThrottle.tsx";
-import { DEBOUNCE_DELAY, THROTTLE_DELAY } from "../Utils/constants.ts";
-import useDebounce from "../Utils/hooks/useDebounce.tsx";
+} from "./styles/scrollContainer.css";
+import useThrottle from "../Utils/hooks/useThrottle";
+import { DEBOUNCE_DELAY, THROTTLE_DELAY } from "../Utils/constants";
+import useDebounce from "../Utils/hooks/useDebounce";
 export type ScrollDirection = "vertical" | "horizontal" | "both" | "none";
 export type ScrollbarStyle = "default" | "thin" | "hidden";
 export type ScrollSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "full";

@@ -167,9 +167,9 @@ export const investmentsAPi = {
     );
     return data.data;
   },
-  marketSymbolNews: async (
-    params:MarketSymbolNewsParams
-  ): Promise<MarketSymbolNewsItem> => {
-
-  }
+  marketSymbolNews: async ({
+    symbol,
+  }: MarketSymbolNewsParams): Promise<MarketSymbolNewsItem> => {
+    throw new Error(`marketSymbolNews is not implemented for ${symbol}`);
+  },
 };

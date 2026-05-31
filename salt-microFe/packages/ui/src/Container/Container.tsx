@@ -1,5 +1,5 @@
 import { ReactNode, HTMLAttributes } from "react";
-import { containerStyles } from "./styles/container.css.ts";
+import { containerStyles } from "./styles/container.css";
 
 export type ContainerSize = "sm" | "md" | "lg" | "xl" | "2xl" | "full";
 export type ContainerPadding = "none" | "sm" | "md" | "lg" | "xl";

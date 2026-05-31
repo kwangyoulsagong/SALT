@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { FlexBox } from "./FlexBox.tsx";
-import { Card } from "../Card/Card.tsx";
+import { FlexBox } from "./FlexBox";
+import { Card } from "../Card/Card";
 
 const meta = {
   title: "Layout/FlexBox",

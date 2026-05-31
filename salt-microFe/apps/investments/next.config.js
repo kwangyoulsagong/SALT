@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const NextFederationPlugin = require("@module-federation/nextjs-mf");
 const { createVanillaExtractPlugin } = require("@vanilla-extract/next-plugin");
 
 const withVanillaExtract = createVanillaExtractPlugin();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@repo/ui", "@repo/store", "@repo/message-event-bus"],
-  webpack(config, options) {
+  transpilePackages: ["@repo/ui", "@repo/message-event-bus"],
+  webpack(config) {
     config.plugins.push(
       new NextFederationPlugin({
         name: "investments",
@@ -15,16 +16,8 @@ const nextConfig = {
           "./Investment": "./src/pages/investment/index.tsx",
         },
         shared: {
-          react: {
-            singleton: true,
-            requiredVersion: false,
-          },
-          "react-dom": {
-            singleton: true,
-            requiredVersion: false,
-          },
           "@tanstack/react-query": {
-            singleton: true,
+            singleton: false,
             requiredVersion: false,
           },
           "@reduxjs/toolkit": {

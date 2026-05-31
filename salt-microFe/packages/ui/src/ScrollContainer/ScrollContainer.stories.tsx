@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { ScrollContainer } from "./ScrollContainer.tsx";
+import { ScrollContainer } from "./ScrollContainer";
 
 const meta = {
   title: "Layout/ScrollContainer",

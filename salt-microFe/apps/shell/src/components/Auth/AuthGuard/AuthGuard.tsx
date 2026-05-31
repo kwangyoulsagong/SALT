@@ -11,7 +11,7 @@ const AuthGuard = ({ children }: { children: ReactNode }) => {
     } else if (isAuthenticated) {
       router.push("/home");
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, router]);
   return <>{children}</>;
 };
 export default AuthGuard;

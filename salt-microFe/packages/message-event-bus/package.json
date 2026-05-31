@@ -4,7 +4,9 @@
   "type": "module",
   "private": true,
   "exports": {
-    "./eventbus": "./src/hooks/useMessageEventBus.ts"
+    ".": "./src/index.ts",
+    "./eventbus": "./src/hooks/useMessageEventBus.ts",
+    "./events": "./src/events/registry.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

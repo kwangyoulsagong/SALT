@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Margin, Spacer, MarginBox } from "./Margin.tsx";
-import { Card } from "../Card/Card.tsx";
-import { FlexBox } from "../FlexBox/FlexBox.tsx";
+import { Margin, Spacer, MarginBox } from "./Margin";
+import { Card } from "../Card/Card";
+import { FlexBox } from "../FlexBox/FlexBox";
 
 const meta = {
   title: "Layout/Margin",

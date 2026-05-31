@@ -1,4 +1,4 @@
-import { Icons } from "./Styles/Icon.css.ts";
+import { Icons } from "./Styles/Icon.css";
 type serviceType =
   | "mission"
   | "analysis"

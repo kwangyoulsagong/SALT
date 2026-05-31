@@ -1,5 +1,5 @@
 import { HTMLAttributes, ReactNode } from "react";
-import { rootStyles } from "./styles/root.css.ts";
+import { rootStyles } from "./styles/root.css";
 
 export type RootBackground =
   | "transparent"

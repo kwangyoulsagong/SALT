@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { ProfileContainer } from "./ProfileImage.css";
-import { useAppSelector } from "@/hooks/redux/hooks";
 
 const ProfileImage = ({ Profile }: { Profile: string | undefined }) => {
   return (
