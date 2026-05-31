@@ -1,5 +1,5 @@
 import { styleVariants } from "@vanilla-extract/css";
-import { vars } from "../../styles/tokens.css.ts";
+import { vars } from "../../styles/tokens.css";
 
 // 버튼 variants
 export const inputVariants = styleVariants({
@@ -13,7 +13,7 @@ export const inputVariants = styleVariants({
     height: "40px",
     border: "none",
     outline: "none",
-    fontSize: vars.fontSizes.heading1,
+    fontSize: vars.fontSizes["3xl"],
     color: "#8B95A1",
     fontWeight: vars.fontWeights.semibold,
     borderBottom: "#F2F4F6 solid 2px",
@@ -23,7 +23,7 @@ export const inputVariants = styleVariants({
     width: "80vw",
     height: "40px",
     border: `1px solid #E5E8EB`,
-    fontSize: vars.fontSizes.heading2,
+    fontSize: vars.fontSizes["2xl"],
     borderRadius: "10px",
   },
 
@@ -32,7 +32,7 @@ export const inputVariants = styleVariants({
     width: "39vw",
     height: "40px",
     border: `1px solid #E5E8EB`,
-    fontSize: vars.fontSizes.heading2,
+    fontSize: vars.fontSizes["2xl"],
     borderRadius: "10px",
   },
   birthSecrete: {
@@ -43,6 +43,6 @@ export const inputVariants = styleVariants({
     borderRight: "none",
     borderTopLeftRadius: "10px",
     borderBottomLeftRadius: "10px",
-    fontSize: vars.fontSizes.heading2,
+    fontSize: vars.fontSizes["2xl"],
   },
 });

@@ -16,22 +16,28 @@ pm/
   AGENTS.md
   features/
     current-feature-map.md
-    FEATURE-{번호}-{slug}.md
+  requirements/
+    specs/
+      to-do/
+      in-progress/
+      done/
+    reports/
+      checklists/
+      retrospects/
+      feature-audits/
   templates/
     feature-spec-template.md
     investment-feature-report-template.md
   prototype/
     index.html
     src/
-  reports/
-    feature-audits/
 ```
 
 ## 작업 원칙
 
 - 기능 기획 작업 전 `pm/.codex/rules/feature-planning.md`를 읽는다.
 - 기능 파악은 코드 추측이 아니라 실제 파일, route, API 상수, Prisma model, BFF aggregation을 근거로 한다.
-- 새 기능 또는 기능 변경은 `pm/features/FEATURE-{번호}-{slug}.md`에 작성한다.
+- 새 기능 또는 기능 변경은 `pm/requirements/specs/in-progress/FEATURE-{번호}-{slug}.md`에 작성한다.
 - 기존 기능이 바뀌면 `pm/features/current-feature-map.md`와 해당 기능 기획서를 업데이트한다.
 - API 계약 변경이면 `bff/**`, `salt-server/**`, `salt-microFe/**` 영향 여부를 같이 표시한다.
 - 기획서에는 UX 흐름, 권한, 상태, 에러, 로딩, 빈 상태, 수용 기준을 포함한다.
@@ -47,8 +53,8 @@ pm/
 ## 산출물
 
 - `features/current-feature-map.md`: 현재 제품 기능 인벤토리
-- `features/FEATURE-{번호}-{slug}.md`: 기능별 기획서
+- `requirements/specs/{to-do,in-progress,done}/FEATURE-{번호}-{slug}.md`: 기능별 기획서
 - `prototype/`: 더미 백엔드 계약 기반 React 프로토타입
-- `reports/feature-audits/{YYYY-MM-DD}.md`: 전체 기능 파악/변경 감사 리포트
+- `requirements/reports/feature-audits/{YYYY-MM-DD}.md`: 전체 기능 파악/변경 감사 리포트
 
 PM 문서는 구현의 대체물이 아니다. 구현 가능한 수준으로 결정을 좁히되, 실제 코드와 어긋나는 부분은 `Open Questions` 또는 `Gap`으로 표시한다.

@@ -28,4 +28,6 @@ const MarketPreviewHeader = React.memo(
     );
   }
 );
+MarketPreviewHeader.displayName = "MarketPreviewHeader";
+
 export default MarketPreviewHeader;

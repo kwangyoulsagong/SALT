@@ -1,5 +1,5 @@
 import { recipe } from "@vanilla-extract/recipes";
-import { vars } from "../../styles/tokens.css.ts";
+import { vars } from "../../styles/tokens.css";
 import { style } from "@vanilla-extract/css";
 
 // 커스텀 스크롤바 스타일

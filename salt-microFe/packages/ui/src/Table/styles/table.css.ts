@@ -1,6 +1,6 @@
 import { recipe } from "@vanilla-extract/recipes";
 import { style } from "@vanilla-extract/css";
-import { vars } from "../../styles/tokens.css.ts";
+import { vars } from "../../styles/tokens.css";
 
 // Table Container
 export const tableContainerStyles = recipe({

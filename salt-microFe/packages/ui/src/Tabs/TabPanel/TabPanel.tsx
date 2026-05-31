@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { tabPanelStyles } from "../style/tabs.css.ts";
+import { tabPanelStyles } from "../style/tabs.css";
 
 export interface TabPanelProps {
   children: ReactNode;

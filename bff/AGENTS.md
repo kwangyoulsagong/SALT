@@ -28,6 +28,7 @@ npm run start:worker
 ## 구조 원칙
 
 - BFF 작업은 `bff/**` 범위에서 수행한다.
+- BFF 요구사항과 API spec은 `bff/requirements/specs/{to-do,in-progress,done}/`에서 관리하고, 검증/회고/학습 리포트는 `bff/requirements/reports/`에 둔다.
 - 검색은 `node_modules`, `dist`, `.git`을 제외하고 필요한 하위만 본다.
 - REST는 `src/rest/routes`, `src/rest/controllers`, `src/services` 책임을 분리한다.
 - 라우터는 path와 middleware 연결만 담당한다.

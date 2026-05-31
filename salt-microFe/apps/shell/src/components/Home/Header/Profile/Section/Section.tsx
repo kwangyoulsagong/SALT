@@ -1,4 +1,4 @@
-import { Name, Wrapper } from "./Section.css";
+import { Wrapper } from "./Section.css";
 import { Heading } from "@repo/ui/heading";
 import { Text } from "@repo/ui/text";
 interface ProfileSectionProps {

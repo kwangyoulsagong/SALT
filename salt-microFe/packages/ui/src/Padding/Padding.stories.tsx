@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Padding } from "./Padding.tsx";
+import { Padding } from "./Padding";
 
 const meta = {
   title: "Layout/Padding",

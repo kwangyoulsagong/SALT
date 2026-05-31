@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import { HeaderButton, NavWrapper, Wrapper } from "./Header.css.ts";
-import { Heading } from "../Typo/Heading/Heading.tsx";
+import { HeaderButton, NavWrapper, Wrapper } from "./Header.css";
+import { Heading } from "../Typo/Heading/Heading";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/router";
 interface HeaderProps {

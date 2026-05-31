@@ -1,5 +1,5 @@
 import { ReactNode, HTMLAttributes } from "react";
-import { flexBoxStyles } from "./styles/flexBox.css.ts";
+import { flexBoxStyles } from "./styles/flexBox.css";
 
 export type FlexDirection = "row" | "column" | "rowReverse" | "columnReverse";
 export type FlexJustify =

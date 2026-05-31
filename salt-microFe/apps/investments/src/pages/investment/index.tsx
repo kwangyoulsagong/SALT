@@ -1,12 +1,20 @@
+import dynamic from "next/dynamic";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Heading } from "@repo/ui/heading";
 import { Section } from "@repo/ui/section";
 import { ServiceIcon } from "@repo/ui/serviceicon";
 import { Tabs } from "@repo/ui/tabs";
 import { Margin } from "@repo/ui/margin";
-import React, { useState } from "react";
-import { tabs } from "./menu/investmentTabs";
-import RealtimeInvestment from "@/component/Investment/RealtimeInvestment/RealtimeInvestment";
+import React, { Suspense, useState } from "react";
+import { tabs } from "@/constants/investmentTabs";
+
+const RealtimeInvestment = dynamic(
+  () => import("@/component/Investment/RealtimeInvestment/RealtimeInvestment"),
+  {
+    ssr: false,
+    loading: () => null,
+  }
+);
 
 const Investment = () => {
   const [activeTab, setActiveTab] = useState("realtime");
@@ -21,7 +29,9 @@ const Investment = () => {
           <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
         </Margin>
         <Margin top="md">
-          {activeTab === "realtime" && <RealtimeInvestment />}
+          <Suspense fallback={null}>
+            {activeTab === "realtime" && <RealtimeInvestment />}
+          </Suspense>
         </Margin>
       </FlexBox>
     </Section>

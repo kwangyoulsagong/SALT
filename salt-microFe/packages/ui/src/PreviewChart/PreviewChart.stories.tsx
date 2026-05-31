@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { PreviewChart } from "./PreviewChart.tsx";
+import { PreviewChart } from "./PreviewChart";
 
 export default {
   title: "Charts/PreviewChart",

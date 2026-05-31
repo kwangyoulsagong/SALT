@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Section } from "./Section.tsx";
-import { FlexBox } from "../FlexBox/FlexBox.tsx";
-import { Card } from "../Card/Card.tsx";
+import { Section } from "./Section";
+import { FlexBox } from "../FlexBox/FlexBox";
+import { Card } from "../Card/Card";
 
 const meta = {
   title: "Layout/Section",

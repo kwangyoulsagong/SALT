@@ -1,5 +1,5 @@
 import { ReactNode, ElementType } from "react";
-import { marginStyles } from "./styles/margin.css.ts";
+import { marginStyles } from "./styles/margin.css";
 
 type SpaceSize =
   | "none"

@@ -1,8 +1,8 @@
 import { KeyboardEvent, ReactNode, useId, useState } from "react";
-import { HeadingProps } from "../Typo/Heading/Heading.tsx";
-import { tabListStyles, tabsContainerStyles } from "./style/tabs.css.ts";
-import { Tab } from "./Tab/Tab.tsx";
-import { TabPanel } from "./TabPanel/TabPanel.tsx";
+import { HeadingProps } from "../Typo/Heading/Heading";
+import { tabListStyles, tabsContainerStyles } from "./style/tabs.css";
+import { Tab } from "./Tab/Tab";
+import { TabPanel } from "./TabPanel/TabPanel";
 
 export interface TabItem {
   id: string;

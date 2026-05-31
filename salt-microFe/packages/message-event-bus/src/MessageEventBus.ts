@@ -1,8 +1,9 @@
-import { EventCallbak, EventMessage } from "./types/type.js";
+import type { EventName, EventPayloadMap } from "./events/registry";
+import type { EventCallback, EventMessage } from "./types/type";
 
 class MessageEventBus {
-  private subscribers: Map<string, Set<EventCallbak>>;
-  private lastEvents: Map<string, EventMessage<any>>;
+  private subscribers: Map<EventName, Set<EventCallback>>;
+  private lastEvents: Map<EventName, EventMessage>;
   private static instance: MessageEventBus;
 
   private constructor() {
@@ -30,17 +31,19 @@ class MessageEventBus {
     return MessageEventBus.instance;
   }
 
-  public subscribe<T = any>(
-    eventType: string,
-    callback: EventCallbak<EventMessage<T>>
+  public subscribe<TEventName extends EventName>(
+    eventType: TEventName,
+    callback: EventCallback<TEventName>
   ): () => void {
     if (!this.subscribers.has(eventType)) {
       this.subscribers.set(eventType, new Set());
     }
-    this.subscribers.get(eventType)!.add(callback);
+    this.subscribers.get(eventType)!.add(callback as EventCallback);
 
     // 구독 시 마지막 이벤트가 있으면 즉시 발행
-    const lastEvent = this.lastEvents.get(eventType);
+    const lastEvent = this.lastEvents.get(eventType) as
+      | EventMessage<TEventName>
+      | undefined;
     if (lastEvent) {
       setTimeout(() => callback(lastEvent), 0);
     }
@@ -48,14 +51,20 @@ class MessageEventBus {
     return () => this.unsubscribe(eventType, callback);
   }
 
-  public unsubscribe(eventType: string, callback: EventCallbak): void {
+  public unsubscribe<TEventName extends EventName>(
+    eventType: TEventName,
+    callback: EventCallback<TEventName>
+  ): void {
     if (this.subscribers.has(eventType)) {
-      this.subscribers.get(eventType)!.delete(callback);
+      this.subscribers.get(eventType)!.delete(callback as EventCallback);
     }
   }
 
-  public publish<T = any>(eventType: string, payload: T): void {
-    const message: EventMessage<T> = {
+  public publish<TEventName extends EventName>(
+    eventType: TEventName,
+    payload: EventPayloadMap[TEventName]
+  ): void {
+    const message: EventMessage<TEventName> = {
       type: eventType,
       payload,
       timestamp: Date.now(),
@@ -66,18 +75,22 @@ class MessageEventBus {
 
     if (this.subscribers.has(eventType)) {
       this.subscribers.get(eventType)!.forEach((callback) => {
-        callback(message);
+        callback(message as EventMessage);
       });
     }
   }
 
   // 마지막 이벤트 조회 메서드
-  public getLastEvent<T = any>(eventType: string): EventMessage<T> | undefined {
-    return this.lastEvents.get(eventType) as EventMessage<T> | undefined;
+  public getLastEvent<TEventName extends EventName>(
+    eventType: TEventName
+  ): EventMessage<TEventName> | undefined {
+    return this.lastEvents.get(eventType) as
+      | EventMessage<TEventName>
+      | undefined;
   }
 
   // 특정 이벤트 초기화 메서드
-  public clearLastEvent(eventType: string): void {
+  public clearLastEvent(eventType: EventName): void {
     this.lastEvents.delete(eventType);
   }
 

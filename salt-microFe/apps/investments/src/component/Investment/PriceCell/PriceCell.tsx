@@ -12,4 +12,6 @@ const PriceCell = React.memo(
     );
   }
 );
+PriceCell.displayName = "PriceCell";
+
 export default PriceCell;

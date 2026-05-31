@@ -1,6 +1,6 @@
 import { recipe } from "@vanilla-extract/recipes";
 import { keyframes, style } from "@vanilla-extract/css";
-import { vars } from "../../styles/tokens.css.ts";
+import { vars } from "../../styles/tokens.css";
 
 export const tabsContainerStyles = style({
   display: "flex",

@@ -58,17 +58,29 @@ const RealtimeInvestment = () => {
     [filters]
   );
 
-  const { data } = investmentsMarketOverview(params);
+  const { data, isLoading, isError } = investmentsMarketOverview(params);
   useMarketOverviewRealtime(params, handleBlink);
+  const items = useMemo(() => data?.items ?? [], [data?.items]);
+  const firstSymbol = items[0]?.symbol;
+
   useEffect(() => {
-    if (data.items && data.items[0] && !selectedSymbol) {
-      setSelectedSymbol(data.items[0].symbol);
+    if (firstSymbol && !selectedSymbol) {
+      setSelectedSymbol(firstSymbol);
     }
-  }, [data.items[0].symbol]);
+  }, [firstSymbol, selectedSymbol]);
 
   const selectedSymbolItem = useMemo(() => {
-    return data.items.find((item) => item.symbol === selectedSymbol);
-  }, [selectedSymbol, data.items]);
+    return items.find((item) => item.symbol === selectedSymbol);
+  }, [selectedSymbol, items]);
+
+  if (isLoading) {
+    return <Text color="tertiary">실시간 투자 정보를 불러오는 중입니다.</Text>;
+  }
+
+  if (isError) {
+    return <Text color="tertiary">실시간 투자 정보를 불러오지 못했습니다.</Text>;
+  }
+
   return (
     <FlexBox direction="column">
       <InvestmentFilterTabs
@@ -98,7 +110,7 @@ const RealtimeInvestment = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data?.items?.map((item) => (
+              {items.map((item) => (
                 <TableRow
                   key={item.market}
                   memoKey={`${item.currentPrice}-${

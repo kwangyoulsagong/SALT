@@ -1,4 +1,4 @@
-import { inputVariants } from "./styles/input.css.ts";
+import { inputVariants } from "./styles/input.css";
 import { UseFormRegister } from "react-hook-form";
 type placeholder = "id" | "password" | "title" | "amount" | "name";
 interface InputProps {

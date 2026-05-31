@@ -1,16 +1,24 @@
 import { useCallback, useEffect, useRef } from "react";
 import messageEventBus from "../MessageEventBus";
+import type { EventName, EventPayloadMap } from "../events/registry";
+import type { EventMessage } from "../types/type";
 
 export const useMessageEventBus = () => {
   // 메시지 발행 함수
-  const publish = useCallback(<T = any>(messageType: string, payload: T) => {
-    messageEventBus.publish(messageType, payload);
-  }, []);
+  const publish = useCallback(
+    <TEventName extends EventName>(
+      messageType: TEventName,
+      payload: EventPayloadMap[TEventName]
+    ) => {
+      messageEventBus.publish(messageType, payload);
+    },
+    []
+  );
 
   // 메시지 구독 훅
-  const useSubscription = <T = any>(
-    messageType: string,
-    callback: (data: T) => void
+  const useSubscription = <TEventName extends EventName>(
+    messageType: TEventName,
+    callback: (data: EventPayloadMap[TEventName]) => void
   ) => {
     // callback 참조 안정화
     const callbackRef = useRef(callback);
@@ -23,11 +31,11 @@ export const useMessageEventBus = () => {
     useEffect(() => {
       if (!callbackRef.current) return;
 
-      const wrappedCallback = (message: any) => {
+      const wrappedCallback = (message: EventMessage<TEventName>) => {
         callbackRef.current(message.payload);
       };
 
-      const unsubscribe = messageEventBus.subscribe<T>(
+      const unsubscribe = messageEventBus.subscribe(
         messageType,
         wrappedCallback
       );
@@ -40,15 +48,17 @@ export const useMessageEventBus = () => {
 
   // 마지막 이벤트 가져오기
   const getLastEvent = useCallback(
-    <T = any>(messageType: string): T | undefined => {
-      const event = messageEventBus.getLastEvent<T>(messageType);
+    <TEventName extends EventName>(
+      messageType: TEventName
+    ): EventPayloadMap[TEventName] | undefined => {
+      const event = messageEventBus.getLastEvent(messageType);
       return event ? event.payload : undefined;
     },
     []
   );
 
   // 마지막 이벤트 초기화
-  const clearLastEvent = useCallback((messageType: string) => {
+  const clearLastEvent = useCallback((messageType: EventName) => {
     messageEventBus.clearLastEvent(messageType);
   }, []);
 

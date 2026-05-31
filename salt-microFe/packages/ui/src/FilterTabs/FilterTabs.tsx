@@ -1,4 +1,4 @@
-import { tabButton, filterContainer } from "./styles/filterTab.css.ts";
+import { tabButton, filterContainer } from "./styles/filterTab.css";
 
 type FilterOption = { label: string; value: string };
 

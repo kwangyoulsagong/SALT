@@ -9,7 +9,7 @@ import {
   TableRow,
   TableCell,
   EmptyState,
-} from "./Table.tsx";
+} from "./Table";
 
 const meta = {
   title: "Components/Table",

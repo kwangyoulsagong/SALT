@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { headingStyles } from "./styles/heading.css.ts";
+import { headingStyles } from "./styles/heading.css";
 
 export interface HeadingProps {
   children: ReactNode;

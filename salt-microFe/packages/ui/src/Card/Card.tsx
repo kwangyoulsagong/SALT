@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { cardStyles } from "./styles/Card.css.ts";
+import { cardStyles } from "./styles/Card.css";
 
 export type CardPadding = "none" | "sm" | "md" | "lg" | "xl";
 

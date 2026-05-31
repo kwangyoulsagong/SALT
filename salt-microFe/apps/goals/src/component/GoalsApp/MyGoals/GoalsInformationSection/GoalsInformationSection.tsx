@@ -6,7 +6,6 @@ import { Heading } from "@repo/ui/heading";
 import { Button } from "@repo/ui/button";
 import { useRouter } from "next/router";
 import { FlexBox } from "@repo/ui/flexBox";
-import { Section } from "@repo/ui/section";
 import { Container } from "@repo/ui/container";
 interface savedProps {
   saved: {

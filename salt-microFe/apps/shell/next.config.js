@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const NextFederationPlugin = require("@module-federation/nextjs-mf");
 const { createVanillaExtractPlugin } = require("@vanilla-extract/next-plugin");
 
@@ -20,7 +21,6 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: [
     "@repo/ui",
-    "@repo/store",
     "@repo/mocks",
     "@repo/message-event-bus",
   ],
@@ -43,14 +43,6 @@ const nextConfig = {
         },
         exposes: {},
         shared: {
-          react: {
-            singleton: true,
-            requiredVersion: false,
-          },
-          "react-dom": {
-            singleton: true,
-            requiredVersion: false,
-          },
           "@tanstack/react-query": {
             singleton: false,
             requiredVersion: false,

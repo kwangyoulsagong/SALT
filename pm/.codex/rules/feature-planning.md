@@ -7,13 +7,13 @@
 ## 파일명
 
 ```text
-pm/features/FEATURE-{번호}-{slug}.md
+pm/requirements/specs/in-progress/FEATURE-{번호}-{slug}.md
 ```
 
 예:
 
 ```text
-pm/features/FEATURE-001-goal-saving.md
+pm/requirements/specs/in-progress/FEATURE-001-goal-saving.md
 ```
 
 ## 필수 섹션

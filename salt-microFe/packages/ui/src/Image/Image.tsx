@@ -1,5 +1,5 @@
 import { ImgHTMLAttributes, useState } from "react";
-import { imgBaseStyle, hoverScaleStyle } from "./styles/image.css.ts";
+import { imgBaseStyle, hoverScaleStyle } from "./styles/image.css";
 
 export interface ImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   width?: number | string;

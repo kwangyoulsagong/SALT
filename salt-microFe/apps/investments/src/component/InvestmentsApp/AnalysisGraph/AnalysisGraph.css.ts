@@ -19,7 +19,7 @@ export const graphsWrapper = style({
   borderRadius: "5px",
   display: "flex",
   justifyContent: "center",
-  alignItems: "end",
+  alignItems: "flex-end",
 });
 export const bars = style({
   width: "20px",

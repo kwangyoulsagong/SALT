@@ -4,7 +4,7 @@ import {
   ElementType,
   ComponentPropsWithoutRef,
 } from "react";
-import { gridStyles, responsiveGridStyles } from "./styles/grid.css.ts";
+import { gridStyles, responsiveGridStyles } from "./styles/grid.css";
 
 export type GridColumns = 1 | 2 | 3 | 4 | 5 | 6 | 12;
 export type GridGap = "none" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";

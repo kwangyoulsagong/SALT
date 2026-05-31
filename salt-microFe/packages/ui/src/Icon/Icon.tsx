@@ -1,4 +1,4 @@
-import { Icons } from "./Styles/Icon.css.ts";
+import { Icons } from "./Styles/Icon.css";
 
 type goalsType = "trip" | "car" | "shopping" | "home" | "gift" | "married";
 interface IconProps {

@@ -1,6 +1,6 @@
 import { KeyboardEvent, ReactNode } from "react";
-import { Heading, HeadingProps } from "../../Typo/Heading/Heading.tsx";
-import { tabStyles } from "../style/tabs.css.ts";
+import { Heading, HeadingProps } from "../../Typo/Heading/Heading";
+import { tabStyles } from "../style/tabs.css";
 
 export interface TabProps {
   children: ReactNode;
