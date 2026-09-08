@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useState } from "react";
 import {
   Table,
@@ -168,138 +168,142 @@ export const Hoverable: Story = {
   ),
 };
 
+const ClickableTableExample = () => {
+  const [selectedRow, setSelectedRow] = useState<number | null>(null);
+
+  return (
+    <div>
+      <p style={{ marginBottom: "16px" }}>
+        선택된 행: {selectedRow !== null ? `Row ${selectedRow + 1}` : "없음"}
+      </p>
+      <TableContainer>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHeaderCell>주문번호</TableHeaderCell>
+              <TableHeaderCell>고객명</TableHeaderCell>
+              <TableHeaderCell align="right">금액</TableHeaderCell>
+              <TableHeaderCell align="center">상태</TableHeaderCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[...Array(5)].map((_, i) => (
+              <TableRow
+                key={i}
+                clickable
+                selected={selectedRow === i}
+                onClick={() => setSelectedRow(i)}
+              >
+                <TableCell>ORD-{String(i + 1).padStart(5, "0")}</TableCell>
+                <TableCell>고객 {i + 1}</TableCell>
+                <TableCell align="right">{(i + 1) * 50000}원</TableCell>
+                <TableCell align="center">
+                  {i % 3 === 0 ? "배송중" : i % 3 === 1 ? "준비중" : "완료"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </div>
+  );
+};
+
 export const Clickable: Story = {
   args: {
     children: null,
   },
-  render: () => {
-    const [selectedRow, setSelectedRow] = useState<number | null>(null);
+  render: () => <ClickableTableExample />,
+};
 
-    return (
-      <div>
-        <p style={{ marginBottom: "16px" }}>
-          선택된 행: {selectedRow !== null ? `Row ${selectedRow + 1}` : "없음"}
-        </p>
-        <TableContainer>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHeaderCell>주문번호</TableHeaderCell>
-                <TableHeaderCell>고객명</TableHeaderCell>
-                <TableHeaderCell align="right">금액</TableHeaderCell>
-                <TableHeaderCell align="center">상태</TableHeaderCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[...Array(5)].map((_, i) => (
-                <TableRow
-                  key={i}
-                  clickable
-                  selected={selectedRow === i}
-                  onClick={() => setSelectedRow(i)}
-                >
-                  <TableCell>ORD-{String(i + 1).padStart(5, "0")}</TableCell>
-                  <TableCell>고객 {i + 1}</TableCell>
-                  <TableCell align="right">{(i + 1) * 50000}원</TableCell>
-                  <TableCell align="center">
-                    {i % 3 === 0 ? "배송중" : i % 3 === 1 ? "준비중" : "완료"}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div>
-    );
-  },
+const SortableTableExample = () => {
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  } | null>(null);
+
+  const data = [
+    { id: 1, name: "홍길동", age: 30, department: "개발팀" },
+    { id: 2, name: "김철수", age: 25, department: "디자인팀" },
+    { id: 3, name: "이영희", age: 35, department: "마케팅팀" },
+    { id: 4, name: "박민수", age: 28, department: "개발팀" },
+  ];
+
+  const handleSort = (key: string) => {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig?.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedData = [...data].sort((a, b) => {
+    if (!sortConfig) return 0;
+
+    const aValue = a[sortConfig.key as keyof typeof a];
+    const bValue = b[sortConfig.key as keyof typeof b];
+
+    if (aValue < bValue) {
+      return sortConfig.direction === "asc" ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return sortConfig.direction === "asc" ? 1 : -1;
+    }
+    return 0;
+  });
+
+  return (
+    <TableContainer>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHeaderCell
+              sortable
+              sorted={
+                sortConfig?.key === "name" ? sortConfig.direction : null
+              }
+              onSort={() => handleSort("name")}
+            >
+              이름
+            </TableHeaderCell>
+            <TableHeaderCell
+              sortable
+              sorted={sortConfig?.key === "age" ? sortConfig.direction : null}
+              onSort={() => handleSort("age")}
+              align="center"
+            >
+              나이
+            </TableHeaderCell>
+            <TableHeaderCell
+              sortable
+              sorted={
+                sortConfig?.key === "department" ? sortConfig.direction : null
+              }
+              onSort={() => handleSort("department")}
+            >
+              부서
+            </TableHeaderCell>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedData.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell>{item.name}</TableCell>
+              <TableCell align="center">{item.age}</TableCell>
+              <TableCell>{item.department}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
 };
 
 export const WithSorting: Story = {
   args: {
     children: null,
   },
-  render: () => {
-    const [sortConfig, setSortConfig] = useState<{
-      key: string;
-      direction: "asc" | "desc";
-    } | null>(null);
-
-    const data = [
-      { id: 1, name: "홍길동", age: 30, department: "개발팀" },
-      { id: 2, name: "김철수", age: 25, department: "디자인팀" },
-      { id: 3, name: "이영희", age: 35, department: "마케팅팀" },
-      { id: 4, name: "박민수", age: 28, department: "개발팀" },
-    ];
-
-    const handleSort = (key: string) => {
-      let direction: "asc" | "desc" = "asc";
-      if (sortConfig?.key === key && sortConfig.direction === "asc") {
-        direction = "desc";
-      }
-      setSortConfig({ key, direction });
-    };
-
-    const sortedData = [...data].sort((a, b) => {
-      if (!sortConfig) return 0;
-
-      const aValue = a[sortConfig.key as keyof typeof a];
-      const bValue = b[sortConfig.key as keyof typeof b];
-
-      if (aValue < bValue) {
-        return sortConfig.direction === "asc" ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
-
-    return (
-      <TableContainer>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHeaderCell
-                sortable
-                sorted={
-                  sortConfig?.key === "name" ? sortConfig.direction : null
-                }
-                onSort={() => handleSort("name")}
-              >
-                이름
-              </TableHeaderCell>
-              <TableHeaderCell
-                sortable
-                sorted={sortConfig?.key === "age" ? sortConfig.direction : null}
-                onSort={() => handleSort("age")}
-                align="center"
-              >
-                나이
-              </TableHeaderCell>
-              <TableHeaderCell
-                sortable
-                sorted={
-                  sortConfig?.key === "department" ? sortConfig.direction : null
-                }
-                onSort={() => handleSort("department")}
-              >
-                부서
-              </TableHeaderCell>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedData.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.name}</TableCell>
-                <TableCell align="center">{item.age}</TableCell>
-                <TableCell>{item.department}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    );
-  },
+  render: () => <SortableTableExample />,
 };
 
 export const DifferentSizes: Story = {

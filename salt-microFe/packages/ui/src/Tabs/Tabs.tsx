@@ -60,7 +60,7 @@ export const Tabs = ({
     let newIndex = currentIndex;
 
     switch (e.key) {
-      case "ArrowLeft":
+      case "ArrowLeft": {
         e.preventDefault();
         newIndex = currentIndex - 1;
         if (newIndex < 0) newIndex = tabs.length - 1;
@@ -73,8 +73,9 @@ export const Tabs = ({
           leftAttempts++;
         }
         break;
+      }
 
-      case "ArrowRight":
+      case "ArrowRight": {
         e.preventDefault();
         newIndex = currentIndex + 1;
         if (newIndex >= tabs.length) newIndex = 0;
@@ -87,6 +88,7 @@ export const Tabs = ({
           rightAttempts++;
         }
         break;
+      }
 
       case "Home":
         e.preventDefault();

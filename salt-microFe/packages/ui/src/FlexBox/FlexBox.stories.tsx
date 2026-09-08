@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { ComponentPropsWithoutRef } from "react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { FlexBox } from "./FlexBox";
-import { Card } from "../Card/Card";
 
 const meta = {
   title: "Layout/FlexBox",
@@ -49,7 +49,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const Box = ({ children, ...props }: any) => (
+const Box = ({ children, style }: ComponentPropsWithoutRef<"div">) => (
   <div
     style={{
       padding: "1rem",
@@ -58,7 +58,7 @@ const Box = ({ children, ...props }: any) => (
       borderRadius: "8px",
       textAlign: "center",
       minWidth: "60px",
-      ...props.style,
+      ...style,
     }}
   >
     {children}

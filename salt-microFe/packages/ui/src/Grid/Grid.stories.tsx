@@ -1,5 +1,6 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { Grid, GridItem } from "./Grid";
+import type { ComponentPropsWithoutRef } from "react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Grid } from "./Grid";
 import { Card } from "../Card/Card";
 
 const meta = {
@@ -49,7 +50,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const Box = ({ children, ...props }: any) => (
+const Box = ({ children, style }: ComponentPropsWithoutRef<"div">) => (
   <div
     style={{
       padding: "2rem",
@@ -59,7 +60,7 @@ const Box = ({ children, ...props }: any) => (
       textAlign: "center",
       fontSize: "18px",
       fontWeight: "600",
-      ...props.style,
+      ...style,
     }}
   >
     {children}

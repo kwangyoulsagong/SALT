@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Card } from "./Card";
 
 const meta = {
@@ -319,7 +319,7 @@ export const ImageCard: Story = {
       <div style={{ padding: "20px" }}>
         <h3 style={{ margin: "0 0 8px 0" }}>멋진 제목</h3>
         <p style={{ margin: "0", color: "#666", lineHeight: "1.6" }}>
-          이미지와 함께 표시되는 카드입니다. padding="none"으로 설정하여
+          이미지와 함께 표시되는 카드입니다. padding=&quot;none&quot;으로 설정하여
           이미지가 카드 가장자리까지 표시됩니다.
         </p>
       </div>

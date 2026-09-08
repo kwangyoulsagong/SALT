@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Margin, Spacer, MarginBox } from "./Margin";
+import type { MarginProps } from "./Margin";
 import { Card } from "../Card/Card";
-import { FlexBox } from "../FlexBox/FlexBox";
 
 const meta = {
   title: "Layout/Margin",
@@ -146,6 +146,20 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+const spaceSizes: NonNullable<MarginProps["bottom"]>[] = [
+  "none",
+  "xs",
+  "sm",
+  "md",
+  "lg",
+  "xl",
+  "2xl",
+  "3xl",
+  "4xl",
+  "5xl",
+  "6xl",
+];
 
 // Helper component to show margin visually
 const MarginVisualizer = ({ children }: { children: React.ReactNode }) => (
@@ -359,21 +373,9 @@ export const SizeScale: Story = {
     <div>
       <h3>마진 크기 스케일</h3>
 
-      {[
-        "none",
-        "xs",
-        "sm",
-        "md",
-        "lg",
-        "xl",
-        "2xl",
-        "3xl",
-        "4xl",
-        "5xl",
-        "6xl",
-      ].map((size) => (
+      {spaceSizes.map((size) => (
         <div key={size} style={{ background: "#f9fafb", marginBottom: "8px" }}>
-          <Margin bottom={size as any}>
+          <Margin bottom={size}>
             <div
               style={{
                 padding: "12px",
