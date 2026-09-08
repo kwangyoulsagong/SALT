@@ -1,12 +1,15 @@
 # SALT 현재 기능 맵
 
 Last audited: 2026-05-25
+Direction updated: 2026-09-08 (아래 '제품 방향 재정의' 참조)
 
 이 문서는 `salt-microFe/**`, `bff/**`, `salt-server/**`, `salt-server/prisma/schema.prisma`를 기준으로 작성한 기능 인벤토리다. 상태는 코드 구조와 route/model 존재 여부 기준이며, 실제 UX 완성도는 기능별 기획서에서 추가 검증한다.
 
 관련 상세 보고서:
 
 - `pm/reports/feature-audits/2026-05-24-investment-backend-report.md` — 증권/투자 파트 현재 기능 상세 보고서
+
+> ⚠️ 아래 '기능 인벤토리'는 **2026-05-25 기준 실제 코드 상태**다. 2026-09-08에 제품 방향이 재정의되었고 제거/신규 결정이 내려졌으나 **아직 코드에 반영되지 않았다.** 결정 내용은 문서 하단 '제품 방향 재정의 (2026-09-08)' 절과 각 FEATURE 기획서를 참조한다.
 
 ## 시스템 구성
 
@@ -77,3 +80,46 @@ flowchart LR
 - 포트폴리오/뉴스/미션/AI 코치/외부 주문 전 체크/행동 코치/익절 플랜/신호 성과의 실제 프론트 노출 계획
 - BFF worker와 서버 worker의 가격 업데이트 책임 분리
 - `UserInvestmentProfile` DTO에는 `defaultMode`, `notificationLevel`을 받지만 현재 Prisma model에는 영속 필드가 없어 응답에서 `unsupportedPersistedFields`로 관리됨
+
+
+## 제품 방향 재정의 (2026-09-08)
+
+> 상태: **계획 확정 · 구현 미착수.** 이 절의 판정은 결정 사항이며 코드 반영은 FEATURE-000부터 순차 진행한다.
+
+### 무엇이 바뀌었나
+
+기존 SALT는 "저축 게이미피케이션 + 투자 코치"였고, 인벤토리 24개 기능 중 화면이 붙은 것은 4개뿐이었다(나머지 15개가 `Backend Only`). 사용자 결정에 따라 **본인 + 초대된 지인 최대 10명을 위한 비공개 개인 투자코치**로 재정의한다.
+
+- 자금은 SALT에 들어오지 않는다. 매매는 업비트/증권사에서 직접 하고 SALT는 **조회 전용** 연동만 한다.
+- 자산군을 **크립토 + 국내주식 + 미국주식** 3종으로 확장한다(`AssetType` 확장).
+- AI 추천(매수·매도 타이밍)은 **유지**하되, 모든 추천 카드에 **근거 · 과거 적중률 · 틀렸던 사례** 3종이 없으면 렌더하지 않는다.
+- 게이미피케이션(미션/포인트/업적/랭킹/게임)·소셜·뉴스·시장 인텔리전스 알림 3종은 **제거**한다.
+- 화면 24개 → **탭 5개**(홈/코치/청구서/세금/포지션).
+- **서약 카드 / 쿨다운 타이머는 범위에서 제외**한다(사용자 결정). 앱이 사용자 행동을 통제·차단하는 메커니즘 전체를 뺀다.
+
+### 판정 요약
+
+| 판정 | 개수 | 대표 항목 |
+|---|---|---|
+| 유지 | 10 | AI 코치, trade-preflight, behavior-coach, profit-plan, signal-performance, 포트폴리오 원장, 가격 원장, 실시간 가격, 차트, `packages/ui` |
+| 제거 | 8 | 미션/포인트/업적, 관심종목 CRUD, 시장 인텔리전스(센티먼트·고래·스마트머니), 뉴스, 피드, MFE 계좌선택 이벤트, 레거시 `AIAnalysis*` |
+| 통합·축소 | 6 | Shell/Home → ① 홈, 인증 → 초대 코드, 다목표 저축 → 단일 적립 목표, 시장 목록 → `isTracked` 10종, 인사이트 랭킹, 알림 → 2종, 대시보드 |
+| 신규 | 5 | FEATURE-001~005 |
+
+목표 수치: 기능 인벤토리 24 → **12 이하**, Prisma model 34 → **16**, worker 7 → **4**, MFE 3앱 → **2앱**.
+
+### 신규 기능
+
+| # | 기능 | 한 줄 |
+|---|---|---|
+| FEATURE-001 | 개입 청구서 (My Alpha) | 내 계좌를 "아무것도 안 했을 때"·"기계적 적립했을 때"와 나란히 놓고 차액을 원화로. 거래별 가격표의 합이 총액과 정확히 일치(항등식) |
+| FEATURE-002 | 연말 세금 마감 콕핏 | 자산군 3종 D-Day, 미국주식 손실수확 솔버(250만원 공제 최적화), 결제일·환율 함정 경고, 크립토 의제취득가액 스텝업 손익분기 |
+| FEATURE-003 | 밸류에이션 밴드 적립 | "이번 주 얼마 넣을지" 단일 숫자. BTC는 MVRV Z, 미국 지수는 CAPE 백분위로 배수 0~3x. 김프를 매수 비용으로 환산 |
+| FEATURE-004 | AI 코치 추천 화면 | 이미 서버에만 있던 `ai-coach`/`signal-performance`/`profit-plan`/`trade-preflight`/`behavior-coach`를 화면으로. 3종 세트 렌더 게이트 |
+| FEATURE-005 | 홈 브리핑 & 5탭 IA | 홈 5블록 단일 BFF 콜 + 부분 실패 격리, 온보딩 3스텝, 삭제 실행 |
+
+### 관련 문서
+
+- 글로벌 계획: `requirements/specs/in-progress/salt-solo-rebuild-global-plan.md`
+- 기획서: `pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md` ~ `FEATURE-005-home-briefing.md`
+- 스토리보드(인터랙티브 HTML): `pm/storyboard/SALT-Storyboard(20260908-1557).html`
