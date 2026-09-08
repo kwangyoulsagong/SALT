@@ -100,8 +100,8 @@ export const utils = {
   },
 };
 
-// 계좌 생성 헬퍼 함수
-const generateAccounts = (userSeqNo: string): Account[] => {
+// 계좌 생성 헬퍼 함수 (목 계좌는 무작위 생성이라 사용자 식별자를 쓰지 않는다)
+const generateAccounts = (): Account[] => {
   const numAccounts = 4 + Math.floor(Math.random() * 3);
   const shuffledBanks = [...BANKS].sort(() => Math.random() - 0.5);
   const selectedBanks = shuffledBanks.slice(0, numAccounts);
@@ -139,8 +139,8 @@ export const openBankingResponses = {
     user_seq_no: `USER${Math.floor(Math.random() * 1000000)}`,
   }),
 
-  generateAccountList: (userSeqNo: string) => {
-    const accounts = generateAccounts(userSeqNo);
+  generateAccountList: () => {
+    const accounts = generateAccounts();
     return {
       api_tran_id: `${Date.now()}`,
       api_tran_dtm: `${utils.generateDate()}${utils.generateTime()}`,

@@ -12,14 +12,14 @@
 ## 기본 형식
 
 - CSF3 형식을 사용한다.
-- `Meta`, `StoryObj`는 `@storybook/react`에서 타입 import로 가져온다.
+- `Meta`, `StoryObj`는 framework 패키지(`@storybook/nextjs-vite`)에서 타입 import로 가져온다. renderer 패키지(`@storybook/react`) 직접 import는 `storybook/no-renderer-packages` 위반이다.
 - `meta`는 `satisfies Meta<typeof Component>`를 사용한다.
 - `type Story = StoryObj<typeof meta>`를 선언한다.
 - 자동 문서화를 위해 `tags: ["autodocs"]`를 유지한다.
 - `title`은 `Components/<ComponentName>` 형식을 기본으로 한다.
 
 ```tsx
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Button } from "./Button.tsx";
 
 const meta = {

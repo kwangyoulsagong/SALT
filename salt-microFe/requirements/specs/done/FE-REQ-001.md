@@ -120,3 +120,8 @@ updated: 2026-05-25
 
 - 2026-05-25: 웹 리서치 기반으로 Module Federation shared 전략, Next dynamic SSR 원칙, React Query cache 경계, event bus typed registry 요구사항을 구체화했다.
 - 2026-05-25: 구현 결과에 맞춰 nextjs-mf 기본 React 공유, `_document` server lifecycle, 서버/브라우저 QueryClient 생성 정책을 반영했다.
+- 2026-09-08: 문서 형식을 FE-REQ-002~004와 맞추기 위해 `## Status` 섹션을 추가했다. 구현/검증 자체는 이전에 완료된 상태다(체크리스트 참조).
+
+## Status
+
+- done (검증 완료: 체크리스트 `reports/checklists/FE-REQ-001.md`의 tsc/lint/build 산출 기준). 본 spec은 `requirements/specs/done/`에 위치한다.
