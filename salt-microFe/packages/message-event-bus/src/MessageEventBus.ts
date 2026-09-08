@@ -1,6 +1,16 @@
 import type { EventName, EventPayloadMap } from "./events/registry";
 import type { EventCallback, EventMessage } from "./types/type";
 
+/** MFE 간 singleton 공유를 위해 window에 보관하는 인스턴스 슬롯. */
+type MessageEventBusGlobal = Window &
+  typeof globalThis & {
+    __MESSAGE_EVENT_BUS_INSTANCE__?: MessageEventBus;
+  };
+
+/** 브라우저에서만 global scope를 돌려준다. SSR에서는 undefined. */
+const getBrowserGlobal = (): MessageEventBusGlobal | undefined =>
+  typeof window === "undefined" ? undefined : (window as MessageEventBusGlobal);
+
 class MessageEventBus {
   private subscribers: Map<EventName, Set<EventCallback>>;
   private lastEvents: Map<EventName, EventMessage>;
@@ -11,18 +21,17 @@ class MessageEventBus {
     this.lastEvents = new Map();
 
     // 브라우저 환경에서 window 객체에 인스턴스 저장
-    if (typeof window !== "undefined") {
-      (window as any).__MESSAGE_EVENT_BUS_INSTANCE__ = this;
+    const browserGlobal = getBrowserGlobal();
+    if (browserGlobal) {
+      browserGlobal.__MESSAGE_EVENT_BUS_INSTANCE__ = this;
     }
   }
 
   public static getInstance(): MessageEventBus {
     // 브라우저 환경에서 window 객체에서 인스턴스 확인
-    if (
-      typeof window !== "undefined" &&
-      (window as any).__MESSAGE_EVENT_BUS_INSTANCE__
-    ) {
-      return (window as any).__MESSAGE_EVENT_BUS_INSTANCE__;
+    const existingInstance = getBrowserGlobal()?.__MESSAGE_EVENT_BUS_INSTANCE__;
+    if (existingInstance) {
+      return existingInstance;
     }
 
     if (!MessageEventBus.instance) {
