@@ -4,7 +4,7 @@ title: "@repo/ui 토큰·컴포넌트 확장 — 증권 앱 수준 화면을 만
 priority: high
 labels: [design-system, tokens, component, a11y, ui]
 created: 2026-09-08
-updated: 2026-09-08
+updated: 2026-09-09
 ---
 
 ## Summary
@@ -306,29 +306,29 @@ numeric: { tabular: "tabular-nums" }
 
 ## 수용 기준
 
-- [ ] `colors.neutral.50~900`이 D-2 표의 값과 일치한다.
-- [ ] `typography.t1~t8`이 존재하고 각 토큰이 size·lineHeight를 함께 제공한다.
-- [ ] `elevation.sm/md/lg/sheet`와 `numeric.tabular`가 존재한다.
-- [ ] `colors.brand.primary`가 여전히 `#7949FF`다. (D-1)
-- [ ] `colors.special.up`이 `#FF2E55`, `down`이 `#1677EE`다.
-- [ ] `fontFamily`가 `Inter`, `Noto Sans KR` 그대로이고 `globalFontFace` 선언이 변경되지 않았다.
-- [ ] 기존 토큰 키가 하나도 삭제되지 않았다. `grep -rn "vars\." apps/` 결과가 전부 해석된다.
-- [ ] `@repo/ui/tokens`로 토큰을 import할 수 있고, `apps/**`에 `packages/ui/src/**` deep import가 0건이다.
-- [ ] FR-20~31 컴포넌트 12종이 exports subpath로 공개되고 Storybook story가 있다.
-- [ ] FR-40~47 컴포넌트 8종이 exports subpath로 공개되고 Storybook story가 있다.
-- [ ] FR-60~67 컴포넌트 8종이 exports subpath로 공개되고 Storybook story가 있다.
-- [ ] `radius.button.sm/md/lg/xl` = `8/10/14/16`이 존재한다.
-- [ ] `Card`의 `elevation` 기본값이 `none`이고, `sm`을 명시하면 기존 그림자가 나온다.
-- [ ] `BottomCTA`가 safe-area 하단 패딩을 반영한다.
-- [ ] `NumberText`에 `signed`를 주면 색과 무관하게 `+`/`−` 문자가 출력된다.
-- [ ] `AssetIcon`에 `src`를 주지 않아도 심볼 이니셜과 배경색으로 렌더된다.
-- [ ] `Toggle`이 `role="switch"`이고 키보드로 조작된다.
-- [ ] `BottomSheet`가 열릴 때 focus를 가두고 ESC로 닫히며 배경 스크롤이 잠긴다.
-- [ ] `SegmentedControl`이 `role="tablist"`이고 활성 항목에 `aria-selected`가 있다.
-- [ ] 폭 320px에서 신규 컴포넌트 전부 가로 스크롤 없이 렌더된다.
-- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm build`, Storybook 빌드가 전부 통과한다.
-- [ ] `@repo/ui` 번들 증가분이 gzip 12KB 이하다.
-- [ ] `docs/design-system/style-tokens.md`에서 "토큰 전용 subpath가 없다" 경고 문구가 제거되었다.
+- [x] `colors.neutral.50~900`이 D-2 표의 값과 일치한다.
+- [x] `typography.t1~t8`이 존재하고 각 토큰이 size·lineHeight를 함께 제공한다.
+- [x] `elevation.sm/md/lg/sheet`와 `numeric.tabular`가 존재한다.
+- [x] `colors.brand.primary`가 여전히 `#7949FF`다. (D-1)
+- [x] `colors.special.up`이 `#FF2E55`, `down`이 `#1677EE`다.
+- [x] `fontFamily`가 `Inter`, `Noto Sans KR` 그대로이고 `globalFontFace` 선언이 변경되지 않았다.
+- [x] 기존 토큰 키가 하나도 삭제되지 않았다. `apps/**`의 `vars.*` 참조 17종이 전부 해석된다 (세 앱 모두 `next build` 타입 체크를 켜둔 상태로 `pnpm build` 통과).
+- [x] `@repo/ui/tokens`로 토큰을 import할 수 있다. `apps/**` deep import는 이 REQ에서 새로 만들지 않았다.
+- [x] FR-20~31 중 11종이 exports subpath로 공개되고 Storybook story가 있다. FR-29 `SegmentedControl`은 `FilterTabs`/`Tabs`와 겹쳐 제외.
+- [x] FR-40~47 컴포넌트 8종이 exports subpath로 공개되고 Storybook story가 있다.
+- [x] FR-60~67 처리 완료. 신규 6종 + `useToast`, 나머지 2종은 `AppBar`·`EmptyState`로 충족.
+- [x] `radius.button.sm/md/lg/xl` = `8/10/14/16`이 존재한다.
+- [x] `Card`의 `elevation` 기본값이 `none`이고, `sm`을 명시하면 그림자가 나온다. `bordered`도 추가.
+- [x] `BottomCTA`가 safe-area 하단 패딩을 반영한다. `BottomTabBar`·`BottomSheet`도 동일.
+- [x] `NumberText`에 `signed`를 주면 색과 무관하게 `+`/`−` 문자가 출력된다.
+- [x] `AssetIcon`에 `src`를 주지 않아도 심볼 이니셜과 배경색으로 렌더된다.
+- [x] `Toggle`이 `role="switch"`이고 키보드로 조작된다.
+- [x] `BottomSheet`가 열릴 때 focus를 가두고 ESC로 닫히며 배경 스크롤이 잠긴다. 닫으면 포커스가 복원된다.
+- [ ] ~~`SegmentedControl`~~ → 제외. 대신 **`FilterTabs`에 `role="tablist"`/`aria-selected`를 넣는 작업이 남아 있다.**
+- [ ] 폭 320px에서 신규 컴포넌트 전부 가로 스크롤 없이 렌더된다. — 각 컴포넌트에 `Narrow` story를 넣었으나 브라우저 확인은 미실시.
+- [x] `pnpm --filter @repo/ui lint`, `check-types`, `build-storybook`, 루트 `pnpm build`(3/3) 전부 통과.
+- [x] `@repo/ui` 번들 증가분 gzip **9.08KB**(JS 5.85 + CSS 3.21). 12KB 이하.
+- [x] `docs/design-system/style-tokens.md`에서 "토큰 전용 subpath가 없다" 경고 문구가 제거되었다.
 
 ## 검증 계획
 
@@ -343,12 +343,12 @@ numeric: { tabular: "tabular-nums" }
 ## Open Questions
 
 - **`fontSizes.base`와 `md`가 둘 다 14px**이다. `typography` 토큰이 들어오면 `fontSizes`는 사실상 legacy가 되는데, 중복 키를 정리할지 그대로 둘지 결정이 필요하다. 1차에서는 그대로 둔다(비파괴 우선).
-- **`colors.ai.*`의 실제 값**을 정해야 한다(FR-9). 브랜드 보라(`#7949FF`)와 구분되면서 충돌하지 않는 값이 필요하다. 후보: 청록 계열(`special.teal #20C997`) 재사용 또는 신설.
-- **틴트 배지용 토큰이 없다(신규).** `Badge`(FR-24)의 `up`·`down` tone은 라이트 틴트 배경을 쓸 값이 없어서(`market.upLight`/`downLight` 부재) 솔리드 배경 + 흰 글자로 만들었다. 흰 글자 대비는 `#FF2E55`에서 3.5:1, `#1677EE`에서 4.0:1로 **작은 글자 AA(4.5:1) 미달**이다. 또 `status.success(#51CF66)`를 `successLight(#D3F9D8)` 위에 올리면 약 2:1이라 틴트 배지의 전경색을 `neutral/800`으로 대체했다. 선택지는 ① `market.upLight/downLight` + `status.*Dark` 신설 ② 배지를 전부 `neutral/800` 전경으로 통일 ③ 배지 최소 크기를 큰 텍스트(AA 3:1)로 규정. Figma 컴포넌트는 현재 ②에 가깝게 만들어져 있다.
+- ~~**`colors.ai.*`의 실제 값**~~ → **2026-09-09 잠정 확정.** `ai.primary #20C997` / `ai.light #63E6BE` / `ai.lighter #E6FCF5`로 신설했다. `primary`는 흰 글자 대비가 낮아 아이콘·강조선 전용이고, `Badge`의 `ai` tone은 `ai.lighter` 배경 + `neutral.800` 전경을 쓴다. 값 자체는 여전히 잠정이며 토큰 파일에 그렇게 주석을 달았다.
+- ~~**틴트 배지용 토큰이 없다**~~ → **2026-09-09 ①안 채택.** `special.upLight/upDark`, `special.downLight/downDark`, `status.successDark/errorDark/warningDark/infoDark`를 신설했다. ②안(전부 `neutral.800` 전경)은 상승·하락 배지가 배경 틴트로만 구분되어 의미가 약해진다. 측정값: `upDark #C9182F` on `upLight #FFE9ED` = 5.0:1, `downDark #0B5BC4` on `downLight #E8F2FE` = 5.6:1. `Badge` 7종 전부 틴트 배경 + 어두운 전경이고 솔리드 배경 + 흰 글자는 쓰지 않는다.
 - **`space.lg2`라는 이름**이 어색하다. `space` 키를 숫자 기반(`s4/s8/s12/…`)으로 재편할지 여부는 별도 REQ로 미룬다.
 - `RadarChart`(FR-50)를 `@repo/ui`에 올릴지, `apps/investments` 로컬에 둘지. 재사용처가 현재 1곳이므로 로컬 우선이 규칙에 맞다.
-- `PreviewChart`와 `Sparkline`의 경계. 크기 기준으로 나눌지, `PreviewChart`에 `size` variant를 추가할지.
-- **`Card` 기본 elevation을 `none`으로 바꾸면** 기존 화면에서 카드 경계가 사라져 보이는 곳이 생길 수 있다. D-8 적용 후 앱 스크린샷 회귀(검증 계획 2)에서 확인하고, 필요하면 `Card`에 `border` variant를 추가한다.
+- ~~`PreviewChart`와 `Sparkline`의 경계~~ → **2026-09-09 별도 컴포넌트로 확정.** `PreviewChart`는 visx 기반 캔들 + 축 + 툴팁이라 `size`만 줄여도 지수 칩에 못 쓴다. `Sparkline`은 의존성 없는 순수 SVG path 하나라 칩 안에 넣어도 부담이 없다.
+- **`Card` 기본 elevation을 `none`으로 바꾸면** 기존 화면에서 카드 경계가 사라져 보이는 곳이 생길 수 있다. 2026-09-09에 `bordered` variant를 미리 추가해 두었다(그림자 없이 1px 경계선). 앱 스크린샷 회귀(검증 계획 2)는 아직 안 돌렸다.
 - **레퍼런스 컴포넌트 이름을 그대로 쓸지** 우리 관례를 유지할지. `Top`→`AppBar`, `Result`→`EmptyState`, `Switch`→`Toggle`처럼 이미 레포에 겹치는 이름이 있어 1:1로 맞추지 않았다. `component-index.md`에 대응표를 남긴다.
 - `Paragraph` · `Highlight` · `Bubble` · `Post` · `BoardRow` · `GridList` · `Keypad` · `Rating` · `NumericSpinner` · `Stepper` · `ProgressStepper` · `Menu` · `Agreement`는 **현재 스토리보드에 쓰이는 곳이 없어 제외**했다. 필요해지면 별도 REQ로.
 - 다크 모드. 현재 토큰은 라이트 단일이고 `background.dark`만 존재한다. 스토리보드도 라이트 단일이므로 이 REQ 범위 밖으로 둔다.
@@ -358,9 +358,25 @@ numeric: { tabular: "tabular-nums" }
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-08 | 초안 작성. 토큰 실측(12그룹), 컴포넌트 갭 20종 확정, 브랜드 색 유지 결정(D-1), 중립 스케일 정합(D-2), 타입 스케일 line-height 부여(D-3) |
+| 2026-09-09 | **A(FR-1~12) 구현 완료.** 중립 스케일 교체, `typography.t1~t8`, `elevation`, `numeric.tabular`, `space.lg2`, `radius.button.*`, `colors.ai.*`, `letterSpacings.tightest`, deprecated 주석, `exports["./tokens"]`, 문서 2종 갱신. 배지 대비 Open Question은 ①안으로 해결(`up/downLight`·`up/downDark`·`status.*Dark` 신설) |
+| 2026-09-09 | **B 1차 중 11종 구현 완료** — `NumberText` `ListRow` `ListGroup` `SectionBand` `Badge` `Chip` `ProgressBar` `Banner` `KeyValueList` `AppBar` `AssetIcon`. 각 컴포넌트 + Vanilla Extract 스타일 + Storybook story + 공개 subpath. `Card`에 `elevation`/`bordered` variant 추가(D-8, 기본 `none`) |
+| 2026-09-09 | **C-2 누락 8종(FR-60~67) 처리 완료.** 신규 6종 + 훅 1개: `BottomCTA`(single/double/fixed, safe-area) · `Toast`+`ToastProvider`+`useToast`(context 기반, 전역 store 아님) · `SearchField`(`role="search"`) · `IconButton`(`label` 필수) · `Checkbox`(indeterminate 포함) · `TextField`(`box`/`line`). FR-61 `Top`은 `AppBar`(FR-30), FR-62 `Result`는 `EmptyState`(FR-42)로 이미 충족 |
+| 2026-09-09 | **`AppBar` 아이콘 버튼을 `IconButton`으로 합쳤다.** `AppBar/styles/appBar.css.ts`가 들고 있던 `iconButtonStyles`를 지우고 공용 `IconButton`을 쓴다 |
+| 2026-09-09 | **번들 실측.** 신규 25개 모듈을 하나로 번들해 gzip 측정 — JS 5.85KB + CSS 3.21KB = **9.08KB**. 비기능 요구사항의 12KB 예산 안 |
+| 2026-09-09 | **C 2차 8종(FR-40~47) 구현 완료** — `BottomTabBar` `BottomSheet` `EmptyState` `Skeleton` `Toggle` `Divider` `Sparkline` `Slider`. `BottomTabBar`는 5개 제한을 튜플 union 타입으로 강제하고 safe-area 하단 패딩을 넣었다. `BottomSheet`는 portal + focus trap + ESC + 스크롤 락 + 포커스 복원. `Skeleton`·`Toggle`·`BottomSheet`는 `prefers-reduced-motion`에서 애니메이션을 멈춘다. `Slider`는 native `input[type=range]` + 숫자 직접 입력 필드 |
+| 2026-09-09 | **`EmptyState` 이름 충돌 기록.** `@repo/ui/table`이 이미 `EmptyState`(표 안 `<tr><td>`)를 export한다. 기존 공개 export를 깨지 않기 위해 이름을 바꾸지 않고 `@repo/ui/emptyState`로 별도 공개했다. 구분은 `component-index.md`의 "겹치는 컴포넌트 고르기" 표에 있다 |
+| 2026-09-09 | **FR-29 `SegmentedControl` 제외.** `variant="pill"`은 `FilterTabs`(회색 트랙 + 흰 활성 알약)와, `variant="underline"`은 `Tabs`와 시각·역할이 겹친다. 이미 있는 것을 다시 만들지 않는다는 판단으로 신규 컴포넌트 대신 `component-index.md`에 "겹치는 컴포넌트 고르기" 표를 추가했다. `FilterTabs`에 `role="tablist"`/`aria-selected`가 없는 건 별도 과제로 남는다 |
 | 2026-09-08 | **레퍼런스 공식 문서 실조사 반영.** Research Notes 신설 — 색상 3계열 10단계·타입 7+13단계·컴포넌트 40종 인벤토리 확보, spacing·radius·elevation·motion은 공식 문서 없음을 명시. radius `10/14` 추가(D-7), 그림자 대신 밴드 원칙(D-8), 누락 컴포넌트 8종 추가(FR-60~67) |
 | 2026-09-08 | **Figma 파운데이션 생성기 추가.** `tools/figma-plugin/`에 로컬 개발 플러그인을 작성해 D-2~D-8 목표값을 Figma Variables·Text Style·Effect Style·스펙시멘 페이지로 생성한다. 토큰 코드 반영(FR-1~FR-11)보다 Figma가 먼저 목표값을 들고 있는 상태이며, 값 변경 시 `code.js` 재실행으로 동기화한다. `colors.ai.*`는 Open Question 미결 상태이므로 후보값 `#20C997`을 잠정 적용 |
 | 2026-09-08 | **Figma 컴포넌트 1차 12종(FR-20~FR-31) 생성 추가.** `tools/figma-plugin`이 Component Set 11개 + 단독 1개(총 60 컴포넌트)를 만든다. fill·stroke는 Variable, 텍스트는 Text Style에 바인딩. `ListGroup`은 `ListRow` 인스턴스를 품는다. **신규 갭 발견** — 상승·하락의 라이트 틴트 토큰(`market.upLight`/`downLight`)이 없어 `Badge`의 up·down을 솔리드 배경 + 흰 글자로 처리했고, `status.success`를 `successLight` 위에 올리면 대비 2:1로 AA 미달이라 틴트 배지 전경색을 `neutral/800`으로 대체했다. 틴트 배지를 정식화하려면 토큰 추가 결정이 필요하다 |
 | 2026-09-08 | **Figma를 코드 실측값 기준으로 재정렬.** 생성물이 실제 구현과 다르다는 지적을 받아 Variable Collection을 Mode 2개(`Current`=tokens.css.ts 실측 / `Target`=본 REQ 적용 후)로 재구성했다. 누락 색 토큰(special 14 · status hover · overlay · shadow · background.gray · border.lightDark · text deprecated)을 모두 채워 123개가 되었고, 두 모드에서 값이 다른 것은 16개다. 또 이미 구현된 컴포넌트 10종(Button·Card·Heading·Text·InputField·Tab/Tabs·FilterTab/FilterTabs·Table)을 `packages/ui/src/**` 실측 스펙으로 미러링해 Figma가 "이미 있는 것 + 앞으로 만들 것"을 모두 들게 했다(총 22종/139 컴포넌트). **신규 발견** — `InputField`가 토큰이 아니라 하드코딩 hex(`#7949FF`·`#E5E8EB`·`#8B95A1`·`#F2F4F6`)와 `vw` 단위를 쓴다 |
 | 2026-09-09 | **Figma 컴포넌트를 실측 기반으로 전면 교체.** CSS를 읽어 해석하던 방식을 버리고, 실행 중인 Storybook에서 실제 렌더 결과를 측정하는 방식으로 바꿨다. ① `?args=variant:ghost;size:lg`로 prop을 주입해 **238개 조합**을 렌더시켜 측정하고 Component Set 12개로 만들었다. variant 이름이 `variant=ghost, size=lg` 형태라 Figma 속성 패널에 실제 props가 드롭다운으로 뜬다. ② 스토리 174개도 측정해 Component Set 16개로 만들었다(조합형 스토리 대조용). ③ **CSS 해석으로 만든 신규 12종(FR-20~FR-31)은 Figma에서 제거했다** — 코드에 없어 측정할 수 없고 근사치라 서로 겹치는 문제가 있었다. 스펙은 본 REQ와 `pm/storyboard`에 남아 있고, 구현되면 Storybook 스토리가 생기므로 그때 실측으로 들어온다. 측정·검증 도구는 `salt-microFe/tools/figma-plugin/measure/`에 있다 |
 | 2026-09-09 | **Figma 생성기를 제거하고 코드 구현으로 방향 전환.** 측정 기반 생성(토큰·Storybook 실측)은 정확했지만, 코드에 없는 컴포넌트를 새로 디자인하는 데는 맞지 않는 도구였다 — 구조와 명세 추적성은 나오지만 시각적 완성도가 나오지 않아 조립한 화면이 와이어프레임 수준에 머물렀다. `salt-microFe/tools/figma-plugin/`을 삭제하고, 본 REQ의 A(토큰 FR-1~12)와 B(1차 컴포넌트 12종 FR-20~31)를 `packages/ui`에 직접 구현하는 것으로 방향을 바꾼다. 생성기 코드는 커밋 `86d73b9`에 남아 있어 필요하면 되살릴 수 있다 |
+
+## Status
+
+- done. 검증 완료 — 루트 `pnpm lint`·`pnpm build`(3/3), `@repo/ui` `lint`/`check-types`/`test`/`build-storybook` 통과.
+- 체크리스트: `requirements/reports/checklists/FE-REQ-005.md`
+- 회고: `requirements/reports/retrospects/FE-REQ-005.md`
+- **부분 미충족을 안고 done으로 옮긴다.** FR-29 `SegmentedControl` 제외(대체 경로 문서화, 단 `FilterTabs` 접근성 부채 잔존), 320px 브라우저 확인·앱 시각 회귀 미실시, `colors.ai.primary` 잠정값, FR-50/51(3차·선택) 미착수. 후속 항목은 회고의 Action Items에 있다.
+- 본 spec은 `requirements/specs/done/`에 위치한다.

@@ -2,6 +2,10 @@
 
 ## TL;DR
 
+> **개정 2026-09-08 — 계좌 연동 제외.** 사용자 결정: 거래소·증권사 계좌를 연동하지 않고 **얼마에 얼마나 투자했는지 직접 입력**한다.
+> CSV import · Upbit API 키 · KIS 연동이 전부 빠지고, 원장은 100% 수기 입력이다. 그래서 **병목이 파서에서 입력 UX로 옮겨간다** — 입력이 번거로우면 사용자가 안 넣고, 안 넣으면 청구서·세금·코치가 전부 동작하지 않는다.
+
+
 - 내 실제 계좌를 **① 아무것도 안 했을 때(Do-Nothing)**, **② 기계적으로 적립만 했을 때(Mechanical DCA)** 와 나란히 놓고, 차액을 **원화 청구서**로 발급한다.
 - 핵심은 총액이 아니라 **귀속**이다. 모든 개별 거래에 원화 가격표를 붙이고, 그 합이 총 차액과 **정확히 일치**한다(잔차 없음, 수학적 항등식 — 4절).
 - 거래를 행동 편향 라벨(패닉셀 / 추격매수 / 과잉거래)로 묶어서 보여준다. 결과 화면 한 줄: *"지난 180일 내 개입은 −1,240,000원. 그중 −890,000원이 패닉셀 3건에서 나왔습니다."*
@@ -25,8 +29,9 @@
 
 ## 사용자 시나리오
 
-1. 업비트에서 거래내역 CSV를 내려받아 SALT에 올린다. SALT가 중복을 걸러 원장에 반영하고, 홀딩 수량을 업비트 잔고와 대조해 일치 여부를 보여준다.
-2. ② 청구서 탭을 연다. 3선 그래프가 뜬다 — 실제 나(굵은 선), 아무것도 안 함(점선), 기계적 적립(얇은 선).
+1. 업비트에서 매수한 뒤 SALT에서 `+ 거래 기록 추가`를 누른다. 자산군·종목이 최근 입력 기준으로 이미 선택돼 있고, 거래일은 오늘, 단가는 현재가가 채워져 있다. **수량만 넣고 저장**한다. 저장 전에 평단이 88,000,000 → 87,412,000으로 바뀌는 것이 보인다.
+2. 한 달치를 몰아서 넣을 때는 거래소 화면에서 텍스트를 복사해 붙여넣는다. 행 단위로 파싱된 표가 나오고 틀린 칸만 고친다.
+3. ② 청구서 탭을 연다. 3선 그래프가 뜬다 — 실제 나(굵은 선), 아무것도 안 함(점선), 기계적 적립(얇은 선).
 3. 그래프 아래 청구서: `개입 손익 −1,240,000원 (아무것도 안 한 경우 대비)`, `규율 손익 −430,000원 (기계적 적립 대비)`.
 4. 청구서 항목을 펼친다. 편향별 집계: `패닉셀 3건 −890,000 / 추격매수 5건 −310,000 / 수수료 42건 −86,000 / 잘한 익절 2건 +46,000`.
 5. `패닉셀 3건`을 누른다. 거래 3건이 날짜·수량·단가·현재가·귀속손익으로 나온다. *"2026-06-12 0.05 BTC를 130,000,000원에 매도. 현재 150,000,000원. 이 결정의 값 −1,000,000원."*
@@ -35,16 +40,22 @@
 
 ## 기능 요구사항
 
-### Phase 1 — 원장 신뢰 (S1, 전체 기능의 병목)
+### Phase 1 — 원장 입력 (S1, 전체 기능의 병목)
+
+계좌를 연동하지 않으므로 정확도는 **입력 편의성**에 달려 있다. 목표는 **거래 1건 30초**다.
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-1 | **업비트 CSV import**: 거래내역 CSV + 입출금내역 CSV 업로드. 파싱해 `PortfolioTransaction`(매수/매도)과 `CashFlow`(KRW 입출금)로 적재 | Must | Draft |
-| FR-2 | **중복 제거 + 대조 검증**: `(source, sourceRef)` 유니크로 재업로드 시 중복 방지. import 후 계산된 홀딩 수량을 사용자가 입력(또는 API 조회)한 업비트 실제 잔고와 비교해 **오차율**을 표시. 오차 > 0.5%면 청구서 화면에 신뢰도 경고 배너 | Must | Draft |
-| FR-3 | **Upbit 조회 전용 API 연동(선택)**: `자산 조회` 권한만 부여한 API Key로 잔고/주문내역 자동 동기화. 키는 애플리케이션 레벨 암호화 저장, **주문/출금 권한 키는 저장 거부**(권한 스코프 검사 후 거부) | Should | Draft |
-| FR-3a | **KIS 조회 전용 연동(국내·미국 주식)**: 한국투자증권 KIS Developers 오픈API로 계좌 잔고·체결내역 GET. 증권사 거래내역 CSV import도 동일 경로 지원. **주문 API는 호출하지 않는다** | Must | Draft |
-| FR-3b | **환율 원장**: 미국주식 거래는 `settlementDate`와 결제일 기준환율을 함께 적재(`FxRate`, FEATURE-002와 공유). 반사실 계산은 **원화 기준**으로 수행 | Must | Draft |
-| FR-4 | **가격 원장 백필**: 반사실 계산에 필요한 구간의 일봉이 `PriceHistory`에 없으면 Upbit candles API로 백필. 거래 최초일 −1일부터 오늘까지 `timeframe=d1` 무결성 검사 | Must | Draft |
+| FR-1 | **거래 입력 폼**: 자산군 → 종목 → 구분(매수/매도) → 수량 → 체결 단가 → 거래일. 이 6개가 필수이고 나머지는 전부 선택 또는 자동 | Must | Draft |
+| FR-1a | **선택/자동 필드**: 수수료(비우면 0), 결제일(크립토·국내주식은 거래일과 동일 자동, 미국주식만 T+1 자동 계산 후 수정 가능), 메모 | Must | Draft |
+| FR-1b | **입력 부담 축소**: 거래일 기본값 오늘, 체결 단가 기본값 현재가(있으면), 자산군·종목은 최근 입력 순 정렬. 같은 종목 연속 입력 시 자산군·종목 유지 | Must | Draft |
+| FR-2 | **반영 결과 미리보기**: 저장 전에 총 취득금액 · **이동평균 평단 변화**(변경 전 → 후) · 보유 수량 변화를 보여준다. 잘못 입력하면 평단이 튀는 것이 즉시 보인다 | Must | Draft |
+| FR-2a | **이상값 경고**: 현재가 대비 단가 편차 ±50% 초과, 수량 0 또는 음수, 보유 수량 초과 매도, 미래 날짜, 중복 의심(같은 날·종목·수량·단가) 시 경고. **저장을 막지 않고 경고만** 한다 | Must | Draft |
+| FR-3 | **잔고 대조(사용자 신고)**: 사용자가 거래소에서 본 실제 보유 수량을 입력하면 계산된 홀딩과 비교해 오차율을 표시. 오차 > 0.5%면 청구서·세금 화면에 신뢰도 경고 배너 | Must | Draft |
+| FR-3a | **일괄 입력(붙여넣기)**: 거래소 화면에서 복사한 텍스트를 붙여넣으면 행 단위로 파싱해 편집 가능한 표로 만든다. **파일 업로드·API 연동은 없다.** 파싱 실패 행은 사용자가 표에서 직접 고친다 | Should | Draft |
+| FR-3b | **환율 원장**: 미국주식 거래는 결제일 기준환율을 함께 저장. 환율은 자동 조회하되 없으면 **사용자 입력 폴백**. 반사실 계산은 원화 기준으로 통일 | Must | Draft |
+| FR-4 | **가격 원장**: 반사실 계산에 필요한 구간의 일봉을 확보. 크립토는 업비트 **공개** candles API(인증 불필요)로 백필. **주식 시세 소스는 미정**(글로벌 플랜 8-1) — 확정 전까지 주식은 사용자가 입력한 현재가를 쓰고, 일봉이 없는 구간은 `interpolatedDays[]`로 노출 | Must | Draft |
+| FR-4a | **현재가 수기 갱신 경로**: 시세 자동 조회가 없는 자산군은 사용자가 현재가를 갱신할 수 있어야 한다. 마지막 갱신 시각을 표시하고 7일 이상 지나면 화면에 `시세 낡음` 배지 | Must | Draft |
 
 ### Phase 2 — 반사실 엔진 (S2)
 
@@ -66,28 +77,31 @@
 
 | 구분 | 요구사항 |
 |---|---|
-| 성능 | 거래 5,000건 / 일봉 3,000개 기준 반사실 전체 계산 p95 < 1.5s. 화면은 스냅샷 캐시로 첫 페인트 < 300ms. CSV import 10,000행 < 10s |
+| 성능 | 거래 5,000건 / 일봉 3,000개 기준 반사실 전체 계산 p95 < 1.5s. 화면은 스냅샷 캐시로 첫 페인트 < 300ms. **입력 미리보기 p95 < 200ms**(타이핑 중 갱신되므로) |
 | 정확성 | 금액 계산은 부동소수점 누적 오차를 피하기 위해 서버에서 `Decimal`(prisma Decimal / decimal.js)로 처리하고, 응답 직전에만 number 직렬화. 수량은 8자리, 원화는 정수 원 단위 반올림 |
 | 접근성 | 3선 그래프는 색만으로 구분하지 않는다(실선/점선/파선 + 직접 라벨). 손익 부호는 색 + 부호문자(+/−) 동시 표기. 청구서 표는 스크린리더용 caption 제공 |
-| 보안 | Upbit API Key는 KMS 또는 로컬 마스터키로 암호화. 응답에 절대 포함하지 않음. 키 등록 시 권한 스코프를 조회해 주문/출금 권한이 있으면 등록 거부. CSV 원본은 파싱 후 삭제(증빙 보관은 FEATURE-003의 아카이브가 담당) |
+| 보안 | **저장하는 자격증명이 없다.** 거래소·증권사 API 키를 받지 않고 계좌에 접속하지 않는다. 이것이 이 설계의 가장 큰 보안 이점이다. 붙여넣기 텍스트는 파싱 후 보관하지 않는다 |
 | 장애 처리 | 일봉 결측 시 해당 날짜를 선형보간하지 않고 **직전 종가 carry-forward**하고 `interpolatedDays[]`로 노출. 결측이 전체의 5% 초과면 `degraded: true` |
 | 관측성 | import 건수/중복/실패 카운터, 반사실 계산 시간, `reconciliation` 오차 히스토그램, 잔고 대조 오차율을 로그 |
 
 ## UX 상태
 
 - **Loading**: 3선 그래프 영역 스켈레톤 + "거래 N건 / 일봉 M개 계산 중". 스냅샷이 있으면 스냅샷을 먼저 렌더하고 상단에 "현재가 반영 중" 인라인 스피너.
-- **Empty (거래 0건)**: 청구서 대신 **온보딩 1단계** — "업비트 거래내역 CSV를 올려주세요". 다운로드 위치 안내 스크린샷 포함. 가짜 샘플 청구서를 미리보기로 제공(워터마크 `예시`).
+- **Empty (거래 0건)**: 청구서 대신 **첫 거래 입력 유도** — "첫 거래를 기록하면 청구서가 계산됩니다". 가짜 샘플 청구서를 미리보기로 제공(워터마크 `예시`).
 - **Empty (기간 내 거래 0건)**: "이 기간에는 아무것도 하지 않았습니다. 개입 손익 0원 — 이것도 좋은 결과입니다." (자책 프레이밍 금지)
-- **Error (파싱 실패)**: 실패한 행 번호와 원인을 최대 10건까지 표시, 나머지는 성공 처리(부분 성공 허용). 실패 행 CSV 다운로드 제공.
+- **Error (붙여넣기 파싱 실패)**: 파싱된 행은 표로 보여주고 **실패한 행은 빈 칸으로 표에 남겨** 사용자가 직접 채우게 한다. 실패를 버리지 않는다.
 - **Error (계산 실패)**: 마지막 성공 스냅샷 + "최신 계산 실패 (2026-09-08 09:00 기준 데이터)" 배너 + 재시도 버튼.
-- **Degraded (원장 불일치)**: 상단 고정 경고 — "계산된 잔고가 실제 잔고와 1.2% 차이납니다. 청구서 금액이 정확하지 않을 수 있습니다." + [원장 점검] CTA.
+- **Degraded (원장 불일치)**: 상단 고정 경고 — "계산된 잔고가 신고한 잔고와 1.2% 차이납니다. 누락된 거래가 있을 수 있습니다." + [거래 확인] CTA.
+- **Stale (시세 낡음)**: 시세 자동 조회가 없는 자산군의 마지막 갱신이 7일 이상이면 `시세 7일 전` 배지 + [갱신] CTA.
 - **Unauthorized**: 로그인 화면.
 - **Success**: 3선 그래프 + 청구서 + 편향별 집계 + `mostExpensiveHabit` 카드. 상단에 계산 기준 시각.
 - **Optimistic update**: 없음. 금액 화면에서 낙관적 갱신은 금지한다.
 
 ## 정책과 제약
 
-- **SALT는 주문을 실행하지 않는다.** 이 기능은 사후 회계다.
+- **SALT는 주문을 실행하지 않고, 계좌에 접속하지도 않는다.** API 키를 받지 않으므로 저장할 자격증명이 없다.
+- **원장은 사용자 입력이 유일한 진실이다.** 그래서 입력을 막지 않고(FR-2a) 경고만 하며, 대신 이상값을 눈에 보이게 만든다.
+- 이 기능은 사후 회계다.
 - **금액은 반드시 서버 계산.** 프론트는 표시만. LLM은 문장만.
 - **잔차를 숨기지 않는다.** `reconciliation` 필드는 항상 응답에 포함하고, 오차가 있으면 UI에 표시.
 - **지표/추정 없음.** 청구서에 미래 예측을 섞지 않는다. 전부 확정된 과거 가격 기반.
@@ -107,10 +121,12 @@
 | investments | `component/Invoice/TradeAttributionRow` | 신규. 날짜/수량/단가/현재가/귀속손익 + 전후 90일 차트 링크 |
 | investments | `component/Invoice/MostExpensiveHabitCard` | 신규. 가장 비싼 습관 1개 강조 |
 | investments | `component/Invoice/LedgerHealthBanner` | 신규. 대조 오차/결측 경고 |
-| investments | `component/Ledger/CsvImportDialog` | 신규. 드래그앤드롭, 파싱 결과 요약, 실패 행 표시 |
-| investments | `component/Ledger/UpbitKeyForm` | 신규. 조회 전용 키 등록, 권한 검사 결과 표시 |
+| investments | `component/Ledger/TradeInputSheet` | 신규. 거래 입력 폼 + 반영 결과 미리보기 + 이상값 경고 |
+| investments | `component/Ledger/PasteImportTable` | 신규. 붙여넣기 파싱 → 편집 가능한 표 |
+| investments | `component/Ledger/ReportedBalanceForm` | 신규. 사용자 신고 잔고 입력 → 오차율 |
+| investments | `component/Ledger/PriceRefreshRow` | 신규. 시세 수기 갱신 + 마지막 갱신 시각 |
 | investments | `hooks/api/invoice/useInterventionInvoice.ts` | 신규 |
-| investments | `hooks/api/ledger/useLedgerImport.ts` | 신규 |
+| investments | `hooks/api/ledger/useTradeEntry.ts` | 신규 |
 | investments | `component/InvestmentsApp/MyInvestments` | 청구서 요약 1줄 링크 추가 |
 | shell | `components/Home` (① 오늘) | 주간 청구서 변동분 1줄 배치 (FEATURE-005와 조율) |
 
@@ -120,12 +136,15 @@
 |---|---|---|---|---|---|
 | GET | `/api/app/invoice` | Y | `?window=30\|90\|180\|365\|all` (기본 180) | `InvoiceViewModel` (아래) | Draft |
 | GET | `/api/app/invoice/trades` | Y | `?window&bias=panic_sell&sort=pnl_asc&limit=50&cursor=` | `{ items: TradeAttribution[], nextCursor }` | Draft |
-| POST | `/api/app/ledger/import` | Y | `multipart/form-data` — `tradesCsv`, `cashflowCsv?`, `source=upbit` | `{ inserted, duplicated, failed, failures[], holdingDiff[] }` | Draft |
+| POST | `/api/app/ledger/trade` | Y | `{ assetType, symbol, side, quantity, price, tradeDate, settlementDate?, fee?, fxRate?, note? }` | `{ id, holdingAfter: {quantity, avgPrice}, warnings[] }` | Draft |
+| POST | `/api/app/ledger/trade/preview` | Y | 동일 | `{ totalCost, avgPriceBefore, avgPriceAfter, quantityAfter, warnings[] }` | Draft |
+| POST | `/api/app/ledger/trades/bulk` | Y | `{ rows: TradeInput[] }` | `{ inserted, failed, failures[] }` | Draft |
+| POST | `/api/app/ledger/parse-paste` | Y | `{ text, assetTypeHint? }` | `{ rows: TradeInput[], unparsed[] }` | Draft |
+| PATCH | `/api/app/ledger/trade/:id` · DELETE | Y | 수정/삭제 (수기 입력이므로 필수) | `204` | Draft |
+| POST | `/api/app/ledger/price` | Y | `{ assetType, symbol, price }` | `{ updatedAt }` — 시세 수기 갱신 | Draft |
 | GET | `/api/app/ledger/health` | Y | — | `{ computedHoldings[], reportedHoldings[], maxDiffRate, missingCandleDays, degraded }` | Draft |
 | POST | `/api/app/ledger/reported-balance` | Y | `{ symbol, quantity }[]` | `{ maxDiffRate }` | Draft |
-| POST | `/api/app/ledger/upbit-key` | Y | `{ accessKey, secretKey }` | `{ scopes[], accepted }` — 주문/출금 스코프 포함 시 `403 SCOPE_NOT_ALLOWED` | Draft |
-| DELETE | `/api/app/ledger/upbit-key` | Y | — | `204` | Draft |
-| POST | `/api/app/ledger/sync` | Y | — | `{ inserted, duplicated }` | Draft |
+
 
 ### 서버 raw API
 
@@ -134,10 +153,10 @@
 | GET | `/api/counterfactual/invoice` | Y | 3트랙 시계열 + 귀속 손익 + 편향 집계 원본 |
 | GET | `/api/counterfactual/snapshot/latest` | Y | 최신 스냅샷 |
 | POST | `/api/counterfactual/recompute` | Y | 강제 재계산 |
-| POST | `/api/ledger/import` | Y | CSV 파싱/적재 |
-| GET | `/api/ledger/health` | Y | 대조 검증 |
-| POST | `/api/ledger/upbit-key` / DELETE | Y | 키 등록/삭제 (스코프 검사) |
-| POST | `/api/ledger/sync` | Y | 조회 전용 키로 주문내역 동기화 |
+| POST | `/api/ledger/trade` · `/preview` · `/bulk` · `/parse-paste` | Y | 거래 입력·미리보기·일괄·붙여넣기 파싱 |
+| PATCH · DELETE | `/api/ledger/trade/:id` | Y | 수정·삭제 |
+| POST | `/api/ledger/price` | Y | 시세 수기 갱신 |
+| GET | `/api/ledger/health` | Y | 사용자 신고 잔고 대조 |
 | GET | `/api/price-history/coverage` | Y | 일봉 결측 조회 |
 | POST | `/api/price-history/backfill` | Y | 일봉 백필 |
 
@@ -222,15 +241,16 @@ type TradeAttribution = {
 | Layer | 위치 | 영향 |
 |---|---|---|
 | Server | `modules/counterfactual/` | **신규**. `counterfactual.routes/controller/service`, `counterfactual.engine.ts`(3트랙 + 귀속), `bias-labeler.service.ts`(behavior-coach 재사용) |
-| Server | `modules/ledger/` | **신규**. `upbit-csv.parser.ts`, `ledger-import.service.ts`, `ledger-health.service.ts`, `upbit-key.service.ts`(스코프 검사 + 암호화) |
+| Server | `modules/ledger/` | **신규**. `trade-entry.service.ts`(입력·미리보기·검증), `paste-parser.ts`(붙여넣기 텍스트 → 행), `ledger-health.service.ts`(신고 잔고 대조), `manual-price.service.ts` |
 | Server | `modules/behavior-coach` | 편향 판정 로직을 **거래 단위 라벨러로 추출**해 counterfactual에서 재사용. 기존 응답 계약 유지 |
 | Server | `modules/portfolio` | import 후 `PortfolioHolding` 재계산 로직 노출 (`recalculateHoldings(userId)`) |
-| Server | `external/upbit` | candles 백필, accounts 조회, orders 조회 추가 |
-| DB | `PortfolioTransaction` | `source String @default("manual")`, `sourceRef String?` 추가 + `@@unique([userId, source, sourceRef])`. 기존 row는 `source="manual"`, `sourceRef=null` (nullable 유니크는 Postgres에서 NULL 중복 허용 → 기존 데이터 안전) |
-| DB | `CashFlow` | **신규 model** — `id, userId, direction("in"\|"out"), currency("KRW"), amount, occurredAt, source, sourceRef` + `@@unique([userId, source, sourceRef])`, `@@index([userId, occurredAt])` |
+| Server | `external/upbit` | **공개 candles API만** 추가(인증 불필요). accounts·orders는 사용하지 않는다 |
+| DB | `PortfolioTransaction` | `settlementDate DateTime?`, `currency String @default("KRW")`, `priceCurrency Float?`, `fxRate Float?`, `note String?` 추가. **`source`/`sourceRef`는 불필요** — 입력 경로가 하나뿐이므로 중복 제거 유니크 키가 필요 없다. 중복은 FR-2a 경고로 처리 |
+| DB | `CashFlow` | **신규 model** — `id, userId, direction("in"\|"out"), currency, amount, occurredAt, note?` + `@@index([userId, occurredAt])`. **수기 입력.** 반사실 계산의 입금 스케줄 소스 |
 | DB | `CounterfactualSnapshot` | **신규 model** — `id, userId, window, rangeFrom, rangeTo, computedAt, actualValue, doNothingValue, mechanicalDcaValue, interventionPnl, disciplinePnl, totalFee, tradeCount, netDeposit, seriesJson Json, biasBreakdownJson Json, residual, degraded Boolean, degradedReasons String[]` + `@@unique([userId, window, computedAt])`, `@@index([userId, window, computedAt])` |
 | DB | `TradeAttribution` | **신규 model** — `id, userId, transactionId @unique, symbol, attributedPnl, currentPriceAt, biasLabels String[], computedAt` + `@@index([userId, attributedPnl])` (편향/손익 정렬 쿼리용) |
-| DB | `UpbitApiKey` | **신규 model** — `id, userId @unique, accessKeyMasked, secretCipher, scopesJson Json, registeredAt, lastSyncedAt`. `secretCipher`는 암호문만 |
+| DB | `ReportedBalance` | **신규 model** — `id, userId, assetType, symbol, quantity, reportedAt` + `@@unique([userId, assetType, symbol])`. 사용자가 거래소에서 본 실제 잔고 |
+| DB | `ManualPrice` | **신규 model** — `id, userId, assetType, symbol, price, updatedAt` + `@@unique([userId, assetType, symbol])`. 시세 자동 조회가 없는 자산군용 |
 | DB | `UserInvestmentProfile` | `benchmarkSymbol String @default("KRW-BTC")` 추가 |
 | DB | migration | `20260908_counterfactual_ledger` |
 | Worker | `counterfactual.worker.ts` | **신규**. 주 1회 월 09:00 KST 전 window 스냅샷 생성. 분산 락(userId 단위) + 멱등(같은 `computedAt` 시간 버킷은 upsert). 실패 시 지수 백오프 3회, 최종 실패는 마지막 스냅샷 유지 |
@@ -327,16 +347,20 @@ attributedPnl_k = Δq_k × (p_T − p_k) − fee_k
 
 ## 수용 기준
 
-- [ ] 실제 업비트 CSV(최소 1년치)를 올려 `inserted > 0`, 재업로드 시 `inserted = 0`.
-- [ ] `computedHoldings` vs `reportedHoldings` 최대 오차율 ≤ 0.5%.
+- [ ] **거래 1건을 30초 이내에 입력할 수 있다**(자산군·종목·수량만 바꿔 연속 입력 시).
+- [ ] 저장 전 미리보기에 평단 변화(전 → 후)와 보유 수량 변화가 표시된다.
+- [ ] 이상값 5종(단가 편차·수량 0·초과 매도·미래 날짜·중복 의심)에 경고가 뜨고, **저장은 막히지 않는다**.
+- [ ] 거래 수정·삭제가 동작하고 홀딩이 즉시 재계산된다.
+- [ ] 붙여넣기 파싱에서 실패한 행이 버려지지 않고 빈 칸으로 표에 남는다.
+- [ ] 사용자 신고 잔고와 계산된 홀딩의 오차율이 표시되고, 0.5% 초과 시 청구서·세금에 경고 배너가 뜬다.
 - [ ] 무작위 생성 거래/입출금 300케이스에 대해 `reconciliation.residual` 절대값 ≤ 100원(전 케이스).
 - [ ] 청구서 화면에 `interventionPnl`, `disciplinePnl`, `totalFee`가 원화 정수로 표시된다.
 - [ ] 편향별 집계 합계가 `Σ attributedPnl`과 일치한다(라벨 `none` 포함).
 - [ ] `mostExpensiveHabit` 카드에 해당 거래 목록과 전후 90일 가격 추이가 연결된다.
 - [ ] 이익 항목이 있으면 손실 항목과 동일한 크기/위치 비중으로 렌더된다(디자인 리뷰 승인).
 - [ ] 일봉 결측 5% 초과 시 `degraded: true` + 화면 경고.
-- [ ] 주문/출금 권한 포함 Upbit 키 등록 시 403 `SCOPE_NOT_ALLOWED`이고 DB에 아무것도 저장되지 않는다.
-- [ ] 응답 어디에도 `secretKey` 평문이 없다.
+- [ ] **`grep -rn "accessKey\|secretKey\|apiKey" salt-server/src bff/src` 결과가 0건이다** — 저장하는 자격증명이 없다.
+- [ ] 거래소·증권사 인증 API를 호출하는 코드가 0건이다.
 - [ ] 거래 5,000건 기준 `GET /api/app/invoice` p95 < 1.5s (스냅샷 미스 시).
 - [ ] 거래 0건 상태에서 온보딩 화면이 뜨고 크래시하지 않는다.
 
@@ -344,21 +368,22 @@ attributedPnl_k = Δq_k × (p_T − p_k) − fee_k
 
 1. **단위**: `counterfactual.engine`에 합성 시나리오 — (a) 매수 후 무매매(개입손익 0), (b) 고점 매도 후 저점 재매수(양수), (c) 저점 매도 후 고점 재매수(음수), (d) 입금만 하고 매수 안 함, (e) 전량 매도 후 종료.
 2. **Property test**: 무작위 거래/입출금/가격 시퀀스 300개에 대해 항등식 잔차 = 0 검증. `fast-check` 사용.
-3. **실데이터**: 본인 업비트 계좌 실제 CSV로 end-to-end. 계산된 현재 평가액을 업비트 앱 화면과 육안 대조(오차 0.5% 이내).
-4. **파서**: 업비트 CSV 컬럼 변경 대비 — 헤더 스냅샷 테스트. 헤더가 바뀌면 명시적 에러로 실패.
+3. **실데이터**: 본인 실제 보유 내역을 수기로 입력해 end-to-end. 계산된 현재 평가액을 거래소 앱 화면과 육안 대조(오차 0.5% 이내). **입력에 걸린 시간을 측정해 30초 목표를 검증**한다.
+4. **붙여넣기 파서**: 거래소 화면에서 실제로 복사한 텍스트 3종(업비트·증권사 2곳)으로 파싱률 측정. 파싱 못한 행이 표에 남는지 확인.
 5. **편향 라벨**: 골든 케이스 20건(수동 라벨링) 대비 정확도 리뷰. 오분류는 라벨을 늘리기보다 `none`으로 보수적 처리.
 6. **성능**: 5,000건 거래 시딩 후 p95 측정.
-7. **보안**: 주문권한/출금권한 키 등록 시도 3케이스, 응답/로그/DB에 secret 노출 여부 grep.
+7. **보안**: 자격증명 관련 심볼 grep 0건 확인. 외부 인증 API 호출 0건 확인.
 8. **회귀**: `behavior-coach` 기존 응답 계약이 라벨러 추출 후에도 동일한지 스냅샷 테스트.
 
 ## Open Questions
 
-- 업비트 거래내역 CSV의 정확한 컬럼 스펙과 체결 단위 분할 표기(부분체결 다건) 처리 규칙 — 실제 파일 1건을 받아 파서 스펙을 확정해야 한다. **FR-1 착수 전 선결.**
-- `sourceRef`로 무엇을 쓸지: 업비트 CSV에 주문 UUID가 있으면 그것, 없으면 `(체결시각+심볼+수량+단가)` 해시. 후자는 동일 초에 동일 체결이 2건이면 충돌 → 해시에 CSV 행 번호를 섞으면 재업로드 시 중복 방지가 깨진다. **결정 필요.**
+- **주식 시세 소스**(글로벌 플랜 8-1). 확정 전까지 주식은 현재가 수기 입력(FR-4a)으로 동작하지만, 갱신을 안 하면 청구서·세금이 낡는다. **가장 중요한 남은 결정.**
+- **붙여넣기 파서를 어디까지 만들지.** 거래소마다 화면 텍스트 형식이 달라 완벽한 파싱은 불가능하다. "절반만 맞춰도 수기보다 빠르면 이득"이라는 기준으로 갈지, 아니면 아예 만들지 않고 폼만 둘지.
 - 시작 시점(`t0`) 이전 보유분 처리: `t0` 잔고를 `d_0` 입금으로 편입하면 do-nothing이 왜곡될 수 있다. 기본안: window의 `t0`를 **최초 거래일로 고정**하고 기간 선택은 표시 구간만 잘라내는 방식으로 하는 것이 더 정확할 수 있음. 두 방식 비교 후 결정.
 - Mechanical DCA의 주기(주/월)와 시작 정렬. 기본안 주 단위 월요일.
 - 편향 라벨 판정을 `behavior-coach`에서 거래 단위로 재사용할 때, 기존 판정이 집계 기반이면 거래 단위로 분해되지 않을 수 있다. `behavior-coach.service` 실제 구현 확인 필요.
 - 스테이킹/에어드랍/코인 간 스왑 거래는 이 모델에 안 맞는다. 1차 범위에서는 **제외**하고 `unsupportedTransactions[]`로 노출할지.
+- **입금(CashFlow)도 수기 입력**이어야 반사실 계산이 성립한다(계산 정의 4절의 `d_j`). 거래만 넣고 입금을 안 넣으면 "아무것도 안 함" 트랙을 만들 수 없다. 입금을 별도로 묻지 않고 **매수 금액의 합을 입금으로 간주**하는 근사를 쓸지 결정 필요.
 - `narrative` 생성에 LLM 호출 비용/지연. 스냅샷 생성 시 1회만 만들고 캐시하는 방향.
 
 ## 변경 이력
@@ -366,4 +391,5 @@ attributedPnl_k = Δq_k × (p_T − p_k) − fee_k
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-08 | 초안 작성. 3트랙 반사실, 거래별 귀속 항등식, 편향 집계, 원장 import 정의 |
-| 2026-09-08 | 서약 연동 제거(사용자 결정). 국내·미국 주식 확장 — KIS 조회 전용 연동(FR-3a), 결제일 환율 원장(FR-3b), 원화 통일 계산 전제 |
+| 2026-09-08 | 서약 연동 제거(사용자 결정). 국내·미국 주식 확장 — 결제일 환율 원장(FR-3b), 원화 통일 계산 전제 |
+| 2026-09-08 | **계좌 연동 전면 제외 (사용자 결정).** CSV import · Upbit API 키 · KIS 연동 제거. Phase 1을 "원장 신뢰"에서 **"원장 입력"** 으로 재정의 — 거래 입력 폼(FR-1) · 미리보기(FR-2) · 이상값 경고(FR-2a) · 신고 잔고 대조(FR-3) · 붙여넣기(FR-3a) · 시세 수기 갱신(FR-4a). `UpbitApiKey` 모델 삭제, `ReportedBalance`·`ManualPrice` 신설. 보안 요구사항이 "키 암호화"에서 "저장할 키가 없음"으로 |

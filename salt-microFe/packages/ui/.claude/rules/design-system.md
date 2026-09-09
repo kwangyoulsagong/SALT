@@ -39,6 +39,12 @@
 - 단일 컴포넌트에만 쓰는 레이아웃 수치는 컴포넌트 옆 스타일 파일에 둔다.
 - magic hex/string을 여러 파일에 복제하지 않는다.
 
+## 오버레이
+
+- 새 오버레이(모달·시트·팝오버)를 만들 때 focus trap과 스크롤 락을 다시 구현하지 않는다.
+- `src/Utils/hooks/useFocusTrap`, `useScrollLock`, `usePortal`을 쓴다. `BottomSheet`·`Modal`·`Dialog`가 모두 이 훅을 쓴다.
+- `createPortal`은 `usePortal()`이 `true`가 된 뒤에만 호출한다. SSR에서 `document`가 없다.
+
 ## 검증
 
 가능하면 변경 후 아래 명령을 실행한다.
@@ -46,4 +52,5 @@
 ```bash
 pnpm --filter @repo/ui lint
 pnpm --filter @repo/ui check-types
+pnpm --filter @repo/ui test
 ```

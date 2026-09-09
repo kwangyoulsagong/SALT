@@ -15,6 +15,15 @@ export default defineConfig({
   test: {
     projects: [
       {
+        // 브라우저 없이 도는 순수 로직 테스트
+        extends: true,
+        test: {
+          name: 'unit',
+          environment: 'node',
+          include: ['src/**/*.test.ts'],
+        },
+      },
+      {
         extends: true,
         plugins: [
           // The plugin will run tests for the stories defined in your Storybook config

@@ -14,6 +14,15 @@ const meta = {
       options: ["none", "sm", "md", "lg", "xl"],
       description: "카드 내부 패딩",
     },
+    elevation: {
+      control: "select",
+      options: ["none", "sm", "md", "lg"],
+      description: "그림자. 기본은 none — 위계는 SectionBand로 만든다",
+    },
+    bordered: {
+      control: "boolean",
+      description: "1px 경계선. 그림자 없이 카드 경계를 보여줄 때 쓴다",
+    },
     children: {
       control: "text",
       description: "카드 내용",
@@ -346,6 +355,39 @@ export const CardGrid: Story = {
           <p style={{ margin: 0, color: "#666" }}>카드 내용</p>
         </Card>
       ))}
+    </div>
+  ),
+};
+
+// ===== Elevation (FE-REQ-005 D-8) =====
+export const AllElevations: Story = {
+  args: {
+    children: "Card",
+  },
+  render: () => (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "24px",
+        width: "400px",
+        padding: "24px",
+        background: "#F2F4F6",
+      }}
+    >
+      <Card padding="lg">none: 기본값. 그림자 없음</Card>
+      <Card padding="lg" bordered>
+        bordered: 그림자 대신 경계선
+      </Card>
+      <Card padding="lg" elevation="sm">
+        sm: 살짝 떠 있는 카드
+      </Card>
+      <Card padding="lg" elevation="md">
+        md: 떠 있는 카드
+      </Card>
+      <Card padding="lg" elevation="lg">
+        lg: 모달·시트
+      </Card>
     </div>
   ),
 };
