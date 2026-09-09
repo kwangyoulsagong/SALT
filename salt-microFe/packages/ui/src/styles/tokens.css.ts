@@ -21,6 +21,14 @@ export const vars = createGlobalTheme(":root", {
     large: "16px",
     xl: "20px",
     full: "9999px",
+
+    // 버튼 크기별 곡률 (FE-REQ-005 D-7)
+    button: {
+      sm: "8px",
+      md: "10px",
+      lg: "14px",
+      xl: "16px",
+    },
   },
 
   colors: {
@@ -43,6 +51,15 @@ export const vars = createGlobalTheme(":root", {
       lighter: "#E5DBFF",
     },
 
+    // AI/LLM 생성물 전용 액센트 (FE-REQ-005 FR-9)
+    // 브랜드 보라와 구분해 "이건 모델이 만든 문장"임을 표시한다.
+    // primary 값은 잠정. FE-REQ-005 Open Question 참고.
+    ai: {
+      primary: "#20C997",
+      light: "#63E6BE",
+      lighter: "#E6FCF5",
+    },
+
     // 보조 색상 (액션 버튼용)
     action: {
       primary: "#687AD7",
@@ -50,17 +67,17 @@ export const vars = createGlobalTheme(":root", {
       active: "#4C5CB1",
     },
 
-    // 중립 색상
+    // 중립 색상 (FE-REQ-005 D-2 — 균등 명도 스케일)
     neutral: {
-      50: "#F8F9FA",
-      100: "#F0F1F3",
-      200: "#E1E3E6",
-      300: "#C8CCD1",
-      400: "#A8A6AC",
-      500: "#868E96",
-      600: "#495057",
-      700: "#343A40",
-      800: "#212529",
+      50: "#F9FAFB",
+      100: "#F2F4F6",
+      200: "#E5E8EB",
+      300: "#D1D6DB",
+      400: "#B0B8C1",
+      500: "#8B95A1",
+      600: "#6B7684",
+      700: "#4E5968",
+      800: "#333D4B",
       900: "#191F28",
     },
 
@@ -68,16 +85,19 @@ export const vars = createGlobalTheme(":root", {
     text: {
       primary: "#191F28",
       secondary: "#2A282F",
-      tertiary: "#868E96",
-      disabled: "#A8A6AC",
+      tertiary: "#8B95A1",
+      disabled: "#B0B8C1",
       white: "#FFFFFF",
       inverse: "#FFFFFF", // 다크 배경 위의 텍스트
-      lightGray: "#66727C",
+      lightGray: "#6B7684",
 
-      // 기존 호환성 유지 (deprecated)
+      /** @deprecated `text.white`를 사용한다. */
       base: "#FFFFFF",
+      /** @deprecated `text.secondary`를 사용한다. */
       nickname: "#2A282F",
-      email: "#A8A6AC",
+      /** @deprecated `text.disabled`를 사용한다. */
+      email: "#B0B8C1",
+      /** @deprecated `text.primary`를 사용한다. */
       H2: "#191F28",
     },
 
@@ -86,18 +106,23 @@ export const vars = createGlobalTheme(":root", {
       success: "#51CF66",
       successHover: "#40BB56",
       successLight: "#D3F9D8",
+      // *Light 배경 위 전경색. 솔리드 색은 대비가 낮아 작은 글자에 못 쓴다.
+      successDark: "#2B8A3E",
 
       error: "#FF6B6B",
       errorHover: "#E85555",
       errorLight: "#FFE3E3",
+      errorDark: "#C92A2A",
 
       warning: "#FCC419",
       warningHover: "#E8B20E",
       warningLight: "#FFF3BF",
+      warningDark: "#7A6000",
 
       info: "#339AF0",
       infoHover: "#228BE6",
       infoLight: "#D0EBFF",
+      infoDark: "#1864AB",
     },
 
     // 특수 용도 색상
@@ -117,21 +142,30 @@ export const vars = createGlobalTheme(":root", {
       teal: "#20C997",
       tealHover: "#12B886",
       tealLight: "#C3FAE8",
+      // 상승·하락 (국내 관례). 솔리드는 큰 숫자용,
+      // *Light/*Dark 쌍은 틴트 배지용 (FE-REQ-005 Open Question ①안)
       down: "#1677EE",
+      downLight: "#E8F2FE",
+      downDark: "#0B5BC4",
       up: "#FF2E55",
+      upLight: "#FFE9ED",
+      upDark: "#C9182F",
     },
 
     // 테두리 색상
     border: {
-      light: "#E1E3E6",
-      default: "#C8CCD1",
-      dark: "#A8A6AC",
+      light: "#E5E8EB",
+      default: "#D1D6DB",
+      dark: "#B0B8C1",
       focus: "#7949FF",
       lightDark: "#E5E8EA",
       black: "#191F28",
     },
 
-    // 그림자 (투명도 포함)
+    /**
+     * @deprecated 완성된 그림자는 `vars.elevation.*`을 사용한다.
+     * 색만 필요한 경우에만 남긴다.
+     */
     shadow: {
       sm: "rgba(0, 0, 0, 0.05)",
       md: "rgba(0, 0, 0, 0.1)",
@@ -154,12 +188,54 @@ export const vars = createGlobalTheme(":root", {
     sm: "8px",
     md: "12px",
     lg: "16px",
+    // 리스트 행·그룹 헤더 좌우 패딩 (FE-REQ-005 D-5)
+    lg2: "20px",
     xl: "24px",
     "2xl": "32px",
     "3xl": "48px",
     "4xl": "64px",
     "5xl": "80px",
     "6xl": "96px",
+  },
+
+  /**
+   * 완성된 box-shadow (FE-REQ-005 D-4).
+   * 카드에는 기본적으로 쓰지 않는다. 실제로 떠 있는 것에만 쓴다.
+   */
+  elevation: {
+    none: "none",
+    sm: "0 1px 2px rgba(25,31,40,.04), 0 2px 8px rgba(25,31,40,.04)",
+    md: "0 4px 16px rgba(25,31,40,.08)",
+    lg: "0 18px 50px rgba(25,31,40,.18)",
+    sheet: "0 -8px 30px rgba(25,31,40,.16)",
+  },
+
+  /** 숫자 표기 (FE-REQ-005 D-4). 시세·금액은 자리가 흔들리지 않아야 한다. */
+  numeric: {
+    tabular: "tabular-nums",
+  },
+
+  /**
+   * size와 line-height를 한 쌍으로 묶은 타입 스케일 (FE-REQ-005 D-3).
+   * 신규 컴포넌트는 `fontSizes` 대신 이 그룹을 쓴다.
+   */
+  typography: {
+    /** 30/40 — 총자산·현재가. 화면당 1개 */
+    t1: { fontSize: "30px", lineHeight: "40px" },
+    /** 26/35 — 큰 금액 */
+    t2: { fontSize: "26px", lineHeight: "35px" },
+    /** 22/31 — 섹션 대표 숫자 */
+    t3: { fontSize: "22px", lineHeight: "31px" },
+    /** 20/29 — 화면 제목 */
+    t4: { fontSize: "20px", lineHeight: "29px" },
+    /** 17/25.5 — 그룹 제목·강조 본문 */
+    t5: { fontSize: "17px", lineHeight: "25.5px" },
+    /** 15/22.5 — 리스트 행 본문 */
+    t6: { fontSize: "15px", lineHeight: "22.5px" },
+    /** 13/19.5 — 보조 문자 */
+    t7: { fontSize: "13px", lineHeight: "19.5px" },
+    /** 11/16.5 — 배지·캡션 */
+    t8: { fontSize: "11px", lineHeight: "16.5px" },
   },
 
   fontSizes: {
@@ -204,6 +280,7 @@ export const vars = createGlobalTheme(":root", {
 
   letterSpacings: {
     tighter: "-0.05em",
+    tightest: "-0.03em",
     tight: "-0.02em",
     normal: "0",
     wide: "0.02em",

@@ -142,11 +142,27 @@ export const buttonVariants = recipe({
       },
       false: {},
     },
+
+    loading: {
+      true: {
+        gap: vars.space.sm,
+        cursor: "progress",
+
+        selectors: {
+          // disabled로도 막지만 loading은 흐리게 보이지 않아야 한다.
+          "&:disabled": {
+            opacity: 1,
+          },
+        },
+      },
+      false: {},
+    },
   },
 
   defaultVariants: {
     variant: "primary",
     size: "md",
     fullWidth: false,
+    loading: false,
   },
 });

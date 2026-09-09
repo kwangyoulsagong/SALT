@@ -35,6 +35,10 @@ const meta = {
       control: "boolean",
       description: "비활성화 상태",
     },
+    loading: {
+      control: "boolean",
+      description: "처리 중. 누를 수 없게 막고 회전 표시를 함께 보여준다",
+    },
     children: {
       control: "text",
       description: "버튼 내용",
@@ -230,6 +234,42 @@ export const SizeComparison: Story = {
       <Button size="sm">SM</Button>
       <Button size="md">MD</Button>
       <Button size="lg">LG</Button>
+    </div>
+  ),
+};
+
+// ===== Loading =====
+export const Loading: Story = {
+  args: {
+    children: "주문 중",
+    loading: true,
+  },
+};
+
+export const LoadingAllVariants: Story = {
+  args: {
+    children: "Button",
+  },
+  render: () => (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "220px" }}>
+      <Button loading fullWidth>주문 중</Button>
+      <Button loading variant="ghost" fullWidth>불러오는 중</Button>
+      <Button loading variant="outline" fullWidth>확인 중</Button>
+      <Button loading variant="danger" fullWidth>삭제 중</Button>
+    </div>
+  ),
+};
+
+export const LoadingAllSizes: Story = {
+  args: {
+    children: "Button",
+  },
+  render: () => (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "220px" }}>
+      <Button loading size="xs" fullWidth>xs</Button>
+      <Button loading size="sm" fullWidth>sm</Button>
+      <Button loading size="md" fullWidth>md</Button>
+      <Button loading size="lg" fullWidth>lg</Button>
     </div>
   ),
 };
