@@ -372,3 +372,11 @@ numeric: { tabular: "tabular-nums" }
 | 2026-09-08 | **Figma를 코드 실측값 기준으로 재정렬.** 생성물이 실제 구현과 다르다는 지적을 받아 Variable Collection을 Mode 2개(`Current`=tokens.css.ts 실측 / `Target`=본 REQ 적용 후)로 재구성했다. 누락 색 토큰(special 14 · status hover · overlay · shadow · background.gray · border.lightDark · text deprecated)을 모두 채워 123개가 되었고, 두 모드에서 값이 다른 것은 16개다. 또 이미 구현된 컴포넌트 10종(Button·Card·Heading·Text·InputField·Tab/Tabs·FilterTab/FilterTabs·Table)을 `packages/ui/src/**` 실측 스펙으로 미러링해 Figma가 "이미 있는 것 + 앞으로 만들 것"을 모두 들게 했다(총 22종/139 컴포넌트). **신규 발견** — `InputField`가 토큰이 아니라 하드코딩 hex(`#7949FF`·`#E5E8EB`·`#8B95A1`·`#F2F4F6`)와 `vw` 단위를 쓴다 |
 | 2026-09-09 | **Figma 컴포넌트를 실측 기반으로 전면 교체.** CSS를 읽어 해석하던 방식을 버리고, 실행 중인 Storybook에서 실제 렌더 결과를 측정하는 방식으로 바꿨다. ① `?args=variant:ghost;size:lg`로 prop을 주입해 **238개 조합**을 렌더시켜 측정하고 Component Set 12개로 만들었다. variant 이름이 `variant=ghost, size=lg` 형태라 Figma 속성 패널에 실제 props가 드롭다운으로 뜬다. ② 스토리 174개도 측정해 Component Set 16개로 만들었다(조합형 스토리 대조용). ③ **CSS 해석으로 만든 신규 12종(FR-20~FR-31)은 Figma에서 제거했다** — 코드에 없어 측정할 수 없고 근사치라 서로 겹치는 문제가 있었다. 스펙은 본 REQ와 `pm/storyboard`에 남아 있고, 구현되면 Storybook 스토리가 생기므로 그때 실측으로 들어온다. 측정·검증 도구는 `salt-microFe/tools/figma-plugin/measure/`에 있다 |
 | 2026-09-09 | **Figma 생성기를 제거하고 코드 구현으로 방향 전환.** 측정 기반 생성(토큰·Storybook 실측)은 정확했지만, 코드에 없는 컴포넌트를 새로 디자인하는 데는 맞지 않는 도구였다 — 구조와 명세 추적성은 나오지만 시각적 완성도가 나오지 않아 조립한 화면이 와이어프레임 수준에 머물렀다. `salt-microFe/tools/figma-plugin/`을 삭제하고, 본 REQ의 A(토큰 FR-1~12)와 B(1차 컴포넌트 12종 FR-20~31)를 `packages/ui`에 직접 구현하는 것으로 방향을 바꾼다. 생성기 코드는 커밋 `86d73b9`에 남아 있어 필요하면 되살릴 수 있다 |
+
+## Status
+
+- done. 검증 완료 — 루트 `pnpm lint`·`pnpm build`(3/3), `@repo/ui` `lint`/`check-types`/`test`/`build-storybook` 통과.
+- 체크리스트: `requirements/reports/checklists/FE-REQ-005.md`
+- 회고: `requirements/reports/retrospects/FE-REQ-005.md`
+- **부분 미충족을 안고 done으로 옮긴다.** FR-29 `SegmentedControl` 제외(대체 경로 문서화, 단 `FilterTabs` 접근성 부채 잔존), 320px 브라우저 확인·앱 시각 회귀 미실시, `colors.ai.primary` 잠정값, FR-50/51(3차·선택) 미착수. 후속 항목은 회고의 Action Items에 있다.
+- 본 spec은 `requirements/specs/done/`에 위치한다.

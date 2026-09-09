@@ -90,4 +90,5 @@ pnpm --filter @repo/ui build-storybook
 ```bash
 pnpm --filter @repo/ui lint
 pnpm --filter @repo/ui check-types
+pnpm --filter @repo/ui test
 ```

@@ -22,6 +22,7 @@ pnpm --filter goals dev
 pnpm --filter investments dev
 pnpm --filter @repo/ui lint
 pnpm --filter @repo/ui check-types
+pnpm --filter @repo/ui test
 pnpm --filter @repo/ui storybook
 ```
 

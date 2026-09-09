@@ -117,3 +117,11 @@ FE-REQ-005로 컴포넌트 25종을 채웠지만 **주문 화면과 코치 대�
 |---|---|
 | 2026-09-09 | 초안 + 구현 완료. A(6) · B(4) · C(10) · D(4) 전부. 신규 컴포넌트 19종 + 훅 5종 + 순수 모듈 1종, 기존 2종(`Button`·`TextField`) 확장. `Button/button.tsx` → `Button.tsx` 파일명 대소문자 정정(exports 맵과 어긋나 케이스 구분 파일시스템에서 깨지는 상태였다). vitest `unit` 프로젝트와 `test` 스크립트 신설, `layoutTree` 테스트 17개 |
 | 2026-09-09 | 마무리 점검. 죽은 export `"./styles"` 제거 — `./src/Button/styles/index.css.ts`를 가리키는데 그 파일이 없었고 레포 전체에서 `@repo/ui/styles`를 import하는 곳도 없었다. 공개 subpath 84 → 83 |
+
+## Status
+
+- done. 검증 완료 — 루트 `pnpm lint`·`pnpm build`(3/3), `@repo/ui` `lint`/`check-types`/`test`(17/17)/`build-storybook` 통과.
+- 체크리스트: `requirements/reports/checklists/FE-REQ-006.md`
+- 회고: `requirements/reports/retrospects/FE-REQ-006.md`
+- **부분 미충족을 안고 done으로 옮긴다.** `MovableGrid` 칸 이동이 포인터 전용(크기 조절은 키보드 가능), 320px 브라우저 확인 미실시, 번들 예산 NFR 재작성 필요, `Tooltip` 좁은 스크롤 컨테이너에서 잘림. 후속 항목은 회고의 Action Items에 있다.
+- 본 spec은 `requirements/specs/done/`에 위치한다.

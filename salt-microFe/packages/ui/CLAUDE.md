@@ -49,4 +49,7 @@
 ```bash
 pnpm --filter @repo/ui lint
 pnpm --filter @repo/ui check-types
+pnpm --filter @repo/ui test
 ```
+
+`test`는 vitest `unit` 프로젝트(`src/**/*.test.ts`)를 브라우저 없이 실행한다. 순수 로직 모듈을 추가하면 같은 폴더에 `*.test.ts`를 함께 둔다. Storybook 시각 확인은 `build-storybook`으로 따로 본다.
