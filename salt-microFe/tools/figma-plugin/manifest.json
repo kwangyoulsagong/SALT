@@ -1,0 +1,22 @@
+{
+  "name": "SALT Design System",
+  "id": "salt-design-system-foundation",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": { "allowedDomains": ["none"] },
+  "menu": [
+    { "name": "컴포넌트 생성 (props 실측)", "command": "components" },
+    { "name": "Storybook 실측 컴포넌트 생성", "command": "storybook" },
+    { "separator": true },
+    { "name": "전체 생성", "command": "everything" },
+    { "name": "전체 생성 · Target 값", "command": "everything-target" },
+    { "separator": true },
+    { "name": "파운데이션만 생성", "command": "all" },
+    { "name": "Variables만 생성", "command": "variables" },
+    { "name": "Variables만 생성 · Target 값", "command": "variables-target" },
+    { "name": "Text / Effect 스타일만 생성", "command": "styles" },
+    { "name": "스펙시멘 페이지만 생성", "command": "specimen" }
+  ]
+}
