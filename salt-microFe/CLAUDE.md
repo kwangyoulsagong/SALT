@@ -5,11 +5,13 @@
 ## 프로젝트 개요
 
 - Monorepo: `pnpm` workspace + Turborepo
-- Apps: `apps/shell`(host, 3000), `apps/goals`(remote, 3001), `apps/investments`(remote, 3002)
-- Framework: Next.js 14 Pages Router, React 18, TypeScript strict
-- MFE: `@module-federation/nextjs-mf`
-- Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`
-- Shared packages: `packages/ui`, `packages/message-event-bus`, `packages/mocks`, `packages/eslint-config`, `packages/typescript-config`
+- Apps: `apps/web`(default zone, 3000), `apps/web-tax`(zone, 3001), `apps/mobile`(React Native, iOS+Android)
+- Framework: Next.js App Router, React 18, TypeScript strict / React Native
+- 아키텍처: **FSD**(6레이어) · **Next.js Multi-Zones**(마이크로프론트엔드) · **스트리밍 SSR**(RSC + Suspense)
+- Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`(웹) / `StyleSheet` + `@repo/ui-native`(모바일)
+- Shared packages: `packages/tokens`(플랫폼 중립), `packages/ui`, `packages/ui-native`, `packages/core`, `packages/mocks`, `packages/eslint-config`, `packages/typescript-config`
+
+> **전환 중.** 현재 코드는 `apps/{shell,goals,investments}` + Pages Router + `@module-federation/nextjs-mf`다. 전환 근거와 순서는 `requirements/decisions/ADR-001-microfrontend-replacement.md`와 `FE-REQ-007`~`FE-REQ-009`에 있다. 새 코드는 목표 구조로 쓰고, 기존 코드는 그 REQ 순서로 옮긴다.
 
 ## Commands
 
@@ -28,16 +30,31 @@ pnpm --filter @repo/ui storybook
 
 ## 구조 원칙
 
-- 별도 레이어 아키텍처를 새로 도입하지 않는다. 현재 앱 구조와 도메인 폴더 규칙을 따른다.
-- 앱 내부는 현재 구조를 따른다: `src/pages`, `src/components` 또는 `src/component`, `src/api`, `src/hooks`, `src/store`, `src/styles`, `src/constants`, `src/utils`, `src/types`.
-- 도메인은 기능 도메인 폴더로 분리한다. 예: `src/domains/portfolio`, `src/domains/market`, `src/domains/goal`가 필요하면 그 안에 `components`, `api`, `hooks`, `store`, `types`, `constants`를 둔다.
-- 단일 앱에서만 쓰는 코드는 앱 내부에 둔다. 2개 이상 앱에서 반복되거나 런타임 계약이면 `packages/*`로 승격한다.
-- 앱끼리 `apps/other/src/...`를 직접 import하지 않는다. 통합은 Module Federation, URL, `@repo/message-event-bus`, 공유 패키지로만 한다.
-- route 파일은 얇게 유지하고 조합만 담당한다. 실제 UI와 로직은 컴포넌트/도메인 폴더로 내린다.
+- **FSD 6레이어를 따른다**: `shared`(0) → `entities`(1) → `features`(2) → `widgets`(3) → `pages`(4) → `app`(5). 의존은 아래로만 흐른다.
+- **같은 레이어의 다른 슬라이스를 직접 import하지 않는다.** 공통이 필요하면 아래 레이어로 내린다.
+- 슬라이스 이름은 `.claude/rules/layered-architecture.md` §4 **레지스트리**를 따르고, 새 슬라이스는 표에 먼저 추가한다. 이름은 서버 DDD 컨텍스트와 동일하다.
+- **Next 라우팅은 프로젝트 루트**(`apps/*/app/**`)에 두고 `@/pages/*`를 re-export만 한다. FSD는 `src/` 안에만 있다.
+- 단일 앱에서만 쓰는 코드는 앱 내부에 둔다. 2개 이상에서 반복되거나 런타임 계약이면 `packages/*`로 승격한다.
+- **zone끼리 `apps/other/src/...`를 직접 import하지 않는다.** 공유는 workspace 패키지로만 한다.
+- **`apps/mobile`은 `packages/ui`를 import하지 않는다** — vanilla-extract는 RN에서 동작하지 않는다.
+- 레이어·슬라이스 위반은 `.claude/hooks/layer-check.mjs`가 쓰기 시점에 차단한다. **훅이 막으면 우회하지 말고 구조를 고친다.**
 
 ## Rule Index
 
-- `.claude/rules/domain-architecture.md` — 도메인 분리
+### 아키텍처
+- `.claude/rules/layered-architecture.md` — 네 서피스 · 의존 방향 · **슬라이스 레지스트리**
+- `.claude/rules/fsd-shared.md` · `fsd-entities.md` · `fsd-features.md` · `fsd-widgets.md` · `fsd-pages.md` · `fsd-app.md` — FSD 레이어별 규칙
+- `.claude/rules/microfrontend.md` — **Next.js Multi-Zones** (zone 경계 기준)
+- `.claude/rules/streaming-ssr.md` — App Router RSC 경계 · Suspense 스트리밍
+- `.claude/rules/rn-architecture.md` — React Native 앱 구조
+- `.claude/rules/rn-microfrontend.md` — 모바일 번들 분리 (단계적 도입)
+
+### 성능
+- `.claude/rules/performance-frontend.md` — 웹 예산 · 실시간 테이블 · 번들
+- `.claude/rules/performance-rn.md` — 앱 시작 · 프레임 · 대화 스트리밍 · 메모리
+
+### 관례
+- `.claude/rules/domain-architecture.md` — (구) 도메인 분리 — `layered-architecture.md`로 대체됨
 - `.claude/rules/component-convention.md` — 컴포넌트 패턴
 - `.claude/rules/api-convention.md` — API + React Query
 - `.claude/rules/state-convention.md` — Zustand/Redux 상태
