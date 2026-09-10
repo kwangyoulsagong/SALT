@@ -36,11 +36,22 @@ npm run start:worker
 - 서비스는 backend API aggregation, view model 구성, 외부 API 호출을 담당한다.
 - WebSocket 연결/세션 관리는 `src/websocket/managers`, 메시지 처리는 `src/websocket/handlers`에 둔다.
 - worker는 직접 실행될 때만 주기 작업을 시작한다. import side effect로 interval, socket, shutdown hook이 중복 생성되지 않게 한다.
-- BFF 응답은 프론트 화면 계약이다. 응답 shape 변경 시 `salt-microFe/**` 영향 여부를 확인한다.
+- **BFF는 프록시가 아니라 화면 계약의 소유자다.** 응답 shape 변경 시 `salt-microFe/**` 영향 여부를 확인한다.
+- **금액을 계산하지 않는다.** 계산은 서버가 한다. BFF에 금액을 바꾸는 `if`가 생기면 서버 계약이 부족하다는 신호다.
+- 조합 응답은 **`Promise.allSettled`** 를 쓴다. 블록별 `status`와 `degradedBlocks[]`를 준다.
+- 웹은 **블록별 엔드포인트**, 모바일은 **집계 1콜**. 두 형태를 같은 서비스 함수에서 만든다.
 - Backend 호출 path/request/response 변경 시 `salt-server/**` 계약 영향 여부를 확인한다.
 
 ## 규칙 인덱스
 
+### 아키텍처
+- `.claude/rules/bff-architecture.md` — 레이어 경계 · **뷰모델 소유권** · 부분 실패 격리 · 웹(블록별)/모바일(1콜) 이원 계약
+- `.claude/rules/streaming-sse.md` — 코치 대화 SSE 계약 · 취소 전파 · 재연결 멱등
+
+### 성능
+- `.claude/rules/performance-bff.md` — 예산 · 병렬화 · 타임아웃 · WS/SSE
+
+### 관례
 - `.claude/rules/rest-contract.md` — REST route/controller/service/응답 계약
 - `.claude/rules/backend-integration.md` — backend API 프록시/aggregation 규칙
 - `.claude/rules/websocket-worker.md` — WebSocket, Upbit, worker 실행 규칙

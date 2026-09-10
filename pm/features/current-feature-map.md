@@ -2,6 +2,7 @@
 
 Last audited: 2026-05-25
 Direction updated: 2026-09-08 (아래 '제품 방향 재정의' 참조)
+Requirements mapped: 2026-09-10 (아래 '요구사항 지도 반영' 참조)
 
 이 문서는 `salt-microFe/**`, `bff/**`, `salt-server/**`, `salt-server/prisma/schema.prisma`를 기준으로 작성한 기능 인벤토리다. 상태는 코드 구조와 route/model 존재 여부 기준이며, 실제 UX 완성도는 기능별 기획서에서 추가 검증한다.
 
@@ -116,10 +117,70 @@ flowchart LR
 | FEATURE-002 | 연말 세금 마감 콕핏 | 자산군 3종 D-Day, 미국주식 손실수확 솔버(250만원 공제 최적화), 결제일·환율 함정 경고, 크립토 의제취득가액 스텝업 손익분기 |
 | FEATURE-003 | 밸류에이션 밴드 적립 | "이번 주 얼마 넣을지" 단일 숫자. BTC는 MVRV Z, 미국 지수는 CAPE 백분위로 배수 0~3x. 김프를 매수 비용으로 환산 |
 | FEATURE-004 | AI 코치 추천 화면 | 이미 서버에만 있던 `ai-coach`/`signal-performance`/`profit-plan`/`trade-preflight`/`behavior-coach`를 화면으로. 3종 세트 렌더 게이트 |
-| FEATURE-005 | 홈 브리핑 & 5탭 IA | 홈 5블록 단일 BFF 콜 + 부분 실패 격리, 온보딩 3스텝, 삭제 실행 |
+| FEATURE-005 | ~~홈 브리핑 & 5탭 IA~~ | **결번.** 5탭 IA는 2026-09-09 결정(탭 축소·대화 중심)으로 FEATURE-006이 대체한다. 홈 5블록 요구사항만 FEATURE-006으로 흡수 |
+| FEATURE-006 | 코치 대화 & 3탭 IA | 대화가 제품의 핵심. 3탭(홈/코치/자산) + PC 전용 `MovableGrid`. 홈 5블록을 흡수 |
+| FEATURE-007 | 모바일 앱 (React Native) | iOS+Android. **푸시 알림이 존재 이유** — 세금 마감 D-Day가 웹만으로는 도달하지 않는다. TestFlight/Play 내부 테스트, OTA |
+
+## 요구사항 지도 반영 (2026-09-10)
+
+`current-feature-map.md`의 '기능 인벤토리'는 여전히 **2026-05-25 코드 상태**다. 그 위에 아래 결정과 요구사항이 얹혀 있고, **아직 코드에 반영되지 않았다.**
+
+### 아키텍처 전환 (구현 전)
+
+| 서피스 | 현재 | 전환 목표 | 근거 |
+|---|---|---|---|
+| 웹 | `@module-federation/nextjs-mf` 3앱(shell/goals/investments), Pages Router | **Multi-Zones 2앱**(`apps/web` + `apps/web-tax`) · App Router **스트리밍 SSR** · **FSD** | `ADR-001` · `FE-REQ-007`~`009` |
+| 모바일 | 없음 | **`apps/mobile` 신설** (React Native, iOS+Android, FSD) | `RN-REQ-001`~`003` |
+| BFF | 레이어 경계 혼재 | 레이어드 + **SSE 스트리밍** | `BFF-REQ-006` |
+| 서버 | `src/modules/*` | **DDD 컨텍스트 우선** `{context}/{domain,application,infrastructure,presentation}` | `SRV-REQ-006` |
+| 서버 정리 | 삭제 대상 잔존 | 삭제 5건 · 동면 4건 · `410 Gone` | `SRV-REQ-007` |
+
+**`@module-federation/nextjs-mf`를 버린 이유**: App Router 미지원 + Next.js 지원 종료. 대체 선정 근거와 4안 비교는 `requirements/decisions/ADR-001-microfrontend-replacement.md`.
+
+### 신규 컨텍스트 / 슬라이스
+
+프론트 FSD 슬라이스 이름과 서버 DDD 컨텍스트 이름은 **동일**하다.
+
+`auth` · `ledger` · `portfolio` · `market` · `coach` · `invoice` · `tax` · `plan` · `indicator` · `fx` · `goal` · `news` · `notification` · **`device`(F007 신규, 모바일 전용)**
+
+### 신규 DB 모델 (F007)
+
+| 모델 | 용도 | 비고 |
+|---|---|---|
+| `Device` | 푸시 토큰·플랫폼·앱/런타임 버전 | **평문 토큰 컬럼 0건** (해시 + 암호문) |
+| `NotificationDelivery` | 발송 기록 | `(userId, dedupeKey)` unique가 **D-30 중복 발송을 막는 유일한 장치** |
+| `NotificationPreference` | 알림 타입별 on/off | 끄더라도 세금 D-1은 발송 |
+| `AppVersionGate` | 최소 지원 버전 | 플랫폼당 1행 |
+
+### 요구사항 문서 현황
+
+**145개 작성 완료 · 구현 0건.** 전체 지도는 `requirements/specs/in-progress/salt-requirements-master-index.md`.
+
+| 영역 | 개수 | 위치 |
+|---|---|---|
+| `DB` 001~028 | 28 | `salt-server/requirements/specs/to-do/` |
+| `SRV` 006~035 | 30 | `salt-server/requirements/specs/to-do/` |
+| `BFF` 006~034 | 29 | `bff/requirements/specs/to-do/` |
+| `FE` 007~033 | 27 | `salt-microFe/requirements/specs/to-do/` |
+| `RN` 001~031 | 31 | `salt-microFe/requirements/specs/to-do/` |
+
+기능마다 영역별 4종(형태/기능/인터페이스/성능)을 채웠다. F007만 웹 화면이 없어 FE 사분면이 결번이다.
+
+### 하드 마감
+
+| 날짜 | 내용 | 막히면 |
+|---|---|---|
+| 2026-12-29 | 미국주식 연내 결제 마감 (D-111 기준 2026-09-09) | 250만원 공제 한 해분 소멸 |
+| 2026-12-30 | 국내주식 결제 마감 | 대주주 판정 |
+| 2026-12-31 | 크립토 과세연도 종료 | — |
+| 2027-01-01 00:10 KST | 연말 가격 스냅샷 (**immutable**) | 취득가액 산정 불가 |
+
+F007(모바일 푸시)은 **F002 세금 D-Day 알림의 전달 경로**다. 12월 이전에 배포되지 않으면 마감 알림이 도달하지 않는다.
 
 ### 관련 문서
 
 - 글로벌 계획: `requirements/specs/in-progress/salt-solo-rebuild-global-plan.md`
-- 기획서: `pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md` ~ `FEATURE-005-home-briefing.md`
+- 기획서: `pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md` ~ `FEATURE-007-mobile-app.md` (**FEATURE-005는 결번**)
+- 요구사항 지도: `requirements/specs/in-progress/salt-requirements-master-index.md`
+- 아키텍처 결정: `requirements/decisions/ADR-001-microfrontend-replacement.md`
 - 스토리보드(인터랙티브 HTML): `pm/storyboard/SALT-Storyboard(20260908-1557).html`
