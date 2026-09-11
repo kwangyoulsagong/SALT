@@ -193,7 +193,7 @@ flowchart TB
 
 | REQ | 상태 | 비고 |
 |---|---|---|
-| `FE-REQ-007` MFE 교체 | **in-progress** | Multi-Zones 전환 완료(`apps/web` + `apps/web-tax`), 빌드·린트·타입·프록시 검증 통과. 미충족 3건은 `salt-microFe/requirements/reports/checklists/FE-REQ-007.md` §4 |
+| `FE-REQ-007` MFE 교체 | **in-progress** | Multi-Zones 전환 완료(`apps/web` + `apps/web-tax`), 빌드·린트·타입·프록시 검증 통과. 미충족 6건은 `salt-microFe/requirements/reports/checklists/FE-REQ-007.md` §4 |
 | 나머지 144개 | to-do | |
 
 배포 대상은 **자체 호스팅**으로 확정했다(FE-REQ-007 FR-21). cross-zone 전환 지점은
