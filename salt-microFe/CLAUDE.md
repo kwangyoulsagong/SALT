@@ -11,8 +11,10 @@
 - Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`(웹) / `StyleSheet` + `@repo/ui-native`(모바일)
 - Shared packages: `packages/tokens`(플랫폼 중립 토큰), `packages/core`(플랫폼 무관 모델·상수·zone 레지스트리), `packages/ui`(웹 전용), `packages/mocks`, `packages/eslint-config`, `packages/eslint-plugin-zone`, `packages/typescript-config`
 
-> **전환 중.** `FE-REQ-007`(Multi-Zones)까지 완료했다. **아직 Pages Router이고 FSD가 아니다.**
-> 남은 순서는 `FE-REQ-008`(App Router + 스트리밍 SSR) → `FE-REQ-009`(FSD 전환)다. 순서를 바꾸면 라우트를 두 번 옮긴다.
+> **전환 중.** `FE-REQ-007`(Multi-Zones) · `FE-REQ-008`(App Router + 스트리밍 SSR)까지 완료했다.
+> **라우팅은 App Router이고 아직 FSD가 아니다.** 남은 것은 `FE-REQ-009`(FSD 전환)다.
+> 스트리밍 게이트 측정값은 `requirements/reports/checklists/FE-REQ-008.md` §3에 있다 —
+> **홈·세금 콕핏·청구서의 화면 단위 판정은 그 화면이 생길 때 다시 한다.**
 > 근거는 `requirements/decisions/ADR-001-microfrontend-replacement.md`.
 > `apps/ui-native`·`packages/ui-native`는 `RN-REQ-001`에서 생긴다.
 
@@ -37,6 +39,10 @@ pnpm --filter @repo/ui storybook
 - **같은 레이어의 다른 슬라이스를 직접 import하지 않는다.** 공통이 필요하면 아래 레이어로 내린다.
 - 슬라이스 이름은 `.claude/rules/layered-architecture.md` §4 **레지스트리**를 따르고, 새 슬라이스는 표에 먼저 추가한다. 이름은 서버 DDD 컨텍스트와 동일하다.
 - **Next 라우팅은 프로젝트 루트**(`apps/*/app/**`)에 두고 `@/pages/*`를 re-export만 한다. FSD는 `src/` 안에만 있다.
+  루트 `pages/`는 **빈 폴더로 둔다** — Next가 `src/pages`(FSD 레이어)를 Pages Router로 집지 않게 하는 장치다.
+- **기본은 서버 컴포넌트다.** `"use client"`는 상호작용·브라우저 API가 필요한 **잎**에만 붙인다.
+  클라이언트 컴포넌트도 SSR을 위해 **서버로 한 번 컴파일**된다 — 브라우저 전용 모듈은 `ssr.md`를 먼저 읽는다.
+- **블록 경계는 `BlockBoundary`**(Suspense + error boundary)다. 화면당 5개 이하, 스켈레톤 높이는 실제 블록과 같게.
 - 단일 앱에서만 쓰는 코드는 앱 내부에 둔다. 2개 이상에서 반복되거나 런타임 계약이면 `packages/*`로 승격한다.
 - **zone끼리 `apps/other/src/...`를 직접 import하지 않는다.** 공유는 workspace 패키지로만 한다.
 - **`apps/mobile`은 `packages/ui`를 import하지 않는다** — vanilla-extract는 RN에서 동작하지 않는다. 토큰은 `packages/tokens`로 공유한다.

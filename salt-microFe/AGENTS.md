@@ -6,12 +6,12 @@
 
 - Monorepo: `pnpm` workspace + Turborepo
 - Apps: `apps/web`(default zone, 3000), `apps/web-tax`(tax zone, 3001)
-- Framework: Next.js 15 Pages Router, React 18, TypeScript strict
+- Framework: Next.js 15 **App Router**(RSC + Suspense 스트리밍), React 18, TypeScript strict
 - MFE: **Next.js Multi-Zones**. `@module-federation/nextjs-mf`는 제거됐다 (`requirements/decisions/ADR-001-microfrontend-replacement.md`)
 - Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`
 - Shared packages: `packages/tokens`(플랫폼 중립 토큰), `packages/core`(플랫폼 무관 모델·상수·zone 레지스트리), `packages/ui`(웹 전용), `packages/mocks`, `packages/eslint-config`, `packages/eslint-plugin-zone`, `packages/typescript-config`
 
-> **전환 중.** `FE-REQ-007`까지 완료. 남은 순서는 `FE-REQ-008`(App Router + 스트리밍 SSR) → `FE-REQ-009`(FSD 전환).
+> **전환 중.** `FE-REQ-007`(Multi-Zones) · `FE-REQ-008`(App Router + 스트리밍 SSR)까지 완료. 남은 것은 `FE-REQ-009`(FSD 전환).
 
 ## Commands
 
@@ -30,6 +30,9 @@ pnpm --filter @repo/ui storybook
 ## 구조 원칙
 
 - 별도 레이어 아키텍처를 새로 도입하지 않는다. 현재 앱 구조와 도메인 폴더 규칙을 따른다.
+- **Next 라우팅은 루트 `app/**`이고 `@/pages/*`를 re-export만 한다.** 루트 `pages/`는 빈 폴더로 둔다 — Next가 `src/pages`를 Pages Router로 집지 않게 하는 장치다.
+- 전역 프로바이더는 `src/app/providers`(`"use client"`)에 두고 루트 `app/layout.tsx`는 `<html>`·`<body>` 껍데기만 갖는다.
+- **기본은 서버 컴포넌트다.** `"use client"`는 잎에만. 블록 경계는 `BlockBoundary`(Suspense + error boundary), 화면당 5개 이하.
 - 앱 내부는 현재 구조를 따른다: `src/pages`, `src/components` 또는 `src/component`, `src/api`, `src/hooks`, `src/store`, `src/styles`, `src/constants`, `src/utils`, `src/types`.
 - 도메인은 기능 도메인 폴더로 분리한다. 예: `src/domains/portfolio`, `src/domains/market`, `src/domains/goal`가 필요하면 그 안에 `components`, `api`, `hooks`, `store`, `types`, `constants`를 둔다.
 - 단일 앱에서만 쓰는 코드는 앱 내부에 둔다. 2개 이상 앱에서 반복되거나 런타임 계약이면 `packages/*`로 승격한다.
