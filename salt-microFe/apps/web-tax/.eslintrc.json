@@ -4,7 +4,8 @@
     "next/typescript"
   ],
   "plugins": [
-    "@repo/zone"
+    "@repo/zone",
+    "@repo/fsd"
   ],
   "rules": {
     "@repo/zone/no-cross-zone-link": [
@@ -17,7 +18,8 @@
           "/goals"
         ]
       }
-    ]
+    ],
+    "@repo/fsd/layers": "error"
   },
   "ignorePatterns": [
     "next-env.d.ts",

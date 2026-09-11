@@ -109,6 +109,9 @@ importers:
       '@playwright/test':
         specifier: ^1.51.1
         version: 1.63.0
+      '@repo/eslint-plugin-fsd':
+        specifier: workspace:*
+        version: link:../../packages/eslint-plugin-fsd
       '@repo/eslint-plugin-zone':
         specifier: workspace:*
         version: link:../../packages/eslint-plugin-zone
@@ -185,6 +188,9 @@ importers:
         specifier: ^18
         version: 18.2.0(react@18.2.0)
     devDependencies:
+      '@repo/eslint-plugin-fsd':
+        specifier: workspace:*
+        version: link:../../packages/eslint-plugin-fsd
       '@repo/eslint-plugin-zone':
         specifier: workspace:*
         version: link:../../packages/eslint-plugin-zone
@@ -260,6 +266,8 @@ importers:
       typescript-eslint:
         specifier: ^8.15.0
         version: 8.22.0(eslint@9.19.0)(typescript@5.7.3)
+
+  packages/eslint-plugin-fsd: {}
 
   packages/eslint-plugin-zone: {}
 

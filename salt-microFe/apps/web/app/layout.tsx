@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { AppProviders } from "@/app";
+import { AppProviders, AppShell } from "@/app";
 import "@/app/styles/globals.css";
-import { Layout } from "@/shared/ui";
 
 /**
  * default zone 의 루트 레이아웃 (FE-REQ-008 FR-1 · FR-2).
@@ -24,7 +23,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="ko">
       <body>
         <AppProviders>
-          <Layout>{children}</Layout>
+          <AppShell>{children}</AppShell>
         </AppProviders>
       </body>
     </html>

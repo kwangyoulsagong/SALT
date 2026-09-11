@@ -20,6 +20,7 @@
     "react-dom": "^18"
   },
   "devDependencies": {
+    "@repo/eslint-plugin-fsd": "workspace:*",
     "@repo/eslint-plugin-zone": "workspace:*",
     "@types/node": "^20",
     "@types/react": "^18",

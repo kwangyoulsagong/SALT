@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.51.1",
+    "@repo/eslint-plugin-fsd": "workspace:*",
     "@repo/eslint-plugin-zone": "workspace:*",
     "@storybook/blocks": "^8.5.0",
     "@storybook/nextjs": "^8.5.0",
