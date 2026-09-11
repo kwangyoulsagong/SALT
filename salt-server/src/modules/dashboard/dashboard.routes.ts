@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { DashboardController } from "./dashboard.controller";
-import { authMiddleware } from "../../middleware/auth.middleware";
+import { authMiddleware } from "../../shared/presentation/authMiddleware";
 
 const router = Router();
 const dashboardController = new DashboardController();

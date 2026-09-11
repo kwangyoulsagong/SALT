@@ -1,11 +1,12 @@
 import express, { Application, Request, Response, NextFunction } from "express";
-import cron from "node-cron";
 import cors from "cors";
 import helmet from "helmet";
-import { errorMiddleware } from "./middleware/error.middleware";
-import { loggerMiddleware } from "./middleware/logger.middleware";
-import { setupSwagger } from "./config/swagger";
-import { NotFoundError } from "./utils/error.util";
+import { errorMiddleware } from "./shared/presentation/errorMiddleware";
+import { healthRouter } from "./shared/presentation/healthRouter";
+import { loggerMiddleware } from "./shared/presentation/loggerMiddleware";
+import { schedule } from "./shared/infrastructure/scheduler";
+import { setupSwagger } from "./shared/config/swagger";
+import { NotFoundError } from "./shared/presentation/httpErrors";
 import { MarketSyncWorker } from "./workers/market-sync.worker";
 import { marketPriceUpdater } from "./workers/market-price-updater.worker";
 import { InvestmentInsightWorker } from "./workers/investment-insight.worker";
@@ -35,10 +36,9 @@ import signalPerformanceRoutes from "./modules/signal-performance/signal-perform
 const app: Application = express();
 const marketWorker = new MarketSyncWorker();
 marketWorker.sync();
-cron.schedule("0 */6 * * *", () => {
-  marketWorker.sync();
-  console.log("⏱️ Market Sync executed");
-});
+// 스케줄 등록은 `shared/infrastructure/scheduler` 를 거친다 — 겹쳐 도는 것을 막는
+// 인프로세스 락이 거기 있다 (`server-architecture.md` §6).
+schedule("market-sync", "0 */6 * * *", () => marketWorker.sync());
 marketPriceUpdater.start();
 
 const priceHistoryWorker = new PriceHistoryWorker();
@@ -67,14 +67,8 @@ app.use(loggerMiddleware);
 // Swagger Documentation
 setupSwagger(app);
 
-// Health check
-app.get("/health", (req: Request, res: Response) => {
-  res.json({
-    status: "ok",
-    service: "salt-backend",
-    timestamp: new Date().toISOString(),
-  });
-});
+// Health check — 서버 자신의 상태만 답한다 (`ddd-shared.md` §5)
+app.use(healthRouter);
 
 // API Routes
 app.use("/api/auth", authRoutes);

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { ResponseUtil } from "../../utils/response.util";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import { profitPlanQuerySchema } from "./profit-plan.dto";
 import { ProfitPlanService } from "./profit-plan.service";
 

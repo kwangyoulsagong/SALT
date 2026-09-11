@@ -1,4 +1,4 @@
-import prisma from "../../config/database";
+import prisma from "../../shared/infrastructure/prisma";
 
 export class RiskAlertService {
   async generateRiskAlerts(userId: string) {

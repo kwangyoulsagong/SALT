@@ -1,6 +1,6 @@
 import type { InsightType } from "@prisma/client";
 
-import prisma from "../../config/database";
+import prisma from "../../shared/infrastructure/prisma";
 
 /**
  * `PriceHistory.close`·`volume` 은 스키마상 `Decimal` 이고 `volume` 은 nullable 이다.

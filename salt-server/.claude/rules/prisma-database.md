@@ -2,7 +2,7 @@
 
 ## Prisma Client
 
-- Prisma client는 `src/config/database.ts`의 default export를 사용한다.
+- Prisma client는 `src/shared/infrastructure/prisma.ts`의 default export를 사용한다.
 - controller나 route에서 Prisma를 직접 호출하지 않는다.
 - 트랜잭션이 필요한 다중 write는 `prisma.$transaction` 사용을 검토한다.
 

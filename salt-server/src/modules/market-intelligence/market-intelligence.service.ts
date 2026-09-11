@@ -1,6 +1,6 @@
 import axios from 'axios';
-import prisma from '../../config/database';
-import { logger } from '../../config/logger';
+import prisma from '../../shared/infrastructure/prisma';
+import { logger } from '../../shared/config/logger';
 
 export class MarketIntelligenceService {
   async getSymbolNews(symbol: string, limit = 3) {

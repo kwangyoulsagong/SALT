@@ -1,4 +1,4 @@
-import prisma from "../../config/database";
+import prisma from "../../shared/infrastructure/prisma";
 
 export class PortfolioPerformanceService {
   async getPerformance(userId: string, range: string) {

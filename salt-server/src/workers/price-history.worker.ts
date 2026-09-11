@@ -1,7 +1,7 @@
 // workers/price-history.worker.ts
 
 import cron from "node-cron";
-import prisma from "../config/database";
+import prisma from "../shared/infrastructure/prisma";
 import {
   UpbitService,
   PriceTimeframe,

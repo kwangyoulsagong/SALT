@@ -1,7 +1,7 @@
 import axios from "axios";
 import Parser from "rss-parser";
 import * as cheerio from "cheerio";
-import { logger } from "../config/logger";
+import { logger } from "../shared/config/logger";
 
 export interface NewsItem {
   title: string;

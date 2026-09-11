@@ -1,5 +1,5 @@
 import axios from "axios";
-import { logger } from "../../config/logger";
+import { logger } from "../../shared/config/logger";
 
 const UPBIT_API_URL = "https://api.upbit.com/v1";
 

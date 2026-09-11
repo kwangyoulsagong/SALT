@@ -1,5 +1,5 @@
 import Parser from "rss-parser";
-import { logger } from "../config/logger";
+import { logger } from "../shared/config/logger";
 
 export interface KoreanNewsItem {
   title: string;

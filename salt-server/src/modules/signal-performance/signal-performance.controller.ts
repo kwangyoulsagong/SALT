@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { ResponseUtil } from "../../utils/response.util";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import { signalPerformanceQuerySchema } from "./signal-performance.dto";
 import { SignalPerformanceService } from "./signal-performance.service";
 

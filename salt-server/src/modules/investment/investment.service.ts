@@ -1,5 +1,5 @@
-import prisma from "../../config/database";
-import { NotFoundError, ConflictError } from "../../utils/error.util";
+import prisma from "../../shared/infrastructure/prisma";
+import { NotFoundError, ConflictError } from "../../shared/presentation/httpErrors";
 import { AddToWatchlistDto, QueryWatchlistDto } from "./investment.dto";
 import { UpbitService } from "./upbit.service";
 

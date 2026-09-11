@@ -1,4 +1,4 @@
-import prisma from "../../config/database";
+import prisma from "../../shared/infrastructure/prisma";
 import { AICoachFeatureExtractor } from "./ai-coach/ai-coach-feature.extractor";
 import { AICoachCandidateGenerator } from "./ai-coach/ai-coach-candidate.generator";
 import { AICoachScoreEngine } from "./ai-coach/ai-coach-score.engine";

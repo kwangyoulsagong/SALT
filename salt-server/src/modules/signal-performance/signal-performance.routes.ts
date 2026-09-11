@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../../middleware/auth.middleware";
+import { authMiddleware } from "../../shared/presentation/authMiddleware";
 import { SignalPerformanceController } from "./signal-performance.controller";
 
 const router: Router = Router();

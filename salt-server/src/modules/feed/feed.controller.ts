@@ -2,7 +2,7 @@
 
 import { Request, Response } from "express";
 import { InvestmentFeedService } from "./feed.service";
-import { ResponseUtil } from "../../utils/response.util";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 
 export class InvestmentFeedController {
   private service = new InvestmentFeedService();

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../../middleware/auth.middleware";
+import { authMiddleware } from "../../shared/presentation/authMiddleware";
 import { TradePreflightController } from "./trade-preflight.controller";
 
 const router: Router = Router();

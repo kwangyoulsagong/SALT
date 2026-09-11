@@ -1,4 +1,4 @@
-import prisma from "../../../config/database";
+import prisma from "../../../shared/infrastructure/prisma";
 import { Timeframe } from "@prisma/client";
 import { MarketRegimeService } from "../market-regime.service";
 import { PortfolioStateService } from "../portfolio-state.service";

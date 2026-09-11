@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../../middleware/auth.middleware";
+import { authMiddleware } from "../../shared/presentation/authMiddleware";
 import { InvestmentInsightController } from "./investment-insight.controller";
 import { InsightRankingController } from "./insight-ranking.controller";
 

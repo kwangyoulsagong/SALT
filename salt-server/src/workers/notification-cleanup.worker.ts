@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import prisma from "../config/database";
+import prisma from "../shared/infrastructure/prisma";
 
 export class NotificationCleanupWorker {
   private running = false;

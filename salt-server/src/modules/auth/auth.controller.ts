@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "./auth.service";
-import { ResponseUtil } from "../../utils/response.util";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import { registerSchema, loginSchema, refreshTokenSchema } from "./auth.dto";
 
 export class AuthController {

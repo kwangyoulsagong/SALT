@@ -10,7 +10,7 @@
 
 ## 외부 API
 
-- 외부 API client/service는 `src/external/**` 또는 도메인 service 내부에 격리한다.
+- 외부 API client/service는 `{context}/infrastructure/`에 격리한다. `src/external/**`은 이관 전 자리이고 해당 컨텍스트가 옮겨질 때 함께 옮긴다.
 - API base URL, key, timeout 등은 env/config를 통해 주입한다.
 - 외부 응답은 내부 DTO/도메인 모델로 변환한 뒤 service에 전달한다.
 - 외부 API 실패, rate limit, timeout을 고려해 fallback 또는 재시도 정책을 명시한다.
@@ -24,6 +24,6 @@
 
 ## 로깅
 
-- worker와 external service는 `src/config/logger.ts`를 사용한다.
+- worker와 external service는 `src/shared/config/logger.ts`를 사용한다.
 - 로그에는 job 이름, 대상 symbol/id, 실패 원인을 포함한다.
 - secret, token, credential은 로그에 남기지 않는다.

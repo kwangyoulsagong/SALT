@@ -50,6 +50,10 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/salt-microFe/.claude/hooks/layer-check.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/salt-server/.claude/hooks/layer-check.mjs\""
           }
         ]
       }

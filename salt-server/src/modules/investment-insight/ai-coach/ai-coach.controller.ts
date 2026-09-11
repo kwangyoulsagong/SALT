@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { AIInvestmentCoachService } from "../ai-investment-coach.service";
 import { AICoachGeminiExplainerService } from "./ai-coach-gemini-explainer.service";
-import { ResponseUtil } from "../../../utils/response.util";
+import { ResponseUtil } from "../../../shared/presentation/ResponseUtil";
 import {
   generateCoachSchema,
   getCoachQuerySchema,

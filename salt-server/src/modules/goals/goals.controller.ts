@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { GoalsService } from './goals.service';
-import { ResponseUtil } from '../../utils/response.util';
+import { ResponseUtil } from '../../shared/presentation/ResponseUtil';
 import {
   createGoalSchema,
   updateGoalSchema,

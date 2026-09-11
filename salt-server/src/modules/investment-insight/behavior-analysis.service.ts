@@ -1,4 +1,4 @@
-import prisma from "../../config/database";
+import prisma from "../../shared/infrastructure/prisma";
 import type { PortfolioTransaction, AssetType } from "@prisma/client";
 
 const hoursAgo = (h: number) => new Date(Date.now() - h * 60 * 60 * 1000);

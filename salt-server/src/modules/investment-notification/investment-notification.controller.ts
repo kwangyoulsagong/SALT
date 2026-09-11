@@ -1,8 +1,8 @@
 // controllers/investment-notification.controller.ts
 
 import { Request, Response } from "express";
-import prisma from "../../config/database";
-import { ResponseUtil } from "../../utils/response.util";
+import prisma from "../../shared/infrastructure/prisma";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 
 export class InvestmentNotificationController {
   /**

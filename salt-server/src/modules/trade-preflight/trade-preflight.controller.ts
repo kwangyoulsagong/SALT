@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { ResponseUtil } from "../../utils/response.util";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import { tradePreflightSchema } from "./trade-preflight.dto";
 import { TradePreflightService } from "./trade-preflight.service";
 

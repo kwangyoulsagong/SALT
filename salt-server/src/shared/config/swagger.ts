@@ -26,7 +26,11 @@ const options = {
       },
     },
   },
-  apis: ["./src/modules/**/*.routes.ts"],
+  // 이관 중에는 두 자리를 모두 훑는다 — 옮긴 컨텍스트와 아직 안 옮긴 모듈이 공존한다.
+  apis: [
+    "./src/*/presentation/*.routes.ts",
+    "./src/modules/**/*.routes.ts",
+  ],
 };
 
 const specs = swaggerJsdoc(options);

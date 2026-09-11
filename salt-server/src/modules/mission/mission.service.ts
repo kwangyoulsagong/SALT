@@ -1,5 +1,5 @@
-import prisma from '../../config/database';
-import { NotFoundError, ConflictError, ValidationError } from '../../utils/error.util';
+import prisma from '../../shared/infrastructure/prisma';
+import { NotFoundError, ConflictError, ValidationError } from '../../shared/presentation/httpErrors';
 import { CreateMissionDto, UpdateMissionDto, QueryMissionsDto, QueryUserMissionsDto } from './mission.dto';
 
 export class MissionService {

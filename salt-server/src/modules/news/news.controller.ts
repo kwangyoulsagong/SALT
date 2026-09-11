@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { NewsService } from './news.service';
-import { ResponseUtil } from '../../utils/response.util';
+import { ResponseUtil } from '../../shared/presentation/ResponseUtil';
 
 export class NewsController {
   private newsService = new NewsService();

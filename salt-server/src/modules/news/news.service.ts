@@ -1,8 +1,8 @@
-import prisma from "../../config/database";
+import prisma from "../../shared/infrastructure/prisma";
 import { newsAPIService, NewsItem } from "../../external/news-api.service";
 
-import { NotFoundError } from "../../utils/error.util";
-import { logger } from "../../config/logger";
+import { NotFoundError } from "../../shared/presentation/httpErrors";
+import { logger } from "../../shared/config/logger";
 import { koreanNewsService } from "../../external/korean-news.service";
 
 export class NewsService {

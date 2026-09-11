@@ -10,9 +10,10 @@
 - `*.controller.ts`: `Request`, `Response`, `NextFunction` 처리, Zod DTO 검증, service 호출, `ResponseUtil` 응답.
 - `*.service.ts`: 비즈니스 로직, Prisma 쿼리, 외부 API 호출 조합.
 - `*.dto.ts`: Zod schema와 `z.infer` 타입.
-- `src/config`: env, database, logger, swagger 설정.
-- `src/middleware`: 인증, 로깅, 에러 처리 등 Express middleware.
-- `src/utils`: 에러, 응답, JWT, password 같은 공통 유틸.
+- `src/shared/config`: env, logger, swagger 설정.
+- `src/shared/infrastructure`: Prisma client, HTTP 클라이언트 팩토리, 이벤트 버스, 스케줄러.
+- `src/shared/presentation`: 인증·로깅·에러 미들웨어, 응답 유틸, 헬스체크.
+- `src/shared/lib`: JWT, password 같은 순수 유틸.
 - `src/external`: 외부 API client/service.
 - `src/workers`: 주기 작업, 동기화, 크롤링, 정리 작업.
 
@@ -35,5 +36,5 @@
 ## 에러 처리
 
 - controller는 `try/catch`에서 `next(error)`로 전달한다.
-- 비즈니스 에러는 `src/utils/error.util.ts`의 `AppError` 계열을 사용한다.
+- 비즈니스 에러는 `src/shared/presentation/httpErrors.ts`의 `AppError` 계열을 사용한다. **새 컨텍스트는 `shared/domain`의 `DomainError`를 쓴다** — 이 파일은 이관이 끝나면 사라진다.
 - 알 수 없는 에러를 임의로 삼키지 않는다.

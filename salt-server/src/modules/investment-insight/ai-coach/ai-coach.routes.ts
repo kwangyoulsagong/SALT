@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { AIInvestmentCoachController } from "./ai-coach.controller";
-import { authMiddleware } from "../../../middleware/auth.middleware";
+import { authMiddleware } from "../../../shared/presentation/authMiddleware";
 
 const router: Router = Router();
 const aiInvestmentCoachController = new AIInvestmentCoachController();
