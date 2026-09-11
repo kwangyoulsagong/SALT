@@ -13,6 +13,19 @@ export enum ErrorKind {
   Conflict = "CONFLICT",
   Invalid = "INVALID",
   Blocked = "BLOCKED",
+  /**
+   * 남의 리소스에 손대려 한 경우 → 403.
+   *
+   * **`SRV-REQ-006` FR-22 는 네 값만 적었다.** 다섯째를 넣은 이유: 사용자 소유 검사가
+   * 전 컨텍스트에 걸리고(`auth-security.md` — "사용자 리소스 접근은 인증된 `userId`
+   * 기준으로 제한한다") 그 응답은 이미 403 이다. 없으면 선택지가 둘뿐이었다 —
+   * `Blocked`(422)로 **응답 코드를 바꾸거나**, `domain` 이 `shared/presentation` 의
+   * `ForbiddenError` 를 import 해서 **레이어 규칙을 깨는 것**(`ddd-domain.md` 허용
+   * 목록에 `shared/presentation` 이 없다).
+   *
+   * 둘 다 이관이 조용히 계약이나 규칙을 바꾸는 것이라 커널에 값을 하나 늘렸다.
+   */
+  Forbidden = "FORBIDDEN",
 }
 
 export abstract class DomainError extends Error {

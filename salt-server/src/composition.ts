@@ -9,12 +9,17 @@ import { PrismaWhaleTransactionRepository } from "./market/infrastructure/Prisma
 import { SymbolNewsAdapter } from "./market/infrastructure/SymbolNewsAdapter";
 import { UpbitClient } from "./market/infrastructure/UpbitClient";
 import { createNewsApplication } from "./news/application/api";
+import { createPortfolioApplication } from "./portfolio/application/api";
+import { PriceHistoryAdapter } from "./portfolio/infrastructure/PriceHistoryAdapter";
+import { PrismaHoldingRepository } from "./portfolio/infrastructure/PrismaHoldingRepository";
+import { PrismaTransactionRepository } from "./portfolio/infrastructure/PrismaTransactionRepository";
 import { PrismaArticleRepository } from "./news/infrastructure/PrismaArticleRepository";
 import { PrismaBookmarkRepository } from "./news/infrastructure/PrismaBookmarkRepository";
 import { RssNewsFeed } from "./news/infrastructure/RssNewsFeed";
 import { createNewsRouter } from "./news/presentation/news.routes";
 import { createInvestmentRouter } from "./market/presentation/investment.routes";
 import { createMarketIntelligenceRouter } from "./market/presentation/marketIntelligence.routes";
+import { createPortfolioRouter } from "./portfolio/presentation/portfolio.routes";
 
 /**
  * 조립 지점 — **구현을 아는 유일한 자리**다.
@@ -59,16 +64,28 @@ const market = createMarketApplication({
   news: new SymbolNewsAdapter(news.api),
 });
 
+/**
+ * `portfolio` 는 `market` 의 종가를 받는다. 성과 차트가 그것을 쓴다 —
+ * 원문에서는 `prisma.priceHistory` 를 직접 뒤졌다.
+ */
+const portfolio = createPortfolioApplication({
+  transactions: new PrismaTransactionRepository(),
+  holdings: new PrismaHoldingRepository(),
+  prices: new PriceHistoryAdapter(market.api),
+});
+
 /** 다른 컨텍스트와 워커가 부르는 공개 API 모음. */
 export const contextApis = {
   news: news.api,
   market: market.api,
+  portfolio: portfolio.api,
 };
 
 /** 컨텍스트가 자기 유스케이스를 직접 돌려야 하는 곳(워커·관리 작업)이 쓴다. */
 export const contextUseCases = {
   news: news.useCases,
   market: market.useCases,
+  portfolio: portfolio.useCases,
 };
 
 /** `app.ts` 가 등록하는 라우터. 경로는 `app.ts` 가 정한다. */
@@ -76,4 +93,5 @@ export const contextRouters = {
   news: createNewsRouter(news.useCases),
   investment: createInvestmentRouter(market.useCases),
   marketIntelligence: createMarketIntelligenceRouter(market.useCases),
+  portfolio: createPortfolioRouter(portfolio.useCases),
 };

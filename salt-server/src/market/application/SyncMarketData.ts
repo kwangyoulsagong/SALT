@@ -105,19 +105,35 @@ export class CollectPriceHistory {
     return { symbols: symbols.length };
   }
 
+  /**
+   * 한 심볼이 실패해도 회차가 멈추지 않는다.
+   *
+   * > **원문은 멈췄다.** `collectSymbol` 에 try/catch 가 없어 심볼 하나의 일시적 실패가
+   * > `Promise.all` 을 통해 `run()` 의 catch 까지 올라갔고, 그 뒤의 **보관 정책 삭제
+   * > (`purgeOlderThan`)가 건너뛰어졌다.** 부팅 직후 네 작업이 동시에 거래소를 때리기
+   * > 때문에 이 실패는 드물지 않다 — 실제로 이 이관을 검증하는 기동에서도 났다.
+   * > 그래서 5분봉 30일·일봉 2년 보관 정책이 실제로 돈 적이 있는지 알 수 없다.
+   * >
+   * > `workers-external.md` — "실패한 batch 는 로그를 남기고 다음 batch 또는 다음 주기
+   * > 실행이 가능해야 한다".
+   */
   private async collectSymbol(symbol: string) {
     for (const target of COLLECT_TARGETS) {
-      const candles = await this.exchange.candlesByTimeframe(
-        symbol,
-        target.timeframe,
-        target.count
-      );
-      await this.prices.upsertCandles(
-        symbol.toUpperCase(),
-        "crypto",
-        target.timeframe,
-        candles
-      );
+      try {
+        const candles = await this.exchange.candlesByTimeframe(
+          symbol,
+          target.timeframe,
+          target.count
+        );
+        await this.prices.upsertCandles(
+          symbol.toUpperCase(),
+          "crypto",
+          target.timeframe,
+          candles
+        );
+      } catch (error) {
+        logger.warn(`캔들 수집 실패 — ${symbol} ${target.timeframe}`, error);
+      }
       await sleep(TIMEFRAME_PAUSE_MS);
     }
   }
