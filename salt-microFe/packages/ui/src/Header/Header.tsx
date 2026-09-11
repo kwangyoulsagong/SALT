@@ -1,8 +1,11 @@
+"use client";
+
+// 클라이언트 잎: route 모드에서 router.back() 을 호출한다.
 import { ReactNode } from "react";
 import { HeaderButton, NavWrapper, Wrapper } from "./Header.css";
 import { Heading } from "../Typo/Heading/Heading";
 import { ChevronLeft } from "lucide-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 interface HeaderProps {
   route?: boolean;
   children: ReactNode;

@@ -3,7 +3,7 @@ import { USER_KEY } from "@/constants/api";
 import { useAppDispatch } from "@/hooks/redux/hooks";
 import { setUser } from "@/store/redux/features/auth/authSlice";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const useAuth = () => {
   const dispatch = useAppDispatch();

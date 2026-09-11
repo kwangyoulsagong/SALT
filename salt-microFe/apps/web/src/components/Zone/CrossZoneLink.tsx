@@ -1,3 +1,6 @@
+"use client";
+
+// 클라이언트 잎: 클릭 시 대기 상태를 갖는다.
 import { useState, type AnchorHTMLAttributes, type ReactNode } from "react";
 import { isCrossZonePath } from "@repo/core/zones";
 

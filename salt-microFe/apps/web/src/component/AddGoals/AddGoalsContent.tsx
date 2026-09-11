@@ -1,3 +1,6 @@
+"use client";
+
+// 클라이언트 잎: react-hook-form 을 쓴다.
 import CategoriesWrapper from "@/component/AddGoals/GoalsForm/CategoriesWrapper/CategoriesWrapper";
 import GoalsForm from "@/component/AddGoals/GoalsForm/GoalsForm";
 import Wrapper from "@/component/AddGoals/Wrapper/Wrapper";

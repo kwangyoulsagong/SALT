@@ -1,3 +1,6 @@
+"use client";
+
+// 클라이언트 잎: React Query 로 조회한다.
 import useGoals from "@/hooks/api/goals/useGoals";
 import Footer from "./Footer/Footer";
 import { Container } from "./MyGoals.css";

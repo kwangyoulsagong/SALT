@@ -1,3 +1,6 @@
+"use client";
+
+// 클라이언트 잎: React Query 로 조회한다.
 import { Icon } from "@repo/ui/icon";
 import Goals from "./Goals/Goals";
 import useGoals from "@/hooks/api/goals/useGoals";

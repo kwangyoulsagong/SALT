@@ -1,3 +1,6 @@
+"use client";
+
+// 클라이언트 잎: 프로필을 Redux 에서 읽는다.
 import { useAppSelector } from "@/hooks/redux/hooks";
 import { Container } from "./Header.css";
 import ProfileImage from "./Profile/ProfileImage/ProfileImage";
