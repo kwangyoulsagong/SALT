@@ -1,0 +1,11 @@
+{
+  "name": "@repo/eslint-plugin-fsd",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./layer-rules": "./layer-rules.cjs"
+  },
+  "files": ["index.js", "layer-rules.cjs", "rules"]
+}

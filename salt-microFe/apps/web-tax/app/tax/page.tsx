@@ -1,1 +1,1 @@
-export { default } from "@/pages/tax";
+export { TaxPage as default } from "@/pages/tax";

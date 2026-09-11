@@ -22,6 +22,10 @@ shared/
 └── index.ts
 ```
 
+공개 단위는 **세그먼트**다: `@/shared/api` · `@/shared/config` · … . 그 안쪽 경로
+(`@/shared/lib/formatPrice`)를 직접 찌르지 않는다. 예외는 `*.css` 토큰 모듈 하나다
+(`layered-architecture.md` §3).
+
 ## 원칙
 
 - **도메인 무관한 코드만.** 도메인 특화 로직은 `entities`로 내린다. `shared/lib/formatTaxDeadline.ts`가 생기면 그건 `entities/tax/lib/`의 것이다.
@@ -37,8 +41,18 @@ shared/
 
 프론트에서 금액을 계산하는 코드가 생기면 그것은 서버 계약이 부족하다는 신호다.
 
-## i18n
+## i18n — 여기 있는 것과 슬라이스에 있는 것
 
-사용자 노출 문구는 전부 `shared/i18n`에 모은다. 현재 `constants/api.ts`에 섞여 있는 `HTTP_ERROR_MESSAGE`·`TOAST_MESSAGES`가 이관 대상이다.
+`shared/i18n`에는 **도메인과 무관한 문구**만 둔다: HTTP 에러(`HTTP_ERROR_MESSAGE`·
+`TOAST_MESSAGES`·`ERROR_MESSAGE`), 블록 경계의 로딩/실패 문구, 내비게이션 상태 문구.
 
-문구 정책(확신 표현 금지 · 목표주가 금지 · 2인칭 인격 평가 금지)은 `i18n-policy.md`를 따른다. **한 곳에 모여 있어야 그 검수가 가능하다.**
+**슬라이스 문구는 그 슬라이스의 `model/messages.ts`에 있다** — `MARKET_MESSAGES`·
+`GOAL_MESSAGES`·`PORTFOLIO_MESSAGES`·`AUTH_MESSAGES`·`SIGN_IN_MESSAGES`·`ADD_GOAL_MESSAGES`.
+
+> **왜 한 파일이 아닌가 (2026-09-11, `FE-REQ-009`).** 도메인 문구를 `shared`로 올리면
+> `shared`가 도메인을 알게 되고(이 문서 첫 줄과 정면으로 충돌한다), 슬라이스를 지울 때
+> 문구만 남는다. `i18n-policy.md`가 요구하는 검수는 **"한 파일"이 아니라 "컴포넌트 밖"**
+> 이면 성립한다 — 확신 표현·목표주가·2인칭 평가 검사는 `**/model/messages.ts` +
+> `shared/i18n` grep 하나로 끝난다.
+
+문구 정책(확신 표현 금지 · 목표주가 금지 · 2인칭 인격 평가 금지)은 `i18n-policy.md`를 따른다.

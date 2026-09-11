@@ -26,7 +26,11 @@ pages/{page-name}/
 
 ### `apps/web` (default zone)
 
-`home`(`/`) · `coach`(`/coach`) · `assets`(`/assets`) · `goals`(`/goals`, `/goals/addgoals`) · `onboarding` · `login`
+**목표:** `home`(`/`) · `coach`(`/coach`) · `assets`(`/assets`) · `goals` · `onboarding` · `login`
+
+**2026-09-11 현재:** `login`(`/`) · `home`(`/home`) · `investments`(`/investments`) ·
+`add-goal`(`/goals/addgoals`) · `streaming-probe`(측정 전용, 기본 404).
+`investments`는 F006에서 `assets`로 바뀐다(`FE-REQ-030`). `coach`는 그때 생긴다.
 
 ### `apps/web-tax` (세금 zone)
 
