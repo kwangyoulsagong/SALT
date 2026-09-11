@@ -15,6 +15,19 @@ BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관�
 
 글로벌 요구사항/리포트는 루트 `requirements/**`에서 관리한다. 여러 영역을 한 번에 진행하는 작업은 `requirements/specs/in-progress/`의 글로벌 계획을 먼저 확인하고, 각 영역별 세부 요구사항은 `pm/requirements/**`, `salt-microFe/requirements/**`, `bff/requirements/**`, `salt-server/requirements/**`와 동기화한다.
 
+## 레포 공통 규칙과 스킬
+
+영역별 규칙은 각 영역 `.claude/rules/`에 있고, **레포 전체에 걸리는 것만** 루트에 둔다.
+
+| 문서 | 내용 |
+|---|---|
+| `.claude/rules/pr-convention.md` | PR 본문 규칙. 무엇을·왜 / 리뷰 초점 / **미검증·범위 밖** / 계약 변경 |
+| `.github/pull_request_template.md` | GitHub이 새 PR 본문에 자동으로 채운다 |
+| `.claude/skills/pr-summary/SKILL.md` | 현재 브랜치의 PR 본문을 템플릿대로 채워 출력한다 (`/pr-summary`) |
+
+영역 규칙은 `.claude/rules/`와 `.codex/rules/` **두 벌**이다. 한쪽만 고치면 다른 하네스가
+없는 구조를 전제로 작업한다. **함께 고친다.**
+
 ## 아키텍처 결정과 전환 (2026-09-09)
 
 되돌리기 비용이 큰 결정은 `requirements/decisions/ADR-*.md`에 기록한다.
