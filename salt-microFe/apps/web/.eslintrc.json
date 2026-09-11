@@ -1,0 +1,24 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "plugins": [
+    "@repo/zone"
+  ],
+  "rules": {
+    "@repo/zone/no-cross-zone-link": [
+      "error",
+      {
+        "zonePaths": [
+          "/tax",
+          "/tax-static"
+        ]
+      }
+    ]
+  },
+  "ignorePatterns": [
+    "next-env.d.ts",
+    ".next/"
+  ]
+}
