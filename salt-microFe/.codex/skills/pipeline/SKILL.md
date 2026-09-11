@@ -13,7 +13,7 @@ argument-hint: <요구사항 파일명 또는 자유 텍스트>
 - 요구사항을 scope별로 분해한다.
 - 도메인 폴더 필요 여부를 판단한다.
 - API/상태/SSR/MFE/성능 영향을 분석한다.
-- MFE 작업이면 remote loading, provider/cache 소유권, shared dependency, type declaration, event bus registry를 계획에 포함한다.
+- zone 작업이면 zone 경계 근거, `rewrites` 경로, `assetPrefix`, cross-zone 링크, 공유 패키지 승격을 계획에 포함한다.
 - 구현 계획과 검증 명령을 출력한다.
 
 ## Phase 2: Orchestrate
@@ -27,7 +27,7 @@ argument-hint: <요구사항 파일명 또는 자유 텍스트>
 
 - 변경 범위에 맞는 lint/build/type check를 실행한다.
 - app 간 직접 import, SSR 위험, MFE 계약 변경을 점검한다.
-- React.lazy remote 소비, shared 설정 불일치, stale remote type, event bus registry 누락을 점검한다.
+- zone 경로 중복, cross-zone `<Link>`, zone 간 직접 import, `transpilePackages` 누락을 점검한다.
 - 요구사항 체크리스트를 작성한다.
 
 ## Phase 4: Deliver

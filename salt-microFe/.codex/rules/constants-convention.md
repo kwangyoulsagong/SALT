@@ -22,7 +22,7 @@
 
 - 앱 공통: `src/constants`.
 - 도메인 전용: `src/domains/{domain}/constants`.
-- MFE event name: `packages/message-event-bus`.
+- zone 경로·정적 자산 prefix: `@repo/core/zones` 레지스트리. 앱에 상수를 복사하지 않는다.
 - 디자인 토큰: `packages/ui/src/styles/tokens.css.ts`.
 
 ## 네이밍

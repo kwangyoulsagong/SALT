@@ -7,13 +7,13 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "check-types": "turbo check-types"
   },
   "dependencies": {
-    "@module-federation/nextjs-mf": "8.8.11",
     "@vanilla-extract/css": "^1.14.0",
     "lightweight-charts": "^5.0.9",
-    "next": "^14.2.23",
+    "next": "^15.5.25",
     "react": "^18",
     "react-dom": "^18"
   },
@@ -22,7 +22,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
-    "eslint-config-next": "14.2.23",
+    "eslint-config-next": "^15.5.25",
     "husky": "^8.0.0",
     "lint-staged": "^15.4.3",
     "turbo": "latest",

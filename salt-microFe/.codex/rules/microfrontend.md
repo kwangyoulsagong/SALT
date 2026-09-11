@@ -1,83 +1,94 @@
-# 마이크로프론트엔드 규칙
+# 마이크로프론트엔드 — Next.js Multi-Zones
 
-## 역할
+> **개정 2026-09-09.** `@module-federation/nextjs-mf`를 버리고 Multi-Zones로 갈아탔다. 근거는 `requirements/decisions/ADR-001-microfrontend-replacement.md`와 `FE-REQ-007`에 있다. 요약: 공식 문서에 **`App Router Not Supported`** 와 **`Support for Next.js is ending`** 이 명시되어 있고, App Router와 붙이면 빌드가 깨진다(원인: Next에 async boundary가 없어 share scope 조율 중 앱을 멈출 수 없다).
 
-- `apps/shell`: host. 전역 레이아웃, 라우팅 진입점, remote composition, 공통 provider를 담당한다.
-- `apps/goals`, `apps/investments`: remotes. 독립 실행과 shell 내 실행을 모두 지원한다.
-- remote는 shell 내부 구현에 의존하지 않는다. 공유 계약은 `packages/*`에 둔다.
+## 1. zone이란
 
-## Federation 계약
+zone은 **경로 집합을 담당하는 평범한 Next 앱**이다. 조립이 번들러가 아니라 **요청 라우팅**에서 일어난다. 그래서 각 zone이 자기 App Router·RSC·스트리밍을 온전히 갖는다.
 
-- `NextFederationPlugin.name`, `filename`, `remotes`, `exposes` 변경은 public API 변경으로 본다.
-- remote entry 경로는 server/client를 모두 고려한다.
-- server path: `/_next/static/ssr/remoteEntry.js`
-- client path: `/_next/static/chunks/remoteEntry.js`
-- `react`, `react-dom`은 singleton 유지.
-- mutable app store를 singleton으로 공유하지 않는다. URL, props, event bus로 통신한다.
-- expose는 route-level 또는 안정된 public module만 연다. 내부 컴포넌트 깊은 경로 expose 금지.
+| zone | 앱 | 경로 | 왜 별도인가 |
+|---|---|---|---|
+| default | `apps/web` | `/`, `/coach/*`, `/assets/*`, `/goals/*` | 3탭이 전부 여기 있다. **탭 전환이 soft navigation이 된다** |
+| tax | `apps/web-tax` | `/tax/*` | ① 방문 빈도가 낮다(연말·5월) ② **릴리스 이유가 다르다** — 법령 파라미터 변경 ③ 취득가액 lot 엔진·손실수확 솔버·환율 로직이 매일 쓰는 번들에 실릴 이유가 없다 |
 
-## 통신
+## 2. zone을 추가하는 기준 — 세 조건을 모두 만족해야 한다
 
-- MFE 간 이벤트는 `@repo/message-event-bus`를 사용한다.
-- 이벤트 이름과 payload 타입은 명시적으로 정의한다.
-- event bus 상세 규칙은 `.codex/rules/event-bus.md`를 따른다.
-- `window` custom event, localStorage polling, 전역 변수로 통신하지 않는다.
-- URL query/path로 표현 가능한 상태는 URL을 우선 사용한다.
+1. 다른 zone과 **릴리스 주기가 다르다**
+2. 사용자가 다른 zone과 **자주 오가지 않는다**
+3. 다른 zone 번들에 실려 갈 이유가 없는 **무거운 코드**를 갖는다
 
-## 스타일 격리
+하나라도 불확실하면 **같은 zone의 FSD 슬라이스**로 만든다. zone은 되돌리기가 비싸다.
 
-- remote 내부 스타일을 shell global selector로 덮어쓰지 않는다.
-- 재사용 UI는 `@repo/ui`와 Vanilla Extract class를 통해 전달한다.
-- global style은 reset, font, CSS variable, shell layout 수준으로 제한한다.
+**탭 경계로 zone을 자르지 않는다.** 탭 전환은 이 제품에서 가장 잦은 이동이고, zone을 넘으면 full reload가 된다.
 
-## 장애 처리
+## 3. 설정
 
-- shell은 remote 로딩 실패, dev 서버 미기동, 네트워크 실패에 대한 fallback UI를 둔다.
-- remote는 shell 없이도 로컬 `next dev`에서 주요 화면을 확인할 수 있어야 한다.
-- remote public API 변경 시 shell 빌드를 같이 검증한다.
+```js
+// apps/web-tax/next.config.js
+const nextConfig = { assetPrefix: '/tax-static' };
+```
 
-## Shell에서 Remote 소비
+```js
+// apps/web/next.config.js  (default zone 이 프록시 역할)
+async rewrites() {
+  const tax = process.env.TAX_ZONE_ORIGIN;   // scheme + 도메인 포함 절대 URL
+  return [
+    { source: '/tax',                 destination: `${tax}/tax` },
+    { source: '/tax/:path+',          destination: `${tax}/tax/:path+` },
+    { source: '/tax-static/:path+',   destination: `${tax}/tax-static/:path+` },
+  ];
+}
+```
 
-- shell route에서 remote를 직접 `React.lazy(() => import("remote/Module"))`로만 소비하지 않는다.
-- Next.js Pages Router에서는 remote entry를 `next/dynamic`으로 감싸고 SSR 여부를 명시한다.
-- SSR 가능한 remote는 server remote path 검증 후 `ssr`을 유지한다.
-- browser-only remote는 `dynamic(..., { ssr: false, loading })`로 작게 격리한다.
-- `<Suspense>` fallback만으로 remote 장애 처리를 끝내지 않는다. load failure fallback 또는 error boundary를 둔다.
+- default zone은 `assetPrefix`를 갖지 않는다.
+- Next 15+에서는 정적 자산용 추가 rewrite가 불필요하다. **그 우회를 코드에 남기지 않는다.**
+- 로컬 개발에서는 `TAX_ZONE_ORIGIN`이 `http://localhost:3001`을 가리킨다.
+- **경로는 zone 간 유일해야 한다.** 두 zone이 같은 경로를 서비스하면 라우팅 충돌이다.
 
-## Provider 소유권
+## 4. zone 간 링크는 `<a>`다
 
-- shell provider와 remote provider의 책임을 문서화한다.
-- shell 전역 provider: layout/auth/navigation/theme처럼 host가 소유하는 상태.
-- remote 내부 provider: remote가 독립 실행에 필요한 query/store/form 상태.
-- exposed module이 provider를 포함하는지, 순수 feature component인지 명확히 나눈다.
-- 같은 React Query cache를 공유할 계획이 없으면 remote별 QueryClientProvider 중복은 허용하되 데이터 중복 fetch를 감수한 설계로 기록한다.
-- 공유 cache가 필요하면 singleton 설정만으로 해결하지 말고 query owner와 hydration 전략을 먼저 정한다.
+`<Link>`는 상대 경로를 prefetch·soft navigate하려 하고 **zone을 넘으면 동작하지 않는다.**
 
-## Shared Dependency
+```tsx
+// ✅ zone 을 넘는다
+<a href="/tax">세금 마감 콕핏</a>
 
-- `react`, `react-dom`은 모든 앱에서 singleton.
-- `@repo/message-event-bus`는 singleton.
-- `@tanstack/react-query`, `@reduxjs/toolkit`, `react-redux`, `zustand`는 앱별 격리 또는 singleton 중 하나를 명시적으로 선택하고 모든 앱 설정을 맞춘다.
-- 존재하지 않는 workspace package를 `transpilePackages`에 넣지 않는다.
-- shared 설정 변경 시 shell, goals, investments의 `next.config.js`를 같이 비교한다.
+// ❌ 깨진다
+<Link href="/tax">세금 마감 콕핏</Link>
+```
 
-## Remote Type 선언
+- zone 경로 목록은 `shared/config`에 둔다. 어떤 경로가 다른 zone인지 한 곳에서 안다.
+- **ESLint 규칙으로 강제한다** — zone 경로에 `<Link>`를 쓰면 lint 실패.
+- zone 진입 링크에는 **로딩 상태를 준다.** hard navigation이므로 체감 지연이 있다.
 
-- shell의 `src/types/*.d.ts`는 실제 configured remote/expose만 선언한다.
-- 사용하지 않는 remote 선언은 제거한다.
-- expose 이름 변경 시 type declaration, shell import, remote `next.config.js`를 같은 PR/작업에서 수정한다.
+## 5. Vercel 배포 시 완화
 
-## 현재 레포 점검 결과
+Vercel에 배포하면 `@vercel/microfrontends`가 cross-zone 이동을 부드럽게 만든다.
 
-- shell은 `React.lazy`로 `goals/*`, `investments/*`를 소비한다. Next/MFE SSR 의도가 불명확하므로 `next/dynamic` 기반 규칙으로 정리해야 한다.
-- shell과 remote가 각각 `QueryClientProvider`를 가진다. cache 공유/격리 의도가 문서화되어 있지 않다.
-- `@tanstack/react-query` shared 설정이 shell과 remotes에서 다르다. singleton 여부를 결정하고 맞춰야 한다.
-- `transpilePackages`에 `@repo/store`가 들어가지만 현재 workspace package가 없다. 제거 또는 패키지 생성 여부를 결정해야 한다.
-- shell type declaration에 실제 remotes가 아닌 `game`, `social`, `missions`, `ranking`, `notification` 선언이 남아 있다.
-- event bus는 `window` singleton을 사용한다. SSR top-level crash는 막고 있으나 payload 타입과 event name registry가 필요하다.
+- 루트 `layout.tsx`에 `PrefetchCrossZoneLinksProvider`
+- 확장된 `Link`로 zone 간 prefetch·prerender → 리로드 없는 전환
+- 라우팅은 Vercel 네트워크가 처리 (Public Beta)
 
-## 변경 체크
+**자체 호스팅이면 이 완화가 없다.** 순수 Multi-Zones + 자체 프록시(default zone `rewrites` 또는 nginx)이고 zone 간 hard navigation을 그대로 안는다.
 
-- expose 추가/변경: remote `next.config.js`, shell remote import, 독립 실행 경로 확인.
-- shared dependency 변경: 세 앱의 `shared` 설정 일관성 확인.
-- 새 remote 추가: 고유 port, federation name, shell remotes, README/AGENTS 업데이트.
+## 6. Server Actions
+
+한 도메인이 여러 앱을 서비스하므로 origin을 명시해야 한다.
+
+```js
+experimental: { serverActions: { allowedOrigins: ['salt.example.com'] } }
+```
+
+## 7. 코드 공유
+
+Multi-Zones는 코드 공유 수단을 제공하지 않는다. **workspace 패키지로만** 공유한다.
+
+- `apps/web-tax`가 `apps/web/src/**`를 직접 import하는 것은 **훅이 차단**한다.
+- 공유 대상은 `packages/tokens` · `packages/ui` · `packages/core`.
+- zone별 릴리스가 어긋날 수 있으므로 **zone을 넘나드는 기능은 기능 플래그로 동시 활성화**한다.
+
+## 8. 하지 않는 것
+
+- **`@module-federation/nextjs-mf`를 다시 넣지 않는다.** 지원이 종료되고 App Router에서 동작하지 않는다.
+- **`packages/message-event-bus`를 쓰지 않는다.** 제거됐다. zone 간 통신은 URL 파라미터와 서버 상태로 한다.
+- **런타임 번들 조립(Module Federation)을 다시 도입하기 전에** `next-rspack` 안정 선언과 `@module-federation/enhanced`의 App Router 공식 지원을 확인한다. 그때는 `web-tax` zone 하나를 실험 대상으로 삼는다 — Multi-Zones가 그 실험을 zone 단위로 격리해 준다.

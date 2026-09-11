@@ -1,0 +1,26 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "plugins": [
+    "@repo/zone"
+  ],
+  "rules": {
+    "@repo/zone/no-cross-zone-link": [
+      "error",
+      {
+        "zonePaths": [
+          "/",
+          "/home",
+          "/investments",
+          "/goals"
+        ]
+      }
+    ]
+  },
+  "ignorePatterns": [
+    "next-env.d.ts",
+    ".next/"
+  ]
+}

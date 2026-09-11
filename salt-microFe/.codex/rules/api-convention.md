@@ -53,8 +53,8 @@ export const portfolioKeys = {
 - 성공 시 관련 query key만 invalidate한다.
 - invalidate Promise를 반환하면 pending UX가 더 정확해진다.
 
-## MFE 데이터 소유권
+## zone 데이터 소유권
 
-- shell과 remote가 같은 데이터를 동시에 fetch하지 않게 owner를 정한다.
-- remote 내부 화면 데이터는 remote가 소유한다.
-- shell layout/global navigation 데이터는 shell이 소유한다.
+- **zone은 자기 데이터를 스스로 부른다.** zone 간에 클라이언트 캐시를 공유하지 않는다 — hard navigation이라 넘어가지 않는다.
+- 두 zone이 같은 데이터를 필요로 하면 **BFF 엔드포인트를 공유**한다. 프론트에서 다시 합치지 않는다.
+- zone에 넘길 값은 **URL 파라미터**로 보낸다.

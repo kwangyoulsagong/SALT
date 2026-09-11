@@ -22,4 +22,4 @@
 
 - 알 수 없는 문자열 concat으로 token을 동적 생성하지 않는다.
 - Tailwind류 동적 class가 빌드에서 누락되는 패턴을 피한다.
-- shell global class로 remote 내부 class를 제어하지 않는다.
+- 한 zone의 global class로 다른 zone 내부를 제어하려 하지 않는다. zone은 별도 문서다.

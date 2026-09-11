@@ -1,0 +1,20 @@
+{
+  "name": "@repo/tokens",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/node": "^20.11.24",
+    "eslint": "^9.19.0",
+    "typescript": "^5"
+  }
+}

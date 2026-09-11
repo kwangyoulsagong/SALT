@@ -13,14 +13,14 @@
 - Zustand는 selector로 필요한 값만 구독한다.
 - store 전체 구독 금지.
 - React Query key는 안정적으로 만든다. 렌더마다 새 객체를 key에 직접 넣지 않는다.
-- shell과 remote가 같은 데이터를 중복 요청하지 않도록 owner를 정한다.
+- 같은 zone 안에서 두 컴포넌트가 같은 데이터를 중복 요청하지 않도록 owner를 정한다.
 
 ## 번들
 
 - icon/chart/date/util 라이브러리는 가능한 좁게 import한다.
 - browser-only heavy dependency를 `packages/ui` 기본 primitive에 넣지 않는다.
 - 공통 패키지 export는 tree-shaking 가능하게 작게 유지한다.
-- remote별 중복 dependency가 커지면 federation shared 설정을 검토한다.
+- zone별 중복 dependency가 커지면 workspace 패키지로 승격할지 검토한다. zone은 번들을 공유하지 않으므로 중복 자체는 정상이다.
 
 ## 네트워크
 

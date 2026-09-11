@@ -5,23 +5,26 @@
 ## 프로젝트 개요
 
 - Monorepo: `pnpm` workspace + Turborepo
-- Apps: `apps/web`(default zone, 3000), `apps/web-tax`(zone, 3001), `apps/mobile`(React Native, iOS+Android)
-- Framework: Next.js App Router, React 18, TypeScript strict / React Native
+- Apps: `apps/web`(default zone, 3000), `apps/web-tax`(tax zone, 3001), `apps/mobile`(React Native, iOS+Android — 미착수)
+- Framework: Next.js 15, React 18, TypeScript strict / React Native
 - 아키텍처: **FSD**(6레이어) · **Next.js Multi-Zones**(마이크로프론트엔드) · **스트리밍 SSR**(RSC + Suspense)
 - Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`(웹) / `StyleSheet` + `@repo/ui-native`(모바일)
-- Shared packages: `packages/tokens`(플랫폼 중립), `packages/ui`, `packages/ui-native`, `packages/core`, `packages/mocks`, `packages/eslint-config`, `packages/typescript-config`
+- Shared packages: `packages/tokens`(플랫폼 중립 토큰), `packages/core`(플랫폼 무관 모델·상수·zone 레지스트리), `packages/ui`(웹 전용), `packages/mocks`, `packages/eslint-config`, `packages/eslint-plugin-zone`, `packages/typescript-config`
 
-> **전환 중.** 현재 코드는 `apps/{shell,goals,investments}` + Pages Router + `@module-federation/nextjs-mf`다. 전환 근거와 순서는 `requirements/decisions/ADR-001-microfrontend-replacement.md`와 `FE-REQ-007`~`FE-REQ-009`에 있다. 새 코드는 목표 구조로 쓰고, 기존 코드는 그 REQ 순서로 옮긴다.
+> **전환 중.** `FE-REQ-007`(Multi-Zones)까지 완료했다. **아직 Pages Router이고 FSD가 아니다.**
+> 남은 순서는 `FE-REQ-008`(App Router + 스트리밍 SSR) → `FE-REQ-009`(FSD 전환)다. 순서를 바꾸면 라우트를 두 번 옮긴다.
+> 근거는 `requirements/decisions/ADR-001-microfrontend-replacement.md`.
+> `apps/ui-native`·`packages/ui-native`는 `RN-REQ-001`에서 생긴다.
 
 ## Commands
 
 ```bash
-pnpm dev
+pnpm dev                        # 두 zone 동시 기동 (web:3000, web-tax:3001)
 pnpm build
 pnpm lint
-pnpm --filter shell dev
-pnpm --filter goals dev
-pnpm --filter investments dev
+pnpm check-types
+pnpm --filter web dev
+pnpm --filter web-tax dev
 pnpm --filter @repo/ui lint
 pnpm --filter @repo/ui check-types
 pnpm --filter @repo/ui test
@@ -36,7 +39,8 @@ pnpm --filter @repo/ui storybook
 - **Next 라우팅은 프로젝트 루트**(`apps/*/app/**`)에 두고 `@/pages/*`를 re-export만 한다. FSD는 `src/` 안에만 있다.
 - 단일 앱에서만 쓰는 코드는 앱 내부에 둔다. 2개 이상에서 반복되거나 런타임 계약이면 `packages/*`로 승격한다.
 - **zone끼리 `apps/other/src/...`를 직접 import하지 않는다.** 공유는 workspace 패키지로만 한다.
-- **`apps/mobile`은 `packages/ui`를 import하지 않는다** — vanilla-extract는 RN에서 동작하지 않는다.
+- **`apps/mobile`은 `packages/ui`를 import하지 않는다** — vanilla-extract는 RN에서 동작하지 않는다. 토큰은 `packages/tokens`로 공유한다.
+- **zone을 넘는 링크는 `<a>`(=`CrossZoneLink`)다.** `next/link`의 `<Link>`를 쓰면 `@repo/zone/no-cross-zone-link`가 lint에서 막는다. zone 경로의 단일 소스는 `@repo/core/zones`.
 - 레이어·슬라이스 위반은 `.claude/hooks/layer-check.mjs`가 쓰기 시점에 차단한다. **훅이 막으면 우회하지 말고 구조를 고친다.**
 
 ## Rule Index
@@ -61,8 +65,6 @@ pnpm --filter @repo/ui storybook
 - `.claude/rules/import-convention.md` — import/alias
 - `.claude/rules/className-convention.md` — className 작성
 - `.claude/rules/constants-convention.md` — 상수 추출
-- `.claude/rules/microfrontend.md` — Module Federation
-- `.claude/rules/event-bus.md` — MFE 이벤트 버스
 - `.claude/rules/ssr.md` — SSR/하이드레이션
 - `.claude/rules/performance.md` — 렌더링/번들/네트워크 성능
 - `.claude/rules/canvas.md` — 고부하 시 Canvas 도입 기준
