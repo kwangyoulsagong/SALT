@@ -195,7 +195,8 @@ flowchart TB
 |---|---|---|
 | `FE-REQ-007` MFE 교체 | **in-progress** | Multi-Zones 전환 완료(`apps/web` + `apps/web-tax`), 빌드·린트·타입·프록시 검증 통과. 미충족 6건 중 §4-6(브라우저 확인)은 `FE-REQ-008`에서 닫혔다. 나머지는 `checklists/FE-REQ-007.md` §4 |
 | `FE-REQ-008` App Router + 스트리밍 SSR | **in-progress** | 두 zone 모두 App Router. 스트리밍 게이트 **첫 블록 p95 31.9ms**(기준 300ms), 총 완료 악화 없음. 번들 증가 최대 +16.2 kB gzip(예산 40KB). 미충족 8건은 `checklists/FE-REQ-008.md` §6 |
-| 나머지 143개 | to-do | |
+| `SRV-REQ-006` DDD 전환 | **in-progress (1~2/4단계)** | `shared` Kernel(`Money`·`Quantity`·`KstDate`·`DomainError`·`Degraded`) + 횡단 인프라 + `layer-check` 훅·ESLint(차단 10 · 통과 6). 2단계는 **안전망까지** — `coach/domain/policy` 추출 + 특성화 테스트 23건(원문 산술과 무작위 40,000건 대조 불일치 0). **컨텍스트 이관 본체는 미착수** — FR-32 가 `portfolio`·`market`·`news` 공개 API 를 전제하는 것이 확인돼 REQ 본문을 정정했다. 상세는 `checklists/SRV-REQ-006.md` §7 |
+| 나머지 141개 | to-do | |
 
 **스트리밍 판정은 화면 단위다.** `FE-REQ-008`이 통과시킨 것은 프레임워크와 측정 방법이고,
 홈 5블록·세금 콕핏·청구서의 판정은 그 화면이 생길 때(`FE-REQ-030`~`033` · `018`~`021` · `014`~`017`)
@@ -233,3 +234,5 @@ flowchart TB
 | 2026-09-09 | 초안. 기능 7 × 영역 5 × 종류 4 = 140개 지도. 아키텍처 전환 9개 + 규칙 24개 |
 | 2026-09-10 | **145개 전부 작성 완료.** F007에 FE 사분면이 없어 실제 총계는 140 → 145(아키텍처 9 + 매트릭스 136)로 정정 |
 | 2026-09-11 | `FE-REQ-008`(App Router + 스트리밍 SSR) 구현. 측정 게이트 통과 — §7 상태표 갱신 |
+| 2026-09-11 | `SRV-REQ-006` 1단계(`shared` Kernel + 강제 수단). 서버 빌드가 이전부터 **에러 17건으로 깨져 있던 것을 발견하고 별도 커밋으로 0건으로 고쳤다**(워커 2종이 런타임에도 실패 중이었다) |
+| 2026-09-11 | `SRV-REQ-006` 2단계 안전망(`coach` 정책 추출 + 특성화 테스트). REQ 본문 4항목 정정 — FR-12 · FR-31 · FR-32 · NFR |
