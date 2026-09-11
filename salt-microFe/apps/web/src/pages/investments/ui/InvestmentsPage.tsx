@@ -7,6 +7,11 @@ import { ProfileHeader } from "@/entities/auth";
 import { BlockBoundary } from "@/shared/ui";
 import { MarketBoard } from "@/widgets/market-board";
 
+import {
+  INVESTMENTS_BLOCK_MIN_HEIGHT,
+  INVESTMENTS_PAGE_MESSAGES,
+} from "../model";
+
 /**
  * 투자 (`/investments`) — 서버 컴포넌트.
  *
@@ -19,8 +24,6 @@ import { MarketBoard } from "@/widgets/market-board";
  * FR-4 의 `/assets` 리다이렉트는 여기서 하지 않는다 — `/assets` 가 아직 없다.
  * 3탭 IA 와 함께 F006(`FE-REQ-030`)에서 붙인다.
  */
-const INVESTMENTS_BLOCK = { minHeight: 420, name: "투자 분석" } as const;
-
 export const InvestmentsPage = () => {
   return (
     <Root background="white">
@@ -29,8 +32,8 @@ export const InvestmentsPage = () => {
           <ProfileHeader />
           <Padding paddingX="xl">
             <BlockBoundary
-              name={INVESTMENTS_BLOCK.name}
-              minHeight={INVESTMENTS_BLOCK.minHeight}
+              name={INVESTMENTS_PAGE_MESSAGES.blockName}
+              minHeight={INVESTMENTS_BLOCK_MIN_HEIGHT}
             >
               <MarketBoard />
             </BlockBoundary>

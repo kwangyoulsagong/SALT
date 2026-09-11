@@ -42,9 +42,9 @@ export const MarketNewsPreview = React.memo(
                 coindesk
               </Heading>
               <Text color="tertiary">·</Text>
-              <Text color="tertiary">4시간전</Text>
+              <Text color="tertiary">{MARKET_MESSAGES.newsPlaceholderAge}</Text>
               <Text color="tertiary">·</Text>
-              <Text color="tertiary">조회 11.7천</Text>
+              <Text color="tertiary">{MARKET_MESSAGES.newsPlaceholderViews}</Text>
               <Text color="tertiary">·</Text>
               <NewsBadge>{symbol}</NewsBadge>
             </FlexBox>

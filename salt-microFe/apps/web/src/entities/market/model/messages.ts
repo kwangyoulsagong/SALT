@@ -12,6 +12,9 @@ export const MARKET_MESSAGES = {
   largeSells: "대량 매도",
   orderbookRatio: "호가창 매수/매도 비율",
   newsImageAlt: (symbol: string) => `${symbol} 뉴스 이미지`,
+  /** 뉴스 카드는 아직 자리표시자다 — 실데이터는 `marketApi.symbolNews` 가 붙는 F000 이후다. */
+  newsPlaceholderAge: "4시간전",
+  newsPlaceholderViews: "조회 11.7천",
 } as const;
 
 /** 테이블 헤더 5컬럼도 변경 금지 목록이다 (`FE-REQ-009` FR-36). */
