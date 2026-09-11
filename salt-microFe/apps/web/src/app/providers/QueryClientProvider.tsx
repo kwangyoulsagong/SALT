@@ -2,7 +2,7 @@
 
 import { QueryClient } from "@tanstack/react-query";
 import { QueryClientProvider as TanStackQueryClientProvider } from "@tanstack/react-query";
-import { NETWORK } from "@/constants/api";
+import { NETWORK } from "@/shared/config";
 
 const createQueryClient = () =>
   new QueryClient({

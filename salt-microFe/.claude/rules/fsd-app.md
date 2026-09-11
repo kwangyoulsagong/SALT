@@ -15,11 +15,21 @@ globs: apps/*/src/app/**
 
 ```
 src/app/
-├── providers/     React Query · Toast · Dialog · Theme — "use client"
+├── providers/     React Query · Redux · 세션 복원 · MSW — "use client"
 ├── styles/        전역 스타일 · reset · 토큰 주입
-├── api-routes/    Route Handler 로직 (루트 app/api/**/route.ts 가 re-export)
+├── ui/            앱 껍데기(AppShell) — 화면이 아니라 프레임이다
+├── mock/          MSW 워커·핸들러 (dev 전용 부팅)
+├── store.ts       슬라이스 reducer 조립 · RootState
+├── api-routes/    Route Handler 로직 (루트 app/api/**/route.ts 가 re-export) — 아직 없다
 └── index.ts
 ```
+
+`ui/`에 **화면을 두지 않는다.** 여기 들어갈 수 있는 것은 루트 `layout.tsx`가 쓰는 프레임뿐이다.
+`shared/ui`에 두지 않는 이유는 라우팅 파일이 `@/app`·`@/pages`만 import할 수 있기 때문이다
+(`FE-REQ-009` FR-25).
+
+MSW가 `shared/api`가 아니라 여기 있는 이유: **워커 설치는 dev 부팅이지 API 클라이언트가 아니다.**
+`msw/browser`를 `shared/api` barrel에 넣으면 그 barrel을 쓰는 모든 곳의 서버 컴파일에 끌려 온다.
 
 ## 원칙
 

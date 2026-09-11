@@ -9,14 +9,16 @@
 - Framework: Next.js 15, React 18, TypeScript strict / React Native
 - 아키텍처: **FSD**(6레이어) · **Next.js Multi-Zones**(마이크로프론트엔드) · **스트리밍 SSR**(RSC + Suspense)
 - Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`(웹) / `StyleSheet` + `@repo/ui-native`(모바일)
-- Shared packages: `packages/tokens`(플랫폼 중립 토큰), `packages/core`(플랫폼 무관 모델·상수·zone 레지스트리), `packages/ui`(웹 전용), `packages/mocks`, `packages/eslint-config`, `packages/eslint-plugin-zone`, `packages/typescript-config`
+- Shared packages: `packages/tokens`(플랫폼 중립 토큰), `packages/core`(플랫폼 무관 모델·상수·zone 레지스트리), `packages/ui`(웹 전용), `packages/mocks`, `packages/eslint-config`, `packages/eslint-plugin-zone`, `packages/eslint-plugin-fsd`, `packages/typescript-config`
 
-> **전환 중.** `FE-REQ-007`(Multi-Zones) · `FE-REQ-008`(App Router + 스트리밍 SSR)까지 완료했다.
-> **라우팅은 App Router이고 아직 FSD가 아니다.** 남은 것은 `FE-REQ-009`(FSD 전환)다.
+> **아키텍처 전환 3개가 끝났다.** `FE-REQ-007`(Multi-Zones) · `FE-REQ-008`(App Router +
+> 스트리밍 SSR) · `FE-REQ-009`(FSD 6레이어). 다음은 기능 REQ(F000~)다.
+> 현재 실재하는 슬라이스는 `auth`·`goal`·`market`·`portfolio`(entities),
+> `sign-in`·`add-goal`(features), `home-briefing`·`market-board`(widgets)다.
 > 스트리밍 게이트 측정값은 `requirements/reports/checklists/FE-REQ-008.md` §3에 있다 —
 > **홈·세금 콕핏·청구서의 화면 단위 판정은 그 화면이 생길 때 다시 한다.**
 > 근거는 `requirements/decisions/ADR-001-microfrontend-replacement.md`.
-> `apps/ui-native`·`packages/ui-native`는 `RN-REQ-001`에서 생긴다.
+> `apps/mobile`·`packages/ui-native`는 `RN-REQ-001`에서 생긴다.
 
 ## Commands
 
@@ -31,6 +33,7 @@ pnpm --filter @repo/ui lint
 pnpm --filter @repo/ui check-types
 pnpm --filter @repo/ui test
 pnpm --filter @repo/ui storybook
+pnpm test:layer-check           # layer-check 훅 위반 케이스 8 + 통과 케이스 5
 ```
 
 ## 구조 원칙
@@ -47,7 +50,13 @@ pnpm --filter @repo/ui storybook
 - **zone끼리 `apps/other/src/...`를 직접 import하지 않는다.** 공유는 workspace 패키지로만 한다.
 - **`apps/mobile`은 `packages/ui`를 import하지 않는다** — vanilla-extract는 RN에서 동작하지 않는다. 토큰은 `packages/tokens`로 공유한다.
 - **zone을 넘는 링크는 `<a>`(=`CrossZoneLink`)다.** `next/link`의 `<Link>`를 쓰면 `@repo/zone/no-cross-zone-link`가 lint에서 막는다. zone 경로의 단일 소스는 `@repo/core/zones`.
-- 레이어·슬라이스 위반은 `.claude/hooks/layer-check.mjs`가 쓰기 시점에 차단한다. **훅이 막으면 우회하지 말고 구조를 고친다.**
+- 레이어·슬라이스 위반은 `.claude/hooks/layer-check.mjs`가 쓰기 시점에 차단하고 `@repo/fsd/layers`가
+  에디터·CI에서 같은 것을 본다. 규칙 표는 `packages/eslint-plugin-fsd/layer-rules.cjs` **한 곳**이다.
+  **훅이 막으면 우회하지 말고 구조를 고친다.**
+- **사용자 노출 문구는 컴포넌트 밖에 둔다.** 도메인 무관한 것은 `shared/i18n`, 슬라이스 문구는
+  그 슬라이스의 `model/messages.ts`. 컴포넌트에 한글 리터럴을 남기지 않는다.
+- **barrel에 `next/dynamic`으로 부르는 잎을 올리지 않는다.** 올리면 소비자가 정적으로 끌어와
+  코드 분할이 무효가 된다(실측 근거는 `checklists/FE-REQ-009.md` §5).
 
 ## Rule Index
 

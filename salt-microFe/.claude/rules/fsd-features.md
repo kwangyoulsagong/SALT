@@ -45,6 +45,11 @@ features/{slice}/
 | `toggle-watchlist` | 관심 종목 추가·제거 | F000 |
 | `accept-invite` | 초대 코드 입력·검증 | F000 |
 | `arrange-panels` | PC 이진분할 격자 배치 변경 | F006 |
+| `sign-in` | 로그인 · 세션 저장 · 홈 이동 | 현행 |
+
+> `sign-in`은 REQ 초안 목록에 없었다. **기존 로그인 화면이 이미 mutation을 갖고 있어서**
+> 갈 곳이 필요했다(`entities/*/api`는 조회만 둔다). 초대제로 바뀌면(`FE-REQ-011`)
+> `accept-invite`와 합쳐지거나 대체된다.
 
 ## 금지된 것 — 이 제품의 제약이 features에 걸린다
 
