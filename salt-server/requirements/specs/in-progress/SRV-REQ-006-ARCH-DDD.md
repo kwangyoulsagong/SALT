@@ -8,6 +8,10 @@ labels: [architecture, ddd, refactoring, layer-check, migration]
 created: 2026-09-09
 ---
 
+> **정정 기록 (2026-09-11, 1단계 구현 후).** FR-12 · FR-31 · FR-32 · NFR 동작 동일성 네 항목을
+> 정정했다. 근거는 `requirements/reports/retrospects/SRV-REQ-006.md` §6.
+> 각 정정은 해당 섹션 아래 인용 블록에 있다.
+
 ## Summary
 
 `src/modules/{domain}/{routes,controller,service,dto}`를 **Bounded Context 우선 DDD 4층**으로 바꾼다. 컨텍스트 이름은 프론트 FSD 슬라이스와 **동일**하게 맞춘다. 레이어 위반을 **쓰기 시점에 차단하는 훅**을 붙인다.
@@ -94,8 +98,14 @@ F001은 `behavior-coach`의 편향 판정을 **거래 단위 라벨러로 재사
 |---|---|---|
 | FR-10 | `.claude/hooks/layer-check.mjs`를 이식한다. Edit/Write 직전 검사 + exit 2 차단. 규칙 표는 `layer-rules.mjs` | Must |
 | FR-11 | 차단 대상: `domain` → 상위/타 컨텍스트/`@prisma/client`/`express`/`zod`, `application` → `infrastructure`, `presentation` → `infrastructure`/타 컨텍스트, `shared` → 아무 컨텍스트, 컨텍스트 → 타 컨텍스트(`application/api` 제외) | Must |
-| FR-12 | 같은 검사를 ESLint(`no-restricted-imports` 패턴)에도 넣는다 | Must |
+| FR-12 | 같은 검사를 ESLint에도 넣는다. ~~(`no-restricted-imports` 패턴)~~ → **`layer-rules.cjs`의 판정 함수를 부르는 커스텀 규칙**으로 한다 (아래 정정) | Must |
 | FR-13 | 레지스트리에 없는 컨텍스트 디렉터리 생성을 차단한다 | Should |
+
+> **FR-12 정정 (2026-09-11).** `no-restricted-imports`의 glob으로 방향 규칙을 표현하면
+> **판정이 두 곳에 생기고 한쪽만 고쳐진다.** 레포 CLAUDE.md의 "하네스를 다시 늘리려면
+> 미러가 아니라 같은 파일을 가리키게 한다"가 여기에도 적용된다.
+> `eslint.config.mjs`가 `layer-rules.cjs`의 `checkImport`를 그대로 부른다 —
+> 프론트(`FE-REQ-009` FR-21)와 같은 방식이다.
 
 ### C. `shared` Kernel
 
@@ -109,11 +119,33 @@ F001은 `behavior-coach`의 편향 판정을 **거래 단위 라벨러로 재사
 
 ### D. 이관 순서 (기능 정지 없이)
 
+> **FR-32 정정 (2026-09-11) — "coach 먼저"는 성립하지 않는다.**
+>
+> ```
+> ai-coach/*  →  ai-investment-coach.service  →  market-regime.service    (→ market)
+>                                             →  portfolio-state.service  (→ portfolio)
+>                                             →  news-analysis.service    (→ news)
+>                                             →  behavior-analysis.service (→ coach)
+> ```
+>
+> `profit-plan`·`trade-preflight`도 `portfolioHolding`을 직접 읽는다. 경계 규칙(§4 "다른 컨텍스트는
+> `application/api`로만")을 지키려면 **`portfolio`·`market`·`news`의 공개 API가 먼저 있어야 한다.**
+>
+> 즉 FR-32는 실제로 **네 컨텍스트 동시 이관(~3,600줄)** 이다. 순서를 FR-32a·FR-32b로 명시한다.
+> 절반 옮긴 컨텍스트를 남기면 두 아키텍처가 공존하는 동안 어느 규칙을 따라야 하는지 알 수 없다.
+
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-30 | **`shared`를 먼저 세운다.** `Money`·`DomainError`가 없으면 어느 컨텍스트도 옮길 수 없다 | Must |
-| FR-31 | 다음 **신규 컨텍스트를 DDD로 새로 쓴다**: `ledger`(F001) · `invoice`(F001) · `tax`(F002) · `plan`(F003) · `indicator`(F003) · `fx`(F001·F002) · `device`(F007). 기존 코드가 없으므로 이관 비용이 0이다 | Must |
-| FR-32 | 그 다음 **`coach`를 옮긴다.** `investment-insight/ai-coach` + `signal-performance` + `profit-plan` + `behavior-coach` + `trade-preflight`를 한 컨텍스트로 통합한다. F004·F006이 이것을 조립해야 하므로 경계가 먼저 필요하다 | Must |
+| FR-31 | ~~다음 **신규 컨텍스트를 DDD로 새로 쓴다**: `ledger` · `invoice` · `tax` · `plan` · `indicator` · `fx` · `device`~~ **→ 각 기능 REQ로 넘긴다.** 이 REQ에서 하지 않는다 | ~~Must~~ |
+
+> **FR-31 정정 (2026-09-11).** 이관 비용이 0인 이유는 "기존 코드가 없다"인데, **기능 자체가 없다.**
+> 빈 컨텍스트 디렉터리를 만드는 것은 레지스트리 철학("표에 있다고 폴더가 있는 것은 아니다")과
+> 어긋나고, 첫 유스케이스를 쓸 사람이 이미 있는 뼈대에 맞추게 만든다. `ledger`는 `DB-REQ-005`~`008`과
+> `SRV-REQ-012`~`015`가, `tax`는 `SRV-REQ-016`~`019`가 자기 컨텍스트를 만든다.
+| FR-32 | **`coach`를 옮긴다.** `investment-insight/ai-coach` + `signal-performance` + `profit-plan` + `behavior-coach` + `trade-preflight` + `behavior-analysis`를 한 컨텍스트로 통합한다. F004·F006이 이것을 조립해야 하므로 경계가 먼저 필요하다 | Must |
+| FR-32a | **선행: `portfolio`·`market`·`news`의 `application/api`를 먼저 만든다.** `coach`가 그것을 부른다 (아래 정정) | Must |
+| FR-32b | **선행: 순수 계산 특성화 테스트를 먼저 쓴다.** 손절·익절 가격 · 손익비/비중 · 점수 엔진 (NFR 정정) | Must |
 | FR-33 | 그 다음 `portfolio` · `market` · `ledger` 연동 · `auth` · `goal` · `news` · `notification`을 옮긴다 | Should |
 | FR-34 | **동면 모듈(`mission`·`feed`·`dashboard`·`insight-ranking`)은 옮기지 않는다.** route만 끄고 코드는 `src/modules/` 아래 그대로 둔다. 되살릴 때 그 시점에 옮긴다 | Must |
 | FR-35 | **HTTP 경로를 이관 중 유지한다.** 기존 경로(`/api/investment`·`/api/portfolio`·`/api/ai-coach`·`/api/profit-plan`·`/api/signal-performance`·`/api/trade-preflight`·`/api/behavior-coach`)가 그대로 동작해야 한다. 경로 변경은 BFF 계약 변경과 함께, 프론트가 먼저 | Must |
@@ -132,9 +164,21 @@ F001은 `behavior-coach`의 편향 판정을 **거래 단위 라벨러로 재사
 
 ## Non-Functional
 
+> **NFR 정정 (2026-09-11) — 스냅샷 테스트가 성립하지 않는다.**
+>
+> **DB가 비어 있다**(`portfolioTransaction` 0행). 연결은 되지만 모든 엔드포인트가
+> `insufficient_data`만 답하므로, 그 상태로 찍은 스냅샷은 이관을 아무것도 검증하지 않는다.
+>
+> **위험한 것은 DB 접근이 아니라 계산이다** — `profit-plan`의 손절·익절 가격,
+> `trade-preflight`의 손익비/비중, `ai-coach-score.engine` 468줄. 전부 입력만 주면 되는
+> 순수 계산이므로 **DB 없이 특성화 테스트**를 쓸 수 있다. 그것을 먼저 쓰고 옮긴다.
+>
+> 픽스처를 시딩해 스냅샷을 찍는 안도 있었으나, 픽스처가 곧 기대값이 되어 **이관 전 동작을
+> 증명하지 못한다.** 특성화 테스트는 현재 코드의 산술을 그대로 고정한다.
+
 | 구분 | 요구사항 |
 |---|---|
-| 동작 동일성 | FR-35. 이관 전/후 기존 엔드포인트 응답이 **바이트 단위로 같아야 한다**. 스냅샷 테스트가 수용 기준 |
+| 동작 동일성 | FR-35. 이관 전/후 기존 엔드포인트 응답이 **바이트 단위로 같아야 한다**. ~~스냅샷 테스트가 수용 기준~~ → **순수 계산 특성화 테스트**가 수용 기준 (아래 정정) |
 | 성능 | 이관이 성능을 악화시키지 않는다. `performance-server.md` 예산을 이관 전/후 측정해 기록 |
 | 빌드 | 각 컨텍스트 커밋마다 `npm run build` 통과 |
 | 데이터 | 이관은 스키마를 바꾸지 않는다. DB 변경은 `DB-REQ-*`가 담당 |
