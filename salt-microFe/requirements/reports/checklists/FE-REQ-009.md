@@ -2,7 +2,8 @@
 
 작성: 2026-09-11
 브랜치: `feature/fe-req-009-fsd`
-상태: **일부 미충족.** 아래 §8에 남은 4건을 실패로 기록한다.
+상태: **done.** 수용 기준 14개가 전부 통과(1개는 대상 없음)이고 체크리스트·회고·검증 명령이 끝났다.
+§8에 **이 REQ의 미달 2건**과 **다른 REQ가 닫는 5건**을 나눠 기록한다.
 
 ## 0. 실행한 검증 명령
 
@@ -166,12 +167,19 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 
 ## 8. 미충족 · 범위 밖
 
+### 8-A. 이 REQ의 미달 2건 — 수용 기준은 아니지만 요구사항을 덜 지켰다
+
 | # | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|---|
-| 8-1 | `src/app/api-routes/` (FR-14) | Route Handler가 0개다. 만들 이유(세션 쿠키)가 아직 없다 | `FE-REQ-013` (F000 API) |
-| 8-2 | `/investments` 값 단위 동일성 | 실시간 시세라 두 번 찍으면 값이 다르다. 트리 모양만 대조했다 | 시세를 BFF 뷰모델로 고정하는 `FE-REQ-024` |
-| 8-3 | `/investments` First Load +7 kB | `@/entities/auth`·`@/shared/ui` barrel이 페이지에 붙는다 | F006 `FE-REQ-030` (`assets` 재작성) |
-| 8-4 | 슬라이스 단위 커밋 (FR-37) | 껍데기 없이는 중간 커밋이 빌드되지 않는다. pr-convention §4("되돌리기 비용이 큰 변경은 단일 커밋")를 따라 revert 지점을 하나로 만들었다 | 닫지 않는다 — 의도적 선택 |
-| 8-5 | `apps/mobile` FSD | 앱이 아직 없다. 훅·lint 규칙은 RN 경로를 이미 검사한다 | `RN-REQ-001` |
-| 8-6 | `packages/core` 공유 범위 (Open Question) | RN이 React Query를 쓰는지에 달렸다 | `RN-REQ-001` |
-| 8-7 | 죽은 코드 | `Overlay`·`ButtonWrapper`·`BankAccountValid`·`TradingViewChart`·`GoalsBlockWrapper`·`uiStore`·`settingsTypes`를 슬라이스로 옮기기만 했다. 삭제는 이 REQ의 범위가 아니다 | F000 `FE-REQ-011` |
+| A-1 | **FR-37 슬라이스 단위 커밋 (Must)** 미준수 | FR-37은 FR-38(re-export 껍데기)을 전제하는데 AC는 "껍데기 0건"을 요구한다 — **둘이 서로를 막는다.** 껍데기 없이 슬라이스별로 자르면 중간 커밋이 빌드되지 않는다. pr-convention §4("되돌리기 비용이 큰 변경은 단일 커밋으로 가둔다")를 따라 revert 지점을 하나(`6217b03`)로 만들었다 | **닫지 않는다 — 의도적 선택.** REQ 본문의 FR-37/FR-38 충돌은 다음 ARCH REQ 작성 시 반영한다 |
+| A-2 | NFR "클라이언트 JS 증가분 0" 미달 — `/investments` **+7 kB** | `@/entities/auth`·`@/shared/ui` barrel이 페이지에 정적으로 붙는 몫이다. 공통 청크는 0, 전체 합은 **−6 kB**(`/home` −14) | F006 `FE-REQ-030` (`assets` 재작성 시 같은 방법으로 재측정) |
+
+### 8-B. 범위 밖 5건 — 다른 REQ가 닫는다
+
+| # | 항목 | 사유 | 언제 닫히나 |
+|---|---|---|---|
+| B-1 | `src/app/api-routes/` (FR-14) — **AC 대상 없음** | Route Handler가 0개다. `fsd-app.md`가 정한 "만들 정당한 이유" 둘 다 아직 없다 | `FE-REQ-013` (F000 API, 세션 쿠키) |
+| B-2 | `/investments` **값 단위** 동일성 | 실시간 시세라 두 번 찍으면 값과 행 순서가 다르다. 엘리먼트 트리 모양만 대조했다(§6) | 시세를 BFF 뷰모델로 고정하는 `FE-REQ-024` |
+| B-3 | `apps/mobile` FSD (REQ Summary의 세 번째 앱) | 앱이 아직 없다. 훅·lint 규칙은 RN 경로를 **이미** 검사한다(테스트 6번) | `RN-REQ-001` |
+| B-4 | `packages/core` 공유 범위 (Open Question) | RN이 React Query를 쓰는지에 달렸다 | `RN-REQ-001` |
+| B-5 | 죽은 코드 7건 | `Overlay`·`ButtonWrapper`·`BankAccountValid`·`TradingViewChart`·`GoalsBlockWrapper`·`uiStore`·`settingsTypes`를 슬라이스로 옮기기만 했다. 삭제는 F000의 범위다 | F000 `FE-REQ-011` |

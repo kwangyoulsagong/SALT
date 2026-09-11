@@ -195,11 +195,13 @@ flowchart TB
 |---|---|---|
 | `FE-REQ-007` MFE 교체 | **in-progress** | Multi-Zones 전환 완료(`apps/web` + `apps/web-tax`), 빌드·린트·타입·프록시 검증 통과. 미충족 6건 중 §4-6(브라우저 확인)은 `FE-REQ-008`에서 닫혔다. 나머지는 `checklists/FE-REQ-007.md` §4 |
 | `FE-REQ-008` App Router + 스트리밍 SSR | **in-progress** | 두 zone 모두 App Router. 스트리밍 게이트 **첫 블록 p95 31.9ms**(기준 300ms), 총 완료 악화 없음. 번들 증가 최대 +16.2 kB gzip(예산 40KB). 미충족 8건은 `checklists/FE-REQ-008.md` §6 |
-| `FE-REQ-009` FSD 전환 | **in-progress** | 두 zone 모두 6레이어. 슬라이스 8개(`auth`·`goal`·`market`·`portfolio` / `sign-in`·`add-goal` / `home-briefing`·`market-board`). `layer-check` 훅 + `@repo/fsd/layers` lint가 **같은 규칙 표 하나**를 읽는다(차단 8 · 통과 5 테스트). 렌더 동일성 4경로 × 3뷰포트 통과, 공통 청크 증가 **0**. 미충족 7건은 `checklists/FE-REQ-009.md` §8 |
+| `FE-REQ-009` FSD 전환 | **done** | 두 zone 모두 6레이어. 슬라이스 8개(`auth`·`goal`·`market`·`portfolio` / `sign-in`·`add-goal` / `home-briefing`·`market-board`). `layer-check` 훅 + `@repo/fsd/layers` lint가 **같은 규칙 표 하나**를 읽는다(차단 8 · 통과 5 테스트). 렌더 동일성 4경로 × 3뷰포트 통과, 공통 청크 증가 **0**. 남은 것은 `checklists/FE-REQ-009.md` §8 — 이 REQ 미달 2건(FR-37 · `/investments` +7kB), 범위 밖 5건 |
 | 나머지 142개 | to-do | |
 
-**P0 아키텍처 전환 3개(FE)가 끝났다.** `FE-REQ-007`→`008`→`009`. 세 REQ 모두 미충족 항목이
-남아 `in-progress`이고, 각 항목이 **어느 REQ에서 닫히는지**가 체크리스트 §미충족 표에 있다.
+**P0 아키텍처 전환 3개(FE)가 끝났다.** `FE-REQ-007`→`008`→`009`.
+`009`는 수용 기준을 전부 만족해 `done/`으로 옮겼다. `007`·`008`은 수용 기준 자체가 미충족이라
+(`007`: 브라우저 확인 외 3건, `008`: 인증 토큰이 `localStorage`에 남음 등) `in-progress`에 둔다.
+각 항목이 **어느 REQ에서 닫히는지**가 체크리스트 §미충족 표에 있다.
 다음 FE 작업은 F000(`FE-REQ-010`~`013`)이다.
 
 **레이어 규칙은 이제 실행된다.** 새 프론트 작업은 쓰기 시점에 `layer-check` 훅을 통과해야 한다.
