@@ -65,13 +65,26 @@ lint에서 막혔다. 파일을 지웠는데 **같은 에러가 계속 나왔다
 
 | # | 할 일 | 언제 |
 |---|---|---|
-| 1 | `.codex/rules/`에 빠진 9개 미러 (`fsd-*` 6 · `layered-architecture` · `performance-frontend` · `performance-rn` · `rn-*` 2) | **별도 커밋, 이 PR 직후** |
+| 1 | ~~`.codex/rules/` 미러 9개 보충~~ → **Codex 하네스 자체를 제거**(`.codex/**` 55 + `AGENTS.md` 6). 규칙은 `.claude/rules/` 한 벌 | **완료** (이 PR) |
 | 2 | 홈 5블록을 서버 컴포넌트 + `await fetch`로 바꾸고 `measure-streaming.mjs`를 홈 URL로 재측정 | `FE-REQ-030`~`033` (F006) |
 | 3 | `BlockBoundary`·`BlockSkeleton`을 `src/shared/ui`로 이동 | `FE-REQ-009` |
 | 4 | 토큰을 httpOnly 쿠키로 옮기고 서버 컴포넌트가 BFF를 부르게 | `FE-REQ-013` |
 | 5 | `/investments` → `/assets` 리다이렉트 | `FE-REQ-030` |
 | 6 | MSW 제거 후 `next.config.js`의 `webpack` 훅 삭제 → Turbopack 재검토 | `FE-REQ-012` |
 | 7 | 부분 실패 시 다른 블록 스켈레톤이 잠깐 다시 보이는 현상을 홈 5블록에서 재확인 | `FE-REQ-031` |
+
+## 4-1. 미러를 맞추지 않고 없앴다
+
+Action item 1은 원래 "빠진 미러 9개를 채운다"였다. 실제 결정은 **Codex 하네스 제거**였다.
+
+근거는 부채의 성질이다. `.codex/**`는 `.claude/**`와 **경로 참조만 다른 복사본**이었고,
+`FE-REQ-007` 한 번 만에 9개가 어긋났다. 한 쪽이 이미 더 최신인 파일도 있었다
+(`packages/ui/.claude/rules/storybook.md`). 복사본을 손으로 맞추는 구조는 **어긋나는 것이
+기본값**이고, 어긋난 채로도 아무것도 실패하지 않으므로 발견이 늦다.
+
+지우기 전에 `.codex`의 55개 파일 전부를 `.claude` 대응 파일과 비교해 **고유 내용이 0건**임을
+확인했다. 하네스를 다시 늘릴 일이 생기면 미러가 아니라 **같은 파일을 가리키게** 한다 —
+루트 `CLAUDE.md`에 그 문장을 남겼다.
 
 ## 5. 남은 리스크
 

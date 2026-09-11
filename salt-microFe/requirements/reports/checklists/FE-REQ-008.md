@@ -252,14 +252,21 @@ FR-11("인증 토큰을 클라이언트로 내리지 않는다 — 쿠키에서 
 
 코치 화면(F006)과 SSE 계약(`BFF-REQ-006`)이 둘 다 없다. `FE-REQ-032`에서 닫힌다.
 
-### 6-7. `.codex/rules` 미러가 여전히 9개 모자란다
+### 6-7. `.codex/rules` 미러 누락 — **Codex 하네스를 제거해 닫혔다**
 
-이번에 바꾼 `ssr.md`·`streaming-ssr.md`는 양쪽 모두 갱신했다. 그런데 `FE-REQ-007` 때 생긴
-`fsd-*.md` 6개 · `layered-architecture.md` · `performance-frontend.md` · `performance-rn.md` ·
-`rn-architecture.md` · `rn-microfrontend.md`가 **`.codex/rules/`에 없다.**
+처음 기록한 내용: `FE-REQ-007` 때 생긴 `fsd-*.md` 6개 · `layered-architecture.md` ·
+`performance-frontend.md` · `performance-rn.md` · `rn-architecture.md` · `rn-microfrontend.md`가
+`.codex/rules/`에 없어, Codex 하네스로 작업하면 FSD·성능·RN 규칙이 없는 구조를 전제했다.
 
-- 영향: Codex 하네스로 작업하면 FSD·성능·RN 규칙이 없는 구조를 전제한다.
-- 이 REQ 범위 밖이라 손대지 않았다. **별도 커밋으로 미러를 맞춰야 한다.**
+**2026-09-11 — 미러를 맞추는 대신 Codex 하네스를 지웠다.** 사용자 결정("클로드만 쓴다").
+`.codex/**` 55개 파일과 `AGENTS.md` 6개를 삭제했다. 삭제 전에 `.codex`의 모든 파일이
+`.claude` 대응 파일과 **경로 참조만 다른 순수 미러**임을 확인했다 — `.codex`에만 있는 내용은
+없었다. 오히려 `packages/ui`의 `storybook.md`는 `.claude` 쪽이 한 줄 더 최신이었다
+(`pnpm --filter @repo/ui test`). **미러가 이미 갈라져 있었다는 증거다.**
+
+영역 규칙은 이제 `.claude/rules/` 한 벌이다. "두 벌을 함께 고친다"를 전제하던
+루트 `CLAUDE.md` · `pr-convention.md` §5 · `pull_request_template.md` · `/pr-summary` 스킬도
+같이 정리했다.
 
 ### 6-8. 관측성·PERF 예산 전면 측정 미수행
 

@@ -39,8 +39,8 @@ description: "현재 브랜치의 PR 본문을 템플릿대로 채워 복사용�
 ### 회고 · 스터디 (이번 브랜치)
 !`git diff --name-only origin/main..HEAD 2>/dev/null | grep -E "reports/(retrospects|studies)/" || echo "(없음)"`
 
-### 규칙 문서 변경 — `.claude` / `.codex` 짝이 맞는가
-!`git diff --name-only origin/main..HEAD 2>/dev/null | grep -E "\.(claude|codex)/(rules|hooks|skills)/" || echo "(없음)"`
+### 규칙 문서 변경
+!`git diff --name-only origin/main..HEAD 2>/dev/null | grep -E "\.claude/(rules|hooks|skills)/" || echo "(없음)"`
 
 ### ADR 추가 여부
 !`git diff --name-only origin/main..HEAD 2>/dev/null | grep "requirements/decisions/" || echo "(없음)"`
@@ -74,8 +74,6 @@ description: "현재 브랜치의 PR 본문을 템플릿대로 채워 복사용�
 - **"미검증 · 범위 밖"을 빈칸으로 두지 않는다.** 없으면 `없음`.
   항목마다 **사유**와 **언제 닫히나**를 함께 쓴다 — 후자가 비면 미검증이 아니라 잊힌 것이다
 - 커밋이 둘 이상이면 **왜 나눴는지** 한 줄씩. 되돌리기 지점이 되는 커밋은 그렇다고 표시한다
-- **`.claude/rules/`를 고쳤는데 같은 영역 `.codex/rules/` 미러가 안 바뀌었으면 지적한다.**
-  한쪽만 고치면 다른 하네스가 없는 구조를 전제로 작업한다
 - **제품 공통 수용 기준**(`pr-convention.md` §6)에서 이번 변경에 해당하는 줄만 남긴다.
   해당 없는 줄을 체크된 채로 두면 그 섹션 전체가 거짓이 된다
 - REQ 번호와 스펙·체크리스트 **링크**를 넣는다. 스펙 내용을 복사하지 않는다
