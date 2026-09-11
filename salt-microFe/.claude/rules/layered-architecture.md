@@ -40,21 +40,29 @@ BFF        routes → controllers → services
 
 ## 3. 위반은 쓰기 시점에 막힌다
 
-`.claude/hooks/layer-check.mjs`가 Edit/Write 직전에 검사하고 exit 2로 차단한다. 규칙 표는 `layer-rules.mjs`에 있다. **훅이 막으면 우회하지 말고 구조를 고친다.**
+`.claude/hooks/layer-check.mjs`가 Edit/Write 직전에 검사하고 exit 2로 차단한다.
+ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹치는 것은 의도적이고
+**피드백 시점이 다르다** — lint는 파일이 쓰인 다음에 보고, 그 사이에 위반 위에 위반이 쌓인다.
 
-ESLint(`packages/eslint-config`)가 같은 것을 에디터에서 보여준다. 겹치는 것은 의도적이고 **피드백 시점이 다르다.**
+**규칙 표는 `packages/eslint-plugin-fsd/layer-rules.cjs` 한 곳**이고 둘이 같은 파일을 읽는다.
+미러가 아니다. 위반 케이스 8개는 `pnpm test:layer-check`가 훅을 실제로 실행해 검증한다.
 
-훅이 막는 것:
+**훅이 막으면 우회하지 말고 구조를 고친다.**
 
 | 금지 | 왜 |
 |---|---|
 | 상위 레이어 import | 의존 방향 |
 | 같은 레이어의 다른 슬라이스 | §2 |
 | 슬라이스 내부 경로 직접 참조 (`@/entities/tax/model/types`) | barrel의 유일한 목적이 내부 구조 변경 차단이다 |
+| 슬라이스를 벗어나는 상대 경로 | alias 없이 경계를 넘는 우회로다 |
 | `apps/web-tax` → `apps/web/src/**` | zone은 독립 배포 단위다 |
 | `apps/mobile` → `packages/ui` | vanilla-extract는 RN에서 동작하지 않는다 |
-| 루트 `app/**`·`pages/**`에 re-export 외의 코드 | 라우팅 파일은 연결만 한다 |
+| 루트 `app/**`·`pages/**`에서 `@/pages`·`@/app` 외의 import | 라우팅 파일은 연결만 한다 |
 | 레지스트리에 없는 슬라이스 생성 | §4 |
+
+**예외 하나 — `*.css` 토큰 모듈.** `@/shared/ui/tokens.css`는 세그먼트 내부 경로지만 허용한다.
+`.css.ts`는 빌드 타임에 node에서 평가되므로 barrel로 가져오면 React 컴포넌트가
+vanilla-extract 그래프에 들어와 빌드가 깨진다.
 
 ## 4. 슬라이스 레지스트리
 
@@ -76,6 +84,12 @@ ESLint(`packages/eslint-config`)가 같은 것을 에디터에서 보여준다. 
 | `news` | 뉴스 목록 · 프리뷰 | `news` |
 | `notification` | 알림 2종 (세금 D-Day · 지표/추천 갱신) | `notification` |
 | `device` | 디바이스 등록 · 푸시 토큰 · 앱 버전 게이트 (모바일만) | `device` |
+
+**2026-09-11 기준 실재하는 슬라이스는 4개다** — `auth` · `goal` · `market` · `portfolio`.
+나머지는 해당 기능 REQ에서 생긴다. 표에 있다고 폴더가 있는 것은 아니다.
+
+> store 조립은 `app` 레이어가 한다. 슬라이스는 `RootState`를 보지 않고 **자기 가지만 타이핑한
+> 셀렉터**를 `model/selectors.ts`에 둔다. 그러지 않으면 모든 슬라이스가 `app`에 의존하게 된다.
 
 ### 조합 슬라이스 (`widgets`)
 
@@ -141,6 +155,9 @@ export enum AssetClass {
 | Alias | Target |
 |---|---|
 | `@/shared` `@/entities` `@/features` `@/widgets` `@/pages` `@/app` | `src/{layer}` |
+
+`tsconfig.json`의 `paths`에 레이어별로 **두 줄씩**(`@/shared`와 `@/shared/*`) 넣는다.
+`@/*` 하나만 있으면 alias 목록이 규칙의 근거가 되지 못한다.
 
 - **다른 레이어 참조**: 반드시 alias. `../../shared/api` 금지
 - **같은 슬라이스 내부**: 상대 경로. `@/entities/tax/model/types` 금지
