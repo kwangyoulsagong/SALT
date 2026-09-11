@@ -2,6 +2,10 @@
   "name": "web-tax",
   "version": "0.1.0",
   "private": true,
+  "sideEffects": [
+    "**/*.css.ts",
+    "**/*.css"
+  ],
   "scripts": {
     "dev": "next dev --port 3001",
     "build": "next build",
@@ -20,6 +24,7 @@
     "react-dom": "^18"
   },
   "devDependencies": {
+    "@repo/eslint-plugin-fsd": "workspace:*",
     "@repo/eslint-plugin-zone": "workspace:*",
     "@types/node": "^20",
     "@types/react": "^18",

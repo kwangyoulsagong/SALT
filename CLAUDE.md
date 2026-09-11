@@ -24,6 +24,7 @@ BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관�
 | `.claude/rules/pr-convention.md` | PR 본문 규칙. 무엇을·왜 / 리뷰 초점 / **미검증·범위 밖** / 계약 변경 |
 | `.github/pull_request_template.md` | GitHub이 새 PR 본문에 자동으로 채운다 |
 | `.claude/skills/pr-summary/SKILL.md` | 현재 브랜치의 PR 본문을 템플릿대로 채워 출력한다 (`/pr-summary`) |
+| `.claude/settings.json` `hooks.PreToolUse` | `salt-microFe/.claude/hooks/layer-check.mjs` 를 Edit/Write 직전에 돌린다. FSD 레이어 위반이면 **exit 2로 쓰기를 막는다** |
 
 영역 규칙은 `.claude/rules/` **한 벌**이다. 2026-09-11에 Codex 하네스(`.codex/**` · `AGENTS.md`)를
 제거했다 — 두 벌을 동기화하는 비용만 있고 한쪽만 고쳐지는 사고가 반복됐다.
@@ -43,4 +44,6 @@ BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관�
 - **`@module-federation/nextjs-mf`를 쓰지 않는다.** App Router 미지원 + Next 지원 종료(`ADR-001`).
 - 프론트 FSD 슬라이스 이름과 서버 DDD 컨텍스트 이름은 **동일**하다. 레지스트리는 `salt-microFe/.claude/rules/layered-architecture.md` §4.
 - 전 영역 요구사항 지도는 `requirements/specs/in-progress/salt-requirements-master-index.md`에 있다.
+- **프론트 레이어 규칙은 문서가 아니라 실행되는 코드다.** 규칙 표는
+  `salt-microFe/packages/eslint-plugin-fsd/layer-rules.cjs` 한 곳이고 훅과 ESLint가 같이 읽는다.
 - **`.claude/rules/**` 문서는 200줄을 넘지 않는다.**

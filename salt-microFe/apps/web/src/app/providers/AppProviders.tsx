@@ -2,9 +2,9 @@
 
 import type { ReactNode } from "react";
 import { Provider as ReduxProvider } from "react-redux";
-import { store } from "@/store/redux";
+import { store } from "../store";
 import QueryClientProvider from "./QueryClientProvider";
-import AuthWrapper from "@/components/Auth/AuthWrapper/AuthWrapper";
+import AuthInitializer from "./AuthInitializer";
 import MockServiceWorker from "./MockServiceWorker";
 
 /**
@@ -22,7 +22,7 @@ const AppProviders = ({ children }: { children: ReactNode }) => {
     <QueryClientProvider>
       <ReduxProvider store={store}>
         <MockServiceWorker />
-        <AuthWrapper>{children}</AuthWrapper>
+        <AuthInitializer>{children}</AuthInitializer>
       </ReduxProvider>
     </QueryClientProvider>
   );

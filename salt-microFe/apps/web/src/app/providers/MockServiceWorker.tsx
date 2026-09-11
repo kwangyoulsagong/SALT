@@ -15,7 +15,7 @@ import { useEffect } from "react";
 const MockServiceWorker = () => {
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
-    void import("@/mock/browser").then(({ worker }) =>
+    void import("../mock/browser").then(({ worker }) =>
       worker.start({ onUnhandledRequest: "bypass" })
     );
   }, []);
