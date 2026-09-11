@@ -3,6 +3,7 @@
 작성: 2026-09-11
 브랜치: `feature/srv-req-006-ddd`
 상태: **1단계(A·B·C)만 완료.** 컨텍스트 이관(D)은 시작하지 않았다. 근거는 §7.
+선행 커밋: `fix(srv): 빌드 에러 17건` — 이 브랜치는 그 위에 있다 (§6).
 
 ## 0. 실행한 검증 명령
 
@@ -11,7 +12,7 @@
 | `npm run lint` (`ddd/layers`) | **통과** |
 | `npm test` (Shared Kernel) | **18/18 통과** |
 | `npm run test:layer-check` | **16/16 통과** (차단 10 · 통과 6) |
-| `npm run build` | **에러 17건** — `main`과 **동일**. 이관이 만든 새 에러 0건 (§6) |
+| `npm run build` | **에러 0건** — 기존 17건은 별도 커밋으로 고쳤다 (§6) |
 
 ## 1. Acceptance Criteria
 
@@ -31,7 +32,7 @@
 | 기존 엔드포인트 응답 스냅샷이 이관 전/후 동일 | **불가** | §5 — **DB가 비어 있어 스냅샷이 성립하지 않는다** |
 | 동면 모듈 코드가 삭제되지 않았다 | pass | `mission`·`feed`·`dashboard` 그대로 |
 | re-export 껍데기 0건 | pass | 껍데기를 쓰지 않았다 |
-| `npm run build` 통과 | **미충족** | 기존 에러 17건. §6 |
+| `npm run build` 통과 | **pass** | 0건. 기존 17건을 고친 커밋이 이 브랜치 아래에 있다 (§6) |
 
 ## 2. Shared Kernel (FR-20~24)
 
@@ -95,9 +96,10 @@ NFR 은 "이관 전/후 기존 엔드포인트 응답이 **바이트 단위로 �
 
 대안은 두 가지이고 §7에 적었다.
 
-## 6. 빌드 — `main`이 이미 깨져 있다
+## 6. 빌드 — 깨져 있었고, 고쳤다
 
-`npm run build` 가 **에러 17건**으로 실패한다. 브랜치와 `main` 이 **동일**하다.
+작업 시작 시점에 `npm run build` 가 **에러 17건**으로 실패하고 있었다. 브랜치와 `main` 이 동일했다 —
+이관이 만든 에러가 아니다.
 
 | 파일 | 건수 | 성격 |
 |---|---|---|
@@ -106,10 +108,20 @@ NFR 은 "이관 전/후 기존 엔드포인트 응답이 **바이트 단위로 �
 | `investment-insight/portfolio-rebalance.service.ts` | 2 | `InsightType` 불일치 |
 
 전부 **Prisma 스키마와 코드의 어긋남**이고 이 REQ 이전부터 있었다. `npm start` 가 `dist/` 를 돌기
-때문에 지금까지 드러나지 않았다 — **빌드가 깨진 채로 배포 산출물만 살아 있는 상태**다.
+때문에 드러나지 않았다 — **빌드가 깨진 채로 배포 산출물만 살아 있었다.**
 
-게이트를 "에러가 17건보다 늘지 않는다"로 두고 `validation.md` 에 적었다. 해당 파일을 옮기는
-컨텍스트(`market`·`portfolio`)가 그때 고친다.
+**별도 커밋 `fix(srv): 빌드 에러 17건` 으로 고쳤고 이 브랜치는 그 위에 있다.**
+타입만 맞춘 것이 아니라 원인을 고쳤다:
+
+| 원인 | 실제 피해 | 고침 |
+|---|---|---|
+| `InsightType` enum 에 `rebalance`·`whale_buy_signal`·`whale_sell_signal` 이 없다 | Prisma 가 런타임에도 거부 → **두 워커가 계속 실패** | 마이그레이션으로 값 3개 추가 |
+| `PriceHistory.close`·`volume` 이 `Decimal`(volume 은 nullable)인데 `number` 로 산술 | 통과했더라도 `+` 가 문자열 연결 → **평균 거래량이 거짓** | 읽는 지점에서 `toNumber()` 1회 |
+| `PortfolioHolding` 유니크가 `(userId, symbol, assetType)` 인데 `userId_symbol` 로 조회 | 자산군이 섞이고 삭제가 남의 행을 지운다 | 복합 키 정정 + `updateHolding` 에 `assetType` 전달 |
+
+검증: `node dist/server.js` 기동 성공 · `GET /health` 200 · 마켓 동기화 288 심볼.
+
+> **게이트는 "에러 0건"이다.** 실패하는 명령은 게이트가 아니다 — 그 사실을 `validation.md` 에 적었다.
 
 ## 7. 미충족 · 범위 밖
 
@@ -118,7 +130,6 @@ NFR 은 "이관 전/후 기존 엔드포인트 응답이 **바이트 단위로 �
 | 7-1 | **FR-31~33 컨텍스트 이관 전부** | §7-2 참고. 1단계에서 멈췄다 | 후속 작업 |
 | 7-2 | `coach` 를 먼저 옮기라는 FR-32 가 성립하지 않는다 | `ai-coach` 가 `market-regime`·`portfolio-state`·`news-analysis` 를 직접 부른다. 컨텍스트 경계 규칙상 **그 셋의 `application/api` 가 먼저 있어야** `coach` 를 옮길 수 있다. 즉 FR-32 는 실제로 `coach`+`market`+`portfolio`+`news` 동시 이관이고, REQ 가 적은 "coach 먼저"보다 범위가 크다 | REQ 본문 정정 후 |
 | 7-3 | 스냅샷 테스트 (NFR) | DB 가 비어 있다 (§5) | 픽스처 시딩 또는 순수 계산 특성화 테스트로 대체 |
-| 7-4 | 기존 빌드 에러 17건 | 이 REQ 이전부터 있던 스키마 드리프트 | `market`·`portfolio` 이관 시 |
 | 7-5 | FR-31 의 "신규 컨텍스트를 DDD 로 새로 쓴다" | `ledger`·`invoice`·`tax`·`plan`·`fx`·`device` 는 **기능 자체가 없다.** 빈 디렉터리를 만드는 것은 레지스트리 철학("표에 있다고 폴더가 있는 것은 아니다")과 어긋난다 | 각 기능 REQ (F001~F007) |
 | 7-6 | 의존성 주입 방식 (Open Question) | 컨텍스트가 아직 0개라 판단 근거가 없다 | 첫 컨텍스트 이관 시 |
 | 7-7 | `Float` 원장 컬럼의 `Decimal` 이관 (Open Question) | 스키마 변경은 `DB-REQ-*` 의 것이다 | `DB-REQ-007` |

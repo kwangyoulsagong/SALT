@@ -13,9 +13,9 @@ npm run test:layer-check  # 훅 위반 케이스
 npm run prisma:generate
 ```
 
-> **`npm run build` 는 2026-09-11 기준 기존 에러 17건으로 실패한다**(`whale-signal` 11 · `portfolio` 4 ·
-> `portfolio-rebalance` 2). 전부 Prisma 스키마와 코드의 어긋남이고 `SRV-REQ-006` 이전부터 있었다.
-> 게이트는 **"에러가 17건보다 늘지 않는다"** 이고, 해당 파일을 옮기는 컨텍스트가 그때 고친다.
+> **`npm run build` 는 에러 0건이어야 한다.** 2026-09-11 이전에는 17건으로 실패하고 있었고
+> (`npm start` 가 `dist/` 를 돌기 때문에 드러나지 않았다) 별도 커밋으로 고쳤다.
+> **빌드가 실패하는 상태를 정상으로 두지 않는다** — 실패하는 명령은 게이트가 아니다.
 
 DB schema 또는 Prisma Client 영향이 있으면 `npm run prisma:generate`를 먼저 실행한 뒤 build를 확인한다.
 
