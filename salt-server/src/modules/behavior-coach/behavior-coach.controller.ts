@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { ResponseUtil } from "../../utils/response.util";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import { BehaviorCoachService } from "./behavior-coach.service";
 
 export class BehaviorCoachController {

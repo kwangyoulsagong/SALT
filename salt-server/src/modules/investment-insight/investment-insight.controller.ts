@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { InvestmentInsightService } from "./investment-insight.service";
-import { ResponseUtil } from "../../utils/response.util";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import { WhaleSignalService } from "./whale-signal.service";
 import { PortfolioRebalanceService } from "./portfolio-rebalance.service";
 

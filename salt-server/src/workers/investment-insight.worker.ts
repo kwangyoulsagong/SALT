@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import prisma from "../config/database";
+import prisma from "../shared/infrastructure/prisma";
 
 import { InvestmentInsightService } from "../modules/investment-insight/investment-insight.service";
 import { WhaleSignalService } from "../modules/investment-insight/whale-signal.service";

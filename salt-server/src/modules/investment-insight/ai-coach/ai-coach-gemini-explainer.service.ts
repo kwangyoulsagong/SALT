@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI, type GenerationConfig } from "@google/generative-ai";
-import { env } from "../../../config/env";
+import { env } from "../../../shared/config/env";
 
 export interface ExplainEvidenceItem {
   label: string;

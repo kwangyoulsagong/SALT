@@ -1,7 +1,7 @@
-import prisma from "../../config/database";
-import { PasswordUtil } from "../../utils/password.util";
-import { JwtUtil } from "../../utils/jwt.util";
-import { ConflictError, UnauthorizedError } from "../../utils/error.util";
+import prisma from "../../shared/infrastructure/prisma";
+import { PasswordUtil } from "../../shared/lib/password";
+import { JwtUtil } from "../../shared/lib/jwt";
+import { ConflictError, UnauthorizedError } from "../../shared/presentation/httpErrors";
 import { RegisterDto, LoginDto } from "./auth.dto";
 
 export class AuthService {

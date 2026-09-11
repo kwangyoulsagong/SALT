@@ -1,5 +1,5 @@
 import { NewsService } from '../modules/news/news.service';
-import { logger } from '../config/logger';
+import { logger } from '../shared/config/logger';
 
 const newsService = new NewsService();
 

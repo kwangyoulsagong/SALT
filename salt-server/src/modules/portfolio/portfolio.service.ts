@@ -1,7 +1,7 @@
 import type { AssetType } from '@prisma/client';
 
-import prisma from '../../config/database';
-import { NotFoundError, ForbiddenError, BadRequestError } from '../../utils/error.util';
+import prisma from '../../shared/infrastructure/prisma';
+import { NotFoundError, ForbiddenError, BadRequestError } from '../../shared/presentation/httpErrors';
 import {
   CreateTransactionDto,
   UpdateTransactionDto,

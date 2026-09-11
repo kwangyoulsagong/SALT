@@ -1,4 +1,4 @@
-import prisma from "../../config/database";
+import prisma from "../../shared/infrastructure/prisma";
 import type { ProfitPlanQueryDto } from "./profit-plan.dto";
 
 export class ProfitPlanService {

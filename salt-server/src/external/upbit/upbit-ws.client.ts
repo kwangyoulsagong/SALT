@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import { logger } from "../../config/logger";
+import { logger } from "../../shared/config/logger";
 
 export interface UpbitTicker {
   type: "ticker";

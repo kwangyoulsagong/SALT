@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { ResponseUtil } from "../../utils/response.util";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import { DashboardService } from "./dashboard.service";
 
 export class DashboardController {

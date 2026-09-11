@@ -1,7 +1,7 @@
 // src/modules/investment-insight/news-analysis.service.ts
 
-import prisma from "../../config/database";
-import { logger } from "../../config/logger";
+import prisma from "../../shared/infrastructure/prisma";
+import { logger } from "../../shared/config/logger";
 
 // ─── 키워드 사전 ────────────────────────────────────────────────────────────
 const BULLISH_KEYWORDS: Record<string, number> = {

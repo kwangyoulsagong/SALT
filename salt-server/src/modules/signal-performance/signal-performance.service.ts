@@ -1,4 +1,4 @@
-import prisma from "../../config/database";
+import prisma from "../../shared/infrastructure/prisma";
 import type { SignalPerformanceQueryDto } from "./signal-performance.dto";
 
 export class SignalPerformanceService {

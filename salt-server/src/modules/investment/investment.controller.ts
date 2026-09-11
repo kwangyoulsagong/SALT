@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { InvestmentService } from "./investment.service";
-import { ResponseUtil } from "../../utils/response.util";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import { addToWatchlistSchema, queryWatchlistSchema } from "./investment.dto";
 
 export class InvestmentController {

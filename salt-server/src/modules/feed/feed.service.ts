@@ -1,6 +1,6 @@
 // modules/feed/feed.service.ts
 
-import prisma from "../../config/database";
+import prisma from "../../shared/infrastructure/prisma";
 
 type FeedItem = {
   id: string;

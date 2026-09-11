@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { PortfolioService } from './portfolio.service';
-import { ResponseUtil } from '../../utils/response.util';
+import { ResponseUtil } from '../../shared/presentation/ResponseUtil';
 import {
   createTransactionSchema,
   updateTransactionSchema,

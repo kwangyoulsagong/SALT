@@ -1,5 +1,5 @@
-import prisma from '../../config/database';
-import { NotFoundError, ForbiddenError } from '../../utils/error.util';
+import prisma from '../../shared/infrastructure/prisma';
+import { NotFoundError, ForbiddenError } from '../../shared/presentation/httpErrors';
 import { CreateGoalDto, UpdateGoalDto, AddSavingDto, QueryGoalsDto } from './goals.dto';
 
 export class GoalsService {

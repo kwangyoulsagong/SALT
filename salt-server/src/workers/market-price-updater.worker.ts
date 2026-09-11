@@ -2,7 +2,7 @@
 // Worker가 주기적으로 DB의 마켓 가격을 업데이트
 
 import { InvestmentService } from "../modules/investment/investment.service";
-import { logger } from "../config/logger";
+import { logger } from "../shared/config/logger";
 
 class MarketPriceUpdater {
   private investmentService = new InvestmentService();

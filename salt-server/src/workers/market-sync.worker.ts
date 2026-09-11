@@ -1,4 +1,4 @@
-import prisma from "../config/database";
+import prisma from "../shared/infrastructure/prisma";
 import axios from "axios";
 
 const UPBIT_API = "https://api.upbit.com/v1";

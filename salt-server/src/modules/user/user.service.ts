@@ -1,6 +1,6 @@
-import prisma from '../../config/database';
-import { NotFoundError, UnauthorizedError, ValidationError } from '../../utils/error.util';
-import { PasswordUtil } from '../../utils/password.util';
+import prisma from '../../shared/infrastructure/prisma';
+import { NotFoundError, UnauthorizedError, ValidationError } from '../../shared/presentation/httpErrors';
+import { PasswordUtil } from '../../shared/lib/password';
 import { 
   UpdateProfileDto, 
   ChangePasswordDto, 

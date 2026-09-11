@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import prisma from "../config/database";
+import prisma from "../shared/infrastructure/prisma";
 import { TechnicalIndicatorService } from "../modules/technical-indicator/technical-indicator.service";
 import { Timeframe } from "@prisma/client";
 

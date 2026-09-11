@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { GoalsController } from './goals.controller';
-import { authMiddleware } from '../../middleware/auth.middleware';
+import { authMiddleware } from '../../shared/presentation/authMiddleware';
 
 const router = Router();
 const goalsController = new GoalsController();

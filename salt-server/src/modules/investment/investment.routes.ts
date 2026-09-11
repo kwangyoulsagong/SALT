@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { InvestmentController } from "./investment.controller";
-import { authMiddleware } from "../../middleware/auth.middleware";
+import { authMiddleware } from "../../shared/presentation/authMiddleware";
 
 const router = Router();
 const investmentController = new InvestmentController();

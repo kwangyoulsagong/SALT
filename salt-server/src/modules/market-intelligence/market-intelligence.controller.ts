@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { MarketIntelligenceService } from './market-intelligence.service';
-import { ResponseUtil } from '../../utils/response.util';
+import { ResponseUtil } from '../../shared/presentation/ResponseUtil';
 
 export class MarketIntelligenceController {
   private service = new MarketIntelligenceService();

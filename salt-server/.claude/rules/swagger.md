@@ -2,7 +2,7 @@
 
 ## 범위
 
-`salt-server/src/modules/**/*.routes.ts`의 Swagger JSDoc에 적용한다. Swagger 설정은 `src/config/swagger.ts`에서 `./src/modules/**/*.routes.ts`만 스캔한다.
+`salt-server/src/*/presentation/*.routes.ts`와 (이관 전) `src/modules/**/*.routes.ts`의 Swagger JSDoc에 적용한다. 스캔 설정은 `src/shared/config/swagger.ts`에 있고 이관 중에는 **두 자리를 모두** 훑는다.
 
 ## 기본 원칙
 

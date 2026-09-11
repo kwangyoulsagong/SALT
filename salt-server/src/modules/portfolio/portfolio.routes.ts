@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { PortfolioController } from "./portfolio.controller";
-import { authMiddleware } from "../../middleware/auth.middleware";
+import { authMiddleware } from "../../shared/presentation/authMiddleware";
 import { PortfolioPerformanceController } from "./portfolio-performance.controller";
 
 const router = Router();

@@ -1,7 +1,7 @@
 import app from './app';
-import { env } from './config/env';
-import { logger } from './config/logger';
-import { connectDatabase, disconnectDatabase } from './config/database';
+import { env } from './shared/config/env';
+import { logger } from './shared/config/logger';
+import { connectDatabase, disconnectDatabase } from './shared/infrastructure/prisma';
 
 const PORT = env.PORT;
 

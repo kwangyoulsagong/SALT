@@ -41,5 +41,18 @@
       "Bash(ls *)"
     ],
     "deny": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/salt-server/.claude/hooks/layer-check.mjs\""
+          }
+        ]
+      }
+    ]
   }
 }

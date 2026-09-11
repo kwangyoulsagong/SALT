@@ -7,8 +7,15 @@
 ```bash
 cd salt-server
 npm run build
+npm run lint              # DDD 레이어 경계
+npm test                  # Shared Kernel 단위 테스트
+npm run test:layer-check  # 훅 위반 케이스
 npm run prisma:generate
 ```
+
+> **`npm run build` 는 2026-09-11 기준 기존 에러 17건으로 실패한다**(`whale-signal` 11 · `portfolio` 4 ·
+> `portfolio-rebalance` 2). 전부 Prisma 스키마와 코드의 어긋남이고 `SRV-REQ-006` 이전부터 있었다.
+> 게이트는 **"에러가 17건보다 늘지 않는다"** 이고, 해당 파일을 옮기는 컨텍스트가 그때 고친다.
 
 DB schema 또는 Prisma Client 영향이 있으면 `npm run prisma:generate`를 먼저 실행한 뒤 build를 확인한다.
 
@@ -23,7 +30,7 @@ DB schema 또는 Prisma Client 영향이 있으면 `npm run prisma:generate`를 
 - 루프 안에서 Prisma query를 반복하는 N+1 패턴이 없는지 확인한다.
 - 인증 endpoint에 `authMiddleware`가 연결되어 있는지 확인한다.
 - 사용자 소유 데이터 query에 `userId` 조건이 있는지 확인한다.
-- env 추가 시 `src/config/env.ts` schema가 갱신되었는지 확인한다.
+- env 추가 시 `src/shared/config/env.ts` schema가 갱신되었는지 확인한다.
 - schema 변경 시 migration과 Prisma Client generate 필요 여부를 확인한다.
 - worker 변경 시 자동 시작, 중복 실행, 에러 로그 영향을 확인한다.
 

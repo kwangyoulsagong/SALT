@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { PortfolioPerformanceService } from "./portfolio-performance.service";
-import { ResponseUtil } from "../../utils/response.util";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 
 export class PortfolioPerformanceController {
   private service = new PortfolioPerformanceService();

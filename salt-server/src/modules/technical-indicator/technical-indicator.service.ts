@@ -1,4 +1,4 @@
-import prisma from "../../config/database";
+import prisma from "../../shared/infrastructure/prisma";
 import { Timeframe } from "@prisma/client";
 
 export class TechnicalIndicatorService {

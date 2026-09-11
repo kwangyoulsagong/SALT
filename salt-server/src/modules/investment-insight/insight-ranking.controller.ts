@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { InsightRankingService } from "./insight-ranking.service";
-import { ResponseUtil } from "../../utils/response.util";
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 
 export class InsightRankingController {
   private service = new InsightRankingService();

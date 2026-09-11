@@ -2,14 +2,15 @@
 
 ## 환경 변수
 
-- 환경 변수는 `src/config/env.ts`의 Zod schema에 추가한다.
+- 환경 변수는 `src/shared/config/env.ts`의 Zod schema에 추가한다.
 - secret, token, DB URL, 외부 API key를 코드나 문서에 하드코딩하지 않는다.
 - 기본값은 안전한 값에만 둔다. secret류에는 임의 기본값을 넣지 않는다.
 
 ## 인증/인가
 
-- JWT 생성/검증은 `src/utils/jwt.util.ts`를 사용한다.
-- 비밀번호 처리는 `src/utils/password.util.ts`를 사용한다.
+- JWT 생성/검증은 `src/shared/lib/jwt.ts`를 사용한다.
+- 비밀번호 처리는 `src/shared/lib/password.ts`를 사용한다.
+- `authMiddleware`는 `src/shared/presentation`에 있다. **토큰 전송 계층만** 담당하고 `auth` 도메인 규칙(초대 코드·세션 수명)은 들이지 않는다.
 - 인증이 필요한 endpoint는 `authMiddleware`를 route에 연결한다.
 - 사용자 리소스 접근은 인증된 `userId` 기준으로 제한한다.
 - 관리자/소유자 권한이 필요한 경우 service에서 권한 조건을 명시한다.
