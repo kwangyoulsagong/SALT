@@ -537,6 +537,11 @@ enum InsightType {
   smart_buy_zone
   behavior_analysis
   risk_alert
+  // 아래 3개는 코드가 이미 쓰고 있었는데 enum 에 없었다.
+  // Prisma 가 거부하므로 `whale-signal`·`portfolio-rebalance` 워커가 런타임에도 실패해 왔다.
+  rebalance
+  whale_buy_signal
+  whale_sell_signal
 }
 
 model InvestmentInsight {

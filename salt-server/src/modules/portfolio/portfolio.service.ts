@@ -1,3 +1,5 @@
+import type { AssetType } from '@prisma/client';
+
 import prisma from '../../config/database';
 import { NotFoundError, ForbiddenError, BadRequestError } from '../../utils/error.util';
 import {
@@ -6,6 +8,19 @@ import {
   QueryTransactionsDto,
   QueryHoldingsDto,
 } from './portfolio.dto';
+
+/**
+ * `PortfolioTransaction`·`PortfolioHolding` 의 유니크 키는 `(userId, symbol, assetType)` 이고
+ * `assetType` 은 필수다. 그런데 **이 모듈의 DTO 는 `assetType` 을 받지 않는다** — 컬럼이
+ * 나중에 추가되면서 코드가 따라오지 않았고, 그 결과 이 서비스는 컴파일도 되지 않았다.
+ *
+ * API 계약을 바꾸지 않고 고치기 위해 기본값을 둔다. 나머지 모듈이 전부
+ * `assetType: "crypto"` 로 고정해 다루고 있어(`behavior-analysis` 의 "우선 crypto만") 같은 값이다.
+ *
+ * > 주식이 들어오면(F000·F001) DTO 에 `assetType` 을 추가하고 이 상수를 지운다.
+ * > 그때 프론트·BFF 계약도 함께 바뀐다.
+ */
+const DEFAULT_ASSET_TYPE: AssetType = 'crypto';
 
 export class PortfolioService {
   /**
@@ -22,9 +37,10 @@ export class PortfolioService {
     if (data.transactionType === 'sell') {
       const holding = await prisma.portfolioHolding.findUnique({
         where: {
-          userId_symbol: {
+          userId_symbol_assetType: {
             userId,
             symbol,
+            assetType: DEFAULT_ASSET_TYPE,
           },
         },
       });
@@ -46,11 +62,12 @@ export class PortfolioService {
         fee: data.fee,
         note: data.note,
         transactionDate,
+        assetType: DEFAULT_ASSET_TYPE,
       },
     });
 
     // 보유 자산 업데이트
-    await this.updateHolding(userId, symbol);
+    await this.updateHolding(userId, symbol, DEFAULT_ASSET_TYPE);
 
     return transaction;
   }
@@ -58,12 +75,17 @@ export class PortfolioService {
   /**
    * 보유 자산 계산 및 업데이트
    */
-  private async updateHolding(userId: string, symbol: string) {
-    // 모든 거래 내역 조회
+  private async updateHolding(
+    userId: string,
+    symbol: string,
+    assetType: AssetType,
+  ) {
+    // 모든 거래 내역 조회 — 자산군이 다르면 다른 보유다
     const transactions = await prisma.portfolioTransaction.findMany({
       where: {
         userId,
         symbol,
+        assetType,
       },
       orderBy: {
         transactionDate: 'asc',
@@ -114,14 +136,16 @@ export class PortfolioService {
     if (totalQuantity > 0) {
       await prisma.portfolioHolding.upsert({
         where: {
-          userId_symbol: {
+          userId_symbol_assetType: {
             userId,
             symbol,
+            assetType,
           },
         },
         create: {
           userId,
           symbol,
+          assetType,
           totalQuantity,
           averageBuyPrice,
           totalInvested,
@@ -140,6 +164,7 @@ export class PortfolioService {
         where: {
           userId,
           symbol,
+          assetType,
         },
       });
     }
@@ -272,7 +297,7 @@ export class PortfolioService {
     });
 
     // 보유 자산 재계산
-    await this.updateHolding(userId, transaction.symbol);
+    await this.updateHolding(userId, transaction.symbol, transaction.assetType);
 
     return updated;
   }
@@ -298,7 +323,7 @@ export class PortfolioService {
     });
 
     // 보유 자산 재계산
-    await this.updateHolding(userId, transaction.symbol);
+    await this.updateHolding(userId, transaction.symbol, transaction.assetType);
 
     return { message: 'Transaction deleted successfully' };
   }
