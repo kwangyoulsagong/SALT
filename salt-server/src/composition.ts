@@ -1,8 +1,20 @@
+import { createMarketApplication } from "./market/application/api";
+import { FearGreedClient } from "./market/infrastructure/FearGreedClient";
+import { PrismaIndicatorRepository } from "./market/infrastructure/PrismaIndicatorRepository";
+import { PrismaMarketAssetRepository } from "./market/infrastructure/PrismaMarketAssetRepository";
+import { PrismaPriceHistoryRepository } from "./market/infrastructure/PrismaPriceHistoryRepository";
+import { PrismaSentimentRepository } from "./market/infrastructure/PrismaSentimentRepository";
+import { PrismaWatchlistRepository } from "./market/infrastructure/PrismaWatchlistRepository";
+import { PrismaWhaleTransactionRepository } from "./market/infrastructure/PrismaWhaleTransactionRepository";
+import { SymbolNewsAdapter } from "./market/infrastructure/SymbolNewsAdapter";
+import { UpbitClient } from "./market/infrastructure/UpbitClient";
 import { createNewsApplication } from "./news/application/api";
 import { PrismaArticleRepository } from "./news/infrastructure/PrismaArticleRepository";
 import { PrismaBookmarkRepository } from "./news/infrastructure/PrismaBookmarkRepository";
 import { RssNewsFeed } from "./news/infrastructure/RssNewsFeed";
 import { createNewsRouter } from "./news/presentation/news.routes";
+import { createInvestmentRouter } from "./market/presentation/investment.routes";
+import { createMarketIntelligenceRouter } from "./market/presentation/marketIntelligence.routes";
 
 /**
  * 조립 지점 — **구현을 아는 유일한 자리**다.
@@ -30,17 +42,38 @@ const news = createNewsApplication({
   feed: new RssNewsFeed(),
 });
 
+/**
+ * `market` 은 `news` 의 공개 API 를 받는다 — **조립 순서가 의존 방향을 드러낸다.**
+ * 받는 것은 `NewsApi` 하나이고, `market/infrastructure` 의 ACL 이 그것을 우리 Port 로
+ * 번역한다 (`SymbolNewsAdapter`).
+ */
+const market = createMarketApplication({
+  assets: new PrismaMarketAssetRepository(),
+  watchlist: new PrismaWatchlistRepository(),
+  sentiments: new PrismaSentimentRepository(),
+  whales: new PrismaWhaleTransactionRepository(),
+  prices: new PrismaPriceHistoryRepository(),
+  indicators: new PrismaIndicatorRepository(),
+  exchange: new UpbitClient(),
+  fearGreed: new FearGreedClient(),
+  news: new SymbolNewsAdapter(news.api),
+});
+
 /** 다른 컨텍스트와 워커가 부르는 공개 API 모음. */
 export const contextApis = {
   news: news.api,
+  market: market.api,
 };
 
 /** 컨텍스트가 자기 유스케이스를 직접 돌려야 하는 곳(워커·관리 작업)이 쓴다. */
 export const contextUseCases = {
   news: news.useCases,
+  market: market.useCases,
 };
 
 /** `app.ts` 가 등록하는 라우터. 경로는 `app.ts` 가 정한다. */
 export const contextRouters = {
   news: createNewsRouter(news.useCases),
+  investment: createInvestmentRouter(market.useCases),
+  marketIntelligence: createMarketIntelligenceRouter(market.useCases),
 };
