@@ -4,7 +4,7 @@ import { Icon } from "@repo/ui/icon";
 import { Text } from "@repo/ui/text";
 import { Heading } from "@repo/ui/heading";
 import { Button } from "@repo/ui/button";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Container } from "@repo/ui/container";
 interface savedProps {

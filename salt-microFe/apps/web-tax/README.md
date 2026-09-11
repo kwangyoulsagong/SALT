@@ -16,7 +16,11 @@ zone 진입 1회의 hard navigation은 **치를 만한 대가**로 판단했다.
 ## 설정
 
 - `assetPrefix: "/tax-static"` — 정적 자산이 `/tax-static/_next/...`로 나간다.
-- 페이지는 `src/pages/tax/**`에 둔다. **경로는 zone 간 유일해야 한다** (FR-4).
+- 라우팅은 `app/tax/**`이고 `@/pages/tax`를 re-export만 한다. 화면은 `src/pages/tax/**`다 (FE-REQ-008 FR-5).
+  루트 `pages/`는 **빈 폴더**다 — Next가 `src/pages`를 Pages Router로 집지 않게 하는 장치다.
+- **`app/page.tsx`를 두지 않는다.** zone 루트(`/`)는 default zone의 경로다.
+  두면 `/`가 두 zone에 동시에 생겨 "zone 간 경로 중복 0건"(FE-REQ-007)이 깨진다.
+- **경로는 zone 간 유일해야 한다** (FR-4).
 - 프록시는 default zone(`apps/web`)의 `rewrites`가 한다. 이 앱은 프록시를 갖지 않는다.
 
 ## 코드 공유

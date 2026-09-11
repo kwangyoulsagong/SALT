@@ -25,8 +25,9 @@ BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관�
 | `.github/pull_request_template.md` | GitHub이 새 PR 본문에 자동으로 채운다 |
 | `.claude/skills/pr-summary/SKILL.md` | 현재 브랜치의 PR 본문을 템플릿대로 채워 출력한다 (`/pr-summary`) |
 
-영역 규칙은 `.claude/rules/`와 `.codex/rules/` **두 벌**이다. 한쪽만 고치면 다른 하네스가
-없는 구조를 전제로 작업한다. **함께 고친다.**
+영역 규칙은 `.claude/rules/` **한 벌**이다. 2026-09-11에 Codex 하네스(`.codex/**` · `AGENTS.md`)를
+제거했다 — 두 벌을 동기화하는 비용만 있고 한쪽만 고쳐지는 사고가 반복됐다.
+하네스를 다시 늘리려면 **미러가 아니라 같은 파일을 가리키게** 한다.
 
 ## 아키텍처 결정과 전환 (2026-09-09)
 

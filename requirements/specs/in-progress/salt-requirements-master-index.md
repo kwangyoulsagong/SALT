@@ -193,8 +193,13 @@ flowchart TB
 
 | REQ | 상태 | 비고 |
 |---|---|---|
-| `FE-REQ-007` MFE 교체 | **in-progress** | Multi-Zones 전환 완료(`apps/web` + `apps/web-tax`), 빌드·린트·타입·프록시 검증 통과. 미충족 6건은 `salt-microFe/requirements/reports/checklists/FE-REQ-007.md` §4 |
-| 나머지 144개 | to-do | |
+| `FE-REQ-007` MFE 교체 | **in-progress** | Multi-Zones 전환 완료(`apps/web` + `apps/web-tax`), 빌드·린트·타입·프록시 검증 통과. 미충족 6건 중 §4-6(브라우저 확인)은 `FE-REQ-008`에서 닫혔다. 나머지는 `checklists/FE-REQ-007.md` §4 |
+| `FE-REQ-008` App Router + 스트리밍 SSR | **in-progress** | 두 zone 모두 App Router. 스트리밍 게이트 **첫 블록 p95 31.9ms**(기준 300ms), 총 완료 악화 없음. 번들 증가 최대 +16.2 kB gzip(예산 40KB). 미충족 8건은 `checklists/FE-REQ-008.md` §6 |
+| 나머지 143개 | to-do | |
+
+**스트리밍 판정은 화면 단위다.** `FE-REQ-008`이 통과시킨 것은 프레임워크와 측정 방법이고,
+홈 5블록·세금 콕핏·청구서의 판정은 그 화면이 생길 때(`FE-REQ-030`~`033` · `018`~`021` · `014`~`017`)
+`salt-microFe/apps/web/scripts/measure-streaming.mjs`로 다시 한다. 기준 미달이면 **1콜 집계로 되돌린다.**
 
 배포 대상은 **자체 호스팅**으로 확정했다(FE-REQ-007 FR-21). cross-zone 전환 지점은
 `apps/web/src/components/Zone/CrossZoneLink.tsx` 한 파일로 가둬 두었다.
@@ -227,3 +232,4 @@ flowchart TB
 |---|---|
 | 2026-09-09 | 초안. 기능 7 × 영역 5 × 종류 4 = 140개 지도. 아키텍처 전환 9개 + 규칙 24개 |
 | 2026-09-10 | **145개 전부 작성 완료.** F007에 FE 사분면이 없어 실제 총계는 140 → 145(아키텍처 9 + 매트릭스 136)로 정정 |
+| 2026-09-11 | `FE-REQ-008`(App Router + 스트리밍 SSR) 구현. 측정 게이트 통과 — §7 상태표 갱신 |

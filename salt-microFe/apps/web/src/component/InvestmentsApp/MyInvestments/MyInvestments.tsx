@@ -1,3 +1,6 @@
+"use client";
+
+// 클라이언트 잎: React Query 로 조회한다.
 import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Header } from "@repo/ui/header";

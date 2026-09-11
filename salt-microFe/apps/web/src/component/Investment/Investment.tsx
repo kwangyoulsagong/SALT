@@ -1,3 +1,6 @@
+"use client";
+
+// 클라이언트 잎: 탭 상태를 갖고, 차트를 ssr:false 로 내린다.
 import dynamic from "next/dynamic";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Heading } from "@repo/ui/heading";

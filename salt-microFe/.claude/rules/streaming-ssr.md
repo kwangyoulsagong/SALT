@@ -72,6 +72,27 @@ export function BlockBoundary({ name, skeleton, children }: Props) {
 - 만족하지 못하는 화면은 스트리밍을 쓰지 않고 **1콜 집계로 되돌린다**
 - 측정값을 `requirements/reports/checklists/`에 남긴다. 없으면 다음 사람이 되돌린다
 
+### 재는 법
+
+`app/streaming-probe`가 두 형태를 한 서버에서 비교한다. 기본값은 **404**이고
+`STREAMING_PROBE=1`로 띄울 때만 열린다.
+
+```bash
+pnpm --filter web build
+cd apps/web && STREAMING_PROBE=1 npx next start -p 3000
+node scripts/measure-streaming.mjs http://localhost:3000/streaming-probe
+node scripts/measure-streaming.mjs "http://localhost:3000/streaming-probe?mode=blocking"
+```
+
+| 쿼리 | 무엇 |
+|---|---|
+| (없음) | 블록마다 `Suspense` — 이관 후 |
+| `?mode=blocking` | `Promise.all`로 묶어 한 번에 — 이관 전(1콜 집계) |
+| `?fail=<블록 이름>` | 그 블록만 예외 — 부분 실패 격리 확인 |
+
+**프로브 수치는 합성이다.** 실제 화면의 판정은 그 화면이 생길 때 같은 방법으로 다시 한다
+(`FE-REQ-008` 체크리스트 §5).
+
 ## 7. 번들 감시
 
 `"use client"` 경계를 잘못 두면 클라이언트 번들이 커진다. 이관 전/후 클라이언트 JS gzip 크기를 기록하고 **증가분 40KB 이하**를 유지한다.

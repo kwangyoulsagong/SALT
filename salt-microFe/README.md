@@ -58,6 +58,6 @@ pnpm check-types
 
 ## 문서
 
-- 작업 규칙: [`CLAUDE.md`](CLAUDE.md) · [`AGENTS.md`](AGENTS.md)
+- 작업 규칙: [`CLAUDE.md`](CLAUDE.md)
 - 규칙 문서: [`.claude/rules/`](.claude/rules/)
 - 요구사항: [`requirements/`](requirements/)
