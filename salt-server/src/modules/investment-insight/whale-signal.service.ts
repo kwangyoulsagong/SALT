@@ -1,4 +1,14 @@
+import type { InsightType } from "@prisma/client";
+
 import prisma from "../../config/database";
+
+/**
+ * `PriceHistory.close`·`volume` 은 스키마상 `Decimal` 이고 `volume` 은 nullable 이다.
+ * `number` 로 바로 산술하면 타입이 깨지고, 값이 있어도 `Decimal` 객체라 `+` 가 문자열 연결이 된다.
+ * **읽는 지점에서 한 번만** 숫자로 내린다.
+ */
+const toNumber = (value: { toString(): string } | null | undefined): number =>
+  value == null ? 0 : Number(value.toString());
 
 export class WhaleSignalService {
   async generateWhaleSignals() {
@@ -36,17 +46,22 @@ export class WhaleSignalService {
       const current = priceHistory[0];
       const oldest = priceHistory[priceHistory.length - 1];
 
+      const currentVolume = toNumber(current.volume);
       const avgVolume =
-        priceHistory.reduce((sum, p) => sum + p.volume, 0) /
+        priceHistory.reduce((sum, p) => sum + toNumber(p.volume), 0) /
         priceHistory.length;
 
-      const volumeSpike = current.volume > avgVolume * 3;
+      const volumeSpike = currentVolume > avgVolume * 3;
 
       if (!volumeSpike) continue;
 
-      const priceChange = ((current.close - oldest.close) / oldest.close) * 100;
+      const currentClose = toNumber(current.close);
+      const oldestClose = toNumber(oldest.close);
+      if (!oldestClose) continue;
 
-      let type = "";
+      const priceChange = ((currentClose - oldestClose) / oldestClose) * 100;
+
+      let type: InsightType | "" = "";
       let title = "";
       let summary = "";
 
@@ -65,10 +80,9 @@ export class WhaleSignalService {
       if (!type) continue;
 
       // 🔥 severity 동적 계산
-      const severity = Math.min(
-        100,
-        Math.round((current.volume / avgVolume) * 20),
-      );
+      const severity = avgVolume
+        ? Math.min(100, Math.round((currentVolume / avgVolume) * 20))
+        : 0;
 
       const insight = await prisma.investmentInsight.upsert({
         where: {
@@ -89,7 +103,7 @@ export class WhaleSignalService {
           severity,
           confidence: 0.8,
           payload: {
-            volume: current.volume,
+            volume: currentVolume,
             avgVolume,
             priceChange,
           },
@@ -100,7 +114,7 @@ export class WhaleSignalService {
           summary,
           severity,
           payload: {
-            volume: current.volume,
+            volume: currentVolume,
             avgVolume,
             priceChange,
           },
