@@ -31,7 +31,7 @@ import signalPerformanceRoutes from "./modules/signal-performance/signal-perform
 const app: Application = express();
 
 // `market` 의 주기 작업 넷을 등록한다. 스케줄과 락은 워커가, 절차는 유스케이스가 갖는다
-// (`server-architecture.md` §6).
+// (`server-architecture.md` §7).
 startMarketWorkers();
 
 const insightsWorker = new InvestmentInsightWorker();

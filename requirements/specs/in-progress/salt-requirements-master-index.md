@@ -196,7 +196,7 @@ flowchart TB
 | `FE-REQ-007` MFE 교체 | **done** | Multi-Zones 전환(`apps/web` + `apps/web-tax`). 미충족 6건 중 **2건이 닫혔다** — §4-6(브라우저 확인)은 `FE-REQ-008`, §4-4(레이어 검사 수단)는 `FE-REQ-009`. 남은 4건은 판정 대상(경로·배포 인프라·zone 넘나드는 기능·스트리밍 전제 화면)이 **아직 없어서** 이 REQ 안에서 닫을 방법이 없다. `checklists/FE-REQ-007.md` §4 |
 | `FE-REQ-008` App Router + 스트리밍 SSR | **done** | 두 zone 모두 App Router. 스트리밍 게이트 **첫 블록 p95 31.9ms**(기준 300ms), 번들 증가 최대 +16.2 kB gzip(예산 40KB). 미충족 7건 중 **2건이 닫혔다**(§6-1 FSD pages 레이어 → `FE-REQ-009`, §6-7 Codex 미러 → 하네스 제거). **§6-4(인증 토큰이 `localStorage`)는 이 REQ 의 실제 미달**이고 `FE-REQ-013`이 담당한다. `checklists/FE-REQ-008.md` §6 |
 | `FE-REQ-009` FSD 전환 | **done** | 두 zone 모두 6레이어. 슬라이스 8개(`auth`·`goal`·`market`·`portfolio` / `sign-in`·`add-goal` / `home-briefing`·`market-board`). `layer-check` 훅 + `@repo/fsd/layers` lint가 **같은 규칙 표 하나**를 읽는다(차단 8 · 통과 5 테스트). 렌더 동일성 4경로 × 3뷰포트 통과, 공통 청크 증가 **0**. 남은 것은 `checklists/FE-REQ-009.md` §8 — 이 REQ 미달 2건(FR-37 · `/investments` +7kB), 범위 밖 5건 |
-| `SRV-REQ-006` DDD 전환 | **in-progress (1~2/4단계)** | `shared` Kernel(`Money`·`Quantity`·`KstDate`·`DomainError`·`Degraded`) + 횡단 인프라 + `layer-check` 훅·ESLint(차단 10 · 통과 6). 2단계는 **안전망까지** — `coach/domain/policy` 추출 + 특성화 테스트 23건(원문 산술과 무작위 40,000건 대조 불일치 0). **컨텍스트 이관 본체는 미착수** — FR-32 가 `portfolio`·`market`·`news` 공개 API 를 전제하는 것이 확인돼 REQ 본문을 정정했다. 상세는 `checklists/SRV-REQ-006.md` §7 |
+| `SRV-REQ-006` DDD 전환 | **in-progress (3/4단계)** | `shared` Kernel + `layer-check` 훅·ESLint(1) · `coach/domain/policy` 추출 + 특성화 테스트 23건(2) · **`news`·`market`·`portfolio` 이관(3, FR-32a)**. 컨텍스트 3개 · 동사형 유스케이스 36개 · 공개 API 8개. `modules` 15개 → **12개**. 테스트 18 → **85건**. `node dist/server.js` + `GET /health` 200 으로 기동까지 확인했고 거기서 **부팅 시 `market-sync` 2회 실행**과 **캔들 수집이 보관 정책 삭제를 건너뛰던 것**이 드러나 고쳤다. `coach` 통합(FR-32)이 남았다. 상세는 `checklists/SRV-REQ-006.md` §7~§9 |
 | 나머지 141개 | to-do | |
 
 **P0 아키텍처 전환 3개(FE)가 끝났다.** `FE-REQ-007`→`008`→`009`.
@@ -212,9 +212,13 @@ flowchart TB
 새 슬라이스는 `layered-architecture.md` §4 표 → `packages/eslint-plugin-fsd/layer-rules.cjs`의
 `REGISTRY` 순서로 추가한다. 표만 고치면 훅이 막는다.
 
-**서버는 1~2단계다.** `SRV-REQ-006`의 `shared` Kernel과 강제 수단이 섰고 안전망까지 왔다.
-컨텍스트 이관 본체는 **아직이다** — FR-32가 `portfolio`·`market`·`news` 공개 API를 전제하는 것이
-확인돼 REQ 본문을 정정했다(회고 §6). 새 서버 작업도 쓰기 시점에 `layer-check` 훅을 통과해야 한다.
+**서버는 3단계다.** `SRV-REQ-006`의 `shared` Kernel과 강제 수단 위에 **컨텍스트 3개가 실제로
+섰다** — `news`·`market`·`portfolio`. `coach`가 전제하던 공개 API(FR-32a)가 이것으로 서고,
+남은 것은 `coach` 통합(FR-32) 하나다. 새 서버 작업도 쓰기 시점에 `layer-check` 훅을 통과해야 한다.
+
+**조립 지점은 `src/composition.ts` 하나다.** 레이어 규칙상 구현을 아는 코드를 컨텍스트 안에 둘
+자리가 없어서 나온 답이고(1단계 Open Question), DI 컨테이너를 쓰지 않는다 — 조립 순서가 곧
+컨텍스트 의존 방향이다. 규칙은 `server-architecture.md` §5.
 
 **스트리밍 판정은 화면 단위다.** `FE-REQ-008`이 통과시킨 것은 프레임워크와 측정 방법이고,
 홈 5블록·세금 콕핏·청구서의 판정은 그 화면이 생길 때(`FE-REQ-030`~`033` · `018`~`021` · `014`~`017`)
@@ -256,3 +260,4 @@ flowchart TB
 | 2026-09-11 | `FE-REQ-007`·`FE-REQ-008`을 `done/`으로. `FE-REQ-009`가 두 REQ 의 미충족 2건(레이어 검사 수단 · FSD `pages` 레이어)을 닫았다 |
 | 2026-09-11 | `SRV-REQ-006` 1단계(`shared` Kernel + 강제 수단). 서버 빌드가 이전부터 **에러 17건으로 깨져 있던 것을 발견하고 별도 커밋으로 0건으로 고쳤다**(워커 2종이 런타임에도 실패 중이었다) |
 | 2026-09-11 | `SRV-REQ-006` 2단계 안전망(`coach` 정책 추출 + 특성화 테스트). REQ 본문 4항목 정정 — FR-12 · FR-31 · FR-32 · NFR |
+| 2026-09-11 | `SRV-REQ-006` 3단계 — `news`·`market`·`portfolio` 이관(FR-32a). 조립 지점을 `src/composition.ts` 로 정하고 `server-architecture.md` §5 에 규칙화. `ErrorKind` 에 `Forbidden`(403) 추가 — FR-22 의 네 값으로는 이관이 **응답 코드를 바꾸거나 레이어 규칙을 깨는 것** 중 하나를 해야 했다 |

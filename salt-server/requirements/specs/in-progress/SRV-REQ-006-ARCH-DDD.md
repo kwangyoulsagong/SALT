@@ -11,6 +11,9 @@ created: 2026-09-09
 > **정정 기록 (2026-09-11, 1단계 구현 후).** FR-12 · FR-31 · FR-32 · NFR 동작 동일성 네 항목을
 > 정정했다. 근거는 `requirements/reports/retrospects/SRV-REQ-006.md` §6.
 > 각 정정은 해당 섹션 아래 인용 블록에 있다.
+>
+> **정정 기록 (2026-09-11, 3단계 구현 후).** FR-22 에 `ErrorKind` 다섯째 값을 추가했다.
+> 근거는 회고 §5-4 와 체크리스트 §8-3.
 
 ## Summary
 
@@ -113,7 +116,15 @@ F001은 `behavior-coach`의 편향 판정을 **거래 단위 라벨러로 재사
 |---|---|---|
 | FR-20 | **`Money` VO를 만든다.** `Decimal`(decimal.js) 기반, 통화 태그, `plus`/`times`, **`toKrwInteger()`는 응답 직전 1회만** | Must |
 | FR-21 | `Quantity`(8자리) · `UserId` · `Symbol`(대문자 정규화) · `AssetType`(3값) · `KstDate`(tz 경계) VO를 만든다 | Must |
-| FR-22 | `DomainError` 기반 타입 + `ErrorKind`(`NOT_FOUND`·`CONFLICT`·`INVALID`·`BLOCKED`)를 만든다. 전역 에러 미들웨어가 이 상위 타입만 본다 | Must |
+| FR-22 | `DomainError` 기반 타입 + `ErrorKind`(`NOT_FOUND`·`CONFLICT`·`INVALID`·`BLOCKED`·**`FORBIDDEN`**)를 만든다. 전역 에러 미들웨어가 이 상위 타입만 본다 | Must |
+
+> **FR-22 정정 (2026-09-11, 3단계).** 원문은 네 값이었다. `portfolio` 이관에서 "남의 거래에
+> 손대는 경우"의 원문 응답이 **403** 인데, 네 값으로는 선택지가 둘뿐이었다 — `BLOCKED`(422)로
+> **응답 코드를 바꾸거나**, `domain` 이 `shared/presentation` 의 `ForbiddenError` 를 import 해서
+> **레이어 규칙을 깨는 것**(`ddd-domain.md` 허용 목록에 그 경로가 없다).
+>
+> 둘 다 이관이 계약이나 규칙을 조용히 바꾸는 것이다. 사용자 소유 검사는 전 컨텍스트에 걸리고
+> (`auth-security.md`) 그 응답은 이미 403 이므로 **커널에 값을 하나 늘리는 것이 맞다.**
 | FR-23 | `Degraded` 표현(이유 코드 배열)을 만든다. 청구서·세금·적립이 공유한다 | Must |
 | FR-24 | `shared/infrastructure`에 Prisma client 단일 인스턴스 · HTTP 클라이언트 팩토리 · **인프로세스 이벤트 버스** · cron 등록을 둔다 | Must |
 

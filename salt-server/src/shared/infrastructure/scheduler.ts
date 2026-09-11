@@ -5,7 +5,7 @@ import { logger } from "../config/logger";
 /**
  * cron 등록 지점.
  *
- * **워커는 스케줄과 락만 담당한다**(`server-architecture.md` §6). 유스케이스는
+ * **워커는 스케줄과 락만 담당한다**(`server-architecture.md` §7). 유스케이스는
  * `application` 에 있고 워커는 그것을 부른다. 같은 유스케이스를 HTTP 와 스케줄러가
  * 모두 부를 수 있어야 한다.
  *
