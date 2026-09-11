@@ -207,9 +207,20 @@ dev 에서 `msw/lib/browser`발 `TypeError: Cannot read properties of undefined 
 HTML 크기는 늘었다 — `/home` 3,324 B → 16,742 B. RSC flight payload 가 HTML 에 들어가기 때문이다.
 **TTFB 는 그대로다**(프로덕션 5회, 1.7~2.2ms). 두 값 모두 프리렌더된 정적 응답 기준이다.
 
-## 6. 미충족 — 숨기지 않고 기록한다
+## 6. 미충족 · 범위 밖 — 숨기지 않고 기록한다
 
-### 6-1. FSD `pages` 레이어가 아직 세그먼트로 안 쪼개졌다
+> **2026-09-11 상태.** 7건 중 **2건이 닫혔다**(§6-1 · §6-7). 남은 5건 중 4건은
+> 판정 대상 화면이 없어서(홈 5블록 · 세금 콕핏 · `/assets` · 코치 대화) 못 한 것이고,
+> **§6-4(인증 토큰이 `localStorage`)만 성격이 다르다** — 명시된 AC 인데 구현하지 않았다.
+> 그 사유도 "부를 BFF 가 없다"이고 `FE-REQ-013`이 담당한다. 그래서 `done/` 으로 옮기되
+> **§6-4 를 이 REQ 의 실제 미달로 남긴다.**
+
+### 6-1. FSD `pages` 레이어가 아직 세그먼트로 안 쪼개졌다 → **2026-09-11 닫혔다**
+
+> **닫힘.** `FE-REQ-009`가 `src/pages/{login,home,investments,add-goal,streaming-probe}/{ui,model,index.ts}`
+> 로 쪼갰다. `goals/addgoals` 중첩도 `pages/add-goal` 슬라이스가 됐고, 루트 라우팅 파일은
+> `export { XxxPage as default } from "@/pages/xxx"` 형태다.
+> 근거는 `checklists/FE-REQ-009.md` §2.
 
 `src/pages/{login,home,investments,goals/addgoals}`로 슬라이스 이름은 생겼지만
 `ui/`·`model/`·`lib/`·`index.ts` 구조가 아니다. `goals/addgoals`는 아직 중첩이다.
