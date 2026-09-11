@@ -72,7 +72,7 @@ pnpm lint
 - [MDN Web APIs](https://developer.mozilla.org/en-US/docs/Web/API)
 - [React Documentation](https://react.dev/)
 - [Next.js Documentation](https://nextjs.org/docs)
-- [Module Federation Documentation](https://module-federation.io/)
+- [Guides: Multi-zones — Next.js](https://nextjs.org/docs/app/guides/multi-zones)
 - [Turborepo Documentation](https://turbo.build/repo/docs)
 - [pnpm Workspaces](https://pnpm.io/workspaces)
 - [Vanilla Extract](https://vanilla-extract.style/)

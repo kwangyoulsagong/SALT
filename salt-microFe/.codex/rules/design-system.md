@@ -51,7 +51,7 @@
 ## 앱 스타일
 
 - 앱 전용 레이아웃은 앱 내부 `src/styles` 또는 컴포넌트 옆 `*.css.ts`에 둔다.
-- shell global style로 remote 내부를 덮어쓰지 않는다.
+- global style은 zone 안에서만 유효하다. 다른 zone을 덮어쓸 수 없고, 덮어쓰려 해서도 안 된다.
 - global style은 reset, base font, CSS variable, body/root layout에 한정한다.
 
 ## 금지

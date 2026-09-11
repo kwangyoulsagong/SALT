@@ -5,7 +5,7 @@
 - 서버 상태: TanStack Query.
 - 컴포넌트 로컬 상태: `useState`, `useReducer`.
 - 앱 클라이언트 공유 상태: Zustand 또는 기존 Redux.
-- MFE 간 상태 공유: store singleton이 아니라 URL, props, event bus.
+- zone 간 상태 공유: **URL 파라미터와 서버 상태로만** 한다. 클라이언트 singleton은 zone을 넘지 못한다.
 
 ## Zustand
 
@@ -41,6 +41,6 @@ const selectedId = usePortfolioStore((state) => state.selectedId);
 
 ## 금지
 
-- remote 간 mutable singleton store 공유 금지.
+- zone 간 mutable singleton store 공유 금지. 애초에 넘어가지 않는다.
 - store에 API response 원본을 무한 누적 금지.
 - streaming 데이터는 최대 보관 개수와 정리 정책을 둔다.

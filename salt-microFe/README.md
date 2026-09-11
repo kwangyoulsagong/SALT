@@ -1,84 +1,63 @@
-# Turborepo starter
+# SALT MicroFE
 
-This is an official starter Turborepo.
+SALT 프론트엔드 모노레포. `pnpm` workspace + Turborepo.
 
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+## 구조
 
 ```
-cd my-turborepo
+apps/
+  web/       default zone (3000) — /, /home, /investments, /goals/*
+  web-tax/   tax zone     (3001) — /tax/*
+packages/
+  tokens/            플랫폼 중립 디자인 토큰 (순수 TS. 웹·RN 공용)
+  core/              플랫폼 무관 모델·상수 + zone 레지스트리
+  ui/                웹 전용 디자인 시스템 (@repo/ui, vanilla-extract)
+  mocks/             MSW 핸들러
+  eslint-plugin-zone/ zone 경계 lint 규칙
+  eslint-config/ · typescript-config/
+```
+
+## 마이크로프론트엔드 — Next.js Multi-Zones
+
+조립은 **빌드가 아니라 요청 라우팅**에서 일어난다. zone은 평범한 Next 앱이고, default zone의
+`rewrites`가 `/tax*`를 세금 zone으로 프록시한다.
+
+`@module-federation/nextjs-mf`는 **쓰지 않는다.** 공식 문서에 `App Router Not Supported`와
+`Support for Next.js is ending`이 명시되어 있다. 근거와 후보 비교는
+[`requirements/decisions/ADR-001-microfrontend-replacement.md`](../requirements/decisions/ADR-001-microfrontend-replacement.md),
+규칙은 [`.claude/rules/microfrontend.md`](.claude/rules/microfrontend.md)에 있다.
+
+| zone | 앱 | 경로 | `assetPrefix` |
+|---|---|---|---|
+| default | `apps/web` | 나머지 전부 | 없음 |
+| tax | `apps/web-tax` | `/tax/*` | `/tax-static` |
+
+**zone을 넘는 링크는 `<a>`(=`CrossZoneLink`)다.** `next/link`의 `<Link>`를 쓰면
+`@repo/zone/no-cross-zone-link`가 lint에서 막는다.
+
+## 명령
+
+```bash
+pnpm dev           # 두 zone 동시 기동. /tax 가 3000 을 통해 프록시된다
 pnpm build
+pnpm lint
+pnpm check-types
 ```
 
-### Develop
+개별 zone은 `pnpm --filter web dev`, `pnpm --filter web-tax dev`.
 
-To develop all apps and packages, run the following command:
+## 환경변수
 
-```
-cd my-turborepo
-pnpm dev
-```
+| 변수 | 기본값 | 용도 |
+|---|---|---|
+| `TAX_ZONE_ORIGIN` | `http://localhost:3001` | default zone이 프록시할 세금 zone origin |
+| `APP_ALLOWED_ORIGINS` | `localhost:3000` | Server Actions `allowedOrigins` |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:8000` | 인증·목표 API |
+| `NEXT_PUBLIC_INVESTMENTS_BASE_URL` | `http://localhost:4001` | 투자 API |
+| `NEXT_PUBLIC_WEBSOCKET_URL` | `ws://localhost:4002` | 실시간 시세 |
 
-### Remote Caching
+## 문서
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-npx turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+- 작업 규칙: [`CLAUDE.md`](CLAUDE.md) · [`AGENTS.md`](AGENTS.md)
+- 규칙 문서: [`.claude/rules/`](.claude/rules/)
+- 요구사항: [`requirements/`](requirements/)

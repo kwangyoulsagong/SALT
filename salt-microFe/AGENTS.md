@@ -5,21 +5,23 @@
 ## 프로젝트 개요
 
 - Monorepo: `pnpm` workspace + Turborepo
-- Apps: `apps/shell`(host, 3000), `apps/goals`(remote, 3001), `apps/investments`(remote, 3002)
-- Framework: Next.js 14 Pages Router, React 18, TypeScript strict
-- MFE: `@module-federation/nextjs-mf`
+- Apps: `apps/web`(default zone, 3000), `apps/web-tax`(tax zone, 3001)
+- Framework: Next.js 15 Pages Router, React 18, TypeScript strict
+- MFE: **Next.js Multi-Zones**. `@module-federation/nextjs-mf`는 제거됐다 (`requirements/decisions/ADR-001-microfrontend-replacement.md`)
 - Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`
-- Shared packages: `packages/ui`, `packages/message-event-bus`, `packages/mocks`, `packages/eslint-config`, `packages/typescript-config`
+- Shared packages: `packages/tokens`(플랫폼 중립 토큰), `packages/core`(플랫폼 무관 모델·상수·zone 레지스트리), `packages/ui`(웹 전용), `packages/mocks`, `packages/eslint-config`, `packages/eslint-plugin-zone`, `packages/typescript-config`
+
+> **전환 중.** `FE-REQ-007`까지 완료. 남은 순서는 `FE-REQ-008`(App Router + 스트리밍 SSR) → `FE-REQ-009`(FSD 전환).
 
 ## Commands
 
 ```bash
-pnpm dev
+pnpm dev                        # 두 zone 동시 기동 (web:3000, web-tax:3001)
 pnpm build
 pnpm lint
-pnpm --filter shell dev
-pnpm --filter goals dev
-pnpm --filter investments dev
+pnpm check-types
+pnpm --filter web dev
+pnpm --filter web-tax dev
 pnpm --filter @repo/ui lint
 pnpm --filter @repo/ui check-types
 pnpm --filter @repo/ui storybook
@@ -31,7 +33,8 @@ pnpm --filter @repo/ui storybook
 - 앱 내부는 현재 구조를 따른다: `src/pages`, `src/components` 또는 `src/component`, `src/api`, `src/hooks`, `src/store`, `src/styles`, `src/constants`, `src/utils`, `src/types`.
 - 도메인은 기능 도메인 폴더로 분리한다. 예: `src/domains/portfolio`, `src/domains/market`, `src/domains/goal`가 필요하면 그 안에 `components`, `api`, `hooks`, `store`, `types`, `constants`를 둔다.
 - 단일 앱에서만 쓰는 코드는 앱 내부에 둔다. 2개 이상 앱에서 반복되거나 런타임 계약이면 `packages/*`로 승격한다.
-- 앱끼리 `apps/other/src/...`를 직접 import하지 않는다. 통합은 Module Federation, URL, `@repo/message-event-bus`, 공유 패키지로만 한다.
+- zone끼리 `apps/other/src/...`를 직접 import하지 않는다. 공유는 **workspace 패키지로만** 한다 (`@repo/tokens` · `@repo/ui` · `@repo/core`).
+- zone 간 통신은 **URL 파라미터와 서버 상태**로 한다. zone을 넘는 링크는 `<a>`(=`CrossZoneLink`)다 — `<Link>`는 lint에서 막힌다.
 - route 파일은 얇게 유지하고 조합만 담당한다. 실제 UI와 로직은 컴포넌트/도메인 폴더로 내린다.
 
 ## Rule Index
@@ -43,8 +46,7 @@ pnpm --filter @repo/ui storybook
 - `.codex/rules/import-convention.md` — import/alias
 - `.codex/rules/className-convention.md` — className 작성
 - `.codex/rules/constants-convention.md` — 상수 추출
-- `.codex/rules/microfrontend.md` — Module Federation
-- `.codex/rules/event-bus.md` — MFE 이벤트 버스
+- `.codex/rules/microfrontend.md` — **Next.js Multi-Zones** (zone 경계 기준)
 - `.codex/rules/ssr.md` — SSR/하이드레이션
 - `.codex/rules/performance.md` — 렌더링/번들/네트워크 성능
 - `.codex/rules/canvas.md` — 고부하 시 Canvas 도입 기준

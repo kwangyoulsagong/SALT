@@ -97,10 +97,10 @@ flowchart LR
 ASCII 예시:
 
 ```text
-Shell(host)
-  ├─ goals remote
-  ├─ investments remote
-  └─ shared packages
+브라우저 요청
+  ├─ /…      → apps/web      (default zone)
+  ├─ /tax/…  → apps/web-tax  (tax zone, rewrites 프록시)
+  └─ 공유: @repo/tokens · @repo/ui · @repo/core
 ```
 
 ## 참고 링크 규칙
@@ -108,7 +108,7 @@ Shell(host)
 - 브라우저 API는 MDN 링크를 우선한다.
 - React 개념은 React 공식 문서를 우선한다.
 - Next.js 개념은 Next.js 공식 문서를 우선한다.
-- Module Federation은 공식 문서 또는 `@module-federation/nextjs-mf` 문서를 우선한다.
+- 마이크로프론트엔드는 Next.js Multi-Zones 공식 문서를 우선한다. `@module-federation/nextjs-mf`는 **쓰지 않는다** (`ADR-001`).
 - Turborepo, pnpm, Vanilla Extract, Storybook, TanStack Query는 각 공식 문서를 우선한다.
 - 특정 라이브러리를 채택했다면 "왜 이 라이브러리인지", "대안은 무엇인지", "현재 프로젝트에서 얻는 이점"을 함께 쓴다.
 
@@ -118,8 +118,8 @@ Shell(host)
 - [MDN JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 - [React Documentation](https://react.dev/)
 - [Next.js Documentation](https://nextjs.org/docs)
-- [Module Federation Documentation](https://module-federation.io/)
-- [@module-federation/nextjs-mf](https://module-federation.io/guide/framework/nextjs.html)
+- [Guides: Multi-zones — Next.js](https://nextjs.org/docs/app/guides/multi-zones)
+- [Vercel Microfrontends](https://vercel.com/docs/microfrontends)
 - [Turborepo Documentation](https://turbo.build/repo/docs)
 - [pnpm Workspaces](https://pnpm.io/workspaces)
 - [Vanilla Extract](https://vanilla-extract.style/)

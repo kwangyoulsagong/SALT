@@ -24,14 +24,14 @@ argument-hint: <요구사항 파일명 또는 자유 텍스트>
 ### 1. 요구사항 분해
 
 - 작업을 독립 단위로 나눈다.
-- 각 작업에 범위 태그를 붙인다: `[shell]`, `[goals]`, `[investments]`, `[ui]`, `[event-bus]`, `[mocks]`, `[shared-config]`.
+- 각 작업에 범위 태그를 붙인다: `[web]`, `[web-tax]`, `[ui]`, `[tokens]`, `[core]`, `[mocks]`, `[shared-config]`.
 - 도메인이 필요한 경우 `src/domains/{domain}` 후보를 제안한다.
 
 ### 2. 도메인/컴포넌트 배치 결정
 
 - 단일 페이지 전용이면 페이지 하위 컴포넌트 또는 app-local components.
 - 특정 비즈니스 도메인에 속하면 `src/domains/{domain}`.
-- 두 앱 이상 재사용이면 `packages/ui` 또는 `packages/message-event-bus`.
+- 두 zone 이상 재사용이면 `packages/ui`(웹 UI) · `packages/tokens`(토큰) · `packages/core`(플랫폼 무관 모델·상수).
 - route 파일에는 조합만 남기는 계획을 세운다.
 
 ### 3. 관리 포인트 식별
@@ -46,23 +46,24 @@ argument-hint: <요구사항 파일명 또는 자유 텍스트>
 - value — 근거
 ```
 
-### 4. API/상태/SSR/MFE 영향 분석
+### 4. API/상태/SSR/zone 영향 분석
 
 - API endpoint, query key, mutation, cache invalidation 필요 여부.
-- Zustand/Redux/URL/event bus 중 어떤 상태 채널을 쓸지.
+- Zustand/Redux/URL 중 어떤 상태 채널을 쓸지. **zone을 넘으면 URL 또는 서버 상태뿐이다.**
 - SSR 불가 browser API 또는 hydration mismatch 위험.
-- Module Federation expose/remotes 변경 여부.
+- zone 경계 변경 여부. 새 zone은 `microfrontend.md` §2의 세 조건을 모두 만족해야 한다.
 
-### 4-1. MFE 정비 항목 점검
+### 4-1. zone 정비 항목 점검
 
-MFE 관련 작업이면 아래 항목을 계획에 반드시 포함한다.
+zone 관련 작업이면 아래 항목을 계획에 반드시 포함한다.
 
-- shell의 remote 소비가 `React.lazy`인지 `next/dynamic`인지 확인하고 SSR 의도를 명시한다.
-- remote별 `QueryClientProvider`를 유지할지, shell 공유 cache로 통합할지 결정한다.
-- `@tanstack/react-query`, `@reduxjs/toolkit`, `react-redux`, `zustand` shared 설정을 앱별 격리/싱글톤 중 하나로 맞춘다.
+- 새 zone이 필요한가. `microfrontend.md` §2의 세 조건(릴리스 주기 · 이동 빈도 · 코드 무게)을 **모두** 만족하는가.
+  하나라도 불확실하면 같은 zone의 FSD 슬라이스로 만든다.
+- 경로가 zone 간 유일한가. `@repo/core/zones` 레지스트리에 먼저 등록한다.
+- default zone `rewrites`와 대상 zone `assetPrefix`가 짝을 이루는가.
+- zone을 넘는 링크는 `CrossZoneLink`(=`<a>`)로 계획한다. `<Link>`는 lint에서 막힌다.
+- 공유가 필요한 코드는 workspace 패키지로 올린다. **zone이 다른 zone의 `src/**`를 직접 import하지 않는다.**
 - `transpilePackages`에 존재하지 않는 workspace package가 있는지 확인한다.
-- shell `src/types/*.d.ts`가 실제 remote/expose만 선언하는지 확인한다.
-- event bus를 쓰면 event name/payload registry 추가 또는 갱신 계획을 포함한다.
 
 ### 5. 구현 계획 출력
 

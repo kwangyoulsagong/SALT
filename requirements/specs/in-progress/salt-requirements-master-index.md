@@ -187,9 +187,17 @@ flowchart TB
 
 ## 7. 상태 추적
 
-### 작성 현황 (2026-09-10)
+### 작성 현황 (2026-09-11)
 
-**요구사항 문서 145개가 전부 `to-do/`에 작성되었다.** 구현은 시작되지 않았다.
+**요구사항 문서 145개가 전부 작성되었다.** 구현 진행 상황:
+
+| REQ | 상태 | 비고 |
+|---|---|---|
+| `FE-REQ-007` MFE 교체 | **in-progress** | Multi-Zones 전환 완료(`apps/web` + `apps/web-tax`), 빌드·린트·타입·프록시 검증 통과. 미충족 3건은 `salt-microFe/requirements/reports/checklists/FE-REQ-007.md` §4 |
+| 나머지 144개 | to-do | |
+
+배포 대상은 **자체 호스팅**으로 확정했다(FE-REQ-007 FR-21). cross-zone 전환 지점은
+`apps/web/src/components/Zone/CrossZoneLink.tsx` 한 파일로 가둬 두었다.
 
 | 영역 | 개수 | 범위 | 위치 |
 |---|---|---|---|

@@ -31,17 +31,19 @@
 - 비공개 browser token이 필요한 요청은 SSR에서 직접 호출하지 않는다.
 - server props와 client store 초기값이 다르면 hydration mismatch로 본다.
 
-## Module Federation SSR
+## Multi-Zones SSR
 
-- shell의 server remote는 `/_next/static/ssr/remoteEntry.js`를 참조한다.
-- remote exposed module은 top-level browser side effect가 없어야 한다.
-- remote는 단독 build가 먼저 성공해야 shell SSR 검증 대상이 된다.
-- 의도적으로 client-only remote라면 shell에서 dynamic import로 격리하고 fallback을 둔다.
+zone은 평범한 Next 앱이다. **각 zone이 자기 SSR을 온전히 갖는다** — 런타임에 번들을 합치지 않으므로
+share scope·async boundary 문제가 없다 (`ADR-001`).
+
+- zone은 **단독 build가 성공해야 한다.** 다른 zone의 빌드에 의존하지 않는다.
+- browser 전용 섹션은 `next/dynamic({ ssr: false })`로 격리하고 loading fallback을 둔다.
+- zone 간 이동은 hard navigation이다. hydration 상태를 넘겨받지 않는다 — 넘길 값은 URL 파라미터나 서버 상태로 보낸다.
 
 ## 디버깅 순서
 
 1. top-level browser API 검색.
 2. render-time browser API 검색.
 3. 시간/random/locale/viewport 기반 분기 확인.
-4. server/client remoteEntry 경로 차이 확인.
+4. zone 경계를 넘는 상태 전달이 URL/서버 상태가 아닌 클라이언트 메모리에 기대고 있지 않은지 확인.
 5. 초기 store 값과 query cache hydration 확인.

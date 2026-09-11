@@ -18,7 +18,7 @@ description: "Phase 5: 구현 품질을 리뷰하고 개선점을 기록한다"
 - shared package에 app-specific 코드가 들어가지 않았는가.
 - API/query key/cache invalidation이 일관적인가.
 - SSR/hydration 위험이 없는가.
-- MFE expose/remotes 계약이 깨지지 않았는가.
+- zone 경계가 흐려지지 않았는가. 새 zone을 만들었다면 세 조건을 모두 만족하는가.
 - 성능상 불필요한 렌더, 대형 번들, 메모리 누수가 없는가.
 - a11y와 fallback이 충분한가.
 

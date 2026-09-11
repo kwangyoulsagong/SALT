@@ -46,21 +46,20 @@ src/
 
 - 같은 앱 안에서는 `pages → domains/components/hooks/api/store/utils` 방향으로 조합한다.
 - 도메인끼리 직접 깊은 import를 반복하지 않는다. 공통 계약은 앱 공통 폴더나 `packages/*`로 올린다.
-- shell 전용 코드를 remote에서 import하지 않는다.
-- remote 전용 코드를 shell에서 직접 파일 경로로 import하지 않는다. shell은 federation exposed module만 소비한다.
+- **zone끼리 `apps/other/src/**`를 직접 import하지 않는다.** 공유는 workspace 패키지로만 한다.
 - 도메인 `index.ts`는 공개 API만 re-export한다. 내부 구현 파일 전체를 무분별하게 열지 않는다.
 
 ## 승격 기준
 
 - 한 앱에서만 쓰면 앱 내부에 둔다.
 - 두 앱 이상에서 UI로 반복되면 `packages/ui`.
-- 두 앱 이상에서 메시지/이벤트 계약으로 반복되면 `packages/message-event-bus`.
+- 두 zone 이상에서 플랫폼 무관한 모델·상수·정책으로 반복되면 `packages/core`.
 - mock fixture가 여러 앱에서 필요하면 `packages/mocks`.
 - 타입만 공유해야 하면 새 패키지보다 기존 패키지의 contract 파일을 우선 검토한다.
 
 ## 금지
 
 - 기존 앱 구조와 무관한 새 레이어 폴더 생성 금지.
-- `apps/*/src` 간 직접 import 금지.
+- zone(`apps/*/src`) 간 직접 import 금지.
 - route 파일에 API 세부 구현, store mutation, 복잡한 계산을 직접 작성 금지.
 - 편의를 위한 대형 `utils/index.ts` 덤프 금지.
