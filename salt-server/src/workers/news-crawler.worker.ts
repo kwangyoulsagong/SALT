@@ -1,7 +1,11 @@
-import { NewsService } from '../modules/news/news.service';
-import { logger } from '../shared/config/logger';
+import { contextUseCases } from "../composition";
+import { logger } from "../shared/config/logger";
 
-const newsService = new NewsService();
+/**
+ * 워커는 **스케줄만** 갖는다 (FR-5). 수집 절차는 `news` 컨텍스트의 유스케이스이고,
+ * 같은 유스케이스를 관리자 HTTP(`POST /api/news/admin/crawl`)도 부른다.
+ */
+const crawlNewsUseCase = contextUseCases.news.crawlNews;
 
 class NewsCrawlerWorker {
   private crawlInterval: NodeJS.Timeout | null = null;
@@ -26,7 +30,7 @@ class NewsCrawlerWorker {
   private async crawlNews() {
     try {
       logger.info('🔄 Starting news crawling...');
-      const result = await newsService.crawlAndSaveNews();
+      const result = await crawlNewsUseCase.execute();
       logger.info(
         `✅ News crawling completed: ${result.savedCount} saved, ${result.skippedCount} skipped`
       );

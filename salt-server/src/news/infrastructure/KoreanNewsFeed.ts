@@ -1,18 +1,15 @@
 import Parser from "rss-parser";
-import { logger } from "../shared/config/logger";
 
-export interface KoreanNewsItem {
-  title: string;
-  content: string;
-  summary: string;
-  url: string;
-  imageUrl?: string;
-  source: string;
-  author?: string;
-  symbols: string[];
-  sentiment?: string;
-  publishedAt: Date;
-}
+import { logger } from "../../shared/config/logger";
+import type { ArticleDraft, ArticleSentiment } from "../domain";
+
+/**
+ * 한글 뉴스 수집 — `external/korean-news.service.ts` 에서 옮겨왔다.
+ *
+ * > **`source` 가 `GoogleNews(키워드)` 다.** `domain/NewsSource.ts` 의 한글 소스 목록과
+ * > 어긋나 있고, 그 사실을 그 파일에 적어 뒀다. 여기서 이름을 바꾸면 **이미 저장된
+ * > 기사들과 새 기사들의 소스가 갈라진다** — 이관에서 할 일이 아니다.
+ */
 
 const parser = new Parser({
   timeout: 10000,
@@ -23,7 +20,7 @@ const parser = new Parser({
   },
 });
 
-export class KoreanNewsService {
+class KoreanNewsFeed {
   // ✅ “전체 뉴스” 커버용 broad 키워드 세트
   private keywords = [
     "가상화폐",
@@ -38,7 +35,7 @@ export class KoreanNewsService {
     "빗썸",
   ];
 
-  async fetchAllKoreanNews(): Promise<KoreanNewsItem[]> {
+  async fetchAllKoreanNews(): Promise<ArticleDraft[]> {
     logger.info("🇰🇷 Fetching Korean crypto news (broad RSS)...");
 
     // 키워드 별 RSS URL 만들기
@@ -51,14 +48,14 @@ export class KoreanNewsService {
       rssUrls.map((src) => this.fetchFromRss(src.name, src.url))
     );
 
-    const merged: KoreanNewsItem[] = [];
+    const merged: ArticleDraft[] = [];
     results.forEach((r) => {
       if (r.status === "fulfilled") merged.push(...r.value);
       else logger.error("RSS fetch failed:", r.reason);
     });
 
     // ✅ 중복 제거 (url 기준)
-    const uniq = new Map<string, KoreanNewsItem>();
+    const uniq = new Map<string, ArticleDraft>();
     for (const item of merged) {
       if (!item.url) continue;
       if (!uniq.has(item.url)) uniq.set(item.url, item);
@@ -83,7 +80,7 @@ export class KoreanNewsService {
     try {
       const feed = await parser.parseURL(url);
 
-      const items: KoreanNewsItem[] = [];
+      const items: ArticleDraft[] = [];
 
       for (const entry of feed.items.slice(0, 30)) {
         const title = entry.title?.trim() ?? "";
@@ -152,7 +149,7 @@ export class KoreanNewsService {
     return [...symbols];
   }
 
-  private analyzeSentiment(text: string): string {
+  private analyzeSentiment(text: string): ArticleSentiment {
     const positive = [
       "상승",
       "급등",
@@ -187,4 +184,4 @@ export class KoreanNewsService {
   }
 }
 
-export const koreanNewsService = new KoreanNewsService();
+export const koreanNewsFeed = new KoreanNewsFeed();

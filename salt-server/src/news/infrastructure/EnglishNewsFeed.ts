@@ -1,28 +1,25 @@
 import axios from "axios";
 import Parser from "rss-parser";
-import * as cheerio from "cheerio";
-import { logger } from "../shared/config/logger";
 
-export interface NewsItem {
-  title: string;
-  content: string;
-  summary?: string;
-  url: string;
-  imageUrl?: string;
-  source: string;
-  author?: string;
-  symbols: string[];
-  sentiment?: "positive" | "neutral" | "negative";
-  publishedAt: Date;
-}
+import { logger } from "../../shared/config/logger";
+import type { ArticleDraft } from "../domain";
 
-class NewsAPIService {
+/**
+ * 영문 뉴스 수집 — `external/news-api.service.ts` 에서 옮겨왔다.
+ *
+ * `news` 컨텍스트의 `infrastructure` 다. 이 클래스는 **도메인 타입(`ArticleDraft`)으로
+ * 번역해서 돌려주는 것**이 일이고, RSS 필드 이름이나 CryptoPanic 응답 모양은 여기서 끝난다.
+ *
+ * 소스 하나가 실패해도 **빈 배열**을 준다(원문 그대로). 한 곳의 장애가 회차 전체를
+ * 날리지 않게 하는 것이 이 계약의 목적이다.
+ */
+class EnglishNewsFeed {
   private rssParser = new Parser();
 
   /**
    * CryptoPanic API (무료)
    */
-  async fetchCryptoPanicNews(limit: number = 20): Promise<NewsItem[]> {
+  async fetchCryptoPanicNews(limit: number = 20): Promise<ArticleDraft[]> {
     try {
       // CryptoPanic API는 무료 tier 사용 가능
       // 실제로는 API 키 필요: https://cryptopanic.com/developers/api/
@@ -52,7 +49,7 @@ class NewsAPIService {
   /**
    * CoinDesk RSS 크롤링
    */
-  async fetchCoinDeskRSS(): Promise<NewsItem[]> {
+  async fetchCoinDeskRSS(): Promise<ArticleDraft[]> {
     try {
       const feed = await this.rssParser.parseURL(
         "https://www.coindesk.com/arc/outboundfeeds/rss/"
@@ -80,7 +77,7 @@ class NewsAPIService {
   /**
    * Cointelegraph RSS 크롤링
    */
-  async fetchCointelegraphRSS(): Promise<NewsItem[]> {
+  async fetchCointelegraphRSS(): Promise<ArticleDraft[]> {
     try {
       const feed = await this.rssParser.parseURL(
         "https://cointelegraph.com/rss"
@@ -108,7 +105,7 @@ class NewsAPIService {
   /**
    * CryptoSlate RSS 크롤링
    */
-  async fetchCryptoSlateRSS(): Promise<NewsItem[]> {
+  async fetchCryptoSlateRSS(): Promise<ArticleDraft[]> {
     try {
       const feed = await this.rssParser.parseURL(
         "https://cryptoslate.com/feed/"
@@ -136,7 +133,7 @@ class NewsAPIService {
   /**
    * 모든 뉴스 소스 통합 수집
    */
-  async fetchAllNews(): Promise<NewsItem[]> {
+  async fetchAllNews(): Promise<ArticleDraft[]> {
     logger.info("📰 Fetching news from all sources...");
 
     const [cryptoPanic, coinDesk, cointelegraph, cryptoSlate] =
@@ -147,7 +144,7 @@ class NewsAPIService {
         this.fetchCryptoSlateRSS(),
       ]);
 
-    const allNews = [
+    const allNews: ArticleDraft[] = [
       ...cryptoPanic,
       ...coinDesk,
       ...cointelegraph,
@@ -227,4 +224,4 @@ class NewsAPIService {
   }
 }
 
-export const newsAPIService = new NewsAPIService();
+export const englishNewsFeed = new EnglishNewsFeed();
