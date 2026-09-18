@@ -1,6 +1,16 @@
 /** 시세 슬라이스의 사용자 노출 문구. 컴포넌트에 하드코딩하지 않는다 (`i18n-policy.md`). */
 export const MARKET_MESSAGES = {
-  realtimeAsOf: "실시간 오늘 19:30 기준",
+  /**
+   * 표 헤더의 기준 시각. **하드코딩이었다** — `"실시간 오늘 19:30 기준"` 이 언제나
+   * 19:30 을 가리켰다 (`FE-REQ-010` FR-2). 이제 WebSocket 마지막 수신 시각이다.
+   */
+  realtimeAsOf: (time: string) => `실시간 오늘 ${time} 기준`,
+  /** 아직 한 건도 받지 못했다. 연결 실패와 구분하지 않는다 — 화면이 할 일은 같다 */
+  realtimeWaiting: "실시간 수신 대기 중",
+  /** 필터 묶음이 무엇을 고르는지. 화면에 보이지 않고 스크린리더만 읽는다 */
+  sortGroupLabel: "정렬 기준",
+  orderGroupLabel: "정렬 순서",
+  periodGroupLabel: "수익률 기간",
   loading: "실시간 투자 정보를 불러오는 중입니다.",
   loadFailed: "실시간 투자 정보를 불러오지 못했습니다.",
   previewLoading: " 로딩중",

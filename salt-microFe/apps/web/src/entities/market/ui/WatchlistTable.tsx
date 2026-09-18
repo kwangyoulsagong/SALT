@@ -14,8 +14,9 @@ import {
   TableRow,
 } from "@repo/ui/table";
 import { Text } from "@repo/ui/text";
-import React, { KeyboardEvent, ReactNode } from "react";
+import React, { ReactNode } from "react";
 
+import { selectRowOnKey } from "../lib/rowSelection";
 import { WATCHLIST_ASSET_LABELS, WATCHLIST_MESSAGES } from "../model/messages";
 import { WatchlistItem } from "../model/types";
 import { ChangeRateCell } from "./ChangeRateCell";
@@ -38,19 +39,6 @@ const WATCHLIST_HEADERS = [
   { id: "changeRate", value: "변동률" },
   { id: "assetType", value: "자산군" },
 ] as const;
-
-/**
- * 행 선택을 키보드로도 연다 (`FE-REQ-010` FR-60).
- *
- * Space 는 기본 동작이 스크롤이라 막는다. 그러지 않으면 선택과 동시에 목록이 한 화면
- * 내려가서, 방금 고른 행이 시야 밖으로 나간다.
- */
-const selectOnKey =
-  (onSelect: () => void) => (event: KeyboardEvent<HTMLTableRowElement>) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    onSelect();
-  };
 
 /** 표시 전용 (`fsd-entities.md`). 조회·mutation 을 부르지 않는다. */
 export const WatchlistTable = React.memo(
@@ -83,7 +71,7 @@ export const WatchlistTable = React.memo(
                   tabIndex={0}
                   aria-selected={selected}
                   onClick={select}
-                  onKeyDown={selectOnKey(select)}
+                  onKeyDown={selectRowOnKey(select)}
                 >
                   <TableCell align="left">
                     <FlexBox align="center" gap="md">

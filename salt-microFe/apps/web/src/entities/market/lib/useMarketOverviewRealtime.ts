@@ -15,7 +15,15 @@ import {
 export const useMarketOverviewRealtime = (
   params: MarketOverviewParams,
   symbols: string[],
-  onBlink?: (symbol: string) => void
+  onBlink?: (symbol: string) => void,
+  /**
+   * 한 건이라도 받았다는 신호. 표 헤더의 기준 시각이 이것을 쓴다 (`FE-REQ-010` FR-2).
+   *
+   * **프레임 단위로 부른다** — 수신 한 건마다 부르면 초당 수십 번이 되고, 받는 쪽이
+   * state 를 갱신하면 표 전체가 그만큼 다시 그려진다. 콜백에서 스로틀하는 것은
+   * 받는 쪽의 몫이지만, 여기서도 이미 `requestAnimationFrame` 으로 묶인 지점에서만 부른다.
+   */
+  onReceive?: () => void
 ): void => {
   const queryClient = useQueryClient();
   // 심볼 목록을 값 기준 키로 만든다.
@@ -60,6 +68,7 @@ export const useMarketOverviewRealtime = (
         frameId = null;
         blinkQueue.forEach((symbol) => onBlink?.(symbol));
         blinkQueue.length = 0;
+        onReceive?.();
         // 낙관적 업데이트
         queryClient.setQueryData(
           [marketQueryKeys.overview, params],
@@ -100,5 +109,5 @@ export const useMarketOverviewRealtime = (
         wsClient.removePriceListener(symbol, listener)
       );
     };
-  }, [symbolsKey, params, queryClient, onBlink]);
+  }, [symbolsKey, params, queryClient, onBlink, onReceive]);
 };
