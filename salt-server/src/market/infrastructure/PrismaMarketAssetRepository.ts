@@ -4,6 +4,7 @@ import prisma from "../../shared/infrastructure/prisma";
 import {
   logoUrlOf,
   MarketOverviewSort,
+  type AssetQuote,
   type MarketAssetRepository,
   type MarketAssetType,
   type MarketAssetView,
@@ -24,6 +25,34 @@ const SORT_COLUMN: Record<MarketOverviewSort, keyof Prisma.MarketAssetOrderByWit
 const num = (value: Prisma.Decimal | null): number => (value ? Number(value) : 0);
 
 export class PrismaMarketAssetRepository implements MarketAssetRepository {
+  /**
+   * 저장된 시세 몇 줄.
+   *
+   * 거래소를 부르지 않는다 — 코치의 판단은 **동기화 워커가 적어 둔 값**을 보고,
+   * 그 값이 얼마나 오래됐는지(`priceUpdatedAt`)를 함께 준다. 신선도 판정은
+   * 부르는 쪽의 규칙이다(`coach/domain/policy/preflight.ts`).
+   */
+  async findQuotes(symbols: string[]): Promise<AssetQuote[]> {
+    if (symbols.length === 0) return [];
+
+    const rows = await prisma.marketAsset.findMany({
+      where: { symbol: { in: symbols } },
+      select: {
+        symbol: true,
+        currentPrice: true,
+        change24h: true,
+        priceUpdatedAt: true,
+      },
+    });
+
+    return rows.map((row) => ({
+      symbol: row.symbol,
+      currentPrice: row.currentPrice === null ? null : Number(row.currentPrice),
+      change24h: row.change24h === null ? null : Number(row.change24h),
+      priceUpdatedAt: row.priceUpdatedAt,
+    }));
+  }
+
   async findPage(query: MarketOverviewQuery) {
     const where: Prisma.MarketAssetWhereInput = { isActive: true };
 

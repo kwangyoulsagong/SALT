@@ -1,6 +1,7 @@
 import type {
   Holding,
   HoldingRepository,
+  PortfolioAssetType,
   PriceHistorySource,
   Transaction,
   TransactionRepository,
@@ -36,14 +37,31 @@ export interface PortfolioApi {
   listHoldings(userId: string): Promise<Holding[]>;
   /** 한 종목 보유. 없으면 `null` — 미보유가 정상 경로다. */
   getHolding(userId: string, symbol: string): Promise<Holding | null>;
-  /** 거래 내역. `behavior-analysis` 가 매매 패턴을 본다. */
+  /** 거래 내역. `coach` 의 행동 분석이 매매 패턴을 본다. */
   listTransactions(
     userId: string,
-    options?: { symbol?: string; page?: number; limit?: number }
+    options?: {
+      symbol?: string;
+      assetType?: PortfolioAssetType;
+      /** 이 시각 이후 거래만. 행동 분석이 최근 창만 본다. */
+      since?: Date;
+      page?: number;
+      limit?: number;
+    }
   ): Promise<Transaction[]>;
+  /**
+   * 거래 건수.
+   *
+   * 행동 코치의 최소 표본 판정이 이것을 쓴다. 목록을 받아 `length` 로 세면
+   * 거래 5,000건이 5,000행 이동이 된다 (`ddd-infrastructure.md` §3).
+   */
+  countTransactions(
+    userId: string,
+    assetType?: PortfolioAssetType
+  ): Promise<number>;
 }
 
-export type { Holding, Transaction };
+export type { Holding, PortfolioAssetType, Transaction };
 
 export interface PortfolioDependencies {
   transactions: TransactionRepository;
@@ -86,11 +104,15 @@ export const createPortfolioApplication = (deps: PortfolioDependencies) => {
     listTransactions: async (userId, options = {}) => {
       const result = await listTransactions.execute(userId, {
         symbol: options.symbol,
+        assetType: options.assetType,
+        startDate: options.since,
         page: options.page,
         limit: options.limit ?? API_DEFAULT_LIMIT,
       });
       return result.transactions;
     },
+    countTransactions: (userId, assetType) =>
+      deps.transactions.countByUser(userId, assetType),
   };
 
   return { api, useCases };

@@ -92,6 +92,7 @@ export class PrismaTransactionRepository implements TransactionRepository {
     };
 
     if (filter.symbol) where.symbol = filter.symbol.toUpperCase();
+    if (filter.assetType) where.assetType = filter.assetType;
     if (filter.transactionType) where.transactionType = filter.transactionType;
     if (filter.startDate || filter.endDate) {
       where.transactionDate = {
@@ -145,7 +146,9 @@ export class PrismaTransactionRepository implements TransactionRepository {
     }));
   }
 
-  countByUser(userId: string): Promise<number> {
-    return prisma.portfolioTransaction.count({ where: { userId } });
+  countByUser(userId: string, assetType?: PortfolioAssetType): Promise<number> {
+    return prisma.portfolioTransaction.count({
+      where: { userId, ...(assetType ? { assetType } : {}) },
+    });
   }
 }

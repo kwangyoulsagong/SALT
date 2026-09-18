@@ -63,6 +63,39 @@ export class PrismaIndicatorRepository implements IndicatorRepository {
    * 않는다** — 둘 다 거짓말이다. 값이 없는 지표가 섞인 행은 소비처가 판단할 수 있게
    * `null` 을 유지하고, 타입에도 그대로 드러낸다.
    */
+  /**
+   * 여러 심볼의 최신 지표를 한 번에.
+   *
+   * `distinct: ["symbol"]` 은 정렬 순서의 **첫 행**을 심볼마다 남긴다 — 그래서
+   * `orderBy timestamp desc` 와 함께여야 "최신"이 된다. 원문
+   * (`ai-coach-feature.extractor`)이 쓰던 조회이고 `timeframe` 도 그때처럼 넘긴다.
+   */
+  async findLatestMany(
+    symbols: string[],
+    timeframe?: string
+  ): Promise<StoredIndicator[]> {
+    if (symbols.length === 0) return [];
+
+    const rows = await prisma.technicalIndicator.findMany({
+      where: {
+        symbol: { in: symbols },
+        ...(timeframe ? { timeframe: toTimeframe(timeframe) } : {}),
+      },
+      orderBy: { timestamp: "desc" },
+      distinct: ["symbol"],
+    });
+
+    return rows.map((row) => ({
+      symbol: row.symbol,
+      timeframe: row.timeframe,
+      timestamp: row.timestamp,
+      rsi14: row.rsi14,
+      ma20: row.ma20,
+      ma50: row.ma50,
+      volumeAvg20: row.volumeAvg20,
+    }));
+  }
+
   async findLatest(symbol: string): Promise<StoredIndicator | null> {
     const row = await prisma.technicalIndicator.findFirst({
       where: { symbol },

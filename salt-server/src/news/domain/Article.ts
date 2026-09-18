@@ -37,6 +37,21 @@ export interface ArticleSummary {
   publishedAt: Date;
 }
 
+/**
+ * 감성 분석에 주는 본문 조각.
+ *
+ * `ArticleSummary` 와 달리 **`content` 를 싣는다** — 호재·악재 키워드가 본문에도
+ * 걸리기 때문이다(`coach/domain/policy/newsSentiment.ts`). 목록 응답이 아니라
+ * 분석 입력이므로 행 수가 상한(`limit`)으로 묶여 있다.
+ */
+export interface ArticleText {
+  title: string;
+  summary: string | null;
+  content: string | null;
+  sentiment: string | null;
+  publishedAt: Date;
+}
+
 /** 상세 조회 결과. Prisma 행 전체를 그대로 내보내던 원문 응답을 유지한다. */
 export interface ArticleDetail extends ArticleSummary {
   content: string;

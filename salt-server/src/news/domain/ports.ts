@@ -2,6 +2,7 @@ import type {
   ArticleDetail,
   ArticleDraft,
   ArticleSummary,
+  ArticleText,
   Paged,
   SourceCount,
 } from "./Article";
@@ -14,6 +15,13 @@ import type { NewsLanguage } from "./NewsSource";
  * 그래서 `application` → `infrastructure` import 가 필요 없고, 훅이 그걸 막는다
  * (`server-architecture.md` §1).
  */
+
+export interface SentimentArticleQuery {
+  symbol: string;
+  keywords: string[];
+  since: Date;
+  limit: number;
+}
 
 export interface ListArticlesFilter {
   symbol?: string;
@@ -35,6 +43,13 @@ export interface ArticleRepository {
   findByIdAndCountView(newsId: string): Promise<ArticleDetail | null>;
   exists(newsId: string): Promise<boolean>;
   findBySymbol(symbol: string, limit: number): Promise<ArticleSummary[]>;
+  /**
+   * 감성 분석용 조회. 종목 태그(`symbols`)나 **검색어**로 찾고 본문까지 준다.
+   *
+   * 검색어 목록은 부르는 쪽(`coach`)이 준다 — "무엇을 그 종목 기사로 볼 것인가"는
+   * `news` 의 판단이 아니다.
+   */
+  findForSentiment(query: SentimentArticleQuery): Promise<ArticleText[]>;
   findTrending(limit: number, language?: NewsLanguage): Promise<ArticleSummary[]>;
   countBySource(): Promise<SourceCount[]>;
   /** URL 이 이미 있으면 저장하지 않고 `false`. 유일성은 DB 제약이 지킨다. */

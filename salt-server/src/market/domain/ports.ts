@@ -131,7 +131,17 @@ export interface SymbolNewsItem {
   publishedAt: Date;
 }
 
+/** 자산 한 줄의 시세. 코치·주문 전 계산이 현재가와 신선도를 본다. */
+export interface AssetQuote {
+  symbol: string;
+  currentPrice: number | null;
+  change24h: number | null;
+  priceUpdatedAt: Date | null;
+}
+
 export interface MarketAssetRepository {
+  /** 저장된 시세. 거래소를 부르지 않는다 — 판단용 조회는 DB 값을 쓴다. */
+  findQuotes(symbols: string[]): Promise<AssetQuote[]>;
   findPage(
     query: MarketOverviewQuery
   ): Promise<{ items: MarketAssetView[]; total: number }>;
@@ -209,6 +219,8 @@ export interface StoredSentiment extends SentimentRecord {
 export interface SentimentRepository {
   save(record: SentimentRecord): Promise<StoredSentiment>;
   findLatest(symbol: string): Promise<StoredSentiment | null>;
+  /** 여러 심볼의 최신 심리를 한 번에. 심볼당 조회를 부르지 않게 하는 자리다. */
+  findLatestMany(symbols: string[]): Promise<StoredSentiment[]>;
   findHistorySince(
     symbol: string,
     since: Date
@@ -233,6 +245,11 @@ export interface StoredWhaleTransaction extends WhaleTransactionRecord {
 export interface WhaleTransactionRepository {
   saveMany(records: WhaleTransactionRecord[]): Promise<void>;
   findRecent(symbol: string, limit: number): Promise<StoredWhaleTransaction[]>;
+  /** 여러 심볼의 최근 대량 체결. 합산은 부르는 쪽이 한다. */
+  findRecentForSymbols(
+    symbols: string[],
+    limit: number
+  ): Promise<StoredWhaleTransaction[]>;
 }
 
 export interface ClosePoint {
@@ -250,6 +267,20 @@ export interface PriceHistoryRepository {
   ): Promise<void>;
   /** 여러 심볼의 종가를 한 번에. 화면·성과 계산이 N+1 을 만들지 않게 하는 자리다. */
   closesSince(symbols: string[], since: Date): Promise<ClosePoint[]>;
+  /**
+   * `since` 이후 5분봉 **최고 종가**를 심볼별로.
+   *
+   * 행을 옮겨 와서 `Math.max` 하지 않는다 — 48시간이면 심볼당 576행이다
+   * (`ddd-infrastructure.md` §3).
+   */
+  highestCloseSince(
+    symbols: string[],
+    since: Date
+  ): Promise<Array<{ symbol: string; close: number }>>;
+  /** `at` **이후 첫** 종가. 없으면 `null`. 성적표의 진입가다. */
+  closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
+  /** 심볼별 마지막 종가. */
+  latestCloses(symbols: string[]): Promise<ClosePoint[]>;
   /** 지표 계산용 최근 캔들. 최신이 앞이다. */
   recentCandles(
     symbol: string,
@@ -285,6 +316,16 @@ export interface IndicatorRepository {
     indicators: IndicatorSet;
   }): Promise<void>;
   findLatest(symbol: string): Promise<StoredIndicator | null>;
+  /**
+   * 여러 심볼의 최신 지표. `timeframe` 을 주면 그 주기만 본다.
+   *
+   * 지표는 `m5` 와 `h1` 두 주기로 저장된다. 주기를 섞어 "최신"을 고르면 같은 심볼이
+   * 호출마다 다른 주기의 RSI 를 준다 — 부르는 쪽이 주기를 정하게 열어 둔다.
+   */
+  findLatestMany(
+    symbols: string[],
+    timeframe?: string
+  ): Promise<StoredIndicator[]>;
 }
 
 export type { SortDirection };

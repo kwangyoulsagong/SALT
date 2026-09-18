@@ -40,6 +40,7 @@ export interface Holding {
 export interface TransactionFilter {
   userId: string;
   symbol?: string;
+  assetType?: PortfolioAssetType;
   transactionType?: "buy" | "sell";
   startDate?: Date;
   endDate?: Date;
@@ -80,7 +81,8 @@ export interface TransactionRepository {
     symbol: string,
     assetType: PortfolioAssetType
   ): Promise<TransactionFact[]>;
-  countByUser(userId: string): Promise<number>;
+  /** `assetType` 을 주면 그 자산군만 센다. 행을 옮겨 와서 세지 않는다. */
+  countByUser(userId: string, assetType?: PortfolioAssetType): Promise<number>;
 }
 
 export interface HoldingRepository {

@@ -1,11 +1,16 @@
 import type {
   ArticleRepository,
   ArticleSummary,
+  ArticleText,
   BookmarkRepository,
   NewsFeedPort,
+  SentimentArticleQuery,
 } from "../../domain";
 import { CrawlKoreanNews, CrawlNews } from "../CrawlNews";
-import { FindArticlesBySymbol } from "../FindArticlesBySymbol";
+import {
+  FindArticlesBySymbol,
+  FindArticlesForSentiment,
+} from "../FindArticlesBySymbol";
 import {
   BookmarkArticle,
   ListBookmarks,
@@ -31,9 +36,11 @@ import {
  */
 export interface NewsApi {
   findArticlesBySymbol(symbol: string, limit?: number): Promise<ArticleSummary[]>;
+  /** 감성 분석용. 본문을 포함하고 검색어를 부르는 쪽이 준다. */
+  findArticlesForSentiment(query: SentimentArticleQuery): Promise<ArticleText[]>;
 }
 
-export type { ArticleSummary } from "../../domain";
+export type { ArticleSummary, ArticleText, SentimentArticleQuery } from "../../domain";
 
 export interface NewsDependencies {
   articles: ArticleRepository;
@@ -65,6 +72,7 @@ export interface NewsUseCases {
  */
 export const createNewsApplication = (deps: NewsDependencies) => {
   const findArticlesBySymbol = new FindArticlesBySymbol(deps.articles);
+  const findArticlesForSentiment = new FindArticlesForSentiment(deps.articles);
 
   const useCases: NewsUseCases = {
     crawlNews: new CrawlNews(deps.articles, deps.feed),
@@ -81,6 +89,7 @@ export const createNewsApplication = (deps: NewsDependencies) => {
   const api: NewsApi = {
     findArticlesBySymbol: (symbol, limit) =>
       findArticlesBySymbol.execute(symbol, limit),
+    findArticlesForSentiment: (query) => findArticlesForSentiment.execute(query),
   };
 
   return { api, useCases };

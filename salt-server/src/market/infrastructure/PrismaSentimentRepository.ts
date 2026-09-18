@@ -33,6 +33,22 @@ export class PrismaSentimentRepository implements SentimentRepository {
     return { ...row, fearGreedIndex: row.fearGreedIndex ?? undefined, sentimentLabel: toLabel(row.sentimentLabel) };
   }
 
+  async findLatestMany(symbols: string[]): Promise<StoredSentiment[]> {
+    if (symbols.length === 0) return [];
+
+    const rows = await prisma.marketSentiment.findMany({
+      where: { symbol: { in: symbols } },
+      orderBy: { calculatedAt: "desc" },
+      distinct: ["symbol"],
+    });
+
+    return rows.map((row) => ({
+      ...row,
+      fearGreedIndex: row.fearGreedIndex ?? undefined,
+      sentimentLabel: toLabel(row.sentimentLabel),
+    }));
+  }
+
   async findLatest(symbol: string): Promise<StoredSentiment | null> {
     const row = await prisma.marketSentiment.findFirst({
       where: { symbol },

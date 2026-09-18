@@ -7,9 +7,11 @@ import {
   type ArticleDraft,
   type ArticleRepository,
   type ArticleSummary,
+  type ArticleText,
   type ListArticlesFilter,
   type NewsLanguage,
   type Paged,
+  type SentimentArticleQuery,
   type SourceCount,
 } from "../domain";
 
@@ -104,6 +106,40 @@ export class PrismaArticleRepository implements ArticleRepository {
       select: { id: true },
     });
     return found !== null;
+  }
+
+  /**
+   * 감성 분석용 조회.
+   *
+   * 종목 태그(`symbols has`)와 **검색어**를 `OR` 로 묶는다 — 태그가 비어 있는 기사가
+   * 많아 태그만으로는 표본이 거의 없다. 검색어는 부르는 쪽이 주고, 여기서는
+   * 제목·요약에만 건다(본문 `contains` 는 인덱스가 없어 전체 스캔이 된다).
+   */
+  findForSentiment(query: SentimentArticleQuery): Promise<ArticleText[]> {
+    const keywordFilter: Prisma.NewsArticleWhereInput[] = query.keywords.map(
+      (keyword) => ({
+        OR: [
+          { title: { contains: keyword, mode: "insensitive" } },
+          { summary: { contains: keyword, mode: "insensitive" } },
+        ],
+      })
+    );
+
+    return prisma.newsArticle.findMany({
+      where: {
+        publishedAt: { gte: query.since },
+        OR: [{ symbols: { has: query.symbol } }, ...keywordFilter],
+      },
+      orderBy: { publishedAt: "desc" },
+      take: query.limit,
+      select: {
+        title: true,
+        summary: true,
+        content: true,
+        sentiment: true,
+        publishedAt: true,
+      },
+    });
   }
 
   findBySymbol(symbol: string, limit: number): Promise<ArticleSummary[]> {

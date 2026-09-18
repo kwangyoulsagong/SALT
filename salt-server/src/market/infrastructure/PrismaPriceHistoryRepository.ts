@@ -69,6 +69,62 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
    * 호출처마다 있었고, 한 곳(`whale-signal`)에서 빠져 `+` 가 문자열 연결이 될 뻔했다
    * (`SRV-REQ-006` 체크리스트 §6). 경계에서 한 번 바꾸면 그 실수가 성립하지 않는다.
    */
+  /**
+   * `since` 이후 5분봉 최고 종가.
+   *
+   * `groupBy` 로 DB 가 집계한다 — 48시간이면 심볼당 576행이고, 그걸 옮겨 와서
+   * `Math.max` 하면 행 수만큼 메모리를 쓴다. 원문(`behavior-analysis`)도 심볼마다
+   * `aggregate` 를 불렀고(심볼 수만큼 왕복) 여기서 **한 번**으로 줄였다.
+   */
+  async highestCloseSince(
+    symbols: string[],
+    since: Date
+  ): Promise<Array<{ symbol: string; close: number }>> {
+    if (symbols.length === 0) return [];
+
+    const rows = await prisma.priceHistory.groupBy({
+      by: ["symbol"],
+      where: {
+        symbol: { in: symbols },
+        timeframe: "5m",
+        timestamp: { gt: since },
+      },
+      _max: { close: true },
+    });
+
+    return rows
+      .filter((row) => row._max.close !== null)
+      .map((row) => ({ symbol: row.symbol, close: Number(row._max.close) }));
+  }
+
+  /** `at` 이후 첫 종가. 성적표가 판단 시점의 진입가로 쓴다. */
+  async closeAtOrAfter(symbol: string, at: Date): Promise<number | null> {
+    const row = await prisma.priceHistory.findFirst({
+      where: { symbol, timestamp: { gte: at } },
+      orderBy: { timestamp: "asc" },
+      select: { close: true },
+    });
+
+    return row ? Number(row.close) : null;
+  }
+
+  async latestCloses(symbols: string[]): Promise<ClosePoint[]> {
+    if (symbols.length === 0) return [];
+
+    const rows = await prisma.priceHistory.findMany({
+      where: { symbol: { in: symbols } },
+      orderBy: { timestamp: "desc" },
+      distinct: ["symbol"],
+      select: { symbol: true, close: true, timestamp: true },
+    });
+
+    return rows.map((row) => ({
+      symbol: row.symbol,
+      close: Number(row.close),
+      timestamp: row.timestamp,
+    }));
+  }
+
   async closesSince(symbols: string[], since: Date): Promise<ClosePoint[]> {
     if (symbols.length === 0) return [];
 

@@ -35,6 +35,23 @@ export class PrismaWhaleTransactionRepository
     await prisma.whaleTransaction.createMany({ data: records });
   }
 
+  /**
+   * 여러 심볼의 최근 대량 체결.
+   *
+   * `limit` 은 **심볼별이 아니라 전체**다 — 원문(`ai-coach-feature.extractor`)이
+   * `take: 100` 하나로 전 심볼을 받아 합산했고 그 모양을 유지한다.
+   */
+  async findRecentForSymbols(symbols: string[], limit: number) {
+    if (symbols.length === 0) return [];
+
+    const rows = await prisma.whaleTransaction.findMany({
+      where: { symbol: { in: symbols } },
+      orderBy: { detectedAt: "desc" },
+      take: limit,
+    });
+    return rows.map(toDomain);
+  }
+
   async findRecent(symbol: string, limit: number) {
     const rows = await prisma.whaleTransaction.findMany({
       where: { symbol },
