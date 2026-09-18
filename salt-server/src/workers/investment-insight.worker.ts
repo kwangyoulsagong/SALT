@@ -4,19 +4,18 @@ import prisma from "../shared/infrastructure/prisma";
 import { InvestmentInsightService } from "../modules/investment-insight/investment-insight.service";
 import { WhaleSignalService } from "../modules/investment-insight/whale-signal.service";
 import { PortfolioRebalanceService } from "../modules/investment-insight/portfolio-rebalance.service";
-import { BehaviorAnalysisService } from "../modules/investment-insight/behavior-analysis.service";
 import { RiskAlertService } from "../modules/investment-insight/risk-alert.service";
-import { AIInvestmentCoachService } from "../modules/investment-insight/ai-investment-coach.service";
-import { NewsAnalysisService } from "./../modules/investment-insight/news-analysis.service";
+
+// 이관된 컨텍스트의 유스케이스는 조립 지점에서 온다 (`composition.ts`).
+// 워커는 **스케줄과 락만** 갖고 절차는 유스케이스에 있다 (`server-architecture.md` §7).
+import { contextUseCases } from "../composition";
 
 export class InvestmentInsightWorker {
   private insightService = new InvestmentInsightService();
   private whaleService = new WhaleSignalService();
   private portfolioRebalanceService = new PortfolioRebalanceService();
-  private behaviorService = new BehaviorAnalysisService();
   private riskService = new RiskAlertService();
-  private aiCoachService = new AIInvestmentCoachService();
-  private newsAnalysisService = new NewsAnalysisService();
+  private coach = contextUseCases.coach;
 
   private running = false;
 
@@ -54,7 +53,7 @@ export class InvestmentInsightWorker {
       await this.whaleService.generateWhaleSignals();
 
       console.log("📰 Analyzing news sentiment...");
-      await this.newsAnalysisService.analyzeAll();
+      await this.coach.analyzeNewsSentiment.execute();
 
       /**
        * 사용자 목록
@@ -81,7 +80,7 @@ export class InvestmentInsightWorker {
 
       await Promise.all(
         users.map((user) =>
-          this.behaviorService.generateBehaviorAnalysis(user.id),
+          this.coach.analyzeTradingBehavior.execute(user.id),
         ),
       );
 
@@ -100,7 +99,7 @@ export class InvestmentInsightWorker {
       console.log("🤖 Generating AI Coach...");
 
       await Promise.all(
-        users.map((user) => this.aiCoachService.generateCoach(user.id)),
+        users.map((user) => this.coach.generateRecommendation.execute(user.id)),
       );
 
       console.log("✅ Investment insights generated successfully");

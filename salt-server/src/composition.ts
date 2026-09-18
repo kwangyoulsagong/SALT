@@ -1,3 +1,18 @@
+import { createCoachApplication } from "./coach/application/api";
+import { ArticleTextAdapter } from "./coach/infrastructure/ArticleTextAdapter";
+import { GeminiCoachExplainer } from "./coach/infrastructure/GeminiCoachExplainer";
+import { HoldingTradeAdapter } from "./coach/infrastructure/HoldingTradeAdapter";
+import { MarketSignalAdapter } from "./coach/infrastructure/MarketSignalAdapter";
+import { PrismaCoachInsightStore } from "./coach/infrastructure/PrismaCoachInsightStore";
+import { PrismaCoachNotifier } from "./coach/infrastructure/PrismaCoachNotifier";
+import { PrismaCoachProfileStore } from "./coach/infrastructure/PrismaCoachProfileStore";
+import { createAICoachRouter } from "./coach/presentation/aiCoach.routes";
+import {
+  createBehaviorCoachRouter,
+  createProfitPlanRouter,
+  createSignalPerformanceRouter,
+  createTradePreflightRouter,
+} from "./coach/presentation/coachTools.routes";
 import { createMarketApplication } from "./market/application/api";
 import { FearGreedClient } from "./market/infrastructure/FearGreedClient";
 import { PrismaIndicatorRepository } from "./market/infrastructure/PrismaIndicatorRepository";
@@ -74,6 +89,23 @@ const portfolio = createPortfolioApplication({
   prices: new PriceHistoryAdapter(market.api),
 });
 
+/**
+ * `coach` 는 **세 컨텍스트를 전부 읽는다** — 그래서 조립 순서의 마지막이다.
+ *
+ * 받는 것은 `NewsApi` · `MarketApi` · `PortfolioApi` 세 공개 API 뿐이고, 셋 다
+ * `infrastructure` 의 ACL 이 코치의 Port 로 번역한다. 원문의 코치는 이 셋의
+ * 테이블 여섯 개를 `prisma` 로 직접 뒤졌다 (`SRV-REQ-006` FR-32).
+ */
+const coach = createCoachApplication({
+  profiles: new PrismaCoachProfileStore(),
+  insights: new PrismaCoachInsightStore(),
+  notifier: new PrismaCoachNotifier(),
+  explainer: new GeminiCoachExplainer(),
+  market: new MarketSignalAdapter(market.api),
+  portfolio: new HoldingTradeAdapter(portfolio.api),
+  news: new ArticleTextAdapter(news.api),
+});
+
 /** 다른 컨텍스트와 워커가 부르는 공개 API 모음. */
 export const contextApis = {
   news: news.api,
@@ -86,6 +118,7 @@ export const contextUseCases = {
   news: news.useCases,
   market: market.useCases,
   portfolio: portfolio.useCases,
+  coach: coach.useCases,
 };
 
 /** `app.ts` 가 등록하는 라우터. 경로는 `app.ts` 가 정한다. */
@@ -94,4 +127,9 @@ export const contextRouters = {
   investment: createInvestmentRouter(market.useCases),
   marketIntelligence: createMarketIntelligenceRouter(market.useCases),
   portfolio: createPortfolioRouter(portfolio.useCases),
+  aiCoach: createAICoachRouter(coach.useCases),
+  behaviorCoach: createBehaviorCoachRouter(coach.useCases),
+  profitPlan: createProfitPlanRouter(coach.useCases),
+  tradePreflight: createTradePreflightRouter(coach.useCases),
+  signalPerformance: createSignalPerformanceRouter(coach.useCases),
 };

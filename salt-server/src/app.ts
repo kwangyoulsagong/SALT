@@ -22,11 +22,6 @@ import investmentInsightRoutes from "./modules/investment-insight/investment-ins
 import investmentNotificationRoutes from "./modules/investment-notification/investment-notification.routes";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes";
 import investmentFeedRoutes from "./modules/feed/feed.routes";
-import aiInvestmentCoachRoutes from "./modules/investment-insight/ai-coach/ai-coach.routes";
-import tradePreflightRoutes from "./modules/trade-preflight/trade-preflight.routes";
-import behaviorCoachRoutes from "./modules/behavior-coach/behavior-coach.routes";
-import profitPlanRoutes from "./modules/profit-plan/profit-plan.routes";
-import signalPerformanceRoutes from "./modules/signal-performance/signal-performance.routes";
 
 const app: Application = express();
 
@@ -70,11 +65,11 @@ app.use("/api/investment-insight", investmentInsightRoutes);
 app.use("/api/investment-notifications", investmentNotificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/feed", investmentFeedRoutes);
-app.use("/api/ai-coach", aiInvestmentCoachRoutes);
-app.use("/api/trade-preflight", tradePreflightRoutes);
-app.use("/api/behavior-coach", behaviorCoachRoutes);
-app.use("/api/profit-plan", profitPlanRoutes);
-app.use("/api/signal-performance", signalPerformanceRoutes);
+app.use("/api/ai-coach", contextRouters.aiCoach);
+app.use("/api/trade-preflight", contextRouters.tradePreflight);
+app.use("/api/behavior-coach", contextRouters.behaviorCoach);
+app.use("/api/profit-plan", contextRouters.profitPlan);
+app.use("/api/signal-performance", contextRouters.signalPerformance);
 
 // 404 handler
 app.use((req: Request, res: Response, next: NextFunction) => {
