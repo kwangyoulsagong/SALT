@@ -57,6 +57,25 @@ export interface MarketOverviewParams {
   search?: string;
 }
 
+/**
+ * 우측 프리뷰가 **실제로 쓰는 것**.
+ *
+ * 원래 프리뷰는 시세 목록의 한 줄(`MarketOverviewItem`)을 통째로 받았다. 그래서
+ * 목록에 없는 종목 — 시세 100위 밖이나 주식 — 은 프리뷰를 그릴 수 없었고 패널이
+ * 빈 채로 남았다. 헤더가 쓰는 다섯 개만 받으면 **관심 목록 항목으로도 만들 수 있다.**
+ *
+ * `assetType` 이 필요한 이유: 차트와 심리·스마트머니는 업비트 소스라 **크립토에만**
+ * 있다. 주식에 그 블록을 그리면 404 를 기다리는 빈 영역이 된다.
+ */
+export interface MarketPreviewSubject {
+  symbol: string;
+  displayName: string;
+  assetType: string;
+  currentPrice: number | null;
+  change24h: number | null;
+  logoUrl: string | null;
+}
+
 export interface MarketChartPreviewItem {
   timestamp: string;
   open: number;

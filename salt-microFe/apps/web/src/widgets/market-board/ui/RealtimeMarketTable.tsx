@@ -25,6 +25,7 @@ import {
   MarketPeriod,
   MarketPreview,
   MarketSort,
+  overviewItemToPreviewSubject,
   PriceCell,
   useMarketOverview,
   useMarketOverviewRealtime,
@@ -118,8 +119,9 @@ export const RealtimeMarketTable = () => {
     }
   }, [firstSymbol, selectedSymbol]);
 
-  const selectedSymbolItem = useMemo(() => {
-    return items.find((item) => item.symbol === selectedSymbol);
+  const previewSubject = useMemo(() => {
+    const found = items.find((item) => item.symbol === selectedSymbol);
+    return found ? overviewItemToPreviewSubject(found) : undefined;
   }, [selectedSymbol, items]);
 
   if (isPending) {
@@ -218,10 +220,7 @@ export const RealtimeMarketTable = () => {
           </Table>
         </ScrollTableContainer>
 
-        <MarketPreview
-          selectedSymbolItem={selectedSymbolItem}
-          symbol={selectedSymbol}
-        />
+        <MarketPreview subject={previewSubject} />
       </FlexBox>
     </FlexBox>
   );

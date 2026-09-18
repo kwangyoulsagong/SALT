@@ -8,9 +8,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   indexWatchlistBySymbol,
   MarketPreview,
+  overviewItemToPreviewSubject,
   useMarketOverview,
   useWatchlist,
   WATCHLIST_MESSAGES,
+  watchlistItemToPreviewSubject,
   WatchlistAssetType,
   WatchlistTable,
 } from "@/entities/market";
@@ -52,10 +54,26 @@ export const WatchlistTab = () => {
     }
   }, [bySymbol, firstSymbol, selectedSymbol]);
 
-  const selectedSymbolItem = useMemo(
-    () => overview?.items.find((item) => item.symbol === selectedSymbol),
-    [overview?.items, selectedSymbol],
-  );
+  /**
+   * 프리뷰 주제를 고른다.
+   *
+   * 시세 목록에 있으면 그것을 쓴다 — 실시간 갱신이 그 쿼리로 들어오고 고가·저가까지
+   * 같은 스냅샷이다. **없으면 관심 목록 항목으로 만든다.** 목록은 100위까지라
+   * 그 밖의 종목과 주식은 여기로 떨어지고, 예전에는 패널이 빈 채로 남았다.
+   */
+  const previewSubject = useMemo(() => {
+    if (!selectedSymbol) return undefined;
+
+    const fromOverview = overview?.items.find(
+      (item) => item.symbol === selectedSymbol,
+    );
+    if (fromOverview) return overviewItemToPreviewSubject(fromOverview);
+
+    const fromWatchlist = bySymbol.get(selectedSymbol.toUpperCase());
+    return fromWatchlist
+      ? watchlistItemToPreviewSubject(fromWatchlist)
+      : undefined;
+  }, [bySymbol, overview?.items, selectedSymbol]);
 
   const renderAction = useCallback(
     (item: (typeof items)[number]) => (
@@ -102,10 +120,7 @@ export const WatchlistTab = () => {
         onSelect={setSelectedSymbol}
         renderAction={renderAction}
       />
-      <MarketPreview
-        selectedSymbolItem={selectedSymbolItem}
-        symbol={selectedSymbol}
-      />
+      <MarketPreview subject={previewSubject} />
     </FlexBox>
   );
 };
