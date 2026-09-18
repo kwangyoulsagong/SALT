@@ -170,11 +170,15 @@ describe("RemoveBookmark", () => {
 
 describe("ListNewsSources", () => {
   /**
-   * **이 분류는 지금 아무것도 한글로 잡지 못한다.** 수집기가 `GoogleNews(키워드)` 를
-   * 저장하기 때문이다(`domain/NewsSource.ts` 주석). 그 사실을 테스트로 고정해 둔다 —
-   * 누군가 목록을 고치면 이 테스트가 **의도된 변경인지 묻는다.**
+   * **이 테스트가 한 번 값을 바꿨다 (2026-09-18).**
+   *
+   * 3단계에서는 "`GoogleNews(비트코인)` 이 한글로 분류되지 **않는다**"를 고정했다 —
+   * 그게 당시의 실제 동작이었고, 고치는 것은 이관이 아니라 기능 변경이었다.
+   *
+   * 미충족 항목(`SRV-REQ-006` 체크리스트 §9-10)을 닫으면서 분류가 접두사를 알게 했고,
+   * **이 테스트가 그 변경을 한 번 걸러 주었다.** 특성화 테스트가 하는 일이 이것이다.
    */
-  it("실제 저장되는 소스 이름은 한글로 분류되지 않는다", async () => {
+  it("수집기가 저장하는 `GoogleNews(키워드)` 를 한글로 분류한다", async () => {
     const { useCases } = build({
       articles: fakeArticles({
         countBySource: async () => [
@@ -189,10 +193,13 @@ describe("ListNewsSources", () => {
 
     assert.deepEqual(
       result.korean.map((s) => s.source),
-      ["토큰포스트"]
+      ["GoogleNews(비트코인)", "토큰포스트"]
     );
-    assert.equal(result.english.length, 2);
-    assert.equal(isKoreanSource("GoogleNews(비트코인)"), false);
+    assert.deepEqual(
+      result.english.map((s) => s.source),
+      ["coindesk"]
+    );
+    assert.equal(isKoreanSource("GoogleNews(비트코인)"), true);
   });
 });
 

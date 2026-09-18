@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
 import {
+  KOREAN_SOURCE_PREFIXES,
   KOREAN_SOURCES,
   type ArticleDetail,
   type ArticleDraft,
@@ -30,10 +31,38 @@ const SUMMARY_SELECT = {
   publishedAt: true,
 } satisfies Prisma.NewsArticleSelect;
 
-/** 언어 필터를 `source` 조건으로 옮긴다. 목록과 인기 뉴스가 같은 함수를 쓴다. */
-const languageCondition = (language?: NewsLanguage) => {
-  if (language === "ko") return { in: [...KOREAN_SOURCES] };
-  if (language === "en") return { notIn: [...KOREAN_SOURCES] };
+/**
+ * 언어 필터를 `source` 조건으로 옮긴다. 목록과 인기 뉴스가 같은 함수를 쓴다.
+ *
+ * **이름 목록만으로는 안 된다.** 한글 수집기가 `GoogleNews(키워드)` 로 저장하므로
+ * 접두사 조건이 함께 있어야 한다(`domain/NewsSource.ts`). 그래서 `source` 한 필드에
+ * 거는 조건이 아니라 **`where` 조각**을 돌려준다 — `in` 과 `startsWith` 는 `OR` 로만 묶인다.
+ */
+const languageCondition = (
+  language?: NewsLanguage
+): Prisma.NewsArticleWhereInput | undefined => {
+  if (language === "ko") {
+    return {
+      OR: [
+        { source: { in: [...KOREAN_SOURCES] } },
+        ...KOREAN_SOURCE_PREFIXES.map((prefix) => ({
+          source: { startsWith: prefix },
+        })),
+      ],
+    };
+  }
+
+  if (language === "en") {
+    return {
+      AND: [
+        { source: { notIn: [...KOREAN_SOURCES] } },
+        ...KOREAN_SOURCE_PREFIXES.map((prefix) => ({
+          source: { not: { startsWith: prefix } },
+        })),
+      ],
+    };
+  }
+
   return undefined;
 };
 
@@ -47,15 +76,17 @@ export class PrismaArticleRepository implements ArticleRepository {
     if (filter.symbol) where.symbols = { has: filter.symbol.toUpperCase() };
     if (filter.source) where.source = filter.source;
 
-    const byLanguage = languageCondition(filter.language);
-    if (byLanguage) where.source = byLanguage;
-
     if (filter.search) {
       where.OR = [
         { title: { contains: filter.search, mode: "insensitive" } },
         { content: { contains: filter.search, mode: "insensitive" } },
       ];
     }
+
+    // 언어 조건도 `OR` 를 쓰므로 검색과 같은 자리에 넣으면 서로를 덮는다.
+    // `AND` 로 감싸 **둘 다 성립**하게 한다.
+    const byLanguage = languageCondition(filter.language);
+    if (byLanguage) where.AND = [byLanguage];
 
     const [articles, total] = await Promise.all([
       prisma.newsArticle.findMany({
@@ -165,7 +196,7 @@ export class PrismaArticleRepository implements ArticleRepository {
     };
 
     const byLanguage = languageCondition(language);
-    if (byLanguage) where.source = byLanguage;
+    if (byLanguage) where.AND = [byLanguage];
 
     return prisma.newsArticle.findMany({
       where,

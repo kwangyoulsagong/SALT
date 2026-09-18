@@ -14,18 +14,23 @@
 export type NewsLanguage = "ko" | "en" | "all";
 
 /**
- * 한글 뉴스 소스.
+ * 한글 뉴스 소스 — **고정 이름 넷과 수집기 접두사 하나**.
  *
- * > **이 목록은 지금 아무것도 분류하지 못한다.** 한글 수집기(`KoreanRssFeed`)가 저장하는
- * > `source` 는 `GoogleNews(비트코인)` 형태이고 이 목록의 어느 값과도 같지 않다.
- * > 즉 `language: "ko"` 는 항상 0건이다.
- * >
- * > 이관하면서 고치지 않았다. HTTP 로 `language` 를 넘기는 경로가 **없어서**(컨트롤러가
- * > 그 쿼리를 읽지 않는다) 지금은 도달 불가 코드이고, 값을 맞추는 순간 **없던 필터가
- * > 갑자기 동작한다** — 그건 이관이 아니라 기능 변경이다. `SRV-REQ-007`(서버 정리)이
- * > 이 필터를 살릴지 지울지 정한다.
+ * ## 이 목록만으로는 아무것도 분류하지 못했다 (2026-09-18 수정)
  *
- * 값을 고칠 때는 **저장하는 쪽과 분류하는 쪽이 같은 문자열**이 되게 한다.
+ * 한글 수집기(`KoreanNewsFeed`)가 저장하는 `source` 는 `GoogleNews(비트코인)` 처럼
+ * **키워드가 붙은 형태**라 아래 네 이름 중 어느 것과도 같지 않았다. 그래서
+ * `language: "ko"` 가 **항상 0건**이었다 — 이관 시점(`SRV-REQ-006` 3단계)에는
+ * HTTP 로 `language` 를 넘기는 경로조차 없어 도달 불가 코드였다.
+ *
+ * 고칠 때 선택지는 둘이었다:
+ *
+ * | 안 | 문제 |
+ * |---|---|
+ * | 저장하는 이름을 네 값 중 하나로 바꾼다 | **이미 저장된 기사**가 분류에서 빠진다. 과거 데이터를 고치는 일이 된다 |
+ * | **분류하는 쪽이 접두사를 안다** | 선택. 저장된 값을 건드리지 않는다 |
+ *
+ * 값을 늘릴 때는 **저장하는 쪽과 분류하는 쪽이 같은 규칙**을 보게 한다.
  */
 export const KOREAN_SOURCES = [
   "토큰포스트",
@@ -34,5 +39,14 @@ export const KOREAN_SOURCES = [
   "코인리더스",
 ] as const;
 
+/**
+ * 한글 수집기가 붙이는 접두사.
+ *
+ * `KoreanNewsFeed` 의 `GoogleNews(${keyword})` 와 **같은 규칙**이어야 한다.
+ * 키워드가 계속 늘어나므로 전체 이름을 목록으로 들 수 없다.
+ */
+export const KOREAN_SOURCE_PREFIXES = ["GoogleNews("] as const;
+
 export const isKoreanSource = (source: string): boolean =>
-  (KOREAN_SOURCES as readonly string[]).includes(source);
+  (KOREAN_SOURCES as readonly string[]).includes(source) ||
+  KOREAN_SOURCE_PREFIXES.some((prefix) => source.startsWith(prefix));

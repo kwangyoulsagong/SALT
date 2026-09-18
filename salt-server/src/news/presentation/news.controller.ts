@@ -2,6 +2,16 @@ import { NextFunction, Request, Response } from "express";
 
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { NewsUseCases } from "../application/api";
+import type { NewsLanguage } from "../domain";
+
+/**
+ * 언어 쿼리를 **유효값으로 좁힌다.**
+ *
+ * 모르는 값이 오면 `undefined`(필터 없음)다 — 오타가 "0건"으로 보이는 것보다
+ * 전체가 보이는 쪽이 낫고, 형식 오류로 400 을 줄 만큼 중요한 입력이 아니다.
+ */
+const toLanguage = (value: unknown): NewsLanguage | undefined =>
+  value === "ko" || value === "en" || value === "all" ? value : undefined;
 
 /**
  * 요청을 유스케이스 입력으로 옮기고 응답을 만든다. **판단이 없다.**
@@ -20,6 +30,7 @@ export class NewsController {
         page: req.query.page ? Number(req.query.page) : undefined,
         limit: req.query.limit ? Number(req.query.limit) : undefined,
         search: req.query.search as string,
+        language: toLanguage(req.query.language),
       });
       return ResponseUtil.success(res, result);
     } catch (error) {
@@ -76,7 +87,10 @@ export class NewsController {
   getTrendingNews = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const limit = req.query.limit ? Number(req.query.limit) : 10;
-      const result = await this.useCases.listTrendingArticles.execute(limit);
+      const result = await this.useCases.listTrendingArticles.execute(
+        limit,
+        toLanguage(req.query.language)
+      );
       return ResponseUtil.success(res, result);
     } catch (error) {
       next(error);

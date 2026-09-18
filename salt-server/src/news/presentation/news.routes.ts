@@ -44,6 +44,12 @@ export const createNewsRouter = (useCases: NewsUseCases): Router => {
    *           type: string
    *         description: 검색 키워드
    *       - in: query
+   *         name: language
+   *         schema:
+   *           type: string
+   *           enum: [ko, en, all]
+   *         description: 언어 필터. 생략하면 전체다
+   *       - in: query
    *         name: page
    *         schema:
    *           type: integer
@@ -71,6 +77,12 @@ export const createNewsRouter = (useCases: NewsUseCases): Router => {
    *         schema:
    *           type: integer
    *           default: 10
+   *       - in: query
+   *         name: language
+   *         schema:
+   *           type: string
+   *           enum: [ko, en, all]
+   *         description: 언어 필터. 생략하면 전체다
    *     responses:
    *       200:
    *         description: 인기 뉴스 목록
