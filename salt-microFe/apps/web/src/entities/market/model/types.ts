@@ -163,7 +163,8 @@ export interface WatchlistItem {
   changeRate: number | null;
   /** 이 값이 실시간이 아니다. 화면은 "지연" 배지를 붙인다 */
   priceStale: boolean;
-  logoUrl: string;
+  /** 크립토만 있다. 주식은 `null` — 플레이스홀더를 만들지 않고 영역을 비운다 */
+  logoUrl: string | null;
   priceUpdatedAt: string | null;
 }
 

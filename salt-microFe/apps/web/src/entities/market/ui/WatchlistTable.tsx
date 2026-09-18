@@ -97,13 +97,19 @@ export const WatchlistTable = React.memo(
                       >
                         {renderAction?.(item)}
                       </span>
-                      <Image
-                        radius={9999}
-                        width={30}
-                        height={30}
-                        src={item.logoUrl}
-                        alt={item.name}
-                      />
+                      {/*
+                        로고가 없으면 **영역을 렌더하지 않는다.** 주식에는 업비트 로고가
+                        없고, 없는 URL 을 넣으면 깨진 이미지가 그려진다.
+                      */}
+                      {item.logoUrl ? (
+                        <Image
+                          radius={9999}
+                          width={30}
+                          height={30}
+                          src={item.logoUrl}
+                          alt={item.name}
+                        />
+                      ) : null}
                       <FlexBox direction="column">
                         <Text variant="bodyLarge">{item.name}</Text>
                         <Text variant="caption" color="tertiary">

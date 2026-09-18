@@ -194,7 +194,12 @@ export interface WatchlistItemView {
   currentPrice: number | null;
   priceChange24h: number | null;
   priceUpdatedAt: Date | null;
-  logoUrl: string;
+  /**
+   * 크립토만 있다. **주식은 `null`이다** — 로고 URL 은 업비트 CDN 규칙이라
+   * `logos/AAPL.png` 는 404 고, 화면에 깨진 이미지가 그대로 나갔다(2026-09-18 실측).
+   * 없는 것을 없다고 말하고 **플레이스홀더를 만들지 않는다** — 무엇을 그릴지는 화면이 정한다.
+   */
+  logoUrl: string | null;
   addedAt: Date;
 }
 

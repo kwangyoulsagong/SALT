@@ -162,7 +162,8 @@ export class ListWatchlist {
           currentPrice,
           priceChange24h,
           priceUpdatedAt,
-          logoUrl: logoUrlOf(item.symbol),
+          // `logoUrlOf` 는 업비트 CDN 규칙이다. 주식에 붙이면 404 URL 을 만든다.
+          logoUrl: item.assetType === "crypto" ? logoUrlOf(item.symbol) : null,
           addedAt: item.addedAt,
         };
       }),

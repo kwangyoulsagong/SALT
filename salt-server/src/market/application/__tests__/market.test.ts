@@ -332,7 +332,7 @@ describe("ListWatchlist", () => {
   });
 
   /** 응답에 `userId` 를 담지 않는다 — 원문은 행을 그대로 펼쳐 내보냈다. */
-  it("뷰에 userId 가 없고 logoUrl 이 붙는다", async () => {
+  it("뷰에 userId 가 없고 크립토에 logoUrl 이 붙는다", async () => {
     const assets = stubAssets([]);
     const { useCases } = build({
       watchlist: stubWatchlist([watchlistRow()]),
@@ -346,6 +346,21 @@ describe("ListWatchlist", () => {
       result.items[0].logoUrl,
       "https://static.upbit.com/logos/BTC.png"
     );
+  });
+
+  /** 로고 URL 은 업비트 CDN 규칙이다. 주식에 붙이면 404 를 화면이 그린다. */
+  it("주식은 logoUrl 이 null 이다", async () => {
+    const assets = stubAssets([]);
+    const { useCases } = build({
+      watchlist: stubWatchlist([
+        watchlistRow({ assetType: "stock", symbol: "AAPL", name: "애플" }),
+      ]),
+      assets: assets.repo,
+    });
+
+    const result = await useCases.listWatchlist.execute("u1");
+
+    assert.equal(result.items[0].logoUrl, null);
   });
 });
 

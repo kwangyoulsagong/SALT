@@ -41,6 +41,8 @@ BFF 는 그것을 그대로 프록시하는데, 화면이 그 경로를 부르�
 | `AssetType` 3값 확장 (`SRV-REQ-008` FR-32) | DB enum 이 `crypto`·`stock` 2값이다. 확장은 `DB-REQ-001`/`003` 이고 `ALTER TYPE` 락 측정이 따라온다 |
 | 뉴스 프리뷰 실데이터 (FR-3/FR-22) | 별 판단이다. 같은 커밋에 섞으면 리뷰어가 둘 중 하나를 못 본다 |
 | 하드코딩 시각 · 오타 · 반응형 · `period` 오타 (FE FR-2·4·7·8) | 이 탭과 무관한 수리 항목 |
+| 실시간 테이블 행 **터치 선택**(FE FR-6·FR-60 중 실시간 탭 몫) | 그 표는 hover 선택이고 별을 누르는 것과 행을 고르는 것이 얽힌다. 관심 목록 표에는 클릭·키보드 선택을 넣었다 |
+| 375/390/1440 **3뷰포트 검수**(FE FR-54) | 반응형이 범위 밖이라 같이 미룬다 |
 | 동면 route 410 (`BFF-REQ-007` A절) | 이 슬라이스가 부르는 경로가 아니다 |
 | `FilterTabs` `role="tablist"` (FR-63) | 실시간 탭의 필터에 걸린 항목이고 `@repo/ui` 제약 확인이 선행이다 |
 
@@ -55,7 +57,8 @@ BFF 는 그것을 그대로 프록시하는데, 화면이 그 경로를 부르�
     "currentPrice": 158000000,      // number | null — Decimal 문자열이 아니다
     "priceChange24h": -1.23,        // number | null
     "priceUpdatedAt": "2026-09-18T02:00:00.000Z", // string | null
-    "logoUrl": "https://…", "addedAt": "…"
+    "logoUrl": "https://…",         // string | null — 주식은 null (업비트 CDN 규칙)
+    "addedAt": "…"
   }],
   "pagination": { "page": 1, "limit": 20, "total": 1, "totalPages": 1 }
 }}
@@ -73,7 +76,8 @@ BFF 는 그것을 그대로 프록시하는데, 화면이 그 경로를 부르�
   "id": "uuid", "assetType": "crypto", "symbol": "BTC", "name": "비트코인",
   "currentPrice": 158000000, "changeRate": -1.23,
   "priceStale": false,            // 실시간 캐시에 없으면 true. 값은 서버 것을 쓴다
-  "logoUrl": "https://…", "priceUpdatedAt": "…"
+  "logoUrl": "https://…",           // string | null. 없으면 화면이 이미지 영역을 렌더하지 않는다
+  "priceUpdatedAt": "…"
 }] }
 ```
 
@@ -82,19 +86,19 @@ BFF 는 그것을 그대로 프록시하는데, 화면이 그 경로를 부르�
 
 ## Acceptance Criteria
 
-- [ ] 관심 종목 탭이 **빈 화면이 아니다**
-- [ ] 목록에 종목명·심볼·현재가·변동률·자산군 배지·별(제거)이 있다
-- [ ] `priceStale: true` 면 **"지연" 배지**가 붙는다
-- [ ] 행을 누르면 우측 프리뷰가 그 종목으로 바뀐다 (실시간 탭과 같은 동작)
-- [ ] 행 선택이 **키보드(Enter/Space)로도** 동작하고 `role`·`tabIndex` 가 있다
-- [ ] 실시간 탭의 별과 관심 목록이 **같은 상태를 본다** — 추가/제거가 양쪽에 반영된다
-- [ ] 별 버튼에 `aria-label` 이 있다
-- [ ] 0건이면 빈 상태 문구가 나오고 **더미가 0건이다**
-- [ ] 상승 `#FF2E55` / 하락 `#1677EE` 규칙이 실시간 테이블과 같다
-- [ ] 서버 응답의 `currentPrice`·`priceChange24h` 가 **number 또는 null** 이다 (문자열 0건)
-- [ ] 관심 목록이 0건이면 BFF 가 빈 배열을 준다
-- [ ] 실시간 테이블 5컬럼·필터 3그룹·blink 2초·`limit=100` 이 그대로다 (변경 금지 목록)
-- [ ] 세 영역 빌드·타입체크·lint 통과, `layer-check` 위반 0건
+- [x] 관심 종목 탭이 **빈 화면이 아니다**
+- [x] 목록에 종목명·심볼·현재가·변동률·자산군 배지·별(제거)이 있다
+- [x] `priceStale: true` 면 **"지연" 배지**가 붙는다
+- [x] 행을 누르면 우측 프리뷰가 그 종목으로 바뀐다 (실시간 탭과 같은 동작)
+- [x] 행 선택이 **키보드(Enter/Space)로도** 동작하고 `role`·`tabIndex` 가 있다
+- [x] 실시간 탭의 별과 관심 목록이 **같은 상태를 본다** — 추가/제거가 양쪽에 반영된다
+- [x] 별 버튼에 `aria-label` 이 있다
+- [x] 0건이면 빈 상태 문구가 나오고 **더미가 0건이다**
+- [x] 상승 `#FF2E55` / 하락 `#1677EE` 규칙이 실시간 테이블과 같다
+- [x] 서버 응답의 `currentPrice`·`priceChange24h` 가 **number 또는 null** 이다 (문자열 0건)
+- [x] 관심 목록이 0건이면 BFF 가 빈 배열을 준다
+- [x] 실시간 테이블 5컬럼·필터 3그룹·blink 2초·`limit=100` 이 그대로다 (변경 금지 목록)
+- [x] 세 영역 빌드·타입체크·lint 통과, `layer-check` 위반 0건
 
 ## Notes
 
@@ -103,3 +107,4 @@ BFF 는 그것을 그대로 프록시하는데, 화면이 그 경로를 부르�
   선언하고, `@repo/core` 로 합치는 것은 `FE-REQ-024` 의 일이다(그 파일 상단 주석의 예고와 같다).
 - 검증 결과는 루트 `requirements/reports/checklists/F000-watchlist-tab.md` 에 남긴다
   (`requirements/README.md` 워크플로 4).
+- 수용 기준 13건은 2026-09-18 로컬 풀스택에서 전부 통과했다. **미충족·범위 밖은 그 리포트 §5 가 진실이다.**

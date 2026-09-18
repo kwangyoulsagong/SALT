@@ -20,7 +20,8 @@ export interface WatchlistItemVM {
   changeRate: number | null;
   /** 이 값이 실시간이 아니다. 가격이 없을 때도 `true` 다 */
   priceStale: boolean;
-  logoUrl: string;
+  /** 크립토만 있다. 주식은 `null` — 플레이스홀더를 만들지 않는다. 화면이 판단한다 */
+  logoUrl: string | null;
   priceUpdatedAt: string | null;
 }
 
@@ -32,7 +33,7 @@ interface ServerWatchlistItem {
   currentPrice: number | null;
   priceChange24h: number | null;
   priceUpdatedAt: string | null;
-  logoUrl: string;
+  logoUrl: string | null;
 }
 
 /**
