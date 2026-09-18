@@ -5,6 +5,7 @@ import { FilterTabs } from "@repo/ui/filterTabs";
 import { FlexBox } from "@repo/ui/flexBox";
 
 import {
+  MARKET_MESSAGES,
   MarketOrder,
   MarketPeriod,
   MarketSort,
@@ -37,16 +38,19 @@ export const MarketFilterTabs = ({
   return (
     <FlexBox direction="row" gap="lg">
       <FilterTabs
+        label={MARKET_MESSAGES.sortGroupLabel}
         options={SORT_OPTIONS}
         value={sort}
         onChange={(v) => onChange({ sort: v as MarketSort })}
       />
       <FilterTabs
+        label={MARKET_MESSAGES.orderGroupLabel}
         options={ORDER_OPTIONS}
         value={order}
         onChange={(v) => onChange({ order: v as MarketOrder })}
       />
       <FilterTabs
+        label={MARKET_MESSAGES.periodGroupLabel}
         options={PERIOD_OPTIONS}
         value={period}
         onChange={(v) => onChange({ period: v as MarketPeriod })}
