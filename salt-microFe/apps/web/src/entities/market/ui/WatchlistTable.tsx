@@ -67,7 +67,6 @@ export const WatchlistTable = React.memo(
                   memoKey={`${item.currentPrice}-${item.priceStale}-${selected}`}
                   hoverable
                   clickable
-                  selected={selected}
                   tabIndex={0}
                   aria-selected={selected}
                   onClick={select}

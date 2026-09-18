@@ -1,5 +1,5 @@
 import { recipe } from "@vanilla-extract/recipes";
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
 import { vars } from "../../styles/tokens.css";
 
 // Table Container
@@ -176,6 +176,25 @@ export const tableBodyStyles = style({
 });
 
 // Table Row
+/**
+ * 행 hover — **셀(`td`)에 칠한다.**
+ *
+ * 행(`tr`)에 칠하면 셀이 자기 배경을 가진 경우(줄무늬·고정 헤더·선택 상태) 그 아래로
+ * 가려진다. 토스증권 표가 같은 방식이다: `tr:hover td { background-color: grey100 }`.
+ *
+ * 색은 `background.primary`(#F2F4F6)이고 토스의 `grey100` 과 같은 값이다. 이전 값
+ * (`secondary` #F8F9FA)은 흰 배경 위에서 거의 보이지 않았다 — 어느 행에 있는지
+ * 알 수 없으면 hover 가 없는 것과 같다.
+ *
+ * `globalStyle` 을 쓰는 이유: vanilla-extract 의 `style()` 은 자손 선택자를 막는다.
+ * 빈 앵커 클래스를 만들고 그 클래스 기준으로 전역 규칙 하나를 건다.
+ */
+const rowHoverable = style({});
+
+globalStyle(`${rowHoverable}:hover > td`, {
+  backgroundColor: vars.colors.background.primary,
+});
+
 export const tableRowStyles = recipe({
   base: {
     borderBottom: `1px solid ${vars.colors.border.light}`,
@@ -190,13 +209,7 @@ export const tableRowStyles = recipe({
 
   variants: {
     hoverable: {
-      true: {
-        selectors: {
-          "&:hover": {
-            background: vars.colors.background.secondary,
-          },
-        },
-      },
+      true: rowHoverable,
       false: {},
     },
 

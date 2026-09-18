@@ -15,6 +15,7 @@ import { formatRelativeTime } from "@/shared/lib";
 
 import { useSymbolNews } from "../../api";
 import { MARKET_MESSAGES } from "../../model";
+import { newsSummary, newsTitleLink } from "./MarketNewsPreview.css";
 import { NewsBadge } from "./NewsBadge";
 
 /** 프리뷰 블록은 카드 한 장이다 — 구조와 크기를 바꾸지 않는다 (`FE-REQ-010` FR-45). */
@@ -66,6 +67,7 @@ export const MarketNewsPreview = React.memo(
                 (FR-44) — 없으면 열린 문서가 `window.opener` 로 이 탭을 조작할 수 있다.
               */}
               <a
+                className={newsTitleLink}
                 href={article.url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -76,9 +78,11 @@ export const MarketNewsPreview = React.memo(
                 </Heading>
               </a>
               {article.summary ? (
-                <Text variant="bodyLarge" color="tertiary">
-                  {article.summary}
-                </Text>
+                <div className={newsSummary}>
+                  <Text variant="bodyLarge" color="tertiary">
+                    {article.summary}
+                  </Text>
+                </div>
               ) : null}
             </FlexBox>
           </FlexBox>

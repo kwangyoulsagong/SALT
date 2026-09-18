@@ -201,12 +201,9 @@ export const RealtimeMarketTable = () => {
                   */
                   memoKey={`${item.currentPrice}-${
                     blinkingSymbol === item.symbol
-                  }-${watchedBySymbol.has(item.symbol.toUpperCase())}-${
-                    item.symbol === selectedSymbol
-                  }`}
+                  }-${watchedBySymbol.has(item.symbol.toUpperCase())}`}
                   hoverable
                   clickable
-                  selected={item.symbol === selectedSymbol}
                   tabIndex={0}
                   aria-selected={item.symbol === selectedSymbol}
                   onMouseEnter={() => selectSymbolOnHover(item.symbol)}
