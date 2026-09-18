@@ -22,7 +22,7 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    * /api/ai-coach/explain:
    *   post:
    *     summary: AI 코치 해설 (Gemini)
-   *     description: 종목·모드·근거·뉴스를 받아 한국어 해설(왜 단타/장기, 예상 수익폭, 뉴스 5줄 요약)을 생성합니다. 5분 캐시.
+   *     description: 종목·모드·근거·뉴스를 받아 한국어 해설(왜 단타/장기, 관찰 기간, 뉴스 5줄 요약)을 생성합니다. 수익률·목표가 예측은 생성하지 않습니다. 5분 캐시.
    *     tags: [AI Coach]
    *     requestBody:
    *       required: true

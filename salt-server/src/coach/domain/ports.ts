@@ -1,5 +1,6 @@
 import type {
   CoachArticle,
+  CoachAssetType,
   CoachHolding,
   CoachIndicator,
   CoachInsight,
@@ -131,7 +132,17 @@ export interface MarketProbe {
 
 /** `portfolio` 조회 — ACL Port. */
 export interface PortfolioProbe {
-  listHoldings(userId: string): Promise<CoachHolding[]>;
+  /**
+   * 보유 전체. `assetType` 을 주면 그 자산군만.
+   *
+   * **주문 전 계산과 익절 계획은 `crypto` 만 본다** — 원문이 그랬고, 비중 한도와
+   * 손절 가격이 다른 자산군과 섞이면 계산의 뜻이 달라진다. 점수·집중도는 반대로
+   * 전부 본다(포트폴리오 전체의 쏠림을 보는 것이 목적이다).
+   */
+  listHoldings(
+    userId: string,
+    assetType?: CoachAssetType
+  ): Promise<CoachHolding[]>;
   getHolding(userId: string, symbol: string): Promise<CoachHolding | null>;
   /** `since` 이후 거래. 행동 분석이 본다. */
   listTradesSince(
@@ -178,14 +189,22 @@ export interface CoachExplanationInput {
   }>;
 }
 
+/**
+ * 해설 결과.
+ *
+ * ## `expectedReturn` 을 뺐다 (2026-09-18)
+ *
+ * 원문은 모델에게 **예상 수익률 범위**(`lowPercent`·`highPercent`)를 받아 응답에 실었다.
+ * 전 영역 공통 수용 기준 4 는 "확신 표현과 목표주가·수익률 예측이 **0건**"이고, 범위로
+ * 적어도 예측은 예측이다. 타협 대상이 아니라 타입에서 없앴다 —
+ * **필드가 없으면 프롬프트도 소비처도 생길 수 없다.**
+ *
+ * 대신 `timeframe` 을 남긴다. "언제까지 보는 관점인가"는 예측이 아니라 판단의 전제다.
+ */
 export interface CoachExplanation {
   modeReasoning: string;
-  expectedReturn: {
-    lowPercent: number;
-    highPercent: number;
-    timeframe: string;
-    rationale: string;
-  };
+  /** 이 해설이 전제한 관찰 기간. 수익률이 아니라 기간만 말한다. */
+  timeframe: string;
   keyDrivers: string[];
   risks: string[];
   newsSummary: string[];

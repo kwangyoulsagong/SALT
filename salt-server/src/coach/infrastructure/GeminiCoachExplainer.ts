@@ -24,6 +24,12 @@ import type {
  * 수 초~수십 초가 걸린다. 트랜잭션 안에서 부르면 그 시간 동안 커넥션과 락을 잡는다
  * (`performance-server.md` §2).
  *
+ * ## 수익률 예측을 만들지 않는다
+ *
+ * 원문은 모델에게 `expectedReturn.lowPercent/highPercent` 를 요구했다. 공통 수용 기준 4
+ * ("수익률 예측 0건")와 어긋나서 **프롬프트·스키마·응답 타입 셋 다에서 없앴다.**
+ * 한 곳만 지우면 나머지가 그 필드를 되살린다.
+ *
  * ## 원문 응답을 로그·예외에 싣지 않는다
  *
  * 원문은 파싱 실패 시 모델 응답 200자를 예외 메시지에 붙였다. 그 메시지는 그대로
@@ -41,7 +47,8 @@ const SYSTEM_INSTRUCTION = `당신은 SALT 투자 코치입니다. 한국 개인
 3. 한국어 친근한 존댓말로 답하세요. ("~예요", "~해요" 톤).
 4. 응답은 반드시 유효한 JSON 한 개만 출력하세요. 마크다운, 주석, 설명 텍스트 금지.
 5. 매수/매도 직접 권유 금지. "이 모드가 왜 적합한지" 해설만 합니다.
-6. expectedReturn의 lowPercent/highPercent는 숫자만 (예: -5, 12).`;
+6. **수익률·목표가를 예측하지 마세요.** "얼마가 될 것이다", "몇 % 오를 수 있다" 같은
+   수치 전망을 쓰지 마세요. 관찰 기간(timeframe)만 말합니다.`;
 
 const generationConfig: GenerationConfig = {
   temperature: 0.4,
@@ -74,12 +81,7 @@ export class GeminiCoachExplainer implements CoachExplainer {
 
     const result: CoachExplanation = {
       modeReasoning: String(parsed.modeReasoning ?? ""),
-      expectedReturn: {
-        lowPercent: Number(parsed.expectedReturn?.lowPercent ?? 0),
-        highPercent: Number(parsed.expectedReturn?.highPercent ?? 0),
-        timeframe: String(parsed.expectedReturn?.timeframe ?? ""),
-        rationale: String(parsed.expectedReturn?.rationale ?? ""),
-      },
+      timeframe: String(parsed.timeframe ?? ""),
       keyDrivers: Array.isArray(parsed.keyDrivers)
         ? parsed.keyDrivers.map(String)
         : [],
@@ -146,12 +148,7 @@ export class GeminiCoachExplainer implements CoachExplainer {
       JSON.stringify(
         {
           modeReasoning: `이 종목이 ${modeLabel} 모드에 적합한 이유를 2-3문장으로`,
-          expectedReturn: {
-            lowPercent: "예상 수익률 하단 숫자 (음수 가능, 예: -5)",
-            highPercent: "예상 수익률 상단 숫자 (예: 12)",
-            timeframe: input.mode === "scalp" ? "약 25분 이내" : "약 30일 내외",
-            rationale: "범위 근거 1문장",
-          },
+          timeframe: input.mode === "scalp" ? "약 25분 이내" : "약 30일 내외",
           keyDrivers: ["주요 근거 1", "주요 근거 2", "주요 근거 3"],
           risks: ["주의해야 할 점 1", "주의해야 할 점 2"],
           newsSummary: ["뉴스 핵심 라인 1", "라인 2", "라인 3", "라인 4", "라인 5"],
