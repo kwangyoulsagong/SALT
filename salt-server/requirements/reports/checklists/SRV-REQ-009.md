@@ -1,8 +1,8 @@
 # SRV-REQ-009 (F000 API) — 검증 체크리스트
 
 - REQ: `requirements/specs/in-progress/SRV-REQ-009-F000-API.md`
-- 브랜치: `feat/f000-watchlist-tab` · 검증일: 2026-09-18
-- 상태: **부분 완료** — 포지션 요약과 `period` 정정만 닫혔다
+- 브랜치: `feat/f000-watchlist-tab` → `feat/f000-invite-onboarding-slice` · 검증일: 2026-09-18
+- 상태: **부분 완료** — `portfolio/summary`·`period` 에 이어 **초대 2경로·온보딩 상태·제거 3경로**가 닫혔다. 410 Gone 이 남았다
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-watchlist-tab.md`
 
 ## 1. 신규 엔드포인트
@@ -45,3 +45,25 @@
 ## 6. 명령
 
 `npm run build` pass · `npm test` 162건 pass · `lint` pass · `test:layer-check` pass.
+
+## 7. 초대 · 온보딩 · 제거 (2026-09-18, `feat/f000-invite-onboarding-slice`)
+
+| FR | 내용 | 결과 | 근거 |
+|---|---|---|---|
+| FR-1 | `POST /api/auth/invite/accept` — 코드 없이 계정 생성 불가 | **pass** | 201 / 403. 코드 없는 경로 자체가 없다 |
+| FR-2 | 실패 403 + `reasonCode` 4종 | **pass** | `INVITE_NOT_FOUND`·`INVITE_ALREADY_USED`·`INVITE_EXPIRED`·`INVITE_QUOTA_EXCEEDED` |
+| FR-3 | `GET /api/auth/invite/check` 가 유효성만 답한다 | **pass** | 계정 생성 0. 무인증 + rate limit(창당 30) |
+| FR-4 | `check` 가 **상한 초과를 노출하지 않는다** | **pass** | 정원 3/3 에서 멀쩡한 코드 → `valid: true`. 판정 순서(코드 먼저)와 `publicRejectionOf` 두 겹 |
+| FR-5 | `POST /api/auth/register` 404 | **pass** | |
+| FR-6 | `PATCH /api/users/password` · `DELETE /api/users/account` 404 | **pass** | |
+| FR-16 (부분) | 제거된 경로의 Swagger 0건 | **pass** | 세 경로의 JSDoc 블록까지 함께 삭제 |
+| 신규 | `GET /api/onboarding/status` | **pass** | `{complete, nextStep, steps}` · 무인증 401 |
+
+## 8. 남은 것
+
+| 항목 | 언제 닫히나 |
+|---|---|
+| 동면 5경로 **410 Gone + 1회 로그** (FR-7·8) | `SRV-REQ-007` · `BFF-REQ-007` A절과 함께 |
+| 410 로그 1주 수집 | 위가 끝난 뒤 1주 |
+| 알림 `kind` 422 (FR-12·13) | `notification` 컨텍스트 |
+| 유지 경로 응답 스냅샷 테스트 (FR-23) | 미착수 |

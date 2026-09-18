@@ -1,8 +1,8 @@
 # SRV-REQ-008 (F000 FUNC) — 검증 체크리스트
 
 - REQ: `requirements/specs/in-progress/SRV-REQ-008-F000-FUNC.md`
-- 브랜치: `feat/f000-watchlist-tab` · 검증일: 2026-09-18
-- 상태: **부분 완료** — 관심 목록·뉴스·차트·포지션 요약이 닫혔고 초대·인증·알림·동면이 남았다
+- 브랜치: `feat/f000-watchlist-tab` → `feat/f000-invite-onboarding-slice` · 검증일: 2026-09-18
+- 상태: **부분 완료** — 관심 목록·뉴스·차트·포지션 요약에 이어 **초대 코드·인증 축소·온보딩 상태**가 닫혔다. 알림 2종·동면·`AssetType`·환율이 남았다
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-watchlist-tab.md`
 
 ## 1. 닫힌 것
@@ -45,3 +45,49 @@
 
 `npm run build` pass · `npm test` **162건 pass**(기존 153 → ListWatchlist 6 · UpdateHoldingPrices 3)
 · `npm run lint` pass · `npm run test:layer-check` pass (차단 10 · 통과 6).
+
+## 5. 초대 코드 · 인증 축소 (2026-09-18, `feat/f000-invite-onboarding-slice`)
+
+전 영역 통합 기록은 루트 `requirements/reports/checklists/F000-invite-onboarding.md` 다.
+
+| FR | 내용 | 결과 | 근거 |
+|---|---|---|---|
+| FR-1 | 검증 4개(존재·미사용·미만료·상한) | **pass** | `domain/policy/inviteAcceptance` 한 곳. 유닛 5건 |
+| FR-2 | 도메인 예외 4종이 `code` + `ErrorKind` | **pass** | 넷 다 `Forbidden`(403). status 로 나누면 그 자체가 무차별 대입의 신호가 된다 |
+| FR-3 | `UserCountProbe` 경유 | **pass** | `grep "prisma" src/auth/domain` = 0 |
+| FR-4 | 원자적 사용 | **pass** | 실제 DB 동시 2요청 → 201 + 403. `redeem` 이 조건부 UPDATE + INSERT 를 한 트랜잭션에 |
+| FR-5 | `register` 유스케이스 0건 | **pass** | **계정을 만드는 함수가 `InviteCodeStore.redeem` 하나**이고 코드 점유 없이 성공하지 않는다 |
+| FR-6 | 상한이 설정값 | **pass** | `INVITE_MAX_ACCOUNTS`(기본 10). `=3` 으로 기동해 정원 초과 재현 |
+| FR-7 | 실패 시도 기록 · **잠금 없음** | **pass** | `invite_code_attempts`. 코드 앞 4자만 저장. 기록 실패가 가입을 막지 않는다 |
+| FR-10 | `Login`·`RefreshSession` 유지 | **pass** | 새 계정으로 로그인 200 |
+| FR-11 | `Register`·`ChangePassword`·`DeleteAccount` 제거 | **pass** | 셋 다 404. `modules/auth` 삭제 |
+| FR-12 | 토큰 재발급 유지 | **pass** | `POST /api/auth/refresh` |
+| FR-13·14 | 온보딩 3단계 · 공개 API 경유 | **부분** | 판정은 `onboarding` 조합 컨텍스트에 있다. **소스가 REQ 와 다르다** — §6 |
+
+## 6. FR-14 가 지정한 소스를 쓰지 못했다
+
+`ledger`(F001)·`plan`(F003) 둘 다 없다. `onboarding` 은 프로브 둘을 주입받고 조립
+지점에서 지금 있는 것을 꽂는다.
+
+| 스텝 | REQ 가 말한 소스 | 지금 꽂은 것 | 언제 바뀌나 |
+|---|---|---|---|
+| `link_account` | `ledger` 거래 존재 | `portfolio.countTransactions > 0` | F001 |
+| `set_plan` | `plan` 설정 존재 | `goal` 행 존재 (**`composition.ts` 가 Prisma 로 직접 센다**) | F003 |
+
+**판정 규칙은 컨텍스트 안에 그대로 있다.** 바뀌는 것은 조립 두 줄이다.
+
+## 7. `ErrorKind` 에 `Unauthenticated` 를 더했다
+
+`modules/auth` 의 `UnauthorizedError`(401)를 옮길 자리가 커널에 없었다. 없는 채로
+진행하면 로그인 실패·토큰 만료가 403 이 되고, 그건 이관이 아니라 **계약 변경**이다.
+403 과 나뉘어 있어야 클라이언트가 토큰 재발급을 시도할지 판단할 수 있다.
+`Forbidden` 이 들어올 때와 같은 이유이고, 같은 기준(전 컨텍스트에 걸리는가)을 통과한다.
+
+## 8. 명령 (이 슬라이스)
+
+| 명령 | 결과 |
+|---|---|
+| `npm run build` · `lint` | pass |
+| `npm test` | **184건** (162 → +22: 초대 판정 9 · 유스케이스 9 · 온보딩 4) |
+| `npm run test:layer-check` | pass (차단 10 · 통과 6) |
+| `npx prisma migrate dev` | `20260918071852_add_invite_code` |

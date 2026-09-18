@@ -137,6 +137,7 @@ type AlertVM = {
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-18 | **신규 계약 중 다섯을 열고 `in-progress` 로 옮겼다.** 닫힌 것: `GET·POST·DELETE /api/app/watchlist` · `GET /api/app/news` · `GET /api/app/portfolio/summary`. **남은 것**: 온보딩 3개(`invite/check` · `invite` · `status`) · 제거 목록(`/api/auth/register` 등). 근거: `requirements/reports/checklists/BFF-REQ-008.md` |
+| 2026-09-18 | **온보딩 3계약을 열고 제거 목록을 닫았다.** `invite/check`(무인증·rate limit) · `invite`(무인증·`403 { reasonCode }`) · `status`(인증). FR-9·10 통과, **FR-13(`packages/core` 공유)은 미충족** — `bff` 가 workspace 밖이다. **남은 것**: 동면 경로 410(FR-11). 근거: `requirements/reports/checklists/BFF-REQ-008.md` |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 
