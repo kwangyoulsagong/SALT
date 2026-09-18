@@ -1,8 +1,7 @@
-import axios from "axios";
-
 import { apiFetch, authHeader } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
+import { PORTFOLIO_MESSAGES } from "../model/messages";
 import { PortfolioSummary } from "../model/types";
 
 /**
@@ -35,10 +34,13 @@ export const portfolioApi = {
    * 중이기 때문이고, 나머지도 `FE-REQ-012` 에서 BFF 로 옮겨간다.
    */
   summary: async (signal?: AbortSignal): Promise<PortfolioSummary> => {
-    const response = await axios.get<PortfolioSummary>(
+    const response = await apiFetch(
       `${INVESTMENTS_BASE_URL}/api/app/portfolio/summary`,
       { headers: authHeader(), signal },
     );
-    return response.data;
+    if (!response.ok) {
+      throw new Error(PORTFOLIO_MESSAGES.holdingsLoadFailed);
+    }
+    return (await response.json()) as PortfolioSummary;
   },
 };

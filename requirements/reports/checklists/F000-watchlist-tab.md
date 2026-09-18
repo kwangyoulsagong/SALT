@@ -1,92 +1,132 @@
-# F000 관심 종목 탭 — 검증 체크리스트
+# F000 관심 종목 탭 + FE-REQ-010 수리 — 검증 체크리스트
 
 - 대상 슬라이스: `requirements/specs/in-progress/F000-watchlist-tab-slice.md`
-- 브랜치: `feat/f000-watchlist-tab`
+- 브랜치: `feat/f000-watchlist-tab` (커밋 18개)
 - 검증일: 2026-09-18
-- 검증 환경: 로컬 풀스택 — Postgres 5432 · `salt-server` 4000 · `bff` 4001/4002 · `apps/web` 3000
+- 검증 환경: 로컬 풀스택 — Postgres 5432 · `salt-server` 4000 · `bff` 4001/4002/worker ·
+  `apps/web` **3100**(3000 은 다른 프로젝트가 점유 중이었다)
 
-## 1. 수용 기준
+> **범위가 두 번 넓어졌다.** ① 관심 종목 탭 수직 슬라이스 → ② 그 슬라이스가 남긴 빚 4건
+> → ③ `FE-REQ-010` 의 나머지 수리 9건. 사용자가 각각 "다음 거", "미충족 다해"로 지시했다.
+
+## 1. 수용 기준 — 관심 종목 탭 (슬라이스 문서)
 
 | # | 기준 | 결과 | 근거 |
 |---|---|---|---|
-| 1 | 관심 종목 탭이 빈 화면이 아니다 | **pass** | 탭 클릭 시 3행 렌더 (스크린샷) |
+| 1 | 관심 종목 탭이 **빈 화면이 아니다** | **pass** | 탭 클릭 시 3행 렌더 |
 | 2 | 종목명·심볼·현재가·변동률·자산군 배지·별 | **pass** | `비트코인 / BTC / 106,480,000 원 / +1.03 % / 크립토 / ★` |
-| 3 | `priceStale: true` 면 "지연" 배지 | **pass** | AAPL 행에 `지연` 배지 + 현재가 `—` |
-| 4 | 행 클릭 시 우측 프리뷰가 그 종목으로 | **pass** | BTC 행 클릭 → 프리뷰 헤더·5분봉 차트가 비트코인으로 교체 |
-| 5 | 키보드(Enter/Space)로 선택, `role`·`tabIndex` | **pass** | 3행 포커스 후 Enter → `aria-selected` 가 3행으로 이동. 전 행 `tabIndex=0` |
-| 6 | 실시간 탭 별과 관심 목록이 같은 상태 | **pass** | 실시간 탭에서 BTC·ETH만 채워진 별. 테더 별 클릭 → 채워짐 + 서버 목록에 `USDT` 추가. 다시 클릭 → 제거 |
-| 7 | 별 버튼에 `aria-label` | **pass** | `비트코인 관심 종목 제거` · `aria-pressed="true"` |
+| 3 | `priceStale: true` 면 "지연" 배지 | **pass** | AAPL 행에 `지연` + 현재가 `—` |
+| 4 | 행 클릭 → 우측 프리뷰 교체 | **pass** | BTC 클릭 → 헤더·5분봉이 비트코인으로 |
+| 5 | 키보드(Enter/Space) 선택 · `role`·`tabIndex` | **pass** | 3행 포커스 후 Enter → `aria-selected` 이동 |
+| 6 | 실시간 탭 별과 같은 상태 | **pass** | 테더 별 클릭 → 서버 목록에 `USDT` 추가 → 재클릭 시 제거 |
+| 7 | 별 버튼 `aria-label` | **pass** | `비트코인 관심 종목 제거` · `aria-pressed="true"` |
 | 8 | 0건이면 빈 상태 + 더미 0건 | **pass** | "관심 종목이 없습니다 / 실시간 차트에서 별을 눌러 추가하세요" |
-| 9 | 상승/하락 색 규칙이 실시간 테이블과 같다 | **pass** | 같은 `ChangeRateCell`·`PriceCell` 컴포넌트를 쓴다 |
-| 10 | 서버 `currentPrice`·`priceChange24h` 가 number\|null | **pass** | `{"currentPrice": 106478000, "changeRate": 1.02660443}` · AAPL 은 `null` |
-| 11 | 0건이면 BFF 가 빈 배열 | **pass** | `{"items":[]}` |
-| 12 | 변경 금지 목록 (5컬럼·필터 3그룹·blink·`limit=100`·2컬럼) | **pass** | 실시간 탭 스크린샷에서 컬럼 5·정렬 5·순서 2·기간 7·2컬럼 배치 그대로 |
-| 13 | 세 영역 빌드·타입체크·lint·layer-check | **pass** | 아래 §2 |
+| 9 | 상승/하락 색 규칙 동일 | **pass** | 같은 `ChangeRateCell`·`PriceCell` |
+| 10 | 서버 `currentPrice` 가 number\|null | **pass** | `106478000` · AAPL 은 `null` |
+| 11 | 0건이면 BFF 빈 배열 | **pass** | `{"items":[]}` |
+| 12 | 변경 금지 목록 유지 | **pass** | 5컬럼·필터 3그룹·blink·`limit=100`·PC 2컬럼 |
+| 13 | 세 영역 빌드·타입체크·lint·layer-check | **pass** | §4 |
 
-## 2. 명령 결과
+## 2. 수용 기준 — `FE-REQ-010` 수리 항목
+
+| FR | 기준 | 결과 | 근거 |
+|---|---|---|---|
+| FR-1 | 관심 종목 탭 | **pass** | §1 |
+| FR-2 | 표 헤더 시각이 하드코딩이 아니다 | **pass** | `"실시간 오늘 19:30 기준"` 제거, WS 수신 시각 / 미수신 시 "실시간 수신 대기 중" |
+| FR-3 | 뉴스 프리뷰 실데이터 | **pass** | 실기사 제목·요약·출처·"55분 전". 크롤러로 324건 수집(BTC 66) |
+| FR-4 | `덜 썻어요` 오타 | **pass** | 홈에 "20% 덜 썼어요" |
+| FR-5 | 홈 "주식" 섹션 보유 요약 | **pass** | 비트코인 5,330,750원 +6.62% · 이더리움 4,093,200원 +6.59% · 합계 9,423,950원 |
+| FR-6 · 60 · 61 | 터치/클릭·키보드 선택 · role·tabIndex | **pass** | 실시간 표 행에 `onClick`·`onKeyDown`·`tabIndex`·`aria-selected` (hover 유지) |
+| FR-7 · 50~55 | 반응형 | **pass** | §3 |
+| FR-8 · 50~52 | `period` 오타 · 422 | **pass** | 서버 `miniute` 422 · `minute` 200 · 생략 200 / BFF 동일 |
+| FR-9 | 목표 저축 submit 연결 | **pass** | 폼 제출 → 서버에 `E2E 목표 \| travel \| 1,500,000 \| 2026-09-18 → 2027-09-18` |
+| FR-40~45 | 뉴스 상세 규칙 | **pass** | 이미지 없으면 영역 미렌더 · 0건이면 문구 · 상대 시각 · 새 탭 + `noopener` · 블록 구조 유지 |
+| FR-63 | `FilterTabs` 접근성 | **부분** | `role="group"` + `aria-label` + `aria-pressed`. **`tablist` 로 하지 않았다** — §5 |
+
+## 3. 반응형 실측 (375 / 390 / 1440)
+
+| 뷰포트 | `body` 가로 스크롤 | 배치 | 표 | 프리뷰 |
+|---|---|---|---|---|
+| 375 | **없음** (doc 375 = viewport) | 세로 | 자체 스크롤 · 컬럼 5개 유지 · 종목명 한 줄 | 아래로 접힘, 폭 295 |
+| 390 | **없음** | 세로 | 동일 | 아래로 접힘, 폭 310 |
+| 1440 | **없음** | 2컬럼 | 스크롤 없음 | 우측 500px (기존과 동일) |
+
+측정은 같은 오리진 iframe(테두리 0)으로 뷰포트를 만들어 `documentElement.scrollWidth`
+와 `innerWidth` 를 비교했다. **첫 측정에서 iframe 테두리 2px 이 뷰포트를 4px 갉아먹어
+3px 초과로 보였다** — 측정 도구의 오차였고 테두리를 없애고 다시 쟀다.
+
+## 4. 명령 결과
 
 | 영역 | 명령 | 결과 |
 |---|---|---|
-| 서버 | `npm run build` | pass |
-| 서버 | `npm test` | **159건 pass** (기존 153 → ListWatchlist 6건 추가) |
-| 서버 | `npm run lint` | pass |
-| 서버 | `npm run test:layer-check` | pass (차단 10 · 통과 6) |
+| 서버 | `npm run build` · `lint` · `test:layer-check` | pass (차단 10 · 통과 6) |
+| 서버 | `npm test` | **162건 pass** (기존 153 → ListWatchlist 6 · UpdateHoldingPrices 3) |
 | BFF | `npm run build` | pass |
-| 프론트 | `pnpm --filter web check-types` | pass |
-| 프론트 | `pnpm --filter web lint` | pass (`--max-warnings 0`) |
-| 프론트 | `pnpm --filter web build` | pass |
+| BFF | `npm test` | **23건 pass** (러너 자체가 이번에 생겼다 — 이전 0건) |
+| 프론트 | `check-types` · `lint`(`--max-warnings 0`) · `build` | pass |
 | 프론트 | `pnpm test:layer-check` | pass (차단 8 · 통과 5) |
+| `@repo/ui` | `check-types` · `lint` · `test` | pass (17건) |
 
-## 3. 계약 동작 실측 (BFF `/api/app/watchlist`)
-
-| 경우 | 기대 | 실측 |
-|---|---|---|
-| 목록 0건 | `{ items: [] }` | 일치 |
-| 추가 | `201` | 일치 |
-| 중복 추가 | 서버 `409` 를 그대로 | `409 {"message":"Already in watchlist"}` |
-| 제거 | `204` | 일치 |
-| 토큰 없음 | `401` | 일치 |
-| 크립토 | 실가격 + `priceStale: false` | `106,478,000` · `false` |
-| 주식(AAPL) | 가격 `null` + `priceStale: true` | 일치 |
-
-## 4. 번들 (`pnpm --filter web build`, 기준선은 같은 브랜치의 stash 빌드)
+## 5. 번들 (`pnpm build`, 기준선은 같은 브랜치 stash 빌드)
 
 | Route | before | after | Δ First Load |
 |---|---|---|---|
-| `/investments` | 5.16 kB / **125 kB** | 5.28 kB / **125 kB** | **0** |
-| `/` | 6.44 kB / 125 kB | 6.5 kB / 126 kB | +1 kB |
-| `/home` | 2.3 kB / 135 kB | 2.34 kB / 135 kB | 0 |
+| `/investments` | 5.16 kB / **125 kB** | 3.86 kB / **125 kB** | **0** |
+| `/home` | 2.3 kB / 135 kB | 4.09 kB / 136 kB | +1 kB |
+| `/goals/addgoals` | 3.54 kB / 125 kB | 5.55 kB / 138 kB | +13 kB |
+| `/` | 6.44 kB / 125 kB | 5.04 kB / 126 kB | +1 kB |
 | 공통 청크 | 103 kB | 103 kB | **0** |
 
-예산은 증가분 40 kB (`performance-frontend.md` §4). 관심 종목 탭 코드는 `next/dynamic`
-청크에 있어 First Load 에 들어가지 않는다.
+예산은 증가분 40 kB (`performance-frontend.md` §4).
 
-> **중간에 회귀를 만들었고 측정으로 잡았다.** `previewParams` 를 위젯 `model` barrel 에
-> 올렸더니 `/investments` 가 **125 → 178 kB** 가 됐다 — 그 파일이 `@/entities/market` 를
-> import 해서, barrel 을 쓰는 `MarketBoard` 가 프리뷰·차트를 정적으로 끌어왔다. 잎에서
-> `../model/previewParams` 로 직접 가져가게 바꿨다.
+> **두 번 회귀를 만들고 두 번 측정으로 잡았다.**
+> ① `previewParams` 를 위젯 barrel 에 올려 `/investments` 125 → **178 kB**. 그 파일이
+> 엔티티 barrel 을 import 해서 프리뷰·차트가 정적으로 딸려 왔다.
+> ② 새 호출에 `axios` 를 써서 `/home` **158 kB** · `/goals/addgoals` **160 kB**.
+> 두 화면 다 axios 를 쓰지 않던 곳이라 POST 하나에 라이브러리가 통째로 들어왔다 —
+> 이미 있는 `apiFetch` 로 바꿔 각각 136 · 138 kB 로 되돌렸다.
 
-## 5. 미충족 · 범위 밖
+## 6. 계약 동작 실측
+
+| 경로 | 경우 | 결과 |
+|---|---|---|
+| `GET /api/app/watchlist` | 0건 / 크립토 / 주식 / 토큰 없음 | `{items:[]}` / 실가격 `priceStale:false` / `null` + `true` / 401 |
+| `POST · DELETE /api/app/watchlist` | 추가 / 중복 / 제거 | 201 / **409 원 메시지 보존** / 204 |
+| `GET /api/app/news` | 기사 있음 / symbol 누락 | 실기사 + `imageUrl:null` / 400 |
+| `GET /api/app/portfolio/summary` | 보유 2건 | 이름 부착(비트코인·이더리움) · 합계 9,429,600 |
+| `GET /api/investment/crypto/:s/chart` | `miniute` / `minute` / 생략 | 422 / 200 / 200 |
+| `POST /api/goals` | 폼 제출 | 201, 서버에 1건 생성 |
+
+## 7. 미충족 · 범위 밖
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| `FE-REQ-012` 호출 배치의 "관심 종목 = **서버 컴포넌트**" | 토큰이 `localStorage` 에 있어 서버 컴포넌트가 읽을 수 없다. 클라이언트 쿼리 + `ssr:false` 로 구현했다 | `FE-REQ-013` (쿠키 인증). 읽는 자리는 `shared/api/authToken.ts` 하나다 |
-| 관심 목록 **100건 초과** 시 별 동기화 | BFF 가 `limit=100` 으로 한 번만 읽는다. 101번째부터는 실시간 탭 별이 빈 채로 남는다 | 사용자 ≤10명 · 종목 100개 상한이 실질 제약. 초과 사례가 생기면 커서 페이징 |
-| 목록 밖(시세 100위 밖) 심볼의 **우측 프리뷰** | 프리뷰가 시세 목록의 한 줄을 받는다. 주식·저순위 종목은 그 줄이 없어 패널이 빈다 | F006 `FE-REQ-030` (프리뷰를 자체 조회로 바꿀 때) |
-| **BFF 자동 테스트 0건** | `bff` 에 테스트 러너가 없다(`package.json` 에 `test` 스크립트 없음) | 별건. `priceStale` 판정은 수동 실측으로만 검증했다 |
-| `priceStale` 임계값 60초의 **근거 측정** | 워커 주기(5초)의 12배로 정했고 실측 분포를 보지 않았다 | 관측 수단이 생길 때 (`BFF-REQ-010` PERF) |
-| `AssetType` 3값 확장 | DB enum 이 2값이다 | `DB-REQ-001`/`003` |
-| 뉴스 프리뷰 실데이터 · 하드코딩 시각 · 오타 · 반응형 · `period` 오타 · 실시간 테이블 `onClick`(FR-6) · `FilterTabs` `role="tablist"`(FR-63) | 같은 REQ 안이지만 이 슬라이스가 아니다 | `FE-REQ-010` 의 나머지 FR |
-| 375/390/1440 **3뷰포트 검수** | 이 슬라이스가 반응형(FR-7·50~55)을 범위 밖으로 뒀다. 1512px 하나에서만 봤다 | `FE-REQ-010` FR-54 |
-| 로컬 DB 에 남은 검증용 데이터 | `watchlist-check@local.test` 계정 + BTC·ETH 관심 목록 2건을 남겼다. 화면을 다시 볼 때 필요하다 | 정리 시 계정 삭제 |
+| `FilterTabs` 가 **`role="tablist"` 가 아니다** (FR-63 문구와 다름) | 이 버튼들은 탭이 아니다 — 대응하는 `tabpanel` 이 없고 화면을 바꾸지 않는다. `tablist` 로 선언하면 스크린리더가 "탭 1/5"이라 읽고 패널 전환을 기대한다. `role="group"`+`aria-pressed` 가 지금 동작을 정확히 말한다 | REQ 문구를 고치거나 `SegmentedControl` 로 교체할 때. **판단 근거는 컴포넌트 주석에 있다** |
+| 목표 **목표일 기본 1년** | 폼에 날짜 입력이 없는데 서버가 요구한다. 화면에 한 줄로 노출은 했지만 **사용자가 고른 값이 아니다** | PM 이 기본값을 정하거나 폼에 입력을 추가할 때 |
+| 목표 **카테고리 매핑이 임시** | 화면 6종과 서버 6종이 짝이 맞지 않아 겹치는 셋만 옮기고 나머지는 `other` | `goal` 컨텍스트 이관 |
+| 새 목표가 **홈 목록에 안 보인다** | 저장은 서버, 조회는 아직 MSW(`/api/v1/goals`) | `FE-REQ-012`(조회 경로 BFF 이관) |
+| 프리뷰 차트가 모바일에서 잘린다 | `PreviewChart` 가 생성 시점 폭(487px)으로 고정. **동작 확인된 변경 금지 코드** | F006 `FE-REQ-030` 또는 차트 리사이즈 별건 |
+| 관심 종목 조회가 **서버 컴포넌트가 아니다** | 토큰이 `localStorage` 라 서버가 읽을 수 없다. 클라이언트 쿼리 + `ssr:false` | `FE-REQ-013`(쿠키 인증). 읽는 자리는 `shared/api/authToken.ts` 하나 |
+| `/api/app/news` 가 **인증 없이 열린다** (`BFF-REQ-008` 표는 Auth Y) | 서버 `/news` 가 공개이고 같은 패널의 차트·심리도 공개다. 뉴스만 막으면 로그인 전 화면에서 그 블록만 빈다 | 서버가 뉴스를 비공개로 바꿀 때 |
+| `fxRateUsed`·`fxBasisCode` 가 **언제나 null** | 보유가 전부 원화 크립토고 `fx` 컨텍스트가 없다 | F001·F002 |
+| `AssetType` 3값 확장 | DB enum 이 2값 | `DB-REQ-001`/`003` |
+| 목표 저축 · 홈 목표 카드의 조회 경로 | 이 슬라이스 범위 밖 | `FE-REQ-012` |
+| 초대 코드 화면 (FR-20~26) | 별도 슬라이스 | `FE-REQ-011` 계열 |
+| `grep "faskdljf"·"덜 썻어요"·"miniute"` 가 **0 이 아니다** | 셋 다 **"무엇을 고쳤는지" 설명하는 주석**에만 남아 있다. 렌더되는 코드에는 0건 | 유지 (주석을 지우면 왜가 사라진다) |
+| 로컬 DB 검증 데이터 | `watchlist-check@local.test` + 관심 목록 2건 + 보유 2건 + 목표 1건 + 뉴스 324건 | 화면을 다시 볼 때 필요하다. 정리는 필요할 때 |
 
-## 6. 이 검증에서 드러난 것
+## 8. 이 검증에서 드러난 것 (코드가 아니라 **사실**)
 
-- **`ListWatchlist` 응답이 원래 화면이 쓸 수 없는 모양이었다.** Prisma `Decimal` 이 JSON
-  문자열로 나갔고(`"158000000"`), BFF 는 그것을 그대로 전달했다. 탭이 비어 있어서 아무도
-  몰랐다 — **소비처가 없는 계약은 검증되지 않는다.**
-- **주식에 업비트 로고 URL 이 붙었다.** `logoUrlOf(symbol)` 를 자산군과 무관하게 적용해
-  `logos/AAPL.png` 404 가 화면에 깨진 이미지로 나갔다. 브라우저 확인에서만 드러났다 —
-  API 응답만 봤으면 문자열이 들어 있으니 통과로 읽었을 것이다.
-- **`TableRow` 는 `memoKey` 만 비교한다.** 별 상태를 `memoKey` 에 넣지 않으면 별을 눌러도
-  그 행이 다시 그려지지 않는다(가격이 다음 틱에 바뀔 때에야 반영된다).
+- **`ListWatchlist` 응답이 화면이 쓸 수 없는 모양이었다.** Prisma `Decimal` 이 JSON
+  문자열로 나갔다. 탭이 비어 있어서 아무도 몰랐다 — **소비처가 없는 계약은 검증되지 않는다.**
+- **`/api/portfolio/internal/update-prices` 를 부르는 곳이 없었다.** 보유 평가금액이
+  생성 이후 영원히 0 이었다. 홈 "주식" 섹션을 붙이려다 드러났다.
+- 그 엔드포인트는 **심볼마다 조회를 돌았다.** 살리면 5초마다 100번 도는 구조였다.
+- **주식에 업비트 로고 URL 이 붙었다.** API 응답만 보면 문자열이 들어 있어 정상으로 보인다 —
+  브라우저를 열어야만 보이는 것이 있다.
+- **목표 추가 제출이 `console.log` 두 줄이었다.** 폼은 완성돼 있었다.
+- `TableRow` 는 `memoKey` 만 비교한다. 별 상태를 넣지 않으면 눌러도 그 행이 안 그려진다.
+- **포트 3000 을 다른 프로젝트가 쓰고 있었다.** 우리 Next 는 `[::1]:3000` 에만 붙어서
+  요청이 갈렸다(`curl` 은 남의 앱, 브라우저는 우리 앱). 3100 으로 옮겨 검증했다.
+- **`next build` 를 dev 서버가 도는 중에 돌리면 `.next` 가 깨진다.** `_document` 를 못 찾는
+  500 이 떴고 dev 재시작으로 복구했다.
