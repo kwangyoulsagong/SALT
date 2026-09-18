@@ -5,3 +5,6 @@ export const MARKET_BOARD_TABS = [
 ];
 
 export const DEFAULT_MARKET_BOARD_TAB = "realtime";
+
+/** 관심 종목 탭 id. 문자열을 본문 분기에 다시 쓰지 않는다 — 표와 어긋나면 빈 탭이 된다. */
+export const WATCH_LIST_TAB = "watchList";

@@ -197,7 +197,12 @@ flowchart TB
 | `FE-REQ-008` App Router + 스트리밍 SSR | **done** | 두 zone 모두 App Router. 스트리밍 게이트 **첫 블록 p95 31.9ms**(기준 300ms), 번들 증가 최대 +16.2 kB gzip(예산 40KB). 미충족 7건 중 **2건이 닫혔다**(§6-1 FSD pages 레이어 → `FE-REQ-009`, §6-7 Codex 미러 → 하네스 제거). **§6-4(인증 토큰이 `localStorage`)는 이 REQ 의 실제 미달**이고 `FE-REQ-013`이 담당한다. `checklists/FE-REQ-008.md` §6 |
 | `FE-REQ-009` FSD 전환 | **done** | 두 zone 모두 6레이어. 슬라이스 8개(`auth`·`goal`·`market`·`portfolio` / `sign-in`·`add-goal` / `home-briefing`·`market-board`). `layer-check` 훅 + `@repo/fsd/layers` lint가 **같은 규칙 표 하나**를 읽는다(차단 8 · 통과 5 테스트). 렌더 동일성 4경로 × 3뷰포트 통과, 공통 청크 증가 **0**. 남은 것은 `checklists/FE-REQ-009.md` §8 — 이 REQ 미달 2건(FR-37 · `/investments` +7kB), 범위 밖 5건 |
 | `SRV-REQ-006` DDD 전환 | **in-progress (4/4단계)** | `shared` Kernel + `layer-check` 훅·ESLint(1) · `coach/domain/policy` 추출 + 특성화 테스트 23건(2) · `news`·`market`·`portfolio` 이관(3, FR-32a) · **`coach` 통합(4, FR-32)**. 컨텍스트 **4개** · 동사형 유스케이스 **49개** · 공개 API **17개**. `modules` 15 → 12 → **8개**(원문 29파일 3,538줄 삭제). 테스트 18 → 85 → **137건**. 4단계에서 **같은 이름의 값이 경로마다 다르게 정의돼 있던 것**(기술 지표 주기 `m5` vs 무관)이 드러나 통일했다. 그 뒤 **미충족 8건을 닫았다**(§12) — **수익률 예측(`expectedReturn`) 제거**, 외부 호출 타임아웃·지수 백오프(캔들 수집 실패 **다수 → 0건**), `external/` 삭제, 한글 뉴스 언어 필터 복구, 공개 LLM 경로 요청 제한. 테스트 **153건**. 남은 12건은 전부 `ledger`(F001)·`DB-REQ-*`·**FR-33(`SRV-REQ-007`)**·프론트 계약을 기다린다. 상세는 `checklists/SRV-REQ-006.md` §10~§13 |
-| 나머지 141개 | to-do | |
+| `FE-REQ-010` F000 UI | **in-progress** | 수리 9건(FR-1~9)과 표시·접근성·반응형이 닫혔다. **초대 코드·온보딩 화면(FR-20~26)이 남았다.** FR-63 은 `role="tablist"` 대신 `role="group"`+`aria-pressed` 로 갔다(탭이 아니다 — tabpanel 이 없다). `checklists/FE-REQ-010.md` |
+| `BFF-REQ-007` F000 FUNC | **in-progress** | D·E·F절(뉴스·관심 종목·`period`) 완료. A·B·C·G절(동면 410·홈 조립·알림·온보딩) 남음. **테스트 러너가 이 작업에서 처음 생겼다**(23건) |
+| `BFF-REQ-008` F000 API | **in-progress** | 신규 7개 중 5개(`watchlist` 3 · `news` · `portfolio/summary`) 열림. 온보딩 3개 남음 |
+| `SRV-REQ-008` F000 FUNC | **in-progress** | 관심 목록(FR-33)·뉴스·`period`·포지션 요약 완료. 초대(FR-1~7)·인증 축소·알림·`AssetType` 3값·동면 남음 |
+| `SRV-REQ-009` F000 API | **in-progress** | `/api/portfolio/summary` + `period` 422 완료. 초대 3개·제거·410 남음 |
+| 나머지 136개 | to-do | |
 
 **P0 아키텍처 전환 3개(FE)가 끝났다.** `FE-REQ-007`→`008`→`009`.
 **셋 다 `done/`이다.** `009`는 수용 기준을 전부 만족했고, `007`·`008`은 남은 항목이
@@ -206,7 +211,17 @@ flowchart TB
 
 > **예외 하나를 숨기지 않는다.** `FE-REQ-008` §6-4 — 인증 토큰이 아직 `localStorage`에 있다.
 > 명시된 AC 인데 구현하지 않았고, 사유는 "부를 BFF 가 없다"다. **`FE-REQ-013`이 닫는다.**
-다음 FE 작업은 F000(`FE-REQ-010`~`013`)이다.
+**F000 이 시작됐다 (2026-09-18).** 첫 **수직 슬라이스**(관심 종목 탭)를 서버→BFF→프론트로
+관통시키고, 이어서 `FE-REQ-010` 의 수리 9건까지 닫았다. 범위와 근거는
+`requirements/specs/in-progress/F000-watchlist-tab-slice.md`, 전 영역 통합 검증은
+`requirements/reports/checklists/F000-watchlist-tab.md` 에 있다.
+
+> **그 과정에서 죽어 있던 경로 셋이 드러났다** — `ListWatchlist` 가 `Decimal` 을 문자열로
+> 내보내고 있었고, `/portfolio/internal/update-prices` 를 **아무도 부르지 않아** 보유
+> 평가금액이 영원히 0 이었고, 목표 추가 제출이 `console.log` 두 줄이었다. 셋 다 빌드·
+> lint·타입체크를 통과하고 있었다. **소비처가 없는 계약은 검증되지 않는다.**
+
+다음 FE 작업은 `FE-REQ-011`~`013` 과 초대 코드 화면(`FE-REQ-010` FR-20~26)이다.
 
 **레이어 규칙은 이제 실행된다.** 새 프론트 작업은 쓰기 시점에 `layer-check` 훅을 통과해야 한다.
 새 슬라이스는 `layered-architecture.md` §4 표 → `packages/eslint-plugin-fsd/layer-rules.cjs`의

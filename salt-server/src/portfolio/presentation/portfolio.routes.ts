@@ -203,6 +203,56 @@ export const createPortfolioRouter = (useCases: PortfolioUseCases): Router => {
    *       200:
    *         description: 보유 자산 목록 + 요약
    */
+  /**
+   * @swagger
+   * /api/portfolio/summary:
+   *   get:
+   *     summary: 보유 요약 (홈 "주식" 섹션)
+   *     tags: [Portfolio]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: |
+   *           한 줄에 들어갈 넷과 합계. `fxRateUsed`·`fxBasisCode` 는 **아직 언제나 null**
+   *           이다 — 보유가 전부 원화 크립토이고 `fx` 컨텍스트가 없다(F001·F002).
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     items:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           symbol:
+   *                             type: string
+   *                           assetType:
+   *                             type: string
+   *                             enum: [crypto, stock]
+   *                           currentValue:
+   *                             type: number
+   *                           profitRate:
+   *                             type: number
+   *                     totalKrw:
+   *                       type: number
+   *                     fxRateUsed:
+   *                       type: number
+   *                       nullable: true
+   *                     fxBasisCode:
+   *                       type: string
+   *                       nullable: true
+   *       401:
+   *         description: 인증 실패
+   */
+  router.get("/summary", authMiddleware, portfolioController.getSummary);
+
   router.get("/holdings", authMiddleware, portfolioController.getHoldings);
 
   /**

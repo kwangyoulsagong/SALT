@@ -92,6 +92,23 @@ class BackendApiService {
     );
     return response.data;
   }
+
+  /**
+   * 보유 평가에 시세를 반영한다.
+   *
+   * **이 경로를 부르는 곳이 없었다.** 서버에 엔드포인트만 있고 아무도 호출하지 않아서
+   * `portfolio_holdings.current_value` 가 생성 이후 영원히 0 이었다 — 홈 "주식" 섹션이
+   * 언제나 0원이 되는 원인이다. 관심 목록과 같은 페이로드를 같은 주기로 보낸다.
+   */
+  async updateHoldingPrices(
+    priceData: Array<{ symbol: string; currentPrice: number }>
+  ) {
+    const response = await this.client.post(
+      "/portfolio/internal/update-prices",
+      { priceData }
+    );
+    return response.data;
+  }
   /**
    * Market Overview 조회
    */

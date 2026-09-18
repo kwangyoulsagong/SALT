@@ -36,6 +36,13 @@ export class PrismaHoldingRepository implements HoldingRepository {
     return prisma.portfolioHolding.findMany({ where: { symbol } });
   }
 
+  findBySymbols(symbols: string[]): Promise<Holding[]> {
+    if (symbols.length === 0) return Promise.resolve([]);
+    return prisma.portfolioHolding.findMany({
+      where: { symbol: { in: symbols } },
+    });
+  }
+
   /**
    * 재계산 결과 저장.
    *

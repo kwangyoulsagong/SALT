@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { appPortfolioService } from "../../services/app-portfolio.service";
 import { backendApi } from "../../services/backend-api.service";
 
@@ -15,6 +15,15 @@ export class AppPortfolioController {
       res.status(500).json({
         message: "Failed to fetch portfolio",
       });
+    }
+  }
+
+  async getSummary(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await appPortfolioService.getSummary(req.token!);
+      return res.json(result);
+    } catch (error) {
+      return next(error);
     }
   }
 

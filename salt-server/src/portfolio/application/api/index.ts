@@ -13,6 +13,7 @@ import {
 } from "../RecordTransaction";
 import {
   GetHoldings,
+  GetPortfolioSummary,
   GetPerformanceSeries,
   GetPortfolioStats,
   ListTransactions,
@@ -78,6 +79,7 @@ export interface PortfolioUseCases {
   deleteTransaction: DeleteTransaction;
   listTransactions: ListTransactions;
   getHoldings: GetHoldings;
+  getPortfolioSummary: GetPortfolioSummary;
   getPortfolioStats: GetPortfolioStats;
   updateHoldingPrices: UpdateHoldingPrices;
   getPerformanceSeries: GetPerformanceSeries;
@@ -95,6 +97,7 @@ export const createPortfolioApplication = (deps: PortfolioDependencies) => {
     deleteTransaction: new DeleteTransaction(deps.transactions, deps.holdings),
     listTransactions,
     getHoldings: new GetHoldings(deps.holdings),
+    getPortfolioSummary: new GetPortfolioSummary(deps.holdings),
     getPortfolioStats: new GetPortfolioStats(deps.holdings, deps.transactions),
     updateHoldingPrices: new UpdateHoldingPrices(deps.holdings),
     getPerformanceSeries: new GetPerformanceSeries(deps.holdings, deps.prices),

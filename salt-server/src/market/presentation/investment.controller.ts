@@ -1,7 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
-import { isMarketOverviewSort, MarketOverviewSort } from "../domain";
+import {
+  ChartPeriod,
+  isChartPeriod,
+  isMarketOverviewSort,
+  MarketOverviewSort,
+  UnsupportedChartPeriodError,
+} from "../domain";
 import type { MarketUseCases } from "../application/api";
 import {
   addToWatchlistSchema,
@@ -76,13 +82,25 @@ export class InvestmentController {
     }
   };
 
+  /**
+   * 차트.
+   *
+   * `period` 를 **조용히 기본값으로 떨어뜨리지 않는다** (`FE-REQ-010` FR-51). 없으면
+   * `day` 지만, 값이 있는데 모르는 값이면 422 다 — 프론트의 `miniute` 오타가 오래
+   * 살아남은 이유가 "틀린 값도 동작했기 때문"이다.
+   */
   getChartData = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const rawUnit = req.query.unit ? Number(req.query.unit) : 5;
+      const rawPeriod = req.query.period;
+
+      if (rawPeriod !== undefined && !isChartPeriod(rawPeriod)) {
+        throw new UnsupportedChartPeriodError(String(rawPeriod));
+      }
 
       const result = await this.useCases.getChartData.execute({
         symbol: req.params.symbol,
-        period: (req.query.period as "day" | "minute") || "day",
+        period: rawPeriod ?? ChartPeriod.Day,
         count: req.query.count ? Number(req.query.count) : 30,
         unit: ALLOWED_UNITS.includes(rawUnit) ? rawUnit : 5,
       });

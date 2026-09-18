@@ -112,3 +112,18 @@ created: 2026-09-09
 - 초대 수락 시 비밀번호를 받을지 매직링크로 할지. **비밀번호가 기본안**(기존 로그인 경로 유지).
 - `check` 엔드포인트를 인증 없이 열면 코드 무차별 대입이 가능하다. **rate limit이 필요**하고, 사용자 ≤10명이면 IP 기준으로 충분하다.
 - 410을 1주 후 무엇으로 바꿀지(`SRV-REQ-007` Open Question).
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-18 | **신규 중 `GET /api/portfolio/summary` 를 열고 `period` 정정을 넣었다.** `in-progress` 로 옮겼다. 닫힌 것: `/api/portfolio/summary` · `period` 유효값 검사(모르는 값 **422**, 없으면 `day`). **남은 것**: `/api/auth/invite/check` · `/api/auth/invite/accept` · `/api/onboarding/status` · `/api/news` 계약 정리 · 제거 목록(`register`·`password`·`account`) · 410 Gone. 근거: `requirements/reports/checklists/SRV-REQ-009.md` |
+
+## 구현이 REQ와 다른 지점 (2026-09-18)
+
+**차트 주기를 `minute`·`day` 둘로 정의했다**(`FE-REQ-010` FR-50 은 `week`·`month` 까지
+넷을 적었다). 거래소 호출도 소비 화면도 없어서, 목록에만 넣으면 200 을 기대하게 되고
+실제로는 빈 배열이 온다. 필요해질 때 `ExchangeQuotePort` 와 함께 늘린다.
+
+`/api/portfolio/summary` 의 `fxRateUsed`·`fxBasisCode` 는 **언제나 `null`** 이다(`fx`
+컨텍스트 없음). 필드를 지금 두는 이유는 미국주식이 들어올 때 계약이 바뀌지 않게 하기 위해서다.

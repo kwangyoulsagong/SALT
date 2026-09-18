@@ -2,7 +2,6 @@
 
 import { FlexBox } from "@repo/ui/flexBox";
 import { Image } from "@repo/ui/image";
-import { StarIcon } from "@repo/ui/starIcon";
 import {
   ScrollTableContainer,
   Table,
@@ -18,6 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   ChangeRateCell,
+  indexWatchlistBySymbol,
   MARKET_MESSAGES,
   MARKET_TABLE_HEADERS,
   MarketFilterTabs,
@@ -25,10 +25,19 @@ import {
   MarketPeriod,
   MarketPreview,
   MarketSort,
+  overviewItemToPreviewSubject,
   PriceCell,
+  selectRowOnKey,
   useMarketOverview,
   useMarketOverviewRealtime,
+  useWatchlist,
+  WatchlistAssetType,
 } from "@/entities/market";
+import { WatchlistStarButton } from "@/features/toggle-watchlist";
+import { formatClockTime } from "@/shared/lib";
+
+import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
+import { splitLayout } from "./MarketBoardLayout.css";
 
 /**
  * hover 로 프리뷰 심볼을 바꾸기까지의 대기.
@@ -39,23 +48,49 @@ import {
  */
 const HOVER_SELECT_DELAY_MS = 80;
 
+/** 기준 시각을 다시 계산하는 최소 간격. 표시 단위가 분이라 이보다 촘촘할 이유가 없다. */
+const RECEIVED_AT_TICK_MS = 30_000;
+
 /**
  * 실시간 테이블 + 우측 프리뷰 조합 (`market-board`).
  *
  * **변경 금지 목록이다** (FR-36): 5컬럼 · 필터 3그룹 · 변동률 blink 2초 · 2컬럼 배치.
  */
 export const RealtimeMarketTable = () => {
+  /**
+   * 초기값이 `DEFAULT_MARKET_PARAMS` 와 **같아야 한다** — 관심 종목 탭의 프리뷰가
+   * 그 파라미터로 같은 목록을 읽는다. 어긋나면 쿼리 키가 갈라져 목록을 두 번 받는다.
+   */
   const [filters, setFilters] = useState<{
     sort: MarketSort;
     order: MarketOrder;
     period: MarketPeriod;
   }>({
-    sort: MarketSort.All,
-    order: MarketOrder.Ascending,
-    period: MarketPeriod.Realtime,
+    sort: DEFAULT_MARKET_PARAMS.sort,
+    order: DEFAULT_MARKET_PARAMS.order,
+    period: DEFAULT_MARKET_PARAMS.period,
   });
   const [selectedSymbol, setSelectedSymbol] = useState<string>("");
   const [blinkingSymbol, setBlinkingSymbol] = useState<string>("");
+  const [receivedAt, setReceivedAt] = useState<Date | null>(null);
+
+  /**
+   * 마지막 수신 시각.
+   *
+   * 표시 단위가 **분**이라 초당 수십 번 오는 수신마다 state 를 갱신할 이유가 없다.
+   * 같은 참조를 돌려주면 React 가 리렌더를 건너뛴다 — 그래서 30초에 한 번만 새 객체가
+   * 된다. 100행짜리 표가 수신마다 다시 그려지는 것을 막는 것이 목적이다
+   * (`performance-frontend.md` §2).
+   */
+  const markReceived = useCallback(() => {
+    setReceivedAt((prev) => {
+      const now = new Date();
+      if (prev && now.getTime() - prev.getTime() < RECEIVED_AT_TICK_MS) {
+        return prev;
+      }
+      return now;
+    });
+  }, []);
 
   /**
    * hover 선택은 **디바운스해서** 넘긴다. 첫 선택(아래 effect)은 즉시다 —
@@ -75,8 +110,8 @@ export const RealtimeMarketTable = () => {
 
   const params = useMemo(
     () => ({
-      page: 1,
-      limit: 100,
+      page: DEFAULT_MARKET_PARAMS.page,
+      limit: DEFAULT_MARKET_PARAMS.limit,
       sort: filters.sort,
       order: filters.order,
       period: filters.period,
@@ -88,8 +123,19 @@ export const RealtimeMarketTable = () => {
   // 같은 이유로 `isPending` 을 본다.
   const { data, isPending, isError } = useMarketOverview(params);
   const items = useMemo(() => data?.items ?? [], [data?.items]);
+
+  /**
+   * 별 상태는 **관심 종목 탭과 같은 쿼리**에서 온다 (`FE-REQ-010` FR-34).
+   * 여기서 추가/제거하면 그 탭이, 그 탭에서 바꾸면 여기가 따라 바뀐다 — 두 화면을
+   * 잇는 코드는 없고 캐시 키 하나가 그 일을 한다.
+   */
+  const { data: watchlist } = useWatchlist();
+  const watchedBySymbol = useMemo(
+    () => indexWatchlistBySymbol(watchlist?.items ?? []),
+    [watchlist?.items]
+  );
   const symbols = useMemo(() => items.map((item) => item.symbol), [items]);
-  useMarketOverviewRealtime(params, symbols, handleBlink);
+  useMarketOverviewRealtime(params, symbols, handleBlink, markReceived);
   const firstSymbol = items[0]?.symbol;
 
   useEffect(() => {
@@ -98,8 +144,9 @@ export const RealtimeMarketTable = () => {
     }
   }, [firstSymbol, selectedSymbol]);
 
-  const selectedSymbolItem = useMemo(() => {
-    return items.find((item) => item.symbol === selectedSymbol);
+  const previewSubject = useMemo(() => {
+    const found = items.find((item) => item.symbol === selectedSymbol);
+    return found ? overviewItemToPreviewSubject(found) : undefined;
   }, [selectedSymbol, items]);
 
   if (isPending) {
@@ -118,8 +165,8 @@ export const RealtimeMarketTable = () => {
         period={filters.period}
         onChange={(next) => setFilters((prev) => ({ ...prev, ...next }))}
       />
-      <FlexBox justify="between" gap="2xl">
-        <ScrollTableContainer maxHeight="800px" hideScrollbar>
+      <FlexBox justify="between" gap="2xl" className={splitLayout}>
+        <ScrollTableContainer maxHeight="viewport" hideScrollbar>
           <Table>
             <TableHeader bordered={false}>
               <TableRow>
@@ -128,7 +175,13 @@ export const RealtimeMarketTable = () => {
                     <Text variant="caption" color="success">
                       ●
                     </Text>
-                    <Text color="tertiary">{MARKET_MESSAGES.realtimeAsOf}</Text>
+                    <Text color="tertiary">
+                      {receivedAt
+                        ? MARKET_MESSAGES.realtimeAsOf(
+                            formatClockTime(receivedAt)
+                          )
+                        : MARKET_MESSAGES.realtimeWaiting}
+                    </Text>
                   </FlexBox>
                 </TableHeaderCell>
                 {MARKET_TABLE_HEADERS.map((th) => (
@@ -142,15 +195,33 @@ export const RealtimeMarketTable = () => {
               {items.map((item) => (
                 <TableRow
                   key={item.market}
+                  /*
+                    별 상태를 memoKey 에 넣는다. `TableRow` 는 `memoKey` 만 비교하므로
+                    (`@repo/ui/table`) 빼면 별을 눌러도 그 행은 다시 그려지지 않는다 —
+                    가격이 다음 틱에 바뀔 때에야 채워진 별이 나타난다.
+                  */
                   memoKey={`${item.currentPrice}-${
                     blinkingSymbol === item.symbol
-                  }`}
+                  }-${watchedBySymbol.has(item.symbol.toUpperCase())}`}
                   hoverable
+                  clickable
+                  tabIndex={0}
+                  aria-selected={item.symbol === selectedSymbol}
                   onMouseEnter={() => selectSymbolOnHover(item.symbol)}
+                  onClick={() => selectSymbol(item.symbol)}
+                  onKeyDown={selectRowOnKey(() => selectSymbol(item.symbol))}
                 >
                   <TableCell align="left">
                     <FlexBox align="center" gap="md">
-                      <StarIcon />
+                      <WatchlistStarButton
+                        entry={watchedBySymbol.get(item.symbol.toUpperCase())}
+                        displayName={item.koreanName}
+                        request={{
+                          assetType: WatchlistAssetType.Crypto,
+                          symbol: item.symbol,
+                          name: item.koreanName,
+                        }}
+                      />
                       <Image
                         radius={9999}
                         width={30}
@@ -185,10 +256,7 @@ export const RealtimeMarketTable = () => {
           </Table>
         </ScrollTableContainer>
 
-        <MarketPreview
-          selectedSymbolItem={selectedSymbolItem}
-          symbol={selectedSymbol}
-        />
+        <MarketPreview subject={previewSubject} />
       </FlexBox>
     </FlexBox>
   );

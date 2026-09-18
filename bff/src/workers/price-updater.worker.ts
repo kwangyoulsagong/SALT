@@ -83,8 +83,26 @@ class PriceUpdaterWorker {
         priceChange24h: data.change24h,
       }));
 
-      // Backend에 전송
-      await backendApi.updateWatchlistPrices(priceData);
+      /**
+       * 관심 목록과 **보유 평가** 둘 다에 보낸다.
+       *
+       * 보유 쪽은 원래 아무도 부르지 않아서 평가금액이 생성 이후 0 으로 굳어 있었다.
+       * 하나가 실패해도 다른 하나는 반영되어야 하므로 `allSettled` 다 — 둘은 서로
+       * 독립이고, 관심 목록 갱신이 막혔다고 보유 평가까지 멈출 이유가 없다.
+       */
+      const results = await Promise.allSettled([
+        backendApi.updateWatchlistPrices(priceData),
+        backendApi.updateHoldingPrices(priceData),
+      ]);
+
+      results.forEach((result, index) => {
+        if (result.status === "rejected") {
+          logger.error(
+            `${index === 0 ? "관심 목록" : "보유 평가"} 시세 반영 실패`,
+            result.reason?.message
+          );
+        }
+      });
 
       logger.debug(`Updated ${priceData.length} prices in database`);
     } catch (error) {
