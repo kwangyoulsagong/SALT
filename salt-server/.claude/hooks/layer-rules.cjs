@@ -44,8 +44,14 @@ const COMPOSITE_CONTEXTS = ["homebriefing", "onboarding"];
 
 const ALL_CONTEXTS = [...CONTEXTS, ...COMPOSITE_CONTEXTS];
 
-/** 아직 옮기지 않은 구역. 규칙을 적용하지 않는다. */
-const LEGACY_ROOTS = ["modules", "external", "workers"];
+/**
+ * 아직 옮기지 않은 구역. 규칙을 적용하지 않는다.
+ *
+ * `external` 은 **비었다** — 마지막 파일(`upbit/upbit-ws.client.ts`, import 0건)을
+ * 지우면서 목록에서도 뺐다(2026-09-18). 여기 남겨 두면 "거기에 코드를 둬도 된다"는
+ * 뜻이 되고, 새 외부 클라이언트는 `{context}/infrastructure` 로 가야 한다.
+ */
+const LEGACY_ROOTS = ["modules", "workers"];
 
 /** `domain` 에 들어오면 안 되는 패키지 (`server-architecture.md` §3). */
 const DOMAIN_FORBIDDEN_PACKAGES = [

@@ -14,7 +14,7 @@
 - `src/shared/infrastructure`: Prisma client, HTTP 클라이언트 팩토리, 이벤트 버스, 스케줄러.
 - `src/shared/presentation`: 인증·로깅·에러 미들웨어, 응답 유틸, 헬스체크.
 - `src/shared/lib`: JWT, password 같은 순수 유틸.
-- `src/external`: 외부 API client/service.
+- ~~`src/external`: 외부 API client/service.~~ **없어졌다** (2026-09-18). 외부 클라이언트는 `{context}/infrastructure`에 둔다.
 - `src/workers`: 주기 작업, 동기화, 크롤링, 정리 작업.
 
 ## 모듈 추가
