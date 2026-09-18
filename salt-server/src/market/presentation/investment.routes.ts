@@ -168,9 +168,65 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *         name: limit
    *         schema:
    *           type: number
+   *         description: 기본 20
    *     responses:
    *       200:
-   *         description: 관심 목록
+   *         description: |
+   *           관심 목록. `currentPrice`·`priceChange24h` 는 **숫자 또는 null** 이다 —
+   *           행에 적힌 값과 자산 표의 저장 시세 중 `priceUpdatedAt` 이 늦은 쪽을 담는다
+   *           (`SRV-REQ-008` FR-33). 없으면 `null` 이고 0 으로 떨어뜨리지 않는다.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     items:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           id:
+   *                             type: string
+   *                           assetType:
+   *                             type: string
+   *                             enum: [crypto, stock]
+   *                           symbol:
+   *                             type: string
+   *                           name:
+   *                             type: string
+   *                           currentPrice:
+   *                             type: number
+   *                             nullable: true
+   *                           priceChange24h:
+   *                             type: number
+   *                             nullable: true
+   *                           priceUpdatedAt:
+   *                             type: string
+   *                             format: date-time
+   *                             nullable: true
+   *                           logoUrl:
+   *                             type: string
+   *                           addedAt:
+   *                             type: string
+   *                             format: date-time
+   *                     pagination:
+   *                       type: object
+   *                       properties:
+   *                         page:
+   *                           type: number
+   *                         limit:
+   *                           type: number
+   *                         total:
+   *                           type: number
+   *                         totalPages:
+   *                           type: number
+   *       401:
+   *         description: 인증 실패
    */
   router.get("/watchlist", authMiddleware, investmentController.getWatchlist);
 

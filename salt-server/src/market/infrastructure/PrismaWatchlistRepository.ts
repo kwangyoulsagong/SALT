@@ -1,9 +1,36 @@
+import type { Prisma } from "@prisma/client";
+
 import prisma from "../../shared/infrastructure/prisma";
 import type {
   MarketAssetType,
   WatchlistItem,
   WatchlistRepository,
 } from "../domain";
+
+/** 관심 목록 행에서 도메인 타입으로. `Decimal` 은 여기서 끝난다. */
+const toItem = (row: {
+  id: string;
+  userId: string;
+  assetType: MarketAssetType;
+  symbol: string;
+  name: string;
+  currentPrice: Prisma.Decimal | null;
+  priceChange24h: Prisma.Decimal | null;
+  lastUpdated: Date | null;
+  addedAt: Date;
+}): WatchlistItem => ({
+  id: row.id,
+  userId: row.userId,
+  assetType: row.assetType,
+  symbol: row.symbol,
+  name: row.name,
+  // `null` 을 유지한다. `Number(null)` 은 0 이라 삼항을 생략하면 가격 없음이 0원이 된다.
+  currentPrice: row.currentPrice === null ? null : Number(row.currentPrice),
+  priceChange24h:
+    row.priceChange24h === null ? null : Number(row.priceChange24h),
+  lastUpdated: row.lastUpdated,
+  addedAt: row.addedAt,
+});
 
 export class PrismaWatchlistRepository implements WatchlistRepository {
   async exists(userId: string, assetType: MarketAssetType, symbol: string) {
@@ -22,7 +49,7 @@ export class PrismaWatchlistRepository implements WatchlistRepository {
     currentPrice: number | null;
     priceChange24h: number | null;
   }): Promise<WatchlistItem> {
-    return prisma.investmentWatchlist.create({
+    const row = await prisma.investmentWatchlist.create({
       data: {
         userId: input.userId,
         assetType: input.assetType,
@@ -33,6 +60,7 @@ export class PrismaWatchlistRepository implements WatchlistRepository {
         lastUpdated: new Date(),
       },
     });
+    return toItem(row);
   }
 
   async findPage(
@@ -53,7 +81,7 @@ export class PrismaWatchlistRepository implements WatchlistRepository {
       prisma.investmentWatchlist.count({ where }),
     ]);
 
-    return { items, total };
+    return { items: items.map(toItem), total };
   }
 
   /**

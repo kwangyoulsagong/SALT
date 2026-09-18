@@ -147,7 +147,9 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     listWhaleTransactions: new ListWhaleTransactions(deps.whales),
     getSymbolNews: new GetSymbolNews(deps.news),
     addToWatchlist: new AddToWatchlist(deps.watchlist, deps.exchange),
-    listWatchlist: new ListWatchlist(deps.watchlist),
+    // 관심 목록이 자산 표를 함께 읽는다 — 행에 가격이 없거나 오래된 심볼을 보정한다
+    // (`SRV-REQ-008` FR-33). 두 리포지토리 다 이 컨텍스트 것이라 경계를 넘지 않는다.
+    listWatchlist: new ListWatchlist(deps.watchlist, deps.assets),
     removeFromWatchlist: new RemoveFromWatchlist(deps.watchlist),
     listWatchlistSymbols: new ListWatchlistSymbols(deps.watchlist),
     updateWatchlistPrices: new UpdateWatchlistPrices(deps.watchlist),

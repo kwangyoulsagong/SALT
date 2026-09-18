@@ -3,8 +3,12 @@ import {
   logoUrlOf,
   WatchlistDuplicateError,
   WatchlistItemNotFoundError,
+  type AssetQuote,
   type ExchangeQuotePort,
+  type MarketAssetRepository,
   type MarketAssetType,
+  type WatchlistItem,
+  type WatchlistItemView,
   type WatchlistRepository,
 } from "../domain";
 
@@ -64,8 +68,64 @@ export class AddToWatchlist {
   }
 }
 
+/** 시각이 없는 값은 가장 오래된 것으로 본다 — 있는 쪽이 이긴다. */
+const ageOf = (at: Date | null) => at?.getTime() ?? 0;
+
+/**
+ * 관심 목록 한 줄의 시세를 고른다 (`SRV-REQ-008` FR-33).
+ *
+ * 출처가 둘이다 — 행에 적힌 값(BFF 가 실시간 캐시를 밀어 넣는다, 크립토만)과 자산 표의
+ * 저장 시세(`market` 워커). **더 최근 것을 쓴다.** 어느 한쪽을 늘 신뢰하면 주식은
+ * 영원히 `null` 이거나(행만 보면) 크립토가 워커 주기만큼 늦는다(자산 표만 보면).
+ *
+ * 가격이 없으면 `null` 을 그대로 둔다. 신선도 판정은 부르는 쪽이 한다.
+ */
+const pickQuote = (
+  item: WatchlistItem,
+  quote: AssetQuote | undefined
+): Pick<
+  WatchlistItemView,
+  "currentPrice" | "priceChange24h" | "priceUpdatedAt"
+> => {
+  const fromRow =
+    item.currentPrice === null
+      ? null
+      : {
+          currentPrice: item.currentPrice,
+          priceChange24h: item.priceChange24h,
+          priceUpdatedAt: item.lastUpdated,
+        };
+
+  const fromAssets =
+    !quote || quote.currentPrice === null
+      ? null
+      : {
+          currentPrice: quote.currentPrice,
+          priceChange24h: quote.change24h,
+          priceUpdatedAt: quote.priceUpdatedAt,
+        };
+
+  if (!fromRow) {
+    return (
+      fromAssets ?? {
+        currentPrice: null,
+        priceChange24h: null,
+        priceUpdatedAt: null,
+      }
+    );
+  }
+  if (!fromAssets) return fromRow;
+
+  return ageOf(fromAssets.priceUpdatedAt) > ageOf(fromRow.priceUpdatedAt)
+    ? fromAssets
+    : fromRow;
+};
+
 export class ListWatchlist {
-  constructor(private readonly watchlist: WatchlistRepository) {}
+  constructor(
+    private readonly watchlist: WatchlistRepository,
+    private readonly assets: MarketAssetRepository
+  ) {}
 
   async execute(
     userId: string,
@@ -81,8 +141,31 @@ export class ListWatchlist {
       limit
     );
 
+    // 심볼 목록이 비면 조회를 부르지 않는다. `findQuotes([])` 도 빈 배열이지만
+    // 왕복을 한 번 아끼는 것이 아니라 **빈 `IN ()` 을 만들지 않는 것**이 목적이다.
+    const quotes = items.length
+      ? await this.assets.findQuotes(items.map((item) => item.symbol))
+      : [];
+    const bySymbol = new Map(quotes.map((quote) => [quote.symbol, quote]));
+
     return {
-      items: items.map((item) => ({ ...item, logoUrl: logoUrlOf(item.symbol) })),
+      items: items.map((item): WatchlistItemView => {
+        const { currentPrice, priceChange24h, priceUpdatedAt } = pickQuote(
+          item,
+          bySymbol.get(item.symbol)
+        );
+        return {
+          id: item.id,
+          assetType: item.assetType,
+          symbol: item.symbol,
+          name: item.name,
+          currentPrice,
+          priceChange24h,
+          priceUpdatedAt,
+          logoUrl: logoUrlOf(item.symbol),
+          addedAt: item.addedAt,
+        };
+      }),
       pagination: {
         page,
         limit,

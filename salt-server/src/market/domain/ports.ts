@@ -163,9 +163,38 @@ export interface WatchlistItem {
   assetType: MarketAssetType;
   symbol: string;
   name: string;
-  currentPrice: unknown;
-  priceChange24h: unknown;
+  /**
+   * 행에 적힌 시세. **`unknown` 이었다** — Prisma `Decimal` 을 그대로 흘려보내서
+   * JSON 에서 `"158000000"` (문자열)로 나갔고, 화면이 숫자로 쓰면 그 자리에서 깨진다.
+   * 변환은 어댑터가 한다 (`ddd-infrastructure.md` — DB 모양은 경계에서 끝난다).
+   *
+   * **없으면 `null` 이다. 0 으로 떨어뜨리지 않는다** — 0 은 "가격이 0원"으로 읽힌다.
+   */
+  currentPrice: number | null;
+  priceChange24h: number | null;
   lastUpdated: Date | null;
+  addedAt: Date;
+}
+
+/**
+ * 관심 목록 한 줄의 화면 계약 (`SRV-REQ-008` FR-33).
+ *
+ * 행에 적힌 시세와 `market_assets` 의 저장 시세 **둘 중 더 최근 것**을 담는다. 두 값이
+ * 따로 갱신되기 때문이다 — 행은 BFF 가 실시간 캐시를 밀어 넣을 때(크립토만), 자산 표는
+ * `market` 워커가 주기적으로. 어느 쪽이 최신인지는 호출 시점마다 다르다.
+ *
+ * `priceUpdatedAt` 을 함께 주는 이유는 **신선도 판정을 부르는 쪽이 하기 때문**이다.
+ * BFF 가 실시간 캐시와 대조해 `priceStale` 을 붙인다 (`BFF-REQ-007` FR-42).
+ */
+export interface WatchlistItemView {
+  id: string;
+  assetType: MarketAssetType;
+  symbol: string;
+  name: string;
+  currentPrice: number | null;
+  priceChange24h: number | null;
+  priceUpdatedAt: Date | null;
+  logoUrl: string;
   addedAt: Date;
 }
 

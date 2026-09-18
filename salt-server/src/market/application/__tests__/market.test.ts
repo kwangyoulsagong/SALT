@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import { SentimentLabel } from "../../domain";
 import type {
+  AssetQuote,
   ExchangeQuotePort,
   FearGreedPort,
   IndicatorRepository,
@@ -13,6 +14,7 @@ import type {
   SentimentRepository,
   StoredSentiment,
   SymbolNewsPort,
+  WatchlistItem,
   WatchlistRepository,
   WhaleTransactionRepository,
 } from "../../domain";
@@ -69,9 +71,10 @@ const build = (deps: {
   fearGreed?: FearGreedPort;
   news?: SymbolNewsPort;
   watchlist?: WatchlistRepository;
+  assets?: MarketAssetRepository;
 }) =>
   createMarketApplication({
-    assets: {} as MarketAssetRepository,
+    assets: deps.assets ?? ({} as MarketAssetRepository),
     watchlist: deps.watchlist ?? ({} as WatchlistRepository),
     sentiments: deps.sentiments ?? captureSentiment().repo,
     whales:
@@ -204,6 +207,145 @@ describe("AddToWatchlist", () => {
     });
 
     assert.equal(seen, "BTC");
+  });
+});
+
+describe("ListWatchlist", () => {
+  const watchlistRow = (
+    overrides: Partial<WatchlistItem> = {}
+  ): WatchlistItem => ({
+    id: "w1",
+    userId: "u1",
+    assetType: "crypto",
+    symbol: "BTC",
+    name: "비트코인",
+    currentPrice: 100,
+    priceChange24h: 1,
+    lastUpdated: new Date("2026-09-18T00:00:00Z"),
+    addedAt: new Date("2026-09-01T00:00:00Z"),
+    ...overrides,
+  });
+
+  const stubWatchlist = (items: WatchlistItem[]): WatchlistRepository =>
+    ({
+      exists: async () => false,
+      add: async (input) => ({ ...input, id: "w1" }) as WatchlistItem,
+      findPage: async () => ({ items, total: items.length }),
+      removeOwned: async () => true,
+      distinctSymbols: async () => [],
+      applyPrices: async () => 0,
+    }) as WatchlistRepository;
+
+  const stubAssets = (quotes: AssetQuote[]) => {
+    let asked: string[] | null = null;
+    const repo = {
+      findQuotes: async (symbols: string[]) => {
+        asked = symbols;
+        return quotes;
+      },
+    } as MarketAssetRepository;
+    return { repo, asked: () => asked };
+  };
+
+  it("행에 가격이 없으면 자산 표의 저장 시세로 채운다", async () => {
+    const assets = stubAssets([
+      {
+        symbol: "BTC",
+        currentPrice: 158_000_000,
+        change24h: -1.23,
+        priceUpdatedAt: new Date("2026-09-18T02:00:00Z"),
+      },
+    ]);
+    const { useCases } = build({
+      watchlist: stubWatchlist([
+        watchlistRow({ currentPrice: null, priceChange24h: null, lastUpdated: null }),
+      ]),
+      assets: assets.repo,
+    });
+
+    const result = await useCases.listWatchlist.execute("u1");
+
+    assert.deepEqual(assets.asked(), ["BTC"]);
+    assert.equal(result.items[0].currentPrice, 158_000_000);
+    assert.equal(result.items[0].priceChange24h, -1.23);
+  });
+
+  /** 둘 다 값이 있으면 **시각이 늦은 쪽**이 이긴다. 출처가 둘인 것이 전제다. */
+  it("행이 자산 표보다 최신이면 행의 값을 쓴다", async () => {
+    const assets = stubAssets([
+      {
+        symbol: "BTC",
+        currentPrice: 1,
+        change24h: 0,
+        priceUpdatedAt: new Date("2026-09-17T00:00:00Z"),
+      },
+    ]);
+    const { useCases } = build({
+      watchlist: stubWatchlist([
+        watchlistRow({
+          currentPrice: 999,
+          lastUpdated: new Date("2026-09-18T00:00:00Z"),
+        }),
+      ]),
+      assets: assets.repo,
+    });
+
+    const result = await useCases.listWatchlist.execute("u1");
+
+    assert.equal(result.items[0].currentPrice, 999);
+  });
+
+  it("두 출처 다 가격이 없으면 null 이다 — 0 으로 떨어뜨리지 않는다", async () => {
+    const assets = stubAssets([
+      {
+        symbol: "BTC",
+        currentPrice: null,
+        change24h: null,
+        priceUpdatedAt: null,
+      },
+    ]);
+    const { useCases } = build({
+      watchlist: stubWatchlist([
+        watchlistRow({ currentPrice: null, priceChange24h: null, lastUpdated: null }),
+      ]),
+      assets: assets.repo,
+    });
+
+    const result = await useCases.listWatchlist.execute("u1");
+
+    assert.equal(result.items[0].currentPrice, null);
+    assert.equal(result.items[0].priceChange24h, null);
+  });
+
+  it("목록이 비면 자산 표를 부르지 않는다", async () => {
+    const assets = stubAssets([]);
+    const { useCases } = build({
+      watchlist: stubWatchlist([]),
+      assets: assets.repo,
+    });
+
+    const result = await useCases.listWatchlist.execute("u1");
+
+    assert.equal(assets.asked(), null);
+    assert.deepEqual(result.items, []);
+    assert.equal(result.pagination.total, 0);
+  });
+
+  /** 응답에 `userId` 를 담지 않는다 — 원문은 행을 그대로 펼쳐 내보냈다. */
+  it("뷰에 userId 가 없고 logoUrl 이 붙는다", async () => {
+    const assets = stubAssets([]);
+    const { useCases } = build({
+      watchlist: stubWatchlist([watchlistRow()]),
+      assets: assets.repo,
+    });
+
+    const result = await useCases.listWatchlist.execute("u1");
+
+    assert.equal("userId" in result.items[0], false);
+    assert.equal(
+      result.items[0].logoUrl,
+      "https://static.upbit.com/logos/BTC.png"
+    );
   });
 });
 
