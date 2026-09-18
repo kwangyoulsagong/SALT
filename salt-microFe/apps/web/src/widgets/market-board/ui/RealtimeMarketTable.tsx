@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@repo/ui/table";
 import { Text } from "@repo/ui/text";
+import useDebounce from "@repo/ui/useDebounce";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -28,6 +29,15 @@ import {
   useMarketOverview,
   useMarketOverviewRealtime,
 } from "@/entities/market";
+
+/**
+ * hover 로 프리뷰 심볼을 바꾸기까지의 대기.
+ *
+ * 마우스가 목록을 **지나가는 것**과 **멈추는 것**을 구분한다. 없으면 20행을 스쳐도
+ * 20번 선택이 일어나고, 심볼마다 차트·지표 요청 두 개와 WebSocket 재구독이 따라온다.
+ * 입력 반영 예산이 100ms 라(`performance-frontend.md` §1) 그 안쪽으로 잡았다.
+ */
+const HOVER_SELECT_DELAY_MS = 80;
 
 /**
  * 실시간 테이블 + 우측 프리뷰 조합 (`market-board`).
@@ -46,6 +56,15 @@ export const RealtimeMarketTable = () => {
   });
   const [selectedSymbol, setSelectedSymbol] = useState<string>("");
   const [blinkingSymbol, setBlinkingSymbol] = useState<string>("");
+
+  /**
+   * hover 선택은 **디바운스해서** 넘긴다. 첫 선택(아래 effect)은 즉시다 —
+   * 화면이 뜨는 순간에는 기다릴 이유가 없다.
+   */
+  const selectSymbol = useCallback((symbol: string) => {
+    setSelectedSymbol(symbol);
+  }, []);
+  const selectSymbolOnHover = useDebounce(selectSymbol, HOVER_SELECT_DELAY_MS);
 
   const handleBlink = useCallback((symbol: string) => {
     setBlinkingSymbol(symbol);
@@ -125,7 +144,7 @@ export const RealtimeMarketTable = () => {
                     blinkingSymbol === item.symbol
                   }`}
                   hoverable
-                  onMouseEnter={() => setSelectedSymbol(item.symbol)}
+                  onMouseEnter={() => selectSymbolOnHover(item.symbol)}
                 >
                   <TableCell align="left">
                     <FlexBox align="center" gap="md">
