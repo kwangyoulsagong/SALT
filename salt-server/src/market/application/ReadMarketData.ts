@@ -1,5 +1,6 @@
 import { logger } from "../../shared/config/logger";
 import {
+  ChartPeriod,
   logoUrlOf,
   MarketOverviewSort,
   type ExchangeQuotePort,
@@ -80,7 +81,7 @@ export class GetRealTimePrice {
 
 export interface ChartQuery {
   symbol: string;
-  period: "day" | "minute";
+  period: ChartPeriod;
   count: number;
   unit: number;
 }
@@ -89,7 +90,7 @@ export class GetChartData {
   constructor(private readonly exchange: ExchangeQuotePort) {}
 
   execute(query: ChartQuery) {
-    if (query.period === "day") {
+    if (query.period === ChartPeriod.Day) {
       return this.exchange.dailyCandles(query.symbol, query.count);
     }
     return this.exchange.minuteCandles(query.symbol, query.unit, query.count);

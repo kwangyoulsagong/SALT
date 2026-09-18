@@ -1,5 +1,8 @@
 import { MarketOrder, MarketPeriod, MarketSort } from "../model/types";
 
+/** 차트 주기. 서버·BFF 가 아는 값이고 문자열을 직접 쓰지 않는다. */
+const CHART_PERIOD_MINUTE = "minute";
+
 /**
  * 시세 upstream 의 엔드포인트 경로.
  *
@@ -26,8 +29,15 @@ export const MARKET_ENDPOINTS = {
     `&order=${order ?? ""}` +
     `&period=${period ?? ""}` +
     `&search=${encodeURIComponent(search ?? "")}`,
+  /**
+   * 프리뷰 차트 — 5분봉 30개.
+   *
+   * `period` 가 **`miniute`(오타)였다** (`FE-REQ-010` FR-8). 서버가 `day` 가 아닌 값을
+   * 전부 분봉으로 받아 줘서 **오타가 동작했고**, 그래서 아무도 고치지 않았다. 지금은
+   * BFF 와 서버가 모르는 값을 422 로 거부한다 — **프론트가 먼저 배포되어야 한다.**
+   */
   chartPreview: (symbol: string) =>
-    `/api/investment/crypto/${symbol}/chart?period=miniute&unit=5&count=30`,
+    `/api/investment/crypto/${symbol}/chart?period=${CHART_PERIOD_MINUTE}&unit=5&count=30`,
   intelligencePreview: (symbol: string) =>
     `/api/market-intelligence/${symbol}/dashboard`,
   /**

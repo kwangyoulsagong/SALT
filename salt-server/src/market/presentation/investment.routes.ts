@@ -98,6 +98,9 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *         schema:
    *           type: string
    *           enum: [day, minute]
+   *         description: |
+   *           없으면 `day`. **모르는 값은 422 다** — 조용히 기본값으로 떨어뜨리지 않는다
+   *           (`FE-REQ-010` FR-51). `week`·`month` 는 아직 없다.
    *       - in: query
    *         name: unit
    *         scehma: number
@@ -109,6 +112,8 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *     responses:
    *       200:
    *         description: 차트 데이터
+   *       422:
+   *         description: 알 수 없는 `period` (`MARKET_CHART_PERIOD_UNSUPPORTED`)
    */
   router.get("/crypto/:symbol/chart", investmentController.getChartData);
 
@@ -211,6 +216,8 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *                             nullable: true
    *                           logoUrl:
    *                             type: string
+   *                             nullable: true
+   *                             description: 크립토만. 주식은 null
    *                           addedAt:
    *                             type: string
    *                             format: date-time
