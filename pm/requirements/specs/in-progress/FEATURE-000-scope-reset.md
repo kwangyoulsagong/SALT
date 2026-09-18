@@ -71,16 +71,16 @@
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-20 | **"관심 종목" 탭 채우기**: 현재 `{activeTab === "realtime" && <RealtimeInvestment/>}`뿐이라 탭을 누르면 빈 화면이다. 서버 watchlist CRUD에 연결한 목록 화면을 붙인다. **탭 자체를 없애지 않는다** | Must | Draft |
-| FR-21 | **하드코딩 문자열 교체**: 테이블 헤더의 `"실시간 오늘 19:30 기준"`을 WebSocket 마지막 수신 시각으로 | Must | Draft |
-| FR-22 | **뉴스 프리뷰 실데이터 연결**: `MarketIntelligenceNewsPreview`의 제목·요약·이미지·출처·조회수가 전부 상수이고 제목에 테스트 문자열(`faskdljfaksjf…`)이 남아 있다. 서버 `/api/news`에 연결한다. **블록을 없애지 않는다** | Must | Draft |
-| FR-23 | **오타 수정**: `MyInvestments.tsx`의 `{difference}% 덜 썻어요` → `덜 썼어요` | Must | Draft |
-| FR-24 | **비어 있는 "주식" 섹션 채우기**: `<Heading>주식</Heading>`만 있고 자식이 없다. 포트폴리오 API로 보유 요약(종목·평가금액·손익률·세금 배지)을 렌더 | Must | Draft |
-| FR-25 | **터치 선택 추가**: 테이블 행 선택이 `onMouseEnter`만이라 터치 기기에서 우측 상세가 바뀌지 않는다. `onClick`을 **추가**한다(hover는 유지) | Must | Draft |
-| FR-26 | **반응형 분기 추가**: 레이아웃을 바꾸지 않고 ① 표에 자체 `overflow-x` 컨테이너 ② 모바일에서 `MarketPreview`를 아래로 접기 ③ `maxHeight="800px"` 고정을 뷰포트 기준으로 | Must | Draft |
-| FR-27 | **차트 기간 쿼리 오타**: `period=miniute` → `minute` (FE/BFF/서버 계약 동시) | Must | Draft |
-| FR-28 | **인증 축소**: 회원가입/비밀번호 변경/계정 삭제 route 및 화면 제거. `POST /api/auth/login` + refresh 유지. **초대 코드 기반 계정 생성**(`InviteCode`, 최대 10명) | Must | Draft |
-| FR-29 | **목표 저축 submit 연결 확인**: 목표 추가 폼이 실제로 `POST /api/goals`까지 연결되는지 검증하고 끊겨 있으면 잇는다. **UI는 유지** | Should | Draft |
+| FR-20 | **"관심 종목" 탭 채우기**: 현재 `{activeTab === "realtime" && <RealtimeInvestment/>}`뿐이라 탭을 누르면 빈 화면이다. 서버 watchlist CRUD에 연결한 목록 화면을 붙인다. **탭 자체를 없애지 않는다** | Must | **Done** |
+| FR-21 | **하드코딩 문자열 교체**: 테이블 헤더의 `"실시간 오늘 19:30 기준"`을 WebSocket 마지막 수신 시각으로 | Must | **Done** |
+| FR-22 | **뉴스 프리뷰 실데이터 연결**: `MarketIntelligenceNewsPreview`의 제목·요약·이미지·출처·조회수가 전부 상수이고 제목에 테스트 문자열(`faskdljfaksjf…`)이 남아 있다. 서버 `/api/news`에 연결한다. **블록을 없애지 않는다** | Must | **Done** |
+| FR-23 | **오타 수정**: `MyInvestments.tsx`의 `{difference}% 덜 썻어요` → `덜 썼어요` | Must | **Done** |
+| FR-24 | **비어 있는 "주식" 섹션 채우기**: `<Heading>주식</Heading>`만 있고 자식이 없다. 포트폴리오 API로 보유 요약(종목·평가금액·손익률·세금 배지)을 렌더 | Must | **Done** |
+| FR-25 | **터치 선택 추가**: 테이블 행 선택이 `onMouseEnter`만이라 터치 기기에서 우측 상세가 바뀌지 않는다. `onClick`을 **추가**한다(hover는 유지) | Must | **Done** |
+| FR-26 | **반응형 분기 추가**: 레이아웃을 바꾸지 않고 ① 표에 자체 `overflow-x` 컨테이너 ② 모바일에서 `MarketPreview`를 아래로 접기 ③ `maxHeight="800px"` 고정을 뷰포트 기준으로 | Must | **Done** |
+| FR-27 | **차트 기간 쿼리 오타**: `period=miniute` → `minute` (FE/BFF/서버 계약 동시) | Must | **Done** |
+| FR-28 | **인증 축소**: 회원가입/비밀번호 변경/계정 삭제 route 및 화면 제거. `POST /api/auth/login` + refresh 유지. **초대 코드 기반 계정 생성**(`InviteCode`, 최대 10명) | Must | **Done** |
+| FR-29 | **목표 저축 submit 연결 확인**: 목표 추가 폼이 실제로 `POST /api/goals`까지 연결되는지 검증하고 끊겨 있으면 잇는다. **UI는 유지** | Should | **Done** |
 
 ### D. 추가 — 지금 화면의 탭과 블록으로
 
@@ -145,8 +145,8 @@
 | shell | `components/TipsApp/**` | 유지 | 손대지 않음 (사용자 결정) |
 | shell | `components/Home/WeeklyPlanRow` · `TaxDeadlineRow` | 신규 | FEATURE-003 / FEATURE-002 요약 |
 | shell | `components/Home/TabBar` | 신규 | 모바일 하단 탭바 5개 (FR-36) |
-| shell | `components/Onboarding/*` | 신규 | 초대 코드 + 계좌 연결 + 적립액 3스텝 |
-| shell | 회원가입/비밀번호/계정삭제 화면 | 수리 | 제거 후 초대 코드 화면으로 대체 |
+| web | `pages/onboarding` + `widgets/onboarding-flow` + `features/accept-invite` | **완료** | 초대 코드 + 계좌 연결 + 적립액 3스텝. 뒤 두 단계는 **안내만** 한다 — 연결 화면은 F001, 적립 설정은 F003 |
+| web | 회원가입/비밀번호/계정삭제 화면 | **완료** | **셋 다 구현된 적이 없었다.** `/signup` 은 `PUBLIC_PATHS` 에 경로만 있었고 그 자리를 초대 코드 화면이 가져갔다 |
 | goals | `component/GoalsApp/**` | 유지 | 목표 카드 UI 그대로 |
 | goals | `component/AddGoals/**` | 수리 | submit → `POST /api/goals` 연결 확인. `ACCOUNT_SELECTED` 의존 제거 |
 | investments | `pages/investment/index.tsx` | 추가 | `Tabs`에 4개 추가 + 각 탭 본문 마운트 |
@@ -172,7 +172,8 @@
 | GET | `/api/users/points/*`, `/api/users/achievements` | 보류 | 동일 |
 | GET | `/api/app/feed` | 보류 | 동일 |
 | GET | `/api/dashboard` | 보류 | 동일 |
-| POST | `/api/auth/register`, PATCH `/api/users/password`, DELETE `/api/users/account` | 수리 | 제거 → 초대 코드 검증 route로 대체 |
+| POST | `/api/auth/register`, PATCH `/api/users/password`, DELETE `/api/users/account` | **완료** | 제거됨(404). 대체 경로는 `POST /api/app/onboarding/invite` |
+| GET·POST | `/api/app/onboarding/{invite,invite/check,status}` | **신규·완료** | 무인증 2 + 인증 1. 실패는 `403 { reasonCode }` |
 | ALL | `/api/goals*` | 유지 | 그대로 (단일 적립 목표는 이후 결정) |
 | ALL | `/api/investment/watchlist*` | 유지 | 관심 종목 탭이 실제로 사용 (FR-20) |
 | GET | `/api/investment/market/overview` | 유지 | `limit=100` 유지 |
@@ -194,9 +195,10 @@
 | Server | `modules/news` | 수리 | 유지 + 프리뷰 연결 |
 | Server | `modules/market-intelligence` | 유지 | 프리뷰가 사용. 알림 생성만 중단 |
 | Server | `modules/investment` (watchlist) | 유지 | 관심 종목 탭이 사용 |
-| Server | `modules/auth` | 수리 | register/password/delete 제거, 초대 코드 검증 추가 |
+| Server | ~~`modules/auth`~~ → `src/auth/**` | **완료** | DDD 컨텍스트로 신설. register/password/delete **제거됨**(404), 초대 코드 검증 추가. 계정은 `InviteCodeStore.redeem` 으로만 생긴다 |
 | Server | `modules/investment-notification` | 수리 | 타입 2종으로 제한 |
 | Server | `modules/{ai-coach, trade-preflight, behavior-coach, profit-plan, signal-performance, portfolio, technical-indicator}` | 유지 | 그대로 |
+| Server | `src/onboarding/**` | **완료** | 조합 컨텍스트 신설. 3스텝 판정(`GET /api/onboarding/status`) |
 | Server | `external/kis/` | 추가 | 조회 전용 클라이언트 스켈레톤 (FR-35) |
 | DB | `AIAnalysisSession`, `AIAnalysis` + `AnalysisStatus`, `PredictionType` | 빼기 | drop (grep 0 확인 후) |
 | DB | `AssetType` enum | 추가 | `crypto` / `kr_stock` / `us_stock` (FR-34) |
@@ -280,7 +282,7 @@ flowchart TB
 - [ ] 보류 route가 410 Gone을 반환한다.
 - [ ] `AssetType`이 `crypto`/`kr_stock`/`us_stock` 3값이고 기존 row가 모두 `crypto`다.
 - [ ] `PortfolioTransaction` / `PortfolioHolding` / `PriceHistory` row 수가 migration 전후 동일하다.
-- [ ] 초대 코드 없이 계정이 생성되지 않는다.
+- [x] 초대 코드 없이 계정이 생성되지 않는다. — `register` 404 실측. 계정을 만드는 함수가 `InviteCodeStore.redeem` 하나이고 그것은 코드 점유 없이 성공하지 않는다
 - [ ] `pnpm build`, `pnpm lint`, `pnpm typecheck` 전부 통과한다.
 
 ## 검증 계획
@@ -300,3 +302,5 @@ flowchart TB
 | 2026-09-08 | 초안 작성 |
 | 2026-09-08 | 서약/쿨다운 알림 참조 제거, 초대 코드 인증으로 전환, `AssetType` 3자산군 확장 |
 | 2026-09-08 | **전면 개정 — "제거"에서 "편집"으로.** 사용자 결정(*"지금 화면에서 뺄 건 빼고 하자"*, *"지금 있는 거 다 필요해 보이긴 해"*, *"현재 홈 화면은 이뻐서 냅두고 싶어"*)에 따라 판정 축을 유지/수리/추가/빼기/보류 5개로 재정의. 실제 삭제는 화면 밖 죽은 코드 5건으로 한정, 화면 없는 백엔드는 보류(동면). 홈 시각 구성과 투자 페이지 레이아웃을 변경 금지 목록(E절)으로 명시. 신규 기능은 홈 상단 2줄 + `/investments` 탭 4개로 편입 |
+| 2026-09-18 | **관심 종목 탭 + 수리 9건 구현**(PR #41). C절 FR-20~27·29 를 `Done` 으로. 근거: `requirements/reports/checklists/F000-watchlist-tab.md` |
+| 2026-09-18 | **초대 코드 · 온보딩 3스텝 구현.** FR-28 을 `Done` 으로 — 서버 `auth`·`onboarding` 컨텍스트 신설, BFF 온보딩 3계약, 프론트 온보딩 화면. `POST /api/auth/register` · `PATCH /api/users/password` · `DELETE /api/users/account` 가 404 다. 근거: `requirements/reports/checklists/F000-invite-onboarding.md`. **온보딩 2·3 단계는 판정만 하고 화면은 F001·F003 이 만든다** |

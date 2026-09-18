@@ -5,11 +5,6 @@ export const updateProfileSchema = z.object({
   profileImageUrl: z.string().url('Invalid URL').optional().nullable(),
 });
 
-export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string().min(8, 'New password must be at least 8 characters'),
-});
-
 export const queryPointTransactionsSchema = z.object({
   transactionType: z.enum(['earn', 'spend']).optional(),
   source: z.string().optional(),
@@ -26,6 +21,5 @@ export const queryAchievementsSchema = z.object({
 });
 
 export type UpdateProfileDto = z.infer<typeof updateProfileSchema>;
-export type ChangePasswordDto = z.infer<typeof changePasswordSchema>;
 export type QueryPointTransactionsDto = z.infer<typeof queryPointTransactionsSchema>;
 export type QueryAchievementsDto = z.infer<typeof queryAchievementsSchema>;

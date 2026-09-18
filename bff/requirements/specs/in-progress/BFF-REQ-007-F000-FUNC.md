@@ -130,6 +130,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-18 | **D·E·F절을 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-30~34(뉴스 프리뷰 실데이터) · FR-40~43(관심 종목 조립 · `priceStale` · 0건 빈 배열) · FR-50~52(`period` 교정하지 않고 422). **남은 것**: A절 FR-1~6(동면 route 410) · B절 FR-10~15(홈 조립 재작성) · C절 FR-20~24(알림 2종) · G절 FR-60~64(온보딩·인증). 근거: `requirements/reports/checklists/BFF-REQ-007.md` |
+| 2026-09-18 | **G절을 구현했다.** 닫힌 것: FR-60~64(proxy `register` 제거 · 온보딩 3라우트 · `check` 무인증 + rate limit · `403` + `reasonCode` 그대로). `users/password`·`users/account` proxy 도 함께 제거. **남은 것**: A절(동면 410) · B절(홈 조립) · C절(알림 2종). 근거: `requirements/reports/checklists/BFF-REQ-007.md` §6~§8 |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

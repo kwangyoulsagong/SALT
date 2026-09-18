@@ -1,8 +1,8 @@
 # BFF-REQ-007 (F000 FUNC) — 검증 체크리스트
 
 - REQ: `requirements/specs/in-progress/BFF-REQ-007-F000-FUNC.md`
-- 브랜치: `feat/f000-watchlist-tab` · 검증일: 2026-09-18
-- 상태: **부분 완료** — D·E·F절이 닫혔고 A·B·C·G절이 남았다
+- 브랜치: `feat/f000-watchlist-tab` → `feat/f000-invite-onboarding-slice` · 검증일: 2026-09-18
+- 상태: **부분 완료** — D·E·F절에 이어 **G절(인증·온보딩)** 이 닫혔다. A·B·C절(동면 410·홈 조립·알림)이 남았다
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-watchlist-tab.md`
 
 ## 1. 닫힌 것
@@ -54,3 +54,33 @@
 ## 5. 명령
 
 `npm run build` pass · `npm test` **23건 pass**.
+
+## 6. G절 — 인증 경로 정리 (2026-09-18, `feat/f000-invite-onboarding-slice`)
+
+| FR | 내용 | 결과 | 근거 |
+|---|---|---|---|
+| FR-60 | proxy 에서 `POST /api/auth/register` 제거 | **pass** | 404. 서버에서도 404 라 남겨 두면 프론트가 죽은 경로를 계속 부른다 |
+| FR-61 | `POST /api/app/onboarding/invite` → 서버 `/auth/invite/accept` | **pass** | 201 + 토큰 |
+| FR-62 | `GET /api/app/onboarding/status` → 서버 `/onboarding/status` | **pass** | 봉투를 벗기고 뷰모델로 |
+| FR-63 | `invite/check` 무인증 + rate limit | **pass** | 창당 30회. 34회 중 6회 429 |
+| FR-64 | 초대 `403` + `reasonCode` 그대로 전달 | **pass** | 본문 `{"reasonCode":"…"}`. 문장 0건 |
+
+**`PATCH /users/password` · `DELETE /users/account` proxy 도 함께 제거**했다(`BFF-REQ-008`
+제거 표). 서버에서 404 다.
+
+## 7. rate limit 이 BFF 에도 필요한 이유
+
+서버(`salt-server`)에 같은 것이 있다. 그런데 **BFF 가 무인증으로 여는 경로**는 서버에
+닿기 전에 BFF 의 커넥션과 upstream 호출을 먼저 쓴다. 서버에서만 막으면 BFF 는 그 요청을
+전부 중계하고 나서 429 를 받아 온다 — **막는 지점이 비용이 드는 지점보다 뒤**다.
+
+값(창 60초 · check 30 · accept 10)은 서버 쪽과 같게 뒀다. 다르면 둘 중 좁은 쪽만
+의미가 있고 넓은 쪽은 착각을 만든다.
+
+## 8. 남은 것
+
+| 항목 | 언제 닫히나 |
+|---|---|
+| A절 FR-1~6 — 동면 route 410 Gone + 1주 로그 | 별도 슬라이스 |
+| B절 FR-10~15 — 홈 조립 재작성(`allSettled` · 뷰모델) | A절 선행(동면 소스 제거) |
+| C절 FR-20~24 — 알림 2종 축소 | `notification` 컨텍스트 |

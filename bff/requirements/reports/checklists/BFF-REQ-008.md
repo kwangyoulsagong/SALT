@@ -1,8 +1,8 @@
 # BFF-REQ-008 (F000 API) — 검증 체크리스트
 
 - REQ: `requirements/specs/in-progress/BFF-REQ-008-F000-API.md`
-- 브랜치: `feat/f000-watchlist-tab` · 검증일: 2026-09-18
-- 상태: **부분 완료** — 신규 7개 중 5개를 열었다
+- 브랜치: `feat/f000-watchlist-tab` → `feat/f000-invite-onboarding-slice` · 검증일: 2026-09-18
+- 상태: **부분 완료** — watchlist·news·portfolio/summary 에 이어 **온보딩 3계약**이 열렸다. 제거 목록은 함께 닫혔다
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-watchlist-tab.md`
 
 ## 1. 신규 계약
@@ -41,3 +41,29 @@
 ## 4. 명령
 
 `npm run build` pass · `npm test` 23건 pass (뷰모델 매핑 17 + 관심 목록 판정 6).
+
+## 온보딩 3계약 (2026-09-18, `feat/f000-invite-onboarding-slice`)
+
+| 경로 | Auth | 결과 |
+|---|---|---|
+| `GET /api/app/onboarding/invite/check?code=` | N + rate limit | `{valid}` / `{valid:false, reasonCode}` |
+| `POST /api/app/onboarding/invite` | N + rate limit | `201 {accessToken, refreshToken, user}` / `403 {reasonCode}` |
+| `GET /api/app/onboarding/status` | Y | `OnboardingStatusViewModel` · 무인증 401 |
+
+| FR | 내용 | 결과 |
+|---|---|---|
+| FR-9 | 초대 실패가 `403` + `reasonCode`, 문구는 프론트 | **pass** |
+| FR-10 | `invite/check` 가 상한 초과를 노출하지 않는다 | **pass** — 서버가 지우고 **BFF 가 한 번 더 지운다** |
+| FR-13 | 뷰모델 타입을 `packages/core` 로 공유 | **미충족** — `bff` 는 workspace 밖이라 import 할 수 없다. 프론트가 같은 모양을 선언한다(`FE-REQ-024`) |
+
+**제거 목록**(`/api/auth/register` · `/users/password` · `/users/account`)도 함께 닫혔다.
+동면 경로 410(FR-11)은 남아 있다.
+
+## 뷰모델을 정규화한 이유
+
+`nextStep` 을 서버 값 그대로 쓰지 않고 **우리가 정규화한 `steps` 에서 다시 찾는다.**
+둘이 어긋나면 화면이 "이미 끝낸 단계로 가라"고 말하게 되고 사용자는 같은 화면을
+반복해서 본다. 빠진 단계는 미완료로 채워 `ProgressStepper` 가 항상 세 칸이 되게 했다 —
+서버가 한 칸을 빼먹었다고 스텝이 사라지면 사용자가 진행률을 잘못 읽는다.
+
+테스트 5건이 이 규칙을 지킨다(`src/services/__tests__/onboarding.viewmodel.test.ts`).

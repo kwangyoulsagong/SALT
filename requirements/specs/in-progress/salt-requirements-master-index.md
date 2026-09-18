@@ -197,11 +197,11 @@ flowchart TB
 | `FE-REQ-008` App Router + 스트리밍 SSR | **done** | 두 zone 모두 App Router. 스트리밍 게이트 **첫 블록 p95 31.9ms**(기준 300ms), 번들 증가 최대 +16.2 kB gzip(예산 40KB). 미충족 7건 중 **2건이 닫혔다**(§6-1 FSD pages 레이어 → `FE-REQ-009`, §6-7 Codex 미러 → 하네스 제거). **§6-4(인증 토큰이 `localStorage`)는 이 REQ 의 실제 미달**이고 `FE-REQ-013`이 담당한다. `checklists/FE-REQ-008.md` §6 |
 | `FE-REQ-009` FSD 전환 | **done** | 두 zone 모두 6레이어. 슬라이스 8개(`auth`·`goal`·`market`·`portfolio` / `sign-in`·`add-goal` / `home-briefing`·`market-board`). `layer-check` 훅 + `@repo/fsd/layers` lint가 **같은 규칙 표 하나**를 읽는다(차단 8 · 통과 5 테스트). 렌더 동일성 4경로 × 3뷰포트 통과, 공통 청크 증가 **0**. 남은 것은 `checklists/FE-REQ-009.md` §8 — 이 REQ 미달 2건(FR-37 · `/investments` +7kB), 범위 밖 5건 |
 | `SRV-REQ-006` DDD 전환 | **in-progress (4/4단계)** | `shared` Kernel + `layer-check` 훅·ESLint(1) · `coach/domain/policy` 추출 + 특성화 테스트 23건(2) · `news`·`market`·`portfolio` 이관(3, FR-32a) · **`coach` 통합(4, FR-32)**. 컨텍스트 **4개** · 동사형 유스케이스 **49개** · 공개 API **17개**. `modules` 15 → 12 → **8개**(원문 29파일 3,538줄 삭제). 테스트 18 → 85 → **137건**. 4단계에서 **같은 이름의 값이 경로마다 다르게 정의돼 있던 것**(기술 지표 주기 `m5` vs 무관)이 드러나 통일했다. 그 뒤 **미충족 8건을 닫았다**(§12) — **수익률 예측(`expectedReturn`) 제거**, 외부 호출 타임아웃·지수 백오프(캔들 수집 실패 **다수 → 0건**), `external/` 삭제, 한글 뉴스 언어 필터 복구, 공개 LLM 경로 요청 제한. 테스트 **153건**. 남은 12건은 전부 `ledger`(F001)·`DB-REQ-*`·**FR-33(`SRV-REQ-007`)**·프론트 계약을 기다린다. 상세는 `checklists/SRV-REQ-006.md` §10~§13 |
-| `FE-REQ-010` F000 UI | **in-progress** | 수리 9건(FR-1~9)과 표시·접근성·반응형이 닫혔다. **초대 코드·온보딩 화면(FR-20~26)이 남았다.** FR-63 은 `role="tablist"` 대신 `role="group"`+`aria-pressed` 로 갔다(탭이 아니다 — tabpanel 이 없다). `checklists/FE-REQ-010.md` |
-| `BFF-REQ-007` F000 FUNC | **in-progress** | D·E·F절(뉴스·관심 종목·`period`) 완료. A·B·C·G절(동면 410·홈 조립·알림·온보딩) 남음. **테스트 러너가 이 작업에서 처음 생겼다**(23건) |
-| `BFF-REQ-008` F000 API | **in-progress** | 신규 7개 중 5개(`watchlist` 3 · `news` · `portfolio/summary`) 열림. 온보딩 3개 남음 |
-| `SRV-REQ-008` F000 FUNC | **in-progress** | 관심 목록(FR-33)·뉴스·`period`·포지션 요약 완료. 초대(FR-1~7)·인증 축소·알림·`AssetType` 3값·동면 남음 |
-| `SRV-REQ-009` F000 API | **in-progress** | `/api/portfolio/summary` + `period` 422 완료. 초대 3개·제거·410 남음 |
+| `FE-REQ-010` F000 UI | **in-progress** | 수리 9건(FR-1~9)·표시·접근성·반응형에 이어 **초대 코드·온보딩 3스텝(FR-20~26·64)이 닫혔다**. 슬라이스 셋이 생겼다 — `features/accept-invite` · `widgets/onboarding-flow` · `pages/onboarding`. **회원가입 화면은 구현된 적이 없었다**(경로만 `PUBLIC_PATHS` 에 있었다). 남은 것은 FR-63 과 **브라우저 화면 실측**이다. FR-63 은 `role="tablist"` 대신 `role="group"`+`aria-pressed` 로 갔다(탭이 아니다 — tabpanel 이 없다). `checklists/FE-REQ-010.md` |
+| `BFF-REQ-007` F000 FUNC | **in-progress** | D·E·F절(뉴스·관심 종목·`period`)에 이어 **G절(온보딩 3라우트·`register` 제거·rate limit)** 완료. A·B·C절(동면 410·홈 조립·알림) 남음. **테스트 러너가 이 작업에서 처음 생겼다**(23건) |
+| `BFF-REQ-008` F000 API | **in-progress** | 신규 **7개 전부** 열렸다(`watchlist` 3 · `news` · `portfolio/summary` · 온보딩 3). 제거 목록도 닫혔다. 남은 것은 동면 경로 410(FR-11)과 `packages/core` 타입 공유(FR-13 — `bff` 가 workspace 밖이다) |
+| `SRV-REQ-008` F000 FUNC | **in-progress** | 관심 목록·뉴스·`period`·포지션 요약에 이어 **초대(FR-1~7)·인증 축소(FR-10~12)·온보딩 상태(FR-13·14)** 완료. `auth` 가 DDD 컨텍스트로 섰고 `modules/auth` 를 지웠다. 알림 2종·`AssetType` 3값·환율·동면 남음 |
+| `SRV-REQ-009` F000 API | **in-progress** | `/api/portfolio/summary` · `period` 422 에 이어 **초대 2경로 · `/api/onboarding/status` · 제거 3경로(404)** 완료. 동면 410(FR-7·8)·알림 422 남음 |
 | 나머지 136개 | to-do | |
 
 **P0 아키텍처 전환 3개(FE)가 끝났다.** `FE-REQ-007`→`008`→`009`.
@@ -221,7 +221,26 @@ flowchart TB
 > 평가금액이 영원히 0 이었고, 목표 추가 제출이 `console.log` 두 줄이었다. 셋 다 빌드·
 > lint·타입체크를 통과하고 있었다. **소비처가 없는 계약은 검증되지 않는다.**
 
-다음 FE 작업은 `FE-REQ-011`~`013` 과 초대 코드 화면(`FE-REQ-010` FR-20~26)이다.
+**두 번째 수직 슬라이스가 끝났다 (2026-09-18).** 초대 코드 · 온보딩 3스텝을 서버→BFF→
+프론트로 관통시켰다. 범위와 근거는 `requirements/specs/in-progress/F000-invite-onboarding-slice.md`,
+전 영역 통합 검증은 `requirements/reports/checklists/F000-invite-onboarding.md` 에 있다.
+
+> **공통 수용 기준 하나가 실제로 열려 있었다.** §6 의 "초대 코드 없이 계정이 생성되지
+> 않는다"에 대해 `POST /api/auth/register` 가 이메일만 받으면 누구에게나 계정을 주고
+> 있었다. 지금은 그 경로가 404 이고, 계정을 만드는 함수가 `InviteCodeStore.redeem`
+> 하나인데 그것은 **코드 점유 없이 성공하지 않는다** — 규율이 아니라 구조다.
+
+> **또 하나의 죽은 경로가 드러났다** — `ACCESS_TOKEN_KEY` 를 **읽는 코드만 있고 쓰는
+> 코드가 없었다.** 로그인에 성공해도 `authHeader()` 가 빈 객체라 `/api/app/*` 를 부르는
+> 화면이 전부 401 이었고, 화면은 그것을 "데이터 없음"으로 그렸다. 빌드·타입체크·lint 를
+> 통과한 채였다. **읽는 쪽만 있고 쓰는 쪽이 없는 계약도 검증되지 않는다.**
+
+컨텍스트가 **6개**가 됐다 — `news`·`market`·`portfolio`·`coach` 에 `auth` 와 조합
+컨텍스트 `onboarding` 이 더해졌다. `modules` 는 8 → **7개**(`auth` 삭제).
+
+다음 FE 작업은 `FE-REQ-011`~`013` 이고, 남은 F000 묶음은 **동면 route 410**
+(`SRV-REQ-009` FR-7·8 · `BFF-REQ-007` A·B절)과 **알림 2종**(`SRV-REQ-008` FR-20~25 ·
+`BFF-REQ-007` C절)이다.
 
 **레이어 규칙은 이제 실행된다.** 새 프론트 작업은 쓰기 시점에 `layer-check` 훅을 통과해야 한다.
 새 슬라이스는 `layered-architecture.md` §4 표 → `packages/eslint-plugin-fsd/layer-rules.cjs`의
@@ -280,3 +299,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-11 | `SRV-REQ-006` 3단계 — `news`·`market`·`portfolio` 이관(FR-32a). 조립 지점을 `src/composition.ts` 로 정하고 `server-architecture.md` §5 에 규칙화. `ErrorKind` 에 `Forbidden`(403) 추가 — FR-22 의 네 값으로는 이관이 **응답 코드를 바꾸거나 레이어 규칙을 깨는 것** 중 하나를 해야 했다 |
 | 2026-09-18 | `SRV-REQ-006` 4단계 — `coach` 통합(FR-32). 원문 29파일 3,538줄을 지우고 컨텍스트 하나로 합쳤다. 공개 API 를 9개 늘려 **남의 테이블 직접 조회를 0으로** 만들었고, 특성화 테스트 52건 중 **18건(점수 엔진)이 첫 실행에 통과**했다. **LLM 해설의 수익률 예측은 계약이라 그대로 옮기고 §11-2 에 크게 적었다** — 이관이 제품 규칙 위반을 고치는 자리는 아니지만, 그 위반이 이제 `coach` 안에 있다 |
 | 2026-09-18 | `SRV-REQ-006` 미충족 8건 처리 — **LLM 해설에서 수익률 예측을 없앴다**(공통 수용 기준 4). 외부 클라이언트 넷에 **타임아웃이 아예 없던 것**을 찾아 `shared/infrastructure/retry` 와 함께 넣었고 기동 시 캔들 수집 실패가 **다수 → 0건**이 됐다. 한글 뉴스 언어 필터는 **살리는 쪽**으로 정했다(3단계 특성화 테스트가 그 변경을 한 번 걸렀다). `AppError` 하위 클래스의 `instanceof` 가 전부 거짓이던 것도 함께 고쳤다 |
+| 2026-09-18 | **초대 코드 · 온보딩 3스텝 수직 슬라이스.** `auth`(DDD)와 `onboarding`(조합) 컨텍스트 신설, BFF 온보딩 3계약, 프론트 온보딩 화면. `register`·`password`·`account` 세 경로가 404 다. `ErrorKind` 에 `Unauthenticated`(401)를 더했고, **이 레포의 첫 `$transaction`** 이 나왔다 — 규칙상 트랜잭션을 열 자리가 없어 원자성을 Port 계약(`redeem`)으로 올렸다 |

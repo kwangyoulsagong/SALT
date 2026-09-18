@@ -3,7 +3,6 @@ import { UserService } from './user.service';
 import { ResponseUtil } from '../../shared/presentation/ResponseUtil';
 import {
   updateProfileSchema,
-  changePasswordSchema,
   queryPointTransactionsSchema,
   queryAchievementsSchema,
 } from './user.dto';
@@ -29,18 +28,6 @@ export class UserController {
       const result = await this.userService.updateProfile(userId, data);
 
       return ResponseUtil.success(res, result, 'Profile updated successfully');
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  changePassword = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const userId = req.user!.userId;
-      const data = changePasswordSchema.parse(req.body);
-      const result = await this.userService.changePassword(userId, data);
-
-      return ResponseUtil.success(res, result);
     } catch (error) {
       next(error);
     }
@@ -92,20 +79,4 @@ export class UserController {
     }
   };
 
-  deleteAccount = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const userId = req.user!.userId;
-      const { password } = req.body;
-
-      if (!password) {
-        return ResponseUtil.error(res, 'Password is required', 400);
-      }
-
-      const result = await this.userService.deleteAccount(userId, password);
-
-      return ResponseUtil.success(res, result);
-    } catch (error) {
-      next(error);
-    }
-  };
 }
