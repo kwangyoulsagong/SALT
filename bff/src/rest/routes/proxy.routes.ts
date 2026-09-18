@@ -37,7 +37,10 @@ const proxyHandler = async (
 };
 
 // Auth 관련
-router.post("/auth/register", proxyHandler);
+//
+// **`POST /auth/register` 가 없다** (`BFF-REQ-007` FR-60). 계정은 초대 코드로만 생기고
+// 그 경로는 `/api/app/onboarding/invite` 다. 서버에서도 404 이므로 여기 남겨 두면
+// 프론트가 죽은 경로를 계속 부르게 된다.
 router.post("/auth/login", proxyHandler);
 router.post("/auth/refresh", proxyHandler);
 router.get("/auth/me", authMiddleware, proxyHandler);
@@ -89,12 +92,12 @@ router.delete("/missions/admin/:id", authMiddleware, proxyHandler);
 // Users 관련
 router.get("/users/profile", authMiddleware, proxyHandler);
 router.patch("/users/profile", authMiddleware, proxyHandler);
-router.patch("/users/password", authMiddleware, proxyHandler);
 router.get("/users/points/transactions", authMiddleware, proxyHandler);
 router.get("/users/points/stats", authMiddleware, proxyHandler);
 router.get("/users/achievements", authMiddleware, proxyHandler);
 router.get("/users/dashboard", authMiddleware, proxyHandler);
-router.delete("/users/account", authMiddleware, proxyHandler);
+// `PATCH /users/password` · `DELETE /users/account` 는 제거했다 — 서버에서 404 다
+// (`SRV-REQ-009` 제거 목록 · `BFF-REQ-008` 제거 표).
 
 // ai-coach
 router.post("/ai-coach/generate", authMiddleware, proxyHandler);
