@@ -139,6 +139,50 @@ export interface MarketIntelligencePreviewResponse {
   data: MarketIntelligencePreviewItem;
 }
 
+/**
+ * 관심 목록 한 줄. **BFF 가 소유한 뷰모델**이다 (`/api/app/watchlist`).
+ *
+ * `bff` 는 pnpm workspace 밖의 독립 npm 프로젝트라 `@repo/core` 를 import 할 수 없다.
+ * 그래서 계약이 지금은 두 곳에 있다 — 합치는 것은 이 파일 상단 주석이 예고한 대로
+ * `FE-REQ-024` 다. 필드 이름을 바꿀 때 `bff/src/services/app-watchlist.service.ts` 를
+ * 같이 본다.
+ */
+export interface WatchlistItem {
+  id: string;
+  /**
+   * 자산군. **열거로 좁히지 않는다** — DB enum 이 `crypto`·`stock` 2값인데
+   * `DB-REQ-003` 이 `kr_stock`·`us_stock` 로 넓힌다. 지금 2값으로 못 박으면 그때
+   * 거짓 안전이 된다. 표시 문구는 `WATCHLIST_ASSET_LABELS` 가 정하고 모르는 값은
+   * 심볼만 보여준다.
+   */
+  assetType: string;
+  symbol: string;
+  name: string;
+  /** 없으면 `null`. **0 이 아니다** — 0 은 "가격이 0원"으로 읽힌다 */
+  currentPrice: number | null;
+  changeRate: number | null;
+  /** 이 값이 실시간이 아니다. 화면은 "지연" 배지를 붙인다 */
+  priceStale: boolean;
+  logoUrl: string;
+  priceUpdatedAt: string | null;
+}
+
+export interface WatchlistResponse {
+  items: WatchlistItem[];
+}
+
+/** 추가할 때 **우리가 고르는** 값이라 열거로 좁힌다. */
+export enum WatchlistAssetType {
+  Crypto = "crypto",
+  Stock = "stock",
+}
+
+export interface AddWatchlistRequest {
+  assetType: WatchlistAssetType;
+  symbol: string;
+  name: string;
+}
+
 export interface MarketSymbolNewsParams {
   symbol: string;
   source?: string;

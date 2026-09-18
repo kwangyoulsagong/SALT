@@ -1,5 +1,6 @@
 import axios from "axios";
 
+import { authHeader } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
 import {
@@ -9,6 +10,7 @@ import {
   MarketOverviewResponse,
   MarketSymbolNewsItem,
   MarketSymbolNewsParams,
+  WatchlistResponse,
 } from "../model/types";
 import { MARKET_ENDPOINTS } from "./endpoints";
 
@@ -40,5 +42,18 @@ export const marketApi = {
     symbol,
   }: MarketSymbolNewsParams): Promise<MarketSymbolNewsItem> => {
     throw new Error(`marketSymbolNews is not implemented for ${symbol}`);
+  },
+  /**
+   * 관심 목록. **인증이 필요하다** — 토큰이 없으면 BFF 가 401 을 준다.
+   *
+   * 부르는 쪽(`useWatchlist`)이 토큰 유무로 `enabled` 를 정한다. 여기서 던지지 않는
+   * 이유는 "로그인 안 됨"이 오류가 아니라 **상태**이기 때문이다.
+   */
+  watchlist: async (signal?: AbortSignal): Promise<WatchlistResponse> => {
+    const response = await axios.get<WatchlistResponse>(
+      `${INVESTMENTS_BASE_URL}${MARKET_ENDPOINTS.watchlist()}`,
+      { headers: authHeader(), signal },
+    );
+    return response.data;
   },
 };

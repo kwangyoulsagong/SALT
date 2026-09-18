@@ -6,5 +6,6 @@
  * 에서 토큰 부착·에러 정규화·타임아웃을 `apiFetch` 위에 붙이고 `axios` 쪽을 그리로 올린다.
  */
 export * from "./apiFetch";
+export * from "./authToken";
 export * from "./mockGate";
 export * from "./websocket";
