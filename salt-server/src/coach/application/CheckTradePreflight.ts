@@ -7,6 +7,9 @@ import {
   type PortfolioProbe,
 } from "../domain";
 
+/** 이 계산이 보는 자산군. 원문이 `crypto` 로 좁혔다. */
+const COACH_ASSET_TYPE = "crypto" as const;
+
 export interface TradePreflightCommand {
   symbol: string;
   entryPrice: number;
@@ -38,7 +41,8 @@ export class CheckTradePreflight {
     const symbol = command.symbol.toUpperCase();
 
     const [holdings, holding, profile, quotes] = await Promise.all([
-      this.portfolio.listHoldings(userId),
+      // 원문이 `assetType: crypto` 로 좁혔다. 비중 한도는 같은 자산군 안에서만 뜻이 있다
+      this.portfolio.listHoldings(userId, COACH_ASSET_TYPE),
       this.portfolio.getHolding(userId, symbol),
       this.profiles.findByUser(userId),
       this.market.quotes([symbol]),

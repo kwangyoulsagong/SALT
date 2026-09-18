@@ -17,9 +17,17 @@ export class PrismaHoldingRepository implements HoldingRepository {
     });
   }
 
-  findByUser(userId: string, symbol?: string): Promise<Holding[]> {
+  findByUser(
+    userId: string,
+    symbol?: string,
+    assetType?: PortfolioAssetType
+  ): Promise<Holding[]> {
     return prisma.portfolioHolding.findMany({
-      where: { userId, ...(symbol ? { symbol } : {}) },
+      where: {
+        userId,
+        ...(symbol ? { symbol } : {}),
+        ...(assetType ? { assetType } : {}),
+      },
       orderBy: { currentValue: "desc" },
     });
   }

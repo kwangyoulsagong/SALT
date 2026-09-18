@@ -38,6 +38,15 @@ export interface CoachQuote {
   priceUpdatedAt: Date | null;
 }
 
+/**
+ * 코치가 다루는 자산군.
+ *
+ * `market`·`portfolio` 와 같은 이유로 **DB enum 두 값**만 쓴다 — 커널의 세 값
+ * (`crypto`·`kr_stock`·`us_stock`)을 쓰면 DB 가 거부하는 값이 컴파일을 통과한다.
+ * 확장은 `DB-REQ-003` 이다.
+ */
+export type CoachAssetType = "crypto" | "stock";
+
 /** `portfolio` 의 보유. */
 export interface CoachHolding {
   symbol: string;

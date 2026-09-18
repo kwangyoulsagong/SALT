@@ -1,5 +1,6 @@
 import type { PortfolioApi } from "../../portfolio/application/api";
 import type {
+  CoachAssetType,
   CoachHolding,
   CoachTrade,
   PortfolioProbe,
@@ -23,8 +24,11 @@ const TRADE_WINDOW_LIMIT = 200;
 export class HoldingTradeAdapter implements PortfolioProbe {
   constructor(private readonly portfolio: PortfolioApi) {}
 
-  async listHoldings(userId: string): Promise<CoachHolding[]> {
-    const holdings = await this.portfolio.listHoldings(userId);
+  async listHoldings(
+    userId: string,
+    assetType?: CoachAssetType
+  ): Promise<CoachHolding[]> {
+    const holdings = await this.portfolio.listHoldings(userId, assetType);
     return holdings.map(toCoachHolding);
   }
 

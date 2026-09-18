@@ -4,6 +4,9 @@ import {
   type PortfolioProbe,
 } from "../domain";
 
+/** 이 계획이 보는 자산군. 원문이 `crypto` 로 좁혔다. */
+const COACH_ASSET_TYPE = "crypto" as const;
+
 export interface ProfitPlanQuery {
   symbol?: string;
 }
@@ -21,7 +24,8 @@ export class ListProfitPlans {
   constructor(private readonly portfolio: PortfolioProbe) {}
 
   async execute(userId: string, query: ProfitPlanQuery = {}) {
-    const holdings = await this.portfolio.listHoldings(userId);
+    // 원문이 `assetType: crypto` 로 좁혔다 — 손절·익절 비율이 자산군마다 다르다
+    const holdings = await this.portfolio.listHoldings(userId, COACH_ASSET_TYPE);
     const symbol = query.symbol?.toUpperCase();
 
     const plans = holdings

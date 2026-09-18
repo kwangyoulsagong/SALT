@@ -34,7 +34,10 @@ import {
  */
 export interface PortfolioApi {
   /** 사용자의 보유 전체. `coach` 의 비중·집중도 계산이 이것을 쓴다. */
-  listHoldings(userId: string): Promise<Holding[]>;
+  listHoldings(
+    userId: string,
+    assetType?: PortfolioAssetType
+  ): Promise<Holding[]>;
   /** 한 종목 보유. 없으면 `null` — 미보유가 정상 경로다. */
   getHolding(userId: string, symbol: string): Promise<Holding | null>;
   /** 거래 내역. `coach` 의 행동 분석이 매매 패턴을 본다. */
@@ -98,7 +101,8 @@ export const createPortfolioApplication = (deps: PortfolioDependencies) => {
   };
 
   const api: PortfolioApi = {
-    listHoldings: (userId) => deps.holdings.findByUser(userId),
+    listHoldings: (userId, assetType) =>
+      deps.holdings.findByUser(userId, undefined, assetType),
     getHolding: (userId, symbol) =>
       deps.holdings.findOne(userId, symbol.toUpperCase(), "crypto"),
     listTransactions: async (userId, options = {}) => {

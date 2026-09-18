@@ -91,7 +91,12 @@ export interface HoldingRepository {
     symbol: string,
     assetType: PortfolioAssetType
   ): Promise<Holding | null>;
-  findByUser(userId: string, symbol?: string): Promise<Holding[]>;
+  /** `assetType` 을 주면 그 자산군만. 주지 않으면 전부다. */
+  findByUser(
+    userId: string,
+    symbol?: string,
+    assetType?: PortfolioAssetType
+  ): Promise<Holding[]>;
   findBySymbol(symbol: string): Promise<Holding[]>;
   /** 수량이 남으면 upsert, 0 이하면 삭제한다. 그 판정은 `domain` 이 한다. */
   save(
