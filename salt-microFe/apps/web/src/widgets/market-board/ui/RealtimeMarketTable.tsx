@@ -84,7 +84,9 @@ export const RealtimeMarketTable = () => {
     [filters]
   );
 
-  const { data, isLoading, isError } = useMarketOverview(params);
+  // 크래시하지는 않지만(`data?.items ?? []`) 재시도 대기 구간에 빈 테이블이 번쩍인다.
+  // 같은 이유로 `isPending` 을 본다.
+  const { data, isPending, isError } = useMarketOverview(params);
   const items = useMemo(() => data?.items ?? [], [data?.items]);
   const symbols = useMemo(() => items.map((item) => item.symbol), [items]);
   useMarketOverviewRealtime(params, symbols, handleBlink);
@@ -100,7 +102,7 @@ export const RealtimeMarketTable = () => {
     return items.find((item) => item.symbol === selectedSymbol);
   }, [selectedSymbol, items]);
 
-  if (isLoading) {
+  if (isPending) {
     return <Text color="tertiary">{MARKET_MESSAGES.loading}</Text>;
   }
 

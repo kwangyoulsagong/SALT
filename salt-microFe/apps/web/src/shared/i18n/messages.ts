@@ -10,16 +10,23 @@
  * 무관한 코드만), 슬라이스를 지울 때 문구만 남는다. **문구 검수(`i18n-policy.md`)는
  * "한 파일"이 아니라 "컴포넌트 밖"이면 가능하다.**
  */
+import { withObjectParticle } from "@/shared/lib";
+
 export {
   HTTP_ERROR_MESSAGE,
   TOAST_MESSAGES,
   ERROR_MESSAGE,
 } from "@repo/core/http";
 
-/** 블록 경계(`shared/ui`)가 쓰는 공통 상태 문구. */
+/**
+ * 블록 경계(`shared/ui`)가 쓰는 공통 상태 문구.
+ *
+ * 블록 이름이 런타임에 들어오므로 조사를 문구에 박아둘 수 없다 — `koreanParticle` 이 고른다.
+ */
 export const BOUNDARY_MESSAGES = {
   loading: (name: string) => `${name} 불러오는 중`,
-  failedTitle: (name: string) => `${name}을 불러오지 못했습니다.`,
+  failedTitle: (name: string) =>
+    `${withObjectParticle(name)} 불러오지 못했습니다.`,
   failedDescription: "잠시 후 다시 시도해주세요.",
 } as const;
 

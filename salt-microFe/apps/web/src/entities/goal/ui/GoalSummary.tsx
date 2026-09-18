@@ -13,8 +13,10 @@ import { Container } from "./GoalSummary.css";
 export const GoalSummary = () => {
   const summary = useGoalSummary();
 
-  if (summary.isLoading) return <div>{GOAL_MESSAGES.loading}</div>;
-  if (summary.error) return <div>{GOAL_MESSAGES.loadFailed}</div>;
+  // `isLoading` 이 아니라 `isPending` 이다 — 재시도 대기 구간에서는 `isLoading` 이 false
+  // 인데(`fetchStatus === "idle"`) 아직 `data` 가 없다. 그 틈에 렌더가 걸리면 죽는다.
+  if (summary.isPending) return <div>{GOAL_MESSAGES.loading}</div>;
+  if (summary.isError) return <div>{GOAL_MESSAGES.loadFailed}</div>;
   return (
     <section className={Container}>
       <Padding padding="lg">

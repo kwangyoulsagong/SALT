@@ -18,9 +18,11 @@ import { AnalysisGraph } from "./AnalysisGraph";
 export const InvestmentSummary = () => {
   const investmentsPreview = useInvestmentsPreview();
 
-  if (investmentsPreview.isLoading)
+  // `isLoading` 이 아니라 `isPending` 이다 — 재시도 대기 구간에서는 `isLoading` 이 false
+  // 인데(`fetchStatus === "idle"`) 아직 `data` 가 없다. 그 틈에 렌더가 걸리면 죽는다.
+  if (investmentsPreview.isPending)
     return <div className="loading">{PORTFOLIO_MESSAGES.loading}</div>;
-  if (investmentsPreview.error)
+  if (investmentsPreview.isError)
     return (
       <div className="error">
         <p>{PORTFOLIO_MESSAGES.loadFailed}</p>
