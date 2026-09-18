@@ -196,7 +196,7 @@ flowchart TB
 | `FE-REQ-007` MFE 교체 | **done** | Multi-Zones 전환(`apps/web` + `apps/web-tax`). 미충족 6건 중 **2건이 닫혔다** — §4-6(브라우저 확인)은 `FE-REQ-008`, §4-4(레이어 검사 수단)는 `FE-REQ-009`. 남은 4건은 판정 대상(경로·배포 인프라·zone 넘나드는 기능·스트리밍 전제 화면)이 **아직 없어서** 이 REQ 안에서 닫을 방법이 없다. `checklists/FE-REQ-007.md` §4 |
 | `FE-REQ-008` App Router + 스트리밍 SSR | **done** | 두 zone 모두 App Router. 스트리밍 게이트 **첫 블록 p95 31.9ms**(기준 300ms), 번들 증가 최대 +16.2 kB gzip(예산 40KB). 미충족 7건 중 **2건이 닫혔다**(§6-1 FSD pages 레이어 → `FE-REQ-009`, §6-7 Codex 미러 → 하네스 제거). **§6-4(인증 토큰이 `localStorage`)는 이 REQ 의 실제 미달**이고 `FE-REQ-013`이 담당한다. `checklists/FE-REQ-008.md` §6 |
 | `FE-REQ-009` FSD 전환 | **done** | 두 zone 모두 6레이어. 슬라이스 8개(`auth`·`goal`·`market`·`portfolio` / `sign-in`·`add-goal` / `home-briefing`·`market-board`). `layer-check` 훅 + `@repo/fsd/layers` lint가 **같은 규칙 표 하나**를 읽는다(차단 8 · 통과 5 테스트). 렌더 동일성 4경로 × 3뷰포트 통과, 공통 청크 증가 **0**. 남은 것은 `checklists/FE-REQ-009.md` §8 — 이 REQ 미달 2건(FR-37 · `/investments` +7kB), 범위 밖 5건 |
-| `SRV-REQ-006` DDD 전환 | **in-progress (1~2/4단계)** | `shared` Kernel(`Money`·`Quantity`·`KstDate`·`DomainError`·`Degraded`) + 횡단 인프라 + `layer-check` 훅·ESLint(차단 10 · 통과 6). 2단계는 **안전망까지** — `coach/domain/policy` 추출 + 특성화 테스트 23건(원문 산술과 무작위 40,000건 대조 불일치 0). **컨텍스트 이관 본체는 미착수** — FR-32 가 `portfolio`·`market`·`news` 공개 API 를 전제하는 것이 확인돼 REQ 본문을 정정했다. 상세는 `checklists/SRV-REQ-006.md` §7 |
+| `SRV-REQ-006` DDD 전환 | **in-progress (4/4단계)** | `shared` Kernel + `layer-check` 훅·ESLint(1) · `coach/domain/policy` 추출 + 특성화 테스트 23건(2) · `news`·`market`·`portfolio` 이관(3, FR-32a) · **`coach` 통합(4, FR-32)**. 컨텍스트 **4개** · 동사형 유스케이스 **49개** · 공개 API **17개**. `modules` 15 → 12 → **8개**(원문 29파일 3,538줄 삭제). 테스트 18 → 85 → **137건**. 4단계에서 **같은 이름의 값이 경로마다 다르게 정의돼 있던 것**(기술 지표 주기 `m5` vs 무관)이 드러나 통일했다. 그 뒤 **미충족 8건을 닫았다**(§12) — **수익률 예측(`expectedReturn`) 제거**, 외부 호출 타임아웃·지수 백오프(캔들 수집 실패 **다수 → 0건**), `external/` 삭제, 한글 뉴스 언어 필터 복구, 공개 LLM 경로 요청 제한. 테스트 **153건**. 남은 12건은 전부 `ledger`(F001)·`DB-REQ-*`·**FR-33(`SRV-REQ-007`)**·프론트 계약을 기다린다. 상세는 `checklists/SRV-REQ-006.md` §10~§13 |
 | 나머지 141개 | to-do | |
 
 **P0 아키텍처 전환 3개(FE)가 끝났다.** `FE-REQ-007`→`008`→`009`.
@@ -212,9 +212,15 @@ flowchart TB
 새 슬라이스는 `layered-architecture.md` §4 표 → `packages/eslint-plugin-fsd/layer-rules.cjs`의
 `REGISTRY` 순서로 추가한다. 표만 고치면 훅이 막는다.
 
-**서버는 1~2단계다.** `SRV-REQ-006`의 `shared` Kernel과 강제 수단이 섰고 안전망까지 왔다.
-컨텍스트 이관 본체는 **아직이다** — FR-32가 `portfolio`·`market`·`news` 공개 API를 전제하는 것이
-확인돼 REQ 본문을 정정했다(회고 §6). 새 서버 작업도 쓰기 시점에 `layer-check` 훅을 통과해야 한다.
+**서버는 4단계까지 왔다.** `SRV-REQ-006`의 `shared` Kernel과 강제 수단 위에 **컨텍스트 4개가
+실제로 섰다** — `news`·`market`·`portfolio`·`coach`. 점수 엔진·추천·행동 분석·주문 전 계산·
+성적표가 한 컨텍스트로 모였고, 코치가 남의 테이블을 직접 뒤지던 조회 여섯 곳이 **공개 API +
+ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동면 4종)이고 `SRV-REQ-007` 이다.
+새 서버 작업도 쓰기 시점에 `layer-check` 훅을 통과해야 한다.
+
+**조립 지점은 `src/composition.ts` 하나다.** 레이어 규칙상 구현을 아는 코드를 컨텍스트 안에 둘
+자리가 없어서 나온 답이고(1단계 Open Question), DI 컨테이너를 쓰지 않는다 — 조립 순서가 곧
+컨텍스트 의존 방향이다. 규칙은 `server-architecture.md` §5.
 
 **스트리밍 판정은 화면 단위다.** `FE-REQ-008`이 통과시킨 것은 프레임워크와 측정 방법이고,
 홈 5블록·세금 콕핏·청구서의 판정은 그 화면이 생길 때(`FE-REQ-030`~`033` · `018`~`021` · `014`~`017`)
@@ -256,3 +262,6 @@ flowchart TB
 | 2026-09-11 | `FE-REQ-007`·`FE-REQ-008`을 `done/`으로. `FE-REQ-009`가 두 REQ 의 미충족 2건(레이어 검사 수단 · FSD `pages` 레이어)을 닫았다 |
 | 2026-09-11 | `SRV-REQ-006` 1단계(`shared` Kernel + 강제 수단). 서버 빌드가 이전부터 **에러 17건으로 깨져 있던 것을 발견하고 별도 커밋으로 0건으로 고쳤다**(워커 2종이 런타임에도 실패 중이었다) |
 | 2026-09-11 | `SRV-REQ-006` 2단계 안전망(`coach` 정책 추출 + 특성화 테스트). REQ 본문 4항목 정정 — FR-12 · FR-31 · FR-32 · NFR |
+| 2026-09-11 | `SRV-REQ-006` 3단계 — `news`·`market`·`portfolio` 이관(FR-32a). 조립 지점을 `src/composition.ts` 로 정하고 `server-architecture.md` §5 에 규칙화. `ErrorKind` 에 `Forbidden`(403) 추가 — FR-22 의 네 값으로는 이관이 **응답 코드를 바꾸거나 레이어 규칙을 깨는 것** 중 하나를 해야 했다 |
+| 2026-09-18 | `SRV-REQ-006` 4단계 — `coach` 통합(FR-32). 원문 29파일 3,538줄을 지우고 컨텍스트 하나로 합쳤다. 공개 API 를 9개 늘려 **남의 테이블 직접 조회를 0으로** 만들었고, 특성화 테스트 52건 중 **18건(점수 엔진)이 첫 실행에 통과**했다. **LLM 해설의 수익률 예측은 계약이라 그대로 옮기고 §11-2 에 크게 적었다** — 이관이 제품 규칙 위반을 고치는 자리는 아니지만, 그 위반이 이제 `coach` 안에 있다 |
+| 2026-09-18 | `SRV-REQ-006` 미충족 8건 처리 — **LLM 해설에서 수익률 예측을 없앴다**(공통 수용 기준 4). 외부 클라이언트 넷에 **타임아웃이 아예 없던 것**을 찾아 `shared/infrastructure/retry` 와 함께 넣었고 기동 시 캔들 수집 실패가 **다수 → 0건**이 됐다. 한글 뉴스 언어 필터는 **살리는 쪽**으로 정했다(3단계 특성화 테스트가 그 변경을 한 번 걸렀다). `AppError` 하위 클래스의 `instanceof` 가 전부 거짓이던 것도 함께 고쳤다 |

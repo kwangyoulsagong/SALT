@@ -104,13 +104,34 @@ import type { CostBasisQuery, CostBasisView } from '../tax/application/api';
 - 상태 변화 전파는 **Domain Event**로 한다. 단일 프로세스이므로 브로커를 두지 않는다.
 - **barrel `index.ts`가 Java 가시성을 대신한다.** 컨텍스트 밖에서 쓰는 것은 `{context}/application/api/index.ts`에만 export한다.
 
-## 5. 클래스 하나 = 유스케이스 하나
+## 5. 조립 지점은 `src/composition.ts` 하나다
+
+**레이어 규칙이 이 자리를 정한다.** `application`은 `infrastructure`를 import할 수 없고(의존 역전) `presentation`도 마찬가지다. 그래서 "Prisma 리포지토리를 골라 유스케이스에 꽂는" 코드를 둘 자리가 **컨텍스트 안에 없다.** 그게 의도다.
+
+그 코드는 레이어 밖, 즉 `src/` 최상위 진입 파일에 있다. 훅이 최상위 파일(`area: "entry"`)에 규칙을 걸지 않는 이유가 이것이다.
+
+```ts
+// src/composition.ts — 구현을 아는 유일한 자리
+const news = createNewsApplication({ articles: new PrismaArticleRepository(), ... });
+const market = createMarketApplication({ ..., news: new SymbolNewsAdapter(news.api) });
+
+export const contextApis     = { news: news.api, market: market.api };      // 컨텍스트 간 · 워커
+export const contextUseCases = { news: news.useCases, market: market.useCases };
+export const contextRouters  = { news: createNewsRouter(news.useCases), ... };  // app.ts 가 등록
+```
+
+- **DI 컨테이너를 쓰지 않는다.** 생성자 인자로 넘긴다. 무엇이 무엇에 꽂혔는지 **읽어서 알 수 있는 것**이 리플렉션보다 중요하고, 조립 순서가 곧 컨텍스트 의존 방향이다
+- 각 컨텍스트는 `createXApplication(deps)` 팩토리를 `application/api`에 두고 `{ api, useCases }`를 돌려준다. `api`는 **밖에서 부르는 것**, `useCases`는 **자기 `presentation`과 워커가 부르는 것**이다. 둘을 한 덩어리로 내보내면 "공개 API"가 그냥 서비스 전체가 된다
+- 라우터도 팩토리(`createXRouter(useCases)`)다. 모듈 최상위에서 `new`하면 조립이 흩어진다
+- 이 파일이 길어지면 나누는 기준은 **컨텍스트**이고 `src/composition/` 디렉터리를 만들지 않는다 — 레지스트리에 없는 컨텍스트로 잡혀 훅이 막는다. `src/composition.<context>.ts`로 나눈다
+
+## 6. 클래스 하나 = 유스케이스 하나
 
 `application`의 서비스는 **동사로 시작하는 이름**을 갖고 하나의 유스케이스만 담는다. `TaxService`처럼 명사로 지으면 유스케이스가 계속 붙어 God 클래스가 된다.
 
 현재 코드가 정확히 그 상태다 — `investment.service.ts`, `portfolio.service.ts`가 여러 유스케이스를 담고 있다. 이관 시 **동사형으로 쪼갠다**.
 
-## 6. 워커
+## 7. 워커
 
 `src/workers/**`는 유지하되 **유스케이스를 직접 구현하지 않는다.** worker는 스케줄과 락만 담당하고 `application`의 서비스를 부른다.
 
@@ -121,7 +142,7 @@ cron.schedule('0 0 9 * * 1', () => recomputeInvoiceSnapshot.execute({ userId }))
 
 같은 유스케이스를 HTTP와 스케줄러가 모두 부를 수 있어야 한다. 그게 `application`이 웹 DTO를 받지 않는 이유다.
 
-## 7. 영속화
+## 8. 영속화
 
 - PostgreSQL + Prisma. 스키마 변경은 **마이그레이션으로만**. 상세는 `prisma-database.md`, `performance-database.md`.
 - **금액은 `Decimal`.** 신규 컬럼에 `Float`를 쓰지 않는다. 청구서 항등식 허용치가 100원이다.

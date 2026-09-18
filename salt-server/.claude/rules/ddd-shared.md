@@ -49,7 +49,7 @@ shared/
 
 ```ts
 // shared/domain/DomainError.ts
-export type ErrorKind = 'NOT_FOUND' | 'CONFLICT' | 'INVALID' | 'BLOCKED';
+export type ErrorKind = 'NOT_FOUND' | 'CONFLICT' | 'INVALID' | 'BLOCKED' | 'FORBIDDEN';
 
 export abstract class DomainError extends Error {
   constructor(readonly code: string, readonly kind: ErrorKind, message: string) { super(message); }
@@ -58,6 +58,7 @@ export abstract class DomainError extends Error {
 
 - `ErrorKind` → HTTP status 매핑은 미들웨어가 **한 번만** 한다
 - **도메인이 HTTP status를 알지 않는다** — `ErrorKind`는 의미 분류이고, 그것을 404/409/400으로 옮기는 것은 `presentation`의 판단이다
+- **값을 늘리는 것은 전 컨텍스트에 걸리는 판단이다.** 한 컨텍스트가 자기 편의로 늘리지 않는다. `FORBIDDEN`은 사용자 소유 검사가 모든 컨텍스트에 걸리고(`auth-security.md`) 그 응답이 이미 403이라 들어왔다 — 없으면 이관이 **응답 코드를 바꾸거나 `domain`이 `shared/presentation`을 import해야** 했다(`SRV-REQ-006` FR-22 정정)
 
 ## 3. `Money` — 이 제품의 핵심 커널
 

@@ -10,10 +10,11 @@
 
 ## 외부 API
 
-- 외부 API client/service는 `{context}/infrastructure/`에 격리한다. `src/external/**`은 이관 전 자리이고 해당 컨텍스트가 옮겨질 때 함께 옮긴다.
+- 외부 API client/service는 `{context}/infrastructure/`에 격리한다. **`src/external/**`은 없다** — 2026-09-18에 마지막 파일을 지웠고 `layer-check`의 예외 목록에서도 뺐다.
 - API base URL, key, timeout 등은 env/config를 통해 주입한다.
 - 외부 응답은 내부 DTO/도메인 모델로 변환한 뒤 service에 전달한다.
 - 외부 API 실패, rate limit, timeout을 고려해 fallback 또는 재시도 정책을 명시한다.
+- **타임아웃은 `shared/infrastructure/httpClient`, 재시도는 `shared/infrastructure/retry`를 쓴다.** `axios`를 직접 부르면 타임아웃이 없다. 재시도는 **조회 전용 GET에만**, 429·5xx·응답 없음에만, 지수 백오프 상한 3회.
 - 외부 원문 응답 전체를 그대로 DB나 API 응답에 노출하지 않는다.
 
 ## WebSocket/시세

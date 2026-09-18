@@ -13,6 +13,11 @@ npm run test:layer-check  # 훅 위반 케이스
 npm run prisma:generate
 ```
 
+> **`npm run prisma:generate` 가 `.env` 없이 실패하고 있었다 (2026-09-18).**
+> `prisma.config.ts` 가 `env("DATABASE_URL")` 을 쓰는데 Prisma CLI 는 그 파일을 먼저
+> 로드하고 `.env` 를 읽지 않는다. 설정에 `dotenv/config` 를 import 해서 고쳤다 —
+> **게이트로 적어 둔 명령이 돌지 않는 상태를 두지 않는다.**
+
 > **`npm run build` 는 에러 0건이어야 한다.** 2026-09-11 이전에는 17건으로 실패하고 있었고
 > (`npm start` 가 `dist/` 를 돌기 때문에 드러나지 않았다) 별도 커밋으로 고쳤다.
 > **빌드가 실패하는 상태를 정상으로 두지 않는다** — 실패하는 명령은 게이트가 아니다.
