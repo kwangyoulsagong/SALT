@@ -1,39 +1,43 @@
 # SRV-REQ-006 검증 체크리스트 — DDD 전환
 
-작성: 2026-09-11 (1단계) · 갱신: 2026-09-11 (3단계)
+작성: 2026-09-11 (1단계) · 갱신: 2026-09-11 (3단계) · 2026-09-18 (**4단계**)
 브랜치: `feature/srv-req-006-ddd` → `feature/srv-req-006-coach` → `feature/srv-req-006-contexts`
-상태: **3/4단계.** `shared` Kernel + 강제 수단(1) · `coach` 정책 추출 + 특성화 테스트(2) ·
-**`news`·`market`·`portfolio` 이관(3, FR-32a)** 까지 왔다. `coach` 통합(FR-32)이 남았다.
+상태: **4/4단계.** `shared` Kernel + 강제 수단(1) · `coach` 정책 추출 + 특성화 테스트(2) ·
+`news`·`market`·`portfolio` 이관(3, FR-32a) · **`coach` 통합(4, FR-32)** 까지 왔다.
+FR-33 의 나머지 이관(`auth`·`goal`·`notification`·동면 4종)은 `SRV-REQ-007` 이다 (§9-2 · §11).
 선행 커밋: `fix(srv): 빌드 에러 17건` — 이 브랜치 계열은 그 위에 있다 (§6).
+
+> **4단계 내용은 §10, 그 미충족은 §11 이다.** §1~§9 는 3단계 시점의 기록이고 값이 바뀐 행만
+> "4단계" 표시로 갱신했다.
 
 ## 0. 실행한 검증 명령
 
-| 명령 | 1단계 | 3단계 |
-|---|---|---|
-| `npm run lint` (`ddd/layers`) | 통과 | **통과** |
-| `npm test` | 18/18 | **85/85** (신규 44건) |
-| `npm run test:layer-check` | 16/16 | **16/16** (차단 10 · 통과 6) |
-| `npm run build` | 0건 | **0건** |
-| `node dist/server.js` + `GET /health` | — | **200** · 마켓 동기화 288 심볼 · 캔들 upsert 3,134건 |
+| 명령 | 1단계 | 3단계 | 4단계 |
+|---|---|---|---|
+| `npm run lint` (`ddd/layers`) | 통과 | 통과 | **통과** |
+| `npm test` | 18/18 | 85/85 (신규 44건) | **137/137** (신규 52건) |
+| `npm run test:layer-check` | 16/16 | 16/16 | **16/16** (차단 10 · 통과 6) |
+| `npm run build` | 0건 | 0건 | **0건** |
+| `node dist/server.js` + `GET /health` | — | 200 | **200** · 인사이트 워커 1회차 완주 (§10-6) |
 
 ## 1. Acceptance Criteria
 
 | AC | 결과 | 근거 |
 |---|---|---|
-| `src/` 최상위에 컨텍스트 디렉터리와 `shared`만 있다 | **부분** | 컨텍스트 4개(`shared`·`news`·`market`·`portfolio`·`coach`). `modules` 12개 · `workers` · `external`(죽은 코드만) 이 남아 있다. §4 |
+| `src/` 최상위에 컨텍스트 디렉터리와 `shared`만 있다 | **부분** (4단계) | 컨텍스트 4개 + `shared`. **`modules` 가 12개 → 8개**(`auth`·`user`·`goals`·`investment-insight` 잔여·`investment-notification`·`mission`·`feed`·`dashboard`). `workers` · `external`(죽은 코드만) 이 남아 있다. §4 · §11-1 |
 | `layer-check` 훅이 FR-11의 위반 6종을 exit 2로 차단한다 | **pass** | 10종을 차단한다 (§3) |
 | `grep "@prisma/client" src/*/domain` = 0 | pass | `shared/domain` 포함 0건 |
 | `grep "express\|zod" src/*/domain` = 0 | pass | 0건 |
 | `grep "\.\./\.\./[a-z]*/infrastructure" src/*/application` = 0 | pass | **0건.** `application` 디렉터리 3개가 실제로 있는 상태에서 잰 값이다 |
 | `Money` VO가 있고 금액을 `number`로 들고 다니는 도메인 코드가 0건 | **부분** | `portfolio/domain` 은 `Decimal` 로 계산한다(`number` 아님). **`Money` 는 아니다** — 이유는 §8-1 |
 | `toKrwInteger()` 호출이 `presentation`에서만 | pass | 호출처 0건 — 세 컨텍스트가 `Money` 를 쓰지 않는다 (§8-1) |
-| `application`의 서비스 이름이 전부 동사로 시작 | **pass** | 유스케이스 **36개 전부** 동사형이다(`Add`·`Calculate`·`Collect`·`Crawl`·`Delete`·`Find`·`Get`·`List`·`Record`·`Refresh`·`Remove`·`Sync`·`Track`·`Update`) |
+| `application`의 서비스 이름이 전부 동사로 시작 | **pass** (4단계) | 유스케이스 **49개 전부** 동사형이다. `coach` 가 13개를 더했다(`Analyze`·`Check`·`Explain`·`Generate`·`Get`·`List`·`Record`·`Update`) |
 | `prisma.$transaction` 호출이 `application` 밖에 0건 | **pass** | 세 컨텍스트의 `$transaction` **호출이 0건**이다(유일한 등장은 주석). 왜 안 걸었는지는 §8-2 |
 | 트랜잭션 안에서 외부 HTTP를 부르는 코드 0건 | **pass** | 거래소·Fear&Greed·RSS 호출이 전부 트랜잭션 밖이다 (§8-2) |
-| 신규 코드에 `payload` JSON 조건 쿼리 0건 | pass | 신규 코드에 0건 (기존 `signal-performance`에는 있다) |
+| 신규 코드에 `payload` JSON 조건 쿼리 0건 | **pass** (4단계) | 0건. `signal-performance` 가 `payload.kind` 로 거르던 것은 **조회 조건이 아니라 이미 읽어 온 행의 메모리 필터**로 옮겼다(`domain/policy/signalPerformance.ts`) |
 | 기존 엔드포인트 응답 스냅샷이 이관 전/후 동일 | **대체 충족** | §5 — 스냅샷 대신 **순수 계산 특성화 테스트 44건**(NFR 정정). FIFO 는 원문 `Float` 산술과 직접 대조했다 (§7-2) |
 | 동면 모듈 코드가 삭제되지 않았다 | pass | `mission`·`feed`·`dashboard` 그대로 |
-| re-export 껍데기 0건 | pass | 세 컨텍스트 모두 껍데기 없이 옮겼다 (FR-37) |
+| re-export 껍데기 0건 | **pass** (4단계) | 네 컨텍스트 모두 껍데기 없이 옮겼다. 4단계에서 원문 29파일(3,538줄)을 **삭제**했다 (FR-37 · §10-1) |
 | `npm run build` 통과 | **pass** | 0건. 기존 17건을 고친 커밋이 이 브랜치 계열 아래에 있다 (§6) |
 
 ## 2. Shared Kernel (FR-20~24)
@@ -263,8 +267,8 @@ FR-22 는 네 값(`NOT_FOUND`·`CONFLICT`·`INVALID`·`BLOCKED`)만 적었다. �
 
 | # | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|---|
-| 9-1 | **FR-32 `coach` 통합** | 4단계다. 선행 조건(FR-32a 공개 API · FR-32b 특성화 테스트)이 이번에 전부 섰다 | **다음 작업** |
-| 9-2 | FR-33 나머지 이관 — `auth` · `goal` · `notification` · 동면 4종 | 우선순위가 `coach` 뒤다. `modules` 12개가 남아 있다 | `coach` 이후 · `SRV-REQ-007` |
+| 9-1 | ~~FR-32 `coach` 통합~~ | **닫혔다 (4단계 · §10).** 남은 것은 §11 | 2026-09-18 |
+| 9-2 | FR-33 나머지 이관 — `auth` · `goal` · `notification` · 동면 4종 | `coach` 뒤다. **`modules` 8개**가 남아 있다 (4단계에서 12 → 8) | `SRV-REQ-007` |
 | 9-3 | 스냅샷 테스트 (원 NFR) | DB 가 비어 있다(§5). 특성화 테스트 44건으로 **대체**했고 REQ 본문을 정정했다 | `ledger`(F001)가 import 경로를 만든 뒤 |
 | 9-4 | `portfolio` 금액이 `Money` 가 아니다 | §8-1 — VO 가 음수를 금지하는데 이 데이터 모델이 음수 중간값을 만든다 | `ledger`(F001 · `SRV-REQ-012`~`015`) · 컬럼은 `DB-REQ-007` |
 | 9-5 | `RecordTransaction` 에 트랜잭션 경계가 없다 | §8-2 — 재계산이 거래 전체를 다시 읽어 거래 수에 비례해 트랜잭션이 길어진다. 재계산이 멱등이라 버틴다 | `ledger`(F001) 스냅샷 분리 시 |
@@ -279,3 +283,108 @@ FR-22 는 네 값(`NOT_FOUND`·`CONFLICT`·`INVALID`·`BLOCKED`)만 적었다. �
 
 > **이 표와 `§1 Acceptance Criteria` 가 어긋나면 둘 중 하나가 거짓이다.**
 > AC 의 "부분"·"대체 충족"은 전부 여기에 행이 있다.
+
+## 10. 4단계 — `coach` 통합 (FR-32)
+
+### 10-1. 무엇이 옮겨졌나
+
+원문 **29파일 3,538줄을 삭제**하고 `coach` 컨텍스트 하나로 합쳤다. 껍데기를 남기지 않았다(FR-37).
+
+| 원문 | 간 곳 |
+|---|---|
+| `investment-insight/ai-coach/*` (9파일) | `coach/domain/policy/{score,candidates,explain,modeDecision}` · `application` · `presentation` |
+| `ai-investment-coach.service` (482줄) | `GenerateCoachRecommendation` · `GetCoachRecommendation` · `GetSymbolCoach` · `ManageCoachProfile` · `RecordCoachFeedback` |
+| `behavior-analysis.service` (358줄) | `domain/policy/behavior` + `AnalyzeTradingBehavior` |
+| `news-analysis.service` (282줄) | `domain/policy/newsSentiment` + `AnalyzeNewsSentiment` |
+| `market-regime.service` · `portfolio-state.service` | `domain/policy/{marketRegime,portfolioState}` |
+| `modules/behavior-coach` · `profit-plan` · `trade-preflight` · `signal-performance` | `coach/application` 4개 + `presentation` |
+
+**HTTP 경로 5개가 그대로다** (FR-35): `/api/ai-coach` · `/api/behavior-coach` ·
+`/api/profit-plan` · `/api/trade-preflight` · `/api/signal-performance`.
+`/api/ai-coach/explain` 이 **인증 앞에 있는 순서까지** 유지했다 — 줄 위치가 곧 공개 여부다.
+
+유스케이스 13개 전부 동사형이다. `coach` 는 **공개 API 를 열지 않았다** — 부르는 컨텍스트가
+아직 없고, 첫 소비처는 F006 홈 브리핑이다 (§11-9).
+
+### 10-2. 남의 테이블 직접 조회 6개가 사라졌다
+
+원문 코치는 `prisma` 로 **남의 컨텍스트 테이블 5개**를 직접 뒤졌다. 전부 Port + ACL 로 바뀌었다.
+
+| 원문이 읽던 것 | 지금 |
+|---|---|
+| `portfolioHolding` · `portfolioTransaction` | `PortfolioApi` → `HoldingTradeAdapter` |
+| `technicalIndicator` · `marketSentiment` · `marketAsset` · `whaleTransaction` · `priceHistory` | `MarketApi` → `MarketSignalAdapter` |
+| `newsArticle` | `NewsApi` → `ArticleTextAdapter` |
+
+그러려면 **공개 API 를 9개 늘려야 했다.** 늘린 것과 이유:
+
+| 컨텍스트 | 추가 | 왜 |
+|---|---|---|
+| `news` | `findArticlesForSentiment` | 감성 채점은 **본문**까지 본다. 목록용 `ArticleSummary` 에는 `content` 가 없다 |
+| `market` | `latestIndicators` · `latestSentiments` · `assetQuotes` · `recentWhalesForSymbols` · `highestCloseSince` · `closeAtOrAfter` · `latestCloses` | 전부 **여러 심볼을 한 번에**. 심볼당 조회로 열면 코치가 N+1 을 만든다 |
+| `portfolio` | `countTransactions` · `listTransactions(since·assetType)` | 건수를 세려고 거래 행을 옮겨 오지 않는다 (`ddd-infrastructure.md` §3) |
+
+**키워드 사전은 `coach` 에 남겼다.** "무엇을 호재로 보는가"는 `news` 의 판단이 아니다 —
+`news` 는 검색어를 인자로 받는다.
+
+### 10-3. 특성화 테스트 52건 (FR-32b)
+
+| 대상 | 건수 | 무엇을 고정하나 |
+|---|---|---|
+| `policy/score` | 18 | 점수 엔진 468줄 — 가중치·상한·계단식 고래 금액·행동 페널티 |
+| `policy/marketRegime` · `portfolioState` · `candidates` | 10 | 국면 경계 · 집중도 등급 · 후보 생성 순서 |
+| `policy/modeDecision` | 4 | 단타/장기가 같은 입력에 다른 점수를 주는 지점 |
+| `policy/newsSentiment` | 4 | **부분 문자열 누적** · 시간 가중치 0.3 하한 · 본문 채점 |
+| `policy/behavior` | 8 | 과다거래·패닉셀·추격매수 severity 식과 임계 |
+| `policy/signalPerformance` · `explain` | 8 | 승률·낙폭 집계 · 심볼 해석 순서 · severity/confidence 상한 |
+
+**18건이 첫 실행에 그대로 통과했다** — 기대값을 원문 식에서 손으로 풀어 적었고, 옮긴 코드가
+같은 값을 냈다는 뜻이다. `npm test` 85 → **137건**.
+
+### 10-4. 이관에서 고친 것 — 사유
+
+| 무엇 | 왜 이관에서 고쳤나 |
+|---|---|
+| **추격 매수 판정이 심볼마다 `aggregate` 를 불렀다** | 심볼 수만큼 왕복이다. `groupBy` 한 번으로 바꿨다 — 조회를 Port 뒤로 옮기는 것이 이관의 내용이라 구조적으로 드러났다 |
+| **행동 코치가 거래 행 전체를 읽어 `length` 로 셌다** | FR-43. `countTransactions` 로 바꿨다 |
+| **성적표가 판단 1건마다 최신가를 다시 조회** | 최신가는 심볼 단위다. 배치로 바꿔 쿼리를 절반으로 줄였다(진입가는 §11-4) |
+| **컨트롤러의 `console.error` + `next(error)` 이중 로깅** | 같은 에러가 두 번 남고, **해설 실패 로그에 모델 응답이 섞여 있었다**(`ddd-infrastructure.md` §6 이 금지하는 원문 로깅). 파싱 실패 예외에서도 응답 본문을 뺐다 |
+| **지표 주기가 경로마다 달랐다** | `ai-coach-feature.extractor` 는 `m5` 로 못 박고 `buildSymbolCoach` 는 주기를 안 정했다. 같은 심볼이 호출마다 다른 RSI 를 줬다 → **`m5` 로 통일**(§11-2) |
+| `mode` enum 이 세 DTO 에 복사돼 있었다 | 한 파일로 모았다. `trade-preflight` 는 도메인 enum 을 직접 검증한다 |
+
+### 10-5. 고치지 않고 테스트로 고정한 것
+
+| # | 무엇 | 왜 지금 안 고치나 |
+|---|---|---|
+| a | `makeModeDecision` 의 `riskLevel` 삼항이 두 갈래 모두 `medium` | 값이 같아 **동작 동일**이다. 식만 줄이고 주석을 남겼다 — 등급을 나누는 것은 판단 변경이다 |
+| b | 패닉셀이 **매수 원가가 아니라 현재가** 대비로 손실을 본다 | 원문의 한계이고 주석도 그렇게 적혀 있었다. 거래별 귀속은 `ledger`(F001)의 일이다 |
+| c | 뉴스 키워드가 부분 문자열로 중복 가산된다("ETF 승인" 하나에 3개가 걸린다) | 점수 체계 변경이다. 테스트가 39점을 못 박았다 |
+| d | 국면 판정이 지표 없음과 중립(50)을 같게 본다 | 기본값을 바꾸면 국면이 달라진다 |
+
+### 10-6. 기동 검증
+
+`node dist/server.js` → `GET /health` **200**(포트 4000).
+인사이트 워커 1회차가 **새 코치 유스케이스로 완주**했다:
+`📰 뉴스 감성 → 🧠 행동 분석 → 🤖 AI 코치 → ✅ 완료`.
+
+경로 5개 라우팅 확인: 인증 필요한 넷이 **401**, `/api/ai-coach/explain` 이 **400**(빈 본문 검증
+실패) — 공개 경로가 여전히 인증 앞에 있다는 뜻이다.
+
+## 11. 4단계의 미충족 · 범위 밖
+
+| # | 항목 | 사유 | 언제 닫히나 |
+|---|---|---|---|
+| 11-1 | `modules` 8개가 남아 있다 (`auth`·`user`·`goals`·`investment-insight` 잔여·`investment-notification`+동면 3종) | FR-33 이고 `coach` 뒤 순서다 | `SRV-REQ-007` |
+| 11-2 | **LLM 해설이 `expectedReturn`(수익률 예측 범위)을 만든다** | 전 영역 공통 수용 기준 4("수익률 예측 0건")와 어긋난다. **원문 그대로 옮겼다** — 응답 계약이고 BFF 가 그대로 흘려보낸다(프론트 소비처는 grep 0건). 빼는 것은 계약 변경이라 **프론트가 먼저**다 | F004 코치 화면 계약 확정 시 — **가장 먼저 닫아야 할 항목** |
+| 11-3 | 지표 주기를 `m5` 로 통일했다 | `buildSymbolCoach` 경로는 원문이 주기를 안 정했다(=`m5`·`h1` 중 최신). 값이 달라질 수 있다 — 대신 호출마다 흔들리지 않는다 (§10-4) | 유지 (판단 완료) |
+| 11-4 | 성적표 진입가가 아직 판단 1건마다 조회다 | 판단 시각마다 기준이 달라 배치가 안 된다. 성적을 스냅샷 테이블로 옮기면 루프가 사라진다 | F004 |
+| 11-5 | `generate`·`getLatest` 응답에서 `userId`·`assetType` 이 빠졌다 | 도메인 모델이 DB row 를 그대로 싣지 않는다. `userId` 는 토큰에서 오고 `assetType` 은 이 행에서 항상 `null` 이다. BFF·프론트 소비처 grep 0건 | 유지 (판단 완료) |
+| 11-6 | `InvestmentInsight` 테이블의 주인이 둘이다 | `smart_buy_zone`·`risk_alert` 은 아직 `modules/investment-insight` 워커가 쓴다. 코치는 **읽기만** 한다 | `SRV-REQ-007` |
+| 11-7 | 판단 변화 통보를 알림 테이블에 직접 쓴다 | `notification` 컨텍스트가 없다. 지금 이벤트로 내면 받을 쪽이 없다. `CoachNotifier` 구현 한 파일만 바뀐다 | FR-33 (`notification` 이관) |
+| 11-8 | LLM 호출에 타임아웃·지수 백오프가 없다 | 원문에 없었고 넣으면 실패 시 비용·지연 성격이 바뀐다 (`ddd-infrastructure.md` §6 은 요구한다) | `SRV-REQ-007` 또는 `performance-server` 작업 |
+| 11-9 | `coach` 공개 API 가 없다 | 부르는 컨텍스트가 0개다. 소비처 없이 열면 첫 소비처가 그 모양에 끌려간다 | F006 `homebriefing` |
+| 11-10 | `/api/ai-coach/explain` 이 인증·레이트리밋 없이 공개다 | 원문 주석의 TODO 그대로다(프로토타입 데모). **순서를 유지하는 것**이 이관의 일이었다 | 배포 전 (`auth-security.md`) |
+| 11-11 | 코치의 쓰기에 트랜잭션 경계가 없다 | 쓰기가 인사이트 1행 + 알림 0~1행이고 서로 독립이다. 묶으면 얻는 것 없이 트랜잭션만 길어진다 | 판단 완료 (§8-2 와 같은 근거) |
+| 11-12 | 주문 전 계산의 총평가액에 `assetType` 필터가 없다 | 원문은 `crypto` 만 합산했다. `PortfolioApi.listHoldings` 에 자산군 인자가 없고, 3단계의 `portfolio-state` 도 이미 같은 상태다 | `DB-REQ-003`(자산군 확장) 때 함께 |
+
+> **이 표와 §1 · §9 가 어긋나면 둘 중 하나가 거짓이다.**
