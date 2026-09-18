@@ -14,6 +14,7 @@ const ERROR_KIND_STATUS: Record<ErrorKind, number> = {
   [ErrorKind.Invalid]: 400,
   [ErrorKind.Blocked]: 422,
   [ErrorKind.Forbidden]: 403,
+  [ErrorKind.Unauthenticated]: 401,
 };
 
 export const errorMiddleware = (

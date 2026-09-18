@@ -14,7 +14,6 @@ import { startMarketWorkers } from "./workers/market.worker";
 import { contextRouters } from "./composition";
 
 // Routes (이관 전 모듈)
-import authRoutes from "./modules/auth/auth.routes";
 import goalsRoutes from "./modules/goals/goals.routes";
 import missionRoutes from "./modules/mission/mission.routes";
 import userRoutes from "./modules/user/user.routes";
@@ -53,7 +52,8 @@ setupSwagger(app);
 app.use(healthRouter);
 
 // API Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", contextRouters.auth);
+app.use("/api/onboarding", contextRouters.onboarding);
 app.use("/api/goals", goalsRoutes);
 app.use("/api/investment", contextRouters.investment);
 app.use("/api/missions", missionRoutes);

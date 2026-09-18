@@ -26,26 +26,67 @@ model User {
   updatedAt       DateTime  @updatedAt @map("updated_at")
   lastLoginAt     DateTime? @map("last_login_at")
 
-  goals                Goal[]
-  savingTransactions   SavingTransaction[]
-  watchlist            InvestmentWatchlist[]
-  analysisSessions     AIAnalysisSession[]
-  aiAnalyses           AIAnalysis[]     
-  missionProgress      UserMissionProgress[]
-  achievements         UserAchievement[]
-  pointTransactions    PointTransaction[]
-  portfolioTransactions PortfolioTransaction[]
-  portfolioHoldings     PortfolioHolding[]
-  newsBookmarks         NewsBookmark[]
-  sentimentAlerts      SentimentAlert[]
-  smartMoneyAlerts     SmartMoneyAlert[]
-  investmentProfile UserInvestmentProfile?
-  insights          InvestmentInsight[]
-  executionLogs     ExecutionLog[]
+  goals                   Goal[]
+  savingTransactions      SavingTransaction[]
+  watchlist               InvestmentWatchlist[]
+  analysisSessions        AIAnalysisSession[]
+  aiAnalyses              AIAnalysis[]
+  missionProgress         UserMissionProgress[]
+  achievements            UserAchievement[]
+  pointTransactions       PointTransaction[]
+  portfolioTransactions   PortfolioTransaction[]
+  portfolioHoldings       PortfolioHolding[]
+  newsBookmarks           NewsBookmark[]
+  sentimentAlerts         SentimentAlert[]
+  smartMoneyAlerts        SmartMoneyAlert[]
+  investmentProfile       UserInvestmentProfile?
+  insights                InvestmentInsight[]
+  executionLogs           ExecutionLog[]
   investmentNotifications InvestmentNotification[]
+  inviteCode              InviteCode?
 
   @@index([email])
   @@map("users")
+}
+
+// ==================== Invite (F000 · 비공개 초대제) ====================
+
+/**
+ * 초대 코드. 본인 + 최대 10명이라는 제품 정의(글로벌 플랜 1-1절)를 여기서 지킨다.
+ * `usedByUserId` 가 유니크인 것이 **한 사람이 코드 두 장을 쓰지 못하게** 하고,
+ * `usedByUserId IS NULL` 조건부 UPDATE 가 **같은 코드의 동시 사용**을 하나로 만든다
+ * (`SRV-REQ-008` FR-4).
+ */
+model InviteCode {
+  id           String    @id @default(uuid())
+  code         String    @unique
+  expiresAt    DateTime  @map("expires_at")
+  usedByUserId String?   @unique @map("used_by_user_id")
+  usedAt       DateTime? @map("used_at")
+  note         String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  usedBy User? @relation(fields: [usedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([expiresAt])
+  @@map("invite_codes")
+}
+
+/**
+ * 실패한 코드 시도 (`SRV-REQ-008` FR-7).
+ * **잠금 정책을 만들지 않는다.** 사용자가 10명 이하라 잠금이 본인을 막을 위험이 더 크다.
+ * 여기 쌓이는 것은 무차별 대입을 나중에 알아볼 근거이고, 코드 원문을 남기지 않기 위해
+ * 앞 4자만 저장한다.
+ */
+model InviteCodeAttempt {
+  id         String   @id @default(uuid())
+  codePrefix String   @map("code_prefix")
+  reasonCode String   @map("reason_code")
+  clientKey  String?  @map("client_key")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("invite_code_attempts")
 }
 
 // ==================== Goal ====================
@@ -106,15 +147,15 @@ model SavingTransaction {
 
 // ==================== Investment Watchlist ====================
 model InvestmentWatchlist {
-  id              String    @id @default(uuid())
-  userId          String    @map("user_id")
-  assetType       AssetType @map("asset_type")
-  symbol          String
-  name            String
-  currentPrice    Decimal?  @map("current_price")
-  priceChange24h  Decimal?  @map("price_change_24h")
-  lastUpdated     DateTime? @map("last_updated")
-  addedAt         DateTime  @default(now()) @map("added_at")
+  id             String    @id @default(uuid())
+  userId         String    @map("user_id")
+  assetType      AssetType @map("asset_type")
+  symbol         String
+  name           String
+  currentPrice   Decimal?  @map("current_price")
+  priceChange24h Decimal?  @map("price_change_24h")
+  lastUpdated    DateTime? @map("last_updated")
+  addedAt        DateTime  @default(now()) @map("added_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -274,19 +315,19 @@ enum TransactionType {
 
 // ==================== Portfolio Tracking ====================
 model PortfolioTransaction {
-  id              String   @id @default(uuid())
-  userId          String   @map("user_id")
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
   symbol          String
-  transactionType String   @map("transaction_type") // 'buy' or 'sell'
-  quantity        Float    // 수량
-  price           Float    // 거래 단가
-  totalAmount     Float    @map("total_amount") // 총 금액 (수량 * 단가)
-  fee             Float    @default(0) // 수수료
-  note            String?  // 메모
-  transactionDate DateTime @map("transaction_date") // 거래 날짜
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-  assetType         AssetType @map("asset_type")
+  transactionType String    @map("transaction_type") // 'buy' or 'sell'
+  quantity        Float // 수량
+  price           Float // 거래 단가
+  totalAmount     Float     @map("total_amount") // 총 금액 (수량 * 단가)
+  fee             Float     @default(0) // 수수료
+  note            String? // 메모
+  transactionDate DateTime  @map("transaction_date") // 거래 날짜
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  assetType       AssetType @map("asset_type")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -297,25 +338,25 @@ model PortfolioTransaction {
 }
 
 model PortfolioHolding {
-  id                String   @id @default(uuid())
-  userId            String   @map("user_id")
-  symbol            String
-  assetType         AssetType @map("asset_type")
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  symbol    String
+  assetType AssetType @map("asset_type")
 
-  totalQuantity     Float    @map("total_quantity")
-  averageBuyPrice   Float    @map("average_buy_price")
-  totalInvested     Float    @map("total_invested")
+  totalQuantity   Float @map("total_quantity")
+  averageBuyPrice Float @map("average_buy_price")
+  totalInvested   Float @map("total_invested")
 
-  currentPrice      Float    @default(0) @map("current_price")
-  currentValue      Float    @default(0) @map("current_value")
+  currentPrice Float @default(0) @map("current_price")
+  currentValue Float @default(0) @map("current_value")
 
-  unrealizedProfit  Float    @default(0) @map("unrealized_profit")
+  unrealizedProfit     Float @default(0) @map("unrealized_profit")
   unrealizedProfitRate Float @default(0) @map("unrealized_profit_rate")
 
-  realizedProfit    Float    @default(0) @map("realized_profit")
+  realizedProfit Float @default(0) @map("realized_profit")
 
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -332,10 +373,10 @@ model NewsArticle {
   summary     String?  @db.Text
   url         String   @unique
   imageUrl    String?  @map("image_url")
-  source      String   // 'coingecko', 'cryptopanic', 'coindesk', etc
+  source      String // 'coingecko', 'cryptopanic', 'coindesk', etc
   author      String?
   symbols     String[] // ['BTC', 'ETH', 'XRP']
-  sentiment   String?  // 'positive', 'neutral', 'negative'
+  sentiment   String? // 'positive', 'neutral', 'negative'
   viewCount   Int      @default(0) @map("view_count")
   publishedAt DateTime @map("published_at")
   createdAt   DateTime @default(now()) @map("created_at")
@@ -355,7 +396,7 @@ model NewsBookmark {
   newsId    String   @map("news_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   news NewsArticle @relation(fields: [newsId], references: [id], onDelete: Cascade)
 
   @@unique([userId, newsId])
@@ -364,29 +405,29 @@ model NewsBookmark {
 }
 
 model MarketAsset {
-  symbol        String   @id
-  market        String
-  koreanName    String   @map("korean_name")
-  englishName   String   @map("english_name")
-  logoUrl       String?  @map("logo_url")
-  isActive      Boolean  @default(true) @map("is_active")
-  listedAt      DateTime? @map("listed_at")
-  delistedAt    DateTime? @map("delisted_at")
+  symbol      String    @id
+  market      String
+  koreanName  String    @map("korean_name")
+  englishName String    @map("english_name")
+  logoUrl     String?   @map("logo_url")
+  isActive    Boolean   @default(true) @map("is_active")
+  listedAt    DateTime? @map("listed_at")
+  delistedAt  DateTime? @map("delisted_at")
 
-  currentPrice     Decimal?  @map("current_price")
-  change24h        Decimal?  @map("change_24h")
-  high24h          Decimal?  @map("high_24h")
-  low24h           Decimal?  @map("low_24h")
-  volume24h        Decimal?  @map("volume_24h")
-  tradeValue24h    Decimal?  @map("trade_value_24h")
-  priceUpdatedAt   DateTime? @map("price_updated_at")
-  assetType AssetType @default(crypto) @map("asset_type")
+  currentPrice   Decimal?  @map("current_price")
+  change24h      Decimal?  @map("change_24h")
+  high24h        Decimal?  @map("high_24h")
+  low24h         Decimal?  @map("low_24h")
+  volume24h      Decimal?  @map("volume_24h")
+  tradeValue24h  Decimal?  @map("trade_value_24h")
+  priceUpdatedAt DateTime? @map("price_updated_at")
+  assetType      AssetType @default(crypto) @map("asset_type")
 
   @@index([isActive])
-  @@index([tradeValue24h])      // 🔥 TOP ranking 조회용
-  @@index([change24h])          // 변동률 정렬 시 빠르게
-  @@index([currentPrice])       // 가격 기준 정렬
-  @@index([priceUpdatedAt])     // 오래된 가격만 background update
+  @@index([tradeValue24h]) // 🔥 TOP ranking 조회용
+  @@index([change24h]) // 변동률 정렬 시 빠르게
+  @@index([currentPrice]) // 가격 기준 정렬
+  @@index([priceUpdatedAt]) // 오래된 가격만 background update
   @@map("market_assets")
 }
 
@@ -394,17 +435,17 @@ model MarketAsset {
 
 // 시장 심리 데이터
 model MarketSentiment {
-  id                String   @id @default(uuid())
-  symbol            String   // BTC, ETH, etc
-  sentimentScore    Int      @map("sentiment_score") // 0-100
-  fearGreedIndex    Int?     @map("fear_greed_index") // 0-100
-  volatility        Float    // 변동성 %
-  volume24h         Float    @map("volume_24h") // 24시간 거래량
-  priceChange24h    Float    @map("price_change_24h") // 24시간 가격변동 %
-  socialMentions    Int      @default(0) @map("social_mentions")
-  searchTrend       Int      @default(0) @map("search_trend")
-  sentimentLabel    String   @map("sentiment_label") // extreme_fear, fear, neutral, greed, extreme_greed
-  calculatedAt      DateTime @default(now()) @map("calculated_at")
+  id             String   @id @default(uuid())
+  symbol         String // BTC, ETH, etc
+  sentimentScore Int      @map("sentiment_score") // 0-100
+  fearGreedIndex Int?     @map("fear_greed_index") // 0-100
+  volatility     Float // 변동성 %
+  volume24h      Float    @map("volume_24h") // 24시간 거래량
+  priceChange24h Float    @map("price_change_24h") // 24시간 가격변동 %
+  socialMentions Int      @default(0) @map("social_mentions")
+  searchTrend    Int      @default(0) @map("search_trend")
+  sentimentLabel String   @map("sentiment_label") // extreme_fear, fear, neutral, greed, extreme_greed
+  calculatedAt   DateTime @default(now()) @map("calculated_at")
 
   @@index([symbol, calculatedAt])
   @@index([calculatedAt])
@@ -416,9 +457,9 @@ model WhaleTransaction {
   id              String   @id @default(uuid())
   symbol          String
   transactionType String   @map("transaction_type") // buy, sell
-  amount          Float    // 코인 수량
+  amount          Float // 코인 수량
   amountKRW       Float    @map("amount_krw") // 원화 환산
-  exchange        String?  // upbit, binance, etc
+  exchange        String? // upbit, binance, etc
   detectedAt      DateTime @default(now()) @map("detected_at")
 
   @@index([symbol, detectedAt])
@@ -427,15 +468,15 @@ model WhaleTransaction {
 
 // 심리 알림 설정
 model SentimentAlert {
-  id             String    @id @default(uuid())
-  userId         String    @map("user_id")
-  symbol         String
-  triggerScore   Int       @map("trigger_score") // 트리거 점수
-  triggerType    String    @map("trigger_type") // below, above
-  isActive       Boolean   @default(true) @map("is_active")
-  lastTriggered  DateTime? @map("last_triggered")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  symbol        String
+  triggerScore  Int       @map("trigger_score") // 트리거 점수
+  triggerType   String    @map("trigger_type") // below, above
+  isActive      Boolean   @default(true) @map("is_active")
+  lastTriggered DateTime? @map("last_triggered")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -464,22 +505,22 @@ model SmartMoneyAlert {
 
 // 투자 playbook notification
 model InvestmentNotification {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId    String
-  symbol    String?
+  userId String
+  symbol String?
 
-  source    String?
+  source String?
 
-  type      String
-  title     String
-  message   String
+  type    String
+  title   String
+  message String
 
-  severity  Int      @default(50)
+  severity Int @default(50)
 
-  isRead    Boolean  @default(false)
+  isRead Boolean @default(false)
 
-  payload   Json?
+  payload Json?
 
   expiresAt DateTime?
 
@@ -494,7 +535,7 @@ model InvestmentNotification {
 
 // 가격 히스토리
 model PriceHistory {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   symbol    String
   assetType AssetType @map("asset_type")
 
@@ -515,13 +556,13 @@ model PriceHistory {
 
 // 투자 성향
 model UserInvestmentProfile {
-  id                    String   @id @default(uuid())
-  userId                String   @unique @map("user_id")
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
 
-  riskTolerance         String   @default("medium")
-  maxSingleAssetWeight  Float    @default(0.6)
-  rebalanceBand         Float    @default(0.1)
-  panicSellWindowHours  Int      @default(24)
+  riskTolerance        String @default("medium")
+  maxSingleAssetWeight Float  @default(0.6)
+  rebalanceBand        Float  @default(0.1)
+  panicSellWindowHours Int    @default(24)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -545,23 +586,23 @@ enum InsightType {
 }
 
 model InvestmentInsight {
-  id         String      @id @default(uuid())
-  userId     String      @map("user_id")
-  symbol     String?
-  assetType  AssetType?  @map("asset_type")
+  id        String     @id @default(uuid())
+  userId    String     @map("user_id")
+  symbol    String?
+  assetType AssetType? @map("asset_type")
 
-  type       InsightType
-  title      String
-  summary    String
+  type    InsightType
+  title   String
+  summary String
 
-  severity   Int         @default(0)
+  severity   Int    @default(0)
   confidence Float?
   payload    Json?
 
-  dedupeKey  String      @default("default") @map("dedupe_key")
+  dedupeKey String @default("default") @map("dedupe_key")
 
-  createdAt  DateTime    @default(now()) @map("created_at")
-  expiresAt  DateTime?   @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime? @map("expires_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -573,16 +614,16 @@ model InvestmentInsight {
 
 // 투자 실행 기록
 model ExecutionLog {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
+  id     String @id @default(uuid())
+  userId String @map("user_id")
 
-  symbol    String?
+  symbol String?
 
-  action    String
-  quantity  Float?
-  price     Float?
+  action   String
+  quantity Float?
+  price    Float?
 
-  note      String?
+  note String?
 
   executedAt DateTime @default(now()) @map("executed_at")
 
@@ -602,23 +643,23 @@ enum Timeframe {
 }
 
 model TechnicalIndicator {
-  id         String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  symbol     String
-  assetType  AssetType @map("asset_type")
+  symbol    String
+  assetType AssetType @map("asset_type")
 
-  timeframe  Timeframe
-  timestamp  DateTime
+  timeframe Timeframe
+  timestamp DateTime
 
-  rsi14      Float?   @map("rsi_14")
-  ma20       Float?   @map("ma_20")
-  ma50       Float?   @map("ma_50")
+  rsi14 Float? @map("rsi_14")
+  ma20  Float? @map("ma_20")
+  ma50  Float? @map("ma_50")
 
   macd       Float?
-  macdSignal Float?   @map("macd_signal")
-  macdHist   Float?   @map("macd_hist")
+  macdSignal Float? @map("macd_signal")
+  macdHist   Float? @map("macd_hist")
 
-  volumeAvg20 Float?  @map("volume_avg_20")
+  volumeAvg20 Float? @map("volume_avg_20")
 
   createdAt DateTime @default(now()) @map("created_at")
 

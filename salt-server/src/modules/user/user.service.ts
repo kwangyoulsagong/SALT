@@ -3,7 +3,6 @@ import { NotFoundError, UnauthorizedError, ValidationError } from '../../shared/
 import { PasswordUtil } from '../../shared/lib/password';
 import { 
   UpdateProfileDto, 
-  ChangePasswordDto, 
   QueryPointTransactionsDto,
   QueryAchievementsDto 
 } from './user.dto';
@@ -59,44 +58,6 @@ export class UserService {
     return user;
   }
 
-  /**
-   * 비밀번호 변경
-   */
-  async changePassword(userId: string, data: ChangePasswordDto) {
-    // 사용자 조회
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundError('User not found');
-    }
-
-    // 현재 비밀번호 확인
-    const isCurrentPasswordValid = await PasswordUtil.compare(
-      data.currentPassword,
-      user.passwordHash
-    );
-
-    if (!isCurrentPasswordValid) {
-      throw new UnauthorizedError('Current password is incorrect');
-    }
-
-    // 새 비밀번호 유효성 검사
-    const validation = PasswordUtil.validate(data.newPassword);
-    if (!validation.valid) {
-      throw new ValidationError(validation.errors.join(', '));
-    }
-
-    // 비밀번호 업데이트
-    const newPasswordHash = await PasswordUtil.hash(data.newPassword);
-    await prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash: newPasswordHash },
-    });
-
-    return { message: 'Password changed successfully' };
-  }
 
   /**
    * 포인트 내역 조회
@@ -274,33 +235,5 @@ export class UserService {
         total: totalPoints._sum.amount || 0,
       },
     };
-  }
-
-  /**
-   * 계정 삭제
-   */
-  async deleteAccount(userId: string, password: string) {
-    // 사용자 조회
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundError('User not found');
-    }
-
-    // 비밀번호 확인
-    const isPasswordValid = await PasswordUtil.compare(password, user.passwordHash);
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedError('Password is incorrect');
-    }
-
-    // 계정 삭제 (Cascade로 연관 데이터 자동 삭제)
-    await prisma.user.delete({
-      where: { id: userId },
-    });
-
-    return { message: 'Account deleted successfully' };
   }
 }

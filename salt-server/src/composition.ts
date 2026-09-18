@@ -1,3 +1,11 @@
+import { createAuthApplication } from "./auth/application/api";
+import { BcryptPasswordHasher } from "./auth/infrastructure/BcryptPasswordHasher";
+import { JwtTokenIssuer } from "./auth/infrastructure/JwtTokenIssuer";
+import { PrismaAccountStore } from "./auth/infrastructure/PrismaAccountStore";
+import { PrismaInviteAttemptLog } from "./auth/infrastructure/PrismaInviteAttemptLog";
+import { PrismaInviteCodeStore } from "./auth/infrastructure/PrismaInviteCodeStore";
+import { PrismaUserCountProbe } from "./auth/infrastructure/PrismaUserCountProbe";
+import { createAuthRouter } from "./auth/presentation/auth.routes";
 import { createCoachApplication } from "./coach/application/api";
 import { ArticleTextAdapter } from "./coach/infrastructure/ArticleTextAdapter";
 import { GeminiCoachExplainer } from "./coach/infrastructure/GeminiCoachExplainer";
@@ -24,6 +32,8 @@ import { PrismaWhaleTransactionRepository } from "./market/infrastructure/Prisma
 import { SymbolNewsAdapter } from "./market/infrastructure/SymbolNewsAdapter";
 import { UpbitClient } from "./market/infrastructure/UpbitClient";
 import { createNewsApplication } from "./news/application/api";
+import { createOnboardingApplication } from "./onboarding/application/api";
+import { createOnboardingRouter } from "./onboarding/presentation/onboarding.routes";
 import { createPortfolioApplication } from "./portfolio/application/api";
 import { PriceHistoryAdapter } from "./portfolio/infrastructure/PriceHistoryAdapter";
 import { PrismaHoldingRepository } from "./portfolio/infrastructure/PrismaHoldingRepository";
@@ -35,6 +45,8 @@ import { createNewsRouter } from "./news/presentation/news.routes";
 import { createInvestmentRouter } from "./market/presentation/investment.routes";
 import { createMarketIntelligenceRouter } from "./market/presentation/marketIntelligence.routes";
 import { createPortfolioRouter } from "./portfolio/presentation/portfolio.routes";
+import { env } from "./shared/config/env";
+import prisma from "./shared/infrastructure/prisma";
 
 /**
  * 조립 지점 — **구현을 아는 유일한 자리**다.
@@ -55,6 +67,23 @@ import { createPortfolioRouter } from "./portfolio/presentation/portfolio.routes
  * > `src/composition/` 디렉터리를 만들지 않는다 — 레지스트리에 없는 컨텍스트로
  * > 잡혀 훅이 막는다. `src/composition.<context>.ts` 로 나눈다.
  */
+
+/**
+ * `auth` 는 아무도 읽지 않는다 — 공개 API 가 없고 다른 컨텍스트를 받지도 않는다.
+ * 그래서 조립 순서의 맨 앞이다.
+ *
+ * 상한은 **여기서 주입한다**. 유스케이스가 `env` 를 읽으면 그 값이 테스트에서
+ * 바뀌지 않는다 (FR-6).
+ */
+const auth = createAuthApplication({
+  invites: new PrismaInviteCodeStore(),
+  accounts: new PrismaAccountStore(),
+  userCount: new PrismaUserCountProbe(),
+  hasher: new BcryptPasswordHasher(),
+  tokens: new JwtTokenIssuer(),
+  attempts: new PrismaInviteAttemptLog(),
+  maxAccounts: env.INVITE_MAX_ACCOUNTS,
+});
 
 const news = createNewsApplication({
   articles: new PrismaArticleRepository(),
@@ -106,6 +135,28 @@ const coach = createCoachApplication({
   news: new ArticleTextAdapter(news.api),
 });
 
+/**
+ * `onboarding` 은 **조합 컨텍스트**다. Aggregate 가 없고 남의 사실을 읽기만 한다.
+ *
+ * 두 프로브가 이 슬라이스의 임시 배선이다:
+ *
+ * | 스텝 | REQ 가 말한 소스 | 지금 꽂는 것 | 언제 바뀌나 |
+ * |---|---|---|---|
+ * | `link_account` | `ledger` 거래 존재 | `portfolio` 공개 API 의 거래 건수 | F001 `ledger` |
+ * | `set_plan` | `plan` 설정 존재 | `goal` 행 존재 | F003 `plan` |
+ *
+ * `goal` 이 아직 컨텍스트가 아니라 여기서 Prisma 를 직접 센다. **조립 지점은 구현을 아는
+ * 유일한 자리**이므로 규칙 위반이 아니고(`server-architecture.md` §5), 오히려 이 한 줄이
+ * "아직 주인이 없는 사실"이라는 것을 눈에 띄게 만든다. `goal` 이 서면 이 줄이 공개 API
+ * 호출로 바뀐다.
+ */
+const onboarding = createOnboardingApplication({
+  ledgerLinked: async (userId) =>
+    (await portfolio.api.countTransactions(userId)) > 0,
+  planConfigured: async (userId) =>
+    (await prisma.goal.count({ where: { userId } })) > 0,
+});
+
 /** 다른 컨텍스트와 워커가 부르는 공개 API 모음. */
 export const contextApis = {
   news: news.api,
@@ -115,6 +166,7 @@ export const contextApis = {
 
 /** 컨텍스트가 자기 유스케이스를 직접 돌려야 하는 곳(워커·관리 작업)이 쓴다. */
 export const contextUseCases = {
+  auth: auth.useCases,
   news: news.useCases,
   market: market.useCases,
   portfolio: portfolio.useCases,
@@ -123,6 +175,8 @@ export const contextUseCases = {
 
 /** `app.ts` 가 등록하는 라우터. 경로는 `app.ts` 가 정한다. */
 export const contextRouters = {
+  auth: createAuthRouter(auth.useCases),
+  onboarding: createOnboardingRouter(onboarding.useCases),
   news: createNewsRouter(news.useCases),
   investment: createInvestmentRouter(market.useCases),
   marketIntelligence: createMarketIntelligenceRouter(market.useCases),

@@ -49,35 +49,6 @@ router.patch('/profile', userController.updateProfile);
 
 /**
  * @swagger
- * /api/users/password:
- *   patch:
- *     summary: 비밀번호 변경
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - currentPassword
- *               - newPassword
- *             properties:
- *               currentPassword:
- *                 type: string
- *               newPassword:
- *                 type: string
- *                 minLength: 8
- *     responses:
- *       200:
- *         description: 비밀번호 변경 성공
- */
-router.patch('/password', userController.changePassword);
-
-/**
- * @swagger
  * /api/users/points/transactions:
  *   get:
  *     summary: 포인트 내역 조회
@@ -172,30 +143,5 @@ router.get('/achievements', userController.getAchievements);
  *         description: 대시보드 통합 정보
  */
 router.get('/dashboard', userController.getDashboard);
-
-/**
- * @swagger
- * /api/users/account:
- *   delete:
- *     summary: 계정 삭제
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - password
- *             properties:
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: 계정 삭제 성공
- */
-router.delete('/account', userController.deleteAccount);
 
 export default router;

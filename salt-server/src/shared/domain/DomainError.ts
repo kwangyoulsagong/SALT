@@ -26,6 +26,18 @@ export enum ErrorKind {
    * 둘 다 이관이 조용히 계약이나 규칙을 바꾸는 것이라 커널에 값을 하나 늘렸다.
    */
   Forbidden = "FORBIDDEN",
+  /**
+   * 신원이 확인되지 않았다 → 401.
+   *
+   * **`Forbidden`(403)과 나뉘어 있어야 하는 이유**: 403 은 "누구인지는 알지만 이건 안
+   * 된다"이고 401 은 "누구인지 모른다"다. 클라이언트가 토큰 재발급을 시도할지 판단하는
+   * 근거가 이 구분이다 — 로그인 실패·토큰 만료를 403 으로 올리면 재발급 루프가 돌거나
+   * 반대로 만료된 세션이 조용히 방치된다.
+   *
+   * `auth` 컨텍스트가 서면서 `modules/auth` 의 `UnauthorizedError`(401)를 도메인 예외로
+   * 옮겨야 했고, 커널에 값이 없으면 **이관이 응답 코드를 바꾸는 일**이 된다.
+   */
+  Unauthenticated = "UNAUTHENTICATED",
 }
 
 export abstract class DomainError extends Error {

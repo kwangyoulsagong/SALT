@@ -21,6 +21,13 @@ const envSchema = z.object({
   LOG_LEVEL: z.string().default("info"),
   GEMINI_API_KEY: z.string().min(10),
   GEMINI_MODEL: z.string().default("gemini-2.5-flash-lite"),
+  /**
+   * 활성 계정 상한 (`SRV-REQ-008` FR-6 — **코드 상수 금지**).
+   *
+   * 제품 정의는 본인 + 최대 10명이다(글로벌 플랜 1-1절). 설정값인 이유는 상한이 찼을 때
+   * 기존 계정을 지우는 것 말고 **늘리는 선택지**가 있어야 하기 때문이다.
+   */
+  INVITE_MAX_ACCOUNTS: z.coerce.number().int().positive().default(10),
 });
 
 const parsedEnv = envSchema.parse(process.env);

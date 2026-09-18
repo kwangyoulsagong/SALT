@@ -14,7 +14,8 @@
     "start": "node dist/server.js",
     "start:news": "node dist/workers/news-crawler.worker.js",
     "test": "node --import tsx --test \"src/**/__tests__/*.test.ts\"",
-    "test:layer-check": "node .claude/hooks/__tests__/layer-check.test.mjs"
+    "test:layer-check": "node .claude/hooks/__tests__/layer-check.test.mjs",
+    "invite:issue": "tsx scripts/issue-invite-codes.ts"
   },
   "keywords": [],
   "author": "",
