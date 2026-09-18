@@ -44,7 +44,7 @@ const WATCHLIST_HEADERS = [
 export const WatchlistTable = React.memo(
   ({ items, selectedSymbol, onSelect, renderAction }: WatchlistTableProps) => {
     return (
-      <ScrollTableContainer maxHeight="800px" hideScrollbar>
+      <ScrollTableContainer maxHeight="viewport" hideScrollbar>
         <Table>
           <TableHeader bordered={false}>
             <TableRow>

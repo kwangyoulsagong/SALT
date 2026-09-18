@@ -355,6 +355,14 @@ export const sortArrowStyles = recipe({
 export const scrollTableContainerStyles = recipe({
   base: {
     width: "100%",
+    /**
+     * **flex 자식이 내용보다 작아질 수 있게 한다.**
+     *
+     * flex item 의 `min-width` 기본값은 `auto` 라 내용 폭 아래로 줄지 않는다. 표가
+     * 들어 있으면 그 폭이 컬럼 합이라, 좁은 화면에서 컨테이너가 부모를 밀고 나가
+     * **`body` 가 가로로 스크롤된다** (`FE-REQ-010` FR-51). 표만 자체 스크롤해야 한다.
+     */
+    minWidth: 0,
     display: "flex",
     flexDirection: "column",
     backgroundColor: vars.colors.background.white,
@@ -366,6 +374,14 @@ export const scrollTableContainerStyles = recipe({
       "600px": { maxHeight: "600px" },
       "800px": { maxHeight: "800px" },
       "1000px": { maxHeight: "1000px" },
+      /**
+       * 뷰포트 기준 (FR-53).
+       *
+       * 고정 800px 은 화면이 그보다 낮으면 표가 잘린 채로 페이지를 밀어낸다.
+       * 80vh 는 1000px 높이에서 800px 이라 **기존 화면에서 값이 같고**, 낮은 화면에서만
+       * 줄어든다.
+       */
+      viewport: { maxHeight: "80vh" },
     },
   },
 
@@ -375,8 +391,21 @@ export const scrollTableContainerStyles = recipe({
 });
 
 // Scroll Table Inner (실제 스크롤)
+/**
+ * 스크롤 영역 안의 표는 **줄어들지 않는다.**
+ *
+ * 컨테이너가 좁아지면 `table` 은 기본적으로 그 폭에 맞춰 줄고, 셀 내용이 글자 단위로
+ * 접힌다 — 375px 에서 "제이피와이코인"이 한 글자씩 세로로 쌓였다. 컬럼을 줄이지 않고
+ * 좁으면 스크롤한다는 것이 이 표의 규칙이다 (`FE-REQ-010` FR-55).
+ */
+const scrollTableInnerBase = style({});
+
+globalStyle(`${scrollTableInnerBase} > table`, {
+  minWidth: "max-content",
+});
+
 export const scrollTableInnerStyles = recipe({
-  base: {
+  base: [scrollTableInnerBase, {
     flex: 1,
     minHeight: 0,
     overflowX: "auto",
@@ -401,7 +430,7 @@ export const scrollTableInnerStyles = recipe({
         background: vars.colors.border.dark,
       },
     },
-  },
+  }],
 
   variants: {
     hideScrollbar: {

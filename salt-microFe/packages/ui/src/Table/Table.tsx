@@ -22,7 +22,7 @@ import {
 // ===== Scroll Table Container =====
 export interface ScrollTableContainerProps
   extends HTMLAttributes<HTMLDivElement> {
-  maxHeight?: "400px" | "600px" | "800px" | "1000px";
+  maxHeight?: "400px" | "600px" | "800px" | "1000px" | "viewport";
   hideScrollbar?: boolean;
   children: ReactNode;
 }

@@ -19,6 +19,7 @@ import {
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
 
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
+import { splitLayout } from "./MarketBoardLayout.css";
 
 /**
  * 관심 종목 탭 (`FE-REQ-010` FR-1 · FR-30~35).
@@ -113,7 +114,7 @@ export const WatchlistTab = () => {
   }
 
   return (
-    <FlexBox justify="between" gap="2xl">
+    <FlexBox justify="between" gap="2xl" className={splitLayout}>
       <WatchlistTable
         items={items}
         selectedSymbol={selectedSymbol}

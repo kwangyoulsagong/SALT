@@ -37,6 +37,7 @@ import { WatchlistStarButton } from "@/features/toggle-watchlist";
 import { formatClockTime } from "@/shared/lib";
 
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
+import { splitLayout } from "./MarketBoardLayout.css";
 
 /**
  * hover 로 프리뷰 심볼을 바꾸기까지의 대기.
@@ -164,8 +165,8 @@ export const RealtimeMarketTable = () => {
         period={filters.period}
         onChange={(next) => setFilters((prev) => ({ ...prev, ...next }))}
       />
-      <FlexBox justify="between" gap="2xl">
-        <ScrollTableContainer maxHeight="800px" hideScrollbar>
+      <FlexBox justify="between" gap="2xl" className={splitLayout}>
+        <ScrollTableContainer maxHeight="viewport" hideScrollbar>
           <Table>
             <TableHeader bordered={false}>
               <TableRow>

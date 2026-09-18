@@ -18,4 +18,23 @@ import { style } from "@vanilla-extract/css";
  */
 export const previewPanel = style({
   minHeight: "800px",
+  width: "100%",
+  maxWidth: "500px",
+
+  /**
+   * 좁은 화면에서는 **폭과 높이 고정을 푼다** (`FE-REQ-010` FR-52).
+   *
+   * 고정 폭 500px · 최소 높이 800px 은 PC 2컬럼 배치의 장치다. 세로로 쌓이면 그 고정이
+   * 화면을 밀어내 `body` 가 가로로 스크롤되고, 아래로는 빈 공간이 800px 생긴다.
+   *
+   * **이 규칙을 이 파일에 두는 이유**: 같은 요소에 걸리는 클래스 두 개(패널 기본 스타일과
+   * 위젯의 배치 클래스)는 명시도가 같아서 **소스 순서로 승부가 난다** — 파일이 다르면
+   * 그 순서를 보장할 수 없다. 실제로 위젯 쪽에 뒀을 때 덮이지 않았다(375px 실측).
+   */
+  "@media": {
+    "screen and (max-width: 767px)": {
+      minHeight: "auto",
+      maxWidth: "100%",
+    },
+  },
 });

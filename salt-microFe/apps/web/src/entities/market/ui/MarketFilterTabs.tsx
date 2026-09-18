@@ -36,7 +36,12 @@ export const MarketFilterTabs = ({
   onChange,
 }: MarketFilterTabsProps) => {
   return (
-    <FlexBox direction="row" gap="lg">
+    /*
+      좁은 화면에서 **줄바꿈한다.** 세 묶음 14개 버튼이 한 줄에 755px 이라 375px 화면을
+      밀어냈다. 넓은 화면에서는 자리가 남아 줄이 바뀌지 않으므로 PC 배치는 그대로다.
+      가로 스크롤로 숨기지 않는 이유: 필터는 **보여야 눌린다**.
+    */
+    <FlexBox direction="row" gap="lg" wrap="wrap">
       <FilterTabs
         label={MARKET_MESSAGES.sortGroupLabel}
         options={SORT_OPTIONS}
