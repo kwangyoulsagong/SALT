@@ -1,3 +1,5 @@
+import { apiFetch } from "@/shared/api";
+
 import { SIGN_IN_MESSAGES } from "../model/messages";
 import { SignInRequest, SignInResponse } from "../model/types";
 
@@ -5,7 +7,7 @@ import { SignInRequest, SignInResponse } from "../model/types";
 export const signInApi = {
   signIn: async (body: SignInRequest): Promise<SignInResponse> => {
     try {
-      const response = await fetch("/api/v1/auth/login", {
+      const response = await apiFetch("/api/v1/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

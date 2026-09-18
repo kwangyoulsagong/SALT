@@ -1,3 +1,5 @@
+import { apiFetch } from "@/shared/api";
+
 /**
  * 목표 조회. **조회만 둔다** — mutation 은 `features/{slice}/api` 로 올린다 (`fsd-entities.md`).
  *
@@ -6,7 +8,7 @@
 export const goalApi = {
   mySummary: async () => {
     try {
-      const response = await fetch("/api/v1/mygoals");
+      const response = await apiFetch("/api/v1/mygoals");
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "내 목표에 가져온는데 실패했습니다.");
@@ -22,7 +24,7 @@ export const goalApi = {
   },
   progressList: async () => {
     try {
-      const response = await fetch("/api/v1/goals");
+      const response = await apiFetch("/api/v1/goals");
       const data = await response.json();
       if (!response.ok) {
         throw new Error(
