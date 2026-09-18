@@ -3,7 +3,9 @@ import {
   type GenerationConfig,
 } from "@google/generative-ai";
 
+import { logger } from "../../shared/config/logger";
 import { env } from "../../shared/config/env";
+import { isRetryableHttpError, withRetry } from "../../shared/infrastructure";
 import type {
   CoachExplainer,
   CoachExplanation,
@@ -37,6 +39,17 @@ import type {
  */
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * 호출 상한 — **타임아웃 20초 · 재시도 2회** (`ddd-infrastructure.md` §6 의 상한 3 안).
+ *
+ * 3 이 아니라 2 인 이유: 이 호출은 **사용자 요청이 동기로 기다리는 경로**이고
+ * 예산이 6초다(`performance-server.md` §1). 20초 × 4회면 사용자가 80초를 기다린다.
+ * 재시도는 429·5xx·타임아웃에만 걸고, 그 뒤로는 실패를 그대로 올린다 —
+ * **해설이 없어도 추천은 나온다.**
+ */
+const REQUEST_TIMEOUT_MS = 20_000;
+const RETRIES = 2;
 const cache = new Map<string, { value: CoachExplanation; expiresAt: number }>();
 
 const SYSTEM_INSTRUCTION = `당신은 SALT 투자 코치입니다. 한국 개인 투자자에게 데이터 기반 해설을 제공합니다.
@@ -70,13 +83,26 @@ export class GeminiCoachExplainer implements CoachExplainer {
       return { ...cached.value, cached: true };
     }
 
-    const model = this.client.getGenerativeModel({
-      model: env.GEMINI_MODEL,
-      systemInstruction: SYSTEM_INSTRUCTION,
-      generationConfig,
+    const model = this.client.getGenerativeModel(
+      {
+        model: env.GEMINI_MODEL,
+        systemInstruction: SYSTEM_INSTRUCTION,
+        generationConfig,
+      },
+      { timeout: REQUEST_TIMEOUT_MS }
+    );
+
+    const prompt = this.buildPrompt(input);
+
+    const response = await withRetry(() => model.generateContent(prompt), {
+      retries: RETRIES,
+      baseDelayMs: 1_000,
+      isRetryable: isRetryableHttpError,
+      // 프롬프트·응답은 싣지 않는다 (§ 원문 로깅 금지). 남기는 것은 횟수와 대기뿐이다.
+      onRetry: (_error, attempt, waitMs) =>
+        logger.warn(`Gemini 해설 재시도 ${attempt}회 (${waitMs}ms 후)`),
     });
 
-    const response = await model.generateContent(this.buildPrompt(input));
     const parsed = this.parse(response.response.text());
 
     const result: CoachExplanation = {

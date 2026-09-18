@@ -1,7 +1,7 @@
-import axios from "axios";
 import Parser from "rss-parser";
 
 import { logger } from "../../shared/config/logger";
+import { createHttpClient } from "../../shared/infrastructure";
 import type { ArticleDraft } from "../domain";
 
 /**
@@ -15,6 +15,8 @@ import type { ArticleDraft } from "../domain";
  */
 class EnglishNewsFeed {
   private rssParser = new Parser();
+  /** 크롤링은 배경 작업이지만 타임아웃이 없으면 회차가 끝나지 않는다. */
+  private http = createHttpClient({ timeoutMs: 10_000 });
 
   /**
    * CryptoPanic API (무료)
@@ -25,7 +27,7 @@ class EnglishNewsFeed {
       // 실제로는 API 키 필요: https://cryptopanic.com/developers/api/
       const url = `https://cryptopanic.com/api/v1/posts/?auth_token=free&public=true&kind=news`;
 
-      const response = await axios.get(url);
+      const response = await this.http.get(url);
       const articles = response.data.results || [];
 
       return articles.slice(0, limit).map((article: any) => ({

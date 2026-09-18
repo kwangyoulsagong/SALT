@@ -1,6 +1,9 @@
-import axios from "axios";
-
 import { logger } from "../../shared/config/logger";
+import {
+  createHttpClient,
+  isRetryableHttpError,
+  withRetry,
+} from "../../shared/infrastructure";
 import type {
   Candle,
   DailyCandleView,
@@ -16,6 +19,33 @@ import type {
 const UPBIT_API_URL = "https://api.upbit.com/v1";
 
 const marketOf = (symbol: string) => `KRW-${symbol.toUpperCase()}`;
+
+/**
+ * 거래소 호출은 **타임아웃과 재시도 상한**을 갖는다 (`ddd-infrastructure.md` §6).
+ *
+ * 원문은 `axios.get` 을 직접 불렀다 — 타임아웃이 없어 거래소가 느려지면 요청이
+ * 무한정 매달리고, 재시도가 없어 **부팅 직후 레이트리밋 한 번이 그 회차의 수집을
+ * 통째로 날렸다**(`SRV-REQ-006` 체크리스트 §9-8 에 기록된 실제 증상이다).
+ *
+ * 재시도는 429·5xx·응답 없음(타임아웃)에만 건다. 4xx 는 몇 번을 걸어도 같은 답이다.
+ * **전부 조회 전용 GET 이라** 두 번 도착해도 안전하다 — 이 클라이언트에는 주문·출금이 없다.
+ */
+const http = createHttpClient({ baseURL: UPBIT_API_URL, timeoutMs: 10_000 });
+
+const get = <T = any>(path: string, params?: Record<string, unknown>): Promise<T> =>
+  withRetry(
+    async () => {
+      const response = await http.get(path, { params });
+      return response.data as T;
+    },
+    {
+      isRetryable: isRetryableHttpError,
+      onRetry: (error, attempt, waitMs) =>
+        logger.warn(
+          `Upbit 재시도 ${attempt}회 — ${path} (${waitMs}ms 후): ${(error as Error).message}`
+        ),
+    }
+  );
 
 /** 분봉 단위 매핑. `ExchangeQuotePort` 의 타임프레임을 거래소 단위로 옮긴다. */
 const MINUTE_UNIT: Record<Exclude<PriceTimeframe, "1d">, number> = {
@@ -131,8 +161,8 @@ export class UpbitClient implements ExchangeQuotePort {
 
   async krwMarkets(): Promise<MarketListing[]> {
     try {
-      const response = await axios.get(`${UPBIT_API_URL}/market/all`);
-      return response.data
+      const markets = await get<any[]>("/market/all");
+      return markets
         .filter((m: any) => m.market.startsWith("KRW-"))
         .map((m: any) => ({
           market: m.market,
@@ -147,11 +177,12 @@ export class UpbitClient implements ExchangeQuotePort {
   }
 
   async recentTrades(symbol: string, count: number): Promise<Trade[]> {
-    const response = await axios.get(`${UPBIT_API_URL}/trades/ticks`, {
-      params: { market: marketOf(symbol), count },
+    const trades = await get<any[]>("/trades/ticks", {
+      market: marketOf(symbol),
+      count,
     });
 
-    return response.data.map((trade: any) => ({
+    return trades.map((trade: any) => ({
       side: trade.ask_bid === "bid" ? "buy" : "sell",
       price: trade.trade_price,
       volume: trade.trade_volume,
@@ -159,11 +190,11 @@ export class UpbitClient implements ExchangeQuotePort {
   }
 
   async orderbookPressure(symbol: string): Promise<OrderbookPressure> {
-    const response = await axios.get(`${UPBIT_API_URL}/orderbook`, {
-      params: { markets: marketOf(symbol) },
+    const orderbooks = await get<any[]>("/orderbook", {
+      markets: marketOf(symbol),
     });
 
-    const units = response.data[0].orderbook_units;
+    const units = orderbooks[0].orderbook_units;
 
     return {
       bids: units.reduce((sum: number, u: any) => sum + u.bid_size, 0),
@@ -173,10 +204,9 @@ export class UpbitClient implements ExchangeQuotePort {
 
   private async tickers(symbols: string[], logPrefix: string) {
     try {
-      const response = await axios.get(`${UPBIT_API_URL}/ticker`, {
-        params: { markets: symbols.map(marketOf).join(",") },
-      });
-      return response.data ?? [];
+      return (await get("/ticker", {
+        markets: symbols.map(marketOf).join(","),
+      })) ?? [];
     } catch (error: any) {
       logger.error(logPrefix, error.message);
       throw new Error("Failed to fetch price from Upbit");
@@ -206,10 +236,7 @@ export class UpbitClient implements ExchangeQuotePort {
 
   private async rawDailyCandles(symbol: string, count: number) {
     try {
-      const response = await axios.get(`${UPBIT_API_URL}/candles/days`, {
-        params: { market: marketOf(symbol), count },
-      });
-      return response.data;
+      return await get("/candles/days", { market: marketOf(symbol), count });
     } catch (error: any) {
       logger.error("Upbit candles API error:", error.message);
       throw new Error("Failed to fetch chart data from Upbit");
@@ -222,11 +249,10 @@ export class UpbitClient implements ExchangeQuotePort {
     count: number
   ) {
     try {
-      const response = await axios.get(
-        `${UPBIT_API_URL}/candles/minutes/${unit}`,
-        { params: { market: marketOf(symbol), count } }
-      );
-      return response.data;
+      return await get(`/candles/minutes/${unit}`, {
+        market: marketOf(symbol),
+        count,
+      });
     } catch (error: any) {
       logger.error("Upbit minute candles API error:", error.message);
       throw new Error("Failed to fetch minute chart data from Upbit");
