@@ -516,3 +516,69 @@ FR-22 는 네 값(`NOT_FOUND`·`CONFLICT`·`INVALID`·`BLOCKED`)만 적었다. �
 | 11-10 | `/explain` 인증 | F004 (BFF 가 비인증 프록시다) |
 
 > **이 표에 없는 미충족은 없다.** §9 · §11 의 모든 행이 여기 있거나 §12 에서 닫혔다.
+
+## 14. 파이프라인을 끝까지 돌려서 찾은 것 (2026-09-18)
+
+`validate` 단계를 규칙대로 **전부** 돌렸다(`validation.md` 의 다섯 명령 + 기동). 두 가지가 나왔다.
+
+### 14-1. `npm run prisma:generate` 가 돌지 않는 상태였다
+
+`prisma.config.ts` 가 `env("DATABASE_URL")` 을 쓰는데 **Prisma CLI 는 그 설정 파일을 먼저
+로드하고 `.env` 를 읽지 않는다.** 스키마를 바꾸지 않아도 항상 `PrismaConfigEnvError` 다.
+
+서버 런타임은 `dotenv` 로 읽어서 드러나지 않았다 — §6("빌드가 깨진 채로 배포 산출물만
+살아 있었다")과 같은 종류다. 설정에 `dotenv/config` 를 import 해 고쳤고
+`validation.md` 에 적었다. **게이트로 적어 둔 명령이 실패하는 상태를 두지 않는다.**
+
+### 14-2. 인사이트 워커가 2단계에서 멈추면 코치가 안 돌았다
+
+기동 로그에서 `❌ Investment insight worker error: PrismaClientKnownRequestError` 를 봤다.
+원인은 **이관하지 않은 모듈**(`modules/investment-insight/whale-signal.service`)이고,
+`InvestmentInsight.userId` 에 `"global"` 을 쓰는데 그 컬럼에 **User FK 가 걸려 있어**
+`id = "global"` 인 사용자 행이 없으면 항상 `P2003` 으로 거부된다.
+
+| | 고치기 전 | 고친 뒤 |
+|---|---|---|
+| 고래 신호 실패 시 | **3~6단계가 한 번도 실행되지 않는다** (코치 생성 포함) | 그 단계만 건너뛴다 |
+| 로그 | `❌ worker error` 하나 | `⚠️ 부분 완료 — 건너뛴 단계: 🐋 …` |
+
+원문은 여섯 단계를 `try` 하나로 감쌌고 사용자 루프는 `Promise.all` 이었다(한 사용자의
+실패가 나머지를 버린다). 단계와 사용자 단위로 격리했다 — 단계들은 서로 독립이고 전부
+upsert 로 멱등하다. `workers-external.md`("반복 작업은 실패해도 다음 실행 가능성을
+남긴다")가 요구하는 모양이고, 3단계의 "캔들 수집이 회차 전체를 중단시킴"(§7-4)과 **같은 종류**다.
+
+**부분 성공을 성공으로 적지 않는다** — 건너뛴 단계 이름을 로그에 남긴다.
+
+### 14-3. 남은 것: `"global"` 인사이트는 쓸 수 없다
+
+FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**이다:
+
+| 안 | 성격 |
+|---|---|
+| `id = "global"` 사용자 행을 시딩한다 | 데이터 — 사용자 테이블에 사람이 아닌 행이 생긴다 |
+| FK 를 드롭한다 | 스키마 — `DB-REQ` |
+| 전역 인사이트를 별도 테이블로 분리한다 | 스키마 + 이관 — `SRV-REQ-007` |
+
+**지금 드러난 사실을 적어 둔다:** `smart_buy_zone` · `whale_*` 인사이트는 저장되지 못하고,
+따라서 `coach` 가 점수 계산에서 읽는 `userId: "global"` 조건
+(`PrismaCoachInsightStore.findActiveForScoring`)은 **현재 항상 0건**이다.
+매수 구간 신호가 점수에 붙지 않는다(`policy/score` 의 `buy_zone` 요인이 안 뜬다).
+
+> 코치 쪽에 버그가 있는 것이 아니다 — **쓰는 쪽이 못 쓰고 있다.** 그래서 `SRV-REQ-007`
+> 에서 그 모듈을 옮길 때 같이 정한다.
+
+### 14-4. 최종 검증 (파이프라인 5개 명령 + 기동)
+
+| Check | Status | Details |
+|---|---|---|
+| Build | **pass** | `tsc` 0건 |
+| Prisma Generate | **pass** | `✔ Generated Prisma Client (v6.19.0)` — §14-1 을 고친 뒤 |
+| Lint (DDD 레이어) | **pass** | `eslint .` 0건 |
+| Test | **pass** | 153/153 |
+| Layer-check | **pass** | 16/16 (차단 10 · 통과 6) |
+| API Contract | **pass** | 경로 5개 유지 · 신규 Swagger 10블록 · Zod DTO 9개 |
+| Auth/Security | **부분** | 인증 라우터 전부 `authMiddleware`. `/explain` 은 여전히 공개(요청 제한만) — §12-7 |
+| DB Safety | **pass** | 스키마 변경 없음 · 마이그레이션 없음 · 모든 사용자 조회에 `userId` 조건 |
+| Performance | **pass** | N+1 제거 3건(§10-4) · 목록 전부 `take` 상한 · 외부 호출 타임아웃(§12-2) |
+| Worker/External | **pass** | 단계 격리(§14-2) · 캔들 수집 실패 0건 · 코치 단계 실행 확인 |
+| 정적 점검 | **pass** | `presentation` → `prisma` 0건 · `domain` 금지 패키지 0건(주석 1건은 설명) · `application` → `infrastructure` 0건(주석 6건은 설명) |
