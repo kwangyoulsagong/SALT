@@ -8,6 +8,7 @@ export const ROUTES = {
   login: "/",
   home: "/home",
   investments: "/investments",
+  onboarding: "/onboarding",
   addGoal: "/goals/addgoals",
 } as const;
 
