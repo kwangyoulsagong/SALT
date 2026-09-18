@@ -6,8 +6,7 @@ import { TextField } from "@repo/ui/textField";
 import useDebounce from "@repo/ui/useDebounce";
 import { useCallback, useState, type FormEvent } from "react";
 
-import { useAcceptInvite, useInviteCheck } from "../api";
-import { InviteRejectedError } from "../api/useAcceptInvite";
+import { InviteRejectedError, useAcceptInvite, useInviteCheck } from "../api";
 import {
   ACCEPT_INVITE_MESSAGES,
   INVITE_CHECK_MESSAGES,

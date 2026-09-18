@@ -153,6 +153,7 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-18 | **수리 9건(FR-1~9)과 상세 규칙을 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-1(관심 종목 탭) · FR-2(하드코딩 시각) · FR-3·40~45(뉴스 실데이터) · FR-4(오타) · FR-5(홈 "주식" 섹션) · FR-6·60·61(터치·키보드 선택) · FR-7·50~55(반응형, 375/390/1440 실측) · FR-8(`period` 오타) · FR-9(목표 submit) · FR-30~35(관심 목록 표시) · FR-65(별 `aria-label`). **남은 것**: FR-20~26(초대 코드·온보딩 3스텝 화면) · FR-64(`ProgressStepper` — 그 화면이 생길 때) · FR-63은 **다르게 구현**했다(아래). 근거: `requirements/reports/checklists/FE-REQ-010.md` |
+| 2026-09-18 | **초대 코드·온보딩 3스텝 화면을 구현했다.** 닫힌 것: FR-20~26 · FR-64. 슬라이스 셋이 생겼다 — `features/accept-invite` · `widgets/onboarding-flow` · `pages/onboarding`. **회원가입 화면은 구현된 적이 없었다**(경로만 `PUBLIC_PATHS` 에 있었다). 온보딩 2·3단계는 **안내만** 한다(F001·F003). **남은 것**: FR-63(`FilterTabs` — 다르게 구현) · **브라우저 화면 실측**. 근거: `requirements/reports/checklists/FE-REQ-010.md` §7~§10 |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

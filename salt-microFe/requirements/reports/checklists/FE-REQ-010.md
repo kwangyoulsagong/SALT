@@ -1,9 +1,9 @@
 # FE-REQ-010 (F000 UI) — 검증 체크리스트
 
 - REQ: `requirements/specs/in-progress/FE-REQ-010-F000-UI.md`
-- 브랜치: `feat/f000-watchlist-tab` (커밋 19개, `origin` 푸시됨 · PR 미개설)
+- 브랜치: `feat/f000-watchlist-tab` → `feat/f000-invite-onboarding-slice` · 검증일: 2026-09-18
 - 검증일: 2026-09-18
-- 상태: **부분 완료** — 수리 9건과 표시·접근성·반응형은 닫혔고 **초대 코드·온보딩 화면이 남았다**
+- 상태: **부분 완료** — 수리 9건에 이어 **초대 코드·온보딩 3스텝(FR-20~26·64)** 이 닫혔다
 - **전 영역 통합 기록**: `requirements/reports/checklists/F000-watchlist-tab.md`
   (서버·BFF 와 함께 검증한 계약 실측, 번들, 명령 결과가 그쪽에 있다)
 
@@ -83,3 +83,47 @@
 5컬럼 · 필터 정렬5/순서2/기간7 · 별 아이콘 · 로고 · blink 2초 · `limit=100` · PC 2컬럼 **그대로**.
 색 토큰(상승 `#FF2E55` / 하락 `#1677EE`) **그대로** — 표 선택 배경으로 들어갔던 브랜드
 보라(`#E5DBFF`)는 팔레트 밖이라 **되돌렸다**. 표 hover 는 토스증권과 같은 `#F2F4F6` 이다.
+
+## 7. 초대 코드 · 온보딩 3스텝 (2026-09-18, `feat/f000-invite-onboarding-slice`)
+
+| FR | 내용 | 결과 | 근거 |
+|---|---|---|---|
+| FR-20 | 회원가입 화면을 초대 코드 화면으로 대체 | **pass** | **회원가입 화면은 구현된 적이 없었다** — `/signup` 은 `PUBLIC_PATHS` 에 경로만 있었다. 그 자리를 지우고 `/onboarding` 을 넣었다 |
+| FR-21 | 3스텝(초대 · 계좌 연결 · 월 적립액), 그 외 질문 없음 | **pass** | `widgets/onboarding-flow`. 뒤 두 단계는 **안내만** |
+| FR-22 · 64 | `ProgressStepper` · `aria-current="step"` | **pass** | `@repo/ui` `ProgressStepper` 가 현재 단계에만 준다 |
+| FR-23 | 입력 중 `invite/check` · 상한 초과 미노출 | **pass** | 디바운스 400ms · 6자 게이트 · 코드별 캐시 키 |
+| FR-24 | 실패 `reasonCode` 3종이 각각 다른 문구 | **pass** | `INVITE_REASON_MESSAGES`. 없는 코드는 다시 입력, 나머지 둘은 새 코드 요청 |
+| FR-25 | 온보딩 미완료면 홈에 **카드 1개** | **pass** | `OnboardingCard`. `complete` 면 `null`. 로딩 중에도 렌더하지 않는다(레이아웃 흔들림) |
+| FR-26 | 붙여넣기 · 자동 대문자화 · 공백 제거 | **pass** | `normalizeInviteCode` — 서버와 같은 규칙 |
+
+## 8. 이 작업에서 고친 것 — 토큰이 저장되지 않고 있었다
+
+`ACCESS_TOKEN_KEY` 를 **읽는 코드만 있고 쓰는 코드가 없었다.** `useSignIn` 은 `USER_KEY`
+만 저장해서, 로그인에 성공해도 `authHeader()` 가 언제나 빈 객체였다. `/api/app/*` 를
+부르는 화면(관심 목록 · 포트폴리오 요약 · 온보딩 상태)이 전부 401 이고 화면은 그것을
+"데이터 없음"으로 그려서 **빌드·타입체크·lint 를 통과한 채 조용히 깨져 있었다.**
+
+`shared/api/authToken.ts` 에 `writeSession` 을 두고 로그인·초대 수락이 같이 쓴다.
+읽기와 쓰기가 한 파일이라 `FE-REQ-013`(쿠키 이관)이 그 파일 하나만 고치면 된다.
+
+## 9. 번들 — 같은 회귀를 반복했다
+
+새 호출 셋에 `axios` 를 써서 `/home` **166 kB** · `/onboarding` **146 kB** 였다. 두 화면
+다 axios 를 쓰지 않던 곳이라 GET 하나에 라이브러리가 통째로 들어왔다. `apiFetch` 로
+바꿔 **145 · 125 kB** 로 되돌렸다.
+
+**`FE-REQ-009` 회고가 이미 두 번 적은 실수다.** 회고에 적는 것만으로는 다음 세션이 같은
+선택을 막지 못한다 — lint 규칙이 될 후보다(`no-restricted-imports` 로 `axios` 를 특정
+슬라이스 밖에서 막는 형태).
+
+`/investments` 가 +8 kB 다. `entities/auth` barrel 이 새 쿼리 훅을 re-export 해서
+`ProfileHeader` 만 쓰는 화면에도 딸려 오는 것으로 보인다. 예산(40 kB) 안이라 두고
+`FE-REQ-013` 에서 다룬다.
+
+## 10. 남은 것
+
+| 항목 | 언제 닫히나 |
+|---|---|
+| **브라우저 화면 실측** — 온보딩 화면·홈 카드를 눈으로 보지 않았다 | 다음 작업의 첫 항목. 계약 12경우는 `curl` 로 확인했다 |
+| 온보딩 2·3단계가 **안내만** 한다 | 연결 화면 F001 · 적립 설정 F003 |
+| FR-63 `FilterTabs` 접근성 | §4 (판단 근거는 컴포넌트 주석) |
