@@ -24,9 +24,9 @@ export const MARKET_MESSAGES = {
   largeSells: "대량 매도",
   orderbookRatio: "호가창 매수/매도 비율",
   newsImageAlt: (symbol: string) => `${symbol} 뉴스 이미지`,
-  /** 뉴스 카드는 아직 자리표시자다 — 실데이터는 `marketApi.symbolNews` 가 붙는 F000 이후다. */
-  newsPlaceholderAge: "4시간전",
-  newsPlaceholderViews: "조회 11.7천",
+  /** 기사가 없을 때. **더미를 만들지 않는다** (`FE-REQ-010` FR-42) */
+  newsEmpty: "관련 뉴스가 없습니다",
+  newsViews: (count: number) => `조회 ${count.toLocaleString("ko-KR")}`,
 } as const;
 
 /** 관심 목록 문구. `MARKET_MESSAGES` 와 나눈 이유는 소비하는 화면이 다르기 때문이다. */

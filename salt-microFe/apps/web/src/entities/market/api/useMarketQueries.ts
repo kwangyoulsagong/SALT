@@ -13,6 +13,7 @@ import {
   MarketIntelligencePreviewResponse,
   MarketOverviewParams,
   MarketOverviewResponse,
+  NewsPreviewResponse,
   WatchlistResponse,
 } from "../model/types";
 import { marketApi } from "./marketApi";
@@ -62,6 +63,27 @@ export const useMarketIntelligencePreview = (
     enabled: Boolean(symbol),
     placeholderData: keepPreviousData,
     staleTime: PREVIEW_STALE_TIME_MS,
+  });
+
+/**
+ * 종목 뉴스.
+ *
+ * 프리뷰는 종목을 바꿀 때마다 다시 부르므로 프리뷰 쿼리 둘과 **같은 정책**을 쓴다 —
+ * 이전 데이터를 유지해 패널이 비었다 채워지지 않게 하고, `staleTime` 으로 포커스마다
+ * 다시 요청하지 않게 한다. 뉴스는 시세보다 훨씬 덜 바뀌므로 더 길게 잡는다.
+ */
+const NEWS_STALE_TIME_MS = 5 * 60_000;
+
+export const useSymbolNews = (
+  symbol: string,
+  limit: number,
+): UseQueryResult<NewsPreviewResponse> =>
+  useQuery({
+    queryKey: [marketQueryKeys.symbolNews, symbol, limit],
+    queryFn: ({ signal }) => marketApi.symbolNews(symbol, limit, signal),
+    enabled: Boolean(symbol),
+    placeholderData: keepPreviousData,
+    staleTime: NEWS_STALE_TIME_MS,
   });
 
 /**

@@ -203,37 +203,27 @@ export interface AddWatchlistRequest {
   name: string;
 }
 
-export interface MarketSymbolNewsParams {
-  symbol: string;
-  source?: string;
-  search?: string;
-  page: number;
-  limit: number;
-}
-
-export interface MarketSymbolNewsArticle {
+/**
+ * 뉴스 프리뷰 카드 한 장. **BFF 가 소유한 뷰모델**이다 (`/api/app/news`).
+ *
+ * 이전에는 서버 응답 모양(`articles` + `pagination` + `content`)을 그대로 적어 뒀고
+ * 그것을 부르는 함수는 **던지는 스텁**이었다. 화면이 상수를 그리고 있었기 때문에
+ * 아무도 쓰지 않았다.
+ */
+export interface NewsPreviewItem {
   id: string;
   title: string;
-  summary: string;
-  url: string;
+  summary: string | null;
+  /** 없으면 `null`. 화면은 **이미지 영역을 렌더하지 않는다** (`FE-REQ-010` FR-41) */
+  imageUrl: string | null;
   source: string;
-  author: string | null;
-  symbols: string[];
-  sentiment: string;
-  viewCount: number;
+  url: string;
   publishedAt: string;
+  /** 서버가 줄 때만 있다. 없으면 그 칸을 그리지 않는다 */
+  viewCount?: number;
 }
 
-export interface MarketSymbolNewsItem {
-  articles: MarketSymbolNewsArticle[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+export interface NewsPreviewResponse {
+  items: NewsPreviewItem[];
 }
 
-export interface MarketSymbolNewsResponse {
-  data: MarketSymbolNewsItem;
-}

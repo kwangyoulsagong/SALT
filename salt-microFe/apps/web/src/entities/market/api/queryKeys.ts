@@ -9,4 +9,5 @@ export const marketQueryKeys = {
    * 동기화 코드를 따로 쓰지 않는 것이 목적이다.
    */
   watchlist: ["MarketWatchlist"] as const,
+  symbolNews: ["MarketSymbolNews"] as const,
 } as const;
