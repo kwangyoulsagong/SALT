@@ -131,3 +131,18 @@ type AlertVM = {
 - 알림 `params`의 구조. `messageCode`별로 필요한 키가 다르므로 **타입을 코드별로 좁힐 수 있는지** 검토(discriminated union).
 - `portfolio/summary`가 홈 "주식" 섹션용인데 크립토를 포함할지(`SRV-REQ-008` Open Question).
 - 관심 종목 CRUD를 proxy로 둘지 `/api/app`으로 옮길지. **현재가 보정이 필요하므로 `/api/app`** 이 기본안.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-18 | **신규 계약 중 다섯을 열고 `in-progress` 로 옮겼다.** 닫힌 것: `GET·POST·DELETE /api/app/watchlist` · `GET /api/app/news` · `GET /api/app/portfolio/summary`. **남은 것**: 온보딩 3개(`invite/check` · `invite` · `status`) · 제거 목록(`/api/auth/register` 등). 근거: `requirements/reports/checklists/BFF-REQ-008.md` |
+
+## 구현이 REQ와 다른 지점 (2026-09-18)
+
+**`GET /api/app/news` 를 인증 없이 열었다** (표는 Auth Y). 서버 `/news` 가 공개 경로이고
+같은 프리뷰 패널의 차트·심리도 공개다 — 뉴스만 막으면 로그인 전 화면에서 그 블록만 빈다.
+서버가 뉴스를 비공개로 바꾸면 여기도 같이 닫는다.
+
+`PortfolioSummaryVM` 에 `namesDegraded` 를 더했다. 종목명을 시세 목록에서 붙이는데
+그 조회가 실패해도 금액은 내려보내야 하고, 화면이 "이름이 심볼로 보이는 이유"를 알아야 한다.
