@@ -9,6 +9,7 @@
     "dev:worker": "tsx watch src/workers/price-updater.worker.ts",
     "dev": "concurrently \"npm run dev:rest\" \"npm run dev:ws\" \"npm run dev:worker\"",
     "build": "tsc",
+    "test": "node --import tsx --test \"src/**/__tests__/*.test.ts\"",
     "start:rest": "node dist/rest/server.js",
     "start:ws": "node dist/websocket/server.js",
     "start:worker": "node dist/workers/price-updater.worker.js"
