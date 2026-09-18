@@ -78,6 +78,22 @@ export class PortfolioController {
     }
   };
 
+  /**
+   * 홈 "주식" 섹션 요약.
+   *
+   * 한 줄에 들어갈 넷(심볼·자산군·평가금액·손익률)과 합계만 준다.
+   */
+  getSummary = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.useCases.getPortfolioSummary.execute(
+        req.user!.userId
+      );
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   updateTransaction = async (
     req: Request,
     res: Response,

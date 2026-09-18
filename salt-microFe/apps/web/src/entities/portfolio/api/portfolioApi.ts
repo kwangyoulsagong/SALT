@@ -1,4 +1,9 @@
-import { apiFetch } from "@/shared/api";
+import axios from "axios";
+
+import { apiFetch, authHeader } from "@/shared/api";
+import { INVESTMENTS_BASE_URL } from "@/shared/config";
+
+import { PortfolioSummary } from "../model/types";
 
 /**
  * 투자 요약 조회. 지금은 MSW 가 받는다 — BFF 이관은 `FE-REQ-012` 다.
@@ -22,5 +27,18 @@ export const portfolioApi = {
           : "이번주 지출 분석 가져오는데 오류 발생하였습니다."
       );
     }
+  },
+  /**
+   * 보유 요약 — 홈 "주식" 섹션.
+   *
+   * 이쪽은 MSW 가 아니라 **BFF** 다. 같은 파일에 두 upstream 이 섞이는 것은 이관
+   * 중이기 때문이고, 나머지도 `FE-REQ-012` 에서 BFF 로 옮겨간다.
+   */
+  summary: async (signal?: AbortSignal): Promise<PortfolioSummary> => {
+    const response = await axios.get<PortfolioSummary>(
+      `${INVESTMENTS_BASE_URL}/api/app/portfolio/summary`,
+      { headers: authHeader(), signal },
+    );
+    return response.data;
   },
 };

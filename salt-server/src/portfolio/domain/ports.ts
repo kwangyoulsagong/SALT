@@ -98,6 +98,11 @@ export interface HoldingRepository {
     assetType?: PortfolioAssetType
   ): Promise<Holding[]>;
   findBySymbol(symbol: string): Promise<Holding[]>;
+  /**
+   * 여러 심볼의 보유를 한 번에. **시세 반영이 심볼마다 조회를 돌지 않게 하는 자리다**
+   * (`performance.md` — 루프 안에서 `findMany` 를 반복하지 않는다).
+   */
+  findBySymbols(symbols: string[]): Promise<Holding[]>;
   /** 수량이 남으면 upsert, 0 이하면 삭제한다. 그 판정은 `domain` 이 한다. */
   save(
     userId: string,
