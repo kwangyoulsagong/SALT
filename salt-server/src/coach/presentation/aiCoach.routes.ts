@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { authMiddleware } from "../../shared/presentation/authMiddleware";
+import { rateLimit } from "../../shared/presentation/rateLimit";
 import type { CoachUseCases } from "../application/api";
 import { AICoachController } from "./aiCoach.controller";
 
@@ -12,7 +13,18 @@ import { AICoachController } from "./aiCoach.controller";
  * `router.use(authMiddleware)` **위**에 있어서 공개 경로다. 원문의 주석이 그 이유를
  * 적어 두었고(프로토타입 데모) 옮기면서 순서를 유지했다 — 줄을 옮기는 것만으로
  * 공개 엔드포인트가 인증 뒤로 사라지거나 그 반대가 된다.
+ *
+ * ## 그래서 요청 제한을 걸었다
+ *
+ * 인증이 없는 채로 **LLM 을 부르는 경로**다. 호출마다 비용이 들고 캐시는 5분이라,
+ * 새 입력을 계속 바꿔 보내면 그대로 다 나간다. 인증을 붙이는 것이 옳지만 BFF 가
+ * 이 경로를 **비인증으로 프록시**하고 있어(`app-ai-coach.service.explain`) 서버만
+ * 바꾸면 기능이 죽는다 — 그건 프론트·BFF 계약과 함께 할 일이다.
+ *
+ * 그 전까지 **분당 10회**로 막는다. 사용자 ≤10명 서버에서 정상 사용이 닿지 않는 수이고,
+ * 자동 호출은 여기서 걸린다.
  */
+const EXPLAIN_RATE_LIMIT = { windowMs: 60_000, max: 10 };
 export const createAICoachRouter = (useCases: CoachUseCases): Router => {
   const router = Router();
   const controller = new AICoachController(useCases);
@@ -61,7 +73,7 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *       500: { description: LLM 호출 실패 }
    */
   // NOTE: public for prototype demo. TODO before prod: add rate-limit + auth.
-  router.post("/explain", controller.explain);
+  router.post("/explain", rateLimit(EXPLAIN_RATE_LIMIT), controller.explain);
 
   router.use(authMiddleware);
 
