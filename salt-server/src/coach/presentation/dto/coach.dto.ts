@@ -54,7 +54,6 @@ export const explainCoachSchema = z.object({
   currentPrice: z.number().positive(),
   change24h: z.number(),
   tradeValue24h: z.number().nonnegative(),
-  confidence: z.number().min(0).max(100),
   evidence: z
     .array(
       z.object({

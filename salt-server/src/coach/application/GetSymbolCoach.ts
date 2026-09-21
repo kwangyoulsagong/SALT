@@ -1,15 +1,18 @@
 import {
-  makeModeDecision,
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
   type CoachMode,
   type CoachProfileStore,
   type MarketProbe,
   type ModeDecision,
   type PortfolioProbe,
+  type SymbolJudgmentStore,
 } from "../domain";
-
-/** 대량 체결 표본 수. 원문의 `take: 20` 이다. */
-const WHALE_SAMPLE = 20;
+import { collectJudgmentMaterials, judgeSymbol } from "./lib/judgeSymbols";
+import {
+  attachJudgmentTrack,
+  JUDGMENT_DISCLAIMER,
+  type ModeCoachView,
+} from "./lib/judgmentTrack";
 
 export interface SymbolCoachQuery {
   symbol: string;
@@ -22,6 +25,11 @@ export interface SymbolCoachView {
   mode: CoachMode;
   preview: boolean;
   headline: string;
+  /**
+   * 두 모드 판단 + 게이트 + 성적표 + 실패사례 (F004 · `SRV-REQ-025` FR-40~43).
+   * 화면은 이것을 읽는다. 아래 `modeDecision` · `dualDecision` 은 하위 호환이다.
+   */
+  modes: { scalp: ModeCoachView; longTerm: ModeCoachView };
   modeDecision: ModeDecision;
   dualDecision: { scalp: ModeDecision; longTerm: ModeDecision };
   riskGuard: {
@@ -45,6 +53,7 @@ export interface SymbolCoachView {
     indicatorTimestamp: Date | null;
     generatedAt: string;
   };
+  disclaimer: string;
 }
 
 /**
@@ -64,7 +73,8 @@ export class GetSymbolCoach {
   constructor(
     private readonly market: MarketProbe,
     private readonly portfolio: PortfolioProbe,
-    private readonly profiles: CoachProfileStore
+    private readonly profiles: CoachProfileStore,
+    private readonly judgments: SymbolJudgmentStore
   ) {}
 
   async execute(
@@ -73,46 +83,25 @@ export class GetSymbolCoach {
   ): Promise<SymbolCoachView> {
     const symbol = query.symbol.toUpperCase();
 
-    const [quotes, holding, sentiments, indicators, whales, profile] =
-      await Promise.all([
-        this.market.quotes([symbol]),
-        this.portfolio.getHolding(userId, symbol),
-        this.market.latestSentiments([symbol]),
-        this.market.latestIndicators([symbol]),
-        this.market.recentWhales([symbol], WHALE_SAMPLE),
-        this.profiles.findByUser(userId),
-      ]);
+    const [materialsBySymbol, holding, profile] = await Promise.all([
+      collectJudgmentMaterials(this.market, [symbol]),
+      this.portfolio.getHolding(userId, symbol),
+      this.profiles.findByUser(userId),
+    ]);
 
-    const quote = quotes.get(symbol);
-    const sentiment = sentiments.get(symbol);
-    const indicator = indicators.get(symbol);
-
-    const missingData: string[] = [];
-    if (!quote?.currentPrice) missingData.push("price");
-    if (!sentiment) missingData.push("sentiment");
-    if (!indicator) missingData.push("technical_indicator");
-    if (!whales.length) missingData.push("whale_flow");
-
-    const whaleBuy = whales
-      .filter((item) => item.transactionType === "buy")
-      .reduce((sum, item) => sum + Number(item.amountKRW ?? 0), 0);
-    const whaleSell = whales
-      .filter((item) => item.transactionType === "sell")
-      .reduce((sum, item) => sum + Number(item.amountKRW ?? 0), 0);
-
-    const shared = {
+    const materials = materialsBySymbol.get(symbol)!;
+    const { quote, sentiment, indicator, whales } = materials;
+    const { scalp, longTerm, whaleBuy, whaleSell, missingData } = judgeSymbol(
       symbol,
-      change24h: Number(quote?.change24h ?? sentiment?.priceChange24h ?? 0),
-      sentimentScore: sentiment?.sentimentScore,
-      rsi: indicator?.rsi14 ? Number(indicator.rsi14) : undefined,
-      whaleBuy,
-      whaleSell,
-      hasHolding: Boolean(holding),
-      missingData,
-    };
+      materials,
+      Boolean(holding)
+    );
 
-    const scalp = makeModeDecision({ ...shared, mode: "scalp" });
-    const longTerm = makeModeDecision({ ...shared, mode: "long_term" });
+    // 게이트는 `preview` 에서도 생략하지 않는다 (`SRV-REQ-025` FR-49)
+    const [scalpView, longTermView] = await Promise.all([
+      attachJudgmentTrack(this.judgments, scalp),
+      attachJudgmentTrack(this.judgments, longTerm),
+    ]);
 
     const selectedMode: CoachMode = query.mode ?? "scalp";
     const modeDecision = selectedMode === "scalp" ? scalp : longTerm;
@@ -122,6 +111,7 @@ export class GetSymbolCoach {
       mode: selectedMode,
       preview: Boolean(query.preview),
       headline: modeDecision.headline,
+      modes: { scalp: scalpView, longTerm: longTermView },
       modeDecision,
       dualDecision: { scalp, longTerm },
       riskGuard: {
@@ -160,6 +150,7 @@ export class GetSymbolCoach {
         indicatorTimestamp: indicator?.timestamp ?? null,
         generatedAt: new Date().toISOString(),
       },
+      disclaimer: JUDGMENT_DISCLAIMER,
     };
   }
 }

@@ -6,6 +6,8 @@ import type {
   MarketProbe,
   NewsProbe,
   PortfolioProbe,
+  SymbolJudgmentStore,
+  TrackedAssetProbe,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
 import {
@@ -21,6 +23,10 @@ import { GetSymbolCoach } from "../GetSymbolCoach";
 import { ListProfitPlans } from "../ListProfitPlans";
 import { GetCoachProfile, UpdateCoachProfile } from "../ManageCoachProfile";
 import { RecordCoachFeedback } from "../RecordCoachFeedback";
+import {
+  EvaluateSymbolJudgments,
+  SnapshotSymbolJudgments,
+} from "../RecordSymbolJudgments";
 
 /**
  * `coach` 의 조립 팩토리.
@@ -44,6 +50,8 @@ export interface CoachDependencies {
   news: NewsProbe;
   notifier: CoachNotifier;
   explainer: CoachExplainer;
+  judgments: SymbolJudgmentStore;
+  tracked: TrackedAssetProbe;
 }
 
 export interface CoachUseCases {
@@ -60,13 +68,16 @@ export interface CoachUseCases {
   checkTradePreflight: CheckTradePreflight;
   listProfitPlans: ListProfitPlans;
   getSignalPerformance: GetSignalPerformance;
+  snapshotSymbolJudgments: SnapshotSymbolJudgments;
+  evaluateSymbolJudgments: EvaluateSymbolJudgments;
 }
 
 export const createCoachApplication = (deps: CoachDependencies) => {
   const symbolCoach = new GetSymbolCoach(
     deps.market,
     deps.portfolio,
-    deps.profiles
+    deps.profiles,
+    deps.judgments
   );
   const analyzeNewsSentiment = new AnalyzeNewsSentiment(deps.news);
   const analyzeTradingBehavior = new AnalyzeTradingBehavior(
@@ -106,6 +117,15 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     ),
     listProfitPlans: new ListProfitPlans(deps.portfolio),
     getSignalPerformance: new GetSignalPerformance(deps.insights, deps.market),
+    snapshotSymbolJudgments: new SnapshotSymbolJudgments(
+      deps.tracked,
+      deps.market,
+      deps.judgments
+    ),
+    evaluateSymbolJudgments: new EvaluateSymbolJudgments(
+      deps.market,
+      deps.judgments
+    ),
   };
 
   return { useCases };

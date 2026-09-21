@@ -63,6 +63,13 @@ export interface PortfolioApi {
     userId: string,
     assetType?: PortfolioAssetType
   ): Promise<number>;
+  /**
+   * 누군가 보유한 심볼 전체 — **사용자를 구분하지 않는다.**
+   *
+   * `coach` 의 종목 판단 스냅샷(F004 · D11)이 추적 자산(관심 ∪ 보유)을 만들 때 쓴다.
+   * 판단이 사용자와 무관해서 누가 가졌는지는 필요 없다.
+   */
+  heldSymbols(assetType: PortfolioAssetType): Promise<string[]>;
 }
 
 export type { Holding, PortfolioAssetType, Transaction };
@@ -120,6 +127,7 @@ export const createPortfolioApplication = (deps: PortfolioDependencies) => {
     },
     countTransactions: (userId, assetType) =>
       deps.transactions.countByUser(userId, assetType),
+    heldSymbols: (assetType) => deps.holdings.distinctSymbols(assetType),
   };
 
   return { api, useCases };

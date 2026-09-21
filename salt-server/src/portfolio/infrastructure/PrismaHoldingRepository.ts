@@ -36,6 +36,15 @@ export class PrismaHoldingRepository implements HoldingRepository {
     return prisma.portfolioHolding.findMany({ where: { symbol } });
   }
 
+  async distinctSymbols(assetType: PortfolioAssetType): Promise<string[]> {
+    const rows = await prisma.portfolioHolding.findMany({
+      where: { assetType, totalQuantity: { gt: 0 } },
+      select: { symbol: true },
+      distinct: ["symbol"],
+    });
+    return rows.map((row) => row.symbol);
+  }
+
   findBySymbols(symbols: string[]): Promise<Holding[]> {
     if (symbols.length === 0) return Promise.resolve([]);
     return prisma.portfolioHolding.findMany({
