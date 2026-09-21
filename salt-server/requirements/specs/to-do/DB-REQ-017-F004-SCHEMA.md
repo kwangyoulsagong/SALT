@@ -232,7 +232,7 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 - **`signalType`을 무엇으로 채울지.** `ai-coach-score.engine.ts`의 점수 스케일과 `signal-performance`의 그룹 키가 **1:1로 매핑되는지 확인이 필요하다**(FEATURE-004 Open Question). 매핑이 안 되면 카드가 어떤 성적표를 붙일지 결정할 수 없다 — **F004 착수 전 선결.**
 - `InvestmentInsight.payload`의 기존 구조가 문서화되어 있지 않다. 승격할 필드를 정하려면 실제 payload 샘플을 봐야 한다.
 - ~~`defaultMode`·`notificationLevel`을 컬럼으로 추가할지 UI에서 숨길지.~~ **닫힘 2026-09-21** — 노출 + 컬럼 추가(B16).
-- **Q3 — 미보유 주식 종목의 관찰 구간.** 글로벌 플랜 §1-3 은 미보유 주식 신규 매수 추천을 ETF/지수로 한정한다. 결정 전까지 미보유 개별 주식은 구간 스냅샷을 남기지 않는다.
+- ~~**Q3**~~ — 2026-09-21 D12 로 닫힘. 미보유 개별 주식은 구간 스냅샷을 남기지 않는다.
 - 종목 판단 스냅샷의 시간 버킷(1시간 · 1일). 버킷이 짧으면 표본이 빨리 쌓이지만 서로 독립이 아니다 — 성적표가 부풀려진다.
 - `GaugeTrackRecord` 를 종목별로 둘지 시장 전체로 둘지. 종목별이면 표본이 부족한 종목이 많다(표본 < 20 → 배지).
 
@@ -241,3 +241,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. FR-30 개정(D2 — `smart_buy_zone` 생성 중단 철회, 새 규칙 서버 계산) · FR-32 무효화 · FR-20 개정(B16 노출 확정, `benchmarkSymbol` 제거 — ADR-002). 신규 FR-50~59(종목 판단 스냅샷 `symbol_judgment` · `mode` 컬럼 · 신뢰도 미사용(D3) · `GaugeTrackRecord`(B9) · 예측 컬럼 금지) |
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. Q3 닫음(D12) |

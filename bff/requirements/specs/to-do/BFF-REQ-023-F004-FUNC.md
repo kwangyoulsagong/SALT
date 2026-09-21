@@ -26,7 +26,7 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | `POST /api/app/ai-coach/feedback` | 기존 — `reasonCode` 추가 |
 | `POST /api/app/ai-coach/explain` | 기존 — **인증 전달 추가** |
 | `POST /api/app/ai-coach/generate` (proxy) | 기존 — **쿨다운 429 전달** |
-| `GET /api/app/profit-plan` | 기존 — `distanceFromCurrentPct` 추가 |
+| `GET /api/app/profit-plan` | 기존 — `gapFromCurrent` 추가 |
 | `GET /api/app/signal-performance` | 기존 — **그룹 지원 추가** |
 | `POST /api/app/trade-preflight` | 기존 |
 | `GET /api/app/behavior-coach` | 기존 — `factCode` 추가 |
@@ -72,7 +72,7 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-30 | `distanceFromCurrentPct`를 그대로 전달한다. **BFF가 계산하지 않는다** | Must |
+| FR-30 | `gapFromCurrent`를 그대로 전달한다. **BFF가 계산하지 않는다** | Must |
 | FR-31 | 3자산군을 전달한다. `crypto` 필터를 BFF에 두지 않는다 | Must |
 | FR-32 | `trendHold.conditionCode`를 코드로 전달한다. 문구를 만들지 않는다 | Must |
 
@@ -121,7 +121,7 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | FR-92 | 모드별 `renderable` · `blockedReason` · `trackRecord` · `failureCases` 를 **그대로** 전달한다. 게이트 판정 · 기본값 채우기 0건(FR-1~6 과 같은 규칙) | Must |
 | FR-93 | **라벨을 지어내지 않는다.** 지금 `getPreview` 는 `badge: data.modeDecision?.label ?? "관망"` 으로 판단이 없을 때 "관망"을 만든다 — 판단이 없으면 `null` 이다 | Must |
 | FR-94 | `mode` 가 없으면 **서버에 넘기지 않는다.** 지금은 BFF 가 `scalp` 로 채운다 — 서버가 `defaultMode`(B16)를 보고 정한다 | Must |
-| FR-95 | `zone`(판별 union)을 그대로 전달한다. `distancePct` 를 계산하지 않고, 구간 · 가격을 만들지 않는다. `notPrediction` 을 떨어뜨리지 않는다 | Must |
+| FR-95 | `zone`(판별 union)을 그대로 전달한다. `priceGap` 을 계산하지 않고 % 로 바꾸지 않으며(D13), 구간 · 가격을 만들지 않는다. `notPrediction` 을 떨어뜨리지 않는다 | Must |
 | FR-96 | `gaugeTrackRecords` 를 그대로 전달한다. 표본 판정 · 문구 생성 0건 | Must |
 | FR-97 | 뉴스는 지금처럼 `/market-intelligence/:symbol/news?limit=3` 을 합친다. 단 **판단 호출과 병렬**로(지금은 순차). 뉴스 실패는 `degradedFields: ['news']` 이고 판단은 응답한다. 기사 감정 · 종목 연결(B11)은 F000 소관 | Must |
 | FR-98 | `validity.code` 를 전달한다. BFF 가 "25분" 같은 문구로 바꾸지 않는다 | Must |
@@ -156,7 +156,7 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 - [ ] `staleHours`가 BFF에서 재계산되지 않는다
 - [ ] `?groupBy=signalType`이 전달되고 무인자 호출이 하위 호환이다
 - [ ] `lowSample`·`insufficient_data`가 그대로 전달된다
-- [ ] `distanceFromCurrentPct`가 BFF에서 계산되지 않는다
+- [ ] `gapFromCurrent`가 BFF에서 계산되지 않는다
 - [ ] 익절 플랜에 `crypto` 필터가 0건이다
 - [ ] `factCode` + `params`가 전달되고 완성 문장이 0건이다
 - [ ] `behavior-coach` 기존 응답이 하위 호환이다
@@ -197,3 +197,4 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. `/api/app/ai-coach/detail` 을 **종목 판단 뷰모델**로 확정(코드 근거)하고 코치 리포트를 `/api/app/coach/report` 로 분리 — 조립 절 개정. 신규 FR-90~104(두 모드 전달 · **`confidence` 복사 제거**(D3) · "관망" 기본 라벨 제거 · `mode` 기본값 서버 위임(B16) · `zone`/게이지 적중률 전달(D2 · B9) · 뉴스 병렬 · 목표가 기본값 금지(B1) · 관심 종목 판단 필드 금지(D4) · 알림 만들기 없음(B19)). FR-42 무효(ADR-002) |
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. FR-30 · FR-95 필드명 `gapFromCurrent` · `priceGap`(D13) |

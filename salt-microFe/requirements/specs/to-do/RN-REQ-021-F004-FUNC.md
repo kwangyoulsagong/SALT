@@ -27,7 +27,7 @@ created: 2026-09-09
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-10 | **점수·승률·MDD·`distancePct`·preflight를 계산하지 않는다** | Must |
+| FR-10 | **점수·승률·MDD·`priceGap`·preflight를 계산하지 않는다** | Must |
 | FR-11 | 표시 포맷터를 `packages/core`에서 웹과 공유한다 | Must |
 | FR-12 | `staleHours`는 서버 값을 쓴다. **기기 시계로 재계산하지 않는다** — 시계가 틀린 기기에서 배지가 잘못 뜬다 | Must |
 
@@ -129,7 +129,7 @@ created: 2026-09-09
 - [ ] 방어적 재확인이 동작한다 (3종 중 하나 없으면 렌더 안 함 + 개발 로그)
 - [ ] **우회 prop·플래그가 0건이다**
 - [ ] `disclaimer`·`scoreNote` 없으면 렌더되지 않는다
-- [ ] **점수·승률·MDD·`distancePct`·preflight 계산 코드가 0건이다**
+- [ ] **점수·승률·MDD·`priceGap`·preflight 계산 코드가 0건이다**
 - [ ] 포맷터가 웹과 공유된다
 - [ ] `staleHours`가 서버 값이다 (기기 시계 재계산 0건)
 - [ ] i18n 키가 웹과 공유되고 금지 표현 검사 11개가 동작한다
@@ -185,3 +185,4 @@ created: 2026-09-09
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 신규 FR-90~101(모드 navigation param 공유(D3) · `defaultMode` 위임(B16) · 모드 전환 무요청 · 모드별 게이트(B10) · 신뢰도/유효시간 상수 금지 · 무계산(D2 · B9) · 금지 표현 6개 · 해설 게이트(B3) · 주문 전 체크(B1) · 목록 분리(D4) · 초기 미렌더 정상(B18) · 오프라인 모드 전환). 개정: FR-85 |
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `distancePct` → `priceGap`(D13) |

@@ -26,7 +26,7 @@ created: 2026-09-09
 | POST | `/api/app/ai-coach/feedback` | 피드백 (기존, `reasonCode`) | 추천 카드 |
 | POST | `/api/app/ai-coach/explain` | 즉석 해설 (기존, **인증 추가**) | 상세 분석 페이지 [해설 보기] |
 | POST | `/api/app/ai-coach/generate` | 재생성 (기존, **429**) | 새로 생성 |
-| GET | `/api/app/profit-plan` | 익절 플랜 (기존, `distancePct`) | 코치 탭 |
+| GET | `/api/app/profit-plan` | 익절 플랜 (기존, `priceGap`) | 코치 탭 |
 | GET | `/api/app/signal-performance` | 성적표 (기존, `groupBy`) | 코치 탭 |
 | POST | `/api/app/trade-preflight` | 주문 전 계산 (기존, 2026-09-21 `stopLossRate` · `maxLossOfTotalRate`) | 상세 분석 페이지 · 코치 리포트 |
 | GET | `/api/app/behavior-coach` | 행동 기록 (기존, `factCode`) | 코치 탭 |
@@ -68,8 +68,8 @@ type CoachDetailViewModel = {
 
   exitPlans: Array<{
     symbol: string; assetType: string; currentPrice: number;
-    stopLoss: { price: number; distancePct: number };
-    firstTakeProfit: { price: number; distancePct: number };
+    stopLoss: { price: number; priceGap: number };
+    firstTakeProfit: { price: number; priceGap: number };
     trendHold: { conditionCode: string };
   }>;
 
@@ -137,7 +137,7 @@ type ModeCoachViewModel =
       failureCases: [FailureCase, ...FailureCase[]];
       zone: Zone }
   | { renderable: false;
-      blockedReason: 'reasons_missing' | 'signal_track_record_missing' | 'failure_cases_missing';
+      blockedReason: 'reasons_missing' | 'signal_track_record_missing' | 'failure_cases_missing' | 'insufficient_sample';  // 표본 < 20 (D11)
       trackSample: number | null;            // "표본 N건" 표시용. 매핑 없으면 null
       zone: Zone };                          // 판단이 막혀도 구간은 보인다
 
@@ -212,10 +212,11 @@ type SymbolCoachViewModel = {
 - `renderable`과 `signalTrackRecord`의 정합을 **타입으로 강제할 수 있는가.** discriminated union으로 `{ renderable: true, signalTrackRecord: SignalTrackRecord } | { renderable: false, blockedReason: string }` 형태가 가능하다 → **그게 가장 안전하다.** **2026-09-21**: 종목 판단 뷰모델에서 이 형태로 확정(FR-31). 코치 리포트 `CoachDetailViewModel` 도 같은 형태로 맞출지는 FE-REQ-028 과 함께 정한다.
 - `feedback` 필드를 담으면 조회가 하나 늘어난다. 사용자 ≤10명이면 문제가 아니다.
 - ~~`invoiceLink`를 BFF가 만들지 프론트가 만들지~~ — ADR-002 로 닫힘.
-- **Q3** — 미보유 주식의 `zone` 은 결정 전 `unavailable(scope_undecided)`.
+- ~~**Q3**~~ — 2026-09-21 D12 로 닫힘. 미보유 개별 주식의 `zone` 은 `unavailable(out_of_scope)`.
 
 ## Changelog
 
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. `/api/app/ai-coach/detail` 을 종목 판단으로 개정하고 `/api/app/coach/report` 신설. 신규 FR-30~38 · `SymbolCoachViewModel`(모드별 `renderable` 판별 union(B10) · `zone`(D2) · `gaugeTrackRecords`(B9) · `validity` · **`confidence` 없음**(D3) · 목표가 기본값 없음(B1)), 해설 union(B3), 성적표 분포 · hits/misses(B17 · B2). `invoiceLink` 제거(ADR-002) |
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `distancePct` → `priceGap`(D13). 종목 경로 `blockedReason` 에 `insufficient_sample`(D11). Q3 닫음(D12) |
