@@ -1,6 +1,7 @@
 export * from "./behavior";
 export * from "./candidates";
 export * from "./explain";
+export * from "./gauge";
 export * from "./marketRegime";
 export * from "./modeDecision";
 export * from "./newsSentiment";
@@ -10,3 +11,4 @@ export * from "./profitPlan";
 export * from "./score";
 export * from "./signalPerformance";
 export * from "./symbolJudgment";
+export * from "./zone";

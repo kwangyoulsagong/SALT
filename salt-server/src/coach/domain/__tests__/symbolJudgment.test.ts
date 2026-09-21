@@ -109,30 +109,44 @@ describe("judgmentGate — 3종 게이트 (FR-137)", () => {
       worstReturn: 0,
     });
 
-  it("근거가 없으면 막는다", () => {
+  const wait = { action: "wait" as const, risks: ["r"] };
+
+  it("근거가 없으면 막는다 — 피하기가 아니면 risks 는 근거가 아니다", () => {
     assert.deepEqual(
-      judgmentGate({ reasons: [], trackRecord: record(30), failureCases: [miss] }),
+      judgmentGate({ ...wait, reasons: [], trackRecord: record(30), failureCases: [miss] }),
       { renderable: false, blockedReason: "reasons_missing" }
     );
   });
 
   it("표본이 20 미만이면 insufficient_sample — 초기 상태가 이것이다", () => {
     assert.deepEqual(
-      judgmentGate({ reasons: ["x"], trackRecord: record(19), failureCases: [miss] }),
+      judgmentGate({ ...wait, reasons: ["x"], trackRecord: record(19), failureCases: [miss] }),
       { renderable: false, blockedReason: "insufficient_sample" }
     );
   });
 
   it("표본이 충분해도 실패가 0건이면 막는다", () => {
     assert.deepEqual(
-      judgmentGate({ reasons: ["x"], trackRecord: record(25), failureCases: [] }),
+      judgmentGate({ ...wait, reasons: ["x"], trackRecord: record(25), failureCases: [] }),
       { renderable: false, blockedReason: "failure_cases_missing" }
     );
   });
 
+  it("피하기는 risks 도 근거로 센다 (2026-09-21 사용자 확정)", () => {
+    const avoid = { action: "avoid" as const, reasons: [], trackRecord: record(25), failureCases: [miss] };
+    assert.deepEqual(judgmentGate({ ...avoid, risks: ["과열"] }), {
+      renderable: true,
+      blockedReason: null,
+    });
+    assert.deepEqual(judgmentGate({ ...avoid, risks: [] }), {
+      renderable: false,
+      blockedReason: "reasons_missing",
+    });
+  });
+
   it("셋이 다 있으면 렌더한다", () => {
     assert.deepEqual(
-      judgmentGate({ reasons: ["x"], trackRecord: record(25), failureCases: [miss] }),
+      judgmentGate({ ...wait, reasons: ["x"], trackRecord: record(25), failureCases: [miss] }),
       { renderable: true, blockedReason: null }
     );
   });

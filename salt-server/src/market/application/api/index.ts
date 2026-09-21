@@ -1,11 +1,15 @@
 import type {
   AssetQuote,
+  ClosePercentiles,
   ClosePoint,
   ExchangeQuotePort,
   FearGreedPort,
   IndicatorRepository,
   MarketAssetRepository,
   PriceHistoryRepository,
+  PriceTimeframe,
+  SentimentForwardReturn,
+  SentimentForwardReturnQuery,
   SentimentRepository,
   StoredIndicator,
   StoredSentiment,
@@ -94,6 +98,23 @@ export interface MarketApi {
   closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
   latestCloses(symbols: string[]): Promise<ClosePoint[]>;
   /**
+   * 한 심볼의 종가 백분위. `coach` 의 관찰 구간(F004 · D2)이 쓴다 — 가격 목표가 아니라
+   * 과거 분포다.
+   */
+  closePercentiles(
+    symbol: string,
+    timeframe: PriceTimeframe,
+    since: Date,
+    fractions: number[]
+  ): Promise<ClosePercentiles>;
+  /**
+   * 심리 구간별 사후 수익률 분포. `coach` 의 게이지 적중률(F004 · B9)이 일 1회 읽는다.
+   * 심리와 종가가 둘 다 `market` 의 것이라 합치는 것도 여기서 한다.
+   */
+  sentimentForwardReturns(
+    query: SentimentForwardReturnQuery
+  ): Promise<SentimentForwardReturn[]>;
+  /**
    * 누군가의 관심 목록에 있는 크립토 심볼 전체 — **사용자를 구분하지 않는다.**
    * `coach` 의 종목 판단 스냅샷(F004 · D11)이 추적 자산을 만들 때 쓴다.
    */
@@ -102,7 +123,11 @@ export interface MarketApi {
 
 export type {
   AssetQuote,
+  ClosePercentiles,
   ClosePoint,
+  PriceTimeframe,
+  SentimentForwardReturn,
+  SentimentForwardReturnQuery,
   StoredIndicator,
   StoredSentiment,
   StoredWhaleTransaction,
@@ -203,7 +228,11 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.prices.highestCloseSince(symbols, since),
     closeAtOrAfter: (symbol, at) => deps.prices.closeAtOrAfter(symbol, at),
     latestCloses: (symbols) => deps.prices.latestCloses(symbols),
+    closePercentiles: (symbol, timeframe, since, fractions) =>
+      deps.prices.closePercentiles(symbol, timeframe, since, fractions),
     watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),
+    sentimentForwardReturns: (query) =>
+      deps.sentiments.forwardReturnsByBucket(query),
   };
 
   return { api, useCases };

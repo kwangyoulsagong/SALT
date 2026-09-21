@@ -140,6 +140,8 @@ export interface SymbolNewsItem {
 /** 자산 한 줄의 시세. 코치·주문 전 계산이 현재가와 신선도를 본다. */
 export interface AssetQuote {
   symbol: string;
+  /** 코치의 관찰 구간이 자산군으로 갈린다 — 미보유 주식은 구간을 만들지 않는다(D12). */
+  assetType: MarketAssetType;
   currentPrice: number | null;
   change24h: number | null;
   priceUpdatedAt: Date | null;
@@ -263,6 +265,32 @@ export interface StoredSentiment extends SentimentRecord {
   calculatedAt: Date;
 }
 
+export interface SentimentForwardReturnQuery {
+  /** 심리 점수 구간 폭. 0~100 을 이 폭으로 자르고 마지막 구간이 100 을 포함한다. */
+  bucketWidth: number;
+  horizonDays: number;
+  /** 이 시각 이후의 심리만 표본이다. */
+  since: Date;
+}
+
+/**
+ * 심리 점수 구간 하나의 "그 구간에 있던 날 → `horizonDays` 뒤 수익률" 분포.
+ * 수익률은 비율(0.12 = 12%)이다. **과거 분포**다.
+ */
+export interface SentimentForwardReturn {
+  symbol: string;
+  /** `floor(score / bucketWidth)`, 100 은 마지막 구간. */
+  bucketIndex: number;
+  sample: number;
+  p25: number;
+  median: number;
+  p75: number;
+  positiveRate: number;
+  /** 표본 심리의 첫 · 마지막 시각. */
+  windowFrom: Date;
+  windowTo: Date;
+}
+
 export interface SentimentRepository {
   save(record: SentimentRecord): Promise<StoredSentiment>;
   findLatest(symbol: string): Promise<StoredSentiment | null>;
@@ -274,6 +302,13 @@ export interface SentimentRepository {
   ): Promise<
     Array<{ sentimentScore: number; sentimentLabel: string; calculatedAt: Date }>
   >;
+  /**
+   * 심리 구간별 사후 수익률 분포. **DB 가 집계한다** — 심볼 × 날 표본을 옮겨 오지 않는다.
+   * 뒤 종가가 아직 없는 날(최근 `horizonDays`)은 표본이 아니다.
+   */
+  forwardReturnsByBucket(
+    query: SentimentForwardReturnQuery
+  ): Promise<SentimentForwardReturn[]>;
 }
 
 export interface WhaleTransactionRecord {
@@ -305,6 +340,12 @@ export interface ClosePoint {
   timestamp: Date;
 }
 
+export interface ClosePercentiles {
+  sample: number;
+  /** `fractions` 와 같은 순서. */
+  values: number[] | null;
+}
+
 export interface PriceHistoryRepository {
   upsertCandles(
     symbol: string,
@@ -328,6 +369,16 @@ export interface PriceHistoryRepository {
   closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
   /** 심볼별 마지막 종가. */
   latestCloses(symbols: string[]): Promise<ClosePoint[]>;
+  /**
+   * `since` 이후 한 심볼 · 한 주기 종가의 백분위. **DB 가 계산한다** — 1년 일봉이면
+   * 365행, 24시간 5분봉이면 288행을 옮겨 오지 않는다. 행이 없으면 `values` 가 `null`.
+   */
+  closePercentiles(
+    symbol: string,
+    timeframe: PriceTimeframe,
+    since: Date,
+    fractions: number[]
+  ): Promise<ClosePercentiles>;
   /**
    * 기간 변동률의 **기준 종가**를 심볼별로. 구간 안에 캔들이 없는 심볼은 결과에 없다.
    * 구간의 **가장 최근** 캔들을 쓴다.

@@ -1,11 +1,20 @@
 import {
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
+  GAUGE_HORIZON_DAYS,
+  gaugeBucketCode,
+  gaugeBucketIndex,
+  toGaugeTrackRecord,
+  type Clock,
   type CoachMode,
   type CoachProfileStore,
+  type CoachSentiment,
+  type GaugeTrackRecordView,
+  type GaugeTrackStore,
   type MarketProbe,
   type ModeDecision,
   type PortfolioProbe,
   type SymbolJudgmentStore,
+  type Zone,
 } from "../domain";
 import { collectJudgmentMaterials, judgeSymbol } from "./lib/judgeSymbols";
 import {
@@ -13,6 +22,10 @@ import {
   JUDGMENT_DISCLAIMER,
   type ModeCoachView,
 } from "./lib/judgmentTrack";
+import { resolveZones } from "./lib/resolveZones";
+
+/** 모드 하나의 화면 블록 — 판단 · 게이트 · 성적표에 `zone` 이 붙는다(`SRV-REQ-025` FR-44). */
+export type SymbolModeView = ModeCoachView & { zone: Zone };
 
 export interface SymbolCoachQuery {
   symbol: string;
@@ -29,7 +42,12 @@ export interface SymbolCoachView {
    * 두 모드 판단 + 게이트 + 성적표 + 실패사례 (F004 · `SRV-REQ-025` FR-40~43).
    * 화면은 이것을 읽는다. 아래 `modeDecision` · `dualDecision` 은 하위 호환이다.
    */
-  modes: { scalp: ModeCoachView; longTerm: ModeCoachView };
+  modes: { scalp: SymbolModeView; longTerm: SymbolModeView };
+  /**
+   * 게이지 아래 한 줄 — 지금 구간에 있던 과거 날들의 30일 뒤 수익률 분포(B9).
+   * **표본 0 인 게이지는 빠진다**(`SRV-REQ-025` FR-46). 지금은 `sentiment` 하나다.
+   */
+  gaugeTrackRecords: GaugeTrackRecordView[];
   modeDecision: ModeDecision;
   dualDecision: { scalp: ModeDecision; longTerm: ModeDecision };
   riskGuard: {
@@ -74,14 +92,34 @@ export class GetSymbolCoach {
     private readonly market: MarketProbe,
     private readonly portfolio: PortfolioProbe,
     private readonly profiles: CoachProfileStore,
-    private readonly judgments: SymbolJudgmentStore
+    private readonly judgments: SymbolJudgmentStore,
+    private readonly gauges: GaugeTrackStore,
+    private readonly clock: Clock = () => new Date()
   ) {}
+
+  private async sentimentTrack(
+    symbol: string,
+    sentiment: CoachSentiment | undefined
+  ): Promise<GaugeTrackRecordView[]> {
+    if (!sentiment) return [];
+
+    const value = sentiment.sentimentScore;
+    const stats = await this.gauges.find(
+      symbol,
+      "sentiment",
+      gaugeBucketCode(gaugeBucketIndex(value)),
+      GAUGE_HORIZON_DAYS
+    );
+    const record = toGaugeTrackRecord(stats, value);
+    return record ? [record] : [];
+  }
 
   async execute(
     userId: string,
     query: SymbolCoachQuery
   ): Promise<SymbolCoachView> {
     const symbol = query.symbol.toUpperCase();
+    const now = this.clock();
 
     const [materialsBySymbol, holding, profile] = await Promise.all([
       collectJudgmentMaterials(this.market, [symbol]),
@@ -97,11 +135,15 @@ export class GetSymbolCoach {
       Boolean(holding)
     );
 
-    // 게이트는 `preview` 에서도 생략하지 않는다 (`SRV-REQ-025` FR-49)
-    const [scalpView, longTermView] = await Promise.all([
-      attachJudgmentTrack(this.judgments, scalp),
-      attachJudgmentTrack(this.judgments, longTerm),
-    ]);
+    // 게이트는 `preview` 에서도 생략하지 않는다 (`SRV-REQ-025` FR-49).
+    // `zone` 도 싣는다 — 생략은 "할 수 있다"이고, 모양이 둘이 되면 소비처가 둘을 다룬다
+    const [scalpView, longTermView, zones, gaugeTrackRecords] =
+      await Promise.all([
+        attachJudgmentTrack(this.judgments, scalp),
+        attachJudgmentTrack(this.judgments, longTerm),
+        resolveZones(this.market, { symbol, holding, quote, now }),
+        this.sentimentTrack(symbol, sentiment),
+      ]);
 
     const selectedMode: CoachMode = query.mode ?? "scalp";
     const modeDecision = selectedMode === "scalp" ? scalp : longTerm;
@@ -111,7 +153,11 @@ export class GetSymbolCoach {
       mode: selectedMode,
       preview: Boolean(query.preview),
       headline: modeDecision.headline,
-      modes: { scalp: scalpView, longTerm: longTermView },
+      modes: {
+        scalp: { ...scalpView, zone: zones.scalp },
+        longTerm: { ...longTermView, zone: zones.long_term },
+      },
+      gaugeTrackRecords,
       modeDecision,
       dualDecision: { scalp, longTerm },
       riskGuard: {
@@ -148,7 +194,7 @@ export class GetSymbolCoach {
         priceUpdatedAt: quote?.priceUpdatedAt ?? null,
         sentimentCalculatedAt: sentiment?.calculatedAt ?? null,
         indicatorTimestamp: indicator?.timestamp ?? null,
-        generatedAt: new Date().toISOString(),
+        generatedAt: now.toISOString(),
       },
       disclaimer: JUDGMENT_DISCLAIMER,
     };

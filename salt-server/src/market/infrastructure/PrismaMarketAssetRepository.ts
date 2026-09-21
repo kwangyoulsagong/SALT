@@ -67,6 +67,7 @@ export class PrismaMarketAssetRepository implements MarketAssetRepository {
       where: { symbol: { in: symbols } },
       select: {
         symbol: true,
+        assetType: true,
         currentPrice: true,
         change24h: true,
         priceUpdatedAt: true,
@@ -75,6 +76,7 @@ export class PrismaMarketAssetRepository implements MarketAssetRepository {
 
     return rows.map((row) => ({
       symbol: row.symbol,
+      assetType: row.assetType,
       currentPrice: row.currentPrice === null ? null : Number(row.currentPrice),
       change24h: row.change24h === null ? null : Number(row.change24h),
       priceUpdatedAt: row.priceUpdatedAt,

@@ -33,6 +33,7 @@ export interface CoachSentiment {
 /** `market` 의 자산 시세 한 줄. `marketAsset` 행에서 코치가 쓰는 것만. */
 export interface CoachQuote {
   symbol: string;
+  assetType: CoachAssetType;
   currentPrice: number | null;
   change24h: number | null;
   priceUpdatedAt: Date | null;

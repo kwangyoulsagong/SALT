@@ -648,6 +648,28 @@ model SymbolJudgmentSnapshot {
   @@map("symbol_judgment_snapshots")
 }
 
+// 게이지 아래 적중률 한 줄 (F004 · B9 · DB-REQ-017 FR-55).
+// 게이지가 어떤 구간에 있던 과거 날들의 **30일 뒤 수익률 분포** — 일 1회 워커가 다시 쓴다.
+// 과거 분포다. 예상 수익 · 목표가 컬럼을 두지 않는다(FR-58). 수익률은 비율(0.12 = 12%)
+model GaugeTrackRecord {
+  id           String   @id @default(uuid())
+  symbol       String
+  gauge        String // "sentiment" | "smart_money"
+  bucket       String // "0_20" | "20_40" | "40_60" | "60_80" | "80_100" — 경계는 데이터다(FR-57)
+  horizonDays  Int      @default(30) @map("horizon_days")
+  sampleCount  Int      @map("sample_count")
+  p25Return    Decimal? @map("p25_return") @db.Decimal(9, 4)
+  medianReturn Decimal? @map("median_return") @db.Decimal(9, 4)
+  p75Return    Decimal? @map("p75_return") @db.Decimal(9, 4)
+  positiveRate Decimal? @map("positive_rate") @db.Decimal(5, 4)
+  windowFrom   DateTime @map("window_from")
+  windowTo     DateTime @map("window_to")
+  computedAt   DateTime @map("computed_at")
+
+  @@unique([symbol, gauge, bucket, horizonDays])
+  @@map("gauge_track_records")
+}
+
 // 투자 실행 기록
 model ExecutionLog {
   id     String @id @default(uuid())

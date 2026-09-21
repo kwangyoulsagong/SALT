@@ -3,6 +3,7 @@ import type {
   CoachInsightStore,
   CoachNotifier,
   CoachProfileStore,
+  GaugeTrackStore,
   MarketProbe,
   NewsProbe,
   PortfolioProbe,
@@ -27,6 +28,7 @@ import {
   EvaluateSymbolJudgments,
   SnapshotSymbolJudgments,
 } from "../RecordSymbolJudgments";
+import { RefreshGaugeTrackRecords } from "../RefreshGaugeTrackRecords";
 
 /**
  * `coach` 의 조립 팩토리.
@@ -52,6 +54,7 @@ export interface CoachDependencies {
   explainer: CoachExplainer;
   judgments: SymbolJudgmentStore;
   tracked: TrackedAssetProbe;
+  gauges: GaugeTrackStore;
 }
 
 export interface CoachUseCases {
@@ -70,6 +73,7 @@ export interface CoachUseCases {
   getSignalPerformance: GetSignalPerformance;
   snapshotSymbolJudgments: SnapshotSymbolJudgments;
   evaluateSymbolJudgments: EvaluateSymbolJudgments;
+  refreshGaugeTrackRecords: RefreshGaugeTrackRecords;
 }
 
 export const createCoachApplication = (deps: CoachDependencies) => {
@@ -77,7 +81,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.market,
     deps.portfolio,
     deps.profiles,
-    deps.judgments
+    deps.judgments,
+    deps.gauges
   );
   const analyzeNewsSentiment = new AnalyzeNewsSentiment(deps.news);
   const analyzeTradingBehavior = new AnalyzeTradingBehavior(
@@ -125,6 +130,10 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     evaluateSymbolJudgments: new EvaluateSymbolJudgments(
       deps.market,
       deps.judgments
+    ),
+    refreshGaugeTrackRecords: new RefreshGaugeTrackRecords(
+      deps.market,
+      deps.gauges
     ),
   };
 

@@ -207,6 +207,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-135 | **적중 판정 (B39 — 2026-09-21 사용자 확정).** 관찰 기간 = 단타 24시간 · 장기 30일. `review_*` 는 기간 수익률 > 0, `avoid` 는 ≤ 0, `wait` 는 절댓값이 단타 2% · 장기 10% 안이면 적중. 규칙은 `domain/policy` 순수 함수 하나에 둔다 | Must |
 | FR-136 | **표본 독립성.** 같은 종목 · 모드 스냅샷은 관찰 기간 안에서 **첫 1건만** 표본으로 센다(1시간 버킷이 겹쳐 표본이 부풀지 않게) | Must |
 | FR-137 | **표본 < 20 이면 `renderable: false` · `blockedReason: insufficient_sample`** 이고 `trackRecord.sample` 은 실제 값을 싣는다. 표본 ≥ 20 인데 빗나간 것이 0건이면 `failure_cases_missing` 으로 막는다 — 실패 없는 성적은 표본이 치우친 신호다 | Must |
+| FR-138 | **피하기의 근거 = `reasons ∪ risks`** (2026-09-21 사용자 확정). 피하기는 위험 신호가 곧 이유라 `makeModeDecision` 이 `risks` 에만 넣는다. 나머지 판단은 `reasons` 만 근거로 센다. 규칙은 `judgmentEvidence` 한 곳 | Must |
 
 ### E. 해설 (B3)
 
@@ -334,3 +335,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 신규 FR-100~171: 종목 판단 경로(두 모드 · 중립 라벨 · **신뢰도 제거**(D3) · 유효시간 단일 표기 · 3종 게이트(B10) · 판단 스냅샷), 스마트 바이존(D2 — 보유 규칙 가격 / 미보유 관찰 구간 / Q3 보수안), 게이지 적중률(B9), **`signalType` 매핑 표**(B18), 해설 뉴스 5줄 · 예상 수익 없음(B3), 주문 전 체크(B1 — 목표가 빈칸 · 총자산 대비 최대손실), 30일 수익률 분포(B17) · 적중/실패 동등(B2), 관심 종목 신호 범위 밖(D4). 개정: FR-50(잔여 현금 제거) · FR-63/64(라벨러 무효 — ADR-002) · 범위 제한 절의 "세금" 삭제 |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. 신규 FR-134~137(종목 판단 실패 이력 = 스냅샷 사후 결과 · 적중 판정 B39 · 표본 독립성 · `insufficient_sample`). FR-41 · FR-105 · FR-111 · FR-114 · FR-115 개정(D13 · D11 · D12). Open Question 2건 닫음 |
 | 2026-09-21 | **슬라이스 1 구현 (`requirements/specs/in-progress/F004-symbol-judgment-slice.md`).** 닫힘: FR-100 · FR-101 · FR-102(신뢰도 제거) · FR-103(`validity.code`) · FR-104~106(게이트 — `renderGate.ts` 대신 `policy/symbolJudgment.ts` 의 `judgmentGate`) · FR-107(스냅샷 — **`InvestmentInsight` 대신 별도 테이블**, `DB-REQ-017` 참고) · FR-131 · FR-132 · FR-134~137. 남음: B절(zone) · C절(게이지) · E~G절 · FR-130 매핑 시드 · FR-133 카운터 |
+| 2026-09-21 | **슬라이스 2 구현 (`requirements/specs/in-progress/F004-zone-gauge-slice.md`).** 신규 FR-138(피하기 근거 = `reasons ∪ risks`, 사용자 확정). 닫힘: FR-110~116(zone — 관찰 구간 최소 표본 = 기대 캔들 수의 절반) · FR-120~123(게이지 — `sentiment`). 남음: FR-115 `excluded_asset`(자산군 enum) · FR-117 · FR-124(Should) |
