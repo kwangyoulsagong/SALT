@@ -1,4 +1,15 @@
+import { AppError } from "../utils/error.util";
 import { backendApi } from "./backend-api.service";
+import {
+  SymbolCoachContractError,
+  toSymbolCoachViewModel,
+  type ServerSymbolCoach,
+  type ServerSymbolNews,
+} from "./symbol-coach.viewmodel";
+
+/** `BFF-REQ-025` 호출 맵 — 판단 · 뉴스 모두 300ms. 화면 예산 200ms(`BFF-REQ-026` FR-50) */
+const SYMBOL_COACH_TIMEOUT_MS = 300;
+const SYMBOL_NEWS_TIMEOUT_MS = 300;
 
 type BackendEnvelope<T> = {
   success: boolean;
@@ -19,7 +30,8 @@ export class AppAICoachService {
     return {
       symbol: data.symbol,
       headline: data.headline,
-      badge: data.modeDecision?.label ?? "관망",
+      // 판단이 없으면 `null` — "관망" 을 지어내지 않는다(`BFF-REQ-023` FR-93)
+      badge: data.modeDecision?.label ?? null,
       decisions: {
         scalp: this.mapDecision(data.dualDecision?.scalp),
         longTerm: this.mapDecision(data.dualDecision?.longTerm),
@@ -31,46 +43,56 @@ export class AppAICoachService {
     };
   }
 
-  async getDetail(token: string, query: any) {
-    const symbol = (query.symbol || "BTC").toString().toUpperCase();
-    const mode = query.mode === "long_term" ? "long_term" : "scalp";
-    const response = await backendApi.proxyAuthRequest(
-      "GET",
-      `/ai-coach?symbol=${encodeURIComponent(symbol)}&mode=${mode}`,
-      token,
+  /**
+   * 종목 판단 — 우측 AI 코치 패널 · 상세 분석 페이지 (`BFF-REQ-023` FR-90~99).
+   *
+   * 판단과 뉴스를 **병렬로** 부른다(FR-97). 판단이 실패하면 응답 전체가 실패하고,
+   * 뉴스가 실패하면 판단은 응답하고 `degradedFields: ['news']` 다.
+   *
+   * `mode` 가 없으면 서버에 보내지 않는다 — 기본 모드는 서버가 정한다(FR-94 · B16).
+   */
+  async getDetail(token: string, query: any, signal?: AbortSignal) {
+    const symbol = encodeURIComponent(
+      (query.symbol || "BTC").toString().toUpperCase(),
     );
-    const newsResponse = await backendApi.proxyAuthRequest(
-      "GET",
-      `/market-intelligence/${encodeURIComponent(symbol)}/news?limit=3`,
-      token,
-    );
-    const data = (response.data as BackendEnvelope<any>).data;
-    const news = (newsResponse.data as BackendEnvelope<any>).data;
+    const mode =
+      query.mode === "scalp" || query.mode === "long_term"
+        ? `&mode=${query.mode}`
+        : "";
 
-    return {
-      header: {
-        symbol: data.symbol,
-        mode: data.mode,
-        headline: data.headline,
-        badge: data.modeDecision?.label,
-      },
-      decisionCards: [
-        this.mapDecision(data.dualDecision?.scalp),
-        this.mapDecision(data.dualDecision?.longTerm),
-      ].filter(Boolean),
-      riskGuard: data.riskGuard,
-      preflightDefaults: {
-        symbol: data.symbol,
-        entryPrice: data.evidence?.price,
-        mode: data.mode,
-      },
-      evidence: {
-        ...data.evidence,
-        news: news.articles ?? [],
-      },
-      missingData: data.missingData ?? [],
-      dataFreshness: data.dataFreshness,
-    };
+    const [coach, news] = await Promise.allSettled([
+      backendApi.proxyAuthRequest(
+        "GET",
+        `/ai-coach?symbol=${symbol}${mode}`,
+        token,
+        undefined,
+        { timeout: SYMBOL_COACH_TIMEOUT_MS, signal },
+      ),
+      backendApi.proxyAuthRequest(
+        "GET",
+        `/market-intelligence/${symbol}/news?limit=3`,
+        token,
+        undefined,
+        { timeout: SYMBOL_NEWS_TIMEOUT_MS, signal },
+      ),
+    ]);
+
+    if (coach.status === "rejected") throw coach.reason;
+
+    const data = (coach.value.data as BackendEnvelope<ServerSymbolCoach>).data;
+    const newsData =
+      news.status === "fulfilled"
+        ? (news.value.data as BackendEnvelope<ServerSymbolNews>).data
+        : null;
+
+    try {
+      return toSymbolCoachViewModel(data, newsData);
+    } catch (error) {
+      if (error instanceof SymbolCoachContractError) {
+        throw new AppError("coach_unavailable", 502);
+      }
+      throw error;
+    }
   }
 
   async getProfile(token: string) {
@@ -146,7 +168,6 @@ export class AppAICoachService {
       mode: decision.mode,
       label: decision.label,
       action: decision.action,
-      confidence: decision.confidence,
       riskLevel: decision.riskLevel,
       timeframe: decision.timeframe,
       headline: decision.headline,

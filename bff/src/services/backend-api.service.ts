@@ -44,7 +44,9 @@ class BackendApiService {
     method: string,
     url: string,
     token: string,
-    data?: any
+    data?: any,
+    /** 경로별 예산(`BFF-REQ-025` 호출 맵) · 클라이언트가 끊으면 같이 끊는다 */
+    options: { timeout?: number; signal?: AbortSignal } = {}
   ) {
     return this.client.request({
       method,
@@ -53,6 +55,7 @@ class BackendApiService {
         Authorization: `Bearer ${token}`,
       },
       data,
+      ...options,
     });
   }
 
