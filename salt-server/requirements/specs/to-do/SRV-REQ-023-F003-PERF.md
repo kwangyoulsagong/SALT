@@ -20,7 +20,8 @@ F003은 **예산이 가장 널널한 기능**이다. 지표가 일 1회, 계획�
 | `GET /api/plan/weekly` | **250ms** | 전부 캐시 히트 |
 | `GET /api/plan/streak` | 100ms | 최근 12주 |
 | `GET /api/plan/settings` | 30ms | |
-| `PATCH /api/plan/settings` | 100ms | |
+| `PATCH /api/plan/settings` | 100ms | 첫 저장은 그 주 계획 upsert 포함 **150ms** (2026-09-21 — B12) |
+| `GET /api/plan/monthly-summary` | 50ms | ≤10행 SUM (2026-09-21 — B20) |
 | `POST /api/plan/weekly/complete` | 100ms | upsert |
 | **`GET /api/plan/kimchi-premium`** | **실시간, 30초 캐시** | 유일한 실시간 |
 | `GET /api/indicators` | 50ms | 최신 1건 × N |
@@ -60,6 +61,8 @@ F003은 **예산이 가장 널널한 기능**이다. 지표가 일 1회, 계획�
 | FR-24 | 이전 주 미실행 마감을 **배치 UPDATE**로 한다. 사용자별 루프 0건 | Must |
 | FR-25 | **두 워커가 LLM 워커와 다른 큐에 있다.** DB만 훑으므로 빠르다 | Must |
 | FR-26 | 워커 실행 시간을 측정한다 | Must |
+| FR-27 | **2026-09-21 추가 — B12.** 첫 저장의 그 주 계획 생성은 **요청 안에서 1사용자분만** 한다. 지표는 저장된 최신 스냅샷을 쓰고 외부를 부르지 않는다(FR-1) | Must |
+| FR-28 | **2026-09-21 추가 — B20.** 이번 달 합계는 집계 테이블·캐시 없이 요청 시 SUM한다. ≤10행이다 | Must |
 
 ## 트랜잭션
 
@@ -117,6 +120,8 @@ F003은 **예산이 가장 널널한 기능**이다. 지표가 일 1회, 계획�
 - [ ] 관측 항목 6종이 있다
 - [ ] **`staleDays` 분포가 측정된다**
 - [ ] 게이트 미렌더 카운터가 있다
+- [ ] 첫 `PATCH /settings`(계획 upsert 포함) p95 < 150ms, 외부 호출 0건 (B12)
+- [ ] `GET /monthly-summary` p95 < 50ms (B20)
 
 ## Dependencies
 
@@ -128,3 +133,9 @@ F003은 **예산이 가장 널널한 기능**이다. 지표가 일 1회, 계획�
 - 김프를 주간 계획 응답에 포함할지 별도로 뺄지(FR-13). **별도가 안전**하지만 화면이 두 번 부른다 → BFF가 병렬로 부르면 된다.
 - 지표 소스가 느리면(5s 타임아웃) 워커 총 10s를 넘을 수 있다. 병렬이면 괜찮다.
 - GIN 인덱스가 4행 테이블에서 실익이 있는가(`DB-REQ-016` Open Question).
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 첫 저장·이번 달 합계 예산과 FR-27·28 추가(B12 · B20) |

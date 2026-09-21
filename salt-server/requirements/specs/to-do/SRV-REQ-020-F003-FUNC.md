@@ -17,7 +17,7 @@ created: 2026-09-09
 
 | 컨텍스트 | domain | application |
 |---|---|---|
-| `plan` | `WeeklyPlan` Aggregate · `BandMultiplier` VO · `PlanSettingsStore` · `ExecutionStore` · `IndicatorSource`(Port) · `TrackRecordSource`(Port) · `policy/{band,weekBoundary,execution}` | `GetWeeklyPlan` · `CreateWeeklyPlans` · `CompleteWeeklyPlan` · `UpdatePlanSettings` · `MatchExecutions` |
+| `plan` | `WeeklyPlan` Aggregate · `BandMultiplier` VO · `BaseAmount` VO · `PlanSettingsStore` · `BandPresetStore` · `ExecutionStore` · `IndicatorSource`(Port) · `TrackRecordSource`(Port) · `policy/{band,weekBoundary,execution,baseAmount,monthlySummary}` | `GetWeeklyPlan` · `CreateWeeklyPlans` · `CompleteWeeklyPlan` · `GetPlanSettings` · `UpdatePlanSettings` · `GetMonthlySummary` (2026-09-21: `MatchExecutions` 삭제 — ADR-002) |
 | `indicator` | `IndicatorSnapshot` VO · `IndicatorTrackRecord` Aggregate · `SnapshotStore` · `TrackRecordStore` · `IndicatorProbe`(Port) | `CollectIndicators` · `GetLatestIndicator` · `GetTrackRecord` · `api/{IndicatorSnapshotQuery, IndicatorTrackQuery}` |
 
 `indicator`를 별도 컨텍스트로 두는 이유: **F004의 게이트가 실패 이력을 읽는다.** `plan` 안에 두면 `coach`가 `plan`을 부르게 되고 그건 의미가 틀리다.
@@ -46,8 +46,8 @@ created: 2026-09-09
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-1 | 밴드 판정을 **`policy/band`의 순수 함수**로 만든다. 입력은 지표값 + `bandConfigJson` | Must |
-| FR-2 | **임계값·배수가 전부 설정값**이다. 코드 상수 0건 | Must |
+| FR-1 | 밴드 판정을 **`policy/band`의 순수 함수**로 만든다. 입력은 지표값 + `BandPreset.rowsJson`. **개정 2026-09-21** — 사용자별 `bandConfigJson` 대신 전역 프리셋(D9) | Must |
+| FR-2 | **임계값·배수가 전부 설정값**이다. 코드 상수 0건. 설정값은 **전역 `BandPreset`이고 사용자가 바꿀 수 없다.** **개정 2026-09-21** — D9: 과거 적중률·실패 이력이 기본 밴드로 집계되므로 사용자별 밴드는 그 숫자를 무의미하게 만든다 | Must |
 | FR-3 | 경계값에서 정확히 전환된다. `Z = 0`·`2`·`5`·`7`과 ±0.01을 테스트한다 | Must |
 | FR-4 | CAPE 최저 배수 **0.25x 하한**을 강제한다 | Must |
 | FR-5 | 금액 = `weeklyBaseKrw × multiplier`, **1,000원 단위 반올림** | Must |
@@ -89,13 +89,39 @@ FEATURE-003 FR-10: *"실패 이력 노출은 렌더 조건이다."*
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-40 | 수동 체크(`[이번 주 적립 완료]`) 또는 **원장 sync 자동 매칭** | Must |
-| FR-41 | 자동 매칭: 주간 윈도우 안의 **동일 심볼 매수**를 찾는다. 여러 건이면 합산 | Must |
-| FR-42 | 매칭된 거래 id를 기록한다 | Must |
+| FR-40 | 실행 기록은 **수동 체크(`[이번 주 적립 완료]`)만**이다. **개정 2026-09-21** — 원장 sync 자동 매칭 삭제(ADR-002 · 기본안 — 감사 문서 B20) | Must |
+| FR-41 | ~~자동 매칭: 주간 윈도우 안의 동일 심볼 매수를 찾는다~~ → **개정 2026-09-21** — 수동 체크는 심볼별 `executedKrw`를 받는다. 생략하면 `plannedKrw`로 기록한다. 음수이거나 상한(그 자산 주간 기본액 × 10)을 넘으면 422 `PLAN_EXECUTION_INVALID` | Must |
+| FR-42 | ~~매칭된 거래 id를 기록한다~~ → **개정 2026-09-21** — `recordedAt`만 기록한다. `PortfolioTransaction`을 읽지 않는다(ADR-002) | Must |
 | FR-43 | 미실행 주는 `skipped`. **비난 문구 없이 사실만** — 서버는 코드와 수치만 준다 | Must |
 | FR-44 | 연속 주차·누적액을 계산한다. **점수·등급 0건** | Must |
 | FR-45 | 최근 12주 중 `skipped` 수를 센다 | Must |
-| FR-46 | **F001의 기계적 적립 트랙을 이 실행 이력으로 대체 가능**하게 한다(`?dcaSource=plan`) | Should |
+| FR-46 | ~~F001의 기계적 적립 트랙을 이 실행 이력으로 대체 가능하게 한다(`?dcaSource=plan`)~~ → **삭제 2026-09-21** — F001이 제품에서 빠졌다(ADR-002) | — |
+
+## 기본액 설정 (`policy/baseAmount`) — 2026-09-21 추가
+
+D9: *설정 = 한 화면. 적립 기본액만 편집, 밴드 임계값은 읽기 전용.* 설정 **화면**은 F006 소유이고 여기서는 값 · 검증 · 환산을 정한다. 온보딩 3단계(기본안 — 감사 문서 B12)가 같은 유스케이스를 쓴다.
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-70 | 사용자가 바꾸는 값은 **월 적립액(`monthlyBaseKrw`) 하나**다. 자산별 몫 = 월 적립액 × 기본 배분(서버 설정값) | Must |
+| FR-71 | 주간 기본액 = 자산별 월 몫 × 12 ÷ 52, **1,000원 단위 반올림**. 환산은 `policy/baseAmount` 한 곳이다. 프론트·BFF가 환산하지 않는다(공통 기준 ③) | Must |
+| FR-72 | 검증: 정수 · **1,000원 단위** · 하한 10,000원 · 상한 100,000,000원. 위반은 422 `PLAN_BASE_AMOUNT_INVALID` + `field`·`min`·`max`. 상·하한은 설정값이다 | Must |
+| FR-73 | **밴드 임계값·배수를 바꾸는 입력은 거부한다.** 요청 본문에 `bandConfig`·`thresholds`·`multipliers` 키가 있으면 422 `PLAN_BAND_READ_ONLY`. 조용히 무시하지 않는다 — 사용자는 바뀐 줄 안다 | Must |
+| FR-74 | 조회 응답에 밴드 표를 **읽기 전용으로** 담는다(`editable: false` + 사유 코드 `hit_rate_on_default_band`). 화면이 "왜 못 바꾸나"를 설명할 수 있어야 한다 | Must |
+| FR-75 | 저장은 **다음 주 계획부터** 반영한다(DB-REQ-014 FR-41). 예외: 사용자 `PlanSettings`가 0건인 **첫 저장**은 그 주 계획을 즉시 만든다(DB-REQ-014 FR-45 · B12) | Must |
+| FR-76 | 첫 저장과 수정이 **같은 유스케이스**(`UpdatePlanSettings`, upsert)다. 온보딩 전용 엔드포인트를 두지 않는다 | Must |
+| FR-77 | 월 적립액 0원으로 적립을 멈추는 경로는 두지 않는다. 멈춤은 자산별 `enabled: false`다 | Should |
+
+## 이번 달 적립 합계 (`policy/monthlySummary`) — 2026-09-21 추가
+
+기본안 — 감사 문서 B20. 목표 화면 상단(스토리보드 `goals` n1) — 화면은 F000/F006 목표 화면, 숫자는 여기서 만든다.
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-80 | `executedKrw` = 그 달(KST)에 `weekOf`가 속한 `executed` 행의 `executedKrw` 합 | Must |
+| FR-81 | `plannedKrw` = 같은 행들의 `plannedKrw` 합. `monthlyBaseKrw`(설정값)도 함께 준다 | Must |
+| FR-82 | `progressPct` = `executedKrw ÷ plannedKrw`(계획 0이면 `null`) · `daysLeft`(KST 말일까지) · `executedWeeks`·`totalWeeks` 를 **서버가** 계산한다 | Must |
+| FR-83 | 달성·미달성 평가 문구를 만들지 않는다. 코드 + 수치만(INV-9와 같은 정책) | Must |
 
 ## 김프 (`kimchi-premium`)
 
@@ -122,7 +148,7 @@ FEATURE-003 FR-10: *"실패 이력 노출은 렌더 조건이다."*
 ## Acceptance Criteria
 
 - [ ] `plan`·`indicator` 두 컨텍스트가 있다
-- [ ] 밴드 판정이 순수 함수이고 `bandConfigJson`만 입력으로 받는다
+- [ ] 밴드 판정이 순수 함수이고 `BandPreset.rowsJson`만 입력으로 받는다
 - [ ] **임계값·배수 코드 상수가 0건이다**
 - [ ] **MVRV Z 경계값(0/2/5/7)과 ±0.01에서 배수가 정확히 전환된다**
 - [ ] **CAPE 최저 배수가 0.25x이고 0x가 0건이다**
@@ -140,7 +166,13 @@ FEATURE-003 FR-10: *"실패 이력 노출은 렌더 조건이다."*
 - [ ] 폴백 상태가 계획에 스냅샷된다
 - [ ] `weekOf`가 KST 월요일이고 **일/월 경계 테스트가 고정되어 있다**
 - [ ] 계획 생성이 멱등이다
-- [ ] 자동 매칭이 주간 윈도우 동일 심볼 매수를 찾고 여러 건이면 합산한다
+- [ ] **`plan`이 `PortfolioTransaction`·원장을 읽는 경로가 0건이다** (ADR-002 · B20)
+- [ ] 수동 체크에 금액을 생략하면 `plannedKrw`로 기록된다
+- [ ] 월 1,300,000원 → 주간 기본액 합 300,000원 (×12÷52, 1,000원 반올림)
+- [ ] 1,000원 단위가 아니거나 하한·상한을 벗어나면 422 `PLAN_BASE_AMOUNT_INVALID`
+- [ ] **본문에 밴드 키가 있으면 422 `PLAN_BAND_READ_ONLY`** (D9)
+- [ ] 첫 저장 직후 그 주 계획이 조회된다 (B12)
+- [ ] 이번 달 적립 합계가 `executed`만 더하고 진행률·남은 일수가 서버 값이다 (B20)
 - [ ] 미실행 주가 `skipped`이고 **비난 문구가 0건이다**
 - [ ] 연속 주차·누적액이 계산되고 점수·등급이 0건이다
 - [ ] 김프가 프리미엄 %와 원화 비용을 준다
@@ -156,7 +188,8 @@ FEATURE-003 FR-10: *"실패 이력 노출은 렌더 조건이다."*
 
 - **선행:** `SRV-REQ-006`(DDD) · `DB-REQ-013`~`016`
 - **공개:** `indicator/application/api`를 **F004가 소비한다**(게이트의 실패사례)
-- **연동:** `SRV-REQ-012`(F001)가 `?dcaSource=plan`으로 DCA 트랙을 대체할 수 있다
+- ~~연동: `SRV-REQ-012`(F001)~~ — **삭제 2026-09-21**(ADR-002)
+- **화면 소유:** 설정 화면·온보딩 = F006, 목표 화면 = F000/F006. 이 REQ는 값·검증·환산만
 
 ## Open Questions
 
@@ -165,3 +198,11 @@ FEATURE-003 FR-10: *"실패 이력 노출은 렌더 조건이다."*
 - **USDT/USD 디페그** 처리(FR-56). 디페그 시 김프 계산이 왜곡된다.
 - 국내주식용 밸류에이션 지표를 정할지 계속 제외할지.
 - 주간이 아닌 격주/월간 주기를 열지.
+- 기본 배분(BTC : S&P500 ETF) 비율과, 사용자가 배분을 바꿀 수 있게 할지. D9는 "기본액만 편집"이라 배분 편집은 지금 범위 밖으로 둔다.
+- 기본액 하한·상한(10,000원 · 100,000,000원)은 제안값이다. 사용자 확인 필요.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. FR-1·2(D9 전역 읽기 전용 밴드), FR-40~42(수동 체크만 — ADR-002 · B20) 개정, FR-46 삭제. FR-70~77(기본액 설정 · 온보딩 저장 — D9 · B12), FR-80~83(이번 달 적립 합계 — B20) 추가 |

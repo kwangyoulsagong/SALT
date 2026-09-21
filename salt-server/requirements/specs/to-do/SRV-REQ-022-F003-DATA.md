@@ -18,14 +18,14 @@ created: 2026-09-09
 ```
 src/plan/
 ├── domain/          WeeklyPlan · BandMultiplier VO · PlanSettingsStore · ExecutionStore
-│                    IndicatorSource(Port) · TrackRecordSource(Port) · TransactionSource(Port)
-│                    policy/{band,weekBoundary,execution}
+│                    BandPresetStore · IndicatorSource(Port) · TrackRecordSource(Port)
+│                    policy/{band,weekBoundary,execution,baseAmount,monthlySummary}
 ├── application/     GetWeeklyPlan · CreateWeeklyPlans · CompleteWeeklyPlan
-│                    UpdatePlanSettings · MatchExecutions · GetKimchiPremium
+│                    GetPlanSettings · UpdatePlanSettings · GetMonthlySummary · GetKimchiPremium
 │                    api/{WeeklyPlanQuery, WeeklyPlanView}
-├── infrastructure/  PrismaPlanSettingsStore · PrismaExecutionStore
+├── infrastructure/  PrismaPlanSettingsStore · PrismaBandPresetStore · PrismaExecutionStore
 │                    IndicatorAdapter(indicator ACL) · TrackRecordAdapter(indicator ACL)
-│                    TransactionAdapter(ledger ACL) · KimchiPremiumCalculator
+│                    KimchiPremiumCalculator
 │                    UpbitPriceClient · BinancePriceClient · FxRateAdapter(fx ACL)
 └── presentation/    plan.routes · controller · dto/
 
@@ -43,7 +43,7 @@ src/indicator/
 |---|---|---|
 | FR-1 | 두 컨텍스트를 만든다. **`indicator`를 별도로 두는 이유는 F004가 실패 이력을 읽기 때문**이다 | Must |
 | FR-2 | `domain`이 `@prisma/client`·`express`·`axios`를 import하지 않는다 | Must |
-| FR-3 | `plan`이 `indicator`·`ledger`·`fx`를 **ACL로만** 부른다 | Must |
+| FR-3 | `plan`이 `indicator`·`fx`를 **ACL로만** 부른다. **개정 2026-09-21** — `ledger` 컨텍스트가 없다(ADR-002). `TransactionSource` Port · `TransactionAdapter` · `MatchExecutions`를 만들지 않는다 | Must |
 | FR-4 | **`indicator/application/api`로 `IndicatorTrackQuery`를 공개**한다. `coach`(F004)와 `plan`(F003)이 소비한다 | Must |
 | FR-5 | ACL 이름에 컨텍스트를 쓰지 않고 무엇을 가져오는지를 쓴다. **`indicator`를 두 번 감싸므로** `IndicatorAdapter`(스냅샷)와 `TrackRecordAdapter`(실패이력)로 구분한다 | Must |
 | FR-6 | `infrastructure/index.ts`가 Store 클래스를 export하지 않는다 | Must |
@@ -84,11 +84,12 @@ src/indicator/
 |---|---|
 | `IndicatorLatestProjection.byName` | `(indicator, asOf DESC) LIMIT 1` × N |
 | `StreakProjection.recentWeeks` | 최근 12주 `WeeklyPlanExecution` 집계 |
-| `ExecutionMatchProjection.candidates` | 주간 윈도우 안 동일 심볼 매수 |
+| ~~`ExecutionMatchProjection.candidates`~~ | **삭제 2026-09-21** — ADR-002 · B20 |
+| `MonthlySummaryProjection.byMonth` | `(userId, weekOf BETWEEN 월초 AND 월말)` SUM — 2026-09-21 B20 |
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-30 | 위 3개를 `domain` Port로 선언한다 | Must |
+| FR-30 | 위 Projection(지표 최신 · 연속 주차 · 이번 달 합계)을 `domain` Port로 선언한다. **개정 2026-09-21** — 매칭 후보 Projection 삭제, 월 합계 추가 | Must |
 | FR-31 | 지표 최신값을 **지표 이름 목록으로 한 번에** 조회한다. N+1 0건 | Must |
 | FR-32 | 연속 주차 계산이 **최근 12주만** 조회한다 | Must |
 
@@ -110,20 +111,31 @@ src/indicator/
 | FR-46 | 워커 등록은 `shared/infrastructure` 스케줄러 경유 | Must |
 | FR-47 | 사용자 ≤10명이므로 실행이 짧다. **총 10초 이내** | Must |
 
-## 원장 매칭
+## ~~원장 매칭~~ — 삭제 2026-09-21
+
+ADR-002(원장 · 청구서 · 세금 제거) · 기본안 — 감사 문서 B20. 실행 기록은 **수동 체크만**이다(`SRV-REQ-020` FR-40).
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-50 | 원장 import 완료 이벤트(`LedgerImportedEvent`)를 수신해 **주간 매칭**을 돌린다 | Must |
-| FR-51 | 주간 윈도우 안 동일 심볼 매수를 찾는다. **여러 건이면 합산** | Must |
-| FR-52 | 매칭은 `ledger`의 **공개 API**를 경유한다 | Must |
-| FR-53 | 매칭 결과를 `matchedTransactionId`·`executedKrw`·`status: executed`로 기록한다 | Must |
+| FR-50 | ~~`LedgerImportedEvent` 수신 후 주간 매칭~~ → **개정 2026-09-21** — `plan`이 거래 이벤트를 구독하지 않는다. `PortfolioTransaction` 생성·수정이 `WeeklyPlanExecution`을 바꾸지 않는다 | Must |
+| FR-51 | ~~주간 윈도우 안 동일 심볼 매수 합산~~ → **삭제 2026-09-21** | — |
+| FR-52 | ~~`ledger` 공개 API 경유~~ → **삭제 2026-09-21** | — |
+| FR-53 | ~~`matchedTransactionId` 기록~~ → **삭제 2026-09-21** — 컬럼이 없다(`DB-REQ-013` FR-11) | — |
+
+## 밴드 프리셋 — 2026-09-21 추가 (D9)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-60 | `BandPresetStore`는 **읽기 전용 Port**다. `save`·`update` 메서드가 없다. 쓰기는 시드 스크립트뿐이다 | Must |
+| FR-61 | 전역 프리셋 2행을 프로세스 메모리에 캐시한다(시드 변경은 재기동으로 반영) | Should |
 
 ## Acceptance Criteria
 
 - [ ] `plan`·`indicator` 두 컨텍스트가 4층 구조다
 - [ ] `grep -rn "@prisma/client\|express\|axios" src/{plan,indicator}/domain` = 0
-- [ ] `plan`이 `indicator`·`ledger`·`fx`를 ACL로만 부른다
+- [ ] `plan`이 `indicator`·`fx`를 ACL로만 부른다
+- [ ] **`src/plan`에 `ledger`·`TransactionAdapter`·`MatchExecutions`·`LedgerImportedEvent`가 0건이다** (ADR-002)
+- [ ] `BandPresetStore`에 쓰기 메서드가 0건이다 (D9)
 - [ ] **`indicator/application/api`에 `IndicatorTrackQuery`가 있고 F004가 소비한다**
 - [ ] ACL 이름 2개(`IndicatorAdapter`·`TrackRecordAdapter`)가 구분된다
 - [ ] `IndicatorProbe`가 **지표 이름 기반**이고 소스 교체가 레지스트리 한 곳이다
@@ -145,12 +157,11 @@ src/indicator/
 - [ ] **두 워커가 LLM 워커와 다른 큐에 있다**
 - [ ] 워커 등록이 `shared/infrastructure` 경유다
 - [ ] 워커 총 실행이 10초 이내다
-- [ ] 원장 import 후 주간 매칭이 돌고 여러 건이면 합산된다
-- [ ] 매칭이 `ledger` 공개 API를 경유한다
+- [ ] 이번 달 합계 Projection이 `domain` Port다 (B20)
 
 ## Dependencies
 
-- **선행:** `SRV-REQ-006`(DDD) · `SRV-REQ-020`(도메인) · `DB-REQ-013`~`016` · `SRV-REQ-014`(F001 `fx`)
+- **선행:** `SRV-REQ-006`(DDD) · `SRV-REQ-020`(도메인) · `DB-REQ-013`~`016` · `fx` 컨텍스트(`kind: 'current'` 환율 — 원래 `SRV-REQ-014`(F001) 소유였고 ADR-002로 삭제됐다. **이제 F006(`DB-REQ-021` · `SRV-REQ-028` · `SRV-REQ-030`)** 정의를 따른다)
 - **공개 소비:** **F004가 `IndicatorTrackQuery`를 쓴다**(`SRV-REQ-026` ACL)
 - **규칙:** `ddd-infrastructure.md` · `workers-external.md`
 
@@ -158,5 +169,12 @@ src/indicator/
 
 - **지표 데이터 소스 확정**(`DB-REQ-013` Open Question). 이것이 F003의 최대 미결 사항이다. 무료 API가 없으면 **대체 지표**(200일선 편차 — `PriceHistory`로 자체 계산 가능)로 가는 것이 현실적일 수 있다.
 - USDT/USD 디페그 감지 기준 ±1%가 적절한가.
-- 원장 매칭이 여러 건일 때 `matchedTransactionId`에 무엇을 넣을지(`DB-REQ-014` Open Question).
+- ~~원장 매칭이 여러 건일 때~~ → **닫힘 2026-09-21**(ADR-002).
+- **`fx` 컨텍스트 소유**: 삭제된 F001(`SRV-REQ-014`)이 만들던 `fx` 컨텍스트 골격(ACL · 저장)을 F006 REQ가 전부 덮는지 확인 필요. 덮지 않으면 김프 계산의 선행 조건이 빈다.
 - `weekly-plan.worker`가 06:00 지표 수집 실패 시 어떻게 할지. **carry-forward된 값으로 계획을 만들고 `fallback`을 표시**하는 것이 기본안.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 원장 매칭 절(FR-50~53) 삭제·개정, FR-3·FR-30 개정(ADR-002 · B20). `BandPreset` 읽기 전용 FR-60·61 추가(D9). 월 합계 Projection 추가 |

@@ -11,7 +11,7 @@ created: 2026-09-09
 
 ## Summary
 
-모바일도 **계산하지 않는다.** 웹과 다른 점은 셋뿐이다: **오프라인**, **푸시 딥링크**, **앱 포그라운드 복귀 시 재검증**. 게이트 판정 로직은 웹과 **같은 코드**를 쓴다.
+모바일도 **계산하지 않는다.** 웹과 다른 점은 셋뿐이다: **오프라인**, **푸시 딥링크**(`signal_update` 1종의 밴드 갱신 갈래 — 2026-09-21 D5 · B21), **앱 포그라운드 복귀 시 재검증**. 게이트 판정 로직은 웹과 **같은 코드**를 쓴다.
 
 ## 구성
 
@@ -70,15 +70,16 @@ apps/mobile/src/
 | FR-30 | `POST /bff/plan/weekly/{planId}/complete` + `Idempotency-Key: {planId}:{weekOf}` | Must |
 | FR-31 | 요청 중 버튼 disabled. 낙관적 갱신 후 실패 시 롤백 | Must |
 | FR-32 | `409 ALREADY_COMPLETED`는 **조용히 완료 상태로 동기화**한다 | Must |
-| FR-33 | 성공 후 계획·연속주차를 재검증한다 | Must |
+| FR-33 | 성공 후 계획·연속주차·**이번 달 적립 합계**를 재검증한다(2026-09-21 — B20) | Must |
 | FR-34 | 앱 강제 종료 후 재진입 시 서버 상태가 정답이다 | Must |
+| FR-35 | **2026-09-21 추가 — ADR-002 · B20.** 완료 상태의 출처는 수동 체크뿐이다. 앱이 보유 기록(`PortfolioTransaction`)을 보고 완료를 추정하는 코드가 0건이다 | Must |
 
 ### E. 푸시 딥링크
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-40 | 주간 적립 푸시 payload에 `{ type: 'weekly_plan', planId }` | Must |
-| FR-41 | 웜/콜드 스타트 모두 `PlanDetailScreen(planId)`로 라우팅한다 | Must |
+| FR-40 | 푸시 payload는 `{ type: 'signal_update', target: 'plan' \| 'coach', ref }` 하나다. 밴드 갱신 갈래가 `target: 'plan'`이다. **개정 2026-09-21** — `type: 'weekly_plan'` 삭제. 알림은 1종(D5 · 기본안 — 감사 문서 B21). payload 계약은 `RN-REQ-029`·`BFF-REQ-031`과 같다 | Must |
+| FR-41 | 웜/콜드 스타트 모두 `target: 'plan'`이면 `PlanDetailScreen`으로 라우팅한다. `ref`는 신뢰하지 않고 진입 후 최신 계획을 조회한다 | Must |
 | FR-42 | **미로그인 상태면 로그인 후 원래 목적지로 복귀**한다 | Must |
 | FR-43 | `planId`가 만료(지난 주)면 최신 주간 계획으로 폴백하고 안내한다 | Must |
 | FR-44 | 딥링크 payload를 **로그에 남기지 않는다** | Must |
@@ -93,6 +94,16 @@ apps/mobile/src/
 | FR-53 | `multiplier: 0`을 매도 문구로 매핑하는 분기가 0건이다 | Must |
 | FR-54 | 점수·등급·벌점 계산이 0건이다 | Must |
 | FR-55 | 거래소 API 키를 기기에 저장하는 경로가 0건이다 | Must |
+
+### G. 설정 · 온보딩 · 월 합계 — 2026-09-21 추가 (D9 · B12 · B20)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-60 | 월 적립액 저장은 `PATCH /api/app/plan/settings` `{ monthlyBaseKrw }`. 설정 화면과 온보딩 3단계가 **같은 mutation**이다(B12) | Must |
+| FR-61 | 오프라인에서 저장 버튼 disabled. 큐잉 0건(FR-22와 같은 이유) | Must |
+| FR-62 | 첫 저장(`configured: false → true`) 성공 시 주간 계획·홈 집계를 재검증한다 | Must |
+| FR-63 | 앱 소스에 `× 12 ÷ 52`·`÷ 4` 환산과 한도 숫자가 0건이다(D9 · 공통 기준 ③) | Must |
+| FR-64 | 이번 달 합계는 `GET /api/app/plan/monthly-summary` 1회. 앱이 합산·비율을 계산하지 않는다(B20) | Must |
 
 ## 상태 머신
 
@@ -116,7 +127,9 @@ completing --(실패)---------> ready + 토스트
 | 단위 | `renderable` 누락 → `false` |
 | 컴포넌트 | `renderable:false` → 배수 노드 부재, 기본액 존재 |
 | 통합 | 오프라인 → 체크 disabled, 마지막 갱신 시각 표시 |
-| 통합 | 콜드 스타트 딥링크 → PlanDetailScreen 도착 |
+| 통합 | 콜드 스타트 딥링크(`signal_update`, `target: 'plan'`) → PlanDetailScreen 도착 |
+| 통합 | 온보딩 3단계 저장 → 홈 적립 블록 채워짐 (2026-09-21 B12) |
+| 정적 | 환산식·한도 숫자 0건 · 거래 기반 완료 추정 0건 (2026-09-21) |
 | 통합 | 미로그인 딥링크 → 로그인 후 복귀 |
 | 통합 | 주 경계 넘어 포그라운드 복귀 → 재검증 발생 |
 | 통합 | 더블 탭 → 요청 1회 |
@@ -148,6 +161,10 @@ completing --(실패)---------> ready + 토스트
 - [ ] 김프 차익거래 안내가 0건이다
 - [ ] `multiplier:0` 매도 분기가 0건이다
 - [ ] 거래소 API 키 기기 저장이 0건이다
+- [ ] **`type: 'weekly_plan'` payload가 0건이다** (D5 · B21)
+- [ ] 거래 기반 완료 추정 코드가 0건이다 (ADR-002 · B20)
+- [ ] 설정·온보딩이 같은 `PATCH /settings`를 쓰고 오프라인에서 disabled다 (D9 · B12)
+- [ ] 체크 성공 시 이번 달 합계가 재검증된다 (B20)
 - [ ] iOS·Android 양쪽에서 통과한다
 
 ## Dependencies
@@ -160,3 +177,9 @@ completing --(실패)---------> ready + 토스트
 
 - 오프라인 캐시를 암호화 MMKV로 할지 `expo-secure-store`로 할지. secure-store는 용량 제한이 있어 계획 JSON 전체는 부담일 수 있다.
 - 주 경계 판정을 기기 시계로 하면 조작 가능하다. 서버 `weekOf`와 비교하는 방식이 안전하지만 그러려면 요청이 필요하다 — 순환.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. E절 FR-40·41(푸시 = `signal_update` 1종 — D5 · B21) 개정, FR-33 개정. FR-35(수동 체크만 — ADR-002 · B20), G절 FR-60~64(설정 · 온보딩 · 월 합계) 추가 |

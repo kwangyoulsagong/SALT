@@ -20,9 +20,11 @@ created: 2026-09-09
 | 주간 계획 | GET | `/bff/plan/weekly` |
 | 실패 이력 | GET | `/bff/indicator/{code}/track-record` |
 | 적립 완료 | POST | `/bff/plan/weekly/{planId}/complete` |
-| 설정 조회/저장 | GET/PUT | `/bff/plan/settings` |
+| 설정 조회 | GET | `/bff/plan/settings` |
+| 설정 저장 | **PATCH** | `/bff/plan/settings` — body `{ monthlyBaseKrw }` 하나. 설정 화면·온보딩 3단계 공용. **개정 2026-09-21** — PUT→PATCH, 밴드 필드 제거(D9 · B12) |
+| 이번 달 적립 합계 | GET | `/bff/plan/monthly-summary?month=` — **신규 2026-09-21**(B20) |
 
-응답 계약은 `FE-REQ-024` / `BFF-REQ-020`의 `WeeklyPlanViewModel`과 **동일**하다. 모바일 전용 필드를 추가하지 않는다.
+응답 계약은 `FE-REQ-024` / `BFF-REQ-020`의 `WeeklyPlanViewModel` · `PlanSettingsViewModel` · `MonthlySummaryViewModel`(2026-09-21)과 **동일**하다. 모바일 전용 필드를 추가하지 않는다.
 
 ## Requirements
 
@@ -37,6 +39,8 @@ created: 2026-09-09
 | FR-5 | `kimchiPremium: null` · `narrative: null`이 정상 값이다 | Must |
 | FR-6 | 파싱 실패는 크래시가 아니라 `degraded` 폴백이다 | Must |
 | FR-7 | 알 수 없는 필드는 무시한다(forward compatible). OTA 없이 서버가 필드를 추가해도 앱이 죽지 않는다 | Must |
+| FR-8 | **2026-09-21 추가 — D9.** `PlanSettingsPatch`에 밴드·배수·임계값 키가 타입 수준에서 없다. `band.editable`은 리터럴 `false` | Must |
+| FR-9 | **2026-09-21 추가 — ADR-002.** complete 요청·응답에 원장 매칭 필드가 0건이다 | Must |
 
 ### B. 인증과 보안
 
@@ -56,7 +60,7 @@ created: 2026-09-09
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-20 | GET 타임아웃 8s. 재시도 1회(지수 백오프 + 지터) | Must |
-| FR-21 | **POST complete는 재시도하지 않는다.** `Idempotency-Key`가 있어도 사용자 확인이 우선 | Must |
+| FR-21 | **POST complete · PATCH settings는 재시도하지 않는다.** `Idempotency-Key`가 있어도 사용자 확인이 우선 (settings 는 2026-09-21 추가) | Must |
 | FR-22 | `Idempotency-Key: {planId}:{weekOf}` | Must |
 | FR-23 | 네트워크 없음(`NETWORK_UNAVAILABLE`)은 에러 화면이 아니라 **오프라인 상태**로 매핑한다 | Must |
 | FR-24 | 앱 버전 헤더 `X-App-Version` · `X-Platform`을 보낸다 | Must |
@@ -67,10 +71,12 @@ created: 2026-09-09
 | 상태 | 코드 | 화면 |
 |---|---|---|
 | 401 | `UNAUTHORIZED` | 리프레시 → 실패 시 로그인 |
-| 404 (plan) | `PLAN_NOT_READY` | 온보딩 1필드 |
+| 404 (plan) | `PLAN_NOT_READY` | 온보딩 3단계 1필드 (B12) |
+| 200 (settings) | `configured: false` (2026-09-21) | 온보딩 3단계 유도 |
 | 404 (track-record) | — | 시트에 이력 미표시. **에러 아님** |
 | 409 (complete) | `ALREADY_COMPLETED` | 조용히 완료 동기화 |
-| 422 (settings) | `VALIDATION_FAILED` | 필드 오류 |
+| 422 (settings) | `PLAN_BASE_AMOUNT_INVALID` (개정 2026-09-21) | 필드 아래 서버 `min`·`max`·`unitKrw` |
+| 422 (settings) | `PLAN_BAND_READ_ONLY` (신규 2026-09-21 — D9) | 화면 오류 없음 · 로그(코드만) |
 | 426 | `UPGRADE_REQUIRED` | 강제 업데이트 |
 | 5xx / timeout | `UPSTREAM_*` | 재시도 버튼 |
 | offline | `NETWORK_UNAVAILABLE` | 캐시 + 오프라인 배너 |
@@ -104,6 +110,10 @@ created: 2026-09-09
 - [ ] `426`에서 강제 업데이트 화면으로 간다
 - [ ] `track-record` 404가 에러 UI를 띄우지 않는다
 - [ ] **BFF 외 직접 호출과 주문 엔드포인트 문자열이 0건이다**
+- [ ] 설정 저장이 `PATCH` + `{ monthlyBaseKrw }` 하나이고 재시도 0회다 (D9 · B12)
+- [ ] 422 두 코드가 위 표대로 매핑된다
+- [ ] `monthly-summary` 호출·타입이 web과 공유된다 (B20)
+- [ ] **월 적립액이 로그·크래시 리포트에 없다**
 - [ ] iOS·Android 양쪽에서 통과한다
 
 ## Dependencies
@@ -115,3 +125,9 @@ created: 2026-09-09
 
 - `426 UPGRADE_REQUIRED`는 F007(버전 게이트)와 겹친다. 판정 기준을 F007에서 정의하고 여기서는 소비만 할지.
 - POST complete를 재시도하지 않으면 응답 유실 시 사용자가 다시 눌러야 한다. `409` 처리가 있으니 안전하지만, 자동 1회 재시도를 허용할지 재검토 여지가 있다.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 엔드포인트 개정(설정 PATCH · 월 적립액만 — D9 · B12, `monthly-summary` 신설 — B20). FR-8·9 추가, FR-21·에러 매핑 개정 |
