@@ -49,8 +49,11 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *         name: period
    *         schema:
    *           type: string
-   *           enum: [1d, 7d, 1m, 3m, 6m, 1y]
-   *         description: 수익률 기준 기간
+   *           enum: ["", realtime, 1d, 7d, 1m, 3m, 6m, 1y]
+   *         description: |
+   *           변동률 기간. 비우거나 `realtime` 이면 거래소 24시간 변동률이다.
+   *           `1d` 는 5분봉 롤링 24시간, 그 이상은 일봉 종가 기준이다.
+   *           `sort=change` 와 함께 주면 이 기간 변동률로 정렬한다(기준이 없는 종목은 뒤로).
    *       - in: query
    *         name: search
    *         schema:
@@ -58,7 +61,11 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *         description: 심볼/한글/영문명 검색
    *     responses:
    *       200:
-   *         description: 마켓 전체 정보
+   *         description: |
+   *           마켓 전체 정보. 각 항목에 `periodChange`(선택한 기간의 변동률 %)가 있다.
+   *           기준 캔들이 없으면(상장 기간이 짧거나 수집 누락) `null` 이다.
+   *       422:
+   *         description: 모르는 `period` (`MARKET_OVERVIEW_PERIOD_UNSUPPORTED`)
    */
   router.get("/market/overview", investmentController.getMarketOverview);
 

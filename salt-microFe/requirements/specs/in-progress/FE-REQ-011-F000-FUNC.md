@@ -140,3 +140,4 @@ created: 2026-09-09
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | **실시간 수신 표시를 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-11 · FR-12("연결 끊김 · 재연결 중", 기준 시각을 쓰지 않는다) · FR-13(헤더를 `RealtimeAsOf` 로 떼어 표가 리렌더되지 않는다) · FR-14(`FE-REQ-010` FR-2 에서). **FR-10 은 다르게** — 수신 시각을 `entities/market/model` 이 아니라 `wsClient.getLastMessageAt()` 에 둔다. 수신 시각은 시세가 아니라 연결의 사실이고 `shared/api` 가 그 연결을 소유한다. **남은 것**: FR-1~5 · FR-20~73 중 미구현분. 근거: `requirements/reports/checklists/F000-realtime-reliability.md` |
+| 2026-09-21 | **터치 선택 절 판정.** FR-23 pass(`(hover: hover)`) · FR-30 유지. **FR-22 는 다르게** — 선택 행에 색을 칠하지 않는다(05b0427 사용자 결정, 팔레트 밖 보라). 선택은 우측 프리뷰가 말하고 `aria-selected` 를 둔다 — 그 값이 `memoKey` 누락으로 첫 행에 멈춰 있던 것을 고쳤다. 같은 작업에서 `MarketOrder.Ascending` 이 빈 문자열이던 것(오름차순 = 내림차순)과 기간 변동률 표시를 고쳤다. 근거: `requirements/reports/checklists/F000-market-table.md` |

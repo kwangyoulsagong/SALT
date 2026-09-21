@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { MarketAsset as MarketAssetRow, Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
 import {
@@ -23,6 +23,34 @@ const SORT_COLUMN: Record<MarketOverviewSort, keyof Prisma.MarketAssetOrderByWit
 
 /** `Decimal | null` 을 화면용 숫자로. **0 으로 떨어뜨리는 것이 원문 동작**이다. */
 const num = (value: Prisma.Decimal | null): number => (value ? Number(value) : 0);
+
+const activeWhere = (search?: string): Prisma.MarketAssetWhereInput => ({
+  isActive: true,
+  ...(search
+    ? {
+        OR: [
+          { symbol: { contains: search, mode: "insensitive" } },
+          { koreanName: { contains: search, mode: "insensitive" } },
+          { englishName: { contains: search, mode: "insensitive" } },
+        ],
+      }
+    : {}),
+});
+
+const toView = (row: MarketAssetRow): MarketAssetView => ({
+  symbol: row.symbol,
+  market: row.market,
+  koreanName: row.koreanName,
+  englishName: row.englishName,
+  currentPrice: num(row.currentPrice),
+  change24h: num(row.change24h),
+  high24h: num(row.high24h),
+  low24h: num(row.low24h),
+  volume24h: num(row.volume24h),
+  tradeValue24h: num(row.tradeValue24h),
+  logoUrl: row.logoUrl || logoUrlOf(row.symbol),
+  priceUpdatedAt: row.priceUpdatedAt,
+});
 
 export class PrismaMarketAssetRepository implements MarketAssetRepository {
   /**
@@ -54,15 +82,7 @@ export class PrismaMarketAssetRepository implements MarketAssetRepository {
   }
 
   async findPage(query: MarketOverviewQuery) {
-    const where: Prisma.MarketAssetWhereInput = { isActive: true };
-
-    if (query.search) {
-      where.OR = [
-        { symbol: { contains: query.search, mode: "insensitive" } },
-        { koreanName: { contains: query.search, mode: "insensitive" } },
-        { englishName: { contains: query.search, mode: "insensitive" } },
-      ];
-    }
+    const where = activeWhere(query.search);
 
     const [rows, total] = await Promise.all([
       prisma.marketAsset.findMany({
@@ -74,22 +94,17 @@ export class PrismaMarketAssetRepository implements MarketAssetRepository {
       prisma.marketAsset.count({ where }),
     ]);
 
-    const items: MarketAssetView[] = rows.map((row) => ({
-      symbol: row.symbol,
-      market: row.market,
-      koreanName: row.koreanName,
-      englishName: row.englishName,
-      currentPrice: num(row.currentPrice),
-      change24h: num(row.change24h),
-      high24h: num(row.high24h),
-      low24h: num(row.low24h),
-      volume24h: num(row.volume24h),
-      tradeValue24h: num(row.tradeValue24h),
-      logoUrl: row.logoUrl || logoUrlOf(row.symbol),
-      priceUpdatedAt: row.priceUpdatedAt,
-    }));
+    return { items: rows.map(toView), total };
+  }
 
-    return { items, total };
+  async findAllActive(
+    query: Pick<MarketOverviewQuery, "sort" | "order" | "search">
+  ) {
+    const rows = await prisma.marketAsset.findMany({
+      where: activeWhere(query.search),
+      orderBy: { [SORT_COLUMN[query.sort]]: query.order },
+    });
+    return rows.map(toView);
   }
 
   async activeSymbols(assetType?: MarketAssetType): Promise<string[]> {

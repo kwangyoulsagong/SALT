@@ -2,6 +2,7 @@ import type { IndicatorSet } from "./Indicators";
 import type {
   MarketAssetView,
   MarketOverviewQuery,
+  PeriodBaseline,
   SortDirection,
 } from "./MarketOverview";
 import type { SentimentLabel } from "./Sentiment";
@@ -101,10 +102,15 @@ export interface ExchangeQuotePort {
    * 있게 만들면 차트 응답 모양이 바뀐다.
    */
   dailyTradeValues(symbol: string, count: number): Promise<number[]>;
+  /**
+   * 저장용 캔들. `before` 를 주면 **그 시각 이전** 캔들만 — 거래소가 한 번에 200개까지
+   * 주므로 더 먼 과거는 이 값을 옮겨 가며 받는다(백필).
+   */
   candlesByTimeframe(
     symbol: string,
     timeframe: PriceTimeframe,
-    count: number
+    count: number,
+    before?: Date
   ): Promise<Candle[]>;
   krwMarkets(): Promise<MarketListing[]>;
   recentTrades(symbol: string, count: number): Promise<Trade[]>;
@@ -145,6 +151,13 @@ export interface MarketAssetRepository {
   findPage(
     query: MarketOverviewQuery
   ): Promise<{ items: MarketAssetView[]; total: number }>;
+  /**
+   * 조건에 맞는 활성 종목 **전부**. 기간 변동률로 정렬할 때만 쓴다 — 그 값은 DB 컬럼이
+   * 아니라서 DB 가 정렬·페이징할 수 없다. 활성 종목이 300개 안쪽이라 가능한 선택이다.
+   */
+  findAllActive(
+    query: Pick<MarketOverviewQuery, "sort" | "order" | "search">
+  ): Promise<MarketAssetView[]>;
   /** 활성 심볼. `assetType` 을 주면 그 자산군만. */
   activeSymbols(assetType?: MarketAssetType): Promise<string[]>;
   /** 가격이 `staleBefore` 보다 오래됐거나 없는 심볼만. 배경 갱신 대상을 좁힌다. */
@@ -315,6 +328,16 @@ export interface PriceHistoryRepository {
   closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
   /** 심볼별 마지막 종가. */
   latestCloses(symbols: string[]): Promise<ClosePoint[]>;
+  /**
+   * 기간 변동률의 **기준 종가**를 심볼별로. 구간 안에 캔들이 없는 심볼은 결과에 없다.
+   * 구간의 **가장 최근** 캔들을 쓴다.
+   */
+  baselineCloses(
+    symbols: string[],
+    baseline: PeriodBaseline
+  ): Promise<Map<string, number>>;
+  /** 심볼별 가장 오래된 캔들 시작 시각. 백필이 어디서부터 이어 받을지 정한다. */
+  earliestCandleStarts(timeframe: PriceTimeframe): Promise<Map<string, Date>>;
   /** 지표 계산용 최근 캔들. 최신이 앞이다. */
   recentCandles(
     symbol: string,

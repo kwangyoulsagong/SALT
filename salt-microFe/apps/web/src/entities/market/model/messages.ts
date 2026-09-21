@@ -35,6 +35,13 @@ export const MARKET_MESSAGES = {
   newsViews: (count: number) => `조회 ${count.toLocaleString("ko-KR")}`,
 } as const;
 
+/** 기간 변동률 문구. 표 셀이 쓴다. */
+export const MARKET_CHANGE_MESSAGES = {
+  /** 기준 시세가 없는 기간. 0% 로 그리지 않는다 — 변동 없음과 기록 없음은 다르다 */
+  unknown: "—",
+  unknownTitle: "이 기간의 시세 기록이 없습니다",
+} as const;
+
 /** 관심 목록 문구. `MARKET_MESSAGES` 와 나눈 이유는 소비하는 화면이 다르기 때문이다. */
 export const WATCHLIST_MESSAGES = {
   loading: "관심 종목을 불러오는 중입니다.",

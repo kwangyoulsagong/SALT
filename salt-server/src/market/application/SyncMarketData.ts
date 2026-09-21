@@ -138,3 +138,77 @@ export class CollectPriceHistory {
     }
   }
 }
+
+/** 백필 목표. 1년 기간의 기준(365일 + 허용 3일)을 덮고 조금 더 받는다. */
+const BACKFILL_DAYS = 400;
+/** 거래소가 한 번에 주는 최대 개수다. */
+const BACKFILL_PAGE = 200;
+/** 심볼당 최대 요청 수. 400일이면 두 번이면 되고, 무한 루프를 막는 상한이다. */
+const BACKFILL_MAX_PAGES = 3;
+
+/**
+ * 일봉 백필 — **정기 수집이 채우지 못하는 과거**를 한 번 받는다.
+ *
+ * 정기 수집(`CollectPriceHistory`)은 5분마다 최근 120일만 다시 받는다. 쌓이는 방향은
+ * 앞쪽뿐이라 로컬 DB 에 수집이 시작된 날(2026-01-25) 이전이 없고, 마켓 목록의 6개월
+ * 기간은 293종목 중 26종목, 1년은 0종목만 계산됐다(2026-09-21 실측).
+ *
+ * 워커에 넣지 않는 이유: 한 번 채우면 정기 수집이 앞쪽을 잇고 보관 정책(2년)이 뒤를
+ * 자른다. 매 주기 400일을 다시 받는 것은 거래소 호출만 늘린다. `npm run candles:backfill`.
+ *
+ * 멱등이다 — 가장 오래된 캔들 **이전**만 받고, 저장은 유니크 키 위의 upsert 다.
+ */
+export class BackfillDailyHistory {
+  constructor(
+    private readonly assets: MarketAssetRepository,
+    private readonly exchange: ExchangeQuotePort,
+    private readonly prices: PriceHistoryRepository,
+    private readonly now: () => Date = () => new Date()
+  ) {}
+
+  async execute() {
+    const target = new Date(this.now().getTime() - BACKFILL_DAYS * 86_400_000);
+    const [symbols, earliest] = await Promise.all([
+      this.assets.activeSymbols("crypto"),
+      this.prices.earliestCandleStarts("1d"),
+    ]);
+
+    let requests = 0;
+    let candles = 0;
+    let failed = 0;
+
+    // 순차다. 거래소 호출 간격은 페이서가 지키고, 병렬로 던지면 대기열만 길어진다.
+    for (const symbol of symbols) {
+      let cursor = earliest.get(symbol.toUpperCase());
+      // 정기 수집이 아직 한 번도 못 받은 심볼이다. 최근부터는 그쪽 몫이다.
+      if (!cursor) continue;
+
+      try {
+        for (let page = 0; page < BACKFILL_MAX_PAGES && cursor > target; page++) {
+          const batch = await this.exchange.candlesByTimeframe(
+            symbol,
+            "1d",
+            BACKFILL_PAGE,
+            cursor
+          );
+          requests++;
+          if (batch.length === 0) break;
+
+          await this.prices.upsertCandles(symbol.toUpperCase(), "crypto", "1d", batch);
+          candles += batch.length;
+          cursor = new Date(Math.min(...batch.map((c) => c.timestamp.getTime())));
+          // 덜 왔으면 상장일에 닿았다.
+          if (batch.length < BACKFILL_PAGE) break;
+        }
+      } catch (error) {
+        failed++;
+        logger.warn(`일봉 백필 실패 — ${symbol}`, error);
+      }
+    }
+
+    logger.info(
+      `🗂️ 일봉 백필: 심볼 ${symbols.length} · 요청 ${requests} · 캔들 ${candles} · 실패 ${failed}`
+    );
+    return { symbols: symbols.length, requests, candles, failed };
+  }
+}

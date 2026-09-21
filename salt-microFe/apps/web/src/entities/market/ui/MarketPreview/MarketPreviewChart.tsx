@@ -6,12 +6,23 @@ import { Skeleton } from "@repo/ui/skeleton";
 import React from "react";
 
 import { Timeframe } from "@/shared/api";
+import { useElementWidth } from "@/shared/lib";
 
 import { useMarketChartPreview } from "../../api";
 import { useMarketPreviewChartRealtime } from "../../lib";
+import { chartMeasure } from "./MarketPreviewChart.css";
 
 /** `PreviewChart` 의 기본 높이. 자리표시자가 같은 높이를 잡아 첫 로딩에서 밀리지 않는다. */
 const CHART_HEIGHT = 210;
+
+/**
+ * 폭을 재기 전의 차트 폭 = `PreviewChart` 의 기본 폭.
+ *
+ * 차트는 폭을 **숫자로** 받아 SVG 좌표를 계산한다. 고정값을 그대로 쓰면 프리뷰가
+ * 이보다 좁아질 때(1280px 화면 ≈ 322px · 모바일) 차트가 120~150px 튀어나와 프리뷰가
+ * 가로로 스크롤됐다(2026-09-21 실측). 부모 폭을 재서 넘긴다.
+ */
+const CHART_FALLBACK_WIDTH = 447;
 
 /**
  * 프리뷰 차트.
@@ -29,20 +40,24 @@ const CHART_HEIGHT = 210;
 export const MarketPreviewChart = React.memo(
   ({ symbol }: { symbol: string }) => {
     const { data, isLoading, isError } = useMarketChartPreview(symbol);
+    const [containerRef, width] =
+      useElementWidth<HTMLDivElement>(CHART_FALLBACK_WIDTH);
 
     useMarketPreviewChartRealtime(symbol, Timeframe.FiveMinutes);
 
-    if (isLoading) {
-      return <Skeleton height={CHART_HEIGHT} />;
-    }
-
-    if (isError || !data) {
-      return null;
-    }
-
-    return <PreviewChart symbol={symbol} data={data.data} />;
+    // 측정용 상자는 **로딩·실패와 상관없이 늘 있다** — 없으면 첫 측정이 데이터 도착
+    // 뒤로 밀려, 차트가 한 번 고정 폭으로 그려졌다가 줄어든다.
+    return (
+      <div ref={containerRef} className={chartMeasure}>
+        {isLoading ? (
+          <Skeleton height={CHART_HEIGHT} />
+        ) : isError || !data ? null : (
+          <PreviewChart symbol={symbol} data={data.data} width={width} />
+        )}
+      </div>
+    );
   },
-  (prevProps, nextProps) => prevProps.symbol === nextProps.symbol
+  (prevProps, nextProps) => prevProps.symbol === nextProps.symbol,
 );
 MarketPreviewChart.displayName = "MarketPreviewChart";
 

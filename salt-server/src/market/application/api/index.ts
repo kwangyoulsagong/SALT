@@ -35,6 +35,7 @@ import {
   ListMarketSymbols,
 } from "../ReadMarketData";
 import {
+  BackfillDailyHistory,
   CollectPriceHistory,
   SyncMarketListings,
   UpdateAllMarketPrices,
@@ -132,6 +133,7 @@ export interface MarketUseCases {
   syncMarketListings: SyncMarketListings;
   updateAllMarketPrices: UpdateAllMarketPrices;
   collectPriceHistory: CollectPriceHistory;
+  backfillDailyHistory: BackfillDailyHistory;
   refreshTechnicalIndicators: RefreshTechnicalIndicators;
 }
 
@@ -153,13 +155,22 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     removeFromWatchlist: new RemoveFromWatchlist(deps.watchlist),
     listWatchlistSymbols: new ListWatchlistSymbols(deps.watchlist),
     updateWatchlistPrices: new UpdateWatchlistPrices(deps.watchlist),
-    getMarketOverview: new GetMarketOverview(deps.assets, deps.exchange),
+    getMarketOverview: new GetMarketOverview(
+      deps.assets,
+      deps.exchange,
+      deps.prices
+    ),
     getRealTimePrice: new GetRealTimePrice(deps.exchange),
     getChartData: new GetChartData(deps.exchange),
     listMarketSymbols: new ListMarketSymbols(deps.assets),
     syncMarketListings: new SyncMarketListings(deps.assets, deps.exchange),
     updateAllMarketPrices: new UpdateAllMarketPrices(deps.assets, deps.exchange),
     collectPriceHistory: new CollectPriceHistory(
+      deps.assets,
+      deps.exchange,
+      deps.prices
+    ),
+    backfillDailyHistory: new BackfillDailyHistory(
       deps.assets,
       deps.exchange,
       deps.prices

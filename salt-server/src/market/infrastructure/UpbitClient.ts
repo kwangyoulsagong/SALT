@@ -158,12 +158,18 @@ export class UpbitClient implements ExchangeQuotePort {
   async candlesByTimeframe(
     symbol: string,
     timeframe: PriceTimeframe,
-    count: number
+    count: number,
+    before?: Date
   ): Promise<Candle[]> {
     const raw =
       timeframe === "1d"
-        ? await this.rawDailyCandles(symbol, count)
-        : await this.rawMinuteCandles(symbol, MINUTE_UNIT[timeframe], count);
+        ? await this.rawDailyCandles(symbol, count, before)
+        : await this.rawMinuteCandles(
+            symbol,
+            MINUTE_UNIT[timeframe],
+            count,
+            before
+          );
 
     return raw
       .map((candle: any): Candle | null => {
@@ -256,9 +262,14 @@ export class UpbitClient implements ExchangeQuotePort {
     };
   }
 
-  private async rawDailyCandles(symbol: string, count: number) {
+  /** `before` 는 거래소의 `to`(그 시각 **미만**, UTC ISO)다. */
+  private async rawDailyCandles(symbol: string, count: number, before?: Date) {
     try {
-      return await get("/candles/days", { market: marketOf(symbol), count });
+      return await get("/candles/days", {
+        market: marketOf(symbol),
+        count,
+        ...(before ? { to: before.toISOString() } : {}),
+      });
     } catch (error: any) {
       logger.error("Upbit candles API error:", error.message);
       throw new Error("Failed to fetch chart data from Upbit");
@@ -268,12 +279,14 @@ export class UpbitClient implements ExchangeQuotePort {
   private async rawMinuteCandles(
     symbol: string,
     unit: number,
-    count: number
+    count: number,
+    before?: Date
   ) {
     try {
       return await get(`/candles/minutes/${unit}`, {
         market: marketOf(symbol),
         count,
+        ...(before ? { to: before.toISOString() } : {}),
       });
     } catch (error: any) {
       logger.error("Upbit minute candles API error:", error.message);

@@ -3,6 +3,7 @@ import type {
   Candle,
   ClosePoint,
   MarketAssetType,
+  PeriodBaseline,
   PriceHistoryRepository,
   PriceTimeframe,
 } from "../domain";
@@ -123,6 +124,48 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
       close: Number(row.close),
       timestamp: row.timestamp,
     }));
+  }
+
+  /**
+   * 구간이 좁아서(일봉 3일 · 5분봉 30분) 심볼당 몇 행이다. 최신이 앞이게 읽고 심볼별
+   * 첫 행만 남긴다 — `distinct` 를 쓰지 않는 이유는 Prisma 가 그것을 메모리에서 하기
+   * 때문이고, 결과는 같다. `(symbol, timeframe, timestamp)` 인덱스를 탄다.
+   */
+  async baselineCloses(symbols: string[], baseline: PeriodBaseline) {
+    const closes = new Map<string, number>();
+    if (symbols.length === 0) return closes;
+
+    const rows = await prisma.priceHistory.findMany({
+      where: {
+        symbol: { in: symbols },
+        timeframe: baseline.timeframe,
+        timestamp: {
+          gte: baseline.candleStartNotBefore,
+          lte: baseline.candleStartAtOrBefore,
+        },
+      },
+      orderBy: { timestamp: "desc" },
+      select: { symbol: true, close: true },
+    });
+
+    for (const row of rows) {
+      if (!closes.has(row.symbol)) closes.set(row.symbol, Number(row.close));
+    }
+    return closes;
+  }
+
+  async earliestCandleStarts(timeframe: PriceTimeframe) {
+    const rows = await prisma.priceHistory.groupBy({
+      by: ["symbol"],
+      where: { timeframe },
+      _min: { timestamp: true },
+    });
+
+    const starts = new Map<string, Date>();
+    for (const row of rows) {
+      if (row._min.timestamp) starts.set(row.symbol, row._min.timestamp);
+    }
+    return starts;
   }
 
   async closesSince(symbols: string[], since: Date): Promise<ClosePoint[]> {

@@ -119,6 +119,7 @@ created: 2026-09-09
 |---|---|
 | 2026-09-18 | **신규 중 `GET /api/portfolio/summary` 를 열고 `period` 정정을 넣었다.** `in-progress` 로 옮겼다. 닫힌 것: `/api/portfolio/summary` · `period` 유효값 검사(모르는 값 **422**, 없으면 `day`). **남은 것**: `/api/auth/invite/check` · `/api/auth/invite/accept` · `/api/onboarding/status` · `/api/news` 계약 정리 · 제거 목록(`register`·`password`·`account`) · 410 Gone. 근거: `requirements/reports/checklists/SRV-REQ-009.md` |
 | 2026-09-18 | **초대 2경로·온보딩 상태를 열고 제거 3경로를 닫았다.** 닫힌 것: FR-1~6(`invite/accept` · `invite/check` · `register`·`password`·`account` 404) · FR-16 부분(제거 경로 Swagger 0건) · 신규 `GET /api/onboarding/status`. **남은 것**: 410 Gone(FR-7·8) · 알림 422(FR-12·13) · 응답 스냅샷(FR-23). 근거: `requirements/reports/checklists/SRV-REQ-009.md` §7·§8 |
+| 2026-09-21 | **시세 개요의 기간 7 · 순서 2 가 실제로 동작한다.** 서버가 `period` 를 읽지 않아 기간 버튼 7개가 같은 목록을 돌려줬다. `MarketOverviewPeriod` 로 해석하고 항목에 `periodChange`(기준 시세 없으면 `null`)를 **추가**했다(FR-20). 모르는 기간은 422. FR-11 pass — 필터 수·값·`limit=100` 은 그대로다. FR-23 **부분** — overview 한 경로에 필드 계약 테스트. 일봉 백필 스크립트(`candles:backfill`). 근거: `requirements/reports/checklists/F000-market-table.md` |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

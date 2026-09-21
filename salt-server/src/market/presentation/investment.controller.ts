@@ -4,9 +4,12 @@ import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import {
   ChartPeriod,
   isChartPeriod,
+  isMarketOverviewPeriod,
   isMarketOverviewSort,
+  MarketOverviewPeriod,
   MarketOverviewSort,
   UnsupportedChartPeriodError,
+  UnsupportedMarketPeriodError,
 } from "../domain";
 import type { MarketUseCases } from "../application/api";
 import {
@@ -113,9 +116,9 @@ export class InvestmentController {
   /**
    * 마켓 목록.
    *
-   * > `period` 쿼리를 받지만 **원문에서도 쓰이지 않았다** — 서비스가 그 값을 무시한다.
-   * > 계약을 깨지 않으려고 파라미터는 남겨 두되 넘기지 않는다. 살릴지 지울지는
-   * > `SRV-REQ-007` 이 정한다.
+   * `period` 는 **원래 받기만 하고 쓰지 않았다.** 화면의 기간 버튼 7개가 변경 금지
+   * 목록이라(`SRV-REQ-009` FR-11) 지우지 않고 살렸다. 빈 문자열·없음은 실시간이다 —
+   * 프론트의 "실시간" 버튼이 빈 문자열을 보낸다. 그 외 모르는 값은 422 다.
    */
   getMarketOverview = async (
     req: Request,
@@ -123,7 +126,11 @@ export class InvestmentController {
     next: NextFunction
   ) => {
     try {
-      const { page, limit, sort, order, search } = req.query;
+      const { page, limit, sort, order, search, period } = req.query;
+
+      if (period !== undefined && period !== "" && !isMarketOverviewPeriod(period)) {
+        throw new UnsupportedMarketPeriodError(String(period));
+      }
 
       const result = await this.useCases.getMarketOverview.execute({
         page: page ? Number(page) : 1,
@@ -131,6 +138,9 @@ export class InvestmentController {
         sort: isMarketOverviewSort(sort) ? sort : MarketOverviewSort.TradeValue,
         order: order === "asc" ? "asc" : "desc",
         search: (search as string) || undefined,
+        period: isMarketOverviewPeriod(period)
+          ? period
+          : MarketOverviewPeriod.Realtime,
       });
       return ResponseUtil.success(res, result);
     } catch (error) {
