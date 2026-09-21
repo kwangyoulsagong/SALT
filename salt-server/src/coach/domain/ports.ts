@@ -1,5 +1,7 @@
 import type {
   CloseDistribution,
+  GaugeKind,
+  GaugeTrackStats,
   JudgmentCase,
   JudgmentOutcome,
   JudgmentTrackStats,
@@ -136,6 +138,15 @@ export interface MarketProbe {
   /** `at` 시각 **이후 첫** 종가. 성적표의 진입가다. 없으면 `null`. */
   closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
   latestCloses(symbols: string[]): Promise<Map<string, number>>;
+  /**
+   * 심리 구간별 30일 뒤 수익률 분포 — 게이지 적중률(B9)의 재료. `market` 이 집계한다.
+   * `bucketIndex` 는 `floor(score / bucketWidth)` 이고 코드로 바꾸는 것은 우리 몫이다.
+   */
+  sentimentForwardReturns(query: {
+    bucketWidth: number;
+    horizonDays: number;
+    since: Date;
+  }): Promise<GaugeForwardReturn[]>;
   /** `since` 이후 종가 백분위 — 관찰 구간(D2)의 재료. DB 가 계산한다. */
   closePercentiles(
     symbol: string,
@@ -301,6 +312,41 @@ export interface SymbolJudgmentStore {
  */
 export interface TrackedAssetProbe {
   listTrackedSymbols(): Promise<string[]>;
+}
+
+export interface GaugeForwardReturn {
+  symbol: string;
+  bucketIndex: number;
+  sample: number;
+  p25: number;
+  median: number;
+  p75: number;
+  positiveRate: number;
+  windowFrom: Date;
+  windowTo: Date;
+}
+
+/**
+ * 게이지 적중률 사전 집계 (`GaugeTrackRecord` · `DB-REQ-017` FR-55).
+ *
+ * 화면은 `find` 한 번만 한다. 분포 계산은 일 1회 워커가 `replace` 로 통째로 다시 쓴다.
+ */
+export interface GaugeTrackStore {
+  /**
+   * 한 게이지의 집계를 이 회차 것으로 바꾼다. **이번에 없는 줄은 지운다** — 구간 폭을
+   * 바꾸거나 표본이 기간 밖으로 밀려나면 옛 줄이 남지 않게(FR-57).
+   */
+  replace(
+    gauge: GaugeKind,
+    records: Omit<GaugeTrackStats, "gauge">[],
+    computedAt: Date
+  ): Promise<void>;
+  find(
+    symbol: string,
+    gauge: GaugeKind,
+    bucketCode: string,
+    horizonDays: number
+  ): Promise<GaugeTrackStats | null>;
 }
 
 /** 지금 시각. 테스트가 시계를 고정할 수 있게 Port 로 둔다. */

@@ -8,6 +8,7 @@ import type {
   CoachQuote,
   CoachSentiment,
   CoachWhaleTransaction,
+  GaugeForwardReturn,
   MarketProbe,
   ZoneTimeframe,
 } from "../domain";
@@ -116,6 +117,14 @@ export class MarketSignalAdapter implements MarketProbe {
   async latestCloses(symbols: string[]): Promise<Map<string, number>> {
     const rows = await this.market.latestCloses(symbols);
     return new Map(rows.map((row) => [row.symbol, row.close]));
+  }
+
+  sentimentForwardReturns(query: {
+    bucketWidth: number;
+    horizonDays: number;
+    since: Date;
+  }): Promise<GaugeForwardReturn[]> {
+    return this.market.sentimentForwardReturns(query);
   }
 
   closePercentiles(

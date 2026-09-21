@@ -9,6 +9,7 @@ import { RiskAlertService } from "../modules/investment-insight/risk-alert.servi
 // 이관된 컨텍스트의 유스케이스는 조립 지점에서 온다 (`composition.ts`).
 // 워커는 **스케줄과 락만** 갖고 절차는 유스케이스에 있다 (`server-architecture.md` §7).
 import { contextUseCases } from "../composition";
+import { schedule } from "../shared/infrastructure/scheduler";
 
 export class InvestmentInsightWorker {
   private insightService = new InvestmentInsightService();
@@ -31,6 +32,17 @@ export class InvestmentInsightWorker {
     cron.schedule("*/10 * * * *", () => {
       this.run();
     });
+
+    // 게이지 적중률 (F004 · B9). 입력이 일봉이라 **일 1회**면 된다 — 10분 회차에 넣지 않는다.
+    // 부팅 때도 한 번 돈다: 서버가 매일 그 시각 전에 재기동되면 영영 비어 있게 된다
+    const refreshGauges = async () => {
+      const result = await this.coach.refreshGaugeTrackRecords.execute();
+      console.log(`📏 Gauge track records refreshed — ${result.records}줄`);
+    };
+    schedule("gauge-track-records", "20 0 * * *", refreshGauges);
+    refreshGauges().catch((error) =>
+      console.error("❌ Gauge track records 부팅 실행 실패:", error)
+    );
   }
 
   /**

@@ -4,6 +4,8 @@ import { describe, it } from "node:test";
 import type {
   CoachMode,
   CoachProfileStore,
+  GaugeTrackStats,
+  GaugeTrackStore,
   JudgmentCase,
   JudgmentEvaluation,
   JudgmentOutcome,
@@ -16,6 +18,7 @@ import type {
   TrackedAssetProbe,
 } from "../../domain";
 import { GetSymbolCoach } from "../GetSymbolCoach";
+import { RefreshGaugeTrackRecords } from "../RefreshGaugeTrackRecords";
 import {
   EvaluateSymbolJudgments,
   SnapshotSymbolJudgments,
@@ -162,6 +165,11 @@ const fakeMarket = (
         : { sample: 365, values: [60, 90, 130] },
   }) as unknown as MarketProbe;
 
+const noGauges: GaugeTrackStore = {
+  replace: async () => undefined,
+  find: async () => null,
+};
+
 const tracked = (symbols: string[]): TrackedAssetProbe => ({
   listTrackedSymbols: async () => symbols,
 });
@@ -241,7 +249,7 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
       fakeMarket({ BTC: 100 }),
       portfolio,
       profiles,
-      new MemoryJudgmentStore()
+      new MemoryJudgmentStore(), noGauges
     ).execute("user-1", { symbol: "btc" });
 
     assert.equal("confidence" in view.modeDecision, false);
@@ -267,7 +275,7 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
       market,
       portfolio,
       profiles,
-      new MemoryJudgmentStore()
+      new MemoryJudgmentStore(), noGauges
     ).execute("user-1", { symbol: "BTC" });
 
     assert.ok(view.modes.longTerm.judgment.reasons.length > 0);
@@ -317,7 +325,7 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
       ],
     } as unknown as MarketProbe;
 
-    const view = await new GetSymbolCoach(market, portfolio, profiles, store).execute(
+    const view = await new GetSymbolCoach(market, portfolio, profiles, store, noGauges).execute(
       "user-1",
       { symbol: "BTC", mode: "long_term" }
     );
@@ -344,7 +352,7 @@ describe("GetSymbolCoach — zone (FR-110~116)", () => {
       fakeMarket({ BTC: 100 }),
       noHolding,
       profiles,
-      new MemoryJudgmentStore(),
+      new MemoryJudgmentStore(), noGauges,
       () => T0
     ).execute("user-1", { symbol: "BTC" });
 
@@ -371,7 +379,7 @@ describe("GetSymbolCoach — zone (FR-110~116)", () => {
       fakeMarket({ BTC: 100 }),
       holding,
       profiles,
-      new MemoryJudgmentStore(),
+      new MemoryJudgmentStore(), noGauges,
       () => T0
     ).execute("user-1", { symbol: "BTC" });
 
@@ -403,7 +411,7 @@ describe("GetSymbolCoach — zone (FR-110~116)", () => {
       stock,
       noHolding,
       profiles,
-      new MemoryJudgmentStore(),
+      new MemoryJudgmentStore(), noGauges,
       () => T0
     ).execute("user-1", { symbol: "AAPL" });
     assert.deepEqual(aapl.modes.scalp.zone, {
@@ -415,12 +423,102 @@ describe("GetSymbolCoach — zone (FR-110~116)", () => {
       fakeMarket({}),
       noHolding,
       profiles,
-      new MemoryJudgmentStore(),
+      new MemoryJudgmentStore(), noGauges,
       () => T0
     ).execute("user-1", { symbol: "NEW" });
     assert.deepEqual(unknown.modes.longTerm.zone, {
       kind: "unavailable",
       reasonCode: "insufficient_price_history",
     });
+  });
+});
+
+describe("게이지 적중률 (B9 · FR-120~122)", () => {
+  const profiles = {
+    findByUser: async () => null,
+  } as unknown as CoachProfileStore;
+  const noHolding = { getHolding: async () => null } as unknown as PortfolioProbe;
+
+  class MemoryGaugeStore implements GaugeTrackStore {
+    rows: GaugeTrackStats[] = [];
+    async replace(
+      gauge: GaugeTrackStats["gauge"],
+      records: Omit<GaugeTrackStats, "gauge">[]
+    ) {
+      this.rows = records.map((record) => ({ ...record, gauge }));
+    }
+    async find(symbol: string, gauge: string, bucketCode: string) {
+      return (
+        this.rows.find(
+          (row) =>
+            row.symbol === symbol &&
+            row.gauge === gauge &&
+            row.bucketCode === bucketCode
+        ) ?? null
+      );
+    }
+  }
+
+  const distribution = (bucketIndex: number, sample: number) => ({
+    symbol: "BTC",
+    bucketIndex,
+    sample,
+    p25: -0.05,
+    median: 0.02,
+    p75: 0.08,
+    positiveRate: 0.6,
+    windowFrom: T0,
+    windowTo: T0,
+  });
+
+  const refresh = async (store: MemoryGaugeStore, rows: unknown[]) =>
+    new RefreshGaugeTrackRecords(
+      { sentimentForwardReturns: async () => rows } as unknown as MarketProbe,
+      store,
+      () => T0
+    ).execute();
+
+  const coach = (store: GaugeTrackStore) =>
+    new GetSymbolCoach(
+      fakeMarket({ BTC: 100 }), // 심리 50 → 40_60 구간
+      noHolding,
+      profiles,
+      new MemoryJudgmentStore(),
+      store,
+      () => T0
+    ).execute("user-1", { symbol: "BTC" });
+
+  it("구간 번호를 코드로 바꿔 저장하고, 지금 심리 구간의 줄만 싣는다", async () => {
+    const store = new MemoryGaugeStore();
+    await refresh(store, [distribution(2, 25), distribution(4, 3)]);
+    assert.deepEqual(
+      store.rows.map((row) => row.bucketCode),
+      ["40_60", "80_100"]
+    );
+
+    const view = await coach(store);
+    assert.deepEqual(view.gaugeTrackRecords, [
+      {
+        gauge: "sentiment",
+        bucketCode: "40_60",
+        currentValue: 50,
+        horizonDays: 30,
+        sample: 25,
+        p25: -0.05,
+        median: 0.02,
+        p75: 0.08,
+        positiveRate: 0.6,
+        lowSample: false,
+      },
+    ]);
+  });
+
+  it("표본이 20 미만이면 lowSample, 지금 구간에 표본이 없으면 배열에서 빠진다", async () => {
+    const store = new MemoryGaugeStore();
+    await refresh(store, [distribution(2, 3)]);
+    assert.equal((await coach(store)).gaugeTrackRecords[0].lowSample, true);
+
+    await refresh(store, [distribution(4, 30)]);
+    assert.deepEqual((await coach(store)).gaugeTrackRecords, []);
   });
 });

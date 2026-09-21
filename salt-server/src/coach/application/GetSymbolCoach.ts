@@ -1,8 +1,15 @@
 import {
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
+  GAUGE_HORIZON_DAYS,
+  gaugeBucketCode,
+  gaugeBucketIndex,
+  toGaugeTrackRecord,
   type Clock,
   type CoachMode,
   type CoachProfileStore,
+  type CoachSentiment,
+  type GaugeTrackRecordView,
+  type GaugeTrackStore,
   type MarketProbe,
   type ModeDecision,
   type PortfolioProbe,
@@ -36,6 +43,11 @@ export interface SymbolCoachView {
    * 화면은 이것을 읽는다. 아래 `modeDecision` · `dualDecision` 은 하위 호환이다.
    */
   modes: { scalp: SymbolModeView; longTerm: SymbolModeView };
+  /**
+   * 게이지 아래 한 줄 — 지금 구간에 있던 과거 날들의 30일 뒤 수익률 분포(B9).
+   * **표본 0 인 게이지는 빠진다**(`SRV-REQ-025` FR-46). 지금은 `sentiment` 하나다.
+   */
+  gaugeTrackRecords: GaugeTrackRecordView[];
   modeDecision: ModeDecision;
   dualDecision: { scalp: ModeDecision; longTerm: ModeDecision };
   riskGuard: {
@@ -81,8 +93,26 @@ export class GetSymbolCoach {
     private readonly portfolio: PortfolioProbe,
     private readonly profiles: CoachProfileStore,
     private readonly judgments: SymbolJudgmentStore,
+    private readonly gauges: GaugeTrackStore,
     private readonly clock: Clock = () => new Date()
   ) {}
+
+  private async sentimentTrack(
+    symbol: string,
+    sentiment: CoachSentiment | undefined
+  ): Promise<GaugeTrackRecordView[]> {
+    if (!sentiment) return [];
+
+    const value = sentiment.sentimentScore;
+    const stats = await this.gauges.find(
+      symbol,
+      "sentiment",
+      gaugeBucketCode(gaugeBucketIndex(value)),
+      GAUGE_HORIZON_DAYS
+    );
+    const record = toGaugeTrackRecord(stats, value);
+    return record ? [record] : [];
+  }
 
   async execute(
     userId: string,
@@ -107,11 +137,13 @@ export class GetSymbolCoach {
 
     // 게이트는 `preview` 에서도 생략하지 않는다 (`SRV-REQ-025` FR-49).
     // `zone` 도 싣는다 — 생략은 "할 수 있다"이고, 모양이 둘이 되면 소비처가 둘을 다룬다
-    const [scalpView, longTermView, zones] = await Promise.all([
-      attachJudgmentTrack(this.judgments, scalp),
-      attachJudgmentTrack(this.judgments, longTerm),
-      resolveZones(this.market, { symbol, holding, quote, now }),
-    ]);
+    const [scalpView, longTermView, zones, gaugeTrackRecords] =
+      await Promise.all([
+        attachJudgmentTrack(this.judgments, scalp),
+        attachJudgmentTrack(this.judgments, longTerm),
+        resolveZones(this.market, { symbol, holding, quote, now }),
+        this.sentimentTrack(symbol, sentiment),
+      ]);
 
     const selectedMode: CoachMode = query.mode ?? "scalp";
     const modeDecision = selectedMode === "scalp" ? scalp : longTerm;
@@ -125,6 +157,7 @@ export class GetSymbolCoach {
         scalp: { ...scalpView, zone: zones.scalp },
         longTerm: { ...longTermView, zone: zones.long_term },
       },
+      gaugeTrackRecords,
       modeDecision,
       dualDecision: { scalp, longTerm },
       riskGuard: {

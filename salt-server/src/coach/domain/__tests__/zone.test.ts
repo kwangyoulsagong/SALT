@@ -95,3 +95,13 @@ describe("observationZone — 미보유 관찰 구간", () => {
     );
   });
 });
+
+describe("게이지 구간 (FR-57)", () => {
+  it("20 단위 5구간이고 100 은 마지막 구간이다", async () => {
+    const { gaugeBucketCode, gaugeBucketIndex } = await import("../index");
+    assert.deepEqual(
+      [0, 19, 20, 59, 80, 100].map((v) => gaugeBucketCode(gaugeBucketIndex(v))),
+      ["0_20", "0_20", "20_40", "40_60", "80_100", "80_100"]
+    );
+  });
+});

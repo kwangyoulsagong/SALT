@@ -265,6 +265,32 @@ export interface StoredSentiment extends SentimentRecord {
   calculatedAt: Date;
 }
 
+export interface SentimentForwardReturnQuery {
+  /** 심리 점수 구간 폭. 0~100 을 이 폭으로 자르고 마지막 구간이 100 을 포함한다. */
+  bucketWidth: number;
+  horizonDays: number;
+  /** 이 시각 이후의 심리만 표본이다. */
+  since: Date;
+}
+
+/**
+ * 심리 점수 구간 하나의 "그 구간에 있던 날 → `horizonDays` 뒤 수익률" 분포.
+ * 수익률은 비율(0.12 = 12%)이다. **과거 분포**다.
+ */
+export interface SentimentForwardReturn {
+  symbol: string;
+  /** `floor(score / bucketWidth)`, 100 은 마지막 구간. */
+  bucketIndex: number;
+  sample: number;
+  p25: number;
+  median: number;
+  p75: number;
+  positiveRate: number;
+  /** 표본 심리의 첫 · 마지막 시각. */
+  windowFrom: Date;
+  windowTo: Date;
+}
+
 export interface SentimentRepository {
   save(record: SentimentRecord): Promise<StoredSentiment>;
   findLatest(symbol: string): Promise<StoredSentiment | null>;
@@ -276,6 +302,13 @@ export interface SentimentRepository {
   ): Promise<
     Array<{ sentimentScore: number; sentimentLabel: string; calculatedAt: Date }>
   >;
+  /**
+   * 심리 구간별 사후 수익률 분포. **DB 가 집계한다** — 심볼 × 날 표본을 옮겨 오지 않는다.
+   * 뒤 종가가 아직 없는 날(최근 `horizonDays`)은 표본이 아니다.
+   */
+  forwardReturnsByBucket(
+    query: SentimentForwardReturnQuery
+  ): Promise<SentimentForwardReturn[]>;
 }
 
 export interface WhaleTransactionRecord {
