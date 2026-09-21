@@ -20,7 +20,8 @@
 | FR-137 `insufficient_sample` · 실패 0건 차단 | pass | `judgmentGate` — 테스트 4건 |
 | FR-138 피하기 근거 = `reasons ∪ risks` | pass | `judgmentEvidence` — 테스트 1건 (2026-09-21 사용자 확정) |
 | `SRV-REQ-025` FR-40~43 · FR-45 · FR-47 | pass | 응답 필드 추가 · `confidence` 제거 |
-| `SRV-REQ-025` FR-44 `zone` · FR-46 게이지 · FR-48 | **미충족** | 슬라이스 2 · 컬럼 없음 |
+| `SRV-REQ-025` FR-44 `zone` · FR-46 게이지 | 슬라이스 2 | `requirements/reports/checklists/F004-zone-gauge.md` |
+| `SRV-REQ-025` FR-48 | **미충족** | 컬럼 없음 |
 
 ## 2. 실측 (로컬 DB)
 
