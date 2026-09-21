@@ -38,7 +38,7 @@ import {
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
 
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
-import { splitLayout } from "./MarketBoardLayout.css";
+import { previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
 import { RealtimeAsOf } from "./RealtimeAsOf";
 
 /**
@@ -146,100 +146,108 @@ export const RealtimeMarketTable = () => {
         onChange={(next) => setFilters((prev) => ({ ...prev, ...next }))}
       />
       <FlexBox justify="between" gap="2xl" className={splitLayout}>
-        <ScrollTableContainer maxHeight="viewport" hideScrollbar>
-          <Table>
-            <TableHeader bordered={false}>
-              <TableRow>
-                <TableHeaderCell align="left">
-                  <RealtimeAsOf />
-                </TableHeaderCell>
-                {MARKET_TABLE_HEADERS.map((th) => (
-                  <TableHeaderCell key={th.id} align="right">
-                    {th.value}
+        <div className={tablePane}>
+          <ScrollTableContainer maxHeight="viewport" hideScrollbar>
+            <Table>
+              <TableHeader bordered={false}>
+                <TableRow>
+                  <TableHeaderCell align="left">
+                    <RealtimeAsOf />
                   </TableHeaderCell>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item) => {
-                const selected = item.symbol === selectedSymbol;
-                const change = displayedChange(item, filters.period);
-                // 기간 값은 틱마다 바뀌지 않는다. 바뀌지 않는 숫자가 깜박이면 거짓이다
-                const blink = isRealtime && blinkingSymbol === item.symbol;
-                return (
-                  <TableRow
-                    key={item.market}
-                    /*
+                  {MARKET_TABLE_HEADERS.map((th) => (
+                    <TableHeaderCell key={th.id} align="right">
+                      {th.value}
+                    </TableHeaderCell>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.map((item) => {
+                  const selected = item.symbol === selectedSymbol;
+                  const change = displayedChange(item, filters.period);
+                  // 기간 값은 틱마다 바뀌지 않는다. 바뀌지 않는 숫자가 깜박이면 거짓이다
+                  const blink = isRealtime && blinkingSymbol === item.symbol;
+                  return (
+                    <TableRow
+                      key={item.market}
+                      /*
                     화면에 영향을 주는 값을 **전부** memoKey 에 넣는다. `TableRow` 는
                     `memoKey` 만 비교하므로(`@repo/ui/table`) 빠진 값은 바뀌어도 그려지지 않는다.
                     별 상태가 빠져 있어 채워진 별이 다음 틱에야 나타났고, **선택 상태가 빠져
                     있어 `aria-selected` 가 첫 행에 멈춰 있었다**(2026-09-21 실측).
                   */
-                    memoKey={`${item.currentPrice}-${change}-${blink}-${watchedBySymbol.has(
-                      item.symbol.toUpperCase(),
-                    )}-${selected}`}
-                    hoverable
-                    clickable
-                    tabIndex={0}
-                    aria-selected={selected}
-                    onMouseEnter={() => selectSymbolOnHover(item.symbol)}
-                    onClick={() => selectSymbol(item.symbol)}
-                    onKeyDown={selectRowOnKey(() => selectSymbol(item.symbol))}
-                  >
-                    <TableCell align="left">
-                      <FlexBox align="center" gap="md">
-                        <WatchlistStarButton
-                          entry={watchedBySymbol.get(item.symbol.toUpperCase())}
-                          displayName={item.koreanName}
-                          request={{
-                            assetType: WatchlistAssetType.Crypto,
-                            symbol: item.symbol,
-                            name: item.koreanName,
-                          }}
-                        />
-                        <Image
-                          radius={9999}
-                          width={30}
-                          height={30}
-                          src={item.logoUrl}
-                          alt={item.koreanName}
-                        />
-                        <Text variant="bodyLarge">{item.koreanName}</Text>
-                      </FlexBox>
-                    </TableCell>
-                    <TableCell align="right">
-                      <PriceCell value={item.currentPrice} />
-                    </TableCell>
-                    <TableCell align="right">
-                      {change === null ? (
-                        <span title={MARKET_CHANGE_MESSAGES.unknownTitle}>
-                          <Text variant="bodyLarge" color="tertiary">
-                            {MARKET_CHANGE_MESSAGES.unknown}
-                          </Text>
-                        </span>
-                      ) : (
-                        <ChangeRateCell value={change} blink={blink} />
+                      memoKey={`${item.currentPrice}-${change}-${blink}-${watchedBySymbol.has(
+                        item.symbol.toUpperCase(),
+                      )}-${selected}`}
+                      hoverable
+                      clickable
+                      tabIndex={0}
+                      aria-selected={selected}
+                      onMouseEnter={() => selectSymbolOnHover(item.symbol)}
+                      onClick={() => selectSymbol(item.symbol)}
+                      onKeyDown={selectRowOnKey(() =>
+                        selectSymbol(item.symbol),
                       )}
-                    </TableCell>
-                    <TableCell align="right">
-                      <PriceCell value={item.high24h} />
-                    </TableCell>
-                    <TableCell align="right">
-                      <PriceCell value={item.low24h} />
-                    </TableCell>
-                    <TableCell align="right">
-                      <PriceCell
-                        value={Number(item.tradeValue24h.toFixed(0))}
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </ScrollTableContainer>
+                    >
+                      <TableCell align="left">
+                        <FlexBox align="center" gap="md">
+                          <WatchlistStarButton
+                            entry={watchedBySymbol.get(
+                              item.symbol.toUpperCase(),
+                            )}
+                            displayName={item.koreanName}
+                            request={{
+                              assetType: WatchlistAssetType.Crypto,
+                              symbol: item.symbol,
+                              name: item.koreanName,
+                            }}
+                          />
+                          <Image
+                            radius={9999}
+                            width={30}
+                            height={30}
+                            src={item.logoUrl}
+                            alt={item.koreanName}
+                          />
+                          <Text variant="bodyLarge">{item.koreanName}</Text>
+                        </FlexBox>
+                      </TableCell>
+                      <TableCell align="right">
+                        <PriceCell value={item.currentPrice} />
+                      </TableCell>
+                      <TableCell align="right">
+                        {change === null ? (
+                          <span title={MARKET_CHANGE_MESSAGES.unknownTitle}>
+                            <Text variant="bodyLarge" color="tertiary">
+                              {MARKET_CHANGE_MESSAGES.unknown}
+                            </Text>
+                          </span>
+                        ) : (
+                          <ChangeRateCell value={change} blink={blink} />
+                        )}
+                      </TableCell>
+                      <TableCell align="right">
+                        <PriceCell value={item.high24h} />
+                      </TableCell>
+                      <TableCell align="right">
+                        <PriceCell value={item.low24h} />
+                      </TableCell>
+                      <TableCell align="right">
+                        <PriceCell
+                          value={Number(item.tradeValue24h.toFixed(0))}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </ScrollTableContainer>
+        </div>
 
-        <MarketPreview subject={previewSubject} />
+        <div className={previewPane}>
+          <MarketPreview subject={previewSubject} />
+        </div>
       </FlexBox>
     </FlexBox>
   );

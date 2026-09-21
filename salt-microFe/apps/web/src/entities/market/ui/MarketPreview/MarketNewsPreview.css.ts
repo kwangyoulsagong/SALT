@@ -19,6 +19,14 @@ export const newsTitleLink = style({
    * 잘리지 않는다.** 실기사 제목은 상수보다 훨씬 길어서 패널 밖으로 흘렀다.
    */
   display: "block",
+  /**
+   * **폭을 부모에 묶는다.** `block` 만으로는 부족했다.
+   *
+   * 이 앵커는 세로 FlexBox(`align-items: flex-start`) 의 자식이라 폭이 내용 폭으로
+   * 정해진다. 안쪽 제목이 `nowrap` 한 줄이라 내용 폭 = 제목 전체 길이(547px)가 되어,
+   * 322px 패널에서 말줄임 없이 튀어나와 **프리뷰가 가로로 스크롤됐다**(2026-09-21 실측).
+   */
+  width: "100%",
   minWidth: 0,
   overflow: "hidden",
 
