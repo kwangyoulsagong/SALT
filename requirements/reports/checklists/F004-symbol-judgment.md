@@ -18,6 +18,7 @@
 | FR-135 적중 판정 B39 | pass | `judgeOutcome` — 테스트 3건 |
 | FR-136 표본 독립성 | pass | `isJudgmentSnapshotDue` — 쓰는 시점 |
 | FR-137 `insufficient_sample` · 실패 0건 차단 | pass | `judgmentGate` — 테스트 4건 |
+| FR-138 피하기 근거 = `reasons ∪ risks` | pass | `judgmentEvidence` — 테스트 1건 (2026-09-21 사용자 확정) |
 | `SRV-REQ-025` FR-40~43 · FR-45 · FR-47 | pass | 응답 필드 추가 · `confidence` 제거 |
 | `SRV-REQ-025` FR-44 `zone` · FR-46 게이지 · FR-48 | **미충족** | 슬라이스 2 · 컬럼 없음 |
 
@@ -44,7 +45,6 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| **`avoid` 판단이 대개 `reasons_missing`** | `makeModeDecision` 은 피하기의 근거를 주로 `risks` 에 넣는다(긍정 신호가 없으면 `reasons` 가 빈다). REQ 는 근거 = `reasons` 라 표본이 쌓여도 피하기는 대부분 렌더되지 않는다 — 실측 BTC 두 모드가 그랬다 | 사용자 판단 — 근거에 `risks` 를 포함할지 |
 | 워커 실제 회차 | 유스케이스를 직접 불러 확인했다. 10분 워커 로그는 보지 않았다 | 서버 재기동 후 첫 회차 |
 | 표본 20 도달 · `renderable: true` 실데이터 | 단타도 판단 유형당 20표본에 며칠~수 주가 걸린다 | 시간 |
 | 만기 뒤 종가가 끝내 없는 종목 | 상장 폐지 등. 배치 200 중 자리를 계속 차지한다 | 필요해지면 — 지금 추적 2종목 |

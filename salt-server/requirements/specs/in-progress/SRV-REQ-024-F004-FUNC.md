@@ -207,6 +207,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-135 | **적중 판정 (B39 — 2026-09-21 사용자 확정).** 관찰 기간 = 단타 24시간 · 장기 30일. `review_*` 는 기간 수익률 > 0, `avoid` 는 ≤ 0, `wait` 는 절댓값이 단타 2% · 장기 10% 안이면 적중. 규칙은 `domain/policy` 순수 함수 하나에 둔다 | Must |
 | FR-136 | **표본 독립성.** 같은 종목 · 모드 스냅샷은 관찰 기간 안에서 **첫 1건만** 표본으로 센다(1시간 버킷이 겹쳐 표본이 부풀지 않게) | Must |
 | FR-137 | **표본 < 20 이면 `renderable: false` · `blockedReason: insufficient_sample`** 이고 `trackRecord.sample` 은 실제 값을 싣는다. 표본 ≥ 20 인데 빗나간 것이 0건이면 `failure_cases_missing` 으로 막는다 — 실패 없는 성적은 표본이 치우친 신호다 | Must |
+| FR-138 | **피하기의 근거 = `reasons ∪ risks`** (2026-09-21 사용자 확정). 피하기는 위험 신호가 곧 이유라 `makeModeDecision` 이 `risks` 에만 넣는다. 나머지 판단은 `reasons` 만 근거로 센다. 규칙은 `judgmentEvidence` 한 곳 | Must |
 
 ### E. 해설 (B3)
 

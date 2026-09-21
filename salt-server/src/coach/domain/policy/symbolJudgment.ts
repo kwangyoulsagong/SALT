@@ -137,7 +137,9 @@ export type JudgmentBlockedReason =
   | "failure_cases_missing";
 
 export interface JudgmentGateInput {
+  action: ModeDecisionAction;
   reasons: string[];
+  risks: string[];
   trackRecord: JudgmentTrackRecord;
   failureCases: JudgmentCase[];
 }
@@ -147,6 +149,18 @@ export type JudgmentGate =
   | { renderable: false; blockedReason: JudgmentBlockedReason };
 
 /**
+ * 판단의 근거 문장.
+ *
+ * **피하기는 위험 신호가 곧 근거다**(2026-09-21 사용자 확정). `makeModeDecision` 은
+ * 피하기의 이유를 `risks` 에 넣고, 긍정 신호가 없으면 `reasons` 는 빈다. `reasons` 만
+ * 보면 피하기는 표본이 쌓여도 영영 렌더되지 않는다.
+ */
+export const judgmentEvidence = (
+  input: Pick<JudgmentGateInput, "action" | "reasons" | "risks">
+): string[] =>
+  input.action === "avoid" ? [...input.reasons, ...input.risks] : input.reasons;
+
+/**
  * 3종 게이트 — 근거 · 과거 적중률 · 실패사례 (공통 수용 기준 1).
  *
  * 표본이 모자라면 적중률이 **없는 것과 같다.** 그리고 표본이 충분한데 빗나간 적이
@@ -154,7 +168,7 @@ export type JudgmentGate =
  * 막혀도 **에러가 아니다.** 판단 블록만 비고 나머지 응답은 그대로 간다.
  */
 export const judgmentGate = (input: JudgmentGateInput): JudgmentGate => {
-  if (input.reasons.length === 0) {
+  if (judgmentEvidence(input).length === 0) {
     return { renderable: false, blockedReason: "reasons_missing" };
   }
   if (input.trackRecord.lowSample) {

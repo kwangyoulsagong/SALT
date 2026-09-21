@@ -84,7 +84,9 @@ export const attachJudgmentTrack = async (
 
   const trackRecord = summarizeJudgmentTrack(decision.mode, signalType, stats);
   const gate = judgmentGate({
+    action: decision.action,
     reasons: decision.reasons,
+    risks: decision.risks,
     trackRecord,
     failureCases: misses,
   });
