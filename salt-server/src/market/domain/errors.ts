@@ -27,6 +27,20 @@ export class WatchlistItemNotFoundError extends DomainError {
  * `Blocked`(422)인 이유: 문법은 맞고 값이 처리 불가라는 뜻이다. 400 으로 두면
  * 필수 필드 누락과 구분되지 않는다.
  */
+/**
+ * 알 수 없는 마켓 목록 기간. 차트 주기와 같은 이유로 422 다 — 원래 이 값은 **무엇이
+ * 와도 무시됐고**, 그래서 버튼 7개 중 6개가 아무 일도 하지 않는 것이 보이지 않았다.
+ */
+export class UnsupportedMarketPeriodError extends DomainError {
+  constructor(period: string) {
+    super(
+      "MARKET_OVERVIEW_PERIOD_UNSUPPORTED",
+      ErrorKind.Blocked,
+      `Unsupported market period: ${period}`
+    );
+  }
+}
+
 export class UnsupportedChartPeriodError extends DomainError {
   constructor(period: string) {
     super(
