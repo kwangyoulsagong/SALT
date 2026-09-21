@@ -3,6 +3,22 @@ import { globalStyle, style } from "@vanilla-extract/css";
 /** 프리뷰가 접히는 폭. `FE-REQ-010` FR-52 의 768px 이다. */
 const MOBILE_MAX_WIDTH = "767px";
 const MOBILE = `screen and (max-width: ${MOBILE_MAX_WIDTH})`;
+const DESKTOP = "screen and (min-width: 768px)";
+
+/**
+ * 2컬럼 상자 위아래에 놓인 것의 높이 합 (`FE-REQ-010` FR-53).
+ *
+ * 위 315px = 프로필 헤더 · 제목 · 탭 · 필터 줄, 아래 80px = 섹션 · 페이지 여백
+ * (1440×900 · 1920×1080 · 1280×720 에서 같은 값, 2026-09-21 실측). 프로필 헤더는
+ * `height: 80px` 고정이라 로그인 여부로 바뀌지 않는다. 관심 종목 탭은
+ * 필터 줄이 없어 위가 더 짧다 — 아래에 빈 공간이 조금 남을 뿐 페이지가 밀리지는 않는다.
+ */
+const BOARD_CHROME_HEIGHT = "395px";
+
+/**
+ * 이 아래로는 표가 너무 짧아져 한 화면에 몇 줄 안 보인다. 그때는 페이지 스크롤을 허용한다.
+ */
+const BOARD_MIN_HEIGHT = "320px";
 
 /**
  * 프리뷰가 PC 에서 줄어들 수 있는 하한. 이 아래로는 표가 자체 스크롤한다.
@@ -31,6 +47,15 @@ export const splitLayout = style({
   width: "100%",
   minWidth: 0,
   "@media": {
+    /**
+     * **PC 에서는 이 상자가 화면 남은 높이를 갖고, 표와 프리뷰가 그 안에서 각자 스크롤한다**
+     * (FR-53). 전에는 표 `80vh` · 프리뷰 `800px` 이 각자 높이를 정해서 900px 화면에서
+     * 문서가 1195px 이 됐다 — 표 스크롤과 페이지 스크롤이 겹쳤다.
+     */
+    [DESKTOP]: {
+      height: `max(${BOARD_MIN_HEIGHT}, calc(100dvh - ${BOARD_CHROME_HEIGHT}))`,
+      alignItems: "stretch",
+    },
     [MOBILE]: {
       flexDirection: "column",
       /**
@@ -87,4 +112,32 @@ export const previewPane = style({
  */
 globalStyle(`${previewPane} > *`, {
   width: "100%",
+});
+
+/**
+ * PC 에서 두 열의 고정 높이를 **열 높이로 바꾼다** (FR-53).
+ *
+ * 표 `ScrollTableContainer maxHeight="viewport"`(80vh), 프리뷰 패널 `minHeight: 800px` ·
+ * 안쪽 `ScrollContainer maxHeight="2xl"`(800px) 은 디자인 시스템 · entity 의 값이라 거기서
+ * 고치지 않는다. 클래스를 두 번 겹쳐(`.a.a`) 명시도로 이긴다 — 소스 순서에 기대지 않는다.
+ *
+ * 프리뷰 높이가 여전히 **고정**이라(열 높이 = 화면 기준) hover 로 내용이 바뀌어도 페이지가
+ * 출렁이지 않는다 — `MarketPreview.css.ts` 의 `minHeight` 가 막던 문제가 그대로 막힌다.
+ */
+globalStyle(`${tablePane}${tablePane} > *`, {
+  "@media": {
+    [DESKTOP]: { maxHeight: "100%" },
+  },
+});
+
+globalStyle(`${previewPane}${previewPane} > *`, {
+  "@media": {
+    [DESKTOP]: { minHeight: 0, height: "100%" },
+  },
+});
+
+globalStyle(`${previewPane}${previewPane} > * > *`, {
+  "@media": {
+    [DESKTOP]: { maxHeight: "100%" },
+  },
 });
