@@ -24,7 +24,7 @@ created: 2026-09-09
 | GET/PATCH | `/api/ai-coach/profile` | `defaultMode`·`notificationLevel` **실제 영속화**(`unsupportedPersistedFields` 제거) |
 | POST | `/api/ai-coach/feedback` | `reasonCode` 4종 |
 | POST | `/api/ai-coach/explain` | **인증 추가**(현재 public + TODO 주석) + rate limit. 2026-09-21: 3종 동봉 · `newsSummary` ≤ 5 · 예상 수익 없음 · 판단 미렌더면 생성 안 함 |
-| GET | `/api/profit-plan` | `distanceFromCurrentPct` · 3자산군 지원 |
+| GET | `/api/profit-plan` | `gapFromCurrent` · 3자산군 지원 |
 | GET | `/api/signal-performance` | `?groupBy=signalType` · `lowSample` · 2026-09-21: `returnDistribution`(30일, B17) |
 | POST | `/api/trade-preflight` | ~~변경 없음~~ **개정 2026-09-21 (B1)**: 요청 `stopLossRate?` · 응답 `maxLossOfTotalRate` 추가. **게이트 · 차단 · 주문 필드 추가 금지는 그대로** |
 | GET | `/api/behavior-coach` | `factCode` + `params` 추가 (기존 필드 유지) |
@@ -73,8 +73,8 @@ type CoachDetailResult = {
 
   exitPlans: Array<{
     symbol: string; assetType: string; currentPrice: number;
-    stopLoss: { price: number; distancePct: number };
-    firstTakeProfit: { price: number; distancePct: number };
+    stopLoss: { price: number; priceGap: number };
+    firstTakeProfit: { price: number; priceGap: number };
     trendHold: { conditionCode: string };
   }>;
 
@@ -104,7 +104,7 @@ type CoachDetailResult = {
 | FR-13 | `profile`의 `defaultMode`·`notificationLevel`이 **실제 영속화**된다. `unsupportedPersistedFields`를 제거한다 | Must |
 | FR-14 | `POST /api/trade-preflight`에 **게이트·차단 필드를 추가하지 않는다.** 계산 표시 전용 | Must |
 | FR-15 | `GET /api/signal-performance?groupBy=signalType`을 추가한다. 기존 무인자 호출은 **하위 호환** | Must |
-| FR-16 | `GET /api/profit-plan`에 `distanceFromCurrentPct`를 추가한다. 기존 필드를 제거하지 않는다 | Must |
+| FR-16 | `GET /api/profit-plan`에 `gapFromCurrent`를 추가한다. 기존 필드를 제거하지 않는다 | Must |
 | FR-17 | `GET /api/behavior-coach`에 `factCode`·`params`를 **추가**한다. 기존 응답을 유지한다 | Must |
 | FR-18 | `staleHours`를 계산해 담는다. 화면이 `생성 후 27시간 경과` 배지를 만든다 | Must |
 | FR-19 | 금액은 원 단위 정수 | Must |
@@ -132,18 +132,18 @@ type ModeJudgment = {
 
 type Zone =
   | { kind: 'held_rule'; notPrediction: true; currentPrice: number;
-      stages: Array<{ key: 'protect_loss' | 'first_profit' | 'trend_hold'; price: number; distancePct: number; ratio: number }>;
+      stages: Array<{ key: 'protect_loss' | 'first_profit' | 'trend_hold'; price: number; priceGap: number; ratio: number }>;
       status: 'take_profit_review' | 'stop_loss_review' | 'raise_stop_review' | 'hold_plan' }
   | { kind: 'observation'; notPrediction: true; currentPrice: number;
       lower: number; mid: number; upper: number;
-      distancePct: { lower: number; mid: number; upper: number };
+      priceGap: { lower: number; mid: number; upper: number };   // 호가 통화 금액 · % 없음 (D13)
       ruleCode: string; lookback: { timeframe: 'm5' | 'd1'; days: number }; sample: number }
-  | { kind: 'unavailable'; reasonCode: 'scope_undecided' | 'excluded_asset' | 'insufficient_price_history' };
+  | { kind: 'unavailable'; reasonCode: 'out_of_scope' | 'excluded_asset' | 'insufficient_price_history' };
 
 type ModeCoachView = {
   judgment: ModeJudgment;
   renderable: boolean;
-  blockedReason: 'reasons_missing' | 'signal_track_record_missing' | 'failure_cases_missing' | null;
+  blockedReason: 'reasons_missing' | 'signal_track_record_missing' | 'failure_cases_missing' | 'insufficient_sample' | null;  // insufficient_sample = 표본 < 20 (D11)
   trackRecord: { signalType: string; sample: number; winRate: number | null; avgReturn: number | null;
                  maxDrawdown: number | null; lowSample: boolean } | null;
   failureCases: Array<{ date: string; event: string; outcome: string }>;
@@ -236,7 +236,7 @@ type ExplainResult =
 - [ ] `profile`의 `defaultMode`·`notificationLevel`이 영속화되고 `unsupportedPersistedFields`가 0건이다
 - [ ] `trade-preflight`에 게이트·차단 필드가 0건이다
 - [ ] `signal-performance?groupBy=signalType`이 동작하고 무인자 호출이 하위 호환이다
-- [ ] `profit-plan`에 `distanceFromCurrentPct`가 있고 기존 필드가 유지된다
+- [ ] `profit-plan`에 `gapFromCurrent`가 있고 기존 필드가 유지된다
 - [ ] `behavior-coach`에 `factCode`·`params`가 추가되고 기존 응답이 유지된다
 - [ ] `staleHours`가 계산된다
 - [ ] 금액이 전부 정수다
@@ -267,10 +267,11 @@ type ExplainResult =
 - `explain`에 인증을 추가하면 **PM 프로토타입이 깨진다**(현재 public으로 데모용). 프로토타입을 어떻게 할지 결정 필요.
 - `staleHours` 임계(24h)와 워커 생성 주기의 정합. 워커가 6시간마다 생성하면 `staleHours`가 24를 넘지 않는다.
 - `modeDecision` · `dualDecision`(하위 호환 필드)을 언제 걷을지. BFF 가 `modes` 로 옮긴 뒤 한 릴리스 후가 기본안.
-- **Q3** — 미보유 주식 관찰 구간(`zone.kind = unavailable(scope_undecided)` 가 결정 전 값).
+- ~~**Q3**~~ — 2026-09-21 D12 로 닫힘. 미보유 개별 주식은 `zone.kind = unavailable(out_of_scope)`.
 
 ## Changelog
 
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 신규 FR-40~54 · `SymbolCoachResult` 계약(모드별 3종 게이트(B10) · `zone`(D2) · `gaugeTrackRecords`(B9) · `validity` · **`confidence` 제거**(D3)), `explain` 3종 동봉 · 뉴스 5줄 · 미렌더 시 LLM 미호출(B3), preflight `stopLossRate`/`maxLossOfTotalRate`(B1), 성적표 분포 · 적중/실패 동등(B17 · B2), 관심 종목 판단 필드 금지(D4). 개정: FR-30(`confidence` 제거 예외), 엔드포인트 표 preflight 행 |
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `distancePct` → `priceGap` · `distanceFromCurrentPct` → `gapFromCurrent`(D13). `insufficient_sample` 추가(D11). `scope_undecided` → `out_of_scope`(D12) |

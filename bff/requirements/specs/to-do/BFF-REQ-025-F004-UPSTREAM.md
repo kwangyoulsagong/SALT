@@ -62,7 +62,7 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | `scoreNote` | "점수는 확률이 아닙니다" 문구 |
 | `disclaimer` | 면책 배너 |
 | `reasons` · `topFactors` | 근거 목록 |
-| `exitPlans[].distancePct` | 익절 카드 거리 표시 |
+| `exitPlans[].priceGap` | 익절 카드 가격 차이 표시(D13 — % 아님) |
 | `behaviorFacts[].factCode`·`params` | 행동 기록 문구 |
 | `excluded[]` | 국내주식 제외 문구 |
 | `lowSample` | 표본 부족 배지 |
@@ -145,3 +145,4 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 호출 맵에 `symbolCoach` · `symbolNews` 추가, `coachDetail` → `coachReport` 개정. 계약 의존 표에 모드별 게이트 · `confidence` 제거 · `zone` · 게이지 적중률 · `validity` 추가. 신규 FR-40~46(모드별 게이트 누락 처리(B10) · `confidence` 제거 배포 순서(D3) · 병렬 호출 · `defaultMode` 위임(B16) · 관심 종목 분리(D4)) |
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `exitPlans[].priceGap`(D13) |

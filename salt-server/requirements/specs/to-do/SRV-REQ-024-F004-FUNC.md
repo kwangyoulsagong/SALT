@@ -41,7 +41,7 @@ created: 2026-09-09
 policy/renderGate.ts
 
 renderable = hasReasons && hasSignalTrackRecord && hasFailureCases
-blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cases_missing'
+blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cases_missing' | 'insufficient_sample'  // 마지막은 종목 경로(D11)
 ```
 
 | ID | 요구사항 | 우선순위 |
@@ -84,7 +84,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-40 | 보유 종목별 3단계: **손실 제한 · 1차 익절 · 추세 유지 조건** | Must |
-| FR-41 | **`distanceFromCurrentPct`를 추가**한다(현재가 대비 거리 %). 화면이 계산하지 않게 | Must |
+| FR-41 | **`gapFromCurrent`를 추가**한다(현재가와 가격선의 차이, 호가 통화 금액, 부호 있음). 화면이 계산하지 않게. **% 필드는 두지 않는다**(D13) | Must |
 | FR-42 | 가격은 **내 규칙 기반**이다. **목표주가·수익률 예측을 만들지 않는다**(1-3절) | Must |
 | FR-43 | 기존 계산식(`profitRate > 10 ? currentPrice * 0.94 : averageBuyPrice * 0.92` 등)을 **바꾸지 않는다.** 이관만 한다 | Must |
 | FR-44 | 계산을 `Money`·`Decimal`로 올린다. 현재 `Float` 산술이다 | Must |
@@ -143,7 +143,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 
 ## 종목 판단 경로 — 투자 화면 우측 패널 · 상세 분석 페이지 (2026-09-21)
 
-근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D2 · D3 · D4 · D7 · B1 · B3 · B9 · B10 · B17 · B18 · Q3.
+근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D2 · D3 · D4 · D7 · B1 · B3 · B9 · B10 · B17 · B18 · B39 · D11 · D12 · D13.
 `FEATURE-004` 는 `FEATURE-000` FR-33(우측 프리뷰 AI 카드)을 이관받아 **우측 AI 코치 패널**로 키웠다. 서버 쪽 출발점은
 `GetSymbolCoach`(`src/coach/application/GetSymbolCoach.ts`) — 이미 두 모드 판단(`dualDecision`)을 한 번에 만든다.
 빠진 것은 **3종 게이트 · 바이존 · 게이지 적중률 · 신뢰도 제거**다.
@@ -157,7 +157,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-102 | **신뢰도를 없앤다.** `makeModeDecision` 의 `confidence`(`0.45 + score/200`) 필드를 응답 타입에서 제거하고, `CoachExplanationInput.confidence`(Gemini 입력)도 뺀다. 점수 + `scoreNote` + 3종이 대체한다 | Must |
 | FR-103 | **유효시간은 서버가 정한 하나의 표기**다. 기존 `timeframe`(`5m-24h` · `1w-1y`)을 `validity.code` 로 싣고, 해설(`CoachExplanation.timeframe`)도 **LLM 이 만들지 않고 이 값을 주입**한다. 화면 자체 값(프로토타입 "25분 / 30일") 금지 | Must |
 | FR-104 | 모드별로 **3종 게이트**를 적용한다: `renderable` · `blockedReason` · `trackRecord` · `failureCases`. 게이트 함수는 FR-10 의 `renderGate.ts` 를 그대로 쓴다 — 저장 추천과 종목 판단이 **같은 함수**를 지난다 | Must |
-| FR-105 | 근거 = `reasons[]`(비어 있지 않음). 적중률 = 매핑 표(FR-130)로 찾은 `<mode>.<action>` 성적표. 실패사례 = 매핑된 `IndicatorTrackRecord` | Must |
+| FR-105 | 근거 = `reasons[]`(비어 있지 않음). 적중률 = 매핑 표(FR-130)로 찾은 `<mode>.<action>` 성적표. 실패사례 = 같은 `<mode>.<action>` 스냅샷 중 **빗나간 것**(FR-134 · D11). `IndicatorTrackRecord` 를 쓰지 않는다 | Must |
 | FR-106 | `renderable: false` 여도 **200** 이고, 게이지 · 뉴스 · 바이존은 그대로 응답한다. 게이트는 **판단 블록**에만 걸린다 | Must |
 | FR-107 | **종목 판단 스냅샷을 남긴다.** 워커가 추적 자산(D8 — 최대 10 + 보유) × 2모드 판단을 `InvestmentInsight(kind: symbol_judgment, mode, signalType)` 로 upsert 한다(`DB-REQ-017` FR-50~53). 스냅샷이 없으면 종목 경로 성적표 표본이 영원히 0이다 | Must |
 | FR-108 | 헤드라인 문구(`headline`)에 확신 표현 · 목표가 · 수익률이 없다. 기존 문구("손절 기준 없이 진입하지 마세요")는 행동 서술이라 유지한다 | Must |
@@ -167,11 +167,11 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-110 | 응답에 모드별 `zone` 을 싣는다. **판별 필드 `kind`** 로 셋 중 하나다: `held_rule` · `observation` · `unavailable` | Must |
-| FR-111 | **`held_rule` (보유)**: `calculateProfitPlan`(`domain/policy/profitPlan.ts`)의 3단계를 그대로 쓴다 — `protect_loss`(손실 제한) · `first_profit`(1차 익절 검토) · `trend_hold`(추세 유지 = 평단 × 1.25, 스토리보드의 "2차"). 각 단계에 `price` · `distancePct`(현재가와의 거리) · `ratio`. 계산식을 바꾸지 않는다(FR-43) | Must |
+| FR-111 | **`held_rule` (보유)**: `calculateProfitPlan`(`domain/policy/profitPlan.ts`)의 3단계를 그대로 쓴다 — `protect_loss`(손실 제한) · `first_profit`(1차 익절 검토) · `trend_hold`(추세 유지 = 평단 × 1.25, 스토리보드의 "2차"). 각 단계에 `price` · `priceGap`(현재가와의 가격 차이, D13) · `ratio`. 계산식을 바꾸지 않는다(FR-43) | Must |
 | FR-112 | **`observation` (미보유)**: 과거 가격 분포 기반 **관찰 구간** `lower` · `mid` · `upper` + `ruleCode` + `lookback` + `sample`. 기본 규칙(기본값 — 착수 전 확정): 단타 = 최근 24시간 `m5` 종가의 20 · 50 · 80 백분위, 장기 = 최근 1년 일봉 종가의 20 · 50 · 80 백분위. **가격 목표가 아니다** | Must |
 | FR-113 | 둘 다 `notPrediction: true` 를 싣는다. 화면이 `예측 아님` 라벨을 붙일 근거다 | Must |
-| FR-114 | **수익률 % 필드를 만들지 않는다.** `distancePct` 는 현재가와 가격선 사이의 간격이고, 이름 · 문서에서 "수익"이라 부르지 않는다. 예상 도달 시점 · 확률 필드 0건 | Must |
-| FR-115 | **Q3 결정 전 보수안**: `us_stock` · 미보유 · 지수/ETF 아님 → `unavailable`(`scope_undecided`). `kr_stock` → `unavailable`(`excluded_asset`). 가격 이력 부족 → `unavailable`(`insufficient_price_history`) | Must |
+| FR-114 | **수익률 % 필드를 만들지 않는다.** 현재가와의 거리는 `priceGap`(금액)뿐이고 **거리 % 도 없다**(D13). 이름 · 문서에서 "수익"이라 부르지 않는다. 예상 도달 시점 · 확률 필드 0건 | Must |
+| FR-115 | **D12**: `us_stock` · 미보유 · 지수/ETF 아님 → `unavailable`(`out_of_scope`). `kr_stock` → `unavailable`(`excluded_asset`). 가격 이력 부족 → `unavailable`(`insufficient_price_history`) | Must |
 | FR-116 | 보유 판정 · 평단은 `PortfolioProbe`(기존 `PortfolioTransaction` 집계)에서 온다. 원장 확장 없음(ADR-002) | Must |
 | FR-117 | 구간 스냅샷을 워커가 `type: smart_buy_zone` 으로 남긴다(`DB-REQ-017` FR-30 개정). 옛 예측형 매수존(매수 적정가 · 수익률) 로직을 되살리지 않는다 | Should |
 
@@ -192,8 +192,8 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 판단 경로 | 입력 | `signalType` | 성적표 표본 (`signal-performance?groupBy=signalType`) | 실패 이력 (`IndicatorTrackRecord`) |
 |---|---|---|---|---|
 | 저장 추천 (코치 리포트 · 홈) | `recommendation.action` | `coach.buy` · `coach.sell` · `coach.hold` · `coach.rebalance` | `kind = recommendation` 행 | `signalTypes` 에 포함된 레코드 |
-| 종목 판단 · 단타 | `modes.scalp.action` | `scalp.review_short_opportunity` · `scalp.review_accumulation`* · `scalp.wait` · `scalp.avoid` | `kind = symbol_judgment` · `mode = scalp` 행 | 동일 |
-| 종목 판단 · 장기 | `modes.longTerm.action` | `long_term.review_short_opportunity`* · `long_term.review_accumulation` · `long_term.wait` · `long_term.avoid` | `kind = symbol_judgment` · `mode = long_term` 행 | 동일 |
+| 종목 판단 · 단타 | `modes.scalp.action` | `scalp.review_short_opportunity` · `scalp.review_accumulation`* · `scalp.wait` · `scalp.avoid` | `kind = symbol_judgment` · `mode = scalp` 행 | 같은 행 중 빗나간 것 (D11) |
+| 종목 판단 · 장기 | `modes.longTerm.action` | `long_term.review_short_opportunity`* · `long_term.review_accumulation` · `long_term.wait` · `long_term.avoid` | `kind = symbol_judgment` · `mode = long_term` 행 | 같은 행 중 빗나간 것 (D11) |
 
 \* 현재 `makeModeDecision` 은 단타에서 `review_accumulation`, 장기에서 `review_short_opportunity` 를 내지 않는다. 시드에는 두되 표본이 0이다.
 
@@ -203,6 +203,10 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-131 | 매핑이 없거나 실패 이력이 연결되지 않은 `signalType` 은 **게이트 차단**이고 에러가 아니다 | Must |
 | FR-132 | **표본이 없어 전부 미렌더인 초기 상태는 정상이다.** 응답에 `trackRecord.sample: 0` 을 그대로 싣고(`null` 과 구분), 화면이 "표본이 쌓이는 중"을 보여줄 근거를 준다 | Must |
 | FR-133 | 게이트 차단 사유별 카운터(FR-17)를 **경로별**(저장 추천 / 종목 판단 × 모드)로 나눈다 | Must |
+| FR-134 | **(D11) 종목 판단의 적중률 · 실패사례는 `symbol_judgment` 스냅샷의 사후 결과에서 온다.** 관찰 기간이 끝난 스냅샷마다 진입가(스냅샷 시각 종가)와 기간 끝 종가로 결과를 매긴다. `IndicatorTrackRecord` 를 읽지 않는다 — 판단 근거(RSI · 심리 · 대량 체결)와 다른 신호의 실패를 붙이지 않는다 | Must |
+| FR-135 | **적중 판정 (기본안 B39 — 착수 전 확정).** 관찰 기간 = 단타 24시간 · 장기 30일. `review_*` 는 기간 수익률 > 0, `avoid` 는 ≤ 0, `wait` 는 절댓값이 단타 2% · 장기 10% 안이면 적중. 규칙은 `domain/policy` 순수 함수 하나에 둔다 | Must |
+| FR-136 | **표본 독립성.** 같은 종목 · 모드 스냅샷은 관찰 기간 안에서 **첫 1건만** 표본으로 센다(1시간 버킷이 겹쳐 표본이 부풀지 않게) | Must |
+| FR-137 | **표본 < 20 이면 `renderable: false` · `blockedReason: insufficient_sample`** 이고 `trackRecord.sample` 은 실제 값을 싣는다. 표본 ≥ 20 인데 빗나간 것이 0건이면 `failure_cases_missing` 으로 막는다 — 실패 없는 성적은 표본이 치우친 신호다 | Must |
 
 ### E. 해설 (B3)
 
@@ -258,7 +262,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 - [ ] `coach_feedback`이 샘플에서 제외된다
 - [ ] 샘플이 20개 이하다
 - [ ] **성적표 쿼리 수가 200 → 3 이하다** (`DB-REQ-020`)
-- [ ] 익절 플랜에 `distanceFromCurrentPct`가 있다
+- [ ] 익절 플랜에 `gapFromCurrent`가 있다
 - [ ] **목표주가·수익률 예측이 0건이다**
 - [ ] 익절 계산식이 이관 전/후 같다
 - [ ] 익절 계산이 `Decimal`이다
@@ -289,7 +293,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 - [ ] 워커가 종목 판단 스냅샷을 (종목 · 모드 · 버킷)당 1건 남긴다
 - [ ] 보유 종목 `zone.kind = held_rule` 이고 가격이 `calculateProfitPlan` 과 같다
 - [ ] 미보유 크립토 `zone.kind = observation` 이고 하단 ≤ 중앙 ≤ 상단이다
-- [ ] 미보유 개별 미국 주식이 `unavailable(scope_undecided)` 다
+- [ ] 미보유 개별 미국 주식이 `unavailable(out_of_scope)` 다
 - [ ] `zone` 에 수익률 · 목표가 · 확률 필드가 0건이고 `notPrediction: true` 다
 - [ ] `gaugeTrackRecords` 가 사전 집계에서 오고 표본 < 20 에서 `lowSample: true` 다
 - [ ] 매핑 표 12행이 시드되고 fallback 체인 사용이 신규 코드에 0건이다
@@ -317,8 +321,8 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 - 미국주식 추천에 필요한 `TechnicalIndicator` 계산이 현재 크립토 전용인지.
 - ~~`behavior-coach`의 기존 판정이 집계 기반인지 거래 단위인지.~~ — 라벨러 무효(FR-63 개정)로 결정할 필요가 없어졌다.
 - 피드백을 점수 엔진에 반영할지.
-- **Q3 — 미보유 주식 종목의 관찰 구간.** FR-115 는 결정 전 보수안(개별 주식 미보유 → `unavailable`).
-- **종목 판단의 실패 이력은 어디서 오는가.** 종목 판단은 RSI · 심리 · 대량 체결로 점수를 매기는데 `IndicatorTrackRecord`(F003)는 밸류에이션 지표 실패 이력이다. 이어지지 않으면 종목 경로는 **항상 미렌더**이고, 렌더하려면 종목 판단용 실패 이력을 따로 적재해야 한다 — 누가 · 언제 적재할지 미정.
+- ~~**Q3**~~ — 2026-09-21 D12 로 닫힘(FR-115).
+- ~~**종목 판단의 실패 이력은 어디서 오는가.**~~ **2026-09-21 D11 로 닫힘** — `symbol_judgment` 스냅샷(FR-107)의 사후 결과(FR-134~137). 적중 판정 세부(B39)는 기본안이다.
 - 관찰 구간 규칙 파라미터(FR-112 — 기간 · 백분위수)의 확정. 20/80 은 스토리보드 값이 아니라 이 REQ 의 기본값이다.
 - 종목 판단 스냅샷의 시간 버킷과 표본 독립성(`DB-REQ-017` Open Question).
 - ~~거래 단위 라벨러~~ — ADR-002 로 닫힘.
@@ -328,3 +332,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 신규 FR-100~171: 종목 판단 경로(두 모드 · 중립 라벨 · **신뢰도 제거**(D3) · 유효시간 단일 표기 · 3종 게이트(B10) · 판단 스냅샷), 스마트 바이존(D2 — 보유 규칙 가격 / 미보유 관찰 구간 / Q3 보수안), 게이지 적중률(B9), **`signalType` 매핑 표**(B18), 해설 뉴스 5줄 · 예상 수익 없음(B3), 주문 전 체크(B1 — 목표가 빈칸 · 총자산 대비 최대손실), 30일 수익률 분포(B17) · 적중/실패 동등(B2), 관심 종목 신호 범위 밖(D4). 개정: FR-50(잔여 현금 제거) · FR-63/64(라벨러 무효 — ADR-002) · 범위 제한 절의 "세금" 삭제 |
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. 신규 FR-134~137(종목 판단 실패 이력 = 스냅샷 사후 결과 · 적중 판정 B39 · 표본 독립성 · `insufficient_sample`). FR-41 · FR-105 · FR-111 · FR-114 · FR-115 개정(D13 · D11 · D12). Open Question 2건 닫음 |

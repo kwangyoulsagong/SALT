@@ -30,7 +30,7 @@ F004의 불변식은 대부분 **렌더 게이트**에 걸린다 — 근거·적
 | INV-11 | 스마트 바이존 · 관찰 구간이 서버 계산이고 수익률 · 목표가를 담지 않는다 (D2) | 응답 타입 · FR-63 | **공통 기준 ④ 위반** |
 | INV-12 | 종목 판단 스냅샷이 (종목 · 모드 · 시간 버킷)당 1건 | `dedupeKey` 유니크 | 표본이 부풀려져 적중률이 왜곡된다 |
 | INV-13 | 게이지 적중률 표본 < 20 이면 `lowSample` | 서비스 판정 | 근거 없는 한 줄이 근거처럼 보인다 |
-| INV-14 | 미보유 개별 주식에는 관찰 구간이 없다 (Q3 결정 전) | 서비스 게이트 | 글로벌 플랜 §1-3 경계를 넘는다 |
+| INV-14 | 미보유 개별 주식에는 관찰 구간이 없다 (D12) | 서비스 게이트 | 글로벌 플랜 §1-3 경계를 넘는다 |
 
 ## Requirements
 
@@ -103,7 +103,7 @@ F004의 불변식은 대부분 **렌더 게이트**에 걸린다 — 근거·적
 
 ### G. 종목 판단 · 바이존 · 게이지 적중률 (2026-09-21 · INV-10~14)
 
-근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D2 · D3 · B9 · B10 · B18 · Q3.
+근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D2 · D3 · B9 · B10 · B18 · D11 · D12.
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
@@ -114,7 +114,7 @@ F004의 불변식은 대부분 **렌더 게이트**에 걸린다 — 근거·적
 | FR-64 | 관찰 구간 표본(해당 기간 종가 수)이 기준 미만이면 구간을 만들지 않는다 → `zone.kind: unavailable` + `reasonCode`. 추정값으로 채우지 않는다 | Must |
 | FR-65 | `GaugeTrackRecord.sampleCount < 20` 이면 응답에 `lowSample: true`. 행을 지우거나 숨기지 않는다 | Must |
 | FR-66 | `GaugeTrackRecord` 의 30일 뒤 가격이 아직 없는 시점(최근 30일)은 **표본에서 뺀다.** 미래 값을 추정하지 않는다 | Must |
-| FR-67 | **Q3 결정 전**, `assetType == us_stock` · 미보유 · 지수/ETF 아님이면 관찰 구간을 만들지 않는다(`reasonCode: scope_undecided`). `kr_stock` 은 FR-53 대로 제외 | Must |
+| FR-67 | **D12**: `assetType == us_stock` · 미보유 · 지수/ETF 아님이면 관찰 구간을 만들지 않는다(`reasonCode: out_of_scope`). `kr_stock` 은 FR-53 대로 제외 | Must |
 | FR-68 | 보유 판정은 `PortfolioHolding`(기존 `PortfolioTransaction` 집계)이다. 원장 · 결제일 기준 판정은 없다(ADR-002) | Must |
 
 ## Acceptance Criteria
@@ -157,7 +157,7 @@ F004의 불변식은 대부분 **렌더 게이트**에 걸린다 — 근거·적
 - **종목이 지수/ETF인지 판정할 데이터가 없다.** `MarketAsset`에 분류 컬럼을 추가할지, 화이트리스트(`VOO`·`SPY`·`QQQ` …)를 둘지 결정 필요. **FR-50 착수 전 선결** — 이것이 없으면 법적 포지셔닝 제약을 코드로 강제할 수 없다.
 - `signalType` 매핑(`DB-REQ-017` Open Question과 동일). **F004 최대 미결 사항.**
 - ~~표본 < 20에서 게이트를 차단할지.~~ **개정 2026-09-21 (B18)**: 표본 1건 이상이면 통과 + `lowSample` 표시(`SRV-REQ-024` FR-32 기본안), 표본 0건이라 **전부 미렌더인 초기 상태는 정상 UX** 로 다룬다.
-- **Q3** — 미보유 주식 종목의 관찰 구간 적용 범위(FR-67 은 결정 전 보수안).
+- ~~**Q3**~~ — 2026-09-21 D12 로 닫힘(FR-67).
 - 피드백을 점수 엔진에 반영할지(FR-14).
 
 ## Changelog
@@ -165,3 +165,4 @@ F004의 불변식은 대부분 **렌더 게이트**에 걸린다 — 근거·적
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. INV-10~14 · 신규 FR-60~68(종목 판단 스냅샷 · 신뢰도 미사용(D3) · 바이존 서버 계산(D2) · 게이지 적중률 표본 규칙(B9) · Q3 보수안 · 보유 = `PortfolioTransaction`(ADR-002)). FR-32 개정(kind 5종). 표본 < 20 Open Question 을 B18 로 닫음 |
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. INV-14 · FR-67 확정(D12 — `out_of_scope`). Q3 닫음 |

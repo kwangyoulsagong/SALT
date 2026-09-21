@@ -81,7 +81,7 @@ payload.mode
 | FR-42 | M9 직후 테이블은 비어 있다. **첫 집계는 워커가 채운다**(`SRV-REQ-026`). 마이그레이션 안에서 집계 SQL 을 돌리지 않는다 — 수 분이 걸릴 수 있고 롤백 단위가 섞인다 | Must |
 | FR-43 | `confidence` 컬럼을 **drop 하지 않는다**(D3 은 노출 중단이지 데이터 삭제가 아니다). drop 은 새 코드에서 읽기 0건이 확인된 뒤 별도 릴리스에서 검토한다 | Must |
 | FR-44 | `smart_buy_zone` enum 값을 **제거하지 않는다**(`DB-REQ-017` FR-30 개정 — 생성 재개) | Must |
-| FR-45 | **매핑 시드(FR-20~24)를 종목 경로까지 넓힌다 (B18).** 시드 행: 저장 추천 `coach.<action>` 4종 + 종목 판단 `<mode>.<action>` 8종(`scalp`·`long_term` × `review_short_opportunity`·`review_accumulation`·`wait`·`avoid`). 각 행이 `IndicatorTrackRecord` 와 연결되는지 여부는 데이터다 — **연결이 없는 행은 게이트가 차단하고 그것이 정상이다** | Must |
+| FR-45 | **매핑 시드(FR-20~24)를 종목 경로까지 넓힌다 (B18).** 시드 행: 저장 추천 `coach.<action>` 4종 + 종목 판단 `<mode>.<action>` 8종(`scalp`·`long_term` × `review_short_opportunity`·`review_accumulation`·`wait`·`avoid`). 저장 추천 4행은 `IndicatorTrackRecord` 와 연결되는지 여부가 데이터다 — **연결이 없는 행은 게이트가 차단하고 그것이 정상이다.** **종목 판단 8행은 `IndicatorTrackRecord` 와 잇지 않는다**(D11) — 실패 이력은 `symbol_judgment` 스냅샷의 사후 결과다(`SRV-REQ-024` FR-134) | Must |
 | FR-46 | 시드 결과로 **"연결된 signalType 수 / 전체"** 를 기록한다. 0 이면 초기 화면은 전부 미렌더이고, 그것이 기대한 상태다 | Must |
 
 ## 되돌리기
@@ -130,10 +130,11 @@ payload.mode
 - **`payload` 실제 구조.** FR-10이 선결이고, 그 결과에 따라 FR-11~13이 확정된다. **F004 착수 전 필수 조사.**
 - `signalType` 추출 경로가 fallback 체인이면 **같은 의미의 신호가 여러 `signalType`으로 갈릴 수 있다.** 그러면 성적표 표본이 쪼개진다 → 정규화가 필요할 수 있다.
 - 매핑을 `IndicatorTrackRecord.signalTypes String[]`로 둘지 별도 테이블로 둘지. 배열이 단순하지만 역방향 조회(`signalType` → record)에 인덱스가 필요하다(GIN).
-- 종목 판단 8종이 **어떤 `IndicatorTrackRecord`(실패 이력)와 이어지는가.** 종목 판단은 RSI · 심리 · 대량 체결로 점수를 매긴다(`modeDecision.ts`) — F003 의 밸류에이션 지표 실패 이력과 1:1 이 아닐 수 있다. 이어지지 않으면 종목 경로는 **실패 이력 데이터를 새로 적재**해야 렌더된다(`SRV-REQ-024` Open Question).
+- ~~종목 판단 8종이 **어떤 `IndicatorTrackRecord`(실패 이력)와 이어지는가.**~~ **2026-09-21 D11 로 닫힘 — 잇지 않는다.** 종목 판단은 RSI · 심리 · 대량 체결로 점수를 매긴다(`modeDecision.ts`) — F003 의 밸류에이션 지표 실패 이력과 1:1 이 아닐 수 있다. 이어지지 않으면 종목 경로는 **실패 이력 데이터를 새로 적재**해야 렌더된다(`SRV-REQ-024` Open Question).
 
 ## Changelog
 
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. M8(`mode` 컬럼) · M9(`GaugeTrackRecord`) 추가. 신규 FR-40~46(백필 없음 · 첫 집계는 워커 · `confidence`/`smart_buy_zone` drop 금지 · 매핑 시드를 종목 경로 8종까지 확장(B18)) |
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. FR-45 개정 — 종목 판단 8행은 `IndicatorTrackRecord` 와 잇지 않는다(D11). Open Question 닫음 |
