@@ -1,5 +1,9 @@
 # FEATURE-005: 홈 브리핑 & 5탭 IA — **폐기 (FEATURE-006이 대체)**
 
+> **2026-09-21 — 이 문서의 홈 5블록도 더 이상 유효하지 않다.** `ADR-002`가 청구서 · 세금(④⑤)을 뺐고, 감사 결정 D6이
+> 홈을 **3블록(총자산 → 이번 주 적립 → AI 추천) + 기존 목표 카드 · `AnalysisGraph` · `TipsApp`** 으로 정했다.
+> 현행 기준은 `FEATURE-006` §B. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md`.
+
 > **⚠️ 이 문서는 2026-09-09 결정으로 폐기되었다.** IA는 `FEATURE-006-coach-conversation-ia.md`(3탭 + 코치 대화 중심)를 따른다.
 >
 > 폐기 근거:
@@ -262,3 +266,4 @@ flowchart TB
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-09 | **폐기.** `FEATURE-006-coach-conversation-ia.md`가 대체한다. 홈 블록 요구사항과 `HomeViewModel`은 흡수, 5탭 IA와 삭제 목록(FR-10)·MFE 2앱(FR-13)은 폐기 |
+| 2026-09-21 | 머리 배너 추가. 흡수됐던 홈 5블록 중 ④ 세금 D-Day · ⑤ 청구서가 `ADR-002`로, 블록 구성 전체가 D6(3블록 + 기존 블록)으로 대체됐다. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
