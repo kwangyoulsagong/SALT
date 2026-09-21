@@ -113,13 +113,13 @@ flowchart LR
 
 | # | 기능 | 한 줄 |
 |---|---|---|
-| FEATURE-001 | 개입 청구서 (My Alpha) | 내 계좌를 "아무것도 안 했을 때"·"기계적 적립했을 때"와 나란히 놓고 차액을 원화로. 거래별 가격표의 합이 총액과 정확히 일치(항등식) |
-| FEATURE-002 | 연말 세금 마감 콕핏 | 자산군 3종 D-Day, 미국주식 손실수확 솔버(250만원 공제 최적화), 결제일·환율 함정 경고, 크립토 의제취득가액 스텝업 손익분기 |
+| ~~FEATURE-001~~ | ~~개입 청구서 (My Alpha)~~ | **폐기 2026-09-21 (`ADR-002`).** 문서 삭제 |
+| ~~FEATURE-002~~ | ~~연말 세금 마감 콕핏~~ | **폐기 2026-09-21 (`ADR-002`).** 문서 삭제 |
 | FEATURE-003 | 밸류에이션 밴드 적립 | "이번 주 얼마 넣을지" 단일 숫자. BTC는 MVRV Z, 미국 지수는 CAPE 백분위로 배수 0~3x. 김프를 매수 비용으로 환산 |
 | FEATURE-004 | AI 코치 추천 화면 | 이미 서버에만 있던 `ai-coach`/`signal-performance`/`profit-plan`/`trade-preflight`/`behavior-coach`를 화면으로. 3종 세트 렌더 게이트 |
 | FEATURE-005 | ~~홈 브리핑 & 5탭 IA~~ | **결번.** 5탭 IA는 2026-09-09 결정(탭 축소·대화 중심)으로 FEATURE-006이 대체한다. 홈 5블록 요구사항만 FEATURE-006으로 흡수 |
-| FEATURE-006 | 코치 대화 & 3탭 IA | 대화가 제품의 핵심. 3탭(홈/코치/자산) + PC 전용 `MovableGrid`. 홈 5블록을 흡수 |
-| FEATURE-007 | 모바일 앱 (React Native) | iOS+Android. **푸시 알림이 존재 이유** — 세금 마감 D-Day가 웹만으로는 도달하지 않는다. TestFlight/Play 내부 테스트, OTA |
+| FEATURE-006 | 코치 대화 & 3탭 IA | 대화가 제품의 핵심. 3탭(홈/코치/자산) + PC 전용 `MovableGrid`. 홈 **3블록**(2026-09-21 개정) · 자산 탭 = 포지션 / 시장 / 관심 종목 |
+| FEATURE-007 | 모바일 앱 (React Native) | iOS+Android. 푸시(지표 · 추천 갱신 1종 — 세금 D-Day 는 `ADR-002` 로 소멸). TestFlight/Play 내부 테스트, OTA |
 
 ## 요구사항 지도 반영 (2026-09-10)
 
@@ -166,7 +166,7 @@ flowchart LR
 
 기능마다 영역별 4종(형태/기능/인터페이스/성능)을 채웠다. F007만 웹 화면이 없어 FE 사분면이 결번이다.
 
-### 하드 마감
+### 하드 마감 — **F002 폐기로 소멸 (2026-09-21, `ADR-002`). 기록으로 둔다**
 
 | 날짜 | 내용 | 막히면 |
 |---|---|---|
@@ -175,12 +175,13 @@ flowchart LR
 | 2026-12-31 | 크립토 과세연도 종료 | — |
 | 2027-01-01 00:10 KST | 연말 가격 스냅샷 (**immutable**) | 취득가액 산정 불가 |
 
-F007(모바일 푸시)은 **F002 세금 D-Day 알림의 전달 경로**다. 12월 이전에 배포되지 않으면 마감 알림이 도달하지 않는다.
+~~F007(모바일 푸시)은 F002 세금 D-Day 알림의 전달 경로다.~~ F002 폐기로 이 의존도 사라졌다.
 
 ### 관련 문서
 
 - 글로벌 계획: `requirements/specs/in-progress/salt-solo-rebuild-global-plan.md`
 - 기획서: `pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md` ~ `FEATURE-007-mobile-app.md` (**FEATURE-005는 결번**)
 - 요구사항 지도: `requirements/specs/in-progress/salt-requirements-master-index.md`
-- 아키텍처 결정: `requirements/decisions/ADR-001-microfrontend-replacement.md`
+- 아키텍처 결정: `requirements/decisions/ADR-001-microfrontend-replacement.md` · `ADR-002-drop-ledger-invoice-tax.md`
+- 스토리보드 갭 감사와 결정: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md`
 - 스토리보드(인터랙티브 HTML): `pm/storyboard/SALT-Storyboard(20260908-1557).html`
