@@ -32,7 +32,7 @@ export class CryptoHandler {
       const added = upper.filter((s) => !before.has(s));
 
       if (added.length > 0) {
-        logger.info(`User ${ws.userId} subscribed to: ${added.join(", ")}`);
+        logger.info(`User ${ws.connectionId} subscribed to: ${added.join(", ")}`);
 
         // 🔥 한 번만 요청하도록 변경
         worker.updateSubscriptions();
@@ -75,7 +75,7 @@ export class CryptoHandler {
 
       if (removed.length > 0) {
         logger.info(
-          `User ${ws.userId} unsubscribed from: ${removed.join(", ")}`
+          `User ${ws.connectionId} unsubscribed from: ${removed.join(", ")}`
         );
 
         // 🔥 한 번만 호출
@@ -98,7 +98,6 @@ export class CryptoHandler {
   handleSubscribeCandle(ws: ExtendedWebSocket, message: WSMessage) {
     try {
       const { symbol, timeframe } = message;
-      console.log("📩 Received subscribe_candle from client:", message); // 👈 찍기!!
 
       if (!symbol || !timeframe) {
         return ws.send(
@@ -124,7 +123,7 @@ export class CryptoHandler {
 
       tfSet.add(timeframe);
 
-      logger.info(`WS ${ws.userId} subscribed candle: ${upper} (${timeframe})`);
+      logger.info(`WS ${ws.connectionId} subscribed candle: ${upper} (${timeframe})`);
 
       // 🟢 처음 구독하는 경우에만 Worker에 반영
       if (isFirst) {
@@ -154,7 +153,7 @@ export class CryptoHandler {
 
       tfSet.delete(timeframe);
       logger.info(
-        `WS ${ws.userId} unsubscribed candle: ${upper} (${timeframe})`
+        `WS ${ws.connectionId} unsubscribed candle: ${upper} (${timeframe})`
       );
 
       // ❗️ 모두 제거되면 symbol 삭제

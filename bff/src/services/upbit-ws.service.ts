@@ -76,36 +76,35 @@ class UpbitWebSocketService {
    * 재구독
    */
   private resubscribe() {
-    if (this.subscribedSymbols.size > 0) {
-      const symbols = Array.from(this.subscribedSymbols);
-      this.subscribe(symbols);
-    }
+    if (this.subscribedSymbols.size > 0) this.sendSubscription();
   }
 
   /**
-   * 심볼 구독
+   * 심볼 구독 — **추가분이 아니라 전체 집합을 보낸다.**
+   *
+   * Upbit 는 같은 연결에 새 구독 요청이 오면 **이전 구독을 대체한다**(2026-09-21 실측:
+   * BTC·XRP 구독 뒤 ETH 만 보내자 ETH 만 왔다). 원래는 새 심볼만 보내서, 화면이
+   * 목록에 없던 심볼 하나를 요청하는 순간 나머지 전부의 시세가 끊겼다.
    */
   subscribe(symbols: string[]) {
+    symbols.forEach((s) => this.subscribedSymbols.add(s.toUpperCase()));
+
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      logger.warn("WebSocket not ready, queuing symbols:", symbols);
-      symbols.forEach((s) => this.subscribedSymbols.add(s.toUpperCase()));
+      logger.warn(`WebSocket not ready, queued ${symbols.length} symbols`);
       return;
     }
 
-    const markets = symbols.map((s) => `KRW-${s.toUpperCase()}`);
+    this.sendSubscription();
+    logger.info(
+      `📡 Upbit subscription: +${symbols.length} → ${this.subscribedSymbols.size} symbols`
+    );
+  }
 
-    const message = [
-      { ticket: "salt-bff" },
-      {
-        type: "ticker",
-        codes: markets,
-      },
-    ];
-
-    this.ws.send(JSON.stringify(message));
-    symbols.forEach((s) => this.subscribedSymbols.add(s.toUpperCase()));
-
-    logger.info(`📡 Subscribed to Upbit: ${symbols.join(", ")}`);
+  private sendSubscription() {
+    const markets = Array.from(this.subscribedSymbols, (s) => `KRW-${s}`);
+    this.ws?.send(
+      JSON.stringify([{ ticket: "salt-bff" }, { type: "ticker", codes: markets }])
+    );
   }
 
   /**
