@@ -1,6 +1,7 @@
 import { logger } from "../../shared/config/logger";
 import {
   createHttpClient,
+  createRatePacer,
   isRetryableHttpError,
   withRetry,
 } from "../../shared/infrastructure";
@@ -32,12 +33,33 @@ const marketOf = (symbol: string) => `KRW-${symbol.toUpperCase()}`;
  */
 const http = createHttpClient({ baseURL: UPBIT_API_URL, timeoutMs: 10_000 });
 
+/**
+ * 거래소 시세 API 는 **그룹별 초당 10건**을 IP 단위로 센다(캔들 그룹 · 그 외 조회).
+ * 그 한도를 보내기 전에 지킨다 — 재시도는 이미 맞은 429 를 줍는 것이지 막는 것이 아니다.
+ *
+ * 한도보다 2건 낮게 잡았다. 같은 IP 에서 개발 중 다른 프로세스(스크립트·두 번째 서버)가
+ * 거래소를 부르면 그 몫까지 이 프로세스가 알 수 없다.
+ *
+ * > **이 페이서가 없을 때** 캔들 수집은 심볼 10개를 동시에 던졌고(`CollectPriceHistory`)
+ * > 기동 직후 1분 동안 429 가 985건 쌓였다. 수집 쪽 동시성을 줄이는 대신 여기서 막는
+ * > 이유: 거래소를 부르는 유스케이스가 넷이고, 한도는 **프로세스 전체**의 것이다.
+ */
+const UPBIT_REQUESTS_PER_SECOND = 8;
+const pacers = {
+  candle: createRatePacer({ perSecond: UPBIT_REQUESTS_PER_SECOND }),
+  default: createRatePacer({ perSecond: UPBIT_REQUESTS_PER_SECOND }),
+};
+const pacerFor = (path: string) =>
+  path.startsWith("/candles/") ? pacers.candle : pacers.default;
+
 const get = <T = any>(path: string, params?: Record<string, unknown>): Promise<T> =>
   withRetry(
-    async () => {
-      const response = await http.get(path, { params });
-      return response.data as T;
-    },
+    // 재시도도 거래소에는 한 건이다 — 그래서 페이서가 재시도 **안쪽**에 있다
+    () =>
+      pacerFor(path).run(async () => {
+        const response = await http.get(path, { params });
+        return response.data as T;
+      }),
     {
       isRetryable: isRetryableHttpError,
       onRetry: (error, attempt, waitMs) =>

@@ -28,40 +28,48 @@ class PriceUpdaterWorker {
 
   /**
    * 구독 심볼 업데이트
+   *
+   * **화면이 요청한 심볼은 서버 상태와 무관하게 구독한다.** 원래는 서버 조회 둘
+   * (관심 목록 · 마켓 전체)을 같은 `try` 안에서 기다려서, 서버가 꺼져 있거나 느리면
+   * 화면이 명시적으로 요청한 심볼까지 Upbit 에 구독되지 않았다 — 시세 WS 가 **에러
+   * 없이 0건**을 보냈다. 서버 목록은 합집합을 넓히는 보조이고, 실패하면 빠진다.
    */
   public async updateSubscriptions() {
-    try {
-      // 1) 화면(프론트)에서 실시간 구독 중인 심볼
-      const clientSymbols = connectionManager.getAllSubscribedSymbols();
+    // 1) 화면(프론트)에서 실시간 구독 중인 심볼
+    const clientSymbols = connectionManager.getAllSubscribedSymbols();
 
-      // 2) 로그인 유저 관심종목 (optional)
-      const watchlistSymbols = await backendApi.getWatchlistSymbols();
+    // 2) 관심 목록 · 3) 마켓 전체 — 서버 조회. 하나가 실패해도 나머지로 간다
+    const [watchlist, market] = await Promise.allSettled([
+      backendApi.getWatchlistSymbols(),
+      backendApi.getMarketSymbols(),
+    ]);
+    const fromServer = (result: PromiseSettledResult<string[]>, label: string) => {
+      if (result.status === "fulfilled") return result.value;
+      logger.warn(`구독 목록 조회 실패 (${label}) — 화면 요청 심볼만 구독한다`, result.reason?.message);
+      return [];
+    };
 
-      // 3) 💥 Market 전체 목록 (로그인 불필요)
-      const marketSymbols = await backendApi.getMarketSymbols();
+    // 4) 합집합 (중복 제거)
+    const allSymbols = Array.from(
+      new Set([
+        ...clientSymbols,
+        ...fromServer(watchlist, "관심 목록"),
+        ...fromServer(market, "마켓 전체"),
+      ])
+    );
 
-      // 4) 합집합 (중복 제거)
-      const allSymbols = Array.from(
-        new Set([...clientSymbols, ...watchlistSymbols, ...marketSymbols])
-      );
+    if (allSymbols.length === 0) {
+      logger.debug("No symbols to subscribe");
+      return;
+    }
 
-      if (allSymbols.length === 0) {
-        logger.debug("No symbols to subscribe");
-        return;
-      }
+    // 5) 이미 구독 중인 것 제외하고 새로운 것만 Upbit subscribe
+    const currentlySubscribed = new Set(upbitWSService.getSubscribedSymbols());
+    const newSymbols = allSymbols.filter((s) => !currentlySubscribed.has(s));
 
-      // 5) 이미 구독 중인 것 제외하고 새로운 것만 Upbit subscribe
-      const currentlySubscribed = upbitWSService.getSubscribedSymbols();
-      const newSymbols = allSymbols.filter(
-        (s) => !currentlySubscribed.includes(s)
-      );
-
-      if (newSymbols.length > 0) {
-        upbitWSService.subscribe(newSymbols);
-        logger.info(`Added ${newSymbols.length} new symbols to subscription`);
-      }
-    } catch (error) {
-      logger.error("Failed to update subscriptions:", error);
+    if (newSymbols.length > 0) {
+      upbitWSService.subscribe(newSymbols);
+      logger.info(`Added ${newSymbols.length} new symbols to subscription`);
     }
   }
 

@@ -202,7 +202,10 @@ flowchart TB
 | `BFF-REQ-008` F000 API | **in-progress** | 신규 **7개 전부** 열렸다(`watchlist` 3 · `news` · `portfolio/summary` · 온보딩 3). 제거 목록도 닫혔다. 남은 것은 동면 경로 410(FR-11)과 `packages/core` 타입 공유(FR-13 — `bff` 가 workspace 밖이다) |
 | `SRV-REQ-008` F000 FUNC | **in-progress** | 관심 목록·뉴스·`period`·포지션 요약에 이어 **초대(FR-1~7)·인증 축소(FR-10~12)·온보딩 상태(FR-13·14)** 완료. `auth` 가 DDD 컨텍스트로 섰고 `modules/auth` 를 지웠다. 알림 2종·`AssetType` 3값·환율·동면 남음 |
 | `SRV-REQ-009` F000 API | **in-progress** | `/api/portfolio/summary` · `period` 422 에 이어 **초대 2경로 · `/api/onboarding/status` · 제거 3경로(404)** 완료. 동면 410(FR-7·8)·알림 422 남음 |
-| 나머지 136개 | to-do | |
+| `FE-REQ-011` F000 FUNC | **in-progress** | 실시간 수신 표시(FR-11~14) — BFF 가 끊기면 헤더가 **"연결 끊김 · 재연결 중"** 이고 기준 시각을 쓰지 않는다. FR-10 은 수신 시각을 `wsClient` 에 두는 것으로 다르게 갔다. `checklists/F000-realtime-reliability.md` |
+| `FE-REQ-012` F000 API | **in-progress** | WS 절(FR-24~26) — 참조 카운트 구독으로 **떠난 화면의 구독을 해제**한다(원래는 리스너만 뗐다). 재연결 3s→30s 백오프 |
+| `BFF-REQ-010` F000 PERF | **in-progress** | WS 절 — 측정(FR-15) 18.9건/초. **throttle(FR-11)은 만들지 않는다는 판정.** 시세가 조용히 멈추는 경로 넷을 닫았다 |
+| 나머지 133개 | to-do | |
 
 **P0 아키텍처 전환 3개(FE)가 끝났다.** `FE-REQ-007`→`008`→`009`.
 **셋 다 `done/`이다.** `009`는 수용 기준을 전부 만족했고, `007`·`008`은 남은 항목이
@@ -238,9 +241,20 @@ flowchart TB
 컨텍스트가 **6개**가 됐다 — `news`·`market`·`portfolio`·`coach` 에 `auth` 와 조합
 컨텍스트 `onboarding` 이 더해졌다. `modules` 는 8 → **7개**(`auth` 삭제).
 
-다음 FE 작업은 `FE-REQ-011`~`013` 이고, 남은 F000 묶음은 **동면 route 410**
-(`SRV-REQ-009` FR-7·8 · `BFF-REQ-007` A·B절)과 **알림 2종**(`SRV-REQ-008` FR-20~25 ·
-`BFF-REQ-007` C절)이다.
+**세 번째 수직 슬라이스 — 실시간 시세 신뢰성 (2026-09-21).** 사용자 결정으로
+**Investment 쪽을 먼저** 한다. 범위는 `requirements/specs/in-progress/F000-realtime-reliability-slice.md`,
+검증은 `requirements/reports/checklists/F000-realtime-reliability.md`.
+
+> **에러 없이 틀린 것을 보여주던 자리 다섯.** 헤더가 멈춘 시세를 초록 점과 기준 시각으로
+> 그렸고, BFF 가 WS 연결을 토큰으로 키잉해 **같은 사용자의 두 번째 탭이 첫 탭을 굶겼고**,
+> Upbit 가 구독 요청을 **대체** 방식으로 처리하는데 추가분만 보냈고, 서버가 꺼지면 WS 가
+> 0건을 보냈고, SIGTERM 을 받은 WS 프로세스가 **40초 넘게 살아서** 옛 코드로 시세를 보냈다.
+> 서버는 기동 429 가 985 → **0건**이 됐다 — `SRV-REQ-006` 체크리스트의 "캔들 수집 실패
+> 0건"이 한 회차만 본 거짓이었고, 이제 재현된다.
+
+남은 F000 묶음은 **동면 route 410**(`SRV-REQ-009` FR-7·8 · `BFF-REQ-007` A·B절)과
+**알림 2종**(`SRV-REQ-008` FR-20~25 · `BFF-REQ-007` C절)이다. Investment 쪽 다음 후보는
+`AssetType` 3값(`DB-REQ-003` · `SRV-REQ-008` FR-32)과 `FE-REQ-012` A절(`period` enum 4종)이다.
 
 **레이어 규칙은 이제 실행된다.** 새 프론트 작업은 쓰기 시점에 `layer-check` 훅을 통과해야 한다.
 새 슬라이스는 `layered-architecture.md` §4 표 → `packages/eslint-plugin-fsd/layer-rules.cjs`의
@@ -300,3 +314,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-18 | `SRV-REQ-006` 4단계 — `coach` 통합(FR-32). 원문 29파일 3,538줄을 지우고 컨텍스트 하나로 합쳤다. 공개 API 를 9개 늘려 **남의 테이블 직접 조회를 0으로** 만들었고, 특성화 테스트 52건 중 **18건(점수 엔진)이 첫 실행에 통과**했다. **LLM 해설의 수익률 예측은 계약이라 그대로 옮기고 §11-2 에 크게 적었다** — 이관이 제품 규칙 위반을 고치는 자리는 아니지만, 그 위반이 이제 `coach` 안에 있다 |
 | 2026-09-18 | `SRV-REQ-006` 미충족 8건 처리 — **LLM 해설에서 수익률 예측을 없앴다**(공통 수용 기준 4). 외부 클라이언트 넷에 **타임아웃이 아예 없던 것**을 찾아 `shared/infrastructure/retry` 와 함께 넣었고 기동 시 캔들 수집 실패가 **다수 → 0건**이 됐다. 한글 뉴스 언어 필터는 **살리는 쪽**으로 정했다(3단계 특성화 테스트가 그 변경을 한 번 걸렀다). `AppError` 하위 클래스의 `instanceof` 가 전부 거짓이던 것도 함께 고쳤다 |
 | 2026-09-18 | **초대 코드 · 온보딩 3스텝 수직 슬라이스.** `auth`(DDD)와 `onboarding`(조합) 컨텍스트 신설, BFF 온보딩 3계약, 프론트 온보딩 화면. `register`·`password`·`account` 세 경로가 404 다. `ErrorKind` 에 `Unauthenticated`(401)를 더했고, **이 레포의 첫 `$transaction`** 이 나왔다 — 규칙상 트랜잭션을 열 자리가 없어 원자성을 Port 계약(`redeem`)으로 올렸다 |
+| 2026-09-21 | **실시간 시세 신뢰성 수직 슬라이스.** `FE-REQ-011`·`FE-REQ-012`·`BFF-REQ-010` 을 `in-progress` 로. 서버 거래소 호출에 출발 간격 제한(`shared/infrastructure/pacer`), BFF WS 결함 넷, 프론트 연결 상태·끊김 표시·구독 해제. 계약 변경 없음(`connected` 메시지 `userId` 제거, 소비처 0건) |

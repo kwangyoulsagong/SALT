@@ -1,5 +1,6 @@
 import { WebSocketServer } from "ws";
 import { parse } from "url";
+import { randomUUID } from "crypto";
 import { ExtendedWebSocket, WSMessage } from "../types/websocket.types";
 import { connectionManager } from "./managers/connection.manager";
 import { cryptoHandler } from "./handlers/crypto.handler";
@@ -11,46 +12,29 @@ const PORT = env.WS_PORT;
 const wss = new WebSocketServer({ port: PORT });
 
 /**
- * JWT 검증 (간단 버전 - 실제로는 토큰 검증 필요)
- */
-function authenticateToken(token: string | null): string | null {
-  if (!token) return null;
-
-  // TODO: 실제 JWT 검증 로직 추가
-  // 지금은 간단하게 토큰을 userId로 사용
-  return token;
-}
-
-/**
  * WebSocket 연결
+ *
+ * **토큰을 해석하지 않는다**(`bff-architecture.md` §6). 시세는 공개 데이터라 게스트도
+ * 받는다 — 토큰은 "들고 왔는가"만 기록한다. 원래는 토큰 원문을 `userId` 로 써서
+ * 연결 로그와 환영 메시지에 그대로 찍었다.
  */
 wss.on("connection", (ws: ExtendedWebSocket, req) => {
   const { query } = parse(req.url || "", true);
-  const token = query.token as string;
 
-  // 인증
-  const userId = authenticateToken(token);
-
-  // 로그인 안한 경우에도 연결은 허용
-  ws.userId = userId ?? "guest";
+  ws.connectionId = randomUUID();
+  ws.authenticated = typeof query.token === "string" && query.token.length > 0;
   ws.isAlive = true;
   ws.subscribedSymbols = new Set();
   ws.subscribedCandles = new Map();
 
-  // 게스트도 connectionManager에 넣기 (고유 ID 부여)
-  const connectionId = userId ?? "guest_" + Date.now();
-  connectionManager.addConnection(connectionId, ws);
-
-  logger.info(`WebSocket connected: ${connectionId}`);
-
-  logger.info(`WebSocket connected: ${userId}`);
+  const connectionId = ws.connectionId;
+  connectionManager.addConnection(ws);
 
   // 환영 메시지
   ws.send(
     JSON.stringify({
       type: "connected",
       message: "WebSocket connection established",
-      userId,
     })
   );
 
@@ -61,7 +45,7 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
     try {
       const message: WSMessage = JSON.parse(data.toString());
 
-      logger.debug(`Message from ${userId}:`, message);
+      logger.debug(`Message from ${connectionId}:`, message);
 
       switch (message.type) {
         case "subscribe":
@@ -112,7 +96,6 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
    * 연결 종료
    */
   ws.on("close", () => {
-    logger.info(`WebSocket disconnected: ${connectionId}`);
     connectionManager.removeConnection(connectionId);
   });
 
@@ -120,7 +103,7 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
    * 에러
    */
   ws.on("error", (error) => {
-    logger.error(`WebSocket error for ${userId}:`, error);
+    logger.error(`WebSocket error for ${connectionId}:`, error);
   });
 });
 
@@ -132,10 +115,8 @@ const heartbeatInterval = setInterval(() => {
     const extWs = ws as ExtendedWebSocket;
 
     if (extWs.isAlive === false) {
-      logger.warn(`Terminating inactive connection: ${extWs.userId}`);
-      if (extWs.userId) {
-        connectionManager.removeConnection(extWs.userId);
-      }
+      logger.warn(`Terminating inactive connection: ${extWs.connectionId}`);
+      connectionManager.removeConnection(extWs.connectionId);
       return extWs.terminate();
     }
 
@@ -152,23 +133,25 @@ wss.on("close", () => {
 });
 
 logger.info(`🔌 BFF WebSocket Server is running on port ${PORT}`);
-logger.info(`📡 Clients can connect: ws://localhost:${PORT}?token=YOUR_TOKEN`);
+logger.info(`📡 Clients can connect: ws://localhost:${PORT}`);
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  logger.info("SIGTERM: Closing WebSocket server");
+/**
+ * 종료.
+ *
+ * **열린 연결을 먼저 끊는다.** `wss.close()` 는 새 연결만 막고 기존 연결을 닫지 않으며,
+ * 콜백은 연결이 전부 끝나야 불린다. 원래는 그 콜백에서 `exit` 해서 SIGTERM 을 받은
+ * 프로세스가 **포트만 놓고 기존 클라이언트에 시세를 계속 보냈다**(2026-09-21 실측:
+ * 40초 뒤에도 살아서 175건 전송). 재배포나 `tsx watch` 재시작 뒤에도 브라우저는 옛
+ * 프로세스에 붙어 있었고, 화면은 "연결 끊김"을 알 방법이 없었다.
+ */
+const shutdown = (signal: string) => {
+  logger.info(`${signal}: Closing WebSocket server`);
   clearInterval(heartbeatInterval);
-  wss.close(() => {
-    process.exit(0);
-  });
-});
+  wss.clients.forEach((client) => client.terminate());
+  wss.close(() => process.exit(0));
+};
 
-process.on("SIGINT", () => {
-  logger.info("SIGINT: Closing WebSocket server");
-  clearInterval(heartbeatInterval);
-  wss.close(() => {
-    process.exit(0);
-  });
-});
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 export { wss, connectionManager };

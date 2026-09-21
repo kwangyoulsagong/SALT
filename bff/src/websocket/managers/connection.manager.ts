@@ -5,31 +5,24 @@ class ConnectionManager {
   private connections: Map<string, ExtendedWebSocket> = new Map();
 
   /**
-   * 연결 추가
+   * 연결 추가. 키는 **소켓 id** 다 (`ExtendedWebSocket.connectionId`).
    */
-  addConnection(userId: string, ws: ExtendedWebSocket) {
-    this.connections.set(userId, ws);
-    logger.info(`User connected: ${userId}, Total: ${this.connections.size}`);
-  }
-
-  /**
-   * 연결 제거
-   */
-  removeConnection(userId: string) {
-    this.connections.delete(userId);
+  addConnection(ws: ExtendedWebSocket) {
+    this.connections.set(ws.connectionId, ws);
     logger.info(
-      `User disconnected: ${userId}, Total: ${this.connections.size}`
+      `WS connected: ${ws.connectionId} (${ws.authenticated ? "auth" : "guest"}), Total: ${this.connections.size}`
     );
   }
 
   /**
-   * 특정 사용자에게 메시지 전송
+   * 연결 제거. 이미 지워진 id 면 아무것도 하지 않는다 — heartbeat 종료와 `close`
+   * 이벤트가 같은 소켓에 대해 둘 다 부른다.
    */
-  sendToUser(userId: string, message: any) {
-    const ws = this.connections.get(userId);
-    if (ws && ws.readyState === ws.OPEN) {
-      ws.send(JSON.stringify(message));
-    }
+  removeConnection(connectionId: string) {
+    if (!this.connections.delete(connectionId)) return;
+    logger.info(
+      `WS disconnected: ${connectionId}, Total: ${this.connections.size}`
+    );
   }
 
   /**

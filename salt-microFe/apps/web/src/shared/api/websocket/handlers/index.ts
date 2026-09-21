@@ -19,6 +19,11 @@ export function dispatchMessage(
       break;
     case WSMessageType.Subscribed:
     case WSMessageType.Unsubscribed:
+    case WSMessageType.Connected:
+    case WSMessageType.SubscribedCandle:
+    case WSMessageType.UnsubscribedCandle:
+    case WSMessageType.Pong:
+    case WSMessageType.Error:
       return;
     default: {
       // TypeScript의 exhaustive check
