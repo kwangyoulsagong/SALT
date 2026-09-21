@@ -28,6 +28,12 @@ F000은 신규 계산이 없으므로 성능 요구가 가볍다. 이 REQ의 목
 | `GET /api/portfolio/summary` | 200ms | Projection |
 | `GET /api/investment-notifications` | 100ms | |
 | 410 응답 | 10ms | 핸들러만 |
+| `GET /api/investment/search` (2026-09-21) | **150ms** | 검색 쿼리 30ms + 관심 · 보유 집합 1회씩 |
+| `POST /api/investment/watchlist` 상한 판정 포함 (2026-09-21) | 150ms | count 1회 + `HoldingProbe` 1회 |
+| `GET /api/news` · `isBookmarked` 포함 (2026-09-21) | 120ms | 북마크 `IN (...)` 1회 추가 |
+| `GET /api/news/bookmarks` (2026-09-21) | 100ms | 사용자당 수십 행 |
+| `POST` · `DELETE` 북마크 (2026-09-21) | 100ms | |
+| `GET /api/goals` 수량 진행률 포함 (2026-09-21) | 150ms | 보유 1회 조회로 전 목표 계산 |
 
 ## 변경 금지 목록의 성능을 유지한다
 
@@ -69,6 +75,15 @@ F000은 신규 계산이 없으므로 성능 요구가 가볍다. 이 REQ의 목
 | FR-32 | 알림 목록이 `@@index([userId, isRead])`를 탄다 | Must |
 | FR-33 | `notification-cleanup.worker`가 **나눠 지운다**. 한 번에 `DELETE`하면 긴 트랜잭션 + 대량 죽은 튜플이 된다 | Must |
 
+## 검색 · 추적 · 북마크 · 목표 수량 (2026-09-21)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-60 | 검색 · 뉴스 · 목표 응답의 사용자별 판정(`isTracked` · `isHeld` · `isBookmarked` · `currentQuantity`)이 **요청당 고정 횟수** 조회다. 결과 행 수에 비례하는 쿼리 0건 (D8 · D5 · 기본안 B5) | Must |
+| FR-61 | 검색 p95 를 기록한다. 150ms 를 넘으면 `pg_trgm` 인덱스를 **측정 근거와 함께** 제안한다(`DB-REQ-004` FR-40) (D8) | Must |
+| FR-62 | 검색어 · 북마크 대상을 로그에 남기지 않는다. 측정은 건수 · 지연만 (D8 · D5) | Must |
+| FR-63 | 검색 결과를 캐시하지 않는다. `isTracked` 가 사용자 · 시점마다 다르다 (D8) | Must |
+
 ## 마이그레이션 영향
 
 | ID | 요구사항 | 우선순위 |
@@ -107,6 +122,9 @@ F000은 신규 계산이 없으므로 성능 요구가 가볍다. 이 REQ의 목
 - [ ] 마이그레이션 중 워커 중단·재기동 순서가 문서화되어 있다
 - [ ] 마이그레이션 후 `ANALYZE`가 실행되었다
 - [ ] **410 로그 1주 수집 결과 잔여 호출이 0건이다**
+- [ ] 검색 · 뉴스 · 목표의 사용자별 판정이 N+1 없이 고정 횟수다 (쿼리 로그)
+- [ ] 검색 p95 < 150ms (측정값 기록)
+- [ ] 로그에 검색어 · 북마크 대상이 0건이다
 
 ## Dependencies
 
@@ -118,3 +136,9 @@ F000은 신규 계산이 없으므로 성능 요구가 가볍다. 이 REQ의 목
 - bcrypt cost 값. 사용자 ≤10명이면 높게 잡아도 부담이 없지만 500ms 예산을 넘지 않아야 한다.
 - `invite/check` rate limit 기준(IP당 분당 N회). 사용자 ≤10명이면 매우 낮게 잡아도 된다.
 - `NewsArticle.symbols` 배열 인덱스가 실제로 GIN인지 확인 필요. Prisma의 `@@index([symbols])`가 배열에 어떤 인덱스를 만드는지 실측해야 한다.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | **스토리보드 갭 감사 반영.** 예산 6행(검색 · 상한 판정 · 뉴스 `isBookmarked` · 북마크 목록 · 토글 · 목표 수량 진행률)과 FR-60~63(판정 N+1 금지 · 검색 p95 · 검색어 로그 금지 · 검색 캐시 없음) 추가. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |

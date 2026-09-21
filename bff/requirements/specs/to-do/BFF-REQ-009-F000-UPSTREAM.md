@@ -30,6 +30,10 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 | `marketOverview` | `GET /api/investment/market/overview` | 600ms | 1회 |
 | `candles` | `GET /api/investment/crypto/:symbol/chart?period=minute` | 500ms | 1회 |
 | `marketIntelligence` | `GET /api/market-intelligence/:symbol/dashboard` | 600ms | 1회 |
+| `searchAssets` (2026-09-21) | `GET /api/investment/search?q&assetType&limit` | 400ms | 1회 |
+| `newsBookmarks` (2026-09-21) | `GET /api/news/bookmarks?page&limit` | 400ms | 1회 |
+| `addNewsBookmark` / `removeNewsBookmark` (2026-09-21) | `POST /api/news/bookmark` · `DELETE /api/news/bookmark/:newsId` | 600ms | **0회** |
+| `goals` (proxy, 2026-09-21 필드 추가) | `/api/goals*` | 기존 proxy | mutation 0회 |
 
 ## 제거되는 호출
 
@@ -47,8 +51,8 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 |---|---|---|
 | FR-1 | 제거 호출 7종이 BFF 코드에 **0건**이다 | Must |
 | FR-2 | `app-feed.service.ts`·`app-home.service.ts`에서 동면 호출을 제거한다. **파일은 남긴다**(`app-feed`) | Must |
-| FR-3 | mutation(초대 수락·로그인·watchlist 추가/삭제)은 **재시도하지 않는다** | Must |
-| FR-4 | 서버 에러 코드를 그대로 전달: `403 INVITE_*` · `422` · `409` · `410` | Must |
+| FR-3 | mutation(초대 수락·로그인·watchlist 추가/삭제 · **북마크 추가/해제** · 목표 생성/수정)은 **재시도하지 않는다** | Must |
+| FR-4 | 서버 에러 코드를 그대로 전달: `403 INVITE_*` · `422` · `409`(**`TRACKED_ASSET_LIMIT` 포함**, 2026-09-21) · `410` · 북마크 `404` | Must |
 
 ## 이관 중 경로 유지 — 서버가 DDD로 바뀐다
 
@@ -88,12 +92,25 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 | `portfolio/summary.{items,totalKrw,fxRateUsed}` | 홈 "주식" 섹션 |
 | `market/overview` **전체** | **변경 금지 목록.** 실시간 테이블 |
 | `market-intelligence/:symbol/dashboard` | 심리 온도계·스마트 머니 게이지 |
+| `search.items[].{isTracked,isHeld}` · `search.tracked` (2026-09-21) | 검색 화면 ★ · `n / 10` 카운터 |
+| `watchlist` `409 { code, trackedCount, trackedLimit }` (2026-09-21) | 추적 상한 안내 |
+| `news.items[].{sentiment,symbols,isBookmarked}` (2026-09-21) | 감정 배지 · 종목 칩 · ☆ |
+| `goals` `goalType` · `progressRate` · `currentQuantity` (2026-09-21) | 목표 카드 값 자리 |
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-40 | `market/overview` 응답이 바뀌면 **실시간 테이블이 깨진다.** 계약 스냅샷 테스트로 고정한다 | Must |
 | FR-41 | `market-intelligence` 응답이 바뀌면 게이지가 깨진다. 동일 | Must |
 | FR-42 | 필드가 없으면 기본값을 만들지 않고 `unavailable`로 처리한다 | Must |
+
+## 2026-09-21 추가 — 검색 · 북마크 · 목표 수량
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-50 | 검색은 서버 `GET /api/investment/search` **한 번**이다. BFF 가 `market/overview` 를 받아 거르지 않는다 — overview 에는 사용자별 판정이 없다 (D8) | Must |
+| FR-51 | 인증 뉴스 요청에 사용자 토큰을 서버로 **전달**해 `isBookmarked` 를 받는다. BFF 가 북마크 목록을 따로 불러 대조하지 않는다(호출 2배) (D5) | Must |
+| FR-52 | 북마크 해제는 서버 경로의 `:id` 에 **기사 id** 를 넣는다(`newsId` — 북마크 row id 가 아니다, `SRV-REQ-008` FR-94) (D5) | Must |
+| FR-53 | 목표 수량 필드는 proxy 로 통과한다. 새 BFF 함수를 만들지 않는다 (기본안 — 감사 문서 B5) | Should |
 
 ## Acceptance Criteria
 
@@ -111,6 +128,11 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 - [ ] **`market/overview` 응답이 변경 전과 바이트 단위로 같다**
 - [ ] `market-intelligence` 응답이 변경 전과 같다
 - [ ] 필드 누락 시 기본값을 만들지 않는다
+- [ ] 검색이 서버 호출 1회이고 overview 를 거르지 않는다 (2026-09-21)
+- [ ] 뉴스 `isBookmarked` 가 서버 값이고 BFF 의 북마크 목록 추가 호출이 0건이다
+- [ ] 북마크 해제가 기사 id 로 서버를 부른다
+- [ ] `409 TRACKED_ASSET_LIMIT` · 북마크 `404` 가 그대로 전달된다
+- [ ] 북마크 mutation 재시도가 0건이다
 
 ## Dependencies
 
@@ -122,3 +144,9 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 
 - 국내·미국 주식 현재가를 BFF가 구독할지. **KIS 시세를 BFF가 구독하면 `priceStale`이 사라지지만** WS 관리가 늘어난다 → **서버가 스냅샷에 최신가를 넣는 것**이 더 단순하다(`BFF-REQ-013` Open Question과 동일).
 - `market/overview` 스냅샷 테스트를 어디에 둘지(BFF vs 서버).
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | **스토리보드 갭 감사 반영.** 호출 맵에 `searchAssets` · `newsBookmarks` · 북마크 추가/해제 · 목표 proxy 필드 추가. FR-3 · 4 에 북마크 mutation 재시도 금지 · `409 TRACKED_ASSET_LIMIT` · 북마크 404 전달. 신규 FR-50~53(검색 1회 · `isBookmarked` 는 서버 값 · 해제는 `newsId` · 목표 수량은 proxy). 계약 의존 표 4행 추가. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
