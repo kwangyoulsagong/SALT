@@ -7,6 +7,11 @@ import type { CoachMode } from "../model";
  * 판단을 늘 함께 만들어 내려보낸다(`dualDecision`) — 사용자가 모드를 바꿀 때마다
  * 서버를 다시 부르지 않게 한다.
  *
+ * ## 신뢰도가 없다 (감사 문서 D3 · `SRV-REQ-024` FR-102)
+ *
+ * 원문은 `confidence = 0.45 + score/200` 을 실었다. 점수를 다시 쓴 값이라 정보가 없고
+ * "82% 확신"으로 읽힌다(공통 수용 기준 4). 점수 + 근거 · 적중률 · 실패사례 3종이 대신한다.
+ *
  * ## 주문 동작이 없다
  *
  * `action` 은 `review_short_opportunity` · `review_accumulation` · `wait` · `avoid`
@@ -37,7 +42,6 @@ export interface ModeDecision {
   symbol: string;
   label: string;
   action: ModeDecisionAction;
-  confidence: number;
   riskLevel: "medium" | "high";
   timeframe: string;
   headline: string;
@@ -113,7 +117,6 @@ export const makeModeDecision = (input: ModeDecisionInput): ModeDecision => {
     symbol: input.symbol,
     label,
     action,
-    confidence: Number((0.45 + normalized / 200).toFixed(2)),
     // 원문 그대로다 — 50 이상은 어느 쪽이든 `medium` 이라 분기 둘이 같은 값을 준다.
     // 고치면 응답의 `riskLevel` 이 바뀌므로 이관에서 건드리지 않았다.
     riskLevel: normalized >= 50 ? "medium" : "high",

@@ -162,7 +162,6 @@ export class GeminiCoachExplainer implements CoachExplainer {
       `현재가: ${input.currentPrice.toLocaleString("ko-KR")}원`,
       `24시간 변동률: ${input.change24h.toFixed(2)}%`,
       `24시간 거래대금: ${Math.round(input.tradeValue24h / 1e8)}억원`,
-      `판단 신뢰도: ${input.confidence}%`,
       "",
       "근거 데이터:",
       evidence || "- (제공된 근거 없음)",

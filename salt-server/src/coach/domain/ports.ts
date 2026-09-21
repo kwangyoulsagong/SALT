@@ -1,4 +1,10 @@
 import type {
+  JudgmentCase,
+  JudgmentOutcome,
+  JudgmentTrackStats,
+  ModeDecisionAction,
+} from "./policy";
+import type {
   CoachArticle,
   CoachAssetType,
   CoachHolding,
@@ -179,7 +185,6 @@ export interface CoachExplanationInput {
   currentPrice: number;
   change24h: number;
   tradeValue24h: number;
-  confidence: number;
   evidence: Array<{ label: string; value: string }>;
   news?: Array<{
     title: string;
@@ -222,3 +227,72 @@ export interface CoachExplanation {
 export interface CoachExplainer {
   explain(input: CoachExplanationInput): Promise<CoachExplanation>;
 }
+
+export interface JudgmentSnapshotDraft {
+  symbol: string;
+  mode: CoachMode;
+  action: ModeDecisionAction;
+  signalType: string;
+  score: number;
+  reasons: string[];
+  entryPrice: number;
+  judgedAt: Date;
+}
+
+export interface PendingJudgment {
+  id: string;
+  symbol: string;
+  mode: CoachMode;
+  action: ModeDecisionAction;
+  entryPrice: number;
+  judgedAt: Date;
+}
+
+export interface JudgmentEvaluation {
+  id: string;
+  exitPrice: number;
+  returnRate: number;
+  outcome: JudgmentOutcome;
+  evaluatedAt: Date;
+}
+
+/**
+ * 종목 판단 스냅샷 (F004 · D11).
+ *
+ * 성적은 **저장소가 SQL 로 모아 준다**(`summarize`). 표본 행을 전부 읽어 세지 않는다 —
+ * 단타는 종목당 하루 1행씩 쌓인다(`ddd-infrastructure.md` §3).
+ */
+export interface SymbolJudgmentStore {
+  /** 종목 · 모드별 마지막 판단 시각. 없는 조합은 맵에 없다. */
+  lastJudgedAt(symbols: string[]): Promise<Map<string, Date>>;
+  /** 같은 `(symbol, mode, judgedAt)` 가 있으면 건너뛴다 — 워커가 겹쳐 돌아도 한 벌이다. */
+  saveSnapshots(drafts: JudgmentSnapshotDraft[]): Promise<number>;
+  /**
+   * 관찰 기간이 끝났고 아직 판정이 없는 것. 오래된 것이 앞이다.
+   * `judgedBefore` 는 모드별이다 — 만기가 안 된 장기 스냅샷이 배치 자리를 차지하지 않게.
+   */
+  listPending(
+    judgedBefore: Record<CoachMode, Date>,
+    limit: number
+  ): Promise<PendingJudgment[]>;
+  saveEvaluations(evaluations: JudgmentEvaluation[]): Promise<void>;
+  summarize(signalType: string): Promise<JudgmentTrackStats>;
+  /** 최근 사례. 적중과 실패를 **같은 함수 · 같은 상한**으로 뽑는다(B2). */
+  recentCases(
+    signalType: string,
+    outcome: JudgmentOutcome,
+    limit: number
+  ): Promise<JudgmentCase[]>;
+}
+
+/**
+ * 추적 자산 — 관심 종목 ∪ 보유 (감사 문서 D8 · B25).
+ *
+ * 사용자 구분 없이 **심볼만** 돌려준다. 판단이 사용자와 무관해서 스냅샷도 종목당 한 벌이다.
+ */
+export interface TrackedAssetProbe {
+  listTrackedSymbols(): Promise<string[]>;
+}
+
+/** 지금 시각. 테스트가 시계를 고정할 수 있게 Port 로 둔다. */
+export type Clock = () => Date;

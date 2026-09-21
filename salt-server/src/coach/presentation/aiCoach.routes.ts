@@ -42,7 +42,7 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *         application/json:
    *           schema:
    *             type: object
-   *             required: [symbol, koreanName, mode, currentPrice, change24h, tradeValue24h, confidence, evidence]
+   *             required: [symbol, koreanName, mode, currentPrice, change24h, tradeValue24h, evidence]
    *             properties:
    *               symbol: { type: string, example: BTC }
    *               koreanName: { type: string, example: 비트코인 }
@@ -50,7 +50,6 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *               currentPrice: { type: number, example: 129913000 }
    *               change24h: { type: number, example: -1.55 }
    *               tradeValue24h: { type: number, example: 350100000000 }
-   *               confidence: { type: number, example: 82 }
    *               evidence:
    *                 type: array
    *                 items:

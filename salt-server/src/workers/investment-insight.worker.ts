@@ -99,6 +99,25 @@ export class InvestmentInsightWorker {
         this.coach.analyzeNewsSentiment.execute()
       );
 
+      // 종목 판단 스냅샷 (F004 · D11). 10분마다 돌지만 **관찰 기간이 지난 조합만** 쓴다 —
+      // 단타는 종목당 하루 1건, 장기는 30일에 1건(B39). 사후 판정도 만기가 된 것만 본다.
+      await this.step("🎯 Snapshotting symbol judgments...", async () => {
+        const result = await this.coach.snapshotSymbolJudgments.execute();
+        console.log(
+          `   추적 ${result.tracked} · 기록 ${result.written}` +
+            (result.skippedNoPrice.length
+              ? ` · 현재가 없음 ${result.skippedNoPrice.join(",")}`
+              : "")
+        );
+      });
+
+      await this.step("🧾 Evaluating matured judgments...", async () => {
+        const result = await this.coach.evaluateSymbolJudgments.execute();
+        console.log(
+          `   판정 ${result.evaluated} · 종가 대기 ${result.waitingForPrice}`
+        );
+      });
+
       const users = await prisma.user.findMany({ select: { id: true } });
       const userIds = users.map((user) => user.id);
 

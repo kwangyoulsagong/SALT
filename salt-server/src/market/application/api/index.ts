@@ -93,6 +93,11 @@ export interface MarketApi {
   /** `at` 이후 첫 종가. 성적표의 진입가다. */
   closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
   latestCloses(symbols: string[]): Promise<ClosePoint[]>;
+  /**
+   * 누군가의 관심 목록에 있는 크립토 심볼 전체 — **사용자를 구분하지 않는다.**
+   * `coach` 의 종목 판단 스냅샷(F004 · D11)이 추적 자산을 만들 때 쓴다.
+   */
+  watchedSymbols(): Promise<string[]>;
 }
 
 export type {
@@ -198,6 +203,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.prices.highestCloseSince(symbols, since),
     closeAtOrAfter: (symbol, at) => deps.prices.closeAtOrAfter(symbol, at),
     latestCloses: (symbols) => deps.prices.latestCloses(symbols),
+    watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),
   };
 
   return { api, useCases };

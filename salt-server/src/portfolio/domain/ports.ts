@@ -98,6 +98,8 @@ export interface HoldingRepository {
     assetType?: PortfolioAssetType
   ): Promise<Holding[]>;
   findBySymbol(symbol: string): Promise<Holding[]>;
+  /** 누군가 보유한 심볼 전체. 사용자를 구분하지 않는다 — 추적 자산 합집합(F004 · D8)이 쓴다. */
+  distinctSymbols(assetType: PortfolioAssetType): Promise<string[]>;
   /**
    * 여러 심볼의 보유를 한 번에. **시세 반영이 심볼마다 조회를 돌지 않게 하는 자리다**
    * (`performance.md` — 루프 안에서 `findMany` 를 반복하지 않는다).
