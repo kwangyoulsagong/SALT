@@ -17,7 +17,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   ChangeRateCell,
+  displayedChange,
   indexWatchlistBySymbol,
+  MARKET_CHANGE_MESSAGES,
   MARKET_MESSAGES,
   MARKET_TABLE_HEADERS,
   MarketFilterTabs,
@@ -93,12 +95,13 @@ export const RealtimeMarketTable = () => {
       order: filters.order,
       period: filters.period,
     }),
-    [filters]
+    [filters],
   );
 
   // 크래시하지는 않지만(`data?.items ?? []`) 재시도 대기 구간에 빈 테이블이 번쩍인다.
   // 같은 이유로 `isPending` 을 본다.
   const { data, isPending, isError } = useMarketOverview(params);
+  const isRealtime = filters.period === MarketPeriod.Realtime;
   const items = useMemo(() => data?.items ?? [], [data?.items]);
 
   /**
@@ -109,7 +112,7 @@ export const RealtimeMarketTable = () => {
   const { data: watchlist } = useWatchlist();
   const watchedBySymbol = useMemo(
     () => indexWatchlistBySymbol(watchlist?.items ?? []),
-    [watchlist?.items]
+    [watchlist?.items],
   );
   const symbols = useMemo(() => items.map((item) => item.symbol), [items]);
   useMarketOverviewRealtime(params, symbols, handleBlink);
@@ -158,66 +161,80 @@ export const RealtimeMarketTable = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => (
-                <TableRow
-                  key={item.market}
-                  /*
-                    별 상태를 memoKey 에 넣는다. `TableRow` 는 `memoKey` 만 비교하므로
-                    (`@repo/ui/table`) 빼면 별을 눌러도 그 행은 다시 그려지지 않는다 —
-                    가격이 다음 틱에 바뀔 때에야 채워진 별이 나타난다.
+              {items.map((item) => {
+                const selected = item.symbol === selectedSymbol;
+                const change = displayedChange(item, filters.period);
+                // 기간 값은 틱마다 바뀌지 않는다. 바뀌지 않는 숫자가 깜박이면 거짓이다
+                const blink = isRealtime && blinkingSymbol === item.symbol;
+                return (
+                  <TableRow
+                    key={item.market}
+                    /*
+                    화면에 영향을 주는 값을 **전부** memoKey 에 넣는다. `TableRow` 는
+                    `memoKey` 만 비교하므로(`@repo/ui/table`) 빠진 값은 바뀌어도 그려지지 않는다.
+                    별 상태가 빠져 있어 채워진 별이 다음 틱에야 나타났고, **선택 상태가 빠져
+                    있어 `aria-selected` 가 첫 행에 멈춰 있었다**(2026-09-21 실측).
                   */
-                  memoKey={`${item.currentPrice}-${
-                    blinkingSymbol === item.symbol
-                  }-${watchedBySymbol.has(item.symbol.toUpperCase())}`}
-                  hoverable
-                  clickable
-                  tabIndex={0}
-                  aria-selected={item.symbol === selectedSymbol}
-                  onMouseEnter={() => selectSymbolOnHover(item.symbol)}
-                  onClick={() => selectSymbol(item.symbol)}
-                  onKeyDown={selectRowOnKey(() => selectSymbol(item.symbol))}
-                >
-                  <TableCell align="left">
-                    <FlexBox align="center" gap="md">
-                      <WatchlistStarButton
-                        entry={watchedBySymbol.get(item.symbol.toUpperCase())}
-                        displayName={item.koreanName}
-                        request={{
-                          assetType: WatchlistAssetType.Crypto,
-                          symbol: item.symbol,
-                          name: item.koreanName,
-                        }}
+                    memoKey={`${item.currentPrice}-${change}-${blink}-${watchedBySymbol.has(
+                      item.symbol.toUpperCase(),
+                    )}-${selected}`}
+                    hoverable
+                    clickable
+                    tabIndex={0}
+                    aria-selected={selected}
+                    onMouseEnter={() => selectSymbolOnHover(item.symbol)}
+                    onClick={() => selectSymbol(item.symbol)}
+                    onKeyDown={selectRowOnKey(() => selectSymbol(item.symbol))}
+                  >
+                    <TableCell align="left">
+                      <FlexBox align="center" gap="md">
+                        <WatchlistStarButton
+                          entry={watchedBySymbol.get(item.symbol.toUpperCase())}
+                          displayName={item.koreanName}
+                          request={{
+                            assetType: WatchlistAssetType.Crypto,
+                            symbol: item.symbol,
+                            name: item.koreanName,
+                          }}
+                        />
+                        <Image
+                          radius={9999}
+                          width={30}
+                          height={30}
+                          src={item.logoUrl}
+                          alt={item.koreanName}
+                        />
+                        <Text variant="bodyLarge">{item.koreanName}</Text>
+                      </FlexBox>
+                    </TableCell>
+                    <TableCell align="right">
+                      <PriceCell value={item.currentPrice} />
+                    </TableCell>
+                    <TableCell align="right">
+                      {change === null ? (
+                        <span title={MARKET_CHANGE_MESSAGES.unknownTitle}>
+                          <Text variant="bodyLarge" color="tertiary">
+                            {MARKET_CHANGE_MESSAGES.unknown}
+                          </Text>
+                        </span>
+                      ) : (
+                        <ChangeRateCell value={change} blink={blink} />
+                      )}
+                    </TableCell>
+                    <TableCell align="right">
+                      <PriceCell value={item.high24h} />
+                    </TableCell>
+                    <TableCell align="right">
+                      <PriceCell value={item.low24h} />
+                    </TableCell>
+                    <TableCell align="right">
+                      <PriceCell
+                        value={Number(item.tradeValue24h.toFixed(0))}
                       />
-                      <Image
-                        radius={9999}
-                        width={30}
-                        height={30}
-                        src={item.logoUrl}
-                        alt={item.koreanName}
-                      />
-                      <Text variant="bodyLarge">{item.koreanName}</Text>
-                    </FlexBox>
-                  </TableCell>
-                  <TableCell align="right">
-                    <PriceCell value={item.currentPrice} />
-                  </TableCell>
-                  <TableCell align="right">
-                    <ChangeRateCell
-                      value={item.change24h}
-                      blink={blinkingSymbol === item.symbol}
-                    />
-                  </TableCell>
-                  <TableCell align="right">
-                    <PriceCell value={item.high24h} />
-                  </TableCell>
-                  <TableCell align="right">
-                    <PriceCell value={item.low24h} />
-                  </TableCell>
-                  <TableCell align="right">
-                    <PriceCell value={Number(item.tradeValue24h.toFixed(0))} />
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </ScrollTableContainer>

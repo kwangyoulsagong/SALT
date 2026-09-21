@@ -14,6 +14,10 @@ export const DEFAULT_MARKET_PARAMS = {
   page: 1,
   limit: 100,
   sort: MarketSort.All,
-  order: MarketOrder.Ascending,
+  /**
+   * 화면이 **실제로 보여 주던 순서**다. 원래 `Ascending` 이었지만 그 값이 빈 문자열이라
+   * 서버가 내림차순으로 답했다 — 값을 고치면서 초기 목록이 뒤집히지 않게 이쪽을 맞췄다.
+   */
+  order: MarketOrder.Descending,
   period: MarketPeriod.Realtime,
 } as const;

@@ -191,8 +191,18 @@ export const tableBodyStyles = style({
  */
 const rowHoverable = style({});
 
+/**
+ * **포인터가 hover 를 아는 기기에서만** 칠한다 (`FE-REQ-011` FR-23). 색은 그대로다.
+ *
+ * 터치 브라우저는 탭한 요소에 `:hover` 를 붙여 두고 다른 곳을 누를 때까지 떼지 않는다.
+ * 그래서 폰에서 행을 누르면 회색이 남아 **선택된 것처럼** 보였다.
+ */
 globalStyle(`${rowHoverable}:hover > td`, {
-  backgroundColor: vars.colors.background.primary,
+  "@media": {
+    "(hover: hover)": {
+      backgroundColor: vars.colors.background.primary,
+    },
+  },
 });
 
 export const tableRowStyles = recipe({

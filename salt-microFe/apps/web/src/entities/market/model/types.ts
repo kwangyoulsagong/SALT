@@ -14,8 +14,14 @@ export enum MarketSort {
   Name = "name",
 }
 
+/**
+ * **`Ascending` 이 빈 문자열이었다.** 서버는 `asc` 가 아니면 전부 내림차순으로 받아서
+ * "오름차순" 버튼이 "내림차순"과 같은 목록을 돌려받았다(2026-09-21 실측 — 두 응답의
+ * 심볼 순서 해시가 같다). 초기값도 `Ascending` 이라 화면은 "오름차순"을 켜 둔 채
+ * 내림차순 목록을 그렸다.
+ */
 export enum MarketOrder {
-  Ascending = "",
+  Ascending = "asc",
   Descending = "desc",
 }
 
@@ -42,6 +48,14 @@ export interface MarketOverviewItem {
   tradeValue24h: number;
   logoUrl: string;
   priceUpdatedAt: string;
+  /**
+   * 요청한 기간의 변동률(%). 실시간이면 `change24h` 와 같다.
+   *
+   * **`null` 이면 그 기간의 기준 시세가 없다**(상장한 지 짧거나 수집이 비었다). 24시간
+   * 값으로 대신 그리지 않는다 — "1년" 버튼이 24시간 값을 보여 주게 된다.
+   * 실시간 WS 는 이 값을 건드리지 않는다. 기간 값은 틱마다 바뀌는 값이 아니다.
+   */
+  periodChange: number | null;
 }
 
 export interface MarketOverviewResponse {
