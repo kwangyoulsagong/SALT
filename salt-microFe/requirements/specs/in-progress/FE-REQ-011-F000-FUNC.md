@@ -134,3 +134,9 @@ created: 2026-09-09
 - 토큰 저장을 언제 쿠키로 옮길지(`FE-REQ-008` Open Question). F000에서 초대 화면을 만들 때 함께 하는 것이 자연스럽다.
 - 관심 종목 낙관적 갱신을 허용하는 것이 "금액 화면 낙관적 갱신 금지" 원칙과 충돌하지 않는지. **별 아이콘은 금액이 아니므로** 허용이 맞다.
 - `MarketPreview` 접힘을 CSS로만 처리할 수 있는지. 접힌 상태에서 차트를 마운트하지 않으려면 JS 판단이 필요할 수 있다 → **마운트 후 판단**(FR-31).
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | **실시간 수신 표시를 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-11 · FR-12("연결 끊김 · 재연결 중", 기준 시각을 쓰지 않는다) · FR-13(헤더를 `RealtimeAsOf` 로 떼어 표가 리렌더되지 않는다) · FR-14(`FE-REQ-010` FR-2 에서). **FR-10 은 다르게** — 수신 시각을 `entities/market/model` 이 아니라 `wsClient.getLastMessageAt()` 에 둔다. 수신 시각은 시세가 아니라 연결의 사실이고 `shared/api` 가 그 연결을 소유한다. **남은 것**: FR-1~5 · FR-20~73 중 미구현분. 근거: `requirements/reports/checklists/F000-realtime-reliability.md` |

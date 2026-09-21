@@ -132,3 +132,9 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 - WS 메시지 타입을 `packages/core`에 두면 BFF가 그 패키지를 참조해야 한다. **BFF가 `salt-microFe` workspace 밖**이므로 `BFF-REQ-006` Open Question과 같은 문제다.
 - 목표 저장이 실제로 끊겨 있는지. **검증이 먼저**이고 끊겨 있으면 FR-36이 Must로 올라간다.
 - `410` 콘솔 경고를 프로덕션에서도 낼지. 개발만이 기본안.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | **WS 절(C)을 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-24(참조 카운트 구독 — 언마운트 시 `unsubscribe`·`unsubscribe_candle` 전송, 브라우저 실측) · FR-25(재연결 3s→30s 백오프 + 끊김 표시) · FR-26(캔들 동작 유지). FR-21(`limit=100`)은 건드리지 않았다. **남은 것**: A·B·D·E·F절과 FR-22(`useThrottle` — 이미 rAF 로 묶여 있어 필요성부터 판정) · FR-23. 근거: `requirements/reports/checklists/F000-realtime-reliability.md` |
