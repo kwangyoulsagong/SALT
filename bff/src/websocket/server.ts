@@ -135,21 +135,23 @@ wss.on("close", () => {
 logger.info(`🔌 BFF WebSocket Server is running on port ${PORT}`);
 logger.info(`📡 Clients can connect: ws://localhost:${PORT}`);
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  logger.info("SIGTERM: Closing WebSocket server");
+/**
+ * 종료.
+ *
+ * **열린 연결을 먼저 끊는다.** `wss.close()` 는 새 연결만 막고 기존 연결을 닫지 않으며,
+ * 콜백은 연결이 전부 끝나야 불린다. 원래는 그 콜백에서 `exit` 해서 SIGTERM 을 받은
+ * 프로세스가 **포트만 놓고 기존 클라이언트에 시세를 계속 보냈다**(2026-09-21 실측:
+ * 40초 뒤에도 살아서 175건 전송). 재배포나 `tsx watch` 재시작 뒤에도 브라우저는 옛
+ * 프로세스에 붙어 있었고, 화면은 "연결 끊김"을 알 방법이 없었다.
+ */
+const shutdown = (signal: string) => {
+  logger.info(`${signal}: Closing WebSocket server`);
   clearInterval(heartbeatInterval);
-  wss.close(() => {
-    process.exit(0);
-  });
-});
+  wss.clients.forEach((client) => client.terminate());
+  wss.close(() => process.exit(0));
+};
 
-process.on("SIGINT", () => {
-  logger.info("SIGINT: Closing WebSocket server");
-  clearInterval(heartbeatInterval);
-  wss.close(() => {
-    process.exit(0);
-  });
-});
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 export { wss, connectionManager };
