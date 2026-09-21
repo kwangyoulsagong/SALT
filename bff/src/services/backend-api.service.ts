@@ -112,7 +112,7 @@ class BackendApiService {
   /**
    * Market Overview 조회
    */
-  async getMarketOverview(query: any) {
+  async getMarketOverview(query: Record<string, unknown>) {
     const response = await this.client.get("/investment/market/overview", {
       params: query,
     });

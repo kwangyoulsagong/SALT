@@ -1,26 +1,22 @@
 import { backendApi } from "./backend-api.service";
-import { upbitWSService } from "./upbit-ws.service";
 
 class MarketOverviewService {
-  async getOverview(query: any) {
-    // 1) 백엔드에서 Market 목록 + 페이징 + 정렬 정보 가져오기
-    const { items, pagination } = await backendApi.getMarketOverview(query);
-
-    // 2) BFF WebSocket 캐시에서 실시간 가격 가져오기
-    const priceCache = upbitWSService.getPriceCache();
-
-    // 3) Market + Price Merge
-    const enriched = items.map((m: any) => {
-      const live = priceCache.get(m.symbol);
-      return {
-        ...m,
-        currentPrice: live?.currentPrice ?? m.currentPrice ?? null,
-        change24h: live?.change24h ?? m.change24h ?? null,
-      };
-    });
-
-    return { items: enriched, pagination };
+  /**
+   * 서버 응답을 **그대로** 넘긴다.
+   *
+   * 원래는 `upbitWSService.getPriceCache()` 로 현재가·변동률을 덧씌웠다. 그 캐시는 **이
+   * 프로세스(REST)에서 늘 비어 있었다** — Upbit 구독은 워커 프로세스만 하고, REST 는
+   * 연결만 열고 구독하지 않는다. 2026-09-21 실측: 100행 중 덧씌워진 행 0 (히트율 0%).
+   * 화면은 첫 WS 틱에 어차피 값을 덮어쓰므로 살리지 않고 걷어냈다
+   * (`BFF-REQ-010` FR-4 · FR-40 — 새 캐시를 만들지 않는다).
+   *
+   * 덧씌우기가 남아 있었으면 `periodChange`(기간 변동률)와 `change24h` 가 서로 다른
+   * 시점의 값이 됐을 것이다.
+   */
+  async getOverview(query: Record<string, unknown>) {
+    return backendApi.getMarketOverview(query);
   }
+
   async getSymbols() {
     const response = await backendApi.getMarketSymbols(); // BFF → Backend 요청
     return response;
