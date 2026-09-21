@@ -140,6 +140,8 @@ export interface SymbolNewsItem {
 /** 자산 한 줄의 시세. 코치·주문 전 계산이 현재가와 신선도를 본다. */
 export interface AssetQuote {
   symbol: string;
+  /** 코치의 관찰 구간이 자산군으로 갈린다 — 미보유 주식은 구간을 만들지 않는다(D12). */
+  assetType: MarketAssetType;
   currentPrice: number | null;
   change24h: number | null;
   priceUpdatedAt: Date | null;
@@ -305,6 +307,12 @@ export interface ClosePoint {
   timestamp: Date;
 }
 
+export interface ClosePercentiles {
+  sample: number;
+  /** `fractions` 와 같은 순서. */
+  values: number[] | null;
+}
+
 export interface PriceHistoryRepository {
   upsertCandles(
     symbol: string,
@@ -328,6 +336,16 @@ export interface PriceHistoryRepository {
   closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
   /** 심볼별 마지막 종가. */
   latestCloses(symbols: string[]): Promise<ClosePoint[]>;
+  /**
+   * `since` 이후 한 심볼 · 한 주기 종가의 백분위. **DB 가 계산한다** — 1년 일봉이면
+   * 365행, 24시간 5분봉이면 288행을 옮겨 오지 않는다. 행이 없으면 `values` 가 `null`.
+   */
+  closePercentiles(
+    symbol: string,
+    timeframe: PriceTimeframe,
+    since: Date,
+    fractions: number[]
+  ): Promise<ClosePercentiles>;
   /**
    * 기간 변동률의 **기준 종가**를 심볼별로. 구간 안에 캔들이 없는 심볼은 결과에 없다.
    * 구간의 **가장 최근** 캔들을 쓴다.

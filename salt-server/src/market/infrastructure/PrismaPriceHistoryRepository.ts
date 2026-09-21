@@ -1,6 +1,7 @@
 import prisma from "../../shared/infrastructure/prisma";
 import type {
   Candle,
+  ClosePercentiles,
   ClosePoint,
   MarketAssetType,
   PeriodBaseline,
@@ -124,6 +125,34 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
       close: Number(row.close),
       timestamp: row.timestamp,
     }));
+  }
+
+  /**
+   * 종가 백분위 — `percentile_cont` 로 DB 가 보간한다.
+   *
+   * `close` 는 `Decimal` 이고 `percentile_cont` 는 `double precision` 을 받아서 캐스팅한다.
+   * 백분위는 표시용 관찰 구간이라 이 정밀도로 충분하다 — 원장 금액이 아니다.
+   * `(symbol, timeframe, timestamp)` 인덱스를 탄다.
+   */
+  async closePercentiles(
+    symbol: string,
+    timeframe: PriceTimeframe,
+    since: Date,
+    fractions: number[]
+  ): Promise<ClosePercentiles> {
+    const [row] = await prisma.$queryRaw<
+      Array<{ sample: number; values: number[] | null }>
+    >`
+      SELECT COUNT(*)::int AS sample,
+             percentile_cont(${fractions}::float8[])
+               WITHIN GROUP (ORDER BY close::float8) AS values
+      FROM price_history
+      WHERE symbol = ${symbol}
+        AND timeframe = ${timeframe}
+        AND timestamp >= ${since}
+    `;
+
+    return { sample: row?.sample ?? 0, values: row?.values ?? null };
   }
 
   /**

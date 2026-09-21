@@ -10,3 +10,4 @@ export * from "./profitPlan";
 export * from "./score";
 export * from "./signalPerformance";
 export * from "./symbolJudgment";
+export * from "./zone";

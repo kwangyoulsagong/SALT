@@ -1,10 +1,15 @@
-import type { MarketApi } from "../../market/application/api";
 import type {
+  MarketApi,
+  PriceTimeframe,
+} from "../../market/application/api";
+import type {
+  CloseDistribution,
   CoachIndicator,
   CoachQuote,
   CoachSentiment,
   CoachWhaleTransaction,
   MarketProbe,
+  ZoneTimeframe,
 } from "../domain";
 
 /**
@@ -23,6 +28,15 @@ import type {
  * `Timeframe.m5` 로 못 박았고 **그 선택을 여기 한 곳에 남긴다.**
  */
 const COACH_INDICATOR_TIMEFRAME = "m5";
+
+/**
+ * 코치는 주기를 `m5` · `d1` 로 부르고 `price_history.timeframe` 은 `5m` · `1d` 다.
+ * 계약(`SRV-REQ-025` `lookback.timeframe`)이 앞의 것이라 번역을 여기 한 곳에 둔다.
+ */
+const PRICE_TIMEFRAME: Record<ZoneTimeframe, PriceTimeframe> = {
+  m5: "5m",
+  d1: "1d",
+};
 
 export class MarketSignalAdapter implements MarketProbe {
   constructor(private readonly market: MarketApi) {}
@@ -102,5 +116,19 @@ export class MarketSignalAdapter implements MarketProbe {
   async latestCloses(symbols: string[]): Promise<Map<string, number>> {
     const rows = await this.market.latestCloses(symbols);
     return new Map(rows.map((row) => [row.symbol, row.close]));
+  }
+
+  closePercentiles(
+    symbol: string,
+    timeframe: ZoneTimeframe,
+    since: Date,
+    fractions: number[]
+  ): Promise<CloseDistribution> {
+    return this.market.closePercentiles(
+      symbol,
+      PRICE_TIMEFRAME[timeframe],
+      since,
+      fractions
+    );
   }
 }

@@ -129,6 +129,7 @@ const fakeMarket = (
             symbol,
             {
               symbol,
+              assetType: "crypto",
               currentPrice: prices[symbol],
               change24h: 0,
               priceUpdatedAt: T0,
@@ -154,6 +155,11 @@ const fakeMarket = (
       { transactionType: "sell", amountKRW: 100 },
     ],
     closeAtOrAfter: async (symbol: string) => exits[symbol] ?? null,
+    // 5분봉 24시간 · 일봉 1년이 다 찬 분포
+    closePercentiles: async (_symbol: string, timeframe: string) =>
+      timeframe === "m5"
+        ? { sample: 288, values: [98, 100, 103] }
+        : { sample: 365, values: [60, 90, 130] },
   }) as unknown as MarketProbe;
 
 const tracked = (symbols: string[]): TrackedAssetProbe => ({
@@ -324,5 +330,97 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
     assert.equal(longTerm.failureCases.length, 3);
     assert.equal(longTerm.failureCases[0].outcome, "miss");
     assert.equal(longTerm.failureCases[0].event, "long_term.review_accumulation");
+  });
+});
+
+describe("GetSymbolCoach — zone (FR-110~116)", () => {
+  const profiles = {
+    findByUser: async () => null,
+  } as unknown as CoachProfileStore;
+  const noHolding = { getHolding: async () => null } as unknown as PortfolioProbe;
+
+  it("미보유 크립토는 모드마다 다른 관찰 구간이다", async () => {
+    const view = await new GetSymbolCoach(
+      fakeMarket({ BTC: 100 }),
+      noHolding,
+      profiles,
+      new MemoryJudgmentStore(),
+      () => T0
+    ).execute("user-1", { symbol: "BTC" });
+
+    const scalp = view.modes.scalp.zone;
+    const longTerm = view.modes.longTerm.zone;
+    assert.equal(scalp.kind, "observation");
+    assert.equal(longTerm.kind, "observation");
+    if (scalp.kind !== "observation" || longTerm.kind !== "observation") return;
+    assert.deepEqual(scalp.priceGap, { lower: -2, mid: 0, upper: 3 });
+    assert.deepEqual(longTerm.lookback, { timeframe: "d1", days: 365 });
+  });
+
+  it("보유면 두 모드 다 규칙 가격이다", async () => {
+    const holding = {
+      getHolding: async () => ({
+        symbol: "BTC",
+        currentPrice: 100,
+        averageBuyPrice: 100,
+        unrealizedProfitRate: 0,
+      }),
+    } as unknown as PortfolioProbe;
+
+    const view = await new GetSymbolCoach(
+      fakeMarket({ BTC: 100 }),
+      holding,
+      profiles,
+      new MemoryJudgmentStore(),
+      () => T0
+    ).execute("user-1", { symbol: "BTC" });
+
+    const zone = view.modes.longTerm.zone;
+    assert.equal(zone.kind, "held_rule");
+    assert.deepEqual(view.modes.scalp.zone, zone);
+    if (zone.kind !== "held_rule") return;
+    // 평단 100 · 수익률 0 → 손실 제한 92 · 1차 112 · 추세 유지 125
+    assert.deepEqual(
+      zone.stages.map((stage) => stage.priceGap),
+      [-8, 12, 25]
+    );
+  });
+
+  it("미보유 주식은 out_of_scope (D12), 현재가가 없으면 insufficient_price_history", async () => {
+    const base = fakeMarket({ AAPL: 200 });
+    const stock = {
+      ...base,
+      quotes: async (symbols: string[]) =>
+        new Map(
+          [...(await base.quotes(symbols))].map(([symbol, quote]) => [
+            symbol,
+            { ...quote, assetType: "stock" as const },
+          ])
+        ),
+    } as MarketProbe;
+
+    const aapl = await new GetSymbolCoach(
+      stock,
+      noHolding,
+      profiles,
+      new MemoryJudgmentStore(),
+      () => T0
+    ).execute("user-1", { symbol: "AAPL" });
+    assert.deepEqual(aapl.modes.scalp.zone, {
+      kind: "unavailable",
+      reasonCode: "out_of_scope",
+    });
+
+    const unknown = await new GetSymbolCoach(
+      fakeMarket({}),
+      noHolding,
+      profiles,
+      new MemoryJudgmentStore(),
+      () => T0
+    ).execute("user-1", { symbol: "NEW" });
+    assert.deepEqual(unknown.modes.longTerm.zone, {
+      kind: "unavailable",
+      reasonCode: "insufficient_price_history",
+    });
   });
 });

@@ -253,6 +253,7 @@ describe("ListWatchlist", () => {
         symbol: "BTC",
         currentPrice: 158_000_000,
         change24h: -1.23,
+        assetType: "crypto",
         priceUpdatedAt: new Date("2026-09-18T02:00:00Z"),
       },
     ]);
@@ -277,6 +278,7 @@ describe("ListWatchlist", () => {
         symbol: "BTC",
         currentPrice: 1,
         change24h: 0,
+        assetType: "crypto",
         priceUpdatedAt: new Date("2026-09-17T00:00:00Z"),
       },
     ]);
@@ -301,6 +303,7 @@ describe("ListWatchlist", () => {
         symbol: "BTC",
         currentPrice: null,
         change24h: null,
+        assetType: "crypto",
         priceUpdatedAt: null,
       },
     ]);

@@ -1,8 +1,10 @@
 import type {
+  CloseDistribution,
   JudgmentCase,
   JudgmentOutcome,
   JudgmentTrackStats,
   ModeDecisionAction,
+  ZoneTimeframe,
 } from "./policy";
 import type {
   CoachArticle,
@@ -134,6 +136,13 @@ export interface MarketProbe {
   /** `at` 시각 **이후 첫** 종가. 성적표의 진입가다. 없으면 `null`. */
   closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
   latestCloses(symbols: string[]): Promise<Map<string, number>>;
+  /** `since` 이후 종가 백분위 — 관찰 구간(D2)의 재료. DB 가 계산한다. */
+  closePercentiles(
+    symbol: string,
+    timeframe: ZoneTimeframe,
+    since: Date,
+    fractions: number[]
+  ): Promise<CloseDistribution>;
 }
 
 /** `portfolio` 조회 — ACL Port. */
