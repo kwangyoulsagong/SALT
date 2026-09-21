@@ -43,6 +43,10 @@ for (const insight of insights) {
 | 피드백 저장 | 50ms | upsert |
 | 쿨다운 판정 | **20ms** | `CoachGenerationLog` 인덱스 |
 | 추천 생성 (LLM 포함) | 6s · **비동기** | |
+| **종목 판단 패널 조립** (2026-09-21) | **150ms** | 판단 + 성적표 + 실패이력 + 바이존/관찰 구간 + 게이지 적중률, 두 모드 |
+| 관찰 구간 계산 (모드당) | 40ms | `PriceHistory` 범위 1회 + `percentile_cont` |
+| 게이지 적중률 조회 | 10ms | `GaugeTrackRecord` 유니크 1회 |
+| 게이지 적중률 집계 (워커) | 일 1회 · 종목당 < 5s | 배치 |
 
 ## 개선 1 — JSON 조건 제거
 
@@ -105,6 +109,21 @@ for (const insight of insights) {
 | FR-41 | `CoachGenerationLog`가 무한히 쌓인다. **보존 정책**을 정한다(최근 90일 또는 사용자당 최근 100건) | Must |
 | FR-42 | 정리는 배치로 나눠 지운다 | Must |
 
+## 종목 판단 패널 (2026-09-21)
+
+근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D2 · D3 · B9 · B10. 투자 화면에서
+종목을 바꿀 때마다 불리는 경로라 **코치 탭보다 자주 불린다.**
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-70 | 패널 조립 1회가 **두 모드를 함께** 계산한다(모드 전환에 재호출 없음). 쿼리 수 **10개 이하** | Must |
+| FR-71 | 관찰 구간은 모드당 **`PriceHistory` 범위 조회 1회** + DB 의 `percentile_cont(0.2/0.5/0.8)` 이다. 행을 전부 애플리케이션으로 끌어와 정렬하지 않는다. 인덱스는 기존 `@@index([symbol, timeframe, timestamp])` | Must |
+| FR-72 | 관찰 구간 결과를 **(symbol, mode, 시간 버킷)** 으로 서버 메모리 캐시한다(단타 5분 · 장기 1시간). 사용자와 무관한 값이다 | Should |
+| FR-73 | 게이지 적중률은 **요청 시 집계하지 않는다.** `GaugeTrackRecord` 를 유니크 키로 1회 읽는다 | Must |
+| FR-74 | `GaugeTrackRecord` 집계 워커는 `MarketSentiment @@index([symbol, calculatedAt])`(기존) 와 `PriceHistory` 일봉을 **종목당 범위 조회 각 1회**로 읽는다. 시점마다 가격을 따로 조회하지 않는다(N+1 금지) | Must |
+| FR-75 | 종목 판단 스냅샷 쓰기는 (추적 자산 ≤ 10 + 보유) × 2모드 upsert 다. **배치 1트랜잭션이 아니라 종목 단위**로 커밋한다 | Must |
+| FR-76 | 종목 경로 성적표는 `@@index([symbol, kind, mode, createdAt DESC])`(`DB-REQ-017` FR-52)로 덮는다. `EXPLAIN` 을 checklist 에 첨부한다 | Must |
+
 ## MVCC
 
 | 대상 | 성질 | 대응 |
@@ -144,6 +163,11 @@ for (const insight of insights) {
 - [ ] `InvestmentInsight` upsert 빈도가 확인되고 autovacuum이 조정되어 있다
 - [ ] 응답에 `payload` 전체가 담기지 않는다
 - [ ] 성적표 샘플이 20건 이하다
+- [ ] 종목 판단 패널 조립 p95 < 150ms · 쿼리 수 ≤ 10 (측정값 기록)
+- [ ] 관찰 구간이 모드당 범위 조회 1회 + DB 백분위수다
+- [ ] 게이지 적중률이 요청 시 집계되지 않는다 (유니크 1회 조회)
+- [ ] 게이지 집계 워커가 종목당 범위 조회 각 1회다 (N+1 0건)
+- [ ] 종목 경로 성적표 인덱스의 `EXPLAIN` 이 checklist 에 있다
 
 ## Dependencies
 
@@ -156,3 +180,10 @@ for (const insight of insights) {
 - `kind != 'coach_feedback'` 부등호 인덱스 효율. **부분 인덱스가 나은지 측정 후 판단**(FR-22).
 - `entry` 조회를 범위 1회로 합칠 수 있는가. insight 100건의 시각이 흩어져 있으면 **심볼별 전체 구간을 받아 애플리케이션에서 매칭**하는 것이 나을 수 있다 → 데이터 양을 측정해야 한다.
 - `CoachGenerationLog` 보존 기간. 쿨다운만 필요하면 **최근 1건만** 있으면 되지만, 관측성(LLM 성공률)을 위해서는 이력이 필요하다.
+- 단타 관찰 구간이 `m5` 캔들 24시간(288행)을 전제한다. `PriceHistory` 에 `m5` 가 그만큼 쌓여 있는지 확인 필요 — 없으면 `unavailable` 이 기본이 된다.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 예산에 종목 판단 패널 · 관찰 구간 · 게이지 적중률 추가. 신규 FR-70~76(두 모드 1회 조립 · DB 백분위수 · 게이지 적중률 사전 집계(B9) · 스냅샷 쓰기 단위) |

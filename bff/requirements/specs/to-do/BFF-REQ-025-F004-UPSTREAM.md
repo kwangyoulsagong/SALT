@@ -18,7 +18,9 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | BFF 함수 | 서버 호출 | 타임아웃 | 재시도 |
 |---|---|---|---|
 | `coachPreview` | `GET /api/ai-coach?preview=true` | 400ms | 1회 |
-| `coachDetail` | `GET /api/coach/detail` | **800ms** | 1회 |
+| `coachReport` (개정 2026-09-21 — 원래 `coachDetail`) | `GET /api/coach/detail` | **800ms** | 1회 |
+| `symbolCoach` (2026-09-21) | `GET /api/ai-coach?symbol&mode` | **300ms** | 1회 |
+| `symbolNews` (2026-09-21, 기존 호출) | `GET /api/market-intelligence/:symbol/news?limit=3` | 300ms | 1회 — `symbolCoach` 와 **병렬** |
 | `scoreboard` | `GET /api/coach/scoreboard` | 600ms | 1회 |
 | `generationStatus` | `GET /api/coach/generation-status` | 300ms | 1회 |
 | `profile` GET/PATCH | `GET/PATCH /api/ai-coach/profile` | 400ms | GET 1회 / PATCH 0회 |
@@ -27,7 +29,7 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | `generate` | `POST /api/ai-coach/generate` | **1s** (202 기대) | **0회** |
 | `profitPlan` | `GET /api/profit-plan` | 400ms | 1회 |
 | `signalPerformance` | `GET /api/signal-performance?groupBy` | 600ms | 1회 |
-| `preflight` | `POST /api/trade-preflight` | 400ms | 0회 |
+| `preflight` | `POST /api/trade-preflight` | 400ms | 0회 — 2026-09-21 `stopLossRate` 전달 |
 | `behaviorCoach` | `GET /api/behavior-coach` | 500ms | 1회 |
 
 | ID | 요구사항 | 우선순위 |
@@ -64,6 +66,11 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | `behaviorFacts[].factCode`·`params` | 행동 기록 문구 |
 | `excluded[]` | 국내주식 제외 문구 |
 | `lowSample` | 표본 부족 배지 |
+| **`modes.*.renderable` · `blockedReason`** (2026-09-21) | 종목 판단 게이트. 누락되면 패널이 게이트를 우회한다 |
+| **`confidence` 제거** (2026-09-21) | BFF `mapDecision` 이 옮기던 필드. 서버 제거와 **BFF 제거가 짝**이다 |
+| `modes.*.zone` (`kind` · `notPrediction`) | 바이존 · 관찰 구간 · 차트 오버레이 |
+| `gaugeTrackRecords` | 게이지 아래 적중률 한 줄 |
+| `validity.code` | 유효시간 표기 |
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
@@ -72,6 +79,20 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | FR-22 | `disclaimer`가 없으면 `unavailable`로 처리한다. 면책은 정책이다 | Must |
 | FR-23 | `scoreNote`가 없으면 `unavailable`로 처리한다 | Must |
 | FR-24 | 계약 스냅샷 테스트를 둔다. **게이트 필드 3개(`renderable`·`signalTrackRecord`·`failureCases`)를 특히 고정**한다 | Must |
+
+## 종목 판단 경로 (2026-09-21)
+
+근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D2 · D3 · B3 · B9 · B10.
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-40 | `symbolCoach` 응답에 **`modes.scalp.renderable` · `modes.longTerm.renderable` 이 없으면 그 모드를 `unavailable` 로** 처리한다(FR-20 과 같은 판단 — 게이트 없는 판단을 내보내지 않는다) | Must |
+| FR-41 | **`confidence` 제거 순서**: BFF 가 먼저 `confidence` 를 **읽지 않게** 배포하고(서버가 보내도 무시), 그다음 서버가 필드를 뺀다. 반대 순서면 BFF 가 `undefined` 를 옮길 뿐 깨지지는 않지만, 계약 스냅샷이 먼저 깨진다 | Must |
+| FR-42 | `symbolCoach` 와 `symbolNews` 를 **병렬**로 부른다. 지금 `getDetail` 은 순차다 | Must |
+| FR-43 | `mode` 쿼리가 없으면 **서버에 보내지 않는다**(서버가 `defaultMode` 적용 — B16) | Must |
+| FR-44 | `explain` 응답이 `{ renderable: false }` 면 그대로 200 으로 전달한다. 에러로 바꾸지 않는다 | Must |
+| FR-45 | 계약 스냅샷에 **`modes.*.renderable` · `zone.kind` · `zone.notPrediction` · `confidence` 부재**를 고정한다 | Must |
+| FR-46 | 관심 종목 upstream(`/api/watchlist`) 호출에 코치 호출을 섞지 않는다(D4) | Must |
 
 ## 하지 않는 것
 
@@ -101,11 +122,16 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 - [ ] BFF에 LLM 직접 호출·점수 계산·게이트 판정 코드가 0건이다
 - [ ] 주문 중계 경로가 0건이다
 - [ ] `explain` 요청·응답이 로그에 0건이다
+- [ ] 종목 판단 모드별 `renderable` 누락 시 그 모드가 `unavailable` 이다
+- [ ] BFF 가 `confidence` 를 읽지 않는 배포가 서버 제거보다 먼저다
+- [ ] `symbolCoach` · `symbolNews` 가 병렬이다
+- [ ] `mode` 없는 요청이 서버로 `mode` 없이 간다
+- [ ] 계약 스냅샷이 `modes.*.renderable` · `zone.kind` · `notPrediction` · `confidence` 부재를 고정한다
 
 ## Dependencies
 
 - **선행:** `SRV-REQ-025`(서버 계약)
-- **순서:** FR-11 — **BFF 먼저 배포**(토큰 전달) 후 서버 인증 필수화
+- **순서:** FR-11 — **BFF 먼저 배포**(토큰 전달) 후 서버 인증 필수화. FR-41 — **BFF 먼저**(`confidence` 미사용) 후 서버 필드 제거
 - **규칙:** `backend-integration.md` · `config-security.md`
 
 ## Open Questions
@@ -113,3 +139,9 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 - `generate`가 202를 반환하면 **프론트가 완료를 어떻게 아는가.** `generation-status` 폴링이 기본안이지만, 6s면 폴링 3회 정도다.
 - `explain` 동시 호출 상한 2가 적절한가. 사용자 ≤10명이면 충분해 보이지만 프리뷰에서 종목을 빠르게 바꾸면 호출이 쌓인다 → **디바운스를 프론트에 두는 것이 더 효과적**이다.
 - `renderable` 누락 시 `unavailable`로 처리하면 **서버 버그가 화면 전체를 막는다.** 그것이 게이트 우회보다 안전하다는 판단이지만, 대안은 없는지 검토.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 호출 맵에 `symbolCoach` · `symbolNews` 추가, `coachDetail` → `coachReport` 개정. 계약 의존 표에 모드별 게이트 · `confidence` 제거 · `zone` · 게이지 적중률 · `validity` 추가. 신규 FR-40~46(모드별 게이트 누락 처리(B10) · `confidence` 제거 배포 순서(D3) · 병렬 호출 · `defaultMode` 위임(B16) · 관심 종목 분리(D4)) |

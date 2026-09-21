@@ -121,13 +121,12 @@ model UserInvestmentProfile {
   // ... 기존 필드 유지 ...
   defaultMode       String? @map("default_mode")        // "scalp" | "long_term"
   notificationLevel String? @map("notification_level")  // "low" | "medium" | "high"
-  benchmarkSymbol   String  @default("KRW-BTC") @map("benchmark_symbol")   // DB-REQ-005 에서 추가
 }
 ```
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-20 | `defaultMode`·`notificationLevel` 컬럼을 추가한다. **Swagger가 이미 계약으로 노출하고 있으므로 컬럼 추가가 맞다**(FEATURE-004는 "UI 숨김"도 대안으로 뒀으나, 계약이 이미 나가 있으면 컬럼이 낫다) | Must |
+| FR-20 | `defaultMode`·`notificationLevel` 컬럼을 추가한다. **Swagger가 이미 계약으로 노출하고 있으므로 컬럼 추가가 맞다**(FEATURE-004는 "UI 숨김"도 대안으로 뒀으나, 계약이 이미 나가 있으면 컬럼이 낫다). **개정 2026-09-21**: "UI 숨김" 대안을 닫는다 — 두 모드를 노출하고(D3) `defaultMode` 가 모드 스위치의 초기값이 된다(B16). `notificationLevel` 은 알림 1종(지표 · 추천 갱신, D5)의 빈도 단계다. `benchmarkSymbol`(옛 `DB-REQ-005`)은 ADR-002 로 삭제된 F001 소관이라 이 모델에 더하지 않는다 | Must |
 | FR-21 | 둘 다 nullable이다. 기존 row에 값이 없다 | Must |
 | FR-22 | 값 검증은 서비스 레이어가 한다. DB에 CHECK를 걸지 않는다 — 값 목록이 바뀔 수 있다 | Should |
 
@@ -137,9 +136,59 @@ model UserInvestmentProfile {
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-30 | FEATURE-004는 **3종 유지**(`ai_coach`·`behavior_analysis`·`risk_alert`)를 명시한다. `smart_buy_zone`은 **enum에 남기고 생성만 중단**한다 | Must |
+| FR-30 | **개정 2026-09-21 (D2)**: `smart_buy_zone` **생성 중단을 철회**한다. 스마트 바이존을 살리되 **새 규칙으로 서버가 계산**한다 — 보유 종목 = `profit-plan` 규칙 가격(손실 제한 · 1차 익절 · 추세 유지), 미보유 종목 = 과거 가격 분포 기반 **관찰 구간**. 워커가 남기는 구간 스냅샷의 `type` 이 `smart_buy_zone` 이다(구간 진입 후 결과를 나중에 셀 근거). **옛 예측형 매수존 로직(매수 적정가 · 수익률 표기)은 되살리지 않는다.** 원래 문장: "3종 유지, `smart_buy_zone`은 enum에 남기고 생성만 중단" | Must |
 | FR-31 | enum 값 제거는 Postgres에서 타입 교체다. **기존 row가 있으면 제거하지 않는다** | Must |
-| FR-32 | `smart_buy_zone` row가 0건이면 별도 릴리스에서 제거를 검토한다 | Should |
+| FR-32 | ~~`smart_buy_zone` row가 0건이면 별도 릴리스에서 제거를 검토한다~~ **개정 2026-09-21**: FR-30 개정으로 제거 검토 대상이 아니다 | — |
+
+## Schema — 종목 판단 스냅샷 · 게이지 적중률 (2026-09-21)
+
+근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D2 · D3 · B9 · B10 · B16 · B18.
+투자 화면 우측 AI 코치 패널과 상세 분석 페이지가 **종목 단위 판단**(`GET /api/ai-coach?symbol&mode`)에도
+3종 세트를 붙여야 한다(B10). 그런데 지금 종목 판단은 **요청 때 계산하고 버린다** — 저장되지 않으니
+성적표 표본이 영원히 0이다. 그래서 판단을 스냅샷으로 남기고, 게이지 적중률(B9)은 따로 집계한다.
+
+```prisma
+model InvestmentInsight {
+  // ... FR-1~8 의 승격 컬럼 유지 ...
+  mode        String?   @map("mode")           // "scalp" | "long_term" — 종목 판단 스냅샷만 채운다
+  // kind 에 "symbol_judgment" 추가 (FR-50)
+  // confidence Float? — 기존 컬럼. 지우지 않고 새 코드가 쓰지 않는다 (FR-54)
+
+  @@index([symbol, kind, mode, createdAt(sort: Desc)])
+}
+
+model GaugeTrackRecord {
+  id           String   @id @default(uuid())
+  symbol       String
+  gauge        String                          // "sentiment" | "smart_money"
+  bucket       String                          // "0_20" | "20_40" | "40_60" | "60_80" | "80_100"
+  horizonDays  Int      @default(30) @map("horizon_days")
+  sampleCount  Int      @map("sample_count")
+  p25Return    Decimal? @map("p25_return")  @db.Decimal(9, 4)
+  medianReturn Decimal? @map("median_return") @db.Decimal(9, 4)
+  p75Return    Decimal? @map("p75_return")  @db.Decimal(9, 4)
+  positiveRate Decimal? @map("positive_rate") @db.Decimal(5, 4)
+  windowFrom   DateTime @map("window_from")
+  windowTo     DateTime @map("window_to")
+  computedAt   DateTime @map("computed_at")
+
+  @@unique([symbol, gauge, bucket, horizonDays])
+  @@map("gauge_track_records")
+}
+```
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-50 | `kind` 에 **`symbol_judgment`** 를 더한다. 워커가 추적 자산(D8 · 보유 포함) × 두 모드 판단을 스냅샷으로 남긴다. **이것이 없으면 종목 경로의 적중률 표본이 영원히 0이다** | Must |
+| FR-51 | `mode` 컬럼을 승격한다. 종목 판단의 `signalType` 은 `<mode>.<action>`(예: `long_term.review_accumulation`)이고 모드별 성적표를 그룹으로 뽑아야 한다(`SRV-REQ-024` 매핑 표) | Must |
+| FR-52 | `@@index([symbol, kind, mode, createdAt DESC])` — 종목 · 모드별 최근 판단 조회를 덮는다 | Must |
+| FR-53 | 스냅샷 중복 방지는 기존 `@@unique([userId, type, dedupeKey])` 를 쓴다. `dedupeKey = symbol_judgment:<symbol>:<mode>:<시간 버킷>` | Must |
+| FR-54 | **신뢰도(`confidence`)를 계약에서 뺀다(D3).** 기존 `InvestmentInsight.confidence` 컬럼은 롤백 안전을 위해 **지우지 않고**, 새 코드가 쓰지도 읽지도 않는다. 새 컬럼 · 새 모델에 신뢰도 필드를 만들지 않는다 | Must |
+| FR-55 | **`GaugeTrackRecord` 신설 (B9).** 심리 온도계가 어떤 구간에 있던 과거 시점들의 **30일 뒤 수익률 분포**(하위 25% · 중앙값 · 상위 25% · 양수 비율 · 표본 수)를 미리 집계해 둔다. 입력은 `MarketSentiment`(`sentimentScore`, `@@index([symbol, calculatedAt])` 기존) + `PriceHistory` | Must |
+| FR-56 | `gauge = smart_money` 행은 같은 모양으로 둔다(입력: 대량 체결 순매수 구간). 집계 착수는 Should | Should |
+| FR-57 | `bucket` 경계(20 단위 5구간)는 **데이터**다. 바꾸면 전체 재집계한다 | Must |
+| FR-58 | 수익률 필드는 **과거 분포**다. **예상 수익 · 목표가 컬럼을 만들지 않는다**(공통 기준 ④). 관찰 구간(D2)의 하단·중앙·상단 가격도 저장 컬럼이 아니라 요청 시 `PriceHistory` 에서 계산하고, 워커 스냅샷은 `payload` 에만 싣는다 | Must |
+| FR-59 | 보유 여부는 **기존 `PortfolioTransaction` → `PortfolioHolding`** 에서 온다. 원장 확장(결제일 · 환율)은 없다(ADR-002) | Must |
 
 ## 공유 — `IndicatorTrackRecord`
 
@@ -162,13 +211,19 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 - [ ] **`CoachGenerationLog`가 있고 쿨다운 판정에 쓸 수 있다**
 - [ ] `CoachGenerationLog.llmSource`가 있다
 - [ ] `UserInvestmentProfile`에 `defaultMode`·`notificationLevel`이 있다
-- [ ] `InsightType`에 `smart_buy_zone`이 **남아 있다**(제거하지 않음)
+- [ ] `InsightType`에 `smart_buy_zone`이 **남아 있고**, 새 규칙(D2)의 구간 스냅샷이 이 타입으로 기록된다 (개정 2026-09-21)
+- [ ] `kind` 에 `symbol_judgment` 가 있고 `mode` 컬럼 · `(symbol, kind, mode, createdAt DESC)` 인덱스가 있다
+- [ ] 종목 판단 스냅샷이 `dedupeKey` 로 시간 버킷당 1건이다
+- [ ] **신규 코드에서 `confidence` 를 읽거나 쓰는 곳이 0건이다** (기존 컬럼은 남아 있다)
+- [ ] `GaugeTrackRecord` 가 있고 `@@unique([symbol, gauge, bucket, horizonDays])` 가 있다
+- [ ] 예상 수익 · 목표가 · 관찰 구간 가격 컬럼이 0건이다
+- [ ] `UserInvestmentProfile` 에 `benchmarkSymbol` 이 추가되지 않았다 (ADR-002)
 - [ ] `IndicatorTrackRecord`가 F003에서 정의되고 F004가 중복 생성하지 않았다
 - [ ] `npx prisma validate` · `generate` · `npm run build` 통과
 
 ## Dependencies
 
-- **선행:** `DB-REQ-001`(`AssetType`) · `DB-REQ-005`(`benchmarkSymbol`) · **`DB-REQ-013`(`IndicatorTrackRecord`)**
+- **선행:** `DB-REQ-001`(`AssetType` — Q2 로 유지 여부 열림) · **`DB-REQ-013`(`IndicatorTrackRecord`)**. ~~`DB-REQ-005`(`benchmarkSymbol`)~~ — ADR-002 로 삭제
 - **짝:** `DB-REQ-018`(불변식) · `019`(마이그레이션) · `020`(성능)
 - **소비:** `SRV-REQ-024`~`027`(F004 서버)
 
@@ -176,4 +231,13 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 
 - **`signalType`을 무엇으로 채울지.** `ai-coach-score.engine.ts`의 점수 스케일과 `signal-performance`의 그룹 키가 **1:1로 매핑되는지 확인이 필요하다**(FEATURE-004 Open Question). 매핑이 안 되면 카드가 어떤 성적표를 붙일지 결정할 수 없다 — **F004 착수 전 선결.**
 - `InvestmentInsight.payload`의 기존 구조가 문서화되어 있지 않다. 승격할 필드를 정하려면 실제 payload 샘플을 봐야 한다.
-- `defaultMode`·`notificationLevel`을 컬럼으로 추가할지 UI에서 숨길지. **Swagger가 이미 계약으로 노출**하고 있어 컬럼이 낫지만, 그 값을 실제로 쓰는 로직이 있는지 확인 필요.
+- ~~`defaultMode`·`notificationLevel`을 컬럼으로 추가할지 UI에서 숨길지.~~ **닫힘 2026-09-21** — 노출 + 컬럼 추가(B16).
+- **Q3 — 미보유 주식 종목의 관찰 구간.** 글로벌 플랜 §1-3 은 미보유 주식 신규 매수 추천을 ETF/지수로 한정한다. 결정 전까지 미보유 개별 주식은 구간 스냅샷을 남기지 않는다.
+- 종목 판단 스냅샷의 시간 버킷(1시간 · 1일). 버킷이 짧으면 표본이 빨리 쌓이지만 서로 독립이 아니다 — 성적표가 부풀려진다.
+- `GaugeTrackRecord` 를 종목별로 둘지 시장 전체로 둘지. 종목별이면 표본이 부족한 종목이 많다(표본 < 20 → 배지).
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. FR-30 개정(D2 — `smart_buy_zone` 생성 중단 철회, 새 규칙 서버 계산) · FR-32 무효화 · FR-20 개정(B16 노출 확정, `benchmarkSymbol` 제거 — ADR-002). 신규 FR-50~59(종목 판단 스냅샷 `symbol_judgment` · `mode` 컬럼 · 신뢰도 미사용(D3) · `GaugeTrackRecord`(B9) · 예측 컬럼 금지) |

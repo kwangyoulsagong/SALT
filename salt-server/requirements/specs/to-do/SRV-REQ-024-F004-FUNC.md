@@ -23,7 +23,7 @@ created: 2026-09-09
 | `signal-performance/*` | `coach/domain/policy/signalPerformance` + `coach/infrastructure/SignalPerformanceProjection` |
 | `profit-plan/*` | `coach/domain/policy/exitPlan` |
 | `trade-preflight/*` | `coach/domain/policy/preflight` |
-| `behavior-coach/*` + `investment-insight/behavior-analysis` | `coach/domain/policy/behaviorFact` + **거래 단위 라벨러**(F001이 소비) |
+| `behavior-coach/*` + `investment-insight/behavior-analysis` | `coach/domain/policy/behaviorFact` (~~거래 단위 라벨러 — F001이 소비~~ ADR-002 로 소비처 삭제) |
 | `investment-insight/{market-regime,portfolio-state,news-analysis,whale-signal,risk-alert,portfolio-rebalance}` | `market`(regime·news·whale) / `coach`(risk·rebalance) |
 
 | ID | 요구사항 | 우선순위 |
@@ -57,7 +57,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 
 ## 추천 범위 제한 — 법적 포지셔닝
 
-글로벌 플랜 1-3절: **개별 미국 주식 신규 매수 추천 금지.** 지수/ETF 단위 또는 보유 종목 관리(비중·손절·세금)만.
+글로벌 플랜 1-3절: **개별 미국 주식 신규 매수 추천 금지.** 지수/ETF 단위 또는 보유 종목 관리(비중·손절)만. (세금은 ADR-002 로 빠졌다)
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
@@ -94,7 +94,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-50 | 진입 후 비중 · 상한 초과 여부 · 최대 손실 · 손익비 · 잔여 현금을 계산한다 | Must |
+| FR-50 | 진입 후 비중 · 상한 초과 여부 · 최대 손실 · 손익비를 계산한다. **개정 2026-09-21**: "잔여 현금"을 뺀다 — 입금 · 현금 기록이 없다(ADR-002, 감사 문서 B13). 대신 **총자산 대비 최대손실**을 더한다(FR-152) | Must |
 | FR-51 | **게이트·차단 동작이 없다.** 계산 표시 전용이다. `blocked`·`allowed` 같은 필드를 만들지 않는다 | Must |
 | FR-52 | **주문을 실행하지 않는다.** 이 정책에 주문 관련 Port가 없다 | Must |
 | FR-53 | 기존 계산을 바꾸지 않는다. 이관만 한다 | Must |
@@ -106,8 +106,8 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-60 | 편향 판정을 **사실 서술 문장의 근거**로 변환한다. 서버는 **코드 + 수치**만 주고 문구는 프론트가 만든다 | Must |
 | FR-61 | **인격 평가 문구를 서버가 만들지 않는다.** "당신은 패닉셀러입니다" 같은 문장을 생성하지 않는다 | Must |
 | FR-62 | 기존 `behavior-coach` 응답 계약을 **유지**한다(하위 호환). `factCode` + `params`를 **추가**한다 | Must |
-| FR-63 | **거래 단위 라벨러를 `application/api`로 공개**한다. F001의 `invoice`가 ACL로 소비한다 | Must |
-| FR-64 | 기존 판정이 집계 기반이면 거래 단위로 분해되지 않을 수 있다. **그 경우 라벨러를 새로 쓰고 기존 응답은 그대로 둔다** | Must |
+| FR-63 | ~~거래 단위 라벨러를 `application/api`로 공개한다. F001의 `invoice`가 ACL로 소비한다~~ **개정 2026-09-21 (ADR-002)**: 소비처(F001 청구서)가 삭제됐다. 라벨러를 만들지 않는다 | — |
+| FR-64 | ~~기존 판정이 집계 기반이면 라벨러를 새로 쓴다~~ **개정 2026-09-21**: FR-63 과 함께 무효. 기존 집계 판정 + FR-62 의 `factCode`/`params` 로 충분하다 | — |
 | FR-65 | 거래 수 < 3이면 `insufficient_data`(기존 동작 유지) | Must |
 
 ## LLM 해설
@@ -141,6 +141,101 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-90 | 응답에 `scoreNote`를 담는다. **"점수는 확률이 아닙니다"** 를 화면이 표시할 근거 | Must |
 | FR-91 | 점수를 확률로 변환하는 코드를 만들지 않는다 | Must |
 
+## 종목 판단 경로 — 투자 화면 우측 패널 · 상세 분석 페이지 (2026-09-21)
+
+근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D2 · D3 · D4 · D7 · B1 · B3 · B9 · B10 · B17 · B18 · Q3.
+`FEATURE-004` 는 `FEATURE-000` FR-33(우측 프리뷰 AI 카드)을 이관받아 **우측 AI 코치 패널**로 키웠다. 서버 쪽 출발점은
+`GetSymbolCoach`(`src/coach/application/GetSymbolCoach.ts`) — 이미 두 모드 판단(`dualDecision`)을 한 번에 만든다.
+빠진 것은 **3종 게이트 · 바이존 · 게이지 적중률 · 신뢰도 제거**다.
+
+### A. 모드 판단과 신뢰도 (D3 · B10)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-100 | 종목 판단은 **두 모드를 늘 함께** 계산해 내려보낸다(`modes.scalp` · `modes.longTerm`). 화면이 모드를 바꿔도 서버를 다시 부르지 않는다 — 기존 `dualDecision` 설계를 유지한다 | Must |
+| FR-101 | 판단 라벨은 서버 **중립 라벨 4종**이다: `review_short_opportunity`(단타 기회 후보) · `review_accumulation`(장기 모아가기 후보) · `wait`(관망) · `avoid`(지금은 피하기). **"매수"·"매도" 명령형 라벨을 만들지 않는다**(`modeDecision.ts` 기존) | Must |
+| FR-102 | **신뢰도를 없앤다.** `makeModeDecision` 의 `confidence`(`0.45 + score/200`) 필드를 응답 타입에서 제거하고, `CoachExplanationInput.confidence`(Gemini 입력)도 뺀다. 점수 + `scoreNote` + 3종이 대체한다 | Must |
+| FR-103 | **유효시간은 서버가 정한 하나의 표기**다. 기존 `timeframe`(`5m-24h` · `1w-1y`)을 `validity.code` 로 싣고, 해설(`CoachExplanation.timeframe`)도 **LLM 이 만들지 않고 이 값을 주입**한다. 화면 자체 값(프로토타입 "25분 / 30일") 금지 | Must |
+| FR-104 | 모드별로 **3종 게이트**를 적용한다: `renderable` · `blockedReason` · `trackRecord` · `failureCases`. 게이트 함수는 FR-10 의 `renderGate.ts` 를 그대로 쓴다 — 저장 추천과 종목 판단이 **같은 함수**를 지난다 | Must |
+| FR-105 | 근거 = `reasons[]`(비어 있지 않음). 적중률 = 매핑 표(FR-130)로 찾은 `<mode>.<action>` 성적표. 실패사례 = 매핑된 `IndicatorTrackRecord` | Must |
+| FR-106 | `renderable: false` 여도 **200** 이고, 게이지 · 뉴스 · 바이존은 그대로 응답한다. 게이트는 **판단 블록**에만 걸린다 | Must |
+| FR-107 | **종목 판단 스냅샷을 남긴다.** 워커가 추적 자산(D8 — 최대 10 + 보유) × 2모드 판단을 `InvestmentInsight(kind: symbol_judgment, mode, signalType)` 로 upsert 한다(`DB-REQ-017` FR-50~53). 스냅샷이 없으면 종목 경로 성적표 표본이 영원히 0이다 | Must |
+| FR-108 | 헤드라인 문구(`headline`)에 확신 표현 · 목표가 · 수익률이 없다. 기존 문구("손절 기준 없이 진입하지 마세요")는 행동 서술이라 유지한다 | Must |
+
+### B. 스마트 바이존 — 보유 = 내 규칙 가격, 미보유 = 관찰 구간 (D2)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-110 | 응답에 모드별 `zone` 을 싣는다. **판별 필드 `kind`** 로 셋 중 하나다: `held_rule` · `observation` · `unavailable` | Must |
+| FR-111 | **`held_rule` (보유)**: `calculateProfitPlan`(`domain/policy/profitPlan.ts`)의 3단계를 그대로 쓴다 — `protect_loss`(손실 제한) · `first_profit`(1차 익절 검토) · `trend_hold`(추세 유지 = 평단 × 1.25, 스토리보드의 "2차"). 각 단계에 `price` · `distancePct`(현재가와의 거리) · `ratio`. 계산식을 바꾸지 않는다(FR-43) | Must |
+| FR-112 | **`observation` (미보유)**: 과거 가격 분포 기반 **관찰 구간** `lower` · `mid` · `upper` + `ruleCode` + `lookback` + `sample`. 기본 규칙(기본값 — 착수 전 확정): 단타 = 최근 24시간 `m5` 종가의 20 · 50 · 80 백분위, 장기 = 최근 1년 일봉 종가의 20 · 50 · 80 백분위. **가격 목표가 아니다** | Must |
+| FR-113 | 둘 다 `notPrediction: true` 를 싣는다. 화면이 `예측 아님` 라벨을 붙일 근거다 | Must |
+| FR-114 | **수익률 % 필드를 만들지 않는다.** `distancePct` 는 현재가와 가격선 사이의 간격이고, 이름 · 문서에서 "수익"이라 부르지 않는다. 예상 도달 시점 · 확률 필드 0건 | Must |
+| FR-115 | **Q3 결정 전 보수안**: `us_stock` · 미보유 · 지수/ETF 아님 → `unavailable`(`scope_undecided`). `kr_stock` → `unavailable`(`excluded_asset`). 가격 이력 부족 → `unavailable`(`insufficient_price_history`) | Must |
+| FR-116 | 보유 판정 · 평단은 `PortfolioProbe`(기존 `PortfolioTransaction` 집계)에서 온다. 원장 확장 없음(ADR-002) | Must |
+| FR-117 | 구간 스냅샷을 워커가 `type: smart_buy_zone` 으로 남긴다(`DB-REQ-017` FR-30 개정). 옛 예측형 매수존(매수 적정가 · 수익률) 로직을 되살리지 않는다 | Should |
+
+### C. 게이지 아래 적중률 한 줄 (B9)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-120 | 응답에 `gaugeTrackRecords[]` 를 싣는다: `{ gauge, bucketCode, currentValue, horizonDays: 30, sample, p25, median, p75, positiveRate, lowSample }` | Must |
+| FR-121 | 값은 **`GaugeTrackRecord` 사전 집계**에서 읽는다(`DB-REQ-017` FR-55). 입력 = `MarketSentiment` 이력 + `PriceHistory` → "이 구간에 들어간 뒤 30일 수익률 분포" | Must |
+| FR-122 | `sample < 20` → `lowSample: true`. 표본 0 이면 그 게이지 항목을 `null` 로 둔다(한 줄이 사라진다 — 근거 없는 문장보다 낫다) | Must |
+| FR-123 | 이 값은 **과거 분포**다. "앞으로 +X%" 로 읽히는 필드명 · 문구를 서버가 만들지 않는다. 문구는 프론트(`예측 아님` 포함) | Must |
+| FR-124 | `sentiment` 는 Must, `smart_money`(대량 체결 순매수 구간)는 같은 계약으로 Should | Should |
+
+### D. `signalType` ↔ 성적표 ↔ 실패 이력 매핑 표 (B18)
+
+매핑은 **데이터로 시드**한다(`DB-REQ-019` FR-20~24 · FR-45). 아래가 그 시드의 원본이다.
+
+| 판단 경로 | 입력 | `signalType` | 성적표 표본 (`signal-performance?groupBy=signalType`) | 실패 이력 (`IndicatorTrackRecord`) |
+|---|---|---|---|---|
+| 저장 추천 (코치 리포트 · 홈) | `recommendation.action` | `coach.buy` · `coach.sell` · `coach.hold` · `coach.rebalance` | `kind = recommendation` 행 | `signalTypes` 에 포함된 레코드 |
+| 종목 판단 · 단타 | `modes.scalp.action` | `scalp.review_short_opportunity` · `scalp.review_accumulation`* · `scalp.wait` · `scalp.avoid` | `kind = symbol_judgment` · `mode = scalp` 행 | 동일 |
+| 종목 판단 · 장기 | `modes.longTerm.action` | `long_term.review_short_opportunity`* · `long_term.review_accumulation` · `long_term.wait` · `long_term.avoid` | `kind = symbol_judgment` · `mode = long_term` 행 | 동일 |
+
+\* 현재 `makeModeDecision` 은 단타에서 `review_accumulation`, 장기에서 `review_short_opportunity` 를 내지 않는다. 시드에는 두되 표본이 0이다.
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-130 | 위 표를 **이 REQ 의 계약**으로 둔다. 기존 fallback 체인(`signalKey ?? payload.mode ?? recommendation.action ?? 'ai_coach'`)을 신규 코드에서 쓰지 않는다 | Must |
+| FR-131 | 매핑이 없거나 실패 이력이 연결되지 않은 `signalType` 은 **게이트 차단**이고 에러가 아니다 | Must |
+| FR-132 | **표본이 없어 전부 미렌더인 초기 상태는 정상이다.** 응답에 `trackRecord.sample: 0` 을 그대로 싣고(`null` 과 구분), 화면이 "표본이 쌓이는 중"을 보여줄 근거를 준다 | Must |
+| FR-133 | 게이트 차단 사유별 카운터(FR-17)를 **경로별**(저장 추천 / 종목 판단 × 모드)로 나눈다 | Must |
+
+### E. 해설 (B3)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-140 | 즉석 해설(`POST /api/ai-coach/explain`)은 `modeReasoning` · `keyDrivers` · `risks` · **`newsSummary`(최대 5줄)** · `disclaimer` 를 준다. **예상 수익 범위는 없다**(`GeminiCoachExplainer` · `CoachExplanation` 에서 2026-09-18 제거 — 되살리지 않는다) | Must |
+| FR-141 | 해설 응답에 같은 종목 · 모드의 `renderable` · `trackRecord` · `failureCases` 를 함께 싣는다. **판단이 `renderable: false` 면 해설을 생성하지 않는다**(LLM 을 부르지 않는다) — 3종 없는 해설이 추천처럼 읽힌다 | Must |
+| FR-142 | `newsSummary` 는 입력으로 준 기사(`news[]`)만 요약한다. 기사가 0건이면 빈 배열이다 | Must |
+
+### F. 주문 전 체크 (B1)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-150 | **목표가(`takeProfitPrices`)는 선택 입력이다.** 서버가 기본값을 채우지 않는다. 없으면 `riskRewardRatio: null` | Must |
+| FR-151 | 주문 · 외부 링크 필드를 만들지 않는다(`orderExecution: false` 사실 서술만 유지) | Must |
+| FR-152 | **`maxLossOfTotalRate`(총자산 대비 최대손실)** 를 추가한다: `maxLossAmount / totalValue`. 서버 계산, 원 단위 · 비율 | Must |
+| FR-153 | 손절 칩(−1.5 · −3 · −5 · −8 · −12%)은 화면이 `stopPrice` 로 바꿔 보낸다 — **환산도 서버**에서 한다: 요청에 `stopLossRate` 를 받으면 서버가 `stopPrice` 를 계산한다 | Must |
+
+### G. 코치 리포트 · 추천 근거 상세 (B15 · B17 · B2)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-160 | 성적표 그룹 응답에 **신호 후 30일 수익률 분포**를 싣는다: 구간별 표본 수(`≤−20% · −20~−10 · −10~0 · 0~10 · 10~20 · ≥20%`) + 하위 25% · 중앙값 · 상위 25% (B17). 과거 분포이고 예측이 아니다 | Must |
+| FR-161 | 실패 이력과 적중 이력을 **같은 모양**으로 싣는다(`hits[]` · `misses[]` 같은 필드 구조, 같은 상한 3건). 한쪽만 요약하지 않는다(B2) | Must |
+| FR-162 | 코치 탭은 대화 + 추천 카드, F004 섹션은 코치 리포트로 간다(B15) — **서버 계약은 바뀌지 않는다**(`/api/coach/detail` 그대로) | Must |
+
+### H. 범위 밖
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-170 | **관심 종목 목록 응답에 판단 · 신호 필드를 붙이지 않는다**(D4). 판단은 종목 판단 경로에서만 | Must |
+| FR-171 | 알림 만들기 · 사용자 조건 알림(B19)은 이 REQ 에 없다 | — |
+
 ## Acceptance Criteria
 
 - [ ] `coach` 컨텍스트가 5개 모듈을 통합한다
@@ -172,7 +267,8 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 - [ ] preflight에 주문 Port가 0건이다
 - [ ] 행동 기록이 코드 + 수치이고 **인격 평가 문장이 0건이다**
 - [ ] 기존 `behavior-coach` 응답이 하위 호환이다
-- [ ] **거래 단위 라벨러가 `application/api`로 공개된다**
+- [ ] ~~거래 단위 라벨러가 `application/api`로 공개된다~~ (ADR-002 로 무효)
+- [ ] preflight 에 잔여 현금 필드가 0건이고 `maxLossOfTotalRate` 가 있다
 - [ ] LLM이 숫자를 만들지 않는다 (프롬프트 주입 확인)
 - [ ] LLM 실패 시 `explanation.source: 'rule'`로 폴백된다
 - [ ] **확신 표현이 후처리로 검사되고 0건이다**
@@ -184,11 +280,33 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 - [ ] 쿨다운이 설정값이다
 - [ ] 워커 생성이 쿨다운 대상이 아니다
 - [ ] `scoreNote`가 응답에 있다
+- [ ] 종목 판단이 두 모드를 한 응답에 싣는다
+- [ ] **종목 판단 응답 · 해설 입력에 `confidence` 가 0건이다**
+- [ ] 판단 라벨이 중립 4종이고 "매수"·"매도" 라벨이 0건이다
+- [ ] 유효시간이 `validity.code` 하나이고 해설의 `timeframe` 이 그 값과 같다
+- [ ] **종목 판단에서 `trackRecord` 를 null 로 만들면 `renderable: false` 다** (모드별)
+- [ ] 종목 판단 `renderable: false` 에서도 게이지 · 뉴스 · 바이존이 응답된다
+- [ ] 워커가 종목 판단 스냅샷을 (종목 · 모드 · 버킷)당 1건 남긴다
+- [ ] 보유 종목 `zone.kind = held_rule` 이고 가격이 `calculateProfitPlan` 과 같다
+- [ ] 미보유 크립토 `zone.kind = observation` 이고 하단 ≤ 중앙 ≤ 상단이다
+- [ ] 미보유 개별 미국 주식이 `unavailable(scope_undecided)` 다
+- [ ] `zone` 에 수익률 · 목표가 · 확률 필드가 0건이고 `notPrediction: true` 다
+- [ ] `gaugeTrackRecords` 가 사전 집계에서 오고 표본 < 20 에서 `lowSample: true` 다
+- [ ] 매핑 표 12행이 시드되고 fallback 체인 사용이 신규 코드에 0건이다
+- [ ] 표본 0 이 `sample: 0` 으로 오고 `null` 과 구분된다
+- [ ] 게이트 카운터가 경로 · 모드별이다
+- [ ] 해설에 `newsSummary` ≤ 5 가 있고 예상 수익 필드가 0건이다
+- [ ] 판단 `renderable: false` 에서 해설 요청이 LLM 을 부르지 않는다
+- [ ] preflight 목표가를 비우면 `riskRewardRatio: null` 이고 서버 기본값이 0건이다
+- [ ] 성적표 그룹에 30일 수익률 분포가 있다
+- [ ] 적중 · 실패 이력이 같은 구조 · 같은 상한이다
+- [ ] 관심 종목 응답에 판단 필드가 0건이다
 
 ## Dependencies
 
 - **선행:** `SRV-REQ-006`(DDD) · `DB-REQ-017`~`020` · **`SRV-REQ-020`(F003 `IndicatorTrackRecord`)**
-- **공개:** 거래 단위 라벨러를 F001의 `invoice`가 소비한다
+- ~~**공개:** 거래 단위 라벨러를 F001의 `invoice`가 소비한다~~ — ADR-002 로 소비처 삭제
+- **짝:** `DB-REQ-017` FR-50~59 · `DB-REQ-018` FR-60~68 (종목 판단 · 게이지)
 - **규칙:** `ddd-domain.md` · `i18n-policy.md`(문구 정책)
 
 ## Open Questions
@@ -197,5 +315,16 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 - **성적표 표본이 실제로 몇 건 쌓여 있는지.** 거의 없으면 초기에 모든 카드가 미렌더된다 → FR-32의 초기 정책 결정이 필요하다.
 - **지수/ETF 판정 데이터**(`DB-REQ-018` Open Question). 없으면 미국주식 추천을 전부 거부해야 한다.
 - 미국주식 추천에 필요한 `TechnicalIndicator` 계산이 현재 크립토 전용인지.
-- `behavior-coach`의 기존 판정이 집계 기반인지 거래 단위인지.
+- ~~`behavior-coach`의 기존 판정이 집계 기반인지 거래 단위인지.~~ — 라벨러 무효(FR-63 개정)로 결정할 필요가 없어졌다.
 - 피드백을 점수 엔진에 반영할지.
+- **Q3 — 미보유 주식 종목의 관찰 구간.** FR-115 는 결정 전 보수안(개별 주식 미보유 → `unavailable`).
+- **종목 판단의 실패 이력은 어디서 오는가.** 종목 판단은 RSI · 심리 · 대량 체결로 점수를 매기는데 `IndicatorTrackRecord`(F003)는 밸류에이션 지표 실패 이력이다. 이어지지 않으면 종목 경로는 **항상 미렌더**이고, 렌더하려면 종목 판단용 실패 이력을 따로 적재해야 한다 — 누가 · 언제 적재할지 미정.
+- 관찰 구간 규칙 파라미터(FR-112 — 기간 · 백분위수)의 확정. 20/80 은 스토리보드 값이 아니라 이 REQ 의 기본값이다.
+- 종목 판단 스냅샷의 시간 버킷과 표본 독립성(`DB-REQ-017` Open Question).
+- ~~거래 단위 라벨러~~ — ADR-002 로 닫힘.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 신규 FR-100~171: 종목 판단 경로(두 모드 · 중립 라벨 · **신뢰도 제거**(D3) · 유효시간 단일 표기 · 3종 게이트(B10) · 판단 스냅샷), 스마트 바이존(D2 — 보유 규칙 가격 / 미보유 관찰 구간 / Q3 보수안), 게이지 적중률(B9), **`signalType` 매핑 표**(B18), 해설 뉴스 5줄 · 예상 수익 없음(B3), 주문 전 체크(B1 — 목표가 빈칸 · 총자산 대비 최대손실), 30일 수익률 분포(B17) · 적중/실패 동등(B2), 관심 종목 신호 범위 밖(D4). 개정: FR-50(잔여 현금 제거) · FR-63/64(라벨러 무효 — ADR-002) · 범위 제한 절의 "세금" 삭제 |
