@@ -32,20 +32,27 @@ features/{slice}/
 
 | 슬라이스 | 하는 일 | 기능 |
 |---|---|---|
-| `import-ledger` | CSV 업로드 · 파싱 결과 표시 · 실패 행 처리 | F001 |
-| `register-exchange-key` | 조회 전용 키 등록 · 스코프 검사 결과 표시 | F001 |
-| `solve-harvest` | 손실 수확 솔버 실행 · 후보 3개 표시 | F002 |
-| `simulate-crypto-scenario` | 연말 시가 슬라이더 · 3열 재계산 (클라이언트) | F002 |
 | `ask-coach` | 코치 대화 전송 · SSE 구독 · 스트리밍 표시 | F006 |
 | `rate-recommendation` | 추천 피드백 (도움 됐음/안 됨 + 사유) | F004 |
 | `run-preflight` | 주문 전 계산 (게이트 없음) | F004 |
 | `complete-weekly-plan` | 이번 주 적립 완료 체크 | F003 |
-| `edit-plan-settings` | 기본 적립액 · 배수 · 임계값 편집 | F003 |
+| `edit-plan-settings` | 월 적립액 편집 (밴드 임계값은 읽기 전용 — 감사 문서 D9) | F003 |
 | `add-goal` | 목표 저축 추가 | F000 |
 | `toggle-watchlist` | 관심 종목 추가·제거 | F000 |
 | `accept-invite` | 초대 코드 입력·검증 | F000 |
 | `arrange-panels` | PC 이진분할 격자 배치 변경 | F006 |
 | `sign-in` | 로그인 · 세션 저장 · 홈 이동 | 현행 |
+| `search-asset` | 종목 검색 · 추적 자산 추가(상한 10) | F000 |
+| `toggle-news-bookmark` | 뉴스 북마크 추가·해제 | F000 |
+| `switch-coach-mode` | 단타/장기 모드 전환 (URL 이 유일한 저장소) | F004 |
+| `explain-symbol` | 종목 판단 해설 요청 | F004 |
+| `record-transaction` | 보유 거래 기록 추가·수정·삭제 + 서버 미리보기 | F006 |
+| `mark-alert-read` | 알림 읽음 · 모두 읽음 | F006 |
+| `toggle-alerts` | 알림 켜기/끄기 | F006 |
+| `skip-onboarding-step` | 온보딩 2단계 건너뛰기 | F006 |
+
+> **2026-09-21** — F001·F002 가 빠지면서(`ADR-002`) `import-ledger` · `register-exchange-key` ·
+> `solve-harvest` · `simulate-crypto-scenario` 를 지웠다. 레지스트리 코드도 같이 고쳤다.
 
 > `sign-in`은 REQ 초안 목록에 없었다. **기존 로그인 화면이 이미 mutation을 갖고 있어서**
 > 갈 곳이 필요했다(`entities/*/api`는 조회만 둔다). 초대제로 바뀌면(`FE-REQ-011`)
@@ -54,13 +61,6 @@ features/{slice}/
 ## 금지된 것 — 이 제품의 제약이 features에 걸린다
 
 - **주문을 실행하는 feature를 만들지 않는다.** `run-preflight`는 계산 표시 전용이고 게이트·차단 동작이 없다.
-- **금액을 계산하는 feature를 만들지 않는다.** 예외는 `simulate-crypto-scenario` 하나 — 서버가 준 파라미터로 클라이언트에서 재계산한다(슬라이더 60fps 요구). 그 결과가 서버 계산과 **원 단위까지 일치**해야 한다.
+- **금액을 계산하는 feature를 만들지 않는다. 예외는 없다.** 하나 있던 예외(`simulate-crypto-scenario`)는 F002 와 함께 빠졌다(`ADR-002`). `record-transaction` 의 평단 전후도 서버 미리보기다.
 - **낙관적 갱신은 피드백·체크 같은 비금액 상태에만** 허용한다. 금액 화면에서 금지.
 
-## 클라이언트 재계산의 유일한 예외
-
-`simulate-crypto-scenario`가 서버 왕복 없이 계산하는 이유는 슬라이더가 −40%~+80% 구간을 실시간으로 훑기 때문이다. 규칙:
-
-1. 서버가 계수·세율·공제·취득가액을 응답에 담아 준다.
-2. 클라이언트는 그 값으로만 계산한다. **하드코딩 상수 0건.**
-3. 슬라이더를 놓으면 서버 계산과 대조해 불일치 시 서버 값으로 덮는다.

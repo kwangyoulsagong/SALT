@@ -33,19 +33,19 @@ const run = (filePath, content) => {
 const BLOCKED = [
   {
     name: "1. domain → application",
-    file: `${SRC}/tax/domain/CostBasisLot.ts`,
+    file: `${SRC}/plan/domain/CostBasisLot.ts`,
     code: `import { SolveHarvest } from "../application/SolveHarvest";`,
     rule: "domain-to-application",
   },
   {
     name: "2. domain → @prisma/client",
-    file: `${SRC}/ledger/domain/Transaction.ts`,
+    file: `${SRC}/portfolio/domain/Transaction.ts`,
     code: `import { PrismaClient } from "@prisma/client";`,
     rule: "domain-framework",
   },
   {
     name: "3. domain → express · zod",
-    file: `${SRC}/invoice/domain/Attribution.ts`,
+    file: `${SRC}/coach/domain/Attribution.ts`,
     code: `import { z } from "zod";`,
     rule: "domain-framework",
   },
@@ -64,19 +64,19 @@ const BLOCKED = [
   {
     name: "6. shared → 컨텍스트",
     file: `${SRC}/shared/presentation/errorMiddleware.ts`,
-    code: `import { TaxError } from "../../tax/domain/TaxError";`,
+    code: `import { TaxError } from "../../plan/domain/TaxError";`,
     rule: "shared-to-context",
   },
   {
     name: "7. 컨텍스트 → 타 컨텍스트 내부 (application/api 아님)",
-    file: `${SRC}/invoice/application/RecomputeSnapshot.ts`,
-    code: `import { CostBasisLot } from "../../tax/domain/CostBasisLot";`,
+    file: `${SRC}/coach/application/RecomputeSnapshot.ts`,
+    code: `import { CostBasisLot } from "../../plan/domain/CostBasisLot";`,
     rule: "cross-context",
   },
   {
     name: "8. presentation → 타 컨텍스트 공개 API",
-    file: `${SRC}/invoice/presentation/invoice.controller.ts`,
-    code: `import type { CostBasisView } from "../../tax/application/api";`,
+    file: `${SRC}/coach/presentation/coach.controller.ts`,
+    code: `import type { CostBasisView } from "../../plan/application/api";`,
     rule: "presentation-cross-context",
   },
   {
@@ -97,27 +97,27 @@ const BLOCKED = [
 const ALLOWED = [
   {
     name: "application → domain",
-    file: `${SRC}/tax/application/SolveHarvest.ts`,
+    file: `${SRC}/plan/application/SolveHarvest.ts`,
     code: `import { CostBasisLot } from "../domain/CostBasisLot";`,
   },
   {
     name: "infrastructure → domain (Port 구현)",
-    file: `${SRC}/tax/infrastructure/PrismaLotStore.ts`,
+    file: `${SRC}/plan/infrastructure/PrismaLotStore.ts`,
     code: `import { LotStore } from "../domain/LotStore";\nimport { PrismaClient } from "@prisma/client";`,
   },
   {
     name: "presentation → application",
-    file: `${SRC}/tax/presentation/tax.controller.ts`,
+    file: `${SRC}/plan/presentation/plan.controller.ts`,
     code: `import { SolveHarvest } from "../application/SolveHarvest";`,
   },
   {
     name: "application → 타 컨텍스트 공개 API",
-    file: `${SRC}/invoice/application/RecomputeSnapshot.ts`,
-    code: `import type { CostBasisView } from "../../tax/application/api";`,
+    file: `${SRC}/coach/application/RecomputeSnapshot.ts`,
+    code: `import type { CostBasisView } from "../../plan/application/api";`,
   },
   {
     name: "컨텍스트 → shared",
-    file: `${SRC}/tax/domain/TaxableGain.ts`,
+    file: `${SRC}/plan/domain/TaxableGain.ts`,
     code: `import { Money } from "../../shared/domain/Money";\nimport Decimal from "decimal.js";`,
   },
   {

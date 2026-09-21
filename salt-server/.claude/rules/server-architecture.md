@@ -50,21 +50,20 @@ presentation → application → domain ← infrastructure
 
 이름은 프론트 FSD 슬라이스와 **동일**하다(`salt-microFe/.claude/rules/layered-architecture.md` §4). 새 컨텍스트는 이 표에 먼저 추가한다.
 
+> **2026-09-21** — `ledger` · `invoice` · `tax` 를 지웠다(`ADR-002`). 보유 기록은 `portfolio` 가 기존 `PortfolioTransaction` 으로 갖는다.
+
 | 컨텍스트 | 책임 | 근거 기능 |
 |---|---|---|
 | `auth` | 초대 코드 검증 · 세션 · 토큰 발급/갱신 | F000 |
-| `ledger` | 거래 원장 · CSV import · 거래소 조회 키 · 원장 건강도 | F001 |
-| `portfolio` | 보유 재계산 · 평가 · 3자산군 합산 | F001 F006 |
-| `market` | 시세 동기화 · 관심 종목 · 차트 · 기술 지표 | F000 |
-| `coach` | 점수 엔진 · 추천 · 근거 3종 조립 · 대화 · 성적표 · 피드백 | F004 F006 |
-| `invoice` | 반사실 3트랙 · 거래별 귀속 · 편향 라벨 · 항등식 검증 | F001 |
-| `tax` | 취득가액 lot · 손실수확 솔버 · 환율 함정 · 스텝업 · 결제 캘린더 · 증빙 | F002 |
+| `portfolio` | 보유 거래 기록 · 보유 재계산 · 평가 · 평가금 흐름 · 리스크 레이더 | F006 |
+| `market` | 시세 동기화 · 관심 종목 · 추적 자산 · 검색 · 차트 · 기술 지표 | F000 |
+| `coach` | 점수 엔진 · 추천 · 종목 판단 · 바이존/관찰 구간 · 근거 3종 조립 · 대화 · 성적표 · 피드백 | F004 F006 |
 | `plan` | 밸류에이션 밴드 · 주간 계획 · 김프 · 실행 기록 | F003 |
 | `indicator` | 지표 수집·스냅샷 · **실패 이력** | F003 F004 |
-| `fx` | 환율 원장 · 결제일 기준환율 | F001 F002 |
+| `fx` | 환율 · 김프 | F003 |
 | `goal` | 목표 저축 | F000 |
-| `news` | 뉴스 수집·조회 | F000 |
-| `notification` | 알림 2종 (세금 D-Day · 지표/추천 갱신) | F000 F002 |
+| `news` | 뉴스 수집·조회 · 북마크 | F000 |
+| `notification` | 알림 1종 (지표/추천 갱신) · 읽음 | F000 F006 |
 | `device` | 디바이스 등록 · 푸시 발송 · 앱 버전 게이트 | F007 |
 
 ### 조합 컨텍스트
@@ -73,8 +72,8 @@ presentation → application → domain ← infrastructure
 
 | 컨텍스트 | 엮는 것 | 근거 |
 |---|---|---|
-| `homebriefing` | portfolio + plan + coach + tax + invoice | F006 홈 5블록 |
-| `onboarding` | auth + ledger + plan | F000 3스텝 |
+| `homebriefing` | portfolio + plan + coach | F006 홈 3블록 |
+| `onboarding` | auth + portfolio + plan | F000 · F006 3스텝 (초대 → 첫 보유 기록 → 적립액) |
 
 **조립이 행을 남기면 그 행의 주인을 먼저 찾는다.** 조합 컨텍스트에 Aggregate를 두려면 `domain`이 필요해지고, 그건 "Aggregate가 없다"는 전제를 되돌리는 것이다.
 
@@ -92,11 +91,11 @@ DevAtlas는 JPA 엔티티와 Aggregate를 겸하게 했다(`jakarta.persistence`
 
 ```ts
 // ❌ 남의 Aggregate·리포지토리·컨트롤러
-import { CostBasisLot } from '../tax/domain/CostBasisLot';
-import { PrismaLotStore } from '../tax/infrastructure/PrismaLotStore';
+import { PlanWeek } from '../plan/domain/PlanWeek';
+import { PrismaPlanStore } from '../plan/infrastructure/PrismaPlanStore';
 
 // ✅ 그 컨텍스트가 공개한 것만
-import type { CostBasisQuery, CostBasisView } from '../tax/application/api';
+import type { WeeklyPlanQuery, WeeklyPlanView } from '../plan/application/api';
 ```
 
 - 공개 API를 부를 수 있는 것은 **`application`과 `infrastructure`뿐**이다. `presentation`이 남의 컨텍스트를 부르고 있으면 그 조합은 조합 컨텍스트의 일이다.
@@ -145,4 +144,4 @@ cron.schedule('0 0 9 * * 1', () => recomputeInvoiceSnapshot.execute({ userId }))
 ## 8. 영속화
 
 - PostgreSQL + Prisma. 스키마 변경은 **마이그레이션으로만**. 상세는 `prisma-database.md`, `performance-database.md`.
-- **금액은 `Decimal`.** 신규 컬럼에 `Float`를 쓰지 않는다. 청구서 항등식 허용치가 100원이다.
+- **금액은 `Decimal`.** 신규 컬럼에 `Float`를 쓰지 않는다. 평단 · 평가금액 · 적립액이 원 단위로 맞아야 한다.

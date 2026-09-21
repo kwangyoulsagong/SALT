@@ -37,8 +37,8 @@ entities/{slice}/
 
 | 상황 | 잘못된 해결 | 맞는 해결 |
 |---|---|---|
-| 청구서가 가격 이력을 쓴다 | `entities/invoice` → `entities/market` | 서버가 이미 합쳐서 준다. BFF 뷰모델을 쓴다 |
-| 세금이 보유 수량을 쓴다 | `entities/tax` → `entities/portfolio` | 동일. `tax/cockpit` 응답에 들어 있다 |
+| 코치 패널이 보유 평단을 쓴다 | `entities/coach` → `entities/portfolio` | 서버가 이미 합쳐서 준다(profit-plan). BFF 뷰모델을 쓴다 |
+| 포지션이 현재가를 쓴다 | `entities/portfolio` → `entities/market` | 동일. 포지션 응답에 평가금액이 들어 있다 |
 | 코치 카드가 실패 이력을 쓴다 | `entities/coach` → `entities/indicator` | 동일. `failureCases`가 응답 필드다 |
 | 자산군 enum을 여럿이 쓴다 | 각자 정의 | `shared/model`에 한 번 |
 | 금액·퍼센트 포맷 | 각자 정의 | `shared/lib` |

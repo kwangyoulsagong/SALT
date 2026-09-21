@@ -31,16 +31,17 @@ widgets/{slice}/
 
 | widget | 엮는 것 | 화면 |
 |---|---|---|
-| `home-briefing` | portfolio + plan + coach + tax + invoice | 홈 5블록 |
+| `home-briefing` | portfolio + plan + coach | 홈 3블록 (2026-09-21, `ADR-002`) |
 | `coach-console` | coach + indicator + portfolio | 코치 대화 + 추천 카드 + 성적표 |
-| `asset-workspace` | portfolio + invoice + tax | 자산 탭 세그먼트 3 |
+| `asset-workspace` | portfolio + market | 자산 탭 세그먼트 3 (포지션/시장/관심 종목) |
+| `coach-panel` | market + coach + indicator | 투자 우측 AI 코치 패널 |
 | `market-board` | market + news + indicator | 실시간 테이블 + 우측 프리뷰 |
-| `onboarding-flow` | auth + ledger + plan | 초대→계좌→적립 3스텝 |
+| `onboarding-flow` | auth + portfolio + plan | 초대→첫 보유 기록→적립 3스텝 |
 | `pc-panel-grid` | `MovableGrid` + 위 위젯들 | PC 이진분할 배치 |
 
 ## 부분 실패는 위젯이 격리한다
 
-홈 5블록은 소스가 5개이고 지연·실패가 제각각이다. **블록 하나가 죽어도 나머지가 살아야 한다**(F006 FR-5).
+홈 3블록은 소스가 3개이고 지연·실패가 제각각이다. **블록 하나가 죽어도 나머지가 살아야 한다**(F006 FR-5).
 
 ```tsx
 // widgets/home-briefing/ui/HomeBriefing.tsx  (서버 컴포넌트)
@@ -50,8 +51,6 @@ export function HomeBriefing() {
       <BlockBoundary name="total-asset"><TotalAssetBlock /></BlockBoundary>
       <BlockBoundary name="weekly-plan"><WeeklyPlanBlock /></BlockBoundary>
       <BlockBoundary name="coach"><CoachHighlightBlock /></BlockBoundary>
-      <BlockBoundary name="tax"><TaxDeadlineBlock /></BlockBoundary>
-      <BlockBoundary name="invoice"><InvoiceSummaryBlock /></BlockBoundary>
     </>
   );
 }
