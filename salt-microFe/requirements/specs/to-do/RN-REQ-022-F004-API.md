@@ -17,7 +17,9 @@ created: 2026-09-09
 
 | 화면 요소 | 호출 | 방식 |
 |---|---|---|
-| 코치 상세 | `GET /api/app/ai-coach/detail` | React Query, `staleTime: 5m` |
+| 코치 리포트 | ~~`GET /api/app/ai-coach/detail`~~ **`GET /api/app/coach/report`** (개정 2026-09-21) | React Query, `staleTime: 5m` |
+| **상세 분석 화면** (2026-09-21) | `GET /api/app/ai-coach/detail?symbol&mode` | React Query, `staleTime: 30s`, 키 `['coach','symbol',symbol]` |
+| 관심 추가 (2026-09-21) | 기존 watchlist mutation | mutation |
 | 성적표 표 | `GET /api/app/coach/scoreboard` | React Query, `staleTime: 10m` (push 시) |
 | 쿨다운 상태 | `GET /api/app/coach/generation-status` | React Query, `staleTime: 0` |
 | 재생성 | `POST /api/app/ai-coach/generate` | mutation → 폴링 |
@@ -94,10 +96,25 @@ created: 2026-09-09
 | FR-54 | 열거값은 `enum`. `any` 0건 | Must |
 | FR-55 | preflight 응답 타입에 **게이트·차단 필드가 없다.** 있으면 컴파일 실패 | Must |
 
+### G. 종목 판단 — 상세 분석 화면 (2026-09-21)
+
+근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D3 · D4 · B1 · B3 · B10 · B16.
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-60 | 쿼리 키에 **모드를 넣지 않는다**(두 모드가 한 응답). 모드 전환 요청 0건 | Must |
+| FR-61 | navigation param 에 `mode` 가 없으면 요청에도 `mode` 를 싣지 않는다(서버 `defaultMode`, B16) | Must |
+| FR-62 | 화면 이탈 · 다른 종목 push 시 진행 중 요청을 `AbortSignal` 로 끊는다 | Must |
+| FR-63 | 상세 판단을 persist 한다(`detail` 과 같은 정책, FR-30). **persist 키는 종목별**, 최근 10종목까지(추적 상한 D8 과 같은 수) | Should |
+| FR-64 | 해설 요청에 `mode` 를 싣고 응답 판별 union 의 `renderable: false` 를 타입으로 처리한다(B3) | Must |
+| FR-65 | preflight 요청에 `stopLossRate` 를 싣고 목표가는 입력 시에만(B1) | Must |
+| FR-66 | 관심 추가 성공 시 관심 종목 쿼리만 무효화 — 코치 쿼리를 건드리지 않는다(D4) | Must |
+| FR-67 | `SymbolCoachViewModel` · `ModeCoachViewModel` 타입은 `packages/core` 에서 웹과 공유. `renderable: false` 에서 `judgment` 접근 컴파일 실패 · `confidence` 필드 없음 | Must |
+
 ## Acceptance Criteria
 
 - [ ] `staleTime`이 전부 명시되어 있다
-- [ ] `detail`이 1회 호출된다 (6번 호출 0건)
+- [ ] 코치 리포트가 `/coach/report` 1회 호출이다 (6번 호출 0건, 개정 2026-09-21)
 - [ ] `scoreboard`가 push 시에만 조회된다
 - [ ] mutation 재시도가 0건이다
 - [ ] 백그라운드 복귀 시 stale 데이터가 재조회된다
@@ -123,6 +140,13 @@ created: 2026-09-09
 - [ ] `scoreNote`·`disclaimer`를 옵셔널로 바꾸면 컴파일 실패한다
 - [ ] preflight 타입에 게이트 필드가 없다
 - [ ] `any` 0건
+- [ ] 상세 판단 쿼리 키에 모드가 없고 모드 전환 요청이 0건이다
+- [ ] param 에 `mode` 가 없으면 요청에도 없다
+- [ ] 화면 이탈 시 상세 판단 요청이 취소된다
+- [ ] 해설 `renderable: false` 분기가 타입으로 처리된다
+- [ ] preflight 에 `stopLossRate` 가 실리고 목표가는 입력 시에만 실린다
+- [ ] 관심 추가가 코치 쿼리를 무효화하지 않는다
+- [ ] **`ModeCoachViewModel` 의 `renderable: false` 에서 `judgment` 접근이 컴파일 실패한다**
 
 ## Dependencies
 
@@ -134,3 +158,9 @@ created: 2026-09-09
 - `detail`을 persist하면 **오프라인에서 오래된 추천이 보인다.** `staleHours`와 오프라인 시각을 둘 다 표시해 혼동을 줄이지만, 추천은 시점이 중요하므로 **persist하지 않는 것도 검토**할 만하다.
 - `explain`을 아예 만들지 않을지(`FE-REQ-029` Open Question).
 - discriminated union이 BFF 계약과 일치해야 한다(`BFF-REQ-024` Open Question).
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 호출 배치 개정 — 코치 리포트 `/api/app/coach/report`, 상세 분석 화면 `/api/app/ai-coach/detail?symbol&mode`. 신규 G 절 FR-60~67(모드 무관 쿼리 키 · `defaultMode` 위임(B16) · 취소 · 종목별 persist · 해설 union(B3) · `stopLossRate`(B1) · 관심 추가 분리(D4) · 판별 union 타입(B10)) |

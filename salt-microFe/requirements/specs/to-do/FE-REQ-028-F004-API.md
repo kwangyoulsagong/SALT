@@ -17,7 +17,10 @@ created: 2026-09-09
 
 | 화면 요소 | 호출 | 방식 | Suspense |
 |---|---|---|---|
-| 코치 상세 | `GET /api/app/ai-coach/detail` | 서버 컴포넌트 | 안 |
+| 코치 리포트 | ~~`GET /api/app/ai-coach/detail`~~ **`GET /api/app/coach/report`** (개정 2026-09-21 — `BFF-REQ-024`) | 서버 컴포넌트 | 안 |
+| **우측 AI 코치 패널** (2026-09-21) | `GET /api/app/ai-coach/detail?symbol&mode` | **클라이언트**(React Query) — 행 선택이 클라이언트 상태다 | — |
+| **상세 분석 페이지** (2026-09-21) | `GET /api/app/ai-coach/detail?symbol&mode` | 서버 컴포넌트(라우트 `[symbol]`) | 안 |
+| 추천 근거 상세 (2026-09-21) | `GET /api/app/coach/scoreboard` (그룹 1개) | 서버 컴포넌트 | — |
 | 성적표 표 | `GET /api/app/coach/scoreboard` | 서버 컴포넌트 | 안 |
 | 익절 플랜 | (detail에 포함) | — | — |
 | 행동 기록 | (detail에 포함) | — | — |
@@ -26,7 +29,8 @@ created: 2026-09-09
 | 피드백 | `POST /api/app/ai-coach/feedback` | mutation | — |
 | 주문 전 계산 | `POST /api/app/trade-preflight` | mutation (버튼) | — |
 | 성향 설정 | `GET/PATCH /api/app/ai-coach/profile` | 서버 조회 + mutation | — |
-| 즉석 해설 | `POST /api/app/ai-coach/explain` | mutation (**사용자 액션만**) | — |
+| 즉석 해설 | `POST /api/app/ai-coach/explain` | mutation (**사용자 액션만**) — 상세 분석 페이지 [해설 보기] | — |
+| 관심 추가 (2026-09-21) | 기존 watchlist mutation | mutation | — |
 
 ## Requirements
 
@@ -111,12 +115,29 @@ created: 2026-09-09
 | FR-74 | `any` 0건 | Must |
 | FR-75 | `scoreNote`·`disclaimer`가 **필수 필드**다. 옵셔널로 바꾸면 컴파일 실패 | Must |
 
+### I. 종목 판단 — 패널 · 상세 분석 페이지 (2026-09-21)
+
+근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D3 · D7 · B1 · B3 · B10 · B16.
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-80 | **패널 조회는 클라이언트다**(FR-1 · FR-60 원칙의 예외). 행 선택 · hover 가 클라이언트 상태라 RSC 재요청은 과하다. 인증은 BFF 쿠키 세션 — **토큰을 클라이언트 번들 · `localStorage` 에 두지 않는다**는 FR-1 은 그대로 | Must |
+| FR-81 | 패널 쿼리 키 = `['coach', 'symbol', symbol]` — **모드를 키에 넣지 않는다**(응답에 두 모드가 다 있다). `staleTime: 30s` | Must |
+| FR-82 | 행 선택이 바뀌면 이전 요청을 `AbortSignal` 로 끊는다. hover 로 선택하는 PC 는 **150ms 디바운스** 후 요청한다 | Must |
+| FR-83 | 모드 전환은 **요청 0건**이다. `router.replace('?mode=')` 로 URL 만 바꾼다 | Must |
+| FR-84 | 상세 분석 페이지는 라우트 `/investments/[symbol]` 서버 컴포넌트가 1회 조회한다. 패널에서 넘어올 때 React Query 캐시를 **초기 데이터로 재사용하지 않는다**(서버 컴포넌트가 새로 받는다 — 두 경로가 섞이면 staleness 가 갈린다) | Should |
+| FR-85 | `mode` 쿼리가 URL 에 없으면 **BFF 에 `mode` 를 보내지 않는다**(서버 `defaultMode`, B16) | Must |
+| FR-86 | 해설 요청 본문에 `mode` 를 싣는다. 응답이 판별 union 이므로 `renderable: false` 분기를 타입으로 처리한다(B3) | Must |
+| FR-87 | preflight 요청에 `stopLossRate` 를 싣고 `takeProfitPrices` 는 사용자가 입력했을 때만 싣는다(B1) | Must |
+| FR-88 | 관심 추가는 기존 watchlist mutation. 성공 시 관심 종목 쿼리만 무효화한다 — 코치 쿼리를 건드리지 않는다(D4) | Must |
+| FR-89 | 뷰모델 타입 `SymbolCoachViewModel` · `ModeCoachViewModel` 은 `packages/core`(BFF-REQ-024 FR-30). **`renderable: false` 분기에서 `judgment` 접근이 컴파일 실패**한다 · `confidence` 필드가 타입에 없다 | Must |
+
 ## Acceptance Criteria
 
 - [ ] 조회가 전부 서버 컴포넌트에서 일어난다
 - [ ] 토큰이 클라이언트 번들·`localStorage`에 0건이다
 - [ ] `detail`과 `scoreboard`가 병렬로 호출된다
-- [ ] `detail`이 1회 호출된다 (6번 호출 0건)
+- [ ] 코치 리포트가 `/coach/report` 1회 호출이다 (6번 호출 0건, 개정 2026-09-21)
 - [ ] **`explain`이 자동 호출되지 않는다** (종목 전환 시 요청 0건)
 - [ ] `explain`이 버튼 클릭으로만 호출된다
 - [ ] `explain` 재시도 0회, `AbortSignal` 연결, 타임아웃 20s
@@ -137,6 +158,15 @@ created: 2026-09-09
 - [ ] **`recommendation`이 discriminated union이고 `renderable: false`에서 `signalTrackRecord` 접근이 컴파일 실패한다**
 - [ ] `scoreNote`·`disclaimer`를 옵셔널로 바꾸면 컴파일 실패한다
 - [ ] `any` 0건
+- [ ] 패널이 클라이언트 조회이고 토큰이 클라이언트에 0건이다
+- [ ] 패널 쿼리 키에 모드가 없고 모드 전환 요청이 0건이다
+- [ ] 행 선택 변경 시 이전 요청이 취소되고 hover 는 150ms 디바운스다
+- [ ] 상세 분석 페이지가 서버 컴포넌트 1회 조회다
+- [ ] URL 에 `mode` 가 없으면 요청에도 `mode` 가 없다
+- [ ] 해설 응답의 `renderable: false` 분기가 타입으로 처리된다
+- [ ] preflight 에 `stopLossRate` 가 실리고 목표가는 입력 시에만 실린다
+- [ ] 관심 추가가 코치 쿼리를 무효화하지 않는다
+- [ ] **`ModeCoachViewModel` 의 `renderable: false` 분기에서 `judgment` 접근이 컴파일 실패한다**
 
 ## Dependencies
 
@@ -148,3 +178,10 @@ created: 2026-09-09
 - **FR-71의 discriminated union이 BFF 계약과 일치하는가.** BFF가 `renderable: false`일 때도 `signalTrackRecord: null`을 보내면 타입이 맞지 않는다 → **BFF와 타입을 함께 정의**해야 한다(`BFF-REQ-024` Open Question).
 - `failureCases`를 non-empty tuple로 타입 정의하면 런타임 검증이 필요하다. 타입만으로는 보장되지 않는다.
 - `explain`을 프리뷰에서 자동 호출하지 않으면 **홈 요약 카드의 해설은 어디서 오는가.** `detail`의 `explanation`(생성 시 저장된 것)을 쓰는 것이 답이다.
+- 패널 조회를 클라이언트로 두는 예외(FR-80)가 스트리밍 SSR 원칙과 맞는가. 첫 선택 종목만 서버에서 받아 초기 데이터로 넣는 절충이 가능하다 — 측정 후 판단.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 호출 배치 개정 — 코치 리포트는 `/api/app/coach/report`, `/api/app/ai-coach/detail` 은 패널 · 상세 분석 페이지. 신규 I 절 FR-80~89(패널 클라이언트 조회 예외 · 모드 무관 쿼리 키 · 모드 전환 무요청(D3) · 취소/디바운스 · `defaultMode` 위임(B16) · 해설 union(B3) · preflight `stopLossRate`(B1) · 관심 추가 분리(D4) · 판별 union 타입(B10)) |

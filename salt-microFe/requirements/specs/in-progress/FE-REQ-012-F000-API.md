@@ -29,6 +29,10 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | 초대 확인 | `GET /api/app/onboarding/invite/check?code` | 클라이언트(디바운스) |
 | 초대 수락 | `POST /api/app/onboarding/invite` | mutation |
 | 목표 저장 | `POST /api/goals` | mutation |
+| 종목 검색 (2026-09-21) | `GET /api/app/search?q=&assetType=&limit=20` | 클라이언트(디바운스 · 취소) |
+| 북마크 목록 (2026-09-21) | `GET /api/app/news/bookmarks?page=&limit=10` | 클라이언트(관심 종목 탭 블록) |
+| 북마크 토글 (2026-09-21) | `POST` · `DELETE /api/app/news/:id/bookmark` | mutation |
+| 알림 (개정 2026-09-21) | 위 `GET /api/app/alerts` — `kind` **1종** | — |
 
 ## Requirements
 
@@ -74,6 +78,18 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | FR-35 | `invite/accept`는 mutation. **재시도 0회** | Must |
 | FR-36 | 목표 저장(`POST /api/goals`)이 실제로 연결되는지 검증한다. 끊겨 있으면 잇는다 | Should |
 
+### D-2. 2026-09-21 추가 — 검색 · 북마크 · 뉴스 필드 · 목표 수량
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-60 | 검색 훅은 `features/search-asset/api/`. 쿼리 키에 `q` · `assetType` 을 포함하고 `staleTime` 30s. `AbortSignal` 연결 (D8) | Must |
+| FR-61 | `features/toggle-watchlist` 가 `409` + `code: 'TRACKED_ASSET_LIMIT'` 을 **정규화된 에러 코드**로 구분한다(`{ status: 409, code, retriable: false }`). 문구는 `shared/i18n` (D8) | Must |
+| FR-62 | watchlist · search 성공 무효화 대상: `watchlist` · `search` 쿼리 키 둘 다 (D8) | Must |
+| FR-63 | 뉴스 뷰모델 타입에 `sentiment` · `symbols` · `isBookmarked?` 를 추가한다. `sentiment` 는 enum 으로(FR-51) (기본안 — 감사 문서 B11) | Must |
+| FR-64 | 북마크 훅: 조회는 `entities/news/api/`, 토글은 `features/toggle-news-bookmark/api/`. mutation **재시도 0회** (D5) | Must |
+| FR-65 | 북마크 · 검색은 **인증 필수** 경로다. 로그인 전에는 호출하지 않는다(401 을 만들지 않는다) (D5 · D8) | Must |
+| FR-66 | 목표 생성 본문 타입을 금액 · 수량 **판별 유니온**으로 둔다(`goalType` 판별자). 서버 422 코드(`GOAL_TARGET_INVALID` · `GOAL_QUANTITY_NO_SAVINGS`)를 i18n 키로 매핑 (기본안 — 감사 문서 B5) | Should |
+
 ### E. 에러 처리와 문구 분리
 
 | ID | 요구사항 | 우선순위 |
@@ -89,7 +105,7 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-50 | 뷰모델 타입은 `packages/core`에서. 프론트 재정의 0건 | Must |
-| FR-51 | `period`·`assetType`·`alertKind`를 **`enum`** 으로. 리터럴 union 금지 | Must |
+| FR-51 | `period`·`assetType`·`alertKind`·**`newsSentiment`**(2026-09-21)를 **`enum`** 으로. 리터럴 union 금지. `alertKind` 는 1종(개정 2026-09-21) | Must |
 | FR-52 | `any` 0건 | Must |
 | FR-53 | WS 메시지 타입을 `packages/core`에서 공유한다. BFF `types/websocket.types.ts`가 소유한 계약이다 | Must |
 
@@ -121,6 +137,15 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 - [ ] 뷰모델·WS 타입이 `packages/core`에서 온다
 - [ ] 리터럴 union 0건, `any` 0건
 
+**추가 2026-09-21**
+
+- [ ] 검색 요청이 디바운스 · 취소되고 쿼리 키에 `q` 가 있다
+- [ ] `409 TRACKED_ASSET_LIMIT` 이 정규화된 코드로 구분된다
+- [ ] ★ 성공 시 `watchlist` · `search` 쿼리가 함께 무효화된다
+- [ ] 뉴스 타입에 `sentiment`(enum) · `symbols` · `isBookmarked?` 가 있다
+- [ ] 북마크 mutation 재시도 0건, 로그인 전 북마크 · 검색 호출 0건
+- [ ] 목표 생성 본문이 판별 유니온이고 422 코드가 i18n 으로 매핑된다
+
 ## Dependencies
 
 - **선행:** `BFF-REQ-008`(계약) · `FE-REQ-009`(FSD)
@@ -138,3 +163,4 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | **WS 절(C)을 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-24(참조 카운트 구독 — 언마운트 시 `unsubscribe`·`unsubscribe_candle` 전송, 브라우저 실측) · FR-25(재연결 3s→30s 백오프 + 끊김 표시) · FR-26(캔들 동작 유지). FR-21(`limit=100`)은 건드리지 않았다. **남은 것**: A·B·D·E·F절과 FR-22(`useThrottle` — 이미 rAF 로 묶여 있어 필요성부터 판정) · FR-23. 근거: `requirements/reports/checklists/F000-realtime-reliability.md` |
+| 2026-09-21 | **스토리보드 갭 감사 반영.** 호출 배치에 검색 · 북마크 목록 · 북마크 토글 추가, 알림 `kind` 1종 표시. 신규 D-2절 FR-60~66(검색 훅 · `409 TRACKED_ASSET_LIMIT` 정규화 · 무효화 · 뉴스 필드 · 북마크 훅 · 인증 전 호출 금지 · 목표 판별 유니온). FR-51 에 `newsSentiment` enum. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |

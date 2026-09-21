@@ -58,12 +58,12 @@ export { CoachPage as default, metadata } from '@/pages/coach';
 
 | 탭 | 페이지 | 내부 구성 |
 |---|---|---|
-| 홈 | `home` | `home-briefing` 5블록 (읽기 전용) |
+| 홈 | `home` | `home-briefing` 3블록 + 기존 목표 · 분석 · 팁 (읽기 전용) |
 | 코치 | `coach` | `coach-console` — 대화가 제품의 핵심 |
-| 자산 | `assets` | `asset-workspace` — 세그먼트 3(포지션/청구서/세금 요약) |
+| 자산 | `assets` | `asset-workspace` — 세그먼트 3(포지션/시장/관심 종목). 종목 → `investment-detail` push |
 
 - **탭을 4개로 늘리지 않는다.** 새 기능은 기존 탭 내부로 들어간다.
-- **세금은 별도 zone**이다(`/tax`). 자산 탭의 세금 세그먼트는 요약만 보여주고 상세는 zone으로 넘긴다. 그 링크는 **`<a>`** 여야 한다(`microfrontend.md`).
+- 세금 기능은 빠졌다(`ADR-002`). `/tax` zone 코드는 남아 있고 존폐는 열린 질문이다. zone 을 넘는 링크는 여전히 **`<a>`** 다(`microfrontend.md`).
 - PC에서는 탭 대신 `pc-panel-grid`로 여러 패널을 동시에 본다. **같은 페이지 슬라이스가 두 배치를 모두 제공**한다.
 
 ## 클라이언트 전용 컴포넌트 배치

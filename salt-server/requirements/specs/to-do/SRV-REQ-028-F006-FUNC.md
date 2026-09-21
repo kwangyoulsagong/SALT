@@ -9,6 +9,8 @@ labels: [ddd, domain, conversation, llm, streaming, homebriefing]
 created: 2026-09-09
 ---
 
+> **2026-09-21 개정.** `ADR-002` — `homebriefing`은 **3블록**(`portfolio` · `plan` · `coach`), 대화 컨텍스트에서 `tax` · `invoice`가 빠졌다. 도메인 작업 4개를 추가했다: ④ `portfolio` 포지션(1년 구간 · MDD · 리스크 레이더 · 거래 미리보기) ⑤ `notification` 1종 생성 · 끄기 ⑥ `onboarding` 2단계 교체 ⑦ 설정 조립. 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14 · B16.
+
 ## Summary
 
 **대화가 제품의 핵심이 된다.** 서버 도메인 작업은 ① 대화 유스케이스 ② **질문에 맞는 컨텍스트만 프롬프트에 넣는 라우팅** ③ `homebriefing` 조합 컨텍스트 셋이다.
@@ -19,6 +21,9 @@ created: 2026-09-09
 |---|---|
 | `coach` | `CoachConversation`·`CoachMessage` Aggregate + `policy/{contextRouting,promptGuard,answerGuard}` + `AnswerCoachMessage`·`ListConversations`·`ListMessages` 유스케이스 |
 | `homebriefing` | **조합 컨텍스트 신규.** Aggregate 없이 `application`(+`presentation`)만. `BuildHomeBriefing` 유스케이스 |
+| `portfolio` | *(2026-09-21)* `GetPositionOverview` · `GetPerformance`(+`1y` · MDD) · `GetRiskRadar` · `PreviewTransaction` + `policy/riskRadar` |
+| `notification` | *(2026-09-21)* `RecordSignalUpdate` · `ListAlerts` · `MarkRead` · `MarkAllRead` · `CountUnread` · `Get/UpdateAlertPreferences` |
+| `onboarding` | *(2026-09-21)* 2단계 `first_holding` 판정 · `SkipOnboardingStep` |
 
 ## 대화 유스케이스
 
@@ -37,14 +42,14 @@ created: 2026-09-09
 
 ## 컨텍스트 라우팅 (`policy/contextRouting`) — 비용과 지연의 핵심
 
-매 질문마다 포트폴리오·지표·성적표·세금을 전부 프롬프트에 넣으면 **비용과 지연이 커진다.**
+매 질문마다 포트폴리오·지표·성적표·행동 기록을 전부 프롬프트에 넣으면 **비용과 지연이 커진다.**
 
 | 질문 유형 | 붙이는 컨텍스트 |
 |---|---|
 | "지금 팔아야 하나?" | 보유 + 최신 추천 + 성적표 + 실패이력 + 지표 |
 | "이번 주 얼마 넣을까?" | 주간 계획 + 밴드 + 지표 + 김프 |
-| "세금 언제까지?" | D-Day + 법령 파라미터 + 보유(자산군별) |
-| "내가 뭘 잘못했나?" | 청구서 요약 + 편향 집계 |
+| "내 포트폴리오 위험한가?" | 보유 + **리스크 레이더 4축** + 집중도 상한 *(개정 2026-09-21 — "세금 언제까지?" 대체, ADR-002)* |
+| "내가 뭘 잘못했나?" | 편향 집계 · 행동 기록(F004) *(개정 2026-09-21 — 청구서 요약 삭제)* |
 | 그 외 | **최소 컨텍스트**(총자산 + 최신 추천) |
 
 | ID | 요구사항 | 우선순위 |
@@ -106,14 +111,57 @@ created: 2026-09-09
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-70 | `homebriefing`은 **Aggregate가 없다.** `application`(+`presentation`)만 | Must |
-| FR-71 | 5블록을 각 컨텍스트의 **공개 API**로 부른다: `portfolio` · `plan` · `coach` · `tax` · `invoice` | Must |
+| FR-71 | **3블록**을 각 컨텍스트의 **공개 API**로 부른다: `portfolio` · `plan` · `coach`. **개정 2026-09-21** — `tax` · `invoice` 삭제(ADR-002 · D6) | Must |
 | FR-72 | **부분 실패를 설계한다.** 하나가 실패해도 나머지를 내려준다 | Must |
 | FR-73 | **비즈니스 규칙을 담지 않는다.** 순서와 조합만 | Must |
 | FR-74 | 트랜잭션을 열지 않는다. 각 조회가 자기 경계를 갖는다 | Must |
 | FR-75 | **금액 블록 실패 시 `null`** 이다. `0`이 아니다 | Must |
-| FR-76 | 총자산은 `FxRate.kind = 'current'`를 쓴다. **없으면 `settlement_base`로 폴백하지 않고 `degraded`** | Must |
+| FR-76 | 총자산은 `portfolio`가 준 **원화 합산**이다. 비원화 보유가 있고 현재 환율이 없으면 `null` + `degraded`. **개정 2026-09-21** — `FxRate.kind` 구분 삭제(ADR-002 · 감사 Q2) | Must |
 | FR-77 | AI 추천 블록에도 **게이트가 적용**된다. 미충족이면 `renderable: false` | Must |
 | FR-78 | 홈은 **읽기 전용**이다. mutation 유스케이스를 만들지 않는다 | Must |
+
+## `portfolio` 포지션 (2026-09-21 추가, B13 · B14)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-80 | `GetPositionOverview`가 Hero를 계산한다: 총 평가금 · 평가 손익(금액 · %) · 투자 원금 · 보유 수 · 최대 비중(종목 · %) · 30일 수익률. **(기본안 — 감사 문서 B13)** | Must |
+| FR-81 | `PerformanceRange`에 **`1y`** 를 추가한다(365일). 기존 `1d` · `7d` · `30d` · `90d` · `all`은 그대로. 응답에 구간 **MDD**(`pct` · `peakAt` · `troughAt`)를 붙인다 | Must |
+| FR-82 | `policy/riskRadar`가 **4축**을 0~100으로 낸다: 집중도(최대 비중) · 변동성(보유 가중 30일 일간 수익률 표준편차) · 낙폭(90일 MDD) · 뉴스 리스크(보유 종목 최근 7일 부정 기사 비중). 축마다 `value` · `limit` · `breached` · `reasonCode`. 현금 비중 축은 없다 | Must |
+| FR-83 | 축 정의(구간 · 정규화 기준)와 **상한은 설정 파일**에서 읽는다. 코드 상수 0건. 사용자별 값이 아니다 | Must |
+| FR-84 | 표본이 부족한 축(일봉 < 20 · 기사 0건)은 **`value: null` + `reasonCode`** 다. 0으로 채우지 않는다 | Must |
+| FR-85 | `PreviewTransaction`이 생성 · 수정 입력을 받아 **쓰지 않고** 전후 수량 · 이동평균 평단 · 총 취득금액을 돌려준다. 저장과 **같은 재계산 함수**다 **(기본안 — 감사 문서 B14)** | Must |
+| FR-86 | 보유를 넘는 매도(미리보기 · 저장 · 수정 · 삭제 결과 포함)는 `INSUFFICIENT_QUANTITY`로 거부한다 | Must |
+| FR-87 | 거래 수정에 `transactionDate`를 허용한다. **종목 · 매수/매도 변경은 허용하지 않는다** — 삭제 후 다시 만든다 | Must |
+| FR-88 | 공개 API `hasTransactions(userId)`를 낸다. `onboarding`이 쓴다 | Must |
+| FR-89 | `portfolio`에 **주문 Port가 없고**, 예상 수익 · 목표가 필드가 없다. 전부 과거 사실이다 | Must |
+
+## `notification` 1종 (2026-09-21 추가, D5)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-90 | 새로 만드는 알림은 **`signal_update` 하나**다. 원인은 둘: F004 최신 추천의 action · symbol 변경, F003 주간 밴드 변경 | Must |
+| FR-91 | **가격 급등락만으로 만들지 않는다.** 알림에 "무엇을 확인하라"(`messageCode`)와 딥링크 대상 코드(`coach` · `home.weekly-plan`)가 붙는다 | Must |
+| FR-92 | `User.alertsEnabled = false`면 만들지 않는다 (D9) | Must |
+| FR-93 | `dedupeKey`(`insight:{id}` · `band:{weekOf}:{symbol}`)로 같은 원인 중복을 막는다 | Should |
+| FR-94 | 목록 · 안 읽은 수 · 모두 읽음은 **`signal_update`만** 대상이다. 기존 서버 경로(`GET /` · `PATCH /:id/read` · `PATCH /read-all` · `GET /unread-count`)를 이 규칙으로 좁힌다 | Must |
+| FR-95 | **범위 밖**: 사용자 조건 알림 · 환율 함정 · 세금 D-Day · 투자 피드 생성 (D5 · **기본안 — 감사 문서 B4 · B19**) | Must |
+
+## `onboarding` 2단계 교체 (2026-09-21 추가, B12)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-100 | 단계 키를 `invite` · **`first_holding`** · `set_plan`으로 바꾼다. `link_account`와 `LedgerLinkedProbe`를 지운다 **(기본안 — 감사 문서 B12)** | Must |
+| FR-101 | `first_holding` 완료 = `portfolio.hasTransactions` **또는** `User.firstHoldingSkippedAt` 있음. 조회 실패는 기존 원칙대로 **미완료**로 읽는다 | Must |
+| FR-102 | `SkipOnboardingStep`은 **`first_holding`만** 건너뛸 수 있다. `invite` · `set_plan`은 400 | Must |
+| FR-103 | `set_plan` 완료는 F003 적립 설정 존재다(기존 `PlanConfiguredProbe`). 저장 자체는 F003 API가 한다 | Must |
+
+## 설정 조립 (2026-09-21 추가, D9 · B16)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-110 | 서버는 설정 **조합 유스케이스를 만들지 않는다.** 그룹마다 소유 컨텍스트의 API를 BFF가 조립한다: 적립 기본액 · 밴드 임계값(F003 `plan`) · 성향 · `defaultMode` · `notificationLevel`(F004 `coach`) · 알림 켜기/끄기(`notification`) | Must |
+| FR-111 | `notification`이 `GetAlertPreferences` · `UpdateAlertPreferences`(`alertsEnabled`)를 낸다 | Must |
+| FR-112 | 밴드 임계값 **쓰기 경로를 만들지 않는다** (D9) | Must |
 
 ## Acceptance Criteria
 
@@ -126,7 +174,7 @@ created: 2026-09-09
 - [ ] 60초 초과 시 `failed` + `LLM_TIMEOUT`
 - [ ] 서버 재기동 시 `streaming` 잔여가 `failed`로 정리된다
 - [ ] `messageCount`·`lastMessageAt`이 같은 트랜잭션에서 갱신된다
-- [ ] **컨텍스트 라우팅이 질문 유형별로 다른 컨텍스트를 조립한다** (4유형 테스트)
+- [ ] **컨텍스트 라우팅이 질문 유형별로 다른 컨텍스트를 조립한다** (4유형 테스트 — 리스크 질문 포함, 세금 · 청구서 컨텍스트 0건)
 - [ ] 분류가 규칙 기반이고 LLM 분류 호출이 0건이다
 - [ ] 분류 실패 시 최소 컨텍스트로 폴백한다
 - [ ] 히스토리가 최근 6턴으로 제한된다
@@ -148,17 +196,30 @@ created: 2026-09-09
 - [ ] **`coach` 도메인에 주문 Port가 0건이다**
 - [ ] **합성 프롬프트 10개에 주문 실행이 0건이다**
 - [ ] `homebriefing`이 Aggregate 없이 `application`만 갖는다
-- [ ] 5블록이 공개 API를 경유한다
+- [ ] 3블록(`portfolio` · `plan` · `coach`)이 공개 API를 경유하고 `tax` · `invoice` 호출이 0건이다
 - [ ] 블록 하나 실패 시 나머지가 응답한다
 - [ ] 금액 블록 실패 시 `null`이다
-- [ ] 총자산이 `kind = 'current'`를 쓰고 없으면 `degraded`다
+- [ ] 비원화 보유 + 환율 없음이면 총자산이 `null` + `degraded`다
 - [ ] AI 추천 블록에 게이트가 적용된다
 - [ ] 홈에 mutation 유스케이스가 0건이다
+- [ ] Hero 6항목이 서버 계산이다
+- [ ] `1y` 구간이 있고 응답에 MDD가 있다. 기존 구간 응답이 바뀌지 않았다
+- [ ] 리스크 레이더가 4축이고 축 정의 · 상한이 설정 파일에서 온다 (코드 상수 0건)
+- [ ] 표본 부족 축이 `null` + `reasonCode`다
+- [ ] 미리보기가 쓰기 0건이고 저장 결과와 같다
+- [ ] 과매도가 `INSUFFICIENT_QUANTITY`로 거부된다
+- [ ] 거래 수정이 거래일을 바꿀 수 있고 종목 · 매수/매도는 못 바꾼다
+- [ ] 새 알림이 `signal_update`뿐이고 가격 급등락만으로 생성되지 않는다
+- [ ] 알림 끔이면 생성 0건이다
+- [ ] 목록 · 안 읽은 수 · 모두 읽음이 `signal_update`만 다룬다
+- [ ] 온보딩 단계 키가 `invite` · `first_holding` · `set_plan`이다
+- [ ] `first_holding`만 건너뛸 수 있다
+- [ ] 밴드 임계값 쓰기 경로가 0건이다
 
 ## Dependencies
 
 - **선행:** `SRV-REQ-006`(DDD) · `SRV-REQ-024`(F004 게이트) · `DB-REQ-021`~`024`
-- **소비:** 각 컨텍스트의 공개 API(`portfolio`·`plan`·`coach`·`tax`·`invoice`)
+- **소비:** 각 컨텍스트의 공개 API(`portfolio`·`plan`·`coach`·`news`·`notification`). ~~`tax`·`invoice`~~ — ADR-002
 - **규칙:** `ddd-domain.md` · `ddd-application.md` §7(조합 컨텍스트)
 
 ## Open Questions
@@ -167,3 +228,12 @@ created: 2026-09-09
 - 후처리가 스트리밍 중 문장 단위로 동작하면 **첫 토큰 지연이 늘어난다.** 문장이 끝나야 흘릴 수 있다 → 1s 예산과 충돌할 수 있다. **측정 후 판단.**
 - 히스토리 6턴이 적절한가. 짧으면 맥락을 잃고 길면 비용이 든다.
 - `title` 생성을 LLM으로 할지. 비용이 든다 → **첫 메시지 앞 30자**가 기본안.
+- **리스크 레이더 축 정규화.** 변동성 · 뉴스 리스크를 0~100으로 옮기는 기준(예: 변동성 연율 80% = 100)을 설정 파일에 두지만 초기값은 판단이 필요하다. 첫 값은 스토리보드 예시(집중도 상한 60)만 확정이다.
+- **"내 포트폴리오 위험한가?" Chip** 교체는 FEATURE-006의 판단이다. 사용자 확인 전까지 라우팅 규칙은 이 문구로 둔다.
+- 알림 원인 "F004 추천 갱신"을 이벤트로 받을지 워커가 폴링할지. 기본안: `coach`가 insight를 만들 때 `notification` 공개 API를 호출(같은 프로세스).
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | ADR-002 머리 배너. 개정: 컨텍스트 라우팅(세금 → 리스크 질문, 청구서 삭제) · FR-71(3블록, D6) · FR-76(`FxRate` 구분 삭제). 추가: FR-80~89(`portfolio` 포지션 · `1y` · MDD · 레이더 4축 · 미리보기, B13 · B14) · FR-90~95(알림 1종, D5 · B4 · B19) · FR-100~103(온보딩 `first_holding`, B12) · FR-110~112(설정 조립, D9 · B16). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |

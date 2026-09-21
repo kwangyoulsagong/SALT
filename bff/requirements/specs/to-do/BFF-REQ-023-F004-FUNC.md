@@ -20,7 +20,8 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | BFF 라우트 | 상태 |
 |---|---|
 | `GET /api/app/ai-coach/preview` | **기존** — 홈 요약용 |
-| `GET /api/app/ai-coach/detail` | **기존** — `signalTrackRecord`·`failureCases` **추가 필요** |
+| `GET /api/app/ai-coach/detail` | **기존** — ~~`signalTrackRecord`·`failureCases` 추가 필요~~ **개정 2026-09-21**: 코드상 이 라우트는 **종목 판단**이다(`app-ai-coach.service.getDetail` — 서버 `/ai-coach?symbol&mode` + `/market-intelligence/:symbol/news?limit=3`). 우측 AI 코치 패널 · 상세 분석 페이지의 뷰모델로 확정한다(아래 2026-09-21 절) |
+| `GET /api/app/coach/report` | **신규 (2026-09-21)** — 코치 리포트(리스크 · 후보 · 익절 · 성적표 · 행동 기록). 서버 `/api/coach/detail` 1회. 이전 문서가 `/ai-coach/detail` 에 싣던 것 |
 | `GET/PATCH /api/app/ai-coach/profile` | 기존 |
 | `POST /api/app/ai-coach/feedback` | 기존 — `reasonCode` 추가 |
 | `POST /api/app/ai-coach/explain` | 기존 — **인증 전달 추가** |
@@ -42,7 +43,10 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | FR-6 | `renderable: false`가 **200**이다. BFF가 에러로 바꾸지 않는다 | Must |
 | FR-7 | 게이트 미충족 카운터를 BFF에서도 남긴다(관측성) | Should |
 
-## 조립 — `/detail`
+## 조립 — 코치 리포트 `/api/app/coach/report`
+
+**개정 2026-09-21**: 이 절의 라우트는 원래 `/detail` 이었다. `/detail` 은 종목 판단으로 확정됐으므로(위 표) 코치 리포트를
+`/api/app/coach/report` 로 옮긴다. 규칙(FR-10~14)은 그대로다.
 
 서버 `/api/coach/detail`이 이미 조립하므로 **BFF는 필드명 변환과 부분 실패 격리만** 한다.
 
@@ -78,7 +82,7 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 |---|---|---|
 | FR-40 | `factCode` + `params`를 전달한다. **완성 문장을 만들지 않는다** | Must |
 | FR-41 | 기존 응답 필드를 **유지**한다(하위 호환) | Must |
-| FR-42 | 청구서 링크(`invoiceLink`)를 BFF가 만든다. **경로 조립은 BFF의 일**이다 | Should |
+| FR-42 | ~~청구서 링크(`invoiceLink`)를 BFF가 만든다~~ **개정 2026-09-21 (ADR-002)**: 청구서가 삭제됐다. `invoiceLink` 를 만들지 않는다 | — |
 
 ## 피드백
 
@@ -105,6 +109,29 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | FR-71 | BFF 라우트에도 `authMiddleware`를 붙인다 | Must |
 | FR-72 | rate limit을 BFF에도 둘지 판단한다. **서버가 하면 충분**하다 | Should |
 
+## 종목 판단 뷰모델 — 우측 AI 코치 패널 · 상세 분석 페이지 (2026-09-21)
+
+근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D2 · D3 · D4 · D7 · B1 · B3 · B9 · B10 · B16 · B23.
+계약은 `SRV-REQ-025` 의 `SymbolCoachResult`. BFF 는 **전달과 뉴스 합치기만** 한다.
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-90 | `/api/app/ai-coach/detail?symbol&mode` 가 서버 `modes.scalp` · `modes.longTerm` 을 **둘 다** 전달한다. 화면이 모드를 바꿔도 BFF 를 다시 부르지 않는다 | Must |
+| FR-91 | **`confidence` 를 옮기지 않는다(D3).** 지금 `mapDecision` 이 `confidence: decision.confidence` 를 복사한다 — 이 줄을 지운다. 서버가 보내더라도 뷰모델에 싣지 않는다 | Must |
+| FR-92 | 모드별 `renderable` · `blockedReason` · `trackRecord` · `failureCases` 를 **그대로** 전달한다. 게이트 판정 · 기본값 채우기 0건(FR-1~6 과 같은 규칙) | Must |
+| FR-93 | **라벨을 지어내지 않는다.** 지금 `getPreview` 는 `badge: data.modeDecision?.label ?? "관망"` 으로 판단이 없을 때 "관망"을 만든다 — 판단이 없으면 `null` 이다 | Must |
+| FR-94 | `mode` 가 없으면 **서버에 넘기지 않는다.** 지금은 BFF 가 `scalp` 로 채운다 — 서버가 `defaultMode`(B16)를 보고 정한다 | Must |
+| FR-95 | `zone`(판별 union)을 그대로 전달한다. `distancePct` 를 계산하지 않고, 구간 · 가격을 만들지 않는다. `notPrediction` 을 떨어뜨리지 않는다 | Must |
+| FR-96 | `gaugeTrackRecords` 를 그대로 전달한다. 표본 판정 · 문구 생성 0건 | Must |
+| FR-97 | 뉴스는 지금처럼 `/market-intelligence/:symbol/news?limit=3` 을 합친다. 단 **판단 호출과 병렬**로(지금은 순차). 뉴스 실패는 `degradedFields: ['news']` 이고 판단은 응답한다. 기사 감정 · 종목 연결(B11)은 F000 소관 | Must |
+| FR-98 | `validity.code` 를 전달한다. BFF 가 "25분" 같은 문구로 바꾸지 않는다 | Must |
+| FR-99 | `preflightDefaults` 는 `{ symbol, entryPrice: 현재가, mode }` 만 준다. **목표가 기본값을 넣지 않는다**(B1) | Must |
+| FR-100 | 즉석 해설 `POST /api/app/ai-coach/explain` 은 `authMiddleware` 뒤로 옮기고(FR-70~71) 서버 응답(`renderable` 분기 · `newsSummary` · 3종)을 그대로 전달한다 | Must |
+| FR-101 | 주문 전 체크 `POST /api/app/trade-preflight` 는 `stopLossRate` 를 전달하고 `maxLossOfTotalRate` 를 그대로 돌려준다. **주문 · 외부 링크 필드를 만들지 않는다**(B1) | Must |
+| FR-102 | 관심 종목 뷰모델(`watchlist.viewmodel.ts`)에 판단 · 신호 필드를 붙이지 않는다(D4). 관심 추가는 기존 watchlist 라우트를 쓴다(B23) | Must |
+| FR-103 | 코치 리포트의 성적표 그룹 `returnDistribution` · `hits` · `misses` 를 그대로 전달한다(B17 · B2). 한쪽만 자르지 않는다 | Must |
+| FR-104 | 알림 만들기 경로를 만들지 않는다(B19 · B23) | Must |
+
 ## 하지 않는 것
 
 | ID | 요구사항 | 우선순위 |
@@ -123,9 +150,9 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 - [ ] `signalTrackRecord` null이 기본값으로 채워지지 않는다
 - [ ] `failureCases` 빈 배열이 채워지지 않는다
 - [ ] `renderable: false`가 200이다
-- [ ] `/detail`이 서버를 1회 호출한다 (요청 로그)
+- [ ] `/coach/report`가 서버 `/api/coach/detail` 을 1회 호출한다 (요청 로그) (개정 2026-09-21 — 원래 `/detail`)
 - [ ] 서버 필드별 `null`이 `degradedFields[]`에 반영된다
-- [ ] `/detail` 실패 시 `unavailable`이고 BFF 캐시가 0건이다
+- [ ] `/coach/report` 실패 시 `unavailable`이고 BFF 캐시가 0건이다
 - [ ] `staleHours`가 BFF에서 재계산되지 않는다
 - [ ] `?groupBy=signalType`이 전달되고 무인자 호출이 하위 호환이다
 - [ ] `lowSample`·`insufficient_data`가 그대로 전달된다
@@ -141,6 +168,16 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 - [ ] `explain` 라우트에 `authMiddleware`가 있다
 - [ ] BFF에 점수 계산·LLM 호출·게이트 판정·문구 생성 코드가 0건이다
 - [ ] 주문 중계 경로가 0건이다
+- [ ] `/ai-coach/detail` 이 두 모드를 전달하고 **`confidence` 가 0건이다**
+- [ ] 판단이 없을 때 "관망" 기본 라벨이 0건이다 (`null`)
+- [ ] `mode` 없는 요청을 BFF 가 `scalp` 로 채우지 않는다
+- [ ] `zone` · `gaugeTrackRecords` · `validity` 가 가공 없이 전달된다
+- [ ] 판단 · 뉴스 호출이 병렬이고 뉴스 실패가 `degradedFields` 로 격리된다
+- [ ] `preflightDefaults` 에 목표가가 0건이다
+- [ ] `explain` 이 인증 뒤에 있고 `renderable` 분기가 그대로 전달된다
+- [ ] preflight 가 `stopLossRate` · `maxLossOfTotalRate` 를 통과시킨다
+- [ ] 관심 종목 뷰모델에 판단 필드가 0건이다
+- [ ] `invoiceLink` 가 0건이다 (ADR-002)
 
 ## Dependencies
 
@@ -151,5 +188,12 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 ## Open Questions
 
 - `/detail`을 서버가 조립할지 BFF가 조립할지. **서버가 조립하면 BFF가 얇아지지만** 서버에 조합 컨텍스트가 필요하다 → `coach` 안에서 조립하는 것이 기본안(같은 컨텍스트다).
-- `invoiceLink` 경로 조립을 BFF가 할지 프론트가 할지. **프론트가 경로를 아는 것이 자연스럽다** → FR-42를 Should로 둔 이유.
+- ~~`invoiceLink` 경로 조립을 BFF가 할지 프론트가 할지.~~ — ADR-002 로 닫힘.
+- `/ai-coach/detail` 을 종목 판단으로 확정하면서 코치 리포트를 `/coach/report` 로 옮겼다. 이름을 `/ai-coach/symbol` 로 바꿀지는 프론트 소비처가 생긴 뒤 판단한다.
 - `explain`이 PM 프로토타입용 public이었다. 인증을 붙이면 프로토타입이 깨진다(`SRV-REQ-025` Open Question).
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. `/api/app/ai-coach/detail` 을 **종목 판단 뷰모델**로 확정(코드 근거)하고 코치 리포트를 `/api/app/coach/report` 로 분리 — 조립 절 개정. 신규 FR-90~104(두 모드 전달 · **`confidence` 복사 제거**(D3) · "관망" 기본 라벨 제거 · `mode` 기본값 서버 위임(B16) · `zone`/게이지 적중률 전달(D2 · B9) · 뉴스 병렬 · 목표가 기본값 금지(B1) · 관심 종목 판단 필드 금지(D4) · 알림 만들기 없음(B19)). FR-42 무효(ADR-002) |

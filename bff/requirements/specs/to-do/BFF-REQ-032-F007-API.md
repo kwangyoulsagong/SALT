@@ -11,7 +11,9 @@ created: 2026-09-09
 
 ## Summary
 
-앱이 보는 계약. **웹과 같은 것은 같게 두고, 다른 것은 `device` 계열뿐이다.**
+앱이 보는 계약. **웹과 같은 것은 같게 두고, 다른 것은 `device` 계열과 푸시 payload뿐이다.**
+
+> **2026-09-21 개정.** 알림 목록 · 알림 on/off · 홈은 **F006 BFF 계약**(`BFF-REQ-028`)을 그대로 쓴다. 이 REQ는 그 타입을 다시 정의하지 않는다. 알림은 1종(`signal_update`, D5 · **기본안 — 감사 문서 B21**), 홈은 3블록(D6). `TAX_DEADLINE` · `taxDeadline` · `invoice` · `alwaysOnExceptions`는 ADR-002로 삭제.
 
 ## 계약
 
@@ -47,54 +49,29 @@ type VersionGateResponse = {
 };
 ```
 
-### GET/PATCH /bff/app/device/notification-prefs
+### ~~GET/PATCH /bff/app/device/notification-prefs~~ — 삭제 2026-09-21
+
+알림 on/off는 F006 `PATCH /api/app/settings/alerts` `{ alertsEnabled }`(`BFF-REQ-028`). 타입별 설정 · `alwaysOnExceptions: ['D1']`이 없다(ADR-002 · B21).
+
+### 알림 목록 — F006 `GET /api/app/alerts` (개정 2026-09-21)
+
+`/bff/app/notifications`를 두지 않는다. 앱은 F006 계약 `{ items: [{ id, messageCode, params, target, isRead, createdAt }], nextCursor }`(`BFF-REQ-028` FR-90)을 그대로 쓴다. 문장은 앱 i18n이 `messageCode`로 만든다.
+
+### 푸시 payload (2026-09-21 신규 — 이 REQ가 소유)
 
 ```ts
-type NotificationPrefsResponse = {
-  prefs: {
-    type: 'TAX_DEADLINE' | 'SIGNAL_UPDATE';
-    enabled: boolean;
-    alwaysOnExceptions: string[];   // TAX_DEADLINE: ['D1']
-  }[];
+// 잠금 화면에 보이는 title/body 는 서버가 i18n 카탈로그로 조립. 금액 없음
+type PushPayload = {
+  type: 'signal_update';                 // 1종 (D5 · B21)
+  alertId: string;                       // InvestmentNotification.id — 진입 후 재조회
+  target: 'plan' | 'coach' | 'detail';   // F006 alerts.target 과 같은 값
+  symbol?: string;                       // target: 'detail' 일 때만
 };
 ```
 
-### GET /bff/app/notifications?cursor=&limit=20
+### 홈 — F006 `GET /api/app/home` (개정 2026-09-21)
 
-```ts
-type NotificationListResponse = {
-  items: {
-    id: string;
-    type: 'TAX_DEADLINE' | 'SIGNAL_UPDATE';
-    title: string;            // 서버가 조립. 금액 없음
-    body: string;             // 서버가 조립. 금액 없음
-    deepLink: string;         // 앱 내부 경로. 외부 URL 금지
-    sentAt: string;
-    readAt: string | null;
-  }[];
-  nextCursor: string | null;
-};
-```
-
-### GET /bff/home (웹과 공유)
-
-```ts
-type HomeViewModel = {
-  lastUpdatedAt: string;                  // 오프라인 배너용
-  blocks: {
-    netWorth:  BlockResult<NetWorthVM>;
-    weeklyPlan: BlockResult<WeeklyPlanSummaryVM>;
-    signal:    BlockResult<SignalCardVM>;
-    taxDeadline: BlockResult<TaxDeadlineVM>;
-    invoice:   BlockResult<InvoiceSummaryVM>;
-  };
-};
-
-type BlockResult<T> =
-  | { status: 'ok';      data: T }
-  | { status: 'blocked'; reason: string; data: null }
-  | { status: 'failed';  reason: string; data: null };
-```
+`HomeViewModel`은 `BFF-REQ-028`이 정의한다: **3블록**(`totalAsset` · `weeklyPlan` · `coach`) + `unreadAlertCount`. `taxDeadline` · `invoice` 블록은 ADR-002로 삭제됐다. 모바일 오프라인 배너용 `lastUpdatedAt`은 F006 계약에 이 REQ가 요구하는 필드다(FR-5).
 
 ## Requirements
 
@@ -102,13 +79,14 @@ type BlockResult<T> =
 |---|---|---|
 | FR-1 | 위 타입을 `packages/core`에 두고 **web·mobile이 공유**한다 | Must |
 | FR-2 | **모바일 전용 필드를 추가하지 않는다** | Must |
-| FR-3 | `HomeViewModel`은 웹 스트리밍과 모바일 단일 응답이 **같은 타입**이다 | Must |
+| FR-3 | `HomeViewModel`(F006 소유)은 웹 스트리밍과 모바일 단일 응답이 **같은 타입**이다. 3블록 + 기존 블록(D6). *(개정 2026-09-21)* | Must |
 | FR-4 | `BlockResult`가 실패를 **정상 값으로 표현**한다. HTTP 상태로 표현하지 않는다 | Must |
 | FR-5 | `lastUpdatedAt`은 **BFF 집계 완료 시각**이다. upstream 데이터 시각이 아니다 | Must |
-| FR-6 | `deepLink`는 **앱 내부 경로**만 허용한다(`salt://` 또는 상대 경로). 외부 URL은 거부 | Must |
+| FR-6 | 딥링크는 **`PushPayload.target` + `alertId`로 앱이 조립**한다. 외부 URL 필드가 payload에 0건이다. *(개정 2026-09-21 — `deepLink` 문자열 대신 target, Open Question 3안 채택)* | Must |
 | FR-7 | **응답 어디에도 `pushToken`이 없다** | Must |
-| FR-8 | **알림 `title`/`body`에 금액 패턴(`원`·`₩`·숫자+콤마)이 0건**임을 계약 테스트가 검증한다 | Must |
-| FR-9 | `alwaysOnExceptions`를 그대로 전달해 앱이 "끄더라도 D-1은 옵니다"를 표시하게 한다 | Must |
+| FR-8 | **푸시 `title`/`body`와 알림 `params`에 금액 패턴(`원`·`₩`·숫자+콤마)이 0건**임을 계약 테스트가 검증한다 | Must |
+| FR-9 | ~~`alwaysOnExceptions` 전달~~ → **삭제 2026-09-21** — D-1 예외가 없다(ADR-002 · B21) | — |
+| FR-11 | **2026-09-21 추가 — D5 · B21.** `PushPayload.type`은 `'signal_update'` 리터럴 하나다 | Must |
 | FR-10 | 모든 응답이 `{ success, message, data }` envelope다 | Must |
 
 ## 에러 코드
@@ -119,7 +97,7 @@ type BlockResult<T> =
 | 404 | `DEVICE_NOT_FOUND` | 남의/없는 기기 | 무시 |
 | 422 | `INVALID_PUSH_TOKEN` | 토큰 형식 | 재등록 시도 안 함, 로그만 |
 | 422 | `INVALID_VERSION` | semver 아님 | 빌드 버그. 리포트 |
-| 422 | `UNKNOWN_NOTIFICATION_TYPE` | 2종 밖 | 앱이 낡음 |
+| ~~422~~ | ~~`UNKNOWN_NOTIFICATION_TYPE`~~ | **삭제 2026-09-21** | — |
 | 426 | `UPGRADE_REQUIRED` | 버전 미달 | **업데이트 화면** |
 | 429 | `TOO_MANY_REQUESTS` | rate limit | 백오프 |
 | 502/504 | `UPSTREAM_*` | 서버 장애 | 재시도 버튼 |
@@ -130,7 +108,9 @@ type BlockResult<T> =
 |---|---|
 | 응답 JSON에 `pushToken` 키 | 0건 |
 | 알림 `title`/`body`에 금액 패턴 | 0건 |
-| `deepLink`에 `http://`/`https://` | 0건 |
+| `PushPayload`에 `http://`/`https://` | 0건 |
+| `PushPayload.type`이 `signal_update` 외 | 0건 (2026-09-21) |
+| `HomeViewModel`에 `taxDeadline`·`invoice` | 0건 (2026-09-21) |
 | `HomeViewModel` 타입이 web·mobile 동일 모듈 | 참 |
 | 한 블록 upstream 실패 → 나머지 `ok` | 참 |
 | `426` 본문에 사용자 데이터 | 0건 |
@@ -143,13 +123,14 @@ type BlockResult<T> =
 - [ ] `HomeViewModel`이 웹 스트리밍과 모바일 단일 응답에서 같은 타입이다
 - [ ] **`BlockResult`가 실패를 정상 값으로 표현한다**
 - [ ] `lastUpdatedAt`이 BFF 집계 시각이다
-- [ ] **`deepLink`에 외부 URL이 0건이다**
+- [ ] **푸시 payload에 외부 URL이 0건이고 딥링크가 `target`으로 조립된다**
 - [ ] **응답에 `pushToken`이 0건이다**
 - [ ] **알림 본문에 금액 패턴이 0건임이 계약 테스트로 검증된다**
-- [ ] `alwaysOnExceptions`가 전달된다
+- [ ] **`TAX_DEADLINE`·`alwaysOnExceptions`·`taxDeadline`·`invoice`가 계약에 0건이다** (ADR-002 · B21)
+- [ ] 알림 목록 · 홈 타입을 이 REQ가 재정의하지 않고 F006 타입을 import한다
 - [ ] 모든 응답이 envelope 규약을 따른다
-- [ ] 8개 에러 코드가 앱 동작과 함께 문서화되어 있다
-- [ ] 7개 계약 테스트가 CI에서 돈다
+- [ ] 7개 에러 코드가 앱 동작과 함께 문서화되어 있다 (2026-09-21 개정)
+- [ ] 9개 계약 테스트가 CI에서 돈다 (2026-09-21 개정)
 
 ## Dependencies
 
@@ -159,5 +140,12 @@ type BlockResult<T> =
 
 ## Open Questions
 
-- `deepLink`를 서버가 만들지 BFF가 만들지. 서버가 만들면 앱 라우팅 구조가 서버에 새고, BFF가 만들면 "BFF는 얇게"와 충돌한다. **`payloadRef` + 타입으로 앱이 조립**하는 3안이 더 나을 수 있다.
+- ~~`deepLink`를 누가 만들지~~ → **닫힘 2026-09-21** — `target` + `alertId`로 앱이 조립(3안).
+- F006 `HomeViewModel`에 `lastUpdatedAt`이 있는지 확인 필요 — 없으면 `BFF-REQ-028`에 추가를 요청한다.
 - `lastUpdatedAt`이 집계 시각이면 "5분 전 데이터"를 "방금"으로 보이게 할 수 있다. 블록별 `dataAsOf`를 따로 둘지.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` 반영. 머리 배너 추가. `notification-prefs` · `/bff/app/notifications` · 5블록 `HomeViewModel` 삭제 → F006 계약 참조(D5 · D6 · B21 · ADR-002). `PushPayload` 신설, FR-3 · 6 · 8 개정, FR-9 삭제, FR-11 추가 |

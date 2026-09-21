@@ -3,7 +3,7 @@ id: DB-REQ-025
 feature: F007
 area: db
 kind: SCHEMA
-title: "F007 모바일 앱 — DB 스키마 정의 (Device · NotificationDelivery · NotificationPreference)"
+title: "F007 모바일 앱 — DB 스키마 정의 (Device · NotificationDelivery · AppVersionGate)"
 priority: high
 labels: [db, schema, prisma, device, notification, security]
 created: 2026-09-09
@@ -11,7 +11,9 @@ created: 2026-09-09
 
 ## Summary
 
-모바일이 존재하는 이유는 **마감 알림이 도달하는 것**이다. 그러려면 DB에 세 가지가 필요하다: **기기가 누구 것인지**(`Device`), **무엇을 이미 보냈는지**(`NotificationDelivery` — D-30을 두 번 보내지 않기 위해), **무엇을 끄기로 했는지**(`NotificationPreference`).
+> **2026-09-21 개정.** `ADR-002`로 세금 D-Day 알림이 사라졌다. 푸시는 **1종(`signal_update` — 지표 · 추천 갱신)** 이다(D5 · **기본안 — 감사 문서 B21**). 알림 켜기/끄기는 F006의 `User.alertsEnabled` 하나다 — `NotificationPreference`를 만들지 않는다.
+
+모바일 푸시가 필요한 이유는 **지표 · 추천이 바뀌었을 때 알림이 도달하는 것**이다. 그러려면 DB에 두 가지가 필요하다: **기기가 누구 것인지**(`Device`), **무엇을 이미 보냈는지**(`NotificationDelivery` — 같은 알림을 두 번 푸시하지 않기 위해). 무엇을 끄기로 했는지는 F006 `User.alertsEnabled`가 맡는다.
 
 기존 스키마에 `Device`가 **없다**(`prisma/schema.prisma`에 `model Device` 0건). 전부 신규다.
 
@@ -63,9 +65,9 @@ model NotificationDelivery {
   userId       String   @map("user_id")
   deviceId     String?  @map("device_id")               // 기기 삭제 후에도 기록은 남는다
 
-  type         NotificationType                          // TAX_DEADLINE | SIGNAL_UPDATE
+  type         NotificationType                          // SIGNAL_UPDATE (개정 2026-09-21 — TAX_DEADLINE 삭제, ADR-002)
   dedupeKey    String   @map("dedupe_key")               // 중복 발송 차단의 전부
-  payloadRef   String?  @map("payload_ref")              // 딥링크 대상 식별자 (금액 아님)
+  payloadRef   String?  @map("payload_ref")              // InvestmentNotification.id (F006). 딥링크 대상 식별자 (금액 아님)
 
   status       DeliveryStatus @default(QUEUED)           // QUEUED|SENT|FAILED|SKIPPED
   providerMessageId String? @map("provider_message_id")
@@ -85,26 +87,13 @@ model NotificationDelivery {
   @@map("notification_deliveries")
 }
 
-enum NotificationType { TAX_DEADLINE SIGNAL_UPDATE }
+enum NotificationType { SIGNAL_UPDATE }                  // 개정 2026-09-21 — 1종 (D5 · B21)
 enum DeliveryStatus   { QUEUED SENT FAILED SKIPPED }
 ```
 
-### NotificationPreference
+### ~~NotificationPreference~~ — 삭제 2026-09-21
 
-```prisma
-model NotificationPreference {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  type      NotificationType
-  enabled   Boolean  @default(true)
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, type])
-  @@map("notification_preferences")
-}
-```
+타입이 1종이 되어 타입별 on/off가 의미가 없다. 알림 켜기/끄기는 **F006 `User.alertsEnabled`**(`DB-REQ-021` FR-53) 하나를 쓴다. 두 곳에 두면 "앱에서 껐는데 웹 설정은 켜짐"이 된다.
 
 ### AppVersionGate
 
@@ -123,7 +112,7 @@ model AppVersionGate {
 }
 ```
 
-`User`에 역관계 3개(`devices`, `notificationDeliveries`, `notificationPreferences`)를 추가한다.
+`User`에 역관계 2개(`devices`, `notificationDeliveries`)를 추가한다. *(개정 2026-09-21 — `notificationPreferences` 삭제)*
 
 ## Requirements
 
@@ -141,9 +130,10 @@ model AppVersionGate {
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-10 | `(userId, dedupeKey)` **unique**가 D-30 중복 발송을 막는 유일한 장치다 | Must |
-| FR-11 | 세금 D-Day의 `dedupeKey`는 `tax:{assetClass}:{taxYear}:D{n}` 형식이다 | Must |
-| FR-12 | 지표 갱신의 `dedupeKey`는 `signal:{indicatorCode}:{asOfDate}` 형식이다 | Must |
+| FR-10 | `(userId, dedupeKey)` **unique**가 같은 알림 중복 푸시를 막는 유일한 장치다 | Must |
+| FR-11 | ~~세금 D-Day의 `dedupeKey`는 `tax:{assetClass}:{taxYear}:D{n}`~~ → **삭제 2026-09-21** — 세금 D-Day 푸시가 없다(ADR-002 · 기본안 — 감사 문서 B21) | — |
+| FR-12 | `dedupeKey`는 **`signal:{investmentNotificationId}`** 하나다. F006이 만든 인앱 알림 1건 = 푸시 1회. **개정 2026-09-21** — 원인(F004 추천 변경 · F003 밴드 변경)의 중복 판정은 F006 알림 생성 쪽(`DB-REQ-021` FR-43)이 한다 | Must |
+| FR-15 | **2026-09-21 추가 — D5.** 발송 전 `User.alertsEnabled`를 본다. `false`면 `SKIPPED`로 기록하고 보내지 않는다. **예외(끈 상태에서도 보내는 알림)가 없다** — D-1 예외는 세금과 함께 사라졌다 | Must |
 | FR-13 | 워커는 INSERT 충돌(`P2002`)을 **정상 경로로 처리**한다. 에러가 아니다 | Must |
 | FR-14 | 발송 기록은 **기기 삭제 후에도 남는다**(`deviceId` nullable + `SetNull`) | Must |
 
@@ -172,7 +162,7 @@ model AppVersionGate {
 | FR-40 | 발송 실패가 연속 누적되면 `failureCount`를 올리고 임계 초과 시 `DEAD`로 내린다 | Must |
 | FR-41 | `DEAD` 또는 `REVOKED` 기기는 **180일 후 하드 삭제**한다 | Should |
 | FR-42 | `lastSeenAt`이 **90일 이상 지난 `ACTIVE`** 기기는 발송 대상에서 제외한다 | Should |
-| FR-43 | 사용자 삭제 시 `Device`·`Preference`는 cascade 삭제된다 | Must |
+| FR-43 | 사용자 삭제 시 `Device`·`NotificationDelivery`는 cascade 삭제된다. *(개정 2026-09-21 — `Preference` 삭제)* | Must |
 
 ## 인덱스 근거
 
@@ -187,12 +177,14 @@ model AppVersionGate {
 
 ## Acceptance Criteria
 
-- [ ] `Device`·`NotificationDelivery`·`NotificationPreference`·`AppVersionGate`가 스키마에 추가된다
+- [ ] `Device`·`NotificationDelivery`·`AppVersionGate`가 스키마에 추가되고 **`NotificationPreference`가 0건이다** (2026-09-21)
+- [ ] **`NotificationType`이 `SIGNAL_UPDATE` 하나다** (D5 · B21)
+- [ ] `alertsEnabled = false`면 `SKIPPED`로 기록되고 예외 발송이 0건이다
 - [ ] **푸시 토큰 평문 컬럼이 0건이다**
 - [ ] `push_token_hash`에 글로벌 unique가 있다
 - [ ] 기기 이전 시 기존 행이 `REVOKED`가 되고 새 행이 생긴다
 - [ ] **`(user_id, dedupe_key)` unique가 존재한다**
-- [ ] `dedupeKey` 형식이 세금·지표 두 종으로 문서화되어 있다
+- [ ] `dedupeKey` 형식이 `signal:{investmentNotificationId}` 하나로 문서화되어 있다
 - [ ] `P2002` 충돌이 워커에서 정상 경로로 처리된다
 - [ ] 기기 삭제 후에도 발송 기록이 남는다
 - [ ] **`NotificationDelivery`에 금액 컬럼이 0건이다**
@@ -206,10 +198,16 @@ model AppVersionGate {
 
 - **선행:** `SRV-REQ-006`(DDD) — `device` 컨텍스트 신설
 - **짝:** `DB-REQ-026`(FUNC) · `027`(MIGRATION) · `028`(PERF)
-- **연관:** `DB-REQ-009~012`(F002 세금) — D-Day 발송의 데이터 원천
+- **연관:** `DB-REQ-021`(F006 — `InvestmentNotification` · `User.alertsEnabled`). 푸시의 원천은 F006이 만든 인앱 알림이다. *(개정 2026-09-21 — F002 세금 REQ는 ADR-002로 삭제)*
 
 ## Open Questions
 
-- 푸시 토큰 암호화 키를 거래소 API 키와 **같은 KMS 키로 쓸지 분리할지**. 분리가 안전하지만 운영 부담이 는다.
+- 푸시 토큰 암호화 키를 무엇으로 할지. *(2026-09-21: 계좌 연동이 영구 Non-Goal이라 "거래소 API 키와 분리" 논점은 사라졌다 — 서버에 거래소 키가 없다)*
 - Expo push token을 쓰면 FCM/APNS 토큰이 Expo에 한 겹 더 있다. `pushProvider`를 두었지만 Phase 1은 `EXPO` 단일로 갈지 확정 필요.
-- `NotificationDelivery`의 보존 기간. 세금 D-Day는 연 단위 감사가 필요할 수 있어 180일로는 부족할 수 있다.
+- `NotificationDelivery`의 보존 기간. *(2026-09-21: 세금 감사 요건이 사라져 180일이면 충분하다 — 확정 후보)*
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` 반영. 헤더 배너 추가. 알림 1종(`SIGNAL_UPDATE`, D5 · B21), `NotificationPreference` 삭제 → F006 `User.alertsEnabled`. FR-11 삭제, FR-12·FR-43 개정, FR-15 추가 |

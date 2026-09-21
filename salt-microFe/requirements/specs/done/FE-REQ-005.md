@@ -130,6 +130,8 @@ starIcon image scrollContainer root previewChart useThrottle useDebounce
 
 ### D-1. 브랜드 색은 `#7949FF`를 유지한다
 
+> **보강 2026-09-21 — 제품 화면의 브랜드 색은 `#007AFF` 다**(사용자 결정, `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D10). 앱 로컬 토큰(`apps/web/src/shared/ui/tokens.css.ts`)으로 쓴다. **이 REQ 의 디자인 시스템 토큰 `#7949FF` 는 바꾸지 않는다** — 바꾸면 `@repo/ui` 를 쓰는 화면 전체가 다시 칠해진다. 두 값의 공존은 의도된 상태다.
+
 레퍼런스 팔레트의 액센트는 청색 계열이지만, 이 제품에는 **하락이 청색(`#1677EE`)** 이다. 액센트를 청색으로 바꾸면 버튼·링크·선택 상태가 "하락"과 같은 색조가 되어 금융 화면에서 의미가 충돌한다. 현재 보라 브랜드는 이 충돌이 없고, 이미 앱 전반에 적용되어 있다.
 
 > **결론: 브랜드/액센트는 `#7949FF` 유지.** "같은 디자인"의 인상은 액센트 색조가 아니라 **중립 스케일 · 타입 리듬 · 여백 · radius · 레이아웃 문법**이 만든다. 그쪽을 정합시킨다.
@@ -380,3 +382,4 @@ numeric: { tabular: "tabular-nums" }
 - 회고: `requirements/reports/retrospects/FE-REQ-005.md`
 - **부분 미충족을 안고 done으로 옮긴다.** FR-29 `SegmentedControl` 제외(대체 경로 문서화, 단 `FilterTabs` 접근성 부채 잔존), 320px 브라우저 확인·앱 시각 회귀 미실시, `colors.ai.primary` 잠정값, FR-50/51(3차·선택) 미착수. 후속 항목은 회고의 Action Items에 있다.
 - 본 spec은 `requirements/specs/done/`에 위치한다.
+| 2026-09-21 | **D-1 보강 — 제품 화면 브랜드 `#007AFF`(앱 로컬 토큰).** 디자인 시스템 토큰은 교체하지 않는다(사용자 결정, 감사 문서 D10) |

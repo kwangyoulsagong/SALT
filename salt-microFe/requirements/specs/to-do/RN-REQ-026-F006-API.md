@@ -9,6 +9,8 @@ labels: [rn, api, react-query, sse, aggregate, offline]
 created: 2026-09-09
 ---
 
+> **2026-09-21 개정.** `ADR-002` — 홈 집계는 3블록 + `unreadAlertCount`(알림 목록은 홈에 없다). 포지션 · 거래 · 알림 · 설정 · 온보딩 건너뛰기 호출을 추가했다(§H). 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14.
+
 ## Summary
 
 모바일은 **홈을 집계 1콜**로 받고(RSC 없음), 대화는 **SSE를 직접 구현**한다(`EventSource`가 기본 내장이 아니다).
@@ -17,8 +19,13 @@ created: 2026-09-09
 
 | 화면 요소 | 호출 | 방식 |
 |---|---|---|
-| 홈 5블록 | **`GET /api/app/home`** | React Query, `staleTime: 1m` |
-| 알림 | (홈 응답에 포함) | — |
+| 홈 3블록 | **`GET /api/app/home`** | React Query, `staleTime: 1m` *(개정 2026-09-21)* |
+| 벨 배지 | (홈 응답 `unreadAlertCount`) + 알림 화면 이탈 시 `GET /api/app/alerts/unread-count` | *(개정 2026-09-21)* |
+| 알림 화면 | `GET /api/app/alerts` · `PATCH .../:id/read` · `.../read-all` | `useInfiniteQuery` + mutation *(2026-09-21)* |
+| 포지션 | `GET /api/app/portfolio` · `/performance?range` | React Query, `staleTime: 1m` *(2026-09-21)* |
+| 거래 | `GET/POST /api/app/portfolio/transactions` · `POST .../preview` · `PATCH/DELETE .../:id` | 조회 + mutation *(2026-09-21)* |
+| 설정 | `GET /api/app/settings` · 그룹별 쓰기 | *(2026-09-21)* |
+| 온보딩 건너뛰기 | `POST /api/app/onboarding/steps/first-holding/skip` | mutation *(2026-09-21)* |
 | 온보딩 상태 | (홈 응답에 포함) | — |
 | 대화 목록 | `GET /api/app/coach/conversations` | React Query, `staleTime: 5m` |
 | 메시지 목록 | `GET /api/app/coach/conversations/:id/messages` | `useInfiniteQuery` (역순) |
@@ -32,8 +39,8 @@ created: 2026-09-09
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-1 | 홈은 **집계 1콜**이다. 블록별로 5번 부르지 않는다 | Must |
-| FR-2 | 알림·온보딩 상태가 홈 응답에 포함된다. 별도 호출 0건 | Must |
+| FR-1 | 홈은 **집계 1콜**이다. 블록별로 부르지 않는다 | Must |
+| FR-2 | **안 읽은 알림 수** · 온보딩 상태가 홈 응답에 포함된다. 홈 진입 시 별도 호출 0건. **개정 2026-09-21** — 알림 목록은 홈에 없다(D6) | Must |
 | FR-3 | `staleTime: 1m`. 자주 보는 화면이다 | Must |
 | FR-4 | Pull-to-refresh가 `refetch`를 부른다 | Should |
 | FR-5 | 백그라운드 복귀 시 stale이면 재조회 | Must |
@@ -104,10 +111,23 @@ created: 2026-09-09
 | FR-64 | 홈 금액이 `number | null`이다 | Must |
 | FR-65 | `any` 0건 | Must |
 
+### H. 포지션 · 거래 · 알림 · 설정 · 온보딩 (2026-09-21 추가)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-70 | 포지션 뷰모델과 성과를 **병렬**로 부른다. 기간 변경은 성과 쿼리 키(`['performance', range]`)만 바꾼다 **(기본안 — 감사 문서 B13)** | Must |
+| FR-71 | 미리보기는 `AbortController`로 취소 가능한 조회. mutation 캐시에 넣지 않는다 **(기본안 — 감사 문서 B14)** | Must |
+| FR-72 | 거래 쓰기 mutation **재시도 0회**. `mutationCache` persist 0건(오프라인 재생 금지) | Must |
+| FR-73 | 거래 · 알림 · 설정 에러 코드를 `shared/i18n`으로 매핑. 원문 0건 | Must |
+| FR-74 | 포지션 · 거래 목록을 persist한다(오프라인 조회용). 크기 상한: 거래 최근 50건 | Should |
+| FR-75 | 알림 목록은 persist하지 않는다 — 읽음 상태가 오래되면 거짓이 된다 | Must |
+| FR-76 | 설정 쓰기는 소유자 경로(F003 적립 · F004 코치 · `/settings/alerts`)로 보낸다 (D9 · B16) | Must |
+| FR-77 | 타입(`PositionViewModel` · `TransactionInput` · `TransactionPreviewViewModel` · `AlertViewModel` · `SettingsViewModel` · `OnboardingStepKey`)을 `packages/core`에서 웹과 공유 | Must |
+
 ## Acceptance Criteria
 
 - [ ] 홈이 **집계 1콜**로 렌더된다 (요청 1건)
-- [ ] 알림·온보딩이 홈 응답에 포함된다
+- [ ] 안 읽은 알림 수 · 온보딩이 홈 응답에 포함되고 알림 목록은 없다
 - [ ] `staleTime`이 명시되어 있다
 - [ ] 백그라운드 복귀 시 stale이면 재조회된다
 - [ ] **홈에 mutation이 0건이다**
@@ -137,6 +157,12 @@ created: 2026-09-09
 - [ ] 타입이 `packages/core`에서 오고 discriminated union이다
 - [ ] 게이트가 타입으로 강제된다
 - [ ] `any` 0건
+- [ ] 포지션 · 성과가 병렬이고 기간 변경이 성과만 부른다
+- [ ] 미리보기가 취소 가능한 조회다
+- [ ] 거래 쓰기 재시도 0회 · `mutationCache` persist 0건
+- [ ] 알림 목록이 persist되지 않는다
+- [ ] 설정 쓰기가 소유자 경로로 간다
+- [ ] 신규 타입이 `packages/core`에서 온다
 
 ## Dependencies
 
@@ -148,3 +174,10 @@ created: 2026-09-09
 - **RN SSE 구현 방식(FR-10).** `react-native-sse` 폴리필이 가장 빠르지만 유지보수 상태를 확인해야 한다. `fetch` + `ReadableStream`은 RN의 네트워킹 구현에 따라 지원이 갈린다 → **착수 전 필수 조사.**
 - persist에 대화를 넣으면 **오프라인에서 과거 대화를 볼 수 있지만** 크기가 커진다. 최근 1개 대화 30건이 적절한지 측정 필요.
 - 홈 집계 1콜이 450ms인데 `staleTime: 1m`이면 자주 재조회된다. 데이터 사용량 측정 필요.
+- 포지션 persist(FR-74)로 오프라인에서 오래된 평가금이 보인다. 배너의 기준 시각이 반드시 붙어야 한다(`RN-REQ-025` FR-92).
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | ADR-002 머리 배너. 개정: 호출 배치 표(홈 3블록 · 벨 배지) · FR-2(홈 알림 목록 → 안 읽은 수, D6). 추가: §H FR-70~77(포지션 B13 · 거래 · 미리보기 B14 · 알림 D5 · 설정 D9 · B16 · 온보딩 B12). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |

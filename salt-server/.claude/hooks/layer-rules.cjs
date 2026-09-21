@@ -24,12 +24,9 @@ const LAYERS = ["domain", "application", "infrastructure", "presentation"];
  */
 const CONTEXTS = [
   "auth",
-  "ledger",
   "portfolio",
   "market",
   "coach",
-  "invoice",
-  "tax",
   "plan",
   "indicator",
   "fx",

@@ -28,7 +28,11 @@ created: 2026-09-09
 | 온보딩 상태 | `GET /api/app/onboarding/status` | React Query |
 | 초대 확인 | `GET /api/app/onboarding/invite/check?code` | 디바운스 query |
 | 초대 수락 | `POST /api/app/onboarding/invite` | mutation |
-| 목표 | `GET/POST /api/goals` | query + mutation |
+| 목표 | `GET/POST /api/goals` | query + mutation. 2026-09-21 — 금액 · 수량 택일 본문(B5) |
+| 종목 검색 (2026-09-21) | `GET /api/app/search?q=&assetType=&limit=20` | 디바운스 query, `staleTime: 30s` |
+| 북마크 목록 (2026-09-21) | `GET /api/app/news/bookmarks?page=&limit=10` | React Query, `staleTime: 1m` |
+| 북마크 토글 (2026-09-21) | `POST` · `DELETE /api/app/news/:id/bookmark` | mutation |
+| 알림 (개정 2026-09-21) | 위 `GET /api/app/alerts` — `kind` **1종** | — |
 
 ## Requirements
 
@@ -49,7 +53,7 @@ created: 2026-09-09
 |---|---|---|
 | FR-10 | 쿼리 캐시를 `AsyncStorage`에 persist한다 | Must |
 | FR-11 | **토큰은 secure store**다. 두 저장소를 혼동하지 않는다 | Must |
-| FR-12 | persist 대상을 제한한다: 시세 목록·보유 요약·알림·온보딩 상태. **차트·뉴스는 persist하지 않는다**(크고 자주 바뀐다) | Must |
+| FR-12 | persist 대상을 제한한다: 시세 목록·보유 요약·알림·온보딩 상태 · **북마크 목록**(2026-09-21, D5). **차트·뉴스 · 검색은 persist하지 않는다**(크고 자주 바뀐다 · 사용자별 판정) | Must |
 | FR-13 | 오프라인에서 조회는 캐시를 반환하고 `dataUpdatedAt`을 배너에 쓴다 | Must |
 | FR-14 | **`mutationCache` 재생(오프라인 큐)을 쓰지 않는다** | Must |
 | FR-15 | 로그아웃 시 persist된 캐시를 **전부 지운다** | Must |
@@ -77,6 +81,17 @@ created: 2026-09-09
 | FR-33 | `onboarding/status`가 단계를 결정한다. 프론트가 판단하지 않는다 | Must |
 | FR-34 | 온보딩 완료 후 홈 쿼리를 무효화한다 | Must |
 
+### D-2. 2026-09-21 추가 — 검색 · 북마크 · 뉴스 필드 · 목표 수량
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-60 | 검색 훅 `features/search-asset/api/`, 쿼리 키에 `q` · `assetType`. **persist 하지 않는다**(사용자별 판정 · 자주 바뀜) (D8) | Must |
+| FR-61 | `409 TRACKED_ASSET_LIMIT` 을 `shared/api` 가 정규화된 코드로 구분한다. ★ 성공 시 `watchlist` · `search` 쿼리를 함께 무효화 (D8) | Must |
+| FR-62 | 뉴스 타입에 `sentiment`(enum) · `symbols` · `isBookmarked?` 를 추가한다. `packages/core` 뷰모델을 쓴다 (기본안 — 감사 문서 B11) | Must |
+| FR-63 | 북마크 조회 `entities/news/api/`, 토글 `features/toggle-news-bookmark/api/`. mutation 재시도 0회. 북마크 목록은 **persist 대상**이다(오프라인 읽기 — RN-REQ-005 FR-56) (D5) | Must |
+| FR-64 | 검색 · 북마크는 인증 필수다. 토큰이 없으면 호출하지 않는다 (D8 · D5) | Must |
+| FR-65 | 목표 생성 본문을 금액 · 수량 판별 유니온으로. 수량은 문자열로 보내 소수 자리를 보존한다. 서버 422 코드 → i18n (기본안 — 감사 문서 B5) | Should |
+
 ### E. 에러 처리
 
 | ID | 요구사항 | 우선순위 |
@@ -93,7 +108,7 @@ created: 2026-09-09
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-50 | 뷰모델·WS 타입을 `packages/core`에서 웹과 공유 | Must |
-| FR-51 | `period`·`assetType`·`alertKind`를 `enum`으로. 리터럴 union 금지 | Must |
+| FR-51 | `period`·`assetType`·`alertKind`·`newsSentiment`(2026-09-21)를 `enum`으로. 리터럴 union 금지. `alertKind` 는 1종(개정 2026-09-21) | Must |
 | FR-52 | `any` 0건 | Must |
 
 ## Acceptance Criteria
@@ -127,6 +142,14 @@ created: 2026-09-09
 - [ ] 뷰모델·WS 타입이 `packages/core`에서 온다
 - [ ] 리터럴 union 0건, `any` 0건
 
+**추가 2026-09-21**
+
+- [ ] 검색 쿼리가 persist 되지 않고 북마크 목록은 persist 된다
+- [ ] `409 TRACKED_ASSET_LIMIT` 이 정규화된 코드로 구분되고 ★ 성공 시 두 쿼리가 무효화된다
+- [ ] 뉴스 타입에 `sentiment` · `symbols` · `isBookmarked?` 가 있다
+- [ ] 북마크 mutation 재시도 0건, 토큰 없을 때 검색 · 북마크 호출 0건
+- [ ] 수량 목표 본문의 수량이 문자열로 전송된다
+
 ## Dependencies
 
 - **선행:** `BFF-REQ-008`(계약) · `RN-REQ-001`(`packages/core`)
@@ -137,3 +160,9 @@ created: 2026-09-09
 - persist에 시세 목록을 넣으면 **오래된 가격이 보인다.** `dataUpdatedAt` 배너로 완화하지만, 시세는 persist하지 않는 것이 더 정직할 수 있다 → 사용성 판단 필요.
 - WS 재연결 백오프 상한 30s가 적절한가. 시세 화면에 있는 동안은 더 짧아야 할 수 있다.
 - `packages/core`에 WS 타입을 두려면 BFF가 그 패키지를 참조해야 한다(`BFF-REQ-006` Open Question).
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | **스토리보드 갭 감사 반영.** 호출 배치에 검색 · 북마크 목록 · 토글 · 목표 수량 본문 추가, 알림 1종 표시. 신규 D-2절 FR-60~65. 개정: FR-12 persist 대상에 북마크 목록 추가 · 검색 제외 · FR-51 `newsSentiment` enum. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |

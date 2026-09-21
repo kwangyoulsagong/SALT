@@ -25,7 +25,9 @@ F003은 **지표가 일 1회 갱신**이므로 조회가 전부 캐시 히트여
 | 연속 주차·누적액 | 100ms | 집계 |
 | **김프** | **실시간, 30초 캐시** | 유일한 실시간 |
 | 적립 완료 기록 | 50ms | upsert |
-| 원장 매칭 | 200ms | 주간 윈도우 거래 조회 |
+| ~~원장 매칭~~ | — | **삭제 2026-09-21** — ADR-002 · B20 |
+| 이번 달 적립 합계 | 50ms | `(userId, weekOf)` 범위 SUM — 2026-09-21 B20 |
+| 기본액 저장 (+첫 주 계획 upsert) | 100ms | 2026-09-21 D9 · B12 |
 | 지표 수집 (워커) | 지표당 2s · 총 10s | 일 1회 |
 | 주간 계획 생성 (워커) | 사용자당 200ms | 주 1회 |
 
@@ -40,13 +42,15 @@ F003은 **지표가 일 1회 갱신**이므로 조회가 전부 캐시 히트여
 | `WHERE userId=? AND weekOf=? AND symbol=?` | `WeeklyPlanExecution @@unique(...)` | 유니크가 인덱스 |
 | `WHERE userId=? ORDER BY weekOf DESC LIMIT 12` | `@@index([userId, weekOf DESC])` | 신규 (연속 주차) |
 | `WHERE userId=? AND status='planned'` | `@@index([userId, status])` | 신규 (미실행 마감) |
-| `WHERE userId=? AND transactionDate BETWEEN ? AND ? AND symbol=?` | `PortfolioTransaction @@index([userId, assetType, symbol])` | 기존 |
+| ~~`PortfolioTransaction` 주간 윈도우 조회~~ | — | **삭제 2026-09-21** — 원장 매칭 없음(ADR-002) |
+| `WHERE userId=? AND weekOf BETWEEN ? AND ? AND status='executed'` (SUM) | `@@index([userId, weekOf DESC])` | 기존 인덱스 재사용 (2026-09-21 B20) |
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-1 | 위 신규 인덱스 4개를 만든다 | Must |
 | FR-2 | `EXPLAIN (ANALYZE, BUFFERS)`를 checklist에 첨부한다 | Must |
 | FR-3 | **GIN 인덱스가 F004의 게이트 조회를 덮는지** 확인한다. F003보다 F004가 더 자주 쓴다 | Must |
+| FR-4 | **2026-09-21 추가 — B20.** 이번 달 적립 합계는 한 달 ≤ 5주 × 자산 2개 = 10행 이하 SUM이다. 새 인덱스·집계 테이블을 만들지 않는다 | Must |
 
 ## 캐시 히트가 전제다
 
@@ -95,7 +99,7 @@ F003은 **지표가 일 1회 갱신**이므로 조회가 전부 캐시 히트여
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-50 | `bandConfigJson`은 작다(밴드 5개). 그대로 전달해도 된다 | Must |
+| FR-50 | `BandPreset.rowsJson`은 작다(밴드 5개). 그대로 전달해도 된다. **개정 2026-09-21** — 사용자별 `bandConfigJson`에서 전역 프리셋으로(D9). 전역이므로 프로세스 캐시 대상이다 | Must |
 | FR-51 | `hitsJson`·`missesJson`은 항목이 적다(각 5개 이하). 전부 전달 | Must |
 | FR-52 | 연속 주차 계산에 최근 **12주**만 조회한다. 전체를 읽지 않는다 | Must |
 
@@ -117,6 +121,8 @@ F003은 **지표가 일 1회 갱신**이므로 조회가 전부 캐시 히트여
 - [ ] 이전 주 미실행분이 배치로 `skipped` 처리된다
 - [ ] 워커 총 실행 시간이 10초 이내다
 - [ ] 연속 주차 계산이 최근 12주만 조회한다
+- [ ] 이번 달 적립 합계가 기존 `(userId, weekOf)` 인덱스로 50ms 이내다 (B20)
+- [ ] **`PortfolioTransaction` 조회가 F003 경로에 0건이다** (ADR-002)
 
 ## Dependencies
 
@@ -130,3 +136,9 @@ F003은 **지표가 일 1회 갱신**이므로 조회가 전부 캐시 히트여
 - 김프를 인메모리 캐시로 두면 **서버 재기동 시 사라진다.** 30초 값이므로 문제가 아니다.
 - `IndicatorSnapshot` 백필 90일이면 360건이다. 조회 성능에 영향이 없다.
 - GIN 인덱스가 배열 4개 이하에서 실익이 있는가. **`IndicatorTrackRecord`가 4행뿐이면 전체 스캔이 더 싸다** → 측정 후 제거를 검토할 수 있다.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 원장 매칭 예산·인덱스 삭제(ADR-002 · B20). 이번 달 적립 합계·기본액 저장 예산, FR-4 추가. FR-50 개정(D9) |

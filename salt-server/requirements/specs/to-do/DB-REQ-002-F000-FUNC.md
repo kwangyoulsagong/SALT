@@ -7,14 +7,16 @@ title: "F000 정리·편집 — 데이터 정책 정의 (금액 타입 · 불변
 priority: high
 labels: [db, policy, decimal, idempotency]
 created: 2026-09-09
-source: FEATURE-000, FEATURE-001 4절(계산 정의), 글로벌 플랜 11절
+source: FEATURE-000, ~~FEATURE-001 4절(계산 정의)~~(ADR-002 로 삭제), 글로벌 플랜 11절
 ---
 
 ## Summary
 
-DB-REQ-004 이후 모든 신규 모델이 따르는 **데이터 정책**을 정의한다. 금액 타입, 반올림 시점, 멱등 키, 시각 저장, JSON 사용 한계, 인덱스 근거, 보존 규칙. 이 문서를 어기면 청구서 항등식(잔차 ≤ 100원)과 세금 계산이 성립하지 않는다.
+DB-REQ-004 이후 모든 신규 모델이 따르는 **데이터 정책**을 정의한다. 금액 타입, 반올림 시점, 멱등 키, 시각 저장, JSON 사용 한계, 인덱스 근거, 보존 규칙. ~~이 문서를 어기면 청구서 항등식(잔차 ≤ 100원)과 세금 계산이 성립하지 않는다.~~ **개정 2026-09-21** — 청구서 · 세금은 ADR-002 로 빠졌다. 이 정책을 어기면 적립 배수 · 코치 금액 · 수량 목표 진행률이 조용히 틀린다.
 
 ## Background
+
+> **개정 2026-09-21.** 원장 · 청구서 · 세금(F001 · F002)이 `ADR-002` 로 빠졌다. 아래 배경 중 청구서 항등식 · CSV 재업로드 · 12/30 세금 경계는 **더 이상 이 정책의 근거가 아니다.** 금액 타입 · 멱등 · 시각 · JSON · 인덱스 · 보존 정책은 F003 · F004 · F006 과 F000 신규 컬럼(`Goal.targetQuantity`)에 그대로 걸린다. 폐기된 행은 번호를 지우지 않고 표시만 한다.
 
 - FEATURE-001의 핵심 수용 기준은 **무작위 300케이스에서 `reconciliation.residual` 절대값 ≤ 100원**이다. 현재 `PortfolioTransaction.price`·`quantity`·`fee`가 전부 `Float`다. 거래 5,000건을 `Float`로 누적하면 이 허용치를 지킬 수 없다.
 - 현재 `signal-performance.service`는 `payload.kind === "coach_feedback"`을 **애플리케이션 레이어에서 필터**한다(`InvestmentInsight.payload` JSON). 100건을 읽어와 루프로 버린다. JSON 조건은 인덱스를 못 쓴다.
@@ -30,25 +32,25 @@ DB-REQ-004 이후 모든 신규 모델이 따르는 **데이터 정책**을 정�
 | FR-1 | 신규 **금액** 컬럼은 `Decimal @db.Decimal(38, 10)`. 원화·달러 공통 | Must |
 | FR-2 | 신규 **수량** 컬럼은 `Decimal @db.Decimal(38, 18)`. 크립토 소수 8자리 + 여유 | Must |
 | FR-3 | 신규 **비율/환율** 컬럼은 `Decimal @db.Decimal(18, 8)` | Must |
-| FR-4 | 기존 `Float` 컬럼(`PortfolioTransaction.price/quantity/fee/totalAmount`, `PortfolioHolding.*`)은 **이 REQ에서 타입을 바꾸지 않는다.** 신규 계산 경로가 읽을 때 `Decimal`로 승격한다. 타입 변경은 DB-REQ-006(원장 마이그레이션)에서 원장 확장과 함께 다룬다 | Must |
+| FR-4 | 기존 `Float` 컬럼(`PortfolioTransaction.price/quantity/fee/totalAmount`, `PortfolioHolding.*`)은 **이 REQ에서 타입을 바꾸지 않는다.** 신규 계산 경로가 읽을 때 `Decimal`로 승격한다. **개정 2026-09-21** — ~~타입 변경은 DB-REQ-006에서~~ DB-REQ-006 이 ADR-002 로 삭제됐다. 원장 확장은 하지 않으므로 **계산 경로 승격이 유일한 방법**이다(Open Questions) | Must |
 | FR-5 | **원 단위 정수 반올림은 응답 직전 1회만.** DB에는 반올림하지 않은 값을 저장한다. 중간 반올림 누적이 항등식을 깨뜨린다 | Must |
-| FR-6 | 절사/반올림 방식은 `TaxLawConfig`의 설정값으로 노출한다(HALF_UP 기본). 코드 상수 금지 | Must |
+| FR-6 | **개정 2026-09-21 — 폐기(ADR-002).** ~~절사/반올림 방식은 `TaxLawConfig`의 설정값으로~~. 반올림은 HALF_UP 한 가지이고 FR-5(응답 직전 1회)만 남는다 | — |
 
 ### B. 멱등과 중복 방지
 
 | ID | 정책 | 우선순위 |
 |---|---|---|
-| FR-10 | 외부에서 들어오는 데이터(CSV import, 거래소 API sync, 지표 수집, 환율 수집)를 적재하는 모델은 **`(source, sourceRef)` 또는 `(자연키, asOf)` 유니크**를 반드시 가진다 | Must |
+| FR-10 | 외부에서 들어오는 데이터(지표 수집 · 시세 · 뉴스 크롤링)를 적재하는 모델은 **`(source, sourceRef)` 또는 `(자연키, asOf)` 유니크**를 반드시 가진다. **개정 2026-09-21** — CSV import · 거래소 API sync · 환율 수집은 ADR-002 로 없다 | Must |
 | FR-11 | worker가 쓰는 모델은 **upsert 가능**해야 한다. 같은 시간 버킷 재실행이 row를 늘리면 안 된다 | Must |
 | FR-12 | Postgres의 nullable 유니크는 NULL 중복을 허용한다. 기존 row에 `sourceRef = null`을 넣어도 제약 위반이 없다는 점을 이용해 **기존 데이터를 건드리지 않고** 유니크를 추가한다 | Must |
-| FR-13 | `sourceRef`는 외부 시스템의 안정된 식별자만 쓴다. **CSV 행 번호를 섞지 않는다** — 섞으면 재업로드 시 중복 방지가 깨진다 | Must |
+| FR-13 | `sourceRef`는 외부 시스템의 안정된 식별자만 쓴다. 행 번호 · 순번을 섞지 않는다 — 섞으면 재적재 시 중복 방지가 깨진다. **개정 2026-09-21** — CSV 예시 제거 | Must |
 
 ### C. 시각
 
 | ID | 정책 | 우선순위 |
 |---|---|---|
 | FR-20 | 모든 `DateTime`은 UTC로 저장한다 | Must |
-| FR-21 | **세금 기준일은 예외**다. `taxFreeDeadline`, `deemedCostBasisDate`, `settlementDate`, `lastTradeDate`는 tz 오프셋이 포함된 값을 저장하고, 계산은 그 오프셋 기준으로 한다 | Must |
+| FR-21 | **개정 2026-09-21 — 폐기(ADR-002).** ~~세금 기준일 예외~~. 세금 기준일 컬럼이 없다. 모든 `DateTime` 은 FR-20(UTC) 하나다 | — |
 | FR-22 | 주차 경계(`weekOf`)는 **KST 월요일 00:00** 기준 날짜로 저장한다. 일요일 23:59 매수와 월요일 00:01 매수의 귀속 주차가 갈린다 | Must |
 | FR-23 | 지표 `asOf`는 **날짜(date)** 단위다. 하루 1회 수집이므로 시각까지 저장하면 멱등 유니크가 깨진다 | Must |
 
@@ -74,9 +76,9 @@ DB-REQ-004 이후 모든 신규 모델이 따르는 **데이터 정책**을 정�
 |---|---|---|
 | FR-50 | **원장 3종(`PortfolioTransaction`, `PortfolioHolding`, `PriceHistory`)은 어떤 마이그레이션에서도 row 손실이 없어야 한다.** 마이그레이션 전후 `count(*)` 비교가 수용 기준 | Must |
 | FR-51 | **화면이 없는 모델을 지우지 않는다.** 되살리는 비용이 커밋 하나여야 한다(FEATURE-000 보류 판정) | Must |
-| FR-52 | `YearEndPriceSnapshot`은 **수정·삭제 불가**다. 수집 후 변경 시도는 애플리케이션에서 거부하고 감사 로그를 남긴다(DB-REQ-007) | Must |
+| FR-52 | **개정 2026-09-21 — 폐기(ADR-002).** ~~`YearEndPriceSnapshot` 수정·삭제 불가~~. 모델이 생기지 않는다 | — |
 | FR-53 | 사용자 삭제(`onDelete`) 정책: 원장·스냅샷 계열은 `Cascade`, 발급 이력(`InviteCode.usedByUserId`)은 `SetNull` | Must |
-| FR-54 | 거래소 API 키(`UpbitApiKey.secretCipher`)는 **암호문만** 저장한다. 평문 컬럼을 만들지 않는다 | Must |
+| FR-54 | **개정 2026-09-21 — 폐기(ADR-002).** 거래소 API 키를 **저장하지 않는다.** 계좌 연동은 영구 Non-Goal(감사 문서 B12). `UpbitApiKey` 모델을 만들지 않는다 | Must |
 
 ### G. drop 안전 절차
 
@@ -89,34 +91,41 @@ DB-REQ-004 이후 모든 신규 모델이 따르는 **데이터 정책**을 정�
 ## Acceptance Criteria
 
 - [ ] DB-REQ-004 이후 신규 금액 컬럼에 `Float`가 0건이다 (`grep "Float" schema.prisma`로 신규 블록 확인)
-- [ ] 외부 유입 모델 전부에 멱등 유니크가 있다: `CashFlow`, `FxRate`, `IndicatorSnapshot`, `YearEndPriceSnapshot`, `PortfolioTransaction(source,sourceRef)`
-- [ ] 같은 CSV를 2회 업로드해 `inserted=0, duplicated=N`
+- [ ] 외부 유입 모델 전부에 멱등 유니크가 있다: `IndicatorSnapshot`(개정 2026-09-21 — `CashFlow` · `FxRate` · `YearEndPriceSnapshot` · `PortfolioTransaction(source,sourceRef)` 은 ADR-002 로 없다)
+- [ ] ~~같은 CSV를 2회 업로드~~ — 개정 2026-09-21: CSV import 없음
 - [ ] 같은 날 `indicator-sync`를 3회 실행해 `IndicatorSnapshot` row가 1건
 - [ ] `weekOf`가 KST 월요일 날짜로 저장된다 (일요일 23:59 매수 귀속 주차 테스트)
 - [ ] 신규 코드에 `payload` JSON 조건 쿼리가 0건이다
 - [ ] 원장 3종 row 수가 전체 마이그레이션 전후 동일하다
-- [ ] `UpbitApiKey`에 평문 secret 컬럼이 없다
+- [ ] 스키마에 거래소 API 키 모델이 0건이다 (개정 2026-09-21)
+- [ ] `Goal.targetQuantity` 가 `Decimal(38, 18)` 이다 (FR-2, 2026-09-21)
 - [ ] 모든 drop 마이그레이션 커밋에 grep 결과와 `pg_dump` 경로가 있다
 
 ## Trace
 
 | FR | 적용 대상 REQ | 검증 |
 |---|---|---|
-| FR-1~6 | DB-REQ-004/007/010/013 신규 금액 컬럼 | 스키마 grep + 항등식 property test (SRV-REQ-009) |
-| FR-10~13 | `CashFlow`, `FxRate`, `IndicatorSnapshot`, `YearEndPriceSnapshot` | 재실행 멱등 테스트 |
-| FR-20~23 | 세금·적립 모델 | 날짜 경계 테스트 (12/30·12/31, 일/월 경계) |
+| FR-1~5 | DB-REQ-013 신규 금액 컬럼 · `Goal.targetQuantity` | 스키마 grep (개정 2026-09-21 — 항등식 테스트는 F001 과 함께 삭제) |
+| FR-10~13 | `IndicatorSnapshot` | 재실행 멱등 테스트 |
+| FR-20 · 22 · 23 | 적립 · 지표 모델 | 날짜 경계 테스트 (일/월 경계) |
 | FR-30~32 | `InvestmentInsight.kind` 승격 | 쿼리 플랜에 index scan |
 | FR-40~42 | 전 신규 모델 | `EXPLAIN` 결과를 checklist에 첨부 |
-| FR-50~54 | 원장·스냅샷·키 | row count + 암호문 확인 |
+| FR-50 · 51 · 53 · 54 | 보유 기록 · 키 모델 부재 | row count + 스키마 grep |
 | FR-60~62 | DB-REQ-003 및 이후 drop | 커밋 메시지 감사 |
 
 ## Dependencies
 
 - 짝: `DB-REQ-001`(스키마), `DB-REQ-003`(마이그레이션)
-- 적용 대상: `DB-REQ-004`~`DB-REQ-021` 전부
+- 적용 대상: `DB-REQ-004` · `DB-REQ-013`~`DB-REQ-021` (개정 2026-09-21 — `005`~`012` 는 ADR-002 로 삭제)
 - 소비: `SRV-REQ-027`(성능)이 FR-40~42의 인덱스 근거를 검증한다
 
 ## Open Questions
 
-- 기존 `Float` 원장 컬럼을 `Decimal`로 승격하는 시점. 지금 바꾸면 `portfolio.service`·`profit-plan.service`·`behavior-coach.service`가 전부 영향을 받는다. **DB-REQ-006에서 원장 확장과 함께 하는 것이 맞는지, 아니면 계산 경로에서만 승격할지 결정 필요.**
-- 세금 절사 규칙(원 단위 절사 vs 반올림)의 법령 근거. 국세청 예규 확인이 필요하고 그때까지 설정값 기본은 HALF_UP.
+- 기존 `Float` 원장 컬럼을 `Decimal`로 승격하는 시점. 지금 바꾸면 `portfolio.service`·`profit-plan.service`·`behavior-coach.service`가 전부 영향을 받는다. **개정 2026-09-21** — DB-REQ-006 이 삭제돼 "원장 확장과 함께" 선택지가 사라졌다. 계산 경로 승격이 기본이고, 컬럼 승격은 별도 REQ 가 필요하다.
+- ~~세금 절사 규칙의 법령 근거~~ — 개정 2026-09-21: ADR-002 로 소멸.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | **ADR-002 반영.** 폐기 표시(번호 유지): FR-6(`TaxLawConfig` 반올림 설정) · FR-21(세금 기준일 예외) · FR-52(`YearEndPriceSnapshot`). 개정: FR-4(DB-REQ-006 삭제 — 계산 경로 승격만) · FR-10 · 13(CSV · 거래소 sync · 환율 수집 제거) · FR-54(키를 암호화 저장 → **저장하지 않는다**). 수용 기준 · Trace · 적용 대상에서 F001 · F002 모델 제거, `Goal.targetQuantity`(FR-2) 추가. 근거: `requirements/decisions/ADR-002-drop-ledger-invoice-tax.md` · `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |

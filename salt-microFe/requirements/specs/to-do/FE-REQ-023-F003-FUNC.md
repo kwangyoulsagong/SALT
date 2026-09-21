@@ -27,7 +27,8 @@ entities/fx/
   model/         김프 level 매핑
   ui/            KimchiPremiumGauge
 features/complete-weekly-plan/  체크 · 낙관적 갱신 · 롤백
-features/edit-plan-settings/    폼 · 검증 · 저장
+features/edit-plan-settings/    월 적립액 1필드 폼 · 형식 검증 · 저장 (설정 화면·온보딩 공용 — 2026-09-21 D9 · B12)
+entities/plan/ui/MonthlyAccumulationSummary   이번 달 적립 합계 (목표 화면 상단 — 2026-09-21 B20)
 widgets/home-briefing/          ② 블록 조립
 pages/assets/                   적립 상세
 ```
@@ -77,18 +78,28 @@ pages/assets/                   적립 상세
 | FR-30 | 체크는 `POST /bff/plan/weekly/{planId}/complete` | Must |
 | FR-31 | **낙관적 갱신**을 하고 실패 시 롤백 + 토스트 | Must |
 | FR-32 | `Idempotency-Key`에 `planId + weekOf`를 넣는다. 더블 탭이 두 번 기록되지 않는다 | Must |
-| FR-33 | 원장 sync 자동 매칭 결과가 오면 체크 상태를 **서버 값으로 덮어쓴다** | Must |
-| FR-34 | 체크 성공 시 연속 주차·누적액을 재검증(revalidate)한다 | Must |
+| FR-33 | ~~원장 sync 자동 매칭 결과가 오면 체크 상태를 서버 값으로 덮어쓴다~~ → **개정 2026-09-21** — 원장 자동 매칭이 없다(ADR-002 · 기본안 — 감사 문서 B20). 체크 상태의 출처는 **사용자 수동 체크뿐**이다. 서버 응답(`status`)은 여전히 낙관적 값을 덮어쓴다 | Must |
+| FR-34 | 체크 성공 시 연속 주차·누적액과 **이번 달 적립 합계**를 재검증(revalidate)한다(2026-09-21 — B20) | Must |
+| FR-35 | **2026-09-21 추가 — B20.** 체크 시 자산별 실제 금액을 고칠 수 있다(기본값 = 계획액). 보내는 값은 사용자가 입력한 정수 그대로다 — 프론트가 반올림·합산하지 않는다 | Should |
 
 ### E. 설정 편집
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-40 | 기본액·배수·임계값 폼. 저장은 `PUT /bff/plan/settings` | Must |
-| FR-41 | 클라이언트 검증은 **형식만**(양수, 정수, 범위). **정책 검증은 서버** | Must |
-| FR-42 | 서버가 `422`로 반환한 필드 오류를 폼에 매핑한다 | Must |
-| FR-43 | 저장 성공 후 **현재 주 계획은 갱신하지 않는다**. "다음 계획부터" 안내 | Must |
-| FR-44 | 온보딩 경로는 월 적립액 1필드. 주간 환산은 **서버가** 한다 | Must |
+| FR-40 | **월 적립액 1필드 폼.** 저장은 `PATCH /api/app/plan/settings` `{ monthlyBaseKrw }`. 배수·임계값 필드가 폼·요청 타입에 0개다. **개정 2026-09-21** — D9: 밴드는 읽기 전용(과거 적중률이 기본 밴드 기준) | Must |
+| FR-41 | 클라이언트 검증은 **형식만**(숫자·정수). 하한·상한·1,000원 단위는 **서버 422**로 받는다 — 숫자를 프론트에 두면 서버와 갈린다 | Must |
+| FR-42 | 서버 `422 PLAN_BASE_AMOUNT_INVALID`의 `field`·`min`·`max`·`unitKrw`를 폼 필드 오류에 매핑한다. `422 PLAN_BAND_READ_ONLY`는 버그 신호다(폼이 보낼 수 없다) — 로그만 | Must |
+| FR-43 | 저장 성공 후 **현재 주 계획은 갱신하지 않는다**. "다음 계획부터" 안내. 예외: 첫 저장(`configured: false → true`)은 주간 계획·홈 블록을 revalidate 한다(B12) | Must |
+| FR-44 | 온보딩 3단계는 **같은 `features/edit-plan-settings`** 를 쓴다(기본안 — 감사 문서 B12). 주간 환산은 **서버가** 하고, 화면의 "주간 N원" 은 저장 응답 `assets[].weeklyBaseKrw` 합이다. 프론트 `× 12 ÷ 52`·`÷ 4` 계산 0건 | Must |
+| FR-45 | **2026-09-21 추가 — D9.** 밴드 표는 설정 응답 `band.rows`로 **읽기 전용** 렌더한다. `editable: false`가 아니면(계약 위반) 그래도 입력 칸을 만들지 않는다 | Must |
+
+### G. 이번 달 적립 합계 — 2026-09-21 추가 (B20)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-60 | `GET /api/app/plan/monthly-summary` 1회로 블록을 조립한다. RSC + Suspense, 목표 카드와 **별도 경계** | Must |
+| FR-61 | 합계·진행률·남은 일수 계산 코드가 0건이다(공통 기준 ③) | Must |
+| FR-62 | `status: 'unavailable'`이면 블록만 오류, 목표 카드는 렌더 | Must |
 
 ### F. 금지 동작
 
@@ -142,10 +153,15 @@ completing --(실패)---------> ready + 토스트
 - [ ] `indicators: []`에서도 화면이 렌더된다
 - [ ] 적립 체크가 낙관적 갱신 + 롤백된다
 - [ ] **더블 탭에서 complete가 1회만 전송된다**
-- [ ] 자동 매칭 결과가 서버 값으로 덮어쓰인다
+- [ ] **원장·거래 기반 자동 매칭 코드가 0건이다** (ADR-002 · B20)
 - [ ] 설정 저장 후 현재 주 계획이 바뀌지 않는다
 - [ ] 서버 422 필드 오류가 폼에 매핑된다
-- [ ] 온보딩이 월 적립액 1필드고 환산이 서버에서 일어난다
+- [ ] 온보딩이 월 적립액 1필드고 환산이 서버에서 일어난다 (B12)
+- [ ] **설정 폼·요청 타입에 배수·임계값 필드가 0개다** (D9)
+- [ ] 하한·상한 숫자가 프론트 소스에 0건이고 422 `min`·`max`로 표시된다
+- [ ] 첫 저장 후 홈 적립 블록이 revalidate 된다
+- [ ] 이번 달 합계가 별도 Suspense 경계이고 계산 코드가 0건이다 (B20)
+- [ ] 체크 성공 시 이번 달 합계가 revalidate 된다
 - [ ] **주문/출금 호출 경로가 0건이다**
 - [ ] **김프 차익거래 안내 로직이 0건이다**
 - [ ] **`multiplier: 0`에서 매도 문구 분기가 0건이다**
@@ -161,4 +177,11 @@ completing --(실패)---------> ready + 토스트
 ## Open Questions
 
 - `bandConfig`를 서버에서 받으면 "밴드 표 즉시 렌더"가 불가능하다. **정적 셸에 밴드 축만 그리고 현재 위치만 스트리밍**하는 절충이 필요하다.
+- FR-30(`POST /bff/plan/weekly/{planId}/complete`)·`FE-REQ-024` 경로가 BFF 계약(`POST /api/app/plan/weekly/complete`, body 에 `weekOf`)과 다르다. 2026-09-21 이전부터 있던 드리프트 — 구현 착수 전 `BFF-REQ-020` 기준으로 맞춘다.
 - 실패 이력 lazy fetch는 게이트 검증(`trackRecordId` 존재)과 별개다. `trackRecordId`가 있는데 fetch가 실패하면 이미 렌더된 배수를 되돌릴지.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. FR-33(수동 체크만 — ADR-002 · B20), FR-40~44(월 적립액 1필드 · `PATCH /api/app/plan/settings` · 온보딩 공용 — D9 · B12) 개정. FR-35·45, G절 FR-60~62(이번 달 적립 합계) 추가 |

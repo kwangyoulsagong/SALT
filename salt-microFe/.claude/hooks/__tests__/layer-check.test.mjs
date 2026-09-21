@@ -39,7 +39,7 @@ const BLOCKED = [
   },
   {
     name: "2. cross-slice (entities → 다른 entities)",
-    file: `${APP}/src/entities/invoice/ui/InvoiceRow.tsx`,
+    file: `${APP}/src/entities/coach/ui/CoachCard.tsx`,
     code: `import { PriceCell } from "@/entities/market";`,
     rule: "cross-slice",
   },

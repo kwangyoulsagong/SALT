@@ -21,6 +21,7 @@ BFF가 부르는 서버 엔드포인트. **김프만 느리고 나머지는 캐�
 | `kimchiPremium` | `GET /api/plan/kimchi-premium` | **1.5s** | **0회** |
 | `planSettings` GET/PATCH | `GET/PATCH /api/plan/settings` | 400ms | GET 1회 / PATCH 0회 |
 | `completePlan` | `POST /api/plan/weekly/complete` | 600ms | **0회** |
+| `monthlySummary` (2026-09-21 — B20) | `GET /api/plan/monthly-summary?month=` | 300ms | 1회 |
 | `indicators` | `GET /api/indicators?names=` | 400ms | 1회 |
 | `trackRecord` | `GET /api/indicators/:i/track-record` | 400ms | 1회 |
 | `streak` | (weekly 응답에 포함) | — | — |
@@ -33,6 +34,8 @@ BFF가 부르는 서버 엔드포인트. **김프만 느리고 나머지는 캐�
 | FR-4 | mutation 재시도 0회 | Must |
 | FR-5 | 서버 에러 코드를 그대로 전달: `422` · `404`(track-record 없음) | Must |
 | FR-6 | **`track-record` 404가 정상 경로**다. 게이트가 차단하는 근거다 — 오류로 만들지 않는다 | Must |
+| FR-7 | **2026-09-21 추가 — D9.** `PATCH /settings`의 422 두 코드(`PLAN_BASE_AMOUNT_INVALID`·`PLAN_BAND_READ_ONLY`)와 본문(`field`·`min`·`max`)을 그대로 전달한다 | Must |
+| FR-8 | **2026-09-21 추가 — D9.** `GET /settings`의 `configured: false`는 200 정상 경로다. 404로 바꾸지 않는다 | Must |
 
 ## 계약 의존
 
@@ -46,6 +49,8 @@ BFF가 부르는 서버 엔드포인트. **김프만 느리고 나머지는 캐�
 | `kimchiPremium.costKrwOnPlan` | 프리미엄 비용 |
 | `streak.skippedLast12` | 미실행 사실 표시 |
 | `excluded[]` | 국내주식 제외 문구 |
+| `settings.band.editable`·`readOnlyReason` (2026-09-21) | 설정 화면의 읽기 전용 밴드 표. 빠지면 화면이 편집 가능하다고 오해한다 |
+| `monthly-summary.executedKrw`·`plannedKrw`·`progressPct` (2026-09-21) | 목표 화면 상단 합계 |
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
@@ -75,6 +80,9 @@ BFF가 부르는 서버 엔드포인트. **김프만 느리고 나머지는 캐�
 - [ ] 계약 스냅샷 테스트가 게이트 필드를 고정한다
 - [ ] **BFF가 외부 지표 API·업비트·바이낸스를 직접 부르지 않는다** (코드 검사)
 - [ ] BFF에 배수·금액 계산, 게이트 판정 코드가 0건이다
+- [ ] `monthly-summary` 호출이 있고 타임아웃 300ms다 (B20)
+- [ ] `PATCH /settings` 422 두 코드가 보존된다 (D9)
+- [ ] **F003 경로에서 `/api/portfolio/transactions`·원장 호출이 0건이다** (ADR-002)
 
 ## Dependencies
 
@@ -86,3 +94,9 @@ BFF가 부르는 서버 엔드포인트. **김프만 느리고 나머지는 캐�
 
 - BFF가 이미 업비트 WS 가격 캐시를 갖고 있다. **김프를 BFF에서 계산하면 업비트 호출이 하나 준다** — 그러나 바이낸스와 환율이 없고, **계산은 서버의 일**이라는 원칙에 어긋난다 → 서버가 맞다.
 - `track-record` 404를 BFF가 어떻게 표현할지. `trackRecordId: null` + `renderable: false`가 이미 서버 응답에 있으므로 별도 처리가 불필요하다.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. `monthlySummary` 호출 추가(B20), FR-7·8(설정 422 · `configured: false` 전달 — D9) 추가, 계약 의존 표에 설정·월 합계 필드 추가 |

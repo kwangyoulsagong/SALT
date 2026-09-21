@@ -18,7 +18,8 @@ F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 �
 | 엔드포인트 | 예산 | 내역 |
 |---|---|---|
 | `GET /api/app/ai-coach/preview` | **450ms** | 서버 400ms + BFF 20ms |
-| `GET /api/app/ai-coach/detail` | **450ms** | 서버 400ms |
+| `GET /api/app/ai-coach/detail` | ~~450ms — 서버 400ms~~ **개정 2026-09-21: 200ms** | 종목 판단 서버 150ms ∥ 뉴스 + BFF 20ms. 투자 화면 행 선택마다 불린다 |
+| `GET /api/app/coach/report` (2026-09-21) | **450ms** | 서버 400ms (이전 `/detail` 예산) |
 | `GET /api/app/coach/scoreboard` | 350ms | |
 | `GET /api/app/coach/generation-status` | **50ms** | 서버 20ms |
 | `GET /api/app/profit-plan` | 200ms | |
@@ -45,10 +46,22 @@ F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 �
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-10 | `/detail`은 **서버 1회 호출**이다. BFF가 6개 소스를 각각 부르지 않는다 | Must |
+| FR-10 | `/detail`은 **서버 1회 호출**이다. BFF가 6개 소스를 각각 부르지 않는다. **개정 2026-09-21**: 이 규칙의 대상은 코치 리포트 `/coach/report` 다(`/ai-coach/detail` 은 종목 판단 — FR-50) | Must |
 | FR-11 | BFF가 조립하면 서버 호출이 6회가 되고 예산(450ms)을 못 지킨다 | Must |
 | FR-12 | 홈 프리뷰와 코치 상세를 **각각 호출**한다. 홈은 요약만 필요하다 | Must |
 | FR-13 | `await` 연쇄 0건 | Must |
+
+## 종목 판단 경로 (2026-09-21)
+
+근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D3 · D7 · B9 · B10.
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-50 | `/ai-coach/detail` p95 **200ms**. 판단 · 뉴스 **병렬**(`await` 연쇄 0건) | Must |
+| FR-51 | 모드 전환이 BFF 호출을 만들지 않는다 — 두 모드가 한 응답에 있다 | Must |
+| FR-52 | 행 선택이 빠르게 바뀌면 이전 요청을 끊는다. **BFF 는 클라이언트 연결이 닫히면 upstream 요청도 `AbortSignal` 로 취소**한다 | Should |
+| FR-53 | 캐시를 새로 만들지 않는다(FR-20). 관찰 구간 캐시는 서버 몫이다 | Must |
+| FR-54 | 관측: `/ai-coach/detail` p95 · 호출률(분당), **모드별 게이트 미렌더율**, `degradedFields: news` 비율 | Must |
 
 ## 캐시
 
@@ -89,12 +102,15 @@ F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 �
 - [ ] `explain` 타임아웃이 20s이고 재시도가 0건이다
 - [ ] **`generate`가 200ms 이내에 202를 반환한다** (측정값 기록)
 - [ ] LLM 경로 커넥션 사용이 측정되고 다른 요청이 굶지 않는다
-- [ ] `/detail`이 서버를 1회 호출한다
+- [ ] `/coach/report`가 서버를 1회 호출한다 (개정 2026-09-21 — 원래 `/detail`)
 - [ ] `await` 연쇄가 0건이다
 - [ ] BFF에 새 캐시가 0건이다
 - [ ] 서버 상한(샘플 20 · 후보 3 · 실패이력 3)을 BFF가 자르지 않는다
 - [ ] `preview` p95 < 450ms (측정값 기록)
-- [ ] `detail` p95 < 450ms (측정값 기록)
+- [ ] ~~`detail` p95 < 450ms~~ `coach/report` p95 < 450ms · **`ai-coach/detail`(종목 판단) p95 < 200ms** (측정값 기록, 개정 2026-09-21)
+- [ ] 종목 판단 · 뉴스 호출이 병렬이다
+- [ ] 모드 전환이 BFF 호출 0건이다
+- [ ] 모드별 게이트 미렌더율이 측정된다
 - [ ] `generation-status` p95 < 50ms
 - [ ] **게이트 미렌더 카운터가 `blockedReason`별로 있다**
 - [ ] `explanation.source: 'rule'` 비율이 측정되고 알림 임계가 있다
@@ -111,3 +127,9 @@ F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 �
 - `explain` 동시 상한 2가 적절한가. **프론트 디바운스가 근본 해결**이므로 상한은 방어선이면 된다.
 - `explain`을 프리뷰에서 자동 호출할지 사용자가 누를 때만 부를지. **자동이면 종목을 지나갈 때마다 LLM이 돌고 비용이 든다** → 사용자 액션 기반이 기본안이고, 그러면 동시 호출 문제가 거의 사라진다.
 - 게이트 미렌더 카운터를 서버와 BFF 양쪽에 두면 중복이다. **BFF만으로 충분할 수 있다.**
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. `/ai-coach/detail` 을 종목 판단으로 개정해 예산 200ms, `/coach/report` 450ms 신설. 신규 FR-50~54(병렬 · 모드 전환 무호출 · upstream 취소 · 모드별 미렌더율) |

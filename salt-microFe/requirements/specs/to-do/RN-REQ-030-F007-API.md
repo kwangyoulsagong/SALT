@@ -20,9 +20,9 @@ created: 2026-09-09
 | 기기 등록 | POST | `/bff/app/device/register` | 필수 | 권한 허용 / 로그인 / 토큰 변경 |
 | 등록 해제 | DELETE | `/bff/app/device/:id` | 필수 | 로그아웃 |
 | 버전 게이트 | GET | `/bff/app/device/version-gate` | **불필요** | 앱 시작 |
-| 알림 설정 | GET/PATCH | `/bff/app/device/notification-prefs` | 필수 | 설정 화면 |
-| 알림 목록 | GET | `/bff/app/notifications` | 필수 | 목록 화면 |
-| 홈 집계 | GET | `/bff/home` | 필수 | 홈 진입 / 복귀 |
+| 알림 켜기/끄기 | PATCH | `/api/app/settings/alerts` — **F006 계약** | 필수 | 설정 화면 ④ (개정 2026-09-21 — `notification-prefs` 삭제, D5 · B21) |
+| 알림 목록 · 읽음 · 모두 읽음 | GET · PATCH | `/api/app/alerts*` — **F006 계약** | 필수 | 헤더 벨 (개정 2026-09-21) |
+| 홈 집계 | GET | `/api/app/home` — **F006 계약**, 3블록 | 필수 | 홈 진입 / 복귀 (개정 2026-09-21 — D6) |
 
 ## Requirements
 
@@ -62,9 +62,9 @@ created: 2026-09-09
 |---|---|---|
 | FR-30 | zod 파싱. 실패는 크래시가 아니라 폴백 | Must |
 | FR-31 | **알 수 없는 필드를 무시**한다. 서버가 필드를 추가해도 구버전 앱이 죽지 않는다 | Must |
-| FR-32 | **알 수 없는 `NotificationType`은 목록에서 건너뛴다.** 화면 전체를 깨뜨리지 않는다 | Must |
-| FR-33 | `deepLink`가 외부 URL이면 **그 항목을 비활성**으로 렌더한다 | Must |
-| FR-34 | `HomeViewModel`의 `BlockResult`가 `failed`여도 다른 블록을 렌더한다 | Must |
+| FR-32 | **알 수 없는 `messageCode` · `target`은 목록에서 건너뛴다.** 화면 전체를 깨뜨리지 않는다. *(개정 2026-09-21 — 타입이 1종이라 판별 기준을 코드 · target으로)* | Must |
+| FR-33 | 푸시 payload의 `type`이 `'signal_update'`가 아니거나 `target`이 알 수 없으면 **홈으로 폴백**한다. 외부 URL 필드는 계약에 없다(`BFF-REQ-032` FR-6). *(개정 2026-09-21)* | Must |
+| FR-34 | `HomeViewModel`의 블록 `status`가 실패여도 다른 블록을 렌더한다. 홈 3블록(D6) — `taxDeadline`·`invoice` 파서가 0건이다. *(개정 2026-09-21)* | Must |
 
 ### E. 보안
 
@@ -73,7 +73,7 @@ created: 2026-09-09
 | FR-40 | **요청/응답 본문을 릴리스 빌드에서 로그하지 않는다** | Must |
 | FR-41 | `pushToken`·토큰·금액이 **크래시 리포트에 0건**이다. 스크러빙 규칙을 둔다 | Must |
 | FR-42 | 네트워크 인터셉터가 **디버그 빌드에서만** 활성이다 | Must |
-| FR-43 | **거래소 API 키를 요청에 싣는 경로가 0건**이다 | Must |
+| FR-43 | **거래소 API 키를 요청에 싣는 경로가 0건**이다(계좌 연동 영구 Non-Goal — ADR-002) | Must |
 | FR-44 | 서드파티 분석 SDK에 응답 본문을 넘기지 않는다 | Must |
 | FR-45 | TLS 인증서 검증을 끄는 설정이 릴리스에 0건이다 | Must |
 
@@ -84,7 +84,7 @@ created: 2026-09-09
 | 401 | `UNAUTHORIZED` | 리프레시 1회 → 실패 시 로그아웃 |
 | 404 | `DEVICE_NOT_FOUND` | 저장된 `deviceId` 삭제. 조용히 |
 | 422 | `INVALID_PUSH_TOKEN` | 재시도 안 함. 리포트만 |
-| 422 | `UNKNOWN_NOTIFICATION_TYPE` | 앱이 낡음. 게이트 재조회 |
+| ~~422~~ | ~~`UNKNOWN_NOTIFICATION_TYPE`~~ | **삭제 2026-09-21** — `notification-prefs`가 없다 |
 | 426 | `UPGRADE_REQUIRED` | **전역 차단 모달** |
 | 429 | `TOO_MANY_REQUESTS` | `Retry-After` 백오프 |
 | 5xx/timeout | `UPSTREAM_*` | 캐시 표시 + 재시도 버튼 |
@@ -103,22 +103,29 @@ created: 2026-09-09
 - [ ] **`426`에서 전역 차단되고 게이트·로그아웃은 여전히 호출된다**
 - [ ] zod 파싱 실패가 크래시가 아니다
 - [ ] **알 수 없는 필드·알림 타입에서 앱이 죽지 않는다**
-- [ ] 외부 URL `deepLink` 항목이 비활성 렌더된다
-- [ ] `BlockResult: failed`에서 다른 블록이 렌더된다
+- [ ] 알 수 없는 `target` 푸시가 홈으로 폴백된다
+- [ ] 블록 실패에서 다른 블록이 렌더된다
+- [ ] **`/device/notification-prefs`·`/bff/app/notifications`·`/bff/home` 호출이 0건이고 F006 경로를 쓴다** (D5 · D6 · B21)
 - [ ] **릴리스 빌드에서 본문 로깅이 0건이다**
 - [ ] **크래시 리포트에 토큰·금액이 0건이고 스크러빙 규칙이 있다**
 - [ ] 네트워크 인터셉터가 디버그 전용이다
 - [ ] **거래소 API 키 전송 경로가 0건이다**
 - [ ] TLS 검증 비활성 설정이 릴리스에 0건이다
-- [ ] 8개 에러 매핑이 구현되고 테스트된다
+- [ ] 7개 에러 매핑이 구현되고 테스트된다 (2026-09-21 개정)
 - [ ] iOS·Android 양쪽에서 통과한다
 
 ## Dependencies
 
-- **선행:** `BFF-REQ-032`(계약) · `RN-REQ-029`(FUNC)
+- **선행:** `BFF-REQ-032`(계약) · `RN-REQ-029`(FUNC) · `BFF-REQ-028`(F006 — 홈 · 알림 · 설정 계약, 2026-09-21)
 - **짝:** `RN-REQ-028`(UI) · `031`(PERF)
 
 ## Open Questions
 
 - `X-App-Version`을 앱이 스스로 보내므로 **위조 가능**하다. 게이트가 UX 장치라 문제는 아니지만, 금액 계산이 바뀌는 릴리스에서 구버전 차단이 필요하면 서버가 다른 근거(토큰 발급 시 버전 기록)를 써야 한다.
 - 크래시 리포트 스크러빙을 SDK 설정으로 할지 자체 래퍼로 할지. SDK 기본 설정만 믿으면 금액이 새어나갈 수 있다.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` 반영. 엔드포인트 표를 F006 계약(`/api/app/home` 3블록 · `/api/app/alerts*` · `/api/app/settings/alerts`)으로 개정(D5 · D6 · B21), FR-32~34 개정, `UNKNOWN_NOTIFICATION_TYPE` 삭제 |

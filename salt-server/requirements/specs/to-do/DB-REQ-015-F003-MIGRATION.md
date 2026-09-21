@@ -20,11 +20,12 @@ created: 2026-09-09
 | M1 | `20260909_indicator_snapshot` | `IndicatorSnapshot` 신설 | 테이블 drop |
 | M2 | `20260909_indicator_track_record` | `IndicatorTrackRecord` 신설 + **GIN 인덱스** | 테이블 drop |
 | M3 | `20260909_plan_settings` | `PlanSettings` 신설 + `User` 역참조 | 테이블 drop |
-| M4 | `20260909_weekly_plan_execution` | `WeeklyPlanExecution` 신설 + 배수 CHECK | 테이블 drop |
+| M4 | `20260909_weekly_plan_execution` | `WeeklyPlanExecution` 신설 + 배수 CHECK (`matchedTransactionId` 없음 · `bandPresetVersion` 포함 — 2026-09-21) | 테이블 drop |
+| M5 | `20260921_band_preset` | `BandPreset` 신설 + 시드 2행 (2026-09-21 — D9) | 테이블 drop |
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-1 | M1~M4는 신규 테이블만. 한 릴리스에 배포 가능 | Must |
+| FR-1 | M1~M5는 신규 테이블만. 한 릴리스에 배포 가능. 아직 배포 전이므로 M3·M4는 **개정된 스키마로 처음부터** 만든다(`bandConfigJson`·`matchedTransactionId`를 만들었다 지우는 마이그레이션을 두지 않는다) | Must |
 | FR-2 | M2의 **GIN 인덱스**(`signalTypes` 배열)는 `CREATE INDEX CONCURRENTLY`가 필요 없다(신규 테이블이라 비어 있다) | Must |
 | FR-3 | M4의 배수 CHECK: `multiplier >= 0 AND multiplier <= 3` | Must |
 | FR-4 | drop이 없으므로 `pg_dump`는 필수가 아니다 | Must |
@@ -52,19 +53,27 @@ created: 2026-09-09
 | FR-16 | **시드가 불완전해도 시스템이 깨지지 않는다.** 매핑 없는 지표는 게이트가 차단할 뿐이다 | Must |
 | FR-17 | `puell`·`cape`·`kimchi_premium`의 hits/misses는 **확인 후 채운다.** 근거 없이 만들지 않는다 | Must |
 
-## 시드 2 — `PlanSettings` 기본 프리셋
+## 시드 2 — `BandPreset`(전역) · `PlanSettings` 기본 배분
 
-| 심볼 | `weeklyBaseKrw` | 밴드 |
+**개정 2026-09-21 — D9.** 밴드는 사용자 행이 아니라 전역 `BandPreset` 2행이다.
+
+| `BandPreset.indicator` | 대상 심볼 | 밴드 (읽기 전용) |
 |---|---|---|
-| `KRW-BTC` | 사용자 입력(온보딩 3단계) | MVRV Z 5밴드: `Z<0` 3.0x / `0≤Z<2` 2.0x / `2≤Z<5` 1.0x / `5≤Z<7` 0.5x / `Z≥7` **0.0x** |
-| `US-VOO` | 사용자 입력 | CAPE 백분위 5밴드: `<20p` 3.0x / `20~50p` 2.0x / `50~80p` 1.0x / `80~95p` 0.5x / `≥95p` **0.25x** |
+| `mvrv_z` | `KRW-BTC` | MVRV Z 5밴드: `Z<0` 3.0x / `0≤Z<2` 2.0x / `2≤Z<5` 1.0x / `5≤Z<7` 0.5x / `Z≥7` **0.0x** |
+| `cape_percentile` | `US-VOO` | CAPE 백분위 5밴드: `<20p` 3.0x / `20~50p` 2.0x / `50~80p` 1.0x / `80~95p` 0.5x / `≥95p` **0.25x** |
+
+| 심볼 | `monthlyBaseKrw` | 기본 배분 |
+|---|---|---|
+| `KRW-BTC` | 사용자 입력(온보딩 3단계) × 배분 | 서버 설정값(프리셋). 스토리보드 예시는 125,000 : 200,000 |
+| `US-VOO` | 동일 | 동일 |
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-20 | 온보딩 3단계에서 **월 적립액 하나만** 묻고 주간 기본액을 자동 계산한다 | Must |
-| FR-21 | 밴드 임계값·배수는 프리셋으로 시드한다. **사용자가 바꿀 수 있다** | Must |
+| FR-20 | 온보딩 3단계에서 **월 적립액 하나만** 묻고 주간 기본액을 자동 계산한다. **저장은 `PATCH /api/plan/settings` 첫 호출**이다(`SRV-REQ-021` FR-20 — 기본안 — 감사 문서 B12). 사용자 `PlanSettings` 행은 시드가 아니라 **이 첫 저장이 만든다** | Must |
+| FR-21 | 밴드 임계값·배수는 `BandPreset`으로 시드한다. **사용자가 바꿀 수 없다.** **개정 2026-09-21** — D9: 과거 적중률·실패 이력이 기본 밴드 기준이다 | Must |
 | FR-22 | **CAPE 최저 배수가 0.25x**다. 0x로 만들지 않는다 | Must |
-| FR-23 | 시드는 멱등(`@@unique([userId, symbol])` upsert) | Must |
+| FR-23 | 시드는 멱등(`BandPreset.indicator @unique` upsert). 사용자 행 생성도 `@@unique([userId, symbol])` upsert | Must |
+| FR-25 | **2026-09-21 추가.** `BandPreset` 시드 값을 바꾸면 `version`을 올린다. 적중률·실패 이력 재집계 대상이 된다는 표시다 | Must |
 | FR-24 | **국내주식은 밴드 적립 대상이 아니다.** `PlanSettings`를 만들지 않고 `excluded`로 표시한다 | Must |
 
 ## 시드 3 — 지표 백필
@@ -87,7 +96,8 @@ created: 2026-09-09
 - [ ] `signalTypes`가 채워지고 F004 매핑과 일치한다
 - [ ] 시드를 2회 실행해도 멱등이다
 - [ ] **근거 없이 만든 hits/misses가 0건이다**
-- [ ] `PlanSettings` 프리셋이 시드되고 사용자가 바꿀 수 있다
+- [ ] `BandPreset` 2행이 시드되고 **사용자가 바꿀 경로가 0건이다** (D9)
+- [ ] 온보딩 첫 저장이 사용자 `PlanSettings` 행을 만든다 (B12)
 - [ ] **CAPE 최저 배수가 0.25x이고 0x가 0건이다**
 - [ ] 국내주식 `PlanSettings`가 0건이고 `excluded`로 표시된다
 - [ ] 지표 백필이 배치이고 실패 날짜가 비어 있다 (추정값 0건)
@@ -103,4 +113,11 @@ created: 2026-09-09
 
 - **`puell`·`cape`·`kimchi_premium`의 hits/misses를 어디서 확인할지.** 근거 없이 만들면 그 자체가 거짓말이다 → **확인될 때까지 그 지표는 배수 카드를 렌더하지 않는다**(게이트가 정상 동작).
 - 지표 데이터 소스 미확정(`DB-REQ-013` Open Question). 소스가 정해져야 백필도 가능하다.
+- 기본 배분 비율(BTC : S&P500 ETF)을 몇으로 둘지. 스토리보드 예시(125,000 : 200,000 ≈ 38 : 62)는 근거가 없다 — 사용자 확인 필요. 배분을 사용자가 바꿀 수 있게 할지도 미정(`SRV-REQ-021` Open Question).
 - 백필 90일이 적절한가. `staleDays` 판정에는 최근 며칠이면 충분하지만, 백테스트 참고 계산(FEATURE-003 검증 계획 7번)에는 더 필요하다.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. M5(`BandPreset`) 추가, FR-1·FR-20·FR-21 개정(D9 · B12), FR-25 추가. M4에서 `matchedTransactionId` 제거(ADR-002) |

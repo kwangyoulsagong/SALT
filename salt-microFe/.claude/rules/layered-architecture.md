@@ -15,11 +15,11 @@ FSD는 프론트엔드 방법론이다. `widgets`·`pages`는 Express 서버에�
 교차 locality는 레이어 이름이 아니라 **슬라이스 이름**이 만든다.
 
 ```
-청구서 기능을 찾을 때:
-  apps/web/src/features/invoice/...        (웹 — 인터랙션)
-  apps/mobile/src/features/invoice/...     (모바일 — 인터랙션)
-  bff/src/services/app-invoice.service.ts  (BFF — 뷰모델)
-  salt-server/src/invoice/...              (서버 — Bounded Context)
+코치 기능을 찾을 때:
+  apps/web/src/entities/coach/...           (웹 — 표시)
+  apps/mobile/src/entities/coach/...        (모바일 — 표시)
+  bff/src/services/app-ai-coach.service.ts  (BFF — 뷰모델)
+  salt-server/src/coach/...                 (서버 — Bounded Context)
 ```
 
 ## 1. 의존은 한 방향으로만 흐른다
@@ -36,7 +36,7 @@ BFF        routes → controllers → services
 
 공통이 필요하면 **아래 레이어로 내린다.** 두 feature가 같은 것을 필요로 하면 그것은 사실 entity거나 shared다.
 
-우리 기능들은 데이터를 공유한다 — 청구서는 원장·가격·편향을, 세금은 원장·환율·취득가액을, 코치는 지표·성적표·실패이력을 쓴다. **cross-slice import로 해결하면 몇 달 뒤 전부 서로를 부른다.**
+우리 기능들은 데이터를 공유한다 — 코치는 지표·성적표·실패이력·보유를, 적립은 지표·김프를, 포지션은 보유·가격을 쓴다. **cross-slice import로 해결하면 몇 달 뒤 전부 서로를 부른다.**
 
 ## 3. 위반은 쓰기 시점에 막힌다
 
@@ -71,18 +71,15 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | 슬라이스 | 책임 | 서버 컨텍스트 |
 |---|---|---|
 | `auth` | 초대 코드 검증 · 세션 · 토큰 갱신 | `auth` |
-| `ledger` | 거래 원장 · CSV import · 거래소 조회 키 · 원장 건강도 | `ledger` |
 | `portfolio` | 보유 · 포지션 · 평가금액 · 3자산군 합산 | `portfolio` |
 | `market` | 시세 · 실시간 구독 · 차트 · 관심 종목 | `market` |
 | `coach` | 추천 · 점수 · 근거 3종 · 대화 · 성적표 · 피드백 | `coach` |
-| `invoice` | 반사실 3트랙 · 거래별 귀속 · 편향 집계 | `invoice` |
-| `tax` | 취득가액 lot · 손실수확 솔버 · 환율 함정 · 스텝업 · 증빙 | `tax` |
 | `plan` | 밸류에이션 밴드 · 주간 적립 · 김프 · 실행 기록 | `plan` |
 | `indicator` | 지표 스냅샷 · **실패 이력**(추천 렌더 게이트의 근거) | `indicator` |
-| `fx` | 환율 원장 · 결제일 기준환율 | `fx` |
+| `fx` | 환율 · 김프 (F003 적립) | `fx` |
 | `goal` | 목표 저축 (변경 금지 목록) | `goal` |
 | `news` | 뉴스 목록 · 프리뷰 | `news` |
-| `notification` | 알림 2종 (세금 D-Day · 지표/추천 갱신) | `notification` |
+| `notification` | 알림 1종 (지표/추천 갱신) · 읽음 | `notification` |
 | `device` | 디바이스 등록 · 푸시 토큰 · 앱 버전 게이트 (모바일만) | `device` |
 
 **2026-09-11 기준 실재하는 슬라이스는 4개다** — `auth` · `goal` · `market` · `portfolio`.
@@ -95,11 +92,15 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 
 | widget | 엮는 것 |
 |---|---|
-| `home-briefing` | portfolio + plan + coach + tax + invoice |
+| `home-briefing` | portfolio + plan + coach (3블록) |
 | `coach-console` | coach + indicator + portfolio |
-| `asset-workspace` | portfolio + invoice + tax |
+| `asset-workspace` | 포지션 / 시장 / 관심 종목 세그먼트 |
+| `position-overview` | portfolio (Hero · 평가금 흐름 · 보유 · 리스크 레이더) |
+| `coach-panel` · `symbol-analysis` | market + coach + indicator (투자 우측 패널 · 상세 분석) |
+| `app-header` · `alert-list` · `settings-panel` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 설정 · 거래 목록 |
+| `market-list` | 모바일 시장 목록 (웹은 `market-board`) |
 | `market-board` | market + news + indicator |
-| `onboarding-flow` | auth + ledger + plan |
+| `onboarding-flow` | auth + portfolio + plan (초대 → 첫 보유 기록 → 적립액) |
 | `pc-panel-grid` | `MovableGrid` + 위 widget들 |
 
 ## 5. Next.js 라우팅과 FSD의 관계

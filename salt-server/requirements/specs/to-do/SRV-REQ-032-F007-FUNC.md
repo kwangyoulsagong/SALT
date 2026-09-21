@@ -21,8 +21,8 @@ src/contexts/device/
     Device.ts                 애그리거트. 등록·이전·실패·사망 전이
     PushToken.ts              값 객체. 평문을 외부로 내보내지 않는다
     DeliveryRecord.ts         애그리거트. dedupeKey · 상태 전이
-    DedupeKey.ts              값 객체. tax:{class}:{year}:D{n} | signal:{code}:{date}
-    NotificationPolicy.ts     도메인 서비스. D-1 예외를 여기서 판정한다
+    DedupeKey.ts              값 객체. signal:{investmentNotificationId} (2026-09-21 — 세금 형식 삭제)
+    NotificationPolicy.ts     도메인 서비스. alertsEnabled 판정. 예외 없음 (2026-09-21)
     AppVersionGate.ts         값 객체. semver 비교
     ports/
       DevicePort.ts
@@ -31,7 +31,7 @@ src/contexts/device/
   application/
     RegisterDeviceUseCase.ts
     RevokeDeviceUseCase.ts
-    UpdateNotificationPrefsUseCase.ts
+    (UpdateNotificationPrefsUseCase 삭제 2026-09-21 — 알림 on/off는 F006 notification 컨텍스트)
     GetVersionGateUseCase.ts
     SendNotificationUseCase.ts    큐 pull -> 정책 -> 전송 -> 기록
     ReapDeadDevicesUseCase.ts
@@ -46,7 +46,9 @@ src/contexts/device/
     dto/
 ```
 
-`notification` 컨텍스트와 `tax` 컨텍스트는 **`device`의 공개 유스케이스만** 호출한다. `PrismaDeviceRepository`를 직접 쓰지 않는다.
+`notification` 컨텍스트(F006)는 **`device`의 공개 유스케이스만** 호출한다. `PrismaDeviceRepository`를 직접 쓰지 않는다. *(개정 2026-09-21 — `tax` 컨텍스트는 ADR-002로 없다)*
+
+> **2026-09-21 개정.** 푸시는 **1종(`signal_update` — 지표 · 추천 갱신)** 이다(D5 · **기본안 — 감사 문서 B21**). 원인은 F006 `SRV-REQ-028` FR-90이 정한 둘 — F004 최신 추천의 action · symbol 변경, F003 주간 밴드 변경. `device`는 **F006이 만든 `InvestmentNotification` 1건을 푸시 1회로 옮기는 일**만 한다.
 
 ## Requirements
 
@@ -78,23 +80,27 @@ src/contexts/device/
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-20 | `NotificationPolicy.shouldSend(pref, dedupeKey)`가 유일한 판정 지점이다 | Must |
-| FR-21 | **끈 상태여도 `TAX_DEADLINE`의 `D1`은 보낸다.** 이 예외가 도메인 코드에 명시되어 있다 | Must |
-| FR-22 | `SIGNAL_UPDATE`에는 예외가 없다 | Must |
+| FR-20 | `NotificationPolicy.shouldSend(alertsEnabled)`가 유일한 판정 지점이다. 입력은 F006 `User.alertsEnabled`를 `notification` 공개 API로 받은 값이다. **개정 2026-09-21** — 타입별 `pref` 삭제 | Must |
+| FR-21 | ~~끈 상태여도 `TAX_DEADLINE`의 `D1`은 보낸다~~ → **개정 2026-09-21** — 끈 상태면 **예외 없이** 보내지 않는다. 세금 D-Day 푸시가 없다(ADR-002 · B21) | Must |
+| FR-22 | ~~`SIGNAL_UPDATE`에는 예외가 없다~~ → FR-21에 흡수 (2026-09-21) | — |
 | FR-23 | 정책이 `false`면 `SKIPPED`로 기록한다 | Must |
-| FR-24 | **알림 타입은 2종뿐**이다. 3번째를 추가하려면 enum과 정책을 함께 바꿔야 한다 | Must |
+| FR-24 | **알림 타입은 1종(`SIGNAL_UPDATE`)뿐**이다. 2번째를 추가하려면 enum과 정책, 그리고 D5 결정을 함께 바꿔야 한다. **개정 2026-09-21** — 2종 → 1종(D5 · B21) | Must |
+| FR-26 | **2026-09-21 추가 — D5.** 푸시 트리거는 F006 `notification`의 `InvestmentNotificationCreated` 이벤트(또는 유스케이스 호출) **하나**다. `device`가 추천 · 밴드 변경을 직접 판정하지 않는다 | Must |
+| FR-27 | **2026-09-21 추가.** 딥링크 대상: 원인이 F004 추천 → 코치 탭 추천 카드(또는 상세 분석 페이지), F003 밴드 → 적립 상세. `payloadRef`는 `InvestmentNotification.id`, 앱이 진입 후 재조회한다 | Must |
 | FR-25 | 문구에 **압박·독촉 표현이 0건**이다. i18n 카탈로그를 검수 대상으로 둔다 | Must |
 
-### D. 세금 D-Day 연동
+### ~~D. 세금 D-Day 연동~~ — 삭제 2026-09-21
+
+ADR-002 · 기본안 — 감사 문서 B21. `tax-deadline-notify.worker`를 만들지 않는다.
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-30 | `tax-deadline-notify.worker`가 `SendNotificationUseCase`를 호출한다. **직접 sender를 부르지 않는다** | Must |
-| FR-31 | D-30/14/7/3/1 판정은 **`tax` 컨텍스트의 마감일**을 기준으로 한다. `device`가 세금 규칙을 알지 않는다 | Must |
-| FR-32 | 워커는 사용자·자산군을 **한 번에 읽는다**(N+1 0건) | Must |
-| FR-33 | `dedupeKey`가 `tax:{assetClass}:{taxYear}:D{n}`로 생성된다 | Must |
-| FR-34 | **알림에 금액이 실리지 않음을 워커 테스트가 검증**한다 | Must |
-| FR-35 | 2026-12-29(D-Day) 기준 D-30은 2026-11-29에 정확히 1회 발송된다 | Must |
+| FR-30 | ~~`tax-deadline-notify.worker`~~ → **개정 2026-09-21** — 푸시 발송은 F006 알림 생성 이벤트 구독 한 경로다(FR-26). 발송은 `SendNotificationUseCase` 경유, 직접 sender 호출 0건 | Must |
+| FR-31 | ~~D-30/14/7/3/1 판정~~ → **삭제 2026-09-21** | — |
+| FR-32 | 발송 대상 산정이 사용자 · 기기를 **한 번에 읽는다**(N+1 0건) | Must |
+| FR-33 | `dedupeKey`가 **`signal:{investmentNotificationId}`** 로 생성된다. **개정 2026-09-21** | Must |
+| FR-34 | **알림에 금액이 실리지 않음을 테스트가 검증**한다(밴드 갱신 푸시에 적립 금액 0건) | Must |
+| FR-35 | ~~2026-11-29 D-30 1회~~ → **개정 2026-09-21** — 같은 `InvestmentNotification`이 두 번 생성 이벤트를 내도 푸시는 정확히 1회다 | Must |
 
 ### E. 버전 게이트
 
@@ -123,21 +129,21 @@ src/contexts/device/
 | `DeviceRegistered` | `device` | 없음 (감사만) |
 | `DeviceMarkedDead` | `device` | `notification` — 대체 채널 판단 |
 | `NotificationSent` | `device` | 감사·메트릭 |
-| `TaxDeadlineApproaching` | `tax` | `device` — 발송 트리거 |
+| ~~`TaxDeadlineApproaching`~~ | — | **삭제 2026-09-21** (ADR-002) |
+| `InvestmentNotificationCreated` | `notification`(F006) | `device` — 발송 트리거 (2026-09-21) |
 
 ## 테스트
 
 | 종류 | 대상 |
 |---|---|
-| 도메인 단위 | `NotificationPolicy` — 끈 상태 + `D1` → `true` |
-| 도메인 단위 | `NotificationPolicy` — 끈 상태 + `SIGNAL_UPDATE` → `false` |
+| 도메인 단위 | `NotificationPolicy` — `alertsEnabled=false` → `false` (예외 없음, 2026-09-21) |
 | 도메인 단위 | `DedupeKey` 형식 파싱/생성 |
 | 도메인 단위 | `AppVersionGate` semver 비교 (`1.10.0 > 1.9.0`) |
 | 유스케이스 | 중복 `dedupeKey` → no-op, 예외 없음 |
 | 유스케이스 | provider 실패 3회 → `FAILED`, `attemptCount=3` |
 | 유스케이스 | `DeviceNotRegistered` → 즉시 `DEAD` |
-| 통합 | 워커 D-30 → 정확히 1건 |
-| 통합 | 같은 워커 2회 실행 → 추가 발송 0건 |
+| 통합 | 밴드 갱신 알림 1건 → 활성 기기마다 푸시 1회 (2026-09-21) |
+| 통합 | 같은 알림 생성 이벤트 2회 → 추가 발송 0건 |
 | 정적 | `PushSenderPort` 시그니처에 금액 타입 0건 |
 | 정적 | 도메인에서 Prisma/Expo import 0건 |
 | 정적 | 알림 카탈로그에 금액 플레이스홀더 0건 |
@@ -155,16 +161,16 @@ src/contexts/device/
 - [ ] `DeviceNotRegistered`에서 즉시 `DEAD`가 된다
 - [ ] 재시도가 최대 3회고 같은 레코드를 쓴다
 - [ ] **`NotificationPolicy`가 유일한 판정 지점이다**
-- [ ] **끈 상태에서 세금 D-1이 발송된다**
-- [ ] `SIGNAL_UPDATE`에 D-1 예외가 없다
+- [ ] **끈 상태에서 예외 없이 `SKIPPED`다** (2026-09-21 — ADR-002 · B21)
 - [ ] 정책 차단이 `SKIPPED`로 기록된다
-- [ ] **알림 타입이 2종뿐이다**
+- [ ] **알림 타입이 1종(`SIGNAL_UPDATE`)뿐이다** (D5 · B21)
+- [ ] `tax-deadline-notify.worker`·`TaxDeadlineApproaching`·`tax:` dedupeKey가 0건이다
+- [ ] 푸시 트리거가 F006 알림 생성 한 경로다
 - [ ] 알림 문구에 압박 표현이 0건이다
-- [ ] 워커가 `SendNotificationUseCase`를 통해 발송한다
-- [ ] D-Day 판정이 `tax` 컨텍스트 기준이다
-- [ ] 워커에 N+1이 0건이다
-- [ ] **2026-11-29에 D-30이 정확히 1회 발송된다**
-- [ ] **알림에 금액이 없음을 워커 테스트가 검증한다**
+- [ ] 발송이 `SendNotificationUseCase`를 통한다
+- [ ] 발송 대상 산정에 N+1이 0건이다
+- [ ] **같은 알림 이벤트 2회에도 푸시가 1회다**
+- [ ] **알림에 금액이 없음을 테스트가 검증한다**
 - [ ] semver 비교가 값 객체 안에 있다
 - [ ] 낮은 버전에서 `426`이 반환되고 **게이트 조회·로그아웃은 제외**된다
 - [ ] `device` 도메인이 Prisma·Expo를 import하지 않는다
@@ -174,9 +180,16 @@ src/contexts/device/
 
 - **선행:** `SRV-REQ-006`(DDD) · `DB-REQ-025~027`
 - **짝:** `SRV-REQ-033`(API) · `034`(DATA) · `035`(PERF)
-- **차단:** F002 세금 D-Day 알림
+- **연관:** `SRV-REQ-028`(F006 — `signal_update` 생성 · `alertsEnabled`). *(개정 2026-09-21 — "F002 세금 D-Day 차단" 삭제)*
 
 ## Open Questions
 
-- `TaxDeadlineApproaching` 이벤트를 쓸지, 워커가 직접 유스케이스를 부를지. 이벤트가 깔끔하지만 인프라(큐)가 늘어난다.
+- `InvestmentNotificationCreated`를 이벤트로 받을지, F006 유스케이스가 `device` 공개 유스케이스를 직접 부를지. 이벤트가 깔끔하지만 인프라(큐)가 늘어난다. *(2026-09-21 — 세금 이벤트 질문을 대체)*
+- F004 `notificationLevel`(B16)이 푸시 여부에도 영향하는지. F006 `DB-REQ-021` Open Question(`alertsEnabled` ↔ `notificationLevel`)과 함께 정한다.
 - 최소 지원 버전 상향을 누가 어떤 절차로 하는지. 관리 UI가 없으므로 마이그레이션 또는 운영 스크립트가 될 텐데, 실수하면 전원이 잠긴다.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` 반영. 머리 배너 추가. 푸시 1종(`SIGNAL_UPDATE`)으로 C절 개정(FR-20 · 21 · 24), D절(세금 D-Day) 삭제·개정(FR-30~35), 이벤트 표 개정. FR-26 · 27(F006 알림 생성 트리거 · 딥링크 대상) 추가. `UpdateNotificationPrefsUseCase` 삭제 |

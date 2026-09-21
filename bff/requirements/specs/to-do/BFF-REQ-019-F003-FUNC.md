@@ -20,6 +20,8 @@ created: 2026-09-09
 | `weeklyPlan` | `GET /api/plan/weekly` | 250ms | `unavailable` |
 | `kimchiPremium` | `GET /api/plan/kimchi-premium` | 실시간 | **`null` — 적립 숫자는 유지** |
 | `streak` | 위 응답에 포함 | — | — |
+| `monthlySummary` (2026-09-21 — B20) | `GET /api/plan/monthly-summary` | 300ms | `unavailable` — 목표 카드는 그대로 |
+| `planSettings` (2026-09-21 — D9) | `GET /api/plan/settings` | 100ms | `unavailable` |
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
@@ -73,6 +75,25 @@ created: 2026-09-09
 | FR-50 | `POST /complete`는 mutation. **재시도 0회**(서버가 멱등이지만 중복 요청을 만들지 않는다) | Must |
 | FR-51 | 성공 시 주간 계획 쿼리를 **무효화**한다 | Must |
 | FR-52 | **낙관적 갱신을 허용한다.** 적립 완료 체크는 금액 계산이 아니다 → 다만 **응답의 `streakWeeks`·`cumulativeKrw`는 서버 값으로 덮는다** | Must |
+| FR-53 | **2026-09-21 추가 — ADR-002 · B20.** 실행 기록은 수동 체크뿐이다. BFF가 거래(`/api/portfolio/transactions`)를 보고 적립 완료를 추정·전달하는 경로가 0건이다 | Must |
+| FR-54 | **2026-09-21 추가 — B20.** `POST /complete` 성공 시 이번 달 적립 합계 쿼리도 무효화한다. 목표 화면 합계가 늦게 따라오면 체크가 안 된 것처럼 보인다 | Must |
+
+## 설정 · 온보딩 — 2026-09-21 추가 (D9 · B12)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-60 | `PATCH /settings`는 `{ monthlyBaseKrw }`만 **그대로 전달**한다. 주간 환산·배분을 BFF가 계산하지 않는다 | Must |
+| FR-61 | 서버 422(`PLAN_BASE_AMOUNT_INVALID`·`PLAN_BAND_READ_ONLY`)를 **코드와 `field`·`min`·`max`를 보존해** 전달한다. 폼이 필드 에러를 그릴 근거다 | Must |
+| FR-62 | 밴드 키를 BFF가 걸러 내 조용히 성공시키지 않는다. 서버가 422를 내게 둔다 | Must |
+| FR-63 | 설정 뷰모델의 `band.editable: false`·`readOnlyReason`을 그대로 전달한다 | Must |
+| FR-64 | 온보딩 3단계 저장도 **같은 `PATCH /settings`** 다. 성공 시 주간 계획·홈 블록 쿼리를 무효화한다 | Must |
+
+## 이번 달 적립 합계 — 2026-09-21 추가 (B20)
+
+| ID | 요구사항 | 우선순위 |
+|---|---|---|
+| FR-70 | `executedKrw`·`plannedKrw`·`progressPct`·`daysLeft`를 **계산하지 않고 전달**한다(공통 기준 ③) | Must |
+| FR-71 | 합계 실패가 목표 목록을 막지 않는다. 목표 화면은 블록별로 격리한다 | Must |
 
 ## Acceptance Criteria
 
@@ -93,6 +114,11 @@ created: 2026-09-09
 - [ ] `excluded[]`가 전달된다
 - [ ] `POST /complete` 성공 시 계획 쿼리가 무효화된다
 - [ ] 낙관적 갱신 후 `streakWeeks`가 서버 값으로 덮인다
+- [ ] **거래 데이터로 적립 완료를 추정하는 코드가 0건이다** (ADR-002 · B20)
+- [ ] `PATCH /settings`가 `monthlyBaseKrw`만 전달하고 환산 코드가 0건이다 (D9)
+- [ ] 422 코드·`field`·`min`·`max`가 보존된다
+- [ ] 이번 달 합계 필드가 서버 값 그대로다 (B20)
+- [ ] `complete`·`settings` 성공 시 월 합계·주간 계획 쿼리가 무효화된다
 
 ## Dependencies
 
@@ -104,3 +130,9 @@ created: 2026-09-09
 
 - 김프를 계획 응답에 합칠지 프론트가 두 번 부를지. **BFF가 병렬로 합쳐 주는 것**이 프론트에 편하다 → 그렇게 한다.
 - 적립 완료 낙관적 갱신이 "금액 화면 낙관적 갱신 금지" 원칙과 충돌하지 않는가. **체크 상태는 금액이 아니므로** 허용이 맞다(F003 UX 상태에도 그렇게 적혀 있다).
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. FR-53·54(수동 체크만 · 월 합계 무효화 — ADR-002 · B20), FR-60~64(설정 · 온보딩 저장 — D9 · B12), FR-70·71(이번 달 적립 합계 — B20) 추가 |
