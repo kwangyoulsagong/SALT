@@ -44,9 +44,6 @@ export const useMarketPreviewChartRealtime = (
         },
       );
     };
-    wsClient.subscribeCandle(symbol, timeframe, listener);
-    return () => {
-      wsClient.unsubscribeCandle(symbol, timeframe, listener);
-    };
+    return wsClient.subscribeCandle(symbol, timeframe, listener);
   }, [symbol, queryClient, timeframe]);
 };

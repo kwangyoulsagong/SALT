@@ -17,6 +17,28 @@ export enum WSMessageType {
   Candle = "candle",
   Subscribed = "subscribed",
   Unsubscribed = "unsubscribed",
+  /**
+   * 아래 넷은 BFF 가 원래부터 보내던 응답인데 이 enum 에 없어서, 받을 때마다
+   * `dispatchMessage` 의 exhaustive 분기가 `"없는 타입:"` 경고를 찍었다.
+   */
+  Connected = "connected",
+  SubscribedCandle = "subscribed_candle",
+  UnsubscribedCandle = "unsubscribed_candle",
+  Pong = "pong",
+  Error = "error",
+}
+
+/**
+ * 연결 상태. 화면은 이것으로 "실시간 기준 시각"과 "연결 끊김"을 가른다.
+ *
+ * `Reconnecting` 은 **닫힌 뒤 다시 여는 중**이다 — 한 번도 열린 적이 없어도 닫혔으면
+ * 여기로 온다. 화면에 보여줄 말은 같다: 지금 받는 값이 없다.
+ */
+export enum ConnectionStatus {
+  Idle = "idle",
+  Connecting = "connecting",
+  Open = "open",
+  Reconnecting = "reconnecting",
 }
 
 export interface PriceUpdate {
@@ -63,7 +85,12 @@ export type WSClientReceiveMessage =
       data: Candle;
     }
   | { type: WSMessageType.Subscribed; symbols: string[] }
-  | { type: WSMessageType.Unsubscribed; symbols: string[] };
+  | { type: WSMessageType.Unsubscribed; symbols: string[] }
+  | { type: WSMessageType.Connected }
+  | { type: WSMessageType.SubscribedCandle; symbol: string; timeframe: string }
+  | { type: WSMessageType.UnsubscribedCandle; symbol: string; timeframe: string }
+  | { type: WSMessageType.Pong }
+  | { type: WSMessageType.Error; message: string };
 
 export interface WSClientContext {
   priceListeners: Map<string, Set<PriceListener>>;

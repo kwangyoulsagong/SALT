@@ -15,16 +15,10 @@ import {
 export const useMarketOverviewRealtime = (
   params: MarketOverviewParams,
   symbols: string[],
-  onBlink?: (symbol: string) => void,
-  /**
-   * 한 건이라도 받았다는 신호. 표 헤더의 기준 시각이 이것을 쓴다 (`FE-REQ-010` FR-2).
-   *
-   * **프레임 단위로 부른다** — 수신 한 건마다 부르면 초당 수십 번이 되고, 받는 쪽이
-   * state 를 갱신하면 표 전체가 그만큼 다시 그려진다. 콜백에서 스로틀하는 것은
-   * 받는 쪽의 몫이지만, 여기서도 이미 `requestAnimationFrame` 으로 묶인 지점에서만 부른다.
-   */
-  onReceive?: () => void
+  onBlink?: (symbol: string) => void
 ): void => {
+  // 기준 시각은 여기서 올리지 않는다 — 헤더가 `useRealtimeConnection` 으로 직접 읽는다.
+  // 표가 그 state 를 들고 있으면 시각이 바뀔 때마다 100행이 다시 그려진다 (`FE-REQ-011` FR-13).
   const queryClient = useQueryClient();
   // 심볼 목록을 값 기준 키로 만든다.
   // 첫 마운트엔 데이터가 없어 symbols가 비어 있고, 데이터가 도착해 symbols가
@@ -33,7 +27,6 @@ export const useMarketOverviewRealtime = (
   useEffect(() => {
     if (!symbolsKey) return;
     const targetSymbols = symbolsKey.split(",");
-    wsClient.subscribePriceBatch(targetSymbols);
 
     let frameId: number | null = null;
     const priceQueue: Record<string, { price: number; change24h: number }> = {};
@@ -68,7 +61,6 @@ export const useMarketOverviewRealtime = (
         frameId = null;
         blinkQueue.forEach((symbol) => onBlink?.(symbol));
         blinkQueue.length = 0;
-        onReceive?.();
         // 낙관적 업데이트
         queryClient.setQueryData(
           [marketQueryKeys.overview, params],
@@ -97,17 +89,15 @@ export const useMarketOverviewRealtime = (
       });
     };
 
-    /** 리스너 등록 */
-    targetSymbols.forEach((symbol) =>
-      wsClient.addPriceListener(symbol, listener)
-    );
+    /**
+     * 구독과 해제가 한 쌍이다. 해제는 리스너만 떼는 것이 아니라 **서버에도 알린다** —
+     * 원래는 리스너만 떼서 화면을 떠나도 BFF 가 100종목을 계속 밀었다 (`FE-REQ-012` FR-24).
+     */
+    const unsubscribe = wsClient.subscribePrices(targetSymbols, listener);
 
-    /** 클린업 */
     return () => {
       if (frameId) cancelAnimationFrame(frameId);
-      targetSymbols.forEach((symbol) =>
-        wsClient.removePriceListener(symbol, listener)
-      );
+      unsubscribe();
     };
-  }, [symbolsKey, params, queryClient, onBlink, onReceive]);
+  }, [symbolsKey, params, queryClient, onBlink]);
 };

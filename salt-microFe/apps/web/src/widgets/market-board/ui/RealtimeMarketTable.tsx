@@ -34,10 +34,10 @@ import {
   WatchlistAssetType,
 } from "@/entities/market";
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
-import { formatClockTime } from "@/shared/lib";
 
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
 import { splitLayout } from "./MarketBoardLayout.css";
+import { RealtimeAsOf } from "./RealtimeAsOf";
 
 /**
  * hover 로 프리뷰 심볼을 바꾸기까지의 대기.
@@ -47,9 +47,6 @@ import { splitLayout } from "./MarketBoardLayout.css";
  * 입력 반영 예산이 100ms 라(`performance-frontend.md` §1) 그 안쪽으로 잡았다.
  */
 const HOVER_SELECT_DELAY_MS = 80;
-
-/** 기준 시각을 다시 계산하는 최소 간격. 표시 단위가 분이라 이보다 촘촘할 이유가 없다. */
-const RECEIVED_AT_TICK_MS = 30_000;
 
 /**
  * 실시간 테이블 + 우측 프리뷰 조합 (`market-board`).
@@ -72,26 +69,6 @@ export const RealtimeMarketTable = () => {
   });
   const [selectedSymbol, setSelectedSymbol] = useState<string>("");
   const [blinkingSymbol, setBlinkingSymbol] = useState<string>("");
-  const [receivedAt, setReceivedAt] = useState<Date | null>(null);
-
-  /**
-   * 마지막 수신 시각.
-   *
-   * 표시 단위가 **분**이라 초당 수십 번 오는 수신마다 state 를 갱신할 이유가 없다.
-   * 같은 참조를 돌려주면 React 가 리렌더를 건너뛴다 — 그래서 30초에 한 번만 새 객체가
-   * 된다. 100행짜리 표가 수신마다 다시 그려지는 것을 막는 것이 목적이다
-   * (`performance-frontend.md` §2).
-   */
-  const markReceived = useCallback(() => {
-    setReceivedAt((prev) => {
-      const now = new Date();
-      if (prev && now.getTime() - prev.getTime() < RECEIVED_AT_TICK_MS) {
-        return prev;
-      }
-      return now;
-    });
-  }, []);
-
   /**
    * hover 선택은 **디바운스해서** 넘긴다. 첫 선택(아래 effect)은 즉시다 —
    * 화면이 뜨는 순간에는 기다릴 이유가 없다.
@@ -135,7 +112,7 @@ export const RealtimeMarketTable = () => {
     [watchlist?.items]
   );
   const symbols = useMemo(() => items.map((item) => item.symbol), [items]);
-  useMarketOverviewRealtime(params, symbols, handleBlink, markReceived);
+  useMarketOverviewRealtime(params, symbols, handleBlink);
   const firstSymbol = items[0]?.symbol;
 
   useEffect(() => {
@@ -171,18 +148,7 @@ export const RealtimeMarketTable = () => {
             <TableHeader bordered={false}>
               <TableRow>
                 <TableHeaderCell align="left">
-                  <FlexBox align="center" gap="xs">
-                    <Text variant="caption" color="success">
-                      ●
-                    </Text>
-                    <Text color="tertiary">
-                      {receivedAt
-                        ? MARKET_MESSAGES.realtimeAsOf(
-                            formatClockTime(receivedAt)
-                          )
-                        : MARKET_MESSAGES.realtimeWaiting}
-                    </Text>
-                  </FlexBox>
+                  <RealtimeAsOf />
                 </TableHeaderCell>
                 {MARKET_TABLE_HEADERS.map((th) => (
                   <TableHeaderCell key={th.id} align="right">
