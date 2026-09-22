@@ -11,4 +11,4 @@
 ## Action
 
 - 2026-09-29 동면 로그 확인
-- `upbit-ws.service` 명시적 `start()` — BFF 실시간 REQ
+- 상위 구독 289 vs `limit=100` — WS 성능 REQ

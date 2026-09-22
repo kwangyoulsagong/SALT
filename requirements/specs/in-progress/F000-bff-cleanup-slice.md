@@ -1,6 +1,6 @@
 ---
 id: SLICE-F000-BFF-CLEANUP
-title: "F000 슬라이스 — BFF 부채 정리 (4xx 보존 일원화 · 동면 410 · 규칙 4곳)"
+title: "F000 슬라이스 — BFF 부채 정리 (4xx 보존 일원화 · 동면 410 · Upbit 지연 연결 · 규칙)"
 priority: medium
 labels: [F000, slice, bff, tech-debt, dormant]
 created: 2026-09-22
@@ -16,7 +16,7 @@ BFF 에 쌓인 부채를 닫는다 — **서버 4xx 를 컨트롤러마다 다�
 
 | REQ | FR | 내용 |
 |---|---|---|
-| `BFF-REQ-036` | 전부 | 4xx 보존 일원화(컨트롤러 8곳) · `proxyRequest` 타임아웃 · 규칙 4곳 |
+| `BFF-REQ-036` | 전부 | 4xx 보존 일원화(컨트롤러 8곳) · `proxyRequest` 타임아웃 · Upbit 지연 연결 · 규칙 4곳 |
 | `BFF-REQ-007` | A절 FR-1~5 | 동면 route 410(FR-6 1주 로그는 2026-09-29) |
 | `BFF-REQ-008` | FR-11 | 동면 경로 410 |
 

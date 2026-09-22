@@ -12,9 +12,10 @@
 | 만료 토큰 | `/api/app/alerts` · `/home` **500 → 401**, `/portfolio` 401 |
 | proxy 4xx | Zod 400 `errors[]` · 422 `code` 보존 |
 | 동면 | 6경로 410 `ENDPOINT_DORMANT`(스펙 5 + `/api/users/dashboard`) · 유지 경로 그대로 |
-| 게이트 | `tsc` · `npm run build` · `npm test` 80 pass |
+| Upbit 지연 연결 | `app.ts` import 테스트 1s 종료(전: 멈춤) · WS 29틱/8s · worker 289종목 연결 |
+| 게이트 | `tsc` · `npm run build` · `npm test` 82 pass |
 
 ## 미검증 · 범위 밖
 
 영역 체크리스트 `BFF-REQ-036.md` §4 와 같다 — 동면 1주 로그(2026-09-29), 401 이 된 경로의 프론트 동작, 5xx 502/504,
-`upbit-ws.service` import 시 연결, WS throttle.
+WS throttle, 상위 구독 289 vs 규칙 `limit=100`(기록만).
