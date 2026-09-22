@@ -29,6 +29,7 @@
     "./tabs": "./src/Tabs/Tabs.tsx",
     "./margin": "./src/Margin/Margin.tsx",
     "./filterTabs": "./src/FilterTabs/FilterTabs.tsx",
+    "./segmentedControl": "./src/SegmentedControl/SegmentedControl.tsx",
     "./table": "./src/Table/Table.tsx",
     "./servicewrapper": "./src/ServiceWrapper/ServiceWrapper.tsx",
     "./starIcon": "./src/StarIcon/StarIcon.tsx",
