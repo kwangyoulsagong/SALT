@@ -17,3 +17,4 @@ export { MarketPreviewHeader } from "./MarketPreview/MarketPreviewHeader";
  * 모든 화면의 번들에 들어온다. 현재 사용처도 없다 — 죽은 코드 판정은 F000(`FE-REQ-011`).
  * 쓸 곳이 생기면 `next/dynamic` 으로 부른다.
  */
+export { MarketDetailChart } from "./MarketDetailChart";

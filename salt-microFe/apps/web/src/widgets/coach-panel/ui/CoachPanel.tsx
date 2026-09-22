@@ -3,6 +3,7 @@
 import type { CoachMode, SymbolCoachViewModel } from "@repo/core/coach";
 import { Heading } from "@repo/ui/heading";
 import { Text } from "@repo/ui/text";
+import Link from "next/link";
 import { memo, useMemo } from "react";
 
 import {
@@ -20,9 +21,19 @@ import {
   MarketPreview,
   type MarketPreviewSubject,
 } from "@/entities/market";
-import { CoachModeSwitch, useCoachModeParam } from "@/features/switch-coach-mode";
+import {
+  COACH_MODE_PARAM,
+  CoachModeSwitch,
+  useCoachModeParam,
+} from "@/features/switch-coach-mode";
 
-import { coachBlocks, modeRow } from "./CoachPanel.css";
+import { coachBlocks, detailLink, modeRow } from "./CoachPanel.css";
+
+/** ⑦ 이동할 곳 — 모드를 들고 간다(FR-111 · FR-119). 모드를 아직 모르면 서버 기본값에 맡긴다 */
+const detailHref = (symbol: string, mode: CoachMode | undefined) => {
+  const path = `/investments/${encodeURIComponent(symbol)}`;
+  return mode ? `${path}?${COACH_MODE_PARAM}=${mode}` : path;
+};
 
 interface CoachPanelProps {
   subject: MarketPreviewSubject | undefined;
@@ -61,7 +72,8 @@ const JudgmentAndZone = ({
  *
  * `aria-live` 를 쓰지 않는다 — 행을 옮길 때마다 판단을 낭독하면 표를 훑을 수 없다(FR-121).
  *
- * ⑦ [상세 분석 보기] 는 아직 없다 — 이동할 `/investments/[symbol]`(FR-130~)이 없다.
+ * ⑦ [상세 분석 보기] 는 push 다(`next/link` — 같은 zone). 판단 조회를 기다리지 않는다 —
+ * 로그인 전 · 조회 실패여도 차트 · 구간은 상세 페이지에 있다.
  */
 export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
   const { data, isPending, isError, isSignedOut } = useSymbolCoach(subject?.symbol);
@@ -106,6 +118,13 @@ export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
       subject={subject}
       coachSlot={<div className={coachBlocks}>{renderBlocks()}</div>}
       gaugeFooters={gaugeFooters}
+      footerSlot={
+        subject && (
+          <Link href={detailHref(subject.symbol, mode)} className={detailLink}>
+            {COACH_MESSAGES.openDetail}
+          </Link>
+        )
+      }
     />
   );
 });

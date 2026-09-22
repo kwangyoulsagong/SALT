@@ -13,7 +13,7 @@ import { vars } from "../styles/tokens.css";
 import { FlexBox } from "../FlexBox/FlexBox";
 import { Margin } from "../Margin/Margin";
 import { Text } from "../Typo/Text/Text";
-type Timeframe = "1m" | "5m" | "1h";
+type Timeframe = "1m" | "5m" | "15m" | "1h" | "1d";
 export interface MarketChartPreviewItem {
   timestamp: string;
   open: number;
@@ -23,16 +23,44 @@ export interface MarketChartPreviewItem {
   volume: number;
 }
 
+/**
+ * 캔들 위에 긋는 수평 가격선. 가격은 **부르는 쪽이 준 값 그대로**다 — 차트는 계산하지 않는다.
+ *
+ * `tone` 은 색의 뜻이다. `down` = 하락 색(손실 제한처럼 아래로 깨지는 선), `neutral` = 회색.
+ * 상승 빨강 · 하락 파랑 규칙을 뒤집는 색을 받지 않으려고 hex 가 아니라 이름만 받는다.
+ */
+export interface PriceLine {
+  key: string;
+  price: number;
+  tone: "down" | "neutral";
+  dashed: boolean;
+  /** 범례용 이름. 선 옆에는 그리지 않는다 — 범례는 부르는 쪽이 그린다 */
+  label: string;
+}
+
 export interface PreviewChartProps {
   symbol: string;
   timeframe?: Timeframe;
   data: MarketChartPreviewItem[];
   width?: number;
   height?: number;
+  priceLines?: readonly PriceLine[];
 }
 
+const PRICE_LINE_COLOR: Record<PriceLine["tone"], string> = {
+  down: vars.colors.special.down,
+  neutral: vars.colors.neutral[500],
+};
+const PRICE_LINE_DASH = "4 3";
+const NO_PRICE_LINES: readonly PriceLine[] = [];
+
+/**
+ * y 범위 = 캔들 고가 · 저가 **+ 가격선**. 선을 범위에 넣지 않으면 현재가에서 먼 선
+ * (예: 1년 하위 20%)이 화면 밖으로 나가 "선이 없다"로 읽힌다.
+ */
 const getMinYAndMaxY = (
-  candles: MarketChartPreviewItem[]
+  candles: MarketChartPreviewItem[],
+  priceLines: readonly PriceLine[]
 ): [number, number] => {
   let min = Number.POSITIVE_INFINITY;
   let max = Number.NEGATIVE_INFINITY;
@@ -40,6 +68,10 @@ const getMinYAndMaxY = (
   for (const c of candles) {
     if (c.low < min) min = c.low;
     if (c.high > max) max = c.high;
+  }
+  for (const line of priceLines) {
+    if (line.price < min) min = line.price;
+    if (line.price > max) max = line.price;
   }
   if (min === max) {
     min = min - 1;
@@ -54,13 +86,17 @@ export const PreviewChart = React.memo(
     timeframe = "5m",
     width = 447,
     height = 210,
+    priceLines = NO_PRICE_LINES,
   }: PreviewChartProps) => {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
     const [isHovering, setIsHovering] = useState<boolean>(false);
     const svgRef = useRef<SVGSVGElement>(null);
     const rafRef = useRef<number | null>(null);
     const candles = data;
-    const [minY, maxY] = useMemo(() => getMinYAndMaxY(candles), [candles]);
+    const [minY, maxY] = useMemo(
+      () => getMinYAndMaxY(candles, priceLines),
+      [candles, priceLines]
+    );
     const xScale = useMemo(
       () =>
         scaleBand<number>({
@@ -105,9 +141,16 @@ export const PreviewChart = React.memo(
       return new Array(steps).fill(0).map((_, i) => minY + (i + 1) * step);
     }, [minY, maxY]);
 
+    // 일봉은 시각이 늘 같다(09:00) — 날짜를 보여 준다
     const formatTime = (timestamp: string) => {
       const date = new Date(timestamp);
 
+      if (timeframe === "1d") {
+        return date.toLocaleDateString("ko-KR", {
+          month: "2-digit",
+          day: "2-digit",
+        });
+      }
       return date.toLocaleTimeString("ko-KR", {
         hour: "2-digit",
         minute: "2-digit",
@@ -200,6 +243,19 @@ export const PreviewChart = React.memo(
                 strokeDasharray="3 3"
               />
             )}
+            {priceLines.map((line) => {
+              const y = yScale(line.price);
+              return (
+                <Line
+                  key={`price-line-${line.key}`}
+                  from={{ x: 0, y }}
+                  to={{ x: width, y }}
+                  stroke={PRICE_LINE_COLOR[line.tone]}
+                  strokeWidth={1.5}
+                  strokeDasharray={line.dashed ? PRICE_LINE_DASH : undefined}
+                />
+              );
+            })}
             {candles.map((c, idx) => {
               const xCenter =
                 (xScale(idx) ?? 0) + (xScale.bandwidth() / 2 || 0);

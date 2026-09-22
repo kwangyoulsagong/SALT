@@ -263,3 +263,15 @@ export const Default: Story = {
     ],
   },
 };
+
+/** 보유 종목의 "내 규칙 가격" 3선 — 손실 제한만 하락 색, 1차 익절 검토는 점선 */
+export const WithPriceLines: Story = {
+  args: {
+    ...Default.args,
+    priceLines: [
+      { key: "protect_loss", price: 3095, tone: "down", dashed: false, label: "손실 제한" },
+      { key: "first_profit", price: 3160, tone: "neutral", dashed: true, label: "1차 익절 검토" },
+      { key: "trend_hold", price: 3125, tone: "neutral", dashed: false, label: "추세 유지" },
+    ],
+  },
+};

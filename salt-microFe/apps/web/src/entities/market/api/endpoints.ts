@@ -1,3 +1,4 @@
+import type { ChartTimeframeSpec } from "../model/chartTimeframes";
 import { MarketOrder, MarketPeriod, MarketSort } from "../model/types";
 
 /** 차트 주기. 서버·BFF 가 아는 값이고 문자열을 직접 쓰지 않는다. */
@@ -38,6 +39,10 @@ export const MARKET_ENDPOINTS = {
    */
   chartPreview: (symbol: string) =>
     `/api/investment/crypto/${symbol}/chart?period=${CHART_PERIOD_MINUTE}&unit=5&count=30`,
+  /** 상세 분석 차트 — 기간 탭이 `period` · `unit` 을 고른다(`model/chartTimeframes.ts`) */
+  chart: (symbol: string, spec: ChartTimeframeSpec, count: number) =>
+    `/api/investment/crypto/${encodeURIComponent(symbol)}/chart` +
+    `?period=${spec.period}&unit=${spec.unit}&count=${count}`,
   intelligencePreview: (symbol: string) =>
     `/api/market-intelligence/${symbol}/dashboard`,
   /**

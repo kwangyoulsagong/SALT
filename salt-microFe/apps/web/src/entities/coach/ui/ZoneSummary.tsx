@@ -6,17 +6,11 @@ import { Text } from "@repo/ui/text";
 
 import { formatPrice } from "@/shared/lib";
 
-import { formatGapAmount } from "../lib";
+import { describePriceGap } from "../lib";
 import { COACH_MESSAGES } from "../model";
 import { caption, zoneHeader, zoneSlot, zoneValue } from "./CoachBlock.css";
 
 const { zone: ZONE } = COACH_MESSAGES;
-
-const gapText = (gap: number) => {
-  if (gap === 0) return ZONE.gapNone;
-  const amount = formatGapAmount(gap);
-  return gap > 0 ? ZONE.gapAbove(amount) : ZONE.gapBelow(amount);
-};
 
 /** 가격 + 현재가와의 거리(금액). 거리 % 는 그리지 않는다(D13) */
 const row = (label: string, price: number, gap: number): KeyValueItem => ({
@@ -24,7 +18,7 @@ const row = (label: string, price: number, gap: number): KeyValueItem => ({
   value: (
     <span className={zoneValue}>
       <span>{ZONE.price(formatPrice(price))}</span>
-      <span className={caption}>{gapText(gap)}</span>
+      <span className={caption}>{describePriceGap(gap)}</span>
     </span>
   ),
 });
