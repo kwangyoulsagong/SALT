@@ -9,21 +9,31 @@ const MOBILE = "screen and (max-width: 767px)";
  * **청크가 오기 전 자리와 같아야** 탭 · 표가 밀리지 않는다(FR-8).
  */
 const STRIP_HEIGHT = "176px";
-/** 모바일: 대표 칸 176 + 틈 8 + 가로 스크롤 한 줄 56 */
-const STRIP_HEIGHT_MOBILE = "240px";
+/**
+ * 모바일: 대표 칸은 내용 높이(여백 16 + 이름 20 + 가격 20 + 틈 8 + 차트 77 = 141) + 틈 8 + 가로 스크롤 한 줄 56.
+ * PC 처럼 176 을 주면 차트 아래가 빈다.
+ */
+const FEATURED_HEIGHT_MOBILE = "141px";
+const STRIP_HEIGHT_MOBILE = "205px";
+/** 대표 칸 폭 — 참고 화면 실측 226px 근처 */
+const FEATURED_WIDTH = "240px";
+/** 작은 항목 열 폭 — 참고 화면 254px. 열이 화면 폭으로 늘어나면 항목 안이 빈칸만 는다 */
+const ITEM_COLUMN_WIDTH = "260px";
+
 /** 모바일 작은 항목 폭 — 옆 항목이 걸쳐 보여야 가로로 밀 수 있다는 것을 안다 */
 const MOBILE_ITEM_WIDTH = "280px";
 
 /** PC: 대표 | 작은 항목 열(3줄)들. 칸 사이는 세로 구분선(FR-7) */
 export const strip = style({
   display: "grid",
-  // 대표 칸을 넓게 — 작은 항목은 내용 폭(≈220px)이 정해져 있어 열이 넓으면 빈칸만 는다
-  gridTemplateColumns: "minmax(0, 5fr) minmax(0, 6fr)",
+  // 대표 칸은 참고 화면처럼 좁게 고정한다(226 → 240). 늘리면 차트가 띠의 주인공이 된다
+  gridTemplateColumns: `${FEATURED_WIDTH} minmax(0, 1fr)`,
+  justifyContent: "start",
   height: STRIP_HEIGHT,
   "@media": {
     [MOBILE]: {
       gridTemplateColumns: "minmax(0, 1fr)",
-      gridTemplateRows: `${STRIP_HEIGHT} 56px`,
+      gridTemplateRows: `${FEATURED_HEIGHT_MOBILE} 56px`,
       rowGap: vars.space.sm,
       height: STRIP_HEIGHT_MOBILE,
     },
@@ -39,6 +49,9 @@ const divided = {
 export const featuredCell = style({
   minWidth: 0,
   height: STRIP_HEIGHT,
+  "@media": {
+    [MOBILE]: { height: FEATURED_HEIGHT_MOBILE },
+  },
 });
 
 /** 작은 항목 — 세로로 3줄씩 채우고 다음 열로 넘어간다 */
@@ -47,7 +60,7 @@ export const itemGrid = style({
   display: "grid",
   gridAutoFlow: "column",
   gridTemplateRows: "repeat(3, 56px)",
-  gridAutoColumns: "minmax(0, 1fr)",
+  gridAutoColumns: ITEM_COLUMN_WIDTH,
   rowGap: "4px",
   columnGap: vars.space.md,
   minWidth: 0,

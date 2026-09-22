@@ -11,11 +11,11 @@
 |---|---|---|
 | FR-1 자리 · 두 탭 | pass | `widgets/market-board/ui/MarketBoard.tsx` — 제목과 `Tabs` 사이, 탭 바깥 |
 | FR-2 조회 한 번 · 프론트 상수 0 | pass | `entities/market/api/useMarketQueries.ts` `useMarketSummary`. 종목 목록 · 임계 상수 파일(`summarySymbols.ts` · `model/summary.ts` · `lib/summaryTag.ts`)을 지웠다(`grep -rn "BTC\", \"ETH" apps/web/src` 0건) |
-| FR-3 대표 · 작은 항목 · `aria-label` | pass | `entities/market/ui/MarketSummaryCard/*`. 1440px 실측: 대표 BTC `115,008,000 -2,115,000 (1.81%)` + 영역 차트, 항목 6(ETH · XRP · SOL · DOGE · ADA · TRX) 3줄 × 2열 |
+| FR-3 대표 · 작은 항목 · 로고 · `aria-label` | pass | `entities/market/ui/MarketSummaryCard/*`. 1440px 실측: 대표 BTC `115,008,000 -2,115,000 (1.81%)` + 영역 차트, 항목 6(ETH · XRP · SOL · DOGE · ADA · TRX) 3줄 × 2열 |
 | FR-4 태그 · 옅은 칠 | pass (부분) | 코드 → 문구 매핑 `MARKET_SUMMARY_MESSAGES.tags`. 오늘 ±5% 종목이 없어 **실화면에 태그가 뜬 모습은 못 봤다** — 서버 단위 테스트(`wide_move`)와 코드만 |
 | FR-5 실시간 · 1분 재조회 | pass | `entities/market/lib/useMarketSummaryRealtime.ts`. WS 실측 `{"symbol":"BTC","change24hAmount":-2125000,…}` — BFF 가 거래소 금액을 싣는다 |
 | FR-6 링크 | pass | `ROUTES.investmentDetail` (코치 패널과 한 곳) |
-| FR-7 배치 | pass | 1440 · 390 스크린샷. 390 에서 항목 폭 240 은 변동률이 잘려(`(2…`) 280 으로 늘렸다 |
+| FR-7 배치 | pass | 1440 · 390 스크린샷. 대표 칸이 5:6 비율일 때 차트가 600px 로 커져 "여전히 크다" — 240px · 차트 77 고정으로. 항목 열 260 고정. 390 에서 항목 폭 240 은 변동률이 잘려 280, 대표 칸 높이는 내용(141)에 맞췄다 |
 | FR-8 상태 | pass | 스켈레톤 = 띠 높이 176(모바일 240) · 청크 전 자리도 같은 높이. 실패 시 `null` |
 | FR-9 번들 | pass | `/investments` First Load **136 → 136 kB**(페이지 3.42 → 3.55 kB) |
 | 금지 문구 | pass | "급등 · 급락" 앱 0건 |

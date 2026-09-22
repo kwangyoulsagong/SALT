@@ -1,6 +1,7 @@
 "use client";
 
 // 클라이언트 잎: barrel 로 노출되므로 경계를 스스로 갖는다(`fsd-entities.md`).
+import { Image } from "@repo/ui/image";
 import { Skeleton } from "@repo/ui/skeleton";
 import { Sparkline } from "@repo/ui/sparkline";
 import Link from "next/link";
@@ -12,9 +13,11 @@ import { MARKET_SUMMARY_MESSAGES } from "../../model/messages";
 import { type MarketSummaryItem, MarketSummaryTag } from "../../model/types";
 import * as styles from "./MarketSummaryCard.css";
 
-/** 첫 측정 전 폭 · 높이. 측정 뒤 모양이 크게 바뀌지 않게 대표 칸 크기 근처로 잡는다 */
-const FEATURED_CHART_FALLBACK = { width: 360, height: 112 };
+/** 대표 차트 — 참고 화면 실측 202×77. 폭은 재서 넘기고 이 값은 첫 측정 전 폭이다 */
+const FEATURED_CHART_FALLBACK = { width: 216, height: 77 };
 const COMPACT_CHART = { width: 56, height: 40 };
+/** 이름 앞 로고 — 글자 높이에 맞춘다 */
+const LOGO_SIZE = { featured: 18, compact: 16 };
 /** 참고 화면의 선 두께 */
 const STROKE_WIDTH = 1.6;
 
@@ -43,8 +46,18 @@ const directionClass = (change: number) =>
 const signOf = (value: number) => (value > 0 ? "+" : value < 0 ? "-" : "");
 
 /** 이름 + 서버가 붙인 태그(코드 → 문구). 모르는 코드는 BFF 가 이미 버렸다 */
-const NameRow = ({ item, className }: { item: MarketSummaryItem; className: string }) => (
+const NameRow = ({
+  item,
+  className,
+  logoSize,
+}: {
+  item: MarketSummaryItem;
+  className: string;
+  logoSize: number;
+}) => (
   <span className={`${styles.head} ${className}`}>
+    {/* 이름이 바로 옆에 있어 로고는 장식이다 — 스크린리더가 이름을 두 번 읽지 않게 alt 를 비운다 */}
+    <Image radius={9999} width={logoSize} height={logoSize} src={item.logoUrl} alt="" />
     <span className={styles.nameText}>{item.name}</span>
     {item.tags.map((tag) => {
       const copy = MARKET_SUMMARY_MESSAGES.tags[tag];
@@ -113,7 +126,7 @@ export const MarketSummaryFeatured = React.memo(
     );
     return (
       <Link href={href} className={styles.featured}>
-        <NameRow item={item} className={styles.featuredName} />
+        <NameRow item={item} className={styles.featuredName} logoSize={LOGO_SIZE.featured} />
         <PriceRow item={item} />
         <span ref={chartRef} className={styles.featuredChart}>
           <Trend
@@ -151,7 +164,7 @@ export const MarketSummaryItemLink = React.memo(
           />
         </span>
         <span className={styles.compactBody}>
-          <NameRow item={item} className={styles.compactName} />
+          <NameRow item={item} className={styles.compactName} logoSize={LOGO_SIZE.compact} />
           <PriceRow item={item} />
         </span>
       </Link>

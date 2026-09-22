@@ -36,10 +36,9 @@ export const featured = style([
   },
 ]);
 
-/** 큰 차트 — 남는 높이를 다 쓴다. 폭은 재서 넘긴다(`useElementWidth`) */
+/** 대표 차트 자리 — 높이 77 고정(참고 화면). 폭은 재서 넘긴다(`useElementWidth`) */
 export const featuredChart = style({
-  flex: 1,
-  minHeight: 0,
+  height: "77px",
   marginTop: vars.space.sm,
 });
 
