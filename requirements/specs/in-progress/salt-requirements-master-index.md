@@ -211,7 +211,7 @@ flowchart TB
 | `FE-REQ-036` F004 ZONE BAND | **in-progress** | 관찰 구간을 상세 · 패널 차트에 띠 + 이름표(`관찰 구간 … · 예측 아님`)로. 패널 차트 범위 = 캔들만. 상세 차트 버튼 캡슐. 차트 청크 +0.9 KB gzip(슬라이스 9) |
 | `SRV-REQ-036` F006 MARKET SUMMARY | **in-progress** | `GET /api/investment/market/summary` — 종목은 설정(`MARKET_SUMMARY_SYMBOLS`), `wide_move` 태그 · 등락 금액은 도메인, 5분봉 1분 캐시 · 부분 실패(F006 슬라이스 1) |
 | `BFF-REQ-035` F006 MARKET SUMMARY | **in-progress** | `/api/app/market/summary` 뷰모델(계산 없음) · WS `price_update.change24hAmount`(거래소 값) |
-| `FE-REQ-037` F006 MARKET SUMMARY | **in-progress** | 투자 화면 시장 요약 띠 — 대표 1 + 항목 6, 영역 스파크라인 · 점선 기준선(`@repo/ui` Sparkline 확장). 프론트 종목 상수 0 · First Load 변화 0 |
+| `FE-REQ-037` F006 MARKET SUMMARY | **in-progress** | 투자 화면 시장 요약 띠 — 대표 1 + 항목 9(3열) + 오늘의 시장(종목 수 · 뉴스), 영역 스파크라인 · 점선 기준선(`@repo/ui` Sparkline 확장). 프론트 종목 상수 0 · First Load 변화 0 |
 | 나머지 123개 | to-do | |
 
 **P0 아키텍처 전환 3개(FE)가 끝났다.** `FE-REQ-007`→`008`→`009`.

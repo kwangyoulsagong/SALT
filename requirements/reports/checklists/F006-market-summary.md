@@ -8,11 +8,11 @@
 
 | 확인 | 결과 |
 |---|---|
-| 서버 → BFF → 화면 | 대표 BTC + 항목 6, 등락 금액 · 스파크라인 30점. 1440 · 390 스크린샷 |
+| 서버 → BFF → 화면 | 대표 BTC + 항목 9(3열) + 오늘의 시장(상승 · 보합 · 하락 수 · BTC 뉴스 3). 1600 · 1280 · 390 스크린샷, 스켈레톤 = 실제 배치 |
 | WS 등락 금액 | `price_update` 에 `change24hAmount`(거래소 값) |
 | 프론트 상수 | 종목 목록 · 임계 0 |
 | 번들 | `/investments` First Load 136 → 136 kB |
-| 게이트 | 서버 build · test 250 · BFF build · test 75 · FE check-types · lint · test · storybook · web/web-tax 빌드 · layer-check(FE · 서버) |
+| 게이트 | 서버 build · test 254 · BFF build · test 77 · FE check-types · lint · test · storybook · web/web-tax 빌드 · layer-check(FE · 서버) |
 
 ## 미검증 · 범위 밖
 

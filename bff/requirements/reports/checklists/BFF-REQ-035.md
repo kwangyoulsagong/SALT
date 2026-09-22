@@ -9,7 +9,7 @@
 | FR-3 에러 | pass | 컨트롤러 `next(error)` — error middleware |
 | FR-4 WS 등락 금액 | pass | `services/upbit-ws.service.ts`. 실측 `price_update` `change24hAmount: -2125000` |
 
-게이트: `npm run build` pass · `npm test` **75/75**(신규 4).
+게이트: `npm run build` pass · `npm test` **77/77**(신규 6).
 
 ## 미검증 · 범위 밖
 

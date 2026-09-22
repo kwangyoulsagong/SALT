@@ -24,10 +24,12 @@ created: 2026-09-22
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-1 | `GET /api/investment/market/summary` → `{ featured, items[], sparklineWindowMinutes, degraded }`. 공개 경로 | Must |
-| FR-2 | 종목 · 순서 = 설정 `MARKET_SUMMARY_SYMBOLS`(쉼표, 첫 심볼이 `featured`). 기본 `BTC,ETH,XRP,SOL,DOGE,ADA,TRX`. 빈 값이면 기동 실패. 목록에 없는(비활성) 심볼은 빠진다 | Must |
+| FR-2 | 종목 · 순서 = 설정 `MARKET_SUMMARY_SYMBOLS`(쉼표, 첫 심볼이 `featured`). 기본 `BTC,ETH,XRP,SOL,DOGE,ADA,TRX,SUI,AVAX,LINK`(대표 1 + 9). 빈 값이면 기동 실패. 목록에 없는(비활성) 심볼은 빠진다 | Must |
 | FR-3 | 태그 코드 `wide_move` = `|change24h| ≥ MARKET_SUMMARY_WIDE_MOVE_RATE`(기본 5). **방향을 말하는 태그를 만들지 않는다** | Must |
 | FR-4 | `change24hAmount` = 현재가 − 현재가 / (1 + 변동률) — 도메인 `change24hAmountOf`. 원 단위 반올림은 컨트롤러 한 곳. 값이 없거나 −100% 이하면 `null` | Must |
 | FR-5 | `sparkline` = 거래소 5분봉 30개 종가(시간순). **1분 캐시**, 종목별 실패는 그 항목만 `null` + `degraded: true`(오래된 캐시가 있으면 그것) | Must |
+| FR-7 | 항목에 `high24h` · `low24h` · `tradeValue24h`(원 단위 반올림). `breadth` = 활성 종목의 24시간 오름 · 내림 · 그대로 수(DB `count` 셋). 실패는 `null` + `degraded` | Must |
+| FR-8 | `headlines` = 대표 종목 최근 뉴스 최대 3건(`SymbolNewsPort`, 9건 받아 매체 꼬리 " - 매체"를 떼고 같은 제목을 합친다 — 도메인 `pickHeadlines`). 실패는 빈 배열 + `degraded` | Must |
 | FR-6 | 가격 · 변동률은 **저장 시세**(거래소를 부르지 않는다). 실시간은 BFF WS 가 맡는다 | Must |
 
 ## 범위 밖
@@ -40,3 +42,4 @@ created: 2026-09-22
 ## Changelog
 
 - 2026-09-22 신설 (`FE-REQ-037` 서버 소유 전환)
+- 2026-09-22 개정 — FR-7 · FR-8(분위기 · 뉴스 · 고가/저가/거래대금), 기본 종목 10개. 화면이 비어 보인다는 피드백
