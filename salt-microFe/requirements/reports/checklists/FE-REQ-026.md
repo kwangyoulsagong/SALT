@@ -58,7 +58,7 @@
 |---|---|---|
 | FR-130 `/investments/[symbol]` · 패널과 같은 뷰모델 | pass · **다르게 구현** | `pages/investment-detail` → `widgets/symbol-analysis`. 조회는 **클라이언트**(토큰이 `localStorage`) · 패널과 같은 쿼리 키. 실측 1회 |
 | FR-131 Hero · [관심 추가] · [알림 만들기] 0 | 부분 | 뒤로 · 종목 · 현재가 · 변동률 · 별. **[주문 전 체크] 없음** — 서버 선행(아래) |
-| FR-132 오버레이 선 · 범례 `예측 아님` · 기간 6탭 | 부분 | 선은 `zoneToPriceLines`(서버 가격 그대로) · `PreviewChart` `priceLines`. **5탭** — 서버 차트에 `week` 없음 |
+| FR-132 오버레이 선 · 범례 `예측 아님` · 기간 6탭 | 부분 | 선은 `zoneToPriceLines`(서버 가격 그대로). **2026-09-22 `FE-REQ-034`**: 상세 차트가 자체 캔버스 차트(`TradingChart`)로 바뀌어 선 가격 배지 · 범위 밖 가장자리 표시가 생겼다. **5탭** — 서버 차트에 `week` 없음. 슬라이스 6 의 1일 탭은 서버 일봉 시각 키(`date`) 때문에 시각이 NaN 이었다 — 같은 REQ 에서 고침 |
 | FR-133 선 색 토큰 · 손실 제한만 하락 색 | pass | `special.down` · `neutral.500`. 상승 색 사용 0 |
 | FR-134 코치 카드 = 모드 스위치 + 판단 + 근거 · 위험 + 3종 · 같은 게이트 | pass | `JudgmentDetail` — 막힘은 `JudgmentSummary` 가 그린다. 실측(막힘) · 가로채기(열림) |
 | FR-135 해설 = 버튼만 · 이유 · 근거 · 주의점 · 뉴스 5줄 · 면책 · 같은 카드 안 3종 · 예상 수익 0 · 막히면 버튼 없음 | pass | `features/explain-symbol` `ExplainCard`. 가로채기 성공 · 429 · 500 · 막힘 실측 |

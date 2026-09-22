@@ -178,6 +178,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
           <section className={card}>
             <MarketDetailChart
               symbol={symbol}
+              displayName={listing.item?.koreanName ?? symbol}
               priceLines={priceLines}
               legend={<ZoneLegend lines={priceLines} />}
             />

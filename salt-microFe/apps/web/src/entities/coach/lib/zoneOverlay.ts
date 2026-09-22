@@ -1,5 +1,5 @@
 import type { Zone } from "@repo/core/coach";
-import type { PriceLine } from "@repo/ui/previewChart";
+import type { TradingPriceLine as PriceLine } from "@repo/ui/tradingChart";
 
 import { COACH_MESSAGES } from "../model";
 

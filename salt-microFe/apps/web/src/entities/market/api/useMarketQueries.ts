@@ -9,8 +9,8 @@ import {
 import { readAccessToken } from "@/shared/api";
 
 import {
-  CHART_TIMEFRAMES,
   type ChartTimeframe,
+  chartTimeframeSpec,
   DETAIL_CHART_CANDLE_COUNT,
 } from "../model/chartTimeframes";
 import {
@@ -90,8 +90,7 @@ export const useMarketChart = (
   symbol: string,
   timeframe: ChartTimeframe,
 ): UseQueryResult<MarketChartPreviewResponse> => {
-  const spec =
-    CHART_TIMEFRAMES.find((item) => item.value === timeframe) ?? CHART_TIMEFRAMES[0]!;
+  const spec = chartTimeframeSpec(timeframe);
 
   return useQuery({
     queryKey: [marketQueryKeys.chart, symbol, timeframe],

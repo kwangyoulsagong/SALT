@@ -6,6 +6,7 @@ import { INVESTMENTS_BASE_URL } from "@/shared/config";
 import type { ChartTimeframeSpec } from "../model/chartTimeframes";
 import {
   MarketChartPreviewResponse,
+  MarketChartRawItem,
   MarketIntelligencePreviewResponse,
   MarketOverviewParams,
   MarketOverviewResponse,
@@ -46,7 +47,14 @@ export const marketApi = {
       { signal },
     );
     if (!response.ok) throw new Error(`market chart ${response.status}`);
-    return (await response.json()) as MarketChartPreviewResponse;
+    const body = (await response.json()) as { data: MarketChartRawItem[] };
+    // 일봉은 `date`, 분봉은 `timestamp` — 한 키로 맞춘다(슬라이스 6 의 일봉 탭이 이것 때문에 시각이 NaN 이었다)
+    return {
+      data: body.data.map(({ date, timestamp, ...rest }) => ({
+        ...rest,
+        timestamp: timestamp ?? date ?? "",
+      })),
+    };
   },
   intelligencePreview: async (
     symbol: string,

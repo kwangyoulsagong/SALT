@@ -68,7 +68,7 @@ export { CoachPage as default, metadata } from '@/pages/coach';
 
 ## 클라이언트 전용 컴포넌트 배치
 
-`lightweight-charts`·`TradingViewChart`·`MovableGrid`는 SSR이 되지 않는다. 페이지에서 `next/dynamic` + `ssr: false`로 마운트한다.
+`@repo/ui/tradingChart`(캔버스)·`MovableGrid`는 SSR이 되지 않는다. 페이지에서 `next/dynamic` + `ssr: false`로 마운트한다.
 
 ```tsx
 const PanelGrid = dynamic(() => import('@/widgets/pc-panel-grid'), { ssr: false });
