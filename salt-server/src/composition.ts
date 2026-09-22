@@ -109,6 +109,10 @@ const market = createMarketApplication({
   exchange: new UpbitClient(),
   fearGreed: new FearGreedClient(),
   news: new SymbolNewsAdapter(news.api),
+  summaryPolicy: {
+    symbols: env.MARKET_SUMMARY_SYMBOLS,
+    wideMoveRate: env.MARKET_SUMMARY_WIDE_MOVE_RATE,
+  },
 });
 
 /**

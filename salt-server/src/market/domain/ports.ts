@@ -150,6 +150,8 @@ export interface AssetQuote {
 export interface MarketAssetRepository {
   /** 저장된 시세. 거래소를 부르지 않는다 — 판단용 조회는 DB 값을 쓴다. */
   findQuotes(symbols: string[]): Promise<AssetQuote[]>;
+  /** 정해진 심볼의 저장 시세 · 이름 · 로고. 순서는 보장하지 않는다 — 부르는 쪽이 맞춘다. */
+  findViews(symbols: string[]): Promise<MarketAssetView[]>;
   findPage(
     query: MarketOverviewQuery
   ): Promise<{ items: MarketAssetView[]; total: number }>;

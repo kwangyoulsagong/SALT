@@ -71,6 +71,24 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
 
   /**
    * @swagger
+   * /api/investment/market/summary:
+   *   get:
+   *     summary: 투자 화면 시장 요약 띠 (대표 1 + 항목) - PUBLIC
+   *     tags: [Investment - Public]
+   *     description: |
+   *       **무엇을 요약할지는 서버 설정(`MARKET_SUMMARY_SYMBOLS`)이 정한다** — 첫 심볼이 `featured` 다.
+   *       값은 저장 시세이고, `sparkline` 은 5분봉 종가(시간순, `sparklineWindowMinutes` 분)다.
+   *       `tags` 는 코드다(`wide_move` — 24시간 변동률이 임계 이상). 방향을 말하지 않는다.
+   *       `change24hAmount` 는 원 단위 정수로 반올림한 24시간 등락 금액이다.
+   *       스파크라인을 못 받은 종목이 있으면 그 항목만 `sparkline: null` + `degraded: true`.
+   *     responses:
+   *       200:
+   *         description: "`{ featured, items[], sparklineWindowMinutes, degraded }`"
+   */
+  router.get("/market/summary", investmentController.getMarketSummary);
+
+  /**
+   * @swagger
    * /api/investment/crypto/{symbol}/price:
    *   get:
    *     summary: 실시간 가격 조회 - PUBLIC

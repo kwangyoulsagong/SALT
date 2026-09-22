@@ -83,6 +83,14 @@ export class PrismaMarketAssetRepository implements MarketAssetRepository {
     }));
   }
 
+  async findViews(symbols: string[]): Promise<MarketAssetView[]> {
+    if (symbols.length === 0) return [];
+    const rows = await prisma.marketAsset.findMany({
+      where: { symbol: { in: symbols }, isActive: true },
+    });
+    return rows.map(toView);
+  }
+
   async findPage(query: MarketOverviewQuery) {
     const where = activeWhere(query.search);
 
