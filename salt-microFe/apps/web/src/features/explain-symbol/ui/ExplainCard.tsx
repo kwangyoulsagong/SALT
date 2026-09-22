@@ -87,8 +87,11 @@ export const ExplainCard = ({ view, mode, subject, className }: ExplainCardProps
     error.status === HTTP_STATUS_CODE.TOO_MANY_REQUESTS;
   const ruleBased = Boolean(error) && !busy;
 
+  const rendered = explain.data?.renderable ? explain.data : null;
+
   const renderBody = () => {
-    if (explain.data) return <Explanation data={explain.data} />;
+    if (rendered) return <Explanation data={rendered} />;
+    if (explain.data) return <p className={note}>{M.blocked}</p>;
     if (ruleBased) {
       // FR-62 — 규칙 기반 문장. 서버가 만든 판단의 headline · 근거를 그대로 보여 준다
       return (
@@ -122,13 +125,13 @@ export const ExplainCard = ({ view, mode, subject, className }: ExplainCardProps
     >
       <div className={cardHeader}>
         <Heading level={4}>{M.heading}</Heading>
-        {explain.data && (
+        {rendered && (
           <>
             <Badge size="sm" tone="ai">
               {M.aiBadge}
             </Badge>
             <span className={note}>
-              {M.generatedAt(formatClockTime(new Date(explain.data.generatedAt)))}
+              {M.generatedAt(formatClockTime(new Date(rendered.generatedAt)))}
             </span>
           </>
         )}

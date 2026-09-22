@@ -39,6 +39,18 @@ export interface CoachExplanation {
   cached: boolean;
 }
 
+/**
+ * 해설 응답 전체 (`SRV-REQ-025` FR-50, 2026-09-22).
+ *
+ * 서버가 판단 게이트를 먼저 본다 — 막히면 **LLM 을 부르지 않고** `renderable: false` 를 200 으로
+ * 준다. 화면도 같은 게이트로 버튼을 숨기므로 평소엔 오지 않는다. 뷰모델이 낡은 사이 게이트가
+ * 닫힌 경우에만 온다. 렌더되는 응답에 서버가 싣는 성적표 · 실패사례는 쓰지 않는다 — 카드는
+ * 이미 뷰모델의 것을 그린다.
+ */
+export type ExplainResult =
+  | (CoachExplanation & { renderable: true })
+  | { renderable: false; blockedReason: string };
+
 /** 해설 대상 종목 — 시세 목록 한 줄에서 온다. 뷰모델에 이름 · 거래대금이 없다 */
 export interface ExplainSubject {
   symbol: string;

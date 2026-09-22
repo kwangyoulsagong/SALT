@@ -1,7 +1,7 @@
 import { apiFetch, authHeader } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
-import type { CoachExplanation, ExplainSymbolRequest } from "../model";
+import type { ExplainResult, ExplainSymbolRequest } from "../model";
 
 const EXPLAIN_ENDPOINT = "/api/app/ai-coach/explain";
 
@@ -33,7 +33,7 @@ export const explainSymbolApi = {
   explain: async (
     body: ExplainSymbolRequest,
     signal: AbortSignal,
-  ): Promise<CoachExplanation> => {
+  ): Promise<ExplainResult> => {
     const controller = new AbortController();
     const onAbort = () => controller.abort();
     signal.addEventListener("abort", onAbort, { once: true });
@@ -52,7 +52,7 @@ export const explainSymbolApi = {
       });
       if (!response.ok) throw new ExplainApiError(response.status);
 
-      const envelope = (await response.json()) as AppEnvelope<CoachExplanation>;
+      const envelope = (await response.json()) as AppEnvelope<ExplainResult>;
       return envelope.data;
     } catch (error) {
       if (timedOut) throw new ExplainApiError(0, true);

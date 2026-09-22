@@ -3,7 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef } from "react";
 
-import type { CoachExplanation, ExplainSymbolRequest } from "../model";
+import type { ExplainResult, ExplainSymbolRequest } from "../model";
 import { explainSymbolApi } from "./explainSymbolApi";
 
 /**
@@ -22,7 +22,7 @@ export const useExplainSymbol = () => {
   const controllerRef = useRef<AbortController | null>(null);
   const inFlightRef = useRef(false);
 
-  const mutation = useMutation<CoachExplanation, Error, ExplainSymbolRequest>({
+  const mutation = useMutation<ExplainResult, Error, ExplainSymbolRequest>({
     mutationFn: (body) => {
       const controller = new AbortController();
       controllerRef.current = controller;
