@@ -2,17 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { AddressInfo } from "node:net";
 
-import express from "express";
-
-import { DORMANT_PATHS, goneMiddleware } from "../gone.middleware";
-
-// `app.ts` 를 import 하지 않는다 — `app-watchlist.service` 가 import 만으로 거래소 소켓을
-// 열어 테스트 러너가 끝나지 않는다(별건). 마운트는 `app.ts` 와 같은 한 줄이다.
-const app = express();
-app.use([...DORMANT_PATHS], goneMiddleware);
-app.use((_req, res) => {
-  res.status(404).json({ success: false });
-});
+import app from "../../app";
+import { DORMANT_PATHS } from "../gone.middleware";
 
 const call = async (method: string, path: string) => {
   const server = app.listen(0);

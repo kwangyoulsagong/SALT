@@ -24,6 +24,8 @@
 ## Upbit/외부 API
 
 - reconnect delay는 env 또는 한 곳의 상수로 관리한다.
+- 외부 소켓은 **첫 구독 때 연다.** 생성자 · import 에서 열지 않는다 — 캐시만 읽는 REST 와 테스트가 소켓을 연다.
+  `close()` 뒤에는 재연결하지 않는다.
 - WebSocket close/error는 로그와 재연결 흐름을 가진다.
 - 외부 API payload는 필요한 필드만 내부 타입으로 변환한다.
 - 로그에는 token, Authorization, 사용자 민감 정보를 남기지 않는다.

@@ -3,10 +3,9 @@
  *
  * ## 왜 서비스에서 떼어냈나
  *
- * `app-watchlist.service` 는 `upbit-ws.service` 를 import 하고, 그 모듈은 **최상위에서
- * Upbit WebSocket 에 접속한다.** 서비스를 테스트하려고 import 하면 테스트가 외부 소켓을
- * 연다. 판정 규칙(어느 시세를 쓰나 · 언제 지연인가)만 여기로 내리면 그 규칙을
- * **네트워크 없이** 검증할 수 있다.
+ * `app-watchlist.service` 는 `upbit-ws.service` 를 import 하고, 그 모듈은 원래 **최상위에서
+ * Upbit WebSocket 에 접속했다**(지금은 첫 구독 때 연결한다). 판정 규칙(어느 시세를 쓰나 ·
+ * 언제 지연인가)을 여기로 내려 둔 덕에 그 규칙을 **네트워크 없이** 검증할 수 있다.
  *
  * 여기에는 import 가 없다. 그게 이 파일의 조건이다.
  */
