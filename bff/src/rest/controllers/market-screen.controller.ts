@@ -5,7 +5,7 @@ import { marketOverviewService } from "../../services/market-overview.service";
 class MarketScreenController {
   /**
    * 시장 요약 띠 (`BFF-REQ-035`). **공개 경로** — 시세와 같다(로그인 전에도 투자 화면이 뜬다).
-   * 실패는 error middleware 가 매핑한다 — 서버 4xx 는 그대로, 그 외는 502/504.
+   * 실패는 error middleware 가 매핑한다 — 서버 4xx 는 그대로, 그 외는 500.
    */
   async getSummary(_req: Request, res: Response, next: NextFunction) {
     try {
@@ -15,7 +15,7 @@ class MarketScreenController {
     }
   }
 
-  async getMarket(req: Request, res: Response) {
+  async getMarket(req: Request, res: Response, next: NextFunction) {
     try {
       const token = req.token!;
 
@@ -27,12 +27,11 @@ class MarketScreenController {
 
       return res.json(response.data);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Market fetch failed" });
+      next(error);
     }
   }
 
-  async getMarketSymbol(req: Request, res: Response) {
+  async getMarketSymbol(req: Request, res: Response, next: NextFunction) {
     try {
       const token = req.token!;
       const { symbol } = req.params;
@@ -56,8 +55,7 @@ class MarketScreenController {
         intelligence: intelligence.data,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Market symbol fetch failed" });
+      next(error);
     }
   }
 }

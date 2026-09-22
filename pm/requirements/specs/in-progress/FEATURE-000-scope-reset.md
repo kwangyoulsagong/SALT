@@ -78,7 +78,7 @@
 | FR-11 | **알림 파이프라인 축소**: `SentimentAlert`/`SmartMoneyAlert` 생성 worker를 끄고 `InvestmentNotification` 타입을 **지표·추천 갱신 1종**으로 제한. `MarketSentiment`/`WhaleTransaction` model과 **프리뷰 화면은 유지**(FR-22). **개정 2026-09-21** — 세금 D-Day 가 빠져 2종 → 1종(ADR-002 · D5). 알림 목록 · 읽음 · 안 읽은 수는 F006 이 소유한다. **뉴스 북마크는 알림이 아니다**(FR-43) | Must | Draft |
 | FR-12 | **인사이트 랭킹·피드 비활성**: `insight-ranking.controller`, `modules/feed`, BFF `app-feed.service` route 등록 해제. 코드/모델 유지 | Should | Draft |
 | FR-13 | **대시보드 비활성**: 홈 aggregation이 BFF로 이동한 뒤 `/api/dashboard` 등록 해제. 삭제는 이후 결정 | Should | Draft |
-| FR-14 | **비활성 route 응답**: 등록 해제된 경로는 404 대신 **410 Gone + 1회 로그**로 1주 유지해 프론트 잔여 호출을 탐지 | Should | Draft |
+| FR-14 | **비활성 route 응답**: 등록 해제된 경로는 404 대신 **410 Gone + 1회 로그**로 1주 유지해 프론트 잔여 호출을 탐지 | Should | **In Progress** — BFF 2026-09-22(`BFF-REQ-036`) · 서버 `SRV-REQ-009` FR-7·8 남음 · 1주 확인 2026-09-29 |
 
 ### C. 수리 — 지금 있는데 깨진 것
 
@@ -398,3 +398,4 @@ flowchart TB
 | 2026-09-21 | **실시간 시세 신뢰성 슬라이스.** 사용자 결정(*"Investment 쪽부터 계속"*)으로 동면 410·알림 2종보다 먼저 했다. 기능 요구사항 번호를 새로 닫지는 않는다 — FR-21(WebSocket 기준 시각)이 **멈춘 시세에도 기준 시각을 보여주던 것**을 고쳤고, 투자 화면 시세가 조용히 멈추는 경로 넷(BFF)과 기동 시 거래소 429(서버)를 닫았다. 변경 금지 목록(E절) 항목은 건드리지 않았다. 근거: `requirements/reports/checklists/F000-realtime-reliability.md` |
 | 2026-09-21 | **시세 표 필터 · 기간 변동률 · 레이아웃.** 변경 금지 목록(E절)의 "정렬 5 / 순서 2 / 기간 7"이 **동작하지 않고 있었다** — 기간 7개가 같은 목록, 오름차순이 내림차순과 같았다. 목록 · 컬럼 · 색은 그대로 두고 동작만 살렸다. 1280px 가로 스크롤 · 프리뷰 넘침도 닫았다. 근거: `requirements/reports/checklists/F000-market-table.md` |
 | 2026-09-21 | **스토리보드 갭 감사 반영 + ADR-002.** D절 FR-30 · 31 · 36 을 **대체됨**(D6 · D7 · F006 3탭), FR-32 · 33 을 **F004 로 이관**, FR-34 · 35 를 **열린 질문 Q2** 로. FR-11 알림 2종 → 1종. 신규 D-2절 FR-40~46: 종목 검색 · 추적 자산 10(D8) · 뉴스 감정 배지 · 종목 연결(B11) · 북마크(D5, 목록 위치는 이 문서 기본안) · 목표 수량(B5) · 투자 화면 UX 상태(B22) · 신호 컬럼 없음(D4). UX 상태 "최대 5개" → 10개. Open Questions 절 신설. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `requirements/decisions/ADR-002-drop-ledger-invoice-tax.md` |
+| 2026-09-22 | **BFF 부채 정리 슬라이스.** FR-14 를 BFF 쪽에서 구현 — `/api/app/feed` · `/api/missions*` · `/api/users/points/*` · `/api/users/achievements` · `/api/dashboard*` · `/api/users/dashboard`(미션 · 포인트 요약, 스펙 목록 밖) 가 `410 ENDPOINT_DORMANT`(프론트 호출 0건). 같은 PR 에서 BFF 가 서버 4xx 를 500 으로 뭉개던 5경로를 고쳐 **토큰 만료가 401 로 보인다.** 서버 동면(`SRV-REQ-009` FR-7·8)은 남음. 근거: `requirements/reports/checklists/F000-bff-cleanup.md` |

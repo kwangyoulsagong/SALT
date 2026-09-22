@@ -2,7 +2,7 @@
 
 - REQ: `requirements/specs/in-progress/BFF-REQ-007-F000-FUNC.md`
 - 브랜치: `feat/f000-watchlist-tab` → `feat/f000-invite-onboarding-slice` · 검증일: 2026-09-18
-- 상태: **부분 완료** — D·E·F절에 이어 **G절(인증·온보딩)** 이 닫혔다. A·B·C절(동면 410·홈 조립·알림)이 남았다
+- 상태: **부분 완료** — D·E·F·G절에 이어 **A절(동면 410, 2026-09-22)** 이 닫혔다(FR-6 1주 로그만 2026-09-29). B·C절(홈 조립·알림)이 남았다
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-watchlist-tab.md`
 
 ## 1. 닫힌 것
@@ -22,12 +22,14 @@
 
 ## 2. 남은 것
 
+> 2026-09-18 시점 표다. 최신은 §8(남은 것)과 §9(A절). FR-60~64 는 §6 에서, FR-1~5 는 §9 에서 닫혔다.
+
 | FR | 내용 | 언제 닫히나 |
 |---|---|---|
-| FR-1~6 | 동면 route 제거 + 410 Gone + 1주 로그 | `SRV-REQ-007`(서버 동면)과 같이 |
+| ~~FR-1~6~~ | ~~동면 route 제거 + 410 Gone + 1주 로그~~ | **§9 — FR-1~5 닫힘, FR-6 2026-09-29** |
 | FR-10~15 | `app-home.service` 재작성 (`allSettled` · 동면 소스 제거 · 뷰모델) | 홈 블록이 생기는 F006 `BFF-REQ-027` 과 순서 조율 필요 |
-| FR-20~24 | 알림 2종 축소 | `SRV-REQ-008` FR-20~25 선행 |
-| FR-60~64 | 인증 경로 정리 · 온보딩 3개 | `SRV-REQ-009` 초대 엔드포인트 선행 |
+| FR-20~24 | 알림 ~~2종~~ **1종**(개정 2026-09-21) 축소 | `SRV-REQ-008` FR-20~25 선행 |
+| ~~FR-60~64~~ | ~~인증 경로 정리 · 온보딩 3개~~ | **§6 에서 닫힘** |
 
 ## 3. 판단이 REQ와 다른 것
 
@@ -81,6 +83,21 @@
 
 | 항목 | 언제 닫히나 |
 |---|---|
-| A절 FR-1~6 — 동면 route 410 Gone + 1주 로그 | 별도 슬라이스 |
-| B절 FR-10~15 — 홈 조립 재작성(`allSettled` · 뷰모델) | A절 선행(동면 소스 제거) |
+| ~~A절 FR-1~5~~ — §9 에서 닫힘 | — |
+| A절 FR-6 — 1주 로그 잔여 0건 | 2026-09-29 |
+| B절 FR-10~15 — 홈 조립 재작성(`allSettled` · 뷰모델) | A절 선행 조건은 풀렸다. F006 홈 블록(`BFF-REQ-027`)과 순서 조율 |
 | C절 FR-20~24 — 알림 2종 축소 | `notification` 컨텍스트 |
+
+## 9. A절 — 동면 route (2026-09-22, `chore/bff-cleanup` · `BFF-REQ-036`)
+
+| FR | 내용 | 결과 | 근거 |
+|---|---|---|---|
+| FR-1 | `/api/app/feed` 등록 해제, **파일은 남긴다** | **pass** | `app.ts` 에서 import · `use` 제거. `feed.*` 3파일 유지 |
+| FR-2 | proxy 에서 `/missions*` · `/users/points/*` · `/users/achievements` 제거 | **pass** | `proxy.routes.ts`. `/api/dashboard*` 는 원래 proxy 에 없었다 |
+| FR-3 | 410 + 1회 로그 | **pass** | 로그 키 = 마운트 지점(`req.baseUrl`) — `originalUrl` 이면 `/missions/:id` 로 끝없이 는다 |
+| FR-4 | `{ code: 'ENDPOINT_DORMANT', revivable: true }` | **pass** | 실측 5경로 |
+| FR-5 | 상수 한 곳 | **pass** | `gone.middleware.ts` `DORMANT_PATHS` |
+| FR-6 | 1주 로그 잔여 0건 | **대기** | 2026-09-29 |
+
+프론트 호출 0건(`salt-microFe/apps` · `packages` grep). `/api/users/dashboard` 도 더했다(스펙 목록 밖 — 근거 `BFF-REQ-036.md` §3).
+테스트 3건(`gone.middleware.test.ts`). 실측과 명령은 `BFF-REQ-036.md`.

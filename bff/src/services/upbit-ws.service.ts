@@ -14,15 +14,20 @@ export interface UpbitTicker {
   trade_volume: number;
 }
 
-class UpbitWebSocketService {
+/**
+ * **첫 `subscribe` 때 연결한다** — import 만으로는 소켓을 열지 않는다.
+ *
+ * 원래는 생성자에서 연결했다. 그래서 캐시만 읽는 REST 프로세스(`app-watchlist.service`)도
+ * 거래소 소켓을 열었고(구독이 없으니 틱은 0 — 캐시는 어차피 비어 있다), 그 모듈을 import
+ * 하는 테스트는 소켓 때문에 러너가 끝나지 않았다(`websocket-worker.md` "import 로 시작하지 않는다").
+ */
+export class UpbitWebSocketService {
   private ws: WebSocket | null = null;
   private subscribedSymbols: Set<string> = new Set();
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private priceCache: Map<string, any> = new Map();
-
-  constructor() {
-    this.connect();
-  }
+  /** `close()` 뒤에는 다시 붙지 않는다 — close 이벤트가 재연결을 예약하던 것을 막는다 */
+  private stopped = false;
 
   /**
    * Upbit WebSocket 연결
@@ -52,6 +57,7 @@ class UpbitWebSocketService {
       });
 
       this.ws.on("close", () => {
+        if (this.stopped) return;
         logger.warn("⚠️ Upbit WebSocket closed, reconnecting...");
         this.scheduleReconnect();
       });
@@ -91,7 +97,13 @@ class UpbitWebSocketService {
   subscribe(symbols: string[]) {
     symbols.forEach((s) => this.subscribedSymbols.add(s.toUpperCase()));
 
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+    if (this.stopped) return;
+    if (!this.ws) {
+      // 첫 구독 — 연결이 열리면 `open` 이 전체 집합을 보낸다
+      this.connect();
+      return;
+    }
+    if (this.ws.readyState !== WebSocket.OPEN) {
       logger.warn(`WebSocket not ready, queued ${symbols.length} symbols`);
       return;
     }
@@ -163,6 +175,7 @@ class UpbitWebSocketService {
    * 연결 종료
    */
   close() {
+    this.stopped = true;
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
     }

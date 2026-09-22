@@ -25,11 +25,16 @@ export class UnauthorizedError extends AppError {
  *
  * **5xx · timeout · 연결 실패는 여기서 다루지 않는다** — 원인 메시지가 민감할 수 있고
  * 어느 status 로 줄지(502/504)는 별도 판단이다. `null` 을 돌려 기존 500 흐름을 탄다.
+ *
+ * 서버 4xx 본문의 키는 `success` · `code` · `message` · `errors`(검증 실패 필드 목록) 넷이다
+ * (`salt-server` `errorMiddleware` · `ResponseUtil.error`). 넷을 다 옮기면 proxy 가 본문을
+ * 통째로 넘기던 것과 같다 — 그래서 컨트롤러가 4xx 를 따로 잡을 이유가 없다.
  */
 export interface UpstreamClientError {
   status: number;
   code?: string;
   message: string;
+  errors?: unknown[];
   retryAfter?: string;
 }
 
@@ -40,7 +45,7 @@ export const toUpstreamClientError = (
     error as {
       response?: {
         status?: number;
-        data?: { code?: unknown; message?: unknown };
+        data?: { code?: unknown; message?: unknown; errors?: unknown };
         headers?: Record<string, unknown>;
       };
     }
@@ -50,12 +55,14 @@ export const toUpstreamClientError = (
 
   const code = response?.data?.code;
   const message = response?.data?.message;
+  const errors = response?.data?.errors;
   const retryAfter = response?.headers?.["retry-after"];
 
   return {
     status,
     ...(typeof code === "string" ? { code } : {}),
     message: typeof message === "string" ? message : "Request failed",
+    ...(Array.isArray(errors) ? { errors } : {}),
     ...(typeof retryAfter === "string" || typeof retryAfter === "number"
       ? { retryAfter: String(retryAfter) }
       : {}),

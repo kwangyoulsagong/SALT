@@ -1,19 +1,12 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { appAlertsService } from "../../services/app-alerts.service";
 
 export class AppAlertsController {
-  async getAlerts(req: Request, res: Response) {
+  async getAlerts(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.token!;
-
-      const result = await appAlertsService.getAlerts(token);
-
-      res.json(result);
+      res.json(await appAlertsService.getAlerts(req.token!));
     } catch (error) {
-      console.error("Alerts error:", error);
-      res.status(500).json({
-        message: "Failed to fetch alerts",
-      });
+      next(error);
     }
   }
 }

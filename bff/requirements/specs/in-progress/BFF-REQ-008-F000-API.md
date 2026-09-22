@@ -140,7 +140,7 @@ type AlertVM = {
 ## Acceptance Criteria
 
 - [ ] 신규 엔드포인트 7개가 등록된다
-- [ ] 제거 경로 6종이 없거나 410이다
+- [x] 제거 경로 6종이 없거나 410이다 (2026-09-22)
 - [ ] 알림 `kind`가 **1종**이고 타입으로 강제된다 (개정 2026-09-21)
 - [ ] 알림이 `messageCode` + `params`이고 완성 문장이 0건이다
 - [ ] 알림에 금액 필드가 0건이다
@@ -152,7 +152,7 @@ type AlertVM = {
 - [ ] 금액 실패 시 `null`이고 `0`이 0건이다
 - [ ] 초대 실패가 `403` + `reasonCode`다
 - [ ] `invite/check`가 상한 초과를 노출하지 않는다
-- [ ] 동면 경로가 410이다
+- [x] 동면 경로가 410이다 (2026-09-22, `BFF-REQ-036`)
 - [ ] `period=miniute`가 422다
 - [ ] 유지 경로 응답 스냅샷이 하위 호환이다
 
@@ -185,6 +185,7 @@ type AlertVM = {
 | 2026-09-18 | **신규 계약 중 다섯을 열고 `in-progress` 로 옮겼다.** 닫힌 것: `GET·POST·DELETE /api/app/watchlist` · `GET /api/app/news` · `GET /api/app/portfolio/summary`. **남은 것**: 온보딩 3개(`invite/check` · `invite` · `status`) · 제거 목록(`/api/auth/register` 등). 근거: `requirements/reports/checklists/BFF-REQ-008.md` |
 | 2026-09-18 | **온보딩 3계약을 열고 제거 목록을 닫았다.** `invite/check`(무인증·rate limit) · `invite`(무인증·`403 { reasonCode }`) · `status`(인증). FR-9·10 통과, **FR-13(`packages/core` 공유)은 미충족** — `bff` 가 workspace 밖이다. **남은 것**: 동면 경로 410(FR-11). 근거: `requirements/reports/checklists/BFF-REQ-008.md` |
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 신규 계약 3개: `GET /api/app/search`(`AssetSearchResultVM`, D8) · `GET /api/app/news/bookmarks` · `POST·DELETE /api/app/news/:id/bookmark`(D5). 기존 계약 변경: watchlist `409 TRACKED_ASSET_LIMIT` · `tracked` · 뉴스 `sentiment` · `symbols` · `isBookmarked?`(B11) · 목표 수량 통과(B5). 규약 FR-15~21 추가. 개정: FR-1 · `AlertVM.kind` 2종 → **1종**. 관심 종목 뷰모델에 신호 필드 없음(D4) 명시. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-09-22 | **FR-11 동면 경로 410 을 닫았다**(`BFF-REQ-036`). `/api/app/feed` · `/api/missions*` · `/api/users/points/*` · `/api/users/achievements` · `/api/dashboard*` → `410 ENDPOINT_DORMANT`. **남은 것**: FR-13(`packages/core` 공유). 근거: `requirements/reports/checklists/BFF-REQ-008.md` §5 |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

@@ -63,6 +63,14 @@ describe("errorMiddleware", () => {
     }
   });
 
+  it("검증 실패 필드 목록(errors)을 옮긴다 — proxy 가 본문을 통째로 넘기던 것과 같게", () => {
+    const { res, out } = fakeRes();
+    const errors = [{ field: "symbol", message: "Required" }];
+    errorMiddleware(upstream(400, { success: false, message: "Validation error", errors }), req, res, next);
+    assert.equal(out.status, 400);
+    assert.deepEqual(out.body, { success: false, message: "Validation error", errors });
+  });
+
   it("본문이 비어도 status 는 보존한다", () => {
     const { res, out } = fakeRes();
     errorMiddleware(upstream(403, undefined), req, res, next);

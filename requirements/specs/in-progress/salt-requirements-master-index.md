@@ -189,8 +189,8 @@ flowchart TB
 | `FE-REQ-009` FSD 전환 | **done** | 두 zone 모두 6레이어. 슬라이스 8개(`auth`·`goal`·`market`·`portfolio` / `sign-in`·`add-goal` / `home-briefing`·`market-board`). `layer-check` 훅 + `@repo/fsd/layers` lint가 **같은 규칙 표 하나**를 읽는다(차단 8 · 통과 5 테스트). 렌더 동일성 4경로 × 3뷰포트 통과, 공통 청크 증가 **0**. 남은 것은 `checklists/FE-REQ-009.md` §8 — 이 REQ 미달 2건(FR-37 · `/investments` +7kB), 범위 밖 5건 |
 | `SRV-REQ-006` DDD 전환 | **in-progress (4/4단계)** | `shared` Kernel + `layer-check` 훅·ESLint(1) · `coach/domain/policy` 추출 + 특성화 테스트 23건(2) · `news`·`market`·`portfolio` 이관(3, FR-32a) · **`coach` 통합(4, FR-32)**. 컨텍스트 **4개** · 동사형 유스케이스 **49개** · 공개 API **17개**. `modules` 15 → 12 → **8개**(원문 29파일 3,538줄 삭제). 테스트 18 → 85 → **137건**. 4단계에서 **같은 이름의 값이 경로마다 다르게 정의돼 있던 것**(기술 지표 주기 `m5` vs 무관)이 드러나 통일했다. 그 뒤 **미충족 8건을 닫았다**(§12) — **수익률 예측(`expectedReturn`) 제거**, 외부 호출 타임아웃·지수 백오프(캔들 수집 실패 **다수 → 0건**), `external/` 삭제, 한글 뉴스 언어 필터 복구, 공개 LLM 경로 요청 제한. 테스트 **153건**. 남은 12건은 전부 `ledger`(F001)·`DB-REQ-*`·**FR-33(`SRV-REQ-007`)**·프론트 계약을 기다린다. 상세는 `checklists/SRV-REQ-006.md` §10~§13 |
 | `FE-REQ-010` F000 UI | **in-progress** | 수리 9건(FR-1~9)·표시·접근성·반응형에 이어 **초대 코드·온보딩 3스텝(FR-20~26·64)이 닫혔다**. 슬라이스 셋이 생겼다 — `features/accept-invite` · `widgets/onboarding-flow` · `pages/onboarding`. **회원가입 화면은 구현된 적이 없었다**(경로만 `PUBLIC_PATHS` 에 있었다). 남은 것은 FR-63 과 **브라우저 화면 실측**이다. FR-63 은 `role="tablist"` 대신 `role="group"`+`aria-pressed` 로 갔다(탭이 아니다 — tabpanel 이 없다). `checklists/FE-REQ-010.md` |
-| `BFF-REQ-007` F000 FUNC | **in-progress** | D·E·F절(뉴스·관심 종목·`period`)에 이어 **G절(온보딩 3라우트·`register` 제거·rate limit)** 완료. A·B·C절(동면 410·홈 조립·알림) 남음. **테스트 러너가 이 작업에서 처음 생겼다**(23건) |
-| `BFF-REQ-008` F000 API | **in-progress** | 신규 **7개 전부** 열렸다(`watchlist` 3 · `news` · `portfolio/summary` · 온보딩 3). 제거 목록도 닫혔다. 남은 것은 동면 경로 410(FR-11)과 `packages/core` 타입 공유(FR-13 — `bff` 가 workspace 밖이다) |
+| `BFF-REQ-007` F000 FUNC | **in-progress** | D·E·F절(뉴스·관심 종목·`period`)에 이어 **G절(온보딩 3라우트·`register` 제거·rate limit)** · **A절 FR-1~5(동면 410, 2026-09-22)** 완료. A절 FR-6(1주 로그, 2026-09-29) · B·C절(홈 조립·알림) 남음. **테스트 러너가 이 작업에서 처음 생겼다**(23건) |
+| `BFF-REQ-008` F000 API | **in-progress** | 신규 **7개 전부** 열렸다(`watchlist` 3 · `news` · `portfolio/summary` · 온보딩 3). 제거 목록도 닫혔다. 동면 경로 410(FR-11)도 2026-09-22 닫혔다. 남은 것은 `packages/core` 타입 공유(FR-13 — `bff` 가 workspace 밖이다) |
 | `SRV-REQ-008` F000 FUNC | **in-progress** | 관심 목록·뉴스·`period`·포지션 요약에 이어 **초대(FR-1~7)·인증 축소(FR-10~12)·온보딩 상태(FR-13·14)** 완료. `auth` 가 DDD 컨텍스트로 섰고 `modules/auth` 를 지웠다. 알림 2종·`AssetType` 3값·환율·동면 남음 |
 | `SRV-REQ-009` F000 API | **in-progress** | `/api/portfolio/summary` · `period` 422 에 이어 **초대 2경로 · `/api/onboarding/status` · 제거 3경로(404)** 완료. **시세 개요 기간 7 · 순서 2 가 실제로 동작**(`periodChange` 추가 · 모르는 기간 422). 동면 410(FR-7·8)·알림 422 남음 |
 | `FE-REQ-011` F000 FUNC | **in-progress** | 실시간 수신 표시(FR-11~14) — BFF 가 끊기면 헤더가 **"연결 끊김 · 재연결 중"** 이고 기준 시각을 쓰지 않는다. FR-10 은 수신 시각을 `wsClient` 에 두는 것으로 다르게 갔다. `checklists/F000-realtime-reliability.md` |
@@ -211,6 +211,7 @@ flowchart TB
 | `FE-REQ-036` F004 ZONE BAND | **in-progress** | 관찰 구간을 상세 · 패널 차트에 띠 + 이름표(`관찰 구간 … · 예측 아님`)로. 패널 차트 범위 = 캔들만. 상세 차트 버튼 캡슐. 차트 청크 +0.9 KB gzip(슬라이스 9) |
 | `SRV-REQ-036` F006 MARKET SUMMARY | **in-progress** | `GET /api/investment/market/summary` — 종목은 설정(`MARKET_SUMMARY_SYMBOLS`), `wide_move` 태그 · 등락 금액은 도메인, 5분봉 1분 캐시 · 부분 실패(F006 슬라이스 1) |
 | `BFF-REQ-035` F006 MARKET SUMMARY | **in-progress** | `/api/app/market/summary` 뷰모델(계산 없음) · WS `price_update.change24hAmount`(거래소 값) |
+| `BFF-REQ-036` F000 CLEANUP | **in-progress** | 부채 정리 — 서버 4xx 보존을 error middleware 한 곳으로(컨트롤러 8곳, 만료 토큰 500 → 401) · 동면 경로 410 · Upbit 지연 연결 · 규칙 4곳 |
 | `FE-REQ-037` F006 MARKET SUMMARY | **in-progress** | 투자 화면 시장 요약 띠 — 대표 1 + 항목 9(3열) + 오늘의 시장(종목 수 · 뉴스), 영역 스파크라인 · 점선 기준선(`@repo/ui` Sparkline 확장). 프론트 종목 상수 0 · First Load 변화 0 |
 | 나머지 123개 | to-do | |
 
@@ -259,7 +260,7 @@ flowchart TB
 > 서버는 기동 429 가 985 → **0건**이 됐다 — `SRV-REQ-006` 체크리스트의 "캔들 수집 실패
 > 0건"이 한 회차만 본 거짓이었고, 이제 재현된다.
 
-남은 F000 묶음은 **동면 route 410**(`SRV-REQ-009` FR-7·8 · `BFF-REQ-007` A·B절)과
+남은 F000 묶음은 **동면 route 410**(`SRV-REQ-009` FR-7·8 · `BFF-REQ-007` A·B절 — **BFF A절은 2026-09-22 닫힘**, 아래)과
 **알림 2종**(`SRV-REQ-008` FR-20~25 · `BFF-REQ-007` C절)이다. Investment 쪽 다음 후보는
 `AssetType` 3값(`DB-REQ-003` · `SRV-REQ-008` FR-32)과 `FE-REQ-012` A절(`period` enum 4종)이다.
 
@@ -271,6 +272,11 @@ flowchart TB
 > 빈 문자열이라 내림차순으로 받았다. BFF 는 **다른 프로세스에서만 차는 캐시**를 읽어 히트율
 > 0% 로 돌았다. 레이아웃은 2026-09-18 에 375/390/1440 만 보고 닫아 1280 에서 페이지가 가로로
 > 밀리던 것을 놓쳤다.
+
+**BFF 부채 정리 슬라이스 (BFF, 2026-09-22)** — `BFF-REQ-036` · `BFF-REQ-007` A절 · `BFF-REQ-008` FR-11. 범위
+`F000-bff-cleanup-slice.md`, 검증 `checklists/F000-bff-cleanup.md`. 서버 4xx 를 컨트롤러 8곳이 제각각 옮기거나 500 으로
+뭉갰다 — **토큰 만료 401 이 "서버 오류"로 보였다.** error middleware 한 곳으로 모았다. 동면 경로는 규칙만 410 이고
+살아 있던 proxy 를 410 으로 바꿨다(서버 쪽 `SRV-REQ-009` FR-7·8 은 남음).
 
 ~~**다음은 투자 화면 우측 AI 코치 패널의 요구사항이다.**~~ 2026-09-21 REQ 로 내렸고(스토리보드 갭 감사)
 F004 슬라이스 1~4 로 서버 → BFF → 프론트까지 이었다(아래).
@@ -370,6 +376,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-18 | `SRV-REQ-006` 미충족 8건 처리 — **LLM 해설에서 수익률 예측을 없앴다**(공통 수용 기준 4). 외부 클라이언트 넷에 **타임아웃이 아예 없던 것**을 찾아 `shared/infrastructure/retry` 와 함께 넣었고 기동 시 캔들 수집 실패가 **다수 → 0건**이 됐다. 한글 뉴스 언어 필터는 **살리는 쪽**으로 정했다(3단계 특성화 테스트가 그 변경을 한 번 걸렀다). `AppError` 하위 클래스의 `instanceof` 가 전부 거짓이던 것도 함께 고쳤다 |
 | 2026-09-18 | **초대 코드 · 온보딩 3스텝 수직 슬라이스.** `auth`(DDD)와 `onboarding`(조합) 컨텍스트 신설, BFF 온보딩 3계약, 프론트 온보딩 화면. `register`·`password`·`account` 세 경로가 404 다. `ErrorKind` 에 `Unauthenticated`(401)를 더했고, **이 레포의 첫 `$transaction`** 이 나왔다 — 규칙상 트랜잭션을 열 자리가 없어 원자성을 Port 계약(`redeem`)으로 올렸다 |
 | 2026-09-21 | **실시간 시세 신뢰성 수직 슬라이스.** `FE-REQ-011`·`FE-REQ-012`·`BFF-REQ-010` 을 `in-progress` 로. 서버 거래소 호출에 출발 간격 제한(`shared/infrastructure/pacer`), BFF WS 결함 넷, 프론트 연결 상태·끊김 표시·구독 해제. 계약 변경 없음(`connected` 메시지 `userId` 제거, 소비처 0건) |
+| 2026-09-22 | **F000 BFF 부채 정리 슬라이스 — `BFF-REQ-036` 신설 · 구현.** 4xx 보존 일원화(컨트롤러 8곳) · Upbit 지연 연결 · 동면 410(`BFF-REQ-007` A절 FR-1~5 · `BFF-REQ-008` FR-11) · BFF 규칙 4곳. 매트릭스 밖 추가 REQ 1 |
 | 2026-09-22 | **F006 슬라이스 1 (서버 · BFF · FE) — `SRV-REQ-036` · `BFF-REQ-035` · `FE-REQ-037` 신설 · 구현.** 시장 요약 띠. 새 경로 2(서버 · BFF) · WS 필드 1 추가(하위 호환). `FEATURE-006` FR-64~67. 매트릭스 밖 추가 REQ 3 |
 | 2026-09-22 | **F004 슬라이스 9 (FE) — `FE-REQ-036` 신설 · 구현.** 관찰 구간 띠 · 이름표(상세 · 패널), 패널 차트 범위 = 캔들만, 상세 차트 버튼 캡슐. `FE-REQ-034` FR-23 · `FE-REQ-026` FR-132 개정 |
 | 2026-09-22 | **F004 슬라이스 8 (FE) — `FE-REQ-035` 신설 · 구현.** axios 제거 · lint 금지 · 의존성 제거, 봉 병합 `@repo/core/market` 이관 + vitest, 프론트 규칙 6곳(`FE-REQ-034` 회고 후보 2 · 낡은 문구 4) |

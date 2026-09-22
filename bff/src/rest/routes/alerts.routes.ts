@@ -7,8 +7,8 @@ const router = Router();
 /**
  * Alerts screen
  */
-router.get("/", authMiddleware, (req, res) =>
-  appAlertsController.getAlerts(req, res),
+router.get("/", authMiddleware, (req, res, next) =>
+  appAlertsController.getAlerts(req, res, next),
 );
 
 export default router;
