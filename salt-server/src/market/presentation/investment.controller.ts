@@ -12,6 +12,7 @@ import {
   UnsupportedMarketPeriodError,
 } from "../domain";
 import type { MarketUseCases } from "../application/api";
+import type { MarketSummaryItem } from "../application/GetMarketSummary";
 import {
   addToWatchlistSchema,
   queryWatchlistSchema,
@@ -143,6 +144,36 @@ export class InvestmentController {
           : MarketOverviewPeriod.Realtime,
       });
       return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * 시장 요약 띠 (`SRV-REQ-036`). 입력이 없다 — 무엇을 요약할지는 설정이 정한다.
+   * **금액 반올림은 여기 한 곳이다**(`ddd-presentation.md` §2).
+   */
+  getMarketSummary = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const summary = await this.useCases.getMarketSummary.execute();
+      const toDto = (item: MarketSummaryItem) => ({
+        ...item,
+        change24hAmount:
+          item.change24hAmount === null ? null : Math.round(item.change24hAmount) || 0,
+        tradeValue24h: Math.round(item.tradeValue24h),
+        priceUpdatedAt: item.priceUpdatedAt?.toISOString() ?? null,
+      });
+      return ResponseUtil.success(res, {
+        featured: summary.featured ? toDto(summary.featured) : null,
+        items: summary.items.map(toDto),
+        sparklineWindowMinutes: summary.sparklineWindowMinutes,
+        breadth: summary.breadth,
+        headlines: summary.headlines.map((headline) => ({
+          ...headline,
+          publishedAt: headline.publishedAt.toISOString(),
+        })),
+        degraded: summary.degraded,
+      });
     } catch (error) {
       next(error);
     }

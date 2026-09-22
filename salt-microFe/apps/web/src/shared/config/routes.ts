@@ -8,6 +8,8 @@ export const ROUTES = {
   login: "/",
   home: "/home",
   investments: "/investments",
+  /** 상세 분석. 투자 우측 패널 · 시장 요약 띠가 같이 쓴다 */
+  investmentDetail: (symbol: string) => `/investments/${encodeURIComponent(symbol)}`,
   onboarding: "/onboarding",
   addGoal: "/goals/addgoals",
 } as const;

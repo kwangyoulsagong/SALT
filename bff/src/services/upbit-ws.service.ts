@@ -8,6 +8,8 @@ export interface UpbitTicker {
   code: string; // "KRW-BTC"
   trade_price: number;
   signed_change_rate: number;
+  /** 전일 종가 대비 등락 **금액** — 거래소가 준다. BFF 는 계산하지 않고 옮긴다 */
+  signed_change_price: number;
   timestamp: number;
   trade_volume: number;
 }
@@ -117,6 +119,7 @@ class UpbitWebSocketService {
       symbol,
       currentPrice: ticker.trade_price,
       change24h: ticker.signed_change_rate * 100,
+      change24hAmount: ticker.signed_change_price,
       timestamp: new Date(ticker.timestamp),
     };
 

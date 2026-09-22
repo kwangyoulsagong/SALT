@@ -18,6 +18,7 @@ import {
   MarketIntelligencePreviewResponse,
   MarketOverviewParams,
   MarketOverviewResponse,
+  MarketSummaryResponse,
   NewsPreviewResponse,
   WatchlistResponse,
 } from "../model/types";
@@ -30,6 +31,22 @@ export const useMarketOverview = (
   useQuery({
     queryKey: [marketQueryKeys.overview, params],
     queryFn: () => marketApi.overview(params),
+  });
+
+/**
+ * 시장 요약 띠 (`FE-REQ-037`). **무엇을 요약할지 · 태그 · 등락 금액은 서버가 정한다** — 이 훅은 받기만 한다.
+ *
+ * 1분마다 다시 받는다 — 스파크라인(5분봉)의 서버 캐시가 1분이다. 가격 · 변동률은 그 사이 WS 로
+ * 갱신된다(`useMarketSummaryRealtime`). 창이 뒤로 가면 멈춘다(React Query 기본값).
+ */
+const SUMMARY_REFRESH_MS = 60_000;
+
+export const useMarketSummary = (): UseQueryResult<MarketSummaryResponse> =>
+  useQuery({
+    queryKey: marketQueryKeys.summary,
+    queryFn: ({ signal }) => marketApi.summary(signal),
+    staleTime: SUMMARY_REFRESH_MS,
+    refetchInterval: SUMMARY_REFRESH_MS,
   });
 
 /** 심볼 검색은 부분 일치다(`BTC` → `BTC` · `BTCB` …). 정확히 같은 행을 고를 만큼만 받는다 */

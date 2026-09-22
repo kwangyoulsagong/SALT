@@ -121,6 +121,11 @@ class BackendApiService {
     });
     return response.data.data;
   }
+  /** 시장 요약 띠 — 공개 경로. 무엇을 요약할지는 서버 설정이 정한다(`SRV-REQ-036`) */
+  async getMarketSummary() {
+    const response = await this.client.get("/investment/market/summary");
+    return response.data.data;
+  }
   async getMarketSymbols() {
     try {
       const response = await this.client.get(

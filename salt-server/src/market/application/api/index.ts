@@ -4,6 +4,7 @@ import type {
   ClosePoint,
   ExchangeQuotePort,
   FearGreedPort,
+  MarketSummaryPolicy,
   IndicatorRepository,
   MarketAssetRepository,
   PriceHistoryRepository,
@@ -38,6 +39,7 @@ import {
   GetRealTimePrice,
   ListMarketSymbols,
 } from "../ReadMarketData";
+import { GetMarketSummary } from "../GetMarketSummary";
 import {
   BackfillDailyHistory,
   CollectPriceHistory,
@@ -143,6 +145,8 @@ export interface MarketDependencies {
   exchange: ExchangeQuotePort;
   fearGreed: FearGreedPort;
   news: SymbolNewsPort;
+  /** 시장 요약 띠의 종목 · 임계 — 설정값(`MARKET_SUMMARY_*`)이다 */
+  summaryPolicy: MarketSummaryPolicy;
 }
 
 export interface MarketUseCases {
@@ -157,6 +161,7 @@ export interface MarketUseCases {
   listWatchlistSymbols: ListWatchlistSymbols;
   updateWatchlistPrices: UpdateWatchlistPrices;
   getMarketOverview: GetMarketOverview;
+  getMarketSummary: GetMarketSummary;
   getRealTimePrice: GetRealTimePrice;
   getChartData: GetChartData;
   listMarketSymbols: ListMarketSymbols;
@@ -189,6 +194,12 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.assets,
       deps.exchange,
       deps.prices
+    ),
+    getMarketSummary: new GetMarketSummary(
+      deps.assets,
+      deps.exchange,
+      deps.news,
+      deps.summaryPolicy
     ),
     getRealTimePrice: new GetRealTimePrice(deps.exchange),
     getChartData: new GetChartData(deps.exchange),

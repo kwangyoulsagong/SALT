@@ -1,3 +1,8 @@
+import {
+  toMarketSummaryViewModel,
+  type MarketSummaryVM,
+  type ServerMarketSummary,
+} from "./market-summary.viewmodel";
 import { backendApi } from "./backend-api.service";
 
 class MarketOverviewService {
@@ -15,6 +20,12 @@ class MarketOverviewService {
    */
   async getOverview(query: Record<string, unknown>) {
     return backendApi.getMarketOverview(query);
+  }
+
+  /** 시장 요약 띠 뷰모델 (`BFF-REQ-035`) */
+  async getSummary(): Promise<MarketSummaryVM> {
+    const summary: ServerMarketSummary = await backendApi.getMarketSummary();
+    return toMarketSummaryViewModel(summary);
   }
 
   async getSymbols() {

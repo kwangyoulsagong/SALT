@@ -187,6 +187,10 @@ FEATURE-005(2026-09-08)는 5탭(`홈`·`코치`·`청구서`·`세금`·`포지�
 | FR-61 | **PC는 지금 2컬럼 그대로**다. `MovableGrid`에 넣지 않는다 — 표와 패널은 "선택 행 → 패널"로 묶인 한 쌍이라 떼어 놓을 이유가 없다 | Must | Draft |
 | FR-62 | 모바일 `시장`은 **표 1열**이다. 우측 패널은 두지 않고, 행을 누르면 상세 분석 페이지로 push한다(패널 내용은 상세가 담는다 — F004) | Must | Draft |
 | FR-63 | `관심 종목`은 추적 종목 표다. **신호 컬럼을 두지 않는다**(D4). 추적 상한 10 · 추가는 검색(D8, F000) | Must | Draft |
+| FR-64 | **시장 요약 띠**: `시장` · `관심 종목` 위에 대표 1(영역 차트 · 고가/저가/거래대금) + 작은 항목(3줄씩 열) + "오늘의 시장"(상승 · 보합 · 하락 종목 수 · 대표 종목 최근 뉴스) — 가격 · 24시간 등락 금액 · 변동률 · 최근 흐름. 항목 → 상세 분석. 표 · 필터 · 2컬럼(FR-61 · FEATURE-000 E절)은 그대로이고 띠는 그 **위**에 붙는다. **(2026-09-22 추가)** | Should | Draft |
+| FR-65 | **무엇을 요약할지는 서버가 정한다** — 종목 · 순서는 서버 설정, 태그 · 등락 금액은 서버 계산. 프론트는 표시만(공통 수용 기준 3). 사유 태그 · 지수 · 환율 · 주요 일정은 소스가 생길 때까지 두지 않는다. **(2026-09-22 추가 · 같은 날 개정 — 처음엔 프론트 고정 목록이었다)** | Must | Draft |
+| FR-66 | 태그는 방향을 말하지 않는다 — 코드 `wide_move` = `변동 큼`(24시간 변동률이 서버 설정 임계 이상). "급등 · 급락" 문구 0건(FR-53 과 같은 태도). **(2026-09-22 추가)** | Must | Draft |
+| FR-67 | 띠는 응답 하나로 그리고 가격 · 등락 금액은 실시간 시세로 갱신한다. 조회 실패 시 띠를 그리지 않는다 — 표가 본문이다. **(2026-09-22 추가)** | Must | Draft |
 
 ### G. 자산 탭 — 포지션 (2026-09-21 추가, B13 · B14)
 
@@ -338,6 +342,7 @@ FSD 슬라이스 기준. 상세는 `FE-REQ-030`~`033`(F006 UI/FUNC/API/PERF)과 
 | FR-40~44 | `onboarding-flow` | `/onboarding/*` · `/portfolio/transactions` · F003 plan | `onboarding` | `InviteCode` · `User.firstHoldingSkippedAt` | 3스텝 완주 · 2단계 건너뛰기 |
 | FR-50~55 | `alert-list` | `/alerts*` | `notification` | `InvestmentNotification` · `User.alertsEnabled` | 타입 1종 · 읽음 · 모두 읽음 · 안 읽은 수 |
 | FR-60~63 | `market-board` | F000 · F004 | F000 · F004 | — | PC 2컬럼 · 모바일 표 1열 |
+| FR-64~67 | `market-board` 요약 띠 (`FE-REQ-037`) | `GET /api/app/market/summary` · WS `price_update.change24hAmount` (`BFF-REQ-035`) | `GET /api/investment/market/summary` (`SRV-REQ-036`) · 설정 `MARKET_SUMMARY_*` | — (저장 시세 · 거래소 5분봉) | 프론트 종목 상수 0 · 금액 역산 0 · "급등" 0 |
 | FR-70~78 | `position-overview` · `record-transaction` | `/portfolio*` | `portfolio` | `PortfolioTransaction` | 미리보기 = 저장 후 값 · MDD · 레이더 4축 |
 | FR-80~87 | `settings-panel` | `/settings*` | F003 · F004 · `notification` | — | 그룹 5 · 임계값 읽기 전용 |
 
@@ -422,3 +427,5 @@ FSD 슬라이스 기준. 상세는 `FE-REQ-030`~`033`(F006 UI/FUNC/API/PERF)과 
 | 2026-09-09 | 초안. FEATURE-005(5탭) 대체. 3탭 IA + 코치 대화 중심 + PC 이동식 격자. 사용자 결정 근거: *"너무 많은 탭은 별로"*, *"대화가 핵심"*, *"직관적일 것"* |
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md`. 개정: FR-3(세그먼트 = 포지션/시장/관심 종목, D7) · FR-4(세금 상세 없음, `/tax` 링크 제거, zone은 Q1) · FR-5(격자는 코치 탭, 시장은 2컬럼) · FR-10(홈 3블록 + 기존 블록, D6 — FEATURE-000 FR-30 대체) · FR-11 · FR-14 · FR-16 · FR-22(세금 Chip 교체) · FR-40(2단계 = 첫 보유 기록, B12) · FR-41 · FR-50(알림 1종, D5). 추가: FR-7~9 · 18~19(진입점 · 검색 D8) · FR-15a · 17a(B6) · 17b(B7) · FR-43~44(B12) · FR-52~55(알림 화면, B4 · B19) · FR-60~63(시장 · 관심 종목, D4 · D7) · FR-70~78(포지션, B13 · B14) · FR-80~87(설정, D9 · B16 · B19) |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. Open Question 의 Q3 참조를 D12 로 |
+| 2026-09-22 | F절에 FR-64~67(시장 요약 띠) 추가. 사용자 요청 — 참고 화면 상단 카드 띠의 코인 버전. 서버 소스가 없는 등락 금액 · 사유 태그 · 지수 · 일정은 두지 않는다(FR-65). 프론트 `FE-REQ-037` |
+| 2026-09-22 | FR-64~67 개정 — **요약 대상 · 태그 · 등락 금액을 서버 소유로**(사용자 지적 "summary 는 서버에서 줘야지"). `SRV-REQ-036` · `BFF-REQ-035` 신설. 등락 금액이 범위 안으로(서버 계산) |

@@ -29,12 +29,13 @@ import {
   CoachModeSwitch,
   useCoachModeParam,
 } from "@/features/switch-coach-mode";
+import { ROUTES } from "@/shared/config";
 
 import { coachBlocks, detailLink, modeRow } from "./CoachPanel.css";
 
 /** ⑦ 이동할 곳 — 모드를 들고 간다(FR-111 · FR-119). 모드를 아직 모르면 서버 기본값에 맡긴다 */
 const detailHref = (symbol: string, mode: CoachMode | undefined) => {
-  const path = `/investments/${encodeURIComponent(symbol)}`;
+  const path = ROUTES.investmentDetail(symbol);
   return mode ? `${path}?${COACH_MODE_PARAM}=${mode}` : path;
 };
 

@@ -56,5 +56,7 @@ export const MARKET_ENDPOINTS = {
   /** 종목 뉴스도 `/api/app/*` 뷰모델 경로다. 카드가 쓰는 필드만 온다 */
   symbolNews: (symbol: string, limit: number) =>
     `/api/app/news?symbol=${encodeURIComponent(symbol)}&limit=${limit}`,
+  /** 시장 요약 띠 — BFF 뷰모델(`BFF-REQ-035`). 공개 경로다 */
+  summary: () => `/api/app/market/summary`,
   watchlistItem: (id: string) => `/api/app/watchlist/${encodeURIComponent(id)}`,
 } as const;
