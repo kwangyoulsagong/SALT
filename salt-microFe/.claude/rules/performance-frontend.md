@@ -37,12 +37,17 @@ globs: apps/web/src/**, apps/web-tax/src/**
 
 ## 3. 차트
 
-`lightweight-charts`는 클라이언트 전용이고 무겁다.
+차트는 두 개다. **외부 차트 라이브러리를 쓰지 않는다**(`lightweight-charts` 는 `FE-REQ-034` 에서 지웠다).
 
-- **`next/dynamic` + `ssr: false`.** 초기 번들에 들어가면 첫 화면이 그만큼 늦어진다.
-- 차트 인스턴스를 **재사용**한다. 종목을 바꿀 때 새로 만들지 않고 데이터만 교체한다.
-- 언마운트 시 `remove()`를 호출한다. 안 하면 종목을 여러 번 바꿀 때 메모리가 샌다.
-- 5분봉 + 실시간 캔들 수신은 동작이 확인된 코드다(변경 금지). 성능 작업 시 **동작을 먼저 보존**한다.
+| 차트 | 어디 | 방식 |
+|---|---|---|
+| `@repo/ui/previewChart` | 투자 화면 우측 패널(30봉) | SVG(visx) |
+| `@repo/ui/tradingChart` | 상세 분석(200봉 · 이동/확대) | 캔버스 두 장 — `canvas.md` 도입 보고는 `checklists/FE-REQ-034.md` |
+
+- 트레이딩 차트는 **`next/dynamic` + `ssr: false`** 지연 청크다. barrel 로 딸려 가지 않게 부르는 쪽이 동적으로 부른다.
+- **포인터 이동은 오버레이만 다시 그린다.** 기본 캔버스는 데이터 · 뷰포트 · 크기가 바뀔 때 rAF 한 번.
+- 포인터 핸들러에서 `getBoundingClientRect` 를 매번 부르지 않는다 — DOM 범례 갱신 직후라 강제 레이아웃이 난다. 캐시하고 크기 · 스크롤 때 버린다.
+- **실시간 봉 병합은 `entities/market/lib/candleTime.ts` 하나다.** WS 시각(ms)과 REST 시각(KST 문자열)을 `===` 로 비교하지 않는다(틱마다 봉이 붙던 버그).
 
 ## 4. 스트리밍 SSR 관련
 
@@ -67,7 +72,7 @@ globs: apps/web/src/**, apps/web-tax/src/**
 ## 7. 번들
 
 - **라우트 단위 코드 분할**이 기본이다.
-- 별도 청크로 강제할 것: `lightweight-charts` · `MovableGrid` · Storybook 관련 코드.
+- 별도 청크로 강제할 것: `@repo/ui/tradingChart` · `MovableGrid` · Storybook 관련 코드.
 - `@repo/ui`는 subpath별 export이므로 **import한 것만 들어온다.** barrel로 다시 묶지 않는다.
 - zone 에만 필요한 코드가 **default zone 번들에 들어가면 zone 분리가 무의미**하다. 빌드마다 확인한다(세금 로직은 `ADR-002` 로 빠졌다).
 - 새 의존성 추가 시 **번들 증가분을 PR에 적는다.**

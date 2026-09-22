@@ -24,7 +24,7 @@ App Router + RSC + Suspense로 **지연이 제각각인 블록을 각자 속도�
 
 ### 클라이언트 전용
 
-`lightweight-charts` · `TradingViewChart` · `MovableGrid` — `next/dynamic` + `ssr: false`.
+`@repo/ui/tradingChart`(캔버스) · `MovableGrid` — `next/dynamic` + `ssr: false`.
 
 ## 3. Suspense 경계 설계
 

@@ -78,6 +78,7 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/banner` | `Banner` | `tone`, `title`, `icon`, `children` | `packages/ui/src/Banner/Banner.tsx` |
 | `@repo/ui/table` | `TableContainer`, `Table`, `TableHeader`, `TableHeaderCell`, `TableBody`, `TableRow`, `TableCell`, `EmptyState`, `ScrollTableContainer` | 테이블 크기, 레이아웃, 정렬, 행, 셀 props | `packages/ui/src/Table/Table.tsx` |
 | `@repo/ui/previewChart` | `PreviewChart` | `data`, 크기와 차트 옵션 | `packages/ui/src/PreviewChart/PreviewChart.tsx` |
+| `@repo/ui/tradingChart` | `TradingChart` | `candles`(epoch ms), `height`, `intraday`, `name`, `priceLines`, `resetKey` — 캔버스 · 이동/확대 · 이동평균 · 거래량 | `packages/ui/src/TradingChart/TradingChart.tsx` |
 | `@repo/ui/sparkline` | `Sparkline` | `points`, `tone`, `width`, `height`, `label` | `packages/ui/src/Sparkline/Sparkline.tsx` |
 | `@repo/ui/barChart` | `BarChart` | `items`, `label`, `height`, `max`, `showValues`, `format` | `packages/ui/src/BarChart/BarChart.tsx` |
 | `@repo/ui/highlight` | `Highlight` | `tone('brand'\|'ai'\|'up'\|'down'\|'neutral')` | `packages/ui/src/Highlight/Highlight.tsx` |

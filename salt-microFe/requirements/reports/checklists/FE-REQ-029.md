@@ -27,3 +27,12 @@
 | FR-75 `"use client"` 잎 | pass · 기록 | 새 경계: `SymbolAnalysis`(조합) · `ExplainCard` · `useExplainSymbol` · `MarketDetailChart`(기간 탭) · `InvestmentDetailBody`(dynamic 잎). 코치 카드 · 수익 플랜 · 범례 · 구간 표는 경계 없음 |
 | 패널 · 상세 JS 증가분 ≤ 25KB gzip | pass | 패널 지연 청크 46.2 → 51.7 KB(+5.5 — `entities/*` barrel 로 상세 컴포넌트가 딸려 온다) · 상세 전용 +9.0 KB · `/investments` First Load 135 → 136 kB |
 | FR-71 모드 전환 표 리렌더 0 · 행 선택 → 판단 페인트 p95 | **미검증** | 이번에도 안 쟀다 — 패널을 다시 만질 때 Profiler |
+
+## 3. 상세 차트 교체 (`FE-REQ-034`, 2026-09-22) — 프로덕션 빌드
+
+| FR · 예산 | 판정 | 근거 |
+|---|---|---|
+| FR-73 오버레이 = 기존 차트 · 라이브러리 추가 0 | **개정** | 상세 차트는 자체 캔버스 차트(`@repo/ui/tradingChart`). 라이브러리 추가 0, `lightweight-charts` 제거 |
+| 상세 첫 페인트 600ms | **미검증** | 응답 → 그리기 p95 40ms(프론트 몫). 서버 차트 응답이 0.02~2.9초로 요동쳐 전체는 예산을 넘는 회차가 있다 — `checklists/FE-REQ-034.md` §5 |
+| 패널 · 상세 JS 증가분 ≤ 25KB | pass | 상세 전용 16.8 KB(슬라이스 6 대비 +7.8) · 패널 +0.5 KB |
+| CLS | pass | 0.001 |
