@@ -82,7 +82,7 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `notification` | 알림 1종 (지표/추천 갱신) · 읽음 | `notification` |
 | `device` | 디바이스 등록 · 푸시 토큰 · 앱 버전 게이트 (모바일만) | `device` |
 
-**2026-09-11 기준 실재하는 슬라이스는 4개다** — `auth` · `goal` · `market` · `portfolio`.
+**2026-09-22 기준 실재하는 엔티티는 5개다** — `auth` · `goal` · `market` · `portfolio` · `coach`.
 나머지는 해당 기능 REQ에서 생긴다. 표에 있다고 폴더가 있는 것은 아니다.
 
 > store 조립은 `app` 레이어가 한다. 슬라이스는 `RootState`를 보지 않고 **자기 가지만 타이핑한

@@ -15,6 +15,7 @@ import {
   MARKET_BOARD_MESSAGES,
   MARKET_BOARD_TABS,
   WATCH_LIST_TAB,
+  type PreviewRenderer,
 } from "../model";
 
 const RealtimeMarketTable = dynamic(
@@ -41,8 +42,13 @@ const WatchlistTab = dynamic(
   }
 );
 
+interface MarketBoardProps {
+  /** 우측 패널. 페이지가 AI 코치 패널을 주입한다 — `model/previewSlot.ts` */
+  renderPreview?: PreviewRenderer;
+}
+
 /** 조합만 한다. 비즈니스 로직은 `entities/market` 과 그 위의 feature 가 갖는다. */
-export const MarketBoard = () => {
+export const MarketBoard = ({ renderPreview }: MarketBoardProps) => {
   const [activeTab, setActiveTab] = useState(DEFAULT_MARKET_BOARD_TAB);
   return (
     <Section noContainer>
@@ -60,8 +66,12 @@ export const MarketBoard = () => {
         </Margin>
         <Margin top="md">
           <Suspense fallback={null}>
-            {activeTab === DEFAULT_MARKET_BOARD_TAB && <RealtimeMarketTable />}
-            {activeTab === WATCH_LIST_TAB && <WatchlistTab />}
+            {activeTab === DEFAULT_MARKET_BOARD_TAB && (
+              <RealtimeMarketTable renderPreview={renderPreview} />
+            )}
+            {activeTab === WATCH_LIST_TAB && (
+              <WatchlistTab renderPreview={renderPreview} />
+            )}
           </Suspense>
         </Margin>
       </FlexBox>

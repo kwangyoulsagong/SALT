@@ -9,7 +9,7 @@
 
 | FR | 판정 | 위치 · 근거 |
 |---|---|---|
-| FR-30 `packages/core` 공유 | **미충족** | 타입이 `bff/src/services/symbol-coach.viewmodel.ts` 에만 있다. 소비처가 생길 때(FE 패널) 옮긴다 |
+| FR-30 `packages/core` 공유 | pass (2026-09-22, FE 패널 슬라이스) | `salt-microFe/packages/core/src/coach/symbolCoach.ts` (`@repo/core/coach`). **BFF 는 workspace 밖이라 사본이다** — 원본은 `symbol-coach.viewmodel.ts` 타입 절, 바꿀 때 둘 다 |
 | FR-31 `renderable` 판별 union | pass | `ModeCoachViewModel` — `false` 분기에 `judgment` · `trackRecord` 없음 |
 | FR-32 `confidence` 타입에 없음 | pass | |
 | FR-33 `zone` 항상 · `notPrediction: true` | pass | zone 없으면 그 모드를 `null` 로 막는다 |
@@ -30,6 +30,6 @@
 | FR | 판정 | 비고 |
 |---|---|---|
 | FR-1~12 `CoachDetailViewModel` | 미착수 | `/coach/report` 경로가 없다 |
-| FR-13 뷰모델 `packages/core` | 미충족 | FR-30 과 같다 |
+| FR-13 뷰모델 `packages/core` | pass | FR-30 과 같다 |
 | FR-14 기존 경로 필드 추가만 | **다르게** | `/ai-coach/detail` 은 `header` · `decisionCards` → `modes` 로 바꿨다(BREAKING). 소비처 0건 · `preview` 는 `badge` 가 `null` 가능 외 무변경 |
 | FR-15 · FR-16 · FR-17 | 미착수 | |

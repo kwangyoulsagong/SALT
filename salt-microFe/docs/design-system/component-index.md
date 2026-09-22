@@ -50,6 +50,7 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/radiobutton` | `RadioButton` | `checked`, `onChange` | `packages/ui/src/RadioButton/RadioButton.tsx` |
 | `@repo/ui/tabs` | `Tabs` | `tabs`, `defaultActiveTab`, `activeTab`, `onTabChange`, `tabPanel` | `packages/ui/src/Tabs/Tabs.tsx` |
 | `@repo/ui/filterTabs` | `FilterTabs` | `options`, `value`, `onChange` | `packages/ui/src/FilterTabs/FilterTabs.tsx` |
+| `@repo/ui/segmentedControl` | `SegmentedControl` | `options`, `value`, `onChange`, `label` | `packages/ui/src/SegmentedControl/SegmentedControl.tsx` |
 | `@repo/ui/chip` | `Chip` | `selected`, `onPress`, `disabled`, `size`, `leading` | `packages/ui/src/Chip/Chip.tsx` |
 | `@repo/ui/toggle` | `Toggle` | `checked`, `onChange`, `disabled`, `label` | `packages/ui/src/Toggle/Toggle.tsx` |
 | `@repo/ui/slider` | `Slider` | `label`, `value`, `onChange`, `min`, `max`, `step`, `format`, `showNumberInput` | `packages/ui/src/Slider/Slider.tsx` |
@@ -149,6 +150,7 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 | 모바일 화면 상단 바 (제목·뒤로·액션·알림) | `AppBar` | `Header`는 마케팅 페이지용 얇은 헤더다 |
 | 밑줄형 탭 + 패널 | `Tabs` | — |
 | 회색 트랙 위 알약형 세그먼트 | `FilterTabs` | 단독 칩에는 쓰지 않는다 |
+| 값이 늘 하나인 스위치(모드 · 관점) | `SegmentedControl` | `radiogroup` · 화살표 이동. 여러 묶음을 훑는 필터는 `FilterTabs` |
 | 자유 배치·복수 선택 칩 | `Chip` | `FilterTabs`는 그룹 전용이다 |
 | 종목 로고. 로고가 없으면 이니셜 폴백 | `AssetIcon` | `Icon`·`ServiceIcon`은 고정 자산 목록 전용이다 |
 | 그룹과 그룹 사이 위계 | `ListGroup` + `SectionBand` | 카드 남발 (`Card` 기본 그림자는 `none`이다) |
@@ -188,7 +190,7 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 
 ## Storybook 커버리지
 
-대부분의 재사용 UI에는 Storybook story가 있다: `Agreement`, `AppBar`, `AssetIcon`, `Badge`, `Banner`, `BarChart`, `BoardRow`, `BottomCTA`, `BottomInfo`, `BottomSheet`, `BottomTabBar`, `Button`, `Card`, `ChatBubble`, `Checkbox`, `Chip`, `Container`, `Dialog`, `Divider`, `EmptyState`, `FilterTabs`, `FlexBox`, `Grid`, `Heading`, `Highlight`, `IconButton`, `Image`, `Keypad`, `KeyValueList`, `ListFooter`, `ListGroup`, `ListRow`, `Margin`, `Menu`, `Modal`, `MovableGrid`, `NumberText`, `Padding`, `PreviewChart`, `ProgressBar`, `ProgressStepper`, `Rating`, `Root`, `ScrollContainer`, `SearchField`, `Section`, `SectionBand`, `Skeleton`, `Slider`, `Sparkline`, `Spinner`, `Stepper`, `Table`, `Tabs`, `Text`, `TextArea`, `TextButton`, `TextField`, `Toast`, `Toggle`, `Tooltip`.
+대부분의 재사용 UI에는 Storybook story가 있다: `Agreement`, `AppBar`, `AssetIcon`, `Badge`, `Banner`, `BarChart`, `BoardRow`, `BottomCTA`, `BottomInfo`, `BottomSheet`, `BottomTabBar`, `Button`, `Card`, `ChatBubble`, `Checkbox`, `Chip`, `Container`, `Dialog`, `Divider`, `EmptyState`, `FilterTabs`, `SegmentedControl`, `FlexBox`, `Grid`, `Heading`, `Highlight`, `IconButton`, `Image`, `Keypad`, `KeyValueList`, `ListFooter`, `ListGroup`, `ListRow`, `Margin`, `Menu`, `Modal`, `MovableGrid`, `NumberText`, `Padding`, `PreviewChart`, `ProgressBar`, `ProgressStepper`, `Rating`, `Root`, `ScrollContainer`, `SearchField`, `Section`, `SectionBand`, `Skeleton`, `Slider`, `Sparkline`, `Spinner`, `Stepper`, `Table`, `Tabs`, `Text`, `TextArea`, `TextButton`, `TextField`, `Toast`, `Toggle`, `Tooltip`.
 
 story가 없는 것: `Header`, `Icon`, `InputField`, `RadioButton`, `ServiceIcon`, `ServiceWrapper`, `StarIcon`, `Wrapper`. 이 중 `Header`·`InputField`·`RadioButton`은 각각 `AppBar`·`TextField`·`Checkbox`/`Toggle`로 대체 가능하다.
 

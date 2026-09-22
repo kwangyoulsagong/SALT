@@ -5,16 +5,17 @@ import { Section } from "@repo/ui/section";
 
 import { ProfileHeader } from "@/entities/auth";
 import { BlockBoundary } from "@/shared/ui";
-import { MarketBoard } from "@/widgets/market-board";
 
 import {
   INVESTMENTS_BLOCK_MIN_HEIGHT,
   INVESTMENTS_PAGE_MESSAGES,
 } from "../model";
+import { InvestmentsBoard } from "./InvestmentsBoard";
 
 /**
  * 투자 (`/investments`) — 서버 컴포넌트.
  *
+ * `InvestmentsBoard` 가 시세 보드에 우측 AI 코치 패널을 끼운다(`FE-REQ-026` K).
  * `MarketBoard` 는 탭 상태와 실시간 테이블을 갖는 클라이언트 잎이고, 그 안에서
  * `next/dynamic` + `ssr:false` 로 테이블을 내린다 (FE-REQ-008 FR-13).
  *
@@ -35,7 +36,7 @@ export const InvestmentsPage = () => {
               name={INVESTMENTS_PAGE_MESSAGES.blockName}
               minHeight={INVESTMENTS_BLOCK_MIN_HEIGHT}
             >
-              <MarketBoard />
+              <InvestmentsBoard />
             </BlockBoundary>
           </Padding>
         </Container>

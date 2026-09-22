@@ -4,7 +4,7 @@
 import { FlexBox } from "@repo/ui/flexBox";
 import { Heading } from "@repo/ui/heading";
 import { Section } from "@repo/ui/section";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { type ReactNode, useEffect, useMemo, useRef } from "react";
 import {
   CircularProgressBackground,
   CircularProgressCenterText,
@@ -27,8 +27,15 @@ import { useMarketIntelligencePreview } from "../../api";
 import { MARKET_MESSAGES } from "../../model";
 import { MarketNewsPreview } from "./MarketNewsPreview";
 
+/** 게이지 아래 한 줄을 넣는 자리. 없으면 아무것도 그리지 않는다 */
+export interface GaugeFooters {
+  sentiment?: ReactNode;
+  smartMoney?: ReactNode;
+}
+
 interface MarketIntelligencePreviewProps {
   symbol: string;
+  gaugeFooters?: GaugeFooters;
 }
 
 const RADIUS = 48;
@@ -37,7 +44,7 @@ const VISIBLE_ARC = 0.79; // 286도 (전체의 79%)
 const VISIBLE_CIRCUMFERENCE = CIRCUMFERENCE * VISIBLE_ARC;
 
 export const MarketIntelligencePreview = React.memo(
-  ({ symbol }: MarketIntelligencePreviewProps) => {
+  ({ symbol, gaugeFooters }: MarketIntelligencePreviewProps) => {
     const temperatureProgressRef = useRef<HTMLDivElement>(null);
     const progressRef = useRef<SVGCircleElement>(null);
 
@@ -150,6 +157,7 @@ export const MarketIntelligencePreview = React.memo(
                   className={SentimentTemperatureProgressBarInProgress}
                 />
               </div>
+              {gaugeFooters?.sentiment}
             </FlexBox>
           </Section>
 
@@ -229,6 +237,7 @@ export const MarketIntelligencePreview = React.memo(
                   </FlexBox>
                 </FlexBox>
               </FlexBox>
+              {gaugeFooters?.smartMoney}
             </FlexBox>
           </Section>
           <Section padding="none" noContainer>

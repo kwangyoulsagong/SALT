@@ -51,10 +51,10 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 뷰모델 타입 `packages/core` 이동 | 소비처가 아직 없다 | FE 패널 슬라이스 (`FE-REQ-026` K절) |
+| ~~뷰모델 타입 `packages/core` 이동~~ | 닫힘 2026-09-22 | `F004-fe-coach-panel` — `@repo/core/coach` (사본) |
 | upstream GET 재시도 1회 | BFF 공통 재시도 유틸이 없다 | BFF 공통 정리 |
 | 게이트 미렌더 카운터 · 미렌더율 | 관측 인프라 미정 | 배포 환경 확정 시 |
-| upstream 취소 실측 | 코드만. 끊긴 요청의 서버 로그를 보지 않았다 | FE 패널 슬라이스에서 행 빠르게 바꾸며 확인 |
+| upstream 취소 실측 | 2026-09-22 FE 패널에서 브라우저 쪽 취소(11회 중 6~8)는 확인. **BFF → 서버 구간은 서버 로그를 아직 안 봤다** | BFF 슬라이스 4 |
 | `renderable: true` 실데이터 | 판단 성적표 표본이 0 — 전부 `insufficient_sample` | 시간 — 판단 유형당 20건 |
 | `assetType` · `defaultMode` | 서버가 아직 안 준다 | F004 서버 후속 (FR-48) |
 | `explain` 인증 · `/coach/report` · 429 | 이 슬라이스는 종목 판단만 | 다음 BFF 슬라이스 |

@@ -1,5 +1,7 @@
 export * from "./messages";
 export * from "./tabs";
+/** 타입만이라 barrel 에 올려도 엔티티를 끌어오지 않는다(`import type` 은 지워진다) */
+export * from "./previewSlot";
 
 /**
  * `previewParams` 는 **의도적으로 여기에 올리지 않는다.**
