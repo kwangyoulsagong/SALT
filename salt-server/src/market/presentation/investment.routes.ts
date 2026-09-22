@@ -80,10 +80,12 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *       값은 저장 시세이고, `sparkline` 은 5분봉 종가(시간순, `sparklineWindowMinutes` 분)다.
    *       `tags` 는 코드다(`wide_move` — 24시간 변동률이 임계 이상). 방향을 말하지 않는다.
    *       `change24hAmount` 는 원 단위 정수로 반올림한 24시간 등락 금액이다.
-   *       스파크라인을 못 받은 종목이 있으면 그 항목만 `sparkline: null` + `degraded: true`.
+   *       `breadth` 는 활성 종목의 24시간 오름 · 내림 · 그대로 수(과거 사실). 세지 못하면 `null`.
+   *       `headlines` 는 대표 종목의 최근 뉴스 최대 3건(매체 꼬리를 떼고 같은 제목은 합친다).
+   *       스파크라인 · 분위기를 못 받으면 그 자리만 `null` + `degraded: true`.
    *     responses:
    *       200:
-   *         description: "`{ featured, items[], sparklineWindowMinutes, degraded }`"
+   *         description: "`{ featured, items[], sparklineWindowMinutes, breadth, headlines[], degraded }`"
    */
   router.get("/market/summary", investmentController.getMarketSummary);
 

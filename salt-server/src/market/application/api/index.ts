@@ -198,6 +198,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     getMarketSummary: new GetMarketSummary(
       deps.assets,
       deps.exchange,
+      deps.news,
       deps.summaryPolicy
     ),
     getRealTimePrice: new GetRealTimePrice(deps.exchange),

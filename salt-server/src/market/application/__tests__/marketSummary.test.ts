@@ -5,6 +5,7 @@ import type {
   ExchangeQuotePort,
   MarketAssetRepository,
   MarketAssetView,
+  SymbolNewsPort,
 } from "../../domain";
 import { GetMarketSummary } from "../GetMarketSummary";
 
@@ -25,11 +26,16 @@ const view = (symbol: string, change24h = 1): MarketAssetView => ({
 
 const setup = (
   rows: MarketAssetView[],
-  candles: (symbol: string) => Promise<Array<{ close: number }>>
+  candles: (symbol: string) => Promise<Array<{ close: number }>>,
+  breadthFails = false
 ) => {
   const calls: string[] = [];
   const assets = {
     findViews: async () => rows,
+    breadth: async () => {
+      if (breadthFails) throw new Error("db");
+      return { up: 2, down: 1, flat: 0, total: 3 };
+    },
   } as unknown as MarketAssetRepository;
   const exchange = {
     minuteCandles: async (symbol: string) => {
@@ -37,10 +43,18 @@ const setup = (
       return candles(symbol);
     },
   } as unknown as ExchangeQuotePort;
+  const news = {
+    recent: async () => [
+      { id: "a", title: "클래리티법 막혔다 - 동아일보", url: "u1", source: "g", summary: null, publishedAt: new Date(3) },
+      { id: "b", title: "클래리티법 막혔다 - v.daum.net", url: "u2", source: "g", summary: null, publishedAt: new Date(2) },
+      { id: "c", title: "ETF 자금 복귀", url: "u3", source: "c", summary: null, publishedAt: new Date(1) },
+    ],
+  } as unknown as SymbolNewsPort;
   let now = 0;
   const useCase = new GetMarketSummary(
     assets,
     exchange,
+    news,
     { symbols: ["BTC", "ETH", "XRP"], wideMoveRate: 5 },
     () => now
   );
@@ -94,5 +108,21 @@ describe("GetMarketSummary (SRV-REQ-036)", () => {
     const result = await useCase.execute();
     assert.deepEqual(result.featured?.tags, ["wide_move"]);
     assert.ok(result.featured!.change24hAmount! < 0);
+  });
+
+  it("분위기는 DB 집계 그대로, 실패하면 null + degraded — 나머지는 나간다", async () => {
+    const ok = await setup([view("BTC")], async () => [{ close: 1 }, { close: 2 }]).useCase.execute();
+    assert.deepEqual(ok.breadth, { up: 2, down: 1, flat: 0, total: 3 });
+    assert.equal(ok.degraded, false);
+
+    const failed = await setup([view("BTC")], async () => [{ close: 1 }], true).useCase.execute();
+    assert.equal(failed.breadth, null);
+    assert.equal(failed.degraded, true);
+    assert.equal(failed.featured?.symbol, "BTC");
+  });
+
+  it("뉴스는 대표 종목 것 · 매체 꼬리를 떼고 같은 제목은 하나", async () => {
+    const result = await setup([view("BTC")], async () => []).useCase.execute();
+    assert.deepEqual(result.headlines.map((h) => h.title), ["클래리티법 막혔다", "ETF 자금 복귀"]);
   });
 });

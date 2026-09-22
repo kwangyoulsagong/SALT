@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { change24hAmountOf, MarketSummaryTag, summaryTagsOf } from "../index";
+import {
+  change24hAmountOf,
+  headlineTitleOf,
+  MarketSummaryTag,
+  summaryTagsOf,
+} from "../index";
 
 describe("summaryTagsOf — 방향을 말하지 않는 태그 (SRV-REQ-036)", () => {
   const policy = { wideMoveRate: 5 };
@@ -34,5 +39,14 @@ describe("change24hAmountOf — 변동률로 기준가를 되짚는다", () => {
     assert.equal(change24hAmountOf(0, 3), null);
     assert.equal(change24hAmountOf(100, -100), null);
     assert.equal(change24hAmountOf(100, Number.NaN), null);
+  });
+});
+
+describe("headlineTitleOf — 매체 꼬리 떼기", () => {
+  it("끝의 ' - 매체' 만 뗀다", () => {
+    assert.equal(headlineTitleOf("비트코인 8만 5천 달러 돌파 - Investing.com 한국어"), "비트코인 8만 5천 달러 돌파");
+  });
+  it("꼬리가 없으면 그대로", () => {
+    assert.equal(headlineTitleOf("Whitehats move 52 bitcoin"), "Whitehats move 52 bitcoin");
   });
 });

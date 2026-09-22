@@ -8,6 +8,7 @@ import {
   type MarketAssetRepository,
   type MarketAssetType,
   type MarketAssetView,
+  type MarketBreadth,
   type MarketListing,
   type MarketOverviewQuery,
   type Quote,
@@ -81,6 +82,16 @@ export class PrismaMarketAssetRepository implements MarketAssetRepository {
       change24h: row.change24h === null ? null : Number(row.change24h),
       priceUpdatedAt: row.priceUpdatedAt,
     }));
+  }
+
+  async breadth(): Promise<MarketBreadth> {
+    const base = { isActive: true } as const;
+    const [up, down, flat] = await Promise.all([
+      prisma.marketAsset.count({ where: { ...base, change24h: { gt: 0 } } }),
+      prisma.marketAsset.count({ where: { ...base, change24h: { lt: 0 } } }),
+      prisma.marketAsset.count({ where: { ...base, change24h: 0 } }),
+    ]);
+    return { up, down, flat, total: up + down + flat };
   }
 
   async findViews(symbols: string[]): Promise<MarketAssetView[]> {

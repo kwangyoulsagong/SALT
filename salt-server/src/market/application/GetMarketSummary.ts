@@ -1,14 +1,19 @@
 import { logger } from "../../shared/config/logger";
 import {
   change24hAmountOf,
+  pickHeadlines,
+  SUMMARY_HEADLINE_COUNT,
   SUMMARY_SPARKLINE,
   SUMMARY_SPARKLINE_WINDOW_MINUTES,
   summaryTagsOf,
   type ExchangeQuotePort,
   type MarketAssetRepository,
   type MarketAssetView,
+  type MarketBreadth,
   type MarketSummaryPolicy,
   type MarketSummaryTag,
+  type SummaryHeadline,
+  type SymbolNewsPort,
 } from "../domain";
 
 /**
@@ -28,6 +33,10 @@ export interface MarketSummaryItem {
   tags: MarketSummaryTag[];
   /** 종가(시간순). 거래소 조회가 실패하면 `null` — 항목은 남는다(부분 실패). */
   sparkline: number[] | null;
+  /** 24시간 고가 · 저가 · 거래대금 — 저장 시세 그대로. 대표 칸 아래 줄이 쓴다 */
+  high24h: number;
+  low24h: number;
+  tradeValue24h: number;
   priceUpdatedAt: Date | null;
 }
 
@@ -36,7 +45,11 @@ export interface MarketSummaryView {
   featured: MarketSummaryItem | null;
   items: MarketSummaryItem[];
   sparklineWindowMinutes: number;
-  /** 스파크라인을 못 받은 종목이 있으면 `true` (`ddd-presentation.md` §5 `degraded`). */
+  /** 시장 분위기. 세지 못하면 `null` — 요약 전체를 실패시키지 않는다 */
+  breadth: MarketBreadth | null;
+  /** 대표 종목의 최근 뉴스(중복 제목 합침). 못 받으면 빈 배열 */
+  headlines: SummaryHeadline[];
+  /** 스파크라인 · 분위기 중 못 받은 것이 있으면 `true` (`ddd-presentation.md` §5 `degraded`). */
   degraded: boolean;
 }
 
@@ -55,6 +68,7 @@ export class GetMarketSummary {
   constructor(
     private readonly assets: MarketAssetRepository,
     private readonly exchange: ExchangeQuotePort,
+    private readonly news: SymbolNewsPort,
     private readonly policy: MarketSummaryPolicy,
     private readonly now: () => number = () => Date.now()
   ) {}
@@ -67,9 +81,11 @@ export class GetMarketSummary {
       .map((symbol) => bySymbol.get(symbol))
       .filter((view): view is MarketAssetView => view !== undefined);
 
-    const sparklines = await Promise.all(
-      ordered.map((view) => this.sparkline(view.symbol))
-    );
+    const [sparklines, breadth, headlines] = await Promise.all([
+      Promise.all(ordered.map((view) => this.sparkline(view.symbol))),
+      this.breadth(),
+      this.headlines(this.policy.symbols[0]),
+    ]);
     const items = ordered.map((view, index) =>
       this.toItem(view, sparklines[index] ?? null)
     );
@@ -80,7 +96,12 @@ export class GetMarketSummary {
       featured,
       items: featured ? items.slice(1) : items,
       sparklineWindowMinutes: SUMMARY_SPARKLINE_WINDOW_MINUTES,
-      degraded: sparklines.some((closes) => closes === null),
+      breadth,
+      headlines: headlines ?? [],
+      degraded:
+        breadth === null ||
+        headlines === null ||
+        sparklines.some((closes) => closes === null),
     };
   }
 
@@ -94,8 +115,38 @@ export class GetMarketSummary {
       change24hAmount: change24hAmountOf(view.currentPrice, view.change24h),
       tags: summaryTagsOf(view.change24h, this.policy),
       sparkline,
+      high24h: view.high24h,
+      low24h: view.low24h,
+      tradeValue24h: view.tradeValue24h,
       priceUpdatedAt: view.priceUpdatedAt,
     };
+  }
+
+  /** 뉴스 조회는 DB 다. 중복을 합치려고 넉넉히 받아 자른다. 실패는 `null`(→ 빈 목록 + degraded) */
+  private async headlines(symbol: string | undefined): Promise<SummaryHeadline[] | null> {
+    if (!symbol) return [];
+    try {
+      const articles = await this.news.recent(symbol, SUMMARY_HEADLINE_COUNT * 3);
+      return pickHeadlines(articles, SUMMARY_HEADLINE_COUNT).map((article) => ({
+        id: article.id,
+        title: article.title,
+        url: article.url,
+        source: article.source,
+        publishedAt: article.publishedAt,
+      }));
+    } catch (error: any) {
+      logger.warn("시장 요약 뉴스 조회 실패:", error?.message);
+      return null;
+    }
+  }
+
+  private async breadth(): Promise<MarketBreadth | null> {
+    try {
+      return await this.assets.breadth();
+    } catch (error: any) {
+      logger.warn("시장 요약 분위기 집계 실패:", error?.message);
+      return null;
+    }
   }
 
   /** 트랜잭션 밖에서 부른다(거래소 I/O). 실패는 `null` 로 — 요약 전체를 실패시키지 않는다. */

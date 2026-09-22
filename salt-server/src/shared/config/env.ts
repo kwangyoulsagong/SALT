@@ -29,12 +29,12 @@ const envSchema = z.object({
    */
   INVITE_MAX_ACCOUNTS: z.coerce.number().int().positive().default(10),
   /**
-   * 투자 화면 시장 요약 띠의 종목(쉼표 구분, 첫 심볼이 대표) — `SRV-REQ-036`. **코드 상수 금지** —
+   * 투자 화면 시장 요약 띠의 종목(쉼표 구분, 첫 심볼이 대표, 나머지는 화면에서 3줄씩 열) — `SRV-REQ-036`. **코드 상수 금지** —
    * 무엇을 요약할지는 화면 배포 없이 바꿀 수 있어야 한다.
    */
   MARKET_SUMMARY_SYMBOLS: z
     .string()
-    .default("BTC,ETH,XRP,SOL,DOGE,ADA,TRX")
+    .default("BTC,ETH,XRP,SOL,DOGE,ADA,TRX,SUI,AVAX,LINK")
     // 빈 칸 · 중복은 버리고 대문자로 맞춘다. 비면 기동을 막는다 — 요약할 것이 없는 설정은 오타다
     .transform((raw) =>
       Array.from(

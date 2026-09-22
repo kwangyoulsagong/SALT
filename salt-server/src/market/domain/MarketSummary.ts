@@ -21,6 +21,17 @@ export interface MarketSummaryPolicy {
   wideMoveRate: number;
 }
 
+/**
+ * 시장 분위기 — 활성 종목 중 24시간 변동률이 오른 · 내린 · 그대로인 수. **과거 사실**이고 전망이 아니다.
+ * 세는 것은 DB 가 한다(행을 옮겨 오지 않는다).
+ */
+export interface MarketBreadth {
+  up: number;
+  down: number;
+  flat: number;
+  total: number;
+}
+
 /** 스파크라인 — 5분봉 30개 = 2시간 30분. 투자 화면 우측 차트와 같은 조회라 거래소 캐시를 같이 쓴다. */
 export const SUMMARY_SPARKLINE = { unit: 5, count: 30 } as const;
 export const SUMMARY_SPARKLINE_WINDOW_MINUTES =
@@ -48,4 +59,42 @@ export const change24hAmountOf = (
   }
   const base = currentPrice / (1 + change24h / 100);
   return currentPrice - base;
+};
+
+/** 요약 패널의 뉴스 한 줄 — 대표 종목의 최근 기사 */
+export interface SummaryHeadline {
+  id: string;
+  title: string;
+  url: string;
+  source: string;
+  publishedAt: Date;
+}
+
+/** 요약 패널 뉴스 수 — 참고 화면의 목록 세 줄 */
+export const SUMMARY_HEADLINE_COUNT = 3;
+
+/**
+ * 모음 피드 제목 끝의 매체 표기(" - 동아일보")를 뗀다. 같은 기사가 매체만 바꿔 여러 번 오는 것을
+ * 하나로 합치는 열쇠이기도 하다. 떼고 나서 비면 원문을 쓴다.
+ */
+export const headlineTitleOf = (raw: string): string => {
+  const cut = raw.replace(/\s+-\s+[^-]+$/, "").trim();
+  return cut || raw.trim();
+};
+
+/** 최신순을 유지하며 제목이 같은 기사는 첫 것만 남기고 `limit` 개로 자른다 */
+export const pickHeadlines = <T extends { title: string }>(
+  articles: T[],
+  limit: number
+): Array<T & { title: string }> => {
+  const seen = new Set<string>();
+  const picked: Array<T & { title: string }> = [];
+  for (const article of articles) {
+    const title = headlineTitleOf(article.title);
+    if (seen.has(title)) continue;
+    seen.add(title);
+    picked.push({ ...article, title });
+    if (picked.length >= limit) break;
+  }
+  return picked;
 };

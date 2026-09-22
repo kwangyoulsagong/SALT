@@ -160,12 +160,18 @@ export class InvestmentController {
         ...item,
         change24hAmount:
           item.change24hAmount === null ? null : Math.round(item.change24hAmount) || 0,
+        tradeValue24h: Math.round(item.tradeValue24h),
         priceUpdatedAt: item.priceUpdatedAt?.toISOString() ?? null,
       });
       return ResponseUtil.success(res, {
         featured: summary.featured ? toDto(summary.featured) : null,
         items: summary.items.map(toDto),
         sparklineWindowMinutes: summary.sparklineWindowMinutes,
+        breadth: summary.breadth,
+        headlines: summary.headlines.map((headline) => ({
+          ...headline,
+          publishedAt: headline.publishedAt.toISOString(),
+        })),
         degraded: summary.degraded,
       });
     } catch (error) {
