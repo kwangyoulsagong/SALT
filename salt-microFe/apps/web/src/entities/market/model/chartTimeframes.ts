@@ -7,6 +7,8 @@
  *
  * `value` 는 `PreviewChart` 의 `timeframe` 이기도 하다(축 라벨이 일봉이면 날짜).
  */
+import { Timeframe } from "@/shared/api";
+
 export type ChartTimeframe = "1m" | "5m" | "15m" | "1h" | "1d";
 
 export interface ChartTimeframeSpec {
@@ -14,18 +16,29 @@ export interface ChartTimeframeSpec {
   period: "minute" | "day";
   /** 분봉 단위. 일봉은 서버가 무시한다 */
   unit: number;
+  /**
+   * 실시간 봉 주기. BFF WS 는 1분 · 5분 · 1시간만 만든다(`candleBuilder`) — 나머지는 조회로만 갱신하고
+   * 화면이 "실시간 아님"을 알린다(`FE-REQ-034` FR-64)
+   */
+  realtime: Timeframe | null;
 }
 
 export const CHART_TIMEFRAMES: readonly ChartTimeframeSpec[] = [
-  { value: "1m", period: "minute", unit: 1 },
-  { value: "5m", period: "minute", unit: 5 },
-  { value: "15m", period: "minute", unit: 15 },
-  { value: "1h", period: "minute", unit: 60 },
-  { value: "1d", period: "day", unit: 1 },
+  { value: "1m", period: "minute", unit: 1, realtime: Timeframe.OneMinute },
+  { value: "5m", period: "minute", unit: 5, realtime: Timeframe.FiveMinutes },
+  { value: "15m", period: "minute", unit: 15, realtime: null },
+  { value: "1h", period: "minute", unit: 60, realtime: Timeframe.OneHour },
+  { value: "1d", period: "day", unit: 1, realtime: null },
 ];
 
 /** 첫 기간 — 패널 프리뷰(5분봉)와 같은 것으로 연다 */
 export const DEFAULT_CHART_TIMEFRAME: ChartTimeframe = "5m";
 
-/** 상세 차트 캔들 수. 프리뷰(30)보다 넓은 화면이라 두 배 */
-export const DETAIL_CHART_CANDLE_COUNT = 60;
+/**
+ * 상세 차트 봉 수 = **서버 상한 200**(`FE-REQ-034` FR-60). 200 을 넘겨 불러도 200 이 온다.
+ * 이동평균 120 은 앞 119 봉이 빈다 — 받아들인다.
+ */
+export const DETAIL_CHART_CANDLE_COUNT = 200;
+
+export const chartTimeframeSpec = (timeframe: ChartTimeframe): ChartTimeframeSpec =>
+  CHART_TIMEFRAMES.find((item) => item.value === timeframe) ?? CHART_TIMEFRAMES[0]!;

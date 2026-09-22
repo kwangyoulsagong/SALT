@@ -37,6 +37,7 @@
     "./scrollContainer": "./src/ScrollContainer/ScrollContainer.tsx",
     "./root": "./src/Root/Root.tsx",
     "./previewChart": "./src/PreviewChart/PreviewChart.tsx",
+    "./tradingChart": "./src/TradingChart/TradingChart.tsx",
     "./useThrottle": "./src/Utils/hooks/useThrottle.tsx",
     "./useDebounce": "./src/Utils/hooks/useDebounce.tsx",
     "./numberText": "./src/NumberText/NumberText.tsx",
