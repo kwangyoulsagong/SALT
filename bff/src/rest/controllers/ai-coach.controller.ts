@@ -59,10 +59,21 @@ export class AppAICoachController {
   };
 
   explain = async (req: Request, res: Response, next: NextFunction) => {
+    // 20s 를 잡는 호출이다 — 화면을 떠나면 서버 LLM 호출도 같이 끊는다
+    const aborter = new AbortController();
+    res.on("close", () => {
+      if (!res.writableFinished) aborter.abort();
+    });
+
     try {
-      const data = await appAICoachService.explain(req.body);
+      const data = await appAICoachService.explain(
+        req.token!,
+        req.body,
+        aborter.signal,
+      );
       return res.json({ success: true, data });
     } catch (error) {
+      if (aborter.signal.aborted) return;
       next(error);
     }
   };

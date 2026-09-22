@@ -4,6 +4,7 @@
 - 브랜치: `feat/f004-bff-judgment` (base `main` `ebadcf9`) · 검증일: 2026-09-22
 - 상태: **부분 완료** — 종목 판단 경로(`/api/app/ai-coach/detail`)만 닫혔다. 코치 리포트 · 성적표 · 재생성 · 해설 인증은 미착수
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-bff-symbol-judgment.md`
+- **2026-09-22 슬라이스 5** (`feat/f004-bff-slice4`): 서버 4xx 전달 · `explain` 인증 · GET 재시도 — 루트 `checklists/F004-bff-upstream-errors.md`
 
 ## 1. 종목 판단 뷰모델 (FR-90~104)
 
@@ -19,7 +20,7 @@
 | FR-97 뉴스 병렬 · 실패 격리 | pass | `allSettled` · `degradedFields: ['news']` |
 | FR-98 `validity.code` 무가공 | pass | |
 | FR-99 목표가 기본값 0건 | pass | 테스트 |
-| FR-100 `explain` 인증 뒤로 | 미착수 | |
+| FR-100 `explain` 인증 뒤로 | pass | 슬라이스 5 — `authMiddleware` 뒤 · 토큰 전달 · 응답 무가공 |
 | FR-101 preflight `stopLossRate` · `maxLossOfTotalRate` | 미착수 | |
 | FR-102 관심 종목 뷰모델에 판단 필드 0건 | pass | `watchlist.viewmodel.ts` 무변경 |
 | FR-103 성적표 분포 · hits · misses | 미착수 | `/coach/report` 와 함께 |
@@ -36,6 +37,8 @@
 | FR-30~32 익절 플랜 | 미착수 | |
 | FR-40~41 행동 기록 `factCode` | 미착수 | FR-42 는 ADR-002 로 무효 |
 | FR-50~52 피드백 `reasonCode` | 미착수 | |
-| FR-60~63 재생성 429 · `generation-status` | 미착수 | BFF 가 서버 4xx 를 500 으로 바꾼다(회고 §3) — 먼저 고친다 |
-| FR-70~72 `explain` 인증 | 미착수 | |
+| FR-60 `generate` 429 + `Retry-After` 전달 | 부분 | 슬라이스 5 — 4xx → 500 변환을 고쳤고 프록시가 `Retry-After` 를 옮긴다. **서버에 쿨다운 · `Retry-After` 가 없다** |
+| FR-61 · FR-62 BFF 쿨다운 상태 0 · 재시도 0 | pass | 프록시 경로 · 상태 없음 |
+| FR-63 `generation-status` | 미착수 | 서버 엔드포인트 없음 |
+| FR-70~72 `explain` 인증 | pass | 슬라이스 5. FR-72 요청 제한은 서버(분당 10) — BFF 는 동시 수만 |
 | FR-80~84 하지 않는 것 | pass | 점수 · LLM · 문구 · 주문 코드 0건 (이 브랜치 diff 기준) |

@@ -1,4 +1,6 @@
+import { createConcurrencyGate } from "../utils/concurrency.util";
 import { AppError } from "../utils/error.util";
+import { retryOnceOnGet } from "../utils/retry.util";
 import { backendApi } from "./backend-api.service";
 import {
   SymbolCoachContractError,
@@ -10,6 +12,12 @@ import {
 /** `BFF-REQ-025` 호출 맵 — 판단 · 뉴스 모두 300ms. 화면 예산 200ms(`BFF-REQ-026` FR-50) */
 const SYMBOL_COACH_TIMEOUT_MS = 300;
 const SYMBOL_NEWS_TIMEOUT_MS = 300;
+/** `BFF-REQ-025` FR-1 — LLM 호출이다. 재시도 0회(FR-2) */
+const EXPLAIN_TIMEOUT_MS = 20_000;
+/** `BFF-REQ-025` FR-7 — 동시 `explain` 상한. 넘으면 429 로 바로 돌려보낸다 */
+const EXPLAIN_MAX_CONCURRENT = 2;
+
+const explainGate = createConcurrencyGate(EXPLAIN_MAX_CONCURRENT);
 
 type BackendEnvelope<T> = {
   success: boolean;
@@ -20,10 +28,12 @@ type BackendEnvelope<T> = {
 export class AppAICoachService {
   async getPreview(token: string, query: any) {
     const symbol = (query.symbol || "BTC").toString().toUpperCase();
-    const response = await backendApi.proxyAuthRequest(
-      "GET",
-      `/ai-coach?symbol=${encodeURIComponent(symbol)}&preview=true`,
-      token,
+    const response = await retryOnceOnGet(() =>
+      backendApi.proxyAuthRequest(
+        "GET",
+        `/ai-coach?symbol=${encodeURIComponent(symbol)}&preview=true`,
+        token,
+      ),
     );
     const data = (response.data as BackendEnvelope<any>).data;
 
@@ -60,20 +70,29 @@ export class AppAICoachService {
         ? `&mode=${query.mode}`
         : "";
 
+    // 둘 다 조회라 각자 1회 재시도한다(호출 맵). 재시도도 병렬이다 — 뉴스 재시도가 판단을 늦추지 않는다
     const [coach, news] = await Promise.allSettled([
-      backendApi.proxyAuthRequest(
-        "GET",
-        `/ai-coach?symbol=${symbol}${mode}`,
-        token,
-        undefined,
-        { timeout: SYMBOL_COACH_TIMEOUT_MS, signal },
+      retryOnceOnGet(
+        () =>
+          backendApi.proxyAuthRequest(
+            "GET",
+            `/ai-coach?symbol=${symbol}${mode}`,
+            token,
+            undefined,
+            { timeout: SYMBOL_COACH_TIMEOUT_MS, signal },
+          ),
+        signal,
       ),
-      backendApi.proxyAuthRequest(
-        "GET",
-        `/market-intelligence/${symbol}/news?limit=3`,
-        token,
-        undefined,
-        { timeout: SYMBOL_NEWS_TIMEOUT_MS, signal },
+      retryOnceOnGet(
+        () =>
+          backendApi.proxyAuthRequest(
+            "GET",
+            `/market-intelligence/${symbol}/news?limit=3`,
+            token,
+            undefined,
+            { timeout: SYMBOL_NEWS_TIMEOUT_MS, signal },
+          ),
+        signal,
       ),
     ]);
 
@@ -151,14 +170,31 @@ export class AppAICoachService {
     };
   }
 
-  // LLM(Gemini) 해설 — salt-server의 public 엔드포인트로 프록시
-  async explain(body: any) {
-    const response = await backendApi.proxyRequest(
-      "POST",
-      "/ai-coach/explain",
-      body,
-    );
-    return (response.data as BackendEnvelope<any>).data;
+  /**
+   * 즉석 해설(LLM) — `BFF-REQ-023` FR-100 · `BFF-REQ-025` FR-1~12 · FR-34~35 · FR-44.
+   *
+   * - **토큰을 전달한다.** 서버 `explain` 은 아직 공개 경로라 토큰을 무시한다 — BFF 가 먼저
+   *   보내야 서버가 인증을 켜도 끊기지 않는다(FR-11 "BFF 먼저").
+   * - 20s · **재시도 0회.** 서버가 폴백을 갖고 있고 LLM 재시도는 비용이다.
+   * - 동시 2개. 넘으면 서버에 보내지 않고 429 `explain_busy`.
+   * - 본문을 가공 · 로깅하지 않는다. `{ renderable: false }` 도 200 으로 그대로 전달한다.
+   */
+  async explain(token: string, body: unknown, signal?: AbortSignal) {
+    const release = explainGate.tryAcquire();
+    if (!release) throw new AppError("explain_busy", 429);
+
+    try {
+      const response = await backendApi.proxyAuthRequest(
+        "POST",
+        "/ai-coach/explain",
+        token,
+        body,
+        { timeout: EXPLAIN_TIMEOUT_MS, signal },
+      );
+      return (response.data as BackendEnvelope<unknown>).data;
+    } finally {
+      release();
+    }
   }
 
   private mapDecision(decision: any) {

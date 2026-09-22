@@ -30,6 +30,9 @@ const proxyHandler = async (
     return res.status(response.status).json(response.data);
   } catch (error: any) {
     if (error.response) {
+      // 쿨다운 429 는 본문만으로 부족하다 — 언제 다시 부를지는 헤더에 있다 (`BFF-REQ-023` FR-60)
+      const retryAfter = error.response.headers?.["retry-after"];
+      if (retryAfter !== undefined) res.setHeader("Retry-After", String(retryAfter));
       return res.status(error.response.status).json(error.response.data);
     }
     next(error);

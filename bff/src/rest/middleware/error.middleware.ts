@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { AppError } from "../../utils/error.util";
+import { AppError, toUpstreamClientError } from "../../utils/error.util";
 import { logger } from "../../config/logger";
 
 export const errorMiddleware = (
@@ -19,6 +19,17 @@ export const errorMiddleware = (
     return res.status(err.statusCode).json({
       success: false,
       message: err.message,
+    });
+  }
+
+  // 서버 4xx(429 포함)를 500 으로 바꾸지 않는다 — `Retry-After` 까지 그대로 (`BFF-REQ-025` FR-6)
+  const upstream = toUpstreamClientError(err);
+  if (upstream) {
+    if (upstream.retryAfter) res.setHeader("Retry-After", upstream.retryAfter);
+    return res.status(upstream.status).json({
+      success: false,
+      ...(upstream.code ? { code: upstream.code } : {}),
+      message: upstream.message,
     });
   }
 
