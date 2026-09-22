@@ -25,6 +25,11 @@
 | eslint (변경 슬라이스 · SegmentedControl · core) `--max-warnings 0` | pass (FSD 레이어 규칙 포함) |
 | `vitest --project unit src/SegmentedControl` | 5/5 |
 | `next build` (web) | pass |
+| `pnpm check-types` · `pnpm lint` (monorepo 전체, turbo 6 태스크) | pass |
+| `pnpm test:layer-check` | 차단 8 · 통과 5 |
+| `layer-check` 훅을 변경 파일 전부에 직접 실행 | 차단 0 — 이번 파일은 Bash 로 써서 쓰기 시점 훅이 돌지 않았다. 사후에 같은 훅으로 확인 |
+| `next build` (web-tax) — `@repo/ui` exports 변경 영향 | pass · `/tax` 102 kB |
+| `build-storybook` (ui) | pass · `SegmentedControl` 3 스토리 색인 |
 
 ## 3. 미검증 · 범위 밖
 

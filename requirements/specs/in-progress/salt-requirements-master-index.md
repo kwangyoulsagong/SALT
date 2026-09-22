@@ -196,7 +196,17 @@ flowchart TB
 | `FE-REQ-011` F000 FUNC | **in-progress** | 실시간 수신 표시(FR-11~14) — BFF 가 끊기면 헤더가 **"연결 끊김 · 재연결 중"** 이고 기준 시각을 쓰지 않는다. FR-10 은 수신 시각을 `wsClient` 에 두는 것으로 다르게 갔다. `checklists/F000-realtime-reliability.md` |
 | `FE-REQ-012` F000 API | **in-progress** | WS 절(FR-24~26) — 참조 카운트 구독으로 **떠난 화면의 구독을 해제**한다(원래는 리스너만 뗐다). 재연결 3s→30s 백오프 |
 | `BFF-REQ-010` F000 PERF | **in-progress** | WS 절 — 측정(FR-15) 18.9건/초. **throttle(FR-11)은 만들지 않는다는 판정.** 시세가 조용히 멈추는 경로 넷을 닫았다. 시세 개요 A절 — 가격 캐시 **히트율 0%** 를 재고 덧씌우기를 걷어냈다(FR-2 는 다르게) |
-| 나머지 133개 | to-do | |
+| `DB-REQ-017` F004 SCHEMA | **in-progress** | 판단 스냅샷 · 성적표 · 게이지 적중률 집계 테이블(슬라이스 1·2). `checklists/F004-symbol-judgment.md` · `F004-zone-gauge.md` |
+| `SRV-REQ-024` F004 FUNC | **in-progress** | 종목 판단을 스냅샷으로 남겨 성적표 표본을 쌓는다 · `zone`(내 규칙 가격/관찰 구간) · 게이지 적중률(슬라이스 1·2) |
+| `SRV-REQ-025` F004 API | **in-progress** | `GET /ai-coach` 에 `modes.*`(판단 · `renderable` · `zone`) · `gaugeTrackRecords` · `disclaimer`. `confidence` 없음 |
+| `BFF-REQ-023` F004 FUNC | **in-progress** | `/api/app/ai-coach/detail` = `SymbolCoachViewModel` · 두 모드 한 응답 · 기본 라벨 제거(슬라이스 3). `checklists/F004-bff-symbol-judgment.md` |
+| `BFF-REQ-024` F004 API | **in-progress** | 모드 블록 `renderable` 판별 union. **FR-30 `packages/core` 닫힘**(`@repo/core/coach`, 사본 — BFF 는 workspace 밖) |
+| `BFF-REQ-025` F004 UPSTREAM | **in-progress** | 면책 없으면 502 · 모드 계약 깨지면 `null`. `explain` 인증 · `/coach/report` · 429 남음 |
+| `BFF-REQ-026` F004 PERF | **in-progress** | p95 32ms · 클라이언트 종료 시 upstream 취소(코드 — 서버 로그 미확인) |
+| `FE-REQ-026` F004 UI | **in-progress** | **K절 우측 AI 코치 패널**(슬라이스 4) — 게이트 · 모드 스위치 · 구간 · 게이지 한 줄. ⑦ · L · M절 남음. `checklists/F004-fe-coach-panel.md` |
+| `FE-REQ-028` F004 API | **in-progress** | 패널 클라이언트 조회 · 키에 모드 없음 · 취소. 모드 전환은 `history.replaceState`(FR-83 개정) — 실측 요청 0건 |
+| `FE-REQ-029` F004 PERF | **in-progress** | `/investments` First Load 135 → 135 kB · 취소 6~8/11. p95 · 리렌더 · CLS 미측정 |
+| 나머지 123개 | to-do | |
 
 **P0 아키텍처 전환 3개(FE)가 끝났다.** `FE-REQ-007`→`008`→`009`.
 **셋 다 `done/`이다.** `009`는 수용 기준을 전부 만족했고, `007`·`008`은 남은 항목이
@@ -256,9 +266,19 @@ flowchart TB
 > 0% 로 돌았다. 레이아웃은 2026-09-18 에 375/390/1440 만 보고 닫아 1280 에서 페이지가 가로로
 > 밀리던 것을 놓쳤다.
 
-**다음은 투자 화면 우측 AI 코치 패널의 요구사항이다.** 스토리보드(`pm/storyboard`)와
-프로토타입(`AICoachPanel`)에는 설계돼 있는데 PM 기획서에는 FR-33 "카드 1개"로만 내려왔고
-프론트·BFF·서버 REQ 에는 없다.
+~~**다음은 투자 화면 우측 AI 코치 패널의 요구사항이다.**~~ 2026-09-21 REQ 로 내렸고(스토리보드 갭 감사)
+F004 슬라이스 1~4 로 서버 → BFF → 프론트까지 이었다(아래).
+
+**F004 수직 슬라이스 1~4 — 투자 우측 AI 코치 패널 (2026-09-21 ~ 22).** 서버가 판단을 스냅샷으로
+남겨 성적표 표본을 쌓고(1) `zone` · 게이지 적중률을 내고(2), BFF 가 `renderable` 판별 union 뷰모델로
+접고(3), 프론트가 시세 프리뷰 슬롯에 ①②③ · 게이지 한 줄을 그린다(4). 범위 ·
+검증은 `requirements/specs/in-progress/F004-*-slice.md` · `requirements/reports/checklists/F004-*.md`.
+
+> **지금은 전부 막혀 있고 그게 정상이다.** 판단 유형당 표본 20건 전에는 `insufficient_sample` 이라
+> 패널의 주 화면이 `BlockedNotice` 다. 판단이 열린 화면은 실데이터로 본 적이 없다.
+
+다음 F004 는 BFF 슬라이스 4(`explain` 인증 · `/coach/report` · 429 — 서버 4xx 가 500 이 되는 문제 먼저)
+또는 FE 상세 분석 페이지(`FE-REQ-026` L절 · ⑦ 버튼).
 
 **레이어 규칙은 이제 실행된다.** 새 프론트 작업은 쓰기 시점에 `layer-check` 훅을 통과해야 한다.
 새 슬라이스는 `layered-architecture.md` §4 표 → `packages/eslint-plugin-fsd/layer-rules.cjs`의
@@ -319,4 +339,5 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-18 | `SRV-REQ-006` 미충족 8건 처리 — **LLM 해설에서 수익률 예측을 없앴다**(공통 수용 기준 4). 외부 클라이언트 넷에 **타임아웃이 아예 없던 것**을 찾아 `shared/infrastructure/retry` 와 함께 넣었고 기동 시 캔들 수집 실패가 **다수 → 0건**이 됐다. 한글 뉴스 언어 필터는 **살리는 쪽**으로 정했다(3단계 특성화 테스트가 그 변경을 한 번 걸렀다). `AppError` 하위 클래스의 `instanceof` 가 전부 거짓이던 것도 함께 고쳤다 |
 | 2026-09-18 | **초대 코드 · 온보딩 3스텝 수직 슬라이스.** `auth`(DDD)와 `onboarding`(조합) 컨텍스트 신설, BFF 온보딩 3계약, 프론트 온보딩 화면. `register`·`password`·`account` 세 경로가 404 다. `ErrorKind` 에 `Unauthenticated`(401)를 더했고, **이 레포의 첫 `$transaction`** 이 나왔다 — 규칙상 트랜잭션을 열 자리가 없어 원자성을 Port 계약(`redeem`)으로 올렸다 |
 | 2026-09-21 | **실시간 시세 신뢰성 수직 슬라이스.** `FE-REQ-011`·`FE-REQ-012`·`BFF-REQ-010` 을 `in-progress` 로. 서버 거래소 호출에 출발 간격 제한(`shared/infrastructure/pacer`), BFF WS 결함 넷, 프론트 연결 상태·끊김 표시·구독 해제. 계약 변경 없음(`connected` 메시지 `userId` 제거, 소비처 0건) |
+| 2026-09-22 | **F004 슬라이스 1~4 상태 반영.** 서버 판단 스냅샷 · `zone` · 게이지 적중률, BFF `SymbolCoachViewModel`, 프론트 우측 AI 코치 패널. 10개 REQ `in-progress`(1~3 슬라이스는 이 표에 늦게 올렸다). `@repo/core/coach` · `@repo/ui/segmentedControl` 신설 |
 | 2026-09-21 | **시세 표 필터 · 기간 변동률 · 레이아웃 수직 슬라이스.** 계약 변경(추가): overview 항목 `periodChange` · 모르는 기간 422 — BFF 가 4xx 를 그대로 전달한다. `FE-REQ-010` 반응형 판정을 정정(1280·1024 누락). 우측 AI 코치 패널이 REQ 에 없다는 것을 확인 |
