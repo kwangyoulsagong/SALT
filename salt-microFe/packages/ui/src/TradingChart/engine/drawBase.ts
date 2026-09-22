@@ -1,4 +1,4 @@
-import type { TradingPriceLine } from "../types";
+import type { TradingPriceBand, TradingPriceLine } from "../types";
 import { formatCompact, formatPrice } from "./format";
 import type { ChartLayout } from "./layout";
 import { decimalsForStep, linearScale, type LinearScale, niceStep, niceTicks, priceExtent } from "./scale";
@@ -9,6 +9,7 @@ import { indexToX, type Viewport, visibleRange } from "./viewport";
 
 export interface BaseDrawOptions {
   priceLines: readonly TradingPriceLine[];
+  priceBand: TradingPriceBand | null;
   /** 그릴 이동평균의 `series.movingAverages` 번호. 숨긴 선은 빠진다 */
   visibleAverages: readonly number[];
   intraday: boolean;
@@ -33,6 +34,13 @@ const EMPTY_FRAME: BaseFrame = {
 
 /** 가장자리 표시 한 줄 높이 */
 const EDGE_ROW = 16;
+
+const lineColor = (tone: TradingPriceLine["tone"]): string =>
+  tone === "down" ? CHART_THEME.priceLineDown : tone === "zone" ? CHART_THEME.zone : CHART_THEME.priceLineNeutral;
+
+/** 이름표 높이 · 띠 안쪽 여백 */
+const ZONE_CHIP_HEIGHT = 20;
+const ZONE_CHIP_INSET = 6;
 
 /** 반 픽셀 정렬 — 1px 선이 두 픽셀에 번지지 않게 */
 const crisp = (v: number) => Math.round(v) + 0.5;
@@ -84,12 +92,9 @@ export const drawBase = (
   // (375px 실측). 범위는 캔들만으로 정한다(FR-9) — 선 때문에 캔들이 납작해지지 않는다
   const linesAbove = options.priceLines.filter((line) => line.price > extent.max).length;
   const linesBelow = options.priceLines.filter((line) => line.price < extent.min).length;
-  const price = linearScale(
-    extent.min,
-    extent.max,
-    priceTop + linesAbove * EDGE_ROW,
-    priceBottom - linesBelow * EDGE_ROW,
-  );
+  const scaleTop = priceTop + linesAbove * EDGE_ROW;
+  const scaleBottom = priceBottom - linesBelow * EDGE_ROW;
+  const price = linearScale(extent.min, extent.max, scaleTop, scaleBottom);
   const tickCount = Math.max(2, Math.round((priceBottom - priceTop) * CHART_LAYOUT.priceTickPerPx));
   const priceTicks = niceTicks(extent.min, extent.max, tickCount);
   const priceDecimals = decimalsForStep(niceStep(extent.max - extent.min, tickCount));
@@ -133,6 +138,18 @@ export const drawBase = (
   ctx.moveTo(0, crisp(timeAxisTop));
   ctx.lineTo(width, crisp(timeAxisTop));
   ctx.stroke();
+
+  // ── 가격 구간 띠 — 캔들 **아래**. 가격 창 안으로 자른다(범위 밖이면 걸친 만큼만)
+  const band = options.priceBand;
+  let bandRect: { top: number; bottom: number } | null = null;
+  if (band && band.upper > extent.min && band.lower < extent.max) {
+    // 가장자리 표시 줄은 비워 둔다 — 범위 밖 경계선의 ▲▼ 표시가 그 자리에 있다
+    const bandTop = Math.max(scaleTop, price.toY(band.upper));
+    const bandBottom = Math.min(scaleBottom, price.toY(band.lower));
+    bandRect = { top: bandTop, bottom: bandBottom };
+    ctx.fillStyle = CHART_THEME.zoneFill;
+    ctx.fillRect(0, bandTop, plotWidth, bandBottom - bandTop);
+  }
 
   // ── 가격 창 · 거래량 창만 칠한다(축 위로 번지지 않게)
   ctx.save();
@@ -234,7 +251,7 @@ export const drawBase = (
   // 가격선 — 범위 안이면 선, 밖이면 가장자리 표시(FR-8)
   const edgeMarks: Array<{ y: number; text: string; color: string; up: boolean }> = [];
   for (const line of options.priceLines) {
-    const color = line.tone === "down" ? CHART_THEME.priceLineDown : CHART_THEME.priceLineNeutral;
+    const color = lineColor(line.tone);
     const y = price.toY(line.price);
     if (line.price > extent.max || line.price < extent.min) {
       const up = line.price > extent.max;
@@ -255,6 +272,27 @@ export const drawBase = (
     ctx.stroke();
   }
   ctx.setLineDash([]);
+  // 구간 이름표 — 캔들 **위**, 띠 왼쪽 위 안쪽. 띠가 얇으면 띠 바로 위(자리가 없으면 아래)
+  if (band && bandRect) {
+    const text = band.label;
+    const chipW = ctx.measureText(text).width + 16;
+    const inside = bandRect.bottom - bandRect.top >= ZONE_CHIP_HEIGHT + ZONE_CHIP_INSET * 2;
+    let chipTop = inside ? bandRect.top + ZONE_CHIP_INSET : bandRect.top - ZONE_CHIP_HEIGHT - 3;
+    if (chipTop < scaleTop) chipTop = bandRect.bottom + 3;
+    // 흰 바탕 위에 옅은 액센트 — 캔들 위에서도 글자가 읽힌다
+    ctx.beginPath();
+    if (typeof ctx.roundRect === "function") ctx.roundRect(ZONE_CHIP_INSET, chipTop, chipW, ZONE_CHIP_HEIGHT, 4);
+    else ctx.rect(ZONE_CHIP_INSET, chipTop, chipW, ZONE_CHIP_HEIGHT);
+    ctx.fillStyle = CHART_THEME.badgeText;
+    ctx.fill();
+    ctx.fillStyle = CHART_THEME.zoneChipBg;
+    ctx.fill();
+    ctx.font = CHART_THEME.fontBold;
+    ctx.fillStyle = CHART_THEME.zoneChipText;
+    ctx.fillText(text, ZONE_CHIP_INSET + 8, chipTop + ZONE_CHIP_HEIGHT / 2);
+    ctx.font = CHART_THEME.font;
+  }
+
   // 가장자리 표시 — **왼쪽**에 흰 바탕으로 쌓는다. 오른쪽은 최근 봉 · 최고가 표시와 겹친다(2026-09-22 실측)
   let upStack = 0;
   let downStack = 0;
@@ -309,7 +347,7 @@ export const drawBase = (
   for (const line of options.priceLines) {
     if (line.price > extent.max || line.price < extent.min) continue;
     const y = price.toY(line.price);
-    const color = line.tone === "down" ? CHART_THEME.priceLineDown : CHART_THEME.priceLineNeutral;
+    const color = lineColor(line.tone);
     badge(ctx, formatPrice(line.price), plotWidth + 1, y, color, CHART_THEME.badgeText);
   }
   if (lastY >= priceTop && lastY <= priceBottom) {
