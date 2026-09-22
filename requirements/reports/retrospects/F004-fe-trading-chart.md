@@ -16,4 +16,4 @@
 ## 다음
 
 - 서버 후속(명시 필요): 차트 응답 캐시 · 시각 키 통일 · `to`/`week` · (F004) preflight `stopLossRate` · explain abort
-- `candleTime` 을 `@repo/core` 로 옮기며 테스트 러너 도입(RN 도 같은 병합이 필요)
+- `candleTime` 을 `@repo/core` 로 옮기며 테스트 러너 도입(RN 도 같은 병합이 필요) → **슬라이스 8 에서 닫힘**
