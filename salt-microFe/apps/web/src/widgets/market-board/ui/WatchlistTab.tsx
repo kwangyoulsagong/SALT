@@ -19,6 +19,7 @@ import {
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
 
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
+import type { PreviewRenderer } from "../model/previewSlot";
 import { previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
 
 /**
@@ -34,7 +35,11 @@ import { previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
  * 탭과 같아서 대부분 캐시 적중이고, 목록 밖의 심볼(100위 밖)이면 패널이 자리만 지킨다.
  * 프리뷰를 이 탭 전용으로 새로 만들면 "실시간 탭과 같은 동작"(FR-32)이 두 구현이 된다.
  */
-export const WatchlistTab = () => {
+export const WatchlistTab = ({
+  renderPreview,
+}: {
+  renderPreview?: PreviewRenderer;
+}) => {
   const { data, isPending, isError, isSignedOut } = useWatchlist();
   const { data: overview } = useMarketOverview(DEFAULT_MARKET_PARAMS);
 
@@ -124,7 +129,11 @@ export const WatchlistTab = () => {
         />
       </div>
       <div className={previewPane}>
-        <MarketPreview subject={previewSubject} />
+        {renderPreview ? (
+          renderPreview(previewSubject)
+        ) : (
+          <MarketPreview subject={previewSubject} />
+        )}
       </div>
     </FlexBox>
   );

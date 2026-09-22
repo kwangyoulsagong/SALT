@@ -7,17 +7,30 @@ import { Padding } from "@repo/ui/padding";
 import { Root } from "@repo/ui/root";
 import { ScrollContainer } from "@repo/ui/scrollContainer";
 import { Text } from "@repo/ui/text";
-import React, { Suspense } from "react";
+import React, { type ReactNode, Suspense } from "react";
 
 import { MARKET_MESSAGES } from "../../model";
 import { MarketPreviewSubject } from "../../model/types";
-import { MarketIntelligencePreview } from "./MarketIntelligencePreview";
+import {
+  type GaugeFooters,
+  MarketIntelligencePreview,
+} from "./MarketIntelligencePreview";
 import { previewPanel } from "./MarketPreview.css";
 import { MarketPreviewChart } from "./MarketPreviewChart";
 import { MarketPreviewHeader } from "./MarketPreviewHeader";
 
 interface MarketPreviewProps {
   subject: MarketPreviewSubject | undefined;
+  /**
+   * 차트와 게이지 사이에 끼우는 블록. 우측 AI 코치 패널(`widgets/coach-panel`)이
+   * 모드 스위치 · 판단 · 구간을 여기로 넣는다(`FE-REQ-026` FR-110).
+   *
+   * **슬롯인 이유:** 시세 슬라이스가 코치 슬라이스를 import 하면 같은 레이어 cross-slice 다.
+   * 조합은 위 레이어가 하고 이 컴포넌트는 자리만 낸다.
+   */
+  coachSlot?: ReactNode;
+  /** 각 게이지 바로 아래 한 줄(적중률, FR-118). 자리만 낸다 — 위와 같은 이유 */
+  gaugeFooters?: GaugeFooters;
 }
 
 /** 차트·심리·스마트머니의 소스가 업비트다. 이 자산군에만 있다. */
@@ -37,7 +50,11 @@ const MARKET_DATA_ASSET_TYPE = "crypto";
  * 차트와 심리·스마트머니는 업비트에서 온다. 주식 심볼로 그 블록을 그리면 없는 데이터를
  * 기다리는 빈 영역이 된다 — 대신 **왜 없는지 한 줄**을 보여준다.
  */
-export const MarketPreview = ({ subject }: MarketPreviewProps) => {
+export const MarketPreview = ({
+  subject,
+  coachSlot,
+  gaugeFooters,
+}: MarketPreviewProps) => {
   const hasMarketData = subject?.assetType === MARKET_DATA_ASSET_TYPE;
 
   return (
@@ -55,12 +72,19 @@ export const MarketPreview = ({ subject }: MarketPreviewProps) => {
                     {MARKET_MESSAGES.chartHeading}
                   </Heading>
                   <MarketPreviewChart symbol={subject.symbol} />
-                  <MarketIntelligencePreview symbol={subject.symbol} />
+                  {coachSlot}
+                  <MarketIntelligencePreview
+                    symbol={subject.symbol}
+                    gaugeFooters={gaugeFooters}
+                  />
                 </>
               ) : (
-                <Text color="tertiary">
-                  {MARKET_MESSAGES.marketDataUnavailable}
-                </Text>
+                <>
+                  {coachSlot}
+                  <Text color="tertiary">
+                    {MARKET_MESSAGES.marketDataUnavailable}
+                  </Text>
+                </>
               )}
             </FlexBox>
           ) : null}

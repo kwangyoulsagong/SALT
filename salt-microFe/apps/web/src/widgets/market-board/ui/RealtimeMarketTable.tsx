@@ -38,6 +38,7 @@ import {
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
 
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
+import type { PreviewRenderer } from "../model/previewSlot";
 import { previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
 import { RealtimeAsOf } from "./RealtimeAsOf";
 
@@ -55,7 +56,11 @@ const HOVER_SELECT_DELAY_MS = 80;
  *
  * **변경 금지 목록이다** (FR-36): 5컬럼 · 필터 3그룹 · 변동률 blink 2초 · 2컬럼 배치.
  */
-export const RealtimeMarketTable = () => {
+export const RealtimeMarketTable = ({
+  renderPreview,
+}: {
+  renderPreview?: PreviewRenderer;
+}) => {
   /**
    * 초기값이 `DEFAULT_MARKET_PARAMS` 와 **같아야 한다** — 관심 종목 탭의 프리뷰가
    * 그 파라미터로 같은 목록을 읽는다. 어긋나면 쿼리 키가 갈라져 목록을 두 번 받는다.
@@ -246,7 +251,11 @@ export const RealtimeMarketTable = () => {
         </div>
 
         <div className={previewPane}>
-          <MarketPreview subject={previewSubject} />
+          {renderPreview ? (
+            renderPreview(previewSubject)
+          ) : (
+            <MarketPreview subject={previewSubject} />
+          )}
         </div>
       </FlexBox>
     </FlexBox>
