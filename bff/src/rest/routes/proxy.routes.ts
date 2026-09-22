@@ -72,27 +72,12 @@ router.get("/investment/market/symbols", (req, res, next) =>
 
 // Market Intelligence
 router.get("/market-intelligence/:symbol/dashboard", proxyHandler);
-// Missions 관련
-router.get("/missions", authMiddleware, proxyHandler);
-router.get("/missions/today", authMiddleware, proxyHandler);
-router.get("/missions/my/history", authMiddleware, proxyHandler);
-router.get("/missions/my/stats", authMiddleware, proxyHandler);
-router.post("/missions/:id/start", authMiddleware, proxyHandler);
-router.post(
-  "/missions/progress/:progressId/complete",
-  authMiddleware,
-  proxyHandler,
-);
-router.post("/missions/admin", authMiddleware, proxyHandler);
-router.patch("/missions/admin/:id", authMiddleware, proxyHandler);
-router.delete("/missions/admin/:id", authMiddleware, proxyHandler);
+// `/missions*` · `/users/points/*` · `/users/achievements` 는 동면이다 — 410
+// (`gone.middleware` · `BFF-REQ-008` FR-11).
 
 // Users 관련
 router.get("/users/profile", authMiddleware, proxyHandler);
 router.patch("/users/profile", authMiddleware, proxyHandler);
-router.get("/users/points/transactions", authMiddleware, proxyHandler);
-router.get("/users/points/stats", authMiddleware, proxyHandler);
-router.get("/users/achievements", authMiddleware, proxyHandler);
 router.get("/users/dashboard", authMiddleware, proxyHandler);
 // `PATCH /users/password` · `DELETE /users/account` 는 제거했다 — 서버에서 404 다
 // (`SRV-REQ-009` 제거 목록 · `BFF-REQ-008` 제거 표).
