@@ -14,10 +14,13 @@ import {
   JudgmentSummary,
   selectModeView,
   useSymbolCoach,
+  zoneToPriceBand,
+  zoneToPriceLines,
   ZoneSummary,
 } from "@/entities/coach";
 import {
   type GaugeFooters,
+  type MarketChartOverlay,
   MarketPreview,
   type MarketPreviewSubject,
 } from "@/entities/market";
@@ -89,6 +92,17 @@ export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
     };
   }, [data]);
 
+  // 차트 위 구간 — 모드가 바뀌면 같은 응답의 다른 구간이다(요청 없음, FR-112). 판단이 막혀도 그린다(FR-117)
+  const chartOverlay = useMemo<MarketChartOverlay | undefined>(() => {
+    if (!data || !mode) return undefined;
+    const modeView = selectModeView(data, mode);
+    if (!modeView) return undefined;
+    return {
+      priceLines: zoneToPriceLines(modeView.zone),
+      priceBand: zoneToPriceBand(modeView.zone),
+    };
+  }, [data, mode]);
+
   const renderBlocks = () => {
     if (isSignedOut) return <Text color="tertiary">{COACH_MESSAGES.signedOut}</Text>;
     if (isError) {
@@ -118,6 +132,7 @@ export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
       subject={subject}
       coachSlot={<div className={coachBlocks}>{renderBlocks()}</div>}
       gaugeFooters={gaugeFooters}
+      chartOverlay={chartOverlay}
       footerSlot={
         subject && (
           <Link href={detailHref(subject.symbol, mode)} className={detailLink}>

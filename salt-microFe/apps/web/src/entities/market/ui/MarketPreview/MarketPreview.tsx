@@ -16,7 +16,7 @@ import {
   MarketIntelligencePreview,
 } from "./MarketIntelligencePreview";
 import { previewPanel } from "./MarketPreview.css";
-import { MarketPreviewChart } from "./MarketPreviewChart";
+import { type MarketChartOverlay, MarketPreviewChart } from "./MarketPreviewChart";
 import { MarketPreviewHeader } from "./MarketPreviewHeader";
 
 interface MarketPreviewProps {
@@ -31,6 +31,8 @@ interface MarketPreviewProps {
   coachSlot?: ReactNode;
   /** 각 게이지 바로 아래 한 줄(적중률, FR-118). 자리만 낸다 — 위와 같은 이유 */
   gaugeFooters?: GaugeFooters;
+  /** 차트 위 선 · 띠. 코치 패널이 구간을 넣는다(`FE-REQ-036` FR-3) — 위와 같은 이유로 자리만 낸다 */
+  chartOverlay?: MarketChartOverlay;
   /** 패널 맨 아래. 코치 패널의 ⑦ [상세 분석 보기](FR-119)가 들어온다 — 위와 같은 이유로 자리만 낸다 */
   footerSlot?: ReactNode;
 }
@@ -57,6 +59,7 @@ export const MarketPreview = ({
   coachSlot,
   gaugeFooters,
   footerSlot,
+  chartOverlay,
 }: MarketPreviewProps) => {
   const hasMarketData = subject?.assetType === MARKET_DATA_ASSET_TYPE;
 
@@ -74,7 +77,7 @@ export const MarketPreview = ({
                   <Heading level={5} color="tertiary">
                     {MARKET_MESSAGES.chartHeading}
                   </Heading>
-                  <MarketPreviewChart symbol={subject.symbol} />
+                  <MarketPreviewChart symbol={subject.symbol} overlay={chartOverlay} />
                   {coachSlot}
                   <MarketIntelligencePreview
                     symbol={subject.symbol}

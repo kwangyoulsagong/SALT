@@ -8,6 +8,7 @@ export { MarketIntelligencePreview } from "./MarketPreview/MarketIntelligencePre
 export type { GaugeFooters } from "./MarketPreview/MarketIntelligencePreview";
 export { MarketNewsPreview } from "./MarketPreview/MarketNewsPreview";
 export { MarketPreviewChart } from "./MarketPreview/MarketPreviewChart";
+export type { MarketChartOverlay } from "./MarketPreview/MarketPreviewChart";
 export { MarketPreviewHeader } from "./MarketPreview/MarketPreviewHeader";
 
 export { MarketDetailChart } from "./MarketDetailChart";

@@ -1,7 +1,11 @@
 "use client";
 
 // 클라이언트 잎: 상태·effect·memo 를 갖는다. barrel 로 노출되므로 경계를 스스로 갖는다.
-import { PreviewChart } from "@repo/ui/previewChart";
+import {
+  type PriceBand,
+  type PriceLine,
+  PreviewChart,
+} from "@repo/ui/previewChart";
 import { Skeleton } from "@repo/ui/skeleton";
 import React from "react";
 
@@ -37,8 +41,17 @@ const CHART_FALLBACK_WIDTH = 447;
  * 차트 인스턴스는 심볼이 바뀌어도 **재사용된다** — `key` 를 주지 않으므로 데이터만
  * 교체된다(같은 문서 §3).
  */
+/**
+ * 차트 위에 얹는 선 · 띠. **시세 슬라이스는 이것이 무엇인지 모른다** — 코치 구간을 바꿔 넣는 것은
+ * 위 레이어다(`MarketPreview` `coachSlot` 과 같은 이유).
+ */
+export interface MarketChartOverlay {
+  priceLines: readonly PriceLine[];
+  priceBand: PriceBand | null;
+}
+
 export const MarketPreviewChart = React.memo(
-  ({ symbol }: { symbol: string }) => {
+  ({ symbol, overlay }: { symbol: string; overlay?: MarketChartOverlay }) => {
     const { data, isLoading, isError } = useMarketChartPreview(symbol);
     const [containerRef, width] =
       useElementWidth<HTMLDivElement>(CHART_FALLBACK_WIDTH);
@@ -52,12 +65,21 @@ export const MarketPreviewChart = React.memo(
         {isLoading ? (
           <Skeleton height={CHART_HEIGHT} />
         ) : isError || !data ? null : (
-          <PreviewChart symbol={symbol} data={data.data} width={width} />
+          <PreviewChart
+            symbol={symbol}
+            data={data.data}
+            width={width}
+            priceLines={overlay?.priceLines}
+            priceBand={overlay?.priceBand}
+          />
         )}
       </div>
     );
   },
-  (prevProps, nextProps) => prevProps.symbol === nextProps.symbol,
+  // 덮개는 부르는 쪽이 memo 로 넘긴다 — 참조가 같으면 다시 그리지 않는다
+  (prevProps, nextProps) =>
+    prevProps.symbol === nextProps.symbol &&
+    prevProps.overlay === nextProps.overlay,
 );
 MarketPreviewChart.displayName = "MarketPreviewChart";
 

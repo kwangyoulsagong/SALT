@@ -1,5 +1,10 @@
 import type { Zone } from "@repo/core/coach";
-import type { TradingPriceLine as PriceLine } from "@repo/ui/tradingChart";
+import type {
+  TradingPriceBand as PriceBand,
+  TradingPriceLine as PriceLine,
+} from "@repo/ui/tradingChart";
+
+import { formatPrice } from "@/shared/lib";
 
 import { COACH_MESSAGES } from "../model";
 
@@ -30,8 +35,21 @@ export const zoneToPriceLines = (zone: Zone): PriceLine[] => {
   }
 
   return [
-    { key: "lower", price: zone.lower, tone: "neutral", dashed: true, label: ZONE.observation.lower },
-    { key: "mid", price: zone.mid, tone: "neutral", dashed: false, label: ZONE.observation.mid },
-    { key: "upper", price: zone.upper, tone: "neutral", dashed: true, label: ZONE.observation.upper },
+    { key: "lower", price: zone.lower, tone: "zone", dashed: true, label: ZONE.observation.lower },
+    { key: "mid", price: zone.mid, tone: "zone", dashed: false, label: ZONE.observation.mid },
+    { key: "upper", price: zone.upper, tone: "zone", dashed: true, label: ZONE.observation.upper },
   ];
 };
+
+/**
+ * 구간 → 차트 띠 (`FE-REQ-036` FR-1). **관찰 구간만** 띠가 된다 — 내 규칙 가격 세 개는 서로 다른 뜻의
+ * 가격이라(손실 제한 · 익절 검토 · 추세 유지) 그 사이를 칠하면 "이 안이 좋다"로 읽힌다. 가격은 서버 값 그대로.
+ */
+export const zoneToPriceBand = (zone: Zone): PriceBand | null =>
+  zone.kind === "observation"
+    ? {
+        lower: zone.lower,
+        upper: zone.upper,
+        label: ZONE.bandLabel(formatPrice(zone.lower), formatPrice(zone.upper)),
+      }
+    : null;
