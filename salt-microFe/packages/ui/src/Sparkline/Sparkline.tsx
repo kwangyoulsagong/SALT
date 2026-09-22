@@ -1,4 +1,6 @@
-import { sparklineStyles } from "./styles/sparkline.css";
+import { useId } from "react";
+
+import { baselineStyle, sparklineStyles } from "./styles/sparkline.css";
 
 export type SparklineTone = "auto" | "up" | "down" | "neutral" | "brand";
 
@@ -11,6 +13,13 @@ export interface SparklineProps {
   strokeWidth?: number;
   /** 스크린 리더가 읽을 이름. 추세는 이 문구에도 담는다. */
   label: string;
+  /** 선 아래를 선 색으로 옅게 칠한다(위에서 아래로 사라지는 그라데이션). */
+  area?: boolean;
+  /**
+   * 점선 기준선을 그릴 값(예: 구간 시작 값). 범위 밖이면 범위를 넓혀 선이 보이게 한다.
+   * 무엇의 기준인지는 부르는 쪽이 `label` 에 담는다.
+   */
+  baseline?: number;
   className?: string;
 }
 
@@ -25,8 +34,12 @@ export const Sparkline = ({
   height = 24,
   strokeWidth = 1.5,
   label,
+  area = false,
+  baseline,
   className,
 }: SparklineProps) => {
+  // 한 화면에 여러 개가 있어도 그라데이션 id 가 겹치지 않게 한다
+  const gradientId = useId();
   const first = points[0];
   const last = points[points.length - 1];
 
@@ -43,22 +56,28 @@ export const Sparkline = ({
     return null;
   }
 
-  const min = Math.min(...points);
-  const max = Math.max(...points);
+  const scaled = baseline === undefined ? points : [...points, baseline];
+  const min = Math.min(...scaled);
+  const max = Math.max(...scaled);
   const span = max - min;
 
   // 내부 여백을 선 두께의 절반씩 둬야 위아래 끝이 잘리지 않는다.
   const inset = strokeWidth / 2;
   const drawableHeight = height - strokeWidth;
 
+  const yOf = (value: number) => {
+    const ratio = span === 0 ? 0.5 : (value - min) / span;
+    return height - inset - ratio * drawableHeight;
+  };
+
   const path = points
     .map((point, index) => {
       const x = (index / (points.length - 1)) * width;
-      const ratio = span === 0 ? 0.5 : (point - min) / span;
-      const y = height - inset - ratio * drawableHeight;
-      return `${index === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
+      return `${index === 0 ? "M" : "L"}${x.toFixed(2)} ${yOf(point).toFixed(2)}`;
     })
     .join(" ");
+  const areaPath = `${path} L${width} ${height} L0 ${height} Z`;
+  const baselineY = baseline === undefined ? undefined : yOf(baseline).toFixed(2);
 
   return (
     <svg
@@ -71,6 +90,26 @@ export const Sparkline = ({
         className || ""
       }`}
     >
+      {area ? (
+        <>
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="currentColor" stopOpacity={0.22} />
+              <stop offset="100%" stopColor="currentColor" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <path d={areaPath} fill={`url(#${gradientId})`} stroke="none" />
+        </>
+      ) : null}
+      {baselineY === undefined ? null : (
+        <line
+          x1={0}
+          x2={width}
+          y1={baselineY}
+          y2={baselineY}
+          className={baselineStyle}
+        />
+      )}
       <path
         d={path}
         fill="none"

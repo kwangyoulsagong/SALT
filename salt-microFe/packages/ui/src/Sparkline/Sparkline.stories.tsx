@@ -118,3 +118,15 @@ export const Large: Story = {
     strokeWidth: 2,
   },
 };
+
+/** 영역 채움 + 점선 기준선(구간 시작 값). 시장 요약 띠가 쓰는 모양이다. */
+export const AreaWithBaseline: Story = {
+  args: { points: rising, label: "" },
+  render: () => (
+    <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
+      <Sparkline points={rising} area baseline={rising[0]} width={104} height={56} label="상승 추세, 점선은 시작 값" />
+      <Sparkline points={falling} area baseline={falling[0]} width={104} height={56} label="하락 추세, 점선은 시작 값" />
+      <Sparkline points={falling} area baseline={falling[0]} width={320} height={120} label="큰 영역 차트, 점선은 시작 값" />
+    </div>
+  ),
+};
