@@ -2,7 +2,7 @@
 
 - REQ: `requirements/specs/in-progress/BFF-REQ-008-F000-API.md`
 - 브랜치: `feat/f000-watchlist-tab` → `feat/f000-invite-onboarding-slice` · 검증일: 2026-09-18
-- 상태: **부분 완료** — watchlist·news·portfolio/summary 에 이어 **온보딩 3계약**이 열렸다. 제거 목록은 함께 닫혔다
+- 상태: **부분 완료** — 신규 7계약 · 제거 목록 · **동면 410(FR-11, 2026-09-22)** 이 닫혔다. 남은 것은 FR-13(`packages/core` 공유)
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-watchlist-tab.md`
 
 ## 1. 신규 계약
@@ -14,12 +14,12 @@
 | DELETE | `/api/app/watchlist/:id` | **열림** | 204 |
 | GET | `/api/app/news` | **열림** | 실기사 · `symbol` 누락 400 |
 | GET | `/api/app/portfolio/summary` | **열림** | 이름 부착 · 합계 · `namesDegraded` |
-| GET | `/api/app/onboarding/invite/check` | 미구현 | 서버 엔드포인트 선행 |
-| POST | `/api/app/onboarding/invite` | 미구현 | 동일 |
-| GET | `/api/app/onboarding/status` | 미구현 | 동일 |
+| GET | `/api/app/onboarding/invite/check` | **열림** (2026-09-18) | 아래 "온보딩 3계약" |
+| POST | `/api/app/onboarding/invite` | **열림** (2026-09-18) | 동일 |
+| GET | `/api/app/onboarding/status` | **열림** (2026-09-18) | 동일 |
 
-제거 목록(`/api/auth/register` 등)은 손대지 않았다 — 초대 경로가 생긴 뒤에 지워야 로그인
-경로가 비지 않는다.
+제거 목록(`/api/auth/register` 등)은 초대 경로가 생긴 뒤 지웠다(2026-09-18) — 먼저 지우면 로그인
+경로가 빈다. 동면 경로 410 은 §5(2026-09-22).
 
 ## 2. 뷰모델
 
@@ -57,7 +57,7 @@
 | FR-13 | 뷰모델 타입을 `packages/core` 로 공유 | **미충족** — `bff` 는 workspace 밖이라 import 할 수 없다. 프론트가 같은 모양을 선언한다(`FE-REQ-024`) |
 
 **제거 목록**(`/api/auth/register` · `/users/password` · `/users/account`)도 함께 닫혔다.
-동면 경로 410(FR-11)은 남아 있다.
+동면 경로 410(FR-11)은 §5 에서 닫혔다.
 
 ## 뷰모델을 정규화한 이유
 
@@ -67,3 +67,13 @@
 서버가 한 칸을 빼먹었다고 스텝이 사라지면 사용자가 진행률을 잘못 읽는다.
 
 테스트 5건이 이 규칙을 지킨다(`src/services/__tests__/onboarding.viewmodel.test.ts`).
+
+## 5. FR-11 동면 경로 (2026-09-22, `chore/bff-cleanup` · `BFF-REQ-036`)
+
+| 경로 | 결과 |
+|---|---|
+| `/api/app/feed` · `/api/missions*` · `/api/users/points/*` · `/api/users/achievements` · `/api/dashboard*` | **410** `{ success:false, code:'ENDPOINT_DORMANT', revivable:true }` — 하위 경로 · 메서드 무관 |
+| `/api/users/profile` 등 유지 경로 | 그대로(401/200) |
+
+본문과 FR-1~6 판정은 `BFF-REQ-007.md` §9. **FR-14(유지 경로 하위 호환)**: 같은 PR 에서 5개 컨트롤러가 서버 4xx 를
+500 대신 원 status 로 주게 됐다 — 본문 키는 그대로(`BFF-REQ-036` FR-2).
