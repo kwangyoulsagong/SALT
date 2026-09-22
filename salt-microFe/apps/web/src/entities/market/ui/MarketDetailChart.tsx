@@ -8,6 +8,7 @@ import { Text } from "@repo/ui/text";
 import type {
   TradingCandle,
   TradingChart as TradingChartComponent,
+  TradingPriceBand,
   TradingPriceLine,
 } from "@repo/ui/tradingChart";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
@@ -56,6 +57,8 @@ interface MarketDetailChartProps {
    * 레이어가 한다(같은 레이어 cross-slice 를 피하는 슬롯, `MarketPreview` `coachSlot` 과 같다).
    */
   priceLines?: readonly TradingPriceLine[];
+  /** 옅게 칠할 구간 — 선과 같은 이유로 무엇인지 모른다 */
+  priceBand?: TradingPriceBand | null;
   /** 선 범례(예측 아님 배지 포함). 위와 같은 이유로 자리만 낸다 */
   legend?: ReactNode;
 }
@@ -70,6 +73,7 @@ export const MarketDetailChart = ({
   symbol,
   displayName,
   priceLines,
+  priceBand,
   legend,
 }: MarketDetailChartProps) => {
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(DEFAULT_CHART_TIMEFRAME);
@@ -131,6 +135,7 @@ export const MarketDetailChart = ({
             intraday={spec.period === "minute"}
             name={MARKET_MESSAGES.chartName(displayName, MARKET_MESSAGES.chartTimeframes[timeframe])}
             priceLines={priceLines}
+            priceBand={priceBand}
             resetKey={timeframe}
             legendAside={aside}
           />

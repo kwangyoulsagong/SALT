@@ -275,3 +275,16 @@ export const WithPriceLines: Story = {
     ],
   },
 };
+
+/** 미보유 종목의 "관찰 구간" — 옅은 띠 + 이름표. 범위 밖이면 이름표가 가장자리에 ▲▼ 로 남는다 */
+export const WithPriceBand: Story = {
+  args: {
+    ...Default.args,
+    priceLines: [
+      { key: "lower", price: 3110, tone: "zone", dashed: true, label: "하단" },
+      { key: "mid", price: 3130, tone: "zone", dashed: false, label: "중앙" },
+      { key: "upper", price: 3150, tone: "zone", dashed: true, label: "상단" },
+    ],
+    priceBand: { lower: 3110, upper: 3150, label: "관찰 구간 3,110 ~ 3,150 · 예측 아님" },
+  },
+};

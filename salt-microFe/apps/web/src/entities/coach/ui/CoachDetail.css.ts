@@ -147,4 +147,6 @@ export const swatch = styleVariants({
   downDashed: [swatchBase, { borderTopStyle: "dashed", borderTopColor: vars.colors.special.down }],
   neutralSolid: [swatchBase, { borderTopStyle: "solid", borderTopColor: vars.colors.neutral[500] }],
   neutralDashed: [swatchBase, { borderTopStyle: "dashed", borderTopColor: vars.colors.neutral[500] }],
+  zoneSolid: [swatchBase, { borderTopStyle: "solid", borderTopColor: vars.colors.ai.primary }],
+  zoneDashed: [swatchBase, { borderTopStyle: "dashed", borderTopColor: vars.colors.ai.primary }],
 });

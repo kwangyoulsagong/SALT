@@ -77,6 +77,11 @@ export const COACH_MESSAGES = {
     gapAbove: (gap: string) => `현재가보다 ${gap}원 위`,
     gapBelow: (gap: string) => `현재가보다 ${gap}원 아래`,
     gapNone: "현재가와 같음",
+    /**
+     * 차트 띠 이름표. **"매수존 · 바이존" 이라 쓰지 않는다**(`FEATURE-004` FR-21 — 화면 이름은 관찰 구간).
+     * `예측 아님` 을 이름표에도 붙인다 — 칠한 띠는 선보다 "여기서 사라"로 읽히기 쉽다
+     */
+    bandLabel: (lower: string, upper: string) => `관찰 구간 ${lower} ~ ${upper} · 예측 아님`,
   },
 
   /** 차트 오버레이 범례 (`FE-REQ-026` FR-132) */

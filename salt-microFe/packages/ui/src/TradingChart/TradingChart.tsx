@@ -13,7 +13,8 @@ import {
   useState,
 } from "react";
 
-import { IconButton } from "../IconButton/IconButton";
+import { Minus, Plus, RotateCcw } from "lucide-react";
+
 import { type BaseFrame, drawBase } from "./engine/drawBase";
 import { type Crosshair, drawOverlay } from "./engine/drawOverlay";
 import { formatCompact, formatPrice, formatSignedPercent } from "./engine/format";
@@ -33,9 +34,9 @@ import {
 } from "./engine/viewport";
 import { TRADING_CHART_MESSAGES, type TradingChartMessages } from "./messages";
 import * as styles from "./TradingChart.css";
-import type { TradingCandle, TradingPriceLine } from "./types";
+import type { TradingCandle, TradingPriceBand, TradingPriceLine } from "./types";
 
-export type { TradingCandle, TradingPriceLine } from "./types";
+export type { TradingCandle, TradingPriceBand, TradingPriceLine } from "./types";
 export { TRADING_CHART_MESSAGES, type TradingChartMessages } from "./messages";
 
 const DEFAULT_AVERAGES: readonly number[] = [5, 20, 60, 120];
@@ -43,6 +44,7 @@ const NO_LINES: readonly TradingPriceLine[] = [];
 /** 한국 시간. 서버 봉 시각이 KST 다 — 앱이 다른 시장을 그리면 바꿔 넘긴다 */
 const KST_OFFSET_MINUTES = 540;
 const ZOOM_STEP = 1.25;
+const CONTROL_ICON_SIZE = 15;
 /** 휠 한 칸(deltaY 100) ≈ 16% 확대 */
 const WHEEL_ZOOM_SENSITIVITY = 0.0015;
 /** 이만큼 움직여야 탭이 아니라 드래그다 */
@@ -59,6 +61,8 @@ export interface TradingChartProps {
   /** 스크린리더 이름(종목 · 기간) */
   name: string;
   priceLines?: readonly TradingPriceLine[];
+  /** 옅게 칠할 가격 구간 하나 + 이름표. 경계선은 `priceLines` 로 따로 넘긴다 */
+  priceBand?: TradingPriceBand | null;
   movingAveragePeriods?: readonly number[];
   timeZoneOffsetMinutes?: number;
   /** 바뀌면 뷰포트 · 십자선을 기본으로 되돌린다(기간 전환, FR-27) */
@@ -111,6 +115,7 @@ export const TradingChart = memo(
     intraday,
     name,
     priceLines = NO_LINES,
+    priceBand = null,
     movingAveragePeriods = DEFAULT_AVERAGES,
     timeZoneOffsetMinutes = KST_OFFSET_MINUTES,
     resetKey,
@@ -137,8 +142,8 @@ export const TradingChart = memo(
     const frameRef = useRef<BaseFrame | null>(null);
     const dragRef = useRef<DragState | null>(null);
     const seriesRef = useRef(series);
-    const drawInputsRef = useRef({ priceLines, hidden, intraday, timeZoneOffsetMinutes, messages });
-    drawInputsRef.current = { priceLines, hidden, intraday, timeZoneOffsetMinutes, messages };
+    const drawInputsRef = useRef({ priceLines, priceBand, hidden, intraday, timeZoneOffsetMinutes, messages });
+    drawInputsRef.current = { priceLines, priceBand, hidden, intraday, timeZoneOffsetMinutes, messages };
     const pendingRef = useRef({ base: false, overlay: false, raf: 0 });
     const baseDrawsRef = useRef(0);
     /**
@@ -168,6 +173,7 @@ export const TradingChart = memo(
           .filter((order) => order >= 0);
         frameRef.current = drawBase(base, currentLayout, s, vpRef.current, {
           priceLines: inputs.priceLines,
+          priceBand: inputs.priceBand,
           visibleAverages,
           intraday: inputs.intraday,
           offsetMinutes: inputs.timeZoneOffsetMinutes,
@@ -283,7 +289,7 @@ export const TradingChart = memo(
     // 가격선 · 이동평균 표시가 바뀌면 다시 그린다
     useEffect(() => {
       schedule(true);
-    }, [priceLines, hidden, intraday, timeZoneOffsetMinutes, messages, schedule]);
+    }, [priceLines, priceBand, hidden, intraday, timeZoneOffsetMinutes, messages, schedule]);
 
     // 언마운트 — 예약된 프레임을 끊는다
     useEffect(
@@ -521,9 +527,15 @@ export const TradingChart = memo(
             aside={legendAside}
           />
           <div className={styles.controls} role="toolbar" aria-label={messages.controlsLabel}>
-            <IconButton size="sm" variant="tonal" label={messages.zoomIn} icon={<span aria-hidden="true">+</span>} onClick={() => zoomBy(ZOOM_STEP)} />
-            <IconButton size="sm" variant="tonal" label={messages.zoomOut} icon={<span aria-hidden="true">−</span>} onClick={() => zoomBy(1 / ZOOM_STEP)} />
-            <IconButton size="sm" variant="tonal" label={messages.reset} icon={<span aria-hidden="true">↺</span>} onClick={reset} />
+            <button type="button" className={styles.controlButton} aria-label={messages.zoomIn} title={messages.zoomIn} onClick={() => zoomBy(ZOOM_STEP)}>
+              <Plus size={CONTROL_ICON_SIZE} strokeWidth={2} aria-hidden="true" />
+            </button>
+            <button type="button" className={styles.controlButton} aria-label={messages.zoomOut} title={messages.zoomOut} onClick={() => zoomBy(1 / ZOOM_STEP)}>
+              <Minus size={CONTROL_ICON_SIZE} strokeWidth={2} aria-hidden="true" />
+            </button>
+            <button type="button" className={styles.controlButton} aria-label={messages.reset} title={messages.reset} onClick={reset}>
+              <RotateCcw size={CONTROL_ICON_SIZE - 1} strokeWidth={2} aria-hidden="true" />
+            </button>
           </div>
         </div>
         <div

@@ -6,6 +6,12 @@ import { tokens } from "@repo/tokens";
  */
 const c = tokens.colors;
 
+/** `#RRGGBB` → `rgba(...)` — 캔버스는 CSS 변수도 `color-mix` 도 못 쓴다 */
+const withAlpha = (hex: string, alpha: number): string => {
+  const v = parseInt(hex.slice(1), 16);
+  return `rgba(${(v >> 16) & 255}, ${(v >> 8) & 255}, ${v & 255}, ${alpha})`;
+};
+
 export const CHART_THEME = {
   up: c.special.up,
   down: c.special.down,
@@ -19,6 +25,13 @@ export const CHART_THEME = {
   badgeText: c.text.white,
   priceLineNeutral: c.neutral[500],
   priceLineDown: c.special.down,
+  /**
+   * 가격 구간 — **AI 액센트**(코치가 만든 것). 상승 빨강 · 하락 파랑을 쓰면 "오른다/내린다"로 읽힌다
+   */
+  zone: c.ai.primary,
+  zoneFill: withAlpha(c.ai.primary, 0.09),
+  zoneChipBg: withAlpha(c.ai.primary, 0.16),
+  zoneChipText: c.neutral[800],
   /** 범위 밖 가격선 표시의 바탕 — 캔들 위에서도 읽히게 */
   edgeMarkBg: "rgba(255, 255, 255, 0.85)",
   volumeAlpha: 0.55,

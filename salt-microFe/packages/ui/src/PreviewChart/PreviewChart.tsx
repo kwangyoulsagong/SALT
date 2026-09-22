@@ -32,9 +32,17 @@ export interface MarketChartPreviewItem {
 export interface PriceLine {
   key: string;
   price: number;
-  tone: "down" | "neutral";
+  /** `zone` = 가격 구간(`PriceBand`)의 경계 · 중앙 — 띠와 같은 색 */
+  tone: "down" | "neutral" | "zone";
   dashed: boolean;
   /** 범례용 이름. 선 옆에는 그리지 않는다 — 범례는 부르는 쪽이 그린다 */
+  label: string;
+}
+
+/** 옅게 칠할 가격 구간 + 이름표. 경계선은 `priceLines` 가 긋는다. 값 · 문구는 부르는 쪽 그대로 */
+export interface PriceBand {
+  lower: number;
+  upper: number;
   label: string;
 }
 
@@ -45,22 +53,36 @@ export interface PreviewChartProps {
   width?: number;
   height?: number;
   priceLines?: readonly PriceLine[];
+  priceBand?: PriceBand | null;
 }
 
 const PRICE_LINE_COLOR: Record<PriceLine["tone"], string> = {
   down: vars.colors.special.down,
   neutral: vars.colors.neutral[500],
+  zone: vars.colors.ai.primary,
+};
+const BAND_FILL_OPACITY = 0.09;
+const BAND_CHIP_OPACITY = 0.16;
+const BAND_CHIP_HEIGHT = 18;
+const BAND_CHIP_INSET = 5;
+const BAND_CHIP_FONT_SIZE = 11;
+
+/** SVG 는 글자 폭을 재기 전에 그려야 한다 — 한글은 글자 크기만큼, 나머지는 0.6배로 어림한다 */
+const estimateTextWidth = (text: string, fontSize: number) => {
+  let w = 0;
+  for (const ch of text) w += /[\u3131-\uD79D]/.test(ch) ? fontSize : fontSize * 0.6;
+  return w;
 };
 const PRICE_LINE_DASH = "4 3";
 const NO_PRICE_LINES: readonly PriceLine[] = [];
 
 /**
- * y 범위 = 캔들 고가 · 저가 **+ 가격선**. 선을 범위에 넣지 않으면 현재가에서 먼 선
- * (예: 1년 하위 20%)이 화면 밖으로 나가 "선이 없다"로 읽힌다.
+ * y 범위 = 캔들 고가 · 저가 **만**. 가격선 · 구간은 범위를 넓히지 않는다 — 넣으면 현재가에서 먼 구간
+ * (1년 하위 20% 등)이 2.5시간 캔들을 한 줄로 납작하게 만든다(`FE-REQ-034` 문제 3, 상세 차트와 같은 규칙).
+ * 범위 밖 선은 그리지 않고, 구간은 이름표가 가장자리에 ▲▼ 로 남는다(`FE-REQ-036` FR-4).
  */
 const getMinYAndMaxY = (
-  candles: MarketChartPreviewItem[],
-  priceLines: readonly PriceLine[]
+  candles: MarketChartPreviewItem[]
 ): [number, number] => {
   let min = Number.POSITIVE_INFINITY;
   let max = Number.NEGATIVE_INFINITY;
@@ -68,10 +90,6 @@ const getMinYAndMaxY = (
   for (const c of candles) {
     if (c.low < min) min = c.low;
     if (c.high > max) max = c.high;
-  }
-  for (const line of priceLines) {
-    if (line.price < min) min = line.price;
-    if (line.price > max) max = line.price;
   }
   if (min === max) {
     min = min - 1;
@@ -87,6 +105,7 @@ export const PreviewChart = React.memo(
     width = 447,
     height = 210,
     priceLines = NO_PRICE_LINES,
+    priceBand = null,
   }: PreviewChartProps) => {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
     const [isHovering, setIsHovering] = useState<boolean>(false);
@@ -94,8 +113,8 @@ export const PreviewChart = React.memo(
     const rafRef = useRef<number | null>(null);
     const candles = data;
     const [minY, maxY] = useMemo(
-      () => getMinYAndMaxY(candles, priceLines),
-      [candles, priceLines]
+      () => getMinYAndMaxY(candles),
+      [candles]
     );
     const xScale = useMemo(
       () =>
@@ -209,6 +228,39 @@ export const PreviewChart = React.memo(
     const tooltipSide =
       hoveredXCenter != null && hoveredXCenter < width / 2 ? "right" : "left";
 
+    // 띠는 캔들 창 안으로 자른다. 띠가 얇으면 이름표는 띠 위(자리가 없으면 아래), 창 밖이면 가장자리에 ▲▼
+    const bandGeometry = useMemo(() => {
+      if (!priceBand) return null;
+      const paneTop = 2;
+      const paneBottom = candleHeight - 2;
+      const rawTop = yScale(priceBand.upper);
+      const rawBottom = yScale(priceBand.lower);
+      const above = rawBottom < paneTop;
+      const below = rawTop > paneBottom;
+      const top = Math.max(rawTop, paneTop);
+      const bottom = Math.min(rawBottom, paneBottom);
+      const label = above
+        ? `▲ ${priceBand.label}`
+        : below
+          ? `▼ ${priceBand.label}`
+          : priceBand.label;
+      let chipTop: number;
+      if (above) chipTop = paneTop;
+      else if (below) chipTop = paneBottom - BAND_CHIP_HEIGHT;
+      else if (bottom - top >= BAND_CHIP_HEIGHT + BAND_CHIP_INSET * 2) chipTop = top + BAND_CHIP_INSET;
+      else {
+        chipTop = top - BAND_CHIP_HEIGHT - 3;
+        if (chipTop < paneTop) chipTop = bottom + 3;
+      }
+      return {
+        top,
+        height: above || below ? 0 : Math.max(bottom - top, 0),
+        chipTop,
+        label,
+        chipWidth: estimateTextWidth(label, BAND_CHIP_FONT_SIZE) + 14,
+      };
+    }, [priceBand, yScale, candleHeight]);
+
     return (
       <div className={previewChartWrapper} style={{ width, height }}>
         <svg
@@ -243,7 +295,19 @@ export const PreviewChart = React.memo(
                 strokeDasharray="3 3"
               />
             )}
+            {bandGeometry && bandGeometry.height > 0 && (
+              <rect
+                x={0}
+                y={bandGeometry.top}
+                width={width}
+                height={bandGeometry.height}
+                fill={PRICE_LINE_COLOR.zone}
+                fillOpacity={BAND_FILL_OPACITY}
+                pointerEvents="none"
+              />
+            )}
             {priceLines.map((line) => {
+              if (line.price < minY || line.price > maxY) return null;
               const y = yScale(line.price);
               return (
                 <Line
@@ -303,6 +367,38 @@ export const PreviewChart = React.memo(
             })}
           </Group>
           {/* volume bar */}
+          {/* 구간 이름표 — 캔들 **위**에 온다(SVG 는 나중에 그린 것이 위) */}
+          {priceBand && bandGeometry && (
+            <g pointerEvents="none">
+              <rect
+                x={BAND_CHIP_INSET}
+                y={bandGeometry.chipTop}
+                width={bandGeometry.chipWidth}
+                height={BAND_CHIP_HEIGHT}
+                rx={4}
+                fill={vars.colors.background.white}
+              />
+              <rect
+                x={BAND_CHIP_INSET}
+                y={bandGeometry.chipTop}
+                width={bandGeometry.chipWidth}
+                height={BAND_CHIP_HEIGHT}
+                rx={4}
+                fill={PRICE_LINE_COLOR.zone}
+                fillOpacity={BAND_CHIP_OPACITY}
+              />
+              <text
+                x={BAND_CHIP_INSET + 7}
+                y={bandGeometry.chipTop + BAND_CHIP_HEIGHT / 2}
+                dominantBaseline="central"
+                fontSize={BAND_CHIP_FONT_SIZE}
+                fontWeight={600}
+                fill={vars.colors.neutral[800]}
+              >
+                {bandGeometry.label}
+              </text>
+            </g>
+          )}
           <Group top={candleHeight}>
             {candles.map((v, idx) => {
               const xCenter =

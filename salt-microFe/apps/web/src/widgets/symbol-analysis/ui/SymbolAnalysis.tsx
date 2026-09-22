@@ -16,6 +16,7 @@ import {
   useSymbolCoach,
   ZoneLegend,
   ZoneSummary,
+  zoneToPriceBand,
   zoneToPriceLines,
 } from "@/entities/coach";
 import {
@@ -143,6 +144,10 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
     () => (modeView ? zoneToPriceLines(modeView.zone) : []),
     [modeView],
   );
+  const priceBand = useMemo(
+    () => (modeView ? zoneToPriceBand(modeView.zone) : null),
+    [modeView],
+  );
 
   const explainSubject = listing.item
     ? {
@@ -180,6 +185,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
               symbol={symbol}
               displayName={listing.item?.koreanName ?? symbol}
               priceLines={priceLines}
+              priceBand={priceBand}
               legend={<ZoneLegend lines={priceLines} />}
             />
             {modeView ? (

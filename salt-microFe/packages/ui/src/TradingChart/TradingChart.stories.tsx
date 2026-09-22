@@ -57,6 +57,18 @@ export const WithPriceLines: Story = {
   },
 };
 
+/** 가격 구간 — 옅은 띠 + 이름표(AI 액센트). 경계선은 `priceLines` 의 `zone` 톤 */
+export const WithPriceBand: Story = {
+  args: {
+    priceLines: [
+      { key: "lower", price: last * 0.985, tone: "zone", dashed: true, label: "하단" },
+      { key: "mid", price: last, tone: "zone", dashed: false, label: "중앙" },
+      { key: "upper", price: last * 1.015, tone: "zone", dashed: true, label: "상단" },
+    ],
+    priceBand: { lower: last * 0.985, upper: last * 1.015, label: "관찰 구간 · 예측 아님" },
+  },
+};
+
 /** 봉이 없을 때 — 높이를 지키고 안내 한 줄 */
 export const Empty: Story = { args: { candles: [] } };
 

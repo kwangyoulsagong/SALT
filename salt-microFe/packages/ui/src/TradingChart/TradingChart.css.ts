@@ -100,10 +100,41 @@ export const header = style({
   gap: vars.space.md,
 });
 
+/**
+ * 확대 · 축소 · 처음 보기 — **한 덩어리 캡슐**. 따로 떨어진 회색 네모 셋은 차트보다 눈에 먼저 들어왔다
+ * (2026-09-22 사용자 피드백). 칸 사이는 얇은 구분선, 누르기 전엔 테두리만 보인다
+ */
 export const controls = style({
-  display: "flex",
+  display: "inline-flex",
   flexShrink: 0,
-  gap: vars.space.xs,
+  alignItems: "stretch",
+  border: `1px solid ${vars.colors.border.light}`,
+  borderRadius: vars.radius.base,
+  background: vars.colors.background.white,
+  overflow: "hidden",
+});
+
+export const controlButton = style({
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "30px",
+  height: "28px",
+  padding: 0,
+  border: 0,
+  background: "none",
+  color: vars.colors.text.secondary,
+  cursor: "pointer",
+  transition: "background-color 120ms, color 120ms",
+  selectors: {
+    "& + &": { borderLeft: `1px solid ${vars.colors.border.light}` },
+    "&:hover": { background: vars.colors.neutral[50], color: vars.colors.text.primary },
+    "&:active": { background: vars.colors.neutral[100] },
+    "&:focus-visible": {
+      outline: `2px solid ${vars.colors.border.focus}`,
+      outlineOffset: "-2px",
+    },
+  },
 });
 
 export const empty = style({
