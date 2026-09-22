@@ -250,3 +250,36 @@ export interface NewsPreviewResponse {
   items: NewsPreviewItem[];
 }
 
+
+/**
+ * 시장 요약 태그 코드. **방향을 말하지 않는다**(`FEATURE-006` FR-66). 문구는 `MARKET_SUMMARY_MESSAGES`.
+ * 서버가 모르는 코드는 BFF 가 버린다.
+ */
+export enum MarketSummaryTag {
+  WideMove = "wide_move",
+}
+
+/**
+ * 시장 요약 한 항목. **BFF 가 소유한 뷰모델**이다(`/api/app/market/summary`, `BFF-REQ-035`).
+ * 필드를 바꿀 때 `bff/src/services/market-summary.viewmodel.ts` 를 같이 본다.
+ */
+export interface MarketSummaryItem {
+  symbol: string;
+  name: string;
+  logoUrl: string;
+  currentPrice: number;
+  change24h: number;
+  /** 서버가 계산 · 반올림한 원 단위 정수. 없으면 `null` — 프론트가 역산하지 않는다(공통 수용 기준 3) */
+  change24hAmount: number | null;
+  tags: MarketSummaryTag[];
+  /** 종가(시간순). 없으면 `null` — 그 자리를 비운다 */
+  sparkline: number[] | null;
+}
+
+export interface MarketSummaryResponse {
+  /** 큰 차트의 대표. 없을 수 있다 */
+  featured: MarketSummaryItem | null;
+  items: MarketSummaryItem[];
+  sparklineWindowMinutes: number;
+  degraded: boolean;
+}

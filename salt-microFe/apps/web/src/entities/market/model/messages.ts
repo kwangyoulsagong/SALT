@@ -85,6 +85,28 @@ export const WATCHLIST_ASSET_LABELS: Readonly<Record<string, string>> = {
   us_stock: "미국주식",
 };
 
+/**
+ * 시장 요약 띠 문구 (`FE-REQ-037`). **"급등 · 급락"을 쓰지 않는다** — 태그는 방향을 말하지 않는다
+ * (`FEATURE-006` FR-66). 태그 기준(임계)은 서버 설정이라 문구에 숫자를 적지 않는다.
+ */
+export const MARKET_SUMMARY_MESSAGES = {
+  regionLabel: "주요 코인 요약",
+  tags: {
+    wide_move: { label: "변동 큼", title: "24시간 변동률이 기준보다 크다" },
+  },
+  /** 150 → "2시간 30분" */
+  windowLabel: (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+    return [hours ? `${hours}시간` : "", rest ? `${rest}분` : ""].filter(Boolean).join(" ");
+  },
+  sparklineLabel: (name: string, window: string, trend: string) =>
+    `${name} 최근 ${window} 흐름, ${trend}. 점선은 구간 시작 값`,
+  /** 스파크라인 첫 값 → 끝 값. 스크린리더가 선 모양 대신 읽는다 */
+  sparklineTrend: { up: "오름", down: "내림", flat: "변동 없음" },
+  changeTitle: "24시간 등락 금액과 변동률",
+} as const;
+
 /** 테이블 헤더 5컬럼도 변경 금지 목록이다 (`FE-REQ-009` FR-36). */
 export const MARKET_TABLE_HEADERS = [
   { id: "currentPrice", value: "현재가" },

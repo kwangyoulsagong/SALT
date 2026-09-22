@@ -8,6 +8,7 @@ import {
   MarketIntelligencePreviewResponse,
   MarketOverviewParams,
   MarketOverviewResponse,
+  MarketSummaryResponse,
   NewsPreviewResponse,
   WatchlistResponse,
 } from "../model/types";
@@ -94,6 +95,15 @@ export const marketApi = {
     return getJson("symbolNews", MARKET_ENDPOINTS.symbolNews(symbol, limit), {
       signal,
     });
+  },
+  /** 시장 요약 띠. `{ data }` 로 싸여 온다(BFF 뷰모델 응답) */
+  summary: async (signal?: AbortSignal): Promise<MarketSummaryResponse> => {
+    const body = await getJson<{ data: MarketSummaryResponse }>(
+      "summary",
+      MARKET_ENDPOINTS.summary(),
+      { signal },
+    );
+    return body.data;
   },
   /**
    * 관심 목록. **인증이 필요하다** — 토큰이 없으면 BFF 가 401 을 준다.

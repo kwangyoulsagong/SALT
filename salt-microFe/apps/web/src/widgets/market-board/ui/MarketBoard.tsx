@@ -17,6 +17,7 @@ import {
   WATCH_LIST_TAB,
   type PreviewRenderer,
 } from "../model";
+import { placeholder as summaryPlaceholder } from "./MarketSummaryStrip.css";
 
 const RealtimeMarketTable = dynamic(
   () =>
@@ -42,6 +43,19 @@ const WatchlistTab = dynamic(
   }
 );
 
+/**
+ * 시장 요약 띠(`FE-REQ-037`)도 `ssr:false` 잎이다. 시세 조회 · WS 가 브라우저에만 있고, 정적으로 부르면
+ * 엔티티 barrel 이 페이지 첫 로드에 들어온다(`model/index.ts` 주석). 청크가 오기 전에는 카드 높이만큼
+ * 자리를 잡아 탭 · 표가 밀리지 않게 한다(FR-8).
+ */
+const MarketSummaryStrip = dynamic(
+  () => import("./MarketSummaryStrip").then((mod) => mod.MarketSummaryStrip),
+  {
+    ssr: false,
+    loading: () => <div className={summaryPlaceholder} aria-hidden="true" />,
+  }
+);
+
 interface MarketBoardProps {
   /** 우측 패널. 페이지가 AI 코치 패널을 주입한다 — `model/previewSlot.ts` */
   renderPreview?: PreviewRenderer;
@@ -57,6 +71,9 @@ export const MarketBoard = ({ renderPreview }: MarketBoardProps) => {
           <ServiceIcon variant="analysis" />
           <Heading level={2}>{MARKET_BOARD_MESSAGES.heading}</Heading>
         </FlexBox>
+        <Margin top="xl">
+          <MarketSummaryStrip />
+        </Margin>
         <Margin top="xl">
           <Tabs
             tabs={MARKET_BOARD_TABS}

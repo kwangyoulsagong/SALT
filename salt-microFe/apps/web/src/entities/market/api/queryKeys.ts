@@ -12,4 +12,6 @@ export const marketQueryKeys = {
    */
   watchlist: ["MarketWatchlist"] as const,
   symbolNews: ["MarketSymbolNews"] as const,
+  /** 시장 요약 띠. 서버가 종목을 정하므로 파라미터가 없다 */
+  summary: ["MarketSummary"] as const,
 } as const;
