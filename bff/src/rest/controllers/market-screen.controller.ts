@@ -15,7 +15,7 @@ class MarketScreenController {
     }
   }
 
-  async getMarket(req: Request, res: Response) {
+  async getMarket(req: Request, res: Response, next: NextFunction) {
     try {
       const token = req.token!;
 
@@ -27,12 +27,11 @@ class MarketScreenController {
 
       return res.json(response.data);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Market fetch failed" });
+      next(error);
     }
   }
 
-  async getMarketSymbol(req: Request, res: Response) {
+  async getMarketSymbol(req: Request, res: Response, next: NextFunction) {
     try {
       const token = req.token!;
       const { symbol } = req.params;
@@ -56,8 +55,7 @@ class MarketScreenController {
         intelligence: intelligence.data,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Market symbol fetch failed" });
+      next(error);
     }
   }
 }

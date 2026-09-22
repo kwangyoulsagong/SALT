@@ -7,8 +7,8 @@ const router = Router();
 /**
  * App Home
  */
-router.get("/home", authMiddleware, (req, res) =>
-  appController.getHome(req, res),
+router.get("/home", authMiddleware, (req, res, next) =>
+  appController.getHome(req, res, next),
 );
 
 export default router;

@@ -1,19 +1,12 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { appHomeService } from "../../services/app-home.service";
 
 export class AppController {
-  async getHome(req: Request, res: Response) {
+  async getHome(req: Request, res: Response, next: NextFunction) {
     try {
-      const token = req.token!;
-
-      const result = await appHomeService.getHome(token);
-
-      res.json(result);
+      res.json(await appHomeService.getHome(req.token!));
     } catch (error) {
-      console.error("App home error:", error);
-      res.status(500).json({
-        message: "Failed to fetch home data",
-      });
+      next(error);
     }
   }
 }
