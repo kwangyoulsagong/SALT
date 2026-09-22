@@ -17,7 +17,8 @@
 - worker 모듈은 import만으로 시작하면 안 된다.
 - `npm run dev:worker` 또는 `start:worker`처럼 직접 실행될 때만 interval, socket, shutdown hook을 등록한다.
 - interval 작업은 중복 실행과 backend 장애를 견뎌야 한다.
-- 외부 API 구독은 중복 구독을 줄이고 현재 구독 상태를 기준으로 diff를 계산한다.
+- 새로 구독할 심볼은 현재 구독 상태와 diff 로 고르되, **Upbit 에는 추가분이 아니라 전체 집합을 보낸다.**
+  같은 연결의 새 구독 요청은 이전 구독을 **대체**한다(2026-09-21 실측) — 추가분만 보내면 나머지 시세가 끊긴다.
 - worker와 WebSocket 프로세스가 같은 singleton state를 공유한다고 가정하지 않는다. 프로세스 경계가 있으면 별도 동기화 전략을 명시한다.
 
 ## Upbit/외부 API

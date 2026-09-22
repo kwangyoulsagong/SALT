@@ -22,6 +22,8 @@
 
 ## 실패 처리
 
-- backend가 4xx를 주면 가능한 원 status/message를 보존한다.
+- backend가 4xx를 주면 가능한 원 status/message를 보존한다. **보존은 error middleware 한 곳이 한다**
+  (`toUpstreamClientError` — status · `code` · `message` · `errors` · `Retry-After`). 컨트롤러는
+  `next(error)` 만 하고 `error.response` 를 직접 잡지 않는다 — 셋이 따로 잡다가 옮기는 필드가 갈라졌다.
 - backend가 5xx, timeout, ECONNREFUSED이면 BFF 로그에 원인을 남기고 클라이언트에는 민감하지 않은 메시지를 반환한다.
 - worker에서 backend 장애가 나도 interval이 중단되지 않게 처리한다.
