@@ -105,6 +105,26 @@ export const MARKET_SUMMARY_MESSAGES = {
   /** 스파크라인 첫 값 → 끝 값. 스크린리더가 선 모양 대신 읽는다 */
   sparklineTrend: { up: "오름", down: "내림", flat: "변동 없음" },
   changeTitle: "24시간 등락 금액과 변동률",
+  /** 대표 칸 아래 줄 */
+  stats: { high: "고가", low: "저가", tradeValue: "거래대금" },
+  /**
+   * 오른쪽 패널 — 참고 화면 일정 상자 자리. **숫자만 말한다** — "약세장 · 공포" 같은 해석 문구를 붙이지 않는다
+   * (공통 수용 기준 4). 문장의 수는 전부 서버가 센 값이다.
+   */
+  briefing: {
+    title: "오늘의 시장",
+    window: "24시간",
+    up: "상승",
+    flat: "보합",
+    down: "하락",
+    count: (count: number) => `${count.toLocaleString("ko-KR")}`,
+    barLabel: (up: number, flat: number, down: number) =>
+      `활성 종목 중 상승 ${up}종목, 보합 ${flat}종목, 하락 ${down}종목`,
+    newsLabel: (name: string) => `${name} 최근 뉴스`,
+    newsLinkTitle: (source: string) => `${source} · 새 창에서 열기`,
+  },
+
+
 } as const;
 
 /** 테이블 헤더 5컬럼도 변경 금지 목록이다 (`FE-REQ-009` FR-36). */

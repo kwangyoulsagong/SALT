@@ -17,8 +17,15 @@ const FEATURED_HEIGHT_MOBILE = "141px";
 const STRIP_HEIGHT_MOBILE = "205px";
 /** 대표 칸 폭 — 참고 화면 실측 226px 근처 */
 const FEATURED_WIDTH = "240px";
-/** 작은 항목 열 폭 — 참고 화면 254px. 열이 화면 폭으로 늘어나면 항목 안이 빈칸만 는다 */
-const ITEM_COLUMN_WIDTH = "260px";
+/**
+ * 작은 항목 열 폭 — 참고 화면 254px. 260 에서 `3,681,000 -75,000 (2.00%)` 가 잘려 280.
+ * 열이 화면 폭으로 늘어나면 항목 안이 빈칸만 는다
+ */
+const ITEM_COLUMN_WIDTH = "280px";
+/** 오른쪽 상자 — 남는 폭을 쓴다. 이보다 좁아지면 숨긴다(아래 `WIDE`) */
+const PANEL_MIN_WIDTH = "220px";
+/** 대표 + 항목 3열 + 상자가 다 들어가는 폭(컨테이너 기준 ≈ 1340) */
+const NARROW = "screen and (max-width: 1379px)";
 
 /** 모바일 작은 항목 폭 — 옆 항목이 걸쳐 보여야 가로로 밀 수 있다는 것을 안다 */
 const MOBILE_ITEM_WIDTH = "280px";
@@ -27,10 +34,12 @@ const MOBILE_ITEM_WIDTH = "280px";
 export const strip = style({
   display: "grid",
   // 대표 칸은 참고 화면처럼 좁게 고정한다(226 → 240). 늘리면 차트가 띠의 주인공이 된다
-  gridTemplateColumns: `${FEATURED_WIDTH} minmax(0, 1fr)`,
-  justifyContent: "start",
+  gridTemplateColumns: `${FEATURED_WIDTH} auto minmax(${PANEL_MIN_WIDTH}, 1fr)`,
   height: STRIP_HEIGHT,
   "@media": {
+    [NARROW]: {
+      gridTemplateColumns: `${FEATURED_WIDTH} minmax(0, 1fr)`,
+    },
     [MOBILE]: {
       gridTemplateColumns: "minmax(0, 1fr)",
       gridTemplateRows: `${FEATURED_HEIGHT_MOBILE} 56px`,
@@ -84,5 +93,15 @@ export const placeholder = style({
   height: STRIP_HEIGHT,
   "@media": {
     [MOBILE]: { height: STRIP_HEIGHT_MOBILE },
+  },
+});
+
+/** 오른쪽 상자 칸. 좁은 화면에서는 숨긴다 — 항목 열이 먼저다 */
+export const panelCell = style({
+  minWidth: 0,
+  height: STRIP_HEIGHT,
+  marginLeft: vars.space.lg,
+  "@media": {
+    [NARROW]: { display: "none" },
   },
 });

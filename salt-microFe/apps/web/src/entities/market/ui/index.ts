@@ -18,3 +18,7 @@ export {
   MarketSummaryItemLink,
   MarketSummaryItemSkeleton,
 } from "./MarketSummaryCard/MarketSummaryCard";
+export {
+  MarketBriefingPanel,
+  MarketBriefingPanelSkeleton,
+} from "./MarketBriefingPanel/MarketBriefingPanel";

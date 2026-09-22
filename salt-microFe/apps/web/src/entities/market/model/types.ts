@@ -274,6 +274,26 @@ export interface MarketSummaryItem {
   tags: MarketSummaryTag[];
   /** 종가(시간순). 없으면 `null` — 그 자리를 비운다 */
   sparkline: number[] | null;
+  /** 24시간 고가 · 저가 · 거래대금 — 대표 칸 아래 줄. 서버 저장 시세 그대로 */
+  high24h: number;
+  low24h: number;
+  tradeValue24h: number;
+}
+
+export interface MarketSummaryHeadline {
+  id: string;
+  title: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+}
+
+/** 활성 종목의 24시간 오름 · 내림 · 그대로 수 — **서버가 센다**. 과거 사실이고 전망이 아니다 */
+export interface MarketBreadth {
+  up: number;
+  down: number;
+  flat: number;
+  total: number;
 }
 
 export interface MarketSummaryResponse {
@@ -281,5 +301,9 @@ export interface MarketSummaryResponse {
   featured: MarketSummaryItem | null;
   items: MarketSummaryItem[];
   sparklineWindowMinutes: number;
+  /** 없으면 분위기 패널을 그리지 않는다 */
+  breadth: MarketBreadth | null;
+  /** 대표 종목의 최근 뉴스(서버가 중복 제목을 합쳤다). 없으면 빈 배열 */
+  headlines: MarketSummaryHeadline[];
   degraded: boolean;
 }

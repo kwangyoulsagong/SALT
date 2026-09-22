@@ -7,7 +7,7 @@ import { Sparkline } from "@repo/ui/sparkline";
 import Link from "next/link";
 import React from "react";
 
-import { formatPrice, useElementWidth } from "@/shared/lib";
+import { formatKrwCompact, formatPrice, useElementWidth } from "@/shared/lib";
 
 import { MARKET_SUMMARY_MESSAGES } from "../../model/messages";
 import { type MarketSummaryItem, MarketSummaryTag } from "../../model/types";
@@ -118,7 +118,27 @@ const Trend = ({
     />
   ) : null;
 
-/** 대표 종목 — 이름 · 가격 · 칸을 채우는 영역 차트 (`FE-REQ-037` FR-3). **표시 전용.** */
+/** 고가 · 저가 · 거래대금. 거래대금은 좁은 칸이라 단위로 줄여 표기한다(값은 서버 그대로) */
+const Stats = ({ item }: { item: MarketSummaryItem }) => {
+  const labels = MARKET_SUMMARY_MESSAGES.stats;
+  const rows = [
+    { key: "high", label: labels.high, value: formatPrice(item.high24h) },
+    { key: "low", label: labels.low, value: formatPrice(item.low24h) },
+    { key: "tradeValue", label: labels.tradeValue, value: formatKrwCompact(item.tradeValue24h) },
+  ];
+  return (
+    <span className={styles.stats}>
+      {rows.map((row) => (
+        <span key={row.key}>
+          <span className={styles.statLabel}>{row.label}</span>
+          <span className={styles.statValue}>{row.value}</span>
+        </span>
+      ))}
+    </span>
+  );
+};
+
+/** 대표 종목 — 이름 · 가격 · 영역 차트 · 고가/저가/거래대금 (`FE-REQ-037` FR-3). **표시 전용.** */
 export const MarketSummaryFeatured = React.memo(
   ({ item, windowMinutes, href }: MarketSummaryProps) => {
     const [chartRef, chartWidth] = useElementWidth<HTMLSpanElement>(
@@ -136,6 +156,7 @@ export const MarketSummaryFeatured = React.memo(
             height={FEATURED_CHART_FALLBACK.height}
           />
         </span>
+        <Stats item={item} />
       </Link>
     );
   },
@@ -173,18 +194,41 @@ export const MarketSummaryItemLink = React.memo(
 );
 MarketSummaryItemLink.displayName = "MarketSummaryItemLink";
 
-/** 자리 — 스크린리더에는 숨긴다. 높이는 실제 칸과 같다(FR-8) */
+/**
+ * 자리 — **실제 칸과 같은 배치 · 폭**이다(FR-8). 줄 높이(20 · 20 · 77 · 32)와 여백을 실제 칸 스타일에서
+ * 그대로 빌려 채워질 때 아무것도 움직이지 않게 한다. 스크린리더에는 숨긴다.
+ */
 export const MarketSummaryFeaturedSkeleton = () => (
-  <span className={styles.skeletonFeatured} aria-hidden="true">
-    <Skeleton width="40%" height={16} />
-    <Skeleton width="70%" height={18} />
-    <Skeleton width="100%" height={FEATURED_CHART_FALLBACK.height} />
+  <span className={styles.featured} aria-hidden="true">
+    <span className={styles.skeletonLine}>
+      <Skeleton width={96} height={14} />
+    </span>
+    <span className={styles.skeletonLine}>
+      <Skeleton width={176} height={14} />
+    </span>
+    <span className={styles.featuredChart}>
+      <Skeleton width="100%" height={FEATURED_CHART_FALLBACK.height} />
+    </span>
+    <span className={styles.stats}>
+      {[0, 1, 2].map((index) => (
+        <Skeleton key={index} width={60} height={28} />
+      ))}
+    </span>
   </span>
 );
 
 export const MarketSummaryItemSkeleton = () => (
-  <span className={styles.skeletonCompact} aria-hidden="true">
-    <Skeleton width={COMPACT_CHART.width} height={COMPACT_CHART.height} />
-    <Skeleton width="50%" height={32} />
+  <span className={styles.compact} aria-hidden="true">
+    <span className={styles.compactChart}>
+      <Skeleton width={COMPACT_CHART.width} height={COMPACT_CHART.height} />
+    </span>
+    <span className={styles.compactBody}>
+      <span className={styles.skeletonLine}>
+        <Skeleton width={72} height={12} />
+      </span>
+      <span className={styles.skeletonLine}>
+        <Skeleton width={150} height={14} />
+      </span>
+    </span>
   </span>
 );

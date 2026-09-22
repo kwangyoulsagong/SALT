@@ -36,10 +36,36 @@ export const featured = style([
   },
 ]);
 
-/** 대표 차트 자리 — 높이 77 고정(참고 화면). 폭은 재서 넘긴다(`useElementWidth`) */
+/**
+ * 대표 차트 자리 — 높이 77 고정(참고 화면). 폭은 재서 넘긴다(`useElementWidth`).
+ * 세로 배분: 여백 8 + 이름 20 + 가격 20 + 4 + 차트 77 + 4 + 아래 줄 32 + 여백 8 = 173 ≤ 띠 176
+ */
 export const featuredChart = style({
   height: "77px",
-  marginTop: vars.space.sm,
+  margin: `${vars.space.xs} 0`,
+});
+
+/** 대표 칸 아래 줄 — 고가 · 저가 · 거래대금. 이름 12 회색 위, 값 12 굵게 아래 */
+export const stats = style({
+  display: "flex",
+  gap: "10px",
+  whiteSpace: "nowrap",
+  fontVariantNumeric: "tabular-nums",
+});
+
+export const statLabel = style({
+  display: "block",
+  fontSize: vars.fontSizes.sm,
+  lineHeight: "16px",
+  color: vars.colors.text.tertiary,
+});
+
+export const statValue = style({
+  display: "block",
+  fontSize: vars.fontSizes.sm,
+  lineHeight: "16px",
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.text.primary,
 });
 
 export const featuredName = style({
@@ -54,8 +80,9 @@ export const compact = style([
   linkBase,
   {
     alignItems: "center",
-    gap: vars.space.lg,
+    gap: vars.space.md,
     height: "56px",
+    paddingRight: vars.space.sm,
   },
 ]);
 
@@ -138,20 +165,9 @@ export const up = style({ color: vars.colors.special.up });
 export const down = style({ color: vars.colors.special.down });
 export const flat = style({ color: vars.colors.text.tertiary });
 
-export const skeletonFeatured = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: vars.space.sm,
-  padding: "8px 12px",
-  height: "100%",
-  boxSizing: "border-box",
-});
-
-export const skeletonCompact = style({
+/** 스켈레톤 한 줄 — 실제 이름 · 가격 줄과 같은 20px 높이, 막대는 가운데 */
+export const skeletonLine = style({
   display: "flex",
   alignItems: "center",
-  gap: vars.space.lg,
-  padding: "8px 12px",
-  height: "56px",
-  boxSizing: "border-box",
+  height: "20px",
 });

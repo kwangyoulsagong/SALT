@@ -4,6 +4,8 @@ import { useMemo } from "react";
 
 import {
   MARKET_SUMMARY_MESSAGES,
+  MarketBriefingPanel,
+  MarketBriefingPanelSkeleton,
   MarketSummaryFeatured,
   MarketSummaryFeaturedSkeleton,
   MarketSummaryItemLink,
@@ -13,13 +15,13 @@ import {
 } from "@/entities/market";
 import { ROUTES } from "@/shared/config";
 
-import { featuredCell, itemGrid, strip } from "./MarketSummaryStrip.css";
+import { featuredCell, itemGrid, panelCell, strip } from "./MarketSummaryStrip.css";
 
-/** 불러오는 동안 그리는 작은 항목 수 — 2열 × 3줄 */
-const ITEM_SKELETON_COUNT = 6;
+/** 불러오는 동안 그리는 작은 항목 수 — 3열 × 3줄(서버 기본 설정) */
+const ITEM_SKELETON_COUNT = 9;
 
 /**
- * 시장 요약 띠 (`FE-REQ-037` · `FEATURE-006` FR-64~67). 대표 1 + 작은 항목(3줄씩 열).
+ * 시장 요약 띠 (`FE-REQ-037` · `FEATURE-006` FR-64~67). 대표 1 + 작은 항목(3줄씩 열) + 오늘의 시장 상자.
  *
  * **무엇을 보여 줄지는 서버가 정한다**(`SRV-REQ-036` 설정) — 종목 · 순서 · 태그 · 등락 금액 · 스파크라인이
  * 응답 하나로 온다. 이 위젯은 배치만 한다. 가격은 WS 로 갱신한다 — 관심 종목 탭에 있어도.
@@ -51,6 +53,9 @@ export const MarketSummaryStrip = () => {
             <MarketSummaryItemSkeleton key={index} />
           ))}
         </div>
+        <div className={panelCell}>
+          <MarketBriefingPanelSkeleton />
+        </div>
       </div>
     );
   }
@@ -75,6 +80,13 @@ export const MarketSummaryStrip = () => {
             href={ROUTES.investmentDetail(item.symbol)}
           />
         ))}
+      </div>
+      <div className={panelCell}>
+        <MarketBriefingPanel
+          breadth={data.breadth}
+          headlines={data.headlines}
+          featuredName={data.featured?.name ?? null}
+        />
       </div>
     </section>
   );
