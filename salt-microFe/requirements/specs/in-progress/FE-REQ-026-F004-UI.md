@@ -196,7 +196,7 @@ created: 2026-09-09
 |---|---|---|
 | FR-110 | `widgets/coach-panel` 이 위 순서로 조립한다. 차트 · 게이지 · 뉴스는 `entities/market` 기존 컴포넌트를 **그대로** 쓰고, ①②③ · 적중률 한 줄 · ⑦ 을 더한다. **PC 레이아웃(2컬럼)을 바꾸지 않는다** | Must |
 | FR-111 | **모드 스위치**(`features/switch-coach-mode`): `SegmentedControl` 2개(단타 · 장기). 값은 **URL `?mode=`** 에 있고 패널과 상세 분석 페이지가 공유한다. URL 에 없으면 서버가 준 `mode`(= `defaultMode`) | Must |
-| FR-112 | 모드 전환은 **다시 요청하지 않는다** — 뷰모델에 `modes.scalp` · `modes.longTerm` 이 둘 다 있다. `router.replace` 로 URL 만 바꾼다(히스토리를 쌓지 않는다) | Must |
+| FR-112 | 모드 전환은 **다시 요청하지 않는다** — 뷰모델에 `modes.scalp` · `modes.longTerm` 이 둘 다 있다. `router.replace` 로 URL 만 바꾼다(히스토리를 쌓지 않는다). **개정 2026-09-22**: `history.replaceState` — App Router 의 `router.replace` 는 소프트 내비게이션이라 RSC 를 다시 요청한다(FE-REQ-028 FR-83 과 충돌) | Must |
 | FR-113 | **② 판단 블록**: 서버 `label`(단타 기회 후보 · 장기 모아가기 후보 · 관망 · 지금은 피하기) + 모드 + `validity.code` 의 i18n 문구 + 점수/`scoreNote` + 3종 요약. **"매수"·"매도" 라벨 · 신뢰도 % 를 그리지 않는다(D3)** | Must |
 | FR-114 | ② 는 `ModeCoachViewModel` 판별 union 으로 그린다. `renderable: false` 면 `BlockedNotice`(FR-1~3 과 같은 컴포넌트, 표본 `trackSample` 표시) | Must |
 | FR-115 | **③ 구간 블록**(`entities/coach` `ZoneSummary`): `zone.kind` 로 분기 — `held_rule` = **"내 규칙 가격"** 3행(손실 제한 · 1차 익절 검토 · 추세 유지), `observation` = **"관찰 구간"** 3행(하단 · 중앙 · 상단) + 규칙 설명(`ruleCode` → i18n, 예: "최근 1년 종가의 하위 20%~상위 20%"), `unavailable` = 사유 한 줄. 각 행에 가격 + **현재가와의 거리** | Must |
@@ -373,3 +373,4 @@ PC                                                   모바일(세로 스택)
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. **F000 FR-33 이관.** 신규 K(FR-110~121 우측 AI 코치 패널 — 모드 스위치 URL 공유(D3) · 중립 라벨 · 신뢰도 없음 · 내 규칙 가격/관찰 구간(D2) · 게이지 적중률 한 줄(B9)), L(FR-130~138 상세 분석 페이지 — Hero(B23) · 오버레이 · 해설 뉴스 5줄(B3)), 주문 전 체크(FR-150~156, B1), M(FR-140~144 코치 리포트(B15) · 30일 분포(B17) · 적중/실패 동등(B2) · 초기 전부 미렌더 정상 UX(B18)), N(FR-160~162 범위 밖 — D4 · B19 · D3). 개정: FR-30 · FR-33(B2) · FR-50 · FR-54(B1) · FR-62(ADR-002) · FR-81(B16 확정) · `/coach` → `/coach/report` · Empty 문구(B12) |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. FR-41 · FR-116 개정(D13 — 가격 차이, 거리 % 0건). 구간 없음 사유를 D12 로. `distancePct` → `priceGap` |
+| 2026-09-22 | FE 패널 슬라이스(`requirements/specs/in-progress/F004-fe-coach-panel-slice.md`) 착수 — `to-do → in-progress`. K절 FR-110~118 · FR-120 · FR-121 구현, FR-119(⑦)는 L절 페이지와 함께. FR-112 `router.replace` → `history.replaceState` 개정 |

@@ -124,7 +124,7 @@ created: 2026-09-09
 | FR-80 | **패널 조회는 클라이언트다**(FR-1 · FR-60 원칙의 예외). 행 선택 · hover 가 클라이언트 상태라 RSC 재요청은 과하다. 인증은 BFF 쿠키 세션 — **토큰을 클라이언트 번들 · `localStorage` 에 두지 않는다**는 FR-1 은 그대로 | Must |
 | FR-81 | 패널 쿼리 키 = `['coach', 'symbol', symbol]` — **모드를 키에 넣지 않는다**(응답에 두 모드가 다 있다). `staleTime: 30s` | Must |
 | FR-82 | 행 선택이 바뀌면 이전 요청을 `AbortSignal` 로 끊는다. hover 로 선택하는 PC 는 **150ms 디바운스** 후 요청한다 | Must |
-| FR-83 | 모드 전환은 **요청 0건**이다. `router.replace('?mode=')` 로 URL 만 바꾼다 | Must |
+| FR-83 | 모드 전환은 **요청 0건**이다. `router.replace('?mode=')` 로 URL 만 바꾼다. **개정 2026-09-22**: `history.replaceState` — `router.replace` 는 RSC 재요청을 만든다(실측 요청 0건은 `replaceState` 로 확인) | Must |
 | FR-84 | 상세 분석 페이지는 라우트 `/investments/[symbol]` 서버 컴포넌트가 1회 조회한다. 패널에서 넘어올 때 React Query 캐시를 **초기 데이터로 재사용하지 않는다**(서버 컴포넌트가 새로 받는다 — 두 경로가 섞이면 staleness 가 갈린다) | Should |
 | FR-85 | `mode` 쿼리가 URL 에 없으면 **BFF 에 `mode` 를 보내지 않는다**(서버 `defaultMode`, B16) | Must |
 | FR-86 | 해설 요청 본문에 `mode` 를 싣는다. 응답이 판별 union 이므로 `renderable: false` 분기를 타입으로 처리한다(B3) | Must |
@@ -185,3 +185,4 @@ created: 2026-09-09
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 호출 배치 개정 — 코치 리포트는 `/api/app/coach/report`, `/api/app/ai-coach/detail` 은 패널 · 상세 분석 페이지. 신규 I 절 FR-80~89(패널 클라이언트 조회 예외 · 모드 무관 쿼리 키 · 모드 전환 무요청(D3) · 취소/디바운스 · `defaultMode` 위임(B16) · 해설 union(B3) · preflight `stopLossRate`(B1) · 관심 추가 분리(D4) · 판별 union 타입(B10)) |
+| 2026-09-22 | FE 패널 슬라이스 착수 — `to-do → in-progress`. 패널 조회 FR-80~83 · FR-85 · FR-89 구현. FR-83 방식 개정(`history.replaceState`) |
