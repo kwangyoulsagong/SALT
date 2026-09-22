@@ -3,7 +3,7 @@
 ## 렌더링
 
 - route 파일은 가볍게 유지하고 무거운 화면은 컴포넌트로 분리한다.
-- 큰 위젯, 차트, 드물게 쓰는 플로우는 `next/dynamic`을 검토한다.
+- 큰 위젯, 차트, 드물게 쓰는 플로우는 `next/dynamic`을 검토한다. 단 데이터 뒤에 마운트되는 잎은 Suspense 300ms 에 걸린다(`ssr.md`).
 - render 중 대량 정렬/필터/집계를 하지 않는다. API, memoized selector, worker, effect로 이동한다.
 - 리스트는 pagination, virtualization, aggregation 중 하나를 우선 적용한다.
 - 실시간 가격/차트 업데이트는 batch, throttle, debounce로 UI commit 빈도를 제어한다.

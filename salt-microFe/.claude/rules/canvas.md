@@ -31,6 +31,7 @@ Canvas는 DOM/SVG/React 렌더링이 병목임을 확인한 뒤 도입한다.
 - streaming 데이터는 보관 기간과 최대 item 수를 상수로 둔다.
 - unmount 후 heap snapshot에서 retained canvas/chart 객체가 남지 않아야 한다.
 - OffscreenCanvas/Web Worker는 main-thread 압박이 측정된 뒤 검토한다.
+- **측정 스크립트가 요소 핸들을 쥐면 누수처럼 보인다.** Playwright `locator.click()` 핸들이 캔버스를 붙잡아 2·4·6개가 남았다(`FE-REQ-034`). 왕복 조작은 `page.evaluate` 안에서 하고, 남으면 힙 보유 경로부터 본다.
 
 ## 도입 보고
 

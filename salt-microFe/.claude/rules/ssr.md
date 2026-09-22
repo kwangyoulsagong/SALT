@@ -23,6 +23,7 @@
 - 렌더에 필요하면 `isMounted`/`isClient` guard를 둔다.
 - chart, canvas, editor, map처럼 SSR 불가한 컴포넌트만 `next/dynamic({ ssr:false })`로 분리한다.
 - dynamic import에는 loading fallback을 둔다.
+- **데이터가 온 뒤 마운트되는 잎은 `next/dynamic` 이 첫 페인트를 늦춘다** — Suspense 대체 화면을 걷을 때 React 18 이 최대 300ms 를 몰아 기다린다. 첫 페인트 예산이 있으면 effect 안에서 `import()` 해 state 로 그린다(`MarketDetailChart`).
 
 ## App Router에서 달라지는 것 (FE-REQ-008)
 
