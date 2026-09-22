@@ -24,7 +24,7 @@ App Router + RSC + Suspense로 **지연이 제각각인 블록을 각자 속도�
 
 ### 클라이언트 전용
 
-`@repo/ui/tradingChart`(캔버스) · `MovableGrid` — `next/dynamic` + `ssr: false`.
+`MovableGrid` — `next/dynamic` + `ssr: false`. `@repo/ui/tradingChart`(캔버스)는 effect 안의 `import()` — 데이터 뒤에 마운트되는 잎이라 Suspense 300ms 를 피한다(`performance-frontend.md` §3).
 
 ## 3. Suspense 경계 설계
 

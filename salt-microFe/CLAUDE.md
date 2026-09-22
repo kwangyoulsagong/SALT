@@ -29,11 +29,13 @@ pnpm dev                        # 두 zone 동시 기동 (web:3000, web-tax:3001
 pnpm build
 pnpm lint
 pnpm check-types
+pnpm test                       # 단위 테스트 — @repo/core · @repo/ui (vitest, node)
 pnpm --filter web dev
 pnpm --filter web-tax dev
 pnpm --filter @repo/ui lint
 pnpm --filter @repo/ui check-types
 pnpm --filter @repo/ui test
+pnpm --filter @repo/core test
 pnpm --filter @repo/ui storybook
 pnpm test:layer-check           # layer-check 훅 위반 케이스 8 + 통과 케이스 5
 ```
@@ -52,6 +54,7 @@ pnpm test:layer-check           # layer-check 훅 위반 케이스 8 + 통과 �
 - **zone끼리 `apps/other/src/...`를 직접 import하지 않는다.** 공유는 workspace 패키지로만 한다.
 - **`apps/mobile`은 `packages/ui`를 import하지 않는다** — vanilla-extract는 RN에서 동작하지 않는다. 토큰은 `packages/tokens`로 공유한다.
 - **zone을 넘는 링크는 `<a>`(=`CrossZoneLink`)다.** `next/link`의 `<Link>`를 쓰면 `@repo/zone/no-cross-zone-link`가 lint에서 막는다. zone 경로의 단일 소스는 `@repo/core/zones`.
+- **HTTP 는 `shared/api` 의 `apiFetch` 로만 한다.** `axios` import 는 `no-restricted-imports` 가 막는다(번들 회귀 3회, `FE-REQ-035`).
 - 레이어·슬라이스 위반은 `.claude/hooks/layer-check.mjs`가 쓰기 시점에 차단하고 `@repo/fsd/layers`가
   에디터·CI에서 같은 것을 본다. 규칙 표는 `packages/eslint-plugin-fsd/layer-rules.cjs` **한 곳**이다.
   **훅이 막으면 우회하지 말고 구조를 고친다.**

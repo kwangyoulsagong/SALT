@@ -9,7 +9,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo lint",
     "prepare": "husky install",
-    "test:layer-check": "node .claude/hooks/__tests__/layer-check.test.mjs"
+    "test:layer-check": "node .claude/hooks/__tests__/layer-check.test.mjs",
+    "test": "turbo test"
   },
   "dependencies": {
     "@vanilla-extract/css": "^1.14.0",

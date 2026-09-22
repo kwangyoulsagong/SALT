@@ -36,6 +36,7 @@
 
 > **Action:** `no-restricted-imports` 로 `axios` 를 지정 슬라이스 밖에서 막는다(`ac86d55` 본문이
 > 제안). 2026-09-22 현재 `packages/eslint-plugin-fsd/` 와 `.claude/rules/` 에 그 규칙이 없다.
+> → **F004 슬라이스 8 (`FE-REQ-035`) 에서 닫힘** — 지정 슬라이스 예외 없이 전면 금지(사용처 0)
 
 ### 로그인해도 `/api/app/*` 가 전부 401 이었다 — `bfe19ba` 에서 발견
 

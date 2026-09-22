@@ -50,7 +50,7 @@ FR-61 을 09-18 에 pass 로 적었지만 실시간 표 행의 `memoKey` 에 선
 
 watchlist 슬라이스 회고가 적은 실수를 초대 슬라이스가 되풀이했다. 2026-09-22 기준 막는 lint 규칙은
 없고, `fsd-shared.md` "`shared/api` 가 BFF 호출의 유일한 경로다"와 달리 `marketApi.ts` ·
-`toggleWatchlistApi.ts` 가 axios 를 직접 쓴다. **Action:** `no-restricted-imports` 로 올린다(`FE-REQ-012` 회고와 같은 항목).
+`toggleWatchlistApi.ts` 가 axios 를 직접 쓴다. **Action:** `no-restricted-imports` 로 올린다(`FE-REQ-012` 회고와 같은 항목). → **`FE-REQ-035` 에서 닫힘**(2026-09-22)
 
 ## 4. 남은 기술부채
 

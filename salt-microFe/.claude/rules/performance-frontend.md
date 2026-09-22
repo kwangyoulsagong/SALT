@@ -44,10 +44,10 @@ globs: apps/web/src/**, apps/web-tax/src/**
 | `@repo/ui/previewChart` | 투자 화면 우측 패널(30봉) | SVG(visx) |
 | `@repo/ui/tradingChart` | 상세 분석(200봉 · 이동/확대) | 캔버스 두 장 — `canvas.md` 도입 보고는 `checklists/FE-REQ-034.md` |
 
-- 트레이딩 차트는 **`next/dynamic` + `ssr: false`** 지연 청크다. barrel 로 딸려 가지 않게 부르는 쪽이 동적으로 부른다.
+- 트레이딩 차트는 지연 청크다. **`next/dynamic` 이 아니라 effect 안의 `import()`** — Suspense 를 거치면 대체 화면을 걷을 때 React 18 이 최대 300ms 를 몰아 기다린다(`MarketDetailChart`, p95 337 → 40ms).
 - **포인터 이동은 오버레이만 다시 그린다.** 기본 캔버스는 데이터 · 뷰포트 · 크기가 바뀔 때 rAF 한 번.
 - 포인터 핸들러에서 `getBoundingClientRect` 를 매번 부르지 않는다 — DOM 범례 갱신 직후라 강제 레이아웃이 난다. 캐시하고 크기 · 스크롤 때 버린다.
-- **실시간 봉 병합은 `entities/market/lib/candleTime.ts` 하나다.** WS 시각(ms)과 REST 시각(KST 문자열)을 `===` 로 비교하지 않는다(틱마다 봉이 붙던 버그).
+- **실시간 봉 병합은 `@repo/core/market` 하나다**(단위 테스트 `candleTime.test.ts`). WS 시각(ms)과 REST 시각(KST 문자열)을 `===` 로 비교하지 않는다(틱마다 봉이 붙던 버그).
 
 ## 4. 스트리밍 SSR 관련
 

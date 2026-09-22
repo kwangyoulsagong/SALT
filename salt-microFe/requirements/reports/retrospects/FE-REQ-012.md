@@ -47,7 +47,7 @@ FR-36 은 Should 였고 "끊겨 있으면 잇는다"였다. 확인해 보니 끊
 
 앞 슬라이스 회고가 두 번 적은 실수를 온보딩 호출 셋이 되풀이했다(`/home` 166 kB).
 
-> **Action:** lint 규칙(`no-restricted-imports`)으로 올린다 — `FE-REQ-010` 회고와 같은 항목.
+> **Action:** lint 규칙(`no-restricted-imports`)으로 올린다 — `FE-REQ-010` 회고와 같은 항목. → **`FE-REQ-035` 에서 닫힘**(2026-09-22)
 
 ## 4. 남은 기술부채
 

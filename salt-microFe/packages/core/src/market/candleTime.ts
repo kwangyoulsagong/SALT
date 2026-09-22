@@ -1,4 +1,19 @@
-import type { MarketChartPreviewItem } from "../model/types";
+/**
+ * 봉 시각 · 실시간 봉 병합 — **플랫폼 무관 순수 함수** (`FE-REQ-035`).
+ *
+ * `apps/web` 의 `entities/market/lib` 에 있다가 올라왔다. RN 시세 화면도 같은 BFF WS 봉을 받아
+ * 같은 병합이 필요하고, 여기 있어야 단위 테스트가 돈다(`candleTime.test.ts`).
+ */
+
+/** 조회 봉 — 서버 `candle_date_time_kst` 모양(시간대 표기 없는 KST 문자열) */
+export interface KstCandle {
+  timestamp: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
 
 /** 서버 봉 시각은 `candle_date_time_kst` — 시간대 표기가 없는 KST 문자열이다 */
 const KST_OFFSET = "+09:00";
@@ -57,9 +72,9 @@ export interface RealtimeCandle {
  * 바뀐 것이 없으면 **같은 배열**을 돌려준다 — React Query 가 구독자를 깨우지 않는다.
  */
 export const mergeRealtimeCandle = (
-  prev: MarketChartPreviewItem[],
+  prev: KstCandle[],
   candle: RealtimeCandle,
-): MarketChartPreviewItem[] => {
+): KstCandle[] => {
   const last = prev[prev.length - 1];
   if (!last) return prev;
   const time = candleTimeMs(candle.timestamp);
@@ -67,7 +82,7 @@ export const mergeRealtimeCandle = (
   if (!Number.isFinite(time) || time < lastTime) return prev;
 
   if (time === lastTime) {
-    const next: MarketChartPreviewItem = {
+    const next: KstCandle = {
       ...last,
       high: Math.max(last.high, candle.high, candle.close),
       low: Math.min(last.low, candle.low, candle.close),
@@ -87,7 +102,7 @@ export const mergeRealtimeCandle = (
     return out;
   }
 
-  const appended: MarketChartPreviewItem = {
+  const appended: KstCandle = {
     timestamp: toKstTimestamp(time),
     open: candle.open,
     high: candle.high,

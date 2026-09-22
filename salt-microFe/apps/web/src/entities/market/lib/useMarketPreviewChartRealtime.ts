@@ -1,5 +1,6 @@
 "use client";
 
+import { mergeRealtimeCandle } from "@repo/core/market";
 import { type QueryKey, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
@@ -7,7 +8,6 @@ import { type CandleEvent, type Timeframe, wsClient } from "@/shared/api";
 
 import { marketQueryKeys } from "../api/queryKeys";
 import type { MarketChartPreviewResponse } from "../model/types";
-import { mergeRealtimeCandle } from "./candleTime";
 
 /**
  * 실시간 봉을 차트 쿼리 캐시에 합친다 — 프리뷰 · 상세가 같은 병합을 쓴다(`FE-REQ-034` FR-62 · FR-63).

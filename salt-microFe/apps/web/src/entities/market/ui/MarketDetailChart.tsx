@@ -1,6 +1,7 @@
 "use client";
 
 // 클라이언트 잎: 기간 탭 상태 · 실시간 구독. barrel 로 노출되므로 경계를 스스로 갖는다.
+import { candleTimeMs } from "@repo/core/market";
 import { FilterTabs } from "@repo/ui/filterTabs";
 import { Skeleton } from "@repo/ui/skeleton";
 import { Text } from "@repo/ui/text";
@@ -12,7 +13,7 @@ import type {
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 import { useMarketChart } from "../api";
-import { candleTimeMs, useMarketChartRealtime } from "../lib";
+import { useMarketChartRealtime } from "../lib";
 import {
   CHART_TIMEFRAMES,
   type ChartTimeframe,
