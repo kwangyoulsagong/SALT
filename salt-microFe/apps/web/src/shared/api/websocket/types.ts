@@ -49,7 +49,11 @@ export interface PriceUpdate {
 }
 
 export interface Candle {
-  timestamp: string;
+  /**
+   * 봉 시작 **epoch ms 숫자**다(BFF `candleBuilder`). 전에는 `string` 으로 적혀 있었고, 그 타입을 믿고
+   * REST 봉(KST 문자열)과 `===` 로 비교해 틱마다 봉이 붙었다(`FE-REQ-034` 문제 4)
+   */
+  timestamp: number;
   open: number;
   high: number;
   low: number;

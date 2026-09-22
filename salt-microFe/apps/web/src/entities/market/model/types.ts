@@ -103,6 +103,15 @@ export interface MarketChartPreviewResponse {
   data: MarketChartPreviewItem[];
 }
 
+/**
+ * 서버 차트 응답의 봉 한 개 — **일봉은 시각 키가 `date`, 분봉은 `timestamp`** 다(서버가 두 모양을 준다).
+ * 조회 훅이 `timestamp` 하나로 맞춘다. 화면은 이 모양을 보지 않는다.
+ */
+export interface MarketChartRawItem extends Omit<MarketChartPreviewItem, "timestamp"> {
+  timestamp?: string;
+  date?: string;
+}
+
 export interface InterpretationInfo {
   emoji: string;
   title: string;
