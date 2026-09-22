@@ -30,6 +30,7 @@ export const errorMiddleware = (
       success: false,
       ...(upstream.code ? { code: upstream.code } : {}),
       message: upstream.message,
+      ...(upstream.errors ? { errors: upstream.errors } : {}),
     });
   }
 

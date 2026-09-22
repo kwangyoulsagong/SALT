@@ -33,39 +33,27 @@ describe("MarketController.overview", () => {
     mock.method(marketOverviewService, "getOverview", async () => body);
     const { res, out } = fakeRes();
 
-    await marketController.overview(req({ period: "7d" }), res);
+    await marketController.overview(req({ period: "7d" }), res, () => undefined);
 
     assert.equal(out.status, 200);
     assert.deepEqual(out.body, body);
   });
 
-  it("서버의 422 를 500 으로 바꾸지 않는다", async () => {
-    const upstream = {
-      success: false,
-      code: "MARKET_OVERVIEW_PERIOD_UNSUPPORTED",
-      message: "Unsupported market period: 2w",
-    };
+  it("실패는 직접 응답하지 않고 error middleware 로 넘긴다 — 422 가 500 이 되지 않게", async () => {
+    const failure = Object.assign(new Error("422"), {
+      response: { status: 422, data: { code: "MARKET_OVERVIEW_PERIOD_UNSUPPORTED" } },
+    });
     mock.method(marketOverviewService, "getOverview", async () => {
-      throw Object.assign(new Error("422"), { response: { status: 422, data: upstream } });
+      throw failure;
     });
     const { res, out } = fakeRes();
+    let passed: unknown;
 
-    await marketController.overview(req({ period: "2w" }), res);
-
-    assert.equal(out.status, 422);
-    assert.deepEqual(out.body, upstream);
-  });
-
-  it("서버가 없거나 5xx 면 500 이고 서버 원문을 싣지 않는다", async () => {
-    mock.method(marketOverviewService, "getOverview", async () => {
-      throw Object.assign(new Error("ECONNREFUSED"), { code: "ECONNREFUSED" });
+    await marketController.overview(req({ period: "2w" }), res, (e?: unknown) => {
+      passed = e;
     });
-    mock.method(console, "error", () => undefined);
-    const { res, out } = fakeRes();
 
-    await marketController.overview(req({}), res);
-
-    assert.equal(out.status, 500);
-    assert.deepEqual(out.body, { message: "Failed to fetch market overview" });
+    assert.equal(passed, failure);
+    assert.equal(out.body, undefined);
   });
 });

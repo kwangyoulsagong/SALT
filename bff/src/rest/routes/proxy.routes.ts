@@ -28,13 +28,8 @@ const proxyHandler = async (
     );
 
     return res.status(response.status).json(response.data);
-  } catch (error: any) {
-    if (error.response) {
-      // 쿨다운 429 는 본문만으로 부족하다 — 언제 다시 부를지는 헤더에 있다 (`BFF-REQ-023` FR-60)
-      const retryAfter = error.response.headers?.["retry-after"];
-      if (retryAfter !== undefined) res.setHeader("Retry-After", String(retryAfter));
-      return res.status(error.response.status).json(error.response.data);
-    }
+  } catch (error) {
+    // 4xx(쿨다운 429 의 `Retry-After` 포함 — `BFF-REQ-023` FR-60)는 error middleware 가 보존한다
     next(error);
   }
 };
@@ -68,11 +63,11 @@ router.get(
   assertChartPeriod,
   proxyHandler,
 );
-router.get("/investment/market/overview", (req, res) =>
-  marketController.overview(req, res),
+router.get("/investment/market/overview", (req, res, next) =>
+  marketController.overview(req, res, next),
 );
-router.get("/investment/market/symbols", (req, res) =>
-  marketController.symbols(req, res),
+router.get("/investment/market/symbols", (req, res, next) =>
+  marketController.symbols(req, res, next),
 );
 
 // Market Intelligence

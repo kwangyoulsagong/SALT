@@ -60,16 +60,13 @@ class BackendApiService {
   }
 
   /**
-   * Public proxy — 인증 토큰 없이 salt-server 호출
+   * Public proxy — 인증 토큰 없이 salt-server 호출.
+   *
+   * 기본 타임아웃(10s)을 쓴다. 호출처는 뉴스 · 초대 확인/수락뿐이고 LLM 이 없다 —
+   * 30s 를 따로 주던 것은 LLM 경로가 여기를 지나던 때의 흔적이다(`performance-bff.md` §3).
    */
   async proxyRequest(method: string, url: string, data?: any) {
-    return this.client.request({
-      method,
-      url,
-      data,
-      // LLM 호출은 응답 지연이 길 수 있어 별도 타임아웃
-      timeout: 30000,
-    });
+    return this.client.request({ method, url, data });
   }
 
   /**
