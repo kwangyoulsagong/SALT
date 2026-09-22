@@ -12,10 +12,21 @@ export class AppAICoachController {
   };
 
   detail = async (req: Request, res: Response, next: NextFunction) => {
+    // 행 선택이 빨리 바뀌면 화면이 이전 요청을 끊는다 — upstream 도 같이 끊는다(`BFF-REQ-026` FR-52)
+    const aborter = new AbortController();
+    res.on("close", () => {
+      if (!res.writableFinished) aborter.abort();
+    });
+
     try {
-      const data = await appAICoachService.getDetail(req.token!, req.query);
+      const data = await appAICoachService.getDetail(
+        req.token!,
+        req.query,
+        aborter.signal,
+      );
       return res.json({ success: true, data });
     } catch (error) {
+      if (aborter.signal.aborted) return;
       next(error);
     }
   };
