@@ -36,6 +36,7 @@ describe("동면 경로", () => {
       ["GET", "/api/users/points/stats"],
       ["GET", "/api/users/achievements"],
       ["GET", "/api/dashboard"],
+      ["GET", "/api/users/dashboard"],
     ]) {
       const { status, body } = await call(method, path);
       assert.equal(status, 410, `${method} ${path}`);

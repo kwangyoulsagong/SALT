@@ -99,5 +99,5 @@
 | FR-5 | 상수 한 곳 | **pass** | `gone.middleware.ts` `DORMANT_PATHS` |
 | FR-6 | 1주 로그 잔여 0건 | **대기** | 2026-09-29 |
 
-프론트 호출 0건(`salt-microFe/apps` · `packages` grep). `/api/users/dashboard` 는 목록에 없어 유지 — PM 확인 후보.
+프론트 호출 0건(`salt-microFe/apps` · `packages` grep). `/api/users/dashboard` 도 더했다(스펙 목록 밖 — 근거 `BFF-REQ-036.md` §3).
 테스트 3건(`gone.middleware.test.ts`). 실측과 명령은 `BFF-REQ-036.md`.

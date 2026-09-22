@@ -72,7 +72,7 @@
 
 | 경로 | 결과 |
 |---|---|
-| `/api/app/feed` · `/api/missions*` · `/api/users/points/*` · `/api/users/achievements` · `/api/dashboard*` | **410** `{ success:false, code:'ENDPOINT_DORMANT', revivable:true }` — 하위 경로 · 메서드 무관 |
+| `/api/app/feed` · `/api/missions*` · `/api/users/points/*` · `/api/users/achievements` · `/api/dashboard*` · `/api/users/dashboard` | **410** `{ success:false, code:'ENDPOINT_DORMANT', revivable:true }` — 하위 경로 · 메서드 무관 |
 | `/api/users/profile` 등 유지 경로 | 그대로(401/200) |
 
 본문과 FR-1~6 판정은 `BFF-REQ-007.md` §9. **FR-14(유지 경로 하위 호환)**: 같은 PR 에서 5개 컨트롤러가 서버 4xx 를

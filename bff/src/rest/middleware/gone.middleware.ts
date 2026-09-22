@@ -21,6 +21,9 @@ export const DORMANT_PATHS = [
   "/api/users/points",
   "/api/users/achievements",
   "/api/dashboard",
+  // 스펙 목록(`/api/dashboard*`) 밖이지만 같은 게이미피케이션 요약이다 — 8값 중 미션 · 포인트가 3,
+  // 목표는 `/api/goals` 가 따로 준다. 프론트 호출 0건 (2026-09-22 추가)
+  "/api/users/dashboard",
 ] as const;
 
 const logged = new Set<string>();

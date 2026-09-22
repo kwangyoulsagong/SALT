@@ -35,7 +35,7 @@ BFF 회고 · 규칙 점검에서 모인 부채를 닫는다. 새 엔드포인�
 | FR-1 | 서버 4xx 는 error middleware 가 보존한다 — status · `code` · `message` · `errors` · `Retry-After`. 서버 4xx 본문 키가 이 넷이라 proxy 가 본문을 통째로 넘기던 것과 같다 | Must |
 | FR-2 | 컨트롤러는 `next(error)` 만 한다. `error.response` 를 직접 잡거나 500 을 직접 쓰지 않는다(동면 `feed` 제외) | Must |
 | FR-3 | `proxyRequest` 는 기본 타임아웃(10s) | Must |
-| FR-4 | 동면 경로 — `BFF-REQ-007` FR-1~5 그대로(`DORMANT_PATHS` 상수 · 마운트 지점당 1회 로그 · `410 { code: 'ENDPOINT_DORMANT', revivable: true }` · feed 파일은 남김) | Must |
+| FR-4 | 동면 경로 — `BFF-REQ-007` FR-1~5 그대로 + `/api/users/dashboard`(`DORMANT_PATHS` 상수 · 마운트 지점당 1회 로그 · `410 { code: 'ENDPOINT_DORMANT', revivable: true }` · feed 파일은 남김) | Must |
 | FR-5 | 규칙 4곳 — `backend-integration.md`(보존 위치) · `websocket-worker.md`(전체 집합 전송) · `performance-bff.md` §6(상위/하위 두 층) · `bff-architecture.md` §7(목록 위치 · 기한) | Must |
 
 ## Non-functional

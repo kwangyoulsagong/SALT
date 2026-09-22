@@ -12,7 +12,7 @@
 | FR-1 | **pass** | 테스트 `errors 를 옮긴다` 추가. 실측 `POST /api/auth/login {}` → 400 + `errors[2]`(proxy 경유) · `overview?period=2w` → 422 + `code` |
 | FR-2 | **pass** | `status(500)` 직접 응답이 컨트롤러에서 0건(동면 `feed` 제외). 실측 가짜 토큰 `/api/app/alerts` · `/api/app/home` **before 500 → after 401**, `/portfolio` 401 |
 | FR-3 | **pass** | 뉴스 · 초대 호출처 확인(LLM 없음) |
-| FR-4 | **pass** | 테스트 3(하위 경로 · 메서드 무관 410, 목록 밖 404, 유지 경로 비겹침). 실측 5경로 410 + `ENDPOINT_DORMANT` · `revivable:true`, `/api/users/profile` 401 유지 |
+| FR-4 | **pass** | 테스트 3(하위 경로 · 메서드 무관 410, 목록 밖 404, 유지 경로 비겹침). 실측 6경로 410 + `ENDPOINT_DORMANT` · `revivable:true`, `/api/users/profile` 401 유지 |
 | FR-5 | **pass** | 4파일. 규칙 줄 수 200 이하 |
 
 ## 2. 명령
@@ -28,7 +28,8 @@
 
 - **처음에 feed 파일을 지우고 `ROUTE_GONE` 을 썼다** — `BFF-REQ-007` FR-1("파일은 남긴다") · FR-4(`ENDPOINT_DORMANT`)
   와 달라 push 전에 되돌렸다. 동면은 삭제가 아니다
-- `/api/users/dashboard` 는 목록(`/api/dashboard*`)에 없어 유지했다. 같은 게이미피케이션 대시보드라면 PM 확인 후 추가
+- **`/api/users/dashboard` 를 목록에 더했다**(스펙 목록 밖). 서버 `getDashboardSummary` 8값 중 미션 · 포인트가 3이고 목표는
+  `/api/goals` 가 따로 준다. 프론트 호출 0건 · 동면이라 되살리기 한 줄. 스펙의 `/api/dashboard*` 가 이것을 뜻했을 가능성이 높다
 
 ## 4. 미검증 · 범위 밖
 

@@ -72,13 +72,12 @@ router.get("/investment/market/symbols", (req, res, next) =>
 
 // Market Intelligence
 router.get("/market-intelligence/:symbol/dashboard", proxyHandler);
-// `/missions*` · `/users/points/*` · `/users/achievements` 는 동면이다 — 410
+// `/missions*` · `/users/points/*` · `/users/achievements` · `/users/dashboard` 는 동면이다 — 410
 // (`gone.middleware` · `BFF-REQ-008` FR-11).
 
 // Users 관련
 router.get("/users/profile", authMiddleware, proxyHandler);
 router.patch("/users/profile", authMiddleware, proxyHandler);
-router.get("/users/dashboard", authMiddleware, proxyHandler);
 // `PATCH /users/password` · `DELETE /users/account` 는 제거했다 — 서버에서 404 다
 // (`SRV-REQ-009` 제거 목록 · `BFF-REQ-008` 제거 표).
 

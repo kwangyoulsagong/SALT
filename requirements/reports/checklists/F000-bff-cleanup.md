@@ -11,7 +11,7 @@
 | 4xx 보존 | 컨트롤러의 `error.response` 직접 처리 0 · `status(500)` 직접 응답 0(동면 feed 제외) |
 | 만료 토큰 | `/api/app/alerts` · `/home` **500 → 401**, `/portfolio` 401 |
 | proxy 4xx | Zod 400 `errors[]` · 422 `code` 보존 |
-| 동면 | 5경로 410 `ENDPOINT_DORMANT` · 유지 경로 그대로 |
+| 동면 | 6경로 410 `ENDPOINT_DORMANT`(스펙 5 + `/api/users/dashboard`) · 유지 경로 그대로 |
 | 게이트 | `tsc` · `npm run build` · `npm test` 80 pass |
 
 ## 미검증 · 범위 밖
