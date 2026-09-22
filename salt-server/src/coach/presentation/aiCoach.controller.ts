@@ -92,14 +92,33 @@ export class AICoachController {
     }
   };
 
+  /**
+   * 요청한 쪽이 끊으면 LLM 호출도 끊는다. `req` 가 아니라 `res` 의 `close` 를 본다 —
+   * `req` 의 `close` 는 본문을 다 읽은 순간에도 온다. 응답을 다 쓴 뒤의 `close` 는 무시한다.
+   */
   explain = async (req: Request, res: Response, next: NextFunction) => {
+    const controller = new AbortController();
+    const onClose = () => {
+      if (!res.writableEnded) controller.abort();
+    };
+    res.on("close", onClose);
+
     try {
       const data = explainCoachSchema.parse(req.body ?? {});
-      const result = await this.useCases.explainDecision.execute(data);
+      const result = await this.useCases.explainDecision.execute(
+        req.user!.userId,
+        data,
+        controller.signal
+      );
+      if (controller.signal.aborted) return;
 
       return ResponseUtil.success(res, result, "AI Coach Explanation Success");
     } catch (error) {
+      // 끊긴 요청에는 응답할 곳이 없다 — 에러로 올리면 로그만 쌓인다
+      if (controller.signal.aborted) return;
       next(error);
+    } finally {
+      res.off("close", onClose);
     }
   };
 }

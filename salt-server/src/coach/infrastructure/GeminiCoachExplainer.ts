@@ -49,6 +49,8 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
  * **해설이 없어도 추천은 나온다.**
  */
 const REQUEST_TIMEOUT_MS = 20_000;
+/** `SRV-REQ-025` FR-51 — 뉴스 요약 최대 줄 수. 입력 뉴스 수를 넘지 않는다 */
+const NEWS_SUMMARY_MAX = 5;
 const RETRIES = 2;
 const cache = new Map<string, { value: CoachExplanation; expiresAt: number }>();
 
@@ -76,7 +78,10 @@ export class GeminiCoachExplainer implements CoachExplainer {
     this.client = new GoogleGenerativeAI(env.GEMINI_API_KEY);
   }
 
-  async explain(input: CoachExplanationInput): Promise<CoachExplanation> {
+  async explain(
+    input: CoachExplanationInput,
+    signal?: AbortSignal
+  ): Promise<CoachExplanation> {
     const key = this.cacheKey(input);
     const cached = cache.get(key);
     if (cached && cached.expiresAt > Date.now()) {
@@ -94,10 +99,11 @@ export class GeminiCoachExplainer implements CoachExplainer {
 
     const prompt = this.buildPrompt(input);
 
-    const response = await withRetry(() => model.generateContent(prompt), {
+    const response = await withRetry(() => model.generateContent(prompt, { signal }), {
       retries: RETRIES,
       baseDelayMs: 1_000,
-      isRetryable: isRetryableHttpError,
+      // 끊긴 요청은 다시 부르지 않는다 — 읽을 사람이 없다
+      isRetryable: (error) => !signal?.aborted && isRetryableHttpError(error),
       // 프롬프트·응답은 싣지 않는다 (§ 원문 로깅 금지). 남기는 것은 횟수와 대기뿐이다.
       onRetry: (_error, attempt, waitMs) =>
         logger.warn(`Gemini 해설 재시도 ${attempt}회 (${waitMs}ms 후)`),
@@ -112,8 +118,11 @@ export class GeminiCoachExplainer implements CoachExplainer {
         ? parsed.keyDrivers.map(String)
         : [],
       risks: Array.isArray(parsed.risks) ? parsed.risks.map(String) : [],
+      // 뉴스보다 많은 줄을 싣지 않는다 — 1건에 5줄이면 4줄은 모델이 지어낸 것이다(FR-51)
       newsSummary: Array.isArray(parsed.newsSummary)
-        ? parsed.newsSummary.map(String)
+        ? parsed.newsSummary
+            .map(String)
+            .slice(0, Math.min(NEWS_SUMMARY_MAX, (input.news ?? []).length))
         : [],
       disclaimer: String(
         parsed.disclaimer ?? "투자 손실 가능. 본 해설은 의사결정 지원용입니다."
@@ -176,7 +185,10 @@ export class GeminiCoachExplainer implements CoachExplainer {
           timeframe: input.mode === "scalp" ? "약 25분 이내" : "약 30일 내외",
           keyDrivers: ["주요 근거 1", "주요 근거 2", "주요 근거 3"],
           risks: ["주의해야 할 점 1", "주의해야 할 점 2"],
-          newsSummary: ["뉴스 핵심 라인 1", "라인 2", "라인 3", "라인 4", "라인 5"],
+          newsSummary: Array.from(
+            { length: Math.min(NEWS_SUMMARY_MAX, (input.news ?? []).length) },
+            (_, i) => `뉴스 ${i + 1} 핵심 한 줄`
+          ),
           disclaimer: "투자 손실 가능 면책 문구",
         },
         null,

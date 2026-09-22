@@ -245,7 +245,14 @@ export interface CoachExplanation {
  * 호출이 수 초~수십 초라 **트랜잭션 밖에서만** 부른다 (`ddd-application.md` §3).
  */
 export interface CoachExplainer {
-  explain(input: CoachExplanationInput): Promise<CoachExplanation>;
+  /**
+   * `signal` — 요청한 화면이 떠나면 끊는다. 안 끊으면 아무도 안 읽을 LLM 호출이
+   * 20초 × 재시도까지 끝까지 돈다(`streaming-sse.md` §4 와 같은 이유).
+   */
+  explain(
+    input: CoachExplanationInput,
+    signal?: AbortSignal
+  ): Promise<CoachExplanation>;
 }
 
 export interface JudgmentSnapshotDraft {

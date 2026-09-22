@@ -8,21 +8,16 @@ import { AICoachController } from "./aiCoach.controller";
 /**
  * `/api/ai-coach` — **경로를 그대로 유지한다** (FR-35).
  *
- * ## `/explain` 만 인증 앞에 있다
+ * ## `/explain` 도 인증 뒤에 있다 (`SRV-REQ-025` FR-11, 2026-09-22)
  *
- * `router.use(authMiddleware)` **위**에 있어서 공개 경로다. 원문의 주석이 그 이유를
- * 적어 두었고(프로토타입 데모) 옮기면서 순서를 유지했다 — 줄을 옮기는 것만으로
- * 공개 엔드포인트가 인증 뒤로 사라지거나 그 반대가 된다.
+ * 원래는 프로토타입 데모용으로 `authMiddleware` 위에 있는 공개 경로였다. BFF 가 먼저
+ * 토큰을 보내게 됐고(`BFF-REQ-025` FR-32) 프론트도 로그인 사용자만 부른다 — 이제 인증을
+ * 붙여도 끊기는 소비처가 없다. 게이트 판정에 보유 여부가 들어가서 `userId` 도 필요하다.
  *
- * ## 그래서 요청 제한을 걸었다
+ * ## 요청 제한은 남긴다 (FR-12)
  *
- * 인증이 없는 채로 **LLM 을 부르는 경로**다. 호출마다 비용이 들고 캐시는 5분이라,
- * 새 입력을 계속 바꿔 보내면 그대로 다 나간다. 인증을 붙이는 것이 옳지만 BFF 가
- * 이 경로를 **비인증으로 프록시**하고 있어(`app-ai-coach.service.explain`) 서버만
- * 바꾸면 기능이 죽는다 — 그건 프론트·BFF 계약과 함께 할 일이다.
- *
- * 그 전까지 **분당 10회**로 막는다. 사용자 ≤10명 서버에서 정상 사용이 닿지 않는 수이고,
- * 자동 호출은 여기서 걸린다.
+ * **LLM 을 부르는 경로**다. 호출마다 비용이 들고 캐시는 5분이다. **분당 10회** —
+ * 사용자 ≤10명 서버에서 정상 사용이 닿지 않는 수이고, 자동 호출은 여기서 걸린다.
  */
 const EXPLAIN_RATE_LIMIT = { windowMs: 60_000, max: 10 };
 export const createAICoachRouter = (useCases: CoachUseCases): Router => {
@@ -34,8 +29,10 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    * /api/ai-coach/explain:
    *   post:
    *     summary: AI 코치 해설 (Gemini)
-   *     description: 종목·모드·근거·뉴스를 받아 한국어 해설(왜 단타/장기, 관찰 기간, 뉴스 5줄 요약)을 생성합니다. 수익률·목표가 예측은 생성하지 않습니다. 5분 캐시.
+   *     description: 종목·모드·근거·뉴스를 받아 한국어 해설(왜 단타/장기, 관찰 기간, 뉴스 요약 — 뉴스 수 이하, 최대 5줄)을 생성합니다. 판단이 3종 게이트를 못 넘으면 LLM 을 부르지 않고 `{ renderable false, blockedReason }` 을 200 으로 줍니다. 수익률·목표가 예측은 생성하지 않습니다. 5분 캐시.
    *     tags: [AI Coach]
+   *     security:
+   *       - bearerAuth: []
    *     requestBody:
    *       required: true
    *       content:
@@ -69,10 +66,16 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *     responses:
    *       200: { description: 해설 생성 성공 }
    *       400: { description: 요청 검증 실패 }
+   *       401: { description: 인증 필요 }
+   *       429: { description: 분당 10회 초과 }
    *       500: { description: LLM 호출 실패 }
    */
-  // NOTE: public for prototype demo. TODO before prod: add rate-limit + auth.
-  router.post("/explain", rateLimit(EXPLAIN_RATE_LIMIT), controller.explain);
+  router.post(
+    "/explain",
+    authMiddleware,
+    rateLimit(EXPLAIN_RATE_LIMIT),
+    controller.explain
+  );
 
   router.use(authMiddleware);
 
