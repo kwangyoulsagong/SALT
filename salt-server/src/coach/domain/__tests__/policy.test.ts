@@ -303,4 +303,41 @@ describe("calculatePreflight — 특성화", () => {
       ]
     );
   });
+
+  it("손절 칩(stopLossRate)을 서버가 가격으로 환산한다 — −10% 면 90 (FR-52)", () => {
+    const result = calculatePreflight({ ...base, stopLossRate: -0.1 });
+    assert.ok(Math.abs(result.effectiveStopPrice! - 90) < 1e-9);
+    assert.equal(result.maxLossAmount, 100);
+    assert.equal(result.riskRewardRatio, 3);
+    assert.equal(
+      result.checklist.find((c) => c.key === PreflightCheckKey.StopPrice)?.passed,
+      true
+    );
+    assert.ok(!result.warnings.some((w) => w.code === "missing_stop_price"));
+  });
+
+  it("stopPrice 가 있으면 stopLossRate 보다 이긴다", () => {
+    const result = calculatePreflight({ ...base, stopPrice: 95, stopLossRate: -0.1 });
+    assert.equal(result.effectiveStopPrice, 95);
+    assert.equal(result.maxLossAmount, 50);
+  });
+
+  it("maxLossOfTotalRate = 최대 손실 / 진입 후 총 평가금액 (= maxLossRate)", () => {
+    const result = calculatePreflight({ ...base, stopLossRate: -0.1 });
+    assert.equal(result.maxLossOfTotalRate, 0.01); // 100 / 10000
+    assert.equal(result.maxLossOfTotalRate, result.maxLossRate);
+  });
+
+  it("손절 기준이 없으면 최대 손실 · 총자산 대비 모두 null — 0 이 아니다", () => {
+    const result = calculatePreflight({ ...base });
+    assert.equal(result.maxLossAmount, null);
+    assert.equal(result.maxLossOfTotalRate, null);
+    assert.equal(result.effectiveStopPrice, null);
+  });
+
+  it("최대 손실은 원 단위 정수다 (FR-19)", () => {
+    const result = calculatePreflight({ ...base, amount: 333, stopLossRate: -0.015 });
+    assert.equal(result.maxLossAmount, 5); // 333 × 0.015 = 4.995
+    assert.ok(Number.isInteger(result.maxLossAmount));
+  });
 });

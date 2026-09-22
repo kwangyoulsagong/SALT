@@ -86,6 +86,8 @@ export const tradePreflightSchema = z.object({
   symbol: z.string().trim().min(1).max(20),
   entryPrice: z.number().positive(),
   stopPrice: z.number().positive().optional(),
+  /** 음수 소수(−1.5% → -0.015). 칩은 −1.5 ~ −12% 이고 상한은 −50% */
+  stopLossRate: z.number().gte(-0.5).lt(0).optional(),
   takeProfitPrices: z.array(z.number().positive()).max(5).optional().default([]),
   amount: z.number().positive(),
   mode: z.nativeEnum(PreflightMode).optional().default(PreflightMode.Scalp),

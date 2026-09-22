@@ -61,9 +61,9 @@
 | FR-132 오버레이 선 · 범례 `예측 아님` · 기간 6탭 | 부분 | 선은 `zoneToPriceLines`(서버 가격 그대로). **2026-09-22 `FE-REQ-034`**: 상세 차트가 자체 캔버스 차트(`TradingChart`)로 바뀌어 선 가격 배지 · 범위 밖 가장자리 표시가 생겼다. **5탭** — 서버 차트에 `week` 없음. 슬라이스 6 의 1일 탭은 서버 일봉 시각 키(`date`) 때문에 시각이 NaN 이었다 — 같은 REQ 에서 고침 |
 | FR-133 선 색 토큰 · 손실 제한만 하락 색 | pass | `special.down` · `neutral.500`. 상승 색 사용 0 |
 | FR-134 코치 카드 = 모드 스위치 + 판단 + 근거 · 위험 + 3종 · 같은 게이트 | pass | `JudgmentDetail` — 막힘은 `JudgmentSummary` 가 그린다. 실측(막힘) · 가로채기(열림) |
-| FR-135 해설 = 버튼만 · 이유 · 근거 · 주의점 · 뉴스 5줄 · 면책 · 같은 카드 안 3종 · 예상 수익 0 · 막히면 버튼 없음 | pass | `features/explain-symbol` `ExplainCard`. 가로채기 성공 · 429 · 500 · 막힘 실측 |
+| FR-135 해설 = 버튼만 · 이유 · 근거 · 주의점 · 뉴스 5줄 · 면책 · 같은 카드 안 3종 · 예상 수익 0 · 막히면 버튼 없음 | pass | `features/explain-symbol` `ExplainCard`. 가로채기 성공 · 429 · 500 · 막힘 실측. 2026-09-22 서버가 `renderable:false` 를 줄 수 있게 돼 합 타입으로 받고 안내 한 줄을 그린다(화면 실측 안 함 — 로컬에서 버튼이 안 뜬다) |
 | FR-136 해설이 별도 기간을 그리지 않음 | pass | 응답 `timeframe`("약 25분 이내") 미표시 |
 | FR-137 수익 플랜 3단계 · 비중 · 상태 · 현재가와의 차이 / 미보유 문구 | 부분 | `ProfitPlan` — 실데이터 `held_rule`. **"거래 기록 추가" 진입 없음**(F006) |
 | FR-138 모드 전환이 선 · 구간 표 · 코치 카드를 함께 · 해설 초기화 | pass | 같은 `modeView` 에서 셋 다 · 해설은 `key={mode}` (진행 중 요청 `ERR_ABORTED`) |
 | FR-102 익절 3단계 `<table>` | pass | `<table>` + `<caption>` + `th scope` |
-| FR-150~156 주문 전 체크 | **미착수** | 서버 `/trade-preflight` 가 `stopPrice` 만 받고 `maxLossOfTotalRate` 가 없다 — FE 가 % → 가격 환산하면 공통 수용 기준 3 위반. F004 서버 후속 |
+| FR-150~156 주문 전 체크 | **미착수 — 막힘 풀림**(2026-09-22) | 서버가 `stopLossRate` 를 받고 `maxLossOfTotalRate` 를 준다(`SRV-REQ-025` §6). 화면 작업만 남았다 |

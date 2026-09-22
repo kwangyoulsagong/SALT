@@ -14,6 +14,7 @@ export interface TradePreflightCommand {
   symbol: string;
   entryPrice: number;
   stopPrice?: number;
+  stopLossRate?: number;
   takeProfitPrices: number[];
   amount: number;
   mode: PreflightMode;
@@ -58,6 +59,7 @@ export class CheckTradePreflight {
     const calculation = calculatePreflight({
       entryPrice: command.entryPrice,
       stopPrice: command.stopPrice,
+      stopLossRate: command.stopLossRate,
       takeProfitPrices: command.takeProfitPrices,
       amount: command.amount,
       mode: command.mode,
@@ -74,12 +76,16 @@ export class CheckTradePreflight {
       orderExecution: false,
       calculation: {
         entryPrice: command.entryPrice,
-        stopPrice: command.stopPrice ?? null,
+        // 손절 칩(`stopLossRate`)이면 서버가 환산한 가격이다 — 화면은 이 값을 그린다
+        stopPrice: calculation.effectiveStopPrice,
+        stopLossRate: command.stopPrice ? null : command.stopLossRate ?? null,
+        // 목표가는 입력한 것만 — 서버가 기본값을 만들지 않는다(FR-52)
         takeProfitPrices: command.takeProfitPrices,
         amount: command.amount,
         riskRewardRatio: calculation.riskRewardRatio,
         maxLossAmount: calculation.maxLossAmount,
         maxLossRate: calculation.maxLossRate,
+        maxLossOfTotalRate: calculation.maxLossOfTotalRate,
         projectedWeight: calculation.projectedWeight,
         maxSingleAssetWeight,
       },

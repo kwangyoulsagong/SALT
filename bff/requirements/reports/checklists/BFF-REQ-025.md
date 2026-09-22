@@ -45,3 +45,9 @@
 | FR-23 `scoreNote` 없으면 unavailable | pass (모드 단위) | 없는 모드는 `null` |
 | FR-24 게이트 3필드 스냅샷 | 부분 | 종목 경로의 `renderable` 만. `signalTrackRecord` · `failureCases` 는 리포트 경로 |
 | FR-30~35 하지 않는 것 | pass | LLM · 점수 · 게이트 판정 · 주문 · 로깅 0건 |
+
+## 2026-09-22 — 서버가 explain 인증을 켰다 (F004 슬라이스 10)
+
+BFF 변경 0. 슬라이스 5 에서 먼저 넣은 토큰 전달 · `AbortSignal` · `renderable:false` 200 통과가 그대로 맞았다 —
+실측 BFF 경유 `POST /api/app/ai-coach/explain` 200 `{renderable:false}`, 서버 직접 무토큰 401.
+preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달이라 변경 0(실측 BFF 경유 200).

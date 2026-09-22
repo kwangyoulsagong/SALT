@@ -198,12 +198,12 @@ flowchart TB
 | `BFF-REQ-010` F000 PERF | **in-progress** | WS 절 — 측정(FR-15) 18.9건/초. **throttle(FR-11)은 만들지 않는다는 판정.** 시세가 조용히 멈추는 경로 넷을 닫았다. 시세 개요 A절 — 가격 캐시 **히트율 0%** 를 재고 덧씌우기를 걷어냈다(FR-2 는 다르게) |
 | `DB-REQ-017` F004 SCHEMA | **in-progress** | 판단 스냅샷 · 성적표 · 게이지 적중률 집계 테이블(슬라이스 1·2). `checklists/F004-symbol-judgment.md` · `F004-zone-gauge.md` |
 | `SRV-REQ-024` F004 FUNC | **in-progress** | 종목 판단을 스냅샷으로 남겨 성적표 표본을 쌓는다 · `zone`(내 규칙 가격/관찰 구간) · 게이지 적중률(슬라이스 1·2) |
-| `SRV-REQ-025` F004 API | **in-progress** | `GET /ai-coach` 에 `modes.*`(판단 · `renderable` · `zone`) · `gaugeTrackRecords` · `disclaimer`. `confidence` 없음 |
+| `SRV-REQ-025` F004 API | **in-progress** | `GET /ai-coach` 에 `modes.*`(판단 · `renderable` · `zone`) · `gaugeTrackRecords` · `disclaimer`. `confidence` 없음. explain 인증 · 게이트 먼저 · abort, preflight `stopLossRate` · `maxLossOfTotalRate`(슬라이스 10) |
 | `BFF-REQ-023` F004 FUNC | **in-progress** | `/api/app/ai-coach/detail` = `SymbolCoachViewModel` · 두 모드 한 응답 · 기본 라벨 제거(슬라이스 3). `explain` 인증 뒤로(슬라이스 5). 리포트 · `generation-status` 는 서버 엔드포인트 대기. `checklists/F004-bff-symbol-judgment.md` · `F004-bff-upstream-errors.md` |
 | `BFF-REQ-024` F004 API | **in-progress** | 모드 블록 `renderable` 판별 union. **FR-30 `packages/core` 닫힘**(`@repo/core/coach`, 사본 — BFF 는 workspace 밖) |
 | `BFF-REQ-025` F004 UPSTREAM | **in-progress** | 면책 없으면 502 · 모드 계약 깨지면 `null`. **서버 4xx · `Retry-After` 보존**(main 은 500) · `explain` 토큰 · 20s · 동시 2 · GET 재시도 1회(슬라이스 5). `generate` 1s · 202 는 서버 대기 |
 | `BFF-REQ-026` F004 PERF | **in-progress** | p95 32ms · 클라이언트 종료 시 upstream 취소(코드 — 서버 로그 미확인) · `explain` 동시 2 초과 즉시 429(슬라이스 5) |
-| `FE-REQ-026` F004 UI | **in-progress** | **K절 우측 AI 코치 패널**(슬라이스 4) · **L절 상세 분석 `/investments/[symbol]` + ⑦**(슬라이스 6) — 차트 구간 선 · 코치 카드 · 해설 · 수익 플랜. 주문 전 체크(서버 선행) · M절 남음. `checklists/F004-fe-coach-panel.md` · `F004-fe-detail-page.md` |
+| `FE-REQ-026` F004 UI | **in-progress** | **K절 우측 AI 코치 패널**(슬라이스 4) · **L절 상세 분석 `/investments/[symbol]` + ⑦**(슬라이스 6) — 차트 구간 선 · 코치 카드 · 해설 · 수익 플랜. 주문 전 체크(**서버 선행 풀림**, 슬라이스 10) · M절 남음. `checklists/F004-fe-coach-panel.md` · `F004-fe-detail-page.md` |
 | `FE-REQ-028` F004 API | **in-progress** | 패널 클라이언트 조회 · 키에 모드 없음 · 취소. 모드 전환은 `history.replaceState`(FR-83 개정) — 실측 요청 0건. 해설 버튼만 · 재시도 0 · 20s · 연타 1건(슬라이스 6). 상세도 클라이언트 조회(FR-84 다르게) |
 | `FE-REQ-029` F004 PERF | **in-progress** | `/investments` First Load 135 → 136 kB · 취소 6~8/11. 상세 차트 p95 534ms · CLS 0.004(슬라이스 6). 행 선택 p95 · 표 리렌더 미측정 |
 | `FE-REQ-034` F004 CHART | **in-progress** | 상세 분석 차트를 자체 구현 캔버스 차트(`@repo/ui/tradingChart`)로 — 캔들 · 이동평균 4 · 거래량 · 십자선 · 이동/확대 · 실시간. 포인터 이동 0.66ms · 1000봉 다시 그리기 4.1ms · CLS 0.001. 프리뷰 실시간 봉 버그 · 일봉 시각 NaN 수정, `lightweight-charts` 제거. 첫 페인트는 서버 차트 응답 요동에 걸림. `checklists/FE-REQ-034.md` |
@@ -314,8 +314,11 @@ F004 슬라이스 1~4 로 서버 → BFF → 프론트까지 이었다(아래).
 처음엔 프론트가 종목 · 임계를 정했는데 **무엇을 요약할지는 서버 설정**으로 옮겼다 — 그 덕에 등락 금액이 서버 계산으로
 들어왔다. 태그는 방향을 말하지 않는다(`변동 큼`). 디자인은 참고 화면을 실측한 치수다.
 
-다음 F004 는 서버 후속(`/api/coach/detail` · 쿨다운 429 · `generate` 202 · `defaultMode` · preflight
-`stopLossRate` · `explain` abort) — `salt-server` 변경이라 명시가 필요하다.
+**슬라이스 10 (서버 · FE, 2026-09-22)** — explain · preflight(`SRV-REQ-025`). 즉석 해설이 인증 뒤로 갔고, 판단이 막히면
+**LLM 을 부르지 않으며**, 화면을 떠나면 끊는다. 주문 전 체크가 손절 칩(%)을 받아 서버가 가격으로 환산한다 — 프론트
+FR-150~156 을 막던 계약이 풀렸다. 해설 응답이 합 타입이 돼 프론트가 짝으로 바뀌었다.
+
+다음 F004 는 서버 후속(`/api/coach/detail` · 쿨다운 429 · `generate` 202 · `defaultMode`)과 주문 전 체크 화면이다.
 
 **레이어 규칙은 이제 실행된다.** 새 프론트 작업은 쓰기 시점에 `layer-check` 훅을 통과해야 한다.
 새 슬라이스는 `layered-architecture.md` §4 표 → `packages/eslint-plugin-fsd/layer-rules.cjs`의
@@ -379,6 +382,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-22 | **F000 BFF 부채 정리 슬라이스 — `BFF-REQ-036` 신설 · 구현.** 4xx 보존 일원화(컨트롤러 8곳) · Upbit 지연 연결 · 동면 410(`BFF-REQ-007` A절 FR-1~5 · `BFF-REQ-008` FR-11) · BFF 규칙 4곳. 매트릭스 밖 추가 REQ 1 |
 | 2026-09-22 | **F006 슬라이스 1 (서버 · BFF · FE) — `SRV-REQ-036` · `BFF-REQ-035` · `FE-REQ-037` 신설 · 구현.** 시장 요약 띠. 새 경로 2(서버 · BFF) · WS 필드 1 추가(하위 호환). `FEATURE-006` FR-64~67. 매트릭스 밖 추가 REQ 3 |
 | 2026-09-22 | **F004 슬라이스 9 (FE) — `FE-REQ-036` 신설 · 구현.** 관찰 구간 띠 · 이름표(상세 · 패널), 패널 차트 범위 = 캔들만, 상세 차트 버튼 캡슐. `FE-REQ-034` FR-23 · `FE-REQ-026` FR-132 개정 |
+| 2026-09-22 | **F004 슬라이스 10 (서버 · FE) — `SRV-REQ-025` FR-11 · 12 · 14 · 20 · 32 · 50~52 구현.** explain 인증 · 게이트 먼저 · abort · 뉴스 요약 상한, preflight `stopLossRate` · `maxLossOfTotalRate`. 해설 응답 합 타입(BREAKING — 프론트 짝) · 서버 규칙 2곳 |
 | 2026-09-22 | **F004 슬라이스 8 (FE) — `FE-REQ-035` 신설 · 구현.** axios 제거 · lint 금지 · 의존성 제거, 봉 병합 `@repo/core/market` 이관 + vitest, 프론트 규칙 6곳(`FE-REQ-034` 회고 후보 2 · 낡은 문구 4) |
 | 2026-09-22 | **`FE-REQ-034` 신설 · 구현(FE).** 상세 차트를 자체 캔버스 차트로(프리뷰는 SVG 그대로). 기존 버그 둘 수정 — 프리뷰가 실시간 틱마다 봉을 붙이던 것(WS ms vs REST KST 문자열 `===`), 서버 일봉 시각 키 `date` 로 슬라이스 6 1일 탭 시각 NaN. `lightweight-charts` 의존성 3곳 제거. 매트릭스 밖 추가 REQ(F004 FE 사분면 5번째) |
 | 2026-09-22 | **F004 슬라이스 6 (FE).** 상세 분석 페이지 `/investments/[symbol]` · 해설 카드 · 패널 ⑦. `@repo/ui` `PreviewChart` 에 `priceLines` · `@repo/core/http` 에 429. 계약 변경 없음(기존 `detail` · `explain` 소비). 주문 전 체크 · 차트 1주 · 해설 abort 는 서버 선행 |

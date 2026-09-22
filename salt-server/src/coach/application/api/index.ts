@@ -107,7 +107,12 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     getProfile: new GetCoachProfile(deps.profiles),
     updateProfile: new UpdateCoachProfile(deps.profiles),
     recordFeedback: new RecordCoachFeedback(deps.insights),
-    explainDecision: new ExplainCoachDecision(deps.explainer),
+    explainDecision: new ExplainCoachDecision(
+      deps.explainer,
+      deps.market,
+      deps.portfolio,
+      deps.judgments
+    ),
     analyzeNewsSentiment,
     analyzeTradingBehavior,
     getBehaviorCoach: new GetBehaviorCoach(

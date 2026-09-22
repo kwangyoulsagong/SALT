@@ -34,3 +34,12 @@
 | FR-86 해설 본문에 `mode` · `renderable` union | 부분 | `mode` 를 싣는다. **서버 응답에 `renderable` 이 없다** — 막힌 모드는 버튼을 그리지 않는 것으로 처리 |
 | FR-88 관심 추가 = 기존 watchlist mutation | pass | `WatchlistStarButton` 재사용 — 코치 쿼리를 건드리지 않는다 |
 | 해설 타입 위치 | 기록 | `features/explain-symbol/model/types.ts` — BFF 가 가공 없이 넘기는 서버 모양이라 `@repo/core` 에 "BFF 사본"으로 둘 원본이 없다 |
+
+## 2026-09-22 — 해설 응답 합 타입 (`feat/server-f004-followup`, F004 슬라이스 10)
+
+| 항목 | 판정 | 근거 |
+|---|---|---|
+| 해설 응답 `ExplainResult` = 렌더(`renderable:true` + 해설) \| 막힘(`renderable:false` · `blockedReason`) | pass | `features/explain-symbol/model/types.ts`. `useMutation<ExplainResult>` |
+| 막힘이면 해설 필드에 접근하지 않는다 | pass | `ExplainCard` 가 `renderable` 로 좁힌 뒤 그린다. 막힘은 안내 한 줄 |
+| FR-10~13 · FR-62 회귀 | pass(정적) | 호출 · 재시도 0 · 20s · 규칙 기반 대체 경로는 그대로. `check-types` · `lint` · web · web-tax 빌드 · `pnpm test` 54 |
+| 막힘 안내 화면 실측 | **미검증** | 로컬 판단 표본이 없어 버튼이 안 뜬다 — 표본 시드 후 |

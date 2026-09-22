@@ -187,3 +187,4 @@ created: 2026-09-09
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 호출 배치 개정 — 코치 리포트는 `/api/app/coach/report`, `/api/app/ai-coach/detail` 은 패널 · 상세 분석 페이지. 신규 I 절 FR-80~89(패널 클라이언트 조회 예외 · 모드 무관 쿼리 키 · 모드 전환 무요청(D3) · 취소/디바운스 · `defaultMode` 위임(B16) · 해설 union(B3) · preflight `stopLossRate`(B1) · 관심 추가 분리(D4) · 판별 union 타입(B10)) |
 | 2026-09-22 | FE 패널 슬라이스 착수 — `to-do → in-progress`. 패널 조회 FR-80~83 · FR-85 · FR-89 구현. FR-83 방식 개정(`history.replaceState`) |
 | 2026-09-22 | 상세 분석 슬라이스 — 해설 FR-10~13 · FR-62 · FR-86(부분) · FR-88 구현. **FR-84 는 클라이언트 조회로 다르게 구현**(토큰이 `localStorage` — `FE-REQ-013` 후 서버 컴포넌트로). FR-86 `renderable` union 은 서버 응답에 없어 막힌 모드는 버튼을 그리지 않는 것으로 처리 |
+| 2026-09-22 | 서버가 해설을 게이트 뒤에 두면서(`SRV-REQ-025` FR-50) 응답이 합 타입이 됐다 — `ExplainResult` 로 받는다. 요청 · 재시도 · 타임아웃 계약은 그대로 |
