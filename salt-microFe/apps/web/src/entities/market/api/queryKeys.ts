@@ -2,6 +2,8 @@
 export const marketQueryKeys = {
   overview: ["MarketOverview"] as const,
   chartPreview: ["MarketChartPreview"] as const,
+  /** 상세 분석 차트. 프리뷰와 캔들 수 · 기간이 달라 캐시를 나눈다 */
+  chart: ["MarketChart"] as const,
   intelligencePreview: ["MarketIntelligencePreview"] as const,
   /**
    * 관심 목록. **실시간 탭의 별과 관심 종목 탭이 이 키 하나를 같이 본다** —

@@ -1,9 +1,9 @@
 # FE-REQ-028 (F004 API) — 검증 체크리스트
 
 - REQ: `salt-microFe/requirements/specs/in-progress/FE-REQ-028-F004-API.md`
-- 브랜치: `feat/f004-fe-coach-panel` · 검증일: 2026-09-22
-- 상태: **부분 완료** — 패널 조회(FR-80~89 중 패널 부분)만
-- **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-fe-coach-panel.md`
+- 브랜치: `feat/f004-fe-coach-panel` · `feat/f004-fe-detail-page`(§2) · 검증일: 2026-09-22
+- 상태: **부분 완료** — 패널 조회 · 상세 조회 · 해설(FR-10~13 · FR-62 · FR-86 · FR-88)
+- **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-fe-coach-panel.md` · `F004-fe-detail-page.md`
 
 | FR | 판정 | 위치 · 근거 |
 |---|---|---|
@@ -19,4 +19,18 @@
 | FR-85 URL 에 없으면 `mode` 안 보냄 | pass | **언제나 안 보낸다** — 응답에 두 모드가 다 있다 |
 | FR-64 · FR-65 서버 에러 원문 비노출 | pass | 상태 코드만 `CoachApiError` 로, 화면은 고정 문구 |
 | 재시도 | — | 5xx · 네트워크 1회, 4xx 0회 |
-| FR-1 · FR-2 · FR-10~62 · FR-84 · FR-86~88 | 미착수 | 리포트 · 해설 · 재생성 · 피드백 · preflight · 상세 |
+| FR-1 · FR-2 · FR-14~61 · FR-87 | 미착수 | 리포트 · 재생성 · 피드백 · preflight |
+
+## 2. 상세 분석 · 해설 (슬라이스 6)
+
+| FR | 판정 | 위치 · 근거 |
+|---|---|---|
+| FR-10 · FR-11 `explain` 버튼으로만 | pass | mutation(`useExplainSymbol`) — 쿼리가 아니다. 실측 버튼 전 0건 |
+| FR-12 재시도 0 · `AbortSignal` | pass | `retry: 0` · 언마운트 · 모드 전환 시 abort(실측 `ERR_ABORTED` 2경로) |
+| FR-13 20s · `Button loading` | pass | `EXPLAIN_TIMEOUT_MS` — 자체 타이머(`AbortSignal.any` 미사용, Safari 17.4 미만) · `aria-busy` |
+| (BFF-REQ-026 FR-6) 디바운스 | pass | **ref 가드** — 상태 가드로는 같은 프레임 3연타가 3건이었다(실측 → 1건) |
+| FR-62 실패 · 타임아웃 → 규칙 기반 문장 | pass | 판단 `headline` · `reasons` + `규칙 기반 설명` 배지. 429 는 "잠시 후 다시"로 분리 |
+| FR-84 상세는 서버 컴포넌트 1회 조회 | **다르게 구현** | 클라이언트 조회 1회(토큰이 `localStorage`, `FE-REQ-013` 전). 패널과 같은 키라 staleness 가 갈리지 않는다 |
+| FR-86 해설 본문에 `mode` · `renderable` union | 부분 | `mode` 를 싣는다. **서버 응답에 `renderable` 이 없다** — 막힌 모드는 버튼을 그리지 않는 것으로 처리 |
+| FR-88 관심 추가 = 기존 watchlist mutation | pass | `WatchlistStarButton` 재사용 — 코치 쿼리를 건드리지 않는다 |
+| 해설 타입 위치 | 기록 | `features/explain-symbol/model/types.ts` — BFF 가 가공 없이 넘기는 서버 모양이라 `@repo/core` 에 "BFF 사본"으로 둘 원본이 없다 |

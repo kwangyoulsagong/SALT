@@ -2,8 +2,9 @@
 
 - REQ: `salt-microFe/requirements/specs/in-progress/FE-REQ-026-F004-UI.md`
 - 브랜치: `feat/f004-fe-coach-panel` (base `main` `157c624`) · 검증일: 2026-09-22
-- 상태: **부분 완료** — K절(우측 AI 코치 패널)만. 상세 분석(L) · 주문 전 체크 · 리포트(M) · 추천 카드(A~J 의 카드 본체) 미착수
-- **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-fe-coach-panel.md`
+- 브랜치: `feat/f004-fe-detail-page` (base `main` `3648186`) · 검증일: 2026-09-22 — §5
+- 상태: **부분 완료** — K절(우측 AI 코치 패널) · **L절(상세 분석 페이지 · 해설)**. 주문 전 체크 · 리포트(M) · 추천 카드(A~J 의 카드 본체) 미착수
+- **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-fe-coach-panel.md` · `F004-fe-detail-page.md`
 
 ## 1. 게이트 (A · B)
 
@@ -31,7 +32,7 @@
 | FR-116 `예측 아님` 상시 · 금지 문구 0 · 거리 % 0 | pass | 거리는 "현재가보다 N원 위/아래". `grep "매수존\|적정가\|목표가\|상승 여력"` messages 0건 |
 | FR-117 막혀도 구간 표시 | pass | 실측(막힘 + 관찰 구간) |
 | FR-118 게이지 아래 한 줄 · `lowSample` 회색 · 없으면 줄 없음 | pass (코드) | `GaugeTrackRecordLine`. 실측 응답 `[]` → 줄 없음 확인 |
-| FR-119 ⑦ 상세 분석 버튼 | **미충족** | `/investments/[symbol]` 없음 — L절 |
+| FR-119 ⑦ 상세 분석 버튼 | pass (슬라이스 6) | `CoachPanel` `footerSlot` — 실측 href `?mode=` 유지 · push · 뒤로가기 |
 | FR-120 모바일 폭 접힘 · 375px 가로 스크롤 0 | pass · **다르게 구현** | 접힘 폭은 기존 767px. 375px `scrollWidth = clientWidth` |
 | FR-121 `aria-live` 0 · `radiogroup` | pass | roving tabindex · 화살표 · Home/End(`nextIndex.test.ts` 5) |
 | FR-160 관심 종목 표 신호 컬럼 0 | pass | 표 무변경 |
@@ -49,4 +50,20 @@
 
 ## 4. 미충족 · 미착수 요약
 
-L절(FR-130~138) · 주문 전 체크(FR-150~156) · M절(FR-140~144) · A~J 카드 본체 · 홈 게이트 — 다음 슬라이스.
+~~L절(FR-130~138)~~ 슬라이스 6(§5). 주문 전 체크(FR-150~156, 서버 선행) · M절(FR-140~144) · A~J 카드 본체 · 홈 게이트 — 다음 슬라이스.
+
+## 5. L절 — 상세 분석 페이지 (슬라이스 6)
+
+| FR | 판정 | 위치 · 근거 |
+|---|---|---|
+| FR-130 `/investments/[symbol]` · 패널과 같은 뷰모델 | pass · **다르게 구현** | `pages/investment-detail` → `widgets/symbol-analysis`. 조회는 **클라이언트**(토큰이 `localStorage`) · 패널과 같은 쿼리 키. 실측 1회 |
+| FR-131 Hero · [관심 추가] · [알림 만들기] 0 | 부분 | 뒤로 · 종목 · 현재가 · 변동률 · 별. **[주문 전 체크] 없음** — 서버 선행(아래) |
+| FR-132 오버레이 선 · 범례 `예측 아님` · 기간 6탭 | 부분 | 선은 `zoneToPriceLines`(서버 가격 그대로) · `PreviewChart` `priceLines`. **5탭** — 서버 차트에 `week` 없음 |
+| FR-133 선 색 토큰 · 손실 제한만 하락 색 | pass | `special.down` · `neutral.500`. 상승 색 사용 0 |
+| FR-134 코치 카드 = 모드 스위치 + 판단 + 근거 · 위험 + 3종 · 같은 게이트 | pass | `JudgmentDetail` — 막힘은 `JudgmentSummary` 가 그린다. 실측(막힘) · 가로채기(열림) |
+| FR-135 해설 = 버튼만 · 이유 · 근거 · 주의점 · 뉴스 5줄 · 면책 · 같은 카드 안 3종 · 예상 수익 0 · 막히면 버튼 없음 | pass | `features/explain-symbol` `ExplainCard`. 가로채기 성공 · 429 · 500 · 막힘 실측 |
+| FR-136 해설이 별도 기간을 그리지 않음 | pass | 응답 `timeframe`("약 25분 이내") 미표시 |
+| FR-137 수익 플랜 3단계 · 비중 · 상태 · 현재가와의 차이 / 미보유 문구 | 부분 | `ProfitPlan` — 실데이터 `held_rule`. **"거래 기록 추가" 진입 없음**(F006) |
+| FR-138 모드 전환이 선 · 구간 표 · 코치 카드를 함께 · 해설 초기화 | pass | 같은 `modeView` 에서 셋 다 · 해설은 `key={mode}` (진행 중 요청 `ERR_ABORTED`) |
+| FR-102 익절 3단계 `<table>` | pass | `<table>` + `<caption>` + `th scope` |
+| FR-150~156 주문 전 체크 | **미착수** | 서버 `/trade-preflight` 가 `stopPrice` 만 받고 `maxLossOfTotalRate` 가 없다 — FE 가 % → 가격 환산하면 공통 수용 기준 3 위반. F004 서버 후속 |

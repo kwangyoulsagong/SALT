@@ -9,6 +9,11 @@ import {
 import { readAccessToken } from "@/shared/api";
 
 import {
+  CHART_TIMEFRAMES,
+  type ChartTimeframe,
+  DETAIL_CHART_CANDLE_COUNT,
+} from "../model/chartTimeframes";
+import {
   MarketChartPreviewResponse,
   MarketIntelligencePreviewResponse,
   MarketOverviewParams,
@@ -26,6 +31,27 @@ export const useMarketOverview = (
     queryKey: [marketQueryKeys.overview, params],
     queryFn: () => marketApi.overview(params),
   });
+
+/** 심볼 검색은 부분 일치다(`BTC` → `BTC` · `BTCB` …). 정확히 같은 행을 고를 만큼만 받는다 */
+const LISTING_SEARCH_LIMIT = 10;
+
+/**
+ * 시세 목록에서 **심볼이 정확히 같은 한 줄** (상세 분석 Hero · 해설 재료).
+ *
+ * 단건 시세 경로가 없어 목록 검색을 쓴다. 서버 검색이 이름 · 영문명까지 부분 일치라
+ * 첫 행을 그냥 쓰면 다른 종목이 나온다 — 심볼 대문자 비교로 고른다. 없으면 `undefined`
+ * (주식 · 상장 폐지 · 100위 밖이 아니라 **목록에 없는 것**이다).
+ */
+export const useMarketListing = (symbol: string) => {
+  const query = useMarketOverview({
+    page: 1,
+    limit: LISTING_SEARCH_LIMIT,
+    search: symbol,
+  });
+  const target = symbol.toUpperCase();
+  const item = query.data?.items.find((row) => row.symbol.toUpperCase() === target);
+  return { ...query, item };
+};
 
 /**
  * 우측 프리뷰의 두 쿼리는 **심볼이 바뀌어도 이전 데이터를 유지한다.**
@@ -53,6 +79,36 @@ export const useMarketChartPreview = (
     placeholderData: keepPreviousData,
     staleTime: PREVIEW_STALE_TIME_MS,
   });
+
+/**
+ * 상세 분석 차트 (`FE-REQ-026` FR-132). 기간이 쿼리 키에 있다 — 탭마다 다른 캔들이다.
+ *
+ * 기간을 바꿀 때 **이전 캔들을 유지한다**(프리뷰와 같은 이유 — 차트가 비었다 채워지며
+ * 아래 블록이 밀린다). 종목은 이 화면에서 바뀌지 않으므로 다른 종목의 캔들이 남을 일이 없다.
+ */
+export const useMarketChart = (
+  symbol: string,
+  timeframe: ChartTimeframe,
+): UseQueryResult<MarketChartPreviewResponse> => {
+  const spec =
+    CHART_TIMEFRAMES.find((item) => item.value === timeframe) ?? CHART_TIMEFRAMES[0]!;
+
+  return useQuery({
+    queryKey: [marketQueryKeys.chart, symbol, timeframe],
+    queryFn: async ({ signal }) => {
+      const response = await marketApi.chart(
+        symbol,
+        spec,
+        DETAIL_CHART_CANDLE_COUNT,
+        signal,
+      );
+      return { ...response, data: [...response.data].reverse() };
+    },
+    enabled: Boolean(symbol),
+    placeholderData: keepPreviousData,
+    staleTime: PREVIEW_STALE_TIME_MS,
+  });
+};
 
 export const useMarketIntelligencePreview = (
   symbol: string,

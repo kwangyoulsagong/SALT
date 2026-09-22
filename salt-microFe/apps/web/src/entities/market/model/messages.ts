@@ -21,6 +21,17 @@ export const MARKET_MESSAGES = {
   loadFailed: "실시간 투자 정보를 불러오지 못했습니다.",
   previewLoading: " 로딩중",
   chartHeading: "실시간 차트 (5분 봉)",
+  /** 상세 분석 차트 (`FE-REQ-026` FR-132) */
+  detailChartHeading: "차트",
+  chartTimeframeGroupLabel: "차트 기간",
+  chartTimeframes: {
+    "1m": "1분",
+    "5m": "5분",
+    "15m": "15분",
+    "1h": "1시간",
+    "1d": "1일",
+  },
+  chartUnavailable: "차트를 불러올 수 없습니다.",
   sentimentHeading: "시장 심리 온도계",
   smartMoneyHeading: "스마트 머니 추적",
   newsHeading: "뉴스",

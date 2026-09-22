@@ -51,6 +51,8 @@ export const COACH_MESSAGES = {
   signedOut: "로그인하면 이 종목의 판단을 볼 수 있습니다.",
 
   notPrediction: "예측 아님",
+  /** ⑦ (`FE-REQ-026` FR-119) */
+  openDetail: "상세 분석 보기 →",
   zone: {
     heldRuleHeading: "내 규칙 가격",
     observationHeading: "관찰 구간",
@@ -75,6 +77,41 @@ export const COACH_MESSAGES = {
     gapAbove: (gap: string) => `현재가보다 ${gap}원 위`,
     gapBelow: (gap: string) => `현재가보다 ${gap}원 아래`,
     gapNone: "현재가와 같음",
+  },
+
+  /** 차트 오버레이 범례 (`FE-REQ-026` FR-132) */
+  overlay: {
+    legendLabel: "차트의 구간 선",
+  },
+
+  /** 상세 분석 코치 카드 (`FE-REQ-026` FR-134) */
+  detail: {
+    heading: "코치 카드",
+    reasonsHeading: "근거",
+    risksHeading: "주의할 점",
+    trackRecordHeading: "이 판단의 과거 성적",
+    trackSample: (count: number) => `표본 ${count}회`,
+    winRate: "적중률",
+    avgReturn: "평균",
+    maxDrawdown: "최대 낙폭",
+    horizon: (hours: number) => `판단 뒤 ${hours}시간 기준`,
+    failureHeading: "맞았던 때 · 틀렸던 때",
+    outcome: { hit: "맞음", miss: "틀림" },
+    emptyValue: "—",
+  },
+
+  /** 수익 플랜 (`FE-REQ-026` FR-137). 보유 종목만 */
+  profitPlan: {
+    heading: "수익 플랜",
+    caption: "보유 기록으로 정한 단계별 가격",
+    columns: { stage: "단계", price: "가격", ratio: "비중" },
+    status: {
+      take_profit_review: "익절 검토 구간",
+      stop_loss_review: "손실 제한 검토 구간",
+      raise_stop_review: "손실 제한선 올리기 검토",
+      hold_plan: "계획대로 보유",
+    } as Record<string, string | undefined>,
+    noHolding: "보유 기록이 없어 수익 플랜이 없습니다.",
   },
 
   gauge: {

@@ -1,8 +1,9 @@
 import axios from "axios";
 
-import { authHeader } from "@/shared/api";
+import { apiFetch, authHeader } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
+import type { ChartTimeframeSpec } from "../model/chartTimeframes";
 import {
   MarketChartPreviewResponse,
   MarketIntelligencePreviewResponse,
@@ -28,6 +29,24 @@ export const marketApi = {
       `${INVESTMENTS_BASE_URL}${MARKET_ENDPOINTS.chartPreview(symbol)}`,
     );
     return response.data;
+  },
+  /**
+   * 상세 분석 차트. **`axios` 가 아니라 `apiFetch` 다** — 이 파일의 나머지 `axios` 호출은
+   * 번들 회귀를 세 번 낸 부채이고, 새 호출은 처음부터 `shared/api` 길로 간다.
+   * 캔들은 **최신이 앞**으로 온다 — 뒤집는 것은 훅이 한다(프리뷰와 같다).
+   */
+  chart: async (
+    symbol: string,
+    spec: ChartTimeframeSpec,
+    count: number,
+    signal?: AbortSignal,
+  ): Promise<MarketChartPreviewResponse> => {
+    const response = await apiFetch(
+      `${INVESTMENTS_BASE_URL}${MARKET_ENDPOINTS.chart(symbol, spec, count)}`,
+      { signal },
+    );
+    if (!response.ok) throw new Error(`market chart ${response.status}`);
+    return (await response.json()) as MarketChartPreviewResponse;
   },
   intelligencePreview: async (
     symbol: string,

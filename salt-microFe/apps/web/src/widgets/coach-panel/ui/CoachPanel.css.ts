@@ -18,3 +18,17 @@ export const modeRow = style({
   display: "flex",
   alignItems: "center",
 });
+
+/** ⑦ [상세 분석 보기] — 패널 폭 전체를 누를 수 있게 */
+export const detailLink = style({
+  alignSelf: "stretch",
+  display: "block",
+  padding: `${vars.space.medium} 0`,
+  textAlign: "center",
+  borderRadius: "12px",
+  background: vars.colors.background.primary,
+  color: vars.colors.text.secondary,
+  fontSize: vars.fontSizes.body,
+  fontWeight: vars.fontWeights.medium,
+  textDecoration: "none",
+});
