@@ -134,6 +134,12 @@ export const createTradePreflightRouter = (
    *                 type: number
    *                 minimum: 0
    *                 example: 91000000
+   *               stopLossRate:
+   *                 type: number
+   *                 description: 손절 비율(음수 소수, -0.015 = -1.5%). stopPrice 가 있으면 무시. 가격 환산은 서버가 한다
+   *                 minimum: -0.5
+   *                 exclusiveMaximum: 0
+   *                 example: -0.03
    *               takeProfitPrices:
    *                 type: array
    *                 maxItems: 5
@@ -149,7 +155,7 @@ export const createTradePreflightRouter = (
    *                 enum: [scalp, long_term]
    *     responses:
    *       200:
-   *         description: 체크 결과
+   *         description: 체크 결과. calculation 에 stopPrice(환산 포함) · maxLossAmount(원 정수) · maxLossOfTotalRate(총자산 대비 최대 손실). 게이트 · 차단 · 주문 필드 없음
    *       400:
    *         description: 요청 검증 실패
    *       401:

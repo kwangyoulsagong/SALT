@@ -40,6 +40,12 @@ export enum PreflightCheckKey {
 export interface PreflightInput {
   entryPrice: number;
   stopPrice?: number;
+  /**
+   * 손절 비율 — **음수 소수**(−1.5% → `-0.015`). 화면의 손절 칩이 보낸다(`SRV-REQ-025` FR-52).
+   * `stopPrice` 가 있으면 그것이 이긴다. 가격 환산은 여기서 한다 — 프론트가 하면 공통 수용
+   * 기준 3("금액 계산은 서버") 위반이다.
+   */
+  stopLossRate?: number;
   takeProfitPrices: number[];
   amount: number;
   mode: PreflightMode;
@@ -69,8 +75,16 @@ export interface PreflightCheck {
 
 export interface PreflightCalculation {
   riskRewardRatio: number | null;
+  /** 원 단위 정수(`SRV-REQ-025` FR-19) */
   maxLossAmount: number | null;
   maxLossRate: number | null;
+  /**
+   * 총자산 대비 최대 손실 — `maxLossAmount / 진입 후 총 평가금액`. `maxLossRate` 와 **같은 값**이다.
+   * 화면 계약(FR-52)이 뜻이 드러나는 이름을 요구했고, 기존 이름은 하위 호환으로 남긴다.
+   */
+  maxLossOfTotalRate: number | null;
+  /** 실제로 쓴 손절가 — 입력 `stopPrice`, 없으면 `stopLossRate` 로 환산한 값 */
+  effectiveStopPrice: number | null;
   projectedWeight: number;
   projectedTotalValue: number;
   projectedSymbolValue: number;
@@ -87,6 +101,15 @@ export const DEFAULT_MAX_SINGLE_ASSET_WEIGHT = 0.6;
 /** 이 시간을 넘게 갱신되지 않은 시세는 오래된 것으로 본다. */
 const STALE_PRICE_MS = 10 * 60 * 1000;
 
+/** `stopPrice` 우선, 없으면 `entryPrice × (1 + stopLossRate)`. 둘 다 없으면 `null` */
+export const resolveStopPrice = (
+  input: Pick<PreflightInput, "entryPrice" | "stopPrice" | "stopLossRate">
+): number | null => {
+  if (input.stopPrice) return input.stopPrice;
+  if (input.stopLossRate === undefined || input.stopLossRate >= 0) return null;
+  return input.entryPrice * (1 + input.stopLossRate);
+};
+
 export const calculatePreflight = (input: PreflightInput): PreflightCalculation => {
   const projectedTotalValue = input.totalValue + input.amount;
   const projectedSymbolValue = input.existingSymbolValue + input.amount;
@@ -95,12 +118,14 @@ export const calculatePreflight = (input: PreflightInput): PreflightCalculation 
   const projectedWeight =
     projectedTotalValue > 0 ? projectedSymbolValue / projectedTotalValue : 1;
 
-  const stopLossRate = input.stopPrice
-    ? Math.max(0, (input.entryPrice - input.stopPrice) / input.entryPrice)
+  const effectiveStopPrice = resolveStopPrice(input);
+
+  const stopLossRate = effectiveStopPrice
+    ? Math.max(0, (input.entryPrice - effectiveStopPrice) / input.entryPrice)
     : null;
 
   const maxLossAmount =
-    stopLossRate === null ? null : input.amount * stopLossRate;
+    stopLossRate === null ? null : Math.round(input.amount * stopLossRate);
 
   const maxLossRate =
     projectedTotalValue > 0 && maxLossAmount !== null
@@ -124,7 +149,7 @@ export const calculatePreflight = (input: PreflightInput): PreflightCalculation 
 
   const warnings: PreflightWarning[] = [];
 
-  if (!input.stopPrice) {
+  if (!effectiveStopPrice) {
     warnings.push({
       code: PreflightWarningCode.MissingStopPrice,
       severity:
@@ -163,6 +188,8 @@ export const calculatePreflight = (input: PreflightInput): PreflightCalculation 
     riskRewardRatio,
     maxLossAmount,
     maxLossRate,
+    maxLossOfTotalRate: maxLossRate,
+    effectiveStopPrice,
     projectedWeight,
     projectedTotalValue,
     projectedSymbolValue,
@@ -172,7 +199,7 @@ export const calculatePreflight = (input: PreflightInput): PreflightCalculation 
     checklist: [
       {
         key: PreflightCheckKey.StopPrice,
-        passed: Boolean(input.stopPrice),
+        passed: Boolean(effectiveStopPrice),
         label: "손절 기준을 정했는가",
       },
       {
