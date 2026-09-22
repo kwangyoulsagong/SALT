@@ -375,3 +375,4 @@ PC                                                   모바일(세로 스택)
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. FR-41 · FR-116 개정(D13 — 가격 차이, 거리 % 0건). 구간 없음 사유를 D12 로. `distancePct` → `priceGap` |
 | 2026-09-22 | FE 패널 슬라이스(`requirements/specs/in-progress/F004-fe-coach-panel-slice.md`) 착수 — `to-do → in-progress`. K절 FR-110~118 · FR-120 · FR-121 구현, FR-119(⑦)는 L절 페이지와 함께. FR-112 `router.replace` → `history.replaceState` 개정 |
 | 2026-09-22 | 상세 분석 슬라이스(`requirements/specs/in-progress/F004-fe-detail-page-slice.md`) — L절 FR-130 · FR-132~138 · FR-119(⑦) 구현. **FR-132 기간 탭 5개**(서버 차트에 `week` 없음) · FR-131 Hero [주문 전 체크] · 주문 전 체크 FR-150~156 은 서버 선행(`stopLossRate` · `maxLossOfTotalRate` 없음) · FR-137 거래 기록 추가 진입은 F006 |
+| 2026-09-22 | **FR-132 보강** — `observation` 구간을 옅은 띠 + 이름표(`관찰 구간 … · 예측 아님`)로, 선 색은 AI 액센트. 패널 차트(K절)에도 같은 띠 · 선(`FE-REQ-036`). `held_rule` 은 선만 그대로 |
