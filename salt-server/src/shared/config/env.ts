@@ -54,12 +54,23 @@ const envSchema = z.object({
     .pipe(z.array(z.string()).min(1)),
   /** 요약 태그 `wide_move` 임계(24시간 변동률 %, 절댓값) */
   MARKET_SUMMARY_WIDE_MOVE_RATE: z.coerce.number().positive().default(5),
+  /**
+   * 전망 배치(`salt-forecast/ops/daily.sh`)를 서버가 부팅 · 매시 걸어 줄지 — F008 `FC-REQ-004`.
+   * 사용자 결정(2026-09-23) "서버 키면 자동으로". 기본은 개발 환경에서만 켠다. 배치가 스스로 "20시간 안에 성공했으면 건너뜀"을 판단한다.
+   */
+  FORECAST_RUNNER_ENABLED: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => (v === undefined ? undefined : v === "true")),
+  /** 기본: 서버 작업 디렉터리 기준 `../salt-forecast/ops/daily.sh` */
+  FORECAST_RUNNER_SCRIPT: z.string().optional(),
 });
 
 const parsedEnv = envSchema.parse(process.env);
 
 export const env = {
   ...parsedEnv,
+  FORECAST_RUNNER_ENABLED: parsedEnv.FORECAST_RUNNER_ENABLED ?? parsedEnv.NODE_ENV === "development",
   JWT_EXPIRES_IN: parsedEnv.JWT_EXPIRES_IN as string | number,
   JWT_REFRESH_EXPIRES_IN: parsedEnv.JWT_REFRESH_EXPIRES_IN as string | number,
 };
