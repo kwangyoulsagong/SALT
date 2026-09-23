@@ -11,6 +11,7 @@ import { ArticleTextAdapter } from "./coach/infrastructure/ArticleTextAdapter";
 import { GeminiCoachExplainer } from "./coach/infrastructure/GeminiCoachExplainer";
 import { HoldingTradeAdapter } from "./coach/infrastructure/HoldingTradeAdapter";
 import { MarketSignalAdapter } from "./coach/infrastructure/MarketSignalAdapter";
+import { PrismaCoachGenerationLogStore } from "./coach/infrastructure/PrismaCoachGenerationLogStore";
 import { PrismaCoachInsightStore } from "./coach/infrastructure/PrismaCoachInsightStore";
 import { PrismaCoachNotifier } from "./coach/infrastructure/PrismaCoachNotifier";
 import { PrismaCoachProfileStore } from "./coach/infrastructure/PrismaCoachProfileStore";
@@ -144,6 +145,8 @@ const coach = createCoachApplication({
   judgments: new PrismaSymbolJudgmentStore(),
   tracked: new TrackedAssetAdapter(market.api, portfolio.api),
   gauges: new PrismaGaugeTrackStore(),
+  generationLogs: new PrismaCoachGenerationLogStore(),
+  regenerateCooldownSeconds: env.COACH_REGENERATE_COOLDOWN_SECONDS,
 });
 
 /**

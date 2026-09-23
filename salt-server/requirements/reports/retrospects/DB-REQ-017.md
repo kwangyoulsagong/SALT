@@ -56,3 +56,11 @@ REQ 쪽이 틀렸다: FR-50~53 은 `InvestmentInsight` 의 소비처를 보지 �
 - `performance-database.md` §3 은 "새 인덱스는 `EXPLAIN (ANALYZE, BUFFERS)` 결과를 PR 에 붙인다"다. 이번 기록은
   `enable_seqscan=off` 로 탄다는 것까지고 `ANALYZE, BUFFERS` 출력은 체크리스트에 없다.
 - `npx prisma validate`(Acceptance Criteria 마지막 항목)가 두 슬라이스 게이트에 없었다.
+
+
+## 슬라이스 13 (2026-09-23) — 생성 기록 · 프로필 열
+
+- `--create-only` 로 SQL 을 먼저 읽고 `deploy` 로 적용했다. 이 순서가 drift 를 적용 전에 보여 준다
+- 지난 회고의 두 항목을 이번 게이트에 넣었다: `EXPLAIN (ANALYZE, BUFFERS)` 출력을 체크리스트에 남겼고
+  `npx prisma validate` 를 돌렸다
+- 프로필 열은 **고른 값만 저장**한다(없으면 `null`). 기본값을 저장하면 기본값을 바꿀 때 누가 고른 것인지 모른다

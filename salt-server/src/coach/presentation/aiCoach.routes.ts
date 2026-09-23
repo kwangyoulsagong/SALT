@@ -121,9 +121,12 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *                       type: string
    *                       enum: [scalp, long_term]
    *                       example: scalp
+   *                       description: 저장된 값. 고른 적이 없으면 기본값 scalp
    *                     notificationLevel:
    *                       type: string
+   *                       enum: [low, medium, high]
    *                       example: medium
+   *                       description: 저장된 값. 고른 적이 없으면 기본값 medium
    *                     supportedModes:
    *                       type: array
    *                       items:
@@ -229,8 +232,8 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    * @swagger
    * /api/ai-coach/generate:
    *   post:
-   *     summary: AI 투자 코치 분석 생성
-   *     description: 사용자 포트폴리오, 시장 상태, 기술 지표 등을 기반으로 AI 투자 코치 분석을 생성합니다.
+   *     summary: AI 투자 코치 분석 생성 요청 (비동기)
+   *     description: 사용자 포트폴리오, 시장 상태, 기술 지표 등을 기반으로 AI 투자 코치 분석 생성을 **요청**합니다. 즉시 202 를 돌려주고 생성은 뒤에서 돕니다.
    *     tags: [AI Coach]
    *     security:
    *       - bearerAuth: []
@@ -248,8 +251,10 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *                 type: string
    *                 enum: [scalp, long_term]
    *     responses:
-   *       200:
-   *         description: AI 투자 코치 생성 성공
+   *       202:
+   *         description: |
+   *           받았다. 생성은 뒤에서 돈다 — 결과는 `GET /api/coach/detail` 과
+   *           `GET /api/coach/generation-status` 로 본다. 워커 생성은 쿨다운에 걸리지 않는다
    *         content:
    *           application/json:
    *             schema:
@@ -258,61 +263,43 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *                 success:
    *                   type: boolean
    *                   example: true
+   *                 message:
+   *                   type: string
    *                 data:
    *                   type: object
    *                   properties:
-   *                     id:
+   *                     requestId:
    *                       type: string
-   *                       example: "insight_123"
-   *                     type:
+   *                     requestedAt:
    *                       type: string
-   *                       example: "ai_coach"
-   *                     title:
-   *                       type: string
-   *                       example: "AI 투자 코치"
-   *                     summary:
-   *                       type: string
-   *                       example: "BTC 매수 고려"
-   *                     severity:
-   *                       type: number
-   *                       example: 72
-   *                     confidence:
-   *                       type: number
-   *                       example: 0.82
-   *                     payload:
-   *                       type: object
-   *                       properties:
-   *                         recommendation:
-   *                           type: object
-   *                           properties:
-   *                             action:
-   *                               type: string
-   *                               example: buy
-   *                             symbol:
-   *                               type: string
-   *                               example: BTC
-   *                         market:
-   *                           type: object
-   *                           properties:
-   *                             regime:
-   *                               type: string
-   *                               example: bullish
-   *                         portfolio:
-   *                           type: object
-   *                           properties:
-   *                             totalValue:
-   *                               type: number
-   *                               example: 12000000
-   *                             concentration:
-   *                               type: number
-   *                               example: 0.45
-   *                             riskLevel:
-   *                               type: string
-   *                               example: medium
+   *                       format: date-time
+   *       429:
+   *         description: |
+   *           수동 재생성 쿨다운 중(기본 5분, 설정값). `Retry-After` 헤더와 본문 `retryAfterSeconds` 가 같은 값이다
+   *         headers:
+   *           Retry-After:
+   *             schema:
+   *               type: integer
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 code:
+   *                   type: string
+   *                   example: COACH_REGENERATE_COOLDOWN
+   *                 message:
+   *                   type: string
+   *                 retryAfterSeconds:
+   *                   type: integer
+   *                   example: 240
    *       401:
    *         description: 인증 실패
    *       500:
-   *         description: AI 코치 생성 실패
+   *         description: 서버 오류. 생성 자체의 실패는 202 뒤에 일어나 생성 기록(`generation-status`)에 남는다
    */
   router.post("/generate", controller.generate);
 
@@ -333,6 +320,7 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *         example: BTC
    *       - in: query
    *         name: mode
+   *         description: 없으면 사용자 프로필의 defaultMode, 그것도 없으면 scalp
    *         schema:
    *           type: string
    *           enum: [scalp, long_term]

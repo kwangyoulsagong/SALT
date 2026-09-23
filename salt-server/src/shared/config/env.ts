@@ -29,6 +29,11 @@ const envSchema = z.object({
    */
   INVITE_MAX_ACCOUNTS: z.coerce.number().int().positive().default(10),
   /**
+   * 코치 수동 재생성 쿨다운(초) — `SRV-REQ-024` FR-82 **설정값**. 기본 5분(FR-80).
+   * 워커 생성에는 걸리지 않는다(FR-83).
+   */
+  COACH_REGENERATE_COOLDOWN_SECONDS: z.coerce.number().int().positive().default(300),
+  /**
    * 투자 화면 시장 요약 띠의 종목(쉼표 구분, 첫 심볼이 대표, 나머지는 화면에서 3줄씩 열) — `SRV-REQ-036`. **코드 상수 금지** —
    * 무엇을 요약할지는 화면 배포 없이 바꿀 수 있어야 한다.
    */

@@ -17,6 +17,7 @@ import {
   type Zone,
 } from "../domain";
 import { collectJudgmentMaterials, judgeSymbol } from "./lib/judgeSymbols";
+import { DEFAULT_COACH_MODE } from "./ManageCoachProfile";
 import {
   attachJudgmentTrack,
   JUDGMENT_DISCLAIMER,
@@ -145,7 +146,9 @@ export class GetSymbolCoach {
         this.sentimentTrack(symbol, sentiment),
       ]);
 
-    const selectedMode: CoachMode = query.mode ?? "scalp";
+    // 요청 → 사용자가 고른 기본 모드 → 단타 (`SRV-REQ-025` FR-48 · B16)
+    const selectedMode: CoachMode =
+      query.mode ?? profile?.defaultMode ?? DEFAULT_COACH_MODE;
     const modeDecision = selectedMode === "scalp" ? scalp : longTerm;
 
     return {

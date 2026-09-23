@@ -42,12 +42,29 @@ export class AICoachController {
     try {
       const data = generateCoachSchema.parse(req.body ?? {});
 
-      const result = await this.useCases.generateRecommendation.execute(
+      const result = await this.useCases.requestGeneration.execute(
         req.user!.userId,
         data
       );
 
-      return ResponseUtil.success(res, result, "AI Coach Generation Success");
+      // 쿨다운은 유스케이스의 **결과**다(에러가 아니다). 429 로 옮기는 것만 여기서 한다.
+      // 본문 모양은 전역 에러 미들웨어(`success` · `code` · `message`)에 맞춘다
+      if (!result.accepted) {
+        res.set("Retry-After", String(result.retryAfterSeconds));
+        return res.status(429).json({
+          success: false,
+          code: "COACH_REGENERATE_COOLDOWN",
+          message: "Coach regeneration is cooling down",
+          retryAfterSeconds: result.retryAfterSeconds,
+        });
+      }
+
+      return ResponseUtil.success(
+        res,
+        { requestId: result.requestId, requestedAt: result.requestedAt },
+        "AI Coach Generation Accepted",
+        202
+      );
     } catch (error) {
       next(error);
     }

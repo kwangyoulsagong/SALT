@@ -261,6 +261,23 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
     assert.ok(view.disclaimer.length > 0);
   });
 
+  it("mode 가 없으면 사용자 기본 모드 → 없으면 단타다 (FR-48)", async () => {
+    const withMode = (defaultMode: "scalp" | "long_term" | null) =>
+      ({ findByUser: async () => ({ defaultMode }) }) as unknown as CoachProfileStore;
+    const run = (store: CoachProfileStore, mode?: "scalp" | "long_term") =>
+      new GetSymbolCoach(
+        fakeMarket({ BTC: 100 }),
+        portfolio,
+        store,
+        new MemoryJudgmentStore(), noGauges
+      ).execute("user-1", { symbol: "BTC", mode });
+
+    assert.equal((await run(withMode("long_term"))).mode, "long_term");
+    assert.equal((await run(withMode(null))).mode, "scalp");
+    assert.equal((await run(profiles)).mode, "scalp");
+    assert.equal((await run(withMode("long_term"), "scalp")).mode, "scalp", "요청이 이긴다");
+  });
+
   it("근거가 있어도 표본이 20 미만이면 insufficient_sample 이다", async () => {
     const market = {
       ...fakeMarket({ BTC: 100 }),

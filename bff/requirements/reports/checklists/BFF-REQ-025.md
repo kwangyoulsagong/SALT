@@ -34,9 +34,9 @@
 | FR | 판정 | 비고 |
 |---|---|---|
 | FR-1 · FR-2 `explain` 20s · 재시도 0 | pass | 슬라이스 5 |
-| FR-3 · FR-4 `generate` 1s · 202 계약 테스트 | 미충족 | 서버가 아직 202 를 주지 않는다 |
+| FR-3 · FR-4 `generate` 1s · 202 계약 테스트 | 미충족 | 2026-09-23 서버가 202 를 준다(서버 슬라이스 13). **BFF 쪽 계약 테스트 · 실측은 아직** — BFF 코드 무변경 |
 | FR-5 mutation 재시도 0 | pass | 재시도 유틸은 GET 호출부에만 |
-| FR-6 `429` + `Retry-After` · `422` · `401` 전달 | pass | 슬라이스 5 — error middleware. 실측 main 500 → 401 · 400. `Retry-After` 는 서버가 아직 안 보낸다 |
+| FR-6 `429` + `Retry-After` · `422` · `401` 전달 | pass | 슬라이스 5 — error middleware. 실측 main 500 → 401 · 400. `Retry-After` 는 서버가 아직 안 보낸다 → 2026-09-23 서버 쿨다운 429 가 보낸다. BFF 경유 실측은 아직 |
 | FR-7 동시 `explain` 2 | pass | 실측 3건 동시 → 1건 429 `explain_busy` |
 | FR-10~12 `explain` 토큰 전달 | pass | 슬라이스 5. FR-11 BFF 먼저 — 서버는 아직 공개(토큰 무시) |
 | FR-20 `renderable` 없으면 unavailable | pass (종목 경로) | |

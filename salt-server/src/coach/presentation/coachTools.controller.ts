@@ -64,6 +64,23 @@ export class CoachToolsController {
     }
   };
 
+  /** 생성 상태 · 남은 쿨다운. 입력이 없다. */
+  getGenerationStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const result = await this.useCases.getGenerationStatus.execute(
+        req.user!.userId
+      );
+
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   /** 코치 상세. 입력이 없다 — 대상은 토큰의 사용자다. */
   getCoachDetail = async (req: Request, res: Response, next: NextFunction) => {
     try {

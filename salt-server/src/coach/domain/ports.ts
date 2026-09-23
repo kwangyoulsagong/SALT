@@ -1,5 +1,7 @@
 import type {
   CloseDistribution,
+  CoachGenerationEntry,
+  CoachGenerationSource,
   GaugeKind,
   GaugeTrackStats,
   JudgmentCase,
@@ -373,4 +375,32 @@ export interface GaugeTrackStore {
 }
 
 /** 지금 시각. 테스트가 시계를 고정할 수 있게 Port 로 둔다. */
+/**
+ * 코치 추천 생성 기록 (`DB-REQ-017` FR-13 · 14). 쿨다운 판정과 생성 성공률 관측의 근거다.
+ *
+ * 생성은 비동기라 기록이 둘로 나뉜다 — 받는 순간 `start`(진행 중), 끝나면 `finish`.
+ * 받는 순간 남겨야 다음 요청의 쿨다운 판정이 진행 중인 생성을 본다.
+ */
+export interface CoachGenerationLogStore {
+  start(
+    userId: string,
+    source: CoachGenerationSource,
+    requestedAt: Date
+  ): Promise<string>;
+  finish(
+    id: string,
+    result: {
+      status: "succeeded" | "failed";
+      llmSource: "llm" | "rule" | null;
+      durationMs: number;
+      errorCode: string | null;
+    }
+  ): Promise<void>;
+  recordRejected(userId: string, requestedAt: Date): Promise<void>;
+  /** 받아들인(거부 아닌) 마지막 **수동** 요청 시각 */
+  lastAcceptedManualAt(userId: string): Promise<Date | null>;
+  /** 최신순 */
+  recent(userId: string, limit: number): Promise<CoachGenerationEntry[]>;
+}
+
 export type Clock = () => Date;

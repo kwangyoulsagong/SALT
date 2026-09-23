@@ -31,7 +31,7 @@
 | FR-65 | 거래 < 3 이면 `insufficient_data` | 미착수 | 기존 동작 — 이 슬라이스가 보지 않았다 |
 | FR-63 · FR-64 | 거래 단위 라벨러 | 무효 | ADR-002 |
 | FR-70~78 | LLM 해설 | 미착수 | FR-102 로 Gemini 입력에서 `confidence` 만 뺐다 |
-| FR-80~84 | 쿨다운 | 미착수 | |
+| FR-80~84 | 쿨다운 5분 · 429 · 설정값 · 워커 제외 · 실패 · 거부 기록 | **pass** (2026-09-23) | 슬라이스 13. `policy/generationCooldown.ts` · `RequestCoachGeneration` · env `COACH_REGENERATE_COOLDOWN_SECONDS`. 기준은 받아들인 수동 요청(`SRV-REQ-025.md` §9) |
 | FR-90~91 | `scoreNote` · 점수→확률 변환 금지 | **pass** (2026-09-23) | 종목 경로 · 상세 둘 다 같은 `SCORE_NOTE`. 상세는 점수를 그대로 옮긴다 |
 
 ## 2. 종목 판단 경로 (FR-100~171)
@@ -81,7 +81,7 @@
 
 | 판정 | FR 수 |
 |---|---|
-| pass | 46 (이전 30 + 슬라이스 12 의 16: FR-11 · 12 · 14 · 15 · 23 · 32 · 33 · 40~43 · 60~62 · 90 · 91) |
+| pass | 51 (이전 30 + 슬라이스 12 의 16: FR-11 · 12 · 14 · 15 · 23 · 32 · 33 · 40~43 · 60~62 · 90 · 91 + 슬라이스 13 의 5: FR-80~84) |
 | 다르게 | 2 (FR-107 · FR-10) |
 | 부분 | 1 (FR-13 — 출처 테이블 없음) |
 | 미충족 | 1 (FR-115 — 3종 중 `excluded_asset`) |
@@ -99,6 +99,7 @@
 | 2 (`f722e5f` · `2771a9d` · `1553a67`) | **239/239** (+14) | `tsc` · `build` · `eslint src/coach src/market src/workers` · `test:layer-check` pass |
 | 11 (성적표) | **274/274** (+12: 도메인 7 · 유스케이스 5) | `build` · `eslint .` · `layer-check` 8파일 · 엔드포인트 · 실행계획 실측 |
 | 12 (코치 상세) | **299/299** (+25: 도메인 18 · 유스케이스 7) | `build` · `npm run lint` · `test:layer-check` · `layer-check` 사후 17파일 · 유스케이스 실제 DB 호출(16ms) |
+| 13 (쿨다운 · 프로필) | **318/318** (+19: 도메인 7 · 유스케이스 12) | `build` · `lint` · `test:layer-check` · `prisma validate` · 실제 DB 실측 · 쿼리 계획 |
 
 ## 5. 미검증
 

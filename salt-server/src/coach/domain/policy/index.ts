@@ -3,6 +3,7 @@ export * from "./candidates";
 export * from "./coachDetail";
 export * from "./explain";
 export * from "./gauge";
+export * from "./generationCooldown";
 export * from "./judgmentScoreboard";
 export * from "./marketRegime";
 export * from "./modeDecision";

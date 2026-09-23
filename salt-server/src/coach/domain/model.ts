@@ -217,6 +217,9 @@ export interface CoachPayload {
   debug?: { topCandidateFactors: ScoreFactor[] };
 }
 
+/** 알림 1종(지표 · 추천 갱신)의 빈도 단계 (`DB-REQ-017` FR-20 · D5). */
+export type NotificationLevel = "low" | "medium" | "high";
+
 /** 코치 설정. 기본값은 원문 상수다. */
 export interface CoachProfile {
   userId: string;
@@ -224,6 +227,9 @@ export interface CoachProfile {
   maxSingleAssetWeight: number;
   rebalanceBand: number;
   panicSellWindowHours: number;
+  /** 사용자가 고른 적이 없으면 `null` — 기본값을 채워 저장하지 않는다. 기본값은 읽는 쪽이 정한다 */
+  defaultMode: CoachMode | null;
+  notificationLevel: NotificationLevel | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
