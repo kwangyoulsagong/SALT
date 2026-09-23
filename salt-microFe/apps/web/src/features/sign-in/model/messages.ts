@@ -6,10 +6,9 @@
  */
 export const SIGN_IN_MESSAGES = {
   title: "로그인",
-  subtitle: "초대받은 계정으로 들어갑니다.",
 
   emailLabel: "이메일",
-  emailPlaceholder: "you@example.com",
+  emailPlaceholder: "이메일",
   passwordLabel: "비밀번호",
   passwordPlaceholder: "비밀번호",
 
