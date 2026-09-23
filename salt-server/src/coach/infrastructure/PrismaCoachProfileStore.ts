@@ -1,5 +1,11 @@
 import prisma from "../../shared/infrastructure/prisma";
-import type { CoachProfile, CoachProfileStore, RiskLevel } from "../domain";
+import type {
+  CoachMode,
+  CoachProfile,
+  CoachProfileStore,
+  NotificationLevel,
+  RiskLevel,
+} from "../domain";
 
 /**
  * 코치 설정 저장. 테이블 이름은 `user_investment_profiles` 그대로다.
@@ -11,12 +17,25 @@ import type { CoachProfile, CoachProfileStore, RiskLevel } from "../domain";
 const toRiskLevel = (value: string): RiskLevel =>
   value === "low" || value === "high" ? value : "medium";
 
+/**
+ * 두 컬럼은 CHECK 가 없는 자유 문자열이다(`DB-REQ-017` FR-22). 모르는 값은 **`null`** —
+ * `riskTolerance` 처럼 기본값으로 바꾸지 않는다. 고른 적 없음과 기본값 선택을 섞으면
+ * 기본값이 바뀔 때 그 사용자를 옮겨야 하는지 알 수 없다.
+ */
+const toMode = (value: string | null): CoachMode | null =>
+  value === "scalp" || value === "long_term" ? value : null;
+
+const toNotificationLevel = (value: string | null): NotificationLevel | null =>
+  value === "low" || value === "medium" || value === "high" ? value : null;
+
 const toDomain = (row: {
   userId: string;
   riskTolerance: string;
   maxSingleAssetWeight: number;
   rebalanceBand: number;
   panicSellWindowHours: number;
+  defaultMode: string | null;
+  notificationLevel: string | null;
   createdAt: Date;
   updatedAt: Date;
 }): CoachProfile => ({
@@ -25,6 +44,8 @@ const toDomain = (row: {
   maxSingleAssetWeight: row.maxSingleAssetWeight,
   rebalanceBand: row.rebalanceBand,
   panicSellWindowHours: row.panicSellWindowHours,
+  defaultMode: toMode(row.defaultMode),
+  notificationLevel: toNotificationLevel(row.notificationLevel),
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
 });
@@ -47,33 +68,27 @@ export class PrismaCoachProfileStore implements CoachProfileStore {
     userId: string,
     patch: Partial<Omit<CoachProfile, "userId">>
   ): Promise<CoachProfile> {
+    const data = {
+      ...(patch.riskTolerance ? { riskTolerance: patch.riskTolerance } : {}),
+      ...(patch.maxSingleAssetWeight !== undefined
+        ? { maxSingleAssetWeight: patch.maxSingleAssetWeight }
+        : {}),
+      ...(patch.rebalanceBand !== undefined
+        ? { rebalanceBand: patch.rebalanceBand }
+        : {}),
+      ...(patch.panicSellWindowHours !== undefined
+        ? { panicSellWindowHours: patch.panicSellWindowHours }
+        : {}),
+      ...(patch.defaultMode ? { defaultMode: patch.defaultMode } : {}),
+      ...(patch.notificationLevel
+        ? { notificationLevel: patch.notificationLevel }
+        : {}),
+    };
+
     const row = await prisma.userInvestmentProfile.upsert({
       where: { userId },
-      create: {
-        userId,
-        ...(patch.riskTolerance ? { riskTolerance: patch.riskTolerance } : {}),
-        ...(patch.maxSingleAssetWeight !== undefined
-          ? { maxSingleAssetWeight: patch.maxSingleAssetWeight }
-          : {}),
-        ...(patch.rebalanceBand !== undefined
-          ? { rebalanceBand: patch.rebalanceBand }
-          : {}),
-        ...(patch.panicSellWindowHours !== undefined
-          ? { panicSellWindowHours: patch.panicSellWindowHours }
-          : {}),
-      },
-      update: {
-        ...(patch.riskTolerance ? { riskTolerance: patch.riskTolerance } : {}),
-        ...(patch.maxSingleAssetWeight !== undefined
-          ? { maxSingleAssetWeight: patch.maxSingleAssetWeight }
-          : {}),
-        ...(patch.rebalanceBand !== undefined
-          ? { rebalanceBand: patch.rebalanceBand }
-          : {}),
-        ...(patch.panicSellWindowHours !== undefined
-          ? { panicSellWindowHours: patch.panicSellWindowHours }
-          : {}),
-      },
+      create: { userId, ...data },
+      update: data,
     });
 
     return toDomain(row);

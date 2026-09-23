@@ -564,6 +564,10 @@ model UserInvestmentProfile {
   rebalanceBand        Float  @default(0.1)
   panicSellWindowHours Int    @default(24)
 
+  // DB-REQ-017 FR-20~22 — 둘 다 nullable(기존 행에 값이 없다). 값 검증은 서비스가 한다 — CHECK 없음
+  defaultMode       String? @map("default_mode") // "scalp" | "long_term"
+  notificationLevel String? @map("notification_level") // "low" | "medium" | "high"
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

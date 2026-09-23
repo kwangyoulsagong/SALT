@@ -121,9 +121,12 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *                       type: string
    *                       enum: [scalp, long_term]
    *                       example: scalp
+   *                       description: 저장된 값. 고른 적이 없으면 기본값 scalp
    *                     notificationLevel:
    *                       type: string
+   *                       enum: [low, medium, high]
    *                       example: medium
+   *                       description: 저장된 값. 고른 적이 없으면 기본값 medium
    *                     supportedModes:
    *                       type: array
    *                       items:
@@ -333,6 +336,7 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *         example: BTC
    *       - in: query
    *         name: mode
+   *         description: 없으면 사용자 프로필의 defaultMode, 그것도 없으면 scalp
    *         schema:
    *           type: string
    *           enum: [scalp, long_term]
