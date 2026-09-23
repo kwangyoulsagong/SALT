@@ -77,7 +77,7 @@ BFF 경유 실측(로컬 테스트 계정 로그인 → 실제 토큰):
 | `GET /api/app/coach/generation-status` | 200 · 생성 뒤 `lastRequest.source: manual` · `succeeded` · `retryAfterSeconds: 298` |
 | `GET /api/app/behavior-coach` · `profit-plan` | 200 · 이 계정은 거래 0 · 보유 0 이라 빈 목록 |
 | 무토큰 `report` | 401 |
-| 게이트 | `npm run build` · `npm test` **99 pass**(+13) |
+| 게이트 | `npm run build` · `npm test` **99 pass**(+17) |
 
 ### 미검증
 

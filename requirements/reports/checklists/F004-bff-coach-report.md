@@ -12,7 +12,7 @@
 | `POST /api/ai-coach/generate` | **202 · 8.5ms** → 재요청 **429** · `Retry-After: 300` · 본문 `retryAfterSeconds: 300` |
 | `GET /api/app/coach/generation-status` | 200 · 생성 뒤 `manual` · `succeeded` · `retryAfterSeconds: 298` |
 | 무토큰 | 401 |
-| 게이트 | `npm run build` · `npm test` **99 pass**(+13) |
+| 게이트 | `npm run build` · `npm test` **99 pass**(+17) |
 
 서버 슬라이스 12 · 13 의 "인증 HTTP 미검증" 3건이 이 실측으로 닫혔다(각 체크리스트에 표시).
 
