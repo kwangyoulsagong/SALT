@@ -4,12 +4,15 @@ PM/기능 기획 Claude 규칙은 `pm/CLAUDE.md`에 있다.
 프론트엔드 Claude 규칙은 `salt-microFe/CLAUDE.md`에 있다.
 BFF Claude 규칙은 `bff/CLAUDE.md`에 있다.
 백엔드 Claude 규칙은 `salt-server/CLAUDE.md`에 있다.
+예측 · 데이터 파이프라인(Python) Claude 규칙은 `salt-forecast/CLAUDE.md`에 있다(`ADR-004`).
 
 PM 작업은 `pm/**`를 작업 범위로 보고, `pm/.claude/rules/`의 관련 규칙을 먼저 읽는다. 기능 기획서는 `salt-microFe/**`, `bff/**`, `salt-server/**` 전체 구현 현황과 계약을 근거로 계속 업데이트한다.
 
 프론트엔드 작업은 `salt-microFe/**`를 작업 범위로 보고, `salt-microFe/.claude/rules/`의 관련 규칙을 먼저 읽는다. `bff/**`, `salt-server/**`는 사용자가 API 계약 변경을 명시하지 않으면 수정하지 않는다.
 
 BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관련 규칙을 먼저 읽는다. 프론트엔드 응답 계약이나 백엔드 API 호출 계약 변경이 있으면 `salt-microFe/**`, `salt-server/**` 영향 여부를 함께 확인한다.
+
+예측 작업은 `salt-forecast/**`를 작업 범위로 보고, `salt-forecast/.claude/rules/`의 관련 규칙을 먼저 읽는다. 특히 `time-and-leakage.md`. `forecast` 스키마 DDL 은 `salt-server/prisma` 에서만 바꾸고, 뷰 계약(`v_forecast_card` 등)이 바뀌면 `salt-server/**` 영향을 함께 확인한다.
 
 백엔드 작업은 사용자가 `salt-server/**` 변경을 명시한 경우에만 수행하고, `salt-server/.claude/rules/`의 관련 규칙을 먼저 읽는다. API 계약 변경이 있으면 `salt-microFe/**` 영향 여부를 함께 확인한다.
 
@@ -40,6 +43,7 @@ BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관�
 | 모바일 `salt-microFe/apps/mobile` | **FSD** + React Native (iOS+Android) | `RN-REQ-001`~`003` |
 | BFF `bff` | 레이어드 + SSE | `BFF-REQ-006` |
 | 서버 `salt-server` | **DDD (컨텍스트 우선)** | `SRV-REQ-006` |
+| 예측 `salt-forecast` | Python 배치 · 층(`import-linter`) · DB 스키마가 계약 | `ADR-004`, `FC-REQ-001`~ |
 
 - **`@module-federation/nextjs-mf`를 쓰지 않는다.** App Router 미지원 + Next 지원 종료(`ADR-001`).
 - 프론트 FSD 슬라이스 이름과 서버 DDD 컨텍스트 이름은 **동일**하다. 레지스트리는 `salt-microFe/.claude/rules/layered-architecture.md` §4.
