@@ -173,7 +173,6 @@ export enum AssetClass {
 | `packages/ui-native` | RN 컴포넌트 | mobile |
 | `packages/core` | 플랫폼 무관 `model`·`api`·`lib` | 전부 |
 | `packages/eslint-config` `packages/typescript-config` | 툴링 | 전부 |
-| `packages/mocks` | MSW 핸들러 | web · web-tax |
 
 ## 9. 레이어별 규칙 문서
 

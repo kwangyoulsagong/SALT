@@ -15,10 +15,9 @@ globs: apps/*/src/app/**
 
 ```
 src/app/
-├── providers/     React Query · Redux · 세션 복원 · MSW — "use client"
+├── providers/     React Query · Redux · 세션 복원 — "use client"
 ├── styles/        전역 스타일 · reset · 토큰 주입
 ├── ui/            앱 껍데기(AppShell) — 화면이 아니라 프레임이다
-├── mock/          MSW 워커·핸들러 (dev 전용 부팅)
 ├── store.ts       슬라이스 reducer 조립 · RootState
 ├── api-routes/    Route Handler 로직 (루트 app/api/**/route.ts 가 re-export) — 아직 없다
 └── index.ts
@@ -28,8 +27,10 @@ src/app/
 `shared/ui`에 두지 않는 이유는 라우팅 파일이 `@/app`·`@/pages`만 import할 수 있기 때문이다
 (`FE-REQ-009` FR-25).
 
-MSW가 `shared/api`가 아니라 여기 있는 이유: **워커 설치는 dev 부팅이지 API 클라이언트가 아니다.**
-`msw/browser`를 `shared/api` barrel에 넣으면 그 barrel을 쓰는 모든 곳의 서버 컴파일에 끌려 온다.
+**목(MSW)을 두지 않는다 (2026-09-23 제거).** 목이 남아 있으면 그것이 계약이 된다 — 로그인 목이
+`mock-jwt-token` 과 `id: number` 를 정하고 있었고, 지출 목은 서버에 없는 숫자를 홈에 그리며 실패하면
+실제 보유 목록까지 가렸다. 개발도 실제 BFF(`:4001`)를 부른다. 화면 확인에 고정 데이터가 필요하면
+**Playwright `route`** 로 그 요청만 가로챈다 — 앱 번들에 넣지 않는다.
 
 ## 원칙
 

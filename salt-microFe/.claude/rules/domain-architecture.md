@@ -54,7 +54,6 @@ src/
 - 한 앱에서만 쓰면 앱 내부에 둔다.
 - 두 앱 이상에서 UI로 반복되면 `packages/ui`.
 - 두 zone 이상에서 플랫폼 무관한 모델·상수·정책으로 반복되면 `packages/core`.
-- mock fixture가 여러 앱에서 필요하면 `packages/mocks`.
 - 타입만 공유해야 하면 새 패키지보다 기존 패키지의 contract 파일을 우선 검토한다.
 
 ## 금지
