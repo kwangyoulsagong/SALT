@@ -31,6 +31,8 @@ export interface PortfolioSummaryItem {
   symbol: string;
   /** 시세 목록에서 찾은 이름. 못 찾으면 심볼이 들어 있다 */
   name: string;
+  /** 서버가 정한 로고 주소. 없으면 이니셜 아이콘 */
+  logoUrl: string | null;
   assetType: string;
   currentValue: number;
   profitRate: number;

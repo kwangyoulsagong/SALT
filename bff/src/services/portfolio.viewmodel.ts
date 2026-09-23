@@ -7,6 +7,11 @@ export interface PortfolioSummaryItemVM {
   symbol: string;
   /** 사람이 읽는 이름. 시세 목록에서 찾지 못하면 **심볼을 그대로 쓴다** */
   name: string;
+  /**
+   * 종목 로고. 이름과 같은 시세 목록에서 옮긴다 — 주소 규칙(크립토 · 주식)은 서버가 정한다.
+   * 못 찾으면 `null` 이고 화면은 이니셜 아이콘을 그린다
+   */
+  logoUrl: string | null;
   assetType: string;
   currentValue: number;
   profitRate: number;
@@ -44,10 +49,12 @@ export const toPortfolioSummaryViewModel = (
   summary: ServerPortfolioSummary | undefined,
   nameBySymbol: ReadonlyMap<string, string>,
   namesDegraded: boolean,
+  logoBySymbol: ReadonlyMap<string, string> = new Map(),
 ): PortfolioSummaryVM => ({
   items: (summary?.items ?? []).map((item) => ({
     symbol: item.symbol,
     name: nameBySymbol.get(item.symbol.toUpperCase()) ?? item.symbol,
+    logoUrl: logoBySymbol.get(item.symbol.toUpperCase()) ?? null,
     assetType: item.assetType,
     currentValue: item.currentValue,
     profitRate: item.profitRate,

@@ -86,4 +86,21 @@ describe("toPortfolioSummaryViewModel", () => {
     assert.equal(vm.fxRateUsed, 1390.5);
     assert.equal(vm.fxBasisCode, "SETTLEMENT");
   });
+
+  it("시세 목록의 로고를 옮기고, 없으면 null 이다", () => {
+    const vm = toPortfolioSummaryViewModel(
+      summary({
+        items: [
+          { symbol: "btc", assetType: "crypto", currentValue: 1, profitRate: 0 },
+          { symbol: "AAPL", assetType: "stock", currentValue: 1, profitRate: 0 },
+        ],
+      }),
+      names([]),
+      false,
+      new Map([["BTC", "https://static.upbit.com/logos/BTC.png"]]),
+    );
+
+    assert.equal(vm.items[0].logoUrl, "https://static.upbit.com/logos/BTC.png");
+    assert.equal(vm.items[1].logoUrl, null);
+  });
 });
