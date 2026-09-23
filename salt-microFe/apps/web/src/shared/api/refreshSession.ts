@@ -19,12 +19,37 @@
  */
 import { singleFlight } from "@repo/core/auth";
 
-import { INVESTMENTS_BASE_URL, HTTP_STATUS_CODE } from "@/shared/config";
+import {
+  HTTP_STATUS_CODE,
+  INVESTMENTS_BASE_URL,
+  PUBLIC_PATHS,
+  ROUTES,
+} from "@/shared/config";
 
 import { clearSession, readRefreshToken, writeSession } from "./authToken";
 
 /** BFF 가 서버로 통과시키는 경로. `/api/app/*` 가 아니다. */
 const REFRESH_PATH = "/api/auth/refresh";
+
+/**
+ * 세션이 끝났으면 로그인으로 보낸다 (`FE-REQ-011` FR-62 후반).
+ *
+ * ## 왜 화면에 맡기지 않는가
+ *
+ * 401 만 올리면 화면마다 "로그인이 필요하다"를 따로 판단해야 하고, 실제로 그러지 않아서
+ * 코치 패널은 세션이 끝난 것을 "지금 판단을 불러올 수 없습니다"로 그렸다 — 사용자는
+ * 서버가 고장 난 줄 안다.
+ *
+ * `window.location.replace` 다(`router` 는 이 레이어에 없다). 히스토리를 남기지 않는 이유는
+ * 뒤로 가기가 이미 죽은 화면으로 돌아가기 때문이다. **공개 경로에서는 아무것도 하지 않는다** —
+ * 로그인 화면에서 로그인 화면으로 보내는 일이 없게(`PUBLIC_PATHS` 의 첫 소비처다).
+ */
+const leaveForLogin = () => {
+  if (typeof window === "undefined") return;
+  if (PUBLIC_PATHS.includes(window.location.pathname)) return;
+
+  window.location.replace(ROUTES.login);
+};
 
 interface RefreshEnvelope {
   data?: { accessToken?: string };
@@ -39,6 +64,7 @@ const requestRefresh = async (): Promise<string | null> => {
   // 리프레시 토큰이 없으면 갱신할 것이 없다. 남은 액세스 토큰도 쓸모가 없으므로 비운다.
   if (!refreshToken) {
     clearSession();
+    leaveForLogin();
     return null;
   }
 
@@ -59,6 +85,7 @@ const requestRefresh = async (): Promise<string | null> => {
     // 401 · 403 은 리프레시 토큰도 죽었다는 뜻이다 — 세션을 비워 화면이 로그인을 요구하게 한다.
     if (response.status === HTTP_STATUS_CODE.UNAUTHORIZED || response.status === 403) {
       clearSession();
+      leaveForLogin();
     }
     return null;
   }
@@ -67,6 +94,7 @@ const requestRefresh = async (): Promise<string | null> => {
   const accessToken = body?.data?.accessToken;
   if (!accessToken) {
     clearSession();
+    leaveForLogin();
     return null;
   }
 
