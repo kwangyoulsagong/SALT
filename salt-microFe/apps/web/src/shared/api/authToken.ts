@@ -17,7 +17,7 @@
  * 서버(SSR)에서는 `null` 이다. `typeof window` 는 **함수 안에서만** 읽는다 —
  * 모듈 최상단 분기는 서버 컴파일에서도 평가된다 (`ssr.md`).
  */
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/shared/config";
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from "@/shared/config";
 
 export const readAccessToken = (): string | null => {
   if (typeof window === "undefined") return null;
@@ -27,6 +27,37 @@ export const readAccessToken = (): string | null => {
   } catch {
     // Safari 프라이빗 모드는 `localStorage` 접근 자체가 던진다. 토큰 없음으로 본다.
     return null;
+  }
+};
+
+/**
+ * 갱신에 쓸 리프레시 토큰. 액세스 토큰과 **같은 자리에서** 읽는다(`FE-REQ-013` 이관 단위).
+ */
+export const readRefreshToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+
+  try {
+    return window.localStorage.getItem(REFRESH_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * 세션을 비운다 — **리프레시까지 죽었을 때만** 부른다(`FE-REQ-011` FR-62).
+ *
+ * 네트워크 실패로 부르지 않는다. 오프라인 한 번에 로그아웃이 되면 사용자는 자기가
+ * 뭘 했는지 알 수 없다. 지우는 것은 "서버가 이 세션을 거부했다"가 확인된 경우다.
+ */
+export const clearSession = (): void => {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+    window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+    window.localStorage.removeItem(USER_KEY);
+  } catch {
+    // 지울 수 없으면 다음 인증 호출이 401 이다 — 그게 사용자에게 보이는 정직한 상태다.
   }
 };
 
