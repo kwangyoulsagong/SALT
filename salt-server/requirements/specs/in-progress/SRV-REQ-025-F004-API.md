@@ -199,7 +199,10 @@ type ExplainResult =
 // 응답: maxLossOfTotalRate: number | null
 
 // GET /api/signal-performance?groupBy=signalType — 그룹마다 추가 (B17)
-// returnDistribution: { horizonDays: 30; buckets: Array<{ code: string; count: number }>; p25: number | null; median: number | null; p75: number | null }
+// returnDistribution: { horizonDays: number; buckets: Array<{ code: string; count: number }>; p25: number | null; median: number | null; p75: number | null }
+//   개정 2026-09-23: `horizonDays` 는 **그룹의 관찰 기간**이다(단타 1 · 장기 30). 30 고정이면
+//   단타 표본(24시간)의 분포에 "30일"이라고 쓰는 것이 된다. 구간 코드 6종:
+//   `lte_m20` · `m20_m10` · `m10_0` · `0_p10` · `p10_p20` · `gte_p20` (경계값은 위 구간)
 // hits: Array<{ date; event; outcome }> · misses: Array<{ date; event; outcome }>   // 같은 구조 · 같은 상한 3 (B2)
 ```
 
@@ -277,4 +280,5 @@ type ExplainResult =
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `distancePct` → `priceGap` · `distanceFromCurrentPct` → `gapFromCurrent`(D13). `insufficient_sample` 추가(D11). `scope_undecided` → `out_of_scope`(D12) |
 | 2026-09-21 | **슬라이스 1 구현.** 종목 경로 응답에 `modes.scalp` · `modes.longTerm`(판단 · `signalType` · `renderable` · `blockedReason` · `trackRecord` · `failureCases`) · `disclaimer` 추가, `confidence` 제거(FR-40~43 · FR-45 · FR-47). `failureCases` 항목은 `{ date, symbol, event(signalType 코드), outcome, returnRate }` — 문구 대신 코드와 숫자. 남음: `zone`(FR-44) · `gaugeTrackRecords`(FR-46) · `assetType` · FR-48(`defaultMode` 컬럼 없음) · BFF `mapDecision` 의 `confidence` 정리(`BFF-REQ-025`) |
 | 2026-09-21 | **슬라이스 2 구현.** `modes.*.zone`(FR-44) · `gaugeTrackRecords`(FR-46 — 지금 심리 구간 한 줄, 표본 0 이면 빠짐). `zone` 은 `preview` 에서도 싣는다(FR-49 는 생략을 허용할 뿐). 남음: `assetType` · FR-48 |
+| 2026-09-23 | **슬라이스 11 구현.** `GET /api/coach/scoreboard` 신설 · `signal-performance?groupBy=signalType`(FR-15 · FR-53). `returnDistribution.horizonDays` 를 **그룹 관찰 기간으로 개정**(위 코드블록). 남음: FR-1~10 · 13 · 16~18 · 31 · 48 · 54. 근거 `reports/checklists/SRV-REQ-025.md` §7 |
 | 2026-09-22 | **슬라이스 10 구현.** explain 인증 · 판단 게이트 먼저(미렌더면 LLM 미호출) · abort · `newsSummary` ≤ 뉴스 수 · Swagger(FR-11 · 12 · 20 · 32 · 50 · 51), preflight `stopLossRate` · `maxLossOfTotalRate` · 손실 원 정수(FR-14 · 19 부분 · 52). 남음: FR-1~10 · 13 · 15~18 · 31 · 48 · 53 · 54. 근거 `reports/checklists/SRV-REQ-025.md` §6 |
