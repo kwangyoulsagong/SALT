@@ -4,6 +4,9 @@ import {
   explainRecommendation,
   rankCandidates,
   generateCandidates,
+  type Clock,
+  type CoachGenerationLogStore,
+  type CoachGenerationSource,
   type CoachInsight,
   type CoachInsightStore,
   type CoachMode,
@@ -12,6 +15,7 @@ import {
   type MarketProbe,
   type PortfolioProbe,
 } from "../domain";
+import { isDomainError } from "../../shared/domain";
 import { AnalyzeNewsSentiment } from "./AnalyzeNewsSentiment";
 import { GetSymbolCoach, type SymbolCoachView } from "./GetSymbolCoach";
 import { assembleCoachContext } from "./lib/assembleCoachContext";
@@ -28,6 +32,15 @@ export interface GenerateCoachCommand {
   mode?: CoachMode;
 }
 
+export interface GenerateCoachOptions {
+  /** 누가 불렀나. 워커가 기본이다 — 수동 요청은 `RequestCoachGeneration` 을 거친다 */
+  source?: CoachGenerationSource;
+  /** 이미 `start` 한 기록. 수동 요청은 받는 순간 기록을 만들고 그 id 를 넘긴다 */
+  logId?: string;
+}
+
+type Generated = CoachInsight | SymbolCoachView | null;
+
 /**
  * 코치 추천 생성 — `ai-investment-coach.service.generateCoach` 에서 옮겨왔다.
  *
@@ -38,6 +51,14 @@ export interface GenerateCoachCommand {
  * **2~5 는 전부 `domain` 이 한다** — 이 클래스에 산술이 없다(`ddd-application.md` §2).
  *
  * 보유가 없으면 종목 단위 판단으로 넘어간다. 원문과 같은 대체 경로다.
+ *
+ * ## 생성마다 기록을 남긴다 (`DB-REQ-017` FR-13 · 14 · `SRV-REQ-024` FR-84)
+ *
+ * 워커 · 수동 모두 `coach_generation_logs` 에 시작과 끝을 남긴다. 실패도 남기고 **다시 던진다** —
+ * 워커의 부분 실패 집계(`forEachUser`)가 그대로 동작해야 한다. 기록 자체가 실패하면 생성은
+ * 계속한다 — 관측이 본 기능을 막으면 안 된다.
+ *
+ * `llmSource` 는 지금 늘 `rule` 이다 — 저장 추천 요약은 규칙 문장이고 LLM 을 부르지 않는다.
  *
  * ## 트랜잭션을 열지 않는다
  *
@@ -53,13 +74,49 @@ export class GenerateCoachRecommendation {
     private readonly portfolio: PortfolioProbe,
     private readonly notifier: CoachNotifier,
     private readonly analyzeNews: AnalyzeNewsSentiment,
-    private readonly symbolCoach: GetSymbolCoach
+    private readonly symbolCoach: GetSymbolCoach,
+    private readonly logs: CoachGenerationLogStore,
+    private readonly clock: Clock = () => new Date()
   ) {}
 
   async execute(
     userId: string,
-    command: GenerateCoachCommand = {}
-  ): Promise<CoachInsight | SymbolCoachView | null> {
+    command: GenerateCoachCommand = {},
+    options: GenerateCoachOptions = {}
+  ): Promise<Generated> {
+    const startedAt = this.clock();
+    const logId =
+      options.logId ??
+      (await this.logs
+        .start(userId, options.source ?? "worker", startedAt)
+        .catch(() => null));
+
+    const finish = (status: "succeeded" | "failed", errorCode: string | null) =>
+      logId
+        ? this.logs
+            .finish(logId, {
+              status,
+              llmSource: status === "succeeded" ? "rule" : null,
+              durationMs: this.clock().getTime() - startedAt.getTime(),
+              errorCode,
+            })
+            .catch(() => undefined)
+        : undefined;
+
+    try {
+      const result = await this.generate(userId, command);
+      await finish("succeeded", null);
+      return result;
+    } catch (error) {
+      await finish("failed", errorCodeOf(error));
+      throw error;
+    }
+  }
+
+  private async generate(
+    userId: string,
+    command: GenerateCoachCommand
+  ): Promise<Generated> {
     const newsAnalysisMap = await this.analyzeNews.execute();
 
     const ctx = await assembleCoachContext(
@@ -163,6 +220,14 @@ export class GenerateCoachRecommendation {
     });
   }
 }
+
+/** 기록용 오류 코드. 메시지는 남기지 않는다 — 외부 응답 원문이 섞일 수 있다. */
+const errorCodeOf = (error: unknown): string =>
+  isDomainError(error)
+    ? error.code
+    : error instanceof Error
+      ? error.name
+      : "unknown";
 
 /** 직전 판단의 행동. 없으면 `null` — 첫 생성에는 비교 대상이 없다. */
 const readDecisionAction = (insight: CoachInsight | null): string | null => {

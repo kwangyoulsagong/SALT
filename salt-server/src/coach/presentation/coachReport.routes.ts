@@ -9,7 +9,7 @@ import { CoachToolsController } from "./coachTools.controller";
  *
  * `ddd-presentation.md` §7 이 말하는 **컨텍스트 이름이 곧 리소스 경로**인 자리다.
  * 기존 코치 경로(`/api/ai-coach` · `/api/signal-performance` …)는 이관 중 유지하고,
- * 신규 경로만 여기로 온다. 다음에 `generation-status` 가 이 라우터에 붙는다.
+ * 신규 경로만 여기로 온다.
  */
 export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
   const router = Router();
@@ -227,6 +227,64 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         description: 인증 실패
    */
   router.get("/detail", controller.getCoachDetail);
+
+  /**
+   * @swagger
+   * /api/coach/generation-status:
+   *   get:
+   *     summary: 코치 생성 상태 · 남은 쿨다운
+   *     description: |
+   *       마지막 성공 생성 시각 · 마지막 요청 상태 · 진행 중 여부 · 수동 재생성까지 남은 초.
+   *       화면이 재생성 버튼을 언제 열지 이것으로 정한다.
+   *
+   *       - `retryAfterSeconds` 가 0 이면 지금 누를 수 있다
+   *       - 쿨다운 거부 요청은 `lastRequest` 로 보이지 않는다
+   *       - 10분 넘게 끝나지 않은 생성은 진행 중으로 보지 않는다(도중에 프로세스가 죽은 경우)
+   *     tags: [Coach Report]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: 생성 상태
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     lastGeneratedAt:
+   *                       type: string
+   *                       format: date-time
+   *                       nullable: true
+   *                     lastRequest:
+   *                       type: object
+   *                       nullable: true
+   *                       properties:
+   *                         requestedAt:
+   *                           type: string
+   *                           format: date-time
+   *                         source:
+   *                           type: string
+   *                           enum: [worker, manual]
+   *                         status:
+   *                           type: string
+   *                           enum: [running, succeeded, failed]
+   *                     inProgress:
+   *                       type: boolean
+   *                     cooldownSeconds:
+   *                       type: integer
+   *                       example: 300
+   *                     retryAfterSeconds:
+   *                       type: integer
+   *                       example: 0
+   *       401:
+   *         description: 인증 실패
+   */
+  router.get("/generation-status", controller.getGenerationStatus);
 
   return router;
 };

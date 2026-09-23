@@ -1,5 +1,6 @@
 import type {
   CoachExplainer,
+  CoachGenerationLogStore,
   CoachInsightStore,
   CoachNotifier,
   CoachProfileStore,
@@ -19,6 +20,7 @@ import { CheckTradePreflight } from "../CheckTradePreflight";
 import { ExplainCoachDecision } from "../ExplainCoachDecision";
 import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
 import { GetCoachDetail } from "../GetCoachDetail";
+import { GetCoachGenerationStatus } from "../GetCoachGenerationStatus";
 import { GetCoachRecommendation } from "../GetCoachRecommendation";
 import { GetJudgmentScoreboard } from "../GetJudgmentScoreboard";
 import { GetSignalPerformance } from "../GetSignalPerformance";
@@ -31,6 +33,7 @@ import {
   SnapshotSymbolJudgments,
 } from "../RecordSymbolJudgments";
 import { RefreshGaugeTrackRecords } from "../RefreshGaugeTrackRecords";
+import { RequestCoachGeneration } from "../RequestCoachGeneration";
 
 /**
  * `coach` 의 조립 팩토리.
@@ -57,10 +60,15 @@ export interface CoachDependencies {
   judgments: SymbolJudgmentStore;
   tracked: TrackedAssetProbe;
   gauges: GaugeTrackStore;
+  generationLogs: CoachGenerationLogStore;
+  /** 수동 재생성 쿨다운(초). **설정값**이다(`SRV-REQ-024` FR-82) — env 에서 온다 */
+  regenerateCooldownSeconds: number;
 }
 
 export interface CoachUseCases {
   generateRecommendation: GenerateCoachRecommendation;
+  requestGeneration: RequestCoachGeneration;
+  getGenerationStatus: GetCoachGenerationStatus;
   getRecommendation: GetCoachRecommendation;
   getCoachDetail: GetCoachDetail;
   getSymbolCoach: GetSymbolCoach;
@@ -96,15 +104,27 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.portfolio
   );
 
+  const generateRecommendation = new GenerateCoachRecommendation(
+    deps.profiles,
+    deps.insights,
+    deps.market,
+    deps.portfolio,
+    deps.notifier,
+    analyzeNewsSentiment,
+    symbolCoach,
+    deps.generationLogs
+  );
+
   const useCases: CoachUseCases = {
-    generateRecommendation: new GenerateCoachRecommendation(
-      deps.profiles,
-      deps.insights,
-      deps.market,
-      deps.portfolio,
-      deps.notifier,
-      analyzeNewsSentiment,
-      symbolCoach
+    generateRecommendation,
+    requestGeneration: new RequestCoachGeneration(
+      deps.generationLogs,
+      generateRecommendation,
+      deps.regenerateCooldownSeconds
+    ),
+    getGenerationStatus: new GetCoachGenerationStatus(
+      deps.generationLogs,
+      deps.regenerateCooldownSeconds
     ),
     getRecommendation: new GetCoachRecommendation(deps.insights, symbolCoach),
     getCoachDetail: new GetCoachDetail(
