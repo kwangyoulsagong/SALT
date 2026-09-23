@@ -8,6 +8,7 @@ export type ButtonVariant =
   | "primary"
   | "secondary"
   | "ghost"
+  | "weak"
   | "outline"
   | "warning"
   | "danger"

@@ -62,6 +62,20 @@ export const buttonVariants = recipe({
         },
       },
 
+      /**
+       * 회색 약한 버튼 — 화면의 **주된 행동이 아닌** 버튼(다시 만들기 · 새로고침 류).
+       * 테두리 없이 옅은 회색 면이다. 색을 칠한 버튼이 둘이면 무엇을 먼저 누를지 흐려진다
+       */
+      weak: {
+        background: vars.colors.neutral[100],
+        color: vars.colors.neutral[700],
+        selectors: {
+          "&:hover:not(:disabled)": {
+            background: vars.colors.neutral[200],
+          },
+        },
+      },
+
       outline: {
         background: "transparent",
         color: vars.colors.brand.primary,
