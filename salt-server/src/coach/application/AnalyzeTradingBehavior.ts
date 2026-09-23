@@ -5,6 +5,8 @@ import {
   detectOverTrading,
   detectPanicSell,
   hoursBefore,
+  toBehaviorFact,
+  type BehaviorFact,
   type BehaviorFinding,
   type CoachInsight,
   type CoachInsightStore,
@@ -143,6 +145,9 @@ export interface BehaviorCoachView {
     severity: number;
     confidence: number | null;
     payload: Record<string, unknown> | null;
+    /** `SRV-REQ-025` FR-17 — 기존 필드에 **더한다.** 판정을 못 읽으면 `null` · `{}` */
+    factCode: BehaviorFact["factCode"] | null;
+    params: BehaviorFact["params"];
   }>;
   recommendedRules: string[];
   evidence: {
@@ -201,14 +206,19 @@ export class GetBehaviorCoach {
     return {
       status: insights.length ? "active" : "stable",
       tags,
-      warnings: insights.map((insight) => ({
-        id: insight.id,
-        title: insight.title,
-        message: insight.summary,
-        severity: insight.severity,
-        confidence: insight.confidence,
-        payload: insight.payload,
-      })),
+      warnings: insights.map((insight) => {
+        const fact = toBehaviorFact(insight.payload);
+        return {
+          id: insight.id,
+          title: insight.title,
+          message: insight.summary,
+          severity: insight.severity,
+          confidence: insight.confidence,
+          payload: insight.payload,
+          factCode: fact?.factCode ?? null,
+          params: fact?.params ?? {},
+        };
+      }),
       recommendedRules: buildBehaviorRules(tags),
       evidence: {
         transactionCount: tradeCount,

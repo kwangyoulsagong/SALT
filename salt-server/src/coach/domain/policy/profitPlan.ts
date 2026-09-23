@@ -13,6 +13,8 @@
  * 이 파일은 `domain` 이므로 Prisma·Express·Zod 를 모른다. 입력은 평범한 숫자다.
  */
 
+import Decimal from "decimal.js";
+
 /** 계획 상태. 문자열 리터럴 union 을 쓰지 않는다. */
 export enum ProfitPlanStatus {
   TakeProfitReview = "take_profit_review",
@@ -133,6 +135,16 @@ export const calculateProfitPlan = ({
     ],
   };
 };
+
+/**
+ * 현재가와 가격선의 차이 — `price − currentPrice`. 위에 있으면 양수, 호가 통화 금액이다.
+ *
+ * **% 를 만들지 않는다**(D13) — 거리 % 는 수익률로 읽힌다. 뺄셈 잡음
+ * (`0.30000000000000004`)이 금액에 남지 않게 `Decimal` 로 뺀다. 익절 계획 화면과
+ * 스마트 바이존이 **같은 함수**를 쓴다 — 두 화면이 다른 거리를 말하지 않는다.
+ */
+export const priceGap = (price: number, currentPrice: number): number =>
+  new Decimal(price).minus(currentPrice).toNumber();
 
 /**
  * 경고 문구.

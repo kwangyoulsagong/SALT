@@ -53,6 +53,23 @@ export const createBehaviorCoachRouter = (useCases: CoachUseCases): Router => {
    *                       type: array
    *                       items:
    *                         type: string
+   *                     warnings:
+   *                       type: array
+   *                       description: |
+   *                         `factCode` · `params` 가 기존 필드에 더해졌다. 서버는 코드와 수치만 주고
+   *                         문장은 프론트가 만든다. 판정을 읽지 못하면 `factCode: null` · `params: {}`
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           factCode:
+   *                             type: string
+   *                             nullable: true
+   *                             enum: [over_trading, panic_sell, chasing_high]
+   *                           params:
+   *                             type: object
+   *                             additionalProperties:
+   *                               type: number
+   *                             example: { windowHours: 24, trades: 15, threshold: 12 }
    *                     recommendedRules:
    *                       type: array
    *                       items:
@@ -89,7 +106,9 @@ export const createProfitPlanRouter = (useCases: CoachUseCases): Router => {
    *         example: BTC
    *     responses:
    *       200:
-   *         description: 익절/손절 플랜
+   *         description: |
+   *           익절/손절 플랜. 단계(`stages[]`)마다 `gapFromCurrent`(가격선 − 현재가, 호가 통화 금액,
+   *           위면 양수)가 있다. 거리 % 는 수익률로 읽혀서 두지 않는다
    *       401:
    *         description: 인증 실패
    */

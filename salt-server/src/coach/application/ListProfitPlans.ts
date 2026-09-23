@@ -1,6 +1,7 @@
 import {
   buildProfitPlanWarnings,
   calculateProfitPlan,
+  priceGap,
   type PortfolioProbe,
 } from "../domain";
 
@@ -46,7 +47,11 @@ export class ListProfitPlans {
           currentValue: holding.currentValue,
           unrealizedProfit: holding.unrealizedProfit,
           unrealizedProfitRate: holding.unrealizedProfitRate,
-          stages: plan.stages,
+          // 기존 필드는 그대로 두고 거리만 더한다(`SRV-REQ-025` FR-16). 화면이 빼지 않게
+          stages: plan.stages.map((stage) => ({
+            ...stage,
+            gapFromCurrent: priceGap(stage.price, plan.currentPrice),
+          })),
           warnings: buildProfitPlanWarnings(holding.unrealizedProfitRate),
           generatedAt: new Date().toISOString(),
         };
