@@ -105,7 +105,8 @@ export const ExplainCard = ({ view, mode, subject, className }: ExplainCardProps
     return (
       <>
         <Button
-          variant="outline"
+          variant="primary"
+          fullWidth
           loading={explain.isPending}
           disabled={!body}
           onClick={() => body && explain.request(body)}

@@ -23,6 +23,12 @@ const STACK_BREAKPOINT = "1024px";
 const NARROW = "screen and (max-width: 640px)";
 const SIDE_WIDTH = "380px";
 const CARD_RADIUS = "20px";
+/**
+ * 카드 그림자. 토큰의 `elevation.sm` 은 흰 배경을 전제해서 옅은 회색 배경 위에서는
+ * 거의 보이지 않았다 — 카드 경계가 사라져 화면이 한 장처럼 보였다. 가까운 그림자로 윤곽을
+ * 만들고 먼 그림자로 살짝 띄운다.
+ */
+const CARD_SHADOW = "0 1px 2px rgba(25,31,40,0.04), 0 10px 24px rgba(25,31,40,0.05)";
 /** 하단 고정 바 높이. 본문이 그 아래로 숨지 않게 같은 값만큼 띄운다. */
 const DISCLAIMER_BAR_HEIGHT = "44px";
 
@@ -60,7 +66,7 @@ export const headerCard = style({
   padding: `${vars.space.xl} ${vars.space.xl}`,
   borderRadius: CARD_RADIUS,
   background: vars.colors.background.white,
-  boxShadow: vars.elevation.sm,
+  boxShadow: CARD_SHADOW,
   "@media": {
     [NARROW]: { padding: vars.space.lg, gap: vars.space.lg },
   },
@@ -226,7 +232,7 @@ export const card = style({
   padding: vars.space.xl,
   borderRadius: CARD_RADIUS,
   background: vars.colors.background.white,
-  boxShadow: vars.elevation.sm,
+  boxShadow: CARD_SHADOW,
   minWidth: 0,
   "@media": {
     [NARROW]: { padding: vars.space.lg },
