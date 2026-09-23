@@ -70,6 +70,7 @@ app.use("/api/trade-preflight", contextRouters.tradePreflight);
 app.use("/api/behavior-coach", contextRouters.behaviorCoach);
 app.use("/api/profit-plan", contextRouters.profitPlan);
 app.use("/api/signal-performance", contextRouters.signalPerformance);
+app.use("/api/coach", contextRouters.coachReport);
 
 // 404 handler
 app.use((req: Request, res: Response, next: NextFunction) => {

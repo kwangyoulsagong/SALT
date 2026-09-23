@@ -53,14 +53,19 @@ export interface ModeCoachView {
   failureCases: JudgmentCaseView[];
 }
 
-const toCaseView = (
-  mode: CoachMode,
+/**
+ * 사례 하나를 화면 모양으로. `event` 는 그룹 키(`<mode>.<action>`)다 — 사례는 그 키로
+ * 뽑았으니 다시 만들지 않고 받는다. 성적표(`GetJudgmentScoreboard`)와 판단 블록이
+ * **같은 함수**를 쓴다: 적중과 실패가 같은 모양이어야 한다(B2).
+ */
+export const toCaseView = (
+  event: string,
   outcome: "hit" | "miss",
   item: JudgmentCase
 ): JudgmentCaseView => ({
   date: item.judgedAt.toISOString().slice(0, 10),
   symbol: item.symbol,
-  event: judgmentSignalType(mode, item.action),
+  event,
   outcome,
   returnRate: item.returnRate,
 });
@@ -107,6 +112,6 @@ export const attachJudgmentTrack = async (
     renderable: gate.renderable,
     blockedReason: gate.blockedReason,
     trackRecord,
-    failureCases: misses.map((item) => toCaseView(decision.mode, "miss", item)),
+    failureCases: misses.map((item) => toCaseView(signalType, "miss", item)),
   };
 };

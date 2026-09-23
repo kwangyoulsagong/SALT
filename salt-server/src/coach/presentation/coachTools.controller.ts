@@ -64,6 +64,20 @@ export class CoachToolsController {
     }
   };
 
+  /**
+   * 판단 성적표. `/api/coach/scoreboard` 와 `?groupBy=signalType` 이 **같은 표**를 준다 —
+   * 하나는 리포트 화면의 경로이고 하나는 기존 경로의 하위 호환 확장이다.
+   */
+  getScoreboard = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.useCases.getJudgmentScoreboard.execute();
+
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getSignalPerformance = async (
     req: Request,
     res: Response,
@@ -71,6 +85,10 @@ export class CoachToolsController {
   ) => {
     try {
       const query = signalPerformanceQuerySchema.parse(req.query);
+
+      // 응답 **모양이 다른 두 계약**이 한 경로에 있다. 무인자 호출이 옛 응답을 그대로
+      // 받아야 해서(FR-15) 새 표를 여기에 덧붙일 수 없었다 — 쿼리로 갈라진다.
+      if (query.groupBy) return this.getScoreboard(req, res, next);
 
       const result = await this.useCases.getSignalPerformance.execute(
         req.user!.userId,

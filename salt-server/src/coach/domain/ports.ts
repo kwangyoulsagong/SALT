@@ -3,6 +3,7 @@ import type {
   GaugeKind,
   GaugeTrackStats,
   JudgmentCase,
+  JudgmentGroupStats,
   JudgmentOutcome,
   JudgmentTrackStats,
   ModeDecisionAction,
@@ -310,6 +311,21 @@ export interface SymbolJudgmentStore {
     outcome: JudgmentOutcome,
     limit: number
   ): Promise<JudgmentCase[]>;
+  /**
+   * 성적표 — **판정이 끝난 표본 전체를 신호 유형별로** 모은다(`SRV-REQ-024` FR-30 · FR-160).
+   *
+   * 구간별 표본 수와 사분위수까지 저장소가 센다. 그룹 수가 최대 8개(모드 2 × 판단 4)라
+   * 행을 읽어 세도 되겠지만, 표본은 종목 × 기간으로 계속 늘어난다 — 집계를 여기 두면
+   * 응답 시간이 표본 수와 무관해진다(`SRV-REQ-027` FR-5).
+   */
+  scoreboard(): Promise<JudgmentGroupStats[]>;
+  /**
+   * 그룹마다 최근 적중 · 실패 사례. **한 번에 다 받는다** — 그룹별로 `recentCases` 를
+   * 두 번씩 부르면 쿼리가 그룹 수 × 2 가 된다(FR-36).
+   */
+  recentCasesByGroup(
+    limit: number
+  ): Promise<Map<string, Record<JudgmentOutcome, JudgmentCase[]>>>;
 }
 
 /**

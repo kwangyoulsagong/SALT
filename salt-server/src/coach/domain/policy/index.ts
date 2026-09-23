@@ -2,6 +2,7 @@ export * from "./behavior";
 export * from "./candidates";
 export * from "./explain";
 export * from "./gauge";
+export * from "./judgmentScoreboard";
 export * from "./marketRegime";
 export * from "./modeDecision";
 export * from "./newsSentiment";

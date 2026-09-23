@@ -100,6 +100,11 @@ export const profitPlanQuerySchema = z.object({
 export const signalPerformanceQuerySchema = z.object({
   symbol: z.string().trim().min(1).max(20).optional(),
   signalKey: z.string().trim().min(1).max(80).optional(),
+  /**
+   * 있으면 **판단 스냅샷 기반 성적표 그룹**을 준다(`SRV-REQ-025` FR-15 · FR-53).
+   * 없으면 기존 응답 그대로다 — 무인자 호출이 하위 호환이어야 한다.
+   */
+  groupBy: z.literal("signalType").optional(),
 });
 
 export type CoachModeDto = z.infer<typeof coachModeSchema>;
