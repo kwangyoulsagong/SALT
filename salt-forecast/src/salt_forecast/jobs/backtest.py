@@ -17,7 +17,7 @@ from salt_forecast.jobs._common import (
 )
 from salt_forecast.jobs._data import load
 from salt_forecast.models.engine import BASELINE, HORIZONS, WalkForward
-from salt_forecast.models.registry import MODEL_PARAMS, PRODUCTION, providers
+from salt_forecast.models.registry import PRODUCTION, model_params, providers
 from salt_forecast.scoring.evaluate import gates, score_forecast
 from salt_forecast.scoring.report import render
 from salt_forecast.store.db import engine
@@ -47,7 +47,7 @@ def main(argv: list[str] | None = None) -> int:
         eng = engine()
         now = parse_as_of(args.as_of)
         series, ctx = load(eng, now, symbols_arg(args.symbols))
-        provs, lgbm_model = providers(series, ctx, on_progress=_progress(log, JOB))
+        provs, fitted = providers(series, ctx, on_progress=_progress(log, JOB))
         wf = WalkForward(series, provs)
         preds: list[PredictionRow] = []
         scores: list[ScoreRow] = []
@@ -83,17 +83,17 @@ def main(argv: list[str] | None = None) -> int:
             "- 대상: 업비트 원화 마켓 **현재 상장 종목**(생존 편향 — 상장폐지 코인 이력 없음)",
             "- LightGBM 은 52주 학습 이력이 쌓인 뒤부터 예측한다 — 그 앞 주에는 이 모델 행이 없다",
         ]
-        if lgbm_model is not None and lgbm_model.importance:
-            for h, imp in sorted(lgbm_model.importance.items()):
+        for version, model in fitted.items():
+            for h, imp in sorted(model.importance.items()):
                 top = sorted(imp.items(), key=lambda kv: -kv[1])[:6]
-                notes.append(f"- {h}주 중앙값 모델 기여도 상위: " + ", ".join(f"`{k}` {v:.0%}" for k, v in top))
+                notes.append(f"- `{version}` {h}주 기여도 상위: " + ", ".join(f"`{k}` {v:.0%}" for k, v in top))
         report = render(scores, list(provs), BASELINE, f"워크포워드 백테스트 — 운영 {PRODUCTION}", notes)
         log.info("백테스트", extra={"fields": {"job": JOB, "predictions": len(preds)}})
         if args.dry_run:
             print(report)
             return len(preds)
         for m in provs:
-            register_model(eng, m, m.split("@")[0], MODEL_PARAMS[m])
+            register_model(eng, m, m.split("@")[0], model_params(m))
         n = write_predictions(eng, preds) + write_scores(eng, scores)
         REPORTS.mkdir(exist_ok=True)
         (REPORTS / f"backtest-{now.date()}.md").write_text(report, encoding="utf-8")

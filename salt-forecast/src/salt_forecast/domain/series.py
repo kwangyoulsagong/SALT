@@ -61,3 +61,33 @@ def realized_log_return(series: CloseSeries, as_of: int, horizon_weeks: int) -> 
     if base is None or final is None:
         return None
     return float(np.log(final / base))
+
+
+@dataclass(frozen=True, slots=True)
+class OhlcvSeries:
+    """일봉 OHLCV. available_at 오름차순. 거래량 · 장중 범위 피처(v0.6)용."""
+
+    symbol: str
+    available_at: NDArray[np.int64]
+    open: NDArray[np.float64]
+    high: NDArray[np.float64]
+    low: NDArray[np.float64]
+    close: NDArray[np.float64]
+    volume: NDArray[np.float64]
+
+    def __post_init__(self) -> None:
+        n = self.available_at.shape
+        if not all(a.shape == n for a in (self.open, self.high, self.low, self.close, self.volume)):
+            raise ValueError("OHLCV 길이가 다르다")
+
+    def as_of(self, t: int) -> OhlcvSeries:
+        end = int(np.searchsorted(self.available_at, t, side="right"))
+        return OhlcvSeries(
+            self.symbol,
+            self.available_at[:end],
+            self.open[:end],
+            self.high[:end],
+            self.low[:end],
+            self.close[:end],
+            self.volume[:end],
+        )

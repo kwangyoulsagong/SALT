@@ -80,12 +80,14 @@ def symbols_arg(value: str | None) -> list[str] | None:
 
 def progress_logger(log: logging.Logger, job: str, every: int = 10) -> Callable[[int, int], None]:
     """재학습 진행 — 경과 시간과 남은 시간 추정을 찍는다."""
-    t0 = time.perf_counter()
+    start = [time.perf_counter()]
 
     def report(done: int, total: int) -> None:
+        if done == 1:
+            start[0] = time.perf_counter()  # 모델마다 새로 잰다 — 도전자가 여럿이면 앞 모델 시간이 섞였다
         if done % every and done != total:
             return
-        sec = time.perf_counter() - t0
+        sec = time.perf_counter() - start[0]
         eta = sec / done * (total - done) if done else 0.0
         log.info(
             "학습 진행",

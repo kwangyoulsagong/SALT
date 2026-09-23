@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 import numpy as np
+import pytest
 
 from salt_forecast.domain.asof_series import VintagedSeries
-from salt_forecast.domain.series import DAY, CloseSeries
+from salt_forecast.domain.series import DAY, CloseSeries, OhlcvSeries
 from salt_forecast.features.as_of import closes_as_of
 from salt_forecast.features.build import MarketContext, feature_matrix
 from salt_forecast.models.engine import grid_for
@@ -32,6 +35,14 @@ def _ctx(extra_future: bool, after_day: int = 600) -> MarketContext:
     return MarketContext(series={"DGS10": s, "DGS2": s, "VIXCLS": s}, spot_usdt={})
 
 
+def _ohlcv(u: dict[str, CloseSeries]) -> dict[str, OhlcvSeries]:
+    out: dict[str, OhlcvSeries] = {}
+    for k, c in u.items():
+        vol = (1000.0 + np.arange(c.close.size, dtype=np.float64)) * (1 + (c.close % 7) / 10)
+        out[k] = OhlcvSeries(k, c.available_at, c.close * 0.999, c.close * 1.01, c.close * 0.99, c.close, vol)
+    return out
+
+
 def _tamper(u: dict[str, CloseSeries], after: int) -> dict[str, CloseSeries]:
     out: dict[str, CloseSeries] = {}
     for k, c in u.items():
@@ -52,17 +63,28 @@ def test_vintage_revision_is_invisible_before_it_happens() -> None:
 def test_feature_matrix_ignores_future() -> None:
     u = universe(15, 900)
     t = int(next(iter(u.values())).available_at[550])
-    a = feature_matrix(closes_as_of(u, t), _ctx(False), t)[1]
-    b = feature_matrix(closes_as_of(_tamper(u, t), t), _ctx(True), t)[1]
+    tampered = _tamper(u, t)
+    ctx_a = _ctx(False)
+    ctx_b = _ctx(True)
+    ctx_a = MarketContext(ctx_a.series, ctx_a.spot_usdt, _ohlcv(u))
+    ctx_b = MarketContext(ctx_b.series, ctx_b.spot_usdt, _ohlcv(tampered))
+    a = feature_matrix(closes_as_of(u, t), ctx_a, t)[1]
+    b = feature_matrix(closes_as_of(tampered, t), ctx_b, t)[1]
+    assert np.isfinite(a).sum() > a.size // 2  # OHLCV 피처도 실제로 채워졌는지
     assert np.array_equal(np.nan_to_num(a, nan=-999), np.nan_to_num(b, nan=-999))
 
 
-def test_lgbm_prediction_ignores_future() -> None:
+@pytest.mark.parametrize(("mode", "base"), [("quantile", "normal"), ("vol_scale", "normal"), ("vol_scale", "ensemble")])
+def test_lgbm_prediction_ignores_future(
+    mode: Literal["quantile", "vol_scale"], base: Literal["normal", "ensemble"]
+) -> None:
     u = universe(30, 900)
     t = grid_for(u)[-20]
 
     def predict(series: dict[str, CloseSeries], ctx: MarketContext) -> list[tuple[float, ...]]:
-        m = LgbmQuantile(series, ctx, (1,), [g for g in grid_for(series) if g <= t])
+        m = LgbmQuantile(
+            series, ctx, (1,), [g for g in grid_for(series) if g <= t], mode=mode, vol_base=base, vol_shrink=0.5
+        )
         m.fit_predict()
         out: list[tuple[float, ...]] = []
         for sym in sorted(series):
@@ -74,3 +96,15 @@ def test_lgbm_prediction_ignores_future() -> None:
     a = predict(u, _ctx(False, t_day))
     b = predict(_tamper(u, t), _ctx(True, t_day))
     assert any(a) and a == b
+
+
+def test_vol_scale_is_symmetric_without_direction() -> None:
+    u = universe(30, 900)
+    grid = grid_for(u)
+    t = grid[-20]
+    m = LgbmQuantile(u, _ctx(False, (t - T0) // DAY), (1,), [g for g in grid if g <= t], mode="vol_scale")
+    m.fit_predict()
+    r = next(m.raw(s, u[s].as_of(t), 1, t) for s in sorted(u) if m.raw(s, u[s].as_of(t), 1, t))
+    assert r is not None and r.forecast.p_up == 0.5
+    q = r.forecast.q
+    assert abs(q[0] + q[-1]) < 1e-12 and q[3] == 0.0  # 중앙값 0, 좌우 대칭

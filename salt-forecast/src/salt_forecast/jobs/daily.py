@@ -21,7 +21,7 @@ from salt_forecast.jobs._common import (
 )
 from salt_forecast.jobs._data import load
 from salt_forecast.models.engine import BASELINE, HORIZONS, WalkForward
-from salt_forecast.models.registry import MODEL_PARAMS, PRODUCTION, providers
+from salt_forecast.models.registry import PRODUCTION, model_params, providers
 from salt_forecast.scoring.evaluate import gates, score_prediction
 from salt_forecast.store.db import engine
 from salt_forecast.store.predictions import (
@@ -76,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.dry_run:
             return len(preds) + len(scored)
         for m in provs:
-            register_model(eng, m, m.split("@")[0], MODEL_PARAMS[m])
+            register_model(eng, m, m.split("@")[0], model_params(m))
         n = write_predictions(eng, preds) + write_scores(eng, scored)
         universe = sorted({(s, h) for s in series for h in HORIZONS})
         stale = {s for s, c in series.items() if (c.last_at() or 0) < int(now.timestamp()) - 2 * 86_400}

@@ -11,7 +11,7 @@ from decimal import Decimal
 import numpy as np
 from sqlalchemy import Engine, func, select
 
-from salt_forecast.domain.series import CloseSeries
+from salt_forecast.domain.series import CloseSeries, OhlcvSeries
 from salt_forecast.store.bulk import bulk_upsert
 from salt_forecast.store.tables import price_bar
 
@@ -116,3 +116,38 @@ def latest_open(engine: Engine, source: str, interval: str) -> dict[str, datetim
     )
     with engine.connect() as conn:
         return {str(r[0]): r[1] for r in conn.execute(stmt)}
+
+
+def load_ohlcv_series(
+    engine: Engine, source: str, interval: str, symbols: Sequence[str] | None = None
+) -> dict[str, OhlcvSeries]:
+    """한 쿼리로 OHLCV 전부. 거래량이 없는 봉은 NaN(0 으로 채우지 않는다)."""
+    stmt = (
+        select(
+            price_bar.c.symbol,
+            func.extract("epoch", price_bar.c.available_at),
+            price_bar.c.open,
+            price_bar.c.high,
+            price_bar.c.low,
+            price_bar.c.close,
+            price_bar.c.volume,
+        )
+        .where(price_bar.c.source == source, price_bar.c.interval == interval)
+        .order_by(price_bar.c.symbol, price_bar.c.available_at)
+    )
+    if symbols is not None:
+        stmt = stmt.where(price_bar.c.symbol.in_(list(symbols)))
+    cols: dict[str, list[list[float]]] = defaultdict(lambda: [[], [], [], [], [], []])
+    with engine.connect() as conn:
+        for sym, epoch, o, h, lo, c, v in conn.execute(stmt):
+            row = cols[str(sym)]
+            for arr, val in zip(row, (epoch, o, h, lo, c, v), strict=True):
+                arr.append(float("nan") if val is None else float(val))
+    return {
+        s: OhlcvSeries(
+            s,
+            np.asarray(r[0], dtype=np.int64),
+            *(np.asarray(a, dtype=np.float64) for a in r[1:]),
+        )
+        for s, r in cols.items()
+    }

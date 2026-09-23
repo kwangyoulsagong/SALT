@@ -6,20 +6,22 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
 
 from salt_forecast.domain.asof_series import VintagedSeries
 from salt_forecast.domain.features import (
+    OHLCV_FEATURES,
     PRICE_FEATURES,
     cross_sectional_rank,
     diff,
     log_change,
+    ohlcv_features,
     price_features,
 )
-from salt_forecast.domain.series import DAY, CloseSeries
+from salt_forecast.domain.series import DAY, CloseSeries, OhlcvSeries
 
 MACRO = {
     "mac_dff": ("DFF", "level"),
@@ -31,7 +33,8 @@ MACRO = {
     "mac_vix": ("VIXCLS", "level"),
     "stc_supply_chg_4w": ("stablecoins_total_usd", "log"),
 }
-FEATURES: tuple[str, ...] = (
+# v0.1 ~ v0.5 가 쓴 피처 목록 — 바꾸지 않는다(실험 재현)
+FEATURES_V1: tuple[str, ...] = (
     *PRICE_FEATURES,
     "xs_rank_ret_4w",
     "xs_rank_vol_4w",
@@ -41,6 +44,7 @@ FEATURES: tuple[str, ...] = (
     "kimchi_premium",
     *MACRO.keys(),
 )
+FEATURES: tuple[str, ...] = (*FEATURES_V1, *OHLCV_FEATURES)
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,6 +53,7 @@ class MarketContext:
 
     series: Mapping[str, VintagedSeries]  # FRED · DefiLlama · 바이낸스 펀딩비
     spot_usdt: Mapping[str, CloseSeries]  # 바이낸스 현물 BASEUSDT
+    ohlcv: Mapping[str, OhlcvSeries] = field(default_factory=lambda: {})  # 업비트 일봉 OHLCV(v0.6)
 
 
 def _macro(ctx: MarketContext, as_of: int) -> dict[str, float]:
@@ -105,5 +110,7 @@ def feature_matrix(
         f["fund_mean_7d"] = _funding_mean(ctx, base, as_of, 7)
         f["fund_mean_30d"] = _funding_mean(ctx, base, as_of, 30)
         f["kimchi_premium"] = _kimchi(ctx, base, sliced[s].last_close(), as_of)
+        bars = ctx.ohlcv.get(s)
+        f |= ohlcv_features(bars.as_of(as_of), as_of) if bars else dict.fromkeys(OHLCV_FEATURES, float("nan"))
         matrix[i] = [f[name] for name in FEATURES]
     return symbols, matrix
