@@ -1,1 +1,1 @@
-export { InvestmentsPage as default } from "@/pages/investments";
+export { InvestmentsPage as default, metadata } from "@/pages/investments";

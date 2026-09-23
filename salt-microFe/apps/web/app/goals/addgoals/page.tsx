@@ -1,1 +1,1 @@
-export { AddGoalPage as default } from "@/pages/add-goal";
+export { AddGoalPage as default, metadata } from "@/pages/add-goal";

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { AppProviders, AppShell } from "@/app";
@@ -13,10 +12,7 @@ import "@/app/styles/globals.css";
  * > 루트 `app/` 은 라우팅이고 `src/app/` 은 FSD 초기화다 (`fsd-app.md`).
  * > `layout.tsx` 는 라우팅 파일 중 유일하게 껍데기를 갖는다 — 그 외 파일은 re-export 만 한다.
  */
-export const metadata: Metadata = {
-  title: "SALT",
-  description: "투자 코치",
-};
+export { rootMetadata as metadata } from "@/app/seo";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

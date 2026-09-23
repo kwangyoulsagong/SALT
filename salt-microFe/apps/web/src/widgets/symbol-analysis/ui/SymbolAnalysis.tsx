@@ -1,8 +1,6 @@
 "use client";
 
-import type { CoachMode } from "@repo/core/coach";
 import { Text } from "@repo/ui/text";
-import Link from "next/link";
 import { useMemo } from "react";
 
 import {
@@ -19,15 +17,10 @@ import {
 } from "@/entities/coach";
 import { MarketDetailChart, useMarketListing } from "@/entities/market";
 import { ExplainCard } from "@/features/explain-symbol";
-import {
-  COACH_MODE_PARAM,
-  CoachModeSwitch,
-  useCoachModeParam,
-} from "@/features/switch-coach-mode";
+import { CoachModeSwitch, useCoachModeParam } from "@/features/switch-coach-mode";
 
 import { SYMBOL_ANALYSIS_MESSAGES } from "../model";
 import {
-  backLink,
   card,
   cardHead,
   cardTitle,
@@ -37,11 +30,6 @@ import {
   grid,
   layout,
 } from "./SymbolAnalysis.css";
-import { SymbolHeader } from "./SymbolHeader";
-
-/** 뒤로 — 투자 화면으로. 모드를 들고 간다(패널과 같은 URL 상태, FR-111) */
-const backHref = (mode: CoachMode | undefined) =>
-  mode ? `/investments?${COACH_MODE_PARAM}=${mode}` : "/investments";
 
 /**
  * 상세 분석 페이지 본문 (`FE-REQ-026` L · FR-130~138).
@@ -59,7 +47,7 @@ const backHref = (mode: CoachMode | undefined) =>
  * 볼 수 없다(`FE-REQ-013` 전). 경로가 하나라 FR-84 가 걱정한 "두 경로의 staleness 차이"도 없다.
  *
  * 레이아웃: PC 는 좌(차트 · 구간 · 코치 카드) / 우(해설 · 수익 플랜), 1024px 이하는 그 순서
- * 그대로 한 줄이다.
+ * 그대로 한 줄이다. 머리(뒤로 · 종목 · 가격)는 서버에서도 그려지도록 페이지(`pages/investment-detail`)에 있다.
  */
 export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   const coach = useSymbolCoach(symbol);
@@ -100,12 +88,6 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   return (
     <>
       <div className={layout}>
-        <Link href={backHref(mode)} className={backLink}>
-          {`\u2190 ${SYMBOL_ANALYSIS_MESSAGES.back}`}
-        </Link>
-
-        <SymbolHeader symbol={symbol} listing={listing.item} view={coach.data} />
-
         <div className={grid}>
           <div className={column}>
             <section className={card}>

@@ -1,1 +1,1 @@
-export { CoachReportPage as default } from "@/pages/coach";
+export { CoachReportPage as default, metadata } from "@/pages/coach";

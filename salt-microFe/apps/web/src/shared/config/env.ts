@@ -16,3 +16,9 @@ export const INVESTMENTS_BASE_URL =
 /** 실시간 시세 WebSocket */
 export const WEBSOCKET_URL =
   process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost:4002";
+
+/**
+ * 이 사이트의 공개 주소 — canonical · sitemap · Open Graph 의 절대 URL 기준.
+ * 배포 도메인이 정해지면 `NEXT_PUBLIC_SITE_URL` 로 준다.
+ */
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
