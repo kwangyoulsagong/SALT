@@ -411,7 +411,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | `DB-REQ-029` F008 SCHEMA | **in-progress** | `forecast` 스키마 — SQL 전용 마이그레이션 4건. `checklists/DB-REQ-029.md` |
 | `FC-REQ-001` 기준 모델 · 채점 | **in-progress** | 90% 구간 커버리지 90.0~90.7%, 기준 대비 +0.7~1% — 예측력 거의 없음(정상). 방향 적중은 기저율과 같았다 → `direction_base_rate` |
 | `FC-REQ-004` 수집 · 트리거 | **in-progress** | 바이낸스 224종목 · FRED 8 · DefiLlama. launchd 실패(macOS 권한) → 서버 부팅 트리거 |
-| `FC-REQ-002` LightGBM | **in-progress (미달)** | v0.1 기준보다 6.7~9.1% 나쁨 → 도전자로 강등, 챔피언은 앙상블 |
+| `FC-REQ-002` LightGBM | **in-progress (챔피언과 동률)** | v0.1 −6.7~−9.1% → v0.5 · 0.6 변동성 배율로 단순 기준 +0.8~1.1%, 챔피언과 동률. 실험 6회에서 중단 |
 
 **슬라이스 16 · 16b · 20** — 새 영역 `salt-forecast`(Python). 데이터 → 채점 장치가 먼저 섰다. 좋아 보인 숫자 둘(방향 58~64%, 게이트 200/1,156)이
 가짜였고 둘 다 장치가 잡았다. 화면(17a · 18 · 19)은 아직 없다. 근거 `requirements/reports/checklists/F008-forecast-baseline.md`
@@ -458,3 +458,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-23 | **F004 슬라이스 15 후속.** 참고 화면 실측 디자인 · 진입 투자 화면 · 행 링크 · MSW 목 제거(`FE-REQ-012`) · 공개 SEO · 번들 규칙 — 상태표(`FE-REQ-010` · `012` · `026` · `BFF-REQ-008`) · 슬라이스 단락 갱신. 근거 `requirements/reports/checklists/F004-fe-coach-report.md` §후속 |
 | 2026-09-23 | **F008 신설 — AI 전망 · 인텔리전스.** 사용자 요구(전망 · 주간 시나리오 · 외신 · 고래 · 자사주 · 내부자 · 파이프라인 → 온톨로지 → 에이전트 · 스트리밍). `ADR-003`(확률 · 구간 · 소유자 전용 — §6 기준 4 개정) · `ADR-004`(다섯 번째 영역 `salt-forecast` Python) · 리서치 `requirements/reports/research/2026-09-23-ai-forecast.md`. 슬라이스 16~21 계획(`FEATURE-008` §슬라이스 순서) |
 | 2026-09-23 | **F008 슬라이스 16 · 16b · 20.** `salt-forecast` 첫 구현 — 스키마 · 수집(업비트 · 바이낸스 · FRED · DefiLlama) · 기준 모델 · 보정 · 워크포워드 · 게이트(변동 범위 / 전망 분리 · 부트스트랩 하한) · LightGBM 도전자(기준 미달). 서버 부팅 트리거. 상태표 F008 절 추가 |
+| 2026-09-23 | **F008 도전자 실험 v0.2~v0.6.** 변동성 배율 모델이 단순 기준을 처음 이김(+0.8~1.1%) · 챔피언과 동률 · 날짜 역할 피처 제거 · 실험 중단(같은 구간 과적합 방지) |
