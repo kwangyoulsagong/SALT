@@ -1,6 +1,5 @@
 export const HOME_BRIEFING_MESSAGES = {
   taxCockpitLink: "세금 마감 콕핏",
-  coachReportLink: "코치 리포트 →",
   tipHeading: "오늘의 저축 팁",
   tipTitle: "커피값 아끼기로 월 5만원 저축하기",
   tipBody: "하루 2잔, 연 60만원 절약 가능!",
