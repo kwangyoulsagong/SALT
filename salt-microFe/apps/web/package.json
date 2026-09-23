@@ -16,7 +16,6 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",
     "@repo/core": "workspace:*",
-    "@repo/mocks": "workspace:*",
     "@repo/tokens": "workspace:*",
     "@repo/ui": "workspace:*",
     "@sentry/nextjs": "^8.50.0",
@@ -46,13 +45,7 @@
     "eslint": "^8",
     "eslint-config-next": "^15.5.25",
     "jest": "^29.7.0",
-    "msw": "^2.7.0",
     "ts-jest": "^29.2.5",
     "typescript": "^5"
-  },
-  "msw": {
-    "workerDirectory": [
-      "public"
-    ]
   }
 }

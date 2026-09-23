@@ -31,7 +31,7 @@ const OUT = process.env.OUT_DIR || "/tmp/fe-req-009-render";
 /**
  * `volatile` 은 **실시간 시세가 흐르는 화면**이다. 두 번 찍으면 값과 행 순서가 다르다 —
  * 이관과 무관한 차이다. 그래서 텍스트·속성을 지우고 **엘리먼트 트리 모양**만 대조한다.
- * 값 자체가 같은지는 MSW 로 고정된 `/home`·`/goals/addgoals` 가 본다.
+ * 2026-09-23 MSW 를 지워 `/home` 값도 실제 BFF 에 따라 바뀐다 — 값 대조는 로그인 · 고정 계정이 있을 때만 뜻이 있다.
  */
 const ROUTES = [
   { path: "/" },
@@ -76,7 +76,7 @@ const skeleton = (html) =>
     .replace(/>[^<]*</g, "><");
 
 /**
- * dev 서버는 **첫 요청에 라우트를 컴파일**하고 MSW 는 서비스 워커가 붙은 뒤부터 응답한다.
+ * dev 서버는 **첫 요청에 라우트를 컴파일**한다.
  * 워밍업 없이 찍으면 한쪽만 `Loading...` 이 잡혀 "다르다"가 나온다 — 구조가 아니라 타이밍이다.
  */
 const warmUp = async (browser, origin) => {

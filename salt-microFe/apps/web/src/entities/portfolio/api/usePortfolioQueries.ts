@@ -2,17 +2,11 @@
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
-import { readAccessToken } from "@/shared/api";
+import { useHasAccessToken } from "@/shared/api";
 
 import { PortfolioSummary } from "../model/types";
 import { portfolioApi } from "./portfolioApi";
 import { portfolioQueryKeys } from "./queryKeys";
-
-export const useInvestmentsPreview = () =>
-  useQuery({
-    queryKey: [portfolioQueryKeys.investmentsPreview],
-    queryFn: portfolioApi.investmentsPreview,
-  });
 
 /**
  * 보유 요약.
@@ -25,16 +19,16 @@ const SUMMARY_STALE_TIME_MS = 30_000;
 export const usePortfolioSummary = (): UseQueryResult<PortfolioSummary> & {
   isSignedOut: boolean;
 } => {
-  const token = readAccessToken();
+  const signedIn = useHasAccessToken();
 
   const query = useQuery({
     queryKey: portfolioQueryKeys.summary,
     queryFn: ({ signal }) => portfolioApi.summary(signal),
-    enabled: Boolean(token),
+    enabled: signedIn === true,
     staleTime: SUMMARY_STALE_TIME_MS,
   });
 
-  return { ...query, isSignedOut: !token } as UseQueryResult<PortfolioSummary> & {
+  return { ...query, isSignedOut: signedIn === false } as UseQueryResult<PortfolioSummary> & {
     isSignedOut: boolean;
   };
 };

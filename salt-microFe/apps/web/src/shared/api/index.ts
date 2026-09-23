@@ -9,5 +9,5 @@
 export * from "./apiFetch";
 export * from "./authToken";
 export * from "./refreshSession";
-export * from "./mockGate";
+export * from "./useHasAccessToken";
 export * from "./websocket";

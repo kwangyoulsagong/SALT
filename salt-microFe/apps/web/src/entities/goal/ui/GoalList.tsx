@@ -13,14 +13,14 @@ import { GoalRow } from "./GoalRow";
 export const GoalList = () => {
   const progressList = useGoalProgressList();
 
-  if (progressList.isLoading) return <div>{GOAL_MESSAGES.loading}</div>;
-  if (progressList.error) return <div>{GOAL_MESSAGES.loadFailed}</div>;
+  if (progressList.isPending) return <div>{GOAL_MESSAGES.loading}</div>;
+  if (progressList.isError) return <div>{GOAL_MESSAGES.loadFailed}</div>;
   return (
     <Container size="full">
       <FlexBox direction="column" gap="md">
         {progressList.data.map((value: GoalListItem) => (
           <FlexBox gap="md" align="center" key={value.id}>
-            <Icon variant={value.tag} />
+            {value.tag && <Icon variant={value.tag} />}
             <GoalRow data={value} />
           </FlexBox>
         ))}
