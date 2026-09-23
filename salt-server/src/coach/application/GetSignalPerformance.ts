@@ -4,9 +4,9 @@ import {
   summarizePerformance,
   type CoachInsightStore,
   type MarketProbe,
-  type PerformanceSample,
   type PerformanceSummary,
 } from "../domain";
+import { collectPerformanceSamples } from "./lib/performanceSamples";
 
 /** 성적 표본을 뽑는 판단 수 상한. 원문의 `take: 100` 이다. */
 const HISTORY_LIMIT = 100;
@@ -65,36 +65,7 @@ export class GetSignalPerformance {
           row.identity !== null
       );
 
-    const latestCloses = await this.market.latestCloses(
-      Array.from(new Set(scored.map((row) => row.identity.symbol)))
-    );
-
-    const samples: PerformanceSample[] = [];
-
-    for (const { insight, identity } of scored) {
-      const latestPrice = latestCloses.get(identity.symbol);
-      if (!latestPrice) continue;
-
-      const entryPrice = await this.market.closeAtOrAfter(
-        identity.symbol,
-        insight.createdAt
-      );
-      // 진입가가 0 이면 수익률의 분모가 없다 — 표본에서 뺀다 (원문과 같다).
-      if (!entryPrice) continue;
-
-      const returnRate = (latestPrice - entryPrice) / entryPrice;
-
-      samples.push({
-        insightId: insight.id,
-        symbol: identity.symbol,
-        signalKey: identity.signalKey,
-        createdAt: insight.createdAt,
-        entryPrice,
-        latestPrice,
-        returnRate,
-        win: returnRate > 0,
-      });
-    }
+    const samples = await collectPerformanceSamples(this.market, scored);
 
     return {
       ...summarizePerformance(samples),

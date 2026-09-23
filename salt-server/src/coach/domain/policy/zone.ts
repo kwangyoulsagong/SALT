@@ -1,7 +1,5 @@
-import Decimal from "decimal.js";
-
 import type { CoachMode } from "../model";
-import { calculateProfitPlan, type ProfitPlanInput } from "./profitPlan";
+import { calculateProfitPlan, priceGap, type ProfitPlanInput } from "./profitPlan";
 
 /**
  * 스마트 바이존 — **보유 = 내 규칙 가격, 미보유 = 관찰 구간** (F004 · 감사 문서 D2).
@@ -91,10 +89,6 @@ export interface UnavailableZone {
 
 export type Zone = HeldRuleZone | ObservationZone | UnavailableZone;
 
-/** 부동소수 뺄셈 잡음(`0.30000000000000004`)이 금액에 남지 않게 한다. */
-const gap = (price: number, currentPrice: number): number =>
-  new Decimal(price).minus(currentPrice).toNumber();
-
 export const heldRuleZone = (holding: ProfitPlanInput): HeldRuleZone => {
   const plan = calculateProfitPlan(holding);
 
@@ -105,7 +99,7 @@ export const heldRuleZone = (holding: ProfitPlanInput): HeldRuleZone => {
     stages: plan.stages.map((stage) => ({
       key: stage.key as HeldRuleStageKey,
       price: stage.price,
-      priceGap: gap(stage.price, plan.currentPrice),
+      priceGap: priceGap(stage.price, plan.currentPrice),
       ratio: stage.ratio,
     })),
     status: plan.status,
@@ -145,9 +139,9 @@ export const observationZone = (
     mid,
     upper,
     priceGap: {
-      lower: gap(lower, currentPrice),
-      mid: gap(mid, currentPrice),
-      upper: gap(upper, currentPrice),
+      lower: priceGap(lower, currentPrice),
+      mid: priceGap(mid, currentPrice),
+      upper: priceGap(upper, currentPrice),
     },
     ruleCode: rule.ruleCode,
     lookback: { timeframe: rule.timeframe, days: rule.days },

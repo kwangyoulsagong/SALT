@@ -64,6 +64,19 @@ export class CoachToolsController {
     }
   };
 
+  /** 코치 상세. 입력이 없다 — 대상은 토큰의 사용자다. */
+  getCoachDetail = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.useCases.getCoachDetail.execute(
+        req.user!.userId
+      );
+
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   /**
    * 판단 성적표. `/api/coach/scoreboard` 와 `?groupBy=signalType` 이 **같은 표**를 준다 —
    * 하나는 리포트 화면의 경로이고 하나는 기존 경로의 하위 호환 확장이다.

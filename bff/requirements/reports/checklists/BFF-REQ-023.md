@@ -42,3 +42,16 @@
 | FR-63 `generation-status` | 미착수 | 서버 엔드포인트 없음 |
 | FR-70~72 `explain` 인증 | pass | 슬라이스 5. FR-72 요청 제한은 서버(분당 10) — BFF 는 동시 수만 |
 | FR-80~84 하지 않는 것 | pass | 점수 · LLM · 문구 · 주문 코드 0건 (이 브랜치 diff 기준) |
+
+## 서버 선행 상태 — 2026-09-23 (BFF 변경 없음)
+
+서버 슬라이스 12 가 BFF 가 기다리던 계약 셋을 열었다. **BFF 코드는 바뀌지 않았고** 판정도 그대로다 — 기록만 남긴다.
+
+| FR | 서버 쪽 | BFF 상태 |
+|---|---|---|
+| FR-10~14 `/coach/report` | `GET /api/coach/detail` 생김 | 미착수 — 부르는 라우트가 없다 |
+| FR-30~32 익절 플랜 | `stages[].gapFromCurrent` 추가 | `stages` 를 통째로 넘겨 **이미 전달된다**(코드 읽기로만 확인) |
+| FR-40~41 행동 기록 | `warnings[].factCode` · `params` 추가 | 미착수 — `app-behavior-coach.service` 카드 매핑이 두 필드를 **떨군다** |
+
+근거: `salt-server/requirements/reports/checklists/SRV-REQ-025.md` §8
+

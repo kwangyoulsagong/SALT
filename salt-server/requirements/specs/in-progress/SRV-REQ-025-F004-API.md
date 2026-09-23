@@ -59,8 +59,8 @@ type CoachDetailResult = {
     topFactors: Array<{ key: string; score: number; message: string }>;
 
     signalTrackRecord: {
-      signalType: string; sample: number; winRate: number;
-      avgReturn: number; maxDrawdown: number; lowSample: boolean;
+      signalType: string; sample: number; winRate: number | null;     // 개정 2026-09-23: 표본 0 이면 null
+      avgReturn: number | null; maxDrawdown: number | null; lowSample: boolean;
     } | null;
 
     failureCases: Array<{ date: string; event: string; outcome: string }>;
@@ -280,5 +280,6 @@ type ExplainResult =
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `distancePct` → `priceGap` · `distanceFromCurrentPct` → `gapFromCurrent`(D13). `insufficient_sample` 추가(D11). `scope_undecided` → `out_of_scope`(D12) |
 | 2026-09-21 | **슬라이스 1 구현.** 종목 경로 응답에 `modes.scalp` · `modes.longTerm`(판단 · `signalType` · `renderable` · `blockedReason` · `trackRecord` · `failureCases`) · `disclaimer` 추가, `confidence` 제거(FR-40~43 · FR-45 · FR-47). `failureCases` 항목은 `{ date, symbol, event(signalType 코드), outcome, returnRate }` — 문구 대신 코드와 숫자. 남음: `zone`(FR-44) · `gaugeTrackRecords`(FR-46) · `assetType` · FR-48(`defaultMode` 컬럼 없음) · BFF `mapDecision` 의 `confidence` 정리(`BFF-REQ-025`) |
 | 2026-09-21 | **슬라이스 2 구현.** `modes.*.zone`(FR-44) · `gaugeTrackRecords`(FR-46 — 지금 심리 구간 한 줄, 표본 0 이면 빠짐). `zone` 은 `preview` 에서도 싣는다(FR-49 는 생략을 허용할 뿐). 남음: `assetType` · FR-48 |
+| 2026-09-23 | **슬라이스 12 구현.** `GET /api/coach/detail`(FR-1~9 · 18) · `profit-plan` `stages[].gapFromCurrent`(FR-16) · `behavior-coach` `warnings[].factCode`/`params`(FR-17). 계약과 다른 점 셋: `signalTrackRecord` 의 `winRate` · `avgReturn` · `maxDrawdown` 이 **nullable**(표본 0 과 매핑 없음 구분 — FR-43 과 같은 규칙), `candidates[].reasons` 는 저장되지 않아 `[]`, `excluded[].reasonCode` = `no_realtime_data`. 저장 추천에 종목 판단 성적을 빌려 오지 않는다 — 추천 블록은 실패사례 출처(`IndicatorTrackRecord`)가 생길 때까지 `failure_cases_missing`. 남음: FR-10 · 13 · 31 · 48 · 54. 근거 `reports/checklists/SRV-REQ-025.md` §8 |
 | 2026-09-23 | **슬라이스 11 구현.** `GET /api/coach/scoreboard` 신설 · `signal-performance?groupBy=signalType`(FR-15 · FR-53). `returnDistribution.horizonDays` 를 **그룹 관찰 기간으로 개정**(위 코드블록). 남음: FR-1~10 · 13 · 16~18 · 31 · 48 · 54. 근거 `reports/checklists/SRV-REQ-025.md` §7 |
 | 2026-09-22 | **슬라이스 10 구현.** explain 인증 · 판단 게이트 먼저(미렌더면 LLM 미호출) · abort · `newsSummary` ≤ 뉴스 수 · Swagger(FR-11 · 12 · 20 · 32 · 50 · 51), preflight `stopLossRate` · `maxLossOfTotalRate` · 손실 원 정수(FR-14 · 19 부분 · 52). 남음: FR-1~10 · 13 · 15~18 · 31 · 48 · 53 · 54. 근거 `reports/checklists/SRV-REQ-025.md` §6 |

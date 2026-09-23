@@ -75,7 +75,7 @@ export class CostBasisLot {
 | 솔버 매도 수량 ≤ 보유 수량 | `tax/domain/policy/harvest.ts` |
 | 원화 반올림은 응답 직전 1회만 | `Money` VO가 반올림 메서드를 분리 제공 |
 | 배수 0~3 범위 | `plan/domain/BandMultiplier` |
-| 추천 3종 세트가 없으면 렌더 불가 | `coach/domain/policy/symbolJudgment.ts` `judgmentGate` |
+| 추천 3종 세트가 없으면 렌더 불가 | `coach/domain/policy/symbolJudgment.ts` `judgmentGate`(종목 판단) · `coachDetail.ts` `recommendationGate`(저장 추천) — 표본 기준이 달라 둘이다 |
 
 **`Money` VO를 통과하지 않는 금액이 도메인에 없어야 한다.** `number`로 금액을 들고 다니면 이 불변식이 전부 무의미해진다.
 
@@ -121,4 +121,4 @@ export interface PriceProbe {
 
 `if`가 쌓인 서비스를 Domain Service라고 부르는 것이 가장 흔한 오용이다 — 그건 Aggregate에서 새어 나온 규칙이다.
 
-우리 정당한 `policy/` 목록: `invoice/policy/reconciliation` · `invoice/policy/biasLabel` · `tax/policy/harvest` · `tax/policy/settlementYear` · `plan/policy/band` · `coach/policy/symbolJudgment`(`judgmentGate`) · `coach/policy/score`.
+우리 정당한 `policy/` 목록: `invoice/policy/reconciliation` · `invoice/policy/biasLabel` · `tax/policy/harvest` · `tax/policy/settlementYear` · `plan/policy/band` · `coach/policy/symbolJudgment`(`judgmentGate`) · `coach/policy/coachDetail`(`recommendationGate`) · `coach/policy/score`.

@@ -238,6 +238,69 @@ export const detectChasingHigh = (
   };
 };
 
+/** 행동 기록 한 줄 (`SRV-REQ-024` FR-60 · `SRV-REQ-025` FR-8). */
+export interface BehaviorFact {
+  factCode: BehaviorKind;
+  /** 문장을 만들 재료. **스칼라만** — 예시 배열은 넣지 않는다. */
+  params: Record<string, string | number>;
+  /** 원 단위 정수. 지금 세 판정은 금액을 세지 않아 늘 `null` 이다. */
+  amountKrw: number | null;
+}
+
+const num = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
+
+/**
+ * 저장된 판정 payload → 행동 기록.
+ *
+ * ## 문장을 만들지 않는다
+ *
+ * 서버는 **코드 + 수치**만 준다. 문구는 프론트가 만든다 — 인격 평가 문장을 서버가
+ * 만들 수 없게 하는 가장 확실한 방법이 서버에 문장이 없는 것이다(FR-61).
+ * `title` · `summary` 는 기존 응답(`behavior-coach`) 호환으로만 남는다.
+ *
+ * payload 는 DB 의 JSON 이라 모양을 믿지 않는다. 모르는 `kind` 거나 수치가 빠졌으면
+ * `null` — 반쯤 채운 `params` 는 틀린 문장을 만든다.
+ */
+export const toBehaviorFact = (
+  payload: Record<string, unknown> | null
+): BehaviorFact | null => {
+  const windowHours = num(payload?.windowHours);
+  if (!payload || windowHours === null) return null;
+
+  const pick = (keys: string[]): Record<string, number> | null => {
+    const params: Record<string, number> = { windowHours };
+    for (const key of keys) {
+      const value = num(payload[key]);
+      if (value === null) return null;
+      params[key] = value;
+    }
+    return params;
+  };
+
+  let factCode: BehaviorKind;
+  let params: Record<string, number> | null;
+
+  switch (payload.kind) {
+    case "over_trading":
+      factCode = "over_trading";
+      params = pick(["trades", "threshold"]);
+      break;
+    case "panic_sell":
+      factCode = "panic_sell";
+      params = pick(["sellCount", "lossSellCount", "avgSellLossRate"]);
+      break;
+    case "chasing_high":
+      factCode = "chasing_high";
+      params = pick(["buyCount", "highChaseCount", "thresholdRatio"]);
+      break;
+    default:
+      return null;
+  }
+
+  return params ? { factCode, params, amountKrw: null } : null;
+};
+
 /**
  * 감지된 패턴 → 행동 규칙 — `behavior-coach.service.buildRules` 에서 옮겨왔다.
  *
