@@ -1,0 +1,5 @@
+[
+  {"market":"KRW-BTC","candle_date_time_utc":"2026-09-23T00:00:00","candle_date_time_kst":"2026-09-23T09:00:00","opening_price":150000000,"high_price":151000000,"low_price":149000000,"trade_price":150500000,"timestamp":1,"candle_acc_trade_price":1,"candle_acc_trade_volume":10.5,"prev_closing_price":150000000,"change_price":1,"change_rate":0.001},
+  {"market":"KRW-BTC","candle_date_time_utc":"2026-09-22T00:00:00","candle_date_time_kst":"2026-09-22T09:00:00","opening_price":149000000,"high_price":150500000,"low_price":148000000,"trade_price":150000000,"timestamp":1,"candle_acc_trade_price":1,"candle_acc_trade_volume":12.1,"prev_closing_price":149000000,"change_price":1,"change_rate":0.001},
+  {"market":"KRW-BTC","candle_date_time_utc":"2026-09-21T00:00:00","candle_date_time_kst":"2026-09-21T09:00:00","opening_price":148000000,"high_price":149500000,"low_price":147000000,"trade_price":149000000,"timestamp":1,"candle_acc_trade_price":1,"candle_acc_trade_volume":9.8,"prev_closing_price":148000000,"change_price":1,"change_rate":0.001}
+]
