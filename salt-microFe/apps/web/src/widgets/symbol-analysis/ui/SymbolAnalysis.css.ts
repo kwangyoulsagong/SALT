@@ -111,11 +111,16 @@ export const price = style({
  * 자동 줄바꿈으로 흐르게 둔다 — 좁은 화면에서 가로 스크롤이 생기지 않는다.
  */
 export const stats = style({
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(132px, max-content))",
-  gap: `${vars.space.md} ${vars.space.xl}`,
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "flex-start",
+  gap: `${vars.space.md} ${vars.space["2xl"]}`,
+  /** 가로로 흐른다. `auto-fit` 격자로 두었더니 헤더의 남은 폭 안에서 **한 줄에 하나씩**
+   *  쌓여 헤더가 화면 높이의 절반이 됐다(2026-09-23 실측). 지표는 가로가 기본이고,
+   *  좁아지면 줄바꿈으로 내려간다. */
+  maxWidth: "620px",
   "@media": {
-    [NARROW]: { gridTemplateColumns: "repeat(2, minmax(0, 1fr))", width: "100%" },
+    [NARROW]: { width: "100%", gap: vars.space.lg },
   },
 });
 
@@ -123,7 +128,8 @@ export const stat = style({
   display: "flex",
   flexDirection: "column",
   gap: "2px",
-  minWidth: 0,
+  /** 라벨이 두 줄로 접히지 않을 만큼만. 이보다 좁히면 "24시간 범위"가 깨진다. */
+  minWidth: "116px",
 });
 
 export const statLabel = style({
@@ -143,6 +149,8 @@ export const statValue = style({
 /** 저가 ──●── 고가. 위치는 서버가 준 세 값으로 정해지는 **표시 기하**다. */
 export const rangeTrack = style({
   position: "relative",
+  width: "140px",
+  maxWidth: "100%",
   height: "4px",
   borderRadius: vars.radius.full,
   background: vars.colors.neutral[200],

@@ -145,13 +145,9 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                   mode={mode}
                   subject={explainSubject}
                 />
+                {/* 제목을 붙이지 않는다 — `ProfitPlan` 이 자기 제목을 그린다(두 번 나온다) */}
                 {modeView && (
                   <section className={card}>
-                    <div className={cardHead}>
-                      <h2 className={cardTitle}>
-                        {SYMBOL_ANALYSIS_MESSAGES.profitPlanHeading}
-                      </h2>
-                    </div>
                     <ProfitPlan zone={modeView.zone} />
                   </section>
                 )}

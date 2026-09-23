@@ -11,7 +11,10 @@ export const ProfileHeader = () => {
   const profile = useAuthState();
   return (
     <header className={Container}>
-      <ProfileImage profile={profile.user?.profileImageUrl ?? undefined} />
+      <ProfileImage
+        profile={profile.user?.profileImageUrl ?? undefined}
+        name={profile.user?.nickname}
+      />
       <ProfileSection
         nickname={profile.user?.nickname}
         email={profile.user?.email}
