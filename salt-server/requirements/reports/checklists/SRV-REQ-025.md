@@ -3,7 +3,7 @@
 - REQ: `salt-server/requirements/specs/in-progress/SRV-REQ-025-F004-API.md`
 - 브랜치: `feat/f004-symbol-judgment`(PR #48, `6f701b4`) → `feat/f004-zone-gauge`(PR #49, `ebadcf9`) · 검증일: 2026-09-21
 - 작성: 2026-09-22 (backfill — 루트 체크리스트 두 개와 `src/coach` 코드에서 옮겼다. 새로 돌린 검증은 없다)
-- 상태: **부분 완료** — 종목 경로 계약(FR-40~47) · **explain · preflight**(FR-11 · 12 · 14 · 20 · 50~52, 슬라이스 10) · **성적표 그룹**(FR-15 · 53, 2026-09-23 슬라이스 11)이 닫혔다. FR-48 미충족, 리포트 조립(FR-1~9) · 쿨다운(FR-10) · 프로필 영속화(FR-13) · FR-16~18 은 미착수
+- 상태: **부분 완료** — 종목 경로 계약(FR-40~47) · **explain · preflight**(FR-11 · 12 · 14 · 20 · 50~52, 슬라이스 10) · **성적표 그룹**(FR-15 · 53, 2026-09-23 슬라이스 11) · **코치 상세**(FR-1~9 · 16~18, 2026-09-23 슬라이스 12)가 닫혔다. FR-48 미충족, 쿨다운(FR-10) · 프로필 영속화(FR-13) 는 미착수
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-symbol-judgment.md` · `F004-zone-gauge.md`
 
 판정 정의는 `SRV-REQ-024.md` 체크리스트 머리와 같다.
@@ -12,14 +12,14 @@
 
 | FR | 내용 | 판정 | 비고 |
 |---|---|---|---|
-| FR-1~9 | 저장 추천 응답의 게이트 · `scoreNote` · `disclaimer` · `excluded[]` · `behaviorFacts` · `conditionCode` | 미착수 | 저장 추천 경로(`CoachDetailResult`)는 두 슬라이스 밖 |
+| FR-1~9 | 저장 추천 응답의 게이트 · `scoreNote` · `disclaimer` · `excluded[]` · `behaviorFacts` · `conditionCode` | **pass** (2026-09-23) | §8. `GET /api/coach/detail`. FR-3 의 `null` 경로는 생기지 않는다 — 매핑이 계산식(`coach.<action>`)이라 늘 객체이고, 표본 0 이 막힌다(FR-43 과 같은 사정) |
 | FR-10 | generate 쿨다운 429 | 미착수 | |
 | FR-11~12 | explain 인증 · rate limit | **pass** (2026-09-22) | §6. 인증은 라우트 순서를 바꿔 `authMiddleware` 뒤로, 분당 10회는 유지 |
 | FR-13 | profile 영속화 | 미착수 | 컬럼이 없다 — FR-48 과 같은 원인(`DB-REQ-017` FR-20) |
 | FR-14 | preflight 차단 필드 금지 | **pass** (2026-09-22) | 추가 필드는 `stopLossRate` · `maxLossOfTotalRate` 뿐 |
 | FR-15 | `signal-performance?groupBy=signalType` · 무인자 하위 호환 | **pass** (2026-09-23) | §7. 응답 모양이 다른 두 계약이라 쿼리로 갈랐다. `/api/coach/scoreboard` 가 같은 표 |
-| FR-16~18 | `gapFromCurrent` · `factCode` · `staleHours` | 미착수 | 리포트 조립과 같은 슬라이스로 간다 |
-| FR-19 | 금액 원 단위 정수 | **부분** | preflight `maxLossAmount` 만(2026-09-22). 다른 경로 미확인 |
+| FR-16~18 | `gapFromCurrent` · `factCode` · `staleHours` | **pass** (2026-09-23) | §8. `profit-plan` `stages[].gapFromCurrent` · `behavior-coach` `warnings[].factCode`/`params` 는 **추가만**. `staleHours` 는 payload `generatedAt` 기준(행이 덮어쓰기라 `createdAt` 은 첫 생성 시각) |
+| FR-19 | 금액 원 단위 정수 | **부분** | preflight `maxLossAmount` 만(2026-09-22). 상세의 `behaviorFacts[].amountKrw` 는 늘 `null`(세 판정이 금액을 세지 않는다). 가격선은 호가 통화 가격이라 이 FR 의 대상이 아니다 |
 | FR-20 | Swagger explain public 표시 제거 | **pass** (2026-09-22) | `bearerAuth` · 401 · 429 · `renderable:false` 설명 |
 
 ## 2. 하위 호환 (FR-30~32)
@@ -52,12 +52,14 @@
 
 | 판정 | FR 수 |
 |---|---|
-| pass | 19 (FR-30 종목 경로 · FR-40~47 · FR-11 · 12 · 14 · 15 · 20 · 32 · 50 · 51 · 52) |
+| pass | 31 (FR-30 종목 경로 · FR-40~47 · FR-11 · 12 · 14 · 15 · 20 · 32 · 50 · 51 · 52 · **FR-1~9 · 16~18**) |
 | 다르게 | 1 (FR-53 — `returnDistribution.horizonDays` 를 그룹 기간으로) |
 | 부분 | 1 (FR-19 — preflight 만) |
 | 미충족 | 1 (FR-48) |
 | 범위 밖 | 1 (FR-49) |
-| 미착수 | 15 (FR-1~10 · FR-13 · FR-16~18 · FR-31 · FR-54) |
+| 미착수 | 4 (FR-10 · FR-13 · FR-31 · FR-54) |
+
+> 2026-09-23 정정: 슬라이스 11 시점 미착수는 15 가 아니라 **16** 이었다(FR-1~10 이 10개). 이번 12개가 빠져 4 다.
 
 ## 5. 미검증
 
@@ -125,3 +127,38 @@
 | 표본 수만 건일 때의 집계 계획 | 248행에서는 Seq Scan 이 맞다 | 표본 누적 후 재측정 |
 | BFF `/api/app/coach/scoreboard` 전달 | BFF 슬라이스 전이다 | `BFF-REQ-023` FR-20~24 |
 | explain abort | 서버 로그를 잡지 않았다 | 관측성 계측 |
+
+## 8. 슬라이스 12 — 코치 상세 (2026-09-23, `feat/server-f004-coach-detail`)
+
+| 확인 | 결과 |
+|---|---|
+| `GET /api/coach/detail` 유스케이스 · 실제 DB | 조립 **16ms**(로컬 사용자 1명 · 보유 2). 추천 `coach.sell` BTC · `renderable: false` · `blockedReason: failure_cases_missing` · 성적 표본 1(`lowSample: true`) · `explanation.source: rule` · 후보 3 · 익절 계획 2 · `excluded` 국내 주식 |
+| HTTP 무토큰 | **401** — 라우터 전체에 `authMiddleware` 가 걸려 있어 이 값만으로 경로 등록을 증명하지는 않는다. 등록은 유스케이스 호출과 `tsc` 로 봤다 |
+| 새 SQL | **없음** — 기존 Store · Probe 메서드만(`findLatestRecommendation` · `findRecommendationHistory` · `findActiveBehavior` · `listHoldings` · `quotes` · `latestCloses` · `closeAtOrAfter`). `EXPLAIN` 대상 없음 |
+| 쿼리 수 | 고정 5 + 같은 행동의 저장 추천 수만큼 `closeAtOrAfter`(기존 `signal-performance` 와 같은 루프 · 상한 100). 저장 추천이 `main_coach` 한 행을 덮어써서 지금은 1 |
+| 응답 금지 필드 | `targetPrice` · `expectedReturn` · `confidence` · `probability` 0건(유스케이스 테스트) |
+| 게이트 | `npm run build` · `npm test` **299 pass** · `npm run lint` · `test:layer-check` · `layer-check` 사후 17파일 |
+
+### 판단
+
+- **저장 추천에 종목 판단 성적을 빌려 오지 않았다.** 슬라이스 11 이 미결로 남긴 질문이었는데 스펙이 이미 답하고 있었다 —
+  `DB-REQ-019` FR-45 가 "저장 추천 4행은 `IndicatorTrackRecord` 와 연결되는지가 데이터이고 연결이 없는 행은 게이트가
+  차단한다"고 쓴다. 스냅샷을 빌리면 `coach.sell` 카드에 `long_term.avoid` 의 실패사례가 붙는다(SRV-REQ-024 FR-134 와 같은 이유)
+- 그래서 추천 블록은 **지금 전부 막힌다.** 에러가 아니고 200 이며 나머지 블록(익절 계획 · 행동 기록 · 후보)은 그대로 간다
+- 저장 추천 게이트는 표본 **1건 이상이면 통과**(`SRV-REQ-024` FR-32 기본안)다. 종목 판단은 20 미만을 막는다(FR-137).
+  두 경로가 다른 것은 스펙이 정한 것이고, 계약의 사유 enum 에도 `insufficient_sample` 이 없다
+- 성적 표본은 `signal-performance` 와 **같은 함수**(`collectPerformanceSamples`)로 센다. 키는 폴백 체인이 아니라
+  `coach.<action>`(FR-130)
+- 상세 GET 은 **쓰기를 하지 않는다.** 행동 코치 화면은 열 때 분석을 돌리지만 상세는 있는 것만 모은다
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 추천 블록이 `renderable: true` 로 열리는 경로(실측) | 실패사례 출처 `IndicatorTrackRecord` 가 없다 — 단위 테스트(게이트 4종)만 | `DB-REQ-013` · `DB-REQ-019` 매핑 시드 (F003) |
+| 인증된 HTTP 200 실측 | 로컬 토큰 발급 스크립트가 이번 세션 권한에서 막혔다. 유스케이스를 실제 어댑터로 불러 대신했다 | BFF `/api/app/coach/report` 슬라이스에서 BFF 경유로 |
+| `coach.sell` · `coach.hold` 의 적중 정의 | 기존 성적 정의가 행동과 무관하게 "지금 가격 > 진입가"다 — 매도 추천이 가격 상승으로 "적중"한다. 이번 슬라이스는 정의를 바꾸지 않고 옮겨 썼다 | PM 판단 — 저장 추천용 적중 규칙(FR-135 의 저장 추천판) |
+| 후보 `reasons` | 저장 payload 에 없다(늘 `[]`). 생성 쪽 변경이 필요하다 | `generate` 슬라이스(쿨다운과 함께) |
+| `recommendation.assetType` 의 `us_stock` | DB enum 이 `stock` 하나라 미국 주식으로 읽는다(`DB-REQ-003`). 로컬에 주식 추천이 없어 보지 못했다 | `DB-REQ-003` |
+| BFF 전달 | BFF `/api/app/coach/report`(`BFF-REQ-023` 신규 행)가 아직 없어 `/api/coach/detail` 을 부르는 곳이 없다. `profit-plan` 은 `stages` 를 통째로 넘겨 `gapFromCurrent` 가 간다. `behavior-coach` 는 카드로 다시 매핑해 `factCode` · `params` 가 **빠진다** | `BFF-REQ-023` 코치 리포트 슬라이스 |
+

@@ -197,8 +197,8 @@ flowchart TB
 | `FE-REQ-012` F000 API | **in-progress** | 호출 배치에 **`login` · `refresh`** 추가(표에 없던 두 호출, 2026-09-23). WS 절(FR-24~26) — 참조 카운트 구독으로 **떠난 화면의 구독을 해제**한다(원래는 리스너만 뗐다). 재연결 3s→30s 백오프 |
 | `BFF-REQ-010` F000 PERF | **in-progress** | WS 절 — 측정(FR-15) 18.9건/초. **throttle(FR-11)은 만들지 않는다는 판정.** 시세가 조용히 멈추는 경로 넷을 닫았다. 시세 개요 A절 — 가격 캐시 **히트율 0%** 를 재고 덧씌우기를 걷어냈다(FR-2 는 다르게) |
 | `DB-REQ-017` F004 SCHEMA | **in-progress** | 판단 스냅샷 · 성적표 · 게이지 적중률 집계 테이블(슬라이스 1·2). `checklists/F004-symbol-judgment.md` · `F004-zone-gauge.md` |
-| `SRV-REQ-024` F004 FUNC | **in-progress** | 종목 판단을 스냅샷으로 남겨 성적표 표본을 쌓는다 · `zone`(내 규칙 가격/관찰 구간) · 게이지 적중률(슬라이스 1·2) · **성적표 그룹 · 수익률 분포 · 적중/실패 동등**(슬라이스 11) |
-| `SRV-REQ-025` F004 API | **in-progress** | `GET /ai-coach` 에 `modes.*`(판단 · `renderable` · `zone`) · `gaugeTrackRecords` · `disclaimer`. `confidence` 없음. explain 인증 · 게이트 먼저 · abort, preflight `stopLossRate` · `maxLossOfTotalRate`(슬라이스 10). **`/api/coach/scoreboard` · `?groupBy=signalType`**(슬라이스 11) |
+| `SRV-REQ-024` F004 FUNC | **in-progress** | 종목 판단을 스냅샷으로 남겨 성적표 표본을 쌓는다 · `zone`(내 규칙 가격/관찰 구간) · 게이지 적중률(슬라이스 1·2) · **성적표 그룹 · 수익률 분포 · 적중/실패 동등**(슬라이스 11) · **저장 추천 게이트 · 익절 거리 · 행동 기록 코드**(슬라이스 12) |
+| `SRV-REQ-025` F004 API | **in-progress** | `GET /ai-coach` 에 `modes.*`(판단 · `renderable` · `zone`) · `gaugeTrackRecords` · `disclaimer`. `confidence` 없음. explain 인증 · 게이트 먼저 · abort, preflight `stopLossRate` · `maxLossOfTotalRate`(슬라이스 10). **`/api/coach/scoreboard` · `?groupBy=signalType`**(슬라이스 11). **`/api/coach/detail`** · `gapFromCurrent` · `factCode`(슬라이스 12) |
 | `BFF-REQ-023` F004 FUNC | **in-progress** | `/api/app/ai-coach/detail` = `SymbolCoachViewModel` · 두 모드 한 응답 · 기본 라벨 제거(슬라이스 3). `explain` 인증 뒤로(슬라이스 5). 리포트 · `generation-status` 는 서버 엔드포인트 대기. `checklists/F004-bff-symbol-judgment.md` · `F004-bff-upstream-errors.md` |
 | `BFF-REQ-024` F004 API | **in-progress** | 모드 블록 `renderable` 판별 union. **FR-30 `packages/core` 닫힘**(`@repo/core/coach`, 사본 — BFF 는 workspace 밖) |
 | `BFF-REQ-025` F004 UPSTREAM | **in-progress** | 면책 없으면 502 · 모드 계약 깨지면 `null`. **서버 4xx · `Retry-After` 보존**(main 은 500) · `explain` 토큰 · 20s · 동시 2 · GET 재시도 1회(슬라이스 5). `generate` 1s · 202 는 서버 대기 |
@@ -291,7 +291,7 @@ F004 슬라이스 1~4 로 서버 → BFF → 프론트까지 이었다(아래).
 
 **슬라이스 5 (BFF, 2026-09-22)** — BFF 가 서버 4xx 를 전부 500 으로 바꾸던 것을 고치고(`Retry-After`
 포함), `explain` 을 인증 뒤로(20s · 동시 2), 조회 GET 재시도 1회를 넣었다. `/coach/report` ·
-`scoreboard` · `generation-status` · `generate` 202 는 **부를 서버 엔드포인트가 없어** 서버 선행이다.
+`scoreboard` · `generation-status` · `generate` 202 는 **부를 서버 엔드포인트가 없어** 서버 선행이다. (2026-09-23: `scoreboard` · `detail` 은 열렸다 — 슬라이스 11 · 12)
 
 **슬라이스 6 (FE, 2026-09-22)** — 패널 ⑦ 이 가는 상세 분석 `/investments/[symbol]`. 같은 뷰모델로 차트 구간 선 ·
 코치 카드(근거 · 위험 · 3종) · 수익 플랜을 그리고 [해설 보기]를 눌러야 `explain` 을 부른다. 주문 전 체크는
@@ -324,7 +324,12 @@ FR-150~156 을 막던 계약이 풀렸다. 해설 응답이 합 타입이 돼 �
 함께 넣은 `npm run judgments:seed` 로 표본 20건 게이트가 로컬에서 처음 열려, 슬라이스 10 이 남긴
 **LLM 렌더 경로 미검증 2건이 닫혔다**.
 
-다음 F004 는 서버 후속(`/api/coach/detail` · 쿨다운 429 · `generate` 202 · `defaultMode` — 마이그레이션 2개)과
+**슬라이스 12 (서버, 2026-09-23)** — 코치 상세(`SRV-REQ-025` FR-1~9 · 16~18). `GET /api/coach/detail` 이 저장 추천 ·
+성적 · 익절 계획 · 행동 기록 코드 · 국내 주식 제외 사실을 한 응답으로 준다. **저장 추천에 종목 판단 성적을
+빌려 오지 않는다** — 실패사례 출처(`IndicatorTrackRecord`, F003)가 생길 때까지 추천 블록은 `failure_cases_missing`
+으로 막히고 그것이 스펙이 정한 정상이다(`DB-REQ-019` FR-45). 나머지 블록은 그대로 간다.
+
+다음 F004 는 서버 쿨다운 · 프로필 축(`generate` 202 · 429 · `defaultMode` — 마이그레이션 2개), BFF `/api/app/coach/report`,
 주문 전 체크 화면이다.
 
 **세션 슬라이스 (FE, 2026-09-23)** — 사용자가 "코치가 안 뜬다"고 했고 원인은 코치가 아니었다.
@@ -410,3 +415,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-22 | **F004 슬라이스 5 (BFF).** 서버 4xx(429 포함)를 500 대신 원 status · `code` · `Retry-After` 로 전달 — `/api/app/**` 전체의 에러 계약 변경(프론트 전역 401 처리 없음 확인). `POST /api/app/ai-coach/explain` 인증 필수(PM 프로토타입 무인증 호출은 401). 리포트 · 성적표 · 재생성 상태는 서버 엔드포인트가 없어 보류 |
 | 2026-09-22 | **F004 슬라이스 1~4 상태 반영.** 서버 판단 스냅샷 · `zone` · 게이지 적중률, BFF `SymbolCoachViewModel`, 프론트 우측 AI 코치 패널. 10개 REQ `in-progress`(1~3 슬라이스는 이 표에 늦게 올렸다). `@repo/core/coach` · `@repo/ui/segmentedControl` 신설 |
 | 2026-09-21 | **시세 표 필터 · 기간 변동률 · 레이아웃 수직 슬라이스.** 계약 변경(추가): overview 항목 `periodChange` · 모르는 기간 422 — BFF 가 4xx 를 그대로 전달한다. `FE-REQ-010` 반응형 판정을 정정(1280·1024 누락). 우측 AI 코치 패널이 REQ 에 없다는 것을 확인 |
+| 2026-09-23 | **F004 슬라이스 12 (서버) 코치 상세.** `GET /api/coach/detail`(`SRV-REQ-025` FR-1~9 · 16~18) — 상태표 · 슬라이스 단락 갱신. 저장 추천 블록은 실패사례 출처(F003 `IndicatorTrackRecord`)가 생길 때까지 막힌다. 근거 `requirements/reports/checklists/F004-server-coach-detail.md` |

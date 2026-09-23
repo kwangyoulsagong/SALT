@@ -58,3 +58,19 @@ FR-104 는 `renderGate.ts`(FR-10)를 쓰라고 했지만 그 파일은 없다. �
 - `ddd-domain.md` §3 표와 §7 목록이 **`coach/domain/policy/renderGate.ts`** 를 3종 세트 불변식의 자리로 적고 있다.
   그 파일은 없고 지금 불변식을 지키는 것은 `coach/domain/policy/symbolJudgment.ts` 다. 규칙 문서를 실제 자리에 맞춘다.
 - REQ 본문 FR-107 이 아직 `InvestmentInsight(kind: symbol_judgment)` 다 — `DB-REQ-017` 회고 §5 와 함께 고친다.
+
+## 슬라이스 12 (2026-09-23) — 저장 추천 게이트 · 익절 거리 · 행동 기록
+
+- **게이트를 하나로 합치지 않았다.** 스펙은 `renderGate.ts` 하나를 그렸지만 종목 판단(표본 20 미만 차단 ·
+  `insufficient_sample`)과 저장 추천(표본 1 이상 통과 · FR-32)은 규칙이 다르다. 합치면 분기 플래그가 생기고,
+  그 플래그가 FR-15 가 금지한 "우회 인자"와 모양이 같아진다. 두 함수로 두고 차이를 주석에 적었다
+- **DB JSON 을 믿지 않는 읽기를 도메인에 뒀다**(`readStoredRecommendation` · `toBehaviorFact`). 모양이 어긋나면
+  반쯤 채우지 않고 `null` 이다 — 반쯤 채운 `params` 는 틀린 문장을 만든다
+- 체크리스트의 저장 추천 행이 FR-1~91 을 몇 줄로 묶고 있어 집계가 부정확했다. 이번에 FR 단위로 쪼갰고,
+  옛 미착수 수는 다시 세지 않고 "나머지"로 뒀다
+
+## Action
+
+- FR-13 은 `DB-REQ-013`(F003 `IndicatorTrackRecord`)이 생겨야 닫힌다
+- FR-17 · FR-133 게이트 차단 카운터 — 지금 저장 추천은 100% 차단이라 카운터가 가장 먼저 보여줄 사실이다
+
