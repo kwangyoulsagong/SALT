@@ -179,6 +179,7 @@ created: 2026-09-09
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-09-23 | **FR-62 · FR-63 구현.** 로그인이 MSW 목(`POST /api/v1/auth/login`)을 부르고 있던 것을 실제 계약(`POST /api/auth/login`, BFF 프록시 · `{email,password}` → `{user,accessToken,refreshToken}`)으로 바꿨다. 401 이면 `apiFetch` 가 갱신하고 1회 재시도하며, 리프레시까지 거부되면 세션을 비우고 로그인으로 보낸다. FR-63 문구는 "아직 계정이 없나요? / 초대 코드로 시작하기" 로 **바꿨다**(계정이 없는 사람이 읽는 문장). 근거 `reports/checklists/FE-REQ-011.md` §10 |
 | 2026-09-21 | **실시간 수신 표시를 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-11 · FR-12("연결 끊김 · 재연결 중", 기준 시각을 쓰지 않는다) · FR-13(헤더를 `RealtimeAsOf` 로 떼어 표가 리렌더되지 않는다) · FR-14(`FE-REQ-010` FR-2 에서). **FR-10 은 다르게** — 수신 시각을 `entities/market/model` 이 아니라 `wsClient.getLastMessageAt()` 에 둔다. 수신 시각은 시세가 아니라 연결의 사실이고 `shared/api` 가 그 연결을 소유한다. **남은 것**: FR-1~5 · FR-20~73 중 미구현분. 근거: `requirements/reports/checklists/F000-realtime-reliability.md` |
 | 2026-09-21 | **터치 선택 절 판정.** FR-23 pass(`(hover: hover)`) · FR-30 유지. **FR-22 는 다르게** — 선택 행에 색을 칠하지 않는다(05b0427 사용자 결정, 팔레트 밖 보라). 선택은 우측 프리뷰가 말하고 `aria-selected` 를 둔다 — 그 값이 `memoKey` 누락으로 첫 행에 멈춰 있던 것을 고쳤다. 같은 작업에서 `MarketOrder.Ascending` 이 빈 문자열이던 것(오름차순 = 내림차순)과 기간 변동률 표시를 고쳤다. 근거: `requirements/reports/checklists/F000-market-table.md` |
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 추가: FR-6 · 7(★ 단일 소스에 검색 포함 · 보유 ★ 해제 금지 — D8) · FR-80~84(검색 동작 — 디바운스 · 취소 · URL 동기화 · 최근 검색 로컬) · FR-85~88(북마크 — 낙관적 · 단일 소스 · 알림과 분리, D5) · FR-90~92(목표 수량 폼, 기본안 B5). 개정: FR-5 상한이 실제로 생겼다(추적 10, `409 TRACKED_ASSET_LIMIT`). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
