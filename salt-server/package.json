@@ -16,7 +16,9 @@
     "test": "node --import tsx --test \"src/**/__tests__/*.test.ts\"",
     "test:layer-check": "node .claude/hooks/__tests__/layer-check.test.mjs",
     "invite:issue": "tsx scripts/issue-invite-codes.ts",
-    "candles:backfill": "tsx scripts/backfill-daily-candles.ts"
+    "candles:backfill": "tsx scripts/backfill-daily-candles.ts",
+    "judgments:seed": "tsx scripts/seed-judgment-snapshots.ts",
+    "judgments:seed:clear": "tsx scripts/seed-judgment-snapshots.ts --clear"
   },
   "keywords": [],
   "author": "",
