@@ -186,6 +186,7 @@ type AlertVM = {
 | 2026-09-18 | **온보딩 3계약을 열고 제거 목록을 닫았다.** `invite/check`(무인증·rate limit) · `invite`(무인증·`403 { reasonCode }`) · `status`(인증). FR-9·10 통과, **FR-13(`packages/core` 공유)은 미충족** — `bff` 가 workspace 밖이다. **남은 것**: 동면 경로 410(FR-11). 근거: `requirements/reports/checklists/BFF-REQ-008.md` |
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 신규 계약 3개: `GET /api/app/search`(`AssetSearchResultVM`, D8) · `GET /api/app/news/bookmarks` · `POST·DELETE /api/app/news/:id/bookmark`(D5). 기존 계약 변경: watchlist `409 TRACKED_ASSET_LIMIT` · `tracked` · 뉴스 `sentiment` · `symbols` · `isBookmarked?`(B11) · 목표 수량 통과(B5). 규약 FR-15~21 추가. 개정: FR-1 · `AlertVM.kind` 2종 → **1종**. 관심 종목 뷰모델에 신호 필드 없음(D4) 명시. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-09-22 | **FR-11 동면 경로 410 을 닫았다**(`BFF-REQ-036`). `/api/app/feed` · `/api/missions*` · `/api/users/points/*` · `/api/users/achievements` · `/api/dashboard*` → `410 ENDPOINT_DORMANT`. **남은 것**: FR-13(`packages/core` 공유). 근거: `requirements/reports/checklists/BFF-REQ-008.md` §5 |
+| 2026-09-23 | 보유 요약 항목에 `logoUrl`(추가 · null 허용) — 홈 보유 목록 종목 아이콘. 주소 규칙은 서버 시세 목록의 것을 그대로 옮긴다 |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

@@ -90,5 +90,23 @@
 | FR-31~33 서버 컴포넌트 조회 | 토큰이 `localStorage` 다 | `FE-REQ-013`(쿠키) |
 | FR-50 · 53 타입 공유 | `bff` workspace 밖 | `FE-REQ-024` |
 | FR-10~13 동면 · 410 | BFF 410 선행 | `BFF-REQ-007` A절 |
-| 목표 조회가 아직 MSW(`/api/v1/goals`) | 저장만 서버로 옮겼다 | 이 REQ 의 후속 (루트 watchlist §7) |
 | `wsClient` 자동 테스트 · 375/390 끊김 문구 | 러너 없음 · 1440 만 봄 | `FE-REQ-013` · 다음 투자 화면 작업 |
+
+## 2026-09-23 — MSW 목 전부 제거 · 목표 조회 실경로 · 공개 시세 서버 조회 (`feat/fe-f004-coach-report`)
+
+루트: `requirements/reports/checklists/F004-fe-coach-report.md` §후속
+
+| 항목 | 판정 | 근거 |
+|---|---|---|
+| 목표 요약 `GET /api/goals/statistics` · 목록 `GET /api/goals`(BFF 프록시, 인증) | **pass** | `entities/goal/api/goalApi.ts` — 서버 모양을 화면 계약으로 옮긴다. 서버에 없는 D-Day · 달성률 · 썸네일은 `null`(지어내지 않음) |
+| 지출 분석 `/api/v1/investments/preview` | **삭제** | 서버 · BFF 에 지출 데이터가 없다 — 목만 받던 경로. 실패 시 보유 목록까지 가리던 구조도 풀림 |
+| 목 핸들러 · 워커 · 게이트 · `packages/mocks` · `msw` | **삭제** | 부르는 곳 0(랭킹 · 오픈뱅킹 5개는 원래 0). `apiFetch` 는 맨 `fetch` + 토큰 갱신 |
+| 공개 시세 서버 조회(SEO) | **pass** | `pages/investment-detail/api/publicMarketApi.ts` — 토큰 없음 · `revalidate` 30s(종목) · 1h(sitemap) |
+| 실측 | dev 6개 화면 200 · 서비스 워커 0 · 페이지 오류 0, 로그인 홈(실제 응답 모양 고정 데이터) 수화 경고 0 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실제 로그인 계정으로 목표 · 보유 실측 | 테스트 계정 비밀번호가 기록에 없다(의도) · Chrome 확장 미연결 | QA 단계 |
+| 목표 D-Day · 달성률 | 서버 통계에 없다 | 서버가 주면(`GET /api/goals/:id/progress` 합산은 프론트 계산이라 하지 않음) |
