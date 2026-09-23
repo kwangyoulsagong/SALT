@@ -26,9 +26,13 @@ export class UnauthorizedError extends AppError {
  * **5xx · timeout · 연결 실패는 여기서 다루지 않는다** — 원인 메시지가 민감할 수 있고
  * 어느 status 로 줄지(502/504)는 별도 판단이다. `null` 을 돌려 기존 500 흐름을 탄다.
  *
- * 서버 4xx 본문의 키는 `success` · `code` · `message` · `errors`(검증 실패 필드 목록) 넷이다
- * (`salt-server` `errorMiddleware` · `ResponseUtil.error`). 넷을 다 옮기면 proxy 가 본문을
+ * 서버 4xx 본문의 키는 `success` · `code` · `message` · `errors`(검증 실패 필드 목록)에
+ * 코치 쿨다운 429 의 `retryAfterSeconds`(정수 초)가 더해진다(`salt-server` `errorMiddleware` ·
+ * `ResponseUtil.error` · `AICoachController.generate`). 전부 옮기면 proxy 가 본문을
  * 통째로 넘기던 것과 같다 — 그래서 컨트롤러가 4xx 를 따로 잡을 이유가 없다.
+ *
+ * `retryAfterSeconds` 는 헤더(`Retry-After`)와 같은 값이지만 **본문에도** 옮긴다 — 화면은
+ * 헤더를 읽지 않고 본문으로 남은 시간을 그린다(`BFF-REQ-023` FR-60).
  */
 export interface UpstreamClientError {
   status: number;
@@ -36,6 +40,7 @@ export interface UpstreamClientError {
   message: string;
   errors?: unknown[];
   retryAfter?: string;
+  retryAfterSeconds?: number;
 }
 
 export const toUpstreamClientError = (
@@ -45,7 +50,12 @@ export const toUpstreamClientError = (
     error as {
       response?: {
         status?: number;
-        data?: { code?: unknown; message?: unknown; errors?: unknown };
+        data?: {
+          code?: unknown;
+          message?: unknown;
+          errors?: unknown;
+          retryAfterSeconds?: unknown;
+        };
         headers?: Record<string, unknown>;
       };
     }
@@ -57,6 +67,7 @@ export const toUpstreamClientError = (
   const message = response?.data?.message;
   const errors = response?.data?.errors;
   const retryAfter = response?.headers?.["retry-after"];
+  const retryAfterSeconds = response?.data?.retryAfterSeconds;
 
   return {
     status,
@@ -65,6 +76,11 @@ export const toUpstreamClientError = (
     ...(Array.isArray(errors) ? { errors } : {}),
     ...(typeof retryAfter === "string" || typeof retryAfter === "number"
       ? { retryAfter: String(retryAfter) }
+      : {}),
+    ...(typeof retryAfterSeconds === "number" &&
+    Number.isInteger(retryAfterSeconds) &&
+    retryAfterSeconds >= 0
+      ? { retryAfterSeconds }
       : {}),
   };
 };

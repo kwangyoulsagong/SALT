@@ -18,6 +18,10 @@ export class AppBehaviorCoachService {
         message: warning.message,
         severity: warning.severity >= 80 ? "danger" : "warning",
         confidence: warning.confidence,
+        // 코드 + 수치만 옮긴다. 문장은 프론트가 만든다(`BFF-REQ-023` FR-40). 서버가 판정을
+        // 읽지 못했으면 `null` · `{}` 이고 그대로 둔다 — 기본값을 채우지 않는다
+        factCode: warning.factCode ?? null,
+        params: warning.params ?? {},
       })),
       recommendedRules: data.recommendedRules ?? [],
       evidence: data.evidence,

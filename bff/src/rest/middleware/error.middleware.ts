@@ -31,6 +31,9 @@ export const errorMiddleware = (
       ...(upstream.code ? { code: upstream.code } : {}),
       message: upstream.message,
       ...(upstream.errors ? { errors: upstream.errors } : {}),
+      ...(upstream.retryAfterSeconds !== undefined
+        ? { retryAfterSeconds: upstream.retryAfterSeconds }
+        : {}),
     });
   }
 

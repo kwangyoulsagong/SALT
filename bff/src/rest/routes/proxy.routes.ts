@@ -7,32 +7,41 @@ import { assertChartPeriod } from "../middleware/chartPeriod.middleware";
 const router = Router();
 
 /**
- * 프록시 핸들러 - Backend로 요청 전달
+ * 프록시 핸들러 - Backend로 요청 전달. 기본 타임아웃은 클라이언트 기본값(10s)이고,
+ * 경로별 예산이 있으면(`BFF-REQ-025` 호출 맵) `createProxyHandler({ timeout })` 로 준다.
  */
-const proxyHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const token = req.token!;
-    const method = req.method;
-    const url = req.originalUrl.replace("/api", "");
-    const data = req.body;
+const createProxyHandler =
+  (options: { timeout?: number } = {}) =>
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const token = req.token!;
+      const method = req.method;
+      const url = req.originalUrl.replace("/api", "");
+      const data = req.body;
 
-    const response = await backendApi.proxyAuthRequest(
-      method,
-      url,
-      token,
-      data,
-    );
+      const response = await backendApi.proxyAuthRequest(
+        method,
+        url,
+        token,
+        data,
+        options,
+      );
 
-    return res.status(response.status).json(response.data);
-  } catch (error) {
-    // 4xx(쿨다운 429 의 `Retry-After` 포함 — `BFF-REQ-023` FR-60)는 error middleware 가 보존한다
-    next(error);
-  }
-};
+      return res.status(response.status).json(response.data);
+    } catch (error) {
+      // 4xx(쿨다운 429 의 `Retry-After` 포함 — `BFF-REQ-023` FR-60)는 error middleware 가 보존한다
+      next(error);
+    }
+  };
+
+const proxyHandler = createProxyHandler();
+
+/**
+ * `generate` 는 서버가 **202 를 바로** 준다(생성은 뒤에서). 1s 를 넘기면 서버 계약 위반이고
+ * 기다리지 않는다(`BFF-REQ-025` FR-3 · 4). mutation 이라 재시도 0회. 상태 코드는 그대로 옮긴다
+ * — 202 를 200 으로 바꾸지 않는다.
+ */
+const GENERATE_TIMEOUT_MS = 1_000;
 
 // Auth 관련
 //
@@ -82,7 +91,11 @@ router.patch("/users/profile", authMiddleware, proxyHandler);
 // (`SRV-REQ-009` 제거 목록 · `BFF-REQ-008` 제거 표).
 
 // ai-coach
-router.post("/ai-coach/generate", authMiddleware, proxyHandler);
+router.post(
+  "/ai-coach/generate",
+  authMiddleware,
+  createProxyHandler({ timeout: GENERATE_TIMEOUT_MS }),
+);
 router.get("/ai-coach", authMiddleware, proxyHandler);
 
 export default router;
