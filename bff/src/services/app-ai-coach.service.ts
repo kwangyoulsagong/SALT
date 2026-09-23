@@ -149,7 +149,8 @@ export class AppAICoachService {
       panicSellWindowHours: data.panicSellWindowHours,
       defaultMode: data.defaultMode,
       notificationLevel: data.notificationLevel,
-      unsupportedPersistedFields: data.unsupportedPersistedFields ?? [],
+      // `unsupportedPersistedFields` 는 뺐다 — 서버가 두 필드를 저장하게 돼(SRV-REQ-025 FR-13)
+      // 늘 빈 배열이었다. 소비처 0건(2026-09-23 grep)
     };
   }
 

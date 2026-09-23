@@ -2,7 +2,7 @@
 
 - REQ: `bff/requirements/specs/in-progress/BFF-REQ-023-F004-FUNC.md`
 - 브랜치: `feat/f004-bff-judgment` (base `main` `ebadcf9`) · 검증일: 2026-09-22
-- 상태: **부분 완료** — 종목 판단 경로(`/api/app/ai-coach/detail`)만 닫혔다. 코치 리포트 · 성적표 · 재생성 · 해설 인증은 미착수
+- 상태: **부분 완료** — 종목 판단 경로 · 해설 인증에 더해 **코치 리포트 · 재생성 · 생성 상태 · 익절 · 행동 기록**(2026-09-23 슬라이스 14)이 닫혔다. 성적표 그룹(FR-20~24 · 103) · 피드백(FR-50~52) · preflight(FR-101) · 카운터(FR-7)는 미착수
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-bff-symbol-judgment.md`
 - **2026-09-22 슬라이스 5** (`feat/f004-bff-slice4`): 서버 4xx 전달 · `explain` 인증 · GET 재시도 — 루트 `checklists/F004-bff-upstream-errors.md`
 
@@ -30,16 +30,16 @@
 
 | FR | 판정 | 비고 |
 |---|---|---|
-| FR-1~6 게이트 전달만 | pass (종목 경로) | 코치 리포트 경로는 아직 없다 |
+| FR-1~6 게이트 전달만 | pass | 종목 경로 + **코치 리포트**(2026-09-23) — `toReportRecommendation` 에 여는 경로 없음 · 막힌 추천은 사유 · 표본 수만 · 테스트 5 |
 | FR-7 게이트 미충족 카운터 | 미착수 | 관측 인프라 미정 |
-| FR-10~14 `/coach/report` | 미착수 | |
+| FR-10~14 `/coach/report` | **pass** (2026-09-23) | 서버 1회 · 800ms · 재시도 1회 · 5xx/타임아웃/계약 깨짐 → 200 `unavailable` · 4xx 는 올림 · `staleHours` 무가공. FR-11 은 **계약이 깨진 필드**를 `degradedFields` 에 적는 것으로 읽었다 — 서버의 `recommendation: null` 은 추천 없음이지 결측이 아니다 |
 | FR-20~24 성적표 그룹 | 미착수 | |
-| FR-30~32 익절 플랜 | 미착수 | |
-| FR-40~41 행동 기록 `factCode` | 미착수 | FR-42 는 ADR-002 로 무효 |
+| FR-30~32 익절 플랜 | **pass** (2026-09-23) | `profit-plan` 카드가 `stages` 를 통째로 넘겨 `gapFromCurrent` 가 간다 · BFF 에 `crypto` 필터 없음(서버가 건다) · 리포트 `exitPlans[].trendHold.conditionCode` 무가공 |
+| FR-40~41 행동 기록 `factCode` | **pass** (2026-09-23) | `behavior-coach` 카드에 `factCode` · `params` 추가, 기존 필드 유지 · 리포트 `behaviorFacts` 무가공. FR-42 는 ADR-002 로 무효 |
 | FR-50~52 피드백 `reasonCode` | 미착수 | |
-| FR-60 `generate` 429 + `Retry-After` 전달 | 부분 | 슬라이스 5 — 4xx → 500 변환을 고쳤고 프록시가 `Retry-After` 를 옮긴다. **서버에 쿨다운 · `Retry-After` 가 없다** |
+| FR-60 `generate` 429 + `Retry-After` 전달 | **pass** (2026-09-23) | 에러 미들웨어가 **본문 `retryAfterSeconds` 를 떨구고 있었다**(헤더만 옮겼다) — 고쳤다. BFF 경유 실측: 429 · `Retry-After: 300` · 본문 `retryAfterSeconds: 300` |
 | FR-61 · FR-62 BFF 쿨다운 상태 0 · 재시도 0 | pass | 프록시 경로 · 상태 없음 |
-| FR-63 `generation-status` | 미착수 | 서버 엔드포인트 없음 |
+| FR-63 `generation-status` | **pass** (2026-09-23) | `/api/app/coach/generation-status` · 300ms · 재시도 1회 · 필드 선택. 실측 수동 생성 뒤 `retryAfterSeconds: 298` |
 | FR-70~72 `explain` 인증 | pass | 슬라이스 5. FR-72 요청 제한은 서버(분당 10) — BFF 는 동시 수만 |
 | FR-80~84 하지 않는 것 | pass | 점수 · LLM · 문구 · 주문 코드 0건 (이 브랜치 diff 기준) |
 
@@ -64,4 +64,26 @@
 |---|---|---|
 | FR-60 `Retry-After` 전달 | 서버가 이제 보낸다 | 부분 그대로 — BFF 경유 실측 전 |
 | FR-63 `generation-status` | 서버 엔드포인트 생김 | 미착수 — 부르는 라우트가 없다 |
+
+## 슬라이스 14 — 코치 리포트 · 재생성 전달 (2026-09-23, `feat/bff-f004-coach-report`)
+
+BFF 경유 실측(로컬 테스트 계정 로그인 → 실제 토큰):
+
+| 경로 | 결과 |
+|---|---|
+| `GET /api/app/coach/report` | 200 · **8ms** · `status: ok` · 면책 · `excluded` 국내 주식 · `degradedFields: []`. 이 계정은 보유가 없어 추천 `null` |
+| `POST /api/ai-coach/generate` 1차 | **202 · 8.5ms** · `{ requestId, requestedAt }` |
+| 같은 요청 2차 | **429** · `Retry-After: 300` · 본문 `code: COACH_REGENERATE_COOLDOWN` · `retryAfterSeconds: 300` |
+| `GET /api/app/coach/generation-status` | 200 · 생성 뒤 `lastRequest.source: manual` · `succeeded` · `retryAfterSeconds: 298` |
+| `GET /api/app/behavior-coach` · `profit-plan` | 200 · 이 계정은 거래 0 · 보유 0 이라 빈 목록 |
+| 무토큰 `report` | 401 |
+| 게이트 | `npm run build` · `npm test` **99 pass**(+17) |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 추천이 있는 사용자의 리포트(막힌 추천 · 익절 계획 · 행동 기록이 채워진 모양) 실측 | 로그인할 수 있는 로컬 계정은 보유 · 거래가 없다. 서버 실제 응답 모양으로 단위 테스트는 했다 | 테스트 계정에 보유를 기록한 뒤 |
+| FR-7 게이트 차단 카운터 | 관측 인프라 미정 | 관측성 계측 |
+| 모바일 집계 1콜 | 모바일 소비처가 없다 | `RN-REQ-*` 코치 화면 |
 

@@ -199,7 +199,7 @@ flowchart TB
 | `DB-REQ-017` F004 SCHEMA | **in-progress** | 판단 스냅샷 · 성적표 · 게이지 적중률 집계 테이블(슬라이스 1·2). `checklists/F004-symbol-judgment.md` · `F004-zone-gauge.md` |
 | `SRV-REQ-024` F004 FUNC | **in-progress** | 종목 판단을 스냅샷으로 남겨 성적표 표본을 쌓는다 · `zone`(내 규칙 가격/관찰 구간) · 게이지 적중률(슬라이스 1·2) · **성적표 그룹 · 수익률 분포 · 적중/실패 동등**(슬라이스 11) · **저장 추천 게이트 · 익절 거리 · 행동 기록 코드**(슬라이스 12) · **재생성 쿨다운**(슬라이스 13) |
 | `SRV-REQ-025` F004 API | **in-progress** | `GET /ai-coach` 에 `modes.*`(판단 · `renderable` · `zone`) · `gaugeTrackRecords` · `disclaimer`. `confidence` 없음. explain 인증 · 게이트 먼저 · abort, preflight `stopLossRate` · `maxLossOfTotalRate`(슬라이스 10). **`/api/coach/scoreboard` · `?groupBy=signalType`**(슬라이스 11). **`/api/coach/detail`** · `gapFromCurrent` · `factCode`(슬라이스 12). **`generate` 202 · 쿨다운 429 · `/api/coach/generation-status` · 프로필 영속화 · 기본 모드**(슬라이스 13) |
-| `BFF-REQ-023` F004 FUNC | **in-progress** | `/api/app/ai-coach/detail` = `SymbolCoachViewModel` · 두 모드 한 응답 · 기본 라벨 제거(슬라이스 3). `explain` 인증 뒤로(슬라이스 5). 리포트 · `generation-status` 는 서버 엔드포인트 대기. `checklists/F004-bff-symbol-judgment.md` · `F004-bff-upstream-errors.md` |
+| `BFF-REQ-023` F004 FUNC | **in-progress** | `/api/app/ai-coach/detail` = `SymbolCoachViewModel` · 두 모드 한 응답 · 기본 라벨 제거(슬라이스 3). `explain` 인증 뒤로(슬라이스 5). `checklists/F004-bff-symbol-judgment.md` · `F004-bff-upstream-errors.md` · **코치 리포트 · 생성 상태 · 429 본문**(슬라이스 14) |
 | `BFF-REQ-024` F004 API | **in-progress** | 모드 블록 `renderable` 판별 union. **FR-30 `packages/core` 닫힘**(`@repo/core/coach`, 사본 — BFF 는 workspace 밖) |
 | `BFF-REQ-025` F004 UPSTREAM | **in-progress** | 면책 없으면 502 · 모드 계약 깨지면 `null`. **서버 4xx · `Retry-After` 보존**(main 은 500) · `explain` 토큰 · 20s · 동시 2 · GET 재시도 1회(슬라이스 5). `generate` 1s · 202 는 서버 대기 |
 | `BFF-REQ-026` F004 PERF | **in-progress** | p95 32ms · 클라이언트 종료 시 upstream 취소(코드 — 서버 로그 미확인) · `explain` 동시 2 초과 즉시 429(슬라이스 5) |
@@ -334,7 +334,11 @@ FR-150~156 을 막던 계약이 풀렸다. 해설 응답이 합 타입이 돼 �
 429 + 남은 초, 상태는 `generation-status`. 프로필의 기본 모드가 저장되고 종목 판단이 그것을 따른다. 마이그레이션 2개 · 추가뿐.
 **서버 F004 계약은 FR-19(부분) · 31 · 54 만 남았다.**
 
-다음 F004 는 BFF `/api/app/coach/report` · `generation-status`(서버 선행이 전부 풀렸다)와 주문 전 체크 화면이다.
+**슬라이스 14 (BFF, 2026-09-23)** — 코치 리포트(`BFF-REQ-023` FR-10~14 · 60~63). `/api/app/coach/report` 가 서버 상세를
+화면 계약으로 접는다 — 막힌 추천은 사유와 표본 수만 남기고 행동 · 종목 · 점수를 떨군다. 재생성 202 · 429 가 **본문까지**
+전달된다(에러 미들웨어가 `retryAfterSeconds` 를 떨구고 있었다). 서버 12 · 13 의 인증 HTTP 미검증이 BFF 경유 실측으로 닫혔다.
+
+다음 F004 는 FE 코치 리포트 화면(`FE-REQ-026` M절)과 주문 전 체크 화면이다.
 
 **세션 슬라이스 (FE, 2026-09-23)** — 사용자가 "코치가 안 뜬다"고 했고 원인은 코치가 아니었다.
 **로그인이 MSW 목**(`POST /api/v1/auth/login` → `token: "mock-jwt-token"`)이었고 화면은 그 문자열을
@@ -421,3 +425,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-21 | **시세 표 필터 · 기간 변동률 · 레이아웃 수직 슬라이스.** 계약 변경(추가): overview 항목 `periodChange` · 모르는 기간 422 — BFF 가 4xx 를 그대로 전달한다. `FE-REQ-010` 반응형 판정을 정정(1280·1024 누락). 우측 AI 코치 패널이 REQ 에 없다는 것을 확인 |
 | 2026-09-23 | **F004 슬라이스 12 (서버) 코치 상세.** `GET /api/coach/detail`(`SRV-REQ-025` FR-1~9 · 16~18) — 상태표 · 슬라이스 단락 갱신. 저장 추천 블록은 실패사례 출처(F003 `IndicatorTrackRecord`)가 생길 때까지 막힌다. 근거 `requirements/reports/checklists/F004-server-coach-detail.md` |
 | 2026-09-23 | **F004 슬라이스 13 (서버) 쿨다운 · 프로필.** `generate` 202 · 429 · `generation-status` · 프로필 영속화 · 기본 모드 — 상태표 · 슬라이스 단락 갱신. 근거 `requirements/reports/checklists/F004-server-coach-cooldown.md` |
+| 2026-09-23 | **F004 슬라이스 14 (BFF) 코치 리포트.** `/api/app/coach/report` · `generation-status` · 429 본문 전달 — 슬라이스 단락 갱신. 서버 12 · 13 의 인증 HTTP 미검증 닫힘. 근거 `requirements/reports/checklists/F004-bff-coach-report.md` |

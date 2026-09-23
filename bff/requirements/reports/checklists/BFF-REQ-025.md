@@ -14,8 +14,10 @@
 | `symbolNews` `GET /api/market-intelligence/:symbol/news` | 300ms | 1회 요구 | 타임아웃 pass · 재시도 pass (슬라이스 5) · 병렬 pass |
 | `coachPreview` | 기본 10s | 1회 | 재시도 pass · **타임아웃 400ms 미적용** |
 | `explain` | 20s | 0회 | pass (슬라이스 5) |
-| `generate` | 1s 요구 | 0회 | 재시도 0 pass · **1s 미적용** — 서버가 동기 LLM 호출이라 지금 1s 면 기능이 죽는다 |
-| 나머지 9개 | — | — | 미착수 (`coachReport` · `scoreboard` · `generationStatus` 는 서버 엔드포인트 없음) |
+| `generate` | 1s | 0회 | **pass** (2026-09-23) — 서버가 202 를 바로 준다(서버 슬라이스 13). 실측 8.5ms |
+| `coachReport` | 800ms | 1회 | **pass** (2026-09-23) |
+| `generationStatus` | 300ms | 1회 | **pass** (2026-09-23) |
+| 나머지 7개 | — | — | 미착수 (`scoreboard` · `profile` · `feedback` · `profitPlan` · `signalPerformance` · `preflight` · `behaviorCoach` 는 기본 10s) |
 
 ## 2. 종목 판단 경로 (FR-40~46)
 
@@ -34,9 +36,9 @@
 | FR | 판정 | 비고 |
 |---|---|---|
 | FR-1 · FR-2 `explain` 20s · 재시도 0 | pass | 슬라이스 5 |
-| FR-3 · FR-4 `generate` 1s · 202 계약 테스트 | 미충족 | 2026-09-23 서버가 202 를 준다(서버 슬라이스 13). **BFF 쪽 계약 테스트 · 실측은 아직** — BFF 코드 무변경 |
+| FR-3 · FR-4 `generate` 1s · 202 계약 테스트 | **pass** (2026-09-23) | 1s 예산 · 202 무가공 · 실측 8.5ms. FR-4 의 계약 테스트는 **실측으로 대신했다** — 1s 를 넘기면 BFF 가 끊어 500 이 나고 그것이 계약 위반 신호다 |
 | FR-5 mutation 재시도 0 | pass | 재시도 유틸은 GET 호출부에만 |
-| FR-6 `429` + `Retry-After` · `422` · `401` 전달 | pass | 슬라이스 5 — error middleware. 실측 main 500 → 401 · 400. `Retry-After` 는 서버가 아직 안 보낸다 → 2026-09-23 서버 쿨다운 429 가 보낸다. BFF 경유 실측은 아직 |
+| FR-6 `429` + `Retry-After` · `422` · `401` 전달 | pass | 슬라이스 5 — error middleware. 실측 main 500 → 401 · 400. `Retry-After` 는 서버가 아직 안 보낸다 → 2026-09-23 BFF 경유 실측 429 · `Retry-After: 300` · 본문 `retryAfterSeconds` 까지(본문 필드는 이번에 고쳤다) |
 | FR-7 동시 `explain` 2 | pass | 실측 3건 동시 → 1건 429 `explain_busy` |
 | FR-10~12 `explain` 토큰 전달 | pass | 슬라이스 5. FR-11 BFF 먼저 — 서버는 아직 공개(토큰 무시) |
 | FR-20 `renderable` 없으면 unavailable | pass (종목 경로) | |
