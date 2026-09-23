@@ -156,11 +156,11 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 추천 블록이 `renderable: true` 로 열리는 경로(실측) | 실패사례 출처 `IndicatorTrackRecord` 가 없다 — 단위 테스트(게이트 4종)만 | `DB-REQ-013` · `DB-REQ-019` 매핑 시드 (F003) |
-| 인증된 HTTP 200 실측 | 로컬 토큰 발급 스크립트가 이번 세션 권한에서 막혔다. 유스케이스를 실제 어댑터로 불러 대신했다 | BFF `/api/app/coach/report` 슬라이스에서 BFF 경유로 |
+| ~~인증된 HTTP 200 실측~~ | — | **2026-09-23 닫힘** — BFF 슬라이스 14 에서 실제 로그인 토큰으로 BFF 경유 실측(`/api/app/coach/report` 200 · 8ms) |
 | `coach.sell` · `coach.hold` 의 적중 정의 | 기존 성적 정의가 행동과 무관하게 "지금 가격 > 진입가"다 — 매도 추천이 가격 상승으로 "적중"한다. 이번 슬라이스는 정의를 바꾸지 않고 옮겨 썼다 | PM 판단 — 저장 추천용 적중 규칙(FR-135 의 저장 추천판) |
 | 후보 `reasons` | 저장 payload 에 없다(늘 `[]`). 생성 쪽 변경이 필요하다 | `generate` 슬라이스(쿨다운과 함께) |
 | `recommendation.assetType` 의 `us_stock` | DB enum 이 `stock` 하나라 미국 주식으로 읽는다(`DB-REQ-003`). 로컬에 주식 추천이 없어 보지 못했다 | `DB-REQ-003` |
-| BFF 전달 | BFF `/api/app/coach/report`(`BFF-REQ-023` 신규 행)가 아직 없어 `/api/coach/detail` 을 부르는 곳이 없다. `profit-plan` 은 `stages` 를 통째로 넘겨 `gapFromCurrent` 가 간다. `behavior-coach` 는 카드로 다시 매핑해 `factCode` · `params` 가 **빠진다** | `BFF-REQ-023` 코치 리포트 슬라이스 |
+| ~~BFF 전달~~ | — | **2026-09-23 닫힘** — BFF 슬라이스 14(`/api/app/coach/report` · 카드 `factCode`/`params`) |
 
 ## 9. 슬라이스 13 — 쿨다운 · 프로필 (2026-09-23, `feat/server-f004-coach-cooldown`)
 
@@ -190,8 +190,8 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 인증된 HTTP 202 · 429 실측 | 로컬 토큰 발급이 세션 권한에서 막혔다. 유스케이스를 실제 어댑터로 불렀다 | BFF 경유 실측 — `BFF-REQ-025` FR-3 · 4 |
-| BFF 가 `Retry-After` 를 옮기는지 | BFF 코드는 옮긴다고 적혀 있다(`BFF-REQ-023` FR-60). 이 조합으로 돌려 보지 않았다 | 위와 같이 |
+| ~~인증된 HTTP 202 · 429 실측~~ | — | **2026-09-23 닫힘** — BFF 슬라이스 14 에서 실제 로그인 토큰으로 BFF 경유 실측(202 · 8.5ms → 429 `Retry-After: 300`) |
+| ~~BFF 가 `Retry-After` 를 옮기는지~~ | 헤더는 옮겼지만 **본문 `retryAfterSeconds` 는 떨구고 있었다** — BFF 슬라이스 14 가 고쳤다 | **2026-09-23 닫힘** |
 | 생성 기록 보존 · 정리 | 워커가 사용자당 10분에 1행 | 관측성 계측 |
 | **로컬 워커 중복 실행** | 로컬에 `src/server.ts` 가 두 벌 떠 있어 워커 생성이 매번 **두 번** 돈다 — 새 기록에서 처음 보였다. 코드가 아니라 로컬 프로세스 문제 | 사용자가 로컬 프로세스 정리 |
 
