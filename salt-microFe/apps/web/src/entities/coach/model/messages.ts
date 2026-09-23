@@ -175,7 +175,7 @@ export const COACH_MESSAGES = {
     exitPlanHeading: "익절 플랜",
     exitPlanDescription: "내 보유 기록에 규칙을 적용한 가격이에요.",
     exitStages: { stopLoss: "손실 제한", firstTakeProfit: "1차 익절 검토", trendHold: "추세 유지" },
-    currentPrice: (price: string) => `현재가 ${price}원`,
+    currentPriceLabel: "현재가",
     /** `trendHold.conditionCode` → 조건 문장 (FR-45) */
     trendHoldConditions: {
       hold_or_trail_stop: "추세가 이어지는 동안 보유하고, 손실 제한선을 따라 올려요.",

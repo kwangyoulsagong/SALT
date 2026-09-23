@@ -18,24 +18,30 @@ import {
 } from "@/entities/coach";
 import { RegenerateCoachButton } from "@/features/regenerate-coach";
 import { ROUTES } from "@/shared/config";
+import {
+  backLink,
+  panel,
+  panelDescription,
+  panelHead,
+  panelTitle,
+} from "@/shared/ui/surface.css";
 
 import { REPORT_BLOCK_FIELDS } from "../model";
 import {
-  backLink,
   disclaimerBar,
   disclaimerLabel,
   footnote,
   header,
   layout,
   meta,
-  panel,
-  panelDescription,
-  panelHead,
-  panelTitle,
-  panelTitleRow,
   title,
   titleBlock,
 } from "./CoachReport.css";
+import { AssetIdentity } from "./AssetIdentity";
+
+const renderIdentity = (symbol: string, size: "sm" | "md") => (
+  <AssetIdentity symbol={symbol} size={size} />
+);
 
 const { report: REPORT } = COACH_MESSAGES;
 
@@ -55,12 +61,12 @@ const ReportPanel = ({
 }) => (
   <section className={panel}>
     <div className={panelHead}>
-      <div className={panelTitleRow}>
-        <h2 className={panelTitle}>{heading}</h2>
+      <h2 className={panelTitle}>
+        {heading}
         {badge}
-      </div>
-      {description && <p className={panelDescription}>{description}</p>}
+      </h2>
     </div>
+    {description && <p className={panelDescription}>{description}</p>}
     {degraded ? <Text color="tertiary">{REPORT.blockUnavailable}</Text> : children}
   </section>
 );
@@ -87,13 +93,15 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
           {`\u2039 ${REPORT.back}`}
         </Link>
 
-        <div className={header}>
-          <div className={titleBlock}>
-            <h1 className={title}>{REPORT.pageTitle}</h1>
-            <p className={meta}>{metaLine}</p>
+        <section className={panel}>
+          <div className={header}>
+            <div className={titleBlock}>
+              <h1 className={title}>{REPORT.pageTitle}</h1>
+              <p className={meta}>{metaLine}</p>
+            </div>
+            <RegenerateCoachButton />
           </div>
-          <RegenerateCoachButton />
-        </div>
+        </section>
 
         {/* FR-143 — 막힌 추천은 초기의 정상 상태다. 정책을 섹션 설명으로 늘 말하고, 막힘은 회색 상자 하나 */}
         <ReportPanel
@@ -109,7 +117,7 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
         </ReportPanel>
 
         <ReportPanel heading={REPORT.risksHeading} degraded={degraded(REPORT_BLOCK_FIELDS.risks)}>
-          <ReportRiskList risks={report.risks} />
+          <ReportRiskList risks={report.risks} renderIdentity={renderIdentity} />
         </ReportPanel>
 
         <ReportPanel
@@ -122,7 +130,7 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
           }
           degraded={degraded(REPORT_BLOCK_FIELDS.exitPlans)}
         >
-          <ExitPlanList plans={report.exitPlans} />
+          <ExitPlanList plans={report.exitPlans} renderIdentity={renderIdentity} />
         </ReportPanel>
 
         <ReportPanel
@@ -167,8 +175,10 @@ export const CoachReport = () => {
 
   const notice = (content: ReactNode) => (
     <div className={layout}>
-      <h1 className={title}>{REPORT.pageTitle}</h1>
-      <section className={panel}>{content}</section>
+      <section className={panel}>
+        <h1 className={title}>{REPORT.pageTitle}</h1>
+        {content}
+      </section>
     </div>
   );
 

@@ -1,6 +1,8 @@
 import { style } from "@vanilla-extract/css";
 import { vars } from "@repo/ui/tokens";
 
+import { SURFACE } from "@/shared/ui/surface.css";
+
 /**
  * 상세 분석 화면.
  *
@@ -22,31 +24,33 @@ import { vars } from "@repo/ui/tokens";
 const STACK_BREAKPOINT = "1024px";
 const NARROW = "screen and (max-width: 640px)";
 const SIDE_WIDTH = "380px";
-const CARD_RADIUS = "20px";
+const CARD_RADIUS = SURFACE.panelRadius;
 /**
  * 카드 그림자. 토큰의 `elevation.sm` 은 흰 배경을 전제해서 옅은 회색 배경 위에서는
  * 거의 보이지 않았다 — 카드 경계가 사라져 화면이 한 장처럼 보였다. 가까운 그림자로 윤곽을
  * 만들고 먼 그림자로 살짝 띄운다.
  */
-const CARD_SHADOW = "0 1px 2px rgba(25,31,40,0.04), 0 10px 24px rgba(25,31,40,0.05)";
+const CARD_SHADOW = SURFACE.hairline;
 /** 하단 고정 바 높이. 본문이 그 아래로 숨지 않게 같은 값만큼 띄운다. */
 const DISCLAIMER_BAR_HEIGHT = "44px";
 
 export const layout = style({
   display: "flex",
   flexDirection: "column",
-  gap: vars.space.xl,
+  gap: "16px",
   minWidth: 0,
-  paddingBottom: DISCLAIMER_BAR_HEIGHT,
+  paddingTop: "8px",
+  paddingBottom: `calc(${DISCLAIMER_BAR_HEIGHT} + 24px)`,
 });
 
 export const backLink = style({
   alignSelf: "flex-start",
-  color: vars.colors.text.tertiary,
-  fontSize: vars.typography.t7.fontSize,
-  lineHeight: vars.typography.t7.lineHeight,
+  color: vars.colors.neutral[600],
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.semibold,
   textDecoration: "none",
-  ":hover": { textDecoration: "underline" },
+  ":hover": { color: vars.colors.neutral[800] },
 });
 
 /* ── 종목 헤더 ──────────────────────────────────────────────── */
@@ -63,7 +67,7 @@ export const headerCard = style({
   justifyContent: "space-between",
   gap: vars.space["2xl"],
   flexWrap: "wrap",
-  padding: `${vars.space.xl} ${vars.space.xl}`,
+  padding: "20px 24px",
   borderRadius: CARD_RADIUS,
   background: vars.colors.background.white,
   boxShadow: CARD_SHADOW,
@@ -87,8 +91,8 @@ export const nameRow = style({
 });
 
 export const name = style({
-  fontSize: vars.typography.t5.fontSize,
-  lineHeight: vars.typography.t5.lineHeight,
+  fontSize: "17px",
+  lineHeight: "24px",
   fontWeight: vars.fontWeights.bold,
   color: vars.colors.text.primary,
   margin: 0,
@@ -98,9 +102,10 @@ export const name = style({
 });
 
 export const ticker = style({
-  fontSize: vars.typography.t7.fontSize,
-  lineHeight: vars.typography.t7.lineHeight,
-  color: vars.colors.text.tertiary,
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.medium,
+  color: vars.colors.neutral[500],
   fontVariantNumeric: vars.numeric.tabular,
 });
 
@@ -112,13 +117,13 @@ export const priceRow = style({
   display: "flex",
   alignItems: "baseline",
   gap: vars.space.md,
-  minHeight: "40px",
+  minHeight: "34px",
 });
 
 /** 이 화면의 주인공. 이름(t5)과 두 단계 차이를 둬야 먼저 읽힌다. */
 export const price = style({
-  fontSize: vars.typography.t1.fontSize,
-  lineHeight: vars.typography.t1.lineHeight,
+  fontSize: "26px",
+  lineHeight: "34px",
   fontWeight: vars.fontWeights.bold,
   color: vars.colors.text.primary,
   fontVariantNumeric: vars.numeric.tabular,
@@ -170,14 +175,15 @@ export const stat = style({
 });
 
 export const statLabel = style({
-  fontSize: vars.typography.t8.fontSize,
-  lineHeight: vars.typography.t8.lineHeight,
-  color: vars.colors.text.tertiary,
+  fontSize: "12px",
+  lineHeight: "16px",
+  fontWeight: vars.fontWeights.medium,
+  color: vars.colors.neutral[500],
 });
 
 export const statValue = style({
-  fontSize: vars.typography.t7.fontSize,
-  lineHeight: vars.typography.t7.lineHeight,
+  fontSize: "13px",
+  lineHeight: "20px",
   fontWeight: vars.fontWeights.semibold,
   color: vars.colors.text.primary,
   fontVariantNumeric: vars.numeric.tabular,
@@ -209,7 +215,7 @@ export const rangeDot = style({
 export const grid = style({
   display: "grid",
   gridTemplateColumns: `minmax(0, 1fr) ${SIDE_WIDTH}`,
-  gap: vars.space.lg,
+  gap: "16px",
   alignItems: "start",
   "@media": {
     [`screen and (max-width: ${STACK_BREAKPOINT})`]: {
@@ -221,35 +227,36 @@ export const grid = style({
 export const column = style({
   display: "flex",
   flexDirection: "column",
-  gap: vars.space.lg,
+  gap: "16px",
   minWidth: 0,
 });
 
 export const card = style({
   display: "flex",
   flexDirection: "column",
-  gap: vars.space.lg,
-  padding: vars.space.xl,
+  gap: "16px",
+  padding: "20px 24px 24px",
   borderRadius: CARD_RADIUS,
   background: vars.colors.background.white,
   boxShadow: CARD_SHADOW,
   minWidth: 0,
   "@media": {
-    [NARROW]: { padding: vars.space.lg },
+    [NARROW]: { padding: "16px 16px 20px" },
   },
 });
 
-/** 패널 제목 줄. 제목은 작게 — 카드 안에서 가장 큰 것은 내용이어야 한다. */
+/** 패널 제목 줄. 제목 18/24 bold — 카드 안에서 내용보다 크지 않게 */
 export const cardHead = style({
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
   gap: vars.space.sm,
+  minHeight: "28px",
 });
 
 export const cardTitle = style({
-  fontSize: vars.typography.t6.fontSize,
-  lineHeight: vars.typography.t6.lineHeight,
+  fontSize: "18px",
+  lineHeight: "24px",
   fontWeight: vars.fontWeights.bold,
   color: vars.colors.text.primary,
   margin: 0,
@@ -270,14 +277,15 @@ export const disclaimerBar = style({
   minHeight: DISCLAIMER_BAR_HEIGHT,
   display: "flex",
   alignItems: "center",
-  gap: vars.space.sm,
+  gap: vars.space.md,
   padding: `${vars.space.sm} ${vars.space.xl}`,
   background: vars.colors.background.white,
-  borderTop: `1px solid ${vars.colors.border.light}`,
-  color: vars.colors.text.tertiary,
-  fontSize: vars.typography.t8.fontSize,
-  lineHeight: vars.typography.t8.lineHeight,
-});
+  borderTop: `1px solid ${vars.colors.neutral[100]}`,
+  color: vars.colors.neutral[500],
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.medium,
+})
 
 export const disclaimerLabel = style({
   fontWeight: vars.fontWeights.bold,

@@ -1,36 +1,47 @@
 import type { ReportExitPlan } from "@repo/core/coach";
 import { Text } from "@repo/ui/text";
+import type { ReactNode } from "react";
 
 import { formatPrice } from "@/shared/lib";
 
 import { describePriceGap } from "../lib";
 import { COACH_MESSAGES } from "../model";
 import {
+  holding,
   holdingHead,
   holdingList,
-  holdingSymbol,
-  row,
-  rowAmount,
-  rowCaption,
-  rowLabel,
-  rowList,
-  rowSentence,
-  rowValue,
+  holdingPrice,
+  holdingPriceValue,
+  stageCell,
+  stageGap,
+  stageGrid,
+  stageLabel,
+  stagePrice,
+  trendLabel,
+  trendLine,
 } from "./CoachReport.css";
 
 const { report: REPORT, zone: ZONE } = COACH_MESSAGES;
 
+interface ExitPlanListProps {
+  plans: readonly ReportExitPlan[];
+  /**
+   * 종목 자리(로고 · 이름). 로고 · 한글 이름은 시세 슬라이스가 갖고 있어 이 엔티티가 부를 수
+   * 없다 — 조합하는 위젯이 넣는다. 종목이 나오는 자리에는 로고가 늘 있다
+   */
+  renderIdentity: (symbol: string, size: "sm" | "md") => ReactNode;
+}
+
 /**
  * 익절 플랜 — 보유 종목별 3단계 (`FE-REQ-026` E · FR-40~45 · FR-102).
  *
- * 표가 아니라 **목록 행**(`<dl>`)이다 — 왼쪽 단계 이름, 오른쪽 가격, 가격 아래 현재가와의 차이.
- * 열 머리("단계 · 가격")가 없어도 읽히는 두 칸이라 머리를 두면 줄만 는다.
+ * 종목 줄(로고 · 이름 | 현재가) 아래 **가격 두 칸**(손실 제한 · 1차 익절 검토)을 옅은 회색 면으로
+ * 나란히 두고, 추세 유지 조건은 가격이 아니라 문장이라 칸 아래 한 줄이다. 칸은 `<dl>` 이다.
  *
  * 가격 · 차이는 전부 서버 값이다(`FE-REQ-027` FR-12). 차이는 **금액과 위 · 아래**로만 말하고
- * % 로 바꾸지 않는다(D13). 추세 유지는 가격이 아니라 조건이라 문장으로 두고 굵게 쓰지 않는다.
- * `예측 아님` 은 섹션 설명에 한 번 둔다(부르는 쪽) — 종목마다 반복하면 소음이 된다.
+ * % 로 바꾸지 않는다(D13). `예측 아님` 은 섹션 제목 옆 한 번(부르는 쪽).
  */
-export const ExitPlanList = ({ plans }: { plans: readonly ReportExitPlan[] }) => {
+export const ExitPlanList = ({ plans, renderIdentity }: ExitPlanListProps) => {
   if (plans.length === 0) return <Text color="tertiary">{REPORT.noHoldings}</Text>;
 
   return (
@@ -47,32 +58,31 @@ export const ExitPlanList = ({ plans }: { plans: readonly ReportExitPlan[] }) =>
         ] as const;
 
         return (
-          <section key={plan.symbol} aria-label={plan.symbol}>
+          <section key={plan.symbol} className={holding} aria-label={plan.symbol}>
             <div className={holdingHead}>
-              <p className={holdingSymbol}>{plan.symbol}</p>
-              <span className={rowCaption}>
-                {REPORT.currentPrice(formatPrice(plan.currentPrice))}
+              {renderIdentity(plan.symbol, "md")}
+              <span className={holdingPrice}>
+                <span className={stageLabel}>{REPORT.currentPriceLabel}</span>
+                <span className={holdingPriceValue}>
+                  {ZONE.price(formatPrice(plan.currentPrice))}
+                </span>
               </span>
             </div>
-            <dl className={rowList}>
+            <dl className={stageGrid}>
               {stages.map(({ key, label, stage }) => (
-                <div key={key} className={row}>
-                  <dt className={rowLabel}>{label}</dt>
-                  <dd className={rowValue}>
-                    <span className={rowAmount}>{ZONE.price(formatPrice(stage.price))}</span>
-                    <span className={rowCaption}>{describePriceGap(stage.priceGap)}</span>
-                  </dd>
+                <div key={key} className={stageCell}>
+                  <dt className={stageLabel}>{label}</dt>
+                  <dd className={stagePrice}>{ZONE.price(formatPrice(stage.price))}</dd>
+                  <dd className={stageGap}>{describePriceGap(stage.priceGap)}</dd>
                 </div>
               ))}
-              {trendHold && (
-                <div className={row}>
-                  <dt className={rowLabel}>{REPORT.exitStages.trendHold}</dt>
-                  <dd className={rowValue}>
-                    <span className={rowSentence}>{trendHold}</span>
-                  </dd>
-                </div>
-              )}
             </dl>
+            {trendHold && (
+              <p className={trendLine}>
+                <span className={trendLabel}>{REPORT.exitStages.trendHold}</span>
+                <span>{trendHold}</span>
+              </p>
+            )}
           </section>
         );
       })}

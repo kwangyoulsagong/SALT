@@ -4,7 +4,6 @@ import { Root } from "@repo/ui/root";
 import { Section } from "@repo/ui/section";
 import { notFound } from "next/navigation";
 
-import { ProfileHeader } from "@/entities/auth";
 import { BlockBoundary } from "@/shared/ui";
 
 import { parseSymbolParam } from "../lib";
@@ -30,10 +29,9 @@ export const InvestmentDetailPage = async ({ params }: InvestmentDetailPageProps
   if (!symbol) notFound();
 
   return (
-    <Root background="white">
+    <Root background="transparent">
       <Section containerSize="full" padding="sm">
         <Container size="2xl" padding="none">
-          <ProfileHeader />
           <Padding paddingX="xl">
             <BlockBoundary
               name={INVESTMENT_DETAIL_PAGE_MESSAGES.blockName}

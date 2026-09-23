@@ -32,7 +32,8 @@ import {
   ticker,
 } from "./SymbolAnalysis.css";
 
-const LOGO_SIZE = 36;
+/** 헤더 로고 — 참고 화면 실측 28px 원형 */
+const LOGO_SIZE = 28;
 
 /**
  * 종목 헤더 (`FE-REQ-026` FR-131).

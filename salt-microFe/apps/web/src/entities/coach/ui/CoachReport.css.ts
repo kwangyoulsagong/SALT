@@ -86,10 +86,9 @@ export const explanation = style({
   color: vars.colors.text.secondary,
 });
 
-/* ── 목록 행 — 왼쪽 라벨 · 오른쪽 값 · 값 아래 보조줄 ───────────────── */
+/* ── 문장 목록(주의할 점 · 거래 기록) — 한 행에 사실 하나 ─────────── */
 
-/** 행 사이는 옅은 1px 선. 첫 행 위에는 선이 없다 */
-export const rowList = style({
+export const factList = style({
   margin: 0,
   padding: 0,
   listStyle: "none",
@@ -97,71 +96,20 @@ export const rowList = style({
   flexDirection: "column",
 });
 
-export const row = style({
-  display: "flex",
-  alignItems: "flex-start",
-  justifyContent: "space-between",
-  gap: vars.space.lg,
-  padding: "14px 0",
-  borderTop: `1px solid ${vars.colors.neutral[100]}`,
-  selectors: { "&:first-child": { borderTop: "none", paddingTop: 0 } },
-});
-
-export const rowLabel = style({
-  margin: 0,
-  flexShrink: 0,
-  color: vars.colors.neutral[600],
-  fontSize: "15px",
-  lineHeight: "22px",
-});
-
-export const rowValue = style({
-  margin: 0,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "flex-end",
-  gap: "2px",
-  minWidth: 0,
-  textAlign: "right",
-});
-
-/** 값 — 라벨보다 한 단계 크고 굵다. 폭이 흔들리지 않게 자리폭 고정 */
-export const rowAmount = style({
-  color: vars.colors.text.primary,
-  fontSize: "16px",
-  lineHeight: "24px",
-  fontWeight: vars.fontWeights.semibold,
-  fontVariantNumeric: vars.numeric.tabular,
-});
-
-/** 값이 숫자가 아니라 문장일 때(추세 유지 조건) — 굵게 쓰지 않는다 */
-export const rowSentence = style({
-  color: vars.colors.neutral[700],
-  fontSize: "14px",
-  lineHeight: "21px",
-  maxWidth: "320px",
-});
-
-export const rowCaption = style({
-  color: vars.colors.neutral[500],
-  fontSize: "13px",
-  lineHeight: "19px",
-  fontVariantNumeric: vars.numeric.tabular,
-});
-
-/** 문장 목록(주의할 점 · 거래 기록) — 한 행에 사실 하나 */
-export const factList = style([rowList]);
-
 export const factItem = style({
   display: "flex",
   alignItems: "flex-start",
-  gap: "10px",
-  padding: "14px 0",
+  gap: "12px",
+  padding: "12px 0",
   borderTop: `1px solid ${vars.colors.neutral[100]}`,
   color: vars.colors.text.primary,
-  fontSize: "15px",
+  fontSize: "14px",
   lineHeight: "22px",
-  selectors: { "&:first-child": { borderTop: "none", paddingTop: 0 } },
+  fontWeight: vars.fontWeights.medium,
+  selectors: {
+    "&:first-child": { borderTop: "none", paddingTop: 0 },
+    "&:last-child": { paddingBottom: 0 },
+  },
 });
 
 export const factBody = style({
@@ -171,7 +119,15 @@ export const factBody = style({
   minWidth: 0,
 });
 
-/** 주의할 점 앞 작은 점 — 상자를 노랗게 칠하지 않고 점만 */
+export const factMeta = style({
+  color: vars.colors.neutral[500],
+  fontSize: "12px",
+  lineHeight: "16px",
+  fontWeight: vars.fontWeights.medium,
+  fontVariantNumeric: vars.numeric.tabular,
+});
+
+/** 주의할 점 앞 작은 점 — 상자를 칠하지 않고 점만 */
 export const cautionDot = style({
   flexShrink: 0,
   width: "6px",
@@ -181,28 +137,100 @@ export const cautionDot = style({
   background: vars.colors.status.warning,
 });
 
-export const factMeta = style([rowCaption]);
-
 /* ── 익절 플랜 — 보유 종목 하나씩 ───────────────────────────── */
 
 export const holdingList = style({
   display: "flex",
   flexDirection: "column",
-  gap: vars.space.xl,
 });
 
+export const holding = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+  padding: "16px 0",
+  borderTop: `1px solid ${vars.colors.neutral[100]}`,
+  selectors: { "&:first-child": { borderTop: "none", paddingTop: 0 } },
+});
+
+/** 종목 줄 — 로고 · 이름 왼쪽, 현재가 오른쪽 */
 export const holdingHead = style({
   display: "flex",
   justifyContent: "space-between",
-  alignItems: "baseline",
+  alignItems: "center",
   gap: vars.space.sm,
-  marginBottom: vars.space.md,
 });
 
-export const holdingSymbol = style({
+export const holdingPrice = style({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "flex-end",
+  gap: "2px",
+});
+
+export const holdingPriceValue = style({
+  color: vars.colors.text.primary,
+  fontSize: "14px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.semibold,
+  fontVariantNumeric: vars.numeric.tabular,
+});
+
+/** 가격 두 칸 — 옅은 회색 면. 좁으면 위아래 */
+export const stageGrid = style({
+  margin: 0,
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: "8px",
+  "@media": { "screen and (max-width: 480px)": { gridTemplateColumns: "minmax(0, 1fr)" } },
+});
+
+export const stageCell = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "2px",
+  padding: "12px 14px",
+  borderRadius: "12px",
+  background: "rgba(7, 25, 76, 0.04)",
+});
+
+export const stageLabel = style({
+  color: vars.colors.neutral[600],
+  fontSize: "12px",
+  lineHeight: "16px",
+  fontWeight: vars.fontWeights.medium,
+});
+
+export const stagePrice = style({
   margin: 0,
   color: vars.colors.text.primary,
-  fontSize: "17px",
-  lineHeight: "25px",
+  fontSize: "16px",
+  lineHeight: "24px",
   fontWeight: vars.fontWeights.bold,
+  fontVariantNumeric: vars.numeric.tabular,
+});
+
+export const stageGap = style({
+  color: vars.colors.neutral[500],
+  fontSize: "12px",
+  lineHeight: "16px",
+  fontWeight: vars.fontWeights.medium,
+  fontVariantNumeric: vars.numeric.tabular,
+});
+
+/** 추세 유지 — 가격이 아니라 조건. 칸 아래 한 줄 */
+export const trendLine = style({
+  margin: 0,
+  display: "flex",
+  gap: "6px",
+  color: vars.colors.neutral[600],
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.medium,
+});
+
+export const trendLabel = style({
+  flexShrink: 0,
+  color: vars.colors.text.primary,
+  fontWeight: vars.fontWeights.semibold,
 });

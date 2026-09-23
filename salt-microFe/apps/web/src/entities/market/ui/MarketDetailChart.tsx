@@ -120,6 +120,7 @@ export const MarketDetailChart = ({
         value={timeframe}
         onChange={(next) => setTimeframe(next as ChartTimeframe)}
         label={MARKET_MESSAGES.chartTimeframeGroupLabel}
+        variant="chip"
       />
       <div className={detailChartMeasure}>
         {isLoading || (!isError && data && !TradingChart) ? (
