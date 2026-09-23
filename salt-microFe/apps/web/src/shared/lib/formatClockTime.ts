@@ -12,3 +12,16 @@ const formatter = new Intl.DateTimeFormat("ko-KR", {
 });
 
 export const formatClockTime = (value: Date): string => formatter.format(value);
+
+const seoulFormatter = new Intl.DateTimeFormat("ko-KR", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: "Asia/Seoul",
+});
+
+/**
+ * 시:분 — **서울 시각으로 고정.** 서버 컴포넌트에서 쓴다: 서버 타임존(배포 환경은 UTC 일 수 있다)과
+ * 무관하게 같은 글자가 나온다. 서비스 대상이 국내 원화 시세라 서울 시각이 기준이다.
+ */
+export const formatSeoulClockTime = (value: Date): string => seoulFormatter.format(value);

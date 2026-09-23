@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { marketServerApi } from "@/entities/market";
+import { publicMarketApi } from "@/pages/investment-detail";
 import { ROUTES, SITE_URL } from "@/shared/config";
 
 /** 서버가 주는 시세 목록 전체(2026-09-23 기준 289종목)를 덮는 상한 */
@@ -13,7 +13,7 @@ const SITEMAP_SYMBOL_LIMIT = 500;
  * 종목 페이지를 찾는 길은 이 목록이다. 조회가 실패하면 목록 페이지만 싣는다.
  */
 export const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
-  const symbols = await marketServerApi.symbols(SITEMAP_SYMBOL_LIMIT);
+  const symbols = await publicMarketApi.symbols(SITEMAP_SYMBOL_LIMIT);
   const now = new Date();
 
   return [

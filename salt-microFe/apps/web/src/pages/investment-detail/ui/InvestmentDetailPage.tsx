@@ -5,18 +5,22 @@ import { Section } from "@repo/ui/section";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { marketServerApi } from "@/entities/market";
+import { COACH_MODE_PARAM } from "@/shared/config";
 import { BlockBoundary } from "@/shared/ui";
 
+import { publicMarketApi } from "../api";
 import { buildDetailBreadcrumb, buildDetailMetadata, parseSymbolParam } from "../lib";
 import {
   INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT,
   INVESTMENT_DETAIL_PAGE_MESSAGES,
 } from "../model";
+import { detailStack } from "./InvestmentDetail.css";
 import { InvestmentDetailBody } from "./InvestmentDetailBody";
+import { SymbolHeader } from "./SymbolHeader";
 
 interface InvestmentDetailPageProps {
   params: Promise<{ symbol: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
 /**
@@ -29,7 +33,7 @@ export const generateMetadata = async ({
   const { symbol: raw } = await params;
   const symbol = parseSymbolParam(raw);
   if (!symbol) return {};
-  return buildDetailMetadata(symbol, await marketServerApi.listing(symbol));
+  return buildDetailMetadata(symbol, await publicMarketApi.listing(symbol));
 };
 
 /**
@@ -41,12 +45,20 @@ export const generateMetadata = async ({
  * 공개 시세를 서버에서 한 번 받아 머리의 첫 렌더 값으로 준다 — 크롤러가 받는 HTML 에 종목
  * 이름 · 가격이 있다. 이동 경로 구조화 데이터(JSON-LD)도 여기서 싣는다.
  */
-export const InvestmentDetailPage = async ({ params }: InvestmentDetailPageProps) => {
+export const InvestmentDetailPage = async ({
+  params,
+  searchParams,
+}: InvestmentDetailPageProps) => {
   const { symbol: raw } = await params;
   const symbol = parseSymbolParam(raw);
   if (!symbol) notFound();
 
-  const listing = await marketServerApi.listing(symbol);
+  const [listing, query] = await Promise.all([
+    publicMarketApi.listing(symbol),
+    searchParams ?? Promise.resolve({} as Record<string, string | string[] | undefined>),
+  ]);
+  const rawMode = query[COACH_MODE_PARAM];
+  const mode = typeof rawMode === "string" ? rawMode : null;
 
   return (
     <Root background="transparent">
@@ -64,7 +76,10 @@ export const InvestmentDetailPage = async ({ params }: InvestmentDetailPageProps
               name={INVESTMENT_DETAIL_PAGE_MESSAGES.blockName}
               minHeight={INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT}
             >
-              <InvestmentDetailBody symbol={symbol} initialListing={listing} />
+              <div className={detailStack}>
+                <SymbolHeader symbol={symbol} listing={listing} mode={mode} />
+                <InvestmentDetailBody symbol={symbol} />
+              </div>
             </BlockBoundary>
           </Padding>
         </Container>

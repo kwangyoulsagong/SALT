@@ -1,4 +1,4 @@
-import { style } from "@vanilla-extract/css";
+import { style, styleVariants } from "@vanilla-extract/css";
 import { vars } from "@repo/ui/tokens";
 
 import { SURFACE } from "@/shared/ui/surface.css";
@@ -176,4 +176,18 @@ export const rangeDot = style({
   borderRadius: vars.radius.full,
   background: vars.colors.text.primary,
   transform: "translateX(-50%)",
+});
+
+/** 24시간 변동률 — 상승 빨강 · 하락 파랑, 부호도 글자로 준다(색만으로 말하지 않는다) */
+const changeBase = {
+  fontSize: "15px",
+  lineHeight: "22px",
+  fontWeight: vars.fontWeights.semibold,
+  fontVariantNumeric: vars.numeric.tabular,
+} as const;
+
+export const change = styleVariants({
+  up: { ...changeBase, color: vars.colors.special.up },
+  down: { ...changeBase, color: vars.colors.special.down },
+  flat: { ...changeBase, color: vars.colors.neutral[500] },
 });
