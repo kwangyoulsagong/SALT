@@ -16,7 +16,7 @@ import { formatClockTime, formatKrwCompact, formatPrice } from "@/shared/lib";
 
 import { SYMBOL_ANALYSIS_MESSAGES } from "../model";
 import {
-  header,
+  headerCard,
   identity,
   name as nameStyle,
   nameRow,
@@ -27,6 +27,7 @@ import {
   stat,
   statLabel,
   stats,
+  statsRow,
   statValue,
   ticker,
 } from "./SymbolAnalysis.css";
@@ -67,7 +68,7 @@ export const SymbolHeader = ({
   const change = listing?.change24h ?? view?.evidence.change24h ?? null;
 
   return (
-    <header className={header}>
+    <header className={headerCard}>
       <div className={identity}>
         <div className={nameRow}>
           {listing?.logoUrl && (
@@ -81,13 +82,6 @@ export const SymbolHeader = ({
           )}
           <h1 className={nameStyle}>{displayName}</h1>
           <span className={ticker}>{symbol.toUpperCase()}</span>
-          {!watchlist.isSignedOut && (
-            <WatchlistStarButton
-              entry={watched.get(symbol.toUpperCase())}
-              displayName={displayName}
-              request={{ assetType: WatchlistAssetType.Crypto, symbol, name: displayName }}
-            />
-          )}
         </div>
 
         <div className={priceRow}>
@@ -98,7 +92,8 @@ export const SymbolHeader = ({
         </div>
       </div>
 
-      <dl className={stats}>
+      <div className={statsRow}>
+        <dl className={stats}>
         {listing && (
           <div className={stat}>
             <dt className={statLabel}>{SYMBOL_ANALYSIS_MESSAGES.statRange}</dt>
@@ -137,7 +132,15 @@ export const SymbolHeader = ({
             </dd>
           </div>
         )}
-      </dl>
+        </dl>
+        {!watchlist.isSignedOut && (
+          <WatchlistStarButton
+            entry={watched.get(symbol.toUpperCase())}
+            displayName={displayName}
+            request={{ assetType: WatchlistAssetType.Crypto, symbol, name: displayName }}
+          />
+        )}
+      </div>
     </header>
   );
 };

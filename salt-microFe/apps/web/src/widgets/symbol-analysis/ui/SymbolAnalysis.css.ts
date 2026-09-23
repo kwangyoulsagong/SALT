@@ -45,12 +45,25 @@ export const backLink = style({
 
 /* ── 종목 헤더 ──────────────────────────────────────────────── */
 
-export const header = style({
+/**
+ * 종목 헤더 카드.
+ *
+ * 헤더가 배경 위에 그냥 떠 있으면 지표 · 가격 · 이름이 각각 놓인 글자 덩어리로 보인다.
+ * **카드로 묶으면** 아래 패널들과 같은 언어가 되고, 화면이 카드 네 장으로 읽힌다.
+ */
+export const headerCard = style({
   display: "flex",
-  alignItems: "flex-start",
+  alignItems: "center",
   justifyContent: "space-between",
-  gap: vars.space.xl,
+  gap: vars.space["2xl"],
   flexWrap: "wrap",
+  padding: `${vars.space.xl} ${vars.space.xl}`,
+  borderRadius: CARD_RADIUS,
+  background: vars.colors.background.white,
+  boxShadow: vars.elevation.sm,
+  "@media": {
+    [NARROW]: { padding: vars.space.lg, gap: vars.space.lg },
+  },
 });
 
 export const identity = style({
@@ -68,8 +81,8 @@ export const nameRow = style({
 });
 
 export const name = style({
-  fontSize: vars.typography.t4.fontSize,
-  lineHeight: vars.typography.t4.lineHeight,
+  fontSize: vars.typography.t5.fontSize,
+  lineHeight: vars.typography.t5.lineHeight,
   fontWeight: vars.fontWeights.bold,
   color: vars.colors.text.primary,
   margin: 0,
@@ -96,9 +109,10 @@ export const priceRow = style({
   minHeight: "40px",
 });
 
+/** 이 화면의 주인공. 이름(t5)과 두 단계 차이를 둬야 먼저 읽힌다. */
 export const price = style({
-  fontSize: vars.typography.t2.fontSize,
-  lineHeight: vars.typography.t2.lineHeight,
+  fontSize: vars.typography.t1.fontSize,
+  lineHeight: vars.typography.t1.lineHeight,
   fontWeight: vars.fontWeights.bold,
   color: vars.colors.text.primary,
   fontVariantNumeric: vars.numeric.tabular,
@@ -110,11 +124,19 @@ export const price = style({
  * 지표 묶음. 참고 화면처럼 **라벨 위 · 값 아래**로 촘촘히 세운다. 한 줄에 다 넣지 않고
  * 자동 줄바꿈으로 흐르게 둔다 — 좁은 화면에서 가로 스크롤이 생기지 않는다.
  */
+/** 지표 줄 + 관심 버튼. 버튼은 **헤더 오른쪽 끝**이다 — 이름 옆에 붙이면 제목의 일부로 보인다. */
+export const statsRow = style({
+  display: "flex",
+  alignItems: "center",
+  gap: vars.space.lg,
+  minWidth: 0,
+});
+
 export const stats = style({
   display: "flex",
   flexWrap: "wrap",
   alignItems: "flex-start",
-  gap: `${vars.space.md} ${vars.space["2xl"]}`,
+  gap: `${vars.space.md} ${vars.space.xl}`,
   /** 가로로 흐른다. `auto-fit` 격자로 두었더니 헤더의 남은 폭 안에서 **한 줄에 하나씩**
    *  쌓여 헤더가 화면 높이의 절반이 됐다(2026-09-23 실측). 지표는 가로가 기본이고,
    *  좁아지면 줄바꿈으로 내려간다. */
@@ -124,12 +146,21 @@ export const stats = style({
   },
 });
 
+/**
+ * 지표 한 칸. **칸 사이에 세로 선**을 둔다 — 간격만으로 나누면 라벨과 값이 세로로 정렬돼
+ * 격자처럼 보이고, 어디까지가 한 칸인지 흐려진다(참고 화면도 선으로 나눈다).
+ */
 export const stat = style({
   display: "flex",
   flexDirection: "column",
   gap: "2px",
   /** 라벨이 두 줄로 접히지 않을 만큼만. 이보다 좁히면 "24시간 범위"가 깨진다. */
   minWidth: "116px",
+  paddingLeft: vars.space.xl,
+  borderLeft: `1px solid ${vars.colors.border.light}`,
+  selectors: {
+    "&:first-child": { paddingLeft: 0, borderLeft: "none" },
+  },
 });
 
 export const statLabel = style({
@@ -211,10 +242,10 @@ export const cardHead = style({
 });
 
 export const cardTitle = style({
-  fontSize: vars.typography.t7.fontSize,
-  lineHeight: vars.typography.t7.lineHeight,
+  fontSize: vars.typography.t6.fontSize,
+  lineHeight: vars.typography.t6.lineHeight,
   fontWeight: vars.fontWeights.bold,
-  color: vars.colors.text.secondary,
+  color: vars.colors.text.primary,
   margin: 0,
 });
 
