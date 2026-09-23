@@ -203,7 +203,7 @@ flowchart TB
 | `BFF-REQ-024` F004 API | **in-progress** | 모드 블록 `renderable` 판별 union. **FR-30 `packages/core` 닫힘**(`@repo/core/coach`, 사본 — BFF 는 workspace 밖) |
 | `BFF-REQ-025` F004 UPSTREAM | **in-progress** | 면책 없으면 502 · 모드 계약 깨지면 `null`. **서버 4xx · `Retry-After` 보존**(main 은 500) · `explain` 토큰 · 20s · 동시 2 · GET 재시도 1회(슬라이스 5). `generate` 1s · 202 는 서버 대기 |
 | `BFF-REQ-026` F004 PERF | **in-progress** | p95 32ms · 클라이언트 종료 시 upstream 취소(코드 — 서버 로그 미확인) · `explain` 동시 2 초과 즉시 429(슬라이스 5) |
-| `FE-REQ-026` F004 UI | **in-progress** | **K절 우측 AI 코치 패널**(슬라이스 4) · **L절 상세 분석 `/investments/[symbol]` + ⑦**(슬라이스 6) — 차트 구간 선 · 코치 카드 · 해설 · 수익 플랜. 주문 전 체크(**서버 선행 풀림**, 슬라이스 10) · M절 남음. `checklists/F004-fe-coach-panel.md` · `F004-fe-detail-page.md` |
+| `FE-REQ-026` F004 UI | **in-progress** | **L절 화면 마감**(2026-09-23 — 헤더 위계 · 요약 지표 · 카드/표 마감 · 하단 면책 띠). **K절 우측 AI 코치 패널**(슬라이스 4) · **L절 상세 분석 `/investments/[symbol]` + ⑦**(슬라이스 6) — 차트 구간 선 · 코치 카드 · 해설 · 수익 플랜. 주문 전 체크(**서버 선행 풀림**, 슬라이스 10) · M절 남음. `checklists/F004-fe-coach-panel.md` · `F004-fe-detail-page.md` |
 | `FE-REQ-028` F004 API | **in-progress** | 패널 클라이언트 조회 · 키에 모드 없음 · 취소. 모드 전환은 `history.replaceState`(FR-83 개정) — 실측 요청 0건. 해설 버튼만 · 재시도 0 · 20s · 연타 1건(슬라이스 6). 상세도 클라이언트 조회(FR-84 다르게) |
 | `FE-REQ-029` F004 PERF | **in-progress** | `/investments` First Load 135 → 136 kB · 취소 6~8/11. 상세 차트 p95 534ms · CLS 0.004(슬라이스 6). 행 선택 p95 · 표 리렌더 미측정 |
 | `FE-REQ-034` F004 CHART | **in-progress** | 상세 분석 차트를 자체 구현 캔버스 차트(`@repo/ui/tradingChart`)로 — 캔들 · 이동평균 4 · 거래량 · 십자선 · 이동/확대 · 실시간. 포인터 이동 0.66ms · 1000봉 다시 그리기 4.1ms · CLS 0.001. 프리뷰 실시간 봉 버그 · 일봉 시각 NaN 수정, `lightweight-charts` 제거. 첫 페인트는 서버 차트 응답 요동에 걸림. `checklists/FE-REQ-034.md` |
@@ -334,6 +334,12 @@ FR-150~156 을 막던 계약이 풀렸다. 해설 응답이 합 타입이 돼 �
 `apiFetch` 가 갱신하고 한 번 다시 보낸다**(`FE-REQ-011` FR-62 · 63). 규칙은 `@repo/core/auth` 에
 테스트와 함께 있다. **목이 남아 있으면 그것이 계약이 된다** — 이 레포에서 세 번째 같은 모양이다
 (관심 목록 · `ACCESS_TOKEN_KEY` 미저장 · 이번 로그인 목).
+
+세션을 고쳐 화면이 실제로 뜨자 **디자인이 드러났다.** 같은 브랜치에서 로그인 · 상세 분석을 다시
+세우고(`FE-REQ-011` FR-63 · `FE-REQ-026` FR-131 · L), 관찰 구간 띠를 보이게 하고(`FE-REQ-036` FR-1 —
+채움 9%→14% + 경계선, 상세 · 패널 동시), 상세에서 돌아오면 표 · 패널이 잘리던 것을 닫았다
+(`FE-REQ-010` FR-53 — 상자 높이는 뷰포트 기준인데 위치가 문서 기준이었다). `@repo/ui` 에
+`TextField` **`filled` 변형**이 생겼다. 근거 `checklists/F000-web-session.md`.
 
 **레이어 규칙은 이제 실행된다.** 새 프론트 작업은 쓰기 시점에 `layer-check` 훅을 통과해야 한다.
 새 슬라이스는 `layered-architecture.md` §4 표 → `packages/eslint-plugin-fsd/layer-rules.cjs`의
