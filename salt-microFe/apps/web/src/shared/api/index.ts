@@ -8,5 +8,6 @@
  */
 export * from "./apiFetch";
 export * from "./authToken";
+export * from "./refreshSession";
 export * from "./mockGate";
 export * from "./websocket";

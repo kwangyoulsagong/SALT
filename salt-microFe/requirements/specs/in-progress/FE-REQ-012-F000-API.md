@@ -17,6 +17,8 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 
 | 화면 요소 | 호출 | 방식 |
 |---|---|---|
+| 로그인 | `POST /api/auth/login`(BFF 프록시) | 클라이언트 mutation |
+| 토큰 갱신 | `POST /api/auth/refresh`(BFF 프록시) | `apiFetch` 가 401 에 자동으로 |
 | 실시간 테이블 | `GET /api/app/market/overview?...` | 서버 컴포넌트 |
 | 실시간 가격 | **WebSocket** `ws://…:4002` | 클라이언트 구독 |
 | 차트 프리뷰 | `GET /api/app/market/:symbol/chart?period=minute` | 클라이언트(종목 전환) |

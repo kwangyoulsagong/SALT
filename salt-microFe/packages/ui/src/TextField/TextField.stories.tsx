@@ -12,8 +12,8 @@ const meta = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["box", "line", "big", "hero"],
-      description: "테두리와 글자 크기. big·hero는 금액 입력용",
+      options: ["box", "filled", "line", "big", "hero"],
+      description: "테두리와 글자 크기. filled 는 카드 위 폼, big·hero 는 금액 입력용",
     },
     label: { control: "text", description: "위에 보이는 이름" },
     error: { control: "text", description: "에러 문구. 있으면 테두리가 붉어진다" },
@@ -40,6 +40,13 @@ export const AllVariants: Story = {
   render: () => (
     <div style={{ display: "grid", gap: 32, maxWidth: 360 }}>
       <TextField label="box" variant="box" value="74,200" onChange={() => {}} />
+      <TextField
+        label="filled"
+        variant="filled"
+        value=""
+        placeholder="you@example.com"
+        onChange={() => {}}
+      />
       <TextField label="line" variant="line" value="74,200" onChange={() => {}} />
       <TextField
         label="big"

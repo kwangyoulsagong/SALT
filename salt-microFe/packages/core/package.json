@@ -7,7 +7,7 @@
     ".": "./src/index.ts",
     "./zones": "./src/zones/registry.ts",
     "./http": "./src/http/constants.ts",
-    "./auth": "./src/auth/keys.ts",
+    "./auth": "./src/auth/index.ts",
     "./coach": "./src/coach/symbolCoach.ts",
     "./market": "./src/market/candleTime.ts"
   },

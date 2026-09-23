@@ -61,8 +61,9 @@ const PRICE_LINE_COLOR: Record<PriceLine["tone"], string> = {
   neutral: vars.colors.neutral[500],
   zone: vars.colors.ai.primary,
 };
-const BAND_FILL_OPACITY = 0.09;
-const BAND_CHIP_OPACITY = 0.16;
+/** 띠 채움 · 경계선 · 이름표. 0.09 는 캔들 뒤에서 보이지 않았다(2026-09-23). */
+const BAND_FILL_OPACITY = 0.14;
+const BAND_EDGE_OPACITY = 0.55;
 const BAND_CHIP_HEIGHT = 18;
 const BAND_CHIP_INSET = 5;
 const BAND_CHIP_FONT_SIZE = 11;
@@ -296,15 +297,29 @@ export const PreviewChart = React.memo(
               />
             )}
             {bandGeometry && bandGeometry.height > 0 && (
-              <rect
-                x={0}
-                y={bandGeometry.top}
-                width={width}
-                height={bandGeometry.height}
-                fill={PRICE_LINE_COLOR.zone}
-                fillOpacity={BAND_FILL_OPACITY}
-                pointerEvents="none"
-              />
+              <g pointerEvents="none">
+                <rect
+                  x={0}
+                  y={bandGeometry.top}
+                  width={width}
+                  height={bandGeometry.height}
+                  fill={PRICE_LINE_COLOR.zone}
+                  fillOpacity={BAND_FILL_OPACITY}
+                />
+                {/* 경계선 — 띠의 끝이 어디인지 채움만으로는 안 보인다 */}
+                {[bandGeometry.top, bandGeometry.top + bandGeometry.height].map((edgeY) => (
+                  <line
+                    key={edgeY}
+                    x1={0}
+                    x2={width}
+                    y1={edgeY}
+                    y2={edgeY}
+                    stroke={PRICE_LINE_COLOR.zone}
+                    strokeOpacity={BAND_EDGE_OPACITY}
+                    strokeWidth={1}
+                  />
+                ))}
+              </g>
             )}
             {priceLines.map((line) => {
               if (line.price < minY || line.price > maxY) return null;
@@ -376,16 +391,7 @@ export const PreviewChart = React.memo(
                 width={bandGeometry.chipWidth}
                 height={BAND_CHIP_HEIGHT}
                 rx={4}
-                fill={vars.colors.background.white}
-              />
-              <rect
-                x={BAND_CHIP_INSET}
-                y={bandGeometry.chipTop}
-                width={bandGeometry.chipWidth}
-                height={BAND_CHIP_HEIGHT}
-                rx={4}
                 fill={PRICE_LINE_COLOR.zone}
-                fillOpacity={BAND_CHIP_OPACITY}
               />
               <text
                 x={BAND_CHIP_INSET + 7}
@@ -393,7 +399,7 @@ export const PreviewChart = React.memo(
                 dominantBaseline="central"
                 fontSize={BAND_CHIP_FONT_SIZE}
                 fontWeight={600}
-                fill={vars.colors.neutral[800]}
+                fill={vars.colors.background.white}
               >
                 {bandGeometry.label}
               </text>

@@ -29,3 +29,13 @@ export const whenMocksReady = (): Promise<void> => {
 
   return mocksReady;
 };
+
+/**
+ * 목 게이트를 지난 `fetch`. `apiFetch` 가 이 위에 401 갱신을 얹는다 —
+ * 게이트와 갱신을 한 함수에 섞으면 둘 중 하나만 테스트할 수 없다.
+ */
+export const mockGatedFetch: typeof fetch = async (input, init) => {
+  await whenMocksReady();
+
+  return fetch(input, init);
+};

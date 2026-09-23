@@ -1,8 +1,14 @@
+/**
+ * 로그인 · 초대 수락이 주는 사용자 (`SRV-REQ-008` `AccountView`).
+ *
+ * `id` 가 `number` 였다 — MSW 목 응답(`id: 1`)을 따른 모양이고 서버는 uuid 문자열을 준다.
+ * 목이 계약을 정하고 있던 자리다(2026-09-23 정정).
+ */
 export interface User {
-  id: number;
+  id: string;
   nickname: string;
   email: string;
-  profile?: string;
+  profileImageUrl?: string | null;
 }
 
 export interface AuthState {

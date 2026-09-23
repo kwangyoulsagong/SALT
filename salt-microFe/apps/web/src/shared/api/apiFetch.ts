@@ -14,11 +14,22 @@
  * 프로덕션에서는 게이트가 없다 — `whenMocksReady()` 가 즉시 resolve 된다.
  *
  * > BFF 이관(`FE-REQ-012`) 때 토큰 부착·에러 정규화·타임아웃이 이 함수 위에 붙는다.
+ *
+ * ## 401 이면 토큰을 갱신하고 한 번 다시 보낸다 (`FE-REQ-011` FR-62)
+ *
+ * 액세스 토큰은 15분이다. 갱신을 호출하는 쪽에 두면 새 슬라이스가 그것을 잊고, 잊은
+ * 화면은 로그인 15분 뒤 "데이터 없음"으로 보인다 — 2026-09-23 에 코치 패널 · 관심 목록 ·
+ * 포트폴리오가 동시에 그렇게 죽어 있었다. **여기 두면 아무도 잊을 수 없다.**
+ *
+ * 규칙(1회 재시도 · `Authorization` 을 실어 보낸 요청만 · 동시 401 은 갱신 1회)은
+ * `@repo/core/auth` 에 있고 테스트가 붙어 있다. 이 파일은 그것에 목 게이트를 씌운다.
  */
-import { whenMocksReady } from "./mockGate";
+import { withAuthRefresh } from "@repo/core/auth";
 
-export const apiFetch: typeof fetch = async (input, init) => {
-  await whenMocksReady();
+import { mockGatedFetch } from "./mockGate";
+import { refreshAccessToken } from "./refreshSession";
 
-  return fetch(input, init);
-};
+export const apiFetch: typeof fetch = withAuthRefresh({
+  fetchImpl: mockGatedFetch,
+  refreshAccessToken,
+});

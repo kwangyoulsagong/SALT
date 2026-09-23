@@ -40,6 +40,18 @@ export const fieldStyles = recipe({
         border: `1px solid ${vars.colors.border.light}`,
         borderRadius: vars.radius.button.md,
       },
+      /**
+       * 채워진 입력. 테두리 대신 **면**으로 입력 자리를 알린다 — 카드 위에 폼만 있는 화면
+       * (로그인 · 인증)에서 선이 여러 개 겹쳐 보이는 것을 막는다. 라벨을 밖에 두지 않고
+       * `placeholder` 로 안내하는 배치와 짝이다.
+       */
+      filled: {
+        minHeight: "56px",
+        padding: `0 ${vars.space.lg}`,
+        border: "1px solid transparent",
+        borderRadius: vars.radius.button.lg,
+        background: vars.colors.neutral[100],
+      },
       line: {
         minHeight: "48px",
         padding: `0 ${vars.space.xs}`,
@@ -101,6 +113,10 @@ export const inputSizeStyles = recipe({
   variants: {
     variant: {
       box: {},
+      filled: {
+        fontSize: vars.typography.t5.fontSize,
+        lineHeight: vars.typography.t5.lineHeight,
+      },
       line: {},
       big: {
         fontSize: vars.typography.t3.fontSize,

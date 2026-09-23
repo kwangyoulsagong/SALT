@@ -4,8 +4,9 @@
 - 브랜치: `feat/f000-watchlist-tab`(#41) · `feat/f000-invite-onboarding-slice`(#42) ·
   `feat/f000-realtime-reliability`(#43) · `feat/f000-market-table`(#44)
 - 검증일: 2026-09-18 ~ 2026-09-21 (근거 기록) · 이 문서는 2026-09-22 머지 후 백필
-- 상태: **부분 완료** — 관심 종목 동기화 · 실시간 수신 표시 · 터치 선택 · 반응형 · 초대 상태가 닫혔다.
-  문구 정리 · 인증 축소 · 동면 호출 제거 · 2026-09-21 추가분은 미착수
+- 상태: **부분 완료** — 관심 종목 동기화 · 실시간 수신 표시 · 터치 선택 · 반응형 · 초대 상태가 닫혔고,
+  **2026-09-23 에 인증 축소의 FR-62 · FR-63 이 닫혔다**(§10). 문구 정리 · FR-61 · 동면 호출 제거 ·
+  2026-09-21 추가분은 미착수
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-watchlist-tab.md` ·
   `F000-invite-onboarding.md` · `F000-realtime-reliability.md` · `F000-market-table.md`
 
@@ -80,9 +81,9 @@
 | FR | 판정 | 근거 · 위치 |
 |---|---|---|
 | FR-60 회원가입 · 비밀번호 · 계정삭제 화면 · 훅 제거 | **pass** | 회원가입 화면은 구현된 적이 없었다. `/signup` 을 `PUBLIC_PATHS` 에서 제거(`bfe19ba`). 세 경로를 부르는 코드 grep 0 |
-| FR-61 그 경로 직접 진입 → `/` | 미착수 | 리다이렉트 코드 없음 |
-| FR-62 만료 시 refresh · 실패 시 로그인 | 미착수 | `apps/web/src` 에 refresh 호출 없음 |
-| FR-63 로그인 화면 초대 안내 | 미착수 | `pages/login` 에 초대 · 온보딩 링크 없음 |
+| FR-61 그 경로 직접 진입 → `/` | 미착수 | 비공개 경로 가드가 없다. 자리는 쿠키 이관 뒤의 미들웨어다(`FE-REQ-013`) |
+| FR-62 만료 시 refresh · 실패 시 로그인 | **pass** (2026-09-23) | `@repo/core/auth` 의 `withAuthRefresh`(+테스트 9) 를 `apiFetch` 에 얹었다. 실패 시 세션을 비우고 `window.location.replace(/)` — 공개 경로 제외(`PUBLIC_PATHS` 첫 소비처). 실측: 로그인 200 → 코치 200 → `POST /api/auth/refresh` 200 |
+| FR-63 로그인 화면 초대 안내 | **pass** (2026-09-23) | 폼 아래 "아직 계정이 없나요? / 초대 코드로 시작하기" → `/onboarding`. 문구는 스펙의 "초대 코드가 있으신가요?" 와 다르다(계정이 없는 사람이 읽는 문장으로 바꿨다) |
 | FR-70~73 동면 API 호출 · 훅 · 화면 제거, 410 0건 | 미착수 | 2026-09-22 grep 으로 앱 코드 호출 0건이지만 MSW `rankingHandlers` 등록이 남아 있고, BFF 410 이 없어 FR-72 검증 수단이 없다 |
 
 ## 8. 명령
@@ -99,3 +100,41 @@
 | 온보딩 화면 브라우저 실측 (FR-50 · 56) | 계약만 curl 로 확인 | 이월 — 루트 invite §5 |
 | FR-53 쿠키 | 토큰이 `localStorage` | `FE-REQ-013` |
 | FR-40 · 41 문구 위치 | F000 에서 다루지 않았다 | 별도 작업 — `@repo/core/http` 분리 |
+
+## 10. 세션 슬라이스 (2026-09-23, `feat/fe-token-refresh`)
+
+로그인이 **MSW 목**(`POST /api/v1/auth/login` → `token: "mock-jwt-token"`)을 부르고 있었다.
+화면은 그 문자열을 세션으로 저장했고 `/api/app/*` 는 전부 401 이었다 — 사용자에게는
+"로그인은 됐는데 데이터가 없는" 상태로 보였다(코치 "지금 판단을 불러올 수 없습니다"의 원인).
+
+| 확인 | 결과 |
+|---|---|
+| 초대 수락 | `POST /api/app/onboarding/invite` **201** · `{ user, accessToken, refreshToken }` |
+| 로그인 | `POST /api/auth/login`(BFF 프록시) **200 · 90ms** · `{ user, accessToken, refreshToken }` · 오답 **401 `AUTH_INVALID_CREDENTIALS`** |
+| 그 토큰으로 코치 | `GET /api/app/ai-coach/detail?symbol=BTC` **200 · 599ms** · 두 모드 `renderable: true` |
+| 갱신 | `POST /api/auth/refresh` **200** · `{ accessToken }`(리프레시 토큰은 회전하지 않는다) |
+| 만료 사슬 | 1시간 지난 토큰 → `detail` **401** → 갱신 **200** → 재시도 **200 · 9ms**. 죽은 리프레시는 **401 `AUTH_SESSION_EXPIRED`** |
+| 갱신 정책 | `@repo/core` 단위 테스트 **9**(200 통과 · 401 1회 재시도 · 재시도 401 중단 · 무인증 401 제외 · 갱신 실패 시 그대로 · `init` 보존 · 단일 비행 3) |
+| 로그인 화면 | 빌드 후 `next start -p 3100` 서버 HTML — 입력 2(`label` 이메일 · 비밀번호) · 버튼 1 · 브랜드 · 제목 · 초대 링크 |
+| 게이트 | `check-types` · `lint`(monorepo, `--max-warnings 0`) · `pnpm test` **63**(core 20 · ui 43) · `build`(worktree) |
+
+### 판단
+
+- **갱신을 `apiFetch` 에 얹었다.** 호출하는 쪽에 두면 새 슬라이스가 잊고, 잊은 화면은 15분 뒤
+  조용히 빈다. 규칙(1회 재시도 · `Authorization` 실은 요청만 · 동시 401 은 갱신 1회)은
+  `@repo/core/auth` 에 두어 테스트가 붙고 RN 이 같은 것을 쓴다
+- **갱신 호출을 `shared/api` 에 뒀다** — FSD 등록표는 "토큰 갱신"을 `auth` 슬라이스 책임으로
+  적지만(`FE-REQ-009` §4) 부르는 쪽이 `shared` 다. `shared` → `entities` 는 훅이 막고, 주입으로
+  뒤집으면 등록을 잊은 화면에서 갱신이 조용히 사라진다. 토큰을 읽고 쓰는 자리가 이미
+  `shared/api/authToken.ts` 라 같은 판단을 따랐다
+- **`User.id` 가 `number` 였다** — 목 응답(`id: 1`)이 타입을 정하고 있었다. 서버는 uuid 다
+- `AuthGuard` → `RedirectSignedIn`. 로그인 안 한 사람을 **자기 자신으로 push** 하고 있었다
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| ~~브라우저 로그인 → 화면 동작~~ | — | **2026-09-23 사용자 확인 — 된다** |
+| 브라우저 화면에서의 갱신 · 리다이렉트 | 만료 사슬 자체는 **실제 만료 토큰으로 검증**(401 → refresh 200 → 재시도 200). 남은 것은 `localStorage` 배선 | 확장 연결 시 화면으로 |
+| 401 이 된 5경로의 화면 동작(`BFF-REQ-036` 미검증 항목) | 위와 같다 | 위와 같다 |
+| FR-61 비공개 경로 가드 | 토큰이 `localStorage` 라 미들웨어가 읽을 수 없다 | `FE-REQ-013`(쿠키) |
