@@ -18,6 +18,7 @@ import {
 import { CheckTradePreflight } from "../CheckTradePreflight";
 import { ExplainCoachDecision } from "../ExplainCoachDecision";
 import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
+import { GetCoachDetail } from "../GetCoachDetail";
 import { GetCoachRecommendation } from "../GetCoachRecommendation";
 import { GetJudgmentScoreboard } from "../GetJudgmentScoreboard";
 import { GetSignalPerformance } from "../GetSignalPerformance";
@@ -61,6 +62,7 @@ export interface CoachDependencies {
 export interface CoachUseCases {
   generateRecommendation: GenerateCoachRecommendation;
   getRecommendation: GetCoachRecommendation;
+  getCoachDetail: GetCoachDetail;
   getSymbolCoach: GetSymbolCoach;
   getProfile: GetCoachProfile;
   updateProfile: UpdateCoachProfile;
@@ -105,6 +107,11 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       symbolCoach
     ),
     getRecommendation: new GetCoachRecommendation(deps.insights, symbolCoach),
+    getCoachDetail: new GetCoachDetail(
+      deps.insights,
+      deps.market,
+      deps.portfolio
+    ),
     getSymbolCoach: symbolCoach,
     getProfile: new GetCoachProfile(deps.profiles),
     updateProfile: new UpdateCoachProfile(deps.profiles),

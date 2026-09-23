@@ -1,5 +1,6 @@
 export * from "./behavior";
 export * from "./candidates";
+export * from "./coachDetail";
 export * from "./explain";
 export * from "./gauge";
 export * from "./judgmentScoreboard";
