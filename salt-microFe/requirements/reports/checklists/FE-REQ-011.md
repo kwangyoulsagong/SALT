@@ -113,6 +113,7 @@
 | 로그인 | `POST /api/auth/login`(BFF 프록시) **200 · 90ms** · `{ user, accessToken, refreshToken }` · 오답 **401 `AUTH_INVALID_CREDENTIALS`** |
 | 그 토큰으로 코치 | `GET /api/app/ai-coach/detail?symbol=BTC` **200 · 599ms** · 두 모드 `renderable: true` |
 | 갱신 | `POST /api/auth/refresh` **200** · `{ accessToken }`(리프레시 토큰은 회전하지 않는다) |
+| 만료 사슬 | 1시간 지난 토큰 → `detail` **401** → 갱신 **200** → 재시도 **200 · 9ms**. 죽은 리프레시는 **401 `AUTH_SESSION_EXPIRED`** |
 | 갱신 정책 | `@repo/core` 단위 테스트 **9**(200 통과 · 401 1회 재시도 · 재시도 401 중단 · 무인증 401 제외 · 갱신 실패 시 그대로 · `init` 보존 · 단일 비행 3) |
 | 로그인 화면 | 빌드 후 `next start -p 3100` 서버 HTML — 입력 2(`label` 이메일 · 비밀번호) · 버튼 1 · 브랜드 · 제목 · 초대 링크 |
 | 게이트 | `check-types` · `lint`(monorepo, `--max-warnings 0`) · `pnpm test` **63**(core 20 · ui 43) · `build`(worktree) |
@@ -134,6 +135,6 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | ~~브라우저 로그인 → 화면 동작~~ | — | **2026-09-23 사용자 확인 — 된다** |
-| 브라우저에서 **15분 경과 후** 갱신 · 리다이렉트 | 만료를 기다린 확인은 하지 않았다. 정책은 단위 테스트, 엔드포인트는 curl 로 확인 | 다음 FE 작업에서 만료 토큰으로 |
+| 브라우저 화면에서의 갱신 · 리다이렉트 | 만료 사슬 자체는 **실제 만료 토큰으로 검증**(401 → refresh 200 → 재시도 200). 남은 것은 `localStorage` 배선 | 확장 연결 시 화면으로 |
 | 401 이 된 5경로의 화면 동작(`BFF-REQ-036` 미검증 항목) | 위와 같다 | 위와 같다 |
 | FR-61 비공개 경로 가드 | 토큰이 `localStorage` 라 미들웨어가 읽을 수 없다 | `FE-REQ-013`(쿠키) |
