@@ -14,9 +14,9 @@
 > **아키텍처 전환 3개가 끝났다.** `FE-REQ-007`(Multi-Zones) · `FE-REQ-008`(App Router +
 > 스트리밍 SSR) · `FE-REQ-009`(FSD 6레이어). 다음은 기능 REQ(F000~)다.
 > 현재 실재하는 슬라이스는 `auth`·`goal`·`market`·`portfolio`·`coach`(entities),
-> `sign-in`·`add-goal`·`accept-invite`·`toggle-watchlist`·`switch-coach-mode`·`explain-symbol`(features),
-> `home-briefing`·`market-board`·`onboarding-flow`·`coach-panel`·`symbol-analysis`(widgets),
-> `investment-detail`(pages, `/investments/[symbol]`)다 (2026-09-22).
+> `sign-in`·`add-goal`·`accept-invite`·`toggle-watchlist`·`switch-coach-mode`·`explain-symbol`·`regenerate-coach`(features),
+> `home-briefing`·`market-board`·`onboarding-flow`·`coach-panel`·`symbol-analysis`·`coach-console`(widgets),
+> `investment-detail`(pages, `/investments/[symbol]`)·`coach`(pages, `/coach/report`)다 (2026-09-23).
 > 스트리밍 게이트 측정값은 `requirements/reports/checklists/FE-REQ-008.md` §3에 있다 —
 > **홈·세금 콕핏·청구서의 화면 단위 판정은 그 화면이 생길 때 다시 한다.**
 > 근거는 `requirements/decisions/ADR-001-microfrontend-replacement.md`.

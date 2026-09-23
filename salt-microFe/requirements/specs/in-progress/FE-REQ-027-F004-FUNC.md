@@ -191,3 +191,4 @@ F004의 기능 규칙은 거의 전부 **"하지 않는 것"** 이다. 게이트
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 신규 FR-80~95(모드별 게이트(B10) · 모드 URL 단일 저장소 · `defaultMode` 위임(B16) · 신뢰도/`%` 금지 · 유효시간 상수 금지(D3) · 구간/거리/적중률 무계산(D2 · B9) · 금지 표현 6개 추가 · `예측 아님` 강제 · 해설 게이트(B3) · 목표가 빈칸/손절 칩/전액 없음(B1) · 관심 종목 분리(D4) · 초기 전부 미렌더 정상(B18) · 적중/실패 같은 컴포넌트(B2)). 개정: FR-64 Should → Must |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. FR-12 개정(D13). `distancePct` → `priceGap` |
+| 2026-09-23 | **`to-do → in-progress`** (슬라이스 4 · 6 이 이미 FR-80~93 을 구현했는데 옮기지 않았다). F004 슬라이스 15 — 리포트 FR-1~7 · 10~15 · 21~26 · 40~46 · 70~72 · 94. **FR-60 다르게**(클라이언트 조회 — 토큰). 체크리스트 `salt-microFe/requirements/reports/checklists/FE-REQ-027.md` 신설 |

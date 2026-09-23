@@ -203,8 +203,9 @@ flowchart TB
 | `BFF-REQ-024` F004 API | **in-progress** | 모드 블록 `renderable` 판별 union. **FR-30 `packages/core` 닫힘**(`@repo/core/coach`, 사본 — BFF 는 workspace 밖) |
 | `BFF-REQ-025` F004 UPSTREAM | **in-progress** | 면책 없으면 502 · 모드 계약 깨지면 `null`. **서버 4xx · `Retry-After` 보존**(main 은 500) · `explain` 토큰 · 20s · 동시 2 · GET 재시도 1회(슬라이스 5). `generate` 1s · 202 는 서버 대기 |
 | `BFF-REQ-026` F004 PERF | **in-progress** | p95 32ms · 클라이언트 종료 시 upstream 취소(코드 — 서버 로그 미확인) · `explain` 동시 2 초과 즉시 429(슬라이스 5) |
-| `FE-REQ-026` F004 UI | **in-progress** | **L절 화면 마감**(2026-09-23 — 헤더 위계 · 요약 지표 · 카드/표 마감 · 하단 면책 띠). **K절 우측 AI 코치 패널**(슬라이스 4) · **L절 상세 분석 `/investments/[symbol]` + ⑦**(슬라이스 6) — 차트 구간 선 · 코치 카드 · 해설 · 수익 플랜. 주문 전 체크(**서버 선행 풀림**, 슬라이스 10) · M절 남음. `checklists/F004-fe-coach-panel.md` · `F004-fe-detail-page.md` |
-| `FE-REQ-028` F004 API | **in-progress** | 패널 클라이언트 조회 · 키에 모드 없음 · 취소. 모드 전환은 `history.replaceState`(FR-83 개정) — 실측 요청 0건. 해설 버튼만 · 재시도 0 · 20s · 연타 1건(슬라이스 6). 상세도 클라이언트 조회(FR-84 다르게) |
+| `FE-REQ-026` F004 UI | **in-progress** | **L절 화면 마감**(2026-09-23 — 헤더 위계 · 요약 지표 · 카드/표 마감 · 하단 면책 띠). **K절 우측 AI 코치 패널**(슬라이스 4) · **L절 상세 분석 `/investments/[symbol]` + ⑦**(슬라이스 6) — 차트 구간 선 · 코치 카드 · 해설 · 수익 플랜. 주문 전 체크(**서버 선행 풀림**, 슬라이스 10) 남음. **M절 코치 리포트 `/coach/report` · 추천 게이트 카드 · 재생성**(슬라이스 15 — 성적표 표 · 근거 상세 · 피드백 · 성향 남음). `checklists/F004-fe-coach-panel.md` · `F004-fe-detail-page.md` · `F004-fe-coach-report.md` |
+| `FE-REQ-027` F004 FUNC | **in-progress** | (2026-09-23 to-do 에서 옮김) 게이트 재확인 `renderGate` · 쿨다운 서버 판정 · 폴링 중단 4 · 코드 → 문장 · 부분 실패(슬라이스 15). 패널 · 상세 FR-80~93 은 슬라이스 4 · 6 |
+| `FE-REQ-028` F004 API | **in-progress** | 패널 클라이언트 조회 · 키에 모드 없음 · 취소. 모드 전환은 `history.replaceState`(FR-83 개정) — 실측 요청 0건. 해설 버튼만 · 재시도 0 · 20s · 연타 1건(슬라이스 6). 상세도 클라이언트 조회(FR-84 다르게) · 리포트 조회 · 재생성 202 → `generation-status` 폴링 · 429 남은 시간(슬라이스 15) |
 | `FE-REQ-029` F004 PERF | **in-progress** | `/investments` First Load 135 → 136 kB · 취소 6~8/11. 상세 차트 p95 534ms · CLS 0.004(슬라이스 6). 행 선택 p95 · 표 리렌더 미측정 |
 | `FE-REQ-034` F004 CHART | **in-progress** | 상세 분석 차트를 자체 구현 캔버스 차트(`@repo/ui/tradingChart`)로 — 캔들 · 이동평균 4 · 거래량 · 십자선 · 이동/확대 · 실시간. 포인터 이동 0.66ms · 1000봉 다시 그리기 4.1ms · CLS 0.001. 프리뷰 실시간 봉 버그 · 일봉 시각 NaN 수정, `lightweight-charts` 제거. 첫 페인트는 서버 차트 응답 요동에 걸림. `checklists/FE-REQ-034.md` |
 | `FE-REQ-035` F004 CLEANUP | **in-progress** | 부채 정리 — axios 직접 호출 0 · `no-restricted-imports` 금지 · 의존성 제거(axios 든 지연 청크 gzip 21.5 KB 제거, First Load 변화 0). 봉 병합 → `@repo/core/market` + vitest 11(슬라이스 8) |
@@ -338,7 +339,12 @@ FR-150~156 을 막던 계약이 풀렸다. 해설 응답이 합 타입이 돼 �
 화면 계약으로 접는다 — 막힌 추천은 사유와 표본 수만 남기고 행동 · 종목 · 점수를 떨군다. 재생성 202 · 429 가 **본문까지**
 전달된다(에러 미들웨어가 `retryAfterSeconds` 를 떨구고 있었다). 서버 12 · 13 의 인증 HTTP 미검증이 BFF 경유 실측으로 닫혔다.
 
-다음 F004 는 FE 코치 리포트 화면(`FE-REQ-026` M절)과 주문 전 체크 화면이다.
+**슬라이스 15 (FE, 2026-09-23)** — 코치 리포트 `/coach/report`(`FE-REQ-026` M · A~J 카드 본체). 서버 저장 추천이 전부
+막혀 있어(실패사례 출처 F003) **첫 화면은 "표본이 쌓이는 중" + 막힘 사유**다 — 오류가 아니라 정상 상태로 그린다(FR-143).
+재생성은 202 뒤 `generation-status` 를 2초 · 최대 15회 폴링하고 429 는 남은 시간으로 보인다. **후보 목록은 그리지 않는다**
+(3종 세트 없는 추천 — 공통 수용 기준 1). 24시간 임계를 프론트에 두지 않았다. 로그인 상태 실측은 사용자 스크린샷 대기.
+
+다음 F004 는 주문 전 체크 화면과 성적표 · 추천 근거 상세(BFF 성적표 그룹 먼저)다.
 
 **세션 슬라이스 (FE, 2026-09-23)** — 사용자가 "코치가 안 뜬다"고 했고 원인은 코치가 아니었다.
 **로그인이 MSW 목**(`POST /api/v1/auth/login` → `token: "mock-jwt-token"`)이었고 화면은 그 문자열을
@@ -426,3 +432,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-23 | **F004 슬라이스 12 (서버) 코치 상세.** `GET /api/coach/detail`(`SRV-REQ-025` FR-1~9 · 16~18) — 상태표 · 슬라이스 단락 갱신. 저장 추천 블록은 실패사례 출처(F003 `IndicatorTrackRecord`)가 생길 때까지 막힌다. 근거 `requirements/reports/checklists/F004-server-coach-detail.md` |
 | 2026-09-23 | **F004 슬라이스 13 (서버) 쿨다운 · 프로필.** `generate` 202 · 429 · `generation-status` · 프로필 영속화 · 기본 모드 — 상태표 · 슬라이스 단락 갱신. 근거 `requirements/reports/checklists/F004-server-coach-cooldown.md` |
 | 2026-09-23 | **F004 슬라이스 14 (BFF) 코치 리포트.** `/api/app/coach/report` · `generation-status` · 429 본문 전달 — 슬라이스 단락 갱신. 서버 12 · 13 의 인증 HTTP 미검증 닫힘. 근거 `requirements/reports/checklists/F004-bff-coach-report.md` |
+| 2026-09-23 | **F004 슬라이스 15 (FE) 코치 리포트.** `/coach/report` · 추천 게이트 카드 · 재생성 폴링 — 상태표(`FE-REQ-026` · `028`, **`FE-REQ-027` 행 추가 · in-progress**) · 슬라이스 단락 갱신. zone `/coach` 추가. 근거 `requirements/reports/checklists/F004-fe-coach-report.md` |

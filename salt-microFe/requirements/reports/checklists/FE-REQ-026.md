@@ -97,3 +97,38 @@
 |---|---|---|
 | 참고 화면과의 치수 비교 | Chrome 확장 미연결 — 스크린샷으로만 맞췄다 | 확장 연결 시 |
 | 상세 맨 위 프로필 블록 | 종목 상세에 사용자 프로필이 올라와 있는 것이 어색하다. 제품 결정이라 임의로 지우지 않았다 | 사용자 확인 |
+
+## 6. M절 — 코치 리포트 `/coach/report` (슬라이스 15, 2026-09-23, `feat/fe-f004-coach-report`)
+
+루트: `requirements/reports/checklists/F004-fe-coach-report.md`
+
+| FR | 판정 | 위치 · 근거 |
+|---|---|---|
+| FR-1~3 | **pass** | `entities/coach/ui/RecommendationCard.tsx` — 막힘은 카드 자신이 `BlockedNotice`(사유 · 표본 · "정상 동작") |
+| FR-4 | **pass(코드)** | 근거 · 과거 성적 · 틀렸던 때를 접지 않고 차례로. `renderable:true` 렌더는 실데이터 없음 |
+| FR-5 | **pass** | `forceRender` · `skipGate` grep 0 |
+| FR-7 · FR-103 | **pass(코드)** | `topFactors` 만 `<details>` |
+| FR-10~14 | **pass(코드)** | 숫자만 · `scoreNote` 같은 줄 · `aria-label` 대체 텍스트 · 게이지 0 |
+| FR-12 · FR-100 | **pass(코드)** | 배지 색 + "매수 검토" 등 글자 + 모양(▲▼■◆, `aria-hidden`) |
+| FR-20 · 21 | **pass(코드)** | 적중률 · 평균 · 최대 낙폭 + `최근 N회` · `표본 부족` 회색 |
+| FR-22 · 23 | **미착수** | 성적표 BFF 없음 |
+| FR-30~33 | **pass(코드)** | 실패사례 날짜 · 사건 · 결과 전부 · 접지 않음 |
+| FR-40~45 | **pass(코드)** | `ExitPlanList` — 손실 제한 · 1차 익절 검토(가격 + 현재가와의 차이 금액) · 추세 유지 조건 문장 · `<table>` · `예측 아님` · 보유 0건 문구 |
+| FR-60 · 61 | **pass(코드)** | `describeBehaviorFact` — `factCode` 3종 → 수치 문장, 모르는 코드 줄 없음 |
+| FR-63 | **다르게** | 계약에 거래 수가 없어 가를 수 없다 — 빈 목록은 "기록된 반복 패턴이 없습니다" |
+| FR-70~72 | **미착수** | 피드백 BFF · 화면 |
+| FR-73 | **다르게** | `staleHours > 24` 임계 없음 — 경과 시간은 늘 표시(0 제외), 버튼은 늘 있고 쿨다운이 막는다. 임계는 서버가 줄 것(PM) |
+| FR-74 · 76 | **pass(코드)** | `features/regenerate-coach` — 비활성 + "N분 N초 뒤", 429 도 같은 모양 · 오류 없음 |
+| FR-75 | **pass(코드)** | `Button loading` · 색을 빼지 않음 |
+| FR-80~82 | **미착수** | 성향 설정 |
+| FR-90 | **pass** | 하단 고정 면책 · BFF 가 면책 없으면 `unavailable` |
+| FR-91 | **pass(코드)** | `kr_stock:no_realtime_data` → 문장, 모르는 코드 줄 없음 |
+| FR-92 · 93 | **pass(코드)** | `source: rule` → `규칙 기반 설명` · `llm` → `Badge tone="ai"` + 생성 시각(헤더) |
+| FR-140 | **부분** | `/coach/report` 생성 · 진입은 **홈**(코치 탭 F006 전) |
+| FR-141 · 142 | **미착수** | 추천 근거 상세 |
+| FR-143 | **pass(코드)** | 추천이 막히면 상단 "표본이 쌓이는 중" · 오류 경계로 보내지 않음 |
+| FR-144 | **pass(코드)** | `signalTypes` 매핑 4종 · 없으면 이름 생략 |
+| 후보 목록 | **그리지 않음** | 3종 세트 없는 추천 — 공통 수용 기준 1. `@repo/core/coach` 사본에서 필드 제외 |
+| 375px | **미검증** | 브라우저 실측 불가(Chrome 확장 미연결) |
+
+**로그인 상태 렌더 전부 미검증**이다 — 위 "pass(코드)" 는 타입 · 빌드 · 코드 대조까지다.
