@@ -55,3 +55,13 @@
 
 근거: `salt-server/requirements/reports/checklists/SRV-REQ-025.md` §8
 
+## 서버 선행 상태 — 2026-09-23 두 번째 (BFF 변경 없음)
+
+서버 슬라이스 13: `POST /api/ai-coach/generate` 가 **202**(BREAKING — 본문이 추천이 아니라 `{ requestId, requestedAt }`),
+쿨다운 429 + `Retry-After`, `GET /api/coach/generation-status` 신설. BFF 의 `generate` 는 프록시라 본문 변화의 영향이 없다.
+
+| FR | 서버 쪽 | BFF 상태 |
+|---|---|---|
+| FR-60 `Retry-After` 전달 | 서버가 이제 보낸다 | 부분 그대로 — BFF 경유 실측 전 |
+| FR-63 `generation-status` | 서버 엔드포인트 생김 | 미착수 — 부르는 라우트가 없다 |
+

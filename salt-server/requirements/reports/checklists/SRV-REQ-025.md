@@ -3,7 +3,7 @@
 - REQ: `salt-server/requirements/specs/in-progress/SRV-REQ-025-F004-API.md`
 - 브랜치: `feat/f004-symbol-judgment`(PR #48, `6f701b4`) → `feat/f004-zone-gauge`(PR #49, `ebadcf9`) · 검증일: 2026-09-21
 - 작성: 2026-09-22 (backfill — 루트 체크리스트 두 개와 `src/coach` 코드에서 옮겼다. 새로 돌린 검증은 없다)
-- 상태: **부분 완료** — 종목 경로 계약(FR-40~47) · **explain · preflight**(FR-11 · 12 · 14 · 20 · 50~52, 슬라이스 10) · **성적표 그룹**(FR-15 · 53, 2026-09-23 슬라이스 11) · **코치 상세**(FR-1~9 · 16~18, 2026-09-23 슬라이스 12)가 닫혔다. FR-48 미충족, 쿨다운(FR-10) · 프로필 영속화(FR-13) 는 미착수
+- 상태: **부분 완료** — 종목 경로 계약(FR-40~47) · **explain · preflight**(FR-11 · 12 · 14 · 20 · 50~52, 슬라이스 10) · **성적표 그룹**(FR-15 · 53, 2026-09-23 슬라이스 11) · **코치 상세**(FR-1~9 · 16~18, 2026-09-23 슬라이스 12) · **쿨다운 · 프로필**(FR-10 · 13 · 48, 슬라이스 13)이 닫혔다. 남은 것은 FR-19(부분) · 31 · 54
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-symbol-judgment.md` · `F004-zone-gauge.md`
 
 판정 정의는 `SRV-REQ-024.md` 체크리스트 머리와 같다.
@@ -13,9 +13,9 @@
 | FR | 내용 | 판정 | 비고 |
 |---|---|---|---|
 | FR-1~9 | 저장 추천 응답의 게이트 · `scoreNote` · `disclaimer` · `excluded[]` · `behaviorFacts` · `conditionCode` | **pass** (2026-09-23) | §8. `GET /api/coach/detail`. FR-3 의 `null` 경로는 생기지 않는다 — 매핑이 계산식(`coach.<action>`)이라 늘 객체이고, 표본 0 이 막힌다(FR-43 과 같은 사정) |
-| FR-10 | generate 쿨다운 429 | 미착수 | |
+| FR-10 | generate 쿨다운 429 | **pass** (2026-09-23) | §9. 202 비동기 · 429 + `Retry-After` + `retryAfterSeconds` · `/api/coach/generation-status` |
 | FR-11~12 | explain 인증 · rate limit | **pass** (2026-09-22) | §6. 인증은 라우트 순서를 바꿔 `authMiddleware` 뒤로, 분당 10회는 유지 |
-| FR-13 | profile 영속화 | 미착수 | 컬럼이 없다 — FR-48 과 같은 원인(`DB-REQ-017` FR-20) |
+| FR-13 | profile 영속화 | **pass** (2026-09-23) | §9. `unsupportedPersistedFields` 제거 — BFF 는 `?? []` 로 읽어 깨지지 않는다 |
 | FR-14 | preflight 차단 필드 금지 | **pass** (2026-09-22) | 추가 필드는 `stopLossRate` · `maxLossOfTotalRate` 뿐 |
 | FR-15 | `signal-performance?groupBy=signalType` · 무인자 하위 호환 | **pass** (2026-09-23) | §7. 응답 모양이 다른 두 계약이라 쿼리로 갈랐다. `/api/coach/scoreboard` 가 같은 표 |
 | FR-16~18 | `gapFromCurrent` · `factCode` · `staleHours` | **pass** (2026-09-23) | §8. `profit-plan` `stages[].gapFromCurrent` · `behavior-coach` `warnings[].factCode`/`params` 는 **추가만**. `staleHours` 는 payload `generatedAt` 기준(행이 덮어쓰기라 `createdAt` 은 첫 생성 시각) |
@@ -42,7 +42,7 @@
 | FR-45 | `validity.code` 유일한 출처 | pass | `VALIDITY_CODE` |
 | FR-46 | 게이지 표본 0 은 빠짐 · < 20 `lowSample` | pass | `toGaugeTrackRecord` |
 | FR-47 | `disclaimer` 항상 | pass | `JUDGMENT_DISCLAIMER` |
-| FR-48 | `mode` 없으면 `defaultMode` → `scalp` | **미충족** | `UserInvestmentProfile.defaultMode` 컬럼 없음 |
+| FR-48 | `mode` 없으면 `defaultMode` → `scalp` | **pass** (2026-09-23) | §9. `GetSymbolCoach` — 요청 → 프로필 → `scalp`. 실제 DB 로 `long_term` 저장 → `mode` 없는 요청이 `long_term` |
 | FR-49 | `preview=true` 에서 `zone` · 게이지 생략 가능 | 범위 밖 | 슬라이스 2 가 뺐다. 지금은 `preview` 에서도 `zone` 을 싣는다(REQ Changelog — 생략은 허용일 뿐) |
 | FR-50~52 | explain 미렌더 시 LLM 미호출 · `newsSummary` ≤ 5 · preflight `stopLossRate` / `maxLossOfTotalRate` | **pass** (2026-09-22) | §6 |
 | FR-53 | 성적표 `returnDistribution` · `hits` · `misses` | **pass** (2026-09-23) | §7. 구간 6개 + 사분위수. **`horizonDays` 는 30 고정이 아니라 그룹의 관찰 기간**(단타 1 · 장기 30) — 아래 "다르게" |
@@ -52,12 +52,12 @@
 
 | 판정 | FR 수 |
 |---|---|
-| pass | 31 (FR-30 종목 경로 · FR-40~47 · FR-11 · 12 · 14 · 15 · 20 · 32 · 50 · 51 · 52 · **FR-1~9 · 16~18**) |
+| pass | 34 (FR-30 종목 경로 · FR-40~47 · FR-11 · 12 · 14 · 15 · 20 · 32 · 50 · 51 · 52 · FR-1~9 · 16~18 · **FR-10 · 13 · 48**) |
 | 다르게 | 1 (FR-53 — `returnDistribution.horizonDays` 를 그룹 기간으로) |
 | 부분 | 1 (FR-19 — preflight 만) |
-| 미충족 | 1 (FR-48) |
+| 미충족 | 0 |
 | 범위 밖 | 1 (FR-49) |
-| 미착수 | 4 (FR-10 · FR-13 · FR-31 · FR-54) |
+| 미착수 | 2 (FR-31 · FR-54) |
 
 > 2026-09-23 정정: 슬라이스 11 시점 미착수는 15 가 아니라 **16** 이었다(FR-1~10 이 10개). 이번 12개가 빠져 4 다.
 
@@ -161,4 +161,37 @@
 | 후보 `reasons` | 저장 payload 에 없다(늘 `[]`). 생성 쪽 변경이 필요하다 | `generate` 슬라이스(쿨다운과 함께) |
 | `recommendation.assetType` 의 `us_stock` | DB enum 이 `stock` 하나라 미국 주식으로 읽는다(`DB-REQ-003`). 로컬에 주식 추천이 없어 보지 못했다 | `DB-REQ-003` |
 | BFF 전달 | BFF `/api/app/coach/report`(`BFF-REQ-023` 신규 행)가 아직 없어 `/api/coach/detail` 을 부르는 곳이 없다. `profit-plan` 은 `stages` 를 통째로 넘겨 `gapFromCurrent` 가 간다. `behavior-coach` 는 카드로 다시 매핑해 `factCode` · `params` 가 **빠진다** | `BFF-REQ-023` 코치 리포트 슬라이스 |
+
+## 9. 슬라이스 13 — 쿨다운 · 프로필 (2026-09-23, `feat/server-f004-coach-cooldown`)
+
+| 확인 | 결과 |
+|---|---|
+| 마이그레이션 2 | 프로필 열 2 · 생성 기록 테이블 1. `--create-only` 로 SQL 확인 → `migrate deploy`. `prisma validate` · `migrate status` 통과 |
+| 프로필 실측 | `long_term` · `low` 저장 → DB 열 확인 → 다시 조회 그대로 · `unsupportedPersistedFields` 없음 → `mode` 없는 종목 판단 `long_term`. 원래 값(`null`)으로 되돌리니 `scalp` |
+| 재생성 실측 | 1차 요청 **5ms** 에 받음(`running`) → 즉시 2차 요청 **거부 `retryAfterSeconds: 300`** → 생성 48ms 뒤 `succeeded` · `llmSource: rule`. 거부 행은 `lastRequest` 로 보이지 않았다. 실측 행 2개는 지웠다 |
+| 쿼리 계획 | 새 쿼리 2개 모두 `coach_generation_logs_user_id_requested_at_idx` Bitmap Index Scan · **0.047ms · 0.045ms** (8행) |
+| 워커 기록 | 떠 있는 로컬 서버가 새 코드로 워커 생성을 기록하는 것 확인(`source: worker` · 43~244ms) |
+| HTTP 무토큰 | `generation-status` · `generate` 401 |
+| 게이트 | `npm run build` · `npm test` **318 pass**(+19) · `npm run lint` · `test:layer-check` · `layer-check` 사후 전 파일 |
+
+### 판단
+
+- **202 로 바꿨다(BREAKING).** BFF 는 1s 타임아웃으로 202 를 기대하고(`BFF-REQ-025` FR-3), 소비처는 BFF 프록시뿐 —
+  본문을 읽는 곳이 없다. 결과는 상세 · 상태 경로로 본다
+- **기록을 받는 순간 만든다.** 생성이 끝날 때 쓰면 그 사이 두 번째 요청이 쿨다운을 통과한다. 그래서 스펙의 상태 셋에
+  `running` 을 더했다(`DB-REQ-017` "다르게")
+- **쿨다운 기준은 받아들인 수동 요청.** 거부를 기준으로 삼으면 연타가 쿨다운을 무한히 늘리고, 실패를 빼면 실패하는
+  생성을 연타로 반복한다
+- 쿨다운은 에러가 아니라 **결과 타입**이다. `ErrorKind` 에 값을 늘리지 않았다(`ddd-shared.md` §2 — 전 컨텍스트 합의 사항)
+- 같은 순간의 두 요청은 둘 다 통과할 수 있다(확인 → 기록 사이). 사용자 ≤10명 · 버튼 하나라 잠금을 두지 않았다 —
+  겹치면 생성이 두 번 돌 뿐 추천은 덮어쓰기다
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 인증된 HTTP 202 · 429 실측 | 로컬 토큰 발급이 세션 권한에서 막혔다. 유스케이스를 실제 어댑터로 불렀다 | BFF 경유 실측 — `BFF-REQ-025` FR-3 · 4 |
+| BFF 가 `Retry-After` 를 옮기는지 | BFF 코드는 옮긴다고 적혀 있다(`BFF-REQ-023` FR-60). 이 조합으로 돌려 보지 않았다 | 위와 같이 |
+| 생성 기록 보존 · 정리 | 워커가 사용자당 10분에 1행 | 관측성 계측 |
+| **로컬 워커 중복 실행** | 로컬에 `src/server.ts` 가 두 벌 떠 있어 워커 생성이 매번 **두 번** 돈다 — 새 기록에서 처음 보였다. 코드가 아니라 로컬 프로세스 문제 | 사용자가 로컬 프로세스 정리 |
 
