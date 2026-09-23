@@ -12,6 +12,7 @@ const SECONDS_PER_MINUTE = 60;
  * [새로 생성] (`FE-REQ-026` FR-73~76).
  *
  * - 쿨다운 중이면 **비활성 + 남은 시간**(FR-74). 429 를 받아도 같은 모양이다 — 오류가 아니다(FR-76)
+ * - 회색 약한 버튼이다 — 이 화면의 주된 행동이 아니다(읽는 화면이다)
  * - 생성 중이면 `loading` 이다. 버튼은 흐려지지 않는다 — `Button` 이 회전 표시를 얹을 뿐 색을
  *   빼지 않는다(FR-75)
  * - 결과 문구는 **한 번만** 알린다(`role="status"`). 남은 초는 낭독 대상이 아니다 — 매초 읽힌다
@@ -29,7 +30,7 @@ export const RegenerateCoachButton = () => {
     <div className={wrap}>
       <Button
         size="sm"
-        variant="secondary"
+        variant="weak"
         loading={isGenerating}
         disabled={coolingDown}
         onClick={regenerate}

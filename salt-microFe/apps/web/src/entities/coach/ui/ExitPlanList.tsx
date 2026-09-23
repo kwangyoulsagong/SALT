@@ -1,5 +1,4 @@
 import type { ReportExitPlan } from "@repo/core/coach";
-import { Badge } from "@repo/ui/badge";
 import { Text } from "@repo/ui/text";
 
 import { formatPrice } from "@/shared/lib";
@@ -7,32 +6,35 @@ import { formatPrice } from "@/shared/lib";
 import { describePriceGap } from "../lib";
 import { COACH_MESSAGES } from "../model";
 import {
-  gapCaption,
-  rowHeader,
-  statTerm,
-  table,
-  tableCaption,
-  td,
-  th,
-} from "./CoachDetail.css";
-import { exitPlanBlock, exitPlanHead, recommendationSymbol } from "./CoachReport.css";
+  holdingHead,
+  holdingList,
+  holdingSymbol,
+  row,
+  rowAmount,
+  rowCaption,
+  rowLabel,
+  rowList,
+  rowSentence,
+  rowValue,
+} from "./CoachReport.css";
 
 const { report: REPORT, zone: ZONE } = COACH_MESSAGES;
 
 /**
- * 익절 플랜 — 보유 종목별 3단계 (`FE-REQ-026` E · FR-40~45).
+ * 익절 플랜 — 보유 종목별 3단계 (`FE-REQ-026` E · FR-40~45 · FR-102).
  *
- * 가격 · 현재가와의 차이는 전부 서버 값이다(`FE-REQ-027` FR-12). 차이는 **금액과 위 · 아래**로만
- * 말하고 % 로 바꾸지 않는다(D13). 추세 유지는 가격이 아니라 조건이라 조건 문장 한 줄이다 —
- * 매핑이 없는 조건 코드는 그 행을 그리지 않는다(FR-23).
+ * 표가 아니라 **목록 행**(`<dl>`)이다 — 왼쪽 단계 이름, 오른쪽 가격, 가격 아래 현재가와의 차이.
+ * 열 머리("단계 · 가격")가 없어도 읽히는 두 칸이라 머리를 두면 줄만 는다.
  *
- * 표마다 `예측 아님` 을 붙인다 — 가격이 적힌 표는 목표처럼 읽힌다(FR-43).
+ * 가격 · 차이는 전부 서버 값이다(`FE-REQ-027` FR-12). 차이는 **금액과 위 · 아래**로만 말하고
+ * % 로 바꾸지 않는다(D13). 추세 유지는 가격이 아니라 조건이라 문장으로 두고 굵게 쓰지 않는다.
+ * `예측 아님` 은 섹션 설명에 한 번 둔다(부르는 쪽) — 종목마다 반복하면 소음이 된다.
  */
 export const ExitPlanList = ({ plans }: { plans: readonly ReportExitPlan[] }) => {
   if (plans.length === 0) return <Text color="tertiary">{REPORT.noHoldings}</Text>;
 
   return (
-    <>
+    <div className={holdingList}>
       {plans.map((plan) => {
         const trendHold = REPORT.trendHoldConditions[plan.trendHold.conditionCode];
         const stages = [
@@ -45,48 +47,36 @@ export const ExitPlanList = ({ plans }: { plans: readonly ReportExitPlan[] }) =>
         ] as const;
 
         return (
-          <div key={plan.symbol} className={exitPlanBlock}>
-            <div className={exitPlanHead}>
-              <p className={recommendationSymbol}>{plan.symbol}</p>
-              <span className={statTerm}>
+          <section key={plan.symbol} aria-label={plan.symbol}>
+            <div className={holdingHead}>
+              <p className={holdingSymbol}>{plan.symbol}</p>
+              <span className={rowCaption}>
                 {REPORT.currentPrice(formatPrice(plan.currentPrice))}
               </span>
             </div>
-            <table className={table}>
-              <caption className={tableCaption}>
-                {REPORT.exitPlanCaption}{" "}
-                <Badge size="sm" tone="neutral">
-                  {COACH_MESSAGES.notPrediction}
-                </Badge>
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col" className={th}>{REPORT.exitPlanColumns.stage}</th>
-                  <th scope="col" className={th}>{REPORT.exitPlanColumns.price}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stages.map(({ key, label, stage }) => (
-                  <tr key={key}>
-                    <th scope="row" className={rowHeader}>{label}</th>
-                    <td className={td}>
-                      {ZONE.price(formatPrice(stage.price))}
-                      <span className={gapCaption}>{describePriceGap(stage.priceGap)}</span>
-                    </td>
-                  </tr>
-                ))}
-                {trendHold && (
-                  <tr>
-                    <th scope="row" className={rowHeader}>{REPORT.exitStages.trendHold}</th>
-                    <td className={td}>{trendHold}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+            <dl className={rowList}>
+              {stages.map(({ key, label, stage }) => (
+                <div key={key} className={row}>
+                  <dt className={rowLabel}>{label}</dt>
+                  <dd className={rowValue}>
+                    <span className={rowAmount}>{ZONE.price(formatPrice(stage.price))}</span>
+                    <span className={rowCaption}>{describePriceGap(stage.priceGap)}</span>
+                  </dd>
+                </div>
+              ))}
+              {trendHold && (
+                <div className={row}>
+                  <dt className={rowLabel}>{REPORT.exitStages.trendHold}</dt>
+                  <dd className={rowValue}>
+                    <span className={rowSentence}>{trendHold}</span>
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </section>
         );
       })}
-    </>
+    </div>
   );
 };
 

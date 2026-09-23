@@ -2,7 +2,7 @@ import type { ReportRisk } from "@repo/core/coach";
 import { Text } from "@repo/ui/text";
 
 import { COACH_MESSAGES } from "../model";
-import { factItem, factList, factMeta } from "./CoachReport.css";
+import { cautionDot, factBody, factItem, factList, factMeta } from "./CoachReport.css";
 
 const { report: REPORT } = COACH_MESSAGES;
 
@@ -21,8 +21,11 @@ export const ReportRiskList = ({ risks }: { risks: readonly ReportRisk[] }) => {
     <ul className={factList}>
       {ordered.map((risk, index) => (
         <li key={`${risk.type}-${risk.symbol ?? ""}-${index}`} className={factItem}>
-          {risk.symbol && <span className={factMeta}>{risk.symbol}</span>}
-          <span>{risk.message}</span>
+          <span className={cautionDot} aria-hidden="true" />
+          <span className={factBody}>
+            <span>{risk.message}</span>
+            {risk.symbol && <span className={factMeta}>{risk.symbol}</span>}
+          </span>
         </li>
       ))}
     </ul>

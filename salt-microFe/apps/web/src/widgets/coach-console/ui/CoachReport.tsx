@@ -1,7 +1,9 @@
 "use client";
 
 import type { CoachReportViewModel } from "@repo/core/coach";
+import { Badge } from "@repo/ui/badge";
 import { Text } from "@repo/ui/text";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import {
@@ -15,38 +17,50 @@ import {
   useCoachReport,
 } from "@/entities/coach";
 import { RegenerateCoachButton } from "@/features/regenerate-coach";
+import { ROUTES } from "@/shared/config";
 
 import { REPORT_BLOCK_FIELDS } from "../model";
 import {
-  accumulating,
-  card,
-  cardTitle,
-  column,
+  backLink,
   disclaimerBar,
   disclaimerLabel,
-  excludedLine,
-  grid,
+  footnote,
   header,
   layout,
   meta,
+  panel,
+  panelDescription,
+  panelHead,
+  panelTitle,
+  panelTitleRow,
   title,
   titleBlock,
 } from "./CoachReport.css";
 
 const { report: REPORT } = COACH_MESSAGES;
 
-/** 블록 하나. `degradedFields` 에 있으면 그 블록만 "불러올 수 없음"(`FE-REQ-027` FR-70) */
-const ReportCard = ({
+/** 섹션 하나 — 제목 · 한 줄 설명 · 내용. `degradedFields` 면 그 섹션만 "불러올 수 없음"(`FE-REQ-027` FR-70) */
+const ReportPanel = ({
   heading,
+  description,
+  badge,
   degraded,
   children,
 }: {
   heading: string;
+  description?: string;
+  badge?: ReactNode;
   degraded: boolean;
   children: ReactNode;
 }) => (
-  <section className={card}>
-    <h2 className={cardTitle}>{heading}</h2>
+  <section className={panel}>
+    <div className={panelHead}>
+      <div className={panelTitleRow}>
+        <h2 className={panelTitle}>{heading}</h2>
+        {badge}
+      </div>
+      {description && <p className={panelDescription}>{description}</p>}
+    </div>
     {degraded ? <Text color="tertiary">{REPORT.blockUnavailable}</Text> : children}
   </section>
 );
@@ -55,8 +69,12 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
   const degraded = (field: string) => report.degradedFields.includes(field);
   const generatedAt = report.generatedAt ? formatGeneratedAt(report.generatedAt) : null;
   const { recommendation } = report;
-  // FR-143 · `FE-REQ-027` FR-94 — 막힌 추천은 초기의 **정상 상태**다. 오류 경계로 보내지 않는다
-  const isAccumulating = recommendation !== null && !recommendation.renderable;
+  const metaLine = [
+    generatedAt ? REPORT.generatedAt(generatedAt) : REPORT.notGenerated,
+    report.staleHours !== null && report.staleHours > 0 ? REPORT.stale(report.staleHours) : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
   const excluded = report.excluded.flatMap((item) => {
     const line = REPORT.excluded[`${item.assetType}:${item.reasonCode}`];
     return line ? [line] : [];
@@ -65,59 +83,57 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
   return (
     <>
       <div className={layout}>
+        <Link href={ROUTES.investments} className={backLink}>
+          {`\u2039 ${REPORT.back}`}
+        </Link>
+
         <div className={header}>
           <div className={titleBlock}>
             <h1 className={title}>{REPORT.pageTitle}</h1>
-            <p className={meta}>
-              <span>{generatedAt ? REPORT.generatedAt(generatedAt) : REPORT.notGenerated}</span>
-              {report.staleHours !== null && report.staleHours > 0 && (
-                <span>{REPORT.stale(report.staleHours)}</span>
-              )}
-            </p>
+            <p className={meta}>{metaLine}</p>
           </div>
           <RegenerateCoachButton />
         </div>
 
-        {isAccumulating && <p className={accumulating}>{REPORT.accumulating}</p>}
+        {/* FR-143 — 막힌 추천은 초기의 정상 상태다. 정책을 섹션 설명으로 늘 말하고, 막힘은 회색 상자 하나 */}
+        <ReportPanel
+          heading={REPORT.recommendationHeading}
+          description={REPORT.recommendationPolicy}
+          degraded={degraded(REPORT_BLOCK_FIELDS.recommendation)}
+        >
+          {recommendation ? (
+            <RecommendationCard recommendation={recommendation} />
+          ) : (
+            <Text color="tertiary">{REPORT.noRecommendation}</Text>
+          )}
+        </ReportPanel>
 
-        <div className={grid}>
-          <div className={column}>
-            <ReportCard
-              heading={REPORT.recommendationHeading}
-              degraded={degraded(REPORT_BLOCK_FIELDS.recommendation)}
-            >
-              {recommendation ? (
-                <RecommendationCard recommendation={recommendation} />
-              ) : (
-                <Text color="tertiary">{REPORT.noRecommendation}</Text>
-              )}
-            </ReportCard>
-            <ReportCard
-              heading={REPORT.risksHeading}
-              degraded={degraded(REPORT_BLOCK_FIELDS.risks)}
-            >
-              <ReportRiskList risks={report.risks} />
-            </ReportCard>
-          </div>
+        <ReportPanel heading={REPORT.risksHeading} degraded={degraded(REPORT_BLOCK_FIELDS.risks)}>
+          <ReportRiskList risks={report.risks} />
+        </ReportPanel>
 
-          <aside className={column}>
-            <ReportCard
-              heading={REPORT.exitPlanHeading}
-              degraded={degraded(REPORT_BLOCK_FIELDS.exitPlans)}
-            >
-              <ExitPlanList plans={report.exitPlans} />
-            </ReportCard>
-            <ReportCard
-              heading={REPORT.behaviorHeading}
-              degraded={degraded(REPORT_BLOCK_FIELDS.behaviorFacts)}
-            >
-              <BehaviorFactList facts={report.behaviorFacts} />
-            </ReportCard>
-          </aside>
-        </div>
+        <ReportPanel
+          heading={REPORT.exitPlanHeading}
+          description={REPORT.exitPlanDescription}
+          badge={
+            <Badge size="sm" tone="neutral">
+              {COACH_MESSAGES.notPrediction}
+            </Badge>
+          }
+          degraded={degraded(REPORT_BLOCK_FIELDS.exitPlans)}
+        >
+          <ExitPlanList plans={report.exitPlans} />
+        </ReportPanel>
+
+        <ReportPanel
+          heading={REPORT.behaviorHeading}
+          degraded={degraded(REPORT_BLOCK_FIELDS.behaviorFacts)}
+        >
+          <BehaviorFactList facts={report.behaviorFacts} />
+        </ReportPanel>
 
         {excluded.map((line) => (
-          <p key={line} className={excludedLine}>
+          <p key={line} className={footnote}>
             {line}
           </p>
         ))}
@@ -149,12 +165,17 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
 export const CoachReport = () => {
   const report = useCoachReport();
 
-  if (report.isSignedOut) return <Text color="tertiary">{REPORT.signedOut}</Text>;
-  if (report.isPending) {
-    return <CoachBlockSkeleton block="judgment" />;
-  }
+  const notice = (content: ReactNode) => (
+    <div className={layout}>
+      <h1 className={title}>{REPORT.pageTitle}</h1>
+      <section className={panel}>{content}</section>
+    </div>
+  );
+
+  if (report.isSignedOut) return notice(<Text color="tertiary">{REPORT.signedOut}</Text>);
+  if (report.isPending) return notice(<CoachBlockSkeleton block="judgment" />);
   if (report.isError || report.data.status === "unavailable") {
-    return <Text color="tertiary">{REPORT.unavailable}</Text>;
+    return notice(<Text color="tertiary">{REPORT.unavailable}</Text>);
   }
 
   return <ReportBody report={report.data} />;

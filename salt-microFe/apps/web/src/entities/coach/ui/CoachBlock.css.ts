@@ -1,5 +1,7 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 
+import { vars as ds } from "@repo/ui/tokens";
+
 import { vars } from "@/shared/ui/tokens.css";
 
 /** 막힌 판단 상자 · 판단 자리의 모서리. 이 슬라이스에서만 쓴다 */
@@ -23,16 +25,45 @@ export const judgmentSlot = style([slotBase, { minHeight: JUDGMENT_MIN_HEIGHT }]
 
 export const zoneSlot = style([slotBase, { minHeight: ZONE_MIN_HEIGHT }]);
 
+/**
+ * 막힌 판단 · 추천 상자 — **회색 약한 면**이다. 빨강 · 노랑 · 테두리를 쓰지 않는다: 표본이 쌓이는
+ * 중인 정상 상태이고, 경고처럼 보이면 사용자가 무언가 고장 났다고 읽는다(FR-2 · FR-143).
+ * 한 줄 사유(15px) 아래 표본 수 · "정상 동작"을 작은 회색 한 줄로 묶는다.
+ */
 export const blockedBox = style({
   display: "flex",
-  flexDirection: "column",
-  gap: vars.space.small,
-  padding: vars.space.large,
+  alignItems: "flex-start",
+  gap: "10px",
+  padding: "16px 18px",
   borderRadius: BLOCK_RADIUS,
-  background: vars.colors.background.primary,
-  color: vars.colors.text.primary,
-  fontSize: vars.fontSizes.body,
-  lineHeight: 1.5,
+  background: ds.colors.neutral[100],
+});
+
+export const blockedIcon = style({
+  flexShrink: 0,
+  width: "18px",
+  height: "18px",
+  marginTop: "2px",
+  color: ds.colors.neutral[500],
+});
+
+export const blockedText = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "2px",
+  minWidth: 0,
+});
+
+export const blockedReason = style({
+  color: ds.colors.neutral[700],
+  fontSize: "15px",
+  lineHeight: "22px",
+});
+
+export const blockedMeta = style({
+  color: ds.colors.neutral[500],
+  fontSize: "13px",
+  lineHeight: "19px",
 });
 
 export const metaLine = style({

@@ -5,14 +5,14 @@
  * (`FE-REQ-029` FR-51 — 폴링 중 2초마다 낭독하지 않는다).
  */
 export const REGENERATE_COACH_MESSAGES = {
-  button: "새로 생성",
+  button: "다시 만들기",
   cooldown: (minutes: number, seconds: number) =>
     minutes > 0
-      ? `${minutes}분 ${seconds}초 뒤 다시 생성할 수 있습니다`
-      : `${seconds}초 뒤 다시 생성할 수 있습니다`,
-  generating: "새 리포트를 만드는 중입니다",
-  done: "새 리포트를 불러왔습니다.",
-  failed: "새 리포트를 만들지 못했습니다. 지금 보이는 것은 이전 리포트입니다.",
-  timeout: "생성이 길어지고 있습니다. 잠시 뒤 화면을 다시 열어 주세요.",
-  requestFailed: "생성 요청을 보내지 못했습니다. 잠시 후 다시 눌러 주세요.",
+      ? `${minutes}분 ${seconds}초 뒤에 다시 만들 수 있어요`
+      : `${seconds}초 뒤에 다시 만들 수 있어요`,
+  generating: "새 리포트를 만들고 있어요",
+  done: "새 리포트를 불러왔어요.",
+  failed: "새 리포트를 만들지 못했어요. 지금 보이는 건 이전 리포트예요.",
+  timeout: "만드는 데 시간이 걸리고 있어요. 잠시 뒤 다시 열어 주세요.",
+  requestFailed: "요청을 보내지 못했어요. 잠시 뒤 다시 눌러 주세요.",
 } as const;

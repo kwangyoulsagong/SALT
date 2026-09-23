@@ -36,16 +36,14 @@ export const COACH_MESSAGES = {
   lowSample: "표본 부족",
 
   blocked: {
-    reasons_missing: "근거가 부족해 판단을 표시하지 않습니다.",
-    signal_track_record_missing:
-      "이 판단의 과거 성적 데이터가 아직 없어 판단을 표시하지 않습니다.",
-    failure_cases_missing:
-      "틀렸던 사례 기록이 아직 없어 판단을 표시하지 않습니다.",
-    insufficient_sample: "과거 표본이 아직 적어 판단을 표시하지 않습니다.",
+    reasons_missing: "근거가 부족해 이번엔 판단을 보여 드리지 않아요.",
+    signal_track_record_missing: "이 판단의 과거 성적이 아직 없어 보여 드리지 않아요.",
+    failure_cases_missing: "틀렸던 사례 기록이 아직 없어 보여 드리지 않아요.",
+    insufficient_sample: "과거 표본이 아직 적어 보여 드리지 않아요.",
   } satisfies Record<JudgmentBlockedReason, string>,
   blockedSample: (count: number) => `표본 ${count}건`,
   /** FR-2 — 막힌 판단은 고장이 아니다 */
-  blockedNormal: "이것은 정상 동작입니다.",
+  blockedNormal: "정상 동작이에요",
 
   /** 판단 조회 실패 · 모드 계약 깨짐. 구간 · 게이지 · 뉴스는 그대로 둔다 */
   judgmentUnavailable: "지금 판단을 불러올 수 없습니다.",
@@ -128,18 +126,21 @@ export const COACH_MESSAGES = {
    */
   report: {
     pageTitle: "코치 리포트",
+    back: "투자",
     blockName: "코치 리포트",
-    signedOut: "로그인하면 코치 리포트를 볼 수 있습니다.",
-    unavailable: "지금 코치 리포트를 불러올 수 없습니다. 잠시 후 다시 열어 주세요.",
-    blockUnavailable: "이 항목을 지금 불러올 수 없습니다.",
+    signedOut: "로그인하면 코치 리포트를 볼 수 있어요.",
+    unavailable: "지금은 코치 리포트를 불러올 수 없어요. 잠시 뒤 다시 열어 주세요.",
+    blockUnavailable: "이 항목을 지금은 불러올 수 없어요.",
 
-    generatedAt: (at: string) => `${at} 생성`,
-    notGenerated: "아직 생성된 리포트가 없습니다.",
-    stale: (hours: number) => `생성 후 ${hours}시간 경과`,
+    generatedAt: (at: string) => `${at}에 만들었어요`,
+    notGenerated: "아직 만든 리포트가 없어요",
+    stale: (hours: number) => `${hours}시간 지났어요`,
     aiBadge: "AI 생성",
     ruleBadge: "규칙 기반 설명",
 
     recommendationHeading: "코치 추천",
+    /** FR-143 — 섹션 설명으로 늘 둔다. 막힌 추천이 오류가 아니라 정책이라는 것을 먼저 말한다 */
+    recommendationPolicy: "과거 성적 · 틀렸던 사례가 없는 추천은 보여 드리지 않아요.",
     actions: {
       buy: "매수 검토",
       sell: "매도 검토",
@@ -159,10 +160,7 @@ export const COACH_MESSAGES = {
     trackRecordHeading: "이 유형 추천의 과거 성적",
     trackSample: (count: number) => `최근 ${count}회`,
     failureHeading: "틀렸던 때",
-    noRecommendation: "아직 추천이 없습니다. 보유 기록이 있으면 코치가 판단할 수 있습니다.",
-    /** FR-143 — 모든 추천이 막힌 초기 상태. 오류가 아니다 */
-    accumulating:
-      "아직 표본이 쌓이는 중입니다 — 과거 성적이 없는 추천은 보여드리지 않습니다.",
+    noRecommendation: "아직 추천이 없어요. 보유 기록이 있으면 코치가 판단할 수 있어요.",
     /** 성적표 `signalType` → 이름 (FR-144). 매핑 없는 코드는 줄을 그리지 않는다 */
     signalTypes: {
       "coach.buy": "코치 추천 · 매수 검토",
@@ -172,21 +170,20 @@ export const COACH_MESSAGES = {
     } as Record<string, string | undefined>,
 
     risksHeading: "주의할 점",
-    noRisks: "지금 표시할 주의 사항이 없습니다.",
+    noRisks: "지금 주의할 점은 없어요.",
 
     exitPlanHeading: "익절 플랜",
-    exitPlanCaption: "내 보유 기록에 규칙을 적용한 가격 · 예측 아님",
-    exitPlanColumns: { stage: "단계", price: "가격" },
+    exitPlanDescription: "내 보유 기록에 규칙을 적용한 가격이에요.",
     exitStages: { stopLoss: "손실 제한", firstTakeProfit: "1차 익절 검토", trendHold: "추세 유지" },
     currentPrice: (price: string) => `현재가 ${price}원`,
     /** `trendHold.conditionCode` → 조건 문장 (FR-45) */
     trendHoldConditions: {
-      hold_or_trail_stop: "추세가 이어지는 동안 보유하고, 손실 제한선을 따라 올립니다.",
+      hold_or_trail_stop: "추세가 이어지는 동안 보유하고, 손실 제한선을 따라 올려요.",
     } as Record<string, string | undefined>,
-    noHoldings: "보유 종목이 없습니다.",
+    noHoldings: "보유 종목이 없어요.",
 
     behaviorHeading: "최근 거래 기록",
-    noBehavior: "최근 거래에서 기록된 반복 패턴이 없습니다.",
+    noBehavior: "최근 거래에서 반복된 패턴은 없어요.",
     /**
      * `factCode` → 사실 문장 (FR-60 · FR-61). 재료는 서버 `params` 그대로 — 기간은 `period`,
      * 비율은 `rate` 로 포맷만 해서 받는다. 판정 임계(예: 매도 뒤 몇 % 이상)는 서버 값이라
@@ -194,11 +191,11 @@ export const COACH_MESSAGES = {
      */
     behaviorFacts: {
       over_trading: (period: string, trades: number, threshold: number) =>
-        `최근 ${period} 동안 거래가 ${trades}건 있었습니다. 기준은 ${threshold}건입니다.`,
+        `최근 ${period} 동안 ${trades}번 거래했어요. 기준은 ${threshold}번이에요.`,
       panic_sell: (period: string, sells: number, recovered: number, avgRate: string) =>
-        `최근 ${period} 매도 ${sells}건 중 ${recovered}건은 지금 가격이 매도가보다 높습니다. 평균 ${avgRate} 차이입니다.`,
+        `최근 ${period} 매도 ${sells}건 중 ${recovered}건은 지금 가격이 매도가보다 높아요. 평균 ${avgRate} 차이예요.`,
       chasing_high: (period: string, buys: number, nearHigh: number, ratio: string) =>
-        `최근 ${period} 매수 ${buys}건 중 ${nearHigh}건은 최근 고가의 ${ratio} 이상 가격이었습니다.`,
+        `최근 ${period} 매수 ${buys}건 중 ${nearHigh}건은 최근 고가의 ${ratio} 이상 가격이었어요.`,
     },
     periodDays: (days: number) => `${days}일`,
     periodHours: (hours: number) => `${hours}시간`,
@@ -206,8 +203,7 @@ export const COACH_MESSAGES = {
 
     /** 추천 대상에서 빠진 자산군 (FR-91). `assetType:reasonCode` */
     excluded: {
-      "kr_stock:no_realtime_data":
-        "국내주식은 실시간 시세 · 지표가 없어 추천 대상이 아닙니다.",
+      "kr_stock:no_realtime_data": "국내주식은 실시간 시세와 지표가 없어 추천 대상이 아니에요.",
     } as Record<string, string | undefined>,
 
     disclaimerLabel: "유의사항",

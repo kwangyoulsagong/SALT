@@ -5,7 +5,7 @@ import { formatPrice } from "@/shared/lib";
 
 import { describeBehaviorFact } from "../lib";
 import { COACH_MESSAGES } from "../model";
-import { factItem, factList, factMeta } from "./CoachReport.css";
+import { factBody, factItem, factList, factMeta } from "./CoachReport.css";
 
 const { report: REPORT } = COACH_MESSAGES;
 
@@ -30,10 +30,12 @@ export const BehaviorFactList = ({ facts }: { facts: readonly ReportBehaviorFact
     <ul className={factList}>
       {lines.map((line) => (
         <li key={line.key} className={factItem}>
-          <span>{line.text}</span>
-          {line.amount !== null && (
-            <span className={factMeta}>{REPORT.amount(formatPrice(line.amount))}</span>
-          )}
+          <span className={factBody}>
+            <span>{line.text}</span>
+            {line.amount !== null && (
+              <span className={factMeta}>{REPORT.amount(formatPrice(line.amount))}</span>
+            )}
+          </span>
         </li>
       ))}
     </ul>
