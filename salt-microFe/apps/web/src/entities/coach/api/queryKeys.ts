@@ -5,4 +5,7 @@ export const coachQueryKeys = {
    * 모드 전환은 같은 캐시를 다르게 읽을 뿐이다.
    */
   symbol: (symbol: string) => ["coach", "symbol", symbol] as const,
+  /** 코치 리포트. 재생성이 끝나면 이 키만 무효화한다 */
+  report: () => ["coach", "report"] as const,
+  generationStatus: () => ["coach", "generation-status"] as const,
 } as const;

@@ -1,7 +1,9 @@
 import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
+import Link from "next/link";
 
 import { ProfileHeader } from "@/entities/auth";
+import { ROUTES } from "@/shared/config";
 import { BlockBoundary, CrossZoneLink } from "@/shared/ui";
 
 import { HOME_BLOCK_MIN_HEIGHT, HOME_BRIEFING_MESSAGES } from "../model/messages";
@@ -41,6 +43,8 @@ export const HomeBriefing = () => {
         >
           <InvestmentsBlock />
         </BlockBoundary>
+        {/* 코치 리포트 진입(`FE-REQ-026` FR-140). 코치 탭(F006)이 생기면 그리로 옮긴다 */}
+        <Link href={ROUTES.coachReport}>{HOME_BRIEFING_MESSAGES.coachReportLink}</Link>
         <CrossZoneLink href="/tax">
           {HOME_BRIEFING_MESSAGES.taxCockpitLink}
         </CrossZoneLink>

@@ -1,4 +1,5 @@
 import type {
+  CoachAction,
   CoachMode,
   JudgmentBlockedReason,
   Zone,
@@ -117,6 +118,99 @@ export const COACH_MESSAGES = {
       hold_plan: "계획대로 보유",
     } as Record<string, string | undefined>,
     noHolding: "보유 기록이 없어 수익 플랜이 없습니다.",
+  },
+
+  /**
+   * 코치 리포트 `/coach/report` (`FE-REQ-026` B~J · M).
+   *
+   * 행동은 **"검토"** 로 끝낸다 — 리포트의 추천도 지시가 아니라 검토 거리다. 행동 기록은
+   * 수치로만 말한다(FR-61): 사람을 부르는 말 · 성향 이름을 붙이지 않는다.
+   */
+  report: {
+    pageTitle: "코치 리포트",
+    blockName: "코치 리포트",
+    signedOut: "로그인하면 코치 리포트를 볼 수 있습니다.",
+    unavailable: "지금 코치 리포트를 불러올 수 없습니다. 잠시 후 다시 열어 주세요.",
+    blockUnavailable: "이 항목을 지금 불러올 수 없습니다.",
+
+    generatedAt: (at: string) => `${at} 생성`,
+    notGenerated: "아직 생성된 리포트가 없습니다.",
+    stale: (hours: number) => `생성 후 ${hours}시간 경과`,
+    aiBadge: "AI 생성",
+    ruleBadge: "규칙 기반 설명",
+
+    recommendationHeading: "코치 추천",
+    actions: {
+      buy: "매수 검토",
+      sell: "매도 검토",
+      hold: "보유 유지 검토",
+      rebalance: "비중 조정 검토",
+    } satisfies Record<CoachAction, string>,
+    /** 색과 글자에 모양을 더한다(FR-12 · FR-100). 스크린리더는 글자만 읽는다 */
+    actionGlyphs: {
+      buy: "▲",
+      sell: "▼",
+      hold: "■",
+      rebalance: "◆",
+    } satisfies Record<CoachAction, string>,
+    reasonsHeading: "왜",
+    factorsSummary: "근거 자세히 — 점수 기여도",
+    factorScore: (score: number) => `${score > 0 ? "+" : ""}${score}`,
+    trackRecordHeading: "이 유형 추천의 과거 성적",
+    trackSample: (count: number) => `최근 ${count}회`,
+    failureHeading: "틀렸던 때",
+    noRecommendation: "아직 추천이 없습니다. 보유 기록이 있으면 코치가 판단할 수 있습니다.",
+    /** FR-143 — 모든 추천이 막힌 초기 상태. 오류가 아니다 */
+    accumulating:
+      "아직 표본이 쌓이는 중입니다 — 과거 성적이 없는 추천은 보여드리지 않습니다.",
+    /** 성적표 `signalType` → 이름 (FR-144). 매핑 없는 코드는 줄을 그리지 않는다 */
+    signalTypes: {
+      "coach.buy": "코치 추천 · 매수 검토",
+      "coach.sell": "코치 추천 · 매도 검토",
+      "coach.hold": "코치 추천 · 보유 유지 검토",
+      "coach.rebalance": "코치 추천 · 비중 조정 검토",
+    } as Record<string, string | undefined>,
+
+    risksHeading: "주의할 점",
+    noRisks: "지금 표시할 주의 사항이 없습니다.",
+
+    exitPlanHeading: "익절 플랜",
+    exitPlanCaption: "내 보유 기록에 규칙을 적용한 가격 · 예측 아님",
+    exitPlanColumns: { stage: "단계", price: "가격" },
+    exitStages: { stopLoss: "손실 제한", firstTakeProfit: "1차 익절 검토", trendHold: "추세 유지" },
+    currentPrice: (price: string) => `현재가 ${price}원`,
+    /** `trendHold.conditionCode` → 조건 문장 (FR-45) */
+    trendHoldConditions: {
+      hold_or_trail_stop: "추세가 이어지는 동안 보유하고, 손실 제한선을 따라 올립니다.",
+    } as Record<string, string | undefined>,
+    noHoldings: "보유 종목이 없습니다.",
+
+    behaviorHeading: "최근 거래 기록",
+    noBehavior: "최근 거래에서 기록된 반복 패턴이 없습니다.",
+    /**
+     * `factCode` → 사실 문장 (FR-60 · FR-61). 재료는 서버 `params` 그대로 — 기간은 `period`,
+     * 비율은 `rate` 로 포맷만 해서 받는다. 판정 임계(예: 매도 뒤 몇 % 이상)는 서버 값이라
+     * 문장에 숫자로 박지 않는다.
+     */
+    behaviorFacts: {
+      over_trading: (period: string, trades: number, threshold: number) =>
+        `최근 ${period} 동안 거래가 ${trades}건 있었습니다. 기준은 ${threshold}건입니다.`,
+      panic_sell: (period: string, sells: number, recovered: number, avgRate: string) =>
+        `최근 ${period} 매도 ${sells}건 중 ${recovered}건은 지금 가격이 매도가보다 높습니다. 평균 ${avgRate} 차이입니다.`,
+      chasing_high: (period: string, buys: number, nearHigh: number, ratio: string) =>
+        `최근 ${period} 매수 ${buys}건 중 ${nearHigh}건은 최근 고가의 ${ratio} 이상 가격이었습니다.`,
+    },
+    periodDays: (days: number) => `${days}일`,
+    periodHours: (hours: number) => `${hours}시간`,
+    amount: (amount: string) => `합계 ${amount}원`,
+
+    /** 추천 대상에서 빠진 자산군 (FR-91). `assetType:reasonCode` */
+    excluded: {
+      "kr_stock:no_realtime_data":
+        "국내주식은 실시간 시세 · 지표가 없어 추천 대상이 아닙니다.",
+    } as Record<string, string | undefined>,
+
+    disclaimerLabel: "유의사항",
   },
 
   gauge: {
