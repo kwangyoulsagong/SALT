@@ -19,6 +19,7 @@ import { CheckTradePreflight } from "../CheckTradePreflight";
 import { ExplainCoachDecision } from "../ExplainCoachDecision";
 import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
 import { GetCoachRecommendation } from "../GetCoachRecommendation";
+import { GetJudgmentScoreboard } from "../GetJudgmentScoreboard";
 import { GetSignalPerformance } from "../GetSignalPerformance";
 import { GetSymbolCoach } from "../GetSymbolCoach";
 import { ListProfitPlans } from "../ListProfitPlans";
@@ -71,6 +72,7 @@ export interface CoachUseCases {
   checkTradePreflight: CheckTradePreflight;
   listProfitPlans: ListProfitPlans;
   getSignalPerformance: GetSignalPerformance;
+  getJudgmentScoreboard: GetJudgmentScoreboard;
   snapshotSymbolJudgments: SnapshotSymbolJudgments;
   evaluateSymbolJudgments: EvaluateSymbolJudgments;
   refreshGaugeTrackRecords: RefreshGaugeTrackRecords;
@@ -127,6 +129,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     ),
     listProfitPlans: new ListProfitPlans(deps.portfolio),
     getSignalPerformance: new GetSignalPerformance(deps.insights, deps.market),
+    getJudgmentScoreboard: new GetJudgmentScoreboard(deps.judgments),
     snapshotSymbolJudgments: new SnapshotSymbolJudgments(
       deps.tracked,
       deps.market,

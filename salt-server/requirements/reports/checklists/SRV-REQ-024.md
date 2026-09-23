@@ -16,7 +16,8 @@
 | FR-1~4 | `coach` 컨텍스트 통합 · 점수 엔진 불변 · 스냅샷 테스트 | 미착수 | `src/coach` 는 `SRV-REQ-006` 이관으로 이미 있다. FR-4 스냅샷 테스트는 이 체크리스트에서 보지 않았다 |
 | FR-10~17 | `renderGate.ts` 순수 함수 · 3종 · 200 · 우회 없음 · `/preview` · 카운터 | 미착수 | `src/coach/domain/policy/renderGate.ts` 없음 |
 | FR-20~24 | 추천 범위 제한(`recommendationScope`) | 미착수 | |
-| FR-30~36 | 성적표 그룹 · `lowSample` · N+1 제거 | 미착수 | 종목 판단 성적은 별도(D절) |
+| FR-30 · 31 · 35 · 36 | 성적표 그룹 · `lowSample` · `insufficient_data` · N+1 제거 | **pass** (2026-09-23) | 슬라이스 11 — 판단 스냅샷 기준. 그룹 집계 · 사례를 SQL 2회로(그룹별 반복 0). `SRV-REQ-025.md` §7 |
+| FR-32~34 | `lowSample` 에서 게이트 통과 · `coach_feedback` 제외 · 표본 20 상한 | 범위 밖 | 저장 추천 이력 경로(무인자)의 기존 동작이고 슬라이스 11 이 바꾸지 않았다 |
 | FR-40~45 | 익절 플랜 `gapFromCurrent` · `Decimal` · 3자산군 | 미착수 | `calculateProfitPlan` 은 B절이 **그대로** 재사용만 했다 |
 | FR-50~53 | preflight | 미착수 | |
 | FR-60~62 · FR-65 | 행동 기록 `factCode` + `params` | 미착수 | |
@@ -62,7 +63,9 @@
 | FR-138 | 피하기 근거 = `reasons ∪ risks` | pass | `judgmentEvidence` — `f722e5f`, 테스트 1건 (2026-09-21 사용자 확정) |
 | FR-140~142 | 즉석 해설 3종 동봉 · `newsSummary` · 미렌더 시 LLM 미호출 | 미착수 | |
 | FR-150~153 | preflight 목표가 선택 · `maxLossOfTotalRate` · `stopLossRate` | 미착수 | |
-| FR-160~162 | 30일 수익률 분포 · 적중/실패 동등 | 미착수 | 종목 판단 사례 상한은 `JUDGMENT_CASE_LIMIT = 3` 이지만 응답에는 `miss` 만 싣는다 |
+| FR-160 | 신호 후 수익률 분포(구간 6 + 사분위수) | **pass** (2026-09-23) | 슬라이스 11. **기간은 30 고정이 아니라 그룹의 관찰 기간**(단타 1 · 장기 30) — 단타 표본에 30일이라고 쓰면 거짓이다 |
+| FR-161 | 적중 · 실패 이력 동등 | **pass** (2026-09-23) | 성적표는 `hits` · `misses` 둘 다 상한 3. 판단 블록의 `failureCases` 는 여전히 `miss` 만(그 계약은 그대로) |
+| FR-162 | 코치 탭 · 리포트 분리 — 서버 계약 불변 | 미착수 | `/api/coach/detail` 이 아직 없다 |
 | FR-170 | 관심 종목 응답에 판단 필드 없음 | 미착수 | 두 슬라이스가 watchlist 를 건드리지 않았다. 확인하지 않았다 |
 | FR-171 | 알림 만들기 | 범위 밖 | REQ 스스로 "이 REQ 에 없다" |
 
@@ -70,11 +73,11 @@
 
 | 판정 | FR 수 |
 |---|---|
-| pass | 24 |
+| pass | 30 (+6: FR-30 · 31 · 35 · 36 · 160 · 161) |
 | 다르게 | 1 (FR-107) |
 | 미충족 | 1 (FR-115 — 3종 중 `excluded_asset`) |
-| 범위 밖 | 3 (FR-117 · FR-124 · FR-171) |
-| 미착수 | 68 |
+| 범위 밖 | 6 (FR-117 · FR-124 · FR-171 · FR-32~34) |
+| 미착수 | 59 |
 | 무효 | 2 (FR-63 · FR-64) |
 
 ## 4. 명령 (루트 체크리스트 그대로)
@@ -83,11 +86,12 @@
 |---|---|---|
 | 1 (`1b8abd4`) | **225/225** (+19: 도메인 13 · 유스케이스 6) | `tsc` · `build` · `npm run lint` · `test:layer-check` pass |
 | 2 (`f722e5f` · `2771a9d` · `1553a67`) | **239/239** (+14) | `tsc` · `build` · `eslint src/coach src/market src/workers` · `test:layer-check` pass |
+| 11 (성적표) | **274/274** (+12: 도메인 7 · 유스케이스 5) | `build` · `eslint .` · `layer-check` 8파일 · 엔드포인트 · 실행계획 실측 |
 
 ## 5. 미검증
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 워커 실제 회차(10분 스냅샷 · 판정, 일 1회 게이지) | 유스케이스를 직접 불러 확인했다 | 서버 재기동 후 첫 회차 |
-| 표본 20 도달 · `renderable: true` · `lowSample: false` 실데이터 | 시간 | 판단 유형당 20표본 · 게이지 구간당 20일 |
+| ~~표본 20 도달 · `renderable: true` · `lowSample: false`~~ | ~~시간~~ | **2026-09-23 닫힘** — 로컬 시드로 8그룹 전부 표본 30↑ · explain `renderable: true` 실측. **운영 실데이터는 여전히 시간** |
 | 실패사례에 다른 사용자 추적 종목 표시 | 성적이 판단 유형 전체라서 | PM 확인 |

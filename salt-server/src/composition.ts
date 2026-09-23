@@ -18,6 +18,7 @@ import { PrismaGaugeTrackStore } from "./coach/infrastructure/PrismaGaugeTrackSt
 import { PrismaSymbolJudgmentStore } from "./coach/infrastructure/PrismaSymbolJudgmentStore";
 import { TrackedAssetAdapter } from "./coach/infrastructure/TrackedAssetAdapter";
 import { createAICoachRouter } from "./coach/presentation/aiCoach.routes";
+import { createCoachReportRouter } from "./coach/presentation/coachReport.routes";
 import {
   createBehaviorCoachRouter,
   createProfitPlanRouter,
@@ -196,4 +197,5 @@ export const contextRouters = {
   profitPlan: createProfitPlanRouter(coach.useCases),
   tradePreflight: createTradePreflightRouter(coach.useCases),
   signalPerformance: createSignalPerformanceRouter(coach.useCases),
+  coachReport: createCoachReportRouter(coach.useCases),
 };

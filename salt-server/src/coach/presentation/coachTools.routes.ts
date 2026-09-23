@@ -194,9 +194,20 @@ export const createSignalPerformanceRouter = (
    *         schema:
    *           type: string
    *         description: 모드 또는 신호 키 필터
+   *       - in: query
+   *         name: groupBy
+   *         schema:
+   *           type: string
+   *           enum: [signalType]
+   *         description: |
+   *           `signalType` 을 주면 **판단 스냅샷 기반 성적표 그룹**을 준다
+   *           (`GET /api/coach/scoreboard` 와 같은 응답 · 같은 표).
+   *           주지 않으면 기존 응답 그대로다 — `symbol` · `signalKey` 는 이때만 쓰인다.
    *     responses:
    *       200:
-   *         description: 신호 성과
+   *         description: |
+   *           신호 성과. `groupBy=signalType` 이면 `{ status, groups[], disclaimer, generatedAt }`,
+   *           아니면 기존 `{ status, sampleCount, winRate, avgReturn, maxDrawdown, samples[] }`
    *       401:
    *         description: 인증 실패
    */
