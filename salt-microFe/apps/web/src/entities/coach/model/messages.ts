@@ -50,8 +50,6 @@ export const COACH_MESSAGES = {
   signedOut: "로그인하면 이 종목의 판단을 볼 수 있습니다.",
 
   notPrediction: "예측 아님",
-  /** ⑦ (`FE-REQ-026` FR-119) */
-  openDetail: "상세 분석 보기 →",
   zone: {
     heldRuleHeading: "내 규칙 가격",
     observationHeading: "관찰 구간",

@@ -37,6 +37,7 @@ import {
 } from "@/entities/market";
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
 
+import { useOpenDetail } from "../lib";
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
 import type { PreviewRenderer } from "../model/previewSlot";
 import { previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
@@ -84,6 +85,7 @@ export const RealtimeMarketTable = ({
     setSelectedSymbol(symbol);
   }, []);
   const selectSymbolOnHover = useDebounce(selectSymbol, HOVER_SELECT_DELAY_MS);
+  const openDetail = useOpenDetail();
 
   const handleBlink = useCallback((symbol: string) => {
     setBlinkingSymbol(symbol);
@@ -189,10 +191,9 @@ export const RealtimeMarketTable = ({
                       tabIndex={0}
                       aria-selected={selected}
                       onMouseEnter={() => selectSymbolOnHover(item.symbol)}
-                      onClick={() => selectSymbol(item.symbol)}
-                      onKeyDown={selectRowOnKey(() =>
-                        selectSymbol(item.symbol),
-                      )}
+                      onFocus={() => selectSymbol(item.symbol)}
+                      onClick={() => openDetail(item.symbol)}
+                      onKeyDown={selectRowOnKey(() => openDetail(item.symbol))}
                     >
                       <TableCell align="left">
                         <FlexBox align="center" gap="md">

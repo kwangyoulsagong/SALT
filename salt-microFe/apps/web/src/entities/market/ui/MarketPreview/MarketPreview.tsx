@@ -33,8 +33,6 @@ interface MarketPreviewProps {
   gaugeFooters?: GaugeFooters;
   /** 차트 위 선 · 띠. 코치 패널이 구간을 넣는다(`FE-REQ-036` FR-3) — 위와 같은 이유로 자리만 낸다 */
   chartOverlay?: MarketChartOverlay;
-  /** 패널 맨 아래. 코치 패널의 ⑦ [상세 분석 보기](FR-119)가 들어온다 — 위와 같은 이유로 자리만 낸다 */
-  footerSlot?: ReactNode;
 }
 
 /** 차트·심리·스마트머니의 소스가 업비트다. 이 자산군에만 있다. */
@@ -58,7 +56,6 @@ export const MarketPreview = ({
   subject,
   coachSlot,
   gaugeFooters,
-  footerSlot,
   chartOverlay,
 }: MarketPreviewProps) => {
   const hasMarketData = subject?.assetType === MARKET_DATA_ASSET_TYPE;
@@ -92,7 +89,6 @@ export const MarketPreview = ({
                   </Text>
                 </>
               )}
-              {footerSlot}
             </FlexBox>
           ) : null}
         </Suspense>

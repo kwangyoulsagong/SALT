@@ -25,7 +25,10 @@ import { PriceCell } from "./PriceCell";
 interface WatchlistTableProps {
   items: readonly WatchlistItem[];
   selectedSymbol: string;
+  /** 행 클릭 · Enter — 상세로 간다 */
   onSelect: (symbol: string) => void;
+  /** hover · 포커스 — 우측 미리보기만 바꾼다 */
+  onPreview: (symbol: string) => void;
   /**
    * 별 버튼 자리. **엔티티는 인터랙션을 모른다** — 추가·제거는
    * `features/toggle-watchlist` 의 일이고 위젯이 여기에 꽂는다 (`fsd-entities.md`).
@@ -42,7 +45,7 @@ const WATCHLIST_HEADERS = [
 
 /** 표시 전용 (`fsd-entities.md`). 조회·mutation 을 부르지 않는다. */
 export const WatchlistTable = React.memo(
-  ({ items, selectedSymbol, onSelect, renderAction }: WatchlistTableProps) => {
+  ({ items, selectedSymbol, onSelect, onPreview, renderAction }: WatchlistTableProps) => {
     return (
       <ScrollTableContainer maxHeight="viewport" hideScrollbar>
         <Table>
@@ -69,6 +72,8 @@ export const WatchlistTable = React.memo(
                   clickable
                   tabIndex={0}
                   aria-selected={selected}
+                  onMouseEnter={() => onPreview(item.symbol)}
+                  onFocus={() => onPreview(item.symbol)}
                   onClick={select}
                   onKeyDown={selectRowOnKey(select)}
                 >
