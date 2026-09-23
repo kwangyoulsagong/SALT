@@ -8,7 +8,10 @@ import { Section } from "@repo/ui/section";
 import { ServiceIcon } from "@repo/ui/serviceicon";
 import { Tabs } from "@repo/ui/tabs";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import React, { Suspense, useState } from "react";
+
+import { ROUTES } from "@/shared/config";
 
 import {
   DEFAULT_MARKET_BOARD_TAB,
@@ -17,6 +20,7 @@ import {
   WATCH_LIST_TAB,
   type PreviewRenderer,
 } from "../model";
+import { headingRow, reportLink } from "./MarketBoardLayout.css";
 import { placeholder as summaryPlaceholder } from "./MarketSummaryStrip.css";
 
 const RealtimeMarketTable = dynamic(
@@ -67,10 +71,16 @@ export const MarketBoard = ({ renderPreview }: MarketBoardProps) => {
   return (
     <Section noContainer>
       <FlexBox direction="column">
-        <FlexBox direction="row" align="center" gap="lg">
-          <ServiceIcon variant="analysis" />
-          <Heading level={2}>{MARKET_BOARD_MESSAGES.heading}</Heading>
-        </FlexBox>
+        <div className={headingRow}>
+          <FlexBox direction="row" align="center" gap="lg">
+            <ServiceIcon variant="analysis" />
+            <Heading level={2}>{MARKET_BOARD_MESSAGES.heading}</Heading>
+          </FlexBox>
+          {/* 코치 리포트 진입(`FE-REQ-026` FR-140). 보유 전체의 리포트라 종목 패널이 아니라 화면 머리에 둔다 */}
+          <Link href={ROUTES.coachReport} className={reportLink}>
+            {MARKET_BOARD_MESSAGES.coachReportLink}
+          </Link>
+        </div>
         <Margin top="xl">
           <MarketSummaryStrip />
         </Margin>

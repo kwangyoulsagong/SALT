@@ -1,9 +1,9 @@
 "use client";
 
 // 클라이언트 잎: 행 선택 이벤트를 다룬다. barrel 로 노출되므로 경계를 스스로 갖는다.
+import { AssetIcon } from "@repo/ui/assetIcon";
 import { Badge } from "@repo/ui/badge";
 import { FlexBox } from "@repo/ui/flexBox";
-import { Image } from "@repo/ui/image";
 import {
   ScrollTableContainer,
   Table,
@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@repo/ui/table";
 import { Text } from "@repo/ui/text";
+import Link from "next/link";
 import React, { ReactNode } from "react";
 
 import { selectRowOnKey } from "../lib/rowSelection";
@@ -21,11 +22,17 @@ import { WATCHLIST_ASSET_LABELS, WATCHLIST_MESSAGES } from "../model/messages";
 import { WatchlistItem } from "../model/types";
 import { ChangeRateCell } from "./ChangeRateCell";
 import { PriceCell } from "./PriceCell";
+import { nameLink } from "./WatchlistTable.css";
 
 interface WatchlistTableProps {
   items: readonly WatchlistItem[];
   selectedSymbol: string;
+  /** 행 클릭 · Enter — 상세로 간다 */
   onSelect: (symbol: string) => void;
+  /** hover · 포커스 — 우측 미리보기만 바꾼다 */
+  onPreview: (symbol: string) => void;
+  /** 종목 이름 링크의 주소 — 모드를 싣는 규칙은 부르는 쪽(위젯)이 안다 */
+  detailHref: (symbol: string) => string;
   /**
    * 별 버튼 자리. **엔티티는 인터랙션을 모른다** — 추가·제거는
    * `features/toggle-watchlist` 의 일이고 위젯이 여기에 꽂는다 (`fsd-entities.md`).
@@ -42,7 +49,14 @@ const WATCHLIST_HEADERS = [
 
 /** 표시 전용 (`fsd-entities.md`). 조회·mutation 을 부르지 않는다. */
 export const WatchlistTable = React.memo(
-  ({ items, selectedSymbol, onSelect, renderAction }: WatchlistTableProps) => {
+  ({
+    items,
+    selectedSymbol,
+    onSelect,
+    onPreview,
+    detailHref,
+    renderAction,
+  }: WatchlistTableProps) => {
     return (
       <ScrollTableContainer maxHeight="viewport" hideScrollbar>
         <Table>
@@ -69,6 +83,8 @@ export const WatchlistTable = React.memo(
                   clickable
                   tabIndex={0}
                   aria-selected={selected}
+                  onMouseEnter={() => onPreview(item.symbol)}
+                  onFocus={() => onPreview(item.symbol)}
                   onClick={select}
                   onKeyDown={selectRowOnKey(select)}
                 >
@@ -85,20 +101,24 @@ export const WatchlistTable = React.memo(
                         {renderAction?.(item)}
                       </span>
                       {/*
-                        로고가 없으면 **영역을 렌더하지 않는다.** 주식에는 업비트 로고가
-                        없고, 없는 URL 을 넣으면 깨진 이미지가 그려진다.
+                        로고 자리는 **늘 있다** — 로고가 없으면(주식에는 업비트 로고가 없다)
+                        이니셜 아이콘이다. 없는 URL 을 넣지 않는다 — 깨진 이미지가 그려진다.
                       */}
-                      {item.logoUrl ? (
-                        <Image
-                          radius={9999}
-                          width={30}
-                          height={30}
-                          src={item.logoUrl}
-                          alt={item.name}
-                        />
-                      ) : null}
+                      <AssetIcon
+                        symbol={item.symbol}
+                        src={item.logoUrl ?? undefined}
+                        name={item.name}
+                        size="md"
+                      />
                       <FlexBox direction="column">
-                        <Text variant="bodyLarge">{item.name}</Text>
+                        <Link
+                          href={detailHref(item.symbol)}
+                          prefetch={false}
+                          className={nameLink}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          <Text variant="bodyLarge">{item.name}</Text>
+                        </Link>
                         <Text variant="caption" color="tertiary">
                           {item.symbol}
                         </Text>

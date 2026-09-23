@@ -31,7 +31,7 @@ export const GoalSavedSection = ({ saved }: GoalSavedSectionProps) => {
     <Container size="full">
       <FlexBox justify="between" align="center">
         <SavedWrapper>
-          <Icon url={saved.thumbnail} />
+          {saved.thumbnail && <Icon url={saved.thumbnail} />}
           <SaveInformation>
             <Heading level={2}>{GOAL_MESSAGES.amountLabel(saved.money)}</Heading>
             <Text color="muted">{GOAL_MESSAGES.savedCaption}</Text>

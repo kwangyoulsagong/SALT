@@ -5,9 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
 import { isCoachMode } from "@/entities/coach";
+import { COACH_MODE_PARAM } from "@/shared/config";
 
-/** 패널과 상세 분석 페이지가 공유하는 URL 키 (`FE-REQ-026` FR-111) */
-export const COACH_MODE_PARAM = "mode";
+/** 패널과 상세 분석 페이지가 공유하는 URL 키 — 원본은 `shared/config` (서버 컴포넌트도 쓴다) */
+export { COACH_MODE_PARAM };
 
 /**
  * 판단 모드 — **URL `?mode=` 가 상태다** (`FE-REQ-026` FR-111 · FR-112).

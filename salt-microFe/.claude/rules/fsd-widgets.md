@@ -32,7 +32,7 @@ widgets/{slice}/
 | widget | 엮는 것 | 화면 |
 |---|---|---|
 | `home-briefing` | portfolio + plan + coach | 홈 3블록 (2026-09-21, `ADR-002`) |
-| `coach-console` | coach + indicator + portfolio | 코치 대화 + 추천 카드 + 성적표 |
+| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio | 코치 대화 + 추천 카드 + 성적표 |
 | `asset-workspace` | portfolio + market | 자산 탭 세그먼트 3 (포지션/시장/관심 종목) |
 | `coach-panel` | market + coach + indicator | 투자 우측 AI 코치 패널 |
 | `market-board` | market + news + indicator | 실시간 테이블 + 우측 프리뷰 |

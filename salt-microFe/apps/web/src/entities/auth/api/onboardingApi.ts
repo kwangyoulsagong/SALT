@@ -14,7 +14,7 @@ import { ONBOARDING_ENDPOINTS } from "./endpoints";
  * 된다. 앞선 슬라이스(`F000-watchlist-tab`) 회고가 같은 회귀를 두 번 기록했고
  * 실제로 이번에도 한 번 만들었다가 되돌렸다.
  *
- * `apiFetch` 는 `shared/api` 의 fetch 진입점이고 dev 에서 MSW 기동 경쟁까지 막아 준다.
+ * `apiFetch` 는 `shared/api` 의 fetch 진입점이고 401 이면 토큰을 갱신해 한 번 다시 보낸다.
  */
 export const onboardingApi = {
   status: async (): Promise<OnboardingStatus> => {

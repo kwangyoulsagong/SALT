@@ -188,3 +188,4 @@ created: 2026-09-09
 | 2026-09-22 | FE 패널 슬라이스 착수 — `to-do → in-progress`. 패널 조회 FR-80~83 · FR-85 · FR-89 구현. FR-83 방식 개정(`history.replaceState`) |
 | 2026-09-22 | 상세 분석 슬라이스 — 해설 FR-10~13 · FR-62 · FR-86(부분) · FR-88 구현. **FR-84 는 클라이언트 조회로 다르게 구현**(토큰이 `localStorage` — `FE-REQ-013` 후 서버 컴포넌트로). FR-86 `renderable` union 은 서버 응답에 없어 막힌 모드는 버튼을 그리지 않는 것으로 처리 |
 | 2026-09-22 | 서버가 해설을 게이트 뒤에 두면서(`SRV-REQ-025` FR-50) 응답이 합 타입이 됐다 — `ExplainResult` 로 받는다. 요청 · 재시도 · 타임아웃 계약은 그대로 |
+| 2026-09-23 | F004 슬라이스 15 — 리포트 조회(FR-3 · 4) · 재생성 · 폴링(FR-20~26). FR-1 · FR-27 다르게(클라이언트 조회 → 쿼리 무효화). 완료 판정은 `@repo/core/coach` `readGenerationOutcome` — 워커 행은 `inProgress` 로만 본다 |

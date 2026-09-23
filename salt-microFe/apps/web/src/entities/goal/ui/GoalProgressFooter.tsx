@@ -31,13 +31,15 @@ export const GoalProgressFooter = ({ process }: GoalProgressFooterProps) => {
           <Text variant="caption" color="muted">
             {GOAL_MESSAGES.dday}
           </Text>
-          <span className={Process}>{process.dday}</span>
+          <span className={Process}>{process.dday ?? GOAL_MESSAGES.emptyValue}</span>
         </ProcessCard>
         <ProcessCard>
           <Text variant="caption" color="muted">
             {GOAL_MESSAGES.achievementRate}
           </Text>
-          <span className={Process}>{process.percent}%</span>
+          <span className={Process}>
+            {process.percent === null ? GOAL_MESSAGES.emptyValue : `${process.percent}%`}
+          </span>
         </ProcessCard>
       </ProcessWrapper>
     </footer>

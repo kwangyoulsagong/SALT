@@ -45,11 +45,11 @@ import { vars } from "@repo/ui/tokens";
 
 | 공개 경로 | 컴포넌트 | 주요 props | 소스 |
 | --- | --- | --- | --- |
-| `@repo/ui/button` | `Button` | `variant`, `size`, `fullWidth`, `type`, `disabled`, `onClick` | `packages/ui/src/Button/button.tsx` |
+| `@repo/ui/button` | `Button` | `variant`(`weak` — 회색 약한 버튼, 주된 행동이 아닌 버튼 · 2026-09-23), `size`, `fullWidth`, `type`, `disabled`, `loading`, `onClick` | `packages/ui/src/Button/button.tsx` |
 | `@repo/ui/input` | `InputField` | `register`, `name`, `variant`, `placeholder`, `type` | `packages/ui/src/InputField/InputField.tsx` |
 | `@repo/ui/radiobutton` | `RadioButton` | `checked`, `onChange` | `packages/ui/src/RadioButton/RadioButton.tsx` |
 | `@repo/ui/tabs` | `Tabs` | `tabs`, `defaultActiveTab`, `activeTab`, `onTabChange`, `tabPanel` | `packages/ui/src/Tabs/Tabs.tsx` |
-| `@repo/ui/filterTabs` | `FilterTabs` | `options`, `value`, `onChange` | `packages/ui/src/FilterTabs/FilterTabs.tsx` |
+| `@repo/ui/filterTabs` | `FilterTabs` | `options`, `value`, `onChange`, `label`, `variant`(`segmented` 기본 · `chip` 막대 없는 글자 칩 · 2026-09-23) | `packages/ui/src/FilterTabs/FilterTabs.tsx` |
 | `@repo/ui/segmentedControl` | `SegmentedControl` | `options`, `value`, `onChange`, `label` | `packages/ui/src/SegmentedControl/SegmentedControl.tsx` |
 | `@repo/ui/chip` | `Chip` | `selected`, `onPress`, `disabled`, `size`, `leading` | `packages/ui/src/Chip/Chip.tsx` |
 | `@repo/ui/toggle` | `Toggle` | `checked`, `onChange`, `disabled`, `label` | `packages/ui/src/Toggle/Toggle.tsx` |

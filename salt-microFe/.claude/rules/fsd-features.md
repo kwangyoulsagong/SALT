@@ -46,6 +46,7 @@ features/{slice}/
 | `toggle-news-bookmark` | 뉴스 북마크 추가·해제 | F000 |
 | `switch-coach-mode` | 단타/장기 모드 전환 (URL 이 유일한 저장소) | F004 |
 | `explain-symbol` | 종목 판단 해설 요청 | F004 |
+| `regenerate-coach` | 코치 리포트 재생성 · 쿨다운 표시 · 202 뒤 완료 폴링 | F004 |
 | `record-transaction` | 보유 거래 기록 추가·수정·삭제 + 서버 미리보기 | F006 |
 | `mark-alert-read` | 알림 읽음 · 모두 읽음 | F006 |
 | `toggle-alerts` | 알림 켜기/끄기 | F006 |

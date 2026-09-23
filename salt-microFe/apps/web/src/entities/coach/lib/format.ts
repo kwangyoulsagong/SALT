@@ -29,3 +29,20 @@ export const describePriceGap = (gap: number): string => {
   const amount = formatGapAmount(gap);
   return gap > 0 ? zone.gapAbove(amount) : zone.gapBelow(amount);
 };
+
+const generatedAtFormatter = new Intl.DateTimeFormat("ko-KR", {
+  month: "long",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+/**
+ * 리포트 생성 시각 → `9월 23일 13:40`. **클라이언트에서만** 부른다 — 타임존이 다르면
+ * 서버와 문자열이 갈린다(`formatClockTime` 과 같은 조건). 읽을 수 없으면 `null`.
+ */
+export const formatGeneratedAt = (iso: string): string | null => {
+  const at = new Date(iso);
+  return Number.isNaN(at.getTime()) ? null : generatedAtFormatter.format(at);
+};

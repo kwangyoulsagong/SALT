@@ -6,3 +6,7 @@ export { JudgmentSummary } from "./JudgmentSummary";
 export { ProfitPlan } from "./ProfitPlan";
 export { ZoneLegend } from "./ZoneLegend";
 export { ZoneSummary } from "./ZoneSummary";
+export { BehaviorFactList } from "./BehaviorFactList";
+export { ExitPlanList } from "./ExitPlanList";
+export { RecommendationCard } from "./RecommendationCard";
+export { ReportRiskList } from "./ReportRiskList";

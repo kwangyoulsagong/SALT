@@ -1,4 +1,8 @@
-import type { SymbolCoachViewModel } from "@repo/core/coach";
+import type {
+  CoachGenerationStatus,
+  CoachReportResult,
+  SymbolCoachViewModel,
+} from "@repo/core/coach";
 
 import { apiFetch, authHeader } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
@@ -42,6 +46,35 @@ export const coachApi = {
     if (!response.ok) throw new CoachApiError(response.status);
 
     const body = (await response.json()) as AppEnvelope<SymbolCoachViewModel>;
+    return body.data;
+  },
+
+  /**
+   * 코치 리포트 (`GET /api/app/coach/report`). **인증이 필요하다.**
+   *
+   * 서버 5xx · 타임아웃은 BFF 가 200 `{ status: "unavailable" }` 로 준다 — 그건 에러가 아니라
+   * 값이다. 4xx(401 등)만 여기서 던진다(토큰 갱신이 돌아야 한다).
+   */
+  report: async (signal?: AbortSignal): Promise<CoachReportResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.report}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<CoachReportResult>;
+    return body.data;
+  },
+
+  /** 생성 상태 (`GET /api/app/coach/generation-status`). 쿨다운 판정은 서버가 했다 */
+  generationStatus: async (signal?: AbortSignal): Promise<CoachGenerationStatus> => {
+    const response = await apiFetch(
+      `${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.generationStatus}`,
+      { headers: authHeader(), signal },
+    );
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<CoachGenerationStatus>;
     return body.data;
   },
 };

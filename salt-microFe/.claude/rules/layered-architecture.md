@@ -93,7 +93,7 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | widget | 엮는 것 |
 |---|---|
 | `home-briefing` | portfolio + plan + coach (3블록) |
-| `coach-console` | coach + indicator + portfolio |
+| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio |
 | `asset-workspace` | 포지션 / 시장 / 관심 종목 세그먼트 |
 | `position-overview` | portfolio (Hero · 평가금 흐름 · 보유 · 리스크 레이더) |
 | `coach-panel` · `symbol-analysis` | market + coach + indicator (투자 우측 패널 · 상세 분석) |
@@ -173,7 +173,6 @@ export enum AssetClass {
 | `packages/ui-native` | RN 컴포넌트 | mobile |
 | `packages/core` | 플랫폼 무관 `model`·`api`·`lib` | 전부 |
 | `packages/eslint-config` `packages/typescript-config` | 툴링 | 전부 |
-| `packages/mocks` | MSW 핸들러 | web · web-tax |
 
 ## 9. 레이어별 규칙 문서
 

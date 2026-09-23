@@ -10,4 +10,6 @@ export const GOAL_MESSAGES = {
   complete: "달성",
   dday: "D-Day",
   achievementRate: "달성률",
+  /** 서버가 주지 않는 값 — 지어내지 않는다 */
+  emptyValue: "—",
 } as const;

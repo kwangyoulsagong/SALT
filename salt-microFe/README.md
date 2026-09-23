@@ -12,7 +12,6 @@ packages/
   tokens/            플랫폼 중립 디자인 토큰 (순수 TS. 웹·RN 공용)
   core/              플랫폼 무관 모델·상수 + zone 레지스트리
   ui/                웹 전용 디자인 시스템 (@repo/ui, vanilla-extract)
-  mocks/             MSW 핸들러
   eslint-plugin-zone/ zone 경계 lint 규칙
   eslint-config/ · typescript-config/
 ```

@@ -1,6 +1,8 @@
 import { style } from "@vanilla-extract/css";
 import { vars } from "@repo/ui/tokens";
 
+import { SURFACE } from "@/shared/ui/surface.css";
+
 /**
  * 상세 분석 화면.
  *
@@ -22,186 +24,23 @@ import { vars } from "@repo/ui/tokens";
 const STACK_BREAKPOINT = "1024px";
 const NARROW = "screen and (max-width: 640px)";
 const SIDE_WIDTH = "380px";
-const CARD_RADIUS = "20px";
+const CARD_RADIUS = SURFACE.panelRadius;
 /**
  * 카드 그림자. 토큰의 `elevation.sm` 은 흰 배경을 전제해서 옅은 회색 배경 위에서는
  * 거의 보이지 않았다 — 카드 경계가 사라져 화면이 한 장처럼 보였다. 가까운 그림자로 윤곽을
  * 만들고 먼 그림자로 살짝 띄운다.
  */
-const CARD_SHADOW = "0 1px 2px rgba(25,31,40,0.04), 0 10px 24px rgba(25,31,40,0.05)";
+const CARD_SHADOW = SURFACE.hairline;
 /** 하단 고정 바 높이. 본문이 그 아래로 숨지 않게 같은 값만큼 띄운다. */
 const DISCLAIMER_BAR_HEIGHT = "44px";
 
 export const layout = style({
   display: "flex",
   flexDirection: "column",
-  gap: vars.space.xl,
+  gap: "16px",
   minWidth: 0,
-  paddingBottom: DISCLAIMER_BAR_HEIGHT,
-});
-
-export const backLink = style({
-  alignSelf: "flex-start",
-  color: vars.colors.text.tertiary,
-  fontSize: vars.typography.t7.fontSize,
-  lineHeight: vars.typography.t7.lineHeight,
-  textDecoration: "none",
-  ":hover": { textDecoration: "underline" },
-});
-
-/* ── 종목 헤더 ──────────────────────────────────────────────── */
-
-/**
- * 종목 헤더 카드.
- *
- * 헤더가 배경 위에 그냥 떠 있으면 지표 · 가격 · 이름이 각각 놓인 글자 덩어리로 보인다.
- * **카드로 묶으면** 아래 패널들과 같은 언어가 되고, 화면이 카드 네 장으로 읽힌다.
- */
-export const headerCard = style({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: vars.space["2xl"],
-  flexWrap: "wrap",
-  padding: `${vars.space.xl} ${vars.space.xl}`,
-  borderRadius: CARD_RADIUS,
-  background: vars.colors.background.white,
-  boxShadow: CARD_SHADOW,
-  "@media": {
-    [NARROW]: { padding: vars.space.lg, gap: vars.space.lg },
-  },
-});
-
-export const identity = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: vars.space.sm,
-  minWidth: 0,
-});
-
-export const nameRow = style({
-  display: "flex",
-  alignItems: "center",
-  gap: vars.space.sm,
-  minWidth: 0,
-});
-
-export const name = style({
-  fontSize: vars.typography.t5.fontSize,
-  lineHeight: vars.typography.t5.lineHeight,
-  fontWeight: vars.fontWeights.bold,
-  color: vars.colors.text.primary,
-  margin: 0,
-  whiteSpace: "nowrap",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-});
-
-export const ticker = style({
-  fontSize: vars.typography.t7.fontSize,
-  lineHeight: vars.typography.t7.lineHeight,
-  color: vars.colors.text.tertiary,
-  fontVariantNumeric: vars.numeric.tabular,
-});
-
-/**
- * 가격 줄. 시세 · 판단이 온 뒤에야 값이 있어서 자리를 먼저 잡는다 — 잡지 않으면 도착 순간
- * 아래 전체가 밀린다(CLS 0.097, 2026-09-22 실측). 글자가 커진 만큼 높이도 키웠다.
- */
-export const priceRow = style({
-  display: "flex",
-  alignItems: "baseline",
-  gap: vars.space.md,
-  minHeight: "40px",
-});
-
-/** 이 화면의 주인공. 이름(t5)과 두 단계 차이를 둬야 먼저 읽힌다. */
-export const price = style({
-  fontSize: vars.typography.t1.fontSize,
-  lineHeight: vars.typography.t1.lineHeight,
-  fontWeight: vars.fontWeights.bold,
-  color: vars.colors.text.primary,
-  fontVariantNumeric: vars.numeric.tabular,
-});
-
-/* ── 요약 지표 ──────────────────────────────────────────────── */
-
-/**
- * 지표 묶음. 참고 화면처럼 **라벨 위 · 값 아래**로 촘촘히 세운다. 한 줄에 다 넣지 않고
- * 자동 줄바꿈으로 흐르게 둔다 — 좁은 화면에서 가로 스크롤이 생기지 않는다.
- */
-/** 지표 줄 + 관심 버튼. 버튼은 **헤더 오른쪽 끝**이다 — 이름 옆에 붙이면 제목의 일부로 보인다. */
-export const statsRow = style({
-  display: "flex",
-  alignItems: "center",
-  gap: vars.space.lg,
-  minWidth: 0,
-});
-
-export const stats = style({
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "flex-start",
-  gap: `${vars.space.md} ${vars.space.xl}`,
-  /** 가로로 흐른다. `auto-fit` 격자로 두었더니 헤더의 남은 폭 안에서 **한 줄에 하나씩**
-   *  쌓여 헤더가 화면 높이의 절반이 됐다(2026-09-23 실측). 지표는 가로가 기본이고,
-   *  좁아지면 줄바꿈으로 내려간다. */
-  maxWidth: "620px",
-  "@media": {
-    [NARROW]: { width: "100%", gap: vars.space.lg },
-  },
-});
-
-/**
- * 지표 한 칸. **칸 사이에 세로 선**을 둔다 — 간격만으로 나누면 라벨과 값이 세로로 정렬돼
- * 격자처럼 보이고, 어디까지가 한 칸인지 흐려진다(참고 화면도 선으로 나눈다).
- */
-export const stat = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: "2px",
-  /** 라벨이 두 줄로 접히지 않을 만큼만. 이보다 좁히면 "24시간 범위"가 깨진다. */
-  minWidth: "116px",
-  paddingLeft: vars.space.xl,
-  borderLeft: `1px solid ${vars.colors.border.light}`,
-  selectors: {
-    "&:first-child": { paddingLeft: 0, borderLeft: "none" },
-  },
-});
-
-export const statLabel = style({
-  fontSize: vars.typography.t8.fontSize,
-  lineHeight: vars.typography.t8.lineHeight,
-  color: vars.colors.text.tertiary,
-});
-
-export const statValue = style({
-  fontSize: vars.typography.t7.fontSize,
-  lineHeight: vars.typography.t7.lineHeight,
-  fontWeight: vars.fontWeights.semibold,
-  color: vars.colors.text.primary,
-  fontVariantNumeric: vars.numeric.tabular,
-});
-
-/** 저가 ──●── 고가. 위치는 서버가 준 세 값으로 정해지는 **표시 기하**다. */
-export const rangeTrack = style({
-  position: "relative",
-  width: "140px",
-  maxWidth: "100%",
-  height: "4px",
-  borderRadius: vars.radius.full,
-  background: vars.colors.neutral[200],
-  marginTop: "6px",
-});
-
-export const rangeDot = style({
-  position: "absolute",
-  top: "-2px",
-  width: "8px",
-  height: "8px",
-  borderRadius: vars.radius.full,
-  background: vars.colors.text.primary,
-  transform: "translateX(-50%)",
+  paddingTop: "8px",
+  paddingBottom: `calc(${DISCLAIMER_BAR_HEIGHT} + 24px)`,
 });
 
 /* ── 패널 격자 ──────────────────────────────────────────────── */
@@ -209,7 +48,7 @@ export const rangeDot = style({
 export const grid = style({
   display: "grid",
   gridTemplateColumns: `minmax(0, 1fr) ${SIDE_WIDTH}`,
-  gap: vars.space.lg,
+  gap: "16px",
   alignItems: "start",
   "@media": {
     [`screen and (max-width: ${STACK_BREAKPOINT})`]: {
@@ -221,35 +60,36 @@ export const grid = style({
 export const column = style({
   display: "flex",
   flexDirection: "column",
-  gap: vars.space.lg,
+  gap: "16px",
   minWidth: 0,
 });
 
 export const card = style({
   display: "flex",
   flexDirection: "column",
-  gap: vars.space.lg,
-  padding: vars.space.xl,
+  gap: "16px",
+  padding: "20px 24px 24px",
   borderRadius: CARD_RADIUS,
   background: vars.colors.background.white,
   boxShadow: CARD_SHADOW,
   minWidth: 0,
   "@media": {
-    [NARROW]: { padding: vars.space.lg },
+    [NARROW]: { padding: "16px 16px 20px" },
   },
 });
 
-/** 패널 제목 줄. 제목은 작게 — 카드 안에서 가장 큰 것은 내용이어야 한다. */
+/** 패널 제목 줄. 제목 18/24 bold — 카드 안에서 내용보다 크지 않게 */
 export const cardHead = style({
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
   gap: vars.space.sm,
+  minHeight: "28px",
 });
 
 export const cardTitle = style({
-  fontSize: vars.typography.t6.fontSize,
-  lineHeight: vars.typography.t6.lineHeight,
+  fontSize: "18px",
+  lineHeight: "24px",
   fontWeight: vars.fontWeights.bold,
   color: vars.colors.text.primary,
   margin: 0,
@@ -270,14 +110,15 @@ export const disclaimerBar = style({
   minHeight: DISCLAIMER_BAR_HEIGHT,
   display: "flex",
   alignItems: "center",
-  gap: vars.space.sm,
+  gap: vars.space.md,
   padding: `${vars.space.sm} ${vars.space.xl}`,
   background: vars.colors.background.white,
-  borderTop: `1px solid ${vars.colors.border.light}`,
-  color: vars.colors.text.tertiary,
-  fontSize: vars.typography.t8.fontSize,
-  lineHeight: vars.typography.t8.lineHeight,
-});
+  borderTop: `1px solid ${vars.colors.neutral[100]}`,
+  color: vars.colors.neutral[500],
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.medium,
+})
 
 export const disclaimerLabel = style({
   fontWeight: vars.fontWeights.bold,

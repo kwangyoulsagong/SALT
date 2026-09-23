@@ -13,6 +13,7 @@ import {
 } from "@repo/ui/table";
 import { Text } from "@repo/ui/text";
 import useDebounce from "@repo/ui/useDebounce";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -37,9 +38,10 @@ import {
 } from "@/entities/market";
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
 
+import { useDetailLink } from "../lib";
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
 import type { PreviewRenderer } from "../model/previewSlot";
-import { previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
+import { nameLink, previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
 import { RealtimeAsOf } from "./RealtimeAsOf";
 
 /**
@@ -84,6 +86,7 @@ export const RealtimeMarketTable = ({
     setSelectedSymbol(symbol);
   }, []);
   const selectSymbolOnHover = useDebounce(selectSymbol, HOVER_SELECT_DELAY_MS);
+  const { hrefOf: detailHref, open: openDetail } = useDetailLink();
 
   const handleBlink = useCallback((symbol: string) => {
     setBlinkingSymbol(symbol);
@@ -189,10 +192,9 @@ export const RealtimeMarketTable = ({
                       tabIndex={0}
                       aria-selected={selected}
                       onMouseEnter={() => selectSymbolOnHover(item.symbol)}
-                      onClick={() => selectSymbol(item.symbol)}
-                      onKeyDown={selectRowOnKey(() =>
-                        selectSymbol(item.symbol),
-                      )}
+                      onFocus={() => selectSymbol(item.symbol)}
+                      onClick={() => openDetail(item.symbol)}
+                      onKeyDown={selectRowOnKey(() => openDetail(item.symbol))}
                     >
                       <TableCell align="left">
                         <FlexBox align="center" gap="md">
@@ -214,7 +216,15 @@ export const RealtimeMarketTable = ({
                             src={item.logoUrl}
                             alt={item.koreanName}
                           />
-                          <Text variant="bodyLarge">{item.koreanName}</Text>
+                          {/* 진짜 링크 — 가운데 클릭 · 새 탭 · 검색 로봇. 행 클릭과 겹쳐 두 번 가지 않게 멈춘다 */}
+                          <Link
+                            href={detailHref(item.symbol)}
+                            prefetch={false}
+                            className={nameLink}
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <Text variant="bodyLarge">{item.koreanName}</Text>
+                          </Link>
                         </FlexBox>
                       </TableCell>
                       <TableCell align="right">

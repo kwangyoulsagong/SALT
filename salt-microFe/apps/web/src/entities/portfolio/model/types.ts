@@ -1,27 +1,5 @@
 /** 포트폴리오(투자 요약) 슬라이스의 데이터 계약. */
 
-export interface WeeklyCategoryAmount {
-  category: string;
-  amount: number;
-}
-
-export interface InvestmentsAnalysisData {
-  thisWeekData: WeeklyCategoryAmount[];
-  lastWeekData: WeeklyCategoryAmount[];
-}
-
-export interface InvestmentsPreview {
-  difference: number;
-  investments: InvestmentsAnalysisData;
-}
-
-/** 막대 그래프 한 칸. */
-export interface AnalysisGraphBar {
-  id: number;
-  category: string;
-  percent: string;
-}
-
 /**
  * 홈 "주식" 섹션 한 줄. **BFF 가 소유한 뷰모델**이다 (`/api/app/portfolio/summary`).
  *
@@ -31,6 +9,8 @@ export interface PortfolioSummaryItem {
   symbol: string;
   /** 시세 목록에서 찾은 이름. 못 찾으면 심볼이 들어 있다 */
   name: string;
+  /** 서버가 정한 로고 주소. 없으면 이니셜 아이콘 */
+  logoUrl: string | null;
   assetType: string;
   currentValue: number;
   profitRate: number;

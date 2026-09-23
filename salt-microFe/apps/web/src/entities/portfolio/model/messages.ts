@@ -1,10 +1,6 @@
 export const PORTFOLIO_MESSAGES = {
   loading: "Loading...",
-  loadFailed: "분석 데이터를 불러오는 중 에러가 발생했습니다.",
   heading: "투자 분석",
-  lastWeekCaption: "지난주 대비",
-  /** 원문 오타(`덜 썻어요`)를 고쳤다 (`FE-REQ-010` FR-4). */
-  differenceLabel: (difference: number) => `${difference}% 덜 썼어요`,
   stockHeading: "주식",
   /** 보유가 없을 때. 더미를 만들지 않는다 */
   holdingsEmpty: "보유 중인 자산이 없습니다",
@@ -15,9 +11,6 @@ export const PORTFOLIO_MESSAGES = {
   profitRate: (rate: number) =>
     `${rate > 0 ? "+" : rate < 0 ? "−" : ""}${Math.abs(rate).toFixed(2)} %`,
   totalLabel: "합계",
-  mismatchedShape:
-    "데이터 형식이 올바르지 않거나 배열 길이가 일치하지 않습니다.",
-  mismatchedCategory: "카테고리가 일치하지 않습니다.",
 } as const;
 
 /** 자산군 배지 문구. 모르는 값이면 배지를 만들지 않는다 (`DB-REQ-003` 이 값을 늘린다). */

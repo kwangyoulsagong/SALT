@@ -77,3 +77,11 @@
 
 본문과 FR-1~6 판정은 `BFF-REQ-007.md` §9. **FR-14(유지 경로 하위 호환)**: 같은 PR 에서 5개 컨트롤러가 서버 4xx 를
 500 대신 원 status 로 주게 됐다 — 본문 키는 그대로(`BFF-REQ-036` FR-2).
+
+
+## 2026-09-23 — 보유 요약 `logoUrl` (추가 계약)
+
+| 항목 | 판정 | 근거 |
+|---|---|---|
+| `PortfolioSummaryItemVM.logoUrl: string \| null` | **pass** | 이미 부르던 시세 목록에서 이름과 같이 옮긴다. 기존 필드 불변. 테스트 +1(`npm test` 100 pass) · `npm run build` |
+| 소비처 | FE 홈 보유 목록(`HoldingSummaryList` 아이콘) |

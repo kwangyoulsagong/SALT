@@ -7,4 +7,8 @@
 export const COACH_ENDPOINTS = {
   symbolDetail: (symbol: string) =>
     `/api/app/ai-coach/detail?symbol=${encodeURIComponent(symbol)}`,
+  /** 코치 리포트 (`BFF-REQ-023`). 종목 판단과 다른 화면 · 다른 경로다 */
+  report: "/api/app/coach/report",
+  /** 재생성 버튼 상태 · 202 뒤 폴링 (`BFF-REQ-023` FR-61~63) */
+  generationStatus: "/api/app/coach/generation-status",
 } as const;

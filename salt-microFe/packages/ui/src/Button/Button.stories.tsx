@@ -15,6 +15,7 @@ const meta = {
         "primary",
         "secondary",
         "ghost",
+        "weak",
         "outline",
         "warning",
         "danger",
@@ -96,6 +97,14 @@ export const Success: Story = {
   args: {
     children: "Success",
     variant: "success",
+  },
+};
+
+export const Weak: Story = {
+  args: {
+    children: "다시 만들기",
+    variant: "weak",
+    size: "sm",
   },
 };
 
@@ -195,6 +204,7 @@ export const AllVariants: Story = {
       <Button variant="primary">Primary - 주요 액션</Button>
       <Button variant="secondary">Secondary - 보조 액션</Button>
       <Button variant="ghost">Ghost - 중립 액션</Button>
+      <Button variant="weak">Weak - 주된 행동이 아닌 버튼</Button>
       <Button variant="outline">Outline - 테두리 버튼</Button>
       <Button variant="warning">Warning - 경고</Button>
       <Button variant="danger">Danger - 삭제/위험</Button>

@@ -49,6 +49,7 @@ class AppPortfolioService {
       summaryResult.value.data?.data;
 
     const nameBySymbol = new Map<string, string>();
+    const logoBySymbol = new Map<string, string>();
     let namesDegraded = true;
 
     if (marketResult.status === "fulfilled") {
@@ -56,6 +57,9 @@ class AppPortfolioService {
       for (const asset of marketResult.value?.items ?? []) {
         if (asset?.symbol && asset?.koreanName) {
           nameBySymbol.set(String(asset.symbol).toUpperCase(), asset.koreanName);
+        }
+        if (asset?.symbol && typeof asset?.logoUrl === "string" && asset.logoUrl) {
+          logoBySymbol.set(String(asset.symbol).toUpperCase(), asset.logoUrl);
         }
       }
     } else {
@@ -65,7 +69,7 @@ class AppPortfolioService {
       );
     }
 
-    return toPortfolioSummaryViewModel(summary, nameBySymbol, namesDegraded);
+    return toPortfolioSummaryViewModel(summary, nameBySymbol, namesDegraded, logoBySymbol);
   }
 }
 

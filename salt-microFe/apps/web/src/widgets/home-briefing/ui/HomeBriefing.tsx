@@ -15,8 +15,8 @@ import { SavingTipBlock } from "./SavingTipBlock";
  * ## 지금은 스트리밍되지 않는다
  *
  * 블록마다 `BlockBoundary`(Suspense + error boundary)를 뒀지만, **서버에서 기다리는
- * 데이터가 없다.** 목표·투자 블록이 아직 클라이언트에서 React Query 로 조회하기 때문이다
- * (MSW). 그래서 경계는 현재 **부분 실패 격리**만 실제로 하고 있다.
+ * 데이터가 없다.** 목표·투자 블록이 클라이언트에서 React Query 로 BFF 를 부르기 때문이다
+ * (토큰이 `localStorage` 에 있다 — `FE-REQ-013` 전). 그래서 경계는 현재 **부분 실패 격리**만 실제로 하고 있다.
  *
  * 서버 스트리밍이 되는 시점은 F006(`FE-REQ-030`~`033`)에서 5블록 홈을 만들고
  * `BFF-REQ-028` 의 블록별 엔드포인트가 생길 때다. 그때 각 블록이

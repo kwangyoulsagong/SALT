@@ -5,7 +5,6 @@ import { Provider as ReduxProvider } from "react-redux";
 import { store } from "../store";
 import QueryClientProvider from "./QueryClientProvider";
 import AuthInitializer from "./AuthInitializer";
-import MockServiceWorker from "./MockServiceWorker";
 
 /**
  * 전역 프로바이더 (FE-REQ-008 FR-2).
@@ -21,7 +20,6 @@ const AppProviders = ({ children }: { children: ReactNode }) => {
   return (
     <QueryClientProvider>
       <ReduxProvider store={store}>
-        <MockServiceWorker />
         <AuthInitializer>{children}</AuthInitializer>
       </ReduxProvider>
     </QueryClientProvider>

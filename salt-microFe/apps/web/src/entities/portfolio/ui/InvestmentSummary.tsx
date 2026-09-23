@@ -11,30 +11,18 @@ import { Text } from "@repo/ui/text";
 
 import { formatPrice } from "@/shared/lib";
 
-import { useInvestmentsPreview, usePortfolioSummary } from "../api";
-import { buildAnalysisGraph } from "../lib";
+import { usePortfolioSummary } from "../api";
 import { PORTFOLIO_MESSAGES } from "../model/messages";
-import { AnalysisGraph } from "./AnalysisGraph";
 import { HoldingSummaryList } from "./HoldingSummaryList";
 
-/** 표시 전용 (`fsd-entities.md`). */
+/**
+ * 홈 투자 블록 — 보유 요약 (`FE-REQ-010` FR-5). 표시 전용 (`fsd-entities.md`).
+ *
+ * 2026-09-23 — 위에 있던 "지난주 대비 N% 덜 썼어요" 막대를 지웠다. MSW 목이 지어낸 지출 숫자였고
+ * 서버에 지출 데이터가 없다. 그 조회가 실패하면 **아래 실제 보유 목록까지** 가려지는 구조였다.
+ */
 export const InvestmentSummary = () => {
-  const investmentsPreview = useInvestmentsPreview();
   const holdings = usePortfolioSummary();
-
-  // `isLoading` 이 아니라 `isPending` 이다 — 재시도 대기 구간에서는 `isLoading` 이 false
-  // 인데(`fetchStatus === "idle"`) 아직 `data` 가 없다. 그 틈에 렌더가 걸리면 죽는다.
-  if (investmentsPreview.isPending)
-    return <div className="loading">{PORTFOLIO_MESSAGES.loading}</div>;
-  if (investmentsPreview.isError)
-    return (
-      <div className="error">
-        <p>{PORTFOLIO_MESSAGES.loadFailed}</p>
-      </div>
-    );
-
-  const { difference, investments } = investmentsPreview.data;
-  const graphs = buildAnalysisGraph(investments);
 
   return (
     <Container size="full">
@@ -44,22 +32,6 @@ export const InvestmentSummary = () => {
             <ServiceIcon variant="analysis" />
             <Heading level={2}>{PORTFOLIO_MESSAGES.heading}</Heading>
           </Header>
-          <Container size="full" padding="none">
-            <FlexBox justify="between" align="center">
-              <FlexBox direction="column" justify="center">
-                <Text color="muted">{PORTFOLIO_MESSAGES.lastWeekCaption}</Text>
-                <Heading level={2}>
-                  {PORTFOLIO_MESSAGES.differenceLabel(difference)}
-                </Heading>
-              </FlexBox>
-              <AnalysisGraph data={graphs} />
-            </FlexBox>
-          </Container>
-          {/*
-            옆 블록(`지난주 대비` + 막대)과 **같은 방식으로 폭을 잡는다** —
-            바깥 열 `FlexBox` 는 기존 4블록이 쓰는 것이라 건드리지 않는다
-            (변경 금지 목록). 폭이 필요한 쪽이 `Container size="full"` 로 감싼다.
-          */}
           <Container size="full" padding="none">
             <Padding paddingY="sm">
               <FlexBox direction="column" gap="md" fullWidth>

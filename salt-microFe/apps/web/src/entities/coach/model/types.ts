@@ -3,7 +3,11 @@
  * 슬라이스 barrel 로 다시 내보내기만 한다.
  */
 export type {
+  CoachAction,
+  CoachGenerationStatus,
   CoachMode,
+  CoachReportResult,
+  CoachReportViewModel,
   GaugeTrackRecord,
   ModeCoachViewModel,
   SymbolCoachViewModel,

@@ -32,7 +32,7 @@ export const ZONES: Readonly<Record<ZoneId, ZoneDescriptor>> = {
   default: {
     app: "web",
     devPort: 3000,
-    pathPrefixes: ["/", "/home", "/investments", "/goals"],
+    pathPrefixes: ["/", "/home", "/investments", "/goals", "/coach"],
     assetPrefix: null,
     reason:
       "3탭이 전부 여기 있다. 탭 경계로 zone을 자르면 가장 잦은 이동이 full reload가 된다.",

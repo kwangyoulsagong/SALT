@@ -33,9 +33,9 @@
   **서버로 한 번 컴파일**된다. 분기는 코드를 지우지 못한다 — 브라우저 전용 모듈은 `useEffect`
   **안에서** 동적 import하고, 그래도 서버 그래프에 남으면 번들러 쪽에서 끊는다.
 - `next/dynamic`의 `ssr:false`는 **서버 그래프에서 모듈을 빼주지 않는다.** dev 서버는 그래도
-  넣는다. `exports`에 `"node": null`이 있는 패키지(예: `msw/browser`)는 그때 빌드가 깨진다.
+  넣는다. `exports`에 `"node": null`이 있는 패키지(예: 예전의 `msw/browser`)는 그때 빌드가 깨진다.
   해법은 `next.config.js`의 `resolve.alias`를 **서버 컴파일에서만** `false`로 두는 것이다
-  (실례: `apps/web/next.config.js`).
+  (MSW 를 지우면서 2026-09-23 그 훅도 지웠다 — 이제 web 도 Turbopack 을 막는 설정이 없다).
 - 서버 컴포넌트에서 `ssr:false`를 부를 수 없다. 클라이언트 잎 안쪽으로 옮긴다.
 - `_document.tsx`·`_app.tsx`가 하던 일은 루트 `app/layout.tsx`(서버)와 `src/app/providers`
   (`"use client"`)로 나뉜다.

@@ -64,6 +64,7 @@ const REGISTRY = {
     "toggle-news-bookmark",
     "switch-coach-mode",
     "explain-symbol",
+    "regenerate-coach",
     "record-transaction",
     "mark-alert-read",
     "toggle-alerts",

@@ -43,3 +43,18 @@
 | 막힘이면 해설 필드에 접근하지 않는다 | pass | `ExplainCard` 가 `renderable` 로 좁힌 뒤 그린다. 막힘은 안내 한 줄 |
 | FR-10~13 · FR-62 회귀 | pass(정적) | 호출 · 재시도 0 · 20s · 규칙 기반 대체 경로는 그대로. `check-types` · `lint` · web · web-tax 빌드 · `pnpm test` 54 |
 | 막힘 안내 화면 실측 | **미검증** | 로컬 판단 표본이 없어 버튼이 안 뜬다 — 표본 시드 후 |
+
+## 3. 코치 리포트 · 재생성 (슬라이스 15, 2026-09-23, `feat/fe-f004-coach-report`)
+
+| FR | 판정 | 위치 · 근거 |
+|---|---|---|
+| FR-1 | **다르게** | 클라이언트 조회(`useCoachReport`) — 토큰이 `localStorage` |
+| FR-2 | **미착수** | 성적표 경로 없음 |
+| FR-3 · 4 | **pass** | `entities/coach/api` · 한 번 부른다 |
+| FR-20 | **pass** | `features/regenerate-coach/api` — mutation · 재시도 0 |
+| FR-21~23 | **pass(코드 · 테스트)** | `generation-status` 2초 · 최대 15회 · 중단 4 |
+| FR-24 | **pass(코드)** | 429 → 남은 시간 |
+| FR-25 | **pass** | React Query `signal` → `coachApi.generationStatus` |
+| FR-26 | **pass** | `refetchIntervalInBackground` 기본 false |
+| FR-27 | **다르게** | `router.refresh()` 가 아니라 리포트 쿼리 키 무효화(조회가 클라이언트) |
+| 실측 | **미검증** | 로그인 상태 202 → 폴링 → 갱신 — 사용자 브라우저 |

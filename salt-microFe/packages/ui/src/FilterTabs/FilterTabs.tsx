@@ -11,6 +11,12 @@ interface Props {
    * 무엇에 대한 선택인지 알 수 없다. 화면에는 보이지 않는다.
    */
   label?: string;
+  /**
+   * `segmented`(기본) = 회색 막대 안의 흰 조각 — 투자 표 필터(변경 금지 목록).
+   * `chip` = 막대 없이 글자 칩, 고른 것만 옅은 회색 면(높이 28 · 13px) — 차트 기간처럼
+   * 카드 머리에 가볍게 얹는 선택
+   */
+  variant?: "segmented" | "chip";
 }
 
 /**
@@ -27,15 +33,21 @@ interface Props {
  * tabindex 와 화살표 이동을 함께 요구한다. 시각 구성이 변경 금지 목록이라
  * 상호작용까지 바꾸는 것은 이 REQ 의 범위를 넘는다.
  */
-export const FilterTabs = ({ options, value, onChange, label }: Props) => {
+export const FilterTabs = ({
+  options,
+  value,
+  onChange,
+  label,
+  variant = "segmented",
+}: Props) => {
   return (
-    <div className={filterContainer} role="group" aria-label={label}>
+    <div className={filterContainer({ variant })} role="group" aria-label={label}>
       {options.map((opt) => (
         <button
           key={opt.value}
           type="button"
           aria-pressed={value === opt.value}
-          className={tabButton({ active: value === opt.value })}
+          className={tabButton({ variant, active: value === opt.value })}
           onClick={() => onChange(opt.value)}
         >
           {opt.label}

@@ -1,6 +1,7 @@
 "use client";
 
 // 클라이언트 잎: 조회 결과를 받아 표시만 한다.
+import { AssetIcon } from "@repo/ui/assetIcon";
 import { Badge } from "@repo/ui/badge";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Text } from "@repo/ui/text";
@@ -45,6 +46,13 @@ export const HoldingSummaryList = React.memo(
               fullWidth
             >
               <FlexBox align="center" gap="md">
+                {/* 종목이 나오는 자리에는 로고가 늘 있다 — 없으면 이니셜 */}
+                <AssetIcon
+                  symbol={item.symbol}
+                  src={item.logoUrl ?? undefined}
+                  name={item.name}
+                  size="md"
+                />
                 <Text variant="bodyLarge">{item.name}</Text>
                 {PORTFOLIO_ASSET_LABELS[item.assetType] ? (
                   <Badge tone="neutral" size="sm">

@@ -1,5 +1,7 @@
 import { globalStyle, style } from "@vanilla-extract/css";
 
+import { vars } from "@repo/ui/tokens";
+
 /** 프리뷰가 접히는 폭. `FE-REQ-010` FR-52 의 768px 이다. */
 const MOBILE_MAX_WIDTH = "767px";
 const MOBILE = `screen and (max-width: ${MOBILE_MAX_WIDTH})`;
@@ -155,4 +157,31 @@ globalStyle(`${previewPane}${previewPane} > * > *`, {
   "@media": {
     [DESKTOP]: { maxHeight: "100%" },
   },
+});
+
+/** 제목 줄 — 왼쪽 제목, 오른쪽 코치 리포트 진입 */
+export const headingRow = style({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: vars.space.md,
+  flexWrap: "wrap",
+});
+
+/** 섹션 머리의 "더 보기" 류 텍스트 링크 — 버튼처럼 칠하지 않는다 */
+export const reportLink = style({
+  color: vars.colors.text.tertiary,
+  fontSize: vars.typography.t7.fontSize,
+  lineHeight: vars.typography.t7.lineHeight,
+  fontWeight: vars.fontWeights.semibold,
+  textDecoration: "none",
+  ":hover": { color: vars.colors.text.secondary },
+});
+
+/** 표의 종목 이름 링크 — 글자 모양은 그대로, 밑줄은 hover 때만 */
+export const nameLink = style({
+  color: "inherit",
+  textDecoration: "none",
+  ":hover": { textDecoration: "underline" },
+  ":focus-visible": { textDecoration: "underline" },
 });

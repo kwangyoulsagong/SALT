@@ -60,3 +60,28 @@ export const ManyTabsOverflow: Story = {
     <StatefulFilterTabs options={manyOptions} defaultValue="item3" />
   ),
 };
+
+/** 칩 — 차트 기간처럼 카드 머리에 가볍게 얹는 선택 */
+export const Chip: Story = {
+  args: { options: exampleOptions },
+  render: () => {
+    const Chips = () => {
+      const [value, setValue] = useState("1d");
+      return (
+        <FilterTabs
+          variant="chip"
+          options={[
+            { label: "1분", value: "1m" },
+            { label: "5분", value: "5m" },
+            { label: "1시간", value: "1h" },
+            { label: "일", value: "1d" },
+          ]}
+          value={value}
+          onChange={setValue}
+          label="기간"
+        />
+      );
+    };
+    return <Chips />;
+  },
+};

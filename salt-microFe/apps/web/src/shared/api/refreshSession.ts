@@ -57,7 +57,6 @@ interface RefreshEnvelope {
 
 /**
  * 맨 `fetch` 를 쓴다 — `apiFetch` 를 쓰면 이 호출의 401 이 다시 갱신을 부른다.
- * 개발의 MSW 워커는 `/api/v1/*` 만 받으므로 목 게이트도 필요 없다.
  */
 const requestRefresh = async (): Promise<string | null> => {
   const refreshToken = readRefreshToken();
