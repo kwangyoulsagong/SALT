@@ -149,6 +149,16 @@ export const drawBase = (
     bandRect = { top: bandTop, bottom: bandBottom };
     ctx.fillStyle = CHART_THEME.zoneFill;
     ctx.fillRect(0, bandTop, plotWidth, bandBottom - bandTop);
+
+    // 경계선 — 띠의 끝이 어디인지 채움만으로는 안 보인다
+    ctx.strokeStyle = CHART_THEME.zoneEdge;
+    ctx.lineWidth = 1;
+    for (const edgeY of [bandTop, bandBottom]) {
+      ctx.beginPath();
+      ctx.moveTo(0, crisp(edgeY));
+      ctx.lineTo(plotWidth, crisp(edgeY));
+      ctx.stroke();
+    }
   }
 
   // ── 가격 창 · 거래량 창만 칠한다(축 위로 번지지 않게)
@@ -283,8 +293,6 @@ export const drawBase = (
     ctx.beginPath();
     if (typeof ctx.roundRect === "function") ctx.roundRect(ZONE_CHIP_INSET, chipTop, chipW, ZONE_CHIP_HEIGHT, 4);
     else ctx.rect(ZONE_CHIP_INSET, chipTop, chipW, ZONE_CHIP_HEIGHT);
-    ctx.fillStyle = CHART_THEME.badgeText;
-    ctx.fill();
     ctx.fillStyle = CHART_THEME.zoneChipBg;
     ctx.fill();
     ctx.font = CHART_THEME.fontBold;

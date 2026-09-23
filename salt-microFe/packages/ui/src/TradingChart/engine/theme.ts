@@ -29,9 +29,14 @@ export const CHART_THEME = {
    * 가격 구간 — **AI 액센트**(코치가 만든 것). 상승 빨강 · 하락 파랑을 쓰면 "오른다/내린다"로 읽힌다
    */
   zone: c.ai.primary,
-  zoneFill: withAlpha(c.ai.primary, 0.09),
-  zoneChipBg: withAlpha(c.ai.primary, 0.16),
-  zoneChipText: c.neutral[800],
+  /**
+   * 관찰 구간 띠. 0.09 였을 때는 캔들 뒤에서 **있는지 없는지 모를 정도**였다(2026-09-23 사용자 지적).
+   * 채움을 올리고 위 · 아래 **경계선**을 그어 구간의 끝이 어디인지 분명하게 한다.
+   */
+  zoneFill: withAlpha(c.ai.primary, 0.14),
+  zoneEdge: withAlpha(c.ai.primary, 0.55),
+  zoneChipBg: c.ai.primary,
+  zoneChipText: c.background.white,
   /** 범위 밖 가격선 표시의 바탕 — 캔들 위에서도 읽히게 */
   edgeMarkBg: "rgba(255, 255, 255, 0.85)",
   volumeAlpha: 0.55,
