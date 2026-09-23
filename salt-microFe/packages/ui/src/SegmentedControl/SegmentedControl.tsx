@@ -49,7 +49,7 @@ export const SegmentedControl = <T extends string>({
 
   return (
     <div
-      className={filterContainer}
+      className={filterContainer()}
       role="radiogroup"
       aria-label={label}
       onKeyDown={handleKeyDown}
