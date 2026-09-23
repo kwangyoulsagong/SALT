@@ -18,7 +18,7 @@ import {
 } from "@/entities/market";
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
 
-import { useOpenDetail } from "../lib";
+import { useDetailLink } from "../lib";
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
 import type { PreviewRenderer } from "../model/previewSlot";
 import { previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
@@ -45,7 +45,7 @@ export const WatchlistTab = ({
   const { data: overview } = useMarketOverview(DEFAULT_MARKET_PARAMS);
 
   const [selectedSymbol, setSelectedSymbol] = useState<string>("");
-  const openDetail = useOpenDetail();
+  const { hrefOf: detailHref, open: openDetail } = useDetailLink();
 
   const items = useMemo(() => data?.items ?? [], [data?.items]);
   const bySymbol = useMemo(() => indexWatchlistBySymbol(items), [items]);
@@ -128,6 +128,7 @@ export const WatchlistTab = ({
           selectedSymbol={selectedSymbol}
           onSelect={openDetail}
           onPreview={setSelectedSymbol}
+          detailHref={detailHref}
           renderAction={renderAction}
         />
       </div>

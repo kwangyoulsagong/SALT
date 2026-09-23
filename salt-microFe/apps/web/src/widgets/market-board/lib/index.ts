@@ -1,1 +1,1 @@
-export * from "./useOpenDetail";
+export * from "./useDetailLink";

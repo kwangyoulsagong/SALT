@@ -177,3 +177,11 @@ export const reportLink = style({
   textDecoration: "none",
   ":hover": { color: vars.colors.text.secondary },
 });
+
+/** 표의 종목 이름 링크 — 글자 모양은 그대로, 밑줄은 hover 때만 */
+export const nameLink = style({
+  color: "inherit",
+  textDecoration: "none",
+  ":hover": { textDecoration: "underline" },
+  ":focus-visible": { textDecoration: "underline" },
+});
