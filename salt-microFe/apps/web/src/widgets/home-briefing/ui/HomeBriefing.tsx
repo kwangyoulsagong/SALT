@@ -1,7 +1,7 @@
 import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
 
-import { BlockBoundary, CrossZoneLink } from "@/shared/ui";
+import { BlockBoundary, CrossZoneLink, NavChevron } from "@/shared/ui";
 
 import { HOME_BLOCK_MIN_HEIGHT, HOME_BRIEFING_MESSAGES } from "../model/messages";
 import { GoalsBlock } from "./GoalsBlock";
@@ -41,6 +41,7 @@ export const HomeBriefing = () => {
         </BlockBoundary>
         <CrossZoneLink href="/tax">
           {HOME_BRIEFING_MESSAGES.taxCockpitLink}
+          <NavChevron />
         </CrossZoneLink>
         <SavingTipBlock />
       </FlexBox>

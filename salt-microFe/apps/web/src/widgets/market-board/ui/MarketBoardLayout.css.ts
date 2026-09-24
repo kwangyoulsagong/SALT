@@ -170,6 +170,9 @@ export const headingRow = style({
 
 /** 섹션 머리의 "더 보기" 류 텍스트 링크 — 버튼처럼 칠하지 않는다 */
 export const reportLink = style({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "2px",
   color: vars.colors.text.tertiary,
   fontSize: vars.typography.t7.fontSize,
   lineHeight: vars.typography.t7.lineHeight,

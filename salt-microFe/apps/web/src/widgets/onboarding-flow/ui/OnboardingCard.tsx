@@ -8,11 +8,14 @@ import Link from "next/link";
 
 import { useOnboardingStatus } from "@/entities/auth";
 import { ROUTES } from "@/shared/config";
+import { NavChevron } from "@/shared/ui";
 
 import {
   ONBOARDING_CARD_MESSAGES,
   ONBOARDING_STEP_LABELS,
 } from "../model/messages";
+
+import { ctaLink } from "./OnboardingCard.css";
 
 /**
  * 홈의 온보딩 안내 (`FE-REQ-010` FR-25).
@@ -39,7 +42,10 @@ export const OnboardingCard = () => {
           {ONBOARDING_STEP_LABELS[data.nextStep]} ·{" "}
           {ONBOARDING_CARD_MESSAGES.remaining(remaining)}
         </Text>
-        <Link href={ROUTES.onboarding}>{ONBOARDING_CARD_MESSAGES.cta}</Link>
+        <Link href={ROUTES.onboarding} className={ctaLink}>
+          {ONBOARDING_CARD_MESSAGES.cta}
+          <NavChevron />
+        </Link>
       </FlexBox>
     </Card>
   );
