@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     defillama_stablecoins_url: str = "https://stablecoins.llama.fi"
     fred_url: str = "https://api.stlouisfed.org/fred"
     fred_api_key: SecretStr | None = None
+    # 주요 사건 반응을 계산할 종목(FC-REQ-005) — 화면 초점이 BTC
+    event_symbols: str = "KRW-BTC"
 
     @field_validator("fred_api_key", mode="before")
     @classmethod
@@ -38,6 +40,9 @@ class Settings(BaseSettings):
         return raw.replace("postgresql://", "postgresql+psycopg://", 1).replace(
             "postgres://", "postgresql+psycopg://", 1
         )
+
+    def event_symbol_list(self) -> list[str]:
+        return [s.strip() for s in self.event_symbols.split(",") if s.strip()]
 
     def extra_symbol_list(self) -> list[str]:
         return [s.strip() for s in self.extra_symbols.split(",") if s.strip()]
