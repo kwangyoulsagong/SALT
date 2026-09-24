@@ -9,9 +9,16 @@ Status: In Progress
 
 기능 기획(PM)은 `pm/requirements/specs/**`에 있다. **이 문서는 그 기획을 영역별 실행 문서로 분해한 지도**다. 각 셀이 실제 파일 하나이고, 담당자는 자기 셀만 읽어도 착수할 수 있다.
 
+### F004 · F008 확장 조사 (2026-09-24)
+
+- [AI 투자 심층 조사](../../reports/feature-audits/2026-09-24-ai-investment-deep-research.md): 현재 네 기능의 코드 진단 12건, 투자 연구·데이터 출처, 기존 테스트 255개 및 별도 재현 결과.
+- [외부 웹 심층 조사](../../reports/feature-audits/2026-09-24-external-investment-research.md): 논문 철회·장기 성과 검증, 주식/코인 분석, 공식 투자 도구 8종 비교, 기능 10개와 데이터 요구사항.
+- [AI 투자 워크벤치 설계](ai-investment-workbench-design.md): 근거 연결 리서치·포트폴리오 위험·비용 후 성과·판단 기록의 기능/계약/수용 기준. **제안·미구현**이며 기존 REQ 완료 상태나 ADR을 변경하지 않는다.
+- [1인 펀드매니저 코치 딥리서치](../../reports/research/2026-09-24-fund-manager-coach.md): 잃는 사람 · 버는 사람의 증거(행동 · 사이징 · 사전 약속), 크립토 신호 근거 · 우선순위 10, LLM 실효성, 한국 규제 선(개별성), 기능 20개 · 슬라이스 순서 제안. **제안 · 미구현.**
+
 ## 1. 문서 축 — 기능 × 영역 × 종류
 
-### 기능 (7)
+### 기능 (8)
 
 | 코드 | 기능 | PM 기획서 |
 |---|---|---|
@@ -23,6 +30,7 @@ Status: In Progress
 | **F006** | 코치 대화 & 3탭 IA (대화가 제품의 핵심 · PC MovableGrid) | `FEATURE-006-coach-conversation-ia.md` |
 | **F007** | 모바일 앱 (React Native · iOS+Android · 푸시 · 번들 MFE) | `FEATURE-007-mobile-app.md` |
 | **F008** | AI 전망 · 인텔리전스 (파이프라인 → 온톨로지 → 에이전트 · 확률 구간 · 채점 · 소유자 전용) — 2026-09-23 `ADR-003` · `ADR-004` | `FEATURE-008-forecast-intelligence.md` |
+| **F009** | 1인 펀드매니저 코치 (IPS · 리스크 예산 · 사이즈 계산 · 계획 기록 · 준수율 · 행동 미러 · 월간 복기) — 2026-09-24. 통제 · 차단 없음, 수동 입력 전제 | `FEATURE-009-behavior-risk-coach.md` |
 
 > F005는 결번이다. `FEATURE-005-home-briefing.md`의 5탭 IA는 2026-09-09 결정(탭 축소·대화 중심)으로 **F006이 대체**한다. 홈 블록 요구사항만 F006으로 흡수한다.
 
@@ -420,6 +428,20 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 **슬라이스 16 · 16b · 20** — 새 영역 `salt-forecast`(Python). 데이터 → 채점 장치가 먼저 섰다. 좋아 보인 숫자 둘(방향 58~64%, 게이트 200/1,156)이
 가짜였고 둘 다 장치가 잡았다. 화면(17a · 18 · 19)은 아직 없다. 근거 `requirements/reports/checklists/F008-forecast-baseline.md`
 
+### F009 1인 펀드매니저 코치 (2026-09-24)
+
+| REQ | 상태 | 비고 |
+|---|---|---|
+| `DB-REQ-031` F009 SCHEMA | **to-do** | `TradePlan` · `DecisionOutcome` · `UserInvestmentProfile` +3(월 손실 예산 · 1회 최대 손실 · 목표 변동성) · `hidePurchasePrice` · `forecast.realized_vol` 뷰. 추가만 — 롤백 가능 |
+| `SRV-REQ-038` F009 사이즈 · 계획 · 미러 | **to-do** | `sizing` · `adherence` · `mirror` · `riskBudget` · `monthlyReview` 순수 함수 · `/api/coach/size-check` · `/plans` · `/risk-budget` · `/mirror` · `/review/monthly` · 일 1회 배치 · `languageGuard` 금지어 추가 · 프롬프트 개인 금액 0건 |
+| `FC-REQ-006` 실현 변동성 | **to-do** | EWMA(λ 0.94) · GARCH(1,1) 일 1회 → `forecast.realized_vol`. 변동성 타깃 비중의 입력 |
+| `BFF-REQ-038` F009 중계 | **to-do** | 뷰모델 조립 · 격리 · 재계산 금지 · 비소유자 응답에 도달 확률 필드 없음 |
+| `FE-REQ-039` F009 카드 | **to-do** | 거래 폼 "계획(선택)" + 결과 라인 · "내 계획" 카드 · 리스크 게이지 3 · 매입가 숨김 · "내 거래 미러" · 월간 복기 · `DisclosureSlot`. 새 라우트 0 · 입력 30초 · WCAG AA |
+
+**선행**: Codex Astra 코드 진단 C01~C06(`feature-audits/2026-09-24-ai-investment-deep-research.md`) — 성적표 정의(C04 MDD 오명 · C05 기간 · C06 시드 분리)를 먼저 고친다. 기존 F004 · F008 REQ 개정으로 처리.
+
+**F009 슬라이스 0 — 신뢰성 수정 (2026-09-24 ~, `feat/f009-slice0-reliability`)** — C04 → C05 → C06 → C02 → C03 → C01 순. **C04 완료**: 성적표 `maxDrawdown` → `worstObservedReturn`(라벨 "가장 나빴던 수익률"). 값은 표본 최저 단일 수익률이라 MDD 가 아니었다 — 계산은 그대로, 이름만. 서버 FR-30 예외 2건째(`SRV-REQ-025` FR-55 · `BFF-REQ-024` FR-39 · `FE-REQ-026` FR-163). **C05 완료**: 모드 기간 = 채점 기간(단타 24시간 · 장기 30일, 사용자 결정) — 해설 "약 25분" · 판단 "1주~1년" 삭제, `validity.code` 값 `scalp_24h` · `long_term_30d`, 해설 기간은 LLM 대신 주입(`SRV-REQ-025` FR-56 · `SRV-REQ-024` FR-103 · `FE-REQ-026` FR-164). **C06 완료**: 판단 표본에 `sample_origin`(live · backtest · synthetic) — 실측 성적은 live 만, 운영에서 합성 집계 설정을 켜면 기동이 막힌다. 로컬 시드 240행은 이제 게이트를 열지 않는다(`DB-REQ-017` FR-60 · `SRV-REQ-024` FR-172). **C02 완료**: 해설 캐시 키 = 모델 · 시스템 지시 · 프롬프트 전체의 해시(옛 키는 가격 200 이상이면 늘 같았다, `SRV-REQ-025` FR-57). **C03 완료**(지표 이름 제외): 해설 숫자를 값 · 단위 · 방향으로 대조하고 근거 숫자 없는 인과 문장을 버린다(`SRV-REQ-037` FR-7a). `FEATURE-008` FR-42 · 43 상태를 실제에 맞췄다. **C01 완료 — 슬라이스 0 끝**: 해설 요청이 `{ symbol, mode }` 로 줄고 사실은 판단 게이트와 같은 재료로 서버가 조립한다 · 응답 `facts.hash`(`SRV-REQ-025` FR-58 · `FEATURE-008` FR-40 완료). 범위 · 검증은 `F009-slice0-reliability-slice.md` · `reports/checklists/F009-slice0-reliability.md`.
+
 ### 이동 규칙
 
 각 REQ는 `to-do/` → `in-progress/` → `done/`으로 이동한다. done 조건:
@@ -465,3 +487,10 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-23 | **F008 도전자 실험 v0.2~v0.6.** 변동성 배율 모델이 단순 기준을 처음 이김(+0.8~1.1%) · 챔피언과 동률 · 날짜 역할 피처 제거 · 실험 중단(같은 구간 과적합 방지) |
 | 2026-09-24 | **F008 슬라이스 17a-1 (서버).** 가격 변동 범위 API — 소유자 전용 · 원화 환산 · 전망 3종. 서버 매시 배치 트리거 동작 확인(`ops/daily.log` 2회) |
 | 2026-09-24 | **F008 슬라이스 17a-2 · 18 · 19.** 해설 검증기 · 템플릿(서버) · 전망 중계(BFF) · 변동 범위 카드(FE). 앱에서 처음 보인다 — 소유자에게만 |
+| 2026-09-24 | **F009 신설 — 1인 펀드매니저 코치.** 리서치 `reports/research/2026-09-24-fund-manager-coach.md`(행동 · 사이징 · 사전 기록 증거, 크립토 신호 우선순위, LLM 실효성, 한국 규제 선) + Codex Astra 조사 3건(코드 진단 C01~C12 · 외부 조사 · 워크벤치 W01~W06). W02 · W03 · W05 · W06 을 F009 로 흡수, W01 · W04 는 F008. 사용자 결정: 계좌 연동 없음 · 수동 입력, 통제 · 차단 없음(2026-09-08 유지), 수익 보장 문구 금지(법). REQ 5개 to-do(`DB-031` · `SRV-038` · `FC-006` · `BFF-038` · `FE-039`) |
+| 2026-09-24 | **F009 슬라이스 0 — C04.** 성적표 `maxDrawdown` → `worstObservedReturn` 서버 · BFF · FE 동시(BREAKING, 소비처 전부 이 레포). 상태표 변경 없음 — 기존 REQ 개정 |
+| 2026-09-24 | **F009 슬라이스 0 — C05.** 모드 기간 = 채점 기간(24시간 · 30일). `validity.code` 값 변경 · 서버 `COACH_HORIZON` 한 표. 상태표 변경 없음 |
+| 2026-09-24 | **F009 슬라이스 0 — C06.** 판단 표본 출처 열 · 실측 성적은 live 만(마이그레이션 `20260924130000`, 롤백 = 열 삭제). 상태표 변경 없음 |
+| 2026-09-24 | **F009 슬라이스 0 — C02.** 해설 캐시 키를 입력 전체 해시로 · 캐시 상한. 계약 변경 없음 · 상태표 변경 없음 |
+| 2026-09-24 | **F009 슬라이스 0 — C03.** 해설 숫자 검증 값 · 단위 · 방향 · 인과. 계약 변경 없음 · 상태표 변경 없음 |
+| 2026-09-24 | **F009 슬라이스 0 — C01 · 슬라이스 0 완료.** 해설 사실을 서버가 조립(요청 `{ symbol, mode }`). `FEATURE-008` FR-40 완료. 상태표 변경 없음 |

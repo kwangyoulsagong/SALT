@@ -1,4 +1,5 @@
 import {
+  COACH_HORIZON,
   JUDGMENT_CASE_LIMIT,
   judgmentGate,
   judgmentSignalType,
@@ -17,11 +18,6 @@ export const SCORE_NOTE = "점수는 확률이 아닙니다";
 export const JUDGMENT_DISCLAIMER =
   "과거 판단의 결과이며 앞으로의 수익을 뜻하지 않습니다. 주문은 직접 결정하세요.";
 
-/** 유효시간의 유일한 출처 (`SRV-REQ-025` FR-45). 문구는 프론트 i18n 이 만든다. */
-const VALIDITY_CODE: Record<CoachMode, "scalp_5m_24h" | "long_term_1w_1y"> = {
-  scalp: "scalp_5m_24h",
-  long_term: "long_term_1w_1y",
-};
 
 export interface JudgmentCaseView {
   /** 판단 날짜 (`YYYY-MM-DD`, UTC). */
@@ -102,7 +98,7 @@ export const attachJudgmentTrack = async (
       label: decision.label,
       score: decision.score,
       scoreNote: SCORE_NOTE,
-      validity: { code: VALIDITY_CODE[decision.mode] },
+      validity: { code: COACH_HORIZON[decision.mode].validityCode },
       riskLevel: decision.riskLevel,
       headline: decision.headline,
       reasons: decision.reasons,

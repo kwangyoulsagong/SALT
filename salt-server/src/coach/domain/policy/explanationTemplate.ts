@@ -12,16 +12,21 @@
  */
 
 import type { CoachExplanation, CoachExplanationInput } from "../ports";
-import { guardSentences, numbersIn, type LanguageViolation } from "./languageGuard";
+import { COACH_HORIZON } from "./horizon";
+import {
+  fact,
+  guardSentences,
+  numericTokens,
+  type LanguageViolation,
+  type NumericFact,
+} from "./languageGuard";
 
 export type ExplanationSource = "llm" | "llm_checked" | "template";
 
 const MODE_LABEL = { scalp: "단타", long_term: "장기" } as const;
-/** LLM 프롬프트의 관찰 기간 예시와 같은 값(`GeminiCoachExplainer`) — 템플릿도 같은 전제를 말한다 */
-const TIMEFRAME = { scalp: "약 25분 이내", long_term: "약 30일 내외" } as const;
 const NEWS_MAX = 5;
-/** 프롬프트 문구 자체에 있는 숫자 — "24시간 변동률" · "24시간 거래대금" · "최근 5건" */
-const PROMPT_NUMBERS = [24, 5];
+/** 프롬프트 문구 자체에 있는 숫자 — 모델이 따라 써도 되는 표현이다(`explanationPrompt.ts`) */
+const PROMPT_PHRASES = ["24시간 변동률", "24시간 거래대금", "최근 5건"];
 
 const firstValue = (input: CoachExplanationInput, keyword: string): string | undefined =>
   input.evidence.find((e) => e.label.includes(keyword))?.value;
@@ -55,7 +60,7 @@ export const templateExplanation = (input: CoachExplanationInput, now: Date): Co
 
   return {
     modeReasoning,
-    timeframe: TIMEFRAME[input.mode],
+    timeframe: COACH_HORIZON[input.mode].phrase,
     keyDrivers,
     risks,
     newsSummary,
@@ -65,20 +70,23 @@ export const templateExplanation = (input: CoachExplanationInput, now: Date): Co
   };
 };
 
-/** LLM 이 쓸 수 있는 숫자 — 입력에 있던 것만. 프롬프트가 보여 준 모양(억 단위 · 소수 2자리)도 포함한다. */
-export const allowedNumbers = (input: CoachExplanationInput): number[] => {
+/**
+ * LLM 이 쓸 수 있는 숫자 — 입력에 있던 사실만, **단위 · 방향과 함께**(C03).
+ * 프롬프트가 보여 준 모양(억 단위 반올림 · 소수 2자리 변동률)도 같은 사실이다.
+ */
+export const allowedFacts = (input: CoachExplanationInput): NumericFact[] => {
   const texts = [
     ...input.evidence.flatMap((e) => [e.label, e.value]),
     ...(input.news ?? []).flatMap((n) => [n.title, n.summary ?? ""]),
-    TIMEFRAME[input.mode],
+    COACH_HORIZON[input.mode].phrase,
+    ...PROMPT_PHRASES,
   ];
   return [
-    ...PROMPT_NUMBERS,
-    input.currentPrice,
-    input.change24h,
-    Math.round(input.tradeValue24h / 1e8),
-    input.tradeValue24h / 1e8,
-    ...texts.flatMap(numbersIn),
+    fact(input.currentPrice, "krw"),
+    fact(input.change24h, "percent"),
+    fact(input.tradeValue24h, "krw"),
+    fact(Math.round(input.tradeValue24h / 1e8) * 1e8, "krw"),
+    ...texts.flatMap(numericTokens),
   ];
 };
 
@@ -91,7 +99,8 @@ export interface VerifiedExplanation {
 /**
  * LLM 해설을 문장 단위로 검사한다. 떨어진 칸은 템플릿으로 채운다.
  *
- * - `modeReasoning` · `timeframe` 은 한 덩어리 — 걸리면 통째로 템플릿
+ * - `modeReasoning` 은 한 덩어리 — 걸리면 통째로 템플릿
+ * - `timeframe` 은 LLM 이 쓴 것을 버리고 `COACH_HORIZON` 을 주입한다(`SRV-REQ-024` FR-103 · C05) — 기간은 채점 기간 하나다
  * - 목록(근거 · 주의 · 뉴스)은 항목별 — 걸린 항목만 빼고, 다 빠지면 템플릿 목록
  */
 export const verifyExplanation = (
@@ -99,11 +108,11 @@ export const verifyExplanation = (
   input: CoachExplanationInput,
   now: Date
 ): VerifiedExplanation => {
-  const allowed = allowedNumbers(input);
+  const allowed = allowedFacts(input);
   const template = templateExplanation(input, now);
   const dropped: VerifiedExplanation["dropped"] = [];
 
-  const single = (field: "modeReasoning" | "timeframe"): string => {
+  const single = (field: "modeReasoning"): string => {
     const r = guardSentences([llm[field]], allowed);
     if (r.kept.length === 1) return llm[field];
     dropped.push({ field, reasons: r.dropped[0]?.reasons ?? [] });
@@ -118,7 +127,7 @@ export const verifyExplanation = (
   const explanation: CoachExplanation = {
     ...llm,
     modeReasoning: single("modeReasoning"),
-    timeframe: single("timeframe"),
+    timeframe: template.timeframe,
     keyDrivers: list("keyDrivers"),
     risks: list("risks"),
     newsSummary: list("newsSummary"),

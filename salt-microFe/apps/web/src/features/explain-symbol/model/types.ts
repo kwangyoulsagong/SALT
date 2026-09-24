@@ -1,22 +1,14 @@
 import type { CoachMode } from "@repo/core/coach";
 
 /**
- * `POST /api/app/ai-coach/explain` 요청 — 서버 `explainCoachSchema` 그대로.
+ * `POST /api/app/ai-coach/explain(/stream)` 요청 — **종목과 관점뿐이다**(서버 `SRV-REQ-025` FR-58, F009 슬라이스 0 C01).
  *
- * **숫자는 우리가 싣고 모델은 문장만 만든다**(`ddd-infrastructure.md` §6). 값은 전부 서버가
- * 준 것(뷰모델 · 시세 목록)을 옮겨 적은 것이고 여기서 계산하지 않는다.
+ * 시세 · 근거 · 뉴스는 서버가 판단 게이트와 같은 재료로 조립한다. 예전엔 화면이 옮겨 적어 보냈고, 서버는
+ * 그 값이 게이트가 본 것과 같은지 알 수 없었다.
  */
 export interface ExplainSymbolRequest {
   symbol: string;
-  koreanName: string;
   mode: CoachMode;
-  currentPrice: number;
-  change24h: number;
-  tradeValue24h: number;
-  /** 1~20개. label ≤ 60자 · value ≤ 120자 */
-  evidence: Array<{ label: string; value: string }>;
-  /** ≤ 10개 */
-  news?: Array<{ title: string; source?: string }>;
 }
 
 /**
@@ -50,12 +42,3 @@ export interface CoachExplanation {
 export type ExplainResult =
   | (CoachExplanation & { renderable: true })
   | { renderable: false; blockedReason: string };
-
-/** 해설 대상 종목 — 시세 목록 한 줄에서 온다. 뷰모델에 이름 · 거래대금이 없다 */
-export interface ExplainSubject {
-  symbol: string;
-  koreanName: string;
-  currentPrice: number;
-  change24h: number;
-  tradeValue24h: number;
-}

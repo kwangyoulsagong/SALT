@@ -14,7 +14,7 @@
 - `pm/features/current-feature-map.md`: AI 투자 코치 = `Backend/BFF Only`, "PM prototype 있음, 실제 투자 앱 UI 미연결". 외부 주문 전 체크·행동 코치·익절 플랜·신호 성과도 전부 동일.
 - 즉 **제품의 핵심이 구현돼 있는데 사용자가 볼 수 없다.** 사용자 요구는 "쉽게 투자 잘하는 추천 조언 플랫폼"이고, 그 엔진은 이미 있다.
 - 서버 계약(`ai-coach.types.ts`)이 이미 화면에 필요한 것을 다 담고 있다: `recommendation{action,symbol,score}`, `candidates[]`, `market.regime`, `portfolio`, `reasons[]`, `risks[]`, `actions[]`, `debug.topCandidateFactors[]`.
-- 리테일 신호 서비스의 문제는 **자기 성적을 공개하지 않는 것**이다. SALT는 `signal-performance`(sample/winRate/avgReturn/maxDrawdown)를 이미 계산한다. 이걸 카드에 붙이면 다른 서비스가 못 하는 걸 한다.
+- 리테일 신호 서비스의 문제는 **자기 성적을 공개하지 않는 것**이다. SALT는 `signal-performance`(sample/winRate/avgReturn/worstObservedReturn)를 이미 계산한다. 이걸 카드에 붙이면 다른 서비스가 못 하는 걸 한다.
 - 리서치 맥락: 리테일 손실의 원인은 정보 부족이 아니라 행동이다(74~89% 손실, FOMO 44%). 그래서 추천에 **표본 수와 실패 이력**을 붙이는 것이 추천의 정확도를 높이는 것보다 중요하다.
 
 ## 목표
@@ -45,7 +45,7 @@
 
 9. 자산 탭 `시장` 세그먼트(`/investments`)에서 시세 표의 행을 고른다. 우측 패널(모바일 폭은 표 아래):
    - `[단타 | 장기]` — 장기를 누르면 아래가 전부 장기 기준으로 바뀐다. 새로 불러오지 않는다.
-   - `장기 모아가기 후보 · 장기 · 유효 1주~1년 · 64점 / 100 (점수는 확률이 아닙니다)`
+   - `장기 모아가기 후보 · 장기 · 판단 뒤 30일 기준 · 64점 / 100 (점수는 확률이 아닙니다)`
    - `왜: 공포 구간 · RSI 32 · 대형 매수 우세` / `이 판단 성적: 최근 23회 · 승률 52%` / `틀렸던 때: 2025-10 …`
    - 보유 중이면 `내 규칙 가격 — 손실 제한 88,300,000 (−12.4%) · 1차 익절 검토 112,000,000 · 추세 유지 125,000,000 [예측 아님]`, 미보유면 `관찰 구간 — 최근 1년 종가 하위 20% ~ 상위 20% · 하단 … 중앙 … 상단 … [예측 아님]`
    - 심리 온도계 72 아래: `이 구간(60~80) 과거 31회 · 30일 뒤 중앙값 −2.1% (−9.4% ~ +4.0%) · 예측 아님`
@@ -219,7 +219,7 @@ type CoachDetailViewModel = {
     topFactors: Array<{ key: string; score: number; message: string }>;
     signalTrackRecord: {
       signalType: string; sample: number; winRate: number;
-      avgReturn: number; maxDrawdown: number; lowSample: boolean;
+      avgReturn: number; worstObservedReturn: number; lowSample: boolean;
     } | null;
     failureCases: Array<{ date: string; event: string; outcome: string }>;
     explanation: { text: string; source: "llm" | "rule" };
@@ -447,3 +447,5 @@ flowchart TB
 | 2026-09-23 | 구현 진행 — **슬라이스 15 (FE) 코치 리포트 화면**: 홈에서 [코치 리포트 →] 로 들어간다. 지금은 추천이 전부 막혀 있어 "표본이 쌓이는 중" 안내와 막힌 이유 · 표본 수가 보인다(정상). 주의할 점 · 익절 플랜 · 최근 거래 기록 · 국내주식 제외 · 유의사항이 같이 있다. [새로 생성] 은 5분 쿨다운 동안 남은 시간을 보여 준다. **PM 확인 필요 2건**: ① **후보 목록**을 그리지 않았다 — 근거 · 과거 성적 · 실패사례가 없는 추천이고, 막힌 추천의 종목이 후보 1위로 보이게 된다. 후보에도 3종 세트를 붙일지, 목록을 빼는지 ② "생성 후 24시간 경과" 배지의 **24시간을 프론트에 박지 않았다** — 필요하면 서버가 오래됨 여부를 준다. 근거 `requirements/reports/checklists/F004-fe-coach-report.md` |
 | 2026-09-23 | 구현 진행 — **슬라이스 15 후속 (사용자 검수)**: 코치 리포트는 투자 화면 제목 줄에서 들어가고, 투자 표에서 종목을 누르면 바로 상세로 간다(우측 패널의 "상세 분석 보기" 버튼은 없앴다). 상세 · 리포트를 참고 증권 화면을 실측해 다시 만들었고, 종목이 나오는 자리에는 로고가 붙는다. 종목 상세는 검색에 나오도록 제목 · 설명이 붙는다. 근거 `requirements/reports/checklists/F004-fe-coach-report.md` |
 | 2026-09-23 | `ADR-003` · `FEATURE-008` 연결 — 정책 "목표주가·수익률 예측 금지" · FR-28 에 전망 확장 경로를 적었다. 이 기획서의 FR 은 바뀌지 않는다 |
+| 2026-09-24 | F009 슬라이스 0 — C04: 성적표 `maxDrawdown` → `worstObservedReturn`("가장 나빴던 수익률"). 값은 최저 단일 관찰 수익률이라 MDD 가 아니었다(`SRV-REQ-025` FR-55) |
+| 2026-09-24 | F009 슬라이스 0 — C05: 모드 기간을 채점 기간으로 통일(단타 24시간 · 장기 30일, 사용자 결정). 해설 "약 25분" · 판단 "1주~1년" 표기 삭제(`SRV-REQ-025` FR-56) |

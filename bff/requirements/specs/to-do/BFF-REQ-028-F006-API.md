@@ -128,7 +128,7 @@ type PositionViewModel = {
           axes: Array<{ key: 'concentration' | 'volatility' | 'drawdown' | 'newsRisk'; value: number | null; limit: number; breached: boolean; reasonCode: string | null }> };
 };
 type PerformanceViewModel = { range: '1w' | '1m' | '3m' | '1y'; points: Array<{ t: string; valueKrw: number }>;
-                              maxDrawdown: { pct: number; peakAt: string; troughAt: string } | null };
+                              worstObservedReturn: { pct: number; peakAt: string; troughAt: string } | null };
 type TransactionInput = { symbol: string; assetType: string; side: 'buy' | 'sell'; quantity: number; price: number; fee?: number; transactionDate: string; note?: string };
 type TransactionPreviewViewModel = { symbol: string; before: { quantity: number; avgPrice: number | null }; after: { quantity: number; avgPrice: number | null }; totalCostKrw: number };
 type AlertViewModel = { id: string; messageCode: string; params: Record<string, string | number>; target: 'coach' | 'home.weekly-plan'; isRead: boolean; createdAt: string };

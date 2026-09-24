@@ -31,7 +31,12 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    * /api/ai-coach/explain:
    *   post:
    *     summary: AI 코치 해설 (Gemini)
-   *     description: 종목·모드·근거·뉴스를 받아 한국어 해설(왜 단타/장기, 관찰 기간, 뉴스 요약 — 뉴스 수 이하, 최대 5줄)을 생성합니다. 판단이 3종 게이트를 못 넘으면 LLM 을 부르지 않고 `{ renderable false, blockedReason }` 을 200 으로 줍니다. 수익률·목표가 예측은 생성하지 않습니다. 5분 캐시.
+   *     description: |
+   *       종목·모드만 받는다. 시세·근거·뉴스는 **서버가 판단 게이트와 같은 재료로 조립한다**(C01 · SRV-REQ-025 FR-58) —
+   *       예전 본문 필드를 보내도 무시된다. 한국어 해설(왜 단타/장기, 관찰 기간, 뉴스 요약 — 뉴스 수 이하, 최대 5줄)을
+   *       생성한다. 판단이 3종 게이트를 못 넘으면 LLM 을 부르지 않고 `{ renderable false, blockedReason }` 을 200 으로
+   *       준다(현재가가 없으면 `facts_unavailable`). 렌더되면 `facts: { asOf, hash }` — 어떤 사실로 만든 해설인지.
+   *       수익률·목표가 예측은 생성하지 않는다. 5분 캐시(키 = 모델이 받은 입력 전체의 해시).
    *     tags: [AI Coach]
    *     security:
    *       - bearerAuth: []
@@ -41,30 +46,10 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *         application/json:
    *           schema:
    *             type: object
-   *             required: [symbol, koreanName, mode, currentPrice, change24h, tradeValue24h, evidence]
+   *             required: [symbol, mode]
    *             properties:
    *               symbol: { type: string, example: BTC }
-   *               koreanName: { type: string, example: 비트코인 }
    *               mode: { type: string, enum: [scalp, long_term] }
-   *               currentPrice: { type: number, example: 129913000 }
-   *               change24h: { type: number, example: -1.55 }
-   *               tradeValue24h: { type: number, example: 350100000000 }
-   *               evidence:
-   *                 type: array
-   *                 items:
-   *                   type: object
-   *                   properties:
-   *                     label: { type: string }
-   *                     value: { type: string }
-   *               news:
-   *                 type: array
-   *                 items:
-   *                   type: object
-   *                   properties:
-   *                     title: { type: string }
-   *                     summary: { type: string }
-   *                     source: { type: string }
-   *                     sentiment: { type: string }
    *     responses:
    *       200: { description: 해설 생성 성공 }
    *       400: { description: 요청 검증 실패 }

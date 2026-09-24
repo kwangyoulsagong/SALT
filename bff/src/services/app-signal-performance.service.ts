@@ -20,7 +20,7 @@ export class AppSignalPerformanceService {
         sampleCount: data.sampleCount,
         winRate: data.winRate,
         avgReturn: data.avgReturn,
-        maxDrawdown: data.maxDrawdown,
+        worstObservedReturn: data.worstObservedReturn,
       },
       samples: data.samples ?? [],
       generatedAt: data.generatedAt,

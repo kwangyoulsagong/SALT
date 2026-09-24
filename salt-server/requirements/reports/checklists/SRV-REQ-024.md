@@ -108,3 +108,15 @@
 | 워커 실제 회차(10분 스냅샷 · 판정, 일 1회 게이지) | 유스케이스를 직접 불러 확인했다 | 서버 재기동 후 첫 회차 |
 | ~~표본 20 도달 · `renderable: true` · `lowSample: false`~~ | ~~시간~~ | **2026-09-23 닫힘** — 로컬 시드로 8그룹 전부 표본 30↑ · explain `renderable: true` 실측. **운영 실데이터는 여전히 시간** |
 | 실패사례에 다른 사용자 추적 종목 표시 | 성적이 판단 유형 전체라서 | PM 확인 |
+
+## 6. F009 슬라이스 0 — C04 (2026-09-24)
+
+FR-30 의 그룹 필드 `maxDrawdown` → `worstObservedReturn`(`SRV-REQ-025` FR-55). 판정 · 게이트는 `SRV-REQ-025.md` §10.
+
+## 7. F009 슬라이스 0 — C05 (2026-09-24)
+
+FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. 판정 · 게이트는 `SRV-REQ-025.md` §11.
+
+## 8. F009 슬라이스 0 — C06 (FR-172, 2026-09-24)
+
+**pass** — `summarize` · `recentCases` · `scoreboard` · `recentCasesByGroup` 가 `countedOrigins` 로 거르고, `lastJudgedAt` · `saveSnapshots` · `listPending` 은 늘 `live`. 실DB 수치 · 미검증은 `DB-REQ-017.md` C06 절.

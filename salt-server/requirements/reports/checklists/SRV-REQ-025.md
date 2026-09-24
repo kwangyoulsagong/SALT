@@ -195,3 +195,73 @@
 | 생성 기록 보존 · 정리 | 워커가 사용자당 10분에 1행 | 관측성 계측 |
 | **로컬 워커 중복 실행** | 로컬에 `src/server.ts` 가 두 벌 떠 있어 워커 생성이 매번 **두 번** 돈다 — 새 기록에서 처음 보였다. 코드가 아니라 로컬 프로세스 문제 | 사용자가 로컬 프로세스 정리 |
 
+## 10. F009 슬라이스 0 — C04 `worstObservedReturn` (2026-09-24, `feat/f009-slice0-reliability`)
+
+루트: `requirements/reports/checklists/F009-slice0-reliability.md`
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-55 이름 정정 | **pass** | `signalPerformance` · `symbolJudgment` · `coachDetail` 세 정책과 Swagger 두 곳. 코드 · 스펙에 `maxDrawdown` 0건 |
+| FR-30 예외 2건째 | **pass** | 소비처 grep: BFF 3파일 · `@repo/core` 2 · 웹 3 — 전부 같은 커밋에서 바꿨다. 모바일 0건 |
+| 계산식 불변 | **pass** | `MIN(return_rate)` · `Math.min(...)` 그대로. 기존 테스트 기대값 그대로 통과 |
+| 게이트 | **pass** | `npm run build` · `npm test` **349 pass / 0 fail** · `eslint .` |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 인증된 HTTP 응답 실측(서버 · BFF 경유) | 로컬 서버 · BFF 는 떠 있지만 이번 세션에서 로그인 토큰을 만들 수 없었다. 도메인 · 뷰모델 단위 테스트로만 확인 | 사용자가 로그인한 화면에서 코치 카드 확인 시 |
+| 실제 MDD(시간순 자산 곡선) | 이번엔 이름만 바로잡았다. 판단 표본은 서로 겹치는 기간이라 한 곡선으로 이을 수 없다 | F009 슬라이스 1 `DecisionOutcome` — 사용자 거래로 곡선이 생길 때 |
+
+## 11. F009 슬라이스 0 — C05 기간 통일 (2026-09-24, `feat/f009-slice0-reliability`)
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-56 한 표 | **pass** | `domain/policy/horizon.ts` `COACH_HORIZON` — `JUDGMENT_HORIZON_MS` · `modeDecision.timeframe` · `validity.code` · 템플릿 · Gemini 프롬프트가 전부 읽는다. `src` 에 "25분" · `5m-24h` · `1w-1y` 0건 |
+| `SRV-REQ-024` FR-103 주입 | **pass** | LLM `timeframe` 을 버리고 표 값을 넣는다 — 테스트 "LLM 이 다른 기간을 써도 채점 기간으로 덮는다" |
+| 채점 불변 | **pass** | 24시간 · 30일 그대로 — 기존 표본이 그대로 유효하다 |
+| 게이트 | **pass** | `npm run build` · `npm test` **353 / 0**(+4 `horizon.test.ts`) · `eslint .` · `layer-check` 6파일 |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 인증된 HTTP 응답 · 화면 문구 실측 | 이번 세션에서 로그인 토큰을 만들 수 없었다 — 단위 · 뷰모델 테스트로만 확인 | 사용자 로그인 화면 QA |
+| 25분 단타 전략 | 사용자 결정으로 만들지 않는다. 필요해지면 분봉 채점이 따로 있어야 한다 | 범위 밖(결정) |
+
+## 12. F009 슬라이스 0 — C02 해설 캐시 키 (2026-09-24, `feat/f009-slice0-reliability`)
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-57 키 | **pass** | `explanationCacheKey(model, prompt)` — 테스트: 가격 200 · 1,000 · 1억 · 2억 → **키 4개**(옛 식은 넷 다 `200`), 근거 · 뉴스 요약 · 뉴스 출처 · 모드 · 모델이 바뀌면 다른 키, 같은 입력은 같은 키 |
+| 캐시 상한 | **pass** | 만료 정리 + 500건 상한(옛 캐시는 지우지 않고 계속 커졌다) |
+| 다른 캐시 | 없음 | `coach` 안 해설 캐시는 이 하나 |
+| 게이트 | **pass** | `npm run build` · `npm test` **356 / 0**(+3) · `eslint .` · `layer-check` 3파일 |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| LLM 호출 수 변화 실측 | 키가 정확해져 가격이 움직이면 새로 부른다. 해설은 사용자가 눌러야 부르고 사용자 ≤10명이라 예산 안으로 본다 — 실제 호출 수는 안 셌다 | 관측성 계측 |
+| 서버 사실 스냅샷 기준 키 | 진단이 말한 `snapshotId + evidenceHash` 의 앞 절반은 스냅샷이 있어야 한다 | C01 |
+
+## 13. F009 슬라이스 0 — C01 해설 사실을 서버가 조립 (FR-58, 2026-09-24, `feat/f009-slice0-reliability`)
+
+| 확인 | 결과 |
+|---|---|
+| 요청 | `explainCoachSchema` = `{ symbol, mode }` — 옛 본문(`currentPrice` · `evidence` · `news` …)은 **버린다**(테스트) |
+| 사실 = 게이트 재료 | 해설기가 받은 입력: 현재가 · 변동률 · 거래대금 · 이름이 시세 Port 값, 근거에 판단 문장 · RSI `30` · 심리 `30 (fear)`, 뉴스는 뉴스 Port 값(테스트) |
+| 위조 | 요청에 `currentPrice: 1` · 지어낸 근거를 실어도 해설 입력에 없다(테스트) |
+| 지문 | 응답 `facts.hash` = `explanationFactsHash(해설 입력)` · `asOf` ISO |
+| 가격 없음 | 게이트는 열리지만(심리 · RSI · 대량 체결) 해설은 `facts_unavailable`, LLM 호출 0(테스트) |
+| 뉴스 실패 | 뉴스 없이 렌더(테스트) |
+| 스트림 | `message.card` 에 `facts` · 인용은 서버 뉴스에서 |
+| 게이트 | `npm run build` · `npm test` **367 / 0**(+6) · `eslint .` · `layer-check` 10파일 |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 인증된 HTTP · 화면에서 해설 실측 | 로그인 토큰을 만들 수 없었다(자동 모드 권한). 유스케이스 · DTO 단위 테스트로만 확인 | 사용자 로그인 화면 QA |
+| 사실 스냅샷 ID(화면 상태와 해설 사실을 묶기) | 화면이 보내는 사실이 0 이라 위조 경로는 닫혔다. 남는 것은 "화면의 가격과 해설 시점 가격이 몇 초 다를 수 있음"뿐 — `facts.asOf` 로 드러난다 | 화면에 해설 기준 시각 표시가 필요해지면 |
+| 사실의 `metricId` 구조 | 근거가 아직 라벨 + 문자열이다(C03 의 남은 절반) | 도구 호출 에이전트(`FEATURE-008` FR-41 · 44) |

@@ -53,3 +53,7 @@
 BFF 변경 0. 슬라이스 5 에서 먼저 넣은 토큰 전달 · `AbortSignal` · `renderable:false` 200 통과가 그대로 맞았다 —
 실측 BFF 경유 `POST /api/app/ai-coach/explain` 200 `{renderable:false}`, 서버 직접 무토큰 401.
 preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달이라 변경 0(실측 BFF 경유 200).
+
+## F009 슬라이스 0 — C01 (FR-34, 2026-09-24)
+
+코드 변경 없음 — 본문을 그대로 넘긴다. `npm run build` · `npm test` **121 / 0**.

@@ -33,3 +33,21 @@
 | FR-13 뷰모델 `packages/core` | pass | FR-30 과 같다 |
 | FR-14 기존 경로 필드 추가만 | **다르게** | `/ai-coach/detail` 은 `header` · `decisionCards` → `modes` 로 바꿨다(BREAKING). 소비처 0건 · `preview` 는 `badge` 가 `null` 가능 외 무변경 |
 | FR-15 · FR-16 · FR-17 | 미착수 | |
+
+## 3. F009 슬라이스 0 — C04 (FR-39, 2026-09-24)
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-39 `worstObservedReturn` | **pass** | `symbol-coach.viewmodel` · `coach-report.viewmodel` · `app-signal-performance.service` · 테스트 2. 옛 이름 별칭 없음 |
+| 게이트 | **pass** | `npm run build` · `npm test` **121 pass / 0 fail** |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 인증된 HTTP 응답 실측(서버 · BFF 경유) | 로컬 서버 · BFF 는 떠 있지만 이번 세션에서 로그인 토큰을 만들 수 없었다. 도메인 · 뷰모델 단위 테스트로만 확인 | 사용자가 로그인한 화면에서 코치 카드 확인 시 |
+| 실제 MDD(시간순 자산 곡선) | 이번엔 이름만 바로잡았다. 판단 표본은 서로 겹치는 기간이라 한 곡선으로 이을 수 없다 | F009 슬라이스 1 `DecisionOutcome` — 사용자 거래로 곡선이 생길 때 |
+
+## 4. F009 슬라이스 0 — C05 (2026-09-24)
+
+코드 변경 없음(통과 전달). 테스트 픽스처 `scalp_24h` · `npm run build` · `npm test` **121 / 0**.

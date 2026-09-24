@@ -655,6 +655,9 @@ model SymbolJudgmentSnapshot {
   reasons    Json // 판단 당시 근거 문장 — 표시용
   entryPrice Decimal  @map("entry_price")
   judgedAt   DateTime @map("judged_at")
+  // 표본 출처 — live | backtest | synthetic (DB-REQ-017 FR-60). 실측 성적은 live 만 센다.
+  // 기본값이 없다 — 쓰는 쪽이 출처를 말해야 한다. CHECK 제약은 마이그레이션 SQL 에 있다
+  sampleOrigin String @map("sample_origin")
 
   // 사후 판정. 관찰 기간이 지나고 종가가 있으면 채운다
   exitPrice   Decimal?  @map("exit_price")

@@ -143,8 +143,12 @@ export interface AssetQuote {
   symbol: string;
   /** 코치의 관찰 구간이 자산군으로 갈린다 — 미보유 주식은 구간을 만들지 않는다(D12). */
   assetType: MarketAssetType;
+  /** 해설이 종목을 부르는 이름(C01 — 서버가 해설 사실을 조립한다) */
+  koreanName: string;
   currentPrice: number | null;
   change24h: number | null;
+  /** 24시간 거래대금(원). 해설 사실의 하나 */
+  tradeValue24h: number | null;
   priceUpdatedAt: Date | null;
 }
 

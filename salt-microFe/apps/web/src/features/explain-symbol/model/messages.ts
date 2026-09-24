@@ -14,7 +14,6 @@ export const EXPLAIN_MESSAGES = {
   /** FR-62 — 실패 · 타임아웃이면 규칙 기반 문장을 대신 보여 준다 */
   ruleBasedBadge: "규칙 기반 설명",
   ruleBasedNote: "AI 해설을 지금 만들 수 없어 판단의 근거 문장을 대신 보여 드립니다.",
-  subjectMissing: "시세 정보를 찾지 못해 해설을 요청할 수 없습니다.",
   /** 서버 게이트가 닫혔다(`renderable: false`) — 화면의 판단이 그사이 바뀌었다 */
   blocked: "판단이 방금 바뀌어 해설할 근거가 부족합니다. 새로고침하면 최신 판단을 볼 수 있습니다.",
   signedOut: "로그인하면 해설을 볼 수 있습니다.",
@@ -36,15 +35,4 @@ export const EXPLAIN_MESSAGES = {
   /** 템플릿이 최종 — AI 가 실패했거나 꺼져 있다 */
   templateNote: "근거 데이터로 만든 문장이에요. AI 다듬기는 이번에 쓰지 못했어요.",
   citationsLabel: "출처",
-
-  /** 모델에 넘기는 근거 라벨. 화면 문구가 아니라 요청 본문이지만 한 곳에 둔다 */
-  evidence: {
-    judgment: "판단",
-    reason: "근거",
-    risk: "주의",
-    rsi: "RSI",
-    sentiment: "시장 심리",
-    whaleBuy: "고래 매수 대금(원)",
-    whaleSell: "고래 매도 대금(원)",
-  },
 } as const;

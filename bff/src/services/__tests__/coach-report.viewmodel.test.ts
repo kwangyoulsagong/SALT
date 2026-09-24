@@ -19,7 +19,7 @@ const blocked = {
   blockedReason: "failure_cases_missing",
   reasons: [{ type: "rsi", message: "RSI" }],
   topFactors: [{ key: "rsi", score: 10, message: "RSI" }],
-  signalTrackRecord: { signalType: "coach.sell", sample: 1, winRate: 1, avgReturn: 0.09, maxDrawdown: 0.09, lowSample: true },
+  signalTrackRecord: { signalType: "coach.sell", sample: 1, winRate: 1, avgReturn: 0.09, worstObservedReturn: 0.09, lowSample: true },
   failureCases: [],
   explanation: { text: "규칙 문장", source: "rule" },
   confidence: 0.4,

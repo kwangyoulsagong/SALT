@@ -143,9 +143,9 @@ export const RecommendationCard = ({ recommendation }: RecommendationCardProps) 
             </dd>
           </div>
           <div>
-            <dt className={statTerm}>{DETAIL.maxDrawdown}</dt>
+            <dt className={statTerm}>{DETAIL.worstObservedReturn}</dt>
             <dd className={statValue[tone]}>
-              {orEmpty(record.maxDrawdown, formatSignedRate)}
+              {orEmpty(record.worstObservedReturn, formatSignedRate)}
             </dd>
           </div>
         </dl>

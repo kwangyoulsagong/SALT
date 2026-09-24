@@ -24,7 +24,7 @@ const { detail: DETAIL } = COACH_MESSAGES;
 const orEmpty = (value: number | null, format: (v: number) => string) =>
   value === null ? DETAIL.emptyValue : format(value);
 
-/** 이 판단의 과거 성적 — 적중률 · 평균 · 최대 낙폭. 해설 카드도 같은 것을 쓴다(FR-135) */
+/** 이 판단의 과거 성적 — 적중률 · 평균 · 가장 나빴던 수익률. 해설 카드도 같은 것을 쓴다(FR-135) */
 export const TrackRecordStats = ({ record }: { record: TrackRecord }) => {
   const tone = record.lowSample ? "lowSample" : "normal";
   return (
@@ -44,9 +44,9 @@ export const TrackRecordStats = ({ record }: { record: TrackRecord }) => {
           </dd>
         </div>
         <div>
-          <dt className={statTerm}>{DETAIL.maxDrawdown}</dt>
+          <dt className={statTerm}>{DETAIL.worstObservedReturn}</dt>
           <dd className={statValue[tone]}>
-            {orEmpty(record.maxDrawdown, formatSignedRate)}
+            {orEmpty(record.worstObservedReturn, formatSignedRate)}
           </dd>
         </div>
       </dl>

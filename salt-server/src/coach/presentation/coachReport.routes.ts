@@ -24,7 +24,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *     summary: 판단 성적표 (신호 유형별)
    *     description: |
    *       종목 판단 스냅샷 중 **관찰 기간이 끝나 판정된 표본**을 신호 유형(`<mode>.<action>`)별로
-   *       모아 준다. 그룹마다 표본 수 · 승률 · 평균 수익률 · 최대 낙폭과 관찰 기간 수익률 분포
+   *       모아 준다. 그룹마다 표본 수 · 승률 · 평균 수익률 · 가장 나빴던 수익률과 관찰 기간 수익률 분포
    *       (구간 6개 + 하위 25% · 중앙값 · 상위 25%), 맞았던 때 · 틀렸던 때를 각각 최대 3건 싣는다.
    *
    *       - 표본은 종목 단위 판단이라 **사용자별로 다르지 않다.** 인증만 필요하다
@@ -198,7 +198,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *                             avgReturn:
    *                               type: number
    *                               nullable: true
-   *                             maxDrawdown:
+   *                             worstObservedReturn:
    *                               type: number
    *                               nullable: true
    *                             lowSample:

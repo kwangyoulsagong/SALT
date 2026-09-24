@@ -6,7 +6,7 @@ import type { CoachInsight } from "../model";
  * ## 이것이 근거 3종의 "과거 적중률"이다
  *
  * 추천에는 **근거 · 과거 적중률 · 실패사례** 셋이 전부 붙어야 하고 하나라도 없으면
- * 렌더하지 않는다(전 영역 공통 수용 기준 1). `maxDrawdown` 이 실패사례의 씨앗이고,
+ * 렌더하지 않는다(전 영역 공통 수용 기준 1). `worstObservedReturn` 이 실패사례의 씨앗이고,
  * `winRate` 가 적중률이다. 표본이 없으면 `insufficient_data` 를 **숨기지 않고** 준다.
  */
 
@@ -26,7 +26,11 @@ export interface PerformanceSummary {
   sampleCount: number;
   winRate: number | null;
   avgReturn: number | null;
-  maxDrawdown: number | null;
+  /**
+   * 표본 중 **가장 나빴던 단일 관찰 수익률**(`MIN(returnRate)`). 최대 낙폭(MDD)이 아니다 —
+   * MDD 는 시간순 자산 곡선의 고점 대비 하락이라 관찰 종료 수익률만으로는 못 구한다(C04).
+   */
+  worstObservedReturn: number | null;
   samples: PerformanceSample[];
 }
 
@@ -84,7 +88,7 @@ export const summarizePerformance = (
     avgReturn: sampleCount
       ? samples.reduce((sum, sample) => sum + sample.returnRate, 0) / sampleCount
       : null,
-    maxDrawdown: sampleCount
+    worstObservedReturn: sampleCount
       ? Math.min(...samples.map((sample) => sample.returnRate))
       : null,
     samples: samples.slice(0, SAMPLE_LIMIT),

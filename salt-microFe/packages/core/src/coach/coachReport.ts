@@ -47,7 +47,7 @@ export interface ReportTrackRecord {
   /** 표본 0 이면 `null` — 0% 가 아니다 */
   winRate: number | null;
   avgReturn: number | null;
-  maxDrawdown: number | null;
+  worstObservedReturn: number | null;
   lowSample: boolean;
 }
 

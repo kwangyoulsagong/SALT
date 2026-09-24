@@ -7,10 +7,17 @@ import type {
   CoachExplanationInput,
   JudgmentTrackStats,
   MarketProbe,
+  NewsProbe,
   PortfolioProbe,
   SymbolJudgmentStore,
 } from "../../domain";
-import { ExplainCoachDecision, sentencesOf, type ExplainStreamEvent } from "../ExplainCoachDecision";
+import { explanationFactsHash } from "../../domain";
+import {
+  ExplainCoachDecision,
+  sentencesOf,
+  type CoachExplainRequest,
+  type ExplainStreamEvent,
+} from "../ExplainCoachDecision";
 
 /**
  * 즉석 해설 게이트 (`SRV-REQ-025` FR-50 · FR-51).
@@ -23,7 +30,18 @@ const T0 = new Date("2026-09-01T00:00:00Z");
 const market = {
   quotes: async () =>
     new Map([
-      ["BTC", { symbol: "BTC", assetType: "crypto", currentPrice: 100, change24h: 0, priceUpdatedAt: T0 }],
+      [
+        "BTC",
+        {
+          symbol: "BTC",
+          assetType: "crypto",
+          koreanName: "비트코인",
+          currentPrice: 100,
+          change24h: -1.5,
+          tradeValue24h: 5e11,
+          priceUpdatedAt: T0,
+        },
+      ],
     ]),
   latestSentiments: async () =>
     new Map([
@@ -35,6 +53,10 @@ const market = {
 } as unknown as MarketProbe;
 
 const noHolding = { getHolding: async () => null } as unknown as PortfolioProbe;
+
+const newsProbe = {
+  recentForSymbol: async () => [{ title: "현물 ETF 순유입", summary: null, source: "코인뉴스", sentiment: null }],
+} as unknown as NewsProbe;
 
 const store = (stats: JudgmentTrackStats, misses: number): SymbolJudgmentStore =>
   ({
@@ -50,7 +72,7 @@ const store = (stats: JudgmentTrackStats, misses: number): SymbolJudgmentStore =
 
 const explanation: CoachExplanation = {
   modeReasoning: "m",
-  timeframe: "약 30일 내외",
+  timeframe: "판단 뒤 30일",
   keyDrivers: ["k"],
   risks: ["r"],
   newsSummary: [],
@@ -70,15 +92,8 @@ const spyExplainer = () => {
   return { explainer, calls };
 };
 
-const input: CoachExplanationInput = {
-  symbol: "btc",
-  koreanName: "비트코인",
-  mode: "long_term",
-  currentPrice: 100,
-  change24h: 0,
-  tradeValue24h: 1,
-  evidence: [{ label: "심리", value: "공포" }],
-};
+/** 요청은 종목 · 관점뿐이다 — 사실은 서버가 모은다(C01) */
+const input: CoachExplainRequest = { symbol: "btc", mode: "long_term" };
 
 describe("ExplainCoachDecision", () => {
   it("판단이 게이트를 못 넘으면 LLM 을 부르지 않고 renderable:false 를 준다 (FR-50)", async () => {
@@ -87,7 +102,8 @@ describe("ExplainCoachDecision", () => {
       explainer,
       market,
       noHolding,
-      store({ sample: 3, hits: 2, avgReturn: 0.01, worstReturn: -0.05 }, 1)
+      store({ sample: 3, hits: 2, avgReturn: 0.01, worstReturn: -0.05 }, 1),
+      newsProbe
     ).execute("user-1", input);
 
     assert.deepEqual(result, { renderable: false, blockedReason: "insufficient_sample" });
@@ -100,7 +116,8 @@ describe("ExplainCoachDecision", () => {
       explainer,
       market,
       noHolding,
-      store({ sample: 20, hits: 20, avgReturn: 0.04, worstReturn: 0.01 }, 0)
+      store({ sample: 20, hits: 20, avgReturn: 0.04, worstReturn: 0.01 }, 0),
+      newsProbe
     ).execute("user-1", input);
 
     assert.equal(result.renderable, false);
@@ -114,7 +131,8 @@ describe("ExplainCoachDecision", () => {
       explainer,
       market,
       noHolding,
-      store({ sample: 20, hits: 15, avgReturn: 0.02, worstReturn: -0.08 }, 3)
+      store({ sample: 20, hits: 15, avgReturn: 0.02, worstReturn: -0.08 }, 3),
+      newsProbe
     ).execute("user-1", input, controller.signal);
 
     assert.equal(calls.length, 1);
@@ -123,7 +141,7 @@ describe("ExplainCoachDecision", () => {
     if (!result.renderable) return;
     assert.equal(result.trackRecord.sample, 20);
     assert.equal(result.failureCases.length, 3);
-    assert.equal(result.validity.code, "long_term_1w_1y");
+    assert.equal(result.validity.code, "long_term_30d");
     assert.notEqual(result.disclaimer, "모델이 쓴 면책");
     assert.equal(result.modeReasoning, "m");
     assert.ok(!("expectedReturn" in result));
@@ -142,7 +160,8 @@ describe("ExplainCoachDecision", () => {
       }),
       market,
       noHolding,
-      passing()
+      passing(),
+      newsProbe
     ).execute("user-1", input);
     assert.ok(result.renderable);
     if (!result.renderable) return;
@@ -154,7 +173,7 @@ describe("ExplainCoachDecision", () => {
 
   it("LLM 이 실패해도 해설이 비지 않는다 — 전부 템플릿", async () => {
     const failing: CoachExplainer = { explain: async () => { throw new Error("Gemini 503"); } };
-    const result = await new ExplainCoachDecision(failing, market, noHolding, passing()).execute("user-1", input);
+    const result = await new ExplainCoachDecision(failing, market, noHolding, passing(), newsProbe).execute("user-1", input);
     assert.ok(result.renderable);
     if (!result.renderable) return;
     assert.equal(result.source, "template");
@@ -166,16 +185,16 @@ describe("ExplainCoachDecision", () => {
     controller.abort();
     const aborted: CoachExplainer = { explain: async () => { throw new Error("aborted"); } };
     await assert.rejects(() =>
-      new ExplainCoachDecision(aborted, market, noHolding, passing()).execute("user-1", input, controller.signal)
+      new ExplainCoachDecision(aborted, market, noHolding, passing(), newsProbe).execute("user-1", input, controller.signal)
     );
   });
 
   describe("stream (FEATURE-008 FR-47 · FR-60 · FR-61)", () => {
     const collect = async (explainer: CoachExplainer, judgments = passing(), signal?: AbortSignal) => {
       const events: ExplainStreamEvent[] = [];
-      await new ExplainCoachDecision(explainer, market, noHolding, judgments).stream(
+      await new ExplainCoachDecision(explainer, market, noHolding, judgments, newsProbe).stream(
         "user-1",
-        { ...input, news: [{ title: "현물 ETF 순유입", source: "코인뉴스" }] },
+        input,
         (e) => events.push(e),
         signal
       );
@@ -238,6 +257,65 @@ describe("ExplainCoachDecision", () => {
       setTimeout(() => controller.abort(), 10);
       const events = await pending;
       assert.ok(!names(events).includes("message.done"));
+    });
+  });
+
+  describe("사실은 서버가 조립한다 (C01 · SRV-REQ-025 FR-58)", () => {
+    it("게이트와 같은 재료로 시세 · 근거 · 뉴스를 만들고 지문을 남긴다", async () => {
+      const { explainer, calls } = spyExplainer();
+      const result = await new ExplainCoachDecision(explainer, market, noHolding, passing(), newsProbe).execute(
+        "user-1",
+        input
+      );
+      assert.equal(calls.length, 1);
+      const facts = calls[0]!.input;
+      assert.equal(facts.symbol, "BTC");
+      assert.equal(facts.koreanName, "비트코인");
+      assert.equal(facts.currentPrice, 100);
+      assert.equal(facts.change24h, -1.5);
+      assert.equal(facts.tradeValue24h, 5e11);
+      assert.equal(facts.evidence[0]?.label, "판단");
+      assert.ok(facts.evidence.some((e) => e.label === "RSI" && e.value === "30"));
+      assert.ok(facts.evidence.some((e) => e.label === "시장 심리" && e.value === "30 (fear)"));
+      assert.deepEqual(facts.news, [{ title: "현물 ETF 순유입", source: "코인뉴스" }]);
+      assert.ok(result.renderable);
+      if (!result.renderable) return;
+      assert.equal(result.facts.hash, explanationFactsHash(facts));
+      assert.ok(!Number.isNaN(Date.parse(result.facts.asOf)));
+    });
+
+    it("요청에 사실을 실어 보내도 쓰지 않는다", async () => {
+      const { explainer, calls } = spyExplainer();
+      const forged = { ...input, currentPrice: 1, evidence: [{ label: "근거", value: "지어낸 사실" }] } as CoachExplainRequest;
+      await new ExplainCoachDecision(explainer, market, noHolding, passing(), newsProbe).execute("user-1", forged);
+      assert.equal(calls[0]!.input.currentPrice, 100);
+      assert.ok(!JSON.stringify(calls[0]!.input).includes("지어낸 사실"));
+    });
+
+    it("현물 가격이 없으면 LLM 을 부르지 않고 facts_unavailable", async () => {
+      const { explainer, calls } = spyExplainer();
+      const noPrice = {
+        ...market,
+        quotes: async () => new Map(),
+      } as unknown as MarketProbe;
+      const result = await new ExplainCoachDecision(explainer, noPrice, noHolding, passing(), newsProbe).execute(
+        "user-1",
+        input
+      );
+      // 판단은 심리 · RSI · 대량 체결로 열린다 — 가격이 없어도 게이트는 통과하고, 해설만 막힌다
+      assert.deepEqual(result, { renderable: false, blockedReason: "facts_unavailable" });
+      assert.equal(calls.length, 0);
+    });
+
+    it("뉴스 조회가 실패해도 뉴스 없이 해설한다", async () => {
+      const { explainer, calls } = spyExplainer();
+      const brokenNews = { recentForSymbol: async () => { throw new Error("news down"); } } as unknown as NewsProbe;
+      const result = await new ExplainCoachDecision(explainer, market, noHolding, passing(), brokenNews).execute(
+        "user-1",
+        input
+      );
+      assert.ok(result.renderable);
+      assert.equal(calls[0]!.input.news, undefined);
     });
   });
 

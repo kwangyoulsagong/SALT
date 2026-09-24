@@ -1,4 +1,5 @@
 import type { CoachMode } from "../model";
+import { COACH_HORIZON } from "./horizon";
 import type { ModeDecisionAction } from "./modeDecision";
 
 /**
@@ -18,19 +19,35 @@ import type { ModeDecisionAction } from "./modeDecision";
  * | `avoid` (피하기) | 기간 수익률 ≤ 0 |
  * | `wait` (관망) | 기간 수익률 절댓값이 단타 2% · 장기 10% 안 |
  *
- * 관찰 기간은 모드의 유효시간을 따른다: 단타 24시간 · 장기 30일.
+ * 관찰 기간은 모드의 유효시간을 따른다: 단타 24시간 · 장기 30일(`COACH_HORIZON` — 해설 · 판단 문구와 같은 표).
  */
 
 export type JudgmentOutcome = "hit" | "miss";
 
 const HOUR_MS = 3600_000;
-const DAY_MS = 24 * HOUR_MS;
 
 /** 모드별 관찰 기간. 스냅샷 간격(표본 독립성)도 이 값이다. */
 export const JUDGMENT_HORIZON_MS: Record<CoachMode, number> = {
-  scalp: DAY_MS,
-  long_term: 30 * DAY_MS,
+  scalp: COACH_HORIZON.scalp.ms,
+  long_term: COACH_HORIZON.long_term.ms,
 };
+
+/**
+ * 표본의 출처 — F009 슬라이스 0 C06 (`DB-REQ-017` FR-60).
+ *
+ * | 값 | 누가 쓰나 |
+ * |---|---|
+ * | `live` | 워커가 실시간 판단을 스냅샷으로 남기고 관찰 기간 뒤 채점한 것 |
+ * | `backtest` | 과거 시세로 되돌려 채점한 것 — 아직 쓰는 곳이 없다 |
+ * | `synthetic` | 시드 스크립트가 지어낸 수열 — 로컬에서 렌더 경로를 밟기 위한 것 |
+ *
+ * **실측 성적(게이트 · 적중률 · 실패사례 · 성적표)은 `live` 만 센다.** 합성 실적이 섞이면 지어낸
+ * 숫자가 추천을 연다. 개발 DB 를 운영으로 복사해도 마찬가지여야 해서 출처를 행에 적는다.
+ */
+export type SampleOrigin = "live" | "backtest" | "synthetic";
+
+/** 실측 성적이 세는 출처. 개발에서 `synthetic` 을 더하는 것은 조립 지점의 일이다(`composition.ts`). */
+export const LIVE_ORIGINS: readonly SampleOrigin[] = ["live"];
 
 /** `wait` 가 적중인 수익률 폭(절댓값). */
 export const WAIT_BAND: Record<CoachMode, number> = {
@@ -105,7 +122,11 @@ export interface JudgmentTrackRecord {
   /** 표본 0 이면 `null` — 0% 가 아니다. */
   winRate: number | null;
   avgReturn: number | null;
-  maxDrawdown: number | null;
+  /**
+   * 표본 중 **가장 나빴던 단일 관찰 수익률**(`MIN(returnRate)`). 최대 낙폭(MDD)이 아니다 —
+   * MDD 는 시간순 자산 곡선의 고점 대비 하락이라 관찰 종료 수익률만으로는 못 구한다(C04).
+   */
+  worstObservedReturn: number | null;
   lowSample: boolean;
   horizonHours: number;
 }
@@ -119,7 +140,7 @@ export const summarizeJudgmentTrack = (
   sample: stats.sample,
   winRate: stats.sample > 0 ? stats.hits / stats.sample : null,
   avgReturn: stats.avgReturn,
-  maxDrawdown: stats.worstReturn,
+  worstObservedReturn: stats.worstReturn,
   lowSample: stats.sample < MIN_JUDGMENT_SAMPLE,
   horizonHours: JUDGMENT_HORIZON_MS[mode] / HOUR_MS,
 });

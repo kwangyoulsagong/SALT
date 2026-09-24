@@ -1,5 +1,5 @@
 import type { NewsApi } from "../../news/application/api";
-import type { CoachArticle, CoachArticleQuery, NewsProbe } from "../domain";
+import type { CoachArticle, CoachArticleQuery, CoachSymbolArticle, NewsProbe } from "../domain";
 
 /**
  * `news` → `coach` ACL.
@@ -22,6 +22,16 @@ export class ArticleTextAdapter implements NewsProbe {
       content: article.content,
       sentiment: article.sentiment,
       publishedAt: article.publishedAt,
+    }));
+  }
+
+  async recentForSymbol(symbol: string, limit: number): Promise<CoachSymbolArticle[]> {
+    const articles = await this.news.findArticlesBySymbol(symbol, limit);
+    return articles.map((article) => ({
+      title: article.title,
+      summary: article.summary,
+      source: article.source,
+      sentiment: article.sentiment ?? null,
     }));
   }
 }

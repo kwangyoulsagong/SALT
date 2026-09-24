@@ -45,7 +45,7 @@ export interface RecommendationTrackRecord {
   /** 표본 0 이면 `null` — 0% 가 아니다. */
   winRate: number | null;
   avgReturn: number | null;
-  maxDrawdown: number | null;
+  worstObservedReturn: number | null;
   lowSample: boolean;
 }
 
@@ -53,14 +53,14 @@ export const summarizeRecommendationTrack = (
   signalType: string,
   summary: Pick<
     PerformanceSummary,
-    "sampleCount" | "winRate" | "avgReturn" | "maxDrawdown"
+    "sampleCount" | "winRate" | "avgReturn" | "worstObservedReturn"
   >
 ): RecommendationTrackRecord => ({
   signalType,
   sample: summary.sampleCount,
   winRate: summary.winRate,
   avgReturn: summary.avgReturn,
-  maxDrawdown: summary.maxDrawdown,
+  worstObservedReturn: summary.worstObservedReturn,
   lowSample: summary.sampleCount < MIN_JUDGMENT_SAMPLE,
 });
 

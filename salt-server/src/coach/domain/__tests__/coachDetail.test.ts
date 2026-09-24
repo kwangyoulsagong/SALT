@@ -21,7 +21,7 @@ const track = (sampleCount: number) =>
     sampleCount,
     winRate: sampleCount ? 0.5 : null,
     avgReturn: sampleCount ? 0.01 : null,
-    maxDrawdown: sampleCount ? -0.1 : null,
+    worstObservedReturn: sampleCount ? -0.1 : null,
   });
 
 const reason = { type: "rsi", message: "RSI 과매도" };

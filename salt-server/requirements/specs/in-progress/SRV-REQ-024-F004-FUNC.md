@@ -71,7 +71,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-30 | 신호 유형별로 그룹화한다: `sample` · `winRate` · `avgReturn` · `maxDrawdown` | Must |
+| FR-30 | 신호 유형별로 그룹화한다: `sample` · `winRate` · `avgReturn` · `worstObservedReturn` | Must |
 | FR-31 | **`sample < 20`이면 `lowSample: true`** 다. 화면이 `표본 부족` 배지를 붙이고 승률을 회색 처리한다 | Must |
 | FR-32 | `lowSample`에서 **게이트를 차단할지는 정책 결정**이다. 초기에는 표본이 거의 없어 모든 카드가 미렌더될 수 있다 → **기본안: 표본 1건 이상이면 통과하고 `lowSample`로 표시** | Must |
 | FR-33 | `coach_feedback` kind를 성과 샘플에서 **제외**한다(기존 동작 유지) | Must |
@@ -155,7 +155,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-100 | 종목 판단은 **두 모드를 늘 함께** 계산해 내려보낸다(`modes.scalp` · `modes.longTerm`). 화면이 모드를 바꿔도 서버를 다시 부르지 않는다 — 기존 `dualDecision` 설계를 유지한다 | Must |
 | FR-101 | 판단 라벨은 서버 **중립 라벨 4종**이다: `review_short_opportunity`(단타 기회 후보) · `review_accumulation`(장기 모아가기 후보) · `wait`(관망) · `avoid`(지금은 피하기). **"매수"·"매도" 명령형 라벨을 만들지 않는다**(`modeDecision.ts` 기존) | Must |
 | FR-102 | **신뢰도를 없앤다.** `makeModeDecision` 의 `confidence`(`0.45 + score/200`) 필드를 응답 타입에서 제거하고, `CoachExplanationInput.confidence`(Gemini 입력)도 뺀다. 점수 + `scoreNote` + 3종이 대체한다 | Must |
-| FR-103 | **유효시간은 서버가 정한 하나의 표기**다. 기존 `timeframe`(`5m-24h` · `1w-1y`)을 `validity.code` 로 싣고, 해설(`CoachExplanation.timeframe`)도 **LLM 이 만들지 않고 이 값을 주입**한다. 화면 자체 값(프로토타입 "25분 / 30일") 금지 | Must |
+| FR-103 | **유효시간은 서버가 정한 하나의 표기**다. 기존 `timeframe`(~~`5m-24h` · `1w-1y`~~ → **`24h` · `30d`**, 개정 2026-09-24 C05 — 채점 기간과 같게)을 `validity.code` 로 싣고, 해설(`CoachExplanation.timeframe`)도 **LLM 이 만들지 않고 이 값을 주입**한다. 화면 자체 값(프로토타입 "25분 / 30일") 금지 | Must |
 | FR-104 | 모드별로 **3종 게이트**를 적용한다: `renderable` · `blockedReason` · `trackRecord` · `failureCases`. 게이트 함수는 FR-10 의 `renderGate.ts` 를 그대로 쓴다 — 저장 추천과 종목 판단이 **같은 함수**를 지난다 | Must |
 | FR-105 | 근거 = `reasons[]`(비어 있지 않음). 적중률 = 매핑 표(FR-130)로 찾은 `<mode>.<action>` 성적표. 실패사례 = 같은 `<mode>.<action>` 스냅샷 중 **빗나간 것**(FR-134 · D11). `IndicatorTrackRecord` 를 쓰지 않는다 | Must |
 | FR-106 | `renderable: false` 여도 **200** 이고, 게이지 · 뉴스 · 바이존은 그대로 응답한다. 게이트는 **판단 블록**에만 걸린다 | Must |
@@ -239,6 +239,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-170 | **관심 종목 목록 응답에 판단 · 신호 필드를 붙이지 않는다**(D4). 판단은 종목 판단 경로에서만 | Must |
+| FR-172 | 판단 게이트 · 성적 · 실패사례 · 성적표는 **`sample_origin = live` 표본만** 센다(개정 2026-09-24, C06 · `DB-REQ-017` FR-60). 로컬에서 합성 표본을 세려면 `JUDGMENT_COUNT_SYNTHETIC=true` — **운영에서 켜면 기동이 막힌다**. 워커의 간격 · 채점 대상은 설정과 무관하게 늘 `live` | Must |
 | FR-171 | 알림 만들기 · 사용자 조건 알림(B19)은 이 REQ 에 없다 | — |
 
 ## Acceptance Criteria
@@ -339,3 +340,6 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-09-23 | **슬라이스 11 구현.** 성적표 그룹(FR-30 · 31 · 35 · 36)과 수익률 분포 · 적중/실패 동등(FR-160 · FR-161). 분포 기간은 **그룹의 관찰 기간**이다(`SRV-REQ-025` 코드블록 개정). FR-32~34 는 무인자 경로의 기존 동작이라 범위 밖. 근거 `reports/checklists/SRV-REQ-024.md` |
 | 2026-09-21 | **슬라이스 1 구현 (`requirements/specs/in-progress/F004-symbol-judgment-slice.md`).** 닫힘: FR-100 · FR-101 · FR-102(신뢰도 제거) · FR-103(`validity.code`) · FR-104~106(게이트 — `renderGate.ts` 대신 `policy/symbolJudgment.ts` 의 `judgmentGate`) · FR-107(스냅샷 — **`InvestmentInsight` 대신 별도 테이블**, `DB-REQ-017` 참고) · FR-131 · FR-132 · FR-134~137. 남음: B절(zone) · C절(게이지) · E~G절 · FR-130 매핑 시드 · FR-133 카운터 |
 | 2026-09-21 | **슬라이스 2 구현 (`requirements/specs/in-progress/F004-zone-gauge-slice.md`).** 신규 FR-138(피하기 근거 = `reasons ∪ risks`, 사용자 확정). 닫힘: FR-110~116(zone — 관찰 구간 최소 표본 = 기대 캔들 수의 절반) · FR-120~123(게이지 — `sentiment`). 남음: FR-115 `excluded_asset`(자산군 enum) · FR-117 · FR-124(Should) |
+| 2026-09-24 | **F009 슬라이스 0 — C04.** FR-30 의 `maxDrawdown` 을 `worstObservedReturn` 으로 개정(`SRV-REQ-025` FR-55). 최저 단일 관찰 수익률이지 MDD 가 아니다 |
+| 2026-09-24 | **F009 슬라이스 0 — C05.** FR-103 개정 · **해설 `timeframe` 주입 구현**(그동안 LLM 이 쓴 기간을 검사만 하고 통과시켰다 — 이제 버리고 `COACH_HORIZON` 을 넣는다). 기간 = 채점 기간(`SRV-REQ-025` FR-56) |
+| 2026-09-24 | **F009 슬라이스 0 — C06.** FR-172 신설 · 구현. 저장소가 출처로 거른다(`PrismaSymbolJudgmentStore` 생성자 인자, 조립은 `composition.ts`) |
