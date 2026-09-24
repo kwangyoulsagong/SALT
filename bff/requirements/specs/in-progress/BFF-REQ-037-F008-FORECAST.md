@@ -17,4 +17,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | FR-4 | 뷰모델 — 전망 3종이 빠진 기간은 `contract_incomplete` 로 막는다(열 수는 없다), 기간 4개 항상, 방향은 서버가 줄 때만 | 완료 |
 | FR-5 | 해설 응답의 `source` · `droppedSentences` 는 기존 `/ai-coach/explain` 이 그대로 통과시킨다(뷰모델 없음) | 확인 |
 | FR-7 | `history[]`(과거 일봉 종가) 통과 — 모양이 깨진 점은 버린다, 없으면 빈 배열 | 완료 |
-| FR-6 | 스트리밍 해설(SSE) | 슬라이스 19 이후 |
+| FR-6 | 스트리밍 해설(SSE) `POST /api/app/ai-coach/explain/stream` — 이벤트 단위 중계(계약 이름만 통과), 스트림 전 4xx 는 JSON 그대로, 동시 상한은 단건과 같은 문, 대화당 60초 | 완료(2026-09-24) |

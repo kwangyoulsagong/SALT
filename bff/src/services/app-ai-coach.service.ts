@@ -1,6 +1,7 @@
 import { createConcurrencyGate } from "../utils/concurrency.util";
 import { AppError } from "../utils/error.util";
 import { retryOnceOnGet } from "../utils/retry.util";
+import { createSseParser, type SseEvent } from "../utils/sse.util";
 import { backendApi } from "./backend-api.service";
 import {
   SymbolCoachContractError,
@@ -18,6 +19,20 @@ const EXPLAIN_TIMEOUT_MS = 20_000;
 const EXPLAIN_MAX_CONCURRENT = 2;
 
 const explainGate = createConcurrencyGate(EXPLAIN_MAX_CONCURRENT);
+/** 해설 스트림 대화당 상한(`streaming-sse.md` §7) · 소켓 유휴 상한(서버 ping 15초보다 길게) */
+const EXPLAIN_STREAM_MAX_MS = 60_000;
+const EXPLAIN_STREAM_IDLE_MS = 30_000;
+/** 화면 계약에 있는 이벤트만 옮긴다(`streaming-sse.md` §3). `ping` 은 BFF 가 스스로 보낸다 */
+const EXPLAIN_STREAM_EVENTS = new Set([
+  "message.start",
+  "message.step",
+  "message.blocked",
+  "message.card",
+  "message.delta",
+  "message.replace",
+  "message.done",
+  "message.error",
+]);
 
 type BackendEnvelope<T> = {
   success: boolean;
@@ -196,6 +211,62 @@ export class AppAICoachService {
     } finally {
       release();
     }
+  }
+
+  /**
+   * 해설 스트림(SSE) 중계 — F008 `BFF-REQ-037` FR-6 · `streaming-sse.md`.
+   *
+   * - 동시 상한은 단건 `explain` 과 **같은 문**을 쓴다 — 넘으면 스트림을 열기 전에 429
+   * - 서버 4xx 는 스트림을 열기 전에 그대로 던진다(400 · 401 · 429)
+   * - 이벤트는 **계약에 있는 이름만** 옮긴다. 토큰을 저장 · 변형 · 로깅하지 않는다(§2 · §8)
+   * - 대화당 60초 상한(§7) — 넘으면 끊고 `message.error`
+   *
+   * 반환된 `events` 를 다 읽거나 `close()` 하면 문이 열린다.
+   */
+  async openExplainStream(token: string, body: unknown, signal: AbortSignal) {
+    const release = explainGate.tryAcquire();
+    if (!release) throw new AppError("explain_busy", 429);
+
+    const upstreamAbort = new AbortController();
+    const onAbort = () => upstreamAbort.abort();
+    signal.addEventListener("abort", onAbort, { once: true });
+    const cap = setTimeout(() => upstreamAbort.abort(), EXPLAIN_STREAM_MAX_MS);
+    const close = () => {
+      clearTimeout(cap);
+      signal.removeEventListener("abort", onAbort);
+      release();
+    };
+
+    let stream: NodeJS.ReadableStream;
+    try {
+      stream = await backendApi.openAuthStream("/ai-coach/explain/stream", token, body, {
+        timeout: EXPLAIN_STREAM_IDLE_MS,
+        signal: upstreamAbort.signal,
+      });
+    } catch (error) {
+      close();
+      throw error;
+    }
+
+    async function* events(): AsyncGenerator<SseEvent> {
+      const queue: SseEvent[] = [];
+      const parse = createSseParser((e) => {
+        if (EXPLAIN_STREAM_EVENTS.has(e.event)) queue.push(e);
+      });
+      try {
+        for await (const chunk of stream) {
+          parse(chunk.toString());
+          while (queue.length > 0) yield queue.shift()!;
+        }
+        if (upstreamAbort.signal.aborted && !signal.aborted) {
+          yield { event: "message.error", data: JSON.stringify({ code: "LLM_TIMEOUT", fallback: "rule" }) };
+        }
+      } finally {
+        close();
+      }
+    }
+
+    return { events: events(), close: () => { upstreamAbort.abort(); close(); } };
   }
 
   private mapDecision(decision: any) {
