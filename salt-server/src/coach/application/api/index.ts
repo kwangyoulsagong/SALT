@@ -9,6 +9,7 @@ import type {
   NewsProbe,
   PortfolioProbe,
   SymbolJudgmentStore,
+  ForecastReader,
   TrackedAssetProbe,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
@@ -23,6 +24,7 @@ import { GetCoachDetail } from "../GetCoachDetail";
 import { GetCoachGenerationStatus } from "../GetCoachGenerationStatus";
 import { GetCoachRecommendation } from "../GetCoachRecommendation";
 import { GetJudgmentScoreboard } from "../GetJudgmentScoreboard";
+import { GetSymbolForecast } from "../GetSymbolForecast";
 import { GetSignalPerformance } from "../GetSignalPerformance";
 import { GetSymbolCoach } from "../GetSymbolCoach";
 import { ListProfitPlans } from "../ListProfitPlans";
@@ -63,6 +65,10 @@ export interface CoachDependencies {
   generationLogs: CoachGenerationLogStore;
   /** 수동 재생성 쿨다운(초). **설정값**이다(`SRV-REQ-024` FR-82) — env 에서 온다 */
   regenerateCooldownSeconds: number;
+  /** 가격 전망 읽기(F008) — `forecast.v_forecast_card` */
+  forecasts: ForecastReader;
+  /** 전망 소유자 이메일(ADR-003) — env 에서 온다. 비면 아무도 못 본다 */
+  forecastOwnerEmails: readonly string[];
 }
 
 export interface CoachUseCases {
@@ -83,6 +89,7 @@ export interface CoachUseCases {
   listProfitPlans: ListProfitPlans;
   getSignalPerformance: GetSignalPerformance;
   getJudgmentScoreboard: GetJudgmentScoreboard;
+  getSymbolForecast: GetSymbolForecast;
   snapshotSymbolJudgments: SnapshotSymbolJudgments;
   evaluateSymbolJudgments: EvaluateSymbolJudgments;
   refreshGaugeTrackRecords: RefreshGaugeTrackRecords;
@@ -157,6 +164,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     listProfitPlans: new ListProfitPlans(deps.portfolio),
     getSignalPerformance: new GetSignalPerformance(deps.insights, deps.market),
     getJudgmentScoreboard: new GetJudgmentScoreboard(deps.judgments),
+    getSymbolForecast: new GetSymbolForecast(deps.forecasts, deps.portfolio, deps.forecastOwnerEmails),
     snapshotSymbolJudgments: new SnapshotSymbolJudgments(
       deps.tracked,
       deps.market,

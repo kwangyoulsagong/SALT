@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { CoachUseCases } from "../application/api";
 import {
+  forecastQuerySchema,
   profitPlanQuerySchema,
   signalPerformanceQuerySchema,
   tradePreflightSchema,
@@ -125,6 +126,22 @@ export class CoachToolsController {
         query
       );
 
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * 가격 전망 — 소유자만(아니면 404). F008 `SRV-REQ-037` · `ADR-003`.
+   */
+  getForecast = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = forecastQuerySchema.parse(req.query);
+      const result = await this.useCases.getSymbolForecast.execute(
+        { userId: req.user!.userId, email: req.user!.email },
+        query.symbol
+      );
       return ResponseUtil.success(res, result);
     } catch (error) {
       next(error);

@@ -64,6 +64,14 @@ const envSchema = z.object({
     .transform((v) => (v === undefined ? undefined : v === "true")),
   /** 기본: 서버 작업 디렉터리 기준 `../salt-forecast/ops/daily.sh` */
   FORECAST_RUNNER_SCRIPT: z.string().optional(),
+  /**
+   * 가격 전망을 볼 수 있는 계정(쉼표 구분 이메일) — `ADR-003` 소유자 전용. **코드 상수 금지.**
+   * 비우면 아무도 못 본다(되돌리기 — ADR-003 §5).
+   */
+  FORECAST_OWNER_EMAILS: z
+    .string()
+    .default("")
+    .transform((raw) => raw.split(",").map((email) => email.trim()).filter((email) => email !== "")),
 });
 
 const parsedEnv = envSchema.parse(process.env);

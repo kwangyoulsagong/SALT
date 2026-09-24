@@ -2,6 +2,7 @@ import type {
   CloseDistribution,
   CoachGenerationEntry,
   CoachGenerationSource,
+  ForecastCardRow,
   GaugeKind,
   GaugeTrackStats,
   JudgmentCase,
@@ -404,3 +405,11 @@ export interface CoachGenerationLogStore {
 }
 
 export type Clock = () => Date;
+
+/**
+ * 가격 전망 읽기 — `forecast.v_forecast_card` 뷰만(F008 · `salt-forecast/.claude/rules/db-contract.md` §4).
+ * 쓰기 주인은 `salt-forecast`(Python)이다. 심볼은 코치 모양(`BTC`)이고 번역은 구현이 한다.
+ */
+export interface ForecastReader {
+  cards(symbol: string): Promise<ForecastCardRow[]>;
+}

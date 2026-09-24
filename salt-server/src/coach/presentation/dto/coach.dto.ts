@@ -118,3 +118,13 @@ export type ProfitPlanQueryDto = z.infer<typeof profitPlanQuerySchema>;
 export type SignalPerformanceQueryDto = z.infer<
   typeof signalPerformanceQuerySchema
 >;
+
+/** `GET /api/coach/forecast` (F008 `SRV-REQ-037`). 심볼은 코치 모양(`BTC`) */
+export const forecastQuerySchema = z.object({
+  symbol: z
+    .string()
+    .trim()
+    .min(1)
+    .max(20)
+    .regex(/^[A-Za-z0-9]+$/),
+});

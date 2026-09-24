@@ -2,6 +2,7 @@ export * from "./behavior";
 export * from "./candidates";
 export * from "./coachDetail";
 export * from "./explain";
+export * from "./forecast";
 export * from "./gauge";
 export * from "./generationCooldown";
 export * from "./judgmentScoreboard";
