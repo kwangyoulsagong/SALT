@@ -59,8 +59,21 @@ export type ForecastHorizon =
     }
   | { horizonWeeks: number; renderable: false; blockedReason: string };
 
+/** 과거 일봉 종가(오래된 → 최근). 차트의 실선 — 전망의 기준가와 같은 원천(업비트 1d) */
+export interface ForecastHistoryPoint {
+  date: string;
+  close: number;
+}
+
 export type ForecastResult =
-  | { status: "ok"; symbol: string; label: string; disclaimer: string; horizons: ForecastHorizon[] }
+  | {
+      status: "ok";
+      symbol: string;
+      label: string;
+      disclaimer: string;
+      history: ForecastHistoryPoint[];
+      horizons: ForecastHorizon[];
+    }
   | { status: "unavailable" };
 
 const HORIZONS = [1, 2, 3, 4];
@@ -140,6 +153,14 @@ const toHorizon = (h: number, raw: Record<string, unknown> | undefined): Forecas
   return view;
 };
 
+/** 모양이 깨진 점은 버린다 — 선이 끊기는 것이 틀린 점을 긋는 것보다 낫다 */
+const toHistory = (raw: unknown): ForecastHistoryPoint[] =>
+  Array.isArray(raw)
+    ? (raw as Record<string, unknown>[])
+        .filter((p) => typeof p?.date === "string" && isNum(p.close) && p.close > 0)
+        .map((p) => ({ date: p.date as string, close: p.close as number }))
+    : [];
+
 export const toForecastViewModel = (data: Record<string, unknown>): ForecastResult => {
   const horizons = Array.isArray(data.horizons) ? (data.horizons as Record<string, unknown>[]) : [];
   // 면책이 없으면 전체를 내보내지 않는다(`BFF-REQ-025` FR-22 — 면책은 정책)
@@ -149,6 +170,7 @@ export const toForecastViewModel = (data: Record<string, unknown>): ForecastResu
     symbol: String(data.symbol ?? ""),
     label: String(data.label ?? ""),
     disclaimer: data.disclaimer,
+    history: toHistory(data.history),
     horizons: HORIZONS.map((h) => toHorizon(h, horizons.find((x) => x.horizonWeeks === h))),
   };
 };

@@ -58,6 +58,17 @@ describe("toForecastViewModel", () => {
     assert.ok(v.status === "ok" && v.horizons[0]?.renderable && !("direction" in v.horizons[0]));
   });
 
+  it("과거 종가는 모양이 맞는 점만 옮긴다 — 없으면 빈 배열", () => {
+    const v = toForecastViewModel({
+      ...server([horizon(1)]),
+      history: [{ date: "2026-09-22", close: 100 }, { date: "2026-09-23", close: "x" }, { close: 5 }, null],
+    });
+    assert.ok(v.status === "ok");
+    assert.deepEqual(v.history, [{ date: "2026-09-22", close: 100 }]);
+    const empty = toForecastViewModel(server([horizon(1)]));
+    assert.ok(empty.status === "ok" && empty.history.length === 0);
+  });
+
   it("면책이 없으면 전체 unavailable", () => {
     assert.deepEqual(toForecastViewModel({ ...server([horizon(1)]), disclaimer: "" }), { status: "unavailable" });
   });
