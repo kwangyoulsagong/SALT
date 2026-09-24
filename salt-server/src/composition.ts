@@ -18,6 +18,7 @@ import { PrismaCoachProfileStore } from "./coach/infrastructure/PrismaCoachProfi
 import { PrismaForecastReader } from "./coach/infrastructure/PrismaForecastReader";
 import { PrismaGaugeTrackStore } from "./coach/infrastructure/PrismaGaugeTrackStore";
 import { PrismaSymbolJudgmentStore } from "./coach/infrastructure/PrismaSymbolJudgmentStore";
+import { PrismaTradePlanStore } from "./coach/infrastructure/PrismaTradePlanStore";
 import { TrackedAssetAdapter } from "./coach/infrastructure/TrackedAssetAdapter";
 import { createAICoachRouter } from "./coach/presentation/aiCoach.routes";
 import { createCoachReportRouter } from "./coach/presentation/coachReport.routes";
@@ -152,6 +153,7 @@ const coach = createCoachApplication({
   generationLogs: new PrismaCoachGenerationLogStore(),
   regenerateCooldownSeconds: env.COACH_REGENERATE_COOLDOWN_SECONDS,
   forecasts: new PrismaForecastReader(),
+  tradePlans: new PrismaTradePlanStore(),
   forecastOwnerEmails: env.FORECAST_OWNER_EMAILS,
 });
 

@@ -70,6 +70,12 @@ export interface PortfolioApi {
    * 판단이 사용자와 무관해서 누가 가졌는지는 필요 없다.
    */
   heldSymbols(assetType: PortfolioAssetType): Promise<string[]>;
+  /**
+   * 거래 한 건. **남의 거래면 `null`** — 없는 것과 구분하지 않는다.
+   *
+   * `coach` 의 거래 계획(F009)이 계획을 거래에 연결할 때 소유 · 종목 · 방향을 확인한다.
+   */
+  getTransaction(userId: string, transactionId: string): Promise<Transaction | null>;
 }
 
 export type { Holding, PortfolioAssetType, Transaction };
@@ -128,6 +134,10 @@ export const createPortfolioApplication = (deps: PortfolioDependencies) => {
     countTransactions: (userId, assetType) =>
       deps.transactions.countByUser(userId, assetType),
     heldSymbols: (assetType) => deps.holdings.distinctSymbols(assetType),
+    getTransaction: async (userId, transactionId) => {
+      const transaction = await deps.transactions.findById(transactionId);
+      return transaction && transaction.userId === userId ? transaction : null;
+    },
   };
 
   return { api, useCases };

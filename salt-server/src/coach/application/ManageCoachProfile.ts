@@ -23,8 +23,19 @@ export const DEFAULT_COACH_MODE: CoachMode = "scalp";
 const DEFAULT_NOTIFICATION_LEVEL: NotificationLevel = "medium";
 const SUPPORTED_MODES: CoachMode[] = ["scalp", "long_term"];
 
+/**
+ * 리스크 예산 세 필드는 이 응답에 없다 — `GET /api/coach/risk-budget` 이 원 환산 · 게이지와 함께 준다.
+ * 여기 두면 같은 값이 두 경로에서 다른 모양(Decimal 문자열 vs 원 정수)으로 나간다.
+ */
 export interface CoachProfileView
-  extends Omit<CoachProfile, "defaultMode" | "notificationLevel"> {
+  extends Omit<
+    CoachProfile,
+    | "defaultMode"
+    | "notificationLevel"
+    | "monthlyLossBudget"
+    | "perTradeMaxLoss"
+    | "targetVolatility"
+  > {
   defaultMode: CoachMode;
   notificationLevel: NotificationLevel;
   supportedModes: CoachMode[];
@@ -37,9 +48,16 @@ export interface UpdateCoachProfileCommand {
   panicSellWindowHours?: number;
   defaultMode?: CoachMode;
   notificationLevel?: NotificationLevel;
+  /** FEATURE-009 FR-27 매입가 숨김 */
+  hidePurchasePrice?: boolean;
 }
 
-const toView = (profile: CoachProfile): CoachProfileView => ({
+const toView = ({
+  monthlyLossBudget: _monthly,
+  perTradeMaxLoss: _perTrade,
+  targetVolatility: _targetVol,
+  ...profile
+}: CoachProfile): CoachProfileView => ({
   ...profile,
   defaultMode: profile.defaultMode ?? DEFAULT_COACH_MODE,
   notificationLevel: profile.notificationLevel ?? DEFAULT_NOTIFICATION_LEVEL,

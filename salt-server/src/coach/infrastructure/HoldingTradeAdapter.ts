@@ -1,7 +1,8 @@
-import type { PortfolioApi } from "../../portfolio/application/api";
+import type { PortfolioApi, Transaction } from "../../portfolio/application/api";
 import type {
   CoachAssetType,
   CoachHolding,
+  CoachLedgerEntry,
   CoachTrade,
   PortfolioProbe,
 } from "../domain";
@@ -62,7 +63,44 @@ export class HoldingTradeAdapter implements PortfolioProbe {
   countTrades(userId: string): Promise<number> {
     return this.portfolio.countTransactions(userId, COACH_ASSET_TYPE);
   }
+
+  /** 하나 더 읽어 잘렸는지 안다 — 건수를 따로 세지 않는다 */
+  async listLedgerSince(
+    userId: string,
+    since: Date,
+    limit: number
+  ): Promise<{ entries: CoachLedgerEntry[]; truncated: boolean }> {
+    const transactions = await this.portfolio.listTransactions(userId, {
+      assetType: COACH_ASSET_TYPE,
+      since,
+      limit: limit + 1,
+    });
+    return {
+      entries: transactions.slice(0, limit).map(toLedgerEntry),
+      truncated: transactions.length > limit,
+    };
+  }
+
+  async findLedgerEntry(
+    userId: string,
+    transactionId: string
+  ): Promise<CoachLedgerEntry | null> {
+    const transaction = await this.portfolio.getTransaction(userId, transactionId);
+    if (!transaction || transaction.assetType !== COACH_ASSET_TYPE) return null;
+    return toLedgerEntry(transaction);
+  }
 }
+
+const toLedgerEntry = (tx: Transaction): CoachLedgerEntry => ({
+  id: tx.id,
+  symbol: tx.symbol,
+  side: tx.transactionType,
+  quantity: tx.quantity,
+  price: tx.price,
+  totalAmount: tx.totalAmount,
+  fee: tx.fee,
+  transactionDate: tx.transactionDate,
+});
 
 const toCoachHolding = (holding: {
   symbol: string;

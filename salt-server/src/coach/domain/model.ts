@@ -1,3 +1,5 @@
+import type Decimal from "decimal.js";
+
 /**
  * `coach` 의 도메인 모델.
  *
@@ -68,6 +70,25 @@ export interface CoachTrade {
   symbol: string;
   transactionType: "buy" | "sell";
   price: number;
+  transactionDate: Date;
+}
+
+/**
+ * `portfolio` 의 거래 한 건 — 금액 계산용(F009 리스크 예산 · 사이즈).
+ *
+ * `CoachTrade` 와 따로 둔다. 그쪽은 행동 규칙이 읽는 **가격 · 시각**만 있고, 여기는 월 손익 ·
+ * 회전율이 읽는 **수량 · 금액 · 수수료**까지 있다. 하나로 합치면 행동 규칙 테스트 픽스처가
+ * 쓰지도 않는 금액 필드를 채워야 한다. 금액은 원(코인 KRW 마켓)이다.
+ */
+export interface CoachLedgerEntry {
+  id: string;
+  symbol: string;
+  side: "buy" | "sell";
+  quantity: number;
+  price: number;
+  /** 수량 × 단가. **수수료 제외** — `portfolio` 의 `totalAmount` 정의 그대로 */
+  totalAmount: number;
+  fee: number;
   transactionDate: Date;
 }
 
@@ -240,6 +261,25 @@ export interface CoachProfile {
   /** 사용자가 고른 적이 없으면 `null` — 기본값을 채워 저장하지 않는다. 기본값은 읽는 쪽이 정한다 */
   defaultMode: CoachMode | null;
   notificationLevel: NotificationLevel | null;
+  /** 월 허용 손실(FEATURE-009 FR-1). 정한 적 없으면 `null` — 0 으로 채우지 않는다(FR-2) */
+  monthlyLossBudget: BudgetSetting | null;
+  /** 1회 거래 최대 손실 */
+  perTradeMaxLoss: BudgetSetting | null;
+  /** 목표 연 변동성(0.15 = 15%). `null` 이면 읽는 쪽이 기본값을 쓰고 기본값이라고 밝힌다 */
+  targetVolatility: Decimal | null;
+  /** 매입가 숨김(FR-27) */
+  hidePurchasePrice: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+/**
+ * 예산의 단위. `krw` 는 원, `percent` 는 **코인 보유 평가금액 합** 대비 비율(0.05 = 5%)이다.
+ * 비율을 원으로 바꾸는 것은 계산하는 쪽(`riskBudget.resolveBudget`)이 그 시점의 평가금액으로 한다.
+ */
+export type BudgetUnit = "krw" | "percent";
+
+export interface BudgetSetting {
+  amount: Decimal;
+  unit: BudgetUnit;
 }

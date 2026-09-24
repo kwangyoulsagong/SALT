@@ -11,6 +11,7 @@ import type {
   SymbolJudgmentStore,
   ForecastReader,
   TrackedAssetProbe,
+  TradePlanStore,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
 import {
@@ -18,6 +19,7 @@ import {
   GetBehaviorCoach,
 } from "../AnalyzeTradingBehavior";
 import { CheckTradePreflight } from "../CheckTradePreflight";
+import { CheckTradeSize } from "../CheckTradeSize";
 import { ExplainCoachDecision } from "../ExplainCoachDecision";
 import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
 import { GetCoachDetail } from "../GetCoachDetail";
@@ -30,6 +32,8 @@ import { GetSignalPerformance } from "../GetSignalPerformance";
 import { GetSymbolCoach } from "../GetSymbolCoach";
 import { ListProfitPlans } from "../ListProfitPlans";
 import { GetCoachProfile, UpdateCoachProfile } from "../ManageCoachProfile";
+import { GetRiskBudget, UpdateRiskBudget } from "../ManageRiskBudget";
+import { CreateTradePlan, ListTradePlans, UpdateTradePlan } from "../ManageTradePlan";
 import { RecordCoachFeedback } from "../RecordCoachFeedback";
 import {
   EvaluateSymbolJudgments,
@@ -70,6 +74,8 @@ export interface CoachDependencies {
   forecasts: ForecastReader;
   /** 전망 소유자 이메일(ADR-003) — env 에서 온다. 비면 아무도 못 본다 */
   forecastOwnerEmails: readonly string[];
+  /** 거래 계획(F009 슬라이스 1) — `trade_plans` */
+  tradePlans: TradePlanStore;
 }
 
 export interface CoachUseCases {
@@ -96,6 +102,13 @@ export interface CoachUseCases {
   snapshotSymbolJudgments: SnapshotSymbolJudgments;
   evaluateSymbolJudgments: EvaluateSymbolJudgments;
   refreshGaugeTrackRecords: RefreshGaugeTrackRecords;
+  /** F009 슬라이스 1 — 사이즈 계산 · 계획 · 리스크 예산 */
+  checkTradeSize: CheckTradeSize;
+  createTradePlan: CreateTradePlan;
+  updateTradePlan: UpdateTradePlan;
+  listTradePlans: ListTradePlans;
+  getRiskBudget: GetRiskBudget;
+  updateRiskBudget: UpdateRiskBudget;
 }
 
 export const createCoachApplication = (deps: CoachDependencies) => {
@@ -124,6 +137,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     symbolCoach,
     deps.generationLogs
   );
+
+  const getRiskBudget = new GetRiskBudget(deps.profiles, deps.portfolio, deps.market);
 
   const useCases: CoachUseCases = {
     generateRecommendation,
@@ -183,6 +198,17 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.market,
       deps.gauges
     ),
+    checkTradeSize: new CheckTradeSize(
+      deps.profiles,
+      deps.portfolio,
+      deps.market,
+      deps.forecasts
+    ),
+    createTradePlan: new CreateTradePlan(deps.tradePlans, deps.portfolio),
+    updateTradePlan: new UpdateTradePlan(deps.tradePlans, deps.portfolio),
+    listTradePlans: new ListTradePlans(deps.tradePlans),
+    getRiskBudget,
+    updateRiskBudget: new UpdateRiskBudget(deps.profiles, getRiskBudget),
   };
 
   return { useCases };
