@@ -186,7 +186,7 @@ describe("makeModeDecision — 특성화", () => {
     assert.equal(scalp.score, 62); // 50 + 12
     assert.equal(scalp.action, "wait");
     assert.equal("confidence" in scalp, false); // D3 — 신뢰도를 싣지 않는다
-    assert.equal(scalp.timeframe, "5m-24h");
+    assert.equal(scalp.timeframe, "24h");
 
     assert.equal(longTerm.score, 44); // 50 - 6
     assert.equal(longTerm.action, "avoid");

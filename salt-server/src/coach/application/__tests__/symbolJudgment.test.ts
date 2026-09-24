@@ -253,7 +253,7 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
     ).execute("user-1", { symbol: "btc" });
 
     assert.equal("confidence" in view.modeDecision, false);
-    assert.equal(view.modes.scalp.judgment.validity.code, "scalp_5m_24h");
+    assert.equal(view.modes.scalp.judgment.validity.code, "scalp_24h");
     assert.equal(view.modes.scalp.trackRecord.sample, 0);
     assert.equal(view.modes.scalp.trackRecord.winRate, null);
     // 중립 재료라 근거 문장이 없다 → 표본보다 근거가 먼저 막는다

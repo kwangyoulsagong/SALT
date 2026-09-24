@@ -274,3 +274,4 @@ BFF 는 조립 · 격리만, 재계산 금지. 서버 경로는 `/api/coach/*` �
 |---|---|
 | 2026-09-24 | 초안. 사용자 요구("돈 잘 벌게 돕는 펀드매니징 같은 AI" · "진짜 쉽게" · "예쁘고 접근성 쉽게" · "계좌 연동 없음 · 수동 입력"). 리서치 `2026-09-24-fund-manager-coach.md` 층 A · B(+ C 일부) 와 Codex Astra `ai-investment-workbench-design.md` W02 · W03 · W05 · W06 을 흡수. 2026-09-08 결정(서약 · 쿨다운 제외) 에 맞춰 냉각 · 약속 강제 항목은 넣지 않고 측정 · 미러로 대체 |
 | 2026-09-24 | 슬라이스 0 착수 — **C04 완료**(`worstObservedReturn`). 남음 C05 · C06 · C02 · C03 · C01. 루트 `requirements/specs/in-progress/F009-slice0-reliability-slice.md` |
+| 2026-09-24 | 슬라이스 0 — **C05 완료**(모드 기간 = 채점 기간, 사용자 결정 "채점 기준으로 통일"). 남음 C06 · C02 · C03 · C01 |

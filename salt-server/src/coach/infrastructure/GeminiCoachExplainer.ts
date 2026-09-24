@@ -6,10 +6,11 @@ import {
 import { logger } from "../../shared/config/logger";
 import { env } from "../../shared/config/env";
 import { isRetryableHttpError, withRetry } from "../../shared/infrastructure";
-import type {
-  CoachExplainer,
-  CoachExplanation,
-  CoachExplanationInput,
+import {
+  COACH_HORIZON,
+  type CoachExplainer,
+  type CoachExplanation,
+  type CoachExplanationInput,
 } from "../domain";
 
 /**
@@ -182,7 +183,7 @@ export class GeminiCoachExplainer implements CoachExplainer {
       JSON.stringify(
         {
           modeReasoning: `이 종목이 ${modeLabel} 모드에 적합한 이유를 2-3문장으로`,
-          timeframe: input.mode === "scalp" ? "약 25분 이내" : "약 30일 내외",
+          timeframe: COACH_HORIZON[input.mode].phrase,
           keyDrivers: ["주요 근거 1", "주요 근거 2", "주요 근거 3"],
           risks: ["주의해야 할 점 1", "주의해야 할 점 2"],
           newsSummary: Array.from(

@@ -50,7 +50,7 @@ const store = (stats: JudgmentTrackStats, misses: number): SymbolJudgmentStore =
 
 const explanation: CoachExplanation = {
   modeReasoning: "m",
-  timeframe: "약 30일 내외",
+  timeframe: "판단 뒤 30일",
   keyDrivers: ["k"],
   risks: ["r"],
   newsSummary: [],
@@ -123,7 +123,7 @@ describe("ExplainCoachDecision", () => {
     if (!result.renderable) return;
     assert.equal(result.trackRecord.sample, 20);
     assert.equal(result.failureCases.length, 3);
-    assert.equal(result.validity.code, "long_term_1w_1y");
+    assert.equal(result.validity.code, "long_term_30d");
     assert.notEqual(result.disclaimer, "모델이 쓴 면책");
     assert.equal(result.modeReasoning, "m");
     assert.ok(!("expectedReturn" in result));

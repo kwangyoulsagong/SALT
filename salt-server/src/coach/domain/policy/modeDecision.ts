@@ -1,4 +1,5 @@
 import type { CoachMode } from "../model";
+import { COACH_HORIZON } from "./horizon";
 
 /**
  * 모드별 판단 — `ai-investment-coach.service.makeModeDecision` 에서 옮겨온 **순수 계산**.
@@ -120,7 +121,7 @@ export const makeModeDecision = (input: ModeDecisionInput): ModeDecision => {
     // 원문 그대로다 — 50 이상은 어느 쪽이든 `medium` 이라 분기 둘이 같은 값을 준다.
     // 고치면 응답의 `riskLevel` 이 바뀌므로 이관에서 건드리지 않았다.
     riskLevel: normalized >= 50 ? "medium" : "high",
-    timeframe: input.mode === "scalp" ? "5m-24h" : "1w-1y",
+    timeframe: COACH_HORIZON[input.mode].timeframe,
     headline:
       input.mode === "scalp"
         ? `${input.symbol} 단타 관점은 ${label}입니다. 손절 기준 없이 진입하지 마세요.`

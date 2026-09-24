@@ -46,7 +46,7 @@ const modeView = (overrides: Partial<ServerModeView> = {}): ServerModeView => ({
     label: "관망",
     score: 52,
     scoreNote: "점수는 확률이 아닙니다",
-    validity: { code: "scalp_5m_24h" },
+    validity: { code: "scalp_24h" },
     riskLevel: "medium",
     headline: "h",
     reasons: ["r"],

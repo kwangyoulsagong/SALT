@@ -23,8 +23,8 @@ export const COACH_MESSAGES = {
   judgmentHeading: "지금의 판단",
   modes: { scalp: "단타", long_term: "장기" } satisfies Record<CoachMode, string>,
   validity: {
-    scalp_5m_24h: "유효 5분~24시간",
-    long_term_1w_1y: "유효 1주~1년",
+    scalp_24h: "판단 뒤 24시간 기준",
+    long_term_30d: "판단 뒤 30일 기준",
   } as Record<string, string | undefined>,
 
   score: (score: number) => `점수 ${score} / 100`,

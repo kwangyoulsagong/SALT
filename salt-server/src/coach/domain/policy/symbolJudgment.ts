@@ -1,4 +1,5 @@
 import type { CoachMode } from "../model";
+import { COACH_HORIZON } from "./horizon";
 import type { ModeDecisionAction } from "./modeDecision";
 
 /**
@@ -18,18 +19,17 @@ import type { ModeDecisionAction } from "./modeDecision";
  * | `avoid` (피하기) | 기간 수익률 ≤ 0 |
  * | `wait` (관망) | 기간 수익률 절댓값이 단타 2% · 장기 10% 안 |
  *
- * 관찰 기간은 모드의 유효시간을 따른다: 단타 24시간 · 장기 30일.
+ * 관찰 기간은 모드의 유효시간을 따른다: 단타 24시간 · 장기 30일(`COACH_HORIZON` — 해설 · 판단 문구와 같은 표).
  */
 
 export type JudgmentOutcome = "hit" | "miss";
 
 const HOUR_MS = 3600_000;
-const DAY_MS = 24 * HOUR_MS;
 
 /** 모드별 관찰 기간. 스냅샷 간격(표본 독립성)도 이 값이다. */
 export const JUDGMENT_HORIZON_MS: Record<CoachMode, number> = {
-  scalp: DAY_MS,
-  long_term: 30 * DAY_MS,
+  scalp: COACH_HORIZON.scalp.ms,
+  long_term: COACH_HORIZON.long_term.ms,
 };
 
 /** `wait` 가 적중인 수익률 폭(절댓값). */
