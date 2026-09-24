@@ -435,8 +435,8 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | `DB-REQ-031` F009 SCHEMA | **in-progress** (슬라이스 1 FR-1~7 · 슬라이스 2 FR-8 `realized_vol` 완료) | `TradePlan` · `DecisionOutcome` · `UserInvestmentProfile` +3(월 손실 예산 · 1회 최대 손실 · 목표 변동성) · `hidePurchasePrice` · `forecast.realized_vol` 뷰. 추가만 — 롤백 가능 |
 | `SRV-REQ-038` F009 사이즈 · 계획 · 미러 | **in-progress** (슬라이스 1 FR-1~8 · 슬라이스 2 FR-11 변동성 읽기 완료. 판정 · 미러 슬라이스 4, 복기 슬라이스 6) | `sizing` · `adherence` · `mirror` · `riskBudget` · `monthlyReview` 순수 함수 · `/api/coach/size-check` · `/plans` · `/risk-budget` · `/mirror` · `/review/monthly` · 일 1회 배치 · `languageGuard` 금지어 추가 · 프롬프트 개인 금액 0건 |
 | `FC-REQ-006` 실현 변동성 | **in-progress** (FR-1~8 완료 · GARCH 승격 FR-9 는 26주 라이브 뒤) | EWMA(λ 0.94) 값 · GARCH(1,1) 도전자 · 180일 QLIKE 채점 · 60일 분산 기준에 지면 막음 → `forecast.realized_vol`. 289종목 중 통과 182 |
-| `BFF-REQ-038` F009 중계 | **to-do** | 뷰모델 조립 · 격리 · 재계산 금지 · 비소유자 응답에 도달 확률 필드 없음 |
-| `FE-REQ-039` F009 카드 | **to-do** | 거래 폼 "계획(선택)" + 결과 라인 · "내 계획" 카드 · 리스크 게이지 3 · 매입가 숨김 · "내 거래 미러" · 월간 복기 · `DisclosureSlot`. 새 라우트 0 · 입력 30초 · WCAG AA |
+| `BFF-REQ-038` F009 중계 | **in-progress** (슬라이스 3 FR-1~6 완료. 미러 · 복기 FR-7 은 슬라이스 4 · 6) | 뷰모델 조립 · 격리 · 재계산 금지 · 거래 + 계획 조립(`/api/app/coach/trades`) · 비소유자 응답에 도달 확률 필드 없음 |
+| `FE-REQ-039` F009 카드 | **in-progress** (슬라이스 3 FR-1~12 완료 · 매입가 숨김 보류. 미러 · 복기는 슬라이스 5 · 6) | 거래 폼 "계획(선택)" + 결과 라인 · "내 계획" 카드 · 리스크 게이지 3 · 매입가 숨김 · "내 거래 미러" · 월간 복기 · `DisclosureSlot`. 새 라우트 0 · 입력 30초 · WCAG AA |
 
 **선행**: Codex Astra 코드 진단 C01~C06(`feature-audits/2026-09-24-ai-investment-deep-research.md`) — 성적표 정의(C04 MDD 오명 · C05 기간 · C06 시드 분리)를 먼저 고친다. 기존 F004 · F008 REQ 개정으로 처리.
 
@@ -445,6 +445,8 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 **F009 슬라이스 1 — 계획 · 사이즈 · 리스크 예산 서버 (2026-09-24, `feat/f009-slice1-plan-sizing`)** — 화면 없음. `POST /api/coach/size-check`(최대 손실 · 1회 · 월 예산 대비 · 참고 수량 상한 · 변동성 타깃 · 5연속 손절 · 켈리, 못 구한 값은 `null` + 사유), `GET · PUT /api/coach/risk-budget`(이번 달 낙폭 · 종목 집중도 · 회전율 · 올해 수수료 — 넘어도 막지 않는다), `/api/coach/plans`(전부 선택 · 거래 연결 뒤 손절가 · 계획 수량 · 오를 확률 잠금). 월 손익은 평단 없이 시가 평가 항등식(KST 월). 실현 변동성은 슬라이스 2 전까지 `insufficient_data`. DB: `trade_plans` · `decision_outcomes`(쓰기는 슬라이스 4) · 프로필 예산 +5 · 매입가 숨김(`DB-REQ-031` FR-1~7 · `SRV-REQ-038` FR-1~8). 범위 · 검증은 `F009-slice1-plan-sizing-slice.md` · `reports/checklists/F009-slice1-plan-sizing.md`.
 
 **F009 슬라이스 2 — 실현 변동성 (2026-09-24, `feat/f009-slice2-realized-vol`)** — 화면 없음. `salt-forecast` 작업 `volatility`(매일 배치 마지막)가 업비트 일봉 289종목의 EWMA 연율 변동성을 계산하고 마지막 180일 다음 날 분산 예측을 QLIKE 로 채점한다. 값은 EWMA 고정 · GARCH(1,1) 은 도전자로 저장만(채점 창으로 고르면 검증이 아니다). 60일 이동 분산에 지면 막는다 — 통과 182 · 이력 부족 64 · 기준에 짐 43(ETH 포함). 서버 `realizedVolatility` 가 `forecast.v_realized_vol` 을 읽어 사이즈 계산 변동성 타깃이 산다(3일 넘으면 `null`). `FC-REQ-006` FR-1~8 · `DB-REQ-031` FR-8 · `SRV-REQ-038` FR-11. 범위 · 검증은 `F009-slice2-realized-vol-slice.md` · `reports/checklists/F009-slice2-realized-vol.md`.
+
+**F009 슬라이스 3 — 거래 기록 폼 · 게이지 (2026-09-24, `feat/f009-slice3-trade-form`)** — 사용자가 처음 쓴다. 종목 상세 우측에 "내 계획" 카드와 거래 기록 카드(구분 · 수량 · 단가 · 날짜 + 접힌 "계획(선택)" 손절가 · 이유, 300ms 뒤 서버 사이즈 계산 결과 줄), 코치 리포트에 리스크 예산 패널(게이지 3 + 월 · 1회 기준 입력, 리포트와 따로 실패). BFF 가 거래 → 계획을 조립하고(`/api/app/coach/trades`, 계획만 실패하면 "계획만 다시 저장") 사이즈 · 예산 · 계획을 모양 검사만 해 옮긴다. `@repo/ui` `DisclosureSlot`(3종 고지 고정) · `TextField` `compact`(참고 화면 실측 32px). 손절 % 프리셋 · 매입가 숨김은 보류(프론트 금액 계산 · 평단 화면 없음). `BFF-REQ-038` FR-1~6 · `FE-REQ-039` FR-1~12. 범위 · 검증은 `F009-slice3-trade-form-slice.md` · `reports/checklists/F009-slice3-trade-form.md`.
 
 ### 이동 규칙
 
@@ -500,3 +502,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-24 | **F009 슬라이스 0 — C01 · 슬라이스 0 완료.** 해설 사실을 서버가 조립(요청 `{ symbol, mode }`). `FEATURE-008` FR-40 완료. 상태표 변경 없음 |
 | 2026-09-24 | **F009 슬라이스 1 — 계획 · 사이즈 · 리스크 예산 서버.** `DB-REQ-031` · `SRV-REQ-038` to-do → in-progress. 새 API 5경로(`/api/coach/size-check` · `risk-budget` GET/PUT · `plans` GET/POST · `plans/:id` PATCH) + 프로필 `hidePurchasePrice`. 마이그레이션 `20260924150000`(추가만, 롤백 = 두 테이블 · 6컬럼 삭제) |
 | 2026-09-24 | **F009 슬라이스 2 — 실현 변동성.** `FC-REQ-006` to-do → in-progress. `forecast.realized_vol` · `v_realized_vol`(마이그레이션 `20260924170000`, 추가만, 롤백 = 뷰 · 테이블 삭제). 서버 메서드 하나 — 응답 계약 변경 없음 |
+| 2026-09-24 | **F009 슬라이스 3 — 거래 기록 폼 · 게이지.** `BFF-REQ-038` · `FE-REQ-039` to-do → in-progress. BFF 새 경로 7(`/api/app/coach/size-check` · `risk-budget` GET/PUT · `plans` GET/POST · `plans/:id` PATCH · `trades` POST) + 프로필 `hidePurchasePrice` 통과. 서버 변경 없음. FSD `set-risk-budget` 슬라이스 추가 |
