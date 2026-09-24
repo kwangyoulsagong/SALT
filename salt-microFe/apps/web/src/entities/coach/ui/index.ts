@@ -11,3 +11,4 @@ export { ExitPlanList } from "./ExitPlanList";
 export { RecommendationCard } from "./RecommendationCard";
 export { ReportRiskList } from "./ReportRiskList";
 export { ForecastCard } from "./ForecastCard";
+export { EventsCard } from "./EventsCard";
