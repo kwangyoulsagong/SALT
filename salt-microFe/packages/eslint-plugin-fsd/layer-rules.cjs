@@ -60,6 +60,7 @@ const REGISTRY = {
     "accept-invite",
     "arrange-panels",
     "sign-in",
+    "sign-out",
     "search-asset",
     "toggle-news-bookmark",
     "switch-coach-mode",

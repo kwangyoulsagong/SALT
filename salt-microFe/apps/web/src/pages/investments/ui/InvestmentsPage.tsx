@@ -3,7 +3,7 @@ import { Padding } from "@repo/ui/padding";
 import { Root } from "@repo/ui/root";
 import { Section } from "@repo/ui/section";
 
-import { ProfileHeader } from "@/entities/auth";
+import { ProfileMenu } from "@/features/sign-out";
 import { BlockBoundary } from "@/shared/ui";
 
 import {
@@ -30,7 +30,7 @@ export const InvestmentsPage = () => {
     <Root background="white">
       <Section containerSize="full" padding="sm">
         <Container size="2xl" padding="none">
-          <ProfileHeader />
+          <ProfileMenu />
           <Padding paddingX="xl">
             <BlockBoundary
               name={INVESTMENTS_PAGE_MESSAGES.blockName}

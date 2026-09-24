@@ -42,6 +42,7 @@ features/{slice}/
 | `accept-invite` | 초대 코드 입력·검증 | F000 |
 | `arrange-panels` | PC 이진분할 격자 배치 변경 | F006 |
 | `sign-in` | 로그인 · 세션 저장 · 홈 이동 | 현행 |
+| `sign-out` | 헤더 프로필 메뉴(설정 · 로그아웃) · 세션 · 캐시 비우기 · 로그인 이동 | 현행 (2026-09-24) |
 | `search-asset` | 종목 검색 · 추적 자산 추가(상한 10) | F000 |
 | `toggle-news-bookmark` | 뉴스 북마크 추가·해제 | F000 |
 | `switch-coach-mode` | 단타/장기 모드 전환 (URL 이 유일한 저장소) | F004 |

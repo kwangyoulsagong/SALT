@@ -138,3 +138,21 @@
 | 브라우저 화면에서의 갱신 · 리다이렉트 | 만료 사슬 자체는 **실제 만료 토큰으로 검증**(401 → refresh 200 → 재시도 200). 남은 것은 `localStorage` 배선 | 확장 연결 시 화면으로 |
 | 401 이 된 5경로의 화면 동작(`BFF-REQ-036` 미검증 항목) | 위와 같다 | 위와 같다 |
 | FR-61 비공개 경로 가드 | 토큰이 `localStorage` 라 미들웨어가 읽을 수 없다 | `FE-REQ-013`(쿠키) |
+
+## 2026-09-24 — 로그아웃 (헤더 프로필 메뉴)
+
+사용자 요청 "로그아웃 만들어 줘 · 프로필 누르면 드롭다운(설정 · 로그아웃)". 새 슬라이스 `features/sign-out`(레지스트리 · `fsd-features.md` 등록).
+
+| 확인 | 결과 |
+|---|---|
+| 프로필 클릭 → 메뉴 | `설정 (준비 중)` 비활성 · `로그아웃` (Playwright, `/home`) |
+| 로그아웃 | `/` 로 이동 · `ACCESS_TOKEN` · `REFRESH_TOKEN` · `USER` 전부 null · React Query 캐시 `clear()` |
+| 배치 | 홈은 **페이지**(`pages/home`)가 놓는다 — `home-briefing` 은 읽기 전용 위젯이라 feature 를 넣지 않는다. 투자 화면도 같은 `ProfileMenu` |
+| 접근성 | 버튼 이름 = 보이는 이름 · 이메일(aria-label 로 덮지 않음). `ProfileSection` 의 `article` → `span`(버튼 안에 둘 수 있게) |
+| 검증 | `check-types` · `lint --max-warnings 0` · `test:layer-check` 13/13 |
+
+| 미검증 · 범위 밖 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 서버 측 리프레시 토큰 무효화 | 서버 · BFF 에 로그아웃 경로가 없다(JWT, 서버 저장 없음) | `FE-REQ-013` 쿠키 세션 |
+| 설정 화면 | 코치 성향 설정(FEATURE-004 FR-12) 화면이 없다 | F004 설정 슬라이스 |
+| 실제 로그인 계정 실측 | 토큰을 스텁으로 넣고 BFF 를 Playwright route 로 가로챘다 | 사용자 가입 후 |
