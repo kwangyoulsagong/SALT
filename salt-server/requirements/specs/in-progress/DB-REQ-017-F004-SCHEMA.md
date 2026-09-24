@@ -188,6 +188,7 @@ model GaugeTrackRecord {
 | FR-56 | `gauge = smart_money` 행은 같은 모양으로 둔다(입력: 대량 체결 순매수 구간). 집계 착수는 Should | Should |
 | FR-57 | `bucket` 경계(20 단위 5구간)는 **데이터**다. 바꾸면 전체 재집계한다 | Must |
 | FR-58 | 수익률 필드는 **과거 분포**다. **예상 수익 · 목표가 컬럼을 만들지 않는다**(공통 기준 ④). 관찰 구간(D2)의 하단·중앙·상단 가격도 저장 컬럼이 아니라 요청 시 `PriceHistory` 에서 계산하고, 워커 스냅샷은 `payload` 에만 싣는다 | Must |
+| FR-60 | **`symbol_judgment_snapshots.sample_origin`** (개정 2026-09-24, F009 슬라이스 0 C06). `live` · `backtest` · `synthetic` 중 하나 — `NOT NULL` · CHECK, **기본값 없음**(쓰는 쪽이 출처를 말한다). 실측 성적(게이트 · 적중률 · 실패사례 · 성적표)은 `live` 만 센다. 기존 행은 쓴 쪽으로 가른다 — 시드 표식(`reasons` 의 `seed:`) → `synthetic`, 나머지(워커) → `live`. 롤백은 열 삭제(행 손실 0) | Must |
 | FR-59 | 보유 여부는 **기존 `PortfolioTransaction` → `PortfolioHolding`** 에서 온다. 원장 확장(결제일 · 환율)은 없다(ADR-002) | Must |
 
 ## 공유 — `IndicatorTrackRecord`
@@ -245,3 +246,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-09-21 | **FR-50~53 을 다르게 구현.** 종목 판단 스냅샷을 `InvestmentInsight.kind = symbol_judgment` 가 아니라 **별도 테이블 `SymbolJudgmentSnapshot`** 에 둔다 — `InvestmentInsight` 는 피드 · 대시보드 · 점수 계산이 타입 필터 없이 읽어 스냅샷이 섞이면 거기로 쏟아진다. 판단이 사용자와 무관하므로 사용자 열도 없다(종목 · 모드당 한 벌, B39 — 관찰 기간당 1행). 인덱스: `(symbol, mode, judged_at)` 유니크 · `(signal_type, outcome, judged_at DESC)` · `(evaluated_at, judged_at)`. FR-1~8 승격 컬럼 · FR-54 · FR-55(게이지) 는 남음 |
 | 2026-09-21 | **FR-55 · FR-57 구현.** `GaugeTrackRecord`(`gauge_track_records`) — 스펙 모양 그대로, 수익률은 비율. 집계는 `market` 공개 API(심리 하루 1표본 · 진입/청산 = 그 시각 이후 첫 일봉 종가), 저장은 `coach`. 일 1회 워커가 통째로 다시 쓰고 이번에 없는 줄은 지운다. 남음: FR-56(`smart_money`, Should) |
 | 2026-09-23 | **FR-13~15 · FR-20~22 구현 (슬라이스 13).** `coach_generation_logs`(`20260923042043`) · 프로필 열 2(`20260923041818`). **다르게 1건**: `status` 에 `running` 을 더했다 — 생성이 비동기(202)라 받는 순간 행이 있어야 다음 요청의 쿨다운이 진행 중 생성을 본다. 근거 `reports/checklists/DB-REQ-017.md` |
+| 2026-09-24 | **FR-60 신설 · 구현 (F009 슬라이스 0 C06).** `20260924130000_judgment_sample_origin`. 로컬 적용: 256행 → `synthetic` 240 · `live` 16(합 불변), CHECK 가 `'guess'` 거부. 근거 `reports/checklists/DB-REQ-017.md` |

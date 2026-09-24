@@ -32,6 +32,23 @@ export const JUDGMENT_HORIZON_MS: Record<CoachMode, number> = {
   long_term: COACH_HORIZON.long_term.ms,
 };
 
+/**
+ * 표본의 출처 — F009 슬라이스 0 C06 (`DB-REQ-017` FR-60).
+ *
+ * | 값 | 누가 쓰나 |
+ * |---|---|
+ * | `live` | 워커가 실시간 판단을 스냅샷으로 남기고 관찰 기간 뒤 채점한 것 |
+ * | `backtest` | 과거 시세로 되돌려 채점한 것 — 아직 쓰는 곳이 없다 |
+ * | `synthetic` | 시드 스크립트가 지어낸 수열 — 로컬에서 렌더 경로를 밟기 위한 것 |
+ *
+ * **실측 성적(게이트 · 적중률 · 실패사례 · 성적표)은 `live` 만 센다.** 합성 실적이 섞이면 지어낸
+ * 숫자가 추천을 연다. 개발 DB 를 운영으로 복사해도 마찬가지여야 해서 출처를 행에 적는다.
+ */
+export type SampleOrigin = "live" | "backtest" | "synthetic";
+
+/** 실측 성적이 세는 출처. 개발에서 `synthetic` 을 더하는 것은 조립 지점의 일이다(`composition.ts`). */
+export const LIVE_ORIGINS: readonly SampleOrigin[] = ["live"];
+
 /** `wait` 가 적중인 수익률 폭(절댓값). */
 export const WAIT_BAND: Record<CoachMode, number> = {
   scalp: 0.02,

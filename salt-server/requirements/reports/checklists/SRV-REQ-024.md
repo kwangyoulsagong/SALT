@@ -116,3 +116,7 @@ FR-30 의 그룹 필드 `maxDrawdown` → `worstObservedReturn`(`SRV-REQ-025` FR
 ## 7. F009 슬라이스 0 — C05 (2026-09-24)
 
 FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. 판정 · 게이트는 `SRV-REQ-025.md` §11.
+
+## 8. F009 슬라이스 0 — C06 (FR-172, 2026-09-24)
+
+**pass** — `summarize` · `recentCases` · `scoreboard` · `recentCasesByGroup` 가 `countedOrigins` 로 거르고, `lastJudgedAt` · `saveSnapshots` · `listPending` 은 늘 `live`. 실DB 수치 · 미검증은 `DB-REQ-017.md` C06 절.

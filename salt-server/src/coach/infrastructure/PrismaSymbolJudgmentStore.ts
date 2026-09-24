@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
-import { RETURN_BUCKETS } from "../domain";
+import { LIVE_ORIGINS, RETURN_BUCKETS } from "../domain";
 import type {
   CoachMode,
   JudgmentCase,
@@ -12,6 +12,7 @@ import type {
   JudgmentTrackStats,
   ModeDecisionAction,
   PendingJudgment,
+  SampleOrigin,
   SymbolJudgmentStore,
 } from "../domain";
 
@@ -44,8 +45,24 @@ const toNumberOrNull = (value: Prisma.Decimal | null): number | null =>
  *
  * 이 테이블의 주인은 `coach` 하나다. 행 하나가 표본 하나라서(B39 — 관찰 기간당 1건)
  * 성적은 **그룹 집계 한 번**으로 나온다.
+ *
+ * ## 출처 (C06 · `DB-REQ-017` FR-60)
+ *
+ * 성적(`summarize` · `recentCases` · `scoreboard` · `recentCasesByGroup`)은 `countedOrigins` 만 센다.
+ * 기본은 `live` 하나다. 워커 쪽(`lastJudgedAt` · `saveSnapshots` · `listPending`)은 설정과 무관하게
+ * **늘 `live`** 다 — 합성 행이 실측 표본의 간격을 막거나 채점 대상이 되면 안 된다.
  */
 export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
+  private readonly counted: SampleOrigin[];
+
+  constructor(countedOrigins: readonly SampleOrigin[] = LIVE_ORIGINS) {
+    this.counted = [...countedOrigins];
+  }
+
+  private get countedSql(): Prisma.Sql {
+    return Prisma.sql`sample_origin IN (${Prisma.join(this.counted)})`;
+  }
+
   /**
    * 종목 · 모드별 마지막 판단 시각.
    *
@@ -57,7 +74,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
 
     const rows = await prisma.symbolJudgmentSnapshot.groupBy({
       by: ["symbol", "mode"],
-      where: { symbol: { in: symbols } },
+      where: { symbol: { in: symbols }, sampleOrigin: "live" },
       _max: { judgedAt: true },
     });
 
@@ -81,6 +98,8 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
         reasons: draft.reasons,
         entryPrice: new Prisma.Decimal(draft.entryPrice),
         judgedAt: draft.judgedAt,
+        // 워커가 실시간 판단을 남기는 유일한 문이다
+        sampleOrigin: "live" satisfies SampleOrigin,
       })),
       // `(symbol, mode, judged_at)` 유니크 — 워커가 겹쳐 돌아도 한 벌이다
       skipDuplicates: true,
@@ -95,6 +114,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
     const rows = await prisma.symbolJudgmentSnapshot.findMany({
       where: {
         evaluatedAt: null,
+        sampleOrigin: "live",
         OR: [
           { mode: "scalp", judgedAt: { lte: judgedBefore.scalp } },
           { mode: "long_term", judgedAt: { lte: judgedBefore.long_term } },
@@ -150,13 +170,13 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
   async summarize(signalType: string): Promise<JudgmentTrackStats> {
     const [all, hits] = await Promise.all([
       prisma.symbolJudgmentSnapshot.aggregate({
-        where: { signalType, outcome: { not: null } },
+        where: { signalType, outcome: { not: null }, sampleOrigin: { in: this.counted } },
         _count: { _all: true },
         _avg: { returnRate: true },
         _min: { returnRate: true },
       }),
       prisma.symbolJudgmentSnapshot.count({
-        where: { signalType, outcome: "hit" },
+        where: { signalType, outcome: "hit", sampleOrigin: { in: this.counted } },
       }),
     ]);
 
@@ -203,7 +223,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
              PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY return_rate) AS p75,
              ${Prisma.join(bucketColumns, ", ")}
       FROM symbol_judgment_snapshots
-      WHERE outcome IS NOT NULL AND return_rate IS NOT NULL
+      WHERE outcome IS NOT NULL AND return_rate IS NOT NULL AND ${this.countedSql}
       GROUP BY signal_type
       ORDER BY signal_type
     `;
@@ -241,7 +261,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
                  PARTITION BY signal_type, outcome ORDER BY judged_at DESC
                ) AS rn
         FROM symbol_judgment_snapshots
-        WHERE outcome IS NOT NULL AND return_rate IS NOT NULL
+        WHERE outcome IS NOT NULL AND return_rate IS NOT NULL AND ${this.countedSql}
       ) ranked
       WHERE rn <= ${limit}
       ORDER BY signal_type, outcome, judged_at DESC
@@ -268,7 +288,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
     limit: number
   ): Promise<JudgmentCase[]> {
     const rows = await prisma.symbolJudgmentSnapshot.findMany({
-      where: { signalType, outcome },
+      where: { signalType, outcome, sampleOrigin: { in: this.counted } },
       orderBy: { judgedAt: "desc" },
       take: limit,
       select: { symbol: true, judgedAt: true, action: true, returnRate: true },

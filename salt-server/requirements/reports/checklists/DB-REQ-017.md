@@ -68,3 +68,23 @@
 | REQ 본문(FR-50~53 · Acceptance Criteria)이 아직 `InvestmentInsight` 기준 | "다르게"는 Changelog 에만 있다 | 다음 REQ 개정 |
 | ~~`npx prisma validate`~~ | — | **2026-09-23 닫힘** — 슬라이스 13 게이트에서 통과 |
 | `coach_generation_logs` 보존 | 워커가 사용자마다 10분에 1행을 쓴다(사용자 10명이면 1년 ~52만 행). 정리 작업이 없다 | 관측성 계측 · 알림 정리 워커와 같이 |
+
+## F009 슬라이스 0 — C06 `sample_origin` (FR-60, 2026-09-24, `feat/f009-slice0-reliability`)
+
+| 확인 | 결과 |
+|---|---|
+| 마이그레이션 | `20260924130000_judgment_sample_origin` — `migrate deploy` 적용 · `migrate status` up to date · `prisma validate` 통과 |
+| 백필 | 전 256행 = 시드 표식 240 → `synthetic` · 워커 16 → `live`. **행 수 불변** · 표식과 출처가 1:1 |
+| CHECK | `sample_origin = 'guess'` 갱신 **거부** |
+| 저장소(실DB) | 기본(`live`): 성적표 그룹 **1** · 표본 8 · `scalp.wait` 요약 0 / `live+synthetic`: 그룹 8 · 표본 248 · 30 |
+| 실행계획 | Seq Scan 256행 · `Rows Removed by Filter: 248` · **0.26ms** |
+| 운영 가드 | `NODE_ENV=production` + `JUDGMENT_COUNT_SYNTHETIC=true` 면 `env.ts` 가 기동을 막는다(코드 확인 — 운영 기동은 안 해 봤다) |
+| 게이트 | `npm run build` · `npm test` **353 / 0** · `eslint .` · `layer-check` 4파일 |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 운영 DB 에 시드 행이 있는지 | 운영 DB 에 접근하지 않았다. 있어도 마이그레이션이 `synthetic` 으로 가르고 성적에서 빠진다 | 운영 배포 시 마이그레이션 로그의 행 수 |
+| `backtest` 출처 | 쓰는 곳이 아직 없다 — 값만 열어 뒀다 | 백테스트 채점이 생길 때(F008 P2 검증 방법론) |
+| `sample_origin` 인덱스 | 256행 · 0.26ms 라 두지 않았다. 표본이 쌓여도 대부분 `live` 라 선택도가 낮다 | 표본 수만 건 뒤 재측정 |

@@ -239,6 +239,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-170 | **관심 종목 목록 응답에 판단 · 신호 필드를 붙이지 않는다**(D4). 판단은 종목 판단 경로에서만 | Must |
+| FR-172 | 판단 게이트 · 성적 · 실패사례 · 성적표는 **`sample_origin = live` 표본만** 센다(개정 2026-09-24, C06 · `DB-REQ-017` FR-60). 로컬에서 합성 표본을 세려면 `JUDGMENT_COUNT_SYNTHETIC=true` — **운영에서 켜면 기동이 막힌다**. 워커의 간격 · 채점 대상은 설정과 무관하게 늘 `live` | Must |
 | FR-171 | 알림 만들기 · 사용자 조건 알림(B19)은 이 REQ 에 없다 | — |
 
 ## Acceptance Criteria
@@ -341,3 +342,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-09-21 | **슬라이스 2 구현 (`requirements/specs/in-progress/F004-zone-gauge-slice.md`).** 신규 FR-138(피하기 근거 = `reasons ∪ risks`, 사용자 확정). 닫힘: FR-110~116(zone — 관찰 구간 최소 표본 = 기대 캔들 수의 절반) · FR-120~123(게이지 — `sentiment`). 남음: FR-115 `excluded_asset`(자산군 enum) · FR-117 · FR-124(Should) |
 | 2026-09-24 | **F009 슬라이스 0 — C04.** FR-30 의 `maxDrawdown` 을 `worstObservedReturn` 으로 개정(`SRV-REQ-025` FR-55). 최저 단일 관찰 수익률이지 MDD 가 아니다 |
 | 2026-09-24 | **F009 슬라이스 0 — C05.** FR-103 개정 · **해설 `timeframe` 주입 구현**(그동안 LLM 이 쓴 기간을 검사만 하고 통과시켰다 — 이제 버리고 `COACH_HORIZON` 을 넣는다). 기간 = 채점 기간(`SRV-REQ-025` FR-56) |
+| 2026-09-24 | **F009 슬라이스 0 — C06.** FR-172 신설 · 구현. 저장소가 출처로 거른다(`PrismaSymbolJudgmentStore` 생성자 인자, 조립은 `composition.ts`) |

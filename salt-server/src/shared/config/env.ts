@@ -68,6 +68,15 @@ const envSchema = z.object({
    * 가격 전망을 볼 수 있는 계정(쉼표 구분 이메일) — `ADR-003` 소유자 전용. **코드 상수 금지.**
    * 비우면 아무도 못 본다(되돌리기 — ADR-003 §5).
    */
+  /**
+   * 판단 성적에 **합성 표본(시드)도 셀지** — F009 슬라이스 0 C06 (`DB-REQ-017` FR-60). 기본 끔.
+   * 로컬에서 `npm run judgments:seed` 로 게이트를 열어 렌더 경로를 볼 때만 켠다. **운영에서 켜면 기동을 막는다** —
+   * 지어낸 실적이 추천을 여는 길을 설정 한 줄로도 열 수 없어야 한다.
+   */
+  JUDGMENT_COUNT_SYNTHETIC: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
   FORECAST_OWNER_EMAILS: z
     .string()
     .default("")
@@ -75,6 +84,10 @@ const envSchema = z.object({
 });
 
 const parsedEnv = envSchema.parse(process.env);
+
+if (parsedEnv.NODE_ENV === "production" && parsedEnv.JUDGMENT_COUNT_SYNTHETIC) {
+  throw new Error("JUDGMENT_COUNT_SYNTHETIC 는 운영에서 켤 수 없다 — 합성 표본이 판단 게이트를 연다");
+}
 
 export const env = {
   ...parsedEnv,

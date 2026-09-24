@@ -143,7 +143,10 @@ const coach = createCoachApplication({
   market: new MarketSignalAdapter(market.api),
   portfolio: new HoldingTradeAdapter(portfolio.api),
   news: new ArticleTextAdapter(news.api),
-  judgments: new PrismaSymbolJudgmentStore(),
+  // 실측 성적은 live 만. 로컬 시드로 렌더 경로를 볼 때만 synthetic 을 더한다(운영에서는 env 가 막는다)
+  judgments: new PrismaSymbolJudgmentStore(
+    env.JUDGMENT_COUNT_SYNTHETIC ? ["live", "synthetic"] : ["live"]
+  ),
   tracked: new TrackedAssetAdapter(market.api, portfolio.api),
   gauges: new PrismaGaugeTrackStore(),
   generationLogs: new PrismaCoachGenerationLogStore(),
