@@ -67,6 +67,7 @@
     "./toast": "./src/Toast/Toast.tsx",
     "./toastProvider": "./src/Toast/ToastProvider.tsx",
     "./useToast": "./src/Toast/useToast.ts",
+    "./disclosureSlot": "./src/DisclosureSlot/DisclosureSlot.tsx",
     "./spinner": "./src/Spinner/Spinner.tsx",
     "./stepper": "./src/Stepper/Stepper.tsx",
     "./keypad": "./src/Keypad/Keypad.tsx",
