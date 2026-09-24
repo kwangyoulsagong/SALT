@@ -18,3 +18,4 @@ export * from "./score";
 export * from "./signalPerformance";
 export * from "./symbolJudgment";
 export * from "./zone";
+export * from "./macroEvents";

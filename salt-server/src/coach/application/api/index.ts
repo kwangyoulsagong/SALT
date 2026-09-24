@@ -24,6 +24,7 @@ import { GetCoachDetail } from "../GetCoachDetail";
 import { GetCoachGenerationStatus } from "../GetCoachGenerationStatus";
 import { GetCoachRecommendation } from "../GetCoachRecommendation";
 import { GetJudgmentScoreboard } from "../GetJudgmentScoreboard";
+import { GetSymbolEvents } from "../GetSymbolEvents";
 import { GetSymbolForecast } from "../GetSymbolForecast";
 import { GetSignalPerformance } from "../GetSignalPerformance";
 import { GetSymbolCoach } from "../GetSymbolCoach";
@@ -90,6 +91,8 @@ export interface CoachUseCases {
   getSignalPerformance: GetSignalPerformance;
   getJudgmentScoreboard: GetJudgmentScoreboard;
   getSymbolForecast: GetSymbolForecast;
+  /** 주요 사건(거시 일정) · 과거 반응 — 소유자만(F008 슬라이스 22) */
+  getSymbolEvents: GetSymbolEvents;
   snapshotSymbolJudgments: SnapshotSymbolJudgments;
   evaluateSymbolJudgments: EvaluateSymbolJudgments;
   refreshGaugeTrackRecords: RefreshGaugeTrackRecords;
@@ -165,6 +168,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     getSignalPerformance: new GetSignalPerformance(deps.insights, deps.market),
     getJudgmentScoreboard: new GetJudgmentScoreboard(deps.judgments),
     getSymbolForecast: new GetSymbolForecast(deps.forecasts, deps.portfolio, deps.forecastOwnerEmails),
+    getSymbolEvents: new GetSymbolEvents(deps.forecasts, deps.forecastOwnerEmails),
     snapshotSymbolJudgments: new SnapshotSymbolJudgments(
       deps.tracked,
       deps.market,

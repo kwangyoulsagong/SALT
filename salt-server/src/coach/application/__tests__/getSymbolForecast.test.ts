@@ -10,6 +10,7 @@ const reader = (calls: string[]): ForecastReader => ({
     return [];
   },
   recentCloses: async () => [{ date: "2026-09-22", close: 100 }],
+  eventCards: async () => [],
 });
 const portfolio = { getHolding: async () => null } as unknown as PortfolioProbe;
 

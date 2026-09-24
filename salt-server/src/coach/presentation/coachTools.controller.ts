@@ -147,4 +147,20 @@ export class CoachToolsController {
       next(error);
     }
   };
+
+  /**
+   * 주요 사건(거시 일정) · 과거 반응 — 소유자만(아니면 404). F008 `SRV-REQ-037` FR-10.
+   */
+  getEvents = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = forecastQuerySchema.parse(req.query);
+      const result = await this.useCases.getSymbolEvents.execute(
+        { userId: req.user!.userId, email: req.user!.email },
+        query.symbol
+      );
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
