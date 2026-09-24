@@ -144,6 +144,8 @@ export class AppAICoachService {
       panicSellWindowHours: data.panicSellWindowHours,
       defaultMode: data.defaultMode,
       notificationLevel: data.notificationLevel,
+      // 매입가 숨김(F009 FR-27 · `BFF-REQ-038`). 서버가 안 주면 false — 숨김을 지어내지 않는다
+      hidePurchasePrice: data.hidePurchasePrice === true,
       supportedModes: data.supportedModes ?? ["scalp", "long_term"],
     };
   }
@@ -164,6 +166,7 @@ export class AppAICoachService {
       panicSellWindowHours: data.panicSellWindowHours,
       defaultMode: data.defaultMode,
       notificationLevel: data.notificationLevel,
+      hidePurchasePrice: data.hidePurchasePrice === true,
       // `unsupportedPersistedFields` 는 뺐다 — 서버가 두 필드를 저장하게 돼(SRV-REQ-025 FR-13)
       // 늘 빈 배열이었다. 소비처 0건(2026-09-23 grep)
     };
