@@ -14,7 +14,7 @@
 > **아키텍처 전환 3개가 끝났다.** `FE-REQ-007`(Multi-Zones) · `FE-REQ-008`(App Router +
 > 스트리밍 SSR) · `FE-REQ-009`(FSD 6레이어). 다음은 기능 REQ(F000~)다.
 > 현재 실재하는 슬라이스는 `auth`·`goal`·`market`·`portfolio`·`coach`(entities),
-> `sign-in`·`sign-out`·`add-goal`·`accept-invite`·`toggle-watchlist`·`switch-coach-mode`·`explain-symbol`·`regenerate-coach`(features),
+> `sign-in`·`sign-out`·`add-goal`·`accept-invite`·`toggle-watchlist`·`switch-coach-mode`·`explain-symbol`·`regenerate-coach`·`record-transaction`·`set-risk-budget`(features, 뒤 둘은 F009 2026-09-24),
 > `home-briefing`·`market-board`·`onboarding-flow`·`coach-panel`·`symbol-analysis`·`coach-console`(widgets),
 > `investment-detail`(pages, `/investments/[symbol]`)·`coach`(pages, `/coach/report`)다 (2026-09-23).
 > 스트리밍 게이트 측정값은 `requirements/reports/checklists/FE-REQ-008.md` §3에 있다 —

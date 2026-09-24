@@ -38,6 +38,7 @@ import {
   titleBlock,
 } from "./CoachReport.css";
 import { AssetIdentity } from "./AssetIdentity";
+import { RiskBudgetPanel } from "./RiskBudgetPanel";
 
 const renderIdentity = (symbol: string, size: "sm" | "md") => (
   <AssetIdentity symbol={symbol} size={size} />
@@ -102,6 +103,9 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
             <RegenerateCoachButton />
           </div>
         </section>
+
+        {/* F009 — 내 기준과 나란히 보는 게이지. 리포트와 따로 부르고 따로 실패한다 */}
+        <RiskBudgetPanel />
 
         {/* FR-143 — 막힌 추천은 초기의 정상 상태다. 정책을 섹션 설명으로 늘 말하고, 막힘은 회색 상자 하나 */}
         <ReportPanel
@@ -173,19 +177,21 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
 export const CoachReport = () => {
   const report = useCoachReport();
 
-  const notice = (content: ReactNode) => (
+  const notice = (content: ReactNode, extra?: ReactNode) => (
     <div className={layout}>
       <section className={panel}>
         <h1 className={title}>{REPORT.pageTitle}</h1>
         {content}
       </section>
+      {extra}
     </div>
   );
 
   if (report.isSignedOut) return notice(<Text color="tertiary">{REPORT.signedOut}</Text>);
   if (report.isPending) return notice(<CoachBlockSkeleton block="judgment" />);
   if (report.isError || report.data.status === "unavailable") {
-    return notice(<Text color="tertiary">{REPORT.unavailable}</Text>);
+    // 게이지는 리포트와 따로 실패한다 — 리포트가 없어도 내 기준 · 게이지는 보인다(F009 카드 단위 격리)
+    return notice(<Text color="tertiary">{REPORT.unavailable}</Text>, <RiskBudgetPanel />);
   }
 
   return <ReportBody report={report.data} />;

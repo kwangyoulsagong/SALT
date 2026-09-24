@@ -12,3 +12,7 @@ export { RecommendationCard } from "./RecommendationCard";
 export { ReportRiskList } from "./ReportRiskList";
 export { ForecastCard } from "./ForecastCard";
 export { EventsCard } from "./EventsCard";
+export { CoachDisclosure } from "./CoachDisclosure";
+export { SizeCheckLines } from "./SizeCheckLines";
+export { RiskGaugeList } from "./RiskGaugeList";
+export { TradePlanCard } from "./TradePlanCard";

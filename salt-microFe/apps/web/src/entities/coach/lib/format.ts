@@ -46,3 +46,28 @@ export const formatGeneratedAt = (iso: string): string | null => {
   const at = new Date(iso);
   return Number.isNaN(at.getTime()) ? null : generatedAtFormatter.format(at);
 };
+
+const fineRateFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
+const quantityFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 8 });
+const timesFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 1 });
+
+/** 작은 비율(0.0005) → `0.05%`. 수수료처럼 정수 %로 반올림하면 0 이 되는 값에만 */
+export const formatFineRate = (ratio: number): string => `${fineRateFormatter.format(ratio * 100)}%`;
+
+/** 코인 수량 — 서버가 소수 8자리로 내림해 준다. 표시만 한다 */
+export const formatQuantity = (quantity: number): string => quantityFormatter.format(quantity);
+
+/** 배수(회전율 3.2) → `3.2` */
+export const formatTimes = (value: number): string => timesFormatter.format(value);
+
+const DAY_MS = 86_400_000;
+
+/**
+ * 계획 뒤 지난 날 수(D+N). 날짜 차이일 뿐 금액이 아니다. **클라이언트에서만** 부른다(오늘이 기준).
+ * 읽을 수 없는 시각이면 `null`.
+ */
+export const daysSince = (iso: string, now: number = Date.now()): number | null => {
+  const at = new Date(iso).getTime();
+  if (Number.isNaN(at)) return null;
+  return Math.max(0, Math.floor((now - at) / DAY_MS));
+};

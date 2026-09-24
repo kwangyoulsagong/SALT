@@ -11,9 +11,11 @@ import {
   JudgmentDetail,
   ProfitPlan,
   selectModeView,
+  TradePlanCard,
   useSymbolCoach,
   useSymbolEvents,
   useSymbolForecast,
+  useTradePlans,
   ZoneLegend,
   ZoneSummary,
   zoneToPriceBand,
@@ -21,6 +23,7 @@ import {
 } from "@/entities/coach";
 import { MarketDetailChart, useMarketListing } from "@/entities/market";
 import { ExplainCard } from "@/features/explain-symbol";
+import { RecordTradeCard } from "@/features/record-transaction";
 import { CoachModeSwitch, useCoachModeParam } from "@/features/switch-coach-mode";
 import { useLivePrice } from "@/shared/api";
 
@@ -62,8 +65,11 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   // 주요 사건(거시 일정) — 전망과 같은 소유자 규칙(F008 슬라이스 22)
   const events = useSymbolEvents(symbol);
   const showEvents = !events.isSignedOut && !events.notOwner;
-  // 차트 선 끝을 움직이는 현재가 — 카드가 보일 때만 구독한다
-  const livePrice = useLivePrice(showForecast && forecast.data ? symbol : "")?.currentPrice ?? null;
+  // 현재가 — 전망 차트 선 끝 · 거래 기록의 [현재가] · 내 계획 카드가 같이 쓴다(F009). 구독은 머리 가격과
+  // 참조 카운트로 합쳐져 소켓 메시지가 늘지 않는다
+  const livePrice = useLivePrice(symbol)?.currentPrice ?? null;
+  // 내 계획(F009 `FE-REQ-039`) — 모든 계정. 로그인 안 했으면 부르지 않는다
+  const plans = useTradePlans(symbol);
   const listing = useMarketListing(symbol);
   const [mode, setMode] = useCoachModeParam(coach.data?.mode);
 
@@ -132,6 +138,12 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                 <ForecastCard className={card} result={{ status: "unavailable" }} />
               ) : null)}
             {showEvents && events.data && <EventsCard className={card} result={events.data} />}
+            {/* F009 — 변동 범위 카드 아래 "내 계획", 그 아래 거래 기록(시나리오 1 · 2). 새 화면이 아니다 */}
+            {plans.data && <TradePlanCard className={card} result={plans.data} livePrice={livePrice} />}
+            {plans.isError && !plans.isSignedOut && (
+              <TradePlanCard className={card} result={{ status: "unavailable" }} livePrice={livePrice} />
+            )}
+            <RecordTradeCard className={card} symbol={symbol} livePrice={livePrice} />
             {coach.data && mode && (
               <>
                 <ExplainCard

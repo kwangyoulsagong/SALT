@@ -15,4 +15,8 @@ export const COACH_ENDPOINTS = {
   forecast: (symbol: string) => `/api/app/coach/forecast?symbol=${encodeURIComponent(symbol)}`,
   /** 주요 사건(거시 일정) · 과거 반응 — 소유자 전용, 아니면 404 (`BFF-REQ-037` FR-8) */
   events: (symbol: string) => `/api/app/coach/events?symbol=${encodeURIComponent(symbol)}`,
+  /** 리스크 예산 게이지 3 · 설정 (F009 `BFF-REQ-038`). 조회 · 저장이 같은 경로다 */
+  riskBudget: "/api/app/coach/risk-budget",
+  /** 종목별 거래 계획 (F009 `BFF-REQ-038`) */
+  plans: (symbol: string) => `/api/app/coach/plans?symbol=${encodeURIComponent(symbol)}`,
 } as const;
