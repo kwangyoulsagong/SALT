@@ -8,4 +8,6 @@ export const coachQueryKeys = {
   /** 코치 리포트. 재생성이 끝나면 이 키만 무효화한다 */
   report: () => ["coach", "report"] as const,
   generationStatus: () => ["coach", "generation-status"] as const,
+  /** 가격 변동 범위. 배치가 하루 1회 만든다 */
+  forecast: (symbol: string) => ["coach", "forecast", symbol] as const,
 } as const;
