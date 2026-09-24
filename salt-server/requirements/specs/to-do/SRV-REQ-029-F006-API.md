@@ -101,7 +101,7 @@ type CardPayload = {
   blockedReason: string | null;
   action: string; symbol: string; assetType: string; score: number; scoreNote: string;
   reasons: Array<{ type: string; message: string }>;
-  signalTrackRecord: { signalType: string; sample: number; winRate: number; avgReturn: number; maxDrawdown: number; lowSample: boolean } | null;
+  signalTrackRecord: { signalType: string; sample: number; winRate: number; avgReturn: number; worstObservedReturn: number; lowSample: boolean } | null;
   failureCases: Array<{ date: string; event: string; outcome: string }>;
   insightId: string;
 };
@@ -132,7 +132,7 @@ type CardPayload = {
 | Method | Path | 상태 | Request | Response |
 |---|---|---|---|---|
 | GET | `/api/portfolio/overview` | **신규** | — | `PositionOverview` (Hero + 보유 목록) |
-| GET | `/api/portfolio/performance` | **확장** | `?range=1d\|7d\|30d\|90d\|1y\|all` | `{ points[], maxDrawdown: { pct, peakAt, troughAt } \| null }` |
+| GET | `/api/portfolio/performance` | **확장** | `?range=1d\|7d\|30d\|90d\|1y\|all` | `{ points[], worstObservedReturn: { pct, peakAt, troughAt } \| null }` |
 | GET | `/api/portfolio/risk` | **신규** | — | `RiskRadar` |
 | GET | `/api/portfolio/transactions` | 기존 | `?page&limit&symbol` | 목록 |
 | POST | `/api/portfolio/transactions` | 기존 | `{ symbol, assetType, transactionType, quantity, price, fee?, note?, transactionDate }` | `201` |
@@ -179,7 +179,7 @@ type TransactionPreview = {
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-40 | `PerformanceRange`에 `1y`를 **추가만** 한다. 기존 값 응답이 바뀌지 않는다(`maxDrawdown` 필드 추가는 하위 호환) | Must |
+| FR-40 | `PerformanceRange`에 `1y`를 **추가만** 한다. 기존 값 응답이 바뀌지 않는다(`worstObservedReturn` 필드 추가는 하위 호환) | Must |
 | FR-41 | `RiskRadar.axes`는 **정확히 4개**, 순서 고정. `value: null`이면 `reasonCode`가 있다 | Must |
 | FR-42 | 미리보기 · 생성 · 수정 · 삭제의 과매도는 **422 `INSUFFICIENT_QUANTITY`** | Must |
 | FR-43 | 거래 쓰기 응답 후 `overview` · `risk` 조회가 **새 값**을 준다(캐시 0건) | Must |

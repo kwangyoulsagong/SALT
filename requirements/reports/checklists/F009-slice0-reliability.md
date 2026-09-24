@@ -1,0 +1,24 @@
+# F009 슬라이스 0 — 신뢰성 수정 — 체크리스트
+
+슬라이스: `requirements/specs/in-progress/F009-slice0-reliability-slice.md`
+브랜치: `feat/f009-slice0-reliability` (base `main` `8e1462a`)
+
+## C04 — `worstObservedReturn` (2026-09-24)
+
+영역: `salt-server/.../checklists/SRV-REQ-025.md` §10 · `SRV-REQ-024.md` §6 · `bff/.../BFF-REQ-024.md` §3 · `salt-microFe/.../FE-REQ-026.md` §8
+
+| 확인 | 결과 |
+|---|---|
+| 코드 · 진행 중 스펙에 `maxDrawdown` | **0건**(done/ REQ 와 변경 이력은 역사라 그대로) |
+| 웹 소스에 "최대 낙폭" | **0건**. `FE-REQ-030` FR-101 "기간 최대 낙폭"은 평가금 곡선의 진짜 MDD 라 그대로 |
+| 서버 | `npm run build` · `npm test` **349 / 0** · `eslint .` |
+| BFF | `npm run build` · `npm test` **121 / 0** |
+| 프론트 | `pnpm check-types` · `lint` · `test` · `build`(web · web-tax) 성공 · `layer-check` 3파일 exit 0 |
+
+## 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 인증된 HTTP 응답 실측 | 이번 세션에서 로그인 토큰을 만들 수 없었다 — 단위 · 뷰모델 테스트로만 확인 | 사용자 로그인 화면 QA |
+| 판단이 열린 코치 카드 라벨 | 로그인 + 표본 20 필요 | 같은 QA |
+| C05 · C06 · C02 · C03 · C01 | 이 슬라이스의 다음 항목 | 이 브랜치 |

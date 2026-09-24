@@ -95,7 +95,7 @@ export const COACH_MESSAGES = {
     trackSample: (count: number) => `표본 ${count}회`,
     winRate: "적중률",
     avgReturn: "평균",
-    maxDrawdown: "최대 낙폭",
+    worstObservedReturn: "가장 나빴던 수익률",
     horizon: (hours: number) => `판단 뒤 ${hours}시간 기준`,
     failureHeading: "맞았던 때 · 틀렸던 때",
     outcome: { hit: "맞음", miss: "틀림" },

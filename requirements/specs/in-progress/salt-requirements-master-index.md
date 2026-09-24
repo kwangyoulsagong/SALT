@@ -440,6 +440,8 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 
 **선행**: Codex Astra 코드 진단 C01~C06(`feature-audits/2026-09-24-ai-investment-deep-research.md`) — 성적표 정의(C04 MDD 오명 · C05 기간 · C06 시드 분리)를 먼저 고친다. 기존 F004 · F008 REQ 개정으로 처리.
 
+**F009 슬라이스 0 — 신뢰성 수정 (2026-09-24 ~, `feat/f009-slice0-reliability`)** — C04 → C05 → C06 → C02 → C03 → C01 순. **C04 완료**: 성적표 `maxDrawdown` → `worstObservedReturn`(라벨 "가장 나빴던 수익률"). 값은 표본 최저 단일 수익률이라 MDD 가 아니었다 — 계산은 그대로, 이름만. 서버 FR-30 예외 2건째(`SRV-REQ-025` FR-55 · `BFF-REQ-024` FR-39 · `FE-REQ-026` FR-163). 범위 · 검증은 `F009-slice0-reliability-slice.md` · `reports/checklists/F009-slice0-reliability.md`.
+
 ### 이동 규칙
 
 각 REQ는 `to-do/` → `in-progress/` → `done/`으로 이동한다. done 조건:
@@ -486,3 +488,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-24 | **F008 슬라이스 17a-1 (서버).** 가격 변동 범위 API — 소유자 전용 · 원화 환산 · 전망 3종. 서버 매시 배치 트리거 동작 확인(`ops/daily.log` 2회) |
 | 2026-09-24 | **F008 슬라이스 17a-2 · 18 · 19.** 해설 검증기 · 템플릿(서버) · 전망 중계(BFF) · 변동 범위 카드(FE). 앱에서 처음 보인다 — 소유자에게만 |
 | 2026-09-24 | **F009 신설 — 1인 펀드매니저 코치.** 리서치 `reports/research/2026-09-24-fund-manager-coach.md`(행동 · 사이징 · 사전 기록 증거, 크립토 신호 우선순위, LLM 실효성, 한국 규제 선) + Codex Astra 조사 3건(코드 진단 C01~C12 · 외부 조사 · 워크벤치 W01~W06). W02 · W03 · W05 · W06 을 F009 로 흡수, W01 · W04 는 F008. 사용자 결정: 계좌 연동 없음 · 수동 입력, 통제 · 차단 없음(2026-09-08 유지), 수익 보장 문구 금지(법). REQ 5개 to-do(`DB-031` · `SRV-038` · `FC-006` · `BFF-038` · `FE-039`) |
+| 2026-09-24 | **F009 슬라이스 0 — C04.** 성적표 `maxDrawdown` → `worstObservedReturn` 서버 · BFF · FE 동시(BREAKING, 소비처 전부 이 레포). 상태표 변경 없음 — 기존 REQ 개정 |

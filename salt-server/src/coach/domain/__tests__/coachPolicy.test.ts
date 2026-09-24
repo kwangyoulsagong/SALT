@@ -406,18 +406,18 @@ describe("성적표 집계 — 특성화", () => {
       sampleCount: 0,
       winRate: null,
       avgReturn: null,
-      maxDrawdown: null,
+      worstObservedReturn: null,
       samples: [],
     });
   });
 
-  it("승률·평균·최대 낙폭을 함께 준다", () => {
+  it("승률·평균·가장 나빴던 수익률을 함께 준다", () => {
     const summary = summarizePerformance([sample(1), sample(-1)]);
 
     assert.equal(summary.status, "active");
     assert.equal(summary.winRate, 0.5);
     assert.equal(summary.avgReturn, 0);
-    assert.equal(summary.maxDrawdown, -1);
+    assert.equal(summary.worstObservedReturn, -1);
   });
 
   it("응답 표본은 20건에서 자른다", () => {

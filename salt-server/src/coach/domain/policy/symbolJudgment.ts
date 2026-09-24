@@ -105,7 +105,11 @@ export interface JudgmentTrackRecord {
   /** 표본 0 이면 `null` — 0% 가 아니다. */
   winRate: number | null;
   avgReturn: number | null;
-  maxDrawdown: number | null;
+  /**
+   * 표본 중 **가장 나빴던 단일 관찰 수익률**(`MIN(returnRate)`). 최대 낙폭(MDD)이 아니다 —
+   * MDD 는 시간순 자산 곡선의 고점 대비 하락이라 관찰 종료 수익률만으로는 못 구한다(C04).
+   */
+  worstObservedReturn: number | null;
   lowSample: boolean;
   horizonHours: number;
 }
@@ -119,7 +123,7 @@ export const summarizeJudgmentTrack = (
   sample: stats.sample,
   winRate: stats.sample > 0 ? stats.hits / stats.sample : null,
   avgReturn: stats.avgReturn,
-  maxDrawdown: stats.worstReturn,
+  worstObservedReturn: stats.worstReturn,
   lowSample: stats.sample < MIN_JUDGMENT_SAMPLE,
   horizonHours: JUDGMENT_HORIZON_MS[mode] / HOUR_MS,
 });

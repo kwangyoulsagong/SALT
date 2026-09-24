@@ -27,7 +27,7 @@ const trackRecord = {
   sample: 24,
   winRate: 0.5,
   avgReturn: 0.01,
-  maxDrawdown: -0.05,
+  worstObservedReturn: -0.05,
   lowSample: false,
   horizonHours: 24,
 };

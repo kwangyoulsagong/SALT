@@ -55,7 +55,7 @@ type CoachDetailViewModel = {
     blockedReason: 'reasons_missing' | 'signal_track_record_missing' | 'failure_cases_missing' | null;
     reasons: Array<{ type: string; message: string; value?: number | string | null }>;
     topFactors: Array<{ key: string; score: number; message: string }>;
-    signalTrackRecord: { signalType: string; sample: number; winRate: number; avgReturn: number; maxDrawdown: number; lowSample: boolean } | null;
+    signalTrackRecord: { signalType: string; sample: number; winRate: number; avgReturn: number; worstObservedReturn: number; lowSample: boolean } | null;
     failureCases: Array<{ date: string; event: string; outcome: string }>;
     // ────────────────────
 
@@ -80,7 +80,7 @@ type CoachDetailViewModel = {
 };
 
 type ScoreboardViewModel = {
-  groups: Array<{ signalType: string; sample: number; winRate: number; avgReturn: number; maxDrawdown: number; lowSample: boolean;
+  groups: Array<{ signalType: string; sample: number; winRate: number; avgReturn: number; worstObservedReturn: number; lowSample: boolean;
     // 2026-09-21 (B17 · B2)
     returnDistribution: { horizonDays: 30; buckets: Array<{ code: string; count: number }>; p25: number | null; median: number | null; p75: number | null };
     hits: Array<{ date: string; event: string; outcome: string }>;
@@ -133,7 +133,7 @@ type ModeCoachViewModel =
   | { renderable: true;
       judgment: { action: JudgmentAction; label: string; score: number; scoreNote: string;
                   validity: { code: string }; riskLevel: 'medium' | 'high'; headline: string; reasons: string[]; risks: string[] };
-      trackRecord: { signalType: string; sample: number; winRate: number | null; avgReturn: number | null; maxDrawdown: number | null; lowSample: boolean };
+      trackRecord: { signalType: string; sample: number; winRate: number | null; avgReturn: number | null; worstObservedReturn: number | null; lowSample: boolean };
       failureCases: [FailureCase, ...FailureCase[]];
       zone: Zone }
   | { renderable: false;
@@ -172,6 +172,7 @@ type SymbolCoachViewModel = {
 | FR-36 | 관심 종목 뷰모델에 판단 필드가 없다(D4) | Must |
 | FR-37 | 해설 응답(`POST /explain`)도 판별 union 이다: `{ renderable: true; modeReasoning; validity; keyDrivers; risks; newsSummary (≤5); trackRecord; failureCases; disclaimer; generatedAt; source } \| { renderable: false; blockedReason }`. 예상 수익 필드 0건(B3) | Must |
 | FR-38 | preflight 응답에 `maxLossOfTotalRate` 를 더한다. 게이트 · 차단 · 주문 필드 0건 유지(FR-17) | Must |
+| FR-39 | 성적표 뷰모델의 최저값 필드는 `worstObservedReturn` 이다(개정 2026-09-24, `SRV-REQ-025` FR-55 짝). 옛 `maxDrawdown` 을 별칭으로 남기지 않는다 — 서버가 옛 이름을 보내지 않으니 남기면 늘 `null` 이다. 대상: `symbolCoach` · `coachReport` 뷰모델 · `/api/app/signal-performance` `metrics` | Must |
 
 ## Acceptance Criteria
 
@@ -220,3 +221,4 @@ type SymbolCoachViewModel = {
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. `/api/app/ai-coach/detail` 을 종목 판단으로 개정하고 `/api/app/coach/report` 신설. 신규 FR-30~38 · `SymbolCoachViewModel`(모드별 `renderable` 판별 union(B10) · `zone`(D2) · `gaugeTrackRecords`(B9) · `validity` · **`confidence` 없음**(D3) · 목표가 기본값 없음(B1)), 해설 union(B3), 성적표 분포 · hits/misses(B17 · B2). `invoiceLink` 제거(ADR-002) |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `distancePct` → `priceGap`(D13). 종목 경로 `blockedReason` 에 `insufficient_sample`(D11). Q3 닫음(D12) |
+| 2026-09-24 | **F009 슬라이스 0 — C04.** FR-39 신설 · 계약 코드블록 `maxDrawdown` → `worstObservedReturn`. 근거 `requirements/reports/feature-audits/2026-09-24-ai-investment-deep-research.md` C04 |

@@ -60,7 +60,7 @@ type CoachDetailResult = {
 
     signalTrackRecord: {
       signalType: string; sample: number; winRate: number | null;     // 개정 2026-09-23: 표본 0 이면 null
-      avgReturn: number | null; maxDrawdown: number | null; lowSample: boolean;
+      avgReturn: number | null; worstObservedReturn: number | null; lowSample: boolean;
     } | null;
 
     failureCases: Array<{ date: string; event: string; outcome: string }>;
@@ -145,7 +145,7 @@ type ModeCoachView = {
   renderable: boolean;
   blockedReason: 'reasons_missing' | 'signal_track_record_missing' | 'failure_cases_missing' | 'insufficient_sample' | null;  // insufficient_sample = 표본 < 20 (D11)
   trackRecord: { signalType: string; sample: number; winRate: number | null; avgReturn: number | null;
-                 maxDrawdown: number | null; lowSample: boolean } | null;
+                 worstObservedReturn: number | null; lowSample: boolean } | null;
   failureCases: Array<{ date: string; event: string; outcome: string }>;
   zone: Zone;
 };
@@ -213,12 +213,13 @@ type ExplainResult =
 | FR-52 | `trade-preflight` 에 `stopLossRate` 입력 · `maxLossOfTotalRate` 출력을 추가한다. **목표가 기본값을 서버가 만들지 않는다.** 주문 · 외부 링크 필드 0건 | Must |
 | FR-53 | `signal-performance?groupBy=signalType` 그룹에 `returnDistribution` · `hits` · `misses` 를 추가한다. 무인자 호출은 하위 호환 | Must |
 | FR-54 | 관심 종목 응답(`/api/watchlist`)에 판단 · 신호 필드를 추가하지 않는다(D4) | Must |
+| FR-55 | 성적표의 "가장 나빴던 값"은 **`worstObservedReturn`** 이다(개정 2026-09-24, C04). 옛 이름 `maxDrawdown` 은 표본 중 최저 단일 관찰 수익률(`MIN(returnRate)`)이었지 최대 낙폭(MDD)이 아니었다. 대상: `signal-performance` 무인자 · `groupBy` · `scoreboard` 그룹 · `detail.signalTrackRecord` · 종목 판단 `trackRecord`. 진짜 MDD 가 필요하면 시간순 자산 곡선으로 **별도 필드**를 만든다 | Must |
 
 ## 하위 호환
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-30 | 기존 5경로의 응답에 **필드 추가만** 한다. 제거·이름 변경 0건. **개정 2026-09-21**: 예외 1건 — 종목 경로의 `confidence` 제거(FR-41, D3). BFF 와 동시 변경 | Must |
+| FR-30 | 기존 5경로의 응답에 **필드 추가만** 한다. 제거·이름 변경 0건. **개정 2026-09-21**: 예외 1건 — 종목 경로의 `confidence` 제거(FR-41, D3). BFF 와 동시 변경. **개정 2026-09-24**: 예외 2건째 — `maxDrawdown` → `worstObservedReturn`(FR-55). 이름이 값을 거짓으로 말해 옛 이름을 남기지 않는다. BFF · 프론트 동시 변경 | Must |
 | FR-31 | 프론트가 아직 없는 경로이므로 **파괴적 변경이 안전하지만**, BFF가 이미 프록시하고 있으므로 계약 테스트를 둔다 | Must |
 | FR-32 | `explain`에 인증을 추가하면 **BFF 프록시가 토큰을 전달해야 한다.** BFF 변경이 짝이다 | Must |
 
@@ -284,3 +285,4 @@ type ExplainResult =
 | 2026-09-23 | **슬라이스 12 구현.** `GET /api/coach/detail`(FR-1~9 · 18) · `profit-plan` `stages[].gapFromCurrent`(FR-16) · `behavior-coach` `warnings[].factCode`/`params`(FR-17). 계약과 다른 점 셋: `signalTrackRecord` 의 `winRate` · `avgReturn` · `maxDrawdown` 이 **nullable**(표본 0 과 매핑 없음 구분 — FR-43 과 같은 규칙), `candidates[].reasons` 는 저장되지 않아 `[]`, `excluded[].reasonCode` = `no_realtime_data`. 저장 추천에 종목 판단 성적을 빌려 오지 않는다 — 추천 블록은 실패사례 출처(`IndicatorTrackRecord`)가 생길 때까지 `failure_cases_missing`. 남음: FR-10 · 13 · 31 · 48 · 54. 근거 `reports/checklists/SRV-REQ-025.md` §8 |
 | 2026-09-23 | **슬라이스 11 구현.** `GET /api/coach/scoreboard` 신설 · `signal-performance?groupBy=signalType`(FR-15 · FR-53). `returnDistribution.horizonDays` 를 **그룹 관찰 기간으로 개정**(위 코드블록). 남음: FR-1~10 · 13 · 16~18 · 31 · 48 · 54. 근거 `reports/checklists/SRV-REQ-025.md` §7 |
 | 2026-09-22 | **슬라이스 10 구현.** explain 인증 · 판단 게이트 먼저(미렌더면 LLM 미호출) · abort · `newsSummary` ≤ 뉴스 수 · Swagger(FR-11 · 12 · 20 · 32 · 50 · 51), preflight `stopLossRate` · `maxLossOfTotalRate` · 손실 원 정수(FR-14 · 19 부분 · 52). 남음: FR-1~10 · 13 · 15~18 · 31 · 48 · 53 · 54. 근거 `reports/checklists/SRV-REQ-025.md` §6 |
+| 2026-09-24 | **F009 슬라이스 0 — C04.** FR-55 신설 · FR-30 예외 2건째. `maxDrawdown` → `worstObservedReturn` 전 경로(위 계약 코드블록 포함). 계산식은 그대로 — 이름만 바로잡았다. 근거 `requirements/reports/feature-audits/2026-09-24-ai-investment-deep-research.md` C04 · `reports/checklists/SRV-REQ-025.md` §9 |

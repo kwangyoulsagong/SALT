@@ -71,7 +71,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-30 | 신호 유형별로 그룹화한다: `sample` · `winRate` · `avgReturn` · `maxDrawdown` | Must |
+| FR-30 | 신호 유형별로 그룹화한다: `sample` · `winRate` · `avgReturn` · `worstObservedReturn` | Must |
 | FR-31 | **`sample < 20`이면 `lowSample: true`** 다. 화면이 `표본 부족` 배지를 붙이고 승률을 회색 처리한다 | Must |
 | FR-32 | `lowSample`에서 **게이트를 차단할지는 정책 결정**이다. 초기에는 표본이 거의 없어 모든 카드가 미렌더될 수 있다 → **기본안: 표본 1건 이상이면 통과하고 `lowSample`로 표시** | Must |
 | FR-33 | `coach_feedback` kind를 성과 샘플에서 **제외**한다(기존 동작 유지) | Must |
@@ -339,3 +339,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-09-23 | **슬라이스 11 구현.** 성적표 그룹(FR-30 · 31 · 35 · 36)과 수익률 분포 · 적중/실패 동등(FR-160 · FR-161). 분포 기간은 **그룹의 관찰 기간**이다(`SRV-REQ-025` 코드블록 개정). FR-32~34 는 무인자 경로의 기존 동작이라 범위 밖. 근거 `reports/checklists/SRV-REQ-024.md` |
 | 2026-09-21 | **슬라이스 1 구현 (`requirements/specs/in-progress/F004-symbol-judgment-slice.md`).** 닫힘: FR-100 · FR-101 · FR-102(신뢰도 제거) · FR-103(`validity.code`) · FR-104~106(게이트 — `renderGate.ts` 대신 `policy/symbolJudgment.ts` 의 `judgmentGate`) · FR-107(스냅샷 — **`InvestmentInsight` 대신 별도 테이블**, `DB-REQ-017` 참고) · FR-131 · FR-132 · FR-134~137. 남음: B절(zone) · C절(게이지) · E~G절 · FR-130 매핑 시드 · FR-133 카운터 |
 | 2026-09-21 | **슬라이스 2 구현 (`requirements/specs/in-progress/F004-zone-gauge-slice.md`).** 신규 FR-138(피하기 근거 = `reasons ∪ risks`, 사용자 확정). 닫힘: FR-110~116(zone — 관찰 구간 최소 표본 = 기대 캔들 수의 절반) · FR-120~123(게이지 — `sentiment`). 남음: FR-115 `excluded_asset`(자산군 enum) · FR-117 · FR-124(Should) |
+| 2026-09-24 | **F009 슬라이스 0 — C04.** FR-30 의 `maxDrawdown` 을 `worstObservedReturn` 으로 개정(`SRV-REQ-025` FR-55). 최저 단일 관찰 수익률이지 MDD 가 아니다 |

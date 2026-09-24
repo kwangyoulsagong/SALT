@@ -195,3 +195,20 @@
 | 생성 기록 보존 · 정리 | 워커가 사용자당 10분에 1행 | 관측성 계측 |
 | **로컬 워커 중복 실행** | 로컬에 `src/server.ts` 가 두 벌 떠 있어 워커 생성이 매번 **두 번** 돈다 — 새 기록에서 처음 보였다. 코드가 아니라 로컬 프로세스 문제 | 사용자가 로컬 프로세스 정리 |
 
+## 10. F009 슬라이스 0 — C04 `worstObservedReturn` (2026-09-24, `feat/f009-slice0-reliability`)
+
+루트: `requirements/reports/checklists/F009-slice0-reliability.md`
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-55 이름 정정 | **pass** | `signalPerformance` · `symbolJudgment` · `coachDetail` 세 정책과 Swagger 두 곳. 코드 · 스펙에 `maxDrawdown` 0건 |
+| FR-30 예외 2건째 | **pass** | 소비처 grep: BFF 3파일 · `@repo/core` 2 · 웹 3 — 전부 같은 커밋에서 바꿨다. 모바일 0건 |
+| 계산식 불변 | **pass** | `MIN(return_rate)` · `Math.min(...)` 그대로. 기존 테스트 기대값 그대로 통과 |
+| 게이트 | **pass** | `npm run build` · `npm test` **349 pass / 0 fail** · `eslint .` |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 인증된 HTTP 응답 실측(서버 · BFF 경유) | 로컬 서버 · BFF 는 떠 있지만 이번 세션에서 로그인 토큰을 만들 수 없었다. 도메인 · 뷰모델 단위 테스트로만 확인 | 사용자가 로그인한 화면에서 코치 카드 확인 시 |
+| 실제 MDD(시간순 자산 곡선) | 이번엔 이름만 바로잡았다. 판단 표본은 서로 겹치는 기간이라 한 곡선으로 이을 수 없다 | F009 슬라이스 1 `DecisionOutcome` — 사용자 거래로 곡선이 생길 때 |
