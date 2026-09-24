@@ -6,11 +6,13 @@ import { useMemo } from "react";
 import {
   COACH_MESSAGES,
   CoachBlockSkeleton,
+  EventsCard,
   ForecastCard,
   JudgmentDetail,
   ProfitPlan,
   selectModeView,
   useSymbolCoach,
+  useSymbolEvents,
   useSymbolForecast,
   ZoneLegend,
   ZoneSummary,
@@ -57,6 +59,9 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   // 가격 변동 범위 — 소유자만(F008 `FE-REQ-038`). 404 는 "없는 섹션"이다 — 자리도 문구도 없다
   const forecast = useSymbolForecast(symbol);
   const showForecast = !forecast.isSignedOut && !forecast.notOwner;
+  // 주요 사건(거시 일정) — 전망과 같은 소유자 규칙(F008 슬라이스 22)
+  const events = useSymbolEvents(symbol);
+  const showEvents = !events.isSignedOut && !events.notOwner;
   // 차트 선 끝을 움직이는 현재가 — 카드가 보일 때만 구독한다
   const livePrice = useLivePrice(showForecast && forecast.data ? symbol : "")?.currentPrice ?? null;
   const listing = useMarketListing(symbol);
@@ -136,6 +141,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
               ) : forecast.isError ? (
                 <ForecastCard className={card} result={{ status: "unavailable" }} />
               ) : null)}
+            {showEvents && events.data && <EventsCard className={card} result={events.data} />}
             {coach.data && mode && (
               <>
                 <ExplainCard

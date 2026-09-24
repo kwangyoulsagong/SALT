@@ -408,12 +408,13 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 
 | REQ | 상태 | 비고 |
 |---|---|---|
-| `DB-REQ-029` F008 SCHEMA | **in-progress** | `forecast` 스키마 — SQL 전용 마이그레이션 4건. `checklists/DB-REQ-029.md` |
+| `DB-REQ-029` F008 SCHEMA | **in-progress** | `forecast` 스키마 — SQL 전용 마이그레이션 6건(차트 일봉 뷰 · 주요 사건 3테이블 + 뷰, 2026-09-24). `checklists/DB-REQ-029.md` |
 | `FC-REQ-001` 기준 모델 · 채점 | **in-progress** | 90% 구간 커버리지 90.0~90.7%, 기준 대비 +0.7~1% — 예측력 거의 없음(정상). 방향 적중은 기저율과 같았다 → `direction_base_rate` |
 | `FC-REQ-004` 수집 · 트리거 | **in-progress** | 바이낸스 224종목 · FRED 8 · DefiLlama. launchd 실패(macOS 권한) → 서버 부팅 트리거 |
-| `SRV-REQ-037` F008 전망 API | **in-progress** | `GET /api/coach/forecast` · 소유자 404 · 원화 환산 · 3종 게이트 · 해설 말투 · 숫자 검증기 · 템플릿(규칙 문장 명령형 6건 수정). SSE 남음 |
-| `BFF-REQ-037` F008 전망 중계 | **in-progress** | 404 그대로 · 전망 3종 막기 · 기간 4개 |
-| `FE-REQ-038` F008 변동 범위 카드 | **in-progress** | 상세 분석 우측 카드 — 소유자만, 불러오는 중에도 자리 없음. 해설 SSE 남음 |
+| `SRV-REQ-037` F008 전망 API | **in-progress** | `GET /api/coach/forecast` · `/events` · 소유자 404 · 원화 환산 · 3종 게이트 · 해설 말투 · 숫자 검증기 · 템플릿 · **해설 SSE**(템플릿 먼저 → 검증 통과 LLM 교체, 2026-09-24) |
+| `BFF-REQ-037` F008 전망 중계 | **in-progress** | 404 그대로 · 전망 3종 막기 · 기간 4개 · 해설 SSE 중계 · 주요 사건 뷰모델 |
+| `FE-REQ-038` F008 변동 범위 카드 | **in-progress** | 상세 분석 우측 — 선 + 부채꼴 차트 · 실시간 점 · 해설 스트림 · 주요 사건 카드. 소유자만 |
+| `FC-REQ-005` 주요 사건(거시 일정) | **in-progress** | 슬라이스 22 를 코인으로 좁힘 — FOMC · CPI · 고용보고서 일정 · 선반영도 · 1 · 5 · 20일 반응 분포(워크포워드) · 평소 대비. BTC 9조합 전부 게이트 통과(표본 33 · 48). 발표일 움직임 평소의 1.25~1.48배, 5일 뒤엔 0.98~1.07배 |
 | `FC-REQ-002` LightGBM | **in-progress (챔피언과 동률)** | v0.1 −6.7~−9.1% → v0.5 · 0.6 변동성 배율로 단순 기준 +0.8~1.1%, 챔피언과 동률. 실험 6회에서 중단 |
 
 **슬라이스 16 · 16b · 20** — 새 영역 `salt-forecast`(Python). 데이터 → 채점 장치가 먼저 섰다. 좋아 보인 숫자 둘(방향 58~64%, 게이트 200/1,156)이

@@ -13,4 +13,6 @@ export const COACH_ENDPOINTS = {
   generationStatus: "/api/app/coach/generation-status",
   /** 가격 변동 범위 — 소유자 전용, 아니면 404 (`BFF-REQ-037`) */
   forecast: (symbol: string) => `/api/app/coach/forecast?symbol=${encodeURIComponent(symbol)}`,
+  /** 주요 사건(거시 일정) · 과거 반응 — 소유자 전용, 아니면 404 (`BFF-REQ-037` FR-8) */
+  events: (symbol: string) => `/api/app/coach/events?symbol=${encodeURIComponent(symbol)}`,
 } as const;

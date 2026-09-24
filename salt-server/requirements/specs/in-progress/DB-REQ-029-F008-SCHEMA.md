@@ -34,6 +34,8 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | FR-6 | `forecast.gate(symbol, horizon_weeks)` — `renderable` · `blocked_reason` · 26주 지표(커버리지 · 폭 · 기준 폭 · pinball skill · 판정 수 · 적중 수 · 항상 오른다 비율 · 표본 · `score_kind`) |
 | FR-7 | `forecast.v_forecast_card` — gate + 최신 live 예측 + 최근 빗나간 3건 |
 | FR-8 | 인덱스: `prediction(symbol, horizon_weeks, as_of desc)` · `score(model_version, horizon_weeks, as_of)` |
+| FR-14 | `forecast.scheduled_event` · `event_reaction` · `event_reaction_stats` — 거시 일정 · 사건별 반응 · 워크포워드 통계 (2026-09-24, `20260924120000`, FC-REQ-005) |
+| FR-15 | `forecast.v_event_card` — 앞으로 35일 일정 × 종목 · 기간별 최신 통계. 서버가 읽는 계약 · 실측 0.58ms |
 | FR-13 | `forecast.v_daily_close` — `price_bar` 업비트 1d 만(symbol · open_time · available_at · close). 차트 과거 선 (2026-09-24, SQL 전용 마이그레이션 `20260924100000`) |
 
 ## 범위 밖

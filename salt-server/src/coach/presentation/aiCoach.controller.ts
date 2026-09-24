@@ -10,6 +10,9 @@ import {
   updateCoachProfileSchema,
 } from "./dto/coach.dto";
 
+/** 프록시 · 로드밸런서가 유휴 연결을 끊지 않게(`bff/.claude/rules/streaming-sse.md` §5) */
+const SSE_HEARTBEAT_MS = 15_000;
+
 /**
  * `/api/ai-coach` 의 컨트롤러.
  *
@@ -136,6 +139,55 @@ export class AICoachController {
       next(error);
     } finally {
       res.off("close", onClose);
+    }
+  };
+
+  /**
+   * 해설 스트림 (SSE, F008 `SRV-REQ-037` FR-8).
+   *
+   * - 본문 검증은 스트림을 열기 **전에** 한다 — 400 은 평범한 JSON 오류로 나간다
+   * - 연결이 끊기면 LLM 호출까지 끊는다(`streaming-sse.md` §4). 15초마다 `ping`(§5)
+   * - 스트림을 연 뒤의 실패는 `message.error` 한 건 — 화면은 이미 받은 템플릿 문장을 그대로 둔다
+   */
+  explainStream = async (req: Request, res: Response, next: NextFunction) => {
+    let data;
+    try {
+      data = explainCoachSchema.parse(req.body ?? {});
+    } catch (error) {
+      return next(error);
+    }
+
+    const controller = new AbortController();
+    res.on("close", () => {
+      if (!res.writableEnded) controller.abort();
+    });
+
+    res.status(200).set({
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    });
+    res.flushHeaders();
+
+    const write = (event: string, payload: unknown) => {
+      if (!res.writableEnded) res.write(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`);
+    };
+    const heartbeat = setInterval(() => write("ping", {}), SSE_HEARTBEAT_MS);
+
+    try {
+      await this.useCases.explainDecision.stream(
+        req.user!.userId,
+        data,
+        ({ event, data: payload }) => write(event, payload),
+        controller.signal
+      );
+    } catch {
+      // 원인은 싣지 않는다 — 모델 원문이 섞일 수 있다(`ddd-infrastructure.md` §6)
+      if (!controller.signal.aborted) write("message.error", { code: "EXPLAIN_FAILED", fallback: "rule" });
+    } finally {
+      clearInterval(heartbeat);
+      if (!res.writableEnded) res.end();
     }
   };
 }

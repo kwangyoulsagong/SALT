@@ -60,6 +60,43 @@ class BackendApiService {
   }
 
   /**
+   * 스트림 응답(SSE)을 연다 — 본문을 읽지 않고 Node 스트림으로 돌려준다.
+   *
+   * 4xx 는 본문(JSON)을 읽어 axios 오류 모양으로 던진다 — error middleware 가 status · code 를 그대로
+   * 옮긴다(`backend-integration.md` 실패 처리). `timeout` 은 소켓이 조용한 시간이다 — 서버 `ping` 이 15초라 넘지 않는다.
+   */
+  async openAuthStream(
+    url: string,
+    token: string,
+    data: unknown,
+    options: { timeout: number; signal?: AbortSignal }
+  ): Promise<NodeJS.ReadableStream> {
+    const response = await this.client.request({
+      method: "POST",
+      url,
+      headers: { Authorization: `Bearer ${token}`, Accept: "text/event-stream" },
+      data,
+      responseType: "stream",
+      validateStatus: () => true,
+      ...options,
+    });
+    const stream = response.data as NodeJS.ReadableStream;
+    if (response.status < 400) return stream;
+
+    let raw = "";
+    for await (const chunk of stream) raw += chunk.toString();
+    let body: unknown = {};
+    try {
+      body = JSON.parse(raw);
+    } catch {
+      body = {};
+    }
+    throw Object.assign(new Error(`upstream ${response.status}`), {
+      response: { status: response.status, data: body, headers: response.headers },
+    });
+  }
+
+  /**
    * Public proxy — 인증 토큰 없이 salt-server 호출.
    *
    * 기본 타임아웃(10s)을 쓴다. 호출처는 뉴스 · 초대 확인/수락뿐이고 LLM 이 없다 —

@@ -2,6 +2,7 @@ import type {
   CloseDistribution,
   CoachGenerationEntry,
   CoachGenerationSource,
+  EventCardRow,
   ForecastCardRow,
   GaugeKind,
   GaugeTrackStats,
@@ -414,4 +415,6 @@ export interface ForecastReader {
   cards(symbol: string): Promise<ForecastCardRow[]>;
   /** 전망이 쓴 일봉 종가(오래된 → 최근). 차트의 과거 선 — `forecast.v_daily_close` */
   recentCloses(symbol: string, days: number): Promise<{ date: string; close: number }[]>;
+  /** 앞으로 35일 거시 일정 × 기간별 최신 반응 통계 — `forecast.v_event_card` (FC-REQ-005) */
+  eventCards(symbol: string): Promise<EventCardRow[]>;
 }

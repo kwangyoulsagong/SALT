@@ -11,3 +11,4 @@ export * from "./authToken";
 export * from "./refreshSession";
 export * from "./useHasAccessToken";
 export * from "./websocket";
+export * from "./streamSse";

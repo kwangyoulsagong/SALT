@@ -19,6 +19,24 @@ export const EXPLAIN_MESSAGES = {
   blocked: "판단이 방금 바뀌어 해설할 근거가 부족합니다. 새로고침하면 최신 판단을 볼 수 있습니다.",
   signedOut: "로그인하면 해설을 볼 수 있습니다.",
 
+  /** 스트림 단계(FEATURE-008 FR-61) — 서버가 실제로 그 일을 할 때 켜진다 */
+  steps: {
+    judgment: "판단 근거 확인",
+    draft: "근거로 문장 쓰기",
+    polish: "AI 로 다듬기",
+    verify: "숫자 · 말투 검사",
+  },
+  stepsLabel: "해설 진행 단계",
+  stepSkipped: "건너뜀",
+  /** 스크린리더용 단계 상태 — 아이콘만으로 말하지 않는다 */
+  stepState: { pending: "대기", active: "진행 중", done: "완료", skipped: "건너뜀" },
+  /** 검증을 통과한 AI 문장으로 바뀐 순간 한 번 보인다 */
+  replacedNote: "검사를 통과한 AI 문장으로 바꿨어요.",
+  droppedNote: (count: number) => `검사에 걸린 문장 ${count}개는 근거 문장으로 대신했어요.`,
+  /** 템플릿이 최종 — AI 가 실패했거나 꺼져 있다 */
+  templateNote: "근거 데이터로 만든 문장이에요. AI 다듬기는 이번에 쓰지 못했어요.",
+  citationsLabel: "출처",
+
   /** 모델에 넘기는 근거 라벨. 화면 문구가 아니라 요청 본문이지만 한 곳에 둔다 */
   evidence: {
     judgment: "판단",

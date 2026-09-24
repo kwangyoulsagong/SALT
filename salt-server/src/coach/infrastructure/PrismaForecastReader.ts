@@ -1,5 +1,5 @@
 import prisma from "../../shared/infrastructure/prisma";
-import type { ForecastCardRow, ForecastReader } from "../domain";
+import type { EventCardRow, ForecastCardRow, ForecastReader } from "../domain";
 
 interface CardSqlRow {
   horizon_weeks: number;
@@ -38,7 +38,67 @@ interface CardSqlRow {
  * 쓰기 주인은 `salt-forecast`(Python)이고 Prisma 모델이 없다(`DB-REQ-029` — SQL 전용 마이그레이션).
  * 그래서 `$queryRaw` 다. 심볼은 코치 모양 `BTC` → 전망 모양 `KRW-BTC`.
  */
+interface EventSqlRow {
+  kind: string;
+  event_at: Date;
+  announced_at: Date;
+  source: string;
+  horizon_days: number;
+  as_of: Date;
+  sample: number;
+  q05: number | null;
+  q25: number | null;
+  q50: number | null;
+  q75: number | null;
+  q95: number | null;
+  up_rate: number | null;
+  baseline_q05: number | null;
+  baseline_q50: number | null;
+  baseline_q95: number | null;
+  move_ratio: number | null;
+  pre_return_5d_median: number | null;
+  recent_misses: EventCardRow["recentMisses"];
+  recent_events: EventCardRow["recentEvents"];
+  renderable: boolean;
+  blocked_reason: string | null;
+}
+
 export class PrismaForecastReader implements ForecastReader {
+  async eventCards(symbol: string): Promise<EventCardRow[]> {
+    const rows = await prisma.$queryRaw<EventSqlRow[]>`
+      SELECT kind, event_at, announced_at, source, horizon_days, as_of, sample,
+             q05, q25, q50, q75, q95, up_rate, baseline_q05, baseline_q50, baseline_q95,
+             move_ratio, pre_return_5d_median, recent_misses, recent_events, renderable, blocked_reason
+      FROM forecast.v_event_card
+      WHERE symbol = ${`KRW-${symbol}`}
+      ORDER BY event_at, horizon_days
+    `;
+    return rows.map((r) => ({
+      kind: r.kind,
+      eventAt: r.event_at,
+      announcedAt: r.announced_at,
+      source: r.source,
+      horizonDays: Number(r.horizon_days),
+      asOf: r.as_of,
+      sample: Number(r.sample),
+      q05: r.q05,
+      q25: r.q25,
+      q50: r.q50,
+      q75: r.q75,
+      q95: r.q95,
+      upRate: r.up_rate,
+      baselineQ05: r.baseline_q05,
+      baselineQ50: r.baseline_q50,
+      baselineQ95: r.baseline_q95,
+      moveRatio: r.move_ratio,
+      preReturn5dMedian: r.pre_return_5d_median,
+      recentMisses: r.recent_misses,
+      recentEvents: r.recent_events,
+      renderable: r.renderable,
+      blockedReason: r.blocked_reason,
+    }));
+  }
+
   async recentCloses(symbol: string, days: number): Promise<{ date: string; close: number }[]> {
     const rows = await prisma.$queryRaw<{ open_time: Date; close: string }[]>`
       SELECT open_time, close::text AS close FROM forecast.v_daily_close

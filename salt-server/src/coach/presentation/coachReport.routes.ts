@@ -79,6 +79,33 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
 
   /**
    * @swagger
+   * /api/coach/events:
+   *   get:
+   *     summary: 다가오는 주요 사건(거시 일정)과 과거 반응 (소유자 전용) — F008 슬라이스 22
+   *     description: |
+   *       FOMC · CPI · 고용보고서 중 앞으로 35일 안의 일정과, 과거 같은 일정 뒤 1 · 5 · 20일 수익률 분포(워크포워드).
+   *
+   *       - **소유자 계정만.** 아니면 404(`ADR-003`)
+   *       - 기간마다 `renderable`. 표본 · 분포와 평소 분포 · 빗나간 때 중 하나라도 없으면 분포 없이 사유만
+   *       - 호재 · 악재 판정 필드는 없다 — 예상 대비 서프라이즈 데이터가 없다
+   *     tags: [Coach Report]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: symbol
+   *         required: true
+   *         schema: { type: string, example: BTC }
+   *     responses:
+   *       200: { description: 일정 목록. 없으면 빈 배열 }
+   *       400: { description: 심볼 형식 오류 }
+   *       401: { description: 인증 실패 }
+   *       404: { description: 소유자가 아니다 }
+   */
+  router.get("/events", controller.getEvents);
+
+  /**
+   * @swagger
    * /api/coach/detail:
    *   get:
    *     summary: 코치 상세 (추천 + 성적 + 익절 계획 + 행동 기록)

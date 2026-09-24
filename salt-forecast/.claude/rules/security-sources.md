@@ -14,6 +14,8 @@
 | Tiingo 무료 | 미국 일봉 2016 이전 1회 백필 | `FORECAST_TIINGO_API_KEY` | 월 500종목 | 개인 사용 | **TBA** |
 | FINRA 공매도 잔고 | 공매도 | — | — | 공공 | **TBA** |
 | FRED · ALFRED | 금리 · 환율 · 지수 · CPI · VIX | `FORECAST_FRED_API_KEY` | 분당 120 | 공공(일부 시리즈 저작권 표기 — 지수는 표시 전 확인) | 슬라이스 16b |
+| FRED 발표 일정 `release/dates` | CPI(10) · 고용보고서(50) 발표일 — 미래 예정일 포함 | `FORECAST_FRED_API_KEY` | 위와 같음 | 공공 | 슬라이스 22 |
+| 연준 FOMC 일정 페이지 `federalreserve.gov/monetarypolicy/fomccalendars.htm` | FOMC 결정일 | 없음. User-Agent 는 서비스 이름만(개인 정보 싣지 않음) | 하루 1회 | 공공(미 정부 저작물) · HTML 구조가 바뀌면 0건 → 실패로 기록 | 슬라이스 22 |
 | 한국은행 ECOS | 원/달러 | `FORECAST_ECOS_API_KEY` | 일 한도 | 공공 | 슬라이스 16b |
 | 바이낸스 선물 공개 API | 펀딩비 · 미결제약정 | 없음 | 가중치 한도 | 공개 시세. **미결제약정 이력 30일** | 슬라이스 16b |
 | DefiLlama | 스테이블코인 발행량 | 없음 | — | 공개 | 슬라이스 16b |

@@ -4,3 +4,4 @@ export * from "./queryKeys";
 export * from "./useSymbolCoach";
 export * from "./useCoachReport";
 export * from "./useSymbolForecast";
+export * from "./useSymbolEvents";

@@ -1,59 +1,94 @@
 "use client";
 
-import type { CoachMode, SymbolCoachViewModel } from "@repo/core/coach";
+import type { ReactNode } from "react";
+
+import type { CoachMode, ExplainSections, SymbolCoachViewModel } from "@repo/core/coach";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Heading } from "@repo/ui/heading";
 import { Text } from "@repo/ui/text";
 
-import {
-  JudgmentCases,
-  selectModeView,
-  TrackRecordStats,
-} from "@/entities/coach";
-import { HTTP_STATUS_CODE } from "@/shared/config";
+import { JudgmentCases, selectModeView, TrackRecordStats } from "@/entities/coach";
 import { formatClockTime } from "@/shared/lib";
 
-import { ExplainApiError, useExplainSymbol } from "../api";
-import {
-  buildExplainRequest,
-  type CoachExplanation,
-  EXPLAIN_MESSAGES,
-  type ExplainSubject,
-} from "../model";
-import { card, cardHeader, list, note, section } from "./ExplainCard.css";
+import { useExplainStream } from "../api";
+import { buildExplainRequest, EXPLAIN_MESSAGES, type ExplainStreamState, type ExplainSubject } from "../model";
+import { ExplainSteps } from "./ExplainSteps";
+import * as s from "./ExplainCard.css";
+import { useReveal } from "./useReveal";
 
 const M = EXPLAIN_MESSAGES;
 
-const ListSection = ({ title, items }: { title: string; items: readonly string[] }) =>
-  items.length === 0 ? null : (
-    <section className={section}>
-      <Heading level={5} color="tertiary">
-        {title}
-      </Heading>
-      <ul className={list}>
-        {items.map((item, index) => (
-          <li key={`${index}-${item}`}>{item}</li>
-        ))}
-      </ul>
-    </section>
-  );
+type Block = { key: string; heading: string | null; text: string; list: boolean };
 
-/** 서버 해설. `timeframe` 은 그리지 않는다(FR-136) */
-const Explanation = ({ data }: { data: CoachExplanation }) => (
-  <>
-    <section className={section}>
-      <Heading level={5} color="tertiary">
-        {M.modeReasoningHeading}
-      </Heading>
-      <Text>{data.modeReasoning}</Text>
-    </section>
-    <ListSection title={M.keyDriversHeading} items={data.keyDrivers} />
-    <ListSection title={M.risksHeading} items={data.risks} />
-    <ListSection title={M.newsHeading} items={data.newsSummary.slice(0, 5)} />
-    <p className={note}>{data.disclaimer}</p>
-  </>
-);
+/** 본문 칸을 드러낼 순서로 편다. 제목은 그 칸의 첫 줄에만 붙는다 */
+const toBlocks = (sections: ExplainSections): Block[] => [
+  ...(sections.modeReasoning
+    ? [{ key: "mode", heading: M.modeReasoningHeading, text: sections.modeReasoning, list: false }]
+    : []),
+  ...(
+    [
+      ["keyDrivers", M.keyDriversHeading],
+      ["risks", M.risksHeading],
+      ["newsSummary", M.newsHeading],
+    ] as const
+  ).flatMap(([field, heading]) =>
+    sections[field].slice(0, 5).map((text, i) => ({ key: `${field}-${i}`, heading: i === 0 ? heading : null, text, list: true })),
+  ),
+];
+
+/** 흐르는 해설 본문 — 도착한 글자를 타자처럼 드러내고, 드러나는 중인 줄 끝에 커서를 둔다 */
+const StreamedBody = ({ state, footer }: { state: ExplainStreamState; footer: ReactNode }) => {
+  const blocks = toBlocks(state.sections);
+  const total = blocks.reduce((sum, b) => sum + b.text.length, 0);
+  // 바뀐 문장(replace)은 다시 치지 않는다 — 이미 읽은 사람이 처음부터 기다리지 않게 한 번에 바꾼다
+  const shown = useReveal(total, state.replaced);
+  const typing = shown < total || state.status === "streaming";
+
+  let budget = shown;
+  const visible = blocks.map((b) => {
+    const count = Math.max(0, Math.min(b.text.length, budget));
+    budget -= b.text.length;
+    return { ...b, visible: b.text.slice(0, count), started: count > 0, finished: count === b.text.length };
+  });
+  const cursorAt = visible.findIndex((b) => !b.finished);
+  const newsDone = visible.filter((b) => b.key.startsWith("newsSummary")).every((b) => b.finished);
+
+  return (
+    <div className={state.replaced ? s.bodyReplaced : s.body} key={state.replaced ? "replaced" : "draft"}>
+      {visible.map((b, i) =>
+        b.started ? (
+          <div key={b.key} className={b.heading ? s.blockFirst : s.block}>
+            {b.heading && (
+              <Heading level={5} color="tertiary">
+                {b.heading}
+              </Heading>
+            )}
+            <p className={b.list ? s.bullet : s.paragraph}>
+              {b.visible}
+              {typing && i === (cursorAt === -1 ? visible.length - 1 : cursorAt) && (
+                <span className={s.caret} aria-hidden="true" />
+              )}
+            </p>
+          </div>
+        ) : null,
+      )}
+      {state.citations.length > 0 && state.sections.newsSummary.length > 0 && newsDone && (
+        <ul className={s.chips} aria-label={M.citationsLabel}>
+          {state.citations
+            .filter((c) => c.source)
+            .map((c) => (
+              <li key={`${c.source}-${c.title}`} className={s.chip} title={c.title}>
+                {c.source}
+              </li>
+            ))}
+        </ul>
+      )}
+      {/* 알림(바뀜 · 규칙 기반)은 글자가 다 드러난 뒤에 — 읽는 중에 끼어들지 않는다 */}
+      {!typing && footer}
+    </div>
+  );
+};
 
 interface ExplainCardProps {
   view: SymbolCoachViewModel;
@@ -68,75 +103,88 @@ interface ExplainCardProps {
 }
 
 /**
- * Gemini 해설 카드 (`FE-REQ-026` FR-135 · FR-136 · `FE-REQ-028` FR-10~13 · FR-62).
+ * AI 해설 카드 — **스트림** (F008 `FE-REQ-038` FR-7 · FEATURE-008 FR-47 · FR-60~64, 이전 `FE-REQ-026` FR-135).
  *
- * - **판단이 막힌 모드에는 카드가 없다** — 버튼도 없다(FR-135). 게이트는 뷰모델의 `renderable`
- * - 누를 때만 부른다. 결과 · 실패는 이 카드 안에서 끝난다 — 화면 전체 오류가 0건이다
+ * - 판단이 막힌 모드에는 카드가 없다 — 버튼도 없다(FR-135)
+ * - 누르면 단계가 하나씩 켜지고(실제 서버 작업), 근거 문장이 타자처럼 흐른다. 검사를 통과한 AI 문장이
+ *   오면 한 번에 바뀌고 그 사실을 알린다. AI 가 실패하면 흐른 문장이 최종이고 "규칙 기반 설명" 배지가 붙는다
  * - 같은 카드 안에 **적중률 · 사례**(3종의 나머지 둘)를 둔다. 해설만 떼어 읽히지 않게
- * - 모드가 바뀌면 부르는 쪽이 `key={mode}` 로 새로 만든다(FR-138) — 진행 중 요청은 끊긴다
+ * - 모드가 바뀌면 부르는 쪽이 `key={mode}` 로 새로 만든다 — 진행 중 스트림은 끊긴다
  */
 export const ExplainCard = ({ view, mode, subject, className }: ExplainCardProps) => {
-  const explain = useExplainSymbol();
+  const { state, request } = useExplainStream();
   const modeView = selectModeView(view, mode);
   if (!modeView?.renderable) return null;
 
   const body = subject ? buildExplainRequest(view, mode, subject) : null;
-  const error = explain.error;
-  const busy =
-    error instanceof ExplainApiError &&
-    error.status === HTTP_STATUS_CODE.TOO_MANY_REQUESTS;
-  const ruleBased = Boolean(error) && !busy;
-
-  const rendered = explain.data?.renderable ? explain.data : null;
+  const started = state.status !== "idle" && state.status !== "busy";
+  const finished = state.status === "done";
+  const ruleBased = finished && state.source === "template";
 
   const renderBody = () => {
-    if (rendered) return <Explanation data={rendered} />;
-    if (explain.data) return <p className={note}>{M.blocked}</p>;
-    if (ruleBased) {
-      // FR-62 — 규칙 기반 문장. 서버가 만든 판단의 headline · 근거를 그대로 보여 준다
+    if (state.status === "blocked") return <p className={s.note}>{M.blocked}</p>;
+    if (state.status === "failed") {
+      // 글자 하나 못 받았다 — 서버가 만든 판단의 headline · 근거를 그대로 보여 준다(FR-62)
       return (
         <>
-          <p className={note}>{M.ruleBasedNote}</p>
+          <p className={s.note}>{M.ruleBasedNote}</p>
           <Text>{modeView.judgment.headline}</Text>
-          <ListSection title={M.keyDriversHeading} items={modeView.judgment.reasons} />
+          <ul className={s.list}>
+            {modeView.judgment.reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+    if (started) {
+      return (
+        <>
+          <ExplainSteps steps={state.steps} />
+          <StreamedBody
+            state={state}
+            footer={
+              state.replaced ? (
+                <p className={s.flash} role="status">
+                  {state.droppedSentences > 0 ? M.droppedNote(state.droppedSentences) : M.replacedNote}
+                </p>
+              ) : ruleBased ? (
+                <p className={s.flash}>{M.templateNote}</p>
+              ) : null
+            }
+          />
         </>
       );
     }
     return (
       <>
-        <Button
-          variant="primary"
-          fullWidth
-          loading={explain.isPending}
-          disabled={!body}
-          onClick={() => body && explain.request(body)}
-        >
+        <Button variant="primary" fullWidth disabled={!body} onClick={() => body && request(body)}>
           {M.open}
         </Button>
-        {!body && <p className={note}>{M.subjectMissing}</p>}
-        {busy && <p className={note}>{M.busy}</p>}
+        {!body && <p className={s.note}>{M.subjectMissing}</p>}
+        {state.status === "busy" && <p className={s.note}>{M.busy}</p>}
       </>
     );
   };
 
   return (
     <section
-      className={className ? `${card} ${className}` : card}
-      aria-busy={explain.isPending || undefined}
+      className={className ? `${s.card} ${className}` : s.card}
+      aria-busy={state.status === "streaming" || undefined}
     >
-      <div className={cardHeader}>
+      <div className={s.cardHeader}>
         <Heading level={4}>{M.heading}</Heading>
-        {rendered && (
+        {finished && !ruleBased && (
           <>
             <Badge size="sm" tone="ai">
               {M.aiBadge}
             </Badge>
-            <span className={note}>
-              {M.generatedAt(formatClockTime(new Date(rendered.generatedAt)))}
-            </span>
+            {state.generatedAt && (
+              <span className={s.note}>{M.generatedAt(formatClockTime(new Date(state.generatedAt)))}</span>
+            )}
           </>
         )}
-        {ruleBased && (
+        {(ruleBased || state.status === "failed") && (
           <Badge size="sm" tone="neutral">
             {M.ruleBasedBadge}
           </Badge>

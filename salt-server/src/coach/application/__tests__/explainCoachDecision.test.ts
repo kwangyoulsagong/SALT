@@ -10,7 +10,7 @@ import type {
   PortfolioProbe,
   SymbolJudgmentStore,
 } from "../../domain";
-import { ExplainCoachDecision } from "../ExplainCoachDecision";
+import { ExplainCoachDecision, sentencesOf, type ExplainStreamEvent } from "../ExplainCoachDecision";
 
 /**
  * 즉석 해설 게이트 (`SRV-REQ-025` FR-50 · FR-51).
@@ -169,5 +169,82 @@ describe("ExplainCoachDecision", () => {
       new ExplainCoachDecision(aborted, market, noHolding, passing()).execute("user-1", input, controller.signal)
     );
   });
-});
 
+  describe("stream (FEATURE-008 FR-47 · FR-60 · FR-61)", () => {
+    const collect = async (explainer: CoachExplainer, judgments = passing(), signal?: AbortSignal) => {
+      const events: ExplainStreamEvent[] = [];
+      await new ExplainCoachDecision(explainer, market, noHolding, judgments).stream(
+        "user-1",
+        { ...input, news: [{ title: "현물 ETF 순유입", source: "코인뉴스" }] },
+        (e) => events.push(e),
+        signal
+      );
+      return events;
+    };
+    const names = (events: ExplainStreamEvent[]) =>
+      events.map((e) => (e.event === "message.step" ? `step:${e.data.step}:${e.data.status}` : e.event));
+
+    it("템플릿을 먼저 흘리고, 검증을 통과한 LLM 문장으로 바꾼다 — 단계는 실제 순서", async () => {
+      const events = await collect(withLlm({ modeReasoning: "심리가 공포 구간이라 장기 관점이 맞습니다." }));
+      const order = names(events);
+      assert.deepEqual(order.slice(0, 4), ["message.start", "step:judgment:active", "step:judgment:done", "message.card"]);
+      const firstDelta = order.indexOf("message.delta");
+      const replace = order.indexOf("message.replace");
+      assert.ok(firstDelta > order.indexOf("step:draft:active") && firstDelta < replace);
+      assert.ok(order.indexOf("step:verify:done") < replace);
+      assert.equal(order.at(-1), "message.done");
+
+      const card = events.find((e) => e.event === "message.card");
+      assert.ok(card?.event === "message.card");
+      assert.equal(card.data.trackRecord.sample, 20);
+      assert.equal(card.data.failureCases.length, 3);
+      assert.deepEqual(card.data.citations, [{ title: "현물 ETF 순유입", source: "코인뉴스" }]);
+
+      const done = events.at(-1);
+      assert.ok(done?.event === "message.done" && done.data.source === "llm");
+    });
+
+    it("LLM 원문은 흐르지 않는다 — 걸린 문장은 replace 에도 없다", async () => {
+      const bad = "4주 뒤 145,000원까지 오를 가능성이 높습니다.";
+      const events = await collect(withLlm({ modeReasoning: bad }));
+      const text = JSON.stringify(events.filter((e) => e.event === "message.delta" || e.event === "message.replace"));
+      assert.ok(!text.includes("145,000"));
+    });
+
+    it("LLM 이 실패하면 다듬기 · 검사를 건너뛰고, 흘린 템플릿이 최종이다", async () => {
+      const failing: CoachExplainer = { explain: async () => { throw new Error("Gemini 503"); } };
+      const events = await collect(failing);
+      const order = names(events);
+      assert.ok(order.includes("step:polish:skipped") && order.includes("step:verify:skipped"));
+      assert.ok(!order.includes("message.replace"));
+      const done = events.at(-1);
+      assert.ok(done?.event === "message.done" && done.data.source === "template");
+      assert.ok(order.filter((n) => n === "message.delta").length > 0);
+    });
+
+    it("게이트가 닫히면 blocked 로 끝나고 LLM 을 부르지 않는다", async () => {
+      const { explainer, calls } = spyExplainer();
+      const events = await collect(explainer, store({ sample: 3, hits: 2, avgReturn: 0.01, worstReturn: -0.05 }, 1));
+      assert.equal(names(events).at(-1), "message.blocked");
+      assert.equal(calls.length, 0);
+    });
+
+    it("끊기면 더 내지 않는다", async () => {
+      const controller = new AbortController();
+      const slow: CoachExplainer = {
+        explain: () => new Promise((_, reject) => controller.signal.addEventListener("abort", () => reject(new Error("aborted")))),
+      };
+      const pending = collect(slow, passing(), controller.signal);
+      setTimeout(() => controller.abort(), 10);
+      const events = await pending;
+      assert.ok(!names(events).includes("message.done"));
+    });
+  });
+
+  it("문장 자르기는 소수점에서 자르지 않는다", () => {
+    assert.deepEqual(sentencesOf("24시간 변동 +1.23% 입니다. 거래대금 약 5억 원 기준입니다."), [
+      "24시간 변동 +1.23% 입니다. ",
+      "거래대금 약 5억 원 기준입니다.",
+    ]);
+  });
+});

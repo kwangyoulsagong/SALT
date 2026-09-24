@@ -146,4 +146,56 @@ series_point = Table(
     Column("ingested_at", DateTime(timezone=True), nullable=False),
 )
 
+# 20260924120000_forecast_events (FC-REQ-005)
+scheduled_event = Table(
+    "scheduled_event",
+    metadata,
+    Column("kind", Text, primary_key=True),
+    Column("event_at", DateTime(timezone=True), primary_key=True),
+    Column("announced_at", DateTime(timezone=True), nullable=False),
+    Column("source", Text, nullable=False),
+    Column("source_ref", Text, nullable=False),
+    Column("ingested_at", DateTime(timezone=True), nullable=False),
+)
+
+event_reaction = Table(
+    "event_reaction",
+    metadata,
+    Column("kind", Text, primary_key=True),
+    Column("event_at", DateTime(timezone=True), primary_key=True),
+    Column("symbol", Text, primary_key=True),
+    Column("ref_bar_open", DateTime(timezone=True), nullable=False),
+    Column("pre_return_5d", Float),
+    Column("pre_volume_ratio", Float),
+    Column("ret_1d", Float),
+    Column("ret_5d", Float),
+    Column("ret_20d", Float),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)
+
+event_reaction_stats = Table(
+    "event_reaction_stats",
+    metadata,
+    Column("kind", Text, primary_key=True),
+    Column("symbol", Text, primary_key=True),
+    Column("horizon_days", SmallInteger, primary_key=True),
+    Column("as_of", DateTime(timezone=True), primary_key=True),
+    Column("sample", Integer, nullable=False),
+    Column("q05", Float),
+    Column("q25", Float),
+    Column("q50", Float),
+    Column("q75", Float),
+    Column("q95", Float),
+    Column("up_rate", Float),
+    Column("baseline_q05", Float),
+    Column("baseline_q50", Float),
+    Column("baseline_q95", Float),
+    Column("move_ratio", Float),
+    Column("pre_return_5d_median", Float),
+    Column("recent_misses", JSONB),
+    Column("recent_events", JSONB),
+    Column("renderable", Boolean, nullable=False),
+    Column("blocked_reason", Text),
+)
+
 QUANTILE_COLUMNS = _Q

@@ -1,6 +1,7 @@
 import { toUpstreamClientError } from "../utils/error.util";
 import { retryOnceOnGet } from "../utils/retry.util";
 import { backendApi } from "./backend-api.service";
+import { toEventsViewModel, type EventsResult } from "./events.viewmodel";
 import { toForecastViewModel, type ForecastResult } from "./forecast.viewmodel";
 
 /** 서버는 뷰 하나를 읽는다(실측 5ms) — 코치 리포트와 같은 800ms · 재시도 1회 */
@@ -28,6 +29,28 @@ export class AppForecastService {
       );
       const data = (response.data as BackendEnvelope<Record<string, unknown>>).data;
       return toForecastViewModel(data ?? {});
+    } catch (error) {
+      if (toUpstreamClientError(error) || signal?.aborted) throw error;
+      return { status: "unavailable" };
+    }
+  }
+
+  /**
+   * 주요 사건(거시 일정) · 과거 반응 — `BFF-REQ-037` FR-8. 전망과 같은 규칙: 4xx(404 = 소유자 아님) 그대로,
+   * 5xx · 타임아웃 · 계약 깨짐은 200 `unavailable`.
+   */
+  async getEvents(token: string, symbol: string, signal?: AbortSignal): Promise<EventsResult> {
+    try {
+      const response = await retryOnceOnGet(
+        () =>
+          backendApi.proxyAuthRequest("GET", `/coach/events?symbol=${encodeURIComponent(symbol)}`, token, undefined, {
+            timeout: FORECAST_TIMEOUT_MS,
+            signal,
+          }),
+        signal,
+      );
+      const data = (response.data as BackendEnvelope<Record<string, unknown>>).data;
+      return toEventsViewModel(data ?? {});
     } catch (error) {
       if (toUpstreamClientError(error) || signal?.aborted) throw error;
       return { status: "unavailable" };

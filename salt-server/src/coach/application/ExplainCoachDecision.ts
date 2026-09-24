@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import {
   templateExplanation,
   verifyExplanation,
@@ -41,6 +43,57 @@ export type ExplainResult =
     })
   | { renderable: false; blockedReason: JudgmentBlockedReason };
 
+/** 해설 스트림의 단계(FEATURE-008 FR-61) — 실제로 그 일을 할 때만 켜진다(가짜 타이머 아님) */
+export type ExplainStep = "judgment" | "draft" | "polish" | "verify";
+
+/** 해설 본문 칸. 목록 칸은 `index` 로 항목을 가른다 */
+export type ExplainSection = "modeReasoning" | "keyDrivers" | "risks" | "newsSummary";
+
+/** 인용 출처 — 해설에 들어간 뉴스의 출처(FEATURE-008 FR-44). 문장이 아니라 입력에서 온다 */
+export interface ExplainCitation {
+  title: string;
+  source: string | null;
+}
+
+/**
+ * 해설 스트림 이벤트 (`SRV-REQ-037` FR-8 · `bff/.claude/rules/streaming-sse.md` §3 이름).
+ *
+ * 순서: `start` → `step(judgment)` → (`blocked` | `card`) → `step(draft)` · `delta`… → `step(polish)` →
+ * `step(verify)` → (`replace`) → `done`. LLM 원문은 **절대 흘리지 않는다** — 흐르는 글자는 템플릿(입력 사실로만
+ * 만든 문장)이고, LLM 문장은 검증을 통과한 뒤 `replace` 로 한 번에 바뀐다(FR-47).
+ */
+export type ExplainStreamEvent =
+  | { event: "message.start"; data: { messageId: string; createdAt: string } }
+  | { event: "message.step"; data: { step: ExplainStep; status: "active" | "done" | "skipped" } }
+  | { event: "message.blocked"; data: { blockedReason: JudgmentBlockedReason } }
+  | {
+      event: "message.card";
+      data: {
+        validity: ModeCoachView["judgment"]["validity"];
+        trackRecord: ModeCoachView["trackRecord"];
+        failureCases: ModeCoachView["failureCases"];
+        disclaimer: string;
+        citations: ExplainCitation[];
+      };
+    }
+  | { event: "message.delta"; data: { section: ExplainSection; index: number; text: string } }
+  | {
+      event: "message.replace";
+      data: Pick<CoachExplanation, ExplainSection> & { source: ExplanationSource; droppedSentences: number };
+    }
+  | {
+      event: "message.done";
+      data: { messageId: string; source: ExplanationSource; droppedSentences: number; generatedAt: string };
+    };
+
+const NEWS_CITATION_MAX = 5;
+
+/**
+ * 문장 끝에서 자른다 — 스트림 한 조각이 한 문장이다. 마침표 **뒤에 공백 · 끝이 올 때만** 문장 끝이다
+ * ("+1.23%" 의 점에서 자르지 않는다).
+ */
+export const sentencesOf = (text: string): string[] => text.match(/.+?[.!?](?=\s|$)\s*|.+/gs) ?? [];
+
 /**
  * 판단 해설 생성 (LLM).
  *
@@ -69,34 +122,12 @@ export class ExplainCoachDecision {
     input: CoachExplanationInput,
     signal?: AbortSignal
   ): Promise<ExplainResult> {
-    const symbol = input.symbol.toUpperCase();
-
-    const [materialsBySymbol, holding] = await Promise.all([
-      collectJudgmentMaterials(this.market, [symbol]),
-      this.portfolio.getHolding(userId, symbol),
-    ]);
-    const judged = judgeSymbol(
-      symbol,
-      materialsBySymbol.get(symbol)!,
-      Boolean(holding)
-    );
-    const decision = input.mode === "scalp" ? judged.scalp : judged.longTerm;
-    const view = await attachJudgmentTrack(this.judgments, decision);
-
+    const view = await this.gate(userId, input);
     if (!view.renderable) {
       return { renderable: false, blockedReason: view.blockedReason! };
     }
 
-    // LLM 문장은 그대로 믿지 않는다 — 문장마다 말투 · 숫자를 검사하고 걸린 칸은 템플릿으로 채운다.
-    // LLM 이 실패하면 전부 템플릿이다(중단은 제외 — 화면이 떠났으면 만들 이유가 없다).
-    let verified: { explanation: CoachExplanation; source: ExplanationSource; dropped: unknown[] };
-    try {
-      const llm = await this.explainer.explain(input, signal);
-      verified = verifyExplanation(llm, input, new Date());
-    } catch (error) {
-      if (signal?.aborted) throw error;
-      verified = { explanation: templateExplanation(input, new Date()), source: "template", dropped: [] };
-    }
+    const verified = await this.polish(input, signal);
     const explanation = verified.explanation;
 
     return {
@@ -110,5 +141,125 @@ export class ExplainCoachDecision {
       trackRecord: view.trackRecord,
       failureCases: view.failureCases,
     };
+  }
+
+  /**
+   * 스트림 해설 (FEATURE-008 FR-47 · FR-60 · FR-61).
+   *
+   * 템플릿 문장을 먼저 흘리고(기다리게 하지 않는다), LLM 은 **같은 시각에** 출발시켜 검증을 통과하면
+   * `replace` 로 바꾼다. 단계 이벤트는 실제 작업 경계에서만 낸다. 끊기면(`signal`) 더 내지 않는다.
+   */
+  async stream(
+    userId: string,
+    input: CoachExplanationInput,
+    emit: (event: ExplainStreamEvent) => void,
+    signal?: AbortSignal
+  ): Promise<void> {
+    const messageId = randomUUID();
+    const send = (event: ExplainStreamEvent) => {
+      if (!signal?.aborted) emit(event);
+    };
+    send({ event: "message.start", data: { messageId, createdAt: new Date().toISOString() } });
+
+    send({ event: "message.step", data: { step: "judgment", status: "active" } });
+    const view = await this.gate(userId, input);
+    send({ event: "message.step", data: { step: "judgment", status: "done" } });
+    if (!view.renderable) {
+      send({ event: "message.blocked", data: { blockedReason: view.blockedReason! } });
+      return;
+    }
+    send({
+      event: "message.card",
+      data: {
+        validity: view.judgment.validity,
+        trackRecord: view.trackRecord,
+        failureCases: view.failureCases,
+        disclaimer: JUDGMENT_DISCLAIMER,
+        citations: (input.news ?? [])
+          .slice(0, NEWS_CITATION_MAX)
+          .map((n) => ({ title: n.title, source: n.source ?? null })),
+      },
+    });
+
+    // LLM 은 지금 출발한다 — 템플릿을 흘리는 동안 기다린다. 실패는 여기서 삼키고 아래에서 판정한다
+    const llm = this.explainer.explain(input, signal).then(
+      (value) => ({ ok: true as const, value }),
+      (error: unknown) => ({ ok: false as const, error })
+    );
+
+    send({ event: "message.step", data: { step: "draft", status: "active" } });
+    const now = new Date();
+    const template = templateExplanation(input, now);
+    sentencesOf(template.modeReasoning).forEach((text) =>
+      send({ event: "message.delta", data: { section: "modeReasoning", index: 0, text } })
+    );
+    (["keyDrivers", "risks", "newsSummary"] as const).forEach((section) =>
+      template[section].forEach((text, index) => send({ event: "message.delta", data: { section, index, text } }))
+    );
+    send({ event: "message.step", data: { step: "draft", status: "done" } });
+
+    send({ event: "message.step", data: { step: "polish", status: "active" } });
+    const result = await llm;
+    if (signal?.aborted) return;
+
+    let source: ExplanationSource = "template";
+    let dropped = 0;
+    if (result.ok) {
+      send({ event: "message.step", data: { step: "polish", status: "done" } });
+      send({ event: "message.step", data: { step: "verify", status: "active" } });
+      const verified = verifyExplanation(result.value, input, now);
+      send({ event: "message.step", data: { step: "verify", status: "done" } });
+      source = verified.source;
+      dropped = verified.dropped.length;
+      const { modeReasoning, keyDrivers, risks, newsSummary } = verified.explanation;
+      send({
+        event: "message.replace",
+        data: { modeReasoning, keyDrivers, risks, newsSummary, source, droppedSentences: dropped },
+      });
+    } else {
+      // LLM 실패 — 이미 흘린 템플릿이 최종 문장이다. 원문 · 오류 본문은 싣지 않는다
+      send({ event: "message.step", data: { step: "polish", status: "skipped" } });
+      send({ event: "message.step", data: { step: "verify", status: "skipped" } });
+    }
+
+    send({
+      event: "message.done",
+      data: { messageId, source, droppedSentences: dropped, generatedAt: now.toISOString() },
+    });
+  }
+
+  /** 3종 게이트 — 단건 · 스트림이 **같은 함수**로 판정한다(FR-50) */
+  private async gate(userId: string, input: CoachExplanationInput) {
+    const symbol = input.symbol.toUpperCase();
+
+    const [materialsBySymbol, holding] = await Promise.all([
+      collectJudgmentMaterials(this.market, [symbol]),
+      this.portfolio.getHolding(userId, symbol),
+    ]);
+    const judged = judgeSymbol(
+      symbol,
+      materialsBySymbol.get(symbol)!,
+      Boolean(holding)
+    );
+    const decision = input.mode === "scalp" ? judged.scalp : judged.longTerm;
+    return attachJudgmentTrack(this.judgments, decision);
+  }
+
+  /**
+   * LLM 문장은 그대로 믿지 않는다 — 문장마다 말투 · 숫자를 검사하고 걸린 칸은 템플릿으로 채운다.
+   * LLM 이 실패하면 전부 템플릿이다(중단은 제외 — 화면이 떠났으면 만들 이유가 없다).
+   */
+  private async polish(input: CoachExplanationInput, signal?: AbortSignal) {
+    try {
+      const llm = await this.explainer.explain(input, signal);
+      return verifyExplanation(llm, input, new Date());
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      return {
+        explanation: templateExplanation(input, new Date()),
+        source: "template" as ExplanationSource,
+        dropped: [] as unknown[],
+      };
+    }
   }
 }

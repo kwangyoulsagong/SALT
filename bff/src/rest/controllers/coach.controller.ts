@@ -44,6 +44,25 @@ export class AppCoachController {
     }
   };
 
+  /** 주요 사건(거시 일정) — 소유자만(`BFF-REQ-037` FR-8). 전망과 같은 모양 */
+  events = async (req: Request, res: Response, next: NextFunction) => {
+    const symbol = typeof req.query.symbol === "string" ? req.query.symbol.trim() : "";
+    if (!SYMBOL_PATTERN.test(symbol)) {
+      return res.status(400).json({ success: false, message: "symbol 형식이 아닙니다" });
+    }
+    const aborter = new AbortController();
+    res.on("close", () => {
+      if (!res.writableFinished) aborter.abort();
+    });
+    try {
+      const data = await appForecastService.getEvents(req.token!, symbol.toUpperCase(), aborter.signal);
+      return res.json({ success: true, data });
+    } catch (error) {
+      if (aborter.signal.aborted) return;
+      next(error);
+    }
+  };
+
   generationStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await appCoachReportService.getGenerationStatus(req.token!);

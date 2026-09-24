@@ -13,5 +13,6 @@ router.get("/report", appCoachController.report);
 router.get("/generation-status", appCoachController.generationStatus);
 /** 가격 변동 범위 — 소유자 전용(F008 `BFF-REQ-037`, `ADR-003`) */
 router.get("/forecast", appCoachController.forecast);
+router.get("/events", appCoachController.events);
 
 export default router;

@@ -2,6 +2,7 @@ import type {
   CoachGenerationStatus,
   CoachReportResult,
   SymbolCoachViewModel,
+  SymbolEventsResult,
   SymbolForecastResult,
 } from "@repo/core/coach";
 
@@ -91,6 +92,18 @@ export const coachApi = {
     if (!response.ok) throw new CoachApiError(response.status);
 
     const body = (await response.json()) as AppEnvelope<SymbolForecastResult>;
+    return body.data;
+  },
+
+  /** 주요 사건 (`GET /api/app/coach/events`). 소유자만 — 아니면 404. 서버 장애는 200 `unavailable` */
+  events: async (symbol: string, signal?: AbortSignal): Promise<SymbolEventsResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.events(symbol)}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<SymbolEventsResult>;
     return body.data;
   },
 };
