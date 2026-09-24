@@ -4,13 +4,15 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 
 import {
+  fact,
   guardSentences,
-  isAllowedNumber,
   languageViolations,
+  numericTokens,
   templateExplanation,
   verifyExplanation,
   type CoachExplanation,
   type CoachExplanationInput,
+  type NumericFact,
 } from "../index";
 
 /** 말투 · 숫자 검증기 (F008 `SRV-REQ-037` FR-7 · 공통 수용 기준 4). */
@@ -36,15 +38,44 @@ describe("languageViolations", () => {
   });
 });
 
-describe("숫자 대조", () => {
-  it("반올림 · 부호 · 작은 개수는 허용하고 입력에 없는 숫자는 막는다", () => {
-    assert.equal(isAllowedNumber(2.3, [2.34]), true);
-    assert.equal(isAllowedNumber(-2.34, [2.34]), true);
-    assert.equal(isAllowedNumber(3, []), true); // "3가지"
-    assert.equal(isAllowedNumber(145000, [100]), false);
-    const r = guardSentences(["RSI 28입니다.", "RSI 72입니다."], [28]);
-    assert.deepEqual(r.kept, ["RSI 28입니다."]);
-    assert.deepEqual(r.dropped[0]?.reasons, ["unverified_number"]);
+describe("숫자 대조 — 값 · 단위 · 방향 (C03)", () => {
+  const facts = [fact(2.34, "percent"), fact(-20, "percent"), ...numericTokens("RSI 31 · 공포 심리 22")];
+
+  it("반올림 · 같은 방향 · 세는 말은 허용한다", () => {
+    for (const ok of ["변동률은 2.3%예요.", "20% 하락했어요.", "−20% 움직였어요.", "RSI가 31이에요.", "RSI 31점이에요.", "두 가지, 3개 요인이 있어요."]) {
+      assert.deepEqual(guardSentences([ok], facts).dropped, [], ok);
+    }
+  });
+
+  it("진단 C03 의 재현 문장을 막는다", () => {
+    const cases: Array<[string, NumericFact[], string]> = [
+      ["수익률은 12%예요.", [], "unverified_number"],
+      ["가격이 20% 상승했어요.", [fact(-20, "percent")], "unverified_number"],
+      ["금리가 상승해서 가격이 하락했어요.", [], "unsupported_causal"],
+      ["31% 올랐어요.", numericTokens("RSI 31"), "unverified_number"],
+    ];
+    for (const [sentence, f, reason] of cases) {
+      assert.deepEqual(guardSentences([sentence], f).dropped[0]?.reasons, [reason], sentence);
+    }
+  });
+
+  it("원 · 억 · 만은 같은 금액이다", () => {
+    const price = [fact(115_650_000, "krw")];
+    assert.deepEqual(guardSentences(["현재가는 1억 1,565만 원이에요."], price).dropped, []);
+    assert.deepEqual(guardSentences(["현재가는 115,650,000원이에요."], price).dropped, []);
+    assert.equal(guardSentences(["현재가는 2억 원이에요."], price).dropped.length, 1);
+  });
+
+  it("근거 숫자가 있는 인과는 통과한다", () => {
+    assert.deepEqual(guardSentences(["RSI가 31로 떨어져서 과매도 구간이에요."], facts).dropped, []);
+  });
+
+  it("날짜의 하이픈은 부호가 아니다", () => {
+    assert.deepEqual(numericTokens("2026-09-24").map((t) => [t.value, t.sign]), [[2026, null], [9, null], [24, null]]);
+  });
+
+  it("규칙 문장(사실 없이 부르면)은 숫자를 보지 않는다", () => {
+    assert.deepEqual(guardSentences(["수익률은 12%예요."]).dropped, []);
   });
 });
 
