@@ -38,76 +38,139 @@ export const subHeading = style({
   color: vars.colors.text.primary,
 });
 
-/* ── 범위 띠 ───────────────────────────────────────────── */
+/* ── 차트 머리 · 범례 · 기간 고르기 · 읽기 ─────────────────── */
 
-export const bandList = style({ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: vars.space.sm });
+export const chartHead = style({ display: "flex", alignItems: "center", minHeight: "20px" });
 
-export const bandRow = style({
-  display: "grid",
-  gridTemplateColumns: "44px minmax(0, 1fr)",
+const blink = keyframes({ "0%, 100%": { opacity: 1 }, "50%": { opacity: 0.3 } });
+
+export const live = style({
+  display: "inline-flex",
   alignItems: "center",
-  gap: vars.space.sm,
-});
-
-export const bandLabel = style({
-  color: vars.colors.text.tertiary,
+  gap: vars.space.xs,
+  color: vars.colors.text.secondary,
   fontSize: vars.typography.t8.fontSize,
+  fontWeight: vars.fontWeights.semibold,
   fontVariantNumeric: vars.numeric.tabular,
 });
 
-export const track = style({ position: "relative", height: "20px" });
-
-/**
- * 띠가 **왼쪽에서 오른쪽으로 그려지며** 나온다 — 스트리밍 느낌(FEATURE-008 FR-62). `transform` 만 쓴다
- * (레이아웃 · 페인트 없음, `performance.md`). 기간마다 늦게 시작해 순서대로 흐른다.
- */
-const draw = keyframes({ from: { transform: "scaleX(0)" }, to: { transform: "scaleX(1)" } });
-const fade = keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
-
-const animated = {
-  transformOrigin: "left center",
-  animation: `${draw} 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both`,
-  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
-} as const;
-
-export const whisker = style({
-  ...animated,
-  position: "absolute",
-  top: "50%",
-  height: "2px",
-  marginTop: "-1px",
-  background: vars.colors.border.default,
+/** "실시간" 표시 점 — 연결이 살아 있다는 신호라 줄인 모션에서도 느리게 깜빡인다(`performance-frontend.md` §8) */
+export const liveDot = style({
+  width: "6px",
+  height: "6px",
   borderRadius: vars.radius.full,
+  background: vars.colors.special.up,
+  animation: `${blink} 1600ms ease-in-out infinite`,
+  "@media": { "(prefers-reduced-motion: reduce)": { animationDuration: "3200ms" } },
 });
 
-export const box = style({
-  ...animated,
-  position: "absolute",
-  top: "3px",
-  bottom: "3px",
-  background: vars.colors.brand.lighter,
+export const legend = style({
+  margin: 0,
+  padding: 0,
+  listStyle: "none",
+  display: "flex",
+  flexWrap: "wrap",
+  gap: vars.space.md,
+  color: vars.colors.text.tertiary,
+  fontSize: vars.typography.t8.fontSize,
+});
+
+export const legendItem = style({ display: "inline-flex", alignItems: "center", gap: "6px" });
+
+export const swatch = style({ width: "12px", height: "8px", borderRadius: "2px", background: vars.colors.text.tertiary });
+export const swatch90 = style({ opacity: 0.18 });
+export const swatch50 = style({ opacity: 0.34 });
+export const swatchMedian = style({ width: "12px", height: 0, borderTop: `1.5px dashed ${vars.colors.text.secondary}` });
+
+/** 기간 칩 — 회색 바탕에 선택된 것만 흰 알약. 선택 색을 쓰지 않는다 */
+export const weekPicker = style({
+  display: "flex",
+  gap: "2px",
+  padding: "3px",
+  borderRadius: vars.radius.medium,
+  background: vars.colors.background.tertiary,
+});
+
+export const weekChip = style({
+  flex: 1,
+  padding: `${vars.space.xs} ${vars.space.sm}`,
+  border: 0,
+  borderRadius: vars.radius.base,
+  background: "transparent",
+  color: vars.colors.text.tertiary,
+  fontSize: vars.typography.t7.fontSize,
+  fontWeight: vars.fontWeights.semibold,
+  cursor: "pointer",
+  transition: "background-color 200ms ease, color 200ms ease",
+  selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.border.focus}`, outlineOffset: "1px" } },
+});
+
+export const weekChipActive = style({
+  background: vars.colors.background.white,
+  color: vars.colors.text.primary,
+  boxShadow: `0 1px 3px ${vars.colors.shadow.md}`,
+});
+
+const rise = keyframes({ from: { opacity: 0, transform: "translateY(6px)" }, to: { opacity: 1, transform: "none" } });
+
+/** 고른 기간의 숫자 — 기간이 바뀌면 새로 마운트돼 아래에서 올라온다 */
+export const readout = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: vars.space.sm,
+  animation: `${rise} 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both`,
+  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
+});
+
+export const readoutRow = style({ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: vars.space.md });
+
+export const readoutLabel = style({
+  color: vars.colors.text.tertiary,
+  fontSize: vars.typography.t7.fontSize,
+  fontWeight: vars.fontWeights.medium,
+});
+
+export const readoutValue = style({
+  color: vars.colors.text.primary,
+  fontSize: vars.typography.t6.fontSize,
+  fontWeight: vars.fontWeights.bold,
+  fontVariantNumeric: vars.numeric.tabular,
+  textAlign: "right",
+});
+
+export const readoutSub = style({
+  margin: `${vars.space.xs} 0 0`,
+  color: vars.colors.text.tertiary,
+  fontSize: vars.typography.t8.fontSize,
+});
+
+export const scenarioGrid = style({ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: vars.space.xs });
+
+export const scenarioCell = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "2px",
+  padding: vars.space.sm,
   borderRadius: vars.radius.small,
+  background: vars.colors.background.secondary,
 });
 
-export const medianTick = style({
-  position: "absolute",
-  top: "1px",
-  bottom: "1px",
-  width: "2px",
-  marginLeft: "-1px",
-  background: vars.colors.brand.primary,
-  borderRadius: vars.radius.full,
-  animation: `${fade} 300ms ease both`,
-  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
+export const scenarioValue = style({
+  fontSize: vars.typography.t7.fontSize,
+  fontWeight: vars.fontWeights.bold,
+  fontVariantNumeric: vars.numeric.tabular,
 });
 
-/** 기준가 — 모든 기간에 같은 x. 점선으로 "지금"을 표시한다 */
-export const baseLine = style({
+export const srOnly = style({
   position: "absolute",
-  top: "-4px",
-  bottom: "-4px",
-  width: 0,
-  borderLeft: `1px dashed ${vars.colors.text.tertiary}`,
+  width: "1px",
+  height: "1px",
+  padding: 0,
+  margin: "-1px",
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+  border: 0,
 });
 
 /* ── 표 ───────────────────────────────────────────────── */
@@ -134,6 +197,8 @@ export const th = style({
   textAlign: "right",
   selectors: { "&:first-child": { textAlign: "left" } },
 });
+
+const fade = keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
 
 const fadeRow = {
   animation: `${fade} 400ms ease both`,

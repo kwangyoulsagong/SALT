@@ -1,4 +1,6 @@
-import type { CSSProperties } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 
 import type { ForecastHorizonView, SymbolForecastResult } from "@repo/core/coach";
 
@@ -7,6 +9,7 @@ import { formatPrice } from "@/shared/lib";
 import { formatRatio, formatSignedRate } from "../lib";
 import { FORECAST_MESSAGES as M } from "../model";
 import * as s from "./ForecastCard.css";
+import { ForecastFanChart } from "./ForecastFanChart";
 
 type Shown = Extract<ForecastHorizonView, { renderable: true }>;
 
@@ -15,9 +18,9 @@ const signedKrw = (value: number) =>
   value === 0 ? `0원` : `${value > 0 ? "+" : MINUS}${formatPrice(Math.abs(value))}원`;
 const tone = (value: number) => (value > 0 ? s.signed.up : value < 0 ? s.signed.down : s.signed.flat);
 const shortDate = (iso: string) => iso.slice(0, 10);
-/** 띠 안 위치(%) — 모든 기간을 같은 축에 둔다. 금액 계산이 아니라 그리기 좌표다 */
-const pos = (v: number, min: number, max: number) => `${((v - min) / (max - min || 1)) * 100}%`;
-const delay = (i: number): CSSProperties => ({ animationDelay: `${i * 120}ms` });
+/** 차트가 다 그려진 뒤 기간 하이라이트를 넘기기 시작한다 · 한 기간을 보여 주는 시간 */
+const AUTOPLAY_START_MS = 1800;
+const AUTOPLAY_STEP_MS = 2800;
 
 /**
  * 가격 변동 범위 카드 — 표시 전용 (`fsd-entities.md`, F008 `FE-REQ-038`).
@@ -27,7 +30,37 @@ const delay = (i: number): CSSProperties => ({ animationDelay: `${i * 120}ms` })
  *
  * 적중률은 혼자 나가지 않는다(FEATURE-008 FR-10) — 같은 줄에 범위 폭(단순 예측 대비) · 표본.
  */
-export const ForecastCard = ({ result, className }: { result: SymbolForecastResult; className?: string }) => {
+interface ForecastCardProps {
+  result: SymbolForecastResult;
+  /** 실시간 현재가 — 차트 선 끝을 움직인다. 없으면 어제 종가에서 멈춘다 */
+  livePrice?: number | null;
+  className?: string;
+}
+
+export const ForecastCard = ({ result, livePrice = null, className }: ForecastCardProps) => {
+  const count = result.status === "ok" ? result.horizons.filter((h) => h.renderable).length : 0;
+  const [active, setActive] = useState(0);
+  // 손을 대면 자동 넘김을 멈춘다 — 보고 있는 기간을 빼앗지 않는다
+  const [autoplay, setAutoplay] = useState(true);
+
+  useEffect(() => {
+    if (!autoplay || count < 2) return undefined;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    let step: ReturnType<typeof setInterval> | undefined;
+    const start = setTimeout(() => {
+      step = setInterval(() => setActive((i) => (i + 1) % count), AUTOPLAY_STEP_MS);
+    }, AUTOPLAY_START_MS);
+    return () => {
+      clearTimeout(start);
+      if (step) clearInterval(step);
+    };
+  }, [autoplay, count]);
+
+  const pick = (index: number) => {
+    setAutoplay(false);
+    setActive(index);
+  };
+
   if (result.status !== "ok") {
     return (
       <section className={className}>
@@ -38,10 +71,8 @@ export const ForecastCard = ({ result, className }: { result: SymbolForecastResu
 
   const shown = result.horizons.filter((h): h is Shown => h.renderable);
   const blocked = result.horizons.filter((h) => !h.renderable);
-  const min = Math.min(...shown.map((h) => Math.min(h.range.low, h.basePrice)));
-  const max = Math.max(...shown.map((h) => Math.max(h.range.high, h.basePrice)));
   const first = shown[0];
-  const withScenario = shown.filter((h) => h.scenario);
+  const current = shown[active] ?? first;
 
   return (
     <section className={`${className ?? ""} ${s.section}`} aria-labelledby="forecast-heading">
@@ -57,81 +88,101 @@ export const ForecastCard = ({ result, className }: { result: SymbolForecastResu
         <p className={s.note}>{M.allBlocked}</p>
       ) : (
         <>
-          <ul className={s.bandList} aria-label={M.bandCaption}>
-            {shown.map((h, i) => (
-              <li key={h.horizonWeeks} className={s.bandRow}>
-                <span className={s.bandLabel}>{M.horizon(h.horizonWeeks)}</span>
-                <div className={s.track} aria-hidden="true">
-                  <span
-                    className={s.whisker}
-                    style={{ left: pos(h.range.low, min, max), right: `calc(100% - ${pos(h.range.high, min, max)})`, ...delay(i) }}
-                  />
-                  <span
-                    className={s.box}
-                    style={{
-                      left: pos(h.range.lowerQuartile, min, max),
-                      right: `calc(100% - ${pos(h.range.upperQuartile, min, max)})`,
-                      ...delay(i),
-                    }}
-                  />
-                  <span className={s.medianTick} style={{ left: pos(h.range.median, min, max), animationDelay: `${i * 120 + 450}ms` }} />
-                  <span className={s.baseLine} style={{ left: pos(h.basePrice, min, max) }} />
-                </div>
-              </li>
-            ))}
-          </ul>
-          {first && <p className={s.note}>{M.basePrice(`${formatPrice(first.basePrice)}원`, shortDate(first.asOf))}</p>}
+          <div className={s.chartHead}>
+            {livePrice !== null ? (
+              <span className={s.live}>
+                <span className={s.liveDot} aria-hidden="true" />
+                {M.live} · {M.livePrice(`${formatPrice(livePrice)}원`)}
+              </span>
+            ) : (
+              first && <span className={s.note}>{M.basePrice(`${formatPrice(first.basePrice)}원`, shortDate(first.asOf))}</span>
+            )}
+          </div>
 
-          <table className={s.table}>
-            <caption className={s.caption}>{M.tableCaption}</caption>
+          <ForecastFanChart history={result.history} shown={shown} livePrice={livePrice} active={active} />
+
+          <ul className={s.legend} aria-hidden="true">
+            <li className={s.legendItem}><span className={`${s.swatch} ${s.swatch90}`} />{M.legend90}</li>
+            <li className={s.legendItem}><span className={`${s.swatch} ${s.swatch50}`} />{M.legend50}</li>
+            <li className={s.legendItem}><span className={s.swatchMedian} />{M.legendMedian}</li>
+          </ul>
+
+          <div
+            className={s.weekPicker}
+            role="group"
+            aria-label={M.weekPicker}
+            onPointerEnter={() => setAutoplay(false)}
+            onFocus={() => setAutoplay(false)}
+          >
+            {shown.map((h, i) => (
+              <button
+                key={h.horizonWeeks}
+                type="button"
+                className={i === active ? `${s.weekChip} ${s.weekChipActive}` : s.weekChip}
+                aria-pressed={i === active}
+                onClick={() => pick(i)}
+              >
+                {M.horizon(h.horizonWeeks)}
+              </button>
+            ))}
+          </div>
+
+          {current && (
+            <div key={current.horizonWeeks} className={s.readout} aria-live="polite">
+              <div className={s.readoutRow}>
+                <span className={s.readoutLabel}>{M.readoutRange}</span>
+                <span className={s.readoutValue}>
+                  {formatPrice(current.range.low)} ~ {formatPrice(current.range.high)}원
+                </span>
+              </div>
+              <div className={s.readoutRow}>
+                <span className={s.readoutLabel}>{M.readoutMedian}</span>
+                <span className={s.readoutValue}>{formatPrice(current.range.median)}원</span>
+              </div>
+              {current.scenario && (
+                <>
+                  <p className={s.readoutSub}>{M.scenarioLead(String(current.scenario.quantity))}</p>
+                  <div className={s.scenarioGrid}>
+                    {(
+                      [
+                        [M.colBad, current.scenario.valueChangeLow],
+                        [M.colMedian, current.scenario.valueChangeMedian],
+                        [M.colGood, current.scenario.valueChangeHigh],
+                      ] as const
+                    ).map(([label, value]) => (
+                      <div key={label} className={s.scenarioCell}>
+                        <span className={s.readoutLabel}>{label}</span>
+                        <span className={`${s.scenarioValue} ${tone(value)}`}>{signedKrw(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* 그림 대신 읽는 표 — 차트는 aria-hidden 이다(a11y-policy.md) */}
+          <table className={s.srOnly}>
+            <caption>{M.tableCaption}</caption>
             <thead>
               <tr>
-                <th className={s.th} scope="col">{M.colPeriod}</th>
-                <th className={s.th} scope="col">{M.colLow}</th>
-                <th className={s.th} scope="col">{M.colMedian}</th>
-                <th className={s.th} scope="col">{M.colHigh}</th>
+                <th scope="col">{M.colPeriod}</th>
+                <th scope="col">{M.colLow}</th>
+                <th scope="col">{M.colMedian}</th>
+                <th scope="col">{M.colHigh}</th>
               </tr>
             </thead>
             <tbody>
-              {shown.map((h, i) => (
-                <tr key={h.horizonWeeks} className={s.tr} style={delay(i)}>
-                  <th className={s.td} scope="row">{M.horizon(h.horizonWeeks)}</th>
-                  <td className={s.td}>{formatPrice(h.range.low)}</td>
-                  <td className={s.td}>{formatPrice(h.range.median)}</td>
-                  <td className={s.td}>{formatPrice(h.range.high)}</td>
+              {shown.map((h) => (
+                <tr key={h.horizonWeeks}>
+                  <th scope="row">{M.horizon(h.horizonWeeks)}</th>
+                  <td>{formatPrice(h.range.low)}</td>
+                  <td>{formatPrice(h.range.median)}</td>
+                  <td>{formatPrice(h.range.high)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-
-          {withScenario.length > 0 && withScenario[0]?.scenario && (
-            <div>
-              <h3 className={s.subHeading}>{M.scenarioHeading}</h3>
-              <table className={s.table}>
-                <caption className={s.caption}>{M.scenarioLead(String(withScenario[0].scenario.quantity))}</caption>
-                <thead>
-                  <tr>
-                    <th className={s.th} scope="col">{M.colPeriod}</th>
-                    <th className={s.th} scope="col">{M.colBad}</th>
-                    <th className={s.th} scope="col">{M.colMedian}</th>
-                    <th className={s.th} scope="col">{M.colGood}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {withScenario.map((h, i) =>
-                    h.scenario ? (
-                      <tr key={h.horizonWeeks} className={s.tr} style={delay(i + shown.length)}>
-                        <th className={s.td} scope="row">{M.horizon(h.horizonWeeks)}</th>
-                        <td className={`${s.td} ${tone(h.scenario.valueChangeLow)}`}>{signedKrw(h.scenario.valueChangeLow)}</td>
-                        <td className={`${s.td} ${tone(h.scenario.valueChangeMedian)}`}>{signedKrw(h.scenario.valueChangeMedian)}</td>
-                        <td className={`${s.td} ${tone(h.scenario.valueChangeHigh)}`}>{signedKrw(h.scenario.valueChangeHigh)}</td>
-                      </tr>
-                    ) : null,
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
 
           <div>
             <h3 className={s.subHeading}>

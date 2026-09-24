@@ -20,6 +20,7 @@ import {
 import { MarketDetailChart, useMarketListing } from "@/entities/market";
 import { ExplainCard } from "@/features/explain-symbol";
 import { CoachModeSwitch, useCoachModeParam } from "@/features/switch-coach-mode";
+import { useLivePrice } from "@/shared/api";
 
 import { SYMBOL_ANALYSIS_MESSAGES } from "../model";
 import {
@@ -56,6 +57,8 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   // 가격 변동 범위 — 소유자만(F008 `FE-REQ-038`). 404 는 "없는 섹션"이다 — 자리도 문구도 없다
   const forecast = useSymbolForecast(symbol);
   const showForecast = !forecast.isSignedOut && !forecast.notOwner;
+  // 차트 선 끝을 움직이는 현재가 — 카드가 보일 때만 구독한다
+  const livePrice = useLivePrice(showForecast && forecast.data ? symbol : "")?.currentPrice ?? null;
   const listing = useMarketListing(symbol);
   const [mode, setMode] = useCoachModeParam(coach.data?.mode);
 
@@ -129,7 +132,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
             */}
             {showForecast &&
               (forecast.data ? (
-                <ForecastCard className={card} result={forecast.data} />
+                <ForecastCard className={card} result={forecast.data} livePrice={livePrice} />
               ) : forecast.isError ? (
                 <ForecastCard className={card} result={{ status: "unavailable" }} />
               ) : null)}

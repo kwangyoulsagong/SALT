@@ -58,6 +58,19 @@ export type ForecastHorizonView =
     }
   | { horizonWeeks: number; renderable: false; blockedReason: string };
 
+/** 과거 일봉 종가(오래된 → 최근) — 차트의 실선. 전망의 기준가와 같은 원천이다 */
+export interface ForecastHistoryPoint {
+  date: string;
+  close: number;
+}
+
 export type SymbolForecastResult =
-  | { status: "ok"; symbol: string; label: string; disclaimer: string; horizons: ForecastHorizonView[] }
+  | {
+      status: "ok";
+      symbol: string;
+      label: string;
+      disclaimer: string;
+      history: ForecastHistoryPoint[];
+      horizons: ForecastHorizonView[];
+    }
   | { status: "unavailable" };
