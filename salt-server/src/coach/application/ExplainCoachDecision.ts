@@ -1,3 +1,8 @@
+import {
+  templateExplanation,
+  verifyExplanation,
+  type ExplanationSource,
+} from "../domain";
 import type {
   CoachExplainer,
   CoachExplanation,
@@ -23,6 +28,13 @@ import {
 export type ExplainResult =
   | (CoachExplanation & {
       renderable: true;
+      /**
+       * 문장 출처(추가 필드, 2026-09-24). `llm` — 검증 통과 · `llm_checked` — 일부 문장을 걸러 템플릿으로 채움 ·
+       * `template` — LLM 실패, 전부 템플릿. 화면은 `template` 에 "규칙 기반 설명" 배지를 단다(FEATURE-004 UX Degraded)
+       */
+      source: ExplanationSource;
+      /** 걸러낸 문장 수(말투 · 지어낸 숫자). 관측용 */
+      droppedSentences: number;
       validity: ModeCoachView["judgment"]["validity"];
       trackRecord: ModeCoachView["trackRecord"];
       failureCases: ModeCoachView["failureCases"];
@@ -75,10 +87,22 @@ export class ExplainCoachDecision {
       return { renderable: false, blockedReason: view.blockedReason! };
     }
 
-    const explanation = await this.explainer.explain(input, signal);
+    // LLM 문장은 그대로 믿지 않는다 — 문장마다 말투 · 숫자를 검사하고 걸린 칸은 템플릿으로 채운다.
+    // LLM 이 실패하면 전부 템플릿이다(중단은 제외 — 화면이 떠났으면 만들 이유가 없다).
+    let verified: { explanation: CoachExplanation; source: ExplanationSource; dropped: unknown[] };
+    try {
+      const llm = await this.explainer.explain(input, signal);
+      verified = verifyExplanation(llm, input, new Date());
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      verified = { explanation: templateExplanation(input, new Date()), source: "template", dropped: [] };
+    }
+    const explanation = verified.explanation;
 
     return {
       ...explanation,
+      source: verified.source,
+      droppedSentences: verified.dropped.length,
       // 면책은 판단 경로와 같은 문장이다 — 모델이 쓴 면책은 쓰지 않는다
       disclaimer: JUDGMENT_DISCLAIMER,
       renderable: true,

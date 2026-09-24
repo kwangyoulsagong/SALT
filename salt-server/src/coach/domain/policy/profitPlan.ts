@@ -155,7 +155,7 @@ export const priceGap = (price: number, currentPrice: number): number =>
 export const buildProfitPlanWarnings = (profitRate: number): string[] => {
   const warnings: string[] = [];
   if (profitRate >= THRESHOLD.takeProfitReviewFrom) {
-    warnings.push("수익 중인 종목은 전량 매도보다 단계형 익절을 검토하세요.");
+    warnings.push("수익 중인 종목 — 전량 매도보다 단계형 익절이 흔히 쓰이는 방식입니다.");
   }
   if (profitRate <= THRESHOLD.stopLossReviewAt) {
     warnings.push(
