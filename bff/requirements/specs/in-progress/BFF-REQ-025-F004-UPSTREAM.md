@@ -102,7 +102,7 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | FR-31 | 점수를 계산하지 않는다 | Must |
 | FR-32 | 게이트를 판정하지 않는다 | Must |
 | FR-33 | **주문 API를 중계하지 않는다** | Must |
-| FR-34 | 프롬프트를 만들지 않는다. `explain` 요청 본문을 그대로 전달 | Must |
+| FR-34 | 프롬프트를 만들지 않는다. `explain` 요청 본문을 그대로 전달. **개정 2026-09-24(C01)**: 본문이 `{ symbol, mode }` 로 줄었다 — 전달 방식은 그대로라 코드 변경 없음 | Must |
 | FR-35 | `explain` 요청·응답을 **로깅하지 않는다** | Must |
 
 ## Acceptance Criteria
@@ -147,3 +147,4 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 호출 맵에 `symbolCoach` · `symbolNews` 추가, `coachDetail` → `coachReport` 개정. 계약 의존 표에 모드별 게이트 · `confidence` 제거 · `zone` · 게이지 적중률 · `validity` 추가. 신규 FR-40~46(모드별 게이트 누락 처리(B10) · `confidence` 제거 배포 순서(D3) · 병렬 호출 · `defaultMode` 위임(B16) · 관심 종목 분리(D4)) |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `exitPlans[].priceGap`(D13) |
 | 2026-09-23 | **슬라이스 14.** `generate` 1s(FR-3 — 서버가 202 를 준다) · `coachReport` 800ms · `generationStatus` 300ms. 근거 `reports/checklists/BFF-REQ-025.md` |
+| 2026-09-24 | **F009 슬라이스 0 — C01.** FR-34 주석만 — 요청 본문 축소, BFF 코드 변경 없음(`npm run build` · `npm test` 121 / 0) |

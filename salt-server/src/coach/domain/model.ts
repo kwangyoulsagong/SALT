@@ -34,8 +34,10 @@ export interface CoachSentiment {
 export interface CoachQuote {
   symbol: string;
   assetType: CoachAssetType;
+  koreanName: string;
   currentPrice: number | null;
   change24h: number | null;
+  tradeValue24h: number | null;
   priceUpdatedAt: Date | null;
 }
 
@@ -139,6 +141,14 @@ export interface CoachArticle {
   content: string | null;
   sentiment: string | null;
   publishedAt: Date;
+}
+
+/** 종목 뉴스 한 건 — 해설 사실(C01). 출처는 인용에 쓴다 */
+export interface CoachSymbolArticle {
+  title: string;
+  summary: string | null;
+  source: string;
+  sentiment: string | null;
 }
 
 export type CoachAction = "buy" | "sell" | "hold" | "rebalance";

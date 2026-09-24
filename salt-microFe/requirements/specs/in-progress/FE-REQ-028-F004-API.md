@@ -127,6 +127,7 @@ created: 2026-09-09
 | FR-83 | 모드 전환은 **요청 0건**이다. `router.replace('?mode=')` 로 URL 만 바꾼다. **개정 2026-09-22**: `history.replaceState` — `router.replace` 는 RSC 재요청을 만든다(실측 요청 0건은 `replaceState` 로 확인) | Must |
 | FR-84 | 상세 분석 페이지는 라우트 `/investments/[symbol]` 서버 컴포넌트가 1회 조회한다. 패널에서 넘어올 때 React Query 캐시를 **초기 데이터로 재사용하지 않는다**(서버 컴포넌트가 새로 받는다 — 두 경로가 섞이면 staleness 가 갈린다) | Should |
 | FR-85 | `mode` 쿼리가 URL 에 없으면 **BFF 에 `mode` 를 보내지 않는다**(서버 `defaultMode`, B16) | Must |
+| FR-86a | 해설 요청 본문은 **`{ symbol, mode }` 뿐이다**(개정 2026-09-24, C01 · 서버 `SRV-REQ-025` FR-58). 화면이 시세 · 근거 · 뉴스를 옮겨 적지 않는다 — 시세 목록에 종목이 없어도 해설을 부를 수 있다("시세 정보를 찾지 못해" 경로 삭제) | Must |
 | FR-86 | 해설 요청 본문에 `mode` 를 싣는다. 응답이 판별 union 이므로 `renderable: false` 분기를 타입으로 처리한다(B3) | Must |
 | FR-87 | preflight 요청에 `stopLossRate` 를 싣고 `takeProfitPrices` 는 사용자가 입력했을 때만 싣는다(B1) | Must |
 | FR-88 | 관심 추가는 기존 watchlist mutation. 성공 시 관심 종목 쿼리만 무효화한다 — 코치 쿼리를 건드리지 않는다(D4) | Must |
@@ -189,3 +190,4 @@ created: 2026-09-09
 | 2026-09-22 | 상세 분석 슬라이스 — 해설 FR-10~13 · FR-62 · FR-86(부분) · FR-88 구현. **FR-84 는 클라이언트 조회로 다르게 구현**(토큰이 `localStorage` — `FE-REQ-013` 후 서버 컴포넌트로). FR-86 `renderable` union 은 서버 응답에 없어 막힌 모드는 버튼을 그리지 않는 것으로 처리 |
 | 2026-09-22 | 서버가 해설을 게이트 뒤에 두면서(`SRV-REQ-025` FR-50) 응답이 합 타입이 됐다 — `ExplainResult` 로 받는다. 요청 · 재시도 · 타임아웃 계약은 그대로 |
 | 2026-09-23 | F004 슬라이스 15 — 리포트 조회(FR-3 · 4) · 재생성 · 폴링(FR-20~26). FR-1 · FR-27 다르게(클라이언트 조회 → 쿼리 무효화). 완료 판정은 `@repo/core/coach` `readGenerationOutcome` — 워커 행은 `inProgress` 로만 본다 |
+| 2026-09-24 | **F009 슬라이스 0 — C01.** FR-86a 신설. `buildExplainRequest(view, mode)` · `ExplainSubject` 삭제 · 근거 라벨 메시지 삭제(서버 소유) |

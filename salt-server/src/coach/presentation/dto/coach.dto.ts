@@ -47,33 +47,13 @@ export const coachFeedbackSchema = z.object({
   note: z.string().max(500).optional(),
 });
 
+/**
+ * 해설 요청 — **종목과 관점뿐이다**(C01 · `SRV-REQ-025` FR-58). 시세 · 근거 · 뉴스는 서버가 조립한다.
+ * 예전 본문(`currentPrice` · `evidence` · `news` …)을 보내도 Zod 가 버린다 — 옛 화면이 깨지지 않고, 그 값은 쓰이지 않는다.
+ */
 export const explainCoachSchema = z.object({
   symbol: z.string().trim().min(1).max(20),
-  koreanName: z.string().trim().min(1).max(50),
   mode: coachModeSchema,
-  currentPrice: z.number().positive(),
-  change24h: z.number(),
-  tradeValue24h: z.number().nonnegative(),
-  evidence: z
-    .array(
-      z.object({
-        label: z.string().min(1).max(60),
-        value: z.string().min(1).max(120),
-      })
-    )
-    .min(1)
-    .max(20),
-  news: z
-    .array(
-      z.object({
-        title: z.string().min(1).max(200),
-        summary: z.string().max(500).optional(),
-        source: z.string().max(80).optional(),
-        sentiment: z.string().max(20).optional(),
-      })
-    )
-    .max(10)
-    .optional(),
 });
 
 /**

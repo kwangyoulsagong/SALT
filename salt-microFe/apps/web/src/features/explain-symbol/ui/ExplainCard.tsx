@@ -12,7 +12,7 @@ import { JudgmentCases, selectModeView, TrackRecordStats } from "@/entities/coac
 import { formatClockTime } from "@/shared/lib";
 
 import { useExplainStream } from "../api";
-import { buildExplainRequest, EXPLAIN_MESSAGES, type ExplainStreamState, type ExplainSubject } from "../model";
+import { buildExplainRequest, EXPLAIN_MESSAGES, type ExplainStreamState } from "../model";
 import { ExplainSteps } from "./ExplainSteps";
 import * as s from "./ExplainCard.css";
 import { useReveal } from "./useReveal";
@@ -93,8 +93,6 @@ const StreamedBody = ({ state, footer }: { state: ExplainStreamState; footer: Re
 interface ExplainCardProps {
   view: SymbolCoachViewModel;
   mode: CoachMode;
-  /** 시세 목록에서 찾은 종목. 없으면 요청할 재료(이름 · 거래대금)가 없다 */
-  subject: ExplainSubject | null;
   /**
    * 카드 상자 스타일. 부르는 쪽이 준다 — 상자를 바깥에 두면 판단이 막혀 이 카드가 `null` 일 때
    * **빈 상자가 남는다**(2026-09-22 실측). 게이트가 상자까지 가져간다
@@ -111,12 +109,12 @@ interface ExplainCardProps {
  * - 같은 카드 안에 **적중률 · 사례**(3종의 나머지 둘)를 둔다. 해설만 떼어 읽히지 않게
  * - 모드가 바뀌면 부르는 쪽이 `key={mode}` 로 새로 만든다 — 진행 중 스트림은 끊긴다
  */
-export const ExplainCard = ({ view, mode, subject, className }: ExplainCardProps) => {
+export const ExplainCard = ({ view, mode, className }: ExplainCardProps) => {
   const { state, request } = useExplainStream();
   const modeView = selectModeView(view, mode);
   if (!modeView?.renderable) return null;
 
-  const body = subject ? buildExplainRequest(view, mode, subject) : null;
+  const body = buildExplainRequest(view, mode);
   const started = state.status !== "idle" && state.status !== "busy";
   const finished = state.status === "done";
   const ruleBased = finished && state.source === "template";
@@ -161,7 +159,6 @@ export const ExplainCard = ({ view, mode, subject, className }: ExplainCardProps
         <Button variant="primary" fullWidth disabled={!body} onClick={() => body && request(body)}>
           {M.open}
         </Button>
-        {!body && <p className={s.note}>{M.subjectMissing}</p>}
         {state.status === "busy" && <p className={s.note}>{M.busy}</p>}
       </>
     );

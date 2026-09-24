@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 
 import {
+  assembleExplanationFacts,
+  EXPLANATION_NEWS_MAX,
+  explanationFactsHash,
   templateExplanation,
   verifyExplanation,
   type ExplanationSource,
@@ -9,8 +12,10 @@ import type {
   CoachExplainer,
   CoachExplanation,
   CoachExplanationInput,
+  CoachMode,
   JudgmentBlockedReason,
   MarketProbe,
+  NewsProbe,
   PortfolioProbe,
   SymbolJudgmentStore,
 } from "../domain";
@@ -20,6 +25,24 @@ import {
   JUDGMENT_DISCLAIMER,
   type ModeCoachView,
 } from "./lib/judgmentTrack";
+
+/** 해설 요청 — 종목과 관점뿐이다. 사실은 서버가 조립한다(C01 · `SRV-REQ-025` FR-58) */
+export interface CoachExplainRequest {
+  symbol: string;
+  mode: CoachMode;
+}
+
+/** 해설이 쓴 사실 — 언제 모은 무엇인지. `hash` 가 같으면 같은 사실로 만든 문장이다 */
+export interface ExplanationFactsRef {
+  asOf: string;
+  hash: string;
+}
+
+/**
+ * 판단은 열렸는데 사실을 못 모았다 — 지금은 현재가가 없을 때뿐이다. 가격 없는 해설은 만들지 않는다.
+ * 판단 게이트의 사유(`JudgmentBlockedReason`)와 섞지 않는다 — 그건 성적표의 사유다.
+ */
+export type ExplainBlockedReason = JudgmentBlockedReason | "facts_unavailable";
 
 /**
  * 해설 결과 (`SRV-REQ-025` FR-50 · FR-51).
@@ -40,8 +63,9 @@ export type ExplainResult =
       validity: ModeCoachView["judgment"]["validity"];
       trackRecord: ModeCoachView["trackRecord"];
       failureCases: ModeCoachView["failureCases"];
+      facts: ExplanationFactsRef;
     })
-  | { renderable: false; blockedReason: JudgmentBlockedReason };
+  | { renderable: false; blockedReason: ExplainBlockedReason };
 
 /** 해설 스트림의 단계(FEATURE-008 FR-61) — 실제로 그 일을 할 때만 켜진다(가짜 타이머 아님) */
 export type ExplainStep = "judgment" | "draft" | "polish" | "verify";
@@ -65,7 +89,7 @@ export interface ExplainCitation {
 export type ExplainStreamEvent =
   | { event: "message.start"; data: { messageId: string; createdAt: string } }
   | { event: "message.step"; data: { step: ExplainStep; status: "active" | "done" | "skipped" } }
-  | { event: "message.blocked"; data: { blockedReason: JudgmentBlockedReason } }
+  | { event: "message.blocked"; data: { blockedReason: ExplainBlockedReason } }
   | {
       event: "message.card";
       data: {
@@ -74,6 +98,7 @@ export type ExplainStreamEvent =
         failureCases: ModeCoachView["failureCases"];
         disclaimer: string;
         citations: ExplainCitation[];
+        facts: ExplanationFactsRef;
       };
     }
   | { event: "message.delta"; data: { section: ExplainSection; index: number; text: string } }
@@ -86,7 +111,6 @@ export type ExplainStreamEvent =
       data: { messageId: string; source: ExplanationSource; droppedSentences: number; generatedAt: string };
     };
 
-const NEWS_CITATION_MAX = 5;
 
 /**
  * 문장 끝에서 자른다 — 스트림 한 조각이 한 문장이다. 마침표 **뒤에 공백 · 끝이 올 때만** 문장 끝이다
@@ -97,7 +121,7 @@ export const sentencesOf = (text: string): string[] => text.match(/.+?[.!?](?=\s
 /**
  * 판단 해설 생성 (LLM).
  *
- * 숫자는 요청이 들고 오고 모델은 **문장만** 만든다. 해설이 판단을 바꾸지 않는다 —
+ * 숫자는 **서버가 게이트와 같은 재료로** 모으고 모델은 문장만 만든다(C01). 해설이 판단을 바꾸지 않는다 —
  * 점수 · 행동 · 근거는 이미 정해져 있다.
  *
  * ## 먼저 게이트를 본다 (FR-50)
@@ -114,18 +138,20 @@ export class ExplainCoachDecision {
     private readonly explainer: CoachExplainer,
     private readonly market: MarketProbe,
     private readonly portfolio: PortfolioProbe,
-    private readonly judgments: SymbolJudgmentStore
+    private readonly judgments: SymbolJudgmentStore,
+    private readonly news: NewsProbe
   ) {}
 
   async execute(
     userId: string,
-    input: CoachExplanationInput,
+    request: CoachExplainRequest,
     signal?: AbortSignal
   ): Promise<ExplainResult> {
-    const view = await this.gate(userId, input);
-    if (!view.renderable) {
-      return { renderable: false, blockedReason: view.blockedReason! };
+    const prepared = await this.prepare(userId, request);
+    if (!prepared.ok) {
+      return { renderable: false, blockedReason: prepared.blockedReason };
     }
+    const { view, input, facts } = prepared;
 
     const verified = await this.polish(input, signal);
     const explanation = verified.explanation;
@@ -140,6 +166,7 @@ export class ExplainCoachDecision {
       validity: view.judgment.validity,
       trackRecord: view.trackRecord,
       failureCases: view.failureCases,
+      facts,
     };
   }
 
@@ -151,7 +178,7 @@ export class ExplainCoachDecision {
    */
   async stream(
     userId: string,
-    input: CoachExplanationInput,
+    request: CoachExplainRequest,
     emit: (event: ExplainStreamEvent) => void,
     signal?: AbortSignal
   ): Promise<void> {
@@ -162,12 +189,13 @@ export class ExplainCoachDecision {
     send({ event: "message.start", data: { messageId, createdAt: new Date().toISOString() } });
 
     send({ event: "message.step", data: { step: "judgment", status: "active" } });
-    const view = await this.gate(userId, input);
+    const prepared = await this.prepare(userId, request);
     send({ event: "message.step", data: { step: "judgment", status: "done" } });
-    if (!view.renderable) {
-      send({ event: "message.blocked", data: { blockedReason: view.blockedReason! } });
+    if (!prepared.ok) {
+      send({ event: "message.blocked", data: { blockedReason: prepared.blockedReason } });
       return;
     }
+    const { view, input, facts } = prepared;
     send({
       event: "message.card",
       data: {
@@ -175,9 +203,8 @@ export class ExplainCoachDecision {
         trackRecord: view.trackRecord,
         failureCases: view.failureCases,
         disclaimer: JUDGMENT_DISCLAIMER,
-        citations: (input.news ?? [])
-          .slice(0, NEWS_CITATION_MAX)
-          .map((n) => ({ title: n.title, source: n.source ?? null })),
+        citations: (input.news ?? []).map((n) => ({ title: n.title, source: n.source ?? null })),
+        facts,
       },
     });
 
@@ -228,21 +255,54 @@ export class ExplainCoachDecision {
     });
   }
 
-  /** 3종 게이트 — 단건 · 스트림이 **같은 함수**로 판정한다(FR-50) */
-  private async gate(userId: string, input: CoachExplanationInput) {
-    const symbol = input.symbol.toUpperCase();
+  /**
+   * 3종 게이트 — 단건 · 스트림이 **같은 함수**로 판정한다(FR-50) — 그리고 **그 재료로** 해설 사실을 만든다(C01).
+   * 게이트가 본 시세 · 지표 · 심리 · 대량 체결과 해설이 쓰는 것이 같은 객체다.
+   *
+   * 뉴스는 게이트와 나란히 부른다. 실패하면 뉴스 없이 간다 — 뉴스는 해설의 재료지 판단의 재료가 아니다.
+   */
+  private async prepare(
+    userId: string,
+    request: CoachExplainRequest
+  ): Promise<
+    | { ok: false; blockedReason: ExplainBlockedReason }
+    | { ok: true; view: ModeCoachView; input: CoachExplanationInput; facts: ExplanationFactsRef }
+  > {
+    const symbol = request.symbol.toUpperCase();
 
-    const [materialsBySymbol, holding] = await Promise.all([
+    const [materialsBySymbol, holding, news] = await Promise.all([
       collectJudgmentMaterials(this.market, [symbol]),
       this.portfolio.getHolding(userId, symbol),
+      this.news.recentForSymbol(symbol, EXPLANATION_NEWS_MAX).catch(() => []),
     ]);
-    const judged = judgeSymbol(
+    const materials = materialsBySymbol.get(symbol)!;
+    const judged = judgeSymbol(symbol, materials, Boolean(holding));
+    const decision = request.mode === "scalp" ? judged.scalp : judged.longTerm;
+    const view = await attachJudgmentTrack(this.judgments, decision);
+    if (!view.renderable) return { ok: false, blockedReason: view.blockedReason! };
+
+    const input = assembleExplanationFacts({
       symbol,
-      materialsBySymbol.get(symbol)!,
-      Boolean(holding)
-    );
-    const decision = input.mode === "scalp" ? judged.scalp : judged.longTerm;
-    return attachJudgmentTrack(this.judgments, decision);
+      mode: request.mode,
+      quote: materials.quote,
+      judgment: view.judgment,
+      indicator: materials.indicator,
+      sentiment: materials.sentiment,
+      whale: {
+        buyAmountKRW: judged.whaleBuy,
+        sellAmountKRW: judged.whaleSell,
+        count: materials.whales.length,
+      },
+      news,
+    });
+    if (!input) return { ok: false, blockedReason: "facts_unavailable" };
+
+    return {
+      ok: true,
+      view,
+      input,
+      facts: { asOf: new Date().toISOString(), hash: explanationFactsHash(input) },
+    };
   }
 
   /**

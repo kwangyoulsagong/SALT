@@ -58,3 +58,18 @@
 | FR-26 | **pass** | `refetchIntervalInBackground` 기본 false |
 | FR-27 | **다르게** | `router.refresh()` 가 아니라 리포트 쿼리 키 무효화(조회가 클라이언트) |
 | 실측 | **미검증** | 로그인 상태 202 → 폴링 → 갱신 — 사용자 브라우저 |
+
+## F009 슬라이스 0 — C01 (FR-86a, 2026-09-24)
+
+| FR | 판정 | 근거 |
+|---|---|---|
+| FR-86a `{ symbol, mode }` | **pass** | `buildExplainRequest(view, mode)` · `ExplainCard` 의 `subject` prop 삭제 · `SymbolAnalysis` 의 시세 목록 → 해설 연결 삭제 |
+| 게이트 | **pass** | `pnpm check-types` · `lint` · `test` · `build`(web · web-tax) · `layer-check` 5파일 |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 인증된 HTTP · 화면에서 해설 실측 | 로그인 토큰을 만들 수 없었다(자동 모드 권한). 유스케이스 · DTO 단위 테스트로만 확인 | 사용자 로그인 화면 QA |
+| 사실 스냅샷 ID(화면 상태와 해설 사실을 묶기) | 화면이 보내는 사실이 0 이라 위조 경로는 닫혔다. 남는 것은 "화면의 가격과 해설 시점 가격이 몇 초 다를 수 있음"뿐 — `facts.asOf` 로 드러난다 | 화면에 해설 기준 시각 표시가 필요해지면 |
+| 사실의 `metricId` 구조 | 근거가 아직 라벨 + 문자열이다(C03 의 남은 절반) | 도구 호출 에이전트(`FEATURE-008` FR-41 · 44) |

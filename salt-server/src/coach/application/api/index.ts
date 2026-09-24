@@ -150,7 +150,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.explainer,
       deps.market,
       deps.portfolio,
-      deps.judgments
+      deps.judgments,
+      deps.news
     ),
     analyzeNewsSentiment,
     analyzeTradingBehavior,

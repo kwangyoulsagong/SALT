@@ -22,6 +22,7 @@ import type {
   CoachMode,
   CoachProfile,
   CoachQuote,
+  CoachSymbolArticle,
   CoachSentiment,
   CoachTrade,
   CoachWhaleTransaction,
@@ -201,6 +202,8 @@ export interface CoachArticleQuery {
 /** `news` 조회 — ACL Port. */
 export interface NewsProbe {
   findArticlesForSentiment(query: CoachArticleQuery): Promise<CoachArticle[]>;
+  /** 종목 최신 뉴스 — 해설 사실(C01). 화면의 종목 뉴스와 같은 조회다 */
+  recentForSymbol(symbol: string, limit: number): Promise<CoachSymbolArticle[]>;
 }
 
 export interface CoachExplanationInput {

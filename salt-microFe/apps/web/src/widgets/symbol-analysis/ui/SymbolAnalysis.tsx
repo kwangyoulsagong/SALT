@@ -77,16 +77,6 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
     [modeView],
   );
 
-  const explainSubject = listing.item
-    ? {
-        symbol,
-        koreanName: listing.item.koreanName,
-        currentPrice: listing.item.currentPrice,
-        change24h: listing.item.change24h,
-        tradeValue24h: listing.item.tradeValue24h,
-      }
-    : null;
-
   const renderCoach = () => {
     if (coach.isSignedOut) return <Text color="tertiary">{COACH_MESSAGES.signedOut}</Text>;
     if (coach.isError) {
@@ -149,7 +139,6 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                   className={card}
                   view={coach.data}
                   mode={mode}
-                  subject={explainSubject}
                 />
                 {/* 제목을 붙이지 않는다 — `ProfitPlan` 이 자기 제목을 그린다(두 번 나온다) */}
                 {modeView && (

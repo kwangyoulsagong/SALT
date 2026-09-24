@@ -69,8 +69,10 @@ export class PrismaMarketAssetRepository implements MarketAssetRepository {
       select: {
         symbol: true,
         assetType: true,
+        koreanName: true,
         currentPrice: true,
         change24h: true,
+        tradeValue24h: true,
         priceUpdatedAt: true,
       },
     });
@@ -78,8 +80,10 @@ export class PrismaMarketAssetRepository implements MarketAssetRepository {
     return rows.map((row) => ({
       symbol: row.symbol,
       assetType: row.assetType,
+      koreanName: row.koreanName,
       currentPrice: row.currentPrice === null ? null : Number(row.currentPrice),
       change24h: row.change24h === null ? null : Number(row.change24h),
+      tradeValue24h: row.tradeValue24h === null ? null : Number(row.tradeValue24h),
       priceUpdatedAt: row.priceUpdatedAt,
     }));
   }
