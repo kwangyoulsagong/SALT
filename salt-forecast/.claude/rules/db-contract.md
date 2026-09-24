@@ -31,7 +31,8 @@
 | `prediction` | (symbol, horizon_weeks, as_of, model_version) | q10~q90 · p_up · 규칙 가격 도달 확률 |
 | `score` | (symbol, horizon_weeks, as_of, model_version) | 실현 r · 적중 여부 · pinball — 기준 모델도 같은 표 |
 | `gate` | (symbol, horizon_weeks) | 최신 판정 · `blocked_reason` · 26주 지표 요약 |
-| `v_symbol_facts` · `v_symbol_actors` · `v_forecast_card` | 뷰 | **서버가 읽는 계약** |
+| `realized_vol` | (symbol, as_of) | 실현 변동성 EWMA · GARCH 도전자 · QLIKE 채점 · 게이트(`FC-REQ-006`) |
+| `v_symbol_facts` · `v_symbol_actors` · `v_forecast_card` · `v_realized_vol` | 뷰 | **서버가 읽는 계약** |
 
 - 수치는 `numeric`(금액) · `double precision`(수익률 · 확률). 금액을 float 로 저장하지 않는다.
 - 시각은 전부 `timestamptz`, UTC 저장. 표시 시간대는 서버 · 프론트 몫.
