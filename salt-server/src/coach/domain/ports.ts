@@ -439,7 +439,7 @@ export interface ForecastReader {
   eventCards(symbol: string): Promise<EventCardRow[]>;
   /**
    * 종목 실현 변동성(연율) — 사이즈 계산의 변동성 타깃(FEATURE-009 FR-5).
-   * `forecast.realized_vol` 은 슬라이스 2(`FC-REQ-006`)가 만든다. 그전에는 `null` — 0 이 아니다
+   * 원천은 `forecast.v_realized_vol`(`FC-REQ-006`). 막혔거나 오래됐으면 `null` — 0 이 아니다
    */
   realizedVolatility(symbol: string): Promise<RealizedVolatility | null>;
 }

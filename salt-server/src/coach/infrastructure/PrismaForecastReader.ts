@@ -1,3 +1,4 @@
+import Decimal from "decimal.js";
 import prisma from "../../shared/infrastructure/prisma";
 import type { EventCardRow, ForecastCardRow, ForecastReader, RealizedVolatility } from "../domain";
 
@@ -152,11 +153,17 @@ export class PrismaForecastReader implements ForecastReader {
   }
 
   /**
-   * 실현 변동성 — **아직 원천이 없다.** `forecast.realized_vol` 은 FEATURE-009 슬라이스 2(`FC-REQ-006`)가
-   * 만든다. 없는 테이블을 조회하면 매 요청이 에러 로그가 된다. 그래서 지금은 `null` 이고, 사이즈 계산은
-   * 변동성 타깃 칸을 `insufficient_data` 로 준다(0 이 아니다). 슬라이스 2 에서 이 메서드만 바꾼다.
+   * 실현 변동성 — `forecast.v_realized_vol`(FC-REQ-006, EWMA λ 0.94 · 연율 365일). 종목별 최신 한 행.
+   * 막힌 행(`annualized` null — 이력 부족 · 기준 대비 실력 없음 · 시세 끊김)과 3일 넘게 갱신 안 된 행은 `null` 이다.
+   * 사이즈 계산은 그때 변동성 타깃 칸을 `insufficient_data` 로 준다(0 이 아니다).
    */
-  async realizedVolatility(_symbol: string): Promise<RealizedVolatility | null> {
-    return null;
+  async realizedVolatility(symbol: string): Promise<RealizedVolatility | null> {
+    const rows = await prisma.$queryRaw<{ annualized: number | null; as_of: Date }[]>`
+      SELECT annualized, as_of FROM forecast.v_realized_vol
+      WHERE symbol = ${`KRW-${symbol}`} AND as_of >= now() - interval '3 days'
+    `;
+    const row = rows[0];
+    if (!row || row.annualized === null || !(row.annualized > 0)) return null;
+    return { annualized: new Decimal(row.annualized.toString()), asOf: row.as_of };
   }
 }

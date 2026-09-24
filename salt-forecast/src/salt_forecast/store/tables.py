@@ -198,4 +198,24 @@ event_reaction_stats = Table(
     Column("blocked_reason", Text),
 )
 
+realized_vol = Table(
+    "realized_vol",
+    metadata,
+    Column("symbol", Text, primary_key=True),
+    Column("as_of", DateTime(timezone=True), primary_key=True),
+    Column("last_bar_at", DateTime(timezone=True)),
+    Column("sample", Integer, nullable=False),
+    Column("ewma", Float),
+    Column("garch", Float),
+    Column("garch_alpha", Float),
+    Column("garch_beta", Float),
+    Column("qlike_ewma", Float),
+    Column("qlike_garch", Float),
+    Column("qlike_baseline", Float),
+    Column("method", Text),
+    Column("annualized", Float),
+    Column("blocked_reason", Text),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)
+
 QUANTILE_COLUMNS = _Q

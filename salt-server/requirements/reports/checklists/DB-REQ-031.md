@@ -16,4 +16,17 @@
 | `EXPLAIN (ANALYZE)` 인덱스 사용 | 새 테이블이 비어 있어 계획기가 순차 스캔을 고른다 — 의미 있는 계획이 안 나온다 | 계획 행이 쌓인 뒤(슬라이스 4 배치 도입 시) |
 | 운영 DB 적용 · 락 시간 | 운영 DB 미접근. `ADD COLUMN` nullable · 기본값 상수라 테이블 재작성 없음(PG 11+) | 운영 배포 |
 | `decision_outcomes` 쓰기 경로 | 슬라이스 4 | `SRV-REQ-038` FR-9 |
-| `forecast.realized_vol` | 슬라이스 2 | `FC-REQ-006` · 이 REQ FR-8 |
+
+## 슬라이스 2 — FR-8 `forecast.realized_vol` (2026-09-24)
+
+| 확인 | 결과 |
+|---|---|
+| 마이그레이션 | `20260924170000_forecast_realized_vol` 로컬 적용(`migrate deploy`) · 추가만(테이블 1 · 인덱스 1 · 뷰 1) |
+| Python 선언 대조 | `salt-forecast/tests/store/test_schema_contract.py` 실 DB 로 통과 |
+| 쓰기 | Python 작업 2회 → 289행 그대로(멱등) · CHECK 위반 0 |
+| 서버 읽기 경로 | `EXPLAIN (ANALYZE, BUFFERS)` 0.027ms — `realized_vol_latest` 인덱스 · shared hit 4 |
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| DB 역할 권한(`salt_forecast` 쓰기 · 서버 SELECT) | 로컬은 한 역할 — 기존 `forecast` 테이블과 같은 상태 | 운영 역할 분리 시(`DB-REQ-029`) |
+| 운영 DB 적용 | 미접근 | 운영 배포 |

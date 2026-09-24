@@ -35,11 +35,12 @@ FEATURE-009 의 "계획 · 사이즈 · 행동 미러"가 쓸 저장소. 슬라�
 | FR-5 | `trade_plans` 인덱스 `(user_id, symbol, planned_at DESC)` · `(transaction_id)` | 완료(슬라이스 1) |
 | FR-6 | `decision_outcomes` — 청산 거래당 1행(`closing_transaction_id` UNIQUE, FK CASCADE) · `plan_id?`(FK SET NULL) · 보유 기간 · 수량 · 순손익(원) · 수수료 · 순수익률 · `r_multiple?` · `benchmark_return?` · 준수 라벨 · 자동 태그 · 사용자 태그 · 확정 시각 · `sample_origin` · `computed_at` | 완료(슬라이스 1, 쓰기는 슬라이스 4) |
 | FR-7 | `decision_outcomes` 인덱스 `(user_id, closed_at DESC)` · `(plan_id)` | 완료(슬라이스 1) |
-| FR-8 | `forecast.realized_vol`(종목 · 일 · EWMA · GARCH) — Python 이 쓰고 서버가 읽는다 | to-do(슬라이스 2 · `FC-REQ-006`) |
+| FR-8 | `forecast.realized_vol`(종목 · 일 · EWMA · GARCH · QLIKE 채점 · 게이트) + 뷰 `forecast.v_realized_vol`(종목별 최신 1행) — Python 이 쓰고 서버가 뷰로 읽는다. CHECK: `annualized` null ⇔ `blocked_reason` 있음 · `annualized > 0` · `method` 값 | 완료(슬라이스 2, `20260924170000_forecast_realized_vol`) |
 
 ## 롤백
 
-추가만 했다. `DROP TABLE decision_outcomes; DROP TABLE trade_plans;` + 프로필 6컬럼 `DROP COLUMN` (마이그레이션 머리 주석).
+추가만 했다. 슬라이스 2: `DROP VIEW forecast.v_realized_vol; DROP TABLE forecast.realized_vol;`.
+슬라이스 1: `DROP TABLE decision_outcomes; DROP TABLE trade_plans;` + 프로필 6컬럼 `DROP COLUMN` (마이그레이션 머리 주석).
 원장 3종(`portfolio_transactions` · `portfolio_holdings` · `price_history`) 행은 건드리지 않는다.
 
 ## Changelog
@@ -47,3 +48,4 @@ FEATURE-009 의 "계획 · 사이즈 · 행동 미러"가 쓸 저장소. 슬라�
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-24 | 신설 · 슬라이스 1 FR-1~7 구현(`20260924150000_coach_trade_plan_risk_budget`). 근거 `reports/checklists/DB-REQ-031.md` |
+| 2026-09-24 | 슬라이스 2 FR-8 — `forecast.realized_vol` · `v_realized_vol`(`20260924170000_forecast_realized_vol`, `FC-REQ-006`) |
