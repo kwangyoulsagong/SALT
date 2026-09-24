@@ -39,6 +39,14 @@ interface CardSqlRow {
  * 그래서 `$queryRaw` 다. 심볼은 코치 모양 `BTC` → 전망 모양 `KRW-BTC`.
  */
 export class PrismaForecastReader implements ForecastReader {
+  async recentCloses(symbol: string, days: number): Promise<{ date: string; close: number }[]> {
+    const rows = await prisma.$queryRaw<{ open_time: Date; close: string }[]>`
+      SELECT open_time, close::text AS close FROM forecast.v_daily_close
+      WHERE symbol = ${`KRW-${symbol}`} ORDER BY open_time DESC LIMIT ${days}
+    `;
+    return rows.reverse().map((r) => ({ date: r.open_time.toISOString().slice(0, 10), close: Number(r.close) }));
+  }
+
   async cards(symbol: string): Promise<ForecastCardRow[]> {
     const rows = await prisma.$queryRaw<CardSqlRow[]>`
       SELECT horizon_weeks, as_of, model_version, base_close::text AS base_close,

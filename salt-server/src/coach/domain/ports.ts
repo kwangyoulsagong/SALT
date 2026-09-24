@@ -412,4 +412,6 @@ export type Clock = () => Date;
  */
 export interface ForecastReader {
   cards(symbol: string): Promise<ForecastCardRow[]>;
+  /** 전망이 쓴 일봉 종가(오래된 → 최근). 차트의 과거 선 — `forecast.v_daily_close` */
+  recentCloses(symbol: string, days: number): Promise<{ date: string; close: number }[]>;
 }

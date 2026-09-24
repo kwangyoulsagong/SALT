@@ -7,8 +7,13 @@ import {
   type PortfolioProbe,
 } from "../domain";
 
+/** 차트 과거 선의 길이 — 4주 전망 옆에 8주를 둔다(과거 : 미래 = 2 : 1) */
+export const FORECAST_HISTORY_DAYS = 56;
+
 export interface SymbolForecastView {
   symbol: string;
+  /** 과거 일봉 종가 — 차트의 실선. 전망의 기준가와 같은 원천이다 */
+  history: { date: string; close: number }[];
   horizons: ForecastHorizonView[];
   /** 화면 하단 고정 문구의 근거 — 방향 예측이 아니라 과거 채점된 변동 범위다 */
   label: "변동 범위 (방향 예측 아님)";
@@ -41,9 +46,10 @@ export class GetSymbolForecast {
   async execute(user: { userId: string; email?: string }, symbol: string): Promise<SymbolForecastView> {
     if (!isForecastOwner(user.email, this.ownerEmails)) throw new ForecastNotAvailableError();
     const normalized = symbol.trim().toUpperCase();
-    const [rows, holding] = await Promise.all([
+    const [rows, holding, history] = await Promise.all([
       this.forecasts.cards(normalized),
       this.portfolio.getHolding(user.userId, normalized),
+      this.forecasts.recentCloses(normalized, FORECAST_HISTORY_DAYS),
     ]);
     const horizons = [1, 2, 3, 4].map((h) => {
       const row = rows.find((r) => r.horizonWeeks === h);
@@ -61,6 +67,6 @@ export class GetSymbolForecast {
             modelVersion: "",
           };
     });
-    return { symbol: normalized, horizons, label: "변동 범위 (방향 예측 아님)", disclaimer: DISCLAIMER };
+    return { symbol: normalized, history, horizons, label: "변동 범위 (방향 예측 아님)", disclaimer: DISCLAIMER };
   }
 }

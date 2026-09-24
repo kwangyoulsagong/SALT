@@ -9,6 +9,7 @@ const reader = (calls: string[]): ForecastReader => ({
     calls.push(symbol);
     return [];
   },
+  recentCloses: async () => [{ date: "2026-09-22", close: 100 }],
 });
 const portfolio = { getHolding: async () => null } as unknown as PortfolioProbe;
 
