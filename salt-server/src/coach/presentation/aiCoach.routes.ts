@@ -23,6 +23,8 @@ const EXPLAIN_RATE_LIMIT = { windowMs: 60_000, max: 10 };
 export const createAICoachRouter = (useCases: CoachUseCases): Router => {
   const router = Router();
   const controller = new AICoachController(useCases);
+  // 단건 · 스트림이 **한 한도**를 나눠 쓴다 — 따로 두면 분당 20회가 된다
+  const explainLimit = rateLimit(EXPLAIN_RATE_LIMIT);
 
   /**
    * @swagger
@@ -73,8 +75,31 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
   router.post(
     "/explain",
     authMiddleware,
-    rateLimit(EXPLAIN_RATE_LIMIT),
+    explainLimit,
     controller.explain
+  );
+
+  /**
+   * @swagger
+   * /api/ai-coach/explain/stream:
+   *   post:
+   *     summary: 해설 스트림 (SSE) — 템플릿 문장을 먼저 흘리고, 검증을 통과한 LLM 문장으로 바꾼다
+   *     tags: [AI Coach]
+   *     security: [{ bearerAuth: [] }]
+   *     description: |
+   *       본문은 `/explain` 과 같다. 이벤트 — message.start · message.step · message.blocked · message.card ·
+   *       message.delta · message.replace · message.done · message.error · ping. 분당 한도는 `/explain` 과 같다.
+   *     responses:
+   *       200: { description: text/event-stream }
+   *       400: { description: 요청 검증 실패 }
+   *       401: { description: 인증 필요 }
+   *       429: { description: 분당 10회 초과 }
+   */
+  router.post(
+    "/explain/stream",
+    authMiddleware,
+    explainLimit,
+    controller.explainStream
   );
 
   router.use(authMiddleware);

@@ -21,4 +21,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | FR-6 | `forecast.v_forecast_card` **뷰만** `$queryRaw` 로 읽는다 | 완료 |
 | FR-7 | 해설 검증기(숫자 대조 · 금지어 · 명령형) · 템플릿 해설 · 기존 규칙 문장 명령형 수정 | 완료(17a-2) |
 | FR-9 | 응답에 `history` — 전망이 쓴 것과 **같은** 일봉(업비트 1d) 최근 56개, `forecast.v_daily_close` 뷰로 읽는다 | 완료 |
-| FR-8 | SSE 스트림 해설 | 17a-2 이후 |
+| FR-8 | SSE 스트림 해설 `POST /api/ai-coach/explain/stream` — 템플릿 먼저 흘리고(delta), 같은 시각 출발한 LLM 이 검증을 통과하면 `replace`. 단계 이벤트는 실제 작업 경계에서만. LLM 원문은 흐르지 않는다. 15초 ping · 끊기면 LLM 까지 중단 · 한도는 단건과 공유 | 완료(2026-09-24) |
