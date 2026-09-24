@@ -30,6 +30,10 @@ class MemoryProfiles implements CoachProfileStore {
       panicSellWindowHours: 24,
       defaultMode: null,
       notificationLevel: null,
+      monthlyLossBudget: null,
+      perTradeMaxLoss: null,
+      targetVolatility: null,
+      hidePurchasePrice: false,
       ...this.row,
       ...defined,
     };
@@ -69,5 +73,16 @@ describe("ManageCoachProfile", () => {
 
     assert.equal(view.defaultMode, "long_term");
     assert.equal(view.notificationLevel, "high");
+  });
+
+  it("매입가 숨김이 저장되고, 리스크 예산은 이 응답에 없다(F009 — /coach/risk-budget 이 준다)", async () => {
+    const store = new MemoryProfiles();
+    const view = await new UpdateCoachProfile(store).execute("u1", { hidePurchasePrice: true });
+
+    assert.equal(view.hidePurchasePrice, true);
+    assert.equal(store.row?.hidePurchasePrice, true);
+    assert.equal("monthlyLossBudget" in view, false);
+    assert.equal("perTradeMaxLoss" in view, false);
+    assert.equal("targetVolatility" in view, false);
   });
 });

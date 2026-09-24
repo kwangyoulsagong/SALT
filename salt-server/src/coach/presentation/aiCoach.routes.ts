@@ -137,6 +137,9 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *                       enum: [low, medium, high]
    *                       example: medium
    *                       description: 저장된 값. 고른 적이 없으면 기본값 medium
+   *                     hidePurchasePrice:
+   *                       type: boolean
+   *                       description: 매입가 숨김(F009 FR-27). 기본 false. 리스크 예산은 이 응답에 없다 — GET /api/coach/risk-budget
    *                     supportedModes:
    *                       type: array
    *                       items:
@@ -184,6 +187,9 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *               notificationLevel:
    *                 type: string
    *                 enum: [low, medium, high]
+   *               hidePurchasePrice:
+   *                 type: boolean
+   *                 description: 매입가 숨김(F009 FR-27)
    *     responses:
    *       200:
    *         description: 프로필 저장 성공

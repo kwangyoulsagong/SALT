@@ -1,5 +1,5 @@
 import prisma from "../../shared/infrastructure/prisma";
-import type { EventCardRow, ForecastCardRow, ForecastReader } from "../domain";
+import type { EventCardRow, ForecastCardRow, ForecastReader, RealizedVolatility } from "../domain";
 
 interface CardSqlRow {
   horizon_weeks: number;
@@ -149,5 +149,14 @@ export class PrismaForecastReader implements ForecastReader {
         recentMisses: r.recent_misses ?? [],
       };
     });
+  }
+
+  /**
+   * 실현 변동성 — **아직 원천이 없다.** `forecast.realized_vol` 은 FEATURE-009 슬라이스 2(`FC-REQ-006`)가
+   * 만든다. 없는 테이블을 조회하면 매 요청이 에러 로그가 된다. 그래서 지금은 `null` 이고, 사이즈 계산은
+   * 변동성 타깃 칸을 `insufficient_data` 로 준다(0 이 아니다). 슬라이스 2 에서 이 메서드만 바꾼다.
+   */
+  async realizedVolatility(_symbol: string): Promise<RealizedVolatility | null> {
+    return null;
   }
 }

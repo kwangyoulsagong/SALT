@@ -1,5 +1,9 @@
+import type { Prisma } from "@prisma/client";
+import Decimal from "decimal.js";
+
 import prisma from "../../shared/infrastructure/prisma";
 import type {
+  BudgetSetting,
   CoachMode,
   CoachProfile,
   CoachProfileStore,
@@ -28,6 +32,31 @@ const toMode = (value: string | null): CoachMode | null =>
 const toNotificationLevel = (value: string | null): NotificationLevel | null =>
   value === "low" || value === "medium" || value === "high" ? value : null;
 
+/**
+ * 예산 두 컬럼(값 · 단위)을 하나로. 둘 중 하나라도 비었거나 단위를 모르면 **정하지 않은 것**이다 —
+ * DB CHECK 가 짝을 지키지만, 읽는 쪽도 반쪽 값을 예산으로 쓰지 않는다.
+ */
+const toBudget = (
+  amount: Prisma.Decimal | null,
+  unit: string | null
+): BudgetSetting | null =>
+  amount !== null && (unit === "krw" || unit === "percent")
+    ? { amount: new Decimal(amount.toString()), unit }
+    : null;
+
+/** `undefined` 는 건드리지 않음, `null` 은 지움 — 두 컬럼을 같이 쓴다 */
+const budgetData = (
+  setting: BudgetSetting | null | undefined,
+  amountKey: "monthlyLossBudget" | "perTradeMaxLoss",
+  unitKey: "monthlyLossBudgetUnit" | "perTradeMaxLossUnit"
+) =>
+  setting === undefined
+    ? {}
+    : {
+        [amountKey]: setting ? setting.amount.toFixed() : null,
+        [unitKey]: setting ? setting.unit : null,
+      };
+
 const toDomain = (row: {
   userId: string;
   riskTolerance: string;
@@ -36,6 +65,12 @@ const toDomain = (row: {
   panicSellWindowHours: number;
   defaultMode: string | null;
   notificationLevel: string | null;
+  monthlyLossBudget: Prisma.Decimal | null;
+  monthlyLossBudgetUnit: string | null;
+  perTradeMaxLoss: Prisma.Decimal | null;
+  perTradeMaxLossUnit: string | null;
+  targetVolatility: Prisma.Decimal | null;
+  hidePurchasePrice: boolean;
   createdAt: Date;
   updatedAt: Date;
 }): CoachProfile => ({
@@ -46,6 +81,11 @@ const toDomain = (row: {
   panicSellWindowHours: row.panicSellWindowHours,
   defaultMode: toMode(row.defaultMode),
   notificationLevel: toNotificationLevel(row.notificationLevel),
+  monthlyLossBudget: toBudget(row.monthlyLossBudget, row.monthlyLossBudgetUnit),
+  perTradeMaxLoss: toBudget(row.perTradeMaxLoss, row.perTradeMaxLossUnit),
+  targetVolatility:
+    row.targetVolatility === null ? null : new Decimal(row.targetVolatility.toString()),
+  hidePurchasePrice: row.hidePurchasePrice,
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
 });
@@ -82,6 +122,14 @@ export class PrismaCoachProfileStore implements CoachProfileStore {
       ...(patch.defaultMode ? { defaultMode: patch.defaultMode } : {}),
       ...(patch.notificationLevel
         ? { notificationLevel: patch.notificationLevel }
+        : {}),
+      ...budgetData(patch.monthlyLossBudget, "monthlyLossBudget", "monthlyLossBudgetUnit"),
+      ...budgetData(patch.perTradeMaxLoss, "perTradeMaxLoss", "perTradeMaxLossUnit"),
+      ...(patch.targetVolatility !== undefined
+        ? { targetVolatility: patch.targetVolatility?.toFixed() ?? null }
+        : {}),
+      ...(patch.hidePurchasePrice !== undefined
+        ? { hidePurchasePrice: patch.hidePurchasePrice }
         : {}),
     };
 

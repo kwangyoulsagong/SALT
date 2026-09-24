@@ -47,26 +47,26 @@
 
 | ID | 요구사항 | 우선 | 상태 |
 |---|---|---|---|
-| FR-1 | `UserInvestmentProfile` 에 리스크 예산 3종을 추가한다: 월 허용 손실(`monthlyLossBudget`, 원 또는 총자산 %), 1회 거래 최대 손실(`perTradeMaxLoss`, 원 또는 %), 목표 연 변동성(`targetVolatility`, 기본 15%). 기존 `maxSingleAssetWeight` 를 한 종목 상한으로 재사용한다 | Must | Draft |
-| FR-2 | 3문항은 코치 대화 또는 설정에서 받는다. **필수가 아니다.** 비어 있으면 이를 쓰는 카드가 `기준을 정하면 보여요` 상태를 낸다(0 이나 기본값으로 채우지 않는다 — W03 원칙) | Must | Draft |
-| FR-3 | 예산 · 상한은 서버만 읽는다. 프론트 상수 금지(공통 수용 기준 3) | Must | Draft |
+| FR-1 | `UserInvestmentProfile` 에 리스크 예산 3종을 추가한다: 월 허용 손실(`monthlyLossBudget`, 원 또는 총자산 %), 1회 거래 최대 손실(`perTradeMaxLoss`, 원 또는 %), 목표 연 변동성(`targetVolatility`, 기본 15%). 기존 `maxSingleAssetWeight` 를 한 종목 상한으로 재사용한다 | Must | 서버 완료(S1) |
+| FR-2 | 3문항은 코치 대화 또는 설정에서 받는다. **필수가 아니다.** 비어 있으면 이를 쓰는 카드가 `기준을 정하면 보여요` 상태를 낸다(0 이나 기본값으로 채우지 않는다 — W03 원칙) | Must | 저장 완료(S1) · 입력 화면 S3/S6 |
+| FR-3 | 예산 · 상한은 서버만 읽는다. 프론트 상수 금지(공통 수용 기준 3) | Must | 서버 완료(S1) |
 
 ### B. 포지션 사이즈 계산(W03 흡수)
 
 | ID | 요구사항 | 우선 | 상태 |
 |---|---|---|---|
-| FR-4 | 거래 입력 폼에서 `종목 · 수량 · 단가 · 손절가` 가 있으면 서버가 계산한다: (a) **최대 손실 원화** = 수량 × (단가 − 손절가) + 수수료 · 갭 가정, (b) 1회 예산 대비 % · 월 예산 잔여 대비 %, (c) **예산 기준 참고 수량 상한** = min(1회 예산 ÷ (단가 − 손절가 + 단위 비용), 종목 상한 수량, 가용 현금 수량). 진입가 ≤ 손절가면 "손절가가 진입가보다 높아요" 상태 | Must | Draft |
-| FR-5 | **변동성 타깃 참고 비중** = 목표 변동성 ÷ 종목 실현 변동성(EWMA 또는 GARCH, `salt-forecast` 가 일 1회 계산해 `forecast` 스키마에 적재). 현재 비중과 나란히. "비중을 줄이세요"가 아니라 두 숫자만 | Must | Draft |
-| FR-6 | **분수 켈리**(선택 펼침): 사용자가 승률 · 손익비를 적으면 1/4 · 1/2 · 풀 켈리를 표시. 기본 표시는 1/4. 엣지 추정 오차 경고 문장 고정. 입력이 없으면 섹션 자체가 없다 | Should | Draft |
-| FR-7 | **N연패 시 낙폭** = 참고 수량 기준 "이 크기로 5번 연속 손절이면 −X원(예산의 Y%)" | Should | Draft |
-| FR-8 | 모든 금액은 서버 Decimal. 프론트는 표시. 음수 · NaN · 통화 혼합 · 현금 초과 차단(W03 수용) | Must | Draft |
+| FR-4 | 거래 입력 폼에서 `종목 · 수량 · 단가 · 손절가` 가 있으면 서버가 계산한다: (a) **최대 손실 원화** = 수량 × (단가 − 손절가) + 수수료 · 갭 가정, (b) 1회 예산 대비 % · 월 예산 잔여 대비 %, (c) **예산 기준 참고 수량 상한** = min(1회 예산 ÷ (단가 − 손절가 + 단위 비용), 종목 상한 수량, 가용 현금 수량). 진입가 ≤ 손절가면 "손절가가 진입가보다 높아요" 상태 | Must | 서버 완료(S1) · 가용 현금 제외 |
+| FR-5 | **변동성 타깃 참고 비중** = 목표 변동성 ÷ 종목 실현 변동성(EWMA 또는 GARCH, `salt-forecast` 가 일 1회 계산해 `forecast` 스키마에 적재). 현재 비중과 나란히. "비중을 줄이세요"가 아니라 두 숫자만 | Must | 계약 완료(S1) · 변동성 원천 S2 |
+| FR-6 | **분수 켈리**(선택 펼침): 사용자가 승률 · 손익비를 적으면 1/4 · 1/2 · 풀 켈리를 표시. 기본 표시는 1/4. 엣지 추정 오차 경고 문장 고정. 입력이 없으면 섹션 자체가 없다 | Should | 서버 완료(S1) |
+| FR-7 | **N연패 시 낙폭** = 참고 수량 기준 "이 크기로 5번 연속 손절이면 −X원(예산의 Y%)" | Should | 서버 완료(S1) |
+| FR-8 | 모든 금액은 서버 Decimal. 프론트는 표시. 음수 · NaN · 통화 혼합 · 현금 초과 차단(W03 수용) | Must | 서버 완료(S1) |
 
 ### C. 계획 기록 · 준수(W06 흡수)
 
 | ID | 요구사항 | 우선 | 상태 |
 |---|---|---|---|
-| FR-9 | 새 모델 `TradePlan`: `transactionId`(nullable — 거래 전 계획 가능), `symbol`, `side`, `stopPrice?`, `targetPrice?`, `thesis?`(한 줄), `invalidation?`(무효화 조건 한 줄), `reviewAt?`, `probabilityUp?`(0~1, 사용자가 적는 "오를 확률"), `plannedAt`, `sampleOrigin = live` | Must | Draft |
-| FR-10 | 거래 입력 폼의 "계획(선택)" 접힘 섹션이 `TradePlan` 을 같이 만든다. **어떤 필드도 필수가 아니다.** 손절가가 없으면 FR-4 · FR-11 이 `계산 불가` | Must | Draft |
+| FR-9 | 새 모델 `TradePlan`: `transactionId`(nullable — 거래 전 계획 가능), `symbol`, `side`, `stopPrice?`, `targetPrice?`, `thesis?`(한 줄), `invalidation?`(무효화 조건 한 줄), `reviewAt?`, `probabilityUp?`(0~1, 사용자가 적는 "오를 확률"), `plannedAt`, `sampleOrigin = live` | Must | 서버 완료(S1) |
+| FR-10 | 거래 입력 폼의 "계획(선택)" 접힘 섹션이 `TradePlan` 을 같이 만든다. **어떤 필드도 필수가 아니다.** 손절가가 없으면 FR-4 · FR-11 이 `계산 불가` | Must | API 완료(S1) · 폼 S3 |
 | FR-11 | **준수 판정**(서버 배치, 일 1회): 손절가가 있고 이후 종가가 손절가 아래로 갔는데 매도 기록이 없으면 `stop_not_honored`, 매도 기록이 손절가 −5% 이하면 `stop_slipped`, 계획 수량 초과 매수는 `size_exceeded`. 판정은 **정보 라벨**이고 사용자는 태그를 고칠 수 있다(수동 입력 지연 · 오류 보정). 원본 판정과 사용자 수정은 둘 다 남긴다(W06 — 이전 판단을 다시 쓰지 않는다) | Must | Draft |
 | FR-12 | **준수율** = 판정 가능한 계획 중 위반 라벨이 없는 비율. 함께 `준수 거래 평균 수익` vs `위반 거래 평균 수익`(비용 후). 표본 < 20 이면 `표본 부족` | Must | Draft |
 | FR-13 | 계획에 적은 `probabilityUp` 을 관찰 기간(계획의 `reviewAt` 또는 30일) 뒤 방향으로 **Brier** 채점. 코치 전망과 같은 스키마(`forecast` 스코어카드) | Should | Draft |
@@ -78,7 +78,7 @@
 |---|---|---|---|
 | FR-15 | **처분효과 미러**: 이익 실현 비율(PGR) vs 손실 실현 비율(PLR) · 익절 평균 보유일 vs 손절 평균 보유일. Odean 정의 그대로. 표본 < 20 이면 표본 부족 | Must | Draft |
 | FR-16 | **벤치마크 대비**: 첫 거래일부터 "그냥 들고 있었으면"(초기 보유 · 이후 순입금은 같은 날 매수 가정) vs 실제 순자산. 차이를 수수료 · 타이밍으로 가능한 범위에서 분해. 계산은 TWR(W04 원칙) | Must | Draft |
-| FR-17 | **회전율 · 비용 미터**: 연환산 회전율 · 누적 수수료 · 기준선(자본시장연구원 2020 개인 일 1.4% 등 — **서버 상수**, 출처 표기) | Must | Draft |
+| FR-17 | **회전율 · 비용 미터**: 연환산 회전율 · 누적 수수료 · 기준선(자본시장연구원 2020 개인 일 1.4% 등 — **서버 상수**, 출처 표기) | Must | 게이지 완료(S1) · 기준선 S4 |
 | FR-18 | **실수 태그 · 비용 회계**: `DecisionOutcome` 에 태그(`chasing` · `averaging_down` · `revenge` · `off_plan` · `late_night` · 사용자 정의). 서버가 자동 후보를 붙이고(추격 = 48h 고점 98% 이상 매수, 물타기 = 평단 아래 추가 매수, 복수 = 손실 청산 후 24h 내 같은 종목 재진입, 계획 외 = `TradePlan` 없음) 사용자가 확정 · 수정. **태그별 손익 합계(원)** | Must | Draft |
 | FR-19 | **엣지 없음 배지**: 태그 · 유형별 기대값(R 또는 %)이 표본 ≥ 20 에서 음이면 그 유형에 배지. 다음 거래 입력 폼에서 같은 자동 태그 후보가 붙으면 배지를 한 줄로 보여 준다(차단 아님) | Should | Draft |
 | FR-20 | **연승 · 연패 상태**: 최근 청산 N건 연속 이익/손실을 정보로 표시("4연승 뒤 사이즈가 커지는 패턴이 있어요"는 본인 데이터에서 실제 관찰될 때만) | Could | Draft |
@@ -89,11 +89,11 @@
 
 | ID | 요구사항 | 우선 | 상태 |
 |---|---|---|---|
-| FR-23 | **낙폭 예산 게이지**: 이번 달 실현 + 미실현 손익 합이 월 예산의 몇 % 인지. 소진 100% 넘어도 아무것도 막지 않는다 — 게이지 색만 | Must | Draft |
-| FR-24 | **집중도**: 종목 비중 vs 내 상한(기존 `portfolioState.ts`). C07 대로 "종목 집중도"로 이름을 한정한다 | Must | Draft |
+| FR-23 | **낙폭 예산 게이지**: 이번 달 실현 + 미실현 손익 합이 월 예산의 몇 % 인지. 소진 100% 넘어도 아무것도 막지 않는다 — 게이지 색만 | Must | 서버 완료(S1) |
+| FR-24 | **집중도**: 종목 비중 vs 내 상한(기존 `portfolioState.ts`). C07 대로 "종목 집중도"로 이름을 한정한다 | Must | 서버 완료(S1) |
 | FR-25 | **시나리오**: "BTC −10 / −30 / −50% 면 원화로 얼마" + 보유 전체 합. 과거 최악 구간(2022-11 등) 재현 손실. 확률은 붙이지 않는다(W03) | Should | Draft |
 | FR-26 | CVaR · 공분산 위험 기여도는 **주식 확장 시**. 지금은 BTC + 소수 코인이라 집중도 + 시나리오로 충분(Open Question) | Could | Draft |
-| FR-27 | **매입가 숨김 토글**: 포지션 · 상세에서 평단 · 손익률 · 손익금 숨김. 상태는 사용자 설정(서버 저장). 켜져 있으면 "오늘 처음 본다면?" 한 줄 | Should | Draft |
+| FR-27 | **매입가 숨김 토글**: 포지션 · 상세에서 평단 · 손익률 · 손익금 숨김. 상태는 사용자 설정(서버 저장). 켜져 있으면 "오늘 처음 본다면?" 한 줄 | Should | 저장 완료(S1) · 화면 S3 |
 
 ### F. 복기(월간) · 코치 대화
 
@@ -170,13 +170,13 @@ FSD: `entities/coach`(표시) ← `features/record-transaction` · `features/edi
 
 | Method | Path | Auth | Request | Response | Status |
 |---|---|---|---|---|---|
-| POST | `/api/app/coach/size-check` | Y | `{symbol, side, quantity, price, stopPrice?}` | `{maxLossKrw, perTradeBudgetPct, monthlyBudgetRemainingPct, referenceMaxQuantity, volTargetWeight, currentWeight, status, asOf}` | Draft |
-| POST | `/api/app/coach/plans` | Y | `TradePlan` 필드(전부 선택) | 생성된 계획 | Draft |
-| PATCH | `/api/app/coach/plans/:id` | Y | 부분 수정 · 태그 수정 | | Draft |
-| GET | `/api/app/coach/plans?symbol=` | Y | | 종목별 계획 + 준수 라벨 | Draft |
+| POST | `/api/app/coach/size-check` | Y | `{symbol, side, quantity, price, stopPrice?, winRate?, payoffRatio?}` | `{status, maxLossKrw, perTradeBudgetRate, monthlyBudgetRemainingRate, referenceMaxQuantity{value, limitedBy}, volTargetWeight, currentWeight, projectedWeight, consecutiveLoss, kelly, unavailable, assumptions, asOf}` — 비율은 소수(0.28 = 28%, 기존 `*Rate` 규칙) | 서버 완료(S1) |
+| POST | `/api/app/coach/plans` | Y | `TradePlan` 필드(종목 · 방향 외 전부 선택) | 생성된 계획 | 서버 완료(S1) |
+| PATCH | `/api/app/coach/plans/:id` | Y | 부분 수정 · 거래 연결(1회). 연결 뒤 손절가 · 계획 수량 · 오를 확률은 409. 태그 수정은 S4 | | 서버 완료(S1, 태그 제외) |
+| GET | `/api/app/coach/plans?symbol=` | Y | | 종목별 계획 + 준수 라벨(라벨은 S4) | 서버 완료(S1) |
 | GET | `/api/app/coach/mirror` | Y | | 처분효과 · 벤치마크 · 회전율 · 준수율 · 태그 비용 · 엣지 배지 — 각 `{value, sampleSize, status}` | Draft |
-| GET | `/api/app/coach/risk-budget` | Y | | 게이지 3 + 시나리오 | Draft |
-| PUT | `/api/app/coach/risk-budget` | Y | `{monthlyLossBudget?, perTradeMaxLoss?, targetVolatility?}` | | Draft |
+| GET | `/api/app/coach/risk-budget` | Y | | 게이지 3(시나리오는 S6) | 서버 완료(S1) |
+| PUT | `/api/app/coach/risk-budget` | Y | `{monthlyLossBudget?: {amount, unit: krw\|percent} \| null, perTradeMaxLoss?, targetVolatility?}` — `null` 은 지움 | GET 과 같음 | 서버 완료(S1) |
 | GET | `/api/app/coach/review/monthly?month=` | Y | | 월간 복기(수치 + 템플릿 문장) | Draft |
 
 BFF 는 조립 · 격리만, 재계산 금지. 서버 경로는 `/api/coach/*` 동일 이름. 영역 REQ: `BFF-REQ-038`.
@@ -279,3 +279,4 @@ BFF 는 조립 · 격리만, 재계산 금지. 서버 경로는 `/api/coach/*` �
 | 2026-09-24 | 슬라이스 0 — **C02 완료**(해설 캐시 키 = 입력 전체 해시). 남음 C03 · C01 |
 | 2026-09-24 | 슬라이스 0 — **C03 완료**(숫자 검증 값 · 단위 · 방향 · 인과, 지표 이름은 C01 뒤). 남음 C01 |
 | 2026-09-24 | 슬라이스 0 — **C01 완료 · 슬라이스 0(C01~C06) 전부 완료.** 다음 슬라이스 1(`DB-REQ-031` · `SRV-REQ-038`) |
+| 2026-09-24 | **슬라이스 1 완료(서버 · DB, 화면 없음).** 사이즈 계산 · 계획 · 리스크 예산 API. 상태 열은 `(S1)` = 슬라이스 1 에서 된 부분. 계약 정정: 응답 비율 이름 `*Pct` → `*Rate`(소수), 참고 수량 상한에서 가용 현금 제외(현금 기록 없음), 연결된 계획의 채점 기준 잠금(409). 실제 MDD 는 슬라이스 4(평가금 곡선 필요). 루트 `requirements/specs/in-progress/F009-slice1-plan-sizing-slice.md`. 다음 슬라이스 2(`FC-REQ-006`) |

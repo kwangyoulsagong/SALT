@@ -1,3 +1,5 @@
+import type Decimal from "decimal.js";
+
 import type {
   CloseDistribution,
   CoachGenerationEntry,
@@ -11,6 +13,9 @@ import type {
   JudgmentOutcome,
   JudgmentTrackStats,
   ModeDecisionAction,
+  TradePlan,
+  TradePlanDraft,
+  TradePlanPatch,
   ZoneTimeframe,
 } from "./policy";
 import type {
@@ -19,6 +24,7 @@ import type {
   CoachHolding,
   CoachIndicator,
   CoachInsight,
+  CoachLedgerEntry,
   CoachMode,
   CoachProfile,
   CoachQuote,
@@ -189,6 +195,17 @@ export interface PortfolioProbe {
    * (`ddd-infrastructure.md` §3 — 목록으로 집계하지 않는다).
    */
   countTrades(userId: string): Promise<number>;
+  /**
+   * `since` 이후 거래 — 금액 계산용(월 손익 · 회전율). 코인만.
+   * `truncated` 가 참이면 `limit` 에 걸려 다 읽지 못했다 — 합을 만들면 거짓이 된다
+   */
+  listLedgerSince(
+    userId: string,
+    since: Date,
+    limit: number
+  ): Promise<{ entries: CoachLedgerEntry[]; truncated: boolean }>;
+  /** 거래 한 건. 남의 것이면 `null` — 계획 연결 검사용 */
+  findLedgerEntry(userId: string, transactionId: string): Promise<CoachLedgerEntry | null>;
 }
 
 export interface CoachArticleQuery {
@@ -420,4 +437,36 @@ export interface ForecastReader {
   recentCloses(symbol: string, days: number): Promise<{ date: string; close: number }[]>;
   /** 앞으로 35일 거시 일정 × 기간별 최신 반응 통계 — `forecast.v_event_card` (FC-REQ-005) */
   eventCards(symbol: string): Promise<EventCardRow[]>;
+  /**
+   * 종목 실현 변동성(연율) — 사이즈 계산의 변동성 타깃(FEATURE-009 FR-5).
+   * `forecast.realized_vol` 은 슬라이스 2(`FC-REQ-006`)가 만든다. 그전에는 `null` — 0 이 아니다
+   */
+  realizedVolatility(symbol: string): Promise<RealizedVolatility | null>;
+}
+
+export interface RealizedVolatility {
+  /** 연율 변동성(0.52 = 52%) */
+  annualized: Decimal;
+  asOf: Date;
+}
+
+/**
+ * 거래 계획 저장 — `trade_plans` (FEATURE-009 FR-9 · `DB-REQ-031`).
+ * 모든 조회 · 수정이 `userId` 로 좁혀진다 — 남의 계획은 "없다"와 구분되지 않는다.
+ */
+export interface TradePlanStore {
+  create(draft: TradePlanDraft): Promise<TradePlan>;
+  findOwned(userId: string, planId: string): Promise<TradePlan | null>;
+  /** 최신이 앞. `symbol` 이 없으면 전 종목 */
+  listOwned(userId: string, query: { symbol?: string; limit: number }): Promise<TradePlan[]>;
+  /**
+   * `requireUnlinked` 면 거래 미연결을 **쓰기 조건**으로 건다(검사 · 쓰기 사이 경합 차단).
+   * 소유 · 조건에 걸리면 `null`
+   */
+  update(
+    userId: string,
+    planId: string,
+    patch: TradePlanPatch,
+    guard: { requireUnlinked: boolean }
+  ): Promise<TradePlan | null>;
 }

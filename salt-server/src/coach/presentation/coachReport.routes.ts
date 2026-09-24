@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { authMiddleware } from "../../shared/presentation/authMiddleware";
 import type { CoachUseCases } from "../application/api";
+import { CoachRiskController } from "./coachRisk.controller";
 import { CoachToolsController } from "./coachTools.controller";
 
 /**
@@ -14,6 +15,7 @@ import { CoachToolsController } from "./coachTools.controller";
 export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
   const router = Router();
   const controller = new CoachToolsController(useCases);
+  const risk = new CoachRiskController(useCases);
 
   router.use(authMiddleware);
 
@@ -346,6 +348,203 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         description: 인증 실패
    */
   router.get("/generation-status", controller.getGenerationStatus);
+
+  /**
+   * @swagger
+   * /api/coach/size-check:
+   *   post:
+   *     summary: 포지션 사이즈 계산 (F009 FR-4~8)
+   *     description: |
+   *       수량 · 단가 · 손절가로 **이 크기가 내 예산에서 몇 %인지**를 계산한다. 금액은 서버 Decimal, 응답 직전 원 정수.
+   *
+   *       - 계산만 한다. 차단 · 게이트 · 주문 없음(`orderExecution: false`). 지시 문구 없음 — 참고 수량 · 참고 비중은 숫자만
+   *       - 못 구한 값은 `null` 이고 `unavailable.<필드>` 에 사유가 있다: `stop_price_missing` · `stop_not_below_entry` ·
+   *         `budget_not_set` · `no_portfolio_value` · `monthly_budget_exhausted` · `insufficient_data` · `not_applicable_sell`.
+   *         0 이나 기본값으로 채우지 않는다
+   *       - 최대 손실 = 수량 × ((단가 − 손절가) + (단가 + 손절가) × 수수료율). 갭(손절가 아래 체결)은 가정하지 않는다(`assumptions`)
+   *       - `referenceMaxQuantity` = min(1회 예산 ÷ 단위 손실, 한 종목 상한 수량). 가용 현금은 모른다(수동 입력 · 현금 기록 없음)
+   *       - `volTargetWeight` = 목표 변동성 ÷ 실현 변동성(최대 1). 실현 변동성은 F009 슬라이스 2 전까지 없다 → `insufficient_data`
+   *       - `winRate` · `payoffRatio` 를 함께 보내면 `kelly`(풀 · 1/2 · 1/4)가 붙는다. 음수면 `hasEdge: false`
+   *       - 비율은 소수(0.28 = 28%). 예산 · 비중은 코인 보유 평가금액 합 기준
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [symbol, side, quantity, price]
+   *             properties:
+   *               symbol: { type: string, example: BTC }
+   *               side: { type: string, enum: [buy, sell] }
+   *               quantity: { type: number, exclusiveMinimum: 0, example: 0.01 }
+   *               price: { type: number, exclusiveMinimum: 0, description: 원 }
+   *               stopPrice: { type: number, exclusiveMinimum: 0, description: 원. 없으면 손실 계열이 unavailable }
+   *               winRate: { type: number, exclusiveMinimum: 0, exclusiveMaximum: 1, description: payoffRatio 와 함께 }
+   *               payoffRatio: { type: number, exclusiveMinimum: 0, description: winRate 와 함께 }
+   *     responses:
+   *       200:
+   *         description: |
+   *           `{ symbol, side, status(ok|stop_not_below_entry|sell_side), maxLossKrw, lossPerUnitKrw, perTradeBudgetRate,
+   *           monthlyBudgetRemainingRate, monthlyBudgetRemainingKrw, referenceMaxQuantity{value,limitedBy}, volTargetWeight,
+   *           currentWeight, projectedWeight, consecutiveLoss{count,amountKrw,monthlyBudgetRate}, kelly, unavailable,
+   *           assumptions, volatilityAsOf, asOf, orderExecution }`
+   *       400: { description: 요청 검증 실패(음수 · NaN · 무한대 · 승률만 보냄) }
+   *       401: { description: 인증 실패 }
+   */
+  router.post("/size-check", risk.checkTradeSize);
+
+  /**
+   * @swagger
+   * /api/coach/risk-budget:
+   *   get:
+   *     summary: 리스크 예산 · 게이지 3종 (F009 FR-1~3 · FR-17 · FR-23~24)
+   *     description: |
+   *       사용자가 정한 예산(월 허용 손실 · 1회 최대 손실 · 목표 변동성)과 게이지 셋.
+   *
+   *       - `drawdown` — 이번 달(KST) 시가 평가 손익이 월 예산의 몇 % 인지. 월초 종가가 없는 월초 보유 종목이 있으면
+   *         `insufficient_data` + `missingCloses`. 예산이 없으면 `budget_not_set`(손익은 준다)
+   *       - `concentration` — 가장 큰 종목 비중 vs 한 종목 상한(종목 집중도. 자산군 쏠림이 아니다)
+   *       - `turnover` — 최근 365일 (매수 + 매도 대금) ÷ 2 ÷ 지금 평가금액, 올해 수수료. 기간 환산하지 않는다
+   *       - 예산을 넘어도 막지 않는다 — `status: exceeded` 뿐. 예산이 없으면 0 이 아니라 `null`
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200: { description: "`{ settings, totalValueKrw, gauges{drawdown,concentration,turnover}, monthStart, asOf }`" }
+   *       401: { description: 인증 실패 }
+   *   put:
+   *     summary: 리스크 예산 수정
+   *     description: 빠진 필드는 그대로, `null` 은 지운다(다시 "기준을 정하면 보여요"). 응답은 GET 과 같다
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               monthlyLossBudget:
+   *                 type: object
+   *                 nullable: true
+   *                 required: [amount, unit]
+   *                 properties:
+   *                   amount: { type: number, exclusiveMinimum: 0, description: krw 면 원, percent 면 0~1 비율 }
+   *                   unit: { type: string, enum: [krw, percent] }
+   *               perTradeMaxLoss:
+   *                 type: object
+   *                 nullable: true
+   *                 required: [amount, unit]
+   *                 properties:
+   *                   amount: { type: number, exclusiveMinimum: 0 }
+   *                   unit: { type: string, enum: [krw, percent] }
+   *               targetVolatility: { type: number, nullable: true, exclusiveMinimum: 0, maximum: 2, description: "연 비율(0.15 = 15%). null 이면 기본 15%" }
+   *     responses:
+   *       200: { description: GET 과 같은 응답 }
+   *       400: { description: 요청 검증 실패 }
+   *       401: { description: 인증 실패 }
+   */
+  router.get("/risk-budget", risk.getRiskBudget);
+  router.put("/risk-budget", risk.updateRiskBudget);
+
+  /**
+   * @swagger
+   * /api/coach/plans:
+   *   get:
+   *     summary: 내 거래 계획 목록 (F009 FR-9)
+   *     description: 최신 계획이 앞. 본인 것만
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: symbol
+   *         schema: { type: string, example: BTC }
+   *       - in: query
+   *         name: limit
+   *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+   *     responses:
+   *       200: { description: "`{ plans: TradePlan[] }`" }
+   *       401: { description: 인증 실패 }
+   *   post:
+   *     summary: 거래 계획 적기 (F009 FR-9~10)
+   *     description: |
+   *       종목 · 방향 말고는 전부 선택이다. `transactionId` 를 주면 그 거래(본인 · 같은 종목 · 같은 방향)에 연결한다.
+   *       연결된 계획은 `stopPrice` · `plannedQuantity` · `probabilityUp` 을 바꿀 수 없다(`locked: true`)
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [symbol, side]
+   *             properties:
+   *               symbol: { type: string, example: BTC }
+   *               side: { type: string, enum: [buy, sell] }
+   *               transactionId: { type: string, format: uuid }
+   *               stopPrice: { type: number, exclusiveMinimum: 0 }
+   *               targetPrice: { type: number, exclusiveMinimum: 0 }
+   *               plannedQuantity: { type: number, exclusiveMinimum: 0 }
+   *               thesis: { type: string, maxLength: 200, description: 한 줄 이유 }
+   *               invalidation: { type: string, maxLength: 200, description: 무효화 조건 한 줄 }
+   *               reviewAt: { type: string, format: date-time }
+   *               probabilityUp: { type: number, minimum: 0, maximum: 1, description: 사용자가 적는 오를 확률 }
+   *     responses:
+   *       201: { description: 만든 계획 }
+   *       400: { description: 요청 검증 실패 · 거래와 종목/방향 불일치(`COACH_TRADE_PLAN_TRANSACTION_SYMBOL` · `_SIDE`) }
+   *       401: { description: 인증 실패 }
+   *       404: { description: 연결할 거래가 없다(`COACH_TRADE_PLAN_TRANSACTION_NOT_FOUND`) }
+   */
+  router.get("/plans", risk.listTradePlans);
+  router.post("/plans", risk.createTradePlan);
+
+  /**
+   * @swagger
+   * /api/coach/plans/{id}:
+   *   patch:
+   *     summary: 거래 계획 고치기 · 거래 연결
+   *     description: |
+   *       빠진 필드는 그대로, `null` 은 지운다. 계획은 지우지 않는다 — 잘못 적었으면 새로 적는다.
+   *       - 거래 연결은 한 번뿐이다(`409 COACH_TRADE_PLAN_ALREADY_LINKED`)
+   *       - 연결된 계획의 손절가 · 계획 수량 · 오를 확률을 **다른 값으로** 바꾸면 `409 COACH_TRADE_PLAN_LOCKED`
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: string, format: uuid }
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               transactionId: { type: string, format: uuid }
+   *               stopPrice: { type: number, nullable: true }
+   *               targetPrice: { type: number, nullable: true }
+   *               plannedQuantity: { type: number, nullable: true }
+   *               thesis: { type: string, nullable: true, maxLength: 200 }
+   *               invalidation: { type: string, nullable: true, maxLength: 200 }
+   *               reviewAt: { type: string, format: date-time, nullable: true }
+   *               probabilityUp: { type: number, nullable: true, minimum: 0, maximum: 1 }
+   *     responses:
+   *       200: { description: 고친 계획 }
+   *       400: { description: 요청 검증 실패 · 거래 불일치 }
+   *       401: { description: 인증 실패 }
+   *       404: { description: 계획이 없다(남의 것 포함) }
+   *       409: { description: 잠김 · 이미 연결됨 }
+   */
+  router.patch("/plans/:id", risk.updateTradePlan);
 
   return router;
 };

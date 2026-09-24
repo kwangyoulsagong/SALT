@@ -432,8 +432,8 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 
 | REQ | 상태 | 비고 |
 |---|---|---|
-| `DB-REQ-031` F009 SCHEMA | **to-do** | `TradePlan` · `DecisionOutcome` · `UserInvestmentProfile` +3(월 손실 예산 · 1회 최대 손실 · 목표 변동성) · `hidePurchasePrice` · `forecast.realized_vol` 뷰. 추가만 — 롤백 가능 |
-| `SRV-REQ-038` F009 사이즈 · 계획 · 미러 | **to-do** | `sizing` · `adherence` · `mirror` · `riskBudget` · `monthlyReview` 순수 함수 · `/api/coach/size-check` · `/plans` · `/risk-budget` · `/mirror` · `/review/monthly` · 일 1회 배치 · `languageGuard` 금지어 추가 · 프롬프트 개인 금액 0건 |
+| `DB-REQ-031` F009 SCHEMA | **in-progress** (슬라이스 1 FR-1~7 완료 · `realized_vol` 은 슬라이스 2) | `TradePlan` · `DecisionOutcome` · `UserInvestmentProfile` +3(월 손실 예산 · 1회 최대 손실 · 목표 변동성) · `hidePurchasePrice` · `forecast.realized_vol` 뷰. 추가만 — 롤백 가능 |
+| `SRV-REQ-038` F009 사이즈 · 계획 · 미러 | **in-progress** (슬라이스 1 FR-1~8 완료 — 사이즈 · 계획 · 리스크 예산. 판정 · 미러 슬라이스 4, 복기 슬라이스 6) | `sizing` · `adherence` · `mirror` · `riskBudget` · `monthlyReview` 순수 함수 · `/api/coach/size-check` · `/plans` · `/risk-budget` · `/mirror` · `/review/monthly` · 일 1회 배치 · `languageGuard` 금지어 추가 · 프롬프트 개인 금액 0건 |
 | `FC-REQ-006` 실현 변동성 | **to-do** | EWMA(λ 0.94) · GARCH(1,1) 일 1회 → `forecast.realized_vol`. 변동성 타깃 비중의 입력 |
 | `BFF-REQ-038` F009 중계 | **to-do** | 뷰모델 조립 · 격리 · 재계산 금지 · 비소유자 응답에 도달 확률 필드 없음 |
 | `FE-REQ-039` F009 카드 | **to-do** | 거래 폼 "계획(선택)" + 결과 라인 · "내 계획" 카드 · 리스크 게이지 3 · 매입가 숨김 · "내 거래 미러" · 월간 복기 · `DisclosureSlot`. 새 라우트 0 · 입력 30초 · WCAG AA |
@@ -441,6 +441,8 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 **선행**: Codex Astra 코드 진단 C01~C06(`feature-audits/2026-09-24-ai-investment-deep-research.md`) — 성적표 정의(C04 MDD 오명 · C05 기간 · C06 시드 분리)를 먼저 고친다. 기존 F004 · F008 REQ 개정으로 처리.
 
 **F009 슬라이스 0 — 신뢰성 수정 (2026-09-24 ~, `feat/f009-slice0-reliability`)** — C04 → C05 → C06 → C02 → C03 → C01 순. **C04 완료**: 성적표 `maxDrawdown` → `worstObservedReturn`(라벨 "가장 나빴던 수익률"). 값은 표본 최저 단일 수익률이라 MDD 가 아니었다 — 계산은 그대로, 이름만. 서버 FR-30 예외 2건째(`SRV-REQ-025` FR-55 · `BFF-REQ-024` FR-39 · `FE-REQ-026` FR-163). **C05 완료**: 모드 기간 = 채점 기간(단타 24시간 · 장기 30일, 사용자 결정) — 해설 "약 25분" · 판단 "1주~1년" 삭제, `validity.code` 값 `scalp_24h` · `long_term_30d`, 해설 기간은 LLM 대신 주입(`SRV-REQ-025` FR-56 · `SRV-REQ-024` FR-103 · `FE-REQ-026` FR-164). **C06 완료**: 판단 표본에 `sample_origin`(live · backtest · synthetic) — 실측 성적은 live 만, 운영에서 합성 집계 설정을 켜면 기동이 막힌다. 로컬 시드 240행은 이제 게이트를 열지 않는다(`DB-REQ-017` FR-60 · `SRV-REQ-024` FR-172). **C02 완료**: 해설 캐시 키 = 모델 · 시스템 지시 · 프롬프트 전체의 해시(옛 키는 가격 200 이상이면 늘 같았다, `SRV-REQ-025` FR-57). **C03 완료**(지표 이름 제외): 해설 숫자를 값 · 단위 · 방향으로 대조하고 근거 숫자 없는 인과 문장을 버린다(`SRV-REQ-037` FR-7a). `FEATURE-008` FR-42 · 43 상태를 실제에 맞췄다. **C01 완료 — 슬라이스 0 끝**: 해설 요청이 `{ symbol, mode }` 로 줄고 사실은 판단 게이트와 같은 재료로 서버가 조립한다 · 응답 `facts.hash`(`SRV-REQ-025` FR-58 · `FEATURE-008` FR-40 완료). 범위 · 검증은 `F009-slice0-reliability-slice.md` · `reports/checklists/F009-slice0-reliability.md`.
+
+**F009 슬라이스 1 — 계획 · 사이즈 · 리스크 예산 서버 (2026-09-24, `feat/f009-slice1-plan-sizing`)** — 화면 없음. `POST /api/coach/size-check`(최대 손실 · 1회 · 월 예산 대비 · 참고 수량 상한 · 변동성 타깃 · 5연속 손절 · 켈리, 못 구한 값은 `null` + 사유), `GET · PUT /api/coach/risk-budget`(이번 달 낙폭 · 종목 집중도 · 회전율 · 올해 수수료 — 넘어도 막지 않는다), `/api/coach/plans`(전부 선택 · 거래 연결 뒤 손절가 · 계획 수량 · 오를 확률 잠금). 월 손익은 평단 없이 시가 평가 항등식(KST 월). 실현 변동성은 슬라이스 2 전까지 `insufficient_data`. DB: `trade_plans` · `decision_outcomes`(쓰기는 슬라이스 4) · 프로필 예산 +5 · 매입가 숨김(`DB-REQ-031` FR-1~7 · `SRV-REQ-038` FR-1~8). 범위 · 검증은 `F009-slice1-plan-sizing-slice.md` · `reports/checklists/F009-slice1-plan-sizing.md`.
 
 ### 이동 규칙
 
@@ -494,3 +496,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-24 | **F009 슬라이스 0 — C02.** 해설 캐시 키를 입력 전체 해시로 · 캐시 상한. 계약 변경 없음 · 상태표 변경 없음 |
 | 2026-09-24 | **F009 슬라이스 0 — C03.** 해설 숫자 검증 값 · 단위 · 방향 · 인과. 계약 변경 없음 · 상태표 변경 없음 |
 | 2026-09-24 | **F009 슬라이스 0 — C01 · 슬라이스 0 완료.** 해설 사실을 서버가 조립(요청 `{ symbol, mode }`). `FEATURE-008` FR-40 완료. 상태표 변경 없음 |
+| 2026-09-24 | **F009 슬라이스 1 — 계획 · 사이즈 · 리스크 예산 서버.** `DB-REQ-031` · `SRV-REQ-038` to-do → in-progress. 새 API 5경로(`/api/coach/size-check` · `risk-budget` GET/PUT · `plans` GET/POST · `plans/:id` PATCH) + 프로필 `hidePurchasePrice`. 마이그레이션 `20260924150000`(추가만, 롤백 = 두 테이블 · 6컬럼 삭제) |

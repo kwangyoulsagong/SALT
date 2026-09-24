@@ -33,6 +33,8 @@ export const updateCoachProfileSchema = z.object({
   panicSellWindowHours: z.number().int().min(1).max(168).optional(),
   defaultMode: coachModeSchema.optional(),
   notificationLevel: z.enum(["low", "medium", "high"]).optional(),
+  /** FEATURE-009 FR-27 매입가 숨김 */
+  hidePurchasePrice: z.boolean().optional(),
 });
 
 export const coachFeedbackSchema = z.object({
@@ -108,3 +110,91 @@ export const forecastQuerySchema = z.object({
     .max(20)
     .regex(/^[A-Za-z0-9]+$/),
 });
+
+// ==================== F009 슬라이스 1 — 사이즈 · 계획 · 리스크 예산 (`SRV-REQ-038`) ====================
+
+const coachSymbolSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(20)
+  .regex(/^[A-Za-z0-9]+$/);
+
+/** 금액 · 수량 입력. NaN · 무한대 · 0 이하를 여기서 막는다(FR-8) */
+const positiveAmount = z.number().finite().positive();
+
+/** `POST /api/coach/size-check`. 금액은 원(코인 KRW 마켓) */
+export const sizeCheckSchema = z
+  .object({
+    symbol: coachSymbolSchema,
+    side: z.enum(["buy", "sell"]),
+    quantity: positiveAmount,
+    price: positiveAmount,
+    stopPrice: positiveAmount.optional(),
+    /** FR-6 — 사용자가 적은 승률(0~1 배타) · 손익비. 둘 다 있을 때만 켈리를 계산한다 */
+    winRate: z.number().finite().gt(0).lt(1).optional(),
+    payoffRatio: positiveAmount.optional(),
+  })
+  .refine((body) => (body.winRate === undefined) === (body.payoffRatio === undefined), {
+    message: "winRate 와 payoffRatio 는 함께 보낸다",
+    path: ["payoffRatio"],
+  });
+
+/** 예산 하나. `percent` 는 비율(0.05 = 5%)이라 1 이하 */
+const budgetSettingSchema = z
+  .object({
+    amount: positiveAmount,
+    unit: z.enum(["krw", "percent"]),
+  })
+  .refine((budget) => budget.unit === "krw" || budget.amount <= 1, {
+    message: "percent 예산은 0~1 비율이다(0.05 = 5%)",
+    path: ["amount"],
+  });
+
+/** `PUT /api/coach/risk-budget`. 빠진 필드는 그대로, `null` 은 지운다 */
+export const updateRiskBudgetSchema = z.object({
+  monthlyLossBudget: budgetSettingSchema.nullable().optional(),
+  perTradeMaxLoss: budgetSettingSchema.nullable().optional(),
+  /** 연 변동성 비율(0.15 = 15%). 0 초과 2 이하 */
+  targetVolatility: z.number().finite().gt(0).lte(2).nullable().optional(),
+});
+
+const planText = z.string().trim().min(1).max(200);
+
+/** `POST /api/coach/plans` — 종목 · 방향 말고는 전부 선택(FR-10) */
+export const createTradePlanSchema = z.object({
+  symbol: coachSymbolSchema,
+  side: z.enum(["buy", "sell"]),
+  transactionId: z.string().uuid().optional(),
+  stopPrice: positiveAmount.optional(),
+  targetPrice: positiveAmount.optional(),
+  plannedQuantity: positiveAmount.optional(),
+  thesis: planText.optional(),
+  invalidation: planText.optional(),
+  reviewAt: z.string().datetime({ offset: true }).optional(),
+  probabilityUp: z.number().finite().min(0).max(1).optional(),
+});
+
+/** `PATCH /api/coach/plans/:id` — `null` 은 지운다. 거래 연결은 한 번뿐이라 `transactionId` 는 `null` 을 받지 않는다 */
+export const updateTradePlanSchema = z.object({
+  transactionId: z.string().uuid().optional(),
+  stopPrice: positiveAmount.nullable().optional(),
+  targetPrice: positiveAmount.nullable().optional(),
+  plannedQuantity: positiveAmount.nullable().optional(),
+  thesis: planText.nullable().optional(),
+  invalidation: planText.nullable().optional(),
+  reviewAt: z.string().datetime({ offset: true }).nullable().optional(),
+  probabilityUp: z.number().finite().min(0).max(1).nullable().optional(),
+});
+
+export const tradePlanParamsSchema = z.object({ id: z.string().uuid() });
+
+export const listTradePlansQuerySchema = z.object({
+  symbol: coachSymbolSchema.optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+});
+
+export type SizeCheckDto = z.infer<typeof sizeCheckSchema>;
+export type UpdateRiskBudgetDto = z.infer<typeof updateRiskBudgetSchema>;
+export type CreateTradePlanDto = z.infer<typeof createTradePlanSchema>;
+export type UpdateTradePlanDto = z.infer<typeof updateTradePlanSchema>;
