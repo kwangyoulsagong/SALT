@@ -9,7 +9,8 @@
     "./http": "./src/http/constants.ts",
     "./auth": "./src/auth/index.ts",
     "./coach": "./src/coach/index.ts",
-    "./market": "./src/market/candleTime.ts"
+    "./market": "./src/market/candleTime.ts",
+    "./sse": "./src/sse/parser.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

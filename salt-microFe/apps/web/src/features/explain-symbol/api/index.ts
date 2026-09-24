@@ -1,2 +1,2 @@
-export * from "./explainSymbolApi";
-export * from "./useExplainSymbol";
+export * from "./explainStreamApi";
+export * from "./useExplainStream";
