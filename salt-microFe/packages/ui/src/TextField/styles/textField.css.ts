@@ -76,6 +76,25 @@ export const fieldStyles = recipe({
         border: "none",
         borderRadius: vars.radius.none,
       },
+
+      /**
+       * 조밀한 패널 안의 입력(거래 기록 · 설정 행). 2026-09-24 참고 화면 실측: 높이 32 · 모서리 8 ·
+       * 테두리 대신 0.75px 안쪽 헤어라인 · 초점은 2px 진한 링 · 단위는 오른쪽 안. 한 패널에 입력이
+       * 여럿 쌓여도 선이 무거워지지 않는다.
+       */
+      compact: {
+        minHeight: "32px",
+        padding: `0 ${vars.space.sm}`,
+        border: "none",
+        borderRadius: vars.radius.base,
+        background: "transparent",
+        boxShadow: "inset 0 0 0 0.75px rgba(2, 32, 59, 0.17)",
+        selectors: {
+          "&:focus-within": {
+            boxShadow: `inset 0 0 0 2px ${vars.colors.neutral[800]}`,
+          },
+        },
+      },
     },
 
     invalid: {
@@ -99,6 +118,19 @@ export const fieldStyles = recipe({
       false: {},
     },
   },
+
+  compoundVariants: [
+    {
+      // 헤어라인 입력은 테두리가 없어 `borderColor` 가 보이지 않는다 — 링으로 오류를 보인다
+      variants: { variant: "compact", invalid: true },
+      style: {
+        boxShadow: `inset 0 0 0 1px ${vars.colors.status.errorDark}`,
+        selectors: {
+          "&:focus-within": { boxShadow: `inset 0 0 0 2px ${vars.colors.status.errorDark}` },
+        },
+      },
+    },
+  ],
 
   defaultVariants: {
     variant: "box",
@@ -129,6 +161,12 @@ export const inputSizeStyles = recipe({
         lineHeight: vars.typography.t1.lineHeight,
         fontWeight: vars.fontWeights.bold,
         letterSpacing: vars.letterSpacings.tightest,
+        fontVariantNumeric: vars.numeric.tabular,
+      },
+      compact: {
+        fontSize: "13px",
+        lineHeight: "20px",
+        fontWeight: vars.fontWeights.medium,
         fontVariantNumeric: vars.numeric.tabular,
       },
     },

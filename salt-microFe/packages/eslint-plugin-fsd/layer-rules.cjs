@@ -67,6 +67,7 @@ const REGISTRY = {
     "explain-symbol",
     "regenerate-coach",
     "record-transaction",
+    "set-risk-budget",
     "mark-alert-read",
     "toggle-alerts",
     "skip-onboarding-step",

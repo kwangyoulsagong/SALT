@@ -12,8 +12,8 @@ const meta = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["box", "filled", "line", "big", "hero"],
-      description: "테두리와 글자 크기. filled 는 카드 위 폼, big·hero 는 금액 입력용",
+      options: ["box", "filled", "line", "big", "hero", "compact"],
+      description: "테두리와 글자 크기. filled 는 카드 위 폼, big·hero 는 금액 입력용, compact 는 조밀한 패널 행(32px)",
     },
     label: { control: "text", description: "위에 보이는 이름" },
     error: { control: "text", description: "에러 문구. 있으면 테두리가 붉어진다" },
@@ -62,8 +62,52 @@ export const AllVariants: Story = {
         trailing={<span style={{ fontSize: 20 }}>원</span>}
         onChange={() => {}}
       />
+      <TextField
+        label="compact"
+        variant="compact"
+        value="91,200,000"
+        trailing={<span>원</span>}
+        onChange={() => {}}
+      />
     </div>
   ),
+};
+
+/** 조밀한 패널 행 — 높이 32 · 헤어라인 · 초점 링. 여러 개가 쌓이는 폼(거래 기록)에서 쓴다 */
+export const Compact: Story = {
+  args: { value: "", onChange: () => {} },
+  render: () => {
+    const [price, setPrice] = useState("91,200,000");
+    const [stop, setStop] = useState("");
+    return (
+      <div style={{ display: "grid", gap: 8, maxWidth: 280 }}>
+        <TextField
+          aria-label="단가"
+          variant="compact"
+          inputMode="decimal"
+          value={price}
+          trailing={<span>원</span>}
+          onChange={setPrice}
+        />
+        <TextField
+          aria-label="손절가"
+          variant="compact"
+          inputMode="decimal"
+          value={stop}
+          placeholder="선택"
+          trailing={<span>원</span>}
+          onChange={setStop}
+        />
+        <TextField
+          aria-label="수량"
+          variant="compact"
+          value="abc"
+          error="0보다 큰 숫자로 적어 주세요"
+          onChange={() => {}}
+        />
+      </div>
+    );
+  },
 };
 
 /** 주문 금액 입력 — 화면 전체가 입력 하나일 때 쓴다. */

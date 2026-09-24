@@ -12,7 +12,7 @@ import {
   wrapperStyles,
 } from "./styles/textField.css";
 
-export type TextFieldVariant = "box" | "filled" | "line" | "big" | "hero";
+export type TextFieldVariant = "box" | "filled" | "line" | "big" | "hero" | "compact";
 
 export interface TextFieldProps
   extends Omit<

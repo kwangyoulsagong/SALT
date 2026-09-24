@@ -56,7 +56,8 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/slider` | `Slider` | `label`, `value`, `onChange`, `min`, `max`, `step`, `format`, `showNumberInput` | `packages/ui/src/Slider/Slider.tsx` |
 | `@repo/ui/checkbox` | `Checkbox` | `checked`, `onChange`, `indeterminate`, `disabled`, `label`, `size`, `round` | `packages/ui/src/Checkbox/Checkbox.tsx` |
 | `@repo/ui/iconButton` | `IconButton` | `icon`, `label`(필수), `variant`, `size`, `round` | `packages/ui/src/IconButton/IconButton.tsx` |
-| `@repo/ui/textField` | `TextField` | `value`, `onChange`, `label`, `variant('box'\|'line')`, `error`, `helperText`, `leading`, `trailing` | `packages/ui/src/TextField/TextField.tsx` |
+| `@repo/ui/textField` | `TextField` | `value`, `onChange`, `label`, `variant('box'\|'filled'\|'line'\|'big'\|'hero'\|'compact')`, `error`, `helperText`, `leading`, `trailing` | `packages/ui/src/TextField/TextField.tsx` |
+| `@repo/ui/disclosureSlot` | `DisclosureSlot` | `lines`(세 줄 튜플 · 필수 · 끄는 prop 없음), `label` | `packages/ui/src/DisclosureSlot/DisclosureSlot.tsx` |
 | `@repo/ui/searchField` | `SearchField` | `value`, `onChange`, `onClear`, `onSubmit`, `label`, `placeholder` | `packages/ui/src/SearchField/SearchField.tsx` |
 | `@repo/ui/textArea` | `TextArea` | `value`, `onChange`, `label`, `variant('box'\|'line')`, `maxLength`, `autoResize`, `maxHeight`, `error` | `packages/ui/src/TextArea/TextArea.tsx` |
 | `@repo/ui/stepper` | `Stepper` | `label`, `value`, `onChange`, `min`, `max`, `step`, `unit`, `helperText`, `hideLabel` | `packages/ui/src/Stepper/Stepper.tsx` |
@@ -170,6 +171,8 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 | 처리 중 표시 | `Spinner` 또는 `Button loading` | `Skeleton`은 자리를 미리 잡아야 하는 목록·카드용이다 |
 | 수량 ± 조절 | `Stepper` | `Slider`는 범위에서 고르는 값이다 |
 | 금액 큰 입력 | `TextField variant="hero"` + `Keypad` | 일반 폼은 `variant="box"` |
+| 조밀한 패널 행 입력(거래 기록 · 설정) | `TextField variant="compact"` | 높이 32 · 헤어라인 · 단위는 `trailing` |
+| 카드 고정 고지(F009 3종) | `DisclosureSlot` | 문구는 앱 슬라이스가 갖는다(`entities/coach` `CoachDisclosure`) |
 | 여러 줄 입력 | `TextArea` | 채팅 입력은 `autoResize` |
 | 짧은 액션 목록 | `Menu` | 항목이 많거나 모바일이면 `BottomSheet` |
 | 지표·용어 설명 | `Tooltip` | 지금 읽어야 하는 경고는 `Banner`, 화면 아래 면책은 `BottomInfo` |
@@ -191,7 +194,7 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 
 ## Storybook 커버리지
 
-대부분의 재사용 UI에는 Storybook story가 있다: `Agreement`, `AppBar`, `AssetIcon`, `Badge`, `Banner`, `BarChart`, `BoardRow`, `BottomCTA`, `BottomInfo`, `BottomSheet`, `BottomTabBar`, `Button`, `Card`, `ChatBubble`, `Checkbox`, `Chip`, `Container`, `Dialog`, `Divider`, `EmptyState`, `FilterTabs`, `SegmentedControl`, `FlexBox`, `Grid`, `Heading`, `Highlight`, `IconButton`, `Image`, `Keypad`, `KeyValueList`, `ListFooter`, `ListGroup`, `ListRow`, `Margin`, `Menu`, `Modal`, `MovableGrid`, `NumberText`, `Padding`, `PreviewChart`, `ProgressBar`, `ProgressStepper`, `Rating`, `Root`, `ScrollContainer`, `SearchField`, `Section`, `SectionBand`, `Skeleton`, `Slider`, `Sparkline`, `Spinner`, `Stepper`, `Table`, `Tabs`, `Text`, `TextArea`, `TextButton`, `TextField`, `Toast`, `Toggle`, `Tooltip`.
+대부분의 재사용 UI에는 Storybook story가 있다: `Agreement`, `AppBar`, `AssetIcon`, `Badge`, `Banner`, `BarChart`, `BoardRow`, `BottomCTA`, `BottomInfo`, `BottomSheet`, `BottomTabBar`, `Button`, `Card`, `ChatBubble`, `Checkbox`, `Chip`, `Container`, `Dialog`, `Divider`, `DisclosureSlot`, `EmptyState`, `FilterTabs`, `SegmentedControl`, `FlexBox`, `Grid`, `Heading`, `Highlight`, `IconButton`, `Image`, `Keypad`, `KeyValueList`, `ListFooter`, `ListGroup`, `ListRow`, `Margin`, `Menu`, `Modal`, `MovableGrid`, `NumberText`, `Padding`, `PreviewChart`, `ProgressBar`, `ProgressStepper`, `Rating`, `Root`, `ScrollContainer`, `SearchField`, `Section`, `SectionBand`, `Skeleton`, `Slider`, `Sparkline`, `Spinner`, `Stepper`, `Table`, `Tabs`, `Text`, `TextArea`, `TextButton`, `TextField`, `Toast`, `Toggle`, `Tooltip`.
 
 story가 없는 것: `Header`, `Icon`, `InputField`, `RadioButton`, `ServiceIcon`, `ServiceWrapper`, `StarIcon`, `Wrapper`. 이 중 `Header`·`InputField`·`RadioButton`은 각각 `AppBar`·`TextField`·`Checkbox`/`Toggle`로 대체 가능하다.
 

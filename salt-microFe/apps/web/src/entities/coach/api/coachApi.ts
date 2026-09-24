@@ -3,7 +3,9 @@ import type {
   CoachReportResult,
   SymbolCoachViewModel,
   SymbolEventsResult,
+  RiskBudgetResult,
   SymbolForecastResult,
+  TradePlanListResult,
 } from "@repo/core/coach";
 
 import { apiFetch, authHeader } from "@/shared/api";
@@ -104,6 +106,33 @@ export const coachApi = {
     if (!response.ok) throw new CoachApiError(response.status);
 
     const body = (await response.json()) as AppEnvelope<SymbolEventsResult>;
+    return body.data;
+  },
+
+  /**
+   * 리스크 예산 게이지 3 · 설정 (`GET /api/app/coach/risk-budget`, F009). 서버 장애는 BFF 가 200
+   * `{ status: "unavailable" }` 로 준다 — 게이지 카드만 "불러올 수 없음"이다.
+   */
+  riskBudget: async (signal?: AbortSignal): Promise<RiskBudgetResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.riskBudget}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<RiskBudgetResult>;
+    return body.data;
+  },
+
+  /** 종목별 거래 계획 (`GET /api/app/coach/plans`, F009). 최근 순 */
+  plans: async (symbol: string, signal?: AbortSignal): Promise<TradePlanListResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.plans(symbol)}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<TradePlanListResult>;
     return body.data;
   },
 };

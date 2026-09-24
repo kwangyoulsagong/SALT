@@ -12,4 +12,13 @@ export const coachQueryKeys = {
   forecast: (symbol: string) => ["coach", "forecast", symbol] as const,
   /** 주요 사건(거시 일정) · 과거 반응. 배치가 하루 1회 만든다 */
   events: (symbol: string) => ["coach", "events", symbol] as const,
+  /** 리스크 예산 게이지. 거래 · 예산을 저장하면 무효화한다 */
+  riskBudget: () => ["coach", "risk-budget"] as const,
+  /** 종목별 거래 계획. 거래 + 계획을 저장하면 그 종목 키를 무효화한다 */
+  plans: (symbol: string) => ["coach", "plans", symbol] as const,
+  /**
+   * 사이즈 계산(서버 미리보기, `features/record-transaction`). 계산은 저장하지 않지만 보유 · 예산이 바뀌면
+   * 결과가 달라진다 — 거래 · 예산 저장 뒤 이 접두사 전체를 버린다
+   */
+  sizeCheckAll: () => ["coach", "size-check"] as const,
 } as const;
