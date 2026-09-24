@@ -2,6 +2,7 @@ import type {
   CoachGenerationStatus,
   CoachReportResult,
   SymbolCoachViewModel,
+  SymbolForecastResult,
 } from "@repo/core/coach";
 
 import { apiFetch, authHeader } from "@/shared/api";
@@ -75,6 +76,21 @@ export const coachApi = {
     if (!response.ok) throw new CoachApiError(response.status);
 
     const body = (await response.json()) as AppEnvelope<CoachGenerationStatus>;
+    return body.data;
+  },
+
+  /**
+   * 가격 변동 범위 (`GET /api/app/coach/forecast`). **소유자만** — 아니면 404 를 던진다(`ADR-003`).
+   * 서버 장애는 BFF 가 200 `{ status: "unavailable" }` 로 준다.
+   */
+  forecast: async (symbol: string, signal?: AbortSignal): Promise<SymbolForecastResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.forecast(symbol)}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<SymbolForecastResult>;
     return body.data;
   },
 };

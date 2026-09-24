@@ -188,7 +188,7 @@ export class GetBehaviorCoach {
         tags: [],
         warnings: [],
         recommendedRules: [
-          "거래 전 진입가, 손절가, 익절 구간을 기록하세요.",
+          "거래 전 진입가 · 손절가 · 익절 구간을 적어 두면 계획 대비 실행을 비교할 수 있습니다.",
           "외부 앱에서 주문한 뒤 SALT에 결과를 기록하세요.",
         ],
         evidence: {

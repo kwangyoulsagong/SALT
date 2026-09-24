@@ -1,4 +1,4 @@
-import { style, styleVariants } from "@vanilla-extract/css";
+import { keyframes, style, styleVariants } from "@vanilla-extract/css";
 import { vars } from "@repo/ui/tokens";
 
 import { SURFACE } from "@/shared/ui/surface.css";
@@ -90,6 +90,7 @@ export const priceRow = style({
 
 /** 이 화면의 주인공. 이름(t5)과 두 단계 차이를 둬야 먼저 읽힌다. */
 export const price = style({
+  position: "relative",
   fontSize: "26px",
   lineHeight: "34px",
   fontWeight: vars.fontWeights.bold,
@@ -190,4 +191,23 @@ export const change = styleVariants({
   up: { ...changeBase, color: vars.colors.special.up },
   down: { ...changeBase, color: vars.colors.special.down },
   flat: { ...changeBase, color: vars.colors.neutral[500] },
+});
+
+/** 가격이 바뀔 때 밑줄이 한 번 스친다 — 오른 쪽 색. `opacity` 만 움직인다 */
+const tickFade = keyframes({ from: { opacity: 0.9 }, to: { opacity: 0 } });
+const tickBase = {
+  position: "absolute",
+  left: 0,
+  right: 0,
+  bottom: "-2px",
+  height: "2px",
+  borderRadius: vars.radius.full,
+  opacity: 0,
+  animation: `${tickFade} 900ms ease-out`,
+  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
+} as const;
+
+export const tick = styleVariants({
+  up: { ...tickBase, background: vars.colors.special.up },
+  down: { ...tickBase, background: vars.colors.special.down },
 });

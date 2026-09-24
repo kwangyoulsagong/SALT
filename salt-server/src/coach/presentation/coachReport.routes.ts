@@ -45,6 +45,40 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
 
   /**
    * @swagger
+   * /api/coach/forecast:
+   *   get:
+   *     summary: 가격 변동 범위 (소유자 전용) — F008
+   *     description: |
+   *       `salt-forecast` 가 채점한 기간별(1 · 2 · 3 · 4주) **90% 가격 범위**와 보유 기준 평가금액 변화 범위.
+   *
+   *       - **소유자 계정만.** 아니면 404 — 존재 자체를 알리지 않는다(`ADR-003`)
+   *       - 기간마다 `renderable` · `blockedReason` 이 **항상** 있다. 채점 이력 · 기준 대비 · 빗나간 사례 중
+   *         하나라도 없으면 범위를 싣지 않는다(`failure_cases_missing` 등). 여전히 200
+   *       - `trackRecord.kind` 가 `backtest` 면 화면은 "백테스트" 라벨을 붙인다(라이브 52주 전)
+   *       - 커버리지는 폭 · 기준 폭과 **한 묶음**이다. 방향(`direction`)은 기준을 이긴 기간에만 있다
+   *       - 한 점 목표가 · 명령형 매매 지시 필드는 없다
+   *     tags: [Coach Report]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: symbol
+   *         required: true
+   *         schema: { type: string, example: BTC }
+   *     responses:
+   *       200:
+   *         description: 기간 4개. 막힌 기간은 범위 없이 사유만
+   *       400:
+   *         description: 심볼 형식 오류
+   *       401:
+   *         description: 인증 실패
+   *       404:
+   *         description: 소유자가 아니다
+   */
+  router.get("/forecast", controller.getForecast);
+
+  /**
+   * @swagger
    * /api/coach/detail:
    *   get:
    *     summary: 코치 상세 (추천 + 성적 + 익절 계획 + 행동 기록)

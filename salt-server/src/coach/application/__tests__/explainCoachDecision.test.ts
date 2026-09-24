@@ -128,4 +128,46 @@ describe("ExplainCoachDecision", () => {
     assert.equal(result.modeReasoning, "m");
     assert.ok(!("expectedReturn" in result));
   });
+
+  const passing = () => store({ sample: 20, hits: 15, avgReturn: 0.02, worstReturn: -0.08 }, 3);
+  const withLlm = (out: Partial<CoachExplanation>): CoachExplainer => ({
+    explain: async () => ({ ...explanation, ...out }),
+  });
+
+  it("LLM 이 지어낸 숫자 · 명령형 지시는 걸러지고 그 칸은 템플릿이다 (FEATURE-008 FR-42 · 43)", async () => {
+    const result = await new ExplainCoachDecision(
+      withLlm({
+        modeReasoning: "4주 뒤 145,000원까지 오를 가능성이 높습니다.",
+        keyDrivers: ["심리가 공포 구간입니다.", "지금 분할 매수를 고려하세요."],
+      }),
+      market,
+      noHolding,
+      passing()
+    ).execute("user-1", input);
+    assert.ok(result.renderable);
+    if (!result.renderable) return;
+    assert.equal(result.source, "llm_checked");
+    assert.equal(result.droppedSentences, 2);
+    assert.ok(!result.modeReasoning.includes("145,000"));
+    assert.deepEqual(result.keyDrivers, ["심리가 공포 구간입니다."]);
+  });
+
+  it("LLM 이 실패해도 해설이 비지 않는다 — 전부 템플릿", async () => {
+    const failing: CoachExplainer = { explain: async () => { throw new Error("Gemini 503"); } };
+    const result = await new ExplainCoachDecision(failing, market, noHolding, passing()).execute("user-1", input);
+    assert.ok(result.renderable);
+    if (!result.renderable) return;
+    assert.equal(result.source, "template");
+    assert.ok(result.modeReasoning.length > 0 && result.keyDrivers.length > 0);
+  });
+
+  it("화면이 떠나 중단된 호출은 템플릿으로 덮지 않고 그대로 끝낸다", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const aborted: CoachExplainer = { explain: async () => { throw new Error("aborted"); } };
+    await assert.rejects(() =>
+      new ExplainCoachDecision(aborted, market, noHolding, passing()).execute("user-1", input, controller.signal)
+    );
+  });
 });
+

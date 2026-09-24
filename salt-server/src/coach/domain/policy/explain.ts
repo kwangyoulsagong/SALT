@@ -16,8 +16,8 @@ import type {
  *
  * ## 확신 표현·목표주가가 없다
  *
- * 전 영역 공통 수용 기준 4다. 원문 문구가 이미 "검토하세요" · "유리할 수 있습니다"
- * 형태였고 그대로 옮겼다. 여기에 수익률 예측을 넣지 않는다.
+ * 전 영역 공통 수용 기준 4다. **명령형 매매 지시도 없다**(2026-09-24) — 원문의 "분할 매수를 고려하세요" ·
+ * "비중 축소를 검토하세요"를 사실 서술로 바꿨다. `languageGuard` 테스트가 이 파일의 문장 전부를 검사한다.
  */
 
 const buildActionGuide = (
@@ -27,32 +27,32 @@ const buildActionGuide = (
   const guides: string[] = [];
 
   if (top.action === "buy") {
-    guides.push(`${top.symbol}는 한 번에 진입하지 말고 분할 매수를 고려하세요.`);
+    guides.push(`${top.symbol}는 점수상 매수 검토 구간입니다 — 나눠 들어가면 한 번에 들어갈 때보다 가격 변동 위험이 작습니다.`);
     guides.push(
-      "추가 비중은 전체 포트폴리오 집중도를 해치지 않는 범위로 제한하세요."
+      "추가 비중이 전체 포트폴리오 집중도 상한을 넘는지가 확인할 점입니다."
     );
   }
 
   if (top.action === "sell") {
-    guides.push(`${top.symbol}는 일부 차익실현 또는 비중 축소를 검토하세요.`);
+    guides.push(`${top.symbol}는 점수상 일부 차익 실현 · 비중 축소 검토 구간입니다.`);
     guides.push(
-      "전량 정리보다 부분 매도로 리스크를 관리하는 접근이 유리할 수 있습니다."
+      "부분 정리는 전량 정리보다 리스크를 나눠 관리하는 방식입니다."
     );
   }
 
   if (top.action === "hold") {
-    guides.push("현재 포지션을 유지하면서 다음 신호를 관찰하세요.");
-    guides.push("무리한 추가 매수보다 시장 방향성을 확인하는 것이 좋습니다.");
+    guides.push("현재 포지션 유지 구간 — 다음 신호를 관찰하는 단계입니다.");
+    guides.push("추가 매수보다 시장 방향 확인이 먼저인 구간입니다.");
   }
 
   if (top.action === "rebalance") {
-    guides.push("포트폴리오 비중 재조정을 우선 검토하세요.");
-    guides.push("집중 자산 비중을 줄이고 분산도를 높이는 방향이 유리합니다.");
+    guides.push("포트폴리오 비중 재조정 검토 구간입니다.");
+    guides.push("집중 자산 비중이 낮아지면 분산도가 올라갑니다.");
   }
 
   if (ctx.behaviorInsights.length > 0) {
     guides.push(
-      "최근 거래 패턴상 감정적 매매를 줄이고 계획된 진입/청산이 필요합니다."
+      "최근 거래 패턴에서 계획 밖 매매가 보입니다 — 진입 · 청산 기준을 미리 적어 두면 비교할 수 있습니다."
     );
   }
 
@@ -95,7 +95,7 @@ const buildSummary = (params: {
   const actionGuide =
     params.actions.length > 0
       ? params.actions.map((a) => `• ${a}`).join("\n")
-      : "• 현재 포트폴리오를 유지하며 신호를 관찰하세요.";
+      : "• 현재 포트폴리오 유지 구간 — 신호를 관찰하는 단계입니다.";
 
   return [
     "AI 투자 코치",

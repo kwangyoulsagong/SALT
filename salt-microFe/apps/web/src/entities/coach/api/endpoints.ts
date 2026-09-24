@@ -11,4 +11,6 @@ export const COACH_ENDPOINTS = {
   report: "/api/app/coach/report",
   /** 재생성 버튼 상태 · 202 뒤 폴링 (`BFF-REQ-023` FR-61~63) */
   generationStatus: "/api/app/coach/generation-status",
+  /** 가격 변동 범위 — 소유자 전용, 아니면 404 (`BFF-REQ-037`) */
+  forecast: (symbol: string) => `/api/app/coach/forecast?symbol=${encodeURIComponent(symbol)}`,
 } as const;

@@ -1,8 +1,7 @@
 import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
 
-import { ProfileHeader } from "@/entities/auth";
-import { BlockBoundary, CrossZoneLink } from "@/shared/ui";
+import { BlockBoundary, CrossZoneLink, NavChevron } from "@/shared/ui";
 
 import { HOME_BLOCK_MIN_HEIGHT, HOME_BRIEFING_MESSAGES } from "../model/messages";
 import { GoalsBlock } from "./GoalsBlock";
@@ -28,7 +27,6 @@ export const HomeBriefing = () => {
   return (
     <Container size="full" padding="none">
       <FlexBox direction="column" justify="center" gap="lg">
-        <ProfileHeader />
         <BlockBoundary
           name={HOME_BRIEFING_MESSAGES.goalsBlockName}
           minHeight={HOME_BLOCK_MIN_HEIGHT.goals}
@@ -43,6 +41,7 @@ export const HomeBriefing = () => {
         </BlockBoundary>
         <CrossZoneLink href="/tax">
           {HOME_BRIEFING_MESSAGES.taxCockpitLink}
+          <NavChevron />
         </CrossZoneLink>
         <SavingTipBlock />
       </FlexBox>

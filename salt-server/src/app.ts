@@ -9,6 +9,7 @@ import { NotFoundError } from "./shared/presentation/httpErrors";
 import { InvestmentInsightWorker } from "./workers/investment-insight.worker";
 import { NotificationCleanupWorker } from "./workers/notification-cleanup.worker";
 import { startMarketWorkers } from "./workers/market.worker";
+import { ForecastRunnerWorker } from "./workers/forecast-runner.worker";
 
 // 이관된 컨텍스트의 라우터는 조립 지점에서 온다 (`composition.ts`)
 import { contextRouters } from "./composition";
@@ -33,6 +34,12 @@ insightsWorker.start();
 
 const notificationCleanupWorker = new NotificationCleanupWorker();
 notificationCleanupWorker.start();
+
+// F008 전망 배치 — 부팅 · 매시 트리거만(판단은 배치가 한다). 개발 환경 기본 켬
+const forecastRunner = new ForecastRunnerWorker();
+forecastRunner.start();
+process.once("SIGTERM", () => forecastRunner.stop());
+process.once("SIGINT", () => forecastRunner.stop());
 
 // Security
 app.use(helmet());

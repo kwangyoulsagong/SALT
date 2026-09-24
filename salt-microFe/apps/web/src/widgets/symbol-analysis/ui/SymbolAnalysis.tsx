@@ -6,10 +6,12 @@ import { useMemo } from "react";
 import {
   COACH_MESSAGES,
   CoachBlockSkeleton,
+  ForecastCard,
   JudgmentDetail,
   ProfitPlan,
   selectModeView,
   useSymbolCoach,
+  useSymbolForecast,
   ZoneLegend,
   ZoneSummary,
   zoneToPriceBand,
@@ -18,6 +20,7 @@ import {
 import { MarketDetailChart, useMarketListing } from "@/entities/market";
 import { ExplainCard } from "@/features/explain-symbol";
 import { CoachModeSwitch, useCoachModeParam } from "@/features/switch-coach-mode";
+import { useLivePrice } from "@/shared/api";
 
 import { SYMBOL_ANALYSIS_MESSAGES } from "../model";
 import {
@@ -51,6 +54,11 @@ import {
  */
 export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   const coach = useSymbolCoach(symbol);
+  // 가격 변동 범위 — 소유자만(F008 `FE-REQ-038`). 404 는 "없는 섹션"이다 — 자리도 문구도 없다
+  const forecast = useSymbolForecast(symbol);
+  const showForecast = !forecast.isSignedOut && !forecast.notOwner;
+  // 차트 선 끝을 움직이는 현재가 — 카드가 보일 때만 구독한다
+  const livePrice = useLivePrice(showForecast && forecast.data ? symbol : "")?.currentPrice ?? null;
   const listing = useMarketListing(symbol);
   const [mode, setMode] = useCoachModeParam(coach.data?.mode);
 
@@ -118,6 +126,16 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
           </div>
 
           <aside className={column}>
+            {/*
+              불러오는 중에는 자리를 그리지 않는다 — 비소유자에게 "불러오는 중"이 스쳤다 사라지면 기능이 있다는 것이
+              드러난다(ADR-003 "응답에 없다"). 데이터가 오면 그때 나타난다(배치가 미리 계산해 빠르다 — 뷰 5ms).
+            */}
+            {showForecast &&
+              (forecast.data ? (
+                <ForecastCard className={card} result={forecast.data} livePrice={livePrice} />
+              ) : forecast.isError ? (
+                <ForecastCard className={card} result={{ status: "unavailable" }} />
+              ) : null)}
             {coach.data && mode && (
               <>
                 <ExplainCard

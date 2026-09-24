@@ -10,3 +10,4 @@ export { BehaviorFactList } from "./BehaviorFactList";
 export { ExitPlanList } from "./ExitPlanList";
 export { RecommendationCard } from "./RecommendationCard";
 export { ReportRiskList } from "./ReportRiskList";
+export { ForecastCard } from "./ForecastCard";

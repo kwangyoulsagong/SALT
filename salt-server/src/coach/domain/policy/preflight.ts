@@ -164,7 +164,7 @@ export const calculatePreflight = (input: PreflightInput): PreflightCalculation 
     warnings.push({
       code: PreflightWarningCode.WeakRiskReward,
       severity: PreflightSeverity.Warning,
-      message: "기대 손익비가 낮습니다. 진입 조건을 다시 검토하세요.",
+      message: "기대 손익비가 낮은 조건입니다.",
     });
   }
 

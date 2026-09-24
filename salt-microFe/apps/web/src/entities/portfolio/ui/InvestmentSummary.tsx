@@ -1,6 +1,8 @@
 "use client";
 
 // 클라이언트 잎: React Query 로 조회한다.
+import type { ReactNode } from "react";
+
 import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Header } from "@repo/ui/header";
@@ -21,17 +23,25 @@ import { HoldingSummaryList } from "./HoldingSummaryList";
  * 2026-09-23 — 위에 있던 "지난주 대비 N% 덜 썼어요" 막대를 지웠다. MSW 목이 지어낸 지출 숫자였고
  * 서버에 지출 데이터가 없다. 그 조회가 실패하면 **아래 실제 보유 목록까지** 가려지는 구조였다.
  */
-export const InvestmentSummary = () => {
+interface InvestmentSummaryProps {
+  /** 머리 줄 오른쪽 — 블록이 다른 화면으로 가면 조합하는 쪽이 셰브론을 넣는다(표시 전용이라 이동은 모른다) */
+  trailing?: ReactNode;
+}
+
+export const InvestmentSummary = ({ trailing }: InvestmentSummaryProps) => {
   const holdings = usePortfolioSummary();
 
   return (
     <Container size="full">
       <Padding paddingY="md">
         <FlexBox direction="column" gap="md">
-          <Header>
-            <ServiceIcon variant="analysis" />
-            <Heading level={2}>{PORTFOLIO_MESSAGES.heading}</Heading>
-          </Header>
+          <FlexBox justify="between" align="center" fullWidth>
+            <Header>
+              <ServiceIcon variant="analysis" />
+              <Heading level={2}>{PORTFOLIO_MESSAGES.heading}</Heading>
+            </Header>
+            {trailing}
+          </FlexBox>
           <Container size="full" padding="none">
             <Padding paddingY="sm">
               <FlexBox direction="column" gap="md" fullWidth>

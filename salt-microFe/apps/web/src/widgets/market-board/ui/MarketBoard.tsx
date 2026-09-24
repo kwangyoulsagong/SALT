@@ -12,6 +12,7 @@ import Link from "next/link";
 import React, { Suspense, useState } from "react";
 
 import { ROUTES } from "@/shared/config";
+import { NavChevron } from "@/shared/ui";
 
 import {
   DEFAULT_MARKET_BOARD_TAB,
@@ -79,6 +80,7 @@ export const MarketBoard = ({ renderPreview }: MarketBoardProps) => {
           {/* 코치 리포트 진입(`FE-REQ-026` FR-140). 보유 전체의 리포트라 종목 패널이 아니라 화면 머리에 둔다 */}
           <Link href={ROUTES.coachReport} className={reportLink}>
             {MARKET_BOARD_MESSAGES.coachReportLink}
+            <NavChevron />
           </Link>
         </div>
         <Margin top="xl">

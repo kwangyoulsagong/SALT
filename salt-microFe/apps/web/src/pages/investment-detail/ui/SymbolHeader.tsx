@@ -8,14 +8,12 @@ import { backLink } from "@/shared/ui/surface.css";
 
 import { INVESTMENT_DETAIL_PAGE_MESSAGES as MESSAGES } from "../model";
 import { HeaderWatchlistStar } from "./HeaderWatchlistStar";
+import { LivePriceRow } from "./LivePriceRow";
 import {
-  change as changeStyle,
   headerCard,
   identity,
   name as nameStyle,
   nameRow,
-  price as priceStyle,
-  priceRow,
   rangeDot,
   rangeTrack,
   stat,
@@ -25,16 +23,6 @@ import {
   statValue,
   ticker,
 } from "./SymbolHeader.css";
-
-const MINUS = "−";
-
-const formatChange = (percent: number) => {
-  const fixed = Math.abs(percent).toFixed(2);
-  if (Number(fixed) === 0) return { text: "0.00%", tone: "flat" as const };
-  return percent > 0
-    ? { text: `+${fixed}%`, tone: "up" as const }
-    : { text: `${MINUS}${fixed}%`, tone: "down" as const };
-};
 
 /**
  * 저가~고가 사이에서 현재가가 앉는 위치(%). 폭이 0 이면(고가 = 저가) 가운데 둔다 —
@@ -65,8 +53,8 @@ interface SymbolHeaderProps {
  * 2. 번들 — 클라이언트로 두었더니 `entities/market` 배럴을 따라 미리보기 패널(visx) · 차트 로더가
  *    첫 로드에 딸려 와 110 → 161 kB 가 됐다(2026-09-23 빌드 실측).
  *
- * 잃은 것: 머리 가격의 30초 재조회(실시간 가격은 차트가 보여 준다) · 코치 판단에서 오던 "심리 온도"
- * 칸. 관심 별만 상호작용이라 지연 로딩되는 클라이언트 잎(`HeaderWatchlistStar`)이다.
+ * 잃은 것: 코치 판단에서 오던 "심리 온도" 칸. 클라이언트 잎은 둘이다 — 가격 줄(`LivePriceRow`, WS 실시간.
+ * 서버 값으로 먼저 그린다)과 관심 별(`HeaderWatchlistStar`, 지연 로딩). 24시간 고저 · 거래대금은 서버 값 그대로다.
  *
  * 이름은 한 줄 위 작게, 가격은 그 아래 크게 — 이 화면에서 사람이 먼저 찾는 것은 가격이다.
  * 시세 기준 시각은 서울 시각으로 고정한다 — 서버 타임존이 무엇이든 같은 글자가 나온다.
@@ -76,7 +64,6 @@ export const SymbolHeader = ({ symbol, listing, mode }: SymbolHeaderProps) => {
   const backHref = mode
     ? `${ROUTES.investments}?${COACH_MODE_PARAM}=${encodeURIComponent(mode)}`
     : ROUTES.investments;
-  const change = listing ? formatChange(listing.change24h) : null;
 
   return (
     <>
@@ -96,10 +83,11 @@ export const SymbolHeader = ({ symbol, listing, mode }: SymbolHeaderProps) => {
             <span className={ticker}>{symbol.toUpperCase()}</span>
           </div>
 
-          <div className={priceRow}>
-            {listing && <span className={priceStyle}>{formatPrice(listing.currentPrice)}</span>}
-            {change && <span className={changeStyle[change.tone]}>{change.text}</span>}
-          </div>
+          <LivePriceRow
+            symbol={symbol}
+            initialPrice={listing?.currentPrice ?? null}
+            initialChange24h={listing?.change24h ?? null}
+          />
         </div>
 
         <div className={statsRow}>
