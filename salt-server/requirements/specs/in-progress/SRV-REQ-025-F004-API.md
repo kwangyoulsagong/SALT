@@ -213,6 +213,7 @@ type ExplainResult =
 | FR-52 | `trade-preflight` 에 `stopLossRate` 입력 · `maxLossOfTotalRate` 출력을 추가한다. **목표가 기본값을 서버가 만들지 않는다.** 주문 · 외부 링크 필드 0건 | Must |
 | FR-53 | `signal-performance?groupBy=signalType` 그룹에 `returnDistribution` · `hits` · `misses` 를 추가한다. 무인자 호출은 하위 호환 | Must |
 | FR-54 | 관심 종목 응답(`/api/watchlist`)에 판단 · 신호 필드를 추가하지 않는다(D4) | Must |
+| FR-57 | 해설 캐시 키는 **모델 · 시스템 지시 · 프롬프트 전체의 SHA-256** 이다(개정 2026-09-24, C02). 가격 · 변동률 · 거래대금 · 근거 · 뉴스(제목 · 요약 · 출처 · 감성) · 기간 · 프롬프트 문구 · 모델 중 하나라도 다르면 다른 키. 가격 버킷 · 뉴스 제목 앞자리 같은 **요약 키를 쓰지 않는다** — 요약이 틀리면 다른 사실의 해설이 나간다. TTL 5분 · 상한 500건(만료 먼저, 그다음 오래된 것). C01 뒤에는 서버 스냅샷이 입력이 된다 | Must |
 | FR-56 | 모드의 기간은 **채점 기간 하나**다 — 단타 24시간 · 장기 30일(개정 2026-09-24, C05, 사용자 결정 "채점 기준으로 통일"). `validity.code` 는 `scalp_24h` · `long_term_30d`(옛 `scalp_5m_24h` · `long_term_1w_1y` — **값 변경**, 소비처 프론트 i18n 을 같은 커밋에서 바꿨다), 판단 `timeframe` 은 `24h` · `30d`, 해설 `timeframe` 은 "판단 뒤 24시간" · "판단 뒤 30일". 출처는 도메인 `COACH_HORIZON` 하나 | Must |
 | FR-55 | 성적표의 "가장 나빴던 값"은 **`worstObservedReturn`** 이다(개정 2026-09-24, C04). 옛 이름 `maxDrawdown` 은 표본 중 최저 단일 관찰 수익률(`MIN(returnRate)`)이었지 최대 낙폭(MDD)이 아니었다. 대상: `signal-performance` 무인자 · `groupBy` · `scoreboard` 그룹 · `detail.signalTrackRecord` · 종목 판단 `trackRecord`. 진짜 MDD 가 필요하면 시간순 자산 곡선으로 **별도 필드**를 만든다 | Must |
 
@@ -288,3 +289,4 @@ type ExplainResult =
 | 2026-09-22 | **슬라이스 10 구현.** explain 인증 · 판단 게이트 먼저(미렌더면 LLM 미호출) · abort · `newsSummary` ≤ 뉴스 수 · Swagger(FR-11 · 12 · 20 · 32 · 50 · 51), preflight `stopLossRate` · `maxLossOfTotalRate` · 손실 원 정수(FR-14 · 19 부분 · 52). 남음: FR-1~10 · 13 · 15~18 · 31 · 48 · 53 · 54. 근거 `reports/checklists/SRV-REQ-025.md` §6 |
 | 2026-09-24 | **F009 슬라이스 0 — C04.** FR-55 신설 · FR-30 예외 2건째. `maxDrawdown` → `worstObservedReturn` 전 경로(위 계약 코드블록 포함). 계산식은 그대로 — 이름만 바로잡았다. 근거 `requirements/reports/feature-audits/2026-09-24-ai-investment-deep-research.md` C04 · `reports/checklists/SRV-REQ-025.md` §9 |
 | 2026-09-24 | **F009 슬라이스 0 — C05.** FR-56 신설. 해설 "약 25분 이내" · 판단 "5m-24h" · "1w-1y" 를 채점 기간(24시간 · 30일)으로 통일, `validity.code` 값 변경. 근거 `reports/checklists/SRV-REQ-025.md` §11 |
+| 2026-09-24 | **F009 슬라이스 0 — C02.** FR-57 신설 · 구현. 옛 키 `round(price / (price × 0.005))` 는 가격 200 이상이면 늘 200 이었고 근거가 키에 없었다. 프롬프트 조립을 env 없는 `infrastructure/explanationPrompt.ts` 로 옮겨 키와 함께 테스트한다. 응답 계약 변경 없음. 근거 `reports/checklists/SRV-REQ-025.md` §12 |
