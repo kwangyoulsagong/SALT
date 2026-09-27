@@ -72,6 +72,24 @@ export interface Trade {
   side: "buy" | "sell";
   price: number;
   volume: number;
+  /** 발생 — 거래소 체결 시각(F010 슬라이스 1). */
+  tradedAt: Date;
+  /** 거래소 체결 id. 같은 체결을 두 번 저장하지 않는 키다. */
+  sequentialId: number;
+}
+
+/**
+ * 체결 이력 페이지 조회 — 대형 체결 수집 전용(F010 슬라이스 1 · `SRV-REQ-024` FR-177).
+ *
+ * `recentTrades` 는 최근 N건 한 번이라 거래가 많은 종목은 몇 분치만 본다. 이건 `since` 까지 거꾸로
+ * 페이지를 넘긴다. `maxPages` 에서 멈추면 `truncated` — 그 사이 체결은 빠진다(수집 간격을 줄일 신호).
+ */
+export interface TradeHistoryPort {
+  tradesSince(
+    symbol: string,
+    since: Date,
+    maxPages: number
+  ): Promise<{ trades: Trade[]; truncated: boolean }>;
 }
 
 export interface OrderbookPressure {
@@ -171,6 +189,8 @@ export interface MarketAssetRepository {
   ): Promise<MarketAssetView[]>;
   /** 활성 심볼. `assetType` 을 주면 그 자산군만. */
   activeSymbols(assetType?: MarketAssetType): Promise<string[]>;
+  /** 24시간 거래대금 상위 n 활성 심볼(저장된 값). 대형 체결 수집 범위다. */
+  topByTradeValue(assetType: MarketAssetType, n: number): Promise<string[]>;
   /** 가격이 `staleBefore` 보다 오래됐거나 없는 심볼만. 배경 갱신 대상을 좁힌다. */
   symbolsWithStalePrice(
     symbols: string[],
@@ -326,15 +346,22 @@ export interface WhaleTransactionRecord {
   amount: number;
   amountKRW: number;
   exchange: string;
+  /** 발생 시각 · 체결 id. 2026-09-29 전 행에는 없다. */
+  tradedAt?: Date;
+  sequentialId?: number;
 }
 
 export interface StoredWhaleTransaction extends WhaleTransactionRecord {
   id: string;
+  /** 도착 — 우리가 저장한 시각. */
   detectedAt: Date;
 }
 
 export interface WhaleTransactionRepository {
-  saveMany(records: WhaleTransactionRecord[]): Promise<void>;
+  /** 같은 `(symbol, sequentialId)` 는 건너뛴다. 반환: 새로 쓴 행 수. */
+  saveMany(records: WhaleTransactionRecord[]): Promise<number>;
+  /** 심볼별 마지막 체결 시각(발생). 없는 심볼은 맵에 없다 — 수집 재시작 지점. */
+  latestTradedAt(symbols: string[]): Promise<Map<string, Date>>;
   findRecent(symbol: string, limit: number): Promise<StoredWhaleTransaction[]>;
   /** 여러 심볼의 최근 대량 체결. 합산은 부르는 쪽이 한다. */
   findRecentForSymbols(

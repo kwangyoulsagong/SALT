@@ -7,7 +7,12 @@ import {
   volatilityOf,
   type ExchangeQuotePort,
   type FearGreedPort,
+  type MarketAssetRepository,
   type SentimentRepository,
+  type Trade,
+  type TradeHistoryPort,
+  type WatchlistRepository,
+  type WhaleTransactionRecord,
   type WhaleTransactionRepository,
 } from "../domain";
 
@@ -72,8 +77,6 @@ export class CalculateSentiment {
 
 /** 대량 체결로 보는 기준. 원문 상수(5천만원)다. */
 const LARGE_TRADE_KRW = 50_000_000;
-/** 저장하는 대량 체결 수. 전부 저장하면 한 번 호출에 200행이 들어간다. */
-const WHALE_SAVE_LIMIT = 10;
 const RECENT_TRADE_COUNT = 200;
 
 /**
@@ -109,15 +112,9 @@ export class TrackSmartMoney {
       askPressure: pressure.asks,
     });
 
-    await this.whales.saveMany(
-      largeTrades.slice(0, WHALE_SAVE_LIMIT).map((trade) => ({
-        symbol,
-        transactionType: trade.side,
-        amount: trade.volume,
-        amountKRW: trade.price * trade.volume,
-        exchange: "upbit",
-      }))
-    );
+    // 전부 저장한다(F010 슬라이스 1 — 상한 10 은 표본을 버렸다). 체결 id 로 중복이 막혀
+    // 워커 수집(`CollectWhaleTrades`)과 겹쳐도 한 번만 남는다
+    await this.whales.saveMany(largeTrades.map((trade) => toWhaleRecord(symbol, trade)));
 
     return {
       smartMoneyIndex: index,
@@ -129,6 +126,79 @@ export class TrackSmartMoney {
       },
       interpretation: interpretSmartMoney(index.score),
     };
+  }
+}
+
+const toWhaleRecord = (symbol: string, trade: Trade): WhaleTransactionRecord => ({
+  symbol,
+  transactionType: trade.side,
+  amount: trade.volume,
+  amountKRW: trade.price * trade.volume,
+  exchange: "upbit",
+  tradedAt: trade.tradedAt,
+  sequentialId: trade.sequentialId,
+});
+
+/** 한 회차 수집 범위 — 거래대금 상위. 관심 목록은 여기에 더한다. */
+const WHALE_TOP_SYMBOLS = 50;
+/** 심볼당 페이지 상한(500건 × 20). 넘으면 `truncated` 로 남긴다. */
+const WHALE_MAX_PAGES = 20;
+/** 처음 보는 심볼은 이만큼 거슬러 받는다. 거래소가 하루 안만 주므로 실제로는 오늘 0시(UTC)까지다. */
+const WHALE_FIRST_LOOKBACK_MS = 24 * 3600_000;
+
+export interface WhaleCollectionResult {
+  symbols: number;
+  saved: number;
+  /** 페이지 상한에 걸려 사이 체결이 빠진 심볼. */
+  truncated: string[];
+  failed: string[];
+}
+
+/**
+ * 대형 체결 수집 — 워커가 5분마다(F010 슬라이스 1 · `SRV-REQ-024` FR-177).
+ *
+ * **전에는 화면이 `/smart-money` 를 부를 때만 저장했다.** 그래서 4개월 동안 15종목 291건뿐이었고, 저장 시각이
+ * 체결 시각이 아니라 같은 체결이 호출마다 다시 쌓였다. 이제 거래대금 상위 + 관심 종목을 워커가 돌며, 심볼마다
+ * 마지막으로 저장한 체결 뒤부터 거래소 페이지를 끝까지 넘겨 5천만원 이상을 **전부** 남긴다.
+ */
+export class CollectWhaleTrades {
+  constructor(
+    private readonly trades: TradeHistoryPort,
+    private readonly assets: MarketAssetRepository,
+    private readonly watchlist: WatchlistRepository,
+    private readonly whales: WhaleTransactionRepository,
+    private readonly now: () => Date = () => new Date()
+  ) {}
+
+  async execute(): Promise<WhaleCollectionResult> {
+    const [top, watched] = await Promise.all([
+      this.assets.topByTradeValue("crypto", WHALE_TOP_SYMBOLS),
+      this.watchlist.distinctSymbols("crypto"),
+    ]);
+    const symbols = [...new Set([...top, ...watched])];
+    const last = await this.whales.latestTradedAt(symbols);
+    const firstSince = new Date(this.now().getTime() - WHALE_FIRST_LOOKBACK_MS);
+
+    let saved = 0;
+    const truncated: string[] = [];
+    const failed: string[] = [];
+    // 순차 — 거래소 한도는 프로세스 전체 것이고 페이서가 이미 채운다
+    for (const symbol of symbols) {
+      try {
+        const page = await this.trades.tradesSince(
+          symbol,
+          last.get(symbol) ?? firstSince,
+          WHALE_MAX_PAGES
+        );
+        if (page.truncated) truncated.push(symbol);
+        const large = page.trades.filter((t) => t.price * t.volume >= LARGE_TRADE_KRW);
+        saved += await this.whales.saveMany(large.map((t) => toWhaleRecord(symbol, t)));
+      } catch (error) {
+        failed.push(symbol);
+        logger.warn(`대형 체결 수집 실패 ${symbol}: ${(error as Error).message}`);
+      }
+    }
+    return { symbols: symbols.length, saved, truncated, failed };
   }
 }
 

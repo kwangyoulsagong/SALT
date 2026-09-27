@@ -3,6 +3,7 @@ import type {
   ClosePercentiles,
   ClosePoint,
   ExchangeQuotePort,
+  TradeHistoryPort,
   FearGreedPort,
   MarketSummaryPolicy,
   IndicatorRepository,
@@ -24,6 +25,7 @@ import {
   GetSentimentHistory,
   ListWhaleTransactions,
   TrackSmartMoney,
+  CollectWhaleTrades,
 } from "../AnalyzeMarketIntelligence";
 import { GetSymbolNews } from "../GetSymbolNews";
 import {
@@ -145,6 +147,7 @@ export interface MarketDependencies {
   prices: PriceHistoryRepository;
   indicators: IndicatorRepository;
   exchange: ExchangeQuotePort;
+  trades: TradeHistoryPort;
   fearGreed: FearGreedPort;
   news: SymbolNewsPort;
   /** 시장 요약 띠의 종목 · 임계 — 설정값(`MARKET_SUMMARY_*`)이다 */
@@ -154,6 +157,7 @@ export interface MarketDependencies {
 export interface MarketUseCases {
   calculateSentiment: CalculateSentiment;
   trackSmartMoney: TrackSmartMoney;
+  collectWhaleTrades: CollectWhaleTrades;
   getSentimentHistory: GetSentimentHistory;
   listWhaleTransactions: ListWhaleTransactions;
   getSymbolNews: GetSymbolNews;
@@ -182,6 +186,12 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.sentiments
     ),
     trackSmartMoney: new TrackSmartMoney(deps.exchange, deps.whales),
+    collectWhaleTrades: new CollectWhaleTrades(
+      deps.trades,
+      deps.assets,
+      deps.watchlist,
+      deps.whales
+    ),
     getSentimentHistory: new GetSentimentHistory(deps.sentiments),
     listWhaleTransactions: new ListWhaleTransactions(deps.whales),
     getSymbolNews: new GetSymbolNews(deps.news),

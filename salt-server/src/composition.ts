@@ -106,6 +106,8 @@ const news = createNewsApplication({
  * 받는 것은 `NewsApi` 하나이고, `market/infrastructure` 의 ACL 이 그것을 우리 Port 로
  * 번역한다 (`SymbolNewsAdapter`).
  */
+// 거래소 클라이언트는 한 벌 — 시세 조회와 체결 이력 수집이 같은 페이서(프로세스 한도)를 나눈다
+const upbit = new UpbitClient();
 const market = createMarketApplication({
   assets: new PrismaMarketAssetRepository(),
   watchlist: new PrismaWatchlistRepository(),
@@ -113,7 +115,8 @@ const market = createMarketApplication({
   whales: new PrismaWhaleTransactionRepository(),
   prices: new PrismaPriceHistoryRepository(),
   indicators: new PrismaIndicatorRepository(),
-  exchange: new UpbitClient(),
+  exchange: upbit,
+  trades: upbit,
   fearGreed: new FearGreedClient(),
   news: new SymbolNewsAdapter(news.api),
   summaryPolicy: {
