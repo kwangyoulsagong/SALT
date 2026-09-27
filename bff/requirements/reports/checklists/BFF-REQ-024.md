@@ -51,3 +51,11 @@
 ## 4. F009 슬라이스 0 — C05 (2026-09-24)
 
 코드 변경 없음(통과 전달). 테스트 픽스처 `scalp_24h` · `npm run build` · `npm test` **121 / 0**.
+
+## F010 슬라이스 0 — FR-40 (2026-09-28)
+
+| 확인 | 결과 |
+|---|---|
+| 단위 | `npm test` 174 / 0(+1: `insufficient_sample` 은 정상 사유 · 모르는 사유는 계약 깨짐) · `tsc` |
+| 통과 필드 | `signalTrackRecord.{horizonHours, alwaysUpRate, excessWinRate}` 없으면 `null` · `samples` 서버 모양 그대로 |
+| 미검증 | 떠 있는 BFF 가 이 브랜치가 아님 — 실 경로는 머지 뒤 |

@@ -449,3 +449,4 @@ flowchart TB
 | 2026-09-23 | `ADR-003` · `FEATURE-008` 연결 — 정책 "목표주가·수익률 예측 금지" · FR-28 에 전망 확장 경로를 적었다. 이 기획서의 FR 은 바뀌지 않는다 |
 | 2026-09-24 | F009 슬라이스 0 — C04: 성적표 `maxDrawdown` → `worstObservedReturn`("가장 나빴던 수익률"). 값은 최저 단일 관찰 수익률이라 MDD 가 아니었다(`SRV-REQ-025` FR-55) |
 | 2026-09-24 | F009 슬라이스 0 — C05: 모드 기간을 채점 기간으로 통일(단타 24시간 · 장기 30일, 사용자 결정). 해설 "약 25분" · 판단 "1주~1년" 표기 삭제(`SRV-REQ-025` FR-56) |
+| 2026-09-28 | **F010 슬라이스 0 — 성적표 신뢰성**(`SRV-REQ-024` FR-173~176 · `SRV-REQ-025` FR-59 · `DB-REQ-017` FR-61 · `BFF-REQ-024` FR-40 · `FE-REQ-026` FR-165). 지표가 한 번도 계산되지 않던 버그 수정(그동안 판단은 전부 지표 결측 감점 → "AI 가 매수하라는 게 없다"의 직접 원인). 판단 지표 모드별 봉 · 채점에 왕복 수수료 · 기저율 대비 초과 적중률 · 저장 추천 불변 원장(30일 채점) · 추천 게이트 표본 20. 근거 `requirements/reports/research/2026-09-27-ai-judgment-upgrade.md` §2 · `requirements/specs/in-progress/F010-slice0-scorecard-integrity-slice.md` |

@@ -265,3 +265,11 @@
 | 인증된 HTTP · 화면에서 해설 실측 | 로그인 토큰을 만들 수 없었다(자동 모드 권한). 유스케이스 · DTO 단위 테스트로만 확인 | 사용자 로그인 화면 QA |
 | 사실 스냅샷 ID(화면 상태와 해설 사실을 묶기) | 화면이 보내는 사실이 0 이라 위조 경로는 닫혔다. 남는 것은 "화면의 가격과 해설 시점 가격이 몇 초 다를 수 있음"뿐 — `facts.asOf` 로 드러난다 | 화면에 해설 기준 시각 표시가 필요해지면 |
 | 사실의 `metricId` 구조 | 근거가 아직 라벨 + 문자열이다(C03 의 남은 절반) | 도구 호출 에이전트(`FEATURE-008` FR-41 · 44) |
+
+## F010 슬라이스 0 — FR-59 (2026-09-28)
+
+| 확인 | 결과 |
+|---|---|
+| 계약 | `trackRecord` · `signalTrackRecord` 에 `alwaysUpRate` · `excessWinRate`(추천은 `horizonHours` 720) · `blockedReason` `insufficient_sample` · `failureCases[].symbol/returnRate` · `signal-performance` 새 모양 — 유스케이스 테스트로 고정(`recommendationLedger.test.ts` · `getCoachDetail.test.ts`) |
+| 소비처 | BFF `coach-report.viewmodel` · `symbol-coach.viewmodel` · `app-signal-performance.service` 동시 변경(`BFF-REQ-024` FR-40) · `@repo/core` 타입(`FE-REQ-026` FR-165) |
+| 미검증 | 인증 HTTP 본문 실측(로컬 토큰 불가 — 기존 제약) → 로그인 QA |

@@ -200,6 +200,7 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | FR-40 | `IndicatorTrackRecord`는 `DB-REQ-013`(F003)이 만든다. **F004는 읽기만** 한다 | Must |
 | FR-41 | F004는 `indicator` 키로 조회한다. 코치가 쓰는 지표군과 `IndicatorTrackRecord.indicator`가 **매핑 가능해야 한다** | Must |
 | FR-42 | 매핑이 없으면 실패사례가 없고 → **추천 카드가 렌더되지 않는다**(정상 동작) | Must |
+| FR-61 | **`coach_recommendation_snapshots`** (F010 슬라이스 0, `20260928101000`). 저장 추천 불변 원장 — `user_id`(FK cascade) · `symbol` · `mode`(지금은 늘 `long_term`) · `action` · `signal_type`(`coach.<action>`) · `score` · `reasons` · `entry_price` · `judged_at` · `sample_origin`(CHECK live/backtest/synthetic, 기본값 없음) · 채점 4열(`exit_price` · `return_rate` · `outcome` · `evaluated_at`). 유니크 `(user_id, symbol, action, judged_at)` · 인덱스 `(user_id, signal_type, outcome, judged_at desc)` · `(evaluated_at, judged_at)`. `investment_insights.ai_coach` 의 upsert 는 그대로(현재 추천) — 이력은 이 표. 롤백 = DROP TABLE | Must |
 
 ## Acceptance Criteria
 
@@ -247,3 +248,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-09-21 | **FR-55 · FR-57 구현.** `GaugeTrackRecord`(`gauge_track_records`) — 스펙 모양 그대로, 수익률은 비율. 집계는 `market` 공개 API(심리 하루 1표본 · 진입/청산 = 그 시각 이후 첫 일봉 종가), 저장은 `coach`. 일 1회 워커가 통째로 다시 쓰고 이번에 없는 줄은 지운다. 남음: FR-56(`smart_money`, Should) |
 | 2026-09-23 | **FR-13~15 · FR-20~22 구현 (슬라이스 13).** `coach_generation_logs`(`20260923042043`) · 프로필 열 2(`20260923041818`). **다르게 1건**: `status` 에 `running` 을 더했다 — 생성이 비동기(202)라 받는 순간 행이 있어야 다음 요청의 쿨다운이 진행 중 생성을 본다. 근거 `reports/checklists/DB-REQ-017.md` |
 | 2026-09-24 | **FR-60 신설 · 구현 (F009 슬라이스 0 C06).** `20260924130000_judgment_sample_origin`. 로컬 적용: 256행 → `synthetic` 240 · `live` 16(합 불변), CHECK 가 `'guess'` 거부. 근거 `reports/checklists/DB-REQ-017.md` |
+| 2026-09-28 | **FR-61 신설 · 구현 (F010 슬라이스 0).** `20260928101000_coach_recommendation_snapshots`(추가만). 같은 브랜치 `20260928100100_judgment_outcome_after_cost` 는 `symbol_judgment_snapshots.outcome` 재판정(수수료 0.1% 경계, `SRV-REQ-024` FR-174) — 로컬 live 18행 결과 변화 없음 |
