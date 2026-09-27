@@ -19,4 +19,9 @@ export const COACH_ENDPOINTS = {
   riskBudget: "/api/app/coach/risk-budget",
   /** 종목별 거래 계획 (F009 `BFF-REQ-038`) */
   plans: (symbol: string) => `/api/app/coach/plans?symbol=${encodeURIComponent(symbol)}`,
+  /** 내 거래 미러 (F009 슬라이스 5 `BFF-REQ-038` FR-7) */
+  mirror: "/api/app/coach/mirror",
+  /** 청산별 결과 · 태그. 확정은 `outcomeTags` 에 PUT(`features/confirm-outcome-tags`) */
+  outcomes: (limit: number) => `/api/app/coach/outcomes?limit=${limit}`,
+  outcomeTags: (id: string) => `/api/app/coach/outcomes/${encodeURIComponent(id)}/tags`,
 } as const;

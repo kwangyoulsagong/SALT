@@ -1,7 +1,8 @@
 import Decimal from "decimal.js";
 
-import type { DecisionOutcome, MirrorMetric } from "../../domain";
+import type { DecisionOutcome, MirrorMetric, TagCost } from "../../domain";
 import type { BehaviorMirrorView } from "../../application/GetBehaviorMirror";
+import type { TradeBehaviorPreview } from "../../application/PreviewTradeBehavior";
 
 /**
  * F009 슬라이스 4 응답 변환 — 미러 · 결정 결과. 규칙은 `riskView` 와 같다.
@@ -17,10 +18,23 @@ const krw = (value: Decimal): number => value.toDecimalPlaces(0, Decimal.ROUND_H
 const days = (value: Decimal | null): number | null =>
   value === null ? null : value.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber();
 
+const unitPrice = (value: Decimal): number => value.toDecimalPlaces(8, Decimal.ROUND_HALF_UP).toNumber();
+
 const metric = (value: MirrorMetric, format: (value: Decimal | null) => number | null = rate) => ({
   value: format(value.value),
   sampleSize: value.sampleSize,
   status: value.status,
+});
+
+const tagCost = (cost: TagCost) => ({
+  tag: cost.tag,
+  count: cost.count,
+  netPnlKrw: krw(cost.netPnlKrw),
+  avgReturn: rate(cost.avgReturn),
+  avgR: rate(cost.avgR),
+  rSampleSize: cost.rSampleSize,
+  status: cost.status,
+  noEdge: cost.noEdge,
 });
 
 export const toBehaviorMirrorResponse = (view: BehaviorMirrorView) => ({
@@ -52,16 +66,7 @@ export const toBehaviorMirrorResponse = (view: BehaviorMirrorView) => ({
     missingCloses: view.benchmark.missingCloses,
     assumptions: ["twr_daily_close", "net_inflow_bought_same_day_same_weights", "carry_forward_missing_close"],
   },
-  tagCosts: view.tagCosts.map((cost) => ({
-    tag: cost.tag,
-    count: cost.count,
-    netPnlKrw: krw(cost.netPnlKrw),
-    avgReturn: rate(cost.avgReturn),
-    avgR: rate(cost.avgR),
-    rSampleSize: cost.rSampleSize,
-    status: cost.status,
-    noEdge: cost.noEdge,
-  })),
+  tagCosts: view.tagCosts.map(tagCost),
   turnover: {
     trailingYearTurnover: rate(view.turnover.gauge?.trailingYearTurnover ?? null),
     feesYearToDateKrw: view.turnover.gauge?.feesYearToDate?.toKrwInteger() ?? null,
@@ -100,3 +105,24 @@ export const toDecisionOutcomeResponse = (outcome: DecisionOutcome) => ({
   tagsConfirmedAt: outcome.userTagsConfirmedAt,
   computedAt: outcome.computedAt,
 });
+
+/**
+ * 사이즈 계산의 `behavior` (FR-12). 매도 프레이밍 가격은 **단가**라 반올림하지 않는다 — 1원 미만 호가 코인이 있다.
+ * 매입가 · 손익률은 싣지 않는다(`sellFramingFor` 주석).
+ */
+export const toBehaviorPreviewResponse = (preview: TradeBehaviorPreview | null) => {
+  if (preview === null) return null;
+  if (preview.status === "truncated") return { status: preview.status };
+  const framing = preview.sellFraming;
+  return {
+    status: preview.status,
+    candidateTags: preview.candidateTags,
+    chasingUnknown: preview.chasingUnknown,
+    edgeWarnings: preview.edgeWarnings.map(tagCost),
+    sellFraming: framing && {
+      planId: framing.planId,
+      stopPrice: framing.stopPrice === null ? null : unitPrice(framing.stopPrice),
+      currentPrice: framing.currentPrice === null ? null : unitPrice(framing.currentPrice),
+    },
+  };
+};

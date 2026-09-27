@@ -7,7 +7,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import {
-  BehaviorFactList,
   COACH_MESSAGES,
   CoachBlockSkeleton,
   ExitPlanList,
@@ -38,6 +37,7 @@ import {
   titleBlock,
 } from "./CoachReport.css";
 import { AssetIdentity } from "./AssetIdentity";
+import { MirrorPanel } from "./MirrorPanel";
 import { RiskBudgetPanel } from "./RiskBudgetPanel";
 
 const renderIdentity = (symbol: string, size: "sm" | "md") => (
@@ -137,12 +137,10 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
           <ExitPlanList plans={report.exitPlans} renderIdentity={renderIdentity} />
         </ReportPanel>
 
-        <ReportPanel
-          heading={REPORT.behaviorHeading}
-          degraded={degraded(REPORT_BLOCK_FIELDS.behaviorFacts)}
-        >
-          <BehaviorFactList facts={report.behaviorFacts} />
-        </ReportPanel>
+        {/* F009 FR-21 — 행동 알림은 알림이 아니라 미러의 "최근 행동" 줄이다. 리포트가 행동을 못 읽었으면 그 줄만 빠진다 */}
+        <MirrorPanel
+          behaviorFacts={degraded(REPORT_BLOCK_FIELDS.behaviorFacts) ? null : report.behaviorFacts}
+        />
 
         {excluded.map((line) => (
           <p key={line} className={footnote}>
@@ -190,8 +188,14 @@ export const CoachReport = () => {
   if (report.isSignedOut) return notice(<Text color="tertiary">{REPORT.signedOut}</Text>);
   if (report.isPending) return notice(<CoachBlockSkeleton block="judgment" />);
   if (report.isError || report.data.status === "unavailable") {
-    // 게이지는 리포트와 따로 실패한다 — 리포트가 없어도 내 기준 · 게이지는 보인다(F009 카드 단위 격리)
-    return notice(<Text color="tertiary">{REPORT.unavailable}</Text>, <RiskBudgetPanel />);
+    // 게이지 · 미러는 리포트와 따로 실패한다 — 리포트가 없어도 내 기준 · 게이지 · 미러는 보인다(F009 카드 단위 격리)
+    return notice(
+      <Text color="tertiary">{REPORT.unavailable}</Text>,
+      <>
+        <RiskBudgetPanel />
+        <MirrorPanel behaviorFacts={null} />
+      </>,
+    );
   }
 
   return <ReportBody report={report.data} />;

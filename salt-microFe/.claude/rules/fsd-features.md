@@ -50,6 +50,7 @@ features/{slice}/
 | `regenerate-coach` | 코치 리포트 재생성 · 쿨다운 표시 · 202 뒤 완료 폴링 | F004 |
 | `record-transaction` | 보유 거래 기록 추가·수정·삭제 + 서버 미리보기. F009 에서 **추가 + 계획(선택) + 사이즈 계산**이 먼저 생겼다 | F006 · F009 |
 | `set-risk-budget` | 리스크 예산(월 허용 손실 · 1회 최대 손실) 설정. 필수 아님 | F009 |
+| `confirm-outcome-tags` | 청산별 실수 태그 확정 · 수정(자동 후보 → 사용자 확정). 원본 판정은 서버가 보존 | F009 |
 | `mark-alert-read` | 알림 읽음 · 모두 읽음 | F006 |
 | `toggle-alerts` | 알림 켜기/끄기 | F006 |
 | `skip-onboarding-step` | 온보딩 2단계 건너뛰기 | F006 |

@@ -366,6 +366,12 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - `volTargetWeight` = 목표 변동성 ÷ 실현 변동성(최대 1). 실현 변동성은 F009 슬라이스 2 전까지 없다 → `insufficient_data`
    *       - `winRate` · `payoffRatio` 를 함께 보내면 `kelly`(풀 · 1/2 · 1/4)가 붙는다. 음수면 `hasEdge: false`
    *       - 비율은 소수(0.28 = 28%). 예산 · 비중은 코인 보유 평가금액 합 기준
+   *       - `behavior`(FR-12) — 입력 중 행동 미리보기. 저장하지 않는다(판정은 배치). 이것만 실패하면 `null` 이고 나머지는 그대로다
+   *         - 매수: `candidateTags`(이 거래가 저장되면 붙을 자동 태그 후보, 배치와 같은 규칙) · `edgeWarnings`(후보 중 표본 ≥ 20 ·
+   *           기대값 음수인 태그 — 폼이 한 줄씩 보인다, 차단 아님) · `chasingUnknown`(5분봉이 없어 추격을 못 가림)
+   *         - 매도: `sellFraming{planId, stopPrice, currentPrice}` — 아직 남은 매수에 연결된 최신 계획의 손절가 vs 지금.
+   *           매입가 · 손익률은 싣지 않는다
+   *         - 거래가 상한(5,000건)에 잘리면 `{ status: truncated }`
    *     tags: [Coach Risk]
    *     security:
    *       - bearerAuth: []
@@ -384,13 +390,15 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *               stopPrice: { type: number, exclusiveMinimum: 0, description: 원. 없으면 손실 계열이 unavailable }
    *               winRate: { type: number, exclusiveMinimum: 0, exclusiveMaximum: 1, description: payoffRatio 와 함께 }
    *               payoffRatio: { type: number, exclusiveMinimum: 0, description: winRate 와 함께 }
+   *               hasPlan: { type: boolean, description: 폼에 계획(손절가 또는 이유)이 있는가 — 계획 외 후보 판정. 없으면 stopPrice 유무 }
    *     responses:
    *       200:
    *         description: |
    *           `{ symbol, side, status(ok|stop_not_below_entry|sell_side), maxLossKrw, lossPerUnitKrw, perTradeBudgetRate,
    *           monthlyBudgetRemainingRate, monthlyBudgetRemainingKrw, referenceMaxQuantity{value,limitedBy}, volTargetWeight,
    *           currentWeight, projectedWeight, consecutiveLoss{count,amountKrw,monthlyBudgetRate}, kelly, unavailable,
-   *           assumptions, volatilityAsOf, asOf, orderExecution }`
+   *           assumptions, volatilityAsOf, behavior{status, candidateTags, chasingUnknown, edgeWarnings[], sellFraming}, asOf,
+   *           orderExecution }`
    *       400: { description: 요청 검증 실패(음수 · NaN · 무한대 · 승률만 보냄) }
    *       401: { description: 인증 실패 }
    */

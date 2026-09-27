@@ -4,6 +4,7 @@ import type { Money } from "../../../shared/domain";
 import type { BudgetSetting, TradePlan } from "../../domain";
 import type { TradeSizeCheck } from "../../application/CheckTradeSize";
 import type { RiskBudgetView } from "../../application/ManageRiskBudget";
+import { toBehaviorPreviewResponse } from "./mirrorView";
 
 /**
  * F009 슬라이스 1 응답 변환 — **원 반올림이 일어나는 유일한 자리**(`ddd-presentation.md` §2).
@@ -68,6 +69,7 @@ export const toSizeCheckResponse = (result: TradeSizeCheck) => {
       maxSingleAssetWeight: rate(result.assumptions.maxSingleAssetWeight),
     },
     volatilityAsOf: result.volatilityAsOf,
+    behavior: toBehaviorPreviewResponse(result.behavior),
     asOf: result.asOf,
     orderExecution: result.orderExecution,
   };

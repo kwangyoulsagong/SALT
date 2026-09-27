@@ -29,7 +29,9 @@ export const createBehaviorCoachRouter = (useCases: CoachUseCases): Router => {
    * /api/behavior-coach:
    *   get:
    *     summary: 투자 행동 코치 조회
-   *     description: 거래 기록을 기반으로 과잉거래, 패닉셀, 추격매수 후보를 분석합니다.
+   *     description: |
+   *       거래 기록을 기반으로 과잉거래, 패닉셀, 추격매수 후보를 분석합니다.
+   *       요청 때 세고 저장하지 않는다(FEATURE-009 FR-21 — 알림이 아니라 측정). `warnings[].id` 는 판정 키(`dedupeKey`)다
    *     tags: [Behavior Coach]
    *     security:
    *       - bearerAuth: []

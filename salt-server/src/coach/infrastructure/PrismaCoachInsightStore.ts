@@ -12,10 +12,10 @@ import type {
  *
  * ## 이 테이블은 아직 주인이 둘이다
  *
- * `ai_coach` · `behavior_analysis` 는 코치가 쓰고, `smart_buy_zone` · `risk_alert` 는
+ * `ai_coach` 는 코치가 쓰고(`behavior_analysis` 는 FEATURE-009 FR-21 로 더 쓰지 않는다 — 요청 때 센다), `smart_buy_zone` · `risk_alert` 는
  * **아직 `modules/investment-insight` 의 워커**가 쓴다(FR-33 · `SRV-REQ-007`).
  * 코치는 남의 타입을 **읽기만** 하고 쓰지 않는다 — 그 경계를 이 파일의 메서드
- * 이름이 드러낸다(`saveRecommendation` · `saveBehavior` 만 쓰기다).
+ * 이름이 드러낸다(`saveRecommendation` · `saveFeedback` 만 쓰기다).
  *
  * 그 둘이 이관되면 이 Store 는 자기 타입만 남고, 남의 타입 읽기는 그때
  * 공개 API 나 이벤트로 바뀐다.
@@ -156,56 +156,6 @@ export class PrismaCoachInsightStore implements CoachInsightStore {
     });
 
     return toDomain(row);
-  }
-
-  async saveBehavior(draft: CoachInsightDraft): Promise<CoachInsight> {
-    const row = await prisma.investmentInsight.upsert({
-      where: {
-        userId_type_dedupeKey: {
-          userId: draft.userId,
-          type: "behavior_analysis",
-          dedupeKey: draft.dedupeKey,
-        },
-      },
-      create: {
-        userId: draft.userId,
-        type: "behavior_analysis",
-        title: draft.title,
-        summary: draft.summary,
-        severity: draft.severity,
-        confidence: draft.confidence,
-        dedupeKey: draft.dedupeKey,
-        payload: toJson(draft.payload),
-        expiresAt: draft.expiresAt,
-      },
-      update: {
-        title: draft.title,
-        summary: draft.summary,
-        severity: draft.severity,
-        confidence: draft.confidence,
-        payload: toJson(draft.payload),
-        expiresAt: draft.expiresAt,
-      },
-    });
-
-    return toDomain(row);
-  }
-
-  async findActiveBehavior(
-    userId: string,
-    limit: number
-  ): Promise<CoachInsight[]> {
-    const rows = await prisma.investmentInsight.findMany({
-      where: {
-        userId,
-        type: "behavior_analysis",
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-      },
-      orderBy: [{ severity: "desc" }, { createdAt: "desc" }],
-      take: limit,
-    });
-
-    return rows.map(toDomain);
   }
 
   async findRecommendationHistory(

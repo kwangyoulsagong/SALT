@@ -19,8 +19,6 @@ export const BEHAVIOR_DEFAULTS = {
   panicSellWindowHours: 24,
   chasingWindowHours: 48,
   chasingThresholdRatio: 0.98,
-  /** 인사이트 유효 시간. 원문의 `ttlHours` 기본값이다. */
-  ttlHours: 6,
 } as const;
 
 export type BehaviorKind = "over_trading" | "panic_sell" | "chasing_high";

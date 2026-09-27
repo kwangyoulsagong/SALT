@@ -42,3 +42,37 @@
 | 마지막 수정 뒤 `next build` 재실행 | dev 서버와 `.next` 를 같이 쓴다 — 도는 중에 빌드하면 dev 가 깨진다 | 머지 전 dev 를 내리고 한 번(작성자) |
 | `apps/web` 단위 테스트 | 러너가 없다(`pnpm test` 는 core · ui 만). `amountInput` 은 브라우저에서 확인 | 웹 러너 도입 시 |
 | 200% 확대 · 색맹 시뮬레이션 | 돌리지 않았다 | 로그인 QA |
+
+---
+
+# 슬라이스 5 — 내 거래 미러 · 태그 확정 · 폼 한 줄 (2026-09-27)
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-14 미러 섹션 · 격리 | `widgets/coach-console/ui/MirrorPanel.tsx` · `CoachReport.tsx`(리포트 `unavailable` 분기에도 게이지 + 미러) | Playwright — 리포트 · 게이지 `unavailable` 고정에서 미러가 그대로 보인다 |
+| FR-15 미러 줄 | `entities/coach/ui/MirrorLines.tsx` · `model/mirrorMessages.ts` · `lib/format.ts`(`formatSignedDecimal` · `formatSignedKrw` · `formatShortDate`) | Playwright 1280 · 375 — 줄 다섯 + 표본 배지 · 표본 부족 배지 · 기준선 출처. 처음 본 화면에서 "표본 24 · 표본 부족"이 모순돼 보여 보유일 줄은 "익절 15 · 손절 9"로 고쳤다 |
+| FR-16 엣지 없음 | `MirrorLines` `TagCostRows` — `noEdge` 인 줄만 배지 | Playwright — 추격(22건 · −0.8R)에만 |
+| FR-17 태그 확정 | `features/confirm-outcome-tags/**` · `entities/coach/ui/OutcomeList.tsx` · `api/useBehaviorMirror.ts` | Playwright — "태그 고치기" → 체크박스 5 → 확정 → PUT → "확정했어요. 미러를 다시 셌어요". 375 에서 줄바꿈 |
+| FR-18 엣지 없음 한 줄 | `entities/coach/ui/TradeBehaviorLines.tsx` · `RecordTradeCard.tsx`(`hasPlan`) · `useSizeCheck.ts`(키에 `hasPlan`) | Playwright(`/investments/BTC`) — 수량 · 단가 입력 → 요청 `hasPlan: false` → "이 거래는 '급등 추격' 후보예요 · 내 기록에서 이 유형 22건 평균 −0.8R(엣지 없음)". 저장 버튼 그대로 |
+| FR-19 매도 프레이밍 | `TradeBehaviorLines` 매도 분기 | Playwright — 매도 전환 → "이 종목을 오늘 처음 본다면 살까요?" + "계획 손절 88,300,000원 · 지금 91,200,000원" |
+| FR-20 행동 → 미러 줄 | `MirrorLines` "최근 행동" · `BehaviorFactList` 삭제 · `messages.ts` 쓰지 않는 문구 3개 삭제 | 타입 · 린트 — 소비처 0 확인 뒤 삭제 |
+
+| 확인 | 결과 |
+|---|---|
+| 타입 · 린트 | `pnpm check-types` · `pnpm lint`(max-warnings 0) — 5 패키지 통과 |
+| 테스트 | `pnpm test` — `@repo/ui` 43 · `@repo/core` 26 통과(웹 러너 없음) |
+| 빌드 | `web` · `web-tax` `next build` 통과. dev 서버가 없는 상태에서 빌드했다(3000 · 3001 리슨 없음 확인) |
+| 레이어 | `pnpm test:layer-check`(차단 8 · 통과 5) · Bash 로 쓴 파일 포함 변경 파일 전부에 `layer-check.mjs` 사후 실행 — 막힘 0 · 레지스트리(`layer-rules.cjs` · `fsd-features.md`)에 `confirm-outcome-tags` 추가 |
+| 번들 | 첫 로드 `/coach/report` 110 kB · `/investments/[symbol]` 115 kB — 슬라이스 3 과 같다 |
+| 접근성 | axe(미러 섹션 · 거래 폼) — **새 스타일 위반 0**. 걸린 것은 기존 둘: 공용 `panelDescription`(neutral 600, 리스크 예산 패널도 같은 위반) · `SegmentedControl` 안 고른 칸 4.18:1 |
+| 공통 수용 기준 | 주문 경로 0 · 프론트 금액 계산 0(부호 · 퍼센트 포맷만) · 명령형 · 평가 문구 0(질문 한 줄은 시나리오 5 원문) · 막는 동작 0 · 3종 고지 고정 · 종목 자리에 아이콘 |
+
+| 미검증 · 범위 밖 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실 서버 값으로 미러 · 태그 · 폼 한 줄(로그인 상태) | 로컬 토큰 발급 불가 — Playwright 고정 응답으로만 확인 | 로그인 QA(사용자) |
+| 사용자 정의 태그 새로 적기 | 입력 칸을 더하면 "추가 입력 2개 이내" 밖이다 — 이미 붙은 사용자 정의 태그는 보이고 끌 수 있다 | 사용 기록에서 5종으로 부족하다는 신호가 오면 |
+| 매도 프레이밍의 "그냥 들고 있었으면 대비 +2.1%" 조각 | 매도 순간의 보유 대비는 서버에 없다(미러의 보유 대비는 전 기간 TWR) — 섞으면 다른 기간 숫자를 한 줄에 둔다 | 서버가 종목 단위 보유 대비를 주면 |
+| 공용 `panelDescription` 대비(neutral 600) | 기존 — 모든 패널 설명 줄 공통. 한 곳을 고치면 전 화면이 바뀐다 | `@repo/ui` · surface 대비 정리 REQ |
+| `SegmentedControl` 안 고른 칸 대비 4.18:1 | 기존(슬라이스 3 표에 이미 있음) | 같은 REQ |
+| 월간 복기 카드 · 연승/연패(FR-20) · 시간대(FR-22) | 슬라이스 6 · Could | 슬라이스 6 |
+| 200% 확대 · 색맹 시뮬레이션 | 돌리지 않았다 | 로그인 QA |

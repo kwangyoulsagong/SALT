@@ -52,6 +52,7 @@ export class CoachRiskController {
         stopPrice: dec(body.stopPrice),
         winRate: dec(body.winRate),
         payoffRatio: dec(body.payoffRatio),
+        hasPlan: body.hasPlan,
       });
       return ResponseUtil.success(res, toSizeCheckResponse(result));
     } catch (error) {

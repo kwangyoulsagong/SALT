@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import type {
+  BehaviorAnalyzer,
+  BehaviorFinding,
   CoachHolding,
   CoachInsight,
   CoachInsightStore,
@@ -44,13 +46,11 @@ const insight = (over: Partial<CoachInsight> = {}): CoachInsight => ({
 
 const store = (
   latest: CoachInsight | null,
-  history: CoachInsight[] = latest ? [latest] : [],
-  behaviors: CoachInsight[] = []
+  history: CoachInsight[] = latest ? [latest] : []
 ): CoachInsightStore =>
   ({
     findLatestRecommendation: async () => latest,
     findRecommendationHistory: async () => history,
-    findActiveBehavior: async () => behaviors,
   }) as unknown as CoachInsightStore;
 
 const market = (entry = 100, latest = 110): MarketProbe =>
@@ -77,8 +77,15 @@ const holding: CoachHolding = {
 const portfolio = (holdings: CoachHolding[] = []): PortfolioProbe =>
   ({ listHoldings: async () => holdings }) as unknown as PortfolioProbe;
 
-const detail = (s: CoachInsightStore, p = portfolio(), m = market()) =>
-  new GetCoachDetail(s, m, p, () => NOW);
+const detail = (
+  s: CoachInsightStore,
+  p = portfolio(),
+  m = market(),
+  behavior: BehaviorAnalyzer | null = null
+) => new GetCoachDetail(s, m, p, () => NOW, behavior);
+
+const finding = (payload: Record<string, unknown>, severity = 50): BehaviorFinding =>
+  ({ dedupeKey: String(payload.kind), title: "t", summary: "s", severity, confidence: 0.5, payload }) as unknown as BehaviorFinding;
 
 describe("GetCoachDetail", () => {
   it("추천이 없으면 recommendation · staleHours 가 null 이고 나머지는 준다", async () => {
@@ -137,17 +144,32 @@ describe("GetCoachDetail", () => {
     assert.equal(view.regime, "sideways");
   });
 
-  it("행동 기록은 코드 + 수치이고 읽지 못한 판정은 빠진다", async () => {
-    const behaviors = [
-      insight({ type: "behavior_analysis", payload: { kind: "over_trading", windowHours: 24, trades: 15, threshold: 12 } }),
-      insight({ type: "behavior_analysis", payload: { kind: "unknown" } }),
-    ];
+  it("행동 기록은 요청 때 센 판정의 코드 + 수치이고 읽지 못한 판정은 빠진다(FR-21)", async () => {
+    const analyzer: BehaviorAnalyzer = {
+      execute: async () => [
+        finding({ kind: "unknown" }, 90),
+        finding({ kind: "over_trading", windowHours: 24, trades: 15, threshold: 12 }),
+      ],
+    };
 
-    const view = await detail(store(null, [], behaviors)).execute("u1");
+    const view = await detail(store(null), portfolio(), market(), analyzer).execute("u1");
 
     assert.deepEqual(view.behaviorFacts, [
       { factCode: "over_trading", params: { windowHours: 24, trades: 15, threshold: 12 }, amountKrw: null },
     ]);
+  });
+
+  it("행동 판정이 실패해도 상세는 나가고 행동 기록만 비다", async () => {
+    const analyzer: BehaviorAnalyzer = {
+      execute: async () => {
+        throw new Error("market down");
+      },
+    };
+
+    const view = await detail(store(null), portfolio([holding]), market(), analyzer).execute("u1");
+
+    assert.deepEqual(view.behaviorFacts, []);
+    assert.equal(view.exitPlans.length, 1);
   });
 
   it("응답에 목표가 · 확신 · 예측 필드가 없다", async () => {

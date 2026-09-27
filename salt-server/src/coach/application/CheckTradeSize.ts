@@ -1,5 +1,6 @@
 import Decimal from "decimal.js";
 
+import { logger } from "../../shared/config/logger";
 import { Money } from "../../shared/domain";
 import {
   calculateSizing,
@@ -14,6 +15,7 @@ import {
   type SizingResult,
 } from "../domain";
 import { loadRiskSnapshot } from "./lib/loadRiskSnapshot";
+import type { PreviewTradeBehavior, TradeBehaviorPreview } from "./PreviewTradeBehavior";
 
 export interface CheckTradeSizeCommand {
   symbol: string;
@@ -24,6 +26,8 @@ export interface CheckTradeSizeCommand {
   /** FR-6 — 둘 다 있을 때만 켈리를 계산한다 */
   winRate?: Decimal;
   payoffRatio?: Decimal;
+  /** 폼에 계획(손절가 또는 이유)이 있는가 — 계획 외 후보 판정. 없으면 `stopPrice` 유무로 본다 */
+  hasPlan?: boolean;
 }
 
 export interface TradeSizeCheck {
@@ -38,6 +42,8 @@ export interface TradeSizeCheck {
     maxSingleAssetWeight: Decimal;
   };
   volatilityAsOf: Date | null;
+  /** 입력 중 행동 미리보기(FR-12). 미리보기만 실패하면 `null` — 사이즈 결과는 그대로 나간다 */
+  behavior: TradeBehaviorPreview | null;
   asOf: Date;
   /** 사실 서술. 켜면 주문이 되는 코드가 이 뒤에 없다(공통 수용 기준 2) */
   orderExecution: false;
@@ -55,20 +61,22 @@ export class CheckTradeSize {
     private readonly portfolio: PortfolioProbe,
     private readonly market: MarketProbe,
     private readonly forecasts: ForecastReader,
-    private readonly now: () => Date = () => new Date()
+    private readonly now: () => Date = () => new Date(),
+    private readonly preview: PreviewTradeBehavior | null = null
   ) {}
 
   async execute(userId: string, command: CheckTradeSizeCommand): Promise<TradeSizeCheck> {
     const symbol = command.symbol.toUpperCase();
     const now = this.now();
 
-    const [snapshot, volatility] = await Promise.all([
+    const [snapshot, volatility, behavior] = await Promise.all([
       loadRiskSnapshot(
         { profiles: this.profiles, portfolio: this.portfolio, market: this.market },
         userId,
         now
       ),
       this.forecasts.realizedVolatility(symbol),
+      this.previewBehavior(userId, symbol, command),
     ]);
 
     const profile = snapshot.profile;
@@ -116,8 +124,30 @@ export class CheckTradeSize {
         maxSingleAssetWeight,
       },
       volatilityAsOf: volatility?.asOf ?? null,
+      behavior,
       asOf: now,
       orderExecution: false,
     };
+  }
+
+  /** 미리보기는 보조 줄이다 — 실패를 사이즈 계산 실패로 번지게 하지 않는다 */
+  private async previewBehavior(
+    userId: string,
+    symbol: string,
+    command: CheckTradeSizeCommand
+  ): Promise<TradeBehaviorPreview | null> {
+    if (!this.preview) return null;
+    try {
+      return await this.preview.execute(userId, {
+        symbol,
+        side: command.side,
+        quantity: command.quantity,
+        price: command.price,
+        hasPlan: command.hasPlan ?? command.stopPrice !== undefined,
+      });
+    } catch (error) {
+      logger.warn(`사이즈 계산 행동 미리보기 실패: ${error instanceof Error ? error.name : "unknown"}`);
+      return null;
+    }
   }
 }

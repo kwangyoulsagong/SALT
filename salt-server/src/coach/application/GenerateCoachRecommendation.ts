@@ -4,6 +4,7 @@ import {
   explainRecommendation,
   rankCandidates,
   generateCandidates,
+  type BehaviorAnalyzer,
   type Clock,
   type CoachGenerationLogStore,
   type CoachGenerationSource,
@@ -76,7 +77,8 @@ export class GenerateCoachRecommendation {
     private readonly analyzeNews: AnalyzeNewsSentiment,
     private readonly symbolCoach: GetSymbolCoach,
     private readonly logs: CoachGenerationLogStore,
-    private readonly clock: Clock = () => new Date()
+    private readonly clock: Clock = () => new Date(),
+    private readonly behavior: BehaviorAnalyzer | null = null
   ) {}
 
   async execute(
@@ -123,6 +125,7 @@ export class GenerateCoachRecommendation {
       {
         profiles: this.profiles,
         insights: this.insights,
+        behavior: this.behavior,
         market: this.market,
         portfolio: this.portfolio,
       },

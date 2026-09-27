@@ -79,10 +79,10 @@
 | FR-15 | **처분효과 미러**: 이익 실현 비율(PGR) vs 손실 실현 비율(PLR) · 익절 평균 보유일 vs 손절 평균 보유일. Odean 정의 그대로. 표본 < 20 이면 표본 부족 | Must | 서버 완료(S4) — 매도일 일봉 종가, 결측이면 `null` |
 | FR-16 | **벤치마크 대비**: 첫 거래일부터 "그냥 들고 있었으면"(초기 보유 · 이후 순입금은 같은 날 매수 가정) vs 실제 순자산. 차이를 수수료 · 타이밍으로 가능한 범위에서 분해. 계산은 TWR(W04 원칙) | Must | 서버 완료(S4) — 순입금 같은 날 같은 비중 매수(사용자 결정 2026-09-27) · 수수료 몫 분해 |
 | FR-17 | **회전율 · 비용 미터**: 연환산 회전율 · 누적 수수료 · 기준선(자본시장연구원 2020 개인 일 1.4% 등 — **서버 상수**, 출처 표기) | Must | 게이지 완료(S1) · 기준선 서버 상수 완료(S4 — 자본시장연구원 2021, 국내 주식 일 회전율 · 환산 안 함) |
-| FR-18 | **실수 태그 · 비용 회계**: `DecisionOutcome` 에 태그(`chasing` · `averaging_down` · `revenge` · `off_plan` · `late_night` · 사용자 정의). 서버가 자동 후보를 붙이고(추격 = 48h 고점 98% 이상 매수, 물타기 = 평단 아래 추가 매수, 복수 = 손실 청산 후 24h 내 같은 종목 재진입, 계획 외 = `TradePlan` 없음) 사용자가 확정 · 수정. **태그별 손익 합계(원)** | Must | 서버 완료(S4) — 조각 수량 과반 규칙 · 추격은 5분봉 30일. 확정 API `PUT /coach/outcomes/:id/tags`. 화면 S5 |
-| FR-19 | **엣지 없음 배지**: 태그 · 유형별 기대값(R 또는 %)이 표본 ≥ 20 에서 음이면 그 유형에 배지. 다음 거래 입력 폼에서 같은 자동 태그 후보가 붙으면 배지를 한 줄로 보여 준다(차단 아님) | Should | 배지 계산 서버 완료(S4 `noEdge`) · 폼 한 줄 S5 |
+| FR-18 | **실수 태그 · 비용 회계**: `DecisionOutcome` 에 태그(`chasing` · `averaging_down` · `revenge` · `off_plan` · `late_night` · 사용자 정의). 서버가 자동 후보를 붙이고(추격 = 48h 고점 98% 이상 매수, 물타기 = 평단 아래 추가 매수, 복수 = 손실 청산 후 24h 내 같은 종목 재진입, 계획 외 = `TradePlan` 없음) 사용자가 확정 · 수정. **태그별 손익 합계(원)** | Must | 서버 완료(S4) — 조각 수량 과반 규칙 · 추격은 5분봉 30일. 확정 API `PUT /coach/outcomes/:id/tags`. 화면 완료(S5 — 청산별 태그 확정 · 태그별 손익 줄, 사용자 정의 태그 새로 적기 제외) |
+| FR-19 | **엣지 없음 배지**: 태그 · 유형별 기대값(R 또는 %)이 표본 ≥ 20 에서 음이면 그 유형에 배지. 다음 거래 입력 폼에서 같은 자동 태그 후보가 붙으면 배지를 한 줄로 보여 준다(차단 아님) | Should | 완료(S4 배지 계산 `noEdge` · S5 미러 배지 + 폼 한 줄 — size-check `behavior.edgeWarnings`, 배치와 같은 되감기로 후보를 낸다) |
 | FR-20 | **연승 · 연패 상태**: 최근 청산 N건 연속 이익/손실을 정보로 표시("4연승 뒤 사이즈가 커지는 패턴이 있어요"는 본인 데이터에서 실제 관찰될 때만) | Could | Draft |
-| FR-21 | 기존 `behavior.ts` 3규칙(과매매 · 패닉 · 추격) 은 유지하되 **인사이트 알림 → 미러 라인**으로 이동. 알림 워커의 행동 항목은 끈다 | Must | Draft |
+| FR-21 | 기존 `behavior.ts` 3규칙(과매매 · 패닉 · 추격) 은 유지하되 **인사이트 알림 → 미러 라인**으로 이동. 알림 워커의 행동 항목은 끈다 | Must | 완료(S5 — 워커 단계 · `behavior_analysis` 쓰기 삭제, 요청 때 측정. 코치 상세 · 행동 코치 · 추천 점수 감점이 같은 판정을 본다. 미러 "최근 행동" 줄) |
 | FR-22 | **시간대 · 요일 기대값**: 거래 시각(사용자 입력 `transactionDate` 의 시각 있을 때만) 별 청산 성과. 시각이 없으면 섹션 없음 | Could | Draft |
 
 ### E. 포트폴리오 위험(W02 축소 흡수)
@@ -170,13 +170,13 @@ FSD: `entities/coach`(표시) ← `features/record-transaction` · `features/edi
 
 | Method | Path | Auth | Request | Response | Status |
 |---|---|---|---|---|---|
-| POST | `/api/app/coach/size-check` | Y | `{symbol, side, quantity, price, stopPrice?, winRate?, payoffRatio?}` | `{status, maxLossKrw, perTradeBudgetRate, monthlyBudgetRemainingRate, referenceMaxQuantity{value, limitedBy}, volTargetWeight, currentWeight, projectedWeight, consecutiveLoss, kelly, unavailable, assumptions, asOf}` — 비율은 소수(0.28 = 28%, 기존 `*Rate` 규칙) | 서버 완료(S1) |
+| POST | `/api/app/coach/size-check` | Y | `{symbol, side, quantity, price, stopPrice?, winRate?, payoffRatio?}` | `{status, maxLossKrw, perTradeBudgetRate, monthlyBudgetRemainingRate, referenceMaxQuantity{value, limitedBy}, volTargetWeight, currentWeight, projectedWeight, consecutiveLoss, kelly, unavailable, assumptions, asOf, behavior}` — 비율은 소수(0.28 = 28%, 기존 `*Rate` 규칙). S5: 요청 `hasPlan?` · 응답 `behavior{candidateTags, chasingUnknown, edgeWarnings, sellFraming{stopPrice, currentPrice}}`(못 구하면 `null`) | 서버 완료(S1) · `behavior` S5 |
 | POST | `/api/app/coach/plans` | Y | `TradePlan` 필드(종목 · 방향 외 전부 선택) | 생성된 계획 | 서버 완료(S1) |
 | PATCH | `/api/app/coach/plans/:id` | Y | 부분 수정 · 거래 연결(1회). 연결 뒤 손절가 · 계획 수량 · 오를 확률은 409. 판정 수정 `userAdherenceLabel`(S4, 잠금 아님) | | 서버 완료(S1 · S4) |
 | GET | `/api/app/coach/plans?symbol=` | Y | | 종목별 계획 + 준수 라벨(라벨은 S4) | 서버 완료(S1) |
-| GET | `/api/app/coach/mirror` | Y | | 처분효과 · 벤치마크 · 회전율 · 준수율 · 태그 비용 · 엣지 배지 — 각 `{value, sampleSize, status}` | 서버 완료(S4) · BFF S5 |
-| GET | `/api/app/coach/outcomes?limit=` | Y | | 결정 결과(청산) 목록 · 자동/확정 태그 | 서버 완료(S4) · BFF S5 |
-| PUT | `/api/app/coach/outcomes/:id/tags` | Y | `{tags: string[]}` — 덮어쓰기, 빈 배열 = 실수 없음 | 고친 결과 | 서버 완료(S4) · BFF S5 |
+| GET | `/api/app/coach/mirror` | Y | | 처분효과 · 벤치마크 · 회전율 · 준수율 · 태그 비용 · 엣지 배지 — 각 `{value, sampleSize, status}` | 완료(S4 서버 · S5 BFF · 화면) |
+| GET | `/api/app/coach/outcomes?limit=` | Y | | 결정 결과(청산) 목록 · 자동/확정 태그 | 완료(S4 서버 · S5 BFF · 화면) |
+| PUT | `/api/app/coach/outcomes/:id/tags` | Y | `{tags: string[]}` — 덮어쓰기, 빈 배열 = 실수 없음 | 고친 결과 | 완료(S4 서버 · S5 BFF · 화면) |
 | GET | `/api/app/coach/risk-budget` | Y | | 게이지 3(시나리오는 S6) | 서버 완료(S1) |
 | PUT | `/api/app/coach/risk-budget` | Y | `{monthlyLossBudget?: {amount, unit: krw\|percent} \| null, perTradeMaxLoss?, targetVolatility?}` — `null` 은 지움 | GET 과 같음 | 서버 완료(S1) |
 | GET | `/api/app/coach/review/monthly?month=` | Y | | 월간 복기(수치 + 템플릿 문장) | Draft |
@@ -227,13 +227,13 @@ BFF 는 조립 · 격리만, 재계산 금지. 서버 경로는 `/api/coach/*` �
 - [ ] 예산 3문항이 비어 있으면 게이지 · 사이즈 % 가 `기준을 정하면 보여요` — 0 · 기본값 표시 0건.
 - [ ] 사이즈 계산 결과가 서버 Decimal 과 일치(프론트 재계산 0건). 진입가 ≤ 손절가 · 현금 초과 · 음수 차단.
 - [x] 변동성 타깃 비중은 `forecast.realized_vol` 이 있을 때만, 없으면 `insufficient_data`(0 아님). (S2 — 서버 리더 실 DB 확인, HTTP 본문은 S3)
-- [x] 준수 판정 4라벨이 케이스 표대로 붙고, 사용자 수정 뒤 원본 판정이 남는다. (S4 — 서버 단위 테스트 케이스 표 · 실 DB 임시 사용자. 수정 화면은 S5)
+- [x] 준수 판정 4라벨이 케이스 표대로 붙고, 사용자 수정 뒤 원본 판정이 남는다. (S4 — 서버 단위 테스트 케이스 표 · 실 DB 임시 사용자. S5 — 태그 확정 화면. 준수 라벨 수정 화면은 아직 없다 — API `PATCH /plans/:id` `userAdherenceLabel` 만)
 - [x] 처분효과(PGR/PLR · 보유일) · 벤치마크(TWR) · 회전율이 고정 테스트 거래 세트에서 손계산과 일치. (S4 — 회전율은 S1 게이지와 같은 식. 30건 세트가 아니라 케이스별 소형 세트)
-- [ ] 표본 < 20 인 모든 지표에 `표본 부족` 배지, 값은 흐리게 표시(숨김 0건).
+- [x] 표본 < 20 인 모든 지표에 `표본 부족` 배지, 값은 흐리게 표시(숨김 0건). (S5 — 굵기로 흐림(색은 AA 때문에 유지) · Playwright 고정 응답)
 - [x] 실수 태그별 손익 합이 `DecisionOutcome` 합과 일치. 자동 태그 후보 4종이 정의대로. (S4 — 과반 규칙은 기획서에 없던 것을 더했다)
 - [ ] 월간 복기 문장에 명령형 · 확신 표현 · 한 점 목표가 0건(`languageGuard` 통과). LLM 프롬프트에 보유 · 평단 · 수량 · 금액 0건(테스트).
 - [ ] 새 카드 전부에 3종 고지 슬롯. prop 으로 제거 불가.
-- [ ] 모달 · 확인 단계 · 타이머 · 차단 0건. 매도 프레이밍은 인라인 1줄.
+- [x] 모달 · 확인 단계 · 타이머 · 차단 0건. 매도 프레이밍은 인라인 1줄. (S5 — 태그 확정도 그 줄에서 펼침. 매도 프레이밍의 "보유 대비" 조각은 서버 값이 없어 뺐다)
 - [ ] 접근성: axe 위반 0 · 게이지 색맹 시뮬레이션에서 읽힘 · 키보드만으로 계획 입력 완료 · 200% 확대 레이아웃 유지 · reduced-motion.
 - [ ] 참고 화면 실측 기록이 체크리스트에 있다(디자인 기준).
 - [x] 슬라이스 0(C01~C06) 체크리스트가 먼저 닫혀 있다. (2026-09-24 — `requirements/reports/checklists/F009-slice0-reliability.md`. 남은 미검증은 로그인 화면 QA · metricId)
@@ -267,7 +267,7 @@ BFF 는 조립 · 격리만, 재계산 금지. 서버 경로는 `/api/coach/*` �
 | 2 | Python · DB | `FC-REQ-006` · `DB-REQ-031` | 실현 변동성(EWMA · GARCH) 일 1회 → `forecast.realized_vol` | 변동성 타깃 비중이 산다 |
 | 3 | BFF · FE | `BFF-REQ-038` · `FE-REQ-039` | 거래 폼 + 계획 접힘 + 결과 라인 · "내 계획" 카드 · 리스크 게이지 · 3종 고지 슬롯 · 매입가 숨김 | 사용자가 적고 본다 |
 | 4 | 서버 | `SRV-REQ-038` | 준수 판정 배치 · `DecisionOutcome` 생성 · 자동 태그 · `mirror.ts` · `/coach/mirror` | 미러 숫자가 쌓인다 |
-| 5 | FE | `FE-REQ-039` | 코치 리포트 "내 거래 미러" · 태그 수정 · 엣지 배지 · 매도 프레이밍 1줄 | 본인 데이터로 규칙이 돈이 됨을 본다 |
+| 5 | 서버 · BFF · FE | `SRV-REQ-038` FR-12 · 13 · `BFF-REQ-038` FR-7~9 · `FE-REQ-039` FR-14~20 | 코치 리포트 "내 거래 미러" · 태그 수정 · 엣지 배지 · 매도 프레이밍 1줄 · 행동 알림 → 측정(FR-21) | 본인 데이터로 규칙이 돈이 됨을 본다 — **완료 2026-09-27** |
 | 6 | 서버 · FE | `SRV-REQ-038` · `FE-REQ-039` | 월간 복기(템플릿) · Brier · 체크리스트 · 코치 대화 3문항 · 시나리오 | 학습 루프가 닫힌다 |
 
 ## 변경 이력
@@ -285,3 +285,4 @@ BFF 는 조립 · 격리만, 재계산 금지. 서버 경로는 `/api/coach/*` �
 | 2026-09-24 | **슬라이스 2 완료(Python · DB · 서버 메서드 1, 화면 없음).** 실현 변동성 289종목 일 1회 · QLIKE 채점 · 기준 게이트. 값은 EWMA(λ 0.94) 고정 — GARCH 는 도전자(채점 창 62% 우세지만 그 창으로 고르면 검증이 아니다, 승격은 26주 라이브 뒤). 통과 182 · ETH 포함 43종목은 기준에 져서 값 없음. 루트 `requirements/specs/in-progress/F009-slice2-realized-vol-slice.md`. 다음 슬라이스 3(`BFF-REQ-038` · `FE-REQ-039`) |
 | 2026-09-24 | **슬라이스 3 완료(BFF · FE — 사용자가 처음 쓴다).** 종목 상세에 거래 기록 카드(계획 접힘 · 300ms 뒤 서버 사이즈 결과 줄) · "내 계획" 카드, 코치 리포트에 리스크 예산 패널(게이지 3 · 월 · 1회 기준 입력). 계약 정정: 거래 + 계획 저장은 BFF `POST /api/app/coach/trades` 한 번(계획만 실패하면 거래는 두고 계획만 다시 저장). 보류: 손절 % 프리셋(프론트 금액 계산이 된다 — 서버 프리셋 필요) · 매입가 숨김 화면(평단 화면 없음) · 손절까지 거리(서버 필드 없음). 참고 화면 실측(주문 패널) 기록은 `FE-REQ-039`. 루트 `requirements/specs/in-progress/F009-slice3-trade-form-slice.md`. 다음 슬라이스 4(판정 배치 · 미러, `SRV-REQ-038` FR-9) |
 | 2026-09-27 | **슬라이스 4 완료(서버, 화면 없음).** 준수 판정 · 결정 결과 · 자동 태그 · 미러 · 태그 확정(`SRV-REQ-038` FR-9). 사용자 결정: 판정 종가 기준 KST 09:00(업비트 일봉 경계 = UTC 00:00) · 벤치마크 순입금은 같은 날 같은 비중 매수. 기획 정정: 미러는 일 1회 배치 → 읽기 뷰가 아니라 요청 시 계산(저장할 표가 없고 14ms), 배치는 결과 · 라벨만 6시간마다. 자동 태그는 조각 수량 과반일 때만. FR-21(행동 알림 끄기) · 20 · 22 는 S5. 루트 `requirements/specs/in-progress/F009-slice4-adherence-mirror-slice.md`. 다음 슬라이스 5(`FE-REQ-039` · `BFF-REQ-038` FR-7) |
+| 2026-09-27 | **슬라이스 5 완료(서버 · BFF · FE — 미러가 화면에 나온다).** 코치 리포트 "내 거래 미러"(처분효과 · 보유 대비 · 계획 지킴 · 태그별 손익 · 엣지 없음 · 회전율 · 최근 행동) · 청산별 태그 확정 · 거래 폼 엣지 없음 한 줄 · 매도 프레이밍 한 줄. 사용자 결정: 서버 포함(size-check `behavior` — 태그 후보 · 엣지 없음 · 매도 프레이밍, 저장 안 함) · FR-21 행동 알림을 이번에 끔(요청 시 측정으로) · 추격 판정은 입력 시점에 저장하지 않고 배치 그대로. 기획 정정: 매도 프레이밍의 "그냥 들고 있었으면 대비" 조각은 종목 단위 보유 대비가 서버에 없어 뺐다 · 사용자 정의 태그는 붙은 것만 보이고 새로 적는 칸은 없다(추가 입력 2개 이내). 루트 `requirements/specs/in-progress/F009-slice5-mirror-screen-slice.md`. 다음 슬라이스 6(월간 복기 · Brier · IPS 3문항 · 시나리오) |

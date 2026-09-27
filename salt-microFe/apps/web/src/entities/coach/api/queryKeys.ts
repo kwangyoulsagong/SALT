@@ -21,4 +21,8 @@ export const coachQueryKeys = {
    * 결과가 달라진다 — 거래 · 예산 저장 뒤 이 접두사 전체를 버린다
    */
   sizeCheckAll: () => ["coach", "size-check"] as const,
+  /** 내 거래 미러. 거래 저장 · 태그 확정 뒤 무효화한다(결과 · 라벨은 배치가 6시간마다 다시 만든다) */
+  mirror: () => ["coach", "mirror"] as const,
+  /** 청산별 결과 · 태그. 태그를 확정하면 무효화한다 */
+  outcomes: () => ["coach", "outcomes"] as const,
 } as const;

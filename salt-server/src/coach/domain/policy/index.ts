@@ -28,3 +28,4 @@ export * from "./tradeLedger";
 export * from "./adherence";
 export * from "./decisionOutcome";
 export * from "./mirror";
+export * from "./tradePreview";

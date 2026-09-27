@@ -7,7 +7,7 @@ import { TextField } from "@repo/ui/textField";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useState, type FormEvent } from "react";
 
-import { CoachDisclosure, SizeCheckLines } from "@/entities/coach";
+import { CoachDisclosure, SizeCheckLines, TradeBehaviorLines } from "@/entities/coach";
 import { useHasAccessToken } from "@/shared/api";
 import { formatAmountInput, parseAmountInput, todayInKorea, toTransactionDate } from "@/shared/lib";
 
@@ -98,6 +98,8 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
     stop: parseAmountInput(stopPrice),
   };
   const stopInvalid = stopPrice.trim() !== "" && parsed.stop === null;
+  // 계획 = 손절가 또는 이유(FR-10). 계획 없음 후보(off_plan) 판정에 쓴다 — 서버 배치와 같은 정의
+  const hasPlan = parsed.stop !== null || thesis.trim() !== "";
 
   const sizeInput = useMemo<SizeCheckRequest | null>(() => {
     if (parsed.quantity === null || parsed.price === null) return null;
@@ -107,8 +109,9 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
       quantity: parsed.quantity,
       price: parsed.price,
       ...(parsed.stop !== null ? { stopPrice: parsed.stop } : {}),
+      hasPlan,
     };
-  }, [symbol, side, parsed.quantity, parsed.price, parsed.stop]);
+  }, [symbol, side, parsed.quantity, parsed.price, parsed.stop, hasPlan]);
   const debouncedInput = useDebouncedValue(sizeInput, SIZE_CHECK_DEBOUNCE_MS);
   const sizeCheck = useSizeCheck(hasToken ? debouncedInput : null);
   const waitingDebounce = sizeInput !== debouncedInput;
@@ -335,6 +338,12 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
           isPending={sizeInput !== null && (waitingDebounce || sizeCheck.isFetching)}
           idleHint={idleHint}
         />
+        {/* FR-19 · 시나리오 5 — 엣지 없음 · 매도 프레이밍 한 줄. 차단 아님: 버튼은 그대로다 */}
+        {sizeInput !== null && sizeCheck.data?.status === "ok" && sizeCheck.data.side === side && (
+          <div aria-live="polite">
+            <TradeBehaviorLines side={side} preview={sizeCheck.data.behavior} />
+          </div>
+        )}
 
         <Button type="submit" variant="primary" size="sm" fullWidth loading={record.isPending}>
           {record.isPending ? MSG.submitting : MSG.submit}

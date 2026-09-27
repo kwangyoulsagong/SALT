@@ -1,5 +1,7 @@
 import type {
+  BehaviorMirrorResult,
   CoachGenerationStatus,
+  DecisionOutcomeListResult,
   CoachReportResult,
   SymbolCoachViewModel,
   SymbolEventsResult,
@@ -133,6 +135,30 @@ export const coachApi = {
     if (!response.ok) throw new CoachApiError(response.status);
 
     const body = (await response.json()) as AppEnvelope<TradePlanListResult>;
+    return body.data;
+  },
+
+  /** 내 거래 미러 (`GET /api/app/coach/mirror`, F009 슬라이스 5). 서버 장애는 BFF 가 200 `unavailable` */
+  mirror: async (signal?: AbortSignal): Promise<BehaviorMirrorResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.mirror}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<BehaviorMirrorResult>;
+    return body.data;
+  },
+
+  /** 청산별 결과 · 태그 (`GET /api/app/coach/outcomes`). 최근 청산 순 */
+  outcomes: async (limit: number, signal?: AbortSignal): Promise<DecisionOutcomeListResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.outcomes(limit)}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<DecisionOutcomeListResult>;
     return body.data;
   },
 };

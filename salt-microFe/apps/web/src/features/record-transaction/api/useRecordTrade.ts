@@ -19,6 +19,8 @@ export const useRecordTrade = () => {
       queryClient.invalidateQueries({ queryKey: coachQueryKeys.plans(symbol) }),
       queryClient.invalidateQueries({ queryKey: coachQueryKeys.riskBudget() }),
       queryClient.invalidateQueries({ queryKey: coachQueryKeys.sizeCheckAll() }),
+      // 미러의 보유 대비 · 회전율 · 처분효과는 요청 때 센다 — 거래가 늘면 바뀐다(결과 · 태그는 배치 몫)
+      queryClient.invalidateQueries({ queryKey: coachQueryKeys.mirror() }),
     ]);
 
   const record = useMutation<RecordTradeResult, RecordTransactionApiError, RecordTradeRequest>({
