@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { appCoachController } from "../controllers/coach.controller";
 import { appTradeRiskController } from "../controllers/trade-risk.controller";
+import { appBehaviorMirrorController } from "../controllers/behavior-mirror.controller";
 
 /**
  * 코치 리포트 — `/api/app/coach/*` (`BFF-REQ-023` "조립 — 코치 리포트").
@@ -27,5 +28,12 @@ router.get("/plans", appTradeRiskController.listPlans);
 router.post("/plans", appTradeRiskController.createPlan);
 router.patch("/plans/:id", appTradeRiskController.updatePlan);
 router.post("/trades", appTradeRiskController.recordTrade);
+
+/**
+ * F009 슬라이스 5 — 내 거래 미러 · 결정 결과 · 태그 확정 (`BFF-REQ-038` FR-7~9). 판정 · 비용 · 엣지 없음은 서버가 센다.
+ */
+router.get("/mirror", appBehaviorMirrorController.mirror);
+router.get("/outcomes", appBehaviorMirrorController.listOutcomes);
+router.put("/outcomes/:id/tags", appBehaviorMirrorController.confirmOutcomeTags);
 
 export default router;

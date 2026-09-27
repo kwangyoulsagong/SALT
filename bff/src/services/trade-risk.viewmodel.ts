@@ -10,6 +10,8 @@
  * 하지 않는 것: 금액 · 비율 계산(공통 수용 기준 3) · 판정 · 문구. 퍼센트 문자열도 만들지 않는다 — 표시는 화면 몫.
  */
 
+import { ADHERENCE_LABELS, toTradeBehaviorPreview, type TradeBehaviorPreview } from "./behavior-mirror.viewmodel";
+
 export class TradeRiskContractError extends Error {
   constructor(field: string) {
     super(`trade risk contract broken: ${field}`);
@@ -91,6 +93,8 @@ export interface SizeCheckView {
   asOf: string | null;
   /** 주문 경로가 없다는 서버 선언. 늘 false — 다른 값이면 계약 깨짐 */
   orderExecution: false;
+  /** 입력 중 행동 미리보기(슬라이스 5, `SRV-REQ-038` FR-12). 못 구하거나 깨졌으면 `null` — 사이즈 줄은 그대로 */
+  behavior: TradeBehaviorPreview | null;
 }
 
 export type SizeCheckResult = SizeCheckView | { status: "unavailable" };
@@ -170,6 +174,7 @@ export const toSizeCheckViewModel = (data: Raw): SizeCheckView => {
     volatilityAsOf: str(data.volatilityAsOf),
     asOf: str(data.asOf),
     orderExecution: false,
+    behavior: toTradeBehaviorPreview(data.behavior),
   };
 };
 
@@ -281,7 +286,6 @@ export const toRiskBudgetViewModel = (data: Raw): RiskBudgetView => {
 
 // ─── 거래 계획 ────────────────────────────────────────────────
 
-const ADHERENCE_LABELS = ["honored", "stop_not_honored", "stop_slipped", "size_exceeded"] as const;
 
 export interface TradePlanView {
   id: string;

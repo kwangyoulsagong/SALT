@@ -16,7 +16,17 @@ const bodyOf = (req: Request): Raw =>
 const pick = (body: Raw, keys: readonly string[]): Raw =>
   Object.fromEntries(keys.filter((key) => key in body).map((key) => [key, body[key]]));
 
-const SIZE_CHECK_KEYS = ["symbol", "side", "quantity", "price", "stopPrice", "winRate", "payoffRatio"] as const;
+const SIZE_CHECK_KEYS = [
+  "symbol",
+  "side",
+  "quantity",
+  "price",
+  "stopPrice",
+  "winRate",
+  "payoffRatio",
+  // 슬라이스 5 — 계획 외 후보 판정(`SRV-REQ-038` FR-12)
+  "hasPlan",
+] as const;
 const RISK_BUDGET_KEYS = ["monthlyLossBudget", "perTradeMaxLoss", "targetVolatility"] as const;
 const PLAN_CREATE_KEYS = [
   "symbol",
