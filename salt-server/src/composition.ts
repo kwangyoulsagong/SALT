@@ -17,6 +17,7 @@ import { PrismaCoachNotifier } from "./coach/infrastructure/PrismaCoachNotifier"
 import { PrismaCoachProfileStore } from "./coach/infrastructure/PrismaCoachProfileStore";
 import { PrismaForecastReader } from "./coach/infrastructure/PrismaForecastReader";
 import { PrismaGaugeTrackStore } from "./coach/infrastructure/PrismaGaugeTrackStore";
+import { PrismaJudgmentLedgerStore } from "./coach/infrastructure/PrismaJudgmentLedgerStore";
 import { PrismaSymbolJudgmentStore } from "./coach/infrastructure/PrismaSymbolJudgmentStore";
 import { PrismaRecommendationSnapshotStore } from "./coach/infrastructure/PrismaRecommendationSnapshotStore";
 import { PrismaTradePlanStore } from "./coach/infrastructure/PrismaTradePlanStore";
@@ -154,6 +155,7 @@ const coach = createCoachApplication({
   judgments: new PrismaSymbolJudgmentStore(
     env.JUDGMENT_COUNT_SYNTHETIC ? ["live", "synthetic"] : ["live"]
   ),
+  ledger: new PrismaJudgmentLedgerStore(),
   recommendations: new PrismaRecommendationSnapshotStore(
     env.JUDGMENT_COUNT_SYNTHETIC ? ["live", "synthetic"] : ["live"]
   ),

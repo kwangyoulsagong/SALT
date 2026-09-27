@@ -38,6 +38,30 @@ export interface ModeDecisionInput {
   missingData: string[];
 }
 
+/**
+ * 규칙 버전 — 원장(`judgment_ledger`) 행마다 남는다. **가중 · 문턱 · 항목을 바꾸면 올린다.**
+ * 예측 서비스의 재현(`salt-forecast/domain/rule_items.py`)과 사전등록(`rule-ic@1`)이 이 버전을 잰다.
+ */
+export const MODE_DECISION_RULE_VERSION = "mode-decision@1";
+
+/** 점수 항목 — IC 를 재는 단위(사전등록 rule-ic@1 의 item 이름과 같다). */
+export type ModeDecisionItem =
+  | "change24h"
+  | "sentiment"
+  | "rsi"
+  | "whale_flow"
+  | "missing_data";
+
+/**
+ * 항목 하나의 기여 — 발동하지 않았으면 `points` 0. `value` 는 그 항목이 본 재료 값이고 없으면 `null`
+ * (기여 0 과 재료 없음을 가른다 — 슬라이스 0 회고: "지표 없이 낸 판단"을 나중에 걸러야 한다).
+ */
+export interface ModeDecisionComponent {
+  item: ModeDecisionItem;
+  points: number;
+  value: number | null;
+}
+
 export interface ModeDecision {
   mode: CoachMode;
   symbol: string;
@@ -51,47 +75,79 @@ export interface ModeDecision {
   score: number;
 }
 
-export const makeModeDecision = (input: ModeDecisionInput): ModeDecision => {
-  let score = 50;
+/**
+ * 판단 + 항목별 기여. 기여는 **응답에 싣지 않는다**(화면 계약이 아니다) — 원장(`judgment_ledger`)만 쓴다.
+ * 합이 `score − 50`(0~100 자르기 전)이다.
+ */
+export interface ScoredModeDecision {
+  decision: ModeDecision;
+  components: ModeDecisionComponent[];
+}
+
+export const makeModeDecision = (input: ModeDecisionInput): ModeDecision =>
+  scoreModeDecision(input).decision;
+
+export const scoreModeDecision = (input: ModeDecisionInput): ScoredModeDecision => {
   const reasons: string[] = [];
   const risks: string[] = [];
+  const scalp = input.mode === "scalp";
 
+  let change = 0;
   if (input.change24h > 3) {
-    score += input.mode === "scalp" ? 12 : -6;
+    change += scalp ? 12 : -6;
     reasons.push("24시간 가격 흐름이 강합니다.");
   }
   if (input.change24h < -3) {
-    score += input.mode === "long_term" ? 6 : -10;
+    change += scalp ? -10 : 6;
     risks.push("단기 변동성이 커졌습니다.");
   }
+  let sentiment = 0;
   if (input.sentimentScore !== undefined && input.sentimentScore >= 70) {
-    score += input.mode === "scalp" ? 5 : -8;
+    sentiment += scalp ? 5 : -8;
     risks.push("시장 심리가 과열권입니다.");
   }
   if (input.sentimentScore !== undefined && input.sentimentScore <= 35) {
-    score += input.mode === "long_term" ? 10 : -4;
+    sentiment += scalp ? -4 : 10;
     reasons.push("공포 구간이라 장기 분할 관찰 가치가 있습니다.");
   }
+  let rsi = 0;
   if (input.rsi !== undefined && input.rsi >= 70) {
-    score -= input.mode === "long_term" ? 12 : 6;
+    rsi -= scalp ? 6 : 12;
     risks.push("기술 지표가 과열권에 가깝습니다.");
   }
   if (input.rsi !== undefined && input.rsi <= 35) {
-    score += input.mode === "long_term" ? 8 : 4;
+    rsi += scalp ? 4 : 8;
     reasons.push("단기 침체 신호가 일부 있습니다.");
   }
+  let whale = 0;
   if (input.whaleBuy > input.whaleSell * 1.2) {
-    score += 8;
+    whale += 8;
     reasons.push("최근 대형 매수 흐름이 매도보다 우세합니다.");
   }
   if (input.whaleSell > input.whaleBuy * 1.2) {
-    score -= 8;
+    whale -= 8;
     risks.push("최근 대형 매도 흐름이 우세합니다.");
   }
+  let missing = 0;
   if (input.missingData.length >= 3) {
-    score -= 12;
+    missing -= 12;
     risks.push("판단 데이터가 부족합니다.");
   }
+
+  const whaleTotal = input.whaleBuy + input.whaleSell;
+  const components: ModeDecisionComponent[] = [
+    { item: "change24h", points: change, value: input.change24h },
+    { item: "sentiment", points: sentiment, value: input.sentimentScore ?? null },
+    { item: "rsi", points: rsi, value: input.rsi ?? null },
+    {
+      item: "whale_flow",
+      points: whale,
+      // (매수 − 매도) ÷ 합. 대형 체결이 없으면 null — 균형(0)과 다르다
+      value: whaleTotal > 0 ? (input.whaleBuy - input.whaleSell) / whaleTotal : null,
+    },
+    { item: "missing_data", points: missing, value: input.missingData.length },
+  ];
+  const score = 50 + change + sentiment + rsi + whale + missing;
 
   const normalized = Math.max(0, Math.min(100, Math.round(score)));
 
@@ -113,7 +169,7 @@ export const makeModeDecision = (input: ModeDecisionInput): ModeDecision => {
           ? "관망"
           : "지금은 피하기";
 
-  return {
+  const decision: ModeDecision = {
     mode: input.mode,
     symbol: input.symbol,
     label,
@@ -130,4 +186,5 @@ export const makeModeDecision = (input: ModeDecisionInput): ModeDecision => {
     risks: risks.slice(0, 3),
     score: normalized,
   };
+  return { decision, components };
 };
