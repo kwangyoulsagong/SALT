@@ -97,6 +97,10 @@ export interface BehaviorMirrorView {
   };
   /** 슬라이스 6. 서버가 아직 주지 않으면 `null` */
   brier: BrierView | null;
+  /** 슬라이스 7 — 연승 · 연패(FR-20). 서버가 아직 주지 않거나 깨졌으면 `null` */
+  streak: StreakView | null;
+  /** 슬라이스 7 — 진입 시간대 · 요일(FR-22). 서버가 아직 주지 않거나 깨졌으면 `null` */
+  timing: TradeTimingView | null;
   outcomeCount: number;
   outcomesComputedAt: string | null;
   minSample: number;
@@ -158,6 +162,44 @@ export interface BrierView {
     outcomeClose: number;
     up: boolean;
   }>;
+}
+
+export const STREAK_KINDS = ["win", "loss"] as const;
+export const TIME_BANDS = ["dawn", "morning", "afternoon", "evening"] as const;
+export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+
+export interface StreakSizingView {
+  /** 연속 뒤 매수 금액 평균 ÷ 그 밖의 평균. 표본 = 연속 뒤 매수 수 */
+  ratio: MirrorMetric;
+  /** 서버가 "관찰됐다"고 한 것만 true — 화면은 이때만 패턴 문장을 보인다 */
+  observed: boolean;
+}
+
+export interface StreakView {
+  current: { kind: (typeof STREAK_KINDS)[number]; length: number } | null;
+  longestWin: number;
+  longestLoss: number;
+  sampleSize: number;
+  minLength: number;
+  afterWins: StreakSizingView | null;
+  afterLosses: StreakSizingView | null;
+}
+
+export interface TimingBucketView<K extends string> {
+  key: K;
+  count: number;
+  winRate: number | null;
+  avgReturn: number | null;
+  netPnlKrw: number;
+  status: MirrorStatus;
+}
+
+export interface TradeTimingView {
+  /** 시각을 적은 진입이 하나도 없으면 `null` — 섹션 없음 */
+  bands: Array<TimingBucketView<(typeof TIME_BANDS)[number]>> | null;
+  weekdays: Array<TimingBucketView<(typeof WEEKDAYS)[number]>>;
+  timedCount: number;
+  untimedCount: number;
 }
 
 // ─── 공통 조각 ────────────────────────────────────────────────
@@ -224,6 +266,60 @@ export const toBrierView = (raw: unknown): BrierView | null => {
       }
       return [{ symbol, probabilityUp, plannedAt, dueAt, referenceClose, outcomeClose, up: item.up === true }];
     }),
+  };
+};
+
+// ─── 연승 · 연패 · 시간대 ───────────────────────────────────
+
+const toSizing = (raw: unknown): StreakSizingView | null =>
+  isRecord(raw) && isRecord(raw.ratio)
+    ? { ratio: toMetric(raw.ratio), observed: raw.observed === true && num(raw.ratio.value) !== null }
+    : null;
+
+/** 뼈대(최장 · 표본)가 깨졌으면 `null`. 지금 연속은 종류 · 길이가 온전할 때만 */
+export const toStreakView = (raw: unknown): StreakView | null => {
+  if (!isRecord(raw)) return null;
+  const longestWin = num(raw.longestWin);
+  const longestLoss = num(raw.longestLoss);
+  if (longestWin === null || longestLoss === null) return null;
+  const current = isRecord(raw.current) ? raw.current : null;
+  const kind = oneOf(current?.kind, STREAK_KINDS);
+  const length = num(current?.length);
+  return {
+    current: kind && length !== null && length > 0 ? { kind, length: Math.floor(length) } : null,
+    longestWin: sampleSize(longestWin),
+    longestLoss: sampleSize(longestLoss),
+    sampleSize: sampleSize(raw.sampleSize),
+    minLength: sampleSize(raw.minLength),
+    afterWins: toSizing(raw.afterWins),
+    afterLosses: toSizing(raw.afterLosses),
+  };
+};
+
+const toBuckets = <K extends string>(raw: unknown, keys: readonly K[]): Array<TimingBucketView<K>> => {
+  const rows = Array.isArray(raw) ? raw.filter(isRecord) : [];
+  // 서버 순서가 아니라 고정 순서로 — 빠진 칸은 빈 칸(0건)으로 둔다
+  return keys.map((key) => {
+    const row = rows.find((candidate) => candidate.key === key);
+    const count = sampleSize(row?.count);
+    return {
+      key,
+      count,
+      winRate: num(row?.winRate),
+      avgReturn: num(row?.avgReturn),
+      netPnlKrw: num(row?.netPnlKrw) ?? 0,
+      status: count === 0 ? "insufficient_data" : oneOf(row?.status, MIRROR_STATUSES) ?? "insufficient_data",
+    };
+  });
+};
+
+export const toTradeTimingView = (raw: unknown): TradeTimingView | null => {
+  if (!isRecord(raw) || !Array.isArray(raw.weekdays)) return null;
+  return {
+    bands: Array.isArray(raw.bands) ? toBuckets(raw.bands, TIME_BANDS) : null,
+    weekdays: toBuckets(raw.weekdays, WEEKDAYS),
+    timedCount: sampleSize(raw.timedCount),
+    untimedCount: sampleSize(raw.untimedCount),
   };
 };
 
@@ -297,6 +393,8 @@ export const toBehaviorMirrorViewModel = (data: Raw): BehaviorMirrorView => {
           : null,
     },
     brier: toBrierView(data.brier),
+    streak: toStreakView(data.streak),
+    timing: toTradeTimingView(data.timing),
     outcomeCount: sampleSize(data.outcomeCount),
     outcomesComputedAt: str(data.outcomesComputedAt),
     minSample: sampleSize(data.minSample),
