@@ -6,7 +6,7 @@ import type {
 } from "@repo/core/coach";
 import { Heading } from "@repo/ui/heading";
 
-import { formatRatio, formatSignedRate } from "../lib";
+import { formatRatio, formatSignedPoints, formatSignedRate } from "../lib";
 import { COACH_MESSAGES } from "../model";
 import {
   caseList,
@@ -49,6 +49,14 @@ export const TrackRecordStats = ({ record }: { record: TrackRecord }) => {
             {orEmpty(record.worstObservedReturn, formatSignedRate)}
           </dd>
         </div>
+        {record.excessWinRate !== null && (
+          <div>
+            <dt className={statTerm} title={DETAIL.excessWinRateHint}>
+              {DETAIL.excessWinRate}
+            </dt>
+            <dd className={statValue[tone]}>{formatSignedPoints(record.excessWinRate)}</dd>
+          </div>
+        )}
       </dl>
       <p className={statTerm}>
         {DETAIL.trackSample(record.sample)} · {DETAIL.horizon(record.horizonHours)}

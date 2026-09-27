@@ -26,6 +26,8 @@ export type CoachAction = "buy" | "sell" | "hold" | "rebalance";
 export type RecommendationBlockedReason =
   | "reasons_missing"
   | "signal_track_record_missing"
+  /** 표본 20 미만 — 서버 `recommendationGate`(F010 슬라이스 0) */
+  | "insufficient_sample"
   | "failure_cases_missing";
 
 export interface ReportReason {
@@ -49,12 +51,21 @@ export interface ReportTrackRecord {
   avgReturn: number | null;
   worstObservedReturn: number | null;
   lowSample: boolean;
+  /** 30일 관찰 기간. 옛 서버는 없다 */
+  horizonHours: number | null;
+  /** 같은 표본에서 "항상 오른다"가 비용을 넘겨 맞은 비율(F010 슬라이스 0) */
+  alwaysUpRate: number | null;
+  /** 적중률 − 기저율. 0 근처면 추천이 아니라 시장 방향을 맞힌 것. 보유 · 리밸런싱은 `null` */
+  excessWinRate: number | null;
 }
 
 export interface ReportFailureCase {
   date: string;
   event: string;
   outcome: string;
+  /** 30일 뒤 채점된 사례의 종목 · 수익률(F010 슬라이스 0). 옛 서버는 없다 */
+  symbol?: string;
+  returnRate?: number;
 }
 
 export type ReportRecommendation =

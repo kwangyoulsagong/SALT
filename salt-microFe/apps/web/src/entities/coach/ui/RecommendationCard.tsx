@@ -3,7 +3,7 @@ import { Badge, type BadgeTone } from "@repo/ui/badge";
 import { Heading } from "@repo/ui/heading";
 import { Text } from "@repo/ui/text";
 
-import { formatRatio, formatSignedRate, passesRecommendationGate } from "../lib";
+import { formatRatio, formatSignedPoints, formatSignedRate, passesRecommendationGate } from "../lib";
 import { COACH_MESSAGES } from "../model";
 import { BlockedNotice } from "./BlockedNotice";
 import { srOnly } from "./CoachBlock.css";
@@ -148,9 +148,23 @@ export const RecommendationCard = ({ recommendation }: RecommendationCardProps) 
               {orEmpty(record.worstObservedReturn, formatSignedRate)}
             </dd>
           </div>
+          {record.excessWinRate !== null && (
+            <div>
+              <dt className={statTerm} title={DETAIL.excessWinRateHint}>
+                {DETAIL.excessWinRate}
+              </dt>
+              <dd className={statValue[tone]}>{formatSignedPoints(record.excessWinRate)}</dd>
+            </div>
+          )}
         </dl>
         <p className={statTerm}>
-          {[signalName, REPORT.trackSample(record.sample)].filter(Boolean).join(" · ")}
+          {[
+            signalName,
+            REPORT.trackSample(record.sample),
+            record.horizonHours !== null ? DETAIL.horizon(record.horizonHours) : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
           {record.lowSample && ` · ${COACH_MESSAGES.lowSample}`}
         </p>
       </section>
@@ -163,8 +177,12 @@ export const RecommendationCard = ({ recommendation }: RecommendationCardProps) 
           {failureCases.map((item, index) => (
             <li key={`${item.date}-${index}`} className={failureItem}>
               <span className={failureDate}>{item.date}</span>
-              <span>{item.event}</span>
-              <span>{item.outcome}</span>
+              <span>{item.symbol ?? item.event}</span>
+              <span>
+                {item.returnRate !== undefined
+                  ? formatSignedRate(item.returnRate)
+                  : (DETAIL.outcome[item.outcome as "hit" | "miss"] ?? item.outcome)}
+              </span>
             </li>
           ))}
         </ul>
