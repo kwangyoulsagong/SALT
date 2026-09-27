@@ -17,5 +17,12 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | FR-4 | 뷰모델 — 전망 3종이 빠진 기간은 `contract_incomplete` 로 막는다(열 수는 없다), 기간 4개 항상, 방향은 서버가 줄 때만 | 완료 |
 | FR-5 | 해설 응답의 `source` · `droppedSentences` 는 기존 `/ai-coach/explain` 이 그대로 통과시킨다(뷰모델 없음) | 확인 |
 | FR-8 | `GET /api/app/coach/events?symbol=` — 404 그대로, 5xx → `unavailable`, 기간 3개 항상, 모양이 깨진 기간은 `contract_incomplete`(열 수 없다), 모르는 종류는 버림 | 완료(2026-09-24) |
+| FR-9 | `GET /api/app/coach/positioning?symbol=` — 404 그대로, 5xx → `unavailable`. 상태 칸은 모양이 하나라도 깨지면(모르는 상태 코드 · 백분위 0~1 밖) 칸째 `null` 이고 그 신호의 반응도 뺀다. 반응 기간은 FR-8 `toHorizon` 그대로(`contract_incomplete` · 3개 항상), 모르는 종류는 버림 | 완료(2026-09-27) |
 | FR-7 | `history[]`(과거 일봉 종가) 통과 — 모양이 깨진 점은 버린다, 없으면 빈 배열 | 완료 |
 | FR-6 | 스트리밍 해설(SSE) `POST /api/app/ai-coach/explain/stream` — 이벤트 단위 중계(계약 이름만 통과), 스트림 전 4xx 는 JSON 그대로, 동시 상한은 단건과 같은 문, 대화당 60초 | 완료(2026-09-24) |
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-09-27 | **F008 슬라이스 23 — FR-9 쏠림 신호 중계.** 서버 `SRV-REQ-037` FR-11 짝. `toHorizon` · `HORIZONS` 를 `events.viewmodel` 에서 내보내 같이 쓴다. 근거 `reports/checklists/BFF-REQ-037.md` §슬라이스 23 |

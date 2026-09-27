@@ -63,6 +63,25 @@ export class AppCoachController {
     }
   };
 
+  /** 쏠림 신호(펀딩비 · 김치 프리미엄) — 소유자만(`BFF-REQ-037` FR-9). 전망과 같은 모양 */
+  positioning = async (req: Request, res: Response, next: NextFunction) => {
+    const symbol = typeof req.query.symbol === "string" ? req.query.symbol.trim() : "";
+    if (!SYMBOL_PATTERN.test(symbol)) {
+      return res.status(400).json({ success: false, message: "symbol 형식이 아닙니다" });
+    }
+    const aborter = new AbortController();
+    res.on("close", () => {
+      if (!res.writableFinished) aborter.abort();
+    });
+    try {
+      const data = await appForecastService.getPositioning(req.token!, symbol.toUpperCase(), aborter.signal);
+      return res.json({ success: true, data });
+    } catch (error) {
+      if (aborter.signal.aborted) return;
+      next(error);
+    }
+  };
+
   generationStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await appCoachReportService.getGenerationStatus(req.token!);

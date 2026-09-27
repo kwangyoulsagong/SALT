@@ -98,3 +98,30 @@ def test_defillama_available_next_day() -> None:
     with httpx.Client() as c:
         pts = list(defillama.stablecoin_total(c, "https://stablecoins.llama.fi", Pacer(1000), NOW))
     assert len(pts) == 1 and pts[0].available_at == datetime(2026, 9, 23, tzinfo=UTC)
+
+
+@respx.mock
+def test_ecb_usd_krw_available_next_day_and_drops_future() -> None:
+    from salt_forecast.ingest import ecb
+
+    respx.get("https://api.frankfurter.dev/v1/2026-09-20..2026-09-23").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "amount": 1.0,
+                "base": "USD",
+                "rates": {
+                    "2026-09-21": {"KRW": 1372.18},
+                    "2026-09-22": {"KRW": 1356.15},
+                    "2026-09-23": {"KRW": 1360.0},
+                },
+            },
+        )
+    )
+    with httpx.Client() as c:
+        pts = list(ecb.usd_krw(c, "https://api.frankfurter.dev/v1", Pacer(1000), date(2026, 9, 20), NOW))
+    # 09-23 값은 다음 날 00:00 UTC 에야 쓸 수 있다 — NOW(09-23 06:00) 에는 없다
+    assert [p.value for p in pts] == [1372.18, 1356.15]
+    assert pts[0].observed_at == datetime(2026, 9, 21, tzinfo=UTC)
+    assert pts[0].available_at == datetime(2026, 9, 22, tzinfo=UTC)
+    assert {p.series_id for p in pts} == {"USDKRW"}

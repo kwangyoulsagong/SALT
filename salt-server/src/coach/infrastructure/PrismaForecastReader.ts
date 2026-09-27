@@ -1,6 +1,14 @@
 import Decimal from "decimal.js";
 import prisma from "../../shared/infrastructure/prisma";
-import type { DailyBar, EventCardRow, ForecastCardRow, ForecastReader, RealizedVolatility } from "../domain";
+import type {
+  DailyBar,
+  EventCardRow,
+  ForecastCardRow,
+  ForecastReader,
+  PositioningRow,
+  RealizedVolatility,
+  SignalReactionRow,
+} from "../domain";
 
 interface CardSqlRow {
   horizon_weeks: number;
@@ -64,6 +72,46 @@ interface EventSqlRow {
   blocked_reason: string | null;
 }
 
+type StatsSqlRow = Omit<EventSqlRow, "kind" | "event_at" | "announced_at" | "source">;
+
+const toStats = (r: StatsSqlRow) => ({
+  horizonDays: Number(r.horizon_days),
+  asOf: r.as_of,
+  sample: Number(r.sample),
+  q05: r.q05,
+  q25: r.q25,
+  q50: r.q50,
+  q75: r.q75,
+  q95: r.q95,
+  upRate: r.up_rate,
+  baselineQ05: r.baseline_q05,
+  baselineQ50: r.baseline_q50,
+  baselineQ95: r.baseline_q95,
+  moveRatio: r.move_ratio,
+  preReturn5dMedian: r.pre_return_5d_median,
+  recentMisses: r.recent_misses,
+  recentEvents: r.recent_events,
+  renderable: r.renderable,
+  blockedReason: r.blocked_reason,
+});
+
+interface SignalSqlRow {
+  as_of: Date;
+  bar_open: Date;
+  funding_rate: number | null;
+  funding_pct_1y: number | null;
+  funding_sample: number;
+  funding_state: string | null;
+  oi_usd: number | null;
+  oi_at: Date | null;
+  oi_change_7d: number | null;
+  kimchi_premium: number | null;
+  kimchi_state: string | null;
+  kimchi_since: Date | null;
+  fx_usdkrw: number | null;
+  fx_observed_at: Date | null;
+}
+
 export class PrismaForecastReader implements ForecastReader {
   async eventCards(symbol: string): Promise<EventCardRow[]> {
     const rows = await prisma.$queryRaw<EventSqlRow[]>`
@@ -79,25 +127,49 @@ export class PrismaForecastReader implements ForecastReader {
       eventAt: r.event_at,
       announcedAt: r.announced_at,
       source: r.source,
-      horizonDays: Number(r.horizon_days),
-      asOf: r.as_of,
-      sample: Number(r.sample),
-      q05: r.q05,
-      q25: r.q25,
-      q50: r.q50,
-      q75: r.q75,
-      q95: r.q95,
-      upRate: r.up_rate,
-      baselineQ05: r.baseline_q05,
-      baselineQ50: r.baseline_q50,
-      baselineQ95: r.baseline_q95,
-      moveRatio: r.move_ratio,
-      preReturn5dMedian: r.pre_return_5d_median,
-      recentMisses: r.recent_misses,
-      recentEvents: r.recent_events,
-      renderable: r.renderable,
-      blockedReason: r.blocked_reason,
+      ...toStats(r),
     }));
+  }
+
+  /**
+   * 쏠림 신호 — 상태 뷰 한 행 + 반응 뷰(종류 4 × 기간 3). 두 뷰 모두 `DISTINCT ON` 최신 한 행씩이다(`FC-REQ-007`)
+   */
+  async positioning(symbol: string): Promise<{ row: PositioningRow | null; reactions: SignalReactionRow[] }> {
+    const key = `KRW-${symbol}`;
+    const [states, stats] = await Promise.all([
+      prisma.$queryRaw<SignalSqlRow[]>`
+        SELECT as_of, bar_open, funding_rate, funding_pct_1y, funding_sample, funding_state, oi_usd, oi_at,
+               oi_change_7d, kimchi_premium, kimchi_state, kimchi_since, fx_usdkrw, fx_observed_at
+        FROM forecast.v_market_signal WHERE symbol = ${key}
+      `,
+      prisma.$queryRaw<(StatsSqlRow & { kind: string })[]>`
+        SELECT kind, horizon_days, as_of, sample, q05, q25, q50, q75, q95, up_rate,
+               baseline_q05, baseline_q50, baseline_q95, move_ratio, pre_return_5d_median,
+               recent_misses, recent_events, renderable, blocked_reason
+        FROM forecast.v_signal_reaction WHERE symbol = ${key}
+        ORDER BY kind, horizon_days
+      `,
+    ]);
+    const s = states[0];
+    const row: PositioningRow | null = s
+      ? {
+          asOf: s.as_of,
+          barOpen: s.bar_open,
+          fundingRate: s.funding_rate,
+          fundingPct1y: s.funding_pct_1y,
+          fundingSample: Number(s.funding_sample),
+          fundingState: s.funding_state,
+          oiUsd: s.oi_usd,
+          oiAt: s.oi_at,
+          oiChange7d: s.oi_change_7d,
+          kimchiPremium: s.kimchi_premium,
+          kimchiState: s.kimchi_state,
+          kimchiSince: s.kimchi_since,
+          fxUsdKrw: s.fx_usdkrw,
+          fxObservedAt: s.fx_observed_at,
+        }
+      : null;
+    return { row, reactions: stats.map((r) => ({ kind: r.kind, ...toStats(r) })) };
   }
 
   /**

@@ -7,6 +7,7 @@ import {
   COACH_MESSAGES,
   CoachBlockSkeleton,
   EventsCard,
+  PositioningCard,
   ForecastCard,
   JudgmentDetail,
   ProfitPlan,
@@ -14,6 +15,7 @@ import {
   TradePlanCard,
   useSymbolCoach,
   useSymbolEvents,
+  useSymbolPositioning,
   useSymbolForecast,
   useTradePlans,
   ZoneLegend,
@@ -24,7 +26,10 @@ import {
 import { MarketDetailChart, useMarketListing } from "@/entities/market";
 import { ExplainCard } from "@/features/explain-symbol";
 import { RecordTradeCard } from "@/features/record-transaction";
-import { CoachModeSwitch, useCoachModeParam } from "@/features/switch-coach-mode";
+import {
+  CoachModeSwitch,
+  useCoachModeParam,
+} from "@/features/switch-coach-mode";
 import { useLivePrice } from "@/shared/api";
 
 import { SYMBOL_ANALYSIS_MESSAGES } from "../model";
@@ -65,6 +70,9 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   // 주요 사건(거시 일정) — 전망과 같은 소유자 규칙(F008 슬라이스 22)
   const events = useSymbolEvents(symbol);
   const showEvents = !events.isSignedOut && !events.notOwner;
+  // 쏠림 신호(펀딩비 · 김치 프리미엄) — 같은 소유자 규칙(F008 슬라이스 23)
+  const positioning = useSymbolPositioning(symbol);
+  const showPositioning = !positioning.isSignedOut && !positioning.notOwner;
   // 현재가 — 전망 차트 선 끝 · 거래 기록의 [현재가] · 내 계획 카드가 같이 쓴다(F009). 구독은 머리 가격과
   // 참조 카운트로 합쳐져 소켓 메시지가 늘지 않는다
   const livePrice = useLivePrice(symbol)?.currentPrice ?? null;
@@ -84,7 +92,8 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   );
 
   const renderCoach = () => {
-    if (coach.isSignedOut) return <Text color="tertiary">{COACH_MESSAGES.signedOut}</Text>;
+    if (coach.isSignedOut)
+      return <Text color="tertiary">{COACH_MESSAGES.signedOut}</Text>;
     if (coach.isError) {
       return <Text color="tertiary">{COACH_MESSAGES.judgmentUnavailable}</Text>;
     }
@@ -101,7 +110,9 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
           <div className={column}>
             <section className={card}>
               <div className={cardHead}>
-                <h2 className={cardTitle}>{SYMBOL_ANALYSIS_MESSAGES.chartHeading}</h2>
+                <h2 className={cardTitle}>
+                  {SYMBOL_ANALYSIS_MESSAGES.chartHeading}
+                </h2>
               </div>
               <MarketDetailChart
                 symbol={symbol}
@@ -113,14 +124,19 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
               {modeView ? (
                 <ZoneSummary zone={modeView.zone} />
               ) : (
-                coach.isPending && !coach.isSignedOut && <CoachBlockSkeleton block="zone" />
+                coach.isPending &&
+                !coach.isSignedOut && <CoachBlockSkeleton block="zone" />
               )}
             </section>
 
             <section className={card}>
               <div className={cardHead}>
-                <h2 className={cardTitle}>{SYMBOL_ANALYSIS_MESSAGES.coachHeading}</h2>
-                {coach.data && mode && <CoachModeSwitch value={mode} onChange={setMode} />}
+                <h2 className={cardTitle}>
+                  {SYMBOL_ANALYSIS_MESSAGES.coachHeading}
+                </h2>
+                {coach.data && mode && (
+                  <CoachModeSwitch value={mode} onChange={setMode} />
+                )}
               </div>
               {renderCoach()}
             </section>
@@ -133,11 +149,23 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
             */}
             {showForecast &&
               (forecast.data ? (
-                <ForecastCard className={card} result={forecast.data} livePrice={livePrice} />
+                <ForecastCard
+                  className={card}
+                  result={forecast.data}
+                  livePrice={livePrice}
+                />
               ) : forecast.isError ? (
-                <ForecastCard className={card} result={{ status: "unavailable" }} />
+                <ForecastCard
+                  className={card}
+                  result={{ status: "unavailable" }}
+                />
               ) : null)}
-            {showEvents && events.data && <EventsCard className={card} result={events.data} />}
+            {showEvents && events.data && (
+              <EventsCard className={card} result={events.data} />
+            )}
+            {showPositioning && positioning.data && (
+              <PositioningCard className={card} result={positioning.data} />
+            )}
             {/* 해설은 판단 바로 옆 정보다 — 거래 기록 폼(펼치면 길다) 아래로 밀리지 않게 위에 둔다 */}
             {coach.data && mode && (
               <>
@@ -156,11 +184,25 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
               </>
             )}
             {/* F009 — 변동 범위 카드 아래 "내 계획", 그 아래 거래 기록(시나리오 1 · 2). 새 화면이 아니다 */}
-            {plans.data && <TradePlanCard className={card} result={plans.data} livePrice={livePrice} />}
-            {plans.isError && !plans.isSignedOut && (
-              <TradePlanCard className={card} result={{ status: "unavailable" }} livePrice={livePrice} />
+            {plans.data && (
+              <TradePlanCard
+                className={card}
+                result={plans.data}
+                livePrice={livePrice}
+              />
             )}
-            <RecordTradeCard className={card} symbol={symbol} livePrice={livePrice} />
+            {plans.isError && !plans.isSignedOut && (
+              <TradePlanCard
+                className={card}
+                result={{ status: "unavailable" }}
+                livePrice={livePrice}
+              />
+            )}
+            <RecordTradeCard
+              className={card}
+              symbol={symbol}
+              livePrice={livePrice}
+            />
           </aside>
         </div>
       </div>

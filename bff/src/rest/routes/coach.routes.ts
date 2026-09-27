@@ -16,6 +16,7 @@ router.get("/generation-status", appCoachController.generationStatus);
 /** 가격 변동 범위 — 소유자 전용(F008 `BFF-REQ-037`, `ADR-003`) */
 router.get("/forecast", appCoachController.forecast);
 router.get("/events", appCoachController.events);
+router.get("/positioning", appCoachController.positioning);
 
 /**
  * F009 거래 기록 · 계획 · 사이즈 계산 · 리스크 예산 (`BFF-REQ-038`). 금액 · 비율은 서버가 계산한다.

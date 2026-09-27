@@ -36,6 +36,8 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | FR-8 | 인덱스: `prediction(symbol, horizon_weeks, as_of desc)` · `score(model_version, horizon_weeks, as_of)` |
 | FR-14 | `forecast.scheduled_event` · `event_reaction` · `event_reaction_stats` — 거시 일정 · 사건별 반응 · 워크포워드 통계 (2026-09-24, `20260924120000`, FC-REQ-005) |
 | FR-15 | `forecast.v_event_card` — 앞으로 35일 일정 × 종목 · 기간별 최신 통계. 서버가 읽는 계약 · 실측 0.58ms |
+| FR-16 | `forecast.market_signal(symbol, as_of)` · `forecast.signal_event(kind, symbol, event_at)` — 쏠림 신호 지금 상태 · 사건 × 반응. 반응 통계는 기존 `event_reaction_stats` 에 kind 4개로(그 표엔 kind CHECK 가 없다) (2026-09-27, `20260927130000`, FC-REQ-007) |
+| FR-17 | `forecast.v_market_signal`(종목별 최신 한 행) · `forecast.v_signal_reaction`(종목 × 종류 × 기간 최신 통계) — 서버가 읽는 계약 · 실측 0.028 · 0.034ms |
 | FR-13 | `forecast.v_daily_close` — `price_bar` 업비트 1d 만(symbol · open_time · available_at · close). 차트 과거 선 (2026-09-24, SQL 전용 마이그레이션 `20260924100000`) |
 
 ## 범위 밖

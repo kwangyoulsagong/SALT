@@ -5,6 +5,7 @@ export * from "./useSymbolCoach";
 export * from "./useCoachReport";
 export * from "./useSymbolForecast";
 export * from "./useSymbolEvents";
+export * from "./useSymbolPositioning";
 export * from "./useRiskBudget";
 export * from "./useTradePlans";
 export * from "./useBehaviorMirror";

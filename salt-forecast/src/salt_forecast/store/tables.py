@@ -219,3 +219,40 @@ realized_vol = Table(
 )
 
 QUANTILE_COLUMNS = _Q
+
+# 20260927120000_forecast_market_signal (FC-REQ-007)
+market_signal = Table(
+    "market_signal",
+    metadata,
+    Column("symbol", Text, primary_key=True),
+    Column("as_of", DateTime(timezone=True), primary_key=True),
+    Column("bar_open", DateTime(timezone=True), nullable=False),
+    Column("funding_rate", Float),
+    Column("funding_pct_1y", Float),
+    Column("funding_sample", Integer, nullable=False),
+    Column("funding_state", Text),
+    Column("oi_usd", Float),
+    Column("oi_at", DateTime(timezone=True)),
+    Column("oi_change_7d", Float),
+    Column("kimchi_premium", Float),
+    Column("kimchi_state", Text),
+    Column("kimchi_since", DateTime(timezone=True)),
+    Column("fx_usdkrw", Float),
+    Column("fx_observed_at", DateTime(timezone=True)),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)
+
+signal_event = Table(
+    "signal_event",
+    metadata,
+    Column("kind", Text, primary_key=True),
+    Column("symbol", Text, primary_key=True),
+    Column("event_at", DateTime(timezone=True), primary_key=True),
+    Column("value", Float, nullable=False),
+    Column("ref_bar_open", DateTime(timezone=True), nullable=False),
+    Column("pre_return_5d", Float),
+    Column("ret_1d", Float),
+    Column("ret_5d", Float),
+    Column("ret_20d", Float),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)
