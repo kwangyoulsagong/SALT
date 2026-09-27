@@ -54,3 +54,15 @@
 | 지표 이름 대조("수익률 2.3%" 가 변동률 2.3% 인가) | 근거가 자유 문자열 — 구조가 없다 | C01(서버 사실 스냅샷) |
 | 실제 Gemini 출력에서 버려지는 비율 | 새 규칙이 더 엄격하다(특히 인과). 템플릿으로 떨어지는 비율을 안 쟀다 | 사용자 해설 몇 건 실측 · 관측성 계측 |
 | 숫자를 렌더러가 넣고 LLM 은 사실 ID 만 쓰는 방식 | 진단의 최종안. 구조화된 사실이 먼저 있어야 한다 | C01 뒤 판단 |
+
+## 슬라이스 23 — FR-11 쏠림 신호 (2026-09-27)
+
+| 확인 | 결과 |
+|---|---|
+| 구현 | `domain/policy/positioning.ts`(`toPositioning`) · `GetSymbolPositioning` · `PrismaForecastReader.positioning`(뷰 둘 병렬) · 라우트 `/api/coach/positioning` · Swagger |
+| 게이트 재사용 | `toEventHorizon` 인자를 `ReactionStatsRow`(일정 칸 뺀 모양)로 넓혔다 — 주요 사건 테스트 그대로 통과 |
+| 테스트 | `npm test` 495 / 0(+8: `positioning.test.ts` 6 · `getSymbolPositioning.test.ts` 2) · `tsc --noEmit` · `npm run lint` |
+| 실 DB | 로컬 유스케이스(`_probe.ts`, 지우고 커밋): BTC 보통(하위 44%) · 김프 +0.39%(확정 역프 09-20~) · `current` = 김프 → 역프 · 롱 쏠림 3기간 `failure_cases_missing`. AAVE 롱 쏠림(상위 2%) |
+| 공통 수용 기준 | 주문 경로 0 · 원화 금액 0(미결제약정은 거래소 USD 값) · 확신 · 명령형 · 목표가 0 · "과열" 판정 필드 0 · 반응 3종 게이트 유지 · 소유자 전용 |
+
+미검증: 실 토큰으로 서버 → BFF → 화면(떠 있는 서버가 이 브랜치가 아니다 — 머지 뒤 재기동 · 로그인 QA).

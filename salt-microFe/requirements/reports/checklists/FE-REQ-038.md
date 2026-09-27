@@ -34,3 +34,15 @@
 |---|---|---|
 | 실제 로그인 화면에서 막힌 모드 카드 · 새 순서 | 로컬 토큰 발급 불가 — 타입 · 린트로만 확인했다. 화면으로 본 적 없다 | 로그인 QA(사용자) |
 | 표본이 20 을 넘어 판단이 열리는 순간 | 채점이 쌓여야 한다 — 열리면 기존 FR-7 흐름 그대로 | 해당 종목 표본 ≥ 20 이 된 뒤 로그인 QA |
+
+## 슬라이스 23 — FR-14 쏠림 신호 카드 (2026-09-27)
+
+| 확인 | 결과 |
+|---|---|
+| 구현 | `@repo/core/coach` `positioning.ts` · `entities/coach` `useSymbolPositioning` · `PositioningCard` · `ReactionDetail`(EventsCard 에서 분리) · `POSITIONING_MESSAGES` · `widgets/symbol-analysis` 우측 주요 사건 아래 |
+| 검사 | `pnpm check-types` · `pnpm lint` · `pnpm test`(모노레포) 통과 · `layer-check` 사후 실행 8파일 통과(Bash 로 쓴 파일) |
+| 빌드 | 워크트리 `next build` — `web` 통과(`/investments/[symbol]` 115 kB, 전과 같음) · `web-tax` 통과(102 kB) |
+| 화면 | Playwright 고정 응답(실 DB 로 서버 유스케이스가 만든 값) — BTC 1280(보통 · 확정 역프 + 확정 전 한 줄 · 김프 → 역프 반응 펼침) · AAVE 390(롱 쏠림 상위 2% · 통상 해석 · 표본 쌓이는 중). 미결제약정 표기를 유효 3자리로 고침("6652.5만" → "6650만") |
+| 공통 수용 기준 | 확신 · 명령형 · 목표가 0 · "과열" · 매수/매도 신호 문구 0 · 초록/빨강 판정 색 0 · 숫자 계산 0(표기 · 가까운 끝 고르기만) · 면책 표시 |
+
+미검증: 실 토큰 로그인 화면 · 200% 확대 · 대비 측정(로그인 QA).
