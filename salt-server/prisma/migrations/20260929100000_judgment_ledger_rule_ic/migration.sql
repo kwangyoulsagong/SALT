@@ -56,7 +56,7 @@ CREATE TABLE forecast.rule_ic (
   run_as_of      timestamptz      NOT NULL,
   source         text             NOT NULL CHECK (source IN ('backtest', 'live')),
   item           text             NOT NULL,
-  mode           text             NOT NULL CHECK (mode IN ('scalp', 'long_term', 'market')),
+  mode           text             NOT NULL CHECK (mode IN ('scalp', 'long_term', 'market', 'any')),  -- any = 모드와 무관한 도전자 신호
   horizon_days   integer          NOT NULL CHECK (horizon_days > 0),
   label_kind     text             NOT NULL CHECK (label_kind IN ('fixed', 'barrier')),
   regime         text             NOT NULL,        -- 'all' | 'btc_above_200d' | 'btc_below_200d'

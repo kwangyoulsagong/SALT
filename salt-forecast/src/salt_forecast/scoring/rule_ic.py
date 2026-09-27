@@ -184,7 +184,7 @@ def run(
                         )
                         out.results[r].append(res)
             # 공포탐욕 — 시장 공통 값이라 시계열 IC(값 vs 동일가중 시장 지평 수익률)
-            market = np.nanmean(np.where(universe, y, np.nan), axis=1) if kind == "fixed" else None
+            market = _row_mean(np.where(universe, y, np.nan)) if kind == "fixed" else None
             if market is not None:
                 for r, mask in regimes.items():
                     x = np.where(mask, fg, np.nan)
@@ -209,6 +209,13 @@ def run(
                         )
                     )
     return out
+
+
+def _row_mean(m: Mat) -> NDArray[np.float64]:
+    """행 평균, 값이 없는 행은 NaN(경고 없이 — 상장 전 날짜는 정상이다)."""
+    n = np.sum(~np.isnan(m), axis=1)
+    total = np.nansum(m, axis=1)
+    return np.where(n > 0, total / np.maximum(n, 1), np.nan)
 
 
 def _day(epoch: int) -> date:

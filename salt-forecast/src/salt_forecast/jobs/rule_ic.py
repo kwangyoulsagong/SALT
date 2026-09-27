@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import subprocess
 import tomllib
 from datetime import UTC, date, datetime
@@ -67,7 +68,9 @@ def main(argv: list[str] | None = None) -> int:
         )
         sha = _git_sha()
         if not args.dry_run:
-            new = register(eng, Registration(key, reg_at, sha, hashlib.sha256(raw).hexdigest(), spec))
+            # TOML 날짜는 JSON 이 아니다 — 저장본은 ISO 문자열. 동일성은 원문 해시가 맡는다
+            stored = json.loads(json.dumps(spec, default=str))
+            new = register(eng, Registration(key, reg_at, sha, hashlib.sha256(raw).hexdigest(), stored))
             log.info("사전등록", extra={"fields": {"job": JOB, "key": key, "new": new}})
 
         ohlcv = load_ohlcv_series(eng, "upbit", "1d")
