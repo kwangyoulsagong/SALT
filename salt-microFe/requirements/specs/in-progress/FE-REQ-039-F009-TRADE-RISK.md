@@ -3,7 +3,7 @@ id: FE-REQ-039
 feature: F009
 area: fe
 kind: UI
-title: "F009 슬라이스 3 — 거래 기록 폼 · 계획(선택) · 사이즈 결과 줄 · 내 계획 카드 · 리스크 게이지 · 3종 고지"
+title: "F009 슬라이스 3 · 5 — 거래 기록 폼 · 계획(선택) · 사이즈 결과 줄 · 내 계획 카드 · 리스크 게이지 · 3종 고지 · 내 거래 미러 · 태그 확정 · 폼 한 줄"
 priority: high
 created: 2026-09-24
 source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
@@ -38,6 +38,13 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | FR-11 | 3종 고지 — `@repo/ui/disclosureSlot`(세 줄 튜플 필수 · 끄는 prop 없음) + `entities/coach` `CoachDisclosure`(prop 없음). 새 카드 셋에 고정 | FR-32 | 완료 |
 | FR-12 | `@repo/ui/textField` `compact` 변형(32px · 헤어라인 · 초점 링 · 오류 링) + 스토리 | 보기 좋음 | 완료 |
 | FR-13 | 매입가 숨김 토글 | FR-27 | **보류** — 웹에 평단 · 손익률을 보이는 화면이 없다(`HoldingSummaryList` 소비처 0). BFF 는 필드를 통과시킨다 |
+| FR-14 | 코치 리포트 **"내 거래 미러"** 섹션(`widgets/coach-console` `MirrorPanel`) — 리포트 · 게이지와 따로 부르고 따로 실패. 리포트가 `unavailable` 이어도 보인다 | 시나리오 4 | 완료(슬라이스 5) |
+| FR-15 | 미러 줄(`entities/coach` `MirrorLines`, 표시만) — 익절 · 손절 보유일 + PGR/PLR · 그냥 들고 있었으면 vs 실제 + 수수료 몫 · 계획 지킴(판정 수 · 비율 · 평균 수익률) · 실수 태그별 손익 · 기대값(R 또는 %) · 회전율 + 기준선 출처. 줄마다 표본 배지, 20 미만은 "표본 부족" 배지 + 굵기로 흐림(값은 보인다), 재료 없으면 "기록이 모자라" | FR-12 · 15~18 | 완료 |
+| FR-16 | 엣지 없음 배지 — 서버 `noEdge` 인 태그 줄에만. 판정은 서버 | FR-19 | 완료 |
+| FR-17 | 청산별 태그 확정(`features/confirm-outcome-tags`) — 최근 청산 20건(종목 아이콘 · 손익 · 보유일 · R · 30일 보유 대비 · 계획 라벨), "자동 후보"/"확정" 글자, 그 줄에서 펼쳐 체크박스로 고르고 확정(모달 없음). 빈 선택 = 실수 없음. 확정 뒤 목록 · 미러 · 사이즈 계산 무효화 | FR-18 | 완료(사용자 정의 태그 새로 적기 제외 — 미검증 표) |
+| FR-18 | 거래 폼 **엣지 없음 한 줄** — 매수 입력 중 서버 `behavior.edgeWarnings` 를 한 줄씩(차단 아님). 요청에 `hasPlan`(손절가 또는 이유) | FR-19 | 완료 |
+| FR-19 | 거래 폼 **매도 프레이밍 한 줄** — "이 종목을 오늘 처음 본다면 살까요?" + 계획 손절 vs 지금(서버 `sellFraming`). 매입가 · 손익률 없음. 입력은 그대로 진행 | 시나리오 5 | 완료("그냥 들고 있었으면 대비 +2.1%" 조각 제외 — 미검증 표) |
+| FR-20 | 행동 알림 → 미러 "최근 행동" 줄 — 기존 리포트의 "최근 거래 기록" 패널을 지우고 미러 안으로(`BehaviorFactList` 삭제). 서버가 알림 저장을 끈다(`SRV-REQ-038` FR-13) | FR-21 | 완료 |
 
 ## 하지 않은 것
 
@@ -49,3 +56,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-24 | 신설 · FR-1~12 구현, FR-13 보류. 근거 `reports/checklists/FE-REQ-039.md` |
+| 2026-09-27 | 슬라이스 5 FR-14~20 — 내 거래 미러 · 청산별 태그 확정 · 폼 한 줄(엣지 없음 · 매도 프레이밍) · 행동 알림 → 미러 줄. 새 feature `confirm-outcome-tags`(레지스트리 등록). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 5 |

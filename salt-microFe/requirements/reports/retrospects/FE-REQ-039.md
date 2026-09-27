@@ -11,3 +11,16 @@
 - 빌드 전에 3000 · 3001 리슨 중이면 dev 를 먼저 내리거나 빌드를 미룬다(메모리 `local-fullstack-run` 에 이미 있다 — 이번엔 읽고도 안 지켰다)
 - 전역 `body` 글꼴 — 사용자 결정 후 한 줄(`globals.css.ts`)
 - `apps/web` 에 vitest 러너 — `shared/lib/amountInput.ts` 같은 순수 함수 테스트 자리
+
+## 슬라이스 5 (2026-09-27)
+
+- 계약 파일(`@repo/core/coach` `behaviorMirror.ts`)을 먼저 쓰고 BFF 를 병렬로 돌렸다. 프론트는 타입만 보고 진행해 기다림이 없었다
+- 화면을 처음 띄워서야 "표본 24 · 표본 부족"이 모순돼 보인다는 걸 알았다 — 보유일 표본은 익절 · 손절이 따로다. 숫자 뜻이 둘인 줄은 배지도 둘로 쓴다
+- 태그 선택을 `Chip` 으로 하면 선택 면이 `brand.lighter`(보라)다 — 표 선택에서 이미 뺀 색이라 체크박스 알약으로 만들었다(테두리 굵기 + 체크 표시)
+- 행동 알림을 미러로 옮기면서 옛 패널(`BehaviorFactList`)과 문구 3개가 소비처 0 이 됐다 — 남기지 않고 지웠다
+- 이번엔 dev 가 없는 상태에서 빌드했다(슬라이스 3 Action 지킴)
+
+## Action (슬라이스 5)
+
+- 공용 `panelDescription` 대비 — `SegmentedControl` 과 묶어 `@repo/ui` 대비 정리 REQ 로 한 번에
+- 슬라이스 6 월간 복기 카드는 `MirrorPanel` 위에 얹는다 — 같은 조회(`mirror`)를 다시 부르지 않게 요약 필드를 서버 응답에 더한다
