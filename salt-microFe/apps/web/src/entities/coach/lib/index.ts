@@ -3,3 +3,4 @@ export * from "./modeView";
 export * from "./zoneOverlay";
 export * from "./behaviorFact";
 export * from "./renderGate";
+export * from "./mirrorTag";

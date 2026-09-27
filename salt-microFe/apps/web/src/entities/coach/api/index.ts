@@ -7,3 +7,4 @@ export * from "./useSymbolForecast";
 export * from "./useSymbolEvents";
 export * from "./useRiskBudget";
 export * from "./useTradePlans";
+export * from "./useBehaviorMirror";

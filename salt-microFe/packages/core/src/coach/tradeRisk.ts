@@ -6,6 +6,8 @@
  * 못 구한 값은 `null` 이고 사유는 `unavailable` 에 코드로 온다 — 0 으로 읽지 않는다.
  */
 
+import type { TradeBehaviorPreviewResult } from "./behaviorMirror";
+
 export type TradeSide = "buy" | "sell";
 
 export type SizingUnavailableReason =
@@ -53,6 +55,8 @@ export interface SizeCheckView {
   volatilityAsOf: string | null;
   asOf: string | null;
   orderExecution: false;
+  /** 입력 중 행동 미리보기(슬라이스 5, `SRV-REQ-038` FR-12). 못 구하면 `null` */
+  behavior: TradeBehaviorPreviewResult;
 }
 
 export type SizeCheckResult = SizeCheckView | { status: "unavailable" };
@@ -63,6 +67,8 @@ export interface SizeCheckRequest {
   quantity: number;
   price: number;
   stopPrice?: number;
+  /** 폼에 계획(손절가 또는 이유)이 있는가 — 계획 외 후보 판정 */
+  hasPlan?: boolean;
 }
 
 export type GaugeStatus = "ok" | "exceeded" | "budget_not_set" | "insufficient_data";

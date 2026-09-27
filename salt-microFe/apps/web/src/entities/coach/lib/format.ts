@@ -71,3 +71,29 @@ export const daysSince = (iso: string, now: number = Date.now()): number | null 
   if (Number.isNaN(at)) return null;
   return Math.max(0, Math.floor((now - at) / DAY_MS));
 };
+
+const signedDecimalFormatter = new Intl.NumberFormat("ko-KR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+/** 부호 있는 소수(R 배수 −0.84) → `−0.8` · `+1.2`. 음수 부호는 U+2212 */
+export const formatSignedDecimal = (value: number): string => {
+  const text = signedDecimalFormatter.format(Math.abs(value));
+  if (Number(text) === 0) return text;
+  return value > 0 ? `+${text}` : `${MINUS}${text}`;
+};
+
+/** 부호 있는 원 금액 → `+310,000` · `−280,000`. 0 은 부호 없음 */
+export const formatSignedKrw = (value: number): string => {
+  if (value === 0) return formatPrice(0);
+  return value > 0 ? `+${formatPrice(value)}` : `${MINUS}${formatPrice(Math.abs(value))}`;
+};
+
+const shortDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric" });
+
+/** 날짜 → `9월 23일`. **클라이언트에서만** 부른다(타임존). 읽을 수 없으면 `null` */
+export const formatShortDate = (iso: string): string | null => {
+  const at = new Date(iso);
+  return Number.isNaN(at.getTime()) ? null : shortDateFormatter.format(at);
+};

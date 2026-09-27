@@ -180,8 +180,6 @@ export const COACH_MESSAGES = {
     } as Record<string, string | undefined>,
     noHoldings: "보유 종목이 없어요.",
 
-    behaviorHeading: "최근 거래 기록",
-    noBehavior: "최근 거래에서 반복된 패턴은 없어요.",
     /**
      * `factCode` → 사실 문장 (FR-60 · FR-61). 재료는 서버 `params` 그대로 — 기간은 `period`,
      * 비율은 `rate` 로 포맷만 해서 받는다. 판정 임계(예: 매도 뒤 몇 % 이상)는 서버 값이라
@@ -197,7 +195,6 @@ export const COACH_MESSAGES = {
     },
     periodDays: (days: number) => `${days}일`,
     periodHours: (hours: number) => `${hours}시간`,
-    amount: (amount: string) => `합계 ${amount}원`,
 
     /** 추천 대상에서 빠진 자산군 (FR-91). `assetType:reasonCode` */
     excluded: {

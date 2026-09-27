@@ -12,7 +12,15 @@ const SIZE_CHECK_STALE_TIME_MS = 30_000;
 
 /** 입력별 계산 키. 접두사는 `coachQueryKeys.sizeCheckAll` — 거래 · 예산 저장 뒤 전부 버린다 */
 const sizeCheckKey = (input: SizeCheckRequest) =>
-  [...coachQueryKeys.sizeCheckAll(), input.symbol, input.side, input.quantity, input.price, input.stopPrice ?? null] as const;
+  [
+    ...coachQueryKeys.sizeCheckAll(),
+    input.symbol,
+    input.side,
+    input.quantity,
+    input.price,
+    input.stopPrice ?? null,
+    input.hasPlan ?? false,
+  ] as const;
 
 /**
  * 사이즈 계산 결과 (F009 FR-4~7). **입력이 확정된 뒤에만** 부른다 — `input` 은 호출부가 300ms 디바운스한 값이다.
