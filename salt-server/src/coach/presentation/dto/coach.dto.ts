@@ -159,6 +159,8 @@ export const updateRiskBudgetSchema = z.object({
   perTradeMaxLoss: budgetSettingSchema.nullable().optional(),
   /** 연 변동성 비율(0.15 = 15%). 0 초과 2 이하 */
   targetVolatility: z.number().finite().gt(0).lte(2).nullable().optional(),
+  /** 한 종목 상한 비율(0.6 = 60%) — IPS 3문항의 셋째(슬라이스 6). `null` 이면 기본 60% 로 */
+  maxSingleAssetWeight: z.number().finite().min(0.05).max(1).nullable().optional(),
 });
 
 const planText = z.string().trim().min(1).max(200);
@@ -175,6 +177,20 @@ export const createTradePlanSchema = z.object({
   invalidation: planText.optional(),
   reviewAt: z.string().datetime({ offset: true }).optional(),
   probabilityUp: z.number().finite().min(0).max(1).optional(),
+  /**
+   * 진입 전 체크리스트 기록(FR-30, 슬라이스 6) — 보인 질문 태그 · 체크한 태그. 체크한 것은 보인 것 안에 있어야 한다.
+   * 만든 뒤 고치지 않는다(PATCH 에 없다)
+   */
+  checklist: z
+    .object({
+      shown: z.array(z.string().trim().min(1).max(20)).max(5),
+      checked: z.array(z.string().trim().min(1).max(20)).max(5),
+    })
+    .refine((list) => list.checked.every((tag) => list.shown.includes(tag)), {
+      message: "checked 는 shown 안에 있어야 한다",
+      path: ["checked"],
+    })
+    .optional(),
 });
 
 /** `PATCH /api/coach/plans/:id` — `null` 은 지운다. 거래 연결은 한 번뿐이라 `transactionId` 는 `null` 을 받지 않는다 */
@@ -214,6 +230,14 @@ export const decisionOutcomeParamsSchema = z.object({ id: z.string().uuid() });
  */
 export const confirmOutcomeTagsSchema = z.object({
   tags: z.array(z.string().trim().min(1).max(20)).max(8),
+});
+
+/** `GET /api/coach/review/monthly` — 없으면 KST 지난달 */
+export const monthlyReviewQuerySchema = z.object({
+  month: z
+    .string()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+    .optional(),
 });
 
 export type SizeCheckDto = z.infer<typeof sizeCheckSchema>;

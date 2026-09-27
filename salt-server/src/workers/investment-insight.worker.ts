@@ -72,6 +72,30 @@ export class InvestmentInsightWorker {
     evaluateDecisions().catch((error) =>
       console.error("❌ Trade decisions 부팅 실행 실패:", error)
     );
+
+    // 월간 복기 (F009 슬라이스 6). 지난달(KST) 것이 없는 사용자만 만든다 — 있으면 읽고 끝이라 매일 돌아도 한 벌이다.
+    // 월초 하루가 아니라 매일 도는 이유: 서버가 1일에 내려가 있었으면 그달 복기가 첫 조회 때까지 비기 때문이다.
+    // 06:40 — 준수 판정(:35, 6시간마다)의 새 결과 뒤. 부팅 때도 돈다
+    const buildMonthlyReviews = async () => {
+      const users = await prisma.user.findMany({ select: { id: true } });
+      const counts: Record<string, number> = { created: 0, existing: 0, failed: 0 };
+      for (const { id } of users) {
+        try {
+          // 달을 주지 않으면 KST 지난달이다
+          const result = await this.coach.buildMonthlyReview.execute(id);
+          const key = result.status === "ok" ? (result.created ? "created" : "existing") : result.status;
+          counts[key] = (counts[key] ?? 0) + 1;
+        } catch (error) {
+          counts.failed += 1;
+          console.error(`❌ Monthly review 생성 실패 — user ${id}:`, error);
+        }
+      }
+      console.log(`🗓️ Monthly reviews (지난달) — ${JSON.stringify({ users: users.length, ...counts })}`);
+    };
+    schedule("coach-monthly-reviews", "40 6 * * *", buildMonthlyReviews);
+    buildMonthlyReviews().catch((error) =>
+      console.error("❌ Monthly reviews 부팅 실행 실패:", error)
+    );
   }
 
   /**

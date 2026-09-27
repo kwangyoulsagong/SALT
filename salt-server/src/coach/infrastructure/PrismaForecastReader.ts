@@ -104,13 +104,15 @@ export class PrismaForecastReader implements ForecastReader {
    * 닫힌 일봉만 — 뷰가 이미 `interval = '1d'` 이고 `available_at` 이 마감 시각이다. 지금보다 늦게 쓸 수 있는 봉
    * (진행 중인 오늘 봉)은 거른다. 심볼은 코치 모양 `BTC` ↔ 전망 모양 `KRW-BTC`
    */
-  async dailyCloses(symbols: string[], from: Date): Promise<Map<string, DailyBar[]>> {
+  async dailyCloses(symbols: string[], from: Date, to?: Date): Promise<Map<string, DailyBar[]>> {
     const result = new Map<string, DailyBar[]>();
     if (!symbols.length) return result;
+    // `to` 가 없으면 끝이 열려 있다 — 무한대 대신 먼 미래
+    const until = to ?? new Date("9999-12-31T00:00:00Z");
     const rows = await prisma.$queryRaw<{ symbol: string; open_time: Date; close: string }[]>`
       SELECT symbol, open_time, close::text AS close FROM forecast.v_daily_close
       WHERE symbol = ANY(${symbols.map((symbol) => `KRW-${symbol}`)}::text[])
-        AND open_time >= ${from} AND available_at <= now()
+        AND open_time >= ${from} AND open_time <= ${until} AND available_at <= now()
       ORDER BY symbol, open_time
     `;
     for (const row of rows) {

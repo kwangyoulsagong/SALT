@@ -3,6 +3,7 @@ import type Decimal from "decimal.js";
 import {
   lockedFieldChanges,
   LOCKED_AFTER_EXECUTION,
+  type PlanChecklist,
   TradePlanAlreadyLinkedError,
   TradePlanLockedError,
   TradePlanNotFoundError,
@@ -32,6 +33,8 @@ export interface CreateTradePlanCommand {
   invalidation?: string;
   reviewAt?: Date;
   probabilityUp?: Decimal;
+  /** 진입 전 체크리스트(FR-30) — 기록만. 만든 뒤 고치지 않는다(보았던 질문이 바뀌면 기록이 거짓이 된다) */
+  checklist?: PlanChecklist;
 }
 
 export type UpdateTradePlanCommand = TradePlanPatch;
@@ -77,6 +80,7 @@ export class CreateTradePlan {
       invalidation: command.invalidation ?? null,
       reviewAt: command.reviewAt ?? null,
       probabilityUp: command.probabilityUp ?? null,
+      checklist: command.checklist ?? null,
       plannedAt: this.now(),
       // 사용자가 앱에서 직접 적은 계획이다. 시드 · 백테스트 경로는 이 유스케이스를 부르지 않는다
       sampleOrigin: "live",

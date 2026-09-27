@@ -22,6 +22,7 @@ import type {
   DailyBar,
   DecisionOutcome,
   DecisionOutcomeDraft,
+  MonthlyReview,
 } from "./policy";
 import type {
   CoachArticle,
@@ -461,7 +462,7 @@ export interface ForecastReader {
    * 닫힌 일봉 종가(`openTime` ≥ `from`, 시간순) — 준수 판정 · 처분효과 · 보유 대비(F009 슬라이스 4).
    * 원천은 `forecast.v_daily_close`(업비트 일봉, UTC 00:00 = KST 09:00 경계). 여러 종목을 쿼리 한 번에
    */
-  dailyCloses(symbols: string[], from: Date): Promise<Map<string, DailyBar[]>>;
+  dailyCloses(symbols: string[], from: Date, to?: Date): Promise<Map<string, DailyBar[]>>;
 }
 
 export interface RealizedVolatility {
@@ -489,6 +490,8 @@ export interface TradePlanStore {
     patch: TradePlanPatch,
     guard: { requireUnlinked: boolean }
   ): Promise<TradePlan | null>;
+  /** "오를 확률"을 적은 계획 전부(Brier 채점, FR-13). 오래된 것이 앞 */
+  listForecasted(userId: string, limit: number): Promise<TradePlan[]>;
   /** 거래에 연결된 계획 전부(판정 배치 · 미러). 오래된 것이 앞 */
   listLinked(userId: string, limit: number): Promise<TradePlan[]>;
   /** 배치의 원본 판정을 쓴다. 사용자 수정(`userAdherenceLabel`)은 건드리지 않는다 */
@@ -522,4 +525,35 @@ export interface DecisionOutcomeStore {
     tags: string[],
     confirmedAt: Date
   ): Promise<DecisionOutcome | null>;
+}
+
+/**
+ * 월간 복기 저장 — `monthly_reviews` (FEATURE-009 FR-28 · `DB-REQ-031`).
+ *
+ * 한 사용자 · 한 달에 한 행이고 **만든 뒤 고치지 않는다**(W06). 저장 모양은 JSON 이고 숫자는 문자열이다 —
+ * 읽는 쪽이 `StoredMonthlyReview.payload` 를 응답으로 옮긴다. 모든 조회가 `userId` 로 좁혀진다.
+ */
+export interface MonthlyReviewStore {
+  find(userId: string, month: string): Promise<StoredMonthlyReview | null>;
+  /** 저장된 달(최신이 앞) */
+  listMonths(userId: string, limit: number): Promise<string[]>;
+  /** 이미 있으면 **덮지 않고** 있는 것을 돌려준다 — 배치 · 요청이 겹쳐도 한 벌 */
+  saveIfAbsent(userId: string, review: MonthlyReview, generatedAt: Date): Promise<StoredMonthlyReview>;
+}
+
+/** Decimal → 문자열, Date → ISO 문자열로 굳힌 모양 */
+export type Jsonified<T> = T extends Decimal
+  ? string
+  : T extends Date
+    ? string
+    : T extends Array<infer U>
+      ? Array<Jsonified<U>>
+      : T extends object
+        ? { [K in keyof T]: Jsonified<T[K]> }
+        : T;
+
+export interface StoredMonthlyReview {
+  month: string;
+  payload: Jsonified<MonthlyReview>;
+  generatedAt: Date;
 }

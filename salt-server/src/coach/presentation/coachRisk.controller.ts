@@ -9,6 +9,7 @@ import {
   decisionOutcomeParamsSchema,
   listDecisionOutcomesQuerySchema,
   listTradePlansQuerySchema,
+  monthlyReviewQuerySchema,
   sizeCheckSchema,
   tradePlanParamsSchema,
   updateRiskBudgetSchema,
@@ -20,6 +21,7 @@ import {
   toTradePlanResponse,
 } from "./dto/riskView";
 import { toBehaviorMirrorResponse, toDecisionOutcomeResponse } from "./dto/mirrorView";
+import { toMonthlyReviewResponse } from "./dto/monthlyReviewView";
 
 /**
  * F009 슬라이스 1 — 사이즈 계산 · 거래 계획 · 리스크 예산 (`/api/coach/*`, `SRV-REQ-038`).
@@ -76,6 +78,7 @@ export class CoachRiskController {
         monthlyLossBudget: budget(body.monthlyLossBudget),
         perTradeMaxLoss: budget(body.perTradeMaxLoss),
         targetVolatility: decOrNull(body.targetVolatility),
+        maxSingleAssetWeight: decOrNull(body.maxSingleAssetWeight),
       });
       return ResponseUtil.success(res, toRiskBudgetResponse(view));
     } catch (error) {
@@ -97,6 +100,7 @@ export class CoachRiskController {
         invalidation: body.invalidation,
         reviewAt: body.reviewAt ? new Date(body.reviewAt) : undefined,
         probabilityUp: dec(body.probabilityUp),
+        checklist: body.checklist,
       });
       return ResponseUtil.created(res, toTradePlanResponse(plan));
     } catch (error) {
@@ -149,6 +153,16 @@ export class CoachRiskController {
       const { limit } = listDecisionOutcomesQuerySchema.parse(req.query);
       const outcomes = await this.useCases.listDecisionOutcomes.execute(req.user!.userId, limit);
       return ResponseUtil.success(res, { outcomes: outcomes.map(toDecisionOutcomeResponse) });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getMonthlyReview = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { month } = monthlyReviewQuerySchema.parse(req.query);
+      const view = await this.useCases.getMonthlyReview.execute(req.user!.userId, month);
+      return ResponseUtil.success(res, toMonthlyReviewResponse(view));
     } catch (error) {
       next(error);
     }

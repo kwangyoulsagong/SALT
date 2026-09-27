@@ -1,7 +1,7 @@
 import Decimal from "decimal.js";
 
 import type { Money } from "../../../shared/domain";
-import type { BudgetSetting, TradePlan } from "../../domain";
+import type { BudgetSetting, PortfolioScenarios, TradePlan } from "../../domain";
 import type { TradeSizeCheck } from "../../application/CheckTradeSize";
 import type { RiskBudgetView } from "../../application/ManageRiskBudget";
 import { toBehaviorPreviewResponse } from "./mirrorView";
@@ -85,6 +85,7 @@ export const toRiskBudgetResponse = (view: RiskBudgetView) => {
       perTradeMaxLossKrw: krw(view.settings.perTradeMaxLossKrw),
       targetVolatility: rate(view.settings.targetVolatility),
       targetVolatilityIsDefault: view.settings.targetVolatilityIsDefault,
+      maxSingleAssetWeight: rate(view.settings.maxSingleAssetWeight),
     },
     totalValueKrw: krw(view.totalValue),
     gauges: {
@@ -110,10 +111,37 @@ export const toRiskBudgetResponse = (view: RiskBudgetView) => {
         tradeCount: turnover.tradeCount,
       },
     },
+    scenarios: toScenariosResponse(view.scenarios),
     monthStart: view.monthStart,
     asOf: view.asOf,
   };
 };
+
+/** 시나리오(FR-25) — 확률 필드가 없다. 손실은 음수 원 */
+const toScenariosResponse = (scenarios: PortfolioScenarios) => ({
+  status: scenarios.status,
+  totalValueKrw: krw(scenarios.totalValue),
+  shocks: scenarios.shocks.map((shock) => ({
+    shock: rate(shock.shock),
+    lossKrw: krw(shock.loss),
+    valueAfterKrw: krw(shock.valueAfter),
+    bySymbol: shock.bySymbol.map((row) => ({ symbol: row.symbol, lossKrw: krw(row.loss) })),
+  })),
+  episodes: scenarios.episodes.map((episode) => ({
+    id: episode.id,
+    from: episode.from,
+    to: episode.to,
+    status: episode.status,
+    lossKrw: krw(episode.loss),
+    returnRate: rate(episode.returnRate),
+    bySymbol: episode.bySymbol.map((row) => ({
+      symbol: row.symbol,
+      returnRate: rate(row.returnRate),
+      lossKrw: krw(row.loss),
+    })),
+    missingSymbols: episode.missingSymbols,
+  })),
+});
 
 const price = (value: Decimal | null): number | null => (value === null ? null : value.toNumber());
 
@@ -129,6 +157,7 @@ export const toTradePlanResponse = (plan: TradePlan) => ({
   invalidation: plan.invalidation,
   reviewAt: plan.reviewAt,
   probabilityUp: rate(plan.probabilityUp),
+  checklist: plan.checklist,
   plannedAt: plan.plannedAt,
   /** 거래에 연결돼 손절가 · 계획 수량 · 오를 확률을 바꿀 수 없다 */
   locked: plan.transactionId !== null,

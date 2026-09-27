@@ -167,6 +167,7 @@ describe("lockedFieldChanges — 거래에 연결된 계획의 채점 기준", (
     invalidation: null,
     reviewAt: null,
     probabilityUp: null,
+    checklist: null,
     plannedAt: new Date(),
     sampleOrigin: "live",
     adherenceLabel: null,

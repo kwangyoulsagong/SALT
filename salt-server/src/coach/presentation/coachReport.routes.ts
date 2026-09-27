@@ -397,7 +397,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *           `{ symbol, side, status(ok|stop_not_below_entry|sell_side), maxLossKrw, lossPerUnitKrw, perTradeBudgetRate,
    *           monthlyBudgetRemainingRate, monthlyBudgetRemainingKrw, referenceMaxQuantity{value,limitedBy}, volTargetWeight,
    *           currentWeight, projectedWeight, consecutiveLoss{count,amountKrw,monthlyBudgetRate}, kelly, unavailable,
-   *           assumptions, volatilityAsOf, behavior{status, candidateTags, chasingUnknown, edgeWarnings[], sellFraming}, asOf,
+   *           assumptions, volatilityAsOf, behavior{status, candidateTags, chasingUnknown, edgeWarnings[], sellFraming, checklist{items[{tag, question, count, netPnlKrw}], premortemQuestion}}, asOf,
    *           orderExecution }`
    *       400: { description: 요청 검증 실패(음수 · NaN · 무한대 · 승률만 보냄) }
    *       401: { description: 인증 실패 }
@@ -417,11 +417,14 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - `concentration` — 가장 큰 종목 비중 vs 한 종목 상한(종목 집중도. 자산군 쏠림이 아니다)
    *       - `turnover` — 최근 365일 (매수 + 매도 대금) ÷ 2 ÷ 지금 평가금액, 올해 수수료. 기간 환산하지 않는다
    *       - 예산을 넘어도 막지 않는다 — `status: exceeded` 뿐. 예산이 없으면 0 이 아니라 `null`
+   *       - `scenarios`(FR-25) — 지금 코인 보유가 −10 · −30 · −50% 면 손실(원, 음수)과 종목별 몫, 과거 구간(2022-11 FTX)
+   *         수익률을 지금 보유에 다시 얹은 손실. **확률 필드가 없다.** 그 구간에 일봉이 없는 종목이 있으면 그 구간만
+   *         `insufficient_data` + `missingSymbols`
    *     tags: [Coach Risk]
    *     security:
    *       - bearerAuth: []
    *     responses:
-   *       200: { description: "`{ settings, totalValueKrw, gauges{drawdown,concentration,turnover}, monthStart, asOf }`" }
+   *       200: { description: "`{ settings{…, maxSingleAssetWeight}, totalValueKrw, gauges{drawdown,concentration,turnover}, scenarios{status, totalValueKrw, shocks[], episodes[]}, monthStart, asOf }`" }
    *       401: { description: 인증 실패 }
    *   put:
    *     summary: 리스크 예산 수정
@@ -451,6 +454,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *                   amount: { type: number, exclusiveMinimum: 0 }
    *                   unit: { type: string, enum: [krw, percent] }
    *               targetVolatility: { type: number, nullable: true, exclusiveMinimum: 0, maximum: 2, description: "연 비율(0.15 = 15%). null 이면 기본 15%" }
+   *               maxSingleAssetWeight: { type: number, nullable: true, minimum: 0.05, maximum: 1, description: "한 종목 상한 비율(0.6 = 60%). null 이면 기본 60%" }
    *     responses:
    *       200: { description: GET 과 같은 응답 }
    *       400: { description: 요청 검증 실패 }
@@ -504,6 +508,13 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *               invalidation: { type: string, maxLength: 200, description: 무효화 조건 한 줄 }
    *               reviewAt: { type: string, format: date-time }
    *               probabilityUp: { type: number, minimum: 0, maximum: 1, description: 사용자가 적는 오를 확률 }
+   *               checklist:
+   *                 type: object
+   *                 description: 진입 전 체크리스트 기록(FR-30) — 보인 질문 태그 · 체크한 태그. 기록만 하고 막지 않는다. 만든 뒤 고치지 않는다
+   *                 required: [shown, checked]
+   *                 properties:
+   *                   shown: { type: array, maxItems: 5, items: { type: string, maxLength: 20 } }
+   *                   checked: { type: array, maxItems: 5, items: { type: string, maxLength: 20 }, description: shown 안의 값만 }
    *     responses:
    *       201: { description: 만든 계획 }
    *       400: { description: 요청 검증 실패 · 거래와 종목/방향 불일치(`COACH_TRADE_PLAN_TRANSACTION_SYMBOL` · `_SIDE`) }
@@ -578,12 +589,15 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - `turnover` — 최근 365일 회전율 · 올해 수수료 + 기준선(국내 주식 일 회전율, 출처 · 단위 포함. 환산하지 않는다)
    *       - 결과 · 라벨은 일 4회 배치가 만든다(`outcomesComputedAt`). 배치가 실패하면 직전 값이 그대로 보인다
    *       - 거래가 5,000건을 넘으면 `status: truncated` — 합을 만들지 않는다
+   *       - `brier`(FR-13) — 계획에 적은 "오를 확률"을 `reviewAt`(없으면 30일) 뒤 방향으로 채점한 평균 Brier ·
+   *         기준선 0.25(늘 50%) · 실력(1 − 평균 ÷ 기준선) · 빗나간 수 · 만기 전 수 · 최근 빗나간 3건. 기준 가격은 적기 전
+   *         마지막 닫힌 일봉 종가다
    *     tags: [Coach Risk]
    *     security:
    *       - bearerAuth: []
    *     responses:
    *       200:
-   *         description: "`{ status, adherence, disposition, benchmark, tagCosts[], turnover, outcomeCount, outcomesComputedAt, minSample, asOf }`"
+   *         description: "`{ status, adherence, disposition, benchmark, tagCosts[], turnover, brier, outcomeCount, outcomesComputedAt, minSample, asOf }`"
    *       401: { description: 인증 실패 }
    */
   router.get("/mirror", risk.getBehaviorMirror);
@@ -646,6 +660,36 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       404: { description: 결과가 없다(남의 것 포함) }
    */
   router.put("/outcomes/:id/tags", risk.confirmOutcomeTags);
+
+  /**
+   * @swagger
+   * /api/coach/review/monthly:
+   *   get:
+   *     summary: 월간 복기 (F009 FR-28 · FR-13)
+   *     description: |
+   *       한 달(KST)의 미러 요약 · IPS 이탈 일수 · "오를 확률" 채점 · 이번 달 한 가지. 수치는 서버, 문장은 템플릿이다(LLM 없음).
+   *
+   *       - 월초 배치가 지난달 것을 만들고, 없으면 **첫 조회가 만든다.** 한 번 만든 복기는 고치지 않는다 — 뒤에 태그를
+   *         고쳐도 그달에 본 숫자가 남는다(`generatedAt`)
+   *       - `month` 가 없으면 KST 지난달. 끝나지 않은 달은 `status: month_not_closed`
+   *       - 그달 말까지 거래가 없으면 `no_ledger`, 거래가 5,000건을 넘으면 `truncated` — 둘 다 `review: null`
+   *       - `ipsDeviation` 은 **지금 설정** 기준이다(`basis: current_settings` — 설정 이력을 저장하지 않는다).
+   *         월 손실 예산의 비율 단위는 월초 평가금 대비
+   *       - `oneThing` 은 금액이 없는 문장이다. 금액은 `topMistake` 숫자로
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: month
+   *         schema: { type: string, pattern: "^\\d{4}-(0[1-9]|1[0-2])$", example: "2026-08" }
+   *     responses:
+   *       200:
+   *         description: "`{ month, status, availableMonths[], review: { month, from, to, generatedAt, activity, adherence, disposition, benchmark, turnover, tagCosts[], topMistake, ipsDeviation, brier, oneThing } | null }`"
+   *       400: { description: month 형식 오류 }
+   *       401: { description: 인증 실패 }
+   */
+  router.get("/review/monthly", risk.getMonthlyReview);
 
   return router;
 };
