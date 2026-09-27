@@ -42,7 +42,14 @@ export interface RecordTradeInput {
   fee?: number;
   transactionDate?: string;
   /** 계획(선택). 필드가 하나도 없으면 계획을 만들지 않는다 */
-  plan?: { stopPrice?: number; thesis?: string };
+  plan?: {
+    stopPrice?: number;
+    thesis?: string;
+    /** 프리모템 답(슬라이스 6) — 서버 `invalidation` */
+    invalidation?: string;
+    /** 진입 전 체크리스트 기록(슬라이스 6). 계획이 있을 때만 남는다 */
+    checklist?: { shown: string[]; checked: string[] };
+  };
 }
 
 /**
@@ -150,7 +157,9 @@ export class AppTradeRiskService {
     const transaction = toRecordedTransaction(dataOf(txResponse));
 
     const plan = input.plan ?? {};
-    const hasPlan = plan.stopPrice !== undefined || (plan.thesis !== undefined && plan.thesis.trim() !== "");
+    // 체크리스트만으로는 계획을 만들지 않는다 — 계획이 생기면 "계획 없음" 자동 태그가 빠진다(적은 게 없는데 계획이 된다)
+    const hasText = (value: string | undefined) => value !== undefined && value.trim() !== "";
+    const hasPlan = plan.stopPrice !== undefined || hasText(plan.thesis) || hasText(plan.invalidation);
     if (!hasPlan) return { transaction, plan: { status: "none" } };
 
     try {
@@ -160,6 +169,8 @@ export class AppTradeRiskService {
         transactionId: transaction.id,
         ...(plan.stopPrice !== undefined ? { stopPrice: plan.stopPrice } : {}),
         ...(plan.thesis?.trim() ? { thesis: plan.thesis.trim() } : {}),
+        ...(plan.invalidation?.trim() ? { invalidation: plan.invalidation.trim() } : {}),
+        ...(plan.checklist ? { checklist: plan.checklist } : {}),
         // 계획 수량은 싣지 않는다 — 폼이 따로 받지 않는다. 거래 수량을 넣으면 `size_exceeded` 가 늘 거짓이 된다
       });
       return { transaction, plan: { status: "ok", plan: created } };

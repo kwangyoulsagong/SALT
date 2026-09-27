@@ -10,6 +10,7 @@ import {
   type DecisionOutcomeListResult,
   type DecisionOutcomeView,
 } from "./behavior-mirror.viewmodel";
+import { toMonthlyReviewViewModel, type MonthlyReviewResult } from "./monthly-review.viewmodel";
 
 /**
  * 서버 미러는 요청 때 센다(거래 · 계획 · 일봉 · 결과 · 보유 쿼리 5개, 로컬 14ms). 리포트 섹션 하나라 게이지(800ms)보다
@@ -17,6 +18,10 @@ import {
  */
 const MIRROR_READ_TIMEOUT_MS = 1_500;
 const OUTCOME_READ_TIMEOUT_MS = 1_500;
+/**
+ * 월간 복기 — 저장돼 있으면 조회 한 번이다. 없으면 서버가 그 자리에서 만든다(쿼리 8개, 실측 31ms) — 미러와 같은 상한
+ */
+const REVIEW_READ_TIMEOUT_MS = 1_500;
 /** 태그 확정 — 재시도 0회. 실패는 그대로 올린다 */
 const WRITE_TIMEOUT_MS = 3_000;
 
@@ -70,6 +75,29 @@ export class AppBehaviorMirrorService {
     } catch (error) {
       if (isPassThrough(error, signal)) throw error;
       logger.warn("[behavior-mirror] outcomes unavailable", { reason: (error as Error)?.message });
+      return { status: "unavailable" };
+    }
+  }
+
+  /**
+   * 월간 복기(슬라이스 6, `BFF-REQ-038` FR-10). GET 이지만 서버가 없던 복기를 만들 수 있다 — 만드는 쪽이 멱등이라
+   * (있으면 읽고 끝) 재시도 1회는 안전하다
+   */
+  async getMonthlyReview(token: string, month: string | undefined, signal?: AbortSignal): Promise<MonthlyReviewResult> {
+    const query = month === undefined ? "" : `?month=${month}`;
+    try {
+      const response = await retryOnceOnGet(
+        () =>
+          backendApi.proxyAuthRequest("GET", `/coach/review/monthly${query}`, token, undefined, {
+            timeout: REVIEW_READ_TIMEOUT_MS,
+            signal,
+          }),
+        signal,
+      );
+      return toMonthlyReviewViewModel(dataOf(response));
+    } catch (error) {
+      if (isPassThrough(error, signal)) throw error;
+      logger.warn("[behavior-mirror] monthly review unavailable", { reason: (error as Error)?.message });
       return { status: "unavailable" };
     }
   }

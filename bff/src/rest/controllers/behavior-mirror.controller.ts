@@ -3,6 +3,7 @@ import { appBehaviorMirrorService } from "../../services/app-behavior-mirror.ser
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LIMIT_PATTERN = /^\d+$/;
+const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 /** 서버 zod(`confirmOutcomeTagsSchema`)와 같은 상한. 모양만 먼저 막는다 — 진짜 검증은 서버다 */
 const MAX_TAGS = 8;
 const MAX_TAG_LENGTH = 20;
@@ -62,6 +63,22 @@ export class AppBehaviorMirrorController {
     const aborter = abortOnClose(res);
     try {
       const data = await appBehaviorMirrorService.listOutcomes(req.token!, limit, aborter.signal);
+      return res.json({ success: true, data });
+    } catch (error) {
+      if (aborter.signal.aborted) return;
+      next(error);
+    }
+  };
+
+  /** 월간 복기 — `month` 가 없으면 서버가 KST 지난달을 고른다 */
+  monthlyReview = async (req: Request, res: Response, next: NextFunction) => {
+    const month = req.query.month;
+    if (month !== undefined && (typeof month !== "string" || !MONTH_PATTERN.test(month))) {
+      return badRequest(res, "month 는 YYYY-MM 입니다");
+    }
+    const aborter = abortOnClose(res);
+    try {
+      const data = await appBehaviorMirrorService.getMonthlyReview(req.token!, month, aborter.signal);
       return res.json({ success: true, data });
     } catch (error) {
       if (aborter.signal.aborted) return;

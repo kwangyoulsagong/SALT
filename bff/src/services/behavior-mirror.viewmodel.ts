@@ -95,6 +95,8 @@ export interface BehaviorMirrorView {
       marketDailyTurnover: number;
     } | null;
   };
+  /** 슬라이스 6. 서버가 아직 주지 않으면 `null` */
+  brier: BrierView | null;
   outcomeCount: number;
   outcomesComputedAt: string | null;
   minSample: number;
@@ -121,12 +123,41 @@ export interface DecisionOutcomeView {
 
 export type DecisionOutcomeListResult = { status: "ok"; outcomes: DecisionOutcomeView[] } | { status: "unavailable" };
 
+export interface EntryChecklistView {
+  /** 본인 실수 태그 상위 3개(손익 합 음수)에서 자란 질문. 문장은 서버 템플릿 */
+  items: Array<{ tag: string; question: string; count: number; netPnlKrw: number }>;
+  premortemQuestion: string;
+}
+
 export interface TradeBehaviorPreview {
   status: "ok";
   candidateTags: string[];
   chasingUnknown: boolean;
   edgeWarnings: TagCostView[];
   sellFraming: { stopPrice: number | null; currentPrice: number | null } | null;
+  /** 매수만 — 진입 전 체크리스트(슬라이스 6, FR-30). 깨졌거나 매도면 `null` */
+  checklist: EntryChecklistView | null;
+}
+
+/** "오를 확률" 채점(슬라이스 6, `SRV-REQ-038` FR-10 · FEATURE-009 FR-13) */
+export interface BrierView {
+  meanScore: MirrorMetric;
+  /** 늘 50% 라고 말했을 때(0.25) */
+  baseline: number | null;
+  /** 1 − 평균 ÷ 기준선. 양수면 기준선보다 낫다 */
+  skill: number | null;
+  missedCount: number;
+  pendingCount: number;
+  unscorableCount: number;
+  recentMisses: Array<{
+    symbol: string;
+    probabilityUp: number;
+    plannedAt: string;
+    dueAt: string;
+    referenceClose: number;
+    outcomeClose: number;
+    up: boolean;
+  }>;
 }
 
 // ─── 공통 조각 ────────────────────────────────────────────────
@@ -137,7 +168,7 @@ const sampleSize = (value: unknown): number => {
 };
 
 /** 모르는 상태는 `insufficient_data`. 값이 없는데 `ok` 라고 하면 그것도 `insufficient_data` 다 */
-const toMetric = (raw: unknown): MirrorMetric => {
+export const toMetric = (raw: unknown): MirrorMetric => {
   const metric = isRecord(raw) ? raw : {};
   const value = num(metric.value);
   const status = oneOf(metric.status, MIRROR_STATUSES) ?? "insufficient_data";
@@ -164,8 +195,37 @@ export const toTagCost = (raw: unknown): TagCostView | null => {
   };
 };
 
-const toTagCosts = (raw: unknown): TagCostView[] =>
+export const toTagCosts = (raw: unknown): TagCostView[] =>
   Array.isArray(raw) ? raw.map(toTagCost).filter((cost): cost is TagCostView => cost !== null) : [];
+
+// ─── "오를 확률" 채점 ────────────────────────────────────────
+
+/** 깨진 모양이면 `null` — 미러 전체를 막지 않는다. 사례는 가격 · 날짜가 온전한 것만 */
+export const toBrierView = (raw: unknown): BrierView | null => {
+  if (!isRecord(raw) || !isRecord(raw.meanScore)) return null;
+  const misses = Array.isArray(raw.recentMisses) ? raw.recentMisses : [];
+  return {
+    meanScore: toMetric(raw.meanScore),
+    baseline: num(raw.baseline),
+    skill: num(raw.skill),
+    missedCount: sampleSize(raw.missedCount),
+    pendingCount: sampleSize(raw.pendingCount),
+    unscorableCount: sampleSize(raw.unscorableCount),
+    recentMisses: misses.flatMap((item) => {
+      if (!isRecord(item)) return [];
+      const symbol = str(item.symbol);
+      const probabilityUp = num(item.probabilityUp);
+      const plannedAt = str(item.plannedAt);
+      const dueAt = str(item.dueAt);
+      const referenceClose = num(item.referenceClose);
+      const outcomeClose = num(item.outcomeClose);
+      if (!symbol || probabilityUp === null || !plannedAt || !dueAt || referenceClose === null || outcomeClose === null) {
+        return [];
+      }
+      return [{ symbol, probabilityUp, plannedAt, dueAt, referenceClose, outcomeClose, up: item.up === true }];
+    }),
+  };
+};
 
 // ─── 미러 ─────────────────────────────────────────────────────
 
@@ -236,6 +296,7 @@ export const toBehaviorMirrorViewModel = (data: Raw): BehaviorMirrorView => {
             }
           : null,
     },
+    brier: toBrierView(data.brier),
     outcomeCount: sampleSize(data.outcomeCount),
     outcomesComputedAt: str(data.outcomesComputedAt),
     minSample: sampleSize(data.minSample),
@@ -302,5 +363,25 @@ export const toTradeBehaviorPreview = (raw: unknown): TradeBehaviorPreview | nul
     chasingUnknown: raw.chasingUnknown === true,
     edgeWarnings: toTagCosts(raw.edgeWarnings).filter((cost) => cost.noEdge),
     sellFraming: framing && { stopPrice: num(framing.stopPrice), currentPrice: num(framing.currentPrice) },
+    checklist: toEntryChecklist(raw.checklist),
+  };
+};
+
+/** 질문 · 태그가 빈 줄은 뺀다. 프리모템 문장이 없으면 체크리스트 자체를 뺀다 */
+const toEntryChecklist = (raw: unknown): EntryChecklistView | null => {
+  if (!isRecord(raw)) return null;
+  const premortemQuestion = str(raw.premortemQuestion)?.trim();
+  if (!premortemQuestion) return null;
+  const items = Array.isArray(raw.items) ? raw.items : [];
+  return {
+    premortemQuestion,
+    items: items.flatMap((item) => {
+      if (!isRecord(item)) return [];
+      const tag = str(item.tag)?.trim();
+      const question = str(item.question)?.trim();
+      const count = num(item.count);
+      const netPnlKrw = num(item.netPnlKrw);
+      return tag && question && count !== null && netPnlKrw !== null ? [{ tag, question, count, netPnlKrw }] : [];
+    }),
   };
 };
