@@ -133,7 +133,6 @@ export const createCoachApplication = (deps: CoachDependencies) => {
   const analyzeNewsSentiment = new AnalyzeNewsSentiment(deps.news);
   const analyzeTradingBehavior = new AnalyzeTradingBehavior(
     deps.profiles,
-    deps.insights,
     deps.market,
     deps.portfolio
   );
@@ -146,7 +145,9 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.notifier,
     analyzeNewsSentiment,
     symbolCoach,
-    deps.generationLogs
+    deps.generationLogs,
+    undefined,
+    analyzeTradingBehavior
   );
 
   const getRiskBudget = new GetRiskBudget(deps.profiles, deps.portfolio, deps.market);
@@ -166,7 +167,9 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     getCoachDetail: new GetCoachDetail(
       deps.insights,
       deps.market,
-      deps.portfolio
+      deps.portfolio,
+      undefined,
+      analyzeTradingBehavior
     ),
     getSymbolCoach: symbolCoach,
     getProfile: new GetCoachProfile(deps.profiles),
@@ -181,11 +184,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     ),
     analyzeNewsSentiment,
     analyzeTradingBehavior,
-    getBehaviorCoach: new GetBehaviorCoach(
-      deps.insights,
-      deps.portfolio,
-      analyzeTradingBehavior
-    ),
+    getBehaviorCoach: new GetBehaviorCoach(deps.portfolio, analyzeTradingBehavior),
     checkTradePreflight: new CheckTradePreflight(
       deps.market,
       deps.portfolio,

@@ -8,8 +8,6 @@ import {
   toBehaviorFact,
   type BehaviorFact,
   type BehaviorFinding,
-  type CoachInsight,
-  type CoachInsightStore,
   type CoachProfileStore,
   type MarketProbe,
   type PortfolioProbe,
@@ -17,8 +15,6 @@ import {
 
 /** 한 번에 보는 거래 수 상한. 원문의 `take: 200` 이다. */
 const TRADE_LIMIT = 200;
-/** 행동 코치 화면이 읽는 인사이트 수. */
-const BEHAVIOR_INSIGHT_LIMIT = 10;
 /** 이 건수 미만이면 패턴을 말하지 않는다. */
 const MIN_TRADES_FOR_ANALYSIS = 3;
 
@@ -32,11 +28,16 @@ const MIN_TRADES_FOR_ANALYSIS = 3;
  * 필요한 시세를 **심볼 목록으로 한 번씩** 가져와 판정에 넘긴다.
  *
  * 판정 자체는 `domain/policy/behavior` 의 순수 함수다.
+ *
+ * ## 저장하지 않는다 — 알림이 아니라 측정이다 (FEATURE-009 FR-21)
+ *
+ * 전에는 워커가 6시간마다 판정을 `behavior_analysis` 인사이트로 저장했고, 그것이 피드 · 대시보드 알림이 됐다.
+ * 실험 증거는 "알림만 주는 조건은 효과 0"이다(FEATURE-009 §배경). 지금은 **읽는 쪽이 요청 때 센다** —
+ * 행동 코치 화면 · 코치 상세의 미러 줄 · 추천 점수의 행동 감점이 같은 판정을 본다. 남은 행은 TTL(6시간)로 사라진다.
  */
 export class AnalyzeTradingBehavior {
   constructor(
     private readonly profiles: CoachProfileStore,
-    private readonly insights: CoachInsightStore,
     private readonly market: MarketProbe,
     private readonly portfolio: PortfolioProbe
   ) {}
@@ -44,7 +45,7 @@ export class AnalyzeTradingBehavior {
   async execute(
     userId: string,
     now: Date = new Date()
-  ): Promise<CoachInsight[]> {
+  ): Promise<BehaviorFinding[]> {
     const profile = await this.profiles.findByUser(userId);
 
     const panicSellWindowHours =
@@ -77,7 +78,7 @@ export class AnalyzeTradingBehavior {
       [...quotes].map(([symbol, quote]) => [symbol, quote.currentPrice])
     );
 
-    const findings = [
+    return [
       detectOverTrading(
         trades,
         BEHAVIOR_DEFAULTS.overTradingWindowHours,
@@ -93,37 +94,6 @@ export class AnalyzeTradingBehavior {
         now
       ),
     ].filter((finding): finding is BehaviorFinding => finding !== null);
-
-    // 하나가 저장에 실패해도 나머지는 남는다 — 원문의 `allSettled` 와 같다.
-    const saved = await Promise.allSettled(
-      findings.map((finding) => this.save(userId, finding, now))
-    );
-
-    return saved
-      .filter(
-        (result): result is PromiseFulfilledResult<CoachInsight> =>
-          result.status === "fulfilled"
-      )
-      .map((result) => result.value);
-  }
-
-  private save(
-    userId: string,
-    finding: BehaviorFinding,
-    now: Date
-  ): Promise<CoachInsight> {
-    return this.insights.saveBehavior({
-      userId,
-      title: finding.title,
-      summary: finding.summary,
-      severity: finding.severity,
-      confidence: finding.confidence,
-      dedupeKey: finding.dedupeKey,
-      payload: { ...finding.payload },
-      expiresAt: new Date(
-        now.getTime() + BEHAVIOR_DEFAULTS.ttlHours * 60 * 60 * 1000
-      ),
-    });
   }
 }
 
@@ -168,19 +138,17 @@ export interface BehaviorCoachView {
  */
 export class GetBehaviorCoach {
   constructor(
-    private readonly insights: CoachInsightStore,
     private readonly portfolio: PortfolioProbe,
     private readonly analyze: AnalyzeTradingBehavior
   ) {}
 
   async execute(userId: string): Promise<BehaviorCoachView> {
-    // 화면을 열 때 갱신한다 — 워커 주기(10분)를 기다리면 방금 한 거래가 안 보인다.
-    await this.analyze.execute(userId);
-
-    const [insights, tradeCount] = await Promise.all([
-      this.insights.findActiveBehavior(userId, BEHAVIOR_INSIGHT_LIMIT),
+    // 요청 때 센다 — 저장된 판정이 없다(FR-21). 방금 한 거래도 바로 보인다
+    const [findings, tradeCount] = await Promise.all([
+      this.analyze.execute(userId),
       this.portfolio.countTrades(userId),
     ]);
+    const ranked = [...findings].sort((a, b) => b.severity - a.severity);
 
     if (tradeCount < MIN_TRADES_FOR_ANALYSIS) {
       return {
@@ -198,23 +166,22 @@ export class GetBehaviorCoach {
       };
     }
 
-    const tags = insights.map(
-      (insight) =>
-        (insight.payload?.kind as string | undefined) ?? insight.dedupeKey ?? ""
-    );
+    const tags = ranked.map((finding) => finding.payload.kind);
 
     return {
-      status: insights.length ? "active" : "stable",
+      status: ranked.length ? "active" : "stable",
       tags,
-      warnings: insights.map((insight) => {
-        const fact = toBehaviorFact(insight.payload);
+      warnings: ranked.map((finding) => {
+        const payload = { ...finding.payload } as Record<string, unknown>;
+        const fact = toBehaviorFact(payload);
         return {
-          id: insight.id,
-          title: insight.title,
-          message: insight.summary,
-          severity: insight.severity,
-          confidence: insight.confidence,
-          payload: insight.payload,
+          // 저장 행이 없어 판정 키가 id 다 — 같은 판정은 같은 키(`dedupeKey`)
+          id: finding.dedupeKey,
+          title: finding.title,
+          message: finding.summary,
+          severity: finding.severity,
+          confidence: finding.confidence,
+          payload,
           factCode: fact?.factCode ?? null,
           params: fact?.params ?? {},
         };
@@ -222,7 +189,7 @@ export class GetBehaviorCoach {
       recommendedRules: buildBehaviorRules(tags),
       evidence: {
         transactionCount: tradeCount,
-        insightCount: insights.length,
+        insightCount: ranked.length,
       },
     };
   }

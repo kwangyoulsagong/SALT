@@ -2,6 +2,8 @@ import {
   analyzePortfolioState,
   detectMarketRegime,
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
+  type BehaviorAnalyzer,
+  type BehaviorFinding,
   type CoachContext,
   type CoachInsight,
   type CoachProfileStore,
@@ -41,6 +43,8 @@ const GLOBAL_RISK_KEY = "__GLOBAL__";
 export interface CoachContextDeps {
   profiles: CoachProfileStore;
   insights: CoachInsightStore;
+  /** 행동 판정 — 저장된 인사이트가 아니라 요청 때 센다(FEATURE-009 FR-21). 실패하면 감점 없음 */
+  behavior: BehaviorAnalyzer | null;
   market: MarketProbe;
   portfolio: PortfolioProbe;
 }
@@ -78,13 +82,16 @@ export const assembleCoachContext = async (
   userId: string,
   newsAnalysisMap: Map<string, NewsAnalysisResult>
 ): Promise<CoachContext | null> => {
-  const [regimeIndicators, regimeSentiments, holdings, profile, insights] =
+  const [regimeIndicators, regimeSentiments, holdings, profile, insights, behaviorInsights] =
     await Promise.all([
       deps.market.latestIndicators([REGIME_SYMBOL]),
       deps.market.latestSentiments([REGIME_SYMBOL]),
       deps.portfolio.listHoldings(userId),
       deps.profiles.findByUser(userId),
       deps.insights.findActiveForScoring(userId, INSIGHT_LIMIT),
+      deps.behavior
+        ? deps.behavior.execute(userId).catch((): BehaviorFinding[] => [])
+        : Promise.resolve<BehaviorFinding[]>([]),
     ]);
 
   const portfolioState = analyzePortfolioState(holdings);
@@ -100,9 +107,6 @@ export const assembleCoachContext = async (
 
   const buyZoneInsights = insights.filter((i) => i.type === "smart_buy_zone");
   const riskInsights = insights.filter((i) => i.type === "risk_alert");
-  const behaviorInsights = insights.filter(
-    (i) => i.type === "behavior_analysis"
-  );
 
   const buyZoneSymbols = buyZoneInsights
     .map((i) => i.symbol)

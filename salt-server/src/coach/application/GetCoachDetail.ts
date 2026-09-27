@@ -10,7 +10,9 @@ import {
   toBehaviorFact,
   toDetailAssetType,
   toExitPlan,
+  type BehaviorAnalyzer,
   type BehaviorFact,
+  type BehaviorFinding,
   type Clock,
   type CoachInsight,
   type CoachInsightStore,
@@ -67,9 +69,9 @@ export interface CoachDetailView {
  *
  * ## 읽기만 한다
  *
- * 추천을 새로 만들지 않고(`generate` 의 일) 행동 분석도 다시 돌리지 않는다 — 행동 코치
- * 화면(`GetBehaviorCoach`)은 열 때 분석을 돌리지만, 상세는 **이미 있는 것을 모아 보여주는
- * 화면**이라 GET 이 쓰기를 하지 않게 뒀다. 만료가 지난 추천도 준다 — `staleHours` 가
+ * 추천을 새로 만들지 않는다(`generate` 의 일). 행동 기록은 요청 때 센다 — 판정이 저장하지 않는
+ * 측정이 된 뒤(FEATURE-009 FR-21) GET 이 쓰기를 하지 않는다는 원칙과 부딪치지 않는다.
+ * 행동 판정이 실패해도 나머지는 나간다 — 행동 기록은 빈 배열이다. 만료가 지난 추천도 준다 — `staleHours` 가
  * 그 사실을 화면에 알린다(FR-18).
  *
  * ## 추천 블록은 지금 전부 막힌다
@@ -85,7 +87,8 @@ export class GetCoachDetail {
     private readonly insights: CoachInsightStore,
     private readonly market: MarketProbe,
     private readonly portfolio: PortfolioProbe,
-    private readonly clock: Clock = () => new Date()
+    private readonly clock: Clock = () => new Date(),
+    private readonly behavior: BehaviorAnalyzer | null = null
   ) {}
 
   async execute(userId: string): Promise<CoachDetailView> {
@@ -94,7 +97,9 @@ export class GetCoachDetail {
     const [latest, holdings, behaviors] = await Promise.all([
       this.insights.findLatestRecommendation(userId),
       this.portfolio.listHoldings(userId, EXIT_PLAN_ASSET_TYPE),
-      this.insights.findActiveBehavior(userId, BEHAVIOR_LIMIT),
+      this.behavior
+        ? this.behavior.execute(userId, now).catch((): BehaviorFinding[] => [])
+        : Promise.resolve<BehaviorFinding[]>([]),
     ]);
 
     const stored = latest
@@ -120,8 +125,10 @@ export class GetCoachDetail {
       exitPlans: holdings.map((holding) =>
         toExitPlan(holding, EXIT_PLAN_ASSET_TYPE)
       ),
-      behaviorFacts: behaviors
-        .map((insight) => toBehaviorFact(insight.payload))
+      behaviorFacts: [...behaviors]
+        .sort((a, b) => b.severity - a.severity)
+        .slice(0, BEHAVIOR_LIMIT)
+        .map((finding) => toBehaviorFact({ ...finding.payload }))
         .filter((fact): fact is BehaviorFact => fact !== null),
       excluded: COACH_EXCLUDED,
       disclaimer: JUDGMENT_DISCLAIMER,

@@ -202,7 +202,8 @@ export interface CoachContext {
   topHolding?: CoachHolding;
   holdings: CoachHolding[];
   symbolFeatures: Map<string, SymbolFeature>;
-  behaviorInsights: CoachInsight[];
+  /** 요청 때 센 행동 판정(FEATURE-009 FR-21). 점수 감점 · 리스크 문장이 심각도 · 요약만 쓴다 */
+  behaviorInsights: Array<Pick<CoachInsight, "summary" | "severity">>;
   candidateSymbols: string[];
   newsAnalysisMap: Map<string, NewsAnalysisResult>;
 }

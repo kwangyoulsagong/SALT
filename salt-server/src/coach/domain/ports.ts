@@ -1,6 +1,7 @@
 import type Decimal from "decimal.js";
 
 import type {
+  BehaviorFinding,
   CloseDistribution,
   CoachGenerationEntry,
   CoachGenerationSource,
@@ -78,6 +79,14 @@ export interface CoachInsightDraft {
 }
 
 /**
+ * 행동 판정(과매매 · 패닉 · 추격) — `AnalyzeTradingBehavior` 가 이 모양이다.
+ * **저장하지 않고** 요청 때 센다(FEATURE-009 FR-21 — 알림이 아니라 측정).
+ */
+export interface BehaviorAnalyzer {
+  execute(userId: string, now?: Date): Promise<BehaviorFinding[]>;
+}
+
+/**
  * 인사이트 저장·조회.
  *
  * **읽는 것과 쓰는 것의 주인이 다르다.** `ai_coach` · `behavior_analysis` 는 코치가
@@ -97,9 +106,6 @@ export interface CoachInsightStore {
   ): Promise<CoachInsight | null>;
   saveRecommendation(draft: CoachInsightDraft): Promise<CoachInsight>;
   saveFeedback(draft: CoachInsightDraft): Promise<CoachInsight>;
-  saveBehavior(draft: CoachInsightDraft): Promise<CoachInsight>;
-  /** 활성 행동 분석. 행동 코치 화면이 읽는다. */
-  findActiveBehavior(userId: string, limit: number): Promise<CoachInsight[]>;
   /** 성적표가 보는 과거 판단. 최신이 앞이다. */
   findRecommendationHistory(
     userId: string,

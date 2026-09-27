@@ -168,11 +168,8 @@ export class InvestmentInsightWorker {
         (userId) => this.portfolioRebalanceService.generateRebalance(userId)
       );
 
-      await this.forEachUser(
-        "🧠 Generating Behavior Analysis...",
-        userIds,
-        (userId) => this.coach.analyzeTradingBehavior.execute(userId)
-      );
+      // 행동 분석(과매매 · 패닉 · 추격)은 여기서 돌지 않는다 — 알림이 아니라 측정이다(FEATURE-009 FR-21).
+      // 행동 코치 · 코치 상세 · 추천 점수가 요청 때 센다(`AnalyzeTradingBehavior`).
 
       await this.forEachUser("⚠️ Generating Risk Alerts...", userIds, (userId) =>
         this.riskService.generateRiskAlerts(userId)
