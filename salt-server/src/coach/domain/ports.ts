@@ -20,6 +20,7 @@ import type {
   TradePlanDraft,
   TradePlanPatch,
   ZoneTimeframe,
+  IndicatorTimeframe,
   AdherenceLabel,
   DailyBar,
   DecisionOutcome,
@@ -148,7 +149,11 @@ export interface CoachNotifier {
  * 컨텍스트 밖에서 `prisma.findMany({ distinct })` 를 직접 불렀다.
  */
 export interface MarketProbe {
-  latestIndicators(symbols: string[]): Promise<Map<string, CoachIndicator>>;
+  /** 여러 심볼의 최신 지표 — **주기 필수**(`COACH_INDICATOR_TIMEFRAME`). 주기 없는 "최신"은 호출마다 다른 봉의 RSI 를 준다. */
+  latestIndicators(
+    symbols: string[],
+    timeframe: IndicatorTimeframe
+  ): Promise<Map<string, CoachIndicator>>;
   latestSentiments(symbols: string[]): Promise<Map<string, CoachSentiment>>;
   quotes(symbols: string[]): Promise<Map<string, CoachQuote>>;
   recentWhales(
@@ -165,8 +170,8 @@ export interface MarketProbe {
     symbols: string[],
     since: Date
   ): Promise<Map<string, number>>;
-  /** `at` 시각 **이후 첫** 종가. 성적표의 진입가다. 없으면 `null`. */
-  closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
+  /** `at` 시각 **이후 첫** 종가 — **주기 필수**(`JUDGMENT_PRICE_TIMEFRAME`). 성적표의 기준가다. 없으면 `null`. */
+  closeAtOrAfter(symbol: string, at: Date, timeframe: ZoneTimeframe): Promise<number | null>;
   latestCloses(symbols: string[]): Promise<Map<string, number>>;
   /**
    * 심리 구간별 30일 뒤 수익률 분포 — 게이지 적중률(B9)의 재료. `market` 이 집계한다.

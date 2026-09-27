@@ -28,7 +28,8 @@ export const collectPerformanceSamples = async (
 
     const entryPrice = await market.closeAtOrAfter(
       identity.symbol,
-      insight.createdAt
+      insight.createdAt,
+      "d1"
     );
     // 진입가가 0 이면 수익률의 분모가 없다 — 표본에서 뺀다 (원문과 같다).
     if (!entryPrice) continue;

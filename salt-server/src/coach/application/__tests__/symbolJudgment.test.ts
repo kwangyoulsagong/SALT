@@ -539,3 +539,49 @@ describe("게이지 적중률 (B9 · FR-120~122)", () => {
     assert.deepEqual((await coach(store)).gaugeTrackRecords, []);
   });
 });
+
+describe("판단 · 채점의 봉 주기 (F010 슬라이스 0)", () => {
+  it("지표는 단타 1시간봉 · 장기 일봉으로 따로 받고, 빠짐도 모드별이다", async () => {
+    const askedTimeframes: string[] = [];
+    const base = fakeMarket({ BTC: 100 });
+    const market = {
+      ...base,
+      latestIndicators: async (symbols: string[], timeframe: string) => {
+        askedTimeframes.push(timeframe);
+        // 일봉 지표만 있다 — 단타 쪽은 "technical_indicator" 가 빠진다
+        return timeframe === "d1"
+          ? new Map(symbols.map((s) => [s, { rsi14: 50, ma20: null, ma50: null, volumeAvg20: null, timestamp: T0 }]))
+          : new Map();
+      },
+    } as unknown as MarketProbe;
+
+    const view = await new GetSymbolCoach(
+      market,
+      { getHolding: async () => null } as unknown as PortfolioProbe,
+      { findByUser: async () => null } as unknown as CoachProfileStore,
+      new MemoryJudgmentStore(),
+      noGauges
+    ).execute("user-1", { symbol: "BTC", mode: "long_term" });
+
+    assert.deepEqual(askedTimeframes.sort(), ["d1", "h1"]);
+    assert.deepEqual(view.missingData, ["technical_indicator"]);
+    // 고른 모드(장기)의 지표를 근거로 싣는다
+    assert.equal(view.evidence.technical?.rsi, 50);
+  });
+
+  it("채점 종가는 단타 5분봉 · 장기 일봉에서 고른다", async () => {
+    const store = new MemoryJudgmentStore();
+    await new SnapshotSymbolJudgments(tracked(["BTC"]), fakeMarket({ BTC: 100 }), store, () => T0).execute();
+
+    const asked: string[] = [];
+    const market = {
+      closeAtOrAfter: async (_symbol: string, _at: Date, timeframe: string) => {
+        asked.push(timeframe);
+        return 101;
+      },
+    } as unknown as MarketProbe;
+
+    await new EvaluateSymbolJudgments(market, store, () => hoursAfter(24 * 31)).execute();
+    assert.deepEqual(asked.sort(), ["d1", "m5"]);
+  });
+});

@@ -96,8 +96,8 @@ export interface MarketApi {
     symbols: string[],
     since: Date
   ): Promise<Array<{ symbol: string; close: number }>>;
-  /** `at` 이후 첫 종가. 성적표의 진입가다. */
-  closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
+  /** `at` 이후 첫 종가 — 주기 필수. 성적표 · 월초 평가의 기준가다. */
+  closeAtOrAfter(symbol: string, at: Date, timeframe: PriceTimeframe): Promise<number | null>;
   /** `[from, to]` 5분봉 최고 종가. 5분봉은 30일 보관이라 그보다 오래된 구간은 `null` */
   highestCloseBetween(symbol: string, from: Date, to: Date): Promise<number | null>;
   latestCloses(symbols: string[]): Promise<ClosePoint[]>;
@@ -239,7 +239,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.whales.findRecentForSymbols(symbols, limit),
     highestCloseSince: (symbols, since) =>
       deps.prices.highestCloseSince(symbols, since),
-    closeAtOrAfter: (symbol, at) => deps.prices.closeAtOrAfter(symbol, at),
+    closeAtOrAfter: (symbol, at, timeframe) => deps.prices.closeAtOrAfter(symbol, at, timeframe),
     highestCloseBetween: (symbol, from, to) => deps.prices.highestCloseBetween(symbol, from, to),
     latestCloses: (symbols) => deps.prices.latestCloses(symbols),
     closePercentiles: (symbol, timeframe, since, fractions) =>
