@@ -241,6 +241,10 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-170 | **관심 종목 목록 응답에 판단 · 신호 필드를 붙이지 않는다**(D4). 판단은 종목 판단 경로에서만 | Must |
 | FR-172 | 판단 게이트 · 성적 · 실패사례 · 성적표는 **`sample_origin = live` 표본만** 센다(개정 2026-09-24, C06 · `DB-REQ-017` FR-60). 로컬에서 합성 표본을 세려면 `JUDGMENT_COUNT_SYNTHETIC=true` — **운영에서 켜면 기동이 막힌다**. 워커의 간격 · 채점 대상은 설정과 무관하게 늘 `live` | Must |
 | FR-171 | 알림 만들기 · 사용자 조건 알림(B19)은 이 REQ 에 없다 | — |
+| FR-173 | **(F010 슬라이스 0) 판단 지표는 모드별 봉이다** — 단타 1시간봉 · 장기 일봉 · 국면(BTC) 일봉(`COACH_INDICATOR_TIMEFRAME` · `REGIME_INDICATOR_TIMEFRAME`). 지표 결측(`technical_indicator`)도 모드별로 판정한다. 채점 종가는 단타 5분봉 · 장기 일봉(`JUDGMENT_PRICE_TIMEFRAME`) — `closeAtOrAfter` 는 주기 없이 부를 수 없다 | Must |
+| FR-174 | **(F010 슬라이스 0) 적중 경계는 왕복 수수료 0.1%(`ROUND_TRIP_COST`)** — 후보 `r > 0.001` · 피하기 `r ≤ 0.001` · 관망은 FR-135 그대로. 성적표(`trackRecord` · 성적표 그룹)에 같은 표본의 **비용 넘겨 오른 비율(`alwaysUpRate`)** 과 **초과 적중률(`excessWinRate` = 적중률 − 기저율; 후보는 항상 오른다 대비 · 피하기는 항상 안 오른다 대비 · 관망 `null`)** 을 싣는다. 기존 채점 행은 마이그레이션 `20260928100100` 이 같은 규칙으로 재판정 | Must |
+| FR-175 | **(F010 슬라이스 0) 저장 추천은 불변 원장에 남는다** — `GenerateCoachRecommendation` 이 추천 1건마다 `coach_recommendation_snapshots`(`DB-REQ-017` FR-61)에 사용자 · 종목 · 행동 · 점수 · 근거 · 진입 시세를 쓴다(같은 사용자 · 종목 · 행동은 30일에 1건). 기록 실패는 추천을 막지 않는다. `EvaluateCoachRecommendations` 가 30일 뒤 일봉 종가로 채점한다(`buy` > 0.1% · `sell` < −0.1% · `hold` · `rebalance` ±10%). 판정 워커(`investment-insight`)가 종목 판단 다음에 돈다 | Must |
+| FR-176 | **(F010 슬라이스 0) 저장 추천의 적중률 · 실패사례는 FR-175 원장에서만 온다.** `signal-performance` · 코치 상세 `signalTrackRecord` · `failureCases` 모두. "판단 뒤 첫 종가 vs 최신 종가" 경로(`collectPerformanceSamples`)는 삭제. **FR-32 기본안(표본 1건이면 통과) 폐기** — 표본 < 20 이면 `insufficient_sample`(FR-137 과 같은 기준). 표본 0 은 `signal_track_record_missing` 그대로 | Must |
 
 ## Acceptance Criteria
 
@@ -343,3 +347,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-09-24 | **F009 슬라이스 0 — C04.** FR-30 의 `maxDrawdown` 을 `worstObservedReturn` 으로 개정(`SRV-REQ-025` FR-55). 최저 단일 관찰 수익률이지 MDD 가 아니다 |
 | 2026-09-24 | **F009 슬라이스 0 — C05.** FR-103 개정 · **해설 `timeframe` 주입 구현**(그동안 LLM 이 쓴 기간을 검사만 하고 통과시켰다 — 이제 버리고 `COACH_HORIZON` 을 넣는다). 기간 = 채점 기간(`SRV-REQ-025` FR-56) |
 | 2026-09-24 | **F009 슬라이스 0 — C06.** FR-172 신설 · 구현. 저장소가 출처로 거른다(`PrismaSymbolJudgmentStore` 생성자 인자, 조립은 `composition.ts`) |
+| 2026-09-28 | **F010 슬라이스 0 — 성적표 신뢰성.** FR-173~176 신설 · 구현. **지표가 한 번도 계산되지 않던 버그**(캔들 `5m` · `1d` 를 지표 이름 `m5` · `h1` 로 조회 → `technical_indicators` 0행) 수정이 포함된다 — 그동안 라이브 판단 전부가 지표 결측 감점을 받았다. FR-32 기본안 폐기. 근거 `reports/checklists/SRV-REQ-024.md` §9 · `requirements/specs/in-progress/F010-slice0-scorecard-integrity-slice.md` |

@@ -90,7 +90,13 @@ describe("toReportRecommendation", () => {
 
   it("renderable 이 불리언이 아니거나 사유를 모르면 계약 깨짐이다", () => {
     assert.equal(toReportRecommendation({ ...blocked, renderable: "false" }), undefined);
-    assert.equal(toReportRecommendation({ ...blocked, blockedReason: "insufficient_sample" }), undefined);
+    assert.equal(toReportRecommendation({ ...blocked, blockedReason: "no_such_reason" }), undefined);
+    // 표본 20 미만은 서버가 막는 정상 사유다(F010 슬라이스 0)
+    assert.deepEqual(toReportRecommendation({ ...blocked, blockedReason: "insufficient_sample" }), {
+      renderable: false,
+      blockedReason: "insufficient_sample",
+      trackSample: 1,
+    });
   });
 
   it("추천이 없으면 null — 깨짐과 구분된다", () => {

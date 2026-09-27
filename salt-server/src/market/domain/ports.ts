@@ -374,8 +374,11 @@ export interface PriceHistoryRepository {
     symbols: string[],
     since: Date
   ): Promise<Array<{ symbol: string; close: number }>>;
-  /** `at` **이후 첫** 종가. 없으면 `null`. 성적표의 진입가다. */
-  closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
+  /**
+   * `at` **이후 첫** 종가 — **주기를 반드시 받는다**(F010 슬라이스 0). 없으면 `null`.
+   * 주기 없이 고르면 5분봉과 일봉이 섞이고, 5분봉은 30일 뒤 지워져 같은 표본의 기준가가 나중에 일봉 값으로 바뀐다.
+   */
+  closeAtOrAfter(symbol: string, at: Date, timeframe: PriceTimeframe): Promise<number | null>;
   /** `[from, to]` 5분봉 최고 종가. 구간에 봉이 없으면 `null` — `coach` 결과 태그의 추격 판정(F009 FR-18) */
   highestCloseBetween(symbol: string, from: Date, to: Date): Promise<number | null>;
   /** 심볼별 마지막 종가. */

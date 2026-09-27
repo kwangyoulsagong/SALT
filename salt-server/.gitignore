@@ -6,3 +6,6 @@ node_modules
 
 # build output
 dist
+
+# 임시 실측 스크립트(next-steps 메모리: salt-server/ 안에 만들고 지운다)
+_probe-*.ts

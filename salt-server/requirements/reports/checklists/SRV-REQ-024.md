@@ -120,3 +120,23 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 ## 8. F009 슬라이스 0 — C06 (FR-172, 2026-09-24)
 
 **pass** — `summarize` · `recentCases` · `scoreboard` · `recentCasesByGroup` 가 `countedOrigins` 로 거르고, `lastJudgedAt` · `saveSnapshots` · `listPending` 은 늘 `live`. 실DB 수치 · 미검증은 `DB-REQ-017.md` C06 절.
+
+## 9. F010 슬라이스 0 — 성적표 신뢰성 (FR-173~176, 2026-09-28, `feat/f010-scorecard-integrity`)
+
+| 확인 | 결과 |
+|---|---|
+| 지표 버그 | 실 DB `technical_indicators` **0행**(캔들 `5m` · `1d` vs 조회 `m5` · `h1`). 고친 워커 1회 실행 → m5 · h1 · d1 전 종목. BTC RSI 48.7 / 77.7 / 72.9. 단위: 5분봉 100 → m5 · 1,200 → 1시간 묶음 → h1 · 일봉 100 → d1 · 50개 미만 주기는 쓰지 않음(`refreshTechnicalIndicators.test.ts`) · 묶기 규칙(`aggregateCandles.test.ts`) |
+| 모드별 봉(FR-173) | `latestIndicators` 가 `h1` · `d1` 둘을 묻고 결측이 모드별 · 고른 모드의 지표를 근거로 · 채점 종가 단타 `m5` · 장기 `d1`(`symbolJudgment.test.ts` §F010) |
+| 수수료 · 기저율(FR-174) | `judgeOutcome` 경계 0.0011 hit / 0.001 miss · 피하기 0.001 hit · 기저율 후보 0.6 → 초과 +0.1 · 피하기 +0.3 · 관망 null · 표본 0 null(domain 테스트). 실 DB 재판정: live 18행 hit 5 · miss 13(전부 `avoid`, 변화 없음) |
+| 추천 원장(FR-175) | 30일 후만 채점 · 일봉 종가 · 종가 없으면 미룸 · 30일 내 재기록 안 함 · `buy`/`sell`/`hold` 경계(`recommendationLedger.test.ts`). 실 표: DDL · 인덱스 · FK 적용 확인 |
+| 성적표 · 게이트(FR-176) | `signal-performance` 표본 5 → `insufficient_data` · `signalKey=buy` → `coach.buy` 그룹 · 종목 필터 · 다른 사용자 0 · `samples[].exitPrice` · 상세 표본 19 → `insufficient_sample` · 24 → 렌더 + 실패사례 3 · 24/실패 0 → `failure_cases_missing`(`getCoachDetail.test.ts`) |
+| 전체 | `npm test` **507 / 0**(+12) · `tsc` · eslint · 마이그레이션 `prisma migrate deploy` 3개 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 추천 원장에 실제 행 | 워커를 이 브랜치로 재기동하지 않음 | 머지 뒤 첫 회차 |
+| 30일 채점 실값 · 화면 "기준 대비" | 표본이 30일 뒤 | 2026-10-28~ |
+| 기존 live 판단 표본이 "지표 없는 판단" | 표식 없음 — 슬라이스 1 재료 스냅샷 | 슬라이스 1 |
+| 진입가(1분 시세) · 청산가(봉 종가) 원천 | 원장 통합 때 | 슬라이스 1 |

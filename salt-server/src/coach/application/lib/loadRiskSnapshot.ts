@@ -79,7 +79,8 @@ export const loadRiskSnapshot = async (
   } else {
     const symbols = [...monthStartQuantities(positions, monthTrades).keys()];
     const closes = await Promise.all(
-      symbols.map(async (symbol) => [symbol, await deps.market.closeAtOrAfter(symbol, monthStart)] as const)
+      // 월초 기준가는 일봉 — 5분봉은 30일 뒤 지워져 지난달 값이 사라진다
+      symbols.map(async (symbol) => [symbol, await deps.market.closeAtOrAfter(symbol, monthStart, "d1")] as const)
     );
     const monthStartCloses = new Map<string, number>();
     for (const [symbol, close] of closes) {

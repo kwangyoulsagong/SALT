@@ -54,3 +54,44 @@ export const calculateIndicators = (
   ma50: movingAverage(closes, 50),
   volumeAvg20: movingAverage(volumes, 20),
 });
+
+/** 집계에 필요한 캔들 모양 — `ports.Candle` 과 같다. 도메인 안에서 순환 import 를 피하려고 여기 적는다. */
+export interface CandleBar {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number | null;
+  timestamp: Date;
+}
+
+/**
+ * 짧은 봉을 긴 봉으로 묶는다 — 1시간봉 지표용(F010 슬라이스 0).
+ *
+ * 1시간 캔들은 수집하지 않는다(`SyncMarketData` 는 5분 · 1일만). 단타 판단(24시간)에 5분봉 RSI 는 잡음이고
+ * 일봉은 너무 느려서, 5분봉 12개를 시각 버킷으로 묶어 1시간봉을 만든다. 입력 · 출력 모두 **최신이 앞**이다.
+ * 마지막(가장 새) 버킷은 진행 중일 수 있다 — 원문 지표 계산도 진행 중인 마지막 봉을 그대로 썼다.
+ */
+export const aggregateCandles = <T extends CandleBar>(
+  candles: T[],
+  bucketMs: number
+): CandleBar[] => {
+  const buckets = new Map<number, CandleBar>();
+  // 오래된 것부터 넣어야 open 이 첫 봉, close 가 마지막 봉이 된다
+  for (const candle of [...candles].reverse()) {
+    const key = Math.floor(candle.timestamp.getTime() / bucketMs) * bucketMs;
+    const bucket = buckets.get(key);
+    if (!bucket) {
+      buckets.set(key, { ...candle, timestamp: new Date(key) });
+      continue;
+    }
+    bucket.high = Math.max(bucket.high, candle.high);
+    bucket.low = Math.min(bucket.low, candle.low);
+    bucket.close = candle.close;
+    bucket.volume =
+      bucket.volume === null && candle.volume === null
+        ? null
+        : (bucket.volume ?? 0) + (candle.volume ?? 0);
+  }
+  return [...buckets.values()].reverse();
+};

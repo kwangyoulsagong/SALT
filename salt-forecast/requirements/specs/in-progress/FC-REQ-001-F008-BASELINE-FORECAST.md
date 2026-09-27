@@ -28,6 +28,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | FR-8 | 게이트: 표본 · 기준 대비 pinball · 90% 커버리지 · 폭 · 신선도 | FR-6 · 10 |
 | FR-9 | 누수 테스트 4종(`time-and-leakage.md` §6) | FR-4 |
 | FR-10 | 백테스트 리포트 `reports/` | — |
+| FR-11 | 라이브 게이트 표본은 **주 격자(월요일 00:00 UTC) as_of 만** 센다 — `LIVE_SAMPLE_FOR_LIVE_GATE = 52` 는 일 단위 행이 아니라 주 as_of 52개다. 매일 live 예측은 계속 쓰고 채점한다(카드 최신 예측). 백테스트 행은 원래 주 격자라 무변화 (완료, 2026-09-28) | FR-67 |
 
 ## 범위 밖
 
@@ -38,3 +39,9 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 주식 시세 | 무료 소스 미정 | 열린 질문 |
 | 규칙 가격 도달 확률(FR-7 of F008) | 보유 규칙 가격은 서버가 안다 — 서버 조합 방식 결정 필요 | 슬라이스 17 |
 | cron 등록 | 로컬 운영 방식 미정 — 작업은 CLI 로 돈다 | 슬라이스 17 전 |
+
+## 변경 이력
+
+| 날짜 | 내용 |
+|---|---|
+| 2026-09-28 | FR-11 추가 — F010 슬라이스 0 성적표 신뢰성. 감사(2026-09-27)에서 live 행이 매일 쌓여 "52주"가 실제로는 겹치는 라벨의 52일(유효 표본 2~8)이었던 것을 잡았다. `domain/calendar.on_weekly_grid` · `scoring/evaluate.weekly_only` |

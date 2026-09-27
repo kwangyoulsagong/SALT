@@ -16,7 +16,7 @@ import {
   type SymbolJudgmentStore,
   type Zone,
 } from "../domain";
-import { collectJudgmentMaterials, judgeSymbol } from "./lib/judgeSymbols";
+import { collectJudgmentMaterials, indicatorFor, judgeSymbol } from "./lib/judgeSymbols";
 import { DEFAULT_COACH_MODE } from "./ManageCoachProfile";
 import {
   attachJudgmentTrack,
@@ -129,7 +129,7 @@ export class GetSymbolCoach {
     ]);
 
     const materials = materialsBySymbol.get(symbol)!;
-    const { quote, sentiment, indicator, whales } = materials;
+    const { quote, sentiment, whales } = materials;
     const { scalp, longTerm, whaleBuy, whaleSell, missingData } = judgeSymbol(
       symbol,
       materials,
@@ -150,6 +150,8 @@ export class GetSymbolCoach {
     const selectedMode: CoachMode =
       query.mode ?? profile?.defaultMode ?? DEFAULT_COACH_MODE;
     const modeDecision = selectedMode === "scalp" ? scalp : longTerm;
+    // 근거 · 신선도의 지표는 **고른 모드의 봉**이다(단타 1시간봉 · 장기 일봉)
+    const indicator = indicatorFor(materials, selectedMode);
 
     return {
       symbol,

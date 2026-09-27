@@ -96,6 +96,9 @@ export const COACH_MESSAGES = {
     winRate: "적중률",
     avgReturn: "평균",
     worstObservedReturn: "가장 나빴던 수익률",
+    /** 적중률 − 기저율(항상 오른다 · 항상 안 오른다). 0 근처면 시장 방향을 맞힌 것(F010 슬라이스 0) */
+    excessWinRate: "기준 대비",
+    excessWinRateHint: "같은 기간 '늘 같은 행동'보다 얼마나 더 맞았나",
     horizon: (hours: number) => `판단 뒤 ${hours}시간 기준`,
     failureHeading: "맞았던 때 · 틀렸던 때",
     outcome: { hit: "맞음", miss: "틀림" },

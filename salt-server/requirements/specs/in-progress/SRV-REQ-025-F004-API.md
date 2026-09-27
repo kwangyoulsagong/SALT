@@ -225,6 +225,7 @@ type ExplainResult =
 | FR-30 | 기존 5경로의 응답에 **필드 추가만** 한다. 제거·이름 변경 0건. **개정 2026-09-21**: 예외 1건 — 종목 경로의 `confidence` 제거(FR-41, D3). BFF 와 동시 변경. **개정 2026-09-24**: 예외 2건째 — `maxDrawdown` → `worstObservedReturn`(FR-55). 이름이 값을 거짓으로 말해 옛 이름을 남기지 않는다. BFF · 프론트 동시 변경 | Must |
 | FR-31 | 프론트가 아직 없는 경로이므로 **파괴적 변경이 안전하지만**, BFF가 이미 프록시하고 있으므로 계약 테스트를 둔다 | Must |
 | FR-32 | `explain`에 인증을 추가하면 **BFF 프록시가 토큰을 전달해야 한다.** BFF 변경이 짝이다 | Must |
+| FR-59 | **(F010 슬라이스 0) 성적표 계약 개정.** ① 종목 판단 `trackRecord` · 성적표 그룹 · 저장 추천 `signalTrackRecord` 에 `alwaysUpRate: number \| null` · `excessWinRate: number \| null` 추가(저장 추천은 `horizonHours: 720` 도). ② 저장 추천 `blockedReason` enum 에 `insufficient_sample`(표본 < 20). ③ `failureCases[]` 에 `symbol` · `returnRate`(30일 뒤 채점) 추가. ④ `GET /api/signal-performance` 응답 모양 변경 — `status` 는 표본 ≥ 20 일 때만 `active`, `signalType`(`coach` 또는 `coach.<action>`) · `lowSample` · `horizonHours` · `alwaysUpRate` · `excessWinRate` 추가, `samples[]` 는 `{symbol, action, judgedAt, entryPrice, exitPrice, returnRate, outcome}`(`latestPrice` · `win` 삭제). `signalKey` 는 `coach.` 접두가 없으면 붙여 해석(하위 호환). FR-30 예외 3건째 — 원장이 생겨 옛 필드가 뜻을 잃었다. BFF · 프론트 동시 변경(`BFF-REQ-024` FR-40 · `FE-REQ-026` FR-165) | Must |
 
 ## Acceptance Criteria
 
@@ -292,3 +293,4 @@ type ExplainResult =
 | 2026-09-24 | **F009 슬라이스 0 — C05.** FR-56 신설. 해설 "약 25분 이내" · 판단 "5m-24h" · "1w-1y" 를 채점 기간(24시간 · 30일)으로 통일, `validity.code` 값 변경. 근거 `reports/checklists/SRV-REQ-025.md` §11 |
 | 2026-09-24 | **F009 슬라이스 0 — C02.** FR-57 신설 · 구현. 옛 키 `round(price / (price × 0.005))` 는 가격 200 이상이면 늘 200 이었고 근거가 키에 없었다. 프롬프트 조립을 env 없는 `infrastructure/explanationPrompt.ts` 로 옮겨 키와 함께 테스트한다. 응답 계약 변경 없음. 근거 `reports/checklists/SRV-REQ-025.md` §12 |
 | 2026-09-24 | **F009 슬라이스 0 — C01.** FR-58 신설 · 구현. 요청 계약 축소(BREAKING 아님 — 옛 본문은 무시되고 통과). `market` `AssetQuote` 에 `koreanName` · `tradeValue24h`, `coach` `NewsProbe.recentForSymbol`. 근거 `reports/checklists/SRV-REQ-025.md` §13 |
+| 2026-09-28 | **F010 슬라이스 0.** FR-59 신설 · 구현(`SRV-REQ-024` FR-173~176 의 계약). 화면 소비처가 없는 `signal-performance` 만 모양이 바뀌었고 나머지는 필드 · 사유 추가다 |

@@ -18,7 +18,7 @@ Status: In Progress
 
 ## 1. 문서 축 — 기능 × 영역 × 종류
 
-### 기능 (8)
+### 기능 (9)
 
 | 코드 | 기능 | PM 기획서 |
 |---|---|---|
@@ -31,6 +31,7 @@ Status: In Progress
 | **F007** | 모바일 앱 (React Native · iOS+Android · 푸시 · 번들 MFE) | `FEATURE-007-mobile-app.md` |
 | **F008** | AI 전망 · 인텔리전스 (파이프라인 → 온톨로지 → 에이전트 · 확률 구간 · 채점 · 소유자 전용) — 2026-09-23 `ADR-003` · `ADR-004` | `FEATURE-008-forecast-intelligence.md` |
 | **F009** | 1인 펀드매니저 코치 (IPS · 리스크 예산 · 사이즈 계산 · 계획 기록 · 준수율 · 행동 미러 · 월간 복기) — 2026-09-24. 통제 · 차단 없음, 수동 입력 전제 | `FEATURE-009-behavior-risk-coach.md` |
+| **F011** | 국내 주식 시세 · 분석 연동 (한국투자증권 Open API — 조회 TR 만 · 시세 · 일봉 · 5분봉 누적 · 자산군 분리 채점 · 장 상태 표시) — 2026-09-27 기획, **to-do**. F010 은 판정 엔진 v2 예약 | `FEATURE-011-kr-stock-kis.md` |
 
 > F005는 결번이다. `FEATURE-005-home-briefing.md`의 5탭 IA는 2026-09-09 결정(탭 축소·대화 중심)으로 **F006이 대체**한다. 홈 블록 요구사항만 F006으로 흡수한다.
 
@@ -459,6 +460,18 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 
 **F009 슬라이스 7 — 연승 · 연패 · 진입 시간대 · 요일 (2026-09-27, `feat/f009-slice7-streak-timeofday`)** — 미러에 두 줄이 더해진다. 지금 이어지는 연승 · 연패와 최장 기록, 연속 3건 뒤 매수 금액 ÷ 평소(비율 ≥ 1.2 이고 연속 뒤 매수 ≥ 20 일 때만 서버가 `observed` — 화면은 이때만 문장 + 금액 비교의 한계 한 줄). 청산을 진입 시각(KST) 새벽 · 오전 · 오후 · 저녁과 요일로 묶은 이익 비율 · 평균 수익률 · 손익, 줄마다 표본 배지. 순손익 0 청산은 연속을 끊고, 연속 상태는 매수 전에 닫힌 청산만 본다. 기획 정정: KST 0시 정각 진입은 날짜만 적은 거래라 시간대에서만 빼고 요일은 센다(FR-22 "시각이 없으면 섹션 없음" → 요일은 늘). 새 경로 · 새 쿼리 · 저장 · 마이그레이션 없음. 같은 브랜치에 AI 해설 카드 고침 — C06 뒤 판단이 막힌 모드에서 카드가 자리째 사라지던 것을 자리 · 이유 · 표본 수로 남기고(버튼 · 성적 · 사례 없음) 거래 기록 폼 위로 올렸다(`FE-REQ-038` FR-7 · `FE-REQ-026` FR-135, 사용자 신고). 사용자 결정(2026-09-27): 슬라이스 7(FR-20 · 22) 착수 · CVaR(FR-26)은 주식 확장 때 · 해설은 게이트 유지 + 이유 + 위로. `SRV-REQ-038` FR-14a · 14b · `BFF-REQ-038` FR-13 · `FE-REQ-039` FR-25 · 26. 범위 · 검증은 `F009-slice7-streak-timeofday-slice.md` · `reports/checklists/F009-slice7-streak-timeofday.md`.
 
+### F011 국내 주식 시세 · 분석 연동 (2026-09-27)
+
+| REQ | 상태 | 비고 |
+|---|---|---|
+| `SRV-REQ-040-F011-KR-STOCK` | **to-do** | `KisClient`(허용 TR · 페이서 · 마스킹 · 토큰 캐시) · 마스터 · 휴장일 · 일봉 백필 · 폴링 · WS 41 슬롯 · 5분 집계 · `/api/market/kr/*` · degrade. 주문 TR 0건 테스트 |
+| `DB-REQ-033-F011-KR-STOCK` | **to-do** | `AssetType` + `kr_stock` · `KrStockMaster` · `ExternalApiToken` · `MarketHoliday` · `MarketAsset` 확장 · `PriceHistory` 재사용 |
+| `BFF-REQ-040-F011-KR-STOCK` | **to-do** | `/api/app/market/kr/*` 뷰모델 · SSE → WS `price_update`(`assetType`) · 소유자 판정 통과 |
+| `FE-REQ-041-F011-KR-STOCK` | **to-do** | `/investments` 자산군 탭 · 장 상태 줄 · 상태 배지 · 상세 · 검색 · 거래 폼 `kr_stock` |
+| `FC-REQ-009-F011-KR-STOCK` | **to-do** | `price_history(kr_stock)` → `forecast` · 거래일 격자 · `available_at = 장 마감` · kr_stock 보정 · 채점 풀 분리 |
+
+현재 있는 것은 `salt-server/src/shared/config/env.ts` 의 `KIS_*` env 4개뿐(`2218d32`). 2026-09-27 실전 도메인 프로브로 토큰 · 현재가 · 승인키 · WS 구독을 확인했다. 영역 REQ 파일은 슬라이스 착수 때 쓴다 — 번호만 예약.
+
 ### 이동 규칙
 
 각 REQ는 `to-do/` → `in-progress/` → `done/`으로 이동한다. done 조건:
@@ -519,3 +532,5 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-27 | **F009 슬라이스 6 — 월간 복기 · Brier · 진입 전 체크 · IPS · 시나리오.** `DB-REQ-031` FR-11 · 12 · `SRV-REQ-038` FR-10 · `BFF-REQ-038` FR-10~12 · `FE-REQ-039` FR-21~24. 새 API 1경로(`GET /api/coach/review/monthly` · BFF `/api/app/coach/review/monthly`) · risk-budget 응답 `scenarios` · `settings.maxSingleAssetWeight` · PUT `maxSingleAssetWeight` · mirror `brier` · size-check `behavior.checklist` · plans `checklist` · 거래 기록 계획 `invalidation` · `checklist`. 마이그레이션 `20260927120000` · `20260927120100`(추가만, 롤백 = 테이블 · 컬럼 삭제). 워커 단계 1(매일 06:40). `fsd-features.md` `set-risk-budget` 설명 갱신. F009 슬라이스 0~6 완료 |
 | 2026-09-27 | **F009 슬라이스 7 — 연승 · 연패 · 진입 시간대 · 요일.** `SRV-REQ-038` FR-14a · 14b · `BFF-REQ-038` FR-13 · `FE-REQ-039` FR-25 · 26. 새 경로 없음 — `GET /api/coach/mirror` · BFF `/api/app/coach/mirror` 응답에 `streak` · `timing` 추가(서버 · BFF 짝, BFF 는 없으면 `null`). 마이그레이션 없음. 같은 브랜치 `FE-REQ-038` FR-7 · `FE-REQ-026` FR-135 — 막힌 모드 해설 자리 · 카드 순서. F009 슬라이스 0~7 완료 |
 | 2026-09-27 | **F008 슬라이스 23 — 쏠림 신호.** `FC-REQ-007`(신규) · `DB-REQ-029` FR-16 · 17 · `SRV-REQ-037` FR-11 · `BFF-REQ-037` FR-9 · `FE-REQ-038` FR-14. 새 경로 `GET /api/coach/positioning` · BFF `/api/app/coach/positioning`(서버 · BFF 짝). 마이그레이션 `20260927130000_forecast_market_signal`(추가만). 새 외부 소스 ECB 기준 환율(키 없음) |
+| 2026-09-27 | **F011 신설 — 국내 주식 시세 · 분석 연동(한국투자증권 Open API).** 사용자 앱 키 발급 · 실전 프로브 성공. 거래 연동 아님(§6-2 조회 TR 만) · 유니버스 보유 ∪ 관심 ∪ 시총 N · 일봉 백필 + 5분봉 누적 · 자산군 분리 채점 · `COACH_EXCLUDED` 조건부 해제(장기 먼저) · 전망은 별도 FC 슬라이스 · 키 서버 전용. F008 "국내 주식 TBA" 를 잇는다. REQ 5개 to-do(`SRV-040` · `DB-033` · `BFF-040` · `FE-041` · `FC-009`), 기능 표 9개 |
+| 2026-09-28 | **F010 슬라이스 0 — 성적표 신뢰성**(판정 AI 리서치 `requirements/reports/research/2026-09-27-ai-judgment-upgrade.md` §10 의 0번). 기존 REQ 개정: `SRV-REQ-024` FR-173~176 · `SRV-REQ-025` FR-59 · `DB-REQ-017` FR-61 · `DB-REQ-029` FR-18 · `FC-REQ-001` FR-11 · `BFF-REQ-024` FR-40 · `FE-REQ-026` FR-165. **지표가 한 번도 계산되지 않던 버그**(캔들 `5m`·`1d` vs 조회 `m5`·`h1`) 수정 · 판단 지표 모드별 봉 · 채점에 왕복 0.1% · 기저율 대비 초과 적중률 · 저장 추천 불변 원장(30일 채점, 표본 20 게이트) · 라이브 게이트 주 격자 · 카드 뷰 kind 필터. 마이그레이션 `20260928100000`(뷰) · `20260928100100`(재판정) · `20260928101000`(추가만). 계약: `signal-performance` 응답 모양 변경(화면 소비처 없음) · 추천 사유 `insufficient_sample` 추가(서버 · BFF · core 동시). `FEATURE-010`(판정 엔진 v2)은 슬라이스 4 에서 작성. 상태표 변경 없음 |

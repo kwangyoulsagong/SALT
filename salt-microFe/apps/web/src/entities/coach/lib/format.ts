@@ -19,6 +19,13 @@ export const formatSignedRate = (ratio: number): string => {
 /** 가격 차이 금액의 크기만. 방향(위 · 아래)은 문구가 말한다 */
 export const formatGapAmount = (gap: number): string => formatPrice(Math.abs(gap));
 
+/** 비율 차이(0.1 = 10%p) → `+10%p` · `−4%p`. 적중률 − 기저율처럼 **두 비율의 차**에만(F010 슬라이스 0) */
+export const formatSignedPoints = (diff: number): string => {
+  const points = Math.round(diff * 100);
+  if (points === 0) return "0%p";
+  return points > 0 ? `+${points}%p` : `${MINUS}${Math.abs(points)}%p`;
+};
+
 /** 비율(0.57) → `57%`. 부호 없는 몫(적중률 · 비중)만. 점수에 쓰지 않는다(`FE-REQ-027` FR-83) */
 export const formatRatio = (ratio: number): string => `${Math.round(ratio * 100)}%`;
 

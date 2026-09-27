@@ -58,9 +58,9 @@ const newsProbe = {
   recentForSymbol: async () => [{ title: "현물 ETF 순유입", summary: null, source: "코인뉴스", sentiment: null }],
 } as unknown as NewsProbe;
 
-const store = (stats: JudgmentTrackStats, misses: number): SymbolJudgmentStore =>
+const store = (stats: Omit<JudgmentTrackStats, "aboveCost">, misses: number): SymbolJudgmentStore =>
   ({
-    summarize: async () => stats,
+    summarize: async () => ({ ...stats, aboveCost: stats.hits }),
     recentCases: async () =>
       Array.from({ length: misses }, (_, i) => ({
         symbol: "ETH",

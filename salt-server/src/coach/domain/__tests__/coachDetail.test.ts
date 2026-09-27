@@ -16,12 +16,14 @@ import {
 
 const T0 = new Date("2026-09-01T00:00:00Z");
 
-const track = (sampleCount: number) =>
+/** 원장 집계 → 성적표 한 줄(F010 슬라이스 0). 절반 적중 · 절반 상승으로 둔다 */
+const track = (sample: number) =>
   summarizeRecommendationTrack("coach.buy", {
-    sampleCount,
-    winRate: sampleCount ? 0.5 : null,
-    avgReturn: sampleCount ? 0.01 : null,
-    worstObservedReturn: sampleCount ? -0.1 : null,
+    sample,
+    hits: Math.floor(sample / 2),
+    aboveCost: Math.floor(sample / 2),
+    avgReturn: sample ? 0.01 : null,
+    worstReturn: sample ? -0.1 : null,
   });
 
 const reason = { type: "rsi", message: "RSI 과매도" };
@@ -55,15 +57,12 @@ describe("recommendationGate", () => {
     );
   });
 
-  it("표본 1건 이상이면 통과하고 lowSample 로 표시한다 (FR-32 기본안)", () => {
-    const gate = recommendationGate({
-      reasons: [reason],
-      topFactors: [factor],
-      trackRecord: track(3),
-      failureCases: [failure],
-    });
+  it("표본 20 미만이면 insufficient_sample, 20 부터 통과한다 (F010 슬라이스 0 — FR-32 기본안 폐기)", () => {
+    const at = (sample: number) =>
+      recommendationGate({ reasons: [reason], topFactors: [factor], trackRecord: track(sample), failureCases: [failure] });
 
-    assert.deepEqual(gate, { renderable: true, blockedReason: null });
+    assert.deepEqual(at(3), { renderable: false, blockedReason: "insufficient_sample" });
+    assert.deepEqual(at(20), { renderable: true, blockedReason: null });
     assert.equal(track(3).lowSample, true);
     assert.equal(track(20).lowSample, false);
   });

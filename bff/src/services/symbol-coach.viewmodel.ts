@@ -51,6 +51,10 @@ export interface TrackRecord {
   worstObservedReturn: number | null;
   lowSample: boolean;
   horizonHours: number;
+  /** 같은 표본에서 "항상 오른다"가 비용을 넘겨 맞은 비율(F010 슬라이스 0) */
+  alwaysUpRate: number | null;
+  /** 적중률 − 기저율. 관망은 `null` */
+  excessWinRate: number | null;
 }
 
 export interface Judgment {

@@ -1,7 +1,9 @@
 import {
   analyzePortfolioState,
+  COACH_INDICATOR_TIMEFRAME,
   detectMarketRegime,
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
+  REGIME_INDICATOR_TIMEFRAME,
   type BehaviorAnalyzer,
   type BehaviorFinding,
   type CoachContext,
@@ -84,7 +86,7 @@ export const assembleCoachContext = async (
 ): Promise<CoachContext | null> => {
   const [regimeIndicators, regimeSentiments, holdings, profile, insights, behaviorInsights] =
     await Promise.all([
-      deps.market.latestIndicators([REGIME_SYMBOL]),
+      deps.market.latestIndicators([REGIME_SYMBOL], REGIME_INDICATOR_TIMEFRAME),
       deps.market.latestSentiments([REGIME_SYMBOL]),
       deps.portfolio.listHoldings(userId),
       deps.profiles.findByUser(userId),
@@ -117,7 +119,8 @@ export const assembleCoachContext = async (
   );
 
   const [indicatorMap, sentimentMap, quoteMap, whales] = await Promise.all([
-    deps.market.latestIndicators(symbols),
+    // 저장 추천의 지평은 장기(30일)다 — 점수 엔진의 RSI · MA 도 일봉을 본다
+    deps.market.latestIndicators(symbols, COACH_INDICATOR_TIMEFRAME.long_term),
     deps.market.latestSentiments(symbols),
     deps.market.quotes(symbols),
     deps.market.recentWhales(symbols, WHALE_LIMIT),

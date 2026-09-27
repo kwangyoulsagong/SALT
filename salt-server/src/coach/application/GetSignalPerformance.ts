@@ -1,18 +1,14 @@
 import {
-  isFeedbackInsight,
-  resolveSampleIdentity,
   summarizePerformance,
-  type CoachInsightStore,
-  type MarketProbe,
+  PERFORMANCE_SAMPLE_LIMIT,
   type PerformanceSummary,
+  type RecommendationFilter,
+  type RecommendationSnapshotStore,
 } from "../domain";
-import { collectPerformanceSamples } from "./lib/performanceSamples";
-
-/** 성적 표본을 뽑는 판단 수 상한. 원문의 `take: 100` 이다. */
-const HISTORY_LIMIT = 100;
 
 export interface SignalPerformanceQuery {
   symbol?: string;
+  /** `coach.<action>` 또는 `<action>`. 없으면 이 사용자의 추천 전체다. */
   signalKey?: string;
 }
 
@@ -20,55 +16,30 @@ export interface SignalPerformanceView extends PerformanceSummary {
   generatedAt: string;
 }
 
+/** 옛 호출은 `mode` · `action` 을 그대로 보냈다 — `coach.` 접두가 없으면 붙인다. */
+const toSignalType = (signalKey: string | undefined): string | undefined =>
+  signalKey === undefined ? undefined : signalKey.startsWith("coach.") ? signalKey : `coach.${signalKey}`;
+
 /**
- * 신호 성적표 — `signal-performance.service` 에서 옮겨왔다.
+ * 신호 성적표 — F010 슬라이스 0 에서 **추천 스냅샷 원장** 기반으로 바뀌었다.
  *
- * ## 이것이 근거 3종의 "과거 적중률"이다
- *
- * 표본이 없으면 `insufficient_data` 를 그대로 준다. 추천 화면은 3종 세트 중 하나라도
- * 없으면 렌더하지 않는다(공통 수용 기준 1) — **없는 적중률을 채워 넣지 않는 것**이
- * 이 유스케이스의 일이다.
- *
- * ## 쿼리 수를 절반으로 줄였다
- *
- * 원문은 판단 1건마다 **진입가와 최신가를 각각** 조회했다(판단 100건이면 200회).
- * 최신가는 심볼 단위라 한 번에 받을 수 있어 그렇게 바꿨다. 진입가는 판단 시각마다
- * 달라 아직 건별이다 — 성적을 스냅샷 테이블로 옮기는 것이 F004 의 일이고,
- * 그때 이 루프가 사라진다.
+ * 전에는 저장 추천 100건을 읽어 "판단 뒤 첫 종가 vs 최신 종가"를 셌다. 이제 표본은 30일 뒤 채점된 스냅샷이고,
+ * 집계는 저장소가 한다(`summarize`). 표본 20 미만이면 `insufficient_data` — **없는 적중률을 채워 넣지 않는다.**
  */
 export class GetSignalPerformance {
-  constructor(
-    private readonly insights: CoachInsightStore,
-    private readonly market: MarketProbe
-  ) {}
+  constructor(private readonly recommendations: RecommendationSnapshotStore) {}
 
-  async execute(
-    userId: string,
-    query: SignalPerformanceQuery = {}
-  ): Promise<SignalPerformanceView> {
-    const fallbackSymbol = query.symbol?.toUpperCase();
-
-    const history = await this.insights.findRecommendationHistory(
-      userId,
-      fallbackSymbol,
-      HISTORY_LIMIT
-    );
-
-    const scored = history
-      .filter((insight) => !isFeedbackInsight(insight))
-      .map((insight) => ({
-        insight,
-        identity: resolveSampleIdentity(insight, fallbackSymbol, query.signalKey),
-      }))
-      .filter(
-        (row): row is { insight: (typeof history)[number]; identity: NonNullable<ReturnType<typeof resolveSampleIdentity>> } =>
-          row.identity !== null
-      );
-
-    const samples = await collectPerformanceSamples(this.market, scored);
-
+  async execute(userId: string, query: SignalPerformanceQuery = {}): Promise<SignalPerformanceView> {
+    const filter: RecommendationFilter = {
+      symbol: query.symbol?.toUpperCase(),
+      signalType: toSignalType(query.signalKey),
+    };
+    const [stats, cases] = await Promise.all([
+      this.recommendations.summarize(userId, filter),
+      this.recommendations.recentCases(userId, filter, null, PERFORMANCE_SAMPLE_LIMIT),
+    ]);
     return {
-      ...summarizePerformance(samples),
+      ...summarizePerformance(filter.signalType ?? "coach", stats, cases),
       generatedAt: new Date().toISOString(),
     };
   }

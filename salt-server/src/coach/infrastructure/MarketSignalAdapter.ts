@@ -9,6 +9,7 @@ import type {
   CoachSentiment,
   CoachWhaleTransaction,
   GaugeForwardReturn,
+  IndicatorTimeframe,
   MarketProbe,
   ZoneTimeframe,
 } from "../domain";
@@ -22,13 +23,12 @@ import type {
  * (`ddd-infrastructure.md` §5). 같은 컨텍스트를 감싸는 ACL 이 나중에 둘이 되어도
  * 이름이 겹치지 않는다.
  *
- * ## 지표는 `m5` 로 고정한다
+ * ## 지표 주기는 부르는 쪽이 정한다
  *
- * 지표는 `m5` 와 `h1` 두 주기로 저장된다. 주기를 안 정하고 "최신"을 고르면 같은
- * 심볼이 호출마다 다른 주기의 RSI 를 준다. 원문(`ai-coach-feature.extractor`)이
- * `Timeframe.m5` 로 못 박았고 **그 선택을 여기 한 곳에 남긴다.**
+ * 원문은 여기서 `m5` 로 못 박았다 — 두 모드가 같은 5분봉 RSI 로 24시간 · 30일을 판단했다.
+ * 이제 주기는 모드의 것이고(`COACH_INDICATOR_TIMEFRAME`) 이 어댑터는 값을 그대로 넘긴다.
+ * 지표 테이블의 `timeframe` 이름(`h1` · `d1`)과 코치 이름이 같아 번역이 없다.
  */
-const COACH_INDICATOR_TIMEFRAME = "m5";
 
 /**
  * 코치는 주기를 `m5` · `d1` 로 부르고 `price_history.timeframe` 은 `5m` · `1d` 다.
@@ -43,12 +43,10 @@ export class MarketSignalAdapter implements MarketProbe {
   constructor(private readonly market: MarketApi) {}
 
   async latestIndicators(
-    symbols: string[]
+    symbols: string[],
+    timeframe: IndicatorTimeframe
   ): Promise<Map<string, CoachIndicator>> {
-    const rows = await this.market.latestIndicators(
-      symbols,
-      COACH_INDICATOR_TIMEFRAME
-    );
+    const rows = await this.market.latestIndicators(symbols, timeframe);
 
     return new Map(
       rows.map((row) => [
@@ -110,8 +108,8 @@ export class MarketSignalAdapter implements MarketProbe {
     return new Map(rows.map((row) => [row.symbol, row.close]));
   }
 
-  closeAtOrAfter(symbol: string, at: Date): Promise<number | null> {
-    return this.market.closeAtOrAfter(symbol, at);
+  closeAtOrAfter(symbol: string, at: Date, timeframe: ZoneTimeframe): Promise<number | null> {
+    return this.market.closeAtOrAfter(symbol, at, PRICE_TIMEFRAME[timeframe]);
   }
 
   highestCloseBetween(symbol: string, from: Date, to: Date): Promise<number | null> {

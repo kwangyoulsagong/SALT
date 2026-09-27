@@ -16,3 +16,8 @@ def weekly_grid(start: int, end: int) -> list[int]:
     """[start, end] 안의 월요일 00:00 UTC."""
     first = start + (-(start - _MONDAY_EPOCH)) % WEEK
     return list(range(first, end + 1, WEEK))
+
+
+def on_weekly_grid(t: int) -> bool:
+    """t 가 월요일 00:00 UTC 격자 위에 있나. 라이브 게이트 표본은 이 격자 위의 as_of 만 센다(FC-REQ-001 FR-11)."""
+    return (t - _MONDAY_EPOCH) % WEEK == 0

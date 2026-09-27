@@ -20,6 +20,8 @@ import type {
   TradePlanDraft,
   TradePlanPatch,
   ZoneTimeframe,
+  IndicatorTimeframe,
+  RecommendationCase,
   AdherenceLabel,
   DailyBar,
   DecisionOutcome,
@@ -27,6 +29,7 @@ import type {
   MonthlyReview,
 } from "./policy";
 import type {
+  CoachAction,
   CoachArticle,
   CoachAssetType,
   CoachHolding,
@@ -148,7 +151,11 @@ export interface CoachNotifier {
  * 컨텍스트 밖에서 `prisma.findMany({ distinct })` 를 직접 불렀다.
  */
 export interface MarketProbe {
-  latestIndicators(symbols: string[]): Promise<Map<string, CoachIndicator>>;
+  /** 여러 심볼의 최신 지표 — **주기 필수**(`COACH_INDICATOR_TIMEFRAME`). 주기 없는 "최신"은 호출마다 다른 봉의 RSI 를 준다. */
+  latestIndicators(
+    symbols: string[],
+    timeframe: IndicatorTimeframe
+  ): Promise<Map<string, CoachIndicator>>;
   latestSentiments(symbols: string[]): Promise<Map<string, CoachSentiment>>;
   quotes(symbols: string[]): Promise<Map<string, CoachQuote>>;
   recentWhales(
@@ -165,8 +172,8 @@ export interface MarketProbe {
     symbols: string[],
     since: Date
   ): Promise<Map<string, number>>;
-  /** `at` 시각 **이후 첫** 종가. 성적표의 진입가다. 없으면 `null`. */
-  closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
+  /** `at` 시각 **이후 첫** 종가 — **주기 필수**(`JUDGMENT_PRICE_TIMEFRAME`). 성적표의 기준가다. 없으면 `null`. */
+  closeAtOrAfter(symbol: string, at: Date, timeframe: ZoneTimeframe): Promise<number | null>;
   latestCloses(symbols: string[]): Promise<Map<string, number>>;
   /**
    * 심리 구간별 30일 뒤 수익률 분포 — 게이지 적중률(B9)의 재료. `market` 이 집계한다.
@@ -324,6 +331,53 @@ export interface JudgmentEvaluation {
   returnRate: number;
   outcome: JudgmentOutcome;
   evaluatedAt: Date;
+}
+
+export interface RecommendationSnapshotDraft {
+  userId: string;
+  symbol: string;
+  action: CoachAction;
+  signalType: string;
+  score: number;
+  reasons: string[];
+  entryPrice: number;
+  judgedAt: Date;
+}
+
+export interface PendingRecommendation {
+  id: string;
+  symbol: string;
+  action: CoachAction;
+  entryPrice: number;
+  judgedAt: Date;
+}
+
+/** 성적을 자르는 조건. 둘 다 없으면 이 사용자의 추천 전체다. */
+export interface RecommendationFilter {
+  signalType?: string;
+  symbol?: string;
+}
+
+/**
+ * 저장 추천 스냅샷 (F010 슬라이스 0). 종목 판단 스냅샷과 같은 모양이고 **사용자 것**이라는 점만 다르다.
+ * 성적은 저장소가 SQL 로 모아 준다 — 실측은 `live` 만 센다(`SampleOrigin`).
+ */
+export interface RecommendationSnapshotStore {
+  /** 사용자의 종목 · 행동별 마지막 추천 시각. 키는 `${symbol}:${action}`. */
+  lastJudgedAt(userId: string): Promise<Map<string, Date>>;
+  /** 같은 `(userId, symbol, action, judgedAt)` 가 있으면 건너뛴다. 썼으면 `true`. */
+  saveSnapshot(draft: RecommendationSnapshotDraft): Promise<boolean>;
+  /** 관찰 기간이 끝났고 아직 판정이 없는 것. 오래된 것이 앞이다. 사용자 무관(배치). */
+  listPending(judgedBefore: Date, limit: number): Promise<PendingRecommendation[]>;
+  saveEvaluations(evaluations: JudgmentEvaluation[]): Promise<void>;
+  summarize(userId: string, filter: RecommendationFilter): Promise<JudgmentTrackStats>;
+  /** 판정이 끝난 최근 사례. `outcome` 을 주면 그 결과만. 최신이 앞이다. */
+  recentCases(
+    userId: string,
+    filter: RecommendationFilter,
+    outcome: JudgmentOutcome | null,
+    limit: number
+  ): Promise<RecommendationCase[]>;
 }
 
 /**

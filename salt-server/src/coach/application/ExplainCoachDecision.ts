@@ -19,7 +19,7 @@ import type {
   PortfolioProbe,
   SymbolJudgmentStore,
 } from "../domain";
-import { collectJudgmentMaterials, judgeSymbol } from "./lib/judgeSymbols";
+import { collectJudgmentMaterials, indicatorFor, judgeSymbol } from "./lib/judgeSymbols";
 import {
   attachJudgmentTrack,
   JUDGMENT_DISCLAIMER,
@@ -286,7 +286,7 @@ export class ExplainCoachDecision {
       mode: request.mode,
       quote: materials.quote,
       judgment: view.judgment,
-      indicator: materials.indicator,
+      indicator: indicatorFor(materials, request.mode),
       sentiment: materials.sentiment,
       whale: {
         buyAmountKRW: judged.whaleBuy,

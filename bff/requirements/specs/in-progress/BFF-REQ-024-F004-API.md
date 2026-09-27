@@ -173,6 +173,7 @@ type SymbolCoachViewModel = {
 | FR-37 | 해설 응답(`POST /explain`)도 판별 union 이다: `{ renderable: true; modeReasoning; validity; keyDrivers; risks; newsSummary (≤5); trackRecord; failureCases; disclaimer; generatedAt; source } \| { renderable: false; blockedReason }`. 예상 수익 필드 0건(B3) | Must |
 | FR-38 | preflight 응답에 `maxLossOfTotalRate` 를 더한다. 게이트 · 차단 · 주문 필드 0건 유지(FR-17) | Must |
 | FR-39 | 성적표 뷰모델의 최저값 필드는 `worstObservedReturn` 이다(개정 2026-09-24, `SRV-REQ-025` FR-55 짝). 옛 `maxDrawdown` 을 별칭으로 남기지 않는다 — 서버가 옛 이름을 보내지 않으니 남기면 늘 `null` 이다. 대상: `symbolCoach` · `coachReport` 뷰모델 · `/api/app/signal-performance` `metrics` | Must |
+| FR-40 | **(F010 슬라이스 0) 성적표 계약 통과** — `SRV-REQ-025` FR-59 의 짝. 코치 리포트 뷰모델: 사유 `insufficient_sample` 을 정상 사유로(모르는 사유는 여전히 계약 깨짐), `signalTrackRecord` 에 `horizonHours` · `alwaysUpRate` · `excessWinRate`(없으면 `null`), `failureCases` 는 그대로 통과(`symbol` · `returnRate` 포함). 종목 판단 `trackRecord` 타입에 `alwaysUpRate` · `excessWinRate`. `/api/app/signal-performance` 는 `signalType` · `metrics.{lowSample, horizonHours, alwaysUpRate, excessWinRate}` 추가, `samples` 는 서버 모양 그대로 | Must |
 
 ## Acceptance Criteria
 
@@ -223,3 +224,4 @@ type SymbolCoachViewModel = {
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `distancePct` → `priceGap`(D13). 종목 경로 `blockedReason` 에 `insufficient_sample`(D11). Q3 닫음(D12) |
 | 2026-09-24 | **F009 슬라이스 0 — C04.** FR-39 신설 · 계약 코드블록 `maxDrawdown` → `worstObservedReturn`. 근거 `requirements/reports/feature-audits/2026-09-24-ai-investment-deep-research.md` C04 |
 | 2026-09-24 | **F009 슬라이스 0 — C05.** 코드 변경 없음 — `validity.code` 를 그대로 옮긴다(`BFF-REQ-023` FR-98). 값이 `scalp_24h` · `long_term_30d` 로 바뀌어 테스트 픽스처만 고쳤다(`SRV-REQ-025` FR-56) |
+| 2026-09-28 | **F010 슬라이스 0.** FR-40 신설 · 구현. 근거 `reports/checklists/BFF-REQ-024.md` §2026-09-28 |

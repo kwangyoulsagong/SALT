@@ -41,6 +41,7 @@ const stats = (over: Partial<JudgmentGroupStats> = {}): JudgmentGroupStats => ({
   signalType: "scalp.review_short_opportunity",
   sample: 24,
   hits: 12,
+  aboveCost: 14,
   avgReturn: 0.01,
   worstReturn: -0.3,
   bucketCounts: { lte_m20: 2, m10_0: 10 },

@@ -22,6 +22,14 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().min(10),
   GEMINI_MODEL: z.string().default("gemini-2.5-flash-lite"),
   /**
+   * 한국투자증권 Open API — 국내 주식 **시세 조회 전용**(주문 · 계좌 API 는 부르지 않는다, 공통 수용 기준 2).
+   * 키가 없으면 국내 주식 시세는 꺼진다(선택값). 실전 도메인이 기본, 모의는 `KIS_BASE_URL` 로 바꾼다.
+   */
+  KIS_APP_KEY: z.string().min(1).optional(),
+  KIS_APP_SECRET: z.string().min(1).optional(),
+  KIS_BASE_URL: z.string().url().default("https://openapi.koreainvestment.com:9443"),
+  KIS_WS_URL: z.string().default("ws://ops.koreainvestment.com:21000"),
+  /**
    * 활성 계정 상한 (`SRV-REQ-008` FR-6 — **코드 상수 금지**).
    *
    * 제품 정의는 본인 + 최대 10명이다(글로벌 플랜 1-1절). 설정값인 이유는 상한이 찼을 때

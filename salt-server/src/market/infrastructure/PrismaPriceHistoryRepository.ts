@@ -107,10 +107,14 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
     return row._max.close === null ? null : Number(row._max.close);
   }
 
-  /** `at` 이후 첫 종가. 성적표가 판단 시점의 진입가로 쓴다. */
-  async closeAtOrAfter(symbol: string, at: Date): Promise<number | null> {
+  /** `at` 이후 첫 종가 — 한 주기 안에서만 고른다(`(symbol, timeframe, timestamp)` 인덱스). */
+  async closeAtOrAfter(
+    symbol: string,
+    at: Date,
+    timeframe: PriceTimeframe
+  ): Promise<number | null> {
     const row = await prisma.priceHistory.findFirst({
-      where: { symbol, timestamp: { gte: at } },
+      where: { symbol, timeframe, timestamp: { gte: at } },
       orderBy: { timestamp: "asc" },
       select: { close: true },
     });

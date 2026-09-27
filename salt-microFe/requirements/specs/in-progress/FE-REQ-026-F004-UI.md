@@ -292,6 +292,7 @@ PC                                                   모바일(세로 스택)
 | FR-104 | 성적표는 실제 `<table>` + `<caption>` |
 | FR-105 | 손익 부호를 색 + `+`/`−` 문자 |
 | FR-106 | 늦게 오는 블록에 `aria-busy` |
+| FR-165 | **(F010 슬라이스 0) 성적에 "기준 대비"** — 종목 판단 `TrackRecordStats` · 추천 카드 성적에 `excessWinRate` 가 있으면 넷째 칸 "기준 대비 +N%p"(`formatSignedPoints`, 음수는 U+2212). 툴팁 "같은 기간 '늘 같은 행동'보다 얼마나 더 맞았나". `null`(관망 · 보유 · 리밸런싱)이면 칸을 그리지 않는다. 추천 카드 실패사례는 `symbol` · `returnRate` 가 있으면 종목과 30일 수익률을, 없으면 옛 모양(사건 코드 · 결과)을 보인다. 사유 `insufficient_sample` 은 판단 문구를 그대로 쓴다(이미 있음) | Must |
 
 ## Acceptance Criteria
 
@@ -384,3 +385,4 @@ PC                                                   모바일(세로 스택)
 | 2026-09-24 | **F009 슬라이스 0 — C04.** FR-163 신설. `worstObservedReturn` 수신 · 라벨 "최대 낙폭" → "가장 나빴던 수익률"(`JudgmentDetail` · `RecommendationCard`) |
 | 2026-09-24 | **F009 슬라이스 0 — C05.** FR-164 신설. `validity.code` 새 값 i18n. 모르는 코드는 문구를 생략한다(기존 동작) |
 | 2026-09-27 | **FR-135 보강** — 막힌 모드에 해설 카드 자리와 이유 한 줄 · 표본 수를 남긴다(버튼 · 성적 · 사례는 여전히 없다). C06 뒤 live 표본만 세면서 판단이 닫힌 종목에서 카드가 사라져 기능이 없어진 것처럼 보였다(사용자 신고). 근거 `reports/checklists/FE-REQ-038.md` §2026-09-27 |
+| 2026-09-28 | **F010 슬라이스 0.** FR-165 신설 · 구현. `@repo/core` `ReportTrackRecord` · `TrackRecord` · `RecommendationBlockedReason` · `ReportFailureCase` 확장(`SRV-REQ-025` FR-59 · `BFF-REQ-024` FR-40 과 짝). 화면은 타입 · 린트만 — 표본이 0 이라 카드가 막힌 상태(`reports/checklists/FE-REQ-026.md` §2026-09-28) |

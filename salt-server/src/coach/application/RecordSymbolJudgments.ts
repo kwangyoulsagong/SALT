@@ -5,6 +5,7 @@ import {
   judgmentReturnRate,
   judgmentSignalType,
   JUDGMENT_HORIZON_MS,
+  JUDGMENT_PRICE_TIMEFRAME,
   type Clock,
   type CoachMode,
   type JudgmentEvaluation,
@@ -129,7 +130,11 @@ export class EvaluateSymbolJudgments {
 
     const exits = await Promise.all(
       matured.map((item) =>
-        this.market.closeAtOrAfter(item.symbol, judgmentMaturesAt(item.mode, item.judgedAt))
+        this.market.closeAtOrAfter(
+          item.symbol,
+          judgmentMaturesAt(item.mode, item.judgedAt),
+          JUDGMENT_PRICE_TIMEFRAME[item.mode]
+        )
       )
     );
 

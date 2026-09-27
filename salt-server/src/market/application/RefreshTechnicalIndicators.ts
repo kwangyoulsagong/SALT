@@ -1,17 +1,36 @@
 import { logger } from "../../shared/config/logger";
 import {
+  aggregateCandles,
   calculateIndicators,
   MIN_CANDLES_FOR_INDICATORS,
   type IndicatorRepository,
   type MarketAssetRepository,
   type PriceHistoryRepository,
+  type PriceTimeframe,
 } from "../domain";
 
-/** 지표를 계산하는 타임프레임. 원문 워커가 돌리던 두 개다. */
-const TIMEFRAMES = ["m5", "h1"] as const;
+const HOUR_MS = 3600_000;
+const CANDLE_WINDOW = 100;
+
+/**
+ * 지표 주기 ← 캔들 주기.
+ *
+ * 원문은 지표 이름(`m5` · `h1`)으로 캔들을 조회했는데 캔들은 `5m` · `1d` 로 저장된다 — 그래서 **지표가 한 번도
+ * 계산되지 않았다**(F010 슬라이스 0 에서 발견, `technical_indicators` 0행). 여기서 둘을 명시적으로 잇는다.
+ * 1시간봉은 수집하지 않으므로 5분봉 12개를 묶어 만든다(`aggregateCandles`).
+ */
+const TARGETS: ReadonlyArray<{
+  indicator: "m5" | "h1" | "d1";
+  candle: PriceTimeframe;
+  take: number;
+  bucketMs: number | null;
+}> = [
+  { indicator: "m5", candle: "5m", take: CANDLE_WINDOW, bucketMs: null },
+  { indicator: "h1", candle: "5m", take: CANDLE_WINDOW * 12, bucketMs: HOUR_MS },
+  { indicator: "d1", candle: "1d", take: CANDLE_WINDOW, bucketMs: null },
+];
 /** 심볼 배치 크기. 원문 워커 상수다. */
 const BATCH = 20;
-const CANDLE_WINDOW = 100;
 
 /**
  * 기술 지표 갱신.
@@ -46,33 +65,32 @@ export class RefreshTechnicalIndicators {
 
   /** 한 심볼이 실패해도 배치의 나머지는 돈다 — 원문 워커의 try/catch 위치와 같다. */
   private async refreshSymbol(symbol: string) {
-    for (const timeframe of TIMEFRAMES) {
+    for (const target of TARGETS) {
       try {
-        await this.refreshOne(symbol, timeframe);
+        await this.refreshOne(symbol, target);
       } catch (error) {
-        logger.error(`Indicator error for ${symbol}`, error);
+        logger.error(`Indicator error for ${symbol} ${target.indicator}`, error);
       }
     }
   }
 
-  private async refreshOne(symbol: string, timeframe: string) {
-    const candles = await this.prices.recentCandles(
-      symbol,
-      timeframe,
-      CANDLE_WINDOW
-    );
+  private async refreshOne(symbol: string, target: (typeof TARGETS)[number]) {
+    const raw = await this.prices.recentCandles(symbol, target.candle, target.take);
+    if (raw.length === 0) return;
+
+    const candles =
+      target.bucketMs === null ? raw : aggregateCandles(raw, target.bucketMs);
     if (candles.length < MIN_CANDLES_FOR_INDICATORS) return;
 
     // 저장은 최신이 앞이고, 지표 계산은 오래된 것이 앞이다
     const closes = candles.map((c) => c.close).reverse();
     const volumes = candles.map((c) => c.volume ?? 0).reverse();
-    const latest = candles[0];
 
     await this.indicators.upsert({
       symbol,
-      assetType: latest.assetType,
-      timeframe,
-      timestamp: latest.timestamp,
+      assetType: raw[0].assetType,
+      timeframe: target.indicator,
+      timestamp: candles[0].timestamp,
       indicators: calculateIndicators(closes, volumes),
     });
   }
