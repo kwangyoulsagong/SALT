@@ -13,12 +13,12 @@ import Decimal from "decimal.js";
 
 import { barCloseTime, effectiveAdherence, isViolation, type DailyBar } from "./adherence";
 import { effectiveTags, type DecisionOutcome } from "./decisionOutcome";
+import { DAY_MS, walkPortfolioDays, type PortfolioDay } from "./portfolioSeries";
 import type { LedgerReplay } from "./tradeLedger";
 import type { AdherenceLabel, TradePlan } from "./tradePlan";
 import type { CoachLedgerEntry } from "../model";
 
 const ZERO = new Decimal(0);
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** 표본 기준(FR-12 · FR-15 · FR-19) */
 export const MIRROR_MIN_SAMPLE = 20;
@@ -159,7 +159,7 @@ export interface BenchmarkMirror {
   sampleSize: number;
   /** 실제 시간가중수익률(TWR, 수수료 후) */
   actualReturn: Decimal | null;
-  /** 첫 거래일 종가 기준 보유 구성을 그대로 들고 있었을 때 */
+  /** 시작일 종가 기준 보유 구성을 그대로 들고 있었을 때 */
   holdReturn: Decimal | null;
   /** actual − hold */
   difference: Decimal | null;
@@ -169,22 +169,31 @@ export interface BenchmarkMirror {
   timingComponent: Decimal | null;
   from: Date | null;
   to: Date | null;
+  /** 마지막 날 종가 평가금(원) — 월간 복기의 회전율 분모 */
+  endValue: Decimal | null;
   missingCloses: string[];
 }
 
+/** 관찰 구간. `from` 이상 `to` 미만인 일봉만 센다(월간 복기) */
+export interface MirrorWindow {
+  from: Date;
+  to: Date;
+}
+
 /**
- * 하루 단위 TWR. 거래는 그날 일봉 종가 시점의 입출금으로 본다.
+ * 하루 단위 TWR. 평가금 흐름은 `walkPortfolioDays`(복기와 같은 규칙).
  *
  * - 실제: r_d = (V_d − F_d) ÷ V_{d−1} − 1. F_d = 매수(대금 + 수수료) − 매도(대금 − 수수료)
- * - 보유: 첫 거래일 종가의 종목 비중 w 로 Σ w · (P_T ÷ P_0) − 1. 이후 순입금은 **같은 날 같은 비중으로 샀다**고
+ * - 보유: 시작일 종가의 종목 비중 w 로 Σ w · (P_T ÷ P_0) − 1. 이후 순입금은 **같은 날 같은 비중으로 샀다**고
  *   가정한다(2026-09-27 사용자 결정) — TWR 은 입출금에 영향받지 않으므로 이 가정에서 보유 수익률은 위 식 그대로다
  * - 수수료 몫: 수수료 0 으로 본 F_d 로 다시 잰 TWR 과의 차이
- * - 종가가 빠진 날은 직전 종가를 쓴다. 들고 있는 종목의 첫 종가가 아직 없으면 계산하지 않는다
+ * - 시작일: 구간이 없으면 첫 보유일. 구간이 있으면 구간 전날(그날 보유가 있으면) 또는 구간 안 첫 보유일
  */
 export const benchmarkMirror = (
   entries: CoachLedgerEntry[],
   barsBySymbol: Map<string, DailyBar[]>,
-  now: Date
+  now: Date,
+  window?: MirrorWindow
 ): BenchmarkMirror => {
   const empty = (missingCloses: string[] = []): BenchmarkMirror => ({
     status: "insufficient_data",
@@ -196,91 +205,46 @@ export const benchmarkMirror = (
     timingComponent: null,
     from: null,
     to: null,
+    endValue: null,
     missingCloses,
   });
   if (!entries.length) return empty();
 
-  const closeIndex = new Map<string, Map<number, Decimal>>();
-  for (const [symbol, bars] of barsBySymbol) {
-    closeIndex.set(symbol, new Map(bars.map((bar) => [bar.openTime.getTime(), bar.close])));
-  }
+  const closedLastDay = Math.floor(now.getTime() / DAY_MS) * DAY_MS - DAY_MS; // 닫힌 마지막 일봉
+  const windowFrom = window ? window.from.getTime() : Number.NEGATIVE_INFINITY;
+  const lastDay = window ? Math.min(closedLastDay, window.to.getTime() - DAY_MS) : closedLastDay;
 
-  const firstDay = Math.floor(entries[0].transactionDate.getTime() / DAY_MS) * DAY_MS;
-  const lastDay = Math.floor(now.getTime() / DAY_MS) * DAY_MS - DAY_MS; // 닫힌 마지막 일봉
+  const walk = walkPortfolioDays(entries, barsBySymbol, lastDay, windowFrom - DAY_MS);
+  if (walk.status === "missing_close") return empty(walk.missingCloses);
 
-  const quantities = new Map<string, Decimal>();
-  const lastClose = new Map<string, Decimal>();
-  let cursor = 0;
-  let prevValue = ZERO;
   let actual = new Decimal(1);
   let feeless = new Decimal(1);
   let days = 0;
-  let start: { day: number; weights: Map<string, Decimal>; closes: Map<string, Decimal> } | null = null;
+  let start: PortfolioDay | null = null;
+  let end: PortfolioDay | null = null;
+  let prev: PortfolioDay | null = null;
 
-  for (let day = firstDay; day <= lastDay; day += DAY_MS) {
-    const closeAt = day + DAY_MS;
-    let flow = ZERO;
-    let flowFeeless = ZERO;
-    while (cursor < entries.length && entries[cursor].transactionDate.getTime() < closeAt) {
-      const entry = entries[cursor++];
-      const symbol = entry.symbol.toUpperCase();
-      const quantity = new Decimal(entry.quantity);
-      const current = quantities.get(symbol) ?? ZERO;
-      const amount = new Decimal(entry.totalAmount);
-      if (entry.side === "buy") {
-        quantities.set(symbol, current.plus(quantity));
-        flow = flow.plus(amount).plus(entry.fee);
-        flowFeeless = flowFeeless.plus(amount);
-      } else {
-        quantities.set(symbol, Decimal.max(ZERO, current.minus(quantity)));
-        flow = flow.minus(amount.minus(entry.fee));
-        flowFeeless = flowFeeless.minus(amount);
+  for (const day of walk.days) {
+    if (day.day >= windowFrom) {
+      // 구간 전날 보유가 있으면 그날 종가가 출발점이다
+      if (!start && prev && prev.day < windowFrom && prev.value.gt(0)) start = prev;
+      if (start && prev && prev.value.gt(0)) {
+        actual = actual.times(day.value.minus(day.flow).div(prev.value));
+        feeless = feeless.times(day.value.minus(day.flowFeeless).div(prev.value));
+        days += 1;
       }
+      if (!start && day.value.gt(0)) start = day;
+      end = day;
     }
-
-    let value = ZERO;
-    const missing: string[] = [];
-    for (const [symbol, quantity] of quantities) {
-      const close = closeIndex.get(symbol)?.get(day);
-      if (close) lastClose.set(symbol, close);
-      if (quantity.lte(0)) continue;
-      // 산 날 일봉이 비었으면 그 전 마지막 종가
-      const price =
-        lastClose.get(symbol) ??
-        barsBySymbol
-          .get(symbol)
-          ?.filter((bar) => bar.openTime.getTime() <= day)
-          .at(-1)?.close;
-      if (price) lastClose.set(symbol, price);
-      if (!price) missing.push(symbol);
-      else value = value.plus(quantity.times(price));
-    }
-    if (missing.length) return empty(missing.sort());
-
-    if (prevValue.gt(0)) {
-      actual = actual.times(value.minus(flow).div(prevValue));
-      feeless = feeless.times(value.minus(flowFeeless).div(prevValue));
-      days += 1;
-    }
-    if (!start && value.gt(0)) {
-      const weights = new Map<string, Decimal>();
-      const closes = new Map<string, Decimal>();
-      for (const [symbol, quantity] of quantities) {
-        if (quantity.lte(0)) continue;
-        const price = lastClose.get(symbol)!;
-        weights.set(symbol, quantity.times(price).div(value));
-        closes.set(symbol, price);
-      }
-      start = { day, weights, closes };
-    }
-    prevValue = value;
+    prev = day;
   }
 
-  if (!start) return empty();
+  if (!start || !end) return empty();
 
   let hold = ZERO;
-  for (const [symbol, weight] of start.weights) {
-    hold = hold.plus(weight.times(lastClose.get(symbol)!.div(start.closes.get(symbol)!)));
+  for (const [symbol, holding] of start.holdings) {
+    const weight = holding.quantity.times(holding.price).div(start.value);
+    hold = hold.plus(weight.times(end.closes.get(symbol)!.div(holding.price)));
   }
   const actualReturn = actual.minus(1);
   const holdReturn = hold.minus(1);
@@ -296,7 +260,8 @@ export const benchmarkMirror = (
     feeComponent,
     timingComponent: difference.minus(feeComponent),
     from: new Date(start.day),
-    to: new Date(lastDay + DAY_MS),
+    to: new Date(end.day + DAY_MS),
+    endValue: end.value,
     missingCloses: [],
   };
 };
