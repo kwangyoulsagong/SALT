@@ -40,12 +40,14 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | FR-10 | `GET /api/app/coach/review/monthly?month=`(`YYYY-MM` 아니면 400, 없으면 서버가 지난달) — 서버 스냅샷을 모양 검사해 옮긴다(`monthly-review.viewmodel.ts`, 미러의 지표 · 태그 비용 · Brier 변환을 그대로 씀). 서버 `status` 는 `reviewStatus`(ok · month_not_closed · no_ledger · truncated), `ok` 인데 본문이 없으면 계약 깨짐. 1,500ms · 재시도 1회(서버 생성이 멱등이라 안전), 5xx · 타임아웃 · 계약 깨짐 → 200 `unavailable` | 완료(슬라이스 6) |
 | FR-11 | 미러 응답 `brier`(깨졌으면 `null`, 사례는 가격 · 날짜가 온전한 것만) · size-check `behavior.checklist`(질문 빈 줄 제외, 프리모템 문장이 없으면 `null`) · risk-budget `settings.maxSingleAssetWeight` · `scenarios`(금액이 빈 충격 줄 제외, `ok` 인데 손실이 없는 구간은 `insufficient_data`) · PUT 키 `maxSingleAssetWeight` 통과 · 계획 `checklist` | 완료(슬라이스 6) |
 | FR-12 | 거래 + 계획 기록(`POST /trades`)의 계획에 `invalidation`(프리모템 답) · `checklist` 통과. **체크리스트만으로는 계획을 만들지 않는다** — 계획이 생기면 "계획 없음" 자동 태그가 빠진다. `POST /plans` 는 `checklist` 를 받고 `PATCH` 는 받지 않는다 | 완료(슬라이스 6) |
+| FR-13 | 미러 응답 `streak` · `timing`(`toStreakView` · `toTradeTimingView`) — 서버 숫자 그대로. 서버가 아직 주지 않거나 깨졌으면 **그 블록만 `null`**(미러 전체는 산다). 모르는 연속 종류는 `current: null`, 비율 값이 `null` 이면 `observed` 를 켜지 않는다(패턴 문장이 숫자 없이 나가지 않게). 시간대 · 요일은 고정 순서로 펴고 빠진 칸은 0건 · `insufficient_data`, 서버 `bands: null` 이면 `null`(섹션 없음). `basis` 는 화면 문구가 대신해 옮기지 않는다 | 완료(슬라이스 7) |
 | FR-9 | `POST /api/app/coach/size-check` — 요청 키 `hasPlan` 통과 · 응답 `behavior`(`candidateTags` · `chasingUnknown` · `edgeWarnings`(noEdge 만) · `sellFraming{stopPrice, currentPrice}`). 서버 `null` · `truncated` · 깨진 모양이면 던지지 않고 `null` — 사이즈 결과는 그대로 | 완료(슬라이스 5) |
 
 ## 영향
 
 - 프론트: `@repo/core/coach` `tradeRisk.ts` 가 이 뷰모델을 그대로 옮긴다(`FE-REQ-039`)
 - 서버: 호출 경로 · 본문 변경 없음 — `SRV-REQ-038` FR-1 · 5 · 6 · 7 과 포트폴리오 `POST /transactions` 를 그대로 쓴다
+- 슬라이스 7: `SRV-REQ-038` FR-14a · 14b 를 소비. 새 경로 없음 — 미러 응답 필드 추가. `@repo/core/coach` `behaviorMirror.ts` 확장
 - 슬라이스 6: `SRV-REQ-038` FR-10a~10e 를 소비. `@repo/core/coach` `monthlyReview.ts` 신설 · `tradeRisk.ts` · `behaviorMirror.ts` 확장
 - 슬라이스 5: `SRV-REQ-038` FR-9e(미러) · 9c(결과 · 태그 확정) · FR-12(size-check `behavior`)를 소비. `@repo/core/coach` `behaviorMirror.ts` 가 FR-7~9 뷰모델을 옮긴다
 
@@ -56,3 +58,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-09-24 | 신설 · FR-1~6 구현. 근거 `reports/checklists/BFF-REQ-038.md` |
 | 2026-09-27 | 슬라이스 5 FR-7(미러) · FR-8(결과 · 태그 확정) · FR-9(size-check `behavior` · `hasPlan`). 근거 `reports/checklists/BFF-REQ-038.md` §슬라이스 5 |
 | 2026-09-27 | 슬라이스 6 FR-10(월간 복기) · FR-11(Brier · 체크리스트 · 시나리오 · 한 종목 상한) · FR-12(프리모템 · 체크리스트 기록). 새 경로 1. 근거 `reports/checklists/BFF-REQ-038.md` §슬라이스 6 |
+| 2026-09-27 | 슬라이스 7 FR-13(미러 `streak` · `timing`). 새 경로 없음. 근거 `reports/checklists/BFF-REQ-038.md` §슬라이스 7 |
