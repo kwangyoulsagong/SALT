@@ -6,6 +6,7 @@ import type {
   CoachReportResult,
   SymbolCoachViewModel,
   SymbolEventsResult,
+  SymbolPositioningResult,
   RiskBudgetResult,
   SymbolForecastResult,
   TradePlanListResult,
@@ -109,6 +110,18 @@ export const coachApi = {
     if (!response.ok) throw new CoachApiError(response.status);
 
     const body = (await response.json()) as AppEnvelope<SymbolEventsResult>;
+    return body.data;
+  },
+
+  /** 쏠림 신호 (`GET /api/app/coach/positioning`). 소유자만 — 아니면 404. 서버 장애는 200 `unavailable` */
+  positioning: async (symbol: string, signal?: AbortSignal): Promise<SymbolPositioningResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.positioning(symbol)}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<SymbolPositioningResult>;
     return body.data;
   },
 
