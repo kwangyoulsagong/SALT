@@ -31,9 +31,10 @@ CREATE UNIQUE INDEX "judgment_ledger_symbol_mode_as_of_date_key" ON "judgment_le
 CREATE INDEX "judgment_ledger_as_of_date_idx" ON "judgment_ledger"("as_of_date");
 
 -- 불변 — 발행한 판단을 고치지 않는다. 틀린 발행은 새 rule_version 으로 다음 날부터 바뀐다
+-- 두 표(원장 · 사전등록)가 같이 쓴다 — 열 이름에 기대지 않고 표 이름으로 알린다
 CREATE FUNCTION judgment_ledger_immutable() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
-  RAISE EXCEPTION 'judgment_ledger 는 불변이다 (id=%)', OLD.id;
+  RAISE EXCEPTION '%.% 는 불변이다', TG_TABLE_SCHEMA, TG_TABLE_NAME;
 END $$;
 CREATE TRIGGER judgment_ledger_no_update BEFORE UPDATE ON "judgment_ledger"
   FOR EACH ROW EXECUTE FUNCTION judgment_ledger_immutable();
