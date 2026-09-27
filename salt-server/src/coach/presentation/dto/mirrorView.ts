@@ -1,6 +1,16 @@
 import Decimal from "decimal.js";
 
-import type { BrierSummary, DecisionOutcome, EntryChecklist, MirrorMetric, TagCost } from "../../domain";
+import type {
+  BrierSummary,
+  DecisionOutcome,
+  EntryChecklist,
+  MirrorMetric,
+  StreakMirror,
+  StreakSizing,
+  TagCost,
+  TimingBucket,
+  TradeTimingMirror,
+} from "../../domain";
 import type { BehaviorMirrorView } from "../../application/GetBehaviorMirror";
 import type { TradeBehaviorPreview } from "../../application/PreviewTradeBehavior";
 
@@ -57,6 +67,39 @@ export const toBrierResponse = (brier: BrierSummary) => ({
   })),
 });
 
+const streakSizing = (sizing: StreakSizing | null) =>
+  sizing && { ratio: metric(sizing.ratio), observed: sizing.observed };
+
+/** 연승 · 연패(FR-20). 사이즈 비율은 매수 금액(수수료 제외) 평균의 비다 */
+export const toStreakResponse = (streak: StreakMirror) => ({
+  current: streak.current,
+  longestWin: streak.longestWin,
+  longestLoss: streak.longestLoss,
+  sampleSize: streak.sampleSize,
+  minLength: streak.minLength,
+  afterWins: streakSizing(streak.afterWins),
+  afterLosses: streakSizing(streak.afterLosses),
+  basis: "buy_amount_excl_fee_not_capital_adjusted" as const,
+});
+
+const timingBucket = <K extends string>(bucket: TimingBucket<K>) => ({
+  key: bucket.key,
+  count: bucket.count,
+  winRate: rate(bucket.winRate),
+  avgReturn: rate(bucket.avgReturn),
+  netPnlKrw: krw(bucket.netPnlKrw),
+  status: bucket.status,
+});
+
+/** 진입 시각 · 요일(FR-22). 시각은 KST, 날짜만 적은 진입은 시간대에서 빠진다 */
+export const toTimingResponse = (timing: TradeTimingMirror) => ({
+  bands: timing.bands && timing.bands.map(timingBucket),
+  weekdays: timing.weekdays.map(timingBucket),
+  timedCount: timing.timedCount,
+  untimedCount: timing.untimedCount,
+  timeZone: "Asia/Seoul" as const,
+});
+
 const toChecklistResponse = (checklist: EntryChecklist | null) =>
   checklist && {
     items: checklist.items.map((item) => ({
@@ -110,6 +153,8 @@ export const toBehaviorMirrorResponse = (view: BehaviorMirrorView) => ({
     },
   },
   brier: toBrierResponse(view.brier),
+  streak: toStreakResponse(view.streak),
+  timing: toTimingResponse(view.timing),
   outcomeCount: view.outcomeCount,
   outcomesComputedAt: view.outcomesComputedAt,
   minSample: view.minSample,

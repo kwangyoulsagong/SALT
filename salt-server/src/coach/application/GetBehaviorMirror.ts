@@ -5,7 +5,9 @@ import {
   brierSummary,
   dispositionMirror,
   MIRROR_MIN_SAMPLE,
+  streakMirror,
   tagCosts,
+  tradeTimingMirror,
   TURNOVER_BASELINE,
   turnoverGauge,
   type AdherenceMirror,
@@ -15,7 +17,9 @@ import {
   type DispositionMirror,
   type ForecastReader,
   type PortfolioProbe,
+  type StreakMirror,
   type TagCost,
+  type TradeTimingMirror,
   type TradePlanStore,
   type TurnoverGauge,
 } from "../domain";
@@ -28,6 +32,8 @@ import { loadTradeHistory } from "./lib/loadTradeHistory";
  * 준수 라벨 · 결과 · 태그는 **배치가 저장한 것**을 읽는다(사용자 수정 포함). 처분효과 · 보유 대비는 거래와 일봉에서
  * 요청 때 센다 — 저장할 표가 없고(`DB-REQ-031` 은 결과 · 계획만), 재료 쿼리가 넷이라 요청 시 계산이 싸다.
  * 배치가 실패한 날은 전날 결과 + `outcomesComputedAt` 이 그대로 보인다.
+ *
+ * 연승 · 연패(FR-20) · 시간대(FR-22, 슬라이스 7)는 이미 읽은 결과 · 거래에서 센다 — 쿼리가 늘지 않는다.
  *
  * "오를 확률" 채점(FR-13, 슬라이스 6)은 적은 계획이 있을 때만 일봉을 한 번 더 읽는다(거래가 없는 종목에 적었을 수 있다).
  *
@@ -48,6 +54,10 @@ export interface BehaviorMirrorView {
   turnover: { gauge: TurnoverGauge | null; baseline: typeof TURNOVER_BASELINE };
   /** 내가 적은 "오를 확률"의 채점(전 기간) */
   brier: BrierSummary;
+  /** 연승 · 연패(FR-20). 원장이 잘리면 사이즈 비교만 빠진다 */
+  streak: StreakMirror;
+  /** 진입 시각 · 요일별 청산 성과(FR-22) */
+  timing: TradeTimingMirror;
   outcomeCount: number;
   /** 결과를 만든 마지막 배치 시각. 결과가 없으면 `null` */
   outcomesComputedAt: Date | null;
@@ -88,6 +98,7 @@ export class GetBehaviorMirror {
     const base = {
       brier,
       tagCosts: tagCosts(live),
+      timing: tradeTimingMirror(live),
       outcomeCount: live.length,
       outcomesComputedAt: live.reduce<Date | null>(
         (latest, outcome) => (latest && latest > outcome.computedAt ? latest : outcome.computedAt),
@@ -101,6 +112,7 @@ export class GetBehaviorMirror {
       return {
         ...base,
         status: "truncated",
+        streak: streakMirror(live, null),
         adherence: null,
         disposition: null,
         benchmark: null,
@@ -117,6 +129,7 @@ export class GetBehaviorMirror {
     return {
       ...base,
       status: "ok",
+      streak: streakMirror(live, history.entries),
       adherence: adherenceMirror(
         history.plans.filter((plan) => plan.sampleOrigin === "live"),
         live

@@ -592,12 +592,17 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - `brier`(FR-13) — 계획에 적은 "오를 확률"을 `reviewAt`(없으면 30일) 뒤 방향으로 채점한 평균 Brier ·
    *         기준선 0.25(늘 50%) · 실력(1 − 평균 ÷ 기준선) · 빗나간 수 · 만기 전 수 · 최근 빗나간 3건. 기준 가격은 적기 전
    *         마지막 닫힌 일봉 종가다
+   *       - `streak`(FR-20) — 지금 이어지는 연승/연패(`current`, 순손익 0 청산은 끊는다) · 최장 연승 · 연패 ·
+   *         연속 3건 이상 뒤 매수 금액 평균 ÷ 그 밖의 평균(`afterWins` · `afterLosses`). `observed` 는 비율 ≥ 1.2 이고
+   *         연속 뒤 매수 ≥ 20 일 때만 true. 거래가 잘리면(`truncated`) 사이즈 비교는 `null`
+   *       - `timing`(FR-22) — 진입 시각(KST) 4구간 · 요일 7개별 청산 수 · 이익 비율 · 평균 순수익률 · 손익 합(원).
+   *         날짜만 적은 진입(KST 0시 정각)은 시간대에서 빠지고(`untimedCount`), 하나도 없으면 `bands: null`
    *     tags: [Coach Risk]
    *     security:
    *       - bearerAuth: []
    *     responses:
    *       200:
-   *         description: "`{ status, adherence, disposition, benchmark, tagCosts[], turnover, brier, outcomeCount, outcomesComputedAt, minSample, asOf }`"
+   *         description: "`{ status, adherence, disposition, benchmark, tagCosts[], turnover, brier, streak, timing, outcomeCount, outcomesComputedAt, minSample, asOf }`"
    *       401: { description: 인증 실패 }
    */
   router.get("/mirror", risk.getBehaviorMirror);
