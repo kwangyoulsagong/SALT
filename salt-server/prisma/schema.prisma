@@ -45,6 +45,7 @@ model User {
   decisionOutcomes        DecisionOutcome[]
   monthlyReviews          MonthlyReview[]
   insights                InvestmentInsight[]
+  recommendationSnapshots CoachRecommendationSnapshot[]
   executionLogs           ExecutionLog[]
   investmentNotifications InvestmentNotification[]
   inviteCode              InviteCode?
@@ -745,6 +746,40 @@ model InvestmentInsight {
   @@index([userId, type])
   @@index([userId, createdAt])
   @@map("investment_insights")
+}
+
+// 저장 추천 스냅샷 (F010 슬라이스 0 — 성적표 신뢰성)
+//
+// 저장 추천(`investment_insights.ai_coach`)은 사용자당 한 행이 upsert 로 덮어써져 이력이 없었고, 성적표는
+// "판단 뒤 첫 종가 vs 최신 종가"라 관찰 기간이 없었다. 추천을 낼 때마다 불변 행을 남기고 30일 뒤 채점한다.
+// 종목 판단 스냅샷과 같은 모양이고, 다른 점은 사용자 것이라는 것뿐(`user_id`).
+model CoachRecommendationSnapshot {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  symbol       String
+  mode         String // 저장 추천의 지평은 늘 "long_term"(30일) — 열은 남겨 두어 나중에 단타 추천이 생겨도 표를 쪼개지 않는다
+  action       String // buy | sell | hold | rebalance
+  signalType   String   @map("signal_type") // "coach.<action>" — 성적표 그룹 키(SRV-REQ-024 매핑 표 D)
+  score        Int
+  reasons      Json // 추천 당시 근거 문장 — 표시용
+  entryPrice   Decimal  @map("entry_price")
+  judgedAt     DateTime @map("judged_at")
+  sampleOrigin String   @map("sample_origin") // live | backtest | synthetic — CHECK 는 마이그레이션 SQL
+
+  exitPrice   Decimal?  @map("exit_price")
+  returnRate  Decimal?  @map("return_rate") @db.Decimal(12, 6)
+  outcome     String? // "hit" | "miss"
+  evaluatedAt DateTime? @map("evaluated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 사용자 · 종목 · 행동별 관찰 기간당 1건(표본 독립성). 유니크가 "마지막 추천 시각" 조회도 덮는다
+  @@unique([userId, symbol, action, judgedAt])
+  @@index([userId, signalType, outcome, judgedAt(sort: Desc)])
+  @@index([evaluatedAt, judgedAt])
+  @@map("coach_recommendation_snapshots")
 }
 
 // 종목 판단 스냅샷 (F004 · 감사 문서 D11 · B39)

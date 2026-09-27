@@ -18,6 +18,7 @@ import { PrismaCoachProfileStore } from "./coach/infrastructure/PrismaCoachProfi
 import { PrismaForecastReader } from "./coach/infrastructure/PrismaForecastReader";
 import { PrismaGaugeTrackStore } from "./coach/infrastructure/PrismaGaugeTrackStore";
 import { PrismaSymbolJudgmentStore } from "./coach/infrastructure/PrismaSymbolJudgmentStore";
+import { PrismaRecommendationSnapshotStore } from "./coach/infrastructure/PrismaRecommendationSnapshotStore";
 import { PrismaTradePlanStore } from "./coach/infrastructure/PrismaTradePlanStore";
 import { PrismaDecisionOutcomeStore } from "./coach/infrastructure/PrismaDecisionOutcomeStore";
 import { PrismaMonthlyReviewStore } from "./coach/infrastructure/PrismaMonthlyReviewStore";
@@ -148,6 +149,9 @@ const coach = createCoachApplication({
   news: new ArticleTextAdapter(news.api),
   // 실측 성적은 live 만. 로컬 시드로 렌더 경로를 볼 때만 synthetic 을 더한다(운영에서는 env 가 막는다)
   judgments: new PrismaSymbolJudgmentStore(
+    env.JUDGMENT_COUNT_SYNTHETIC ? ["live", "synthetic"] : ["live"]
+  ),
+  recommendations: new PrismaRecommendationSnapshotStore(
     env.JUDGMENT_COUNT_SYNTHETIC ? ["live", "synthetic"] : ["live"]
   ),
   tracked: new TrackedAssetAdapter(market.api, portfolio.api),

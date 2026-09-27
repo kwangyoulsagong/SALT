@@ -15,8 +15,12 @@ import {
   type CoachProfileStore,
   type MarketProbe,
   type PortfolioProbe,
+  type RecommendationSnapshotStore,
+  coachSignalType,
+  isRecommendationSnapshotDue,
 } from "../domain";
 import { isDomainError } from "../../shared/domain";
+import { logger } from "../../shared/config/logger";
 import { AnalyzeNewsSentiment } from "./AnalyzeNewsSentiment";
 import { GetSymbolCoach, type SymbolCoachView } from "./GetSymbolCoach";
 import { assembleCoachContext } from "./lib/assembleCoachContext";
@@ -78,7 +82,9 @@ export class GenerateCoachRecommendation {
     private readonly symbolCoach: GetSymbolCoach,
     private readonly logs: CoachGenerationLogStore,
     private readonly clock: Clock = () => new Date(),
-    private readonly behavior: BehaviorAnalyzer | null = null
+    private readonly behavior: BehaviorAnalyzer | null = null,
+    /** 추천 스냅샷 원장(F010 슬라이스 0). 없으면 기록하지 않는다 — 옛 테스트 · 조립 호환 */
+    private readonly recommendations: RecommendationSnapshotStore | null = null
   ) {}
 
   async execute(
@@ -187,7 +193,45 @@ export class GenerateCoachRecommendation {
       nextAction: symbolCoach.modeDecision.action,
     });
 
+    await this.recordSnapshot(userId, top, payload.reasons.map((reason) => reason.message));
+
     return insight;
+  }
+
+  /**
+   * 추천 1건을 **불변 원장**에 남긴다 (F010 슬라이스 0). 저장 추천 행은 덮어써지지만 이 행은 남아 30일 뒤 채점된다.
+   *
+   * 같은 사용자 · 종목 · 행동은 30일에 한 번만 쓴다(표본 독립성 — 워커가 10분마다 돈다). 진입가는 그 순간의 시세다.
+   * 기록이 실패해도 추천은 나간다 — 관측이 본 기능을 막지 않는다(생성 로그와 같은 원칙).
+   */
+  private async recordSnapshot(
+    userId: string,
+    top: ReturnType<typeof rankCandidates>[number],
+    reasons: string[]
+  ): Promise<void> {
+    if (!this.recommendations) return;
+    try {
+      const now = this.clock();
+      const last = await this.recommendations.lastJudgedAt(userId);
+      if (!isRecommendationSnapshotDue(last.get(`${top.symbol}:${top.action}`) ?? null, now)) return;
+
+      const quote = (await this.market.quotes([top.symbol])).get(top.symbol);
+      const entryPrice = Number(quote?.currentPrice ?? 0);
+      if (!entryPrice) return; // 진입가 없는 표본은 판정할 수 없다
+
+      await this.recommendations.saveSnapshot({
+        userId,
+        symbol: top.symbol,
+        action: top.action,
+        signalType: coachSignalType(top.action),
+        score: top.score,
+        reasons,
+        entryPrice,
+        judgedAt: now,
+      });
+    } catch (error) {
+      logger.warn("추천 스냅샷 기록 실패 — 추천은 그대로 나간다", error);
+    }
   }
 
   /**

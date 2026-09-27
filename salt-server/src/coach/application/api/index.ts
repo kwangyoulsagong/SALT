@@ -14,6 +14,7 @@ import type {
   TradePlanStore,
   DecisionOutcomeStore,
   MonthlyReviewStore,
+  RecommendationSnapshotStore,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
 import {
@@ -43,6 +44,7 @@ import { GetRiskBudget, UpdateRiskBudget } from "../ManageRiskBudget";
 import { BuildMonthlyReview, GetMonthlyReview } from "../ManageMonthlyReview";
 import { CreateTradePlan, ListTradePlans, UpdateTradePlan } from "../ManageTradePlan";
 import { RecordCoachFeedback } from "../RecordCoachFeedback";
+import { EvaluateCoachRecommendations } from "../RecordCoachRecommendations";
 import {
   EvaluateSymbolJudgments,
   SnapshotSymbolJudgments,
@@ -73,6 +75,8 @@ export interface CoachDependencies {
   notifier: CoachNotifier;
   explainer: CoachExplainer;
   judgments: SymbolJudgmentStore;
+  /** 저장 추천 스냅샷 원장(F010 슬라이스 0) */
+  recommendations: RecommendationSnapshotStore;
   tracked: TrackedAssetProbe;
   gauges: GaugeTrackStore;
   generationLogs: CoachGenerationLogStore;
@@ -115,6 +119,8 @@ export interface CoachUseCases {
   getSymbolPositioning: GetSymbolPositioning;
   snapshotSymbolJudgments: SnapshotSymbolJudgments;
   evaluateSymbolJudgments: EvaluateSymbolJudgments;
+  /** 30일 지난 저장 추천 스냅샷 채점(F010 슬라이스 0) */
+  evaluateCoachRecommendations: EvaluateCoachRecommendations;
   refreshGaugeTrackRecords: RefreshGaugeTrackRecords;
   /** F009 슬라이스 1 — 사이즈 계산 · 계획 · 리스크 예산 */
   checkTradeSize: CheckTradeSize;
@@ -158,7 +164,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     symbolCoach,
     deps.generationLogs,
     undefined,
-    analyzeTradingBehavior
+    analyzeTradingBehavior,
+    deps.recommendations
   );
 
   const getRiskBudget = new GetRiskBudget(deps.profiles, deps.portfolio, deps.market, deps.forecasts);
@@ -187,6 +194,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.insights,
       deps.market,
       deps.portfolio,
+      deps.recommendations,
       undefined,
       analyzeTradingBehavior
     ),
@@ -210,7 +218,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.profiles
     ),
     listProfitPlans: new ListProfitPlans(deps.portfolio),
-    getSignalPerformance: new GetSignalPerformance(deps.insights, deps.market),
+    getSignalPerformance: new GetSignalPerformance(deps.recommendations),
     getJudgmentScoreboard: new GetJudgmentScoreboard(deps.judgments),
     getSymbolForecast: new GetSymbolForecast(deps.forecasts, deps.portfolio, deps.forecastOwnerEmails),
     getSymbolEvents: new GetSymbolEvents(deps.forecasts, deps.forecastOwnerEmails),
@@ -223,6 +231,10 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     evaluateSymbolJudgments: new EvaluateSymbolJudgments(
       deps.market,
       deps.judgments
+    ),
+    evaluateCoachRecommendations: new EvaluateCoachRecommendations(
+      deps.market,
+      deps.recommendations
     ),
     refreshGaugeTrackRecords: new RefreshGaugeTrackRecords(
       deps.market,

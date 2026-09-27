@@ -5,8 +5,9 @@ import {
   ProfitPlanStageAction,
   ProfitPlanStageKey,
 } from "./profitPlan";
-import type { PerformanceSummary } from "./signalPerformance";
-import { MIN_JUDGMENT_SAMPLE } from "./symbolJudgment";
+import type { RecommendationTrackRecord } from "./recommendationJudgment";
+
+export type { RecommendationTrackRecord } from "./recommendationJudgment";
 
 /**
  * 코치 상세 — **저장된 추천**을 화면 계약(`SRV-REQ-025` `CoachDetailResult`)으로 읽는 규칙.
@@ -37,32 +38,8 @@ export const coachSignalType = (action: CoachAction): string =>
 export type RecommendationBlockedReason =
   | "reasons_missing"
   | "signal_track_record_missing"
+  | "insufficient_sample"
   | "failure_cases_missing";
-
-export interface RecommendationTrackRecord {
-  signalType: string;
-  sample: number;
-  /** 표본 0 이면 `null` — 0% 가 아니다. */
-  winRate: number | null;
-  avgReturn: number | null;
-  worstObservedReturn: number | null;
-  lowSample: boolean;
-}
-
-export const summarizeRecommendationTrack = (
-  signalType: string,
-  summary: Pick<
-    PerformanceSummary,
-    "sampleCount" | "winRate" | "avgReturn" | "worstObservedReturn"
-  >
-): RecommendationTrackRecord => ({
-  signalType,
-  sample: summary.sampleCount,
-  winRate: summary.winRate,
-  avgReturn: summary.avgReturn,
-  worstObservedReturn: summary.worstObservedReturn,
-  lowSample: summary.sampleCount < MIN_JUDGMENT_SAMPLE,
-});
 
 export interface RecommendationGateInput {
   reasons: unknown[];
@@ -72,13 +49,12 @@ export interface RecommendationGateInput {
 }
 
 /**
- * 저장 추천의 3종 세트 게이트 (`SRV-REQ-024` FR-11~15 · `SRV-REQ-025` FR-1~4).
+ * 저장 추천의 3종 세트 게이트 (`SRV-REQ-024` FR-11~15 · `SRV-REQ-025` FR-1~4, F010 슬라이스 0 개정).
  *
  * - 근거: `reasons` 와 `topFactors` 가 **둘 다** 있어야 한다(FR-11)
- * - 적중률: 표본이 **1건 이상**이면 통과하고 `lowSample` 로 표시한다(FR-32 기본안).
- *   종목 판단은 20 미만을 막는데(FR-137 · D11) 저장 추천은 아니다 — 계약의 사유 enum 에도
- *   `insufficient_sample` 이 없다. 두 경로의 차이는 스펙이 정한 것이다
- * - 실패사례: 비어 있으면 막는다
+ * - 적중률: 표본 0 이면 `signal_track_record_missing`, **20 미만이면 `insufficient_sample`** — 종목 판단(FR-137)과
+ *   같은 기준이다. 원문 FR-32 의 "1건이면 통과"는 이력이 덮어써지던 시절의 임시안이었고, 원장이 생겨 폐기했다
+ * - 실패사례: 비어 있으면 막는다 — 표본이 충분한데 빗나간 적이 없으면 표본이 치우친 신호다
  *
  * 막혀도 **에러가 아니다**(FR-2 · FR-14). 우회 인자가 없다(FR-15).
  */
@@ -90,6 +66,9 @@ export const recommendationGate = (
   }
   if (!input.trackRecord || input.trackRecord.sample === 0) {
     return { renderable: false, blockedReason: "signal_track_record_missing" };
+  }
+  if (input.trackRecord.lowSample) {
+    return { renderable: false, blockedReason: "insufficient_sample" };
   }
   if (input.failureCases.length === 0) {
     return { renderable: false, blockedReason: "failure_cases_missing" };

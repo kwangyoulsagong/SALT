@@ -9,6 +9,8 @@ import type {
   CoachInsightStore,
   MarketProbe,
   PortfolioProbe,
+  RecommendationCase,
+  RecommendationSnapshotStore,
 } from "../../domain";
 import { GetCoachDetail } from "../GetCoachDetail";
 
@@ -53,14 +55,35 @@ const store = (
     findRecommendationHistory: async () => history,
   }) as unknown as CoachInsightStore;
 
-const market = (entry = 100, latest = 110): MarketProbe =>
+const market = (): MarketProbe =>
   ({
     quotes: async () =>
-      new Map([["BTC", { symbol: "BTC", assetType: "crypto", currentPrice: latest, change24h: 0, priceUpdatedAt: T0 }]]),
-    latestCloses: async (symbols: string[]) =>
-      new Map(symbols.map((symbol) => [symbol, latest])),
-    closeAtOrAfter: async () => entry,
+      new Map([["BTC", { symbol: "BTC", assetType: "crypto", currentPrice: 110, change24h: 0, priceUpdatedAt: T0 }]]),
   }) as unknown as MarketProbe;
+
+/**
+ * 추천 스냅샷 원장(F010 슬라이스 0)의 가짜. `sample` 건 중 `misses` 건이 빗나갔고, 필터가 요구한 신호 유형만 기억한다.
+ */
+const ledger = (sample: number, misses: number, aboveCost = Math.floor(sample / 2)) => {
+  const asked: string[] = [];
+  const store = {
+    summarize: async (_u: string, filter: { signalType?: string }) => {
+      asked.push(filter.signalType ?? "*");
+      return { sample, hits: sample - misses, aboveCost, avgReturn: sample ? 0.02 : null, worstReturn: sample ? -0.1 : null };
+    },
+    recentCases: async (): Promise<RecommendationCase[]> =>
+      Array.from({ length: Math.min(misses, 3) }, (_, i) => ({
+        symbol: "BTC",
+        action: "buy",
+        judgedAt: new Date(T0.getTime() - (i + 1) * 86_400_000),
+        entryPrice: 100,
+        exitPrice: 90,
+        returnRate: -0.1,
+        outcome: "miss",
+      })),
+  } as unknown as RecommendationSnapshotStore;
+  return { store, asked };
+};
 
 const holding: CoachHolding = {
   symbol: "ETH",
@@ -81,8 +104,9 @@ const detail = (
   s: CoachInsightStore,
   p = portfolio(),
   m = market(),
-  behavior: BehaviorAnalyzer | null = null
-) => new GetCoachDetail(s, m, p, () => NOW, behavior);
+  behavior: BehaviorAnalyzer | null = null,
+  recommendations: RecommendationSnapshotStore = ledger(0, 0).store
+) => new GetCoachDetail(s, m, p, recommendations, () => NOW, behavior);
 
 const finding = (payload: Record<string, unknown>, severity = 50): BehaviorFinding =>
   ({ dedupeKey: String(payload.kind), title: "t", summary: "s", severity, confidence: 0.5, payload }) as unknown as BehaviorFinding;
@@ -99,41 +123,51 @@ describe("GetCoachDetail", () => {
     assert.ok(view.disclaimer.length > 0);
   });
 
-  it("실패사례 출처가 없어 추천은 failure_cases_missing 으로 막히고 200 모양 그대로다", async () => {
+  it("표본이 없으면 sample: 0 이고 signal_track_record_missing 이다 — 200 모양 그대로", async () => {
     const view = await detail(store(insight())).execute("u1");
     const rec = view.recommendation!;
 
     assert.equal(rec.renderable, false);
-    assert.equal(rec.blockedReason, "failure_cases_missing");
+    assert.equal(rec.blockedReason, "signal_track_record_missing");
+    assert.equal(rec.signalTrackRecord!.sample, 0);
+    assert.equal(rec.signalTrackRecord!.winRate, null);
     assert.deepEqual(rec.failureCases, []);
     assert.equal(rec.scoreNote, "점수는 확률이 아닙니다");
     assert.equal(rec.assetType, "crypto");
     assert.deepEqual(rec.explanation, { text: "규칙 문장", source: "rule" });
   });
 
-  it("성적은 같은 행동(coach.<action>)의 저장 추천만 센다", async () => {
-    const sell = insight({
-      id: "i2",
-      payload: { ...insight().payload, recommendation: { action: "sell", symbol: "BTC", score: 40 } },
-    });
-    const feedback = insight({ id: "i3", payload: { ...insight().payload, kind: "coach_feedback" } });
+  it("성적은 같은 행동(coach.<action>)의 원장만 묻고, 표본 20 미만이면 insufficient_sample 이다 (F010)", async () => {
+    const { store: rec, asked } = ledger(19, 5);
+    const view = await detail(store(insight()), portfolio(), market(), null, rec).execute("u1");
+    const block = view.recommendation!;
 
-    const view = await detail(store(insight(), [insight(), sell, feedback])).execute("u1");
-    const track = view.recommendation!.signalTrackRecord!;
-
-    assert.equal(track.signalType, "coach.buy");
-    assert.equal(track.sample, 1);
-    assert.equal(track.winRate, 1);
-    assert.equal(track.lowSample, true);
+    assert.deepEqual(asked, ["coach.buy"]);
+    assert.equal(block.signalTrackRecord!.signalType, "coach.buy");
+    assert.equal(block.signalTrackRecord!.sample, 19);
+    assert.equal(block.signalTrackRecord!.lowSample, true);
+    assert.equal(block.blockedReason, "insufficient_sample");
   });
 
-  it("표본이 없으면 sample: 0 이고 signal_track_record_missing 이다", async () => {
-    const view = await detail(store(insight()), portfolio(), market(0)).execute("u1");
-    const rec = view.recommendation!;
+  it("표본 20 이상 · 빗나간 사례가 있으면 렌더되고, 실패사례는 30일 뒤 채점된 것이다 (F010)", async () => {
+    const { store: rec } = ledger(24, 6, 12);
+    const view = await detail(store(insight()), portfolio(), market(), null, rec).execute("u1");
+    const block = view.recommendation!;
 
-    assert.equal(rec.signalTrackRecord!.sample, 0);
-    assert.equal(rec.signalTrackRecord!.winRate, null);
-    assert.equal(rec.blockedReason, "signal_track_record_missing");
+    assert.equal(block.renderable, true);
+    assert.equal(block.blockedReason, null);
+    assert.equal(block.signalTrackRecord!.winRate, 18 / 24);
+    assert.equal(block.signalTrackRecord!.alwaysUpRate, 0.5);
+    assert.ok(Math.abs(block.signalTrackRecord!.excessWinRate! - 0.25) < 1e-9);
+    assert.equal(block.failureCases.length, 3);
+    assert.equal(block.failureCases[0].event, "coach.buy");
+    assert.equal(block.failureCases[0].returnRate, -0.1);
+  });
+
+  it("표본은 충분한데 빗나간 것이 0이면 failure_cases_missing 이다", async () => {
+    const { store: rec } = ledger(24, 0);
+    const view = await detail(store(insight()), portfolio(), market(), null, rec).execute("u1");
+    assert.equal(view.recommendation!.blockedReason, "failure_cases_missing");
   });
 
   it("staleHours 는 payload 생성 시각 기준 내림 정수다", async () => {

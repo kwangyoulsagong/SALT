@@ -183,6 +183,14 @@ export class InvestmentInsightWorker {
         );
       });
 
+      // 저장 추천 스냅샷 채점 (F010 슬라이스 0). 스냅샷은 추천 생성이 남기고, 30일 지난 것만 여기서 매긴다
+      await this.step("🧾 Evaluating matured recommendations...", async () => {
+        const result = await this.coach.evaluateCoachRecommendations.execute();
+        console.log(
+          `   판정 ${result.evaluated} · 종가 대기 ${result.waitingForPrice}`
+        );
+      });
+
       const users = await prisma.user.findMany({ select: { id: true } });
       const userIds = users.map((user) => user.id);
 

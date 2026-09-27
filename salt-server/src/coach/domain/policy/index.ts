@@ -16,6 +16,7 @@ export * from "./newsSentiment";
 export * from "./portfolioState";
 export * from "./preflight";
 export * from "./profitPlan";
+export * from "./recommendationJudgment";
 export * from "./score";
 export * from "./signalPerformance";
 export * from "./symbolJudgment";

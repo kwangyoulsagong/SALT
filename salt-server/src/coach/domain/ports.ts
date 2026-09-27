@@ -21,6 +21,7 @@ import type {
   TradePlanPatch,
   ZoneTimeframe,
   IndicatorTimeframe,
+  RecommendationCase,
   AdherenceLabel,
   DailyBar,
   DecisionOutcome,
@@ -28,6 +29,7 @@ import type {
   MonthlyReview,
 } from "./policy";
 import type {
+  CoachAction,
   CoachArticle,
   CoachAssetType,
   CoachHolding,
@@ -329,6 +331,53 @@ export interface JudgmentEvaluation {
   returnRate: number;
   outcome: JudgmentOutcome;
   evaluatedAt: Date;
+}
+
+export interface RecommendationSnapshotDraft {
+  userId: string;
+  symbol: string;
+  action: CoachAction;
+  signalType: string;
+  score: number;
+  reasons: string[];
+  entryPrice: number;
+  judgedAt: Date;
+}
+
+export interface PendingRecommendation {
+  id: string;
+  symbol: string;
+  action: CoachAction;
+  entryPrice: number;
+  judgedAt: Date;
+}
+
+/** 성적을 자르는 조건. 둘 다 없으면 이 사용자의 추천 전체다. */
+export interface RecommendationFilter {
+  signalType?: string;
+  symbol?: string;
+}
+
+/**
+ * 저장 추천 스냅샷 (F010 슬라이스 0). 종목 판단 스냅샷과 같은 모양이고 **사용자 것**이라는 점만 다르다.
+ * 성적은 저장소가 SQL 로 모아 준다 — 실측은 `live` 만 센다(`SampleOrigin`).
+ */
+export interface RecommendationSnapshotStore {
+  /** 사용자의 종목 · 행동별 마지막 추천 시각. 키는 `${symbol}:${action}`. */
+  lastJudgedAt(userId: string): Promise<Map<string, Date>>;
+  /** 같은 `(userId, symbol, action, judgedAt)` 가 있으면 건너뛴다. 썼으면 `true`. */
+  saveSnapshot(draft: RecommendationSnapshotDraft): Promise<boolean>;
+  /** 관찰 기간이 끝났고 아직 판정이 없는 것. 오래된 것이 앞이다. 사용자 무관(배치). */
+  listPending(judgedBefore: Date, limit: number): Promise<PendingRecommendation[]>;
+  saveEvaluations(evaluations: JudgmentEvaluation[]): Promise<void>;
+  summarize(userId: string, filter: RecommendationFilter): Promise<JudgmentTrackStats>;
+  /** 판정이 끝난 최근 사례. `outcome` 을 주면 그 결과만. 최신이 앞이다. */
+  recentCases(
+    userId: string,
+    filter: RecommendationFilter,
+    outcome: JudgmentOutcome | null,
+    limit: number
+  ): Promise<RecommendationCase[]>;
 }
 
 /**

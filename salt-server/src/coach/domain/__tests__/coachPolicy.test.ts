@@ -12,15 +12,11 @@ import {
   detectOverTrading,
   detectPanicSell,
   generateCandidates,
-  isFeedbackInsight,
   makeModeDecision,
-  resolveSampleIdentity,
-  summarizePerformance,
   type CoachContext,
   type CoachHolding,
   type CoachInsight,
   type CoachTrade,
-  type PerformanceSample,
 } from "../index";
 
 /**
@@ -385,104 +381,6 @@ describe("행동 판정 — 특성화", () => {
 
   it("감지된 패턴마다 규칙이 하나씩 붙는다", () => {
     assert.equal(buildBehaviorRules(["over_trading", "panic_sell"]).length, 2);
-  });
-});
-
-describe("성적표 집계 — 특성화", () => {
-  const sample = (returnRate: number): PerformanceSample => ({
-    insightId: "i1",
-    symbol: "BTC",
-    signalKey: "ai_coach",
-    createdAt: NOW,
-    entryPrice: 100,
-    latestPrice: 100 * (1 + returnRate),
-    returnRate,
-    win: returnRate > 0,
-  });
-
-  it("표본이 없으면 insufficient_data 를 숨기지 않고 준다", () => {
-    assert.deepEqual(summarizePerformance([]), {
-      status: "insufficient_data",
-      sampleCount: 0,
-      winRate: null,
-      avgReturn: null,
-      worstObservedReturn: null,
-      samples: [],
-    });
-  });
-
-  it("승률·평균·가장 나빴던 수익률을 함께 준다", () => {
-    const summary = summarizePerformance([sample(1), sample(-1)]);
-
-    assert.equal(summary.status, "active");
-    assert.equal(summary.winRate, 0.5);
-    assert.equal(summary.avgReturn, 0);
-    assert.equal(summary.worstObservedReturn, -1);
-  });
-
-  it("응답 표본은 20건에서 자른다", () => {
-    const summary = summarizePerformance(
-      Array.from({ length: 25 }, () => sample(0.1))
-    );
-
-    assert.equal(summary.sampleCount, 25);
-    assert.equal(summary.samples.length, 20);
-  });
-
-  it("심볼은 컬럼 → payload → 추천 → 쿼리 순으로 찾는다", () => {
-    const base: CoachInsight = {
-      id: "i1",
-      type: "ai_coach",
-      symbol: null,
-      dedupeKey: "main_coach",
-      title: "t",
-      summary: "s",
-      severity: 50,
-      confidence: null,
-      payload: null,
-      createdAt: NOW,
-      expiresAt: null,
-    };
-
-    assert.equal(
-      resolveSampleIdentity({ ...base, symbol: "ETH" }, "BTC", undefined)?.symbol,
-      "ETH"
-    );
-    assert.equal(
-      resolveSampleIdentity(
-        { ...base, payload: { symbol: "SOL" } },
-        "BTC",
-        undefined
-      )?.symbol,
-      "SOL"
-    );
-    assert.equal(
-      resolveSampleIdentity(
-        { ...base, payload: { recommendation: { symbol: "XRP", action: "buy" } } },
-        undefined,
-        undefined
-      )?.signalKey,
-      "buy"
-    );
-    assert.equal(resolveSampleIdentity(base, undefined, undefined), null);
-  });
-
-  it("피드백 행은 성적 표본이 아니다", () => {
-    const feedback: CoachInsight = {
-      id: "i2",
-      type: "ai_coach",
-      symbol: "BTC",
-      dedupeKey: "feedback:1",
-      title: "t",
-      summary: "s",
-      severity: 0,
-      confidence: null,
-      payload: { kind: "coach_feedback" },
-      createdAt: NOW,
-      expiresAt: null,
-    };
-
-    assert.equal(isFeedbackInsight(feedback), true);
   });
 });
 
