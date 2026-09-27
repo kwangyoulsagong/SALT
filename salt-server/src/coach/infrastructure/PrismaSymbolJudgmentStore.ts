@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
-import { LIVE_ORIGINS, RETURN_BUCKETS } from "../domain";
+import { LIVE_ORIGINS, RETURN_BUCKETS, ROUND_TRIP_COST } from "../domain";
 import type {
   CoachMode,
   JudgmentCase,
@@ -21,6 +21,7 @@ interface ScoreboardRow extends Record<string, unknown> {
   signal_type: string;
   sample: number;
   hits: number;
+  above_cost: number;
   avg_return: Prisma.Decimal | null;
   worst_return: Prisma.Decimal | null;
   p25: Prisma.Decimal | null;
@@ -168,7 +169,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
   }
 
   async summarize(signalType: string): Promise<JudgmentTrackStats> {
-    const [all, hits] = await Promise.all([
+    const [all, hits, aboveCost] = await Promise.all([
       prisma.symbolJudgmentSnapshot.aggregate({
         where: { signalType, outcome: { not: null }, sampleOrigin: { in: this.counted } },
         _count: { _all: true },
@@ -178,11 +179,21 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       prisma.symbolJudgmentSnapshot.count({
         where: { signalType, outcome: "hit", sampleOrigin: { in: this.counted } },
       }),
+      // 기저율의 분자 — 비용 경계는 도메인 상수 하나(`ROUND_TRIP_COST`)에서 온다
+      prisma.symbolJudgmentSnapshot.count({
+        where: {
+          signalType,
+          outcome: { not: null },
+          returnRate: { gt: ROUND_TRIP_COST },
+          sampleOrigin: { in: this.counted },
+        },
+      }),
     ]);
 
     return {
       sample: all._count._all,
       hits,
+      aboveCost,
       avgReturn: all._avg.returnRate === null ? null : Number(all._avg.returnRate),
       worstReturn: all._min.returnRate === null ? null : Number(all._min.returnRate),
     };
@@ -216,6 +227,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       SELECT signal_type,
              COUNT(*)::int AS sample,
              COUNT(*) FILTER (WHERE outcome = 'hit')::int AS hits,
+             COUNT(*) FILTER (WHERE return_rate > ${ROUND_TRIP_COST}::numeric)::int AS above_cost,
              AVG(return_rate) AS avg_return,
              MIN(return_rate) AS worst_return,
              PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY return_rate) AS p25,
@@ -232,6 +244,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       signalType: row.signal_type,
       sample: row.sample,
       hits: row.hits,
+      aboveCost: row.above_cost,
       avgReturn: toNumberOrNull(row.avg_return),
       worstReturn: toNumberOrNull(row.worst_return),
       p25: toNumberOrNull(row.p25),

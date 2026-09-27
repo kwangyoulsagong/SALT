@@ -20,7 +20,16 @@ import type { ModeDecisionAction } from "./modeDecision";
  * | `wait` (관망) | 기간 수익률 절댓값이 단타 2% · 장기 10% 안 |
  *
  * 관찰 기간은 모드의 유효시간을 따른다: 단타 24시간 · 장기 30일(`COACH_HORIZON` — 해설 · 판단 문구와 같은 표).
+ *
+ * ## 비용과 기저율 (F010 슬라이스 0)
+ *
+ * 후보 · 피하기의 적중 경계는 0 이 아니라 **왕복 수수료 0.1%** 다 — 0.05% 오른 것을 "맞았다"고 세면 실제로는
+ * 잃은 판단이 적중이 된다. 그리고 적중률은 혼자 뜻이 없다: 상승장에선 "항상 오른다"도 70% 맞는다. 그래서
+ * 같은 표본에서 **비용을 넘겨 오른 비율(`alwaysUpRate`)** 을 같이 세고, 그 기저율 대비 초과분(`excessWinRate`)을 붙인다.
  */
+
+/** 업비트 KRW 마켓 편도 0.05% × 2. `sizing.ts` 의 수수료와 같은 값이다. */
+export const ROUND_TRIP_COST = 0.001;
 
 export type JudgmentOutcome = "hit" | "miss";
 
@@ -99,11 +108,43 @@ export const judgeOutcome = (
   switch (action) {
     case "review_short_opportunity":
     case "review_accumulation":
-      return returnRate > 0 ? "hit" : "miss";
+      return returnRate > ROUND_TRIP_COST ? "hit" : "miss";
     case "avoid":
-      return returnRate <= 0 ? "hit" : "miss";
+      // 피했는데 비용을 넘겨 오르지 않았으면 맞은 것이다
+      return returnRate <= ROUND_TRIP_COST ? "hit" : "miss";
     case "wait":
       return Math.abs(returnRate) <= WAIT_BAND[mode] ? "hit" : "miss";
+  }
+};
+
+/** `<mode>.<action>` 의 행동. 이 모양이 아니면 `null`. */
+export const judgmentActionOf = (signalType: string): ModeDecisionAction | null => {
+  const action = signalType.split(".")[1];
+  return action === "review_short_opportunity" ||
+    action === "review_accumulation" ||
+    action === "wait" ||
+    action === "avoid"
+    ? action
+    : null;
+};
+
+/**
+ * "아무 판단도 안 하고 늘 같은 행동을 했다면"의 적중률 — 기저율.
+ * 후보는 항상 오른다(비용 넘겨), 피하기는 항상 안 오른다. 관망은 적중 정의가 곧 분포라 기저율이 따로 없다.
+ */
+export const naiveHitRate = (
+  action: ModeDecisionAction | null,
+  alwaysUpRate: number | null
+): number | null => {
+  if (alwaysUpRate === null || action === null) return null;
+  switch (action) {
+    case "review_short_opportunity":
+    case "review_accumulation":
+      return alwaysUpRate;
+    case "avoid":
+      return 1 - alwaysUpRate;
+    case "wait":
+      return null;
   }
 };
 
@@ -111,6 +152,8 @@ export const judgeOutcome = (
 export interface JudgmentTrackStats {
   sample: number;
   hits: number;
+  /** 표본 중 기간 수익률이 왕복 비용(`ROUND_TRIP_COST`)을 넘긴 수 — 기저율의 분자. */
+  aboveCost: number;
   avgReturn: number | null;
   /** 가장 나빴던 기간 수익률. */
   worstReturn: number | null;
@@ -129,21 +172,35 @@ export interface JudgmentTrackRecord {
   worstObservedReturn: number | null;
   lowSample: boolean;
   horizonHours: number;
+  /** 같은 표본에서 "항상 오른다"가 비용을 넘겨 맞은 비율. 표본 0 이면 `null`. */
+  alwaysUpRate: number | null;
+  /**
+   * 적중률 − 기저율(`naiveHitRate`). 후보는 항상 오른다 대비, 피하기는 항상 안 오른다 대비.
+   * 관망은 `null`. **이 값이 0 근처면 판단이 아니라 시장 방향을 맞힌 것이다.**
+   */
+  excessWinRate: number | null;
 }
 
 export const summarizeJudgmentTrack = (
   mode: CoachMode,
   signalType: string,
   stats: JudgmentTrackStats
-): JudgmentTrackRecord => ({
-  signalType,
-  sample: stats.sample,
-  winRate: stats.sample > 0 ? stats.hits / stats.sample : null,
-  avgReturn: stats.avgReturn,
-  worstObservedReturn: stats.worstReturn,
-  lowSample: stats.sample < MIN_JUDGMENT_SAMPLE,
-  horizonHours: JUDGMENT_HORIZON_MS[mode] / HOUR_MS,
-});
+): JudgmentTrackRecord => {
+  const winRate = stats.sample > 0 ? stats.hits / stats.sample : null;
+  const alwaysUpRate = stats.sample > 0 ? stats.aboveCost / stats.sample : null;
+  const naive = naiveHitRate(judgmentActionOf(signalType), alwaysUpRate);
+  return {
+    signalType,
+    sample: stats.sample,
+    winRate,
+    avgReturn: stats.avgReturn,
+    worstObservedReturn: stats.worstReturn,
+    lowSample: stats.sample < MIN_JUDGMENT_SAMPLE,
+    horizonHours: JUDGMENT_HORIZON_MS[mode] / HOUR_MS,
+    alwaysUpRate,
+    excessWinRate: winRate === null || naive === null ? null : winRate - naive,
+  };
+};
 
 export interface JudgmentCase {
   symbol: string;

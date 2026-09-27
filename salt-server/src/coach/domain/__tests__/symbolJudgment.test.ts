@@ -31,13 +31,16 @@ const miss: JudgmentCase = {
 
 describe("judgeOutcome — B39", () => {
   it("후보(review_*)는 기간 수익률 > 0 이면 적중, 0 이면 실패", () => {
-    assert.equal(judgeOutcome("scalp", "review_short_opportunity", 0.001), "hit");
+    // 왕복 비용 0.1% 를 넘겨야 적중이다 (F010 슬라이스 0)
+    assert.equal(judgeOutcome("scalp", "review_short_opportunity", 0.0011), "hit");
+    assert.equal(judgeOutcome("scalp", "review_short_opportunity", 0.001), "miss");
     assert.equal(judgeOutcome("scalp", "review_short_opportunity", 0), "miss");
     assert.equal(judgeOutcome("long_term", "review_accumulation", -0.05), "miss");
   });
 
   it("피하기(avoid)는 기간 수익률 ≤ 0 이면 적중", () => {
     assert.equal(judgeOutcome("long_term", "avoid", 0), "hit");
+    assert.equal(judgeOutcome("long_term", "avoid", 0.001), "hit"); // 비용 안이면 안 오른 것
     assert.equal(judgeOutcome("long_term", "avoid", -0.2), "hit");
     assert.equal(judgeOutcome("scalp", "avoid", 0.01), "miss");
   });
@@ -77,6 +80,7 @@ describe("summarizeJudgmentTrack", () => {
     const record = summarizeJudgmentTrack("scalp", "scalp.wait", {
       sample: 0,
       hits: 0,
+      aboveCost: 0,
       avgReturn: null,
       worstReturn: null,
     });
@@ -91,6 +95,7 @@ describe("summarizeJudgmentTrack", () => {
       summarizeJudgmentTrack("long_term", "long_term.wait", {
         sample,
         hits: 1,
+        aboveCost: 0,
         avgReturn: 0,
         worstReturn: -0.1,
       });
@@ -105,6 +110,7 @@ describe("judgmentGate — 3종 게이트 (FR-137)", () => {
     summarizeJudgmentTrack("scalp", "scalp.wait", {
       sample,
       hits: sample,
+      aboveCost: 0,
       avgReturn: 0,
       worstReturn: 0,
     });
@@ -149,5 +155,22 @@ describe("judgmentGate — 3종 게이트 (FR-137)", () => {
       judgmentGate({ ...wait, reasons: ["x"], trackRecord: record(25), failureCases: [miss] }),
       { renderable: true, blockedReason: null }
     );
+  });
+});
+
+describe("기저율 · 초과 적중률 (F010 슬라이스 0)", () => {
+  it("후보는 '항상 오른다' 대비, 피하기는 '항상 안 오른다' 대비, 관망은 없다", () => {
+    const stats = { sample: 20, hits: 14, aboveCost: 12, avgReturn: 0.02, worstReturn: -0.1 };
+    const review = summarizeJudgmentTrack("scalp", "scalp.review_short_opportunity", stats);
+    assert.equal(review.alwaysUpRate, 0.6);
+    assert.ok(Math.abs(review.excessWinRate! - 0.1) < 1e-9); // 0.7 − 0.6
+    const avoid = summarizeJudgmentTrack("scalp", "scalp.avoid", stats);
+    assert.ok(Math.abs(avoid.excessWinRate! - 0.3) < 1e-9); // 0.7 − (1 − 0.6)
+    assert.equal(summarizeJudgmentTrack("scalp", "scalp.wait", stats).excessWinRate, null);
+  });
+  it("표본 0 이면 둘 다 null 이다", () => {
+    const r = summarizeJudgmentTrack("scalp", "scalp.avoid", { sample: 0, hits: 0, aboveCost: 0, avgReturn: null, worstReturn: null });
+    assert.equal(r.alwaysUpRate, null);
+    assert.equal(r.excessWinRate, null);
   });
 });
