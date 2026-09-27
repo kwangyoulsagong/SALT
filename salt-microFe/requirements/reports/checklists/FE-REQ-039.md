@@ -76,3 +76,28 @@
 | `SegmentedControl` 안 고른 칸 대비 4.18:1 | 기존(슬라이스 3 표에 이미 있음) | 같은 REQ |
 | 월간 복기 카드 · 연승/연패(FR-20) · 시간대(FR-22) | 슬라이스 6 · Could | 슬라이스 6 |
 | 200% 확대 · 색맹 시뮬레이션 | 돌리지 않았다 | 로그인 QA |
+
+---
+
+# 슬라이스 6 — 월간 복기 · IPS 3문항 · 시나리오 · 진입 전 체크 (2026-09-27)
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-21 월간 복기 | `widgets/coach-console/ui/MonthlyReviewPanel.tsx` · `entities/coach/ui/MonthlyReviewCard.tsx` · `api/useBehaviorMirror.ts`(`useMonthlyReview`, `keepPreviousData`) · `model/mirrorMessages.ts`(`REVIEW_MESSAGES`) | Playwright 1280 · 375 — 한 가지 문장 → 그달 거래 → 비용 태그 → 기준 넘은 날("지금 정해 둔 기준으로 셌어요") → 계획 지킴 → 익절 · 손절 → 들고 있었으면 → 회전율 → 채점. 달 고르기 → `?month=2026-07` 요청 → 머리 "2026년 7월" |
+| FR-22 IPS 3문항 | `features/set-risk-budget/ui/RiskBudgetForm.tsx` · `lib/budgetInput.ts` · `model/messages.ts` | Playwright — 기준 없음 → 안내 + 펼침 · 월 허용 손실 % 로 바꿔 5 · 1회 500,000 · 상한 40 → PUT `{monthlyLossBudget:{0.05, percent}, perTradeMaxLoss:{500000, krw}, maxSingleAssetWeight:0.4}` → 게이지 "내 상한 40%". 1280 에서 원/% 가 칸 옆 한 줄 |
+| FR-23 시나리오 | `entities/coach/ui/ScenarioList.tsx` · `RiskBudgetPanel.tsx` · `riskMessages.ts` | Playwright — 10 · 30 · 50% 줄 + 종목 몫 + FTX 구간 · 확률 문구 0 |
+| FR-24 진입 전 체크 · Brier 줄 | `features/record-transaction/ui/EntryChecklist.tsx` · `RecordTradeCard.tsx`(`hasPlan` 에 프리모템) · `entities/coach/ui/MirrorLines.tsx`(`brierMirrorItem`) | Playwright(`/investments/BTC`) — 계획 펼침 → 진입 전 체크(Enter) → 질문 체크(초점 + Space) → 프리모템 → 기록 → POST `/trades` `plan{invalidation, checklist{shown:[chasing, off_plan], checked:[chasing]}}` → "계획도 함께 저장". 미러 채점 줄 "평균 점수 0.325 · 늘 50%라고 적었다면 0.25" + 빗나간 사례 |
+| 검증 | — | `pnpm check-types` · `pnpm lint` · `pnpm test`(core 26 · ui 43) · `test:layer-check` · 변경 · 신규 파일 30개 레이어 훅 사후 실행 0 · `web` · `web-tax` 빌드 · 번들 `/coach/report` 110 kB · `/investments/[symbol]` 115 kB(변화 없음) · 375 가로 스크롤 없음 · 페이지 에러 0 |
+| 접근성 | — | axe — 새 스타일 위반 0. 잡힌 대비는 전부 기존 공용(`panelDescription` · tertiary `Text` · `SegmentedControl` 비선택 · 종목 머리 · 차트 범례). 새 카드도 `panelDescription` 을 쓰므로 그 몫이 늘었다(아래) |
+| 화면을 보고 고친 것 | — | ① 원/% 고르기가 1280 에서도 칸 아래로 떨어짐 → 칸이 남는 폭만 갖게 ② "내리면 얼마" 제목이 세리프(전역 `body` 글꼴 없음) → 글꼴 직접 ③ 체크박스가 `@repo/ui` 보라 → 태그 확정과 같은 무채색 네이티브(보라 선택 금지 결정) ④ vanilla-extract `& > li` 선택자 빌드 에러 → 클래스로 |
+
+## 미검증 · 범위 밖 (슬라이스 6)
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실 토큰으로 서버 → BFF → 화면 | 로컬 토큰 발급 불가 — 고정 응답으로만 | 로그인 QA(사용자) |
+| 공용 `panelDescription` · `SegmentedControl` 대비 | 기존 · 전 화면 공통. 이번 카드 설명 · 원/% 고르기도 같은 몫 | `@repo/ui` 대비 정리 REQ |
+| 200% 확대 · 색맹 시뮬레이션 | 이번에 재지 않았다(원/% 고르기는 좁으면 줄바꿈하도록만 했다) | 로그인 QA 때 같이 |
+| 코치 대화에서 3문항 · "내 미러 보여줘" | 대화 화면이 없다 — 게이지 패널에서 받는다(사용자 결정) | 코치 대화(F006)가 생길 때 |
+| 오를 확률 입력 칸 | 추가 입력 2개 제한(사용자 결정) — 채점 줄은 API 로 적은 계획이 있을 때만 | 사용 신호가 오면 |
+| 체크한 질문을 나중에 보여 주기 | 기록만 한다(FR-30). "내 계획" 카드에 표시하지 않았다 | 체크 기록과 결과의 관계를 복기에서 볼 때 |
