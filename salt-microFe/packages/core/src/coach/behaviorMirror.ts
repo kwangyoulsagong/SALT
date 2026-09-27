@@ -81,6 +81,10 @@ export interface BehaviorMirrorView {
   };
   /** 내가 적은 "오를 확률"의 채점(슬라이스 6). 서버가 아직 주지 않으면 `null` */
   brier: BrierView | null;
+  /** 연승 · 연패(슬라이스 7, FR-20). 서버가 아직 주지 않으면 `null` */
+  streak: StreakView | null;
+  /** 진입 시간대 · 요일(슬라이스 7, FR-22). 서버가 아직 주지 않으면 `null` */
+  timing: TradeTimingView | null;
   outcomeCount: number;
   outcomesComputedAt: string | null;
   minSample: number;
@@ -109,6 +113,48 @@ export interface BrierView {
     outcomeClose: number;
     up: boolean;
   }>;
+}
+
+export interface StreakSizingView {
+  /** 연속 뒤 매수 금액 평균 ÷ 그 밖의 평균(수수료 제외 · 자본 증가 미보정). 표본 = 연속 뒤 매수 수 */
+  ratio: MirrorMetric;
+  /** 서버가 "관찰됐다"(비율 · 표본 기준 통과)고 한 것만 true — 패턴 문장은 이때만 */
+  observed: boolean;
+}
+
+/** 연승 · 연패(FEATURE-009 FR-20). 순손익 0 청산은 연속을 끊는다 */
+export interface StreakView {
+  current: { kind: "win" | "loss"; length: number } | null;
+  longestWin: number;
+  longestLoss: number;
+  /** 청산 수 */
+  sampleSize: number;
+  /** 연속으로 치는 최소 건수(서버 상수) */
+  minLength: number;
+  afterWins: StreakSizingView | null;
+  afterLosses: StreakSizingView | null;
+}
+
+export type TimeBand = "dawn" | "morning" | "afternoon" | "evening";
+export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
+export interface TimingBucketView<K extends string> {
+  key: K;
+  count: number;
+  winRate: number | null;
+  avgReturn: number | null;
+  netPnlKrw: number;
+  status: MirrorStatus;
+}
+
+/** 진입 시간대 · 요일별 청산 성과(FEATURE-009 FR-22). 시각은 KST, 순서는 고정 */
+export interface TradeTimingView {
+  /** 시각을 적은 진입이 하나도 없으면 `null` — 섹션 없음 */
+  bands: Array<TimingBucketView<TimeBand>> | null;
+  weekdays: Array<TimingBucketView<Weekday>>;
+  timedCount: number;
+  /** 날짜만 적은 진입(시간대에서 뺐다) */
+  untimedCount: number;
 }
 
 export type BehaviorMirrorResult = BehaviorMirrorView | { status: "unavailable" };
