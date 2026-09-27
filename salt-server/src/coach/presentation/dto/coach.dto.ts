@@ -134,6 +134,8 @@ export const sizeCheckSchema = z
     /** FR-6 — 사용자가 적은 승률(0~1 배타) · 손익비. 둘 다 있을 때만 켈리를 계산한다 */
     winRate: z.number().finite().gt(0).lt(1).optional(),
     payoffRatio: positiveAmount.optional(),
+    /** FR-12 — 폼에 계획(손절가 또는 이유)이 있는가. 계획 외 후보 판정에 쓴다. 없으면 `stopPrice` 유무 */
+    hasPlan: z.boolean().optional(),
   })
   .refine((body) => (body.winRate === undefined) === (body.payoffRatio === undefined), {
     message: "winRate 와 payoffRatio 는 함께 보낸다",

@@ -21,6 +21,7 @@ import {
 } from "../AnalyzeTradingBehavior";
 import { CheckTradePreflight } from "../CheckTradePreflight";
 import { CheckTradeSize } from "../CheckTradeSize";
+import { PreviewTradeBehavior } from "../PreviewTradeBehavior";
 import { EvaluateTradeDecisions } from "../EvaluateTradeDecisions";
 import { ExplainCoachDecision } from "../ExplainCoachDecision";
 import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
@@ -212,7 +213,9 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.profiles,
       deps.portfolio,
       deps.market,
-      deps.forecasts
+      deps.forecasts,
+      undefined,
+      new PreviewTradeBehavior(deps.portfolio, deps.tradePlans, deps.decisionOutcomes, deps.market)
     ),
     createTradePlan: new CreateTradePlan(deps.tradePlans, deps.portfolio),
     updateTradePlan: new UpdateTradePlan(deps.tradePlans, deps.portfolio),
