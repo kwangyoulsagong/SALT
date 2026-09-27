@@ -36,13 +36,14 @@ export type EventsResult =
   | { status: "unavailable" };
 
 const KINDS: readonly MacroEventKind[] = ["fomc", "cpi", "jobs"];
-const HORIZONS = [1, 5, 20];
+export const HORIZONS = [1, 5, 20];
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : null);
 const allNum = (o: Record<string, unknown> | null, keys: string[]) => Boolean(o) && keys.every((k) => isNum(o![k]));
 
-const toHorizon = (h: number, raw: Record<string, unknown> | undefined): EventHorizon => {
+/** 기간 하나 — 쏠림 신호(`positioning.viewmodel.ts`)도 같은 규칙으로 막는다 */
+export const toHorizon = (h: number, raw: Record<string, unknown> | undefined): EventHorizon => {
   const blocked = (reason: string): EventHorizon => ({ horizonDays: h, renderable: false, blockedReason: reason });
   if (!raw) return blocked("not_generated");
   if (raw.renderable !== true) return blocked(String(raw.blockedReason ?? "insufficient_sample"));

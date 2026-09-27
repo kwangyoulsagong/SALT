@@ -3,6 +3,7 @@ import { retryOnceOnGet } from "../utils/retry.util";
 import { backendApi } from "./backend-api.service";
 import { toEventsViewModel, type EventsResult } from "./events.viewmodel";
 import { toForecastViewModel, type ForecastResult } from "./forecast.viewmodel";
+import { toPositioningViewModel, type PositioningResult } from "./positioning.viewmodel";
 
 /** 서버는 뷰 하나를 읽는다(실측 5ms) — 코치 리포트와 같은 800ms · 재시도 1회 */
 const FORECAST_TIMEOUT_MS = 800;
@@ -51,6 +52,25 @@ export class AppForecastService {
       );
       const data = (response.data as BackendEnvelope<Record<string, unknown>>).data;
       return toEventsViewModel(data ?? {});
+    } catch (error) {
+      if (toUpstreamClientError(error) || signal?.aborted) throw error;
+      return { status: "unavailable" };
+    }
+  }
+
+  /** 쏠림 신호(펀딩비 · 김치 프리미엄) · 과거 반응 — `BFF-REQ-037` FR-9. 주요 사건과 같은 규칙 */
+  async getPositioning(token: string, symbol: string, signal?: AbortSignal): Promise<PositioningResult> {
+    try {
+      const response = await retryOnceOnGet(
+        () =>
+          backendApi.proxyAuthRequest("GET", `/coach/positioning?symbol=${encodeURIComponent(symbol)}`, token, undefined, {
+            timeout: FORECAST_TIMEOUT_MS,
+            signal,
+          }),
+        signal,
+      );
+      const data = (response.data as BackendEnvelope<Record<string, unknown>>).data;
+      return toPositioningViewModel(data ?? {});
     } catch (error) {
       if (toUpstreamClientError(error) || signal?.aborted) throw error;
       return { status: "unavailable" };
