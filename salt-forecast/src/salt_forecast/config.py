@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     defillama_stablecoins_url: str = "https://stablecoins.llama.fi"
     # ECB 기준 환율(원/달러) — 김치 프리미엄 분모(FC-REQ-007)
     ecb_rates_url: str = "https://api.frankfurter.dev/v1"
+    # 공포탐욕 지수 전체 이력 — 하루 1요청(F010 슬라이스 1 · FC-REQ-008)
+    fear_greed_url: str = "https://api.alternative.me"
+    # 바이낸스 공개 덤프(aggTrades 일 파일) — 대형 체결 이력(FC-REQ-008)
+    binance_dump_url: str = "https://data.binance.vision"
     fred_url: str = "https://api.stlouisfed.org/fred"
     fred_api_key: SecretStr | None = None
     # 주요 사건 반응을 계산할 종목(FC-REQ-005) — 화면 초점이 BTC

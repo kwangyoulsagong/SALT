@@ -3,7 +3,7 @@ from datetime import UTC, date, datetime, timedelta
 import httpx
 import respx
 
-from salt_forecast.ingest import binance, defillama, fred
+from salt_forecast.ingest import binance, defillama, fear_greed, fred
 from salt_forecast.ingest.http import Pacer
 
 NOW = datetime(2026, 9, 23, 6, 0, tzinfo=UTC)
@@ -62,7 +62,13 @@ def test_binance_spot_drops_open_bar_and_oi_lag() -> None:
     yday = today - 86_400_000
     respx.get("https://api.binance.com/api/v3/klines").mock(
         return_value=httpx.Response(
-            200, json=[[yday, "1", "2", "0.5", "1.5", "10"], [today, "1", "2", "0.5", "1.5", "10"]]
+            200,
+            json=[
+                # kline 12칸 — 7 거래대금 · 8 체결 수 · 9 테이커 매수 수량
+                [yday, "1", "2", "0.5", "1.5", "10", yday + 86_399_999, "15", 100, "6", "9", "0"],
+                [today, "1", "2", "0.5", "1.5", "10", today + 86_399_999, "15", 100, "6", "9", "0"],
+                [yday - 86_400_000, "1", "2", "0.5", "1.5", "0", yday - 1, "0", 0, "0", "0", "0"],
+            ],
         )
     )
     ts = int((NOW - timedelta(minutes=2)).timestamp() * 1000)
@@ -79,7 +85,12 @@ def test_binance_spot_drops_open_bar_and_oi_lag() -> None:
         api = binance.Binance(c, "https://fapi.binance.com", "https://api.binance.com", Pacer(1000))
         bars = list(api.spot_daily("BTC", datetime(2026, 9, 22, tzinfo=UTC), NOW))
         oi = list(api.open_interest("BTC", NOW))
-    assert len(bars) == 1 and bars[0].available_at == datetime(2026, 9, 23, tzinfo=UTC)
+    assert len(bars) == 2
+    closed = next(d for d in bars if d.bar.volume)
+    assert closed.bar.available_at == datetime(2026, 9, 23, tzinfo=UTC)
+    assert closed.taker_buy_ratio is not None and closed.taker_buy_ratio.value == 0.6
+    assert closed.taker_buy_ratio.series_id == "taker_buy_ratio:BTC"
+    assert next(d for d in bars if not d.bar.volume).taker_buy_ratio is None  # 거래량 0 은 비율 없음(0 이 아니다)
     assert len(oi) == 1  # 2분 전 스냅샷은 공개 지연(5분) 전이라 아직 없다
 
 
@@ -125,3 +136,25 @@ def test_ecb_usd_krw_available_next_day_and_drops_future() -> None:
     assert pts[0].observed_at == datetime(2026, 9, 21, tzinfo=UTC)
     assert pts[0].available_at == datetime(2026, 9, 22, tzinfo=UTC)
     assert {p.series_id for p in pts} == {"USDKRW"}
+
+
+@respx.mock
+def test_fear_greed_history_lag_and_zero_kept() -> None:
+    d = int(datetime(2026, 9, 22, tzinfo=UTC).timestamp())
+    respx.get("https://api.alternative.me/fng/").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "data": [
+                    {"value": "0", "timestamp": str(d)},
+                    {"value": "71", "timestamp": str(d + 86_400)},  # 2026-09-23 00:00 → 공개 01:00
+                    {"value": "150", "timestamp": str(d - 86_400)},
+                ]
+            },
+        )
+    )
+    with httpx.Client() as c:
+        pts = list(fear_greed.history(c, "https://api.alternative.me", Pacer(1000), NOW))
+    # 0 은 극단 공포로 남고(서버 원문의 falsy 버그를 여기서 되풀이하지 않는다), 범위 밖 150 은 버린다
+    assert [p.value for p in pts] == [0.0, 71.0]
+    assert pts[1].available_at == datetime(2026, 9, 23, 1, tzinfo=UTC)

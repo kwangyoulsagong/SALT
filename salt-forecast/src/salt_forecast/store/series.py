@@ -68,3 +68,12 @@ def load_vintaged(engine: Engine, source: str | None = None) -> dict[str, Vintag
         )
         for sid, (o, a, v) in cols.items()
     }
+
+
+def observed_days(engine: Engine, source: str, series_prefix: str) -> set[tuple[str, datetime]]:
+    """(series_id, observed_at) 이미 있는 것 — 백필 재시작 지점."""
+    stmt = select(series_point.c.series_id, series_point.c.observed_at).where(
+        series_point.c.source == source, series_point.c.series_id.startswith(series_prefix)
+    )
+    with engine.connect() as conn:
+        return {(str(r[0]), r[1]) for r in conn.execute(stmt)}

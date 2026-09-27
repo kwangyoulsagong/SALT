@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 import numpy as np
@@ -151,3 +151,22 @@ def load_ohlcv_series(
         )
         for s, r in cols.items()
     }
+
+
+def top_by_value(engine: Engine, source: str, interval: str, as_of: datetime, days: int, n: int) -> list[str]:
+    """as_of 전 `days` 일 거래대금(수량 × 종가) 합 상위 n 종목. 봉 마감이 as_of 이하만(누수 없음)."""
+    value = func.sum(price_bar.c.volume * price_bar.c.close)
+    stmt = (
+        select(price_bar.c.symbol)
+        .where(
+            price_bar.c.source == source,
+            price_bar.c.interval == interval,
+            price_bar.c.available_at <= as_of,
+            price_bar.c.available_at > as_of - timedelta(days=days),
+        )
+        .group_by(price_bar.c.symbol)
+        .order_by(value.desc().nulls_last())
+        .limit(n)
+    )
+    with engine.connect() as conn:
+        return [str(r[0]) for r in conn.execute(stmt)]
