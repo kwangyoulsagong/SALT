@@ -98,7 +98,8 @@ export type TradePlanDraft = Omit<
 
 /**
  * `undefined` 는 그대로 둔다, `null` 은 지운다.
- * 판정 수정(`userAdherenceLabel`)은 없다 — 판정 배치(슬라이스 4)가 생기기 전에는 고칠 원본 판정이 없다.
+ * `userAdherenceLabel` 은 사용자의 판정 수정이다(슬라이스 4). 원본 판정(`adherenceLabel`)은 배치만 쓴다 —
+ * 잠금 대상이 아니다: 수동 입력 지연 · 오류를 사용자가 보정하는 칸이라 언제든 고친다.
  */
 export type TradePlanPatch = Partial<
   Pick<
@@ -111,6 +112,7 @@ export type TradePlanPatch = Partial<
     | "invalidation"
     | "reviewAt"
     | "probabilityUp"
+    | "userAdherenceLabel"
   >
 >;
 

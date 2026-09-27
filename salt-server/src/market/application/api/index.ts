@@ -98,6 +98,8 @@ export interface MarketApi {
   ): Promise<Array<{ symbol: string; close: number }>>;
   /** `at` 이후 첫 종가. 성적표의 진입가다. */
   closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
+  /** `[from, to]` 5분봉 최고 종가. 5분봉은 30일 보관이라 그보다 오래된 구간은 `null` */
+  highestCloseBetween(symbol: string, from: Date, to: Date): Promise<number | null>;
   latestCloses(symbols: string[]): Promise<ClosePoint[]>;
   /**
    * 한 심볼의 종가 백분위. `coach` 의 관찰 구간(F004 · D2)이 쓴다 — 가격 목표가 아니라
@@ -238,6 +240,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     highestCloseSince: (symbols, since) =>
       deps.prices.highestCloseSince(symbols, since),
     closeAtOrAfter: (symbol, at) => deps.prices.closeAtOrAfter(symbol, at),
+    highestCloseBetween: (symbol, from, to) => deps.prices.highestCloseBetween(symbol, from, to),
     latestCloses: (symbols) => deps.prices.latestCloses(symbols),
     closePercentiles: (symbol, timeframe, since, fractions) =>
       deps.prices.closePercentiles(symbol, timeframe, since, fractions),

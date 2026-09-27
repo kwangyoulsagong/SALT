@@ -1,6 +1,6 @@
 import Decimal from "decimal.js";
 import prisma from "../../shared/infrastructure/prisma";
-import type { EventCardRow, ForecastCardRow, ForecastReader, RealizedVolatility } from "../domain";
+import type { DailyBar, EventCardRow, ForecastCardRow, ForecastReader, RealizedVolatility } from "../domain";
 
 interface CardSqlRow {
   horizon_weeks: number;
@@ -98,6 +98,28 @@ export class PrismaForecastReader implements ForecastReader {
       renderable: r.renderable,
       blockedReason: r.blocked_reason,
     }));
+  }
+
+  /**
+   * 닫힌 일봉만 — 뷰가 이미 `interval = '1d'` 이고 `available_at` 이 마감 시각이다. 지금보다 늦게 쓸 수 있는 봉
+   * (진행 중인 오늘 봉)은 거른다. 심볼은 코치 모양 `BTC` ↔ 전망 모양 `KRW-BTC`
+   */
+  async dailyCloses(symbols: string[], from: Date): Promise<Map<string, DailyBar[]>> {
+    const result = new Map<string, DailyBar[]>();
+    if (!symbols.length) return result;
+    const rows = await prisma.$queryRaw<{ symbol: string; open_time: Date; close: string }[]>`
+      SELECT symbol, open_time, close::text AS close FROM forecast.v_daily_close
+      WHERE symbol = ANY(${symbols.map((symbol) => `KRW-${symbol}`)}::text[])
+        AND open_time >= ${from} AND available_at <= now()
+      ORDER BY symbol, open_time
+    `;
+    for (const row of rows) {
+      const symbol = row.symbol.replace(/^KRW-/, "");
+      const bars = result.get(symbol) ?? [];
+      bars.push({ openTime: row.open_time, close: new Decimal(row.close) });
+      result.set(symbol, bars);
+    }
+    return result;
   }
 
   async recentCloses(symbol: string, days: number): Promise<{ date: string; close: number }[]> {

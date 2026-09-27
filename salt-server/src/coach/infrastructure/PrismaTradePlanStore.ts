@@ -114,10 +114,43 @@ export class PrismaTradePlanStore implements TradePlanStore {
         invalidation: patch.invalidation,
         reviewAt: patch.reviewAt,
         probabilityUp: decimalField(patch.probabilityUp),
+        userAdherenceLabel: patch.userAdherenceLabel,
       },
     });
     if (count === 0) return null;
     const row = await prisma.tradePlan.findFirstOrThrow({ where: { id: planId, userId } });
     return toDomain(row);
+  }
+
+  async listLinked(userId: string, limit: number): Promise<TradePlan[]> {
+    const rows = await prisma.tradePlan.findMany({
+      where: { userId, transactionId: { not: null } },
+      orderBy: [{ plannedAt: "asc" }, { id: "asc" }],
+      take: limit,
+    });
+    return rows.map(toDomain);
+  }
+
+  /**
+   * 라벨이 같은 계획끼리 묶어 `updateMany` 한 번씩 — 라벨은 다섯 값(넷 + 판정 불가)뿐이라 계획 수와 무관하게
+   * 쿼리가 최대 5개다. `userAdherenceLabel` 은 건드리지 않는다
+   */
+  async saveAdherence(
+    userId: string,
+    judgements: Array<{ planId: string; label: AdherenceLabel | null }>,
+    evaluatedAt: Date
+  ): Promise<void> {
+    const byLabel = new Map<AdherenceLabel | null, string[]>();
+    for (const judgement of judgements) {
+      const ids = byLabel.get(judgement.label) ?? [];
+      ids.push(judgement.planId);
+      byLabel.set(judgement.label, ids);
+    }
+    for (const [label, ids] of byLabel) {
+      await prisma.tradePlan.updateMany({
+        where: { userId, id: { in: ids } },
+        data: { adherenceLabel: label, adherenceEvaluatedAt: evaluatedAt },
+      });
+    }
   }
 }

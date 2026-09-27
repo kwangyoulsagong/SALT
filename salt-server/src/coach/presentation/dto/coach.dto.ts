@@ -185,6 +185,11 @@ export const updateTradePlanSchema = z.object({
   invalidation: planText.nullable().optional(),
   reviewAt: z.string().datetime({ offset: true }).nullable().optional(),
   probabilityUp: z.number().finite().min(0).max(1).nullable().optional(),
+  /** 사용자의 판정 수정(FR-11). `null` 은 수정을 지우고 원본 판정으로 돌아간다 */
+  userAdherenceLabel: z
+    .enum(["honored", "stop_not_honored", "stop_slipped", "size_exceeded"])
+    .nullable()
+    .optional(),
 });
 
 export const tradePlanParamsSchema = z.object({ id: z.string().uuid() });
@@ -192,6 +197,21 @@ export const tradePlanParamsSchema = z.object({ id: z.string().uuid() });
 export const listTradePlansQuerySchema = z.object({
   symbol: coachSymbolSchema.optional(),
   limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+});
+
+/** `GET /api/coach/outcomes` */
+export const listDecisionOutcomesQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+});
+
+export const decisionOutcomeParamsSchema = z.object({ id: z.string().uuid() });
+
+/**
+ * `PUT /api/coach/outcomes/:id/tags` — 확정할 태그 전체(덮어쓰기). 빈 배열 = "실수 없음"으로 확정.
+ * 기본 태그(`chasing` · `averaging_down` · `revenge` · `off_plan` · `late_night`) 밖의 문자열은 사용자 정의 태그다
+ */
+export const confirmOutcomeTagsSchema = z.object({
+  tags: z.array(z.string().trim().min(1).max(20)).max(8),
 });
 
 export type SizeCheckDto = z.infer<typeof sizeCheckSchema>;

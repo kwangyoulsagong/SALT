@@ -12,6 +12,7 @@ import type {
   ForecastReader,
   TrackedAssetProbe,
   TradePlanStore,
+  DecisionOutcomeStore,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
 import {
@@ -20,8 +21,10 @@ import {
 } from "../AnalyzeTradingBehavior";
 import { CheckTradePreflight } from "../CheckTradePreflight";
 import { CheckTradeSize } from "../CheckTradeSize";
+import { EvaluateTradeDecisions } from "../EvaluateTradeDecisions";
 import { ExplainCoachDecision } from "../ExplainCoachDecision";
 import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
+import { GetBehaviorMirror } from "../GetBehaviorMirror";
 import { GetCoachDetail } from "../GetCoachDetail";
 import { GetCoachGenerationStatus } from "../GetCoachGenerationStatus";
 import { GetCoachRecommendation } from "../GetCoachRecommendation";
@@ -32,6 +35,7 @@ import { GetSignalPerformance } from "../GetSignalPerformance";
 import { GetSymbolCoach } from "../GetSymbolCoach";
 import { ListProfitPlans } from "../ListProfitPlans";
 import { GetCoachProfile, UpdateCoachProfile } from "../ManageCoachProfile";
+import { ConfirmOutcomeTags, ListDecisionOutcomes } from "../ManageDecisionOutcomes";
 import { GetRiskBudget, UpdateRiskBudget } from "../ManageRiskBudget";
 import { CreateTradePlan, ListTradePlans, UpdateTradePlan } from "../ManageTradePlan";
 import { RecordCoachFeedback } from "../RecordCoachFeedback";
@@ -76,6 +80,8 @@ export interface CoachDependencies {
   forecastOwnerEmails: readonly string[];
   /** 거래 계획(F009 슬라이스 1) — `trade_plans` */
   tradePlans: TradePlanStore;
+  /** 결정 결과(F009 슬라이스 4) — `decision_outcomes` */
+  decisionOutcomes: DecisionOutcomeStore;
 }
 
 export interface CoachUseCases {
@@ -109,6 +115,11 @@ export interface CoachUseCases {
   listTradePlans: ListTradePlans;
   getRiskBudget: GetRiskBudget;
   updateRiskBudget: UpdateRiskBudget;
+  /** F009 슬라이스 4 — 준수 판정 · 결정 결과 배치 · 미러 · 태그 확정 */
+  evaluateTradeDecisions: EvaluateTradeDecisions;
+  getBehaviorMirror: GetBehaviorMirror;
+  listDecisionOutcomes: ListDecisionOutcomes;
+  confirmOutcomeTags: ConfirmOutcomeTags;
 }
 
 export const createCoachApplication = (deps: CoachDependencies) => {
@@ -209,6 +220,21 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     listTradePlans: new ListTradePlans(deps.tradePlans),
     getRiskBudget,
     updateRiskBudget: new UpdateRiskBudget(deps.profiles, getRiskBudget),
+    evaluateTradeDecisions: new EvaluateTradeDecisions(
+      deps.portfolio,
+      deps.tradePlans,
+      deps.decisionOutcomes,
+      deps.forecasts,
+      deps.market
+    ),
+    getBehaviorMirror: new GetBehaviorMirror(
+      deps.portfolio,
+      deps.tradePlans,
+      deps.decisionOutcomes,
+      deps.forecasts
+    ),
+    listDecisionOutcomes: new ListDecisionOutcomes(deps.decisionOutcomes),
+    confirmOutcomeTags: new ConfirmOutcomeTags(deps.decisionOutcomes),
   };
 
   return { useCases };

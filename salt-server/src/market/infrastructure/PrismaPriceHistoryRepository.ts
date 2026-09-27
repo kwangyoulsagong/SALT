@@ -99,6 +99,14 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
       .map((row) => ({ symbol: row.symbol, close: Number(row._max.close) }));
   }
 
+  async highestCloseBetween(symbol: string, from: Date, to: Date): Promise<number | null> {
+    const row = await prisma.priceHistory.aggregate({
+      where: { symbol, timeframe: "5m", timestamp: { gte: from, lte: to } },
+      _max: { close: true },
+    });
+    return row._max.close === null ? null : Number(row._max.close);
+  }
+
   /** `at` 이후 첫 종가. 성적표가 판단 시점의 진입가로 쓴다. */
   async closeAtOrAfter(symbol: string, at: Date): Promise<number | null> {
     const row = await prisma.priceHistory.findFirst({

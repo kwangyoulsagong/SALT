@@ -376,6 +376,8 @@ export interface PriceHistoryRepository {
   ): Promise<Array<{ symbol: string; close: number }>>;
   /** `at` **이후 첫** 종가. 없으면 `null`. 성적표의 진입가다. */
   closeAtOrAfter(symbol: string, at: Date): Promise<number | null>;
+  /** `[from, to]` 5분봉 최고 종가. 구간에 봉이 없으면 `null` — `coach` 결과 태그의 추격 판정(F009 FR-18) */
+  highestCloseBetween(symbol: string, from: Date, to: Date): Promise<number | null>;
   /** 심볼별 마지막 종가. */
   latestCloses(symbols: string[]): Promise<ClosePoint[]>;
   /**
