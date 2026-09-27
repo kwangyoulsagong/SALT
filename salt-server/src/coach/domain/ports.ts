@@ -17,6 +17,10 @@ import type {
   TradePlanDraft,
   TradePlanPatch,
   ZoneTimeframe,
+  AdherenceLabel,
+  DailyBar,
+  DecisionOutcome,
+  DecisionOutcomeDraft,
 } from "./policy";
 import type {
   CoachArticle,
@@ -142,6 +146,11 @@ export interface MarketProbe {
     symbols: string[],
     limit: number
   ): Promise<CoachWhaleTransaction[]>;
+  /**
+   * `[from, to]` 5분봉 최고 종가 — 결과 태그의 추격 판정(F009 FR-18). 5분봉은 30일만 남는다 —
+   * 그보다 오래됐으면 `null`(모름)이다. 0 이 아니다
+   */
+  highestCloseBetween(symbol: string, from: Date, to: Date): Promise<number | null>;
   /** `since` 이후 5분봉 최고 종가. 추격 매수 판정의 기준선이다. */
   highestCloseSince(
     symbols: string[],
@@ -442,6 +451,11 @@ export interface ForecastReader {
    * 원천은 `forecast.v_realized_vol`(`FC-REQ-006`). 막혔거나 오래됐으면 `null` — 0 이 아니다
    */
   realizedVolatility(symbol: string): Promise<RealizedVolatility | null>;
+  /**
+   * 닫힌 일봉 종가(`openTime` ≥ `from`, 시간순) — 준수 판정 · 처분효과 · 보유 대비(F009 슬라이스 4).
+   * 원천은 `forecast.v_daily_close`(업비트 일봉, UTC 00:00 = KST 09:00 경계). 여러 종목을 쿼리 한 번에
+   */
+  dailyCloses(symbols: string[], from: Date): Promise<Map<string, DailyBar[]>>;
 }
 
 export interface RealizedVolatility {
@@ -469,4 +483,37 @@ export interface TradePlanStore {
     patch: TradePlanPatch,
     guard: { requireUnlinked: boolean }
   ): Promise<TradePlan | null>;
+  /** 거래에 연결된 계획 전부(판정 배치 · 미러). 오래된 것이 앞 */
+  listLinked(userId: string, limit: number): Promise<TradePlan[]>;
+  /** 배치의 원본 판정을 쓴다. 사용자 수정(`userAdherenceLabel`)은 건드리지 않는다 */
+  saveAdherence(
+    userId: string,
+    judgements: Array<{ planId: string; label: AdherenceLabel | null }>,
+    evaluatedAt: Date
+  ): Promise<void>;
+}
+
+/**
+ * 결정 결과 저장 — `decision_outcomes` (FEATURE-009 FR-14 · FR-18 · `DB-REQ-031`).
+ * 모든 조회 · 수정이 `userId` 로 좁혀진다.
+ */
+export interface DecisionOutcomeStore {
+  /**
+   * 사용자 결과를 이 회차 것으로 맞춘다 — 매도 id 로 덮어쓰고, 이번에 없는 행(지운 매도 · 원가 모르는 매도)은 지운다.
+   * **사용자 태그(`userTags` · `userTagsConfirmedAt`)는 덮지 않는다.** 같은 회차를 두 번 돌려도 같은 결과다
+   */
+  replaceForUser(
+    userId: string,
+    drafts: DecisionOutcomeDraft[],
+    computedAt: Date
+  ): Promise<{ written: number; removed: number }>;
+  /** 최신 청산이 앞 */
+  listOwned(userId: string, limit: number): Promise<DecisionOutcome[]>;
+  /** 사용자 태그 확정. 남의 것이면 `null` */
+  confirmTags(
+    userId: string,
+    outcomeId: string,
+    tags: string[],
+    confirmedAt: Date
+  ): Promise<DecisionOutcome | null>;
 }

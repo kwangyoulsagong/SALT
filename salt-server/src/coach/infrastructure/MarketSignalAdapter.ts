@@ -114,6 +114,10 @@ export class MarketSignalAdapter implements MarketProbe {
     return this.market.closeAtOrAfter(symbol, at);
   }
 
+  highestCloseBetween(symbol: string, from: Date, to: Date): Promise<number | null> {
+    return this.market.highestCloseBetween(symbol, from, to);
+  }
+
   async latestCloses(symbols: string[]): Promise<Map<string, number>> {
     const rows = await this.market.latestCloses(symbols);
     return new Map(rows.map((row) => [row.symbol, row.close]));

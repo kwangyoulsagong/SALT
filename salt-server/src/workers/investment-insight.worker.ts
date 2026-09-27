@@ -43,6 +43,35 @@ export class InvestmentInsightWorker {
     refreshGauges().catch((error) =>
       console.error("❌ Gauge track records 부팅 실행 실패:", error)
     );
+
+    // 준수 판정 · 결정 결과 (F009 슬라이스 4). 입력이 일봉 종가 + 수동 입력 거래라 하루 4번이면 충분하다.
+    // 6시간마다 :35 — 전망 러너(매시 :05)가 새 일봉을 넣은 뒤이고, 서버 TZ 가 KST 든 UTC 든 하루 안에 새 봉을 본다.
+    // 멱등이라 부팅 때도 돈다
+    const evaluateDecisions = async () => {
+      const users = await prisma.user.findMany({ select: { id: true } });
+      const totals = { outcomes: 0, removed: 0, truncated: 0, failed: 0, unmatchedSells: 0, chasingUnknown: 0 };
+      const labels: Record<string, number> = {};
+      for (const { id } of users) {
+        try {
+          const result = await this.coach.evaluateTradeDecisions.execute(id);
+          if (result.status === "truncated") totals.truncated += 1;
+          totals.outcomes += result.outcomes;
+          totals.removed += result.removed;
+          totals.unmatchedSells += result.unmatchedSells;
+          totals.chasingUnknown += result.chasingUnknown;
+          for (const [label, count] of Object.entries(result.labels)) labels[label] = (labels[label] ?? 0) + count;
+        } catch (error) {
+          // 한 사용자의 실패가 다른 사용자를 막지 않는다. 그 사용자는 직전 결과가 남는다
+          totals.failed += 1;
+          console.error(`❌ Trade decisions 판정 실패 — user ${id}:`, error);
+        }
+      }
+      console.log(`⚖️ Trade decisions evaluated — ${JSON.stringify({ users: users.length, ...totals, labels })}`);
+    };
+    schedule("coach-trade-decisions", "35 */6 * * *", evaluateDecisions);
+    evaluateDecisions().catch((error) =>
+      console.error("❌ Trade decisions 부팅 실행 실패:", error)
+    );
   }
 
   /**

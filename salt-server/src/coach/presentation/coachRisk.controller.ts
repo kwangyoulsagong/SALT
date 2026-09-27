@@ -4,7 +4,10 @@ import { NextFunction, Request, Response } from "express";
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { CoachUseCases } from "../application/api";
 import {
+  confirmOutcomeTagsSchema,
   createTradePlanSchema,
+  decisionOutcomeParamsSchema,
+  listDecisionOutcomesQuerySchema,
   listTradePlansQuerySchema,
   sizeCheckSchema,
   tradePlanParamsSchema,
@@ -16,6 +19,7 @@ import {
   toSizeCheckResponse,
   toTradePlanResponse,
 } from "./dto/riskView";
+import { toBehaviorMirrorResponse, toDecisionOutcomeResponse } from "./dto/mirrorView";
 
 /**
  * F009 슬라이스 1 — 사이즈 계산 · 거래 계획 · 리스크 예산 (`/api/coach/*`, `SRV-REQ-038`).
@@ -112,6 +116,7 @@ export class CoachRiskController {
         invalidation: body.invalidation,
         reviewAt: dateOrNull(body.reviewAt),
         probabilityUp: decOrNull(body.probabilityUp),
+        userAdherenceLabel: body.userAdherenceLabel,
       });
       return ResponseUtil.success(res, toTradePlanResponse(plan));
     } catch (error) {
@@ -124,6 +129,36 @@ export class CoachRiskController {
       const query = listTradePlansQuerySchema.parse(req.query);
       const plans = await this.useCases.listTradePlans.execute(req.user!.userId, query);
       return ResponseUtil.success(res, { plans: plans.map(toTradePlanResponse) });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getBehaviorMirror = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const view = await this.useCases.getBehaviorMirror.execute(req.user!.userId);
+      return ResponseUtil.success(res, toBehaviorMirrorResponse(view));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listDecisionOutcomes = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { limit } = listDecisionOutcomesQuerySchema.parse(req.query);
+      const outcomes = await this.useCases.listDecisionOutcomes.execute(req.user!.userId, limit);
+      return ResponseUtil.success(res, { outcomes: outcomes.map(toDecisionOutcomeResponse) });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  confirmOutcomeTags = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = decisionOutcomeParamsSchema.parse(req.params);
+      const { tags } = confirmOutcomeTagsSchema.parse(req.body);
+      const outcome = await this.useCases.confirmOutcomeTags.execute(req.user!.userId, id, tags);
+      return ResponseUtil.success(res, toDecisionOutcomeResponse(outcome));
     } catch (error) {
       next(error);
     }

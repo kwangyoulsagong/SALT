@@ -537,6 +537,11 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *               invalidation: { type: string, nullable: true, maxLength: 200 }
    *               reviewAt: { type: string, format: date-time, nullable: true }
    *               probabilityUp: { type: number, nullable: true, minimum: 0, maximum: 1 }
+   *               userAdherenceLabel:
+   *                 type: string
+   *                 nullable: true
+   *                 enum: [honored, stop_not_honored, stop_slipped, size_exceeded]
+   *                 description: 준수 판정 수정(F009 FR-11). 원본 판정은 남는다. null 이면 수정을 지운다. 잠금 대상이 아니다
    *     responses:
    *       200: { description: 고친 계획 }
    *       400: { description: 요청 검증 실패 · 거래 불일치 }
@@ -545,6 +550,94 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       409: { description: 잠김 · 이미 연결됨 }
    */
   router.patch("/plans/:id", risk.updateTradePlan);
+
+  /**
+   * @swagger
+   * /api/coach/mirror:
+   *   get:
+   *     summary: 내 거래 미러 (F009 FR-12 · FR-15~19)
+   *     description: |
+   *       본인 기록의 통계 — 지시 문구 없음. 각 지표는 `{ value, sampleSize, status }` 이고
+   *       `status` 는 `ok` · `insufficient_sample`(표본 < 20, **값은 준다**) · `insufficient_data`(값 `null`).
+   *
+   *       - `adherence` — 판정 가능한 계획 중 위반 없는 비율 · 라벨별 수 · 준수/위반 청산 평균 순수익률(수수료 후).
+   *         사용자가 고친 라벨이 있으면 그것을 센다
+   *       - `disposition` — PGR · PLR(Odean 1998, 매도일 일봉 종가 기준) · 익절/손절 평균 보유일
+   *       - `benchmark` — 실제 TWR vs 첫 거래일 구성을 그대로 들고 있었을 때. 차이 = 수수료 몫 + 나머지(타이밍 · 선택).
+   *         순입금은 같은 날 같은 비중으로 샀다고 가정(`assumptions`)
+   *       - `tagCosts` — 태그별 청산 수 · 손익 합(원) · 평균 수익률 · 평균 R. 표본 ≥ 20 에서 기대값이 음수면 `noEdge: true`.
+   *         확정한 태그가 있으면 그것, 없으면 자동 후보
+   *       - `turnover` — 최근 365일 회전율 · 올해 수수료 + 기준선(국내 주식 일 회전율, 출처 · 단위 포함. 환산하지 않는다)
+   *       - 결과 · 라벨은 일 4회 배치가 만든다(`outcomesComputedAt`). 배치가 실패하면 직전 값이 그대로 보인다
+   *       - 거래가 5,000건을 넘으면 `status: truncated` — 합을 만들지 않는다
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: "`{ status, adherence, disposition, benchmark, tagCosts[], turnover, outcomeCount, outcomesComputedAt, minSample, asOf }`"
+   *       401: { description: 인증 실패 }
+   */
+  router.get("/mirror", risk.getBehaviorMirror);
+
+  /**
+   * @swagger
+   * /api/coach/outcomes:
+   *   get:
+   *     summary: 내 결정 결과(청산) 목록 (F009 FR-14 · FR-18)
+   *     description: |
+   *       매도 기록 한 건 = 결과 한 건. 최신 청산이 앞. 본인 것만.
+   *       순손익은 매수 · 매도 수수료 포함(FIFO 원가). `rMultiple` 은 계획 손절가가 있을 때만,
+   *       `heldReturn30d` 는 청산 30일 뒤 종가 기준이라 그 전엔 `null`.
+   *       `autoTags` 는 서버 후보, `userTags` 는 사용자가 확정한 것(`tagsConfirmedAt`)
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: limit
+   *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+   *     responses:
+   *       200: { description: "`{ outcomes: [...] }`" }
+   *       401: { description: 인증 실패 }
+   */
+  router.get("/outcomes", risk.listDecisionOutcomes);
+
+  /**
+   * @swagger
+   * /api/coach/outcomes/{id}/tags:
+   *   put:
+   *     summary: 결과의 실수 태그 확정 (F009 FR-18)
+   *     description: |
+   *       보낸 배열로 덮어쓴다. 빈 배열은 "실수 없음"으로 확정이다. 자동 후보는 원본으로 남는다.
+   *       기본 태그 `chasing` · `averaging_down` · `revenge` · `off_plan` · `late_night`, 그 밖의 문자열은 사용자 정의
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: string, format: uuid }
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [tags]
+   *             properties:
+   *               tags:
+   *                 type: array
+   *                 maxItems: 8
+   *                 items: { type: string, minLength: 1, maxLength: 20 }
+   *     responses:
+   *       200: { description: 고친 결과 }
+   *       400: { description: 요청 검증 실패 }
+   *       401: { description: 인증 실패 }
+   *       404: { description: 결과가 없다(남의 것 포함) }
+   */
+  router.put("/outcomes/:id/tags", risk.confirmOutcomeTags);
 
   return router;
 };
