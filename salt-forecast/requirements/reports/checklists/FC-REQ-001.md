@@ -105,3 +105,26 @@
 | `num_threads=4` 효과 | 바꾼 뒤 백테스트를 다시 안 돌렸다 | v0.2 백테스트 때 |
 | 미결제약정 피처 | 이력 30일 — 학습 불가 | 이력 26주 이상 쌓인 뒤 |
 | 서버 트리거 매시 동작 | 부팅 1회만 실측 | 1시간 뒤 `ops/daily.log` |
+
+## 2026-09-28 — F010 슬라이스 0 성적표 신뢰성 (FR-11 · `DB-REQ-029` FR-18)
+
+브랜치: `feat/f010-scorecard-integrity`
+
+| 확인 | 결과 |
+|---|---|
+| 잡은 것 | live 예측은 매일(`jobs/daily.py`, `floor_day`) 나오는데 게이트는 **행 수**로 52를 셌다 — h=4주면 이웃 날 라벨이 28일 겹쳐 "52주"의 유효 표본이 2~8. 백테스트는 주 격자(`grid_for`)라 둘의 표본 의미가 달랐다 |
+| 수정 | `domain/calendar.on_weekly_grid` (순수) · `scoring/evaluate.weekly_only` — `gates()` 가 표본 세기 · 판정(모델 · 기준 · live · backtest) 전부에 월요일 00:00 UTC 격자 필터를 건다. `daily.py` 출력은 그대로(카드 최신 예측용) |
+| 뷰 | `20260928100000_forecast_card_misses_kind` — `recent_misses` 가 `score.kind = gate.score_kind` 로 거르고 `prediction` 에 kind 포함 ON 으로 붙는다. 컬럼 목록 · 순서 무변화 |
+| 테스트 | `tests/domain/test_calendar_weekly.py` 3건 · `tests/scoring/test_gates_weekly.py` 4건 — 매일 120행 → `backtest` · 월요일 60개 → `live`(표본 52) · 월 + 평일 혼합 → 월요일만(결과가 월요일만 넣은 것과 동일) · 백테스트 격자에 필터 = 무변화 |
+| 정적 검증 | `ruff check src tests` All checks passed · `ruff format --check` 82 files already formatted · `pyright` 0 errors · `lint-imports` 3 kept, 0 broken |
+| pytest | `uv run pytest` **79 passed, 1 skipped**(스키마 계약 — `FORECAST_DATABASE_URL` 없음) · `tests/leakage` **14 passed** |
+
+## 미검증 · 범위 밖 (2026-09-28)
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 마이그레이션 적용 · `EXPLAIN ANALYZE` | 이번 작업은 DB 에 적용하지 않았다 | 로컬 `prisma migrate deploy` 후 `v_forecast_card` 한 종목 재측정 |
+| 스키마 계약 테스트 | DB 연결 없이 돌려 skip | 위와 같은 때 |
+| 라이브 게이트 실제 전환 | live 는 2026-09-23 시작 — 주 격자 as_of 가 아직 1~2개. 52주는 2027-09 이후 | 시간 |
+| `regate --dry-run` 실측 | DB 필요 | 마이그레이션 적용 때 함께 |
+| 기존 `gate` 행 재판정 | 필터 적용 전 판정이 남아 있다 — live 표본이 52 미만이라 kind 는 이미 `backtest`, 실질 차이 없음 | 다음 `daily` 실행이 덮어쓴다 |
