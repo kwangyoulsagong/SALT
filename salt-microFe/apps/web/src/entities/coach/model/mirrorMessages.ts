@@ -50,6 +50,15 @@ export const MIRROR_MESSAGES = {
     baseline: (source: string, period: string, rate: string) =>
       `참고: ${source}(${period}) 국내 주식 신규 개인 일 회전율 ${rate} — 시장 · 기간이 달라 나란히 두기만 해요`,
   },
+  /** 계획에 적은 "오를 확률" 채점(FR-13, 슬라이스 6). 성적 4요소 — 기간 · 표본 · 기준 대비 · 빗나간 사례(FR-33) */
+  brier: {
+    label: "내 '오를 확률' 채점",
+    line: (score: string, baseline: string) =>
+      `평균 점수 ${score} · 늘 50%라고 적었다면 ${baseline} (0에 가까울수록 잘 맞았어요)`,
+    counts: (missed: number, pending: number) => `빗나간 계획 ${missed}건 · 아직 복기일 전 ${pending}건`,
+    miss: (symbol: string, probability: string, from: string, to: string, up: boolean) =>
+      `${symbol} 오를 확률 ${probability}라고 적었는데 ${up ? "올랐어요" : "오르지 않았어요"} (${from} → ${to})`,
+  },
   behavior: {
     label: "최근 행동",
     none: "최근 거래에서 반복된 패턴은 없어요",
@@ -92,4 +101,47 @@ export const MIRROR_MESSAGES = {
     sellStopVsNow: (stop: string, now: string) => `계획 손절 ${stop}원 · 지금 ${now}원`,
     sellNowOnly: (now: string) => `지금 ${now}원`,
   },
+} as const;
+
+/**
+ * F009 슬라이스 6 — 월간 복기 문구 (`FE-REQ-039` FR-21 · FEATURE-009 FR-28). 미러와 같은 원칙 — 숫자와 표본만, 지시 없음.
+ * "이번 달 한 가지" 문장은 서버 템플릿이라 여기 없다.
+ */
+export const REVIEW_MESSAGES = {
+  heading: "월간 복기",
+  description: "한 달이 끝나면 그달 기록을 한 번 정리해 둬요. 뒤에 태그를 고쳐도 이 복기는 그대로예요",
+  monthSelect: "복기할 달",
+  month: (year: string, month: string) => `${year}년 ${Number(month)}월`,
+  generatedAt: (at: string) => `${at}에 정리했어요`,
+  signedOut: "로그인하면 월간 복기를 볼 수 있어요",
+  unavailable: "지금은 월간 복기를 불러올 수 없어요",
+  status: {
+    month_not_closed: "이 달은 아직 끝나지 않았어요. 다음 달 1일에 정리돼요",
+    no_ledger: "그달까지 적은 거래가 없어요",
+    truncated: "거래가 너무 많아 복기를 만들지 못했어요",
+  },
+  oneThing: "이번 달 한 가지",
+  activity: {
+    label: "그달 거래",
+    line: (trades: number, buys: number, sells: number) => `거래 ${trades}건 · 매수 ${buys} · 매도 ${sells}`,
+    closed: (count: number) => `청산 ${count}건`,
+  },
+  topMistake: {
+    label: "비용이 가장 컸던 태그",
+    line: (tag: string, krw: string, count: number) => `${tag} ${krw}원 · ${count}건`,
+  },
+  ips: {
+    label: "내 기준을 넘은 날",
+    line: (days: number, observed: number) => `${observed}일 중 ${days}일`,
+    loss: (days: number) => `월 손실 예산을 넘은 날 ${days}일`,
+    lossNotSet: "월 손실 예산은 정하지 않았어요",
+    lossUnavailable: "월 손실 예산은 월초 평가금이 없어 세지 못했어요",
+    concentration: (days: number, limit: string) => `한 종목 비중이 상한 ${limit}보다 컸던 날 ${days}일`,
+    basis: "지금 정해 둔 기준으로 셌어요",
+  },
+  turnover: {
+    label: "그달 회전율",
+    line: (times: string, fees: string) => `${times}배 · 수수료 ${fees}원`,
+  },
+  observedDays: (days: number) => `관찰 ${days}일`,
 } as const;

@@ -97,3 +97,8 @@ export const formatShortDate = (iso: string): string | null => {
   const at = new Date(iso);
   return Number.isNaN(at.getTime()) ? null : shortDateFormatter.format(at);
 };
+
+const scoreFormatter = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+
+/** Brier 점수(0.325) → `0.325`. 비율이 아니라 점수라 % 로 바꾸지 않는다 */
+export const formatScore = (value: number): string => scoreFormatter.format(value);

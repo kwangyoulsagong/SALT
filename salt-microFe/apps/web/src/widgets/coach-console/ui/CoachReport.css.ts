@@ -133,3 +133,30 @@ export const disclaimerLabel = style({
   color: vars.colors.text.primary,
   whiteSpace: "nowrap",
 });
+
+/** 월간 복기의 달 고르기 — 거래 폼 입력과 같은 조밀형(32px · 헤어라인 · 13px). 터치 타깃은 세로 여백으로 */
+export const monthSelect = style({
+  height: "32px",
+  padding: "0 28px 0 10px",
+  border: `1px solid ${vars.colors.neutral[200]}`,
+  borderRadius: "7px",
+  background: vars.colors.background.white,
+  color: vars.colors.text.primary,
+  fontFamily: vars.fontFamily.base,
+  fontSize: "13px",
+  fontWeight: vars.fontWeights.medium,
+  cursor: "pointer",
+  selectors: {
+    "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" },
+  },
+});
+
+/** 전역 `body` 글꼴이 없다(기존 부채) — 글꼴을 직접 갖는다. 없으면 세리프로 떨어진다 */
+export const subHeading = style({
+  margin: "8px 0 0",
+  fontFamily: vars.fontFamily.base,
+  color: vars.colors.text.primary,
+  fontSize: "15px",
+  lineHeight: "22px",
+  fontWeight: vars.fontWeights.bold,
+});

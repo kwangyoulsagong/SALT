@@ -74,6 +74,22 @@ export const RISK_MESSAGES = {
     progressLabel: (name: string) => `${name} 사용률`,
   },
 
+  /** 시나리오(FR-25, 슬라이스 6) — 확률 없이 "이만큼 내리면 얼마"만 */
+  scenario: {
+    heading: "내리면 얼마",
+    description: "지금 코인 보유가 한꺼번에 내렸을 때의 계산이에요. 일어날 확률은 말하지 않아요",
+    shock: (percent: string) => `${percent} 내리면`,
+    shockLine: (loss: string, after: string) => `−${loss}원 · 남는 평가금 ${after}원`,
+    bySymbol: (symbol: string, loss: string) => `${symbol} −${loss}원`,
+    episodes: {
+      "2022-11-ftx": "2022년 11월 FTX 파산 구간",
+    } as Record<string, string>,
+    episodeLine: (loss: string, rate: string) => `지금 보유에 그대로 얹으면 ${loss}원(${rate})`,
+    episodePeriod: (from: string, to: string) => `${from} 종가 → ${to} 종가`,
+    episodeMissing: (symbols: string) => `그때 시세가 없는 종목이 있어 합을 내지 않았어요: ${symbols}`,
+    noHoldings: "코인 보유 기록이 생기면 보여 드려요",
+  },
+
   plan: {
     heading: "내 계획",
     empty: "아직 적은 계획이 없어요. 거래를 기록할 때 손절가와 이유를 함께 적을 수 있어요",

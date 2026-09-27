@@ -79,10 +79,36 @@ export interface BehaviorMirrorView {
       marketDailyTurnover: number;
     } | null;
   };
+  /** 내가 적은 "오를 확률"의 채점(슬라이스 6). 서버가 아직 주지 않으면 `null` */
+  brier: BrierView | null;
   outcomeCount: number;
   outcomesComputedAt: string | null;
   minSample: number;
   asOf: string | null;
+}
+
+/**
+ * "오를 확률" 채점(FEATURE-009 FR-13). 계획의 복기일(없으면 30일) 뒤 방향으로 Brier.
+ * 성적 문구 4요소(기간 · 표본 · 기준 대비 · 빗나간 사례)가 이 모양에 다 있다(FR-33)
+ */
+export interface BrierView {
+  /** 평균 Brier — 0 이 완벽, 0.25 가 늘 50% */
+  meanScore: MirrorMetric;
+  baseline: number | null;
+  /** 1 − 평균 ÷ 기준선. 양수면 기준선보다 낫다 */
+  skill: number | null;
+  missedCount: number;
+  pendingCount: number;
+  unscorableCount: number;
+  recentMisses: Array<{
+    symbol: string;
+    probabilityUp: number;
+    plannedAt: string;
+    dueAt: string;
+    referenceClose: number;
+    outcomeClose: number;
+    up: boolean;
+  }>;
 }
 
 export type BehaviorMirrorResult = BehaviorMirrorView | { status: "unavailable" };
@@ -124,6 +150,15 @@ export interface TradeBehaviorPreview {
   edgeWarnings: TagCostView[];
   /** 매도만 — 아직 남은 매수에 연결된 최신 계획의 손절가 vs 지금. 매입가 · 손익률은 없다 */
   sellFraming: { stopPrice: number | null; currentPrice: number | null } | null;
+  /** 매수만 — 진입 전 체크리스트(슬라이스 6, FR-30). 선택 펼침 · 기록만 */
+  checklist: EntryChecklistView | null;
+}
+
+export interface EntryChecklistView {
+  /** 본인 실수 태그 상위 3개(손익 합 음수)에서 자란 질문. 문장은 서버 템플릿 */
+  items: Array<{ tag: string; question: string; count: number; netPnlKrw: number }>;
+  /** 답은 계획의 `invalidation` 에 들어간다 */
+  premortemQuestion: string;
 }
 
 /** 미리보기만 못 구하면 `null` — 사이즈 결과 줄은 그대로 */

@@ -2,6 +2,7 @@ import type {
   BehaviorMirrorResult,
   CoachGenerationStatus,
   DecisionOutcomeListResult,
+  MonthlyReviewResult,
   CoachReportResult,
   SymbolCoachViewModel,
   SymbolEventsResult,
@@ -147,6 +148,18 @@ export const coachApi = {
     if (!response.ok) throw new CoachApiError(response.status);
 
     const body = (await response.json()) as AppEnvelope<BehaviorMirrorResult>;
+    return body.data;
+  },
+
+  /** 월간 복기 (`GET /api/app/coach/review/monthly`, F009 슬라이스 6). 서버 장애는 BFF 가 200 `unavailable` */
+  monthlyReview: async (month: string | null, signal?: AbortSignal): Promise<MonthlyReviewResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.monthlyReview(month)}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<MonthlyReviewResult>;
     return body.data;
   },
 

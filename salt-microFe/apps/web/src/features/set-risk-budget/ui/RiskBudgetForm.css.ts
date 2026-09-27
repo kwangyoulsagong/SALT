@@ -11,7 +11,21 @@ export const rows = style({
   alignItems: "center",
   columnGap: vars.space.sm,
   rowGap: vars.space.sm,
-  maxWidth: "420px",
+  maxWidth: "480px",
+});
+
+/** 금액 칸 + 원/% 고르기. 좁으면 고르기가 아래로 내려간다(200% 확대) */
+export const fieldWithUnit = style({ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px", minWidth: 0 });
+
+/** 칸이 남는 폭을 가져가되 고르기를 밀어내지 않는다 — 200% 확대에서만 고르기가 아래로 */
+export const fieldGrow = style({ flex: "1 1 160px", minWidth: 0 });
+
+export const intro = style({
+  margin: 0,
+  color: vars.colors.text.primary,
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.semibold,
 });
 
 export const label = style({

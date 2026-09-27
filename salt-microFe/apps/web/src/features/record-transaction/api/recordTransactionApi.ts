@@ -69,5 +69,7 @@ export const recordTransactionApi = {
     transactionId: string;
     stopPrice?: number;
     thesis?: string;
+    invalidation?: string;
+    checklist?: { shown: string[]; checked: string[] };
   }): Promise<TradePlanView> => postJson(ENDPOINTS.plans, body),
 };
