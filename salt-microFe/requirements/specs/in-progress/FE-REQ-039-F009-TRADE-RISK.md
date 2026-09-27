@@ -44,6 +44,10 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | FR-17 | 청산별 태그 확정(`features/confirm-outcome-tags`) — 최근 청산 20건(종목 아이콘 · 손익 · 보유일 · R · 30일 보유 대비 · 계획 라벨), "자동 후보"/"확정" 글자, 그 줄에서 펼쳐 체크박스로 고르고 확정(모달 없음). 빈 선택 = 실수 없음. 확정 뒤 목록 · 미러 · 사이즈 계산 무효화 | FR-18 | 완료(사용자 정의 태그 새로 적기 제외 — 미검증 표) |
 | FR-18 | 거래 폼 **엣지 없음 한 줄** — 매수 입력 중 서버 `behavior.edgeWarnings` 를 한 줄씩(차단 아님). 요청에 `hasPlan`(손절가 또는 이유) | FR-19 | 완료 |
 | FR-19 | 거래 폼 **매도 프레이밍 한 줄** — "이 종목을 오늘 처음 본다면 살까요?" + 계획 손절 vs 지금(서버 `sellFraming`). 매입가 · 손익률 없음. 입력은 그대로 진행 | 시나리오 5 | 완료("그냥 들고 있었으면 대비 +2.1%" 조각 제외 — 미검증 표) |
+| FR-21 | 코치 리포트 **월간 복기** 섹션(`widgets/coach-console` `MonthlyReviewPanel` · `entities/coach` `MonthlyReviewCard`) — 미러 아래. 이번 달 한 가지(서버 문장) · 그달 거래 · 비용이 가장 컸던 태그 · 내 기준을 넘은 날(지금 기준이라고 밝힘) · 계획 지킴 · 익절/손절 · 그냥 들고 있었으면 · 그달 회전율 · 오를 확률 채점. 저장된 달이 둘 이상이면 달 고르기(`select`, 고른 달은 화면 상태만). 따로 부르고 따로 실패 | 시나리오 6 · FR-28 | 완료(슬라이스 6) |
+| FR-22 | **IPS 3문항** — `features/set-risk-budget` 에 원/% 고르기(`SegmentedControl`, 단위를 바꾸면 칸을 비움) · 한 종목 상한(%, 비우면 기본 60%, 고치지 않으면 보내지 않음). 기준이 없으면 "세 가지만 정하면" 안내와 함께 펼친 채 시작. % 는 적은 숫자를 비율로 옮길 뿐(서버 계약) — 원 환산은 서버 | 시나리오 7 · FR-2 · FR-31 | 완료(슬라이스 6 — 코치 대화 화면이 없어 게이지 패널에서, 2026-09-27 사용자 결정) |
+| FR-23 | **시나리오** "내리면 얼마"(`entities/coach` `ScenarioList`) — 리스크 예산 패널 게이지 · 기준 아래. −10 · −30 · −50% 손실 · 남는 평가금 · 종목별 몫 · 2022-11 FTX 구간. 확률 문구 없음 | FR-25 | 완료(슬라이스 6) |
+| FR-24 | **진입 전 체크**(`features/record-transaction` `EntryChecklist`) — "계획(선택)" 안에 또 접힘, 매수 · 서버가 질문을 줄 때만. 질문 체크(네이티브 체크박스 · 무채색) + 프리모템 한 줄 → 계획 `invalidation`. 펼쳤을 때 보인 질문 · 체크를 계획 `checklist` 로. 막지 않는다 · 기록만. 미러에 "오를 확률" 채점 줄(확률을 적은 계획이 없으면 줄 없음) | FR-30 · FR-13 | 완료(슬라이스 6) |
 | FR-20 | 행동 알림 → 미러 "최근 행동" 줄 — 기존 리포트의 "최근 거래 기록" 패널을 지우고 미러 안으로(`BehaviorFactList` 삭제). 서버가 알림 저장을 끈다(`SRV-REQ-038` FR-13) | FR-21 | 완료 |
 
 ## 하지 않은 것
@@ -57,3 +61,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 |---|---|
 | 2026-09-24 | 신설 · FR-1~12 구현, FR-13 보류. 근거 `reports/checklists/FE-REQ-039.md` |
 | 2026-09-27 | 슬라이스 5 FR-14~20 — 내 거래 미러 · 청산별 태그 확정 · 폼 한 줄(엣지 없음 · 매도 프레이밍) · 행동 알림 → 미러 줄. 새 feature `confirm-outcome-tags`(레지스트리 등록). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 5 |
+| 2026-09-27 | 슬라이스 6 FR-21~24 — 월간 복기 · IPS 3문항(원/% · 한 종목 상한) · 시나리오 · 진입 전 체크 · 미러 Brier 줄. 새 슬라이스 없음(`set-risk-budget` 에 `lib` 세그먼트). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 6 |

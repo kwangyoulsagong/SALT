@@ -27,7 +27,8 @@ const SIZE_CHECK_KEYS = [
   // 슬라이스 5 — 계획 외 후보 판정(`SRV-REQ-038` FR-12)
   "hasPlan",
 ] as const;
-const RISK_BUDGET_KEYS = ["monthlyLossBudget", "perTradeMaxLoss", "targetVolatility"] as const;
+// 슬라이스 6 — 한 종목 상한(IPS 3문항의 셋째)
+const RISK_BUDGET_KEYS = ["monthlyLossBudget", "perTradeMaxLoss", "targetVolatility", "maxSingleAssetWeight"] as const;
 const PLAN_CREATE_KEYS = [
   "symbol",
   "side",
@@ -39,8 +40,10 @@ const PLAN_CREATE_KEYS = [
   "invalidation",
   "reviewAt",
   "probabilityUp",
+  // 슬라이스 6 — 진입 전 체크리스트 기록. 만들 때만(수정 키에서 뺀다)
+  "checklist",
 ] as const;
-const PLAN_UPDATE_KEYS = PLAN_CREATE_KEYS.filter((key) => key !== "symbol" && key !== "side");
+const PLAN_UPDATE_KEYS = PLAN_CREATE_KEYS.filter((key) => key !== "symbol" && key !== "side" && key !== "checklist");
 
 const badRequest = (res: Response, message: string) => res.status(400).json({ success: false, message });
 
@@ -62,6 +65,9 @@ const parseRecordTrade = (body: Raw): RecordTradeInput | string => {
   const rawPlan = typeof body.plan === "object" && body.plan !== null ? (body.plan as Raw) : {};
   if (rawPlan.stopPrice !== undefined && !isPositive(rawPlan.stopPrice)) return "손절가는 0보다 커야 합니다";
   if (rawPlan.thesis !== undefined && typeof rawPlan.thesis !== "string") return "이유는 문자열입니다";
+  if (rawPlan.invalidation !== undefined && typeof rawPlan.invalidation !== "string") return "프리모템 답은 문자열입니다";
+  const checklist = parseChecklist(rawPlan.checklist);
+  if (checklist === "invalid") return "checklist 는 { shown, checked } 문자열 배열입니다";
 
   return {
     symbol: symbol.toUpperCase(),
@@ -73,8 +79,20 @@ const parseRecordTrade = (body: Raw): RecordTradeInput | string => {
     plan: {
       ...(isPositive(rawPlan.stopPrice) ? { stopPrice: rawPlan.stopPrice } : {}),
       ...(typeof rawPlan.thesis === "string" ? { thesis: rawPlan.thesis } : {}),
+      ...(typeof rawPlan.invalidation === "string" ? { invalidation: rawPlan.invalidation } : {}),
+      ...(checklist ? { checklist } : {}),
     },
   };
+};
+
+/** 모양만 — 개수 · 길이 · shown ⊇ checked 는 서버 zod 가 본다 */
+const parseChecklist = (raw: unknown): { shown: string[]; checked: string[] } | undefined | "invalid" => {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "object" || raw === null) return "invalid";
+  const { shown, checked } = raw as Raw;
+  const isStrings = (value: unknown): value is string[] =>
+    Array.isArray(value) && value.every((item) => typeof item === "string");
+  return isStrings(shown) && isStrings(checked) ? { shown, checked } : "invalid";
 };
 
 /** 화면을 떠나면 upstream 도 끊는다(`coach.controller` 와 같은 규칙) */

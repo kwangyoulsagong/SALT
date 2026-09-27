@@ -21,6 +21,13 @@ export const RECORD_TRANSACTION_MESSAGES = {
   stopPrice: "손절가",
   thesis: "이유",
   thesisPlaceholder: "한 줄로 (200자까지)",
+  checklist: {
+    toggle: "진입 전 체크 (선택)",
+    hint: "내 기록에서 손실이 컸던 패턴이에요. 체크는 기록만 되고 저장을 막지 않아요",
+    noItems: "아직 손실로 끝난 태그가 없어 질문이 없어요. 한 줄 답만 남길 수 있어요",
+    listLabel: "내 실수 태그에서 나온 질문",
+    premortemPlaceholder: "한 줄로 — 계획의 무효화 조건으로 저장돼요",
+  },
   idleHint: "수량과 단가를 적으면 이 거래의 크기를 계산해요",
   stopIdleHint: "손절가를 적으면 손실 크기를 계산해요",
   submit: "기록하기",

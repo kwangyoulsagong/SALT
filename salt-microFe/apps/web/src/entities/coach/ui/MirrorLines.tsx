@@ -1,5 +1,6 @@
 import type {
   BehaviorMirrorView,
+  BrierView,
   MirrorMetric,
   MirrorStatus,
   ReportBehaviorFact,
@@ -14,6 +15,7 @@ import {
   describeBehaviorFact,
   formatFineRate,
   formatRatio,
+  formatScore,
   formatShortDate,
   formatSignedDecimal,
   formatSignedKrw,
@@ -50,8 +52,8 @@ const SampleBadges = ({ sample, status }: { sample: string; status: MirrorStatus
   </>
 );
 
-/** 미러 한 줄 — 이름 · 배지 · 본문 · 보조. 값이 없으면(`insufficient_data`) 본문 대신 "기록이 모자라" */
-const MirrorItem = ({
+/** 미러 한 줄 — 이름 · 배지 · 본문 · 보조. 값이 없으면(`insufficient_data`) 본문 대신 "기록이 모자라". 월간 복기도 쓴다 */
+export const MirrorItem = ({
   label,
   sampleSize,
   sampleText,
@@ -95,7 +97,7 @@ const MirrorItem = ({
 };
 
 /** 두 지표 중 나쁜 상태 — 한 줄에 둘을 쓰면 둘 다 확실할 때만 `ok` */
-const worse = (a: MirrorMetric, b: MirrorMetric): MirrorStatus =>
+export const worse = (a: MirrorMetric, b: MirrorMetric): MirrorStatus =>
   a.status === "insufficient_data" || b.status === "insufficient_data"
     ? "insufficient_data"
     : a.status === "insufficient_sample" || b.status === "insufficient_sample"
@@ -109,7 +111,7 @@ const expectancy = (cost: TagCostView): string | null =>
       ? M.tags.expectancyReturn(formatSignedRate(cost.avgReturn))
       : null;
 
-const TagCostRows = ({ costs }: { costs: readonly TagCostView[] }) => (
+export const TagCostRows = ({ costs }: { costs: readonly TagCostView[] }) => (
   <ul className={tagCostList}>
     {costs.map((cost) => (
       <li key={cost.tag} className={tagCostRow}>
@@ -131,6 +133,34 @@ const TagCostRows = ({ costs }: { costs: readonly TagCostView[] }) => (
     ))}
   </ul>
 );
+
+/**
+ * "오를 확률" 채점 줄(FR-13). 확률을 적은 계획이 하나도 없으면 줄이 없다 — 폼에 확률 칸이 없어(2026-09-27 결정)
+ * 대부분 비어 있는 게 정상이다. 성적 4요소(기간 · 표본 · 기준 대비 · 빗나간 사례)가 이 줄에 다 있다(FR-33)
+ */
+export const brierMirrorItem = (brier: BrierView, key = "brier"): ReactNode => {
+  const { meanScore } = brier;
+  if (meanScore.sampleSize === 0 && brier.pendingCount === 0) return null;
+  const misses = brier.recentMisses.flatMap((miss) => {
+    const from = formatShortDate(miss.plannedAt);
+    const to = formatShortDate(miss.dueAt);
+    return from && to ? [M.brier.miss(miss.symbol, formatRatio(miss.probabilityUp), from, to, miss.up)] : [];
+  });
+  return (
+    <MirrorItem
+      key={key}
+      label={M.brier.label}
+      sampleSize={meanScore.sampleSize}
+      status={meanScore.status}
+      text={
+        meanScore.value !== null && brier.baseline !== null
+          ? M.brier.line(formatScore(meanScore.value), formatScore(brier.baseline))
+          : null
+      }
+      sub={[M.brier.counts(brier.missedCount, brier.pendingCount), ...misses]}
+    />
+  );
+};
 
 interface MirrorLinesProps {
   view: BehaviorMirrorView;
@@ -229,6 +259,9 @@ export const MirrorLines = ({ view, behaviorFacts }: MirrorLinesProps) => {
       />,
     );
   }
+
+  const brierItem = view.brier && brierMirrorItem(view.brier);
+  if (brierItem) items.push(brierItem);
 
   if (view.tagCosts.length > 0) {
     const tagged = view.tagCosts.reduce((sum, cost) => sum + cost.count, 0);

@@ -5,6 +5,7 @@ import prisma from "../../shared/infrastructure/prisma";
 import {
   ADHERENCE_LABELS,
   type AdherenceLabel,
+  type PlanChecklist,
   type SampleOrigin,
   type TradePlan,
   type TradePlanDraft,
@@ -28,6 +29,15 @@ const toAdherence = (value: string | null): AdherenceLabel | null =>
 const toOrigin = (value: string): SampleOrigin =>
   value === "live" || value === "backtest" ? value : "synthetic";
 
+/** JSON 컬럼 — 모양이 어긋난 값은 "기록 없음"으로 읽는다(조회 조건이 아니라 기록이라 버려도 판정이 바뀌지 않는다) */
+const toChecklist = (value: Prisma.JsonValue | null): PlanChecklist | null => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const { shown, checked } = value as Record<string, unknown>;
+  const strings = (list: unknown): list is string[] =>
+    Array.isArray(list) && list.every((item) => typeof item === "string");
+  return strings(shown) && strings(checked) ? { shown, checked } : null;
+};
+
 const toDomain = (row: TradePlanRow): TradePlan => ({
   id: row.id,
   userId: row.userId,
@@ -41,6 +51,7 @@ const toDomain = (row: TradePlanRow): TradePlan => ({
   invalidation: row.invalidation,
   reviewAt: row.reviewAt,
   probabilityUp: toDecimal(row.probabilityUp),
+  checklist: toChecklist(row.checklist),
   plannedAt: row.plannedAt,
   sampleOrigin: toOrigin(row.sampleOrigin),
   adherenceLabel: toAdherence(row.adherenceLabel),
@@ -68,6 +79,9 @@ export class PrismaTradePlanStore implements TradePlanStore {
         invalidation: draft.invalidation,
         reviewAt: draft.reviewAt,
         probabilityUp: decimalField(draft.probabilityUp),
+        checklist: draft.checklist
+          ? { shown: draft.checklist.shown, checked: draft.checklist.checked }
+          : undefined,
         plannedAt: draft.plannedAt,
         sampleOrigin: draft.sampleOrigin,
       },
@@ -120,6 +134,16 @@ export class PrismaTradePlanStore implements TradePlanStore {
     if (count === 0) return null;
     const row = await prisma.tradePlan.findFirstOrThrow({ where: { id: planId, userId } });
     return toDomain(row);
+  }
+
+  async listForecasted(userId: string, limit: number): Promise<TradePlan[]> {
+    const rows = await prisma.tradePlan.findMany({
+      // (user_id, …) 인덱스 접두사. 사용자당 계획 수가 작아 probability_up 은 거른다
+      where: { userId, probabilityUp: { not: null } },
+      orderBy: [{ plannedAt: "asc" }, { id: "asc" }],
+      take: limit,
+    });
+    return rows.map(toDomain);
   }
 
   async listLinked(userId: string, limit: number): Promise<TradePlan[]> {

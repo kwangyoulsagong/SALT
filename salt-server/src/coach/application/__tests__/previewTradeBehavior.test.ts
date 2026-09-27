@@ -93,6 +93,9 @@ describe("PreviewTradeBehavior", () => {
     assert.equal(result.chasingUnknown, true);
     assert.deepEqual(result.edgeWarnings.map((warning) => warning.tag), ["off_plan"]);
     assert.equal(result.sellFraming, null);
+    // 진입 전 체크리스트(FR-30, 슬라이스 6) — 같은 태그 비용에서 자란 질문
+    assert.deepEqual(result.checklist?.items.map((item) => item.tag), ["off_plan"]);
+    assert.equal(result.checklist?.items[0].count, 20);
   });
 
   it("표본 19 면 후보여도 한 줄이 없다", async () => {
@@ -111,6 +114,7 @@ describe("PreviewTradeBehavior", () => {
     assert.ok(result.status === "ok");
     if (result.status !== "ok") return;
     assert.deepEqual(result.candidateTags, []);
+    assert.equal(result.checklist, null, "매도엔 진입 전 체크리스트가 없다");
     assert.equal(result.sellFraming?.stopPrice?.toNumber(), 90);
     assert.equal(result.sellFraming?.currentPrice?.toNumber(), 120);
   });

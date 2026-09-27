@@ -14,6 +14,7 @@ import { formatAmountInput, parseAmountInput, todayInKorea, toTransactionDate } 
 import { useRecordTrade, useSizeCheck } from "../api";
 import { useDebouncedValue } from "../lib";
 import { RECORD_TRANSACTION_MESSAGES as MSG } from "../model";
+import { EntryChecklist } from "./EntryChecklist";
 import {
   chevron,
   chevronOpen,
@@ -82,6 +83,10 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
   const [planOpen, setPlanOpen] = useState(false);
   const [stopPrice, setStopPrice] = useState("");
   const [thesis, setThesis] = useState("");
+  // 진입 전 체크(FR-30) — 매수 · 계획 안에서만. 펼쳤을 때 보인 질문과 체크를 계획에 기록한다
+  const [checklistOpen, setChecklistOpen] = useState(false);
+  const [checkedTags, setCheckedTags] = useState<string[]>([]);
+  const [premortem, setPremortem] = useState("");
   const [touched, setTouched] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
 
@@ -98,8 +103,8 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
     stop: parseAmountInput(stopPrice),
   };
   const stopInvalid = stopPrice.trim() !== "" && parsed.stop === null;
-  // 계획 = 손절가 또는 이유(FR-10). 계획 없음 후보(off_plan) 판정에 쓴다 — 서버 배치와 같은 정의
-  const hasPlan = parsed.stop !== null || thesis.trim() !== "";
+  // 계획 = 손절가 · 이유 · 프리모템 답 중 하나(FR-10 · FR-30). 계획 없음 후보(off_plan) 판정에 쓴다 — BFF 가 계획을 만드는 조건과 같다
+  const hasPlan = parsed.stop !== null || thesis.trim() !== "" || (side === "buy" && premortem.trim() !== "");
 
   const sizeInput = useMemo<SizeCheckRequest | null>(() => {
     if (parsed.quantity === null || parsed.price === null) return null;
@@ -117,6 +122,25 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
   const waitingDebounce = sizeInput !== debouncedInput;
 
   const { record, retryPlan } = useRecordTrade();
+  const checklist = side === "buy" && sizeCheck.data?.status === "ok" ? (sizeCheck.data.behavior?.checklist ?? null) : null;
+
+  /** 계획에 남길 진입 전 체크 — 매수이고 펼쳐서 질문을 본 경우만. 체크 · 답은 기록만 한다 */
+  const checklistPlan = () => {
+    if (side !== "buy") return {};
+    const answer = premortem.trim();
+    const shown = checklistOpen && checklist ? checklist.items.map((item) => item.tag) : [];
+    return {
+      ...(answer ? { invalidation: answer } : {}),
+      ...(shown.length ? { checklist: { shown, checked: checkedTags.filter((tag) => shown.includes(tag)) } } : {}),
+    };
+  };
+  const resetPlan = () => {
+    setQuantity("");
+    setStopPrice("");
+    setThesis("");
+    setPremortem("");
+    setCheckedTags([]);
+  };
 
   if (hasToken === false) {
     return (
@@ -146,17 +170,14 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
         plan: {
           ...(parsed.stop !== null ? { stopPrice: parsed.stop } : {}),
           ...(trimmedThesis ? { thesis: trimmedThesis } : {}),
+          ...checklistPlan(),
         },
       },
       {
         onSuccess: (result) => {
           setNotice({ kind: "saved", result });
           // 다음 거래를 바로 적을 수 있게 — 단가 · 날짜는 둔다(같은 날 여러 건이 흔하다)
-          if (result.plan.status !== "unavailable") {
-            setQuantity("");
-            setStopPrice("");
-            setThesis("");
-          }
+          if (result.plan.status !== "unavailable") resetPlan();
           setTouched(false);
         },
         onError: (error) => {
@@ -183,13 +204,10 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
         transactionId: transaction.id,
         ...(parsed.stop !== null ? { stopPrice: parsed.stop } : {}),
         ...(trimmedThesis ? { thesis: trimmedThesis } : {}),
+        ...checklistPlan(),
       },
       {
-        onSuccess: () => {
-          setQuantity("");
-          setStopPrice("");
-          setThesis("");
-        },
+        onSuccess: resetPlan,
       },
     );
   };
@@ -323,6 +341,17 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
                 onChange={setThesis}
               />
             </div>
+            {checklist && (
+              <EntryChecklist
+                checklist={checklist}
+                open={checklistOpen}
+                onOpenChange={setChecklistOpen}
+                checked={checkedTags}
+                onCheckedChange={setCheckedTags}
+                premortem={premortem}
+                onPremortemChange={setPremortem}
+              />
+            )}
           </div>
           )}
         </div>

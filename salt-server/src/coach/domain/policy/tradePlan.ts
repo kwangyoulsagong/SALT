@@ -15,6 +15,7 @@
 import type Decimal from "decimal.js";
 
 import { DomainError, ErrorKind } from "../../../shared/domain";
+import type { PlanChecklist } from "./entryChecklist";
 import type { SampleOrigin } from "./symbolJudgment";
 
 export type TradePlanSide = "buy" | "sell";
@@ -82,6 +83,8 @@ export interface TradePlan {
   invalidation: string | null;
   reviewAt: Date | null;
   probabilityUp: Decimal | null;
+  /** 진입 전 체크리스트 기록(FR-30) — 보인 질문 · 체크한 질문. 기록만 하고 판정에 쓰지 않는다 */
+  checklist: PlanChecklist | null;
   plannedAt: Date;
   sampleOrigin: SampleOrigin;
   adherenceLabel: AdherenceLabel | null;

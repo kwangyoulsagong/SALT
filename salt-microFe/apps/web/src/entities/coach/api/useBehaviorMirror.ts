@@ -1,7 +1,7 @@
 "use client";
 
-import type { BehaviorMirrorResult, DecisionOutcomeListResult } from "@repo/core/coach";
-import { useQuery } from "@tanstack/react-query";
+import type { BehaviorMirrorResult, DecisionOutcomeListResult, MonthlyReviewResult } from "@repo/core/coach";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { readAccessToken } from "@/shared/api";
 import { HTTP_STATUS_CODE } from "@/shared/config";
@@ -41,6 +41,27 @@ export const useDecisionOutcomes = () => {
     queryFn: ({ signal }) => coachApi.outcomes(OUTCOME_LIST_LIMIT, signal),
     enabled: Boolean(token),
     staleTime: MIRROR_STALE_TIME_MS,
+    retry: retryServerErrorOnce,
+  });
+  return { ...query, isSignedOut: !token };
+};
+
+/** 한 번 만든 복기는 바뀌지 않는다 — 화면에 머무는 동안 다시 부르지 않는다 */
+const MONTHLY_REVIEW_STALE_TIME_MS = 60 * 60_000;
+
+/**
+ * 월간 복기 (F009 슬라이스 6 FR-28). `month` 가 `null` 이면 서버가 고른 지난달(KST).
+ * 미러 · 리포트와 따로 부르고 따로 실패한다
+ */
+export const useMonthlyReview = (month: string | null) => {
+  const token = readAccessToken();
+  const query = useQuery<MonthlyReviewResult, Error>({
+    queryKey: coachQueryKeys.monthlyReview(month),
+    queryFn: ({ signal }) => coachApi.monthlyReview(month, signal),
+    enabled: Boolean(token),
+    staleTime: MONTHLY_REVIEW_STALE_TIME_MS,
+    // 달을 바꾸는 동안 앞 달을 두고 자리를 지킨다 — 고르기 칸이 사라졌다 나타나지 않게
+    placeholderData: keepPreviousData,
     retry: retryServerErrorOnce,
   });
   return { ...query, isSignedOut: !token };

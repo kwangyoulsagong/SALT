@@ -198,6 +198,8 @@ export interface RiskBudgetView {
     perTradeMaxLossKrw: number | null;
     targetVolatility: number | null;
     targetVolatilityIsDefault: boolean;
+    /** 한 종목 상한(IPS 3문항의 셋째, 슬라이스 6). 서버 기본 0.6 */
+    maxSingleAssetWeight: number | null;
   };
   totalValueKrw: number | null;
   gauges: {
@@ -218,8 +220,28 @@ export interface RiskBudgetView {
       tradeCount: number | null;
     };
   };
+  /** 시나리오(슬라이스 6, FR-25). 확률 필드가 없다. 서버가 아직 주지 않거나 깨졌으면 `null` */
+  scenarios: ScenariosView | null;
   monthStart: string | null;
   asOf: string | null;
+}
+
+export interface ScenariosView {
+  status: "ok" | "no_holdings";
+  totalValueKrw: number | null;
+  /** −10 · −30 · −50% 순. 손실은 음수 원 */
+  shocks: Array<{ shock: number; lossKrw: number; valueAfterKrw: number; bySymbol: Array<{ symbol: string; lossKrw: number }> }>;
+  /** 과거 구간을 지금 보유에 다시 얹은 손실 */
+  episodes: Array<{
+    id: string;
+    from: string;
+    to: string;
+    status: "ok" | "insufficient_data";
+    lossKrw: number | null;
+    returnRate: number | null;
+    bySymbol: Array<{ symbol: string; returnRate: number | null; lossKrw: number | null }>;
+    missingSymbols: string[];
+  }>;
 }
 
 export type RiskBudgetResult = RiskBudgetView | { status: "unavailable" };
@@ -229,6 +251,59 @@ const toBudget = (raw: unknown): BudgetSetting | null => {
   const amount = num(raw.amount);
   const unit = oneOf(raw.unit, BUDGET_UNITS);
   return amount !== null && unit ? { amount, unit } : null;
+};
+
+const stringList = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+
+/**
+ * 시나리오 — 줄 단위로 거른다. 금액이 빈 충격 줄은 뺀다(0 원으로 보이면 "손실 없음"으로 읽힌다).
+ * 과거 구간은 `ok` 인데 손실이 없으면 `insufficient_data` 로 내린다
+ */
+export const toScenarios = (raw: unknown): ScenariosView | null => {
+  if (!isRecord(raw)) return null;
+  const status = oneOf(raw.status, ["ok", "no_holdings"] as const);
+  if (!status) return null;
+  const shocks = (Array.isArray(raw.shocks) ? raw.shocks : []).flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const shock = num(item.shock);
+    const lossKrw = num(item.lossKrw);
+    const valueAfterKrw = num(item.valueAfterKrw);
+    if (shock === null || lossKrw === null || valueAfterKrw === null) return [];
+    const bySymbol = (Array.isArray(item.bySymbol) ? item.bySymbol : []).flatMap((row) => {
+      if (!isRecord(row)) return [];
+      const symbol = str(row.symbol);
+      const loss = num(row.lossKrw);
+      return symbol && loss !== null ? [{ symbol, lossKrw: loss }] : [];
+    });
+    return [{ shock, lossKrw, valueAfterKrw, bySymbol }];
+  });
+  const episodes = (Array.isArray(raw.episodes) ? raw.episodes : []).flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const id = str(item.id);
+    const from = str(item.from);
+    const to = str(item.to);
+    if (!id || !from || !to) return [];
+    const lossKrw = num(item.lossKrw);
+    const declared = oneOf(item.status, ["ok", "insufficient_data"] as const) ?? "insufficient_data";
+    return [
+      {
+        id,
+        from,
+        to,
+        status: declared === "ok" && lossKrw !== null ? ("ok" as const) : ("insufficient_data" as const),
+        lossKrw,
+        returnRate: num(item.returnRate),
+        bySymbol: (Array.isArray(item.bySymbol) ? item.bySymbol : []).flatMap((row) => {
+          if (!isRecord(row)) return [];
+          const symbol = str(row.symbol);
+          return symbol ? [{ symbol, returnRate: num(row.returnRate), lossKrw: num(row.lossKrw) }] : [];
+        }),
+        missingSymbols: stringList(item.missingSymbols),
+      },
+    ];
+  });
+  return { status, totalValueKrw: num(raw.totalValueKrw), shocks, episodes };
 };
 
 /** 게이지 상태가 깨졌으면 "데이터 부족"이다 — "정상"으로 올리지 않는다 */
@@ -252,6 +327,7 @@ export const toRiskBudgetViewModel = (data: Raw): RiskBudgetView => {
       perTradeMaxLossKrw: num(settings.perTradeMaxLossKrw),
       targetVolatility: num(settings.targetVolatility),
       targetVolatilityIsDefault: settings.targetVolatilityIsDefault === true,
+      maxSingleAssetWeight: num(settings.maxSingleAssetWeight),
     },
     totalValueKrw: num(data.totalValueKrw),
     gauges: {
@@ -279,6 +355,7 @@ export const toRiskBudgetViewModel = (data: Raw): RiskBudgetView => {
         tradeCount: num(turnover.tradeCount),
       },
     },
+    scenarios: toScenarios(data.scenarios),
     monthStart: str(data.monthStart),
     asOf: str(data.asOf),
   };
@@ -299,6 +376,8 @@ export interface TradePlanView {
   invalidation: string | null;
   reviewAt: string | null;
   probabilityUp: number | null;
+  /** 진입 전 체크리스트 기록(슬라이스 6) — 보인 질문 태그 · 체크한 태그. 없으면 `null` */
+  checklist: { shown: string[]; checked: string[] } | null;
   plannedAt: string;
   /** 거래에 연결돼 손절가 · 계획 수량 · 오를 확률을 바꿀 수 없다(서버 409) */
   locked: boolean;
@@ -329,6 +408,9 @@ export const toTradePlanViewModel = (data: Raw): TradePlanView => {
     invalidation: str(data.invalidation),
     reviewAt: str(data.reviewAt),
     probabilityUp: num(data.probabilityUp),
+    checklist: isRecord(data.checklist)
+      ? { shown: stringList(data.checklist.shown), checked: stringList(data.checklist.checked) }
+      : null,
     plannedAt,
     locked: data.locked === true,
     adherence: {

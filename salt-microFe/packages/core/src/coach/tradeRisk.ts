@@ -88,6 +88,8 @@ export interface RiskBudgetView {
     perTradeMaxLossKrw: number | null;
     targetVolatility: number | null;
     targetVolatilityIsDefault: boolean;
+    /** 한 종목 상한(IPS 3문항의 셋째, 슬라이스 6). 서버 기본 0.6 */
+    maxSingleAssetWeight: number | null;
   };
   totalValueKrw: number | null;
   gauges: {
@@ -108,8 +110,28 @@ export interface RiskBudgetView {
       tradeCount: number | null;
     };
   };
+  /** 시나리오(슬라이스 6, FR-25) — 확률이 없다. 못 받았으면 `null` */
+  scenarios: ScenariosView | null;
   monthStart: string | null;
   asOf: string | null;
+}
+
+export interface ScenariosView {
+  status: "ok" | "no_holdings";
+  totalValueKrw: number | null;
+  /** −10 · −30 · −50% 순. 손실은 음수 원 */
+  shocks: Array<{ shock: number; lossKrw: number; valueAfterKrw: number; bySymbol: Array<{ symbol: string; lossKrw: number }> }>;
+  /** 과거 구간(2022-11 등)을 지금 보유에 다시 얹은 손실. 그때 일봉이 없는 종목이 있으면 `insufficient_data` */
+  episodes: Array<{
+    id: string;
+    from: string;
+    to: string;
+    status: "ok" | "insufficient_data";
+    lossKrw: number | null;
+    returnRate: number | null;
+    bySymbol: Array<{ symbol: string; returnRate: number | null; lossKrw: number | null }>;
+    missingSymbols: string[];
+  }>;
 }
 
 export type RiskBudgetResult = RiskBudgetView | { status: "unavailable" };
@@ -119,6 +141,8 @@ export interface RiskBudgetUpdate {
   monthlyLossBudget?: BudgetSetting | null;
   perTradeMaxLoss?: BudgetSetting | null;
   targetVolatility?: number | null;
+  /** 한 종목 상한 비율(0.05~1). `null` 이면 기본 60% */
+  maxSingleAssetWeight?: number | null;
 }
 
 export type AdherenceLabel = "honored" | "stop_not_honored" | "stop_slipped" | "size_exceeded";
@@ -135,6 +159,8 @@ export interface TradePlanView {
   invalidation: string | null;
   reviewAt: string | null;
   probabilityUp: number | null;
+  /** 진입 전 체크리스트 기록(슬라이스 6) */
+  checklist: { shown: string[]; checked: string[] } | null;
   plannedAt: string;
   locked: boolean;
   adherence: { label: AdherenceLabel | null; userLabel: AdherenceLabel | null; evaluatedAt: string | null };
@@ -148,7 +174,14 @@ export interface RecordTradeRequest {
   quantity: number;
   price: number;
   transactionDate?: string;
-  plan?: { stopPrice?: number; thesis?: string };
+  plan?: {
+    stopPrice?: number;
+    thesis?: string;
+    /** 프리모템 답(슬라이스 6) */
+    invalidation?: string;
+    /** 진입 전 체크리스트 — 펼쳤을 때만. 계획이 있을 때만 남는다(체크만으로는 계획이 생기지 않는다) */
+    checklist?: { shown: string[]; checked: string[] };
+  };
 }
 
 export interface RecordedTransactionView {

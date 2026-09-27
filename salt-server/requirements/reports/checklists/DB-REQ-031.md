@@ -30,3 +30,21 @@
 |---|---|---|
 | DB 역할 권한(`salt_forecast` 쓰기 · 서버 SELECT) | 로컬은 한 역할 — 기존 `forecast` 테이블과 같은 상태 | 운영 역할 분리 시(`DB-REQ-029`) |
 | 운영 DB 적용 | 미접근 | 운영 배포 |
+
+---
+
+# 슬라이스 6 — `monthly_reviews` · `trade_plans.checklist` (2026-09-27)
+
+| 확인 | 결과 |
+|---|---|
+| 마이그레이션 | `20260927120000_coach_monthly_reviews`(테이블 · UNIQUE `(user_id, month DESC)` · FK CASCADE) · `20260927120100_trade_plan_checklist`(nullable jsonb). 목적 하나씩. 머리 주석에 롤백 |
+| 적용 | 로컬 `prisma migrate deploy` 2건 · `migrate diff`(DB → `schema.prisma`) 빈 결과 · `prisma:generate` |
+| 동작 | 임시 사용자 복기 저장 → 같은 달 재생성 시 기존 행 반환(P2002 → 읽기) · 사용자 삭제 → 복기 행 0(CASCADE) · 계획 `checklist` 왕복 |
+| 원장 3종 | 건드리지 않음 |
+
+## 미검증 · 범위 밖 (슬라이스 6)
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 운영 DB 적용 · 락 시간 | 새 테이블 + nullable 컬럼이라 짧다고 본다. 재지 않았다 | 배포 때 |
+| `monthly_reviews` EXPLAIN | 로컬 행 0 — UNIQUE 인덱스 조회 하나 | 행이 쌓이면(사용자 ≤10 × 월 1행이라 급하지 않다) |

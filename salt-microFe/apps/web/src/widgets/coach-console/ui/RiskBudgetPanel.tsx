@@ -2,11 +2,20 @@
 
 import { Text } from "@repo/ui/text";
 
-import { CoachBlockSkeleton, CoachDisclosure, RISK_MESSAGES, RiskGaugeList, useRiskBudget } from "@/entities/coach";
+import {
+  CoachBlockSkeleton,
+  CoachDisclosure,
+  RISK_MESSAGES,
+  RiskGaugeList,
+  ScenarioList,
+  useRiskBudget,
+} from "@/entities/coach";
 import { RiskBudgetForm } from "@/features/set-risk-budget";
 import { panel, panelDescription, panelHead, panelTitle } from "@/shared/ui/surface.css";
 
-const { gauge: GAUGE } = RISK_MESSAGES;
+import { subHeading } from "./CoachReport.css";
+
+const { gauge: GAUGE, scenario: SCENARIO } = RISK_MESSAGES;
 
 /**
  * 리스크 예산 패널 (F009 시나리오 3 · FR-17 · FR-23 · FR-24 · `FE-REQ-039`).
@@ -27,6 +36,14 @@ export const RiskBudgetPanel = () => {
       <>
         <RiskGaugeList view={budget.data} />
         <RiskBudgetForm view={budget.data} />
+        {/* 시나리오(FR-25) — 게이지와 같은 보유 · 같은 응답. 서버가 못 줬으면 묶음째 없다 */}
+        {budget.data.scenarios && (
+          <>
+            <h3 className={subHeading}>{SCENARIO.heading}</h3>
+            <p className={panelDescription}>{SCENARIO.description}</p>
+            <ScenarioList scenarios={budget.data.scenarios} />
+          </>
+        )}
       </>
     );
   };

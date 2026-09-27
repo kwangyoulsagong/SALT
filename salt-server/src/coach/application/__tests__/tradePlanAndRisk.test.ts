@@ -32,6 +32,10 @@ class MemoryPlans implements TradePlanStore {
   beforeNextUpdate: (() => void) | null = null;
   private seq = 0;
 
+  async listForecasted(userId: string) {
+    return [...this.rows.values()].filter((row) => row.userId === userId && row.probabilityUp !== null);
+  }
+
   async create(draft: TradePlanDraft) {
     const plan: TradePlan = {
       ...draft,
@@ -237,11 +241,15 @@ describe("CheckTradeSize · GetRiskBudget — 같은 스냅샷", () => {
   const market = {
     closeAtOrAfter: async (symbol: string) => (symbol === "BTC" ? 100_000_000 : 1_000_000),
   } as unknown as MarketProbe;
-  const forecasts = { realizedVolatility: async () => null } as unknown as ForecastReader;
+  // 시나리오의 과거 구간 일봉 — 이 스위트는 게이지만 본다
+  const forecasts = {
+    realizedVolatility: async () => null,
+    dailyCloses: async () => new Map(),
+  } as unknown as ForecastReader;
   const portfolio = portfolioWith({ holdings, ledger: [] });
 
   it("월 손익 −1,000,000 → 게이지 100% · 사이즈 계산은 예산 소진", async () => {
-    const budget = await new GetRiskBudget(profiles, portfolio, market, () => now).execute("u1");
+    const budget = await new GetRiskBudget(profiles, portfolio, market, forecasts, () => now).execute("u1");
     assert.equal(budget.gauges.drawdown.monthPnl?.toKrwInteger(), -1_000_000);
     assert.equal(budget.gauges.drawdown.usedRatio?.toNumber(), 1);
     // 1회 예산 1% × 10,000,000 = 100,000

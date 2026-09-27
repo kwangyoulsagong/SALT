@@ -3,6 +3,7 @@ import Decimal from "decimal.js";
 import {
   CHASING_LOOKBACK_MS,
   edgeWarningsFor,
+  entryChecklist,
   previewBuyTags,
   replayLedger,
   sellFramingFor,
@@ -11,6 +12,7 @@ import {
   tagCosts,
   type AutoMistakeTag,
   type DecisionOutcomeStore,
+  type EntryChecklist,
   type MarketProbe,
   type PortfolioProbe,
   type SellFraming,
@@ -42,6 +44,8 @@ export type TradeBehaviorPreview =
       edgeWarnings: TagCost[];
       /** 매도만(시나리오 5) */
       sellFraming: SellFraming | null;
+      /** 매수만. 본인 실수 태그 상위 3개의 질문 + 프리모템(FR-30) — 선택 펼침, 기록만 */
+      checklist: EntryChecklist | null;
     };
 
 /**
@@ -80,6 +84,7 @@ export class PreviewTradeBehavior {
         candidateTags: [],
         chasingUnknown: false,
         edgeWarnings: [],
+        checklist: null,
         sellFraming: sellFramingFor(
           symbol,
           replayLedger(sortLedgerAscending(entries)),
@@ -104,15 +109,14 @@ export class PreviewTradeBehavior {
       hasPlan: command.hasPlan,
     });
 
+    const costs = tagCosts(outcomes.filter((outcome) => outcome.sampleOrigin === "live"));
     return {
       status: "ok",
       candidateTags: preview.tags,
       chasingUnknown: preview.chasingUnknown,
-      edgeWarnings: edgeWarningsFor(
-        preview.tags,
-        tagCosts(outcomes.filter((outcome) => outcome.sampleOrigin === "live"))
-      ),
+      edgeWarnings: edgeWarningsFor(preview.tags, costs),
       sellFraming: null,
+      checklist: entryChecklist(costs),
     };
   }
 }

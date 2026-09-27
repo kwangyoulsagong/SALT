@@ -35,5 +35,7 @@ router.post("/trades", appTradeRiskController.recordTrade);
 router.get("/mirror", appBehaviorMirrorController.mirror);
 router.get("/outcomes", appBehaviorMirrorController.listOutcomes);
 router.put("/outcomes/:id/tags", appBehaviorMirrorController.confirmOutcomeTags);
+// F009 슬라이스 6 — 월간 복기(`BFF-REQ-038` FR-10)
+router.get("/review/monthly", appBehaviorMirrorController.monthlyReview);
 
 export default router;

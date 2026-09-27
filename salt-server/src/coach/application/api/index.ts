@@ -13,6 +13,7 @@ import type {
   TrackedAssetProbe,
   TradePlanStore,
   DecisionOutcomeStore,
+  MonthlyReviewStore,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
 import {
@@ -38,6 +39,7 @@ import { ListProfitPlans } from "../ListProfitPlans";
 import { GetCoachProfile, UpdateCoachProfile } from "../ManageCoachProfile";
 import { ConfirmOutcomeTags, ListDecisionOutcomes } from "../ManageDecisionOutcomes";
 import { GetRiskBudget, UpdateRiskBudget } from "../ManageRiskBudget";
+import { BuildMonthlyReview, GetMonthlyReview } from "../ManageMonthlyReview";
 import { CreateTradePlan, ListTradePlans, UpdateTradePlan } from "../ManageTradePlan";
 import { RecordCoachFeedback } from "../RecordCoachFeedback";
 import {
@@ -83,6 +85,8 @@ export interface CoachDependencies {
   tradePlans: TradePlanStore;
   /** 결정 결과(F009 슬라이스 4) — `decision_outcomes` */
   decisionOutcomes: DecisionOutcomeStore;
+  /** 월간 복기(F009 슬라이스 6) — `monthly_reviews` */
+  monthlyReviews: MonthlyReviewStore;
 }
 
 export interface CoachUseCases {
@@ -121,6 +125,9 @@ export interface CoachUseCases {
   getBehaviorMirror: GetBehaviorMirror;
   listDecisionOutcomes: ListDecisionOutcomes;
   confirmOutcomeTags: ConfirmOutcomeTags;
+  /** F009 슬라이스 6 — 월간 복기(월초 배치 · 첫 조회가 만든다) */
+  buildMonthlyReview: BuildMonthlyReview;
+  getMonthlyReview: GetMonthlyReview;
 }
 
 export const createCoachApplication = (deps: CoachDependencies) => {
@@ -151,7 +158,15 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     analyzeTradingBehavior
   );
 
-  const getRiskBudget = new GetRiskBudget(deps.profiles, deps.portfolio, deps.market);
+  const getRiskBudget = new GetRiskBudget(deps.profiles, deps.portfolio, deps.market, deps.forecasts);
+  const buildMonthlyReview = new BuildMonthlyReview(
+    deps.monthlyReviews,
+    deps.profiles,
+    deps.portfolio,
+    deps.tradePlans,
+    deps.decisionOutcomes,
+    deps.forecasts
+  );
 
   const useCases: CoachUseCases = {
     generateRecommendation,
@@ -237,6 +252,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     ),
     listDecisionOutcomes: new ListDecisionOutcomes(deps.decisionOutcomes),
     confirmOutcomeTags: new ConfirmOutcomeTags(deps.decisionOutcomes),
+    buildMonthlyReview,
+    getMonthlyReview: new GetMonthlyReview(deps.monthlyReviews, buildMonthlyReview),
   };
 
   return { useCases };

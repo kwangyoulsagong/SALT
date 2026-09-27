@@ -25,4 +25,9 @@ export const coachQueryKeys = {
   mirror: () => ["coach", "mirror"] as const,
   /** 청산별 결과 · 태그. 태그를 확정하면 무효화한다 */
   outcomes: () => ["coach", "outcomes"] as const,
+  /**
+   * 월간 복기. 한 번 만든 복기는 서버가 고치지 않는다(W06) — 태그를 확정해도 무효화하지 않는다.
+   * `null` 은 "서버가 고른 지난달"이다
+   */
+  monthlyReview: (month: string | null) => ["coach", "monthly-review", month ?? "latest"] as const,
 } as const;

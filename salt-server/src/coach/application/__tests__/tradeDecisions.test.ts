@@ -66,6 +66,9 @@ class MemoryOutcomes implements DecisionOutcomeStore {
 
 class MemoryPlans {
   constructor(public rows: TradePlan[]) {}
+  async listForecasted(userId: string) {
+    return this.rows.filter((plan) => plan.userId === userId && plan.probabilityUp !== null);
+  }
   async listLinked(userId: string) {
     return this.rows.filter((plan) => plan.userId === userId && plan.transactionId !== null);
   }
@@ -101,6 +104,7 @@ const plan = (overrides: Partial<TradePlan>): TradePlan => ({
   invalidation: null,
   reviewAt: null,
   probabilityUp: null,
+  checklist: null,
   plannedAt: new Date("2026-01-01T00:00:00Z"),
   sampleOrigin: "live",
   adherenceLabel: null,

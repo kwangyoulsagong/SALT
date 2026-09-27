@@ -62,6 +62,7 @@ const plan = (overrides: Partial<TradePlan>): TradePlan => ({
   invalidation: null,
   reviewAt: null,
   probabilityUp: null,
+  checklist: null,
   plannedAt: at("2026-01-01T00:00:00Z"),
   sampleOrigin: "live",
   adherenceLabel: null,

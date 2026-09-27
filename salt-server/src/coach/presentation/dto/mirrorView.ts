@@ -1,6 +1,6 @@
 import Decimal from "decimal.js";
 
-import type { DecisionOutcome, MirrorMetric, TagCost } from "../../domain";
+import type { BrierSummary, DecisionOutcome, EntryChecklist, MirrorMetric, TagCost } from "../../domain";
 import type { BehaviorMirrorView } from "../../application/GetBehaviorMirror";
 import type { TradeBehaviorPreview } from "../../application/PreviewTradeBehavior";
 
@@ -12,21 +12,21 @@ import type { TradeBehaviorPreview } from "../../application/PreviewTradeBehavio
  * - 일수: 소수 2자리
  */
 
-const rate = (value: Decimal | null): number | null =>
+export const rate = (value: Decimal | null): number | null =>
   value === null ? null : value.toDecimalPlaces(6, Decimal.ROUND_HALF_UP).toNumber();
 const krw = (value: Decimal): number => value.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toNumber();
-const days = (value: Decimal | null): number | null =>
+export const days = (value: Decimal | null): number | null =>
   value === null ? null : value.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber();
 
 const unitPrice = (value: Decimal): number => value.toDecimalPlaces(8, Decimal.ROUND_HALF_UP).toNumber();
 
-const metric = (value: MirrorMetric, format: (value: Decimal | null) => number | null = rate) => ({
+export const metric = (value: MirrorMetric, format: (value: Decimal | null) => number | null = rate) => ({
   value: format(value.value),
   sampleSize: value.sampleSize,
   status: value.status,
 });
 
-const tagCost = (cost: TagCost) => ({
+export const tagCost = (cost: TagCost) => ({
   tag: cost.tag,
   count: cost.count,
   netPnlKrw: krw(cost.netPnlKrw),
@@ -36,6 +36,37 @@ const tagCost = (cost: TagCost) => ({
   status: cost.status,
   noEdge: cost.noEdge,
 });
+
+/** "오를 확률" 채점(FR-13). 점수 · 기준선 · 실력은 소수 6자리. 가격은 단가라 반올림하지 않는다 */
+export const toBrierResponse = (brier: BrierSummary) => ({
+  meanScore: metric(brier.meanScore),
+  baseline: rate(brier.baseline),
+  skill: rate(brier.skill),
+  missedCount: brier.missedCount,
+  pendingCount: brier.pendingCount,
+  unscorableCount: brier.unscorableCount,
+  recentMisses: brier.recentMisses.map((item) => ({
+    planId: item.planId,
+    symbol: item.symbol,
+    probabilityUp: rate(item.probabilityUp),
+    plannedAt: item.plannedAt,
+    dueAt: item.dueAt,
+    referenceClose: unitPrice(item.referenceClose),
+    outcomeClose: unitPrice(item.outcomeClose),
+    up: item.up,
+  })),
+});
+
+const toChecklistResponse = (checklist: EntryChecklist | null) =>
+  checklist && {
+    items: checklist.items.map((item) => ({
+      tag: item.tag,
+      question: item.question,
+      count: item.count,
+      netPnlKrw: krw(item.netPnlKrw),
+    })),
+    premortemQuestion: checklist.premortemQuestion,
+  };
 
 export const toBehaviorMirrorResponse = (view: BehaviorMirrorView) => ({
   status: view.status,
@@ -78,6 +109,7 @@ export const toBehaviorMirrorResponse = (view: BehaviorMirrorView) => ({
       marketDailyTurnover: view.turnover.baseline.marketDailyTurnover.toNumber(),
     },
   },
+  brier: toBrierResponse(view.brier),
   outcomeCount: view.outcomeCount,
   outcomesComputedAt: view.outcomesComputedAt,
   minSample: view.minSample,
@@ -124,5 +156,6 @@ export const toBehaviorPreviewResponse = (preview: TradeBehaviorPreview | null) 
       stopPrice: framing.stopPrice === null ? null : unitPrice(framing.stopPrice),
       currentPrice: framing.currentPrice === null ? null : unitPrice(framing.currentPrice),
     },
+    checklist: toChecklistResponse(preview.checklist),
   };
 };

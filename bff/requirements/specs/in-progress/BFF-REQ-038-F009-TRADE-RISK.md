@@ -35,14 +35,18 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | FR-4 | `POST /api/app/coach/trades` — 거래(`/portfolio/transactions`) → 계획(선택, 거래 id 연결). 거래 실패(보유 부족 400 등)는 그대로, 계획 실패는 거래를 두고 `plan.status = 'unavailable'`. 계획 필드가 없으면 서버 1회 | 완료 |
 | FR-5 | 거래 응답의 Prisma `Decimal` 문자열을 숫자로 읽는다(표시 전용) | 완료 |
 | FR-6 | `GET · PATCH /api/app/ai-coach/profile` 에 `hidePurchasePrice` 통과(없으면 `false`) | 완료 |
-| FR-7 | `GET /api/app/coach/mirror` — 서버 `/coach/mirror` 를 모양 검사해 옮긴다(`behavior-mirror.viewmodel.ts`). 서버 `status`(ok · truncated)는 `historyStatus`, 지표 `{value, sampleSize, status}` — 값이 `null` 인데 `ok` 면 `insufficient_data` 로 내린다. 1,500ms · 재시도 1회, 5xx · 타임아웃 · 계약 깨짐 → 200 `unavailable`, 4xx · 취소 그대로. 월간 복기(`/coach/review/monthly`)는 슬라이스 6 | 미러 완료(슬라이스 5) · 복기 to-do |
+| FR-7 | `GET /api/app/coach/mirror` — 서버 `/coach/mirror` 를 모양 검사해 옮긴다(`behavior-mirror.viewmodel.ts`). 서버 `status`(ok · truncated)는 `historyStatus`, 지표 `{value, sampleSize, status}` — 값이 `null` 인데 `ok` 면 `insufficient_data` 로 내린다. 1,500ms · 재시도 1회, 5xx · 타임아웃 · 계약 깨짐 → 200 `unavailable`, 4xx · 취소 그대로. 월간 복기는 FR-10 | 완료(슬라이스 5) |
 | FR-8 | `GET /api/app/coach/outcomes?limit=`(1~100, 없으면 서버 기본) · `PUT /api/app/coach/outcomes/:id/tags`(uuid · 문자열 배열 ≤ 8 · 1~20자, 모양만 — 진짜 검증은 서버 zod). 목록은 깨진 행만 뺀다. 확정 실패는 그대로 올린다(저장 실패를 저장됨처럼 보이지 않게) | 완료(슬라이스 5) |
+| FR-10 | `GET /api/app/coach/review/monthly?month=`(`YYYY-MM` 아니면 400, 없으면 서버가 지난달) — 서버 스냅샷을 모양 검사해 옮긴다(`monthly-review.viewmodel.ts`, 미러의 지표 · 태그 비용 · Brier 변환을 그대로 씀). 서버 `status` 는 `reviewStatus`(ok · month_not_closed · no_ledger · truncated), `ok` 인데 본문이 없으면 계약 깨짐. 1,500ms · 재시도 1회(서버 생성이 멱등이라 안전), 5xx · 타임아웃 · 계약 깨짐 → 200 `unavailable` | 완료(슬라이스 6) |
+| FR-11 | 미러 응답 `brier`(깨졌으면 `null`, 사례는 가격 · 날짜가 온전한 것만) · size-check `behavior.checklist`(질문 빈 줄 제외, 프리모템 문장이 없으면 `null`) · risk-budget `settings.maxSingleAssetWeight` · `scenarios`(금액이 빈 충격 줄 제외, `ok` 인데 손실이 없는 구간은 `insufficient_data`) · PUT 키 `maxSingleAssetWeight` 통과 · 계획 `checklist` | 완료(슬라이스 6) |
+| FR-12 | 거래 + 계획 기록(`POST /trades`)의 계획에 `invalidation`(프리모템 답) · `checklist` 통과. **체크리스트만으로는 계획을 만들지 않는다** — 계획이 생기면 "계획 없음" 자동 태그가 빠진다. `POST /plans` 는 `checklist` 를 받고 `PATCH` 는 받지 않는다 | 완료(슬라이스 6) |
 | FR-9 | `POST /api/app/coach/size-check` — 요청 키 `hasPlan` 통과 · 응답 `behavior`(`candidateTags` · `chasingUnknown` · `edgeWarnings`(noEdge 만) · `sellFraming{stopPrice, currentPrice}`). 서버 `null` · `truncated` · 깨진 모양이면 던지지 않고 `null` — 사이즈 결과는 그대로 | 완료(슬라이스 5) |
 
 ## 영향
 
 - 프론트: `@repo/core/coach` `tradeRisk.ts` 가 이 뷰모델을 그대로 옮긴다(`FE-REQ-039`)
 - 서버: 호출 경로 · 본문 변경 없음 — `SRV-REQ-038` FR-1 · 5 · 6 · 7 과 포트폴리오 `POST /transactions` 를 그대로 쓴다
+- 슬라이스 6: `SRV-REQ-038` FR-10a~10e 를 소비. `@repo/core/coach` `monthlyReview.ts` 신설 · `tradeRisk.ts` · `behaviorMirror.ts` 확장
 - 슬라이스 5: `SRV-REQ-038` FR-9e(미러) · 9c(결과 · 태그 확정) · FR-12(size-check `behavior`)를 소비. `@repo/core/coach` `behaviorMirror.ts` 가 FR-7~9 뷰모델을 옮긴다
 
 ## Changelog
@@ -51,3 +55,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 |---|---|
 | 2026-09-24 | 신설 · FR-1~6 구현. 근거 `reports/checklists/BFF-REQ-038.md` |
 | 2026-09-27 | 슬라이스 5 FR-7(미러) · FR-8(결과 · 태그 확정) · FR-9(size-check `behavior` · `hasPlan`). 근거 `reports/checklists/BFF-REQ-038.md` §슬라이스 5 |
+| 2026-09-27 | 슬라이스 6 FR-10(월간 복기) · FR-11(Brier · 체크리스트 · 시나리오 · 한 종목 상한) · FR-12(프리모템 · 체크리스트 기록). 새 경로 1. 근거 `reports/checklists/BFF-REQ-038.md` §슬라이스 6 |

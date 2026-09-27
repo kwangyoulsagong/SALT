@@ -101,6 +101,44 @@ export const chevronOpen = style([chevron, { transform: "rotate(180deg)" }]);
 
 export const planBody = style({ display: "flex", flexDirection: "column", gap: vars.space.sm });
 
+/** 계획 안의 또 한 번 접힌 묶음(진입 전 체크) — 계획 머리보다 한 단계 낮다: 선 없음 · 12px */
+export const subToggle = style([
+  planToggle,
+  { borderTop: "none", minHeight: "44px", fontSize: "12px", color: vars.colors.text.secondary },
+]);
+
+export const checklistBody = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: vars.space.sm,
+  padding: "4px 0 4px 10px",
+  borderLeft: `2px solid ${vars.colors.neutral[100]}`,
+});
+
+/** 질문 줄 — 체크박스 라벨이 곧 질문. 줄마다 44px 터치 타깃 */
+export const checklistItems = style({
+  listStyle: "none",
+  margin: 0,
+  padding: 0,
+  display: "flex",
+  flexDirection: "column",
+  gap: "2px",
+  fontSize: "13px",
+  lineHeight: "20px",
+});
+
+/** 질문 한 줄 = 라벨 전체가 누르는 자리(44px) */
+export const checklistItem = style({
+  minHeight: "44px",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  color: vars.colors.text.primary,
+  cursor: "pointer",
+});
+
+export const checklistBox = style({ flexShrink: 0, margin: 0, width: "16px", height: "16px", accentColor: vars.colors.neutral[800] });
+
 export const hint = style({
   margin: 0,
   color: vars.colors.neutral[600],
