@@ -4,7 +4,10 @@ import type {
   MirrorMetric,
   MirrorStatus,
   ReportBehaviorFact,
+  StreakView,
   TagCostView,
+  TimingBucketView,
+  TradeTimingView,
 } from "@repo/core/coach";
 import { Badge } from "@repo/ui/badge";
 import type { ReactNode } from "react";
@@ -162,6 +165,107 @@ export const brierMirrorItem = (brier: BrierView, key = "brier"): ReactNode => {
   );
 };
 
+/** 표본 상태 — 표본 기준은 서버가 준 `minSample` 이다 */
+const sampleStatus = (count: number, minSample: number): MirrorStatus =>
+  count === 0 ? "insufficient_data" : count < minSample ? "insufficient_sample" : "ok";
+
+/**
+ * 연승 · 연패(FR-20). "연승 뒤 매수 금액이 커졌다"는 서버가 관찰됐다고 할 때만 쓴다 — 표본이 모자란 비율은 말하지 않는다.
+ * 청산이 없으면 줄이 없다
+ */
+const streakMirrorItem = (streak: StreakView, minSample: number): ReactNode => {
+  if (streak.sampleSize === 0) return null;
+  const { current } = streak;
+  const patterns = [
+    streak.afterWins?.observed && streak.afterWins.ratio.value !== null
+      ? M.streak.afterWins(streak.minLength, formatTimes(streak.afterWins.ratio.value), streak.afterWins.ratio.sampleSize)
+      : null,
+    streak.afterLosses?.observed && streak.afterLosses.ratio.value !== null
+      ? M.streak.afterLosses(
+          streak.minLength,
+          formatTimes(streak.afterLosses.ratio.value),
+          streak.afterLosses.ratio.sampleSize,
+        )
+      : null,
+  ];
+  return (
+    <MirrorItem
+      key="streak"
+      label={M.streak.label}
+      sampleSize={streak.sampleSize}
+      status={sampleStatus(streak.sampleSize, minSample)}
+      text={
+        current === null
+          ? M.streak.none
+          : current.kind === "win"
+            ? M.streak.currentWin(current.length)
+            : M.streak.currentLoss(current.length)
+      }
+      sub={[
+        M.streak.longest(streak.longestWin, streak.longestLoss),
+        ...patterns,
+        patterns.some(Boolean) ? M.streak.basis : null,
+      ]}
+    />
+  );
+};
+
+const TimingRows = <K extends string>({
+  buckets,
+  names,
+}: {
+  buckets: ReadonlyArray<TimingBucketView<K>>;
+  names: Record<K, string>;
+}) => (
+  <ul className={tagCostList}>
+    {buckets
+      .filter((bucket) => bucket.count > 0)
+      .map((bucket) => (
+        <li key={bucket.key} className={tagCostRow}>
+          <span className={bucket.status === "ok" ? mirrorText : mirrorTextMuted}>
+            {M.timing.row(
+              names[bucket.key],
+              bucket.count,
+              bucket.winRate !== null ? formatRatio(bucket.winRate) : M.timing.missing,
+              bucket.avgReturn !== null ? formatSignedRate(bucket.avgReturn) : M.timing.missing,
+              formatSignedKrw(bucket.netPnlKrw),
+            )}
+          </span>
+          {bucket.status === "insufficient_sample" && (
+            <Badge size="sm" tone="warning">
+              {M.insufficientSample}
+            </Badge>
+          )}
+        </li>
+      ))}
+  </ul>
+);
+
+/**
+ * 진입 시간대 · 요일(FR-22). 시각을 적은 진입이 없으면 시간대 목록이 없고, 날짜만 적은 건수를 한 줄로 밝힌다.
+ * 청산이 없으면 줄이 없다
+ */
+const timingMirrorItem = (timing: TradeTimingView): ReactNode => {
+  const total = timing.weekdays.reduce((sum, bucket) => sum + bucket.count, 0);
+  if (total === 0) return null;
+  return (
+    <MirrorItem
+      key="timing"
+      label={M.timing.label}
+      sampleSize={total}
+      // 줄마다 자기 표본 배지가 있다 — 머리 배지는 합계만
+      status="ok"
+      extra={
+        <>
+          {timing.bands && <TimingRows buckets={timing.bands} names={M.timing.bands} />}
+          <TimingRows buckets={timing.weekdays} names={M.timing.weekdays} />
+          {timing.untimedCount > 0 && <p className={mirrorSub}>{M.timing.untimed(timing.untimedCount)}</p>}
+        </>
+      }
+    />
+  );
+};
+
 interface MirrorLinesProps {
   view: BehaviorMirrorView;
   /** 최근 행동(과매매 · 패닉 · 추격, FR-21). 리포트가 못 왔으면 `null` — 그 줄만 빠진다 */
@@ -172,7 +276,8 @@ interface MirrorLinesProps {
  * 내 거래 미러 (F009 시나리오 4 · FR-12 · FR-15~19 · FR-21 · `FE-REQ-039`). **표시만 한다** — 숫자는 서버가 셌다.
  *
  * - 줄마다 표본 수 배지. 20건 미만은 "표본 부족" 배지 + 굵기를 낮춘다(값은 보인다). 재료가 없으면 "기록이 모자라"
- * - 순서는 시나리오 4 그대로: 처분효과 → 보유 대비 → 계획 지킴 → 태그 손익 · 엣지 → 회전율, 그리고 최근 행동
+ * - 순서는 시나리오 4 그대로: 처분효과 → 보유 대비 → 계획 지킴 → 태그 손익 · 엣지 → 회전율, 그리고 최근 행동.
+ *   연승 · 연패와 진입 시간대(슬라이스 7)는 태그 손익과 회전율 사이
  * - 지시 · 평가 문구가 없다(`MIRROR_MESSAGES` 머리말)
  */
 export const MirrorLines = ({ view, behaviorFacts }: MirrorLinesProps) => {
@@ -276,6 +381,11 @@ export const MirrorLines = ({ view, behaviorFacts }: MirrorLinesProps) => {
       />,
     );
   }
+
+  const streakItem = view.streak && streakMirrorItem(view.streak, view.minSample);
+  if (streakItem) items.push(streakItem);
+  const timingItem = view.timing && timingMirrorItem(view.timing);
+  if (timingItem) items.push(timingItem);
 
   items.push(
     <MirrorItem

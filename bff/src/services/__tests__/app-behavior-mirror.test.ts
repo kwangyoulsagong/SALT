@@ -6,7 +6,9 @@ import { backendApi } from "../backend-api.service";
 import {
   toBehaviorMirrorViewModel,
   toDecisionOutcomeList,
+  toStreakView,
   toTradeBehaviorPreview,
+  toTradeTimingView,
 } from "../behavior-mirror.viewmodel";
 import { toSizeCheckViewModel } from "../trade-risk.viewmodel";
 
@@ -159,6 +161,64 @@ describe("toBehaviorMirrorViewModel", () => {
   it("뼈대가 깨지면 던진다(서비스가 unavailable 로 바꾼다)", () => {
     assert.throws(() => toBehaviorMirrorViewModel(mirror({ status: "weird" })));
     assert.throws(() => toBehaviorMirrorViewModel(mirror({ tagCosts: null })));
+  });
+});
+
+describe("연승 · 연패 · 시간대 (슬라이스 7, BFF-REQ-038 FR-13)", () => {
+  const streak = (over: Record<string, unknown> = {}) => ({
+    current: { kind: "win", length: 4 },
+    longestWin: 5,
+    longestLoss: 3,
+    sampleSize: 40,
+    minLength: 3,
+    afterWins: { ratio: metric(1.34, 21), observed: true },
+    afterLosses: { ratio: metric(0.9, 8, "insufficient_sample"), observed: false },
+    basis: "buy_amount_excl_fee_not_capital_adjusted",
+    ...over,
+  });
+
+  it("서버 값을 옮기고 basis 는 옮기지 않는다", () => {
+    const view = toStreakView(streak());
+    assert.deepEqual(view?.current, { kind: "win", length: 4 });
+    assert.equal(view?.afterWins?.observed, true);
+    assert.equal(view?.afterLosses?.ratio.status, "insufficient_sample");
+    assert.equal("basis" in (view ?? {}), false);
+  });
+
+  it("모르는 연속 종류는 null, 비율 값이 없으면 observed 를 켜지 않는다, 뼈대가 깨지면 null", () => {
+    assert.equal(toStreakView(streak({ current: { kind: "draw", length: 2 } }))?.current, null);
+    assert.equal(
+      toStreakView(streak({ afterWins: { ratio: { value: null, sampleSize: 0, status: "ok" }, observed: true } }))?.afterWins
+        ?.observed,
+      false,
+    );
+    assert.equal(toStreakView(streak({ longestWin: "5" })), null);
+    assert.equal(toStreakView(undefined), null);
+  });
+
+  it("시간대 · 요일은 고정 순서, 빠진 칸은 0건 · insufficient_data, 시간대가 null 이면 섹션 없음", () => {
+    const view = toTradeTimingView({
+      bands: [{ key: "evening", count: 3, winRate: 0.33, avgReturn: -0.01, netPnlKrw: -12000, status: "insufficient_sample" }],
+      weekdays: [{ key: "sun", count: 2, winRate: 0.5, avgReturn: 0.01, netPnlKrw: 500, status: "insufficient_sample" }],
+      timedCount: 3,
+      untimedCount: 1,
+    });
+    assert.deepEqual(view?.bands?.map((band) => band.key), ["dawn", "morning", "afternoon", "evening"]);
+    assert.equal(view?.bands?.[0].status, "insufficient_data");
+    assert.equal(view?.bands?.[3].netPnlKrw, -12000);
+    assert.equal(view?.weekdays.length, 7);
+    assert.equal(view?.weekdays[6].count, 2);
+    assert.equal(toTradeTimingView({ bands: null, weekdays: [], timedCount: 0, untimedCount: 2 })?.bands, null);
+    assert.equal(toTradeTimingView({ bands: [] }), null);
+  });
+
+  it("미러에 실리고, 서버가 아직 안 주면 null — 미러 전체는 산다", () => {
+    const view = toBehaviorMirrorViewModel(mirror({ streak: streak(), timing: { bands: null, weekdays: [], timedCount: 0, untimedCount: 0 } }));
+    assert.equal(view.streak?.longestWin, 5);
+    assert.equal(view.timing?.weekdays.length, 7);
+    const old = toBehaviorMirrorViewModel(mirror());
+    assert.equal(old.streak, null);
+    assert.equal(old.timing, null);
   });
 });
 

@@ -1,4 +1,4 @@
-import type { AdherenceLabel, KnownMistakeTag } from "@repo/core/coach";
+import type { AdherenceLabel, KnownMistakeTag, TimeBand, Weekday } from "@repo/core/coach";
 
 /**
  * F009 슬라이스 5 — 내 거래 미러 · 태그 · 입력 중 한 줄 문구 (`FE-REQ-039` FR-14~20 · `i18n-policy.md`).
@@ -58,6 +58,42 @@ export const MIRROR_MESSAGES = {
     counts: (missed: number, pending: number) => `빗나간 계획 ${missed}건 · 아직 복기일 전 ${pending}건`,
     miss: (symbol: string, probability: string, from: string, to: string, up: boolean) =>
       `${symbol} 오를 확률 ${probability}라고 적었는데 ${up ? "올랐어요" : "오르지 않았어요"} (${from} → ${to})`,
+  },
+  /** 연승 · 연패(FR-20, 슬라이스 7). 패턴 문장은 서버가 관찰됐다고 할 때만 */
+  streak: {
+    label: "연승 · 연패",
+    currentWin: (count: number) => `지금 ${count}연승이 이어지고 있어요`,
+    currentLoss: (count: number) => `지금 ${count}연패가 이어지고 있어요`,
+    none: "지금 이어지는 연승 · 연패는 없어요",
+    longest: (win: number, loss: number) => `가장 길었던 연승 ${win} · 연패 ${loss}`,
+    afterWins: (length: number, ratio: string, count: number) =>
+      `${length}연승 뒤 매수 금액이 평소의 ${ratio}배였어요 (매수 ${count}건)`,
+    afterLosses: (length: number, ratio: string, count: number) =>
+      `${length}연패 뒤 매수 금액이 평소의 ${ratio}배였어요 (매수 ${count}건)`,
+    basis: "매수 금액으로 비교했어요 · 자본이 늘어난 몫은 가르지 않았어요",
+  },
+  /** 진입 시간대 · 요일(FR-22, 슬라이스 7) */
+  timing: {
+    label: "진입 시간대 · 요일",
+    row: (name: string, count: number, win: string, avg: string, krw: string) =>
+      `${name} ${count}건 · 이익 ${win} · 평균 ${avg} · ${krw}원`,
+    missing: "—",
+    untimed: (count: number) => `날짜만 적은 거래 ${count}건은 시간대에서 뺐어요`,
+    bands: {
+      dawn: "새벽(0~6시)",
+      morning: "오전(6~12시)",
+      afternoon: "오후(12~18시)",
+      evening: "저녁(18~24시)",
+    } satisfies Record<TimeBand, string>,
+    weekdays: {
+      mon: "월요일",
+      tue: "화요일",
+      wed: "수요일",
+      thu: "목요일",
+      fri: "금요일",
+      sat: "토요일",
+      sun: "일요일",
+    } satisfies Record<Weekday, string>,
   },
   behavior: {
     label: "최근 행동",

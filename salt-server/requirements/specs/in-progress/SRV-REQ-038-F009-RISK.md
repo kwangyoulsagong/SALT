@@ -3,7 +3,7 @@ id: SRV-REQ-038
 feature: F009
 area: server
 kind: API
-title: "F009 코치 — 사이즈 계산 · 거래 계획 · 리스크 예산 · 판정 · 미러 (+ 슬라이스 6 복기)"
+title: "F009 코치 — 사이즈 계산 · 거래 계획 · 리스크 예산 · 판정 · 미러 (+ 슬라이스 6 복기 · 슬라이스 7 연승 · 시간대)"
 priority: high
 created: 2026-09-24
 source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
@@ -40,7 +40,7 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 | FR-6 | `POST · GET /api/coach/plans` · `PATCH /api/coach/plans/:id` — 종목 · 방향 외 전부 선택. 거래 연결은 본인 · 같은 종목 · 같은 방향 · 한 번. 연결 뒤 채점 기준 잠금(409). 삭제 없음 (FEATURE-009 FR-9~10) | 완료 |
 | FR-7 | `PATCH /api/ai-coach/profile` 에 `hidePurchasePrice`. 프로필 응답에서 예산 3필드는 뺀다(`/coach/risk-budget` 이 준다) (FEATURE-009 FR-27 저장) | 완료 |
 | FR-8 | 금액 · 비율은 도메인에서 `Money` · `Decimal`, 원 반올림은 응답 변환(`presentation/dto/riskView`) 한 곳 | 완료 |
-| FR-9 | 준수 판정 배치 · `DecisionOutcome` 생성 · 자동 태그 · `mirror.ts` · `GET /coach/mirror` (FEATURE-009 FR-11~22) | 완료(슬라이스 4) — 아래 FR-9a~9f. FR-21(알림 끄기)은 FR-13 · FR-20 · 22(Could)는 to-do |
+| FR-9 | 준수 판정 배치 · `DecisionOutcome` 생성 · 자동 태그 · `mirror.ts` · `GET /coach/mirror` (FEATURE-009 FR-11~22) | 완료(슬라이스 4) — 아래 FR-9a~9f. FR-21(알림 끄기)은 FR-13 · FR-20 · 22 는 FR-14a · 14b(슬라이스 7) |
 | FR-9a | 준수 판정(`policy/adherence`) — 연결된 매수 계획마다 4라벨 또는 판정 불가(`null`). 원본은 배치만 쓰고, 사용자 수정은 `PATCH /api/coach/plans/:id` `userAdherenceLabel`(잠금 대상 아님) (FEATURE-009 FR-11) | 완료 |
 | FR-9b | 결정 결과(`policy/decisionOutcome`) — 매도 1건 = 1행: FIFO 원가(매수 수수료 포함) · 순손익 · 수수료 · 순수익률 · 보유일(수량 가중) · R(계획 손절가 있을 때) · 청산 30일 뒤 보유 수익률 · 계획 라벨 (FR-14) | 완료 |
 | FR-9c | 자동 태그 4종(`chasing` · `averaging_down` · `revenge` · `off_plan`) + 사용자 확정 `PUT /api/coach/outcomes/:id/tags`(덮어쓰기, 빈 배열 = 실수 없음, 자동 후보 보존) · `GET /api/coach/outcomes` (FR-18) | 완료 |
@@ -49,6 +49,8 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 | FR-9f | `market` 공개 API `highestCloseBetween(symbol, from, to)` — 추격 판정 재료(5분봉 구간 최고 종가) | 완료 |
 | FR-12 | 입력 중 행동 미리보기 — `POST /coach/size-check` 응답 `behavior`(요청 `hasPlan?`). 매수: 이 거래가 저장되면 붙을 자동 태그 후보(가상의 매수 한 건을 장부 끝에 붙여 배치와 같은 `replayLedger` · `isChasing` 규칙) + 그중 엣지 없음(`tagCosts.noEdge`)만 `edgeWarnings`. 매도: 아직 남은 매수에 연결된 최신 계획 손절가 vs 현재가(`sellFraming`) — 매입가 · 손익률 없음. 저장하지 않는다(추격 판정 입력 시점 저장 안 함 — 2026-09-27 사용자 결정). 미리보기만 실패하면 `behavior: null` · 사이즈 결과는 그대로 (FEATURE-009 FR-19 · 시나리오 5) | 완료(슬라이스 5) |
 | FR-13 | 행동 3규칙(과매매 · 패닉 · 추격)을 **저장하지 않는 측정**으로 — `AnalyzeTradingBehavior` 가 판정만 돌려주고, 워커 단계 · `behavior_analysis` 쓰기(`saveBehavior` · `findActiveBehavior`)를 지웠다. 행동 코치 · 코치 상세(`behaviorFacts`) · 추천 점수 행동 감점이 요청 때 같은 판정을 본다. 남은 행은 TTL 6시간으로 피드 · 대시보드에서 사라진다 (FEATURE-009 FR-21) | 완료(슬라이스 5) |
+| FR-14a | 연승 · 연패(`policy/streak`, 슬라이스 7) — `GET /api/coach/mirror` 응답 `streak`: 지금 이어지는 연속(`current{kind, length}`, 마지막 청산이 0 이거나 청산이 없으면 `null`) · 최장 연승 · 최장 연패 · 표본(청산 수). **순손익 0 청산은 연속을 끊는다.** 사이즈 비교 — 매수마다 그 매수 **전에** 닫힌 청산만으로 상태를 보고(같은 시각 청산은 아직 모른다), 연속 `STREAK_MIN_LENGTH`(3) 건 이상 뒤 매수 금액 평균 ÷ 그 밖의 매수 평균(`afterWins` · `afterLosses`, 금액 = `totalAmount` 수수료 제외). `observed` 는 비율 ≥ 1.2 **이고** 연속 뒤 매수 ≥ 20(`MIRROR_MIN_SAMPLE`)일 때만 — 표본이 모자라도 값은 준다(미러 규칙). 자본 증가를 가르지 않는다 — 응답 `basis: buy_amount_excl_fee_not_capital_adjusted`. 원장이 잘리면(`truncated`) 사이즈 비교만 `null` (FEATURE-009 FR-20) | 완료(슬라이스 7) |
+| FR-14b | 시간대 · 요일(`policy/tradeTiming`, 슬라이스 7) — 미러 응답 `timing`: 청산을 **진입 시각**(결과 `openedAt`, KST)으로 묶는다 — 4구간(`dawn` 0~6 · `morning` 6~12 · `afternoon` 12~18 · `evening` 18~24시) · 요일 7개(`mon`…`sun`). 칸마다 `{key, count, winRate, avgReturn, netPnlKrw, status}`(표본 기준 20). **KST 00:00:00.000 정각 진입은 "날짜만 적은 거래"**(거래 폼이 지난 날을 KST 0시로 보낸다 · 오늘 거래는 서버 지금 시각)로 보고 시간대에서 뺀다(`untimedCount`) — 요일은 날짜만으로 알아서 전부 센다. 시각이 있는 청산이 없으면 `bands: null`. `timeZone: "Asia/Seoul"` (FEATURE-009 FR-22) | 완료(슬라이스 7) |
 | FR-10 | 월간 복기 · Brier · 체크리스트 · 코치 대화 3문항 · 시나리오 (FEATURE-009 FR-13 · 25 · 28~31) | 완료(슬라이스 6) — 아래 FR-10a~10e. "내 미러 보여줘" 대화 질의는 대화 화면이 없어 범위 밖 |
 | FR-10a | 시나리오(`policy/scenario`) — `GET /api/coach/risk-budget` 응답 `scenarios`: 코인 보유 −10 · −30 · −50% 손실(원) · 남는 평가금 · 종목별 몫 + 과거 구간 `2022-11-ftx`(업비트 일봉 11-05 → 11-21 종가 수익률을 지금 보유에 얹음, 서버 상수). 그 구간 일봉이 없는 종목이 있으면 그 구간만 `insufficient_data` + `missingSymbols`, 구간 일봉 조회가 실패해도 게이지는 나간다. 확률 필드 없음 (FEATURE-009 FR-25) | 완료 |
 | FR-10b | "오를 확률" Brier(`policy/brier`) — 계획의 `reviewAt`(없거나 적은 시각 이전이면 30일) 뒤 첫 닫힌 종가 vs **적기 전 마지막 닫힌 종가**, 같으면 오르지 않음. 평균 · 기준선 0.25 · 실력(1 − 평균 ÷ 기준선) · 빗나간 수 · 만기 전 · 채점 불가 · 최근 빗나간 3건. 저장하지 않는다 — `GET /coach/mirror` `brier`(전 기간)와 월간 복기(만기가 그달)가 센다. live 계획만. 포트 `TradePlanStore.listForecasted` (FEATURE-009 FR-13) | 완료 |
@@ -64,6 +66,7 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 | 2026-09-24 | 신설 · 슬라이스 1 FR-1~8 구현. 근거 `reports/checklists/SRV-REQ-038.md` |
 | 2026-09-24 | 슬라이스 2 FR-11 — 실현 변동성 읽기(`FC-REQ-006`). 메서드 하나 · 응답 계약 변경 없음 |
 | 2026-09-24 | 슬라이스 3 — **서버 변경 없음.** BFF(`BFF-REQ-038`)가 FR-1 · 5 · 6 · 7 과 `POST /portfolio/transactions` 를 그대로 소비. 거래 + 계획은 BFF 가 순서대로 두 번 부른다 — 한 트랜잭션으로 옮길지는 슬라이스 4 전에 결정 |
+| 2026-09-27 | 슬라이스 7 FR-14a · 14b — 미러 응답 `streak` · `timing`(`GET /coach/mirror` 필드 추가만, 새 경로 없음). 이미 읽은 결과 · 거래에서 세서 쿼리가 늘지 않는다. 저장 · 마이그레이션 없음. 기획 정정: FEATURE-009 FR-22 "시각이 없으면 섹션 없음" → 요일은 늘 보이고 시간대만 뺀다. 번호 정정 — 커밋 `5d3e5db` 메시지는 FR-12 로 적혀 있지만 FR-12 는 슬라이스 5(입력 중 미리보기)의 번호다. 비어 있던 FR-14 로 옮기고 코드 주석도 같이 고쳤다(push 전 히스토리를 다시 쓰지 않았다). 근거 `reports/checklists/SRV-REQ-038.md` §슬라이스 7 |
 | 2026-09-27 | 슬라이스 6 FR-10(10a~10e) — 시나리오 · Brier · 진입 전 체크리스트 · 한 종목 상한 입력 · 월간 복기. 새 경로 1(`GET /review/monthly`) · risk-budget 응답 `scenarios` · `settings.maxSingleAssetWeight` · PUT `maxSingleAssetWeight` · mirror 응답 `brier` · size-check `behavior.checklist` · plans `checklist`. 마이그레이션 2(`DB-REQ-031` FR-11 · 12, 추가만). `benchmarkMirror` 를 일별 평가금 흐름(`portfolioSeries`)으로 옮겨 복기와 같은 규칙을 쓴다(값 불변 — 슬라이스 4 테스트 그대로). 근거 `reports/checklists/SRV-REQ-038.md` §슬라이스 6 |
 | 2026-09-27 | 슬라이스 5 FR-12 · FR-13 — size-check `behavior`(태그 후보 · 엣지 없음 · 매도 프레이밍, 요청 `hasPlan`) · 행동 알림을 요청 시 측정으로(워커 단계 · `behavior_analysis` 쓰기 삭제). 마이그레이션 없음. 근거 `reports/checklists/SRV-REQ-038.md` §슬라이스 5 |
 | 2026-09-27 | 슬라이스 4 FR-9(9a~9f) — 판정 배치 · 결정 결과 · 자동 태그 · 미러 · 태그 확정. 새 경로 3(`GET /mirror` · `GET /outcomes` · `PUT /outcomes/:id/tags`) + `PATCH /plans/:id` 에 `userAdherenceLabel`. 마이그레이션 없음(슬라이스 1 스키마). 근거 `reports/checklists/SRV-REQ-038.md` §슬라이스 4 |

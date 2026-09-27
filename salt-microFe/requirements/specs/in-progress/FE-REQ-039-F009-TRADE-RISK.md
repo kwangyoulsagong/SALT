@@ -48,6 +48,8 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | FR-22 | **IPS 3문항** — `features/set-risk-budget` 에 원/% 고르기(`SegmentedControl`, 단위를 바꾸면 칸을 비움) · 한 종목 상한(%, 비우면 기본 60%, 고치지 않으면 보내지 않음). 기준이 없으면 "세 가지만 정하면" 안내와 함께 펼친 채 시작. % 는 적은 숫자를 비율로 옮길 뿐(서버 계약) — 원 환산은 서버 | 시나리오 7 · FR-2 · FR-31 | 완료(슬라이스 6 — 코치 대화 화면이 없어 게이지 패널에서, 2026-09-27 사용자 결정) |
 | FR-23 | **시나리오** "내리면 얼마"(`entities/coach` `ScenarioList`) — 리스크 예산 패널 게이지 · 기준 아래. −10 · −30 · −50% 손실 · 남는 평가금 · 종목별 몫 · 2022-11 FTX 구간. 확률 문구 없음 | FR-25 | 완료(슬라이스 6) |
 | FR-24 | **진입 전 체크**(`features/record-transaction` `EntryChecklist`) — "계획(선택)" 안에 또 접힘, 매수 · 서버가 질문을 줄 때만. 질문 체크(네이티브 체크박스 · 무채색) + 프리모템 한 줄 → 계획 `invalidation`. 펼쳤을 때 보인 질문 · 체크를 계획 `checklist` 로. 막지 않는다 · 기록만. 미러에 "오를 확률" 채점 줄(확률을 적은 계획이 없으면 줄 없음) | FR-30 · FR-13 | 완료(슬라이스 6) |
+| FR-25 | 미러 **"연승 · 연패"** 줄(`entities/coach` `MirrorLines` · `mirrorMessages.ts` `streak`) — 태그 손익 · 엣지와 회전율 사이. 지금 이어지는 연승/연패(없으면 "없어요") · 가장 길었던 연승 · 연패. "N연승 뒤 매수 금액이 평소의 X배였어요"는 **서버 `observed` 일 때만**, 그때 "매수 금액으로 비교했어요 · 자본이 늘어난 몫은 가르지 않았어요" 한 줄을 같이. 표본 배지 기준은 서버 `minSample`(프론트 상수 없음). 청산이 없으면 줄이 없다. 지시 문구 없음 | FR-20 | 완료(슬라이스 7) |
+| FR-26 | 미러 **"진입 시간대 · 요일"** 줄 — 새벽(0~6시) · 오전 · 오후 · 저녁 4구간과 월~일, 칸마다 "N건 · 이익 X% · 평균 ±Y% · ±Z원", 0건 칸은 빼고 줄마다 표본 부족 배지(태그 손익과 같은 줄 모양). 시각을 적은 진입이 없으면 시간대 목록 없음(요일은 보임) · "날짜만 적은 거래 N건은 시간대에서 뺐어요" | FR-22 | 완료(슬라이스 7) |
 | FR-20 | 행동 알림 → 미러 "최근 행동" 줄 — 기존 리포트의 "최근 거래 기록" 패널을 지우고 미러 안으로(`BehaviorFactList` 삭제). 서버가 알림 저장을 끈다(`SRV-REQ-038` FR-13) | FR-21 | 완료 |
 
 ## 하지 않은 것
@@ -62,3 +64,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-09-24 | 신설 · FR-1~12 구현, FR-13 보류. 근거 `reports/checklists/FE-REQ-039.md` |
 | 2026-09-27 | 슬라이스 5 FR-14~20 — 내 거래 미러 · 청산별 태그 확정 · 폼 한 줄(엣지 없음 · 매도 프레이밍) · 행동 알림 → 미러 줄. 새 feature `confirm-outcome-tags`(레지스트리 등록). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 5 |
 | 2026-09-27 | 슬라이스 6 FR-21~24 — 월간 복기 · IPS 3문항(원/% · 한 종목 상한) · 시나리오 · 진입 전 체크 · 미러 Brier 줄. 새 슬라이스 없음(`set-risk-budget` 에 `lib` 세그먼트). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 6 |
+| 2026-09-27 | 슬라이스 7 FR-25 · 26 — 미러 연승 · 연패 · 진입 시간대 · 요일 줄. 새 슬라이스 · 파일 없음(`MirrorLines` · `mirrorMessages` · `@repo/core/coach` `behaviorMirror.ts`). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 7 |
