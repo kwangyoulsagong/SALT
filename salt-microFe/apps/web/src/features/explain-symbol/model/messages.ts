@@ -17,6 +17,9 @@ export const EXPLAIN_MESSAGES = {
   /** 서버 게이트가 닫혔다(`renderable: false`) — 화면의 판단이 그사이 바뀌었다 */
   blocked: "판단이 방금 바뀌어 해설할 근거가 부족합니다. 새로고침하면 최신 판단을 볼 수 있습니다.",
   signedOut: "로그인하면 해설을 볼 수 있습니다.",
+  /** 이 모드의 판단이 막혔다 — 해설할 판단이 없다. 카드를 지우면 기능이 사라진 것처럼 보인다 */
+  judgmentBlocked: "코치 판단이 열리면 AI 해설도 함께 열려요.",
+  judgmentBlockedSample: (count: number) => `지금 표본 ${count}건 · 채점이 쌓이면 자동으로 열려요`,
 
   /** 스트림 단계(FEATURE-008 FR-61) — 서버가 실제로 그 일을 할 때 켜진다 */
   steps: {

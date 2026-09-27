@@ -138,12 +138,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                 <ForecastCard className={card} result={{ status: "unavailable" }} />
               ) : null)}
             {showEvents && events.data && <EventsCard className={card} result={events.data} />}
-            {/* F009 — 변동 범위 카드 아래 "내 계획", 그 아래 거래 기록(시나리오 1 · 2). 새 화면이 아니다 */}
-            {plans.data && <TradePlanCard className={card} result={plans.data} livePrice={livePrice} />}
-            {plans.isError && !plans.isSignedOut && (
-              <TradePlanCard className={card} result={{ status: "unavailable" }} livePrice={livePrice} />
-            )}
-            <RecordTradeCard className={card} symbol={symbol} livePrice={livePrice} />
+            {/* 해설은 판단 바로 옆 정보다 — 거래 기록 폼(펼치면 길다) 아래로 밀리지 않게 위에 둔다 */}
             {coach.data && mode && (
               <>
                 <ExplainCard
@@ -160,6 +155,12 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                 )}
               </>
             )}
+            {/* F009 — 변동 범위 카드 아래 "내 계획", 그 아래 거래 기록(시나리오 1 · 2). 새 화면이 아니다 */}
+            {plans.data && <TradePlanCard className={card} result={plans.data} livePrice={livePrice} />}
+            {plans.isError && !plans.isSignedOut && (
+              <TradePlanCard className={card} result={{ status: "unavailable" }} livePrice={livePrice} />
+            )}
+            <RecordTradeCard className={card} symbol={symbol} livePrice={livePrice} />
           </aside>
         </div>
       </div>
