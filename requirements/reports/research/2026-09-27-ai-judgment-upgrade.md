@@ -48,7 +48,7 @@
 | 원장 | `forecast.prediction/score/gate`(kind backtest/live) · `SymbolJudgmentSnapshot` · `InvestmentInsight`(추천) · `GaugeTrackRecord` · `DecisionOutcome` · `MonthlyReview` · `TradePlan` · `PortfolioTransaction` | "prediction ledger" 하나는 없음 — 코치와 전망이 각자 |
 | 스케줄 | node-cron. `forecast-runner` 매시 5분 → `ops/daily.sh`(ingest → daily → events → signals → volatility, 20시간 내 성공 시 skip). `coach-trade-decisions` 6시간 · `gauge-track-records` 00:20 · `monthly-reviews` 06:40 | 단계 실패 시 다음 단계가 낡은 데이터로 계속 |
 | 소유자 | env `FORECAST_OWNER_EMAILS` → 404. 초대제 최대 10명 | DB 플래그 없음 |
-| 다음 번호 | FE-REQ-040 · BFF-REQ-039 · SRV-REQ-039 · FC-REQ-008 · DB-REQ-032 · FEATURE-010 | |
+| 다음 번호 | FE-REQ-040 · BFF-REQ-039 · SRV-REQ-039 · FC-REQ-010(008 은 F010 슬라이스 1, 009 는 F011 예약) · DB-REQ-032 · FEATURE-010 | |
 
 ### 2-2. 판단 · 예측 · 신호 — 무엇이 약한가
 
@@ -583,6 +583,7 @@ REQ 로 내릴 때: 0~2 는 `FEATURE-008`(예측 · 신호) · `FEATURE-009`(행
 
 ## 변경 이력
 
+- 2026-09-29: 슬라이스 1 결과(`FC-REQ-008`, `salt-forecast/reports/rule-ic-rule-ic-1-2026-09-27.md`). §12 Q1 은 "통합하지 않음" — 원장은 `public.judgment_ledger`(서버가 쓰고 salt-forecast 가 읽음), 예측은 `forecast.prediction` 그대로, IC 는 `forecast.rule_ic`. Q2 는 부분 답: 단타 항목은 반전 · 장기 24h 와 일봉 RSI 는 유지 — "전부 0 포함"은 아니었다. 다만 **§7-3 의 "1주 모멘텀"은 이 시장 백테스트에서 음수**(`mom_28d` 전 지평 −0.03 ~ −0.04) — 문헌 결론을 옮기기 전에 이 시장으로 잰다.
 - 2026-09-27: 초판. 세션 중 범위가 "자동매매 + 계좌 연동" → "AI · 분석만" → "매도 자동만" → **"트레이딩 전부 없음, AI 만 제대로"** 로 확정됐다(사용자). 자동매매 · 계좌 연동 조사 결과는 이 문서에 싣지 않는다.
 
 ---
