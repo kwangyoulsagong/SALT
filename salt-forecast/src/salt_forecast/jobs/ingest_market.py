@@ -1,6 +1,7 @@
 """시장 · 거시 수집.
 
-바이낸스(미결제약정 · 펀딩비 · 현물 일봉) · DefiLlama(스테이블코인) · FRED(금리 · 환율 · 지수 · 물가).
+바이낸스(미결제약정 · 펀딩비 · 현물 일봉) · DefiLlama(스테이블코인) · ECB(원/달러 — 김치 프리미엄) ·
+FRED(금리 · 환율 · 지수 · 물가).
 
 미결제약정은 30일 이력뿐이라 **매일** 돈다. FRED 는 키가 없으면 건너뛰고 source_status 에 남긴다.
 """
@@ -13,7 +14,7 @@ from datetime import date, timedelta
 import httpx
 
 from salt_forecast.config import settings
-from salt_forecast.ingest import binance, defillama, fred
+from salt_forecast.ingest import binance, defillama, ecb, fred
 from salt_forecast.ingest.http import Pacer, SourceError
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, symbols_arg
 from salt_forecast.store.db import engine
@@ -22,7 +23,7 @@ from salt_forecast.store.runs import mark_source
 from salt_forecast.store.series import SeriesPoint, latest_observed, upsert_points
 
 JOB = "ingest_market"
-SOURCES = ("binance", "defillama", "fred")
+SOURCES = ("binance", "defillama", "ecb", "fred")
 HISTORY_START = date(2022, 9, 1)
 
 
@@ -87,6 +88,14 @@ def main(argv: list[str] | None = None) -> int:
                     lambda: save_points(
                         defillama.stablecoin_total(client, cfg.defillama_stablecoins_url, Pacer(2.0), now)
                     ),
+                )
+            if "ecb" in only:
+                last = latest_observed(eng, ecb.SOURCE).get(ecb.SERIES)
+                ecb_since = HISTORY_START - timedelta(days=10) if last is None else last.date() - timedelta(days=7)
+                total += guarded(
+                    "ecb",
+                    ecb.SERIES,
+                    lambda: save_points(ecb.usd_krw(client, cfg.ecb_rates_url, Pacer(1.0), ecb_since, now)),
                 )
             if "fred" in only:
                 if cfg.fred_api_key is None:

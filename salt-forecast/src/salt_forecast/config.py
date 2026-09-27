@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     # 바이낸스 IP 가중치 한도(분당 2400) 대비 넉넉히 — 초당 5 요청
     binance_requests_per_second: float = Field(default=5.0, gt=0)
     defillama_stablecoins_url: str = "https://stablecoins.llama.fi"
+    # ECB 기준 환율(원/달러) — 김치 프리미엄 분모(FC-REQ-007)
+    ecb_rates_url: str = "https://api.frankfurter.dev/v1"
     fred_url: str = "https://api.stlouisfed.org/fred"
     fred_api_key: SecretStr | None = None
     # 주요 사건 반응을 계산할 종목(FC-REQ-005) — 화면 초점이 BTC
