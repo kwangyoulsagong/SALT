@@ -3,7 +3,7 @@ id: SRV-REQ-038
 feature: F009
 area: server
 kind: API
-title: "F009 코치 — 사이즈 계산 · 거래 계획 · 리스크 예산 (+ 슬라이스 4 · 6 판정 · 미러 · 복기)"
+title: "F009 코치 — 사이즈 계산 · 거래 계획 · 리스크 예산 · 판정 · 미러 (+ 슬라이스 6 복기)"
 priority: high
 created: 2026-09-24
 source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
@@ -22,6 +22,11 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 4. **거래에 연결된 계획은 손절가 · 계획 수량 · 오를 확률을 잠근다**(409). 결정 뒤 기준을 옮기면 준수 판정이 자기 채점이 된다. 잠금은 쓰기 문장의 조건(`transaction_id IS NULL`)이라 검사 · 쓰기 사이 경합이 뚫지 못한다
 5. **실현 변동성은 `forecast.v_realized_vol` 에서** (슬라이스 2) — 막힌 행 · 3일 넘은 행은 `null` → `insufficient_data`. 0 이 아니다. 슬라이스 1 에선 원천이 없어 늘 `null` 이었다
 6. **응답 비율 이름은 `*Rate`(소수, 0.28 = 28%)** — 기획서 초안의 `*Pct` 대신 기존 계약(`maxLossOfTotalRate`)과 같은 규칙
+7. **(슬라이스 4) 되감기 한 번을 판정 · 결과 · 미러가 같이 본다**(`policy/tradeLedger`). 원가는 `portfolio` 와 같은 FIFO 에 **매수 수수료를 넣는다** — 결과 순손익이 "수수료 포함"이라서. 그래서 결과 순손익은 `portfolio.realizedProfit` 보다 매수 수수료만큼 작다. 매수 기록 없는 매도는 원가 0 으로 치지 않고 결과를 만들지 않는다(`unmatchedSells`)
+8. **(슬라이스 4) 준수 판정 기준은 업비트 일봉 종가(KST 09:00 = UTC 00:00 경계)**, 손절가 아래로 닫힌 뒤 **24시간 유예** 안에 이 매수분을 팔지 않았으면 `stop_not_honored`. 라벨 칸이 하나라 우선순위 `stop_not_honored` > `stop_slipped` > `size_exceeded` > `honored`. 사용자 결정 2026-09-27("KST 09:00")
+9. **(슬라이스 4) 자동 태그는 조각 수량 과반일 때만** — 조각 하나가 추격이었다고 청산 전체 손익을 추격 비용으로 돌리지 않는다. 추격은 5분봉(30일 보관)이 있어야 판정하고, 모르면 직전 회차 판정을 잇는다
+10. **(슬라이스 4) 미러는 요청 때 센다** — 저장할 표가 없고(`DB-REQ-031` 은 결과 · 계획만) 재료 쿼리가 다섯이라 싸다(로컬 14ms). 결과 · 라벨 · 태그만 배치(6시간마다 `:35`, 멱등)가 저장한다. 기획서의 "미러 집계 일 1회 → 읽기 뷰"에서 바꿨다
+11. **(슬라이스 4) "그냥 들고 있었으면"은 둘이다** — 포트폴리오 단위는 첫 거래일 구성 보유 vs 실제 TWR(순입금은 같은 날 같은 비중 매수 가정, 사용자 결정 2026-09-27 — TWR 은 입출금에 불변이라 식이 단순해진다), 결과 단위(`benchmarkReturn`)는 청산 30일 뒤 종가. 결과 단위를 "지금 종가"로 하면 매일 값이 바뀐다
 
 ## FR
 
@@ -35,7 +40,13 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 | FR-6 | `POST · GET /api/coach/plans` · `PATCH /api/coach/plans/:id` — 종목 · 방향 외 전부 선택. 거래 연결은 본인 · 같은 종목 · 같은 방향 · 한 번. 연결 뒤 채점 기준 잠금(409). 삭제 없음 (FEATURE-009 FR-9~10) | 완료 |
 | FR-7 | `PATCH /api/ai-coach/profile` 에 `hidePurchasePrice`. 프로필 응답에서 예산 3필드는 뺀다(`/coach/risk-budget` 이 준다) (FEATURE-009 FR-27 저장) | 완료 |
 | FR-8 | 금액 · 비율은 도메인에서 `Money` · `Decimal`, 원 반올림은 응답 변환(`presentation/dto/riskView`) 한 곳 | 완료 |
-| FR-9 | 준수 판정 배치 · `DecisionOutcome` 생성 · 자동 태그 · `mirror.ts` · `GET /coach/mirror` (FEATURE-009 FR-11~22) | to-do(슬라이스 4) |
+| FR-9 | 준수 판정 배치 · `DecisionOutcome` 생성 · 자동 태그 · `mirror.ts` · `GET /coach/mirror` (FEATURE-009 FR-11~22) | 완료(슬라이스 4) — 아래 FR-9a~9f. FR-20 · 22(Could) · FR-21(알림 끄기)은 슬라이스 5 |
+| FR-9a | 준수 판정(`policy/adherence`) — 연결된 매수 계획마다 4라벨 또는 판정 불가(`null`). 원본은 배치만 쓰고, 사용자 수정은 `PATCH /api/coach/plans/:id` `userAdherenceLabel`(잠금 대상 아님) (FEATURE-009 FR-11) | 완료 |
+| FR-9b | 결정 결과(`policy/decisionOutcome`) — 매도 1건 = 1행: FIFO 원가(매수 수수료 포함) · 순손익 · 수수료 · 순수익률 · 보유일(수량 가중) · R(계획 손절가 있을 때) · 청산 30일 뒤 보유 수익률 · 계획 라벨 (FR-14) | 완료 |
+| FR-9c | 자동 태그 4종(`chasing` · `averaging_down` · `revenge` · `off_plan`) + 사용자 확정 `PUT /api/coach/outcomes/:id/tags`(덮어쓰기, 빈 배열 = 실수 없음, 자동 후보 보존) · `GET /api/coach/outcomes` (FR-18) | 완료 |
+| FR-9d | 배치 `EvaluateTradeDecisions` — 사용자별 · 멱등 · 지운 매도 결과 정리 · 거래 5,000건 초과면 쓰지 않음(`truncated`) · 사용자 한 명 실패가 다른 사용자를 막지 않음. `investment-insight.worker` 6시간마다 `:35` + 부팅 1회 | 완료 |
+| FR-9e | `GET /api/coach/mirror` — 준수율 · 준수/위반 평균 수익률(FR-12) · PGR/PLR · 익절/손절 보유일(FR-15) · 실제 TWR vs 보유 · 수수료 몫(FR-16) · 회전율 + 기준선 서버 상수(FR-17) · 태그 비용 · 엣지 없음(FR-18 · 19). 각 `{value, sampleSize, status}`, 표본 < 20 이어도 값을 준다 | 완료 |
+| FR-9f | `market` 공개 API `highestCloseBetween(symbol, from, to)` — 추격 판정 재료(5분봉 구간 최고 종가) | 완료 |
 | FR-10 | 월간 복기 · Brier · 체크리스트 · 코치 대화 3문항 · 시나리오 (FEATURE-009 FR-13 · 25 · 28~31) | to-do(슬라이스 6) |
 | FR-11 | 실현 변동성 읽기 — `ForecastReader.realizedVolatility` 를 `forecast.v_realized_vol` 로(`KRW-` 접두 · `annualized` null 또는 `as_of` 3일 초과면 `null`) | 완료(슬라이스 2) |
 
@@ -46,3 +57,4 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 | 2026-09-24 | 신설 · 슬라이스 1 FR-1~8 구현. 근거 `reports/checklists/SRV-REQ-038.md` |
 | 2026-09-24 | 슬라이스 2 FR-11 — 실현 변동성 읽기(`FC-REQ-006`). 메서드 하나 · 응답 계약 변경 없음 |
 | 2026-09-24 | 슬라이스 3 — **서버 변경 없음.** BFF(`BFF-REQ-038`)가 FR-1 · 5 · 6 · 7 과 `POST /portfolio/transactions` 를 그대로 소비. 거래 + 계획은 BFF 가 순서대로 두 번 부른다 — 한 트랜잭션으로 옮길지는 슬라이스 4 전에 결정 |
+| 2026-09-27 | 슬라이스 4 FR-9(9a~9f) — 판정 배치 · 결정 결과 · 자동 태그 · 미러 · 태그 확정. 새 경로 3(`GET /mirror` · `GET /outcomes` · `PUT /outcomes/:id/tags`) + `PATCH /plans/:id` 에 `userAdherenceLabel`. 마이그레이션 없음(슬라이스 1 스키마). 근거 `reports/checklists/SRV-REQ-038.md` §슬라이스 4 |
