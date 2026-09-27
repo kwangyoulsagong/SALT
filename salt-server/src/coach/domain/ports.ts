@@ -6,6 +6,8 @@ import type {
   CoachGenerationEntry,
   CoachGenerationSource,
   EventCardRow,
+  PositioningRow,
+  SignalReactionRow,
   ForecastCardRow,
   GaugeKind,
   GaugeTrackStats,
@@ -453,6 +455,11 @@ export interface ForecastReader {
   recentCloses(symbol: string, days: number): Promise<{ date: string; close: number }[]>;
   /** 앞으로 35일 거시 일정 × 기간별 최신 반응 통계 — `forecast.v_event_card` (FC-REQ-005) */
   eventCards(symbol: string): Promise<EventCardRow[]>;
+  /**
+   * 쏠림 신호 — 종목 최신 상태 한 행(`forecast.v_market_signal`)과 신호 뒤 반응 통계(`forecast.v_signal_reaction`),
+   * `FC-REQ-007`. 상태가 없으면 `row: null`
+   */
+  positioning(symbol: string): Promise<{ row: PositioningRow | null; reactions: SignalReactionRow[] }>;
   /**
    * 종목 실현 변동성(연율) — 사이즈 계산의 변동성 타깃(FEATURE-009 FR-5).
    * 원천은 `forecast.v_realized_vol`(`FC-REQ-006`). 막혔거나 오래됐으면 `null` — 0 이 아니다

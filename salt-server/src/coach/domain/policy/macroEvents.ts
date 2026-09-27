@@ -36,6 +36,9 @@ export interface EventCardRow {
   blockedReason: string | null;
 }
 
+/** 반응 통계 한 행 — 일정 칸을 뺀 것. 쏠림 신호(`positioning.ts`)도 같은 게이트를 쓴다 */
+export type ReactionStatsRow = Omit<EventCardRow, "kind" | "eventAt" | "announcedAt" | "source">;
+
 export type EventHorizonView =
   | {
       horizonDays: number;
@@ -65,7 +68,7 @@ export interface MacroEventView {
 
 const isNum = (v: number | null): v is number => typeof v === "number" && Number.isFinite(v);
 
-export const toEventHorizon = (row: EventCardRow): EventHorizonView => {
+export const toEventHorizon = (row: ReactionStatsRow): EventHorizonView => {
   const blocked = (reason: string): EventHorizonView => ({
     horizonDays: row.horizonDays,
     renderable: false,

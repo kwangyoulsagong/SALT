@@ -108,6 +108,35 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
 
   /**
    * @swagger
+   * /api/coach/positioning:
+   *   get:
+   *     summary: 쏠림 신호 — 선물 펀딩비 · 김치 프리미엄과 과거 반응 (소유자 전용) — F008 슬라이스 23
+   *     description: |
+   *       바이낸스 펀딩비가 지난 1년 중 어디쯤인지(백분위) · 미결제약정 7일 변화 · 김치 프리미엄(ECB 원/달러)과,
+   *       과거 같은 신호(쏠림 진입 · 0 교차 확정) 뒤 1 · 5 · 20일 수익률 분포(워크포워드).
+   *
+   *       - **소유자 계정만.** 아니면 404(`ADR-003`)
+   *       - 상태는 관측값이다. 매매 신호 · 과열 판정 필드는 없다(`state` 는 백분위 구간 코드)
+   *       - 반응 기간마다 `renderable`. 표본 · 분포와 평소 분포 · 빗나간 때 중 하나라도 없으면 분포 없이 사유만
+   *       - 배치가 사흘 넘게 안 돌았으면 `blockedReason: stale_inputs` 이고 상태 · 반응이 비어 있다
+   *     tags: [Coach Report]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: symbol
+   *         required: true
+   *         schema: { type: string, example: BTC }
+   *     responses:
+   *       200: { description: 상태 · 반응. 없는 칸은 null }
+   *       400: { description: 심볼 형식 오류 }
+   *       401: { description: 인증 실패 }
+   *       404: { description: 소유자가 아니다 }
+   */
+  router.get("/positioning", controller.getPositioning);
+
+  /**
+   * @swagger
    * /api/coach/detail:
    *   get:
    *     summary: 코치 상세 (추천 + 성적 + 익절 계획 + 행동 기록)
