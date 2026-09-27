@@ -461,15 +461,22 @@ model MarketSentiment {
 
 // 고래 거래 추적
 model WhaleTransaction {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   symbol          String
-  transactionType String   @map("transaction_type") // buy, sell
+  transactionType String    @map("transaction_type") // buy, sell
   amount          Float // 코인 수량
-  amountKRW       Float    @map("amount_krw") // 원화 환산
+  amountKRW       Float     @map("amount_krw") // 원화 환산
   exchange        String? // upbit, binance, etc
-  detectedAt      DateTime @default(now()) @map("detected_at")
+  // 도착 — 우리가 저장한 시각. 발생 시각은 tradedAt 이다(F010 슬라이스 1 · DB-REQ-017 FR-63)
+  detectedAt      DateTime  @default(now()) @map("detected_at")
+  // 발생 — 거래소 체결 시각. 2026-09-29 전 행은 없다
+  tradedAt        DateTime? @map("traded_at")
+  // 거래소 체결 id — 같은 체결을 두 번 저장하지 않는다
+  sequentialId    BigInt?   @map("sequential_id")
 
+  @@unique([symbol, sequentialId])
   @@index([symbol, detectedAt])
+  @@index([symbol, tradedAt])
   @@map("whale_transactions")
 }
 
@@ -819,6 +826,34 @@ model SymbolJudgmentSnapshot {
   @@index([signalType, outcome, judgedAt(sort: Desc)])
   @@index([evaluatedAt, judgedAt])
   @@map("symbol_judgment_snapshots")
+}
+
+// 예측 원장 (F010 슬라이스 1 · DB-REQ-017 FR-62)
+//
+// 코치 규칙 판단을 **매일 전부** 남긴다(종목 × 모드 × UTC 날 1행). 스냅샷(`SymbolJudgmentSnapshot`)은 관찰 기간당
+// 1건인 성적표 표본이고, 이건 규칙 항목별 IC 를 재는 표본이다 — 행마다 항목 기여 · 재료 · 재료의 발생 시각이 있다.
+// 판정(적중 여부) 열이 없다 — 라벨은 읽는 쪽(salt-forecast)이 가격으로 만든다. **UPDATE 는 트리거가 막는다**(불변).
+model JudgmentLedgerEntry {
+  id              String    @id @default(uuid())
+  symbol          String
+  mode            String // "scalp" | "long_term"
+  asOfDate        DateTime  @map("as_of_date") @db.Date
+  decidedAt       DateTime  @map("decided_at")
+  ruleVersion     String    @map("rule_version")
+  score           Int
+  action          String
+  components      Json // [{ item, points, value }] — 점수에 들어간 항목별 기여
+  materials       Json // 재료 값 + 각 재료의 발생 시각(observedAt)
+  missingData     String[]  @map("missing_data")
+  regime          String // BTC 기준 시장 국면(detectMarketRegime)
+  entryPrice      Decimal   @map("entry_price")
+  entryObservedAt DateTime? @map("entry_observed_at")
+  sampleOrigin    String    @map("sample_origin")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@unique([symbol, mode, asOfDate])
+  @@index([asOfDate])
+  @@map("judgment_ledger")
 }
 
 // 게이지 아래 적중률 한 줄 (F004 · B9 · DB-REQ-017 FR-55).
