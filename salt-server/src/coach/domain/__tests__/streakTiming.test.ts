@@ -6,7 +6,7 @@ import Decimal from "decimal.js";
 import { hasEnteredTime, kstWeekday, streakMirror, tradeTimingMirror, type CoachLedgerEntry } from "..";
 
 /**
- * F009 슬라이스 7 (`SRV-REQ-038` FR-12) — 연승 · 연패(FR-20) · 시간대 · 요일(FR-22)을 손계산과 대조한다.
+ * F009 슬라이스 7 (`SRV-REQ-038` FR-14) — 연승 · 연패(FR-20) · 시간대 · 요일(FR-22)을 손계산과 대조한다.
  */
 
 const at = (iso: string) => new Date(iso);
