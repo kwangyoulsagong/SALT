@@ -1,6 +1,7 @@
 """mode-decision@1 재현 — 서버 특성화 테스트(`market.test.ts` · `modeDecision.ts`)와 같은 값을 주장한다."""
 
 import numpy as np
+import pytest
 
 from salt_forecast.domain.panel import Panel, rolling_sum
 from salt_forecast.domain.rule_items import contributions, rsi_simple, sentiment_score
@@ -53,3 +54,28 @@ def test_rolling_sum_nan_window() -> None:
     m = np.asarray([[1.0], [2.0], [np.nan], [4.0], [5.0]])
     out = rolling_sum(m, 2)[:, 0]
     assert np.isnan(out[0]) and out[1] == 3.0 and np.isnan(out[2]) and np.isnan(out[3]) and out[4] == 9.0
+
+
+def test_v2_matches_server_characterization() -> None:
+    """서버 `coachPolicy.test.ts` (mode-decision@2) 와 같은 값."""
+    p = _panel([100.0, 105.0])  # +5%
+    fg = np.full(2, np.nan)
+    c = contributions(p, fg, version="mode-decision@2").by_item
+    assert c["change24h"]["scalp"][1, 0] == -12.0  # 서버 38 = 50 − 12
+    assert c["change24h"]["long_term"][1, 0] == -6.0  # 서버 44
+    down = contributions(_panel([100.0, 95.0]), fg, version="mode-decision@2").by_item
+    assert down["change24h"]["scalp"][1, 0] == 10.0 and down["change24h"]["long_term"][1, 0] == 6.0
+
+
+def test_v2_zeroes_whale_and_long_sentiment_but_keeps_missing() -> None:
+    p = _panel([100.0] * 8, high=[140.0] * 8, low=[60.0] * 8)  # 변동성 큼 → 심리 낮음
+    buy = np.asarray([[100.0]] * 7 + [[np.nan]])
+    sell = np.full((8, 1), 10.0)
+    c = contributions(p, np.full(8, 10.0), buy, sell, version="mode-decision@2").by_item
+    assert c["whale_flow"]["scalp"][0, 0] == 0.0 and np.isnan(c["whale_flow"]["scalp"][7, 0])
+    v1 = contributions(p, np.full(8, 10.0), buy, sell).by_item
+    assert v1["sentiment"]["long_term"][-1, 0] == 10.0  # @1 공포 가점
+    assert c["sentiment"]["long_term"][-1, 0] == 0.0
+    assert c["sentiment"]["scalp"][-1, 0] == 4.0  # 단타 반전 — 서버 +4
+    with pytest.raises(ValueError):
+        contributions(p, np.full(8, 10.0), version="mode-decision@9")

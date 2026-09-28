@@ -24,7 +24,8 @@ from numpy.typing import NDArray
 
 from salt_forecast.domain.panel import Mat, Panel, lag, rolling_sum
 
-RULE_VERSION = "mode-decision@1"
+RULE_VERSION = "mode-decision@1"  # 사전등록 rule-ic@1 이 잰 버전
+RULE_VERSIONS = ("mode-decision@1", "mode-decision@2")
 Mode = Literal["scalp", "long_term"]
 MODES: tuple[Mode, ...] = ("scalp", "long_term")
 
@@ -85,18 +86,27 @@ def _step(x: Mat, hi: float, hi_pts: float, lo: float, lo_pts: float, *, lo_incl
 
 
 def contributions(
-    p: Panel, fear_greed: NDArray[np.float64], whale_buy: Mat | None = None, whale_sell: Mat | None = None
+    p: Panel,
+    fear_greed: NDArray[np.float64],
+    whale_buy: Mat | None = None,
+    whale_sell: Mat | None = None,
+    version: str = RULE_VERSION,
 ) -> Contributions:
+    """`version` — 서버 `MODE_DECISION_RULE_VERSION` 과 같은 표. `@2` 는 `@1` 판정 반영: 단타 24시간 · 심리 부호 반전,
+    장기 심리 · 대형 체결 0(값은 재료로 남지만 점수에 안 들어간다). 장기 24시간 · RSI 는 같다."""
+    if version not in RULE_VERSIONS:
+        raise ValueError(f"모르는 규칙 버전 {version}")
+    v2 = version == "mode-decision@2"
     chg = change_pct(p)
     change: dict[Mode, Mat] = {
         # > 3 · < −3 (경계 제외)
-        "scalp": _gt_lt(chg, 3.0, 12.0, -3.0, -10.0),
+        "scalp": _gt_lt(chg, 3.0, -12.0, -3.0, 10.0) if v2 else _gt_lt(chg, 3.0, 12.0, -3.0, -10.0),
         "long_term": _gt_lt(chg, 3.0, -6.0, -3.0, 6.0),
     }
     sent = sentiment_score(p, fear_greed)
     sentiment: dict[Mode, Mat] = {
-        "scalp": _step(sent, 70.0, 5.0, 35.0, -4.0, lo_inclusive=True),
-        "long_term": _step(sent, 70.0, -8.0, 35.0, 10.0, lo_inclusive=True),
+        "scalp": _step(sent, 70.0, -5.0 if v2 else 5.0, 35.0, 4.0 if v2 else -4.0, lo_inclusive=True),
+        "long_term": _step(sent, 70.0, -8.0, 35.0, 10.0, lo_inclusive=True) * (0.0 if v2 else 1.0),
     }
     rsi = rsi_simple(p.close)
     rsi_d1: dict[Mode, Mat] = {
@@ -108,6 +118,8 @@ def contributions(
     if whale_buy is not None and whale_sell is not None:
         w = np.where(whale_buy > whale_sell * 1.2, 8.0, 0.0) + np.where(whale_sell > whale_buy * 1.2, -8.0, 0.0)
         w[np.isnan(whale_buy) | np.isnan(whale_sell)] = np.nan
+        if v2:
+            w = w * 0.0  # 재료 결측(NaN)은 그대로 — 0 과 결측을 가른다
         items["whale_flow"] = {"scalp": w, "long_term": w}
     return Contributions(items)
 
