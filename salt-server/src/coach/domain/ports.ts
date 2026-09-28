@@ -27,6 +27,7 @@ import type {
   DecisionOutcome,
   DecisionOutcomeDraft,
   MonthlyReview,
+  JudgmentLedgerDraft,
 } from "./policy";
 import type {
   CoachAction,
@@ -314,6 +315,8 @@ export interface JudgmentSnapshotDraft {
   reasons: string[];
   entryPrice: number;
   judgedAt: Date;
+  /** 판단을 낸 규칙(`MODE_DECISION_RULE_VERSION`). 성적표는 현재 버전만 센다. */
+  ruleVersion: string;
 }
 
 export interface PendingJudgment {
@@ -378,6 +381,16 @@ export interface RecommendationSnapshotStore {
     outcome: JudgmentOutcome | null,
     limit: number
   ): Promise<RecommendationCase[]>;
+}
+
+/**
+ * 예측 원장 (F010 슬라이스 1 · `DB-REQ-017` FR-62). 매일 · 불변 — 쓰기만 있다. 읽는 쪽은 `salt-forecast` 다.
+ */
+export interface JudgmentLedgerStore {
+  /** 그날 이미 발행한 `symbol:mode`. 같은 날 두 번째 회차가 재료를 다시 모으지 않게 한다. */
+  publishedOn(asOfDate: Date): Promise<Set<string>>;
+  /** 같은 `(symbol, mode, asOfDate)` 는 건너뛴다. 반환: 새로 쓴 행 수. */
+  saveEntries(drafts: JudgmentLedgerDraft[]): Promise<number>;
 }
 
 /**

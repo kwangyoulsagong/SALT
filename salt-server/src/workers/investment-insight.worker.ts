@@ -176,6 +176,18 @@ export class InvestmentInsightWorker {
         );
       });
 
+      // 예측 원장 (F010 슬라이스 1). 추적 종목 × 두 모드를 **하루 한 번** 전부 — 규칙 항목별 IC 의 표본이다.
+      // 그날 이미 발행한 조합은 재료도 다시 모으지 않는다
+      await this.step("📒 Publishing judgment ledger...", async () => {
+        const result = await this.coach.publishJudgmentLedger.execute();
+        console.log(
+          `   추적 ${result.tracked} · 발행 ${result.written}` +
+            (result.skippedNoPrice.length
+              ? ` · 현재가 없음 ${result.skippedNoPrice.join(",")}`
+              : "")
+        );
+      });
+
       await this.step("🧾 Evaluating matured judgments...", async () => {
         const result = await this.coach.evaluateSymbolJudgments.execute();
         console.log(

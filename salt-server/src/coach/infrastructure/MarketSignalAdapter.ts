@@ -97,6 +97,7 @@ export class MarketSignalAdapter implements MarketProbe {
       transactionType: row.transactionType,
       amountKRW: row.amountKRW,
       detectedAt: row.detectedAt,
+      ...(row.tradedAt ? { tradedAt: row.tradedAt } : {}),
     }));
   }
 

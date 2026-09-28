@@ -141,7 +141,10 @@ export interface CoachWhaleTransaction {
   symbol: string;
   transactionType: "buy" | "sell";
   amountKRW: number;
+  /** 도착 — 우리가 저장한 시각. */
   detectedAt: Date;
+  /** 발생 — 거래소 체결 시각. 2026-09-29 전 행에는 없다. */
+  tradedAt?: Date;
 }
 
 /** 뉴스 감성 분석 한 종목분. `news` 의 기사를 읽어 `coach` 가 만든다. */

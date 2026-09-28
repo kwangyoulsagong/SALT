@@ -96,3 +96,20 @@
 | 마이그레이션 | `20260928101000` 로컬 적용 — 표 · 유니크 · 인덱스 2 · FK cascade · `sample_origin` CHECK. 롤백 = DROP TABLE |
 | 재판정 | `20260928100100`: `symbol_judgment_snapshots` live 18행 재판정, 결과 분포 변화 없음(전부 `avoid`) |
 | 미검증 | 운영 DB 적용 · 행이 쌓인 뒤 `(user_id, signal_type, outcome, judged_at desc)` 실행계획 — 표본 0 이라 `EXPLAIN` 의미 없음 → 표본 100 이상 뒤 |
+
+## F010 슬라이스 1 (2026-09-29) — FR-62 · 63
+
+| 확인 | 결과 |
+|---|---|
+| 마이그레이션 | `20260929100000` · `20260929100100` 로컬 적용 · `prisma migrate diff` 에 이번 표 차이 없음(슬라이스 0 인덱스 이름 63자 잘림 2건은 기존) |
+| 불변 | `judgment_ledger` UPDATE → 트리거 예외. DELETE 는 막지 않는다(보존 정책은 운영 결정) |
+| 중복 방지 | `whale_transactions (symbol, sequential_id)` 유니크 — 기존 291행 NULL 과 충돌 없음 · 수집 뒤 중복 0 |
+| 실행계획 | `judgment_ledger (as_of_date)` Index Scan 0.3ms · 대형 체결은 SRV-REQ-024 §10 |
+| 미검증 | 원장 1년치(추적 종목 × 2 × 365) 뒤 `(as_of_date)` 계획 — 지금 6행 |
+
+## F010 슬라이스 1 (2026-09-29) — FR-64
+
+| 확인 | 결과 |
+|---|---|
+| 마이그레이션 | `20260929100200` 로컬 적용 · 기존 267행 → `mode-decision@1` · 기본값 제거 확인 · 인덱스 이름을 Prisma 63자 규칙과 같게(드리프트 0) |
+| 쓰기 | 워커 v2 표본 6행이 `rule_version = mode-decision@2` · 시드 스크립트도 버전을 적는다 |

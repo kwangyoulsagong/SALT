@@ -15,6 +15,7 @@ import type {
   PriceTimeframe,
   Quote,
   Trade,
+  TradeHistoryPort,
 } from "../domain";
 
 const UPBIT_API_URL = "https://api.upbit.com/v1";
@@ -69,6 +70,17 @@ const get = <T = any>(path: string, params?: Record<string, unknown>): Promise<T
     }
   );
 
+/** 체결 조회 한 페이지 — 거래소 상한. */
+const TRADE_PAGE = 500;
+
+const toTrade = (trade: any): Trade => ({
+  side: trade.ask_bid === "bid" ? "buy" : "sell",
+  price: trade.trade_price,
+  volume: trade.trade_volume,
+  tradedAt: new Date(trade.timestamp),
+  sequentialId: Number(trade.sequential_id),
+});
+
 /** 분봉 단위 매핑. `ExchangeQuotePort` 의 타임프레임을 거래소 단위로 옮긴다. */
 const MINUTE_UNIT: Record<Exclude<PriceTimeframe, "1d">, number> = {
   "5m": 5,
@@ -93,7 +105,7 @@ const MINUTE_UNIT: Record<Exclude<PriceTimeframe, "1d">, number> = {
  * > `getBatchCandles`, `getCachedDailyCandles`, 그 캐시. 죽은 코드를 옮기면 다음 사람이
  * > 그것도 계약이라고 읽는다.
  */
-export class UpbitClient implements ExchangeQuotePort {
+export class UpbitClient implements ExchangeQuotePort, TradeHistoryPort {
   async currentPrice(symbol: string): Promise<Quote> {
     const tickers = await this.tickers([symbol], "Upbit API error:");
 
@@ -210,11 +222,39 @@ export class UpbitClient implements ExchangeQuotePort {
       count,
     });
 
-    return trades.map((trade: any) => ({
-      side: trade.ask_bid === "bid" ? "buy" : "sell",
-      price: trade.trade_price,
-      volume: trade.trade_volume,
-    }));
+    return trades.map(toTrade);
+  }
+
+  /**
+   * `since` 이후 체결을 최신부터 거꾸로 — `cursor`(sequential_id)로 페이지를 넘긴다(한 번 500건).
+   * 거래소 문서상 한 호출은 **하루 안**만 본다(`days_ago` 없이 오늘). 자정 직후 어제 체결은 다음 회차가
+   * 잇지 못한다 — 5분 주기라 그 틈은 자정 전후 5분이다.
+   */
+  async tradesSince(
+    symbol: string,
+    since: Date,
+    maxPages: number
+  ): Promise<{ trades: Trade[]; truncated: boolean }> {
+    const out: Trade[] = [];
+    let cursor: number | undefined;
+    for (let page = 0; page < maxPages; page++) {
+      const rows = await get<any[]>("/trades/ticks", {
+        market: marketOf(symbol),
+        count: TRADE_PAGE,
+        ...(cursor === undefined ? {} : { cursor }),
+      });
+      if (!rows.length) return { trades: out, truncated: false };
+      const trades = rows.map(toTrade);
+      for (const trade of trades) {
+        if (trade.tradedAt > since) out.push(trade);
+      }
+      const oldest = trades[trades.length - 1];
+      if (oldest.tradedAt <= since || rows.length < TRADE_PAGE) {
+        return { trades: out, truncated: false };
+      }
+      cursor = oldest.sequentialId;
+    }
+    return { trades: out, truncated: true };
   }
 
   async orderbookPressure(symbol: string): Promise<OrderbookPressure> {

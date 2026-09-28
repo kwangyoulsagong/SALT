@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
@@ -40,6 +41,12 @@ class _Funding(BaseModel):
     symbol: str
     fundingTime: int
     fundingRate: float
+
+
+@dataclass(frozen=True, slots=True)
+class SpotDay:
+    bar: Bar
+    taker_buy_ratio: SeriesPoint | None
 
 
 class Binance:
@@ -102,8 +109,11 @@ class Binance:
                 return
             start = _dt(items[-1].fundingTime) + timedelta(milliseconds=1)
 
-    def spot_daily(self, base: str, since: datetime, now: datetime) -> Iterator[Bar]:
-        """USDT 현물 일봉. 닫힌 봉만(available_at = 마감)."""
+    def spot_daily(self, base: str, since: datetime, now: datetime) -> Iterator[SpotDay]:
+        """USDT 현물 일봉 + 테이커 매수 비율. 닫힌 봉만(available_at = 마감).
+
+        kline 9번 칸이 테이커 매수 수량이다 — 따로 호출하지 않고 같은 응답에서 뽑는다. 비율은 수량 기준
+        (테이커 매수 ÷ 전체). 거래량 0 인 날은 비율이 없다(0 으로 채우지 않는다)."""
         start = since
         while start < now:
             rows = get_json(
@@ -120,7 +130,9 @@ class Binance:
                 close_time = open_time + timedelta(days=1)
                 if close_time > now:
                     continue
-                yield Bar(
+                volume = Decimal(str(k[5]))
+                taker = float(k[9]) / float(volume) if volume > 0 else None
+                bar = Bar(
                     SOURCE,
                     f"{base}USDT",
                     "1d",
@@ -131,8 +143,14 @@ class Binance:
                     Decimal(str(k[2])),
                     Decimal(str(k[3])),
                     Decimal(str(k[4])),
-                    Decimal(str(k[5])),
+                    volume,
                 )
+                point = (
+                    None
+                    if taker is None
+                    else SeriesPoint(SOURCE, f"taker_buy_ratio:{base}", open_time, close_time, taker, "ratio")
+                )
+                yield SpotDay(bar, point)
             if len(rows) < 1000:
                 return
             start = _dt(int(rows[-1][0])) + timedelta(days=1)

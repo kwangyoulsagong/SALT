@@ -1,7 +1,12 @@
 import { Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
-import { LIVE_ORIGINS, RETURN_BUCKETS, ROUND_TRIP_COST } from "../domain";
+import {
+  LIVE_ORIGINS,
+  MODE_DECISION_RULE_VERSION,
+  RETURN_BUCKETS,
+  ROUND_TRIP_COST,
+} from "../domain";
 import type {
   CoachMode,
   JudgmentCase,
@@ -56,12 +61,27 @@ const toNumberOrNull = (value: Prisma.Decimal | null): number | null =>
 export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
   private readonly counted: SampleOrigin[];
 
-  constructor(countedOrigins: readonly SampleOrigin[] = LIVE_ORIGINS) {
+  /**
+   * `ruleVersion` — 성적이 세는 규칙 버전(F010 슬라이스 1 · `DB-REQ-017` FR-64). 규칙이 바뀌면 같은 `signalType` 이
+   * 다른 규칙의 표본이 되므로 **현재 버전만** 센다. 합성 행은 버전과 무관하게 센다 — 로컬 렌더 경로 확인용이라
+   * 규칙을 올릴 때마다 시드를 다시 만들 이유가 없다(운영에서는 합성 자체를 세지 않는다).
+   */
+  constructor(
+    countedOrigins: readonly SampleOrigin[] = LIVE_ORIGINS,
+    private readonly ruleVersion: string = MODE_DECISION_RULE_VERSION
+  ) {
     this.counted = [...countedOrigins];
   }
 
   private get countedSql(): Prisma.Sql {
-    return Prisma.sql`sample_origin IN (${Prisma.join(this.counted)})`;
+    return Prisma.sql`sample_origin IN (${Prisma.join(this.counted)}) AND (rule_version = ${this.ruleVersion} OR sample_origin = 'synthetic')`;
+  }
+
+  private get countedWhere(): Prisma.SymbolJudgmentSnapshotWhereInput {
+    return {
+      sampleOrigin: { in: this.counted },
+      OR: [{ ruleVersion: this.ruleVersion }, { sampleOrigin: "synthetic" }],
+    };
   }
 
   /**
@@ -75,7 +95,8 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
 
     const rows = await prisma.symbolJudgmentSnapshot.groupBy({
       by: ["symbol", "mode"],
-      where: { symbol: { in: symbols }, sampleOrigin: "live" },
+      // 규칙이 바뀌면 새 버전의 첫 표본은 바로 쓴다 — 이전 버전의 관찰 기간을 기다리지 않는다
+      where: { symbol: { in: symbols }, sampleOrigin: "live", ruleVersion: this.ruleVersion },
       _max: { judgedAt: true },
     });
 
@@ -99,6 +120,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
         reasons: draft.reasons,
         entryPrice: new Prisma.Decimal(draft.entryPrice),
         judgedAt: draft.judgedAt,
+        ruleVersion: draft.ruleVersion,
         // 워커가 실시간 판단을 남기는 유일한 문이다
         sampleOrigin: "live" satisfies SampleOrigin,
       })),
@@ -171,13 +193,13 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
   async summarize(signalType: string): Promise<JudgmentTrackStats> {
     const [all, hits, aboveCost] = await Promise.all([
       prisma.symbolJudgmentSnapshot.aggregate({
-        where: { signalType, outcome: { not: null }, sampleOrigin: { in: this.counted } },
+        where: { signalType, outcome: { not: null }, ...this.countedWhere },
         _count: { _all: true },
         _avg: { returnRate: true },
         _min: { returnRate: true },
       }),
       prisma.symbolJudgmentSnapshot.count({
-        where: { signalType, outcome: "hit", sampleOrigin: { in: this.counted } },
+        where: { signalType, outcome: "hit", ...this.countedWhere },
       }),
       // 기저율의 분자 — 비용 경계는 도메인 상수 하나(`ROUND_TRIP_COST`)에서 온다
       prisma.symbolJudgmentSnapshot.count({
@@ -185,7 +207,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
           signalType,
           outcome: { not: null },
           returnRate: { gt: ROUND_TRIP_COST },
-          sampleOrigin: { in: this.counted },
+          ...this.countedWhere,
         },
       }),
     ]);
@@ -301,7 +323,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
     limit: number
   ): Promise<JudgmentCase[]> {
     const rows = await prisma.symbolJudgmentSnapshot.findMany({
-      where: { signalType, outcome, sampleOrigin: { in: this.counted } },
+      where: { signalType, outcome, ...this.countedWhere },
       orderBy: { judgedAt: "desc" },
       take: limit,
       select: { symbol: true, judgedAt: true, action: true, returnRate: true },

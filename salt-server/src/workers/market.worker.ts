@@ -50,6 +50,13 @@ const jobs = (): MarketJob[] => {
       run: () => market.collectPriceHistory.execute(),
     },
     {
+      // 대형 체결 — 거래대금 상위 50 + 관심 종목, 마지막 저장 체결 뒤부터(F010 슬라이스 1)
+      name: "whale-trades-collect",
+      expression: "*/5 * * * *",
+      runAtBoot: true,
+      run: () => market.collectWhaleTrades.execute(),
+    },
+    {
       name: "technical-indicators",
       expression: "*/2 * * * *",
       runAtBoot: true,

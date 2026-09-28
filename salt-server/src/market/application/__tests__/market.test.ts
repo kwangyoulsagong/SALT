@@ -14,6 +14,8 @@ import type {
   SentimentRepository,
   StoredSentiment,
   SymbolNewsPort,
+  Trade,
+  TradeHistoryPort,
   WatchlistItem,
   WatchlistRepository,
   WhaleTransactionRepository,
@@ -72,6 +74,7 @@ const build = (deps: {
   news?: SymbolNewsPort;
   watchlist?: WatchlistRepository;
   assets?: MarketAssetRepository;
+  trades?: TradeHistoryPort;
 }) =>
   createMarketApplication({
     assets: deps.assets ?? ({} as MarketAssetRepository),
@@ -83,6 +86,7 @@ const build = (deps: {
     prices: {} as PriceHistoryRepository,
     indicators: {} as IndicatorRepository,
     exchange: deps.exchange ?? stubExchange(),
+    trades: deps.trades ?? { tradesSince: async () => ({ trades: [], truncated: false }) },
     fearGreed: deps.fearGreed ?? { current: async () => null },
     news: deps.news ?? { recent: async () => [] },
   });
@@ -134,8 +138,11 @@ describe("TrackSmartMoney", () => {
       whales: {
         saveMany: async (records) => {
           saved.push(...records);
+          return records.length;
         },
+        latestTradedAt: async () => new Map(),
         findRecent: async () => [],
+        findRecentForSymbols: async () => [],
       },
     });
 
@@ -147,6 +154,105 @@ describe("TrackSmartMoney", () => {
     assert.equal(saved.length, 2);
     // 매수 1 · 매도 1 → 체결 점수 0, 호가 균형 → 0
     assert.equal(result.smartMoneyIndex.score, 0);
+  });
+});
+
+describe("CollectWhaleTrades", () => {
+  const trade = (seq: number, krw: number, side: Trade["side"] = "buy"): Trade => ({
+    side,
+    price: krw,
+    volume: 1,
+    tradedAt: new Date(Date.UTC(2026, 8, 29, 1, 0, seq)),
+    sequentialId: seq,
+  });
+
+  it("상위 · 관심 종목을 합쳐 마지막 저장 체결 뒤부터 받고, 5천만원 이상을 전부 저장한다", async () => {
+    const asked: Array<[string, Date]> = [];
+    const saved: unknown[] = [];
+    const last = new Date(Date.now() - 10 * 60_000); // 10분 전 — 1시간 안이라 그대로 쓴다
+    const { useCases } = build({
+      assets: { topByTradeValue: async () => ["BTC", "ETH"] } as unknown as MarketAssetRepository,
+      watchlist: { distinctSymbols: async () => ["ETH", "XRP"] } as unknown as WatchlistRepository,
+      whales: {
+        saveMany: async (records) => {
+          saved.push(...records);
+          return records.length;
+        },
+        latestTradedAt: async () => new Map([["BTC", last]]),
+        findRecent: async () => [],
+        findRecentForSymbols: async () => [],
+      },
+      trades: {
+        tradesSince: async (symbol, since) => {
+          asked.push([symbol, since]);
+          return {
+            trades: symbol === "BTC" ? [trade(1, 60_000_000), trade(2, 10_000_000), trade(3, 90_000_000, "sell")] : [],
+            truncated: symbol === "XRP",
+          };
+        },
+      },
+    });
+
+    const result = await useCases.collectWhaleTrades.execute();
+
+    assert.deepEqual(asked.map(([s]) => s), ["BTC", "ETH", "XRP"]); // 겹치는 ETH 는 한 번
+    assert.equal(asked[0][1], last); // 저장된 마지막 체결 뒤부터
+    assert.equal(result.saved, 2); // 1천만원 체결 제외 — 상한 없이 전부
+    assert.deepEqual(result.truncated, ["XRP"]);
+    const first = saved[0] as { tradedAt: Date; sequentialId: number };
+    assert.equal(first.sequentialId, 1); // 발생 시각 · 체결 id 가 행에 남는다
+    assert.ok(first.tradedAt instanceof Date);
+  });
+
+  it("다음 회차는 지난 회차에 훑은 마지막 체결 뒤부터 — 대형 체결 시각이 아니다", async () => {
+    const asked: Date[] = [];
+    const { useCases } = build({
+      assets: { topByTradeValue: async () => ["BTC"] } as unknown as MarketAssetRepository,
+      watchlist: { distinctSymbols: async () => [] } as unknown as WatchlistRepository,
+      whales: {
+        saveMany: async (records) => records.length,
+        latestTradedAt: async () => new Map([["BTC", new Date("2020-01-01T00:00:00Z")]]),
+        findRecent: async () => [],
+        findRecentForSymbols: async () => [],
+      },
+      trades: {
+        tradesSince: async (_symbol, since) => {
+          asked.push(since);
+          return { trades: [trade(5, 1_000), trade(7, 2_000)], truncated: false }; // 작은 체결만
+        },
+      },
+    });
+
+    await useCases.collectWhaleTrades.execute();
+    await useCases.collectWhaleTrades.execute();
+
+    // 재기동 뒤 첫 회차 — 저장된 대형 체결이 너무 오래됐으면 1시간 전까지만
+    assert.ok(Date.now() - asked[0].getTime() <= 3600_000 + 5_000);
+    assert.equal(asked[1].toISOString(), trade(7, 0).tradedAt.toISOString()); // 훑은 마지막 체결
+  });
+
+  it("한 종목 실패가 수집 전체를 멈추지 않는다", async () => {
+    const { useCases } = build({
+      assets: { topByTradeValue: async () => ["BTC", "ETH"] } as unknown as MarketAssetRepository,
+      watchlist: { distinctSymbols: async () => [] } as unknown as WatchlistRepository,
+      whales: {
+        saveMany: async (records) => records.length,
+        latestTradedAt: async () => new Map(),
+        findRecent: async () => [],
+        findRecentForSymbols: async () => [],
+      },
+      trades: {
+        tradesSince: async (symbol) => {
+          if (symbol === "BTC") throw new Error("429");
+          return { trades: [trade(9, 70_000_000)], truncated: false };
+        },
+      },
+    });
+
+    const result = await useCases.collectWhaleTrades.execute();
+
+    assert.deepEqual(result.failed, ["BTC"]);
+    assert.equal(result.saved, 1);
   });
 });
 

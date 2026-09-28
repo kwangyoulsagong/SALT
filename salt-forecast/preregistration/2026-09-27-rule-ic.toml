@@ -1,0 +1,104 @@
+# 사전등록 — 코치 규칙 점수 항목별 IC (F010 슬라이스 1 · FC-REQ-008)
+#
+# 이 파일은 **결과를 보기 전에** 커밋한다. 커밋 시각 · 해시가 등록 증거다.
+# 등록 뒤 이 파일의 판정 규칙을 바꾸려면 새 키(`rule-ic@2`)로 새 파일을 만든다 — 덮어쓰지 않는다.
+# `jobs/preregister` 가 이 파일을 `forecast.preregistration` 에 한 번 쓰고, 같은 키가 이미 있으면 내용이
+# 다를 때 실패한다(불변).
+
+key = "rule-ic@1"
+registered = 2026-09-27
+rule_version = "mode-decision@1"   # salt-server coach/domain/policy/modeDecision.ts (2026-09-27 main)
+
+[question]
+text = """
+지금 코치 규칙 점수(makeModeDecision)의 항목이 각각 **규칙이 뜻하는 방향으로** 이후 수익률의
+종목 간 순위를 맞히는가. 맞히지 못하는 항목은 가중 0 으로, 반대로 맞히는 항목은 부호를 뒤집는다.
+"""
+
+[protocol]
+universe = "업비트 원화 마켓 일봉(forecast.price_bar upbit 1d). as_of 마다 그 날 봉이 있고 상장 60일이 지난 종목"
+as_of = "UTC 자정(일봉 마감) 매일. 피처는 available_at <= as_of 만"
+period = "2018-01-01 ~ 실행일 - 지평. 규칙은 손으로 정했고 이 데이터로 적합하지 않았다 — 전 기간이 표본 밖이다"
+label_primary = "고정 지평 로그수익률 ln(C[t+h]/C[t])"
+label_secondary = "삼중 장벽 — 상단 +2σ_h · 하단 -1σ_h · 수직 h일. σ_h = EWMA(λ=0.94) 일 σ × √h. 같은 날 둘 다 닿으면 하단"
+ic = "as_of 마다 종목 간 스피어만 순위상관(표본 < 20 종목이거나 한쪽이 상수면 그 날 제외) → 날짜 평균"
+ic_timeseries = "시장 공통 값(공포탐욕)은 종목 간 순위가 없다 — 날짜 간 스피어만(값 vs 동일가중 시장 지평 수익률)"
+ci = "이동 블록 부트스트랩(날짜 단위) 95% — 블록 길이 max(7, 2h) 일, 반복 2000, seed 20260927"
+min_dates = 250
+contribution = "항목의 **점수 기여**(규칙이 준 가점 · 감점, 발동 안 하면 0)를 신호로 쓴다. 양의 IC = 규칙 방향이 맞다"
+
+[decision]
+# 1차 검정만 판정에 쓴다. 나머지는 탐색이다(다중 비교 보정은 슬라이스 4 BY-FDR).
+keep = "CI 하한 > 0"
+reverse = "CI 상한 < 0 — 규칙 방향이 반대다"
+zero_weight = "CI 가 0 을 포함 — 가중 0"
+insufficient = "유효 날짜 < min_dates — 판정 보류"
+
+# 모드별 지평: 단타 1일(24시간 관찰) · 장기 30일(30일 관찰). 코치 관찰 기간과 같다.
+[[primary]]
+item = "change24h"
+mode = "scalp"
+horizon_days = 1
+[[primary]]
+item = "change24h"
+mode = "long_term"
+horizon_days = 30
+[[primary]]
+item = "sentiment"
+mode = "scalp"
+horizon_days = 1
+[[primary]]
+item = "sentiment"
+mode = "long_term"
+horizon_days = 30
+[[primary]]
+item = "rsi_d1"
+mode = "long_term"
+horizon_days = 30
+[[primary]]
+item = "whale_flow"
+mode = "scalp"
+horizon_days = 1
+[[primary]]
+item = "whale_flow"
+mode = "long_term"
+horizon_days = 30
+[[primary]]
+item = "total_score"
+mode = "scalp"
+horizon_days = 1
+[[primary]]
+item = "total_score"
+mode = "long_term"
+horizon_days = 30
+[[primary]]
+item = "fear_greed"
+mode = "market"
+horizon_days = 30
+expected_sign = -1   # 역발상 가설: 공포(낮음) 뒤에 오른다
+
+[exploratory]
+horizons_days = [1, 7, 30]
+label_kinds = ["fixed", "barrier"]
+# 규칙에 없는 도전자 — Open Question 2("항목이 전부 0 을 포함하면 1차 신호를 무엇으로")에 답하려고 같이 잰다
+challengers = [
+  "mom_28d",           # 28일 수익률(마지막 1일 제외)
+  "funding_7d",        # 바이낸스 무기한 펀딩비 7일 평균 — 기대 부호 음(극단 쏠림 역방향)
+  "taker_buy_ratio_7d",# 바이낸스 현물 테이커 매수 비율 7일
+  "whale_net_7d",      # 대형 체결 순매수 비율 7일
+]
+regime_split = "BTC 종가 vs 200일 이동평균(위 · 아래) — 국면별 IC 를 따로 적는다(판정은 전체 기준)"
+
+[whale_proxy]
+# 라이브 규칙은 업비트 최근 체결 200개 중 5천만원 이상 체결 20건의 매수 · 매도 합을 본다.
+# 과거 이력이 없어서 바이낸스 현물 aggTrades 덤프(data.binance.vision)로 대신 잰다.
+source = "binance spot aggTrades 일 덤프 — 테이커 방향(is_buyer_maker=false 가 매수)"
+threshold_usd = 35000   # 5천만원 ÷ 1,430원/달러 ≈ 3.5만 달러
+rule = "매수 합 > 매도 합 × 1.2 → +8, 매도 합 > 매수 합 × 1.2 → -8 (규칙과 같은 문턱). 창 = 직전 1일"
+universe = "업비트 원화 · 바이낸스 USDT 둘 다 있는 종목 중 업비트 거래대금 상위 30"
+limitation = "업비트 체결이 아니다 — 같은 코인의 다른 거래소 흐름이다. 라이브 원장(서버 judgment_ledger)이 8주 뒤 업비트 기준으로 다시 잰다"
+
+[live]
+# 과거 이력으로 못 재는 것 — 서버 judgment_ledger(매일 발행 · 불변)가 쌓인 뒤 같은 프로토콜로 잰다
+items = ["rsi_h1 (단타)", "whale_flow 업비트 원문", "sentiment 원문(서버 계산값)"]
+first_look = 2026-11-23   # 발행 시작 + 8주. 그 전에는 라이브 IC 를 계산하지 않는다(엿보기 금지)

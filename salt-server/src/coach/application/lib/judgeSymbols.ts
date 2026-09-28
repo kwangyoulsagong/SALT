@@ -1,6 +1,6 @@
 import {
   COACH_INDICATOR_TIMEFRAME,
-  makeModeDecision,
+  scoreModeDecision,
   type CoachIndicator,
   type CoachMode,
   type CoachQuote,
@@ -8,6 +8,7 @@ import {
   type CoachWhaleTransaction,
   type MarketProbe,
   type ModeDecision,
+  type ModeDecisionComponent,
 } from "../../domain";
 
 /** 대량 체결 표본 수. 원문의 `take: 20` 이다. */
@@ -34,6 +35,10 @@ export interface SymbolJudgment {
   whaleSell: number;
   /** 빠진 재료. **숨기지 않고 내려보낸다** — 판단의 전제를 드러내는 값이다. */
   missingData: string[];
+  /** 모드별 빠진 재료 — 지표 봉이 모드마다 달라 다르다. 원장이 쓴다. */
+  missingByMode: Record<CoachMode, string[]>;
+  /** 모드별 항목 기여 — 응답에 싣지 않는다. 원장(`judgment_ledger`)만 쓴다. */
+  components: Record<CoachMode, ModeDecisionComponent[]>;
 }
 
 /**
@@ -117,21 +122,26 @@ export const judgeSymbol = (
     return rsi ? Number(rsi) : undefined;
   };
 
+  const scalp = scoreModeDecision({
+    ...shared,
+    mode: "scalp",
+    rsi: rsiFor("scalp"),
+    missingData: missingByMode.scalp,
+  });
+  const longTerm = scoreModeDecision({
+    ...shared,
+    mode: "long_term",
+    rsi: rsiFor("long_term"),
+    missingData: missingByMode.long_term,
+  });
+
   return {
-    scalp: makeModeDecision({
-      ...shared,
-      mode: "scalp",
-      rsi: rsiFor("scalp"),
-      missingData: missingByMode.scalp,
-    }),
-    longTerm: makeModeDecision({
-      ...shared,
-      mode: "long_term",
-      rsi: rsiFor("long_term"),
-      missingData: missingByMode.long_term,
-    }),
+    scalp: scalp.decision,
+    longTerm: longTerm.decision,
     whaleBuy,
     whaleSell,
     missingData,
+    missingByMode,
+    components: { scalp: scalp.components, long_term: longTerm.components },
   };
 };

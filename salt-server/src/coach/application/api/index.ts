@@ -8,6 +8,7 @@ import type {
   MarketProbe,
   NewsProbe,
   PortfolioProbe,
+  JudgmentLedgerStore,
   SymbolJudgmentStore,
   ForecastReader,
   TrackedAssetProbe,
@@ -49,6 +50,7 @@ import {
   EvaluateSymbolJudgments,
   SnapshotSymbolJudgments,
 } from "../RecordSymbolJudgments";
+import { PublishJudgmentLedger } from "../PublishJudgmentLedger";
 import { RefreshGaugeTrackRecords } from "../RefreshGaugeTrackRecords";
 import { RequestCoachGeneration } from "../RequestCoachGeneration";
 
@@ -75,6 +77,7 @@ export interface CoachDependencies {
   notifier: CoachNotifier;
   explainer: CoachExplainer;
   judgments: SymbolJudgmentStore;
+  ledger: JudgmentLedgerStore;
   /** 저장 추천 스냅샷 원장(F010 슬라이스 0) */
   recommendations: RecommendationSnapshotStore;
   tracked: TrackedAssetProbe;
@@ -118,6 +121,7 @@ export interface CoachUseCases {
   /** 쏠림 신호(펀딩비 · 김치 프리미엄) · 과거 반응 — 소유자만(F008 슬라이스 23) */
   getSymbolPositioning: GetSymbolPositioning;
   snapshotSymbolJudgments: SnapshotSymbolJudgments;
+  publishJudgmentLedger: PublishJudgmentLedger;
   evaluateSymbolJudgments: EvaluateSymbolJudgments;
   /** 30일 지난 저장 추천 스냅샷 채점(F010 슬라이스 0) */
   evaluateCoachRecommendations: EvaluateCoachRecommendations;
@@ -228,6 +232,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.market,
       deps.judgments
     ),
+    publishJudgmentLedger: new PublishJudgmentLedger(deps.tracked, deps.market, deps.ledger),
     evaluateSymbolJudgments: new EvaluateSymbolJudgments(
       deps.market,
       deps.judgments

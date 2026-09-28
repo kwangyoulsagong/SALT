@@ -8,6 +8,7 @@ export * from "./forecast";
 export * from "./gauge";
 export * from "./horizon";
 export * from "./generationCooldown";
+export * from "./judgmentLedger";
 export * from "./judgmentScoreboard";
 export * from "./languageGuard";
 export * from "./marketRegime";

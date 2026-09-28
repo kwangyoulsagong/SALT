@@ -34,6 +34,7 @@ import {
   judgeOutcome,
   judgmentSignalType,
   MIN_JUDGMENT_SAMPLE,
+  MODE_DECISION_RULE_VERSION,
   type CoachMode,
   type ModeDecisionAction,
   type SampleOrigin,
@@ -118,6 +119,8 @@ const main = async () => {
           entryPrice: new Prisma.Decimal(ENTRY_PRICE),
           judgedAt,
           sampleOrigin: ORIGIN,
+          // 합성 행은 성적표가 버전과 무관하게 센다(저장소 주석) — 적는 값은 지금 규칙
+          ruleVersion: MODE_DECISION_RULE_VERSION,
           exitPrice: new Prisma.Decimal(ENTRY_PRICE * (1 + returnRate)),
           returnRate: new Prisma.Decimal(returnRate.toFixed(6)),
           outcome: judgeOutcome(mode, action, returnRate),

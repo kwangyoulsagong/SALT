@@ -143,6 +143,16 @@ export class PrismaMarketAssetRepository implements MarketAssetRepository {
       .filter((symbol) => typeof symbol === "string" && symbol.trim() !== "");
   }
 
+  async topByTradeValue(assetType: MarketAssetType, n: number): Promise<string[]> {
+    const rows = await prisma.marketAsset.findMany({
+      where: { isActive: true, assetType, tradeValue24h: { not: null } },
+      orderBy: { tradeValue24h: "desc" },
+      take: n,
+      select: { symbol: true },
+    });
+    return rows.map((row) => row.symbol);
+  }
+
   async symbolsWithStalePrice(symbols: string[], staleBefore: Date) {
     const rows = await prisma.marketAsset.findMany({
       where: {

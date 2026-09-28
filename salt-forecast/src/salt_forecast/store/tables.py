@@ -12,6 +12,7 @@ from sqlalchemy import (
     BigInteger,
     Boolean,
     Column,
+    Date,
     DateTime,
     Float,
     Integer,
@@ -254,5 +255,42 @@ signal_event = Table(
     Column("ret_1d", Float),
     Column("ret_5d", Float),
     Column("ret_20d", Float),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)
+
+# F010 슬라이스 1 — 20260929100000_judgment_ledger_rule_ic (FC-REQ-008)
+preregistration = Table(
+    "preregistration",
+    metadata,
+    Column("key", Text, primary_key=True),
+    Column("registered_at", DateTime(timezone=True), nullable=False),
+    Column("recorded_at", DateTime(timezone=True), nullable=False),
+    Column("git_sha", Text, nullable=False),
+    Column("content_sha256", Text, nullable=False),
+    Column("spec", JSONB, nullable=False),
+)
+
+rule_ic = Table(
+    "rule_ic",
+    metadata,
+    Column("prereg_key", Text, primary_key=True),
+    Column("run_as_of", DateTime(timezone=True), primary_key=True),
+    Column("source", Text, primary_key=True),
+    Column("item", Text, primary_key=True),
+    Column("mode", Text, primary_key=True),
+    Column("horizon_days", Integer, primary_key=True),
+    Column("label_kind", Text, primary_key=True),
+    Column("regime", Text, primary_key=True),
+    Column("ic_kind", Text, nullable=False),
+    Column("window_start", Date, nullable=False),
+    Column("window_end", Date, nullable=False),
+    Column("n_dates", Integer, nullable=False),
+    Column("mean_obs", Float),
+    Column("ic_mean", Float),
+    Column("ci_low", Float),
+    Column("ci_high", Float),
+    Column("t_naive", Float),
+    Column("verdict", Text, nullable=False),
+    Column("is_primary", Boolean, nullable=False),
     Column("computed_at", DateTime(timezone=True), nullable=False),
 )

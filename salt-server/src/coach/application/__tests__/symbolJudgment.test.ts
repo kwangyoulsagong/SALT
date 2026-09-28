@@ -282,10 +282,10 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
   it("근거가 있어도 표본이 20 미만이면 insufficient_sample 이다", async () => {
     const market = {
       ...fakeMarket({ BTC: 100 }),
-      // 공포 심리 → 장기 근거 문장이 생긴다
-      latestSentiments: async () =>
+      // 일봉 RSI 침체 → 장기 근거 문장이 생긴다(@2 는 장기 심리를 쓰지 않는다)
+      latestIndicators: async () =>
         new Map([
-          ["BTC", { sentimentScore: 30, sentimentLabel: "fear", priceChange24h: 0, calculatedAt: T0 }],
+          ["BTC", { rsi14: 30, ma20: null, ma50: null, volumeAvg20: null, timestamp: T0 }],
         ]),
     } as unknown as MarketProbe;
 
@@ -308,18 +308,19 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
         id: `${i}`,
         symbol: "ETH",
         mode: "long_term",
-        action: "review_accumulation",
-        signalType: "long_term.review_accumulation",
-        score: 80,
+        action: "wait",
+        signalType: "long_term.wait",
+        score: 58,
         reasons: ["x"],
         entryPrice: 100,
         judgedAt: hoursAfter(-24 * 30 * (i + 1)),
-        returnRate: i < 5 ? -0.08 : 0.04,
+        ruleVersion: "mode-decision@2",
+        returnRate: i < 5 ? -0.15 : 0.04,
         outcome: i < 5 ? "miss" : "hit",
       });
     }
 
-    // 장기 모아가기 후보가 나오는 재료: 공포 심리(+10) · RSI 침체(+8) · 대량 매수 우세(+8)
+    // @2 에서 장기 최대는 64(24h 하락 +6 · RSI 침체 +8) — 후보(70)에 닿지 않는다. RSI 침체 +8 → 관망 58
     const market = {
       ...fakeMarket({ BTC: 100 }),
       latestSentiments: async () =>
@@ -349,13 +350,13 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
     );
 
     const longTerm = view.modes.longTerm;
-    assert.equal(longTerm.signalType, "long_term.review_accumulation");
+    assert.equal(longTerm.signalType, "long_term.wait");
     assert.equal(longTerm.trackRecord.sample, 20);
     assert.equal(longTerm.trackRecord.winRate, 15 / 20);
     assert.equal(longTerm.renderable, true);
     assert.equal(longTerm.failureCases.length, 3);
     assert.equal(longTerm.failureCases[0].outcome, "miss");
-    assert.equal(longTerm.failureCases[0].event, "long_term.review_accumulation");
+    assert.equal(longTerm.failureCases[0].event, "long_term.wait");
   });
 });
 

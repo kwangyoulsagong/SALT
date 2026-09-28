@@ -14,7 +14,7 @@ from datetime import date, timedelta
 import httpx
 
 from salt_forecast.config import settings
-from salt_forecast.ingest import binance, defillama, ecb, fred
+from salt_forecast.ingest import binance, defillama, ecb, fear_greed, fred
 from salt_forecast.ingest.http import Pacer, SourceError
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, symbols_arg
 from salt_forecast.store.db import engine
@@ -23,13 +23,14 @@ from salt_forecast.store.runs import mark_source
 from salt_forecast.store.series import SeriesPoint, latest_observed, upsert_points
 
 JOB = "ingest_market"
-SOURCES = ("binance", "defillama", "ecb", "fred")
+SOURCES = ("binance", "defillama", "ecb", "fred", "fear_greed")
 HISTORY_START = date(2022, 9, 1)
 
 
 def main(argv: list[str] | None = None) -> int:
     p = base_parser("시장 · 거시 수집")
     p.add_argument("--only", choices=SOURCES, action="append", help="이 소스만(반복 가능)")
+    p.add_argument("--since", default=None, help="바이낸스 현물 · 펀딩비를 이 날부터 다시 받는다(백필). 없으면 증분")
     args = p.parse_args(argv)
     log = logger(JOB)
 
@@ -47,6 +48,10 @@ def main(argv: list[str] | None = None) -> int:
         def save_bars(bars: Iterable[Bar]) -> int:
             bs = list(bars)
             return len(bs) if args.dry_run else upsert_bars(eng, bs)
+
+        def save_spot(days: Iterable[binance.SpotDay]) -> int:
+            ds = list(days)
+            return save_bars(d.bar for d in ds) + save_points(d.taker_buy_ratio for d in ds if d.taker_buy_ratio)
 
         def guarded(source: str, label: str, fn: Callable[[], int]) -> int:
             try:
@@ -70,15 +75,20 @@ def main(argv: list[str] | None = None) -> int:
                 funding_last = latest_observed(eng, binance.SOURCE)
                 spot_last = latest_open(eng, binance.SOURCE, "1d")
                 start = now.replace(year=HISTORY_START.year, month=HISTORY_START.month, day=HISTORY_START.day)
+                spot_start = parse_as_of(args.since) if args.since else start
                 for b in bases:
                     total += guarded("binance", f"oi:{b}", lambda b=b: save_points(api.open_interest(b, now)))
-                    f_since = funding_last.get(f"funding:{b}", start)
+                    f_since = spot_start if args.since else funding_last.get(f"funding:{b}", start)
                     total += guarded(
                         "binance", f"funding:{b}", lambda b=b, s=f_since: save_points(api.funding(b, s, now))
                     )
-                    s_since = spot_last.get(f"{b}USDT", start - timedelta(days=1)) + timedelta(days=1)
+                    s_since = (
+                        spot_start
+                        if args.since
+                        else spot_last.get(f"{b}USDT", start - timedelta(days=1)) + timedelta(days=1)
+                    )
                     total += guarded(
-                        "binance", f"spot:{b}", lambda b=b, s=s_since: save_bars(api.spot_daily(b, s, now))
+                        "binance", f"spot:{b}", lambda b=b, s=s_since: save_spot(api.spot_daily(b, s, now))
                     )
                 log.info("binance", extra={"fields": {"job": JOB, "bases": len(bases)}})
             if "defillama" in only:
@@ -88,6 +98,12 @@ def main(argv: list[str] | None = None) -> int:
                     lambda: save_points(
                         defillama.stablecoin_total(client, cfg.defillama_stablecoins_url, Pacer(2.0), now)
                     ),
+                )
+            if "fear_greed" in only:
+                total += guarded(
+                    "fear_greed",
+                    fear_greed.SERIES,
+                    lambda: save_points(fear_greed.history(client, cfg.fear_greed_url, Pacer(1.0), now)),
                 )
             if "ecb" in only:
                 last = latest_observed(eng, ecb.SOURCE).get(ecb.SERIES)

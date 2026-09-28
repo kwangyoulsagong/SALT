@@ -30,3 +30,12 @@
 | Python 계약 | `tests/store/test_schema_contract.py` 통과(새 두 표 선언 ↔ DB) |
 
 미검증: 1년 누적 뒤 `v_signal_reaction` 실측 — 보존 정책(`db-contract.md` §5)과 같이 본다(2027-09).
+
+## F010 슬라이스 1 (2026-09-29) — FR-19
+
+| 확인 | 결과 |
+|---|---|
+| 마이그레이션 | `20260929100000` 로컬 적용. push 전 `rule_ic.mode` CHECK 에 `any` 를 더하도록 원 파일 수정 → 로컬 제약 · `_prisma_migrations.checksum` 수동 정렬 · `migrate status` up to date |
+| 사전등록 | 1행 · 원문 sha256 = 커밋 `836018b` 파일 · UPDATE → `forecast.preregistration 는 불변이다`. 처음엔 트리거 함수가 `OLD.id` 를 찾아 엉뚱한 오류로 막혔다(이 표는 `key`) — 표 이름으로 알리게 고침 |
+| `rule_ic` | 297행 · 재실행 멱등 · FK(prereg_key) |
+| Python 계약 | `tests/store/test_schema_contract.py` 통과(새 두 표 선언 ↔ DB) |

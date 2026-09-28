@@ -39,6 +39,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | FR-16 | `forecast.market_signal(symbol, as_of)` · `forecast.signal_event(kind, symbol, event_at)` — 쏠림 신호 지금 상태 · 사건 × 반응. 반응 통계는 기존 `event_reaction_stats` 에 kind 4개로(그 표엔 kind CHECK 가 없다) (2026-09-27, `20260927130000`, FC-REQ-007) |
 | FR-17 | `forecast.v_market_signal`(종목별 최신 한 행) · `forecast.v_signal_reaction`(종목 × 종류 × 기간 최신 통계) — 서버가 읽는 계약 · 실측 0.028 · 0.034ms |
 | FR-18 | `forecast.v_forecast_card` 의 `recent_misses` 가 **게이트가 판정한 kind 만** 본다 — `score.kind = gate.score_kind` 로 거르고 `prediction` 과 kind 까지 포함해 붙인다. 백테스트 · 라이브 빗나감이 섞이거나 같은 as_of 가 두 번 붙던 것을 막는다. 컬럼 목록 · 순서 무변화 (2026-09-28, `20260928100000_forecast_card_misses_kind`, F010 슬라이스 0) |
+| FR-19 | `forecast.preregistration`(key PK · 등록일 · 기록 시각 · git sha · 원문 sha256 · 내용 jsonb, UPDATE 트리거 금지) · `forecast.rule_ic`(사전등록 키 FK · 실행 as_of · source backtest/live · 항목 · 모드 scalp/long_term/market/any · 지평 · 라벨 fixed/barrier · 국면 · IC 종류 · 창 · 날짜 수 · 평균 종목 · IC · CI · t · 판정 · 1차 여부, 실행마다 쌓음). 쓰기 `salt-forecast` 만. **서버는 아직 읽지 않는다**(뷰 없음) — `FC-REQ-008` (2026-09-29, `20260929100000_judgment_ledger_rule_ic`, F010 슬라이스 1) |
 | FR-13 | `forecast.v_daily_close` — `price_bar` 업비트 1d 만(symbol · open_time · available_at · close). 차트 과거 선 (2026-09-24, SQL 전용 마이그레이션 `20260924100000`) |
 
 ## 범위 밖
@@ -53,3 +54,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 날짜 | 내용 |
 |---|---|
 | 2026-09-28 | FR-18 추가 — `20260928100000_forecast_card_misses_kind`. 롤백 = `20260923150000_forecast_skill_ci` 의 뷰 정의로 `CREATE OR REPLACE`. 로컬 DB 에 아직 적용하지 않았다 |
+| 2026-09-29 | FR-19 추가 — `20260929100000_judgment_ledger_rule_ic`(추가만). 로컬 적용 · 사전등록 1행(해시 커밋 파일과 일치) · `rule_ic` 297행(항목 × 모드 × 지평 × 라벨 × 국면 3). push 전 `mode` CHECK 에 `any` 를 더하도록 원 파일을 고쳤다 |
