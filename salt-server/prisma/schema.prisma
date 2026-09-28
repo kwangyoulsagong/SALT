@@ -812,6 +812,8 @@ model SymbolJudgmentSnapshot {
   // 표본 출처 — live | backtest | synthetic (DB-REQ-017 FR-60). 실측 성적은 live 만 센다.
   // 기본값이 없다 — 쓰는 쪽이 출처를 말해야 한다. CHECK 제약은 마이그레이션 SQL 에 있다
   sampleOrigin String   @map("sample_origin")
+  // 판단을 낸 규칙(`MODE_DECISION_RULE_VERSION`). 성적표는 현재 버전만 센다 — 기본값 없음(DB-REQ-017 FR-64)
+  ruleVersion  String   @map("rule_version")
 
   // 사후 판정. 관찰 기간이 지나고 종가가 있으면 채운다
   exitPrice   Decimal?  @map("exit_price")
@@ -823,7 +825,7 @@ model SymbolJudgmentSnapshot {
 
   // 유니크가 "종목 · 모드별 마지막 판단" 조회도 덮는다 — 같은 접두사 인덱스를 따로 두지 않는다
   @@unique([symbol, mode, judgedAt])
-  @@index([signalType, outcome, judgedAt(sort: Desc)])
+  @@index([ruleVersion, signalType, outcome, judgedAt(sort: Desc)])
   @@index([evaluatedAt, judgedAt])
   @@map("symbol_judgment_snapshots")
 }
