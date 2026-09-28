@@ -276,7 +276,10 @@ describe("ExplainCoachDecision", () => {
       assert.equal(facts.tradeValue24h, 5e11);
       assert.equal(facts.evidence[0]?.label, "판단");
       assert.ok(facts.evidence.some((e) => e.label === "RSI" && e.value === "30"));
-      assert.ok(facts.evidence.some((e) => e.label === "시장 심리" && e.value === "30 (fear)"));
+      // mode-decision@2 — 장기는 심리 · 대형 체결을 점수에 쓰지 않는다. 해설 사실에도 없어야 근거처럼 말하지 않는다
+      assert.equal(input.mode, "long_term");
+      assert.ok(!facts.evidence.some((e) => e.label === "시장 심리"));
+      assert.ok(!facts.evidence.some((e) => e.label.startsWith("고래")));
       assert.deepEqual(facts.news, [{ title: "현물 ETF 순유입", source: "코인뉴스" }]);
       assert.ok(result.renderable);
       if (!result.renderable) return;

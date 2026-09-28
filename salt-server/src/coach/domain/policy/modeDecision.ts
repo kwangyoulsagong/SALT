@@ -59,6 +59,15 @@ export type ModeDecisionItem =
   | "missing_data";
 
 /**
+ * 지금 규칙(`MODE_DECISION_RULE_VERSION`)이 **점수에 쓰는** 항목 — 모드별. 해설 사실 · 화면 근거가 이 목록 밖의 재료를
+ * 근거처럼 말하지 않게 한다(`assembleExplanationFacts`). 규칙 버전을 올리면 이 표도 같이 바꾼다.
+ */
+export const SCORED_ITEMS: Record<CoachMode, readonly ModeDecisionItem[]> = {
+  scalp: ["change24h", "sentiment", "rsi", "missing_data"],
+  long_term: ["change24h", "rsi", "missing_data"],
+};
+
+/**
  * 항목 하나의 기여 — 발동하지 않았으면 `points` 0. `value` 는 그 항목이 본 재료 값이고 없으면 `null`
  * (기여 0 과 재료 없음을 가른다 — 슬라이스 0 회고: "지표 없이 낸 판단"을 나중에 걸러야 한다).
  */

@@ -8,6 +8,7 @@ import type {
   CoachSymbolArticle,
 } from "../model";
 import type { CoachExplanationInput } from "../ports";
+import { SCORED_ITEMS } from "./modeDecision";
 
 /**
  * 해설 사실 — **서버가 조립한다** (F009 슬라이스 0 C01 · `SRV-REQ-025` FR-58 · `FEATURE-008` FR-40).
@@ -57,6 +58,9 @@ export interface ExplanationMaterials {
 /**
  * 게이트가 본 재료로 해설 입력을 만든다. **현재가가 없으면 `null`** — 가격 없는 해설은 만들지 않는다.
  * 새 숫자를 만들지 않는다. 재료의 값을 라벨과 함께 옮겨 적는다.
+ *
+ * **규칙이 점수에 쓰지 않는 재료는 싣지 않는다**(`SCORED_ITEMS`, F010 슬라이스 1). `mode-decision@2` 는 대형 체결을 두 모드에서,
+ * 심리를 장기에서 뺐다 — 사실 목록에 남기면 해설이 채점으로 근거 없다고 판정된 값을 근거처럼 말한다.
  */
 export const assembleExplanationFacts = (m: ExplanationMaterials): CoachExplanationInput | null => {
   const price = m.quote?.currentPrice;
@@ -70,13 +74,14 @@ export const assembleExplanationFacts = (m: ExplanationMaterials): CoachExplanat
   ];
   const rsi = m.indicator?.rsi14;
   if (rsi !== null && rsi !== undefined) evidence.push({ label: label.rsi, value: String(Number(rsi)) });
-  if (m.sentiment) {
+  const scored = SCORED_ITEMS[m.mode];
+  if (m.sentiment && scored.includes("sentiment")) {
     evidence.push({
       label: label.sentiment,
       value: clip(`${m.sentiment.sentimentScore} (${m.sentiment.sentimentLabel})`),
     });
   }
-  if (m.whale.count > 0) {
+  if (m.whale.count > 0 && scored.includes("whale_flow")) {
     evidence.push({ label: label.whaleBuy, value: String(m.whale.buyAmountKRW) });
     evidence.push({ label: label.whaleSell, value: String(m.whale.sellAmountKRW) });
   }

@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  assembleExplanationFacts,
   makeModeDecision,
   scoreModeDecision,
+  type ExplanationMaterials,
   type JudgmentLedgerDraft,
   type JudgmentLedgerStore,
   type MarketProbe,
@@ -129,5 +131,27 @@ describe("scoreModeDecision — 기여", () => {
     const { components } = scoreModeDecision({ ...base, rsi: undefined, sentimentScore: undefined });
     assert.equal(components.find((c) => c.item === "rsi")!.value, null);
     assert.equal(components.find((c) => c.item === "whale_flow")!.value, null);
+  });
+});
+
+describe("assembleExplanationFacts — 점수에 쓰는 재료만 (mode-decision@2)", () => {
+  const materials = (mode: "scalp" | "long_term") => ({
+    symbol: "BTC",
+    mode,
+    quote: { symbol: "BTC", assetType: "crypto", koreanName: "비트코인", currentPrice: 100, change24h: 1, tradeValue24h: 1, priceUpdatedAt: T0 },
+    judgment: { label: "관망", headline: "h", reasons: [], risks: [] },
+    indicator: { rsi14: 30, ma20: null, ma50: null, volumeAvg20: null, timestamp: T0 },
+    sentiment: { sentimentScore: 30, sentimentLabel: "fear", priceChange24h: 0, calculatedAt: T0 },
+    whale: { buyAmountKRW: 900, sellAmountKRW: 100, count: 3 },
+    news: [],
+  }) as unknown as ExplanationMaterials;
+
+  it("단타는 심리를 싣고 대형 체결은 싣지 않는다 · 장기는 둘 다 싣지 않는다", () => {
+    const scalp = assembleExplanationFacts(materials("scalp"))!.evidence.map((e) => e.label);
+    const longTerm = assembleExplanationFacts(materials("long_term"))!.evidence.map((e) => e.label);
+    assert.ok(scalp.includes("시장 심리") && scalp.includes("RSI"));
+    assert.ok(!scalp.some((l) => l.startsWith("고래")));
+    assert.ok(longTerm.includes("RSI"));
+    assert.ok(!longTerm.includes("시장 심리") && !longTerm.some((l) => l.startsWith("고래")));
   });
 });
