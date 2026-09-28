@@ -315,6 +315,8 @@ export interface JudgmentSnapshotDraft {
   reasons: string[];
   entryPrice: number;
   judgedAt: Date;
+  /** 판단을 낸 규칙(`MODE_DECISION_RULE_VERSION`). 성적표는 현재 버전만 센다. */
+  ruleVersion: string;
 }
 
 export interface PendingJudgment {

@@ -76,7 +76,7 @@ describe("PublishJudgmentLedger", () => {
     assert.deepEqual(result.skippedNoPrice, ["NOPRICE"]);
     const scalp = ledger.rows.find((r) => r.mode === "scalp")!;
     assert.equal(scalp.asOfDate.toISOString(), "2026-09-29T00:00:00.000Z");
-    assert.equal(scalp.ruleVersion, "mode-decision@1");
+    assert.equal(scalp.ruleVersion, "mode-decision@2");
     assert.equal(scalp.regime, "panic"); // BTC 재료로 정한다(BTC 는 추적 목록에 없어도)
     // 기여 합 = 점수 − 50
     assert.equal(scalp.components.reduce((a, c) => a + c.points, 0), scalp.score - 50);
@@ -115,12 +115,13 @@ describe("scoreModeDecision — 기여", () => {
   it("판단은 makeModeDecision 과 같고, 기여 합이 점수 − 50 이다", () => {
     const { decision, components } = scoreModeDecision(base);
     assert.deepEqual(decision, makeModeDecision(base));
-    // 장기: 24h +5% → −6, 심리 30 → +10, RSI 75 → −12
+    // 장기(@2): 24h +5% → −6, 심리 30 → 0(가중 0), RSI 75 → −12
     assert.deepEqual(
       components.map((c) => [c.item, c.points]),
-      [["change24h", -6], ["sentiment", 10], ["rsi", -12], ["whale_flow", 0], ["missing_data", 0]]
+      [["change24h", -6], ["sentiment", 0], ["rsi", -12], ["whale_flow", 0], ["missing_data", 0]]
     );
-    assert.equal(decision.score, 50 - 6 + 10 - 12);
+    assert.equal(components.find((c) => c.item === "sentiment")!.value, 30); // 값은 남는다 — 라이브 IC 재료
+    assert.equal(decision.score, 50 - 6 - 12);
     assert.equal("components" in decision, false); // 응답 모양에 새지 않는다
   });
 

@@ -12,6 +12,7 @@ import {
   detectOverTrading,
   detectPanicSell,
   generateCandidates,
+  languageViolations,
   makeModeDecision,
   type CoachContext,
   type CoachHolding,
@@ -165,7 +166,7 @@ describe("generateCandidates — 특성화", () => {
   });
 });
 
-describe("makeModeDecision — 특성화", () => {
+describe("makeModeDecision — 특성화 (mode-decision@2)", () => {
   const input = {
     symbol: "BTC",
     change24h: 5,
@@ -175,19 +176,21 @@ describe("makeModeDecision — 특성화", () => {
     missingData: [] as string[],
   };
 
-  it("같은 입력에 단타와 장기가 다른 점수를 준다", () => {
+  it("같은 입력에 단타와 장기가 다른 점수를 준다 — 단타 급등은 @2 에서 감점이다", () => {
     const scalp = makeModeDecision({ ...input, mode: "scalp" });
     const longTerm = makeModeDecision({ ...input, mode: "long_term" });
 
-    assert.equal(scalp.score, 62); // 50 + 12
-    assert.equal(scalp.action, "wait");
+    assert.equal(scalp.score, 38); // 50 − 12 (@1 은 +12 — IC −0.038 로 반대 판정)
+    assert.equal(scalp.action, "avoid");
+    assert.deepEqual(scalp.risks, ["하루 3% 넘게 오른 뒤에는 다음 날 되돌림이 더 잦았습니다."]);
     assert.equal("confidence" in scalp, false); // D3 — 신뢰도를 싣지 않는다
     assert.equal(scalp.timeframe, "24h");
 
-    assert.equal(longTerm.score, 44); // 50 - 6
+    assert.equal(longTerm.score, 44); // 50 − 6 (유지 판정)
     assert.equal(longTerm.action, "avoid");
     assert.equal(longTerm.label, "지금은 피하기");
     assert.equal(longTerm.riskLevel, "high");
+    assert.deepEqual(longTerm.reasons, []); // @1 은 감점 항목을 근거로 적었다 — 점수와 문장이 어긋났다
   });
 
   it("재료가 3종 이상 빠지면 -12 하고 그 사실을 risks 에 적는다", () => {
@@ -197,21 +200,47 @@ describe("makeModeDecision — 특성화", () => {
       missingData: ["price", "sentiment", "whale_flow"],
     });
 
-    assert.equal(decision.score, 50); // 62 - 12
+    assert.equal(decision.score, 26); // 38 − 12
     assert.equal(decision.risks.includes("판단 데이터가 부족합니다."), true);
   });
 
-  it("점수 70 이상이면 모드별 검토 후보가 된다", () => {
-    const decision = makeModeDecision({
-      ...input,
-      mode: "scalp",
-      whaleBuy: 100,
-      whaleSell: 10,
-    });
+  it("단타 하락 · 공포는 가점이고, 대형 체결 · 장기 심리는 점수 · 문장에서 빠진다", () => {
+    const base = { ...input, change24h: -5, sentimentScore: 30, rsi: 30, whaleBuy: 100, whaleSell: 10 };
+    const scalp = makeModeDecision({ ...base, mode: "scalp" });
+    const longTerm = makeModeDecision({ ...base, mode: "long_term" });
 
-    assert.equal(decision.score, 70); // 50 + 12 + 8
-    assert.equal(decision.action, "review_short_opportunity");
-    assert.equal(decision.label, "단타 기회 후보");
+    assert.equal(scalp.score, 68); // 50 + 10 + 4 + 4 — 대형 체결 0
+    assert.equal(longTerm.score, 64); // 50 + 6 + 8 — 심리 · 대형 체결 0
+    // 근거 없는 항목만으로는 후보 문턱(70)에 닿지 않는다 — 문턱은 @1 그대로(표본 안 확인: 낮추면 후보 칸 초과수익 0)
+    assert.equal(scalp.action, "wait");
+    assert.equal(longTerm.action, "wait");
+    for (const d of [scalp, longTerm]) {
+      assert.equal([...d.reasons, ...d.risks].some((t) => t.includes("대형")), false);
+    }
+    assert.equal(longTerm.reasons.some((t) => t.includes("공포")), false);
+  });
+
+  it("낼 수 있는 모든 근거 · 위험 문장이 문구 가드를 통과한다(확신 · 목표가 0)", () => {
+    const sentences = new Set<string>();
+    for (const mode of ["scalp", "long_term"] as const) {
+      for (const change24h of [-5, 0, 5]) {
+        for (const sentimentScore of [20, 50, 80, undefined]) {
+          for (const rsi of [20, 50, 80, undefined]) {
+            for (const [whaleBuy, whaleSell] of [[100, 10], [10, 100], [0, 0]]) {
+              const d = makeModeDecision({
+                ...input, mode, change24h, sentimentScore, rsi, whaleBuy, whaleSell,
+                missingData: sentimentScore === undefined ? ["sentiment", "whale_flow", "price"] : [],
+              });
+              [...d.reasons, ...d.risks, d.headline].forEach((t) => sentences.add(t));
+            }
+          }
+        }
+      }
+    }
+    assert.ok(sentences.size >= 10);
+    for (const sentence of sentences) {
+      assert.deepEqual(languageViolations(sentence), [], sentence);
+    }
   });
 
   it("헤드라인이 손절·분할을 함께 말한다 — 확신 표현이 없다", () => {

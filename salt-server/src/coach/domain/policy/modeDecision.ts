@@ -39,10 +39,16 @@ export interface ModeDecisionInput {
 }
 
 /**
- * 규칙 버전 — 원장(`judgment_ledger`) 행마다 남는다. **가중 · 문턱 · 항목을 바꾸면 올린다.**
- * 예측 서비스의 재현(`salt-forecast/domain/rule_items.py`)과 사전등록(`rule-ic@1`)이 이 버전을 잰다.
+ * 규칙 버전 — 스냅샷 · 원장 행마다 남고, 성적표는 **현재 버전만** 센다. **가중 · 문턱 · 항목을 바꾸면 올린다.**
+ *
+ * | 버전 | 무엇 |
+ * |---|---|
+ * | `@1` | 원문 이관 그대로 — 손으로 정한 가중 |
+ * | `@2` | 사전등록 `rule-ic@1` 판정 반영(2026-09-29, `salt-forecast/reports/rule-ic-rule-ic-1-2026-09-27.md`): 단타 24시간 변화 · 심리 **부호 반전**, 장기 심리 · 대형 체결(두 모드) **가중 0**. 장기 24시간 · 일봉 RSI 유지. 단타 1시간 RSI 는 과거로 못 재 그대로 |
+ *
+ * `@2` 의 성적은 그 백테스트로 주장하지 않는다 — 같은 데이터로 고른 규칙이다. 원장이 표본 밖으로 잰다.
  */
-export const MODE_DECISION_RULE_VERSION = "mode-decision@1";
+export const MODE_DECISION_RULE_VERSION = "mode-decision@2";
 
 /** 점수 항목 — IC 를 재는 단위(사전등록 rule-ic@1 의 item 이름과 같다). */
 export type ModeDecisionItem =
@@ -92,23 +98,33 @@ export const scoreModeDecision = (input: ModeDecisionInput): ScoredModeDecision 
   const risks: string[] = [];
   const scalp = input.mode === "scalp";
 
+  // 24시간 변화 — 단타는 @1 에서 부호가 거꾸로였다(IC −0.038, 급등 다음 날 되돌림이 더 잦다). 장기는 그대로(+0.017)
   let change = 0;
   if (input.change24h > 3) {
-    change += scalp ? 12 : -6;
-    reasons.push("24시간 가격 흐름이 강합니다.");
+    change += scalp ? -12 : -6;
+    risks.push(
+      scalp
+        ? "하루 3% 넘게 오른 뒤에는 다음 날 되돌림이 더 잦았습니다."
+        : "단기 급등 구간이라 장기 분할 기준으로는 서두를 이유가 적습니다."
+    );
   }
   if (input.change24h < -3) {
-    change += scalp ? -10 : 6;
-    risks.push("단기 변동성이 커졌습니다.");
+    change += scalp ? 10 : 6;
+    reasons.push(
+      scalp
+        ? "하루 3% 넘게 내린 뒤에는 다음 날 반등이 더 잦았습니다."
+        : "단기 하락 구간이라 장기 분할 관찰 가치가 있습니다."
+    );
   }
+  // 심리 — 단타는 부호 반전(IC −0.009). 장기는 0 과 구별되지 않아 **점수에서 뺀다**(근거 문장도 싣지 않는다)
   let sentiment = 0;
-  if (input.sentimentScore !== undefined && input.sentimentScore >= 70) {
-    sentiment += scalp ? 5 : -8;
+  if (scalp && input.sentimentScore !== undefined && input.sentimentScore >= 70) {
+    sentiment -= 5;
     risks.push("시장 심리가 과열권입니다.");
   }
-  if (input.sentimentScore !== undefined && input.sentimentScore <= 35) {
-    sentiment += scalp ? -4 : 10;
-    reasons.push("공포 구간이라 장기 분할 관찰 가치가 있습니다.");
+  if (scalp && input.sentimentScore !== undefined && input.sentimentScore <= 35) {
+    sentiment += 4;
+    reasons.push("공포 구간 뒤에는 단기 되돌림이 더 잦았습니다.");
   }
   let rsi = 0;
   if (input.rsi !== undefined && input.rsi >= 70) {
@@ -119,15 +135,9 @@ export const scoreModeDecision = (input: ModeDecisionInput): ScoredModeDecision 
     rsi += scalp ? 4 : 8;
     reasons.push("단기 침체 신호가 일부 있습니다.");
   }
-  let whale = 0;
-  if (input.whaleBuy > input.whaleSell * 1.2) {
-    whale += 8;
-    reasons.push("최근 대형 매수 흐름이 매도보다 우세합니다.");
-  }
-  if (input.whaleSell > input.whaleBuy * 1.2) {
-    whale -= 8;
-    risks.push("최근 대형 매도 흐름이 우세합니다.");
-  }
+  // 대형 체결 — 두 모드 다 0 과 구별되지 않았다(1년 · 30종목, 점추정은 음수). **점수에서 뺀다.**
+  // 값은 기여(`value`)로 계속 남겨 라이브 원장이 업비트 원문으로 다시 잰다(사전등록 rule-ic@1 [live])
+  const whale = 0;
   let missing = 0;
   if (input.missingData.length >= 3) {
     missing -= 12;

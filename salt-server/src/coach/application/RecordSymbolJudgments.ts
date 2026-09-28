@@ -6,6 +6,7 @@ import {
   judgmentSignalType,
   JUDGMENT_HORIZON_MS,
   JUDGMENT_PRICE_TIMEFRAME,
+  MODE_DECISION_RULE_VERSION,
   type Clock,
   type CoachMode,
   type JudgmentEvaluation,
@@ -89,6 +90,7 @@ export class SnapshotSymbolJudgments {
           reasons: decision.reasons,
           entryPrice,
           judgedAt: now,
+          ruleVersion: MODE_DECISION_RULE_VERSION,
         });
       }
     }
