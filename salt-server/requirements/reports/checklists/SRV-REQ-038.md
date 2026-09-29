@@ -135,3 +135,23 @@
 | 월간 복기에 연속 · 시간대 | FEATURE-009 FR-28 항목이 아니다 — 미러에만 | 복기에서 보고 싶다는 신호가 오면 |
 | CVaR · 위험 기여도(FEATURE-009 FR-26) | 사용자 결정(2026-09-27) — 주식 확장 때 | 주식 확장(시기 미정) |
 | `refs/original` 백업 참조 | 커밋 메시지 번호를 고치느라(push 전 FR-11 → FR-12) `filter-branch` 가 남겼다 | 사용자가 지운다(push 전) |
+
+## F010 슬라이스 2 — BTC 베타 합 · 국면 라벨 · 손실 비대칭 (FR-15 · 16, 2026-09-29)
+
+| 확인 | 결과 |
+|---|---|
+| FR-15 게이지 | `riskBudget.test.ts` 3건 — 0.6 × 1 + 0.4 × 1.5 = 1.2 · BTC 환산 120만 원 · 모르는 베타는 빼고 `coveredWeight` 0.5 · 보유 없음 · 베타 없음 → `insufficient_data`(0 아님) |
+| FR-15 유스케이스 | `monthlyReview.test.ts` — BTC 700,000(β 1) + ETH 300,000(β 없음) → 합 0.7 · covered 0.7 · missing ETH · 국면 읽기 실패 → `market: null` 이어도 게이지 나감 |
+| FR-15 실 DB | `marketRegime()` → 2026-09-29 BTC 종가 113,497,000 · 200일선 103,585,855 · trend_open · p_high 0.05 · 낙폭 −36.2% · gate `null`/open · 계수 1 |
+| FR-16 | `tradeDecisions.test.ts` 3건 — 2.3 · 최근 20건만(오래된 큰 손실 제외 → 0.4) · 한쪽 없으면 `insufficient_data` |
+| Swagger | `/risk-budget` 설명 · 200 모양에 `btcBeta` · `market`, `/mirror` 에 `lossAsymmetry` |
+| 전체 | `npm test` **528 / 0** · `tsc` · eslint · `npm run build` |
+| 공통 수용 기준 | 주문 경로 0 · 금액 도메인 `Decimal`/`Money`, 원 반올림 응답 변환 한 곳 · 판정 문구 · 명령형 0(숫자만) · 게이트가 아무것도 막지 않음 |
+
+## 미검증 · 범위 밖 (F010 슬라이스 2)
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 화면(베타 합 · 국면 · 손실 비대칭) | BFF · 프론트 밖 | F010 슬라이스 3 |
+| 실데이터 손실 비대칭 | 로컬 DB 결정 결과 0건 | 청산이 쌓인 계정 로그인 QA(사용자) |
+| 베타 합 예산(상한) | 사용자 결정 2026-09-27 — 측정 · 미러까지 | 사용 신호가 오면 |

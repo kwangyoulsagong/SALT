@@ -39,3 +39,17 @@
 | 사전등록 | 1행 · 원문 sha256 = 커밋 `836018b` 파일 · UPDATE → `forecast.preregistration 는 불변이다`. 처음엔 트리거 함수가 `OLD.id` 를 찾아 엉뚱한 오류로 막혔다(이 표는 `key`) — 표 이름으로 알리게 고침 |
 | `rule_ic` | 297행 · 재실행 멱등 · FK(prereg_key) |
 | Python 계약 | `tests/store/test_schema_contract.py` 통과(새 두 표 선언 ↔ DB) |
+
+## F010 슬라이스 2 — FR-20 (2026-09-29, `20260929110000_forecast_market_regime`)
+
+| 확인 | 결과 |
+|---|---|
+| 적용 | 로컬 `prisma migrate deploy` · `migrate status` up to date. 주석 번호 정정 뒤 로컬 체크섬을 손으로 맞춤(다른 DB 미적용) |
+| 계약 | `salt-forecast` `tests/store/test_schema_contract.py` 실 DB 통과(`market_regime` 20열 · `realized_vol.btc_beta`) |
+| 제약 | `gate_key IS NOT NULL OR gate_open` · p_high 0~1 · 낙폭 ≤ 0 · 계수 (0, 1] · 종가 > 0 |
+| 뷰 | `v_market_regime` BTC 1행 · `v_realized_vol` 끝에 `btc_beta` — 서버 쿼리 EXPLAIN 0.11ms · 1.43ms |
+| 롤백 | DROP VIEW · DROP TABLE · `v_realized_vol` 앞 정의 복원 · DROP COLUMN(마이그레이션 머리 주석) |
+
+| 미검증 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 운영 DB 적용 | 로컬만 | 배포 시 `prisma migrate deploy` |

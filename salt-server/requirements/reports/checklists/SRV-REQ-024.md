@@ -179,3 +179,23 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 | v2 의 표본 밖 성적 | 백테스트는 같은 데이터로 고른 규칙 | 원장 IC 2026-11-23 · 성적표 v2 표본 20(단타 약 3주 · 장기 20 × 30일) |
 | 화면 판단 블록 | v2 표본 20 전까지 `insufficient_sample`(정상) | 위와 같음 |
 | 후보 문턱 재추정 | 사전등록 밖 — 엿보기 | `rule-ic@2` 사전등록 |
+
+## 12. F010 슬라이스 2 — σ 익절 계획 · 원장 국면 재료 (FR-180 · 181, 2026-09-29, `feat/f010-slice2-regime-vol`)
+
+| 확인 | 결과 |
+|---|---|
+| FR-180 계산 | `policy.test.ts` 변동성 계획 4건 — −1σ · +2σ · +3σ 가격, +1σ 손절 올림, +2σ 익절 현재가, −1σ 손절 검토(−8% 는 σ_h 16% 종목에서 계획 유지 · 고정 계획은 손절 검토). 변동성 0 · 음수 · NaN · ∞ → 고정. 기존 특성화 7건 그대로 통과 |
+| FR-180 세 화면 | `ListProfitPlans` · `resolveZones`(`GetSymbolCoach`) · `GetCoachDetail` 에 `symbolRisk` 한 쿼리 · 실패 → 고정. 기존 zone · coachDetail 테스트 통과 |
+| FR-180 실 DB | `symbolRisk(["btc","ETH","XRP","NOPE"])` → BTC 0.362 · XRP 0.656, ETH 는 변동성 게이트가 막혀 `annualized: null` → 고정 계획, NOPE 없음. XRP 평단 1000 → 손절 857.64 · 1차 익절 1359.52 · 추세 1585.18 |
+| FR-181 | `judgmentLedger.test.ts` — 재료 `market` · `risk` 가 실린다 · **같은 재료면 점수 동일** · 읽기 둘 다 실패해도 2행 발행 |
+| 쿼리 | `v_realized_vol` `symbol = ANY(...)` EXPLAIN ANALYZE 1.43ms(18행 정렬 — 인덱스로 좁힘) · `v_market_regime` 0.11ms |
+| 전체 | `npm test` **528 / 0**(+14) · `tsc` · eslint · `npm run build` · 레이어 훅(바뀐 25파일) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 화면에 σ 근거 표시 | BFF · 프론트는 이번 슬라이스 밖 — 가격만 바뀌어 보인다(σ 가 큰 종목은 손절이 멀어진다) | F010 슬라이스 3 |
+| 인증된 HTTP 실측 | 로컬 토큰 발급 불가 — 유스케이스 · 리더 직접 호출로 확인 | 로그인 QA(사용자) |
+| 원장 국면 재료 실제 행 | 워커 다음 UTC 날 발행 때 첫 행 | 2026-09-30 워커 |
+| 운영 DB | 로컬만 | 배포 시 |
