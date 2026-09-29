@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from datetime import datetime
 
 from sqlalchemy import Engine
@@ -27,10 +27,15 @@ _COLS = (
     "annualized",
     "blocked_reason",
     "computed_at",
+    "btc_beta",
 )
 
 
-def upsert_realized_vol(engine: Engine, estimates: Iterable[VolEstimate], now: datetime) -> int:
+def upsert_realized_vol(
+    engine: Engine, estimates: Iterable[VolEstimate], now: datetime, betas: Mapping[str, float | None] | None = None
+) -> int:
+    """betas — 종목별 BTC 베타(FC-REQ-009). 없는 종목은 NULL."""
+    b = betas or {}
     rows = [
         (
             e.symbol,
@@ -48,6 +53,7 @@ def upsert_realized_vol(engine: Engine, estimates: Iterable[VolEstimate], now: d
             e.annualized,
             e.blocked_reason,
             now,
+            b.get(e.symbol),
         )
         for e in estimates
     ]

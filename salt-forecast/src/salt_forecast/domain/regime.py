@@ -373,7 +373,9 @@ def beta_by_symbol(
 
 # ── 라이브 — 매일 한 행(forecast.market_regime) ───────────────────────────
 
-# 사전등록 regime-gate@1 판정 결과. 바꾸려면 새 사전등록 키 + 이 상수를 바꾸는 커밋(리뷰 가능하게)
+# 사전등록 regime-gate@1 판정 결과(reports/regime-gate-regime-gate-1-2026-09-29.md) — 게이트 채택 없음
+# (both 는 BTC ΔMDD CI 하한 +1.4% 였지만 상승 포착 0.47 < 0.5), 이벤트일 σ 비율 1.09 CI [0.86, 1.32] → 축소 없음.
+# 바꾸려면 새 사전등록 키 + 이 상수를 바꾸는 커밋(리뷰 가능하게). 표가 자동으로 서버 동작을 바꾸지 않는다
 PREREG_KEY = "regime-gate@1"
 ADOPTED_GATE: str | None = None
 EVENT_FACTOR = 1.0

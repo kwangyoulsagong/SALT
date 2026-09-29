@@ -9,21 +9,24 @@ import pytest
 
 from salt_forecast.domain.hmm import filter_probs, fit
 from salt_forecast.domain.regime import (
+    beta_by_symbol,
     btc_beta,
     capture,
     delta_mdd_ci,
     drawdown_from_peak,
     event_rows,
     first_touch,
+    gate_is_open,
     hmm_monthly,
     max_drawdown,
     reduction_factor,
+    regime_state,
     sigma_ratio_ci,
     sma,
     strategy_returns,
     trend_open,
 )
-from salt_forecast.domain.series import DAY
+from salt_forecast.domain.series import DAY, CloseSeries
 
 T0 = int(datetime(2018, 1, 1, tzinfo=UTC).timestamp())
 
@@ -156,3 +159,53 @@ def test_btc_beta() -> None:
     short = np.full(120, np.nan)
     short[-30:] = a[-30:]
     assert btc_beta(short, b) is None
+
+
+def _btc_series(n: int = 900, seed: int = 11) -> CloseSeries:
+    rng = np.random.default_rng(seed)
+    r = np.where((np.arange(n) // 150) % 2 == 1, rng.normal(0, 0.05, n), rng.normal(0.001, 0.02, n))
+    at = T0 + DAY * np.arange(1, n + 1, dtype=np.int64)
+    return CloseSeries("KRW-BTC", at, 100.0 * np.exp(np.cumsum(r)))
+
+
+def test_regime_state_matches_backtest_path_and_ignores_future() -> None:
+    s = _btc_series()
+    as_of = int(s.available_at[850])
+    st = regime_state(s, as_of, [("fomc", as_of + 3600), ("jobs", as_of + 60)], gate="both", event_factor=0.8)
+    assert st is not None
+    # 백테스트와 같은 경로 — 같은 날의 hmm_monthly p_high 와 같다
+    r = np.log(s.close[1:] / s.close[:-1])
+    r = np.concatenate(([np.nan], r))
+    path = hmm_monthly(s.available_at[:851], r[:851], k=2)
+    assert st.hmm_p_high == pytest.approx(path.p_high[850])
+    assert st.gate_open == (st.trend_open and (st.hmm_p_high or 0) <= 0.5)
+    assert (st.next_event_kind, st.event_factor) == ("fomc", 0.8)  # jobs 는 축소 대상이 아니다
+    # 미래 봉이 더 있어도 같은 as_of 는 같은 행
+    longer = regime_state(s, as_of, [], gate="both")
+    shorter = regime_state(s.as_of(as_of), as_of, [], gate="both")
+    assert longer is not None and shorter is not None
+    assert (longer.hmm_p_high, longer.sma_200d, longer.drawdown_365d) == (
+        shorter.hmm_p_high,
+        shorter.sma_200d,
+        shorter.drawdown_365d,
+    )
+
+
+def test_gate_is_open_without_adopted_gate_or_materials() -> None:
+    assert gate_is_open(None, trend=False, p_high=0.9)  # 채택 없음 → 걸지 않는다
+    assert gate_is_open("hmm", trend=False, p_high=None)  # 재료 없음 → 열림
+    assert not gate_is_open("trend", trend=False, p_high=0.1)
+    assert not gate_is_open("both", trend=True, p_high=0.7)
+
+
+def test_beta_by_symbol_aligns_on_dates() -> None:
+    rng = np.random.default_rng(2)
+    n = 120
+    at = T0 + DAY * np.arange(1, n + 1, dtype=np.int64)
+    rb = rng.normal(0, 0.03, n)
+    btc = CloseSeries("KRW-BTC", at, 100 * np.exp(np.cumsum(rb)))
+    alt_r = 2.0 * rb + rng.normal(0, 0.001, n)
+    alt = CloseSeries("KRW-ALT", at[20:], 10 * np.exp(np.cumsum(alt_r[20:])))  # 늦게 상장
+    betas = beta_by_symbol({"KRW-BTC": btc, "KRW-ALT": alt}, "KRW-BTC", int(at[-1]))
+    assert betas["KRW-BTC"] == pytest.approx(1.0)
+    assert betas["KRW-ALT"] == pytest.approx(2.0, abs=0.05)
