@@ -155,6 +155,12 @@ export const toBehaviorMirrorResponse = (view: BehaviorMirrorView) => ({
   brier: toBrierResponse(view.brier),
   streak: toStreakResponse(view.streak),
   timing: toTimingResponse(view.timing),
+  lossAsymmetry: {
+    ratio: metric(view.lossAsymmetry.ratio),
+    maxLossKrw: view.lossAsymmetry.maxLossKrw ? krw(view.lossAsymmetry.maxLossKrw) : null,
+    maxGainKrw: view.lossAsymmetry.maxGainKrw ? krw(view.lossAsymmetry.maxGainKrw) : null,
+    window: view.lossAsymmetry.window,
+  },
   outcomeCount: view.outcomeCount,
   outcomesComputedAt: view.outcomesComputedAt,
   minSample: view.minSample,

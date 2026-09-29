@@ -8,6 +8,7 @@ import {
   benchmarkMirror,
   buildDecisionOutcomes,
   dispositionMirror,
+  lossAsymmetryMirror,
   judgeAdherence,
   replayLedger,
   sortLedgerAscending,
@@ -357,5 +358,32 @@ describe("mirror — 준수율 · 처분효과 · 보유 대비 · 태그 비용
     assert.equal(chase.noEdge, true);
     assert.equal(costs[0].tag, "chasing", "비용이 큰 태그가 앞");
     assert.equal(costs.find((cost) => cost.tag === "off_plan")!.noEdge, false, "표본 부족이면 배지 없음");
+  });
+});
+
+describe("lossAsymmetryMirror — 최근 20건 최대 손실 ÷ 최대 이익(F010 슬라이스 2)", () => {
+  const at = (day: number) => new Date(Date.UTC(2026, 0, 1 + day));
+  const outcome = (day: number, pnl: number) => ({ closedAt: at(day), netPnlKrw: new Decimal(pnl) });
+
+  it("가장 큰 손실의 크기 ÷ 가장 큰 이익", () => {
+    const mirror = lossAsymmetryMirror([outcome(1, 100_000), outcome(2, -230_000), outcome(3, 40_000)]);
+    assert.equal(mirror.ratio.value?.toNumber(), 2.3);
+    assert.equal(mirror.maxLossKrw?.toNumber(), -230_000);
+    assert.equal(mirror.maxGainKrw?.toNumber(), 100_000);
+    assert.equal(mirror.ratio.status, "insufficient_sample"); // 3건 < 20 — 값은 그대로 준다
+  });
+
+  it("최근 20건만 본다 — 오래된 큰 손실은 빠진다", () => {
+    const old = outcome(0, -1_000_000);
+    const recent = Array.from({ length: 20 }, (_, i) => outcome(10 + i, i % 2 ? 50_000 : -20_000));
+    const mirror = lossAsymmetryMirror([old, ...recent]);
+    assert.equal(mirror.ratio.value?.toNumber(), 0.4);
+    assert.equal(mirror.ratio.sampleSize, 20);
+    assert.equal(mirror.ratio.status, "ok");
+  });
+
+  it("이익 · 손실 중 하나라도 없으면 값이 없다 — 0 이 아니다", () => {
+    assert.equal(lossAsymmetryMirror([outcome(1, 10_000)]).ratio.status, "insufficient_data");
+    assert.equal(lossAsymmetryMirror([]).ratio.value, null);
   });
 });

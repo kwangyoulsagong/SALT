@@ -7,6 +7,7 @@ import {
   MIRROR_MIN_SAMPLE,
   streakMirror,
   tagCosts,
+  lossAsymmetryMirror,
   tradeTimingMirror,
   TURNOVER_BASELINE,
   turnoverGauge,
@@ -19,6 +20,7 @@ import {
   type PortfolioProbe,
   type StreakMirror,
   type TagCost,
+  type LossAsymmetryMirror,
   type TradeTimingMirror,
   type TradePlanStore,
   type TurnoverGauge,
@@ -58,6 +60,8 @@ export interface BehaviorMirrorView {
   streak: StreakMirror;
   /** 진입 시각 · 요일별 청산 성과(FR-22) */
   timing: TradeTimingMirror;
+  /** 최근 20건 최대 손실 ÷ 최대 이익(F010 슬라이스 2). 원장이 잘려도 저장된 결과로 센다 */
+  lossAsymmetry: LossAsymmetryMirror;
   outcomeCount: number;
   /** 결과를 만든 마지막 배치 시각. 결과가 없으면 `null` */
   outcomesComputedAt: Date | null;
@@ -99,6 +103,7 @@ export class GetBehaviorMirror {
       brier,
       tagCosts: tagCosts(live),
       timing: tradeTimingMirror(live),
+      lossAsymmetry: lossAsymmetryMirror(live),
       outcomeCount: live.length,
       outcomesComputedAt: live.reduce<Date | null>(
         (latest, outcome) => (latest && latest > outcome.computedAt ? latest : outcome.computedAt),

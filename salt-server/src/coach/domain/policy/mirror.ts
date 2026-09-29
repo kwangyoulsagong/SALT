@@ -151,6 +151,42 @@ export const dispositionMirror = (
   };
 };
 
+// ─── 손실 비대칭(F010 슬라이스 2 · 리서치 §3-4 습관 2 · §8) ───────────────────
+
+/** 최근 몇 건의 청산을 보나 — 리서치 §8 "최근 20건 최대 손실 / 최대 이익" */
+export const LOSS_ASYMMETRY_WINDOW = 20;
+
+/**
+ * 최근 20건 청산 중 **가장 큰 손실 ÷ 가장 큰 이익**(순손익, 원). 공개 실거래 실험에서 승패를 가른 단일 지표였다
+ * (살아남은 쪽 0.4배, 무너진 쪽 2.3배 — 리서치 §5). 1 보다 크면 가장 큰 손실이 가장 큰 이익보다 컸다.
+ *
+ * 비율만 내고 판정 문구는 없다(측정 · 미러까지, 사용자 결정 2026-09-27). 이익 · 손실 중 하나라도 없으면 값이 없다.
+ */
+export interface LossAsymmetryMirror {
+  ratio: MirrorMetric;
+  maxLossKrw: Decimal | null;
+  maxGainKrw: Decimal | null;
+  window: number;
+}
+
+export const lossAsymmetryMirror = (
+  outcomes: Array<Pick<DecisionOutcome, "closedAt" | "netPnlKrw">>
+): LossAsymmetryMirror => {
+  const recent = [...outcomes]
+    .sort((a, b) => b.closedAt.getTime() - a.closedAt.getTime())
+    .slice(0, LOSS_ASYMMETRY_WINDOW);
+  const losses = recent.map((outcome) => outcome.netPnlKrw).filter((pnl) => pnl.lt(0));
+  const gains = recent.map((outcome) => outcome.netPnlKrw).filter((pnl) => pnl.gt(0));
+  const maxLoss = losses.length ? Decimal.min(...losses) : null;
+  const maxGain = gains.length ? Decimal.max(...gains) : null;
+  return {
+    ratio: mirrorMetric(maxLoss && maxGain ? maxLoss.abs().div(maxGain) : null, recent.length),
+    maxLossKrw: maxLoss,
+    maxGainKrw: maxGain,
+    window: LOSS_ASYMMETRY_WINDOW,
+  };
+};
+
 // ─── FR-16 "그냥 들고 있었으면" ──────────────────────────────────────────────
 
 export interface BenchmarkMirror {

@@ -631,12 +631,14 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         연속 뒤 매수 ≥ 20 일 때만 true. 거래가 잘리면(`truncated`) 사이즈 비교는 `null`
    *       - `timing`(FR-22) — 진입 시각(KST) 4구간 · 요일 7개별 청산 수 · 이익 비율 · 평균 순수익률 · 손익 합(원).
    *         날짜만 적은 진입(KST 0시 정각)은 시간대에서 빠지고(`untimedCount`), 하나도 없으면 `bands: null`
+   *       - `lossAsymmetry`(F010 슬라이스 2) — 최근 20건 청산의 가장 큰 손실 ÷ 가장 큰 이익(순손익 원). 이익 · 손실 중
+   *         하나라도 없으면 `ratio.value: null`. 판정 문구 없음 — 측정만
    *     tags: [Coach Risk]
    *     security:
    *       - bearerAuth: []
    *     responses:
    *       200:
-   *         description: "`{ status, adherence, disposition, benchmark, tagCosts[], turnover, brier, streak, timing, outcomeCount, outcomesComputedAt, minSample, asOf }`"
+   *         description: "`{ status, adherence, disposition, benchmark, tagCosts[], turnover, brier, streak, timing, lossAsymmetry, outcomeCount, outcomesComputedAt, minSample, asOf }`"
    *       401: { description: 인증 실패 }
    */
   router.get("/mirror", risk.getBehaviorMirror);
