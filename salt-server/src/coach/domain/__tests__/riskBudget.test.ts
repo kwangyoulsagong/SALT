@@ -6,6 +6,7 @@ import Decimal from "decimal.js";
 import { Money } from "../../../shared/domain";
 import type { CoachLedgerEntry } from "../model";
 import {
+  btcBetaGauge,
   concentrationGauge,
   drawdownGauge,
   lockedFieldChanges,
@@ -190,5 +191,45 @@ describe("lockedFieldChanges — 거래에 연결된 계획의 채점 기준", (
       "probabilityUp",
     ]);
     assert.deepEqual(lockedFieldChanges(linked, { thesis: "고쳐 적음", targetPrice: new Decimal(1) }), []);
+  });
+});
+
+describe("btcBetaGauge — BTC 베타 합(F010 슬라이스 2)", () => {
+  it("평가금 비중 × 베타의 합 · BTC 환산 노출", () => {
+    const gauge = btcBetaGauge(
+      [
+        { symbol: "btc", value: 600_000 },
+        { symbol: "XRP", value: 400_000 },
+      ],
+      new Map([
+        ["BTC", 1],
+        ["XRP", 1.5],
+      ])
+    );
+    assert.equal(gauge.status, "ok");
+    assert.equal(gauge.betaSum?.toNumber(), 1.2); // 0.6 × 1 + 0.4 × 1.5 — 두 종목이어도 BTC 1.2배
+    assert.equal(gauge.btcEquivalent?.toKrwInteger(), 1_200_000);
+    assert.equal(gauge.coveredWeight?.toNumber(), 1);
+    assert.deepEqual(gauge.missingSymbols, []);
+  });
+
+  it("모르는 베타는 1 로 채우지 않고 뺀 뒤 알린다", () => {
+    const gauge = btcBetaGauge(
+      [
+        { symbol: "BTC", value: 500_000 },
+        { symbol: "NEW", value: 500_000 },
+      ],
+      new Map<string, number | null>([["BTC", 1], ["NEW", null]])
+    );
+    assert.equal(gauge.betaSum?.toNumber(), 0.5);
+    assert.equal(gauge.coveredWeight?.toNumber(), 0.5);
+    assert.deepEqual(gauge.missingSymbols, ["NEW"]);
+  });
+
+  it("보유가 없거나 베타가 하나도 없으면 insufficient_data — 0 이 아니다", () => {
+    assert.equal(btcBetaGauge([], new Map()).status, "insufficient_data");
+    const none = btcBetaGauge([{ symbol: "NEW", value: 1 }], new Map());
+    assert.equal(none.status, "insufficient_data");
+    assert.equal(none.betaSum, null);
   });
 });

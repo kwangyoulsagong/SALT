@@ -76,7 +76,7 @@ export const toSizeCheckResponse = (result: TradeSizeCheck) => {
 };
 
 export const toRiskBudgetResponse = (view: RiskBudgetView) => {
-  const { drawdown, concentration, turnover } = view.gauges;
+  const { drawdown, concentration, turnover, btcBeta } = view.gauges;
   return {
     settings: {
       monthlyLossBudget: budget(view.settings.monthlyLossBudget),
@@ -110,7 +110,30 @@ export const toRiskBudgetResponse = (view: RiskBudgetView) => {
         feesYearToDateKrw: krw(turnover.feesYearToDate),
         tradeCount: turnover.tradeCount,
       },
+      btcBeta: {
+        status: btcBeta.status,
+        betaSum: rate(btcBeta.betaSum),
+        btcEquivalentKrw: krw(btcBeta.btcEquivalent),
+        coveredWeight: rate(btcBeta.coveredWeight),
+        missingSymbols: btcBeta.missingSymbols,
+      },
     },
+    market: view.market
+      ? {
+          asOf: view.market.asOf,
+          trendOpen: view.market.trendOpen,
+          btcClose: view.market.close,
+          btcSma200d: view.market.sma200d,
+          highVolProbability: view.market.highVolProbability,
+          drawdown365dRate: view.market.drawdown365d,
+          gate: { key: view.market.gateKey, open: view.market.gateOpen },
+          eventFactor: view.market.eventFactor,
+          nextEvent: view.market.nextEventKind
+            ? { kind: view.market.nextEventKind, at: view.market.nextEventAt }
+            : null,
+          preregKey: view.market.preregKey,
+        }
+      : null,
     scenarios: toScenariosResponse(view.scenarios),
     monthStart: view.monthStart,
     asOf: view.asOf,

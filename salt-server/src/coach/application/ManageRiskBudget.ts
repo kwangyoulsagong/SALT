@@ -2,6 +2,7 @@ import Decimal from "decimal.js";
 
 import { Money } from "../../shared/domain";
 import {
+  btcBetaGauge,
   concentrationGauge,
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
   DEFAULT_TARGET_VOLATILITY,
@@ -10,12 +11,14 @@ import {
   portfolioScenarios,
   resolveBudget,
   turnoverGauge,
+  type BtcBetaGauge,
   type BudgetSetting,
   type CoachProfileStore,
   type ConcentrationGauge,
   type DrawdownGauge,
   type ForecastReader,
   type MarketProbe,
+  type MarketRegimeState,
   type PortfolioScenarios,
   type PortfolioProbe,
   type TurnoverGauge,
@@ -49,7 +52,14 @@ export interface RiskBudgetView {
     drawdown: DrawdownGauge;
     concentration: ConcentrationGauge;
     turnover: TurnoverGauge;
+    /** BTC 베타 합(F010 슬라이스 2) */
+    btcBeta: BtcBetaGauge;
   };
+  /**
+   * 시장 국면 라벨(F010 슬라이스 2 · `FC-REQ-009`) — BTC 200일선 · HMM 고변동 확률 · 365일 낙폭 · 다음 이벤트.
+   * 사전등록 `regime-gate@1` 이 게이트를 채택하지 않아 **아무것도 막거나 줄이지 않는다**. 없거나 낡았으면 `null`
+   */
+  market: MarketRegimeState | null;
   scenarios: PortfolioScenarios;
   monthStart: Date;
   asOf: Date;
@@ -81,13 +91,14 @@ export class GetRiskBudget {
     }));
     const range = episodeBarRange();
     // 과거 구간 일봉이 없어도 게이지는 나간다 — 시나리오의 구간 줄만 값이 빈다
-    const episodeBars = await this.forecasts
-      .dailyCloses(
-        holdings.map((holding) => holding.symbol),
-        range.from,
-        range.to
-      )
-      .catch(() => new Map());
+    const symbols = holdings.map((holding) => holding.symbol);
+    const [episodeBars, risk, market] = await Promise.all([
+      this.forecasts.dailyCloses(symbols, range.from, range.to).catch(() => new Map()),
+      // 베타 · 국면이 실패해도 게이지 셋은 나간다 — 그 칸만 insufficient_data · null
+      this.forecasts.symbolRisk(symbols).catch(() => new Map<string, { btcBeta: number | null }>()),
+      this.forecasts.marketRegime().catch(() => null),
+    ]);
+    const betas = new Map([...risk].map(([symbol, row]) => [symbol, row.btcBeta]));
 
     return {
       settings: {
@@ -112,7 +123,12 @@ export class GetRiskBudget {
           yearStart: snapshot.yearStart,
           truncated: snapshot.ledger.truncated,
         }),
+        btcBeta: btcBetaGauge(
+          snapshot.holdings.map((holding) => ({ symbol: holding.symbol, value: holding.currentValue })),
+          betas
+        ),
       },
+      market,
       scenarios: portfolioScenarios(holdings, episodeBars),
       monthStart: snapshot.monthStart,
       asOf: now,
