@@ -85,6 +85,8 @@ export interface BehaviorMirrorView {
   streak: StreakView | null;
   /** 진입 시간대 · 요일(슬라이스 7, FR-22). 서버가 아직 주지 않으면 `null` */
   timing: TradeTimingView | null;
+  /** 손실 비대칭(F010 슬라이스 2) — 최근 `window` 건 가장 큰 손실 ÷ 가장 큰 이익. 서버가 아직 주지 않으면 `null` */
+  lossAsymmetry: LossAsymmetryView | null;
   outcomeCount: number;
   outcomesComputedAt: string | null;
   minSample: number;
@@ -209,3 +211,13 @@ export interface EntryChecklistView {
 
 /** 미리보기만 못 구하면 `null` — 사이즈 결과 줄은 그대로 */
 export type TradeBehaviorPreviewResult = TradeBehaviorPreview | null;
+
+/** 손실 비대칭. 측정만 — 판정 문구가 없다. 한쪽 금액이 없으면 `ratio.value: null` */
+export interface LossAsymmetryView {
+  ratio: MirrorMetric;
+  /** 가장 큰 손실(원, 음수). 없으면 `null` */
+  maxLossKrw: number | null;
+  /** 가장 큰 이익(원, 양수). 없으면 `null` */
+  maxGainKrw: number | null;
+  window: number;
+}

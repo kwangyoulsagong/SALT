@@ -20,6 +20,7 @@ import {
   trendLabel,
   trendLine,
 } from "./CoachReport.css";
+import { hint } from "./TradeRisk.css";
 
 const { report: REPORT, zone: ZONE } = COACH_MESSAGES;
 
@@ -83,6 +84,7 @@ export const ExitPlanList = ({ plans, renderIdentity }: ExitPlanListProps) => {
                 <span>{trendHold}</span>
               </p>
             )}
+            {plan.basis && <p className={hint}>{ZONE.basis[plan.basis]}</p>}
           </section>
         );
       })}

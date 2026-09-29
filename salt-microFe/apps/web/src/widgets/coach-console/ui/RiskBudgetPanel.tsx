@@ -5,6 +5,7 @@ import { Text } from "@repo/ui/text";
 import {
   CoachBlockSkeleton,
   CoachDisclosure,
+  MarketRegimeNote,
   RISK_MESSAGES,
   RiskGaugeList,
   ScenarioList,
@@ -35,6 +36,8 @@ export const RiskBudgetPanel = () => {
     return (
       <>
         <RiskGaugeList view={budget.data} />
+        {/* 국면(F010 `FE-REQ-040` FR-3) — 참고 라벨. 국면 작업이 없거나 낡았으면 칸이 없다 */}
+        {budget.data.market && <MarketRegimeNote market={budget.data.market} />}
         <RiskBudgetForm view={budget.data} />
         {/* 시나리오(FR-25) — 게이지와 같은 보유 · 같은 응답. 서버가 못 줬으면 묶음째 없다 */}
         {budget.data.scenarios && (

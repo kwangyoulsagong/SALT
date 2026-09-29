@@ -70,6 +70,9 @@ export interface Judgment {
   risks: string[];
 }
 
+/** 가격선 근거 — 실현 변동성 배수인지 고정 비율인지(F010 슬라이스 2 · `BFF-REQ-039` FR-4) */
+export type PriceBasis = "volatility" | "fixed";
+
 /** 서버 `Zone` 그대로 (`SRV-REQ-025` FR-44). 가격 · 거리는 서버가 낸 값이다 */
 export type Zone =
   | {
@@ -83,6 +86,11 @@ export type Zone =
         ratio: number;
       }>;
       status: string;
+      /**
+       * 가격선 근거(F010 슬라이스 2) — `volatility` = 20일 실현 변동성 배수(손실 제한 −1σ · 1차 익절 +2σ · 추세 +3σ),
+       * `fixed` = 변동성이 없어 고정 비율. 없으면 근거 줄을 그리지 않는다
+       */
+      basis?: PriceBasis;
     }
   | {
       kind: "observation";

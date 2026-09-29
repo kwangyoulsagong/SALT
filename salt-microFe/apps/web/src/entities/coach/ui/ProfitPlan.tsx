@@ -15,6 +15,7 @@ import {
   td,
   th,
 } from "./CoachDetail.css";
+import { hint } from "./TradeRisk.css";
 
 const { profitPlan: PLAN, zone: ZONE } = COACH_MESSAGES;
 
@@ -70,6 +71,8 @@ export const ProfitPlan = ({ zone }: { zone: Zone }) => {
           ))}
         </tbody>
       </table>
+      {/* 가격선 근거(F010 `FE-REQ-040` FR-1) — 서버가 근거를 모르면 줄이 없다 */}
+      {zone.basis && <p className={hint}>{ZONE.basis[zone.basis]}</p>}
     </section>
   );
 };

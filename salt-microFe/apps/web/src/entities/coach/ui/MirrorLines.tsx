@@ -1,6 +1,7 @@
 import type {
   BehaviorMirrorView,
   BrierView,
+  LossAsymmetryView,
   MirrorMetric,
   MirrorStatus,
   ReportBehaviorFact,
@@ -245,6 +246,29 @@ const TimingRows = <K extends string>({
  * 진입 시간대 · 요일(FR-22). 시각을 적은 진입이 없으면 시간대 목록이 없고, 날짜만 적은 건수를 한 줄로 밝힌다.
  * 청산이 없으면 줄이 없다
  */
+/**
+ * 손실 비대칭(F010 슬라이스 3 · `FE-REQ-040` FR-4) — 최근 청산 중 가장 큰 손실 ÷ 가장 큰 이익. 측정만 한다: 좋다 · 나쁘다는
+ * 문장이 없고 "1 보다 크면" 뜻풀이 한 줄뿐이다. 한쪽이 없으면 값 대신 "둘 다 있어야 계산해요"
+ */
+const lossAsymmetryMirrorItem = (asymmetry: LossAsymmetryView): ReactNode => {
+  const { ratio, maxLossKrw, maxGainKrw, window } = asymmetry;
+  const ready = ratio.value !== null && maxLossKrw !== null && maxGainKrw !== null;
+  return (
+    <MirrorItem
+      key="lossAsymmetry"
+      label={M.lossAsymmetry.label}
+      sampleSize={ratio.sampleSize}
+      status={ready ? ratio.status : "insufficient_data"}
+      text={ready ? M.lossAsymmetry.line(formatTimes(ratio.value ?? 0)) : null}
+      sub={[
+        ready ? M.lossAsymmetry.amounts(window, formatSignedKrw(maxLossKrw ?? 0), formatSignedKrw(maxGainKrw ?? 0)) : null,
+        ready ? M.lossAsymmetry.hint : null,
+      ]}
+      extra={ready ? undefined : <p className={mirrorSub}>{M.lossAsymmetry.oneSided(window)}</p>}
+    />
+  );
+};
+
 const timingMirrorItem = (timing: TradeTimingView): ReactNode => {
   const total = timing.weekdays.reduce((sum, bucket) => sum + bucket.count, 0);
   if (total === 0) return null;
@@ -386,6 +410,7 @@ export const MirrorLines = ({ view, behaviorFacts }: MirrorLinesProps) => {
   if (streakItem) items.push(streakItem);
   const timingItem = view.timing && timingMirrorItem(view.timing);
   if (timingItem) items.push(timingItem);
+  if (view.lossAsymmetry) items.push(lossAsymmetryMirrorItem(view.lossAsymmetry));
 
   items.push(
     <MirrorItem

@@ -112,6 +112,22 @@ export const gaugeStatus = styleVariants({
   },
 });
 
+/* ── 시장 국면(F010 슬라이스 3) ───────────────────────────── */
+
+export const marketNote = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: vars.space.sm,
+  fontFamily: vars.fontFamily.base,
+});
+
+export const marketNoteHead = style({
+  display: "flex",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: "6px",
+});
+
 /* ── 내 계획 ─────────────────────────────────────────────── */
 
 export const planRow = style({

@@ -69,9 +69,30 @@ export const RISK_MESSAGES = {
       insufficient_data: "데이터가 모자라 계산하지 못했어요",
     } satisfies Record<GaugeStatus, string>,
     missingCloses: (symbols: string) => `월초 종가가 없는 종목: ${symbols}`,
+    /** BTC 베타 합(F010 슬라이스 3 · `FE-REQ-040` FR-2). 예산이 없는 측정값이라 막대 · "넘었어요"가 없다 */
+    btcBeta: "BTC 와 같이 움직이는 정도",
+    btcBetaValue: (times: string) => `베타 합 ${times}`,
+    btcBetaEquivalent: (krw: string) => `BTC 로 환산하면 ${krw}원어치`,
+    btcBetaHint: "최근 90일 기준 · 1 이면 BTC 와 같은 폭으로 움직였다는 뜻이에요. 종목 수가 많아도 1 을 넘으면 분산이 아니에요",
+    btcBetaCovered: (rate: string, symbols: string) => `베타를 모르는 ${symbols} 은 빼고 보유의 ${rate} 로 셌어요`,
     signedOut: "로그인하면 내 리스크 예산을 볼 수 있어요",
     unavailable: "지금은 리스크 예산을 불러올 수 없어요",
     progressLabel: (name: string) => `${name} 사용률`,
+  },
+
+  /**
+   * 시장 국면(F010 슬라이스 3 · `FE-REQ-040` FR-3). **참고 라벨이다** — 사전등록 검증에서 게이트를 채택하지 않아
+   * 아무것도 막거나 줄이지 않는다는 문장이 늘 같이 나간다. 국면 모델 확률은 그리지 않는다(판정 확률로 읽힌다)
+   */
+  market: {
+    heading: "시장 국면",
+    badge: "참고",
+    asOf: (date: string) => `${date} 기준`,
+    trend: { above: "BTC 가 200일 평균 가격 위에 있어요", below: "BTC 가 200일 평균 가격 아래에 있어요" },
+    drawdown: (rate: string) => `1년 고점보다 ${rate}`,
+    nextEvent: (kind: "fomc" | "cpi", date: string) => `다음 ${kind === "fomc" ? "FOMC" : "미국 CPI"} ${date}`,
+    noGate: "이 표시는 참고용이에요. 과거 7년으로 미리 정한 기준을 검증했을 때 판정을 막거나 줄일 근거가 나오지 않아, 판정 · 비중에 쓰지 않아요",
+    gateAdopted: "국면 규칙이 판정에 적용되고 있어요",
   },
 
   /** 시나리오(FR-25, 슬라이스 6) — 확률 없이 "이만큼 내리면 얼마"만 */

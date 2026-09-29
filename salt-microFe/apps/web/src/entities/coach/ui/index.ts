@@ -15,6 +15,7 @@ export { PositioningCard } from "./PositioningCard";
 export { CoachDisclosure } from "./CoachDisclosure";
 export { SizeCheckLines } from "./SizeCheckLines";
 export { RiskGaugeList } from "./RiskGaugeList";
+export { MarketRegimeNote } from "./MarketRegimeNote";
 export { TradePlanCard } from "./TradePlanCard";
 export { MirrorLines } from "./MirrorLines";
 export { OutcomeList, OutcomeTagChips } from "./OutcomeList";
