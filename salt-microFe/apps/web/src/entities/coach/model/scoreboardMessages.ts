@@ -20,7 +20,7 @@ export const SCOREBOARD_MESSAGES = {
   /** 서버가 표본 부족이라고 한 그룹 — 적중률을 그리지 않는 이유 */
   lowSample: "아직 채점 표본이 적어 적중률을 보이지 않아요",
   winRate: (rate: string) => `적중 ${rate}`,
-  excess: (points: string) => `'늘 같은 행동' 대비 ${points}`,
+  excess: (points: string) => `늘 같은 행동 대비 ${points}`,
   avgReturn: (rate: string) => `평균 ${rate}`,
   horizon: (hours: number) => (hours % 24 === 0 ? `판단 뒤 ${hours / 24}일 기준` : `판단 뒤 ${hours}시간 기준`),
   missesHeading: "최근 빗나간 판정",

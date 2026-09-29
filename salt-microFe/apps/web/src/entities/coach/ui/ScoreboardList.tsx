@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 
 import { formatRatio, formatShortDate, formatSignedPoints, formatSignedRate } from "../lib";
 import { SCOREBOARD_MESSAGES } from "../model";
-import { caseList, caseRow } from "./CoachDetail.css";
-import { gauge, gaugeLabel, gaugeList, gaugeStatus, gaugeValue, gaugeValueMuted, hint } from "./TradeRisk.css";
+import { caseList } from "./CoachDetail.css";
+import { gauge, gaugeLabel, gaugeList, gaugeStatus, gaugeValue, gaugeValueMuted, hint, missRow } from "./TradeRisk.css";
 
 const S = SCOREBOARD_MESSAGES;
 
@@ -37,9 +37,9 @@ export const ScoreboardList = ({ view, renderIdentity }: ScoreboardListProps) =>
       <ul className={gaugeList}>
         {groups.map((group) => {
           const shown = !group.lowSample && group.winRate !== null;
-          const stats = shown
+          // 적중률이 값 줄, 기준 대비 · 평균은 그 아래 — 한 줄에 셋이면 좁은 칸에서 숫자가 끊긴다
+          const detail = shown
             ? [
-                S.winRate(formatRatio(group.winRate ?? 0)),
                 group.excessWinRate !== null ? S.excess(formatSignedPoints(group.excessWinRate)) : null,
                 group.avgReturn !== null ? S.avgReturn(formatSignedRate(group.avgReturn)) : null,
               ].filter(Boolean)
@@ -47,7 +47,10 @@ export const ScoreboardList = ({ view, renderIdentity }: ScoreboardListProps) =>
           return (
             <li key={group.signalType} className={gauge}>
               <span className={gaugeLabel}>{S.signalTypes[group.signalType]}</span>
-              <span className={shown ? gaugeValue : gaugeValueMuted}>{shown ? stats.join(" · ") : S.lowSample}</span>
+              <span className={shown ? gaugeValue : gaugeValueMuted}>
+                {shown ? S.winRate(formatRatio(group.winRate ?? 0)) : S.lowSample}
+              </span>
+              {detail.length > 0 && <span className={gaugeStatus.normal}>{detail.join(" · ")}</span>}
               <span className={gaugeStatus.normal}>
                 <Badge size="sm" tone="neutral">
                   {S.sample(group.sample)}
@@ -64,7 +67,7 @@ export const ScoreboardList = ({ view, renderIdentity }: ScoreboardListProps) =>
       ) : (
         <ul className={caseList}>
           {misses.map((item) => (
-            <li key={`${item.date}-${item.symbol}-${item.event}`} className={caseRow}>
+            <li key={`${item.date}-${item.symbol}-${item.event}`} className={missRow}>
               <span>{formatShortDate(item.date) ?? item.date}</span>
               {renderIdentity(item.symbol)}
               <span>{S.missLine(S.signalTypes[item.event] ?? "", formatSignedRate(item.returnRate))}</span>

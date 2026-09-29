@@ -125,6 +125,8 @@ export const moreSummary = style([
 
 export const moreHint = style({
   marginLeft: "auto",
+  flexShrink: 0,
+  whiteSpace: "nowrap",
   color: vars.colors.neutral[600],
   fontSize: "13px",
   lineHeight: "20px",

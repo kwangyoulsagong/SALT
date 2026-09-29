@@ -1,4 +1,4 @@
-import { style, styleVariants } from "@vanilla-extract/css";
+import { globalStyle, style, styleVariants } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
@@ -126,6 +126,29 @@ export const marketNoteHead = style({
   alignItems: "center",
   flexWrap: "wrap",
   gap: "6px",
+});
+
+/* ── 판정 성적표 빗나간 줄(F010 슬라이스 3) ──────────────────── */
+
+/**
+ * 날짜 | 종목(로고 · 이름) | 판정 → 관찰 기간 수익률. 로고가 있는 줄이라 가운데 정렬이다 — 기준선 정렬이면 로고 칸이
+ * 글자보다 떠 보인다. 좁은 폭에선 문장이 둘째 줄로 내려간다
+ */
+export const missRow = style({
+  display: "grid",
+  gridTemplateColumns: "56px minmax(0, 1fr) auto",
+  alignItems: "center",
+  columnGap: vars.space.sm,
+  rowGap: "2px",
+  padding: `${vars.space.sm} 0`,
+  borderBottom: `1px solid ${vars.colors.neutral[100]}`,
+  fontVariantNumeric: vars.numeric.tabular,
+  selectors: { "&:last-child": { borderBottom: "none", paddingBottom: 0 } },
+  "@media": { "screen and (max-width: 640px)": { gridTemplateColumns: "56px minmax(0, 1fr)" } },
+});
+
+globalStyle(`${missRow} > :last-child`, {
+  "@media": { "screen and (max-width: 640px)": { gridColumn: "2 / 3" } },
 });
 
 /* ── 내 계획 ─────────────────────────────────────────────── */
