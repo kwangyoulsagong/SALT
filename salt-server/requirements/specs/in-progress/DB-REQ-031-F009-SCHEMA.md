@@ -37,11 +37,12 @@ FEATURE-009 의 "계획 · 사이즈 · 행동 미러"가 쓸 저장소. 슬라�
 | FR-7 | `decision_outcomes` 인덱스 `(user_id, closed_at DESC)` · `(plan_id)` | 완료(슬라이스 1) |
 | FR-11 | `monthly_reviews` — `user_id`(FK CASCADE) · `month`(KST `YYYY-MM`) · `payload jsonb`(화면 모양 스냅샷, 숫자는 문자열) · `generated_at`. UNIQUE `(user_id, month DESC)` — 한 달 한 행, 동시 생성은 제약이 막는다. 조회 조건은 `(user_id, month)` 뿐이라 JSON 허용 목록 조건(쿼리 조건 아님)을 지킨다 | 완료(슬라이스 6, `20260927120000_coach_monthly_reviews`) |
 | FR-12 | `trade_plans.checklist jsonb` nullable — 진입 전 체크리스트 기록 `{shown, checked}`(FEATURE-009 FR-30). 조회 조건으로 쓰지 않는다 | 완료(슬라이스 6, `20260927120100_trade_plan_checklist`) |
+| FR-9 | `user_investment_profiles.investable_capital DECIMAL(38,10)` nullable · CHECK `> 0` — 투자금(현금 포함, 원). 목표 비중 안내의 전체(F010 슬라이스 5 · `SRV-REQ-024` FR-184). 비어 있으면 서버가 코인 평가금 합을 쓰고 밝힌다 — 0 · 기본값으로 채우지 않는다 | 완료(F010 슬라이스 5, `20260929120000_profile_investable_capital`) |
 | FR-8 | `forecast.realized_vol`(종목 · 일 · EWMA · GARCH · QLIKE 채점 · 게이트) + 뷰 `forecast.v_realized_vol`(종목별 최신 1행) — Python 이 쓰고 서버가 뷰로 읽는다. CHECK: `annualized` null ⇔ `blocked_reason` 있음 · `annualized > 0` · `method` 값 | 완료(슬라이스 2, `20260924170000_forecast_realized_vol`) |
 
 ## 롤백
 
-추가만 했다. 슬라이스 6: `DROP TABLE monthly_reviews;` · `ALTER TABLE trade_plans DROP COLUMN checklist;` — 복기를 지우면 다음 배치 · 조회가 지난달 것을 다시 만들지만 그 사이 고친 태그가 반영된 숫자가 된다(스냅샷의 뜻을 잃는다).
+추가만 했다. F010 슬라이스 5: `ALTER TABLE user_investment_profiles DROP COLUMN investable_capital;`(적은 투자금만 잃는다 — 목표 비중은 코인 평가금 합 기준으로 돌아간다). 슬라이스 6: `DROP TABLE monthly_reviews;` · `ALTER TABLE trade_plans DROP COLUMN checklist;` — 복기를 지우면 다음 배치 · 조회가 지난달 것을 다시 만들지만 그 사이 고친 태그가 반영된 숫자가 된다(스냅샷의 뜻을 잃는다).
 슬라이스 2: `DROP VIEW forecast.v_realized_vol; DROP TABLE forecast.realized_vol;`.
 슬라이스 1: `DROP TABLE decision_outcomes; DROP TABLE trade_plans;` + 프로필 6컬럼 `DROP COLUMN` (마이그레이션 머리 주석).
 원장 3종(`portfolio_transactions` · `portfolio_holdings` · `price_history`) 행은 건드리지 않는다.
@@ -53,3 +54,4 @@ FEATURE-009 의 "계획 · 사이즈 · 행동 미러"가 쓸 저장소. 슬라�
 | 2026-09-24 | 신설 · 슬라이스 1 FR-1~7 구현(`20260924150000_coach_trade_plan_risk_budget`). 근거 `reports/checklists/DB-REQ-031.md` |
 | 2026-09-24 | 슬라이스 2 FR-8 — `forecast.realized_vol` · `v_realized_vol`(`20260924170000_forecast_realized_vol`, `FC-REQ-006`) |
 | 2026-09-27 | 슬라이스 6 FR-11 · 12 — `monthly_reviews` · `trade_plans.checklist`. 목적이 둘이라 마이그레이션도 둘(`20260927120000` · `20260927120100`). 로컬 `migrate deploy` 뒤 스키마 diff 0 |
+| 2026-09-29 | F010 슬라이스 5 FR-9 — `investable_capital`(`20260929120000_profile_investable_capital`, 추가만 · CHECK > 0). 로컬 `migrate deploy` 적용 |
