@@ -1,0 +1,25 @@
+# 사전등록 — 업비트 거래 유의 · 주의 표시의 라이브 기록 (F010 슬라이스 6 · FC-REQ-014)
+#
+# 이 파일은 **첫 수집 전에** 커밋한다. 등록 뒤 판정 조건을 바꾸려면 새 키(`market-warning@2`).
+#
+# 배경: 업비트 `/v1/market/all?is_details=true` 의 `market_event` 는 **지금 상태만** 준다 — 과거 이력이 없어서
+# 백테스트 IC 를 잴 수 없다. 그래서 (1) 오늘부터 매일 스냅샷을 불변으로 쌓고 (2) 8주 뒤 라이브로 잰다.
+# 판정 미발행 정책(유의 종목)은 이 결과와 무관하다 — 리서치 §11 · 사용자 결정 2026-09-30 의 정책이다.
+# 업비트 공지 JSON 은 쓰지 않는다(사용자 결정 2026-09-23 — security-sources.md §1).
+
+key = "market-warning@1"
+registered = 2026-09-30
+
+[data]
+source = "업비트 공식 공개 API GET /v1/market/all?is_details=true — KRW- 마켓만"
+fields = "market_event.warning(투자유의) · market_event.caution 5종(PRICE_FLUCTUATIONS · TRADING_VOLUME_SOARING · DEPOSIT_AMOUNT_SOARING · GLOBAL_PRICE_DIFFERENCES · CONCENTRATION_OF_SMALL_ACCOUNTS)"
+snapshot = "매일 1회 이상. observed_at = available_at = 응답을 받은 시각(원천에 게시 시각이 없다 — 받은 때가 알게 된 때다)"
+immutable = "스냅샷 행은 덮어쓰지 않는다. 같은 날 여러 번 받으면 행이 여럿이다"
+
+[live]
+first_look = 2026-11-25   # 첫 수집 + 8주. 그 전에는 아래 통계를 계산하지 않는다(엿보기 금지)
+question = "표시가 켜진 날(전날 꺼짐 → 오늘 켜짐) 뒤 1 · 7일 초과수익(업비트 원화 동일가중 대비)이 음인가"
+event = "종목 · 표시 종류별 켜짐 사건. 같은 종목 · 종류의 재켜짐은 꺼진 뒤 7일 지나야 새 사건"
+metric = "사건 평균 초과 로그수익 · 날짜 블록 부트스트랩(블록 7일 · 2000회 · seed 20260930) 95% CI"
+min_events = 30
+use = "통계는 기록만 한다. 규칙 반영은 새 등록으로 — 표본이 min_events 미만이면 판정 보류"
