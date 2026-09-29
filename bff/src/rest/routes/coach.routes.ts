@@ -4,6 +4,7 @@ import { appCoachController } from "../controllers/coach.controller";
 import { appTradeRiskController } from "../controllers/trade-risk.controller";
 import { appBehaviorMirrorController } from "../controllers/behavior-mirror.controller";
 import { appJudgmentScoreboardController } from "../controllers/judgment-scoreboard.controller";
+import { appTargetWeightController } from "../controllers/target-weight.controller";
 
 /**
  * 코치 리포트 — `/api/app/coach/*` (`BFF-REQ-023` "조립 — 코치 리포트").
@@ -42,5 +43,8 @@ router.get("/review/monthly", appBehaviorMirrorController.monthlyReview);
 
 /** F010 슬라이스 3 — 판정 성적표(신호 유형별, 사용자별 아님). `/investments` 카드(`BFF-REQ-039` FR-5) */
 router.get("/scoreboard", appJudgmentScoreboardController.scoreboard);
+
+/** F010 슬라이스 5 — 확률 없는 목표 비중 안내. `/investments` [오늘의 판정](`BFF-REQ-040`) */
+router.get("/target-weights", appTargetWeightController.targetWeights);
 
 export default router;

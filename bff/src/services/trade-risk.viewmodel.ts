@@ -25,6 +25,11 @@ const isRecord = (value: unknown): value is Raw =>
 const num = (value: unknown): number | null =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 const str = (value: unknown): string | null => (typeof value === "string" ? value : null);
+/** 0 이하 금액은 "정하지 않음"과 섞이지 않게 `null` — 서버 CHECK 가 0 초과를 지킨다 */
+const positive = (value: unknown): number | null => {
+  const n = num(value);
+  return n !== null && n > 0 ? n : null;
+};
 const oneOf = <T extends string>(value: unknown, allowed: readonly T[]): T | null =>
   typeof value === "string" && (allowed as readonly string[]).includes(value) ? (value as T) : null;
 
@@ -200,6 +205,8 @@ export interface RiskBudgetView {
     targetVolatilityIsDefault: boolean;
     /** 한 종목 상한(IPS 3문항의 셋째, 슬라이스 6). 서버 기본 0.6 */
     maxSingleAssetWeight: number | null;
+    /** 투자금(현금 포함, 원 — F010 슬라이스 5). 정하지 않았으면 `null` */
+    investableCapitalKrw: number | null;
   };
   totalValueKrw: number | null;
   gauges: {
@@ -390,6 +397,7 @@ export const toRiskBudgetViewModel = (data: Raw): RiskBudgetView => {
       targetVolatility: num(settings.targetVolatility),
       targetVolatilityIsDefault: settings.targetVolatilityIsDefault === true,
       maxSingleAssetWeight: num(settings.maxSingleAssetWeight),
+      investableCapitalKrw: positive(settings.investableCapitalKrw),
     },
     totalValueKrw: num(data.totalValueKrw),
     gauges: {

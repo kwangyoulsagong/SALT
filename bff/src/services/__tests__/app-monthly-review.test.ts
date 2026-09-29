@@ -161,6 +161,13 @@ describe("리스크 예산 — 시나리오 · 한 종목 상한", () => {
   it("설정의 maxSingleAssetWeight · 시나리오 없음은 null", () => {
     const view = toRiskBudgetViewModel({ settings: { maxSingleAssetWeight: 0.4 }, gauges: {} });
     assert.equal(view.settings.maxSingleAssetWeight, 0.4);
+    // 투자금(F010 슬라이스 5) — 정하지 않았으면 null, 0 이하는 "정하지 않음"과 섞이지 않게 null
+    assert.equal(view.settings.investableCapitalKrw, null);
+    assert.equal(
+      toRiskBudgetViewModel({ settings: { investableCapitalKrw: 20_000_000 }, gauges: {} }).settings.investableCapitalKrw,
+      20_000_000,
+    );
+    assert.equal(toRiskBudgetViewModel({ settings: { investableCapitalKrw: 0 }, gauges: {} }).settings.investableCapitalKrw, null);
     assert.equal(view.scenarios, null);
   });
 
