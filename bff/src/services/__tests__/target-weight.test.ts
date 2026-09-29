@@ -5,7 +5,7 @@ import { appTargetWeightService } from "../app-target-weight.service";
 import { backendApi } from "../backend-api.service";
 import { TargetWeightContractError, toTargetWeightViewModel } from "../target-weight.viewmodel";
 
-/** F010 슬라이스 5 — 목표 비중 안내 중계 (`BFF-REQ-041`). */
+/** F010 슬라이스 5 — 목표 비중 안내 중계 (`BFF-REQ-041`) · `target-weight@2` 알트 규칙 밖 · 라이브 원장(`BFF-REQ-041` FR-4~6). */
 
 const ok = (data: unknown) => ({ data: { success: true, data } }) as never;
 const httpError = (status: number) =>
@@ -93,7 +93,9 @@ describe("toTargetWeightViewModel", () => {
     assert.equal(view.record.holdBtc.mdd, 0.86);
     assert.deepEqual(view.record.claims, { lessDrawdown: true, timing: false, targetHit: true });
     assert.equal(view.record.preregKey, "target-weight@1");
-    assert.deepEqual(view.excluded, [{ symbol: "SOL", held: true, reason: "volatility_unavailable" }]);
+    assert.deepEqual(view.excluded, [
+      { symbol: "SOL", held: true, reason: "volatility_unavailable", currentValueKrw: 1_000_000 },
+    ]);
   });
 
   it("실패 사례 · 과거 성적이 빠지면 비중을 옮기지 않는다", () => {
@@ -131,6 +133,78 @@ describe("toTargetWeightViewModel", () => {
     });
     assert.throws(() => toTargetWeightViewModel(body({ rows: null })), TargetWeightContractError);
     assert.throws(() => toTargetWeightViewModel(body({ orderExecution: true })), TargetWeightContractError);
+  });
+});
+
+const altShare = {
+  preregKey: "target-weight@2",
+  report: "salt-forecast/reports/y.md",
+  adopted: null,
+  primaryTarget: 0.15,
+  candidates: [
+    { altShare: 0.1, deltaCalmar: [-0.032, -0.106, -0.005], cagr: 0.101, coreCagr: 0.115 },
+    { altShare: 0.2, deltaCalmar: [-0.065, -0.215, -0.009], cagr: 0.087, coreCagr: 0.115 },
+  ],
+  survivorshipBias: true,
+};
+const live = (over: Record<string, unknown> = {}) => ({
+  target: 0.15,
+  asOf: "2027-05-03T00:00:00.000Z",
+  firstRebalanceAt: "2026-10-05T00:00:00.000Z",
+  nWeeks: 30,
+  nExcluded: 1,
+  cumReturn: 0.04,
+  btcCumReturn: 0.12,
+  mdd: 0.09,
+  btcMdd: 0.25,
+  vol: 0.16,
+  upside: 0.31,
+  downside: 0.27,
+  worstWeeks: [{ rebalanceAt: "2026-11-09T00:00:00+00:00", strategy: -0.05, btc: -0.14, exposure: 0.3 }],
+  ...over,
+});
+
+describe("toTargetWeightViewModel — target-weight@2", () => {
+  it("알트 no_record · 판정 기록 · no_room · 줄인 부족분을 옮긴다", () => {
+    const view = toTargetWeightViewModel(
+      body({
+        rows: [row({ status: "no_room", gapCapped: true, gapValueKrw: 0, gapQuantity: 0 })],
+        excluded: [{ symbol: "SOL", held: true, reason: "no_record", currentValueKrw: 1_000_000 }],
+        totals: { ...body().totals, outsideRuleWeight: 0.1, fundableKrw: 0 },
+        altShare,
+      }),
+    );
+    assert.equal(view.status, "ok");
+    if (view.status !== "ok") return;
+    assert.equal(view.rows[0]?.status, "no_room");
+    assert.equal(view.rows[0]?.gapCapped, true);
+    assert.equal(view.excluded[0]?.reason, "no_record");
+    assert.equal(view.totals.outsideRuleWeight, 0.1);
+    assert.equal(view.altShare?.adopted, null);
+    assert.equal(view.altShare?.candidates.length, 2);
+    assert.equal(view.live, null);
+    assert.equal(view.recordSource, "backtest");
+  });
+
+  it("라이브는 서버가 live 라고 하고 온전할 때만 과거 성적 자리에", () => {
+    const pick = (over: Record<string, unknown>) => {
+      const view = toTargetWeightViewModel(body(over));
+      return view.status === "ok" ? view.recordSource : null;
+    };
+    assert.equal(pick({ live: live(), recordSource: "live", liveMinWeeks: 30 }), "live");
+    assert.equal(pick({ live: live({ nWeeks: 12 }), recordSource: "live" }), "backtest");
+    assert.equal(pick({ live: live({ mdd: null }), recordSource: "live" }), "backtest");
+    assert.equal(pick({ live: live({ worstWeeks: [] }), recordSource: "live" }), "backtest");
+    // 서버가 문턱을 낮춰 보내도 등록 문턱 30 아래로는 내리지 않는다
+    assert.equal(pick({ live: live({ nWeeks: 10 }), recordSource: "live", liveMinWeeks: 5 }), "backtest");
+    assert.equal(pick({ live: live(), recordSource: "backtest" }), "backtest");
+  });
+
+  it("라이브 진행 n/30 을 옮기고 깨진 판정 기록은 null", () => {
+    const view = toTargetWeightViewModel(body({ live: live({ nWeeks: 3 }), altShare: { preregKey: "x" } }));
+    assert.equal(view.status === "ok" && view.live?.nWeeks, 3);
+    assert.equal(view.status === "ok" && view.live?.minWeeks, 30);
+    assert.equal(view.status === "ok" && view.altShare, null);
   });
 });
 
