@@ -46,6 +46,18 @@ export interface LedgerMaterials {
     oldestAt: string;
     newestAt: string;
   } | null;
+  /**
+   * 시장 국면(F010 슬라이스 2 · `forecast.v_market_regime`) — BTC 200일선 · HMM 고변동 확률 · 365일 낙폭.
+   * 점수에 쓰지 않는다. 다음 사전등록이 라이브 표본을 국면으로 나눌 재료다. 2026-09-29 전 행 · 국면 작업이 없으면 `null`
+   */
+  market?: {
+    trendOpen: boolean;
+    highVolProbability: number | null;
+    drawdown365d: number | null;
+    observedAt: string;
+  } | null;
+  /** 종목 실현 변동성(연율) · 90일 BTC 베타(F010 슬라이스 2). 점수에 쓰지 않는다 */
+  risk?: { annualizedVolatility: number | null; btcBeta: number | null; observedAt: string } | null;
 }
 
 export interface JudgmentLedgerDraft {

@@ -235,7 +235,13 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.market,
       deps.judgments
     ),
-    publishJudgmentLedger: new PublishJudgmentLedger(deps.tracked, deps.market, deps.ledger),
+    publishJudgmentLedger: new PublishJudgmentLedger(
+      deps.tracked,
+      deps.market,
+      deps.ledger,
+      undefined,
+      deps.forecasts
+    ),
     evaluateSymbolJudgments: new EvaluateSymbolJudgments(
       deps.market,
       deps.judgments
