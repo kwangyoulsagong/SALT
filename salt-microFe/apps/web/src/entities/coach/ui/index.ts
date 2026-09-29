@@ -24,3 +24,4 @@ export { ScenarioList } from "./ScenarioList";
 export { MonthlyReviewCard } from "./MonthlyReviewCard";
 export { ScoreboardList } from "./ScoreboardList";
 export { TargetWeightList } from "./TargetWeightList";
+export { TargetWeightSummary } from "./TargetWeightSummary";

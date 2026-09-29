@@ -308,15 +308,23 @@ describe("GetTargetWeights — 게이지와 같은 월 잔여 · 3종 고지", (
     ["ETH", { annualized: null, ewma: 0.7, btcBeta: 1.1, asOf: now }],
     ["SOL", { annualized: null, ewma: null, btcBeta: null, asOf: now }],
   ]);
-  const forecasts = { symbolRisk: async () => riskRows } as unknown as ForecastReader;
+  const forecasts = { symbolRisk: async () => riskRows, targetWeightLive: async () => null } as unknown as ForecastReader;
   const portfolio = portfolioWith({ holdings, ledger: [] });
+  const liveRow = (nWeeks: number) => ({
+    target: 0.2, asOf: now, firstRebalanceAt: new Date("2026-10-05T00:00:00Z"), nWeeks, nExcluded: 0,
+    cumReturn: 0.05, btcCumReturn: 0.1, mdd: 0.08, btcMdd: 0.2, vol: 0.21, upside: 0.4, downside: 0.35, worstWeeks: [],
+  });
 
   it("σ 없는 보유는 빠지고, 과거 성적은 가장 가까운 목표 σ 기록", async () => {
     const view = await new GetTargetWeights(profiles, portfolio, market, forecasts, () => now).execute("u1");
     assert.equal(view.renderable, true);
     assert.equal(view.guide.basis, "investable_capital");
     assert.deepEqual(view.guide.rows.map((row) => row.symbol), ["BTC", "ETH"]);
-    assert.equal(view.guide.excluded[0].symbol, "SOL");
+    // SOL 은 σ 도 없지만 먼저 알트다 — target-weight@2 채택 없음 → no_record
+    assert.deepEqual(view.guide.excluded.map((row) => [row.symbol, row.reason]), [["SOL", "no_record"]]);
+    assert.equal(view.altShare.adopted, null);
+    assert.equal(view.live, null);
+    assert.equal(view.recordSource, "backtest");
     // 목표 σ 0.2 · 두 종목 → BTC 0.2 / (2 × 0.5) = 0.2 → 4,000,000 원
     assert.equal(view.guide.rows[0].targetValue.toKrwInteger(), 4_000_000);
     assert.equal(view.guide.rows[1].price.toKrwInteger(), 5_000_000);
@@ -326,8 +334,22 @@ describe("GetTargetWeights — 게이지와 같은 월 잔여 · 3종 고지", (
     assert.equal(view.orderExecution, false);
   });
 
+  it("라이브 원장이 30주 쌓이기 전에는 백테스트, 쌓이면 라이브를 과거 성적 자리에", async () => {
+    for (const [weeks, source] of [[29, "backtest"], [30, "live"]] as const) {
+      let asked: number | null = null;
+      const reader = {
+        symbolRisk: async () => riskRows,
+        targetWeightLive: async (target: number) => ((asked = target), liveRow(weeks)),
+      } as unknown as ForecastReader;
+      const view = await new GetTargetWeights(profiles, portfolio, market, reader, () => now).execute("u1");
+      assert.equal(asked, 0.2); // 사용자 목표 σ 에 가장 가까운 등록 목표
+      assert.equal(view.live?.nWeeks, weeks);
+      assert.equal(view.recordSource, source);
+    }
+  });
+
   it("σ 가 하나도 없으면 비중을 내지 않는다", async () => {
-    const none = { symbolRisk: async () => new Map() } as unknown as ForecastReader;
+    const none = { symbolRisk: async () => new Map(), targetWeightLive: async () => null } as unknown as ForecastReader;
     const view = await new GetTargetWeights(profiles, portfolio, market, none, () => now).execute("u1");
     assert.equal(view.renderable, false);
     assert.equal(view.blockedReason, "no_volatility");

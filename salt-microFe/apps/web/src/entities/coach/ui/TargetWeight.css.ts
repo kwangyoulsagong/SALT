@@ -123,3 +123,12 @@ export const failureGrid = style({
   gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
   gap: vars.space.md,
 });
+
+/**
+ * 요약 한 줄의 한 조각("가장 크게 잃은 달 2018년 11월 −16.0%") — 조각 안에서는 줄을 바꾸지 않는다.
+ * 640px 이하는 조각이 칸보다 길어 가로로 넘치므로 풀어 준다(2026-09-29 360 실측)
+ */
+export const summarySegment = style({
+  whiteSpace: "nowrap",
+  "@media": { "screen and (max-width: 640px)": { whiteSpace: "normal" } },
+});

@@ -45,3 +45,17 @@ def test_future_bars_do_not_change_targets() -> None:
         np.testing.assert_array_equal(a, b)
     t = int(np.flatnonzero(rows)[-1])
     assert alt_universe(pa, t) == alt_universe(pb, t)
+
+
+def test_future_bars_do_not_change_v2_targets() -> None:
+    from salt_forecast.scoring.target_weight_v2 import share_matrix
+
+    cut = 300
+    pa = build_panel(_ohlcv(5), T0, T0 + N * DAY)
+    pb = build_panel(_ohlcv(5, tamper_from=cut), T0, T0 + N * DAY)
+    rows = monday_rows(pa.dates)
+    rows[cut - 1 :] = False
+    for share in (0.0, 0.1, 0.2):
+        a = share_matrix(pa, ewma_sigma(pa) * np.sqrt(365), rows, 0.15, share, 10)
+        b = share_matrix(pb, ewma_sigma(pb) * np.sqrt(365), rows, 0.15, share, 10)
+        np.testing.assert_array_equal(a, b)

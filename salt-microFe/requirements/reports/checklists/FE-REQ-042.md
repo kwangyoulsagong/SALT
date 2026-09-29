@@ -30,3 +30,23 @@
 | 홈 "이번 주 목표 비중" 한 줄 | 진입점 원칙(투자 · 코치 기능은 `/investments`) — 홈에 무엇을 둘지 사용자 결정 필요 | 사용자 결정 |
 | Storybook | `@repo/ui` 변경 없음 | — |
 | 공용 `panelDescription` 대비 3.03 | 기존 스타일 · 전 화면 영향 | 대비 정리 REQ |
+
+## FR-9~13 — target-weight@2 · 요약 띠 재배치 (2026-09-29)
+
+| FR | 위치 | 결과 |
+|---|---|---|
+| FR-9 | `packages/core/src/coach/targetWeight.ts` | `@repo/core` check-types 통과 |
+| FR-10~12 | `entities/coach/ui/TargetWeightList.tsx` · `model/targetWeightMessages.ts` | Playwright route 고정 데이터(SOL `no_record` · ETH `no_room` · BTC `gapCapped` · 라이브 3/30): 문구 전부 렌더 확인 |
+| FR-13 | `entities/coach/ui/TargetWeightSummary.tsx` · `widgets/coach-console/ui/TargetWeightPanel.tsx` · `widgets/judgment-overview` | 실제 계정(Chrome): 요약 칸 → `/coach/report#target-weight` 이동 · 리포트 첫 패널 · "라이브 채점은 2026년 10월 5일부터" |
+
+- 1440: 요약 띠 108px · 시세 표 647px(뷰포트 772 안, 전 1890px) · 360: 띠 300px · 띠 · 리포트 카드 가로 넘침 0 · **axe(wcag2a · 2aa) 0**(띠 · 리포트 카드, 두 폭)
+- `pnpm check-types` · `pnpm lint` · `pnpm test`(ui 43 · core 26) · `test:layer-check`(차단 8 · 통과 5) · `web` build(worktree) — `/investments` 132 kB → 132 kB · `/coach/report` 110 kB
+- 3종 고지: 요약 한 줄에도 근거 · 과거 성적 · 실패 사례가 같이 있다 · 조각 안 줄바꿈 금지(640px 이하 해제) · 값 · 고지 자르지 않음
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 360 폭 페이지 가로 넘침 14px | 시장 요약 카드(`MarketSummaryCard` compact · sparkline)가 원인 — 로그아웃(띠 없음)에서도 같다. 이 변경 전부터 | 시장 요약 띠 반응형 정리(별도) |
+| 실제 계정의 알트 보유 화면 | 이 계정은 보유가 없다 — 고정 데이터로만 확인 | 로그인 QA(사용자, 보유 입력 뒤) |
+| 라이브 30주 뒤 화면 | 첫 리밸런스 2026-10-05 | 2027-05 전후 |
+| 홈 "이번 주 목표 비중" 한 줄 | 홈은 사용자 결정 | 홈 재디자인 |
+| web-tax 빌드 · storybook | 이 변경이 web-tax · `@repo/ui` 를 건드리지 않는다 | 해당 변경 시 |

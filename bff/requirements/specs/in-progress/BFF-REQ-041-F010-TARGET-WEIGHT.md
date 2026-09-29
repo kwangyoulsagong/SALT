@@ -31,7 +31,11 @@ BFF 는 **3종 고지가 다 붙었는지**만 막는다. 리스크 예산 PUT �
 | FR-1 | `GET /api/app/coach/target-weights` — 서버 중계(1,500ms · 재시도 1회 · 화면 떠나면 취소). 5xx · 타임아웃 · 계약 깨짐 → 200 `unavailable`, 4xx 그대로 | 완료 |
 | FR-2 | 뷰모델 `target-weight.viewmodel.ts` — 결정 1~4. 기록은 `strategy`(CAGR · σ · MDD · 상승 포착 · 평균 노출) · `holdBtc`(CAGR · MDD) · `claims` · 실패 사례 · 기간 · 등록 키 · 수수료만(고정 비중 곡선 · CI 는 화면이 쓰지 않는다) | 완료 |
 | FR-3 | `PUT /api/app/coach/risk-budget` 허용 키에 `investableCapital` · 응답 `settings.investableCapitalKrw`(0 이하는 `null`) | 완료 |
+| FR-4 | (target-weight@2) 행 `status` 에 `no_room` · `gapCapped`, `excluded.reason` 에 `no_record` · `currentValueKrw`, 합계 `outsideRuleWeight` · `fundableKrw` 를 옮긴다. 알트 비중은 어디에도 없다 | 완료 |
+| FR-5 | `altShare` — 등록 키 · 채택값(`null` = 채택 없음) · 후보별 ΔCalmar 셋 · CAGR · 생존 편향. 키나 후보가 없으면 `null`(알트 근거 문장을 쓰지 않는다) | 완료 |
+| FR-6 | `live` · `recordSource` — 서버가 `live` 라고 하고 라이브 요약이 온전할 때(`nWeeks ≥ 30` · 누적 · 낙폭 두 쌍 · 실패 주 1건 이상)만 `live`. 서버 문턱이 30 보다 작아도 30 아래로 내리지 않는다(등록 [live.display]) | 완료 |
 
 ## Changelog
 
 - 2026-09-29: 초판 · FR-1~3 완료(`d04bbd2` · 번호 정정 `11e7a65`)
+- 2026-09-29: FR-4~6 — target-weight@2 알트 규칙 밖 · 라이브 원장(`ae69599`)

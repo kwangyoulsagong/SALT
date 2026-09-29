@@ -53,3 +53,10 @@
 | 미검증 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 운영 DB 적용 | 로컬만 | 배포 시 `prisma migrate deploy` |
+
+## FR-21 — 목표 비중 라이브 원장 (2026-09-29)
+
+- `20260929130000_forecast_target_weight_live` 로컬 `prisma migrate deploy` 적용 · `tests/store/test_schema_contract.py` 통과(선언 3표 = DB 열)
+- 불변: 두 원장 표 UPDATE 트리거(`judgment_ledger_immutable` 재사용) · 결과 CHECK(missing_bar 가 아니면 수익 NOT NULL)
+- 뷰 `v_target_weight_live` EXPLAIN: PK Index Scan · 0.015ms(행 0)
+- 롤백: 뷰 → 요약 → 결과 → 비중 DROP(참조 역순). 미검증: 운영 DB 적용(배포 시)

@@ -33,6 +33,7 @@ export const toTargetWeightResponse = (view: TargetWeightView) => {
       targetWeight: rate(row.targetWeight),
       currentWeight: rate(row.currentWeight),
       gapWeight: rate(row.gapWeight),
+      gapCapped: row.gapCapped,
       targetValueKrw: krw(row.targetValue),
       currentValueKrw: krw(row.currentValue),
       gapValueKrw: krw(row.gapValue),
@@ -58,6 +59,8 @@ export const toTargetWeightResponse = (view: TargetWeightView) => {
       betaCoveredWeight: rate(guide.totals.betaCoveredWeight),
       lossAtStopTotalKrw: krw(guide.totals.lossAtStopTotal),
       lossAtStopMonthlyBudgetRate: rate(guide.totals.lossAtStopMonthlyBudgetRatio),
+      outsideRuleWeight: rate(guide.totals.outsideRuleWeight),
+      fundableKrw: krw(guide.totals.fundable),
     },
     expiresAt: guide.expiresAt,
     volatilityAsOf: guide.volatilityAsOf,
@@ -67,6 +70,11 @@ export const toTargetWeightResponse = (view: TargetWeightView) => {
     // 기록은 리포트 상수 그대로(이미 반올림된 비율) — 여기서 다시 반올림하지 않는다
     record: view.record,
     backtest: view.backtest,
+    // 판정 · 라이브 요약은 salt-forecast 가 낸 비율 그대로(이미 등록 정의로 계산됨)
+    altShare: view.altShare,
+    live: view.live,
+    liveMinWeeks: view.liveMinWeeks,
+    recordSource: view.recordSource,
     renderable: view.renderable,
     blockedReason: view.blockedReason,
     asOf: view.asOf,

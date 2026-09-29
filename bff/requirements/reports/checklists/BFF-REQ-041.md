@@ -20,3 +20,14 @@
 |---|---|---|
 | 실행 중 BFF 로 인증된 요청 | 로컬 토큰 발급 불가 | 로그인 QA(사용자) |
 | 모바일 집계 1콜 | 모바일 앱 미착수 | F007 |
+
+## FR-4~6 — target-weight@2 (2026-09-29)
+
+| FR | 위치 | 결과 |
+|---|---|---|
+| FR-4 | `services/target-weight.viewmodel.ts` | 테스트: `no_room` · `gapCapped` · `no_record` · `outsideRuleWeight` 옮김 |
+| FR-5 | 같은 파일 `toAltShare` | 테스트: 채택 없음 `null` 유지 · 후보 2 · 키 없는 기록은 `null` |
+| FR-6 | 같은 파일 `toLive` · `liveComplete` | 테스트: 30주 `live` · 12주 · 낙폭 없음 · 실패 주 없음 → `backtest` · 서버 문턱 5 여도 30 · 서버 `backtest` 면 `backtest` |
+
+- `npm test` 198 / 0 · `tsc --noEmit` · lint 통과. prettier 설정 없음(main 도 같은 파일이 걸린다) — 돌리지 않았다
+- 미검증: 인증된 HTTP(로컬 토큰 없음) — 로그인 QA

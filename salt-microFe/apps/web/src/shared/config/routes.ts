@@ -4,6 +4,17 @@
  * **zone 을 넘는 경로는 여기 없다.** 그것은 `@repo/core/zones` 가 소유하고
  * `shared/ui` 의 `CrossZoneLink` 만 사용한다 (`microfrontend.md`).
  */
+/**
+ * 코치 리포트 섹션 앵커 — 요약 띠(`judgment-overview`)와 리포트(`coach-console`)가 같은 id 를 쓴다.
+ * 두 위젯이 서로를 부를 수 없어(같은 레이어) 여기 한 벌만 둔다
+ */
+export const COACH_REPORT_SECTIONS = {
+  targetWeight: "target-weight",
+  riskBudget: "risk-budget",
+  scoreboard: "scoreboard",
+} as const;
+export type CoachReportSection = (typeof COACH_REPORT_SECTIONS)[keyof typeof COACH_REPORT_SECTIONS];
+
 export const ROUTES = {
   login: "/",
   home: "/home",
@@ -12,6 +23,8 @@ export const ROUTES = {
   investmentDetail: (symbol: string) => `/investments/${encodeURIComponent(symbol)}`,
   /** 코치 리포트. 투자 화면 머리에서 들어온다 */
   coachReport: "/coach/report",
+  /** 코치 리포트의 한 섹션 — 투자 화면 요약 띠가 여기로 간다 */
+  coachReportSection: (id: CoachReportSection) => `/coach/report#${id}`,
   onboarding: "/onboarding",
   addGoal: "/goals/addgoals",
 } as const;

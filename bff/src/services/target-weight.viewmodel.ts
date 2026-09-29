@@ -9,7 +9,11 @@
  * 2. 깨진 행은 뺀다 — 모르는 `status`, 0~1 밖 비중, σ 없는 행. 0 으로 채우지 않는다
  * 3. `claims`(화면이 쓸 수 있는 문장 조건)는 **서버 값만** 옮긴다. 모르면 `false` — "나았다"는 주장은 서버만 한다
  *
- * 하지 않는 것: 비중 · 금액 · 수량 계산, 문장 만들기. 알트를 섞은 묶음의 기록은 서버에도 없다(사전등록이 화면에 쓰지 않게 정했다).
+ * 4. **과거 성적 자리** — 서버 `recordSource: "live"` 이고 라이브 요약이 온전할 때(30주 이상 · 누적 수익 · 낙폭 · 실패 주
+ *    1건 이상)만 `live`. 하나라도 비면 백테스트 기록으로 남긴다 — 라이브를 반쯤 보이지 않는다(`target-weight@2` [live.display])
+ *
+ * 하지 않는 것: 비중 · 금액 · 수량 계산, 문장 만들기. 알트는 규칙 밖이다(`target-weight@2` 채택 없음) — 서버가
+ * `excluded.reason = no_record` 로 주고 판정 기록(`altShare`)을 같이 준다. 알트 비중은 어디에도 없다.
  *
  * 여기에는 import 가 없다(`symbol-coach.viewmodel.ts` 와 같은 이유).
  */
@@ -26,8 +30,9 @@ const rate01 = (value: unknown): number | null => {
   return n !== null && n >= 0 && n <= 1 ? n : null;
 };
 
-const ROW_STATUS = ["under", "over", "at"] as const;
-const EXCLUDED_REASON = ["volatility_unavailable", "price_unavailable"] as const;
+const ROW_STATUS = ["under", "over", "at", "no_room"] as const;
+const EXCLUDED_REASON = ["volatility_unavailable", "price_unavailable", "no_record"] as const;
+const LIVE_MIN_WEEKS_FLOOR = 30;
 const MONTH = /^\d{4}-\d{2}$/;
 
 export interface TargetWeightRow {
@@ -40,6 +45,8 @@ export interface TargetWeightRow {
   targetWeight: number;
   currentWeight: number;
   gapWeight: number;
+  /** 부족분을 쓸 수 있는 돈 안으로 줄였다(서버 판정) */
+  gapCapped: boolean;
   targetValueKrw: number;
   currentValueKrw: number;
   gapValueKrw: number;
@@ -69,13 +76,41 @@ export interface TargetWeightRecordView {
   feeRatePerSide: number | null;
 }
 
+export interface TargetWeightAltShareView {
+  preregKey: string;
+  /** `null` = 채택 없음 — 알트에는 목표 비중이 없다 */
+  adopted: number | null;
+  primaryTarget: number | null;
+  candidates: Array<{ altShare: number; deltaCalmar: [number, number, number]; cagr: number | null; coreCagr: number | null }>;
+  survivorshipBias: boolean;
+}
+
+export interface TargetWeightLiveView {
+  target: number;
+  firstRebalanceAt: string | null;
+  nWeeks: number;
+  minWeeks: number;
+  nExcluded: number;
+  cumReturn: number | null;
+  btcCumReturn: number | null;
+  mdd: number | null;
+  btcMdd: number | null;
+  upside: number | null;
+  worstWeeks: Array<{ rebalanceAt: string; strategy: number; btc: number }>;
+}
+
 export interface TargetWeightView {
   status: "ok" | "no_capital";
   basis: "investable_capital" | "crypto_value";
   capitalKrw: number | null;
   capitalBelowHoldings: boolean;
   rows: TargetWeightRow[];
-  excluded: Array<{ symbol: string; held: boolean; reason: (typeof EXCLUDED_REASON)[number] }>;
+  excluded: Array<{
+    symbol: string;
+    held: boolean;
+    reason: (typeof EXCLUDED_REASON)[number];
+    currentValueKrw: number | null;
+  }>;
   totals: {
     targetExposure: number | null;
     currentExposure: number | null;
@@ -84,6 +119,8 @@ export interface TargetWeightView {
     betaCoveredWeight: number | null;
     lossAtStopTotalKrw: number | null;
     lossAtStopMonthlyBudgetRate: number | null;
+    outsideRuleWeight: number | null;
+    fundableKrw: number | null;
   };
   targetVolatility: number | null;
   targetVolatilityIsDefault: boolean;
@@ -91,6 +128,12 @@ export interface TargetWeightView {
   expiresAt: string | null;
   volatilityAsOf: string | null;
   record: TargetWeightRecordView;
+  /** 알트 몫 판정 기록. 서버가 안 주면 `null` — 알트 안내 문장을 쓰지 않는다 */
+  altShare: TargetWeightAltShareView | null;
+  /** 라이브 원장 진행. 첫 리밸런스 전이면 `null` */
+  live: TargetWeightLiveView | null;
+  /** 과거 성적 자리에 쓸 것 — `live` 는 `live` 가 온전할 때만 */
+  recordSource: "backtest" | "live";
   asOf: string | null;
 }
 
@@ -151,6 +194,7 @@ const toRow = (raw: unknown): TargetWeightRow | null => {
     targetWeight,
     currentWeight,
     gapWeight,
+    gapCapped: raw.gapCapped === true,
     targetValueKrw,
     currentValueKrw,
     gapValueKrw,
@@ -234,6 +278,71 @@ const toRecord = (raw: unknown, backtest: Raw): TargetWeightRecordView | null =>
   };
 };
 
+const toTriple = (raw: unknown): [number, number, number] | null => {
+  if (!Array.isArray(raw) || raw.length !== 3) return null;
+  const [a, b, c] = raw.map(num);
+  return a !== null && b !== null && c !== null ? [a, b, c] : null;
+};
+
+const toAltShare = (raw: unknown): TargetWeightAltShareView | null => {
+  if (!isRecord(raw)) return null;
+  const preregKey = str(raw.preregKey);
+  const candidates = (Array.isArray(raw.candidates) ? raw.candidates : []).flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const altShare = rate01(item.altShare);
+    const deltaCalmar = toTriple(item.deltaCalmar);
+    return altShare !== null && deltaCalmar
+      ? [{ altShare, deltaCalmar, cagr: num(item.cagr), coreCagr: num(item.coreCagr) }]
+      : [];
+  });
+  if (!preregKey || candidates.length === 0) return null;
+  const adopted = raw.adopted === null ? null : rate01(raw.adopted);
+  // 채택값이 깨졌으면(숫자 아님) 채택으로 보지 않는다
+  return {
+    preregKey,
+    adopted,
+    primaryTarget: num(raw.primaryTarget),
+    candidates,
+    survivorshipBias: raw.survivorshipBias === true,
+  };
+};
+
+const toLive = (raw: unknown, minWeeks: number): TargetWeightLiveView | null => {
+  if (!isRecord(raw)) return null;
+  const target = num(raw.target);
+  const nWeeks = num(raw.nWeeks);
+  if (target === null || nWeeks === null || nWeeks < 0 || !Number.isInteger(nWeeks)) return null;
+  const worstWeeks = (Array.isArray(raw.worstWeeks) ? raw.worstWeeks : []).flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const rebalanceAt = str(item.rebalanceAt);
+    const strategy = num(item.strategy);
+    const btc = num(item.btc);
+    return rebalanceAt && strategy !== null && btc !== null ? [{ rebalanceAt, strategy, btc }] : [];
+  });
+  return {
+    target,
+    firstRebalanceAt: str(raw.firstRebalanceAt),
+    nWeeks,
+    minWeeks,
+    nExcluded: num(raw.nExcluded) ?? 0,
+    cumReturn: num(raw.cumReturn),
+    btcCumReturn: num(raw.btcCumReturn),
+    mdd: num(raw.mdd),
+    btcMdd: num(raw.btcMdd),
+    upside: num(raw.upside),
+    worstWeeks,
+  };
+};
+
+const liveComplete = (live: TargetWeightLiveView | null): boolean =>
+  live !== null &&
+  live.nWeeks >= live.minWeeks &&
+  live.cumReturn !== null &&
+  live.btcCumReturn !== null &&
+  live.mdd !== null &&
+  live.btcMdd !== null &&
+  live.worstWeeks.length > 0;
+
 export const toTargetWeightViewModel = (data: Raw): TargetWeightResult => {
   if (!Array.isArray(data.rows)) throw new TargetWeightContractError("rows");
   if (data.orderExecution !== false) throw new TargetWeightContractError("orderExecution");
@@ -249,6 +358,9 @@ export const toTargetWeightViewModel = (data: Raw): TargetWeightResult => {
   if (rows.length === 0) return { status: "blocked", reason: "no_volatility" };
 
   const totals = isRecord(data.totals) ? data.totals : {};
+  // 서버가 30 보다 작은 문턱을 보내도 등록 문턱(30) 아래로는 내리지 않는다
+  const minWeeks = Math.max(LIVE_MIN_WEEKS_FLOOR, num(data.liveMinWeeks) ?? LIVE_MIN_WEEKS_FLOOR);
+  const live = toLive(data.live, minWeeks);
   return {
     status: data.status === "no_capital" ? "no_capital" : "ok",
     basis: data.basis === "investable_capital" ? "investable_capital" : "crypto_value",
@@ -259,7 +371,9 @@ export const toTargetWeightViewModel = (data: Raw): TargetWeightResult => {
       if (!isRecord(item)) return [];
       const symbol = str(item.symbol);
       const reason = oneOf(item.reason, EXCLUDED_REASON);
-      return symbol && reason ? [{ symbol, held: item.held === true, reason }] : [];
+      return symbol && reason
+        ? [{ symbol, held: item.held === true, reason, currentValueKrw: num(item.currentValueKrw) }]
+        : [];
     }),
     totals: {
       targetExposure: rate01(totals.targetExposure),
@@ -269,6 +383,8 @@ export const toTargetWeightViewModel = (data: Raw): TargetWeightResult => {
       betaCoveredWeight: rate01(totals.betaCoveredWeight),
       lossAtStopTotalKrw: num(totals.lossAtStopTotalKrw),
       lossAtStopMonthlyBudgetRate: num(totals.lossAtStopMonthlyBudgetRate),
+      outsideRuleWeight: rate01(totals.outsideRuleWeight),
+      fundableKrw: num(totals.fundableKrw),
     },
     targetVolatility: num(data.targetVolatility),
     targetVolatilityIsDefault: data.targetVolatilityIsDefault === true,
@@ -276,6 +392,9 @@ export const toTargetWeightViewModel = (data: Raw): TargetWeightResult => {
     expiresAt: str(data.expiresAt),
     volatilityAsOf: str(data.volatilityAsOf),
     record,
+    altShare: toAltShare(data.altShare),
+    live,
+    recordSource: data.recordSource === "live" && liveComplete(live) ? "live" : "backtest",
     asOf: str(data.asOf),
   };
 };

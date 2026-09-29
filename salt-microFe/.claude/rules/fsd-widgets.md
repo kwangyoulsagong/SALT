@@ -32,10 +32,10 @@ widgets/{slice}/
 | widget | 엮는 것 | 화면 |
 |---|---|---|
 | `home-briefing` | portfolio + plan + coach | 홈 3블록 (2026-09-21, `ADR-002`) |
-| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio | 코치 대화 + 추천 카드 + 성적표 |
+| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio | 코치 리포트 — 이번 주 목표 비중 · 리스크 예산 · 판정 성적표 · 추천 · 미러 (대화는 F006) |
 | `asset-workspace` | portfolio + market | 자산 탭 세그먼트 3 (포지션/시장/관심 종목) |
 | `coach-panel` | market + coach + indicator | 투자 우측 AI 코치 패널 |
-| `judgment-overview` | coach + market | 투자 화면 머리 아래 [이번 주 목표 비중] [위험에 노출된 돈] [판정 성적표] (F010 `FE-REQ-040` · `FE-REQ-042`) |
+| `judgment-overview` | coach | 투자 화면 머리 아래 요약 띠 — 칸마다 한 줄 값 + 한 줄 고지, 누르면 `/coach/report#섹션`. 카드 본문을 투자 화면에 펼치지 않는다 (F010 `FE-REQ-040` · `FE-REQ-042`) |
 | `market-board` | market + news + indicator | 실시간 테이블 + 우측 프리뷰 |
 | `onboarding-flow` | auth + portfolio + plan | 초대→첫 보유 기록→적립 3스텝 |
 | `pc-panel-grid` | `MovableGrid` + 위 위젯들 | PC 이진분할 배치 |

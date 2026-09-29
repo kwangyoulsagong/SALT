@@ -114,3 +114,33 @@ export const subHeading = style({
   lineHeight: "22px",
   fontWeight: vars.fontWeights.bold,
 });
+
+/** 요약 띠(`/investments`)가 `#앵커`로 올 때 패널 머리가 화면 맨 위에 붙지 않게 */
+export const anchorTarget = style({ scrollMarginTop: "16px" });
+
+/**
+ * 목표 비중 카드 설명 — "오를 종목을 고르지 않고 확률을 말하지 않는다"는 고지라 늘 읽혀야 한다.
+ * 공용 `panelDescription`(neutral 500, 3.03:1)이 아니라 13px neutral 700(AA). 투자 화면에서 옮겨 왔다
+ */
+export const noticeDescription = style({
+  margin: 0,
+  color: vars.colors.neutral[700],
+  fontSize: vars.typography.t7.fontSize,
+  lineHeight: vars.typography.t7.lineHeight,
+});
+
+/** 흰 패널 안 고지 · 기준 시각 — 12px neutral 700(AA). 바깥 회색 바탕용 `footnote` 와 다르다 */
+export const panelFootnote = style({
+  margin: 0,
+  color: vars.colors.neutral[700],
+  fontSize: "12px",
+  lineHeight: "18px",
+});
+
+/** 문장 안 페이지 내부 링크("투자금 적기") — neutral 900 · 밑줄(색만으로 링크를 알리지 않는다) */
+export const inlineLink = style({
+  color: vars.colors.neutral[900],
+  fontWeight: vars.fontWeights.semibold,
+  textDecoration: "underline",
+  textUnderlineOffset: "2px",
+});
