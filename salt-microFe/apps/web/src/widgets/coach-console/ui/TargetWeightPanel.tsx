@@ -1,15 +1,13 @@
 "use client";
 
 import { Text } from "@repo/ui/text";
-import Link from "next/link";
 
 import { CoachBlockSkeleton, TARGET_WEIGHT_MESSAGES, TargetWeightList, useTargetWeights } from "@/entities/coach";
 import { AssetIdentity } from "@/entities/market";
-import { ROUTES } from "@/shared/config";
-import { NavChevron } from "@/shared/ui";
+import { COACH_REPORT_SECTIONS } from "@/shared/config";
 import { panel, panelHead, panelTitle } from "@/shared/ui/surface.css";
 
-import { headLink, noticeDescription } from "./JudgmentOverview.css";
+import { anchorTarget, inlineLink, noticeDescription } from "./CoachReport.css";
 
 const M = TARGET_WEIGHT_MESSAGES;
 
@@ -18,17 +16,17 @@ const renderIdentity = (symbol: string) => <AssetIdentity symbol={symbol} size="
 /**
  * 이번 주 목표 비중 (F010 슬라이스 5 · `FE-REQ-042` · 리서치 §9-4 [오늘의 판정]).
  *
- * `/investments` 머리 아래 **첫 카드**다 — 위험 · 성적표보다 먼저(리서치 §9-4 순서). 따로 부르고 따로 실패한다.
- * 투자금 · 목표 변동성은 코치 리포트의 "내 기준" 폼에서 적는다(설정 폼을 두 곳에 두지 않는다).
+ * 코치 리포트의 **첫 패널**이다(2026-09-29 투자 화면에서 옮김 — 3종 고지를 다 펼친 카드가 876px 로 한 화면보다 길어
+ * 시세 표를 두 화면 반 아래로 밀었다). 투자 화면에는 요약 띠만 남고 그 띠가 이 앵커로 온다.
+ * 투자금 · 목표 변동성은 같은 페이지 "내 기준" 폼에서 적는다 — 링크는 페이지 안 이동이다.
  */
 export const TargetWeightPanel = () => {
   const weights = useTargetWeights();
 
   const capitalAction = (
-    <Link href={ROUTES.coachReport} className={headLink} aria-label={M.setCapitalLabel}>
+    <a href={`#${COACH_REPORT_SECTIONS.riskBudget}`} className={inlineLink} aria-label={M.setCapitalLabel}>
       {M.setCapital}
-      <NavChevron />
-    </Link>
+    </a>
   );
 
   const body = () => {
@@ -39,7 +37,7 @@ export const TargetWeightPanel = () => {
   };
 
   return (
-    <section className={panel}>
+    <section id={COACH_REPORT_SECTIONS.targetWeight} className={`${panel} ${anchorTarget}`}>
       <div className={panelHead}>
         <h2 className={panelTitle}>{M.heading}</h2>
       </div>

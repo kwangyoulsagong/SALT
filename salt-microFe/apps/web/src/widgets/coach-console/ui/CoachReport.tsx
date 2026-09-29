@@ -40,6 +40,8 @@ import {
 import { MirrorPanel } from "./MirrorPanel";
 import { MonthlyReviewPanel } from "./MonthlyReviewPanel";
 import { RiskBudgetPanel } from "./RiskBudgetPanel";
+import { ScoreboardPanel } from "./ScoreboardPanel";
+import { TargetWeightPanel } from "./TargetWeightPanel";
 
 const renderIdentity = (symbol: string, size: "sm" | "md") => (
   <AssetIdentity symbol={symbol} size={size} />
@@ -105,8 +107,13 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
           </div>
         </section>
 
+        {/* F010 — 투자 화면 요약 띠의 본문 셋(목표 비중 → 위험 · 내 기준 → 판정 성적표). 각자 부르고 각자 실패한다 */}
+        <TargetWeightPanel />
+
         {/* F009 — 내 기준과 나란히 보는 게이지. 리포트와 따로 부르고 따로 실패한다 */}
         <RiskBudgetPanel />
+
+        <ScoreboardPanel />
 
         {/* FR-143 — 막힌 추천은 초기의 정상 상태다. 정책을 섹션 설명으로 늘 말하고, 막힘은 회색 상자 하나 */}
         <ReportPanel
@@ -196,7 +203,9 @@ export const CoachReport = () => {
     return notice(
       <Text color="tertiary">{REPORT.unavailable}</Text>,
       <>
+        <TargetWeightPanel />
         <RiskBudgetPanel />
+        <ScoreboardPanel />
         <MirrorPanel behaviorFacts={null} />
         <MonthlyReviewPanel />
       </>,

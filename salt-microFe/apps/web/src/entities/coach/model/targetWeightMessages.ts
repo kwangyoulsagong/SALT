@@ -74,6 +74,18 @@ export const TARGET_WEIGHT_MESSAGES = {
   liveWorstHeading: "라이브에서 가장 크게 잃은 주",
   weekLine: (week: string, strategy: string, btc: string) => `${week} 주 · 이 규칙 ${strategy} · BTC ${btc}`,
   liveStartFallback: "2026년 10월 5일",
+  /** 투자 화면 요약 띠 한 칸(`TargetWeightSummary`) — 3종 고지를 한 줄로 */
+  summary: {
+    weight: (symbol: string, weight: string) => `${symbol} ${weight}`,
+    cash: (weight: string) => `현금 ${weight}`,
+    basis: "변동성만으로 나눈 계산",
+    backtest: (cagr: string, mdd: string, btcMdd: string) => `백테스트 연 ${cagr} · 최대 낙폭 ${mdd}(BTC ${btcMdd})`,
+    live: (weeks: number, cum: string, mdd: string, btcMdd: string) =>
+      `라이브 ${weeks}주 누적 ${cum} · 최대 낙폭 ${mdd}(BTC ${btcMdd})`,
+    worst: (month: string, rate: string) => `가장 크게 잃은 달 ${month} ${rate}`,
+    worstWeek: (week: string, rate: string) => `가장 크게 잃은 주 ${week} ${rate}`,
+  },
+
   blocked: {
     no_volatility: "변동성 기록이 있는 종목이 없어 목표 비중을 계산하지 못했어요",
     disclosure_missing: "과거 성적 · 빗나간 사례를 함께 보일 수 없어 목표 비중을 보이지 않아요",

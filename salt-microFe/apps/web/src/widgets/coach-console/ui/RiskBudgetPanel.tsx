@@ -12,9 +12,10 @@ import {
   useRiskBudget,
 } from "@/entities/coach";
 import { RiskBudgetForm } from "@/features/set-risk-budget";
+import { COACH_REPORT_SECTIONS } from "@/shared/config";
 import { panel, panelDescription, panelHead, panelTitle } from "@/shared/ui/surface.css";
 
-import { subHeading } from "./CoachReport.css";
+import { anchorTarget, subHeading } from "./CoachReport.css";
 
 const { gauge: GAUGE, scenario: SCENARIO } = RISK_MESSAGES;
 
@@ -52,7 +53,7 @@ export const RiskBudgetPanel = () => {
   };
 
   return (
-    <section className={panel}>
+    <section id={COACH_REPORT_SECTIONS.riskBudget} className={`${panel} ${anchorTarget}`}>
       <div className={panelHead}>
         <h2 className={panelTitle}>{GAUGE.heading}</h2>
       </div>
