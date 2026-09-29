@@ -2,6 +2,7 @@ import type { CoachAction, CoachAssetType, CoachHolding } from "../model";
 import {
   calculateProfitPlan,
   priceGap,
+  type ProfitPlanBasis,
   ProfitPlanStageAction,
   ProfitPlanStageKey,
 } from "./profitPlan";
@@ -109,6 +110,8 @@ export interface ExitPlanView {
   firstTakeProfit: { price: number; priceGap: number };
   /** 추세 유지 조건 코드. 문구는 프론트(FR-9). */
   trendHold: { conditionCode: string };
+  /** 가격선 근거(F010 슬라이스 2) — `volatility` 면 손절 −1σ · 1차 익절 +2σ(20일) */
+  basis: ProfitPlanBasis;
 }
 
 /**
@@ -117,9 +120,10 @@ export interface ExitPlanView {
  */
 export const toExitPlan = (
   holding: CoachHolding,
-  assetType: CoachAssetType
+  assetType: CoachAssetType,
+  annualizedVolatility: number | null = null
 ): ExitPlanView => {
-  const plan = calculateProfitPlan(holding);
+  const plan = calculateProfitPlan(holding, annualizedVolatility);
   const stage = (key: ProfitPlanStageKey) => {
     const found = plan.stages.find((item) => item.key === key)!;
     return {
@@ -135,6 +139,7 @@ export const toExitPlan = (
     stopLoss: stage(ProfitPlanStageKey.ProtectLoss),
     firstTakeProfit: stage(ProfitPlanStageKey.FirstProfit),
     trendHold: { conditionCode: ProfitPlanStageAction.HoldOrTrailStop },
+    basis: plan.basis,
   };
 };
 

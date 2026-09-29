@@ -16,6 +16,7 @@ import {
   type CoachInsight,
   type CoachInsightStore,
   type ExitPlanView,
+  type ForecastReader,
   type MarketProbe,
   type PortfolioProbe,
   type RecommendationBlockedReason,
@@ -86,7 +87,9 @@ export class GetCoachDetail {
     private readonly portfolio: PortfolioProbe,
     private readonly recommendations: RecommendationSnapshotStore,
     private readonly clock: Clock = () => new Date(),
-    private readonly behavior: BehaviorAnalyzer | null = null
+    private readonly behavior: BehaviorAnalyzer | null = null,
+    /** 익절 계획의 실현 변동성(F010 슬라이스 2). 없으면 고정 비율 */
+    private readonly forecasts: Pick<ForecastReader, "symbolRisk"> | null = null
   ) {}
 
   async execute(userId: string): Promise<CoachDetailView> {
@@ -103,6 +106,13 @@ export class GetCoachDetail {
     const stored = latest
       ? readStoredRecommendation(latest.payload, latest.createdAt)
       : null;
+    // 변동성 실패는 상세를 막지 않는다 — 익절 계획만 고정 비율로
+    const risk =
+      this.forecasts && holdings.length
+        ? await this.forecasts
+            .symbolRisk(holdings.map((holding) => holding.symbol))
+            .catch(() => null)
+        : null;
 
     const recommendation = stored
       ? await this.assembleRecommendation(userId, latest!, stored)
@@ -121,7 +131,11 @@ export class GetCoachDetail {
         reasons: [],
       })),
       exitPlans: holdings.map((holding) =>
-        toExitPlan(holding, EXIT_PLAN_ASSET_TYPE)
+        toExitPlan(
+          holding,
+          EXIT_PLAN_ASSET_TYPE,
+          risk?.get(holding.symbol.toUpperCase())?.annualized ?? null
+        )
       ),
       behaviorFacts: [...behaviors]
         .sort((a, b) => b.severity - a.severity)
