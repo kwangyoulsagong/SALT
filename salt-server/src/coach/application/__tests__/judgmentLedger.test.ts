@@ -85,7 +85,7 @@ describe("PublishJudgmentLedger", () => {
         nextEventAt: null,
         preregKey: "regime-gate@1",
       }),
-      symbolRisk: async () => new Map([["ETH", { annualized: 0.7, btcBeta: 1.2, asOf: T0 }]]),
+      symbolRisk: async () => new Map([["ETH", { annualized: 0.7, ewma: 0.7, btcBeta: 1.2, asOf: T0 }]]),
     } as unknown as ForecastReader;
     const ledger = new MemoryLedger();
     await new PublishJudgmentLedger(tracked(["ETH"]), market, ledger, () => T0, forecasts).execute();

@@ -102,7 +102,9 @@ export class GetTargetWeights {
         [...risk].map(([symbol, row]) => [
           symbol.toUpperCase(),
           {
-            sigma: row.annualized === null ? null : new Decimal(row.annualized),
+            // 사전등록 [protocol] sigma = EWMA 그 자체. 사이즈 계산의 QLIKE 게이트(`annualized`)는 여기 쓰지 않는다 —
+            // 백테스트가 게이트 없이 돌았고, 게이트를 쓰면 ETH 처럼 채점에 진 종목이 규칙에서 빠져 기록과 다른 규칙이 된다
+            sigma: row.ewma === null ? null : new Decimal(row.ewma),
             btcBeta: row.btcBeta,
             asOf: row.asOf,
           },

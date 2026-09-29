@@ -275,9 +275,9 @@ export class PrismaForecastReader implements ForecastReader {
     if (!symbols.length) return new Map();
     const markets = symbols.map((symbol) => `KRW-${symbol.toUpperCase()}`);
     const rows = await prisma.$queryRaw<
-      { symbol: string; annualized: number | null; btc_beta: number | null; as_of: Date }[]
+      { symbol: string; annualized: number | null; ewma: number | null; btc_beta: number | null; as_of: Date }[]
     >`
-      SELECT symbol, annualized, btc_beta, as_of FROM forecast.v_realized_vol
+      SELECT symbol, annualized, ewma, btc_beta, as_of FROM forecast.v_realized_vol
       WHERE symbol = ANY(${markets}) AND as_of >= now() - interval '3 days'
     `;
     return new Map(
@@ -285,6 +285,7 @@ export class PrismaForecastReader implements ForecastReader {
         r.symbol.replace(/^KRW-/, ""),
         {
           annualized: r.annualized !== null && r.annualized > 0 ? r.annualized : null,
+          ewma: r.ewma !== null && r.ewma > 0 ? r.ewma : null,
           btcBeta: r.btc_beta !== null && Number.isFinite(r.btc_beta) ? r.btc_beta : null,
           asOf: r.as_of,
         },

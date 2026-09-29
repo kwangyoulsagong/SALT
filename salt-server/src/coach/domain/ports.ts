@@ -552,6 +552,11 @@ export interface ForecastReader {
 export interface SymbolRisk {
   /** 연율 변동성(0.52 = 52%). 막혔으면 `null` */
   annualized: number | null;
+  /**
+   * EWMA(λ 0.94) 연율 σ 그 자체 — QLIKE 채점 게이트(`no_skill_vs_baseline`)를 보지 않는다. 이력 부족 · 시세 끊김이면 `null`.
+   * 목표 비중 안내(사전등록 `target-weight@1` [protocol] sigma)가 이 값을 쓴다 — 백테스트가 게이트 없이 EWMA 로 돌았다
+   */
+  ewma: number | null;
   /** 90일 일 로그수익 OLS 기울기(BTC 대비). 표본 60일 미만이면 `null` */
   btcBeta: number | null;
   asOf: Date;

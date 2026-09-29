@@ -303,9 +303,10 @@ describe("GetTargetWeights — 게이지와 같은 월 잔여 · 3종 고지", (
     quotes: async () => new Map([["ETH", { symbol: "ETH", currentPrice: 5_000_000 }]]),
   } as unknown as MarketProbe;
   const riskRows = new Map([
-    ["BTC", { annualized: 0.5, btcBeta: 1, asOf: now }],
-    ["ETH", { annualized: 0.7, btcBeta: 1.1, asOf: now }],
-    ["SOL", { annualized: null, btcBeta: null, asOf: now }],
+    ["BTC", { annualized: 0.5, ewma: 0.5, btcBeta: 1, asOf: now }],
+    // ETH 는 QLIKE 게이트에 막혀 annualized 가 없어도 EWMA 로 들어간다(사전등록 정의)
+    ["ETH", { annualized: null, ewma: 0.7, btcBeta: 1.1, asOf: now }],
+    ["SOL", { annualized: null, ewma: null, btcBeta: null, asOf: now }],
   ]);
   const forecasts = { symbolRisk: async () => riskRows } as unknown as ForecastReader;
   const portfolio = portfolioWith({ holdings, ledger: [] });
