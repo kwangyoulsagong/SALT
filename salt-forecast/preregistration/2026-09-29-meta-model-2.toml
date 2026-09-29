@@ -1,0 +1,78 @@
+# 사전등록 — 메타 모델 v2: 기저율 + 종목 간 순위 (F010 슬라이스 4 · FC-REQ-011)
+#
+# 이 파일은 **결과를 보기 전에** 커밋한다. 커밋 시각 · 해시가 등록 증거다.
+# 등록 뒤 판정 규칙을 바꾸려면 새 키(`meta-model@3`)로 새 파일을 만든다 — 덮어쓰지 않는다.
+#
+# ── 이 등록이 @1 과 다른 점 · 표본 재사용 ──────────────────────────────────
+# meta-model@1(2026-09-29, 채택 안 함)은 같은 표본을 이미 봤다. 그래서 이 등록은
+#   (1) @1 의 **진단 하나**(라벨 분산 대부분이 시점 몫이고, 모델이 그 몫을 늦게 따라가며 과신 — 날짜별 양성 비율 AUC 0.859 ·
+#       위쪽 구간 26.9% vs 17.0%)에서 나온 가설 하나만 바꾼다: 시점 몫 = 비교 기준과 같은 학습 창 기저율 그대로,
+#       모델은 **날짜 안 순위**만 얹는다. 라벨 · 피처 정의 · 창 · 보정 · 채택 문턱은 @1 그대로다
+#   (2) @1 의 셔플 점검 정의 오류(풀링 AUC)를 고친다
+#   (3) 표본을 다시 쓰므로 **채택은 원장 발행 허가일 뿐**이다. 화면 표시는 @1 [live] 게이트(라이브 결산 ≥ 200 · ECE ≤ 0.05 ·
+#       BSS > 0)를 **새 표본(라이브)** 으로 넘어야 한다 — 백테스트 통과만으로는 아무것도 보이지 않는다
+# 하지 않는 것: LightGBM 재시도 · 피처 추가 · 라벨 장벽 변경 · 문턱 변경 · 보정 창 변경(결과를 보고 고르면 엿보기다)
+
+key = "meta-model@2"
+registered = 2026-09-29
+rule_version = "mode-decision@2"
+supersedes = "meta-model@1"
+
+[question]
+text = """
+시점 몫(그 날 시장 전체의 익절 먼저 비율)은 그 시점에 알 수 있던 기저율로 두고, 종목 간 순위 정보만 로짓에 더한 확률이
+기저율보다 나은가(BSS > 0). 나으면 확률을 매일 원장에 발행한다(표시는 라이브 게이트 뒤).
+"""
+
+[protocol]
+same_as = "meta-model@1 [protocol] 전부(유니버스 · 주 격자 · as_of · 기간 · 라벨 · 생존 편향)"
+
+[features]
+market = "쓰지 않는다 — btc_trend · hmm_p_high 는 날짜 안에서 상수라 순위 모델에 정보가 없다"
+symbol = [
+  "rule_long", "rule_scalp", "mom_28d", "rs_btc_5d", "rs_btc_20d",
+  "vol_pct_365", "turnover_z_30", "drawdown_365", "funding_7d",
+]
+transform = """
+날짜마다 종목 간 백분위 순위 (rank − 0.5) / n_obs − 0.5 ∈ (−0.5, 0.5), 동점 평균 순위.
+결측 = 0(가운데) + 결측 여부 열은 funding_7d 만. 순위라 표준화하지 않는다
+"""
+
+[model]
+name = "cross_section"
+form = "logit p = logit(b_t) + s, s = w · rank_features (절편 없음 — 날짜 안 평균은 b_t 가 맡는다)"
+fit = """
+학습 창 행으로 L2 로지스틱(λ = 1.0, 절편 없음), offset = logit(그 날 실제 양성 비율 — 학습 창 안 값, 0 · 1 은 [0.5/n, 1 − 0.5/n] 로 자름).
+즉 '그 날 비율을 알 때 어느 종목이 더 잘 닿나'만 배운다
+"""
+predict = "b_t = 그 행을 예측하는 학습 창 양성 비율(= 비교 기준 climatology 와 같은 값). p = σ(logit(b_t) + s)"
+rule_only = "같은 형태, 피처 rule_long · rule_scalp 순위 둘 — 규칙만 기준"
+
+[cpcv]
+same_as = "meta-model@1 [cpcv] 분할 · 퍼지 · 엠바고 · 부트스트랩(블록 6주 · 2000회 · seed 20260929)"
+metric = "날짜별 종목 간 AUC(양 · 음이 둘 다 있는 날) → 날짜 평균. CI = 날짜 이동 블록 부트스트랩"
+signal_gate = "cross_section 종목 간 AUC CI 하한 > 0.52 이고, (cross_section − rule_only) 날짜별 AUC 차 CI 하한 > 0"
+shuffle_check = """
+(a) 날짜 안 셔플 라벨 → 종목 간 AUC CI 가 0.5 포함 (b) 전체 셔플 라벨 → 종목 간 AUC CI 가 0.5 포함.
+둘 중 하나라도 0.5 를 포함하지 않으면 결과 무효 — 판정하지 않고 원인부터.
+(점검이 누수 없이도 실패할 수 있나: 둘 다 날짜 안 순위만 재므로 날짜별 비율이 남아도 0.5 가 기대값이다)
+"""
+
+[walk_forward]
+same_as = "meta-model@1 [walk_forward] 재학습 4주 · 4년 창 · 최소 104주 · Beta 보정 직전 52주 OOS(풀 ≥ 200) · 평가 · ECE · Brier · BSS"
+baseline = "BSS 기준 = b_t(학습 창 양성 비율) — @1 과 같다. 모델이 시점 몫을 바꾸지 않으므로 BSS 는 순위 정보의 값만 잰다"
+
+[decision]
+adopt = """
+전부: (1) signal_gate (2) shuffle_check 둘 다 (3) walk-forward ECE ≤ 0.05 (4) BSS CI 하한 > 0.
+채택 = 매일 확률 원장 발행 허가. 표시는 meta-model@1 [live] 게이트를 라이브 표본으로
+"""
+reject = "하나라도 못 넘으면 확률을 만들지 않는다. 슬라이스 5 는 확률 없이(σ 타깃 · 리스크 예산) 간다"
+
+[exploratory]
+# 판정에 쓰지 않는다
+items = [
+  "Beta 보정 없는 p = σ(logit(b_t) + s) 의 ECE · BSS",
+  "시장 기저율 모델(btc_trend · hmm_p_high · 날짜 평균 mom_28d · vol_pct_365 로지스틱) 로 b_t 를 바꿨을 때의 BSS",
+  "종목 간 순위 상위 20% − 전체 7일 로그수익(왕복 0.1%) 샤프",
+]
