@@ -1,10 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import { logger } from "../config/logger";
 
+// 쿼리 로그는 기본으로 끈다. 시세 갱신마다 전 쿼리가 찍혀 로그가 하루 수십 GB로 불어난다.
+// 필요할 때만 PRISMA_LOG_QUERIES=1 로 켠다.
 const prisma = new PrismaClient({
   log:
     process.env.NODE_ENV === "development"
-      ? ["query", "error", "warn"]
+      ? process.env.PRISMA_LOG_QUERIES === "1"
+        ? ["query", "error", "warn"]
+        : ["error", "warn"]
       : ["error"],
 });
 
