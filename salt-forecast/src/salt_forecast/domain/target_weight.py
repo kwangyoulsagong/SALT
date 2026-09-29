@@ -10,8 +10,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 
 import numpy as np
 from numpy.typing import NDArray
@@ -212,3 +213,48 @@ def live_summary(strategy_log: Vec, btc_log: Vec) -> LiveSummary:
         downside=float(strategy_log[dn].sum()) / b_dn if b_dn != 0 else float("nan"),
         worst=[int(i) for i in np.argsort(strategy_log, kind="stable")[:3]],
     )
+
+
+# ── 라이브 원장 행 — target-weight@2 [live]. scoring 이 만들고 store 가 쓴다(층 계약: store → domain 만) ──
+
+UNIVERSE = "core"
+TOL = 1e-9
+
+
+@dataclass(frozen=True, slots=True)
+class WeightRow:
+    target: float
+    rebalance_at: datetime
+    weights: dict[str, float]
+    sigma: dict[str, float]
+
+    @property
+    def exposure(self) -> float:
+        return float(sum(self.weights.values()))
+
+
+@dataclass(frozen=True, slots=True)
+class OutcomeRow:
+    target: float
+    rebalance_at: datetime
+    week_end: datetime
+    status: str  # ok · late · missing_bar
+    returns: dict[str, float]
+    strategy_log_return: float | None
+    btc_log_return: float | None
+    cost: float | None
+
+
+@dataclass(frozen=True, slots=True)
+class SummaryRow:
+    target: float
+    as_of: datetime
+    first_rebalance_at: datetime
+    n_excluded: int
+    summary: LiveSummary
+    worst_weeks: list[dict[str, float | str]]
+
+
+def same_weights(a: Mapping[str, float], b: Mapping[str, float]) -> bool:
+    keys = set(a) | set(b)
+    return all(abs(a.get(k, 0.0) - b.get(k, 0.0)) <= TOL for k in keys)

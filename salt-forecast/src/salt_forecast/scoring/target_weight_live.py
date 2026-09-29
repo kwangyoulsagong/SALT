@@ -8,7 +8,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 import numpy as np
@@ -17,50 +16,21 @@ from numpy.typing import NDArray
 from salt_forecast.domain.labels import ewma_sigma
 from salt_forecast.domain.panel import Panel, build_panel
 from salt_forecast.domain.series import DAY, OhlcvSeries
-from salt_forecast.domain.target_weight import LiveSummary, live_summary, target_weights, week_outcome
+from salt_forecast.domain.target_weight import (
+    OutcomeRow,
+    SummaryRow,
+    WeightRow,
+    live_summary,
+    target_weights,
+    week_outcome,
+)
 from salt_forecast.scoring.target_weight import BTC, CORE, TARGETS, monday_rows
 
 LIVE_START = datetime(2026, 10, 5, tzinfo=UTC)
 LATE_AFTER = timedelta(hours=24)
-UNIVERSE = "core"
 WEEK = 7
-TOL = 1e-9
 
 type Vec = NDArray[np.float64]
-
-
-@dataclass(frozen=True, slots=True)
-class WeightRow:
-    target: float
-    rebalance_at: datetime
-    weights: dict[str, float]
-    sigma: dict[str, float]
-
-    @property
-    def exposure(self) -> float:
-        return float(sum(self.weights.values()))
-
-
-@dataclass(frozen=True, slots=True)
-class OutcomeRow:
-    target: float
-    rebalance_at: datetime
-    week_end: datetime
-    status: str  # ok · late · missing_bar
-    returns: dict[str, float]
-    strategy_log_return: float | None
-    btc_log_return: float | None
-    cost: float | None
-
-
-@dataclass(frozen=True, slots=True)
-class SummaryRow:
-    target: float
-    as_of: datetime
-    first_rebalance_at: datetime
-    n_excluded: int
-    summary: LiveSummary
-    worst_weeks: list[dict[str, float | str]]
 
 
 def _at(epoch: int) -> datetime:
@@ -96,11 +66,6 @@ def weight_rows(panel: Panel, as_of: datetime, start: datetime = LIVE_START) -> 
                 )
             )
     return out
-
-
-def same_weights(a: Mapping[str, float], b: Mapping[str, float]) -> bool:
-    keys = set(a) | set(b)
-    return all(abs(a.get(k, 0.0) - b.get(k, 0.0)) <= TOL for k in keys)
 
 
 def outcome_rows(
