@@ -1,0 +1,5 @@
+[
+ {"market":"KRW-BTC","korean_name":"비트코인","english_name":"Bitcoin","market_event":{"warning":false,"caution":{"PRICE_FLUCTUATIONS":false,"TRADING_VOLUME_SOARING":false,"DEPOSIT_AMOUNT_SOARING":false,"GLOBAL_PRICE_DIFFERENCES":false,"CONCENTRATION_OF_SMALL_ACCOUNTS":false}}},
+ {"market":"KRW-ABC","korean_name":"에이비씨","english_name":"Abc","market_event":{"warning":true,"caution":{"PRICE_FLUCTUATIONS":true,"TRADING_VOLUME_SOARING":false,"DEPOSIT_AMOUNT_SOARING":false,"GLOBAL_PRICE_DIFFERENCES":true,"CONCENTRATION_OF_SMALL_ACCOUNTS":false}}},
+ {"market":"BTC-SIGN","korean_name":"사인","english_name":"Sign","market_event":{"warning":false,"caution":{"PRICE_FLUCTUATIONS":false,"TRADING_VOLUME_SOARING":false,"DEPOSIT_AMOUNT_SOARING":false,"GLOBAL_PRICE_DIFFERENCES":true,"CONCENTRATION_OF_SMALL_ACCOUNTS":false}}}
+]

@@ -14,6 +14,7 @@ from pydantic import BaseModel
 
 from salt_forecast.ingest.http import Pacer as _BasePacer
 from salt_forecast.ingest.http import SourceError, get_json
+from salt_forecast.store.market_warning import MarketWarning
 from salt_forecast.store.prices import Bar
 
 SOURCE = "upbit"
@@ -23,6 +24,24 @@ PAGE = 200
 
 class _Market(BaseModel):
     market: str
+
+
+class _Caution(BaseModel):
+    PRICE_FLUCTUATIONS: bool = False
+    TRADING_VOLUME_SOARING: bool = False
+    DEPOSIT_AMOUNT_SOARING: bool = False
+    GLOBAL_PRICE_DIFFERENCES: bool = False
+    CONCENTRATION_OF_SMALL_ACCOUNTS: bool = False
+
+
+class _MarketEvent(BaseModel):
+    warning: bool
+    caution: _Caution
+
+
+class _MarketDetail(BaseModel):
+    market: str
+    market_event: _MarketEvent
 
 
 class _DayCandle(BaseModel):
@@ -70,6 +89,23 @@ class UpbitDaily:
     def krw_markets(self) -> list[str]:
         rows = self._get("/market/all", {"isDetails": "false"})
         return sorted(m.market for m in (_Market.model_validate(r) for r in rows) if m.market.startswith("KRW-"))
+
+    def market_warnings(self, fetched_at: datetime) -> list[MarketWarning]:
+        """원화 마켓 전부의 지금 유의 · 주의 상태(FC-REQ-014). 이력이 없어서 받은 시각이 곧 관측 · 공개 시각이다."""
+        rows = self._get("/market/all", {"is_details": "true"})
+        out: list[MarketWarning] = []
+        for r in rows:
+            try:
+                m = _MarketDetail.model_validate(r)
+            except ValueError as e:
+                raise SourceError("market_event 응답 모양이 다르다", retryable=False) from e
+            if not m.market.startswith("KRW-"):
+                continue
+            on = tuple(sorted(k for k, v in m.market_event.caution.model_dump().items() if v))
+            out.append(MarketWarning(m.market, fetched_at, m.market_event.warning, on))
+        if not out:
+            raise SourceError("market_event 원화 마켓 0건", retryable=False)  # 조용히 비우지 않는다
+        return out
 
     def fetch(self, symbol: str, since: datetime, until: datetime, now: datetime) -> Iterator[Bar]:
         """until 부터 거꾸로 since 까지. 닫히지 않은 봉(마감 > now)은 버린다."""
