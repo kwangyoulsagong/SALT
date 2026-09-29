@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import Decimal from "decimal.js";
 
+import { Money } from "../../shared/domain";
 import prisma from "../../shared/infrastructure/prisma";
 import type {
   BudgetSetting,
@@ -70,6 +71,7 @@ const toDomain = (row: {
   perTradeMaxLoss: Prisma.Decimal | null;
   perTradeMaxLossUnit: string | null;
   targetVolatility: Prisma.Decimal | null;
+  investableCapital: Prisma.Decimal | null;
   hidePurchasePrice: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -85,6 +87,8 @@ const toDomain = (row: {
   perTradeMaxLoss: toBudget(row.perTradeMaxLoss, row.perTradeMaxLossUnit),
   targetVolatility:
     row.targetVolatility === null ? null : new Decimal(row.targetVolatility.toString()),
+  investableCapital:
+    row.investableCapital === null ? null : Money.krw(row.investableCapital.toString()),
   hidePurchasePrice: row.hidePurchasePrice,
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
@@ -127,6 +131,9 @@ export class PrismaCoachProfileStore implements CoachProfileStore {
       ...budgetData(patch.perTradeMaxLoss, "perTradeMaxLoss", "perTradeMaxLossUnit"),
       ...(patch.targetVolatility !== undefined
         ? { targetVolatility: patch.targetVolatility?.toFixed() ?? null }
+        : {}),
+      ...(patch.investableCapital !== undefined
+        ? { investableCapital: patch.investableCapital?.toStorageString() ?? null }
         : {}),
       ...(patch.hidePurchasePrice !== undefined
         ? { hidePurchasePrice: patch.hidePurchasePrice }
