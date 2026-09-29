@@ -85,7 +85,14 @@ export interface ReportExitPlan {
   firstTakeProfit: { price: number; priceGap: number };
   /** 코드. 문구는 프론트 */
   trendHold: { conditionCode: string };
+  /**
+   * 가격선 근거(F010 슬라이스 2 · `BFF-REQ-039` FR-4) — `volatility` 면 손절 −1σ · 1차 익절 +2σ(20일 실현 변동성),
+   * `fixed` 면 변동성이 없어 고정 비율. 서버가 모르는 값을 주면 이 필드가 없다(화면은 근거 줄을 그리지 않는다)
+   */
+  basis?: PriceBasis;
 }
+
+export type PriceBasis = "volatility" | "fixed";
 
 export interface ReportBehaviorFact {
   factCode: string;
@@ -112,6 +119,15 @@ export interface CoachReportViewModel {
   disclaimer: string;
   degradedFields: string[];
 }
+
+const PRICE_BASES: readonly unknown[] = ["volatility", "fixed"];
+
+/** 익절 플랜은 서버 모양 그대로 — `basis` 만 아는 값으로 남긴다(모르면 필드를 지워 근거 줄이 안 나간다) */
+const toExitPlan = (plan: ReportExitPlan): ReportExitPlan => {
+  if (typeof plan !== "object" || plan === null) return plan;
+  const { basis, ...rest } = plan;
+  return PRICE_BASES.includes(basis) ? plan : rest;
+};
 
 /** 서버가 부르지 못했거나 계약이 깨졌다. 캐시한 옛 응답을 주지 않는다(FR-12) */
 export interface CoachReportUnavailable {
@@ -252,7 +268,7 @@ export const toCoachReportViewModel = (
     recommendation: recommendation ?? null,
     risks: list("risks", detail.risks),
     candidates: list("candidates", detail.candidates),
-    exitPlans: list("exitPlans", detail.exitPlans),
+    exitPlans: list<ReportExitPlan>("exitPlans", detail.exitPlans).map(toExitPlan),
     behaviorFacts: list("behaviorFacts", detail.behaviorFacts),
     excluded: detail.excluded as CoachReportViewModel["excluded"],
     disclaimer: detail.disclaimer,

@@ -219,7 +219,23 @@ export interface RiskBudgetView {
       feesYearToDateKrw: number | null;
       tradeCount: number | null;
     };
+    /**
+     * BTC 베타 합(F010 슬라이스 2 · `BFF-REQ-039` FR-1) — Σ(평가금 비중 × 90일 BTC 베타). 베타를 모르는 종목은 서버가
+     * 합에서 빼고 `missingSymbols` 로 알린다. 예산이 없어 `exceeded` 는 없다. 서버가 아직 주지 않으면 `insufficient_data`
+     */
+    btcBeta: {
+      status: GaugeStatus;
+      betaSum: number | null;
+      btcEquivalentKrw: number | null;
+      coveredWeight: number | null;
+      missingSymbols: string[];
+    };
   };
+  /**
+   * 시장 국면 라벨(F010 슬라이스 2) — **아무것도 막거나 줄이지 않는다.** 사전등록 `regime-gate@1` 이 게이트를 채택하지
+   * 않았다(`gateAdopted: false`). 국면 작업이 없거나 낡았으면 서버가 `null`, 깨졌으면 여기서 `null`
+   */
+  market: MarketRegimeView | null;
   /** 시나리오(슬라이스 6, FR-25). 확률 필드가 없다. 서버가 아직 주지 않거나 깨졌으면 `null` */
   scenarios: ScenariosView | null;
   monthStart: string | null;
@@ -245,6 +261,50 @@ export interface ScenariosView {
 }
 
 export type RiskBudgetResult = RiskBudgetView | { status: "unavailable" };
+
+const MARKET_EVENT_KINDS = ["fomc", "cpi"] as const;
+
+export interface MarketRegimeView {
+  asOf: string;
+  /** BTC 종가가 200일선 위인가. 200일선이 없으면 `null` — 서버는 그때 `true`(게이트 없음)라 "위에 있다"로 읽히면 안 된다 */
+  trendOpen: boolean | null;
+  btcClose: number | null;
+  btcSma200d: number | null;
+  /** HMM 고변동 상태 확률(0~1, forward 필터). 확률 모델 출력이지만 판정 확률이 아니다 */
+  highVolProbability: number | null;
+  /** 365일 고점 대비 낙폭(0 이하) */
+  drawdown365dRate: number | null;
+  /**
+   * 채택된 게이트가 있는가(`gate.key !== null`). 지금은 늘 false — 화면은 "참고 라벨 · 아무것도 막지 않아요"를 말한다.
+   * 게이트가 생기면 새 사전등록 + 서버 상수 커밋이 먼저고, 그때 화면 문구도 같이 바꾼다
+   */
+  gateAdopted: boolean;
+  nextEvent: { kind: (typeof MARKET_EVENT_KINDS)[number]; at: string } | null;
+  preregKey: string | null;
+}
+
+/** 국면 라벨 — `asOf` 가 없으면 날짜 없는 국면이라 통째로 뺀다 */
+export const toMarketRegime = (raw: unknown): MarketRegimeView | null => {
+  if (!isRecord(raw)) return null;
+  const asOf = str(raw.asOf);
+  if (!asOf) return null;
+  const gate = isRecord(raw.gate) ? raw.gate : {};
+  const next = isRecord(raw.nextEvent) ? raw.nextEvent : null;
+  const nextKind = oneOf(next?.kind, MARKET_EVENT_KINDS);
+  const nextAt = str(next?.at);
+  const sma = num(raw.btcSma200d);
+  return {
+    asOf,
+    trendOpen: sma !== null && typeof raw.trendOpen === "boolean" ? raw.trendOpen : null,
+    btcClose: num(raw.btcClose),
+    btcSma200d: sma,
+    highVolProbability: num(raw.highVolProbability),
+    drawdown365dRate: num(raw.drawdown365dRate),
+    gateAdopted: str(gate.key) !== null,
+    nextEvent: nextKind && nextAt ? { kind: nextKind, at: nextAt } : null,
+    preregKey: str(raw.preregKey),
+  };
+};
 
 const toBudget = (raw: unknown): BudgetSetting | null => {
   if (!isRecord(raw)) return null;
@@ -317,6 +377,8 @@ export const toRiskBudgetViewModel = (data: Raw): RiskBudgetView => {
   const drawdown = isRecord(gauges.drawdown) ? gauges.drawdown : {};
   const concentration = isRecord(gauges.concentration) ? gauges.concentration : {};
   const turnover = isRecord(gauges.turnover) ? gauges.turnover : {};
+  const btcBeta = isRecord(gauges.btcBeta) ? gauges.btcBeta : {};
+  const betaSum = num(btcBeta.betaSum);
 
   return {
     status: "ok",
@@ -354,7 +416,16 @@ export const toRiskBudgetViewModel = (data: Raw): RiskBudgetView => {
         feesYearToDateKrw: num(turnover.feesYearToDateKrw),
         tradeCount: num(turnover.tradeCount),
       },
+      btcBeta: {
+        // 합이 없는데 `ok` 면 "데이터 부족"이다. `exceeded` 는 예산이 없는 게이지라 나올 수 없다 — 옮기지 않는다
+        status: betaSum !== null && btcBeta.status === "ok" ? "ok" : "insufficient_data",
+        betaSum,
+        btcEquivalentKrw: num(btcBeta.btcEquivalentKrw),
+        coveredWeight: num(btcBeta.coveredWeight),
+        missingSymbols: stringList(btcBeta.missingSymbols),
+      },
     },
+    market: toMarketRegime(data.market),
     scenarios: toScenarios(data.scenarios),
     monthStart: str(data.monthStart),
     asOf: str(data.asOf),

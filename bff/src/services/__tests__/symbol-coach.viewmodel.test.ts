@@ -149,6 +149,23 @@ describe("toModeViewModel", () => {
     assert.equal(toModeViewModel(noNote), null);
   });
 
+  it("보유 구간 basis 는 아는 값만 남긴다 — 막힌 모드도 같다(F010 슬라이스 3)", () => {
+    const held = (basis: unknown) => ({
+      kind: "held_rule" as const,
+      notPrediction: true as const,
+      currentPrice: 100,
+      stages: [],
+      status: "hold_plan",
+      basis,
+    });
+    const open = toModeViewModel(modeView({ zone: held("volatility") as never }));
+    const blocked = toModeViewModel(
+      modeView({ renderable: false, blockedReason: "insufficient_sample", zone: held("atr") as never }),
+    );
+    assert.equal(open?.zone.kind === "held_rule" && open.zone.basis, "volatility");
+    assert.equal(blocked !== null && "basis" in blocked.zone, false);
+  });
+
   it("zone 이 없으면 null (FR-45 계약)", () => {
     assert.equal(toModeViewModel(modeView({ zone: undefined })), null);
   });

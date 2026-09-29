@@ -21,6 +21,8 @@ export class AppProfitPlanService {
         averageBuyPrice: plan.averageBuyPrice,
         profitRate: plan.unrealizedProfitRate,
         stages: plan.stages,
+        // 가격선 근거(F010 슬라이스 2) — `volatility` · `fixed`. 모르면 `null`
+        basis: plan.basis === "volatility" || plan.basis === "fixed" ? plan.basis : null,
         warnings: plan.warnings,
         generatedAt: plan.generatedAt,
       })),

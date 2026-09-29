@@ -101,6 +101,11 @@ export interface BehaviorMirrorView {
   streak: StreakView | null;
   /** 슬라이스 7 — 진입 시간대 · 요일(FR-22). 서버가 아직 주지 않거나 깨졌으면 `null` */
   timing: TradeTimingView | null;
+  /**
+   * 손실 비대칭(F010 슬라이스 2 · `BFF-REQ-039` FR-3) — 최근 `window` 건 청산의 가장 큰 손실 ÷ 가장 큰 이익. 측정만,
+   * 판정 문구 없음. 이익 · 손실 중 하나라도 없으면 `ratio.value: null`. 서버가 아직 주지 않거나 깨졌으면 `null`
+   */
+  lossAsymmetry: LossAsymmetryView | null;
   outcomeCount: number;
   outcomesComputedAt: string | null;
   minSample: number;
@@ -108,6 +113,14 @@ export interface BehaviorMirrorView {
 }
 
 export type BehaviorMirrorResult = BehaviorMirrorView | { status: "unavailable" };
+
+export interface LossAsymmetryView {
+  ratio: MirrorMetric;
+  /** 가장 큰 손실(원, 음수) · 가장 큰 이익(원, 양수). 없으면 `null` — 0 이 아니다 */
+  maxLossKrw: number | null;
+  maxGainKrw: number | null;
+  window: number;
+}
 
 export interface DecisionOutcomeView {
   id: string;
@@ -325,6 +338,28 @@ export const toTradeTimingView = (raw: unknown): TradeTimingView | null => {
 
 // ─── 미러 ─────────────────────────────────────────────────────
 
+/**
+ * 손실 비대칭 — 부호가 뒤집힌 금액은 옮기지 않는다(손실은 음수 · 이익은 양수). 비율 값은 두 금액이 다 있을 때만.
+ * 창(`window`)이 없으면 "최근 N건"을 말할 수 없어 통째로 `null`
+ */
+export const toLossAsymmetryView = (raw: unknown): LossAsymmetryView | null => {
+  if (!isRecord(raw)) return null;
+  const window = num(raw.window);
+  if (window === null || window <= 0) return null;
+  const loss = num(raw.maxLossKrw);
+  const gain = num(raw.maxGainKrw);
+  const maxLossKrw = loss !== null && loss < 0 ? loss : null;
+  const maxGainKrw = gain !== null && gain > 0 ? gain : null;
+  const ratio = toMetric(raw.ratio);
+  const bothSides = maxLossKrw !== null && maxGainKrw !== null;
+  return {
+    ratio: bothSides ? ratio : { ...ratio, value: null, status: "insufficient_data" },
+    maxLossKrw,
+    maxGainKrw,
+    window: Math.floor(window),
+  };
+};
+
 export const toBehaviorMirrorViewModel = (data: Raw): BehaviorMirrorView => {
   const historyStatus = oneOf(data.status, ["ok", "truncated"] as const);
   if (!historyStatus) throw new BehaviorMirrorContractError("status");
@@ -395,6 +430,7 @@ export const toBehaviorMirrorViewModel = (data: Raw): BehaviorMirrorView => {
     brier: toBrierView(data.brier),
     streak: toStreakView(data.streak),
     timing: toTradeTimingView(data.timing),
+    lossAsymmetry: toLossAsymmetryView(data.lossAsymmetry),
     outcomeCount: sampleSize(data.outcomeCount),
     outcomesComputedAt: str(data.outcomesComputedAt),
     minSample: sampleSize(data.minSample),

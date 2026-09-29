@@ -134,6 +134,70 @@ describe("toRiskBudgetViewModel", () => {
     });
     assert.equal(v.gauges.drawdown.status, "insufficient_data");
   });
+
+  // F010 슬라이스 3 — `BFF-REQ-039` FR-1 · FR-2
+  it("BTC 베타 합을 옮기고, 서버가 아직 안 주면 '데이터 부족'이다", () => {
+    const v = toRiskBudgetViewModel({
+      ...budget,
+      gauges: {
+        ...budget.gauges,
+        btcBeta: { status: "ok", betaSum: 1.32, btcEquivalentKrw: 13_200_000, coveredWeight: 0.93, missingSymbols: ["NEWCOIN"] },
+      },
+    });
+    assert.deepEqual(v.gauges.btcBeta, {
+      status: "ok",
+      betaSum: 1.32,
+      btcEquivalentKrw: 13_200_000,
+      coveredWeight: 0.93,
+      missingSymbols: ["NEWCOIN"],
+    });
+    assert.equal(toRiskBudgetViewModel(budget).gauges.btcBeta.status, "insufficient_data");
+  });
+
+  it("베타 합이 비었는데 ok 면 '데이터 부족' — 예산 없는 게이지라 exceeded 도 옮기지 않는다", () => {
+    const withBeta = (btcBeta: Record<string, unknown>) =>
+      toRiskBudgetViewModel({ ...budget, gauges: { ...budget.gauges, btcBeta } }).gauges.btcBeta.status;
+    assert.equal(withBeta({ status: "ok", betaSum: null }), "insufficient_data");
+    assert.equal(withBeta({ status: "exceeded", betaSum: 2.1 }), "insufficient_data");
+  });
+
+  it("국면은 라벨로 옮기고 게이트 채택 여부를 key 로 판단한다 — 날짜가 없거나 서버가 null 이면 null", () => {
+    const market = {
+      asOf: "2026-09-28",
+      trendOpen: false,
+      btcClose: 91_000_000,
+      btcSma200d: 95_000_000,
+      highVolProbability: 0.31,
+      drawdown365dRate: -0.18,
+      gate: { key: null, open: true },
+      eventFactor: 1,
+      nextEvent: { kind: "fomc", at: "2026-10-28T18:00:00.000Z" },
+      preregKey: "regime-gate@1",
+    };
+    const v = toRiskBudgetViewModel({ ...budget, market });
+    assert.deepEqual(v.market, {
+      asOf: "2026-09-28",
+      trendOpen: false,
+      btcClose: 91_000_000,
+      btcSma200d: 95_000_000,
+      highVolProbability: 0.31,
+      drawdown365dRate: -0.18,
+      gateAdopted: false,
+      nextEvent: { kind: "fomc", at: "2026-10-28T18:00:00.000Z" },
+      preregKey: "regime-gate@1",
+    });
+    assert.equal(toRiskBudgetViewModel({ ...budget, market: null }).market, null);
+    // 200일선이 없으면 서버는 trendOpen: true(게이트 없음)다 — "위에 있다"로 옮기지 않는다
+    assert.equal(
+      toRiskBudgetViewModel({ ...budget, market: { ...market, trendOpen: true, btcSma200d: null } }).market?.trendOpen,
+      null,
+    );
+    assert.equal(toRiskBudgetViewModel({ ...budget, market: { ...market, asOf: 3 } }).market, null);
+    assert.equal(
+      toRiskBudgetViewModel({ ...budget, market: { ...market, nextEvent: { kind: "boj", at: "x" } } }).market?.nextEvent,
+      null,
+    );
+  });
 });
 
 describe("toTradePlanList · toRecordedTransaction", () => {
