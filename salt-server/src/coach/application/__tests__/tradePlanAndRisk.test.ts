@@ -245,6 +245,8 @@ describe("CheckTradeSize · GetRiskBudget — 같은 스냅샷", () => {
   const forecasts = {
     realizedVolatility: async () => null,
     dailyCloses: async () => new Map(),
+    symbolRisk: async () => new Map(),
+    marketRegime: async () => null,
   } as unknown as ForecastReader;
   const portfolio = portfolioWith({ holdings, ledger: [] });
 

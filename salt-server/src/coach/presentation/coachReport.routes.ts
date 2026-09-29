@@ -445,6 +445,11 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         `insufficient_data` + `missingCloses`. 예산이 없으면 `budget_not_set`(손익은 준다)
    *       - `concentration` — 가장 큰 종목 비중 vs 한 종목 상한(종목 집중도. 자산군 쏠림이 아니다)
    *       - `turnover` — 최근 365일 (매수 + 매도 대금) ÷ 2 ÷ 지금 평가금액, 올해 수수료. 기간 환산하지 않는다
+   *       - `btcBeta`(F010 슬라이스 2) — Σ(평가금 비중 × 90일 BTC 베타). 베타가 없는 종목은 합에서 빼고
+   *         `coveredWeight` · `missingSymbols` 로 알린다. `btcEquivalentKrw` 는 BTC 로 환산한 노출. 예산이 없어 `exceeded` 없음
+   *       - `market`(F010 슬라이스 2) — BTC 200일선 위 여부 · HMM 고변동 확률 · 365일 낙폭 · 다음 FOMC/CPI. 사전등록
+   *         `regime-gate@1` 판정이 게이트 · 이벤트 축소를 채택하지 않아 `gate.key: null` · `gate.open: true` · `eventFactor: 1`
+   *         (아무것도 막거나 줄이지 않는다). 국면 작업이 없거나 3일 넘었으면 `null`
    *       - 예산을 넘어도 막지 않는다 — `status: exceeded` 뿐. 예산이 없으면 0 이 아니라 `null`
    *       - `scenarios`(FR-25) — 지금 코인 보유가 −10 · −30 · −50% 면 손실(원, 음수)과 종목별 몫, 과거 구간(2022-11 FTX)
    *         수익률을 지금 보유에 다시 얹은 손실. **확률 필드가 없다.** 그 구간에 일봉이 없는 종목이 있으면 그 구간만
@@ -453,7 +458,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *     security:
    *       - bearerAuth: []
    *     responses:
-   *       200: { description: "`{ settings{…, maxSingleAssetWeight}, totalValueKrw, gauges{drawdown,concentration,turnover}, scenarios{status, totalValueKrw, shocks[], episodes[]}, monthStart, asOf }`" }
+   *       200: { description: "`{ settings{…, maxSingleAssetWeight}, totalValueKrw, gauges{drawdown,concentration,turnover,btcBeta}, market, scenarios{status, totalValueKrw, shocks[], episodes[]}, monthStart, asOf }`" }
    *       401: { description: 인증 실패 }
    *   put:
    *     summary: 리스크 예산 수정
@@ -626,12 +631,14 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         연속 뒤 매수 ≥ 20 일 때만 true. 거래가 잘리면(`truncated`) 사이즈 비교는 `null`
    *       - `timing`(FR-22) — 진입 시각(KST) 4구간 · 요일 7개별 청산 수 · 이익 비율 · 평균 순수익률 · 손익 합(원).
    *         날짜만 적은 진입(KST 0시 정각)은 시간대에서 빠지고(`untimedCount`), 하나도 없으면 `bands: null`
+   *       - `lossAsymmetry`(F010 슬라이스 2) — 최근 20건 청산의 가장 큰 손실 ÷ 가장 큰 이익(순손익 원). 이익 · 손실 중
+   *         하나라도 없으면 `ratio.value: null`. 판정 문구 없음 — 측정만
    *     tags: [Coach Risk]
    *     security:
    *       - bearerAuth: []
    *     responses:
    *       200:
-   *         description: "`{ status, adherence, disposition, benchmark, tagCosts[], turnover, brier, streak, timing, outcomeCount, outcomesComputedAt, minSample, asOf }`"
+   *         description: "`{ status, adherence, disposition, benchmark, tagCosts[], turnover, brier, streak, timing, lossAsymmetry, outcomeCount, outcomesComputedAt, minSample, asOf }`"
    *       401: { description: 인증 실패 }
    */
   router.get("/mirror", risk.getBehaviorMirror);

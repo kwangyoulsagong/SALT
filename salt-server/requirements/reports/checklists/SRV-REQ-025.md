@@ -273,3 +273,18 @@
 | 계약 | `trackRecord` · `signalTrackRecord` 에 `alwaysUpRate` · `excessWinRate`(추천은 `horizonHours` 720) · `blockedReason` `insufficient_sample` · `failureCases[].symbol/returnRate` · `signal-performance` 새 모양 — 유스케이스 테스트로 고정(`recommendationLedger.test.ts` · `getCoachDetail.test.ts`) |
 | 소비처 | BFF `coach-report.viewmodel` · `symbol-coach.viewmodel` · `app-signal-performance.service` 동시 변경(`BFF-REQ-024` FR-40) · `@repo/core` 타입(`FE-REQ-026` FR-165) |
 | 미검증 | 인증 HTTP 본문 실측(로컬 토큰 불가 — 기존 제약) → 로그인 QA |
+
+## F010 슬라이스 2 — FR-60 익절 가격선 근거 (2026-09-29)
+
+| 확인 | 결과 |
+|---|---|
+| 모양 | 세 응답에 `basis` 추가만 — 제거 · 이름 변경 0. `toExitPlan` · `heldRuleZone` · 목록 계획 |
+| 값 | 변동성이 있는 종목은 가격 · 상태가 바뀐다(`SRV-REQ-024` FR-180) — 계약 모양은 무변화 |
+| BFF | `app-profit-plan.service` · `coach-report.viewmodel` · `symbol-coach.viewmodel` 이 스키마 검증 없이 매핑 — 추가 필드로 깨지지 않는다(코드 확인). BFF · 프론트 무변경 |
+| 전체 | `npm test` 528 / 0 · `npm run build` |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| BFF 가 `basis` 를 화면으로 넘기기 · 문구 | 화면 재배치 슬라이스 몫 | F010 슬라이스 3 |

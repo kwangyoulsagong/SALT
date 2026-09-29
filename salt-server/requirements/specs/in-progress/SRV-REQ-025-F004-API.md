@@ -226,6 +226,7 @@ type ExplainResult =
 | FR-31 | 프론트가 아직 없는 경로이므로 **파괴적 변경이 안전하지만**, BFF가 이미 프록시하고 있으므로 계약 테스트를 둔다 | Must |
 | FR-32 | `explain`에 인증을 추가하면 **BFF 프록시가 토큰을 전달해야 한다.** BFF 변경이 짝이다 | Must |
 | FR-59 | **(F010 슬라이스 0) 성적표 계약 개정.** ① 종목 판단 `trackRecord` · 성적표 그룹 · 저장 추천 `signalTrackRecord` 에 `alwaysUpRate: number \| null` · `excessWinRate: number \| null` 추가(저장 추천은 `horizonHours: 720` 도). ② 저장 추천 `blockedReason` enum 에 `insufficient_sample`(표본 < 20). ③ `failureCases[]` 에 `symbol` · `returnRate`(30일 뒤 채점) 추가. ④ `GET /api/signal-performance` 응답 모양 변경 — `status` 는 표본 ≥ 20 일 때만 `active`, `signalType`(`coach` 또는 `coach.<action>`) · `lowSample` · `horizonHours` · `alwaysUpRate` · `excessWinRate` 추가, `samples[]` 는 `{symbol, action, judgedAt, entryPrice, exitPrice, returnRate, outcome}`(`latestPrice` · `win` 삭제). `signalKey` 는 `coach.` 접두가 없으면 붙여 해석(하위 호환). FR-30 예외 3건째 — 원장이 생겨 옛 필드가 뜻을 잃었다. BFF · 프론트 동시 변경(`BFF-REQ-024` FR-40 · `FE-REQ-026` FR-165) | Must |
+| FR-60 | **(F010 슬라이스 2) 익절 가격선 근거.** `GET /api/profit-plan` 계획마다 · 종목 코치 `modes.*.zone`(`held_rule`) · 코치 상세 `exitPlans[]` 에 `basis: "volatility" \| "fixed"` **추가**(`SRV-REQ-024` FR-180). 가격 · 상태 값의 계산이 바뀐다(모양은 추가만). 경고는 계획 상태에서 나온다(문구 무변화). BFF 는 필드를 걸러 내지 않는다 — 화면 표시는 F010 슬라이스 3 | Must |
 
 ## Acceptance Criteria
 

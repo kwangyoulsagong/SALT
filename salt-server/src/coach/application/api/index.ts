@@ -149,7 +149,9 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.portfolio,
     deps.profiles,
     deps.judgments,
-    deps.gauges
+    deps.gauges,
+    undefined,
+    deps.forecasts
   );
   const analyzeNewsSentiment = new AnalyzeNewsSentiment(deps.news);
   const analyzeTradingBehavior = new AnalyzeTradingBehavior(
@@ -200,7 +202,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.portfolio,
       deps.recommendations,
       undefined,
-      analyzeTradingBehavior
+      analyzeTradingBehavior,
+      deps.forecasts
     ),
     getSymbolCoach: symbolCoach,
     getProfile: new GetCoachProfile(deps.profiles),
@@ -221,7 +224,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.portfolio,
       deps.profiles
     ),
-    listProfitPlans: new ListProfitPlans(deps.portfolio),
+    listProfitPlans: new ListProfitPlans(deps.portfolio, deps.forecasts),
     getSignalPerformance: new GetSignalPerformance(deps.recommendations),
     getJudgmentScoreboard: new GetJudgmentScoreboard(deps.judgments),
     getSymbolForecast: new GetSymbolForecast(deps.forecasts, deps.portfolio, deps.forecastOwnerEmails),
@@ -232,7 +235,13 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.market,
       deps.judgments
     ),
-    publishJudgmentLedger: new PublishJudgmentLedger(deps.tracked, deps.market, deps.ledger),
+    publishJudgmentLedger: new PublishJudgmentLedger(
+      deps.tracked,
+      deps.market,
+      deps.ledger,
+      undefined,
+      deps.forecasts
+    ),
     evaluateSymbolJudgments: new EvaluateSymbolJudgments(
       deps.market,
       deps.judgments

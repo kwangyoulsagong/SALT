@@ -8,6 +8,7 @@ import {
   PreflightMode,
   PreflightSeverity,
   PreflightWarningCode,
+  ProfitPlanBasis,
   ProfitPlanStageKey,
   ProfitPlanStatus,
   buildProfitPlanWarnings,
@@ -128,10 +129,73 @@ describe("calculateProfitPlan — 특성화", () => {
     );
   });
 
-  it("경고는 구간마다 하나씩, 없으면 기본 문구", () => {
-    assert.equal(buildProfitPlanWarnings(20).length, 1);
-    assert.equal(buildProfitPlanWarnings(-8).length, 1);
-    assert.match(buildProfitPlanWarnings(0)[0], /계획 유지/);
+  it("경고는 상태마다 하나씩, 없으면 기본 문구", () => {
+    assert.match(buildProfitPlanWarnings(ProfitPlanStatus.TakeProfitReview)[0], /단계형 익절/);
+    assert.match(buildProfitPlanWarnings(ProfitPlanStatus.StopLossReview)[0], /투자 논리/);
+    assert.match(buildProfitPlanWarnings(ProfitPlanStatus.RaiseStopReview)[0], /계획 유지/);
+    assert.match(buildProfitPlanWarnings(ProfitPlanStatus.HoldPlan)[0], /계획 유지/);
+  });
+
+  it("변동성이 없으면 고정 계획이고 그렇다고 표시한다", () => {
+    const holding = { currentPrice: 1000, averageBuyPrice: 1000, unrealizedProfitRate: 0 };
+    const plan = calculateProfitPlan(holding);
+    assert.equal(plan.basis, ProfitPlanBasis.Fixed);
+    assert.equal(plan.sigmaHorizon, null);
+    for (const bad of [0, -0.1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      assert.equal(calculateProfitPlan(holding, bad).basis, ProfitPlanBasis.Fixed);
+    }
+  });
+});
+
+describe("calculateProfitPlan — 변동성 계획(F010 슬라이스 2 · regime-gate@1 [stops])", () => {
+  // 연율 σ 0.7 → 20일 σ_h = 0.7 × √(20/365) ≈ 0.164
+  const vol = 0.7;
+  const s = vol * Math.sqrt(20 / 365);
+  const at = (k: number) => price(1000 * Math.exp(k * s));
+  const holding = (currentPrice: number) => ({
+    currentPrice,
+    averageBuyPrice: 1000,
+    unrealizedProfitRate: (currentPrice / 1000 - 1) * 100,
+  });
+
+  it("손절 −1σ · 1차 익절 +2σ · 추세 유지 +3σ — 평단 기준", () => {
+    const plan = calculateProfitPlan(holding(1000), vol);
+    assert.equal(plan.basis, ProfitPlanBasis.Volatility);
+    assert.equal(plan.sigmaHorizon, s);
+    assert.deepEqual(
+      plan.stages.map((stage) => stage.price),
+      [at(-1), at(2), at(3)]
+    );
+    assert.equal(plan.status, ProfitPlanStatus.HoldPlan);
+    assert.deepEqual(
+      plan.stages.map((stage) => stage.ratio),
+      [0.25, 0.25, 0.5]
+    );
+  });
+
+  it("+1σ 넘으면 손절을 현재가 −1σ 로 올리고 상태는 손절선 올리기 검토", () => {
+    const current = 1000 * Math.exp(1.5 * s);
+    const plan = calculateProfitPlan(holding(current), vol);
+    assert.equal(plan.stages[0]!.price, price(current * Math.exp(-s)));
+    assert.equal(plan.status, ProfitPlanStatus.RaiseStopReview);
+  });
+
+  it("+2σ 넘으면 1차 익절이 현재가이고 상태는 익절 검토", () => {
+    const current = 1000 * Math.exp(2.2 * s);
+    const plan = calculateProfitPlan(holding(current), vol);
+    assert.equal(plan.stages[1]!.price, price(current));
+    assert.equal(plan.status, ProfitPlanStatus.TakeProfitReview);
+  });
+
+  it("−1σ 아래면 손절 검토 — 수익률 % 가 아니라 σ 로 가른다", () => {
+    assert.equal(
+      calculateProfitPlan(holding(1000 * Math.exp(-1.1 * s)), vol).status,
+      ProfitPlanStatus.StopLossReview
+    );
+    // 고정 계획이면 −8% 가 손절 검토지만 σ_h ≈ 16% 인 종목에선 아직 계획 유지다
+    const down8 = { currentPrice: 920, averageBuyPrice: 1000, unrealizedProfitRate: -8 };
+    assert.equal(calculateProfitPlan(down8, vol).status, ProfitPlanStatus.HoldPlan);
+    assert.equal(calculateProfitPlan(down8).status, ProfitPlanStatus.StopLossReview);
   });
 });
 

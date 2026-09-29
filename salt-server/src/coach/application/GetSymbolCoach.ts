@@ -8,6 +8,7 @@ import {
   type CoachMode,
   type CoachProfileStore,
   type CoachSentiment,
+  type ForecastReader,
   type GaugeTrackRecordView,
   type GaugeTrackStore,
   type MarketProbe,
@@ -95,7 +96,9 @@ export class GetSymbolCoach {
     private readonly profiles: CoachProfileStore,
     private readonly judgments: SymbolJudgmentStore,
     private readonly gauges: GaugeTrackStore,
-    private readonly clock: Clock = () => new Date()
+    private readonly clock: Clock = () => new Date(),
+    /** 보유 익절 계획의 실현 변동성(F010 슬라이스 2). 없으면 고정 비율 */
+    private readonly forecasts: Pick<ForecastReader, "symbolRisk"> | null = null
   ) {}
 
   private async sentimentTrack(
@@ -122,10 +125,12 @@ export class GetSymbolCoach {
     const symbol = query.symbol.toUpperCase();
     const now = this.clock();
 
-    const [materialsBySymbol, holding, profile] = await Promise.all([
+    const [materialsBySymbol, holding, profile, risk] = await Promise.all([
       collectJudgmentMaterials(this.market, [symbol]),
       this.portfolio.getHolding(userId, symbol),
       this.profiles.findByUser(userId),
+      // 변동성이 실패해도 판단은 나간다 — 익절 계획만 고정 비율로
+      this.forecasts ? this.forecasts.symbolRisk([symbol]).catch(() => null) : null,
     ]);
 
     const materials = materialsBySymbol.get(symbol)!;
@@ -142,7 +147,13 @@ export class GetSymbolCoach {
       await Promise.all([
         attachJudgmentTrack(this.judgments, scalp),
         attachJudgmentTrack(this.judgments, longTerm),
-        resolveZones(this.market, { symbol, holding, quote, now }),
+        resolveZones(this.market, {
+          symbol,
+          holding,
+          quote,
+          now,
+          annualizedVolatility: risk?.get(symbol)?.annualized ?? null,
+        }),
         this.sentimentTrack(symbol, sentiment),
       ]);
 

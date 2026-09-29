@@ -162,6 +162,54 @@ export const concentrationGauge = (
   };
 };
 
+/**
+ * BTC 베타 합(F010 슬라이스 2 · 리서치 §3-4 습관 4) — 집중도를 종목 수가 아니라 **BTC 에 얼마나 묶였나**로 본다.
+ *
+ * `betaSum` = Σ(평가금 비중 × 90일 BTC 베타). 1.3 이면 "BTC 가 1% 움직일 때 보유가 대략 1.3% 움직였다".
+ * 알트 여러 개로 나눠도 베타가 1 을 넘으면 분산이 아니라 BTC 레버리지다(리서치 §4-2).
+ *
+ * 베타가 없는 종목(이력 60일 미만 · 변동성 작업 낡음)은 **합에서 빼고** `coveredWeight` 로 얼마를 셌는지 알린다 —
+ * 모르는 베타를 1 로 채우지 않는다. 예산이 없어 `exceeded` 는 나지 않는다(측정만, 사용자 결정 2026-09-27).
+ */
+export interface BtcBetaGauge {
+  status: GaugeStatus;
+  betaSum: Decimal | null;
+  /** Σ 평가금 × 베타 — BTC 로 환산한 노출(원). BTC 가 −10% 면 대략 이 금액의 −10% */
+  btcEquivalent: Money | null;
+  /** 베타가 있는 보유의 평가금 비중(0~1) */
+  coveredWeight: Decimal | null;
+  missingSymbols: string[];
+}
+
+export const btcBetaGauge = (
+  holdings: Array<{ symbol: string; value: number }>,
+  betas: ReadonlyMap<string, number | null>
+): BtcBetaGauge => {
+  const total = holdings.reduce((sum, holding) => sum.plus(holding.value), new Decimal(0));
+  const missingSymbols: string[] = [];
+  let exposure = new Decimal(0);
+  let covered = new Decimal(0);
+  for (const holding of holdings) {
+    const beta = betas.get(holding.symbol.toUpperCase()) ?? null;
+    if (beta === null || !Number.isFinite(beta)) {
+      missingSymbols.push(holding.symbol);
+      continue;
+    }
+    exposure = exposure.plus(new Decimal(holding.value).times(beta));
+    covered = covered.plus(holding.value);
+  }
+  if (total.lte(0) || covered.lte(0)) {
+    return { status: "insufficient_data", betaSum: null, btcEquivalent: null, coveredWeight: null, missingSymbols };
+  }
+  return {
+    status: "ok",
+    betaSum: exposure.div(total),
+    btcEquivalent: Money.krw(exposure),
+    coveredWeight: covered.div(total),
+    missingSymbols,
+  };
+};
+
 export interface TurnoverGauge {
   status: "ok" | "insufficient_data";
   /** 최근 365일 (매수 + 매도 대금) ÷ 2 ÷ 지금 평가금액. 기간을 늘려 환산하지 않는다 */

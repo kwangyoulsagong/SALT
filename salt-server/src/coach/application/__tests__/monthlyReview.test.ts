@@ -173,6 +173,16 @@ describe("GetRiskBudget — 시나리오 · 한 종목 상한", () => {
       requested.push(symbols);
       throw new Error("forecast down");
     },
+    // ETH 는 베타가 없다(이력 부족) — 합에서 빠지고 coveredWeight 로 알린다
+    async symbolRisk() {
+      return new Map([
+        ["BTC", { annualized: 0.5, btcBeta: 1, asOf: now }],
+        ["ETH", { annualized: 0.7, btcBeta: null, asOf: now }],
+      ]);
+    },
+    async marketRegime() {
+      throw new Error("regime down");
+    },
   } as unknown as ForecastReader;
 
   it("시나리오는 게이지와 같은 보유에서 · 과거 구간 일봉이 실패해도 게이지는 나간다", async () => {
@@ -185,6 +195,11 @@ describe("GetRiskBudget — 시나리오 · 한 종목 상한", () => {
     assert.equal(view.scenarios.episodes[0].status, "insufficient_data");
     assert.equal(view.gauges.concentration.topWeight?.toNumber(), 0.7);
     assert.equal(view.settings.maxSingleAssetWeight.toNumber(), 0.6, "기본 60%");
+    // BTC 베타 합(F010 슬라이스 2) — 700,000 × 1 / 1,000,000. ETH 는 모름
+    assert.equal(view.gauges.btcBeta.betaSum?.toNumber(), 0.7);
+    assert.equal(view.gauges.btcBeta.coveredWeight?.toNumber(), 0.7);
+    assert.deepEqual(view.gauges.btcBeta.missingSymbols, ["ETH"]);
+    assert.equal(view.market, null, "국면 읽기가 실패해도 게이지는 나간다");
   });
 
   it("한 종목 상한을 바꾸고 null 이면 기본으로 되돌린다", async () => {

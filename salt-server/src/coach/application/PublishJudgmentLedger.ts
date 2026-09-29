@@ -7,10 +7,13 @@ import {
   ledgerKey,
   type Clock,
   type CoachMode,
+  type ForecastReader,
   type JudgmentLedgerDraft,
   type JudgmentLedgerStore,
   type LedgerMaterials,
   type MarketProbe,
+  type MarketRegimeState,
+  type SymbolRisk,
   type TrackedAssetProbe,
 } from "../domain";
 import {
@@ -33,8 +36,10 @@ const iso = (d: Date | null | undefined) => (d ? d.toISOString() : null);
 /** 재료를 값 + 발생 시각으로 옮긴다. 지표는 모드의 봉이다(단타 1시간 · 장기 일봉). */
 export const ledgerMaterials = (
   m: SymbolJudgmentMaterials,
-  mode: CoachMode
+  mode: CoachMode,
+  context: { market?: MarketRegimeState | null; risk?: SymbolRisk | null } = {}
 ): LedgerMaterials => {
+  const { market = null, risk = null } = context;
   const indicator = m.indicators[mode];
   const whaleTimes = m.whales.map((w) => (w.tradedAt ?? w.detectedAt).getTime());
   const sum = (side: "buy" | "sell") =>
@@ -72,6 +77,17 @@ export const ledgerMaterials = (
           newestAt: new Date(Math.max(...whaleTimes)).toISOString(),
         }
       : null,
+    market: market
+      ? {
+          trendOpen: market.trendOpen,
+          highVolProbability: market.highVolProbability,
+          drawdown365d: market.drawdown365d,
+          observedAt: market.asOf.toISOString(),
+        }
+      : null,
+    risk: risk
+      ? { annualizedVolatility: risk.annualized, btcBeta: risk.btcBeta, observedAt: risk.asOf.toISOString() }
+      : null,
   };
 };
 
@@ -80,14 +96,17 @@ export const ledgerMaterials = (
  *
  * 워커가 10분마다 불러도 된다 — 그날 이미 발행한 조합은 재료를 다시 모으지 않는다. 판단 계산은 화면 · 스냅샷과
  * **같은 함수**(`collectJudgmentMaterials` · `judgeSymbol`)다. 원장만의 판단 경로를 두지 않는다.
- * 국면 태그는 BTC 의 장기 모드 재료(일봉 RSI · 공포탐욕)로 하루 한 번 정한다.
+ * 국면 태그는 BTC 의 장기 모드 재료(일봉 RSI · 공포탐욕)로 하루 한 번 정한다. 슬라이스 2 부터 `forecast` 의
+ * 국면(200일선 · HMM) · 종목 변동성 · BTC 베타도 재료 칸에 같이 남긴다 — 점수에는 쓰지 않는다.
  */
 export class PublishJudgmentLedger {
   constructor(
     private readonly tracked: TrackedAssetProbe,
     private readonly market: MarketProbe,
     private readonly ledger: JudgmentLedgerStore,
-    private readonly now: Clock = () => new Date()
+    private readonly now: Clock = () => new Date(),
+    /** 국면 · 종목 변동성 재료(F010 슬라이스 2). 실패해도 원장은 나간다 — 그 칸만 `null` */
+    private readonly forecasts: Pick<ForecastReader, "marketRegime" | "symbolRisk"> | null = null
   ) {}
 
   async execute(): Promise<LedgerPublishResult> {
@@ -100,7 +119,11 @@ export class PublishJudgmentLedger {
     if (due.length === 0) return { tracked: symbols.length, written: 0, skippedNoPrice: [] };
 
     const wanted = due.includes(LEDGER_REGIME_SYMBOL) ? due : [...due, LEDGER_REGIME_SYMBOL];
-    const materials = await collectJudgmentMaterials(this.market, wanted);
+    const [materials, market, risk] = await Promise.all([
+      collectJudgmentMaterials(this.market, wanted),
+      this.forecasts ? this.forecasts.marketRegime().catch(() => null) : null,
+      this.forecasts ? this.forecasts.symbolRisk(due).catch(() => null) : null,
+    ]);
     const btc = materials.get(LEDGER_REGIME_SYMBOL);
     const regime = detectMarketRegime(btc?.indicators.long_term, btc?.sentiment);
 
@@ -122,7 +145,7 @@ export class PublishJudgmentLedger {
           ledgerDraft({
             decision: byMode[mode],
             components: judgment.components[mode],
-            materials: ledgerMaterials(material, mode),
+            materials: ledgerMaterials(material, mode, { market, risk: risk?.get(symbol) ?? null }),
             missingData: judgment.missingByMode[mode],
             regime,
             entryPrice,

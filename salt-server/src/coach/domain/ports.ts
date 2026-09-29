@@ -533,10 +533,48 @@ export interface ForecastReader {
    */
   realizedVolatility(symbol: string): Promise<RealizedVolatility | null>;
   /**
+   * 여러 종목의 실현 변동성 · BTC 베타 — `forecast.v_realized_vol` 한 쿼리(F010 슬라이스 2 · `FC-REQ-010`).
+   * 3일 넘게 갱신 안 된 종목은 맵에서 빠진다. 막힌 변동성 · 이력 부족 베타는 `null` — 0 이 아니다
+   */
+  symbolRisk(symbols: string[]): Promise<Map<string, SymbolRisk>>;
+  /**
+   * 시장 국면 한 행 — `forecast.v_market_regime`(BTC, `FC-REQ-010`). 없거나 3일 넘었으면 `null`.
+   * 게이트 · 이벤트 축소는 salt-forecast 가 사전등록 판정대로 채운 값이다 — 서버는 다시 계산하지 않는다
+   */
+  marketRegime(): Promise<MarketRegimeState | null>;
+  /**
    * 닫힌 일봉 종가(`openTime` ≥ `from`, 시간순) — 준수 판정 · 처분효과 · 보유 대비(F009 슬라이스 4).
    * 원천은 `forecast.v_daily_close`(업비트 일봉, UTC 00:00 = KST 09:00 경계). 여러 종목을 쿼리 한 번에
    */
   dailyCloses(symbols: string[], from: Date, to?: Date): Promise<Map<string, DailyBar[]>>;
+}
+
+export interface SymbolRisk {
+  /** 연율 변동성(0.52 = 52%). 막혔으면 `null` */
+  annualized: number | null;
+  /** 90일 일 로그수익 OLS 기울기(BTC 대비). 표본 60일 미만이면 `null` */
+  btcBeta: number | null;
+  asOf: Date;
+}
+
+export interface MarketRegimeState {
+  asOf: Date;
+  close: number;
+  sma200d: number | null;
+  /** BTC 종가 > 200일 이동평균. 이동평균이 없으면 `true`(게이트 없음) */
+  trendOpen: boolean;
+  /** 2상태 HMM 고변동 상태 확률(forward 필터 — 그날까지 관측만). 적합 전이면 `null` */
+  highVolProbability: number | null;
+  /** 365일 최고 종가 대비(음수 · 0) */
+  drawdown365d: number | null;
+  /** 채택 게이트. `null` = 사전등록 판정이 게이트를 채택하지 않았다(`regime-gate@1`) */
+  gateKey: string | null;
+  gateOpen: boolean;
+  /** 다음 24시간 안 이벤트일에 곱할 계수. 1 = 축소 없음 */
+  eventFactor: number;
+  nextEventKind: string | null;
+  nextEventAt: Date | null;
+  preregKey: string;
 }
 
 export interface RealizedVolatility {

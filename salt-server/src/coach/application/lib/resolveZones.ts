@@ -17,6 +17,8 @@ export interface ZoneInput {
   holding: CoachHolding | null;
   quote: CoachQuote | undefined;
   now: Date;
+  /** 보유 종목의 실현 변동성(연율). 없으면 익절 계획이 고정 비율로 간다(F010 슬라이스 2) */
+  annualizedVolatility?: number | null;
 }
 
 const observe = async (
@@ -57,7 +59,7 @@ export const resolveZones = async (
   const { symbol, holding, quote, now } = input;
 
   if (holding) {
-    const zone = heldRuleZone(holding);
+    const zone = heldRuleZone(holding, input.annualizedVolatility ?? null);
     return { scalp: zone, long_term: zone };
   }
 

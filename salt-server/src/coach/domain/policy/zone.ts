@@ -1,5 +1,10 @@
 import type { CoachMode } from "../model";
-import { calculateProfitPlan, priceGap, type ProfitPlanInput } from "./profitPlan";
+import {
+  calculateProfitPlan,
+  priceGap,
+  type ProfitPlanBasis,
+  type ProfitPlanInput,
+} from "./profitPlan";
 
 /**
  * 스마트 바이존 — **보유 = 내 규칙 가격, 미보유 = 관찰 구간** (F004 · 감사 문서 D2).
@@ -62,6 +67,8 @@ export interface HeldRuleZone {
     ratio: number;
   }>;
   status: string;
+  /** 가격선 근거 — 실현 변동성 배수인지, 변동성이 없어 고정 비율인지(F010 슬라이스 2) */
+  basis: ProfitPlanBasis;
 }
 
 export interface ObservationZone {
@@ -89,8 +96,11 @@ export interface UnavailableZone {
 
 export type Zone = HeldRuleZone | ObservationZone | UnavailableZone;
 
-export const heldRuleZone = (holding: ProfitPlanInput): HeldRuleZone => {
-  const plan = calculateProfitPlan(holding);
+export const heldRuleZone = (
+  holding: ProfitPlanInput,
+  annualizedVolatility: number | null = null
+): HeldRuleZone => {
+  const plan = calculateProfitPlan(holding, annualizedVolatility);
 
   return {
     kind: "held_rule",
@@ -103,6 +113,7 @@ export const heldRuleZone = (holding: ProfitPlanInput): HeldRuleZone => {
       ratio: stage.ratio,
     })),
     status: plan.status,
+    basis: plan.basis,
   };
 };
 

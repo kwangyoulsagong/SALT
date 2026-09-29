@@ -6,6 +6,7 @@ import {
   makeModeDecision,
   scoreModeDecision,
   type ExplanationMaterials,
+  type ForecastReader,
   type JudgmentLedgerDraft,
   type JudgmentLedgerStore,
   type MarketProbe,
@@ -68,6 +69,54 @@ const market = {
 const tracked = (symbols: string[]): TrackedAssetProbe => ({ listTrackedSymbols: async () => symbols });
 
 describe("PublishJudgmentLedger", () => {
+  it("국면 · 종목 변동성 재료를 같이 남기고, 읽기가 실패해도 원장은 나간다(F010 슬라이스 2)", async () => {
+    const forecasts = {
+      marketRegime: async () => ({
+        asOf: T0,
+        close: 1,
+        sma200d: 1,
+        trendOpen: false,
+        highVolProbability: 0.8,
+        drawdown365d: -0.36,
+        gateKey: null,
+        gateOpen: true,
+        eventFactor: 1,
+        nextEventKind: null,
+        nextEventAt: null,
+        preregKey: "regime-gate@1",
+      }),
+      symbolRisk: async () => new Map([["ETH", { annualized: 0.7, btcBeta: 1.2, asOf: T0 }]]),
+    } as unknown as ForecastReader;
+    const ledger = new MemoryLedger();
+    await new PublishJudgmentLedger(tracked(["ETH"]), market, ledger, () => T0, forecasts).execute();
+    const row = ledger.rows[0]!;
+    assert.deepEqual(row.materials.market, {
+      trendOpen: false,
+      highVolProbability: 0.8,
+      drawdown365d: -0.36,
+      observedAt: T0.toISOString(),
+    });
+    assert.deepEqual(row.materials.risk, { annualizedVolatility: 0.7, btcBeta: 1.2, observedAt: T0.toISOString() });
+    // 점수는 국면을 모른다 — 같은 재료면 forecasts 유무와 무관하게 같은 점수
+    const plain = new MemoryLedger();
+    await new PublishJudgmentLedger(tracked(["ETH"]), market, plain, () => T0).execute();
+    assert.equal(row.score, plain.rows[0]!.score);
+    assert.equal(plain.rows[0]!.materials.market, null);
+
+    const broken = {
+      marketRegime: async () => {
+        throw new Error("down");
+      },
+      symbolRisk: async () => {
+        throw new Error("down");
+      },
+    } as unknown as ForecastReader;
+    const again = new MemoryLedger();
+    const result = await new PublishJudgmentLedger(tracked(["ETH"]), market, again, () => T0, broken).execute();
+    assert.equal(result.written, 2);
+    assert.equal(again.rows[0]!.materials.risk, null);
+  });
+
   it("추적 종목 × 두 모드를 하루 한 번 — 기여 · 재료 발생 시각 · 국면을 남긴다", async () => {
     const ledger = new MemoryLedger();
     const publish = new PublishJudgmentLedger(tracked(["ETH", "NOPRICE"]), market, ledger, () => T0);

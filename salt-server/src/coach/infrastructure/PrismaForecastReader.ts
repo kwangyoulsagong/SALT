@@ -5,9 +5,11 @@ import type {
   EventCardRow,
   ForecastCardRow,
   ForecastReader,
+  MarketRegimeState,
   PositioningRow,
   RealizedVolatility,
   SignalReactionRow,
+  SymbolRisk,
 } from "../domain";
 
 interface CardSqlRow {
@@ -110,6 +112,21 @@ interface SignalSqlRow {
   kimchi_since: Date | null;
   fx_usdkrw: number | null;
   fx_observed_at: Date | null;
+}
+
+interface MarketRegimeSqlRow {
+  as_of: Date;
+  close: number;
+  sma_200d: number | null;
+  trend_open: boolean;
+  hmm_p_high: number | null;
+  drawdown_365d: number | null;
+  gate_key: string | null;
+  gate_open: boolean;
+  event_factor: number;
+  next_event_kind: string | null;
+  next_event_at: Date | null;
+  prereg_key: string;
 }
 
 export class PrismaForecastReader implements ForecastReader {
@@ -253,6 +270,54 @@ export class PrismaForecastReader implements ForecastReader {
    * 막힌 행(`annualized` null — 이력 부족 · 기준 대비 실력 없음 · 시세 끊김)과 3일 넘게 갱신 안 된 행은 `null` 이다.
    * 사이즈 계산은 그때 변동성 타깃 칸을 `insufficient_data` 로 준다(0 이 아니다).
    */
+  /** 여러 종목 한 쿼리 — `symbol = ANY(...)`. 3일 넘은 행은 뺀다(`realizedVolatility` 와 같은 신선도) */
+  async symbolRisk(symbols: string[]): Promise<Map<string, SymbolRisk>> {
+    if (!symbols.length) return new Map();
+    const markets = symbols.map((symbol) => `KRW-${symbol.toUpperCase()}`);
+    const rows = await prisma.$queryRaw<
+      { symbol: string; annualized: number | null; btc_beta: number | null; as_of: Date }[]
+    >`
+      SELECT symbol, annualized, btc_beta, as_of FROM forecast.v_realized_vol
+      WHERE symbol = ANY(${markets}) AND as_of >= now() - interval '3 days'
+    `;
+    return new Map(
+      rows.map((r) => [
+        r.symbol.replace(/^KRW-/, ""),
+        {
+          annualized: r.annualized !== null && r.annualized > 0 ? r.annualized : null,
+          btcBeta: r.btc_beta !== null && Number.isFinite(r.btc_beta) ? r.btc_beta : null,
+          asOf: r.as_of,
+        },
+      ])
+    );
+  }
+
+  /** BTC 국면 한 행(`FC-REQ-010`). 3일 넘었으면 없는 것으로 — 낡은 국면을 오늘 것처럼 쓰지 않는다 */
+  async marketRegime(): Promise<MarketRegimeState | null> {
+    const rows = await prisma.$queryRaw<MarketRegimeSqlRow[]>`
+      SELECT as_of, close, sma_200d, trend_open, hmm_p_high, drawdown_365d, gate_key, gate_open,
+             event_factor, next_event_kind, next_event_at, prereg_key
+      FROM forecast.v_market_regime
+      WHERE symbol = 'KRW-BTC' AND as_of >= now() - interval '3 days'
+    `;
+    const r = rows[0];
+    if (!r) return null;
+    return {
+      asOf: r.as_of,
+      close: r.close,
+      sma200d: r.sma_200d,
+      trendOpen: r.trend_open,
+      highVolProbability: r.hmm_p_high,
+      drawdown365d: r.drawdown_365d,
+      gateKey: r.gate_key,
+      gateOpen: r.gate_open,
+      eventFactor: r.event_factor,
+      nextEventKind: r.next_event_kind,
+      nextEventAt: r.next_event_at,
+      preregKey: r.prereg_key,
+    };
+  }
+
   async realizedVolatility(symbol: string): Promise<RealizedVolatility | null> {
     const rows = await prisma.$queryRaw<{ annualized: number | null; as_of: Date }[]>`
       SELECT annualized, as_of FROM forecast.v_realized_vol
