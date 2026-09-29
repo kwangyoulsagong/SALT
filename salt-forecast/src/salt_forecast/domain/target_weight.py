@@ -178,3 +178,37 @@ def worst_months(rows: Sequence[MonthRow], n: int = 3) -> list[MonthRow]:
 def nearest_target(targets: Sequence[float], x: float) -> float:
     """사용자 목표 σ 에 가장 가까운 등록 목표. 같은 거리면 작은 쪽(보수적)."""
     return min(targets, key=lambda t: (abs(t - x), t))
+
+
+@dataclass(frozen=True, slots=True)
+class LiveSummary:
+    n_weeks: int
+    cum_return: float
+    btc_cum_return: float
+    mdd: float
+    btc_mdd: float
+    vol: float
+    upside: float
+    downside: float
+    worst: list[int]  # 전략 주간 수익 하위 3주의 입력 위치 — 선별 없이 순서대로
+
+
+def live_summary(strategy_log: Vec, btc_log: Vec) -> LiveSummary:
+    """target-weight@2 [live.metrics] — status = ok 인 주들만 시간순으로 받는다. 비어 있으면 숫자는 NaN."""
+    n = int(strategy_log.size)
+    if n == 0:
+        nan = float("nan")
+        return LiveSummary(0, nan, nan, nan, nan, nan, nan, nan, [])
+    up, dn = btc_log > 0, btc_log < 0
+    b_up, b_dn = float(btc_log[up].sum()), float(btc_log[dn].sum())
+    return LiveSummary(
+        n_weeks=n,
+        cum_return=float(np.expm1(strategy_log.sum())),
+        btc_cum_return=float(np.expm1(btc_log.sum())),
+        mdd=max_drawdown(strategy_log),
+        btc_mdd=max_drawdown(btc_log),
+        vol=float(strategy_log.std() * np.sqrt(52.0)) if n > 1 else float("nan"),
+        upside=float(strategy_log[up].sum()) / b_up if b_up != 0 else float("nan"),
+        downside=float(strategy_log[dn].sum()) / b_dn if b_dn != 0 else float("nan"),
+        worst=[int(i) for i in np.argsort(strategy_log, kind="stable")[:3]],
+    )

@@ -320,3 +320,54 @@ market_regime = Table(
     Column("prereg_key", Text, nullable=False),
     Column("computed_at", DateTime(timezone=True), nullable=False),
 )
+
+# target-weight@2 [live] — 20260929130000_forecast_target_weight_live (FC-REQ-013)
+target_weight_live_weight = Table(
+    "target_weight_live_weight",
+    metadata,
+    Column("prereg_key", Text, primary_key=True),
+    Column("universe", Text, primary_key=True),
+    Column("target", Float, primary_key=True),
+    Column("rebalance_at", DateTime(timezone=True), primary_key=True),
+    Column("weights", JSONB, nullable=False),
+    Column("sigma", JSONB, nullable=False),
+    Column("exposure", Float, nullable=False),
+    Column("recorded_at", DateTime(timezone=True), nullable=False),
+)
+
+target_weight_live_outcome = Table(
+    "target_weight_live_outcome",
+    metadata,
+    Column("prereg_key", Text, primary_key=True),
+    Column("universe", Text, primary_key=True),
+    Column("target", Float, primary_key=True),
+    Column("rebalance_at", DateTime(timezone=True), primary_key=True),
+    Column("week_end", DateTime(timezone=True), nullable=False),
+    Column("status", Text, nullable=False),
+    Column("returns", JSONB, nullable=False),
+    Column("strategy_log_return", Float),
+    Column("btc_log_return", Float),
+    Column("cost", Float),
+    Column("recorded_at", DateTime(timezone=True), nullable=False),
+)
+
+target_weight_live_summary = Table(
+    "target_weight_live_summary",
+    metadata,
+    Column("prereg_key", Text, primary_key=True),
+    Column("universe", Text, primary_key=True),
+    Column("target", Float, primary_key=True),
+    Column("as_of", DateTime(timezone=True), primary_key=True),
+    Column("first_rebalance_at", DateTime(timezone=True), nullable=False),
+    Column("n_weeks", Integer, nullable=False),
+    Column("n_excluded", Integer, nullable=False),
+    Column("cum_return", Float),
+    Column("btc_cum_return", Float),
+    Column("mdd", Float),
+    Column("btc_mdd", Float),
+    Column("vol", Float),
+    Column("upside", Float),
+    Column("downside", Float),
+    Column("worst_weeks", JSONB, nullable=False),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)
