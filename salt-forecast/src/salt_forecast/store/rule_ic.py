@@ -94,3 +94,36 @@ def save_results(
         for r in results
     )
     return bulk_upsert(engine, rule_ic, _COLS, rows, _PK)
+
+
+@dataclass(frozen=True, slots=True)
+class StoredIc:
+    item: str
+    mode: str
+    horizon_days: int
+    label_kind: str
+    ic_mean: float
+    ci_low: float
+    ci_high: float
+    is_primary: bool
+
+
+def latest_backtest(engine: Engine, key: str, regime: str = "all") -> list[StoredIc]:
+    """그 사전등록의 가장 최근 백테스트 실행 한 번(국면 하나). 값이 없는 행(NULL)은 뺀다."""
+    t = rule_ic.c
+    with engine.connect() as conn:
+        last = conn.execute(
+            select(t.run_as_of).where(t.prereg_key == key, t.source == "backtest").order_by(t.run_as_of.desc()).limit(1)
+        ).scalar()
+        if last is None:
+            return []
+        rows = conn.execute(
+            select(t.item, t.mode, t.horizon_days, t.label_kind, t.ic_mean, t.ci_low, t.ci_high, t.is_primary)
+            .where(t.prereg_key == key, t.source == "backtest", t.run_as_of == last, t.regime == regime)
+            .order_by(t.item, t.mode, t.horizon_days, t.label_kind)
+        ).all()
+    return [
+        StoredIc(r[0], r[1], int(r[2]), r[3], float(r[4]), float(r[5]), float(r[6]), bool(r[7]))
+        for r in rows
+        if r[4] is not None and r[5] is not None and r[6] is not None
+    ]
