@@ -163,3 +163,41 @@ export const nearestTargetRecord = (targetVolatility: number): TargetWeightRecor
     const bestD = Math.abs(best.target - targetVolatility);
     return d < bestD - 1e-12 || (Math.abs(d - bestD) <= 1e-12 && record.target < best.target) ? record : best;
   });
+
+/**
+ * 알트 위험 몫 판정 — 사전등록 `target-weight@2` 리포트(`85dc938`). 후보 a 가 core 만(a = 0)보다 나은지를
+ * ΔCalmar 98.75% CI(Bonferroni)로 쟀고 **둘 다 통과 못 했다** → `targetWeight.ts` `TARGET_WEIGHT_ALT_SHARE = null`.
+ * 목표 0.15 행만 옮긴다(판정 기준 (1) 의 자리). 상장폐지 종목을 수집하지 않아 알트에 유리한 표본이었다.
+ */
+export const TARGET_WEIGHT_ALT_SHARE_RECORD = {
+  preregKey: "target-weight@2",
+  report: "salt-forecast/reports/target-weight-target-weight-2-2026-09-29.md",
+  adopted: null as number | null,
+  primaryTarget: 0.15,
+  candidates: [
+    { altShare: 0.1, deltaCalmar: [-0.032, -0.106, -0.005] as [number, number, number], cagr: 0.101, coreCagr: 0.115 },
+    { altShare: 0.2, deltaCalmar: [-0.065, -0.215, -0.009] as [number, number, number], cagr: 0.087, coreCagr: 0.115 },
+  ],
+  survivorshipBias: true,
+} as const;
+
+/** 라이브 성적으로 과거 성적 자리를 바꾸는 주 수 — 등록 [live.display] min_weeks */
+export const TARGET_WEIGHT_LIVE_MIN_WEEKS = 30;
+export const TARGET_WEIGHT_LIVE_PREREG_KEY = "target-weight@2";
+
+/** `forecast.v_target_weight_live` 한 행(core 모델 포트폴리오 · 목표 하나). 비율 · 주간 */
+export interface TargetWeightLiveRecord {
+  target: number;
+  asOf: Date;
+  firstRebalanceAt: Date;
+  nWeeks: number;
+  nExcluded: number;
+  cumReturn: number | null;
+  btcCumReturn: number | null;
+  mdd: number | null;
+  btcMdd: number | null;
+  vol: number | null;
+  upside: number | null;
+  downside: number | null;
+  worstWeeks: Array<{ rebalanceAt: string; strategy: number | null; btc: number | null; exposure: number | null }>;
+}

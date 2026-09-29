@@ -8,14 +8,17 @@ import {
   drawdownGauge,
   nearestTargetRecord,
   resolveBudget,
+  TARGET_WEIGHT_ALT_SHARE_RECORD,
   TARGET_WEIGHT_BACKTEST,
   TARGET_WEIGHT_CORE_SYMBOLS,
+  TARGET_WEIGHT_LIVE_MIN_WEEKS,
   type CoachProfileStore,
   type ForecastReader,
   type MarketProbe,
   type PortfolioProbe,
   type TargetWeightBacktest,
   type TargetWeightGuide,
+  type TargetWeightLiveRecord,
   type TargetWeightRecord,
 } from "../domain";
 import { loadRiskSnapshot } from "./lib/loadRiskSnapshot";
@@ -30,7 +33,10 @@ import { loadRiskSnapshot } from "./lib/loadRiskSnapshot";
  * 3종 고지(근거 · 과거 성적 · 실패 사례)가 **항상** 함께 나간다. 과거 성적은 상수라 빠질 일이 없고, 근거는 종목별 σ 다 —
  * σ 가 있는 종목이 하나도 없으면 `renderable: false`(`blockedReason: no_volatility`)로 비중을 내지 않는다.
  *
- * 쿼리: 리스크 재료(프로필 · 보유 · 거래 · 월초 종가) + 변동성 1 + 시세 1. 외부 호출 없음.
+ * 알트는 규칙 밖이다(`target-weight@2` 채택 없음) — 보유 알트는 `excluded`(`no_record`)로 나가고, 판정 기록이
+ * `altShare` 로 같이 나간다. 과거 성적은 core 모델 포트폴리오 라이브 원장이 30주 쌓이면 라이브로 바뀐다(`recordSource`).
+ *
+ * 쿼리: 리스크 재료(프로필 · 보유 · 거래 · 월초 종가) + 변동성 1 + 시세 1 + 라이브 요약 1. 외부 호출 없음.
  */
 
 export interface TargetWeightView {
@@ -41,6 +47,13 @@ export interface TargetWeightView {
   /** 사용자 목표 σ 에 가장 가까운 등록 목표의 기록(core · BTC · ETH) */
   record: TargetWeightRecord;
   backtest: Pick<TargetWeightBacktest, "preregKey" | "report" | "window" | "cadence" | "feeRatePerSide" | "holdBtc">;
+  /** 알트 위험 몫 판정 기록(`target-weight@2`) */
+  altShare: typeof TARGET_WEIGHT_ALT_SHARE_RECORD;
+  /** core 모델 포트폴리오 라이브 성적(같은 등록 목표). 첫 리밸런스 전이면 `null` */
+  live: TargetWeightLiveRecord | null;
+  liveMinWeeks: number;
+  /** 과거 성적 자리에 무엇을 쓰나 — 라이브 `nWeeks ≥ liveMinWeeks` 이면 `live`, 아니면 `backtest` */
+  recordSource: "backtest" | "live";
   renderable: boolean;
   blockedReason: "no_volatility" | null;
   asOf: Date;
@@ -68,9 +81,12 @@ export class GetTargetWeights {
     const symbols = [
       ...new Set([...TARGET_WEIGHT_CORE_SYMBOLS, ...snapshot.holdings.map((holding) => holding.symbol.toUpperCase())]),
     ];
-    const [risk, quotes] = await Promise.all([
+    const targetVolatility = profile?.targetVolatility ?? DEFAULT_TARGET_VOLATILITY;
+    const record = nearestTargetRecord(targetVolatility.toNumber());
+    const [risk, quotes, live] = await Promise.all([
       this.forecasts.symbolRisk(symbols),
       this.market.quotes(symbols),
+      this.forecasts.targetWeightLive(record.target),
     ]);
 
     const prices = new Map<string, Money>();
@@ -87,7 +103,6 @@ export class GetTargetWeights {
     const monthlyBudgetRemaining =
       drawdown.budget && drawdown.used ? drawdown.budget.minus(drawdown.used) : null;
 
-    const targetVolatility = profile?.targetVolatility ?? DEFAULT_TARGET_VOLATILITY;
     const maxSingleAssetWeight = new Decimal(profile?.maxSingleAssetWeight ?? DEFAULT_MAX_SINGLE_ASSET_WEIGHT);
 
     const guide = buildTargetWeightGuide({
@@ -122,8 +137,12 @@ export class GetTargetWeights {
       targetVolatility,
       targetVolatilityIsDefault: !profile?.targetVolatility,
       maxSingleAssetWeight,
-      record: nearestTargetRecord(targetVolatility.toNumber()),
+      record,
       backtest,
+      altShare: TARGET_WEIGHT_ALT_SHARE_RECORD,
+      live,
+      liveMinWeeks: TARGET_WEIGHT_LIVE_MIN_WEEKS,
+      recordSource: live && live.nWeeks >= TARGET_WEIGHT_LIVE_MIN_WEEKS ? "live" : "backtest",
       renderable: guide.rows.length > 0,
       blockedReason: guide.rows.length > 0 ? null : "no_volatility",
       asOf: now,

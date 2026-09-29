@@ -14,6 +14,17 @@
  * 계산 결과일 뿐 지시가 아니다 — 결과는 숫자와 상태 코드뿐이고 문장은 화면이 고른다(공통 수용 기준 2 · 4).
  * 기대 R · 켈리 · 확률은 넣지 않는다 — 보정 확률이 자격을 얻지 못했다(`meta-model@1` · `@2`).
  *
+ * ## 알트는 규칙 밖이다 — 사전등록 `target-weight@2`
+ *
+ * 알트에 목표 σ 의 일부(위험 몫 0.10 · 0.20)만 떼어 줘도 BTC · ETH 만 쓸 때보다 모든 목표에서 나빴다(채택 없음,
+ * `salt-forecast/reports/target-weight-target-weight-2-2026-09-29.md`). 그래서 보유 알트는 비중 계산에서 빠지고
+ * `no_record` 로 알린다 — 목표 0 을 "초과"로 부르면 매도 지시가 되므로 부족 · 초과를 만들지 않는다. 평가금은
+ * 지금 노출에 그대로 들어간다(`outsideRuleWeight`). core 비중은 라이브 원장(`v_target_weight_live`)의 모델
+ * 포트폴리오와 같은 식 · 같은 종목이다.
+ *
+ * 부족분은 쓸 수 있는 돈(투자금 − 코인 평가금 + core 초과분) 안에서만 원으로 옮긴다. 넘치면 비례로 줄이고
+ * `gapCapped` 로 알린다 — 알트를 팔아 채우라는 계산이 되지 않게.
+ *
  * ## 무효화 3조건
  *
  * 1. 만료 — 다음 월요일 00:00 UTC(09:00 KST). 백테스트가 매주 월요일에 맞췄다
@@ -32,6 +43,8 @@ export const TARGET_WEIGHT_CORE_SYMBOLS = ["BTC", "ETH"] as const;
 /** 업비트 원화 마켓 최소 주문 금액. 차가 이보다 작으면 "맞음" — 실제로 맞출 수 없는 차를 부족 · 초과로 부르지 않는다 */
 export const TARGET_WEIGHT_MIN_ORDER_KRW = 5000;
 export const SIGMA_DRIFT_LIMIT = new Decimal("0.25");
+/** `target-weight@2` [alt_share.adopt] 결과. `null` = 채택 없음 — 알트에는 목표 비중을 주지 않는다 */
+export const TARGET_WEIGHT_ALT_SHARE: number | null = null;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** σ 목록 → 목표 비중(같은 순서). σ 가 없거나 0 이하인 칸은 0 — 대상에서 빠진다. 합 ≤ 1 */
@@ -60,8 +73,10 @@ export const nextWeeklyRebalance = (now: Date): Date => {
 };
 
 export type TargetWeightBasis = "investable_capital" | "crypto_value";
-export type TargetWeightRowStatus = "under" | "over" | "at";
-export type TargetWeightExcludedReason = "volatility_unavailable" | "price_unavailable";
+/** `no_room` — 부족하지만 쓸 수 있는 돈이 없어(최소 주문 금액 미만) 원으로 옮기지 못했다 */
+export type TargetWeightRowStatus = "under" | "over" | "at" | "no_room";
+/** `no_record` — 알트. 사전등록 기록이 비중을 뒷받침하지 않는다(`target-weight@2`) */
+export type TargetWeightExcludedReason = "volatility_unavailable" | "price_unavailable" | "no_record";
 
 export interface TargetWeightInput {
   /** 사용자가 적은 투자금(현금 포함). 없으면 `null` — 코인 평가금 합을 전체로 본다 */
@@ -87,8 +102,10 @@ export interface TargetWeightRow {
   price: Money;
   targetWeight: Decimal;
   currentWeight: Decimal;
-  /** 목표 − 지금(양수 = 부족) */
+  /** 목표 − 지금(양수 = 부족) — 비중은 줄이지 않는다 */
   gapWeight: Decimal;
+  /** 부족분을 쓸 수 있는 돈 안으로 비례해서 줄였다 — `gapValue` · `gapQuantity` 가 줄어든 값 */
+  gapCapped: boolean;
   targetValue: Money;
   currentValue: Money;
   gapValue: Money;
@@ -125,6 +142,10 @@ export interface TargetWeightGuide {
     lossAtStopTotal: Money;
     /** 모두 손절선에 닿으면 ÷ 이번 달 남은 예산 */
     lossAtStopMonthlyBudgetRatio: Decimal | null;
+    /** 규칙 밖 보유(알트 · σ 없는 종목) 평가금 ÷ 전체 */
+    outsideRuleWeight: Decimal;
+    /** 부족분에 쓸 수 있는 돈 = max(0, 전체 − 코인 평가금) + core 초과분 */
+    fundable: Money;
   };
   expiresAt: Date;
   /** 계산에 쓴 σ 중 가장 오래된 기준 시각 */
@@ -135,7 +156,9 @@ const ratio = (a: Money, b: Money): Decimal => (b.isZero() ? new Decimal(0) : a.
 
 export const buildTargetWeightGuide = (input: TargetWeightInput): TargetWeightGuide => {
   const held = new Map(input.holdings.map((holding) => [holding.symbol.toUpperCase(), holding]));
-  const symbols = [...new Set([...TARGET_WEIGHT_CORE_SYMBOLS, ...held.keys()])];
+  const core = TARGET_WEIGHT_CORE_SYMBOLS as readonly string[];
+  // 알트 몫이 채택되지 않았다(`TARGET_WEIGHT_ALT_SHARE === null`) — 규칙 대상은 core 뿐, 보유 알트는 no_record
+  const symbols = TARGET_WEIGHT_ALT_SHARE === null ? [...core] : [...new Set([...core, ...held.keys()])];
   const cryptoValue = input.holdings.reduce((sum, holding) => sum.plus(holding.value), Money.krw(0));
 
   const capitalBelowHoldings =
@@ -144,7 +167,9 @@ export const buildTargetWeightGuide = (input: TargetWeightInput): TargetWeightGu
   const capital =
     input.investableCapital && !capitalBelowHoldings ? input.investableCapital : cryptoValue;
 
-  const excluded: TargetWeightGuide["excluded"] = [];
+  const excluded: TargetWeightGuide["excluded"] = [...held.keys()]
+    .filter((symbol) => !symbols.includes(symbol))
+    .map((symbol) => ({ symbol, held: true, reason: "no_record" as const, currentValue: held.get(symbol)!.value }));
   const eligible: Array<{ symbol: string; sigma: Decimal; price: Money }> = [];
   for (const symbol of symbols) {
     const currentValue = held.get(symbol)?.value ?? Money.krw(0);
@@ -164,7 +189,7 @@ export const buildTargetWeightGuide = (input: TargetWeightInput): TargetWeightGu
   const sqrtHorizon = new Decimal(VOLATILITY_PLAN.horizonDays).div(VOLATILITY_PLAN.annualDays).sqrt();
   const minOrder = new Decimal(TARGET_WEIGHT_MIN_ORDER_KRW);
 
-  const rows: TargetWeightRow[] = eligible.map((row, i) => {
+  const draft = eligible.map((row, i) => {
     const targetWeight = weights[i];
     const currentValue = held.get(row.symbol)?.value ?? Money.krw(0);
     const currentWeight = ratio(currentValue, capital);
@@ -178,7 +203,7 @@ export const buildTargetWeightGuide = (input: TargetWeightInput): TargetWeightGu
     return {
       symbol: row.symbol,
       held: held.has(row.symbol),
-      core: (TARGET_WEIGHT_CORE_SYMBOLS as readonly string[]).includes(row.symbol),
+      core: core.includes(row.symbol),
       sigma: row.sigma,
       btcBeta: risk.btcBeta,
       price: row.price,
@@ -188,8 +213,6 @@ export const buildTargetWeightGuide = (input: TargetWeightInput): TargetWeightGu
       targetValue,
       currentValue,
       gapValue,
-      gapQuantity: gapValue.toDecimal().div(row.price.toDecimal()),
-      status: gapValue.toDecimal().abs().lt(minOrder) ? "at" : gapValue.isNegative() ? "over" : "under",
       stopPrice,
       lossAtStop: lossPerUnit.scale(targetValue.toDecimal().div(row.price.toDecimal())),
       sigmaBand: {
@@ -197,6 +220,35 @@ export const buildTargetWeightGuide = (input: TargetWeightInput): TargetWeightGu
         high: row.sigma.times(new Decimal(1).plus(SIGMA_DRIFT_LIMIT)),
       },
       volatilityAsOf: risk.asOf,
+    };
+  });
+
+  // 부족분은 쓸 수 있는 돈 안에서만 — 넘치면 비례로 줄인다(규칙 밖 보유를 팔아 채우는 계산을 만들지 않는다)
+  const zero = Money.krw(0);
+  const overSum = draft.reduce((sum, row) => (row.gapValue.isNegative() ? sum.minus(row.gapValue) : sum), zero);
+  const cash = capital.minus(cryptoValue);
+  const fundable = (cash.isNegative() ? zero : cash).plus(overSum);
+  const underSum = draft.reduce((sum, row) => (row.gapValue.isNegative() ? sum : sum.plus(row.gapValue)), zero);
+  const shrink =
+    underSum.compare(fundable) > 0 ? (underSum.isZero() ? new Decimal(0) : fundable.toDecimal().div(underSum.toDecimal())) : null;
+
+  const rows: TargetWeightRow[] = draft.map((row) => {
+    const capped = shrink !== null && !row.gapValue.isNegative() && !row.gapValue.isZero();
+    const gapValue = capped ? row.gapValue.scale(shrink) : row.gapValue;
+    const uncappedAt = row.gapValue.toDecimal().abs().lt(minOrder);
+    const status: TargetWeightRowStatus = uncappedAt
+      ? "at"
+      : row.gapValue.isNegative()
+        ? "over"
+        : gapValue.toDecimal().lt(minOrder)
+          ? "no_room"
+          : "under";
+    return {
+      ...row,
+      gapValue,
+      gapCapped: capped && !uncappedAt,
+      gapQuantity: gapValue.toDecimal().div(row.price.toDecimal()),
+      status,
     };
   });
 
@@ -227,6 +279,11 @@ export const buildTargetWeightGuide = (input: TargetWeightInput): TargetWeightGu
         input.monthlyBudgetRemaining && input.monthlyBudgetRemaining.toDecimal().gt(0)
           ? ratio(lossAtStopTotal, input.monthlyBudgetRemaining)
           : null,
+      outsideRuleWeight: ratio(
+        excluded.filter((row) => row.held).reduce((sum, row) => sum.plus(row.currentValue), zero),
+        capital
+      ),
+      fundable,
     },
     expiresAt: nextWeeklyRebalance(input.now),
     volatilityAsOf: asOfs.length ? new Date(Math.min(...asOfs)) : null,

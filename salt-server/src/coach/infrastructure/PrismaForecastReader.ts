@@ -10,7 +10,9 @@ import type {
   RealizedVolatility,
   SignalReactionRow,
   SymbolRisk,
+  TargetWeightLiveRecord,
 } from "../domain";
+import { TARGET_WEIGHT_LIVE_PREREG_KEY } from "../domain";
 
 interface CardSqlRow {
   horizon_weeks: number;
@@ -127,6 +129,22 @@ interface MarketRegimeSqlRow {
   next_event_kind: string | null;
   next_event_at: Date | null;
   prereg_key: string;
+}
+
+interface TargetWeightLiveSqlRow {
+  target: number;
+  as_of: Date;
+  first_rebalance_at: Date;
+  n_weeks: number;
+  n_excluded: number;
+  cum_return: number | null;
+  btc_cum_return: number | null;
+  mdd: number | null;
+  btc_mdd: number | null;
+  vol: number | null;
+  upside: number | null;
+  downside: number | null;
+  worst_weeks: Array<{ rebalance_at: string; strategy?: number | null; btc?: number | null; exposure?: number | null }> | null;
 }
 
 export class PrismaForecastReader implements ForecastReader {
@@ -316,6 +334,39 @@ export class PrismaForecastReader implements ForecastReader {
       nextEventKind: r.next_event_kind,
       nextEventAt: r.next_event_at,
       preregKey: r.prereg_key,
+    };
+  }
+
+  async targetWeightLive(target: number): Promise<TargetWeightLiveRecord | null> {
+    // 목표는 등록 격자(0.10 · 0.15 …)의 double — 부동소수 비교를 피해 범위로 찾는다
+    const rows = await prisma.$queryRaw<TargetWeightLiveSqlRow[]>`
+      SELECT target, as_of, first_rebalance_at, n_weeks, n_excluded, cum_return, btc_cum_return,
+             mdd, btc_mdd, vol, upside, downside, worst_weeks
+      FROM forecast.v_target_weight_live
+      WHERE prereg_key = ${TARGET_WEIGHT_LIVE_PREREG_KEY} AND universe = 'core'
+        AND target BETWEEN ${target - 1e-9} AND ${target + 1e-9}
+    `;
+    const r = rows[0];
+    if (!r) return null;
+    return {
+      target: r.target,
+      asOf: r.as_of,
+      firstRebalanceAt: r.first_rebalance_at,
+      nWeeks: r.n_weeks,
+      nExcluded: r.n_excluded,
+      cumReturn: r.cum_return,
+      btcCumReturn: r.btc_cum_return,
+      mdd: r.mdd,
+      btcMdd: r.btc_mdd,
+      vol: r.vol,
+      upside: r.upside,
+      downside: r.downside,
+      worstWeeks: (r.worst_weeks ?? []).map((w) => ({
+        rebalanceAt: String(w.rebalance_at),
+        strategy: w.strategy ?? null,
+        btc: w.btc ?? null,
+        exposure: w.exposure ?? null,
+      })),
     };
   }
 

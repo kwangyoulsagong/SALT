@@ -28,6 +28,7 @@ import type {
   DecisionOutcomeDraft,
   MonthlyReview,
   JudgmentLedgerDraft,
+  TargetWeightLiveRecord,
 } from "./policy";
 import type {
   CoachAction,
@@ -547,6 +548,11 @@ export interface ForecastReader {
    * 원천은 `forecast.v_daily_close`(업비트 일봉, UTC 00:00 = KST 09:00 경계). 여러 종목을 쿼리 한 번에
    */
   dailyCloses(symbols: string[], from: Date, to?: Date): Promise<Map<string, DailyBar[]>>;
+  /**
+   * core 모델 포트폴리오 라이브 성적 — `forecast.v_target_weight_live`(사전등록 `target-weight@2` [live], `FC-REQ-013`).
+   * 등록 목표 하나의 최신 요약 한 행. 첫 리밸런스(2026-10-05) 전이면 `null`
+   */
+  targetWeightLive(target: number): Promise<TargetWeightLiveRecord | null>;
 }
 
 export interface SymbolRisk {
