@@ -36,8 +36,14 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §4-3 6 
 | FR-5 | 3종 고지 — 규칙 문장(목표 σ · 기본값) · 기록(기간 · BTC · ETH · 매주 · 수수료 · 기록 목표 σ 가 다르면 밝힘) · 이 규칙 vs BTC 보유 CAGR · MDD · 상승 포착 · claims 3 · 놓친 상승 · 잃은 달 · "하지 않는 것" | 완료 |
 | FR-6 | 내 기준 폼에 투자금(현금 포함) · 목표 변동성(연) — 비우면 지움 · 기본값이면 칸 비움 · 고치지 않은 칸은 보내지 않음. 저장 · 거래 기록 뒤 목표 비중 무효화 | 완료 |
 | FR-7 | 배치 — `judgment-overview` 첫 칸(두 칸 폭) · 따로 부르고 따로 실패 · blocked 사유 · unavailable 문구 | 완료 |
-| FR-8 | 코치 리포트 위험 게이지 합산 재배치 · 홈 "이번 주 목표 비중" 한 줄 | **범위 밖** — 아래 |
+| FR-8 | 코치 리포트 위험 게이지 합산 재배치 · 홈 "이번 주 목표 비중" 한 줄 | 리포트 재배치는 FR-13 으로 완료 · 홈 한 줄은 **범위 밖**(홈은 사용자 결정) |
+| FR-9 | `@repo/core/coach` `targetWeight.ts` 계약 동기화 — `no_room` · `gapCapped` · `no_record` · `outsideRuleWeight` · `fundableKrw` · `altShare` · `live` · `recordSource` | 완료(`ccd1b15`) |
+| FR-10 | 보유 알트 — "과거 기록이 비중을 뒷받침하지 않아 목표 비중이 없어요" 한 줄 + [알트를 넣지 않는 근거](후보 몫별 연수익 vs BTC · ETH 만 · 모든 목표에서 나빴다 · 생존 편향). 규칙 밖 보유 비중에 "줄이라는 뜻이 아니에요". 부족 · 초과 · 금액 없음 | 완료(`ccd1b15`) |
+| FR-11 | `no_room` 배지 "현금 없음" + 한 줄 · `gapCapped` 이면 "남은 현금만큼으로 줄인 값" | 완료(`ccd1b15`) |
+| FR-12 | 과거 성적 자리 — `recordSource: live` 면 [라이브](누적 · 낙폭 · BTC 같은 주 · 상승 포착 · 가장 크게 잃은 주) 뒤 [백테스트], 아니면 백테스트 + "라이브 채점 중 n/30주"(첫 주 전이면 시작일) | 완료(`ccd1b15`) |
+| FR-13 | **배치 변경** — 카드 본문을 `/coach/report` 첫 패널(`#target-weight`)로 옮기고 `/investments` 에는 요약 띠 한 칸(`TargetWeightSummary`: 목표 비중 · 현금 한 줄 + 3종 고지 한 줄 — 근거 · 과거 연수익 · 낙폭 · 가장 크게 잃은 달)만. 투자금 적기 링크는 페이지 안 `#risk-budget` | 완료(`4335b7d`) |
 
 ## Changelog
 
 - 2026-09-29: 초판 · FR-1~7 완료(`26eef7c` · `e1ef668` · 번호 정정 `11e7a65`)
+- 2026-09-29: FR-9~13 — target-weight@2 알트 규칙 밖 · 라이브 · 투자 화면 요약 띠로 재배치(사용자 지적 "invest 메인에 다 있어야 하나")

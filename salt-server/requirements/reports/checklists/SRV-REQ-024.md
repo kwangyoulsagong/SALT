@@ -221,3 +221,21 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 | 안내 라이브 채점 | 사용자별 계산 — 사전등록이 백테스트 기록으로 정했다 | `target-weight@2`(core 모델 포트폴리오 매일 발행) |
 | 보유 알트 몫의 별도 고지 | 사전등록이 core 기록만 화면에 쓰게 정했다(알트 섞으면 기록이 나쁘다) | `target-weight@2` |
 | 운영 DB | 로컬만 | 배포 시 |
+
+## §14. target-weight@2 — 알트 규칙 밖 · 라이브 원장 (FR-187~190, 2026-09-29)
+
+| FR | 위치 | 결과 |
+|---|---|---|
+| FR-187 | `coach/domain/policy/targetWeight.ts` `TARGET_WEIGHT_ALT_SHARE` · `buildTargetWeightGuide` | 테스트: 규칙은 BTC · ETH 만 · SOL `no_record`(평가금 포함) · 보유 알트와 무관하게 core 비중 같음 · `outsideRuleWeight` 0.1 |
+| FR-188 | 같은 파일 `fundable` · `gapCapped` · `no_room` | 테스트: 현금 0 → 두 부족 행 `no_room`(비중은 그대로) · 현금 200,000 → 부족 합 200,000 으로 비례 · core 초과분은 다른 core 부족에 쓴다 |
+| FR-189 | `targetWeightRecord.ts` `TARGET_WEIGHT_ALT_SHARE_RECORD` | 리포트 판정 줄 · 0.15 행 CI 대조 테스트 |
+| FR-190 | `ports.ts` `targetWeightLive` · `PrismaForecastReader` · `GetTargetWeights` · DTO | 유스케이스 테스트: 가까운 등록 목표로 조회 · 29주 `backtest` · 30주 `live`. 실 DB 호출 `null`(행 0) · `EXPLAIN (ANALYZE, BUFFERS)` Index Scan `target_weight_live_summary_pkey` · shared hit 2 · 0.015ms |
+
+- `npm test` 555 / 0 · `tsc --noEmit` · `npm run lint` 통과. prettier 는 레포 설정이 없어 돌리지 않았다
+- **BREAKING**(응답): 보유 알트가 `rows` 에서 `excluded`(`no_record`)로 옮겨 갔다 · `status` 에 `no_room` — BFF(`BFF-REQ-041` FR-4) · 프론트 타입 같은 PR
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 인증된 HTTP 실측 | 로컬 토큰 발급 불가 — 어댑터 직접 호출 · 화면은 Playwright route | 로그인 QA(사용자) |
+| 라이브 원장 실제 행이 있는 응답 | 첫 리밸런스 2026-10-05 | 2026-10-12 결과 뒤 |
+| 운영 DB 마이그레이션 | 로컬만 | 배포 시 |
