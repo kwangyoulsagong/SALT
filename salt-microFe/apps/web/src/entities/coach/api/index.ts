@@ -9,3 +9,4 @@ export * from "./useSymbolPositioning";
 export * from "./useRiskBudget";
 export * from "./useTradePlans";
 export * from "./useBehaviorMirror";
+export * from "./useJudgmentScoreboard";

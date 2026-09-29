@@ -82,6 +82,7 @@ const REGISTRY = {
     "pc-panel-grid",
     "coach-panel",
     "symbol-analysis",
+    "judgment-overview",
     "position-overview",
     "market-list",
     "app-header",

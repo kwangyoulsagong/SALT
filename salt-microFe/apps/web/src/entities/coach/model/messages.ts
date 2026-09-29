@@ -2,6 +2,7 @@ import type {
   CoachAction,
   CoachMode,
   JudgmentBlockedReason,
+  PriceBasis,
   Zone,
 } from "@repo/core/coach";
 
@@ -74,6 +75,14 @@ export const COACH_MESSAGES = {
     gapAbove: (gap: string) => `현재가보다 ${gap}원 위`,
     gapBelow: (gap: string) => `현재가보다 ${gap}원 아래`,
     gapNone: "현재가와 같음",
+    /**
+     * 가격선 근거(F010 슬라이스 3 · `FE-REQ-040` FR-1). σ 는 "이 종목이 20일 동안 보통 움직이는 폭"이다 — 기호만 두지
+     * 않고 말로 먼저 쓴다. 개선이라고 말하지 않는다(σ 계획은 손절 도달은 줄지만 한 번 손실은 커진다 — 슬라이스 2 판단)
+     */
+    basis: {
+      volatility: "이 종목이 20일 동안 보통 움직이는 폭(σ)에 맞춘 가격이에요 · 손실 제한 −1σ · 1차 익절 +2σ · 추세 유지 +3σ",
+      fixed: "변동성 데이터가 없어 고정 비율로 정한 가격이에요",
+    } satisfies Record<PriceBasis, string>,
     /**
      * 차트 띠 이름표. **"매수존 · 바이존" 이라 쓰지 않는다**(`FEATURE-004` FR-21 — 화면 이름은 관찰 구간).
      * `예측 아님` 을 이름표에도 붙인다 — 칠한 띠는 선보다 "여기서 사라"로 읽히기 쉽다

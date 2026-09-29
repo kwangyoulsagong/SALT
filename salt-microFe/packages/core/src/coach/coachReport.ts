@@ -98,6 +98,8 @@ export interface ReportExitPlan {
   firstTakeProfit: { price: number; priceGap: number };
   /** 코드. 문구는 프론트 */
   trendHold: { conditionCode: string };
+  /** 가격선 근거(F010 슬라이스 2) — `symbolCoach.ts` `PriceBasis` 와 같은 값. 없으면 근거 줄을 그리지 않는다 */
+  basis?: "volatility" | "fixed";
 }
 
 export interface ReportBehaviorFact {

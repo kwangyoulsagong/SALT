@@ -6,6 +6,7 @@ import { backendApi } from "../backend-api.service";
 import {
   toBehaviorMirrorViewModel,
   toDecisionOutcomeList,
+  toLossAsymmetryView,
   toStreakView,
   toTradeBehaviorPreview,
   toTradeTimingView,
@@ -219,6 +220,37 @@ describe("연승 · 연패 · 시간대 (슬라이스 7, BFF-REQ-038 FR-13)", ()
     const old = toBehaviorMirrorViewModel(mirror());
     assert.equal(old.streak, null);
     assert.equal(old.timing, null);
+  });
+});
+
+describe("손실 비대칭 (F010 슬라이스 3, BFF-REQ-039 FR-3)", () => {
+  it("비율 · 금액 · 창을 옮긴다", () => {
+    const view = toLossAsymmetryView({ ratio: metric(1.6, 20), maxLossKrw: -320_000, maxGainKrw: 200_000, window: 20 });
+    assert.deepEqual(view, {
+      ratio: { value: 1.6, sampleSize: 20, status: "ok" },
+      maxLossKrw: -320_000,
+      maxGainKrw: 200_000,
+      window: 20,
+    });
+  });
+
+  it("한쪽 금액이 없거나 부호가 뒤집혔으면 비율 값을 내리지 않는다 — 0 으로 채우지 않는다", () => {
+    const noGain = toLossAsymmetryView({ ratio: metric(null, 7), maxLossKrw: -50_000, maxGainKrw: null, window: 20 });
+    assert.equal(noGain?.ratio.value, null);
+    assert.equal(noGain?.ratio.status, "insufficient_data");
+    assert.equal(noGain?.maxGainKrw, null);
+    const flipped = toLossAsymmetryView({ ratio: metric(0.5, 20), maxLossKrw: 50_000, maxGainKrw: 100_000, window: 20 });
+    assert.equal(flipped?.maxLossKrw, null);
+    assert.equal(flipped?.ratio.value, null);
+  });
+
+  it("창이 없으면 null, 미러에 실리고 서버가 아직 안 주면 null", () => {
+    assert.equal(toLossAsymmetryView({ ratio: metric(1), maxLossKrw: -1, maxGainKrw: 1 }), null);
+    assert.equal(toBehaviorMirrorViewModel(mirror()).lossAsymmetry, null);
+    const view = toBehaviorMirrorViewModel(
+      mirror({ lossAsymmetry: { ratio: metric(0.4, 20), maxLossKrw: -40_000, maxGainKrw: 100_000, window: 20 } }),
+    );
+    assert.equal(view.lossAsymmetry?.ratio.value, 0.4);
   });
 });
 

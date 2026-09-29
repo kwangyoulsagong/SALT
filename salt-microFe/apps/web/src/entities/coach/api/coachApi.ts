@@ -2,6 +2,7 @@ import type {
   BehaviorMirrorResult,
   CoachGenerationStatus,
   DecisionOutcomeListResult,
+  JudgmentScoreboardResult,
   MonthlyReviewResult,
   CoachReportResult,
   SymbolCoachViewModel,
@@ -161,6 +162,18 @@ export const coachApi = {
     if (!response.ok) throw new CoachApiError(response.status);
 
     const body = (await response.json()) as AppEnvelope<BehaviorMirrorResult>;
+    return body.data;
+  },
+
+  /** 판정 성적표 (`GET /api/app/coach/scoreboard`, F010 슬라이스 3). 신호 유형별 · 사용자별 아님. 서버 장애는 BFF 가 200 `unavailable` */
+  scoreboard: async (signal?: AbortSignal): Promise<JudgmentScoreboardResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.scoreboard}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<JudgmentScoreboardResult>;
     return body.data;
   },
 

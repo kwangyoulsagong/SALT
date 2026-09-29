@@ -60,6 +60,7 @@ export const ZoneSummary = ({ zone }: { zone: Zone }) => {
             row(ZONE.stages[stage.key], stage.price, stage.priceGap),
           )}
         />
+        {zone.basis && <p className={caption}>{ZONE.basis[zone.basis]}</p>}
       </div>
     );
   }

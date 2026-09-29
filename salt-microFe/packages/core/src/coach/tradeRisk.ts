@@ -109,7 +109,19 @@ export interface RiskBudgetView {
       feesYearToDateKrw: number | null;
       tradeCount: number | null;
     };
+    /** BTC 베타 합(F010 슬라이스 2) — Σ(평가금 비중 × 90일 BTC 베타). 모르는 베타는 합에서 빠진다. 예산이 없어 `exceeded` 없음 */
+    btcBeta: {
+      status: GaugeStatus;
+      betaSum: number | null;
+      /** BTC 로 환산한 노출(원) — BTC 가 −10% 면 대략 이 금액의 −10% */
+      btcEquivalentKrw: number | null;
+      /** 베타가 있는 보유의 평가금 비중(0~1) */
+      coveredWeight: number | null;
+      missingSymbols: string[];
+    };
   };
+  /** 시장 국면 라벨(F010 슬라이스 2) — 아무것도 막거나 줄이지 않는다. 없거나 낡았으면 `null` */
+  market: MarketRegimeView | null;
   /** 시나리오(슬라이스 6, FR-25) — 확률이 없다. 못 받았으면 `null` */
   scenarios: ScenariosView | null;
   monthStart: string | null;
@@ -135,6 +147,23 @@ export interface ScenariosView {
 }
 
 export type RiskBudgetResult = RiskBudgetView | { status: "unavailable" };
+
+/**
+ * 시장 국면(F010 슬라이스 2 · `BFF-REQ-039` FR-2). 사전등록 `regime-gate@1` 이 게이트를 채택하지 않아
+ * `gateAdopted: false` — 화면은 "참고 라벨"이라고 말한다. 확률은 국면 모델 출력이지 판정 확률이 아니다
+ */
+export interface MarketRegimeView {
+  asOf: string;
+  trendOpen: boolean | null;
+  btcClose: number | null;
+  btcSma200d: number | null;
+  highVolProbability: number | null;
+  /** 365일 고점 대비 낙폭(0 이하) */
+  drawdown365dRate: number | null;
+  gateAdopted: boolean;
+  nextEvent: { kind: "fomc" | "cpi"; at: string } | null;
+  preregKey: string | null;
+}
 
 /** `PUT` 본문. 빠진 필드는 그대로, `null` 은 지운다. `percent` 는 비율(0.05 = 5%) */
 export interface RiskBudgetUpdate {

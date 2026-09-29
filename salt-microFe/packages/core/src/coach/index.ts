@@ -7,3 +7,4 @@ export * from "./positioning";
 export * from "./tradeRisk";
 export * from "./behaviorMirror";
 export * from "./monthlyReview";
+export * from "./judgmentScoreboard";

@@ -13,10 +13,10 @@ import {
   useBehaviorMirror,
   useDecisionOutcomes,
 } from "@/entities/coach";
+import { AssetIdentity } from "@/entities/market";
 import { OutcomeTagEditor } from "@/features/confirm-outcome-tags";
 import { panel, panelDescription, panelHead, panelTitle } from "@/shared/ui/surface.css";
 
-import { AssetIdentity } from "./AssetIdentity";
 
 const M = MIRROR_MESSAGES;
 

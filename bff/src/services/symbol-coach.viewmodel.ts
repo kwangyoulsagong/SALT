@@ -82,6 +82,11 @@ export type Zone =
         ratio: number;
       }>;
       status: string;
+      /**
+       * 가격선 근거(F010 슬라이스 2 · `BFF-REQ-039` FR-4) — `volatility` = 20일 실현 변동성 배수(−1σ · +2σ · +3σ),
+       * `fixed` = 변동성이 없어 고정 비율. 모르는 값이면 필드가 없다
+       */
+      basis?: "volatility" | "fixed";
     }
   | {
       kind: "observation";
@@ -211,6 +216,18 @@ export class SymbolCoachContractError extends Error {
 const hasZone = (zone: Zone | undefined): zone is Zone =>
   typeof zone?.kind === "string";
 
+const PRICE_BASES: readonly unknown[] = ["volatility", "fixed"];
+
+/**
+ * 보유 구간의 `basis` 를 아는 값으로만 남긴다. 나머지 구간 모양은 서버 그대로(FR-44). 모르는 근거를 옮기면
+ * 화면이 "변동성 기준"을 잘못 말할 수 있다 — 필드를 지운다
+ */
+const toZone = (zone: Zone): Zone => {
+  if (zone.kind !== "held_rule") return zone;
+  const { basis, ...rest } = zone;
+  return PRICE_BASES.includes(basis) ? zone : rest;
+};
+
 /**
  * 서버 모드 블록 → 화면 모드 블록. 계약이 깨졌으면 `null`.
  *
@@ -230,7 +247,7 @@ export const toModeViewModel = (
       renderable: false,
       blockedReason: view.blockedReason,
       trackSample: view.trackRecord?.sample ?? null,
-      zone: view.zone,
+      zone: toZone(view.zone),
     };
   }
 
@@ -260,7 +277,7 @@ export const toModeViewModel = (
     },
     trackRecord,
     failureCases: failureCases as [FailureCase, ...FailureCase[]],
-    zone: view.zone,
+    zone: toZone(view.zone),
   };
 };
 

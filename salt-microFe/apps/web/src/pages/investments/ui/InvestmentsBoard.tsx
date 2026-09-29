@@ -18,15 +18,26 @@ const CoachPanel = dynamic(
   { ssr: false, loading: () => null },
 );
 
+/**
+ * 위험에 노출된 돈 · 판정 성적표 카드 (F010 `FE-REQ-040` FR-7). 코치 패널과 같은 이유로 지연 청크다 —
+ * `@/entities/coach` barrel 이 첫 로드에 들어오지 않게. 로그인 여부를 수화 뒤에 보는 카드라 서버에서 그릴 것도 없다.
+ */
+const JudgmentOverview = dynamic(
+  () => import("@/widgets/judgment-overview").then((mod) => mod.JudgmentOverview),
+  { ssr: false, loading: () => null },
+);
+
 /** 모듈 상수 — 렌더마다 새 함수를 만들지 않는다 */
 const renderCoachPanel: PreviewRenderer = (subject) => (
   <CoachPanel subject={subject} />
 );
 
 /**
- * 시세 보드 + 우측 AI 코치 패널 조합. `widgets` 끼리 import 할 수 없어서 조합은 페이지가
- * 한다(`fsd-widgets.md` — `pc-panel-grid` 와 같은 방식).
+ * 시세 보드 + 머리 아래 위험 · 성적표 카드 + 우측 AI 코치 패널 조합. `widgets` 끼리 import 할 수 없어서 조합은
+ * 페이지가 한다(`fsd-widgets.md` — `pc-panel-grid` 와 같은 방식).
  */
-export const InvestmentsBoard = () => <MarketBoard renderPreview={renderCoachPanel} />;
+export const InvestmentsBoard = () => (
+  <MarketBoard renderPreview={renderCoachPanel} lead={<JudgmentOverview />} />
+);
 
 export default InvestmentsBoard;

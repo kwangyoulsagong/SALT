@@ -9,7 +9,7 @@ import { ServiceIcon } from "@repo/ui/serviceicon";
 import { Tabs } from "@repo/ui/tabs";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import React, { Suspense, useState } from "react";
+import React, { type ReactNode, Suspense, useState } from "react";
 
 import { ROUTES } from "@/shared/config";
 import { NavChevron } from "@/shared/ui";
@@ -64,10 +64,15 @@ const MarketSummaryStrip = dynamic(
 interface MarketBoardProps {
   /** 우측 패널. 페이지가 AI 코치 패널을 주입한다 — `model/previewSlot.ts` */
   renderPreview?: PreviewRenderer;
+  /**
+   * 머리 바로 아래 칸(F010 `FE-REQ-040` FR-7). 페이지가 위험 · 판정 성적표 카드를 주입한다 — 위젯끼리 import 할 수 없다.
+   * 시세 요약 띠보다 위다: 첫 화면에 "오늘 내 위험"이 먼저 보여야 한다(리서치 §9-4)
+   */
+  lead?: ReactNode;
 }
 
 /** 조합만 한다. 비즈니스 로직은 `entities/market` 과 그 위의 feature 가 갖는다. */
-export const MarketBoard = ({ renderPreview }: MarketBoardProps) => {
+export const MarketBoard = ({ renderPreview, lead }: MarketBoardProps) => {
   const [activeTab, setActiveTab] = useState(DEFAULT_MARKET_BOARD_TAB);
   return (
     <Section noContainer>
@@ -83,6 +88,8 @@ export const MarketBoard = ({ renderPreview }: MarketBoardProps) => {
             <NavChevron />
           </Link>
         </div>
+        {/* 간격은 칸이 갖는다 — 로그아웃이면 칸이 아무것도 그리지 않아 빈 여백이 남지 않게 */}
+        {lead}
         <Margin top="xl">
           <MarketSummaryStrip />
         </Margin>

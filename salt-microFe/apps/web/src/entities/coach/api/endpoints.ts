@@ -26,6 +26,8 @@ export const COACH_ENDPOINTS = {
   /** 청산별 결과 · 태그. 확정은 `outcomeTags` 에 PUT(`features/confirm-outcome-tags`) */
   outcomes: (limit: number) => `/api/app/coach/outcomes?limit=${limit}`,
   outcomeTags: (id: string) => `/api/app/coach/outcomes/${encodeURIComponent(id)}/tags`,
+  /** 판정 성적표 — 신호 유형별, 사용자별 아님 (F010 슬라이스 3 `BFF-REQ-039` FR-5) */
+  scoreboard: "/api/app/coach/scoreboard",
   /** 월간 복기(F009 슬라이스 6 `BFF-REQ-038` FR-10). 달이 없으면 서버가 KST 지난달을 고른다 */
   monthlyReview: (month: string | null) =>
     month ? `/api/app/coach/review/monthly?month=${encodeURIComponent(month)}` : "/api/app/coach/review/monthly",

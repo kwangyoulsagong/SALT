@@ -44,6 +44,14 @@ export const MIRROR_MESSAGES = {
     expectancyReturn: (value: string) => `평균 ${value}`,
     noEdge: "엣지 없음",
   },
+  /** 손실 비대칭(F010 슬라이스 3 · `FE-REQ-040` FR-4). 측정만 — 좋다 · 나쁘다를 말하지 않는다 */
+  lossAsymmetry: {
+    label: "가장 큰 손실 ÷ 가장 큰 이익",
+    line: (ratio: string) => `${ratio}배`,
+    amounts: (window: number, loss: string, gain: string) => `최근 청산 ${window}건 중 가장 큰 손실 ${loss}원 · 가장 큰 이익 ${gain}원`,
+    hint: "1 보다 크면 가장 큰 손실이 가장 큰 이익보다 컸다는 뜻이에요",
+    oneSided: (window: number) => `최근 청산 ${window}건에 이익 · 손실이 둘 다 있어야 계산해요`,
+  },
   turnover: {
     label: "회전율",
     line: (times: string, fees: string) => `최근 1년 ${times}배 · 올해 수수료 ${fees}원`,

@@ -117,6 +117,18 @@ describe("toCoachReportViewModel", () => {
     assert.deepEqual(view.degradedFields, []);
   });
 
+  it("익절 플랜 basis 는 아는 값만 남긴다 — 모르면 필드가 없다(F010 슬라이스 3)", () => {
+    const plan = (basis: unknown) =>
+      toCoachReportViewModel(
+        detail({ exitPlans: [{ symbol: "BTC", assetType: "crypto", currentPrice: 1, stopLoss: {}, firstTakeProfit: {}, trendHold: {}, basis }] }),
+      );
+    const vol = plan("volatility");
+    const odd = plan("atr");
+    if (vol.status !== "ok" || odd.status !== "ok") return assert.fail("ok 여야 한다");
+    assert.equal(vol.exitPlans[0].basis, "volatility");
+    assert.equal("basis" in odd.exitPlans[0], false);
+  });
+
   it("추천 계약이 깨지면 추천만 막고 나머지 블록은 간다", () => {
     const view = toCoachReportViewModel(detail({ recommendation: { ...open, failureCases: [] } }));
 
