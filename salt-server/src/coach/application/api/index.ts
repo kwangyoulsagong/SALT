@@ -42,6 +42,7 @@ import { ListProfitPlans } from "../ListProfitPlans";
 import { GetCoachProfile, UpdateCoachProfile } from "../ManageCoachProfile";
 import { ConfirmOutcomeTags, ListDecisionOutcomes } from "../ManageDecisionOutcomes";
 import { GetRiskBudget, UpdateRiskBudget } from "../ManageRiskBudget";
+import { GetTargetWeights } from "../GetTargetWeights";
 import { BuildMonthlyReview, GetMonthlyReview } from "../ManageMonthlyReview";
 import { CreateTradePlan, ListTradePlans, UpdateTradePlan } from "../ManageTradePlan";
 import { RecordCoachFeedback } from "../RecordCoachFeedback";
@@ -133,6 +134,8 @@ export interface CoachUseCases {
   listTradePlans: ListTradePlans;
   getRiskBudget: GetRiskBudget;
   updateRiskBudget: UpdateRiskBudget;
+  /** F010 슬라이스 5 — 확률 없는 목표 비중 안내 */
+  getTargetWeights: GetTargetWeights;
   /** F009 슬라이스 4 — 준수 판정 · 결정 결과 배치 · 미러 · 태그 확정 */
   evaluateTradeDecisions: EvaluateTradeDecisions;
   getBehaviorMirror: GetBehaviorMirror;
@@ -267,6 +270,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     listTradePlans: new ListTradePlans(deps.tradePlans),
     getRiskBudget,
     updateRiskBudget: new UpdateRiskBudget(deps.profiles, getRiskBudget),
+    getTargetWeights: new GetTargetWeights(deps.profiles, deps.portfolio, deps.market, deps.forecasts),
     evaluateTradeDecisions: new EvaluateTradeDecisions(
       deps.portfolio,
       deps.tradePlans,

@@ -458,7 +458,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *     security:
    *       - bearerAuth: []
    *     responses:
-   *       200: { description: "`{ settings{…, maxSingleAssetWeight}, totalValueKrw, gauges{drawdown,concentration,turnover,btcBeta}, market, scenarios{status, totalValueKrw, shocks[], episodes[]}, monthStart, asOf }`" }
+   *       200: { description: "`{ settings{…, maxSingleAssetWeight, investableCapitalKrw}, totalValueKrw, gauges{drawdown,concentration,turnover,btcBeta}, market, scenarios{status, totalValueKrw, shocks[], episodes[]}, monthStart, asOf }`" }
    *       401: { description: 인증 실패 }
    *   put:
    *     summary: 리스크 예산 수정
@@ -489,6 +489,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *                   unit: { type: string, enum: [krw, percent] }
    *               targetVolatility: { type: number, nullable: true, exclusiveMinimum: 0, maximum: 2, description: "연 비율(0.15 = 15%). null 이면 기본 15%" }
    *               maxSingleAssetWeight: { type: number, nullable: true, minimum: 0.05, maximum: 1, description: "한 종목 상한 비율(0.6 = 60%). null 이면 기본 60%" }
+   *               investableCapital: { type: number, nullable: true, exclusiveMinimum: 0, maximum: 1000000000000, description: "투자금(현금 포함, 원) — 목표 비중 안내의 전체(F010 슬라이스 5). null 이면 지운다" }
    *     responses:
    *       200: { description: GET 과 같은 응답 }
    *       400: { description: 요청 검증 실패 }
@@ -496,6 +497,32 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    */
   router.get("/risk-budget", risk.getRiskBudget);
   router.put("/risk-budget", risk.updateRiskBudget);
+
+  /**
+   * @swagger
+   * /api/coach/target-weights:
+   *   get:
+   *     summary: 목표 비중 안내 — 확률 없음 (F010 슬라이스 5)
+   *     description: |
+   *       보유 종목 + BTC · ETH 를 **변동성만으로** 나눈 목표 비중과 지금 비중의 차(원 · 수량). 방향 판단 · 확률 · 기대 R 이 없다.
+   *       규칙(사전등록 `target-weight@1`): 역변동성 배분 → 노출 = min(1, 목표 σ ÷ 묶음 σ(상관 1)) → 한 종목 상한, 남는 몫은 현금.
+   *
+   *       - 전체 = 투자금(`PUT /api/coach/risk-budget` `investableCapital`). 없으면 코인 평가금 합(`basis: crypto_value`),
+   *         투자금이 보유보다 작으면 보유 합(`capitalBelowHoldings: true`). 둘 다 없으면 `status: no_capital`
+   *       - `status` — `under` 부족 · `over` 초과 · `at` 차가 최소 주문 금액(5,000원) 미만. **지시가 아니다** — 실행은 사용자
+   *       - 무효화 3조건: `expiresAt`(다음 월요일 09:00 KST) · `sigmaBand`(σ ±25%) · `stopPriceKrw`(−1σ, 20일)
+   *       - 3종 고지: 근거(종목 σ) · 과거 성적(`record` — 8년 업비트 주간 백테스트, 목표 σ 가 가장 가까운 등록값) ·
+   *         실패 사례(`record.missedUpside` · `worstMonths`). `record.claims` 가 화면이 쓸 수 있는 문장을 정한다
+   *       - σ 가 있는 종목이 없으면 `renderable: false` · `blockedReason: no_volatility`
+   *       - 주문하지 않는다(`orderExecution: false`)
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200: { description: "`{ status, basis, capitalKrw, capitalBelowHoldings, rows[], excluded[], totals, expiresAt, volatilityAsOf, targetVolatility, targetVolatilityIsDefault, maxSingleAssetWeight, record, backtest, renderable, blockedReason, asOf, orderExecution }`" }
+   *       401: { description: 인증 실패 }
+   */
+  router.get("/target-weights", risk.getTargetWeights);
 
   /**
    * @swagger

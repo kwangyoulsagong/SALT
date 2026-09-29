@@ -161,6 +161,8 @@ export const updateRiskBudgetSchema = z.object({
   targetVolatility: z.number().finite().gt(0).lte(2).nullable().optional(),
   /** 한 종목 상한 비율(0.6 = 60%) — IPS 3문항의 셋째(슬라이스 6). `null` 이면 기본 60% 로 */
   maxSingleAssetWeight: z.number().finite().min(0.05).max(1).nullable().optional(),
+  /** 투자금(현금 포함, 원) — 목표 비중 안내의 전체(F010 슬라이스 5). `null` 이면 지운다. 상한 1조 원 */
+  investableCapital: z.number().finite().gt(0).lte(1e12).nullable().optional(),
 });
 
 const planText = z.string().trim().min(1).max(200);
