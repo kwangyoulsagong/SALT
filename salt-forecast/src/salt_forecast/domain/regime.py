@@ -6,14 +6,17 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
 
 from salt_forecast.domain.hmm import HmmParams, filter_probs, fit
-from salt_forecast.domain.series import DAY
+from salt_forecast.domain.series import DAY, CloseSeries
+from salt_forecast.domain.volatility import EWMA_LAMBDA
 
 type Vec = NDArray[np.float64]
 type Mat = NDArray[np.float64]
@@ -76,34 +79,58 @@ class HmmPath:
     fits: tuple[tuple[int, HmmParams], ...]  # (적합 기준 시각 = 월초, 파라미터)
 
 
-def hmm_monthly(dates: NDArray[np.int64], r: Vec, k: int, seed: int = SEED, min_train: int = HMM_MIN_TRAIN) -> HmmPath:
+def fit_for_month(
+    dates: NDArray[np.int64], r: Vec, month_start: int, k: int, seed: int = SEED, min_train: int = HMM_MIN_TRAIN
+) -> HmmParams | None:
+    """달 (month_start, 다음 달] 에 쓸 파라미터 — `dates ≤ month_start` 인 수익률(확장 창)로만 적합. 모자라면 None."""
+    train = r[~np.isnan(r) & (dates <= month_start)]
+    if train.size < min_train:
+        return None
+    return fit(train, k, seed)
+
+
+def p_high_through(p: HmmParams, r: Vec, upto: int) -> Vec:
+    """행 0..upto 의 forward 필터 고변동 확률. 결측 수익률 행은 건너뛰고 NaN."""
+    out = np.full(upto + 1, np.nan)
+    ok = np.flatnonzero(~np.isnan(r[: upto + 1]))
+    if ok.size:
+        out[ok] = filter_probs(p, r[ok])[:, -1]
+    return out
+
+
+def _fit_job(job: tuple[NDArray[np.int64], Vec, int, int, int, int]) -> HmmParams | None:
+    dates, r, a, k, seed, min_train = job
+    return fit_for_month(dates, r, a, k, seed, min_train)
+
+
+def hmm_monthly(
+    dates: NDArray[np.int64],
+    r: Vec,
+    k: int,
+    seed: int = SEED,
+    min_train: int = HMM_MIN_TRAIN,
+    mapper: Callable[[Callable[[Any], Any], Iterable[Any]], Iterable[Any]] = map,
+) -> HmmPath:
     """매월 1일(UTC) 기준 확장 창 적합 → 그 달 행들의 forward 필터 p_high.
 
     달 (a, b] 에 속한 행 t(a < dates[t] ≤ b) 는 `dates ≤ a` 인 수익률로 적합한 파라미터를 쓴다 — 미래 관측 0.
-    필터는 첫 관측부터 t 까지 다시 돌린다(초기 상태 분포의 흔적이 남지 않게). 결측 수익률 행은 필터에서 건너뛰고 NaN.
+    필터는 첫 관측부터 t 까지 다시 돌린다(초기 상태 분포의 흔적이 남지 않게).
+    라이브(`regime_state`)도 같은 두 함수를 쓴다. 달마다 독립이라 `mapper` 로 병렬 적합할 수 있다(결과 동일).
     """
     out = np.full(r.size, np.nan)
-    ok = ~np.isnan(r)
+    months: list[tuple[int, NDArray[np.intp]]] = []
+    for a in sorted({_month_start(int(d - 1)) for d in dates}):
+        rows = np.flatnonzero((dates > a) & (dates <= _month_start(a + 32 * DAY)))
+        if rows.size:
+            months.append((a, rows))
+    params = list(mapper(_fit_job, [(dates, r, a, k, seed, min_train) for a, _ in months]))
     fits: list[tuple[int, HmmParams]] = []
-    months = sorted({_month_start(int(d - 1)) for d in dates})
-    for a in months:
-        b = _month_start(a + 32 * DAY)
-        rows = np.flatnonzero((dates > a) & (dates <= b))
-        if rows.size == 0:
+    for (a, rows), p in zip(months, params, strict=True):
+        if p is None:
             continue
-        train = r[ok & (dates <= a)]
-        if train.size < min_train:
-            continue
-        p = fit(train, k, seed)
         fits.append((a, p))
-        upto = rows[-1]
-        use = np.flatnonzero(ok[: upto + 1])
-        probs = filter_probs(p, r[use])[:, -1]
-        pos = {int(i): j for j, i in enumerate(use)}
-        for t in rows:
-            j = pos.get(int(t))
-            if j is not None:
-                out[t] = probs[j]
+        probs = p_high_through(p, r, int(rows[-1]))
+        out[rows] = probs[rows]
     return HmmPath(out, tuple(fits))
 
 
@@ -317,3 +344,135 @@ def btc_beta(r: Vec, r_btc: Vec, window: int = BETA_WINDOW, min_obs: int = BETA_
     if vx == 0:
         return None
     return float(np.mean((x - x.mean()) * (y - y.mean())) / vx)
+
+
+def beta_by_symbol(
+    series: Mapping[str, CloseSeries], btc_symbol: str, as_of: int, window: int = BETA_WINDOW
+) -> dict[str, float | None]:
+    """종목별 BTC 베타 — as_of 까지 알 수 있던 일봉만. 수익률은 연속한 두 봉(하루 간격)으로만 만든다."""
+    btc = series.get(btc_symbol)
+    if btc is None:
+        return {s: None for s in series}
+
+    def daily(s: CloseSeries) -> dict[int, float]:
+        c = s.as_of(as_of)
+        at, px = c.available_at, c.close
+        keep = (np.diff(at) == DAY) & (at[1:] > as_of - window * DAY)
+        return dict(zip(at[1:][keep].tolist(), np.log(px[1:] / px[:-1])[keep].tolist(), strict=True))
+
+    base = daily(btc)
+    days = np.array(sorted(base), dtype=np.int64)
+    rb = np.array([base[d] for d in days])
+    out: dict[str, float | None] = {}
+    for sym, s in series.items():
+        own = daily(s)
+        ra = np.array([own.get(int(d), np.nan) for d in days])
+        out[sym] = btc_beta(ra, rb, window=window)
+    return out
+
+
+# ── 라이브 — 매일 한 행(forecast.market_regime) ───────────────────────────
+
+# 사전등록 regime-gate@1 판정 결과. 바꾸려면 새 사전등록 키 + 이 상수를 바꾸는 커밋(리뷰 가능하게)
+PREREG_KEY = "regime-gate@1"
+ADOPTED_GATE: str | None = None
+EVENT_FACTOR = 1.0
+EVENT_KINDS = ("fomc", "cpi")
+
+
+@dataclass(frozen=True, slots=True)
+class RegimeState:
+    symbol: str
+    as_of: datetime
+    last_bar_at: datetime
+    close: float
+    sma_200d: float | None
+    trend_open: bool
+    hmm_p_high: float | None
+    hmm_fit_at: datetime | None
+    hmm_sigma_low: float | None
+    hmm_sigma_high: float | None
+    drawdown_365d: float | None
+    vol_ewma: float | None
+    gate_key: str | None
+    gate_open: bool
+    event_factor: float
+    next_event_kind: str | None
+    next_event_at: datetime | None
+    prereg_key: str
+
+
+def _dt(epoch: int) -> datetime:
+    return datetime.fromtimestamp(epoch, UTC)
+
+
+def _opt(x: float) -> float | None:
+    return None if x != x else float(x)
+
+
+def ewma_vol(r: Vec, lam: float = EWMA_LAMBDA, min_obs: int = 20) -> float | None:
+    """마지막 행까지의 EWMA 일 σ 를 연율(365일)로. 관측 < min_obs 면 None. labels.ewma_sigma 와 같은 점화식."""
+    v = float("nan")
+    n = 0
+    for x in r[~np.isnan(r)]:
+        v = x * x if n == 0 else lam * v + (1.0 - lam) * x * x
+        n += 1
+    return None if n < min_obs else float(np.sqrt(v * ANNUAL_DAYS))
+
+
+def gate_is_open(gate: str | None, trend: bool, p_high: float | None) -> bool:
+    """채택 게이트로 그날 열림 여부. 재료가 없으면 열림(사전등록 — 이동평균 · HMM 이 없으면 게이트 없음)."""
+    hmm = True if p_high is None else p_high <= 0.5
+    if gate is None:
+        return True
+    if gate == "trend":
+        return trend
+    if gate == "hmm":
+        return hmm
+    if gate == "both":
+        return trend and hmm
+    raise ValueError(f"모르는 게이트: {gate}")
+
+
+def regime_state(
+    btc: CloseSeries,
+    as_of: int,
+    events: Sequence[tuple[str, int]],
+    gate: str | None = ADOPTED_GATE,
+    event_factor: float = EVENT_FACTOR,
+) -> RegimeState | None:
+    """as_of 에 알 수 있던 BTC 일봉만으로 한 행. 백테스트와 **같은 함수**(sma · trend_open · fit_for_month ·
+    p_high_through · drawdown_from_peak)를 쓴다. 봉이 없으면 None. events = (kind, epoch) — 알려진 일정."""
+    s = btc.as_of(as_of)
+    if s.close.size == 0:
+        return None
+    dates, close = s.available_at, s.close
+    t = close.size - 1
+    r = log_returns(close)
+    m = sma(close, TREND_WINDOW)[t]
+    trend = bool(trend_open(close)[t])
+    month = _month_start(int(dates[t] - 1))
+    params = fit_for_month(dates, r, month, k=2)
+    p_high = None if params is None else _opt(p_high_through(params, r, t)[t])
+    dd = drawdown_from_peak(close[-ANNUAL_DAYS:])[-1]
+    upcoming = sorted((at, k) for k, at in events if k in EVENT_KINDS and at > as_of)
+    return RegimeState(
+        symbol=s.symbol,
+        as_of=_dt(as_of),
+        last_bar_at=_dt(int(dates[t])),
+        close=float(close[t]),
+        sma_200d=_opt(m),
+        trend_open=trend,
+        hmm_p_high=p_high,
+        hmm_fit_at=None if params is None else _dt(month),
+        hmm_sigma_low=None if params is None else float(np.sqrt(params.var[0]) * np.sqrt(ANNUAL_DAYS)),
+        hmm_sigma_high=None if params is None else float(np.sqrt(params.var[-1]) * np.sqrt(ANNUAL_DAYS)),
+        drawdown_365d=_opt(dd),
+        vol_ewma=ewma_vol(r),
+        gate_key=gate,
+        gate_open=gate_is_open(gate, trend, p_high),
+        event_factor=event_factor,
+        next_event_kind=upcoming[0][1] if upcoming else None,
+        next_event_at=_dt(upcoming[0][0]) if upcoming else None,
+        prereg_key=PREREG_KEY,
+    )

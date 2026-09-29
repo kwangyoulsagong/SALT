@@ -217,6 +217,7 @@ realized_vol = Table(
     Column("annualized", Float),
     Column("blocked_reason", Text),
     Column("computed_at", DateTime(timezone=True), nullable=False),
+    Column("btc_beta", Float),  # 20260929110000_forecast_market_regime (FC-REQ-009)
 )
 
 QUANTILE_COLUMNS = _Q
@@ -292,5 +293,30 @@ rule_ic = Table(
     Column("t_naive", Float),
     Column("verdict", Text, nullable=False),
     Column("is_primary", Boolean, nullable=False),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)
+
+# 20260929110000_forecast_market_regime (FC-REQ-009)
+market_regime = Table(
+    "market_regime",
+    metadata,
+    Column("symbol", Text, primary_key=True),
+    Column("as_of", DateTime(timezone=True), primary_key=True),
+    Column("last_bar_at", DateTime(timezone=True), nullable=False),
+    Column("close", Float, nullable=False),
+    Column("sma_200d", Float),
+    Column("trend_open", Boolean, nullable=False),
+    Column("hmm_p_high", Float),
+    Column("hmm_fit_at", DateTime(timezone=True)),
+    Column("hmm_sigma_low", Float),
+    Column("hmm_sigma_high", Float),
+    Column("drawdown_365d", Float),
+    Column("vol_ewma", Float),
+    Column("gate_key", Text),
+    Column("gate_open", Boolean, nullable=False),
+    Column("event_factor", Float, nullable=False),
+    Column("next_event_kind", Text),
+    Column("next_event_at", DateTime(timezone=True)),
+    Column("prereg_key", Text, nullable=False),
     Column("computed_at", DateTime(timezone=True), nullable=False),
 )

@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 
@@ -91,6 +92,7 @@ class RunOutput:
     hmm_fits: int = 0
     hmm_last_sigma: tuple[float, ...] = ()
     ew_symbols_mean: float = float("nan")
+    shifted_days: int = 0
 
 
 def _day(epoch: int) -> date:
@@ -129,15 +131,19 @@ def _vol_pct_exposure(r: Vec) -> Vec:
     return out
 
 
-def exposures(panel: Panel) -> tuple[dict[str, Vec], int, tuple[float, ...]]:
-    """게이트 이름 → 행별 노출(BTC 로만 계산). (노출, HMM 적합 수, 마지막 적합의 상태별 일 σ)."""
+def exposures(panel: Panel, workers: int = 1) -> tuple[dict[str, Vec], int, tuple[float, ...]]:
+    """게이트 이름 → 행별 노출(BTC 로만 계산). (노출, HMM 적합 수, 마지막 적합의 상태별 일 σ).
+
+    월별 HMM 적합은 서로 독립이라 `workers` > 1 이면 프로세스로 나눈다 — 같은 시드 · 같은 입력이라 결과는 같다.
+    """
     j = panel.column(BTC)
     close = panel.close[:, j]
     r = log_returns(close)
     trend = trend_open(close).astype(np.float64)
-    h2 = hmm_monthly(panel.dates, r, k=2)
+    with ProcessPoolExecutor(max_workers=workers) as pool:
+        h2 = hmm_monthly(panel.dates, r, k=2, mapper=pool.map)
+        h3 = hmm_monthly(panel.dates, r, k=3, mapper=pool.map)
     hmm = np.where(np.isnan(h2.p_high), np.nan, (h2.p_high <= 0.5).astype(np.float64))
-    h3 = hmm_monthly(panel.dates, r, k=3)
     hmm3 = np.where(np.isnan(h3.p_high), np.nan, (h3.p_high <= 0.5).astype(np.float64))
     dd = drawdown_from_peak(close)
     sig = ewma_sigma(panel)[:, j] * np.sqrt(365.0)
@@ -242,7 +248,11 @@ def evaluate_touches(panel: Panel, start_row: int) -> dict[str, TouchStats]:
 
 
 def run(
-    ohlcv: Mapping[str, OhlcvSeries], events: Sequence[ScheduledEvent], start: datetime, as_of: datetime
+    ohlcv: Mapping[str, OhlcvSeries],
+    events: Sequence[ScheduledEvent],
+    start: datetime,
+    as_of: datetime,
+    workers: int = 1,
 ) -> RunOutput:
     first = min(int(s.available_at[0]) for s in ohlcv.values() if s.available_at.size)
     end = int(as_of.timestamp())
@@ -253,9 +263,15 @@ def run(
     start_epoch = int(start.timestamp())
     last = int(np.searchsorted(panel.dates, end - DAY, side="right")) - 1
     rows = np.flatnonzero((panel.dates > start_epoch) & (np.arange(panel.dates.size) <= last))
-    expo, n_fits, last_sigma = exposures(panel)
-    if np.isnan(expo["both"][rows[0] - 1]):
-        raise ValueError("시작일에 HMM 게이트가 없다 — 사전등록 기간 가정이 깨졌다")
+    expo, n_fits, last_sigma = exposures(panel, workers)
+    # 첫 수익률의 노출은 전날 행이 정한다 — 그 행에 1차 게이트가 모두 있어야 한다(없으면 창을 그만큼 늦춘다)
+    defined = np.ones(panel.dates.size, dtype=bool)
+    for g in PRIMARY_GATES:
+        defined &= ~np.isnan(expo[g])
+    shifted = int(np.argmax(defined[rows - 1]))  # 앞에서 빈 날 수
+    rows = rows[defined[rows - 1]]
+    if rows.size == 0 or not defined[rows[0] - 1 :].all():
+        raise ValueError("평가 창 안에서 1차 게이트가 비는 날이 있다 — 사전등록 기간 가정이 깨졌다")
     gates, ew_mean = evaluate_gates(panel, expo, rows)
     out = RunOutput(window=(_day(int(panel.dates[rows[0]])), _day(int(panel.dates[rows[-1]]))))
     out.gates = gates
@@ -265,6 +281,7 @@ def run(
     out.hmm_fits = n_fits
     out.hmm_last_sigma = last_sigma
     out.ew_symbols_mean = ew_mean
+    out.shifted_days = shifted
     return out
 
 
@@ -287,6 +304,8 @@ def render_report(key: str, sha: str, as_of: datetime, out: RunOutput) -> str:
         f"- 기간: {out.window[0]} ~ {out.window[1]} · 업비트 원화 일봉 · ew 평균 종목 수 {out.ew_symbols_mean:.0f}",
         f"- HMM 월 적합 {out.hmm_fits}회 · 마지막 적합 상태별 일 σ "
         + ", ".join(f"{s * 100:.2f}%" for s in out.hmm_last_sigma),
+        f"- 창 시작이 사전등록 기간보다 {out.shifted_days}일 늦다 — 첫 수익률의 노출을 정하는 전날 행이 전달 몫 HMM"
+        "(학습 730일 미만)이라서. 판정 규칙은 그대로다",
         "- **표본 선택**: 지금 상장된 종목만 있다(상장폐지 종목 원천 없음 — 생존 편향). "
         "ew 보유 곡선이 실제보다 좋게 나온다",
         "",

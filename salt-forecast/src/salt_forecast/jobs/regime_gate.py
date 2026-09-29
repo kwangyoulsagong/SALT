@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import tomllib
 from datetime import UTC, date, datetime
@@ -60,7 +61,8 @@ def main(argv: list[str] | None = None) -> int:
             log.info("사전등록", extra={"fields": {"job": JOB, "key": key, "new": new}})
 
         ohlcv = load_ohlcv_series(eng, "upbit", "1d")
-        out = run(ohlcv, events_known(eng, as_of), parse_as_of(START), as_of)
+        workers = max(1, (os.cpu_count() or 2) - 1)  # performance.md §2
+        out = run(ohlcv, events_known(eng, as_of), parse_as_of(START), as_of, workers)
         for g in out.gates:
             if g.primary:
                 log.info(
