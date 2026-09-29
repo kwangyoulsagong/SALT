@@ -7,6 +7,8 @@ from datetime import UTC, datetime
 
 from salt_forecast.domain.meta_features import FEATURES
 from salt_forecast.scoring.meta_model import AUC_FLOOR, MAX_ECE, FdrRow, RunOutput
+from salt_forecast.scoring.meta_model_v2 import SYMBOL_FEATURES as SYMBOL_FEATURES_V2
+from salt_forecast.scoring.meta_model_v2 import RunOutput as V2Output
 
 
 def _f(x: float, d: int = 3, sign: bool = False) -> str:
@@ -172,4 +174,82 @@ def render_report(key: str, sha: str, as_of: datetime, out: RunOutput, fdr: Sequ
             )
     else:
         lines.append("- rule-ic@1 탐색표: DB 에 백테스트 행이 없다")
+    return "\n".join(lines) + "\n"
+
+
+def render_report_v2(key: str, sha: str, as_of: datetime, out: V2Output) -> str:
+    """meta-model@2 — 판정표 먼저, 탐색은 뒤."""
+    m, r, d = out.main, out.rule, out.diff
+    lines = [
+        f"# 메타 모델 v2 · 기저율 + 종목 간 순위 — {key} ({as_of.date().isoformat()})",
+        "",
+        f"- 사전등록: `salt-forecast/preregistration/2026-09-29-meta-model-2.toml` · 실행 커밋 `{sha}`",
+        f"- 행: 주 격자 {out.n_dates}주 × 종목 {out.n_symbols} = **{out.n_rows:,}행** · 양성 {_pct(out.base_rate)}"
+        " (라벨 · 창 · 유니버스 = meta-model@1)",
+        "- **표본 재사용**: meta-model@1 이 같은 표본을 봤다 — 채택은 원장 발행 허가일 뿐,"
+        " 표시는 라이브 게이트(새 표본) 뒤",
+        "",
+        "## 판정",
+        "",
+        "| 조건 | 기준 | 값 | 결과 |",
+        "|---|---|---|---|",
+    ]
+    if m is not None and r is not None and d is not None:
+        lines += [
+            f"| CPCV 종목 간 AUC 하한 | > 0.52 | {_f(m.auc)} [{_f(m.lo)}, {_f(m.hi)}] ({m.n_dates}주) |"
+            f" {_ok(m.lo > 0.52)} |",
+            f"| 종목 간 AUC 차 (모델 − 규칙만 {_f(r.auc)}) | CI 하한 > 0 |"
+            f" {_f(d.mean, 4, True)} [{_f(d.lo, 4, True)}, {_f(d.hi, 4, True)}] | {_ok(d.lo > 0)} |",
+        ]
+    for label, s in (("날짜 안 셔플", out.shuffle_within), ("전체 셔플", out.shuffle_global)):
+        if s is not None:
+            lines.append(
+                f"| {label} 종목 간 AUC | CI 가 0.5 포함 | {_f(s.auc)} [{_f(s.lo)}, {_f(s.hi)}] |"
+                f" {_ok(s.lo <= 0.5 <= s.hi)} |"
+            )
+    c = out.calib
+    if c is not None:
+        lines += [
+            f"| walk-forward ECE | ≤ {MAX_ECE} | {_f(c.ece, 4)} | {_ok(out.ece_ok)} |",
+            f"| walk-forward BSS (기준 = 학습 창 양성 비율) | CI 하한 > 0 | {_f(c.bss, 4, True)}"
+            f" [{_f(c.bss_lo, 4, True)}, {_f(c.bss_hi, 4, True)}] | {_ok(out.bss_ok)} |",
+        ]
+    verdict = (
+        "**채택** — 확률을 원장에 발행한다(표시는 라이브 게이트 뒤)"
+        if out.adopted
+        else "**채택 안 함** — 확률을 만들지 않는다. 슬라이스 5 는 확률 없이"
+    )
+    lines += ["", f"결론: {verdict}", ""]
+    if c is not None and out.walk is not None:
+        p = c.parts
+        lines += [
+            "## walk-forward 보정",
+            "",
+            f"- 재학습 {out.walk.retrains}회 · 보정기 {len(out.walk.calibrators)}개 · 평가 {c.n:,}행"
+            f" · {c.n_dates}주 · 시작 {c.first}",
+            f"- Brier {_f(p.brier, 4)} = REL {_f(p.reliability, 5)} − RES {_f(p.resolution, 5)}"
+            f" + UNC {_f(p.uncertainty, 4)} (+ 구간 안 {_f(p.within_bin, 5, True)}) · AUC {_f(c.auc)}",
+            "",
+            "| 구간 | 행 | 평균 확률 | 실제 비율 |",
+            "|---|---|---|---|",
+        ]
+        lines += [f"| {i} | {n:,} | {_pct(pk)} | {_pct(yk)} |" for i, (n, pk, yk) in enumerate(c.reliability, 1)]
+        lines.append("")
+    if m is not None:
+        names = [*SYMBOL_FEATURES_V2, "funding_7d_missing"]
+        lines += ["## 순위 가중치 — 전 기간 적합(부차)", "", "| 피처(순위) | 가중치 |", "|---|---|"]
+        pairs = sorted(zip(names, m.weights, strict=True), key=lambda kv: -abs(kv[1]))
+        lines += [f"| {k} | {_f(v, 3, True)} |" for k, v in pairs]
+        lines.append("")
+    lines += ["## 탐색 (판정 무관)", "", "| 변형 | ECE | BSS | 95% CI |", "|---|---|---|---|"]
+    for name, e in out.explore.items():
+        lines.append(
+            f"| {name} | {_f(e.ece, 4)} | {_f(e.bss, 4, True)} | [{_f(e.bss_lo, 4, True)}, {_f(e.bss_hi, 4, True)}] |"
+        )
+    sr, n = out.sharpe
+    ann = sr * 52**0.5 if sr == sr else float("nan")
+    lines += [
+        "",
+        f"- 순위 상위 20% − 전체 7일 로그수익(왕복 0.1%): 샤프 {_f(sr, 3, True)}/주 · 연 {_f(ann, 2, True)} · {n}주",
+    ]
     return "\n".join(lines) + "\n"

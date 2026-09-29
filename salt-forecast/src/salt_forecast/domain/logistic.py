@@ -32,32 +32,40 @@ class LogitFit:
         return sigmoid(self.intercept + x @ self.coef)
 
 
-def fit_logistic(x: Mat, y: Vec, lam: float, weight: Vec | None = None) -> LogitFit:
-    """minimize Σ w·logloss + (λ/2)‖β‖² (절편 제외). x 는 결측이 없어야 한다."""
+def fit_logistic(
+    x: Mat, y: Vec, lam: float, weight: Vec | None = None, offset: Vec | None = None, intercept: bool = True
+) -> LogitFit:
+    """minimize Σ w·logloss(σ(offset + b + xβ)) + (λ/2)‖β‖² (절편 제외). x 는 결측이 없어야 한다.
+    `intercept=False` 면 b = 0 고정 — 날짜 안 평균을 offset 이 맡는 순위 모델(meta-model@2)."""
     n, d = x.shape
     if n == 0:
         raise ValueError("학습 행이 없다")
     if np.isnan(x).any() or np.isnan(y).any():
         raise ValueError("로지스틱 입력에 결측이 있다 — 호출자가 채운다")
     w = np.ones(n) if weight is None else weight
-    a = np.hstack([np.ones((n, 1)), x])
-    pen = np.full(d + 1, lam)
-    pen[0] = 0.0
-    beta = np.zeros(d + 1)
-    ybar = float(np.clip(np.average(y, weights=w), 1e-6, 1 - 1e-6))
-    beta[0] = np.log(ybar / (1 - ybar))
+    off = np.zeros(n) if offset is None else offset
+    k = 1 if intercept else 0
+    a = np.hstack([np.ones((n, 1)), x]) if intercept else x
+    pen = np.full(d + k, lam)
+    beta = np.zeros(d + k)
+    if intercept:
+        pen[0] = 0.0
+        ybar = float(np.clip(np.average(y, weights=w), 1e-6, 1 - 1e-6))
+        beta[0] = np.log(ybar / (1 - ybar)) if offset is None else 0.0
     iterations = 0
     for step_no in range(1, MAX_ITER + 1):
         iterations = step_no
-        p = sigmoid(a @ beta)
+        p = sigmoid(off + a @ beta)
         grad = a.T @ (w * (p - y)) + pen * beta
         s = w * p * (1 - p)
-        hess = (a * s[:, None]).T @ a + np.diag(pen) + 1e-10 * np.eye(d + 1)
+        hess = (a * s[:, None]).T @ a + np.diag(pen) + 1e-10 * np.eye(d + k)
         step = np.linalg.solve(hess, grad)
         beta -= step
         if float(np.max(np.abs(step))) < TOL:
             break
-    return LogitFit(float(beta[0]), beta[1:].copy(), iterations)
+    if intercept:
+        return LogitFit(float(beta[0]), beta[1:].copy(), iterations)
+    return LogitFit(0.0, beta.copy(), iterations)
 
 
 @dataclass(frozen=True, slots=True)
