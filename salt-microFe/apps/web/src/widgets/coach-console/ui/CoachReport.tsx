@@ -15,6 +15,7 @@ import {
   ReportRiskList,
   useCoachReport,
 } from "@/entities/coach";
+import { AssetIdentity } from "@/entities/market";
 import { RegenerateCoachButton } from "@/features/regenerate-coach";
 import { ROUTES } from "@/shared/config";
 import {
@@ -36,7 +37,6 @@ import {
   title,
   titleBlock,
 } from "./CoachReport.css";
-import { AssetIdentity } from "./AssetIdentity";
 import { MirrorPanel } from "./MirrorPanel";
 import { MonthlyReviewPanel } from "./MonthlyReviewPanel";
 import { RiskBudgetPanel } from "./RiskBudgetPanel";

@@ -2,9 +2,8 @@
 
 import { AssetIcon } from "@repo/ui/assetIcon";
 
-import { useMarketListing } from "@/entities/market";
-
-import { identity, identityName, identitySymbol, identityText } from "./CoachReport.css";
+import { useMarketListing } from "../api/useMarketQueries";
+import { identity, identityName, identitySymbol, identityText } from "./AssetIdentity.css";
 
 interface AssetIdentityProps {
   symbol: string;

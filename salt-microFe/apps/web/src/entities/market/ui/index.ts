@@ -1,3 +1,4 @@
+export { AssetIdentity } from "./AssetIdentity";
 export { ChangeRateCell } from "./ChangeRateCell";
 export { MarketFilterTabs } from "./MarketFilterTabs";
 export type { MarketFilterValue } from "./MarketFilterTabs";
