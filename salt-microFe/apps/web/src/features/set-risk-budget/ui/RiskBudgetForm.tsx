@@ -15,6 +15,9 @@ import {
   toBudgetInput,
   toBudgetSetting,
   toCapRatio,
+  toInvestableCapital,
+  toTargetVolRatio,
+  capitalToInputText,
   type BudgetInput,
 } from "../lib";
 import { SET_RISK_BUDGET_MESSAGES as MSG } from "../model";
@@ -125,24 +128,38 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
       ? ""
       : ratioToPercentText(settings.maxSingleAssetWeight);
   const [cap, setCap] = useState(initialCap);
+  // 목표 변동성은 기본값이면 칸을 비운 채로 둔다 — 기본값을 저장하면 기본이 바뀔 때 따라가지 않는다
+  const initialVol =
+    settings.targetVolatility === null || settings.targetVolatilityIsDefault
+      ? ""
+      : ratioToPercentText(settings.targetVolatility);
+  const [targetVol, setTargetVol] = useState(initialVol);
+  const initialCapital = capitalToInputText(settings.investableCapitalKrw);
+  const [capital, setCapital] = useState(initialCapital);
   const save = useSetRiskBudget();
   const ids = {
     monthly: useId(),
     perTrade: useId(),
     cap: useId(),
+    capital: useId(),
+    targetVol: useId(),
     body: useId(),
   };
 
   const monthlySetting = toBudgetSetting(monthly);
   const perTradeSetting = toBudgetSetting(perTrade);
   const capRatio = toCapRatio(cap);
+  const volRatio = toTargetVolRatio(targetVol);
+  const capitalKrw = toInvestableCapital(capital);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (
       monthlySetting === undefined ||
       perTradeSetting === undefined ||
-      capRatio === undefined
+      capRatio === undefined ||
+      volRatio === undefined ||
+      capitalKrw === undefined
     )
       return;
     save.mutate({
@@ -150,6 +167,8 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
       perTradeMaxLoss: perTradeSetting,
       // 고치지 않은 상한은 보내지 않는다 — 다른 칸만 저장했는데 상한이 기본값으로 돌아가지 않게
       ...(cap !== initialCap ? { maxSingleAssetWeight: capRatio } : {}),
+      ...(targetVol !== initialVol ? { targetVolatility: volRatio } : {}),
+      ...(capital !== initialCapital ? { investableCapital: capitalKrw } : {}),
     });
   };
 
@@ -205,12 +224,41 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
           trailing={<span className={unitStyle}>{MSG.unitPercent}</span>}
           error={capRatio === undefined ? MSG.invalidCap : undefined}
         />
+        <label className={label} htmlFor={ids.capital}>
+          {MSG.capital}
+        </label>
+        <TextField
+          id={ids.capital}
+          variant="compact"
+          inputMode="numeric"
+          autoComplete="off"
+          placeholder={MSG.capitalPlaceholder}
+          value={capital}
+          onChange={(text) => setCapital(formatAmountInput(text))}
+          trailing={<span className={unitStyle}>{MSG.unitKrw}</span>}
+          error={capitalKrw === undefined ? MSG.invalidCapital : undefined}
+        />
+        <label className={label} htmlFor={ids.targetVol}>
+          {MSG.targetVolatility}
+        </label>
+        <TextField
+          id={ids.targetVol}
+          variant="compact"
+          inputMode="decimal"
+          autoComplete="off"
+          placeholder={MSG.targetVolatilityPlaceholder}
+          value={targetVol}
+          onChange={(text) => setTargetVol(formatPercentInput(text))}
+          trailing={<span className={unitStyle}>{MSG.unitPercent}</span>}
+          error={volRatio === undefined ? MSG.invalidTargetVolatility : undefined}
+        />
       </div>
       <p className={hint}>
         {MSG.hint}
         {settings.targetVolatility !== null &&
           ` · ${MSG.targetVol(formatRatio(settings.targetVolatility), settings.targetVolatilityIsDefault)}`}
       </p>
+      <p className={hint}>{MSG.capitalHint}</p>
       <div className={actions}>
         <button
           type="submit"
