@@ -97,6 +97,7 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `asset-workspace` | 포지션 / 시장 / 관심 종목 세그먼트 |
 | `position-overview` | portfolio (Hero · 평가금 흐름 · 보유 · 리스크 레이더) |
 | `coach-panel` · `symbol-analysis` | market + coach + indicator (투자 우측 패널 · 상세 분석) |
+| `judgment-overview` | coach + market(종목 로고) — 투자 화면 머리 아래 위험 · 판정 성적표 카드 (F010, 2026-09-29) |
 | `app-header` · `alert-list` · `settings-panel` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 설정 · 거래 목록 |
 | `market-list` | 모바일 시장 목록 (웹은 `market-board`) |
 | `market-board` | market + news + indicator |

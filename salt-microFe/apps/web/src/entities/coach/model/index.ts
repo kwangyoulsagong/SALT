@@ -5,3 +5,4 @@ export * from "./eventMessages";
 export * from "./positioningMessages";
 export * from "./riskMessages";
 export * from "./mirrorMessages";
+export * from "./scoreboardMessages";
