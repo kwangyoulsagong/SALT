@@ -16,6 +16,9 @@ export const overviewGrid = style({
   "@media": { "screen and (max-width: 1024px)": { gridTemplateColumns: "minmax(0, 1fr)" } },
 });
 
+/** 두 칸을 다 쓰는 카드(목표 비중) */
+export const overviewWide = style({ gridColumn: "1 / -1", minWidth: 0 });
+
 /** 수화 전 자리 — 로그인 여부를 모르는 동안 표가 위아래로 튀지 않게 한 줄 높이만 잡는다 */
 export const overviewPending = style({ minHeight: "1px" });
 
@@ -41,4 +44,15 @@ export const footnote = style({
   color: vars.colors.neutral[700],
   fontSize: "12px",
   lineHeight: "18px",
+});
+
+/**
+ * 목표 비중 카드 설명 — "오를 종목을 고르지 않고 확률을 말하지 않는다"는 고지라 늘 읽혀야 한다.
+ * 공용 `panelDescription`(neutral 500, 3.03:1)이 아니라 13px neutral 700(AA)
+ */
+export const noticeDescription = style({
+  margin: 0,
+  color: vars.colors.neutral[700],
+  fontSize: vars.typography.t7.fontSize,
+  lineHeight: vars.typography.t7.lineHeight,
 });
