@@ -123,11 +123,12 @@ export const moreSummary = style([
   },
 ]);
 
+/** neutral 600 은 4.41:1 로 AA 미달(2026-09-29 axe) — 700 */
 export const moreHint = style({
   marginLeft: "auto",
   flexShrink: 0,
   whiteSpace: "nowrap",
-  color: vars.colors.neutral[600],
+  color: vars.colors.neutral[700],
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,

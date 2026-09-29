@@ -19,15 +19,26 @@ export const overviewGrid = style({
 /** 수화 전 자리 — 로그인 여부를 모르는 동안 표가 위아래로 튀지 않게 한 줄 높이만 잡는다 */
 export const overviewPending = style({ minHeight: "1px" });
 
-/** 패널 머리의 "자세히" — 섹션 머리 텍스트 링크와 같은 모양(`market-board` reportLink) */
+/**
+ * 패널 머리의 "자세히" — 섹션 머리 텍스트 링크와 같은 모양(`market-board` reportLink)이되 색은 neutral 700.
+ * tertiary 는 흰 면에서 3.03:1 로 AA 미달이었다(2026-09-29 axe)
+ */
 export const headLink = style({
   display: "inline-flex",
   alignItems: "center",
   gap: "2px",
-  color: vars.colors.text.tertiary,
+  color: vars.colors.neutral[700],
   fontSize: vars.typography.t7.fontSize,
   lineHeight: vars.typography.t7.lineHeight,
   fontWeight: vars.fontWeights.semibold,
   textDecoration: "none",
-  ":hover": { color: vars.colors.text.secondary },
+  ":hover": { color: vars.colors.neutral[900] },
+});
+
+/** 카드 아래 고지 · 기준 시각 — 흰 면 위 12px neutral 700(AA) */
+export const footnote = style({
+  margin: 0,
+  color: vars.colors.neutral[700],
+  fontSize: "12px",
+  lineHeight: "18px",
 });

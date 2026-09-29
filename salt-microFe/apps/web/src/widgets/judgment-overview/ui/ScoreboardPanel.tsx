@@ -12,6 +12,8 @@ import {
 import { AssetIdentity } from "@/entities/market";
 import { panel, panelDescription, panelHead, panelTitle } from "@/shared/ui/surface.css";
 
+import { footnote } from "./JudgmentOverview.css";
+
 const S = SCOREBOARD_MESSAGES;
 
 const renderIdentity = (symbol: string) => <AssetIdentity symbol={symbol} size="sm" />;
@@ -33,7 +35,8 @@ export const ScoreboardPanel = () => {
     return (
       <>
         <ScoreboardList view={board.data} renderIdentity={renderIdentity} />
-        <p className={panelDescription}>
+        {/* 고지는 늘 읽혀야 한다 — 패널 설명(neutral 500, 3.03:1)이 아니라 AA 를 넘는 보조 글 */}
+        <p className={footnote}>
           {board.data.disclaimer}
           {at && ` · ${S.generatedAt(at)}`}
         </p>
