@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/auth.middleware";
 import { appCoachController } from "../controllers/coach.controller";
 import { appTradeRiskController } from "../controllers/trade-risk.controller";
 import { appBehaviorMirrorController } from "../controllers/behavior-mirror.controller";
+import { appJudgmentScoreboardController } from "../controllers/judgment-scoreboard.controller";
 
 /**
  * 코치 리포트 — `/api/app/coach/*` (`BFF-REQ-023` "조립 — 코치 리포트").
@@ -38,5 +39,8 @@ router.get("/outcomes", appBehaviorMirrorController.listOutcomes);
 router.put("/outcomes/:id/tags", appBehaviorMirrorController.confirmOutcomeTags);
 // F009 슬라이스 6 — 월간 복기(`BFF-REQ-038` FR-10)
 router.get("/review/monthly", appBehaviorMirrorController.monthlyReview);
+
+/** F010 슬라이스 3 — 판정 성적표(신호 유형별, 사용자별 아님). `/investments` 카드(`BFF-REQ-039` FR-5) */
+router.get("/scoreboard", appJudgmentScoreboardController.scoreboard);
 
 export default router;
