@@ -1,4 +1,4 @@
-"""국면 · HMM · 게이트 곡선 · 이벤트일 · 손절 도달 · 베타(FC-REQ-009)."""
+"""국면 · HMM · 게이트 곡선 · 이벤트일 · 손절 도달 · 베타(FC-REQ-010)."""
 
 from __future__ import annotations
 

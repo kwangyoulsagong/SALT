@@ -56,7 +56,7 @@ export interface RiskBudgetView {
     btcBeta: BtcBetaGauge;
   };
   /**
-   * 시장 국면 라벨(F010 슬라이스 2 · `FC-REQ-009`) — BTC 200일선 · HMM 고변동 확률 · 365일 낙폭 · 다음 이벤트.
+   * 시장 국면 라벨(F010 슬라이스 2 · `FC-REQ-010`) — BTC 200일선 · HMM 고변동 확률 · 365일 낙폭 · 다음 이벤트.
    * 사전등록 `regime-gate@1` 이 게이트를 채택하지 않아 **아무것도 막거나 줄이지 않는다**. 없거나 낡았으면 `null`
    */
   market: MarketRegimeState | null;

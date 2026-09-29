@@ -1,4 +1,4 @@
-"""시장 국면 한 행 쓰기(FC-REQ-009). 서버는 forecast.v_market_regime 뷰로 읽는다."""
+"""시장 국면 한 행 쓰기(FC-REQ-010). 서버는 forecast.v_market_regime 뷰로 읽는다."""
 
 from __future__ import annotations
 

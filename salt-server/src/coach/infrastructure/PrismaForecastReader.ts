@@ -292,7 +292,7 @@ export class PrismaForecastReader implements ForecastReader {
     );
   }
 
-  /** BTC 국면 한 행(`FC-REQ-009`). 3일 넘었으면 없는 것으로 — 낡은 국면을 오늘 것처럼 쓰지 않는다 */
+  /** BTC 국면 한 행(`FC-REQ-010`). 3일 넘었으면 없는 것으로 — 낡은 국면을 오늘 것처럼 쓰지 않는다 */
   async marketRegime(): Promise<MarketRegimeState | null> {
     const rows = await prisma.$queryRaw<MarketRegimeSqlRow[]>`
       SELECT as_of, close, sma_200d, trend_open, hmm_p_high, drawdown_365d, gate_key, gate_open,

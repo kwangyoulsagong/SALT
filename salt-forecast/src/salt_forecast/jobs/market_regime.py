@@ -1,4 +1,4 @@
-"""시장 국면 — BTC 일봉 → 200일선 · 2상태 HMM · 낙폭 · 채택 게이트 · 다음 이벤트 → forecast.market_regime (FC-REQ-009).
+"""시장 국면 — BTC 일봉 → 200일선 · 2상태 HMM · 낙폭 · 채택 게이트 · 다음 이벤트 → forecast.market_regime (FC-REQ-010).
 
 as_of 는 UTC 자정으로 내린다(일봉이 00:00 UTC 에 닫힌다 — 하루 안 어느 시각에 돌려도 같은 값, 멱등).
 게이트 · 이벤트 축소 계수는 사전등록 regime-gate@1 판정이 정한 **코드 상수**(`domain/regime.py`)다.

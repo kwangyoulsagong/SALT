@@ -533,12 +533,12 @@ export interface ForecastReader {
    */
   realizedVolatility(symbol: string): Promise<RealizedVolatility | null>;
   /**
-   * 여러 종목의 실현 변동성 · BTC 베타 — `forecast.v_realized_vol` 한 쿼리(F010 슬라이스 2 · `FC-REQ-009`).
+   * 여러 종목의 실현 변동성 · BTC 베타 — `forecast.v_realized_vol` 한 쿼리(F010 슬라이스 2 · `FC-REQ-010`).
    * 3일 넘게 갱신 안 된 종목은 맵에서 빠진다. 막힌 변동성 · 이력 부족 베타는 `null` — 0 이 아니다
    */
   symbolRisk(symbols: string[]): Promise<Map<string, SymbolRisk>>;
   /**
-   * 시장 국면 한 행 — `forecast.v_market_regime`(BTC, `FC-REQ-009`). 없거나 3일 넘었으면 `null`.
+   * 시장 국면 한 행 — `forecast.v_market_regime`(BTC, `FC-REQ-010`). 없거나 3일 넘었으면 `null`.
    * 게이트 · 이벤트 축소는 salt-forecast 가 사전등록 판정대로 채운 값이다 — 서버는 다시 계산하지 않는다
    */
   marketRegime(): Promise<MarketRegimeState | null>;

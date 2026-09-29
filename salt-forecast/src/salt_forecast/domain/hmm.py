@@ -1,4 +1,4 @@
-"""1차원 가우시안 HMM — 적합(Baum-Welch) · forward 필터(FC-REQ-009 · 사전등록 regime-gate@1 [gates].hmm).
+"""1차원 가우시안 HMM — 적합(Baum-Welch) · forward 필터(FC-REQ-010 · 사전등록 regime-gate@1 [gates].hmm).
 
 ## 왜 직접 쓰나
 

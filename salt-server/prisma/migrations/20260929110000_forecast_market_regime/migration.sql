@@ -1,4 +1,4 @@
--- F010 슬라이스 2 (2026-09-29) — 시장 국면 · BTC 베타. DB-REQ-029 FR-20 · FC-REQ-009.
+-- F010 슬라이스 2 (2026-09-29) — 시장 국면 · BTC 베타. DB-REQ-029 FR-20 · FC-REQ-010.
 -- 추가만. 롤백 = DROP VIEW forecast.v_market_regime · DROP TABLE forecast.market_regime ·
 --   v_realized_vol 을 앞 정의로 다시 만들고 ALTER TABLE forecast.realized_vol DROP COLUMN btc_beta.
 -- 쓰기는 salt-forecast 만, 서버는 뷰만 읽는다(db-contract.md §1 · §2).

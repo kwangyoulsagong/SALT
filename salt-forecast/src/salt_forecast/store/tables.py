@@ -217,7 +217,7 @@ realized_vol = Table(
     Column("annualized", Float),
     Column("blocked_reason", Text),
     Column("computed_at", DateTime(timezone=True), nullable=False),
-    Column("btc_beta", Float),  # 20260929110000_forecast_market_regime (FC-REQ-009)
+    Column("btc_beta", Float),  # 20260929110000_forecast_market_regime (FC-REQ-010)
 )
 
 QUANTILE_COLUMNS = _Q
@@ -296,7 +296,7 @@ rule_ic = Table(
     Column("computed_at", DateTime(timezone=True), nullable=False),
 )
 
-# 20260929110000_forecast_market_regime (FC-REQ-009)
+# 20260929110000_forecast_market_regime (FC-REQ-010)
 market_regime = Table(
     "market_regime",
     metadata,

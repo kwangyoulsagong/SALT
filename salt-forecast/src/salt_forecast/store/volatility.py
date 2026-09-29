@@ -34,7 +34,7 @@ _COLS = (
 def upsert_realized_vol(
     engine: Engine, estimates: Iterable[VolEstimate], now: datetime, betas: Mapping[str, float | None] | None = None
 ) -> int:
-    """betas — 종목별 BTC 베타(FC-REQ-009). 없는 종목은 NULL."""
+    """betas — 종목별 BTC 베타(FC-REQ-010). 없는 종목은 NULL."""
     b = betas or {}
     rows = [
         (
