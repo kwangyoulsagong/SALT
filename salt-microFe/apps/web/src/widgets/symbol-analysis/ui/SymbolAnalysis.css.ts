@@ -95,6 +95,49 @@ export const cardTitle = style({
   margin: 0,
 });
 
+/* ── 자세히(소유자 카드 접기, F010 슬라이스 3) ────────────────── */
+
+/**
+ * 변동 범위 · 주요 사건 · 쏠림을 접는 자리(리서치 §9-4 ⑤). 네이티브 `<details>` 다 — 키보드 · 스크린리더가 펼침 상태를
+ * 그대로 안다. 펼치면 안의 카드들이 원래 카드 모양 그대로 이어진다
+ */
+export const more = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "16px",
+  minWidth: 0,
+});
+
+export const moreSummary = style([
+  card,
+  {
+    flexDirection: "row",
+    alignItems: "center",
+    cursor: "pointer",
+    fontSize: "15px",
+    lineHeight: "22px",
+    fontWeight: vars.fontWeights.semibold,
+    color: vars.colors.text.primary,
+    ":hover": { background: vars.colors.neutral[50] },
+    selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" } },
+  },
+]);
+
+export const moreHint = style({
+  marginLeft: "auto",
+  color: vars.colors.neutral[600],
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.medium,
+});
+
+export const moreBody = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "16px",
+  marginTop: "16px",
+});
+
 /* ── 하단 고정 유의사항 ─────────────────────────────────────── */
 
 /**

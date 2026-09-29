@@ -42,6 +42,10 @@ import {
   disclaimerLabel,
   grid,
   layout,
+  more,
+  moreBody,
+  moreHint,
+  moreSummary,
 } from "./SymbolAnalysis.css";
 
 /**
@@ -59,8 +63,8 @@ import {
  * `FE-REQ-028` FR-84 는 서버 컴포넌트 1회 조회를 적었다. 토큰이 `localStorage` 에 있어 서버가
  * 볼 수 없다(`FE-REQ-013` 전). 경로가 하나라 FR-84 가 걱정한 "두 경로의 staleness 차이"도 없다.
  *
- * 레이아웃: PC 는 좌(차트 · 구간 · 코치 카드) / 우(해설 · 수익 플랜), 1024px 이하는 그 순서
- * 그대로 한 줄이다. 머리(뒤로 · 종목 · 가격)는 서버에서도 그려지도록 페이지(`pages/investment-detail`)에 있다.
+ * 레이아웃(F010 슬라이스 3 재배치 · 리서치 §9-4): PC 는 좌(코치 판단 → 차트 · 구간) / 우(자세히[변동 범위 · 주요 사건 ·
+ * 쏠림] → 해설 → 수익 플랜 → 내 계획 → 거래 기록), 1024px 이하는 그 순서 그대로 한 줄이다. 첫 화면에 판정이 있다. 머리(뒤로 · 종목 · 가격)는 서버에서도 그려지도록 페이지(`pages/investment-detail`)에 있다.
  */
 export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   const coach = useSymbolCoach(symbol);
@@ -91,6 +95,44 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
     [modeView],
   );
 
+  // 소유자 카드(변동 범위 · 주요 사건 · 쏠림)는 "자세히" 뒤로 접는다(F010 `FE-REQ-040` FR-8 · 리서치 §9-4 ⑤).
+  // 판정 · 차트 · 내 계획보다 먼저 보일 이유가 없다. 셋 다 그릴 것이 없으면(비소유자 · 불러오는 중) 접는 자리도 없다 —
+  // 비소유자에게 "자세히"가 스치면 기능이 있다는 것이 드러난다(ADR-003)
+  const hasOwnerCards =
+    (showForecast && (Boolean(forecast.data) || forecast.isError)) ||
+    (showEvents && Boolean(events.data)) ||
+    (showPositioning && Boolean(positioning.data));
+  const ownerCards = hasOwnerCards ? (
+    <details className={more}>
+      <summary className={moreSummary}>
+        {SYMBOL_ANALYSIS_MESSAGES.moreSummary}
+        <span className={moreHint}>{SYMBOL_ANALYSIS_MESSAGES.moreHint}</span>
+      </summary>
+      <div className={moreBody}>
+        {/*
+          불러오는 중에는 자리를 그리지 않는다 — 비소유자에게 "불러오는 중"이 스쳤다 사라지면 기능이 있다는 것이
+          드러난다(ADR-003 "응답에 없다"). 데이터가 오면 그때 나타난다(배치가 미리 계산해 빠르다 — 뷰 5ms).
+        */}
+        {showForecast &&
+          (forecast.data ? (
+            <ForecastCard
+              className={card}
+              result={forecast.data}
+              livePrice={livePrice}
+            />
+          ) : forecast.isError ? (
+            <ForecastCard className={card} result={{ status: "unavailable" }} />
+          ) : null)}
+        {showEvents && events.data && (
+          <EventsCard className={card} result={events.data} />
+        )}
+        {showPositioning && positioning.data && (
+          <PositioningCard className={card} result={positioning.data} />
+        )}
+      </div>
+    </details>
+  ) : null;
+
   const renderCoach = () => {
     if (coach.isSignedOut)
       return <Text color="tertiary">{COACH_MESSAGES.signedOut}</Text>;
@@ -108,6 +150,19 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
       <div className={layout}>
         <div className={grid}>
           <div className={column}>
+            {/* 판정이 첫 카드다(F010 `FE-REQ-040` FR-8 · 리서치 §9-4 ①) — 차트는 판정을 읽은 뒤 확인하는 자리 */}
+            <section className={card}>
+              <div className={cardHead}>
+                <h2 className={cardTitle}>
+                  {SYMBOL_ANALYSIS_MESSAGES.coachHeading}
+                </h2>
+                {coach.data && mode && (
+                  <CoachModeSwitch value={mode} onChange={setMode} />
+                )}
+              </div>
+              {renderCoach()}
+            </section>
+
             <section className={card}>
               <div className={cardHead}>
                 <h2 className={cardTitle}>
@@ -128,44 +183,10 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                 !coach.isSignedOut && <CoachBlockSkeleton block="zone" />
               )}
             </section>
-
-            <section className={card}>
-              <div className={cardHead}>
-                <h2 className={cardTitle}>
-                  {SYMBOL_ANALYSIS_MESSAGES.coachHeading}
-                </h2>
-                {coach.data && mode && (
-                  <CoachModeSwitch value={mode} onChange={setMode} />
-                )}
-              </div>
-              {renderCoach()}
-            </section>
           </div>
 
           <aside className={column}>
-            {/*
-              불러오는 중에는 자리를 그리지 않는다 — 비소유자에게 "불러오는 중"이 스쳤다 사라지면 기능이 있다는 것이
-              드러난다(ADR-003 "응답에 없다"). 데이터가 오면 그때 나타난다(배치가 미리 계산해 빠르다 — 뷰 5ms).
-            */}
-            {showForecast &&
-              (forecast.data ? (
-                <ForecastCard
-                  className={card}
-                  result={forecast.data}
-                  livePrice={livePrice}
-                />
-              ) : forecast.isError ? (
-                <ForecastCard
-                  className={card}
-                  result={{ status: "unavailable" }}
-                />
-              ) : null)}
-            {showEvents && events.data && (
-              <EventsCard className={card} result={events.data} />
-            )}
-            {showPositioning && positioning.data && (
-              <PositioningCard className={card} result={positioning.data} />
-            )}
+            {ownerCards}
             {/* 해설은 판단 바로 옆 정보다 — 거래 기록 폼(펼치면 길다) 아래로 밀리지 않게 위에 둔다 */}
             {coach.data && mode && (
               <>
