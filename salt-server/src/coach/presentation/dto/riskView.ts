@@ -86,6 +86,7 @@ export const toRiskBudgetResponse = (view: RiskBudgetView) => {
       targetVolatility: rate(view.settings.targetVolatility),
       targetVolatilityIsDefault: view.settings.targetVolatilityIsDefault,
       maxSingleAssetWeight: rate(view.settings.maxSingleAssetWeight),
+      investableCapitalKrw: krw(view.settings.investableCapital),
     },
     totalValueKrw: krw(view.totalValue),
     gauges: {

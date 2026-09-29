@@ -49,6 +49,32 @@ export const toCapRatio = (text: string): number | null | undefined => {
   return value / PERCENT;
 };
 
+/** 목표 변동성 — 서버 zod 와 같은 범위(0 초과 · 2 이하 = 200%) */
+export const TARGET_VOL_MAX_PERCENT = 200;
+
+/** 목표 변동성 칸 → 보낼 값. 비었으면 `null`(서버 기본 15%), 범위 밖이면 `undefined` */
+export const toTargetVolRatio = (text: string): number | null | undefined => {
+  if (text.trim() === "") return null;
+  const value = parseAmountInput(text);
+  if (value === null || value <= 0 || value > TARGET_VOL_MAX_PERCENT) return undefined;
+  return value / PERCENT;
+};
+
+/** 투자금 한도 — 서버 zod 와 같다(1조 원) */
+export const INVESTABLE_CAPITAL_MAX_KRW = 1_000_000_000_000;
+
+/** 투자금 칸 → 보낼 값. 비었으면 `null`(지운다 — 코인 평가금 합을 전체로 본다), 0 이하 · 한도 밖이면 `undefined` */
+export const toInvestableCapital = (text: string): number | null | undefined => {
+  if (text.trim() === "") return null;
+  const value = parseAmountInput(text);
+  if (value === null || value <= 0 || value > INVESTABLE_CAPITAL_MAX_KRW) return undefined;
+  return value;
+};
+
+/** 저장된 투자금 → 칸 글자 */
+export const capitalToInputText = (krw: number | null): string =>
+  krw === null ? "" : formatAmountInput(formatPrice(krw));
+
 /** % 칸은 콤마를 넣지 않는다(최대 100). 숫자 · 점만 남긴다 */
 export const formatPercentInput = (raw: string): string => {
   const cleaned = raw.replace(/[^0-9.]/g, "");

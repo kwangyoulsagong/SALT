@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 
 import Decimal from "decimal.js";
 
-import { ErrorKind } from "../../../shared/domain";
+import { ErrorKind, Money } from "../../../shared/domain";
 import type {
   CoachHolding,
   CoachLedgerEntry,
@@ -19,6 +19,7 @@ import type {
 } from "../../domain";
 import { CheckTradeSize } from "../CheckTradeSize";
 import { GetRiskBudget } from "../ManageRiskBudget";
+import { GetTargetWeights } from "../GetTargetWeights";
 import { CreateTradePlan, UpdateTradePlan } from "../ManageTradePlan";
 import { kstPeriodStarts } from "../lib/loadRiskSnapshot";
 
@@ -230,6 +231,7 @@ describe("CheckTradeSize · GetRiskBudget — 같은 스냅샷", () => {
     monthlyLossBudget: { amount: new Decimal(1_000_000), unit: "krw" },
     perTradeMaxLoss: { amount: new Decimal("0.01"), unit: "percent" },
     targetVolatility: null,
+    investableCapital: null,
     hidePurchasePrice: false,
   };
   const profiles = { findByUser: async () => profile } as unknown as CoachProfileStore;
@@ -270,5 +272,64 @@ describe("CheckTradeSize · GetRiskBudget — 같은 스냅샷", () => {
     assert.equal(size.sizing.unavailable.volTargetWeight, "insufficient_data");
     assert.equal(size.sizing.currentWeight?.toNumber(), 0.92);
     assert.equal(size.orderExecution, false);
+  });
+});
+
+describe("GetTargetWeights — 게이지와 같은 월 잔여 · 3종 고지", () => {
+  const now = new Date("2026-09-30T03:00:00Z");
+  const profile: CoachProfile = {
+    userId: "u1",
+    riskTolerance: "medium",
+    maxSingleAssetWeight: 0.6,
+    rebalanceBand: 0.1,
+    panicSellWindowHours: 24,
+    defaultMode: null,
+    notificationLevel: null,
+    monthlyLossBudget: { amount: new Decimal(1_000_000), unit: "krw" },
+    perTradeMaxLoss: null,
+    targetVolatility: new Decimal("0.2"),
+    investableCapital: Money.krw(20_000_000),
+    hidePurchasePrice: false,
+  };
+  const profiles = { findByUser: async () => profile } as unknown as CoachProfileStore;
+  // 월초 11,000,000 → 지금 10,000,000 · 이번 달 거래 없음 → 월 손익 −1,000,000 (예산 소진)
+  const holdings = [
+    { symbol: "BTC", totalQuantity: 0.1, currentValue: 9_200_000, currentPrice: 92_000_000 } as CoachHolding,
+    { symbol: "SOL", totalQuantity: 4, currentValue: 800_000, currentPrice: 200_000 } as CoachHolding,
+  ];
+  const market = {
+    closeAtOrAfter: async (symbol: string) => (symbol === "BTC" ? 100_000_000 : 250_000),
+    // ETH 는 보유가 없어 시세로만 값이 온다. SOL 시세가 없으면 보유 현재가를 쓴다
+    quotes: async () => new Map([["ETH", { symbol: "ETH", currentPrice: 5_000_000 }]]),
+  } as unknown as MarketProbe;
+  const riskRows = new Map([
+    ["BTC", { annualized: 0.5, ewma: 0.5, btcBeta: 1, asOf: now }],
+    // ETH 는 QLIKE 게이트에 막혀 annualized 가 없어도 EWMA 로 들어간다(사전등록 정의)
+    ["ETH", { annualized: null, ewma: 0.7, btcBeta: 1.1, asOf: now }],
+    ["SOL", { annualized: null, ewma: null, btcBeta: null, asOf: now }],
+  ]);
+  const forecasts = { symbolRisk: async () => riskRows } as unknown as ForecastReader;
+  const portfolio = portfolioWith({ holdings, ledger: [] });
+
+  it("σ 없는 보유는 빠지고, 과거 성적은 가장 가까운 목표 σ 기록", async () => {
+    const view = await new GetTargetWeights(profiles, portfolio, market, forecasts, () => now).execute("u1");
+    assert.equal(view.renderable, true);
+    assert.equal(view.guide.basis, "investable_capital");
+    assert.deepEqual(view.guide.rows.map((row) => row.symbol), ["BTC", "ETH"]);
+    assert.equal(view.guide.excluded[0].symbol, "SOL");
+    // 목표 σ 0.2 · 두 종목 → BTC 0.2 / (2 × 0.5) = 0.2 → 4,000,000 원
+    assert.equal(view.guide.rows[0].targetValue.toKrwInteger(), 4_000_000);
+    assert.equal(view.guide.rows[1].price.toKrwInteger(), 5_000_000);
+    assert.equal(view.record.target, 0.2);
+    // 월 예산 소진 → 남은 예산 0 → 비율 없음
+    assert.equal(view.guide.totals.lossAtStopMonthlyBudgetRatio, null);
+    assert.equal(view.orderExecution, false);
+  });
+
+  it("σ 가 하나도 없으면 비중을 내지 않는다", async () => {
+    const none = { symbolRisk: async () => new Map() } as unknown as ForecastReader;
+    const view = await new GetTargetWeights(profiles, portfolio, market, none, () => now).execute("u1");
+    assert.equal(view.renderable, false);
+    assert.equal(view.blockedReason, "no_volatility");
   });
 });

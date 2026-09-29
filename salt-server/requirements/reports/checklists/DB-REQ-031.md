@@ -48,3 +48,15 @@
 |---|---|---|
 | 운영 DB 적용 · 락 시간 | 새 테이블 + nullable 컬럼이라 짧다고 본다. 재지 않았다 | 배포 때 |
 | `monthly_reviews` EXPLAIN | 로컬 행 0 — UNIQUE 인덱스 조회 하나 | 행이 쌓이면(사용자 ≤10 × 월 1행이라 급하지 않다) |
+
+## F010 슬라이스 5 — FR-9 `investable_capital` (2026-09-29)
+
+| 확인 | 결과 |
+|---|---|
+| 마이그레이션 | `20260929120000_profile_investable_capital` — 추가만 · nullable · CHECK `> 0`(`user_investment_profiles_investable_capital_positive`). 로컬 `migrate deploy` 적용 |
+| 매핑 | `PrismaCoachProfileStore` — Decimal → `Money`, `undefined` 건드리지 않음 · `null` 지움 |
+| diff | `migrate diff` 에 이 컬럼 차이 없음 |
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 운영 DB 적용 · 락 시간 | nullable 컬럼 + CHECK 라 짧다고 본다. 재지 않았다 | 배포 때 |

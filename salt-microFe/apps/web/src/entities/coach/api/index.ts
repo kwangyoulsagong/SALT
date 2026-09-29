@@ -10,3 +10,4 @@ export * from "./useRiskBudget";
 export * from "./useTradePlans";
 export * from "./useBehaviorMirror";
 export * from "./useJudgmentScoreboard";
+export * from "./useTargetWeights";

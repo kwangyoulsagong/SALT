@@ -28,6 +28,8 @@ export const COACH_ENDPOINTS = {
   outcomeTags: (id: string) => `/api/app/coach/outcomes/${encodeURIComponent(id)}/tags`,
   /** 판정 성적표 — 신호 유형별, 사용자별 아님 (F010 슬라이스 3 `BFF-REQ-039` FR-5) */
   scoreboard: "/api/app/coach/scoreboard",
+  /** 목표 비중 안내 — 확률 없음 (F010 슬라이스 5 `BFF-REQ-041`) */
+  targetWeights: "/api/app/coach/target-weights",
   /** 월간 복기(F009 슬라이스 6 `BFF-REQ-038` FR-10). 달이 없으면 서버가 KST 지난달을 고른다 */
   monthlyReview: (month: string | null) =>
     month ? `/api/app/coach/review/monthly?month=${encodeURIComponent(month)}` : "/api/app/coach/review/monthly",

@@ -3,6 +3,7 @@ import type {
   CoachGenerationStatus,
   DecisionOutcomeListResult,
   JudgmentScoreboardResult,
+  TargetWeightResult,
   MonthlyReviewResult,
   CoachReportResult,
   SymbolCoachViewModel,
@@ -174,6 +175,18 @@ export const coachApi = {
     if (!response.ok) throw new CoachApiError(response.status);
 
     const body = (await response.json()) as AppEnvelope<JudgmentScoreboardResult>;
+    return body.data;
+  },
+
+  /** 목표 비중 안내 (`GET /api/app/coach/target-weights`, F010 슬라이스 5). 서버 장애는 BFF 가 200 `unavailable` */
+  targetWeights: async (signal?: AbortSignal): Promise<TargetWeightResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.targetWeights}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<TargetWeightResult>;
     return body.data;
   },
 

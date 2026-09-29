@@ -9,5 +9,5 @@ export const JUDGMENT_OVERVIEW_MESSAGES = {
     reportLink: "자세히",
     reportLinkLabel: "코치 리포트에서 리스크 예산 자세히 보기",
   },
-  regionLabel: "오늘의 위험과 판정 성적",
+  regionLabel: "이번 주 목표 비중 · 오늘의 위험 · 판정 성적",
 } as const;

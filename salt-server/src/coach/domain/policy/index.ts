@@ -39,3 +39,5 @@ export * from "./entryChecklist";
 export * from "./monthlyReview";
 export * from "./streak";
 export * from "./tradeTiming";
+export * from "./targetWeight";
+export * from "./targetWeightRecord";

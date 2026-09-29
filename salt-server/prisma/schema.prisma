@@ -590,6 +590,8 @@ model UserInvestmentProfile {
   perTradeMaxLossUnit   String?  @map("per_trade_max_loss_unit")
   // 목표 연 변동성(0.15 = 15%). null 이면 읽는 쪽이 기본값(15%)을 쓰고 응답에 "기본값"이라고 밝힌다
   targetVolatility      Decimal? @map("target_volatility") @db.Decimal(18, 8)
+  // DB-REQ-031 FR-9 (F010 슬라이스 5) — 투자금(현금 포함, 원). 비어 있으면 코인 평가금 합을 전체로 본다(응답에 밝힌다). CHECK > 0
+  investableCapital     Decimal? @map("investable_capital") @db.Decimal(38, 10)
   // FR-27 매입가 숨김 — 사용자 설정이라 서버가 저장한다
   hidePurchasePrice     Boolean  @default(false) @map("hide_purchase_price")
 

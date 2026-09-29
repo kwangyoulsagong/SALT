@@ -1,5 +1,7 @@
 import type Decimal from "decimal.js";
 
+import type { Money } from "../../shared/domain";
+
 /**
  * `coach` 의 도메인 모델.
  *
@@ -271,6 +273,11 @@ export interface CoachProfile {
   perTradeMaxLoss: BudgetSetting | null;
   /** 목표 연 변동성(0.15 = 15%). `null` 이면 읽는 쪽이 기본값을 쓰고 기본값이라고 밝힌다 */
   targetVolatility: Decimal | null;
+  /**
+   * 투자금(현금 포함, 원 — F010 슬라이스 5). 목표 비중 안내의 전체. 앱은 현금을 모른다(수동 입력 · 계좌 연동 없음) —
+   * 비어 있으면 `null` 이고 읽는 쪽이 코인 평가금 합을 전체로 쓰고 그렇다고 밝힌다
+   */
+  investableCapital: Money | null;
   /** 매입가 숨김(FR-27) */
   hidePurchasePrice: boolean;
   createdAt?: Date;

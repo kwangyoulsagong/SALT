@@ -46,6 +46,8 @@ export interface RiskBudgetView {
     targetVolatilityIsDefault: boolean;
     /** 한 종목 상한(IPS 3문항의 셋째). 기본 0.6 */
     maxSingleAssetWeight: Decimal;
+    /** 투자금(현금 포함, F010 슬라이스 5). 정하지 않았으면 `null` */
+    investableCapital: Money | null;
   };
   totalValue: Money;
   gauges: {
@@ -109,6 +111,7 @@ export class GetRiskBudget {
         targetVolatility: profile?.targetVolatility ?? DEFAULT_TARGET_VOLATILITY,
         targetVolatilityIsDefault: !profile?.targetVolatility,
         maxSingleAssetWeight,
+        investableCapital: profile?.investableCapital ?? null,
       },
       totalValue: snapshot.totalValue,
       gauges: {
@@ -143,6 +146,8 @@ export interface UpdateRiskBudgetCommand {
   targetVolatility?: Decimal | null;
   /** 한 종목 상한(0.05~1). `null` 이면 기본값(0.6)으로 되돌린다 — 컬럼이 NOT NULL 이다 */
   maxSingleAssetWeight?: Decimal | null;
+  /** 투자금(원, 0 초과). `null` 이면 지운다 — 코인 평가금 합을 전체로 본다 */
+  investableCapital?: Money | null;
 }
 
 export class UpdateRiskBudget {

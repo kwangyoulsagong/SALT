@@ -28,7 +28,13 @@ const SIZE_CHECK_KEYS = [
   "hasPlan",
 ] as const;
 // 슬라이스 6 — 한 종목 상한(IPS 3문항의 셋째)
-const RISK_BUDGET_KEYS = ["monthlyLossBudget", "perTradeMaxLoss", "targetVolatility", "maxSingleAssetWeight"] as const;
+const RISK_BUDGET_KEYS = [
+  "monthlyLossBudget",
+  "perTradeMaxLoss",
+  "targetVolatility",
+  "maxSingleAssetWeight",
+  "investableCapital",
+] as const;
 const PLAN_CREATE_KEYS = [
   "symbol",
   "side",

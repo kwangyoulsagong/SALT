@@ -33,6 +33,7 @@ class MemoryProfiles implements CoachProfileStore {
       monthlyLossBudget: null,
       perTradeMaxLoss: null,
       targetVolatility: null,
+      investableCapital: null,
       hidePurchasePrice: false,
       ...this.row,
       ...defined,

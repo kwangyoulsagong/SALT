@@ -6,3 +6,4 @@ export * from "./positioningMessages";
 export * from "./riskMessages";
 export * from "./mirrorMessages";
 export * from "./scoreboardMessages";
+export * from "./targetWeightMessages";

@@ -1,6 +1,7 @@
 import Decimal from "decimal.js";
 import { NextFunction, Request, Response } from "express";
 
+import { Money } from "../../shared/domain";
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { CoachUseCases } from "../application/api";
 import {
@@ -22,6 +23,7 @@ import {
 } from "./dto/riskView";
 import { toBehaviorMirrorResponse, toDecisionOutcomeResponse } from "./dto/mirrorView";
 import { toMonthlyReviewResponse } from "./dto/monthlyReviewView";
+import { toTargetWeightResponse } from "./dto/targetWeightView";
 
 /**
  * F009 슬라이스 1 — 사이즈 계산 · 거래 계획 · 리스크 예산 (`/api/coach/*`, `SRV-REQ-038`).
@@ -71,6 +73,15 @@ export class CoachRiskController {
     }
   };
 
+  getTargetWeights = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const view = await this.useCases.getTargetWeights.execute(req.user!.userId);
+      return ResponseUtil.success(res, toTargetWeightResponse(view));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   updateRiskBudget = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const body = updateRiskBudgetSchema.parse(req.body);
@@ -79,6 +90,12 @@ export class CoachRiskController {
         perTradeMaxLoss: budget(body.perTradeMaxLoss),
         targetVolatility: decOrNull(body.targetVolatility),
         maxSingleAssetWeight: decOrNull(body.maxSingleAssetWeight),
+        investableCapital:
+          body.investableCapital === undefined
+            ? undefined
+            : body.investableCapital === null
+              ? null
+              : Money.krw(body.investableCapital),
       });
       return ResponseUtil.success(res, toRiskBudgetResponse(view));
     } catch (error) {

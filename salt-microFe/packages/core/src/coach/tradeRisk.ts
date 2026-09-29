@@ -90,6 +90,8 @@ export interface RiskBudgetView {
     targetVolatilityIsDefault: boolean;
     /** 한 종목 상한(IPS 3문항의 셋째, 슬라이스 6). 서버 기본 0.6 */
     maxSingleAssetWeight: number | null;
+    /** 투자금(현금 포함, 원 — F010 슬라이스 5). 정하지 않았으면 `null` */
+    investableCapitalKrw: number | null;
   };
   totalValueKrw: number | null;
   gauges: {
@@ -172,6 +174,8 @@ export interface RiskBudgetUpdate {
   targetVolatility?: number | null;
   /** 한 종목 상한 비율(0.05~1). `null` 이면 기본 60% */
   maxSingleAssetWeight?: number | null;
+  /** 투자금(현금 포함, 원, 0 초과). `null` 이면 지운다 — 목표 비중이 코인 평가금 합을 전체로 본다 */
+  investableCapital?: number | null;
 }
 
 export type AdherenceLabel = "honored" | "stop_not_honored" | "stop_slipped" | "size_exceeded";

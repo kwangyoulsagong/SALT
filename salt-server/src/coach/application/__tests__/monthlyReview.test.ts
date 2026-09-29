@@ -176,8 +176,8 @@ describe("GetRiskBudget — 시나리오 · 한 종목 상한", () => {
     // ETH 는 베타가 없다(이력 부족) — 합에서 빠지고 coveredWeight 로 알린다
     async symbolRisk() {
       return new Map([
-        ["BTC", { annualized: 0.5, btcBeta: 1, asOf: now }],
-        ["ETH", { annualized: 0.7, btcBeta: null, asOf: now }],
+        ["BTC", { annualized: 0.5, ewma: 0.5, btcBeta: 1, asOf: now }],
+        ["ETH", { annualized: 0.7, ewma: 0.7, btcBeta: null, asOf: now }],
       ]);
     },
     async marketRegime() {

@@ -18,7 +18,11 @@ export const useSetRiskBudget = () => {
     retry: 0,
     onSuccess: (result) => {
       queryClient.setQueryData(coachQueryKeys.riskBudget(), result);
-      return queryClient.invalidateQueries({ queryKey: coachQueryKeys.sizeCheckAll() });
+      // 목표 비중은 투자금 · 목표 변동성 · 상한으로 계산된다(F010 슬라이스 5)
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: coachQueryKeys.sizeCheckAll() }),
+        queryClient.invalidateQueries({ queryKey: coachQueryKeys.targetWeights() }),
+      ]);
     },
   });
 };
