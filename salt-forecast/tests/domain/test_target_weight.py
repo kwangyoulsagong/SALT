@@ -100,3 +100,48 @@ def test_bootstrap_indices_reproducible() -> None:
     b = block_indices(100, n_boot=5)
     assert all((x == y).all() for x, y in zip(a, b, strict=True))
     assert max_drawdown(np.log(np.array([1.0, 0.5, 2.0]))) == pytest.approx(0.5)
+
+
+# ── target-weight@2 (FC-REQ-013) ────────────────────────────────────────────
+
+
+def test_sleeve_zero_share_equals_core_rule() -> None:
+    from salt_forecast.domain.target_weight import sleeve_weights
+
+    core, alt = np.array([0.5, 0.7]), np.array([1.2, 1.5, 2.0])
+    w = sleeve_weights(core, alt, 0.15, 0.0)
+    np.testing.assert_allclose(w[:2], target_weights(core, 0.15))
+    assert (w[2:] == 0).all()
+
+
+def test_sleeve_split_risk_under_unit_correlation() -> None:
+    from salt_forecast.domain.target_weight import sleeve_weights
+
+    core, alt = np.array([0.5, 0.7]), np.array([1.2, 1.5, 2.0])
+    w = sleeve_weights(core, alt, 0.2, 0.25, cap=1.0)
+    assert (w[:2] * core).sum() == pytest.approx(0.15)
+    assert (w[2:] * alt).sum() == pytest.approx(0.05)
+
+
+def test_week_outcome_matches_daily_simulation_without_cost() -> None:
+    from salt_forecast.domain.target_weight import week_outcome
+
+    rng = np.random.default_rng(11)
+    daily = rng.normal(0, 0.03, size=(7, 2))
+    w = np.array([0.2, 0.1])
+    reb = np.zeros(8, dtype=bool)
+    reb[0] = True
+    target = np.zeros((8, 2))
+    target[0] = w
+    simple = np.vstack([np.zeros((1, 2)), daily])
+    sim = simulate(simple, target, reb, cost=0.0)
+    week = np.prod(1 + daily, axis=0) - 1
+    out = week_outcome(np.zeros(2), w, week, cost=0.0)
+    assert out.log_r == pytest.approx(sim.log_r.sum(), abs=1e-12)
+
+
+def test_week_outcome_charges_turnover_from_drifted() -> None:
+    from salt_forecast.domain.target_weight import week_outcome
+
+    out = week_outcome(np.array([0.3, 0.0]), np.array([0.2, 0.1]), np.zeros(2), cost=0.001)
+    assert out.cost == pytest.approx(0.001 * 0.2)

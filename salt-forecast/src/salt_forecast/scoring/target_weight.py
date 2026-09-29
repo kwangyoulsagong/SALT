@@ -94,7 +94,7 @@ class RunOutput:
     alts_mean: float = float("nan")
 
 
-def _day(epoch: int) -> date:
+def day_of(epoch: int) -> date:
     return datetime.fromtimestamp(epoch, UTC).date()
 
 
@@ -134,7 +134,7 @@ def target_matrix(panel: Panel, sigma: Mat, rows: NDArray[np.bool_], target: flo
     return out
 
 
-def _curve(log_r: Vec, btc_log: Vec, exposure: Vec, months: NDArray[np.int64]) -> Curve:
+def curve(log_r: Vec, btc_log: Vec, exposure: Vec, months: NDArray[np.int64]) -> Curve:
     up, dn = capture(btc_log, log_r, months)
     return Curve(
         cagr=cagr(log_r),
@@ -175,11 +175,11 @@ def run(ohlcv: Mapping[str, OhlcvSeries], start: datetime, as_of: datetime) -> R
     rows = np.flatnonzero(in_period & (np.arange(panel.dates.size) > first_reb))
     months = month_keys(panel.dates)[rows]
     btc_log = np.log1p(simple[:, panel.column(BTC)])[rows]
-    btc_curve = _curve(btc_log, btc_log, np.ones(rows.size), months)
+    btc_curve = curve(btc_log, btc_log, np.ones(rows.size), months)
     idx = block_indices(rows.size)
     every = ready.copy()
     every[:first_reb] = False
-    out = RunOutput(window=(_day(int(panel.dates[rows[0]])), _day(int(panel.dates[rows[-1]]))))
+    out = RunOutput(window=(day_of(int(panel.dates[rows[0]])), day_of(int(panel.dates[rows[-1]]))))
     alt_counts: list[int] = []
 
     def one(universe: str, target: float, variant: str, reb: NDArray[np.bool_], cap: float) -> Record:
@@ -204,10 +204,10 @@ def run(ohlcv: Mapping[str, OhlcvSeries], start: datetime, as_of: datetime) -> R
             universe=universe,
             target=target,
             variant=variant,
-            strat=_curve(s_log, btc_log, s_expo, months),
+            strat=curve(s_log, btc_log, s_expo, months),
             hold_btc=btc_curve,
-            hold_universe=_curve(u_log, btc_log, h.exposure[rows], months),
-            constant=_curve(c_log, btc_log, c.exposure[rows], months),
+            hold_universe=curve(u_log, btc_log, h.exposure[rows], months),
+            constant=curve(c_log, btc_log, c.exposure[rows], months),
             delta_mdd_btc=paired_ci(_delta_mdd, [btc_log, s_log], idx),
             delta_calmar_constant=paired_ci(_delta_calmar, [s_log, c_log], idx),
             missed=missed_upside(monthly(months, s_log, btc_log, s_expo)),
@@ -254,11 +254,11 @@ def _band_sim(simple: Mat, target: Mat, candidate: NDArray[np.bool_]) -> Simulat
 # ── 리포트 ─────────────────────────────────────────────────────────────────
 
 
-def _pct(x: float, digits: int = 1) -> str:
+def pct(x: float, digits: int = 1) -> str:
     return "—" if x != x else f"{x * 100:+.{digits}f}%"
 
 
-def _num(x: float, digits: int = 2) -> str:
+def num(x: float, digits: int = 2) -> str:
     return "—" if x != x else f"{x:.{digits}f}"
 
 
@@ -267,7 +267,7 @@ def _month(epoch: int) -> str:
 
 
 def _ci(t: tuple[float, float, float], f: str = "pct") -> str:
-    fmt = _pct if f == "pct" else _num
+    fmt = pct if f == "pct" else num
     return f"{fmt(t[0])} [{fmt(t[1])}, {fmt(t[2])}]"
 
 
@@ -291,8 +291,8 @@ def render_report(key: str, sha: str, as_of: datetime, out: RunOutput) -> str:
     for r in (x for x in out.records if x.variant == "weekly"):
         s = r.strat
         lines.append(
-            f"| {r.universe} | {r.target:.2f} | {_pct(s.cagr)} | {_pct(s.vol)} | {_pct(-s.mdd)} | {_num(s.calmar)} | "
-            f"{_num(s.upside)} | {_num(s.downside)} | {_num(s.exposure_mean)} | {_ci(r.delta_mdd_btc)} | "
+            f"| {r.universe} | {r.target:.2f} | {pct(s.cagr)} | {pct(s.vol)} | {pct(-s.mdd)} | {num(s.calmar)} | "
+            f"{num(s.upside)} | {num(s.downside)} | {num(s.exposure_mean)} | {_ci(r.delta_mdd_btc)} | "
             f"{_ci(r.delta_calmar_constant, 'num')} | {'✓' if r.claim_less_drawdown else '✗'} | "
             f"{'✓' if r.claim_timing else '✗'} | {'✓' if r.claim_target_hit else '✗'} |"
         )
@@ -307,8 +307,8 @@ def render_report(key: str, sha: str, as_of: datetime, out: RunOutput) -> str:
         curves = (("BTC 보유", r.hold_btc), ("묶음 동일가중 100%", r.hold_universe), ("평균 비중 고정", r.constant))
         for name, c in curves:
             lines.append(
-                f"| {r.universe} | {r.target:.2f} | {name} | {_pct(c.cagr)} | {_pct(c.vol)} | {_pct(-c.mdd)} | "
-                f"{_num(c.calmar)} | {_num(c.upside)} | {_num(c.exposure_mean)} |"
+                f"| {r.universe} | {r.target:.2f} | {name} | {pct(c.cagr)} | {pct(c.vol)} | {pct(-c.mdd)} | "
+                f"{num(c.calmar)} | {num(c.upside)} | {num(c.exposure_mean)} |"
             )
     lines += ["", "## 실패 사례 (1차 · 선별 없음)", ""]
     for r in (x for x in out.records if x.variant == "weekly" and x.universe == "core"):
@@ -318,7 +318,7 @@ def render_report(key: str, sha: str, as_of: datetime, out: RunOutput) -> str:
         lines.append("|---|---|---|---|---|")
         for kind, rows in (("놓친 상승", r.missed), ("가장 크게 잃은 달", r.worst)):
             for m in rows:
-                lines.append(f"| {kind} | {_month(m.month)} | {_pct(m.strat)} | {_pct(m.btc)} | {_num(m.exposure)} |")
+                lines.append(f"| {kind} | {_month(m.month)} | {pct(m.strat)} | {pct(m.btc)} | {num(m.exposure)} |")
         weights = " · ".join(f"{k} {v:.2f}" for k, v in r.mean_weights.items())
         lines += ["", f"평균 비중: {weights}", ""]
     lines += [
@@ -330,8 +330,8 @@ def render_report(key: str, sha: str, as_of: datetime, out: RunOutput) -> str:
     for r in (x for x in out.records if x.variant != "weekly"):
         s = r.strat
         lines.append(
-            f"| {r.variant} | {r.universe} | {r.target:.2f} | {_pct(s.cagr)} | {_pct(s.vol)} | {_pct(-s.mdd)} | "
-            f"{_num(s.calmar)} | {_num(s.upside)} | {_num(s.exposure_mean)} | {_ci(r.delta_calmar_constant, 'num')} |"
+            f"| {r.variant} | {r.universe} | {r.target:.2f} | {pct(s.cagr)} | {pct(s.vol)} | {pct(-s.mdd)} | "
+            f"{num(s.calmar)} | {num(s.upside)} | {num(s.exposure_mean)} | {_ci(r.delta_calmar_constant, 'num')} |"
         )
     lines.append("")
     return "\n".join(lines)

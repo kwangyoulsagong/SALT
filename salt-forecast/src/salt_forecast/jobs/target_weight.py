@@ -9,10 +9,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import subprocess
 import tomllib
 from datetime import UTC, date, datetime
 from pathlib import Path
+
+from sqlalchemy import Engine
 
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.scoring.target_weight import render_report, run
@@ -36,6 +39,23 @@ def _git_sha() -> str:
         return "unknown"
 
 
+def register_prereg(eng: Engine, path: Path, *, dry_run: bool, log: logging.Logger, job: str) -> tuple[str, str]:
+    """사전등록 TOML 을 `forecast.preregistration` 에 한 번 쓴다. 같은 key 에 다른 내용이면 `register` 가 실패한다."""
+    raw = path.read_bytes()
+    spec = tomllib.loads(raw.decode())
+    key = str(spec["key"])
+    registered = spec["registered"]
+    if not isinstance(registered, date):
+        raise ValueError("registered 는 TOML 날짜여야 한다")
+    reg_at = datetime(registered.year, registered.month, registered.day, tzinfo=UTC)
+    sha = _git_sha()
+    if not dry_run:
+        stored = json.loads(json.dumps(spec, default=str))
+        new = register(eng, Registration(key, reg_at, sha, hashlib.sha256(raw).hexdigest(), stored))
+        log.info("사전등록", extra={"fields": {"job": job, "key": key, "new": new}})
+    return key, sha
+
+
 def main(argv: list[str] | None = None) -> int:
     p = base_parser("목표 비중 안내 규칙 백테스트(사전등록 실행)")
     p.add_argument("--prereg", default=str(DEFAULT_PREREG), help="사전등록 TOML")
@@ -46,18 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     def body() -> int:
         eng = engine()
         as_of = parse_as_of(args.as_of)
-        raw = Path(args.prereg).read_bytes()
-        spec = tomllib.loads(raw.decode())
-        key = str(spec["key"])
-        registered = spec["registered"]
-        if not isinstance(registered, date):
-            raise ValueError("registered 는 TOML 날짜여야 한다")
-        reg_at = datetime(registered.year, registered.month, registered.day, tzinfo=UTC)
-        sha = _git_sha()
-        if not args.dry_run:
-            stored = json.loads(json.dumps(spec, default=str))
-            new = register(eng, Registration(key, reg_at, sha, hashlib.sha256(raw).hexdigest(), stored))
-            log.info("사전등록", extra={"fields": {"job": JOB, "key": key, "new": new}})
+        key, sha = register_prereg(eng, Path(args.prereg), dry_run=args.dry_run, log=log, job=JOB)
 
         ohlcv = load_ohlcv_series(eng, "upbit", "1d")
         out = run(ohlcv, parse_as_of(START), as_of)

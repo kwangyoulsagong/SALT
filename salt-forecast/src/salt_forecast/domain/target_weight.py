@@ -39,6 +39,37 @@ def target_weights(sigma: Vec, target: float, cap: float = CAP) -> Vec:
     return np.minimum(exposure * s, cap)
 
 
+def sleeve_weights(sigma_core: Vec, sigma_alt: Vec, target: float, alt_share: float, cap: float = CAP) -> Vec:
+    """target-weight@2 [alt_share] — core 는 목표 σ × (1 − a), 알트는 × a 를 따로 역변동성으로. 결과는 core · 알트 순.
+
+    a = 0 이면 알트 칸은 전부 0 이고 core 칸은 `target_weights(σ_core, 목표)` 와 같다(@1 core).
+    상관 1 가정에서 합 σ ≤ 목표다(두 묶음 σ 의 합).
+    """
+    core = target_weights(sigma_core, target * (1.0 - alt_share), cap)
+    alt = target_weights(sigma_alt, target * alt_share, cap) if alt_share > 0 else np.zeros(sigma_alt.shape)
+    return np.concatenate([core, alt])
+
+
+@dataclass(frozen=True, slots=True)
+class WeekOutcome:
+    log_r: float  # 비용을 뺀 전략 주간 로그수익
+    cost: float
+    drifted: Vec  # 주 끝에 흘러간 비중 — 다음 리밸런스 비용의 기준
+
+
+def week_outcome(prev_drifted: Vec, weights: Vec, week_simple: Vec, cost: float = COST_ONE_WAY) -> WeekOutcome:
+    """라이브 한 주 — 리밸런스 t 에 `weights` 로 맞추고 t+7 까지 매수 후 보유(target-weight@2 [live] outcome).
+
+    매주 리밸런스 포트폴리오의 주간 수익은 Σ w_i R_i 와 정확히 같다(주 안에서는 흘러가기만 한다).
+    `simulate` 의 일 단위 경로와 비용 차감 날짜만 다르다 — 주간 합은 비용 한 번 차이 안에서 같다.
+    """
+    c = cost * float(np.abs(weights - prev_drifted).sum())
+    gross = float((weights * week_simple).sum())
+    growth = 1.0 + gross
+    drifted = weights * (1.0 + week_simple) / growth if growth > 0 else np.zeros(weights.shape)
+    return WeekOutcome(float(np.log1p(gross - c)), c, drifted)
+
+
 @dataclass(frozen=True, slots=True)
 class Simulation:
     log_r: Vec  # 행 t = t−1 → t 전략 로그수익
@@ -102,15 +133,18 @@ def block_indices(n: int, block: int = BOOT_BLOCK, n_boot: int = N_BOOT, seed: i
 
 
 def paired_ci(
-    stat: Callable[[Sequence[Vec]], float], curves: Sequence[Vec], idx: Sequence[NDArray[np.intp]]
+    stat: Callable[[Sequence[Vec]], float],
+    curves: Sequence[Vec],
+    idx: Sequence[NDArray[np.intp]],
+    alpha: float = 0.05,
 ) -> tuple[float, float, float]:
-    """(점추정, 2.5%, 97.5%) — 여러 곡선을 같은 인덱스로 뽑아 `stat` 을 잰다."""
+    """(점추정, α/2, 1−α/2) — 여러 곡선을 같은 인덱스로 뽑아 `stat` 을 잰다. 다중 비교면 α 를 나눠 넘긴다."""
     point = stat(curves)
     boots = np.array([stat([c[i] for c in curves]) for i in idx])
     boots = boots[np.isfinite(boots)]
     if boots.size == 0:
         return (point, float("nan"), float("nan"))
-    lo, hi = np.quantile(boots, [0.025, 0.975])
+    lo, hi = np.quantile(boots, [alpha / 2, 1 - alpha / 2])
     return (point, float(lo), float(hi))
 
 
