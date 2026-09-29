@@ -9,7 +9,7 @@ import { ScoreboardPanel } from "./ScoreboardPanel";
 import { TargetWeightPanel } from "./TargetWeightPanel";
 
 /**
- * `/investments` 머리 아래 — [이번 주 목표 비중](F010 슬라이스 5 · `FE-REQ-041`) → [위험에 노출된 돈] [판정 성적표]
+ * `/investments` 머리 아래 — [이번 주 목표 비중](F010 슬라이스 5 · `FE-REQ-042`) → [위험에 노출된 돈] [판정 성적표]
  * (F010 슬라이스 3 · `FE-REQ-040` FR-5~7 · 리서치 §9-4).
  *
  * 두 카드는 따로 부르고 따로 실패한다(카드 단위 격리). 둘 다 로그인해야 의미가 있어 **로그인 여부를 수화 뒤에** 본다

@@ -5,7 +5,7 @@ import { appTargetWeightService } from "../app-target-weight.service";
 import { backendApi } from "../backend-api.service";
 import { TargetWeightContractError, toTargetWeightViewModel } from "../target-weight.viewmodel";
 
-/** F010 슬라이스 5 — 목표 비중 안내 중계 (`BFF-REQ-040`). */
+/** F010 슬라이스 5 — 목표 비중 안내 중계 (`BFF-REQ-041`). */
 
 const ok = (data: unknown) => ({ data: { success: true, data } }) as never;
 const httpError = (status: number) =>

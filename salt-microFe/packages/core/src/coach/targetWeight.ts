@@ -1,5 +1,5 @@
 /**
- * 목표 비중 안내 뷰모델 — `GET /api/app/coach/target-weights` 응답 `data` (F010 슬라이스 5 · `BFF-REQ-040`).
+ * 목표 비중 안내 뷰모델 — `GET /api/app/coach/target-weights` 응답 `data` (F010 슬라이스 5 · `BFF-REQ-041`).
  *
  * BFF `target-weight.viewmodel.ts` 가 소유하는 계약의 사본이다. 비중 · 금액 · 수량 · 판정은 **전부 서버 값**이다 —
  * 화면은 표시만 한다(공통 수용 기준 3). 방향 판단 · 확률 · 기대 R 이 없다: 보유 + BTC · ETH 를 변동성만으로 나눈다.

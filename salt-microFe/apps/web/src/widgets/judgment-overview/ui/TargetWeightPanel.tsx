@@ -16,7 +16,7 @@ const M = TARGET_WEIGHT_MESSAGES;
 const renderIdentity = (symbol: string) => <AssetIdentity symbol={symbol} size="sm" />;
 
 /**
- * 이번 주 목표 비중 (F010 슬라이스 5 · `FE-REQ-041` · 리서치 §9-4 [오늘의 판정]).
+ * 이번 주 목표 비중 (F010 슬라이스 5 · `FE-REQ-042` · 리서치 §9-4 [오늘의 판정]).
  *
  * `/investments` 머리 아래 **첫 카드**다 — 위험 · 성적표보다 먼저(리서치 §9-4 순서). 따로 부르고 따로 실패한다.
  * 투자금 · 목표 변동성은 코치 리포트의 "내 기준" 폼에서 적는다(설정 폼을 두 곳에 두지 않는다).

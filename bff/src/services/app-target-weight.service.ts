@@ -10,7 +10,7 @@ const TARGET_WEIGHT_READ_TIMEOUT_MS = 1_500;
 type Raw = Record<string, unknown>;
 
 /**
- * 목표 비중 안내 (F010 슬라이스 5 · `BFF-REQ-040`). `/investments` [오늘의 판정] 카드 하나라 따로 부르고 따로 실패한다.
+ * 목표 비중 안내 (F010 슬라이스 5 · `BFF-REQ-041`). `/investments` [오늘의 판정] 카드 하나라 따로 부르고 따로 실패한다.
  * 5xx · 타임아웃 · 계약 깨짐 → 200 `unavailable`. 4xx · 취소는 그대로.
  */
 export class AppTargetWeightService {

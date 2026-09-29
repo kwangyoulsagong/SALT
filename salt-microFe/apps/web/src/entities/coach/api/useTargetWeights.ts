@@ -16,7 +16,7 @@ const retryServerErrorOnce = (count: number, error: Error) =>
   count < 1 && !(error instanceof CoachApiError && error.status < HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR);
 
 /**
- * 목표 비중 안내 (F010 슬라이스 5 `FE-REQ-041`). `/investments` [오늘의 판정] 카드 하나라 따로 부르고 따로 실패한다.
+ * 목표 비중 안내 (F010 슬라이스 5 `FE-REQ-042`). `/investments` [오늘의 판정] 카드 하나라 따로 부르고 따로 실패한다.
  * 토큰은 수화에 안전하게 읽는다(`useHasAccessToken`) — 모르는 동안(`null`)은 부르지 않는다.
  */
 export const useTargetWeights = () => {
