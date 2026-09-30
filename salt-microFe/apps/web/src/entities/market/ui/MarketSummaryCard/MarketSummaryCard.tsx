@@ -4,7 +4,6 @@
 import { Image } from "@repo/ui/image";
 import { Skeleton } from "@repo/ui/skeleton";
 import { Sparkline } from "@repo/ui/sparkline";
-import { TickFlash } from "@repo/ui/tickFlash";
 import Link from "next/link";
 import React from "react";
 
@@ -79,8 +78,7 @@ const PriceRow = ({ item }: { item: MarketSummaryItem }) => {
   const rate = Math.abs(item.change24h).toFixed(2);
   return (
     <span className={styles.priceRow}>
-      {/* 실시간 가격이 바뀌면 방향 색이 한 번 옅어진다 (FE-REQ-044 P-37) */}
-      <TickFlash value={item.currentPrice}>{formatPrice(item.currentPrice)}</TickFlash>
+      <span>{formatPrice(item.currentPrice)}</span>
       <span
         className={`${styles.change} ${directionClass(item.change24h)}`}
         title={MARKET_SUMMARY_MESSAGES.changeTitle}

@@ -97,7 +97,6 @@
     "./statusGraphic": "./src/StatusGraphic/StatusGraphic.tsx",
     "./illustration": "./src/Illustration/Illustration.tsx",
     "./statusLine": "./src/StatusLine/StatusLine.tsx",
-    "./tickFlash": "./src/TickFlash/TickFlash.tsx",
     "./enterReveal": "./src/Motion/enterReveal.css.ts"
   },
   "scripts": {

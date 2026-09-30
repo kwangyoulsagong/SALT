@@ -45,7 +45,7 @@ const { duration, easing, spring } = tokens.motion;
 |---|---|---|
 | `duration.instant` | 0.12s | 누름 · 토글 |
 | `duration.base` | 0.24s | 등장 · 퇴장 · 탭 밑줄 · 숫자 |
-| `duration.slow` | 0.4s | 카드 · 패널 진입 · 시세 깜빡임 |
+| `duration.slow` | 0.4s | 카드 · 패널 진입 |
 | `duration.scene` | 0.9s | 일러스트 한 장면 |
 | `spring.snappy` | 튀지 않음 | 누름 복귀 · 칩 |
 | `spring.bouncy` | 한 번 출렁 | 착지 · 체크 · 배지 |
@@ -64,7 +64,7 @@ const { duration, easing, spring } = tokens.motion;
 
 - `transform` · `opacity` 만 애니메이션한다. `width` · `height` · `top` · `left` · `box-shadow` 금지(`layout` prop 도 목록 재정렬에만).
 - 첫 화면 밖 그래픽은 `whileInView` + `viewport={{ once: true }}` — 안 보이면 돌지 않는다.
-- 표 안 시세처럼 초당 여러 번 바뀌는 값에 숫자 굴러가기를 쓰지 않는다. 깜빡임(배경 opacity)만.
+- 표 안 시세처럼 초당 여러 번 바뀌는 값에 숫자 굴러가기를 쓰지 않는다. **가격에 깜빡임도 넣지 않는다**(사용자 결정 2026-09-30) — 기존 등락률 칸 깜빡임만 있다.
 - 스크롤에 묶인 애니메이션 금지(`performance.md`).
 
 ## 6. SSR · 하이드레이션
