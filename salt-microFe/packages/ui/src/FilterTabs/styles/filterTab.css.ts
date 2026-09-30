@@ -52,7 +52,8 @@ export const tabButton = recipe({
         borderRadius: vars.radius.base,
         fontSize: vars.fontSizes["md"],
         fontWeight: vars.fontWeights.medium,
-        color: vars.colors.text.lightGray,
+        // 고르지 않은 칸 — 회색 면 위 AA(4.5:1). lightGray(#6B7684)는 4.19:1 이라 neutral 700(6.45:1)
+        color: vars.colors.neutral[700],
         selectors: {
           "&:hover": { color: vars.colors.text.primary },
         },
