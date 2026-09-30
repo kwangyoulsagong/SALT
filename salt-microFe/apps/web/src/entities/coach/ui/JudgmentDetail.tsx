@@ -102,13 +102,13 @@ interface JudgmentDetailProps {
  * 않는다(B2 · FR-142 의 원칙을 여기에도).
  */
 export const JudgmentDetail = ({ view, mode }: JudgmentDetailProps) => {
-  if (!view || !view.renderable) return <JudgmentSummary view={view} mode={mode} />;
+  if (!view || !view.renderable) return <JudgmentSummary view={view} mode={mode} labelAs={3} />;
 
   const { judgment, trackRecord, failureCases } = view;
 
   return (
     <>
-      <JudgmentSummary view={view} mode={mode} />
+      <JudgmentSummary view={view} mode={mode} labelAs={3} />
       <section className={detailSection}>
         <Heading level={5} as={4} color="tertiary">
           {DETAIL.reasonsHeading}

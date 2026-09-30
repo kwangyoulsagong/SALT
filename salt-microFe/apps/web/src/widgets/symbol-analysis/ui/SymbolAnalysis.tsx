@@ -184,7 +184,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                 legend={<ZoneLegend lines={priceLines} />}
               />
               {modeView ? (
-                <ZoneSummary zone={modeView.zone} />
+                <ZoneSummary zone={modeView.zone} headingAs={3} />
               ) : (
                 coach.isPending &&
                 !coach.isSignedOut && <CoachBlockSkeleton block="zone" />
