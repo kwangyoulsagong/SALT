@@ -3,7 +3,7 @@
 - 브랜치: `feat/f000-invite-onboarding-slice` (PR #42, 머지 `658ed39`)
 - 날짜: 2026-09-18
 - 체크리스트: `requirements/reports/checklists/F000-invite-onboarding.md`
-- 슬라이스: `requirements/specs/in-progress/F000-invite-onboarding-slice.md`
+- 슬라이스: `requirements/specs/done/F000-invite-onboarding-slice.md`
 
 ## 1. 무엇을 했나
 

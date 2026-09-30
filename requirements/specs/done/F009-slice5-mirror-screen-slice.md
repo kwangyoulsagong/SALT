@@ -14,7 +14,7 @@ created: 2026-09-27
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-038-F009-RISK.md` | FR-12(size-check `behavior`) · FR-13(행동 측정) |
-| BFF | `bff/requirements/specs/in-progress/BFF-REQ-038-F009-TRADE-RISK.md` | FR-7(미러) · FR-8(결과 · 태그 확정) · FR-9(size-check `behavior` · `hasPlan`) |
+| BFF | `bff/requirements/specs/done/BFF-REQ-038-F009-TRADE-RISK.md` | FR-7(미러) · FR-8(결과 · 태그 확정) · FR-9(size-check `behavior` · `hasPlan`) |
 | 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-039-F009-TRADE-RISK.md` | FR-14~20 |
 | DB | `DB-REQ-031` | 변경 없음 — 마이그레이션 0 |
 

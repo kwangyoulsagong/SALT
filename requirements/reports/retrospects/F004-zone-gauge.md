@@ -2,7 +2,7 @@
 
 - 브랜치: `feat/f004-zone-gauge` (base `main` `6f701b4`) → PR #49, merge `ebadcf9`
 - 날짜: 2026-09-21 구현 · 2026-09-22 회고 작성(backfill: 체크리스트 · 커밋 메시지 · 코드 근거)
-- 슬라이스: `requirements/specs/in-progress/F004-zone-gauge-slice.md`
+- 슬라이스: `requirements/specs/done/F004-zone-gauge-slice.md`
 - 체크리스트: `requirements/reports/checklists/F004-zone-gauge.md`
 - 앞 슬라이스 회고: `requirements/reports/retrospects/F004-symbol-judgment.md`
 

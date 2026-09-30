@@ -1,6 +1,6 @@
 # F000 세션 슬라이스 — 로그인 계약 · 토큰 갱신 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F000-web-session-slice.md` · 2026-09-23
+슬라이스: `requirements/specs/done/F000-web-session-slice.md` · 2026-09-23
 브랜치: `feat/fe-token-refresh` (base `main` `4baa30e`)
 영역 체크리스트: `salt-microFe/requirements/reports/checklists/FE-REQ-011.md` §10
 

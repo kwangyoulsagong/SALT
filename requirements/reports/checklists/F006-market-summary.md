@@ -1,6 +1,6 @@
 # F006 슬라이스 1 — 투자 화면 시장 요약 띠 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F006-market-summary-slice.md` · 2026-09-22
+슬라이스: `requirements/specs/done/F006-market-summary-slice.md` · 2026-09-22
 브랜치: `feat/fe-market-summary-strip` (base `main` `c61b9f9`)
 영역 체크리스트: `salt-server/…/SRV-REQ-036.md` · `bff/…/BFF-REQ-035.md` · `salt-microFe/…/FE-REQ-037.md`
 

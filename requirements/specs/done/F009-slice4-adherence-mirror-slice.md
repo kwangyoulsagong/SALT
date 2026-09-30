@@ -15,7 +15,7 @@ created: 2026-09-27
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-038-F009-RISK.md` | FR-9(9a~9f) |
-| DB | `salt-server/requirements/specs/in-progress/DB-REQ-031-F009-SCHEMA.md` | 변경 없음 — 슬라이스 1 의 `TradePlan` 판정 열 · `DecisionOutcome` 을 채운다 |
+| DB | `salt-server/requirements/specs/done/DB-REQ-031-F009-SCHEMA.md` | 변경 없음 — 슬라이스 1 의 `TradePlan` 판정 열 · `DecisionOutcome` 을 채운다 |
 | BFF · 프론트 | `BFF-REQ-038` · `FE-REQ-039` | 변경 없음 — 슬라이스 5 |
 
 ## 판단 — 리뷰가 볼 곳

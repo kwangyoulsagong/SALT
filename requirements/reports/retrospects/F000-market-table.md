@@ -3,7 +3,7 @@
 - 브랜치: `feat/f000-market-table` (PR #44, 머지 `f85f982`) · 후속 `fix/f000-market-table-viewport` (PR #47, 머지 `847ab21`)
 - 날짜: 2026-09-21
 - 체크리스트: `requirements/reports/checklists/F000-market-table.md`
-- 슬라이스: `requirements/specs/in-progress/F000-market-table-slice.md`
+- 슬라이스: `requirements/specs/done/F000-market-table-slice.md`
 
 ## 1. 무엇을 했나
 

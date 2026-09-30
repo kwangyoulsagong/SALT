@@ -1,6 +1,6 @@
 # F004 슬라이스 1 — 종목 판단 스냅샷 · 사후 판정 · 게이트 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-symbol-judgment-slice.md` · 2026-09-21
+슬라이스: `requirements/specs/done/F004-symbol-judgment-slice.md` · 2026-09-21
 브랜치: `feat/f004-symbol-judgment` (base `docs/decisions-q3-q5-q6`)
 
 ## 1. 요구사항 ↔ 구현

@@ -13,7 +13,7 @@ created: 2026-09-24
 
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
-| DB | `salt-server/requirements/specs/in-progress/DB-REQ-031-F009-SCHEMA.md` | FR-1~7 (`realized_vol` FR-8 은 슬라이스 2) |
+| DB | `salt-server/requirements/specs/done/DB-REQ-031-F009-SCHEMA.md` | FR-1~7 (`realized_vol` FR-8 은 슬라이스 2) |
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-038-F009-RISK.md` | FR-1~8 (판정 · 미러 FR-9 슬라이스 4, 복기 FR-10 슬라이스 6) |
 | BFF · 프론트 | — | 변경 없음. 새 서버 경로를 부르는 곳이 아직 없다 |
 

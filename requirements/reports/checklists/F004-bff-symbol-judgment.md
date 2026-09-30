@@ -1,6 +1,6 @@
 # F004 슬라이스 3 — 종목 판단 뷰모델 (BFF) — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-bff-symbol-judgment-slice.md` · 2026-09-22
+슬라이스: `requirements/specs/done/F004-bff-symbol-judgment-slice.md` · 2026-09-22
 브랜치: `feat/f004-bff-judgment` (base `main` `ebadcf9`)
 
 ## 1. 요구사항 ↔ 구현

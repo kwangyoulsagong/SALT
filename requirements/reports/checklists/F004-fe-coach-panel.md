@@ -1,6 +1,6 @@
 # F004 슬라이스 4 — 투자 우측 AI 코치 패널 (FE) — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-fe-coach-panel-slice.md` · 2026-09-22
+슬라이스: `requirements/specs/done/F004-fe-coach-panel-slice.md` · 2026-09-22
 브랜치: `feat/f004-fe-coach-panel` (base `main` `157c624`)
 영역 체크리스트: `salt-microFe/requirements/reports/checklists/FE-REQ-026.md` · `FE-REQ-028.md` · `FE-REQ-029.md` · `bff/…/BFF-REQ-024.md`
 

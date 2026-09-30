@@ -1,6 +1,6 @@
 # F004 슬라이스 12 — 서버 코치 상세 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-server-coach-detail-slice.md` · 2026-09-23
+슬라이스: `requirements/specs/done/F004-server-coach-detail-slice.md` · 2026-09-23
 브랜치: `feat/server-f004-coach-detail` (base `main` `67d1f31`)
 영역 체크리스트: `salt-server/requirements/reports/checklists/SRV-REQ-025.md` §8 · `SRV-REQ-024.md`
 

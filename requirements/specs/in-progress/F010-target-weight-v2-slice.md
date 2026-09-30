@@ -23,8 +23,8 @@ created: 2026-09-29
 | 예측 | `salt-forecast/requirements/specs/in-progress/FC-REQ-013-F010-TARGET-WEIGHT-V2.md`(신규) FR-1~6 | 사전등록 · 두 묶음 규칙 · Bonferroni 판정 · 리포트 · 라이브 원장 작업 |
 | DB | `salt-server/requirements/specs/in-progress/DB-REQ-029-F008-SCHEMA.md` FR-21 | 비중 · 결과 불변 표 · 요약 · `v_target_weight_live` |
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-024-F004-FUNC.md` FR-187~190 | 알트 `no_record` · 쓸 수 있는 돈 안에서만(`no_room`) · 판정 기록 상수 · 라이브 읽기 |
-| BFF | `bff/requirements/specs/in-progress/BFF-REQ-041-F010-TARGET-WEIGHT.md` FR-4~6 | 새 필드 · 라이브 문턱 30 고정 |
-| 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-042-F010-TARGET-WEIGHT.md` FR-9~13 · `FE-REQ-040-F010-JUDGMENT-SCREEN.md` FR-11~13 | 알트 · 현금 없음 · 라이브 진행 · 요약 띠 재배치 |
+| BFF | `bff/requirements/specs/done/BFF-REQ-041-F010-TARGET-WEIGHT.md` FR-4~6 | 새 필드 · 라이브 문턱 30 고정 |
+| 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-042-F010-TARGET-WEIGHT.md` FR-9~13 · `FE-REQ-040-F010-JUDGMENT-SCREEN.md` FR-11~13 | 알트 · 현금 없음 · 라이브 진행 · 요약 띠 재배치 |
 
 ## 커밋 (되돌리기 지점)
 

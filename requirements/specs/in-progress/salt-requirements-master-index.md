@@ -83,7 +83,7 @@ Status: In Progress
 | **F003** | `DB-013` `DB-014` `DB-015` `DB-016` | `SRV-020` `SRV-021` `SRV-022` `SRV-023` | `BFF-019` `BFF-020` `BFF-021` `BFF-022` | `FE-022` `FE-023` `FE-024` `FE-025` | `RN-016` `RN-017` `RN-018` `RN-019` |
 | **F004** | `DB-017` `DB-018` `DB-019` `DB-020` | `SRV-024` `SRV-025` `SRV-026` `SRV-027` | `BFF-023` `BFF-024` `BFF-025` `BFF-026` | `FE-026` `FE-027` `FE-028` `FE-029` `FE-034` | `RN-020` `RN-021` `RN-022` `RN-023` |
 | **F006** | `DB-021` `DB-022` `DB-023` `DB-024` | `SRV-028` `SRV-029` `SRV-030` `SRV-031` | `BFF-027` `BFF-028` `BFF-029` `BFF-030` | `FE-030` `FE-031` `FE-032` `FE-033` | `RN-024` `RN-025` `RN-026` `RN-027` |
-| **F007** | `DB-025` `DB-026` `DB-027` `DB-028` | `SRV-032` `SRV-033` `SRV-034` `SRV-035` | `BFF-031` `BFF-032` `BFF-033` `BFF-034` | — | `RN-028` `RN-029` `RN-030` `RN-031` |
+| **F007** | `DB-025` `DB-026` `DB-027` `DB-028` | `SRV-032` `SRV-033` `SRV-034` `SRV-035` | `BFF-031` `BFF-032` `BFF-033` `BFF-034` | `FE-043`(웹 좁은 화면 안내) | `RN-028` `RN-029` `RN-030` `RN-031` |
 
 파일명 규칙: `<AREA>-REQ-<NNN>-<F기능>-<종류>.md`
 예: `DB-REQ-005-F001-SCHEMA.md` · `FE-REQ-026-F004-UI.md` · `RN-REQ-024-F006-UI.md`
@@ -198,7 +198,7 @@ flowchart TB
 | `FE-REQ-007` MFE 교체 | **done** | Multi-Zones 전환(`apps/web` + `apps/web-tax`). 미충족 6건 중 **2건이 닫혔다** — §4-6(브라우저 확인)은 `FE-REQ-008`, §4-4(레이어 검사 수단)는 `FE-REQ-009`. 남은 4건은 판정 대상(경로·배포 인프라·zone 넘나드는 기능·스트리밍 전제 화면)이 **아직 없어서** 이 REQ 안에서 닫을 방법이 없다. `checklists/FE-REQ-007.md` §4 |
 | `FE-REQ-008` App Router + 스트리밍 SSR | **done** | 두 zone 모두 App Router. 스트리밍 게이트 **첫 블록 p95 31.9ms**(기준 300ms), 번들 증가 최대 +16.2 kB gzip(예산 40KB). 미충족 7건 중 **2건이 닫혔다**(§6-1 FSD pages 레이어 → `FE-REQ-009`, §6-7 Codex 미러 → 하네스 제거). **§6-4(인증 토큰이 `localStorage`)는 이 REQ 의 실제 미달**이고 `FE-REQ-013`이 담당한다. `checklists/FE-REQ-008.md` §6 |
 | `FE-REQ-009` FSD 전환 | **done** | 두 zone 모두 6레이어. 슬라이스 8개(`auth`·`goal`·`market`·`portfolio` / `sign-in`·`add-goal` / `home-briefing`·`market-board`). `layer-check` 훅 + `@repo/fsd/layers` lint가 **같은 규칙 표 하나**를 읽는다(차단 8 · 통과 5 테스트). 렌더 동일성 4경로 × 3뷰포트 통과, 공통 청크 증가 **0**. 남은 것은 `checklists/FE-REQ-009.md` §8 — 이 REQ 미달 2건(FR-37 · `/investments` +7kB), 범위 밖 5건 |
-| `SRV-REQ-006` DDD 전환 | **in-progress (4/4단계)** | `shared` Kernel + `layer-check` 훅·ESLint(1) · `coach/domain/policy` 추출 + 특성화 테스트 23건(2) · `news`·`market`·`portfolio` 이관(3, FR-32a) · **`coach` 통합(4, FR-32)**. 컨텍스트 **4개** · 동사형 유스케이스 **49개** · 공개 API **17개**. `modules` 15 → 12 → **8개**(원문 29파일 3,538줄 삭제). 테스트 18 → 85 → **137건**. 4단계에서 **같은 이름의 값이 경로마다 다르게 정의돼 있던 것**(기술 지표 주기 `m5` vs 무관)이 드러나 통일했다. 그 뒤 **미충족 8건을 닫았다**(§12) — **수익률 예측(`expectedReturn`) 제거**, 외부 호출 타임아웃·지수 백오프(캔들 수집 실패 **다수 → 0건**), `external/` 삭제, 한글 뉴스 언어 필터 복구, 공개 LLM 경로 요청 제한. 테스트 **153건**. 남은 12건은 전부 `ledger`(F001)·`DB-REQ-*`·**FR-33(`SRV-REQ-007`)**·프론트 계약을 기다린다. 상세는 `checklists/SRV-REQ-006.md` §10~§13 |
+| `SRV-REQ-006` DDD 전환 | **done** (4/4단계) | `shared` Kernel + `layer-check` 훅·ESLint(1) · `coach/domain/policy` 추출 + 특성화 테스트 23건(2) · `news`·`market`·`portfolio` 이관(3, FR-32a) · **`coach` 통합(4, FR-32)**. 컨텍스트 **4개** · 동사형 유스케이스 **49개** · 공개 API **17개**. `modules` 15 → 12 → **8개**(원문 29파일 3,538줄 삭제). 테스트 18 → 85 → **137건**. 4단계에서 **같은 이름의 값이 경로마다 다르게 정의돼 있던 것**(기술 지표 주기 `m5` vs 무관)이 드러나 통일했다. 그 뒤 **미충족 8건을 닫았다**(§12) — **수익률 예측(`expectedReturn`) 제거**, 외부 호출 타임아웃·지수 백오프(캔들 수집 실패 **다수 → 0건**), `external/` 삭제, 한글 뉴스 언어 필터 복구, 공개 LLM 경로 요청 제한. 테스트 **153건**. 남은 12건은 전부 `ledger`(F001)·`DB-REQ-*`·**FR-33(`SRV-REQ-007`)**·프론트 계약을 기다린다. 상세는 `checklists/SRV-REQ-006.md` §10~§13 |
 | `FE-REQ-010` F000 UI | **in-progress** | 수리 9건(FR-1~9)·표시·접근성·반응형에 이어 **초대 코드·온보딩 3스텝(FR-20~26·64)이 닫혔다**. 슬라이스 셋이 생겼다 — `features/accept-invite` · `widgets/onboarding-flow` · `pages/onboarding`. **회원가입 화면은 구현된 적이 없었다**(경로만 `PUBLIC_PATHS` 에 있었다). 남은 것은 FR-63 과 **브라우저 화면 실측**이다. FR-63 은 `role="tablist"` 대신 `role="group"`+`aria-pressed` 로 갔다(탭이 아니다 — tabpanel 이 없다). `checklists/FE-REQ-010.md` · **홈 보유 아이콘 · 지출 막대 삭제**(2026-09-23, 목 제거) |
 | `BFF-REQ-007` F000 FUNC | **in-progress** | D·E·F절(뉴스·관심 종목·`period`)에 이어 **G절(온보딩 3라우트·`register` 제거·rate limit)** · **A절 FR-1~5(동면 410, 2026-09-22)** 완료. A절 FR-6(1주 로그, 2026-09-29) · B·C절(홈 조립·알림) 남음. **테스트 러너가 이 작업에서 처음 생겼다**(23건) |
 | `BFF-REQ-008` F000 API | **in-progress** | 신규 **7개 전부** 열렸다(`watchlist` 3 · `news` · `portfolio/summary` · 온보딩 3). 제거 목록도 닫혔다. 동면 경로 410(FR-11)도 2026-09-22 닫혔다. 남은 것은 `packages/core` 타입 공유(FR-13 — `bff` 가 workspace 밖이다) · **보유 요약 `logoUrl` 추가**(2026-09-23) |
@@ -220,11 +220,11 @@ flowchart TB
 | `FE-REQ-028` F004 API | **in-progress** | 패널 클라이언트 조회 · 키에 모드 없음 · 취소. 모드 전환은 `history.replaceState`(FR-83 개정) — 실측 요청 0건. 해설 버튼만 · 재시도 0 · 20s · 연타 1건(슬라이스 6). 상세도 클라이언트 조회(FR-84 다르게) · 리포트 조회 · 재생성 202 → `generation-status` 폴링 · 429 남은 시간(슬라이스 15) |
 | `FE-REQ-029` F004 PERF | **in-progress** | `/investments` First Load 135 → 136 kB · 취소 6~8/11. 상세 차트 p95 534ms · CLS 0.004(슬라이스 6). 행 선택 p95 · 표 리렌더 미측정 · **상세 113 kB · 리포트 109 kB**(슬라이스 15 후속, 중간 회귀 161 kB 닫음) |
 | `FE-REQ-034` F004 CHART | **in-progress** | 상세 분석 차트를 자체 구현 캔버스 차트(`@repo/ui/tradingChart`)로 — 캔들 · 이동평균 4 · 거래량 · 십자선 · 이동/확대 · 실시간. 포인터 이동 0.66ms · 1000봉 다시 그리기 4.1ms · CLS 0.001. 프리뷰 실시간 봉 버그 · 일봉 시각 NaN 수정, `lightweight-charts` 제거. 첫 페인트는 서버 차트 응답 요동에 걸림. `checklists/FE-REQ-034.md` |
-| `FE-REQ-035` F004 CLEANUP | **in-progress** | 부채 정리 — axios 직접 호출 0 · `no-restricted-imports` 금지 · 의존성 제거(axios 든 지연 청크 gzip 21.5 KB 제거, First Load 변화 0). 봉 병합 → `@repo/core/market` + vitest 11(슬라이스 8) |
+| `FE-REQ-035` F004 CLEANUP | **done** | 부채 정리 — axios 직접 호출 0 · `no-restricted-imports` 금지 · 의존성 제거(axios 든 지연 청크 gzip 21.5 KB 제거, First Load 변화 0). 봉 병합 → `@repo/core/market` + vitest 11(슬라이스 8) |
 | `FE-REQ-036` F004 ZONE BAND | **in-progress** | 관찰 구간을 상세 · 패널 차트에 띠 + 이름표(`관찰 구간 … · 예측 아님`)로. 패널 차트 범위 = 캔들만. 상세 차트 버튼 캡슐. 차트 청크 +0.9 KB gzip(슬라이스 9) |
-| `SRV-REQ-036` F006 MARKET SUMMARY | **in-progress** | `GET /api/investment/market/summary` — 종목은 설정(`MARKET_SUMMARY_SYMBOLS`), `wide_move` 태그 · 등락 금액은 도메인, 5분봉 1분 캐시 · 부분 실패(F006 슬라이스 1) |
-| `BFF-REQ-035` F006 MARKET SUMMARY | **in-progress** | `/api/app/market/summary` 뷰모델(계산 없음) · WS `price_update.change24hAmount`(거래소 값) |
-| `BFF-REQ-036` F000 CLEANUP | **in-progress** | 부채 정리 — 서버 4xx 보존을 error middleware 한 곳으로(컨트롤러 8곳, 만료 토큰 500 → 401) · 동면 경로 410 · Upbit 지연 연결 · 규칙 4곳 |
+| `SRV-REQ-036` F006 MARKET SUMMARY | **done** | `GET /api/investment/market/summary` — 종목은 설정(`MARKET_SUMMARY_SYMBOLS`), `wide_move` 태그 · 등락 금액은 도메인, 5분봉 1분 캐시 · 부분 실패(F006 슬라이스 1) |
+| `BFF-REQ-035` F006 MARKET SUMMARY | **done** | `/api/app/market/summary` 뷰모델(계산 없음) · WS `price_update.change24hAmount`(거래소 값) |
+| `BFF-REQ-036` F000 CLEANUP | **done** | 부채 정리 — 서버 4xx 보존을 error middleware 한 곳으로(컨트롤러 8곳, 만료 토큰 500 → 401) · 동면 경로 410 · Upbit 지연 연결 · 규칙 4곳 |
 | `FE-REQ-037` F006 MARKET SUMMARY | **in-progress** | 투자 화면 시장 요약 띠 — 대표 1 + 항목 9(3열) + 오늘의 시장(종목 수 · 뉴스), 영역 스파크라인 · 점선 기준선(`@repo/ui` Sparkline 확장). 프론트 종목 상수 0 · First Load 변화 0 |
 | 나머지 123개 | to-do | |
 
@@ -237,7 +237,7 @@ flowchart TB
 > 명시된 AC 인데 구현하지 않았고, 사유는 "부를 BFF 가 없다"다. **`FE-REQ-013`이 닫는다.**
 **F000 이 시작됐다 (2026-09-18).** 첫 **수직 슬라이스**(관심 종목 탭)를 서버→BFF→프론트로
 관통시키고, 이어서 `FE-REQ-010` 의 수리 9건까지 닫았다. 범위와 근거는
-`requirements/specs/in-progress/F000-watchlist-tab-slice.md`, 전 영역 통합 검증은
+`requirements/specs/done/F000-watchlist-tab-slice.md`, 전 영역 통합 검증은
 `requirements/reports/checklists/F000-watchlist-tab.md` 에 있다.
 
 > **그 과정에서 죽어 있던 경로 셋이 드러났다** — `ListWatchlist` 가 `Decimal` 을 문자열로
@@ -246,7 +246,7 @@ flowchart TB
 > lint·타입체크를 통과하고 있었다. **소비처가 없는 계약은 검증되지 않는다.**
 
 **두 번째 수직 슬라이스가 끝났다 (2026-09-18).** 초대 코드 · 온보딩 3스텝을 서버→BFF→
-프론트로 관통시켰다. 범위와 근거는 `requirements/specs/in-progress/F000-invite-onboarding-slice.md`,
+프론트로 관통시켰다. 범위와 근거는 `requirements/specs/done/F000-invite-onboarding-slice.md`,
 전 영역 통합 검증은 `requirements/reports/checklists/F000-invite-onboarding.md` 에 있다.
 
 > **공통 수용 기준 하나가 실제로 열려 있었다.** §6 의 "초대 코드 없이 계정이 생성되지
@@ -263,7 +263,7 @@ flowchart TB
 컨텍스트 `onboarding` 이 더해졌다. `modules` 는 8 → **7개**(`auth` 삭제).
 
 **세 번째 수직 슬라이스 — 실시간 시세 신뢰성 (2026-09-21).** 사용자 결정으로
-**Investment 쪽을 먼저** 한다. 범위는 `requirements/specs/in-progress/F000-realtime-reliability-slice.md`,
+**Investment 쪽을 먼저** 한다. 범위는 `requirements/specs/done/F000-realtime-reliability-slice.md`,
 검증은 `requirements/reports/checklists/F000-realtime-reliability.md`.
 
 > **에러 없이 틀린 것을 보여주던 자리 다섯.** 헤더가 멈춘 시세를 초록 점과 기준 시각으로
@@ -278,7 +278,7 @@ flowchart TB
 `AssetType` 3값(`DB-REQ-003` · `SRV-REQ-008` FR-32)과 `FE-REQ-012` A절(`period` enum 4종)이다.
 
 **네 번째 수직 슬라이스 — 시세 표 필터 · 기간 변동률 · 레이아웃 (2026-09-21).** 범위는
-`requirements/specs/in-progress/F000-market-table-slice.md`, 검증은
+`requirements/specs/done/F000-market-table-slice.md`, 검증은
 `requirements/reports/checklists/F000-market-table.md`.
 
 > **버튼은 반응하는데 목록이 같았다.** 기간 7개는 서버가 `period` 를 읽지 않았고, "오름차순"은
@@ -419,13 +419,13 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 |---|---|---|
 | `DB-REQ-029` F008 SCHEMA | **in-progress** | `forecast` 스키마 — SQL 전용 마이그레이션 7건(차트 일봉 뷰 · 주요 사건 3테이블 + 뷰, 2026-09-24 · 쏠림 신호 2테이블 + 뷰 2, 2026-09-27). `checklists/DB-REQ-029.md` |
 | `FC-REQ-001` 기준 모델 · 채점 | **in-progress** | 90% 구간 커버리지 90.0~90.7%, 기준 대비 +0.7~1% — 예측력 거의 없음(정상). 방향 적중은 기저율과 같았다 → `direction_base_rate` |
-| `FC-REQ-004` 수집 · 트리거 | **in-progress** | 바이낸스 224종목 · FRED 8 · DefiLlama. launchd 실패(macOS 권한) → 서버 부팅 트리거 |
-| `SRV-REQ-037` F008 전망 API | **in-progress** | `GET /api/coach/forecast` · `/events` · 소유자 404 · 원화 환산 · 3종 게이트 · 해설 말투 · 숫자 검증기 · 템플릿 · **해설 SSE**(템플릿 먼저 → 검증 통과 LLM 교체, 2026-09-24) |
-| `BFF-REQ-037` F008 전망 중계 | **in-progress** | 404 그대로 · 전망 3종 막기 · 기간 4개 · 해설 SSE 중계 · 주요 사건 뷰모델 |
-| `FE-REQ-038` F008 변동 범위 카드 | **in-progress** | 상세 분석 우측 — 선 + 부채꼴 차트 · 실시간 점 · 해설 스트림 · 주요 사건 카드. 소유자만. 2026-09-27 판단이 막힌 모드에도 해설 자리 · 이유 · 표본 수를 남기고 해설을 거래 기록 폼 위로(FR-7) |
-| `FC-REQ-005` 주요 사건(거시 일정) | **in-progress** | 슬라이스 22 를 코인으로 좁힘 — FOMC · CPI · 고용보고서 일정 · 선반영도 · 1 · 5 · 20일 반응 분포(워크포워드) · 평소 대비. BTC 9조합 전부 게이트 통과(표본 33 · 48). 발표일 움직임 평소의 1.25~1.48배, 5일 뒤엔 0.98~1.07배 |
-| `FC-REQ-007` 쏠림 신호(펀딩비 · 김프) | **in-progress** | 슬라이스 23 — ECB 원/달러 · 펀딩비 1년 백분위(중간 순위) · 김프 3일 확정 0 교차 · 신호 뒤 반응(주요 사건과 같은 게이트). 224종목 · 5초. BTC 김프 교차 · 숏 쏠림 9조합 통과, 롱 쏠림은 빗나간 때 없어 막힘 |
-| `FC-REQ-002` LightGBM | **in-progress (챔피언과 동률)** | v0.1 −6.7~−9.1% → v0.5 · 0.6 변동성 배율로 단순 기준 +0.8~1.1%, 챔피언과 동률. 실험 6회에서 중단 |
+| `FC-REQ-004` 수집 · 트리거 | **done** | 바이낸스 224종목 · FRED 8 · DefiLlama. launchd 실패(macOS 권한) → 서버 부팅 트리거 |
+| `SRV-REQ-037` F008 전망 API | **done** | `GET /api/coach/forecast` · `/events` · 소유자 404 · 원화 환산 · 3종 게이트 · 해설 말투 · 숫자 검증기 · 템플릿 · **해설 SSE**(템플릿 먼저 → 검증 통과 LLM 교체, 2026-09-24) |
+| `BFF-REQ-037` F008 전망 중계 | **done** | 404 그대로 · 전망 3종 막기 · 기간 4개 · 해설 SSE 중계 · 주요 사건 뷰모델 |
+| `FE-REQ-038` F008 변동 범위 카드 | **done** | 상세 분석 우측 — 선 + 부채꼴 차트 · 실시간 점 · 해설 스트림 · 주요 사건 카드. 소유자만. 2026-09-27 판단이 막힌 모드에도 해설 자리 · 이유 · 표본 수를 남기고 해설을 거래 기록 폼 위로(FR-7) |
+| `FC-REQ-005` 주요 사건(거시 일정) | **done** | 슬라이스 22 를 코인으로 좁힘 — FOMC · CPI · 고용보고서 일정 · 선반영도 · 1 · 5 · 20일 반응 분포(워크포워드) · 평소 대비. BTC 9조합 전부 게이트 통과(표본 33 · 48). 발표일 움직임 평소의 1.25~1.48배, 5일 뒤엔 0.98~1.07배 |
+| `FC-REQ-007` 쏠림 신호(펀딩비 · 김프) | **done** | 슬라이스 23 — ECB 원/달러 · 펀딩비 1년 백분위(중간 순위) · 김프 3일 확정 0 교차 · 신호 뒤 반응(주요 사건과 같은 게이트). 224종목 · 5초. BTC 김프 교차 · 숏 쏠림 9조합 통과, 롱 쏠림은 빗나간 때 없어 막힘 |
+| `FC-REQ-002` LightGBM | **done** (챔피언과 동률 — 도전자로 채점만) | v0.1 −6.7~−9.1% → v0.5 · 0.6 변동성 배율로 단순 기준 +0.8~1.1%, 챔피언과 동률. 실험 6회에서 중단 |
 
 **슬라이스 16 · 16b · 20** — 새 영역 `salt-forecast`(Python). 데이터 → 채점 장치가 먼저 섰다. 좋아 보인 숫자 둘(방향 58~64%, 게이트 200/1,156)이
 가짜였고 둘 다 장치가 잡았다. 화면(17a · 18 · 19)은 아직 없다. 근거 `requirements/reports/checklists/F008-forecast-baseline.md`
@@ -436,10 +436,10 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 
 | REQ | 상태 | 비고 |
 |---|---|---|
-| `DB-REQ-031` F009 SCHEMA | **in-progress** (슬라이스 1 FR-1~7 · 슬라이스 2 FR-8 `realized_vol` · 슬라이스 6 FR-11 `monthly_reviews` · FR-12 계획 `checklist` 완료) | `TradePlan` · `DecisionOutcome` · `UserInvestmentProfile` +3(월 손실 예산 · 1회 최대 손실 · 목표 변동성) · `hidePurchasePrice` · `forecast.realized_vol` 뷰 · 월간 복기 스냅샷. 추가만 — 롤백 가능 |
+| `DB-REQ-031` F009 SCHEMA | **done** (슬라이스 1 FR-1~7 · 슬라이스 2 FR-8 `realized_vol` · 슬라이스 6 FR-11 `monthly_reviews` · FR-12 계획 `checklist` 완료) | `TradePlan` · `DecisionOutcome` · `UserInvestmentProfile` +3(월 손실 예산 · 1회 최대 손실 · 목표 변동성) · `hidePurchasePrice` · `forecast.realized_vol` 뷰 · 월간 복기 스냅샷. 추가만 — 롤백 가능 |
 | `SRV-REQ-038` F009 사이즈 · 계획 · 미러 | **in-progress** (슬라이스 1 FR-1~8 · 슬라이스 2 FR-11 · 슬라이스 4 FR-9 판정 · 결과 · 미러 · 슬라이스 5 FR-12 입력 중 미리보기 · FR-13 행동 측정 · 슬라이스 6 FR-10 복기 · Brier · 체크리스트 · 한 종목 상한 · 시나리오 · 슬라이스 7 FR-14a · 14b 연승 · 연패 · 시간대 · 요일 완료) | `sizing` · `adherence` · `mirror` · `riskBudget` · `monthlyReview` 순수 함수 · `/api/coach/size-check` · `/plans` · `/risk-budget` · `/mirror` · `/review/monthly` · 일 1회 배치 · `languageGuard` 금지어 추가 · 프롬프트 개인 금액 0건 |
 | `FC-REQ-006` 실현 변동성 | **in-progress** (FR-1~8 완료 · GARCH 승격 FR-9 는 26주 라이브 뒤) | EWMA(λ 0.94) 값 · GARCH(1,1) 도전자 · 180일 QLIKE 채점 · 60일 분산 기준에 지면 막음 → `forecast.realized_vol`. 289종목 중 통과 182 |
-| `BFF-REQ-038` F009 중계 | **in-progress** (슬라이스 3 FR-1~6 · 슬라이스 5 FR-7 미러 · FR-8 결과 · 태그 확정 · FR-9 size-check `behavior` · 슬라이스 6 FR-10 복기 · FR-11 · 12 · 슬라이스 7 FR-13 미러 연승 · 시간대 완료) | 뷰모델 조립 · 격리 · 재계산 금지 · 거래 + 계획 조립(`/api/app/coach/trades`) · 비소유자 응답에 도달 확률 필드 없음 |
+| `BFF-REQ-038` F009 중계 | **done** (슬라이스 3 FR-1~6 · 슬라이스 5 FR-7 미러 · FR-8 결과 · 태그 확정 · FR-9 size-check `behavior` · 슬라이스 6 FR-10 복기 · FR-11 · 12 · 슬라이스 7 FR-13 미러 연승 · 시간대 완료) | 뷰모델 조립 · 격리 · 재계산 금지 · 거래 + 계획 조립(`/api/app/coach/trades`) · 비소유자 응답에 도달 확률 필드 없음 |
 | `FE-REQ-039` F009 카드 | **in-progress** (슬라이스 3 FR-1~12 · 슬라이스 5 FR-14~20 미러 · 태그 확정 · 폼 한 줄 · 슬라이스 6 FR-21~24 복기 · IPS 3문항 · 시나리오 · 진입 전 체크 · 슬라이스 7 FR-25 · 26 연승 · 연패 · 진입 시간대 · 요일 완료 · 매입가 숨김 보류) | 거래 폼 "계획(선택)" + 결과 라인 · "내 계획" 카드 · 리스크 게이지 3 · 매입가 숨김 · "내 거래 미러" · 월간 복기 · `DisclosureSlot`. 새 라우트 0 · 입력 30초 · WCAG AA |
 
 **선행**: Codex Astra 코드 진단 C01~C06(`feature-audits/2026-09-24-ai-investment-deep-research.md`) — 성적표 정의(C04 MDD 오명 · C05 기간 · C06 시드 분리)를 먼저 고친다. 기존 F004 · F008 REQ 개정으로 처리.
@@ -467,27 +467,28 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | REQ | 상태 | 비고 |
 |---|---|---|
 | `FC-REQ-008` 규칙 항목별 IC | **in-progress** (FR-1~9 완료 · 판정 반영 `mode-decision@2` 완료 · 라이브 IC 2026-11-23) | 사전등록 `rule-ic@1` · 일봉 2017~ · 공포탐욕 · 테이커 · 대형 체결 1년 · 규칙 재현 · 삼중 장벽 · 블록 부트스트랩. 단타 총점 반대 · 장기 총점 유지 · 고래 · 공포탐욕 가중 0 |
-| `FC-REQ-010` 국면 · 변동성 | **in-progress** (FR-1~9 완료 · `regime-gate@2` 는 원장 국면 재료 뒤) | 사전등록 `regime-gate@1` · 2상태 HMM(forward 필터) · 200일선 · 이벤트일 σ · σ 손절 도달 · 매일 국면 행 · BTC 베타. 게이트 · 이벤트 축소 채택 없음 |
+| `FC-REQ-010` 국면 · 변동성 | **done** (FR-1~9 완료 · `regime-gate@2` 는 원장 국면 재료 뒤) | 사전등록 `regime-gate@1` · 2상태 HMM(forward 필터) · 200일선 · 이벤트일 σ · σ 손절 도달 · 매일 국면 행 · BTC 베타. 게이트 · 이벤트 축소 채택 없음 |
 | `FC-REQ-011` 메타 모델 · 보정 | **in-progress** (FR-1~8 · 10 완료 · **두 등록 모두 채택 안 함** — FR-9 발행 미생성 · 다음 등록은 라이브 새 표본으로만) | 사전등록 `meta-model@1` · `@2`(기저율 + 종목 간 순위) · CPCV · L2 로지스틱 vs 단조 LightGBM · Beta 보정 · ECE · BSS · BY-FDR · DSR. BSS CI 0 포함 → 확률 미발행 |
-| `FC-REQ-012` 목표 비중 규칙 과거 성적 | **in-progress** (FR-1~5 완료 · 채택 판정 아님 — 3종 고지 근거) | 사전등록 `target-weight@1` · 역변동성 × 목표 σ × 상한 주간 시뮬레이션 · 기준 3 · claims. core σ 15% 연 +11.5% · MDD −36%(BTC −86%) · 타이밍 몫 증명 못 함 · 알트 섞으면 CAGR ≈ 0 |
+| `FC-REQ-012` 목표 비중 규칙 과거 성적 | **done** (FR-1~5 완료 · 채택 판정 아님 — 3종 고지 근거) | 사전등록 `target-weight@1` · 역변동성 × 목표 σ × 상한 주간 시뮬레이션 · 기준 3 · claims. core σ 15% 연 +11.5% · MDD −36%(BTC −86%) · 타이밍 몫 증명 못 함 · 알트 섞으면 CAGR ≈ 0 |
 | `FC-REQ-013` 알트 위험 몫 · 라이브 원장 | **in-progress** (FR-1~6 완료 · **채택 없음** — 라이브 결과는 2026-10-12~) | 사전등록 `target-weight@2` · 두 묶음 규칙 · Bonferroni 판정(a 0.10 · 0.20 전부 ✗) · core 모델 포트폴리오 주간 불변 원장 · `v_target_weight_live` |
 | `FC-REQ-014` 독립 데이터 1차 | **in-progress** (FR-1~6 완료 · `dvol-sigma@1` **채택 없음** · FR-7 `market-warning@1` 라이브 통계 2026-11-25) | Deribit DVOL 수집 · 보정 σ 후보 QLIKE 판정(예측 ✓ · 비중 Calmar ✗) · 업비트 거래 유의/주의 불변 스냅샷 |
-| `BFF-REQ-039` 판정 화면 계약 | **in-progress** (FR-1~6 완료) | 베타 합 · 국면 · 손실 비대칭 · `basis` 뷰모델 · `/api/app/coach/scoreboard` 중계 · 거래소 투자유의 막힘 · `exchangeFlag` |
-| `FE-REQ-040` 판정 화면 재배치 | **in-progress** (FR-1~8 · 11~14 완료 · FR-9 [오늘의 판정]은 `FE-REQ-042` · FR-10 다음 화면 슬라이스) | `/investments` **요약 띠**(목표 비중 · 위험 · 성적표 → 리포트 앵커) · 성적표는 리포트로 · 위험 카드 삭제(리포트와 중복) · 종목 상세 판정 먼저 · σ 근거 · 국면 참고 · 손실 비대칭 |
-| `BFF-REQ-041` 목표 비중 안내 중계 | **in-progress** (FR-1~6 완료) | `/api/app/coach/target-weights` · 3종 고지 게이트 · 투자금 칸 · 알트 `no_record` · 라이브 문턱 30 |
-| `FE-REQ-042` 이번 주 목표 비중 | **in-progress** (FR-1~7 · 9~13 완료 · FR-8 홈 한 줄 범위 밖) | 본문 `/coach/report` 첫 패널 · 투자 화면 요약 한 칸(고지 한 줄) · 차 원 · 수량 · 무효화 3조건 · 알트 "목표 비중 없음" + 근거 · 현금 없음 · 라이브 n/30 |
+| `BFF-REQ-039` 판정 화면 계약 | **done** (FR-1~6 완료) | 베타 합 · 국면 · 손실 비대칭 · `basis` 뷰모델 · `/api/app/coach/scoreboard` 중계 · 거래소 투자유의 막힘 · `exchangeFlag` |
+| `FE-REQ-040` 판정 화면 재배치 | **done** (FR-1~8 · 11~14 완료 · FR-9 [오늘의 판정]은 `FE-REQ-042` · FR-10 다음 화면 슬라이스) | `/investments` **요약 띠**(목표 비중 · 위험 · 성적표 → 리포트 앵커) · 성적표는 리포트로 · 위험 카드 삭제(리포트와 중복) · 종목 상세 판정 먼저 · σ 근거 · 국면 참고 · 손실 비대칭 |
+| `BFF-REQ-041` 목표 비중 안내 중계 | **done** (FR-1~6 완료) | `/api/app/coach/target-weights` · 3종 고지 게이트 · 투자금 칸 · 알트 `no_record` · 라이브 문턱 30 |
+| `FE-REQ-042` 이번 주 목표 비중 | **done** (FR-1~7 · 9~13 완료 · FR-8 홈 한 줄 범위 밖) | 본문 `/coach/report` 첫 패널 · 투자 화면 요약 한 칸(고지 한 줄) · 차 원 · 수량 · 무효화 3조건 · 알트 "목표 비중 없음" + 근거 · 현금 없음 · 라이브 n/30 |
+| `FE-REQ-043` 좁은 화면 안내 | **done** | 768px 미만이면 모든 라우트 대신 "더 큰 화면으로" 한 장(스크린샷 · PC 링크 복사). 휴대폰 화면은 RN 앱 |
 | `SRV-REQ-024` FR-182~186 · `DB-REQ-031` FR-9 | **완료** | `GET /api/coach/target-weights` · σ = EWMA · 투자금 `investable_capital` · 기록 상수 |
 | `SRV-REQ-024` FR-187~190 · `DB-REQ-029` FR-21 | **완료** | 알트 규칙 밖(`no_record`) · 쓸 수 있는 돈 안에서만(`no_room`) · 판정 기록 상수 · `v_target_weight_live` 읽기 · 라이브 원장 표 3 |
 
 **F010 슬라이스 1 — 예측 원장 + 규칙 IC (2026-09-29, `feat/f010-slice1-prediction-ledger`)** — 화면 없음. 결과를 보기 전에 판정 규칙을 사전등록하고(`836018b`), 구현된 코치 규칙을 그대로 재현해 8년치 업비트 원화 시장에서 항목별 IC 를 쟀다: **단타 점수는 거꾸로 맞힌다**(−0.018 — 하루 급등 가점이 단기 반전과 반대), 장기 점수는 약하게 맞다(+0.015), 고래(바이낸스 덤프 1년 30종목) · 공포탐욕 · 장기 심리는 0 과 구별되지 않는다. 앞으로는 서버가 추적 종목 × 두 모드 판단을 매일 불변 원장(`judgment_ledger`)에 항목 기여 · 재료 발생 시각 · 국면과 함께 남기고, 대형 체결은 화면 호출 때만 저장되던 것을 5분 워커 수집으로 바꿨다(체결 시각 · 체결 id). 판정은 `mode-decision@2` 로 반영했다(사용자 결정 "베스트 케이스로") — 단타 24h · 심리 반전, 고래 · 장기 심리 가중 0, 후보 문턱 70 유지(낮추면 후보 칸 초과 수익 0 — 지금 규칙의 가치는 "피하기"), 성적표는 v2 표본만. `FC-REQ-008` · `SRV-REQ-024` FR-177~179 · `DB-REQ-017` FR-62~64 · `DB-REQ-029` FR-19. 범위 · 검증은 `F010-slice1-prediction-ledger-slice.md` · `reports/checklists/F010-slice1-prediction-ledger.md`.
 
-**F010 슬라이스 2 — 국면 · 변동성 (2026-09-29, `feat/f010-slice2-regime-vol`)** — 화면 없음. 리서치가 권한 200일선 · HMM 게이트 · 이벤트일 축소를 결과 전에 사전등록(`regime-gate@1`, `b9cc8d0`)하고 업비트 7년으로 쟀다: **게이트 채택 없음**(`both` 가 BTC 낙폭 −74% → −37% 였지만 상승 포착 0.47 < 0.5, 동일가중에선 HMM 이 해로움) · **이벤트일 축소 없음**(σ 비율 1.09, CI 1 포함). 국면은 라벨로만(리스크 예산 `market` · 원장 재료). 익절 계획은 삼중 장벽과 같은 정의로 **손절 −1σ · 1차 익절 +2σ · 추세 +3σ(20일)** — 고정 % 는 20일 안 94% 가 어느 한쪽에 닿는 잡음이었다(대신 손절 한 번 손실 −7.8% → −16%, 개선 주장 없음). 측정 둘: 리스크 예산 **BTC 베타 합** · 미러 **손실 비대칭**(최근 20건 최대 손실 ÷ 최대 이익). `FC-REQ-010` · `DB-REQ-029` FR-20 · `SRV-REQ-024` FR-180 · 181 · `SRV-REQ-025` FR-60 · `SRV-REQ-038` FR-15 · 16. 루트 `requirements/specs/in-progress/F010-slice2-regime-vol-slice.md` · 체크리스트 · 회고. BFF · 프론트 무변경(표시는 슬라이스 3).
+**F010 슬라이스 2 — 국면 · 변동성 (2026-09-29, `feat/f010-slice2-regime-vol`)** — 화면 없음. 리서치가 권한 200일선 · HMM 게이트 · 이벤트일 축소를 결과 전에 사전등록(`regime-gate@1`, `b9cc8d0`)하고 업비트 7년으로 쟀다: **게이트 채택 없음**(`both` 가 BTC 낙폭 −74% → −37% 였지만 상승 포착 0.47 < 0.5, 동일가중에선 HMM 이 해로움) · **이벤트일 축소 없음**(σ 비율 1.09, CI 1 포함). 국면은 라벨로만(리스크 예산 `market` · 원장 재료). 익절 계획은 삼중 장벽과 같은 정의로 **손절 −1σ · 1차 익절 +2σ · 추세 +3σ(20일)** — 고정 % 는 20일 안 94% 가 어느 한쪽에 닿는 잡음이었다(대신 손절 한 번 손실 −7.8% → −16%, 개선 주장 없음). 측정 둘: 리스크 예산 **BTC 베타 합** · 미러 **손실 비대칭**(최근 20건 최대 손실 ÷ 최대 이익). `FC-REQ-010` · `DB-REQ-029` FR-20 · `SRV-REQ-024` FR-180 · 181 · `SRV-REQ-025` FR-60 · `SRV-REQ-038` FR-15 · 16. 루트 `requirements/specs/done/F010-slice2-regime-vol-slice.md` · 체크리스트 · 회고. BFF · 프론트 무변경(표시는 슬라이스 3).
 
-**F010 슬라이스 3 — 화면 재배치 (2026-09-29, `feat/f010-slice3-judgment-screen`)** — 서버 무변경. `/investments` 시세 보드 머리 아래 카드 2장: **[위험에 노출된 돈]**(이번 달 손실 예산 · 종목 집중도 · 회전율 · BTC 베타 합 + 시장 국면 참고 칸 — "판정 · 비중에 쓰지 않아요" 고정) · **[판정 성적표]**(신호 유형별 적중 · 기준 대비 · 평균 · 채점 수 · 기간, 표본 부족이면 감춘 이유, 최근 빗나간 판정 3). 종목 상세는 코치 판단이 첫 카드, 변동 범위 · 주요 사건 · 쏠림은 "자세히" 뒤로. 수익 플랜 · 보유 구간 · 익절 플랜에 σ 가격선 근거 한 줄, 미러에 손실 비대칭. 새 위젯 `judgment-overview`(레지스트리 추가). [오늘의 판정](목표 비중 대비 할 일)은 슬라이스 5. `BFF-REQ-039` · `FE-REQ-040`. 루트 `requirements/specs/in-progress/F010-slice3-judgment-screen-slice.md` · 체크리스트 · 회고.
+**F010 슬라이스 3 — 화면 재배치 (2026-09-29, `feat/f010-slice3-judgment-screen`)** — 서버 무변경. `/investments` 시세 보드 머리 아래 카드 2장: **[위험에 노출된 돈]**(이번 달 손실 예산 · 종목 집중도 · 회전율 · BTC 베타 합 + 시장 국면 참고 칸 — "판정 · 비중에 쓰지 않아요" 고정) · **[판정 성적표]**(신호 유형별 적중 · 기준 대비 · 평균 · 채점 수 · 기간, 표본 부족이면 감춘 이유, 최근 빗나간 판정 3). 종목 상세는 코치 판단이 첫 카드, 변동 범위 · 주요 사건 · 쏠림은 "자세히" 뒤로. 수익 플랜 · 보유 구간 · 익절 플랜에 σ 가격선 근거 한 줄, 미러에 손실 비대칭. 새 위젯 `judgment-overview`(레지스트리 추가). [오늘의 판정](목표 비중 대비 할 일)은 슬라이스 5. `BFF-REQ-039` · `FE-REQ-040`. 루트 `requirements/specs/done/F010-slice3-judgment-screen-slice.md` · 체크리스트 · 회고.
 
 **F010 슬라이스 4 — 메타 모델 · 보정 (2026-09-29, `feat/f010-slice4-meta-calibration`)** — 화면 없음 · 서버 무변경. 규칙 점수 위에 피처 11개 메타 모델을 얹어 화면 익절 계획(+2σ / −1σ · 20일)의 "익절 먼저" 확률을 보정해 낼 수 있는지 결과 전에 사전등록(`meta-model@1`, `8846a4f`)하고 업비트 원화 8년 주 격자 42,654행으로 쟀다. CPCV(15분할 · 퍼지 20일 · 엠바고 7일) 로지스틱 AUC 0.652 — 규칙만(0.525)보다 확실히 낫고 LightGBM 과는 구별 안 됨. 하지만 walk-forward Beta 보정 확률이 그 시점 기저율을 못 이겼다(BSS −0.005 [−0.025, +0.019]) → **채택 안 함 · 확률 미발행.** 셔플 점검 실패(0.609)는 누수가 아니라 점검 정의 오류로 진단(종목 간 0.491 · 전체 셔플 0.495). 부차: DSR 0.12 · 종목별 BSS BY 통과 21/262 · rule-ic@1 탐색 BY 통과 37/94. 사용자 "베스트 케이스로" → 원인 진단에서 나온 가설 하나로 `meta-model@2`(시점 몫 = 기저율, 모델은 날짜 안 순위만 · 셔플 점검 종목 간 AUC)를 결과 전 등록(`4163e18`): 종목 간 AUC 0.599 · 셔플 둘 다 깨끗이지만 BSS −0.018 [−0.042, +0.007] → **역시 채택 안 함.** 슬라이스 5 는 확률 없이(σ 타깃 · 리스크 예산) 간다(`FEATURE-010` OQ 1 닫힘). `FC-REQ-011`. 루트 `requirements/specs/in-progress/F010-slice4-meta-calibration-slice.md` · 체크리스트 · 회고.
 
-**F010 슬라이스 5 — 확률 없는 목표 비중 안내 (2026-09-29, `feat/f010-slice5-target-weight`)** — 사용자 결정: 전체 = 투자금(현금 포함) 수동 입력 · 과거 성적 = 사전등록 기록 그대로 고지 · 대상 = 보유 + BTC · ETH. 규칙은 방향을 보지 않는다(역변동성 × min(1, 목표 σ ÷ 묶음 σ) × 한 종목 상한, 남는 몫 현금, 매주 월요일). 사전등록 `target-weight@1`(`766e08d`, 결과 전)에 **화면이 쓸 수 있는 문장 조건**까지 걸고 업비트 원화 2018~ 로 쟀다: BTC · ETH · 목표 σ 15% 연 +11.5% · 최대 낙폭 −36%(BTC 보유 +18.6% · −86%) · 상승 포착 0.33 — **덜 빠짐 ✓ · 타이밍 몫 ✗**(같은 평균 비중 고정과 구별 안 됨) · 알트 10개를 섞으면 전 목표 CAGR ≈ 0(화면에 쓰지 않음). 서버 `GET /api/coach/target-weights`(σ = 게이트 없는 EWMA — 실데이터에서 ETH 가 채점 게이트에 빠지던 것을 고침) · 무효화 3조건(다음 월요일 · σ ±25% · −1σ 손절선) · 손절 손실 ÷ 남은 월 예산. `/investments` 첫 카드 [이번 주 목표 비중] — 차는 원 · 수량 · 부족/초과/맞음 글자, 3종 고지 접지 않음, 확률 · 기대 R · 명령형 0. `FC-REQ-012` · `DB-REQ-031` FR-9 · `SRV-REQ-024` FR-182~186 · `BFF-REQ-041` · `FE-REQ-042`. 루트 `requirements/specs/in-progress/F010-slice5-target-weight-slice.md` · 체크리스트 · 회고.
+**F010 슬라이스 5 — 확률 없는 목표 비중 안내 (2026-09-29, `feat/f010-slice5-target-weight`)** — 사용자 결정: 전체 = 투자금(현금 포함) 수동 입력 · 과거 성적 = 사전등록 기록 그대로 고지 · 대상 = 보유 + BTC · ETH. 규칙은 방향을 보지 않는다(역변동성 × min(1, 목표 σ ÷ 묶음 σ) × 한 종목 상한, 남는 몫 현금, 매주 월요일). 사전등록 `target-weight@1`(`766e08d`, 결과 전)에 **화면이 쓸 수 있는 문장 조건**까지 걸고 업비트 원화 2018~ 로 쟀다: BTC · ETH · 목표 σ 15% 연 +11.5% · 최대 낙폭 −36%(BTC 보유 +18.6% · −86%) · 상승 포착 0.33 — **덜 빠짐 ✓ · 타이밍 몫 ✗**(같은 평균 비중 고정과 구별 안 됨) · 알트 10개를 섞으면 전 목표 CAGR ≈ 0(화면에 쓰지 않음). 서버 `GET /api/coach/target-weights`(σ = 게이트 없는 EWMA — 실데이터에서 ETH 가 채점 게이트에 빠지던 것을 고침) · 무효화 3조건(다음 월요일 · σ ±25% · −1σ 손절선) · 손절 손실 ÷ 남은 월 예산. `/investments` 첫 카드 [이번 주 목표 비중] — 차는 원 · 수량 · 부족/초과/맞음 글자, 3종 고지 접지 않음, 확률 · 기대 R · 명령형 0. `FC-REQ-012` · `DB-REQ-031` FR-9 · `SRV-REQ-024` FR-182~186 · `BFF-REQ-041` · `FE-REQ-042`. 루트 `requirements/specs/done/F010-slice5-target-weight-slice.md` · 체크리스트 · 회고.
 
 **F010 target-weight@2 — 알트 위험 몫 · 라이브 원장 · 투자 화면 요약 띠 (2026-09-29, `feat/f010-target-weight-v2`)** — 슬라이스 5 의 열린 질문(보유 알트에도 비중을 주는데 알트 섞인 기록은 나빴다)을 결과 전 사전등록(`target-weight@2`, `2e28f15`)으로 닫았다. 알트에 목표 σ 의 일부(위험 몫 0.10 · 0.20)만 따로 역변동성으로 주는 규칙을 BTC · ETH 만(a = 0)과 같은 부트스트랩으로 비교 — 5개 목표 전부 Calmar 가 나빠 **채택 없음**(0.15 에서 98.75% CI [−0.11, −0.00] · [−0.22, −0.01], 상장폐지 종목을 수집하지 않아 알트에 유리한 표본인데도). 서버는 보유 알트를 규칙에서 빼고 "기록이 비중을 뒷받침하지 않아 목표 비중이 없어요"(`no_record`)로만 알린다 — 목표 0 을 "초과"로 두면 매도 지시가 되기 때문. 부족분도 쓸 수 있는 돈(현금 + core 초과분) 안에서만 원으로 옮긴다(`no_room`). core 모델 포트폴리오(BTC · ETH × 목표 5)는 2026-10-05 부터 매주 불변 원장에 비중 · 결과를 쌓고, 30주가 되면 화면의 과거 성적 자리를 라이브로 바꾼다. 작업 중 사용자 지적으로 `/investments` 카드 셋(목표 비중 876px · 시세 표 1890px 에서 시작)을 **요약 띠 한 줄**(108px, 목표 비중 칸엔 3종 고지 한 줄)로 바꾸고 본문은 `/coach/report` 앵커 섹션으로 옮겼다. `FC-REQ-013` · `DB-REQ-029` FR-21 · `SRV-REQ-024` FR-187~190 · `BFF-REQ-041` FR-4~6 · `FE-REQ-042` FR-9~13 · `FE-REQ-040` FR-11~13. 루트 `requirements/specs/in-progress/F010-target-weight-v2-slice.md` · 체크리스트 · 회고.
 
@@ -576,3 +577,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-29 | **F010 슬라이스 5 — 확률 없는 목표 비중 안내.** `FC-REQ-012` · `BFF-REQ-041` · `FE-REQ-042`(신규 — 040 · 041 은 F011 예약) · `SRV-REQ-024` FR-182~186 · `DB-REQ-031` FR-9. 사전등록 `target-weight@1` 결과 전 커밋. 계약: 새 경로(서버 · BFF) · 리스크 예산 `investableCapital` · core 타입 · `SymbolRisk.ewma`. 마이그레이션 `20260929120000`(추가만). `.claude/rules` 위젯 · feature 레지스트리 설명 갱신 |
 | 2026-09-29 | **F010 target-weight@2 — 알트 채택 없음 · 라이브 원장 · 요약 띠.** `FC-REQ-013`(신규) · `DB-REQ-029` FR-21 · `SRV-REQ-024` FR-187~190 · `BFF-REQ-041` FR-4~6 · `FE-REQ-042` FR-9~13 · `FE-REQ-040` FR-11~13. 사전등록 · 실행 코드 결과 전 커밋. 계약: **서버 응답 BREAKING**(보유 알트 `rows` → `excluded`) · 새 뷰 `v_target_weight_live` · 마이그레이션 `20260929130000`(추가만). `/investments` 배치 변경(카드 → 요약 띠). `.claude/rules` 위젯 설명 2곳 |
 | 2026-09-30 | **F010 슬라이스 6 (1차) — DVOL 채택 없음 · 거래소 투자유의 판정 미발행.** `FC-REQ-014`(신규) · `DB-REQ-029` FR-22 · `SRV-REQ-024` FR-191~193 · `BFF-REQ-039` FR-6 · `FE-REQ-040` FR-14. 사전등록 결과 전 커밋 `f368464` · 실행 코드 `b751e05` · 리포트 `0b24f6c` |
+| 2026-09-30 | **REQ 정리 — 56개를 done/ 으로.** 전 영역 감사(FR 완료 · 체크리스트 · 회고 · 시간 게이트). 영역 23 · 루트 슬라이스 33. 회고가 없던 5건(`FC-REQ-002` · `005` · 루트 `F000-web-session` · `F004-server-scoreboard` · `F008-server-forecast`)은 작성 후 이동. 시간 게이트(10-01 · 10-05 · 10-28 · 11-23 · 11-25)와 체크리스트 미검증이 남은 것은 유지(`FC-REQ-001` · `DB-REQ-029` · `SRV-REQ-038` · `FE-REQ-036` · `037` 포함). 문서 52개의 경로 참조를 같이 고쳤다. 신규 `FE-REQ-043` 좁은 화면 안내 |

@@ -23,11 +23,11 @@ created: 2026-09-29
 
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
-| 예측 | `salt-forecast/requirements/specs/in-progress/FC-REQ-012-F010-TARGET-WEIGHT.md` FR-1~5(신규) | 사전등록 · 규칙 · 주간 시뮬레이션 · 기준 3 · claims · 리포트 |
-| DB | `salt-server/requirements/specs/in-progress/DB-REQ-031-F009-SCHEMA.md` FR-9 | `investable_capital` |
+| 예측 | `salt-forecast/requirements/specs/done/FC-REQ-012-F010-TARGET-WEIGHT.md` FR-1~5(신규) | 사전등록 · 규칙 · 주간 시뮬레이션 · 기준 3 · claims · 리포트 |
+| DB | `salt-server/requirements/specs/done/DB-REQ-031-F009-SCHEMA.md` FR-9 | `investable_capital` |
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-024-F004-FUNC.md` FR-182~186 | `GET /api/coach/target-weights` · σ = EWMA · 투자금 · 무효화 3조건 · 기록 상수 |
-| BFF | `bff/requirements/specs/in-progress/BFF-REQ-041-F010-TARGET-WEIGHT.md`(신규) | 중계 · 3종 고지 게이트 · 투자금 칸 |
-| 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-042-F010-TARGET-WEIGHT.md`(신규) | 카드 · 폼 두 칸 |
+| BFF | `bff/requirements/specs/done/BFF-REQ-041-F010-TARGET-WEIGHT.md`(신규) | 중계 · 3종 고지 게이트 · 투자금 칸 |
+| 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-042-F010-TARGET-WEIGHT.md`(신규) | 카드 · 폼 두 칸 |
 
 ## 커밋 (되돌리기 지점)
 

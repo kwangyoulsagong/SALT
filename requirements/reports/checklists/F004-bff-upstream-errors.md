@@ -1,6 +1,6 @@
 # F004 슬라이스 5 — 서버 4xx 전달 · explain 인증 · GET 재시도 (BFF) — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-bff-upstream-errors-slice.md` · 2026-09-22
+슬라이스: `requirements/specs/done/F004-bff-upstream-errors-slice.md` · 2026-09-22
 브랜치: `feat/f004-bff-slice4` (base `main` `ebe3921`)
 
 ## 1. 요구사항 ↔ 구현

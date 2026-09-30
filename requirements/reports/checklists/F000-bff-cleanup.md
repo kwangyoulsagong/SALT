@@ -1,6 +1,6 @@
 # F000 슬라이스 — BFF 부채 정리 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F000-bff-cleanup-slice.md` · 2026-09-22
+슬라이스: `requirements/specs/done/F000-bff-cleanup-slice.md` · 2026-09-22
 브랜치: `chore/bff-cleanup` (base `main` `5373189`)
 영역 체크리스트(본문 · 실측 전체): `bff/requirements/reports/checklists/BFF-REQ-036.md` · `BFF-REQ-007.md` §9 · `BFF-REQ-008.md` §5
 

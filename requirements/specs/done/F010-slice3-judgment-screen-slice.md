@@ -14,8 +14,8 @@ created: 2026-09-29
 
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
-| BFF | `bff/requirements/specs/in-progress/BFF-REQ-039-F010-JUDGMENT-SCREEN.md` FR-1~5(신규) | 베타 합 · 국면 · 손실 비대칭 · `basis` 뷰모델 · `/api/app/coach/scoreboard` |
-| 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-040-F010-JUDGMENT-SCREEN.md` FR-1~8(신규) | 근거 줄 · 게이지 · 국면 칸 · 미러 줄 · 위젯 `judgment-overview` · 상세 순서 |
+| BFF | `bff/requirements/specs/done/BFF-REQ-039-F010-JUDGMENT-SCREEN.md` FR-1~5(신규) | 베타 합 · 국면 · 손실 비대칭 · `basis` 뷰모델 · `/api/app/coach/scoreboard` |
+| 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-040-F010-JUDGMENT-SCREEN.md` FR-1~8(신규) | 근거 줄 · 게이지 · 국면 칸 · 미러 줄 · 위젯 `judgment-overview` · 상세 순서 |
 | 서버 · DB · 예측 | 없음 | — |
 
 ## 커밋 (되돌리기 지점)

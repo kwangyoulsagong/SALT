@@ -1,6 +1,6 @@
 # F004 슬라이스 13 — 서버 쿨다운 · 프로필 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-server-coach-cooldown-slice.md` · 2026-09-23
+슬라이스: `requirements/specs/done/F004-server-coach-cooldown-slice.md` · 2026-09-23
 브랜치: `feat/server-f004-coach-cooldown` (base `feat/server-f004-coach-detail` `579535e` — 슬라이스 12 문서와 겹쳐 그 위에서 땄다)
 영역 체크리스트: `salt-server/requirements/reports/checklists/SRV-REQ-025.md` §9 · `SRV-REQ-024.md` · `DB-REQ-017.md`
 

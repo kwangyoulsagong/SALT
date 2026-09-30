@@ -1,6 +1,6 @@
 # F000 초대 코드 · 온보딩 3스텝 — 검증 체크리스트
 
-- 대상 슬라이스: `requirements/specs/in-progress/F000-invite-onboarding-slice.md`
+- 대상 슬라이스: `requirements/specs/done/F000-invite-onboarding-slice.md`
 - 브랜치: `feat/f000-invite-onboarding-slice`
 - 검증일: 2026-09-18
 - 검증 환경: 로컬 풀스택 — Postgres 5432 · `salt-server` 4000 · `bff` 4001

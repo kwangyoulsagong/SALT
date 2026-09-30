@@ -1,6 +1,6 @@
 # F009 슬라이스 0 — 신뢰성 수정 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F009-slice0-reliability-slice.md`
+슬라이스: `requirements/specs/done/F009-slice0-reliability-slice.md`
 브랜치: `feat/f009-slice0-reliability` (base `main` `8e1462a`)
 
 ## C04 — `worstObservedReturn` (2026-09-24)

@@ -21,7 +21,7 @@ created: 2026-09-29
 
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
-| 예측(Python) | `salt-forecast/requirements/specs/in-progress/FC-REQ-010-F010-REGIME-VOL.md` FR-1~9(신규) | 사전등록 · HMM · 게이트 백테스트 · 이벤트일 · 도달 · 매일 국면 행 · BTC 베타 |
+| 예측(Python) | `salt-forecast/requirements/specs/done/FC-REQ-010-F010-REGIME-VOL.md` FR-1~9(신규) | 사전등록 · HMM · 게이트 백테스트 · 이벤트일 · 도달 · 매일 국면 행 · BTC 베타 |
 | DB | `salt-server/requirements/specs/in-progress/DB-REQ-029-F008-SCHEMA.md` FR-20 | `forecast.market_regime` · `v_market_regime` · `realized_vol.btc_beta` |
 | 서버 | `SRV-REQ-024` FR-180 · 181 · `SRV-REQ-025` FR-60 · `SRV-REQ-038` FR-15 · 16 | σ 익절 계획(세 화면) · 원장 재료 · `basis` · 베타 합 · 국면 라벨 · 손실 비대칭 |
 | BFF · 프론트 | 없음 | 응답은 필드 추가만(BFF 가 걸러 내지 않는다). 표시는 슬라이스 3 |

@@ -1,6 +1,6 @@
 # F004 슬라이스 6 — 상세 분석 페이지 · 해설 (FE) — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-fe-detail-page-slice.md` · 2026-09-22
+슬라이스: `requirements/specs/done/F004-fe-detail-page-slice.md` · 2026-09-22
 브랜치: `feat/f004-fe-detail-page` (base `main` `3648186`)
 영역 체크리스트: `salt-microFe/requirements/reports/checklists/FE-REQ-026.md` · `FE-REQ-028.md` · `FE-REQ-029.md`
 

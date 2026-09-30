@@ -1,6 +1,6 @@
 # F004 슬라이스 15 — FE 코치 리포트 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-fe-coach-report-slice.md` · 2026-09-23
+슬라이스: `requirements/specs/done/F004-fe-coach-report-slice.md` · 2026-09-23
 브랜치: `feat/fe-f004-coach-report` (base `main` `dbce6cf`)
 영역 체크리스트: `salt-microFe/requirements/reports/checklists/FE-REQ-026.md` §6 · `FE-REQ-027.md` · `FE-REQ-028.md` §3
 

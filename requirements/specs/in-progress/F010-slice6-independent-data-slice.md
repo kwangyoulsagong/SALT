@@ -22,8 +22,8 @@ Coin Metrics · 도미넌스 · 데이터랩 · 뉴스 구조화 · LLM 가드�
 | 예측 | `salt-forecast/requirements/specs/in-progress/FC-REQ-014-F010-INDEPENDENT-DATA.md`(신규) FR-1~7 | 사전등록 2 · 수집 2 · DVOL 채점 · 리포트 |
 | DB | `salt-server/requirements/specs/in-progress/DB-REQ-029-F008-SCHEMA.md` FR-22 | `market_warning_snapshot`(불변) · `v_market_warning` |
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-024-F004-FUNC.md` FR-191~193 | 게이트 첫 검사 · `exchangeFlag` · 추천 후보 제외 |
-| BFF | `bff/requirements/specs/in-progress/BFF-REQ-039-F010-JUDGMENT-SCREEN.md` FR-6 | 막힘 사유 · 표시 뷰모델 · 막는 쪽으로만 보정 |
-| 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-040-F010-JUDGMENT-SCREEN.md` FR-14 | 막힘 안내 둘째 줄 · 주의 한 줄(패널 · 상세) |
+| BFF | `bff/requirements/specs/done/BFF-REQ-039-F010-JUDGMENT-SCREEN.md` FR-6 | 막힘 사유 · 표시 뷰모델 · 막는 쪽으로만 보정 |
+| 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-040-F010-JUDGMENT-SCREEN.md` FR-14 | 막힘 안내 둘째 줄 · 주의 한 줄(패널 · 상세) |
 
 ## 커밋 (되돌리기 지점)
 

@@ -14,11 +14,11 @@ created: 2026-09-27
 
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
-| 예측(Python) | `salt-forecast/requirements/specs/in-progress/FC-REQ-007-F008-POSITIONING.md` | FR-1~8 — ECB 환율 · 상태 · 사건 · 반응 통계 · 일 배치 |
+| 예측(Python) | `salt-forecast/requirements/specs/done/FC-REQ-007-F008-POSITIONING.md` | FR-1~8 — ECB 환율 · 상태 · 사건 · 반응 통계 · 일 배치 |
 | DB | `salt-server/requirements/specs/in-progress/DB-REQ-029-F008-SCHEMA.md` | FR-16 · 17 — 표 2 · 뷰 2(추가만) |
-| 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-037-F008-FORECAST.md` | FR-11 — `GET /api/coach/positioning` |
-| BFF | `bff/requirements/specs/in-progress/BFF-REQ-037-F008-FORECAST.md` | FR-9 — 중계 · 막기만 하는 뷰모델 |
-| 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-038-F008-FORECAST.md` | FR-14 — 쏠림 신호 카드 · `ReactionDetail` 분리 |
+| 서버 | `salt-server/requirements/specs/done/SRV-REQ-037-F008-FORECAST.md` | FR-11 — `GET /api/coach/positioning` |
+| BFF | `bff/requirements/specs/done/BFF-REQ-037-F008-FORECAST.md` | FR-9 — 중계 · 막기만 하는 뷰모델 |
+| 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-038-F008-FORECAST.md` | FR-14 — 쏠림 신호 카드 · `ReactionDetail` 분리 |
 
 ## 사용자 결정 (2026-09-27)
 

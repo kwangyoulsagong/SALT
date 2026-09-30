@@ -1,6 +1,6 @@
 # F004 슬라이스 8 — 프론트 부채 정리 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-fe-cleanup-slice.md` · 2026-09-22
+슬라이스: `requirements/specs/done/F004-fe-cleanup-slice.md` · 2026-09-22
 브랜치: `chore/fe-cleanup-apifetch-candletime` (base `main` `b96faa6`)
 영역 체크리스트(본문 · 측정값 전체): `salt-microFe/requirements/reports/checklists/FE-REQ-035.md`
 
