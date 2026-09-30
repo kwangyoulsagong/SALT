@@ -1,6 +1,7 @@
 import type {
   CoachAction,
   CoachMode,
+  ExchangeCaution,
   JudgmentBlockedReason,
   PriceBasis,
   Zone,
@@ -37,6 +38,7 @@ export const COACH_MESSAGES = {
   lowSample: "표본 부족",
 
   blocked: {
+    exchange_warning: "거래소가 투자유의 종목으로 지정해 판단을 보여 드리지 않아요.",
     reasons_missing: "근거가 부족해 이번엔 판단을 보여 드리지 않아요.",
     signal_track_record_missing: "이 판단의 과거 성적이 아직 없어 보여 드리지 않아요.",
     failure_cases_missing: "틀렸던 사례 기록이 아직 없어 보여 드리지 않아요.",
@@ -45,6 +47,23 @@ export const COACH_MESSAGES = {
   blockedSample: (count: number) => `표본 ${count}건`,
   /** FR-2 — 막힌 판단은 고장이 아니다 */
   blockedNormal: "정상 동작이에요",
+  /**
+   * 투자유의 막힘의 둘째 줄(F010 슬라이스 6). 표본 이야기가 아니다 — 규칙 점수는 지정 사유를 모르고,
+   * 표시가 풀리면 판단이 다시 나온다
+   */
+  blockedExchange: "코치 규칙은 지정 사유를 알지 못해요 · 표시가 풀리면 다시 보여 드려요",
+
+  /** 투자주의만 켜진 종목 — 판단 아래 한 줄. 코드가 여기 없으면 그 항목을 그리지 않는다 */
+  exchangeCaution: {
+    heading: "거래소 주의 표시",
+    kinds: {
+      PRICE_FLUCTUATIONS: "가격 급등락",
+      TRADING_VOLUME_SOARING: "거래량 급증",
+      DEPOSIT_AMOUNT_SOARING: "입금량 급증",
+      GLOBAL_PRICE_DIFFERENCES: "해외 시세와 차이",
+      CONCENTRATION_OF_SMALL_ACCOUNTS: "소수 계정 거래 집중",
+    } satisfies Record<ExchangeCaution, string>,
+  },
 
   /** 판단 조회 실패 · 모드 계약 깨짐. 구간 · 게이지 · 뉴스는 그대로 둔다 */
   judgmentUnavailable: "지금 판단을 불러올 수 없습니다.",

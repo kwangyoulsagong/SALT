@@ -7,6 +7,7 @@ import {
   COACH_MESSAGES,
   CoachBlockSkeleton,
   EventsCard,
+  ExchangeCautionNote,
   PositioningCard,
   ForecastCard,
   JudgmentDetail,
@@ -142,7 +143,12 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
     if (coach.isPending || !coach.data || !mode) {
       return <CoachBlockSkeleton block="judgment" />;
     }
-    return <JudgmentDetail view={modeView} mode={mode} />;
+    return (
+      <>
+        <JudgmentDetail view={modeView} mode={mode} />
+        <ExchangeCautionNote flag={coach.data.exchangeFlag} />
+      </>
+    );
   };
 
   return (

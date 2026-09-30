@@ -22,12 +22,16 @@ interface BlockedNoticeProps {
  * 판단이 이 상태다(FR-143). 그래서 빨간색 · 경고 아이콘 · [다시 시도]가 없고, 아이콘은 정보(ⓘ)다.
  */
 export const BlockedNotice = ({ reason, sample }: BlockedNoticeProps) => {
-  const meta = [
-    sample !== null ? COACH_MESSAGES.blockedSample(sample) : null,
-    COACH_MESSAGES.blockedNormal,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  // 투자유의는 표본이 쌓이는 중이 아니다 — 표본 수 · "정상 동작" 대신 막은 이유의 둘째 줄
+  const meta =
+    reason === "exchange_warning"
+      ? COACH_MESSAGES.blockedExchange
+      : [
+          sample !== null ? COACH_MESSAGES.blockedSample(sample) : null,
+          COACH_MESSAGES.blockedNormal,
+        ]
+          .filter(Boolean)
+          .join(" · ");
 
   return (
     <div className={blockedBox}>

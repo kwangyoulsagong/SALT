@@ -28,10 +28,27 @@ export type JudgmentAction =
   | "avoid";
 
 export type JudgmentBlockedReason =
+  | "exchange_warning"
   | "reasons_missing"
   | "signal_track_record_missing"
   | "failure_cases_missing"
   | "insufficient_sample";
+
+/** 거래소 투자주의 종류(원문 코드 — BFF 가 이 5종만 통과시킨다) */
+export type ExchangeCaution =
+  | "PRICE_FLUCTUATIONS"
+  | "TRADING_VOLUME_SOARING"
+  | "DEPOSIT_AMOUNT_SOARING"
+  | "GLOBAL_PRICE_DIFFERENCES"
+  | "CONCENTRATION_OF_SMALL_ACCOUNTS";
+
+/** 거래소 표시(F010 슬라이스 6 · `BFF-REQ-039` FR-6). 표시가 없거나 오래됐으면 `null` */
+export interface ExchangeFlag {
+  /** 투자유의 — 두 모드가 `exchange_warning` 으로 막혀 온다 */
+  warning: boolean;
+  cautions: ExchangeCaution[];
+  fetchedAt: string;
+}
 
 export interface FailureCase {
   date: string;
@@ -180,5 +197,6 @@ export interface SymbolCoachViewModel {
   };
   /** `'news'` · `'modes.scalp'` · `'modes.longTerm'` */
   degradedFields: string[];
+  exchangeFlag: ExchangeFlag | null;
   disclaimer: string;
 }
