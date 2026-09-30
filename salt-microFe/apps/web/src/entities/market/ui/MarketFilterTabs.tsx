@@ -41,7 +41,9 @@ export const MarketFilterTabs = ({
       밀어냈다. 넓은 화면에서는 자리가 남아 줄이 바뀌지 않으므로 PC 배치는 그대로다.
       가로 스크롤로 숨기지 않는 이유: 필터는 **보여야 눌린다**.
     */
-    <FlexBox direction="row" gap="lg" wrap="wrap">
+    // fullWidth — 부모가 align flex-start 라 행이 내용 폭(기간 세그먼트 334px)으로 커져 360 화면을 14px 밀었다.
+    // 행을 부모 폭에 묶어야 세그먼트의 overflow-x 가 제 역할을 한다(2026-09-30 실측)
+    <FlexBox direction="row" gap="lg" wrap="wrap" fullWidth>
       <FilterTabs
         label={MARKET_MESSAGES.sortGroupLabel}
         options={SORT_OPTIONS}
