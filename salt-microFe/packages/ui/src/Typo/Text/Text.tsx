@@ -7,6 +7,7 @@ export type TextColor =
   | "secondary"
   | "tertiary"
   | "muted"
+  | "subtle"
   | "brand"
   | "white"
   | "success"

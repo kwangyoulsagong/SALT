@@ -127,12 +127,13 @@ export const labelStyles = recipe({
 
   variants: {
     state: {
-      done: { color: vars.colors.text.tertiary },
+      // 회색 페이지 배경(#F2F4F6) 위라 tertiary(2.76:1)가 AA 미달 — neutral 700(6.45:1). 사용자 승인 2026-09-30 (FE-REQ-044)
+      done: { color: vars.colors.neutral[700] },
       current: {
         color: vars.colors.text.primary,
         fontWeight: vars.fontWeights.bold,
       },
-      upcoming: { color: vars.colors.text.tertiary },
+      upcoming: { color: vars.colors.neutral[700] },
     },
   },
 

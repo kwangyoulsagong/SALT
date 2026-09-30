@@ -16,7 +16,7 @@ const meta = {
     },
     color: {
       control: "select",
-      options: ["primary", "secondary", "tertiary", "muted", "brand", "white"],
+      options: ["primary", "secondary", "tertiary", "muted", "subtle", "brand", "white"],
       description: "텍스트 색상",
     },
     children: {
@@ -100,6 +100,7 @@ export const AllVariants: Story = {
         <Text color="secondary">Secondary 색상</Text>
         <Text color="tertiary">Tertiary 색상</Text>
         <Text color="muted">Muted 색상 (비활성)</Text>
+        <Text color="subtle">Subtle 색상 (흰 면 위 작은 보조 글자, AA)</Text>
         <Text color="brand">Brand 색상</Text>
       </div>
 

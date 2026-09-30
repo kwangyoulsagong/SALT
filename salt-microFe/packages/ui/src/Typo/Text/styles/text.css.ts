@@ -40,6 +40,10 @@ export const textVariant = recipe({
       muted: {
         color: vars.colors.text.disabled,
       },
+      /** 흰 면 위 작은 보조 글자 — tertiary 보다 한 단계 진하다(4.62:1, AA). FE-REQ-044 */
+      subtle: {
+        color: vars.colors.text.lightGray,
+      },
       brand: {
         color: vars.colors.brand.primary,
       },

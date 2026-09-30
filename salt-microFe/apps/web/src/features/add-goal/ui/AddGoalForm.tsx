@@ -96,11 +96,11 @@ export const AddGoalForm = () => {
             type="number"
             variant="goals"
           />
-          <Text variant="caption" color="tertiary">
+          <Text variant="caption" color="subtle">
             {ADD_GOAL_MESSAGES.defaultPeriodNotice}
           </Text>
           {!goalDraft.category ? (
-            <Text variant="caption" color="tertiary">
+            <Text variant="caption" color="subtle">
               {ADD_GOAL_MESSAGES.categoryRequired}
             </Text>
           ) : null}
