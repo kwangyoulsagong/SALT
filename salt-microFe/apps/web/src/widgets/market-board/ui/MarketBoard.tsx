@@ -80,7 +80,10 @@ export const MarketBoard = ({ renderPreview, lead }: MarketBoardProps) => {
         <div className={headingRow}>
           <FlexBox direction="row" align="center" gap="lg">
             <ServiceIcon variant="analysis" />
-            <Heading level={2}>{MARKET_BOARD_MESSAGES.heading}</Heading>
+            {/* 화면의 첫 제목 — 모양은 h2, 태그는 h1(axe page-has-heading-one) */}
+            <Heading level={2} as={1}>
+              {MARKET_BOARD_MESSAGES.heading}
+            </Heading>
           </FlexBox>
           {/* 코치 리포트 진입(`FE-REQ-026` FR-140). 보유 전체의 리포트라 종목 패널이 아니라 화면 머리에 둔다 */}
           <Link href={ROUTES.coachReport} className={reportLink}>
