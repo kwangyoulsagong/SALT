@@ -8,6 +8,7 @@
 - `@repo/ui` 패키지 Claude 규칙: `packages/ui/.claude/rules/design-system.md`
 - `@repo/ui` Storybook 작성 규칙: `packages/ui/.claude/rules/storybook.md`
 - 실제 구현: `packages/ui/**`
+- 모션 · 그래픽(상태 그래픽 · 일러스트 · 마이크로 인터랙션): `.claude/rules/motion.md` (`FE-REQ-044`)
 
 디자인 시스템 관련 작업은 전체 레포를 훑지 말고 `salt-microFe/**` 범위에서 필요한 하위 glob만 본다. 특히 `node_modules`, `.next`, `.turbo`, `.git`은 검색 대상에서 제외한다.
 
