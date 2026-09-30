@@ -1,5 +1,6 @@
 import { recipe } from "@vanilla-extract/recipes";
 import { vars } from "../../styles/tokens.css";
+import { PRESS_SELECTOR, PRESS_TRANSITION, pressActive, pressReducedMotion } from "../../styles/press";
 
 export const textButtonStyles = recipe({
   base: {
@@ -12,8 +13,11 @@ export const textButtonStyles = recipe({
     fontFamily: vars.fontFamily.base,
     fontWeight: vars.fontWeights.semibold,
     cursor: "pointer",
+    transition: PRESS_TRANSITION,
+    ...pressReducedMotion,
 
     selectors: {
+      [PRESS_SELECTOR]: pressActive,
       "&:hover:not(:disabled)": {
         textDecoration: "underline",
         textUnderlineOffset: "2px",

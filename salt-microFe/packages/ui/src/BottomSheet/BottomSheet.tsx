@@ -3,13 +3,16 @@
 import { useCallback, useId, useRef } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { usePresence } from "../Motion/usePresence";
 import { useFocusTrap } from "../Utils/hooks/useFocusTrap";
 import { usePortal } from "../Utils/hooks/usePortal";
 import { useScrollLock } from "../Utils/hooks/useScrollLock";
 import {
   bodyStyles,
   grabberStyles,
+  overlayClosingStyles,
   overlayStyles,
+  sheetClosingStyles,
   sheetStyles,
   titleStyles,
 } from "./styles/bottomSheet.css";
@@ -43,15 +46,16 @@ export const BottomSheet = ({
 
   useScrollLock(open);
   useFocusTrap(sheetRef, open, { onEscape: handleEscape });
+  const { rendered, closing } = usePresence(open);
 
-  if (!mounted || !open) return null;
+  if (!mounted || !rendered) return null;
 
   const stopPropagation = (event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
   };
 
   return createPortal(
-    <div className={overlayStyles} onClick={onClose}>
+    <div className={`${overlayStyles} ${closing ? overlayClosingStyles : ""}`} onClick={onClose}>
       <div
         ref={sheetRef}
         role="dialog"
@@ -60,7 +64,7 @@ export const BottomSheet = ({
         aria-label={title ? undefined : label}
         tabIndex={-1}
         onClick={stopPropagation}
-        className={`${sheetStyles} ${className || ""}`}
+        className={`${sheetStyles} ${closing ? sheetClosingStyles : ""} ${className || ""}`}
       >
         {grabber ? <div className={grabberStyles} aria-hidden="true" /> : null}
         {title ? (

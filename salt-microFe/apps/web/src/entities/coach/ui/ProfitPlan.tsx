@@ -1,6 +1,7 @@
 import type { Zone } from "@repo/core/coach";
 import { Heading } from "@repo/ui/heading";
 import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import { formatPrice } from "@/shared/lib";
 
@@ -36,7 +37,7 @@ export const ProfitPlan = ({ zone }: { zone: Zone }) => {
         <Heading level={5} color="tertiary">
           {PLAN.heading}
         </Heading>
-        <Text color="tertiary">{PLAN.noHolding}</Text>
+        <StatusLine kind="empty">{PLAN.noHolding}</StatusLine>
       </section>
     );
   }

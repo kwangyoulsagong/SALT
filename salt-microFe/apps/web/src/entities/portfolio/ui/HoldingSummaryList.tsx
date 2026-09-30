@@ -3,6 +3,7 @@
 // 클라이언트 잎: 조회 결과를 받아 표시만 한다.
 import { AssetIcon } from "@repo/ui/assetIcon";
 import { Badge } from "@repo/ui/badge";
+import { StatusLine } from "@repo/ui/statusLine";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Text } from "@repo/ui/text";
 import React from "react";
@@ -29,7 +30,7 @@ import { PortfolioSummaryItem } from "../model/types";
 export const HoldingSummaryList = React.memo(
   ({ items }: { items: readonly PortfolioSummaryItem[] }) => {
     if (items.length === 0) {
-      return <Text color="tertiary">{PORTFOLIO_MESSAGES.holdingsEmpty}</Text>;
+      return <StatusLine kind="empty">{PORTFOLIO_MESSAGES.holdingsEmpty}</StatusLine>;
     }
 
     return (

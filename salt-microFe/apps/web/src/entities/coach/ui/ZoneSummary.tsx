@@ -2,7 +2,7 @@ import type { Zone } from "@repo/core/coach";
 import { Badge } from "@repo/ui/badge";
 import { Heading } from "@repo/ui/heading";
 import { KeyValueList, type KeyValueItem } from "@repo/ui/keyValueList";
-import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import { formatPrice } from "@/shared/lib";
 
@@ -49,7 +49,7 @@ export const ZoneSummary = ({ zone, headingAs = 5 }: { zone: Zone; headingAs?: Z
     return (
       <div className={zoneSlot}>
         <ZoneHeading title={ZONE.observationHeading} as={headingAs} />
-        <Text color="tertiary">{ZONE.unavailable[zone.reasonCode]}</Text>
+        <StatusLine kind="empty">{ZONE.unavailable[zone.reasonCode]}</StatusLine>
       </div>
     );
   }

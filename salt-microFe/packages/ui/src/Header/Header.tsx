@@ -9,13 +9,15 @@ import { useRouter } from "next/navigation";
 interface HeaderProps {
   route?: boolean;
   children: ReactNode;
+  /** 아이콘만 있는 뒤로 버튼의 이름 (axe `button-name`) */
+  backLabel?: string;
 }
-export const Header = ({ route = false, children }: HeaderProps) => {
+export const Header = ({ route = false, children, backLabel = "뒤로 가기" }: HeaderProps) => {
   const router = useRouter();
   return route ? (
     <header className={NavWrapper}>
-      <button className={HeaderButton} onClick={() => router.back()}>
-        <ChevronLeft />
+      <button type="button" className={HeaderButton} onClick={() => router.back()} aria-label={backLabel}>
+        <ChevronLeft aria-hidden="true" />
       </button>
       <Heading level={3}>{children}</Heading>
     </header>

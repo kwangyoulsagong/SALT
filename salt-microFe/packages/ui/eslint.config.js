@@ -19,6 +19,17 @@ export default [
         "error",
         { ignoreRestSiblings: true },
       ],
+      // 모션은 `framer-motion` 의 `m` + 앱 루트 `LazyMotion` 으로만 (FE-REQ-044 · .claude/rules/motion.md).
+      // `motion/react` 는 네임스페이스 재수출이라 트리셰이킹이 안 되고, `motion` 컴포넌트는 드래그 · 레이아웃까지 싣는다.
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            { name: "motion/react", message: "`framer-motion` 에서 named import 한다 (FE-REQ-044)." },
+            { name: "framer-motion", importNames: ["motion"], message: "`m` 을 쓴다 (FE-REQ-044)." },
+          ],
+        },
+      ],
     },
   },
 ];

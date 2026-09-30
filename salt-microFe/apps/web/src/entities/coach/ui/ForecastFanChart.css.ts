@@ -37,7 +37,7 @@ export const line = style({
   strokeLinejoin: "round",
   strokeLinecap: "round",
   strokeDasharray: 1,
-  animation: `${draw} 900ms cubic-bezier(0.4, 0, 0.2, 1) both`,
+  animation: `${draw} ${vars.motion.duration.scene} cubic-bezier(0.4, 0, 0.2, 1) both`,
 });
 
 export const area = style({ ...still, animation: `${fade} 500ms ease 500ms both` });
@@ -126,7 +126,7 @@ export const chipText = style({
 
 /** 실시간 점 — 값이 바뀌면 위아래로 미끄러진다(transform 만) */
 export const liveMark = style({
-  transition: "transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+  transition: `transform ${vars.motion.duration.slow} cubic-bezier(0.2, 0.8, 0.2, 1)`,
   "@media": { "(prefers-reduced-motion: reduce)": { transition: "none" } },
 });
 

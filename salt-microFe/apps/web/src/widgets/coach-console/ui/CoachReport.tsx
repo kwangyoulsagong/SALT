@@ -2,7 +2,9 @@
 
 import type { CoachReportViewModel } from "@repo/core/coach";
 import { Badge } from "@repo/ui/badge";
-import { Text } from "@repo/ui/text";
+import { EmptyState } from "@repo/ui/emptyState";
+import { Illustration } from "@repo/ui/illustration";
+import { StatusLine } from "@repo/ui/statusLine";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -71,7 +73,7 @@ const ReportPanel = ({
       </h2>
     </div>
     {description && <p className={panelDescription}>{description}</p>}
-    {degraded ? <Text color="tertiary">{REPORT.blockUnavailable}</Text> : children}
+    {degraded ? <StatusLine kind="error">{REPORT.blockUnavailable}</StatusLine> : children}
   </section>
 );
 
@@ -124,7 +126,7 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
           {recommendation ? (
             <RecommendationCard recommendation={recommendation} />
           ) : (
-            <Text color="tertiary">{REPORT.noRecommendation}</Text>
+            <StatusLine kind="empty">{REPORT.noRecommendation}</StatusLine>
           )}
         </ReportPanel>
 
@@ -196,12 +198,13 @@ export const CoachReport = () => {
     </div>
   );
 
-  if (report.isSignedOut) return notice(<Text color="tertiary">{REPORT.signedOut}</Text>);
+  if (report.isSignedOut) return notice(<StatusLine kind="blocked">{REPORT.signedOut}</StatusLine>);
   if (report.isPending) return notice(<CoachBlockSkeleton block="judgment" />);
   if (report.isError || report.data.status === "unavailable") {
     // 게이지 · 미러는 리포트와 따로 실패한다 — 리포트가 없어도 내 기준 · 게이지 · 미러는 보인다(F009 카드 단위 격리)
+    // 리포트가 없는 것은 오류 화면이 아니라 한 장면 + 한 줄 (FE-REQ-044 P-13)
     return notice(
-      <Text color="tertiary">{REPORT.unavailable}</Text>,
+      <EmptyState iconFrame="none" icon={<Illustration scene="coachBubble" size="sm" />} title={REPORT.unavailable} />,
       <>
         <TargetWeightPanel />
         <RiskBudgetPanel />

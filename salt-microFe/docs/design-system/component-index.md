@@ -101,7 +101,12 @@ import { vars } from "@repo/ui/tokens";
 | 공개 경로 | 컴포넌트 | 주요 props | 소스 |
 | --- | --- | --- | --- |
 | `@repo/ui/bottomSheet` | `BottomSheet` | `open`, `onClose`, `title`, `grabber`, `label` | `packages/ui/src/BottomSheet/BottomSheet.tsx` |
-| `@repo/ui/emptyState` | `EmptyState` | `title`, `description`, `icon`, `action`, `tone` | `packages/ui/src/EmptyState/EmptyState.tsx` |
+| `@repo/ui/emptyState` | `EmptyState` | `title`, `description`, `icon`, `action`, `tone`, `iconFrame`(`badge` · `none` — 그래픽은 `none`) | `packages/ui/src/EmptyState/EmptyState.tsx` |
+| `@repo/ui/statusGraphic` | `StatusGraphic` | `kind`(`success` · `progress` · `empty` · `error` · `blocked`), `size`(`sm` 40 · `md` 72 · `lg` 120) | `packages/ui/src/StatusGraphic/StatusGraphic.tsx` |
+| `@repo/ui/statusLine` | `StatusLine` | `kind`, `children`, `live` | `packages/ui/src/StatusLine/StatusLine.tsx` |
+| `@repo/ui/statusToast` | `StatusToast` | `trigger`, `children`, `kind`, `duration` — 패널 위에 잠깐 떴다 사라지는 완료 알림(부모 `position: relative`) | `packages/ui/src/StatusToast/StatusToast.tsx` |
+| `@repo/ui/illustration` | `Illustration` | `scene`(`coinPouch` · `candles` · `scale` · `coachBubble` · `target` · `ledger`), `size`(`sm` · `md` · `lg`) | `packages/ui/src/Illustration/Illustration.tsx` |
+| `@repo/ui/motion` | `MotionProvider`, `usePlayAfterMount`, `useSlidingIndicator`, `useRolledNumber`, `useChangedAfterMount`, `usePresence`, `ease`, `springs`, `durations`, `motionTokens` | 앱 루트에 한 번(`LazyMotion` 동적 · 줄인 모션 존중) | `packages/ui/src/Motion/index.ts` |
 | `@repo/ui/skeleton` | `Skeleton` | `width`, `height`, `radius`, `lines` | `packages/ui/src/Skeleton/Skeleton.tsx` |
 | `@repo/ui/modal` | `Modal` | `open`, `onClose`, `title`, `footer`, `size`, `hideCloseButton`, `disableBackdropClose` | `packages/ui/src/Modal/Modal.tsx` |
 | `@repo/ui/dialog` | `Dialog` | `open`, `title`, `description`, `confirmText`, `cancelText`, `tone`, `onConfirm`, `onCancel` | `packages/ui/src/Dialog/Dialog.tsx` |
@@ -158,6 +163,8 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 | 그룹과 그룹 사이 위계 | `ListGroup` + `SectionBand` | 카드 남발 (`Card` 기본 그림자는 `none`이다) |
 | 큰 세로 여백을 가진 페이지 섹션 | `Section` | `SectionBand`는 8px 구분 밴드다 |
 | 그룹 안 항목 사이 선 | `Divider` | `SectionBand`는 그룹과 그룹 사이용이다 |
+| 완료 · 진행 · 빈 상태 · 오류 · 막힘 그래픽 | `StatusGraphic`(화면 단위는 `EmptyState` `icon` + `iconFrame="none"`, 카드 안 한 줄은 `StatusLine`) | 글자만 바뀌는 완료 · 회색 한 줄 오류. 규칙은 `.claude/rules/motion.md` |
+| 기능 의미를 보여 주는 장면 | `Illustration` | 앱에 SVG 를 흩지 않는다. 새 장면은 `scene` 추가 |
 | 화면 단위 빈 상태·결과 | `@repo/ui/emptyState`의 `EmptyState` | `@repo/ui/table`의 `EmptyState`는 표 안 `<tr><td>` 전용이다. 이름이 같으니 import 경로를 확인한다 |
 | 지수 칩용 소형 추세선 | `Sparkline` | `PreviewChart`는 축·툴팁이 있는 캔들 차트다 |
 | 켜고 끄는 설정 | `Toggle` (`role="switch"`) | `RadioButton`은 택일용이다 |

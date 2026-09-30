@@ -1,5 +1,5 @@
 import type { DecisionOutcomeView } from "@repo/core/coach";
-import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 import type { ReactNode } from "react";
 
 import { effectiveOutcomeTags, formatShortDate, formatSignedDecimal, formatSignedKrw, formatSignedRate, formatTimes, tagName } from "../lib";
@@ -40,7 +40,7 @@ export const OutcomeTagChips = ({ outcome }: { outcome: DecisionOutcomeView }) =
  * 매입가는 싣지 않는다 — 손익 금액과 수익률만(FR-27 방향).
  */
 export const OutcomeList = ({ outcomes, renderIdentity, renderTags }: OutcomeListProps) => {
-  if (outcomes.length === 0) return <Text color="tertiary">{OUT.empty}</Text>;
+  if (outcomes.length === 0) return <StatusLine kind="empty">{OUT.empty}</StatusLine>;
 
   return (
     <ul className={outcomeList}>

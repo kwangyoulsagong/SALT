@@ -2,6 +2,7 @@
 
 import type { BudgetUnit, RiskBudgetView } from "@repo/core/coach";
 import { SegmentedControl } from "@repo/ui/segmentedControl";
+import { StatusLine } from "@repo/ui/statusLine";
 import { TextField } from "@repo/ui/textField";
 import { useId, useState, type FormEvent } from "react";
 
@@ -23,7 +24,6 @@ import {
 import { SET_RISK_BUDGET_MESSAGES as MSG } from "../model";
 import {
   actions,
-  errorText,
   fieldGrow,
   fieldWithUnit,
   form,
@@ -32,7 +32,6 @@ import {
   label,
   primaryButton,
   rows,
-  statusText,
   unit as unitStyle,
   weakButton,
 } from "./RiskBudgetForm.css";
@@ -184,9 +183,9 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
           {noBudget ? MSG.open : MSG.edit}
         </button>
         {save.isSuccess && (
-          <p className={statusText} aria-live="polite">
+          <StatusLine kind="success" live>
             {MSG.saved}
-          </p>
+          </StatusLine>
         )}
       </div>
     );
@@ -279,8 +278,9 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
           </button>
         )}
         <div aria-live="polite">
-          {save.isSuccess && <p className={statusText}>{MSG.saved}</p>}
-          {save.isError && <p className={errorText}>{MSG.failed}</p>}
+          {/* 저장 결과는 글자만 바꾸지 않고 그래픽과 함께 (FE-REQ-044 P-5) */}
+          {save.isSuccess && <StatusLine kind="success">{MSG.saved}</StatusLine>}
+          {save.isError && <StatusLine kind="error">{MSG.failed}</StatusLine>}
         </div>
       </div>
     </form>

@@ -4,7 +4,7 @@
 import { candleTimeMs } from "@repo/core/market";
 import { FilterTabs } from "@repo/ui/filterTabs";
 import { Skeleton } from "@repo/ui/skeleton";
-import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 import type {
   TradingCandle,
   TradingChart as TradingChartComponent,
@@ -127,7 +127,7 @@ export const MarketDetailChart = ({
           <Skeleton height={DETAIL_CHART_HEIGHT + LEGEND_HEIGHT} />
         ) : isError || !data || !TradingChart ? (
           <div className={chartFallback}>
-            <Text color="tertiary">{MARKET_MESSAGES.chartUnavailable}</Text>
+            <StatusLine kind="error">{MARKET_MESSAGES.chartUnavailable}</StatusLine>
           </div>
         ) : (
           <TradingChart

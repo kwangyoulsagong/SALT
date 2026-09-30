@@ -6,6 +6,7 @@ import type { CoachMode, ExplainSections, SymbolCoachViewModel } from "@repo/cor
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Heading } from "@repo/ui/heading";
+import { StatusToast } from "@repo/ui/statusToast";
 import { Text } from "@repo/ui/text";
 
 import { JudgmentCases, selectModeView, TrackRecordStats } from "@/entities/coach";
@@ -202,6 +203,9 @@ export const ExplainCard = ({ view, mode, className }: ExplainCardProps) => {
           </Badge>
         )}
       </div>
+      {/* 스트림이 끝난 순간 패널 위에 잠깐 떴다가 사라진다 (FE-REQ-044 P-6 · 사용자 QA 2026-09-30) —
+          헤더에 계속 남기면 판단 옆 장식이 된다. 규칙 기반 대체면 띄우지 않는다 */}
+      <StatusToast trigger={finished && !ruleBased ? (state.generatedAt ?? "done") : null}>{M.finished}</StatusToast>
       {renderBody()}
       <TrackRecordStats record={modeView.trackRecord} />
       <JudgmentCases cases={modeView.failureCases} />

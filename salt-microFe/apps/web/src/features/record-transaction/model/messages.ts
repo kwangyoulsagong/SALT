@@ -32,9 +32,9 @@ export const RECORD_TRANSACTION_MESSAGES = {
   stopIdleHint: "손절가를 적으면 손실 크기를 계산해요",
   submit: "기록하기",
   submitting: "기록하는 중",
-  saved: "기록했어요",
-  savedWithPlan: "기록했어요 · 계획도 함께 저장했어요",
-  planFailed: "거래는 기록했어요. 계획은 저장하지 못했어요",
+  saved: "거래 기록이 등록됐어요",
+  savedWithPlan: "거래 기록이 등록됐어요 · 계획도 함께 저장했어요",
+  planFailed: "거래 기록은 등록됐어요. 계획은 저장하지 못했어요",
   retryPlan: "계획만 다시 저장",
   retryPlanDone: "계획을 저장했어요",
   errors: {

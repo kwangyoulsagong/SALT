@@ -3,6 +3,8 @@
 import type { RecordTradeResult, SizeCheckRequest, TradeSide } from "@repo/core/coach";
 import { Button } from "@repo/ui/button";
 import { SegmentedControl } from "@repo/ui/segmentedControl";
+import { StatusGraphic } from "@repo/ui/statusGraphic";
+import { StatusToast } from "@repo/ui/statusToast";
 import { TextField } from "@repo/ui/textField";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useState, type FormEvent } from "react";
@@ -16,6 +18,7 @@ import { useDebouncedValue } from "../lib";
 import { RECORD_TRANSACTION_MESSAGES as MSG } from "../model";
 import { EntryChecklist } from "./EntryChecklist";
 import {
+  card,
   chevron,
   chevronOpen,
   description,
@@ -216,9 +219,12 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
     if (!notice) return null;
     if (notice.kind === "error") return <p className={errorText}>{notice.message}</p>;
     const { plan } = notice.result;
+    // 완료는 글자만 바꾸지 않고 그래픽을 먼저 보인다(FE-REQ-044 P-1). key 로 저장할 때마다 다시 재생한다
+    const graphicKey = notice.result.transaction.id;
     if (plan.status === "unavailable") {
       return (
         <p className={noticeStyle}>
+          <StatusGraphic key={`${graphicKey}-${retryPlan.isSuccess}`} kind={retryPlan.isSuccess ? "success" : "error"} size="sm" />
           {retryPlan.isSuccess ? MSG.retryPlanDone : MSG.planFailed}
           {!retryPlan.isSuccess && (
             <button type="button" className={weakButton} onClick={onRetryPlan} disabled={retryPlan.isPending}>
@@ -228,13 +234,20 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
         </p>
       );
     }
-    return <p className={noticeStyle}>{plan.status === "ok" ? MSG.savedWithPlan : MSG.saved}</p>;
+    return (
+      <p className={noticeStyle}>
+        <StatusGraphic key={graphicKey} kind="success" size="sm" />
+        {plan.status === "ok" ? MSG.savedWithPlan : MSG.saved}
+      </p>
+    );
   };
 
   const idleHint = side === "buy" && parsed.stop === null && sizeInput !== null ? MSG.stopIdleHint : MSG.idleHint;
 
   return (
-    <section className={className} aria-labelledby={`${ids.plan}-heading`}>
+    <section className={`${card} ${className ?? ""}`} aria-labelledby={`${ids.plan}-heading`}>
+      {/* 저장된 순간 패널 위에 잠깐 떴다가 사라진다. 버튼 아래 결과 줄은 그대로 남는다 (FE-REQ-044 P-1 · 사용자 QA 2026-09-30) */}
+      <StatusToast trigger={notice?.kind === "saved" ? notice.result.transaction.id : null}>{MSG.saved}</StatusToast>
       <form className={form} onSubmit={onSubmit} noValidate>
         <div className={head}>
           <h2 id={`${ids.plan}-heading`} className={title}>

@@ -34,7 +34,13 @@ export const ProfileMenu = () => {
           if (id === PROFILE_MENU_ITEM.signOut) signOut();
         }}
         trigger={(props) => (
-          <button type="button" className={trigger} {...props}>
+          <button
+            type="button"
+            className={trigger}
+            // 로그아웃 상태면 닉네임이 비어 버튼 이름이 없다(axe button-name) — 그때만 메뉴 이름을 준다
+            aria-label={profile.user?.nickname ? undefined : MESSAGES.menuLabel}
+            {...props}
+          >
             <ProfileImage profile={profile.user?.profileImageUrl ?? undefined} name={profile.user?.nickname} />
             <ProfileSection nickname={profile.user?.nickname} email={profile.user?.email} />
           </button>

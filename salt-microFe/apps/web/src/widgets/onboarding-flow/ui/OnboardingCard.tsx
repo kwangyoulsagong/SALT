@@ -1,8 +1,10 @@
 "use client";
 
 import { Card } from "@repo/ui/card";
+import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Heading } from "@repo/ui/heading";
+import { Illustration } from "@repo/ui/illustration";
 import { Text } from "@repo/ui/text";
 import Link from "next/link";
 
@@ -13,9 +15,10 @@ import { NavChevron } from "@/shared/ui";
 import {
   ONBOARDING_CARD_MESSAGES,
   ONBOARDING_STEP_LABELS,
+  ONBOARDING_STEP_SCENE,
 } from "../model/messages";
 
-import { ctaLink } from "./OnboardingCard.css";
+import { cardRow, ctaLink, spacing } from "./OnboardingCard.css";
 
 /**
  * 홈의 온보딩 안내 (`FE-REQ-010` FR-25).
@@ -35,19 +38,29 @@ export const OnboardingCard = () => {
   const remaining = data.steps.filter((step) => !step.done).length;
 
   return (
-    <Card>
-      <FlexBox direction="column" gap="sm">
-        <Heading level={3}>{ONBOARDING_CARD_MESSAGES.title}</Heading>
-        <Text>
-          {ONBOARDING_STEP_LABELS[data.nextStep]} ·{" "}
-          {ONBOARDING_CARD_MESSAGES.remaining(remaining)}
-        </Text>
-        <Link href={ROUTES.onboarding} className={ctaLink}>
-          {ONBOARDING_CARD_MESSAGES.cta}
-          <NavChevron />
-        </Link>
-      </FlexBox>
-    </Card>
+    // 다른 홈 카드와 같은 좌우 16px 안쪽 · 아래 간격 — 전에는 화면 끝에 붙고 아래 카드와 간격이 0 이었다(2026-09-30 QA)
+    <Container size="full" className={spacing}>
+      <Card padding="lg">
+        {/* 다음 단계의 장면을 오른쪽에 작게 (FE-REQ-044 P-22) */}
+        <div className={cardRow}>
+          <FlexBox direction="column" gap="sm">
+            <Heading level={3}>{ONBOARDING_CARD_MESSAGES.title}</Heading>
+            <Text>
+              {ONBOARDING_STEP_LABELS[data.nextStep]} ·{" "}
+              {ONBOARDING_CARD_MESSAGES.remaining(remaining)}
+            </Text>
+            <Link href={ROUTES.onboarding} className={ctaLink}>
+              {ONBOARDING_CARD_MESSAGES.cta}
+              <NavChevron />
+            </Link>
+          </FlexBox>
+          <Illustration
+            scene={ONBOARDING_STEP_SCENE[data.nextStep]}
+            size="sm"
+          />
+        </div>
+      </Card>
+    </Container>
   );
 };
 

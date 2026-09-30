@@ -1,6 +1,7 @@
 "use client";
 
 import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import { CoachBlockSkeleton, TARGET_WEIGHT_MESSAGES, TargetWeightList, useTargetWeights } from "@/entities/coach";
 import { AssetIdentity } from "@/entities/market";
@@ -31,7 +32,7 @@ export const TargetWeightPanel = () => {
 
   const body = () => {
     if (weights.isPending) return <CoachBlockSkeleton block="zone" />;
-    if (weights.isError || weights.data.status === "unavailable") return <Text color="tertiary">{M.unavailable}</Text>;
+    if (weights.isError || weights.data.status === "unavailable") return <StatusLine kind="error">{M.unavailable}</StatusLine>;
     if (weights.data.status === "blocked") return <Text color="tertiary">{M.blocked[weights.data.reason]}</Text>;
     return <TargetWeightList view={weights.data} renderIdentity={renderIdentity} capitalAction={capitalAction} />;
   };

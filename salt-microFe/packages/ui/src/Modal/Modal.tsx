@@ -5,6 +5,7 @@ import type { MouseEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { IconButton } from "../IconButton/IconButton";
+import { usePresence } from "../Motion/usePresence";
 import { useFocusTrap } from "../Utils/hooks/useFocusTrap";
 import { usePortal } from "../Utils/hooks/usePortal";
 import { useScrollLock } from "../Utils/hooks/useScrollLock";
@@ -12,7 +13,9 @@ import {
   bodyStyles,
   footerStyles,
   headerStyles,
+  overlayClosingStyles,
   overlayStyles,
+  panelClosingStyles,
   panelStyles,
   titleStyles,
 } from "./styles/modal.css";
@@ -60,8 +63,9 @@ export const Modal = ({
 
   useScrollLock(open);
   useFocusTrap(panelRef, open, { onEscape: handleEscape });
+  const { rendered, closing } = usePresence(open);
 
-  if (!mounted || !open) return null;
+  if (!mounted || !rendered) return null;
 
   const stopPropagation = (event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
@@ -69,7 +73,7 @@ export const Modal = ({
 
   return createPortal(
     <div
-      className={overlayStyles}
+      className={`${overlayStyles} ${closing ? overlayClosingStyles : ""}`}
       onClick={disableBackdropClose ? undefined : onClose}
     >
       <div
@@ -80,7 +84,7 @@ export const Modal = ({
         aria-label={title ? undefined : label}
         tabIndex={-1}
         onClick={stopPropagation}
-        className={`${panelStyles({ size })} ${className || ""}`}
+        className={`${panelStyles({ size })} ${closing ? panelClosingStyles : ""} ${className || ""}`}
       >
         {title || !hideCloseButton ? (
           <div className={headerStyles}>

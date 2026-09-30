@@ -74,3 +74,18 @@ export const bodyStyles = style({
   overflowY: "auto",
   padding: `${vars.space.sm} ${vars.space.lg2} ${vars.space.xl}`,
 });
+
+/** 퇴장 (FE-REQ-044 P-32) — 들어올 때보다 짧게, `exit` 이징으로. 끝나면 `usePresence` 가 DOM 에서 뺀다 */
+const fadeOut = keyframes({ from: { opacity: 1 }, to: { opacity: 0 } });
+const slideDown = keyframes({ from: { transform: "translateY(0)" }, to: { transform: "translateY(100%)" } });
+
+export const overlayClosingStyles = style({
+  pointerEvents: "none",
+  animation: `${fadeOut} ${vars.motion.duration.base} ${vars.motion.easing.exit} forwards`,
+  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
+});
+
+export const sheetClosingStyles = style({
+  animation: `${slideDown} ${vars.motion.duration.base} ${vars.motion.easing.exit} forwards`,
+  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
+});

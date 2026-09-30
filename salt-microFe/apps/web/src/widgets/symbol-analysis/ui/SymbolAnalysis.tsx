@@ -1,6 +1,7 @@
 "use client";
 
 import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 import { useMemo } from "react";
 
 import {
@@ -138,7 +139,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
     if (coach.isSignedOut)
       return <Text color="tertiary">{COACH_MESSAGES.signedOut}</Text>;
     if (coach.isError) {
-      return <Text color="tertiary">{COACH_MESSAGES.judgmentUnavailable}</Text>;
+      return <StatusLine kind="error">{COACH_MESSAGES.judgmentUnavailable}</StatusLine>;
     }
     if (coach.isPending || !coach.data || !mode) {
       return <CoachBlockSkeleton block="judgment" />;

@@ -1,6 +1,7 @@
 import type { ScenariosView } from "@repo/core/coach";
 
 import { formatPrice } from "@/shared/lib";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import { formatSignedKrw, formatSignedRate } from "../lib";
 import { RISK_MESSAGES } from "../model";
@@ -19,7 +20,7 @@ const episodeDate = (isoDate: string) => isoDate.replaceAll("-", ".");
  * 확률을 붙이지 않는다(W03): "이만큼 내리면 얼마"와 과거 구간을 지금 보유에 얹은 값뿐이다.
  */
 export const ScenarioList = ({ scenarios }: { scenarios: ScenariosView }) => {
-  if (scenarios.status === "no_holdings") return <p className={mirrorTextMuted}>{S.noHoldings}</p>;
+  if (scenarios.status === "no_holdings") return <StatusLine kind="empty">{S.noHoldings}</StatusLine>;
 
   return (
     <ul className={mirrorList}>

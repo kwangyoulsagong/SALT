@@ -203,7 +203,7 @@ const tickBase = {
   height: "2px",
   borderRadius: vars.radius.full,
   opacity: 0,
-  animation: `${tickFade} 900ms ease-out`,
+  animation: `${tickFade} ${vars.motion.duration.scene} ease-out`,
   "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
 } as const;
 

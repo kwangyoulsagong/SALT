@@ -1,4 +1,8 @@
+"use client";
+
 import type { HTMLAttributes } from "react";
+
+import { useRolledNumber } from "../Motion/useRolledNumber";
 import { numberTextStyles, unitStyles } from "./styles/numberText.css";
 
 export type NumberTextTone = "auto" | "up" | "down" | "neutral" | "muted";
@@ -24,6 +28,11 @@ export interface NumberTextProps
   tone?: NumberTextTone;
   size?: NumberTextSize;
   weight?: NumberTextWeight;
+  /**
+   * 값이 바뀌면 이전 값에서 굴러간다(숫자 `value` 일 때만, FE-REQ-044 FR-31).
+   * 초당 여러 번 바뀌는 시세에는 켜지 않는다.
+   */
+  animate?: boolean;
 }
 
 /** U+2212. 하이픈보다 폭이 넓어 `+`와 자리가 맞는다. */
@@ -58,11 +67,15 @@ export const NumberText = ({
   tone = "auto",
   size = "t6",
   weight = "semibold",
+  animate = false,
   className,
   ...rest
 }: NumberTextProps) => {
-  const sign = readSign(value);
-  const magnitude = readMagnitude(value);
+  // 훅은 늘 부르고, 굴릴 때만 그 값을 쓴다(문자열 값은 그대로)
+  const rolled = useRolledNumber(typeof value === "number" ? value : 0);
+  const shownValue = animate && typeof value === "number" ? rolled : value;
+  const sign = readSign(shownValue);
+  const magnitude = readMagnitude(shownValue);
 
   const prefix = signed
     ? sign > 0

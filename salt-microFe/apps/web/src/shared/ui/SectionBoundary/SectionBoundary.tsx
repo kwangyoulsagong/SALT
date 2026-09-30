@@ -3,8 +3,11 @@
 // 클라이언트 잎: 상태·effect·memo 를 갖는다. barrel 로 노출되므로 경계를 스스로 갖는다.
 import type { ErrorInfo, ReactNode } from "react";
 import { Component } from "react";
+import { StatusGraphic } from "@repo/ui/statusGraphic";
 
 import { BOUNDARY_MESSAGES } from "@/shared/i18n";
+
+import { statusBox, statusDescription, statusTitle } from "./SectionBoundary.css";
 
 type SectionBoundaryProps = {
   children: ReactNode;
@@ -38,6 +41,7 @@ export class SectionBoundary extends Component<
     if (this.state.hasError) {
       return (
         <SectionStatus
+          kind="error"
           title={BOUNDARY_MESSAGES.failedTitle(this.props.name)}
           description={BOUNDARY_MESSAGES.failedDescription}
         />
@@ -51,22 +55,18 @@ export class SectionBoundary extends Component<
 type SectionStatusProps = {
   title: string;
   description?: string;
+  /** 실패면 느낌표가 한 번 흔들리고, 불러오는 중이면 점이 뛴다 (FE-REQ-044 P-14) */
+  kind?: "error" | "progress";
 };
 
-export const SectionStatus = ({ title, description }: SectionStatusProps) => {
+export const SectionStatus = ({ title, description, kind = "progress" }: SectionStatusProps) => {
   return (
-    <div
-      role="status"
-      style={{
-        border: "1px solid #e5e7eb",
-        borderRadius: 8,
-        color: "#111827",
-        padding: 16,
-        width: "100%",
-      }}
-    >
-      <strong>{title}</strong>
-      {description ? <p style={{ margin: "8px 0 0" }}>{description}</p> : null}
+    <div role="status" className={statusBox}>
+      <StatusGraphic kind={kind} size="sm" />
+      <div>
+        <strong className={statusTitle}>{title}</strong>
+        {description ? <p className={statusDescription}>{description}</p> : null}
+      </div>
     </div>
   );
 };

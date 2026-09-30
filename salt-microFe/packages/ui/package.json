@@ -92,7 +92,13 @@
     "./layoutTree": "./src/MovableGrid/layoutTree.ts",
     "./useBottomSheet": "./src/Utils/hooks/useBottomSheet.tsx",
     "./useFocusTrap": "./src/Utils/hooks/useFocusTrap.tsx",
-    "./useScrollLock": "./src/Utils/hooks/useScrollLock.tsx"
+    "./useScrollLock": "./src/Utils/hooks/useScrollLock.tsx",
+    "./motion": "./src/Motion/index.ts",
+    "./statusGraphic": "./src/StatusGraphic/StatusGraphic.tsx",
+    "./illustration": "./src/Illustration/Illustration.tsx",
+    "./statusLine": "./src/StatusLine/StatusLine.tsx",
+    "./enterReveal": "./src/Motion/enterReveal.css.ts",
+    "./statusToast": "./src/StatusToast/StatusToast.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -138,14 +144,15 @@
     "vitest": "^4.0.9"
   },
   "dependencies": {
+    "@repo/tokens": "workspace:*",
     "@visx/group": "^3.12.0",
     "@visx/scale": "^3.12.0",
     "@visx/shape": "^3.12.0",
+    "framer-motion": "^12",
     "lucide-react": "^0.475.0",
     "next": "^15.5.25",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-hook-form": "^7.54.2",
-    "@repo/tokens": "workspace:*"
+    "react-hook-form": "^7.54.2"
   }
 }

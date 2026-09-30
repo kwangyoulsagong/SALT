@@ -201,7 +201,7 @@ export const th = style({
 const fade = keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
 
 const fadeRow = {
-  animation: `${fade} 400ms ease both`,
+  animation: `${fade} ${vars.motion.duration.slow} ease both`,
   "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
 } as const;
 

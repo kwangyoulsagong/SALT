@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { MotionProvider } from "@repo/ui/motion";
 import { Provider as ReduxProvider } from "react-redux";
 import { store } from "../store";
 import QueryClientProvider from "./QueryClientProvider";
@@ -15,12 +16,16 @@ import AuthInitializer from "./AuthInitializer";
  * **이 경계 아래가 전부 클라이언트가 되는 것은 아니다.** `children` 으로 들어온 서버
  * 컴포넌트는 서버에서 렌더돼 이미 만들어진 트리로 꽂힌다. 그래서 페이지·블록은
  * 서버 컴포넌트로 남을 수 있다.
+ *
+ * `MotionProvider` — 줄인 모션 존중 · `@repo/ui` 그래픽의 모션 기능 묶음을 여기서 한 번 싣는다(FE-REQ-044 FR-3).
  */
 const AppProviders = ({ children }: { children: ReactNode }) => {
   return (
     <QueryClientProvider>
       <ReduxProvider store={store}>
-        <AuthInitializer>{children}</AuthInitializer>
+        <AuthInitializer>
+          <MotionProvider>{children}</MotionProvider>
+        </AuthInitializer>
       </ReduxProvider>
     </QueryClientProvider>
   );

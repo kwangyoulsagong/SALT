@@ -11,7 +11,8 @@ export const wrapperStyles = style({
 });
 
 export const labelStyles = style({
-  color: vars.colors.text.tertiary,
+  // 흰 면 위 입력 라벨 — tertiary(3.04:1)는 AA 미달이라 lightGray(4.62:1). 사용자 승인 2026-09-30 (FE-REQ-044)
+  color: vars.colors.text.lightGray,
   fontSize: vars.typography.t7.fontSize,
   lineHeight: vars.typography.t7.lineHeight,
 });

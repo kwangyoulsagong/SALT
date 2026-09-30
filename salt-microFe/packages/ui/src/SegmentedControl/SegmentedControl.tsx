@@ -1,6 +1,7 @@
 import { useRef, type KeyboardEvent } from "react";
 
-import { filterContainer, tabButton } from "../FilterTabs/styles/filterTab.css";
+import { filterContainer, segmentedSliding, segmentedThumb, tabButton } from "../FilterTabs/styles/filterTab.css";
+import { useSlidingIndicator } from "../Motion/useSlidingIndicator";
 import { nextSegmentIndex } from "./nextIndex";
 
 export interface SegmentedOption<T extends string> {
@@ -37,6 +38,8 @@ export const SegmentedControl = <T extends string>({
     0,
   );
 
+  const thumb = useSlidingIndicator<HTMLDivElement>(value, '[role="radio"][aria-checked="true"]');
+
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const next = nextSegmentIndex(event.key, selectedIndex, options.length);
     const option = next === null ? undefined : options[next];
@@ -49,11 +52,20 @@ export const SegmentedControl = <T extends string>({
 
   return (
     <div
-      className={filterContainer()}
+      ref={thumb.containerRef}
+      className={`${filterContainer()} ${segmentedSliding}`}
+      data-sliding={thumb.sliding}
       role="radiogroup"
       aria-label={label}
       onKeyDown={handleKeyDown}
     >
+      {thumb.sliding ? (
+        <span
+          aria-hidden="true"
+          className={segmentedThumb({ animated: thumb.animated })}
+          style={thumb.indicatorStyle}
+        />
+      ) : null}
       {options.map((option, index) => {
         const checked = index === selectedIndex;
         return (

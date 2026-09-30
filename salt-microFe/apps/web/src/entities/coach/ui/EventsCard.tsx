@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { SymbolEventsResult } from "@repo/core/coach";
 
 import { EVENT_MESSAGES as M } from "../model";
+import { StatusLine } from "@repo/ui/statusLine";
 import * as s from "./EventsCard.css";
 import { ReactionDetail } from "./ReactionDetail";
 
@@ -45,7 +46,7 @@ export const EventsCard = ({
   if (result.status !== "ok") {
     return (
       <section className={className}>
-        <p className={s.note}>{M.unavailable}</p>
+        <StatusLine kind="error">{M.unavailable}</StatusLine>
       </section>
     );
   }
@@ -65,7 +66,7 @@ export const EventsCard = ({
       <p className={s.lead}>{M.lead}</p>
 
       {result.events.length === 0 ? (
-        <p className={s.note}>{M.empty}</p>
+        <StatusLine kind="empty">{M.empty}</StatusLine>
       ) : (
         <ul className={s.list}>
           {result.events.map((event, i) => {

@@ -1,5 +1,6 @@
 import { style } from "@vanilla-extract/css";
 import { vars } from "../../styles/tokens.css";
+import { PRESS_TRANSITION, pressActive, pressReducedMotion } from "../../styles/press";
 
 export const gridStyles = style({
   display: "grid",
@@ -24,10 +25,13 @@ export const keyStyles = style({
   fontWeight: vars.fontWeights.semibold,
   fontVariantNumeric: vars.numeric.tabular,
   cursor: "pointer",
+  transition: `background-color ${vars.motion.duration.instant}, ${PRESS_TRANSITION}`,
+  ...pressReducedMotion,
 
   selectors: {
     "&:active:not(:disabled)": {
       background: vars.colors.neutral[100],
+      ...pressActive,
     },
     "&:disabled": {
       color: vars.colors.text.disabled,

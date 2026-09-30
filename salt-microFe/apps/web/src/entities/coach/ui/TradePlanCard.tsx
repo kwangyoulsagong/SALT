@@ -4,6 +4,7 @@ import type { TradePlanListResult } from "@repo/core/coach";
 import { useId } from "react";
 
 import { formatPrice } from "@/shared/lib";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import { daysSince, formatGeneratedAt } from "../lib";
 import { RISK_MESSAGES } from "../model";
@@ -38,9 +39,9 @@ interface TradePlanCardProps {
 export const TradePlanCard = ({ result, livePrice, className }: TradePlanCardProps) => {
   const headingId = useId();
   const body = () => {
-    if (result.status === "unavailable") return <p className={hint}>{PLAN.unavailable}</p>;
+    if (result.status === "unavailable") return <StatusLine kind="error">{PLAN.unavailable}</StatusLine>;
     const [latest, ...older] = result.plans;
-    if (!latest) return <p className={hint}>{PLAN.empty}</p>;
+    if (!latest) return <StatusLine kind="empty">{PLAN.empty}</StatusLine>;
 
     const days = daysSince(latest.plannedAt);
     const plannedOn = formatGeneratedAt(latest.plannedAt);

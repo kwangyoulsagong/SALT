@@ -148,6 +148,19 @@ export const tokens = {
       upDark: "#C9182F",
     },
 
+    /**
+     * 그래픽(상태 그래픽 · 장면 일러스트) 전용 (FE-REQ-044).
+     * 면은 한 색 계열 + 위 하이라이트 · 아래 그늘 한 겹. 화면 요소 색(버튼 · 글자)에 쓰지 않는다.
+     */
+    graphic: {
+      highlight: "#8DB4FF",
+      primary: "#3A7BFF",
+      shade: "#1F56E0",
+      soft: "#DCE8FF",
+      backdrop: "#EEF4FF",
+      coin: "#BFD5FF",
+    },
+
     // 테두리 색상
     border: {
       light: "#E5E8EB",
@@ -288,6 +301,49 @@ export const tokens = {
     base: "0.2s ease",
     slow: "0.3s ease",
     slower: "0.5s ease",
+  },
+
+  /**
+   * 모션 토큰 (FE-REQ-044 FR-1).
+   *
+   * `transitions` 는 CSS 문자열(hover · focus 같은 상태 전환)이고, 이쪽은 **숫자**다 —
+   * 웹 `motion`(Framer Motion) 과 RN `reanimated` 가 같은 값을 읽는다.
+   * 길이는 초 단위(`motion` 의 `duration` 과 같은 단위). 새 값은 여기에만 추가한다.
+   */
+  motion: {
+    duration: {
+      /** 누름 · 토글 같은 즉각 피드백 */
+      instant: 0.12,
+      /** 등장 · 퇴장 · 탭 인디케이터 */
+      base: 0.24,
+      /** 카드 · 패널 진입 */
+      slow: 0.4,
+      /** 일러스트 한 장면(동전 낙하 한 번 등) */
+      scene: 0.9,
+    },
+    easing: {
+      /** 들어올 때 — 빠르게 시작해 부드럽게 멈춘다 */
+      enter: [0.16, 1, 0.3, 1],
+      /** 나갈 때 — 천천히 시작해 빠르게 빠진다 */
+      exit: [0.7, 0, 0.84, 0],
+      /** 자리 이동 */
+      move: [0.65, 0, 0.35, 1],
+      /** 떨어질 때 — 중력처럼 점점 빨라진다(동전 · 화살) */
+      fall: [0.55, 0, 1, 0.45],
+    },
+    spring: {
+      /** 누름 복귀 · 칩 — 튀지 않는다 */
+      snappy: { stiffness: 520, damping: 34, mass: 1 },
+      /** 일러스트 착지 · 배지 — 한 번 출렁인다 */
+      bouncy: { stiffness: 320, damping: 14, mass: 1 },
+      /** 큰 면(시트 · 패널) */
+      gentle: { stiffness: 180, damping: 26, mass: 1 },
+    },
+    /** 목록 항목이 차례로 들어올 때 간격(초). 8개 넘으면 나머지는 한꺼번에 */
+    stagger: 0.04,
+    staggerLimit: 8,
+    /** 누름 배율 */
+    pressScale: 0.97,
   },
 
   zIndices: {

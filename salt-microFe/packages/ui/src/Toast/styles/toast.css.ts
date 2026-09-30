@@ -84,3 +84,15 @@ export const actionStyles = style({
   alignItems: "center",
   flexShrink: 0,
 });
+
+/** 퇴장 (FE-REQ-044 FR-35) — 들어온 길로 내려가며 옅어진다 */
+const slideOut = keyframes({
+  from: { opacity: 1, transform: "translateY(0)" },
+  to: { opacity: 0, transform: "translateY(8px)" },
+});
+
+export const toastLeavingStyles = style({
+  pointerEvents: "none",
+  animation: `${slideOut} ${vars.motion.duration.base} ${vars.motion.easing.exit} forwards`,
+  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
+});

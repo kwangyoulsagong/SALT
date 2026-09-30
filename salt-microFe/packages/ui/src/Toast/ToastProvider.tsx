@@ -1,15 +1,18 @@
 "use client";
 
+import { tokens } from "@repo/tokens";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Toast } from "./Toast";
 import { ToastContext } from "./ToastContext";
 import type { ToastOptions } from "./ToastContext";
-import { viewportStyles } from "./styles/toast.css";
+import { toastLeavingStyles, viewportStyles } from "./styles/toast.css";
 
 interface ToastEntry extends ToastOptions {
   id: string;
+  /** 퇴장 중 — 애니메이션이 끝나면 목록에서 뺀다 (FE-REQ-044 FR-35) */
+  leaving?: boolean;
 }
 
 export interface ToastProviderProps {
@@ -41,7 +44,20 @@ export const ToastProvider = ({
       clearTimeout(timer);
       timers.current.delete(id);
     }
-    setEntries((prev) => prev.filter((entry) => entry.id !== id));
+    // 바로 지우지 않고 퇴장을 보인 뒤 뺀다. 줄인 모션이면 바로 뺀다
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      setEntries((prev) => prev.filter((entry) => entry.id !== id));
+      return;
+    }
+    setEntries((prev) => prev.map((entry) => (entry.id === id ? { ...entry, leaving: true } : entry)));
+    timers.current.set(
+      id,
+      setTimeout(() => {
+        timers.current.delete(id);
+        setEntries((prev) => prev.filter((entry) => entry.id !== id));
+      }, tokens.motion.duration.base * 1000),
+    );
   }, []);
 
   const toast = useCallback(
@@ -82,7 +98,12 @@ export const ToastProvider = ({
         ? createPortal(
             <div className={viewportStyles}>
               {entries.map((entry) => (
-                <Toast key={entry.id} tone={entry.tone} action={entry.action}>
+                <Toast
+                  key={entry.id}
+                  tone={entry.tone}
+                  action={entry.action}
+                  className={entry.leaving ? toastLeavingStyles : undefined}
+                >
                   {entry.message}
                 </Toast>
               ))}

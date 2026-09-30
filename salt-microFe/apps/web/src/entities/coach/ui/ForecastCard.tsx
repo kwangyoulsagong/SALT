@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { ForecastHorizonView, SymbolForecastResult } from "@repo/core/coach";
 
 import { formatPrice } from "@/shared/lib";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import { formatRatio, formatSignedRate } from "../lib";
 import { FORECAST_MESSAGES as M } from "../model";
@@ -64,7 +65,7 @@ export const ForecastCard = ({ result, livePrice = null, className }: ForecastCa
   if (result.status !== "ok") {
     return (
       <section className={className}>
-        <p className={s.note}>{M.unavailable}</p>
+        <StatusLine kind="error">{M.unavailable}</StatusLine>
       </section>
     );
   }

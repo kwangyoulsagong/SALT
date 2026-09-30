@@ -1,6 +1,7 @@
 "use client";
 
 import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 import { useId, useState } from "react";
 
 import {
@@ -33,7 +34,7 @@ export const MonthlyReviewPanel = () => {
   const body = () => {
     if (review.isSignedOut) return <Text color="tertiary">{R.signedOut}</Text>;
     if (review.isPending) return <CoachBlockSkeleton block="zone" />;
-    if (review.isError || review.data.status === "unavailable") return <Text color="tertiary">{R.unavailable}</Text>;
+    if (review.isError || review.data.status === "unavailable") return <StatusLine kind="error">{R.unavailable}</StatusLine>;
 
     const view = review.data;
     if (view.reviewStatus !== "ok" || !view.review) {

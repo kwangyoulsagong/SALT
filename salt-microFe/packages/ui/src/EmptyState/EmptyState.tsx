@@ -16,6 +16,11 @@ export interface EmptyStateProps {
   icon?: ReactNode;
   action?: ReactNode;
   tone?: EmptyStateTone;
+  /**
+   * `badge`(기본) — 아이콘을 48px 톤 원 안에 둔다.
+   * `none` — `StatusGraphic` · `Illustration` 처럼 스스로 면을 가진 그래픽을 원 없이 그대로 둔다(FE-REQ-044 FR-12).
+   */
+  iconFrame?: "badge" | "none";
   className?: string;
 }
 
@@ -29,12 +34,13 @@ export const EmptyState = ({
   icon,
   action,
   tone = "empty",
+  iconFrame = "badge",
   className,
 }: EmptyStateProps) => {
   return (
     <div className={`${emptyStateStyles} ${className || ""}`}>
       {icon ? (
-        <span className={iconStyles({ tone })} aria-hidden="true">
+        <span className={iconStyles({ tone, frame: iconFrame })} aria-hidden="true">
           {icon}
         </span>
       ) : null}

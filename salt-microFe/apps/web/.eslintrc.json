@@ -25,6 +25,17 @@
           {
             "name": "axios",
             "message": "`@/shared/api` 의 `apiFetch` 를 쓴다. axios 는 GET 하나에 라이브러리 전체를 번들에 넣어 회귀를 세 번 냈다 (FE-REQ-035)."
+          },
+          {
+            "name": "motion/react",
+            "message": "`framer-motion` 에서 named import 한다. `motion/react` 는 네임스페이스로 다시 내보내 트리셰이킹이 안 되고 모든 페이지 첫 로드 JS 가 45 kB 늘었다 (FE-REQ-044)."
+          },
+          {
+            "name": "framer-motion",
+            "importNames": [
+              "motion"
+            ],
+            "message": "`m` 을 쓴다. `motion` 컴포넌트는 드래그 · 레이아웃까지 전부 싣는다. 기능 묶음은 앱 루트 `MotionProvider`(`LazyMotion`)가 싣는다 (FE-REQ-044)."
           }
         ]
       }
