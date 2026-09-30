@@ -267,3 +267,4 @@ flowchart TB
 |---|---|
 | 2026-09-09 | **폐기.** `FEATURE-006-coach-conversation-ia.md`가 대체한다. 홈 블록 요구사항과 `HomeViewModel`은 흡수, 5탭 IA와 삭제 목록(FR-10)·MFE 2앱(FR-13)은 폐기 |
 | 2026-09-21 | 머리 배너 추가. 흡수됐던 홈 5블록 중 ④ 세금 D-Day · ⑤ 청구서가 `ADR-002`로, 블록 구성 전체가 D6(3블록 + 기존 블록)으로 대체됐다. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-09-30 | **done/ 으로 보관(REQ 정리).** 2026-09-09 폐기 — `FEATURE-006` 이 대체했다. 완료가 아니라 닫힘 |

@@ -7,7 +7,7 @@ title: "F003 밸류에이션 밴드 적립 — 스키마 정의 (지표 스냅�
 priority: high
 labels: [db, prisma, schema, indicator, plan, track-record]
 created: 2026-09-09
-source: pm/requirements/specs/in-progress/FEATURE-003-valuation-band-accumulation.md
+source: pm/requirements/specs/to-do/FEATURE-003-valuation-band-accumulation.md
 ---
 
 ## Summary

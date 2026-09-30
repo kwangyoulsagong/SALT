@@ -180,4 +180,4 @@
 |---|---|
 | 타입 · 린트 | `@repo/core` vitest 26 · eslint · `apps/web` `tsc` · eslint(`entities/coach`) |
 | 표시 규칙 | `excessWinRate` null 이면 칸 없음 · `formatSignedPoints`(0 → `0%p`, 음수 U+2212) · 실패사례 종목 · 수익률 폴백 |
-| 미검증 | 화면 실측 — 로컬 표본 0 이라 두 카드 다 막힌 상태. `next build` 미실행 | 표본 20 뒤 로그인 QA |
+| 미검증 | 화면 실측 — 로컬 표본 0 이라 두 카드 다 막힌 상태. `next build` 미실행 | 표본 20 뒤 `QA-001` 로그인 QA |

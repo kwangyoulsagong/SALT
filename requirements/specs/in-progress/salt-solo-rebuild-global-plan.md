@@ -285,9 +285,9 @@ Approach: **새로 짜지 않는다.** 지금 화면을 두고 뺄 것만 빼고
 | PM | `pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md` |
 | PM | `pm/requirements/specs/in-progress/FEATURE-001-intervention-invoice.md` |
 | PM | `pm/requirements/specs/in-progress/FEATURE-002-tax-deadline-cockpit.md` |
-| PM | `pm/requirements/specs/in-progress/FEATURE-003-valuation-band-accumulation.md` |
+| PM | `pm/requirements/specs/to-do/FEATURE-003-valuation-band-accumulation.md` |
 | PM | `pm/requirements/specs/in-progress/FEATURE-004-ai-coach-screen.md` |
-| PM | `pm/requirements/specs/in-progress/FEATURE-005-home-briefing.md` |
+| PM | `pm/requirements/specs/done/FEATURE-005-home-briefing.md` |
 | PM | `pm/storyboard/SALT-Storyboard(20260908-1557).html` — 인터랙티브 화면 스토리보드 (탭 5개 + 상세 7개 + 기능 판정 보드) |
 | Feature map | `pm/features/current-feature-map.md` |
 
