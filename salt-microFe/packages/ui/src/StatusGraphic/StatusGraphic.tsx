@@ -1,6 +1,6 @@
 "use client";
 
-import { m, useReducedMotion, type Variants } from "framer-motion";
+import { PresenceContext, m, useReducedMotion, type Variants } from "framer-motion";
 import { useId } from "react";
 
 import { BackdropGlow, GraphicGradient } from "../Motion/graphicDefs";
@@ -43,9 +43,12 @@ export const StatusGraphic = ({ kind, size = "md", className }: StatusGraphicPro
         <GraphicGradient id={`${id}-fill`} tone={kind === "error" ? "error" : kind === "empty" ? "neutral" : "primary"} />
         <BackdropGlow id={`${id}-glow`} />
       </defs>
-      <m.g key={played ? "play" : "still"} initial={played ? "hidden" : false} animate="shown">
-        <Scene fill={`url(#${id}-fill)`} glow={`url(#${id}-glow)`} reduced={Boolean(reduced)} />
-      </m.g>
+      {/* 바깥 AnimatePresence 의 initial={false} 를 물려받지 않게 끊는다(물려받으면 첫 재생이 막힌다, 2026-09-30 QA) */}
+      <PresenceContext.Provider value={null}>
+        <m.g key={played ? "play" : "still"} initial={played ? "hidden" : false} animate="shown">
+          <Scene fill={`url(#${id}-fill)`} glow={`url(#${id}-glow)`} reduced={Boolean(reduced)} />
+        </m.g>
+      </PresenceContext.Provider>
     </svg>
   );
 };

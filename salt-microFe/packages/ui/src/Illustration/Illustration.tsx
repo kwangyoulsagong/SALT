@@ -1,6 +1,6 @@
 "use client";
 
-import { m } from "framer-motion";
+import { PresenceContext, m } from "framer-motion";
 import { useId } from "react";
 
 import { BackdropGlow, GraphicGradient } from "../Motion/graphicDefs";
@@ -32,7 +32,11 @@ export interface IllustrationProps {
  * 화면에 **보일 때** 한 번 재생하고 마지막 프레임에 멈춘다. 서버 HTML 은 마지막 프레임이다.
  * 문장을 갖지 않는다 — 쓰는 쪽이 둔다.
  */
-export const Illustration = ({ scene, size = "md", className }: IllustrationProps) => {
+export const Illustration = ({
+  scene,
+  size = "md",
+  className,
+}: IllustrationProps) => {
   const played = usePlayAfterMount();
   const id = useId();
   const Scene = SCENES[scene];
@@ -49,14 +53,20 @@ export const Illustration = ({ scene, size = "md", className }: IllustrationProp
         <BackdropGlow id={`${id}-glow`} />
       </defs>
       <ellipse cx={100} cy={92} rx={92} ry={66} fill={`url(#${id}-glow)`} />
-      <m.g
-        key={played ? "play" : "still"}
-        initial={played ? "hidden" : false}
-        whileInView="shown"
-        viewport={{ once: true, amount: 0.4 }}
-      >
-        <Scene fill={`url(#${id}-fill)`} />
-      </m.g>
+      {/*
+        바깥 AnimatePresence 의 initial={false} 를 물려받지 않게 끊는다 — 물려받으면 첫 재생이 막혀
+        끝 장면으로만 뜬다(온보딩 단계 전환 안에서 재생이 없었다, 2026-09-30 QA)
+      */}
+      <PresenceContext.Provider value={null}>
+        <m.g
+          key={played ? "play" : "still"}
+          initial={played ? "hidden" : false}
+          whileInView="shown"
+          viewport={{ once: true, amount: 0.4 }}
+        >
+          <Scene fill={`url(#${id}-fill)`} />
+        </m.g>
+      </PresenceContext.Provider>
     </svg>
   );
 };

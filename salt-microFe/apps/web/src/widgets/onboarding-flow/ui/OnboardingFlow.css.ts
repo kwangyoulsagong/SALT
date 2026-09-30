@@ -13,7 +13,8 @@ export const page = style({
   flexDirection: "column",
   alignItems: "center",
   padding: `${vars.space["2xl"]} ${vars.space.xl} calc(96px + env(safe-area-inset-bottom, 0px))`,
-  background: `linear-gradient(180deg, ${vars.colors.graphic.backdrop} 0%, ${vars.colors.background.white} 70%)`,
+  // 화면 끝까지 부드럽게 — 70% 에서 흰색으로 끝나 아래가 흰 띠로 보였다(2026-09-30 QA)
+  background: `linear-gradient(180deg, ${vars.colors.graphic.backdrop} 0%, ${vars.colors.graphic.backdrop} 35%, ${vars.colors.background.white} 100%)`,
   fontFamily: vars.fontFamily.base,
 });
 
@@ -118,4 +119,10 @@ export const ctaInner = style({
   width: "100%",
   maxWidth: "440px",
   margin: "0 auto",
+});
+
+/** 이 화면의 하단 버튼 영역은 바탕을 비운다 — 흰 면 · 그림자가 배경 그라데이션을 자른다 */
+export const ctaBar = style({
+  background: "transparent",
+  boxShadow: "none",
 });
