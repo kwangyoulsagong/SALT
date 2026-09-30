@@ -23,13 +23,15 @@ source: 사용자 결정 2026-09-30 — 휴대폰 화면은 RN 앱(`RN-REQ-001`)
 | FR-2 | 문구 `NARROW_SCREEN_MESSAGES`(`shared/i18n`) — "거래"라고 쓰지 않는다(주문 실행 없음). 휴대폰 그림 없음(앱 전) | 완료 |
 | FR-3 | 스크린샷 두 장 `public/narrow-screen/{investments,detail}.webp` — 고정 데이터 1440 × 900. `next/image` lazy — 넓은 화면(`display: none`)에서는 받지 않는다 | 완료 |
 | FR-4 | [PC 링크 복사하기] — 지금 주소를 클립보드로, 결과 한 줄 `aria-live`. 실패하면 주소창 복사 안내 | 완료 |
-| FR-5 | 버튼 흰 글자 AA — `action.hover`(4.84:1). `action.primary`(3.92:1) 는 쓰지 않는다 | 완료 |
+| FR-5 | 버튼 — 앱 기본 `Button` primary(보라 #7949FF · 흰 글자 4.99:1). 사용자 결정 2026-09-30 | 완료 |
+| FR-6 | **앱 웹뷰에서는 안내를 끈다** — RN 앱이 정보 화면을 웹뷰로 띄울 때 User-Agent 끝에 `SALTApp/<버전>`(`@repo/core/embed` `APP_WEBVIEW_UA_TOKEN`). `<head>` 인라인 스크립트가 첫 페인트 전에 `<html data-embed="app">` 을 달고 CSS 가 안내를 숨긴다. 서버 UA 판독은 루트 레이아웃을 동적 렌더로 만들어 쓰지 않는다 | 완료 |
 
 ## 하지 않는 것
 
-- 좁은 화면용 반응형 배치(앱이 맡는다) · 앱 설치 링크 · QR(앱 전)
+- 좁은 화면용 반응형 배치 — 앱이 웹뷰로 띄울 화면이 정해지면 그 화면부터 휴대폰 폭을 맞춘다(사용자 2026-09-30: 네이티브 화면 + 정보 화면은 웹뷰) · 앱 설치 링크 · QR(앱 전)
 - `web-tax` zone(`/tax`) — 세금 기능은 빠졌다(`ADR-002`), 존폐 열린 질문
 
 ## Changelog
 
 - 2026-09-30: 초판 · FR-1~5
+- 2026-09-30: FR-5 버튼을 앱 기본 보라로 · FR-6 앱 웹뷰 계약(`SALTApp/` User-Agent) 추가

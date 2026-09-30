@@ -1,5 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
+import { EMBED_APP, EMBED_ATTRIBUTE } from "@repo/core/embed";
 import { vars as ds } from "@repo/ui/tokens";
 
 /**
@@ -9,15 +10,21 @@ import { vars as ds } from "@repo/ui/tokens";
  */
 export const NARROW_MAX = "screen and (max-width: 767px)";
 
+/** 앱 웹뷰 표시(`@repo/core/embed`) 아래의 요소 */
+const APP_EMBED = `html[${EMBED_ATTRIBUTE}="${EMBED_APP}"] &`;
+
 /** 앱 본문 — 좁은 화면에서 숨긴다 */
 export const appContent = style({
   display: "contents",
   "@media": { [NARROW_MAX]: { display: "none" } },
+  // 앱 웹뷰(`src/app/embed.ts`)는 폭과 무관하게 본문을 보인다 — 속성 선택자가 미디어 쿼리보다 구체적이다
+  selectors: { [APP_EMBED]: { display: "contents" } },
 });
 
-/** 안내 — 넓은 화면에서는 없는 것과 같다(이미지는 lazy 라 받지도 않는다) */
+/** 안내 — 넓은 화면에서는 없는 것과 같다(이미지는 lazy 라 받지도 않는다). 앱 웹뷰에서는 폭과 무관하게 없다 */
 export const notice = style({
   display: "none",
+  selectors: { [APP_EMBED]: { display: "none" } },
   "@media": {
     [NARROW_MAX]: {
       display: "flex",
