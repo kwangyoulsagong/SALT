@@ -28,3 +28,21 @@
 - 390×844 `/investments` 안내: 버튼 #7949FF · 흰 글자 4.99:1 · **페이지 전체 axe 0건** · 카드 · 캡처 온전
 - 1440 에서 보이는 main 1개(AppShell) · 로그인 `/` 페이지 전체 axe 0건
 - 같은 측정이 잡은 **이 변경의 부작용** — 종목 상세 `aside` 가 main 안이 되어 `landmark-complementary-is-top-level` → 오른쪽 열을 div 로. 그리고 기존 critical `aria-valid-attr-value`(`@repo/ui` Tabs 가 패널을 그리지 않을 때도 `aria-controls`) → 패널을 그릴 때만
+
+## FR-6 앱 웹뷰 (`3c46f37`, 2026-09-30)
+
+| 경우(390×844 · `/investments` · `/home`) | `data-embed` | 안내 | 본문 | 로드 중 안내가 보인 프레임 |
+|---|---|---|---|---|
+| 휴대폰 Safari UA | 없음 | 보임 | 숨김 | 전 프레임(기존과 같음) |
+| + ` SALTApp/1.0.0` | `app` | **없음** | 보임 | **0/219 · 0/143** |
+| 1440 데스크톱 | 없음 | 없음 | 보임 | 0 |
+| + ` NotSALTApp/1` | 없음 | 보임(앱 아님) | 숨김 | — |
+
+- 첫 페인트: `addInitScript` 의 MutationObserver · rAF 로 안내 노드가 들어오는 순간(29~41ms)부터 매 프레임 display 를 기록
+- 콘솔: hydration · React 경고 0, pageerror 0 (503 은 막은 백엔드, 404 는 외부 폰트)
+- `@repo/core` `isAppWebView` 테스트 2건
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실제 RN 웹뷰(`react-native-webview`)에서 UA 붙이기 | 앱이 없다 | `RN-REQ-001` (계약을 적어 뒀다) |
+| 앱 웹뷰로 띄울 화면의 휴대폰 폭 레이아웃 | 어느 화면을 웹뷰로 쓸지 미정 | 화면이 정해지면 그 화면 REQ |
