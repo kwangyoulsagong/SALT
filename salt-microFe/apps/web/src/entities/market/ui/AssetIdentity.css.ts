@@ -41,7 +41,7 @@ export const identityName = styleVariants({
 });
 
 export const identitySymbol = style({
-  color: vars.colors.neutral[600],
+  color: vars.colors.neutral[500],
   fontSize: "12px",
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,

@@ -31,8 +31,7 @@ export const vars = createGlobalTheme(":root", {
       base: "#FFFFFF",
       nickname: "#2A282F",
       email: "#A8A6AC",
-      // 이름과 달리 보조 회색이다(부채 — 위 주석). #868E96 은 흰 면 3.32:1 이라 AA 하한 neutral 600(4.62:1)으로
-      primary: "#6B7684",
+      primary: "#868E96",
       secondary: "#191F28",
     },
   },

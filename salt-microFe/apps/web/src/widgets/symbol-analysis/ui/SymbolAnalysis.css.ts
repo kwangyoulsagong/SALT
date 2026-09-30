@@ -160,7 +160,7 @@ export const disclaimerBar = style({
   padding: `${vars.space.sm} ${vars.space.xl}`,
   background: vars.colors.background.white,
   borderTop: `1px solid ${vars.colors.neutral[100]}`,
-  color: vars.colors.neutral[600],
+  color: vars.colors.neutral[500],
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,

@@ -13,8 +13,7 @@ const CARD_SHADOW = SURFACE.hairline;
 
 export const backLink = style({
   alignSelf: "flex-start",
-  // 회색 페이지 면 위 — 600 은 4.18:1(axe), 700 = 6.45:1
-  color: vars.colors.neutral[700],
+  color: vars.colors.neutral[600],
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.semibold,
@@ -74,7 +73,7 @@ export const ticker = style({
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,
-  color: vars.colors.neutral[600],
+  color: vars.colors.neutral[500],
   fontVariantNumeric: vars.numeric.tabular,
 });
 
@@ -148,7 +147,7 @@ export const statLabel = style({
   fontSize: "12px",
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,
-  color: vars.colors.neutral[600],
+  color: vars.colors.neutral[500],
 });
 
 export const statValue = style({
@@ -191,7 +190,7 @@ const changeBase = {
 export const change = styleVariants({
   up: { ...changeBase, color: vars.colors.special.up },
   down: { ...changeBase, color: vars.colors.special.down },
-  flat: { ...changeBase, color: vars.colors.neutral[600] },
+  flat: { ...changeBase, color: vars.colors.neutral[500] },
 });
 
 /** 가격이 바뀔 때 밑줄이 한 번 스친다 — 오른 쪽 색. `opacity` 만 움직인다 */

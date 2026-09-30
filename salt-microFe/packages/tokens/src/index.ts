@@ -81,8 +81,7 @@ export const tokens = {
     text: {
       primary: "#191F28",
       secondary: "#2A282F",
-      // 보조 글자 — 흰 면 AA(4.5:1) 하한. #8B95A1(neutral 500)은 3.03:1 이라 한 단계 진한 neutral 600(4.62:1)
-      tertiary: "#6B7684",
+      tertiary: "#8B95A1",
       disabled: "#B0B8C1",
       white: "#FFFFFF",
       inverse: "#FFFFFF", // 다크 배경 위의 텍스트

@@ -27,7 +27,7 @@ export const iconStyles = recipe({
     tone: {
       empty: {
         background: vars.colors.neutral[100],
-        color: vars.colors.neutral[600],
+        color: vars.colors.neutral[500],
       },
       success: {
         background: vars.colors.status.successLight,

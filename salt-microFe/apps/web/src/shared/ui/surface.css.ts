@@ -55,7 +55,7 @@ export const panelTitle = style({
 /** 제목 아래 한 줄 설명 */
 export const panelDescription = style({
   margin: "-8px 0 0",
-  color: vars.colors.neutral[600],
+  color: vars.colors.neutral[500],
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,
@@ -73,8 +73,7 @@ export const backLink = style({
   display: "inline-flex",
   alignItems: "center",
   gap: "2px",
-  // 회색 페이지 면(#F2F4F6) 위 — neutral 600 은 4.18:1 이라 700(6.45:1)
-  color: vars.colors.neutral[700],
+  color: vars.colors.neutral[600],
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.semibold,
