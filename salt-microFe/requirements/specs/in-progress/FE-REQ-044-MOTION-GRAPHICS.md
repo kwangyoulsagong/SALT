@@ -37,46 +37,46 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-1 | **모션 토큰** `@repo/tokens` `motion` — 길이(instant 0.12 · base 0.24 · slow 0.4 · scene 0.9초) · 이징(enter · exit · move) · 스프링(snappy · bouncy · gentle) · stagger 0.04초(8개까지) · 누름 배율 0.97. 웹 CSS 는 `vars.motion.duration.*` · `vars.motion.easing.*` 문자열로 받는다. 숫자를 컴포넌트에 직접 쓰지 않는다 | 진행 |
-| FR-2 | **라이브러리** `motion`(Framer Motion v12, `motion/react`) — 웹 전용. RN 은 같은 토큰을 `react-native-reanimated` 로 읽는다(`RN-REQ` 에서) | 진행 |
-| FR-3 | **줄인 모션** — 루트에 `MotionConfig reducedMotion="user"`. OS 설정이 줄이기면 이동 · 크기 · 회전은 끄고 **투명도만** 남긴다. 진행 중 그래픽은 멈추지 않고 느려진다(`performance-frontend.md`) | 진행 |
-| FR-4 | **성능** — `transform` · `opacity` 만 움직인다(레이아웃 속성 금지). 첫 화면 밖 그래픽은 보일 때 재생(`whileInView` · `once`). 그래픽은 인라인 SVG 로 그리고 이미지 · Lottie JSON 을 받지 않는다 | 진행 |
-| FR-5 | **SSR** — 그래픽 컴포넌트는 서버에서 **마지막 프레임(정지 상태)** 으로 그려진다. 하이드레이션 전 빈칸 · 레이아웃 이동 0 | 진행 |
+| FR-1 | **모션 토큰** `@repo/tokens` `motion` — 길이(instant 0.12 · base 0.24 · slow 0.4 · scene 0.9초) · 이징(enter · exit · move) · 스프링(snappy · bouncy · gentle) · stagger 0.04초(8개까지) · 누름 배율 0.97. 웹 CSS 는 `vars.motion.duration.*` · `vars.motion.easing.*` 문자열로 받는다. 숫자를 컴포넌트에 직접 쓰지 않는다 | 완료 |
+| FR-2 | **라이브러리** `framer-motion` v12 — `m` + 루트 `LazyMotion`(기능 묶음 동적 import). `motion` 컴포넌트 · `motion/react` 는 ESLint 로 막는다(트리셰이킹이 안 돼 첫 로드 +45 kB 실측). 웹 전용. RN 은 같은 토큰을 `react-native-reanimated` 로 읽는다(`RN-REQ` 에서) | 완료 |
+| FR-3 | **줄인 모션** — 루트에 `MotionConfig reducedMotion="user"`. OS 설정이 줄이기면 이동 · 크기 · 회전은 끄고 **투명도만** 남긴다. 진행 중 그래픽은 멈추지 않고 느려진다(`performance-frontend.md`) | 완료 |
+| FR-4 | **성능** — `transform` · `opacity` 만 움직인다(레이아웃 속성 금지). 첫 화면 밖 그래픽은 보일 때 재생(`whileInView` · `once`). 그래픽은 인라인 SVG 로 그리고 이미지 · Lottie JSON 을 받지 않는다 | 완료 |
+| FR-5 | **SSR** — 그래픽 컴포넌트는 서버에서 **마지막 프레임(정지 상태)** 으로 그려진다. 하이드레이션 전 빈칸 · 레이아웃 이동 0 | 완료 |
 
 ### 상태 그래픽 (`@repo/ui/statusGraphic`)
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-10 | `StatusGraphic` `kind`: `success`(원이 차오르고 체크가 그려진 뒤 한 번 튄다) · `progress`(점 세 개가 차례로 뛴다, 반복) · `empty`(빈 상자가 살짝 내려앉는다) · `error`(느낌표가 좌우로 한 번 흔들린다) · `blocked`(자물쇠가 닫힌다) | 진행 |
-| FR-11 | 크기 `sm`(40) · `md`(72) · `lg`(120). 색은 톤 토큰(성공 = 브랜드, 오류 = `status.error`, 빈 상태 = neutral) | 진행 |
-| FR-12 | `EmptyState` 의 `icon` 자리에 꽂아 쓴다 — 새 결과 화면 컴포넌트를 만들지 않는다 | 진행 |
-| FR-13 | **완료 문구는 사실만.** "거래 기록이 등록됐어요" · "분석이 완료됐어요" · "목표를 추가했어요" · "초대를 수락했어요". 수익 · 매매 결과를 축하하지 않는다(아래 제품 기준) | 진행 |
+| FR-10 | `StatusGraphic` `kind`: `success`(원이 차오르고 체크가 그려진 뒤 한 번 튄다) · `progress`(점 세 개가 차례로 뛴다, 반복) · `empty`(빈 상자가 살짝 내려앉는다) · `error`(느낌표가 좌우로 한 번 흔들린다) · `blocked`(자물쇠가 닫힌다) | 완료 |
+| FR-11 | 크기 `sm`(40) · `md`(72) · `lg`(120). 색은 톤 토큰(성공 = 브랜드, 오류 = `status.error`, 빈 상태 = neutral) | 완료 |
+| FR-12 | `EmptyState` 의 `icon` 자리에 꽂아 쓴다 — 새 결과 화면 컴포넌트를 만들지 않는다 | 완료 |
+| FR-13 | **완료 문구는 사실만.** "거래 기록이 등록됐어요" · "분석이 완료됐어요" · "목표를 추가했어요" · "초대를 수락했어요". 수익 · 매매 결과를 축하하지 않는다(아래 제품 기준) | 완료 |
 
 ### 장면 일러스트 (`@repo/ui/illustration`)
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-20 | `Illustration` `scene`: `coinPouch`(동전이 떨어져 주머니에 들어가고 주머니가 출렁인다 — 적립 · 기록) · `candles`(캔들 다섯 개가 왼쪽부터 솟고 표식이 내려앉는다 — 분석 · 시세) · `scale`(저울이 흔들리다 수평을 찾는다 — 목표 비중) · `coachBubble`(말풍선이 부풀고 점이 뛴다 — 코치) · `target`(과녁에 화살이 꽂힌다 — 목표) · `ledger`(장부가 펼쳐지고 줄이 차례로 채워진다 — 거래 기록) | 진행 |
-| FR-21 | 한 번 재생 후 마지막 프레임에 멈춘다. `loop` 는 진행 중에만 | 진행 |
-| FR-22 | 비즈니스 문구를 갖지 않는다(`packages/ui` 원칙). 문장은 쓰는 쪽이 둔다 | 진행 |
+| FR-20 | `Illustration` `scene`: `coinPouch`(동전이 떨어져 주머니에 들어가고 주머니가 출렁인다 — 적립 · 기록) · `candles`(캔들 다섯 개가 왼쪽부터 솟고 표식이 내려앉는다 — 분석 · 시세) · `scale`(저울이 흔들리다 수평을 찾는다 — 목표 비중) · `coachBubble`(말풍선이 부풀고 점이 뛴다 — 코치) · `target`(과녁에 화살이 꽂힌다 — 목표) · `ledger`(장부가 펼쳐지고 줄이 차례로 채워진다 — 거래 기록) | 완료 |
+| FR-21 | 한 번 재생 후 마지막 프레임에 멈춘다. `loop` 는 진행 중에만 | 완료 |
+| FR-22 | 비즈니스 문구를 갖지 않는다(`packages/ui` 원칙). 문장은 쓰는 쪽이 둔다 | 완료 |
 
 ### 마이크로 인터랙션
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-30 | **누름** — `Button` · `IconButton` · `Chip` · 링크 카드: 누르는 동안 0.97 축소, 떼면 snappy 스프링 복귀. 비활성은 반응 없음 | 진행 |
-| FR-31 | **숫자 굴러가기** `NumberText` `animate` — 값이 바뀌면 이전 값에서 새 값으로 base 길이만큼 굴러간다. 표 안 시세처럼 1초에 여러 번 바뀌는 곳은 쓰지 않는다(FR-32) | 진행 |
-| FR-32 | **시세 변동 깜빡임** — 가격 셀이 오르면 상승색 · 내리면 하락색 배경이 0.4초 옅어진다. 방향은 색 + 글자(`aria-live` 없음 — 스크린리더를 시끄럽게 하지 않는다) | 진행 |
-| FR-33 | **카드 차례 등장** — 페이지 첫 진입에서 카드가 8px 아래에서 올라오며 나타난다, 0.04초 간격 8개까지. 스트리밍 SSR 로 늦게 도착한 블록도 같은 등장 | 진행 |
-| FR-34 | **탭 · 세그먼트 밑줄 이동** — 선택 표시가 새 탭으로 미끄러진다(`layoutId`) | 진행 |
-| FR-35 | **바텀시트 · 모달 · 토스트** — 들어올 때 enter, 나갈 때 exit 이징. 나가는 애니메이션이 끝난 뒤 DOM 에서 뺀다(`AnimatePresence`) | 진행 |
-| FR-36 | **단계 전환** — 온보딩 · 거래 입력 단계가 넘어가면 옆으로 밀려난다(앞 = 왼쪽, 뒤 = 오른쪽) | 진행 |
+| FR-30 | **누름** — `Button` · `IconButton` · `Chip` · 링크 카드: 누르는 동안 0.97 축소, 떼면 snappy 스프링 복귀. 비활성은 반응 없음 | B 단계 |
+| FR-31 | **숫자 굴러가기** `NumberText` `animate` — 값이 바뀌면 이전 값에서 새 값으로 base 길이만큼 굴러간다. 표 안 시세처럼 1초에 여러 번 바뀌는 곳은 쓰지 않는다(FR-32) | B 단계 |
+| FR-32 | **시세 변동 깜빡임** — 가격 셀이 오르면 상승색 · 내리면 하락색 배경이 0.4초 옅어진다. 방향은 색 + 글자(`aria-live` 없음 — 스크린리더를 시끄럽게 하지 않는다) | B 단계 |
+| FR-33 | **카드 차례 등장** — 페이지 첫 진입에서 카드가 8px 아래에서 올라오며 나타난다, 0.04초 간격 8개까지. 스트리밍 SSR 로 늦게 도착한 블록도 같은 등장 | B 단계 |
+| FR-34 | **탭 · 세그먼트 밑줄 이동** — 선택 표시가 새 탭으로 미끄러진다(`layoutId`) | B 단계 |
+| FR-35 | **바텀시트 · 모달 · 토스트** — 들어올 때 enter, 나갈 때 exit 이징. 나가는 애니메이션이 끝난 뒤 DOM 에서 뺀다(`AnimatePresence`) | B 단계 |
+| FR-36 | **단계 전환** — 온보딩 · 거래 입력 단계가 넘어가면 옆으로 밀려난다(앞 = 왼쪽, 뒤 = 오른쪽) | 부분 — 온보딩 완료. 거래 입력은 한 화면이라 단계가 없다 |
 
 ### 페이지 배치
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-40 | 아래 **배치표**의 자리에 넣는다. 표에 없는 자리에 그래픽을 더할 때는 이 표에 먼저 행을 추가한다 | 진행 |
+| FR-40 | 아래 **배치표**의 자리에 넣는다. 표에 없는 자리에 그래픽을 더할 때는 이 표에 먼저 행을 추가한다 | 부분 — A 단계 완료, B · C 남음 |
 
 ### 배치표
 
@@ -86,10 +86,10 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 
 | # | 자리 | 지금 | 넣을 것 | 단계 |
 |---|---|---|---|---|
-| P-1 | 거래 기록 저장(`features/record-transaction` `RecordTradeCard`) | 회색 문장 "기록했어요" | `success` sm + "거래 기록이 등록됐어요" · 계획도 저장이면 둘째 줄. 계획 저장 실패는 `error` sm | A |
-| P-2 | 목표 추가(`features/add-goal`) | **없음** — 곧바로 홈 이동 | 제출 → `success` lg "목표를 추가했어요" 한 장면 뒤 홈. 제출 중 버튼 `loading` | A |
-| P-3 | 초대 수락(`features/accept-invite` · 온보딩) | **없음** — 단계가 말없이 넘어감 | `success` md "초대를 수락했어요" 후 다음 단계로 밀기(FR-36) | A |
-| P-4 | 온보딩 끝(`widgets/onboarding-flow`) | 정적 카드 | `success` lg "준비가 끝났어요" | A |
+| P-1 | 거래 기록 저장(`features/record-transaction` `RecordTradeCard`) | 회색 문장 "기록했어요" | `success` sm + "거래 기록이 등록됐어요" · 계획도 저장이면 둘째 줄. 계획 저장 실패는 `error` sm | A ✅ |
+| P-2 | 목표 추가(`features/add-goal`) | **없음** — 곧바로 홈 이동 | 제출 → `success` lg "목표를 추가했어요" 한 장면 뒤 홈. 제출 중 버튼 `loading` | A ✅ |
+| P-3 | 초대 수락(`features/accept-invite` · 온보딩) | **없음** — 단계가 말없이 넘어감 | `success` md "초대를 수락했어요" 후 다음 단계로 밀기(FR-36) | A ✅ |
+| P-4 | 온보딩 끝(`widgets/onboarding-flow`) | 정적 카드 | `success` lg "준비가 끝났어요" | A ✅ |
 | P-5 | 위험 기준 저장 · 결과 태그 저장(`set-risk-budget` · `confirm-outcome-tags`) | 회색 문장 | `success` sm 인라인 | B |
 | P-6 | 코치 분석 완료(`features/explain-symbol` 스트림 끝 · 코치 리포트 생성) | 스트림 끝나면 조용히 멈춤 | `success` sm "분석이 완료됐어요" 한 줄(판정 문장 옆 아님 — 헤더 줄) | B |
 
@@ -97,12 +97,12 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 
 | # | 자리 | 지금 | 넣을 것 | 단계 |
 |---|---|---|---|---|
-| P-10 | 목표 목록(`entities/goal` `GoalList`) | 빈 배열이면 **빈 카드** · "Loading..." · "Error loading goals"(영문) | `EmptyState` + `Illustration target` "아직 목표가 없어요" + [목표 추가] · 로딩 스켈레톤 · 오류 `error` | A |
-| P-11 | 보유 자산 없음(`entities/portfolio` `HoldingSummaryList` · `InvestmentSummary`) | 회색 문장 | `EmptyState` + `empty` · 로그인 필요는 `blocked` | A |
-| P-12 | 관심 종목 없음(`widgets/market-board` `WatchlistTab`) | `EmptyState` 아이콘 없음 | `icon={<StatusGraphic kind="empty" />}` | A |
-| P-13 | 코치 리포트 없음 · 추천 없음(`widgets/coach-console` `CoachReport`) | 회색 문장 | `EmptyState` + `Illustration coachBubble` | A |
-| P-14 | 블록 오류(`shared/ui` `SectionBoundary`) | 인라인 스타일 회색 상자(하드코딩 색) | `StatusGraphic error` sm + 토큰 색 · 문장 유지 | A |
-| P-15 | 404(`app/not-found.tsx` 없음 — 잘못된 종목 코드) | Next 기본 404 | 새 `not-found` — `Illustration candles` 흐린 판 + "찾는 종목이 없어요" + [투자 화면으로] | A |
+| P-10 | 목표 목록(`entities/goal` `GoalList`) | 빈 배열이면 **빈 카드** · "Loading..." · "Error loading goals"(영문) | `EmptyState` + `Illustration target` "아직 목표가 없어요" + [목표 추가] · 로딩 스켈레톤 · 오류 `error` | A ✅ |
+| P-11 | 보유 자산 없음(`entities/portfolio` `HoldingSummaryList` · `InvestmentSummary`) | 회색 문장 | `EmptyState` + `empty` · 로그인 필요는 `blocked` | A ✅ |
+| P-12 | 관심 종목 없음(`widgets/market-board` `WatchlistTab`) | `EmptyState` 아이콘 없음 | `icon={<StatusGraphic kind="empty" />}` | A ✅ |
+| P-13 | 코치 리포트 없음 · 추천 없음(`widgets/coach-console` `CoachReport`) | 회색 문장 | `EmptyState` + `Illustration coachBubble` | A ✅ |
+| P-14 | 블록 오류(`shared/ui` `SectionBoundary`) | 인라인 스타일 회색 상자(하드코딩 색) | `StatusGraphic error` sm + 토큰 색 · 문장 유지 | A ✅ |
+| P-15 | 404(`app/not-found.tsx` 없음 — 잘못된 종목 코드) | Next 기본 404 | 새 `not-found` — `Illustration candles` 흐린 판 + "찾는 종목이 없어요" + [투자 화면으로] | A ✅ |
 | P-16 | 판정 막힘(`entities/coach` `BlockedNotice`) | 아이콘 자리 있음 | `blocked` sm(자물쇠 닫힘 한 번) — **반복 금지** | B |
 | P-17 | 코치 카드 "불러올 수 없어요" 한 줄들(`ZoneSummary` · `JudgmentSummary` · 코치 패널 · 예측 · 사건 · 쏠림) | 회색 문장 | `error` sm 인라인 + 문장 | C |
 | P-18 | 코치 카드 빈 상태(보유 없음 · 표본 적음 · 주의할 점 없음) | 회색 문장 | `empty` sm 인라인. "주의할 점 없음"은 성공 톤 아님(판정 축하 금지) | C |
@@ -112,8 +112,8 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 
 | # | 자리 | 장면 | 단계 |
 |---|---|---|---|
-| P-20 | 온보딩 단계별 머리 | 초대 = `coachBubble` · 거래 연결 = `ledger` · 월 적립 = `coinPouch` | A |
-| P-21 | 로그인(`pages/login`) 브랜드 아래 | `coinPouch` | A |
+| P-20 | 온보딩 단계별 머리 | 초대 = `coachBubble` · 거래 연결 = `ledger` · 월 적립 = `coinPouch` | A ✅ |
+| P-21 | 로그인(`pages/login`) 브랜드 아래 | `coinPouch` | A ✅ |
 | P-22 | 홈 온보딩 카드(`OnboardingCard`) | 다음 단계 장면 sm | B |
 | P-23 | 목표 추가 머리(`pages/add-goal`) | `target` | B |
 
@@ -126,12 +126,12 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 | P-32 | `BottomSheet`(퇴장 없음) · `Dialog`(애니메이션 없음) | 등장 · 퇴장(FR-35) | B |
 | P-33 | `StarIcon` 관심 종목 토글 | 별이 한 번 튄다(spring bouncy) | B |
 | P-34 | `Checkbox` | 체크 선이 그려진다 | B |
-| P-35 | `ProgressStepper`(온보딩) | 진행 막대가 차오른다 | A |
+| P-35 | `ProgressStepper`(온보딩) | 진행 막대가 차오른다 | A ✅ |
 | P-36 | `NumberText` → 홈 보유 합계(`InvestmentSummary`) · 목표 모은 돈(`GoalSavedSection`) | 숫자 굴러가기(FR-31) | B |
 | P-37 | 시세 표 가격(`PriceCell`) · 시장 요약 카드(`MarketSummaryCard`) | 변동 깜빡임(FR-32). 등락률 셀 · 상세 가격은 이미 있음 — 토큰으로만 맞춘다 | B |
 | P-38 | 실시간 기준 시각 점(`RealtimeAsOf`) | 연결 중 숨 쉬는 점 | B |
 | P-39 | 페이지 카드(홈 · 투자 · 상세 · 리포트) | 차례 등장(FR-33) | C |
-| P-40 | 온보딩 단계 본문 | 옆으로 밀림(FR-36) | A |
+| P-40 | 온보딩 단계 본문 | 옆으로 밀림(FR-36) | A ✅ |
 
 이미 있는 애니메이션(설명 스트림 · 예측 팬차트 · 사건 카드 · 가격 틱 · 등락률 깜빡임 · 스켈레톤 · 스피너 · 토스트 · 모달)은
 **다시 만들지 않는다.** 길이 · 이징 숫자만 토큰으로 옮긴다(C).
@@ -153,3 +153,4 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 ## Changelog
 
 - 2026-09-30: 초판 — 기반 FR-1~5 · 상태 그래픽 FR-10~13 · 장면 일러스트 FR-20~22 · 마이크로 인터랙션 FR-30~36 · 배치 FR-40
+- 2026-09-30: A 단계 구현. 라이브러리를 `motion/react` → `framer-motion`(`m` + 동적 `LazyMotion`)으로 — 네임스페이스 재수출 때문에 모든 페이지 첫 로드 JS 가 +45 kB 였다(→ +19~25 kB). `EmptyState` `iconFrame` · `StatusLine` 추가 · 그래픽 색 토큰 `colors.graphic` · 이징 `fall` 추가

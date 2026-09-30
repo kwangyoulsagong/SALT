@@ -29,7 +29,8 @@ pages/{page-name}/
 **목표:** `home`(`/`) · `coach`(`/coach`) · `assets`(`/assets`) · `goals` · `onboarding` · `login`
 
 **2026-09-23 현재:** `login`(`/`) · `home`(`/home`) · `investments`(`/investments`) ·
-`investment-detail`(`/investments/[symbol]`) · `add-goal`(`/goals/addgoals`) · `coach`(`/coach/report` — 2026-09-23) · `streaming-probe`(측정 전용, 기본 404).
+`investment-detail`(`/investments/[symbol]`) · `add-goal`(`/goals/addgoals`) · `coach`(`/coach/report` — 2026-09-23) · `streaming-probe`(측정 전용, 기본 404) ·
+`not-found`(`app/not-found.tsx` — 2026-09-30, `FE-REQ-044`).
 `investments`는 F006에서 `assets`로 바뀐다(`FE-REQ-030`). 코치 탭 `/coach`(대화)는 그때 생긴다.
 
 ### `apps/web-tax` (세금 zone)

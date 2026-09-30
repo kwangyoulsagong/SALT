@@ -3,11 +3,17 @@
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { Container } from "@repo/ui/container";
+import { EmptyState } from "@repo/ui/emptyState";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Heading } from "@repo/ui/heading";
+import { Illustration } from "@repo/ui/illustration";
+import { durations, ease } from "@repo/ui/motion";
 import { ProgressStepper } from "@repo/ui/progressStepper";
+import { StatusGraphic } from "@repo/ui/statusGraphic";
 import { Text } from "@repo/ui/text";
+import { AnimatePresence, m } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { useOnboardingStatus, type OnboardingStepKey } from "@/entities/auth";
 import { InviteCodeForm } from "@/features/accept-invite";
@@ -17,7 +23,10 @@ import {
   ONBOARDING_MESSAGES,
   ONBOARDING_STEP_BODY,
   ONBOARDING_STEP_LABELS,
+  ONBOARDING_STEP_SCENE,
 } from "../model/messages";
+
+import { acceptedLine, stepHead, stepSlide } from "./OnboardingFlow.css";
 
 /**
  * 온보딩 3스텝 (`FE-REQ-010` FR-21·22·25 · `FE-REQ-010` FR-64).
@@ -33,10 +42,16 @@ import {
  * 그때 상태 조회는 비활성이고(`useOnboardingStatus` 가 토큰 없이는 부르지 않는다)
  * 현재 단계는 `invite` 다. 초대 수락이 성공하면 쿼리가 무효화되어 다음 단계로 넘어간다 —
  * 화면이 단계를 직접 밀지 않는다.
+ *
+ * ## 그래픽 (`FE-REQ-044` P-3 · P-4 · P-20 · P-40)
+ *
+ * 단계마다 머리 장면 하나, 단계가 넘어가면 본문이 옆으로 밀린다. 초대를 수락하면 다음 단계 위에
+ * "초대를 수락했어요" 한 줄을 체크와 함께 한 번 보인다 — 말없이 넘어가면 무엇이 됐는지 모른다.
  */
 export const OnboardingFlow = () => {
   const router = useRouter();
   const { data, isLoading } = useOnboardingStatus();
+  const [inviteAccepted, setInviteAccepted] = useState(false);
 
   const steps = data?.steps ?? FALLBACK_STEPS;
   const currentStep: OnboardingStepKey | null = data ? data.nextStep : "invite";
@@ -60,19 +75,39 @@ export const OnboardingFlow = () => {
         />
 
         {isLoading ? (
-          <Text>{ONBOARDING_MESSAGES.loading}</Text>
-        ) : currentStep === null ? (
-          <Card>
-            <FlexBox direction="column" gap="sm">
-              <Heading level={3}>{ONBOARDING_MESSAGES.completeTitle}</Heading>
-              <Text>{ONBOARDING_MESSAGES.completeDescription}</Text>
-              <Button onClick={() => router.push(ROUTES.home)}>
-                {ONBOARDING_MESSAGES.goHome}
-              </Button>
-            </FlexBox>
-          </Card>
+          <FlexBox align="center" gap="sm">
+            <StatusGraphic kind="progress" size="sm" />
+            <Text>{ONBOARDING_MESSAGES.loading}</Text>
+          </FlexBox>
         ) : (
-          <StepBody step={currentStep} />
+          <AnimatePresence mode="wait" initial={false}>
+            <m.div
+              key={currentStep ?? "complete"}
+              className={stepSlide}
+              initial={{ opacity: 0, x: SLIDE_DISTANCE }}
+              animate={{ opacity: 1, x: 0, transition: { duration: durations.slow, ease: ease.enter } }}
+              exit={{ opacity: 0, x: -SLIDE_DISTANCE, transition: { duration: durations.base, ease: ease.exit } }}
+            >
+              {currentStep === null ? (
+                <Card>
+                  <EmptyState
+                    tone="success"
+                    iconFrame="none"
+                    icon={<StatusGraphic kind="success" size="lg" />}
+                    title={ONBOARDING_MESSAGES.completeTitle}
+                    description={ONBOARDING_MESSAGES.completeDescription}
+                    action={<Button onClick={() => router.push(ROUTES.home)}>{ONBOARDING_MESSAGES.goHome}</Button>}
+                  />
+                </Card>
+              ) : (
+                <StepBody
+                  step={currentStep}
+                  showAccepted={inviteAccepted && currentStep !== "invite"}
+                  onInviteAccepted={() => setInviteAccepted(true)}
+                />
+              )}
+            </m.div>
+          </AnimatePresence>
         )}
       </FlexBox>
     </Container>
@@ -86,20 +121,40 @@ export const OnboardingFlow = () => {
  * 적립 설정(`plan`, F003)이 아직 없다. 누르면 아무 일도 일어나지 않는 버튼을 두는 것보다
  * 준비 중이라고 쓰는 것이 정직하다.
  */
-const StepBody = ({ step }: { step: OnboardingStepKey }) => {
+const StepBody = ({
+  step,
+  showAccepted,
+  onInviteAccepted,
+}: {
+  step: OnboardingStepKey;
+  showAccepted: boolean;
+  onInviteAccepted: () => void;
+}) => {
   const body = ONBOARDING_STEP_BODY[step];
 
   return (
     <Card>
       <FlexBox direction="column" gap="md">
+        {showAccepted ? (
+          <p className={acceptedLine} aria-live="polite">
+            <StatusGraphic kind="success" size="sm" />
+            {ONBOARDING_MESSAGES.inviteAccepted}
+          </p>
+        ) : null}
+        <div className={stepHead}>
+          <Illustration scene={ONBOARDING_STEP_SCENE[step]} size="md" />
+        </div>
         <Heading level={3}>{body.title}</Heading>
         <Text>{body.description}</Text>
-        {step === "invite" ? <InviteCodeForm /> : null}
+        {step === "invite" ? <InviteCodeForm onAccepted={onInviteAccepted} /> : null}
         {body.pending ? <Text color="muted">{body.pending}</Text> : null}
       </FlexBox>
     </Card>
   );
 };
+
+/** 단계 본문이 밀리는 거리(px) — 모션 원칙 4 "이동 거리는 작게" */
+const SLIDE_DISTANCE = 24;
 
 /**
  * 상태를 못 받았을 때의 단계 목록.

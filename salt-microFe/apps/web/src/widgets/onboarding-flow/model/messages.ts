@@ -9,11 +9,23 @@ import type { OnboardingStepKey } from "@/entities/auth";
 export const ONBOARDING_MESSAGES = {
   title: "시작하기",
   stepperLabel: "온보딩 단계",
-  completeTitle: "준비가 끝났습니다",
+  completeTitle: "준비가 끝났어요",
   completeDescription: "홈에서 현재 상태를 확인해 보세요.",
   goHome: "홈으로",
   loading: "진행 상태를 불러오는 중…",
+  /** 초대 수락 직후 다음 단계 위에 한 번 (`FE-REQ-044` P-3) */
+  inviteAccepted: "초대를 수락했어요",
 } as const;
+
+/**
+ * 단계 머리 장면 (`FE-REQ-044` P-20) — 초대 = 대화 · 거래 연결 = 장부 · 월 적립 = 동전 주머니.
+ * `@repo/ui/illustration` 의 `scene` 이름이다.
+ */
+export const ONBOARDING_STEP_SCENE = {
+  invite: "coachBubble",
+  link_account: "ledger",
+  set_plan: "coinPouch",
+} as const satisfies Record<OnboardingStepKey, string>;
 
 /** `ProgressStepper` 에 들어가는 라벨. 순서는 BFF 가 주는 `steps` 순서와 같다. */
 export const ONBOARDING_STEP_LABELS: Record<OnboardingStepKey, string> = {

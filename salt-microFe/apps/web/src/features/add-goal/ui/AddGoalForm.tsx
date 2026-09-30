@@ -2,15 +2,20 @@
 
 // 클라이언트 잎: react-hook-form 을 쓴다.
 import { Button } from "@repo/ui/button";
+import { EmptyState } from "@repo/ui/emptyState";
 import { InputField } from "@repo/ui/input";
+import { StatusGraphic } from "@repo/ui/statusGraphic";
 import { Text } from "@repo/ui/text";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 
 import { useGoalDraft } from "@/entities/goal";
+import { ROUTES } from "@/shared/config";
 
 import { useAddGoal } from "../api";
 import { toCreateGoalRequest } from "../lib";
-import { ADD_GOAL_MESSAGES } from "../model/messages";
+import { ADD_GOAL_MESSAGES, ADD_GOAL_SUCCESS_HOLD_MS } from "../model/messages";
 import { AddGoalFormInput } from "../model/types";
 import { AddGoalWrapper } from "./AddGoalWrapper";
 import { CategoryPicker } from "./CategoryPicker";
@@ -34,6 +39,14 @@ export const AddGoalForm = () => {
   const { register, handleSubmit } = useForm<AddGoalFormInput>();
   const goalDraft = useGoalDraft();
   const addGoal = useAddGoal();
+  const router = useRouter();
+
+  // 완료 장면을 한 번 보인 뒤 홈으로 (FE-REQ-044 P-2). 기다리기 싫으면 [홈으로] 를 누른다
+  useEffect(() => {
+    if (!addGoal.isSuccess) return undefined;
+    const timer = window.setTimeout(() => router.push(ROUTES.home), ADD_GOAL_SUCCESS_HOLD_MS);
+    return () => window.clearTimeout(timer);
+  }, [addGoal.isSuccess, router]);
 
   // `account.selected` 이벤트 버스 구독을 제거했다 (FE-REQ-007 FR-7).
   // 계좌 연동 자체가 제품 범위에서 빠졌고(FEATURE-000, 원장은 100% 수기 입력),
@@ -42,6 +55,27 @@ export const AddGoalForm = () => {
     if (!goalDraft.category) return;
     addGoal.mutate(toCreateGoalRequest(data, goalDraft.category));
   };
+
+  if (addGoal.isSuccess) {
+    return (
+      <AddGoalWrapper>
+        <div aria-live="polite">
+          <EmptyState
+            tone="success"
+            iconFrame="none"
+            icon={<StatusGraphic kind="success" size="lg" />}
+            title={ADD_GOAL_MESSAGES.successTitle}
+            description={ADD_GOAL_MESSAGES.successDescription}
+            action={
+              <Button size="sm" onClick={() => router.push(ROUTES.home)}>
+                {ADD_GOAL_MESSAGES.goHome}
+              </Button>
+            }
+          />
+        </div>
+      </AddGoalWrapper>
+    );
+  }
 
   return (
     <AddGoalWrapper>
@@ -77,7 +111,7 @@ export const AddGoalForm = () => {
           ) : null}
         </GoalFieldSet>
         <SubmitButtonWrapper>
-          <Button type="submit" fullWidth disabled={addGoal.isPending}>
+          <Button type="submit" fullWidth loading={addGoal.isPending} disabled={addGoal.isPending}>
             {addGoal.isPending
               ? ADD_GOAL_MESSAGES.submitting
               : ADD_GOAL_MESSAGES.submit}

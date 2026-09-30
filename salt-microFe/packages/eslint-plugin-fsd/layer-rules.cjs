@@ -103,6 +103,8 @@ const REGISTRY = {
     "onboarding",
     "login",
     "streaming-probe",
+    // 404 — `app/not-found.tsx` 가 re-export (FE-REQ-044 P-15)
+    "not-found",
   ],
 };
 

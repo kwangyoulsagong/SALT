@@ -3,6 +3,7 @@
 // 클라이언트 잎: React Query 로 조회한다.
 import type { ReactNode } from "react";
 
+import { StatusLine } from "@repo/ui/statusLine";
 import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Header } from "@repo/ui/header";
@@ -54,15 +55,15 @@ export const InvestmentSummary = ({ trailing }: InvestmentSummaryProps) => {
                 셋을 같은 문구로 뭉뚱그리면 "자산이 없다"는 거짓이 된다.
               */}
                 {holdings.isSignedOut ? (
-                  <Text color="tertiary">
+                  <StatusLine kind="blocked">
                     {PORTFOLIO_MESSAGES.holdingsSignInRequired}
-                  </Text>
+                  </StatusLine>
                 ) : holdings.isPending ? (
                   <Text color="tertiary">{PORTFOLIO_MESSAGES.loading}</Text>
                 ) : holdings.isError ? (
-                  <Text color="tertiary">
+                  <StatusLine kind="error">
                     {PORTFOLIO_MESSAGES.holdingsLoadFailed}
-                  </Text>
+                  </StatusLine>
                 ) : (
                   <>
                     <HoldingSummaryList items={holdings.data.items} />

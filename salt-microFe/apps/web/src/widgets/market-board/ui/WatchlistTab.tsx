@@ -1,6 +1,7 @@
 "use client";
 
 import { EmptyState } from "@repo/ui/emptyState";
+import { StatusGraphic } from "@repo/ui/statusGraphic";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Text } from "@repo/ui/text";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -114,6 +115,8 @@ export const WatchlistTab = ({
   if (items.length === 0) {
     return (
       <EmptyState
+        iconFrame="none"
+        icon={<StatusGraphic kind="empty" />}
         title={WATCHLIST_MESSAGES.emptyTitle}
         description={WATCHLIST_MESSAGES.emptyDescription}
       />
