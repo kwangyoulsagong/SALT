@@ -16,7 +16,9 @@ import { NarrowScreenNotice } from "./NarrowScreenNotice";
 export const AppShell = ({ children }: { children: ReactNode }) => {
   return (
     <div className={Container}>
-      <div className={appContent}>{children}</div>
+      {/* 모든 라우트의 main 랜드마크는 여기 하나다 — 페이지는 <main> 을 두지 않는다(중첩 금지). 좁은 화면에서는
+          숨고 안내가 main 이 된다(axe landmark-one-main) */}
+      <main className={appContent}>{children}</main>
       <NarrowScreenNotice />
     </div>
   );

@@ -65,7 +65,7 @@ export const tabButton = recipe({
         fontSize: "13px",
         lineHeight: "20px",
         fontWeight: vars.fontWeights.semibold,
-        color: vars.colors.neutral[500],
+        color: vars.colors.neutral[600],
         selectors: {
           "&:hover": { background: CHIP_FILL, color: vars.colors.text.primary },
         },

@@ -20,7 +20,7 @@ import { brandMark, card, inviteRow, screen, title } from "./LoginPage.css";
  */
 export const LoginPage = () => {
   return (
-    <main className={screen}>
+    <div className={screen}>
       <span className={brandMark}>SALT</span>
 
       <h1 className={title}>{SIGN_IN_MESSAGES.title}</h1>
@@ -40,7 +40,7 @@ export const LoginPage = () => {
           </Text>
         </Link>
       </div>
-    </main>
+    </div>
   );
 };
 

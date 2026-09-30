@@ -46,7 +46,7 @@ export const title = style({
 
 export const meta = style({
   margin: 0,
-  color: vars.colors.neutral[500],
+  color: vars.colors.neutral[600],
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,
@@ -56,7 +56,7 @@ export const meta = style({
 export const footnote = style({
   margin: 0,
   padding: "4px 8px 0",
-  color: vars.colors.neutral[500],
+  color: vars.colors.neutral[600],
   fontSize: "12px",
   lineHeight: "18px",
   fontWeight: vars.fontWeights.medium,
@@ -76,7 +76,7 @@ export const disclaimerBar = style({
   padding: `${vars.space.sm} ${vars.space.xl}`,
   background: vars.colors.background.white,
   borderTop: `1px solid ${vars.colors.neutral[100]}`,
-  color: vars.colors.neutral[500],
+  color: vars.colors.neutral[600],
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,

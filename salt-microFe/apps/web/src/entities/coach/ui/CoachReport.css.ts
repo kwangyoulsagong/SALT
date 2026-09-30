@@ -120,7 +120,7 @@ export const factBody = style({
 });
 
 export const factMeta = style({
-  color: vars.colors.neutral[500],
+  color: vars.colors.neutral[600],
   fontSize: "12px",
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,
@@ -211,7 +211,7 @@ export const stagePrice = style({
 });
 
 export const stageGap = style({
-  color: vars.colors.neutral[500],
+  color: vars.colors.neutral[600],
   fontSize: "12px",
   lineHeight: "16px",
   fontWeight: vars.fontWeights.medium,
