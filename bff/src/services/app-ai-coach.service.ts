@@ -5,6 +5,7 @@ import { createSseParser, type SseEvent } from "../utils/sse.util";
 import { backendApi } from "./backend-api.service";
 import {
   SymbolCoachContractError,
+  toExchangeFlag,
   toSymbolCoachViewModel,
   type ServerSymbolCoach,
   type ServerSymbolNews,
@@ -51,18 +52,21 @@ export class AppAICoachService {
       ),
     );
     const data = (response.data as BackendEnvelope<any>).data;
+    // 하위 호환 필드(`modeDecision` · `dualDecision`)에는 서버 게이트가 없다 — 투자유의면 비운다(`BFF-REQ-039` FR-6)
+    const warned = toExchangeFlag(data.exchangeFlag)?.warning === true;
+    const decision = warned ? undefined : data.modeDecision;
 
     return {
       symbol: data.symbol,
-      headline: data.headline,
+      headline: warned ? null : data.headline,
       // 판단이 없으면 `null` — "관망" 을 지어내지 않는다(`BFF-REQ-023` FR-93)
-      badge: data.modeDecision?.label ?? null,
+      badge: decision?.label ?? null,
       decisions: {
-        scalp: this.mapDecision(data.dualDecision?.scalp),
-        longTerm: this.mapDecision(data.dualDecision?.longTerm),
+        scalp: this.mapDecision(warned ? undefined : data.dualDecision?.scalp),
+        longTerm: this.mapDecision(warned ? undefined : data.dualDecision?.longTerm),
       },
-      reasons: data.modeDecision?.reasons ?? [],
-      risks: data.modeDecision?.risks ?? [],
+      reasons: decision?.reasons ?? [],
+      risks: decision?.risks ?? [],
       missingData: data.missingData ?? [],
       dataFreshness: data.dataFreshness,
     };

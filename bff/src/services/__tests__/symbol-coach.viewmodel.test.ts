@@ -282,6 +282,7 @@ describe("toSymbolCoachViewModel", () => {
       "degradedFields",
       "disclaimer",
       "evidence",
+      "exchangeFlag",
       "gaugeTrackRecords",
       "missingData",
       "mode",
@@ -292,5 +293,53 @@ describe("toSymbolCoachViewModel", () => {
     ]);
     assert.equal(JSON.stringify(vm).includes("confidence"), false);
     assert.equal(vm.modes.scalp?.zone.kind, "observation");
+  });
+});
+
+describe("거래소 표시 (F010 슬라이스 6 · FR-6)", () => {
+  const AT = "2026-09-30T00:00:00.000Z";
+
+  it("서버가 막은 exchange_warning 은 그대로 막히고 표시가 실린다", () => {
+    const blocked = modeView({ renderable: false, blockedReason: "exchange_warning" });
+    const vm = toSymbolCoachViewModel(
+      serverCoach({
+        modes: { scalp: blocked, longTerm: blocked },
+        exchangeFlag: { warning: true, cautions: [], fetchedAt: AT },
+      }),
+      { articles: [] },
+    );
+    assert.equal(vm.modes.scalp?.renderable, false);
+    assert.equal(vm.modes.scalp?.renderable === false && vm.modes.scalp.blockedReason, "exchange_warning");
+    assert.deepEqual(vm.exchangeFlag, { warning: true, cautions: [], fetchedAt: AT });
+  });
+
+  it("투자유의인데 서버가 renderable: true 를 보내면 막는 쪽으로만 고친다", () => {
+    const vm = toSymbolCoachViewModel(
+      serverCoach({ exchangeFlag: { warning: true, cautions: [], fetchedAt: AT } }),
+      { articles: [] },
+    );
+    assert.equal(vm.modes.scalp?.renderable, false);
+    assert.equal(vm.modes.longTerm?.renderable === false && vm.modes.longTerm.blockedReason, "exchange_warning");
+    assert.equal(JSON.stringify(vm.modes).includes("reasons"), false, "막힌 모드에 판단이 남지 않는다");
+  });
+
+  it("주의만이면 판단은 그대로 · 모르는 주의 코드는 버린다", () => {
+    const vm = toSymbolCoachViewModel(
+      serverCoach({
+        exchangeFlag: { warning: false, cautions: ["NEW_CODE", "PRICE_FLUCTUATIONS"], fetchedAt: AT },
+      }),
+      { articles: [] },
+    );
+    assert.equal(vm.modes.scalp?.renderable, true);
+    assert.deepEqual(vm.exchangeFlag?.cautions, ["PRICE_FLUCTUATIONS"]);
+  });
+
+  it("표시가 없거나 모양이 틀리면 null", () => {
+    assert.equal(toSymbolCoachViewModel(serverCoach(), { articles: [] }).exchangeFlag, null);
+    assert.equal(
+      toSymbolCoachViewModel(serverCoach({ exchangeFlag: { warning: "yes", fetchedAt: AT } }), { articles: [] })
+        .exchangeFlag,
+      null,
+    );
   });
 });
