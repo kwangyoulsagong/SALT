@@ -155,16 +155,18 @@ export const OnboardingFlow = () => {
       {/* 초대 단계는 폼 안에 제출 버튼이 있다. 나머지는 아래 버튼 하나 — 화면이 없는 단계에서 멈춰 서지 않게 */}
       {currentStep !== "invite" ? (
         <BottomCTA fixed>
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            onClick={() => router.push(ROUTES.home)}
-          >
-            {currentStep === null
-              ? ONBOARDING_MESSAGES.goHome
-              : ONBOARDING_MESSAGES.laterToHome}
-          </Button>
+          <div className={s.ctaInner}>
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={() => router.push(ROUTES.home)}
+            >
+              {currentStep === null
+                ? ONBOARDING_MESSAGES.goHome
+                : ONBOARDING_MESSAGES.laterToHome}
+            </Button>
+          </div>
         </BottomCTA>
       ) : null}
     </div>
