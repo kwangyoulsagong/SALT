@@ -24,6 +24,8 @@ export const notice = style({
       flexDirection: "column",
       alignItems: "center",
       minHeight: "100vh",
+      // 부모(AppShell)가 높이 = 뷰포트인 flex column 이라, 줄어들 수 있으면 뷰포트에 갇혀 카드가 눌린다(360×740 실측 125/363px)
+      flexShrink: 0,
       padding: "20px 16px 32px",
       background: `linear-gradient(180deg, #DCE8FB 0%, ${ds.colors.background.white} 34%)`,
       wordBreak: "keep-all",

@@ -34,7 +34,8 @@ const SHOT = { width: 1440, height: 900 } as const;
  * 대신하는 프레임이다. 넓은 화면에서는 `display: none` 이라 스크린리더 · 탭 순서에도 없다.
  */
 export const NarrowScreenNotice = () => (
-  <section className={notice} aria-labelledby="narrow-screen-heading">
+  // 본문의 <main> 이 숨겨지므로 이것이 main 랜드마크다(axe landmark-one-main)
+  <main className={notice} aria-labelledby="narrow-screen-heading">
     <p className={brand}>{SITE_NAME}</p>
     <h1 id="narrow-screen-heading" className={heading}>
       {M.heading.map((text) => (
@@ -89,7 +90,7 @@ export const NarrowScreenNotice = () => (
       <p className={prompt}>{M.prompt}</p>
       <CopyPcLinkButton />
     </div>
-  </section>
+  </main>
 );
 
 export default NarrowScreenNotice;
