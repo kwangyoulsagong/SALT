@@ -6,6 +6,7 @@ import type {
   ForecastCardRow,
   ForecastReader,
   MarketRegimeState,
+  MarketWarningState,
   PositioningRow,
   RealizedVolatility,
   SignalReactionRow,
@@ -307,6 +308,22 @@ export class PrismaForecastReader implements ForecastReader {
           btcBeta: r.btc_beta !== null && Number.isFinite(r.btc_beta) ? r.btc_beta : null,
           asOf: r.as_of,
         },
+      ])
+    );
+  }
+
+  /** 거래소 유의 · 주의 — 여러 종목 한 쿼리(`FC-REQ-014`). 3일 넘은 스냅샷은 뺀다(수집이 멈추면 표시도 멈춘다) */
+  async marketWarnings(symbols: string[]): Promise<Map<string, MarketWarningState>> {
+    if (!symbols.length) return new Map();
+    const markets = symbols.map((symbol) => `KRW-${symbol.toUpperCase()}`);
+    const rows = await prisma.$queryRaw<{ symbol: string; warning: boolean; cautions: string[]; fetched_at: Date }[]>`
+      SELECT symbol, warning, cautions, fetched_at FROM forecast.v_market_warning
+      WHERE symbol = ANY(${markets}) AND fetched_at >= now() - interval '3 days'
+    `;
+    return new Map(
+      rows.map((r) => [
+        r.symbol.replace(/^KRW-/, ""),
+        { warning: r.warning, cautions: [...r.cautions].sort(), fetchedAt: r.fetched_at },
       ])
     );
   }

@@ -29,3 +29,12 @@ export const generateCandidates = (ctx: CoachContext): Candidate[] => {
 
   return candidates;
 };
+
+/**
+ * 거래소 투자유의 종목을 뺀다(F010 슬라이스 6 · `SRV-REQ-024` FR-193). 순위는 그대로 — 남은 것끼리 앞으로 당긴다.
+ * 보유 종목의 매도 후보도 빠진다: 유의 종목에는 판정을 내지 않는다(판정 게이트 `exchange_warning` 과 같은 정책).
+ */
+export const withoutExchangeWarning = <T extends { symbol: string }>(
+  ranked: T[],
+  flags: ReadonlyMap<string, { warning: boolean }>
+): T[] => ranked.filter((c) => flags.get(c.symbol)?.warning !== true);

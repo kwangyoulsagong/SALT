@@ -74,7 +74,8 @@ export const toCaseView = (
  */
 export const attachJudgmentTrack = async (
   store: SymbolJudgmentStore,
-  decision: ModeDecision
+  decision: ModeDecision,
+  exchangeWarning = false
 ): Promise<ModeCoachView> => {
   const signalType = judgmentSignalType(decision.mode, decision.action);
 
@@ -90,6 +91,7 @@ export const attachJudgmentTrack = async (
     risks: decision.risks,
     trackRecord,
     failureCases: misses,
+    exchangeWarning,
   });
 
   return {

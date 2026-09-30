@@ -239,3 +239,22 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 | 인증된 HTTP 실측 | 로컬 토큰 발급 불가 — 어댑터 직접 호출 · 화면은 Playwright route | 로그인 QA(사용자) |
 | 라이브 원장 실제 행이 있는 응답 | 첫 리밸런스 2026-10-05 | 2026-10-12 결과 뒤 |
 | 운영 DB 마이그레이션 | 로컬만 | 배포 시 |
+
+## §15. F010 슬라이스 6 — 거래소 투자유의 (FR-191~193, 2026-09-30, `feat/f010-slice6-independent-data`)
+
+| FR | 위치 | 결과 |
+|---|---|---|
+| FR-191 | `domain/policy/symbolJudgment.ts` `judgmentGate` 첫 검사 · `application/lib/judgmentTrack.ts` · `GetSymbolCoach` | 테스트: 근거 · 표본 · 실패사례가 다 있어도 `exchange_warning` · 근거 없음보다 먼저 · 유스케이스에서 두 모드 다 막힘 · 읽기 실패와 `forecasts` 없음은 지금과 같다(fail-open) |
+| FR-192 | `GetSymbolCoach` `exchangeFlag` | 테스트: 주의만이면 판정 그대로 + `cautions` · 유의면 `warning: true` |
+| FR-193 | `domain/policy/candidates.ts` `withoutExchangeWarning` · `GenerateCoachRecommendation` | 테스트: 유의 종목 후보(보유 매도 포함) 제외 · 순서 유지 · 주의만 · 표시 없음은 그대로 |
+| 포트 | `ports.ts` `marketWarnings` · `PrismaForecastReader` | 실 DB 어댑터 호출(스크래치 스크립트, 지움): ICX `warning: true` · ALGO 주의 2종 · BTC 없음 · 없는 종목은 맵에 없음. `EXPLAIN (ANALYZE, BUFFERS)` 3종목 0.375ms — 지금은 Seq Scan(580행), 표가 커지면 `market_warning_snapshot_latest` 인덱스 |
+
+- `npm test` 559 / 0 · `tsc --noEmit` · `npm run build` · `npm run lint` 통과
+- 원장(`judgment_ledger` · 판단 스냅샷)은 **바꾸지 않았다** — 유의 종목의 규칙 판단도 계속 기록된다(규칙을 재는 표). 화면 · 추천만 막는다
+- `modeDecision` · `dualDecision`(하위 호환 필드)은 게이트가 없다 — 쓰는 곳은 BFF `getPreview`(스트리밍 측정 페이지) 하나라 BFF 에서 `exchangeFlag.warning` 이면 비운다(`BFF-REQ-039`)
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 인증된 HTTP 실측 | 로컬 토큰 발급 불가 — 어댑터 · 유스케이스 직접 확인 | 로그인 QA(사용자) |
+| 유의 지정 뒤 성과 통계 | 원천에 이력이 없다 — `market-warning@1` 라이브 기록 | 2026-11-25 |
+| 운영 DB 마이그레이션 | 로컬만 | 배포 시 |

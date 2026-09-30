@@ -4,6 +4,7 @@ import {
   explainRecommendation,
   rankCandidates,
   generateCandidates,
+  withoutExchangeWarning,
   type BehaviorAnalyzer,
   type Clock,
   type CoachGenerationLogStore,
@@ -13,6 +14,7 @@ import {
   type CoachMode,
   type CoachNotifier,
   type CoachProfileStore,
+  type ForecastReader,
   type MarketProbe,
   type PortfolioProbe,
   type RecommendationSnapshotStore,
@@ -84,8 +86,16 @@ export class GenerateCoachRecommendation {
     private readonly clock: Clock = () => new Date(),
     private readonly behavior: BehaviorAnalyzer | null = null,
     /** 추천 스냅샷 원장(F010 슬라이스 0). 없으면 기록하지 않는다 — 옛 테스트 · 조립 호환 */
-    private readonly recommendations: RecommendationSnapshotStore | null = null
+    private readonly recommendations: RecommendationSnapshotStore | null = null,
+    /** 거래소 투자유의 표시(F010 슬라이스 6 · `SRV-REQ-024` FR-193). 없으면 거르지 않는다 */
+    private readonly warnings: Pick<ForecastReader, "marketWarnings"> | null = null
   ) {}
+
+  /** 거래소 표시. 읽기 실패는 빈 맵(판정 게이트와 같은 fail-open — 유의를 지어내지 않는다) */
+  private async exchangeFlags(symbols: string[]): Promise<ReadonlyMap<string, { warning: boolean }>> {
+    if (!this.warnings || !symbols.length) return new Map();
+    return (await this.warnings.marketWarnings([...new Set(symbols)]).catch(() => null)) ?? new Map();
+  }
 
   async execute(
     userId: string,
@@ -146,7 +156,8 @@ export class GenerateCoachRecommendation {
       });
     }
 
-    const ranked = rankCandidates(ctx, generateCandidates(ctx));
+    const scored = rankCandidates(ctx, generateCandidates(ctx));
+    const ranked = withoutExchangeWarning(scored, await this.exchangeFlags(scored.map((c) => c.symbol)));
     if (!ranked.length) return null;
 
     const [top, second] = ranked;

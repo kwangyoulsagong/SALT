@@ -210,6 +210,7 @@ export interface JudgmentCase {
 }
 
 export type JudgmentBlockedReason =
+  | "exchange_warning"
   | "reasons_missing"
   | "insufficient_sample"
   | "failure_cases_missing";
@@ -220,6 +221,8 @@ export interface JudgmentGateInput {
   risks: string[];
   trackRecord: JudgmentTrackRecord;
   failureCases: JudgmentCase[];
+  /** 거래소가 투자유의로 지정한 종목(F010 슬라이스 6). 모르면 `false` — 수집이 멈췄다고 판정을 막지 않는다 */
+  exchangeWarning?: boolean;
 }
 
 export type JudgmentGate =
@@ -246,6 +249,11 @@ export const judgmentEvidence = (
  * 막혀도 **에러가 아니다.** 판단 블록만 비고 나머지 응답은 그대로 간다.
  */
 export const judgmentGate = (input: JudgmentGateInput): JudgmentGate => {
+  // 투자유의 종목은 성적 · 근거와 무관하게 판정을 내지 않는다(리서치 §11 · `SRV-REQ-024` FR-191).
+  // 규칙 점수는 유의 지정의 이유(급등락 · 유통량 · 소명)를 모른다 — 그 위에서 "후보"를 말하면 규칙 밖의 말이다
+  if (input.exchangeWarning) {
+    return { renderable: false, blockedReason: "exchange_warning" };
+  }
   if (judgmentEvidence(input).length === 0) {
     return { renderable: false, blockedReason: "reasons_missing" };
   }

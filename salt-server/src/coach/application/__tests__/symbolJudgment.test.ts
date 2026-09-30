@@ -262,6 +262,46 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
     assert.ok(view.disclaimer.length > 0);
   });
 
+  it("투자유의면 두 모드 다 exchange_warning · 주의만이면 판정 그대로 + exchangeFlag (FR-191 · 192)", async () => {
+    const reader = (flags: Record<string, { warning: boolean; cautions: string[] }>) => ({
+      symbolRisk: async () => new Map(),
+      marketWarnings: async (symbols: string[]) =>
+        new Map(
+          symbols.filter((s) => flags[s]).map((s) => [s, { ...flags[s], fetchedAt: T0 }] as const)
+        ),
+    });
+    const run = (forecasts: ReturnType<typeof reader> | null) =>
+      new GetSymbolCoach(
+        fakeMarket({ BTC: 100 }),
+        portfolio,
+        profiles,
+        new MemoryJudgmentStore(),
+        noGauges,
+        undefined,
+        forecasts
+      ).execute("user-1", { symbol: "BTC" });
+
+    const warned = await run(reader({ BTC: { warning: true, cautions: [] } }));
+    assert.equal(warned.modes.scalp.blockedReason, "exchange_warning");
+    assert.equal(warned.modes.longTerm.blockedReason, "exchange_warning");
+    assert.deepEqual(warned.exchangeFlag, { warning: true, cautions: [], fetchedAt: T0.toISOString() });
+
+    const caution = await run(reader({ BTC: { warning: false, cautions: ["PRICE_FLUCTUATIONS"] } }));
+    assert.equal(caution.modes.scalp.blockedReason, "reasons_missing", "주의만으로는 막지 않는다");
+    assert.deepEqual(caution.exchangeFlag?.cautions, ["PRICE_FLUCTUATIONS"]);
+
+    // 표시를 못 읽으면 지금까지와 같다 — 유의를 지어내지 않는다
+    const broken = await run({
+      symbolRisk: async () => new Map(),
+      marketWarnings: async () => {
+        throw new Error("db");
+      },
+    });
+    assert.equal(broken.exchangeFlag, null);
+    assert.equal(broken.modes.scalp.blockedReason, "reasons_missing");
+    assert.equal((await run(null)).exchangeFlag, null);
+  });
+
   it("mode 가 없으면 사용자 기본 모드 → 없으면 단타다 (FR-48)", async () => {
     const withMode = (defaultMode: "scalp" | "long_term" | null) =>
       ({ findByUser: async () => ({ defaultMode }) }) as unknown as CoachProfileStore;
