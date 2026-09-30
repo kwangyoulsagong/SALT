@@ -11,6 +11,8 @@ export const page = style({
   fontFamily: vars.fontFamily.base,
   // 화면 끝까지 — 70vh 에서 끊겨 아래 회색 바탕이 드러났다(2026-09-30 QA)
   minHeight: "100dvh",
+  // 앱 틀의 main 이 화면 높이 세로 flex 라 줄어들면 배경이 화면 높이에서 끊긴다 — 내용만큼 늘어나게(2026-09-30 QA)
+  flexShrink: 0,
   background: `linear-gradient(180deg, ${vars.colors.graphic.backdrop} 0%, ${vars.colors.background.white} 60%)`,
 });
 

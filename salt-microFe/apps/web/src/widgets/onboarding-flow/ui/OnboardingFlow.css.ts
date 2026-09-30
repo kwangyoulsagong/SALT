@@ -7,6 +7,8 @@ import { vars } from "@repo/ui/tokens";
  */
 export const page = style({
   minHeight: "100dvh",
+  // 앱 틀의 main 이 화면 높이 세로 flex 라 줄어들면 배경이 화면 높이에서 끊긴다 — 내용만큼 늘어나게(2026-09-30 QA)
+  flexShrink: 0,
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
