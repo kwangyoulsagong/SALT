@@ -106,16 +106,12 @@ export const form = style({
   textAlign: "left",
 });
 
-export const pending = style({
-  margin: 0,
-  color: vars.colors.text.lightGray,
-  fontSize: vars.typography.t7.fontSize,
-  lineHeight: vars.typography.t7.lineHeight,
-  wordBreak: "keep-all",
-});
 
 /** 하단 고정 버튼 — 넓은 화면에서도 본문 열 폭을 넘지 않는다(데스크톱에서 1500px 버튼이 됐다, 2026-09-30 QA) */
 export const ctaInner = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: vars.space.xs,
   width: "100%",
   maxWidth: "440px",
   margin: "0 auto",

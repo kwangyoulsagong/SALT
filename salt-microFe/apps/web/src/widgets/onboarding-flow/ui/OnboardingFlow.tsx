@@ -148,29 +148,38 @@ export const OnboardingFlow = () => {
               <InviteCodeForm onAccepted={() => setInviteAccepted(true)} />
             </div>
           ) : null}
-          {body?.pending ? <p className={s.pending}>{body.pending}</p> : null}
         </m.section>
       </AnimatePresence>
 
-      {/* 초대 단계는 폼 안에 제출 버튼이 있다. 나머지는 아래 버튼 하나 — 화면이 없는 단계에서 멈춰 서지 않게 */}
+      {/* 초대 단계는 폼 안에 제출 버튼이 있다. 나머지는 그 단계를 끝내는 화면으로 보내고, 아래에 "나중에 할게요" */}
       {currentStep !== "invite" ? (
         <BottomCTA fixed className={s.ctaBar}>
           <div className={s.ctaInner}>
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onClick={() => router.push(ROUTES.home)}
-            >
-              {currentStep === null
-                ? ONBOARDING_MESSAGES.goHome
-                : ONBOARDING_MESSAGES.laterToHome}
-            </Button>
+            {currentStep === null ? (
+              <Button variant="primary" size="lg" fullWidth onClick={() => router.push(ROUTES.home)}>
+                {ONBOARDING_MESSAGES.goHome}
+              </Button>
+            ) : (
+              <>
+                <Button variant="primary" size="lg" fullWidth onClick={() => router.push(STEP_ROUTE[currentStep])}>
+                  {body?.action}
+                </Button>
+                <Button variant="ghost" size="md" fullWidth onClick={() => router.push(ROUTES.home)}>
+                  {ONBOARDING_MESSAGES.laterToHome}
+                </Button>
+              </>
+            )}
           </div>
         </BottomCTA>
       ) : null}
     </div>
   );
+};
+
+/** 단계를 끝내는 화면 — 거래를 한 건 기록하면(종목 상세의 거래 기록) · 목표를 추가하면 서버가 완료로 바꾼다 */
+const STEP_ROUTE: Record<Exclude<OnboardingStepKey, "invite">, string> = {
+  link_account: ROUTES.investments,
+  set_plan: ROUTES.addGoal,
 };
 
 /** 단계 본문이 밀리는 거리(px) — 모션 원칙 4 "이동 거리는 작게" */
