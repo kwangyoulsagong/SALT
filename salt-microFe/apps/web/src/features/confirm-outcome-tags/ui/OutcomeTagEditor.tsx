@@ -1,6 +1,7 @@
 "use client";
 
 import { KNOWN_MISTAKE_TAGS, type DecisionOutcomeView } from "@repo/core/coach";
+import { StatusLine } from "@repo/ui/statusLine";
 import { useId, useState, type FormEvent } from "react";
 
 import { effectiveOutcomeTags, OutcomeTagChips, tagName } from "@/entities/coach";
@@ -16,7 +17,6 @@ import {
   option,
   options,
   row,
-  status,
   weakButton,
 } from "./OutcomeTagEditor.css";
 
@@ -70,9 +70,9 @@ export const OutcomeTagEditor = ({ outcome }: { outcome: DecisionOutcomeView }) 
           {MSG.edit}
         </button>
         {message && (
-          <p className={status} role="status">
+          <StatusLine kind={message === MSG.saved ? "success" : "error"} live>
             {message}
-          </p>
+          </StatusLine>
         )}
       </div>
     );
@@ -107,9 +107,9 @@ export const OutcomeTagEditor = ({ outcome }: { outcome: DecisionOutcomeView }) 
         </button>
       </div>
       {message && (
-        <p className={status} role="status">
+        <StatusLine kind={message === MSG.saved ? "success" : "error"} live>
           {message}
-        </p>
+        </StatusLine>
       )}
     </form>
   );

@@ -1,6 +1,8 @@
 /** 해설 기능 문구 (`i18n-policy.md`) */
 export const EXPLAIN_MESSAGES = {
   heading: "AI 해설",
+  /** 스트림이 끝났다는 사실 한 줄 (`FE-REQ-044` P-6) — 판단을 축하하는 말이 아니다 */
+  finished: "분석이 완료됐어요",
   open: "해설 보기",
   aiBadge: "AI 생성",
   generatedAt: (time: string) => `${time} 생성`,

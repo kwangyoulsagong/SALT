@@ -7,6 +7,8 @@ import { MARKET_MESSAGES } from "@/entities/market";
 import { ConnectionStatus, useRealtimeConnection } from "@/shared/api";
 import { formatClockTime } from "@/shared/lib";
 
+import { liveDot } from "./RealtimeAsOf.css";
+
 /** 기준 시각을 다시 읽는 간격. 표시 단위가 분이라 이보다 촘촘할 이유가 없다. */
 const RECEIVED_AT_TICK_MS = 30_000;
 
@@ -32,7 +34,7 @@ export const RealtimeAsOf = () => {
     <FlexBox align="center" gap="xs">
       {/* 점은 장식이다. 상태는 문구가 말한다 — 색만으로 구분하지 않는다 */}
       <Text variant="caption" color={live ? "success" : "muted"} aria-hidden>
-        ●
+        <span className={live ? liveDot : undefined}>●</span>
       </Text>
       <Text color="tertiary">{label}</Text>
     </FlexBox>

@@ -1,4 +1,4 @@
-# FE-REQ-044 체크리스트 — 그래픽 · 모션 · 마이크로 인터랙션 (A 단계, 2026-09-30)
+# FE-REQ-044 체크리스트 — 그래픽 · 모션 · 마이크로 인터랙션 (A · B 단계, 2026-09-30)
 
 - REQ: `salt-microFe/requirements/specs/in-progress/FE-REQ-044-MOTION-GRAPHICS.md`
 - 규칙: `salt-microFe/.claude/rules/motion.md`
@@ -55,13 +55,35 @@
 - `pnpm --filter web build` · `pnpm --filter web-tax build` · `pnpm --filter @repo/ui build-storybook` 성공
 - 참고 서비스 이름 grep 0건(REQ · 규칙 · 코드 · 커밋)
 
+## B 단계 — 마이크로 인터랙션
+
+| # | 위치 | 결과 |
+|---|---|---|
+| P-30 누름 | `styles/press.ts`(독립 속성 `scale`) → `Chip` · `TextButton` · `Keypad` · `FilterTabs` · `SegmentedControl` · `Toggle` · `Tabs` | 실측(Storybook): 칩 누르는 동안 `scale 0.97`. 줄인 모션 `none`. `Button` 은 기존 `translateY(1px)` 유지(이전 결정) |
+| P-31 미끄러짐 | `Motion/useSlidingIndicator` → `Tabs` 밑줄 · `SegmentedControl` 흰 알약 | 실측: 알약 x 2 → 5.9(80ms) → 44px · 밑줄 0 → 7.1 → 156px. 측정 전(서버 HTML)엔 항목 자신의 선택 스타일 |
+| P-32 퇴장 | `Motion/usePresence` → `BottomSheet` · `Modal`(`Dialog` 포함) | 실측: Esc 뒤 80ms 에도 dialog 1개(퇴장 중) → 480ms 0개. 줄인 모션이면 60ms 에 0개. 잠금 · 포커스 가두기는 닫는 순간 풀린다 |
+| P-33 별 | `StarIcon` + `useChangedAfterMount` | 켜는 순간에만 튄다. 처음부터 켜진 별은 가만히 — 앱 화면 실측 안 함(관심 종목은 로그인 필요) |
+| P-34 체크 | `Checkbox` | 실측: 처음 켜진 두 개 `animation none`, 누른 것만 pop |
+| P-36 숫자 | `useRolledNumber` · `NumberText animate` → 홈 보유 합계 | 코드만(보유 조회 BFF 필요). 목표 모은 돈은 서버 포맷 문자열이라 굴리지 않는다 |
+| P-37 시세 | `@repo/ui/tickFlash` → `PriceCell` · `MarketSummaryCard` 현재가 | 실측(Storybook LiveTicks): 오르면 `upLight` 면 · `opacity` 만. 등락률 칸 깜빡임(0.8s)은 성능 규칙상 변경 금지라 그대로 |
+| P-38 실시간 점 | `market-board` `RealtimeAsOf` | 연결 중에만 숨쉬기. 줄인 모션이면 느려진다. 실측 안 함(WS 필요) |
+| P-5 저장 결과 | `set-risk-budget` · `confirm-outcome-tags` → `StatusLine` | 코드만(BFF 필요) |
+| P-6 분석 완료 | `explain-symbol` `ExplainCard` 헤더 | 스트림 `done` · AI 생성일 때 "분석이 완료됐어요". 규칙 기반 대체면 안 뜬다. 코드만(SSE 필요) |
+| P-16 막힘 | `entities/coach` `BlockedNotice` | **유지 — 설계 결정**(오류처럼 보이면 안 되는 정상 상태 · 정보 아이콘). 자물쇠 그래픽을 달지 않았다 |
+| P-22 · 23 | 홈 온보딩 카드 · 목표 추가 머리 | 목표 추가 실측: 과녁 장면. 옛 `marginTop: 15%`(폭 기준 빈칸, FSD 이관 때 옮겨 온 값)를 24px 로 — 둘 다 두면 하단 고정 버튼이 안내를 가렸다 |
+
+- 번들: A 단계와 같음(`/onboarding` 151 → 152 kB, 나머지 ±0)
+- axe(`/` · `/onboarding` · `/nope` · `/goals/addgoals`, API 차단): 이번 변경분 0건. 첫 실측에서 404 가 `main` 중복 · `h1` 없음 → `div` + 제목 `h1` 로 고쳐 0건
+- 기존 위반(이번 변경 밖, 색은 이전 결정이라 건드리지 않음): `/onboarding` 단계 라벨 · 입력 라벨 대비 6 · `/goals/addgoals` 뒤로 버튼 이름 없음(critical) · 안내 문구 대비 1 · 두 화면 `page-has-heading-one`
+- 검증: check-types 5/5 · lint 5/5 · test 71 · layer-check · web · web-tax · build-storybook
+
 ## 미검증 · 범위 밖
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| P-1 · P-3 · P-4 · P-35 · P-40 화면 실측 | BFF · 서버가 있어야 한다(목 제거, `fsd-app.md`) | 로컬 풀스택으로 `QA-001` 때, 또는 B 단계에서 Playwright route 로 |
-| 줄인 모션(OS 설정) 실측 | 헤드리스에서 `reducedMotion` 에뮬레이션을 안 돌렸다 | B 단계 validate |
-| axe | 새 그래픽은 전부 `aria-hidden` 이지만 페이지 axe 를 돌리지 않았다 | B 단계 validate |
+| P-1 · 3 · 4 · 5 · 6 · 33 · 35 · 36 · 38 · 40 앱 화면 실측 | BFF · 서버 · WS · SSE 가 있어야 한다(목 제거, `fsd-app.md`) | `QA-001` 로컬 풀스택 |
+| 줄인 모션 — 그래픽 장면 · 숫자 굴리기 | 누름 · 시트는 에뮬레이션으로 확인, 장면 · 숫자는 코드만 | C 단계 validate |
+| 기존 axe 위반 7건(대비 · 뒤로 버튼 이름) | 이번 변경 밖 · 색은 이전 결정 | 사용자 확인 후 별도 REQ |
 | 실기기 · 저사양 프레임 | 헤드리스 Chrome 만 | `QA-001` |
-| B 단계(P-5 · 6 · 16 · 22 · 23 · 30~34 · 36~38) · C 단계(P-17~19 · 39) | 이 브랜치 A 단계 범위 밖 | 다음 커밋들 — REQ 배치표 |
+| C 단계(P-17~19 · 39 · 토스트 퇴장 · 기존 애니메이션 토큰화) | A · B 범위 밖 | 다음 커밋 — REQ 배치표 |
 | RN 모션 | 같은 토큰을 `reanimated` 로 | `RN-REQ` |

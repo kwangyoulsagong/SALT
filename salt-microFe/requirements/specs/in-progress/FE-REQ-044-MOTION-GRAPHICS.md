@@ -65,19 +65,19 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-30 | **누름** — `Button` · `IconButton` · `Chip` · 링크 카드: 누르는 동안 0.97 축소, 떼면 snappy 스프링 복귀. 비활성은 반응 없음 | B 단계 |
-| FR-31 | **숫자 굴러가기** `NumberText` `animate` — 값이 바뀌면 이전 값에서 새 값으로 base 길이만큼 굴러간다. 표 안 시세처럼 1초에 여러 번 바뀌는 곳은 쓰지 않는다(FR-32) | B 단계 |
-| FR-32 | **시세 변동 깜빡임** — 가격 셀이 오르면 상승색 · 내리면 하락색 배경이 0.4초 옅어진다. 방향은 색 + 글자(`aria-live` 없음 — 스크린리더를 시끄럽게 하지 않는다) | B 단계 |
-| FR-33 | **카드 차례 등장** — 페이지 첫 진입에서 카드가 8px 아래에서 올라오며 나타난다, 0.04초 간격 8개까지. 스트리밍 SSR 로 늦게 도착한 블록도 같은 등장 | B 단계 |
-| FR-34 | **탭 · 세그먼트 밑줄 이동** — 선택 표시가 새 탭으로 미끄러진다(`layoutId`) | B 단계 |
-| FR-35 | **바텀시트 · 모달 · 토스트** — 들어올 때 enter, 나갈 때 exit 이징. 나가는 애니메이션이 끝난 뒤 DOM 에서 뺀다(`AnimatePresence`) | B 단계 |
+| FR-30 | **누름** — `Button` · `IconButton` · `Chip` · 링크 카드: 누르는 동안 0.97 축소, 떼면 snappy 스프링 복귀. 비활성은 반응 없음 | 완료 |
+| FR-31 | **숫자 굴러가기** `NumberText` `animate` — 값이 바뀌면 이전 값에서 새 값으로 base 길이만큼 굴러간다. 표 안 시세처럼 1초에 여러 번 바뀌는 곳은 쓰지 않는다(FR-32) | 완료 |
+| FR-32 | **시세 변동 깜빡임** — 가격 셀이 오르면 상승색 · 내리면 하락색 배경이 0.4초 옅어진다. 방향은 색 + 글자(`aria-live` 없음 — 스크린리더를 시끄럽게 하지 않는다) | 완료 |
+| FR-33 | **카드 차례 등장** — 페이지 첫 진입에서 카드가 8px 아래에서 올라오며 나타난다, 0.04초 간격 8개까지. 스트리밍 SSR 로 늦게 도착한 블록도 같은 등장 | C 단계(P-39) |
+| FR-34 | **탭 · 세그먼트 밑줄 이동** — 선택 표시가 새 탭으로 미끄러진다(`layoutId`) | 완료 |
+| FR-35 | **바텀시트 · 모달 · 토스트** — 들어올 때 enter, 나갈 때 exit 이징. 나가는 애니메이션이 끝난 뒤 DOM 에서 뺀다(`AnimatePresence`) | 부분 — 시트 · 모달(다이얼로그) 완료. 토스트 퇴장은 C 단계 |
 | FR-36 | **단계 전환** — 온보딩 · 거래 입력 단계가 넘어가면 옆으로 밀려난다(앞 = 왼쪽, 뒤 = 오른쪽) | 부분 — 온보딩 완료. 거래 입력은 한 화면이라 단계가 없다 |
 
 ### 페이지 배치
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-40 | 아래 **배치표**의 자리에 넣는다. 표에 없는 자리에 그래픽을 더할 때는 이 표에 먼저 행을 추가한다 | 부분 — A 단계 완료, B · C 남음 |
+| FR-40 | 아래 **배치표**의 자리에 넣는다. 표에 없는 자리에 그래픽을 더할 때는 이 표에 먼저 행을 추가한다 | 부분 — A · B 단계 완료, C 남음 |
 
 ### 배치표
 
@@ -91,8 +91,8 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 | P-2 | 목표 추가(`features/add-goal`) | **없음** — 곧바로 홈 이동 | 제출 → `success` lg "목표를 추가했어요" 한 장면 뒤 홈. 제출 중 버튼 `loading` | A ✅ |
 | P-3 | 초대 수락(`features/accept-invite` · 온보딩) | **없음** — 단계가 말없이 넘어감 | `success` md "초대를 수락했어요" 후 다음 단계로 밀기(FR-36) | A ✅ |
 | P-4 | 온보딩 끝(`widgets/onboarding-flow`) | 정적 카드 | `success` lg "준비가 끝났어요" | A ✅ |
-| P-5 | 위험 기준 저장 · 결과 태그 저장(`set-risk-budget` · `confirm-outcome-tags`) | 회색 문장 | `success` sm 인라인 | B |
-| P-6 | 코치 분석 완료(`features/explain-symbol` 스트림 끝 · 코치 리포트 생성) | 스트림 끝나면 조용히 멈춤 | `success` sm "분석이 완료됐어요" 한 줄(판정 문장 옆 아님 — 헤더 줄) | B |
+| P-5 | 위험 기준 저장 · 결과 태그 저장(`set-risk-budget` · `confirm-outcome-tags`) | 회색 문장 | `success` sm 인라인 | B ✅ |
+| P-6 | 코치 분석 완료(`features/explain-symbol` 스트림 끝 · 코치 리포트 생성) | 스트림 끝나면 조용히 멈춤 | `success` sm "분석이 완료됐어요" 한 줄(판정 문장 옆 아님 — 헤더 줄) | B ✅ |
 
 #### 상태 그래픽 — 빈 상태 · 오류 · 막힘 · 진행
 
@@ -104,7 +104,7 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 | P-13 | 코치 리포트 없음 · 추천 없음(`widgets/coach-console` `CoachReport`) | 회색 문장 | `EmptyState` + `Illustration coachBubble` | A ✅ |
 | P-14 | 블록 오류(`shared/ui` `SectionBoundary`) | 인라인 스타일 회색 상자(하드코딩 색) | `StatusGraphic error` sm + 토큰 색 · 문장 유지 | A ✅ |
 | P-15 | 404(`app/not-found.tsx` 없음 — 잘못된 종목 코드) | Next 기본 404 | 새 `not-found` — `Illustration candles` 흐린 판 + "찾는 종목이 없어요" + [투자 화면으로] | A ✅ |
-| P-16 | 판정 막힘(`entities/coach` `BlockedNotice`) | 아이콘 자리 있음 | `blocked` sm(자물쇠 닫힘 한 번) — **반복 금지** | B |
+| P-16 | 판정 막힘(`entities/coach` `BlockedNotice`) | 아이콘 자리 있음 | `blocked` sm(자물쇠 닫힘 한 번) — **반복 금지** | 유지 — 설계 결정(오류처럼 보이면 안 되는 정상 상태 · 정보 아이콘, `BlockedNotice` 주석). 자물쇠를 달지 않는다 |
 | P-17 | 코치 카드 "불러올 수 없어요" 한 줄들(`ZoneSummary` · `JudgmentSummary` · 코치 패널 · 예측 · 사건 · 쏠림) | 회색 문장 | `error` sm 인라인 + 문장 | C |
 | P-18 | 코치 카드 빈 상태(보유 없음 · 표본 적음 · 주의할 점 없음) | 회색 문장 | `empty` sm 인라인. "주의할 점 없음"은 성공 톤 아님(판정 축하 금지) | C |
 | P-19 | 표 로딩(`RealtimeMarketTable` · `WatchlistTab`) | "불러오는 중입니다." 문장 | 행 스켈레톤 | C |
@@ -115,22 +115,22 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 |---|---|---|---|
 | P-20 | 온보딩 단계별 머리 | 초대 = `coachBubble` · 거래 연결 = `ledger` · 월 적립 = `coinPouch` | A ✅ |
 | P-21 | 로그인(`pages/login`) 브랜드 아래 | `coinPouch` | A ✅ |
-| P-22 | 홈 온보딩 카드(`OnboardingCard`) | 다음 단계 장면 sm | B |
-| P-23 | 목표 추가 머리(`pages/add-goal`) | `target` | B |
+| P-22 | 홈 온보딩 카드(`OnboardingCard`) | 다음 단계 장면 sm | B ✅ |
+| P-23 | 목표 추가 머리(`pages/add-goal`) | `target` | B ✅ |
 
 #### 마이크로 인터랙션
 
 | # | 자리 | 넣을 것 | 단계 |
 |---|---|---|---|
-| P-30 | `@repo/ui` `Chip` · `TextButton` · `Toggle` · `Keypad` · `Tabs` · `FilterTabs` | 누름 축소(FR-30) | B |
-| P-31 | `Tabs` · `SegmentedControl` | 선택 표시 미끄러짐(FR-34) | B |
-| P-32 | `BottomSheet`(퇴장 없음) · `Dialog`(애니메이션 없음) | 등장 · 퇴장(FR-35) | B |
-| P-33 | `StarIcon` 관심 종목 토글 | 별이 한 번 튄다(spring bouncy) | B |
-| P-34 | `Checkbox` | 체크 선이 그려진다 | B |
+| P-30 | `@repo/ui` `Chip` · `TextButton` · `Toggle` · `Keypad` · `Tabs` · `FilterTabs` | 누름 축소(FR-30) | B ✅ |
+| P-31 | `Tabs` · `SegmentedControl` | 선택 표시 미끄러짐(FR-34) | B ✅ |
+| P-32 | `BottomSheet`(퇴장 없음) · `Dialog`(애니메이션 없음) | 등장 · 퇴장(FR-35) | B ✅ |
+| P-33 | `StarIcon` 관심 종목 토글 | 별이 한 번 튄다(spring bouncy) | B ✅ |
+| P-34 | `Checkbox` | 체크 선이 그려진다 | B ✅ |
 | P-35 | `ProgressStepper`(온보딩) | 진행 막대가 차오른다 | A ✅ |
-| P-36 | `NumberText` → 홈 보유 합계(`InvestmentSummary`) · 목표 모은 돈(`GoalSavedSection`) | 숫자 굴러가기(FR-31) | B |
-| P-37 | 시세 표 가격(`PriceCell`) · 시장 요약 카드(`MarketSummaryCard`) | 변동 깜빡임(FR-32). 등락률 셀 · 상세 가격은 이미 있음 — 토큰으로만 맞춘다 | B |
-| P-38 | 실시간 기준 시각 점(`RealtimeAsOf`) | 연결 중 숨 쉬는 점 | B |
+| P-36 | `NumberText` → 홈 보유 합계(`InvestmentSummary`) · 목표 모은 돈(`GoalSavedSection`) | 숫자 굴러가기(FR-31). 목표 모은 돈은 서버가 **포맷한 문자열**로 줘서 굴리지 않는다(문자열을 숫자로 되읽지 않는다) — 보유 합계만 | B ✅ |
+| P-37 | 시세 표 가격(`PriceCell`) · 시장 요약 카드(`MarketSummaryCard`) | 변동 깜빡임(FR-32). 등락률 셀 · 상세 가격은 이미 있음 — 토큰으로만 맞춘다 | B ✅ |
+| P-38 | 실시간 기준 시각 점(`RealtimeAsOf`) | 연결 중 숨 쉬는 점 | B ✅ |
 | P-39 | 페이지 카드(홈 · 투자 · 상세 · 리포트) | 차례 등장(FR-33) | C |
 | P-40 | 온보딩 단계 본문 | 옆으로 밀림(FR-36) | A ✅ |
 
@@ -154,5 +154,6 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 ## Changelog
 
 - 2026-09-30: 초판 — 기반 FR-1~5 · 상태 그래픽 FR-10~13 · 장면 일러스트 FR-20~22 · 마이크로 인터랙션 FR-30~36 · 배치 FR-40
+- 2026-09-30: B 단계 구현 — 누름(`scale` 독립 속성) · 탭 밑줄 · 세그먼트 알약 미끄러짐 · 시트 · 모달(다이얼로그) 퇴장 · 별 · 체크 튀기(바뀐 순간만) · 보유 합계 굴리기 · 시세 가격 깜빡임(`TickFlash`) · 실시간 점 숨쉬기 · 저장 결과 · "분석이 완료됐어요". P-16 은 설계 결정으로 유지
 - 2026-09-30: 그래픽 색 파랑 계열 확정(사용자 결정) — `colors.graphic` 유지
 - 2026-09-30: A 단계 구현. 라이브러리를 `motion/react` → `framer-motion`(`m` + 동적 `LazyMotion`)으로 — 네임스페이스 재수출 때문에 모든 페이지 첫 로드 JS 가 +45 kB 였다(→ +19~25 kB). `EmptyState` `iconFrame` · `StatusLine` 추가 · 그래픽 색 토큰 `colors.graphic` · 이징 `fall` 추가

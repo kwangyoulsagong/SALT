@@ -3,6 +3,7 @@
 // 클라이언트 잎: React Query 로 조회한다.
 import type { ReactNode } from "react";
 
+import { useRolledNumber } from "@repo/ui/motion";
 import { StatusLine } from "@repo/ui/statusLine";
 import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
@@ -72,11 +73,7 @@ export const InvestmentSummary = ({ trailing }: InvestmentSummaryProps) => {
                         <Text color="tertiary">
                           {PORTFOLIO_MESSAGES.totalLabel}
                         </Text>
-                        <Text variant="bodyLarge">
-                          {PORTFOLIO_MESSAGES.amount(
-                            formatPrice(holdings.data.totalKrw),
-                          )}
-                        </Text>
+                        <RolledTotal totalKrw={holdings.data.totalKrw} />
                       </FlexBox>
                     ) : null}
                   </>
@@ -91,3 +88,12 @@ export const InvestmentSummary = ({ trailing }: InvestmentSummaryProps) => {
 };
 
 export default InvestmentSummary;
+
+/**
+ * 보유 합계 — 값이 바뀌면 이전 합계에서 굴러간다 (`FE-REQ-044` P-36).
+ * 도착값은 서버 합계 그대로다. 첫 렌더는 굴리지 않는다(서버 HTML 과 같다).
+ */
+const RolledTotal = ({ totalKrw }: { totalKrw: number }) => {
+  const shown = useRolledNumber(totalKrw);
+  return <Text variant="bodyLarge">{PORTFOLIO_MESSAGES.amount(formatPrice(shown))}</Text>;
+};

@@ -6,6 +6,7 @@ import type { CoachMode, ExplainSections, SymbolCoachViewModel } from "@repo/cor
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Heading } from "@repo/ui/heading";
+import { StatusLine } from "@repo/ui/statusLine";
 import { Text } from "@repo/ui/text";
 
 import { JudgmentCases, selectModeView, TrackRecordStats } from "@/entities/coach";
@@ -188,6 +189,10 @@ export const ExplainCard = ({ view, mode, className }: ExplainCardProps) => {
         <Heading level={4}>{M.heading}</Heading>
         {finished && !ruleBased && (
           <>
+            {/* 스트림이 끝난 순간을 그래픽과 함께 한 번 (FE-REQ-044 P-6). 헤더 줄에 둔다 — 판단 문장 옆에 두지 않는다 */}
+            <StatusLine kind="success" live>
+              {M.finished}
+            </StatusLine>
             <Badge size="sm" tone="ai">
               {M.aiBadge}
             </Badge>
