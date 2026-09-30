@@ -7,6 +7,7 @@ import {
   COACH_MESSAGES,
   CoachBlockSkeleton,
   EventsCard,
+  ExchangeCautionNote,
   PositioningCard,
   ForecastCard,
   JudgmentDetail,
@@ -142,7 +143,13 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
     if (coach.isPending || !coach.data || !mode) {
       return <CoachBlockSkeleton block="judgment" />;
     }
-    return <JudgmentDetail view={modeView} mode={mode} />;
+    return (
+      <>
+        {/* 상세 카드는 성적 · 실패 사례까지 길다 — 끝에 두면 묻힌다. 판단보다 먼저 사실 한 줄 */}
+        <ExchangeCautionNote flag={coach.data.exchangeFlag} />
+        <JudgmentDetail view={modeView} mode={mode} />
+      </>
+    );
   };
 
   return (
@@ -177,7 +184,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                 legend={<ZoneLegend lines={priceLines} />}
               />
               {modeView ? (
-                <ZoneSummary zone={modeView.zone} />
+                <ZoneSummary zone={modeView.zone} headingAs={3} />
               ) : (
                 coach.isPending &&
                 !coach.isSignedOut && <CoachBlockSkeleton block="zone" />
@@ -185,7 +192,8 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
             </section>
           </div>
 
-          <aside className={column}>
+          {/* 오른쪽 열 — aside 는 main 안에서 최상위 보조 랜드마크가 아니다(axe landmark-complementary-is-top-level) */}
+          <div className={column}>
             {ownerCards}
             {/* 해설은 판단 바로 옆 정보다 — 거래 기록 폼(펼치면 길다) 아래로 밀리지 않게 위에 둔다 */}
             {coach.data && mode && (
@@ -224,7 +232,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
               symbol={symbol}
               livePrice={livePrice}
             />
-          </aside>
+          </div>
         </div>
       </div>
 

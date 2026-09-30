@@ -73,6 +73,11 @@ export interface SymbolCoachView {
     indicatorTimestamp: Date | null;
     generatedAt: string;
   };
+  /**
+   * 거래소 표시(F010 슬라이스 6 · `SRV-REQ-024` FR-191 · 192). `warning` 이면 두 모드 다 `exchange_warning` 으로 막힌다.
+   * `cautions` 만 켜졌으면 판정은 그대로 나가고 소비처가 한 줄로 알린다. 스냅샷이 없거나 3일 넘었으면 `null`
+   */
+  exchangeFlag: { warning: boolean; cautions: string[]; fetchedAt: string } | null;
   disclaimer: string;
 }
 
@@ -98,7 +103,7 @@ export class GetSymbolCoach {
     private readonly gauges: GaugeTrackStore,
     private readonly clock: Clock = () => new Date(),
     /** 보유 익절 계획의 실현 변동성(F010 슬라이스 2). 없으면 고정 비율 */
-    private readonly forecasts: Pick<ForecastReader, "symbolRisk"> | null = null
+    private readonly forecasts: Pick<ForecastReader, "symbolRisk" | "marketWarnings"> | null = null
   ) {}
 
   private async sentimentTrack(
@@ -125,13 +130,17 @@ export class GetSymbolCoach {
     const symbol = query.symbol.toUpperCase();
     const now = this.clock();
 
-    const [materialsBySymbol, holding, profile, risk] = await Promise.all([
+    const [materialsBySymbol, holding, profile, risk, warnings] = await Promise.all([
       collectJudgmentMaterials(this.market, [symbol]),
       this.portfolio.getHolding(userId, symbol),
       this.profiles.findByUser(userId),
       // 변동성이 실패해도 판단은 나간다 — 익절 계획만 고정 비율로
       this.forecasts ? this.forecasts.symbolRisk([symbol]).catch(() => null) : null,
+      // 표시를 못 읽어도 판정은 나간다(FR-191) — 지금까지와 같은 화면. 모르는 것을 "유의"로 지어내지 않는다
+      this.forecasts ? this.forecasts.marketWarnings([symbol]).catch(() => null) : null,
     ]);
+    const flag = warnings?.get(symbol) ?? null;
+    const warned = flag?.warning === true;
 
     const materials = materialsBySymbol.get(symbol)!;
     const { quote, sentiment, whales } = materials;
@@ -145,8 +154,8 @@ export class GetSymbolCoach {
     // `zone` 도 싣는다 — 생략은 "할 수 있다"이고, 모양이 둘이 되면 소비처가 둘을 다룬다
     const [scalpView, longTermView, zones, gaugeTrackRecords] =
       await Promise.all([
-        attachJudgmentTrack(this.judgments, scalp),
-        attachJudgmentTrack(this.judgments, longTerm),
+        attachJudgmentTrack(this.judgments, scalp, warned),
+        attachJudgmentTrack(this.judgments, longTerm, warned),
         resolveZones(this.market, {
           symbol,
           holding,
@@ -212,6 +221,9 @@ export class GetSymbolCoach {
         indicatorTimestamp: indicator?.timestamp ?? null,
         generatedAt: now.toISOString(),
       },
+      exchangeFlag: flag
+        ? { warning: flag.warning, cautions: flag.cautions, fetchedAt: flag.fetchedAt.toISOString() }
+        : null,
       disclaimer: JUDGMENT_DISCLAIMER,
     };
   }

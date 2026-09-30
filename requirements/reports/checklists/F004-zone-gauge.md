@@ -1,6 +1,6 @@
 # F004 슬라이스 2 — zone · 게이지 적중률 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-zone-gauge-slice.md` · 2026-09-21
+슬라이스: `requirements/specs/done/F004-zone-gauge-slice.md` · 2026-09-21
 브랜치: `feat/f004-zone-gauge` (base `main` `6f701b4`)
 
 ## 1. 요구사항 ↔ 구현

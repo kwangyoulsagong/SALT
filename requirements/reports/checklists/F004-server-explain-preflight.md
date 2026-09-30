@@ -1,6 +1,6 @@
 # F004 슬라이스 10 — 서버 explain · preflight — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-server-explain-preflight-slice.md` · 2026-09-22
+슬라이스: `requirements/specs/done/F004-server-explain-preflight-slice.md` · 2026-09-22
 브랜치: `feat/server-f004-followup` (base `main` `5373189`)
 영역 체크리스트: `salt-server/requirements/reports/checklists/SRV-REQ-025.md` §6 · `salt-microFe/requirements/reports/checklists/FE-REQ-026.md` · `FE-REQ-028.md` · `bff/requirements/reports/checklists/BFF-REQ-025.md`(변경 0 기록)
 

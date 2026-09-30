@@ -1,6 +1,6 @@
 # FE-REQ-035 (F004 CLEANUP) — 검증 체크리스트
 
-- REQ: `salt-microFe/requirements/specs/in-progress/FE-REQ-035-F004-CLEANUP.md`
+- REQ: `salt-microFe/requirements/specs/done/FE-REQ-035-F004-CLEANUP.md`
 - 브랜치: `chore/fe-cleanup-apifetch-candletime` (base `main` `b96faa6`) · 검증일: 2026-09-22
 - 상태: **구현 완료 · in-progress 유지** — 머지 후 done
 - 환경: 로컬 서버 4000 · BFF 4001 · web dev 3000, 계정 `watchlist-check@local.test`. 번들은 **프로덕션 빌드**(git worktree 두 개)

@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # 바이낸스 공개 덤프(aggTrades 일 파일) — 대형 체결 이력(FC-REQ-008)
     binance_dump_url: str = "https://data.binance.vision"
     fred_url: str = "https://api.stlouisfed.org/fred"
+    # Deribit 공개 API — DVOL 이력(FC-REQ-014). 비인증 한도(초당 약 20 크레딧)보다 한참 아래
+    deribit_url: str = "https://www.deribit.com/api/v2"
+    deribit_requests_per_second: float = Field(default=2.0, gt=0)
     fred_api_key: SecretStr | None = None
     # 주요 사건 반응을 계산할 종목(FC-REQ-005) — 화면 초점이 BTC
     event_symbols: str = "KRW-BTC"

@@ -1,6 +1,6 @@
 # F004 슬라이스 9 — 관찰 구간 차트 띠 · 상세 차트 버튼 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-fe-zone-band-slice.md` · 2026-09-22
+슬라이스: `requirements/specs/done/F004-fe-zone-band-slice.md` · 2026-09-22
 브랜치: `feat/fe-trading-chart-polish` (base `main` `68b1a64`)
 영역 체크리스트(본문 · 측정값 전체): `salt-microFe/requirements/reports/checklists/FE-REQ-036.md`
 

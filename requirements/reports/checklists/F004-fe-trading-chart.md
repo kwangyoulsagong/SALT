@@ -1,6 +1,6 @@
 # F004 슬라이스 7 — 상세 분석 트레이딩 차트 (FE) — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-fe-trading-chart-slice.md` · 2026-09-22
+슬라이스: `requirements/specs/done/F004-fe-trading-chart-slice.md` · 2026-09-22
 브랜치: `feat/fe-detail-trading-chart` (base `main` `8a83072`)
 영역 체크리스트(본문 · 측정값 전체): `salt-microFe/requirements/reports/checklists/FE-REQ-034.md` · `FE-REQ-026.md` · `FE-REQ-029.md`
 

@@ -2,7 +2,7 @@
 
 - 브랜치: `feat/f004-symbol-judgment` (base `docs/decisions-q3-q5-q6`) → PR #48, merge `6f701b4`
 - 날짜: 2026-09-21 구현 · 2026-09-22 회고 작성(backfill: 체크리스트 · 커밋 메시지 · 코드 근거)
-- 슬라이스: `requirements/specs/in-progress/F004-symbol-judgment-slice.md`
+- 슬라이스: `requirements/specs/done/F004-symbol-judgment-slice.md`
 - 체크리스트: `requirements/reports/checklists/F004-symbol-judgment.md`
 - 영역 기록: `salt-server/requirements/reports/{checklists,retrospects}/{SRV-REQ-024,SRV-REQ-025,DB-REQ-017}.md`
 

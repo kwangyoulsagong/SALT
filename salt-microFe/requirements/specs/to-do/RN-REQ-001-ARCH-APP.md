@@ -200,3 +200,9 @@ bare RN은 Re.Pack + Module Federation 2를 쓸 수 있어 **Phase 2의 길이 �
 - Expo SDK 버전과 RN 버전 고정. `packages/ui-native`가 그 버전에 묶인다.
 - 푸시 알림 구현 방식 — Expo Notifications vs FCM/APNs 직접. **F007에서 결정**하되, Expo를 쓰기로 한 이상 Expo Notifications가 기본안이다.
 - 기준 저가 Android 기기를 무엇으로 정할지. 성능 예산의 측정 기준이 된다.
+
+## 웹뷰 계약 (2026-09-30 추가)
+
+사용자 결정: 앱은 네이티브 화면 + **정보가 많은 화면은 웹뷰**로 빠르게 띄운다. 웹뷰는 반드시 User-Agent 끝에 `SALTApp/<앱 버전>` 을 붙인다
+(`react-native-webview` `applicationNameForUserAgent`, 값은 `@repo/core/embed` `APP_WEBVIEW_UA_TOKEN`). 빠뜨리면 웹이 768px 미만에서
+"PC로 접속해 주세요" 안내로 화면을 덮는다(`FE-REQ-043` FR-6). 웹뷰로 띄울 화면이 정해지면 그 화면의 휴대폰 폭 레이아웃 REQ 를 따로 만든다.

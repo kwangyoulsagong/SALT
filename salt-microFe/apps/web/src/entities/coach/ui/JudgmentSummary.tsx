@@ -18,6 +18,11 @@ interface JudgmentSummaryProps {
   /** `null` = BFF 가 이 모드를 막았다(계약 깨짐). 판단을 지어내지 않고 "불러올 수 없음" */
   view: ModeCoachViewModel | null;
   mode: CoachMode;
+  /**
+   * 판단 라벨의 **태그** 단계(모양은 늘 h4). 놓이는 자리의 제목 순서를 따른다 — 코치 패널(h5 소제목 뒤,
+   * 아래 구간 h5)은 4, 상세 카드(h2 카드 제목 아래)는 3. 단계를 건너뛰면 axe `heading-order`
+   */
+  labelAs?: 3 | 4;
 }
 
 /**
@@ -32,7 +37,7 @@ interface JudgmentSummaryProps {
  * 그리지 않는 것: "매수"·"매도" 라벨 · 신뢰도 % (D3) · 점수 게이지(FR-14).
  * 점수는 `scoreNote` 가 있을 때만 그린다(FR-11).
  */
-export const JudgmentSummary = ({ view, mode }: JudgmentSummaryProps) => {
+export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProps) => {
   if (!view) {
     return (
       <div className={judgmentSlot}>
@@ -55,7 +60,9 @@ export const JudgmentSummary = ({ view, mode }: JudgmentSummaryProps) => {
 
   return (
     <div className={judgmentSlot}>
-      <Heading level={4}>{judgment.label}</Heading>
+      <Heading level={4} as={labelAs}>
+        {judgment.label}
+      </Heading>
       <p className={metaLine}>{meta}</p>
       {judgment.scoreNote && (
         <p className={scoreLine}>

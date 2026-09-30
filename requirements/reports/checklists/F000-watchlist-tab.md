@@ -1,6 +1,6 @@
 # F000 관심 종목 탭 + FE-REQ-010 수리 — 검증 체크리스트
 
-- 대상 슬라이스: `requirements/specs/in-progress/F000-watchlist-tab-slice.md`
+- 대상 슬라이스: `requirements/specs/done/F000-watchlist-tab-slice.md`
 - 브랜치: `feat/f000-watchlist-tab` (커밋 18개)
 - 검증일: 2026-09-18
 - 검증 환경: 로컬 풀스택 — Postgres 5432 · `salt-server` 4000 · `bff` 4001/4002/worker ·

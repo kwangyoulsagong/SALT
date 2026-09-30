@@ -27,10 +27,29 @@ export type JudgmentAction =
   | "avoid";
 
 export type JudgmentBlockedReason =
+  | "exchange_warning"
   | "reasons_missing"
   | "signal_track_record_missing"
   | "failure_cases_missing"
   | "insufficient_sample";
+
+/** 업비트 투자주의 종류(원문 코드). 모르는 코드는 BFF 에서 버린다 — 화면이 문구를 지어내지 않게 */
+export const EXCHANGE_CAUTIONS = [
+  "PRICE_FLUCTUATIONS",
+  "TRADING_VOLUME_SOARING",
+  "DEPOSIT_AMOUNT_SOARING",
+  "GLOBAL_PRICE_DIFFERENCES",
+  "CONCENTRATION_OF_SMALL_ACCOUNTS",
+] as const;
+export type ExchangeCaution = (typeof EXCHANGE_CAUTIONS)[number];
+
+/** 거래소 표시(F010 슬라이스 6 · `BFF-REQ-039` FR-6). 표시가 없거나 오래됐으면 `null` */
+export interface ExchangeFlag {
+  /** 투자유의 — 두 모드가 `exchange_warning` 으로 막힌다 */
+  warning: boolean;
+  cautions: ExchangeCaution[];
+  fetchedAt: string;
+}
 
 export interface FailureCase {
   date: string;
@@ -176,6 +195,7 @@ export interface SymbolCoachViewModel {
   };
   /** `'news'` · `'modes.scalp'` · `'modes.longTerm'` */
   degradedFields: string[];
+  exchangeFlag: ExchangeFlag | null;
   disclaimer: string;
 }
 
@@ -199,6 +219,7 @@ export interface ServerSymbolCoach {
   evidence: Omit<SymbolCoachViewModel["evidence"], "news">;
   missingData?: string[];
   dataFreshness: SymbolCoachViewModel["dataFreshness"];
+  exchangeFlag?: { warning?: unknown; cautions?: unknown; fetchedAt?: unknown } | null;
   disclaimer?: string;
 }
 
@@ -281,6 +302,35 @@ export const toModeViewModel = (
   };
 };
 
+/** 서버 표시 → 화면 표시. 모양이 틀리면 `null`(표시 없음과 같다 — 서버 게이트는 이미 적용됐다) */
+export const toExchangeFlag = (
+  flag: ServerSymbolCoach["exchangeFlag"],
+): ExchangeFlag | null => {
+  if (!flag || typeof flag.warning !== "boolean" || typeof flag.fetchedAt !== "string") {
+    return null;
+  }
+  const raw = Array.isArray(flag.cautions) ? flag.cautions : [];
+  const cautions = EXCHANGE_CAUTIONS.filter((c) => raw.includes(c));
+  return { warning: flag.warning, cautions, fetchedAt: flag.fetchedAt };
+};
+
+/**
+ * 투자유의면 서버가 `renderable: true` 를 보냈더라도 막는다 — 계약이 어긋났을 때 **막는 쪽**으로만 고친다.
+ * 여기서 `true` 가 만들어지는 경로는 여전히 없다(FR-3)
+ */
+const blockWarned = (
+  mode: ModeCoachViewModel | null,
+  flag: ExchangeFlag | null,
+): ModeCoachViewModel | null => {
+  if (!mode || !flag?.warning || !mode.renderable) return mode;
+  return {
+    renderable: false,
+    blockedReason: "exchange_warning",
+    trackSample: mode.trackRecord.sample,
+    zone: mode.zone,
+  };
+};
+
 const toNewsItem = (article: SymbolNewsItem): SymbolNewsItem => ({
   id: article.id,
   title: article.title,
@@ -299,8 +349,9 @@ export const toSymbolCoachViewModel = (
   if (!coach.disclaimer) throw new SymbolCoachContractError("disclaimer");
 
   const degradedFields: string[] = [];
-  const scalp = toModeViewModel(coach.modes?.scalp);
-  const longTerm = toModeViewModel(coach.modes?.longTerm);
+  const exchangeFlag = toExchangeFlag(coach.exchangeFlag);
+  const scalp = blockWarned(toModeViewModel(coach.modes?.scalp), exchangeFlag);
+  const longTerm = blockWarned(toModeViewModel(coach.modes?.longTerm), exchangeFlag);
   if (!scalp) degradedFields.push("modes.scalp");
   if (!longTerm) degradedFields.push("modes.longTerm");
   if (!news) degradedFields.push("news");
@@ -332,6 +383,7 @@ export const toSymbolCoachViewModel = (
     missingData: coach.missingData ?? [],
     dataFreshness: coach.dataFreshness,
     degradedFields,
+    exchangeFlag,
     disclaimer: coach.disclaimer,
   };
 };

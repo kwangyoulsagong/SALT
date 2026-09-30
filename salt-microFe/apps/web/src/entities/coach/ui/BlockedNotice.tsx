@@ -7,6 +7,8 @@ import {
   blockedMeta,
   blockedReason,
   blockedText,
+  exchangeLine,
+  exchangeReason,
 } from "./CoachBlock.css";
 
 interface BlockedNoticeProps {
@@ -22,12 +24,17 @@ interface BlockedNoticeProps {
  * 판단이 이 상태다(FR-143). 그래서 빨간색 · 경고 아이콘 · [다시 시도]가 없고, 아이콘은 정보(ⓘ)다.
  */
 export const BlockedNotice = ({ reason, sample }: BlockedNoticeProps) => {
-  const meta = [
-    sample !== null ? COACH_MESSAGES.blockedSample(sample) : null,
-    COACH_MESSAGES.blockedNormal,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  // 투자유의는 표본이 쌓이는 중이 아니다 — 표본 수 · "정상 동작" 대신 막은 이유의 둘째 줄
+  const warned = reason === "exchange_warning";
+  const meta =
+    warned
+      ? COACH_MESSAGES.blockedExchange
+      : [
+          sample !== null ? COACH_MESSAGES.blockedSample(sample) : null,
+          COACH_MESSAGES.blockedNormal,
+        ]
+          .filter(Boolean)
+          .join(" · ");
 
   return (
     <div className={blockedBox}>
@@ -37,8 +44,11 @@ export const BlockedNotice = ({ reason, sample }: BlockedNoticeProps) => {
         <circle cx="10" cy="6.25" r="1" fill="currentColor" />
       </svg>
       <div className={blockedText}>
-        <span className={blockedReason}>{COACH_MESSAGES.blocked[reason]}</span>
-        <span className={blockedMeta}>{meta}</span>
+        <span className={warned ? `${blockedReason} ${exchangeReason}` : blockedReason}>
+          {COACH_MESSAGES.blocked[reason]}
+        </span>
+        {/* 투자유의 둘째 줄은 막은 이유라 AA 대비 — 표본 메타의 옅은 회색을 쓰지 않는다 */}
+        <span className={warned ? exchangeLine : blockedMeta}>{meta}</span>
       </div>
     </div>
   );

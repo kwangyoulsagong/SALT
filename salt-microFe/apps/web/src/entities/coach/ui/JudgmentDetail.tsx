@@ -29,7 +29,7 @@ export const TrackRecordStats = ({ record }: { record: TrackRecord }) => {
   const tone = record.lowSample ? "lowSample" : "normal";
   return (
     <section className={detailSection}>
-      <Heading level={5} color="tertiary">
+      <Heading level={5} as={4} color="tertiary">
         {DETAIL.trackRecordHeading}
       </Heading>
       <dl className={statRow}>
@@ -69,7 +69,7 @@ export const TrackRecordStats = ({ record }: { record: TrackRecord }) => {
 /** 맞았던 때 · 틀렸던 때. 해설 카드도 같은 것을 쓴다(FR-135) */
 export const JudgmentCases = ({ cases }: { cases: readonly FailureCase[] }) => (
   <section className={detailSection}>
-    <Heading level={5} color="tertiary">
+    <Heading level={5} as={4} color="tertiary">
       {DETAIL.failureHeading}
     </Heading>
     <ul className={caseList}>
@@ -102,15 +102,15 @@ interface JudgmentDetailProps {
  * 않는다(B2 · FR-142 의 원칙을 여기에도).
  */
 export const JudgmentDetail = ({ view, mode }: JudgmentDetailProps) => {
-  if (!view || !view.renderable) return <JudgmentSummary view={view} mode={mode} />;
+  if (!view || !view.renderable) return <JudgmentSummary view={view} mode={mode} labelAs={3} />;
 
   const { judgment, trackRecord, failureCases } = view;
 
   return (
     <>
-      <JudgmentSummary view={view} mode={mode} />
+      <JudgmentSummary view={view} mode={mode} labelAs={3} />
       <section className={detailSection}>
-        <Heading level={5} color="tertiary">
+        <Heading level={5} as={4} color="tertiary">
           {DETAIL.reasonsHeading}
         </Heading>
         <ul className={plainList}>
@@ -121,7 +121,7 @@ export const JudgmentDetail = ({ view, mode }: JudgmentDetailProps) => {
       </section>
       {judgment.risks.length > 0 && (
         <section className={detailSection}>
-          <Heading level={5} color="tertiary">
+          <Heading level={5} as={4} color="tertiary">
             {DETAIL.risksHeading}
           </Heading>
           <ul className={plainList}>

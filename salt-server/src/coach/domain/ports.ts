@@ -553,6 +553,22 @@ export interface ForecastReader {
    * 등록 목표 하나의 최신 요약 한 행. 첫 리밸런스(2026-10-05) 전이면 `null`
    */
   targetWeightLive(target: number): Promise<TargetWeightLiveRecord | null>;
+  /**
+   * 업비트 거래 유의 · 주의 표시 — `forecast.v_market_warning`(F010 슬라이스 6 · `FC-REQ-014`). 종목별 최신 스냅샷 한 행.
+   * 원천이 "지금 상태"만 주는 공식 API 라 salt-forecast 가 매일 스냅샷을 쌓는다. 3일 넘은 스냅샷은 맵에서 빠진다
+   */
+  marketWarnings(symbols: string[]): Promise<Map<string, MarketWarningState>>;
+}
+
+/**
+ * 거래소 표시 한 종목. `warning` = 투자유의(판정 · 추천을 내지 않는다), `cautions` = 켜진 투자주의 종류 코드
+ * (`PRICE_FLUCTUATIONS` · `TRADING_VOLUME_SOARING` · `DEPOSIT_AMOUNT_SOARING` · `GLOBAL_PRICE_DIFFERENCES` ·
+ * `CONCENTRATION_OF_SMALL_ACCOUNTS`). 문구는 소비처가 코드로 고른다
+ */
+export interface MarketWarningState {
+  warning: boolean;
+  cautions: string[];
+  fetchedAt: Date;
 }
 
 export interface SymbolRisk {

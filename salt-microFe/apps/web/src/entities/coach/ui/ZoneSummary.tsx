@@ -23,9 +23,12 @@ const row = (label: string, price: number, gap: number): KeyValueItem => ({
   ),
 });
 
-const ZoneHeading = ({ title }: { title: string }) => (
+/** 제목 태그 단계 — 모양은 늘 h5. 코치 패널(판단 h4 뒤)은 5, 상세 "차트 · 구간" 카드(h2 아래)는 3 */
+type ZoneHeadingAs = 3 | 5;
+
+const ZoneHeading = ({ title, as }: { title: string; as: ZoneHeadingAs }) => (
   <div className={zoneHeader}>
-    <Heading level={5} color="tertiary">
+    <Heading level={5} as={as} color="tertiary">
       {title}
     </Heading>
     <Badge size="sm" tone="neutral">
@@ -41,11 +44,11 @@ const ZoneHeading = ({ title }: { title: string }) => (
  * 막혀도(`renderable: false`) 그린다. `예측 아님` 배지는 언제나 붙는다.
  * 가격과 거리는 서버 값을 표시만 한다(제품 공통 수용 기준 §6-3).
  */
-export const ZoneSummary = ({ zone }: { zone: Zone }) => {
+export const ZoneSummary = ({ zone, headingAs = 5 }: { zone: Zone; headingAs?: ZoneHeadingAs }) => {
   if (zone.kind === "unavailable") {
     return (
       <div className={zoneSlot}>
-        <ZoneHeading title={ZONE.observationHeading} />
+        <ZoneHeading title={ZONE.observationHeading} as={headingAs} />
         <Text color="tertiary">{ZONE.unavailable[zone.reasonCode]}</Text>
       </div>
     );
@@ -54,7 +57,7 @@ export const ZoneSummary = ({ zone }: { zone: Zone }) => {
   if (zone.kind === "held_rule") {
     return (
       <div className={zoneSlot}>
-        <ZoneHeading title={ZONE.heldRuleHeading} />
+        <ZoneHeading title={ZONE.heldRuleHeading} as={headingAs} />
         <KeyValueList
           items={zone.stages.map((stage) =>
             row(ZONE.stages[stage.key], stage.price, stage.priceGap),
@@ -68,7 +71,7 @@ export const ZoneSummary = ({ zone }: { zone: Zone }) => {
   const rule = ZONE.rules[zone.ruleCode];
   return (
     <div className={zoneSlot}>
-      <ZoneHeading title={ZONE.observationHeading} />
+      <ZoneHeading title={ZONE.observationHeading} as={headingAs} />
       <KeyValueList
         items={[
           row(ZONE.observation.lower, zone.lower, zone.priceGap.lower),

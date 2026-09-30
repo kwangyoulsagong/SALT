@@ -5,5 +5,6 @@
  */
 export * from "./providers";
 export { AppShell } from "./ui/AppShell";
+export { EMBED_SCRIPT } from "./embed";
 export { store } from "./store";
 export type { AppDispatch, RootState } from "./store";

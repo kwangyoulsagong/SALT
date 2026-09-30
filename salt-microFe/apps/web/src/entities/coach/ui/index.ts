@@ -1,5 +1,6 @@
 export { BlockedNotice } from "./BlockedNotice";
 export { CoachBlockSkeleton } from "./CoachBlockSkeleton";
+export { ExchangeCautionNote } from "./ExchangeCautionNote";
 export { GaugeTrackRecordLine } from "./GaugeTrackRecordLine";
 export { JudgmentCases, JudgmentDetail, TrackRecordStats } from "./JudgmentDetail";
 export { JudgmentSummary } from "./JudgmentSummary";

@@ -8,6 +8,7 @@ import { memo, useMemo } from "react";
 import {
   COACH_MESSAGES,
   CoachBlockSkeleton,
+  ExchangeCautionNote,
   findGaugeTrackRecord,
   GaugeTrackRecordLine,
   JudgmentSummary,
@@ -46,6 +47,7 @@ const JudgmentAndZone = ({
         {COACH_MESSAGES.judgmentHeading}
       </Heading>
       <JudgmentSummary view={modeView} mode={mode} />
+      <ExchangeCautionNote flag={view.exchangeFlag} />
       {modeView && <ZoneSummary zone={modeView.zone} />}
     </>
   );

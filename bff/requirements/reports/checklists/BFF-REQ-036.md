@@ -1,6 +1,6 @@
 # BFF-REQ-036 (F000 CLEANUP) — 검증 체크리스트
 
-- REQ: `requirements/specs/in-progress/BFF-REQ-036-F000-CLEANUP.md`
+- REQ: `requirements/specs/done/BFF-REQ-036-F000-CLEANUP.md`
 - 브랜치: `chore/bff-cleanup` (base `main` `5373189`) · 검증일: 2026-09-22
 - 상태: **완료** — FR-1~6 pass. 동면 1주 로그(`BFF-REQ-007` FR-6)만 2026-09-29
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-bff-cleanup.md`

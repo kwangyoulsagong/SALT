@@ -20,4 +20,4 @@
 | 테스트 | `npm test` 174 / 0(+7, `app-positioning.test.ts`: 옮기기 · 모르는 상태 · 범위 밖 백분위 · 빗나간 때 없음 · 면책 없음 · 404 그대로 · 5xx unavailable) · `npm run build` |
 | 계약 | 서버 FR-11 응답 모양 그대로 + 막기만. `renderable: true` 를 만드는 경로 없음 |
 
-미검증: 실 토큰으로 서버 → BFF 한 바퀴(머지 뒤 재기동 · 로그인 QA).
+미검증: 실 토큰으로 서버 → BFF 한 바퀴(머지 뒤 재기동 · `QA-001` 로그인 QA).

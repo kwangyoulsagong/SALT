@@ -174,7 +174,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.generationLogs,
     undefined,
     analyzeTradingBehavior,
-    deps.recommendations
+    deps.recommendations,
+    deps.forecasts
   );
 
   const getRiskBudget = new GetRiskBudget(deps.profiles, deps.portfolio, deps.market, deps.forecasts);

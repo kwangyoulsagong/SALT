@@ -161,7 +161,8 @@ export const Tabs = ({
             <Tab
               key={tab.id}
               id={`${baseId}-tab-${tab.id}`}
-              panelId={`${baseId}-panel-${tab.id}`}
+              // 패널을 이 컴포넌트가 그릴 때만 가리킨다 — 소비처가 패널을 직접 그리면 없는 id 를 가리킨다(axe critical)
+              panelId={tabPanel ? `${baseId}-panel-${tab.id}` : undefined}
               isActive={validActiveTab === tab.id}
               disabled={tab.disabled}
               onClick={() => handleTabClick(tab.id)}

@@ -124,6 +124,16 @@ describe("judgmentGate — 3종 게이트 (FR-137)", () => {
     );
   });
 
+  it("투자유의 종목은 근거 · 표본 · 실패사례가 다 있어도 막는다 — 가장 먼저 (FR-191)", () => {
+    const full = { ...wait, reasons: ["x"], trackRecord: record(30), failureCases: [miss] };
+    assert.deepEqual(judgmentGate({ ...full, exchangeWarning: true }), {
+      renderable: false,
+      blockedReason: "exchange_warning",
+    });
+    assert.deepEqual(judgmentGate({ ...full, reasons: [], exchangeWarning: true }).blockedReason, "exchange_warning");
+    assert.equal(judgmentGate({ ...full, exchangeWarning: false }).renderable, true);
+  });
+
   it("표본이 20 미만이면 insufficient_sample — 초기 상태가 이것이다", () => {
     assert.deepEqual(
       judgmentGate({ ...wait, reasons: ["x"], trackRecord: record(19), failureCases: [miss] }),

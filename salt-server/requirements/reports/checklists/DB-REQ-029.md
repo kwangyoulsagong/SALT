@@ -60,3 +60,11 @@
 - 불변: 두 원장 표 UPDATE 트리거(`judgment_ledger_immutable` 재사용) · 결과 CHECK(missing_bar 가 아니면 수익 NOT NULL)
 - 뷰 `v_target_weight_live` EXPLAIN: PK Index Scan · 0.015ms(행 0)
 - 롤백: 뷰 → 요약 → 결과 → 비중 DROP(참조 역순). 미검증: 운영 DB 적용(배포 시)
+
+## FR-22 — `forecast.market_warning_snapshot` · `v_market_warning` (2026-09-30)
+
+- 마이그레이션 `20260930100000_forecast_market_warning` 추가만 · `prisma migrate deploy` 로컬 적용 · `salt-forecast` 스키마 계약 테스트 통과
+- 불변: UPDATE 트리거(`judgment_ledger_immutable`) · 쓰기는 `INSERT … ON CONFLICT DO NOTHING`
+- 실측: 스냅샷 290행 × 2 · 뷰 한 종목 Bitmap Index Scan 0.248ms · 서버 배치 3종목 0.375ms(Seq Scan 580행 — 표가 커지면 `(symbol, fetched_at DESC)` 인덱스)
+- 롤백: `DROP VIEW forecast.v_market_warning; DROP TABLE forecast.market_warning_snapshot;`
+- 미검증: 운영 DB 적용(배포 시)

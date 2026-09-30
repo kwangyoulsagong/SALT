@@ -22,7 +22,7 @@ from sqlalchemy import (
     Table,
     Text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 
 metadata = MetaData(schema="forecast")
 
@@ -370,4 +370,14 @@ target_weight_live_summary = Table(
     Column("downside", Float),
     Column("worst_weeks", JSONB, nullable=False),
     Column("computed_at", DateTime(timezone=True), nullable=False),
+)
+
+# 업비트 거래 유의 · 주의 스냅샷 — 20260930100000_forecast_market_warning (FC-REQ-014)
+market_warning_snapshot = Table(
+    "market_warning_snapshot",
+    metadata,
+    Column("symbol", Text, primary_key=True),
+    Column("fetched_at", DateTime(timezone=True), primary_key=True),
+    Column("warning", Boolean, nullable=False),
+    Column("cautions", ARRAY(Text), nullable=False),
 )

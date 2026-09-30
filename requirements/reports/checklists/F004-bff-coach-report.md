@@ -1,6 +1,6 @@
 # F004 슬라이스 14 — BFF 코치 리포트 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F004-bff-coach-report-slice.md` · 2026-09-23
+슬라이스: `requirements/specs/done/F004-bff-coach-report-slice.md` · 2026-09-23
 브랜치: `feat/bff-f004-coach-report` (base `feat/server-f004-coach-cooldown` `0b22309` — 서버 두 슬라이스 위)
 영역 체크리스트: `bff/requirements/reports/checklists/BFF-REQ-023.md` · `BFF-REQ-025.md`
 

@@ -1,6 +1,6 @@
 # F000 실시간 시세 신뢰성 — 통합 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F000-realtime-reliability-slice.md` · 2026-09-21
+슬라이스: `requirements/specs/done/F000-realtime-reliability-slice.md` · 2026-09-21
 브랜치: `feat/f000-realtime-reliability`
 
 ## 1. 커밋

@@ -272,7 +272,7 @@
 |---|---|
 | 계약 | `trackRecord` · `signalTrackRecord` 에 `alwaysUpRate` · `excessWinRate`(추천은 `horizonHours` 720) · `blockedReason` `insufficient_sample` · `failureCases[].symbol/returnRate` · `signal-performance` 새 모양 — 유스케이스 테스트로 고정(`recommendationLedger.test.ts` · `getCoachDetail.test.ts`) |
 | 소비처 | BFF `coach-report.viewmodel` · `symbol-coach.viewmodel` · `app-signal-performance.service` 동시 변경(`BFF-REQ-024` FR-40) · `@repo/core` 타입(`FE-REQ-026` FR-165) |
-| 미검증 | 인증 HTTP 본문 실측(로컬 토큰 불가 — 기존 제약) → 로그인 QA |
+| 미검증 | 인증 HTTP 본문 실측(로컬 토큰 불가 — 기존 제약) → `QA-001` 로그인 QA |
 
 ## F010 슬라이스 2 — FR-60 익절 가격선 근거 (2026-09-29)
 

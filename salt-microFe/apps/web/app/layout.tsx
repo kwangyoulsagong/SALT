@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { AppProviders, AppShell } from "@/app";
+import { AppProviders, AppShell, EMBED_SCRIPT } from "@/app";
 import "@/app/styles/globals.css";
 
 /**
@@ -16,7 +16,11 @@ export { rootMetadata as metadata } from "@/app/seo";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ko">
+    // 앱 웹뷰 판단 스크립트가 <html> 속성을 단다 — 그 한 곳의 불일치만 허용(`src/app/embed.ts`)
+    <html lang="ko" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: EMBED_SCRIPT }} />
+      </head>
       <body>
         <AppProviders>
           <AppShell>{children}</AppShell>

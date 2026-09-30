@@ -26,8 +26,8 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 실제 계정 데이터 화면 | 로그인 토큰 없음 — Playwright route 고정 데이터 | 로그인 QA(사용자) |
-| 미러 손실 비대칭 줄 · 리포트 익절 플랜 근거 줄 화면 | 리포트 화면 고정 데이터를 만들지 않았다(코드 · 타입만) | 로그인 QA |
+| 실제 계정 데이터 화면 | 로그인 토큰 없음 — Playwright route 고정 데이터 | `QA-001` 로그인 QA(사용자) |
+| 미러 손실 비대칭 줄 · 리포트 익절 플랜 근거 줄 화면 | 리포트 화면 고정 데이터를 만들지 않았다(코드 · 타입만) | `QA-001` 로그인 QA |
 | 기존 대비 미달 — `surface.panelDescription`(3.03) · `CoachDetail` statTerm · th · caption · gapCaption · `EventsCard` 문구 · 세그먼트 탭 | 이 슬라이스 이전 스타일, 리포트 · 상세 전체가 바뀐다 | `@repo/ui` · 표면 대비 정리 REQ(F009 남은 것) |
 | [오늘의 판정] · ΔSHAP · 확률 · 기대 R · 국면별 적중(FR-9) | 비중 산식 · 보정 확률이 없다 | 슬라이스 4 → 5 |
 | 리포트 위험 게이지 합산 재배치(FR-10) | 요약은 `/investments` 가 먼저 가짐 | 슬라이스 5 |
@@ -39,3 +39,34 @@
 - 성적표 칸은 채점 건수 · 신호 종류만 — 적중률 단독 표시 없음(`modeling-evaluation.md` §4)
 - 검증은 `FE-REQ-042` 체크리스트 FR-13 과 같다(axe 0 · 띠 108px · 시세 표 647px)
 - 미검증: FR-10 게이지 합산(여전히 범위 밖) · 실제 계정 손실 예산 설정 상태의 위험 칸(이 계정은 기준 없음)
+
+## FR-14 — 거래소 투자유의 · 주의 (2026-09-30, `feat/f010-slice6-independent-data`)
+
+| 항목 | 위치 | 결과 |
+|---|---|---|
+| 막힘 안내 `exchange_warning` | `entities/coach/ui/BlockedNotice.tsx` · `model/messages.ts` | 상세 · 패널 A 상태 1440 · 360 문구 표시 · 둘째 줄 6.45:1 |
+| 주의 한 줄 | `entities/coach/ui/ExchangeCautionNote.tsx` · `CoachPanel` · `SymbolAnalysis`(판단 위) | B 상태 문구 표시 · 7.11:1 · 360 에서 한 줄 |
+| 표시 없음 회귀 | 같은 곳 | C 상태 새 문구 0 · 모양 그대로 |
+
+검증(Playwright route 고정 데이터 · `next build` + `next start -p 3100` · worktree):
+- 상세 · 패널 × A · B · C × 1440 · 360 = 12조합 **axe serious · critical 0**(color-contrast 0) · pageerror 0 · 카드 넘침 0
+- 첫 실측에서 새 두 줄이 기존 회색 재사용으로 2.75 · 3.32:1 → `a7f7923` 에서 고침. 같은 실측에서 나온 **기존 위반도 고쳤다**(사용자 요청):
+  `c21d49a` 보조 회색 토큰(tertiary · 앱 `text.primary` → #6B7684, 세그먼트 비선택 neutral 700) · `ca8b658` 판정 영역 메타 · 게이지 · 라벨 줄바꿈 ·
+  `4ad0b6d` 360 투자 화면 문서 374 → 360(필터 행 `fullWidth` — 원인 체인 실측, 브라우저에서 같은 CSS 로 360 확인)
+- `pnpm check-types` · `pnpm lint` 5/5 · `pnpm test` core 26 · ui 43 · `web-tax` 빌드 · `@repo/ui` `build-storybook` 성공
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| heading-order(moderate) — 상세 카드 `h2 → h4` | serious 아님 · 제목 단계를 바꾸면 크기도 바뀐다 | 표면 대비 정리 REQ |
+| `4ad0b6d` 뒤 360 실측 재확인 | 원인 실측 때 같은 CSS(`width: 100%`)를 브라우저에서 넣어 360 확인 — 커밋된 코드로는 다시 안 돌렸다 | `QA-001` 로그인 QA |
+| 실제 계정 · 실제 유의 종목 화면 | 로컬 인증 토큰 발급 불가 | `QA-001` 로그인 QA(사용자) |
+
+### 2026-09-30 정정 — 일괄 색 치환 되돌림(`3888821`)
+
+위 `c21d49a`(tertiary · 앱 보조 회색 · 세그먼트) · `ca8b658`(막힘 메타 · 게이지) · `206e219`(neutral 500 14곳 · 뒤로가기)의 **색 변경은 되돌렸다** —
+참고 화면 실측 · 재설계에서 일부러 정한 값이었다(사용자 지적). 그래서 그 요소들의 axe color-contrast 는 **다시 남는다**(설계 결정).
+남긴 것: 새로 만든 두 줄(`exchangeLine` 6.45 · 7.11:1) · main 랜드마크 · keep-all · 360 넘침 · 탭 aria-controls · 제목 태그.
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 기존 회색 · 상승/하락 색의 대비 미달(3.03~4.41:1) | 참고 화면에 맞춘 의도된 색 — 바꾸지 않는다(사용자 결정 2026-09-30) | 디자인 방향이 바뀔 때만 |

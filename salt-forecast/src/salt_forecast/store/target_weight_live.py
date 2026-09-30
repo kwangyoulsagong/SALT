@@ -14,7 +14,7 @@ from datetime import datetime
 from sqlalchemy import Engine, select
 from sqlalchemy.dialects.postgresql import insert
 
-from salt_forecast.scoring.target_weight_live import UNIVERSE, OutcomeRow, SummaryRow, WeightRow, same_weights
+from salt_forecast.domain.target_weight import UNIVERSE, OutcomeRow, SummaryRow, WeightRow, same_weights
 from salt_forecast.store.tables import (
     target_weight_live_outcome,
     target_weight_live_summary,

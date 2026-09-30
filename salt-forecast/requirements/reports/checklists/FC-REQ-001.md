@@ -1,6 +1,6 @@
 # F008 슬라이스 16 · 16b · 20 — forecast 스키마 · 기준 모델 · 수집 · LightGBM — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F008-forecast-baseline-slice.md` · 2026-09-23
+슬라이스: `requirements/specs/done/F008-forecast-baseline-slice.md` · 2026-09-23
 브랜치: `feat/f004-coach-forecast` (base `main` `e891c6c`)
 영역: `salt-forecast/requirements/reports/checklists/FC-REQ-001.md` · `salt-server` `DB-REQ-029`
 

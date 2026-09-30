@@ -3,7 +3,7 @@
 - 브랜치: `feat/f000-realtime-reliability` (PR #43, 머지 `2127b3a`)
 - 날짜: 2026-09-21
 - 체크리스트: `requirements/reports/checklists/F000-realtime-reliability.md`
-- 슬라이스: `requirements/specs/in-progress/F000-realtime-reliability-slice.md`
+- 슬라이스: `requirements/specs/done/F000-realtime-reliability-slice.md`
 
 ## 1. 무엇을 했나
 

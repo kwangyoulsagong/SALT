@@ -1,6 +1,6 @@
 # F000 시세 표 필터·기간 변동률·레이아웃 — 통합 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F000-market-table-slice.md` · 2026-09-21
+슬라이스: `requirements/specs/done/F000-market-table-slice.md` · 2026-09-21
 브랜치: `feat/f000-market-table`
 
 ## 1. 커밋

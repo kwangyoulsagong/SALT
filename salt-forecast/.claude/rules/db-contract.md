@@ -36,7 +36,8 @@
 | `preregistration` | key | 사전등록 — 한 번만, UPDATE 트리거 금지(`FC-REQ-008`) |
 | `rule_ic` | (prereg_key, run_as_of, source, item, mode, horizon_days, label_kind, regime) | 규칙 항목별 IC · 실행마다 쌓음. 서버는 아직 읽지 않는다 |
 | `market_regime` | (symbol, as_of) | BTC 국면 한 행 · 채택 게이트 · 이벤트 계수(`FC-REQ-010`). `realized_vol.btc_beta` 도 같은 슬라이스 |
-| `v_symbol_facts` · `v_symbol_actors` · `v_forecast_card` · `v_realized_vol` · `v_market_signal` · `v_signal_reaction` · `v_market_regime` | 뷰 | **서버가 읽는 계약** |
+| `market_warning_snapshot` | (symbol, fetched_at) | 업비트 유의 · 주의 스냅샷 — 불변(UPDATE 트리거 금지), 받을 때마다 쌓음(`FC-REQ-014`) |
+| `v_symbol_facts` · `v_symbol_actors` · `v_forecast_card` · `v_realized_vol` · `v_market_signal` · `v_signal_reaction` · `v_market_regime` · `v_market_warning` | 뷰 | **서버가 읽는 계약** |
 
 - 수치는 `numeric`(금액) · `double precision`(수익률 · 확률). 금액을 float 로 저장하지 않는다.
 - 시각은 전부 `timestamptz`, UTC 저장. 표시 시간대는 서버 · 프론트 몫.

@@ -2,6 +2,9 @@ import { ProfileMenu } from "@/features/sign-out";
 import { HomeBriefing } from "@/widgets/home-briefing";
 import { OnboardingCard } from "@/widgets/onboarding-flow";
 
+import { HOME_PAGE_MESSAGES } from "../model/messages";
+import { srOnly } from "./HomePage.css";
+
 /**
  * 홈 (`/home`) — 서버 컴포넌트.
  *
@@ -23,6 +26,7 @@ export const HomePage = () => {
         헤더 프로필(설정 · 로그아웃 메뉴)은 **페이지가** 놓는다(2026-09-24). `home-briefing` 은 읽기 전용
         위젯이라 feature 를 넣지 않는다(`fsd-widgets.md`). 투자 화면도 같은 `ProfileMenu` 를 놓는다.
       */}
+      <h1 className={srOnly}>{HOME_PAGE_MESSAGES.heading}</h1>
       <ProfileMenu />
       <OnboardingCard />
       <HomeBriefing />

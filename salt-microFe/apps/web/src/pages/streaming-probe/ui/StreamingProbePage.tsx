@@ -106,7 +106,7 @@ export const StreamingProbePage = async ({ searchParams }: PageProps) => {
   const blocking = mode === "blocking";
 
   return (
-    <main style={{ display: "grid", gap: 16, padding: 24 }}>
+    <div style={{ display: "grid", gap: 16, padding: 24 }}>
       <h1 data-probe-mode={blocking ? "blocking" : "streaming"}>
         스트리밍 프로브 (합성 · {blocking ? "1콜 집계" : "스트리밍"})
       </h1>
@@ -127,7 +127,7 @@ export const StreamingProbePage = async ({ searchParams }: PageProps) => {
           </BlockBoundary>
         ))
       )}
-    </main>
+    </div>
   );
 };
 
