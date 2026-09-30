@@ -31,6 +31,8 @@ export const statRow = style({
 
 export const statTerm = style({
   color: vars.colors.text.tertiary,
+  // 360 폭에서 "가장 나빴던 수익률" 이 단어 중간에서 끊겼다
+  wordBreak: "keep-all",
   fontSize: vars.typography.t8.fontSize,
   lineHeight: vars.typography.t8.lineHeight,
 });

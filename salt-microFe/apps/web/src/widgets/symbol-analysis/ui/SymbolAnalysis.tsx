@@ -145,8 +145,9 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
     }
     return (
       <>
-        <JudgmentDetail view={modeView} mode={mode} />
+        {/* 상세 카드는 성적 · 실패 사례까지 길다 — 끝에 두면 묻힌다. 판단보다 먼저 사실 한 줄 */}
         <ExchangeCautionNote flag={coach.data.exchangeFlag} />
+        <JudgmentDetail view={modeView} mode={mode} />
       </>
     );
   };

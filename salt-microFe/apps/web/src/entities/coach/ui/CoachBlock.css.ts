@@ -60,8 +60,9 @@ export const blockedReason = style({
   lineHeight: "22px",
 });
 
+/** 회색 면(neutral 100) 위라 neutral 700(6.45:1) — 500 은 2.75:1 로 AA 미달이었다 */
 export const blockedMeta = style({
-  color: ds.colors.neutral[500],
+  color: ds.colors.neutral[700],
   fontSize: "13px",
   lineHeight: "19px",
 });
@@ -131,7 +132,8 @@ const gaugeLineBase = style({
 /** `lowSample` 이면 회색 — 표본이 적은 분포를 같은 무게로 읽지 않게 (FR-118 · FR-21) */
 export const gaugeLine = styleVariants({
   normal: [gaugeLineBase, { color: vars.colors.text.secondary }],
-  lowSample: [gaugeLineBase, { color: vars.colors.text.email }],
+  // 옅게 읽히되 AA — text.email(#A8A6AC)은 흰 면 2.4:1 이었다. neutral 600 = 4.62:1
+  lowSample: [gaugeLineBase, { color: ds.colors.neutral[600] }],
 });
 
 /** 화면에는 없고 스크린리더만 읽는다 */
