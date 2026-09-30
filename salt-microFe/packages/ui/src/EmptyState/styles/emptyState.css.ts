@@ -38,10 +38,22 @@ export const iconStyles = recipe({
         color: vars.colors.status.errorDark,
       },
     },
+    frame: {
+      badge: {},
+      none: {},
+    },
   },
+
+  compoundVariants: [
+    {
+      variants: { frame: "none" },
+      style: { width: "auto", height: "auto", borderRadius: 0, background: "none" },
+    },
+  ],
 
   defaultVariants: {
     tone: "empty",
+    frame: "badge",
   },
 });
 

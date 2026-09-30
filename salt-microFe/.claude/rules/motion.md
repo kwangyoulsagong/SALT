@@ -21,8 +21,8 @@ globs: apps/web/src/**, packages/ui/src/**, packages/tokens/src/**
 
 ## 2. 라이브러리
 
-- 웹은 `motion`(Framer Motion v12). import 는 **`motion/react`** 하나. `framer-motion` 을 직접 import 하지 않는다.
-- 첫 화면 번들이 무거운 곳은 `LazyMotion` + `m` 을 쓴다. `packages/ui` 공통 컴포넌트는 `m` 으로 작성하고 앱 루트 `LazyMotion`(`domAnimation`)에 기댄다.
+- 웹은 `framer-motion` v12. **`m` 과 named import 만** 쓴다 — `motion` 컴포넌트 · `motion/react` 는 ESLint 가 막는다(둘 다 드래그 · 레이아웃까지 실어 첫 로드 JS 가 45 kB 늘었다).
+- 기능 묶음(`domAnimation`)은 앱 루트 `MotionProvider` 의 `LazyMotion` 이 **동적 import** 로 싣는다. 컴포넌트는 `m` 으로만 쓴다.
 - Lottie · GIF · 동영상 · 외부 그래픽 파일 금지. 인라인 SVG 만 — 색 토큰을 따라야 하고 요청이 늘면 안 된다.
 - RN 은 `react-native-reanimated` 로 **같은 토큰**을 읽는다.
 
@@ -90,7 +90,7 @@ const { duration, easing, spring } = tokens.motion;
 
 - ❌ 완료를 글자만 바꿔 알리기 — `StatusGraphic` 을 둔다
 - ❌ 컴포넌트에 길이 · 이징 · 스프링 숫자 직접
-- ❌ `framer-motion` 직접 import · Lottie · GIF
+- ❌ `motion` 컴포넌트 · `motion/react` import(ESLint) · Lottie · GIF
 - ❌ 레이아웃 속성 애니메이션 · 스크롤 연동
 - ❌ 서버 HTML 에 그래픽 빈칸(`initial` 숨김)
 - ❌ 수익 축하 · 판정 카드 맥박

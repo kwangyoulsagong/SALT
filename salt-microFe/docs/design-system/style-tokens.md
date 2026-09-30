@@ -109,6 +109,7 @@ AI/LLM 생성물은 브랜드 보라와 구분되는 별도 액센트를 쓴다.
 | `vars.colors.border` | `light: #E5E8EB`, `default: #D1D6DB`, `dark: #B0B8C1`, `focus`, `lightDark`, `black` |
 | `vars.colors.shadow` | `sm`, `md`, `lg`, `xl` — **사용 중단.** 완성된 그림자는 `vars.elevation.*` |
 | `vars.colors.overlay` | `light`, `medium`, `dark`, `darker` |
+| `vars.colors.graphic` | `highlight`, `primary`, `shade`, `soft`, `backdrop`, `coin` — **그래픽 전용**(`StatusGraphic` · `Illustration`). 버튼 · 글자에 쓰지 않는다 (`FE-REQ-044`) |
 
 `*Light` / `*Dark`는 틴트 배지용 쌍이다. 솔리드 배경 + 흰 글자는 작은 글자에서 WCAG AA(4.5:1)에 못 미친다. `#FF2E55` 위 흰 글자는 3.5:1, `#1677EE` 위 흰 글자는 4.0:1이다. `upLight` 배경 + `upDark` 전경은 5.0:1, `downLight` + `downDark`는 5.6:1로 통과한다.
 
@@ -180,7 +181,10 @@ AI/LLM 생성물은 브랜드 보라와 구분되는 별도 액센트를 쓴다.
 
 | 토큰 그룹 | 토큰 |
 | --- | --- |
-| `vars.transitions` | `fast`, `base`, `slow`, `slower` |
+| `vars.transitions` | `fast`, `base`, `slow`, `slower` — hover · focus 같은 CSS 상태 전환 |
+| `vars.motion.duration` | `instant` 120ms · `base` 240ms · `slow` 400ms · `scene` 900ms — `*.css.ts` keyframes 용 문자열 |
+| `vars.motion.easing` | `enter` · `exit` · `move` · `fall` — `cubic-bezier(…)` 문자열 |
+| `tokens.motion`(`@repo/tokens`, 숫자) | 위 두 그룹 + `spring`(`snappy` · `bouncy` · `gentle`) · `stagger` · `pressScale`. `framer-motion` 은 `@repo/ui/motion` 의 `ease` · `springs` · `durations` 로 읽는다 |
 | `vars.zIndices` | `base`, `dropdown`, `sticky`, `fixed`, `modalBackdrop`, `modal`, `popover`, `tooltip` |
 
 ## 규칙
