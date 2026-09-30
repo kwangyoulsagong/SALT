@@ -1,5 +1,7 @@
+import { globalStyle, style } from "@vanilla-extract/css";
 import { recipe } from "@vanilla-extract/recipes";
 import { vars } from "../../styles/tokens.css";
+import { PRESS_SELECTOR, PRESS_TRANSITION, pressActive, pressReducedMotion } from "../../styles/press";
 
 /** 칩 변형의 옅은 회색 면 — 고른 칩 · hover */
 const CHIP_FILL = "rgba(7, 25, 76, 0.04)";
@@ -41,8 +43,12 @@ export const tabButton = recipe({
     border: "none",
     background: "transparent",
     cursor: "pointer",
-    transition: "all 0.15s ease",
+    transition: `color ${vars.motion.duration.instant}, background-color ${vars.motion.duration.instant}, ${PRESS_TRANSITION}`,
     whiteSpace: "nowrap",
+    ...pressReducedMotion,
+    selectors: {
+      [PRESS_SELECTOR]: pressActive,
+    },
   },
 
   variants: {
@@ -95,4 +101,42 @@ export const tabButton = recipe({
   ],
 
   defaultVariants: { variant: "segmented", active: false },
+});
+
+/**
+ * `SegmentedControl` 의 흰 알약이 새 칸으로 미끄러진다 (FE-REQ-044 P-31).
+ * 측정 전에는 고른 칸 자신의 흰 면이 보이고, 측정 뒤에는 그 면을 비우고 알약 하나가 옮겨 간다.
+ */
+export const segmentedSliding = style({
+  position: "relative",
+});
+
+export const segmentedThumb = recipe({
+  base: {
+    position: "absolute",
+    top: "2px",
+    bottom: "2px",
+    left: 0,
+    borderRadius: vars.radius.base,
+    background: vars.colors.background.white,
+    pointerEvents: "none",
+  },
+  variants: {
+    animated: {
+      true: {
+        transition: `transform ${vars.motion.duration.base} ${vars.motion.easing.move}`,
+        "@media": { "(prefers-reduced-motion: reduce)": { transition: "none" } },
+      },
+      false: {},
+    },
+  },
+});
+
+globalStyle(`${segmentedSliding}[data-sliding="true"] [role="radio"]`, {
+  position: "relative",
+  zIndex: 1,
+});
+
+globalStyle(`${segmentedSliding}[data-sliding="true"] [role="radio"][aria-checked="true"]`, {
+  background: "transparent",
 });

@@ -96,3 +96,18 @@ export const footerStyles = style({
   flexShrink: 0,
   padding: `0 ${vars.space.lg2} ${vars.space.lg2}`,
 });
+
+/** 퇴장 (FE-REQ-044 P-32) — `Dialog` 도 이 모달 위에 있다. 끝나면 `usePresence` 가 DOM 에서 뺀다 */
+const fadeOut = keyframes({ from: { opacity: 1 }, to: { opacity: 0 } });
+const popOut = keyframes({ from: { opacity: 1, transform: "scale(1)" }, to: { opacity: 0, transform: "scale(.96)" } });
+
+export const overlayClosingStyles = style({
+  pointerEvents: "none",
+  animation: `${fadeOut} ${vars.motion.duration.base} ${vars.motion.easing.exit} forwards`,
+  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
+});
+
+export const panelClosingStyles = style({
+  animation: `${popOut} ${vars.motion.duration.base} ${vars.motion.easing.exit} forwards`,
+  "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } },
+});

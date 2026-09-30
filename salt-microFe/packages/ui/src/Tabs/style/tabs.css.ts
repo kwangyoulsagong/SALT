@@ -1,6 +1,7 @@
 import { recipe } from "@vanilla-extract/recipes";
-import { keyframes, style } from "@vanilla-extract/css";
+import { globalStyle, keyframes, style } from "@vanilla-extract/css";
 import { vars } from "../../styles/tokens.css";
+import { PRESS_SELECTOR, PRESS_TRANSITION, pressActive, pressReducedMotion } from "../../styles/press";
 
 export const tabsContainerStyles = style({
   display: "flex",
@@ -17,10 +18,12 @@ export const tabStyles = recipe({
     border: "none",
     cursor: "pointer",
     position: "relative",
-    transition: vars.transitions.base,
+    transition: `color ${vars.transitions.base}, ${PRESS_TRANSITION}`,
     whiteSpace: "nowrap",
+    ...pressReducedMotion,
 
     selectors: {
+      [PRESS_SELECTOR]: pressActive,
       "&:hover": {
         color: vars.colors.brand.primary,
       },
@@ -119,6 +122,7 @@ export const tabPanelStyles = style({
 });
 
 export const tabListStyles = style({
+  position: "relative",
   display: "flex",
   gap: vars.space.lg,
   margin: 0,
@@ -132,4 +136,32 @@ export const tabListStyles = style({
       display: "none",
     },
   },
+});
+
+/**
+ * 미끄러지는 밑줄 (FE-REQ-044 P-31) — 탭마다의 `::after` 대신 하나가 옮겨 간다.
+ * 측정 전(서버 HTML)에는 탭 자신의 `::after` 가 보이고, 측정 뒤에는 그것을 숨긴다.
+ */
+export const tabIndicatorStyles = recipe({
+  base: {
+    position: "absolute",
+    left: 0,
+    bottom: 0,
+    height: "3px",
+    background: vars.colors.border.black,
+    pointerEvents: "none",
+  },
+  variants: {
+    animated: {
+      true: {
+        transition: `transform ${vars.motion.duration.base} ${vars.motion.easing.move}`,
+        "@media": { "(prefers-reduced-motion: reduce)": { transition: "none" } },
+      },
+      false: {},
+    },
+  },
+});
+
+globalStyle(`${tabListStyles}[data-sliding="true"] [role="tab"]::after`, {
+  visibility: "hidden",
 });

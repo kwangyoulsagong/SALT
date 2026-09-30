@@ -96,7 +96,8 @@
     "./motion": "./src/Motion/index.ts",
     "./statusGraphic": "./src/StatusGraphic/StatusGraphic.tsx",
     "./illustration": "./src/Illustration/Illustration.tsx",
-    "./statusLine": "./src/StatusLine/StatusLine.tsx"
+    "./statusLine": "./src/StatusLine/StatusLine.tsx",
+    "./tickFlash": "./src/TickFlash/TickFlash.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

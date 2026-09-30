@@ -1,6 +1,7 @@
 import { style } from "@vanilla-extract/css";
 import { recipe } from "@vanilla-extract/recipes";
 import { vars } from "../../styles/tokens.css";
+import { PRESS_SELECTOR, PRESS_TRANSITION, pressActive, pressReducedMotion } from "../../styles/press";
 
 export const wrapperStyles = style({
   display: "inline-flex",
@@ -25,9 +26,11 @@ export const trackStyles = recipe({
     border: "none",
     borderRadius: vars.radius.full,
     cursor: "pointer",
-    transition: `background ${vars.transitions.base}`,
+    transition: `background ${vars.transitions.base}, ${PRESS_TRANSITION}`,
+    ...pressReducedMotion,
 
     selectors: {
+      [PRESS_SELECTOR]: pressActive,
       "&:disabled": {
         opacity: 0.4,
         cursor: "not-allowed",

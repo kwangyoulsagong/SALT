@@ -9,6 +9,8 @@ import {
   nativeInputStyles,
   wrapperStyles,
 } from "./styles/checkbox.css";
+import { popOnce } from "../Motion/popKeyframes.css";
+import { useChangedAfterMount } from "../Motion/useChangedAfterMount";
 
 export type CheckboxSize = "sm" | "md";
 
@@ -51,6 +53,8 @@ export const Checkbox = ({
   }, [indeterminate]);
 
   const iconSize = size === "sm" ? 12 : 15;
+  // 체크하는 순간에만 표시가 한 번 튄다 (FE-REQ-044 P-34)
+  const changes = useChangedAfterMount(checked);
 
   return (
     <label className={`${wrapperStyles} ${className || ""}`}>
@@ -69,7 +73,7 @@ export const Checkbox = ({
         {indeterminate ? (
           <Minus size={iconSize} strokeWidth={3} />
         ) : checked ? (
-          <Check size={iconSize} strokeWidth={3} />
+          <Check key={changes} size={iconSize} strokeWidth={3} className={changes > 0 ? popOnce : undefined} />
         ) : null}
       </span>
       {label ? <span className={labelStyles}>{label}</span> : null}

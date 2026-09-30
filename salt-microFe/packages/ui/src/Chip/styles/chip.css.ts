@@ -1,5 +1,6 @@
 import { recipe } from "@vanilla-extract/recipes";
 import { vars } from "../../styles/tokens.css";
+import { PRESS_SELECTOR, PRESS_TRANSITION, pressActive, pressReducedMotion } from "../../styles/press";
 
 export const chipStyles = recipe({
   base: {
@@ -14,10 +15,12 @@ export const chipStyles = recipe({
     fontFamily: vars.fontFamily.base,
     fontWeight: vars.fontWeights.medium,
     cursor: "pointer",
-    transition: vars.transitions.fast,
+    transition: `${vars.transitions.fast}, ${PRESS_TRANSITION}`,
     whiteSpace: "nowrap",
+    ...pressReducedMotion,
 
     selectors: {
+      [PRESS_SELECTOR]: pressActive,
       "&:hover:not(:disabled)": {
         background: vars.colors.neutral[50],
       },

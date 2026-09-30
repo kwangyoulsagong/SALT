@@ -105,7 +105,8 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/statusGraphic` | `StatusGraphic` | `kind`(`success` · `progress` · `empty` · `error` · `blocked`), `size`(`sm` 40 · `md` 72 · `lg` 120) | `packages/ui/src/StatusGraphic/StatusGraphic.tsx` |
 | `@repo/ui/statusLine` | `StatusLine` | `kind`, `children`, `live` | `packages/ui/src/StatusLine/StatusLine.tsx` |
 | `@repo/ui/illustration` | `Illustration` | `scene`(`coinPouch` · `candles` · `scale` · `coachBubble` · `target` · `ledger`), `size`(`sm` · `md` · `lg`) | `packages/ui/src/Illustration/Illustration.tsx` |
-| `@repo/ui/motion` | `MotionProvider`, `usePlayAfterMount`, `ease`, `springs`, `durations`, `motionTokens` | 앱 루트에 한 번(`LazyMotion` 동적 · 줄인 모션 존중) | `packages/ui/src/Motion/index.ts` |
+| `@repo/ui/tickFlash` | `TickFlash` | `value`, `children` — 값이 바뀌면 방향 색 면이 한 번 옅어진다(시세) | `packages/ui/src/TickFlash/TickFlash.tsx` |
+| `@repo/ui/motion` | `MotionProvider`, `usePlayAfterMount`, `useSlidingIndicator`, `useRolledNumber`, `useChangedAfterMount`, `usePresence`, `ease`, `springs`, `durations`, `motionTokens` | 앱 루트에 한 번(`LazyMotion` 동적 · 줄인 모션 존중) | `packages/ui/src/Motion/index.ts` |
 | `@repo/ui/skeleton` | `Skeleton` | `width`, `height`, `radius`, `lines` | `packages/ui/src/Skeleton/Skeleton.tsx` |
 | `@repo/ui/modal` | `Modal` | `open`, `onClose`, `title`, `footer`, `size`, `hideCloseButton`, `disableBackdropClose` | `packages/ui/src/Modal/Modal.tsx` |
 | `@repo/ui/dialog` | `Dialog` | `open`, `title`, `description`, `confirmText`, `cancelText`, `tone`, `onConfirm`, `onCancel` | `packages/ui/src/Dialog/Dialog.tsx` |
