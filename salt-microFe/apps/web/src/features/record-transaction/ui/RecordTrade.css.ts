@@ -164,3 +164,8 @@ export const errorText = style({
   fontSize: "12px",
   lineHeight: "18px",
 });
+
+/** 저장 알림(StatusToast)이 이 카드 윗변 가운데에 뜬다 */
+export const card = style({
+  position: "relative",
+});

@@ -4,6 +4,7 @@ import type { RecordTradeResult, SizeCheckRequest, TradeSide } from "@repo/core/
 import { Button } from "@repo/ui/button";
 import { SegmentedControl } from "@repo/ui/segmentedControl";
 import { StatusGraphic } from "@repo/ui/statusGraphic";
+import { StatusToast } from "@repo/ui/statusToast";
 import { TextField } from "@repo/ui/textField";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useState, type FormEvent } from "react";
@@ -17,6 +18,7 @@ import { useDebouncedValue } from "../lib";
 import { RECORD_TRANSACTION_MESSAGES as MSG } from "../model";
 import { EntryChecklist } from "./EntryChecklist";
 import {
+  card,
   chevron,
   chevronOpen,
   description,
@@ -243,7 +245,9 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
   const idleHint = side === "buy" && parsed.stop === null && sizeInput !== null ? MSG.stopIdleHint : MSG.idleHint;
 
   return (
-    <section className={className} aria-labelledby={`${ids.plan}-heading`}>
+    <section className={`${card} ${className ?? ""}`} aria-labelledby={`${ids.plan}-heading`}>
+      {/* 저장된 순간 패널 위에 잠깐 떴다가 사라진다. 버튼 아래 결과 줄은 그대로 남는다 (FE-REQ-044 P-1 · 사용자 QA 2026-09-30) */}
+      <StatusToast trigger={notice?.kind === "saved" ? notice.result.transaction.id : null}>{MSG.saved}</StatusToast>
       <form className={form} onSubmit={onSubmit} noValidate>
         <div className={head}>
           <h2 id={`${ids.plan}-heading`} className={title}>

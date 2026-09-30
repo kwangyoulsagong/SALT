@@ -104,6 +104,7 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/emptyState` | `EmptyState` | `title`, `description`, `icon`, `action`, `tone`, `iconFrame`(`badge` · `none` — 그래픽은 `none`) | `packages/ui/src/EmptyState/EmptyState.tsx` |
 | `@repo/ui/statusGraphic` | `StatusGraphic` | `kind`(`success` · `progress` · `empty` · `error` · `blocked`), `size`(`sm` 40 · `md` 72 · `lg` 120) | `packages/ui/src/StatusGraphic/StatusGraphic.tsx` |
 | `@repo/ui/statusLine` | `StatusLine` | `kind`, `children`, `live` | `packages/ui/src/StatusLine/StatusLine.tsx` |
+| `@repo/ui/statusToast` | `StatusToast` | `trigger`, `children`, `kind`, `duration` — 패널 위에 잠깐 떴다 사라지는 완료 알림(부모 `position: relative`) | `packages/ui/src/StatusToast/StatusToast.tsx` |
 | `@repo/ui/illustration` | `Illustration` | `scene`(`coinPouch` · `candles` · `scale` · `coachBubble` · `target` · `ledger`), `size`(`sm` · `md` · `lg`) | `packages/ui/src/Illustration/Illustration.tsx` |
 | `@repo/ui/motion` | `MotionProvider`, `usePlayAfterMount`, `useSlidingIndicator`, `useRolledNumber`, `useChangedAfterMount`, `usePresence`, `ease`, `springs`, `durations`, `motionTokens` | 앱 루트에 한 번(`LazyMotion` 동적 · 줄인 모션 존중) | `packages/ui/src/Motion/index.ts` |
 | `@repo/ui/skeleton` | `Skeleton` | `width`, `height`, `radius`, `lines` | `packages/ui/src/Skeleton/Skeleton.tsx` |

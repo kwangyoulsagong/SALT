@@ -97,7 +97,8 @@
     "./statusGraphic": "./src/StatusGraphic/StatusGraphic.tsx",
     "./illustration": "./src/Illustration/Illustration.tsx",
     "./statusLine": "./src/StatusLine/StatusLine.tsx",
-    "./enterReveal": "./src/Motion/enterReveal.css.ts"
+    "./enterReveal": "./src/Motion/enterReveal.css.ts",
+    "./statusToast": "./src/StatusToast/StatusToast.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

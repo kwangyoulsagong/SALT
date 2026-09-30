@@ -2,6 +2,8 @@ import { keyframes, style, styleVariants } from "@vanilla-extract/css";
 import { vars } from "@repo/ui/tokens";
 
 export const card = style({
+  // 완료 알림(StatusToast)이 이 카드 윗변 가운데에 뜬다
+  position: "relative",
   display: "flex",
   flexDirection: "column",
   gap: vars.space.lg,
