@@ -61,6 +61,15 @@ export const CustomSize: Story = {
   },
 };
 
+// 모양은 h4, 태그는 h3 — 카드 제목(h2) 바로 아래 자리
+export const TagOverride: Story = {
+  args: {
+    children: "h4 모양 · h3 태그",
+    level: 4,
+    as: 3,
+  },
+};
+
 // 색상 변경
 export const BrandColor: Story = {
   args: {

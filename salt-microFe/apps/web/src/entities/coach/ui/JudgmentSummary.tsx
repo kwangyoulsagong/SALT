@@ -55,7 +55,10 @@ export const JudgmentSummary = ({ view, mode }: JudgmentSummaryProps) => {
 
   return (
     <div className={judgmentSlot}>
-      <Heading level={4}>{judgment.label}</Heading>
+      {/* 모양은 h4, 태그는 h3 — 상세 카드 제목(h2) 바로 아래라 단계를 건너뛰지 않는다(axe heading-order) */}
+      <Heading level={4} as={3}>
+        {judgment.label}
+      </Heading>
       <p className={metaLine}>{meta}</p>
       {judgment.scoreNote && (
         <p className={scoreLine}>
