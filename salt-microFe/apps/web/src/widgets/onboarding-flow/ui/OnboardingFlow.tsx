@@ -1,32 +1,29 @@
 "use client";
 
+import { BottomCTA } from "@repo/ui/bottomCTA";
 import { Button } from "@repo/ui/button";
-import { Card } from "@repo/ui/card";
-import { Container } from "@repo/ui/container";
-import { EmptyState } from "@repo/ui/emptyState";
-import { FlexBox } from "@repo/ui/flexBox";
-import { Heading } from "@repo/ui/heading";
 import { Illustration } from "@repo/ui/illustration";
 import { durations, ease } from "@repo/ui/motion";
-import { ProgressStepper } from "@repo/ui/progressStepper";
 import { StatusGraphic } from "@repo/ui/statusGraphic";
-import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 import { AnimatePresence, m } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useOnboardingStatus, type OnboardingStepKey } from "@/entities/auth";
 import { InviteCodeForm } from "@/features/accept-invite";
+import { useHasAccessToken } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 
 import {
+  ONBOARDING_COMPLETE_HEADLINE,
   ONBOARDING_MESSAGES,
   ONBOARDING_STEP_BODY,
   ONBOARDING_STEP_LABELS,
   ONBOARDING_STEP_SCENE,
 } from "../model/messages";
 
-import { acceptedLine, stepHead, stepSlide } from "./OnboardingFlow.css";
+import * as s from "./OnboardingFlow.css";
 
 /**
  * 온보딩 3스텝 (`FE-REQ-010` FR-21·22·25 · `FE-REQ-010` FR-64).
@@ -47,10 +44,18 @@ import { acceptedLine, stepHead, stepSlide } from "./OnboardingFlow.css";
  *
  * 단계마다 머리 장면 하나, 단계가 넘어가면 본문이 옆으로 밀린다. 초대를 수락하면 다음 단계 위에
  * "초대를 수락했어요" 한 줄을 체크와 함께 한 번 보인다 — 말없이 넘어가면 무엇이 됐는지 모른다.
+ *
+ * ## 배치 — 모바일 한 열 (2026-09-30 QA 사용자 지적 "디자인 구리다")
+ *
+ * 카드 · 좌측 정렬 · 전폭 진행 막대를 버리고 참고 화면 구성으로: 가운데 한 열 · 위에서 옅어지는 배경 ·
+ * 두 줄 큰 제목(둘째 줄 강조) · 설명 · 큰 장면 · 점 진행 표시 · 아래 버튼. 이 화면은 앱 웹뷰(모바일)용이다.
  */
 export const OnboardingFlow = () => {
   const router = useRouter();
-  const { data, isLoading } = useOnboardingStatus();
+  const { data, isLoading: isQuerying } = useOnboardingStatus();
+  // 토큰이 있는지 아직 모르면(서버 · 하이드레이션) 단계를 정하지 않는다 — 초대 단계가 번쩍였다가 바뀌지 않게
+  const tokenKnown = useHasAccessToken() !== null;
+  const isLoading = !tokenKnown || isQuerying;
   const [inviteAccepted, setInviteAccepted] = useState(false);
 
   const steps = data?.steps ?? FALLBACK_STEPS;
@@ -60,96 +65,109 @@ export const OnboardingFlow = () => {
       ? steps.length
       : steps.findIndex((step) => step.key === currentStep);
 
-  return (
-    <Container size="full" padding="md">
-      <FlexBox direction="column" gap="lg">
-        <Heading level={2}>{ONBOARDING_MESSAGES.title}</Heading>
-
-        <ProgressStepper
-          label={ONBOARDING_MESSAGES.stepperLabel}
-          steps={steps.map((step) => ({
-            id: step.key,
-            label: ONBOARDING_STEP_LABELS[step.key],
-          }))}
-          current={currentIndex}
-        />
-
-        {isLoading ? (
-          <FlexBox align="center" gap="sm">
-            <StatusGraphic kind="progress" size="sm" />
-            <Text>{ONBOARDING_MESSAGES.loading}</Text>
-          </FlexBox>
-        ) : (
-          <AnimatePresence mode="wait" initial={false}>
-            <m.div
-              key={currentStep ?? "complete"}
-              className={stepSlide}
-              initial={{ opacity: 0, x: SLIDE_DISTANCE }}
-              animate={{ opacity: 1, x: 0, transition: { duration: durations.slow, ease: ease.enter } }}
-              exit={{ opacity: 0, x: -SLIDE_DISTANCE, transition: { duration: durations.base, ease: ease.exit } }}
-            >
-              {currentStep === null ? (
-                <Card>
-                  <EmptyState
-                    tone="success"
-                    iconFrame="none"
-                    icon={<StatusGraphic kind="success" size="lg" />}
-                    title={ONBOARDING_MESSAGES.completeTitle}
-                    description={ONBOARDING_MESSAGES.completeDescription}
-                    action={<Button onClick={() => router.push(ROUTES.home)}>{ONBOARDING_MESSAGES.goHome}</Button>}
-                  />
-                </Card>
-              ) : (
-                <StepBody
-                  step={currentStep}
-                  showAccepted={inviteAccepted && currentStep !== "invite"}
-                  onInviteAccepted={() => setInviteAccepted(true)}
-                />
-              )}
-            </m.div>
-          </AnimatePresence>
-        )}
-      </FlexBox>
-    </Container>
-  );
-};
-
-/**
- * 현재 단계의 본문.
- *
- * `invite` 만 실제 폼을 갖는다. 나머지 둘은 **안내만** 한다 — 연결 화면(`ledger`, F001)과
- * 적립 설정(`plan`, F003)이 아직 없다. 누르면 아무 일도 일어나지 않는 버튼을 두는 것보다
- * 준비 중이라고 쓰는 것이 정직하다.
- */
-const StepBody = ({
-  step,
-  showAccepted,
-  onInviteAccepted,
-}: {
-  step: OnboardingStepKey;
-  showAccepted: boolean;
-  onInviteAccepted: () => void;
-}) => {
-  const body = ONBOARDING_STEP_BODY[step];
-
-  return (
-    <Card>
-      <FlexBox direction="column" gap="md">
-        {showAccepted ? (
-          <p className={acceptedLine} aria-live="polite">
-            <StatusGraphic kind="success" size="sm" />
-            {ONBOARDING_MESSAGES.inviteAccepted}
-          </p>
-        ) : null}
-        <div className={stepHead}>
-          <Illustration scene={ONBOARDING_STEP_SCENE[step]} size="md" />
+  if (isLoading) {
+    return (
+      <div className={s.page}>
+        <div className={s.loading}>
+          <StatusGraphic kind="progress" size="md" />
+          <p className={s.sub}>{ONBOARDING_MESSAGES.loading}</p>
         </div>
-        <Heading level={3}>{body.title}</Heading>
-        <Text>{body.description}</Text>
-        {step === "invite" ? <InviteCodeForm onAccepted={onInviteAccepted} /> : null}
-        {body.pending ? <Text color="muted">{body.pending}</Text> : null}
-      </FlexBox>
-    </Card>
+      </div>
+    );
+  }
+
+  const body = currentStep ? ONBOARDING_STEP_BODY[currentStep] : null;
+  const headline = body ? body.headline : ONBOARDING_COMPLETE_HEADLINE;
+
+  return (
+    <div className={s.page}>
+      <ol className={s.dots} aria-label={ONBOARDING_MESSAGES.stepperLabel}>
+        {steps.map((step, index) => (
+          <li
+            key={step.key}
+            className={
+              index === Math.min(currentIndex, steps.length - 1)
+                ? s.dotActive
+                : s.dot
+            }
+            aria-current={index === currentIndex ? "step" : undefined}
+          >
+            <span className={s.srOnly}>
+              {ONBOARDING_STEP_LABELS[step.key]}
+              {step.done ? " ✓" : ""}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <AnimatePresence mode="wait" initial={false}>
+        <m.section
+          key={currentStep ?? "complete"}
+          className={s.step}
+          initial={{ opacity: 0, x: SLIDE_DISTANCE }}
+          animate={{
+            opacity: 1,
+            x: 0,
+            transition: { duration: durations.slow, ease: ease.enter },
+          }}
+          exit={{
+            opacity: 0,
+            x: -SLIDE_DISTANCE,
+            transition: { duration: durations.base, ease: ease.exit },
+          }}
+        >
+          {inviteAccepted && currentStep !== "invite" ? (
+            <StatusLine kind="success" live className={s.accepted}>
+              {ONBOARDING_MESSAGES.inviteAccepted}
+            </StatusLine>
+          ) : null}
+
+          <h1 className={s.headline}>
+            <span>{headline[0]}</span>
+            <span className={s.accent}>{headline[1]}</span>
+          </h1>
+          <p className={s.sub}>
+            {currentStep === null
+              ? ONBOARDING_MESSAGES.completeDescription
+              : body?.description}
+          </p>
+
+          <div className={s.scene}>
+            {currentStep === null ? (
+              <StatusGraphic kind="success" size="lg" />
+            ) : (
+              <Illustration
+                scene={ONBOARDING_STEP_SCENE[currentStep]}
+                size="lg"
+              />
+            )}
+          </div>
+
+          {currentStep === "invite" ? (
+            <div className={s.form}>
+              <InviteCodeForm onAccepted={() => setInviteAccepted(true)} />
+            </div>
+          ) : null}
+          {body?.pending ? <p className={s.pending}>{body.pending}</p> : null}
+        </m.section>
+      </AnimatePresence>
+
+      {/* 초대 단계는 폼 안에 제출 버튼이 있다. 나머지는 아래 버튼 하나 — 화면이 없는 단계에서 멈춰 서지 않게 */}
+      {currentStep !== "invite" ? (
+        <BottomCTA fixed>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            onClick={() => router.push(ROUTES.home)}
+          >
+            {currentStep === null
+              ? ONBOARDING_MESSAGES.goHome
+              : ONBOARDING_MESSAGES.laterToHome}
+          </Button>
+        </BottomCTA>
+      ) : null}
+    </div>
   );
 };
 

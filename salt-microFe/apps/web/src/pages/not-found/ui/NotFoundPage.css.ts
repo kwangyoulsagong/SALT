@@ -9,7 +9,8 @@ export const page = style({
   gap: vars.space.md,
   textAlign: "center",
   fontFamily: vars.fontFamily.base,
-  minHeight: "70vh",
+  // 화면 끝까지 — 70vh 에서 끊겨 아래 회색 바탕이 드러났다(2026-09-30 QA)
+  minHeight: "100dvh",
   background: `linear-gradient(180deg, ${vars.colors.graphic.backdrop} 0%, ${vars.colors.background.white} 60%)`,
 });
 

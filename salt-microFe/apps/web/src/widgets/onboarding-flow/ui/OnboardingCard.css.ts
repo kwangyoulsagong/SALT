@@ -15,3 +15,7 @@ export const cardRow = style({
   justifyContent: "space-between",
   gap: vars.space.lg,
 });
+
+export const spacing = style({
+  marginBottom: vars.space.lg,
+});

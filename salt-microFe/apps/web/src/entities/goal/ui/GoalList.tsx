@@ -13,6 +13,7 @@ import { useGoalProgressList } from "../api";
 import { GOAL_MESSAGES } from "../model/messages";
 import { GoalListItem } from "../model/types";
 import { GoalRow } from "./GoalRow";
+import { compactEmpty } from "./GoalList.css";
 
 export const GoalList = () => {
   const progressList = useGoalProgressList();
@@ -29,6 +30,7 @@ export const GoalList = () => {
   if (progressList.data.length === 0) {
     return (
       <EmptyState
+        className={compactEmpty}
         iconFrame="none"
         icon={<Illustration scene="target" size="sm" />}
         title={GOAL_MESSAGES.emptyTitle}

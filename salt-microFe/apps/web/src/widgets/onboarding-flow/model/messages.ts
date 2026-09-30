@@ -12,6 +12,9 @@ export const ONBOARDING_MESSAGES = {
   completeTitle: "준비가 끝났어요",
   completeDescription: "홈에서 현재 상태를 확인해 보세요.",
   goHome: "홈으로",
+  /** 아직 화면이 없는 단계(연결 · 적립) 아래 버튼 — 멈춰 서지 않고 홈에서 둘러보게 한다 */
+  laterToHome: "홈에서 먼저 둘러볼게요",
+  stepCount: (current: number, total: number) => `${total}단계 중 ${current}단계`,
   loading: "진행 상태를 불러오는 중…",
   /** 초대 수락 직후 다음 단계 위에 한 번 (`FE-REQ-044` P-3) */
   inviteAccepted: "초대를 수락했어요",
@@ -44,23 +47,29 @@ export const ONBOARDING_STEP_LABELS: Record<OnboardingStepKey, string> = {
  */
 export const ONBOARDING_STEP_BODY: Record<
   OnboardingStepKey,
-  { title: string; description: string; pending?: string }
+  { headline: readonly [string, string]; title: string; description: string; pending?: string }
 > = {
   invite: {
+    headline: ["초대 코드로", "SALT를 시작해요"],
     title: "초대 코드를 입력해 주세요",
     description: "받으신 코드로 계정을 만듭니다.",
   },
   link_account: {
+    headline: ["거래 기록을 모아", "한눈에 봐요"],
     title: "거래 내역을 연결해 주세요",
     description: "업비트 CSV 또는 증권사 연결로 보유 종목을 가져옵니다.",
     pending: "연결 화면은 준비 중입니다. 거래가 기록되면 이 단계가 완료됩니다.",
   },
   set_plan: {
+    headline: ["매달 조금씩", "모을 금액을 정해요"],
     title: "월 적립액을 정해 주세요",
     description: "매달 얼마를 모을지 정하면 계획을 만들어 드립니다.",
     pending: "적립 설정 화면은 준비 중입니다. 목표를 추가하면 이 단계가 완료됩니다.",
   },
 };
+
+/** 끝 화면 두 줄 제목 */
+export const ONBOARDING_COMPLETE_HEADLINE = ["준비가", "모두 끝났어요"] as const;
 
 /** 홈 카드 (FR-25). 블록마다 안내하지 않고 **카드 하나**만 둔다. */
 export const ONBOARDING_CARD_MESSAGES = {
