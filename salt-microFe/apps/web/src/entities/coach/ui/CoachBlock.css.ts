@@ -147,3 +147,17 @@ export const srOnly = style({
   border: 0,
 });
 
+
+/**
+ * 거래소 표시 두 줄(F010 슬라이스 6) — 막은 이유 · 주의 사실이라 표본 메타(`blockedMeta` 2.75:1)보다 진해야 한다.
+ * neutral 700 은 회색 면 위 6.45:1(실측) · 흰 면에서 더 높다. 한국어가 단어 중간에서 끊기지 않게 keep-all
+ */
+export const exchangeLine = style({
+  margin: 0,
+  color: ds.colors.neutral[700],
+  fontSize: "13px",
+  lineHeight: "19px",
+  wordBreak: "keep-all",
+});
+
+export const exchangeReason = style({ wordBreak: "keep-all" });

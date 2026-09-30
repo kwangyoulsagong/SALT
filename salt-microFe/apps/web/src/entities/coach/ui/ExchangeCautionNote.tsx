@@ -1,7 +1,7 @@
 import type { ExchangeFlag } from "@repo/core/coach";
 
 import { COACH_MESSAGES } from "../model";
-import { caption } from "./CoachBlock.css";
+import { exchangeLine } from "./CoachBlock.css";
 
 interface ExchangeCautionNoteProps {
   flag: ExchangeFlag | null;
@@ -21,7 +21,7 @@ export const ExchangeCautionNote = ({ flag }: ExchangeCautionNoteProps) => {
     .filter(Boolean);
   if (kinds.length === 0) return null;
   return (
-    <p className={caption}>
+    <p className={exchangeLine}>
       {COACH_MESSAGES.exchangeCaution.heading} · {kinds.join(" · ")}
     </p>
   );
