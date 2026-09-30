@@ -19,7 +19,7 @@ export const GoalList = () => {
 
   if (progressList.isPending) {
     return (
-      <div aria-busy="true" aria-label={GOAL_MESSAGES.loading}>
+      <div role="status" aria-busy="true" aria-label={GOAL_MESSAGES.loading}>
         <Skeleton lines={3} height={20} />
       </div>
     );

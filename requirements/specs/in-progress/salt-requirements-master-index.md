@@ -477,7 +477,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | `BFF-REQ-041` 목표 비중 안내 중계 | **done** (FR-1~6 완료) | `/api/app/coach/target-weights` · 3종 고지 게이트 · 투자금 칸 · 알트 `no_record` · 라이브 문턱 30 |
 | `FE-REQ-042` 이번 주 목표 비중 | **done** (FR-1~7 · 9~13 완료 · FR-8 홈 한 줄 범위 밖) | 본문 `/coach/report` 첫 패널 · 투자 화면 요약 한 칸(고지 한 줄) · 차 원 · 수량 · 무효화 3조건 · 알트 "목표 비중 없음" + 근거 · 현금 없음 · 라이브 n/30 |
 | `FE-REQ-043` 좁은 화면 안내 | **done** | 768px 미만이면 모든 라우트 대신 "더 큰 화면으로" 한 장(스크린샷 · PC 링크 복사). 휴대폰 화면은 RN 앱 |
-| `FE-REQ-044` 그래픽 · 모션 | **in-progress** (A · B 단계 완료 · C 남음) | 상태 그래픽(완료 · 진행 · 빈 · 오류 · 막힘) · 장면 일러스트 6 · 마이크로 인터랙션을 전 페이지 배치표(P-1~40)대로. `framer-motion` `m` + 동적 `LazyMotion` · 모션 토큰 · 규칙 `motion.md` · 수익 축하 금지 |
+| `FE-REQ-044` 그래픽 · 모션 | **in-progress** (A · B · C 구현 완료 · 로그인 뒤 화면 실측은 `QA-001`) | 상태 그래픽(완료 · 진행 · 빈 · 오류 · 막힘) · 장면 일러스트 6 · 마이크로 인터랙션을 전 페이지 배치표(P-1~40)대로. `framer-motion` `m` + 동적 `LazyMotion` · 모션 토큰 · 규칙 `motion.md` · 수익 축하 금지 |
 | `SRV-REQ-024` FR-182~186 · `DB-REQ-031` FR-9 | **완료** | `GET /api/coach/target-weights` · σ = EWMA · 투자금 `investable_capital` · 기록 상수 |
 | `SRV-REQ-024` FR-187~190 · `DB-REQ-029` FR-21 | **완료** | 알트 규칙 밖(`no_record`) · 쓸 수 있는 돈 안에서만(`no_room`) · 판정 기록 상수 · `v_target_weight_live` 읽기 · 라이브 원장 표 3 |
 
@@ -582,3 +582,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-09-30 | **PM 기획서 정리 · 로그인 QA REQ.** `FEATURE-003` · `007` · `011` → to-do(착수 전), `FEATURE-005` → done(폐기 — `FEATURE-006` 이 대체). 신규 루트 `QA-001` 로그인 QA — 체크리스트 28개 · 70곳의 "로그인 QA(사용자)" 가 이 REQ 를 가리킨다(날짜 · REQ 없는 "언제 닫히나" 해소) |
 | 2026-09-30 | **그래픽 · 모션 · 마이크로 인터랙션 (A 단계).** `FE-REQ-044`(신규) · 규칙 `salt-microFe/.claude/rules/motion.md`(신규). `@repo/ui` 새 공개 경로 4(`statusGraphic` · `statusLine` · `illustration` · `motion`) · `EmptyState` `iconFrame` · 토큰 `motion` · `colors.graphic`. 새 페이지 슬라이스 `not-found`(레지스트리). 의존성 `framer-motion`(첫 로드 +20~25 kB) |
 | 2026-09-30 | **그래픽 · 모션 B 단계 — 마이크로 인터랙션.** `FE-REQ-044` P-5 · 6 · 22 · 23 · 30~34 · 36~38. `@repo/ui` 새 공개 경로 `tickFlash` · `motion` 훅 4(`useSlidingIndicator` · `usePresence` · `useRolledNumber` · `useChangedAfterMount`). `NumberText` · `StarIcon` 이 클라이언트 컴포넌트가 됐다. `BottomSheet` · `Modal` 은 닫힌 뒤 퇴장 시간만큼 DOM 에 남는다 |
+| 2026-09-30 | **그래픽 · 모션 C 단계 · 기존 axe 수정.** `FE-REQ-044` P-17~19 · 39 · FR-35 토스트. `@repo/ui` 새 공개 경로 `enterReveal`(`.css.ts`) · `Text` 색 `subtle` · `Header` `backLabel`. `Card` · 앱 `panel` 표면에 등장 애니메이션. 사용자 승인으로 기존 대비 · 버튼 이름 위반 수정(토큰 값 무변경). 체크리스트 · 회고 `FE-REQ-044` |

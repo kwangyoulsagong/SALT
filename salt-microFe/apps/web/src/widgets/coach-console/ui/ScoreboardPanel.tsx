@@ -1,6 +1,6 @@
 "use client";
 
-import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import {
   CoachBlockSkeleton,
@@ -31,8 +31,8 @@ export const ScoreboardPanel = () => {
 
   const body = () => {
     if (board.isPending) return <CoachBlockSkeleton block="zone" />;
-    if (board.isError || board.data.status === "unavailable") return <Text color="tertiary">{S.unavailable}</Text>;
-    if (board.data.status === "insufficient_data") return <Text color="tertiary">{S.empty}</Text>;
+    if (board.isError || board.data.status === "unavailable") return <StatusLine kind="error">{S.unavailable}</StatusLine>;
+    if (board.data.status === "insufficient_data") return <StatusLine kind="empty">{S.empty}</StatusLine>;
     const at = board.data.generatedAt ? formatGeneratedAt(board.data.generatedAt) : null;
     return (
       <>

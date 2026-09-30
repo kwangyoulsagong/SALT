@@ -1,7 +1,7 @@
 import type { CoachAction, ReportRecommendation } from "@repo/core/coach";
 import { Badge, type BadgeTone } from "@repo/ui/badge";
 import { Heading } from "@repo/ui/heading";
-import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import { formatRatio, formatSignedPoints, formatSignedRate, passesRecommendationGate } from "../lib";
 import { COACH_MESSAGES } from "../model";
@@ -70,7 +70,7 @@ export const RecommendationCard = ({ recommendation }: RecommendationCardProps) 
   }
 
   if (!passesRecommendationGate(recommendation)) {
-    return <Text color="tertiary">{REPORT.blockUnavailable}</Text>;
+    return <StatusLine kind="error">{REPORT.blockUnavailable}</StatusLine>;
   }
 
   const {

@@ -1,6 +1,7 @@
 import type { SizeCheckResult, SizingUnavailableReason } from "@repo/core/coach";
 
 import { formatPrice } from "@/shared/lib";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import { formatFineRate, formatQuantity, formatRatio } from "../lib";
 import { RISK_MESSAGES } from "../model";
@@ -28,7 +29,7 @@ interface SizeCheckLinesProps {
 export const SizeCheckLines = ({ result, isPending = false, idleHint }: SizeCheckLinesProps) => {
   const body = () => {
     if (result === null) return <p className={hint}>{isPending ? SIZE.calculating : idleHint}</p>;
-    if (result.status === "unavailable") return <p className={hint}>{SIZE.unavailable}</p>;
+    if (result.status === "unavailable") return <StatusLine kind="error">{SIZE.unavailable}</StatusLine>;
 
     const rows: { key: string; text: string; strong?: boolean }[] = [];
     if (result.maxLossKrw !== null) {

@@ -19,7 +19,7 @@ export const GoalSummary = () => {
   // 인데(`fetchStatus === "idle"`) 아직 `data` 가 없다. 그 틈에 렌더가 걸리면 죽는다.
   if (summary.isPending) {
     return (
-      <div aria-busy="true" aria-label={GOAL_MESSAGES.loading}>
+      <div role="status" aria-busy="true" aria-label={GOAL_MESSAGES.loading}>
         <Skeleton height={96} radius="medium" />
       </div>
     );

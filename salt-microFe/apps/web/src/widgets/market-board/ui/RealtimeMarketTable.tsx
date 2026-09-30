@@ -13,6 +13,8 @@ import {
 } from "@repo/ui/table";
 import { Text } from "@repo/ui/text";
 import useDebounce from "@repo/ui/useDebounce";
+import { Skeleton } from "@repo/ui/skeleton";
+import { StatusLine } from "@repo/ui/statusLine";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -138,11 +140,16 @@ export const RealtimeMarketTable = ({
   }, [selectedSymbol, items]);
 
   if (isPending) {
-    return <Text color="tertiary">{MARKET_MESSAGES.loading}</Text>;
+    // 문장 한 줄 대신 행 모양 스켈레톤 — 표가 들어올 자리를 미리 보인다 (FE-REQ-044 P-19)
+    return (
+      <div role="status" aria-busy="true" aria-label={MARKET_MESSAGES.loading}>
+        <Skeleton lines={8} height={40} radius="base" />
+      </div>
+    );
   }
 
   if (isError) {
-    return <Text color="tertiary">{MARKET_MESSAGES.loadFailed}</Text>;
+    return <StatusLine kind="error">{MARKET_MESSAGES.loadFailed}</StatusLine>;
   }
 
   return (

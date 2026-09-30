@@ -3,6 +3,7 @@
 import type { CoachMode, SymbolCoachViewModel } from "@repo/core/coach";
 import { Heading } from "@repo/ui/heading";
 import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 import { memo, useMemo } from "react";
 
 import {
@@ -97,7 +98,7 @@ export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
   const renderBlocks = () => {
     if (isSignedOut) return <Text color="tertiary">{COACH_MESSAGES.signedOut}</Text>;
     if (isError) {
-      return <Text color="tertiary">{COACH_MESSAGES.judgmentUnavailable}</Text>;
+      return <StatusLine kind="error">{COACH_MESSAGES.judgmentUnavailable}</StatusLine>;
     }
     if (isPending || !data || !mode) {
       return (

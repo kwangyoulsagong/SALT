@@ -1,4 +1,4 @@
-# FE-REQ-044 체크리스트 — 그래픽 · 모션 · 마이크로 인터랙션 (A · B 단계, 2026-09-30)
+# FE-REQ-044 체크리스트 — 그래픽 · 모션 · 마이크로 인터랙션 (A · B · C 단계, 2026-09-30)
 
 - REQ: `salt-microFe/requirements/specs/in-progress/FE-REQ-044-MOTION-GRAPHICS.md`
 - 규칙: `salt-microFe/.claude/rules/motion.md`
@@ -10,7 +10,7 @@
 |---|---|---|
 | FR-1 모션 토큰 | `@repo/tokens` `motion` · `colors.graphic` / `@repo/ui` `vars.motion`(문자열) · `@repo/ui/motion` `ease` · `springs` · `durations` | 컴포넌트 안 길이 · 이징 숫자 0(`fall` 이징도 토큰으로 올렸다). 예외: 온보딩 밀림 거리 24px · 목표 완료 대기 1600ms 는 슬라이스 상수 |
 | FR-2 라이브러리 | `framer-motion` 12.43 · `m` 만 | `motion/react` · `motion` 컴포넌트 import 를 web · ui ESLint `no-restricted-imports` 로 막았다 |
-| FR-3 줄인 모션 | `MotionProvider`(`MotionConfig reducedMotion="user"`) · `StatusGraphic` progress 는 줄인 모션이면 투명도 깜빡임 · `ProgressStepper` CSS `prefers-reduced-motion` | 코드 경로만 확인. **OS 설정 켠 실측은 안 했다**(아래 미검증) |
+| FR-3 줄인 모션 | `MotionProvider`(`MotionConfig reducedMotion="user"`) · `StatusGraphic` progress 는 줄인 모션이면 투명도 깜빡임 · `ProgressStepper` CSS `prefers-reduced-motion` | 에뮬레이션(`reducedMotion: reduce`) 실측: 칩 누름 `scale none` · 시트 60ms 에 닫힘 · 404 캔들 `transform none`. 숫자 굴리기만 코드(아래 미검증) |
 | FR-4 성능 | 그래픽 전부 `transform` · `opacity` · `pathLength` · 인라인 SVG | 첫 로드 JS 는 아래 §번들 |
 | FR-5 SSR 마지막 프레임 | `usePlayAfterMount` + `initial={false}` → 마운트 뒤 `key` 로 재생 | `curl /` · `/nope` 서버 HTML 에 그래픽 SVG 가 들어 있다. 하이드레이션 경고 0 |
 
@@ -77,13 +77,38 @@
 - 기존 위반(이번 변경 밖, 색은 이전 결정이라 건드리지 않음): `/onboarding` 단계 라벨 · 입력 라벨 대비 6 · `/goals/addgoals` 뒤로 버튼 이름 없음(critical) · 안내 문구 대비 1 · 두 화면 `page-has-heading-one`
 - 검증: check-types 5/5 · lint 5/5 · test 71 · layer-check · web · web-tax · build-storybook
 
+## C 단계 — 남은 한 줄 · 등장 · 퇴장
+
+| # | 위치 | 결과 |
+|---|---|---|
+| P-17 오류 한 줄 | 코치 판단 · 구간 · 예측 · 사건 · 쏠림 · 수익/거래 계획 · 사이즈 계산 · 리포트 패널 5 · 추천 카드 · 상세 차트 · 시세 표 · 관심 종목 (22곳, `StatusLine error`) | 코드 · lint. 앱 실측: `/coach/report`(API 차단)에서 axe 0 |
+| P-18 빈 한 줄 | 청산 기록 · 수익 플랜 · 청산 플랜 · 시나리오 · 사건 · 쏠림 반응 · 채점 표본 · 미러 · 구간 제외 사유(`empty`) · 관심 종목 로그인(`blocked`) | "제공하지 않음 · 표본 적음"은 오류가 아니라 `empty`. 투자 화면 요약 띠(한 줄 높이)는 제외 |
+| P-19 표 로딩 | `RealtimeMarketTable` · `WatchlistTab` | 문장 → 행 스켈레톤 8줄(`role="status"`) |
+| P-39 차례 등장 | `@repo/ui/enterReveal`(`.css.ts`) → `Card` · 앱 `shared/ui/surface` `panel` | 실측 `/home`: 카드 `animation-delay` 0s → 0.04s(형제 차례). CSS 라 스트리밍으로 늦게 들어온 블록도 같은 등장 |
+| FR-35 토스트 퇴장 | `ToastProvider` `leaving` → `toastLeavingStyles` 뒤 제거 | 코드만(앱에 토스트 쓰는 화면 없음) |
+| 기존 애니메이션 토큰화 | 예측 팬차트 · 상세 가격 틱 · 예측 카드 · 해설 카드 5곳 | 값이 토큰과 같은 것만(900 · 400 · 240ms). 다른 값은 이전 결정이라 유지 |
+| 줄인 모션 — 장면 | `/nope` 캔들 | 에뮬레이션: 60 · 150 · 1500ms 모두 `transform none`(이동 없음) |
+
+### axe (API 차단, 7경로)
+
+| 경로 | 결과 |
+|---|---|
+| `/` · `/coach/report` · `/nope` | 0 |
+| `/onboarding` · `/goals/addgoals` | moderate `page-has-heading-one` 만(기존) |
+| `/home` · `/investments` | serious 대비 3(기존 — 홈 절약 팁 문구 · 투자 화면 "내 코치 리포트" 링크 #8B95A1) · moderate `heading-order` |
+
+- 이번에 고친 기존 위반(사용자 승인 2026-09-30, `c651c1c` · C 커밋): 단계 라벨 · 입력 라벨 대비, 목표 추가 안내 `subtle`, 뒤로 버튼 이름(critical), 로그아웃 상태 프로필 버튼 이름(critical)
+- 이번 변경이 만든 위반 1건을 잡아 고침: 목표 목록 로딩 `div` 에 `aria-label` 만 있고 역할이 없었다 → `role="status"`
+- 번들: B 단계와 같음(`/investments` 152 → 153 kB)
+- 검증: check-types 5/5 · lint 5/5 · test 71 · layer-check · web · web-tax · build-storybook
+
 ## 미검증 · 범위 밖
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | P-1 · 3 · 4 · 5 · 6 · 33 · 35 · 36 · 38 · 40 앱 화면 실측 | BFF · 서버 · WS · SSE 가 있어야 한다(목 제거, `fsd-app.md`) | `QA-001` 로컬 풀스택 |
-| 줄인 모션 — 그래픽 장면 · 숫자 굴리기 | 누름 · 시트는 에뮬레이션으로 확인, 장면 · 숫자는 코드만 | C 단계 validate |
-| 기존 axe 위반 7건(대비 · 뒤로 버튼 이름) | 이번 변경 밖 · 색은 이전 결정 | 사용자 확인 후 별도 REQ |
+| 줄인 모션 — 숫자 굴리기 | 장면 · 누름 · 시트는 에뮬레이션으로 확인, 숫자는 코드만(보유 조회 BFF 필요) | `QA-001` |
+| 남은 기존 axe 대비 3건(홈 절약 팁 · "내 코치 리포트" 링크) · 제목 순서 | 이번 변경 밖 · 색은 이전 결정 | 사용자 결정 후 |
+| 토스트 퇴장 화면 실측 | 앱에 토스트를 쓰는 화면이 아직 없다 | 토스트를 쓰는 화면이 생길 때 |
 | 실기기 · 저사양 프레임 | 헤드리스 Chrome 만 | `QA-001` |
-| C 단계(P-17~19 · 39 · 토스트 퇴장 · 기존 애니메이션 토큰화) | A · B 범위 밖 | 다음 커밋 — REQ 배치표 |
 | RN 모션 | 같은 토큰을 `reanimated` 로 | `RN-REQ` |

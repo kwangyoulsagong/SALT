@@ -1,6 +1,7 @@
 "use client";
 
 import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import {
   CoachBlockSkeleton,
@@ -32,7 +33,7 @@ export const RiskBudgetPanel = () => {
     if (budget.isSignedOut) return <Text color="tertiary">{GAUGE.signedOut}</Text>;
     if (budget.isPending) return <CoachBlockSkeleton block="zone" />;
     if (budget.isError || budget.data.status === "unavailable") {
-      return <Text color="tertiary">{GAUGE.unavailable}</Text>;
+      return <StatusLine kind="error">{GAUGE.unavailable}</StatusLine>;
     }
     return (
       <>

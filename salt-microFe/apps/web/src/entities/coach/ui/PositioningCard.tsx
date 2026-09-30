@@ -9,6 +9,7 @@ import type {
 } from "@repo/core/coach";
 
 import { POSITIONING_MESSAGES as M } from "../model";
+import { StatusLine } from "@repo/ui/statusLine";
 import * as e from "./EventsCard.css";
 import * as s from "./PositioningCard.css";
 import { ReactionDetail } from "./ReactionDetail";
@@ -110,7 +111,7 @@ export const PositioningCard = ({
   if (result.status !== "ok") {
     return (
       <section className={className}>
-        <p className={e.note}>{M.unavailable}</p>
+        <StatusLine kind="error">{M.unavailable}</StatusLine>
       </section>
     );
   }
@@ -143,7 +144,7 @@ export const PositioningCard = ({
           <div>
             <h3 className={e.subHeading}>{M.reactionsHeading}</h3>
             {current.length === 0 ? (
-              <p className={e.note}>{M.reactionsEmpty}</p>
+              <StatusLine kind="empty">{M.reactionsEmpty}</StatusLine>
             ) : (
               <ul className={e.list}>
                 {current.map((r, i) => {

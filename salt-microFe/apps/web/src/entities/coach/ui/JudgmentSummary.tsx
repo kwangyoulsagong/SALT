@@ -1,7 +1,7 @@
 import type { CoachMode, ModeCoachViewModel } from "@repo/core/coach";
 import { Badge } from "@repo/ui/badge";
 import { Heading } from "@repo/ui/heading";
-import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import { COACH_MESSAGES } from "../model";
 import { BlockedNotice } from "./BlockedNotice";
@@ -41,7 +41,7 @@ export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProp
   if (!view) {
     return (
       <div className={judgmentSlot}>
-        <Text color="tertiary">{COACH_MESSAGES.judgmentUnavailable}</Text>
+        <StatusLine kind="error">{COACH_MESSAGES.judgmentUnavailable}</StatusLine>
       </div>
     );
   }

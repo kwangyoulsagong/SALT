@@ -3,7 +3,8 @@
 import { EmptyState } from "@repo/ui/emptyState";
 import { StatusGraphic } from "@repo/ui/statusGraphic";
 import { FlexBox } from "@repo/ui/flexBox";
-import { Text } from "@repo/ui/text";
+import { Skeleton } from "@repo/ui/skeleton";
+import { StatusLine } from "@repo/ui/statusLine";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -100,15 +101,20 @@ export const WatchlistTab = ({
   );
 
   if (isSignedOut) {
-    return <Text color="tertiary">{WATCHLIST_MESSAGES.signInRequired}</Text>;
+    return <StatusLine kind="blocked">{WATCHLIST_MESSAGES.signInRequired}</StatusLine>;
   }
 
   if (isPending) {
-    return <Text color="tertiary">{WATCHLIST_MESSAGES.loading}</Text>;
+    // 문장 한 줄 대신 행 모양 스켈레톤 — 표가 들어올 자리를 미리 보인다 (FE-REQ-044 P-19)
+    return (
+      <div role="status" aria-busy="true" aria-label={WATCHLIST_MESSAGES.loading}>
+        <Skeleton lines={8} height={40} radius="base" />
+      </div>
+    );
   }
 
   if (isError) {
-    return <Text color="tertiary">{WATCHLIST_MESSAGES.loadFailed}</Text>;
+    return <StatusLine kind="error">{WATCHLIST_MESSAGES.loadFailed}</StatusLine>;
   }
 
   // 0건은 빈 상태다. **더미를 만들지 않는다** (FR-33)

@@ -183,7 +183,7 @@ export const chip = style({
   color: vars.colors.text.tertiary,
   fontSize: vars.typography.t8.fontSize,
   fontWeight: vars.fontWeights.semibold,
-  animation: `${fadeUp} 240ms ease both`,
+  animation: `${fadeUp} ${vars.motion.duration.base} ease both`,
 });
 
 export const flash = style([note, { ...still, animation: `${fadeUp} 300ms ease both` }]);

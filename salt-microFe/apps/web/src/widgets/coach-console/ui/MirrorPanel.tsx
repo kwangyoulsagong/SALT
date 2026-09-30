@@ -2,6 +2,7 @@
 
 import type { ReportBehaviorFact } from "@repo/core/coach";
 import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 
 import {
   CoachBlockSkeleton,
@@ -29,7 +30,7 @@ const OutcomeSection = () => {
     if (outcomes.isSignedOut) return null;
     if (outcomes.isPending) return <CoachBlockSkeleton block="zone" />;
     if (outcomes.isError || outcomes.data.status === "unavailable") {
-      return <Text color="tertiary">{M.outcomes.unavailable}</Text>;
+      return <StatusLine kind="error">{M.outcomes.unavailable}</StatusLine>;
     }
     return (
       <OutcomeList
@@ -68,14 +69,14 @@ export const MirrorPanel = ({ behaviorFacts }: MirrorPanelProps) => {
   const body = () => {
     if (mirror.isSignedOut) return <Text color="tertiary">{M.signedOut}</Text>;
     if (mirror.isPending) return <CoachBlockSkeleton block="zone" />;
-    if (mirror.isError || mirror.data.status === "unavailable") return <Text color="tertiary">{M.unavailable}</Text>;
+    if (mirror.isError || mirror.data.status === "unavailable") return <StatusLine kind="error">{M.unavailable}</StatusLine>;
 
     const view = mirror.data;
     const computedAt = view.outcomesComputedAt ? formatGeneratedAt(view.outcomesComputedAt) : null;
     return (
       <>
         {view.historyStatus === "truncated" && <Text color="tertiary">{M.truncated}</Text>}
-        {view.outcomeCount === 0 && <Text color="tertiary">{M.empty}</Text>}
+        {view.outcomeCount === 0 && <StatusLine kind="empty">{M.empty}</StatusLine>}
         <MirrorLines view={view} behaviorFacts={behaviorFacts} />
         {computedAt && <p className={panelDescription}>{M.computedAt(computedAt)}</p>}
       </>

@@ -1,5 +1,5 @@
 import type { ReportExitPlan } from "@repo/core/coach";
-import { Text } from "@repo/ui/text";
+import { StatusLine } from "@repo/ui/statusLine";
 import type { ReactNode } from "react";
 
 import { formatPrice } from "@/shared/lib";
@@ -43,7 +43,7 @@ interface ExitPlanListProps {
  * % 로 바꾸지 않는다(D13). `예측 아님` 은 섹션 제목 옆 한 번(부르는 쪽).
  */
 export const ExitPlanList = ({ plans, renderIdentity }: ExitPlanListProps) => {
-  if (plans.length === 0) return <Text color="tertiary">{REPORT.noHoldings}</Text>;
+  if (plans.length === 0) return <StatusLine kind="empty">{REPORT.noHoldings}</StatusLine>;
 
   return (
     <div className={holdingList}>

@@ -1,5 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
+import { enterReveal } from "@repo/ui/enterReveal";
 import { vars } from "@repo/ui/tokens";
 
 /**
@@ -30,7 +31,9 @@ export const panel = style({
   background: vars.colors.background.white,
   boxShadow: SURFACE.hairline,
   minWidth: 0,
-  "@media": { [NARROW]: { padding: "16px 16px 20px" } },
+  // 들어올 때 8px 아래에서 올라오며, 형제 패널끼리 차례로 — 늦게 스트리밍된 패널도 같다 (FE-REQ-044 P-39)
+  ...enterReveal,
+  "@media": { [NARROW]: { padding: "16px 16px 20px" }, ...enterReveal["@media"] },
 });
 
 export const panelHead = style({
