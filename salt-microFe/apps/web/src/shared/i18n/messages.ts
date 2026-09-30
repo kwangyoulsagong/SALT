@@ -30,6 +30,22 @@ export const BOUNDARY_MESSAGES = {
   failedDescription: "잠시 후 다시 시도해주세요.",
 } as const;
 
+/**
+ * 좁은 화면 안내(`FE-REQ-043`) — 웹은 PC 화면이다. 휴대폰 화면은 앱(`RN-REQ-001`)이 맡는다.
+ * 주문을 실행하는 서비스가 아니라 "거래"라고 쓰지 않는다(공통 수용 기준 2).
+ */
+export const NARROW_SCREEN_MESSAGES = {
+  heading: ["더 큰 화면으로,", "더 자세하게 분석해요"],
+  screenAlt: "PC 화면의 투자 분석 — 시세 표와 코치 판단 패널",
+  cardTitle: ["차트 · 판단 · 성적을", "한 화면에서"],
+  cardBody: "넓은 화면에서 차트와 코치 판단, 과거 성적을 나란히 볼 수 있어요",
+  cardAlt: "PC 화면의 종목 상세 — 코치 판단과 과거 성적",
+  prompt: "PC로 접속해 주세요",
+  copy: "PC 링크 복사하기",
+  copied: "링크를 복사했어요",
+  copyFailed: "복사하지 못했어요 · 주소창의 링크를 복사해 주세요",
+} as const;
+
 /** zone 을 넘는 이동은 hard navigation 이라 체감 지연이 있다. */
 export const NAVIGATION_MESSAGES = {
   crossZonePending: "이동 중…",
