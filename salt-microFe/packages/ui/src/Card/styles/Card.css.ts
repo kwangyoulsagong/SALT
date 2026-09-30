@@ -1,4 +1,5 @@
 import { recipe } from "@vanilla-extract/recipes";
+import { enterReveal } from "../../Motion/enterReveal.css";
 import { vars } from "../../styles/tokens.css";
 
 export const cardStyles = recipe({
@@ -6,6 +7,8 @@ export const cardStyles = recipe({
     width: "100%",
     borderRadius: vars.radius.xl,
     background: vars.colors.background.white,
+    // 들어올 때 8px 아래에서 올라오며, 형제 카드끼리 차례로 (FE-REQ-044 P-39)
+    ...enterReveal,
   },
 
   variants: {

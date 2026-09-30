@@ -38,6 +38,8 @@ const { duration, easing, spring } = tokens.motion;
 
 - `*.css.ts` 의 `@keyframes` · `transition` 은 `vars.motion.duration.*` · `vars.motion.easing.*`(문자열).
 - `0.3`, `"ease-out"`, `stiffness: 400` 같은 숫자를 컴포넌트에 쓰지 않는다. 새 값이 필요하면 토큰을 추가한다.
+- 2026-09-30 이전 keyframes 중 값이 토큰과 **같은 것만** 토큰으로 바꿨다. 다른 값(해설 · 예측 · 사건 카드의 개별 안무, 등락률 깜빡임)은 이전 결정이라 그대로 둔다 — 새 코드에서 따라 하지 않는다.
+- 블록 등장은 `@repo/ui/enterReveal`(`.css.ts` 전용 — `keyframes` 는 런타임 barrel 에서 내보낼 수 없다)을 base 에 펼친다. `Card` · 앱 `panel` 표면에 이미 있다.
 
 | 토큰 | 값 | 쓰는 곳 |
 |---|---|---|
