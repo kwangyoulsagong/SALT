@@ -156,23 +156,6 @@ export const prompt = style({
   color: ds.colors.text.primary,
 });
 
-/** 흰 글자 4.84:1(AA) — action.primary(#687AD7)는 3.92:1 이라 한 단계 진한 hover 값을 기본으로 쓴다 */
-export const copyButton = style({
-  width: "100%",
-  height: "52px",
-  border: "none",
-  borderRadius: "14px",
-  background: ds.colors.action.hover,
-  color: ds.colors.text.white,
-  fontSize: "16px",
-  fontWeight: 600,
-  cursor: "pointer",
-  selectors: {
-    "&:active": { background: ds.colors.action.active },
-    "&:focus-visible": { outline: `3px solid ${ds.colors.action.active}`, outlineOffset: "2px" },
-  },
-});
-
 export const copyStatus = style({
   minHeight: "20px",
   margin: "8px 0 0",

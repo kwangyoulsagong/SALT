@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 
+import { Button } from "@repo/ui/button";
+
 import { NARROW_SCREEN_MESSAGES as M } from "@/shared/i18n";
 
-import { copyButton, copyStatus } from "./NarrowScreenNotice.css";
+import { copyStatus } from "./NarrowScreenNotice.css";
 
 type CopyState = "idle" | "copied" | "failed";
 
@@ -26,9 +28,10 @@ export const CopyPcLinkButton = () => {
 
   return (
     <>
-      <button type="button" className={copyButton} onClick={copy}>
+      {/* 앱의 기본 버튼(보라 · 흰 글자 4.99:1) — 해설 보기와 같은 컴포넌트(2026-09-30 사용자) */}
+      <Button variant="primary" size="lg" fullWidth onClick={copy}>
         {M.copy}
-      </button>
+      </Button>
       <p className={copyStatus} aria-live="polite">
         {state === "copied" ? M.copied : state === "failed" ? M.copyFailed : ""}
       </p>
