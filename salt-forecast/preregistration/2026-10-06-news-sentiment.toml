@@ -1,0 +1,67 @@
+# 사전등록 — 금융 감성 모델 점수 · 규칙 사건 태그가 BTC 다음 날 수익을 말해 주나 · 라이브 통계 (F010 슬라이스 6 3차 · FC-REQ-016)
+#
+# 이 파일은 **채점 데이터가 생기기 전에** 커밋한다. 커밋 시각 · 해시가 등록 증거다.
+# 등록 뒤 신호 · 지평 · 판정 조건을 바꾸려면 새 키(`news-sentiment@2`)로 새 파일을 만든다 — 덮어쓰지 않는다.
+#
+# 왜 라이브인가: 서버 뉴스 테이블은 3,568건 · 2026-08 말~09-29 뿐이고(서버가 꺼지면 수집도 멈춘다), RSS 는 피드마다
+# 최근 30건만 준다 — 과거 표본을 만들 원천이 없다. 그래서 `dominance@1` 처럼 매시 쌓고 미리 정한 날에 한 번 본다.
+#
+# 배경: 리서치 §2-3 — 서버 키워드 감성(`newsSentiment.ts`)은 부정문 · 부분 문자열 · 중복 · 이중 계산 문제가 있고
+# 채점된 적이 없는데 점수 엔진에 ±15 로 들어가 있다. 이 등록은 그 자리를 **채점된 신호로 바꿀 수 있는지**만 본다.
+# 등록 전 점검(2026-10-06, 326건): 한국어 모델이 "거래소 해킹으로 400억 탈취"를 중립으로 읽었다 — 그래서 사건 태그를 따로 시험한다.
+
+key = "news-sentiment@1"
+registered = 2026-10-06
+first_check = 2027-02-08   # 2026-10-07 부터 120일 + 결과 하루 + 여유. 그 전에는 아래 통계를 계산하지 않는다(엿보기 금지)
+
+[data]
+source = """
+forecast.news_item · forecast.news_score — `jobs/news.py` 가 매시 RSS 13개(Google 뉴스 한국어 검색 10 · coindesk · cointelegraph ·
+cryptoslate)를 받아 쌓는다. 서버 크롤러와 같은 피드 · 검색어다.
+observed_at = published_at(RSS pubDate), **available_at = fetched_at(처음 받은 시각)**. 채점은 fetched_at 으로만 자른다.
+"""
+models = """
+ko = snunlp/KR-FinBert-SC @ 84112ea (safetensors sha256 9e1ca3ff…), en = ProsusAI/finbert @ 7db323f (sha256 e5897858…).
+입력 = 제목, 종목명을 [자산] / [ASSET] 로 가린 것. score = p_pos − p_neg. model_version 이 바뀌면 이 등록의 표본이 아니다.
+"""
+events = "규칙 태그(domain/news_text.py EVENT_RULES · NEGATION, 커밋 시점의 정규식) — hack · regulation · delisting · listing · etf · macro · institution, 부정어 표시"
+window = "표본은 fetched_at ≥ 2026-10-07 00:00 UTC 인 기사만. 등록 전 점검 326건(10-06 수집)은 쓰지 않는다"
+dedupe = "같은 title_key 는 가장 먼저 받은 한 건만(여러 검색어 피드에 같은 기사가 온다)"
+prices = "업비트 원화 일봉 forecast.price_bar(upbit, 1d) KRW-BTC, 봉 경계 UTC 자정"
+
+[protocol]
+grid = "매일 00:00 UTC 마감 봉 t"
+signal_h1 = """
+M[t] = fetched_at ∈ (t − 24h, t] 인 기사(중복 제거 · 두 언어 · 종목 연결 여부 무관)의 score 평균.
+그날 기사가 5건 미만이면 그날 결측
+"""
+outcome_h1 = "y[t] = ln(BTC 종가[t+1일] / 종가[t]) — 다음 날 로그수익"
+statistic_h1 = "IC = 스피어만(M, y), 결측일 제외. 양측 — 부호를 미리 정하지 않는다(헤드라인 드리프트 vs 과잉 반응 반전 둘 다 문헌에 있다)"
+signal_h2 = """
+E[t] = (t − 24h, t] 에 hack 또는 regulation 태그가 붙고 negated = false 인 기사가 1건 이상 — 그날 '악재 사건일'.
+같은 사건이 여러 날 이어지면 첫날만(앞 3일 안에 사건일이 있으면 새 사건이 아니다)
+"""
+outcome_h2 = "악재 사건일의 y[t](다음 날 BTC 로그수익) 평균 − 같은 기간 전체 날 y 평균"
+statistic_h2 = "단측 — 기대 부호 음(−)"
+ci = "날짜 이동 블록 부트스트랩 — 블록 7일 · 2000회 · seed 20261006 · H1 은 분위 [2.5%, 97.5%], H2 는 상한 97.5%"
+multiplicity = "H1 · H2 두 검정에 BY-FDR q = 0.10"
+min_days = 120
+min_events = 20
+
+[decision]
+at_first_check = """
+H1: n ≥ 120 이고 BY 보정 뒤 CI 가 0 을 포함하지 않으면 '라이브 근거 있음' — 부호와 크기를 리포트에 적는다.
+H2: 사건 ≥ 20 이고 보정 뒤 상한 < 0 이면 '라이브 근거 있음'.
+**규칙 · 화면은 이 결과로 바로 바꾸지 않는다.** 서버 키워드 감성(±15)을 이 점수로 바꾸려면 결과를 근거로 새 등록
+(예: mode-decision@3 또는 score-news@1)을 결과 전에 만들고 그 판정을 거친다.
+둘 다 근거 없음이면 리포트에 '키워드 감성 가점(±15) 제거 후보'로 적고 사용자 결정을 받는다 — 이 등록이 제거를 정하지 않는다.
+표본 부족이면 '표본 부족' · 다음 확인은 60일 뒤(같은 등록, 같은 통계).
+"""
+no_peek = "first_check 전에는 M · E 와 y 를 함께 계산하는 코드를 돌리지 않는다. 수집 상태(일별 기사 수 · 연결률 · 태그 수)만 본다"
+
+[exploratory]
+by_language = "H1 을 ko · en 따로"
+eth = "ETH 연결 기사만으로 M_eth → ETH 다음 날 수익"
+weekly = "월요일 격자 7일 평균 감성 → BTC 다음 7일 — n 이 1/7 이라 표본 수만 적는다"
+negated = "negated = true 인 etf · regulation 기사일의 y — 서버 키워드 사전이 거꾸로 읽던 경우"
+keyword_vs_model = "서버 public.news_articles.sentiment(키워드) 가 있는 날만 — 서버가 꺼져 있던 날이 많아 비교 표본은 작다"
