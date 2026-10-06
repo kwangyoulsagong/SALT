@@ -1,0 +1,95 @@
+# 사전등록 — BTC 온체인 밸류에이션(MVRV) 과열 상한이 목표 비중 결과를 낫게 하나 (F010 슬라이스 6 2차 · FC-REQ-015)
+#
+# 이 파일은 **결과를 보기 전에** 커밋한다. 커밋 시각 · 해시가 등록 증거다.
+# 등록 뒤 후보 · 임계 · 판정 조건을 바꾸려면 새 키(`onchain-regime@2`)로 새 파일을 만든다 — 덮어쓰지 않는다.
+# `jobs/onchain_regime` 가 이 파일을 `forecast.preregistration` 에 한 번 쓰고, 같은 키에 다른 내용이면 실패한다.
+#
+# 배경: 리서치(`requirements/reports/research/2026-09-27-ai-judgment-upgrade.md` §7-2 · §7-6)는 MVRV 를
+# "국면 · 상한(설명), 예측 변수 아님 · 사이클 n≈4 · ETF 이후 임계 이동"으로 분류했다. 그래서 이 등록은 방향 IC 가 아니라
+# **목표 비중(target-weight@2 core)에 과열 상한을 씌우면 덜 빠지면서 덜 벌지 않는가**를 잰다.
+# 등록 시점까지 본 값: 원천 연결 확인용 BTC MVRV 최근 두 점(2026-10-04 · 05)과 각 메트릭 이력 시작일뿐(결과 계산 0회).
+#
+# 같은 8년 업비트 표본은 target-weight@1 · @2 · regime-gate@1 · dvol-sigma@1 이 이미 썼다. 이 등록은 새 원천(온체인)이
+# 처음 들어오는 것이라 같은 표본을 쓰지만, 그 사실을 리포트에 적고 후보를 하나로 줄여 다중 비교를 늘리지 않는다.
+
+key = "onchain-regime@1"
+registered = 2026-10-06
+rule_version = "target-weight@2"   # 서버 coach/domain/policy/targetWeight.ts — core BTC · ETH, σ = v_realized_vol.ewma
+
+[question]
+text = """
+BTC MVRV 가 자기 역사에서 높은 구간(과열)일 때 목표 비중(core)을 절반으로 줄이면, 같은 기간 상한 없는 목표 비중보다
+최대 낙폭이 작고 Calmar 가 낮아지지 않는가. 그렇다면(아래 판정) 서버 목표 비중에 과열 상한을 넣는다.
+아니면 규칙은 그대로 두고 온체인 값은 매일 수집만 한다.
+"""
+
+[data]
+mvrv = """
+Coin Metrics Community API `timeseries/asset-metrics` asset = btc, metric = CapMVRVCur(시가총액 ÷ 실현 시가총액), frequency = 1d.
+행 시각 time 은 그날(UTC) 00:00 — 값은 그날 끝까지의 체인 상태다. 게시 시각이 응답에 없다 → available_at = time + 2일
+(그날이 닫히는 time + 1일 + 게시 지연 상한 1일, 보수적). 이력 시작 2010-07-18(카탈로그).
+"""
+flows = """
+같은 API 의 btc FlowInExNtv · FlowOutExNtv(거래소 입 · 출금, BTC 단위) · AdrActCnt · HashRate — **탐색에만** 쓴다.
+거래소 입출금은 원천이 거래소 주소 라벨을 나중에 찾아 과거에 소급 적용한다(라벨 빈티지 없음) → 과거 값에 미래 지식이 섞여
+있을 수 있어 판정에 넣지 않는다. 같은 이유로 status = flash 값은 뒤에 고쳐진다 — 라이브 수집부터는 빈티지로 쌓는다.
+"""
+license = "CC BY-NC 4.0 — 피처 · 채점 전용(화면 표시 없음). 채택돼도 상업 전환 시 재검토(리서치 OQ 5)"
+prices = "업비트 원화 일봉 forecast.price_bar(upbit, 1d) KRW-BTC · KRW-ETH, 봉 경계 UTC 자정"
+
+[protocol]
+base = """
+target-weight@2 core 규칙 그대로: σ = EWMA(λ 0.94) 연율, 역변동성 × min(1, 0.15 ÷ 묶음 σ(상관 1)) · 한 종목 상한 0.6 ·
+매주 월요일 00:00 UTC 마감 봉 뒤 리밸런스 · 편도 0.05% · 남는 몫 현금(이자 0). scoring/target_weight 의 simulate 를 그대로 쓴다
+"""
+period = """
+target-weight@1 기록과 같은 창: 2018-01-01 뒤 첫 리밸런스 ~ 실행일 전날. MVRV 상한 값이 없는 리밸런스 날은 상한 없음(×1)으로 둔다
+— 값이 없어서 생긴 차이는 0 이다
+"""
+timing = "리밸런스 날 t(월요일 마감)의 비중을 정할 때 available_at ≤ t 인 MVRV 만 쓴다. 다음 리밸런스까지 그 비중이 흘러간다"
+
+[candidate]
+name = "mvrv_cap"
+signal = "m[t] = available_at ≤ t 인 가장 최근 BTC MVRV(as-of). 마지막 관측이 t − 7일보다 오래됐으면 값 없음"
+threshold = """
+q[t] = 2011-01-01 ≤ observed ≤ (t 에 알던 마지막 관측) 인 BTC MVRV 일값들의 90% 분위(확장 창, 선형 보간).
+그 표본이 1000일 미만이면 값 없음. 고정 수치(예: 3.7)를 쓰지 않는 이유 — 리서치의 "ETF 이후 임계 이동"
+"""
+rule = "m[t] ≥ q[t] 인 리밸런스 날은 core 목표 비중 전체(BTC · ETH 둘 다)를 × 0.5. 아니면 × 1. ETH 도 BTC 신호로 줄인다(알트는 BTC 레버리지 — regime-gate@1 과 같다)"
+
+[metrics]
+mdd = "로그 누적 곡선의 최대 낙폭(양수 크기)"
+cagr = "연 365일 환산"
+calmar = "CAGR / MDD"
+upside_capture = "BTC 보유 월 로그수익이 양(+)인 달들의 전략 월 로그수익 합 / BTC 월 로그수익 합 (domain/regime.capture)"
+delta_mdd = "MDD_base − MDD_cap. 양수 = 상한이 덜 빠졌다"
+delta_calmar = "Calmar_cap − Calmar_base"
+ci = "일 수익 쌍(base, cap)을 같은 인덱스로 이동 블록 부트스트랩 — 블록 30일 · 2000회 · seed 20261006 · 분위 [2.5%, 97.5%]"
+episodes = "상한이 걸린 리밸런스 주의 연속 구간. 두 구간 사이가 8주 미만이면 한 구간으로 친다"
+
+[decision]
+pass = """
+mvrv_cap 은 아래 넷을 **모두** 만족해야 채택한다(후보 하나 — 다중 비교 보정 없음).
+(1) delta_mdd 95% CI 하한 > 0 — 덜 빠진다
+(2) delta_calmar 점추정 ≥ 0 — 덜 벌어서 덜 빠진 것이 아니다
+(3) 창을 날짜 수로 반 나눈 앞 · 뒤 절반 각각에서 delta_calmar 점추정 ≥ 0 — 한 사이클 운이 아니다
+(4) 상한이 걸린 리밸런스 주 ≥ 20 이고 구간(episodes) ≥ 2 — 사이클 하나로 정한 규칙이 아니다
+"""
+none = """
+채택 없음이면 목표 비중 규칙 · 서버 · 화면 무변경. 온체인 값은 매일 수집만 한다.
+같은 과거 표본으로 임계(분위 · 배수)를 바꿔 `onchain-regime@2` 를 등록하지 않는다 — 라이브 표본으로만 다시 등록한다.
+"""
+adopted = """
+채택이면 서버 목표 비중에 과열 상한을 넣는다(규칙 버전 target-weight@3). 상한 여부는 이 서비스가 매일 계산해
+forecast 에 쓰고 서버는 읽기만 한다(DB 계약 변경 — 별도 커밋). 화면 3종 고지의 과거 성적은 상한 규칙으로 다시 돌린 기록으로 바꾼다.
+"""
+
+[exploratory]
+# 판정에 쓰지 않는다 — 리포트에만. 좋게 나와도 채택하려면 새 키로 라이브 표본에서 다시 등록한다
+netflow_cap = "z = (7일 거래소 순유입 합 − 직전 365일 같은 합의 평균) ÷ 표준편차, z ≥ 2 인 리밸런스 주에 × 0.5 — 같은 4지표"
+mvrv_cap_80 = "분위 80% 로 같은 규칙"
+direction = """
+시계열 스피어만(블록 부트스트랩 95% CI, 블록 = max(7, 2h)): MVRV 수준 · MVRV 30일 변화 · 순유입 z · 활성주소 30일 증가율 ·
+해시리본(해시레이트 30일 평균 ÷ 60일 평균 − 1) vs 앞으로 30 · 90일 BTC 로그수익(업비트 원화). 리서치 기대: MVRV 수준 음(−), 나머지 0
+"""
+eth_mvrv = "ETH 비중만 ETH 자기 MVRV 로 줄이는 변형(BTC 는 BTC MVRV)"
