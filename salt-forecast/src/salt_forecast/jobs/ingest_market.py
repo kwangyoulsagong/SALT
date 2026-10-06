@@ -1,7 +1,8 @@
 """시장 · 거시 수집.
 
 바이낸스(미결제약정 · 펀딩비 · 현물 일봉) · DefiLlama(스테이블코인) · ECB(원/달러 — 김치 프리미엄) ·
-FRED(금리 · 환율 · 지수 · 물가) · Deribit DVOL(BTC · ETH 내재 변동성) · 업비트 거래 유의 · 주의 스냅샷(FC-REQ-014).
+FRED(금리 · 환율 · 지수 · 물가) · Deribit DVOL(BTC · ETH 내재 변동성) · 업비트 거래 유의 · 주의 스냅샷(FC-REQ-014) ·
+Coin Metrics BTC 온체인 · CoinGecko 도미넌스 스냅샷(FC-REQ-015).
 
 미결제약정은 30일 이력뿐이라 **매일** 돈다. FRED 는 키가 없으면 건너뛰고 source_status 에 남긴다.
 """
@@ -14,7 +15,7 @@ from datetime import UTC, date, datetime, timedelta
 import httpx
 
 from salt_forecast.config import settings
-from salt_forecast.ingest import binance, defillama, deribit, ecb, fear_greed, fred
+from salt_forecast.ingest import binance, coingecko, coinmetrics, defillama, deribit, ecb, fear_greed, fred
 from salt_forecast.ingest.http import Pacer, SourceError
 from salt_forecast.ingest.upbit import Pacer as UpbitPacer
 from salt_forecast.ingest.upbit import UpbitDaily
@@ -26,7 +27,7 @@ from salt_forecast.store.runs import mark_source
 from salt_forecast.store.series import SeriesPoint, latest_observed, upsert_points
 
 JOB = "ingest_market"
-SOURCES = ("binance", "defillama", "ecb", "fred", "fear_greed", "deribit", "upbit_warning")
+SOURCES = ("binance", "defillama", "ecb", "fred", "fear_greed", "deribit", "upbit_warning", "coinmetrics", "coingecko")
 HISTORY_START = date(2022, 9, 1)
 
 
@@ -131,6 +132,27 @@ def main(argv: list[str] | None = None) -> int:
                     return len(rows) if args.dry_run else insert_snapshot(eng, rows)
 
                 total += guarded("upbit_warning", "market_event", save_warnings)
+            if "coinmetrics" in only:
+                # 증분은 마지막 관측 다음 날부터만 — 고쳐진 값으로 과거를 덮지 않는다(ingest/coinmetrics.py)
+                cm_last = latest_observed(eng, coinmetrics.SOURCE)
+                total += guarded(
+                    "coinmetrics",
+                    coinmetrics.ASSET,
+                    lambda: save_points(
+                        coinmetrics.daily(
+                            client, cfg.coinmetrics_url, Pacer(cfg.coinmetrics_requests_per_second), cm_last, now
+                        )
+                    ),
+                )
+            if "coingecko" in only:
+                # 지금 값만 주는 원천 — --as-of 와 무관하게 실제로 받은 시각을 쓴다
+                total += guarded(
+                    "coingecko",
+                    "global",
+                    lambda: save_points(
+                        coingecko.global_snapshot(client, cfg.coingecko_url, Pacer(1.0), datetime.now(UTC))
+                    ),
+                )
             if "ecb" in only:
                 last = latest_observed(eng, ecb.SOURCE).get(ecb.SERIES)
                 ecb_since = HISTORY_START - timedelta(days=10) if last is None else last.date() - timedelta(days=7)
