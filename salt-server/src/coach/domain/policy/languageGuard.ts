@@ -11,6 +11,12 @@
  * - **한 점 목표가**: 목표가 · 목표 주가 · 목표 가격
  * - **지어낸 숫자**: 문장 속 숫자가 입력 사실과 값 · 단위 · 방향으로 맞지 않으면 — LLM 문장에만 건다(아래 C03)
  * - **근거 없는 인과**: "~해서 · 때문에 · 영향으로" 인데 사실과 맞은 숫자가 없으면 — LLM 문장에만 건다
+ * - **판단과 반대 극성**: 판단이 관망 · 피하기인데 "매수 적기 · 오를 가능성이 높" — LLM 문장에만 건다(F010 슬라이스 6 · `SRV-REQ-025` FR-61)
+ *
+ * ## 영어도 같은 검사를 지난다 (F010 슬라이스 6)
+ *
+ * 뉴스 피드 일부가 영어라 모델이 영어 문장을 섞어 쓴다. 2026-10-06 전에는 정규식이 한국어뿐이라
+ * "Strong buy — guaranteed upside" 가 그대로 나갔다.
  */
 
 export type LanguageViolation =
@@ -18,7 +24,8 @@ export type LanguageViolation =
   | "imperative_trade"
   | "target_price"
   | "unverified_number"
-  | "unsupported_causal";
+  | "unsupported_causal"
+  | "judgment_polarity";
 
 // "보장하지 않습니다"는 면책이다 — 부정형은 통과시킨다
 const CERTAINTY = /(확실|무조건|보장(?!\s*(하지|되지|할\s*수\s*없))|100\s*%|틀림없|반드시\s*(오|내|상승|하락))/;
@@ -27,13 +34,37 @@ const IMPERATIVE = "(하세요|하십시오|해\\s*보세요|하라|고려하세
 const IMPERATIVE_TRADE = new RegExp(`${TRADE_VERB}[^.。!?\\n]{0,14}${IMPERATIVE}|(사세요|파세요|팔아야|사야\\s*합니다|사\\s*두세요|팔\\s*때입니다)`);
 const TARGET_PRICE = /(목표\s*(주)?가|목표\s*가격)/;
 
+// 영어 — 부정형("not guaranteed")은 면책이라 통과시킨다
+const CERTAINTY_EN = /(?<!not\s)\b(guaranteed?|definitely|certainly|risk[- ]free|can(?:no|')t\s+lose|sure\s+thing|100\s*%\s*(sure|certain))\b/i;
+const IMPERATIVE_TRADE_EN =
+  /\b(buy|sell|short|dump|load\s+up\s+on)\s+(it\s+)?(now|today|immediately|this)\b|\byou\s+(should|must|need\s+to)\s+(buy|sell|exit|enter)\b|\b(strong\s+(buy|sell)|go\s+all[- ]in)\b/i;
+const TARGET_PRICE_EN = /\b(price\s+target|target\s+price)\b/i;
 export const languageViolations = (sentence: string): LanguageViolation[] => {
   const out: LanguageViolation[] = [];
-  if (CERTAINTY.test(sentence)) out.push("certainty");
-  if (IMPERATIVE_TRADE.test(sentence)) out.push("imperative_trade");
-  if (TARGET_PRICE.test(sentence)) out.push("target_price");
+  if (CERTAINTY.test(sentence) || CERTAINTY_EN.test(sentence)) out.push("certainty");
+  if (IMPERATIVE_TRADE.test(sentence) || IMPERATIVE_TRADE_EN.test(sentence)) out.push("imperative_trade");
+  if (TARGET_PRICE.test(sentence) || TARGET_PRICE_EN.test(sentence)) out.push("target_price");
   return out;
 };
+
+/**
+ * 판단의 방향 — 규칙이 정한 것(`ModeDecision.action`). 해설은 이 방향을 뒤집지 못한다.
+ * `candidate` 는 기회 · 모아가기 후보, `wait` 는 관망, `avoid` 는 지금은 피하기.
+ */
+export type JudgmentStance = "candidate" | "wait" | "avoid";
+
+// 앞을 내다보는 강세 · 약세 주장. 관찰("어제 3% 올랐어요")은 여기 걸리지 않는다 — 기대 · 가능성 · 전망 · 적기가 붙어야 한다.
+// "가능성이 높" 만 잡던 첫 판은 실호출에서 관망 판단에 "향후 반등 가능성을 시사합니다"를 통과시켰다(2026-10-06) — 가능성 자체를 잡는다
+
+const BULLISH = /(매수\s*(적기|기회|타이밍|하기\s*좋)|사기\s*좋|(상승|반등)(이|할|세가|의)?\s*(기대|가능성|여력|전망|예상)|오를\s*(가능성|것)|강세(가|를)?\s*(전망|예상|기대)|bullish|upside\s+(ahead|potential))/i;
+const BEARISH = /(매도\s*(적기|타이밍)|팔기\s*좋|(하락|조정)(이|할|세가|의)?\s*(가능성|전망|예상)|떨어질\s*(가능성|것)|약세(가|를)?\s*(전망|예상)|bearish|downside\s+(ahead|risk\s+is\s+high))/i;
+
+/**
+ * 문장이 판단과 반대 방향을 주장하는가. 관망 · 피하기 판단에 강세 전망을, 후보 판단에 약세 전망을 쓰면 위반이다.
+ * 관망에 약세 전망은 반대가 아니다 — 관망은 방향을 말하지 않는다. 그 말이 틀렸으면 숫자 · 확신 검사가 잡는다.
+ */
+export const contradictsStance = (sentence: string, stance: JudgmentStance): boolean =>
+  stance === "candidate" ? BEARISH.test(sentence) : BULLISH.test(sentence);
 
 /** 문장 속 숫자(쉼표 · 소수 · 부호 포함). "1,234.5억" → 1234.5 — 단위를 버린다. 대조에는 `numericTokens` 를 쓴다 */
 export const numbersIn = (sentence: string): number[] =>
@@ -151,9 +182,13 @@ export interface GuardResult {
 
 /**
  * 문장 목록을 검사해 통과한 것만 남긴다. `facts` 를 주면 숫자 · 인과도 대조한다(LLM 문장).
- * 우리 규칙 문장은 숫자를 우리가 넣으므로 숫자 대조 없이 말투만 본다.
+ * 우리 규칙 문장은 숫자를 우리가 넣으므로 숫자 대조 없이 말투만 본다. `stance` 를 주면 판단 극성도 대조한다.
  */
-export const guardSentences = (sentences: readonly string[], facts?: readonly NumericFact[]): GuardResult => {
+export const guardSentences = (
+  sentences: readonly string[],
+  facts?: readonly NumericFact[],
+  stance?: JudgmentStance
+): GuardResult => {
   const kept: string[] = [];
   const dropped: GuardResult["dropped"] = [];
   for (const sentence of sentences) {
@@ -166,6 +201,7 @@ export const guardSentences = (sentences: readonly string[], facts?: readonly Nu
       const cited = supported.some((t) => t.unit !== "count" || t.value > SMALL_COUNT_MAX);
       if (CAUSAL.test(sentence) && !cited) reasons.push("unsupported_causal");
     }
+    if (stance && contradictsStance(sentence, stance)) reasons.push("judgment_polarity");
     if (reasons.length === 0) kept.push(sentence);
     else dropped.push({ sentence, reasons });
   }

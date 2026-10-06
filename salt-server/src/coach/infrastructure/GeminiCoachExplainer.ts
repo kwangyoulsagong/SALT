@@ -13,9 +13,11 @@ import type {
 } from "../domain";
 import {
   buildExplanationPrompt,
+  EXPLANATION_RESPONSE_SCHEMA,
   EXPLANATION_SYSTEM_INSTRUCTION,
   explanationCacheKey,
   NEWS_SUMMARY_MAX,
+  parseExplanationResponse,
 } from "./explanationPrompt";
 
 /**
@@ -42,6 +44,11 @@ import {
  *
  * 원문은 파싱 실패 시 모델 응답 200자를 예외 메시지에 붙였다. 그 메시지는 그대로
  * 로그로 나가고, 같은 §6 이 금지하는 **원문 로깅**이 된다. 길이만 남긴다.
+ *
+ * ## 응답 모양은 스키마로 강제한다 (F010 슬라이스 6 · `SRV-REQ-025` FR-61)
+ *
+ * `responseSchema` 로 모델에게 모양을 주고, 받은 것을 Zod 로 다시 검사한다. 모양이 다르면 예외 —
+ * 유스케이스가 템플릿 해설로 간다. 면책(`disclaimer`)은 받지 않는다 — 서버 상수다.
  */
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -72,6 +79,7 @@ const generationConfig: GenerationConfig = {
   temperature: 0.4,
   maxOutputTokens: 1200,
   responseMimeType: "application/json",
+  responseSchema: EXPLANATION_RESPONSE_SCHEMA,
 };
 
 export class GeminiCoachExplainer implements CoachExplainer {
@@ -111,42 +119,24 @@ export class GeminiCoachExplainer implements CoachExplainer {
         logger.warn(`Gemini 해설 재시도 ${attempt}회 (${waitMs}ms 후)`),
     });
 
-    const parsed = this.parse(response.response.text());
+    const text = response.response.text();
+    const parsed = parseExplanationResponse(text);
+    if (!parsed) throw new Error(`Gemini 응답 스키마 불일치 (${text.length}자)`);
 
     const result: CoachExplanation = {
-      modeReasoning: String(parsed.modeReasoning ?? ""),
-      timeframe: String(parsed.timeframe ?? ""),
-      keyDrivers: Array.isArray(parsed.keyDrivers)
-        ? parsed.keyDrivers.map(String)
-        : [],
-      risks: Array.isArray(parsed.risks) ? parsed.risks.map(String) : [],
+      modeReasoning: parsed.modeReasoning,
+      timeframe: parsed.timeframe ?? "",
+      keyDrivers: parsed.keyDrivers,
+      risks: parsed.risks,
       // 뉴스보다 많은 줄을 싣지 않는다 — 1건에 5줄이면 4줄은 모델이 지어낸 것이다(FR-51)
-      newsSummary: Array.isArray(parsed.newsSummary)
-        ? parsed.newsSummary
-            .map(String)
-            .slice(0, Math.min(NEWS_SUMMARY_MAX, (input.news ?? []).length))
-        : [],
-      disclaimer: String(
-        parsed.disclaimer ?? "투자 손실 가능. 본 해설은 의사결정 지원용입니다."
-      ),
+      newsSummary: parsed.newsSummary.slice(0, Math.min(NEWS_SUMMARY_MAX, (input.news ?? []).length)),
+      // 면책은 서버 상수다(`JUDGMENT_DISCLAIMER`) — 유스케이스가 덮어쓴다. 모델에게 받지 않는다
+      disclaimer: "",
       generatedAt: new Date().toISOString(),
       cached: false,
     };
 
     rememberExplanation(key, result);
     return result;
-  }
-
-  private parse(text: string): Record<string, any> {
-    try {
-      const cleaned = text
-        .replace(/^```json\s*/i, "")
-        .replace(/^```\s*/, "")
-        .replace(/```\s*$/, "")
-        .trim();
-      return JSON.parse(cleaned);
-    } catch {
-      throw new Error(`Gemini 응답 파싱 실패 (${text.length}자)`);
-    }
   }
 }

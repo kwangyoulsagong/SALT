@@ -14,6 +14,7 @@ import type {
   JudgmentCase,
   JudgmentGroupStats,
   JudgmentOutcome,
+  JudgmentStance,
   JudgmentTrackStats,
   ModeDecisionAction,
   TradePlan,
@@ -258,6 +259,11 @@ export interface CoachExplanationInput {
   change24h: number;
   tradeValue24h: number;
   evidence: Array<{ label: string; value: string }>;
+  /**
+   * 판단 방향 — 해설 검증기가 문장 극성을 대조한다(F010 슬라이스 6 · `SRV-REQ-025` FR-61).
+   * 프롬프트에는 싣지 않는다 — 모델은 "판단" 근거 문장을 이미 본다. 없으면 극성 대조를 건너뛴다
+   */
+  stance?: JudgmentStance;
   news?: Array<{
     title: string;
     summary?: string;

@@ -8,7 +8,8 @@ import type {
   CoachSymbolArticle,
 } from "../model";
 import type { CoachExplanationInput } from "../ports";
-import { SCORED_ITEMS } from "./modeDecision";
+import type { JudgmentStance } from "./languageGuard";
+import { SCORED_ITEMS, type ModeDecisionAction } from "./modeDecision";
 
 /**
  * 해설 사실 — **서버가 조립한다** (F009 슬라이스 0 C01 · `SRV-REQ-025` FR-58 · `FEATURE-008` FR-40).
@@ -42,13 +43,17 @@ const EVIDENCE_VALUE_MAX = 120;
 export const EXPLANATION_NEWS_MAX = 5;
 const NEWS_TITLE_MAX = 200;
 
+/** 규칙의 행동 → 해설이 뒤집으면 안 되는 방향 */
+export const stanceOf = (action: ModeDecisionAction): JudgmentStance =>
+  action === "wait" ? "wait" : action === "avoid" ? "avoid" : "candidate";
+
 const clip = (text: string, max = EVIDENCE_VALUE_MAX) => (text.length > max ? text.slice(0, max) : text);
 
 export interface ExplanationMaterials {
   symbol: string;
   mode: CoachMode;
   quote: CoachQuote | undefined;
-  judgment: { label: string; headline: string; reasons: string[]; risks: string[] };
+  judgment: { action: ModeDecisionAction; label: string; headline: string; reasons: string[]; risks: string[] };
   indicator: CoachIndicator | undefined;
   sentiment: CoachSentiment | undefined;
   whale: { buyAmountKRW: number; sellAmountKRW: number; count: number };
@@ -101,6 +106,7 @@ export const assembleExplanationFacts = (m: ExplanationMaterials): CoachExplanat
     change24h: m.quote?.change24h ?? 0,
     tradeValue24h: m.quote?.tradeValue24h ?? 0,
     evidence: evidence.slice(0, EVIDENCE_MAX),
+    stance: stanceOf(m.judgment.action),
     ...(news.length > 0 ? { news } : {}),
   };
 };

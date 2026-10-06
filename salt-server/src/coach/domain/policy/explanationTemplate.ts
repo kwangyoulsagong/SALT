@@ -73,11 +73,17 @@ export const templateExplanation = (input: CoachExplanationInput, now: Date): Co
 /**
  * LLM 이 쓸 수 있는 숫자 — 입력에 있던 사실만, **단위 · 방향과 함께**(C03).
  * 프롬프트가 보여 준 모양(억 단위 반올림 · 소수 2자리 변동률)도 같은 사실이다.
+ *
+ * ## 뉴스 속 숫자는 뉴스 칸에서만 (F010 슬라이스 6 · `SRV-REQ-025` FR-61)
+ *
+ * 2026-10-06 전에는 뉴스 제목 · 요약의 숫자가 **모든 칸의** 허용 숫자였다. 기사 제목의 "20% 급등 전망"이
+ * 판단 근거 칸에 "20% 상승할 수 있어요"로 들어가도 통과했다 — 남의 전망이 이 종목의 사실처럼 나갔다.
+ * 이제 `news: false`(판단 · 근거 · 주의 칸)는 시세 · 근거 사실만, `news: true`(뉴스 요약 칸)만 기사 숫자를 더 쓴다.
  */
-export const allowedFacts = (input: CoachExplanationInput): NumericFact[] => {
+export const allowedFacts = (input: CoachExplanationInput, scope: { news: boolean }): NumericFact[] => {
   const texts = [
     ...input.evidence.flatMap((e) => [e.label, e.value]),
-    ...(input.news ?? []).flatMap((n) => [n.title, n.summary ?? ""]),
+    ...(scope.news ? (input.news ?? []).flatMap((n) => [n.title, n.summary ?? ""]) : []),
     COACH_HORIZON[input.mode].phrase,
     ...PROMPT_PHRASES,
   ];
@@ -102,24 +108,29 @@ export interface VerifiedExplanation {
  * - `modeReasoning` 은 한 덩어리 — 걸리면 통째로 템플릿
  * - `timeframe` 은 LLM 이 쓴 것을 버리고 `COACH_HORIZON` 을 주입한다(`SRV-REQ-024` FR-103 · C05) — 기간은 채점 기간 하나다
  * - 목록(근거 · 주의 · 뉴스)은 항목별 — 걸린 항목만 빼고, 다 빠지면 템플릿 목록
+ * - 판단 극성(`input.stance`)은 판단 · 근거 칸에만 건다 — 주의 칸은 판단과 반대 방향을 말하는 것이 일이다
  */
 export const verifyExplanation = (
   llm: CoachExplanation,
   input: CoachExplanationInput,
   now: Date
 ): VerifiedExplanation => {
-  const allowed = allowedFacts(input);
+  const core = allowedFacts(input, { news: false });
+  const withNews = allowedFacts(input, { news: true });
   const template = templateExplanation(input, now);
   const dropped: VerifiedExplanation["dropped"] = [];
 
   const single = (field: "modeReasoning"): string => {
-    const r = guardSentences([llm[field]], allowed);
+    const r = guardSentences([llm[field]], core, input.stance);
     if (r.kept.length === 1) return llm[field];
     dropped.push({ field, reasons: r.dropped[0]?.reasons ?? [] });
     return template[field];
   };
   const list = (field: "keyDrivers" | "risks" | "newsSummary"): string[] => {
-    const r = guardSentences(llm[field], allowed);
+    const r =
+      field === "newsSummary"
+        ? guardSentences(llm[field], withNews)
+        : guardSentences(llm[field], core, field === "keyDrivers" ? input.stance : undefined);
     r.dropped.forEach((d) => dropped.push({ field, reasons: d.reasons }));
     return r.kept.length > 0 || llm[field].length === 0 ? r.kept : template[field];
   };
