@@ -63,6 +63,7 @@ describe("판단 극성", () => {
     assert.equal(contradictsStance("반등 가능성이 높아 보여요.", "avoid"), true);
     assert.equal(contradictsStance("Looks bullish from here.", "wait"), true);
     // 2026-10-06 실호출에서 관망 판단에 통과했던 문장
+    assert.equal(contradictsStance("장기적인 가치 상승 잠재력", "wait"), true);
     assert.equal(contradictsStance("RSI 지표가 41로 과매도 구간에 근접하고 있어, 향후 반등 가능성을 시사합니다.", "wait"), true);
     assert.equal(contradictsStance("하락 전망이 우세해요.", "candidate"), true);
   });
@@ -71,6 +72,13 @@ describe("판단 극성", () => {
     assert.equal(contradictsStance("어제 3% 올랐어요.", "avoid"), false);
     assert.equal(contradictsStance("하락 전망이 우세해요.", "wait"), false);
     assert.equal(contradictsStance("반등 가능성이 높아 보여요.", "candidate"), false);
+    // 실호출 50문장에서 통과해야 했던 문장들 — 오탐 회귀 방지
+    for (const s of [
+      "단기 급등 구간으로 장기 분할 매수 기준에서는 서두를 이유가 적음",
+      "급등 후 조정 가능성을 염두에 두는 것이 좋아 보입니다.",
+      "지금은 관망하며 추가적인 조정이나 안정적인 흐름을 기다리는 단계입니다.",
+    ]) assert.equal(contradictsStance(s, "wait"), false, s);
+    assert.equal(contradictsStance("단기 하락 구간으로 장기 분할 관찰 가치가 있습니다.", "candidate"), false);
   });
 
   it("규칙 행동에서 방향을 만든다", () => {

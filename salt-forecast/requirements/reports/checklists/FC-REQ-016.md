@@ -24,11 +24,15 @@
 - `ruff check` · `ruff format --check` · `pyright` 0 · `lint-imports` 3 kept
 - `pytest` 전체 통과(스키마 계약 포함, `FORECAST_DATABASE_URL` 지정) · `tests/leakage` 22 passed
 
+## 추가 확인 (2026-10-06, 사용자 "다 확인")
+
+- launchd 와 같은 빈 환경(`env -i`, plist PATH)에서 `uv run --frozen --group nlp` 로 두 모델 로드 · sha256 대조 · 분류 통과(HF 캐시 `~/.cache/huggingface`). `kickstart` 는 0.75시간 게이트로 건너뜀 — 게이트 동작 확인
+- 라이선스: ProsusAI/finBERT 저장소 Apache-2.0 · 미세조정 Financial PhraseBank 비상업 · snunlp KR-FinBert 표기 없음 → `security-sources.md` 갱신
+
 ## 미검증
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | `news-sentiment@1` H1 · H2 | 표본 창(2026-10-07~) 전 — 엿보기 금지 | 2027-02-08 |
-| 매시 LaunchAgent 경로에서 `--group nlp` 실행 | 오늘 게이트로 건너뜀(직접 실행만 확인) | 다음 정시 실행 로그 `~/Library/Logs/salt-forecast-daily.log` |
 | Google 뉴스 RSS 약관 · 차단 | 서버와 같은 피드 · 매시 13요청. 막히면 피드 실패로 기록된다 | 첫 주 `source_status` 확인 |
-| 감성 모델 라이선스 | 모델 카드에 표기 없음 | 상업 전환 · 공개 전 |
+| 감성 모델 상업 사용 | FinBERT 코드 Apache-2.0 · 미세조정 데이터 비상업, KR-FinBert-SC 라이선스 표기 없음(2026-10-06 확인) | 상업 전환 · 공개 전 저작자 허락 |
