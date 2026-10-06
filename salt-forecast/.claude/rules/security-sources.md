@@ -26,6 +26,9 @@
 | 업비트 공개 API `/v1/market/all?is_details=true` | `market_event` 투자유의 · 주의 5종 — **지금 상태만**(이력 없음) → 매일 스냅샷 | 없음 | 업비트 한도 공유 · 하루 1요청 | 공식 공개 API(공지 JSON 과 다름) | 슬라이스 F010-6 |
 | Coin Metrics Community `community-api.coinmetrics.io/v4/timeseries/asset-metrics` | BTC MVRV · 거래소 입출금 · 활성주소 · 해시레이트 일 이력(2010~) — 사전등록 `onchain-regime@1` | 없음 | 10요청/6초 → 초당 1 · 하루 1회 증분 | **CC BY-NC 4.0** — 출처 표기 · 비상업. **피처 · 채점 전용**(화면 표시 없음). 상업 전환 시 재검토. 입출금은 주소 라벨 소급 → 판정 금지 | 슬라이스 F010-6 2차 |
 | CoinGecko 공개 API `/api/v3/global`(키 없음) | BTC · ETH 도미넌스 · 전체 시가총액 — **지금 값만**(이력은 유료) → 매일 스냅샷 · `dominance@1` 라이브 | 없음 | 무키 한도 미공개 → 하루 1요청 | 출처 표기 조건 — **피처 · 채점 전용**(표시하려면 표기부터) | 슬라이스 F010-6 2차 |
+| 뉴스 RSS — Google 뉴스 한국어 검색 10 · coindesk · cointelegraph · cryptoslate | 뉴스 원장 · 감성 · 사건 태그 — `news-sentiment@1` 라이브 | 없음 | 명시 한도 없음 → 매시 13요청 · 초당 1 | 서버 크롤러와 같은 피드. 제목 · 요약 500자만(본문 미수집) — **피처 · 채점 전용**(화면 표시 없음) | 슬라이스 F010-6 3차 |
+| 감성 모델 `snunlp/KR-FinBert-SC` · `ProsusAI/finbert`(Hugging Face) | 한국어 · 영어 금융 감성 3분류 | 없음 | 로컬 CPU | FinBERT: 코드 저장소 Apache-2.0, 미세조정 데이터 Financial PhraseBank 는 비상업(CC BY-NC-SA) · KR-FinBert-SC: 모델 카드 · 저장소 모두 라이선스 표기 없음(2026-10-06 확인 — 기본은 모든 권리 유보) → **비공개 · 소유자 전용 · 재배포 안 함**으로만 쓴다. 상업 전환 · 공개 전에 저작자 허락. safetensors 자동 변환 리비전 · sha256 고정 | 슬라이스 F010-6 3차 |
+| 네이버 데이터랩 검색어트렌드 — NAVER API HUB `naverapihub.apigw.ntruss.com/search-trend/v1/search`(개발자센터는 2026-07-31 신규 키 중단) | 종목 한글명 검색 관심(상대 지수, 2016~) — `search-interest@1` | `FORECAST_NAVER_CLIENT_ID` · `_SECRET`(HUB 앱 Client ID/Secret) | 월 5만 회 · 50 RPS → 한 번에 400 · 초당 1 | 공식 · 이관기 무료(유료 전환 시 사전 공지). **피처 · 채점 전용**(표시하려면 출처 표기부터) | 슬라이스 F010-6 3차 — 키 대기 |
 | 업비트 공지 JSON | 상장 · 유의 · 유통량 공지 | 없음 | — | 비공식 · 약관 제10조 | **사용 안 함 (사용자 결정 2026-09-23)** — 호출 코드 0건 |
 | 국내 주식 | — | — | — | **TBA (사용자 결정 2026-09-23)** | 보류 |
 | 투자자별 수급(KRX) | 국내 수급 | — | 공식 API 미제공 · 증권사 API 는 계좌 필요 → **§1-2 충돌로 보류** | — | 보류 |

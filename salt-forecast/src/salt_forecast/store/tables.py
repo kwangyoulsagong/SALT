@@ -381,3 +381,33 @@ market_warning_snapshot = Table(
     Column("warning", Boolean, nullable=False),
     Column("cautions", ARRAY(Text), nullable=False),
 )
+
+# 뉴스 원장 · 감성 점수(F010 슬라이스 6 3차 · FC-REQ-016 · 사전등록 news-sentiment@1). 둘 다 불변
+news_item = Table(
+    "news_item",
+    metadata,
+    Column("item_id", Text, primary_key=True),
+    Column("source", Text, nullable=False),
+    Column("lang", Text, nullable=False),
+    Column("title", Text, nullable=False),
+    Column("summary", Text),
+    Column("url", Text, nullable=False),
+    Column("title_key", Text, nullable=False),
+    Column("published_at", DateTime(timezone=True), nullable=False),
+    Column("fetched_at", DateTime(timezone=True), nullable=False),
+)
+
+news_score = Table(
+    "news_score",
+    metadata,
+    Column("item_id", Text, primary_key=True),
+    Column("model_version", Text, primary_key=True),
+    Column("symbols", ARRAY(Text), nullable=False),
+    Column("event_kinds", ARRAY(Text), nullable=False),
+    Column("negated", Boolean, nullable=False),
+    Column("p_pos", Float, nullable=False),
+    Column("p_neu", Float, nullable=False),
+    Column("p_neg", Float, nullable=False),
+    Column("score", Float, nullable=False),
+    Column("scored_at", DateTime(timezone=True), nullable=False),
+)

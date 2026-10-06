@@ -23,6 +23,10 @@ dev = [
   "pyright>=1.1.380",
   "import-linter>=2.1",
 ]
+nlp = [
+    "torch>=2.4",
+    "transformers>=4.44",
+]
 
 [build-system]
 requires = ["hatchling"]

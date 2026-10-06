@@ -227,6 +227,7 @@ type ExplainResult =
 | FR-32 | `explain`에 인증을 추가하면 **BFF 프록시가 토큰을 전달해야 한다.** BFF 변경이 짝이다 | Must |
 | FR-59 | **(F010 슬라이스 0) 성적표 계약 개정.** ① 종목 판단 `trackRecord` · 성적표 그룹 · 저장 추천 `signalTrackRecord` 에 `alwaysUpRate: number \| null` · `excessWinRate: number \| null` 추가(저장 추천은 `horizonHours: 720` 도). ② 저장 추천 `blockedReason` enum 에 `insufficient_sample`(표본 < 20). ③ `failureCases[]` 에 `symbol` · `returnRate`(30일 뒤 채점) 추가. ④ `GET /api/signal-performance` 응답 모양 변경 — `status` 는 표본 ≥ 20 일 때만 `active`, `signalType`(`coach` 또는 `coach.<action>`) · `lowSample` · `horizonHours` · `alwaysUpRate` · `excessWinRate` 추가, `samples[]` 는 `{symbol, action, judgedAt, entryPrice, exitPrice, returnRate, outcome}`(`latestPrice` · `win` 삭제). `signalKey` 는 `coach.` 접두가 없으면 붙여 해석(하위 호환). FR-30 예외 3건째 — 원장이 생겨 옛 필드가 뜻을 잃었다. BFF · 프론트 동시 변경(`BFF-REQ-024` FR-40 · `FE-REQ-026` FR-165) | Must |
 | FR-60 | **(F010 슬라이스 2) 익절 가격선 근거.** `GET /api/profit-plan` 계획마다 · 종목 코치 `modes.*.zone`(`held_rule`) · 코치 상세 `exitPlans[]` 에 `basis: "volatility" \| "fixed"` **추가**(`SRV-REQ-024` FR-180). 가격 · 상태 값의 계산이 바뀐다(모양은 추가만). 경고는 계획 상태에서 나온다(문구 무변화). BFF 는 필드를 걸러 내지 않는다 — 화면 표시는 F010 슬라이스 3 | Must |
+| FR-61 | **(F010 슬라이스 6) LLM 가드 · 인젝션 방어** — 리서치 §2-4 8 · 9. ① 뉴스 제목 · 요약 숫자는 **뉴스 요약 칸에서만** 허용 숫자다(판단 · 근거 · 주의 칸은 시세 · 근거 사실만) ② 영어 확신 · 명령형 매매 · 목표가 패턴 ③ **판단 극성 대조** — 해설 입력에 `stance`(`candidate` · `wait` · `avoid`, 규칙 `action` 에서), 관망 · 피하기에 강세 전망 · 후보에 약세 전망이면 `judgment_polarity` 로 떨어뜨린다(판단 · 근거 칸만, 주의 칸 제외) ④ 뉴스는 표식 블록 안에만 · 줄바꿈 · 제어 문자 · 꺾쇠 · 백틱 제거 · 지시형 구절 `[지시문 삭제]` · 시스템 지시 7 · 8 ⑤ Gemini `responseSchema` + Zod 재검사, 모양이 다르면 템플릿. 모델에게 면책을 받지 않는다(서버 상수 `JUDGMENT_DISCLAIMER`). **응답 계약 변경 없음** — `droppedSentences` 값만 늘 수 있다 | Must |
 
 ## Acceptance Criteria
 
@@ -295,3 +296,4 @@ type ExplainResult =
 | 2026-09-24 | **F009 슬라이스 0 — C02.** FR-57 신설 · 구현. 옛 키 `round(price / (price × 0.005))` 는 가격 200 이상이면 늘 200 이었고 근거가 키에 없었다. 프롬프트 조립을 env 없는 `infrastructure/explanationPrompt.ts` 로 옮겨 키와 함께 테스트한다. 응답 계약 변경 없음. 근거 `reports/checklists/SRV-REQ-025.md` §12 |
 | 2026-09-24 | **F009 슬라이스 0 — C01.** FR-58 신설 · 구현. 요청 계약 축소(BREAKING 아님 — 옛 본문은 무시되고 통과). `market` `AssetQuote` 에 `koreanName` · `tradeValue24h`, `coach` `NewsProbe.recentForSymbol`. 근거 `reports/checklists/SRV-REQ-025.md` §13 |
 | 2026-09-28 | **F010 슬라이스 0.** FR-59 신설 · 구현(`SRV-REQ-024` FR-173~176 의 계약). 화면 소비처가 없는 `signal-performance` 만 모양이 바뀌었고 나머지는 필드 · 사유 추가다 |
+| 2026-10-06 | **F010 슬라이스 6 (3차) — LLM 가드.** FR-61 신설 · 구현. 응답 모양 무변화, 캐시 키는 시스템 지시 · 프롬프트가 바뀌어 한 번 전부 새로 만든다. 근거 `reports/checklists/SRV-REQ-025.md` |

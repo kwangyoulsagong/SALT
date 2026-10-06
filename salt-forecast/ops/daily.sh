@@ -5,10 +5,17 @@
 set -u
 cd "$(dirname "$0")/.." || exit 1
 UV="${UV:-$(command -v uv || echo /opt/homebrew/bin/uv)}"
+# 뉴스는 매시(FC-REQ-016) — RSS 가 피드마다 최근 30건만 줘서 하루 한 번이면 빈다. 20시간 게이트 앞에서 따로 돈다.
+# 감성 모델(torch)은 nlp 그룹이다. 실패해도 아래 일일 작업은 돈다
+if "$UV" run --frozen python -m salt_forecast.jobs.due --job news --hours 0.75 >/dev/null; then
+  echo "[$(date -u +%FT%TZ)] news 시작"
+  "$UV" run --frozen --group nlp python -m salt_forecast.jobs.news || echo "[$(date -u +%FT%TZ)] news 실패"
+fi
 if [[ "${FORCE:-0}" != "1" ]] && ! "$UV" run --frozen python -m salt_forecast.jobs.due --job daily --hours 20; then
   exit 0
 fi
 rc=0
+# ingest_search(데이터랩)는 search-interest@1 근거 없음으로 껐다(등록 [decision], FC-REQ-017) — 다시 켜려면 새 등록과 함께
 # backfill_whale 은 매일 돌면 증분이다(이미 있는 날은 건너뛴다 — 새 날 하루치 30종목만 받는다)
 steps=(ingest_prices ingest_market backfill_whale daily events signals volatility market_regime target_weight_live)
 # 규칙 IC 백테스트는 주 1회(월요일 UTC) — 매일 돌 이유가 없고 48초 걸린다(FC-REQ-008)
