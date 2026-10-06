@@ -1,7 +1,10 @@
-"""네이버 데이터랩 검색어트렌드 `POST /v1/datalab/search` — 종목 한글명 검색 관심(FC-REQ-017 · search-interest@1).
+"""네이버 데이터랩 검색어트렌드 — 종목 한글명 검색 관심(FC-REQ-017 · search-interest@1).
 
-공식 오픈 API · 무료 · 하루 1,000회 · 키 필요(`FORECAST_NAVER_CLIENT_ID` · `_SECRET`). 값은 요청 구간 최댓값 = 100 인
-**상대 지수**다(`domain/search_interest.py`). 키워드 하나 = 요청 하나 — 여러 묶음을 한 요청에 넣으면 가장 큰 묶음에
+NAVER API HUB `POST /search-trend/v1/search`(네이버 클라우드). 개발자센터 `openapi.naver.com/v1/datalab/search` 는
+2026-07-31 부터 신규 키를 안 낸다 — 본문 · 응답 모양은 같고 호스트 · 헤더만 다르다.
+이관기 무료 · 월 5만 회 · 키 필요(`FORECAST_NAVER_CLIENT_ID` · `_SECRET` = HUB 앱 Client ID/Secret).
+값은 요청 구간 최댓값 = 100 인 **상대 지수**다(`domain/search_interest.py`).
+키워드 하나 = 요청 하나 — 여러 묶음을 한 요청에 넣으면 가장 큰 묶음에
 맞춰 작은 종목이 0 근처로 눌린다.
 
 두 개의 시각: observed_at = 그날 00:00 KST, available_at = observed_at + 48시간(그날 하루치가 다음 날 집계된다고 보고
@@ -55,7 +58,7 @@ def search_daily(
         "timeUnit": "date",
         "keywordGroups": [{"groupName": keyword, "keywords": [keyword]}],
     }
-    headers = {"X-Naver-Client-Id": client_id, "X-Naver-Client-Secret": client_secret}
+    headers = {"X-NCP-APIGW-API-KEY-ID": client_id, "X-NCP-APIGW-API-KEY": client_secret}
     for attempt in range(3):
         pacer.wait()
         try:

@@ -13,7 +13,7 @@ import respx
 from salt_forecast.ingest import naver_datalab as dl
 from salt_forecast.ingest.http import Pacer, SourceError
 
-URL = "https://openapi.naver.com/v1/datalab/search"
+URL = "https://naverapihub.apigw.ntruss.com/search-trend/v1/search"
 FIX = Path(__file__).parent / "fixtures" / "naver_datalab" / "search.json"
 START, END = date(2026, 9, 1), date(2026, 9, 5)
 
@@ -29,7 +29,7 @@ def test_parses_points_and_sends_one_group_with_keys() -> None:
         got = _call(c)
     assert got == {date(2026, 9, 1): 40.5, date(2026, 9, 2): 100.0, date(2026, 9, 4): 12.25}
     req = route.calls.last.request
-    assert req.headers["X-Naver-Client-Id"] == "id" and req.headers["X-Naver-Client-Secret"] == "secret"
+    assert req.headers["X-NCP-APIGW-API-KEY-ID"] == "id" and req.headers["X-NCP-APIGW-API-KEY"] == "secret"
     body = json.loads(req.content)
     assert body["timeUnit"] == "date" and body["keywordGroups"] == [{"groupName": "비트코인", "keywords": ["비트코인"]}]
 

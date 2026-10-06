@@ -36,8 +36,9 @@ class Settings(BaseSettings):
     coinmetrics_requests_per_second: float = Field(default=1.0, gt=0)
     # CoinGecko 공개 API — 도미넌스 스냅샷(FC-REQ-015). 하루 1요청
     coingecko_url: str = "https://api.coingecko.com/api/v3"
-    # 네이버 데이터랩 검색어트렌드(FC-REQ-017) — 하루 1,000회. 키워드 하나 = 요청 하나라 초당 1 이면 충분
-    naver_datalab_url: str = "https://openapi.naver.com/v1/datalab/search"
+    # 네이버 데이터랩 검색어트렌드(FC-REQ-017). 2026-07-31 부터 개발자센터(openapi.naver.com)는 신규 키를 안 낸다 —
+    # 네이버 클라우드 NAVER API HUB 앱의 Client ID/Secret(계정 IAM 키 아님). 월 5만 회 · 키당 50 RPS, 이관기 무료
+    naver_datalab_url: str = "https://naverapihub.apigw.ntruss.com/search-trend/v1/search"
     naver_client_id: SecretStr | None = None
     naver_client_secret: SecretStr | None = None
     fred_api_key: SecretStr | None = None

@@ -28,6 +28,11 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 | FR-5 | `scoring/search_interest.py` · `jobs/search_interest.py` — 등록 · 실행 · 리포트 | 코드 완료 · **실행 대기(키)** |
 | FR-6 | 결과 반영 — 판정만. 근거 있음이면 새 등록, 둘 다 없음이면 증분 수집 끔 | 대기 |
 
+## 등록과 실행이 어긋난 곳
+
+- 등록 [data] 는 `POST /v1/datalab/search`(개발자센터)다. 개발자센터가 2026-07-31 부터 신규 키를 안 내서 NAVER API HUB
+  `/search-trend/v1/search` 로 바꿨다 — 같은 데이터랩 검색어트렌드의 이관 호스트이고 본문 · 응답 모양이 같다. 신호 · 지평 · 판정은 그대로
+
 ## 하지 않는 것
 
 - 수준 값(오늘 지수)을 신호로 — 요청 배율에 미래가 섞인다
