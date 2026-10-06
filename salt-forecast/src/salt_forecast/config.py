@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     # Deribit 공개 API — DVOL 이력(FC-REQ-014). 비인증 한도(초당 약 20 크레딧)보다 한참 아래
     deribit_url: str = "https://www.deribit.com/api/v2"
     deribit_requests_per_second: float = Field(default=2.0, gt=0)
+    # Coin Metrics Community — BTC 온체인 일 지표(FC-REQ-015). 무료 한도 10요청/6초의 80% 보다 한참 아래
+    coinmetrics_url: str = "https://community-api.coinmetrics.io/v4"
+    coinmetrics_requests_per_second: float = Field(default=1.0, gt=0)
+    # CoinGecko 공개 API — 도미넌스 스냅샷(FC-REQ-015). 하루 1요청
+    coingecko_url: str = "https://api.coingecko.com/api/v3"
     fred_api_key: SecretStr | None = None
     # 주요 사건 반응을 계산할 종목(FC-REQ-005) — 화면 초점이 BTC
     event_symbols: str = "KRW-BTC"
