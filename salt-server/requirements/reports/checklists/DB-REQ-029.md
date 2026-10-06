@@ -68,3 +68,13 @@
 - 실측: 스냅샷 290행 × 2 · 뷰 한 종목 Bitmap Index Scan 0.248ms · 서버 배치 3종목 0.375ms(Seq Scan 580행 — 표가 커지면 `(symbol, fetched_at DESC)` 인덱스)
 - 롤백: `DROP VIEW forecast.v_market_warning; DROP TABLE forecast.market_warning_snapshot;`
 - 미검증: 운영 DB 적용(배포 시)
+
+## FR-23 — `forecast.news_item` · `news_score` (2026-10-06)
+
+- 마이그레이션 `20261006100000_forecast_news` 추가만 · `prisma migrate deploy` 로컬 적용 · `salt-forecast` 스키마 계약 테스트 통과
+- 불변: 두 표 UPDATE 트리거(`judgment_ledger_immutable`) · 쓰기는 `INSERT … ON CONFLICT DO NOTHING` — 같은 기사를 다시 받아도 `fetched_at`(available) 유지(재수집 365건 중 새 행 0)
+- 점검 행 326개를 DELETE 한 적 있다(사전등록 표본 창 전 · 규칙 수정) — 트리거는 UPDATE 만 막는다
+- 실측: 미채점 조회(`NOT EXISTS` · `ORDER BY fetched_at LIMIT 2000`) Hash Anti Join 2.6ms(261행). 행이 수만이 되면 `news_score (model_version, item_id)` 순서 인덱스 검토
+- 뷰 없음 — 서버가 읽지 않는다
+- 롤백: `DROP TABLE forecast.news_score; DROP TABLE forecast.news_item;`
+- 미검증: 운영 DB 적용(배포 시)
