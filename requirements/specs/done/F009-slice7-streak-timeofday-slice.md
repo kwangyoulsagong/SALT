@@ -14,7 +14,7 @@ created: 2026-09-27
 
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
-| 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-038-F009-RISK.md` | FR-14a(연승 · 연패) · 14b(시간대 · 요일) — 미러 응답 필드 추가, 새 경로 · 마이그레이션 없음 |
+| 서버 | `salt-server/requirements/specs/done/SRV-REQ-038-F009-RISK.md` | FR-14a(연승 · 연패) · 14b(시간대 · 요일) — 미러 응답 필드 추가, 새 경로 · 마이그레이션 없음 |
 | BFF | `bff/requirements/specs/done/BFF-REQ-038-F009-TRADE-RISK.md` | FR-13(`streak` · `timing` 모양 검사) |
 | 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-039-F009-TRADE-RISK.md` | FR-25 · 26 |
 | 프론트(고침) | `salt-microFe/requirements/specs/done/FE-REQ-038-F008-FORECAST.md` · `FE-REQ-026-F004-UI.md` | FR-7 · FR-135 — 막힌 모드의 해설 자리 · 카드 위치 |

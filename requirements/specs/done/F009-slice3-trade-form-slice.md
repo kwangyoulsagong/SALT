@@ -15,7 +15,7 @@ created: 2026-09-24
 |---|---|---|
 | BFF | `bff/requirements/specs/done/BFF-REQ-038-F009-TRADE-RISK.md` | FR-1~6 (미러 · 복기 FR-7 은 슬라이스 4 · 6) |
 | 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-039-F009-TRADE-RISK.md` | FR-1~12 (매입가 숨김 FR-13 보류) |
-| 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-038-F009-RISK.md` | 변경 없음 — FR-1 · 5 · 6 · 7 을 그대로 쓴다 |
+| 서버 | `salt-server/requirements/specs/done/SRV-REQ-038-F009-RISK.md` | 변경 없음 — FR-1 · 5 · 6 · 7 을 그대로 쓴다 |
 
 ## 판단 — 리뷰가 볼 곳
 
