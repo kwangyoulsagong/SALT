@@ -15,7 +15,7 @@ created: 2026-09-24
 |---|---|---|
 | 예측(Python) | `salt-forecast/requirements/specs/in-progress/FC-REQ-006-F009-REALIZED-VOL.md` | FR-1~8 (GARCH 승격 FR-9 는 26주 라이브 뒤) |
 | DB | `salt-server/requirements/specs/done/DB-REQ-031-F009-SCHEMA.md` | FR-8 |
-| 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-038-F009-RISK.md` | FR-11 — `realizedVolatility` 메서드 하나. 응답 계약 변경 없음 |
+| 서버 | `salt-server/requirements/specs/done/SRV-REQ-038-F009-RISK.md` | FR-11 — `realizedVolatility` 메서드 하나. 응답 계약 변경 없음 |
 | BFF · 프론트 | — | 변경 없음 |
 
 ## 판단 — 리뷰가 볼 곳

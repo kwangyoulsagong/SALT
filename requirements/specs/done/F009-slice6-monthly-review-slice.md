@@ -15,7 +15,7 @@ created: 2026-09-27
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
 | DB | `salt-server/requirements/specs/done/DB-REQ-031-F009-SCHEMA.md` | FR-11(`monthly_reviews`) · FR-12(`trade_plans.checklist`) — 마이그레이션 2, 추가만 |
-| 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-038-F009-RISK.md` | FR-10a(시나리오) · 10b(Brier) · 10c(체크리스트) · 10d(한 종목 상한) · 10e(월간 복기) |
+| 서버 | `salt-server/requirements/specs/done/SRV-REQ-038-F009-RISK.md` | FR-10a(시나리오) · 10b(Brier) · 10c(체크리스트) · 10d(한 종목 상한) · 10e(월간 복기) |
 | BFF | `bff/requirements/specs/done/BFF-REQ-038-F009-TRADE-RISK.md` | FR-10(복기) · FR-11(Brier · 체크리스트 · 시나리오 · 상한) · FR-12(프리모템 · 체크리스트 기록) |
 | 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-039-F009-TRADE-RISK.md` | FR-21~24 |
 
