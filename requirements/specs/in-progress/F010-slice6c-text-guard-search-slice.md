@@ -21,7 +21,7 @@ created: 2026-10-06
 |---|---|---|
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-025-F004-API.md` FR-61(신규) | 해설 가드 · 인젝션 방어 |
 | DB | `salt-server/requirements/specs/in-progress/DB-REQ-029-F008-SCHEMA.md` FR-23(신규) | `forecast.news_item` · `news_score` |
-| 예측 | `salt-forecast/requirements/specs/in-progress/FC-REQ-016-F010-NEWS-SENTIMENT.md`(신규) · `FC-REQ-017-F010-SEARCH-INTEREST.md`(신규) | 뉴스 · 검색 |
+| 예측 | `salt-forecast/requirements/specs/in-progress/FC-REQ-016-F010-NEWS-SENTIMENT.md`(신규) · `../done/FC-REQ-017-F010-SEARCH-INTEREST.md`(신규 · done) | 뉴스 · 검색 |
 | BFF · 프론트 | — | 변경 없음 |
 
 ## 커밋 (되돌리기 지점)

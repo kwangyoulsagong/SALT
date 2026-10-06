@@ -22,11 +22,11 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 | FR | 내용 | 상태 |
 |---|---|---|
 | FR-1 | 사전등록 `search-interest@1` 데이터랩 첫 요청 전 커밋 — H1 BTC 급증 → 7일(양측) · H2 알트 급증 → 7일 BTC 대비(단측 음) · BY-FDR · 최소 104주 | 완료(`3c43b4c`) |
-| FR-2 | `ingest/naver_datalab.py` — `POST /v1/datalab/search`, 키는 헤더만(오류 · 로그에 안 실음), 401/403 이면 나머지 종목 중단, 0~100 밖이면 실패. observed = 그날 00:00 KST, available = +48h | 완료(`e34fb68`) — 키 없음 |
+| FR-2 | `ingest/naver_datalab.py` — NAVER API HUB `POST /search-trend/v1/search`(개발자센터 신규 키 중단, `8dc99cd`), 키는 헤더만(오류 · 로그에 안 실음), 401/403 이면 나머지 종목 중단, 0~100 밖이면 실패. observed = 그날 00:00 KST, available = +48h | 완료(`e34fb68` · `8dc99cd`) — 276종목 · 3,931일/종목 · 1,084,956행 · 5분, 두 번째 실행 0요청 |
 | FR-3 | `domain/search_interest.py` — `chain_link`(겹침 28일 미만 · 비 흩어짐 > 25% 면 거부) · `fill_days` · `spike` · `last_known_day` | 완료 |
 | FR-4 | `jobs/ingest_search.py` — 처음 보는 종목 백필, 있는 종목 증분, 한 번에 400요청 상한. 키 없으면 건너뜀. `ops/daily.sh` 일일 단계 | 완료 |
-| FR-5 | `scoring/search_interest.py` · `jobs/search_interest.py` — 등록 · 실행 · 리포트 | 코드 완료 · **실행 대기(키)** |
-| FR-6 | 결과 반영 — 판정만. 근거 있음이면 새 등록, 둘 다 없음이면 증분 수집 끔 | 대기 |
+| FR-5 | `scoring/search_interest.py` · `jobs/search_interest.py` — 등록 · 실행 · 리포트 | 완료 — `reports/search-interest-search-interest-1-2026-10-06.md` · H1 IC −0.031 [−0.127, +0.079] · H2 −0.034 [−0.075, +0.007] p 0.060 → **둘 다 근거 없음** |
+| FR-6 | 결과 반영 — 판정만. 근거 있음이면 새 등록, 둘 다 없음이면 증분 수집 끔 | 완료 — `ops/daily.sh` 에서 `ingest_search` 뺌. 규칙 · 화면 무변경 |
 
 ## 등록과 실행이 어긋난 곳
 
@@ -43,3 +43,4 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 ## Changelog
 
 - 2026-10-06: 초판 · FR-1~4 완료 · FR-5 코드 완료(네이버 키 대기)
+- 2026-10-06: 키 등록(HUB) · 백필 · FR-5 · 6 완료 — 근거 없음, 증분 끔
