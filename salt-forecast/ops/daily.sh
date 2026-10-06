@@ -5,6 +5,12 @@
 set -u
 cd "$(dirname "$0")/.." || exit 1
 UV="${UV:-$(command -v uv || echo /opt/homebrew/bin/uv)}"
+# 뉴스는 매시(FC-REQ-016) — RSS 가 피드마다 최근 30건만 줘서 하루 한 번이면 빈다. 20시간 게이트 앞에서 따로 돈다.
+# 감성 모델(torch)은 nlp 그룹이다. 실패해도 아래 일일 작업은 돈다
+if "$UV" run --frozen python -m salt_forecast.jobs.due --job news --hours 0.75 >/dev/null; then
+  echo "[$(date -u +%FT%TZ)] news 시작"
+  "$UV" run --frozen --group nlp python -m salt_forecast.jobs.news || echo "[$(date -u +%FT%TZ)] news 실패"
+fi
 if [[ "${FORCE:-0}" != "1" ]] && ! "$UV" run --frozen python -m salt_forecast.jobs.due --job daily --hours 20; then
   exit 0
 fi

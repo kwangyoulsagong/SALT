@@ -26,6 +26,12 @@ class _Market(BaseModel):
     market: str
 
 
+class _MarketName(BaseModel):
+    market: str
+    korean_name: str
+    english_name: str
+
+
 class _Caution(BaseModel):
     PRICE_FLUCTUATIONS: bool = False
     TRADING_VOLUME_SOARING: bool = False
@@ -89,6 +95,15 @@ class UpbitDaily:
     def krw_markets(self) -> list[str]:
         rows = self._get("/market/all", {"isDetails": "false"})
         return sorted(m.market for m in (_Market.model_validate(r) for r in rows) if m.market.startswith("KRW-"))
+
+    def krw_market_names(self) -> list[tuple[str, str, str]]:
+        """원화 마켓 (market, 한글명, 영문명) — 뉴스 종목 별칭의 출처(FC-REQ-016)."""
+        rows = self._get("/market/all", {"isDetails": "false"})
+        names = [_MarketName.model_validate(r) for r in rows]
+        out = sorted((m.market, m.korean_name, m.english_name) for m in names if m.market.startswith("KRW-"))
+        if not out:
+            raise SourceError("원화 마켓 이름 0건", retryable=False)
+        return out
 
     def market_warnings(self, fetched_at: datetime) -> list[MarketWarning]:
         """원화 마켓 전부의 지금 유의 · 주의 상태(FC-REQ-014). 이력이 없어서 받은 시각이 곧 관측 · 공개 시각이다."""
