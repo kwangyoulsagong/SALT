@@ -77,3 +77,17 @@ def observed_days(engine: Engine, source: str, series_prefix: str) -> set[tuple[
     )
     with engine.connect() as conn:
         return {(str(r[0]), r[1]) for r in conn.execute(stmt)}
+
+
+def points_by_series(engine: Engine, source: str) -> dict[str, dict[datetime, float]]:
+    """소스의 시리즈별 (observed_at → 값). 빈티지가 여럿이면 가장 늦게 알게 된 값(이어 붙이기 기준용 — 피처용 아님)."""
+    stmt = (
+        select(series_point.c.series_id, series_point.c.observed_at, series_point.c.value)
+        .where(series_point.c.source == source)
+        .order_by(series_point.c.available_at)
+    )
+    out: dict[str, dict[datetime, float]] = {}
+    with engine.connect() as conn:
+        for sid, obs, value in conn.execute(stmt):
+            out.setdefault(str(sid), {})[obs] = float(value)
+    return out

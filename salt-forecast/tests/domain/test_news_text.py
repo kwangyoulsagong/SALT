@@ -9,8 +9,10 @@ from salt_forecast.domain.news_text import (
     detect_lang,
     event_tags,
     item_id,
+    korean_names,
     link_symbols,
     mask_assets,
+    search_keyword,
     title_key,
 )
 
@@ -18,7 +20,7 @@ MARKETS = [
     ("KRW-BTC", "비트코인", "Bitcoin"),
     ("KRW-ETH", "이더리움", "Ethereum"),
     ("KRW-ETC", "이더리움클래식", "Ethereum Classic"),
-    ("KRW-XRP", "리플", "XRP"),
+    ("KRW-XRP", "엑스알피(리플)", "XRP"),
     ("KRW-SAFE", "세이프", "Safe"),
     ("KRW-GAS", "가스", "Gas"),
     ("KRW-ONE", "하모니", "Harmony"),
@@ -80,3 +82,11 @@ def test_item_id_drops_tracking_params() -> None:
 def test_detect_lang() -> None:
     assert detect_lang("비트코인 ETF 순유입") == "ko"
     assert detect_lang("Bitcoin ETF inflows 3일째") == "en"
+
+
+def test_parenthetical_korean_names() -> None:
+    assert korean_names("엑스알피(리플)") == ("엑스알피", "리플")
+    assert korean_names("비트코인") == ("비트코인",)
+    assert link_symbols("리플 소송 마무리", ALIASES) == ("KRW-XRP",)
+    assert search_keyword("엑스알피(리플)") == "엑스알피"
+    assert search_keyword("가스") is None

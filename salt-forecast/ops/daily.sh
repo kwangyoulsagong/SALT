@@ -16,7 +16,7 @@ if [[ "${FORCE:-0}" != "1" ]] && ! "$UV" run --frozen python -m salt_forecast.jo
 fi
 rc=0
 # backfill_whale 은 매일 돌면 증분이다(이미 있는 날은 건너뛴다 — 새 날 하루치 30종목만 받는다)
-steps=(ingest_prices ingest_market backfill_whale daily events signals volatility market_regime target_weight_live)
+steps=(ingest_prices ingest_market ingest_search backfill_whale daily events signals volatility market_regime target_weight_live)
 # 규칙 IC 백테스트는 주 1회(월요일 UTC) — 매일 돌 이유가 없고 48초 걸린다(FC-REQ-008)
 [[ "$(date -u +%u)" == "1" ]] && steps+=(rule_ic)
 for step in "${steps[@]}"; do

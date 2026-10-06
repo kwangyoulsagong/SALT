@@ -36,11 +36,15 @@ class Settings(BaseSettings):
     coinmetrics_requests_per_second: float = Field(default=1.0, gt=0)
     # CoinGecko 공개 API — 도미넌스 스냅샷(FC-REQ-015). 하루 1요청
     coingecko_url: str = "https://api.coingecko.com/api/v3"
+    # 네이버 데이터랩 검색어트렌드(FC-REQ-017) — 하루 1,000회. 키워드 하나 = 요청 하나라 초당 1 이면 충분
+    naver_datalab_url: str = "https://openapi.naver.com/v1/datalab/search"
+    naver_client_id: SecretStr | None = None
+    naver_client_secret: SecretStr | None = None
     fred_api_key: SecretStr | None = None
     # 주요 사건 반응을 계산할 종목(FC-REQ-005) — 화면 초점이 BTC
     event_symbols: str = "KRW-BTC"
 
-    @field_validator("fred_api_key", mode="before")
+    @field_validator("fred_api_key", "naver_client_id", "naver_client_secret", mode="before")
     @classmethod
     def _blank_is_none(cls, v: object) -> object:
         """.env 의 `FORECAST_FRED_API_KEY=` (빈 값)은 키 없음이다."""

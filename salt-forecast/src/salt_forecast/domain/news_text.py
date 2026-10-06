@@ -171,7 +171,7 @@ _COMMON_EN = frozenset(
     ]
 )
 # 한글명이 일상어와 같은 것 — "가스 요금" · "세이프 존" · "파워 게임"
-_AMBIGUOUS_KO = frozenset(
+AMBIGUOUS_KO = frozenset(
     [
         "가스",
         "세이프",
@@ -205,6 +205,21 @@ _AMBIGUOUS_KO = frozenset(
 )
 
 
+_PAREN = re.compile(r"^(.*?)\s*\((.*?)\)\s*$")
+
+
+def korean_names(name: str) -> tuple[str, ...]:
+    """업비트 한글명 → 쓰이는 이름들. "엑스알피(리플)" → ("엑스알피", "리플")."""
+    m = _PAREN.match(name.strip())
+    return tuple(n for n in (m.group(1).strip(), m.group(2).strip()) if n) if m else (name.strip(),)
+
+
+def search_keyword(name: str) -> str | None:
+    """데이터랩 검색어 — 괄호 앞 이름 하나(search-interest@1). 일상어와 같은 이름 · 한 글자는 None."""
+    main = korean_names(name)[0]
+    return main if len(main) >= 2 and main not in AMBIGUOUS_KO else None
+
+
 def build_aliases(markets: Iterable[tuple[str, str, str]]) -> list[AssetAlias]:
     """업비트 원화 마켓 (market, 한글명, 영문명) → 별칭.
 
@@ -213,8 +228,10 @@ def build_aliases(markets: Iterable[tuple[str, str, str]]) -> list[AssetAlias]:
     out: list[AssetAlias] = []
     for market, ko, en in markets:
         ticker = market.removeprefix("KRW-")
-        if len(ko) >= 2 and ko not in _AMBIGUOUS_KO:
-            out.append(AssetAlias(market, ko, "ko"))
+        # "엑스알피(리플)" — 괄호 안팎이 둘 다 쓰이는 이름이다
+        for name in korean_names(ko):
+            if len(name) >= 2 and name not in AMBIGUOUS_KO:
+                out.append(AssetAlias(market, name, "ko"))
         if len(en) >= 4 and en.lower() not in _COMMON_EN:
             out.append(AssetAlias(market, en, "en"))
         if len(ticker) >= 3 and ticker not in _AMBIGUOUS:
