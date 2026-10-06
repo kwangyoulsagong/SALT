@@ -26,6 +26,19 @@
 - `pytest` 188 passed(스키마 계약 포함, `FORECAST_DATABASE_URL` 지정) · `tests/leakage` 22 passed
 - `onchain_regime --dry-run --no-report --as-of 2026-10-06` 같은 판정
 
+## 추가 확인 (2026-10-06, 사용자 요청 "다 확인")
+
+| 확인 | 방법 | 결과 |
+|---|---|---|
+| 상한 주 독립 재계산 | 판정 코드를 쓰지 않고 SQL 로 월요일마다 "그때 알던" MVRV · 분위를 직접 계산 | 16주 · 날짜까지 리포트와 같다 |
+| 사전등록 무결성 | DB `preregistration` content_sha256 vs 파일 sha256 · 커밋 시각 | 같다 · 등록 11:46 → 실행 코드 11:55:04 → 결과 11:55:33 |
+| 재현 | 같은 as_of 두 번 · 커밋된 리포트와 비교 | 한 글자도 같다 |
+| 과거 시점 재현 | `--as-of 2022-06-01` 로 돌린 상한 구간 vs 지금 실행의 2022-06 이전 구간 | 같다(뒤 데이터가 과거 판단을 바꾸지 않는다) |
+| 매일 수집 환경 | LaunchAgent 와 같은 최소 환경(`env -i` · PATH 만)에서 `ingest_market --only coinmetrics --only coingecko --dry-run` | 실패 0 · 3행 |
+| Coin Metrics 약관 · 한도 | Chrome 으로 공식 문서 `docs.coinmetrics.io/api/v4` | 무료 엔드포인트 키 불필요 · Creative Commons(by-nc/4.0 링크) · Community 10요청/6초/IP — 우리 초당 1 = 60% |
+| CoinGecko 키 없는 호출 · 응답 모양 | Chrome 으로 `docs.coingecko.com` Global · Errors & Rate Limits | 키 없는 호출 공식 허용(IP 기준 한도 · 4xx 도 한도에 셈) · 필드 `market_cap_percentage` · `total_market_cap` · `updated_at` 파서와 같다 |
+| CoinGecko 출처 표기 조건 | `brand.coingecko.com` 표기 안내 | **미확인** — 확장 권한이 없는 도메인. 화면 표시 없음이라 지금 의무 없음 → 표시 전 확인 |
+
 ## 미검증 · 범위 밖
 
 | 항목 | 사유 | 언제 닫히나 |
@@ -35,4 +48,6 @@
 | 탐색 `eth_mvrv` | ETH 온체인 미수집 | 라이브 재등록 때 필요하면 수집 |
 | Coin Metrics CC BY-NC 의 비상업 해당 여부 | 화면 표시 없음 · 판정 채택 없음이라 지금 영향 없음 | 상업 전환 또는 채택 시(리서치 OQ 5) |
 | 운영 cron | 로컬 LaunchAgent(`ops/daily.sh`)만 — 운영 배포 없음 | 배포 시 |
+| CoinGecko 출처 표기 문구 | 표기 안내 페이지를 읽지 못했다(브라우저 권한) | 도미넌스를 화면에 표시하기로 할 때 |
+| 새 원천의 첫 자동 수집 행 | 오늘 daily 는 새 원천 추가 전(11:34)에 이미 돌았다 — 최소 환경 dry-run 으로만 확인 | 2026-10-07 LaunchAgent 실행 로그 |
 | 데이터랩 · 뉴스 구조화 · LLM 가드 | 사용자 결정으로 이번 범위 밖 | 슬라이스 6 다음 묶음 |
