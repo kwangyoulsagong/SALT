@@ -411,3 +411,15 @@ news_score = Table(
     Column("score", Float, nullable=False),
     Column("scored_at", DateTime(timezone=True), nullable=False),
 )
+
+# 운영 점검 결과(F010 슬라이스 7 · FC-REQ-018). (as_of 정시, subject) 마다 한 행 — 같은 시간 재실행은 덮어쓴다
+ops_check = Table(
+    "ops_check",
+    metadata,
+    Column("as_of", DateTime(timezone=True), primary_key=True),
+    Column("subject", Text, primary_key=True),
+    Column("status", Text, nullable=False),
+    Column("last_ok_at", DateTime(timezone=True)),
+    Column("detail", Text),
+    Column("checked_at", DateTime(timezone=True), nullable=False),
+)
