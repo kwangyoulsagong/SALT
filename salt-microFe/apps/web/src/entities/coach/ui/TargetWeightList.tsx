@@ -22,6 +22,7 @@ import {
   strongText,
   text,
 } from "./TargetWeight.css";
+import { PerformanceClaimLine } from "./PerformanceClaimLine";
 
 const M = TARGET_WEIGHT_MESSAGES;
 const MINUS = "−";
@@ -231,6 +232,8 @@ export const TargetWeightList = ({ view, renderIdentity, capitalAction }: Target
         <p className={sectionTitle}>{M.disclosureHeading}</p>
         {targetVol !== null && <p className={text}>{M.rule(formatWeight(targetVol), view.targetVolatilityIsDefault)}</p>}
         {useLive && view.live && <LiveRecord live={view.live} />}
+        {/* 성적 4요소(F009 FR-33)는 지금 과거 성적 자리의 것 — 라이브면 라이브 줄 아래, 아니면 백테스트 상자 안 */}
+        {useLive && <PerformanceClaimLine claim={view.claim} unit="주" />}
         <div className={recordBox}>
           {useLive && <p className={rowLine}>{M.backtestLabel}</p>}
           {record.window && (
@@ -248,6 +251,7 @@ export const TargetWeightList = ({ view, renderIdentity, capitalAction }: Target
           </p>
           <p className={text}>{M.holdLine(formatSignedRate(record.holdBtc.cagr), formatDrawdown(record.holdBtc.mdd))}</p>
           <p className={text}>{M.upside(formatWeight(record.strategy.upside))}</p>
+          {!useLive && <PerformanceClaimLine claim={view.claim} unit="주" />}
         </div>
         <ul className={plainList}>
           {record.claims.lessDrawdown && <li>{M.claimLessDrawdown}</li>}

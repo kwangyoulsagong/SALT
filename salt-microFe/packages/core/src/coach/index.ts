@@ -9,3 +9,4 @@ export * from "./behaviorMirror";
 export * from "./monthlyReview";
 export * from "./judgmentScoreboard";
 export * from "./targetWeight";
+export * from "./performanceClaim";

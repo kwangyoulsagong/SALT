@@ -7,3 +7,4 @@ export * from "./riskMessages";
 export * from "./mirrorMessages";
 export * from "./scoreboardMessages";
 export * from "./targetWeightMessages";
+export * from "./claimMessages";

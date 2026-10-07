@@ -18,8 +18,10 @@
  * - `renderable: false` 분기에 행동 · 종목 · 점수 · 근거가 **없다**
  * - `failureCases` 가 비지 않은 튜플이다
  *
- * 여기에는 import 가 없다. 값은 폴링 판정 함수 하나다(`readGenerationOutcome`).
+ * 여기에는 import 가 없다(같은 폴더 타입 `performanceClaim` 만 예외). 값은 폴링 판정 함수 하나다(`readGenerationOutcome`).
  */
+
+import type { PerformanceClaim } from "./performanceClaim";
 
 export type CoachAction = "buy" | "sell" | "hold" | "rebalance";
 
@@ -57,6 +59,8 @@ export interface ReportTrackRecord {
   alwaysUpRate: number | null;
   /** 적중률 − 기저율. 0 근처면 추천이 아니라 시장 방향을 맞힌 것. 보유 · 리밸런싱은 `null` */
   excessWinRate: number | null;
+  /** 기간 · 표본 · 기준 · 빗나간 수(F009 FR-33). 서버가 옛 버전이면 `null` */
+  claim: PerformanceClaim | null;
 }
 
 export interface ReportFailureCase {

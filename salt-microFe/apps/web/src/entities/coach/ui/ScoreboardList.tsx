@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { formatRatio, formatShortDate, formatSignedPoints, formatSignedRate } from "../lib";
 import { SCOREBOARD_MESSAGES } from "../model";
 import { caseList } from "./CoachDetail.css";
+import { PerformanceClaimLine } from "./PerformanceClaimLine";
 import { gauge, gaugeLabel, gaugeList, gaugeStatus, gaugeValue, gaugeValueMuted, hint, missRow } from "./TradeRisk.css";
 
 const S = SCOREBOARD_MESSAGES;
@@ -24,6 +25,7 @@ interface ScoreboardListProps {
  * - 표본 부족(서버 `lowSample`)이면 적중률 대신 **감춘 이유**를 쓴다. 문턱 숫자는 화면에 없다 — 서버 판정이다
  * - 기준 대비(`excessWinRate`)는 적중률 옆에 늘 같이 — 0 근처면 판단이 아니라 시장 방향을 맞힌 것이다
  * - 빗나간 판정은 **최근 순**으로만 고른다(선별 없음). 좋은 사례를 따로 뽑아 올리지 않는다
+ * - 그룹마다 성적 4요소 줄(기간 · 표본 · 기준 · 빗나간 수, F009 FR-33) — 표본 부족이어도 그린다
  */
 export const ScoreboardList = ({ view, renderIdentity }: ScoreboardListProps) => {
   const groups = view.groups.filter((group) => S.signalTypes[group.signalType]);
@@ -57,6 +59,7 @@ export const ScoreboardList = ({ view, renderIdentity }: ScoreboardListProps) =>
                 </Badge>{" "}
                 {group.horizonHours !== null && S.horizon(group.horizonHours)}
               </span>
+              <PerformanceClaimLine claim={group.claim} />
             </li>
           );
         })}
@@ -66,8 +69,9 @@ export const ScoreboardList = ({ view, renderIdentity }: ScoreboardListProps) =>
         <p className={hint}>{S.noMisses}</p>
       ) : (
         <ul className={caseList}>
-          {misses.map((item) => (
-            <li key={`${item.date}-${item.symbol}-${item.event}`} className={missRow}>
+          {misses.map((item, index) => (
+            // 같은 날 · 같은 종목 · 같은 판단이 둘일 수 있다(단타 하루 두 번) — 자리 번호를 붙인다
+            <li key={`${item.date}-${item.symbol}-${item.event}-${index}`} className={missRow}>
               <span>{formatShortDate(item.date) ?? item.date}</span>
               {renderIdentity(item.symbol)}
               <span>{S.missLine(S.signalTypes[item.event] ?? "", formatSignedRate(item.returnRate))}</span>

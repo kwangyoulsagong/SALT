@@ -7,6 +7,7 @@ import type { EventHorizonView } from "@repo/core/coach";
 import { formatSignedRate } from "../lib";
 import { EVENT_MESSAGES as M } from "../model";
 import * as s from "./EventsCard.css";
+import { PerformanceClaimLine } from "./PerformanceClaimLine";
 
 const KST = "Asia/Seoul";
 const shortDate = (iso: string) =>
@@ -163,6 +164,8 @@ const HorizonDetail = ({ labels, h }: { labels: ReactionLabels; h: Shown }) => {
           <li>{labels.pre(formatSignedRate(h.preReturn5dMedian))}</li>
         )}
       </ul>
+      {/* 성적 4요소(F009 FR-33) — 빗나간 수는 앞 사건이 10건 이상 쌓인 사건 중에서 */}
+      <PerformanceClaimLine claim={h.claim} />
 
       <table className={s.srOnly}>
         <caption>

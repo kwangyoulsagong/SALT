@@ -21,6 +21,7 @@ interface TargetWeightSummaryProps {
  * 1줄: 종목별 목표 비중 · 현금. 2줄: **3종 고지를 한 줄로** — 근거(변동성만으로 나눈 계산) · 과거 성적(연수익 · 최대 낙폭 ·
  * BTC 보유 낙폭) · 실패 사례(가장 크게 잃은 달 · 주). 비중만 떼어 보이면 고지 없는 숫자가 된다(마스터 인덱스 §6-1).
  * 과거 성적은 `recordSource` 를 따른다 — 라이브 30주 전에는 백테스트라고 밝힌다. 금액 · 부족 · 초과는 여기 없다(본문에만).
+ * 기간 · 표본은 `claim`(F009 FR-33)에서 — 백테스트 조각에 기간이 없던 것을 고쳤다.
  * 조각마다 줄바꿈을 막는다 — "2018년 11월 / −16.0%" 처럼 실패 사례가 두 줄로 찢어지지 않게.
  */
 export const TargetWeightSummary = ({ view, valueClassName, noteClassName }: TargetWeightSummaryProps) => {
@@ -30,6 +31,9 @@ export const TargetWeightSummary = ({ view, valueClassName, noteClassName }: Tar
   const live = view.recordSource === "live" ? view.live : null;
   const { record } = view;
   const segments: string[] = [M.basis];
+  // 기간 · 표본(F009 FR-33) — 기록 조각 앞에. 기준(BTC 낙폭)은 기록 조각 안, 빗나간 수 대신 가장 크게 잃은 달 · 주
+  const { claim } = view;
+  if (claim?.period.present) segments.push(M.span(claim.period.from.slice(0, 7), claim.period.to.slice(0, 7), claim.sample));
   if (live && live.cumReturn !== null && live.mdd !== null && live.btcMdd !== null) {
     segments.push(M.live(live.nWeeks, formatSignedRate(live.cumReturn), formatDrawdown(live.mdd), formatDrawdown(live.btcMdd)));
     const week = live.worstWeeks[0];

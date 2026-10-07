@@ -84,6 +84,8 @@ export const TARGET_WEIGHT_MESSAGES = {
       `라이브 ${weeks}주 누적 ${cum} · 최대 낙폭 ${mdd}(BTC ${btcMdd})`,
     worst: (month: string, rate: string) => `가장 크게 잃은 달 ${month} ${rate}`,
     worstWeek: (week: string, rate: string) => `가장 크게 잃은 주 ${week} ${rate}`,
+    /** 성적 4요소의 기간 · 표본(F009 FR-33) — 요약 띠는 좁아 월까지만 */
+    span: (from: string, to: string, weeks: number) => `${from}~${to} ${weeks}주`,
   },
 
   blocked: {

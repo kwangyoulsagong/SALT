@@ -11,6 +11,7 @@ import { formatRatio, formatSignedRate } from "../lib";
 import { FORECAST_MESSAGES as M } from "../model";
 import * as s from "./ForecastCard.css";
 import { ForecastFanChart } from "./ForecastFanChart";
+import { PerformanceClaimLine } from "./PerformanceClaimLine";
 
 type Shown = Extract<ForecastHorizonView, { renderable: true }>;
 
@@ -213,6 +214,15 @@ export const ForecastCard = ({ result, livePrice = null, className }: ForecastCa
                 })}
               </tbody>
             </table>
+            {/* 성적 4요소(F009 FR-33) — 표에 칸 넷을 더하면 좁은 폭에서 넘친다. 기간마다 한 줄 */}
+            <ul className={s.claimList}>
+              {shown.map((h) => (
+                <li key={h.horizonWeeks}>
+                  <span className={s.claimHorizon}>{M.horizon(h.horizonWeeks)}</span>
+                  <PerformanceClaimLine claim={h.trackRecord.claim} unit="주" />
+                </li>
+              ))}
+            </ul>
           </div>
 
           {first && first.trackRecord.misses.length > 0 && (
