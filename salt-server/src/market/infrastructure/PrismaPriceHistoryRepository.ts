@@ -161,7 +161,8 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
       FROM price_history
       WHERE symbol = ${symbol}
         AND timeframe = ${timeframe}
-        AND timestamp >= ${since}
+        -- TIMESTAMP 열(UTC 벽시계)과 비교하려면 파라미터도 UTC 벽시계로 — 그냥 비교하면 세션 시간대(KST)로 해석돼 9시간 어긋난다
+        AND timestamp >= (${since}::timestamptz AT TIME ZONE 'UTC')
     `;
 
     return { sample: row?.sample ?? 0, values: row?.values ?? null };
@@ -257,7 +258,8 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
       await prisma.$executeRaw`
         DELETE FROM price_history
         WHERE timeframe = ${rule.timeframe}
-          AND timestamp < NOW() - ${rule.interval}::interval
+          -- NOW() 는 timestamptz — TIMESTAMP 열(UTC 벽시계)과 그냥 비교하면 세션 시간대(KST)로 해석돼 9시간 일찍 지운다
+          AND timestamp < (NOW() AT TIME ZONE 'UTC') - ${rule.interval}::interval
       `;
     }
   }
