@@ -12,6 +12,8 @@
  * 하지 않는 것: 가격 · 원화 계산(공통 수용 기준 3) · 게이트 판정 · 문구.
  */
 
+import { toPerformanceClaim, type PerformanceClaim } from "./performance-claim.viewmodel";
+
 export interface ForecastRange {
   low: number;
   lowerQuartile: number;
@@ -36,6 +38,8 @@ export interface ForecastTrackRecord {
   baselineWidth90: number;
   pinballSkill: number | null;
   misses: { asOf: string; realizedReturn: number; lowReturn: number; highReturn: number }[];
+  /** 판정 창 · 표본 · 단순 예측 기준 · 범위 밖 수(F009 FR-33). 서버가 옛 버전이면 `null` */
+  claim: PerformanceClaim | null;
 }
 
 export interface ForecastDirection {
@@ -107,6 +111,7 @@ const toTrack = (t: unknown): ForecastTrackRecord | null => {
     baselineWidth90: o.baselineWidth90 as number,
     pinballSkill: isNum(o.pinballSkill) ? o.pinballSkill : null,
     misses: misses.slice(0, 3),
+    claim: toPerformanceClaim(o.claim),
   };
 };
 

@@ -1,6 +1,7 @@
 import type { CoachMode } from "../model";
 import { COACH_HORIZON } from "./horizon";
 import type { ModeDecisionAction } from "./modeDecision";
+import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "./performanceClaim";
 
 /**
  * 종목 판단의 **사후 판정과 렌더 게이트** — F004 (감사 문서 D11 · B39).
@@ -157,6 +158,9 @@ export interface JudgmentTrackStats {
   avgReturn: number | null;
   /** 가장 나빴던 기간 수익률. */
   worstReturn: number | null;
+  /** 표본이 채점된 첫 · 마지막 시각(`evaluated_at`). 표본 0 이면 `null` — 성적 문구의 기간(FR-33) */
+  firstScoredAt: Date | null;
+  lastScoredAt: Date | null;
 }
 
 export interface JudgmentTrackRecord {
@@ -179,6 +183,8 @@ export interface JudgmentTrackRecord {
    * 관망은 `null`. **이 값이 0 근처면 판단이 아니라 시장 방향을 맞힌 것이다.**
    */
   excessWinRate: number | null;
+  /** 기간 · 표본 · 기준 · 빗나간 수 한 벌(F009 FR-33). 관망은 기준이 없다(`no_direction`) */
+  claim: PerformanceClaim;
 }
 
 export const summarizeJudgmentTrack = (
@@ -199,6 +205,12 @@ export const summarizeJudgmentTrack = (
     horizonHours: JUDGMENT_HORIZON_MS[mode] / HOUR_MS,
     alwaysUpRate,
     excessWinRate: winRate === null || naive === null ? null : winRate - naive,
+    claim: {
+      period: claimPeriod(stats.sample, stats.firstScoredAt, stats.lastScoredAt),
+      sample: stats.sample,
+      baseline: claimBaseline(stats.sample, naive === null ? null : "same_action_always", "no_direction"),
+      misses: claimMisses(stats.sample, stats.sample - stats.hits, "no_direction"),
+    },
   };
 };
 

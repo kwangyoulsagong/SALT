@@ -6,6 +6,8 @@
  * 문장(`예측 아님` 포함)은 프론트가 만든다.
  */
 
+import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "./performanceClaim";
+
 export type GaugeKind = "sentiment" | "smart_money";
 
 /** 구간 폭. **바꾸면 전체 재집계다**(`DB-REQ-017` FR-57) — 일 1회 워커가 다음 회차에 다시 쓴다. */
@@ -51,7 +53,11 @@ export interface GaugeTrackRecordView {
   median: number | null;
   p75: number | null;
   positiveRate: number | null;
+  /** 구간과 무관하게 같은 종목 · 기간 모든 날의 오른 비율 — 이 구간이 특별한지 보는 기준(FR-33) */
+  baselinePositiveRate: number | null;
   lowSample: boolean;
+  /** 분포 줄이라 맞고 틀림이 없다 — 빗나간 수는 `no_direction` */
+  claim: PerformanceClaim;
 }
 
 /**
@@ -60,7 +66,8 @@ export interface GaugeTrackRecordView {
  */
 export const toGaugeTrackRecord = (
   stats: GaugeTrackStats | null,
-  currentValue: number
+  currentValue: number,
+  baselinePositiveRate: number | null = null
 ): GaugeTrackRecordView | null => {
   if (!stats || stats.sample === 0) return null;
 
@@ -74,6 +81,17 @@ export const toGaugeTrackRecord = (
     median: stats.median,
     p75: stats.p75,
     positiveRate: stats.positiveRate,
+    baselinePositiveRate,
     lowSample: stats.sample < MIN_GAUGE_SAMPLE,
+    claim: {
+      period: claimPeriod(stats.sample, stats.windowFrom, stats.windowTo),
+      sample: stats.sample,
+      baseline: claimBaseline(
+        stats.sample,
+        baselinePositiveRate === null || stats.positiveRate === null ? null : "all_gauge_days",
+        "not_recorded"
+      ),
+      misses: claimMisses(stats.sample, null, "no_direction"),
+    },
   };
 };

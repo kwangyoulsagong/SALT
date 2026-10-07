@@ -30,9 +30,9 @@
 | `model` | model_version | 피처 · 파라미터 · 창 · 아티팩트 해시 |
 | `prediction` | (symbol, horizon_weeks, as_of, model_version) | q10~q90 · p_up · 규칙 가격 도달 확률 |
 | `score` | (symbol, horizon_weeks, as_of, model_version) | 실현 r · 적중 여부 · pinball — 기준 모델도 같은 표 |
-| `gate` | (symbol, horizon_weeks) | 최신 판정 · `blocked_reason` · 26주 지표 요약 |
+| `gate` | (symbol, horizon_weeks) | 최신 판정 · `blocked_reason` · 26주 지표 요약 · 판정 창(`window_from` · `window_to`) · 90% 밖 수(`miss_count`) — 성적 4요소(`FC-REQ-019`) |
 | `realized_vol` | (symbol, as_of) | 실현 변동성 EWMA · GARCH 도전자 · QLIKE 채점 · 게이트(`FC-REQ-006`) |
-| `market_signal` · `signal_event` | (symbol, as_of) · (kind, symbol, event_at) | 쏠림 신호 상태 · 사건. 반응 통계는 `event_reaction_stats` 에 kind 로(`FC-REQ-007`) |
+| `market_signal` · `signal_event` | (symbol, as_of) · (kind, symbol, event_at) | 쏠림 신호 상태 · 사건. 반응 통계는 `event_reaction_stats` 에 kind 로(`FC-REQ-007`) — 표본 창 · 빗나간 수 · 판정 대상 수 포함(`FC-REQ-019`) |
 | `preregistration` | key | 사전등록 — 한 번만, UPDATE 트리거 금지(`FC-REQ-008`) |
 | `rule_ic` | (prereg_key, run_as_of, source, item, mode, horizon_days, label_kind, regime) | 규칙 항목별 IC · 실행마다 쌓음. 서버는 아직 읽지 않는다 |
 | `market_regime` | (symbol, as_of) | BTC 국면 한 행 · 채택 게이트 · 이벤트 계수(`FC-REQ-010`). `realized_vol.btc_beta` 도 같은 슬라이스 |

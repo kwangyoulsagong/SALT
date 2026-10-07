@@ -1,5 +1,6 @@
 import type { CoachAction, CoachMode } from "../model";
 import { COACH_HORIZON } from "./horizon";
+import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "./performanceClaim";
 import {
   MIN_JUDGMENT_SAMPLE,
   ROUND_TRIP_COST,
@@ -104,6 +105,8 @@ export interface RecommendationTrackRecord {
   alwaysUpRate: number | null;
   /** 적중률 − 기저율. 0 근처면 추천이 아니라 시장 방향을 맞힌 것이다. 보유 · 리밸런싱 · 혼합 그룹은 `null`. */
   excessWinRate: number | null;
+  /** 기간 · 표본 · 기준 · 빗나간 수 한 벌(F009 FR-33). 보유 · 리밸런싱 · 혼합은 기준이 없다(`no_direction`) */
+  claim: PerformanceClaim;
 }
 
 export const summarizeRecommendationTrack = (
@@ -123,5 +126,11 @@ export const summarizeRecommendationTrack = (
     horizonHours: RECOMMENDATION_HORIZON_MS / 3600_000,
     alwaysUpRate,
     excessWinRate: winRate === null || naive === null ? null : winRate - naive,
+    claim: {
+      period: claimPeriod(stats.sample, stats.firstScoredAt, stats.lastScoredAt),
+      sample: stats.sample,
+      baseline: claimBaseline(stats.sample, naive === null ? null : "same_action_always", "no_direction"),
+      misses: claimMisses(stats.sample, stats.sample - stats.hits, "no_direction"),
+    },
   };
 };

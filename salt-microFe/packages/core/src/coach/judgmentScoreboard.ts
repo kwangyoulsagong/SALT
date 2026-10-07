@@ -6,6 +6,8 @@
  * 맞았던 때 · 틀렸던 때는 같은 모양 · 같은 상한이다. 목표가 · 예측 필드는 없다.
  */
 
+import type { PerformanceClaim } from "./performanceClaim";
+
 export interface ScoreboardCase {
   date: string;
   symbol: string;
@@ -29,6 +31,8 @@ export interface ScoreboardGroup {
   alwaysUpRate: number | null;
   /** 적중률 − 기저율. 관망은 `null` */
   excessWinRate: number | null;
+  /** 기간 · 표본 · 기준 · 빗나간 수(F009 FR-33). 서버가 옛 버전이면 `null` */
+  claim: PerformanceClaim | null;
   hits: ScoreboardCase[];
   misses: ScoreboardCase[];
 }

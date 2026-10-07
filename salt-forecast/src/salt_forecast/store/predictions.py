@@ -156,6 +156,9 @@ class GateRow:
     baseline_version: str
     score_kind: Kind
     result: GateResult
+    # 판정 창의 첫 · 마지막 as_of — 성적 문구의 기간(F009 FR-33). 표본 0 이면 None
+    window_from: datetime | None = None
+    window_to: datetime | None = None
 
 
 def write_gates(engine: Engine, rows: Iterable[GateRow]) -> int:
@@ -181,6 +184,9 @@ def write_gates(engine: Engine, rows: Iterable[GateRow]) -> int:
         "range_renderable",
         "range_blocked_reason",
         "pinball_skill_ci_low",
+        "window_from",
+        "window_to",
+        "miss_count",
     )
     data = (
         (
@@ -204,6 +210,9 @@ def write_gates(engine: Engine, rows: Iterable[GateRow]) -> int:
             g.result.range_renderable,
             g.result.range_blocked_reason,
             g.result.pinball_skill_ci_low,
+            g.window_from,
+            g.window_to,
+            g.result.miss_count,
         )
         for g in rows
     )

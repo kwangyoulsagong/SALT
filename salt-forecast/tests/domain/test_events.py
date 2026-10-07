@@ -63,3 +63,8 @@ def test_misses_use_only_events_before_each_event() -> None:
     assert newest["eventAt"] == _event(last).event_at.isoformat()
     assert float(newest["realized"]) > float(newest["high"])  # type: ignore[arg-type]
     assert s.renderable and s.move_ratio is not None
+    # 성적 4요소(F009 FR-33): 기간 = 첫 · 마지막 사건, 빗나간 수는 목록 길이가 아니라 전체,
+    # 판정 대상은 앞 사건이 MIN_SAMPLE 개 이상인 것
+    assert s.window_from == _event(days[0]).event_at and s.window_to == _event(last).event_at
+    assert s.miss_count is not None and s.miss_count >= len(s.recent_misses) >= 1
+    assert s.miss_judged == len(days) - MIN_SAMPLE

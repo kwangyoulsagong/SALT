@@ -114,13 +114,11 @@ export class GetSymbolCoach {
     if (!sentiment) return [];
 
     const value = sentiment.sentimentScore;
-    const stats = await this.gauges.find(
-      symbol,
-      "sentiment",
-      gaugeBucketCode(gaugeBucketIndex(value)),
-      GAUGE_HORIZON_DAYS
-    );
-    const record = toGaugeTrackRecord(stats, value);
+    const [stats, baseline] = await Promise.all([
+      this.gauges.find(symbol, "sentiment", gaugeBucketCode(gaugeBucketIndex(value)), GAUGE_HORIZON_DAYS),
+      this.gauges.baselinePositiveRate(symbol, "sentiment", GAUGE_HORIZON_DAYS),
+    ]);
+    const record = toGaugeTrackRecord(stats, value, baseline);
     return record ? [record] : [];
   }
 

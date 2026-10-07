@@ -26,6 +26,10 @@ const row = (over: Partial<EventCardRow> = {}): EventCardRow => ({
   recentEvents: [{ eventAt: "2026-09-11T12:30:00Z", realized: 0.01, preReturn5d: 0.02 }],
   renderable: true,
   blockedReason: null,
+  windowFrom: new Date("2018-01-12T13:30:00Z"),
+  windowTo: new Date("2026-09-11T12:30:00Z"),
+  missCount: 5,
+  missJudged: 38,
   ...over,
 });
 
@@ -65,5 +69,19 @@ describe("toMacroEvents (FC-REQ-005 · SRV-REQ-037 FR-10)", () => {
   it("호재 · 악재 판정 필드가 없다", () => {
     const text = JSON.stringify(toMacroEvents([row()]));
     assert.ok(!/bullish|bearish|good|bad|호재|악재/i.test(text));
+  });
+});
+
+describe("사건 반응 성적 4요소 (F009 FR-33)", () => {
+  it("빗나간 수의 분모는 판정한 사건 수 — 표본이 아니다", () => {
+    const [event] = toMacroEvents([row()]);
+    const h1 = event?.horizons[0];
+    assert.ok(h1?.renderable);
+    assert.deepEqual(h1.claim, {
+      period: { present: true, from: "2018-01-12", to: "2026-09-11" },
+      sample: 48,
+      baseline: { present: true, code: "ordinary_days" },
+      misses: { present: true, count: 5, outOf: 38 },
+    });
   });
 });

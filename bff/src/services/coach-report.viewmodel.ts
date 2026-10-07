@@ -15,8 +15,10 @@
  * 하지 않는 것: 게이트 판정 · 표본 임계 · `staleHours` 재계산(FR-14) · 가격 거리 계산(FR-30) ·
  * 조건 코드 · 행동 코드를 문장으로(FR-32 · FR-40) · 기본값 채우기(FR-4 · 5).
  *
- * 여기에는 import 가 없다 (`symbol-coach.viewmodel.ts` 와 같은 조건).
+ * 여기에는 import 가 없다 (`symbol-coach.viewmodel.ts` 와 같은 조건 — 순수 뷰모델 `performance-claim` 만 예외).
  */
+
+import { toPerformanceClaim, type PerformanceClaim } from "./performance-claim.viewmodel";
 
 export type CoachAction = "buy" | "sell" | "hold" | "rebalance";
 
@@ -45,6 +47,8 @@ export interface ReportTrackRecord {
   alwaysUpRate: number | null;
   /** 적중률 − 기저율. 보유 · 리밸런싱은 `null` */
   excessWinRate: number | null;
+  /** 기간 · 표본 · 기준 · 빗나간 수(F009 FR-33). 서버가 옛 버전이면 `null` */
+  claim: PerformanceClaim | null;
 }
 
 export interface ReportFailureCase {
@@ -229,6 +233,7 @@ export const toReportRecommendation = (
       horizonHours: numberOrNull(track.horizonHours),
       alwaysUpRate: numberOrNull(track.alwaysUpRate),
       excessWinRate: numberOrNull(track.excessWinRate),
+      claim: toPerformanceClaim(track.claim),
     },
     failureCases: failureCases as [ReportFailureCase, ...ReportFailureCase[]],
     explanation: {

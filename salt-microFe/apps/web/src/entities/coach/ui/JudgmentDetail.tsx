@@ -18,6 +18,7 @@ import {
   statValue,
 } from "./CoachDetail.css";
 import { JudgmentSummary } from "./JudgmentSummary";
+import { PerformanceClaimLine } from "./PerformanceClaimLine";
 
 const { detail: DETAIL } = COACH_MESSAGES;
 
@@ -59,14 +60,17 @@ export const TrackRecordStats = ({ record }: { record: TrackRecord }) => {
         )}
       </dl>
       <p className={statTerm}>
-        {DETAIL.trackSample(record.sample)} · {DETAIL.horizon(record.horizonHours)}
+        {/* 표본 수는 4요소 줄이 말한다 — 두 번 쓰지 않는다. 옛 서버(claim 없음)면 여기서 */}
+        {!record.claim && `${DETAIL.trackSample(record.sample)} · `}
+        {DETAIL.horizon(record.horizonHours)}
         {record.lowSample && ` · ${COACH_MESSAGES.lowSample}`}
       </p>
+      <PerformanceClaimLine claim={record.claim} />
     </section>
   );
 };
 
-/** 맞았던 때 · 틀렸던 때. 해설 카드도 같은 것을 쓴다(FR-135) */
+/** 최근 틀렸던 때(서버가 최근 3건만 보낸다). 해설 카드도 같은 것을 쓴다(FR-135) */
 export const JudgmentCases = ({ cases }: { cases: readonly FailureCase[] }) => (
   <section className={detailSection}>
     <Heading level={5} as={4} color="tertiary">

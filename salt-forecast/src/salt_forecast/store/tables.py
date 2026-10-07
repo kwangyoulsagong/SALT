@@ -132,6 +132,9 @@ gate = Table(
     Column("range_renderable", Boolean, nullable=False),
     Column("range_blocked_reason", Text),
     Column("pinball_skill_ci_low", Float),
+    Column("window_from", DateTime(timezone=True)),
+    Column("window_to", DateTime(timezone=True)),
+    Column("miss_count", Integer),
 )
 
 
@@ -197,6 +200,10 @@ event_reaction_stats = Table(
     Column("recent_events", JSONB),
     Column("renderable", Boolean, nullable=False),
     Column("blocked_reason", Text),
+    Column("window_from", DateTime(timezone=True)),
+    Column("window_to", DateTime(timezone=True)),
+    Column("miss_count", Integer),
+    Column("miss_judged", Integer),
 )
 
 realized_vol = Table(

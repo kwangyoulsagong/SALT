@@ -15,8 +15,11 @@
  * 하지 않는 것: `confidence` 옮기기(D3) · "관망" 같은 기본 라벨 · 표본 판정 · 문구 ·
  * `priceGap` 을 % 로 바꾸기(D13) · 목표가 기본값(B1).
  *
- * 여기에는 import 가 없다. 그게 이 파일의 조건이다 (`watchlist.viewmodel.ts` 와 같은 이유).
+ * 여기에는 import 가 없다. 그게 이 파일의 조건이다 (`watchlist.viewmodel.ts` 와 같은 이유). 예외는 import 가 없는 순수
+ * 뷰모델 하나(`performance-claim.viewmodel.ts`) — 부작용 모듈을 끌어오지 않는다는 조건은 그대로다.
  */
+
+import { toPerformanceClaim, type PerformanceClaim } from "./performance-claim.viewmodel";
 
 export type CoachMode = "scalp" | "long_term";
 
@@ -76,6 +79,8 @@ export interface TrackRecord {
   alwaysUpRate: number | null;
   /** 적중률 − 기저율. 관망은 `null` */
   excessWinRate: number | null;
+  /** 기간 · 표본 · 기준 · 빗나간 수(F009 FR-33). 서버가 옛 버전이면 `null` */
+  claim: PerformanceClaim | null;
 }
 
 export interface Judgment {
@@ -156,7 +161,10 @@ export interface GaugeTrackRecord {
   median: number | null;
   p75: number | null;
   positiveRate: number | null;
+  /** 같은 종목 모든 구간의 오른 비율 — 이 구간과 비교하는 기준(F009 FR-33) */
+  baselinePositiveRate: number | null;
   lowSample: boolean;
+  claim: PerformanceClaim | null;
 }
 
 export interface SymbolNewsItem {
@@ -298,7 +306,7 @@ export const toModeViewModel = (
       reasons: judgment.reasons,
       risks: judgment.risks,
     },
-    trackRecord,
+    trackRecord: { ...trackRecord, claim: toPerformanceClaim(trackRecord.claim) },
     failureCases: failureCases as [FailureCase, ...FailureCase[]],
     zone: toZone(view.zone),
   };
@@ -364,7 +372,14 @@ export const toSymbolCoachViewModel = (
     symbol: coach.symbol,
     mode: coach.mode,
     modes: { scalp, longTerm },
-    gaugeTrackRecords: coach.gaugeTrackRecords ?? [],
+    gaugeTrackRecords: (coach.gaugeTrackRecords ?? []).map((record) => ({
+      ...record,
+      baselinePositiveRate:
+        typeof record.baselinePositiveRate === "number" && Number.isFinite(record.baselinePositiveRate)
+          ? record.baselinePositiveRate
+          : null,
+      claim: toPerformanceClaim(record.claim),
+    })),
     evidence: {
       price: evidence.price,
       change24h: evidence.change24h,

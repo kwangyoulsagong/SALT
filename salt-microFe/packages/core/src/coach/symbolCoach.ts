@@ -16,8 +16,10 @@
  * - `zone.notPrediction` 이 리터럴 `true` 다
  * - `preflightDefaults` 에 목표가가 없다(B1)
  *
- * 여기에는 import 가 없다. 값도 없다 — 타입만.
+ * 여기에는 import 가 없다(같은 폴더 타입 파일 `performanceClaim` 만 예외). 값도 없다 — 타입만.
  */
+
+import type { PerformanceClaim } from "./performanceClaim";
 
 export type CoachMode = "scalp" | "long_term";
 
@@ -75,6 +77,8 @@ export interface TrackRecord {
   alwaysUpRate: number | null;
   /** 적중률 − 기저율. 후보는 항상 오른다 대비, 피하기는 항상 안 오른다 대비, 관망은 `null` */
   excessWinRate: number | null;
+  /** 기간 · 표본 · 기준 · 빗나간 수(F009 FR-33). 서버가 옛 버전이면 `null` */
+  claim: PerformanceClaim | null;
 }
 
 export interface Judgment {
@@ -158,7 +162,11 @@ export interface GaugeTrackRecord {
   median: number | null;
   p75: number | null;
   positiveRate: number | null;
+  /** 같은 종목 모든 구간의 오른 비율 — 이 구간과 비교하는 기준(F009 FR-33) */
+  baselinePositiveRate: number | null;
   lowSample: boolean;
+  /** 기간 · 표본 · 기준 · 빗나간 수(F009 FR-33). 서버가 옛 버전이면 `null` */
+  claim: PerformanceClaim | null;
 }
 
 export interface SymbolNewsItem {

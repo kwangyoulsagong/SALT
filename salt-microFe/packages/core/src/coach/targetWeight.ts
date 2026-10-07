@@ -10,6 +10,8 @@
  * `altShare` 가 그 판정 기록이다. `live` 는 core 모델 포트폴리오 라이브 원장 진행, `recordSource` 가 과거 성적 자리를 정한다.
  */
 
+import type { PerformanceClaim } from "./performanceClaim";
+
 /** `no_room` = 부족하지만 쓸 수 있는 돈(현금 + core 초과분)이 없어 원으로 옮기지 못했다 */
 export type TargetWeightRowStatus = "under" | "over" | "at" | "no_room";
 export type TargetWeightExcludedReason = "volatility_unavailable" | "price_unavailable" | "no_record";
@@ -121,6 +123,8 @@ export interface TargetWeightView {
   altShare: TargetWeightAltShare | null;
   live: TargetWeightLive | null;
   recordSource: "backtest" | "live";
+  /** 지금 과거 성적 자리의 기간 · 표본 · 기준 · 빗나간 수. 서버가 옛 버전이거나 자리가 바뀌었으면 `null` */
+  claim: PerformanceClaim | null;
   asOf: string | null;
 }
 

@@ -5,6 +5,7 @@ import { StatusLine } from "@repo/ui/statusLine";
 
 import { formatRatio, formatSignedPoints, formatSignedRate, passesRecommendationGate } from "../lib";
 import { COACH_MESSAGES } from "../model";
+import { PerformanceClaimLine } from "./PerformanceClaimLine";
 import { BlockedNotice } from "./BlockedNotice";
 import { srOnly } from "./CoachBlock.css";
 import {
@@ -160,13 +161,15 @@ export const RecommendationCard = ({ recommendation }: RecommendationCardProps) 
         <p className={statTerm}>
           {[
             signalName,
-            REPORT.trackSample(record.sample),
+            // 표본 수는 4요소 줄이 말한다. 옛 서버(claim 없음)면 여기서
+            record.claim ? null : REPORT.trackSample(record.sample),
             record.horizonHours !== null ? DETAIL.horizon(record.horizonHours) : null,
           ]
             .filter(Boolean)
             .join(" · ")}
           {record.lowSample && ` · ${COACH_MESSAGES.lowSample}`}
         </p>
+        <PerformanceClaimLine claim={record.claim} />
       </section>
 
       <section className={detailSection}>

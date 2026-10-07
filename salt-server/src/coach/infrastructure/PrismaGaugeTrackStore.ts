@@ -94,4 +94,13 @@ export class PrismaGaugeTrackStore implements GaugeTrackStore {
       windowTo: row.windowTo,
     };
   }
+
+  async baselinePositiveRate(symbol: string, gauge: GaugeKind, horizonDays: number): Promise<number | null> {
+    const [row] = await prisma.$queryRaw<{ rate: Prisma.Decimal | null }[]>`
+      SELECT SUM(positive_rate * sample_count) / NULLIF(SUM(sample_count) FILTER (WHERE positive_rate IS NOT NULL), 0) AS rate
+      FROM gauge_track_records
+      WHERE symbol = ${symbol} AND gauge = ${gauge} AND horizon_days = ${horizonDays}
+    `;
+    return row?.rate == null ? null : Number(row.rate);
+  }
 }

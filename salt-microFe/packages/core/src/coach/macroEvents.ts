@@ -4,6 +4,8 @@
  * 수익률은 비율(0.012 = +1.2%). 금액은 없다. "호재 · 악재" 필드는 없다 — 판정하지 않는다(FEATURE-008 FR-31).
  * 막힌 기간에는 분포 필드가 **없다**(판별 union).
  */
+
+import type { PerformanceClaim } from "./performanceClaim";
 export type MacroEventKind = "fomc" | "cpi" | "jobs";
 
 export type EventHorizonView =
@@ -22,6 +24,8 @@ export type EventHorizonView =
       preReturn5dMedian: number | null;
       misses: { eventAt: string; realized: number; low: number; high: number }[];
       recent: { eventAt: string; realized: number }[];
+      /** 기간 · 표본 · 평소 날 기준 · 빗나간 수 / 판정 수(F009 FR-33). 서버가 옛 버전이면 `null` */
+      claim: PerformanceClaim | null;
     }
   | { horizonDays: number; renderable: false; blockedReason: string };
 

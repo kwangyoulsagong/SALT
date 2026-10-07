@@ -75,6 +75,8 @@ export const toTargetWeightResponse = (view: TargetWeightView) => {
     live: view.live,
     liveMinWeeks: view.liveMinWeeks,
     recordSource: view.recordSource,
+    // 지금 과거 성적 자리의 기간 · 표본 · 기준 · 빗나간 수(F009 FR-33)
+    claim: view.claim,
     renderable: view.renderable,
     blockedReason: view.blockedReason,
     asOf: view.asOf,

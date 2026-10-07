@@ -38,6 +38,33 @@ describe("languageViolations", () => {
   });
 });
 
+describe("성적 문구 금지어 (F009 FR-33)", () => {
+  it("AI 가 예측 · 합산 · 미실현 수익률을 잡는다", () => {
+    for (const bad of [
+      "AI 가 예측한 결과입니다.",
+      "AI가 맞힌 종목이에요.",
+      "AI 예측 적중률은 80%입니다.",
+      "합산 수익률은 32%예요.",
+      "미실현 수익률 +15%를 기록했어요.",
+      "AI predicted a rally.",
+      "Unrealized gains reached 20%.",
+    ]) {
+      assert.deepEqual(languageViolations(bad), ["performance_wording"], bad);
+    }
+  });
+
+  it("부정 · 면책과 기능 이름은 통과한다", () => {
+    for (const ok of [
+      "AI 가 예측한 것이 아닙니다.",
+      "AI 코치 판단 — 예측이 아닙니다.",
+      "AI 해설",
+      "실현 손익 합계",
+    ]) {
+      assert.deepEqual(languageViolations(ok), [], ok);
+    }
+  });
+});
+
 describe("숫자 대조 — 값 · 단위 · 방향 (C03)", () => {
   const facts = [fact(2.34, "percent"), fact(-20, "percent"), ...numericTokens("RSI 31 · 공포 심리 22")];
 
@@ -113,7 +140,7 @@ describe("templateExplanation", () => {
  * 2026-09-24 전에는 "분할 매수를 고려하세요" 같은 문장이 규칙 코드에 있었다.
  */
 describe("코치 규칙 문장", () => {
-  it("명령형 매매 지시 · 확신 · 목표가 0건", () => {
+  it("명령형 매매 지시 · 확신 · 목표가 · 성적 금지어 0건", () => {
     const dirs = ["../policy", "../../application"].map((d) => join(__dirname, d));
     const offenders: string[] = [];
     for (const dir of dirs) {

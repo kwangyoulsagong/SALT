@@ -105,6 +105,47 @@ describe("summarizeJudgmentTrack", () => {
   });
 });
 
+describe("성적 4요소 claim (F009 FR-33)", () => {
+  const stats = {
+    sample: 25,
+    hits: 15,
+    aboveCost: 12,
+    avgReturn: 0.01,
+    worstReturn: -0.2,
+    firstScoredAt: new Date("2026-09-24T03:00:00Z"),
+    lastScoredAt: new Date("2026-10-06T03:00:00Z"),
+  };
+
+  it("후보 판단은 네 칸이 다 있다 — 빗나간 수는 사례 목록 길이가 아니라 표본 전체", () => {
+    const { claim } = summarizeJudgmentTrack("long_term", "long_term.review_accumulation", stats);
+    assert.deepEqual(claim, {
+      period: { present: true, from: "2026-09-24", to: "2026-10-06" },
+      sample: 25,
+      baseline: { present: true, code: "same_action_always" },
+      misses: { present: true, count: 10, outOf: 25 },
+    });
+  });
+
+  it("관망은 기준 · 빗나간 수 대신 이유를 싣는다", () => {
+    const { claim } = summarizeJudgmentTrack("scalp", "scalp.wait", stats);
+    assert.deepEqual(claim.baseline, { present: false, reason: "no_direction" });
+    assert.deepEqual(claim.misses, { present: true, count: 10, outOf: 25 });
+  });
+
+  it("표본 0 이면 네 칸 모두 no_sample", () => {
+    const { claim } = summarizeJudgmentTrack("scalp", "scalp.avoid", {
+      ...stats,
+      sample: 0,
+      hits: 0,
+      firstScoredAt: null,
+      lastScoredAt: null,
+    });
+    assert.deepEqual(claim.period, { present: false, reason: "no_sample" });
+    assert.deepEqual(claim.baseline, { present: false, reason: "no_sample" });
+    assert.deepEqual(claim.misses, { present: false, reason: "no_sample" });
+  });
+});
+
 describe("judgmentGate — 3종 게이트 (FR-137)", () => {
   const record = (sample: number) =>
     summarizeJudgmentTrack("scalp", "scalp.wait", {

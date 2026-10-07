@@ -34,7 +34,10 @@ export const COACH_MESSAGES = {
   scoreAccessible: (score: number) => `100점 중 ${score}점`,
   reasonCount: (count: number) => `근거 ${count}`,
   trackSample: (count: number) => `이 판단 성적 ${count}회`,
+  /** 표본 전체에서 빗나간 수(성적 4요소, F009 FR-33) — 사례 목록 길이가 아니다 */
   failureCount: (count: number) => `틀렸던 때 ${count}건`,
+  /** 서버가 4요소를 안 줬을 때 — 목록 길이(최대 3)라는 것을 밝힌다 */
+  recentFailureCount: (count: number) => `최근 틀렸던 때 ${count}건`,
   lowSample: "표본 부족",
 
   blocked: {
@@ -131,7 +134,8 @@ export const COACH_MESSAGES = {
     excessWinRate: "기준 대비",
     excessWinRateHint: "같은 기간 '늘 같은 행동'보다 얼마나 더 맞았나",
     horizon: (hours: number) => `판단 뒤 ${hours}시간 기준`,
-    failureHeading: "맞았던 때 · 틀렸던 때",
+    /** 서버는 틀렸던 때만 최근 3건 보낸다 — "맞았던 때"를 제목에 쓰지 않는다(F009 FR-33) */
+    failureHeading: "최근 틀렸던 때",
     outcome: { hit: "맞음", miss: "틀림" },
     emptyValue: "—",
   },
@@ -190,8 +194,9 @@ export const COACH_MESSAGES = {
     factorsSummary: "근거 자세히 — 점수 기여도",
     factorScore: (score: number) => `${score > 0 ? "+" : ""}${score}`,
     trackRecordHeading: "이 유형 추천의 과거 성적",
-    trackSample: (count: number) => `최근 ${count}회`,
-    failureHeading: "틀렸던 때",
+    /** 서버 표본은 전체 기간이다 — "최근"이라고 쓰지 않는다(F009 FR-33). 기간은 성적 4요소 줄이 말한다 */
+    trackSample: (count: number) => `표본 ${count}회`,
+    failureHeading: "최근 틀렸던 때",
     noRecommendation: "아직 추천이 없어요. 보유 기록이 있으면 코치가 판단할 수 있어요.",
     /** 성적표 `signalType` → 이름 (FR-144). 매핑 없는 코드는 줄을 그리지 않는다 */
     signalTypes: {
@@ -244,5 +249,7 @@ export const COACH_MESSAGES = {
     sample: (bucket: string, count: number) => `이 구간(${bucket}) 과거 ${count}회`,
     distribution: (days: number, median: string, p25: string, p75: string) =>
       `${days}일 뒤 중앙값 ${median} (${p25} ~ ${p75})`,
+    /** 이 구간 vs 같은 종목 모든 날의 오른 비율(F009 FR-33) */
+    versusBaseline: (bucketRate: string, allDaysRate: string) => `오른 비율 ${bucketRate} (모든 날 ${allDaysRate})`,
   },
 } as const;

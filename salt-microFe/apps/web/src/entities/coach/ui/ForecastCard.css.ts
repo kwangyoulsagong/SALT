@@ -238,3 +238,20 @@ export const plainList = style({
   fontSize: vars.typography.t7.fontSize,
   fontVariantNumeric: vars.numeric.tabular,
 });
+
+/** 기간별 성적 4요소 줄(F009 FR-33). 글머리표 없이 — 기간 이름이 줄머리다 */
+export const claimList = style({
+  margin: 0,
+  marginTop: vars.space.sm,
+  padding: 0,
+  listStyle: "none",
+  display: "flex",
+  flexDirection: "column",
+  gap: vars.space.xs,
+});
+
+export const claimHorizon = style({
+  color: vars.colors.text.primary,
+  fontSize: vars.typography.t7.fontSize,
+  fontWeight: vars.fontWeights.semibold,
+});

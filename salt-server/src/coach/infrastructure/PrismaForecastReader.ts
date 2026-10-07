@@ -44,6 +44,9 @@ interface CardSqlRow {
   direction_hits: number;
   direction_base_rate: number | null;
   recent_misses: { asOf: string; realized: number; q05: number; q95: number }[] | null;
+  window_from: Date | null;
+  window_to: Date | null;
+  miss_count: number | null;
 }
 
 /**
@@ -75,6 +78,10 @@ interface EventSqlRow {
   recent_events: EventCardRow["recentEvents"];
   renderable: boolean;
   blocked_reason: string | null;
+  window_from: Date | null;
+  window_to: Date | null;
+  miss_count: number | null;
+  miss_judged: number | null;
 }
 
 type StatsSqlRow = Omit<EventSqlRow, "kind" | "event_at" | "announced_at" | "source">;
@@ -98,6 +105,10 @@ const toStats = (r: StatsSqlRow) => ({
   recentEvents: r.recent_events,
   renderable: r.renderable,
   blockedReason: r.blocked_reason,
+  windowFrom: r.window_from,
+  windowTo: r.window_to,
+  missCount: r.miss_count === null ? null : Number(r.miss_count),
+  missJudged: r.miss_judged === null ? null : Number(r.miss_judged),
 });
 
 interface SignalSqlRow {
@@ -153,7 +164,8 @@ export class PrismaForecastReader implements ForecastReader {
     const rows = await prisma.$queryRaw<EventSqlRow[]>`
       SELECT kind, event_at, announced_at, source, horizon_days, as_of, sample,
              q05, q25, q50, q75, q95, up_rate, baseline_q05, baseline_q50, baseline_q95,
-             move_ratio, pre_return_5d_median, recent_misses, recent_events, renderable, blocked_reason
+             move_ratio, pre_return_5d_median, recent_misses, recent_events, renderable, blocked_reason,
+             window_from, window_to, miss_count, miss_judged
       FROM forecast.v_event_card
       WHERE symbol = ${`KRW-${symbol}`}
       ORDER BY event_at, horizon_days
@@ -181,7 +193,8 @@ export class PrismaForecastReader implements ForecastReader {
       prisma.$queryRaw<(StatsSqlRow & { kind: string })[]>`
         SELECT kind, horizon_days, as_of, sample, q05, q25, q50, q75, q95, up_rate,
                baseline_q05, baseline_q50, baseline_q95, move_ratio, pre_return_5d_median,
-               recent_misses, recent_events, renderable, blocked_reason
+               recent_misses, recent_events, renderable, blocked_reason,
+               window_from, window_to, miss_count, miss_judged
         FROM forecast.v_signal_reaction WHERE symbol = ${key}
         ORDER BY kind, horizon_days
       `,
@@ -246,7 +259,7 @@ export class PrismaForecastReader implements ForecastReader {
              q05, q10, q25, q50, q75, q90, q95, p_up, direction, renderable, blocked_reason,
              range_renderable, range_blocked_reason, score_kind, sample, coverage90, width90,
              baseline_width90, pinball_skill, pinball_skill_ci_low, direction_calls, direction_hits,
-             direction_base_rate, recent_misses
+             direction_base_rate, recent_misses, window_from, window_to, miss_count
       FROM forecast.v_forecast_card
       WHERE symbol = ${`KRW-${symbol}`}
       ORDER BY horizon_weeks
@@ -280,6 +293,9 @@ export class PrismaForecastReader implements ForecastReader {
         directionHits: Number(r.direction_hits),
         directionBaseRate: r.direction_base_rate,
         recentMisses: r.recent_misses ?? [],
+        windowFrom: r.window_from,
+        windowTo: r.window_to,
+        missCount: r.miss_count === null ? null : Number(r.miss_count),
       };
     });
   }

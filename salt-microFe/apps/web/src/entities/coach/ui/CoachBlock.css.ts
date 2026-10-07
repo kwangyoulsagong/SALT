@@ -161,3 +161,33 @@ export const exchangeLine = style({
 });
 
 export const exchangeReason = style({ wordBreak: "keep-all" });
+
+/**
+ * 성적 4요소 한 줄(F009 FR-33). 항목 사이 가운뎃점은 장식이라 CSS 로 — 스크린리더는 목록 항목 넷으로 읽는다.
+ * 좁은 폭에서는 항목 단위로 줄이 바뀐다(360 폭에서 가로로 넘치지 않게).
+ */
+export const claimLine = style({
+  margin: 0,
+  padding: 0,
+  listStyle: "none",
+  display: "flex",
+  flexWrap: "wrap",
+  columnGap: vars.space.small,
+  rowGap: "2px",
+  color: vars.colors.text.secondary,
+  fontSize: vars.fontSizes.small,
+  lineHeight: 1.5,
+});
+
+/**
+ * 항목 사이 가운뎃점 — vanilla-extract 는 자식 선택자를 막아 항목 쪽에 둔다. 점을 **앞 항목 끝**에 붙인다:
+ * 다음 항목 앞에 두면 줄이 바뀔 때 점이 새 줄 맨 앞에 남는다(360 폭 실측)
+ */
+export const claimItem = style({
+  selectors: {
+    "&:not(:last-child)::after": {
+      content: '"·"',
+      marginLeft: vars.space.small,
+    },
+  },
+});

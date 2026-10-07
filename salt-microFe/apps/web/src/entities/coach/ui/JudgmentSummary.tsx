@@ -83,7 +83,11 @@ export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProp
           </Badge>
         )}
         <span aria-hidden="true">·</span>
-        <span>{COACH_MESSAGES.failureCount(failureCases.length)}</span>
+        <span>
+          {trackRecord.claim?.misses.present
+            ? COACH_MESSAGES.failureCount(trackRecord.claim.misses.count)
+            : COACH_MESSAGES.recentFailureCount(failureCases.length)}
+        </span>
       </p>
     </div>
   );

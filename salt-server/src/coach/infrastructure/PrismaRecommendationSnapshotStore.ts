@@ -114,7 +114,8 @@ export class PrismaRecommendationSnapshotStore implements RecommendationSnapshot
         where,
         _count: { _all: true },
         _avg: { returnRate: true },
-        _min: { returnRate: true },
+        _min: { returnRate: true, evaluatedAt: true },
+        _max: { evaluatedAt: true },
       }),
       prisma.coachRecommendationSnapshot.count({ where: { ...where, outcome: "hit" } }),
       prisma.coachRecommendationSnapshot.count({ where: { ...where, returnRate: { gt: ROUND_TRIP_COST } } }),
@@ -125,6 +126,8 @@ export class PrismaRecommendationSnapshotStore implements RecommendationSnapshot
       aboveCost,
       avgReturn: all._avg.returnRate === null ? null : Number(all._avg.returnRate),
       worstReturn: all._min.returnRate === null ? null : Number(all._min.returnRate),
+      firstScoredAt: all._min.evaluatedAt,
+      lastScoredAt: all._max.evaluatedAt,
     };
   }
 

@@ -516,6 +516,11 @@ export interface GaugeTrackStore {
     bucketCode: string,
     horizonDays: number
   ): Promise<GaugeTrackStats | null>;
+  /**
+   * 같은 종목 · 기간의 **모든 구간**을 합친 오른 비율(표본 수 가중). 구간과 무관한 기준이다 —
+   * 성적 문구의 "기준 대비"(F009 FR-33). 줄이 없으면 `null`.
+   */
+  baselinePositiveRate(symbol: string, gauge: GaugeKind, horizonDays: number): Promise<number | null>;
 }
 
 /** 지금 시각. 테스트가 시계를 고정할 수 있게 Port 로 둔다. */

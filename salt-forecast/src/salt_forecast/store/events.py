@@ -82,6 +82,10 @@ def upsert_stats(engine: Engine, stats: Iterable[ReactionStats]) -> int:
             json.dumps(s.recent_events),
             s.renderable,
             s.blocked_reason,
+            s.window_from,
+            s.window_to,
+            s.miss_count,
+            s.miss_judged,
         )
         for s in stats
     ]
@@ -109,6 +113,10 @@ def upsert_stats(engine: Engine, stats: Iterable[ReactionStats]) -> int:
             "recent_events",
             "renderable",
             "blocked_reason",
+            "window_from",
+            "window_to",
+            "miss_count",
+            "miss_judged",
         ),
         rows,
         ("kind", "symbol", "horizon_days", "as_of"),

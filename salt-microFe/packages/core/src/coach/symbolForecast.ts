@@ -5,6 +5,8 @@
  * 판별 union 이라 타입에서 새어 나갈 길이 없다.
  */
 
+import type { PerformanceClaim } from "./performanceClaim";
+
 export interface ForecastPriceRange {
   /** 하위 5% · 하위 25% · 중앙값 · 상위 25% · 상위 5% 가격(원) */
   low: number;
@@ -34,6 +36,8 @@ export interface ForecastTrackRecord {
   baselineWidth90: number;
   pinballSkill: number | null;
   misses: { asOf: string; realizedReturn: number; lowReturn: number; highReturn: number }[];
+  /** 기간 · 표본 · 기준 · 빗나간 수(F009 FR-33). 서버가 옛 버전이면 `null` */
+  claim: PerformanceClaim | null;
 }
 
 export interface ForecastDirection {
