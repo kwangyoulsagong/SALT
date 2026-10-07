@@ -29,6 +29,10 @@ const envSchema = z.object({
   KIS_APP_SECRET: z.string().min(1).optional(),
   KIS_BASE_URL: z.string().url().default("https://openapi.koreainvestment.com:9443"),
   KIS_WS_URL: z.string().default("ws://ops.koreainvestment.com:21000"),
+  /** 국내 주식 시세 수집 유니버스의 시총 상위 N(F011 FR-11) — 관심 종목은 별도로 더한다 */
+  /** KIS 호출 출발 상한(건/s) — 앱 키 한도의 30% 가 기본. 실측 한도가 낮으면 내린다 */
+  KIS_REQUESTS_PER_SECOND: z.coerce.number().positive().max(15).default(6),
+  KIS_UNIVERSE_TOP_N: z.coerce.number().int().min(0).max(200).default(50),
   /**
    * 활성 계정 상한 (`SRV-REQ-008` FR-6 — **코드 상수 금지**).
    *

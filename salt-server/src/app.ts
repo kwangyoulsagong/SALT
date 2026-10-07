@@ -9,6 +9,7 @@ import { NotFoundError } from "./shared/presentation/httpErrors";
 import { InvestmentInsightWorker } from "./workers/investment-insight.worker";
 import { NotificationCleanupWorker } from "./workers/notification-cleanup.worker";
 import { startMarketWorkers } from "./workers/market.worker";
+import { startKrStockWorkers } from "./workers/kr-stock.worker";
 import { ForecastRunnerWorker } from "./workers/forecast-runner.worker";
 
 // 이관된 컨텍스트의 라우터는 조립 지점에서 온다 (`composition.ts`)
@@ -28,6 +29,8 @@ const app: Application = express();
 // `market` 의 주기 작업 넷을 등록한다. 스케줄과 락은 워커가, 절차는 유스케이스가 갖는다
 // (`server-architecture.md` §7).
 startMarketWorkers();
+// 국내 주식(F011) — 키가 없으면 등록하지 않는다
+startKrStockWorkers();
 
 const insightsWorker = new InvestmentInsightWorker();
 insightsWorker.start();
@@ -68,6 +71,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/portfolio", contextRouters.portfolio);
 app.use("/api/news", contextRouters.news);
 app.use("/api/market-intelligence", contextRouters.marketIntelligence);
+app.use("/api/market/kr", contextRouters.krStock);
 app.use("/api/investment-insight", investmentInsightRoutes);
 app.use("/api/investment-notifications", investmentNotificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);

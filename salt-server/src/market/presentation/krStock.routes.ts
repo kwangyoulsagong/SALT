@@ -1,0 +1,133 @@
+import { Router } from "express";
+
+import { authMiddleware } from "../../shared/presentation/authMiddleware";
+import type { KrStockUseCases } from "../application/api";
+import { KrStockController } from "./krStock.controller";
+
+/**
+ * 국내 주식 조회 경로 — `/api/market/kr` (F011 · `SRV-REQ-040`).
+ *
+ * 전부 인증 필수 · 소유자 전용(재배포 약관 확인 전). 비회원 · 공개 응답에 국내 주식 시세는 0건이다.
+ * 키가 없으면 전 경로 `503 KR_STOCK_DISABLED`, 소유자가 아니거나 없는 종목은 `404 KR_STOCK_NOT_AVAILABLE`.
+ * 응답은 저장값이다 — 요청이 KIS 를 부르지 않는다.
+ */
+export const createKrStockRouter = (useCases: KrStockUseCases | null): Router => {
+  const router = Router();
+  const controller = new KrStockController(useCases);
+
+  router.use(authMiddleware);
+
+  /**
+   * @swagger
+   * /api/market/kr/session:
+   *   get:
+   *     summary: 국내 주식 장 상태(KST) — 소유자 전용
+   *     description: |
+   *       `session` 은 pre_open · regular · closing_auction · after_hours_close · after_hours_single · closed · holiday.
+   *       `calendarKnown=false` 면 오늘이 개장일 달력에 없어 평일 = 개장으로 추정했다.
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     responses:
+   *       200:
+   *         description: 성공
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     session: { type: string }
+   *                     now: { type: string, format: date-time }
+   *                     lastCloseAt: { type: string, format: date-time, nullable: true }
+   *                     nextOpenAt: { type: string, format: date-time, nullable: true }
+   *                     calendarKnown: { type: boolean }
+   *       401: { description: 인증 실패 }
+   *       404: { description: 소유자가 아님 }
+   *       503: { description: KIS 키 없음 — 국내 주식 꺼짐 }
+   */
+  router.get("/session", controller.session);
+
+  /**
+   * @swagger
+   * /api/market/kr/assets:
+   *   get:
+   *     summary: 국내 주식 시세 표(시총 순) — 소유자 전용
+   *     description: |
+   *       수집 유니버스(관심 ∪ 시총 상위 N) 종목의 저장된 현재가. 금액은 원 정수.
+   *       `feed` 는 poll_1m · realtime · stale(시세 받는 시간대에 3분 넘게 갱신 없음).
+   *       `status` 는 halted · administrative · caution · warning · danger · overheat.
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - { in: query, name: limit, schema: { type: integer, default: 50, maximum: 100 } }
+   *       - { in: query, name: offset, schema: { type: integer, default: 0 } }
+   *     responses:
+   *       200:
+   *         description: "`{ session, items: KrStockQuote[], nextOffset }`"
+   *       401: { description: 인증 실패 }
+   *       404: { description: 소유자가 아님 }
+   *       503: { description: KIS 키 없음 }
+   */
+  router.get("/assets", controller.assets);
+
+  /**
+   * @swagger
+   * /api/market/kr/search:
+   *   get:
+   *     summary: 국내 주식 종목 검색(마스터 전체, 이름 · 코드) — 소유자 전용
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - { in: query, name: q, required: true, schema: { type: string, minLength: 2, maxLength: 30 } }
+   *     responses:
+   *       200:
+   *         description: "`{ items: [{ code, name, market, inUniverse }] }` 최대 20건, 시총 순"
+   *       400: { description: q 형식 오류 }
+   *       404: { description: 소유자가 아님 }
+   *       503: { description: KIS 키 없음 }
+   */
+  router.get("/search", controller.search);
+
+  /**
+   * @swagger
+   * /api/market/kr/{code}:
+   *   get:
+   *     summary: 국내 주식 상세 — 현재가 + PER/PBR · 52주 · 외국인 소진율 · 호가 단위
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - { in: path, name: code, required: true, schema: { type: string, pattern: "^[0-9A-Z]{6}$" } }
+   *     responses:
+   *       200:
+   *         description: "`{ session, quote: KrStockQuote, detail }`"
+   *       404: { description: 소유자가 아니거나 수집 유니버스 밖 종목 }
+   *       503: { description: KIS 키 없음 }
+   */
+  router.get("/:code", controller.detail);
+
+  /**
+   * @swagger
+   * /api/market/kr/{code}/chart:
+   *   get:
+   *     summary: 국내 주식 캔들(수정주가 일봉 · 5분봉)
+   *     description: 5분봉은 실시간 집계(슬라이스 1)부터 쌓인다. `coverage.tradingDays` 로 몇 거래일치인지 준다.
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - { in: path, name: code, required: true, schema: { type: string } }
+   *       - { in: query, name: period, schema: { type: string, enum: ["1d", "5m"], default: "1d" } }
+   *       - { in: query, name: count, schema: { type: integer, default: 120, maximum: 500 } }
+   *     responses:
+   *       200:
+   *         description: "`{ period, candles[], coverage: { from, to, tradingDays } }`"
+   *       404: { description: 소유자가 아님 }
+   *       503: { description: KIS 키 없음 }
+   */
+  router.get("/:code/chart", controller.chart);
+
+  return router;
+};
