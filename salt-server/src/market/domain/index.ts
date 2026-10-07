@@ -5,3 +5,4 @@ export * from "./MarketSummary";
 export * from "./ports";
 export * from "./Sentiment";
 export * from "./SmartMoney";
+export * from "./KrStock";
