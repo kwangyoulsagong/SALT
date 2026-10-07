@@ -124,7 +124,10 @@ export interface TargetWeightView {
   asOf: string | null;
 }
 
+/** `stale_inputs` — 시세 또는 변동성 배치가 멈췄다(F010 슬라이스 7) */
+export type TargetWeightBlockedReason = "no_volatility" | "stale_inputs" | "disclosure_missing";
+
 export type TargetWeightResult =
   | TargetWeightView
-  | { status: "blocked"; reason: "no_volatility" | "disclosure_missing" }
+  | { status: "blocked"; reason: TargetWeightBlockedReason }
   | { status: "unavailable" };
