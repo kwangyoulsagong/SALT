@@ -86,3 +86,15 @@
 - 뷰 없음 — 서버가 읽지 않는다
 - 롤백: `DROP TABLE forecast.ops_check;`
 - 미검증: ops 조회 `EXPLAIN (ANALYZE, BUFFERS)`(행이 수백을 넘으면) · 운영 DB 적용(배포 시)
+
+## FR-25 — 성적 4요소 판정 창 열 (2026-10-07, F009 FR-33)
+
+- 마이그레이션 `20261007120000_forecast_claim_window` 추가만 · `prisma migrate deploy` 로컬 적용 · `salt-forecast` 스키마 계약 테스트 통과(새 열 7개 포함)
+- 뷰 3개는 기존 정의 끝에 열만 붙였다(`CREATE OR REPLACE` 는 끝 추가만 허용) — 기존 열 순서 · 이름 무변화
+- 실데이터: `regate` · `events` · `signals` 재실행 뒤 BTC `v_forecast_card` 1주 `2025-09-22 ~ 2026-09-14 · miss 7` · 2주 `miss 8`, CPI `v_event_card` `miss_count 4 / miss_judged 58`
+- 롤백: 열 삭제 + 이전 뷰 정의(`20260928100000` · `20260924120000` · `20260927130000`)
+
+| 미검증 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 운영 DB 적용 | 로컬만 | 배포 시 |
+| 이전 행(NULL) 채움 | `event_reaction_stats` 는 `as_of` 마다 쌓여 지난 행은 NULL 로 남는다 — 뷰는 최신 행만 읽어 화면 영향 없음 | 필요 없음(최신 행만 계약) |
