@@ -6,6 +6,9 @@
 |---|---|
 | 서버 테스트 | `npm test` 625 통과(새 22: 장 상태 · 호가 단위 · 배지 · 상하한 · 지연 · TR 허용 목록 · 레포 주문 TR grep · 마스킹 · 마스터 파서 · 체결 프레임 · 5분봉 집계) |
 | 정적 | `npm run lint` · `npm run build` · `npm run test:layer-check`(차단 10 · 통과 6) · `prisma generate` |
+| 모노레포 | BFF `npm run build` 통과 · 프론트 `pnpm check-types` · `pnpm lint` 통과(변경 없음 — 캐시 적중) |
+| 레이어 훅 사후 실행 | Bash 로 쓴 파일 포함 이 브랜치의 서버 `.ts` 전부를 `layer-check.mjs` 에 다시 넣어 차단 0(훅이 위반을 막는지 표본 1건으로 확인) |
+| Swagger | `swagger-jsdoc` `failOnErrors` 로 `/api/market/kr/*` 6 경로 생성 확인 |
 | 주문 · 계좌 TR | `git grep` 서버 · BFF · 프론트 · 예측 소스(테스트 제외)에 `TTTC · VTTC · TTTS · VTTS · CTSC` 0건 — 테스트로 고정 |
 | 마이그레이션 | `20261007140000_kr_stock_foundation` 로컬 `migrate deploy` · 추가만(enum 값 1 · 표 4 · 인덱스 1 · FK 1). `price_history` crypto 1,087,410행 · 거래 2 · 보유 2 그대로 |
 | 마스터 | 4,400종목(KOSPI 2,575 · KOSDAQ 1,825) — 공식 파이썬 파서와 거래정지 37/82 · 관리 47/138 · 삼성전자 상장주수 5,846,278천 · 시총 15,901,877억 일치. 1.0s |

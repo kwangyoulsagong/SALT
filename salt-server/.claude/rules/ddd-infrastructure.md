@@ -103,7 +103,7 @@ class CostBasisAdapter implements CostBasisSource {
 | 클라이언트 | 컨텍스트 | 규칙 |
 |---|---|---|
 | Upbit REST/WS | `market` `ledger` | **조회 전용 키만.** 주문·출금 엔드포인트를 호출하는 코드를 만들지 않는다 |
-| KIS (한국투자증권) | `ledger` `market` | 동일. 잔고·체결내역 GET만 |
+| KIS (한국투자증권) | `market` | **시세 조회 TR 허용 목록만**(`KisClient` `KIS_QUERY_TR`). 잔고 · 매수가능 · 체결통보도 계좌 정보라 금지 — 주문 · 계좌 TR 문자열 0건을 테스트가 본다(F011, 2026-10-07 개정: 앞 문장 "잔고·체결내역 GET만" 은 계좌 연동 없음 결정과 어긋났다) |
 | 환율 소스 | `fx` | 결제일 기준환율. 결측 시 `degraded` |
 | 온체인 지표 (MVRV Z · Puell) | `indicator` | 일 1회. carry-forward + `staleDays` |
 | CAPE | `indicator` | 동일 |
