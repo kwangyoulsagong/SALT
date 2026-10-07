@@ -14,11 +14,11 @@ import type { SentimentLabel } from "./Sentiment";
  * ## 자산군 타입을 `shared` 의 것으로 쓰지 않는다
  *
  * Shared Kernel 의 `AssetType` 은 `crypto` · `kr_stock` · `us_stock` 인데 **DB enum 은
- * `crypto` · `stock` 두 값뿐이다.** 커널 타입을 여기 쓰면 DB 가 거부하는 값을 컴파일이
- * 통과시킨다. 확장은 `DB-REQ-003`(`ALTER TYPE` 락 측정 포함)의 일이고, 그때까지
- * 이 컨텍스트는 **DB 가 실제로 아는 두 값**만 쓴다.
+ * `crypto` · `stock` · `kr_stock` 이다**(`stock` = 미국 주식). 커널 타입을 여기 쓰면 DB 가
+ * 거부하는 값(`us_stock`)을 컴파일이 통과시킨다 — 이 컨텍스트는 **DB 가 실제로 아는 값**만 쓴다.
+ * `kr_stock` 은 F011 슬라이스 0(`DB-REQ-033`)에서 더했다. 입력 DTO 는 아직 받지 않는다(슬라이스 3).
  */
-export type MarketAssetType = "crypto" | "stock";
+export type MarketAssetType = "crypto" | "stock" | "kr_stock";
 
 /** 거래소 시세 한 건. 거래소 응답 필드 이름은 여기까지 오지 않는다. */
 export interface Quote {
