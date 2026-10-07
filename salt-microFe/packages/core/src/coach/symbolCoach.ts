@@ -29,6 +29,8 @@ export type JudgmentAction =
 
 export type JudgmentBlockedReason =
   | "exchange_warning"
+  /** 시세 · 지표가 기준보다 오래됐다(F010 슬라이스 7) */
+  | "stale_inputs"
   | "reasons_missing"
   | "signal_track_record_missing"
   | "failure_cases_missing"

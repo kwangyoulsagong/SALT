@@ -131,6 +131,15 @@ describe("toTargetWeightViewModel", () => {
       status: "blocked",
       reason: "no_volatility",
     });
+    // 서버 사유 중 아는 값만 옮긴다 — 재료 정지(F010 슬라이스 7) · 모르는 값은 no_volatility
+    assert.deepEqual(toTargetWeightViewModel(body({ renderable: false, blockedReason: "stale_inputs", rows: [] })), {
+      status: "blocked",
+      reason: "stale_inputs",
+    });
+    assert.deepEqual(toTargetWeightViewModel(body({ renderable: false, blockedReason: "what", rows: [] })), {
+      status: "blocked",
+      reason: "no_volatility",
+    });
     assert.throws(() => toTargetWeightViewModel(body({ rows: null })), TargetWeightContractError);
     assert.throws(() => toTargetWeightViewModel(body({ orderExecution: true })), TargetWeightContractError);
   });

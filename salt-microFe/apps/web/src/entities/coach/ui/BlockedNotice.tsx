@@ -26,10 +26,13 @@ interface BlockedNoticeProps {
 export const BlockedNotice = ({ reason, sample }: BlockedNoticeProps) => {
   // 투자유의는 표본이 쌓이는 중이 아니다 — 표본 수 · "정상 동작" 대신 막은 이유의 둘째 줄
   const warned = reason === "exchange_warning";
+  // 재료 정지도 표본 이야기가 아니다 — "정상 동작"이라고 하지 않는다
   const meta =
     warned
       ? COACH_MESSAGES.blockedExchange
-      : [
+      : reason === "stale_inputs"
+        ? COACH_MESSAGES.blockedStale
+        : [
           sample !== null ? COACH_MESSAGES.blockedSample(sample) : null,
           COACH_MESSAGES.blockedNormal,
         ]

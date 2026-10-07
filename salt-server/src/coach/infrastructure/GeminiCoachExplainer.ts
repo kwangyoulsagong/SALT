@@ -10,6 +10,8 @@ import type {
   CoachExplainer,
   CoachExplanation,
   CoachExplanationInput,
+  LlmCallRecord,
+  LlmUsageStore,
 } from "../domain";
 import {
   buildExplanationPrompt,
@@ -82,16 +84,53 @@ const generationConfig: GenerationConfig = {
   responseSchema: EXPLANATION_RESPONSE_SCHEMA,
 };
 
+/** 응답 모양이 스키마와 다르다 — 다시 불러도 같은 모델 · 같은 프롬프트라 재시도하지 않는다 */
+export class ExplanationSchemaMismatch extends Error {}
+
+/**
+ * SDK 오류의 HTTP 상태. Gemini SDK 는 `error.status` 에 싣는다 — 공용 `isRetryableHttpError` 는 axios 모양
+ * (`error.response.status`)만 읽어 **4xx 까지 재시도**하고 있었다(한 요청이 과금 3회, F010 슬라이스 7 에서 발견)
+ */
+const statusOf = (error: unknown): number | undefined => {
+  const value = error as { status?: unknown; response?: { status?: unknown } };
+  const status = value?.status ?? value?.response?.status;
+  return typeof status === "number" ? status : undefined;
+};
+
+export const isRetryableGeminiError = (error: unknown): boolean => {
+  if (error instanceof ExplanationSchemaMismatch) return false;
+  return isRetryableHttpError({ response: { status: statusOf(error) } });
+};
+
+/** 원장에 남길 실패 분류 — 오류 본문은 남기지 않는다 */
+export const errorCodeOf = (error: unknown, signal?: AbortSignal): string => {
+  if (signal?.aborted) return "aborted";
+  if (error instanceof ExplanationSchemaMismatch) return "schema_mismatch";
+  const status = statusOf(error);
+  if (status !== undefined) return `http_${status}`;
+  return /timeout|timed out|abort/i.test((error as Error)?.message ?? "") ? "timeout" : "error";
+};
+
 export class GeminiCoachExplainer implements CoachExplainer {
   private readonly client: GoogleGenerativeAI;
 
-  constructor() {
+  /** `usage` — 시도마다 남긴다(비용 상한의 근거). 없으면 남기지 않는다 */
+  constructor(private readonly usage: LlmUsageStore | null = null) {
     this.client = new GoogleGenerativeAI(env.GEMINI_API_KEY);
+  }
+
+  /** 기록 실패가 해설을 막지 않는다 — 로그만 남긴다 */
+  private async remember(entry: LlmCallRecord): Promise<void> {
+    if (!this.usage) return;
+    await this.usage.record(entry).catch((error: unknown) =>
+      logger.warn(`LLM 사용량 기록 실패: ${(error as Error).message}`)
+    );
   }
 
   async explain(
     input: CoachExplanationInput,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    caller?: { userId: string }
   ): Promise<CoachExplanation> {
     const prompt = buildExplanationPrompt(input);
     const key = explanationCacheKey(env.GEMINI_MODEL, prompt);
@@ -109,19 +148,55 @@ export class GeminiCoachExplainer implements CoachExplainer {
       { timeout: REQUEST_TIMEOUT_MS }
     );
 
-    const response = await withRetry(() => model.generateContent(prompt, { signal }), {
+    // 시도 하나 = 원장 한 행. 파싱도 시도 안에서 한다 — 토큰을 쓰고 모양이 틀린 응답도 비용이다
+    const attempt = async () => {
+      const requestedAt = new Date();
+      const base = {
+        userId: caller?.userId ?? null,
+        purpose: "coach_explain" as const,
+        model: env.GEMINI_MODEL,
+        requestedAt,
+      };
+      let usage: { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number } | undefined;
+      try {
+        const response = await model.generateContent(prompt, { signal });
+        usage = response.response.usageMetadata;
+        const text = response.response.text();
+        const parsed = parseExplanationResponse(text);
+        if (!parsed) throw new ExplanationSchemaMismatch(`Gemini 응답 스키마 불일치 (${text.length}자)`);
+        await this.remember({
+          ...base,
+          durationMs: Date.now() - requestedAt.getTime(),
+          ok: true,
+          errorCode: null,
+          promptTokens: usage?.promptTokenCount ?? null,
+          outputTokens: usage?.candidatesTokenCount ?? null,
+          totalTokens: usage?.totalTokenCount ?? null,
+        });
+        return parsed;
+      } catch (error) {
+        await this.remember({
+          ...base,
+          durationMs: Date.now() - requestedAt.getTime(),
+          ok: false,
+          errorCode: errorCodeOf(error, signal),
+          promptTokens: usage?.promptTokenCount ?? null,
+          outputTokens: usage?.candidatesTokenCount ?? null,
+          totalTokens: usage?.totalTokenCount ?? null,
+        });
+        throw error;
+      }
+    };
+
+    const parsed = await withRetry(attempt, {
       retries: RETRIES,
       baseDelayMs: 1_000,
       // 끊긴 요청은 다시 부르지 않는다 — 읽을 사람이 없다
-      isRetryable: (error) => !signal?.aborted && isRetryableHttpError(error),
+      isRetryable: (error) => !signal?.aborted && isRetryableGeminiError(error),
       // 프롬프트·응답은 싣지 않는다 (§ 원문 로깅 금지). 남기는 것은 횟수와 대기뿐이다.
       onRetry: (_error, attempt, waitMs) =>
         logger.warn(`Gemini 해설 재시도 ${attempt}회 (${waitMs}ms 후)`),
     });
-
-    const text = response.response.text();
-    const parsed = parseExplanationResponse(text);
-    if (!parsed) throw new Error(`Gemini 응답 스키마 불일치 (${text.length}자)`);
 
     const result: CoachExplanation = {
       modeReasoning: parsed.modeReasoning,

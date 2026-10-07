@@ -514,6 +514,8 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - 3종 고지: 근거(종목 σ) · 과거 성적(`record` — 8년 업비트 주간 백테스트, 목표 σ 가 가장 가까운 등록값) ·
    *         실패 사례(`record.missedUpside` · `worstMonths`). `record.claims` 가 화면이 쓸 수 있는 문장을 정한다
    *       - σ 가 있는 종목이 없으면 `renderable: false` · `blockedReason: no_volatility`
+   *       - 시세가 30분 넘게 멈췄거나 변동성 배치가 사흘 넘게 멈춰 비중이 안 나오면 `blockedReason: stale_inputs`(F010 슬라이스 7).
+   *         30분 넘은 시세의 종목은 `excluded`(`price_unavailable`)로 빠진다
    *       - 주문하지 않는다(`orderExecution: false`)
    *     tags: [Coach Risk]
    *     security:

@@ -37,6 +37,8 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *       생성한다. 판단이 3종 게이트를 못 넘으면 LLM 을 부르지 않고 `{ renderable false, blockedReason }` 을 200 으로
    *       준다(현재가가 없으면 `facts_unavailable`). 렌더되면 `facts: { asOf, hash }` — 어떤 사실로 만든 해설인지.
    *       수익률·목표가 예측은 생성하지 않는다. 5분 캐시(키 = 모델이 받은 입력 전체의 해시).
+   *       시세가 30분 · 지표 봉이 단타 3시간 · 장기 3일 넘게 멈췄으면 `blockedReason: stale_inputs`(F010 슬라이스 7).
+   *       LLM 비용 상한(지난 24시간 사용자 · 전체 시도, 전체 토큰)에 닿으면 에러가 아니라 `source: template` 이다.
    *     tags: [AI Coach]
    *     security:
    *       - bearerAuth: []

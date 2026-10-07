@@ -32,8 +32,10 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9-4 ·
 | FR-4 | 가격선 근거 `basis` — 종목 판단 `zone(held_rule)` · 리포트 `exitPlans[]` · `/profit-plan` 카드. 아는 값만 | 완료 |
 | FR-5 | `GET /api/app/coach/scoreboard` — 서버 `/coach/scoreboard` 중계(1,500ms · 재시도 1회). 깨진 그룹 · 칸이 틀린 사례 제외, 남은 그룹이 없으면 `insufficient_data`, 고지 · 그룹 배열 없으면 계약 깨짐 → 200 `unavailable`. 4xx · 취소 그대로 | 완료 |
 | FR-6 | **거래소 투자유의 · 주의**(F010 슬라이스 6, `SRV-REQ-024` FR-191~193) — 판정 막힘 사유에 `exchange_warning`. 응답 최상위 `exchangeFlag { warning, cautions[], fetchedAt } \| null`(주의 코드는 업비트 원문 5종 화이트리스트, 모르는 코드는 버림 · 모양이 틀리면 `null`). 투자유의인데 서버 모드가 `renderable: true` 면 **막는 쪽으로만** 고친다. 하위 호환 `getPreview` 는 유의면 `headline` · `badge` · `decisions` · 근거를 비운다(서버 게이트가 없는 필드) | 완료 |
+| FR-7 | **재료 정지**(F010 슬라이스 7, `SRV-REQ-024` FR-194) — 판정 막힘 사유 `JudgmentBlockedReason` 에 `stale_inputs`. 서버 게이트 값을 그대로 옮긴다(추가 값 · 소비처 `@repo/core` 같은 브랜치). 해설 비용 상한(`SRV-REQ-025` FR-62)은 계약 무변화 — 템플릿 해설이 기존 모양으로 온다 | 완료(`1efb44d`) |
 
 ## Changelog
 
 - 2026-09-29: 초판 · FR-1~5 완료(`78652d5` · `afd29af`)
 - 2026-09-30: FR-6 추가 · 완료 — 거래소 투자유의 · 주의 표시
+- 2026-10-07: FR-7 추가 · 완료 — 재료 정지 `stale_inputs`(F010 슬라이스 7)

@@ -42,8 +42,10 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §4-3 6 
 | FR-11 | `no_room` 배지 "현금 없음" + 한 줄 · `gapCapped` 이면 "남은 현금만큼으로 줄인 값" | 완료(`ccd1b15`) |
 | FR-12 | 과거 성적 자리 — `recordSource: live` 면 [라이브](누적 · 낙폭 · BTC 같은 주 · 상승 포착 · 가장 크게 잃은 주) 뒤 [백테스트], 아니면 백테스트 + "라이브 채점 중 n/30주"(첫 주 전이면 시작일) | 완료(`ccd1b15`) |
 | FR-13 | **배치 변경** — 카드 본문을 `/coach/report` 첫 패널(`#target-weight`)로 옮기고 `/investments` 에는 요약 띠 한 칸(`TargetWeightSummary`: 목표 비중 · 현금 한 줄 + 3종 고지 한 줄 — 근거 · 과거 연수익 · 낙폭 · 가장 크게 잃은 달)만. 투자금 적기 링크는 페이지 안 `#risk-budget` | 완료(`4335b7d`) |
+| FR-14 | **재료 정지**(F010 슬라이스 7 · `BFF-REQ-041` FR-7) — 목표 비중 막힘 `stale_inputs` 문구 "시세나 변동성 데이터가 제때 갱신되지 않아 목표 비중을 잠시 보이지 않아요". `@repo/core` `TargetWeightBlockedReason` 동시 | 완료(`1efb44d`) — 화면 실측 전 |
 
 ## Changelog
 
 - 2026-09-29: 초판 · FR-1~7 완료(`26eef7c` · `e1ef668` · 번호 정정 `11e7a65`)
 - 2026-09-29: FR-9~13 — target-weight@2 알트 규칙 밖 · 라이브 · 투자 화면 요약 띠로 재배치(사용자 지적 "invest 메인에 다 있어야 하나")
+- 2026-10-07: FR-14 — 재료 정지 막힘 문구(F010 슬라이스 7)

@@ -349,9 +349,43 @@ describe("GetTargetWeights — 게이지와 같은 월 잔여 · 3종 고지", (
   });
 
   it("σ 가 하나도 없으면 비중을 내지 않는다", async () => {
-    const none = { symbolRisk: async () => new Map(), targetWeightLive: async () => null } as unknown as ForecastReader;
+    const none = {
+      symbolRisk: async () => new Map(),
+      targetWeightLive: async () => null,
+      volatilityAsOf: async () => null,
+    } as unknown as ForecastReader;
     const view = await new GetTargetWeights(profiles, portfolio, market, none, () => now).execute("u1");
     assert.equal(view.renderable, false);
     assert.equal(view.blockedReason, "no_volatility");
+  });
+
+  it("멈춘 시세는 쓰지 않고, 비중이 하나도 안 나오면 stale_inputs (F010 슬라이스 7 · FR-195 · 196)", async () => {
+    const forecasts = {
+      symbolRisk: async () => riskRows,
+      targetWeightLive: async () => null,
+      volatilityAsOf: async () => now,
+    } as unknown as ForecastReader;
+    const hourAgo = new Date(now.getTime() - 3_600_000);
+    const staleMarket = {
+      ...market,
+      quotes: async () =>
+        new Map([
+          ["BTC", { symbol: "BTC", currentPrice: 92_000_000, priceUpdatedAt: hourAgo }],
+          ["ETH", { symbol: "ETH", currentPrice: 5_000_000, priceUpdatedAt: hourAgo }],
+        ]),
+    } as unknown as MarketProbe;
+    const view = await new GetTargetWeights(profiles, portfolio, staleMarket, forecasts, () => now).execute("u1");
+    assert.equal(view.renderable, false);
+    assert.equal(view.blockedReason, "stale_inputs");
+    assert.ok(view.guide.excluded.some((row) => row.symbol === "BTC" && row.reason === "price_unavailable"));
+
+    // 변동성 배치가 사흘 넘게 멈췄다 — σ 가 3일 필터에 다 걸려 맵이 비었다
+    const stopped = {
+      symbolRisk: async () => new Map(),
+      targetWeightLive: async () => null,
+      volatilityAsOf: async () => new Date(now.getTime() - 4 * 86_400_000),
+    } as unknown as ForecastReader;
+    const halted = await new GetTargetWeights(profiles, portfolio, market, stopped, () => now).execute("u1");
+    assert.equal(halted.blockedReason, "stale_inputs");
   });
 });

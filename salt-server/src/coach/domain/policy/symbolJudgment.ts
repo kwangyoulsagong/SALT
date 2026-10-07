@@ -211,6 +211,7 @@ export interface JudgmentCase {
 
 export type JudgmentBlockedReason =
   | "exchange_warning"
+  | "stale_inputs"
   | "reasons_missing"
   | "insufficient_sample"
   | "failure_cases_missing";
@@ -223,6 +224,11 @@ export interface JudgmentGateInput {
   failureCases: JudgmentCase[];
   /** 거래소가 투자유의로 지정한 종목(F010 슬라이스 6). 모르면 `false` — 수집이 멈췄다고 판정을 막지 않는다 */
   exchangeWarning?: boolean;
+  /**
+   * 이 모드 판정 재료 중 기준보다 오래된 것(F010 슬라이스 7 · `inputFreshness`). 하나라도 있으면 막는다 —
+   * 사흘 전 RSI 로 계산한 점수를 오늘 판정처럼 보이지 않는다. 비면 막지 않는다
+   */
+  staleInputs?: readonly string[];
 }
 
 export type JudgmentGate =
@@ -253,6 +259,10 @@ export const judgmentGate = (input: JudgmentGateInput): JudgmentGate => {
   // 규칙 점수는 유의 지정의 이유(급등락 · 유통량 · 소명)를 모른다 — 그 위에서 "후보"를 말하면 규칙 밖의 말이다
   if (input.exchangeWarning) {
     return { renderable: false, blockedReason: "exchange_warning" };
+  }
+  // 재료가 멈췄으면 성적 · 근거를 보기 전에 막는다 — 근거 문장 자체가 오래된 값에서 나왔다
+  if (input.staleInputs && input.staleInputs.length > 0) {
+    return { renderable: false, blockedReason: "stale_inputs" };
   }
   if (judgmentEvidence(input).length === 0) {
     return { renderable: false, blockedReason: "reasons_missing" };

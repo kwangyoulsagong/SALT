@@ -1,5 +1,7 @@
 import type {
   CoachExplainer,
+  LlmBudgetLimits,
+  LlmUsageStore,
   CoachGenerationLogStore,
   CoachInsightStore,
   CoachNotifier,
@@ -77,6 +79,9 @@ export interface CoachDependencies {
   news: NewsProbe;
   notifier: CoachNotifier;
   explainer: CoachExplainer;
+  /** LLM 시도 원장 — 해설 비용 상한(F010 슬라이스 7). 같은 원장을 `explainer` 구현도 받아 시도마다 쓴다 */
+  llmUsage?: LlmUsageStore;
+  llmLimits?: Partial<LlmBudgetLimits>;
   judgments: SymbolJudgmentStore;
   ledger: JudgmentLedgerStore;
   /** 저장 추천 스냅샷 원장(F010 슬라이스 0) */
@@ -218,7 +223,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.market,
       deps.portfolio,
       deps.judgments,
-      deps.news
+      deps.news,
+      { usage: deps.llmUsage, limits: deps.llmLimits }
     ),
     analyzeNewsSentiment,
     analyzeTradingBehavior,

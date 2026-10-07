@@ -39,6 +39,7 @@ export const COACH_MESSAGES = {
 
   blocked: {
     exchange_warning: "거래소가 투자유의 종목으로 지정해 판단을 보여 드리지 않아요.",
+    stale_inputs: "시세나 지표가 제때 갱신되지 않아 판단을 잠시 보여 드리지 않아요.",
     reasons_missing: "근거가 부족해 이번엔 판단을 보여 드리지 않아요.",
     signal_track_record_missing: "이 판단의 과거 성적이 아직 없어 보여 드리지 않아요.",
     failure_cases_missing: "틀렸던 사례 기록이 아직 없어 보여 드리지 않아요.",
@@ -52,6 +53,8 @@ export const COACH_MESSAGES = {
    * 표시가 풀리면 판단이 다시 나온다
    */
   blockedExchange: "코치 규칙은 지정 사유를 알지 못해요 · 표시가 풀리면 다시 보여 드려요",
+  /** 재료 정지 막힘의 둘째 줄(F010 슬라이스 7). 표본이 쌓이는 중이 아니라 "정상 동작"이라 하지 않는다 */
+  blockedStale: "데이터가 다시 갱신되면 바로 보여 드려요",
 
   /** 투자주의만 켜진 종목 — 판단 아래 한 줄. 코드가 여기 없으면 그 항목을 그리지 않는다 */
   exchangeCaution: {

@@ -137,9 +137,12 @@ export interface TargetWeightView {
   asOf: string | null;
 }
 
+/** `stale_inputs` — 시세 또는 변동성 배치가 멈췄다 · `no_volatility` — σ 가 있는 종목이 없다 · `disclosure_missing` — 3종 고지 미달 */
+export type TargetWeightBlockedReason = "no_volatility" | "stale_inputs" | "disclosure_missing";
+
 export type TargetWeightResult =
   | TargetWeightView
-  | { status: "blocked"; reason: "no_volatility" | "disclosure_missing" }
+  | { status: "blocked"; reason: TargetWeightBlockedReason }
   | { status: "unavailable" };
 
 export class TargetWeightContractError extends Error {
@@ -346,7 +349,10 @@ const liveComplete = (live: TargetWeightLiveView | null): boolean =>
 export const toTargetWeightViewModel = (data: Raw): TargetWeightResult => {
   if (!Array.isArray(data.rows)) throw new TargetWeightContractError("rows");
   if (data.orderExecution !== false) throw new TargetWeightContractError("orderExecution");
-  if (data.renderable === false) return { status: "blocked", reason: "no_volatility" };
+  // 서버 사유는 아는 값만 옮긴다 — 모르는 값은 지금까지처럼 `no_volatility`(F010 슬라이스 7 · `BFF-REQ-041` FR-7)
+  if (data.renderable === false) {
+    return { status: "blocked", reason: data.blockedReason === "stale_inputs" ? "stale_inputs" : "no_volatility" };
+  }
 
   const record = toRecord(data.record, isRecord(data.backtest) ? data.backtest : {});
   if (!record) return { status: "blocked", reason: "disclosure_missing" };

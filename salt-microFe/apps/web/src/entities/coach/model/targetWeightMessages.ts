@@ -88,6 +88,7 @@ export const TARGET_WEIGHT_MESSAGES = {
 
   blocked: {
     no_volatility: "변동성 기록이 있는 종목이 없어 목표 비중을 계산하지 못했어요",
+    stale_inputs: "시세나 변동성 데이터가 제때 갱신되지 않아 목표 비중을 잠시 보이지 않아요",
     disclosure_missing: "과거 성적 · 빗나간 사례를 함께 보일 수 없어 목표 비중을 보이지 않아요",
   } as const,
   unavailable: "지금은 목표 비중을 불러올 수 없어요",

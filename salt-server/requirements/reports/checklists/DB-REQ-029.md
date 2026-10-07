@@ -78,3 +78,11 @@
 - 뷰 없음 — 서버가 읽지 않는다
 - 롤백: `DROP TABLE forecast.news_score; DROP TABLE forecast.news_item;`
 - 미검증: 운영 DB 적용(배포 시)
+
+## FR-24 — `forecast.ops_check` (2026-10-07)
+
+- 마이그레이션 `20261007100000_forecast_ops_check` 추가만 · `prisma migrate deploy` 로컬 적용 · `salt-forecast` 스키마 계약 테스트 통과(`ops_check` 포함)
+- 멱등: `(as_of 정시 내림, subject)` PK upsert — 같은 시간 두 번 실행해도 13행
+- 뷰 없음 — 서버가 읽지 않는다
+- 롤백: `DROP TABLE forecast.ops_check;`
+- 미검증: ops 조회 `EXPLAIN (ANALYZE, BUFFERS)`(행이 수백을 넘으면) · 운영 DB 적용(배포 시)

@@ -113,3 +113,20 @@
 |---|---|
 | 마이그레이션 | `20260929100200` 로컬 적용 · 기존 267행 → `mode-decision@1` · 기본값 제거 확인 · 인덱스 이름을 Prisma 63자 규칙과 같게(드리프트 0) |
 | 쓰기 | 워커 v2 표본 6행이 `rule_version = mode-decision@2` · 시드 스크립트도 버전을 적는다 |
+
+## F010 슬라이스 7 (2026-10-07) — FR-65 `llm_call_logs`
+
+| 확인 | 결과 |
+|---|---|
+| 마이그레이션 | `20261007015852_llm_call_logs` 추가만 · `prisma generate` · `migrate deploy` 로컬 적용 |
+| 드리프트 | Prisma 가 함께 만든 RenameIndex 2건(`coach_recommendation_snapshots` 인덱스 이름 63자 잘림 — 이전 마이그레이션 몫)을 뺐다. 드리프트는 남는다 |
+| 쓰기 · 집계 | `PrismaLlmUsageStore` `record` · `usageSince` 실 DB(스크래치, 행 지움) |
+| FK | `user_id` ON DELETE SET NULL — 사용자 삭제 뒤에도 전체 상한 행은 남는다 |
+| 롤백 | `DROP TABLE "llm_call_logs";` |
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 보존 정책 | 하루 ≤ 300행 | 기술부채 — 행이 쌓이면 정리 작업 |
+| Prisma 인덱스 이름 드리프트 | 이 REQ 목적 밖 · 다음 `migrate dev` 가 또 만든다 | 기술부채 — 인덱스 이름 정리 마이그레이션 |
+| `EXPLAIN (ANALYZE, BUFFERS)` | 표가 작다 | 행이 수백을 넘으면 |
+| 운영 DB 적용 | 로컬만 | 배포 시 |

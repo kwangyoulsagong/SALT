@@ -39,3 +39,18 @@
 |---|---|---|
 | `getPreview` 유의 분기 테스트 | 서비스가 백엔드 호출을 직접 부른다 — 뷰모델 함수(`toExchangeFlag`)만 테스트 | 서비스 테스트 하네스가 생길 때 |
 | 실제 서버 응답으로 HTTP 왕복 | 로컬 인증 토큰 발급 불가 | `QA-001` 로그인 QA(사용자) |
+
+## FR-7 재료 정지 `stale_inputs` (F010 슬라이스 7, 2026-10-07)
+
+| FR | 위치 | 결과 |
+|---|---|---|
+| FR-7 | `services/symbol-coach.viewmodel.ts` `JudgmentBlockedReason` | 유니온에 값 추가 — 서버 값을 그대로 옮긴다. 전용 테스트 없음(타입 · 빌드로 확인) |
+
+- `npm run build` 통과 · `npm test` **202 / 0**. lint 스크립트 없음
+- 계약: 판정 막힘 사유에 추가 값 `stale_inputs` — 소비처 `salt-microFe/packages/core/src/coach/symbolCoach.ts` 같은 커밋(`1efb44d`)
+- 해설 비용 상한(`SRV-REQ-025` FR-62)은 `source: "template"` 로 기존 모양 — BFF 무변경
+- 공통 수용 기준: 계산 0 · 문구 0 · 주문 경로 0
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실제 서버 `stale_inputs` 응답으로 HTTP 왕복 | 로컬 재료가 신선해 상태가 안 났다 · 로컬 인증 토큰 발급 불가 | `QA-001` 로그인 QA(사용자) |

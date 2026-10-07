@@ -30,6 +30,7 @@ import type {
   MonthlyReview,
   JudgmentLedgerDraft,
   TargetWeightLiveRecord,
+  LlmUsage,
 } from "./policy";
 import type {
   CoachAction,
@@ -306,11 +307,40 @@ export interface CoachExplainer {
   /**
    * `signal` — 요청한 화면이 떠나면 끊는다. 안 끊으면 아무도 안 읽을 LLM 호출이
    * 20초 × 재시도까지 끝까지 돈다(`streaming-sse.md` §4 와 같은 이유).
+   *
+   * `caller` — 누구의 요청인가. 구현은 **시도마다** `LlmUsageStore` 에 남긴다(재시도도 과금된다).
    */
   explain(
     input: CoachExplanationInput,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    caller?: { userId: string }
   ): Promise<CoachExplanation>;
+}
+
+/** LLM 시도 한 건 — 프롬프트 · 응답 원문은 담지 않는다(`ddd-infrastructure.md` §6). */
+export interface LlmCallRecord {
+  userId: string | null;
+  /** 어느 기능의 호출인가 — 지금은 `coach_explain` 하나 */
+  purpose: "coach_explain";
+  model: string;
+  requestedAt: Date;
+  durationMs: number;
+  ok: boolean;
+  /** 실패 분류(`timeout` · `http_429` · `schema_mismatch` …). 오류 본문이 아니다 */
+  errorCode: string | null;
+  promptTokens: number | null;
+  outputTokens: number | null;
+  totalTokens: number | null;
+}
+
+/**
+ * LLM 사용량 원장(F010 슬라이스 7) — 비용 상한(`llmBudgetVerdict`)의 근거.
+ * 캐시 적중은 호출이 아니라 남기지 않는다.
+ */
+export interface LlmUsageStore {
+  record(entry: LlmCallRecord): Promise<void>;
+  /** `since` 뒤 시도 수 · 토큰 합 — 전체와 사용자 한 명 */
+  usageSince(since: Date, userId: string): Promise<{ user: LlmUsage; total: LlmUsage }>;
 }
 
 export interface JudgmentSnapshotDraft {
@@ -544,6 +574,11 @@ export interface ForecastReader {
    * 3일 넘게 갱신 안 된 종목은 맵에서 빠진다. 막힌 변동성 · 이력 부족 베타는 `null` — 0 이 아니다
    */
   symbolRisk(symbols: string[]): Promise<Map<string, SymbolRisk>>;
+  /**
+   * 실현 변동성 원천의 마지막 산출 시각(전 종목 최대 `as_of`, 나이 무관) — 행이 없으면 `null`(F010 슬라이스 7).
+   * `symbolRisk` 가 비었을 때 "아직 계산 안 됨"과 "배치가 멈춤"을 가르는 데만 쓴다
+   */
+  volatilityAsOf(): Promise<Date | null>;
   /**
    * 시장 국면 한 행 — `forecast.v_market_regime`(BTC, `FC-REQ-010`). 없거나 3일 넘었으면 `null`.
    * 게이트 · 이벤트 축소는 salt-forecast 가 사전등록 판정대로 채운 값이다 — 서버는 다시 계산하지 않는다
