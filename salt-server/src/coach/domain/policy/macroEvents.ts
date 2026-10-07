@@ -5,6 +5,8 @@
  * 빗나간 때) 중 하나라도 없으면 분포를 싣지 않는다. "호재 · 악재"는 판정하지 않는다(서프라이즈 데이터가 없다).
  */
 
+import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "./performanceClaim";
+
 export type MacroEventKind = "fomc" | "cpi" | "jobs";
 export const MACRO_EVENT_KINDS: readonly MacroEventKind[] = ["fomc", "cpi", "jobs"];
 export const EVENT_HORIZON_DAYS = [1, 5, 20] as const;
@@ -34,6 +36,11 @@ export interface EventCardRow {
   recentEvents: { eventAt: string; realized: number; preReturn5d: number | null }[] | null;
   renderable: boolean;
   blockedReason: string | null;
+  /** 표본 사건의 첫 · 마지막 시각, 빗나간 수 전체와 판정 대상 수(F009 FR-33). 열이 생기기 전 행은 `null` */
+  windowFrom: Date | null;
+  windowTo: Date | null;
+  missCount: number | null;
+  missJudged: number | null;
 }
 
 /** 반응 통계 한 행 — 일정 칸을 뺀 것. 쏠림 신호(`positioning.ts`)도 같은 게이트를 쓴다 */
@@ -55,6 +62,8 @@ export type EventHorizonView =
       preReturn5dMedian: number | null;
       misses: { eventAt: string; realized: number; low: number; high: number }[];
       recent: { eventAt: string; realized: number }[];
+      /** 기간 · 표본 · 기준(평소 날) · 빗나간 수(F009 FR-33). 빗나간 수는 `outOf`(앞 사건 10건 이상인 사건) 중에서 */
+      claim: PerformanceClaim;
     }
   | { horizonDays: number; renderable: false; blockedReason: string };
 
@@ -97,6 +106,12 @@ export const toEventHorizon = (row: ReactionStatsRow): EventHorizonView => {
     preReturn5dMedian: row.preReturn5dMedian,
     misses,
     recent: (row.recentEvents ?? []).map(({ eventAt, realized }) => ({ eventAt, realized })),
+    claim: {
+      period: claimPeriod(row.sample, row.windowFrom, row.windowTo),
+      sample: row.sample,
+      baseline: claimBaseline(row.sample, "ordinary_days", "not_recorded"),
+      misses: claimMisses(row.sample, row.missCount, "not_recorded", row.missJudged),
+    },
   };
 };
 

@@ -118,6 +118,12 @@ class ReactionStats:
     recent_events: list[dict[str, object]]
     renderable: bool
     blocked_reason: str | None
+    # 성적 문구 4요소(F009 FR-33) — 표본 사건의 첫 · 마지막 시각, 빗나간 수 전체
+    # (`recent_misses` 는 최근 MISSES_KEPT 개뿐)와 그 판정 대상 수(앞 사건이 MIN_SAMPLE 개 이상일 때만 판정한다)
+    window_from: datetime | None = None
+    window_to: datetime | None = None
+    miss_count: int | None = None
+    miss_judged: int | None = None
 
 
 _QS = np.array([0.05, 0.25, 0.5, 0.75, 0.95])
@@ -146,11 +152,13 @@ def stats(bars: OhlcvSeries, kind: str, reactions: Sequence[Reaction], h: int, a
     realized = np.array([r.returns[h] for r in done], dtype=np.float64)
 
     misses: list[dict[str, object]] = []
+    judged = 0
     for i, r in enumerate(done):
         ev = _epoch(r.event_at)
         prior = np.array([p.returns[h] for p in done[:i] if _closed_by(bars, p, h, ev)], dtype=np.float64)
         if len(prior) < MIN_SAMPLE:
             continue
+        judged += 1
         lo, hi = (float(v) for v in np.quantile(prior, [0.05, 0.95]))
         value = float(realized[i])
         if value < lo or value > hi:
@@ -161,10 +169,16 @@ def stats(bars: OhlcvSeries, kind: str, reactions: Sequence[Reaction], h: int, a
         for r in done[-RECENT_KEPT:]
     ]
     sample = len(done)
+    claim = (
+        done[0].event_at if done else None,
+        done[-1].event_at if done else None,
+        len(misses),
+        judged,
+    )
     blocked = "insufficient_sample" if sample < MIN_SAMPLE else ("failure_cases_missing" if not misses else None)
     if blocked is not None:
         return ReactionStats(
-            kind, bars.symbol, h, as_of, sample, None, None, None, None, None, [], recent, False, blocked
+            kind, bars.symbol, h, as_of, sample, None, None, None, None, None, [], recent, False, blocked, *claim
         )
 
     base = _baseline(bars, min(r.ref_index for r in done), h, at)
@@ -190,4 +204,5 @@ def stats(bars: OhlcvSeries, kind: str, reactions: Sequence[Reaction], h: int, a
         recent,
         True,
         None,
+        *claim,
     )

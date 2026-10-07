@@ -106,6 +106,8 @@ class GateResult:
     range_renderable: bool = False
     range_blocked_reason: RangeBlockedReason | None = None
     pinball_skill_ci_low: float | None = None  # 기준 대비 개선의 95% 하한 — 우연히 이긴 곳을 걸러낸다
+    # 판정 창(최근 GATE_WINDOW) 안에서 90% 범위 밖이었던 수 — 성적 문구의 빗나간 수(F009 FR-33)
+    miss_count: int | None = None
 
 
 def skill_ci_low(model_pin: NDArray[np.float64], base_pin: NDArray[np.float64], seed: int = 0) -> float | None:
@@ -201,4 +203,5 @@ def evaluate_gate(model: list[Score], baseline: list[Score], *, stale: bool) -> 
         range_reason is None,
         range_reason,
         ci_low,
+        sum(1 for s in m if not s.hit90),
     )

@@ -19,6 +19,7 @@
 
 import { DomainError, ErrorKind } from "../../../shared/domain";
 import type { CoachHolding } from "../model";
+import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "./performanceClaim";
 
 /** 소유자가 아니거나 전망이 없다 — 404. "막혔다"는 안내조차 주지 않는다(ADR-003). */
 export class ForecastNotAvailableError extends DomainError {
@@ -51,6 +52,10 @@ export interface ForecastCardRow {
   directionHits: number;
   directionBaseRate: number | null;
   recentMisses: { asOf: string; realized: number; q05: number; q95: number }[];
+  /** 판정 창의 첫 · 마지막 점수 as_of 와 90% 범위 밖 수(F009 FR-33). 이 열이 생기기 전 행은 `null` */
+  windowFrom: Date | null;
+  windowTo: Date | null;
+  missCount: number | null;
 }
 
 export type ForecastBlockedReason =
@@ -89,6 +94,8 @@ export interface ForecastTrackRecord {
   baselineWidth90: number;
   pinballSkill: number | null;
   misses: { asOf: string; realizedReturn: number; lowReturn: number; highReturn: number }[];
+  /** 기간 · 표본 · 기준(단순 예측 구간) · 90% 범위 밖 수(F009 FR-33) */
+  claim: PerformanceClaim;
 }
 
 export interface ForecastDirection {
@@ -182,6 +189,12 @@ export const toForecastHorizon = (row: ForecastCardRow, holding: CoachHolding | 
         lowReturn: Math.expm1(m.q05),
         highReturn: Math.expm1(m.q95),
       })),
+      claim: {
+        period: claimPeriod(row.sample, row.windowFrom, row.windowTo),
+        sample: row.sample,
+        baseline: claimBaseline(row.sample, "naive_range", "not_recorded"),
+        misses: claimMisses(row.sample, row.missCount, "not_recorded"),
+      },
     },
     modelVersion: row.modelVersion,
   };

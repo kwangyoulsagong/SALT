@@ -43,8 +43,11 @@ export interface PerformanceClaim {
   period: ClaimSlot<{ from: string; to: string }>;
   sample: number;
   baseline: ClaimSlot<{ code: ClaimBaselineCode }>;
-  /** 표본 전체에서 빗나간 수 — 화면에 싣는 사례 목록(최대 3)의 길이가 아니다 */
-  misses: ClaimSlot<{ count: number }>;
+  /**
+   * 표본 전체에서 빗나간 수 — 화면에 싣는 사례 목록(최대 3)의 길이가 아니다. `outOf` 는 맞고 틀림을 판정한 수:
+   * 보통 표본과 같고, 사건 반응은 앞 사건이 10건 이상 쌓인 사건만 판정해 더 작다
+   */
+  misses: ClaimSlot<{ count: number; outOf: number }>;
 }
 
 const day = (at: Date | string): string => (typeof at === "string" ? at : at.toISOString()).slice(0, 10);
@@ -71,10 +74,11 @@ export const claimBaseline = (
 export const claimMisses = (
   sample: number,
   count: number | null,
-  missing: ClaimGapReason
+  missing: ClaimGapReason,
+  outOf: number | null = sample
 ): PerformanceClaim["misses"] =>
   sample === 0
     ? { present: false, reason: "no_sample" }
-    : count === null
+    : count === null || outOf === null
       ? { present: false, reason: missing }
-      : { present: true, count };
+      : { present: true, count, outOf };

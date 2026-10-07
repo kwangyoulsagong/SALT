@@ -65,6 +65,7 @@ def test_gate_always_carries_context() -> None:
     g = evaluate_gate(_mix(0.9, 0.5), [_s(1.0, 0.6)] * 26, stale=False)
     assert g.coverage90 is not None and g.width90 is not None and g.baseline_width90 is not None
     assert g.always_up_rate is not None and g.direction_calls == 0
+    assert g.miss_count == 2  # 26개 중 2개 범위 밖 — 성적 문구의 빗나간 수(F009 FR-33)
 
 
 def test_direction_base_rate_exposes_bear_market_calls() -> None:

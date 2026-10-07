@@ -8,7 +8,7 @@ from datetime import datetime
 
 from salt_forecast.domain.calendar import on_weekly_grid
 from salt_forecast.domain.quantiles import QuantileForecast
-from salt_forecast.domain.scoring import GateResult, evaluate_gate, score
+from salt_forecast.domain.scoring import GATE_WINDOW, GateResult, evaluate_gate, score
 from salt_forecast.store.predictions import GateRow, Kind, PredictionRow, ScoreRow
 
 # 라이브 52주(주 격자 as_of 52개) 전까지는 백테스트 점수로 판정하고 그렇게 표시한다(FEATURE-008 FR-67)
@@ -68,5 +68,17 @@ def gates(
         result: GateResult = evaluate_gate(
             [m[t].score for t in paired], [b[t].score for t in paired], stale=sym in stale_symbols
         )
-        out.append(GateRow(sym, h, model_version, baseline_version, kind, result))
+        window = paired[-GATE_WINDOW:]
+        out.append(
+            GateRow(
+                sym,
+                h,
+                model_version,
+                baseline_version,
+                kind,
+                result,
+                window[0] if window else None,
+                window[-1] if window else None,
+            )
+        )
     return out

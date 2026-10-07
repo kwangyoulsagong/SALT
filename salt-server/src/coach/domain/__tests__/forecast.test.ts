@@ -31,6 +31,9 @@ const row = (over: Partial<ForecastCardRow> = {}): ForecastCardRow => ({
   directionHits: 0,
   directionBaseRate: null,
   recentMisses: [{ asOf: "2026-08-10T00:00:00Z", realized: -0.15, q05: -0.1, q95: 0.1 }],
+  windowFrom: new Date("2025-09-29T00:00:00Z"),
+  windowTo: new Date("2026-09-21T00:00:00Z"),
+  missCount: 6,
   ...over,
 });
 
@@ -99,5 +102,23 @@ describe("isForecastOwner", () => {
     assert.equal(isForecastOwner("other@example.com", ["me@example.com"]), false);
     assert.equal(isForecastOwner("me@example.com", []), false);
     assert.equal(isForecastOwner(undefined, ["me@example.com"]), false);
+  });
+});
+
+describe("변동 범위 성적 4요소 (F009 FR-33)", () => {
+  it("판정 창 · 표본 · 단순 예측 기준 · 범위 밖 수를 싣는다", () => {
+    const v = toForecastHorizon(row(), null);
+    assert.deepEqual(v.trackRecord?.claim, {
+      period: { present: true, from: "2025-09-29", to: "2026-09-21" },
+      sample: 52,
+      baseline: { present: true, code: "naive_range" },
+      misses: { present: true, count: 6, outOf: 52 },
+    });
+  });
+
+  it("열이 생기기 전 행은 기간 · 빗나간 수가 not_recorded", () => {
+    const claim = toForecastHorizon(row({ windowFrom: null, windowTo: null, missCount: null }), null).trackRecord?.claim;
+    assert.deepEqual(claim?.period, { present: false, reason: "not_recorded" });
+    assert.deepEqual(claim?.misses, { present: false, reason: "not_recorded" });
   });
 });
