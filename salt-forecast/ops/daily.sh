@@ -22,8 +22,9 @@ rc=0
 # ingest_search(데이터랩)는 search-interest@1 근거 없음으로 껐다(등록 [decision], FC-REQ-017) — 다시 켜려면 새 등록과 함께
 # backfill_whale 은 매일 돌면 증분이다(이미 있는 날은 건너뛴다 — 새 날 하루치 30종목만 받는다)
 steps=(ingest_prices ingest_market backfill_whale daily events signals volatility market_regime target_weight_live)
-# 규칙 IC 백테스트는 주 1회(월요일 UTC) — 매일 돌 이유가 없고 48초 걸린다(FC-REQ-008)
-[[ "$(date -u +%u)" == "1" ]] && steps+=(rule_ic)
+# 규칙 IC 백테스트는 주 1회 — 매일 돌 이유가 없고 48초 걸린다(FC-REQ-008). 요일이 아니라 "마지막 성공 6.5일 전"으로 고른다:
+# 월요일에만 돌게 했더니 2026-10-05 월요일에 배치가 한 번도 돌지 않아 그 주를 통째로 건너뛰었다(FC-REQ-018)
+"$UV" run --frozen python -m salt_forecast.jobs.due --job rule_ic --hours 156 >/dev/null && steps+=(rule_ic)
 # 운영 점검은 일일 작업 뒤에도 한 번 — 방금 돈 결과를 같은 시간 행에 덮어쓴다
 steps+=(ops_monitor)
 for step in "${steps[@]}"; do
