@@ -38,6 +38,7 @@
 | `market_regime` | (symbol, as_of) | BTC 국면 한 행 · 채택 게이트 · 이벤트 계수(`FC-REQ-010`). `realized_vol.btc_beta` 도 같은 슬라이스 |
 | `market_warning_snapshot` | (symbol, fetched_at) | 업비트 유의 · 주의 스냅샷 — 불변(UPDATE 트리거 금지), 받을 때마다 쌓음(`FC-REQ-014`) |
 | `news_item` · `news_score` | item_id · (item_id, model_version) | 뉴스 RSS 원장(fetched_at = available) · 로컬 금융 감성 · 사건 태그 — 둘 다 불변, 뷰 없음(`FC-REQ-016`) |
+| `ops_check` | (as_of 정시, subject) | 운영 점검 — 정기 작업 · 주간 비중 · 매일 판단 원장. 같은 시간 재실행은 덮어쓴다, 뷰 없음(`FC-REQ-018`) |
 | `v_symbol_facts` · `v_symbol_actors` · `v_forecast_card` · `v_realized_vol` · `v_market_signal` · `v_signal_reaction` · `v_market_regime` · `v_market_warning` | 뷰 | **서버가 읽는 계약** |
 
 - 수치는 `numeric`(금액) · `double precision`(수익률 · 확률). 금액을 float 로 저장하지 않는다.
@@ -62,5 +63,5 @@ drivers jsonb         -- 피처 중요도 상위 5
 
 ## 5. 보존
 
-- `raw_record` 1년, `prediction` · `score` 영구(채점 근거), `job_run` 90일.
+- `raw_record` 1년, `prediction` · `score` 영구(채점 근거), `job_run` · `ops_check` 90일(`ops_monitor` 가 지운다).
 - 삭제 작업도 `jobs/` 의 작업이다(`--dry-run` 포함).

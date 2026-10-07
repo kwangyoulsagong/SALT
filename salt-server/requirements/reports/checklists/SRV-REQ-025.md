@@ -309,3 +309,25 @@
 | 극성 패턴 오탐률(라이브) | 실호출 16회 · 50문장에서 오탐 0. 실사용 말투 분포는 다를 수 있다 | 라이브 해설 `droppedSentences` 2주 관찰(2026-10-20) |
 | Gemini 호출 오류 4/18 | 연속 호출에서 fetch 오류 — 무료 한도(분당) 추정, 원인 미확인. 해설은 템플릿으로 나간다 | 라이브 로그에서 상태 코드 확인 시 |
 | 캐시 · 분당 호출 · 일 비용 상한 공유 | 인스턴스 하나라 아직 문제 아님(리서치 §2-3 ⑦) | 다중 인스턴스 배포 시 |
+
+## F010 슬라이스 7 — FR-62~64 LLM 비용 상한 · 시도 원장 (2026-10-07)
+
+| 확인 | 결과 |
+|---|---|
+| 상한 판정 | `domain/policy/llmBudget.ts` — `opsGuards.test.ts`: 상한에 닿으면(같으면) 막고 어느 상한인지 말한다 · env 덮어쓰기는 준 칸만 바꾼다 |
+| 템플릿 폴백 | `explainCoachDecision.test.ts`: 상한(사용자 · 전체 시도 · 토큰)에 닿으면 LLM 없이 템플릿 — 에러 아님 · 상한 아래면 부르고 요청 사용자를 넘긴다 · 스트림도 다듬기 · 검사를 건너뛰고 템플릿이 최종 |
+| fail-closed | 같은 테스트: 사용량 조회가 던지면 LLM 호출 0 · 템플릿 |
+| 시도 기록 | `GeminiCoachExplainer` — 재시도마다 한 행 · 원문 없음. `geminiRetry.test.ts` "errorCodeOf — 분류만 남긴다". 기록 실패가 해설을 막지 않는 것은 코드 확인만 |
+| 재시도 버그 | `infrastructure/__tests__/geminiRetry.test.ts`: SDK 모양 4xx 재시도 안 함 · 429 · 5xx · 응답 없음만 재시도 · 스키마 불일치 재시도 안 함 |
+| 저장소 | `PrismaLlmUsageStore` `record` · `usageSince` 실 DB 확인(스크래치, 행 지움) |
+| 전체 | `npm test` 594 / 0 · `npm run build` · `npm run lint` · `test:layer-check` · `prisma generate` · `migrate deploy`(로컬) |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실제 Gemini 호출의 `llm_call_logs` 행 · `usageMetadata` 토큰 | 키 호출을 하지 않았다 — 토큰 열은 가짜 응답으로만 | 다음 해설 실호출 때 표 확인 |
+| 상한 도달 실측(300 시도) | 단위 테스트만 | 운영 첫 주 로그 |
+| 동시 요청 경합 | 확인과 호출 사이 한두 건 넘을 수 있다 — 락 없음(초대제 10명 판단) | 사용자 수가 늘 때 |
+| `usageSince` 집계 `EXPLAIN (ANALYZE, BUFFERS)` | 표가 작다 | 행이 수백을 넘으면 |
+| 캐시 · 상한의 다중 인스턴스 공유 | 상한은 DB 라 공유된다. 해설 캐시는 인스턴스 메모리 그대로 | 다중 인스턴스 배포 시 |

@@ -31,3 +31,13 @@
 
 - `npm test` 198 / 0 · `tsc --noEmit` · lint 통과. prettier 설정 없음(main 도 같은 파일이 걸린다) — 돌리지 않았다
 - 미검증: 인증된 HTTP(로컬 토큰 없음) — `QA-001` 로그인 QA
+
+## FR-7 재료 정지 `stale_inputs` (F010 슬라이스 7, 2026-10-07)
+
+| FR | 위치 | 결과 |
+|---|---|---|
+| FR-7 | `services/target-weight.viewmodel.ts` `TargetWeightBlockedReason` · 막힘 매핑 | `__tests__/target-weight.test.ts` 단언 추가: 서버 `stale_inputs` → `stale_inputs` · 모르는 사유 → `no_volatility` |
+
+- `npm run build` 통과 · `npm test` **202 / 0**. lint 스크립트 없음
+- 계약: 목표 비중 막힘 사유에 추가 값 — 소비처 `@repo/core` `targetWeight.ts` 같은 커밋(`1efb44d`)
+- 미검증: 인증된 HTTP(로컬 토큰 없음 · 로컬 재료 신선) — `QA-001` 로그인 QA

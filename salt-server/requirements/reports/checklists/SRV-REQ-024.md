@@ -258,3 +258,21 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 | 인증된 HTTP 실측 | 로컬 토큰 발급 불가 — 어댑터 · 유스케이스 직접 확인 | `QA-001` 로그인 QA(사용자) |
 | 유의 지정 뒤 성과 통계 | 원천에 이력이 없다 — `market-warning@1` 라이브 기록 | 2026-11-25 |
 | 운영 DB 마이그레이션 | 로컬만 | 배포 시 |
+
+## §16. F010 슬라이스 7 — 재료 신선도 게이트 (FR-194~196, 2026-10-07, `feat/f010-slice7-ops`)
+
+| FR | 위치 | 결과 |
+|---|---|---|
+| FR-194 | `domain/policy/inputFreshness.ts` · `domain/policy/symbolJudgment.ts` `judgmentGate` · `application/lib/judgmentTrack.ts` · `GetSymbolCoach` · `ExplainCoachDecision` | `domain/__tests__/opsGuards.test.ts`: 모드별 기준(시세 30분 · 단타 지표 3시간 · 장기 지표 3일) · 시각 `null` 은 오래됨 아님 · 성적과 무관하게 막고 투자유의가 먼저. `symbolJudgment.test.ts`: 같은 재료라도 오래되면 `stale_inputs` — 점수는 그대로. `explainCoachDecision.test.ts`: 재료가 오래됐으면 LLM 호출 없이 `stale_inputs` |
+| FR-195 | `GetTargetWeights` | `tradePlanAndRisk.test.ts`: 멈춘 시세는 쓰지 않는다(FR-195 · 196 한 테스트) |
+| FR-196 | `GetTargetWeights` · `ports.ts` `volatilityAsOf` · `PrismaForecastReader` | 같은 테스트: 비중이 하나도 안 나오면 `stale_inputs`. σ 배치 3일 초과 분기는 같은 테스트의 둘째 단정(`volatilityAsOf` 4일 전 → `stale_inputs`). "σ 가 있으면 `volatilityAsOf` 를 읽지 않는다"는 코드 확인만(전용 테스트 없음). 실 DB 스크래치 tsx: `volatilityAsOf()` = 2026-10-07T00:00Z |
+
+- `npm test` 594 / 0 · `npm run build` 0 errors · `npm run lint` · `npm run test:layer-check` 통과
+- 원장(`PublishJudgmentLedger`)은 바꾸지 않았다 — 멈춘 재료로도 그날 원장은 쓴다(사전등록 표본 선택 무변경)
+- 소비처: `stale_inputs` 는 추가 값 — BFF(`BFF-REQ-039` FR-7 · `BFF-REQ-041` FR-7) · `@repo/core` 같은 브랜치(`1efb44d`)
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 시장 심리 신선도 | 심리가 market-intelligence API 호출 때만 계산돼 로컬에서 2026-09-30 뒤로 멈춰 있다 — 게이트에 넣으면 판정 전부 막힘 | 심리 계산을 워커로 옮기는 별도 REQ(사용자 결정 필요) |
+| 화면에서 `stale_inputs` 실측 | 로컬 재료가 신선해 상태가 재현되지 않았다 | PR 머지 전 Playwright route(3100) 또는 다음 화면 QA |
+| 인증된 HTTP 실측 | 로컬 토큰 발급 불가 — 유스케이스 · 어댑터 직접 확인 | `QA-001` 로그인 QA(사용자) |

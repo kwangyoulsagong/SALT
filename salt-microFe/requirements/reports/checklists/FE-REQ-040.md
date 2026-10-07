@@ -70,3 +70,16 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 기존 회색 · 상승/하락 색의 대비 미달(3.03~4.41:1) | 참고 화면에 맞춘 의도된 색 — 바꾸지 않는다(사용자 결정 2026-09-30) | 디자인 방향이 바뀔 때만 |
+
+## FR-15 재료 정지 막힘 문구 (F010 슬라이스 7, 2026-10-07)
+
+| FR | 위치 | 결과 |
+|---|---|---|
+| FR-15 | `packages/core/src/coach/symbolCoach.ts` · `entities/coach/model/messages.ts`(`stale_inputs` · `blockedStale`) · `entities/coach/ui/BlockedNotice.tsx` | 타입 · 빌드 통과. 화면 실측 안 함 |
+
+- `pnpm check-types` 5/5 · `pnpm lint` 5/5 · `pnpm test` 2/2 · `test:layer-check` 통과 · `turbo build` web · web-tax 2/2
+- 문구 정책: 상태 설명뿐 — 확신 · 행동 지시 없음. "정상 동작이에요"를 쓰지 않는다(재료 정지는 표본이 쌓이는 정상 상태가 아니다)
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| `stale_inputs` 막힘 화면 실측(1440 · 360 · axe) | 로컬 재료가 신선해 상태가 재현되지 않았고 Playwright route 고정 데이터로 찍지 않았다 | PR 머지 전 Playwright route(3100) 또는 다음 화면 QA |

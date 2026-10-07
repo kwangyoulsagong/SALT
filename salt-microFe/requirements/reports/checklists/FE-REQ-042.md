@@ -50,3 +50,15 @@
 | 라이브 30주 뒤 화면 | 첫 리밸런스 2026-10-05 | 2027-05 전후 |
 | 홈 "이번 주 목표 비중" 한 줄 | 홈은 사용자 결정 | 홈 재디자인 |
 | web-tax 빌드 · storybook | 이 변경이 web-tax · `@repo/ui` 를 건드리지 않는다 | 해당 변경 시 |
+
+## FR-14 재료 정지 막힘 문구 (F010 슬라이스 7, 2026-10-07)
+
+| FR | 위치 | 결과 |
+|---|---|---|
+| FR-14 | `packages/core/src/coach/targetWeight.ts` `TargetWeightBlockedReason` · `entities/coach/model/targetWeightMessages.ts` | 타입 · 빌드 통과. 화면 실측 안 함 |
+
+- `pnpm check-types` 5/5 · `pnpm lint` 5/5 · `pnpm test` 2/2 · `test:layer-check` 통과 · `turbo build` web · web-tax 2/2
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 목표 비중 `stale_inputs` 막힘 화면 실측 | 로컬 재료가 신선해 상태가 재현되지 않았고 Playwright route 고정 데이터로 찍지 않았다 | PR 머지 전 Playwright route(3100) 또는 다음 화면 QA |
