@@ -75,11 +75,11 @@
 | ID | 요구사항 | 우선 | 상태 |
 |---|---|---|---|
 | FR-20 | **일봉**: 기간별 시세(수정주가) 로 유니버스 종목당 2년(약 490 거래일) 백필 — 호출당 최대 100건이라 날짜 페이지네이션. 이후 매 거래일 15:45 KST 에 당일 봉 확정 저장. `PriceHistory(assetType=kr_stock, timeframe="1d")`, `timestamp = 거래일 00:00 KST` | Must | 완료(S0·1) |
-| FR-21 | **5분봉**: 당일 분봉 TR(`FHKST03010200`) 은 30건 · 당일만이라 정규장 동안 WS 체결(슬롯 종목) 또는 1분 시세 조회(폴링 종목) 를 5분 버킷으로 **우리가 집계**해 `PriceHistory(timeframe="5m")` 에 저장한다. 장 마감 후 **일별 분봉 TR(`FHKST03010230`, 120건 · 최대 1년 보관)** 로 빈 버킷을 메우고, 같은 TR 로 유니버스 종목 5분봉을 **최대 1년 백필**한다(호출 수가 크므로 한도 예산 최하위, 야간에만) | Must | 부분(S1 — 장 마감 보정 · 1년 백필 남음) |
+| FR-21 | **5분봉**: 당일 분봉 TR(`FHKST03010200`) 은 30건 · 당일만이라 정규장 동안 WS 체결(슬롯 종목) 또는 1분 시세 조회(폴링 종목) 를 5분 버킷으로 **우리가 집계**해 `PriceHistory(timeframe="5m")` 에 저장한다. 장 마감 후 **일별 분봉 TR(`FHKST03010230`, 120건 · 최대 1년 보관)** 로 빈 버킷을 메우고, 같은 TR 로 유니버스 종목 5분봉을 **최대 1년 백필**한다(호출 수가 크므로 한도 예산 최하위, 야간에만) | Must | 완료(S1 — 30일 보관, 1년은 정정) |
 | FR-22 | 1시간봉 지표(`h1`) 는 기존처럼 5m 을 묶는다. 누적 전엔 없다 — 화면 · 코치가 "N 거래일치" 로 안다 | Must | Draft |
 | FR-23 | 현재가 조회 결과에서 `MarketAsset` 에 현재가 · 전일대비 · 등락률 · 누적거래량 · 거래대금 · 시총 · 상한가 · 하한가 · 기준가 · 종목상태 코드 · 거래정지 여부를 갱신. 코인의 24h 필드 의미와 다르므로 필드는 따로(§DB) | Must | 완료(S0·1) |
 | FR-24 | 실시간 체결(`H0STCNT0`) 을 서버가 받아 `MarketAsset.currentPrice` 갱신 + 내부 SSE `GET /api/market/kr/stream` 으로 BFF 에 흘린다. BFF 는 기존 WS `price_update` 로 앱에 방송(코인과 같은 메시지 형태, `assetType: "kr_stock"` 추가) | Must | 완료(S0·1) |
-| FR-25 | WS 세션은 08:30~18:00 KST 에만 유지(장전 동시호가 ~ 시간외 단일가). 끊기면 지수 백오프 재접속, 재접속 시 승인키 재발급 · 슬롯 재구독 | Must | 완료(S0·1) |
+| FR-25 | WS 세션은 08:30~18:00 KST 에만 유지(장전 동시호가 ~ 시간외 단일가). 끊기면 지수 백오프 재접속, 재접속 시 승인키 재발급 · 슬롯 재구독 | Must | 완료(S1 — 16:00 까지, 시간외 단일가는 FR-27 과 함께) |
 | FR-26 | 장 상태 `session` 을 서버가 KST 시계 + `MarketHoliday` 로 계산한다: `pre_open`(08:30~09:00) · `regular`(09:00~15:30, 15:20~ `closing_auction`) · `after_hours_close`(15:40~16:00) · `after_hours_single`(16:00~18:00) · `closed` · `holiday`. 응답마다 `session` · `lastTradeAt` · `nextOpenAt` | Must | 완료(S0·1) |
 | FR-27 | 시간외 단일가 현재가는 별도 필드(`afterHours.price` · `changeRate` · `at`) — 정규장 현재가 · 등락률과 섞지 않는다 | Should | Draft |
 | FR-28 | 호가 10단계(매수 · 매도 잔량, 총잔량) — 상세 화면 Should. 실시간 호가(`H0STASP0`) 는 슬롯을 두 배로 먹으므로 **보유 종목만** | Should | Draft |
@@ -126,9 +126,9 @@
 |---|---|---|---|
 | FR-90 | KIS REST 5회 연속 실패 → 그 작업 5분 정지(서킷). 응답은 마지막 저장값 + `stale: true` · `priceUpdatedAt`. 화면은 FR-45 배지. **빈 값으로 덮어쓰지 않는다** | Must | 완료(S0·1) |
 | FR-91 | 한도 초과(`EGW00201`) → 작업 우선순위대로 줄인다: 실시간 유지 > 보유 · 관심 폴링 > 시총 상위 폴링 > 일봉 백필 > 부가(호가 · 투자자) | Must | Draft |
-| FR-92 | 토큰 오류(401 · `EGW00121` 등) → 1회 재발급 시도, 실패면 국내주식 기능을 `degraded` 로 표시(`GET /api/market/kr/session` 에 `provider: { status, since }`) | Must | 부분(S1 — SSE status 만) |
+| FR-92 | 토큰 오류(401 · `EGW00121` 등) → 1회 재발급 시도, 실패면 국내주식 기능을 `degraded` 로 표시(`GET /api/market/kr/session` 에 `provider: { status, since }`) | Must | 완료(S1) |
 | FR-93 | WS 30초 무응답(PINGPONG 누락) → 재접속. 재접속 3회 실패 → 슬롯 종목도 1분 폴링으로 내려간다 | Must | 완료(S0·1) |
-| FR-94 | 관측: 작업별 호출 수 · 실패 수 · 429 수 · 토큰 발급 횟수(일) · WS 재접속 수 · 유니버스 크기 · 마지막 성공 시각을 로그 지표로. 토큰 발급이 하루 3회를 넘으면 경고 | Must | 부분(로그만) |
+| FR-94 | 관측: 작업별 호출 수 · 실패 수 · 429 수 · 토큰 발급 횟수(일) · WS 재접속 수 · 유니버스 크기 · 마지막 성공 시각을 로그 지표로. 토큰 발급이 하루 3회를 넘으면 경고 | Must | 완료(S1 — 로그) |
 
 ## 비기능 요구사항
 
@@ -175,11 +175,12 @@
 | 토큰 한도 | "접근토큰은 **1분당 1회** 발급" (README). 공식 샘플은 토큰을 `~/KIS/config/KIS{YYYYMMDD}` 파일에 날짜별로 캐시하고 만료 전이면 재사용 | [공식] | https://github.com/koreainvestment/open-trading-api README · `kis_auth.py` |
 | 토큰 유효 | 24시간 유효(`expires_in: 86400`) · 1일 1회 발급 권장 · 재발급 제한 오류 `EGW00133` · 폐기 `POST /oauth2/revokeP` · 6시간 내 재요청은 같은 토큰 반환(설) | [약] | 포털 "접근토큰발급(P)" — 미확인 |
 | REST 한도 | 초당 건수 초과 오류 **`EGW00201`**. README "모의투자 계좌는 REST 호출 제한이 낮다". 공식 샘플 슬립 실전 `0.05s`(≈ 20건/s) · 모의 `0.5s`(≈ 2건/s) | [공식](코드) | README · `kis_auth.py` `_smartSleep` |
-| REST 한도 수치 | 실전 20건/s · 모의 2건/s, **앱 키 단위**. 분당 · 일당 총량 제한은 문서에 없음 | [약] · [실측](반증) | 2026-10-07 단일 프로세스 6건/s · 동시 6 에서 50건 묶음마다 `EGW00201` 14~19회 — 이 키의 지속 한도는 20건/s 보다 훨씬 낮다. 감속으로 실패 0 |
+| REST 한도 수치 | 실전 20건/s · 모의 2건/s, **앱 키 단위**. 분당 · 일당 총량 제한은 문서에 없음 | [실측](반증) | 2026-10-07 경합 없는 상태에서 동시 1~6 · 1.8~10건/s 전부 **처리량 약 2건/s** 에서 막힘 — 모의 한도와 같다. 휴장일 거부 메시지("모의투자 앱키")와 함께 **이 앱 키가 모의투자용일 가능성** — 포털 확인 필요 |
+| 장 마감 분봉 · 일봉 | 15:20~15:30 체결 없음(동시호가) · **15:30 에 종가 단일가 1분봉 하나**(10/6 삼성전자 142만 주). 그 15:30 1분봉은 장 마감 직후(15:38 · 15:57)에는 일별 분봉 TR 에 없었고 16:2x 에는 있었다 · 같은 시각 일봉 당일 종가(270,000)가 15:30 체결가(268,500)와 달랐다 — 당일 값 확정이 늦다 | [실측] | 2026-10-07 |
 | API 별 권고 | 휴장일 조회(`CTCA0903R`)는 "가급적 **1일 1회** 호출" — API 별 빈도 권고가 따로 있다 | [공식] | `examples_llm/domestic_stock/chk_holiday/chk_holiday.py` |
 | WS 승인 | `POST /oauth2/Approval` → `approval_key`. 구독 `{"header":{approval_key, custtype:"P", tr_type:"1"(등록)｜"2"(해제)}, "body":{"input":{tr_id, tr_key}}}`. 신규 예제 주석은 해제를 `"0"` 으로 적어 두 곳이 불일치 — 실측 | [공식] · [실측](등록) | `legacy/...all.py` · `examples_llm/domestic_stock/ccnl_total/ccnl_total.py` |
 | WS keepalive | 서버가 `PINGPONG` 프레임을 보내면 같은 데이터로 pong | [공식] | `legacy/...all.py` |
-| WS 한도 | 세션당 등록 **41건**(체결 + 호가 합산) · 앱 키당 세션 1개 | [약] · [실측](41 등록 거부 0) | 2026-10-07 41건 등록 · 5초 체결 프레임 208. 42번째 거부는 안 해 봤다 |
+| WS 한도 | 세션당 등록 **41건**(체결 + 호가 합산) · 앱 키당 세션 1개 | [실측] | 2026-10-07 41건 `SUBSCRIBE SUCCESS` · 42 · 43번째 `OPSP0008 MAX SUBSCRIBE OVER` |
 | WS TR | `H0STCNT0` 체결(KRX) · `H0STASP0` 호가(KRX) · `H0STANC0` 예상체결 · `H0STOUP0` 시간외 체결 · `H0STOAA0` 시간외 호가 · 통합(KRX+NXT) `H0UNCNT0`. 체결통보 `H0STCNI0`(실전) · `H0STCNI9`(모의) 는 AES 암호화 · **우리는 쓰지 않는다** | [공식] | 위 파일 · `examples_llm/domestic_stock/` 목록 |
 | WS 체결 레이아웃 | 구분자 **`^`**. `H0STCNT0` 필드: `MKSC_SHRN_ISCD(0)` · `STCK_CNTG_HOUR(1)` · `STCK_PRPR(2)` · `PRDY_VRSS_SIGN(3)` · `PRDY_VRSS(4)` · `PRDY_CTRT(5)` … `CNTG_VOL(12)` · `ACML_VOL(13)` · `ACML_TR_PBMN(14)` … `BSOP_DATE(33)` · `NEW_MKOP_CLS_CODE(34, 장운영구분)` · `TRHT_YN(35, 거래정지)` … `HOUR_CLS_CODE(43)` · `VI_STND_PRC`. 문서 "45개" 인데 이름은 46개 — 인덱스는 실측 확정. 한 프레임에 여러 건(`0｜H0STCNT0｜00N｜…`). 통합 `H0UNCNT0` 은 48개 | [공식] | `examples_llm/domestic_stock/ccnl_krx/ccnl_krx.py` · `ccnl_total.py` |
 | 현재가 | `FHKST01010100` `GET /uapi/domestic-stock/v1/quotations/inquire-price`, `FID_COND_MRKT_DIV_CODE` = `J`(KRX) · `NX`(NXT) · `UN`(통합), ETN 은 코드 앞 `Q`. 응답에 `stck_prpr` · `prdy_ctrt` · `acml_vol` · `hts_avls`(시총, 억원) 확인 | [공식] · [실측] | `examples_llm/domestic_stock/inquire_price/inquire_price.py` · 프로브 |
@@ -351,7 +352,7 @@ WS `price_update` 메시지에 `assetType` 필드 추가(코인 `crypto` 기본)
 | # | 영역 | REQ | 내용 | 끝나면 되는 것 |
 |---|---|---|---|---|
 | 0 ✅ 2026-10-07 | 서버 · DB | `SRV-REQ-040-F011-KR-STOCK` · `DB-REQ-033-F011-KR-STOCK` | `KisClient`(허용 TR · 페이서 · 마스킹 · 토큰 캐시) · 마스터 · 휴장일 · 유니버스 · 일봉 백필 · 현재가 폴링 · 장 상태 · `/api/market/kr/*` 읽기 · enum `kr_stock` · 새 표 3 · `MarketAsset` 확장 | 화면 없음. DB 에 국내주식 일봉 2년 · 현재가(1분) 가 쌓인다. 주문 TR 0건 테스트가 통과한다 |
-| 1 ✅ 2026-10-07(장 마감 보정 · degrade 관측 지표 남음) | 서버 | `SRV-REQ-040-F011-KR-STOCK` | WS 실시간 · 41 슬롯 배정 · 5분 버킷 집계 · 장 마감 보정 · SSE `/stream` · 서킷 · degrade · 관측 | 정규장에 체결이 DB 와 SSE 로 흐른다 |
+| 1 ✅ 2026-10-07 | 서버 | `SRV-REQ-040-F011-KR-STOCK` | WS 실시간 · 41 슬롯 배정 · 5분 버킷 집계 · 장 마감 보정 · SSE `/stream` · 서킷 · degrade · 관측 | 정규장에 체결이 DB 와 SSE 로 흐른다 |
 | 2 | BFF | `BFF-REQ-040-F011-KR-STOCK` | `/api/app/market/kr/*` 뷰모델 · SSE 소비 → WS `price_update`(`assetType`) · 캐시 · 소유자 판정 통과 | 앱이 받을 계약이 선다 |
 | 3 | FE | `FE-REQ-041-F011-KR-STOCK` | 자산군 탭 · 국내주식 표 · 장 상태 줄 · 배지 · 상세 · 차트 · 검색 · 거래 폼 `kr_stock` | 사용자가 본다 |
 | 4 | 서버 | `SRV-REQ-040-F011-KR-STOCK` | 지표 `assetType` 분리 · `signalType` 접두 · `COACH_EXCLUDED` 조건부 해제(장기) · 거래일 채점 · 수수료 env · 성적표 자산군 라벨(BFF · FE 짝) | 국내주식 코치 판단 — 표본 20 뒤 |
@@ -364,6 +365,7 @@ WS `price_update` 메시지에 `assetType` 필드 추가(코인 `crypto` 기본)
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-07 | **슬라이스 1 후속("남은 것까지")** — 5분봉 장 마감 보정 · 30일 백필(1년 → 30일 정정, 코인과 같은 보관) · `session.provider` · 10분 지표 · WS 장애 경로(가짜 서버 테스트가 degraded 버그를 잡음) · 빈 키 기동 · 42번째 등록 거부 실측 · 처리량 약 2건/s 실측(모의투자 키 가능성). 범위 밖 발견 수정: 원시 SQL 9시간(게이지 성적 · 백분위 · 보관 정리) |
 | 2026-10-07 | **슬라이스 0 · 1 완료(서버 · DB, 화면 없음)** — to-do → in-progress. 사용자 요구: 다음 = 슬라이스 0 · "실시간도 워커" · "비트코인과 같은 기능" · "최적화까지". 마스터 4,400 · 일봉 50종목 × 486 · 현재가 1분(실시간 슬롯은 5분 보충) · WS 41 슬롯 · 5분봉 집계(KIS 분봉과 종가 일치) · SSE · `/api/market/kr/*`(소유자 전용). 기획 정정 4: 시세 표를 `MarketAsset` 이 아니라 `kr_stock_quotes`(코인 경로가 자산군을 안 거름) · SSE 는 내부 토큰 대신 사용자 JWT + 소유자 · 휴장일은 KIS 거부라 일봉 역산 + 오늘 관측 · 유니버스 보유는 슬라이스 3. `SRV-REQ-040` · `DB-REQ-033`. 루트 `requirements/specs/in-progress/F011-slice0-1-kis-foundation-slice.md` |
 | 2026-09-27 | 초안. 사용자 KIS 앱 키 발급 · 실전 도메인 검증(토큰 · 현재가 · 승인키 · WS 구독). 결정 10건: 거래 연동 아님 · 유니버스(보유 ∪ 관심 ∪ 시총 N) · 일봉 백필 + 5분봉 자체 누적 · 자산군 분리 채점 · 장 상태 표시 · 원화 · 호가 · 상하한가 · 거래정지 표시 · `COACH_EXCLUDED` 조건부 해제(장기 먼저) · 전망은 별도 FC 슬라이스 · 키 서버 전용 · degrade 규칙. REQ 번호 예약 `SRV-040` · `DB-033` · `BFF-040` · `FE-041` · `FC-009`. F008 "국내 주식 TBA" 를 이 문서가 잇는다 |
 | 2026-09-30 | **to-do 로 되돌림(REQ 정리).** 기획서와 번호 예약만 있다 — 영역 REQ 미착수 |
