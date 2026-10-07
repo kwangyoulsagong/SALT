@@ -29,6 +29,8 @@ interface ScoreboardRow extends Record<string, unknown> {
   above_cost: number;
   avg_return: Prisma.Decimal | null;
   worst_return: Prisma.Decimal | null;
+  first_scored_at: Date | null;
+  last_scored_at: Date | null;
   p25: Prisma.Decimal | null;
   median: Prisma.Decimal | null;
   p75: Prisma.Decimal | null;
@@ -196,7 +198,8 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
         where: { signalType, outcome: { not: null }, ...this.countedWhere },
         _count: { _all: true },
         _avg: { returnRate: true },
-        _min: { returnRate: true },
+        _min: { returnRate: true, evaluatedAt: true },
+        _max: { evaluatedAt: true },
       }),
       prisma.symbolJudgmentSnapshot.count({
         where: { signalType, outcome: "hit", ...this.countedWhere },
@@ -218,6 +221,8 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       aboveCost,
       avgReturn: all._avg.returnRate === null ? null : Number(all._avg.returnRate),
       worstReturn: all._min.returnRate === null ? null : Number(all._min.returnRate),
+      firstScoredAt: all._min.evaluatedAt,
+      lastScoredAt: all._max.evaluatedAt,
     };
   }
 
@@ -252,6 +257,8 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
              COUNT(*) FILTER (WHERE return_rate > ${ROUND_TRIP_COST}::numeric)::int AS above_cost,
              AVG(return_rate) AS avg_return,
              MIN(return_rate) AS worst_return,
+             MIN(evaluated_at) AS first_scored_at,
+             MAX(evaluated_at) AS last_scored_at,
              PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY return_rate) AS p25,
              PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY return_rate) AS median,
              PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY return_rate) AS p75,
@@ -269,6 +276,8 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       aboveCost: row.above_cost,
       avgReturn: toNumberOrNull(row.avg_return),
       worstReturn: toNumberOrNull(row.worst_return),
+      firstScoredAt: row.first_scored_at,
+      lastScoredAt: row.last_scored_at,
       p25: toNumberOrNull(row.p25),
       median: toNumberOrNull(row.median),
       p75: toNumberOrNull(row.p75),

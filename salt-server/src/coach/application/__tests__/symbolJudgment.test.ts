@@ -169,6 +169,7 @@ const fakeMarket = (
 const noGauges: GaugeTrackStore = {
   replace: async () => undefined,
   find: async () => null,
+  baselinePositiveRate: async () => null,
 };
 
 const tracked = (symbols: string[]): TrackedAssetProbe => ({
@@ -533,6 +534,11 @@ describe("게이지 적중률 (B9 · FR-120~122)", () => {
         ) ?? null
       );
     }
+    async baselinePositiveRate(symbol: string, gauge: string) {
+      const rows = this.rows.filter((row) => row.symbol === symbol && row.gauge === gauge && row.positiveRate !== null);
+      const n = rows.reduce((sum, row) => sum + row.sample, 0);
+      return n === 0 ? null : rows.reduce((sum, row) => sum + row.positiveRate! * row.sample, 0) / n;
+    }
   }
 
   const distribution = (bucketIndex: number, sample: number) => ({
@@ -584,7 +590,14 @@ describe("게이지 적중률 (B9 · FR-120~122)", () => {
         median: 0.02,
         p75: 0.08,
         positiveRate: 0.6,
+        baselinePositiveRate: 0.6,
         lowSample: false,
+        claim: {
+          period: { present: true, from: T0.toISOString().slice(0, 10), to: T0.toISOString().slice(0, 10) },
+          sample: 25,
+          baseline: { present: true, code: "all_gauge_days" },
+          misses: { present: false, reason: "no_direction" },
+        },
       },
     ]);
   });

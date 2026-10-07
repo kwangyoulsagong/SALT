@@ -9,6 +9,8 @@
  * 숫자는 비율(0.36 = 36%) · 월은 `YYYY-MM` 이다.
  */
 
+import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "./performanceClaim";
+
 export const TARGET_WEIGHT_PREREG_KEY = "target-weight@1";
 export const TARGET_WEIGHT_REPORT = "salt-forecast/reports/target-weight-target-weight-1-2026-09-29.md";
 
@@ -201,3 +203,41 @@ export interface TargetWeightLiveRecord {
   downside: number | null;
   worstWeeks: Array<{ rebalanceAt: string; strategy: number | null; btc: number | null; exposure: number | null }>;
 }
+
+const DAY_MS = 24 * 3600_000;
+
+/** `from` ~ `to`(`YYYY-MM-DD`, 양끝 포함) 안의 월요일 수 — 등록 기간 · 주기(매주 월요일)에서 센 리밸런스 횟수 */
+export const mondaysBetween = (from: string, to: string): number => {
+  const start = Date.parse(`${from}T00:00:00Z`);
+  const end = Date.parse(`${to}T00:00:00Z`);
+  if (!(end >= start)) return 0;
+  const firstMonday = start + ((8 - new Date(start).getUTCDay()) % 7) * DAY_MS;
+  return firstMonday > end ? 0 : Math.floor((end - firstMonday) / (7 * DAY_MS)) + 1;
+};
+
+/**
+ * 목표 비중 과거 성적의 4요소(F009 FR-33). 백테스트 표본은 리포트에 적힌 수가 아니라 등록 기간 · 주기에서 센 월요일 수다.
+ * **빗나간 수는 두 기록 모두 `not_recorded`** — 등록 [claims] 가 "빗나감"을 정의하지 않았고, 결과를 본 뒤 정의를 새로 만들지 않는다.
+ * 대신 화면이 이미 싣는 놓친 상승 · 가장 나빴던 달(주)이 사례다.
+ */
+export const targetWeightClaim = (
+  source: "backtest" | "live",
+  live: TargetWeightLiveRecord | null,
+  window: { from: string; to: string } = TARGET_WEIGHT_BACKTEST.window
+): PerformanceClaim => {
+  if (source === "live" && live) {
+    return {
+      period: claimPeriod(live.nWeeks, live.firstRebalanceAt, live.asOf),
+      sample: live.nWeeks,
+      baseline: claimBaseline(live.nWeeks, live.btcCumReturn === null ? null : "hold_btc", "not_recorded"),
+      misses: claimMisses(live.nWeeks, null, "not_recorded"),
+    };
+  }
+  const sample = mondaysBetween(window.from, window.to);
+  return {
+    period: claimPeriod(sample, window.from, window.to),
+    sample,
+    baseline: claimBaseline(sample, "hold_btc", "not_recorded"),
+    misses: claimMisses(sample, null, "not_recorded"),
+  };
+};

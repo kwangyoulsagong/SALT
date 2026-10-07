@@ -8,6 +8,8 @@ import Decimal from "decimal.js";
 import { Money } from "../../../shared/domain";
 import {
   buildTargetWeightGuide,
+  mondaysBetween,
+  targetWeightClaim,
   nearestTargetRecord,
   nextWeeklyRebalance,
   TARGET_WEIGHT_ALT_SHARE,
@@ -271,5 +273,45 @@ describe("TARGET_WEIGHT_ALT_SHARE_RECORD — target-weight@2 리포트와 같은
       candidate.deltaCalmar.forEach((x, i) => assert.ok(Math.abs(x - got[i]) <= 0.005 + 1e-9, `${cell} vs ${x}`));
       assert.ok(candidate.deltaCalmar[1] < 0); // 판정 기준 (1) 실패
     }
+  });
+});
+
+describe("목표 비중 성적 4요소 (F009 FR-33)", () => {
+  it("월요일 수를 양끝 포함으로 센다", () => {
+    assert.equal(mondaysBetween("2026-10-05", "2026-10-05"), 1);
+    assert.equal(mondaysBetween("2026-10-06", "2026-10-11"), 0);
+    assert.equal(mondaysBetween("2026-10-05", "2026-10-12"), 2);
+    assert.equal(mondaysBetween("2018-01-09", "2026-09-28"), 455);
+  });
+
+  it("백테스트는 등록 기간 · BTC 보유 기준 · 빗나간 수 not_recorded", () => {
+    assert.deepEqual(targetWeightClaim("backtest", null), {
+      period: { present: true, from: "2018-01-09", to: "2026-09-28" },
+      sample: 455,
+      baseline: { present: true, code: "hold_btc" },
+      misses: { present: false, reason: "not_recorded" },
+    });
+  });
+
+  it("라이브는 첫 리밸런스 ~ 기준일 · 주 수", () => {
+    const live = {
+      target: 0.15,
+      asOf: new Date("2027-05-03T00:00:00Z"),
+      firstRebalanceAt: new Date("2026-10-05T00:00:00Z"),
+      nWeeks: 30,
+      nExcluded: 1,
+      cumReturn: 0.05,
+      btcCumReturn: 0.1,
+      mdd: 0.1,
+      btcMdd: 0.3,
+      vol: 0.15,
+      upside: 0.4,
+      downside: 0.3,
+      worstWeeks: [],
+    };
+    const claim = targetWeightClaim("live", live);
+    assert.deepEqual(claim.period, { present: true, from: "2026-10-05", to: "2027-05-03" });
+    assert.equal(claim.sample, 30);
+    assert.deepEqual(claim.baseline, { present: true, code: "hold_btc" });
   });
 });

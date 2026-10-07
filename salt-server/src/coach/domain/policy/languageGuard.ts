@@ -12,6 +12,8 @@
  * - **지어낸 숫자**: 문장 속 숫자가 입력 사실과 값 · 단위 · 방향으로 맞지 않으면 — LLM 문장에만 건다(아래 C03)
  * - **근거 없는 인과**: "~해서 · 때문에 · 영향으로" 인데 사실과 맞은 숫자가 없으면 — LLM 문장에만 건다
  * - **판단과 반대 극성**: 판단이 관망 · 피하기인데 "매수 적기 · 오를 가능성이 높" — LLM 문장에만 건다(F010 슬라이스 6 · `SRV-REQ-025` FR-61)
+ * - **성적 문구 금지어**: "AI 가 예측 · 맞혔" · 합산 수익률 · 미실현 수익률(F009 FR-33 · 리서치 E3). 미실현 수익률을 성과로
+ *   내세우는 것은 유사투자자문 금지 표현이고, "AI 가 예측"은 AI-washing 집행 사례의 문구다. 부정형("AI 가 예측한 것이 아닙니다")은 통과
  *
  * ## 영어도 같은 검사를 지난다 (F010 슬라이스 6)
  *
@@ -25,7 +27,8 @@ export type LanguageViolation =
   | "target_price"
   | "unverified_number"
   | "unsupported_causal"
-  | "judgment_polarity";
+  | "judgment_polarity"
+  | "performance_wording";
 
 // "보장하지 않습니다"는 면책이다 — 부정형은 통과시킨다
 const CERTAINTY = /(확실|무조건|보장(?!\s*(하지|되지|할\s*수\s*없))|100\s*%|틀림없|반드시\s*(오|내|상승|하락))/;
@@ -39,11 +42,18 @@ const CERTAINTY_EN = /(?<!not\s)\b(guaranteed?|definitely|certainly|risk[- ]free
 const IMPERATIVE_TRADE_EN =
   /\b(buy|sell|short|dump|load\s+up\s+on)\s+(it\s+)?(now|today|immediately|this)\b|\byou\s+(should|must|need\s+to)\s+(buy|sell|exit|enter)\b|\b(strong\s+(buy|sell)|go\s+all[- ]in)\b/i;
 const TARGET_PRICE_EN = /\b(price\s+target|target\s+price)\b/i;
+
+// "AI 가 예측한 것이 아닙니다" 는 면책이다 — 바로 뒤 부정은 통과시킨다
+const PERFORMANCE_WORDING =
+  /(AI\s*(가|이|는|의)?\s*(예측|예상|맞[혔힌춘추]|적중)(?![^.!?\n]{0,10}(아니|아닙|아님|않))|합산\s*수익률|미실현\s*수익률)/i;
+const PERFORMANCE_WORDING_EN = /\b(AI[- ](predicted|predicts|forecasted)|unrealized\s+(return|gain)s?|combined\s+returns?)\b/i;
+
 export const languageViolations = (sentence: string): LanguageViolation[] => {
   const out: LanguageViolation[] = [];
   if (CERTAINTY.test(sentence) || CERTAINTY_EN.test(sentence)) out.push("certainty");
   if (IMPERATIVE_TRADE.test(sentence) || IMPERATIVE_TRADE_EN.test(sentence)) out.push("imperative_trade");
   if (TARGET_PRICE.test(sentence) || TARGET_PRICE_EN.test(sentence)) out.push("target_price");
+  if (PERFORMANCE_WORDING.test(sentence) || PERFORMANCE_WORDING_EN.test(sentence)) out.push("performance_wording");
   return out;
 };
 

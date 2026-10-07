@@ -9,6 +9,8 @@ import {
   isForecastStale,
   isPriceFresh,
   nearestTargetRecord,
+  targetWeightClaim,
+  type PerformanceClaim,
   resolveBudget,
   TARGET_WEIGHT_ALT_SHARE_RECORD,
   TARGET_WEIGHT_BACKTEST,
@@ -56,6 +58,8 @@ export interface TargetWeightView {
   liveMinWeeks: number;
   /** 과거 성적 자리에 무엇을 쓰나 — 라이브 `nWeeks ≥ liveMinWeeks` 이면 `live`, 아니면 `backtest` */
   recordSource: "backtest" | "live";
+  /** 지금 과거 성적 자리(`recordSource`)의 기간 · 표본 · 기준 · 빗나간 수(F009 FR-33) */
+  claim: PerformanceClaim;
   renderable: boolean;
   /** `stale_inputs` — 변동성 배치가 사흘 넘게 멈췄다 · `no_volatility` — σ 가 있는 종목이 없다(아직 계산 전 포함) */
   blockedReason: "no_volatility" | "stale_inputs" | null;
@@ -149,6 +153,7 @@ export class GetTargetWeights {
           : "no_volatility";
 
     const { records: _records, ...backtest } = TARGET_WEIGHT_BACKTEST;
+    const recordSource = live && live.nWeeks >= TARGET_WEIGHT_LIVE_MIN_WEEKS ? "live" : "backtest";
     return {
       guide,
       targetVolatility,
@@ -159,7 +164,8 @@ export class GetTargetWeights {
       altShare: TARGET_WEIGHT_ALT_SHARE_RECORD,
       live,
       liveMinWeeks: TARGET_WEIGHT_LIVE_MIN_WEEKS,
-      recordSource: live && live.nWeeks >= TARGET_WEIGHT_LIVE_MIN_WEEKS ? "live" : "backtest",
+      recordSource,
+      claim: targetWeightClaim(recordSource, live),
       renderable: blockedReason === null,
       blockedReason,
       asOf: now,
