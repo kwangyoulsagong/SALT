@@ -40,6 +40,7 @@ model User {
   sentimentAlerts         SentimentAlert[]
   smartMoneyAlerts        SmartMoneyAlert[]
   investmentProfile       UserInvestmentProfile?
+  llmCallLogs             LlmCallLog[]
   coachGenerationLogs     CoachGenerationLog[]
   tradePlans              TradePlan[]
   decisionOutcomes        DecisionOutcome[]
@@ -715,6 +716,28 @@ model CoachGenerationLog {
 
   @@index([userId, requestedAt(sort: Desc)])
   @@map("coach_generation_logs")
+}
+
+// LLM 시도 원장 (F010 슬라이스 7 · DB-REQ-017 FR-65). 비용 상한(24시간 시도 · 토큰)의 근거이고 성공률 · 지연 관측이다.
+// 재시도도 한 행 — 과금 단위다. 프롬프트 · 응답 원문은 담지 않는다. 사용자가 지워지면 행은 남고 user_id 만 비운다(전체 상한은 계속 맞아야 한다)
+model LlmCallLog {
+  id           String   @id @default(uuid())
+  userId       String?  @map("user_id")
+  purpose      String // "coach_explain"
+  model        String
+  requestedAt  DateTime @map("requested_at")
+  durationMs   Int      @map("duration_ms")
+  ok           Boolean
+  errorCode    String?  @map("error_code")
+  promptTokens Int?     @map("prompt_tokens")
+  outputTokens Int?     @map("output_tokens")
+  totalTokens  Int?     @map("total_tokens")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([requestedAt])
+  @@index([userId, requestedAt])
+  @@map("llm_call_logs")
 }
 
 // 투자 분석 결과 저장

@@ -3,6 +3,7 @@ import {
   GAUGE_HORIZON_DAYS,
   gaugeBucketCode,
   gaugeBucketIndex,
+  staleJudgmentInputs,
   toGaugeTrackRecord,
   type Clock,
   type CoachMode,
@@ -150,12 +151,27 @@ export class GetSymbolCoach {
       Boolean(holding)
     );
 
+    // 점수는 그대로 계산하고 표시만 막는다 — 오래된 재료로 낸 판정을 오늘 것처럼 보이지 않는다(FR-194)
+    const staleFor = (mode: CoachMode) =>
+      staleJudgmentInputs({
+        mode,
+        priceUpdatedAt: quote?.priceUpdatedAt ?? null,
+        indicatorTimestamp: indicatorFor(materials, mode)?.timestamp ?? null,
+        now,
+      });
+
     // 게이트는 `preview` 에서도 생략하지 않는다 (`SRV-REQ-025` FR-49).
     // `zone` 도 싣는다 — 생략은 "할 수 있다"이고, 모양이 둘이 되면 소비처가 둘을 다룬다
     const [scalpView, longTermView, zones, gaugeTrackRecords] =
       await Promise.all([
-        attachJudgmentTrack(this.judgments, scalp, warned),
-        attachJudgmentTrack(this.judgments, longTerm, warned),
+        attachJudgmentTrack(this.judgments, scalp, {
+          exchangeWarning: warned,
+          staleInputs: staleFor("scalp"),
+        }),
+        attachJudgmentTrack(this.judgments, longTerm, {
+          exchangeWarning: warned,
+          staleInputs: staleFor("long_term"),
+        }),
         resolveZones(this.market, {
           symbol,
           holding,

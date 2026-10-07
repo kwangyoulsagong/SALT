@@ -73,6 +73,13 @@ const envSchema = z.object({
   /** 기본: 서버 작업 디렉터리 기준 `../salt-forecast/ops/daily.sh` */
   FORECAST_RUNNER_SCRIPT: z.string().optional(),
   /**
+   * LLM 비용 상한 덮어쓰기(F010 슬라이스 7 · `SRV-REQ-025` FR-62). 비우면 코드 기준(`DEFAULT_LLM_BUDGET`) —
+   * 지난 24시간 사용자 시도 · 전체 시도 · 전체 토큰
+   */
+  LLM_USER_DAILY_CALL_LIMIT: z.coerce.number().int().positive().optional(),
+  LLM_DAILY_CALL_LIMIT: z.coerce.number().int().positive().optional(),
+  LLM_DAILY_TOKEN_LIMIT: z.coerce.number().int().positive().optional(),
+  /**
    * 가격 전망을 볼 수 있는 계정(쉼표 구분 이메일) — `ADR-003` 소유자 전용. **코드 상수 금지.**
    * 비우면 아무도 못 본다(되돌리기 — ADR-003 §5).
    */

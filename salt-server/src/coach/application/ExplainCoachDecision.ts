@@ -1,9 +1,15 @@
 import { randomUUID } from "node:crypto";
 
+import { logger } from "../../shared/config/logger";
+
 import {
   assembleExplanationFacts,
   EXPLANATION_NEWS_MAX,
   explanationFactsHash,
+  LLM_BUDGET_WINDOW_MS,
+  llmBudgetVerdict,
+  resolveLlmLimits,
+  staleJudgmentInputs,
   templateExplanation,
   verifyExplanation,
   type ExplanationSource,
@@ -14,6 +20,8 @@ import type {
   CoachExplanationInput,
   CoachMode,
   JudgmentBlockedReason,
+  LlmBudgetLimits,
+  LlmUsageStore,
   MarketProbe,
   NewsProbe,
   PortfolioProbe,
@@ -25,6 +33,17 @@ import {
   JUDGMENT_DISCLAIMER,
   type ModeCoachView,
 } from "./lib/judgmentTrack";
+
+/** 상한에 닿아 LLM 을 부르지 않았다 — LLM 실패와 같은 길(템플릿)로 간다 */
+class LlmBudgetReached extends Error {}
+
+export interface ExplainOptions {
+  now?: () => Date;
+  /** LLM 사용량 원장(F010 슬라이스 7). 없으면 상한 없이 부른다 */
+  usage?: LlmUsageStore;
+  /** 비운 칸은 `DEFAULT_LLM_BUDGET` */
+  limits?: Partial<LlmBudgetLimits>;
+}
 
 /** 해설 요청 — 종목과 관점뿐이다. 사실은 서버가 조립한다(C01 · `SRV-REQ-025` FR-58) */
 export interface CoachExplainRequest {
@@ -139,8 +158,34 @@ export class ExplainCoachDecision {
     private readonly market: MarketProbe,
     private readonly portfolio: PortfolioProbe,
     private readonly judgments: SymbolJudgmentStore,
-    private readonly news: NewsProbe
+    private readonly news: NewsProbe,
+    private readonly options: ExplainOptions = {}
   ) {}
+
+  private now(): Date {
+    return this.options.now?.() ?? new Date();
+  }
+
+  /**
+   * 이번 요청에 LLM 을 불러도 되나(FR-62). 원장이 없으면(테스트 · 조립 전) 상한 없이 간다.
+   * **원장을 못 읽으면 막는다** — 비용이 얼마 나갔는지 모르는 채로 부르지 않는다. 막혀도 템플릿 해설은 나간다
+   */
+  private async llmAllowed(userId: string): Promise<boolean> {
+    const usage = this.options.usage;
+    if (!usage) return true;
+    try {
+      const since = new Date(this.now().getTime() - LLM_BUDGET_WINDOW_MS);
+      const verdict = llmBudgetVerdict(
+        await usage.usageSince(since, userId),
+        resolveLlmLimits(this.options.limits)
+      );
+      if (!verdict.allowed) logger.warn(`LLM 상한 도달(${verdict.exceeded}) — 템플릿 해설`);
+      return verdict.allowed;
+    } catch (error) {
+      logger.warn(`LLM 사용량 조회 실패 — 템플릿 해설: ${(error as Error).message}`);
+      return false;
+    }
+  }
 
   async execute(
     userId: string,
@@ -153,7 +198,7 @@ export class ExplainCoachDecision {
     }
     const { view, input, facts } = prepared;
 
-    const verified = await this.polish(input, signal);
+    const verified = await this.polish(userId, input, signal);
     const explanation = verified.explanation;
 
     return {
@@ -209,7 +254,12 @@ export class ExplainCoachDecision {
     });
 
     // LLM 은 지금 출발한다 — 템플릿을 흘리는 동안 기다린다. 실패는 여기서 삼키고 아래에서 판정한다
-    const llm = this.explainer.explain(input, signal).then(
+    const llm = this.llmAllowed(userId)
+      .then((allowed) => {
+        if (!allowed) throw new LlmBudgetReached();
+        return this.explainer.explain(input, signal, { userId });
+      })
+      .then(
       (value) => ({ ok: true as const, value }),
       (error: unknown) => ({ ok: false as const, error })
     );
@@ -278,7 +328,15 @@ export class ExplainCoachDecision {
     const materials = materialsBySymbol.get(symbol)!;
     const judged = judgeSymbol(symbol, materials, Boolean(holding));
     const decision = request.mode === "scalp" ? judged.scalp : judged.longTerm;
-    const view = await attachJudgmentTrack(this.judgments, decision);
+    // 종목 판단과 같은 막음 — 오래된 재료로 낸 판단엔 문장을 만들지 않는다(F010 슬라이스 7)
+    const view = await attachJudgmentTrack(this.judgments, decision, {
+      staleInputs: staleJudgmentInputs({
+        mode: request.mode,
+        priceUpdatedAt: materials.quote?.priceUpdatedAt ?? null,
+        indicatorTimestamp: indicatorFor(materials, request.mode)?.timestamp ?? null,
+        now: this.now(),
+      }),
+    });
     if (!view.renderable) return { ok: false, blockedReason: view.blockedReason! };
 
     const input = assembleExplanationFacts({
@@ -309,9 +367,10 @@ export class ExplainCoachDecision {
    * LLM 문장은 그대로 믿지 않는다 — 문장마다 말투 · 숫자를 검사하고 걸린 칸은 템플릿으로 채운다.
    * LLM 이 실패하면 전부 템플릿이다(중단은 제외 — 화면이 떠났으면 만들 이유가 없다).
    */
-  private async polish(input: CoachExplanationInput, signal?: AbortSignal) {
+  private async polish(userId: string, input: CoachExplanationInput, signal?: AbortSignal) {
     try {
-      const llm = await this.explainer.explain(input, signal);
+      if (!(await this.llmAllowed(userId))) throw new LlmBudgetReached();
+      const llm = await this.explainer.explain(input, signal, { userId });
       return verifyExplanation(llm, input, new Date());
     } catch (error) {
       if (signal?.aborted) throw error;

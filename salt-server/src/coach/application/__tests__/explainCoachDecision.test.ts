@@ -6,6 +6,7 @@ import type {
   CoachExplanation,
   CoachExplanationInput,
   JudgmentTrackStats,
+  LlmUsageStore,
   MarketProbe,
   NewsProbe,
   PortfolioProbe,
@@ -17,6 +18,7 @@ import {
   sentencesOf,
   type CoachExplainRequest,
   type ExplainStreamEvent,
+  type ExplainOptions,
 } from "../ExplainCoachDecision";
 
 /**
@@ -92,13 +94,23 @@ const spyExplainer = () => {
   return { explainer, calls };
 };
 
+/** 고정 재료 시각(T0)에서 부른다 — 실제 시계면 재료가 오래돼 신선도 게이트(F010 슬라이스 7)에 막힌다 */
+const explainAt = (
+  explainer: CoachExplainer,
+  probe: MarketProbe,
+  portfolio: PortfolioProbe,
+  judgments: SymbolJudgmentStore,
+  news: NewsProbe,
+  options: ExplainOptions = {}
+) => new ExplainCoachDecision(explainer, probe, portfolio, judgments, news, { now: () => T0, ...options });
+
 /** 요청은 종목 · 관점뿐이다 — 사실은 서버가 모은다(C01) */
 const input: CoachExplainRequest = { symbol: "btc", mode: "long_term" };
 
 describe("ExplainCoachDecision", () => {
   it("판단이 게이트를 못 넘으면 LLM 을 부르지 않고 renderable:false 를 준다 (FR-50)", async () => {
     const { explainer, calls } = spyExplainer();
-    const result = await new ExplainCoachDecision(
+    const result = await explainAt(
       explainer,
       market,
       noHolding,
@@ -112,7 +124,7 @@ describe("ExplainCoachDecision", () => {
 
   it("표본이 충분해도 실패사례가 없으면 막는다", async () => {
     const { explainer, calls } = spyExplainer();
-    const result = await new ExplainCoachDecision(
+    const result = await explainAt(
       explainer,
       market,
       noHolding,
@@ -127,7 +139,7 @@ describe("ExplainCoachDecision", () => {
   it("렌더되면 3종(성적표 · 실패사례 · 유효시간)을 같이 싣고, 면책은 판단 경로 문장이다", async () => {
     const { explainer, calls } = spyExplainer();
     const controller = new AbortController();
-    const result = await new ExplainCoachDecision(
+    const result = await explainAt(
       explainer,
       market,
       noHolding,
@@ -153,7 +165,7 @@ describe("ExplainCoachDecision", () => {
   });
 
   it("LLM 이 지어낸 숫자 · 명령형 지시는 걸러지고 그 칸은 템플릿이다 (FEATURE-008 FR-42 · 43)", async () => {
-    const result = await new ExplainCoachDecision(
+    const result = await explainAt(
       withLlm({
         modeReasoning: "4주 뒤 145,000원까지 오를 가능성이 높습니다.",
         keyDrivers: ["심리가 공포 구간입니다.", "지금 분할 매수를 고려하세요."],
@@ -173,7 +185,7 @@ describe("ExplainCoachDecision", () => {
 
   it("LLM 이 실패해도 해설이 비지 않는다 — 전부 템플릿", async () => {
     const failing: CoachExplainer = { explain: async () => { throw new Error("Gemini 503"); } };
-    const result = await new ExplainCoachDecision(failing, market, noHolding, passing(), newsProbe).execute("user-1", input);
+    const result = await explainAt(failing, market, noHolding, passing(), newsProbe).execute("user-1", input);
     assert.ok(result.renderable);
     if (!result.renderable) return;
     assert.equal(result.source, "template");
@@ -185,14 +197,14 @@ describe("ExplainCoachDecision", () => {
     controller.abort();
     const aborted: CoachExplainer = { explain: async () => { throw new Error("aborted"); } };
     await assert.rejects(() =>
-      new ExplainCoachDecision(aborted, market, noHolding, passing(), newsProbe).execute("user-1", input, controller.signal)
+      explainAt(aborted, market, noHolding, passing(), newsProbe).execute("user-1", input, controller.signal)
     );
   });
 
   describe("stream (FEATURE-008 FR-47 · FR-60 · FR-61)", () => {
     const collect = async (explainer: CoachExplainer, judgments = passing(), signal?: AbortSignal) => {
       const events: ExplainStreamEvent[] = [];
-      await new ExplainCoachDecision(explainer, market, noHolding, judgments, newsProbe).stream(
+      await explainAt(explainer, market, noHolding, judgments, newsProbe).stream(
         "user-1",
         input,
         (e) => events.push(e),
@@ -263,7 +275,7 @@ describe("ExplainCoachDecision", () => {
   describe("사실은 서버가 조립한다 (C01 · SRV-REQ-025 FR-58)", () => {
     it("게이트와 같은 재료로 시세 · 근거 · 뉴스를 만들고 지문을 남긴다", async () => {
       const { explainer, calls } = spyExplainer();
-      const result = await new ExplainCoachDecision(explainer, market, noHolding, passing(), newsProbe).execute(
+      const result = await explainAt(explainer, market, noHolding, passing(), newsProbe).execute(
         "user-1",
         input
       );
@@ -290,7 +302,7 @@ describe("ExplainCoachDecision", () => {
     it("요청에 사실을 실어 보내도 쓰지 않는다", async () => {
       const { explainer, calls } = spyExplainer();
       const forged = { ...input, currentPrice: 1, evidence: [{ label: "근거", value: "지어낸 사실" }] } as CoachExplainRequest;
-      await new ExplainCoachDecision(explainer, market, noHolding, passing(), newsProbe).execute("user-1", forged);
+      await explainAt(explainer, market, noHolding, passing(), newsProbe).execute("user-1", forged);
       assert.equal(calls[0]!.input.currentPrice, 100);
       assert.ok(!JSON.stringify(calls[0]!.input).includes("지어낸 사실"));
     });
@@ -301,7 +313,7 @@ describe("ExplainCoachDecision", () => {
         ...market,
         quotes: async () => new Map(),
       } as unknown as MarketProbe;
-      const result = await new ExplainCoachDecision(explainer, noPrice, noHolding, passing(), newsProbe).execute(
+      const result = await explainAt(explainer, noPrice, noHolding, passing(), newsProbe).execute(
         "user-1",
         input
       );
@@ -313,7 +325,7 @@ describe("ExplainCoachDecision", () => {
     it("뉴스 조회가 실패해도 뉴스 없이 해설한다", async () => {
       const { explainer, calls } = spyExplainer();
       const brokenNews = { recentForSymbol: async () => { throw new Error("news down"); } } as unknown as NewsProbe;
-      const result = await new ExplainCoachDecision(explainer, market, noHolding, passing(), brokenNews).execute(
+      const result = await explainAt(explainer, market, noHolding, passing(), brokenNews).execute(
         "user-1",
         input
       );
@@ -327,5 +339,82 @@ describe("ExplainCoachDecision", () => {
       "24시간 변동 +1.23% 입니다. ",
       "거래대금 약 5억 원 기준입니다.",
     ]);
+  });
+  describe("신선도 · 비용 상한 (F010 슬라이스 7)", () => {
+    const usageOf = (user: number, total: number, tokens = 0): LlmUsageStore => ({
+      record: async () => undefined,
+      usageSince: async () => ({ user: { calls: user, tokens: 0 }, total: { calls: total, tokens } }),
+    });
+
+    it("재료가 오래됐으면 LLM 을 부르지 않고 stale_inputs", async () => {
+      const { explainer, calls } = spyExplainer();
+      const later = new Date(T0.getTime() + 4 * 86_400_000);
+      const result = await explainAt(explainer, market, noHolding, passing(), newsProbe, { now: () => later }).execute(
+        "user-1",
+        input
+      );
+      assert.deepEqual(result, { renderable: false, blockedReason: "stale_inputs" });
+      assert.equal(calls.length, 0);
+    });
+
+    it("상한 아래면 부르고, 누구의 요청인지 넘긴다", async () => {
+      const seen: Array<{ userId: string } | undefined> = [];
+      const explainer: CoachExplainer = {
+        explain: async (_input, _signal, caller) => (seen.push(caller), explanation),
+      };
+      const result = await explainAt(explainer, market, noHolding, passing(), newsProbe, {
+        usage: usageOf(29, 299),
+      }).execute("user-1", input);
+      assert.ok(result.renderable && result.source !== "template");
+      assert.deepEqual(seen, [{ userId: "user-1" }]);
+    });
+
+    for (const [name, usage, limits] of [
+      ["사용자 상한", usageOf(30, 30), {}],
+      ["전체 상한", usageOf(0, 300), {}],
+      ["토큰 상한", usageOf(0, 1, 1_500_000), {}],
+      ["env 로 낮춘 상한", usageOf(5, 5), { userCalls: 5 }],
+    ] as const) {
+      it(`${name}에 닿으면 LLM 없이 템플릿 — 에러가 아니다`, async () => {
+        const { explainer, calls } = spyExplainer();
+        const result = await explainAt(explainer, market, noHolding, passing(), newsProbe, { usage, limits }).execute(
+          "user-1",
+          input
+        );
+        assert.ok(result.renderable);
+        assert.equal(result.source, "template");
+        assert.equal(calls.length, 0);
+      });
+    }
+
+    it("사용량을 못 읽으면 부르지 않는다 — 템플릿", async () => {
+      const { explainer, calls } = spyExplainer();
+      const broken: LlmUsageStore = {
+        record: async () => undefined,
+        usageSince: async () => {
+          throw new Error("db down");
+        },
+      };
+      const result = await explainAt(explainer, market, noHolding, passing(), newsProbe, { usage: broken }).execute(
+        "user-1",
+        input
+      );
+      assert.ok(result.renderable && result.source === "template");
+      assert.equal(calls.length, 0);
+    });
+
+    it("스트림도 상한에 닿으면 다듬기 · 검사를 건너뛰고 템플릿이 최종이다", async () => {
+      const { explainer, calls } = spyExplainer();
+      const events: ExplainStreamEvent[] = [];
+      await explainAt(explainer, market, noHolding, passing(), newsProbe, { usage: usageOf(30, 30) }).stream(
+        "user-1",
+        input,
+        (e) => events.push(e)
+      );
+      assert.equal(calls.length, 0);
+      assert.ok(events.some((e) => e.event === "message.step" && e.data.step === "polish" && e.data.status === "skipped"));
+      const done = events.at(-1);
+      assert.ok(done?.event === "message.done" && done.data.source === "template");
+    });
   });
 });

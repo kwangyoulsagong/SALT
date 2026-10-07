@@ -387,6 +387,13 @@ export class PrismaForecastReader implements ForecastReader {
     };
   }
 
+  async volatilityAsOf(): Promise<Date | null> {
+    const rows = await prisma.$queryRaw<{ as_of: Date | null }[]>`
+      SELECT max(as_of) AS as_of FROM forecast.v_realized_vol
+    `;
+    return rows[0]?.as_of ?? null;
+  }
+
   async realizedVolatility(symbol: string): Promise<RealizedVolatility | null> {
     const rows = await prisma.$queryRaw<{ annualized: number | null; as_of: Date }[]>`
       SELECT annualized, as_of FROM forecast.v_realized_vol

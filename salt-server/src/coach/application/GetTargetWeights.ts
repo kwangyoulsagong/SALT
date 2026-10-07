@@ -6,6 +6,8 @@ import {
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
   DEFAULT_TARGET_VOLATILITY,
   drawdownGauge,
+  isForecastStale,
+  isPriceFresh,
   nearestTargetRecord,
   resolveBudget,
   TARGET_WEIGHT_ALT_SHARE_RECORD,
@@ -55,7 +57,8 @@ export interface TargetWeightView {
   /** 과거 성적 자리에 무엇을 쓰나 — 라이브 `nWeeks ≥ liveMinWeeks` 이면 `live`, 아니면 `backtest` */
   recordSource: "backtest" | "live";
   renderable: boolean;
-  blockedReason: "no_volatility" | null;
+  /** `stale_inputs` — 변동성 배치가 사흘 넘게 멈췄다 · `no_volatility` — σ 가 있는 종목이 없다(아직 계산 전 포함) */
+  blockedReason: "no_volatility" | "stale_inputs" | null;
   asOf: Date;
   /** 이 앱은 주문하지 않는다(공통 수용 기준 2) */
   orderExecution: false;
@@ -90,11 +93,15 @@ export class GetTargetWeights {
     ]);
 
     const prices = new Map<string, Money>();
+    let staleQuotes = 0;
     for (const symbol of symbols) {
       const quote = quotes.get(symbol);
       const held = snapshot.holdings.find((holding) => holding.symbol.toUpperCase() === symbol);
-      // 시세가 없으면 보유 평가에 쓴 현재가 — 둘 다 없으면 그 종목은 빠진다(`price_unavailable`)
-      const price = quote?.currentPrice ?? held?.currentPrice ?? null;
+      // 시세가 없으면 보유 평가에 쓴 현재가 — 둘 다 없으면 그 종목은 빠진다(`price_unavailable`).
+      // 30분 넘게 멈춘 시세는 없는 것으로 본다 — 보유 평가가도 같은 시세라 대신 쓰지 않는다(F010 슬라이스 7 · FR-195)
+      const fresh = quote ? isPriceFresh(quote.priceUpdatedAt, now) : true;
+      if (!fresh) staleQuotes += 1;
+      const price = fresh ? (quote?.currentPrice ?? held?.currentPrice ?? null) : null;
       if (price !== null && price > 0) prices.set(symbol, Money.krw(price));
     }
 
@@ -131,6 +138,16 @@ export class GetTargetWeights {
       now,
     });
 
+    // 비중이 하나도 안 나오면 왜인지 가른다(FR-196) — 시세가 멈췄거나 변동성 배치가 사흘 넘게 멈췄으면 `stale_inputs`.
+    // 배치 시각은 σ 가 하나도 없을 때만 한 번 더 읽는다
+    const blockedReason: TargetWeightView["blockedReason"] =
+      guide.rows.length > 0
+        ? null
+        : staleQuotes > 0 ||
+            (risk.size === 0 && isForecastStale(await this.forecasts.volatilityAsOf().catch(() => null), now))
+          ? "stale_inputs"
+          : "no_volatility";
+
     const { records: _records, ...backtest } = TARGET_WEIGHT_BACKTEST;
     return {
       guide,
@@ -143,8 +160,8 @@ export class GetTargetWeights {
       live,
       liveMinWeeks: TARGET_WEIGHT_LIVE_MIN_WEEKS,
       recordSource: live && live.nWeeks >= TARGET_WEIGHT_LIVE_MIN_WEEKS ? "live" : "backtest",
-      renderable: guide.rows.length > 0,
-      blockedReason: guide.rows.length > 0 ? null : "no_volatility",
+      renderable: blockedReason === null,
+      blockedReason,
       asOf: now,
       orderExecution: false,
     };

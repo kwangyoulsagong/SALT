@@ -250,7 +250,8 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
       fakeMarket({ BTC: 100 }),
       portfolio,
       profiles,
-      new MemoryJudgmentStore(), noGauges
+      new MemoryJudgmentStore(), noGauges,
+      () => T0
     ).execute("user-1", { symbol: "btc" });
 
     assert.equal("confidence" in view.modeDecision, false);
@@ -277,7 +278,7 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
         profiles,
         new MemoryJudgmentStore(),
         noGauges,
-        undefined,
+        () => T0,
         forecasts
       ).execute("user-1", { symbol: "BTC" });
 
@@ -333,7 +334,8 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
       market,
       portfolio,
       profiles,
-      new MemoryJudgmentStore(), noGauges
+      new MemoryJudgmentStore(), noGauges,
+      () => T0
     ).execute("user-1", { symbol: "BTC" });
 
     assert.ok(view.modes.longTerm.judgment.reasons.length > 0);
@@ -384,7 +386,7 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
       ],
     } as unknown as MarketProbe;
 
-    const view = await new GetSymbolCoach(market, portfolio, profiles, store, noGauges).execute(
+    const view = await new GetSymbolCoach(market, portfolio, profiles, store, noGauges, () => T0).execute(
       "user-1",
       { symbol: "BTC", mode: "long_term" }
     );
@@ -397,6 +399,21 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
     assert.equal(longTerm.failureCases.length, 3);
     assert.equal(longTerm.failureCases[0].outcome, "miss");
     assert.equal(longTerm.failureCases[0].event, "long_term.wait");
+  });
+
+  it("같은 재료라도 오래되면 stale_inputs — 점수는 그대로, 표시만 막는다 (F010 슬라이스 7 · FR-194)", async () => {
+    const at = (hours: number) =>
+      new GetSymbolCoach(fakeMarket({ BTC: 100 }), portfolio, profiles, new MemoryJudgmentStore(), noGauges, () =>
+        hoursAfter(hours)
+      ).execute("user-1", { symbol: "BTC" });
+
+    const fresh = await at(0);
+    // 4시간 뒤 — 단타 1시간봉(3시간)만 넘었다. 시세(30분)도 넘었으니 두 모드 다 막힌다
+    const later = await at(4);
+    assert.equal(later.modes.scalp.blockedReason, "stale_inputs");
+    assert.equal(later.modes.longTerm.blockedReason, "stale_inputs");
+    assert.equal(later.modes.scalp.judgment.score, fresh.modes.scalp.judgment.score, "점수 계산은 바뀌지 않는다");
+    assert.notEqual(fresh.modes.scalp.blockedReason, "stale_inputs");
   });
 });
 

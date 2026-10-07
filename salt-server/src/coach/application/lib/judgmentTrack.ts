@@ -9,6 +9,7 @@ import {
   type JudgmentCase,
   type JudgmentTrackRecord,
   type ModeDecision,
+  type StaleInput,
   type SymbolJudgmentStore,
 } from "../../domain";
 
@@ -66,6 +67,12 @@ export const toCaseView = (
   returnRate: item.returnRate,
 });
 
+/** 성적과 무관하게 판정을 막는 조건 — 거래소 투자유의(슬라이스 6) · 오래된 재료(슬라이스 7). */
+export interface JudgmentGuards {
+  exchangeWarning?: boolean;
+  staleInputs?: readonly StaleInput[];
+}
+
 /**
  * 모드 하나의 판단에 성적표 · 실패사례 · 게이트를 붙인다.
  *
@@ -75,7 +82,7 @@ export const toCaseView = (
 export const attachJudgmentTrack = async (
   store: SymbolJudgmentStore,
   decision: ModeDecision,
-  exchangeWarning = false
+  guards: JudgmentGuards = {}
 ): Promise<ModeCoachView> => {
   const signalType = judgmentSignalType(decision.mode, decision.action);
 
@@ -91,7 +98,8 @@ export const attachJudgmentTrack = async (
     risks: decision.risks,
     trackRecord,
     failureCases: misses,
-    exchangeWarning,
+    exchangeWarning: guards.exchangeWarning ?? false,
+    staleInputs: guards.staleInputs ?? [],
   });
 
   return {

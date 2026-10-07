@@ -12,6 +12,7 @@ import { GeminiCoachExplainer } from "./coach/infrastructure/GeminiCoachExplaine
 import { HoldingTradeAdapter } from "./coach/infrastructure/HoldingTradeAdapter";
 import { MarketSignalAdapter } from "./coach/infrastructure/MarketSignalAdapter";
 import { PrismaCoachGenerationLogStore } from "./coach/infrastructure/PrismaCoachGenerationLogStore";
+import { PrismaLlmUsageStore } from "./coach/infrastructure/PrismaLlmUsageStore";
 import { PrismaCoachInsightStore } from "./coach/infrastructure/PrismaCoachInsightStore";
 import { PrismaCoachNotifier } from "./coach/infrastructure/PrismaCoachNotifier";
 import { PrismaCoachProfileStore } from "./coach/infrastructure/PrismaCoachProfileStore";
@@ -143,11 +144,19 @@ const portfolio = createPortfolioApplication({
  * `infrastructure` 의 ACL 이 코치의 Port 로 번역한다. 원문의 코치는 이 셋의
  * 테이블 여섯 개를 `prisma` 로 직접 뒤졌다 (`SRV-REQ-006` FR-32).
  */
+const llmUsage = new PrismaLlmUsageStore();
 const coach = createCoachApplication({
   profiles: new PrismaCoachProfileStore(),
   insights: new PrismaCoachInsightStore(),
   notifier: new PrismaCoachNotifier(),
-  explainer: new GeminiCoachExplainer(),
+  explainer: new GeminiCoachExplainer(llmUsage),
+  llmUsage,
+  // 비운 칸은 코드 기준(`DEFAULT_LLM_BUDGET`)
+  llmLimits: {
+    userCalls: env.LLM_USER_DAILY_CALL_LIMIT,
+    totalCalls: env.LLM_DAILY_CALL_LIMIT,
+    totalTokens: env.LLM_DAILY_TOKEN_LIMIT,
+  },
   market: new MarketSignalAdapter(market.api),
   portfolio: new HoldingTradeAdapter(portfolio.api),
   news: new ArticleTextAdapter(news.api),
