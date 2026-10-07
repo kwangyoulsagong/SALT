@@ -4,9 +4,10 @@ import type { ClosePriceFact } from "./PerformanceSeries";
 /**
  * `portfolio` 가 밖에 요구하는 것.
  *
- * `assetType` 은 `market` 과 같은 이유로 **DB enum 두 값**만 쓴다(`DB-REQ-003` 까지).
+ * `assetType` 은 `market` 과 같은 이유로 **DB enum 값**만 쓴다. `kr_stock` 은 F011(`DB-REQ-033`)
+ * 에서 더했고, 거래 입력 DTO 가 받는 것은 슬라이스 3 이다.
  */
-export type PortfolioAssetType = "crypto" | "stock";
+export type PortfolioAssetType = "crypto" | "stock" | "kr_stock";
 
 export interface Transaction {
   id: string;

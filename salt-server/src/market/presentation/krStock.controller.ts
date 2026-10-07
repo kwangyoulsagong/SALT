@@ -1,0 +1,101 @@
+import { NextFunction, Request, Response } from "express";
+
+import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
+import type { KrStockUseCases } from "../application/api";
+import { KrStockDisabledError } from "../domain";
+import {
+  krChartQuerySchema,
+  krCodeParamSchema,
+  krListQuerySchema,
+  krSearchQuerySchema,
+} from "./dto/krStock.dto";
+
+/**
+ * 국내 주식 조회(F011 · `SRV-REQ-040`). 키가 없어 꺼져 있으면 모든 경로가 503 이다(FR-6).
+ * 볼 수 있는지(소유자) 판정은 유스케이스가 한다 — 컨트롤러는 신원만 넘긴다.
+ */
+export class KrStockController {
+  constructor(private readonly useCases: KrStockUseCases | null) {}
+
+  private enabled(): KrStockUseCases {
+    if (!this.useCases) throw new KrStockDisabledError();
+    return this.useCases;
+  }
+
+  private viewer(req: Request) {
+    return { userId: req.user!.userId, email: req.user!.email };
+  }
+
+  session = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      return ResponseUtil.success(res, await this.enabled().getSession.execute(this.viewer(req)));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  assets = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = krListQuerySchema.parse(req.query);
+      return ResponseUtil.success(res, await this.enabled().listQuotes.execute(this.viewer(req), query));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  search = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { q } = krSearchQuerySchema.parse(req.query);
+      return ResponseUtil.success(res, await this.enabled().search.execute(this.viewer(req), q));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  detail = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code } = krCodeParamSchema.parse(req.params);
+      return ResponseUtil.success(res, await this.enabled().getDetail.execute(this.viewer(req), code));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * 실시간 체결 SSE — `event: tick` `[{ code, price, change, changeRate, volume, at }]` · 15초 하트비트.
+   * 연결이 끊기면 구독을 푼다(`ddd-presentation.md` §6)
+   */
+  stream = (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const kr = this.enabled();
+      kr.assertViewer(this.viewer(req));
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      });
+      res.write(`event: status\ndata: ${JSON.stringify(kr.realtime.status())}\n\n`);
+      const unlisten = kr.realtime.listen((events) => {
+        res.write(`event: tick\ndata: ${JSON.stringify(events)}\n\n`);
+      });
+      const heartbeat = setInterval(() => res.write(`: hb\n\n`), 15_000);
+      req.on("close", () => {
+        clearInterval(heartbeat);
+        unlisten();
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  chart = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code } = krCodeParamSchema.parse(req.params);
+      const { period, count } = krChartQuerySchema.parse(req.query);
+      return ResponseUtil.success(res, await this.enabled().getChart.execute(this.viewer(req), code, period, count));
+    } catch (error) {
+      next(error);
+    }
+  };
+}

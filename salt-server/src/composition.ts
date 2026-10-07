@@ -35,6 +35,10 @@ import {
 } from "./coach/presentation/coachTools.routes";
 import { createMarketApplication } from "./market/application/api";
 import { FearGreedClient } from "./market/infrastructure/FearGreedClient";
+import { KisClient } from "./market/infrastructure/KisClient";
+import { KisMasterFile } from "./market/infrastructure/KisMasterFile";
+import { KisRealtimeClient } from "./market/infrastructure/KisRealtimeClient";
+import { PrismaKrMarketCalendarStore, PrismaKrStockStore } from "./market/infrastructure/PrismaKrStockStore";
 import { PrismaIndicatorRepository } from "./market/infrastructure/PrismaIndicatorRepository";
 import { PrismaMarketAssetRepository } from "./market/infrastructure/PrismaMarketAssetRepository";
 import { PrismaPriceHistoryRepository } from "./market/infrastructure/PrismaPriceHistoryRepository";
@@ -56,6 +60,7 @@ import { RssNewsFeed } from "./news/infrastructure/RssNewsFeed";
 import { createNewsRouter } from "./news/presentation/news.routes";
 import { createInvestmentRouter } from "./market/presentation/investment.routes";
 import { createMarketIntelligenceRouter } from "./market/presentation/marketIntelligence.routes";
+import { createKrStockRouter } from "./market/presentation/krStock.routes";
 import { createPortfolioRouter } from "./portfolio/presentation/portfolio.routes";
 import { env } from "./shared/config/env";
 import prisma from "./shared/infrastructure/prisma";
@@ -110,6 +115,31 @@ const news = createNewsApplication({
  */
 // 거래소 클라이언트는 한 벌 — 시세 조회와 체결 이력 수집이 같은 페이서(프로세스 한도)를 나눈다
 const upbit = new UpbitClient();
+/**
+ * 국내 주식(F011) — 키가 없으면 통째로 꺼진다(FR-6). KIS 클라이언트도 한 벌: 한도(앱 키 단위)를
+ * 페이서 하나가 지킨다
+ */
+const kis =
+  env.KIS_APP_KEY && env.KIS_APP_SECRET
+    ? new KisClient({ appKey: env.KIS_APP_KEY, appSecret: env.KIS_APP_SECRET, baseUrl: env.KIS_BASE_URL, requestsPerSecond: env.KIS_REQUESTS_PER_SECOND })
+    : null;
+const krStock =
+  kis
+    ? {
+        kis,
+        health: kis,
+        realtime: new KisRealtimeClient({
+          url: env.KIS_WS_URL,
+          approvalKey: (force) => kis.approvalKey(force),
+          secrets: [env.KIS_APP_KEY, env.KIS_APP_SECRET],
+        }),
+        master: new KisMasterFile(),
+        store: new PrismaKrStockStore(),
+        calendar: new PrismaKrMarketCalendarStore(),
+        universeTopN: env.KIS_UNIVERSE_TOP_N,
+        viewerEmails: env.FORECAST_OWNER_EMAILS,
+      }
+    : null;
 const market = createMarketApplication({
   assets: new PrismaMarketAssetRepository(),
   watchlist: new PrismaWatchlistRepository(),
@@ -125,6 +155,7 @@ const market = createMarketApplication({
     symbols: env.MARKET_SUMMARY_SYMBOLS,
     wideMoveRate: env.MARKET_SUMMARY_WIDE_MOVE_RATE,
   },
+  krStock,
 });
 
 /**
@@ -224,6 +255,7 @@ export const contextRouters = {
   news: createNewsRouter(news.useCases),
   investment: createInvestmentRouter(market.useCases),
   marketIntelligence: createMarketIntelligenceRouter(market.useCases),
+  krStock: createKrStockRouter(market.useCases.krStock),
   portfolio: createPortfolioRouter(portfolio.useCases),
   aiCoach: createAICoachRouter(coach.useCases),
   behaviorCoach: createBehaviorCoachRouter(coach.useCases),

@@ -38,6 +38,14 @@ export enum ErrorKind {
    * 옮겨야 했고, 커널에 값이 없으면 **이관이 응답 코드를 바꾸는 일**이 된다.
    */
   Unauthenticated = "UNAUTHENTICATED",
+  /**
+   * 기능이 지금 꺼져 있다 → 503.
+   *
+   * F011 국내 주식은 KIS 키가 없으면 **꺼진 채 기동**하고 경로는 `503 kr_stock_disabled` 를 준다(FR-6).
+   * 404 로 두면 "그런 종목이 없다"와, 422 로 두면 "요청이 틀렸다"와 섞인다 — 클라이언트(BFF)가 탭을
+   * 숨길지 다시 시도할지 판단하는 근거가 이 구분이다.
+   */
+  Unavailable = "UNAVAILABLE",
 }
 
 export abstract class DomainError extends Error {

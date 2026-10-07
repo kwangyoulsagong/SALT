@@ -83,7 +83,13 @@ export class MarketSignalAdapter implements MarketProbe {
 
   async quotes(symbols: string[]): Promise<Map<string, CoachQuote>> {
     const rows = await this.market.assetQuotes(symbols);
-    return new Map(rows.map((row) => [row.symbol, row]));
+    // 국내 주식은 코치가 아직 판단하지 않는다(`COACH_EXCLUDED`, F011 슬라이스 4 에서 연다).
+    // 시세도 `MarketAsset` 이 아니라 `kr_stock_quotes` 에 있어 여기로 오지 않는다 — 타입만 좁힌다
+    return new Map(
+      rows.flatMap((row) =>
+        row.assetType === "kr_stock" ? [] : [[row.symbol, { ...row, assetType: row.assetType }] as const]
+      )
+    );
   }
 
   async recentWhales(

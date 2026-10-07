@@ -1,3 +1,12 @@
+import { KrStockNotAvailableError, isKrStockViewer } from "../../domain";
+import type {
+  KrProviderHealthPort,
+  KrRealtimePort,
+  KrMarketCalendarStore,
+  KrStockMasterSource,
+  KrStockQuotePort,
+  KrStockStore,
+} from "../../domain";
 import type {
   AssetQuote,
   ClosePercentiles,
@@ -49,6 +58,23 @@ import {
   UpdateAllMarketPrices,
 } from "../SyncMarketData";
 import { RefreshTechnicalIndicators } from "../RefreshTechnicalIndicators";
+import {
+  GetKrMarketSession,
+  GetKrStockChart,
+  GetKrStockDetail,
+  ListKrStockQuotes,
+  SearchKrStocks,
+} from "../ReadKrStock";
+import { RunKrRealtime } from "../RunKrRealtime";
+import {
+  PollKrStockQuotes,
+  ReportKrProviderMetrics,
+  SyncKrMinuteBars,
+  ResolveKrStockUniverse,
+  SyncKrDailyCandles,
+  SyncKrMarketCalendar,
+  SyncKrStockMaster,
+} from "../SyncKrStock";
 
 /**
  * `market` 의 **공개 API** — 컨텍스트 밖으로 열리는 유일한 지점 (FR-4).
@@ -152,7 +178,76 @@ export interface MarketDependencies {
   news: SymbolNewsPort;
   /** 시장 요약 띠의 종목 · 임계 — 설정값(`MARKET_SUMMARY_*`)이다 */
   summaryPolicy: MarketSummaryPolicy;
+  /**
+   * 국내 주식(F011). **KIS 키가 없으면 `null`** — 워커가 등록되지 않고 경로는 503 이다(FR-6).
+   * 코인 의존과 묶지 않는다: KIS 장애 · 미설정이 코인 시세를 막지 않는다
+   */
+  krStock: KrStockDependencies | null;
 }
+
+export interface KrStockDependencies {
+  kis: KrStockQuotePort;
+  master: KrStockMasterSource;
+  store: KrStockStore;
+  calendar: KrMarketCalendarStore;
+  /** WS 실시간 체결(슬라이스 1) — 앱 키당 세션 하나라 프로세스에 하나 */
+  realtime: KrRealtimePort;
+  /** KIS REST 건강 상태 · 지표(FR-92 · 94) — `KisClient` 가 호출 결과로 센다 */
+  health: KrProviderHealthPort;
+  /** 시총 상위 N(`KIS_UNIVERSE_TOP_N`) */
+  universeTopN: number;
+  /** 볼 수 있는 계정 — 소유자 전용(`FORECAST_OWNER_EMAILS`) */
+  viewerEmails: readonly string[];
+}
+
+export interface KrStockUseCases {
+  syncMaster: SyncKrStockMaster;
+  syncCalendar: SyncKrMarketCalendar;
+  syncDailyCandles: SyncKrDailyCandles;
+  pollQuotes: PollKrStockQuotes;
+  syncMinuteBars: SyncKrMinuteBars;
+  realtime: RunKrRealtime;
+  reportMetrics: ReportKrProviderMetrics;
+  /** SSE 를 열기 전 소유자 판정 — 스트림도 시세다 */
+  assertViewer: (viewer: { userId: string; email?: string }) => void;
+  getSession: GetKrMarketSession;
+  listQuotes: ListKrStockQuotes;
+  getDetail: GetKrStockDetail;
+  getChart: GetKrStockChart;
+  search: SearchKrStocks;
+}
+
+const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
+  const universe = new ResolveKrStockUniverse(deps.store, deps.universeTopN);
+  const realtime = new RunKrRealtime(deps.realtime, deps.store, deps.calendar, universe);
+  const provider = () => {
+    const h = deps.health.snapshot();
+    return {
+      status: h.status,
+      since: h.since?.toISOString() ?? null,
+      lastSuccessAt: h.lastSuccessAt?.toISOString() ?? null,
+      realtime: realtime.status(),
+    };
+  };
+  const read = { store: deps.store, calendar: deps.calendar, viewerEmails: deps.viewerEmails, provider };
+  return {
+    syncMaster: new SyncKrStockMaster(deps.master, deps.store),
+    syncCalendar: new SyncKrMarketCalendar(deps.kis, deps.calendar),
+    syncDailyCandles: new SyncKrDailyCandles(deps.kis, deps.store, universe),
+    pollQuotes: new PollKrStockQuotes(deps.kis, deps.store, deps.calendar, universe),
+    syncMinuteBars: new SyncKrMinuteBars(deps.kis, deps.store, deps.calendar, universe),
+    realtime,
+    reportMetrics: new ReportKrProviderMetrics(deps.health),
+    assertViewer: (viewer) => {
+      if (!isKrStockViewer(viewer.email, deps.viewerEmails)) throw new KrStockNotAvailableError();
+    },
+    getSession: new GetKrMarketSession(read),
+    listQuotes: new ListKrStockQuotes(read),
+    getDetail: new GetKrStockDetail(read),
+    getChart: new GetKrStockChart(read),
+    search: new SearchKrStocks(read),
+  };
+};
 
 export interface MarketUseCases {
   calculateSentiment: CalculateSentiment;
@@ -176,6 +271,8 @@ export interface MarketUseCases {
   collectPriceHistory: CollectPriceHistory;
   backfillDailyHistory: BackfillDailyHistory;
   refreshTechnicalIndicators: RefreshTechnicalIndicators;
+  /** 키가 없으면 `null`(FR-6) */
+  krStock: KrStockUseCases | null;
 }
 
 export const createMarketApplication = (deps: MarketDependencies) => {
@@ -233,6 +330,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.prices,
       deps.indicators
     ),
+    krStock: deps.krStock ? createKrStockUseCases(deps.krStock) : null,
   };
 
   const api: MarketApi = {

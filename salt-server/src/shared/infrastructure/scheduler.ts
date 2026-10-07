@@ -17,7 +17,9 @@ const running = new Set<string>();
 export const schedule = (
   name: string,
   expression: string,
-  task: () => Promise<void> | void
+  task: () => Promise<void> | void,
+  /** 장 시간처럼 벽시계에 묶인 작업은 시간대를 준다(국내 주식 = `Asia/Seoul`). 없으면 프로세스 시간대 */
+  options: { timezone?: string } = {}
 ): ScheduledTask =>
   cron.schedule(expression, async () => {
     if (running.has(name)) {
@@ -32,4 +34,4 @@ export const schedule = (
     } finally {
       running.delete(name);
     }
-  });
+  }, options.timezone ? { timezone: options.timezone } : undefined);

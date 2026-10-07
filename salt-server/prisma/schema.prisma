@@ -172,7 +172,8 @@ model InvestmentWatchlist {
 
 enum AssetType {
   crypto
-  stock
+  stock // 미국 주식(TBA) — 국내 주식은 kr_stock(F011, DB-REQ-033)
+  kr_stock
 }
 
 // ==================== AI Analysis Session ====================
@@ -959,4 +960,92 @@ model TechnicalIndicator {
   @@unique([symbol, timeframe, timestamp])
   @@index([symbol, timeframe, timestamp])
   @@map("technical_indicators")
+}
+
+// ==================== 국내 주식 (F011 · DB-REQ-033) ====================
+// 시세는 MarketAsset 이 아니라 따로 둔다 — MarketAsset 을 읽는 코인 경로(상폐 처리 · 1분 시세 · 시장표 ·
+// 등락 집계 · 고래)가 assetType 을 거르지 않아, 국내 주식 행이 들어가면 업비트에 6자리 코드를 묻고
+// 비소유자 시장표에 국내 주식이 섞인다(소유자 전용 정책 위반).
+
+/// 종목 마스터 — KIS .mst(매 영업일 장전 갱신). 시세가 아니다
+model KrStockMaster {
+  code              String    @id // 단축코드 6자리
+  standardCode      String    @map("standard_code") // ISIN
+  name              String
+  market            String // KOSPI | KOSDAQ
+  groupCode         String    @map("group_code") // ST 주권 · EF ETF · EN ETN · RT 리츠 …
+  sectorCode        String?   @map("sector_code") // 지수업종 대분류
+  basePrice         Decimal?  @map("base_price") @db.Decimal(38, 10) // 원
+  sharesOutstanding BigInt?   @map("shares_outstanding") // 주
+  marketCap         Decimal?  @map("market_cap") @db.Decimal(38, 10) // 원, 전일 기준
+  isHalted          Boolean   @default(false) @map("is_halted")
+  isAdministrative  Boolean   @default(false) @map("is_administrative")
+  warnCode          String    @default("00") @map("warn_code") // 00 없음 · 01 주의 · 02 경고 · 03 위험
+  overheatCode      String    @default("0") @map("overheat_code") // 단기과열 0 없음
+  isPreferred       Boolean   @default(false) @map("is_preferred")
+  listedAt          DateTime? @map("listed_at") @db.Date
+  delistedAt        DateTime? @map("delisted_at")
+  syncedAt          DateTime  @map("synced_at")
+
+  quote KrStockQuote?
+
+  @@index([groupCode, marketCap])
+  @@map("kr_stock_master")
+}
+
+/// 현재가 — 유니버스 종목만. 빈 값으로 덮어쓰지 않는다(FR-90)
+model KrStockQuote {
+  code           String   @id
+  price          Decimal  @db.Decimal(38, 10)
+  change         Decimal  @db.Decimal(38, 10) // 전일 대비(원)
+  changeRate     Decimal  @map("change_rate") @db.Decimal(18, 8) // %
+  volume         BigInt
+  tradeValue     Decimal  @map("trade_value") @db.Decimal(38, 10) // 원
+  marketCap      Decimal? @map("market_cap") @db.Decimal(38, 10) // 원
+  basePrice      Decimal? @map("base_price") @db.Decimal(38, 10)
+  upperLimit     Decimal? @map("upper_limit") @db.Decimal(38, 10)
+  lowerLimit     Decimal? @map("lower_limit") @db.Decimal(38, 10)
+  statusCode     String?  @map("status_code") // iscd_stat_cls_code
+  warnCode       String?  @map("warn_code") // mrkt_warn_cls_code
+  isHalted       Boolean  @default(false) @map("is_halted")
+  per            Decimal? @db.Decimal(18, 8)
+  pbr            Decimal? @db.Decimal(18, 8)
+  eps            Decimal? @db.Decimal(38, 10)
+  bps            Decimal? @db.Decimal(38, 10)
+  week52High     Decimal? @map("week52_high") @db.Decimal(38, 10)
+  week52Low      Decimal? @map("week52_low") @db.Decimal(38, 10)
+  foreignRate    Decimal? @map("foreign_rate") @db.Decimal(18, 8) // 외국인 소진율 %
+  feed           String // poll_1m | realtime(슬라이스 1)
+  priceUpdatedAt DateTime @map("price_updated_at")
+
+  master KrStockMaster @relation(fields: [code], references: [code], onDelete: Cascade)
+
+  @@map("kr_stock_quotes")
+}
+
+/// 외부 API 토큰 캐시 — 재시작이 발급을 늘리지 않는다(FR-2). 소유자 1인 운영이라 평문(Open Question)
+model ExternalApiToken {
+  provider  String // kis
+  tokenType String   @map("token_type") // access | approval
+  token     String
+  issuedAt  DateTime @map("issued_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@id([provider, tokenType])
+  @@map("external_api_tokens")
+}
+
+/// 개장일 달력 — KIS 휴장일 조회 원문 플래그. 전망(salt-forecast)도 읽는다
+model MarketHoliday {
+  market          String // KRX
+  date            DateTime @db.Date
+  isOpen          Boolean  @map("is_open") // opnd_yn — 장이 열리나
+  isTradingDay    Boolean  @map("is_trading_day") // tr_day_yn
+  isBusinessDay   Boolean  @map("is_business_day") // bzdy_yn
+  isSettlementDay Boolean  @map("is_settlement_day") // sttl_day_yn
+  source          String // kis
+  syncedAt        DateTime @map("synced_at")
+
+  @@id([market, date])
+  @@map("market_holidays")
 }

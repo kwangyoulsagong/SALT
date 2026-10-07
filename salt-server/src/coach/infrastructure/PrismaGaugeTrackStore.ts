@@ -34,7 +34,10 @@ export class PrismaGaugeTrackStore implements GaugeTrackStore {
           ${record.horizonDays}, ${record.sample},
           ${record.p25}::numeric, ${record.median}::numeric, ${record.p75}::numeric,
           ${record.positiveRate}::numeric,
-          ${record.windowFrom}, ${record.windowTo}, ${computedAt}
+          -- 열은 TIMESTAMP(시간대 없음) · Prisma 관례는 UTC 벽시계다. Date 를 그대로 넣으면 DB 세션 시간대(Asia/Seoul)
+          -- 벽시계가 들어가 9시간 어긋났다(2026-10-07 발견 — 성적 기간 표시 · 정리 조건에 걸렸다)
+          (${record.windowFrom}::timestamptz AT TIME ZONE 'UTC'), (${record.windowTo}::timestamptz AT TIME ZONE 'UTC'),
+          (${computedAt}::timestamptz AT TIME ZONE 'UTC')
         )`
       );
 
