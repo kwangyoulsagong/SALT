@@ -15,6 +15,7 @@ const ERROR_KIND_STATUS: Record<ErrorKind, number> = {
   [ErrorKind.Blocked]: 422,
   [ErrorKind.Forbidden]: 403,
   [ErrorKind.Unauthenticated]: 401,
+  [ErrorKind.Unavailable]: 503,
 };
 
 export const errorMiddleware = (
