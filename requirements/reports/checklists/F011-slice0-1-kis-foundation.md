@@ -4,7 +4,7 @@
 
 | 확인 | 결과 |
 |---|---|
-| 서버 테스트 | `npm test` 625 통과(새 22: 장 상태 · 호가 단위 · 배지 · 상하한 · 지연 · TR 허용 목록 · 레포 주문 TR grep · 마스킹 · 마스터 파서 · 체결 프레임 · 5분봉 집계) |
+| 서버 테스트 | `npm test` 625 통과(새 20: 장 상태 · 호가 단위 · 배지 · 상하한 · 지연 · TR 허용 목록 · 레포 주문 TR grep · 마스킹 · 마스터 파서 · 체결 프레임 · 5분봉 집계) |
 | 정적 | `npm run lint` · `npm run build` · `npm run test:layer-check`(차단 10 · 통과 6) · `prisma generate` |
 | 모노레포 | BFF `npm run build` 통과 · 프론트 `pnpm check-types` · `pnpm lint` 통과(변경 없음 — 캐시 적중) |
 | 레이어 훅 사후 실행 | Bash 로 쓴 파일 포함 이 브랜치의 서버 `.ts` 전부를 `layer-check.mjs` 에 다시 넣어 차단 0(훅이 위반을 막는지 표본 1건으로 확인) |
