@@ -31,7 +31,7 @@ Status: In Progress
 | **F007** | 모바일 앱 (React Native · iOS+Android · 푸시 · 번들 MFE) | `FEATURE-007-mobile-app.md` |
 | **F008** | AI 전망 · 인텔리전스 (파이프라인 → 온톨로지 → 에이전트 · 확률 구간 · 채점 · 소유자 전용) — 2026-09-23 `ADR-003` · `ADR-004` | `FEATURE-008-forecast-intelligence.md` |
 | **F009** | 1인 펀드매니저 코치 (IPS · 리스크 예산 · 사이즈 계산 · 계획 기록 · 준수율 · 행동 미러 · 월간 복기) — 2026-09-24. 통제 · 차단 없음, 수동 입력 전제 | `FEATURE-009-behavior-risk-coach.md` |
-| **F011** | 국내 주식 시세 · 분석 연동 (한국투자증권 Open API — 조회 TR 만 · 시세 · 일봉 · 5분봉 누적 · 자산군 분리 채점 · 장 상태 표시) — 2026-09-27 기획, **to-do**. F010 은 판정 엔진 v2 예약 | `FEATURE-011-kr-stock-kis.md` |
+| **F011** | 국내 주식 시세 · 분석 연동 (한국투자증권 Open API — 조회 TR 만 · 시세 · 일봉 · 5분봉 누적 · 자산군 분리 채점 · 장 상태 표시) — 2026-09-27 기획, **in-progress** — 2026-10-07 슬라이스 0 · 1(서버 · DB · 실시간) 완료, 다음 BFF · 화면 · 코치 | `FEATURE-011-kr-stock-kis.md` |
 
 > F005는 결번이다. `FEATURE-005-home-briefing.md`의 5탭 IA는 2026-09-09 결정(탭 축소·대화 중심)으로 **F006이 대체**한다. 홈 블록 요구사항만 F006으로 흡수한다.
 
@@ -442,6 +442,8 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | `BFF-REQ-038` F009 중계 | **done** (슬라이스 3 FR-1~6 · 슬라이스 5 FR-7 미러 · FR-8 결과 · 태그 확정 · FR-9 size-check `behavior` · 슬라이스 6 FR-10 복기 · FR-11 · 12 · 슬라이스 7 FR-13 미러 연승 · 시간대 완료) | 뷰모델 조립 · 격리 · 재계산 금지 · 거래 + 계획 조립(`/api/app/coach/trades`) · 비소유자 응답에 도달 확률 필드 없음 |
 | `FE-REQ-039` F009 카드 | **in-progress** (슬라이스 3 FR-1~12 · 슬라이스 5 FR-14~20 미러 · 태그 확정 · 폼 한 줄 · 슬라이스 6 FR-21~24 복기 · IPS 3문항 · 시나리오 · 진입 전 체크 · 슬라이스 7 FR-25 · 26 연승 · 연패 · 진입 시간대 · 요일 완료 · 매입가 숨김 보류) | 거래 폼 "계획(선택)" + 결과 라인 · "내 계획" 카드 · 리스크 게이지 3 · 매입가 숨김 · "내 거래 미러" · 월간 복기 · `DisclosureSlot`. 새 라우트 0 · 입력 30초 · WCAG AA |
 | `SRV-REQ-039` F009 성적 4요소 | **done** 2026-10-07 (슬라이스 8) | 성적 자리마다 `claim`(기간 · 표본 · 기준 · 빗나간 수/판정 수, 빈 칸은 이유 코드) · 게이지 `baselinePositiveRate` · `languageGuard` `performance_wording`(AI 가 예측 · 합산 · 미실현 수익률). 응답 추가만 |
+| `SRV-REQ-040` F011 국내 주식 | **in-progress** 2026-10-07 (슬라이스 0 · 1) | KIS 조회 TR 허용 목록 · 토큰 DB 캐시 · 마스터 · 달력(일봉 역산) · 일봉 2년 · 현재가 1분 · WS 41 슬롯 · 5분봉 · SSE · `/api/market/kr/*` 소유자 전용. 남은 것: 장 마감 보정 · 5분봉 백필 · provider 상태 · 코치(슬라이스 4) |
+| `DB-REQ-033` F011 국내 주식 스키마 | **done** 2026-10-07 | `AssetType` `kr_stock` · `kr_stock_master` · `kr_stock_quotes` · `external_api_tokens` · `market_holidays`. 추가만 — 롤백 = 표 4 DROP |
 | `FC-REQ-019` 판정 창 · 빗나간 수 | **done** 2026-10-07 (슬라이스 8) | `forecast.gate` · `event_reaction_stats` 에 판정 창 · 빗나간 수 · 판정 대상 수. `DB-REQ-029` FR-25 마이그레이션 `20261007120000`(추가만) |
 | `BFF-REQ-042` F009 성적 4요소 중계 | **done** 2026-10-07 (슬라이스 8) | `toPerformanceClaim` 순수 함수 하나 · 뷰모델 7. 깨진 칸은 `not_recorded`, 목표 비중 자리가 바뀌면 `null` |
 | `FE-REQ-045` F009 성적 4요소 줄 | **in-progress** (슬라이스 8 코드 완료 · 추천 · 판정 실데이터 화면 미확인) | `PerformanceClaimLine` 10곳 · 라벨 정정(틀렸던 때 N건 · 추천 최근 N회 · 사례 제목) · `@repo/core` `PerformanceClaim` |
@@ -465,6 +467,8 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 **F009 슬라이스 7 — 연승 · 연패 · 진입 시간대 · 요일 (2026-09-27, `feat/f009-slice7-streak-timeofday`)** — 미러에 두 줄이 더해진다. 지금 이어지는 연승 · 연패와 최장 기록, 연속 3건 뒤 매수 금액 ÷ 평소(비율 ≥ 1.2 이고 연속 뒤 매수 ≥ 20 일 때만 서버가 `observed` — 화면은 이때만 문장 + 금액 비교의 한계 한 줄). 청산을 진입 시각(KST) 새벽 · 오전 · 오후 · 저녁과 요일로 묶은 이익 비율 · 평균 수익률 · 손익, 줄마다 표본 배지. 순손익 0 청산은 연속을 끊고, 연속 상태는 매수 전에 닫힌 청산만 본다. 기획 정정: KST 0시 정각 진입은 날짜만 적은 거래라 시간대에서만 빼고 요일은 센다(FR-22 "시각이 없으면 섹션 없음" → 요일은 늘). 새 경로 · 새 쿼리 · 저장 · 마이그레이션 없음. 같은 브랜치에 AI 해설 카드 고침 — C06 뒤 판단이 막힌 모드에서 카드가 자리째 사라지던 것을 자리 · 이유 · 표본 수로 남기고(버튼 · 성적 · 사례 없음) 거래 기록 폼 위로 올렸다(`FE-REQ-038` FR-7 · `FE-REQ-026` FR-135, 사용자 신고). 사용자 결정(2026-09-27): 슬라이스 7(FR-20 · 22) 착수 · CVaR(FR-26)은 주식 확장 때 · 해설은 게이트 유지 + 이유 + 위로. `SRV-REQ-038` FR-14a · 14b · `BFF-REQ-038` FR-13 · `FE-REQ-039` FR-25 · 26. 범위 · 검증은 `F009-slice7-streak-timeofday-slice.md` · `reports/checklists/F009-slice7-streak-timeofday.md`.
 
 **F009 슬라이스 8 — 성적 문구 4요소 (2026-10-07, `feat/f009-fr33-performance-wording`)** — FR-33(Must, Draft 였다). 서비스가 자기 성적을 말하는 자리 10곳(판정 블록 · 상세 · 해설 카드 · 추천 · 성적표 · 게이지 · 변동 범위 · 주요 사건 · 쏠림 반응 · 목표 비중 본문 · 요약 띠)에 기간(첫~마지막 채점일) · 표본 · 기준 · 빗나간 수를 한 줄로 붙이고, 정의 안 되는 칸은 이유를 쓴다. 틀린 라벨 정정: "틀렸던 때 N건"이 사례 목록 상한(3)을 셌다 · 추천 "최근 N회"가 전체 기간이었다 · 틀린 것만 오는 목록 제목이 "맞았던 때 · 틀렸던 때"였다. 변동 범위 · 사건 반응은 판정 창 날짜 · 빗나간 수 전체가 저장돼 있지 않아 쓰기 주인(salt-forecast)이 판정할 때 남긴다(마이그레이션 `20261007120000`, 추가만). 검증기 `performance_wording`. 사용자 결정(2026-10-07): 서비스 성적만(미러 · 복기 · 보유 손익 제외) · 첫~마지막 채점일 · 빈 칸 + 이유. `SRV-REQ-039` · `FC-REQ-019` · `DB-REQ-029` FR-25 · `BFF-REQ-042` · `FE-REQ-045`. 범위 · 검증은 `F009-slice8-performance-claim-slice.md` · `reports/checklists/F009-slice8-performance-claim.md`.
+
+**F011 슬라이스 0 · 1 — 국내 주식 시세 기반 + 실시간 (2026-10-07, `feat/f011-slice0-kis-foundation`)** — 화면 없음. 한국투자증권 Open API 를 조회 TR 허용 목록으로만 부르는 클라이언트(주문 · 계좌 TR 0건 테스트), 종목 마스터 4,400 · 개장일 달력 · 일봉 2년(50종목 × 486) · 현재가 1분 · WS 체결 41 슬롯 → 1초 배치 · 5분봉 집계(KIS 분봉과 종가 일치) · SSE, 저장값만 읽는 `/api/market/kr/*`(소유자 전용 · 키 없으면 503). 사용자 요구: 실시간 워커 · 코인과 같은 기능 · 성능. 기획 정정: 시세 표 분리(`MarketAsset` 은 코인 경로가 자산군을 안 거름) · SSE 사용자 JWT · 휴장일 KIS 거부 → 일봉 역산. `SRV-REQ-040` · `DB-REQ-033`. 범위 · 검증은 `F011-slice0-1-kis-foundation-slice.md` · `reports/checklists/F011-slice0-1-kis-foundation.md`.
 
 ### F010 판정 AI (2026-09-28)
 
