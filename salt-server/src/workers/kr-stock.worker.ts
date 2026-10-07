@@ -16,6 +16,7 @@ import { schedule } from "../shared/infrastructure/scheduler";
  * | `kr-calendar-sync` | 평일 09:10 | KIS 휴장일 조회(권고 1일 1회) — 거부되면 일봉 역산 + 오늘 개장 관측 |
  * | `kr-daily-candles` | 평일 15:45 | 정규장 15:30 마감 + 정정 여유 |
  * | `kr-quote-poll` | 매분 | 부를지는 유스케이스가 장 상태로 정한다(정규장 매분 · 장전/시간외 5분) |
+ * | `kr-realtime` | 매분 | 08:30~18:00 개장일이면 WS 를 붙이고 슬롯을 맞춘다 · 밖이면 끊는다(슬라이스 1) |
  */
 const TZ = "Asia/Seoul";
 
@@ -31,6 +32,7 @@ export const startKrStockWorkers = () => {
     { name: "kr-calendar-sync", expression: "10 9 * * 1-5", run: () => kr.syncCalendar.execute() },
     { name: "kr-daily-candles", expression: "45 15 * * 1-5", run: () => kr.syncDailyCandles.execute() },
     { name: "kr-quote-poll", expression: "* * * * *", run: () => kr.pollQuotes.execute() },
+    { name: "kr-realtime", expression: "* * * * *", run: () => kr.realtime.reconcile() },
   ];
   for (const job of jobs) schedule(job.name, job.expression, () => job.run().then(() => undefined), { timezone: TZ });
 
@@ -40,11 +42,20 @@ export const startKrStockWorkers = () => {
    */
   void (async () => {
     // 달력은 일봉 뒤에 한 번 더 — 처음 기동이면 역산할 일봉이 일봉 백필 뒤에야 생긴다
-    for (const job of [kr.syncMaster, kr.syncCalendar, kr.pollQuotes, kr.syncDailyCandles, kr.syncCalendar]) {
+    const boot = [
+      () => kr.syncMaster.execute(),
+      () => kr.syncCalendar.execute(),
+      () => kr.pollQuotes.execute(),
+      // 실시간은 현재가 행이 생긴 뒤(체결은 기존 행만 갱신한다)
+      () => kr.realtime.reconcile(),
+      () => kr.syncDailyCandles.execute(),
+      () => kr.syncCalendar.execute(),
+    ];
+    for (const job of boot) {
       try {
-        await job.execute();
+        await job();
       } catch (error) {
-        logger.error(`국내 주식 부팅 실행 실패: ${job.constructor.name} — ${(error as Error).message}`);
+        logger.error(`국내 주식 부팅 실행 실패 — ${(error as Error).message}`);
       }
     }
   })();

@@ -111,6 +111,12 @@ export interface KrStockStore {
   latestDailyCandleAt(codes: string[]): Promise<Map<string, Date>>;
   upsertDailyCandles(code: string, candles: Candle[]): Promise<void>;
   candles(code: string, timeframe: "1d" | "5m", count: number): Promise<Candle[]>;
+  /** 실시간 체결의 최신 값만 — 상하한 · PER 같은 나머지는 폴링 값을 남긴다(슬라이스 1) */
+  applyTicks(ticks: KrTick[], at: Date): Promise<void>;
+  /** 5분봉 upsert(종목 여럿 한 문장) */
+  upsertMinuteCandles(bars: Array<{ code: string; candle: Candle }>): Promise<void>;
+  /** 실시간 값이 `since` 이후인 종목 — 폴링이 건너뛴다 */
+  realtimeFreshCodes(since: Date): Promise<string[]>;
 }
 
 /**
@@ -327,3 +333,91 @@ export const krFeedState = (
   session: KrSessionView
 ): KrFeedState =>
   isKrQuoteWindow(session) && now.getTime() - q.priceUpdatedAt.getTime() > KR_QUOTE_STALE_MS ? "stale" : q.feed;
+
+// ==================== 실시간 (F011 슬라이스 1 · FR-24 · 25) ====================
+
+/** 체결 한 건(`H0STCNT0`) — KIS 필드 이름은 `KisRealtimeClient` 에서 끝난다 */
+export interface KrTick {
+  code: string;
+  price: number;
+  change: number;
+  changeRate: number;
+  /** 이 체결의 수량 — 5분봉 거래량은 이것의 합 */
+  tradeVolume: number;
+  accVolume: bigint;
+  accTradeValue: number;
+  isHalted: boolean;
+  /** 체결 시각(KST 영업일 + HHMMSS → UTC) */
+  at: Date;
+}
+
+export type KrRealtimeState = "idle" | "connecting" | "open" | "backoff" | "degraded";
+
+/**
+ * WS 실시간 체결. 세션은 앱 키당 하나(근거 [약]) — 이 Port 의 구현은 프로세스에 하나다.
+ * `subscribe` 는 **원하는 전체 집합**을 받는다: 빠진 것은 해제하고 새것만 등록한다
+ */
+export interface KrRealtimePort {
+  connect(onTick: (ticks: KrTick[]) => void): Promise<void>;
+  subscribe(codes: string[]): Promise<void>;
+  disconnect(): Promise<void>;
+  state(): KrRealtimeState;
+  subscribed(): string[];
+}
+
+/** 세션당 등록 상한 — 체결 + 호가 합산 41(근거 [약], 이번 슬라이스 실측 대상). 호가는 아직 안 쓴다 */
+export const KR_REALTIME_SLOTS = 41;
+
+const FIVE_MINUTES_MS = 5 * 60_000;
+
+/**
+ * 체결 → 5분봉 집계(FR-21). KIS 분봉 TR 은 당일 · 30건뿐이라 우리가 쌓는다.
+ *
+ * 봉 시각은 버킷 **시작**(UTC 저장, 경계는 5분이라 KST 와 같다). 같은 버킷에 늦게 온 체결도 그 버킷에 더한다
+ * — 순서가 섞여 와도 시가는 가장 이른 체결, 종가는 가장 늦은 체결이다. 정규장 밖 체결은 받지 않는다
+ * (시간외는 지표에 넣지 않는다 — FR-60)
+ */
+export class KrMinuteBarBuilder {
+  private readonly bars = new Map<string, Candle & { firstAt: number; lastAt: number }>();
+  private readonly touched = new Set<string>();
+
+  add(tick: KrTick) {
+    const kstMinutes = Math.floor(((tick.at.getTime() + KST_OFFSET_MS) % DAY_MS) / 60_000);
+    if (kstMinutes < MIN(9, 0) || kstMinutes >= MIN(15, 30)) return;
+
+    const start = Math.floor(tick.at.getTime() / FIVE_MINUTES_MS) * FIVE_MINUTES_MS;
+    const key = `${tick.code}|${start}`;
+    const t = tick.at.getTime();
+    const bar = this.bars.get(key);
+    if (!bar) {
+      this.bars.set(key, {
+        open: tick.price, high: tick.price, low: tick.price, close: tick.price,
+        volume: tick.tradeVolume, timestamp: new Date(start), firstAt: t, lastAt: t,
+      });
+    } else {
+      bar.high = Math.max(bar.high, tick.price);
+      bar.low = Math.min(bar.low, tick.price);
+      bar.volume = (bar.volume ?? 0) + tick.tradeVolume;
+      if (t < bar.firstAt) { bar.open = tick.price; bar.firstAt = t; }
+      if (t >= bar.lastAt) { bar.close = tick.price; bar.lastAt = t; }
+    }
+    this.touched.add(key);
+  }
+
+  /**
+   * 지난 저장 뒤 바뀐 봉(진행 중 포함)을 내고, `now` 기준 10분 넘게 지난 봉은 메모리에서 버린다 —
+   * 진행 중 봉을 매번 덮어 써서 차트가 장중에도 끝 봉을 본다
+   */
+  drain(now: Date): Array<{ code: string; candle: Candle }> {
+    const out = [...this.touched].map((key) => {
+      const bar = this.bars.get(key)!;
+      const { firstAt: _f, lastAt: _l, ...candle } = bar;
+      return { code: key.split("|")[0], candle };
+    });
+    this.touched.clear();
+    for (const [key, bar] of this.bars) {
+      if (now.getTime() - bar.timestamp.getTime() > 2 * FIVE_MINUTES_MS) this.bars.delete(key);
+    }
+    return out;
+  }
+}

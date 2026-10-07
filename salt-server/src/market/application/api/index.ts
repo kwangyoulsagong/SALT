@@ -1,4 +1,6 @@
+import { KrStockNotAvailableError, isKrStockViewer } from "../../domain";
 import type {
+  KrRealtimePort,
   KrMarketCalendarStore,
   KrStockMasterSource,
   KrStockQuotePort,
@@ -62,6 +64,7 @@ import {
   ListKrStockQuotes,
   SearchKrStocks,
 } from "../ReadKrStock";
+import { RunKrRealtime } from "../RunKrRealtime";
 import {
   PollKrStockQuotes,
   ResolveKrStockUniverse,
@@ -184,6 +187,8 @@ export interface KrStockDependencies {
   master: KrStockMasterSource;
   store: KrStockStore;
   calendar: KrMarketCalendarStore;
+  /** WS 실시간 체결(슬라이스 1) — 앱 키당 세션 하나라 프로세스에 하나 */
+  realtime: KrRealtimePort;
   /** 시총 상위 N(`KIS_UNIVERSE_TOP_N`) */
   universeTopN: number;
   /** 볼 수 있는 계정 — 소유자 전용(`FORECAST_OWNER_EMAILS`) */
@@ -195,6 +200,9 @@ export interface KrStockUseCases {
   syncCalendar: SyncKrMarketCalendar;
   syncDailyCandles: SyncKrDailyCandles;
   pollQuotes: PollKrStockQuotes;
+  realtime: RunKrRealtime;
+  /** SSE 를 열기 전 소유자 판정 — 스트림도 시세다 */
+  assertViewer: (viewer: { userId: string; email?: string }) => void;
   getSession: GetKrMarketSession;
   listQuotes: ListKrStockQuotes;
   getDetail: GetKrStockDetail;
@@ -210,6 +218,10 @@ const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
     syncCalendar: new SyncKrMarketCalendar(deps.kis, deps.calendar),
     syncDailyCandles: new SyncKrDailyCandles(deps.kis, deps.store, universe),
     pollQuotes: new PollKrStockQuotes(deps.kis, deps.store, deps.calendar, universe),
+    realtime: new RunKrRealtime(deps.realtime, deps.store, deps.calendar, universe),
+    assertViewer: (viewer) => {
+      if (!isKrStockViewer(viewer.email, deps.viewerEmails)) throw new KrStockNotAvailableError();
+    },
     getSession: new GetKrMarketSession(read),
     listQuotes: new ListKrStockQuotes(read),
     getDetail: new GetKrStockDetail(read),

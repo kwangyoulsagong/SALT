@@ -212,7 +212,10 @@ export class PollKrStockQuotes {
     if (!due && this.polledOnce) return { skipped: true as const, session: session.session };
     this.polledOnce = true;
 
-    const codes = await this.universe.execute();
+    // 실시간 값이 90초 안에 들어온 종목은 체결이 이미 현재가를 준다 — 상하한 · PER 같은 나머지 칸만 5분마다 채운다
+    const fullRefresh = minute % OFF_REGULAR_EVERY_MINUTES === 0;
+    const realtime = fullRefresh ? new Set<string>() : new Set(await this.store.realtimeFreshCodes(new Date(at.getTime() - 90_000)));
+    const codes = (await this.universe.execute()).filter((code) => !realtime.has(code));
     const facts: KrStockQuoteFact[] = [];
     let consecutive = 0;
     let failed = 0;

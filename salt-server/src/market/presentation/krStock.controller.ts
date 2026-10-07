@@ -61,6 +61,34 @@ export class KrStockController {
     }
   };
 
+  /**
+   * 실시간 체결 SSE — `event: tick` `[{ code, price, change, changeRate, volume, at }]` · 15초 하트비트.
+   * 연결이 끊기면 구독을 푼다(`ddd-presentation.md` §6)
+   */
+  stream = (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const kr = this.enabled();
+      kr.assertViewer(this.viewer(req));
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      });
+      res.write(`event: status\ndata: ${JSON.stringify(kr.realtime.status())}\n\n`);
+      const unlisten = kr.realtime.listen((events) => {
+        res.write(`event: tick\ndata: ${JSON.stringify(events)}\n\n`);
+      });
+      const heartbeat = setInterval(() => res.write(`: hb\n\n`), 15_000);
+      req.on("close", () => {
+        clearInterval(heartbeat);
+        unlisten();
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   chart = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { code } = krCodeParamSchema.parse(req.params);

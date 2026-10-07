@@ -94,6 +94,23 @@ export const createKrStockRouter = (useCases: KrStockUseCases | null): Router =>
 
   /**
    * @swagger
+   * /api/market/kr/stream:
+   *   get:
+   *     summary: 국내 주식 실시간 체결 SSE — 소유자 전용
+   *     description: |
+   *       `event: status` 한 번(`{ state, subscribed, lastTickAt }`) 뒤 `event: tick` 으로 체결 배열
+   *       `[{ code, price, change, changeRate, volume, at }]`. 15초마다 주석 하트비트. 정규장 밖에는 체결이 없다.
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     responses:
+   *       200: { description: "text/event-stream" }
+   *       404: { description: 소유자가 아님 }
+   *       503: { description: KIS 키 없음 }
+   */
+  router.get("/stream", controller.stream);
+
+  /**
+   * @swagger
    * /api/market/kr/{code}:
    *   get:
    *     summary: 국내 주식 상세 — 현재가 + PER/PBR · 52주 · 외국인 소진율 · 호가 단위

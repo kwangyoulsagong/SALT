@@ -37,6 +37,7 @@ import { createMarketApplication } from "./market/application/api";
 import { FearGreedClient } from "./market/infrastructure/FearGreedClient";
 import { KisClient } from "./market/infrastructure/KisClient";
 import { KisMasterFile } from "./market/infrastructure/KisMasterFile";
+import { KisRealtimeClient } from "./market/infrastructure/KisRealtimeClient";
 import { PrismaKrMarketCalendarStore, PrismaKrStockStore } from "./market/infrastructure/PrismaKrStockStore";
 import { PrismaIndicatorRepository } from "./market/infrastructure/PrismaIndicatorRepository";
 import { PrismaMarketAssetRepository } from "./market/infrastructure/PrismaMarketAssetRepository";
@@ -118,10 +119,19 @@ const upbit = new UpbitClient();
  * 국내 주식(F011) — 키가 없으면 통째로 꺼진다(FR-6). KIS 클라이언트도 한 벌: 한도(앱 키 단위)를
  * 페이서 하나가 지킨다
  */
-const krStock =
+const kis =
   env.KIS_APP_KEY && env.KIS_APP_SECRET
+    ? new KisClient({ appKey: env.KIS_APP_KEY, appSecret: env.KIS_APP_SECRET, baseUrl: env.KIS_BASE_URL, requestsPerSecond: env.KIS_REQUESTS_PER_SECOND })
+    : null;
+const krStock =
+  kis
     ? {
-        kis: new KisClient({ appKey: env.KIS_APP_KEY, appSecret: env.KIS_APP_SECRET, baseUrl: env.KIS_BASE_URL, requestsPerSecond: env.KIS_REQUESTS_PER_SECOND }),
+        kis,
+        realtime: new KisRealtimeClient({
+          url: env.KIS_WS_URL,
+          approvalKey: (force) => kis.approvalKey(force),
+          secrets: [env.KIS_APP_KEY, env.KIS_APP_SECRET],
+        }),
         master: new KisMasterFile(),
         store: new PrismaKrStockStore(),
         calendar: new PrismaKrMarketCalendarStore(),

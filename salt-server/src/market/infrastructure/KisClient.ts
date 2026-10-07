@@ -31,6 +31,8 @@ export const KIS_QUERY_TR = {
   inquirePrice: "FHKST01010100",
   /** 국내주식 기간별 시세(일/주/월/년) — 한 번에 최대 100건 */
   dailyItemChart: "FHKST03010100",
+  /** 주식당일분봉조회 — 1분봉, 한 번에 최대 30건 · 당일만. 5분봉 대조 · 장 마감 보정(FR-21) */
+  intradayMinutes: "FHKST03010200",
   /** 국내 휴장일 조회 — KIS 권고 "가급적 1일 1회" */
   holiday: "CTCA0903R",
 } as const;
@@ -204,6 +206,33 @@ export class KisClient implements KrStockQuotePort {
       });
   }
 
+  /**
+   * 당일 1분봉 — `hhmmss` 이전 30개(최신이 앞). 봉 시각은 그 분의 시작(KST → UTC).
+   * 5분봉 대조와 장 마감 보정에 쓴다 — 실시간 집계가 놓친 버킷을 채우는 근거다
+   */
+  async intradayMinuteCandles(code: string, hhmmss: string): Promise<Candle[]> {
+    const body = await this.get(
+      "/uapi/domestic-stock/v1/quotations/inquire-time-itemchartprice",
+      KIS_QUERY_TR.intradayMinutes,
+      {
+        FID_ETC_CLS_CODE: "",
+        FID_COND_MRKT_DIV_CODE: "J",
+        FID_INPUT_ISCD: code,
+        FID_INPUT_HOUR_1: hhmmss,
+        FID_PW_DATA_INCU_YN: "N",
+      }
+    );
+    const rows: any[] = Array.isArray(body.output2) ? body.output2 : [];
+    return rows.flatMap((row) => {
+      const date = row?.stck_bsop_date;
+      const time = row?.stck_cntg_hour;
+      const [open, high, low, close] = [row.stck_oprc, row.stck_hgpr, row.stck_lwpr, row.stck_prpr].map(num);
+      if (typeof date !== "string" || typeof time !== "string" || !open || !high || !low || !close) return [];
+      const at = new Date(`${isoDate(date)}T${time.slice(0, 2)}:${time.slice(2, 4)}:00+09:00`);
+      return [{ open, high, low, close, volume: num(row.cntg_vol), timestamp: at }];
+    });
+  }
+
   async marketDays(baseDate: string): Promise<KrMarketDay[]> {
     const body = await this.get("/uapi/domestic-stock/v1/quotations/chk-holiday", KIS_QUERY_TR.holiday, {
       BASS_DT: compactDate(baseDate),
@@ -301,6 +330,44 @@ export class KisClient implements KrStockQuotePort {
 
   private mask(text: string) {
     return maskKisSecrets(text, [this.options.appKey, this.options.appSecret, this.cached?.token]);
+  }
+
+  // ==================== WS 승인키 (FR-25) ====================
+
+  /**
+   * 실시간 접속 승인키. 토큰과 같은 표(`tokenType = approval`)에 캐시한다 — 유효 기간이 문서에 없어(근거 [약])
+   * 12시간 뒤 새로 받는다. `force` 는 재접속이 거부됐을 때
+   */
+  async approvalKey(force = false): Promise<string> {
+    const where = { provider_tokenType: { provider: "kis", tokenType: "approval" } };
+    if (!force) {
+      const stored = await prisma.externalApiToken.findUnique({ where });
+      if (stored && stored.expiresAt.getTime() > this.now().getTime()) return stored.token;
+    }
+    try {
+      const response = await this.pacer.run(() =>
+        this.http.post("/oauth2/Approval", {
+          grant_type: "client_credentials",
+          appkey: this.options.appKey,
+          secretkey: this.options.appSecret,
+        })
+      );
+      const key = response.data?.approval_key;
+      if (typeof key !== "string") {
+        throw new KisApiError(response.status, response.data?.msg_cd, this.describe("Approval", response.status, response.data));
+      }
+      const issuedAt = this.now();
+      const expiresAt = new Date(issuedAt.getTime() + 12 * 3_600_000);
+      await prisma.externalApiToken.upsert({
+        where,
+        update: { token: key, issuedAt, expiresAt },
+        create: { provider: "kis", tokenType: "approval", token: key, issuedAt, expiresAt },
+      });
+      logger.info("🔑 KIS 실시간 승인키 발급");
+      return key;
+    } catch (error) {
+      throw this.sanitize("Approval", error);
+    }
   }
 
   // ==================== 토큰 (FR-2) ====================

@@ -11,6 +11,7 @@ import type {
   KrStockListing,
   KrStockQuoteFact,
   KrStockStore,
+  KrTick,
   StoredKrStockQuote,
 } from "../domain";
 
@@ -117,7 +118,11 @@ export class PrismaKrStockStore implements KrStockStore {
         status_code = EXCLUDED.status_code, warn_code = EXCLUDED.warn_code, is_halted = EXCLUDED.is_halted,
         per = EXCLUDED.per, pbr = EXCLUDED.pbr, eps = EXCLUDED.eps, bps = EXCLUDED.bps,
         week52_high = EXCLUDED.week52_high, week52_low = EXCLUDED.week52_low,
-        foreign_rate = EXCLUDED.foreign_rate, feed = EXCLUDED.feed, price_updated_at = EXCLUDED.price_updated_at`;
+        foreign_rate = EXCLUDED.foreign_rate, price_updated_at = EXCLUDED.price_updated_at,
+        -- 실시간이 90초 안에 쓴 종목은 폴링 보충(5분마다)이 출처 표시를 되돌리지 않는다
+        feed = CASE WHEN kr_stock_quotes.feed = 'realtime'
+                     AND kr_stock_quotes.price_updated_at > EXCLUDED.price_updated_at - interval '90 seconds'
+                    THEN 'realtime' ELSE EXCLUDED.feed END`;
   }
 
   async quotes(query: { codes?: string[]; limit: number; offset: number }) {
@@ -178,6 +183,52 @@ export class PrismaKrStockStore implements KrStockStore {
       ) AS u(open, high, low, close, volume, ts)
       ON CONFLICT (symbol, timeframe, timestamp) DO UPDATE SET
         open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume`;
+  }
+
+  /**
+   * 실시간 체결의 최신 값. 행이 없는 종목(폴링 전)은 건너뛴다 — 상하한 · 기준가 같은 필수 칸을 체결이 주지
+   * 않아서 새 행을 만들 수 없다. 1초 회차 한 문장
+   */
+  async applyTicks(ticks: KrTick[], at: Date) {
+    if (ticks.length === 0) return;
+    const col = <T,>(pick: (t: KrTick) => T) => ticks.map(pick);
+    await prisma.$executeRaw`
+      UPDATE kr_stock_quotes q SET
+        price = u.price, change = u.change, change_rate = u.change_rate, volume = u.volume, trade_value = u.trade_value,
+        is_halted = u.is_halted, feed = 'realtime', price_updated_at = (${at}::timestamptz AT TIME ZONE 'UTC')
+      FROM unnest(
+        ${col((t) => t.code)}::text[], ${col((t) => t.price)}::numeric[], ${col((t) => t.change)}::numeric[],
+        ${col((t) => t.changeRate)}::numeric[], ${col((t) => t.accVolume)}::bigint[], ${col((t) => t.accTradeValue)}::numeric[],
+        ${col((t) => t.isHalted)}::boolean[]
+      ) AS u(code, price, change, change_rate, volume, trade_value, is_halted)
+      WHERE q.code = u.code`;
+  }
+
+  async upsertMinuteCandles(bars: Array<{ code: string; candle: Candle }>) {
+    if (bars.length === 0) return;
+    const col = <T,>(pick: (b: { code: string; candle: Candle }) => T) => bars.map(pick);
+    await prisma.$executeRaw`
+      INSERT INTO price_history (id, symbol, asset_type, timeframe, open, high, low, close, volume, timestamp)
+      SELECT gen_random_uuid()::text, u.code, 'kr_stock'::"AssetType", '5m', u.open, u.high, u.low, u.close, u.volume,
+        u.ts AT TIME ZONE 'UTC'
+      FROM unnest(
+        ${col((b) => b.code)}::text[], ${col((b) => b.candle.open)}::numeric[], ${col((b) => b.candle.high)}::numeric[],
+        ${col((b) => b.candle.low)}::numeric[], ${col((b) => b.candle.close)}::numeric[],
+        ${col((b) => b.candle.volume)}::numeric[], ${col((b) => b.candle.timestamp)}::timestamptz[]
+      ) AS u(code, open, high, low, close, volume, ts)
+      -- 병합: 프로세스가 버킷 중간에 재시작하면 메모리 봉은 그 뒤 체결만 갖는다. 덮어쓰면 앞부분이 사라지므로
+      -- 시가는 먼저 쓴 값, 고 · 저는 넓은 쪽, 거래량은 큰 쪽(같은 프로세스 안에서는 늘기만 한다)
+      ON CONFLICT (symbol, timeframe, timestamp) DO UPDATE SET
+        high = GREATEST(price_history.high, EXCLUDED.high), low = LEAST(price_history.low, EXCLUDED.low),
+        close = EXCLUDED.close, volume = GREATEST(price_history.volume, EXCLUDED.volume)`;
+  }
+
+  async realtimeFreshCodes(since: Date) {
+    const rows = await prisma.krStockQuote.findMany({
+      where: { feed: "realtime", priceUpdatedAt: { gte: since } },
+      select: { code: true },
+    });
+    return rows.map((row) => row.code);
   }
 
   /** 최신 n 개를 시간 오름차순으로 — `(symbol, timeframe, timestamp)` 인덱스 역순 스캔 */
