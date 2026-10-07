@@ -2,6 +2,7 @@ import { logger } from "../../shared/config/logger";
 import {
   KrMinuteBarBuilder,
   isKrQuoteWindow,
+  krFiveMinuteBucket,
   type KrMarketCalendarStore,
   type KrRealtimePort,
   type KrRealtimeState,
@@ -32,7 +33,7 @@ const FLUSH_MS = 1_000;
 /**
  * 국내 주식 실시간(F011 슬라이스 1 · `SRV-REQ-040` FR-24 · 25).
  *
- * 워커가 매분 `reconcile` 을 부른다 — 08:30~18:00 KST 개장일이면 붙어 있고 슬롯(관심 → 시총 순 41)을 맞추고,
+ * 워커가 매분 `reconcile` 을 부른다 — 08:30~16:00 KST 개장일이면 붙어 있고 슬롯(관심 → 시총 순 41)을 맞추고,
  * 그 밖이면 끊는다. 체결은 메모리에 최신 값만 두고 **1초마다 한 번** 배치로 쓴다(현재가 · 5분봉).
  * SSE 구독자에게는 체결마다 바로 흘린다.
  */
@@ -84,7 +85,11 @@ export class RunKrRealtime {
     return () => this.listeners.delete(listener);
   }
 
-  private onTicks(ticks: KrTick[]) {
+  private onTicks(all: KrTick[]) {
+    // 정규장(09:00~15:30) 체결만 — 16:00~18:00 시간외 단일가 체결도 같은 TR 로 온다(2026-10-07 실측). 그것으로 현재가를
+    // 덮으면 정규장 종가 · 등락률이 시간외 값이 된다(FR-27: 섞지 않는다 — 시간외는 별도 필드, 슬라이스 6)
+    const ticks = all.filter((tick) => krFiveMinuteBucket(tick.at) !== null);
+    if (ticks.length === 0) return;
     for (const tick of ticks) {
       this.latest.set(tick.code, tick);
       this.bars.add(tick);

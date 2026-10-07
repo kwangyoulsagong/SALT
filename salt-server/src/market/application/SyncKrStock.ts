@@ -190,7 +190,7 @@ const OFF_REGULAR_EVERY_MINUTES = 5;
  * 현재가 1분 폴링(FR-23). 워커는 매분 부르고, **부를지 말지는 여기서** 장 상태로 정한다.
  *
  * - 정규장(09:00~15:30) — 매분
- * - 장전 · 시간외(08:30~09:00 · 15:30~18:00) — 5분마다
+ * - 장전 · 장후 시간외 종가(08:30~09:00 · 15:30~16:00) — 5분마다
  * - 그 밖 — 건너뛴다. 단 **프로세스가 뜬 뒤 한 번은** 받는다(빈 표로 시작하지 않게, 마감 값 확정)
  *
  * 받은 값을 회차 끝에 한 번에 쓴다. 실패한 종목은 이전 값이 남는다 — 빈 값으로 덮지 않는다(FR-90).
@@ -213,7 +213,9 @@ export class PollKrStockQuotes {
     const regular = session.session === "regular" || session.session === "closing_auction";
     const due = regular || (isKrQuoteWindow(session) && minute % OFF_REGULAR_EVERY_MINUTES === 0);
 
-    if (!due && this.polledOnce) return { skipped: true as const, session: session.session };
+    // 기동 직후 한 번은 받되, 시간외 단일가 중이면 받지 않는다 — 그 시간 현재가는 시간외 값이다(isKrQuoteWindow)
+    const bootFill = !this.polledOnce && session.session !== "after_hours_single";
+    if (!due && !bootFill) return { skipped: true as const, session: session.session };
     this.polledOnce = true;
 
     // 실시간 값이 90초 안에 들어온 종목은 체결이 이미 현재가를 준다 — 상하한 · PER 같은 나머지 칸만 5분마다 채운다

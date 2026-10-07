@@ -18,7 +18,7 @@ import { schedule } from "../shared/infrastructure/scheduler";
  * | `kr-minute-bars` | 평일 15:40 · 20:40 | 오늘 5분봉을 KIS 분봉으로 덮어씀 + 지난 30일 빈 날 백필(회차 1,200 호출 상한) |
  * | `kr-quote-poll` | 매분 | 부를지는 유스케이스가 장 상태로 정한다(정규장 매분 · 장전/시간외 5분) |
  * | `kr-provider-metrics` | 10분 | TR 별 호출 · 실패 · 초과 · 오늘 토큰 발급 수(FR-94) |
- * | `kr-realtime` | 매분 | 08:30~18:00 개장일이면 WS 를 붙이고 슬롯을 맞춘다 · 밖이면 끊는다(슬라이스 1) |
+ * | `kr-realtime` | 매분 | 08:30~16:00 개장일이면 WS 를 붙이고 슬롯을 맞춘다 · 밖이면 끊는다(시간외 단일가는 슬라이스 6) |
  */
 const TZ = "Asia/Seoul";
 

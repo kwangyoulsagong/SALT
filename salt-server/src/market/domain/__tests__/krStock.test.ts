@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   KR_QUOTE_STALE_MS,
+  isKrQuoteWindow,
   krFeedState,
   krLimitState,
   krMarketSession,
@@ -97,3 +98,15 @@ describe("상태 배지 · 상하한 · 지연 — 서버가 판정한다(FR-43 
     assert.equal(krFeedState({ feed: "poll_1m", priceUpdatedAt: old }, kst("2026-10-07T14:00:00"), krMarketSession(kst("2026-10-07T14:00:00"), calendar)), "stale");
   });
 });
+
+describe("isKrQuoteWindow — 시세 받는 창 08:30~16:00 (시간외 단일가 제외)", () => {
+  const calendar = new Map([["2026-10-07", true]]);
+  const at = (hhmm: string) => isKrQuoteWindow(krMarketSession(kst(`2026-10-07T${hhmm}:00`), calendar));
+
+  it("장전 · 정규장 · 동시호가 · 장후 시간외 종가는 받고, 16:00 시간외 단일가부터는 받지 않는다", () => {
+    assert.deepEqual(["08:20", "08:30", "10:00", "15:25", "15:45", "16:00", "17:59", "18:30"].map(at), [
+      false, true, true, true, true, false, false, false,
+    ]);
+  });
+});
+

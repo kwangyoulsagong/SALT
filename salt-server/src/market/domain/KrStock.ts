@@ -275,9 +275,19 @@ export const krMarketSession = (
   };
 };
 
-/** 시세를 1분마다 받을 시간대인가 — 장전 동시호가 ~ 시간외 단일가(FR-25 와 같은 창) */
+/**
+ * 시세를 받을 시간대인가 — 장전 동시호가 ~ 장후 시간외 종가(08:30~16:00).
+ *
+ * **시간외 단일가(16:00~18:00)는 뺀다.** 그 시간 실시간 체결(`H0STCNT0`)과 현재가 조회가 시간외 체결값을 준다
+ * (2026-10-07 실측: 삼성전자 15:30 종가 체결 268,500 · 16:3x 현재가 조회 270,500 · 16:2x 당일 일봉 270,000 —
+ * 지난 날은 일봉 = 15:30 체결). 받으면 정규장 종가 · 등락률이 시간외 값으로 덮인다(FR-27 은 섞지 않는다 — 시간외는
+ * 별도 필드, 슬라이스 6). 기획 FR-25 의 18:00 은 그 슬라이스에서 별도 필드와 함께 연다
+ */
 export const isKrQuoteWindow = (view: KrSessionView): boolean =>
-  view.session !== "closed" && view.session !== "holiday";
+  view.session === "pre_open" ||
+  view.session === "regular" ||
+  view.session === "closing_auction" ||
+  view.session === "after_hours_close";
 
 // ==================== 호가 단위 (FR-42) ====================
 
