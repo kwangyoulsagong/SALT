@@ -45,6 +45,19 @@ export const createKrStockRouter = (useCases: KrStockUseCases | null): Router =>
    *                     lastCloseAt: { type: string, format: date-time, nullable: true }
    *                     nextOpenAt: { type: string, format: date-time, nullable: true }
    *                     calendarKnown: { type: boolean }
+   *                     provider:
+   *                       type: object
+   *                       description: KIS 상태(FR-92) — degraded 는 진짜 실패 5회 연속(초과 응답은 세지 않는다)
+   *                       properties:
+   *                         status: { type: string, enum: [ok, degraded] }
+   *                         since: { type: string, format: date-time, nullable: true }
+   *                         lastSuccessAt: { type: string, format: date-time, nullable: true }
+   *                         realtime:
+   *                           type: object
+   *                           properties:
+   *                             state: { type: string, enum: [idle, connecting, open, backoff, degraded] }
+   *                             subscribed: { type: integer }
+   *                             lastTickAt: { type: string, format: date-time, nullable: true }
    *       401: { description: 인증 실패 }
    *       404: { description: 소유자가 아님 }
    *       503: { description: KIS 키 없음 — 국내 주식 꺼짐 }

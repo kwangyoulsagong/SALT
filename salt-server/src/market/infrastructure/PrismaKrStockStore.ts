@@ -231,6 +231,41 @@ export class PrismaKrStockStore implements KrStockStore {
     return rows.map((row) => row.code);
   }
 
+  async minuteBarCoverage(codes: string[], from: string) {
+    const coverage = new Map<string, Map<string, { count: number; hasClose: boolean }>>();
+    if (codes.length === 0) return coverage;
+    const rows = await prisma.$queryRaw<Array<{ symbol: string; d: Date; n: number; has_close: boolean }>>`
+      SELECT symbol, k::date AS d, count(*)::int AS n, bool_or(k::time = '15:25') AS has_close
+      FROM (
+        SELECT symbol, (timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') AS k
+        FROM price_history
+        WHERE asset_type = 'kr_stock' AND timeframe = '5m' AND symbol = ANY(${codes}::text[])
+          AND timestamp >= (${from}::date - interval '1 day')
+      ) x
+      GROUP BY symbol, k::date`;
+    for (const row of rows) {
+      const byDate = coverage.get(row.symbol) ?? new Map();
+      byDate.set(row.d.toISOString().slice(0, 10), { count: row.n, hasClose: row.has_close });
+      coverage.set(row.symbol, byDate);
+    }
+    return coverage;
+  }
+
+  async replaceMinuteCandles(code: string, candles: Candle[]) {
+    if (candles.length === 0) return;
+    const col = <T,>(pick: (c: Candle) => T) => candles.map(pick);
+    await prisma.$executeRaw`
+      INSERT INTO price_history (id, symbol, asset_type, timeframe, open, high, low, close, volume, timestamp)
+      SELECT gen_random_uuid()::text, ${code}, 'kr_stock'::"AssetType", '5m', u.open, u.high, u.low, u.close, u.volume,
+        u.ts AT TIME ZONE 'UTC'
+      FROM unnest(
+        ${col((c) => c.open)}::numeric[], ${col((c) => c.high)}::numeric[], ${col((c) => c.low)}::numeric[],
+        ${col((c) => c.close)}::numeric[], ${col((c) => c.volume)}::numeric[], ${col((c) => c.timestamp)}::timestamptz[]
+      ) AS u(open, high, low, close, volume, ts)
+      ON CONFLICT (symbol, timeframe, timestamp) DO UPDATE SET
+        open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume`;
+  }
+
   /** 최신 n 개를 시간 오름차순으로 — `(symbol, timeframe, timestamp)` 인덱스 역순 스캔 */
   async candles(code: string, timeframe: "1d" | "5m", count: number) {
     const rows = await prisma.priceHistory.findMany({

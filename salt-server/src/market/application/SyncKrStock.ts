@@ -1,11 +1,15 @@
 import { logger } from "../../shared/config/logger";
 import { mapConcurrent } from "../../shared/lib";
 import {
+  KR_FIVE_MINUTE_BUCKETS_PER_DAY,
+  KR_TOKEN_ISSUE_WARN_PER_DAY,
   addKstDays,
+  krMinutesToFiveMinute,
   isKrQuoteWindow,
   krMarketSession,
   kstDateOf,
   type KrMarketCalendarStore,
+  type KrProviderHealthPort,
   type KrSessionView,
   type KrStockMasterSource,
   type KrStockQuoteFact,
@@ -240,5 +244,110 @@ export class PollKrStockQuotes {
 
     await this.store.upsertQuotes(facts, "poll_1m", this.now());
     return { skipped: false as const, session: session.session, codes: codes.length, updated: facts.length, failed };
+  }
+}
+
+/**
+ * KIS 관측 지표(FR-94) — 10분마다 TR 별 호출 · 실패 · 초과 수를 한 줄로 남긴다. 토큰 발급이 하루 3회를 넘으면 경고
+ * (재시작이 발급을 늘리면 DB 캐시가 깨진 것이다). 지표 저장소가 없어 로그가 지표다
+ */
+export class ReportKrProviderMetrics {
+  constructor(private readonly health: KrProviderHealthPort) {}
+
+  execute() {
+    const { byTr, tokensIssuedToday } = this.health.drainMetrics();
+    const snapshot = this.health.snapshot();
+    const parts = Object.entries(byTr).map(([tr, m]) => `${tr} ${m.calls}/${m.failures}/${m.rateLimited}`);
+    logger.info(
+      `📊 KIS 10분(호출/실패/초과): ${parts.join(" · ") || "호출 없음"} · 상태 ${snapshot.status} · 연속 실패 ${snapshot.consecutiveFailures} · 오늘 토큰 ${tokensIssuedToday}`
+    );
+    if (tokensIssuedToday > KR_TOKEN_ISSUE_WARN_PER_DAY) {
+      logger.warn(`KIS 접근 토큰이 오늘 ${tokensIssuedToday}회 발급됐다 — DB 캐시를 확인한다`);
+    }
+    return { byTr, tokensIssuedToday, status: snapshot.status };
+  }
+}
+
+/**
+ * 5분봉 보관 — 코인과 같은 30일. 정리 작업(`CollectPriceHistory.purgeOlderThan`)이 자산군 구분 없이 5분봉 30일을 지운다.
+ * 기획의 "1년 백필"은 보관 정책과 어긋나 30일로 맞췄다(기획 정정 — 코인과 같은 기능)
+ */
+const MINUTE_BACKFILL_DAYS = 30;
+/** 한 회차 KIS 호출 상한 — 실측 처리량 약 2건/s 에서 10분 남짓. 남은 날은 다음 회차가 잇는다 */
+const MINUTE_CALLS_PER_RUN = 1_200;
+/** 하루 1분봉 390개 = 120 × 4 페이지 */
+const MINUTE_PAGES_PER_DAY = 4;
+/** 이만큼 있고 종가 봉(15:25)이 있으면 그날은 채워진 것으로 본다 — 체결 없는 5분이 드물게 있다 */
+const MINUTE_DAY_COMPLETE = KR_FIVE_MINUTE_BUCKETS_PER_DAY - 8;
+
+/**
+ * 5분봉 장 마감 보정 · 백필(FR-21). 평일 15:40 KST.
+ *
+ * - **오늘**(개장일 · 15:35 뒤): 실시간 집계를 KIS 1분봉에서 만든 5분봉으로 덮어쓴다 — 재시작 · 끊김으로 빈 버킷과
+ *   슬롯 밖 종목(실시간 집계가 없다)을 채운다
+ * - **지난 30일**: 종가 봉이 없거나 봉이 모자란 날만, 최신 날부터. 회차 호출 상한을 넘으면 다음 회차가 잇는다
+ */
+export class SyncKrMinuteBars {
+  constructor(
+    private readonly kis: KrStockQuotePort,
+    private readonly store: KrStockStore,
+    private readonly calendar: KrMarketCalendarStore,
+    private readonly universe: ResolveKrStockUniverse,
+    private readonly now: () => Date = () => new Date()
+  ) {}
+
+  async execute() {
+    const at = this.now();
+    const today = kstDateOf(at);
+    const kstMinutes = Math.floor(((at.getTime() + 9 * 3_600_000) % 86_400_000) / 60_000);
+    const from = addKstDays(today, -MINUTE_BACKFILL_DAYS);
+    const openDays = (await this.calendar.days(from, today))
+      .filter((d) => d.isOpen && (d.date < today || kstMinutes >= 15 * 60 + 35))
+      .map((d) => d.date)
+      .sort()
+      .reverse();
+    const codes = await this.universe.execute();
+    const coverage = await this.store.minuteBarCoverage(codes, from);
+
+    const work: Array<{ code: string; date: string }> = [];
+    for (const date of openDays) {
+      for (const code of codes) {
+        const c = coverage.get(code)?.get(date);
+        if (date === today || !c || !c.hasClose || c.count < MINUTE_DAY_COMPLETE) work.push({ code, date });
+      }
+    }
+
+    let calls = 0;
+    let days = 0;
+    let bars = 0;
+    let failed = 0;
+    const budget = Math.floor(MINUTE_CALLS_PER_RUN / MINUTE_PAGES_PER_DAY);
+    await mapConcurrent(work.slice(0, budget), KIS_CONCURRENCY, async ({ code, date }) => {
+      try {
+        const minutes = [];
+        let cursor = "153100";
+        for (let page = 0; page < MINUTE_PAGES_PER_DAY; page++) {
+          const batch = await this.kis.dayMinuteCandles(code, date, cursor);
+          calls++;
+          if (batch.length === 0) break;
+          minutes.push(...batch);
+          const earliest = batch.reduce((a, b) => (a.timestamp < b.timestamp ? a : b)).timestamp;
+          const kst = new Date(earliest.getTime() + 9 * 3_600_000 - 60_000);
+          if (kst.getUTCHours() < 9) break;
+          cursor = kst.toISOString().slice(11, 19).replaceAll(":", "");
+        }
+        const fiveMinute = krMinutesToFiveMinute(minutes);
+        await this.store.replaceMinuteCandles(code, fiveMinute);
+        bars += fiveMinute.length;
+        days++;
+      } catch (error) {
+        failed++;
+        logger.warn(`국내 주식 5분봉 보정 실패 — ${code} ${date}: ${(error as Error).message}`);
+      }
+    });
+
+    const remaining = Math.max(0, work.length - budget);
+    logger.info(`🧱 국내 주식 5분봉 보정: 종목·일 ${days} · 호출 ${calls} · 봉 ${bars} · 실패 ${failed} · 남은 ${remaining}`);
+    return { days, calls, bars, failed, remaining };
   }
 }

@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { describe, it } from "node:test";
 
-import { KIS_QUERY_TR, assertQueryTr, maskKisSecrets } from "../KisClient";
+import { KIS_QUERY_TR, KisClient, assertQueryTr, maskKisSecrets } from "../KisClient";
 import { parseMasterFile } from "../KisMasterFile";
 
 describe("KIS 조회 TR 허용 목록 — 주문 · 계좌 경로 0건 (F011 FR-3 · 공통 수용 기준 2)", () => {
@@ -63,3 +63,40 @@ describe("종목 마스터 고정폭 파서 (FR-10)", () => {
     assert.deepEqual(row.listedAt, new Date("1975-06-11T00:00:00Z"));
   });
 });
+
+describe("KIS 상태 · 지표 (FR-92 · 94)", () => {
+  // 호출 결과 집계만 본다 — 네트워크 없이 내부 기록 함수를 부른다
+  const client = () => new KisClient({ appKey: "k", appSecret: "s", baseUrl: "http://127.0.0.1:9" });
+  const rec = (c: KisClient, tr: string, outcome: "ok" | "fail" | "rate") =>
+    (c as unknown as { record: (t: string, o: string) => void }).record(tr, outcome);
+
+  it("진짜 실패 5회 연속이면 degraded, 성공 한 번이면 ok 로 돌아온다", () => {
+    const c = client();
+    for (let i = 0; i < 4; i++) rec(c, "FHKST01010100", "fail");
+    assert.equal(c.snapshot().status, "ok");
+    rec(c, "FHKST01010100", "fail");
+    assert.equal(c.snapshot().status, "degraded");
+    assert.ok(c.snapshot().since);
+    rec(c, "FHKST01010100", "ok");
+    assert.equal(c.snapshot().status, "ok");
+    assert.equal(c.snapshot().consecutiveFailures, 0);
+  });
+
+  it("초과 응답은 장애로 세지 않는다 — 감속이 처리한다", () => {
+    const c = client();
+    for (let i = 0; i < 10; i++) rec(c, "FHKST01010100", "rate");
+    assert.equal(c.snapshot().status, "ok");
+  });
+
+  it("지표는 TR 별로 세고 drain 하면 비워진다", () => {
+    const c = client();
+    rec(c, "FHKST01010100", "ok");
+    rec(c, "FHKST01010100", "rate");
+    rec(c, "FHKST03010100", "fail");
+    const { byTr } = c.drainMetrics();
+    assert.deepEqual(byTr.FHKST01010100, { calls: 2, failures: 0, rateLimited: 1 });
+    assert.deepEqual(byTr.FHKST03010100, { calls: 1, failures: 1, rateLimited: 0 });
+    assert.deepEqual(c.drainMetrics().byTr, {});
+  });
+});
+

@@ -15,7 +15,9 @@ import { schedule } from "../shared/infrastructure/scheduler";
  * | `kr-master-sync` | 매일 07:30 | 마스터는 영업일 장전 갱신(근거 [약]) |
  * | `kr-calendar-sync` | 평일 09:10 | KIS 휴장일 조회(권고 1일 1회) — 거부되면 일봉 역산 + 오늘 개장 관측 |
  * | `kr-daily-candles` | 평일 15:45 | 정규장 15:30 마감 + 정정 여유 |
+ * | `kr-minute-bars` | 평일 15:40 · 20:40 | 오늘 5분봉을 KIS 분봉으로 덮어씀 + 지난 30일 빈 날 백필(회차 1,200 호출 상한) |
  * | `kr-quote-poll` | 매분 | 부를지는 유스케이스가 장 상태로 정한다(정규장 매분 · 장전/시간외 5분) |
+ * | `kr-provider-metrics` | 10분 | TR 별 호출 · 실패 · 초과 · 오늘 토큰 발급 수(FR-94) |
  * | `kr-realtime` | 매분 | 08:30~18:00 개장일이면 WS 를 붙이고 슬롯을 맞춘다 · 밖이면 끊는다(슬라이스 1) |
  */
 const TZ = "Asia/Seoul";
@@ -31,8 +33,12 @@ export const startKrStockWorkers = () => {
     { name: "kr-master-sync", expression: "30 7 * * *", run: () => kr.syncMaster.execute() },
     { name: "kr-calendar-sync", expression: "10 9 * * 1-5", run: () => kr.syncCalendar.execute() },
     { name: "kr-daily-candles", expression: "45 15 * * 1-5", run: () => kr.syncDailyCandles.execute() },
+    // 장 마감 보정 · 30일 백필 — 호출 상한에 걸리면 다음 회차(밤 · 다음 날)가 잇는다
+    { name: "kr-minute-bars", expression: "40 15,20 * * 1-5", run: () => kr.syncMinuteBars.execute() },
     { name: "kr-quote-poll", expression: "* * * * *", run: () => kr.pollQuotes.execute() },
     { name: "kr-realtime", expression: "* * * * *", run: () => kr.realtime.reconcile() },
+    // 관측 지표(FR-94) — 로그가 지표다
+    { name: "kr-provider-metrics", expression: "*/10 * * * *", run: async () => kr.reportMetrics.execute() },
   ];
   for (const job of jobs) schedule(job.name, job.expression, () => job.run().then(() => undefined), { timezone: TZ });
 

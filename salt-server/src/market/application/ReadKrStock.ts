@@ -50,6 +50,13 @@ export interface KrStockQuoteView {
   priceUpdatedAt: string;
 }
 
+export interface KrProviderView {
+  status: "ok" | "degraded";
+  since: string | null;
+  lastSuccessAt: string | null;
+  realtime: { state: string; subscribed: number; lastTickAt: string | null };
+}
+
 export interface KrSessionResponse {
   session: KrSessionView["session"];
   now: string;
@@ -103,6 +110,8 @@ export interface KrStockReadDependencies {
   store: KrStockStore;
   calendar: KrMarketCalendarStore;
   viewerEmails: readonly string[];
+  /** KIS 상태(FR-92) — 화면의 "시세 제공 지연 중 · {since}" 근거 */
+  provider: () => KrProviderView;
   now?: () => Date;
 }
 
@@ -117,10 +126,10 @@ abstract class KrStockRead {
 }
 
 export class GetKrMarketSession extends KrStockRead {
-  async execute(viewer: KrStockViewer): Promise<KrSessionResponse> {
+  async execute(viewer: KrStockViewer): Promise<KrSessionResponse & { provider: KrProviderView }> {
     this.access.assert(viewer);
     const now = this.now();
-    return toSessionResponse(await loadKrSession(this.deps.calendar, now), now);
+    return { ...toSessionResponse(await loadKrSession(this.deps.calendar, now), now), provider: this.deps.provider() };
   }
 }
 

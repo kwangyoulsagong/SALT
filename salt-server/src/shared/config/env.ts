@@ -25,13 +25,17 @@ const envSchema = z.object({
    * 한국투자증권 Open API — 국내 주식 **시세 조회 전용**(주문 · 계좌 API 는 부르지 않는다, 공통 수용 기준 2).
    * 키가 없으면 국내 주식 시세는 꺼진다(선택값). 실전 도메인이 기본, 모의는 `KIS_BASE_URL` 로 바꾼다.
    */
-  KIS_APP_KEY: z.string().min(1).optional(),
-  KIS_APP_SECRET: z.string().min(1).optional(),
+  // 빈 값(`KIS_APP_KEY=`)은 "없음" 이다 — `min(1)` 만 두면 빈 줄 하나가 서버 기동을 막는다(F011 FR-6: 꺼진 채 기동)
+  KIS_APP_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  KIS_APP_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   KIS_BASE_URL: z.string().url().default("https://openapi.koreainvestment.com:9443"),
   KIS_WS_URL: z.string().default("ws://ops.koreainvestment.com:21000"),
   /** 국내 주식 시세 수집 유니버스의 시총 상위 N(F011 FR-11) — 관심 종목은 별도로 더한다 */
-  /** KIS 호출 출발 상한(건/s) — 앱 키 한도의 30% 가 기본. 실측 한도가 낮으면 내린다 */
-  KIS_REQUESTS_PER_SECOND: z.coerce.number().positive().max(15).default(6),
+  /**
+   * KIS 호출 출발 상한(건/s). 2026-10-07 실측 — 이 키의 실제 처리량은 설정과 무관하게 약 2건/s 에서 막혔다(동시 1~6 ·
+   * 1.8~10건/s). 3 이 6 과 소요 시간이 거의 같고 초과 재시도가 적어 기본값이다. 실전 한도(20건/s, 근거 [약])가 확인되면 올린다
+   */
+  KIS_REQUESTS_PER_SECOND: z.coerce.number().positive().max(15).default(3),
   KIS_UNIVERSE_TOP_N: z.coerce.number().int().min(0).max(200).default(50),
   /**
    * 활성 계정 상한 (`SRV-REQ-008` FR-6 — **코드 상수 금지**).

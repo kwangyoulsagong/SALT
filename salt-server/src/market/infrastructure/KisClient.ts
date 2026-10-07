@@ -6,7 +6,16 @@ import {
   withRetry,
   type RatePacer,
 } from "../../shared/infrastructure";
-import type { Candle, KrMarketDay, KrStockQuoteFact, KrStockQuotePort } from "../domain";
+import {
+  KR_PROVIDER_DEGRADED_AFTER,
+  kstDateOf,
+  type Candle,
+  type KrMarketDay,
+  type KrProviderHealthPort,
+  type KrProviderSnapshot,
+  type KrStockQuoteFact,
+  type KrStockQuotePort,
+} from "../domain";
 
 /**
  * 한국투자증권 Open API — **국내 주식 시세 조회 전용** (F011 FR-1 · FR-3).
@@ -33,6 +42,8 @@ export const KIS_QUERY_TR = {
   dailyItemChart: "FHKST03010100",
   /** 주식당일분봉조회 — 1분봉, 한 번에 최대 30건 · 당일만. 5분봉 대조 · 장 마감 보정(FR-21) */
   intradayMinutes: "FHKST03010200",
+  /** 주식일별분봉조회 — 1분봉, 한 번에 최대 120건 · 최대 1년 보관. 장 마감 보정 · 과거 5분봉 백필(FR-21) */
+  dailyMinutes: "FHKST03010230",
   /** 국내 휴장일 조회 — KIS 권고 "가급적 1일 1회" */
   holiday: "CTCA0903R",
 } as const;
@@ -88,11 +99,11 @@ const isRetryableKisError = (error: unknown): boolean => {
 };
 
 /**
- * 기본 상한 6건/s — 앱 키 한도 20건/s(근거 등급 [약])의 30%. 실시간 · 백필 · 폴링이 이 한 줄을 나눠 쓴다.
- * 한도는 앱 키 단위라 이 페이서가 프로세스에 하나여야 한다(`composition.ts` 가 한 벌만 만든다).
- * 실측으로 바꿀 수 있게 설정값(`KIS_REQUESTS_PER_SECOND`)이다
+ * 기본 상한 3건/s. 실시간 · 백필 · 폴링이 이 한 줄을 나눠 쓴다. 한도는 앱 키 단위라 이 페이서가 프로세스에 하나여야
+ * 한다(`composition.ts` 가 한 벌만 만든다). 2026-10-07 실측 처리량 상한이 약 2건/s 라 문서상 20건/s 의 30%(6)에서
+ * 내렸다 — 값은 설정(`KIS_REQUESTS_PER_SECOND`)이 정하고 이것은 테스트용 기본이다
  */
-const DEFAULT_REQUESTS_PER_SECOND = 6;
+const DEFAULT_REQUESTS_PER_SECOND = 3;
 
 /**
  * 초당 건수 초과를 받으면 이 프로세스의 KIS 호출 전체를 잠깐 세운다 — 1초에서 시작해 연속이면 두 배, 상한 8초.
@@ -129,7 +140,7 @@ export interface KisClientOptions {
   now?: () => Date;
 }
 
-export class KisClient implements KrStockQuotePort {
+export class KisClient implements KrStockQuotePort, KrProviderHealthPort {
   private readonly http;
   private readonly pacer: RatePacer;
   private readonly now: () => Date;
@@ -138,6 +149,45 @@ export class KisClient implements KrStockQuotePort {
   private cached: { token: string; expiresAt: Date } | null = null;
   private cooldownUntil = 0;
   private cooldownMs = COOLDOWN_BASE_MS;
+  // 관측(FR-92 · 94) — 호출 결과에서만 센다
+  private health: KrProviderSnapshot = { status: "ok", since: null, lastSuccessAt: null, consecutiveFailures: 0 };
+  private metrics: Record<string, { calls: number; failures: number; rateLimited: number }> = {};
+  private tokenIssues: { date: string; count: number } = { date: "", count: 0 };
+
+  snapshot(): KrProviderSnapshot {
+    return { ...this.health };
+  }
+
+  drainMetrics() {
+    const byTr = this.metrics;
+    this.metrics = {};
+    const today = kstDateOf(this.now());
+    return { byTr, tokensIssuedToday: this.tokenIssues.date === today ? this.tokenIssues.count : 0 };
+  }
+
+  private record(trId: string, outcome: "ok" | "fail" | "rate") {
+    const m = (this.metrics[trId] ??= { calls: 0, failures: 0, rateLimited: 0 });
+    m.calls++;
+    const at = this.now();
+    if (outcome === "ok") {
+      if (this.health.status !== "ok") this.health.since = at;
+      this.health = { status: "ok", since: this.health.since, lastSuccessAt: at, consecutiveFailures: 0 };
+      return;
+    }
+    if (outcome === "rate") m.rateLimited++;
+    else m.failures++;
+    // 초과는 장애가 아니다 — 감속이 처리한다. 진짜 실패만 연속으로 센다
+    if (outcome === "fail") {
+      const failures = this.health.consecutiveFailures + 1;
+      const degraded = failures >= KR_PROVIDER_DEGRADED_AFTER;
+      this.health = {
+        status: degraded ? "degraded" : this.health.status,
+        since: degraded && this.health.status !== "degraded" ? at : this.health.since,
+        lastSuccessAt: this.health.lastSuccessAt,
+        consecutiveFailures: failures,
+      };
+    }
+  }
 
   constructor(private readonly options: KisClientOptions) {
     this.http = createHttpClient({ baseURL: options.baseUrl, timeoutMs: 10_000 });
@@ -233,6 +283,32 @@ export class KisClient implements KrStockQuotePort {
     });
   }
 
+  /**
+   * 그날(`date`, KST) `hhmmss` 이전 1분봉 최대 120개(최신이 앞). 봉 시각은 그 분의 시작(KST → UTC)
+   */
+  async dayMinuteCandles(code: string, date: string, hhmmss: string): Promise<Candle[]> {
+    const body = await this.get(
+      "/uapi/domestic-stock/v1/quotations/inquire-time-dailychartprice",
+      KIS_QUERY_TR.dailyMinutes,
+      {
+        FID_COND_MRKT_DIV_CODE: "J",
+        FID_INPUT_ISCD: code,
+        FID_INPUT_HOUR_1: hhmmss,
+        FID_INPUT_DATE_1: compactDate(date),
+        FID_PW_DATA_INCU_YN: "Y",
+        FID_FAKE_TICK_INCU_YN: "",
+      }
+    );
+    const rows: any[] = Array.isArray(body.output2) ? body.output2 : [];
+    return rows.flatMap((row) => {
+      const d = row?.stck_bsop_date;
+      const time = row?.stck_cntg_hour;
+      const [open, high, low, close] = [row.stck_oprc, row.stck_hgpr, row.stck_lwpr, row.stck_prpr].map(num);
+      if (typeof d !== "string" || typeof time !== "string" || d !== compactDate(date) || !open || !high || !low || !close) return [];
+      return [{ open, high, low, close, volume: num(row.cntg_vol), timestamp: new Date(`${isoDate(d)}T${time.slice(0, 2)}:${time.slice(2, 4)}:00+09:00`) }];
+    });
+  }
+
   async marketDays(baseDate: string): Promise<KrMarketDay[]> {
     const body = await this.get("/uapi/domestic-stock/v1/quotations/chk-holiday", KIS_QUERY_TR.holiday, {
       BASS_DT: compactDate(baseDate),
@@ -303,9 +379,11 @@ export class KisClient implements KrStockQuotePort {
           throw new KisApiError(response.status, body.msg_cd, this.describe(trId, response.status, body));
         }
         this.cooldownMs = COOLDOWN_BASE_MS;
+        this.record(trId, "ok");
         return body;
       } catch (error) {
         const sanitized = this.sanitize(trId, error);
+        this.record(trId, sanitized.msgCode === RATE_LIMITED ? "rate" : "fail");
         if (sanitized.msgCode === RATE_LIMITED) {
           this.cooldownUntil = Date.now() + this.cooldownMs;
           this.cooldownMs = Math.min(this.cooldownMs * 2, COOLDOWN_MAX_MS);
@@ -423,6 +501,8 @@ export class KisClient implements KrStockQuotePort {
         create: { provider: "kis", tokenType: "access", token: body.access_token, issuedAt, expiresAt },
       });
       this.cached = { token: body.access_token, expiresAt };
+      const today = kstDateOf(issuedAt);
+      this.tokenIssues = { date: today, count: (this.tokenIssues.date === today ? this.tokenIssues.count : 0) + 1 };
       // 발급 횟수는 관측 지표다(FR-94) — 하루 3회를 넘으면 캐시가 깨진 것이다
       logger.info(`🔑 KIS 접근 토큰 발급 — 만료 ${expiresAt.toISOString()}`);
       return body.access_token;

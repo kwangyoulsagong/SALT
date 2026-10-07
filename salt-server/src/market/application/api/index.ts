@@ -1,5 +1,6 @@
 import { KrStockNotAvailableError, isKrStockViewer } from "../../domain";
 import type {
+  KrProviderHealthPort,
   KrRealtimePort,
   KrMarketCalendarStore,
   KrStockMasterSource,
@@ -67,6 +68,8 @@ import {
 import { RunKrRealtime } from "../RunKrRealtime";
 import {
   PollKrStockQuotes,
+  ReportKrProviderMetrics,
+  SyncKrMinuteBars,
   ResolveKrStockUniverse,
   SyncKrDailyCandles,
   SyncKrMarketCalendar,
@@ -189,6 +192,8 @@ export interface KrStockDependencies {
   calendar: KrMarketCalendarStore;
   /** WS 실시간 체결(슬라이스 1) — 앱 키당 세션 하나라 프로세스에 하나 */
   realtime: KrRealtimePort;
+  /** KIS REST 건강 상태 · 지표(FR-92 · 94) — `KisClient` 가 호출 결과로 센다 */
+  health: KrProviderHealthPort;
   /** 시총 상위 N(`KIS_UNIVERSE_TOP_N`) */
   universeTopN: number;
   /** 볼 수 있는 계정 — 소유자 전용(`FORECAST_OWNER_EMAILS`) */
@@ -200,7 +205,9 @@ export interface KrStockUseCases {
   syncCalendar: SyncKrMarketCalendar;
   syncDailyCandles: SyncKrDailyCandles;
   pollQuotes: PollKrStockQuotes;
+  syncMinuteBars: SyncKrMinuteBars;
   realtime: RunKrRealtime;
+  reportMetrics: ReportKrProviderMetrics;
   /** SSE 를 열기 전 소유자 판정 — 스트림도 시세다 */
   assertViewer: (viewer: { userId: string; email?: string }) => void;
   getSession: GetKrMarketSession;
@@ -212,13 +219,25 @@ export interface KrStockUseCases {
 
 const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
   const universe = new ResolveKrStockUniverse(deps.store, deps.universeTopN);
-  const read = { store: deps.store, calendar: deps.calendar, viewerEmails: deps.viewerEmails };
+  const realtime = new RunKrRealtime(deps.realtime, deps.store, deps.calendar, universe);
+  const provider = () => {
+    const h = deps.health.snapshot();
+    return {
+      status: h.status,
+      since: h.since?.toISOString() ?? null,
+      lastSuccessAt: h.lastSuccessAt?.toISOString() ?? null,
+      realtime: realtime.status(),
+    };
+  };
+  const read = { store: deps.store, calendar: deps.calendar, viewerEmails: deps.viewerEmails, provider };
   return {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
     syncCalendar: new SyncKrMarketCalendar(deps.kis, deps.calendar),
     syncDailyCandles: new SyncKrDailyCandles(deps.kis, deps.store, universe),
     pollQuotes: new PollKrStockQuotes(deps.kis, deps.store, deps.calendar, universe),
-    realtime: new RunKrRealtime(deps.realtime, deps.store, deps.calendar, universe),
+    syncMinuteBars: new SyncKrMinuteBars(deps.kis, deps.store, deps.calendar, universe),
+    realtime,
+    reportMetrics: new ReportKrProviderMetrics(deps.health),
     assertViewer: (viewer) => {
       if (!isKrStockViewer(viewer.email, deps.viewerEmails)) throw new KrStockNotAvailableError();
     },

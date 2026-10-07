@@ -81,6 +81,11 @@ export interface KisRealtimeClientOptions {
   url: string;
   approvalKey: (force: boolean) => Promise<string>;
   secrets: Array<string | undefined>;
+  /** 테스트용 주입 — 기본 30초 · 1초 · 5초 · 60ms */
+  idleTimeoutMs?: number;
+  backoffBaseMs?: number;
+  watchdogIntervalMs?: number;
+  subscribeGapMs?: number;
 }
 
 export class KisRealtimeClient implements KrRealtimePort {
@@ -144,7 +149,8 @@ export class KisRealtimeClient implements KrRealtimePort {
 
     ws.on("open", () => {
       this.current = "open";
-      this.failures = 0;
+      // 실패 횟수는 여기서 비우지 않는다 — 받아 주고 바로 끊는 연결이면 영원히 degraded 가 안 된다(가짜 서버 테스트가 잡았다).
+      // 첫 메시지(등록 응답 · 체결 · PINGPONG)를 받으면 그때 건강한 세션으로 본다
       this.lastMessageAt = Date.now();
       this.active.clear();
       this.startWatchdog();
@@ -154,6 +160,7 @@ export class KisRealtimeClient implements KrRealtimePort {
 
     ws.on("message", (data) => {
       this.lastMessageAt = Date.now();
+      this.failures = 0;
       const raw = data.toString();
       if (raw.startsWith("0|") || raw.startsWith("1|")) {
         const ticks = parseTickFrame(raw);
@@ -217,25 +224,25 @@ export class KisRealtimeClient implements KrRealtimePort {
         );
         if (trType === "1") this.active.add(code);
         else this.active.delete(code);
-        await new Promise((resolve) => setTimeout(resolve, SUBSCRIBE_GAP_MS));
+        await new Promise((resolve) => setTimeout(resolve, this.options.subscribeGapMs ?? SUBSCRIBE_GAP_MS));
       }
     }
   }
 
   private startWatchdog() {
     this.watchdog = setInterval(() => {
-      if (Date.now() - this.lastMessageAt > IDLE_TIMEOUT_MS) {
+      if (Date.now() - this.lastMessageAt > (this.options.idleTimeoutMs ?? IDLE_TIMEOUT_MS)) {
         logger.warn("KIS 실시간 — 30초 무응답, 다시 접속한다");
         this.ws?.terminate();
       }
-    }, 5_000);
+    }, this.options.watchdogIntervalMs ?? 5_000);
     this.watchdog.unref();
   }
 
   private scheduleRetry(reason: string) {
     this.failures++;
     this.current = this.failures >= DEGRADED_AFTER_FAILURES ? "degraded" : "backoff";
-    const wait = Math.min(BACKOFF_BASE_MS * 2 ** (this.failures - 1), BACKOFF_MAX_MS);
+    const wait = Math.min((this.options.backoffBaseMs ?? BACKOFF_BASE_MS) * 2 ** (this.failures - 1), BACKOFF_MAX_MS);
     logger.warn(`KIS 실시간 재접속 ${this.failures}회째 — ${wait}ms 후 (${this.mask(reason)})`);
     this.retryTimer = setTimeout(() => {
       // 두 번 넘게 실패하면 승인키를 새로 받는다(FR-25 — 재접속 시 승인키 재발급)

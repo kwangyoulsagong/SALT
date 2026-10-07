@@ -127,6 +127,7 @@ const krStock =
   kis
     ? {
         kis,
+        health: kis,
         realtime: new KisRealtimeClient({
           url: env.KIS_WS_URL,
           approvalKey: (force) => kis.approvalKey(force),

@@ -85,6 +85,8 @@ export interface KrStockQuotePort {
   quote(code: string): Promise<KrStockQuoteFact>;
   /** 수정주가 일봉 `[from, to]`(KST 날짜), 한 번에 최대 100건. 봉 시각은 거래일 00:00 KST */
   dailyCandles(code: string, from: string, to: string): Promise<Candle[]>;
+  /** 그날(KST) `hhmmss` 이전 1분봉 최대 120개(최신이 앞) */
+  dayMinuteCandles(code: string, date: string, hhmmss: string): Promise<Candle[]>;
   /** `baseDate`(KST) 부터 앞으로의 달력 한 페이지 */
   marketDays(baseDate: string): Promise<KrMarketDay[]>;
 }
@@ -117,6 +119,10 @@ export interface KrStockStore {
   upsertMinuteCandles(bars: Array<{ code: string; candle: Candle }>): Promise<void>;
   /** 실시간 값이 `since` 이후인 종목 — 폴링이 건너뛴다 */
   realtimeFreshCodes(since: Date): Promise<string[]>;
+  /** 종목 · KST 날짜별 5분봉 수와 15:25 버킷(종가 들어가는 봉) 유무 — 보정 · 백필이 빈 날을 고른다 */
+  minuteBarCoverage(codes: string[], from: string): Promise<Map<string, Map<string, { count: number; hasClose: boolean }>>>;
+  /** KIS 분봉에서 만든 5분봉으로 **덮어쓴다**(실시간 집계보다 원천이 정확하다) */
+  replaceMinuteCandles(code: string, candles: Candle[]): Promise<void>;
 }
 
 /**
@@ -371,6 +377,43 @@ export const KR_REALTIME_SLOTS = 41;
 const FIVE_MINUTES_MS = 5 * 60_000;
 
 /**
+ * 정규장 5분 버킷 시작(UTC ms) — 밖이면 `null`.
+ *
+ * **15:30 은 15:25 버킷에 넣는다.** 15:20~15:30 은 장 마감 동시호가라 체결이 없고, 15:30 에 종가 단일가 체결이 한 번
+ * 찍힌다(2026-10-07 실측: 10/6 삼성전자 15:30 1분봉 거래량 142만 · 종가 272,000 = 일봉 종가). 그것을 버리면 그날
+ * 마지막 5분봉의 종가가 일봉 종가와 달라진다 — 첫 판이 그랬다
+ */
+export const krFiveMinuteBucket = (at: Date): number | null => {
+  const kstMinutes = Math.floor(((at.getTime() + KST_OFFSET_MS) % DAY_MS) / 60_000);
+  if (kstMinutes < MIN(9, 0) || kstMinutes > MIN(15, 30)) return null;
+  const minutes = kstMinutes === MIN(15, 30) ? MIN(15, 25) : kstMinutes;
+  const dayStart = at.getTime() - (((at.getTime() + KST_OFFSET_MS) % DAY_MS));
+  return dayStart + Math.floor(minutes / 5) * 5 * 60_000;
+};
+
+/** 1분봉 → 5분봉(장 마감 보정 · 백필). 시각 오름차순으로 낸다 */
+export const krMinutesToFiveMinute = (minutes: Candle[]): Candle[] => {
+  const buckets = new Map<number, Candle>();
+  for (const m of [...minutes].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())) {
+    const start = krFiveMinuteBucket(m.timestamp);
+    if (start === null) continue;
+    const bar = buckets.get(start);
+    if (!bar) {
+      buckets.set(start, { ...m, timestamp: new Date(start) });
+    } else {
+      bar.high = Math.max(bar.high, m.high);
+      bar.low = Math.min(bar.low, m.low);
+      bar.close = m.close;
+      bar.volume = (bar.volume ?? 0) + (m.volume ?? 0);
+    }
+  }
+  return [...buckets.values()];
+};
+
+/** 정규장 5분 버킷 수 — 09:00~15:25(15:20 은 동시호가라 비고 15:25 에 종가가 들어간다) */
+export const KR_FIVE_MINUTE_BUCKETS_PER_DAY = 78;
+
+/**
  * 체결 → 5분봉 집계(FR-21). KIS 분봉 TR 은 당일 · 30건뿐이라 우리가 쌓는다.
  *
  * 봉 시각은 버킷 **시작**(UTC 저장, 경계는 5분이라 KST 와 같다). 같은 버킷에 늦게 온 체결도 그 버킷에 더한다
@@ -382,10 +425,8 @@ export class KrMinuteBarBuilder {
   private readonly touched = new Set<string>();
 
   add(tick: KrTick) {
-    const kstMinutes = Math.floor(((tick.at.getTime() + KST_OFFSET_MS) % DAY_MS) / 60_000);
-    if (kstMinutes < MIN(9, 0) || kstMinutes >= MIN(15, 30)) return;
-
-    const start = Math.floor(tick.at.getTime() / FIVE_MINUTES_MS) * FIVE_MINUTES_MS;
+    const start = krFiveMinuteBucket(tick.at);
+    if (start === null) return;
     const key = `${tick.code}|${start}`;
     const t = tick.at.getTime();
     const bar = this.bars.get(key);
@@ -421,3 +462,30 @@ export class KrMinuteBarBuilder {
     return out;
   }
 }
+
+// ==================== 제공자 상태 · 지표 (FR-92 · 94) ====================
+
+export type KrProviderStatus = "ok" | "degraded";
+
+/** KIS REST 건강 상태 — 호출 결과에서 센다(따로 핑하지 않는다) */
+export interface KrProviderSnapshot {
+  status: KrProviderStatus;
+  /** 지금 상태가 시작된 시각 */
+  since: Date | null;
+  lastSuccessAt: Date | null;
+  consecutiveFailures: number;
+}
+
+export interface KrProviderHealthPort {
+  snapshot(): KrProviderSnapshot;
+  /** 지난 호출 이후 TR 별 호출 · 실패 · 초과 수와 오늘 토큰 발급 수를 내고 비운다(관측 로그용) */
+  drainMetrics(): {
+    byTr: Record<string, { calls: number; failures: number; rateLimited: number }>;
+    tokensIssuedToday: number;
+  };
+}
+
+/** 연속 실패가 이만큼이면 degraded(FR-90 서킷과 같은 수) */
+export const KR_PROVIDER_DEGRADED_AFTER = 5;
+/** 토큰 발급이 하루 이만큼을 넘으면 캐시가 깨진 것이다(FR-94) */
+export const KR_TOKEN_ISSUE_WARN_PER_DAY = 3;
