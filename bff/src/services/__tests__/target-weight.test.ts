@@ -246,3 +246,28 @@ describe("AppTargetWeightService", () => {
     await assert.rejects(() => appTargetWeightService.get("t"));
   });
 });
+
+describe("목표 비중 성적 4요소 (F009 FR-33 · BFF-REQ-042)", () => {
+  const claim = (from: string) => ({
+    period: { present: true, from, to: "2027-05-03" },
+    sample: 30,
+    baseline: { present: true, code: "hold_btc" },
+    misses: { present: false, reason: "not_recorded" },
+  });
+
+  it("서버 자리와 같으면 claim 을 옮긴다", () => {
+    const view = toTargetWeightViewModel(body({ recordSource: "live", live: live(), claim: claim("2026-10-05") }));
+    assert.ok(view.status === "ok");
+    assert.equal(view.recordSource, "live");
+    assert.deepEqual(view.claim, claim("2026-10-05"));
+  });
+
+  it("BFF 가 라이브를 백테스트로 내렸으면 claim 을 비운다 — 다른 기록의 기간을 붙이지 않는다", () => {
+    const view = toTargetWeightViewModel(
+      body({ recordSource: "live", live: live({ worstWeeks: [] }), claim: claim("2026-10-05") }),
+    );
+    assert.ok(view.status === "ok");
+    assert.equal(view.recordSource, "backtest");
+    assert.equal(view.claim, null);
+  });
+});

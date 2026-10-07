@@ -6,6 +6,8 @@
  * 모르는 사건 종류는 버린다. 금액은 없다(수익률 · 비율뿐).
  */
 
+import { toPerformanceClaim, type PerformanceClaim } from "./performance-claim.viewmodel";
+
 export type MacroEventKind = "fomc" | "cpi" | "jobs";
 
 export type EventHorizon =
@@ -21,6 +23,8 @@ export type EventHorizon =
       preReturn5dMedian: number | null;
       misses: { eventAt: string; realized: number; low: number; high: number }[];
       recent: { eventAt: string; realized: number }[];
+      /** 기간 · 표본 · 평소 날 기준 · 빗나간 수 / 판정 수(F009 FR-33). 서버가 옛 버전이면 `null` */
+      claim: PerformanceClaim | null;
     }
   | { horizonDays: number; renderable: false; blockedReason: string };
 
@@ -91,6 +95,7 @@ export const toHorizon = (h: number, raw: Record<string, unknown> | undefined): 
       .filter((r) => typeof r?.eventAt === "string" && isNum(r.realized))
       .slice(-5)
       .map((r) => ({ eventAt: r.eventAt as string, realized: r.realized as number })),
+    claim: toPerformanceClaim(raw.claim),
   };
 };
 

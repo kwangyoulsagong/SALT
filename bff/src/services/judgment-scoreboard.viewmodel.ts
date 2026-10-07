@@ -10,8 +10,10 @@
  *
  * 하지 않는 것: 수익률 분포(`returnDistribution`) 옮기기 — 화면이 아직 쓰지 않는다. 목표가 · 예측 필드는 서버에 없다.
  *
- * 여기에는 import 가 없다(`symbol-coach.viewmodel.ts` 와 같은 이유).
+ * 여기에는 import 가 없다(`symbol-coach.viewmodel.ts` 와 같은 이유 — 순수 뷰모델 `performance-claim` 만 예외).
  */
+
+import { toPerformanceClaim, type PerformanceClaim } from "./performance-claim.viewmodel";
 
 type Raw = Record<string, unknown>;
 
@@ -41,12 +43,14 @@ export interface ScoreboardGroup {
   winRate: number | null;
   avgReturn: number | null;
   worstObservedReturn: number | null;
-  /** 서버 판정(표본 20 미만). 화면은 이때 적중률 대신 "채점 중 n/20" 을 쓴다 */
+  /** 서버 판정(표본 20 미만). 화면은 이때 적중률 대신 "아직 채점 표본이 적어요"를 쓴다 */
   lowSample: boolean;
   horizonHours: number | null;
   alwaysUpRate: number | null;
   /** 적중률 − 기저율. 관망은 `null` */
   excessWinRate: number | null;
+  /** 기간 · 표본 · 기준 · 빗나간 수(F009 FR-33). 서버가 옛 버전이면 `null` */
+  claim: PerformanceClaim | null;
   hits: ScoreboardCase[];
   misses: ScoreboardCase[];
 }
@@ -100,6 +104,7 @@ const toGroup = (raw: unknown): ScoreboardGroup | null => {
     horizonHours: num(raw.horizonHours),
     alwaysUpRate: num(raw.alwaysUpRate),
     excessWinRate: num(raw.excessWinRate),
+    claim: toPerformanceClaim(raw.claim),
     hits: toCases(raw.hits, "hit"),
     misses: toCases(raw.misses, "miss"),
   };

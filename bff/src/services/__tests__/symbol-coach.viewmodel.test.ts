@@ -199,7 +199,7 @@ describe("toSymbolCoachViewModel", () => {
 
     assert.equal(vm.modes.scalp?.renderable, true);
     assert.equal(vm.modes.longTerm?.renderable, true);
-    assert.deepEqual(vm.gaugeTrackRecords, [gauge]);
+    assert.deepEqual(vm.gaugeTrackRecords, [{ ...gauge, baselinePositiveRate: null, claim: null }]);
     assert.deepEqual(vm.degradedFields, []);
     assert.ok(vm.disclaimer);
   });

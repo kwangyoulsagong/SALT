@@ -15,8 +15,13 @@
  * 하지 않는 것: 비중 · 금액 · 수량 계산, 문장 만들기. 알트는 규칙 밖이다(`target-weight@2` 채택 없음) — 서버가
  * `excluded.reason = no_record` 로 주고 판정 기록(`altShare`)을 같이 준다. 알트 비중은 어디에도 없다.
  *
- * 여기에는 import 가 없다(`symbol-coach.viewmodel.ts` 와 같은 이유).
+ * 5. **성적 4요소**(`claim`, F009 FR-33) — 서버 `recordSource` 기준이다. BFF 가 라이브를 백테스트로 내렸으면(4) 서버 claim 이
+ *    다른 기록을 말하므로 `null` 로 둔다 — 숫자와 다른 기록의 기간을 붙이지 않는다
+ *
+ * 여기에는 import 가 없다(`symbol-coach.viewmodel.ts` 와 같은 이유 — 순수 뷰모델 `performance-claim` 만 예외).
  */
+
+import { toPerformanceClaim, type PerformanceClaim } from "./performance-claim.viewmodel";
 
 type Raw = Record<string, unknown>;
 
@@ -134,6 +139,8 @@ export interface TargetWeightView {
   live: TargetWeightLiveView | null;
   /** 과거 성적 자리에 쓸 것 — `live` 는 `live` 가 온전할 때만 */
   recordSource: "backtest" | "live";
+  /** 지금 과거 성적 자리의 기간 · 표본 · 기준 · 빗나간 수. 서버가 옛 버전이거나 자리가 바뀌었으면 `null` */
+  claim: PerformanceClaim | null;
   asOf: string | null;
 }
 
@@ -367,6 +374,7 @@ export const toTargetWeightViewModel = (data: Raw): TargetWeightResult => {
   // 서버가 30 보다 작은 문턱을 보내도 등록 문턱(30) 아래로는 내리지 않는다
   const minWeeks = Math.max(LIVE_MIN_WEEKS_FLOOR, num(data.liveMinWeeks) ?? LIVE_MIN_WEEKS_FLOOR);
   const live = toLive(data.live, minWeeks);
+  const recordSource = data.recordSource === "live" && liveComplete(live) ? "live" : "backtest";
   return {
     status: data.status === "no_capital" ? "no_capital" : "ok",
     basis: data.basis === "investable_capital" ? "investable_capital" : "crypto_value",
@@ -400,7 +408,8 @@ export const toTargetWeightViewModel = (data: Raw): TargetWeightResult => {
     record,
     altShare: toAltShare(data.altShare),
     live,
-    recordSource: data.recordSource === "live" && liveComplete(live) ? "live" : "backtest",
+    recordSource,
+    claim: recordSource === data.recordSource ? toPerformanceClaim(data.claim) : null,
     asOf: str(data.asOf),
   };
 };
