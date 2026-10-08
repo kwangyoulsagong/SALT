@@ -32,3 +32,11 @@
 
 `tsc` · lint · `test:layer-check` · `npm test` 646/646 · `npm run build` 통과. 미검증: `baselineCloses` 쿼리 `EXPLAIN`(유니버스 ~50종목 × 일봉 2년 — 체감 지연 없음, 수치 안 잼) · 운영 DB 마이그레이션.
 
+
+### FR-32 로고 주소(2026-10-08, `aa9b1c3`)
+
+| FR | 검증 |
+|---|---|
+| FR-32 | 도메인 테스트 2(FMP `.KS`/`.KQ` · logo.dev `fallback=404`) · 관심 목록 kr 행 로고 기대값 · 실서버 유니버스 51종목 FMP 주소 HEAD 51/51 = 200 · env `KR_LOGO_DEV_TOKEN` 는 `pk_` 만 통과(zod) |
+
+`tsc` · lint · `npm test` 648/648 · `npm run build` 통과. 미검증: logo.dev 실제 응답(키 없음 — 사용자 결정) · FMP 사용 조건(약관 페이지 봇 403).

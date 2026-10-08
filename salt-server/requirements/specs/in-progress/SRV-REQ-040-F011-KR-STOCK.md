@@ -41,6 +41,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | FR-29 | 당일 시가 · 고가 · 저가 — `kr_stock_quotes.open/high/low_price`(nullable). KIS 현재가 `stck_oprc` · `stck_hgpr` · `stck_lwpr`(0 은 null) · 실시간 `H0STCNT0` 7 · 8 · 9 필드(틱은 null 로 덮지 않음). 응답 `openPrice` · `highPrice` · `lowPrice` | 완료(`f136b6d`, 슬라이스 3 — 화면이 코인과 같은 5열) |
 | FR-30 | `GET /api/market/kr/assets` `sort`(`""`·`all`·`trade_value`·`change`·`price`·`name`) · `order`(`asc`·`desc`) · `period`(`""`·`realtime`·`1d`·`7d`·`1m`·`3m`·`6m`·`1y`) — **코인과 같은 값**. 정렬은 offset/limit 전 유니버스 전체. `periodChange` = 현재가 / N거래일 전 일봉 종가 −1(1 · 5 · 21 · 63 · 126 · 250), 실시간은 `changeRate`(코인과 같음), 없으면 null · `change` 정렬은 null 마지막 | 완료(`f136b6d`) |
 | FR-31 | 관심 종목 `assetType: kr_stock` — 소유자만 · 마스터에 있는 코드만(이름은 마스터), 비소유자 · 없는 코드 같은 404 · 중복 409. 목록 가격은 `kr_stock_quotes`, 비소유자 목록엔 국내 주식 행 없음. 업비트 구독 심볼(`distinctSymbols("crypto")`)엔 안 들어감 | 완료(`f136b6d`) |
+| FR-32 | 로고 주소(F011 FR-47) — 도메인 순수 함수 `krStockLogoUrl(code, market, token?)`: env `KR_LOGO_DEV_TOKEN`(퍼블리셔블 `pk_` 만, zod 검증)이 있으면 logo.dev(`fallback=404`), 없으면 FMP `image-stock/{code}.{KS·KQ}.png`. 시세 뷰 `logoUrl` · 관심 목록 국내 주식 행이 같은 규칙. 국내 증권 · 포털 앱 이미지 서버 금지 | 완료(`aa9b1c3`) — 유니버스 51/51 응답 · logo.dev 키는 사용자 결정 |
 | FR-40~46(서버 몫) | 상태 배지 · 상하한 도달 · 지연(`stale` = 시세 시간대 3분 초과) · 호가 단위 — 서버 판정, 원 정수 | 완료 |
 | FR-90 | 연속 5회 실패면 회차 중단 · 실패 종목은 이전 값 유지 | 완료 |
 | FR-92 · 94 | `session.provider { status, since, lastSuccessAt, realtime }` · 10분 TR 별 호출/실패/초과 · 오늘 토큰 발급 로그(3회 초과 경고) | 완료(`89ff9d9`) |
@@ -72,4 +73,5 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 ## Changelog
 
 - 2026-10-07: 초판 · 슬라이스 0 · 1(FR-1~27 · 40~46 · 90~94)
+- 2026-10-08: FR-32 — 로고 주소를 서버가 정한다(`aa9b1c3`, 사용자 "베스트 케이스로"). 테스트 648/648(로고 2 · 관심 kr 로고 기대값 갱신)
 - 2026-10-08: FR-29~31 — 화면을 코인과 같게(사용자 "똑같은 화면이고 데이터만 다른거지"): 당일 시가/고가/저가 · 정렬/순서/기간 · 관심 종목 `kr_stock`(`f136b6d`). 휴장일 TR 거부 문구가 "실전투자 도메인은 모의투자 앱키로 호출하실 수 없습니다"로 확인 — **앱 키는 모의투자용**(슬라이스 1 의 추정이 사실)

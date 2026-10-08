@@ -47,6 +47,7 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 | FR-11 | `/overview` `sort` · `order` · `period` — 서버와 같은 값(코인 문자열 `""` · `trade_value` · `7d` …)만, 모르는 값은 서버를 부르지 않고 400(`period=1w` 400 확인) | 완료(`36ad645`, 슬라이스 3) |
 | FR-12 | `KrQuoteVM` `openPrice` · `highPrice` · `lowPrice`(numOrNull) · 목록 행 `periodChange` | 완료(`36ad645`) |
 | FR-13 | 관심 종목 — `kr_stock` 행은 업비트 가격 캐시를 보지 않고 서버 값 그대로(`logoUrl` null) · POST `assetType` 통과 | 완료(`36ad645`) |
+| FR-14 | 시세 행 `logoUrl` 통과(서버가 정한 logo.dev · FMP 주소) — 필드가 없는 옛 서버 응답은 `null`(로고는 꾸밈이라 계약 깨짐으로 보지 않는다) | 완료(`ad5217a`) |
 
 ## 계약 변경
 
@@ -58,4 +59,5 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 ## Changelog
 
 - 2026-10-08: 초판 · FR-1~10 완료
+- 2026-10-08: FR-14 — `logoUrl` 통과(`ad5217a`). 테스트 243/243
 - 2026-10-08: FR-11~13 — 화면을 코인과 같게(`FE-REQ-041`): 필터 · 당일 시가/고가/저가 · 기간 수익률 · 관심 종목 `kr_stock`. 첫 소비처가 생겨 미검증 "비소유자 subscribed 선응답"을 화면이 처리(탭 없음 · 거부 코드)

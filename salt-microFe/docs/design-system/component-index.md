@@ -159,7 +159,7 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 | 회색 트랙 위 알약형 세그먼트 | `FilterTabs` | 단독 칩에는 쓰지 않는다 |
 | 값이 늘 하나인 스위치(모드 · 관점) | `SegmentedControl` | `radiogroup` · 화살표 이동. 여러 묶음을 훑는 필터는 `FilterTabs` |
 | 자유 배치·복수 선택 칩 | `Chip` | `FilterTabs`는 그룹 전용이다 |
-| 종목 로고. 로고가 없으면 이니셜 폴백 | `AssetIcon` | `Icon`·`ServiceIcon`은 고정 자산 목록 전용이다 |
+| 종목 로고. 로고가 없거나 불러오지 못하면(404) 이니셜 폴백 — 클라이언트 컴포넌트 | `AssetIcon` | `Icon`·`ServiceIcon`은 고정 자산 목록 전용이다 |
 | 그룹과 그룹 사이 위계 | `ListGroup` + `SectionBand` | 카드 남발 (`Card` 기본 그림자는 `none`이다) |
 | 큰 세로 여백을 가진 페이지 섹션 | `Section` | `SectionBand`는 8px 구분 밴드다 |
 | 그룹 안 항목 사이 선 | `Divider` | `SectionBand`는 그룹과 그룹 사이용이다 |
