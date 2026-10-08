@@ -89,7 +89,7 @@ export const KrStockDetail = ({ code }: { code: string }) => {
       <header className={headerCard}>
         <div className={identity}>
           <div className={nameRow}>
-            {/* 로고는 서버 주소(logo.dev · FMP), 없으면 이름 이니셜(FR-47) */}
+            {/* 로고는 서버가 판정한 logo.dev 주소, 없으면 이름 이니셜(FR-47) */}
             <AssetIcon symbol={quote.name} src={quote.logoUrl ?? undefined} name={quote.name} size="md" />
             <h1 className={nameStyle}>{quote.name}</h1>
             <span className={ticker}>

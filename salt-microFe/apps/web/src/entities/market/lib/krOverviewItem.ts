@@ -9,7 +9,7 @@ import type { MarketOverviewItem } from "../model/types";
  * - `change24h` = 전일 종가 대비 등락률 — 코인 `change24h` 도 업비트 전일 종가 대비라 뜻이 같다(`BFF-REQ-040` 결정 7)
  * - `high24h` · `low24h` = 당일 고가 · 저가. 아직 못 받은 행(`null`)은 `NaN` — 현재가나 0 으로 채우면 거짓 값이다.
  *   `PriceCell` 이 유한하지 않은 값을 "—" 로 그린다
- * - `logoUrl` 은 서버가 정한 주소(logo.dev · FMP — KIS 는 로고를 주지 않는다, FR-47). 없는 로고는 404 라 `AssetIcon` 이
+ * - `logoUrl` 은 서버가 종목마다 판정한 logo.dev 주소(KIS 는 로고를 주지 않는다, FR-47). 없거나 못 불러오면 `AssetIcon` 이
  *   이니셜로 넘어간다
  */
 export const krQuoteToOverviewItem = (quote: KrQuote): MarketOverviewItem => ({

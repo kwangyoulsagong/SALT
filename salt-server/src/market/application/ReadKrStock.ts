@@ -133,7 +133,7 @@ export interface KrStockReadDependencies {
   viewerEmails: readonly string[];
   /** KIS 상태(FR-92) — 화면의 "시세 제공 지연 중 · {since}" 근거 */
   provider: () => KrProviderView;
-  /** logo.dev 퍼블리셔블 키(`KR_LOGO_DEV_TOKEN`) — 없으면 FMP 로고 */
+  /** logo.dev 퍼블리셔블 키(`KR_LOGO_DEV_TOKEN`) — 없으면 로고 없음(화면 이니셜) */
   logoDevToken?: string;
   now?: () => Date;
 }

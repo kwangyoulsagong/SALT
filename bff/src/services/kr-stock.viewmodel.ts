@@ -98,7 +98,7 @@ export interface KrQuoteVM {
   feed: KrFeed;
   priceUpdatedAt: string;
   /**
-   * 로고 주소 — 서버가 정한다(logo.dev 키가 있으면 logo.dev, 없으면 FMP). 없는 로고는 404 라 화면이 이니셜로 넘어간다.
+   * 로고 주소 — 서버가 종목마다 판정한 logo.dev 주소. 키가 없거나 선명한 로고가 없으면 `null`(화면 이니셜).
    * 이 필드가 없는 옛 서버면 `null`(계약 깨짐이 아니다 — 로고는 꾸밈이다)
    */
   logoUrl: string | null;
