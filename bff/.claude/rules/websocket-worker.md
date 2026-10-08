@@ -29,3 +29,12 @@
 - WebSocket close/error는 로그와 재연결 흐름을 가진다.
 - 외부 API payload는 필요한 필드만 내부 타입으로 변환한다.
 - 로그에는 token, Authorization, 사용자 민감 정보를 남기지 않는다.
+
+## 국내 주식 실시간 (F011 · `BFF-REQ-040`)
+
+- 업비트 경로(`subscribedSymbols` · `price-updater.worker`)와 **섞지 않는다.** 6자리 코드를 업비트 구독에 넣으면
+  요청이 통째로 거부될 수 있다(실측 안 함 — 걸면 코인 시세까지 끊긴다). 구독은 `assetType: "kr_stock"` 으로 갈라 `kr-stream.manager` 가 갖는다
+- 서버 SSE 는 **연결마다 그 연결의 토큰으로** 연다. 소유자 전용이라 하나를 열어 뿌리면 비소유자에게 간다
+- 토큰은 중계 맵 · 연결 클로저에만 둔다. 소켓 객체 · 로그에 두지 않는다
+- 연결 종료 · 하트비트 종료 · 프로세스 종료 세 곳에서 upstream 을 끊는다(`krStreamManager.release`)
+- 열기 4xx · 503 꺼짐은 화면에 `error { assetType, code }` 를 주고 멈춘다. 다시 열어도 같은 답이다
