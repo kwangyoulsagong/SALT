@@ -4,6 +4,8 @@ import { randomUUID } from "crypto";
 import { ExtendedWebSocket, WSMessage } from "../types/websocket.types";
 import { connectionManager } from "./managers/connection.manager";
 import { cryptoHandler } from "./handlers/crypto.handler";
+import { krStockHandler } from "./handlers/kr-stock.handler";
+import { krStreamManager } from "./managers/kr-stream.manager";
 import { env } from "../config/env";
 import { logger } from "../config/logger";
 
@@ -17,12 +19,16 @@ const wss = new WebSocketServer({ port: PORT });
  * **토큰을 해석하지 않는다**(`bff-architecture.md` §6). 시세는 공개 데이터라 게스트도
  * 받는다 — 토큰은 "들고 왔는가"만 기록한다. 원래는 토큰 원문을 `userId` 로 써서
  * 연결 로그와 환영 메시지에 그대로 찍었다.
+ *
+ * 국내 주식(F011)은 소유자 전용이라 예외다 — 토큰을 **해석하지 않고 서버로 넘겨** 서버가 판정한다.
+ * 토큰은 이 연결의 클로저와 `krStreamManager` 안에만 둔다(소켓 객체 · 로그에 없다).
  */
 wss.on("connection", (ws: ExtendedWebSocket, req) => {
   const { query } = parse(req.url || "", true);
 
   ws.connectionId = randomUUID();
-  ws.authenticated = typeof query.token === "string" && query.token.length > 0;
+  const connectionToken = typeof query.token === "string" && query.token.length > 0 ? query.token : undefined;
+  ws.authenticated = connectionToken !== undefined;
   ws.isAlive = true;
   ws.subscribedSymbols = new Set();
   ws.subscribedCandles = new Map();
@@ -48,12 +54,15 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
       logger.debug(`Message from ${connectionId}:`, message);
 
       switch (message.type) {
+        // `assetType` 이 없으면 코인이다 — 기존 화면은 그대로 동작한다
         case "subscribe":
-          cryptoHandler.handleSubscribe(ws, message);
+          if (message.assetType === "kr_stock") krStockHandler.handleSubscribe(ws, message, connectionToken);
+          else cryptoHandler.handleSubscribe(ws, message);
           break;
 
         case "unsubscribe":
-          cryptoHandler.handleUnsubscribe(ws, message);
+          if (message.assetType === "kr_stock") krStockHandler.handleUnsubscribe(ws, message);
+          else cryptoHandler.handleUnsubscribe(ws, message);
           break;
 
         case "ping":
@@ -97,6 +106,7 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
    */
   ws.on("close", () => {
     connectionManager.removeConnection(connectionId);
+    krStreamManager.release(connectionId);
   });
 
   /**
@@ -117,6 +127,7 @@ const heartbeatInterval = setInterval(() => {
     if (extWs.isAlive === false) {
       logger.warn(`Terminating inactive connection: ${extWs.connectionId}`);
       connectionManager.removeConnection(extWs.connectionId);
+      krStreamManager.release(extWs.connectionId);
       return extWs.terminate();
     }
 
@@ -147,6 +158,7 @@ logger.info(`📡 Clients can connect: ws://localhost:${PORT}`);
 const shutdown = (signal: string) => {
   logger.info(`${signal}: Closing WebSocket server`);
   clearInterval(heartbeatInterval);
+  krStreamManager.releaseAll();
   wss.clients.forEach((client) => client.terminate());
   wss.close(() => process.exit(0));
 };
