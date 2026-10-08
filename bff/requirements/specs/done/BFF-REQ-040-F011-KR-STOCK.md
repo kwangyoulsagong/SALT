@@ -50,6 +50,9 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 | FR-15 | 거래 기록 `POST /api/app/coach/trades` `assetType`(`crypto` · `kr_stock`, 없으면 crypto) 통과 · 모르는 값 400. **국내 주식 + 계획은 400** — 코치 계획 연결이 코인 원장만 본다(슬라이스 4), 조용히 버리면 손절가가 사라진다. 거래 응답 `assetType`(모르는 값은 계약 깨짐) | 완료(`ba2ddc6`, 슬라이스 3b) |
 | FR-16 | 홈 보유 요약 — 국내 주식 보유가 있을 때만 서버 `/market/kr/assets?codes=` 로 이름 · 로고(코인 이름 조회와 같은 규칙: 실패 · 404 면 코드 + `namesDegraded`, 금액은 그대로) | 완료(`ba2ddc6`) |
 | FR-14 | 시세 행 `logoUrl` 통과(서버가 정한 logo.dev · FMP 주소) — 필드가 없는 옛 서버 응답은 `null`(로고는 꾸밈이라 계약 깨짐으로 보지 않는다) | 완료(`ad5217a`) |
+| FR-17 | 종목 판단 모드 블록에 `assetClass`(모르면 crypto) · `history`(모양이 틀리면 null — 문구가 숫자를 지어내지 않게) · `blockedReason` 에 `mode_not_open` · `insufficient_history`(서버 값 통과) | 완료(`c0d9aad`, 슬라이스 4) |
+| FR-18 | 성적표 정규식이 `kr_stock.<mode>.<action>` 을 **조용히 버리던 것** — 접두를 받고 `assetClass` 는 그룹 키에서 정한다. 코치 상세 `excluded[].progress` · 추천 `assetType` `kr_stock` 타입 | 완료(`c0d9aad`) |
+| FR-19 | 국내 주식 거래 + 계획 400 해제(FR-15 의 임시 막음) — 서버 계획 연결이 국내 주식 거래를 받는다. 사이즈 계산은 그대로 통과(자산군 · 수수료는 서버가 시세로 고른다) | 완료(`c0d9aad`) |
 
 ## 계약 변경
 
@@ -57,6 +60,7 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 - **슬라이스 3(2026-10-08)** — `/overview` 쿼리 3개 · 응답 필드 4개 추가(기존 필드 무변경) · 관심 종목 `kr_stock` 통과. 소비처 `FE-REQ-041`
 - **WS 추가 필드** — 코인 `price_update.data.assetType`, 구독 메시지 `assetType` · `token`. 기존 메시지 그대로 동작(`assetType` 없으면 코인)
 - 서버 계약 변경 없음(`openAuthStream` 이 GET 도 연다 — BFF 내부)
+- **슬라이스 4(2026-10-08)** — 화면 계약 추가: 판단 모드 `assetClass` · `history`, 사유 2종, 성적표 그룹 `assetClass`, 상세 `excluded[].progress`. 거래 + 계획 400 해제(요청이 넓어졌다 — 기존 요청 무변경). 서버 짝 `SRV-REQ-040` FR-60~66 · 37 · 38, 소비처 `FE-REQ-041` FR-19~22
 
 ## Changelog
 
@@ -64,3 +68,4 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 - 2026-10-08: FR-14 — `logoUrl` 통과(`ad5217a`). 테스트 243/243
 - 2026-10-08: FR-11~13 — 화면을 코인과 같게(`FE-REQ-041`): 필터 · 당일 시가/고가/저가 · 기간 수익률 · 관심 종목 `kr_stock`. 첫 소비처가 생겨 미검증 "비소유자 subscribed 선응답"을 화면이 처리(탭 없음 · 거부 코드)
 - 2026-10-08: 슬라이스 3b — FR-15 거래 기록 `assetType` · FR-16 보유 요약 국내 주식 이름 · 로고. 테스트 249/249(경로 3 · 요약 3 · 기존 거래 응답 고정값에 `assetType`)
+- 2026-10-08: 슬라이스 4 — FR-17~19(판단 자산군 · 이력 · 사유 2종 · 성적표 접두 · 계획 400 해제). 테스트 251/251(모드 블록 국내 주식 1 · 성적표 1 · 계획 400 기대값을 201 로)

@@ -66,3 +66,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-09-27 | 슬라이스 6 FR-21~24 — 월간 복기 · IPS 3문항(원/% · 한 종목 상한) · 시나리오 · 진입 전 체크 · 미러 Brier 줄. 새 슬라이스 없음(`set-risk-budget` 에 `lib` 세그먼트). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 6 |
 | 2026-09-27 | 슬라이스 7 FR-25 · 26 — 미러 연승 · 연패 · 진입 시간대 · 요일 줄. 새 슬라이스 · 파일 없음(`MirrorLines` · `mirrorMessages` · `@repo/core/coach` `behaviorMirror.ts`). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 7 |
 | 2026-10-08 | F011 슬라이스 3b — `RecordTradeCard` 에 `assetType` · `tickSize`(기본 코인 — 코인 화면 무변경). 국내 주식은 계획 · 사이즈 계산 없이 거래만(`FE-REQ-041` FR-16). 기록 뒤 홈 보유 요약 무효화를 코인에도 더함 |
+| 2026-10-08 | F011 슬라이스 4 — `RecordTradeCard` 의 국내 주식 막음(계획 · 사이즈 계산 · 체크 숨김, 한 줄 안내)을 걷었다 — 코인과 같은 폼. 근거 `FE-REQ-041` FR-22 |

@@ -39,3 +39,4 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9-4 ·
 - 2026-09-29: 초판 · FR-1~5 완료(`78652d5` · `afd29af`)
 - 2026-09-30: FR-6 추가 · 완료 — 거래소 투자유의 · 주의 표시
 - 2026-10-07: FR-7 추가 · 완료 — 재료 정지 `stale_inputs`(F010 슬라이스 7)
+- 2026-10-08: F011 슬라이스 4 — 성적표 정규식이 `kr_stock.<mode>.<action>` 그룹을 버리던 것을 받고 그룹 `assetClass` 추가 · 판단 사유 2종(`mode_not_open` · `insufficient_history`) 타입. 근거 `BFF-REQ-040` FR-17 · 18

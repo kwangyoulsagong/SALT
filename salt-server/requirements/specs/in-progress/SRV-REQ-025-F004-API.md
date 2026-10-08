@@ -301,3 +301,4 @@ type ExplainResult =
 | 2026-09-28 | **F010 슬라이스 0.** FR-59 신설 · 구현(`SRV-REQ-024` FR-173~176 의 계약). 화면 소비처가 없는 `signal-performance` 만 모양이 바뀌었고 나머지는 필드 · 사유 추가다 |
 | 2026-10-06 | **F010 슬라이스 6 (3차) — LLM 가드.** FR-61 신설 · 구현. 응답 모양 무변화, 캐시 키는 시스템 지시 · 프롬프트가 바뀌어 한 번 전부 새로 만든다. 근거 `reports/checklists/SRV-REQ-025.md` |
 | 2026-10-07 | **F010 슬라이스 7 — LLM 비용 상한.** FR-62~64 신설 · 구현(`bc2fbf0`). 응답 모양 무변화(상한 · 원장 못 읽음 → 템플릿). 새 env 3(선택) · 새 표 `llm_call_logs`. Gemini 4xx 재시도 버그 수정. 근거 `reports/checklists/SRV-REQ-025.md` § F010 슬라이스 7 |
+| 2026-10-08 | F011 슬라이스 4 — **BREAKING** `GET /api/coach/detail` `excluded[].reasonCode` `no_realtime_data` 삭제 → `insufficient_history` · `symbol_judgment_only` + `progress`(`COACH_EXCLUDED` 상수 → `coachExclusions`). 종목 판단 · 해설 · 성적표가 국내 주식을 자산군 접두로 나눈다. 근거 `SRV-REQ-040` FR-60~66 · 37 |

@@ -60,3 +60,18 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 실서버 경유 `POST /api/app/coach/trades` kr_stock | 4101 BFF 가 이 세션 전 코드로 떠 있고 재시작이 허용되지 않았다 — 경로는 실제 Express 앱 테스트, 서버 쪽은 유스케이스 통합 확인 | 다음 BFF 재시작 뒤 화면에서 1건 기록 |
+
+## 슬라이스 4 추가(2026-10-08, `c0d9aad`)
+
+| FR | 결과 |
+|---|---|
+| FR-17 | `symbol-coach.viewmodel.test.ts` +1(국내 주식 자산군 · 이력 통과 · 깨진 이력 null · 모르는 자산군 crypto) · 기존 막힘 기대값에 `assetClass` · `history: null` |
+| FR-18 | `judgment-scoreboard.test.ts` +1(접두 그룹 남김 · `us_stock.` 은 버림 · 모드는 접두 뒤) |
+| FR-19 | `trade-risk.controller.test.ts` — 국내 주식 + 계획 400 → 201 · 계획 손절가 서비스 전달 |
+| 게이트 | `npm test` 251/251 · `tsc` · `build` |
+
+### 슬라이스 4 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실제 BFF 경유(4101) 새 필드 | 4101 BFF 가 이 세션 전 코드로 떠 있고 재시작은 사용자 승인이 필요하다 — 뷰모델 · Express 앱 테스트와 고정 응답 화면으로 확인 | BFF 재시작 뒤 `/api/app/ai-coach/detail?symbol=005930` 1회 |
