@@ -47,6 +47,8 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 | FR-11 | `/overview` `sort` · `order` · `period` — 서버와 같은 값(코인 문자열 `""` · `trade_value` · `7d` …)만, 모르는 값은 서버를 부르지 않고 400(`period=1w` 400 확인) | 완료(`36ad645`, 슬라이스 3) |
 | FR-12 | `KrQuoteVM` `openPrice` · `highPrice` · `lowPrice`(numOrNull) · 목록 행 `periodChange` | 완료(`36ad645`) |
 | FR-13 | 관심 종목 — `kr_stock` 행은 업비트 가격 캐시를 보지 않고 서버 값 그대로(`logoUrl` null) · POST `assetType` 통과 | 완료(`36ad645`) |
+| FR-15 | 거래 기록 `POST /api/app/coach/trades` `assetType`(`crypto` · `kr_stock`, 없으면 crypto) 통과 · 모르는 값 400. **국내 주식 + 계획은 400** — 코치 계획 연결이 코인 원장만 본다(슬라이스 4), 조용히 버리면 손절가가 사라진다. 거래 응답 `assetType`(모르는 값은 계약 깨짐) | 완료(`ba2ddc6`, 슬라이스 3b) |
+| FR-16 | 홈 보유 요약 — 국내 주식 보유가 있을 때만 서버 `/market/kr/assets?codes=` 로 이름 · 로고(코인 이름 조회와 같은 규칙: 실패 · 404 면 코드 + `namesDegraded`, 금액은 그대로) | 완료(`ba2ddc6`) |
 | FR-14 | 시세 행 `logoUrl` 통과(서버가 정한 logo.dev · FMP 주소) — 필드가 없는 옛 서버 응답은 `null`(로고는 꾸밈이라 계약 깨짐으로 보지 않는다) | 완료(`ad5217a`) |
 
 ## 계약 변경
@@ -61,3 +63,4 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 - 2026-10-08: 초판 · FR-1~10 완료
 - 2026-10-08: FR-14 — `logoUrl` 통과(`ad5217a`). 테스트 243/243
 - 2026-10-08: FR-11~13 — 화면을 코인과 같게(`FE-REQ-041`): 필터 · 당일 시가/고가/저가 · 기간 수익률 · 관심 종목 `kr_stock`. 첫 소비처가 생겨 미검증 "비소유자 subscribed 선응답"을 화면이 처리(탭 없음 · 거부 코드)
+- 2026-10-08: 슬라이스 3b — FR-15 거래 기록 `assetType` · FR-16 보유 요약 국내 주식 이름 · 로고. 테스트 249/249(경로 3 · 요약 3 · 기존 거래 응답 고정값에 `assetType`)

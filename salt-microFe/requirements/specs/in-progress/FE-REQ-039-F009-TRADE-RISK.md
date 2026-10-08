@@ -65,3 +65,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-09-27 | 슬라이스 5 FR-14~20 — 내 거래 미러 · 청산별 태그 확정 · 폼 한 줄(엣지 없음 · 매도 프레이밍) · 행동 알림 → 미러 줄. 새 feature `confirm-outcome-tags`(레지스트리 등록). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 5 |
 | 2026-09-27 | 슬라이스 6 FR-21~24 — 월간 복기 · IPS 3문항(원/% · 한 종목 상한) · 시나리오 · 진입 전 체크 · 미러 Brier 줄. 새 슬라이스 없음(`set-risk-budget` 에 `lib` 세그먼트). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 6 |
 | 2026-09-27 | 슬라이스 7 FR-25 · 26 — 미러 연승 · 연패 · 진입 시간대 · 요일 줄. 새 슬라이스 · 파일 없음(`MirrorLines` · `mirrorMessages` · `@repo/core/coach` `behaviorMirror.ts`). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 7 |
+| 2026-10-08 | F011 슬라이스 3b — `RecordTradeCard` 에 `assetType` · `tickSize`(기본 코인 — 코인 화면 무변경). 국내 주식은 계획 · 사이즈 계산 없이 거래만(`FE-REQ-041` FR-16). 기록 뒤 홈 보유 요약 무효화를 코인에도 더함 |
