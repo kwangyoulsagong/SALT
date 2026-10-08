@@ -1,5 +1,5 @@
-import { KrStockNotAvailableError, isKrStockViewer } from "../../domain";
-import type { KrCompanyHomepageSource, KrLogoImageProbe } from "../../domain";
+import { KrStockDisabledError, KrStockNotAvailableError, isKrStockCode, isKrStockViewer } from "../../domain";
+import type { KrCompanyHomepageSource, KrHeldCodesSource, KrLogoImageProbe } from "../../domain";
 import type {
   KrProviderHealthPort,
   KrRealtimePort,
@@ -153,6 +153,14 @@ export interface MarketApi {
    * `coach` 의 종목 판단 스냅샷(F004 · D11)이 추적 자산을 만들 때 쓴다.
    */
   watchedSymbols(): Promise<string[]>;
+  /**
+   * 거래 기록이 국내 주식 코드를 받기 전 확인(F011 슬라이스 3b) — 꺼져 있으면 `KrStockDisabledError`(503),
+   * 비소유자 · 코드 형식 · 마스터에 없음은 같은 `KrStockNotAvailableError`(404 — 관심 종목 추가와 같은 규칙).
+   * 통과하면 마스터 이름
+   */
+  krStockListing(email: string | undefined, code: string): Promise<{ code: string; name: string }>;
+  /** 저장된 국내 주식 현재가(`kr_stock_quotes`). 꺼져 있거나 시세가 없는 코드는 빠진다 — 보유 평가가 쓴다 */
+  krStockPrices(codes: string[]): Promise<Array<{ code: string; price: number; priceUpdatedAt: Date }>>;
 }
 
 export type {
@@ -196,6 +204,8 @@ export interface KrStockDependencies {
   realtime: KrRealtimePort;
   /** KIS REST 건강 상태 · 지표(FR-92 · 94) — `KisClient` 가 호출 결과로 센다 */
   health: KrProviderHealthPort;
+  /** 보유 코드 — 유니버스 첫 순위(FR-11). `portfolio` 의 사실이라 조립 지점이 넣는다 */
+  held: KrHeldCodesSource;
   /** 시총 상위 N(`KIS_UNIVERSE_TOP_N`) */
   universeTopN: number;
   /** logo.dev 퍼블리셔블 키(`KR_LOGO_DEV_TOKEN`) — 없으면 로고 없음(화면 이니셜, `krStockLogoUrl`) */
@@ -228,7 +238,7 @@ export interface KrStockUseCases {
 }
 
 const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
-  const universe = new ResolveKrStockUniverse(deps.store, deps.universeTopN);
+  const universe = new ResolveKrStockUniverse(deps.store, deps.held, deps.universeTopN);
   const realtime = new RunKrRealtime(deps.realtime, deps.store, deps.calendar, universe);
   const provider = () => {
     const h = deps.health.snapshot();
@@ -380,6 +390,19 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     closePercentiles: (symbol, timeframe, since, fractions) =>
       deps.prices.closePercentiles(symbol, timeframe, since, fractions),
     watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),
+    krStockListing: async (email, code) => {
+      const kr = deps.krStock;
+      if (!kr) throw new KrStockDisabledError();
+      if (!isKrStockViewer(email, kr.viewerEmails) || !isKrStockCode(code)) throw new KrStockNotAvailableError();
+      const listing = await kr.store.findListing(code);
+      if (!listing) throw new KrStockNotAvailableError();
+      return { code: listing.code, name: listing.name };
+    },
+    krStockPrices: async (codes) => {
+      if (!deps.krStock || codes.length === 0) return [];
+      const rows = await deps.krStock.store.quotes({ codes, limit: codes.length, offset: 0 });
+      return rows.map((q) => ({ code: q.code, price: q.price, priceUpdatedAt: q.priceUpdatedAt }));
+    },
     sentimentForwardReturns: (query) =>
       deps.sentiments.forwardReturnsByBucket(query),
   };

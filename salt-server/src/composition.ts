@@ -52,6 +52,7 @@ import { createNewsApplication } from "./news/application/api";
 import { createOnboardingApplication } from "./onboarding/application/api";
 import { createOnboardingRouter } from "./onboarding/presentation/onboarding.routes";
 import { createPortfolioApplication } from "./portfolio/application/api";
+import { KrStockQuoteAdapter } from "./portfolio/infrastructure/KrStockQuoteAdapter";
 import { PriceHistoryAdapter } from "./portfolio/infrastructure/PriceHistoryAdapter";
 import { PrismaHoldingRepository } from "./portfolio/infrastructure/PrismaHoldingRepository";
 import { PrismaTransactionRepository } from "./portfolio/infrastructure/PrismaTransactionRepository";
@@ -137,6 +138,11 @@ const krStock =
         master: new KisMasterFile(),
         store: new PrismaKrStockStore(),
         calendar: new PrismaKrMarketCalendarStore(),
+        /**
+         * 보유는 `portfolio` 의 사실인데 `portfolio` 가 `market` 뒤에 조립된다(종가를 받는다). 그래서 **부를 때**
+         * 공개 API 를 찾는다 — 부르는 것은 워커 회차라 조립이 끝난 뒤다. 순서를 뒤집으면 성과 차트가 끊긴다
+         */
+        held: { heldCodes: () => portfolio.api.heldSymbols("kr_stock") },
         universeTopN: env.KIS_UNIVERSE_TOP_N,
         logoDevToken: env.KR_LOGO_DEV_TOKEN,
         logoImages: new LogoDevImageProbe(),
@@ -170,6 +176,7 @@ const portfolio = createPortfolioApplication({
   transactions: new PrismaTransactionRepository(),
   holdings: new PrismaHoldingRepository(),
   prices: new PriceHistoryAdapter(market.api),
+  krStock: new KrStockQuoteAdapter(market.api),
 });
 
 /**

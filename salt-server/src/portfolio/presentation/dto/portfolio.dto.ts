@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 export const createTransactionSchema = z.object({
+  // 주지 않으면 코인 — 기존 호출 그대로(F011 슬라이스 3b). 국내 주식 코드 형식 · 마스터 확인은 유스케이스
+  assetType: z.enum(['crypto', 'kr_stock']).optional().default('crypto'),
   symbol: z.string().min(1, 'Symbol is required'),
   transactionType: z.enum(['buy', 'sell']),
   quantity: z.number().positive('Quantity must be positive'),

@@ -5,6 +5,7 @@ import {
   revalue,
   summarizeHoldings,
   type HoldingRepository,
+  type KrStockQuoteSource,
   type PriceHistorySource,
   type TransactionFilter,
   type TransactionRepository,
@@ -163,7 +164,8 @@ export class UpdateHoldingPrices {
     );
     if (priceBySymbol.size === 0) return;
 
-    const holdings = await this.holdings.findBySymbols([...priceBySymbol.keys()]);
+    // 코인만 — 밀어 넣는 쪽이 업비트 시세다. 국내 주식 코드와 겹칠 일은 없지만 자산군을 섞지 않는다
+    const holdings = await this.holdings.findBySymbols([...priceBySymbol.keys()], "crypto");
 
     await Promise.all(
       holdings.map((holding) => {
@@ -175,6 +177,33 @@ export class UpdateHoldingPrices {
         );
       })
     );
+  }
+}
+
+/**
+ * 국내 주식 보유 평가(F011 슬라이스 3b) — 저장된 현재가(`kr_stock_quotes`)로 모든 사용자의 국내 주식 보유를 다시
+ * 평가한다. 시세 회차(`kr-quote-poll`) 뒤에 워커가 부른다.
+ *
+ * 쿼리는 셋으로 고정이다 — 보유 코드 · 현재가 · 보유 행. 시세가 없는 코드의 보유는 건드리지 않는다
+ * (빈 값으로 덮어쓰지 않는다, FR-90).
+ */
+export class RevalueKrStockHoldings {
+  constructor(
+    private readonly holdings: HoldingRepository,
+    private readonly krStock: KrStockQuoteSource
+  ) {}
+
+  async execute(): Promise<{ holdings: number }> {
+    const codes = await this.holdings.distinctSymbols("kr_stock");
+    if (codes.length === 0) return { holdings: 0 };
+    const prices = new Map((await this.krStock.prices(codes)).map((p) => [p.symbol, p.currentPrice]));
+    if (prices.size === 0) return { holdings: 0 };
+
+    const rows = await this.holdings.findBySymbols([...prices.keys()], "kr_stock");
+    await Promise.all(
+      rows.map((holding) => this.holdings.applyValuation(holding.id, revalue(holding, prices.get(holding.symbol)!)))
+    );
+    return { holdings: rows.length };
   }
 }
 

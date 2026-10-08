@@ -8,6 +8,7 @@ import {
   isKrQuoteWindow,
   krMarketSession,
   kstDateOf,
+  type KrHeldCodesSource,
   type KrMarketCalendarStore,
   type KrProviderHealthPort,
   type KrSessionView,
@@ -36,17 +37,22 @@ export const loadKrSession = async (calendar: KrMarketCalendarStore, now: Date):
   return krMarketSession(now, new Map(days.map((d) => [d.date, d.isOpen])));
 };
 
-/** 유니버스 = 관심(누구든) ∪ 시총 상위 N(FR-11). 보유는 거래 입력이 `kr_stock` 을 받는 슬라이스 3 에서 더한다 */
+/** 유니버스 = 보유(누구든) ∪ 관심(누구든) ∪ 시총 상위 N(FR-11). 보유는 거래 입력이 `kr_stock` 을 받으면서 더했다(슬라이스 3b) */
 export class ResolveKrStockUniverse {
   constructor(
     private readonly store: KrStockStore,
+    private readonly held: KrHeldCodesSource,
     private readonly topN: number
   ) {}
 
   async execute(): Promise<string[]> {
-    const [watched, top] = await Promise.all([this.store.watchedCodes(), this.store.topByMarketCap(this.topN)]);
-    // 관심이 앞 — 한도에 걸려 회차가 잘리면 사용자가 고른 종목이 먼저 받는다(FR-91 우선순위)
-    return [...new Set([...watched, ...top])];
+    const [held, watched, top] = await Promise.all([
+      this.held.heldCodes(),
+      this.store.watchedCodes(),
+      this.store.topByMarketCap(this.topN),
+    ]);
+    // 보유 → 관심 → 시총 — 실시간 슬롯 배정(FR-12)과 한도에 걸려 회차가 잘릴 때(FR-91) 이 순서로 먼저 받는다
+    return [...new Set([...held, ...watched, ...top])];
   }
 }
 

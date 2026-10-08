@@ -1,26 +1,18 @@
 import {
   InsufficientQuantityError,
   recalculateHolding,
+  revalue,
   shouldKeepHolding,
   TransactionAccessDeniedError,
   TransactionNotFoundError,
   type HoldingRepository,
+  type KrStockQuoteSource,
   type PortfolioAssetType,
   type TransactionRepository,
 } from "../domain";
 
-/**
- * 자산군 기본값.
- *
- * `PortfolioTransaction`·`PortfolioHolding` 의 유니크 키는 `(userId, symbol, assetType)`
- * 이고 `assetType` 은 필수인데 **DTO 가 그것을 받지 않는다** — 컬럼이 나중에 추가되면서
- * 코드가 따라오지 않았고, 그 때문에 이 서비스는 컴파일되지 않고 있었다
- * (`SRV-REQ-006` 체크리스트 §6).
- *
- * API 계약을 바꾸지 않기 위해 기본값을 유지한다. **주식이 들어오면(F000·F001) DTO 에
- * `assetType` 을 추가하고 이 상수를 지운다.** 그때 프론트·BFF 계약도 함께 바뀐다.
- */
-const DEFAULT_ASSET_TYPE: PortfolioAssetType = "crypto";
+/** 거래 입력이 받는 자산군(F011 슬라이스 3b). 주지 않으면 `crypto` — 기존 호출이 그대로 돈다 */
+export type RecordableAssetType = Extract<PortfolioAssetType, "crypto" | "kr_stock">;
 
 /**
  * 보유 재계산을 공유하는 부분.
@@ -32,6 +24,7 @@ const DEFAULT_ASSET_TYPE: PortfolioAssetType = "crypto";
 const recalculate = async (
   transactions: TransactionRepository,
   holdings: HoldingRepository,
+  krStock: KrStockQuoteSource,
   userId: string,
   symbol: string,
   assetType: PortfolioAssetType
@@ -43,15 +36,28 @@ const recalculate = async (
   );
   const snapshot = recalculateHolding(facts);
 
-  if (shouldKeepHolding(snapshot)) {
-    await holdings.save(userId, symbol, assetType, snapshot);
-  } else {
+  if (!shouldKeepHolding(snapshot)) {
     await holdings.remove(userId, symbol, assetType);
+    return;
+  }
+  await holdings.save(userId, symbol, assetType, snapshot);
+
+  /**
+   * 국내 주식은 저장된 현재가로 **바로** 평가한다. 코인은 BFF 가 5초 안에 밀어 넣지만 국내 주식 평가는
+   * 시세 회차(장중 1분 · 밤엔 없음)를 기다려야 해서, 밤에 기록한 보유가 아침까지 평가액 0 으로 남는다
+   */
+  if (assetType === "kr_stock") {
+    const [price] = await krStock.prices([symbol]);
+    const holding = price && (await holdings.findOne(userId, symbol, assetType));
+    if (price && holding) await holdings.applyValuation(holding.id, revalue(holding, price.currentPrice));
   }
 };
 
 export interface RecordTransactionCommand {
   userId: string;
+  /** 국내 주식 소유자 판정(`FORECAST_OWNER_EMAILS`) — 코인은 보지 않는다 */
+  email?: string;
+  assetType?: RecordableAssetType;
   symbol: string;
   transactionType: "buy" | "sell";
   quantity: number;
@@ -80,17 +86,25 @@ export interface RecordTransactionCommand {
 export class RecordTransaction {
   constructor(
     private readonly transactions: TransactionRepository,
-    private readonly holdings: HoldingRepository
+    private readonly holdings: HoldingRepository,
+    private readonly krStock: KrStockQuoteSource
   ) {}
 
   async execute(command: RecordTransactionCommand) {
     const symbol = command.symbol.toUpperCase();
+    const assetType = command.assetType ?? "crypto";
+
+    /**
+     * 국내 주식은 마스터에 있는 6자리 코드만 — 오타 코드가 보유로 남으면 평가 · 유니버스가 없는 종목을 쫓는다.
+     * 단가가 호가 단위 배수가 아니어도 **막지 않는다**(수동 입력 원칙, FR-42 — 안내는 화면 몫)
+     */
+    if (assetType === "kr_stock") await this.krStock.assertTradable(command.email, symbol);
 
     if (command.transactionType === "sell") {
       const holding = await this.holdings.findOne(
         command.userId,
         symbol,
-        DEFAULT_ASSET_TYPE
+        assetType
       );
       if (!holding || holding.totalQuantity < command.quantity) {
         throw new InsufficientQuantityError();
@@ -100,7 +114,7 @@ export class RecordTransaction {
     const transaction = await this.transactions.create({
       userId: command.userId,
       symbol,
-      assetType: DEFAULT_ASSET_TYPE,
+      assetType,
       transactionType: command.transactionType,
       quantity: command.quantity,
       price: command.price,
@@ -113,9 +127,10 @@ export class RecordTransaction {
     await recalculate(
       this.transactions,
       this.holdings,
+      this.krStock,
       command.userId,
       symbol,
-      DEFAULT_ASSET_TYPE
+      assetType
     );
 
     return transaction;
@@ -133,7 +148,8 @@ export interface UpdateTransactionCommand {
 export class UpdateTransaction {
   constructor(
     private readonly transactions: TransactionRepository,
-    private readonly holdings: HoldingRepository
+    private readonly holdings: HoldingRepository,
+    private readonly krStock: KrStockQuoteSource
   ) {}
 
   async execute(
@@ -167,6 +183,7 @@ export class UpdateTransaction {
     await recalculate(
       this.transactions,
       this.holdings,
+      this.krStock,
       userId,
       existing.symbol,
       existing.assetType
@@ -179,7 +196,8 @@ export class UpdateTransaction {
 export class DeleteTransaction {
   constructor(
     private readonly transactions: TransactionRepository,
-    private readonly holdings: HoldingRepository
+    private readonly holdings: HoldingRepository,
+    private readonly krStock: KrStockQuoteSource
   ) {}
 
   async execute(userId: string, transactionId: string) {
@@ -192,6 +210,7 @@ export class DeleteTransaction {
     await recalculate(
       this.transactions,
       this.holdings,
+      this.krStock,
       userId,
       existing.symbol,
       existing.assetType
