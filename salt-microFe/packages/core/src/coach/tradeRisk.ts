@@ -201,7 +201,12 @@ export interface TradePlanView {
 
 export type TradePlanListResult = { status: "ok"; plans: TradePlanView[] } | { status: "unavailable" };
 
+/** 거래 입력이 받는 자산군(F011 슬라이스 3b). 국내 주식은 6자리 코드 · 계획 없음(코치 슬라이스 4) */
+export type RecordableAssetType = "crypto" | "kr_stock";
+
 export interface RecordTradeRequest {
+  /** 주지 않으면 코인 */
+  assetType?: RecordableAssetType;
   symbol: string;
   side: TradeSide;
   quantity: number;
@@ -219,6 +224,7 @@ export interface RecordTradeRequest {
 
 export interface RecordedTransactionView {
   id: string;
+  assetType: RecordableAssetType;
   symbol: string;
   side: TradeSide;
   quantity: number;

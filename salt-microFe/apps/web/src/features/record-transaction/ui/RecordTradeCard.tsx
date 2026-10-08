@@ -1,6 +1,6 @@
 "use client";
 
-import type { RecordTradeResult, SizeCheckRequest, TradeSide } from "@repo/core/coach";
+import type { RecordableAssetType, RecordTradeResult, SizeCheckRequest, TradeSide } from "@repo/core/coach";
 import { Button } from "@repo/ui/button";
 import { SegmentedControl } from "@repo/ui/segmentedControl";
 import { StatusGraphic } from "@repo/ui/statusGraphic";
@@ -11,7 +11,7 @@ import { useEffect, useId, useMemo, useState, type FormEvent } from "react";
 
 import { CoachDisclosure, SizeCheckLines, TradeBehaviorLines } from "@/entities/coach";
 import { useHasAccessToken } from "@/shared/api";
-import { formatAmountInput, parseAmountInput, todayInKorea, toTransactionDate } from "@/shared/lib";
+import { formatAmountInput, formatPrice, parseAmountInput, todayInKorea, toTransactionDate } from "@/shared/lib";
 
 import { useRecordTrade, useSizeCheck } from "../api";
 import { useDebouncedValue } from "../lib";
@@ -23,6 +23,7 @@ import {
   chevronOpen,
   description,
   errorText,
+  fieldNote,
   form,
   head,
   hint,
@@ -41,6 +42,8 @@ import {
 const SIZE_CHECK_DEBOUNCE_MS = 300;
 const THESIS_MAX_LENGTH = 200;
 const INSUFFICIENT_QUANTITY = "PORTFOLIO_INSUFFICIENT_QUANTITY";
+/** 국내 주식 — 비소유자 · 마스터에 없는 코드(서버 `KrStockNotAvailableError`) */
+const KR_STOCK_NOT_AVAILABLE = "KR_STOCK_NOT_AVAILABLE";
 const HTTP_UNAUTHORIZED = 401;
 
 const SIDE_OPTIONS: { label: string; value: TradeSide }[] = [
@@ -54,8 +57,15 @@ type Notice =
   | null;
 
 interface RecordTradeCardProps {
-  /** 코치 모양 심볼(`BTC`) */
+  /** 코치 모양 심볼(`BTC`) · 국내 주식은 6자리 코드 */
   symbol: string;
+  /** 주지 않으면 코인. 국내 주식은 계획 · 사이즈 계산 없이 거래만 적는다(F011 슬라이스 3b — 코치는 슬라이스 4) */
+  assetType?: RecordableAssetType;
+  /**
+   * 국내 주식 호가 단위(원) — 서버가 현재가로 정한 값(`detail.tickSize`). 단가 칸 아래 **안내만** 한다(FR-42 · 수동 입력 원칙).
+   * 적은 단가가 배수인지는 따지지 않는다 — 가격대별 단위 표는 서버에 있고 프론트에 두 벌 두지 않는다
+   */
+  tickSize?: number | null;
   /** 실시간 현재가(원). [현재가] 버튼이 단가 칸에 옮겨 적는다 — 계산하지 않는다 */
   livePrice: number | null;
   className?: string;
@@ -74,8 +84,10 @@ interface RecordTradeCardProps {
  * 입력은 필수 4개(구분 · 수량 · 단가 · 날짜 — 날짜는 오늘이 기본) + 선택 2개(손절가 · 이유)다(FR-10 · "추가 입력 2개 이내").
  * 계산 결과는 `aria-live` 로 읽힌다. 모달 · 확인 단계가 없다.
  */
-export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCardProps) => {
+export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null, livePrice, className }: RecordTradeCardProps) => {
   const hasToken = useHasAccessToken();
+  // 국내 주식은 코치가 아직 모른다 — 계획 연결 · 사이즈 계산이 코인 원장 · 시세만 본다(BFF 가 계획을 400 으로 막는다)
+  const coachEnabled = assetType === "crypto";
   const ids = { quantity: useId(), price: useId(), date: useId(), stop: useId(), thesis: useId(), plan: useId() };
 
   const [side, setSide] = useState<TradeSide>("buy");
@@ -121,7 +133,7 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
     };
   }, [symbol, side, parsed.quantity, parsed.price, parsed.stop, hasPlan]);
   const debouncedInput = useDebouncedValue(sizeInput, SIZE_CHECK_DEBOUNCE_MS);
-  const sizeCheck = useSizeCheck(hasToken ? debouncedInput : null);
+  const sizeCheck = useSizeCheck(hasToken && coachEnabled ? debouncedInput : null);
   const waitingDebounce = sizeInput !== debouncedInput;
 
   const { record, retryPlan } = useRecordTrade();
@@ -165,16 +177,22 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
     const trimmedThesis = thesis.trim();
     record.mutate(
       {
+        ...(coachEnabled ? {} : { assetType }),
         symbol,
         side,
         quantity: parsed.quantity,
         price: parsed.price,
         ...(today ? { transactionDate: toTransactionDate(date, today) } : {}),
-        plan: {
-          ...(parsed.stop !== null ? { stopPrice: parsed.stop } : {}),
-          ...(trimmedThesis ? { thesis: trimmedThesis } : {}),
-          ...checklistPlan(),
-        },
+        // 국내 주식엔 계획을 싣지 않는다 — 칸도 그리지 않는다
+        ...(coachEnabled
+          ? {
+              plan: {
+                ...(parsed.stop !== null ? { stopPrice: parsed.stop } : {}),
+                ...(trimmedThesis ? { thesis: trimmedThesis } : {}),
+                ...checklistPlan(),
+              },
+            }
+          : {}),
       },
       {
         onSuccess: (result) => {
@@ -187,9 +205,11 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
           const message =
             error.code === INSUFFICIENT_QUANTITY
               ? MSG.errors.insufficient
-              : error.status === HTTP_UNAUTHORIZED
-                ? MSG.errors.signedOut
-                : MSG.errors.failed;
+              : error.code === KR_STOCK_NOT_AVAILABLE
+                ? MSG.errors.notAvailable
+                : error.status === HTTP_UNAUTHORIZED
+                  ? MSG.errors.signedOut
+                  : MSG.errors.failed;
           setNotice({ kind: "error", message });
         },
       },
@@ -270,7 +290,7 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
             autoComplete="off"
             value={quantity}
             onChange={(value) => setQuantity(formatAmountInput(value))}
-            trailing={<span className={unit}>{MSG.quantityUnit}</span>}
+            trailing={<span className={unit}>{coachEnabled ? MSG.quantityUnit : MSG.krStock.quantityUnit}</span>}
             error={amountInvalid && parsed.quantity === null ? MSG.errors.invalidAmount : undefined}
           />
 
@@ -298,6 +318,7 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
               {MSG.useLivePrice}
             </button>
           </div>
+          {tickSize !== null && <p className={`${hint} ${fieldNote}`}>{MSG.krStock.tickHint(formatPrice(tickSize))}</p>}
 
           <label className={label} htmlFor={ids.date}>
             {MSG.date}
@@ -312,79 +333,85 @@ export const RecordTradeCard = ({ symbol, livePrice, className }: RecordTradeCar
           />
         </div>
 
-        <div>
-          <button
-            type="button"
-            className={planToggle}
-            aria-expanded={planOpen}
-            aria-controls={ids.plan}
-            onClick={() => setPlanOpen((open) => !open)}
-          >
-            {MSG.planToggle}
-            <ChevronDown size={16} className={planOpen ? chevronOpen : chevron} aria-hidden="true" />
-          </button>
-          {/* 접힘은 조건부 렌더다 — `hidden` 속성은 `display:flex` 가 덮어 써서 늘 보였다 */}
-          {planOpen && (
-          <div id={ids.plan} className={planBody}>
-            <p className={hint}>{MSG.planHint}</p>
-            <div className={rows}>
-              <label className={label} htmlFor={ids.stop}>
-                {MSG.stopPrice}
-              </label>
-              <TextField
-                id={ids.stop}
-                variant="compact"
-                inputMode="decimal"
-                autoComplete="off"
-                value={stopPrice}
-                onChange={(value) => setStopPrice(formatAmountInput(value))}
-                trailing={<span className={unit}>{MSG.priceUnit}</span>}
-                error={stopInvalid ? MSG.errors.invalidStop : undefined}
-              />
-              <label className={label} htmlFor={ids.thesis}>
-                {MSG.thesis}
-              </label>
-              <TextField
-                id={ids.thesis}
-                variant="compact"
-                autoComplete="off"
-                maxLength={THESIS_MAX_LENGTH}
-                placeholder={MSG.thesisPlaceholder}
-                value={thesis}
-                onChange={setThesis}
-              />
+        {coachEnabled ? (
+          <>
+          <div>
+            <button
+              type="button"
+              className={planToggle}
+              aria-expanded={planOpen}
+              aria-controls={ids.plan}
+              onClick={() => setPlanOpen((open) => !open)}
+            >
+              {MSG.planToggle}
+              <ChevronDown size={16} className={planOpen ? chevronOpen : chevron} aria-hidden="true" />
+            </button>
+            {/* 접힘은 조건부 렌더다 — `hidden` 속성은 `display:flex` 가 덮어 써서 늘 보였다 */}
+            {planOpen && (
+            <div id={ids.plan} className={planBody}>
+              <p className={hint}>{MSG.planHint}</p>
+              <div className={rows}>
+                <label className={label} htmlFor={ids.stop}>
+                  {MSG.stopPrice}
+                </label>
+                <TextField
+                  id={ids.stop}
+                  variant="compact"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={stopPrice}
+                  onChange={(value) => setStopPrice(formatAmountInput(value))}
+                  trailing={<span className={unit}>{MSG.priceUnit}</span>}
+                  error={stopInvalid ? MSG.errors.invalidStop : undefined}
+                />
+                <label className={label} htmlFor={ids.thesis}>
+                  {MSG.thesis}
+                </label>
+                <TextField
+                  id={ids.thesis}
+                  variant="compact"
+                  autoComplete="off"
+                  maxLength={THESIS_MAX_LENGTH}
+                  placeholder={MSG.thesisPlaceholder}
+                  value={thesis}
+                  onChange={setThesis}
+                />
+              </div>
+              {checklist && (
+                <EntryChecklist
+                  checklist={checklist}
+                  open={checklistOpen}
+                  onOpenChange={setChecklistOpen}
+                  checked={checkedTags}
+                  onCheckedChange={setCheckedTags}
+                  premortem={premortem}
+                  onPremortemChange={setPremortem}
+                />
+              )}
             </div>
-            {checklist && (
-              <EntryChecklist
-                checklist={checklist}
-                open={checklistOpen}
-                onOpenChange={setChecklistOpen}
-                checked={checkedTags}
-                onCheckedChange={setCheckedTags}
-                premortem={premortem}
-                onPremortemChange={setPremortem}
-              />
             )}
           </div>
-          )}
-        </div>
 
-        <SizeCheckLines
-          result={
-            sizeInput === null
-              ? null
-              : sizeCheck.isError
-                ? { status: "unavailable" }
-                : (sizeCheck.data ?? null)
-          }
-          isPending={sizeInput !== null && (waitingDebounce || sizeCheck.isFetching)}
-          idleHint={idleHint}
-        />
-        {/* FR-19 · 시나리오 5 — 엣지 없음 · 매도 프레이밍 한 줄. 차단 아님: 버튼은 그대로다 */}
-        {sizeInput !== null && sizeCheck.data?.status === "ok" && sizeCheck.data.side === side && (
-          <div aria-live="polite">
-            <TradeBehaviorLines side={side} preview={sizeCheck.data.behavior} />
-          </div>
+          <SizeCheckLines
+            result={
+              sizeInput === null
+                ? null
+                : sizeCheck.isError
+                  ? { status: "unavailable" }
+                  : (sizeCheck.data ?? null)
+            }
+            isPending={sizeInput !== null && (waitingDebounce || sizeCheck.isFetching)}
+            idleHint={idleHint}
+          />
+          {/* FR-19 · 시나리오 5 — 엣지 없음 · 매도 프레이밍 한 줄. 차단 아님: 버튼은 그대로다 */}
+          {sizeInput !== null && sizeCheck.data?.status === "ok" && sizeCheck.data.side === side && (
+            <div aria-live="polite">
+              <TradeBehaviorLines side={side} preview={sizeCheck.data.behavior} />
+            </div>
+          )}
+          </>
+        ) : (
+          <p className={hint}>{MSG.krStock.coachLater}</p>
         )}
 
         <Button type="submit" variant="primary" size="sm" fullWidth loading={record.isPending}>

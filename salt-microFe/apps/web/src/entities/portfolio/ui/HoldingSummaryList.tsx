@@ -48,8 +48,9 @@ export const HoldingSummaryList = React.memo(
             >
               <FlexBox align="center" gap="md">
                 {/* 종목이 나오는 자리에는 로고가 늘 있다 — 없으면 이니셜 */}
+                {/* 국내 주식 심볼은 숫자 코드라 이니셜이 "00" 이 된다 — 이름으로(상세 머리와 같다) */}
                 <AssetIcon
-                  symbol={item.symbol}
+                  symbol={item.assetType === "kr_stock" ? item.name : item.symbol}
                   src={item.logoUrl ?? undefined}
                   name={item.name}
                   size="md"

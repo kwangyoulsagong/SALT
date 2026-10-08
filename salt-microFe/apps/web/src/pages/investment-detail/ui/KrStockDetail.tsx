@@ -15,6 +15,7 @@ import {
   useKrDetail,
   useKrDetailRealtime,
 } from "@/entities/market";
+import { RecordTradeCard } from "@/features/record-transaction";
 import { useHasAccessToken } from "@/shared/api";
 import { formatKrwCompact, formatPrice } from "@/shared/lib";
 
@@ -22,6 +23,8 @@ import { INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT } from "../model";
 import {
   headerCard,
   identity,
+  krBody,
+  krSideCard,
   name as nameStyle,
   nameRow,
   price as priceStyle,
@@ -44,7 +47,8 @@ const ratio = (value: number | null, suffix = "") =>
  * (KRX 재배포 약관 — F011 §정책).
  *
  * 값은 전부 서버 것이다 — 원 정수 · 전일 대비 · 상하한가 · 기준가 · 호가 단위 · 상태 배지. 거래정지면 가격 자리에 마지막 체결
- * 일시를 같이 쓴다(FR-44). 코치 판단 · 해설 · 거래 기록은 아직 국내 주식을 받지 않는다(슬라이스 3b · 4).
+ * 일시를 같이 쓴다(FR-44). 거래 기록은 코인과 같은 폼이고 계획 · 크기 계산 없이 거래만 적는다(슬라이스 3b). 코치 판단 ·
+ * 해설은 아직 국내 주식을 받지 않는다(슬라이스 4).
  */
 export const KrStockDetail = ({ code }: { code: string }) => {
   const signedIn = useHasAccessToken();
@@ -116,7 +120,17 @@ export const KrStockDetail = ({ code }: { code: string }) => {
           </dl>
         </div>
       </header>
-      <KrStockChart code={quote.code} displayName={quote.name} />
+      <div className={krBody}>
+        <KrStockChart code={quote.code} displayName={quote.name} />
+        {/* 현재가는 실시간 구독이 갱신한 값 — [현재가] 버튼이 옮겨 적기만 한다. 호가 단위는 안내만(FR-42) */}
+        <RecordTradeCard
+          className={krSideCard}
+          symbol={quote.code}
+          assetType="kr_stock"
+          tickSize={detail.tickSize}
+          livePrice={quote.price}
+        />
+      </div>
       <StatusLine kind="empty">{M.detail.noCoach}</StatusLine>
     </>
   );
