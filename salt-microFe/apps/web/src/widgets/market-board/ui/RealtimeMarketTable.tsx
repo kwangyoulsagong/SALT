@@ -39,6 +39,7 @@ import {
   selectRowOnKey,
   toKrOverviewQuery,
   useBoardOverview,
+  useKrMarketStatus,
   useKrOverviewRealtime,
   useMarketOverviewRealtime,
   useWatchlist,
@@ -49,7 +50,13 @@ import { WatchlistStarButton } from "@/features/toggle-watchlist";
 import { useDetailLink } from "../lib";
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
 import type { PreviewRenderer } from "../model/previewSlot";
-import { nameLink, previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
+import {
+  headerLineFit,
+  nameLink,
+  previewPane,
+  splitLayout,
+  tablePane,
+} from "./MarketBoardLayout.css";
 import { RealtimeAsOf } from "./RealtimeAsOf";
 
 /**
@@ -79,8 +86,12 @@ export const RealtimeMarketTable = ({
 }) => {
   // 탭 id(문자열)를 받는다 — `MarketBoard` 는 엔티티 barrel 을 값으로 부르지 않는다(첫 로드 번들)
   const assetClass =
-    assetClassId === MarketAssetClass.KrStock ? MarketAssetClass.KrStock : MarketAssetClass.Crypto;
+    assetClassId === MarketAssetClass.KrStock
+      ? MarketAssetClass.KrStock
+      : MarketAssetClass.Crypto;
   const isKr = assetClass === MarketAssetClass.KrStock;
+  // KIS 상태(시세 제공 지연 줄) — 탭 판정 잎과 같은 쿼리 키라 요청이 늘지 않는다
+  const krStatus = useKrMarketStatus();
   /**
    * 초기값이 `DEFAULT_MARKET_PARAMS` 와 **같아야 한다** — 관심 종목 탭의 프리뷰가
    * 그 파라미터로 같은 목록을 읽는다. 어긋나면 쿼리 키가 갈라져 목록을 두 번 받는다.
@@ -191,10 +202,17 @@ export const RealtimeMarketTable = ({
                   <TableHeaderCell align="left">
                     {isKr ? (
                       data?.krSession && (
-                        <KrSessionLine
-                          session={data.krSession}
-                          realtimeRefused={krRealtimeRefused !== null}
-                        />
+                        <div className={headerLineFit}>
+                          <KrSessionLine
+                            session={data.krSession}
+                            provider={
+                              krStatus.data?.status === "ok"
+                                ? krStatus.data.provider
+                                : undefined
+                            }
+                            realtimeRefused={krRealtimeRefused !== null}
+                          />
+                        </div>
                       )
                     ) : (
                       <RealtimeAsOf />
@@ -249,7 +267,7 @@ export const RealtimeMarketTable = ({
                               name: item.koreanName,
                             }}
                           />
-                          {item.logoUrl ? (
+                          {item.logoUrl && !item.kr ? (
                             <Image
                               radius={9999}
                               width={30}
@@ -258,8 +276,14 @@ export const RealtimeMarketTable = ({
                               alt={item.koreanName}
                             />
                           ) : (
-                            // 로고가 없으면(국내 주식 — KIS 는 주지 않는다) 이름 이니셜. 로고(30px) 자리에 가장 가까운 32px
-                            <AssetIcon symbol={item.koreanName} name={item.koreanName} size="md" />
+                            // 국내 주식 로고는 서버가 준 외부 주소라 없을 수 있다(404) — `AssetIcon` 이 실패하면 이름 이니셜로 넘어간다.
+                            // 로고(30px) 자리에 가장 가까운 32px
+                            <AssetIcon
+                              symbol={item.koreanName}
+                              src={item.logoUrl || undefined}
+                              name={item.koreanName}
+                              size="md"
+                            />
                           )}
                           {/* 진짜 링크 — 가운데 클릭 · 새 탭 · 검색 로봇. 행 클릭과 겹쳐 두 번 가지 않게 멈춘다 */}
                           <Link
@@ -271,7 +295,10 @@ export const RealtimeMarketTable = ({
                             <Text variant="bodyLarge">{item.koreanName}</Text>
                           </Link>
                           {item.kr && data?.krSession && (
-                            <KrQuoteBadges quote={item.kr} now={data.krSession.now} />
+                            <KrQuoteBadges
+                              quote={item.kr}
+                              session={data.krSession}
+                            />
                           )}
                         </FlexBox>
                       </TableCell>

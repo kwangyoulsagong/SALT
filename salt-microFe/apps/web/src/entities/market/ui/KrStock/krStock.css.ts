@@ -11,7 +11,8 @@ export const sessionLine = style({
   rowGap: "2px",
   fontSize: "13px",
   lineHeight: "20px",
-  color: vars.colors.text.tertiary,
+  // tertiary(대비 3.03)는 axe 미달 — 새 요소라 4.5 이상 색을 쓴다. 기존 표 머리 · 필터 색은 정해 둔 값이라 그대로 둔다
+  color: vars.colors.neutral[700],
 });
 
 export const sessionStrong = style({

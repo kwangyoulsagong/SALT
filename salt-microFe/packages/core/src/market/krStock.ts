@@ -77,6 +77,8 @@ export interface KrQuote {
   lowPrice: number | null;
   /** 기간 수익률(%) — `period` 를 줬을 때만, 일봉 이력이 없으면 `null`. 서버 계산 */
   periodChange?: number | null;
+  /** 로고 주소 — 서버가 정한다(logo.dev · FMP). 없는 로고는 404 라 `AssetIcon` 이 이니셜로 넘어간다 */
+  logoUrl: string | null;
 }
 
 export interface KrOverview {

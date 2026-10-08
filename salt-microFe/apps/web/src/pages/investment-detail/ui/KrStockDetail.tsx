@@ -89,8 +89,8 @@ export const KrStockDetail = ({ code }: { code: string }) => {
       <header className={headerCard}>
         <div className={identity}>
           <div className={nameRow}>
-            {/* KIS 는 로고를 주지 않는다 — 이름 이니셜(FR-47) */}
-            <AssetIcon symbol={quote.name} name={quote.name} size="md" />
+            {/* 로고는 서버 주소(logo.dev · FMP), 없으면 이름 이니셜(FR-47) */}
+            <AssetIcon symbol={quote.name} src={quote.logoUrl ?? undefined} name={quote.name} size="md" />
             <h1 className={nameStyle}>{quote.name}</h1>
             <span className={ticker}>
               {quote.code} · {M.markets[quote.market]}
@@ -99,7 +99,7 @@ export const KrStockDetail = ({ code }: { code: string }) => {
           <div className={priceRow}>
             <span className={priceStyle}>{`${formatPrice(quote.price)}원`}</span>
             <KrChangeText rate={quote.changeRate} amount={quote.change} />
-            <KrQuoteBadges quote={quote} now={session.now} />
+            <KrQuoteBadges quote={quote} session={session} />
           </div>
           {quote.isHalted && <StatusLine kind="blocked">{M.detail.halted(updated)}</StatusLine>}
           <KrSessionLine session={session} />

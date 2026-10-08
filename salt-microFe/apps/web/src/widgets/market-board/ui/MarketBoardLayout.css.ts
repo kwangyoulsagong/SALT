@@ -188,3 +188,13 @@ export const nameLink = style({
   ":hover": { textDecoration: "underline" },
   ":focus-visible": { textDecoration: "underline" },
 });
+
+/**
+ * 표 머리 첫 칸의 국내 주식 장 상태 줄(F011 `FE-REQ-041`). **열 너비를 정하지 않게** 한다 — 줄이 길면(마지막 체결 · 다음 개장 ·
+ * 시세 제공 지연) 첫 열이 넓어져 오른쪽 거래대금 열이 잘렸다(2026-10-08 실측). 폭 0 + 최소 100% 면 열 너비는 행들이 정하고
+ * 줄은 그 안에서 줄바꿈된다
+ */
+export const headerLineFit = style({
+  width: 0,
+  minWidth: "100%",
+});

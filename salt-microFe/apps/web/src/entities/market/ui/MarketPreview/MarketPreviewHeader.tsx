@@ -8,7 +8,7 @@ import { Text } from "@repo/ui/text";
 import React from "react";
 
 import { WATCHLIST_MESSAGES } from "../../model/messages";
-import { MarketPreviewSubject } from "../../model/types";
+import { MarketAssetClass, MarketPreviewSubject } from "../../model/types";
 import { ChangeRateCell } from "../ChangeRateCell";
 import { PriceCell } from "../PriceCell";
 
@@ -24,7 +24,7 @@ export const MarketPreviewHeader = React.memo(
   ({ subject }: { subject: MarketPreviewSubject }) => {
     return (
       <FlexBox align="center" gap="lg">
-        {subject.logoUrl ? (
+        {subject.logoUrl && subject.assetType !== MarketAssetClass.KrStock ? (
           <Image
             radius={9999}
             width={40}
@@ -33,8 +33,13 @@ export const MarketPreviewHeader = React.memo(
             alt={subject.displayName}
           />
         ) : (
-          // 로고가 없으면(국내 주식 — KIS 는 로고를 주지 않는다) 이름 이니셜. 아이콘 자리를 비우지 않는다
-          <AssetIcon symbol={subject.displayName} name={subject.displayName} size="lg" />
+          // 국내 주식 · 로고 없는 종목 — 서버 주소를 시도하고 실패하면(404) 이름 이니셜. 아이콘 자리를 비우지 않는다
+          <AssetIcon
+            symbol={subject.displayName}
+            src={subject.logoUrl || undefined}
+            name={subject.displayName}
+            size="lg"
+          />
         )}
         <FlexBox direction="column">
           <Text variant="bodyLarge">{subject.displayName}</Text>
