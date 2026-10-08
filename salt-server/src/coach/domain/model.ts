@@ -46,13 +46,11 @@ export interface CoachQuote {
 }
 
 /**
- * 코치가 다루는 자산군.
- *
- * `market`·`portfolio` 와 같은 이유로 **DB enum 두 값**만 쓴다 — 커널의 세 값
- * (`crypto`·`kr_stock`·`us_stock`)을 쓰면 DB 가 거부하는 값이 컴파일을 통과한다.
- * 확장은 `DB-REQ-003` 이다.
+ * 코치가 다루는 자산군 — DB enum `AssetType` 의 값 그대로(`crypto` · `stock` · `kr_stock`). 커널의 `us_stock` 은
+ * DB 에 없어 쓰지 않는다(DB 가 거부하는 값이 컴파일을 통과한다). `stock` 은 미국 주식으로 읽는다(`toDetailAssetType`).
+ * 국내 주식은 F011 슬라이스 4 에서 판단 대상이 됐다
  */
-export type CoachAssetType = "crypto" | "stock";
+export type CoachAssetType = "crypto" | "stock" | "kr_stock";
 
 /** `portfolio` 의 보유. */
 export interface CoachHolding {

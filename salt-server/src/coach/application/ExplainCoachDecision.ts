@@ -9,7 +9,7 @@ import {
   LLM_BUDGET_WINDOW_MS,
   llmBudgetVerdict,
   resolveLlmLimits,
-  staleJudgmentInputs,
+  isForecastOwner,
   templateExplanation,
   verifyExplanation,
   type ExplanationSource,
@@ -27,7 +27,7 @@ import type {
   PortfolioProbe,
   SymbolJudgmentStore,
 } from "../domain";
-import { collectJudgmentMaterials, indicatorFor, judgeSymbol } from "./lib/judgeSymbols";
+import { collectJudgmentMaterials, indicatorFor, judgeSymbol, materialGuards } from "./lib/judgeSymbols";
 import {
   attachJudgmentTrack,
   JUDGMENT_DISCLAIMER,
@@ -43,12 +43,16 @@ export interface ExplainOptions {
   usage?: LlmUsageStore;
   /** 비운 칸은 `DEFAULT_LLM_BUDGET` */
   limits?: Partial<LlmBudgetLimits>;
+  /** 국내 주식 해설을 받을 수 있는 이메일 — 종목 판단과 같은 소유자 목록(F011 §정책). 없으면 아무도 */
+  krViewerEmails?: readonly string[];
 }
 
 /** 해설 요청 — 종목과 관점뿐이다. 사실은 서버가 조립한다(C01 · `SRV-REQ-025` FR-58) */
 export interface CoachExplainRequest {
   symbol: string;
   mode: CoachMode;
+  /** 보는 사람 이메일 — 국내 주식 종목은 소유자만(F011 §정책). 본문이 아니라 인증에서 온다 */
+  viewerEmail?: string;
 }
 
 /** 해설이 쓴 사실 — 언제 모은 무엇인지. `hash` 가 같으면 같은 사실로 만든 문장이다 */
@@ -326,17 +330,22 @@ export class ExplainCoachDecision {
       this.news.recentForSymbol(symbol, EXPLANATION_NEWS_MAX).catch(() => []),
     ]);
     const materials = materialsBySymbol.get(symbol)!;
+    // 국내 주식은 소유자만 — 비소유자에겐 사실을 모으지 못한 것과 같은 답(종목이 있다는 것도 알리지 않는다)
+    if (
+      materials.assetClass === "kr_stock" &&
+      !isForecastOwner(request.viewerEmail, this.options.krViewerEmails ?? [])
+    ) {
+      return { ok: false, blockedReason: "facts_unavailable" };
+    }
     const judged = judgeSymbol(symbol, materials, Boolean(holding));
     const decision = request.mode === "scalp" ? judged.scalp : judged.longTerm;
-    // 종목 판단과 같은 막음 — 오래된 재료로 낸 판단엔 문장을 만들지 않는다(F010 슬라이스 7)
-    const view = await attachJudgmentTrack(this.judgments, decision, {
-      staleInputs: staleJudgmentInputs({
-        mode: request.mode,
-        priceUpdatedAt: materials.quote?.priceUpdatedAt ?? null,
-        indicatorTimestamp: indicatorFor(materials, request.mode)?.timestamp ?? null,
-        now: this.now(),
-      }),
-    });
+    // 종목 판단과 같은 막음 — 오래된 재료 · 국내 주식 단타 · 이력 · 국내 주식 표본(F010 슬라이스 7 · F011 슬라이스 4)
+    const view = await attachJudgmentTrack(
+      this.judgments,
+      decision,
+      materialGuards(materials, request.mode, this.now()),
+      materials.assetClass
+    );
     if (!view.renderable) return { ok: false, blockedReason: view.blockedReason! };
 
     const input = assembleExplanationFacts({

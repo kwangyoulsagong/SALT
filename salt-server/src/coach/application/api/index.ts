@@ -18,6 +18,7 @@ import type {
   DecisionOutcomeStore,
   MonthlyReviewStore,
   RecommendationSnapshotStore,
+  RoundTripCosts,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
 import {
@@ -95,6 +96,8 @@ export interface CoachDependencies {
   forecasts: ForecastReader;
   /** 전망 소유자 이메일(ADR-003) — env 에서 온다. 비면 아무도 못 본다 */
   forecastOwnerEmails: readonly string[];
+  /** 판단 채점 · 기저율의 자산군별 왕복 비용(F011 FR-64) — 국내 주식은 env `KR_STOCK_ROUND_TRIP_FEE_RATE` */
+  roundTripCosts: RoundTripCosts;
   /** 거래 계획(F009 슬라이스 1) — `trade_plans` */
   tradePlans: TradePlanStore;
   /** 결정 결과(F009 슬라이스 4) — `decision_outcomes` */
@@ -159,7 +162,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.judgments,
     deps.gauges,
     undefined,
-    deps.forecasts
+    deps.forecasts,
+    deps.forecastOwnerEmails
   );
   const analyzeNewsSentiment = new AnalyzeNewsSentiment(deps.news);
   const analyzeTradingBehavior = new AnalyzeTradingBehavior(
@@ -212,7 +216,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.recommendations,
       undefined,
       analyzeTradingBehavior,
-      deps.forecasts
+      deps.forecasts,
+      deps.judgments
     ),
     getSymbolCoach: symbolCoach,
     getProfile: new GetCoachProfile(deps.profiles),
@@ -224,7 +229,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.portfolio,
       deps.judgments,
       deps.news,
-      { usage: deps.llmUsage, limits: deps.llmLimits }
+      { usage: deps.llmUsage, limits: deps.llmLimits, krViewerEmails: deps.forecastOwnerEmails }
     ),
     analyzeNewsSentiment,
     analyzeTradingBehavior,
@@ -236,7 +241,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     ),
     listProfitPlans: new ListProfitPlans(deps.portfolio, deps.forecasts),
     getSignalPerformance: new GetSignalPerformance(deps.recommendations),
-    getJudgmentScoreboard: new GetJudgmentScoreboard(deps.judgments),
+    getJudgmentScoreboard: new GetJudgmentScoreboard(deps.judgments, deps.forecastOwnerEmails),
     getSymbolForecast: new GetSymbolForecast(deps.forecasts, deps.portfolio, deps.forecastOwnerEmails),
     getSymbolEvents: new GetSymbolEvents(deps.forecasts, deps.forecastOwnerEmails),
     getSymbolPositioning: new GetSymbolPositioning(deps.forecasts, deps.forecastOwnerEmails),
@@ -254,7 +259,9 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     ),
     evaluateSymbolJudgments: new EvaluateSymbolJudgments(
       deps.market,
-      deps.judgments
+      deps.judgments,
+      undefined,
+      deps.roundTripCosts
     ),
     evaluateCoachRecommendations: new EvaluateCoachRecommendations(
       deps.market,

@@ -32,6 +32,35 @@ import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "
 /** 업비트 KRW 마켓 편도 0.05% × 2. `sizing.ts` 의 수수료와 같은 값이다. */
 export const ROUND_TRIP_COST = 0.001;
 
+/**
+ * 판단 · 성적표를 나누는 자산군(F011 FR-61). **표본을 섞지 않는다** — 코인 적중률로 국내 주식 판단을 열면
+ * 다른 시장의 성적을 빌려 쓰는 것이다. 미국 주식은 아직 없다.
+ */
+export type JudgmentAssetClass = "crypto" | "kr_stock";
+
+/**
+ * 자산군별 왕복 비용. 코인은 위 상수, 국내 주식은 **설정값**(`KR_STOCK_ROUND_TRIP_FEE_RATE` — 위탁 수수료 왕복 +
+ * 매도 거래세. 증권사 · 세율이 바뀌어도 코드를 고치지 않는다). 조립 지점이 env 로 채운다
+ */
+export type RoundTripCosts = Record<JudgmentAssetClass, number>;
+
+/** 국내 주식 기본값 — 위탁 수수료 0.015% × 2 + 매도 거래세 0.20%(2026, 코스피 · 코스닥 같음) */
+export const DEFAULT_KR_STOCK_ROUND_TRIP_COST = 0.0023;
+
+export const DEFAULT_ROUND_TRIP_COSTS: RoundTripCosts = {
+  crypto: ROUND_TRIP_COST,
+  kr_stock: DEFAULT_KR_STOCK_ROUND_TRIP_COST,
+};
+
+/**
+ * 자산군마다 여는 모드(F011 FR-63). 국내 주식은 **장기(30일)만** — 단타의 24시간은 주식에선 다음 거래일로
+ * 넘어가 다른 질문이 된다. 단타는 스냅샷도 남기지 않는다(나중에 열 때 규칙을 정하고 그때부터 센다)
+ */
+export const JUDGMENT_MODES: Record<JudgmentAssetClass, readonly CoachMode[]> = {
+  crypto: ["scalp", "long_term"],
+  kr_stock: ["long_term"],
+};
+
 export type JudgmentOutcome = "hit" | "miss";
 
 const HOUR_MS = 3600_000;
@@ -71,11 +100,28 @@ export const MIN_JUDGMENT_SAMPLE = 20;
 /** 응답에 싣는 적중 · 실패 사례 수 상한. 둘이 같다(B2 — 같은 비중). */
 export const JUDGMENT_CASE_LIMIT = 3;
 
-/** 성적표 그룹 키. `SRV-REQ-024` D절 매핑 표의 종목 판단 8행이다. */
+/**
+ * 성적표 그룹 키. `SRV-REQ-024` D절 매핑 표의 종목 판단 8행이다.
+ * 국내 주식은 자산군을 앞에 붙인다(`kr_stock.long_term.wait`, F011 FR-61). 코인은 접두 없음 그대로 —
+ * 이미 쌓인 행을 고치지 않고, 읽을 때 접두 없음 = 코인이다
+ */
 export const judgmentSignalType = (
   mode: CoachMode,
-  action: ModeDecisionAction
-): string => `${mode}.${action}`;
+  action: ModeDecisionAction,
+  assetClass: JudgmentAssetClass = "crypto"
+): string => (assetClass === "crypto" ? `${mode}.${action}` : `${assetClass}.${mode}.${action}`);
+
+/** 시세의 자산군 → 판단 자산군. 시세가 없으면 코인으로 본다(판단은 어차피 `price` 빠짐으로 막힌다) */
+export const judgmentAssetClassFor = (assetType: string | undefined): JudgmentAssetClass =>
+  assetType === "kr_stock" ? "kr_stock" : "crypto";
+
+/** 그룹 키의 자산군. 접두가 없으면 코인이다 */
+export const judgmentAssetClassOf = (signalType: string): JudgmentAssetClass =>
+  signalType.startsWith("kr_stock.") ? "kr_stock" : "crypto";
+
+/** 그룹 키에서 자산군 접두를 뗀 `<mode>.<action>` */
+const unprefixed = (signalType: string): string =>
+  judgmentAssetClassOf(signalType) === "crypto" ? signalType : signalType.slice(signalType.indexOf(".") + 1);
 
 /**
  * 새 스냅샷을 쓸 차례인가.
@@ -101,26 +147,28 @@ export const judgmentReturnRate = (
   exitPrice: number
 ): number => exitPrice / entryPrice - 1;
 
+/** `cost` — 그 표본 자산군의 왕복 비용(`RoundTripCosts`). 생략하면 코인 */
 export const judgeOutcome = (
   mode: CoachMode,
   action: ModeDecisionAction,
-  returnRate: number
+  returnRate: number,
+  cost: number = ROUND_TRIP_COST
 ): JudgmentOutcome => {
   switch (action) {
     case "review_short_opportunity":
     case "review_accumulation":
-      return returnRate > ROUND_TRIP_COST ? "hit" : "miss";
+      return returnRate > cost ? "hit" : "miss";
     case "avoid":
       // 피했는데 비용을 넘겨 오르지 않았으면 맞은 것이다
-      return returnRate <= ROUND_TRIP_COST ? "hit" : "miss";
+      return returnRate <= cost ? "hit" : "miss";
     case "wait":
       return Math.abs(returnRate) <= WAIT_BAND[mode] ? "hit" : "miss";
   }
 };
 
-/** `<mode>.<action>` 의 행동. 이 모양이 아니면 `null`. */
+/** `[<자산군>.]<mode>.<action>` 의 행동. 이 모양이 아니면 `null`. */
 export const judgmentActionOf = (signalType: string): ModeDecisionAction | null => {
-  const action = signalType.split(".")[1];
+  const action = unprefixed(signalType).split(".")[1];
   return action === "review_short_opportunity" ||
     action === "review_accumulation" ||
     action === "wait" ||
@@ -153,7 +201,7 @@ export const naiveHitRate = (
 export interface JudgmentTrackStats {
   sample: number;
   hits: number;
-  /** 표본 중 기간 수익률이 왕복 비용(`ROUND_TRIP_COST`)을 넘긴 수 — 기저율의 분자. */
+  /** 표본 중 기간 수익률이 그 자산군 왕복 비용(`RoundTripCosts`)을 넘긴 수 — 기저율의 분자. */
   aboveCost: number;
   avgReturn: number | null;
   /** 가장 나빴던 기간 수익률. */
@@ -222,6 +270,8 @@ export interface JudgmentCase {
 }
 
 export type JudgmentBlockedReason =
+  | "mode_not_open"
+  | "insufficient_history"
   | "exchange_warning"
   | "stale_inputs"
   | "reasons_missing"
@@ -241,6 +291,10 @@ export interface JudgmentGateInput {
    * 사흘 전 RSI 로 계산한 점수를 오늘 판정처럼 보이지 않는다. 비면 막지 않는다
    */
   staleInputs?: readonly string[];
+  /** 이 자산군에 아직 열지 않은 모드(F011 FR-63 — 국내 주식 단타). 성적과 무관하게 막는다 */
+  modeNotOpen?: boolean;
+  /** 이 종목의 판단 재료 이력이 모자람(F011 FR-62 — 국내 주식 일봉 120 거래일 · 일봉 지표) */
+  historyShort?: boolean;
 }
 
 export type JudgmentGate =
@@ -267,6 +321,13 @@ export const judgmentEvidence = (
  * 막혀도 **에러가 아니다.** 판단 블록만 비고 나머지 응답은 그대로 간다.
  */
 export const judgmentGate = (input: JudgmentGateInput): JudgmentGate => {
+  // 열지 않은 모드 · 모자란 이력은 "판단 대상이 아직 아님"이다 — 아래 어떤 사유보다 앞선다
+  if (input.modeNotOpen) {
+    return { renderable: false, blockedReason: "mode_not_open" };
+  }
+  if (input.historyShort) {
+    return { renderable: false, blockedReason: "insufficient_history" };
+  }
   // 투자유의 종목은 성적 · 근거와 무관하게 판정을 내지 않는다(리서치 §11 · `SRV-REQ-024` FR-191).
   // 규칙 점수는 유의 지정의 이유(급등락 · 유통량 · 소명)를 모른다 — 그 위에서 "후보"를 말하면 규칙 밖의 말이다
   if (input.exchangeWarning) {

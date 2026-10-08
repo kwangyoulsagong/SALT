@@ -4,8 +4,9 @@ import prisma from "../../shared/infrastructure/prisma";
 import {
   LIVE_ORIGINS,
   MODE_DECISION_RULE_VERSION,
+  DEFAULT_ROUND_TRIP_COSTS,
+  judgmentAssetClassOf,
   RETURN_BUCKETS,
-  ROUND_TRIP_COST,
 } from "../domain";
 import type {
   CoachMode,
@@ -17,6 +18,7 @@ import type {
   JudgmentTrackStats,
   ModeDecisionAction,
   PendingJudgment,
+  RoundTripCosts,
   SampleOrigin,
   SymbolJudgmentStore,
 } from "../domain";
@@ -70,7 +72,9 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
    */
   constructor(
     countedOrigins: readonly SampleOrigin[] = LIVE_ORIGINS,
-    private readonly ruleVersion: string = MODE_DECISION_RULE_VERSION
+    private readonly ruleVersion: string = MODE_DECISION_RULE_VERSION,
+    /** 기저율 분자의 비용 경계 — 자산군마다 다르다(F011 FR-64, 국내 주식은 env) */
+    private readonly costs: RoundTripCosts = DEFAULT_ROUND_TRIP_COSTS
   ) {
     this.counted = [...countedOrigins];
   }
@@ -152,6 +156,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
         symbol: true,
         mode: true,
         action: true,
+        signalType: true,
         entryPrice: true,
         judgedAt: true,
       },
@@ -160,6 +165,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
     return rows.map((row) => ({
       id: row.id,
       symbol: row.symbol,
+      signalType: row.signalType,
       mode: row.mode as CoachMode,
       action: row.action as ModeDecisionAction,
       entryPrice: Number(row.entryPrice),
@@ -204,12 +210,12 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       prisma.symbolJudgmentSnapshot.count({
         where: { signalType, outcome: "hit", ...this.countedWhere },
       }),
-      // 기저율의 분자 — 비용 경계는 도메인 상수 하나(`ROUND_TRIP_COST`)에서 온다
+      // 기저율의 분자 — 비용 경계는 그 그룹 자산군의 왕복 비용(`RoundTripCosts`) 하나에서 온다
       prisma.symbolJudgmentSnapshot.count({
         where: {
           signalType,
           outcome: { not: null },
-          returnRate: { gt: ROUND_TRIP_COST },
+          returnRate: { gt: this.costs[judgmentAssetClassOf(signalType)] },
           ...this.countedWhere,
         },
       }),
@@ -254,7 +260,11 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       SELECT signal_type,
              COUNT(*)::int AS sample,
              COUNT(*) FILTER (WHERE outcome = 'hit')::int AS hits,
-             COUNT(*) FILTER (WHERE return_rate > ${ROUND_TRIP_COST}::numeric)::int AS above_cost,
+             COUNT(*) FILTER (
+               WHERE return_rate > (CASE WHEN LEFT(signal_type, 9) = 'kr_stock.'
+                                         THEN ${this.costs.kr_stock}::numeric
+                                         ELSE ${this.costs.crypto}::numeric END)
+             )::int AS above_cost,
              AVG(return_rate) AS avg_return,
              MIN(return_rate) AS worst_return,
              MIN(evaluated_at) AS first_scored_at,

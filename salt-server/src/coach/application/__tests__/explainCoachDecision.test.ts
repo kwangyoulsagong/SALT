@@ -418,3 +418,67 @@ describe("ExplainCoachDecision", () => {
     });
   });
 });
+
+describe("ExplainCoachDecision — 국내 주식 (F011 슬라이스 4)", () => {
+  // 목요일 16:00 KST — 오늘 종가 · 오늘 일봉 지표
+  const NOW = new Date("2026-10-08T07:00:00Z");
+  const krMarket = (dailyBars: number) =>
+    ({
+      quotes: async () =>
+        new Map([
+          [
+            "005930",
+            {
+              symbol: "005930",
+              assetType: "kr_stock",
+              koreanName: "삼성전자",
+              currentPrice: 70_000,
+              change24h: -4,
+              tradeValue24h: 1e12,
+              priceUpdatedAt: new Date("2026-10-08T06:30:00Z"),
+            },
+          ],
+        ]),
+      latestSentiments: async () => new Map(),
+      latestIndicators: async () =>
+        new Map([["005930", { rsi14: 30, ma20: null, ma50: null, volumeAvg20: null, timestamp: new Date("2026-10-07T15:00:00Z") }]]),
+      recentWhales: async () => [],
+      dailyBarCounts: async () => new Map([["005930", dailyBars]]),
+    }) as unknown as MarketProbe;
+  const asked: string[] = [];
+  const krStore = {
+    summarize: async (signalType: string) => {
+      asked.push(signalType);
+      return { sample: 25, hits: 15, aboveCost: 15, avgReturn: 0.01, worstReturn: -0.08, firstScoredAt: null, lastScoredAt: null };
+    },
+    recentCases: async () => [{ symbol: "000660", judgedAt: T0, action: "review_accumulation", returnRate: -0.08 }],
+  } as unknown as SymbolJudgmentStore;
+  const run = (dailyBars: number, viewerEmail?: string, mode: "scalp" | "long_term" = "long_term") => {
+    const spy = spyExplainer();
+    const result = new ExplainCoachDecision(spy.explainer, krMarket(dailyBars), noHolding, krStore, newsProbe, {
+      now: () => NOW,
+      krViewerEmails: ["owner@salt.test"],
+    }).execute("u1", { symbol: "005930", mode, viewerEmail });
+    return { result, calls: spy.calls };
+  };
+
+  it("비소유자는 사실을 모으지 못한 것과 같은 답 — 국내 주식이 있다는 것도 알리지 않는다", async () => {
+    const { result, calls } = run(486, "other@salt.test");
+    assert.deepEqual(await result, { renderable: false, blockedReason: "facts_unavailable" });
+    assert.equal(calls.length, 0);
+  });
+
+  it("소유자도 종목 판단과 같은 막음 — 이력 부족 · 단타 미개방, 성적은 국내 주식 그룹에서 읽는다", async () => {
+    assert.equal(((await run(63, "owner@salt.test").result) as { blockedReason: string }).blockedReason, "insufficient_history");
+    assert.equal(
+      ((await run(486, "owner@salt.test", "scalp").result) as { blockedReason: string }).blockedReason,
+      "mode_not_open"
+    );
+    asked.length = 0;
+    const { result, calls } = run(486, "owner@salt.test");
+    assert.equal((await result).renderable, true);
+    assert.equal(calls.length, 1);
+    // 50 + 하락 6 + RSI 침체 8 = 64 → 관망. 성적은 국내 주식 관망 그룹
+    assert.deepEqual(asked, ["kr_stock.long_term.wait"]);
+  });
+});

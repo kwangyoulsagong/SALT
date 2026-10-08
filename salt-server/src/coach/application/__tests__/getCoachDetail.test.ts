@@ -119,7 +119,10 @@ describe("GetCoachDetail", () => {
     assert.equal(view.staleHours, null);
     assert.equal(view.generatedAt, null);
     assert.equal(view.exitPlans.length, 1);
-    assert.deepEqual(view.excluded, [{ assetType: "kr_stock", reasonCode: "no_realtime_data" }]);
+    // 판단 표본 저장소가 없으면 0 — 국내 주식은 표본 20 전이다(F011 FR-62)
+    assert.deepEqual(view.excluded, [
+      { assetType: "kr_stock", reasonCode: "insufficient_history", progress: { largestGroupSample: 0, requiredSample: 20 } },
+    ]);
     assert.ok(view.disclaimer.length > 0);
   });
 

@@ -99,9 +99,9 @@ export class CoachToolsController {
    * 판단 성적표. `/api/coach/scoreboard` 와 `?groupBy=signalType` 이 **같은 표**를 준다 —
    * 하나는 리포트 화면의 경로이고 하나는 기존 경로의 하위 호환 확장이다.
    */
-  getScoreboard = async (_req: Request, res: Response, next: NextFunction) => {
+  getScoreboard = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await this.useCases.getJudgmentScoreboard.execute();
+      const result = await this.useCases.getJudgmentScoreboard.execute(req.user!.email);
 
       return ResponseUtil.success(res, result);
     } catch (error) {

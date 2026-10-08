@@ -14,8 +14,8 @@ import type {
  * `profit-plan` · `risk-alert` · `portfolio-state` · `portfolio-rebalance` ·
  * `ai-coach-feature.extractor` · `dashboard`). 그중 코치의 몫이 이 어댑터 하나로 모였다.
  *
- * `assetType` 을 `crypto` 로 고정한다 — 원문 조회가 전부 그랬다. 자산군 확장은
- * `DB-REQ-003` 이고, 그전에 넓히면 없던 자산군이 코치 판단에 갑자기 들어온다.
+ * 거래는 `crypto` 로 고정한다 — 행동 규칙(공포 매도 · 추격)의 기준선이 코인 5분봉이다. 한 종목 보유는 부르는 쪽이
+ * 자산군을 고른다(국내 주식 종목 판단, F011 슬라이스 4).
  */
 const COACH_ASSET_TYPE = "crypto" as const;
 
@@ -35,9 +35,10 @@ export class HoldingTradeAdapter implements PortfolioProbe {
 
   async getHolding(
     userId: string,
-    symbol: string
+    symbol: string,
+    assetType: CoachAssetType = COACH_ASSET_TYPE
   ): Promise<CoachHolding | null> {
-    const holding = await this.portfolio.getHolding(userId, symbol);
+    const holding = await this.portfolio.getHolding(userId, symbol, assetType);
     return holding ? toCoachHolding(holding) : null;
   }
 

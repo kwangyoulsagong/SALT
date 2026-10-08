@@ -1,7 +1,9 @@
 import type { CoachMode } from "../model";
 import {
   JUDGMENT_HORIZON_MS,
+  judgmentAssetClassOf,
   summarizeJudgmentTrack,
+  type JudgmentAssetClass,
   type JudgmentTrackRecord,
   type JudgmentTrackStats,
 } from "./symbolJudgment";
@@ -81,12 +83,19 @@ export interface ReturnDistributionView {
 
 /** 성적표 한 그룹. 판단 블록의 `trackRecord` 와 **같은 4지표**를 쓴다. */
 export interface ScoreboardGroupStats extends JudgmentTrackRecord {
+  /**
+   * 자산군 라벨(F011 FR-65). 화면은 코인 성적 옆에 국내 주식 성적을 **나란히** 놓는다 — 합산 숫자는 만들지 않는다
+   * (표본이 다른 시장이라 더하면 어느 쪽의 성적도 아니다)
+   */
+  assetClass: JudgmentAssetClass;
   returnDistribution: ReturnDistributionView;
 }
 
 /** `<mode>.<action>` 의 모드. 이 테이블은 이 모양만 쓴다 — 아니면 `null`. */
 export const judgmentModeOf = (signalType: string): CoachMode | null => {
-  const [mode] = signalType.split(".");
+  // 국내 주식은 `kr_stock.<mode>.<action>`(F011 FR-61) — 접두를 건너뛴다
+  const parts = signalType.split(".");
+  const mode = parts[0] === "kr_stock" ? parts[1] : parts[0];
   return mode === "scalp" || mode === "long_term" ? mode : null;
 };
 
@@ -99,6 +108,7 @@ export const toScoreboardGroup = (
   stats: JudgmentGroupStats
 ): ScoreboardGroupStats => ({
   ...summarizeJudgmentTrack(mode, stats.signalType, stats),
+  assetClass: judgmentAssetClassOf(stats.signalType),
   returnDistribution: {
     horizonDays: JUDGMENT_HORIZON_MS[mode] / DAY_MS,
     buckets: RETURN_BUCKETS.map((bucket) => ({
