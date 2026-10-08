@@ -34,7 +34,9 @@ export const WatchlistStarButton = React.memo(
   ({ entry, request, displayName }: WatchlistStarButtonProps) => {
     const toggle = useToggleWatchlist();
 
-    const onClick = useCallback(() => {
+    const onClick = useCallback((event: React.MouseEvent) => {
+      // 별은 시세 표 행 안에 있고 행 클릭은 상세로 간다 — 멈추지 않으면 별을 누를 때 화면이 넘어간다(2026-10-08 실측)
+      event.stopPropagation();
       // `disabled` 를 두고도 막는다. 이 버튼은 `TableRow` 안에 있고 그 행은 `memoKey`
       // 만 비교하므로, 부모가 넘기는 prop 변화가 늦게 반영될 수 있다. 진행 중 클릭은
       // 같은 항목에 DELETE 를 두 번 보내 404 를 만든다.
