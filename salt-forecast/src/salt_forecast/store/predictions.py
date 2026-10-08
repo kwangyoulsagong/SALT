@@ -96,7 +96,8 @@ def write_scores(engine: Engine, rows: Iterable[ScoreRow]) -> int:
     return bulk_upsert(engine, score, cols, data, _PK)
 
 
-def unscored_live(engine: Engine) -> list[PredictionRow]:
+def unscored_live(engine: Engine, model_versions: Sequence[str] | None = None) -> list[PredictionRow]:
+    """채점 안 된 live 예측. model_versions 를 주면 그 모델만 — 자산군마다 따로 채점한다(FC-REQ-009)."""
     stmt = (
         select(prediction)
         .outerjoin(
@@ -108,6 +109,8 @@ def unscored_live(engine: Engine) -> list[PredictionRow]:
         )
         .where(prediction.c.kind == "live", score.c.symbol.is_(None))
     )
+    if model_versions is not None:
+        stmt = stmt.where(prediction.c.model_version.in_(list(model_versions)))
     out: list[PredictionRow] = []
     with engine.connect() as conn:
         for r in conn.execute(stmt).mappings():

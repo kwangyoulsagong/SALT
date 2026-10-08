@@ -40,6 +40,8 @@ EXPECTATIONS: tuple[JobExpectation, ...] = (
             "ingest_market",
             "backfill_whale",
             "daily",
+            "ingest_kr_stock",
+            "kr_daily",
             "events",
             "signals",
             "volatility",
