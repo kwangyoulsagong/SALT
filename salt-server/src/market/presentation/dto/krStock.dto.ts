@@ -18,6 +18,15 @@ export const krListQuerySchema = z.object({
     .enum(["", "realtime", "1d", "7d", "1m", "3m", "6m", "1y"])
     .default("")
     .transform((v) => (v === "" ? "realtime" : v)),
+  /**
+   * 이 코드들만(쉼표 구분, 최대 100) — 보유 요약이 이름 · 로고를 붙일 때 쓴다(F011 슬라이스 3b). 유니버스가 100을
+   * 넘으면 첫 페이지에 보유가 없을 수 있어 페이지를 훑지 않게 한다
+   */
+  codes: z
+    .string()
+    .optional()
+    .transform((v) => (v ? [...new Set(v.split(",").map((c) => c.trim()).filter(Boolean))] : undefined))
+    .pipe(z.array(z.string().regex(/^[0-9A-Z]{6}$/)).max(100).optional()),
 });
 
 export const krCodeParamSchema = z.object({

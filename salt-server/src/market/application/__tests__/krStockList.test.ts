@@ -121,6 +121,12 @@ describe("ListKrStockQuotes — 코인 표와 같은 필터", () => {
     ]);
   });
 
+  it("codes 를 주면 그 종목만 — 보유 요약 이름 · 로고(슬라이스 3b)", async () => {
+    const { store } = storeWith(quotes);
+    const r = await list(store).execute(viewer, { ...base, codes: ["000002", "999999"] });
+    assert.deepEqual(r.items.map((i) => [i.code, i.name]), [["000002", "가"]]);
+  });
+
   it("페이지는 정렬 뒤에 자른다", async () => {
     const { store } = storeWith(quotes);
     const r = await list(store).execute(viewer, { ...base, limit: 2, offset: 1, sort: "trade_value" });
@@ -220,3 +226,4 @@ describe("ListWatchlist — 국내 주식", () => {
     assert.deepEqual(r.items.map((i) => i.assetType), ["crypto"]);
   });
 });
+

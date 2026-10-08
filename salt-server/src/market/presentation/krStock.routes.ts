@@ -85,6 +85,7 @@ export const createKrStockRouter = (useCases: KrStockUseCases | null): Router =>
    *       - { in: query, name: sort, schema: { type: string, enum: ["", all, trade_value, change, price, name], default: "" } }
    *       - { in: query, name: order, schema: { type: string, enum: ["", asc, desc], default: desc } }
    *       - { in: query, name: period, schema: { type: string, enum: ["", realtime, 1d, 7d, 1m, 3m, 6m, 1y], default: "" } }
+   *       - { in: query, name: codes, schema: { type: string, example: "005930,000660" }, description: "이 코드들만(쉼표 구분 · 최대 100). 보유 요약의 이름 · 로고" }
    *     responses:
    *       200:
    *         description: "`{ session, items: (KrStockQuote & { periodChange })[], nextOffset }`"
