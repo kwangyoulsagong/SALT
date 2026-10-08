@@ -97,6 +97,11 @@ export interface KrQuoteVM {
   isHalted: boolean;
   feed: KrFeed;
   priceUpdatedAt: string;
+  /**
+   * 로고 주소 — 서버가 정한다(logo.dev 키가 있으면 logo.dev, 없으면 FMP). 없는 로고는 404 라 화면이 이니셜로 넘어간다.
+   * 이 필드가 없는 옛 서버면 `null`(계약 깨짐이 아니다 — 로고는 꾸밈이다)
+   */
+  logoUrl: string | null;
 }
 
 export interface KrDetailVM {
@@ -231,6 +236,7 @@ export const toKrQuoteVM = (raw: unknown): KrQuoteVM => {
     isHalted: bool(r, "isHalted"),
     feed: oneOf(r, "feed", KR_FEEDS),
     priceUpdatedAt: str(r, "priceUpdatedAt"),
+    logoUrl: strOrNull(r, "logoUrl"),
   };
 };
 

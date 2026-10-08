@@ -42,6 +42,7 @@ const quote = (over: Record<string, unknown> = {}) => ({
   isHalted: false,
   feed: "realtime",
   priceUpdatedAt: "2026-10-08T06:30:00.000Z",
+  logoUrl: "https://financialmodelingprep.com/image-stock/005930.KS.png",
   ...over,
 });
 
@@ -72,6 +73,14 @@ describe("toKrMarketStatusVM", () => {
       () => toKrMarketStatusVM({ ...session, session: "lunch", provider: { status: "ok", since: null, lastSuccessAt: null, realtime: { state: "idle", lastTickAt: null } } }),
       KrContractError,
     );
+  });
+});
+
+describe("toKrQuoteVM logoUrl", () => {
+  it("로고 주소가 없는 옛 서버 응답은 null — 계약 깨짐으로 보지 않는다", () => {
+    const { logoUrl: _omit, ...withoutLogo } = quote();
+    const vm = toKrOverviewVM({ session, items: [withoutLogo], nextOffset: null });
+    assert.equal(vm.items[0]!.logoUrl, null);
   });
 });
 
