@@ -11,6 +11,8 @@
 | 공통 수용 기준(§6) | 주문 경로 0(이미 한 거래를 적는다) · 금액 계산 0(평가는 서버 `revalue` · 화면은 표시) · 추천 · 전망 없음 · 확신 문구 0 · 국내 주식은 소유자만(비소유자 404) |
 | 계약 | 서버 거래 입력 `assetType`(선택 · 기본 crypto) · `kr/assets?codes=` / BFF 거래 `assetType` · 응답 `assetType` / `@repo/core` 타입 — 기존 호출 · 필드 무변경 |
 | 닫은 것 | `SRV-REQ-006` 체크리스트 9-7(DTO 가 `assetType` 을 안 받던 것) |
+| 같이 기록한 기존 REQ | `BFF-REQ-038`(거래 경로 · 응답) · `BFF-REQ-008`(보유 요약) · `SRV-REQ-008`(BFF 시세 반영 crypto 만) · `FE-REQ-039`(폼) · `FE-REQ-010`(홈 보유 목록) — 각 Changelog · 체크리스트 |
+| Swagger | `swagger-jsdoc` `failOnErrors` 생성 96 경로 — 거래 입력 `assetType` enum · 응답 201/400/404/503 · `kr/assets` `codes` 확인 |
 
 ## 미검증 · 범위 밖
 
