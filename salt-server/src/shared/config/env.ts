@@ -41,6 +41,11 @@ const envSchema = z.object({
    * 국내 주식 로고 — logo.dev **퍼블리셔블** 키(`pk_…`, 브라우저에 실려도 되는 키). 없으면 FMP 공개 로고로 간다(F011 FR-47).
    * 비밀 키(`sk_…`)를 넣지 않는다 — 로고 주소에 실려 화면으로 나간다
    */
+  /**
+   * DART 오픈API 인증키(opendart.fss.or.kr) — 국내 주식 로고를 회사 도메인으로 찾을 때 홈페이지(`hm_url`)를 받는다. 없으면 티커 조회만
+   * (원본이 작은 종목은 이니셜). 서버 밖으로 나가지 않는다
+   */
+  DART_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   KR_LOGO_DEV_TOKEN: z.preprocess(
     (v) => (v === "" ? undefined : v),
     z.string().startsWith("pk_", "logo.dev 퍼블리셔블 키(pk_)만 넣는다").optional(),

@@ -230,7 +230,7 @@ export class ListWatchlist {
             item.assetType === "crypto"
               ? logoUrlOf(item.symbol)
               : krQuote
-                ? krStockLogoUrl(krQuote.code, krQuote.market, this.kr?.logoDevToken)
+                ? krStockLogoUrl(krQuote, this.kr?.logoDevToken)
                 : null,
           addedAt: item.addedAt,
         };

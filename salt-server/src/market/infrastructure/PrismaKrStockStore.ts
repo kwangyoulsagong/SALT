@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
 import type {
+  KrLogoSource,
   Candle,
   KrCalendarSource,
   KrMarket,
@@ -131,7 +132,7 @@ export class PrismaKrStockStore implements KrStockStore {
   async quotes(query: { codes?: string[]; limit: number; offset: number }) {
     const rows = await prisma.krStockQuote.findMany({
       where: query.codes ? { code: { in: query.codes } } : undefined,
-      include: { master: { select: { name: true, market: true } } },
+      include: { master: { select: QUOTE_MASTER_FIELDS } },
       orderBy: [{ marketCap: { sort: "desc", nulls: "last" } }, { code: "asc" }],
       skip: query.offset,
       take: query.limit,
@@ -142,9 +143,33 @@ export class PrismaKrStockStore implements KrStockStore {
   async quote(code: string) {
     const row = await prisma.krStockQuote.findUnique({
       where: { code },
-      include: { master: { select: { name: true, market: true } } },
+      include: { master: { select: QUOTE_MASTER_FIELDS } },
     });
     return row ? toStoredQuote(row) : null;
+  }
+
+  async logoTargets(codes: string[], checkedBefore: Date) {
+    if (codes.length === 0) return [];
+    const rows = await prisma.krStockMaster.findMany({
+      where: {
+        code: { in: codes },
+        delistedAt: null,
+        OR: [{ logoCheckedAt: null }, { logoCheckedAt: { lt: checkedBefore } }],
+      },
+      select: { code: true, market: true, homepage: true, homepageCheckedAt: true },
+    });
+    return rows.map((row) => ({ ...row, market: row.market as KrMarket }));
+  }
+
+  async saveLogo(code: string, result: { homepage?: string | null; logoSource: KrLogoSource; checkedAt: Date }) {
+    await prisma.krStockMaster.update({
+      where: { code },
+      data: {
+        ...(result.homepage !== undefined ? { homepage: result.homepage, homepageCheckedAt: result.checkedAt } : {}),
+        logoSource: result.logoSource,
+        logoCheckedAt: result.checkedAt,
+      },
+    });
   }
 
   async findListing(code: string) {
@@ -321,12 +346,19 @@ export class PrismaKrStockStore implements KrStockStore {
   }
 }
 
-type QuoteRow = Prisma.KrStockQuoteGetPayload<{ include: { master: { select: { name: true; market: true } } } }>;
+const QUOTE_MASTER_FIELDS = { name: true, market: true, homepage: true, logoSource: true } as const;
+type QuoteRow = Prisma.KrStockQuoteGetPayload<{ include: { master: { select: typeof QUOTE_MASTER_FIELDS } } }>;
+
+const LOGO_SOURCES: readonly KrLogoSource[] = ["domain", "ticker", "none"];
+const toLogoSource = (v: string | null): KrLogoSource | null =>
+  v !== null && (LOGO_SOURCES as readonly string[]).includes(v) ? (v as KrLogoSource) : null;
 
 const toStoredQuote = (row: QuoteRow): StoredKrStockQuote => ({
   code: row.code,
   name: row.master.name,
   market: row.master.market as KrMarket,
+  homepage: row.master.homepage,
+  logoSource: toLogoSource(row.master.logoSource),
   price: Number(row.price),
   change: Number(row.change),
   changeRate: Number(row.changeRate),

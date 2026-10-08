@@ -22,6 +22,8 @@ const quote = (code: string, o: Partial<StoredKrStockQuote> = {}): StoredKrStock
   code,
   name: `종목${code}`,
   market: "KOSPI",
+  homepage: null,
+  logoSource: null,
   price: 10_000,
   change: 0,
   changeRate: 0,
@@ -195,14 +197,15 @@ describe("ListWatchlist — 국내 주식", () => {
   });
   const assets = { findQuotes: async () => [] } as never;
 
-  it("국내 주식 시세는 kr_stock_quotes 에서 · 로고는 시세표와 같은 규칙(krStockLogoUrl)", async () => {
+  it("국내 주식 시세는 kr_stock_quotes 에서 · 로고는 시세표와 같은 규칙(krStockLogoUrl, 키 없으면 null)", async () => {
     const w = fakeWatchlist([row({})]);
     const { store } = storeWith([quote("005930", { price: 269_000.4, changeRate: 0.19 })]);
     const r = await new ListWatchlist(w.repo, assets, { store, viewerEmails: [OWNER] }).execute("u1", {}, { email: OWNER });
     assert.equal(r.items[0]!.currentPrice, 269_000);
     assert.equal(r.items[0]!.priceChange24h, 0.19);
     assert.deepEqual(r.items[0]!.priceUpdatedAt, new Date("2026-10-08T01:00:00Z"));
-    assert.match(r.items[0]!.logoUrl ?? "", /^https:\/\/financialmodelingprep\.com\/image-stock\/005930\.K[SQ]\.png$/);
+    // logo.dev 키가 없으면 로고 없음(화면 이니셜) — FMP 는 뺐다(엉뚱한 이미지)
+    assert.equal(r.items[0]!.logoUrl, null);
   });
 
   it("비소유자에게는 국내 주식 행을 빼고 센다", async () => {

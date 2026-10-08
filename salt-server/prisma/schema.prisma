@@ -986,6 +986,12 @@ model KrStockMaster {
   listedAt          DateTime? @map("listed_at") @db.Date
   delistedAt        DateTime? @map("delisted_at")
   syncedAt          DateTime  @map("synced_at")
+  /// 회사 홈페이지 도메인(DART 기업개황 hm_url) — 로고 도메인 조회. 확인했는데 없으면 null + homepageCheckedAt
+  homepage          String?
+  homepageCheckedAt DateTime? @map("homepage_checked_at")
+  /// 로고 출처 판정(domain | ticker | none) — 주소가 아니라 출처만. 키는 읽을 때 붙인다(F011 FR-47)
+  logoSource        String?   @map("logo_source")
+  logoCheckedAt     DateTime? @map("logo_checked_at")
 
   quote KrStockQuote?
 

@@ -68,6 +68,9 @@ export type KrQuoteFeed = "poll_1m" | "realtime";
 export interface StoredKrStockQuote extends KrStockQuoteFact {
   name: string;
   market: KrMarket;
+  /** 로고 판정(`ResolveKrStockLogos`) — 아직이면 `null` */
+  homepage: string | null;
+  logoSource: KrLogoSource | null;
   feed: KrQuoteFeed;
   priceUpdatedAt: Date;
 }
@@ -117,6 +120,10 @@ export interface KrStockStore {
   latestDailyCandleAt(codes: string[]): Promise<Map<string, Date>>;
   upsertDailyCandles(code: string, candles: Candle[]): Promise<void>;
   candles(code: string, timeframe: "1d" | "5m", count: number): Promise<Candle[]>;
+  /** 로고 판정 대상 — `checkedBefore` 전에 판정했거나 판정한 적 없는 종목(상폐 제외) */
+  logoTargets(codes: string[], checkedBefore: Date): Promise<Array<KrLogoTarget & { homepageCheckedAt: Date | null }>>;
+  /** 판정 결과 — 홈페이지(새로 알게 됐으면) · 출처 · 판정 시각 */
+  saveLogo(code: string, result: { homepage?: string | null; logoSource: KrLogoSource; checkedAt: Date }): Promise<void>;
   /** 마스터 한 줄(상폐 제외) — 관심 종목 추가가 이름을 여기서 가져온다 */
   findListing(code: string): Promise<Pick<KrStockListing, "code" | "name" | "market"> | null>;
   /**
@@ -572,22 +579,123 @@ export const KR_PROVIDER_DEGRADED_AFTER = 5;
 /** 토큰 발급이 하루 이만큼을 넘으면 캐시가 깨진 것이다(FR-94) */
 export const KR_TOKEN_ISSUE_WARN_PER_DAY = 3;
 
+/**
+ * 종목 로고(F011 FR-47) — KIS 는 로고를 주지 않는다. **logo.dev** 만 쓴다(2026-10-08 조사: 사용 조건이 가장 분명 · 저장 허용 ·
+ * 퍼블리셔블 키). FMP 는 뺐다 — 엉뚱한 이미지(LS ELECTRIC 에 건물 사진)가 나와 기본값으로 위험하다. 국내 증권 · 포털 앱 이미지
+ * 서버는 쓰지 않는다(허락 없는 자산).
+ *
+ * logo.dev 원본이 작은 종목이 있다(티커 조회가 16~32px 원본을 키운 것 — LG전자 · 삼성전기 · LS ELECTRIC). 그래서
+ * **어디서 받을지를 종목마다 판정해 저장한다**(`ResolveKrStockLogos`): 회사 도메인 조회(DART 홈페이지) → 티커 조회 → 둘 다
+ * 흐리면 `none`(화면이 이니셜). 저장하는 것은 출처뿐이고 주소는 읽을 때 지금 키로 만든다 — 키가 바뀌어도 DB 를 고치지 않는다
+ */
+export type KrLogoSource = "domain" | "ticker" | "none";
+
 /** 로고 크기 — 화면 최대 48px 의 2배(레티나)를 덮는다. 64px 이면 40px 미리보기 아이콘이 레티나에서 흐렸다(2026-10-08) */
 const KR_LOGO_SIZE_PX = 128;
+const LOGO_DEV = "https://img.logo.dev";
+
+const logoDevQuery = (token: string) =>
+  `token=${encodeURIComponent(token)}&size=${KR_LOGO_SIZE_PX}&format=png&fallback=404`;
+
+export interface KrLogoTarget {
+  code: string;
+  market: KrMarket;
+  /** 회사 홈페이지 도메인(`lg.com`) — DART 기업개황. 모르면 `null` */
+  homepage: string | null;
+}
+
+/** 판정 후보 — 도메인이 먼저다(티커 원본이 작은 종목이 도메인으로는 선명하다: LG전자 `lg.com`) */
+export const krLogoCandidates = (target: KrLogoTarget, token: string): Array<{ source: "domain" | "ticker"; url: string }> => {
+  const suffix = target.market === "KOSDAQ" ? "KQ" : "KS";
+  return [
+    ...(target.homepage ? [{ source: "domain" as const, url: `${LOGO_DEV}/${target.homepage}?${logoDevQuery(token)}` }] : []),
+    { source: "ticker" as const, url: `${LOGO_DEV}/ticker/${target.code}.${suffix}?${logoDevQuery(token)}` },
+  ];
+};
 
 /**
- * 종목 로고 주소(F011 FR-47) — KIS 는 로고를 주지 않는다. 2026-10-08 조사(체크리스트 `FE-REQ-041`):
- *
- * 1. **logo.dev** — 사용 조건이 가장 분명하다(저장 허용 · 개인 프로젝트 출처 표기 불필요). 퍼블리셔블 키(`pk_`)라 브라우저에 실려도
- *    된다. 키(`KR_LOGO_DEV_TOKEN`)가 있을 때만
- * 2. **FMP image-stock** — 키가 없다. 실측 15/15(KOSPI · KOSDAQ). 재배포 조건이 불명확해 소유자 전용(지금)에서만 쓴다
- * 3. 그 밖 — 주소 없음이 아니라 둘 다 **없는 로고는 404** 를 준다(`fallback=404`). 화면이 이니셜로 넘어간다
- *
- * 국내 증권 · 포털 앱의 이미지 서버는 쓰지 않는다(허락 없는 자산). 주소는 서버가 정한다 — 화면이 규칙을 갖지 않는다
+ * 화면에 내보낼 로고 주소. 키가 없거나 판정이 `none` 이면 `null`(화면이 이니셜). **아직 판정 전이면 티커 주소** — 대부분 선명하고,
+ * 없으면 404 라 화면이 이니셜로 넘어간다
  */
-export const krStockLogoUrl = (code: string, market: KrMarket, logoDevToken?: string): string => {
-  const suffix = market === "KOSDAQ" ? "KQ" : "KS";
-  return logoDevToken
-    ? `https://img.logo.dev/ticker/${code}.${suffix}?token=${encodeURIComponent(logoDevToken)}&size=${KR_LOGO_SIZE_PX}&format=png&fallback=404`
-    : `https://financialmodelingprep.com/image-stock/${code}.${suffix}.png`;
+export const krStockLogoUrl = (
+  target: KrLogoTarget & { logoSource: KrLogoSource | null },
+  logoDevToken?: string,
+): string | null => {
+  if (!logoDevToken || target.logoSource === "none") return null;
+  const candidates = krLogoCandidates(target, logoDevToken);
+  const pick = target.logoSource === "domain" ? candidates.find((c) => c.source === "domain") : undefined;
+  return (pick ?? candidates[candidates.length - 1]!).url;
 };
+
+/** DART `hm_url`(`www.lg.com` · `http://www.lgcorp.com/`) → 도메인(`lg.com`). 주소가 아니면 `null` */
+export const normalizeHomepageDomain = (raw: string | null | undefined): string | null => {
+  const text = raw?.trim();
+  if (!text) return null;
+  try {
+    const host = new URL(/^https?:\/\//i.test(text) ? text : `http://${text}`).hostname.toLowerCase();
+    const domain = host.replace(/^www\d*\./, "");
+    return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(domain) ? domain : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * 로고 선명도 — 경계에서 색이 **한 픽셀 안에서** 바뀌는 정도(0~1). 4픽셀 폭에 걸친 밝기 차가 큰 자리(경계)마다, 그 안의 가장 큰
+ * 1픽셀 차가 차지하는 몫의 중앙값이다. 선명한 로고는 1픽셀에서 거의 다 바뀌고(≈0.7~0.95) 작은 원본을 키운 로고는 여러 픽셀에
+ * 번진다(≈0.27~0.44). 2026-10-08 유니버스 51종목 실측에서 두 무리 사이가 비어 있었다(0.44 ↔ 0.70).
+ *
+ * 단순 축소 · 복원 오차는 쓰지 않는다 — 흰 바탕이 넓은 단순한 로고(효성중공업 "H")를 흐리다고 잘못 봤다
+ */
+export const krLogoSharpness = (luminance: Uint8Array, width: number, height: number): number | null => {
+  const ratios: number[] = [];
+  const at = (x: number, y: number) => luminance[y * width + x]!;
+  const EDGE = 80;
+  for (let y = 0; y < height; y++) {
+    for (let x = 2; x < width - 3; x++) {
+      const span = Math.abs(at(x + 2, y) - at(x - 2, y));
+      if (span < EDGE) continue;
+      let step = 0;
+      for (let i = -2; i < 2; i++) step = Math.max(step, Math.abs(at(x + i + 1, y) - at(x + i, y)));
+      ratios.push(step / span);
+    }
+  }
+  for (let x = 0; x < width; x++) {
+    for (let y = 2; y < height - 3; y++) {
+      const span = Math.abs(at(x, y + 2) - at(x, y - 2));
+      if (span < EDGE) continue;
+      let step = 0;
+      for (let i = -2; i < 2; i++) step = Math.max(step, Math.abs(at(x, y + i + 1) - at(x, y + i)));
+      ratios.push(step / span);
+    }
+  }
+  if (ratios.length === 0) return null;
+  ratios.sort((a, b) => a - b);
+  return ratios[Math.floor(ratios.length / 2)]!;
+};
+
+/** 선명도 하한 — 실측 무리 사이(0.44 ↔ 0.70)의 가운데쯤 */
+export const KR_LOGO_MIN_SHARPNESS = 0.6;
+
+/** RGBA → 흰 바탕에 합성한 밝기. 투명 로고의 경계가 흰 화면에서 보이는 모습 그대로 잰다 */
+export const toLuminanceOverWhite = (rgba: Uint8Array): Uint8Array => {
+  const out = new Uint8Array(rgba.length / 4);
+  for (let i = 0; i < out.length; i++) {
+    const a = rgba[i * 4 + 3]! / 255;
+    const r = rgba[i * 4]! * a + 255 * (1 - a);
+    const g = rgba[i * 4 + 1]! * a + 255 * (1 - a);
+    const b = rgba[i * 4 + 2]! * a + 255 * (1 - a);
+    out[i] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+  }
+  return out;
+};
+
+/** 로고 이미지 받기(트랜잭션 밖). 없으면(404) `null` */
+export interface KrLogoImageProbe {
+  fetchRgba(url: string): Promise<{ width: number; height: number; rgba: Uint8Array } | null>;
+}
+
+/** 회사 홈페이지(DART 기업개황 `hm_url`) — 종목 코드 → 도메인. 모르면 그 코드는 빠진다 */
+export interface KrCompanyHomepageSource {
+  homepages(codes: string[]): Promise<Map<string, string | null>>;
+}

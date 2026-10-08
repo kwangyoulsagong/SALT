@@ -58,8 +58,8 @@ export interface KrStockQuoteView {
   isHalted: boolean;
   feed: KrFeedState;
   priceUpdatedAt: string;
-  /** 로고 주소 — `krStockLogoUrl`. 없는 로고는 404 라 화면이 이니셜로 넘어간다 */
-  logoUrl: string;
+  /** 로고 주소 — `krStockLogoUrl`(종목별 판정한 출처 · 지금 키). 키가 없거나 선명한 로고가 없으면 `null` — 화면이 이니셜 */
+  logoUrl: string | null;
 }
 
 export interface KrProviderView {
@@ -116,7 +116,7 @@ const toQuoteView = (
   isHalted: q.isHalted,
   feed: krFeedState(q, now, session),
   priceUpdatedAt: q.priceUpdatedAt.toISOString(),
-  logoUrl: krStockLogoUrl(q.code, q.market, logoDevToken),
+  logoUrl: krStockLogoUrl(q, logoDevToken),
 });
 
 class KrStockAccess {

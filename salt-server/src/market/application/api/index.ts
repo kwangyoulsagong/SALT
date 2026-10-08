@@ -1,4 +1,5 @@
 import { KrStockNotAvailableError, isKrStockViewer } from "../../domain";
+import type { KrCompanyHomepageSource, KrLogoImageProbe } from "../../domain";
 import type {
   KrProviderHealthPort,
   KrRealtimePort,
@@ -37,6 +38,7 @@ import {
   CollectWhaleTrades,
 } from "../AnalyzeMarketIntelligence";
 import { GetSymbolNews } from "../GetSymbolNews";
+import { ResolveKrStockLogos } from "../ResolveKrStockLogos";
 import {
   AddToWatchlist,
   ListWatchlist,
@@ -196,8 +198,12 @@ export interface KrStockDependencies {
   health: KrProviderHealthPort;
   /** 시총 상위 N(`KIS_UNIVERSE_TOP_N`) */
   universeTopN: number;
-  /** logo.dev 퍼블리셔블 키(`KR_LOGO_DEV_TOKEN`) — 없으면 FMP 로고(`krStockLogoUrl`) */
+  /** logo.dev 퍼블리셔블 키(`KR_LOGO_DEV_TOKEN`) — 없으면 로고 없음(화면 이니셜, `krStockLogoUrl`) */
   logoDevToken?: string;
+  /** 로고 이미지 받기 — 선명도 판정(`ResolveKrStockLogos`) */
+  logoImages: KrLogoImageProbe;
+  /** DART 기업개황 홈페이지 — 키(`DART_API_KEY`)가 없으면 `null`(도메인 조회 없이 티커만) */
+  homepages: KrCompanyHomepageSource | null;
   /** 볼 수 있는 계정 — 소유자 전용(`FORECAST_OWNER_EMAILS`) */
   viewerEmails: readonly string[];
 }
@@ -210,6 +216,8 @@ export interface KrStockUseCases {
   syncMinuteBars: SyncKrMinuteBars;
   realtime: RunKrRealtime;
   reportMetrics: ReportKrProviderMetrics;
+  /** 종목별 로고 출처 판정(도메인 → 티커 → 없음) — 하루 한 번 · 30일마다 다시 */
+  resolveLogos: ResolveKrStockLogos;
   /** SSE 를 열기 전 소유자 판정 — 스트림도 시세다 */
   assertViewer: (viewer: { userId: string; email?: string }) => void;
   getSession: GetKrMarketSession;
@@ -246,6 +254,13 @@ const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
     syncMinuteBars: new SyncKrMinuteBars(deps.kis, deps.store, deps.calendar, universe),
     realtime,
     reportMetrics: new ReportKrProviderMetrics(deps.health),
+    resolveLogos: new ResolveKrStockLogos({
+      store: deps.store,
+      universe,
+      images: deps.logoImages,
+      homepages: deps.homepages,
+      logoDevToken: deps.logoDevToken,
+    }),
     assertViewer: (viewer) => {
       if (!isKrStockViewer(viewer.email, deps.viewerEmails)) throw new KrStockNotAvailableError();
     },
