@@ -210,6 +210,7 @@ describe("toTradePlanList · toRecordedTransaction", () => {
   it("거래의 Decimal 문자열을 숫자로 읽는다", () => {
     const tx = toRecordedTransaction({
       id: "tx-1",
+      assetType: "crypto",
       symbol: "BTC",
       transactionType: "buy",
       quantity: "0.05",
@@ -219,6 +220,7 @@ describe("toTradePlanList · toRecordedTransaction", () => {
     });
     assert.deepEqual(tx, {
       id: "tx-1",
+      assetType: "crypto",
       symbol: "BTC",
       side: "buy",
       quantity: 0.05,
@@ -256,7 +258,7 @@ describe("AppTradeRiskService", () => {
   it("거래 → 계획 순서로, 계획에 거래 id 를 싣는다", async () => {
     const call = mock.method(backendApi, "proxyAuthRequest", async (method: string, url: string) => {
       if (url === "/portfolio/transactions") {
-        return ok({ id: "0b3c9b1e-6f1a-4b8e-9a52-2b8d6f0c1a99", symbol: "BTC", transactionType: "buy", quantity: "0.05", price: "91200000", fee: "0", transactionDate: "2026-09-24T01:00:00.000Z" });
+        return ok({ id: "0b3c9b1e-6f1a-4b8e-9a52-2b8d6f0c1a99", assetType: "crypto", symbol: "BTC", transactionType: "buy", quantity: "0.05", price: "91200000", fee: "0", transactionDate: "2026-09-24T01:00:00.000Z" });
       }
       return ok(plan({ transactionId: "0b3c9b1e-6f1a-4b8e-9a52-2b8d6f0c1a99", locked: true }));
     });
@@ -281,7 +283,7 @@ describe("AppTradeRiskService", () => {
 
   it("계획이 없으면 서버를 한 번만 부른다", async () => {
     const call = mock.method(backendApi, "proxyAuthRequest", async () =>
-      ok({ id: "tx", symbol: "BTC", transactionType: "sell", quantity: 1, price: 1, transactionDate: "2026-09-24T01:00:00.000Z" }),
+      ok({ id: "tx", assetType: "crypto", symbol: "BTC", transactionType: "sell", quantity: 1, price: 1, transactionDate: "2026-09-24T01:00:00.000Z" }),
     );
     const result = await appTradeRiskService.recordTrade("t", {
       symbol: "BTC",
@@ -297,7 +299,7 @@ describe("AppTradeRiskService", () => {
   it("계획이 실패해도 거래는 성공이다 — 되돌리지 않고 plan 만 unavailable", async () => {
     mock.method(backendApi, "proxyAuthRequest", async (_method: string, url: string) => {
       if (url === "/portfolio/transactions") {
-        return ok({ id: "tx", symbol: "BTC", transactionType: "buy", quantity: 1, price: 1, transactionDate: "2026-09-24T01:00:00.000Z" });
+        return ok({ id: "tx", assetType: "crypto", symbol: "BTC", transactionType: "buy", quantity: 1, price: 1, transactionDate: "2026-09-24T01:00:00.000Z" });
       }
       throw httpError(500);
     });

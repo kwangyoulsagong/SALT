@@ -10,6 +10,8 @@ export type { PortfolioSummaryVM };
 
 /** 이름을 붙이려고 읽는 시세 목록 크기. 실시간 테이블과 같은 상한이다. */
 const NAME_LOOKUP_LIMIT = 100;
+/** 국내 주식 이름 조회 — 서버 저장값 읽기(`app-kr-stock.service` 와 같은 800ms) */
+const KR_NAME_TIMEOUT_MS = 800;
 
 class AppPortfolioService {
   async getPortfolio(token: string) {
@@ -47,6 +49,7 @@ class AppPortfolioService {
 
     const summary: ServerPortfolioSummary | undefined =
       summaryResult.value.data?.data;
+    const krResult = await this.krNames(token, summary);
 
     const nameBySymbol = new Map<string, string>();
     const logoBySymbol = new Map<string, string>();
@@ -69,7 +72,49 @@ class AppPortfolioService {
       );
     }
 
+    // 국내 주식은 코인 시세 목록에 없다 — 국내 주식 목록(코드 필터)에서 붙인다. 6자리 코드라 코인 심볼과 겹치지 않는다
+    if (krResult) {
+      for (const [code, { name, logoUrl }] of krResult.found) {
+        nameBySymbol.set(code, name);
+        if (logoUrl) logoBySymbol.set(code, logoUrl);
+      }
+      if (krResult.degraded) namesDegraded = true;
+    }
+
     return toPortfolioSummaryViewModel(summary, nameBySymbol, namesDegraded, logoBySymbol);
+  }
+
+  /**
+   * 국내 주식 보유의 이름 · 로고(F011 슬라이스 3b). 보유가 없으면 부르지 않는다. 실패 · 꺼짐 · 비소유자(404)면 코드를
+   * 이름 자리에 두고 `namesDegraded` — 금액은 그대로 내려간다(코인 이름 조회와 같은 규칙)
+   */
+  private async krNames(
+    token: string,
+    summary: ServerPortfolioSummary | undefined,
+  ): Promise<{ found: Map<string, { name: string; logoUrl: string | null }>; degraded: boolean } | null> {
+    const codes = (summary?.items ?? []).filter((i) => i.assetType === "kr_stock").map((i) => i.symbol);
+    if (codes.length === 0) return null;
+    const found = new Map<string, { name: string; logoUrl: string | null }>();
+    try {
+      const response = await backendApi.proxyAuthRequest(
+        "GET",
+        `/market/kr/assets?limit=${Math.min(codes.length, NAME_LOOKUP_LIMIT)}&codes=${codes.slice(0, NAME_LOOKUP_LIMIT).join(",")}`,
+        token,
+        undefined,
+        { timeout: KR_NAME_TIMEOUT_MS },
+      );
+      const items = (response.data as { data?: { items?: unknown } })?.data?.items;
+      for (const item of Array.isArray(items) ? items : []) {
+        const row = item as { code?: unknown; name?: unknown; logoUrl?: unknown };
+        if (typeof row.code === "string" && typeof row.name === "string") {
+          found.set(row.code, { name: row.name, logoUrl: typeof row.logoUrl === "string" && row.logoUrl ? row.logoUrl : null });
+        }
+      }
+      return { found, degraded: codes.some((code) => !found.has(code)) };
+    } catch (error) {
+      logger.warn("보유 요약에 국내 주식 이름을 붙이지 못했다 — 코드로 대체한다", (error as Error)?.message);
+      return { found, degraded: true };
+    }
   }
 }
 

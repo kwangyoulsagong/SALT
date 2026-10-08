@@ -103,6 +103,14 @@ export interface KrStockMasterSource {
   listings(): Promise<KrStockListing[]>;
 }
 
+/**
+ * 누군가 보유한 국내 주식 코드(사용자 구분 없음) — 유니버스의 첫 순위(FR-11 · 12). 보유는 `portfolio` 의 사실이라
+ * 우리 테이블이 아니다. 조립 지점이 `portfolio` 공개 API 로 채운다(F011 슬라이스 3b)
+ */
+export interface KrHeldCodesSource {
+  heldCodes(): Promise<string[]>;
+}
+
 export interface KrStockStore {
   upsertListings(listings: KrStockListing[], syncedAt: Date): Promise<void>;
   /** 마스터에서 사라진 종목 — 지우지 않고 `delistedAt`(원장이 참조할 수 있다) */

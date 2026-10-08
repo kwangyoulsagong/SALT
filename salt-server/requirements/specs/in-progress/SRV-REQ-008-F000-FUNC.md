@@ -211,6 +211,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 | 2026-09-18 | **관심 목록·뉴스·차트·포지션 요약을 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-30·33(watchlist 동작 유지 + 현재가·변동률 포함) · FR-40~44(뉴스 — 이미 있던 조회를 소비처가 생겼다) · FR-50~52(`period` 422) · FR-60·63(보유 요약 · Projection 조회). **남은 것**: FR-1~7(초대 코드) · FR-10~14(인증 축소·온보딩 상태) · FR-20~25(알림 2종) · FR-32(`AssetType` 3값 — `DB-REQ-003` 대기) · FR-61·62(환율 — `fx` 컨텍스트 대기) · FR-70~72(동면). 근거: `requirements/reports/checklists/SRV-REQ-008.md` |
 | 2026-09-18 | **초대 코드·인증 축소·온보딩 상태를 구현했다.** 닫힌 것: FR-1~7(검증 4개 · 예외 4종 · `UserCountProbe` · 원자적 사용 · 상한 설정값 · 실패 기록) · FR-10~12(인증 축소, `register`·`ChangePassword`·`DeleteAccount` **유스케이스 0건**) · FR-13·14(온보딩 3단계 — **소스는 대체**). **남은 것**: FR-20~25(알림 2종) · FR-32(`AssetType`) · FR-61·62(환율) · FR-70~72(동면). 근거: `requirements/reports/checklists/SRV-REQ-008.md` §5~§8 |
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: FR-80~87(추적 자산 · 종목 검색 — 관심 ∪ 보유, 상한 10 설정값, 보유는 무관, `HoldingProbe`, D8) · FR-90~95(뉴스 `sentiment` · `symbols` 유지 · `isBookmarked` · 북마크는 알림 아님, B11 · D5) · FR-100~104(목표 수량, 기본안 B5). 개정: FR-20 알림 2종 → **1종** · FR-13 · 14 온보딩 2단계 → 첫 보유 기록(B12), 입력 `ledger` → `portfolio` · FR-32 · 61 **Q2 보류**. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-08 | F011 슬라이스 3b — `UpdateHoldingPrices`(BFF 내부 시세 반영)가 `crypto` 보유만 갱신(`findBySymbols(symbols, assetType)`). 국내 주식 보유는 서버가 저장 시세로 평가(`RevalueKrStockHoldings`, `SRV-REQ-040` FR-34). 보유 요약 · 통계는 자산군을 섞어 그대로 합산(원화끼리) |
 
 ## 구현 중 드러난 사실 (2026-09-18)
 

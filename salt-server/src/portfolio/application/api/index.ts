@@ -1,6 +1,7 @@
 import type {
   Holding,
   HoldingRepository,
+  KrStockQuoteSource,
   PortfolioAssetType,
   PriceHistorySource,
   Transaction,
@@ -17,6 +18,7 @@ import {
   GetPerformanceSeries,
   GetPortfolioStats,
   ListTransactions,
+  RevalueKrStockHoldings,
   UpdateHoldingPrices,
 } from "../ReadPortfolio";
 
@@ -84,6 +86,7 @@ export interface PortfolioDependencies {
   transactions: TransactionRepository;
   holdings: HoldingRepository;
   prices: PriceHistorySource;
+  krStock: KrStockQuoteSource;
 }
 
 export interface PortfolioUseCases {
@@ -95,6 +98,8 @@ export interface PortfolioUseCases {
   getPortfolioSummary: GetPortfolioSummary;
   getPortfolioStats: GetPortfolioStats;
   updateHoldingPrices: UpdateHoldingPrices;
+  /** 국내 주식 보유 평가 — 시세 회차 뒤 워커가 부른다(F011 슬라이스 3b) */
+  revalueKrStockHoldings: RevalueKrStockHoldings;
   getPerformanceSeries: GetPerformanceSeries;
 }
 
@@ -105,14 +110,15 @@ export const createPortfolioApplication = (deps: PortfolioDependencies) => {
   const listTransactions = new ListTransactions(deps.transactions);
 
   const useCases: PortfolioUseCases = {
-    recordTransaction: new RecordTransaction(deps.transactions, deps.holdings),
-    updateTransaction: new UpdateTransaction(deps.transactions, deps.holdings),
-    deleteTransaction: new DeleteTransaction(deps.transactions, deps.holdings),
+    recordTransaction: new RecordTransaction(deps.transactions, deps.holdings, deps.krStock),
+    updateTransaction: new UpdateTransaction(deps.transactions, deps.holdings, deps.krStock),
+    deleteTransaction: new DeleteTransaction(deps.transactions, deps.holdings, deps.krStock),
     listTransactions,
     getHoldings: new GetHoldings(deps.holdings),
     getPortfolioSummary: new GetPortfolioSummary(deps.holdings),
     getPortfolioStats: new GetPortfolioStats(deps.holdings, deps.transactions),
     updateHoldingPrices: new UpdateHoldingPrices(deps.holdings),
+    revalueKrStockHoldings: new RevalueKrStockHoldings(deps.holdings, deps.krStock),
     getPerformanceSeries: new GetPerformanceSeries(deps.holdings, deps.prices),
   };
 

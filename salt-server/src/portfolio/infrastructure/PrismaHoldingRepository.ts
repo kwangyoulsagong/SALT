@@ -45,10 +45,10 @@ export class PrismaHoldingRepository implements HoldingRepository {
     return rows.map((row) => row.symbol);
   }
 
-  findBySymbols(symbols: string[]): Promise<Holding[]> {
+  findBySymbols(symbols: string[], assetType: PortfolioAssetType): Promise<Holding[]> {
     if (symbols.length === 0) return Promise.resolve([]);
     return prisma.portfolioHolding.findMany({
-      where: { symbol: { in: symbols } },
+      where: { symbol: { in: symbols }, assetType },
     });
   }
 

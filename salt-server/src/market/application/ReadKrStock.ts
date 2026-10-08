@@ -170,6 +170,8 @@ export interface KrListQuery {
   sort: KrListSort;
   order: "asc" | "desc";
   period: KrListPeriod;
+  /** 이 코드들만 — 보유 요약의 이름 · 로고(슬라이스 3b). 없으면 유니버스 전체 */
+  codes?: string[];
 }
 
 export class ListKrStockQuotes extends KrStockRead {
@@ -179,7 +181,7 @@ export class ListKrStockQuotes extends KrStockRead {
     const limit = Math.min(query.limit, KR_LIST_MAX_LIMIT);
     const [session, quotes] = await Promise.all([
       loadKrSession(this.deps.calendar, now),
-      this.deps.store.quotes({ limit: KR_LIST_SCAN_LIMIT, offset: 0 }),
+      this.deps.store.quotes({ codes: query.codes, limit: KR_LIST_SCAN_LIMIT, offset: 0 }),
     ]);
     // 실시간이면 기간 변동률 = 전일 대비(코인이 실시간에 `periodChange = change24h` 를 주는 것과 같다)
     const closes =

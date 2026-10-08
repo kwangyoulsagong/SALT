@@ -37,7 +37,14 @@ export const RECORD_TRANSACTION_MESSAGES = {
   planFailed: "거래 기록은 등록됐어요. 계획은 저장하지 못했어요",
   retryPlan: "계획만 다시 저장",
   retryPlanDone: "계획을 저장했어요",
+  /** 국내 주식(F011 슬라이스 3b) — 계획 · 사이즈 계산은 코치가 국내 주식을 받는 슬라이스 4 부터 */
+  krStock: {
+    quantityUnit: "주",
+    tickHint: (tick: string) => `현재가 기준 호가 단위는 ${tick}원이에요. 배수가 아니어도 그대로 기록돼요`,
+    coachLater: "국내 주식은 거래만 기록해요. 계획 · 크기 계산은 코치가 국내 주식을 판단하게 되면 열려요",
+  },
   errors: {
+    notAvailable: "이 종목은 기록할 수 없어요",
     invalidAmount: "수량과 단가는 0보다 큰 숫자로 적어 주세요",
     invalidStop: "손절가는 0보다 큰 숫자로 적어 주세요",
     insufficient: "보유 수량보다 많이 매도할 수는 없어요",

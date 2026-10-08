@@ -5,7 +5,7 @@ import type { ClosePriceFact } from "./PerformanceSeries";
  * `portfolio` 가 밖에 요구하는 것.
  *
  * `assetType` 은 `market` 과 같은 이유로 **DB enum 값**만 쓴다. `kr_stock` 은 F011(`DB-REQ-033`)
- * 에서 더했고, 거래 입력 DTO 가 받는 것은 슬라이스 3 이다.
+ * 에서 더했고, 거래 입력이 받는 것은 슬라이스 3b 부터다(`crypto` · `kr_stock` — `stock` 은 미국 주식 TBA).
  */
 export type PortfolioAssetType = "crypto" | "stock" | "kr_stock";
 
@@ -105,7 +105,7 @@ export interface HoldingRepository {
    * 여러 심볼의 보유를 한 번에. **시세 반영이 심볼마다 조회를 돌지 않게 하는 자리다**
    * (`performance.md` — 루프 안에서 `findMany` 를 반복하지 않는다).
    */
-  findBySymbols(symbols: string[]): Promise<Holding[]>;
+  findBySymbols(symbols: string[], assetType: PortfolioAssetType): Promise<Holding[]>;
   /** 수량이 남으면 upsert, 0 이하면 삭제한다. 그 판정은 `domain` 이 한다. */
   save(
     userId: string,
@@ -137,4 +137,20 @@ export interface HoldingRepository {
  */
 export interface PriceHistorySource {
   closesSince(symbols: string[], since: Date): Promise<ClosePriceFact[]>;
+}
+
+/**
+ * 국내 주식(F011 슬라이스 3b) — `market` 을 우리 언어로 번역하는 ACL 의 Port.
+ *
+ * 코인 보유는 BFF 가 업비트 시세를 5초마다 밀어 넣는다(`UpdateHoldingPrices`). 국내 주식 시세는 서버가
+ * 이미 갖고 있으므로(`kr_stock_quotes`) 밀어 받지 않고 **읽어서** 평가한다.
+ */
+export interface KrStockQuoteSource {
+  /**
+   * 거래를 받을 수 있는 코드인지 — 꺼져 있으면 503, 비소유자 · 형식 · 마스터에 없음은 404 를 던진다
+   * (관심 종목 추가와 같은 규칙). 국내 주식이 있다는 사실을 비소유자에게 주지 않는다
+   */
+  assertTradable(email: string | undefined, code: string): Promise<void>;
+  /** 저장된 현재가. 시세가 없는 코드는 빠진다 — 그 보유는 평가를 건드리지 않는다 */
+  prices(codes: string[]): Promise<Array<{ symbol: string; currentPrice: number }>>;
 }

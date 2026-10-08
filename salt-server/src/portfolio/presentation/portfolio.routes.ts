@@ -41,9 +41,15 @@ export const createPortfolioRouter = (useCases: PortfolioUseCases): Router => {
    *               - quantity
    *               - price
    *             properties:
+   *               assetType:
+   *                 type: string
+   *                 enum: [crypto, kr_stock]
+   *                 default: crypto
+   *                 description: 국내 주식(`kr_stock`)은 소유자 전용 · 마스터에 있는 6자리 코드만. 단가는 호가 단위 배수가 아니어도 받는다
    *               symbol:
    *                 type: string
    *                 example: BTC
+   *                 description: 코인 심볼 또는 국내 주식 6자리 코드(예 005930)
    *               transactionType:
    *                 type: string
    *                 enum: [buy, sell]
@@ -66,6 +72,12 @@ export const createPortfolioRouter = (useCases: PortfolioUseCases): Router => {
    *     responses:
    *       201:
    *         description: 거래 내역 추가 성공
+   *       400:
+   *         description: 보유 수량 부족 · 입력 형식 오류
+   *       404:
+   *         description: 국내 주식 — 비소유자 · 없는 코드(같은 응답)
+   *       503:
+   *         description: 국내 주식 꺼짐(KIS 키 없음)
    */
   router.post(
     "/transactions",

@@ -211,3 +211,33 @@ export const tick = styleVariants({
   up: { ...tickBase, background: vars.colors.special.up },
   down: { ...tickBase, background: vars.colors.special.down },
 });
+
+/* ── 국내 주식 본문 — 코인 상세와 같은 격자(F011 슬라이스 3b) ──────────────── */
+
+/**
+ * 차트 왼쪽 · 거래 기록 오른쪽. 코인 상세(`widgets/symbol-analysis`)와 같은 폭 · 경계 — "같은 화면, 데이터만 다르다".
+ * 국내 주식엔 코치 카드가 없어 오른쪽 열이 거래 기록 하나다
+ */
+export const krBody = style({
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) 380px",
+  gap: "16px",
+  alignItems: "start",
+  "@media": {
+    "screen and (max-width: 1024px)": { gridTemplateColumns: "minmax(0, 1fr)" },
+  },
+});
+
+export const krSideCard = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "16px",
+  padding: "20px 24px 24px",
+  borderRadius: CARD_RADIUS,
+  background: vars.colors.background.white,
+  boxShadow: CARD_SHADOW,
+  minWidth: 0,
+  "@media": {
+    [NARROW]: { padding: "16px 16px 20px" },
+  },
+});

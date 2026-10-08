@@ -146,6 +146,9 @@ export const hint = style({
   lineHeight: "18px",
 });
 
+/** 입력 칸 바로 아래 안내 — 라벨 열을 비우고 입력 열에 붙는다(국내 주식 호가 단위, F011 슬라이스 3b) */
+export const fieldNote = style({ gridColumn: "2 / -1", marginTop: "-2px" });
+
 export const notice = style({
   margin: 0,
   display: "flex",

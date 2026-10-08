@@ -8,6 +8,7 @@ import {
   isKrQuoteWindow,
   krMarketSession,
   kstDateOf,
+  type KrHeldCodesSource,
   type KrMarketCalendarStore,
   type KrProviderHealthPort,
   type KrSessionView,
@@ -36,17 +37,22 @@ export const loadKrSession = async (calendar: KrMarketCalendarStore, now: Date):
   return krMarketSession(now, new Map(days.map((d) => [d.date, d.isOpen])));
 };
 
-/** 유니버스 = 관심(누구든) ∪ 시총 상위 N(FR-11). 보유는 거래 입력이 `kr_stock` 을 받는 슬라이스 3 에서 더한다 */
+/** 유니버스 = 보유(누구든) ∪ 관심(누구든) ∪ 시총 상위 N(FR-11). 보유는 거래 입력이 `kr_stock` 을 받으면서 더했다(슬라이스 3b) */
 export class ResolveKrStockUniverse {
   constructor(
     private readonly store: KrStockStore,
+    private readonly held: KrHeldCodesSource,
     private readonly topN: number
   ) {}
 
   async execute(): Promise<string[]> {
-    const [watched, top] = await Promise.all([this.store.watchedCodes(), this.store.topByMarketCap(this.topN)]);
-    // 관심이 앞 — 한도에 걸려 회차가 잘리면 사용자가 고른 종목이 먼저 받는다(FR-91 우선순위)
-    return [...new Set([...watched, ...top])];
+    const [held, watched, top] = await Promise.all([
+      this.held.heldCodes(),
+      this.store.watchedCodes(),
+      this.store.topByMarketCap(this.topN),
+    ]);
+    // 보유 → 관심 → 시총 — 실시간 슬롯 배정(FR-12)과 한도에 걸려 회차가 잘릴 때(FR-91) 이 순서로 먼저 받는다
+    return [...new Set([...held, ...watched, ...top])];
   }
 }
 
@@ -192,6 +198,8 @@ const OFF_REGULAR_EVERY_MINUTES = 5;
  * - 정규장(09:00~15:30) — 매분
  * - 장전 · 장후 시간외 종가(08:30~09:00 · 15:30~16:00) — 5분마다
  * - 그 밖 — 건너뛴다. 단 **프로세스가 뜬 뒤 한 번은** 받는다(빈 표로 시작하지 않게, 마감 값 확정)
+ * - 그 밖이어도 **시세가 한 번도 없는 유니버스 종목**은 받는다 — 밤에 처음 기록한 보유 · 관심이 아침까지 평가 0 으로
+ *   남지 않게(F011 슬라이스 3b). 대개 0건이라 조회 두 번으로 끝난다
  *
  * 받은 값을 회차 끝에 한 번에 쓴다. 실패한 종목은 이전 값이 남는다 — 빈 값으로 덮지 않는다(FR-90).
  */
@@ -215,13 +223,21 @@ export class PollKrStockQuotes {
 
     // 기동 직후 한 번은 받되, 시간외 단일가 중이면 받지 않는다 — 그 시간 현재가는 시간외 값이다(isKrQuoteWindow)
     const bootFill = !this.polledOnce && session.session !== "after_hours_single";
-    if (!due && !bootFill) return { skipped: true as const, session: session.session };
-    this.polledOnce = true;
-
-    // 실시간 값이 90초 안에 들어온 종목은 체결이 이미 현재가를 준다 — 상하한 · PER 같은 나머지 칸만 5분마다 채운다
-    const fullRefresh = minute % OFF_REGULAR_EVERY_MINUTES === 0;
-    const realtime = fullRefresh ? new Set<string>() : new Set(await this.store.realtimeFreshCodes(new Date(at.getTime() - 90_000)));
-    const codes = (await this.universe.execute()).filter((code) => !realtime.has(code));
+    let codes: string[];
+    if (due || bootFill) {
+      this.polledOnce = true;
+      // 실시간 값이 90초 안에 들어온 종목은 체결이 이미 현재가를 준다 — 상하한 · PER 같은 나머지 칸만 5분마다 채운다
+      const fullRefresh = minute % OFF_REGULAR_EVERY_MINUTES === 0;
+      const realtime = fullRefresh ? new Set<string>() : new Set(await this.store.realtimeFreshCodes(new Date(at.getTime() - 90_000)));
+      codes = (await this.universe.execute()).filter((code) => !realtime.has(code));
+    } else {
+      // 시간외 단일가 중엔 받지 않는다 — 그 시간 현재가는 시간외 값이다
+      if (session.session === "after_hours_single") return { skipped: true as const, session: session.session };
+      const universe = await this.universe.execute();
+      const stored = new Set((await this.store.quotes({ codes: universe, limit: universe.length, offset: 0 })).map((q) => q.code));
+      codes = universe.filter((code) => !stored.has(code));
+      if (codes.length === 0) return { skipped: true as const, session: session.session };
+    }
     const facts: KrStockQuoteFact[] = [];
     let consecutive = 0;
     let failed = 0;

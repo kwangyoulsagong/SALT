@@ -46,3 +46,17 @@
 | FR-14 | 뷰모델 테스트(필드 있음 = 옮김 · 없음 = `null`) · 화면 로고 표시(`FE-REQ-041` FR-14) |
 
 `npm test` 243/243 · `npm run build` 통과(`ad5217a`).
+
+## 슬라이스 3b 추가(2026-10-08, `ba2ddc6`)
+
+| FR | 결과 |
+|---|---|
+| FR-15 | 새 테스트 `trade-risk.controller.test.ts` 3 — 실제 Express 앱: `kr_stock` 통과 · 없으면 crypto · `us_stock` 400(서버 안 부름) · 국내 주식 + 손절가 400(서버 안 부름). 거래 응답 `assetType` 계약 검사 — 기존 고정값 4곳 갱신 |
+| FR-16 | 새 테스트 `app-portfolio.test.ts` 3 — 국내 주식 없으면 호출 1 · `codes` 경로 · 이름/로고 · 실패면 코드 + `namesDegraded` · 금액 유지 |
+| 게이트 | `npm test` 249/249 · `npm run build` 통과(BFF 에 lint 스크립트 없음) |
+
+### 슬라이스 3b 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실서버 경유 `POST /api/app/coach/trades` kr_stock | 4101 BFF 가 이 세션 전 코드로 떠 있고 재시작이 허용되지 않았다 — 경로는 실제 Express 앱 테스트, 서버 쪽은 유스케이스 통합 확인 | 다음 BFF 재시작 뒤 화면에서 1건 기록 |

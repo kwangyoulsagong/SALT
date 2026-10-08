@@ -4,6 +4,7 @@ import type { RecordTradeRequest, RecordTradeResult, TradePlanView } from "@repo
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { coachQueryKeys } from "@/entities/coach";
+import { portfolioQueryKeys } from "@/entities/portfolio";
 
 import { RecordTransactionApiError, recordTransactionApi } from "./recordTransactionApi";
 
@@ -23,6 +24,8 @@ export const useRecordTrade = () => {
       queryClient.invalidateQueries({ queryKey: coachQueryKeys.mirror() }),
       // 목표 비중의 "지금" 쪽이 보유다(F010 슬라이스 5)
       queryClient.invalidateQueries({ queryKey: coachQueryKeys.targetWeights() }),
+      // 홈 보유 요약 — 국내 주식 보유는 기록 직후 서버가 평가한다(F011 슬라이스 3b). 코인도 수량이 바뀐다
+      queryClient.invalidateQueries({ queryKey: portfolioQueryKeys.summary }),
     ]);
 
   const record = useMutation<RecordTradeResult, RecordTransactionApiError, RecordTradeRequest>({
