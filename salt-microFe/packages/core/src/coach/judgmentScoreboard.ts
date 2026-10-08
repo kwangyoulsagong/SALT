@@ -19,7 +19,10 @@ export interface ScoreboardCase {
 }
 
 export interface ScoreboardGroup {
+  /** `[kr_stock.]<mode>.<action>` */
   signalType: string;
+  /** 자산군(F011 FR-65) — 코인 옆에 국내 주식을 나란히, 합산하지 않는다. 국내 주식은 소유자에게만 온다 */
+  assetClass: "crypto" | "kr_stock";
   mode: "scalp" | "long_term";
   sample: number;
   /** 표본 0 이면 `null` */

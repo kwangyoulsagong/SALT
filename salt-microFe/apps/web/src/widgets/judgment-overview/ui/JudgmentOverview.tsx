@@ -98,10 +98,12 @@ const ScoreboardCell = () => {
   const line = () => {
     if (board.isPending) return <Line value={" "} />;
     if (board.isError || !d || d.status === "unavailable") return <Line value={S.unavailable} />;
-    const sample = d.groups.reduce((sum, group) => sum + group.sample, 0);
+    // 코인 판정만 센다 — 국내 주식 표본과 더하면 어느 쪽 성적도 아닌 숫자가 된다(F011 FR-65). 국내 주식은 리포트 성적표에 따로
+    const groups = d.groups.filter((group) => (group.assetClass ?? "crypto") === "crypto");
+    const sample = groups.reduce((sum, group) => sum + group.sample, 0);
     // 적중률은 여기 없다 — 기준 대비 · 표본 없이 한 숫자만 보이면 오해를 산다(`modeling-evaluation.md` §4)
     if (d.status === "insufficient_data" || sample === 0) return <Line value={S.empty} note={S.note} />;
-    return <Line value={S.scored(sample, d.groups.length)} note={S.note} />;
+    return <Line value={S.scored(sample, groups.length)} note={S.note} />;
   };
   return (
     <Cell href={ROUTES.coachReportSection(COACH_REPORT_SECTIONS.scoreboard)} label={S.label} linkLabel={S.linkLabel}>

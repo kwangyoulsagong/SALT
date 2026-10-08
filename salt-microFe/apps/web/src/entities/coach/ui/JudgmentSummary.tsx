@@ -49,7 +49,12 @@ export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProp
   if (!view.renderable) {
     return (
       <div className={judgmentSlot}>
-        <BlockedNotice reason={view.blockedReason} sample={view.trackSample} />
+        <BlockedNotice
+          reason={view.blockedReason}
+          sample={view.trackSample}
+          assetClass={view.assetClass}
+          history={view.history}
+        />
       </div>
     );
   }

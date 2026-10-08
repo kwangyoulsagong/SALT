@@ -16,6 +16,8 @@ export const SCOREBOARD_MESSAGES = {
     "long_term.wait": "장기 · 관망",
     "long_term.avoid": "장기 · 지금은 피하기",
   } as Record<string, string | undefined>,
+  /** 자산군 머리(F011 FR-65) — 두 자산군이 같이 올 때만 그린다. 표본을 섞지 않고 나란히 둔다 */
+  assetClasses: { crypto: "코인", kr_stock: "국내 주식" },
   sample: (count: number) => `채점 ${count}회`,
   /** 서버가 표본 부족이라고 한 그룹 — 적중률을 그리지 않는 이유 */
   lowSample: "아직 채점 표본이 적어 적중률을 보이지 않아요",

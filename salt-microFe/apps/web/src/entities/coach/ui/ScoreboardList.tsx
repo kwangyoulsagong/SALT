@@ -1,4 +1,4 @@
-import type { JudgmentScoreboardView, ScoreboardCase } from "@repo/core/coach";
+import type { JudgmentScoreboardView, ScoreboardCase, ScoreboardGroup } from "@repo/core/coach";
 import { Badge } from "@repo/ui/badge";
 import type { ReactNode } from "react";
 
@@ -12,6 +12,11 @@ const S = SCOREBOARD_MESSAGES;
 
 /** 최근 빗나간 판정을 몇 건 보이나 — 리서치 §9-3 "최근 빗나간 3건" */
 const RECENT_MISS_COUNT = 3;
+
+/** 그룹 키의 이름 — 국내 주식 키는 `kr_stock.` 접두를 떼고 같은 이름을 쓴다(자산군은 머리가 말한다) */
+const labelOf = (signalType: string): string | undefined => S.signalTypes[signalType.replace(/^kr_stock\./, "")];
+
+const ASSET_CLASSES = ["crypto", "kr_stock"] as const;
 
 interface ScoreboardListProps {
   view: JudgmentScoreboardView;
@@ -28,7 +33,33 @@ interface ScoreboardListProps {
  * - 그룹마다 성적 4요소 줄(기간 · 표본 · 기준 · 빗나간 수, F009 FR-33) — 표본 부족이어도 그린다
  */
 export const ScoreboardList = ({ view, renderIdentity }: ScoreboardListProps) => {
-  const groups = view.groups.filter((group) => S.signalTypes[group.signalType]);
+  const groups = view.groups.filter((group) => labelOf(group.signalType));
+  // 자산군마다 따로 — 국내 주식 성적은 국내 주식 표본만이고 코인과 합치지 않는다(F011 FR-65). 하나뿐이면 머리 없이 전과 같다
+  const sections = ASSET_CLASSES.map((assetClass) => ({
+    assetClass,
+    groups: groups.filter((group) => (group.assetClass ?? "crypto") === assetClass),
+  })).filter((section) => section.groups.length > 0);
+  if (sections.length <= 1) return <ScoreboardSection groups={groups} renderIdentity={renderIdentity} />;
+  return (
+    <>
+      {sections.map((section) => (
+        <section key={section.assetClass} aria-label={S.assetClasses[section.assetClass]}>
+          <p className={gaugeLabel}>{S.assetClasses[section.assetClass]}</p>
+          <ScoreboardSection groups={section.groups} renderIdentity={renderIdentity} />
+        </section>
+      ))}
+    </>
+  );
+};
+
+/** 한 자산군의 그룹 성적 + 최근 빗나간 판정 */
+const ScoreboardSection = ({
+  groups,
+  renderIdentity,
+}: {
+  groups: ScoreboardGroup[];
+  renderIdentity: ScoreboardListProps["renderIdentity"];
+}) => {
   const misses: ScoreboardCase[] = groups
     .flatMap((group) => group.misses)
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
@@ -48,7 +79,7 @@ export const ScoreboardList = ({ view, renderIdentity }: ScoreboardListProps) =>
             : [];
           return (
             <li key={group.signalType} className={gauge}>
-              <span className={gaugeLabel}>{S.signalTypes[group.signalType]}</span>
+              <span className={gaugeLabel}>{labelOf(group.signalType)}</span>
               <span className={shown ? gaugeValue : gaugeValueMuted}>
                 {shown ? S.winRate(formatRatio(group.winRate ?? 0)) : S.lowSample}
               </span>
@@ -74,7 +105,7 @@ export const ScoreboardList = ({ view, renderIdentity }: ScoreboardListProps) =>
             <li key={`${item.date}-${item.symbol}-${item.event}-${index}`} className={missRow}>
               <span>{formatShortDate(item.date) ?? item.date}</span>
               {renderIdentity(item.symbol)}
-              <span>{S.missLine(S.signalTypes[item.event] ?? "", formatSignedRate(item.returnRate))}</span>
+              <span>{S.missLine(labelOf(item.event) ?? "", formatSignedRate(item.returnRate))}</span>
             </li>
           ))}
         </ul>
