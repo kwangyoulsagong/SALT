@@ -64,21 +64,24 @@ class BackendApiService {
    *
    * 4xx 는 본문(JSON)을 읽어 axios 오류 모양으로 던진다 — error middleware 가 status · code 를 그대로
    * 옮긴다(`backend-integration.md` 실패 처리). `timeout` 은 소켓이 조용한 시간이다 — 서버 `ping` 이 15초라 넘지 않는다.
+   *
+   * 기본은 POST(코치 해설 — 요청 본문이 있다). 구독만 하는 스트림(국내 주식 체결)은 `method: "GET"` 에 `data` 없이 연다.
    */
   async openAuthStream(
     url: string,
     token: string,
     data: unknown,
-    options: { timeout: number; signal?: AbortSignal }
+    options: { timeout: number; signal?: AbortSignal; method?: "GET" | "POST" }
   ): Promise<NodeJS.ReadableStream> {
+    const { method = "POST", ...rest } = options;
     const response = await this.client.request({
-      method: "POST",
+      method,
       url,
       headers: { Authorization: `Bearer ${token}`, Accept: "text/event-stream" },
       data,
       responseType: "stream",
       validateStatus: () => true,
-      ...options,
+      ...rest,
     });
     const stream = response.data as NodeJS.ReadableStream;
     if (response.status < 400) return stream;

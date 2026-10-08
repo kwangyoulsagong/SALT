@@ -31,7 +31,7 @@ Status: In Progress
 | **F007** | 모바일 앱 (React Native · iOS+Android · 푸시 · 번들 MFE) | `FEATURE-007-mobile-app.md` |
 | **F008** | AI 전망 · 인텔리전스 (파이프라인 → 온톨로지 → 에이전트 · 확률 구간 · 채점 · 소유자 전용) — 2026-09-23 `ADR-003` · `ADR-004` | `FEATURE-008-forecast-intelligence.md` |
 | **F009** | 1인 펀드매니저 코치 (IPS · 리스크 예산 · 사이즈 계산 · 계획 기록 · 준수율 · 행동 미러 · 월간 복기) — 2026-09-24. 통제 · 차단 없음, 수동 입력 전제 | `FEATURE-009-behavior-risk-coach.md` |
-| **F011** | 국내 주식 시세 · 분석 연동 (한국투자증권 Open API — 조회 TR 만 · 시세 · 일봉 · 5분봉 누적 · 자산군 분리 채점 · 장 상태 표시) — 2026-09-27 기획, **in-progress** — 2026-10-07 슬라이스 0 · 1(서버 · DB · 실시간) 완료, 다음 BFF · 화면 · 코치 | `FEATURE-011-kr-stock-kis.md` |
+| **F011** | 국내 주식 시세 · 분석 연동 (한국투자증권 Open API — 조회 TR 만 · 시세 · 일봉 · 5분봉 누적 · 자산군 분리 채점 · 장 상태 표시) — 2026-09-27 기획, **in-progress** — 2026-10-07 슬라이스 0 · 1(서버 · DB · 실시간) 완료 · 2026-10-08 슬라이스 2(BFF) 완료, 다음 화면 · 코치 | `FEATURE-011-kr-stock-kis.md` |
 
 > F005는 결번이다. `FEATURE-005-home-briefing.md`의 5탭 IA는 2026-09-09 결정(탭 축소·대화 중심)으로 **F006이 대체**한다. 홈 블록 요구사항만 F006으로 흡수한다.
 
@@ -444,6 +444,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | `SRV-REQ-039` F009 성적 4요소 | **done** 2026-10-07 (슬라이스 8) | 성적 자리마다 `claim`(기간 · 표본 · 기준 · 빗나간 수/판정 수, 빈 칸은 이유 코드) · 게이지 `baselinePositiveRate` · `languageGuard` `performance_wording`(AI 가 예측 · 합산 · 미실현 수익률). 응답 추가만 |
 | `SRV-REQ-040` F011 국내 주식 | **in-progress** 2026-10-07 (슬라이스 0 · 1) | KIS 조회 TR 허용 목록 · 토큰 DB 캐시 · 마스터 · 달력(일봉 역산) · 일봉 2년 · 현재가 1분 · WS 41 슬롯 · 5분봉(보정 · 30일 백필) · SSE · provider 상태 · `/api/market/kr/*` 소유자 전용. 남은 것: 시간외 단일가 필드(FR-27) · 코치(슬라이스 4) |
 | `DB-REQ-033` F011 국내 주식 스키마 | **done** 2026-10-07 | `AssetType` `kr_stock` · `kr_stock_master` · `kr_stock_quotes` · `external_api_tokens` · `market_holidays`. 추가만 — 롤백 = 표 4 DROP |
+| `BFF-REQ-040` F011 국내 주식 화면 계약 · 실시간 중계 | **done** 2026-10-08 (슬라이스 2) | `/api/app/market/kr/{session,overview,search,:code,:code/chart}` 뷰모델(캐시 없음 · 키 없음 `disabled` · 404 그대로) · WS `assetType: "kr_stock"` 구독 → 연결별 서버 SSE → 500ms 묶음 `price_update`. 소비처는 `FE-REQ-041` |
 | `FC-REQ-019` 판정 창 · 빗나간 수 | **done** 2026-10-07 (슬라이스 8) | `forecast.gate` · `event_reaction_stats` 에 판정 창 · 빗나간 수 · 판정 대상 수. `DB-REQ-029` FR-25 마이그레이션 `20261007120000`(추가만) |
 | `BFF-REQ-042` F009 성적 4요소 중계 | **done** 2026-10-07 (슬라이스 8) | `toPerformanceClaim` 순수 함수 하나 · 뷰모델 7. 깨진 칸은 `not_recorded`, 목표 비중 자리가 바뀌면 `null` |
 | `FE-REQ-045` F009 성적 4요소 줄 | **in-progress** (슬라이스 8 코드 완료 · 추천 · 판정 실데이터 화면 미확인) | `PerformanceClaimLine` 10곳 · 라벨 정정(틀렸던 때 N건 · 추천 최근 N회 · 사례 제목) · `@repo/core` `PerformanceClaim` |
@@ -469,6 +470,8 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 **F009 슬라이스 8 — 성적 문구 4요소 (2026-10-07, `feat/f009-fr33-performance-wording`)** — FR-33(Must, Draft 였다). 서비스가 자기 성적을 말하는 자리 10곳(판정 블록 · 상세 · 해설 카드 · 추천 · 성적표 · 게이지 · 변동 범위 · 주요 사건 · 쏠림 반응 · 목표 비중 본문 · 요약 띠)에 기간(첫~마지막 채점일) · 표본 · 기준 · 빗나간 수를 한 줄로 붙이고, 정의 안 되는 칸은 이유를 쓴다. 틀린 라벨 정정: "틀렸던 때 N건"이 사례 목록 상한(3)을 셌다 · 추천 "최근 N회"가 전체 기간이었다 · 틀린 것만 오는 목록 제목이 "맞았던 때 · 틀렸던 때"였다. 변동 범위 · 사건 반응은 판정 창 날짜 · 빗나간 수 전체가 저장돼 있지 않아 쓰기 주인(salt-forecast)이 판정할 때 남긴다(마이그레이션 `20261007120000`, 추가만). 검증기 `performance_wording`. 사용자 결정(2026-10-07): 서비스 성적만(미러 · 복기 · 보유 손익 제외) · 첫~마지막 채점일 · 빈 칸 + 이유. `SRV-REQ-039` · `FC-REQ-019` · `DB-REQ-029` FR-25 · `BFF-REQ-042` · `FE-REQ-045`. 범위 · 검증은 `F009-slice8-performance-claim-slice.md` · `reports/checklists/F009-slice8-performance-claim.md`.
 
 **F011 슬라이스 0 · 1 — 국내 주식 시세 기반 + 실시간 (2026-10-07, `feat/f011-slice0-kis-foundation`)** — 화면 없음. 한국투자증권 Open API 를 조회 TR 허용 목록으로만 부르는 클라이언트(주문 · 계좌 TR 0건 테스트), 종목 마스터 4,400 · 개장일 달력 · 일봉 2년(50종목 × 486) · 현재가 1분 · WS 체결 41 슬롯 → 1초 배치 · 5분봉 집계(KIS 분봉과 종가 일치) · SSE, 저장값만 읽는 `/api/market/kr/*`(소유자 전용 · 키 없으면 503). 사용자 요구: 실시간 워커 · 코인과 같은 기능 · 성능. 기획 정정: 시세 표 분리(`MarketAsset` 은 코인 경로가 자산군을 안 거름) · SSE 사용자 JWT · 휴장일 KIS 거부 → 일봉 역산. `SRV-REQ-040` · `DB-REQ-033`. 범위 · 검증은 `F011-slice0-1-kis-foundation-slice.md` · `reports/checklists/F011-slice0-1-kis-foundation.md`.
+
+**F011 슬라이스 2 — 국내 주식 화면 계약 · 실시간 중계 (2026-10-08, `feat/f011-slice2-bff-kr-stock`)** — 화면 없음. 서버 `/api/market/kr/*` 를 BFF `/api/app/market/kr/*` 5경로로(필드를 골라 옮김 · 형식 검증 먼저 · 계약 깨짐 → `unavailable` · 키 없음 → `disabled` · 소유자 아님 404 그대로), WS 는 `assetType: "kr_stock"` 구독이 연결마다 자기 토큰으로 서버 SSE 를 열어 그 연결의 코드만 500ms 로 묶어 코인과 같은 `price_update` 로 준다. 기획 정정: BFF 캐시 버림(응답이 소유자 판정에 걸림) · SSE 내부 토큰 → 연결 토큰(구독 메시지) · 필드 이름은 먼저 선 서버 것. `BFF-REQ-040`. 범위 · 검증은 `F011-slice2-bff-kr-stock-slice.md` · `reports/checklists/F011-slice2-bff-kr-stock.md`.
 
 ### F010 판정 AI (2026-09-28)
 
@@ -520,9 +523,9 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 
 | REQ | 상태 | 비고 |
 |---|---|---|
-| `SRV-REQ-040-F011-KR-STOCK` | **to-do** | `KisClient`(허용 TR · 페이서 · 마스킹 · 토큰 캐시) · 마스터 · 휴장일 · 일봉 백필 · 폴링 · WS 41 슬롯 · 5분 집계 · `/api/market/kr/*` · degrade. 주문 TR 0건 테스트 |
-| `DB-REQ-033-F011-KR-STOCK` | **to-do** | `AssetType` + `kr_stock` · `KrStockMaster` · `ExternalApiToken` · `MarketHoliday` · `MarketAsset` 확장 · `PriceHistory` 재사용 |
-| `BFF-REQ-040-F011-KR-STOCK` | **to-do** | `/api/app/market/kr/*` 뷰모델 · SSE → WS `price_update`(`assetType`) · 소유자 판정 통과 |
+| `SRV-REQ-040-F011-KR-STOCK` | **in-progress** (슬라이스 0 · 1) | `KisClient`(허용 TR · 페이서 · 마스킹 · 토큰 캐시) · 마스터 · 휴장일 · 일봉 백필 · 폴링 · WS 41 슬롯 · 5분 집계 · `/api/market/kr/*` · degrade. 주문 TR 0건 테스트 |
+| `DB-REQ-033-F011-KR-STOCK` | **done** | `AssetType` + `kr_stock` · `KrStockMaster` · `ExternalApiToken` · `MarketHoliday` · `MarketAsset` 확장 · `PriceHistory` 재사용 |
+| `BFF-REQ-040-F011-KR-STOCK` | **done** 2026-10-08 | `/api/app/market/kr/*` 뷰모델 · SSE → WS `price_update`(`assetType`) · 소유자 판정 통과 |
 | `FE-REQ-041-F011-KR-STOCK` | **to-do** | `/investments` 자산군 탭 · 장 상태 줄 · 상태 배지 · 상세 · 검색 · 거래 폼 `kr_stock` |
 | `FC-REQ-009-F011-KR-STOCK` | **to-do** | `price_history(kr_stock)` → `forecast` · 거래일 격자 · `available_at = 장 마감` · kr_stock 보정 · 채점 풀 분리 |
 
@@ -612,3 +615,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-10-07 | **F009 슬라이스 8 — 성적 문구 4요소 · 성적 금지어(FR-33).** `SRV-REQ-039` · `FC-REQ-019` · `BFF-REQ-042` · `FE-REQ-045`(신규) · `DB-REQ-029` FR-25. 계약: 응답 `claim` · 게이지 `baselinePositiveRate` 추가만, forecast `gate` · `event_reaction_stats` 열 + 뷰 3 끝 열 추가(`20261007120000`). `.claude/rules` 는 `salt-forecast/.claude/rules/db-contract.md` §3 설명만 |
 | 2026-10-07 | **F011 슬라이스 0 · 1 — 국내 주식 시세 기반 + 실시간.** `SRV-REQ-040`(신규, in-progress) · `DB-REQ-033`(신규, done) · `DB-REQ-003` 개정(M2 실행 안 함 — `stock` = 미국 유지). 계약: 새 경로 `/api/market/kr/*`(소유자 전용 · 아직 소비처 없음) · Shared Kernel `ErrorKind.Unavailable`(503) · 규칙 개정 `ddd-shared.md` §2 · `ddd-infrastructure.md` §6 KIS 행(잔고 GET 허용 문장 삭제). 마이그레이션 추가만 |
 | 2026-10-07 | **F011 슬라이스 1 후속** — 5분봉 장 마감 보정 · 30일 백필(1년 → 30일 정정) · `session.provider` · 10분 지표 · WS 장애 테스트 · 빈 키 기동 · 시세 창 08:30~16:00(시간외 단일가 덮어쓰기 수정). `SRV-REQ-040` FR-6 · 12 · 21 · 24 · 25 · 92~94. 범위 밖 수정: 원시 SQL 9시간(게이지 성적 · 백분위 · 보관 정리) — 계약 무변경, `session` 응답 `provider` 추가만 |
+| 2026-10-08 | **F011 슬라이스 2 — 국내 주식 화면 계약 · 실시간 중계.** `BFF-REQ-040`(신규, done). 계약: 새 BFF 경로 5(`/api/app/market/kr/*`, 소비처 없음) · WS 추가 필드(코인 `price_update.data.assetType` · 구독 `assetType` · `token`, 기존 메시지 그대로 동작) · 서버 계약 무변경. `bff/.claude/rules` `websocket-worker.md`(국내 주식 실시간 절) · `performance-bff.md` §4 캐시 행 추가 |

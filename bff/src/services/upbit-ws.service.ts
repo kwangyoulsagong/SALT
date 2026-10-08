@@ -128,6 +128,8 @@ export class UpbitWebSocketService {
     const symbol = ticker.code.replace("KRW-", "");
 
     const priceData = {
+      // 국내 주식(F011)도 같은 `price_update` 로 온다 — 화면이 자산군을 가를 수 있게 단다. 옛 화면은 모르는 필드를 무시한다
+      assetType: "crypto" as const,
       symbol,
       currentPrice: ticker.trade_price,
       change24h: ticker.signed_change_rate * 100,

@@ -26,6 +26,8 @@ export interface WSMessage {
 }
 
 export interface PriceUpdate {
+  /** 코인 `crypto` · 국내 주식 `kr_stock`(F011, `BFF-REQ-040`). 국내 주식 `symbol` 은 6자리 코드 */
+  assetType: "crypto" | "kr_stock";
   symbol: string;
   currentPrice: number;
   change24h: number;
