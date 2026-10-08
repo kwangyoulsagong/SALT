@@ -75,3 +75,10 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 실제 BFF 경유(4101) 새 필드 | 4101 BFF 가 이 세션 전 코드로 떠 있고 재시작은 사용자 승인이 필요하다 — 뷰모델 · Express 앱 테스트와 고정 응답 화면으로 확인 | BFF 재시작 뒤 `/api/app/ai-coach/detail?symbol=005930` 1회 |
+
+### 슬라이스 4 재시작 뒤 실측(2026-10-08 16:01 KST — 사용자 승인으로 4100 · 4101/4102 · 3100 재시작)
+
+- 서버 첫 회차 `snapshotSymbolJudgments` "추적 53 · 기록 50" — `kr_stock.long_term.wait` 48 · `avoid` 2 · 판단 원장 국내 주식 발행 0(코인만)
+- BFF 경유 `/api/app/ai-coach/detail?symbol=005930` 소유자: 장기 `reasons_missing`(이력 486 / 120 충족) · 단타 `mode_not_open` · 비소유자 404 `COACH_KR_STOCK_NOT_AVAILABLE` · BTC 무변경 · 리포트 `excluded` 진행 0 / 20 · size-check 국내 주식 `feeRatePerSide` 0.00115 · 코인 0.0005
+- 3100 실데이터 `/investments/005930` 1440 · 800 — 판단 칸 · 계획 버튼 1 · 가로 넘침 0 · 콘솔 오류 0
+- 같은 회차 범위 밖 오류: 옛 모듈 `portfolio-rebalance.service` 의 `investment_insights (user_id, type, dedupe_key)` upsert 유니크 위반 1/5명 — 이번 변경이 건드리지 않은 경로(같은 키 동시 upsert 경합으로 보인다, 원인 미확정). 기동 직후 KIS `EGW00201` 재시도(기존 감속으로 흡수)
