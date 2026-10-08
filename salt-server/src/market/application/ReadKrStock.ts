@@ -8,6 +8,7 @@ import {
   krPeriodChange,
   rankKrQuotes,
   krStatusBadges,
+  krStockLogoUrl,
   krTickSize,
   type Candle,
   type KrFeedState,
@@ -57,6 +58,8 @@ export interface KrStockQuoteView {
   isHalted: boolean;
   feed: KrFeedState;
   priceUpdatedAt: string;
+  /** 로고 주소 — `krStockLogoUrl`. 없는 로고는 404 라 화면이 이니셜로 넘어간다 */
+  logoUrl: string;
 }
 
 export interface KrProviderView {
@@ -86,7 +89,12 @@ const toSessionResponse = (view: KrSessionView, now: Date): KrSessionResponse =>
 const won = (v: number) => Math.round(v);
 const wonOrNull = (v: number | null) => (v === null ? null : Math.round(v));
 
-const toQuoteView = (q: StoredKrStockQuote, now: Date, session: KrSessionView): KrStockQuoteView => ({
+const toQuoteView = (
+  q: StoredKrStockQuote,
+  now: Date,
+  session: KrSessionView,
+  logoDevToken?: string,
+): KrStockQuoteView => ({
   code: q.code,
   name: q.name,
   market: q.market,
@@ -108,6 +116,7 @@ const toQuoteView = (q: StoredKrStockQuote, now: Date, session: KrSessionView): 
   isHalted: q.isHalted,
   feed: krFeedState(q, now, session),
   priceUpdatedAt: q.priceUpdatedAt.toISOString(),
+  logoUrl: krStockLogoUrl(q.code, q.market, logoDevToken),
 });
 
 class KrStockAccess {
@@ -124,6 +133,8 @@ export interface KrStockReadDependencies {
   viewerEmails: readonly string[];
   /** KIS 상태(FR-92) — 화면의 "시세 제공 지연 중 · {since}" 근거 */
   provider: () => KrProviderView;
+  /** logo.dev 퍼블리셔블 키(`KR_LOGO_DEV_TOKEN`) — 없으면 FMP 로고 */
+  logoDevToken?: string;
   now?: () => Date;
 }
 
@@ -186,7 +197,7 @@ export class ListKrStockQuotes extends KrStockRead {
     const page = ranked.slice(query.offset, query.offset + limit);
     return {
       session: toSessionResponse(session, now),
-      items: page.map((q) => ({ ...toQuoteView(q, now, session), periodChange: q.periodChange })),
+      items: page.map((q) => ({ ...toQuoteView(q, now, session, this.deps.logoDevToken), periodChange: q.periodChange })),
       nextOffset: query.offset + limit < ranked.length ? query.offset + limit : null,
     };
   }
@@ -202,7 +213,7 @@ export class GetKrStockDetail extends KrStockRead {
 
     return {
       session: toSessionResponse(session, now),
-      quote: toQuoteView(quote, now, session),
+      quote: toQuoteView(quote, now, session, this.deps.logoDevToken),
       detail: {
         per: quote.per,
         pbr: quote.pbr,

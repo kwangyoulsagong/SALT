@@ -4,6 +4,7 @@ import {
   isKrStockViewer,
   KrStockDisabledError,
   KrStockNotAvailableError,
+  krStockLogoUrl,
   logoUrlOf,
   WatchlistDuplicateError,
   WatchlistItemNotFoundError,
@@ -33,6 +34,8 @@ export interface AddToWatchlistCommand {
 export interface WatchlistKrSource {
   store: KrStockStore;
   viewerEmails: readonly string[];
+  /** logo.dev 퍼블리셔블 키 — 시세표와 같은 로고(`krStockLogoUrl`) */
+  logoDevToken?: string;
 }
 
 const canViewKr = (kr: WatchlistKrSource | null, email: string | undefined): kr is WatchlistKrSource =>
@@ -222,8 +225,13 @@ export class ListWatchlist {
           currentPrice,
           priceChange24h,
           priceUpdatedAt,
-          // `logoUrlOf` 는 업비트 CDN 규칙이다. 주식에 붙이면 404 URL 을 만든다.
-          logoUrl: item.assetType === "crypto" ? logoUrlOf(item.symbol) : null,
+          // `logoUrlOf` 는 업비트 CDN 규칙이다. 주식에 붙이면 404 URL 을 만든다. 국내 주식은 시세표와 같은 규칙(`krStockLogoUrl`)
+          logoUrl:
+            item.assetType === "crypto"
+              ? logoUrlOf(item.symbol)
+              : krQuote
+                ? krStockLogoUrl(krQuote.code, krQuote.market, this.kr?.logoDevToken)
+                : null,
           addedAt: item.addedAt,
         };
       }),

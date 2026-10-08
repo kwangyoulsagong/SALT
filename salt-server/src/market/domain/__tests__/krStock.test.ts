@@ -8,6 +8,7 @@ import {
   krLimitState,
   krMarketSession,
   krStatusBadges,
+  krStockLogoUrl,
   krTickSize,
 } from "../index";
 
@@ -110,3 +111,17 @@ describe("isKrQuoteWindow — 시세 받는 창 08:30~16:00 (시간외 단일가
   });
 });
 
+
+describe("krStockLogoUrl — 로고 주소는 서버가 정한다(F011 FR-47)", () => {
+  it("키가 없으면 FMP 공개 로고, 시장으로 접미사(.KS · .KQ)", () => {
+    assert.equal(krStockLogoUrl("005930", "KOSPI"), "https://financialmodelingprep.com/image-stock/005930.KS.png");
+    assert.equal(krStockLogoUrl("247540", "KOSDAQ"), "https://financialmodelingprep.com/image-stock/247540.KQ.png");
+  });
+
+  it("logo.dev 키가 있으면 logo.dev — 없는 로고는 404(이니셜로 넘어가게)", () => {
+    assert.equal(
+      krStockLogoUrl("005930", "KOSPI", "pk_test"),
+      "https://img.logo.dev/ticker/005930.KS?token=pk_test&size=64&format=png&fallback=404",
+    );
+  });
+});

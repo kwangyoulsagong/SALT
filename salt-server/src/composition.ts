@@ -137,6 +137,7 @@ const krStock =
         store: new PrismaKrStockStore(),
         calendar: new PrismaKrMarketCalendarStore(),
         universeTopN: env.KIS_UNIVERSE_TOP_N,
+        logoDevToken: env.KR_LOGO_DEV_TOKEN,
         viewerEmails: env.FORECAST_OWNER_EMAILS,
       }
     : null;

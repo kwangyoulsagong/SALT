@@ -38,6 +38,14 @@ const envSchema = z.object({
   KIS_REQUESTS_PER_SECOND: z.coerce.number().positive().max(15).default(3),
   KIS_UNIVERSE_TOP_N: z.coerce.number().int().min(0).max(200).default(50),
   /**
+   * 국내 주식 로고 — logo.dev **퍼블리셔블** 키(`pk_…`, 브라우저에 실려도 되는 키). 없으면 FMP 공개 로고로 간다(F011 FR-47).
+   * 비밀 키(`sk_…`)를 넣지 않는다 — 로고 주소에 실려 화면으로 나간다
+   */
+  KR_LOGO_DEV_TOKEN: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().startsWith("pk_", "logo.dev 퍼블리셔블 키(pk_)만 넣는다").optional(),
+  ),
+  /**
    * 활성 계정 상한 (`SRV-REQ-008` FR-6 — **코드 상수 금지**).
    *
    * 제품 정의는 본인 + 최대 10명이다(글로벌 플랜 1-1절). 설정값인 이유는 상한이 찼을 때

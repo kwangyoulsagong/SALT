@@ -196,6 +196,8 @@ export interface KrStockDependencies {
   health: KrProviderHealthPort;
   /** 시총 상위 N(`KIS_UNIVERSE_TOP_N`) */
   universeTopN: number;
+  /** logo.dev 퍼블리셔블 키(`KR_LOGO_DEV_TOKEN`) — 없으면 FMP 로고(`krStockLogoUrl`) */
+  logoDevToken?: string;
   /** 볼 수 있는 계정 — 소유자 전용(`FORECAST_OWNER_EMAILS`) */
   viewerEmails: readonly string[];
 }
@@ -229,7 +231,13 @@ const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
       realtime: realtime.status(),
     };
   };
-  const read = { store: deps.store, calendar: deps.calendar, viewerEmails: deps.viewerEmails, provider };
+  const read = {
+    store: deps.store,
+    calendar: deps.calendar,
+    viewerEmails: deps.viewerEmails,
+    provider,
+    logoDevToken: deps.logoDevToken,
+  };
   return {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
     syncCalendar: new SyncKrMarketCalendar(deps.kis, deps.calendar),
@@ -278,7 +286,7 @@ export interface MarketUseCases {
 export const createMarketApplication = (deps: MarketDependencies) => {
   // 국내 주식 관심 종목 — 키가 없으면 `null`(담을 수 없고 목록에서도 빠진다, F011 슬라이스 3)
   const krWatchlist = deps.krStock
-    ? { store: deps.krStock.store, viewerEmails: deps.krStock.viewerEmails }
+    ? { store: deps.krStock.store, viewerEmails: deps.krStock.viewerEmails, logoDevToken: deps.krStock.logoDevToken }
     : null;
   const useCases: MarketUseCases = {
     calculateSentiment: new CalculateSentiment(

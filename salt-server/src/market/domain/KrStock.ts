@@ -571,3 +571,20 @@ export interface KrProviderHealthPort {
 export const KR_PROVIDER_DEGRADED_AFTER = 5;
 /** 토큰 발급이 하루 이만큼을 넘으면 캐시가 깨진 것이다(FR-94) */
 export const KR_TOKEN_ISSUE_WARN_PER_DAY = 3;
+
+/**
+ * 종목 로고 주소(F011 FR-47) — KIS 는 로고를 주지 않는다. 2026-10-08 조사(체크리스트 `FE-REQ-041`):
+ *
+ * 1. **logo.dev** — 사용 조건이 가장 분명하다(저장 허용 · 개인 프로젝트 출처 표기 불필요). 퍼블리셔블 키(`pk_`)라 브라우저에 실려도
+ *    된다. 키(`KR_LOGO_DEV_TOKEN`)가 있을 때만
+ * 2. **FMP image-stock** — 키가 없다. 실측 15/15(KOSPI · KOSDAQ). 재배포 조건이 불명확해 소유자 전용(지금)에서만 쓴다
+ * 3. 그 밖 — 주소 없음이 아니라 둘 다 **없는 로고는 404** 를 준다(`fallback=404`). 화면이 이니셜로 넘어간다
+ *
+ * 국내 증권 · 포털 앱의 이미지 서버는 쓰지 않는다(허락 없는 자산). 주소는 서버가 정한다 — 화면이 규칙을 갖지 않는다
+ */
+export const krStockLogoUrl = (code: string, market: KrMarket, logoDevToken?: string): string => {
+  const suffix = market === "KOSDAQ" ? "KQ" : "KS";
+  return logoDevToken
+    ? `https://img.logo.dev/ticker/${code}.${suffix}?token=${encodeURIComponent(logoDevToken)}&size=64&format=png&fallback=404`
+    : `https://financialmodelingprep.com/image-stock/${code}.${suffix}.png`;
+};

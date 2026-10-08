@@ -75,6 +75,7 @@ export const createKrStockRouter = (useCases: KrStockUseCases | null): Router =>
    *       `periodChange` 는 기간 변동률(%) — 실시간이면 전일 대비와 같고, 기준 일봉(시세 날짜 이전 N 거래일 —
    *       1d 1 · 7d 5 · 1m 21 · 3m 63 · 6m 126 · 1y 250)이 없으면 null. 정렬은 페이지 전에 매기고 값이 없는 종목은 뒤로.
    *       `feed` 는 poll_1m · realtime · stale(시세 받는 시간대에 3분 넘게 갱신 없음).
+   *       `logoUrl` 은 종목 로고 주소(logo.dev 키가 있으면 logo.dev, 없으면 FMP) — 없는 로고는 404 라 화면이 이니셜로 그린다.
    *       `status` 는 halted · administrative · caution · warning · danger · overheat.
    *     tags: [Market - KR Stock]
    *     security: [{ bearerAuth: [] }]
