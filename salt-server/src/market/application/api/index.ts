@@ -276,6 +276,10 @@ export interface MarketUseCases {
 }
 
 export const createMarketApplication = (deps: MarketDependencies) => {
+  // 국내 주식 관심 종목 — 키가 없으면 `null`(담을 수 없고 목록에서도 빠진다, F011 슬라이스 3)
+  const krWatchlist = deps.krStock
+    ? { store: deps.krStock.store, viewerEmails: deps.krStock.viewerEmails }
+    : null;
   const useCases: MarketUseCases = {
     calculateSentiment: new CalculateSentiment(
       deps.exchange,
@@ -292,10 +296,10 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     getSentimentHistory: new GetSentimentHistory(deps.sentiments),
     listWhaleTransactions: new ListWhaleTransactions(deps.whales),
     getSymbolNews: new GetSymbolNews(deps.news),
-    addToWatchlist: new AddToWatchlist(deps.watchlist, deps.exchange),
+    addToWatchlist: new AddToWatchlist(deps.watchlist, deps.exchange, krWatchlist),
     // 관심 목록이 자산 표를 함께 읽는다 — 행에 가격이 없거나 오래된 심볼을 보정한다
     // (`SRV-REQ-008` FR-33). 두 리포지토리 다 이 컨텍스트 것이라 경계를 넘지 않는다.
-    listWatchlist: new ListWatchlist(deps.watchlist, deps.assets),
+    listWatchlist: new ListWatchlist(deps.watchlist, deps.assets, krWatchlist),
     removeFromWatchlist: new RemoveFromWatchlist(deps.watchlist),
     listWatchlistSymbols: new ListWatchlistSymbols(deps.watchlist),
     updateWatchlistPrices: new UpdateWatchlistPrices(deps.watchlist),

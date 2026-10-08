@@ -1015,6 +1015,9 @@ model KrStockQuote {
   week52High     Decimal? @map("week52_high") @db.Decimal(38, 10)
   week52Low      Decimal? @map("week52_low") @db.Decimal(38, 10)
   foreignRate    Decimal? @map("foreign_rate") @db.Decimal(18, 8) // 외국인 소진율 %
+  openPrice      Decimal? @map("open_price") @db.Decimal(38, 10) // 당일 시가(F011 슬라이스 3)
+  highPrice      Decimal? @map("high_price") @db.Decimal(38, 10) // 당일 고가
+  lowPrice       Decimal? @map("low_price") @db.Decimal(38, 10) // 당일 저가
   feed           String // poll_1m | realtime(슬라이스 1)
   priceUpdatedAt DateTime @map("price_updated_at")
 

@@ -1,10 +1,15 @@
 import { logger } from "../../shared/config/logger";
 import {
+  isKrStockCode,
+  isKrStockViewer,
+  KrStockDisabledError,
+  KrStockNotAvailableError,
   logoUrlOf,
   WatchlistDuplicateError,
   WatchlistItemNotFoundError,
   type AssetQuote,
   type ExchangeQuotePort,
+  type KrStockStore,
   type MarketAssetRepository,
   type MarketAssetType,
   type WatchlistItem,
@@ -14,10 +19,24 @@ import {
 
 export interface AddToWatchlistCommand {
   userId: string;
+  /** 국내 주식은 소유자만 담을 수 있다(시세가 소유자 전용 — F011 §정책) */
+  email?: string;
   assetType: MarketAssetType;
   symbol: string;
   name: string;
 }
+
+/**
+ * 국내 주식 관심 종목(F011 슬라이스 3). 시세 · 마스터가 `market` 의 KIS 저장소에 있다. **키가 없으면 `null`** —
+ * 그때 국내 주식 관심 종목은 담을 수 없고(503) 목록에서도 빠진다
+ */
+export interface WatchlistKrSource {
+  store: KrStockStore;
+  viewerEmails: readonly string[];
+}
+
+const canViewKr = (kr: WatchlistKrSource | null, email: string | undefined): kr is WatchlistKrSource =>
+  kr !== null && isKrStockViewer(email, kr.viewerEmails);
 
 /**
  * 관심 목록 추가.
@@ -29,11 +48,13 @@ export interface AddToWatchlistCommand {
 export class AddToWatchlist {
   constructor(
     private readonly watchlist: WatchlistRepository,
-    private readonly exchange: ExchangeQuotePort
+    private readonly exchange: ExchangeQuotePort,
+    private readonly kr: WatchlistKrSource | null = null
   ) {}
 
   async execute(command: AddToWatchlistCommand) {
     const symbol = command.symbol.toUpperCase();
+    if (command.assetType === "kr_stock") return this.addKrStock(command, symbol);
 
     if (
       await this.watchlist.exists(command.userId, command.assetType, symbol)
@@ -64,6 +85,27 @@ export class AddToWatchlist {
       name: command.name,
       currentPrice,
       priceChange24h,
+    });
+  }
+
+  /**
+   * 국내 주식 — 이름은 **마스터 것**을 쓴다(클라이언트가 보낸 이름을 믿지 않는다). 마스터에 없는 코드 · 비소유자는 같은
+   * 404 다(국내 주식이 있다는 사실을 비소유자에게 주지 않는다). 담으면 다음 시세 회차부터 유니버스(관심 ∪ 시총 상위)에 든다
+   */
+  private async addKrStock(command: AddToWatchlistCommand, code: string) {
+    if (!this.kr) throw new KrStockDisabledError();
+    if (!canViewKr(this.kr, command.email) || !isKrStockCode(code)) throw new KrStockNotAvailableError();
+    const listing = await this.kr.store.findListing(code);
+    if (!listing) throw new KrStockNotAvailableError();
+    if (await this.watchlist.exists(command.userId, "kr_stock", code)) throw new WatchlistDuplicateError();
+    const quote = await this.kr.store.quote(code);
+    return this.watchlist.add({
+      userId: command.userId,
+      assetType: "kr_stock",
+      symbol: code,
+      name: listing.name,
+      currentPrice: quote?.price ?? null,
+      priceChange24h: quote?.changeRate ?? null,
     });
   }
 }
@@ -124,36 +166,54 @@ const pickQuote = (
 export class ListWatchlist {
   constructor(
     private readonly watchlist: WatchlistRepository,
-    private readonly assets: MarketAssetRepository
+    private readonly assets: MarketAssetRepository,
+    private readonly kr: WatchlistKrSource | null = null
   ) {}
 
   async execute(
     userId: string,
-    query: { assetType?: MarketAssetType; page?: number; limit?: number } = {}
+    query: { assetType?: MarketAssetType; page?: number; limit?: number } = {},
+    viewer: { email?: string } = {}
   ) {
     const page = query.page || 1;
     const limit = query.limit || 20;
+    // 국내 주식 시세를 볼 수 없는 사람(비소유자 · 키 없음)에게는 국내 주식 행 자체를 주지 않는다
+    const krVisible = canViewKr(this.kr, viewer.email);
+    if (query.assetType === "kr_stock" && !krVisible) {
+      return { items: [], pagination: { page, limit, total: 0, totalPages: 0 } };
+    }
 
     const { items, total } = await this.watchlist.findPage(
       userId,
       query.assetType,
       page,
-      limit
+      limit,
+      krVisible ? [] : ["kr_stock"]
     );
 
     // 심볼 목록이 비면 조회를 부르지 않는다. `findQuotes([])` 도 빈 배열이지만
     // 왕복을 한 번 아끼는 것이 아니라 **빈 `IN ()` 을 만들지 않는 것**이 목적이다.
-    const quotes = items.length
-      ? await this.assets.findQuotes(items.map((item) => item.symbol))
-      : [];
+    const coinSymbols = items.filter((item) => item.assetType !== "kr_stock").map((item) => item.symbol);
+    const krCodes = items.filter((item) => item.assetType === "kr_stock").map((item) => item.symbol);
+    const [quotes, krQuotes] = await Promise.all([
+      coinSymbols.length ? this.assets.findQuotes(coinSymbols) : Promise.resolve([]),
+      krCodes.length && this.kr
+        ? this.kr.store.quotes({ codes: krCodes, limit: krCodes.length, offset: 0 })
+        : Promise.resolve([]),
+    ]);
     const bySymbol = new Map(quotes.map((quote) => [quote.symbol, quote]));
+    // 국내 주식은 `kr_stock_quotes` 가 유일한 출처다(행 값은 추가 시점 사진) — 코인처럼 두 출처를 견주지 않는다
+    const byKrCode = new Map(krQuotes.map((quote) => [quote.code, quote]));
 
     return {
       items: items.map((item): WatchlistItemView => {
-        const { currentPrice, priceChange24h, priceUpdatedAt } = pickQuote(
-          item,
-          bySymbol.get(item.symbol)
-        );
+        const krQuote = item.assetType === "kr_stock" ? byKrCode.get(item.symbol) : undefined;
+        const { currentPrice, priceChange24h, priceUpdatedAt } =
+          item.assetType === "kr_stock"
+            ? krQuote
+              ? { currentPrice: Math.round(krQuote.price), priceChange24h: krQuote.changeRate, priceUpdatedAt: krQuote.priceUpdatedAt }
+              : { currentPrice: null, priceChange24h: null, priceUpdatedAt: null }
+            : pickQuote(item, bySymbol.get(item.symbol));
         return {
           id: item.id,
           assetType: item.assetType,

@@ -8,6 +8,7 @@ import { parseTickFrame } from "../KisRealtimeClient";
 const record = (code: string, time: string, price: number, vol: number) => {
   const f = Array(46).fill("0");
   f[0] = code; f[1] = time; f[2] = String(price); f[4] = "-1500"; f[5] = "-0.55";
+  f[7] = "269500"; f[8] = "271000"; f[9] = "0";
   f[12] = String(vol); f[13] = "11300793"; f[14] = "3097411759750"; f[33] = "20261007"; f[35] = "N";
   return f.join("^");
 };
@@ -22,6 +23,8 @@ describe("parseTickFrame — 체결 프레임 (F011 FR-24)", () => {
     assert.equal(ticks[0].changeRate, -0.55);
     assert.equal(ticks[0].accVolume, 11_300_793n);
     assert.deepEqual(ticks[0].at, new Date("2026-10-07T05:23:01Z"));
+    // 당일 시 · 고 · 저(F011 슬라이스 3) — 0 은 값 없음
+    assert.deepEqual([ticks[0].openPrice, ticks[0].highPrice, ticks[0].lowPrice], [269_500, 271_000, null]);
   });
 
   it("암호화 프레임 · 다른 TR · 깨진 필드 수는 버린다", () => {
@@ -33,6 +36,7 @@ describe("parseTickFrame — 체결 프레임 (F011 FR-24)", () => {
 
 const tick = (at: string, price: number, vol: number, code = "005930"): KrTick => ({
   code, price, change: 0, changeRate: 0, tradeVolume: vol, accVolume: 0n, accTradeValue: 0, isHalted: false,
+  openPrice: null, highPrice: null, lowPrice: null,
   at: new Date(`2026-10-07T${at}+09:00`),
 });
 

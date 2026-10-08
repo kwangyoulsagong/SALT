@@ -67,9 +67,17 @@ export class PrismaWatchlistRepository implements WatchlistRepository {
     userId: string,
     assetType: MarketAssetType | undefined,
     page: number,
-    limit: number
+    limit: number,
+    excludeAssetTypes: MarketAssetType[] = []
   ) {
-    const where = { userId, ...(assetType ? { assetType } : {}) };
+    const where = {
+      userId,
+      ...(assetType
+        ? { assetType }
+        : excludeAssetTypes.length
+          ? { assetType: { notIn: excludeAssetTypes } }
+          : {}),
+    };
 
     const [items, total] = await Promise.all([
       prisma.investmentWatchlist.findMany({

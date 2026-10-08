@@ -2,12 +2,17 @@ import {
   KrStockNotAvailableError,
   isKrStockCode,
   isKrStockViewer,
+  KR_PERIOD_TRADING_DAYS,
   krFeedState,
   krLimitState,
+  krPeriodChange,
+  rankKrQuotes,
   krStatusBadges,
   krTickSize,
   type Candle,
   type KrFeedState,
+  type KrListPeriod,
+  type KrListSort,
   type KrMarket,
   type KrMarketCalendarStore,
   type KrSessionView,
@@ -43,6 +48,10 @@ export interface KrStockQuoteView {
   basePrice: number | null;
   upperLimit: number | null;
   lowerLimit: number | null;
+  /** 당일 시가 · 고가 · 저가 — 코인 표의 최고가 · 최저가 열(F011 슬라이스 3). 장 전엔 `null` 일 수 있다 */
+  openPrice: number | null;
+  highPrice: number | null;
+  lowPrice: number | null;
   limitState: "upper" | "lower" | null;
   status: KrStatusBadge[];
   isHalted: boolean;
@@ -91,6 +100,9 @@ const toQuoteView = (q: StoredKrStockQuote, now: Date, session: KrSessionView): 
   basePrice: wonOrNull(q.basePrice),
   upperLimit: wonOrNull(q.upperLimit),
   lowerLimit: wonOrNull(q.lowerLimit),
+  openPrice: wonOrNull(q.openPrice),
+  highPrice: wonOrNull(q.highPrice),
+  lowPrice: wonOrNull(q.lowPrice),
   limitState: krLimitState(q),
   status: krStatusBadges(q),
   isHalted: q.isHalted,
@@ -135,20 +147,47 @@ export class GetKrMarketSession extends KrStockRead {
 
 /** 페이지 상한 — 유니버스 기본 50, 관심 종목이 더해져도 100 이면 한 화면이다 */
 export const KR_LIST_MAX_LIMIT = 100;
+/**
+ * 정렬 전에 읽는 행 상한 — 시세 행은 유니버스(시총 상위 N ∪ 관심 ∪ 보유)뿐이라 수백을 넘지 않는다. 정렬 · 기간 변동률을
+ * 페이지 전에 매겨야 해서(코인 `rankByPeriodChange` 와 같은 이유) 유니버스 전체를 한 번 읽는다
+ */
+export const KR_LIST_SCAN_LIMIT = 1_000;
+
+export interface KrListQuery {
+  limit: number;
+  offset: number;
+  sort: KrListSort;
+  order: "asc" | "desc";
+  period: KrListPeriod;
+}
 
 export class ListKrStockQuotes extends KrStockRead {
-  async execute(viewer: KrStockViewer, query: { limit: number; offset: number }) {
+  async execute(viewer: KrStockViewer, query: KrListQuery) {
     this.access.assert(viewer);
     const now = this.now();
+    const limit = Math.min(query.limit, KR_LIST_MAX_LIMIT);
     const [session, quotes] = await Promise.all([
       loadKrSession(this.deps.calendar, now),
-      this.deps.store.quotes({ limit: Math.min(query.limit, KR_LIST_MAX_LIMIT) + 1, offset: query.offset }),
+      this.deps.store.quotes({ limit: KR_LIST_SCAN_LIMIT, offset: 0 }),
     ]);
-    const hasMore = quotes.length > query.limit;
+    // 실시간이면 기간 변동률 = 전일 대비(코인이 실시간에 `periodChange = change24h` 를 주는 것과 같다)
+    const closes =
+      query.period === "realtime"
+        ? null
+        : await this.deps.store.baselineCloses(
+            quotes.map((q) => q.code),
+            KR_PERIOD_TRADING_DAYS[query.period]
+          );
+    const withPeriod = quotes.map((q) => ({
+      ...q,
+      periodChange: closes ? krPeriodChange(q.price, closes.get(q.code)) : q.changeRate,
+    }));
+    const ranked = rankKrQuotes(withPeriod, query.sort, query.order);
+    const page = ranked.slice(query.offset, query.offset + limit);
     return {
       session: toSessionResponse(session, now),
-      items: quotes.slice(0, query.limit).map((q) => toQuoteView(q, now, session)),
-      nextOffset: hasMore ? query.offset + query.limit : null,
+      items: page.map((q) => ({ ...toQuoteView(q, now, session), periodChange: q.periodChange })),
+      nextOffset: query.offset + limit < ranked.length ? query.offset + limit : null,
     };
   }
 }

@@ -57,6 +57,10 @@ export interface KrStockQuoteFact {
   week52High: number | null;
   week52Low: number | null;
   foreignRate: number | null;
+  /** 당일 시가 · 고가 · 저가(원) — 코인 표의 최고가 · 최저가 열과 같은 자리(F011 슬라이스 3). 장 전 · 휴장일은 KIS 가 전일 값 또는 0 을 준다 → 0 은 `null` */
+  openPrice: number | null;
+  highPrice: number | null;
+  lowPrice: number | null;
 }
 
 export type KrQuoteFeed = "poll_1m" | "realtime";
@@ -113,6 +117,13 @@ export interface KrStockStore {
   latestDailyCandleAt(codes: string[]): Promise<Map<string, Date>>;
   upsertDailyCandles(code: string, candles: Candle[]): Promise<void>;
   candles(code: string, timeframe: "1d" | "5m", count: number): Promise<Candle[]>;
+  /** 마스터 한 줄(상폐 제외) — 관심 종목 추가가 이름을 여기서 가져온다 */
+  findListing(code: string): Promise<Pick<KrStockListing, "code" | "name" | "market"> | null>;
+  /**
+   * 종목별 기준 종가 — 그 종목 시세 날짜(KST) **이전** 일봉 중 `tradingDaysBack` 번째(1 = 직전 거래일) 종가.
+   * 봉이 모자라면 그 종목은 빠진다(기간 변동률 `null`)
+   */
+  baselineCloses(codes: string[], tradingDaysBack: number): Promise<Map<string, number>>;
   /** 실시간 체결의 최신 값만 — 상하한 · PER 같은 나머지는 폴링 값을 남긴다(슬라이스 1) */
   applyTicks(ticks: KrTick[], at: Date): Promise<void>;
   /** 5분봉 upsert(종목 여럿 한 문장) */
@@ -350,6 +361,63 @@ export const krFeedState = (
 ): KrFeedState =>
   isKrQuoteWindow(session) && now.getTime() - q.priceUpdatedAt.getTime() > KR_QUOTE_STALE_MS ? "stale" : q.feed;
 
+// ==================== 시세 표 정렬 · 기간 변동률 (F011 슬라이스 3 — 코인 표와 같은 필터) ====================
+
+/**
+ * 정렬 · 기간 값은 **코인 시세 표와 같은 문자열**이다(`MarketOverviewSort` · `MarketOverviewPeriod`) — 화면이 같은 필터를
+ * 그대로 보낸다. 코인과 다른 것 하나: 기본(`all`)이 거래대금이 아니라 **시가총액** 순이다(국내 주식 표의 원래 순서)
+ */
+export type KrListSort = "all" | "trade_value" | "change" | "price" | "name";
+export type KrListPeriod = "realtime" | "1d" | "7d" | "1m" | "3m" | "6m" | "1y";
+
+/** 기간 → 몇 거래일 전 종가와 비교하는가. 코인은 달력 일수(24시간 열림), 주식은 거래일이라 셈이 다르다 */
+export const KR_PERIOD_TRADING_DAYS: Record<Exclude<KrListPeriod, "realtime">, number> = {
+  "1d": 1,
+  "7d": 5,
+  "1m": 21,
+  "3m": 63,
+  "6m": 126,
+  "1y": 250,
+};
+
+/** 기준 종가 대비 변동률(%). 기준이 없으면 `null` — 전일 대비로 대신 채우지 않는다(코인 `periodChange` 와 같은 규칙) */
+export const krPeriodChange = (price: number, baseClose: number | undefined): number | null =>
+  baseClose === undefined || !(baseClose > 0) || !(price > 0) ? null : ((price - baseClose) / baseClose) * 100;
+
+type KrRankable = Pick<StoredKrStockQuote, "code" | "name" | "price" | "changeRate" | "tradeValue" | "marketCap"> & {
+  periodChange: number | null;
+};
+
+/**
+ * 정렬. 값이 없는 종목(시총 · 기간 변동률 `null`)은 방향과 무관하게 뒤로 — 오름차순 첫 화면이 "—" 로 채워지지 않게.
+ * 같은 값은 시가총액 순(국내 표 기본), 그다음 코드 — 순서가 매번 같아야 페이지가 겹치지 않는다
+ */
+export const rankKrQuotes = <T extends KrRankable>(items: T[], sort: KrListSort, order: "asc" | "desc"): T[] => {
+  const sign = order === "asc" ? 1 : -1;
+  const key = (q: T): number | string | null => {
+    switch (sort) {
+      case "all":
+        return q.marketCap;
+      case "trade_value":
+        return q.tradeValue;
+      case "change":
+        return q.periodChange;
+      case "price":
+        return q.price;
+      case "name":
+        return q.name;
+    }
+  };
+  const tie = (a: T, b: T) => (b.marketCap ?? -1) - (a.marketCap ?? -1) || a.code.localeCompare(b.code);
+  return [...items].sort((a, b) => {
+    const ka = key(a);
+    const kb = key(b);
+    if (ka === null || kb === null) return ka === kb ? tie(a, b) : ka === null ? 1 : -1;
+    const cmp = typeof ka === "string" ? ka.localeCompare(kb as string, "ko") : ka - (kb as number);
+    return cmp !== 0 ? sign * cmp : tie(a, b);
+  });
+};
+
 // ==================== 실시간 (F011 슬라이스 1 · FR-24 · 25) ====================
 
 /** 체결 한 건(`H0STCNT0`) — KIS 필드 이름은 `KisRealtimeClient` 에서 끝난다 */
@@ -363,6 +431,10 @@ export interface KrTick {
   accVolume: bigint;
   accTradeValue: number;
   isHalted: boolean;
+  /** 당일 시가 · 고가 · 저가 — 체결 프레임이 같이 준다(`STCK_OPRC` · `STCK_HGPR` · `STCK_LWPR`). 0 · 형식 오류는 `null` */
+  openPrice: number | null;
+  highPrice: number | null;
+  lowPrice: number | null;
   /** 체결 시각(KST 영업일 + HHMMSS → UTC) */
   at: Date;
 }

@@ -29,6 +29,7 @@ export class InvestmentController {
       const data = addToWatchlistSchema.parse(req.body);
       const result = await this.useCases.addToWatchlist.execute({
         userId: req.user!.userId,
+        email: req.user!.email,
         ...data,
       });
 
@@ -47,7 +48,8 @@ export class InvestmentController {
       const query = queryWatchlistSchema.parse(req.query);
       const result = await this.useCases.listWatchlist.execute(
         req.user!.userId,
-        query
+        query,
+        { email: req.user!.email }
       );
       return ResponseUtil.success(res, result);
     } catch (error) {

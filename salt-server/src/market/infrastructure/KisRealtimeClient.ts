@@ -29,6 +29,9 @@ const F = {
   price: 2,
   change: 4,
   changeRate: 5,
+  openPrice: 7,
+  highPrice: 8,
+  lowPrice: 9,
   tradeVolume: 12,
   accVolume: 13,
   accTradeValue: 14,
@@ -42,6 +45,12 @@ const BACKOFF_MAX_MS = 60_000;
 const DEGRADED_AFTER_FAILURES = 3;
 /** 등록 메시지 간격 — 한꺼번에 41건을 밀어 넣지 않는다 */
 const SUBSCRIBE_GAP_MS = 60;
+
+/** 가격 칸 — 0 · 숫자 아님은 값 없음 */
+const positivePrice = (raw: string | undefined): number | null => {
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+};
 
 /** 데이터 프레임 `0|H0STCNT0|003|a^b^c…` → 체결 목록. 형식이 어긋나면 빈 배열(그 프레임만 버린다) */
 export const parseTickFrame = (raw: string): KrTick[] => {
@@ -69,6 +78,9 @@ export const parseTickFrame = (raw: string): KrTick[] => {
       accVolume: BigInt(/^\d+$/.test(r[F.accVolume]) ? r[F.accVolume] : "0"),
       accTradeValue: Number(r[F.accTradeValue]) || 0,
       isHalted: r[F.halted] === "Y",
+      openPrice: positivePrice(r[F.openPrice]),
+      highPrice: positivePrice(r[F.highPrice]),
+      lowPrice: positivePrice(r[F.lowPrice]),
       at: new Date(
         `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}T${time.slice(0, 2)}:${time.slice(2, 4)}:${time.slice(4, 6)}+09:00`
       ),

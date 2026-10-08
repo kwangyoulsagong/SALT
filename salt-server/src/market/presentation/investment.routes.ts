@@ -151,6 +151,9 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    * /api/investment/watchlist:
    *   post:
    *     summary: 관심 목록에 추가
+   *     description: |
+   *       `kr_stock`(F011) 은 6자리 코드 · 소유자 전용(아니면 404) · 이름은 서버가 마스터 이름으로 정한다(`name` 생략 가능).
+   *       KIS 키가 없으면 503. 조회도 비소유자에게는 국내 주식 행을 빼고 준다.
    *     tags: [Investment - Protected]
    *     security:
    *       - bearerAuth: []
@@ -163,11 +166,10 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *             required:
    *               - assetType
    *               - symbol
-   *               - name
    *             properties:
    *               assetType:
    *                 type: string
-   *                 enum: [crypto, stock]
+   *                 enum: [crypto, stock, kr_stock]
    *               symbol:
    *                 type: string
    *               name:
@@ -191,7 +193,7 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *         name: assetType
    *         schema:
    *           type: string
-   *           enum: [crypto, stock]
+   *           enum: [crypto, stock, kr_stock]
    *       - in: query
    *         name: page
    *         schema:
@@ -226,7 +228,7 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *                             type: string
    *                           assetType:
    *                             type: string
-   *                             enum: [crypto, stock]
+   *                             enum: [crypto, stock, kr_stock]
    *                           symbol:
    *                             type: string
    *                           name:
