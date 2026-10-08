@@ -12,12 +12,15 @@ import React from "react";
 import { Timeframe } from "@/shared/api";
 import { useElementWidth } from "@/shared/lib";
 
-import { useMarketChartPreview } from "../../api";
+import { useKrChart, useMarketChartPreview } from "../../api";
+import { MarketAssetClass, type MarketChartPreviewItem } from "../../model/types";
 import { useMarketPreviewChartRealtime } from "../../lib";
 import { chartMeasure } from "./MarketPreviewChart.css";
 
 /** `PreviewChart` 의 기본 높이. 자리표시자가 같은 높이를 잡아 첫 로딩에서 밀리지 않는다. */
 const CHART_HEIGHT = 210;
+/** 미리보기 봉 수 — 코인과 같은 5분봉 30개 */
+const PREVIEW_CANDLES = 30;
 
 /**
  * 폭을 재기 전의 차트 폭 = `PreviewChart` 의 기본 폭.
@@ -51,12 +54,31 @@ export interface MarketChartOverlay {
 }
 
 export const MarketPreviewChart = React.memo(
-  ({ symbol, overlay }: { symbol: string; overlay?: MarketChartOverlay }) => {
-    const { data, isLoading, isError } = useMarketChartPreview(symbol);
+  ({
+    symbol,
+    overlay,
+    assetType = MarketAssetClass.Crypto,
+  }: {
+    symbol: string;
+    overlay?: MarketChartOverlay;
+    /** 국내 주식은 KIS 5분봉(우리가 실시간 집계로 쌓은 것)을 같은 차트로 그린다(F011 `FE-REQ-041`) */
+    assetType?: string;
+  }) => {
+    const isKr = assetType === MarketAssetClass.KrStock;
+    const crypto = useMarketChartPreview(isKr ? "" : symbol);
+    const kr = useKrChart(isKr ? symbol : "", "5m", PREVIEW_CANDLES);
+    const krData = React.useMemo<{ data: MarketChartPreviewItem[] } | undefined>(
+      () => (kr.data?.status === "ok" ? { data: kr.data.candles } : undefined),
+      [kr.data],
+    );
+    const { data, isLoading, isError } = isKr
+      ? { data: krData, isLoading: kr.isLoading, isError: kr.isError || kr.data?.status !== undefined && kr.data.status !== "ok" }
+      : crypto;
     const [containerRef, width] =
       useElementWidth<HTMLDivElement>(CHART_FALLBACK_WIDTH);
 
-    useMarketPreviewChartRealtime(symbol, Timeframe.FiveMinutes);
+    // 국내 주식 봉 실시간 병합은 없다 — BFF 가 체결만 중계하고 봉은 서버 5분 집계다(5분 뒤 다시 받는다)
+    useMarketPreviewChartRealtime(isKr ? "" : symbol, Timeframe.FiveMinutes);
 
     // 측정용 상자는 **로딩·실패와 상관없이 늘 있다** — 없으면 첫 측정이 데이터 도착
     // 뒤로 밀려, 차트가 한 번 고정 폭으로 그려졌다가 줄어든다.
@@ -79,6 +101,7 @@ export const MarketPreviewChart = React.memo(
   // 덮개는 부르는 쪽이 memo 로 넘긴다 — 참조가 같으면 다시 그리지 않는다
   (prevProps, nextProps) =>
     prevProps.symbol === nextProps.symbol &&
+    prevProps.assetType === nextProps.assetType &&
     prevProps.overlay === nextProps.overlay,
 );
 MarketPreviewChart.displayName = "MarketPreviewChart";

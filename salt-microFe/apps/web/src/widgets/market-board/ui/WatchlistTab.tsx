@@ -9,9 +9,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   indexWatchlistBySymbol,
+  MarketAssetClass,
   MarketPreview,
   overviewItemToPreviewSubject,
-  useMarketOverview,
+  useBoardOverview,
   useWatchlist,
   WATCHLIST_MESSAGES,
   watchlistItemToPreviewSubject,
@@ -40,16 +41,31 @@ import { previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
  */
 export const WatchlistTab = ({
   renderPreview,
+  assetClass: assetClassId = MarketAssetClass.Crypto,
 }: {
   renderPreview?: PreviewRenderer;
+  /** 관심 목록은 하나고 자산군 탭이 거른다(F011 `FE-REQ-041`) — 코인 탭엔 코인만, 국내 주식 탭엔 국내 주식만 */
+  assetClass?: string;
 }) => {
+  // 탭 id(문자열)를 받는다 — `MarketBoard` 는 엔티티 barrel 을 값으로 부르지 않는다(첫 로드 번들)
+  const assetClass =
+    assetClassId === MarketAssetClass.KrStock ? MarketAssetClass.KrStock : MarketAssetClass.Crypto;
   const { data, isPending, isError, isSignedOut } = useWatchlist();
-  const { data: overview } = useMarketOverview(DEFAULT_MARKET_PARAMS);
+  const { data: overview } = useBoardOverview(assetClass, DEFAULT_MARKET_PARAMS);
+  const starAssetType =
+    assetClass === MarketAssetClass.KrStock ? WatchlistAssetType.KrStock : WatchlistAssetType.Crypto;
 
   const [selectedSymbol, setSelectedSymbol] = useState<string>("");
   const { hrefOf: detailHref, open: openDetail } = useDetailLink();
 
-  const items = useMemo(() => data?.items ?? [], [data?.items]);
+  // 국내 주식 탭엔 국내 주식만, 코인 탭엔 그 밖 전부 — 코인 탭이 지금껏 보여 주던 행(옛 `stock` 포함)을 빼지 않는다
+  const items = useMemo(
+    () =>
+      (data?.items ?? []).filter(
+        (item) => (item.assetType === MarketAssetClass.KrStock) === (assetClass === MarketAssetClass.KrStock),
+      ),
+    [data?.items, assetClass],
+  );
   const bySymbol = useMemo(() => indexWatchlistBySymbol(items), [items]);
   const firstSymbol = items[0]?.symbol;
 
@@ -91,13 +107,13 @@ export const WatchlistTab = ({
         entry={item}
         displayName={item.name}
         request={{
-          assetType: WatchlistAssetType.Crypto,
+          assetType: starAssetType,
           symbol: item.symbol,
           name: item.name,
         }}
       />
     ),
-    [],
+    [starAssetType],
   );
 
   if (isSignedOut) {

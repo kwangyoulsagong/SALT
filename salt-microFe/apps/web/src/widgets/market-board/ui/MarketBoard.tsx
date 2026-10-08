@@ -15,6 +15,8 @@ import { ROUTES } from "@/shared/config";
 import { NavChevron } from "@/shared/ui";
 
 import {
+  ASSET_CLASS_TABS,
+  DEFAULT_ASSET_CLASS_TAB,
   DEFAULT_MARKET_BOARD_TAB,
   MARKET_BOARD_MESSAGES,
   MARKET_BOARD_TABS,
@@ -61,6 +63,12 @@ const MarketSummaryStrip = dynamic(
   }
 );
 
+/** 국내 주식(F011) 자산군 탭을 보일지 정하는 잎 — 엔티티 barrel 을 쓰므로 늦게 온다 */
+const KrStockAvailability = dynamic(
+  () => import("./KrStockAvailability").then((mod) => mod.KrStockAvailability),
+  { ssr: false, loading: () => null }
+);
+
 interface MarketBoardProps {
   /** 우측 패널. 페이지가 AI 코치 패널을 주입한다 — `model/previewSlot.ts` */
   renderPreview?: PreviewRenderer;
@@ -74,6 +82,11 @@ interface MarketBoardProps {
 /** 조합만 한다. 비즈니스 로직은 `entities/market` 과 그 위의 feature 가 갖는다. */
 export const MarketBoard = ({ renderPreview, lead }: MarketBoardProps) => {
   const [activeTab, setActiveTab] = useState(DEFAULT_MARKET_BOARD_TAB);
+  const [assetTab, setAssetTab] = useState(DEFAULT_ASSET_CLASS_TAB);
+  const [krAvailable, setKrAvailable] = useState(false);
+  // 자산군 탭이 사라지면(로그아웃 · 소유자 아님) 코인으로 돌아온다 — 빈 국내 주식 화면에 남지 않는다
+  const assetClass = krAvailable ? assetTab : DEFAULT_ASSET_CLASS_TAB;
+  const isCrypto = assetClass === DEFAULT_ASSET_CLASS_TAB;
   return (
     <Section noContainer>
       <FlexBox direction="column">
@@ -91,11 +104,26 @@ export const MarketBoard = ({ renderPreview, lead }: MarketBoardProps) => {
             <NavChevron />
           </Link>
         </div>
-        {/* 간격은 칸이 갖는다 — 로그아웃이면 칸이 아무것도 그리지 않아 빈 여백이 남지 않게 */}
-        {lead}
-        <Margin top="xl">
-          <MarketSummaryStrip />
-        </Margin>
+        {/*
+          자산군 탭(F011 `FE-REQ-041`) — 제목 바로 아래. 아래 화면은 탭마다 같고 데이터만 다르다. 국내 주식을 볼 수 없는
+          사용자(비로그인 · 소유자 아님 · 키 없음)에겐 이 줄이 없다 — 화면이 지금과 같다
+        */}
+        <KrStockAvailability onChange={setKrAvailable} />
+        {krAvailable && (
+          <Margin top="lg">
+            <Tabs tabs={ASSET_CLASS_TABS} activeTab={assetClass} onTabChange={setAssetTab} />
+          </Margin>
+        )}
+        {/*
+          목표 비중 · 위험 · 판정 성적표 띠와 시장 요약 띠는 코인 데이터다(BTC · ETH 비중 · 업비트 요약). 국내 주식 탭에 코인 숫자를
+          두지 않는다 — 국내 주식 요약(코스피 · 코스닥)은 서버 수집이 생기면 같은 자리에 온다(F011 FR-48)
+        */}
+        {isCrypto && lead}
+        {isCrypto && (
+          <Margin top="xl">
+            <MarketSummaryStrip />
+          </Margin>
+        )}
         <Margin top="xl">
           <Tabs
             tabs={MARKET_BOARD_TABS}
@@ -105,11 +133,12 @@ export const MarketBoard = ({ renderPreview, lead }: MarketBoardProps) => {
         </Margin>
         <Margin top="md">
           <Suspense fallback={null}>
+            {/* `key` — 자산군을 바꾸면 선택 · 필터 · 깜빡임 상태를 새로 시작한다(다른 종목 목록이다) */}
             {activeTab === DEFAULT_MARKET_BOARD_TAB && (
-              <RealtimeMarketTable renderPreview={renderPreview} />
+              <RealtimeMarketTable key={assetClass} renderPreview={renderPreview} assetClass={assetClass} />
             )}
             {activeTab === WATCH_LIST_TAB && (
-              <WatchlistTab renderPreview={renderPreview} />
+              <WatchlistTab key={assetClass} renderPreview={renderPreview} assetClass={assetClass} />
             )}
           </Suspense>
         </Margin>

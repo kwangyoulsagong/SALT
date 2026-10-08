@@ -40,6 +40,8 @@ export const MARKET_MESSAGES = {
   newsHeading: "뉴스",
   /** 차트·심리·스마트머니는 업비트 소스라 크립토에만 있다 */
   marketDataUnavailable: "이 자산군은 차트와 시장 심리를 아직 제공하지 않습니다.",
+  /** 국내 주식 — 차트는 있고 심리 · 스마트머니(업비트 소스)는 없다. 0으로 채운 게이지를 그리지 않는다 */
+  intelligenceUnavailable: "국내 주식은 시장 심리 · 스마트 머니를 아직 제공하지 않습니다.",
   largeBuys: "대량 매수",
   largeSells: "대량 매도",
   orderbookRatio: "호가창 매수/매도 비율",

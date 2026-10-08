@@ -42,6 +42,11 @@ export enum ConnectionStatus {
 }
 
 export interface PriceUpdate {
+  /**
+   * 자산군(`BFF-REQ-040` FR-10). 코인은 `crypto`, 국내 주식은 `kr_stock` — 국내 주식은 `handlers/priceUpdate` 가
+   * 따로 보낸다. 옛 BFF 는 보내지 않는다 — 없으면 코인이다
+   */
+  assetType?: "crypto" | "kr_stock";
   symbol: string;
   currentPrice: number;
   change24h: number;
@@ -72,11 +77,29 @@ export interface CandleEvent {
 }
 
 export type PriceListener = (data: PriceUpdate) => void;
+/** 국내 주식 체결 — 6자리 코드. 코인 리스너와 맵을 나눈다(같은 문자열이어도 다른 종목이다) */
+export type KrPriceListener = (data: PriceUpdate) => void;
+/**
+ * 국내 주식 구독 거부 — BFF `error { assetType: "kr_stock", code }`. 404 = 소유자 아님 · `KR_STOCK_DISABLED` = 꺼짐 ·
+ * `KR_STOCK_AUTH_REQUIRED` = 토큰 없음 · 그 밖 서버 4xx 코드. 받은 쪽은 실시간을 포기하고 저장값 조회로 간다
+ */
+export type KrErrorListener = (code: string) => void;
+
+/** 자산군 — 구독 메시지가 국내 주식을 고를 때만 단다(없으면 코인, 기존 계약) */
+export enum WSAssetType {
+  KrStock = "kr_stock",
+}
 export type CandleListener = (data: CandleEvent) => void;
 
 export type WSClientSendMessage =
   | { type: WSMessageType.Subscribe; symbols: string[] }
   | { type: WSMessageType.Unsubscribe; symbols: string[] }
+  /**
+   * 국내 주식은 **토큰을 메시지에 싣는다**(`BFF-REQ-040` 결정 3) — 소유자 전용이라 BFF 가 연결마다 이 토큰으로 서버
+   * 스트림을 연다. 브라우저 WebSocket 은 헤더를 못 단다
+   */
+  | { type: WSMessageType.Subscribe; assetType: WSAssetType.KrStock; symbols: string[]; token: string }
+  | { type: WSMessageType.Unsubscribe; assetType: WSAssetType.KrStock; symbols: string[] }
   | { type: WSMessageType.SubscribeCandle; symbol: string; timeframe: Timeframe }
   | {
       type: WSMessageType.UnsubscribeCandle;
@@ -98,9 +121,11 @@ export type WSClientReceiveMessage =
   | { type: WSMessageType.SubscribedCandle; symbol: string; timeframe: string }
   | { type: WSMessageType.UnsubscribedCandle; symbol: string; timeframe: string }
   | { type: WSMessageType.Pong }
-  | { type: WSMessageType.Error; message: string };
+  | { type: WSMessageType.Error; message: string; assetType?: WSAssetType; code?: string };
 
 export interface WSClientContext {
   priceListeners: Map<string, Set<PriceListener>>;
+  krPriceListeners: Map<string, Set<KrPriceListener>>;
+  notifyKrError: (code: string) => void;
   candleListeners: Map<string, Map<Timeframe, Set<CandleListener>>>;
 }

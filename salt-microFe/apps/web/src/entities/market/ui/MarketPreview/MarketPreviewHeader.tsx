@@ -2,6 +2,7 @@
 
 // 클라이언트 잎: 상태·effect·memo 를 갖는다. barrel 로 노출되므로 경계를 스스로 갖는다.
 import { FlexBox } from "@repo/ui/flexBox";
+import { AssetIcon } from "@repo/ui/assetIcon";
 import { Image } from "@repo/ui/image";
 import { Text } from "@repo/ui/text";
 import React from "react";
@@ -31,7 +32,10 @@ export const MarketPreviewHeader = React.memo(
             src={subject.logoUrl}
             alt={subject.displayName}
           />
-        ) : null}
+        ) : (
+          // 로고가 없으면(국내 주식 — KIS 는 로고를 주지 않는다) 이름 이니셜. 아이콘 자리를 비우지 않는다
+          <AssetIcon symbol={subject.displayName} name={subject.displayName} size="lg" />
+        )}
         <FlexBox direction="column">
           <Text variant="bodyLarge">{subject.displayName}</Text>
           <FlexBox align="center">

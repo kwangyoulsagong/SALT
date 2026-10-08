@@ -6,6 +6,17 @@
  * 이 파일이 `@repo/core` 의 계약을 re-export 하는 자리가 된다.
  */
 
+import type { KrQuote, KrSessionView } from "@repo/core/marketKr";
+
+/**
+ * 시세 보드의 자산군(F011 `FE-REQ-041`). **화면은 하나고 데이터만 다르다** — 표 · 필터 · 미리보기 · 관심 종목이 이 값 하나로
+ * 데이터 소스를 고른다. 코인 = 업비트(`/api/investment/*`), 국내 주식 = KIS(`/api/app/market/kr/*`, 소유자 전용)
+ */
+export enum MarketAssetClass {
+  Crypto = "crypto",
+  KrStock = "kr_stock",
+}
+
 export enum MarketSort {
   All = "",
   TradeValue = "trade_value",
@@ -56,10 +67,17 @@ export interface MarketOverviewItem {
    * 실시간 WS 는 이 값을 건드리지 않는다. 기간 값은 틱마다 바뀌는 값이 아니다.
    */
   periodChange: number | null;
+  /**
+   * 국내 주식 행이면 서버 시세 한 줄 — 상하한 · 종목 상태 · 시세 출처 배지가 쓴다(코인 행엔 없다).
+   * 행 모양은 코인과 같게 맞추고(`krQuoteToOverviewItem`) 코인에 없는 것만 여기 둔다
+   */
+  kr?: KrQuote;
 }
 
 export interface MarketOverviewResponse {
   items: MarketOverviewItem[];
+  /** 국내 주식 목록이면 장 상태 — 표 머리의 장 상태 줄 · "N분 전" 기준 시각 */
+  krSession?: KrSessionView;
 }
 
 export interface MarketOverviewParams {
@@ -218,6 +236,8 @@ export interface WatchlistResponse {
 export enum WatchlistAssetType {
   Crypto = "crypto",
   Stock = "stock",
+  /** 국내 주식(F011) — 서버 DTO 가 받는다(`FE-REQ-041`) */
+  KrStock = "kr_stock",
 }
 
 export interface AddWatchlistRequest {

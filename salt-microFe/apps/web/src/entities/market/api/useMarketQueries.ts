@@ -27,10 +27,13 @@ import { marketQueryKeys } from "./queryKeys";
 
 export const useMarketOverview = (
   params: MarketOverviewParams,
+  /** 국내 주식 보드에서는 끈다(`useBoardOverview`) — 훅은 조건 없이 불러야 해서 조회만 막는다 */
+  enabled = true,
 ): UseQueryResult<MarketOverviewResponse> =>
   useQuery({
     queryKey: [marketQueryKeys.overview, params],
     queryFn: () => marketApi.overview(params),
+    enabled,
   });
 
 /**
