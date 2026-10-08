@@ -42,7 +42,8 @@ export interface PortfolioApi {
     assetType?: PortfolioAssetType
   ): Promise<Holding[]>;
   /** 한 종목 보유. 없으면 `null` — 미보유가 정상 경로다. */
-  getHolding(userId: string, symbol: string): Promise<Holding | null>;
+  /** 한 종목 보유. 자산군을 안 주면 코인(기존 호출 무변경) — 국내 주식 종목 판단이 `kr_stock` 을 준다 */
+  getHolding(userId: string, symbol: string, assetType?: PortfolioAssetType): Promise<Holding | null>;
   /** 거래 내역. `coach` 의 행동 분석이 매매 패턴을 본다. */
   listTransactions(
     userId: string,
@@ -125,8 +126,8 @@ export const createPortfolioApplication = (deps: PortfolioDependencies) => {
   const api: PortfolioApi = {
     listHoldings: (userId, assetType) =>
       deps.holdings.findByUser(userId, undefined, assetType),
-    getHolding: (userId, symbol) =>
-      deps.holdings.findOne(userId, symbol.toUpperCase(), "crypto"),
+    getHolding: (userId, symbol, assetType = "crypto") =>
+      deps.holdings.findOne(userId, symbol.toUpperCase(), assetType),
     listTransactions: async (userId, options = {}) => {
       const result = await listTransactions.execute(userId, {
         symbol: options.symbol,

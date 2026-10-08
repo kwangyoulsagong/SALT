@@ -32,7 +32,8 @@ export class AICoachController {
 
       const result = await this.useCases.getRecommendation.execute(
         req.user!.userId,
-        query
+        query,
+        req.user!.email
       );
 
       return ResponseUtil.success(res, result);
@@ -127,7 +128,7 @@ export class AICoachController {
       const data = explainCoachSchema.parse(req.body ?? {});
       const result = await this.useCases.explainDecision.execute(
         req.user!.userId,
-        data,
+        { ...data, viewerEmail: req.user!.email },
         controller.signal
       );
       if (controller.signal.aborted) return;
@@ -178,7 +179,7 @@ export class AICoachController {
     try {
       await this.useCases.explainDecision.stream(
         req.user!.userId,
-        data,
+        { ...data, viewerEmail: req.user!.email },
         ({ event, data: payload }) => write(event, payload),
         controller.signal
       );

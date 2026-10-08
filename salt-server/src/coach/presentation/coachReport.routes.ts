@@ -33,6 +33,8 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - `sample < 20` 이면 `lowSample: true` 다. 임계 판정은 서버가 한다
    *       - `returnDistribution.horizonDays` 는 그룹의 관찰 기간이다(단타 1 · 장기 30)
    *       - 과거 분포이고 **예측이 아니다.** 목표가 · 수익률 예측 필드는 없다
+   *       - 그룹마다 `assetClass`(`crypto` · `kr_stock`). 국내 주식 그룹 키는 `kr_stock.<mode>.<action>` 이고 국내 주식
+   *         표본만 센다 — 합산 숫자는 없다(F011 FR-61 · 65). **국내 주식 그룹은 소유자에게만** 온다(시세 경로와 같은 판정)
    *     tags: [Coach Report]
    *     security:
    *       - bearerAuth: []
@@ -312,7 +314,16 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *                             example: kr_stock
    *                           reasonCode:
    *                             type: string
-   *                             example: no_realtime_data
+   *                             enum: [insufficient_history, symbol_judgment_only]
+   *                             description: 국내 주식은 종목 판단만 연다(F011 슬라이스 4) — 표본 20 전 insufficient_history
+   *                           progress:
+   *                             type: object
+   *                             properties:
+   *                               largestGroupSample:
+   *                                 type: integer
+   *                               requiredSample:
+   *                                 type: integer
+   *                                 example: 20
    *                     disclaimer:
    *                       type: string
    *       401:

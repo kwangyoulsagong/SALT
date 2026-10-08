@@ -30,6 +30,10 @@ export type JudgmentAction =
   | "avoid";
 
 export type JudgmentBlockedReason =
+  /** 이 자산군에 아직 열지 않은 모드 — 국내 주식 단타(F011 슬라이스 4) */
+  | "mode_not_open"
+  /** 국내 주식 종목 이력(일봉 120 거래일 · 일봉 지표)이 모자람 — 수치는 `history` */
+  | "insufficient_history"
   | "exchange_warning"
   /** 시세 · 지표가 기준보다 오래됐다(F010 슬라이스 7) */
   | "stale_inputs"
@@ -136,9 +140,21 @@ export type Zone =
  * 모드 하나. **`renderable: false` 에 `judgment` · `trackRecord` 가 없다.**
  * `zone` 은 판단이 막혀도 싣는다 — 구간은 판단이 아니라 과거 가격과 내 규칙이다.
  */
+/** 성적이 세는 자산군(F011 FR-61) — 국내 주식 판단은 국내 주식 표본만 */
+export type JudgmentAssetClass = "crypto" | "kr_stock";
+
+/** 국내 주식 판단을 여는 이력의 지금 수치(F011 FR-62) */
+export interface JudgmentHistory {
+  ready: boolean;
+  dailyBars: number;
+  requiredDailyBars: number;
+  dailyIndicator: boolean;
+}
+
 export type ModeCoachViewModel =
   | {
       renderable: true;
+      assetClass: JudgmentAssetClass;
       judgment: Judgment;
       trackRecord: TrackRecord;
       failureCases: [FailureCase, ...FailureCase[]];
@@ -146,9 +162,12 @@ export type ModeCoachViewModel =
     }
   | {
       renderable: false;
+      assetClass: JudgmentAssetClass;
       blockedReason: JudgmentBlockedReason;
       /** "표본 N건" 표시용. 성적표가 없으면 `null` */
       trackSample: number | null;
+      /** `insufficient_history` 의 수치. 국내 주식만 — 코인은 `null` */
+      history: JudgmentHistory | null;
       zone: Zone;
     };
 

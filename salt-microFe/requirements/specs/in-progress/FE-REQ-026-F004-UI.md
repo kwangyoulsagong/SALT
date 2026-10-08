@@ -386,3 +386,4 @@ PC                                                   모바일(세로 스택)
 | 2026-09-24 | **F009 슬라이스 0 — C05.** FR-164 신설. `validity.code` 새 값 i18n. 모르는 코드는 문구를 생략한다(기존 동작) |
 | 2026-09-27 | **FR-135 보강** — 막힌 모드에 해설 카드 자리와 이유 한 줄 · 표본 수를 남긴다(버튼 · 성적 · 사례는 여전히 없다). C06 뒤 live 표본만 세면서 판단이 닫힌 종목에서 카드가 사라져 기능이 없어진 것처럼 보였다(사용자 신고). 근거 `reports/checklists/FE-REQ-038.md` §2026-09-27 |
 | 2026-09-28 | **F010 슬라이스 0.** FR-165 신설 · 구현. `@repo/core` `ReportTrackRecord` · `TrackRecord` · `RecommendationBlockedReason` · `ReportFailureCase` 확장(`SRV-REQ-025` FR-59 · `BFF-REQ-024` FR-40 과 짝). 화면은 타입 · 린트만 — 표본이 0 이라 카드가 막힌 상태(`reports/checklists/FE-REQ-026.md` §2026-09-28) |
+| 2026-10-08 | F011 슬라이스 4 — `BlockedNotice` 에 `assetClass` · `history`(선택). 리포트 제외 사유 `kr_stock:no_realtime_data` → `insufficient_history` · `symbol_judgment_only` + 진행 수치. 투자 패널이 국내 주식에도 판단을 조회한다. 근거 `FE-REQ-041` FR-19~21 |

@@ -16,6 +16,8 @@ import {
   useKrDetailRealtime,
 } from "@/entities/market";
 import { RecordTradeCard } from "@/features/record-transaction";
+
+import { KrCoachJudgment } from "./KrCoachJudgment";
 import { useHasAccessToken } from "@/shared/api";
 import { formatKrwCompact, formatPrice } from "@/shared/lib";
 
@@ -47,8 +49,8 @@ const ratio = (value: number | null, suffix = "") =>
  * (KRX 재배포 약관 — F011 §정책).
  *
  * 값은 전부 서버 것이다 — 원 정수 · 전일 대비 · 상하한가 · 기준가 · 호가 단위 · 상태 배지. 거래정지면 가격 자리에 마지막 체결
- * 일시를 같이 쓴다(FR-44). 거래 기록은 코인과 같은 폼이고 계획 · 크기 계산 없이 거래만 적는다(슬라이스 3b). 코치 판단 ·
- * 해설은 아직 국내 주식을 받지 않는다(슬라이스 4).
+ * 일시를 같이 쓴다(FR-44). 거래 기록은 코인과 같은 폼 — 계획 · 크기 계산까지(슬라이스 4). 코치 판단은 장기 한 모드
+ * (`KrCoachJudgment`, 슬라이스 4). 해설 · 전망은 아직 열지 않았다.
  */
 export const KrStockDetail = ({ code }: { code: string }) => {
   const signedIn = useHasAccessToken();
@@ -131,7 +133,7 @@ export const KrStockDetail = ({ code }: { code: string }) => {
           livePrice={quote.price}
         />
       </div>
-      <StatusLine kind="empty">{M.detail.noCoach}</StatusLine>
+      <KrCoachJudgment code={quote.code} />
     </>
   );
 };

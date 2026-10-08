@@ -44,6 +44,20 @@ export const headerCard = style({
   },
 });
 
+/** 국내 주식 코치 판단 칸(F011 슬라이스 4) — 머리 카드와 같은 면, 세로로 쌓는다(제목 · 판단 · 한 줄 고지) */
+export const krCoachCard = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: vars.space.md,
+  padding: "20px 24px",
+  borderRadius: CARD_RADIUS,
+  background: vars.colors.background.white,
+  boxShadow: CARD_SHADOW,
+  "@media": {
+    [NARROW]: { padding: vars.space.lg },
+  },
+});
+
 export const identity = style({
   display: "flex",
   flexDirection: "column",

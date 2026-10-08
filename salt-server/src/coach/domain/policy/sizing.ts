@@ -22,9 +22,17 @@
 import Decimal from "decimal.js";
 
 import { Money } from "../../../shared/domain";
+import type { JudgmentAssetClass, RoundTripCosts } from "./symbolJudgment";
 
 /** 한쪽 거래 수수료율 — 업비트 KRW 마켓 일반 수수료. 손실 계산에 진입 · 청산 두 번 들어간다 */
 export const SIZING_FEE_RATE_PER_SIDE = new Decimal("0.0005");
+
+/**
+ * 자산군별 한쪽 비용(F011 슬라이스 4). 국내 주식은 왕복 비용(설정값 — 수수료 왕복 + 매도 거래세)의 절반으로 둔다 —
+ * 실제로는 매도 쪽에 세금이 몰리지만 손실 계산은 진입 + 청산 두 번을 더하므로 합은 같다
+ */
+export const sizingFeeRatePerSide = (assetClass: JudgmentAssetClass, costs: RoundTripCosts): Decimal =>
+  assetClass === "kr_stock" ? new Decimal(costs.kr_stock).div(2) : SIZING_FEE_RATE_PER_SIDE;
 /** FR-7 — "이 크기로 N번 연속 손절이면" */
 export const CONSECUTIVE_LOSS_COUNT = 5;
 /** 목표 연 변동성을 정하지 않았을 때(FR-1 "기본 15%"). 응답에 기본값이라고 밝힌다 */
@@ -59,7 +67,7 @@ export interface SizingInput {
   monthlyBudget: Money | null;
   /** 이번 달 이미 쓴 손실(원, 0 이상). 계산 불가면 `null` */
   monthlyUsed: Money | null;
-  /** 코인 보유 평가금액 합(원) */
+  /** 코인 + 국내 주식 보유 평가금액 합(원 — F011 슬라이스 4) */
   totalValue: Money;
   /** 이 종목 기존 평가금액(원) */
   existingSymbolValue: Money;
@@ -69,6 +77,8 @@ export interface SizingInput {
   targetVolatility: Decimal;
   /** FR-6 — 사용자가 적은 승률 · 손익비. 없으면 켈리 섹션이 없다 */
   kelly?: { winRate: Decimal; payoffRatio: Decimal };
+  /** 한쪽 비용(`sizingFeeRatePerSide`). 없으면 코인 수수료 */
+  feeRatePerSide?: Decimal;
 }
 
 export interface KellyResult {
@@ -216,7 +226,7 @@ export const calculateSizing = (input: SizingInput): SizingResult => {
     unavailable.maxLoss = "stop_not_below_entry";
   } else {
     // 진입 수수료 + 손절 청산 수수료. 갭(손절가 아래 체결)은 가정하지 않는다 — 가정값은 응답 `assumptions` 에 있다
-    const fees = input.price.plus(input.stopPrice).scale(SIZING_FEE_RATE_PER_SIDE);
+    const fees = input.price.plus(input.stopPrice).scale(input.feeRatePerSide ?? SIZING_FEE_RATE_PER_SIDE);
     lossPerUnit = input.price.minus(input.stopPrice).plus(fees);
   }
 

@@ -81,15 +81,10 @@ export class MarketSignalAdapter implements MarketProbe {
     );
   }
 
+  /** 국내 주식 코드는 `market` 이 `kr_stock_quotes` 에서 같은 모양으로 준다(F011 슬라이스 4) */
   async quotes(symbols: string[]): Promise<Map<string, CoachQuote>> {
     const rows = await this.market.assetQuotes(symbols);
-    // 국내 주식은 코치가 아직 판단하지 않는다(`COACH_EXCLUDED`, F011 슬라이스 4 에서 연다).
-    // 시세도 `MarketAsset` 이 아니라 `kr_stock_quotes` 에 있어 여기로 오지 않는다 — 타입만 좁힌다
-    return new Map(
-      rows.flatMap((row) =>
-        row.assetType === "kr_stock" ? [] : [[row.symbol, { ...row, assetType: row.assetType }] as const]
-      )
-    );
+    return new Map(rows.map((row) => [row.symbol, row]));
   }
 
   async recentWhales(
@@ -117,6 +112,19 @@ export class MarketSignalAdapter implements MarketProbe {
 
   closeAtOrAfter(symbol: string, at: Date, timeframe: ZoneTimeframe): Promise<number | null> {
     return this.market.closeAtOrAfter(symbol, at, PRICE_TIMEFRAME[timeframe]);
+  }
+
+  closeAtOrBefore(
+    symbol: string,
+    at: Date,
+    timeframe: ZoneTimeframe,
+    notBefore: Date
+  ): Promise<{ close: number; timestamp: Date } | null> {
+    return this.market.closeAtOrBefore(symbol, at, PRICE_TIMEFRAME[timeframe], notBefore);
+  }
+
+  dailyBarCounts(symbols: string[]): Promise<Map<string, number>> {
+    return this.market.candleCounts(symbols, "1d");
   }
 
   highestCloseBetween(symbol: string, from: Date, to: Date): Promise<number | null> {

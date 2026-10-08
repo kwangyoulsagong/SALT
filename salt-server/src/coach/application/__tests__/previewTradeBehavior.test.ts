@@ -131,7 +131,7 @@ describe("CheckTradeSize × 미리보기", () => {
     listHoldings: async () => [],
     listLedgerSince: async () => ({ entries: [], truncated: false }),
   } as unknown as PortfolioProbe;
-  const market = { closeAtOrAfter: async () => null } as unknown as MarketProbe;
+  const market = { closeAtOrAfter: async () => null, quotes: async () => new Map() } as unknown as MarketProbe;
   const forecasts = { realizedVolatility: async () => null } as unknown as ForecastReader;
   const command = { symbol: "btc", side: "buy" as const, quantity: new Decimal(1), price: new Decimal(100) };
 

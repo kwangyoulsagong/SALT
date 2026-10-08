@@ -89,7 +89,13 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
     .join(" · ");
   const excluded = report.excluded.flatMap((item) => {
     const line = REPORT.excluded[`${item.assetType}:${item.reasonCode}`];
-    return line ? [line] : [];
+    if (!line) return [];
+    // 국내 주식 판단 표본 진행(F011 FR-62) — 수와 기준은 서버 값
+    return [
+      item.progress
+        ? `${line} (${REPORT.excludedProgress(item.progress.largestGroupSample, item.progress.requiredSample)})`
+        : line,
+    ];
   });
 
   return (

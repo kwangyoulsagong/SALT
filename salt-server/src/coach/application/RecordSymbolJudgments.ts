@@ -1,5 +1,11 @@
 import {
+  DEFAULT_ROUND_TRIP_COSTS,
   isJudgmentSnapshotDue,
+  isKrExitSettled,
+  judgmentAssetClassOf,
+  JUDGMENT_MODES,
+  krJudgmentExitWindow,
+  staleKrJudgmentInputs,
   judgeOutcome,
   judgmentMaturesAt,
   judgmentReturnRate,
@@ -13,6 +19,8 @@ import {
   type JudgmentSnapshotDraft,
   type MarketProbe,
   type ModeDecision,
+  type PendingJudgment,
+  type RoundTripCosts,
   type SymbolJudgmentStore,
   type TrackedAssetProbe,
 } from "../domain";
@@ -27,6 +35,11 @@ export interface SnapshotResult {
   written: number;
   /** 현재가가 없어 남기지 못한 심볼. 진입가 없는 표본은 판정할 수 없다. */
   skippedNoPrice: string[];
+  /**
+   * 국내 주식 중 판단 대상이 아직 아니라 남기지 않은 종목(F011 FR-62 · 66) — 이력(일봉 120 · 일봉 지표)이 모자라거나
+   * 재료가 1 거래일 넘게 밀렸다. 화면이 막는 판단을 표본으로 세면 성적이 화면과 다른 조건에서 쌓인다
+   */
+  skippedNotReady: string[];
 }
 
 /**
@@ -45,7 +58,7 @@ export class SnapshotSymbolJudgments {
 
   async execute(): Promise<SnapshotResult> {
     const symbols = await this.tracked.listTrackedSymbols();
-    if (symbols.length === 0) return { tracked: 0, written: 0, skippedNoPrice: [] };
+    if (symbols.length === 0) return { tracked: 0, written: 0, skippedNoPrice: [], skippedNotReady: [] };
 
     const now = this.now();
     const last = await this.judgments.lastJudgedAt(symbols);
@@ -55,17 +68,30 @@ export class SnapshotSymbolJudgments {
         isJudgmentSnapshotDue(mode, last.get(judgmentKey(symbol, mode)) ?? null, now)
       )
     );
-    if (due.length === 0) return { tracked: symbols.length, written: 0, skippedNoPrice: [] };
+    if (due.length === 0) return { tracked: symbols.length, written: 0, skippedNoPrice: [], skippedNotReady: [] };
 
     const materials = await collectJudgmentMaterials(this.market, due);
     const drafts: JudgmentSnapshotDraft[] = [];
     const skippedNoPrice: string[] = [];
+    const skippedNotReady: string[] = [];
 
     for (const symbol of due) {
       const material = materials.get(symbol);
       const entryPrice = material?.quote?.currentPrice;
       if (!material || !entryPrice) {
         skippedNoPrice.push(symbol);
+        continue;
+      }
+      if (
+        material.assetClass === "kr_stock" &&
+        (!material.krHistory?.ready ||
+          staleKrJudgmentInputs({
+            priceUpdatedAt: material.quote?.priceUpdatedAt ?? null,
+            dailyIndicatorAt: material.indicators.long_term?.timestamp ?? null,
+            now,
+          }).length > 0)
+      ) {
+        skippedNotReady.push(symbol);
         continue;
       }
 
@@ -76,7 +102,8 @@ export class SnapshotSymbolJudgments {
         long_term: judgment.longTerm,
       };
 
-      for (const mode of MODES) {
+      // 국내 주식은 장기만 남긴다(F011 FR-63)
+      for (const mode of JUDGMENT_MODES[material.assetClass]) {
         const lastAt = last.get(judgmentKey(symbol, mode)) ?? null;
         if (!isJudgmentSnapshotDue(mode, lastAt, now)) continue;
 
@@ -85,7 +112,7 @@ export class SnapshotSymbolJudgments {
           symbol,
           mode,
           action: decision.action,
-          signalType: judgmentSignalType(mode, decision.action),
+          signalType: judgmentSignalType(mode, decision.action, material.assetClass),
           score: decision.score,
           reasons: decision.reasons,
           entryPrice,
@@ -96,7 +123,7 @@ export class SnapshotSymbolJudgments {
     }
 
     const written = await this.judgments.saveSnapshots(drafts);
-    return { tracked: symbols.length, written, skippedNoPrice };
+    return { tracked: symbols.length, written, skippedNoPrice, skippedNotReady };
   }
 }
 
@@ -114,13 +141,32 @@ const EVALUATION_BATCH = 200;
  *
  * 판정 가격은 **관찰 기간이 끝난 시각 이후 첫 종가**다. 그 종가가 아직 없으면 건너뛰고
  * 다음 회차에 다시 본다 — 추정값으로 채우지 않는다.
+ *
+ * 국내 주식(`kr_stock.` 접두)은 **만기일 이전 마지막 거래일 종가**다(F011 FR-64 · `krJudgmentExitWindow`) —
+ * 만기일 종가가 확정되기 전이거나, 평일 봉이 아직 안 왔으면 기다린다. 적중 경계는 그 자산군 왕복 비용이다.
  */
 export class EvaluateSymbolJudgments {
   constructor(
     private readonly market: MarketProbe,
     private readonly judgments: SymbolJudgmentStore,
-    private readonly now: Clock = () => new Date()
+    private readonly now: Clock = () => new Date(),
+    private readonly costs: RoundTripCosts = DEFAULT_ROUND_TRIP_COSTS
   ) {}
+
+  /** 판정 가격. 아직 정할 수 없으면 `null` — 다음 회차에 다시 본다 */
+  private async exitPrice(item: PendingJudgment, now: Date): Promise<number | null> {
+    if (judgmentAssetClassOf(item.signalType) === "kr_stock") {
+      const window = krJudgmentExitWindow(item.judgedAt);
+      if (now < window.readyAt) return null;
+      const bar = await this.market.closeAtOrBefore(item.symbol, window.exitBarAt, "d1", window.notBefore);
+      return bar && isKrExitSettled(window, bar.timestamp, now) ? bar.close : null;
+    }
+    return this.market.closeAtOrAfter(
+      item.symbol,
+      judgmentMaturesAt(item.mode, item.judgedAt),
+      JUDGMENT_PRICE_TIMEFRAME[item.mode]
+    );
+  }
 
   async execute(): Promise<EvaluationResult> {
     const now = this.now();
@@ -130,15 +176,7 @@ export class EvaluateSymbolJudgments {
     };
     const matured = await this.judgments.listPending(judgedBefore, EVALUATION_BATCH);
 
-    const exits = await Promise.all(
-      matured.map((item) =>
-        this.market.closeAtOrAfter(
-          item.symbol,
-          judgmentMaturesAt(item.mode, item.judgedAt),
-          JUDGMENT_PRICE_TIMEFRAME[item.mode]
-        )
-      )
-    );
+    const exits = await Promise.all(matured.map((item) => this.exitPrice(item, now)));
 
     const evaluations: JudgmentEvaluation[] = [];
     matured.forEach((item, index) => {
@@ -150,7 +188,7 @@ export class EvaluateSymbolJudgments {
         id: item.id,
         exitPrice,
         returnRate,
-        outcome: judgeOutcome(item.mode, item.action, returnRate),
+        outcome: judgeOutcome(item.mode, item.action, returnRate, this.costs[judgmentAssetClassOf(item.signalType)]),
         evaluatedAt: now,
       });
     });

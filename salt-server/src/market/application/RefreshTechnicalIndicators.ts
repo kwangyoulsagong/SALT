@@ -45,11 +45,26 @@ export class RefreshTechnicalIndicators {
   constructor(
     private readonly assets: MarketAssetRepository,
     private readonly prices: PriceHistoryRepository,
-    private readonly indicators: IndicatorRepository
+    private readonly indicators: IndicatorRepository,
+    /**
+     * 국내 주식 대상(F011 FR-60) — 시세 유니버스. 꺼져 있으면 `null`. 국내 5분봉은 정규장 체결만 저장돼
+     * (`krFiveMinuteBucket` 09:00~15:25) 1시간봉도 정규장만 묶이고, 일봉은 거래일 봉만 있다 — 여기서 거를 것이 없다.
+     * 유니버스를 못 읽어도 코인 지표는 돈다
+     */
+    private readonly krSymbols: (() => Promise<string[]>) | null = null
   ) {}
 
   async execute(): Promise<{ symbols: number }> {
-    const symbols = await this.assets.activeSymbols();
+    const [crypto, kr] = await Promise.all([
+      this.assets.activeSymbols(),
+      this.krSymbols
+        ? this.krSymbols().catch((error) => {
+            logger.error("Indicator kr_stock universe error", error);
+            return [];
+          })
+        : [],
+    ]);
+    const symbols = [...new Set([...crypto, ...kr])];
     if (!symbols.length) {
       logger.info("No assets found");
       return { symbols: 0 };

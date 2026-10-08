@@ -50,7 +50,15 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | FR-34 | 국내 주식 보유 평가 — 서버가 가진 `kr_stock_quotes` 로 **읽어서** 평가(`KrStockQuoteSource` ACL). 기록 · 수정 · 삭제 직후 그 보유 · 시세 회차(`kr-quote-poll`) 뒤 전체(`RevalueKrStockHoldings`, 쿼리 3) · 부팅. 시세 없는 보유는 건드리지 않음(FR-90). BFF 업비트 반영(`/internal/update-prices`)은 `crypto` 만 | 완료(`422bc14`) |
 | FR-35 | `GET /api/market/kr/assets?codes=`(쉼표 · 최대 100 · 형식 검증) — 보유 요약 이름 · 로고. 유니버스가 100을 넘으면 첫 페이지에 보유가 없을 수 있다 | 완료(`13cde7e`) |
 | FR-36 | 장 밖에도 **시세가 한 번도 없는 유니버스 종목**은 현재가를 받는다(시간외 단일가 중 제외) — 밤에 처음 기록한 보유가 아침까지 평가 0 으로 남던 것(통합 확인에서 발견) | 완료(`2449834`) |
-| FR-60~66 | 지표 · 판정 · 성적표 자산군 분리 · 사이즈 계산 · 리스크 예산 · 계획 연결에 국내 주식 | 슬라이스 4 |
+| FR-60 | 지표 갱신이 국내 주식 시세 유니버스도 돈다(m5 · h1 · d1). 5분봉이 정규장 체결만 저장돼 h1 도 정규장만 묶이고 일봉은 거래일 봉만 있다 — 거를 것이 없다. 유니버스 실패는 코인 지표를 막지 않는다 | 완료(`f5bf406`) — 로컬 49 · 49 · 50종목, 342종목 3.1초 |
+| FR-61 | `signalType = kr_stock.<mode>.<action>`. 코인 행 그대로 · 접두 없음 = 코인. 성적 · 게이트 · 성적표가 그룹 키로 갈려 국내 주식 표본만 센다. 판단 원장(`judgment_ledger`, rule-ic@1)은 코인만 그대로 | 완료(`c4580b8`) |
+| FR-62 | 종목별 일봉 ≥ 120 거래일 + 일봉 지표 전엔 `blockedReason: insufficient_history` + `history { ready, dailyBars, requiredDailyBars, dailyIndicator }`. ③ 표본 20 은 기존 `insufficient_sample`(국내 주식 그룹). 코치 상세 `excluded` = `insufficient_history` \| `symbol_judgment_only` + `progress`(`no_realtime_data` 삭제). 이력이 모자란 종목은 표본도 남기지 않는다 | 완료(`c4580b8`) |
+| FR-63 | 장기만. 단타는 스냅샷 없음 · 화면 `mode_not_open` · 기본 모드 장기 | 완료(`c4580b8`) |
+| FR-64 | 채점 = 만기일(판단 + 30일, KST 날짜) **이전 마지막 거래일 종가**(`closeAtOrBefore`). 16시 KST 전엔 채점 안 함, 평일인데 그날 봉이 없으면 사흘 기다린 뒤 직전 거래일(평일 휴장). 왕복 비용 env `KR_STOCK_ROUND_TRIP_FEE_RATE`(기본 0.0023) — 적중 경계 · 기저율(성적표 SQL `CASE`) · 사이즈 수수료(절반씩) | 완료(`c4580b8` · `f410c42`) |
+| FR-65 | 성적표 그룹 `assetClass` — 국내 주식 그룹은 소유자에게만 | 완료(`c4580b8`) |
+| FR-66 | 신선도를 거래일로 — 종가 확정(16시) 기준 마지막 장보다 1 거래일 넘게 밀리면 `stale_inputs`(기획의 `stale_data` → 기존 사유 재사용) | 완료(`c4580b8`) |
+| FR-37 | 소유자 전용 — 종목 코치 404 `COACH_KR_STOCK_NOT_AVAILABLE` · 해설 `facts_unavailable` · 성적표 국내 주식 그룹 숨김(시세 경로와 같은 `FORECAST_OWNER_EMAILS`) | 완료(`c4580b8`) |
+| FR-38 | 리스크 예산 · 사이즈 · 계획 연결에 국내 주식 — 보유 · 거래(365일)를 코인 + 국내 주식으로(미국 주식 제외), 예산 % 분모도 둘의 합. 계획은 국내 주식 거래에 연결된다. 행동 분석은 코인 그대로 | 완료(`f410c42`) |
 
 ## 계약
 
@@ -72,11 +80,15 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | 유니버스에 보유 | 슬라이스 3b | `kr_stock` 보유 행이 생길 수 없었다(입력 DTO 미지원) — 3b 에서 입력과 함께 |
 | 보유 평가는 BFF 가 밀어 넣는다(코인과 같게) | 서버가 저장 시세로 읽어서 평가 | 국내 주식 시세는 서버가 이미 갖는다 — BFF 를 거쳐 되돌려 받을 이유가 없다 |
 
+- 슬라이스 4(2026-10-08): **BREAKING(응답)** — 코치 상세 `excluded[].reasonCode` `no_realtime_data` 삭제 → `insufficient_history` · `symbol_judgment_only` + `progress` / 판단 `blockedReason` 에 `mode_not_open` · `insufficient_history`, `modes.*` 에 `assetClass` · `history` / 성적표 그룹 `assetClass` / 상세 `assetType` 에 `kr_stock`. 새 env `KR_STOCK_ROUND_TRIP_FEE_RATE`. 마이그레이션 없음(`signal_type` 문자열 접두). 소비처 `BFF-REQ-040` FR-17~19 · `FE-REQ-041` FR-19~22
+
 ## 하지 않는 것
 
 주문 · 계좌 · 잔고 · 체결통보 TR. 미국 주식. 호가 · 투자자별 · 시간외 단일가(슬라이스 6).
 
 ## Changelog
+
+- 2026-10-08: 슬라이스 4 — FR-60~66 · 37 · 38(코치 판단 · 채점 · 성적표 자산군 분리 · 리스크 예산 · 사이즈 · 계획 연결). 테스트 706/706. 로컬 DB 실측: 지표 · 종목 코치(삼성전자 `kr_stock.long_term.wait` · 단타 `mode_not_open` · 비소유자 404) · 토요일 만기 → 금요일 종가 · 코인 성적표 숫자 무변경. 기획 정정 3: `stale_data` → 기존 `stale_inputs` · 표본은 관심 · 보유가 아니라 시세 유니버스 · 해설도 같은 막음(구멍이었다)
 
 - 2026-10-07: 초판 · 슬라이스 0 · 1(FR-1~27 · 40~46 · 90~94)
 - 2026-10-08: FR-32 — 로고 주소를 서버가 정한다(`aa9b1c3`, 사용자 "베스트 케이스로"). 테스트 648/648(로고 2 · 관심 kr 로고 기대값 갱신)

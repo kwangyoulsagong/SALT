@@ -1,5 +1,13 @@
 import {
   COACH_INDICATOR_TIMEFRAME,
+  JUDGMENT_MODES,
+  judgmentAssetClassFor,
+  krJudgmentHistory,
+  staleJudgmentInputs,
+  staleKrJudgmentInputs,
+  type StaleInput,
+  type JudgmentAssetClass,
+  type KrJudgmentHistory,
   scoreModeDecision,
   type CoachIndicator,
   type CoachMode,
@@ -15,6 +23,10 @@ import {
 const WHALE_SAMPLE = 20;
 
 export interface SymbolJudgmentMaterials {
+  /** 시세의 자산군(F011 슬라이스 4). 국내 주식은 심리 · 대량 체결이 없는 시장이라 재료가 둘이다 */
+  assetClass: JudgmentAssetClass;
+  /** 국내 주식만 — 판단을 여는 이력(일봉 120 거래일 · 일봉 지표, F011 FR-62) */
+  krHistory?: KrJudgmentHistory;
   quote: CoachQuote | undefined;
   sentiment: CoachSentiment | undefined;
   /** 모드별 지표 — 단타는 1시간봉, 장기는 일봉(`COACH_INDICATOR_TIMEFRAME`). */
@@ -63,10 +75,23 @@ export const collectJudgmentMaterials = async (
       ),
     ]);
 
+  // 국내 주식 일봉 수 — 시세로 자산군을 안 뒤 그 종목들만 한 번 더 센다(groupBy 1회)
+  const krSymbols = symbols.filter((symbol) => quotes.get(symbol)?.assetType === "kr_stock");
+  const dailyBars = krSymbols.length > 0 ? await market.dailyBarCounts(krSymbols) : new Map<string, number>();
+
   return new Map(
     symbols.map((symbol, index) => [
       symbol,
       {
+        assetClass: judgmentAssetClassFor(quotes.get(symbol)?.assetType),
+        ...(quotes.get(symbol)?.assetType === "kr_stock"
+          ? {
+              krHistory: krJudgmentHistory({
+                dailyBars: dailyBars.get(symbol) ?? 0,
+                dailyIndicator: longTermIndicators.has(symbol),
+              }),
+            }
+          : {}),
         quote: quotes.get(symbol),
         sentiment: sentiments.get(symbol),
         indicators: {
@@ -79,6 +104,43 @@ export const collectJudgmentMaterials = async (
   );
 };
 
+/** 모드 하나의 표시 막음 재료 — 판단 화면 · 해설이 **같은 함수**로 만든다(`attachJudgmentTrack` 의 `JudgmentGuards`) */
+export interface MaterialGuards {
+  staleInputs: StaleInput[];
+  modeNotOpen: boolean;
+  history?: KrJudgmentHistory;
+}
+
+/**
+ * 재료가 정하는 막음 — 오래된 재료 · 자산군에 연 모드 · 국내 주식 이력(F010 슬라이스 7 · F011 FR-62 · 63 · 66).
+ * 국내 주식 신선도는 거래일로 센다 — 시간 기준이면 장이 닫힌 저녁 · 주말마다 막힌다
+ */
+export const materialGuards = (
+  materials: SymbolJudgmentMaterials,
+  mode: CoachMode,
+  now: Date
+): MaterialGuards => {
+  const priceUpdatedAt = materials.quote?.priceUpdatedAt ?? null;
+  const staleInputs =
+    materials.assetClass === "kr_stock"
+      ? staleKrJudgmentInputs({
+          priceUpdatedAt,
+          dailyIndicatorAt: materials.indicators.long_term?.timestamp ?? null,
+          now,
+        })
+      : staleJudgmentInputs({
+          mode,
+          priceUpdatedAt,
+          indicatorTimestamp: materials.indicators[mode]?.timestamp ?? null,
+          now,
+        });
+  return {
+    staleInputs,
+    modeNotOpen: !JUDGMENT_MODES[materials.assetClass].includes(mode),
+    ...(materials.krHistory ? { history: materials.krHistory } : {}),
+  };
+};
+
 /** 두 모드 판단. 순수 계산이고 재료만 본다. */
 export const judgeSymbol = (
   symbol: string,
@@ -86,21 +148,24 @@ export const judgeSymbol = (
   hasHolding: boolean
 ): SymbolJudgment => {
   const { quote, sentiment, indicators, whales } = materials;
+  // 국내 주식엔 심리 지수 · 대량 체결 수집이 없다 — "빠진 재료"가 아니라 그 시장에 없는 재료다(장기 점수도 안 쓴다)
+  const cryptoOnly = materials.assetClass === "crypto";
 
   // 지표는 모드마다 다른 봉이라 빠짐도 모드마다 다르다. 응답의 `missingData` 는 둘의 합집합이다
   const missingFor = (mode: CoachMode): string[] => {
     const missing: string[] = [];
     if (!quote?.currentPrice) missing.push("price");
-    if (!sentiment) missing.push("sentiment");
+    if (cryptoOnly && !sentiment) missing.push("sentiment");
     if (!indicators[mode]) missing.push("technical_indicator");
-    if (!whales.length) missing.push("whale_flow");
+    if (cryptoOnly && !whales.length) missing.push("whale_flow");
     return missing;
   };
   const missingByMode: Record<CoachMode, string[]> = {
     scalp: missingFor("scalp"),
     long_term: missingFor("long_term"),
   };
-  const missingData = [...new Set([...missingByMode.scalp, ...missingByMode.long_term])];
+  // 응답의 합집합은 그 자산군에 연 모드만 — 국내 주식은 단타를 열지 않았다(F011 FR-63)
+  const missingData = [...new Set(JUDGMENT_MODES[materials.assetClass].flatMap((mode) => missingByMode[mode]))];
 
   const whaleBuy = whales
     .filter((item) => item.transactionType === "buy")

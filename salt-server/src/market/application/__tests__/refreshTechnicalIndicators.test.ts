@@ -58,6 +58,42 @@ describe("RefreshTechnicalIndicators", () => {
     assert.equal(written[1].timestamp.getUTCMinutes(), 0);
   });
 
+  it("국내 주식 유니버스도 같은 세 주기를 만든다 — 자산군은 봉에서, 유니버스가 실패해도 코인은 돈다 (F011 FR-60)", async () => {
+    const written: Array<{ symbol: string; assetType: string; timeframe: string }> = [];
+    const prices = {
+      recentCandles: async (symbol: string, timeframe: string, take: number) => {
+        const step = timeframe === "5m" ? 5 * 60_000 : 86_400_000;
+        return Array.from({ length: take }, (_, i) => ({
+          ...candle(i, step),
+          assetType: symbol === "005930" ? ("kr_stock" as const) : ("crypto" as const),
+        }));
+      },
+    } as unknown as PriceHistoryRepository;
+    const indicators = {
+      upsert: async (input: { symbol: string; assetType: string; timeframe: string }) => {
+        written.push({ symbol: input.symbol, assetType: input.assetType, timeframe: input.timeframe });
+      },
+    } as unknown as IndicatorRepository;
+    const assets = { activeSymbols: async () => ["BTC"] } as unknown as MarketAssetRepository;
+
+    const result = await new RefreshTechnicalIndicators(assets, prices, indicators, async () => [
+      "005930",
+      "BTC",
+    ]).execute();
+    assert.equal(result.symbols, 2);
+    assert.deepEqual(
+      written.filter((w) => w.symbol === "005930").map((w) => `${w.assetType}:${w.timeframe}`),
+      ["kr_stock:m5", "kr_stock:h1", "kr_stock:d1"]
+    );
+
+    written.length = 0;
+    const failing = await new RefreshTechnicalIndicators(assets, prices, indicators, async () => {
+      throw new Error("kr down");
+    }).execute();
+    assert.equal(failing.symbols, 1);
+    assert.deepEqual(written.map((w) => w.symbol), ["BTC", "BTC", "BTC"]);
+  });
+
   it("캔들이 50개 미만이면 그 주기는 쓰지 않는다", async () => {
     const written: string[] = [];
     const prices = {

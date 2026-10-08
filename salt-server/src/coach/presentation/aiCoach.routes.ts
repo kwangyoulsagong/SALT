@@ -38,6 +38,7 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *       준다(현재가가 없으면 `facts_unavailable`). 렌더되면 `facts: { asOf, hash }` — 어떤 사실로 만든 해설인지.
    *       수익률·목표가 예측은 생성하지 않는다. 5분 캐시(키 = 모델이 받은 입력 전체의 해시).
    *       시세가 30분 · 지표 봉이 단타 3시간 · 장기 3일 넘게 멈췄으면 `blockedReason: stale_inputs`(F010 슬라이스 7).
+   *       국내 주식은 종목 판단과 같은 막음(`mode_not_open` · `insufficient_history` · 거래일 신선도)이고, 비소유자는 `facts_unavailable`(F011 슬라이스 4).
    *       LLM 비용 상한(지난 24시간 사용자 · 전체 시도, 전체 토큰)에 닿으면 에러가 아니라 `source: template` 이다.
    *     tags: [AI Coach]
    *     security:
@@ -326,7 +327,15 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    * /api/ai-coach:
    *   get:
    *     summary: AI 투자 코치 조회
-   *     description: 쿼리가 없으면 최신 AI 코치를 조회하고, symbol/mode/preview 쿼리가 있으면 선택 종목의 단타/장기 판단을 조회합니다.
+   *     description: |
+   *       쿼리가 없으면 최신 AI 코치를 조회하고, symbol/mode/preview 쿼리가 있으면 선택 종목의 단타/장기 판단을 조회합니다.
+   *
+   *       국내 주식 6자리 코드(F011 슬라이스 4):
+   *       - 소유자만 — 비소유자는 404 `COACH_KR_STOCK_NOT_AVAILABLE`(시세 경로와 같은 판정)
+   *       - 장기만 연다. `modes.scalp.blockedReason: mode_not_open`, mode 를 안 주면 장기
+   *       - 일봉 120 거래일 · 일봉 지표 전엔 `modes.longTerm.blockedReason: insufficient_history` + `history { dailyBars, requiredDailyBars, dailyIndicator, ready }`
+   *       - `modes.*.assetClass: kr_stock` · `signalType: kr_stock.long_term.<action>` — 성적은 국내 주식 표본만
+   *       - 재료가 1 거래일 넘게 밀렸으면 `stale_inputs`(코인은 시세 30분 · 지표 봉 기준)
    *     tags: [AI Coach]
    *     security:
    *       - bearerAuth: []

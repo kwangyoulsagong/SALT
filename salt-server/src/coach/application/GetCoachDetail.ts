@@ -1,5 +1,8 @@
 import {
-  COACH_EXCLUDED,
+  coachExclusions,
+  KR_STOCK_JUDGMENT_SIGNAL_TYPES,
+  type CoachExclusion,
+  type SymbolJudgmentStore,
   coachSignalType,
   JUDGMENT_CASE_LIMIT,
   readStoredRecommendation,
@@ -37,7 +40,7 @@ export interface CoachDetailView {
   recommendation: {
     action: StoredRecommendation["action"];
     symbol: string;
-    assetType: "crypto" | "us_stock";
+    assetType: "crypto" | "us_stock" | "kr_stock";
     score: number;
     scoreNote: string;
     renderable: boolean;
@@ -58,7 +61,7 @@ export interface CoachDetailView {
   }>;
   exitPlans: ExitPlanView[];
   behaviorFacts: BehaviorFact[];
-  excluded: typeof COACH_EXCLUDED;
+  excluded: CoachExclusion[];
   disclaimer: string;
 }
 
@@ -89,18 +92,35 @@ export class GetCoachDetail {
     private readonly clock: Clock = () => new Date(),
     private readonly behavior: BehaviorAnalyzer | null = null,
     /** 익절 계획의 실현 변동성(F010 슬라이스 2). 없으면 고정 비율 */
-    private readonly forecasts: Pick<ForecastReader, "symbolRisk"> | null = null
+    private readonly forecasts: Pick<ForecastReader, "symbolRisk"> | null = null,
+    /** 국내 주식 판단 표본 진행(F011 FR-62) — 없으면 0 으로 센다 */
+    private readonly judgments: Pick<SymbolJudgmentStore, "summarize"> | null = null
   ) {}
+
+  /** 국내 주식 장기 판단 유형별 라이브 표본. 읽기 실패는 상세를 막지 않는다 — 0 으로 */
+  private async krGroupSamples(): Promise<number[]> {
+    if (!this.judgments) return [];
+    const judgments = this.judgments;
+    return Promise.all(
+      KR_STOCK_JUDGMENT_SIGNAL_TYPES.map((signalType) =>
+        judgments
+          .summarize(signalType)
+          .then((stats) => stats.sample)
+          .catch(() => 0)
+      )
+    );
+  }
 
   async execute(userId: string): Promise<CoachDetailView> {
     const now = this.clock();
 
-    const [latest, holdings, behaviors] = await Promise.all([
+    const [latest, holdings, behaviors, krSamples] = await Promise.all([
       this.insights.findLatestRecommendation(userId),
       this.portfolio.listHoldings(userId, EXIT_PLAN_ASSET_TYPE),
       this.behavior
         ? this.behavior.execute(userId, now).catch((): BehaviorFinding[] => [])
         : Promise.resolve<BehaviorFinding[]>([]),
+      this.krGroupSamples(),
     ]);
 
     const stored = latest
@@ -142,7 +162,7 @@ export class GetCoachDetail {
         .slice(0, BEHAVIOR_LIMIT)
         .map((finding) => toBehaviorFact({ ...finding.payload }))
         .filter((fact): fact is BehaviorFact => fact !== null),
-      excluded: COACH_EXCLUDED,
+      excluded: coachExclusions(krSamples),
       disclaimer: JUDGMENT_DISCLAIMER,
     };
   }

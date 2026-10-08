@@ -7,6 +7,7 @@ import {
   ProfitPlanStageKey,
 } from "./profitPlan";
 import type { RecommendationTrackRecord } from "./recommendationJudgment";
+import { judgmentSignalType, MIN_JUDGMENT_SAMPLE } from "./symbolJudgment";
 
 export type { RecommendationTrackRecord } from "./recommendationJudgment";
 
@@ -87,24 +88,52 @@ export const staleHours = (generatedAt: Date, now: Date): number =>
   Math.max(0, Math.floor((now.getTime() - generatedAt.getTime()) / HOUR_MS));
 
 /**
- * 추천 대상에서 빠지는 자산군 (`SRV-REQ-024` FR-22 · 23). 실시간 시세 · 지표가 없다.
- * 문구는 프론트가 만든다 — 서버는 코드만.
+ * 저장 추천(`coach.<action>`)에서 빠지는 자산군 (`SRV-REQ-024` FR-22 · 23). 문구는 프론트가 만든다 — 서버는 코드만.
+ *
+ * 국내 주식은 F011 슬라이스 4 에서 **종목 판단**(`kr_stock.long_term.*`)이 열렸다 — 추천 엔진(보유 전체를 보는 저장 추천)은
+ * 여전히 코인만 본다. 그래서 사유가 둘이다:
+ *
+ * | 코드 | 뜻 |
+ * |---|---|
+ * | `insufficient_history` | 국내 주식 장기 판단 유형 어느 것도 라이브 표본 20 이 안 찼다(F011 FR-62) — 수치를 같이 준다 |
+ * | `symbol_judgment_only` | 표본이 찬 유형이 있다 — 종목 화면에서 판단을 보고, 추천에는 들어가지 않는다 |
+ *
+ * 전에 있던 `no_realtime_data` 는 없어졌다 — 국내 주식 시세 · 지표가 서버에 쌓인다(F011 슬라이스 0 · 1 · 4).
  */
-export const COACH_EXCLUDED = [
-  { assetType: "kr_stock", reasonCode: "no_realtime_data" },
-] as const;
+export interface CoachExclusion {
+  assetType: "kr_stock";
+  reasonCode: "insufficient_history" | "symbol_judgment_only";
+  /** 국내 주식 장기 판단 유형 중 가장 많이 쌓인 라이브 표본 수 / 기준 */
+  progress: { largestGroupSample: number; requiredSample: number };
+}
+
+/** 국내 주식 장기 판단 유형 — 단타는 열지 않았다(F011 FR-63). 장기 점수는 후보 · 관망 · 피하기 셋만 낸다 */
+export const KR_STOCK_JUDGMENT_SIGNAL_TYPES: readonly string[] = (
+  ["review_accumulation", "wait", "avoid"] as const
+).map((action) => judgmentSignalType("long_term", action, "kr_stock"));
+
+export const coachExclusions = (krGroupSamples: readonly number[]): CoachExclusion[] => {
+  const largest = Math.max(0, ...krGroupSamples);
+  return [
+    {
+      assetType: "kr_stock",
+      reasonCode: largest >= MIN_JUDGMENT_SAMPLE ? "symbol_judgment_only" : "insufficient_history",
+      progress: { largestGroupSample: largest, requiredSample: MIN_JUDGMENT_SAMPLE },
+    },
+  ];
+};
 
 /**
- * 코치 자산군 → 화면 자산군. DB enum 이 `crypto` · `stock` 둘이고(`DB-REQ-003`),
- * 국내 주식은 추천 대상이 아니므로 `stock` 은 미국 주식으로 읽는다.
+ * 코치 자산군 → 화면 자산군. DB enum `stock` 은 미국 주식으로 읽는다(`DB-REQ-003`), 국내 주식은 `kr_stock` 그대로.
  */
 export const toDetailAssetType = (
   assetType: CoachAssetType
-): "crypto" | "us_stock" => (assetType === "crypto" ? "crypto" : "us_stock");
+): "crypto" | "us_stock" | "kr_stock" =>
+  assetType === "crypto" || assetType === "kr_stock" ? assetType : "us_stock";
 
 export interface ExitPlanView {
   symbol: string;
-  assetType: "crypto" | "us_stock";
+  assetType: "crypto" | "us_stock" | "kr_stock";
   currentPrice: number;
   stopLoss: { price: number; priceGap: number };
   firstTakeProfit: { price: number; priceGap: number };

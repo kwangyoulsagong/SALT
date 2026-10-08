@@ -98,3 +98,29 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 |---|---|---|
 | 실제 BFF 경유 저장 · 홈 요약 실데이터 | 4101 BFF · 4100 서버가 이 세션 전 코드로 떠 있고 재시작이 허용되지 않았다 — 기록 경로와 요약은 고정 응답 | 다음 재시작 뒤 1건 기록 → 홈 요약 확인 |
 | Storybook | `@repo/ui` 변경 없음 | 해당 없음 |
+
+## 슬라이스 4 추가(2026-10-08, `badf62e`)
+
+| FR | 결과 |
+|---|---|
+| FR-19 · 20 | Playwright — 상세 판단 칸 문구(이력 · 표본 두 경우) · 콘솔 오류 0 · 스크린샷 레이아웃(세로 카드) |
+| FR-21 | Playwright — 리포트 제외 사유 수치 · 성적표 `section[aria-label]` 코인 · 국내 주식 2 |
+| FR-22 | Playwright — 국내 주식 상세 계획 버튼 1(3b 에선 0) · `check-types` |
+| 게이트 | `pnpm check-types` 5/5 · `pnpm test`(core 34 · ui 43) · `pnpm lint` 5/5 · `web` 빌드 |
+
+### 슬라이스 4 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실서버 · BFF 경유 판단 화면 | 4100 · 4101 이 이 세션 전 코드 — 판단 · 성적표 · 리포트는 고정 응답, 시세 · 상세는 실제 | 재시작 뒤 `/investments/005930` |
+| 투자 화면 우측 패널 국내 주식 판단 | 미리보기 패널 hover 경로는 직접 찍지 않았다(같은 `JudgmentSummary`) | 다음 화면 확인 |
+| 국내 주식 크기 계산 결과 줄 실데이터 | 서버 사이즈 계산은 테스트로만 — 화면은 같은 컴포넌트 | 재시작 뒤 1회 |
+| 800px 폭 | 이번엔 1440 만 찍었다 | 다음 화면 확인 |
+| `web-tax` 빌드 · Storybook | `check-types` 는 전 패키지 통과, `@repo/ui` 변경 없음 | 해당 없음(Storybook) |
+
+### 슬라이스 4 재시작 뒤 실측(2026-10-08 16:01 KST — 사용자 승인으로 4100 · 4101/4102 · 3100 재시작)
+
+- 서버 첫 회차 `snapshotSymbolJudgments` "추적 53 · 기록 50" — `kr_stock.long_term.wait` 48 · `avoid` 2 · 판단 원장 국내 주식 발행 0(코인만)
+- BFF 경유 `/api/app/ai-coach/detail?symbol=005930` 소유자: 장기 `reasons_missing`(이력 486 / 120 충족) · 단타 `mode_not_open` · 비소유자 404 `COACH_KR_STOCK_NOT_AVAILABLE` · BTC 무변경 · 리포트 `excluded` 진행 0 / 20 · size-check 국내 주식 `feeRatePerSide` 0.00115 · 코인 0.0005
+- 3100 실데이터 `/investments/005930` 1440 · 800 — 판단 칸 · 계획 버튼 1 · 가로 넘침 0 · 콘솔 오류 0
+- 같은 회차 범위 밖 오류: 옛 모듈 `portfolio-rebalance.service` 의 `investment_insights (user_id, type, dedupe_key)` upsert 유니크 위반 1/5명 — 이번 변경이 건드리지 않은 경로(같은 키 동시 upsert 경합으로 보인다, 원인 미확정). 기동 직후 KIS `EGW00201` 재시도(기존 감속으로 흡수)

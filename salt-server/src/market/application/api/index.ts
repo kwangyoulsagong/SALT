@@ -114,7 +114,10 @@ export interface MarketApi {
     timeframe?: string
   ): Promise<StoredIndicator[]>;
   latestSentiments(symbols: string[]): Promise<StoredSentiment[]>;
-  /** 저장된 시세와 **그 값의 나이**. 신선도 판정은 부르는 쪽이 한다. */
+  /**
+   * 저장된 시세와 **그 값의 나이**. 신선도 판정은 부르는 쪽이 한다.
+   * 국내 주식 코드는 `kr_stock_quotes` 에서 같은 모양으로 온다(F011 슬라이스 4 — 코치 판단 재료). 꺼져 있으면 빠진다
+   */
   assetQuotes(symbols: string[]): Promise<AssetQuote[]>;
   /** `limit` 은 심볼별이 아니라 전체다 (원문의 `take: 100`). */
   recentWhalesForSymbols(
@@ -128,6 +131,15 @@ export interface MarketApi {
   ): Promise<Array<{ symbol: string; close: number }>>;
   /** `at` 이후 첫 종가 — 주기 필수. 성적표 · 월초 평가의 기준가다. */
   closeAtOrAfter(symbol: string, at: Date, timeframe: PriceTimeframe): Promise<number | null>;
+  /** `at` 이전 마지막 종가(`notBefore` 보다 오래된 봉 제외) — 국내 주식 거래일 채점(F011 FR-64) */
+  closeAtOrBefore(
+    symbol: string,
+    at: Date,
+    timeframe: PriceTimeframe,
+    notBefore: Date
+  ): Promise<{ close: number; timestamp: Date } | null>;
+  /** 심볼별 봉 수 — 국내 주식 코치 해제 조건(일봉 120 거래일, F011 FR-62) */
+  candleCounts(symbols: string[], timeframe: PriceTimeframe): Promise<Map<string, number>>;
   /** `[from, to]` 5분봉 최고 종가. 5분봉은 30일 보관이라 그보다 오래된 구간은 `null` */
   highestCloseBetween(symbol: string, from: Date, to: Date): Promise<number | null>;
   latestCloses(symbols: string[]): Promise<ClosePoint[]>;
@@ -153,6 +165,11 @@ export interface MarketApi {
    * `coach` 의 종목 판단 스냅샷(F004 · D11)이 추적 자산을 만들 때 쓴다.
    */
   watchedSymbols(): Promise<string[]>;
+  /**
+   * 국내 주식 판단 대상 = 시세를 모으는 유니버스(보유 → 관심 → 시총 상위, F011 FR-11). 꺼져 있으면 빈 배열.
+   * 재료(시세 · 일봉 · 지표)가 있는 종목만 판단한다 — 관심 · 보유만 보면 장기 표본 20 이 몇 년 걸린다
+   */
+  krJudgmentUniverse(): Promise<string[]>;
   /**
    * 거래 기록이 국내 주식 코드를 받기 전 확인(F011 슬라이스 3b) — 꺼져 있으면 `KrStockDisabledError`(503),
    * 비소유자 · 코드 형식 · 마스터에 없음은 같은 `KrStockNotAvailableError`(404 — 관심 종목 추가와 같은 규칙).
@@ -313,6 +330,9 @@ export const createMarketApplication = (deps: MarketDependencies) => {
   const krWatchlist = deps.krStock
     ? { store: deps.krStock.store, viewerEmails: deps.krStock.viewerEmails, logoDevToken: deps.krStock.logoDevToken }
     : null;
+  const krUniverse = deps.krStock
+    ? new ResolveKrStockUniverse(deps.krStock.store, deps.krStock.held, deps.krStock.universeTopN)
+    : null;
   const useCases: MarketUseCases = {
     calculateSentiment: new CalculateSentiment(
       deps.exchange,
@@ -362,10 +382,12 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.exchange,
       deps.prices
     ),
+    // 국내 주식도 같은 지표를 만든다(F011 FR-60) — 대상은 시세 유니버스. 꺼져 있으면 코인만
     refreshTechnicalIndicators: new RefreshTechnicalIndicators(
       deps.assets,
       deps.prices,
-      deps.indicators
+      deps.indicators,
+      krUniverse ? () => krUniverse.execute() : null
     ),
     krStock: deps.krStock ? createKrStockUseCases(deps.krStock) : null,
   };
@@ -379,17 +401,42 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     latestIndicators: (symbols, timeframe) =>
       deps.indicators.findLatestMany(symbols, timeframe),
     latestSentiments: (symbols) => deps.sentiments.findLatestMany(symbols),
-    assetQuotes: (symbols) => deps.assets.findQuotes(symbols),
+    assetQuotes: async (symbols) => {
+      const krCodes = deps.krStock ? symbols.filter(isKrStockCode) : [];
+      const [crypto, kr] = await Promise.all([
+        deps.assets.findQuotes(symbols),
+        krCodes.length > 0 && deps.krStock
+          ? deps.krStock.store.quotes({ codes: krCodes, limit: krCodes.length, offset: 0 })
+          : [],
+      ]);
+      return [
+        ...crypto,
+        ...kr.map((q) => ({
+          symbol: q.code,
+          assetType: "kr_stock" as const,
+          koreanName: q.name,
+          currentPrice: q.price,
+          // 전일 종가 대비(%) — 코인의 24시간 변동률 자리. 장기 판단은 이 값과 일봉 RSI 만 쓴다
+          change24h: q.changeRate,
+          tradeValue24h: q.tradeValue,
+          priceUpdatedAt: q.priceUpdatedAt,
+        })),
+      ];
+    },
     recentWhalesForSymbols: (symbols, limit = 100) =>
       deps.whales.findRecentForSymbols(symbols, limit),
     highestCloseSince: (symbols, since) =>
       deps.prices.highestCloseSince(symbols, since),
     closeAtOrAfter: (symbol, at, timeframe) => deps.prices.closeAtOrAfter(symbol, at, timeframe),
+    closeAtOrBefore: (symbol, at, timeframe, notBefore) =>
+      deps.prices.closeAtOrBefore(symbol, at, timeframe, notBefore),
+    candleCounts: (symbols, timeframe) => deps.prices.candleCounts(symbols, timeframe),
     highestCloseBetween: (symbol, from, to) => deps.prices.highestCloseBetween(symbol, from, to),
     latestCloses: (symbols) => deps.prices.latestCloses(symbols),
     closePercentiles: (symbol, timeframe, since, fractions) =>
       deps.prices.closePercentiles(symbol, timeframe, since, fractions),
     watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),
+    krJudgmentUniverse: async () => (krUniverse ? krUniverse.execute() : []),
     krStockListing: async (email, code) => {
       const kr = deps.krStock;
       if (!kr) throw new KrStockDisabledError();

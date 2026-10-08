@@ -69,6 +69,7 @@ class MemoryJudgmentStore implements SymbolJudgmentStore {
         (row): PendingJudgment => ({
           id: row.id,
           symbol: row.symbol,
+          signalType: row.signalType,
           mode: row.mode,
           action: row.action,
           entryPrice: row.entryPrice,

@@ -60,3 +60,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-09-27 | 슬라이스 6 FR-10(월간 복기) · FR-11(Brier · 체크리스트 · 시나리오 · 한 종목 상한) · FR-12(프리모템 · 체크리스트 기록). 새 경로 1. 근거 `reports/checklists/BFF-REQ-038.md` §슬라이스 6 |
 | 2026-09-27 | 슬라이스 7 FR-13(미러 `streak` · `timing`). 새 경로 없음. 근거 `reports/checklists/BFF-REQ-038.md` §슬라이스 7 |
 | 2026-10-08 | F011 슬라이스 3b — `POST /trades` 가 `assetType`(`crypto` · `kr_stock`, 없으면 crypto)을 받아 서버로 · 모르는 값 400 · 국내 주식 + 계획 400(코치 계획 연결이 코인 원장만 본다) · 거래 응답 `RecordedTransactionView.assetType`(계약 검사). 사이즈 계산 · 리스크 예산 무변경(국내 주식은 화면이 부르지 않는다). 근거 `BFF-REQ-040` FR-15 · `reports/checklists/BFF-REQ-038.md` §F011 3b |
+| 2026-10-08 | F011 슬라이스 4 — 국내 주식 거래 + 계획 400 해제(서버 계획 연결이 국내 주식 거래를 받는다). 사이즈 계산 요청은 그대로 — 자산군 · 수수료는 서버가 시세로 고른다. 근거 `BFF-REQ-040` FR-19 |

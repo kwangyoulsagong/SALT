@@ -178,6 +178,18 @@ export interface MarketProbe {
   ): Promise<Map<string, number>>;
   /** `at` 시각 **이후 첫** 종가 — **주기 필수**(`JUDGMENT_PRICE_TIMEFRAME`). 성적표의 기준가다. 없으면 `null`. */
   closeAtOrAfter(symbol: string, at: Date, timeframe: ZoneTimeframe): Promise<number | null>;
+  /**
+   * `at` **이전(포함) 마지막** 종가와 그 봉 시각. `notBefore` 보다 오래된 봉은 없는 것 — 국내 주식 채점(F011 FR-64,
+   * 만기일이 휴장이면 직전 거래일 종가). 없으면 `null`
+   */
+  closeAtOrBefore(
+    symbol: string,
+    at: Date,
+    timeframe: ZoneTimeframe,
+    notBefore: Date
+  ): Promise<{ close: number; timestamp: Date } | null>;
+  /** 심볼별 일봉 수 — 국내 주식 판단 해제 조건(일봉 120 거래일, F011 FR-62). 없는 심볼은 빠진다 */
+  dailyBarCounts(symbols: string[]): Promise<Map<string, number>>;
   latestCloses(symbols: string[]): Promise<Map<string, number>>;
   /**
    * 심리 구간별 30일 뒤 수익률 분포 — 게이지 적중률(B9)의 재료. `market` 이 집계한다.
@@ -210,7 +222,8 @@ export interface PortfolioProbe {
     userId: string,
     assetType?: CoachAssetType
   ): Promise<CoachHolding[]>;
-  getHolding(userId: string, symbol: string): Promise<CoachHolding | null>;
+  /** 한 종목 보유. 자산군을 안 주면 코인 — 국내 주식 종목 판단은 `kr_stock` 을 준다(F011 슬라이스 4) */
+  getHolding(userId: string, symbol: string, assetType?: CoachAssetType): Promise<CoachHolding | null>;
   /** `since` 이후 거래. 행동 분석이 본다. */
   listTradesSince(
     userId: string,
@@ -225,15 +238,17 @@ export interface PortfolioProbe {
    */
   countTrades(userId: string): Promise<number>;
   /**
-   * `since` 이후 거래 — 금액 계산용(월 손익 · 회전율). 코인만.
+   * `since` 이후 거래 — 금액 계산용(월 손익 · 회전율). 기본은 코인만, 리스크 예산 · 사이즈는 코인 + 국내 주식
+   * (`assetTypes`, F011 슬라이스 4 — 둘 다 원화라 한 예산에 합친다).
    * `truncated` 가 참이면 `limit` 에 걸려 다 읽지 못했다 — 합을 만들면 거짓이 된다
    */
   listLedgerSince(
     userId: string,
     since: Date,
-    limit: number
+    limit: number,
+    assetTypes?: readonly CoachAssetType[]
   ): Promise<{ entries: CoachLedgerEntry[]; truncated: boolean }>;
-  /** 거래 한 건. 남의 것이면 `null` — 계획 연결 검사용 */
+  /** 거래 한 건(코인 · 국내 주식). 남의 것이면 `null` — 계획 연결 검사용 */
   findLedgerEntry(userId: string, transactionId: string): Promise<CoachLedgerEntry | null>;
 }
 
@@ -359,6 +374,8 @@ export interface JudgmentSnapshotDraft {
 export interface PendingJudgment {
   id: string;
   symbol: string;
+  /** 그룹 키 — 자산군 접두로 채점 방식이 갈린다(F011 FR-64) */
+  signalType: string;
   mode: CoachMode;
   action: ModeDecisionAction;
   entryPrice: number;

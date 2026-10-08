@@ -77,7 +77,7 @@ export type ReportRecommendation =
       renderable: true;
       action: CoachAction;
       symbol: string;
-      assetType: "crypto" | "us_stock";
+      assetType: "crypto" | "us_stock" | "kr_stock";
       score: number;
       scoreNote: string;
       reasons: ReportReason[];
@@ -133,7 +133,12 @@ export interface CoachReportViewModel {
   risks: ReportRisk[];
   exitPlans: ReportExitPlan[];
   behaviorFacts: ReportBehaviorFact[];
-  excluded: Array<{ assetType: string; reasonCode: string }>;
+  /** 추천에서 빠진 자산군 — 국내 주식은 종목 판단만(F011 슬라이스 4). `progress` 는 장기 판단 유형 중 가장 많이 쌓인 표본 / 기준 */
+  excluded: Array<{
+    assetType: string;
+    reasonCode: string;
+    progress?: { largestGroupSample: number; requiredSample: number };
+  }>;
   disclaimer: string;
   degradedFields: string[];
 }

@@ -72,6 +72,23 @@ describe("toJudgmentScoreboardViewModel", () => {
     assert.equal(toJudgmentScoreboardViewModel(board({ groups: [group({ signalType: 3 })] })).status, "insufficient_data");
   });
 
+  it("국내 주식 그룹은 자산군 라벨로 남는다 — 접두 뒤 모드를 읽는다 (F011 FR-61 · 65)", () => {
+    const view = toJudgmentScoreboardViewModel(
+      board({
+        groups: [
+          group(),
+          group({ signalType: "kr_stock.long_term.wait" }),
+          group({ signalType: "kr_stock.scalp.wait" }),
+          group({ signalType: "us_stock.long_term.wait" }),
+        ],
+      }),
+    );
+    assert.deepEqual(
+      view.groups.map((g) => `${g.assetClass}:${g.mode}:${g.signalType}`),
+      ["crypto:long_term:long_term.avoid", "kr_stock:long_term:kr_stock.long_term.wait", "kr_stock:scalp:kr_stock.scalp.wait"]
+    );
+  });
+
   it("고지 · 그룹 배열이 없으면 던진다(서비스가 unavailable 로 바꾼다)", () => {
     assert.throws(() => toJudgmentScoreboardViewModel(board({ disclaimer: "" })), ScoreboardContractError);
     assert.throws(() => toJudgmentScoreboardViewModel(board({ groups: null })), ScoreboardContractError);

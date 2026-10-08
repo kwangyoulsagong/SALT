@@ -59,7 +59,7 @@ type Notice =
 interface RecordTradeCardProps {
   /** 코치 모양 심볼(`BTC`) · 국내 주식은 6자리 코드 */
   symbol: string;
-  /** 주지 않으면 코인. 국내 주식은 계획 · 사이즈 계산 없이 거래만 적는다(F011 슬라이스 3b — 코치는 슬라이스 4) */
+  /** 주지 않으면 코인. 국내 주식도 같은 폼 — 계획 · 사이즈 계산을 그대로 쓴다(F011 슬라이스 4, 수수료는 서버가 자산군으로 고른다) */
   assetType?: RecordableAssetType;
   /**
    * 국내 주식 호가 단위(원) — 서버가 현재가로 정한 값(`detail.tickSize`). 단가 칸 아래 **안내만** 한다(FR-42 · 수동 입력 원칙).
@@ -86,8 +86,6 @@ interface RecordTradeCardProps {
  */
 export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null, livePrice, className }: RecordTradeCardProps) => {
   const hasToken = useHasAccessToken();
-  // 국내 주식은 코치가 아직 모른다 — 계획 연결 · 사이즈 계산이 코인 원장 · 시세만 본다(BFF 가 계획을 400 으로 막는다)
-  const coachEnabled = assetType === "crypto";
   const ids = { quantity: useId(), price: useId(), date: useId(), stop: useId(), thesis: useId(), plan: useId() };
 
   const [side, setSide] = useState<TradeSide>("buy");
@@ -133,7 +131,7 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
     };
   }, [symbol, side, parsed.quantity, parsed.price, parsed.stop, hasPlan]);
   const debouncedInput = useDebouncedValue(sizeInput, SIZE_CHECK_DEBOUNCE_MS);
-  const sizeCheck = useSizeCheck(hasToken && coachEnabled ? debouncedInput : null);
+  const sizeCheck = useSizeCheck(hasToken ? debouncedInput : null);
   const waitingDebounce = sizeInput !== debouncedInput;
 
   const { record, retryPlan } = useRecordTrade();
@@ -177,22 +175,18 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
     const trimmedThesis = thesis.trim();
     record.mutate(
       {
-        ...(coachEnabled ? {} : { assetType }),
+        // 코인은 보내지 않는다(서버 기본값) — 기존 호출 모양 그대로
+        ...(assetType === "crypto" ? {} : { assetType }),
         symbol,
         side,
         quantity: parsed.quantity,
         price: parsed.price,
         ...(today ? { transactionDate: toTransactionDate(date, today) } : {}),
-        // 국내 주식엔 계획을 싣지 않는다 — 칸도 그리지 않는다
-        ...(coachEnabled
-          ? {
-              plan: {
-                ...(parsed.stop !== null ? { stopPrice: parsed.stop } : {}),
-                ...(trimmedThesis ? { thesis: trimmedThesis } : {}),
-                ...checklistPlan(),
-              },
-            }
-          : {}),
+        plan: {
+          ...(parsed.stop !== null ? { stopPrice: parsed.stop } : {}),
+          ...(trimmedThesis ? { thesis: trimmedThesis } : {}),
+          ...checklistPlan(),
+        },
       },
       {
         onSuccess: (result) => {
@@ -290,7 +284,7 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
             autoComplete="off"
             value={quantity}
             onChange={(value) => setQuantity(formatAmountInput(value))}
-            trailing={<span className={unit}>{coachEnabled ? MSG.quantityUnit : MSG.krStock.quantityUnit}</span>}
+            trailing={<span className={unit}>{assetType === "kr_stock" ? MSG.krStock.quantityUnit : MSG.quantityUnit}</span>}
             error={amountInvalid && parsed.quantity === null ? MSG.errors.invalidAmount : undefined}
           />
 
@@ -333,8 +327,7 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
           />
         </div>
 
-        {coachEnabled ? (
-          <>
+        <>
           <div>
             <button
               type="button"
@@ -410,9 +403,6 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
             </div>
           )}
           </>
-        ) : (
-          <p className={hint}>{MSG.krStock.coachLater}</p>
-        )}
 
         <Button type="submit" variant="primary" size="sm" fullWidth loading={record.isPending}>
           {record.isPending ? MSG.submitting : MSG.submit}

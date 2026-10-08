@@ -5,9 +5,11 @@ import {
   judgmentSignalType,
   summarizeJudgmentTrack,
   type CoachMode,
+  type JudgmentAssetClass,
   type JudgmentBlockedReason,
   type JudgmentCase,
   type JudgmentTrackRecord,
+  type KrJudgmentHistory,
   type ModeDecision,
   type StaleInput,
   type SymbolJudgmentStore,
@@ -44,6 +46,13 @@ export interface ModeCoachView {
     risks: string[];
   };
   signalType: string;
+  /** 성적이 세는 자산군(F011 FR-61 · 65) — 국내 주식 판단은 국내 주식 표본만 센다 */
+  assetClass: JudgmentAssetClass;
+  /**
+   * 국내 주식만 — 판단을 여는 이력의 지금 수치(F011 FR-62, "일봉 63 / 120 · 표본 0 / 20"). 표본은 `trackRecord.sample` 이다.
+   * 코인은 없다
+   */
+  history?: KrJudgmentHistory;
   renderable: boolean;
   blockedReason: JudgmentBlockedReason | null;
   trackRecord: JudgmentTrackRecord;
@@ -67,10 +76,15 @@ export const toCaseView = (
   returnRate: item.returnRate,
 });
 
-/** 성적과 무관하게 판정을 막는 조건 — 거래소 투자유의(슬라이스 6) · 오래된 재료(슬라이스 7). */
+/**
+ * 성적과 무관하게 판정을 막는 조건 — 거래소 투자유의(슬라이스 6) · 오래된 재료(슬라이스 7) ·
+ * 자산군에 아직 열지 않은 모드 · 국내 주식 이력(F011 슬라이스 4).
+ */
 export interface JudgmentGuards {
   exchangeWarning?: boolean;
   staleInputs?: readonly StaleInput[];
+  modeNotOpen?: boolean;
+  history?: KrJudgmentHistory;
 }
 
 /**
@@ -82,9 +96,10 @@ export interface JudgmentGuards {
 export const attachJudgmentTrack = async (
   store: SymbolJudgmentStore,
   decision: ModeDecision,
-  guards: JudgmentGuards = {}
+  guards: JudgmentGuards = {},
+  assetClass: JudgmentAssetClass = "crypto"
 ): Promise<ModeCoachView> => {
-  const signalType = judgmentSignalType(decision.mode, decision.action);
+  const signalType = judgmentSignalType(decision.mode, decision.action, assetClass);
 
   const [stats, misses] = await Promise.all([
     store.summarize(signalType),
@@ -100,6 +115,8 @@ export const attachJudgmentTrack = async (
     failureCases: misses,
     exchangeWarning: guards.exchangeWarning ?? false,
     staleInputs: guards.staleInputs ?? [],
+    modeNotOpen: guards.modeNotOpen ?? false,
+    historyShort: guards.history ? !guards.history.ready : false,
   });
 
   return {
@@ -115,6 +132,8 @@ export const attachJudgmentTrack = async (
       risks: decision.risks,
     },
     signalType,
+    assetClass,
+    ...(guards.history ? { history: guards.history } : {}),
     renderable: gate.renderable,
     blockedReason: gate.blockedReason,
     trackRecord,

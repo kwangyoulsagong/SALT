@@ -122,6 +122,32 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
     return row ? Number(row.close) : null;
   }
 
+  async closeAtOrBefore(
+    symbol: string,
+    at: Date,
+    timeframe: PriceTimeframe,
+    notBefore: Date
+  ): Promise<{ close: number; timestamp: Date } | null> {
+    const row = await prisma.priceHistory.findFirst({
+      where: { symbol, timeframe, timestamp: { lte: at, gte: notBefore } },
+      orderBy: { timestamp: "desc" },
+      select: { close: true, timestamp: true },
+    });
+
+    return row ? { close: Number(row.close), timestamp: row.timestamp } : null;
+  }
+
+  /** `groupBy` 한 번 — `(symbol, timeframe, timestamp)` 유니크 인덱스가 덮는다 */
+  async candleCounts(symbols: string[], timeframe: PriceTimeframe): Promise<Map<string, number>> {
+    if (symbols.length === 0) return new Map();
+    const rows = await prisma.priceHistory.groupBy({
+      by: ["symbol"],
+      where: { symbol: { in: symbols }, timeframe },
+      _count: { _all: true },
+    });
+    return new Map(rows.map((row) => [row.symbol, row._count._all]));
+  }
+
   async latestCloses(symbols: string[]): Promise<ClosePoint[]> {
     if (symbols.length === 0) return [];
 

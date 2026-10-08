@@ -44,3 +44,4 @@ export * from "./tradeTiming";
 export * from "./targetWeight";
 export * from "./targetWeightRecord";
 export * from "./performanceClaim";
+export * from "./krStockJudgment";

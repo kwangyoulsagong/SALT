@@ -25,13 +25,15 @@ export class GetCoachRecommendation {
 
   execute(
     userId: string,
-    query: CoachRecommendationQuery = {}
+    query: CoachRecommendationQuery = {},
+    viewerEmail?: string
   ): Promise<CoachInsight | SymbolCoachView | null> {
     if (query.symbol || query.mode || query.preview) {
       return this.symbolCoach.execute(userId, {
         symbol: query.symbol?.toUpperCase() ?? "BTC",
         mode: query.mode,
         preview: query.preview,
+        viewerEmail,
       });
     }
 

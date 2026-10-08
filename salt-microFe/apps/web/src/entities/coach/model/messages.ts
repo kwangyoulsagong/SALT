@@ -41,6 +41,8 @@ export const COACH_MESSAGES = {
   lowSample: "표본 부족",
 
   blocked: {
+    mode_not_open: "국내 주식은 단타 판단을 하지 않아요.",
+    insufficient_history: "판단에 쓸 일봉 이력이 아직 모자라 보여 드리지 않아요.",
     exchange_warning: "거래소가 투자유의 종목으로 지정해 판단을 보여 드리지 않아요.",
     stale_inputs: "시세나 지표가 제때 갱신되지 않아 판단을 잠시 보여 드리지 않아요.",
     reasons_missing: "근거가 부족해 이번엔 판단을 보여 드리지 않아요.",
@@ -49,6 +51,13 @@ export const COACH_MESSAGES = {
     insufficient_sample: "과거 표본이 아직 적어 보여 드리지 않아요.",
   } satisfies Record<JudgmentBlockedReason, string>,
   blockedSample: (count: number) => `표본 ${count}건`,
+  /** 국내 주식 판단은 국내 주식 표본만 센다(F011 FR-61) — 코인 표본과 다른 수라는 것을 밝힌다 */
+  blockedKrSample: (count: number) => `국내 주식 표본 ${count}건`,
+  /** 국내 주식 단타 막힘의 둘째 줄(F011 FR-63) — 장이 닫혀 하루 뒤가 다음 거래일이 된다 */
+  blockedModeNotOpen: "장이 닫히는 시장이라 장기 관점만 판단해요",
+  /** 국내 주식 이력 막힘의 둘째 줄(F011 FR-62). 기준 수는 서버가 준다 */
+  blockedHistory: (dailyBars: number, required: number) => `일봉 ${dailyBars} / ${required}거래일`,
+  blockedHistoryIndicator: "일봉 지표 준비 중",
   /** FR-2 — 막힌 판단은 고장이 아니다 */
   blockedNormal: "정상 동작이에요",
   /**
@@ -237,8 +246,11 @@ export const COACH_MESSAGES = {
 
     /** 추천 대상에서 빠진 자산군 (FR-91). `assetType:reasonCode` */
     excluded: {
-      "kr_stock:no_realtime_data": "국내주식은 실시간 시세와 지표가 없어 추천 대상이 아니에요.",
+      "kr_stock:insufficient_history": "국내 주식은 종목 화면에서 장기 판단만 해요. 판단 성적이 쌓이는 중이에요.",
+      "kr_stock:symbol_judgment_only": "국내 주식은 종목 화면에서 장기 판단만 하고, 이 추천에는 들어가지 않아요.",
     } as Record<string, string | undefined>,
+    /** 제외 사유 뒤 수치 — 국내 주식 장기 판단 유형 중 가장 많이 쌓인 표본 / 기준(서버 값) */
+    excludedProgress: (sample: number, required: number) => `표본 ${sample} / ${required}`,
 
     disclaimerLabel: "유의사항",
   },

@@ -408,6 +408,18 @@ export interface PriceHistoryRepository {
    * 주기 없이 고르면 5분봉과 일봉이 섞이고, 5분봉은 30일 뒤 지워져 같은 표본의 기준가가 나중에 일봉 값으로 바뀐다.
    */
   closeAtOrAfter(symbol: string, at: Date, timeframe: PriceTimeframe): Promise<number | null>;
+  /**
+   * `at` **이전(같은 시각 포함) 마지막** 종가와 그 봉 시각, `notBefore` 보다 오래된 봉은 없는 것으로 친다.
+   * 국내 주식 채점(F011 FR-64) — 만기일이 휴장이면 직전 거래일 종가
+   */
+  closeAtOrBefore(
+    symbol: string,
+    at: Date,
+    timeframe: PriceTimeframe,
+    notBefore: Date
+  ): Promise<{ close: number; timestamp: Date } | null>;
+  /** 심볼별 봉 수(주기 하나). 국내 주식 코치 해제 조건 — 일봉 120 거래일(F011 FR-62) */
+  candleCounts(symbols: string[], timeframe: PriceTimeframe): Promise<Map<string, number>>;
   /** `[from, to]` 5분봉 최고 종가. 구간에 봉이 없으면 `null` — `coach` 결과 태그의 추격 판정(F009 FR-18) */
   highestCloseBetween(symbol: string, from: Date, to: Date): Promise<number | null>;
   /** 심볼별 마지막 종가. */
