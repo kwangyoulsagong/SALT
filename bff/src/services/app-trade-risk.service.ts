@@ -35,6 +35,8 @@ const isPassThrough = (error: unknown, signal?: AbortSignal) =>
   Boolean(toUpstreamClientError(error)) || Boolean(signal?.aborted);
 
 export interface RecordTradeInput {
+  /** 주지 않으면 코인(F011 슬라이스 3b) */
+  assetType?: "crypto" | "kr_stock";
   symbol: string;
   side: "buy" | "sell";
   quantity: number;
@@ -145,6 +147,7 @@ export class AppTradeRiskService {
       "/portfolio/transactions",
       token,
       {
+        ...(input.assetType ? { assetType: input.assetType } : {}),
         symbol: input.symbol,
         transactionType: input.side,
         quantity: input.quantity,

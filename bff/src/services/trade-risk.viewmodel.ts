@@ -519,6 +519,8 @@ export const toTradePlanList = (data: unknown): TradePlanView[] => {
 
 export interface RecordedTransactionView {
   id: string;
+  /** F011 슬라이스 3b — 서버가 저장한 자산군. 모르는 값은 계약 깨짐 */
+  assetType: "crypto" | "kr_stock";
   symbol: string;
   side: TradeSide;
   quantity: number;
@@ -536,6 +538,8 @@ export interface RecordTradeResult {
   plan: { status: "ok"; plan: TradePlanView } | { status: "unavailable" } | { status: "none" };
 }
 
+const RECORDABLE_ASSET_TYPES = ["crypto", "kr_stock"] as const;
+
 export const toRecordedTransaction = (data: Raw): RecordedTransactionView => {
   const id = str(data.id);
   const symbol = str(data.symbol);
@@ -543,11 +547,13 @@ export const toRecordedTransaction = (data: Raw): RecordedTransactionView => {
   const quantity = decimalLike(data.quantity);
   const price = decimalLike(data.price);
   const date = data.transactionDate instanceof Date ? data.transactionDate.toISOString() : str(data.transactionDate);
+  const assetType = oneOf(data.assetType, RECORDABLE_ASSET_TYPES);
   if (!id) throw new TradeRiskContractError("transaction.id");
+  if (!assetType) throw new TradeRiskContractError("transaction.assetType");
   if (!symbol) throw new TradeRiskContractError("transaction.symbol");
   if (!side) throw new TradeRiskContractError("transaction.transactionType");
   if (quantity === null || price === null) throw new TradeRiskContractError("transaction.amount");
   if (!date) throw new TradeRiskContractError("transaction.transactionDate");
 
-  return { id, symbol, side, quantity, price, fee: decimalLike(data.fee), transactionDate: date };
+  return { id, assetType, symbol, side, quantity, price, fee: decimalLike(data.fee), transactionDate: date };
 };

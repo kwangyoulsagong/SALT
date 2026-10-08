@@ -60,6 +60,11 @@ const isPositive = (value: unknown): value is number =>
 const parseRecordTrade = (body: Raw): RecordTradeInput | string => {
   const symbol = typeof body.symbol === "string" ? body.symbol.trim() : "";
   if (!SYMBOL_PATTERN.test(symbol)) return "symbol 형식이 아닙니다";
+  // F011 슬라이스 3b — 주지 않으면 코인. 국내 주식 코드 · 소유자 판정은 서버(404 · 503 그대로 올라간다)
+  if (body.assetType !== undefined && body.assetType !== "crypto" && body.assetType !== "kr_stock") {
+    return "assetType 은 crypto · kr_stock 입니다";
+  }
+  const assetType = body.assetType === "kr_stock" ? "kr_stock" : "crypto";
   if (body.side !== "buy" && body.side !== "sell") return "side 는 buy · sell 입니다";
   if (!isPositive(body.quantity) || !isPositive(body.price)) return "수량 · 단가는 0보다 커야 합니다";
   if (body.fee !== undefined && !(typeof body.fee === "number" && Number.isFinite(body.fee) && body.fee >= 0)) {
@@ -74,8 +79,16 @@ const parseRecordTrade = (body: Raw): RecordTradeInput | string => {
   if (rawPlan.invalidation !== undefined && typeof rawPlan.invalidation !== "string") return "프리모템 답은 문자열입니다";
   const checklist = parseChecklist(rawPlan.checklist);
   if (checklist === "invalid") return "checklist 는 { shown, checked } 문자열 배열입니다";
+  /**
+   * 국내 주식 거래엔 계획을 붙이지 않는다 — 코치가 국내 주식 거래를 아직 모른다(계획 연결이 코인 원장만 본다, 슬라이스 4).
+   * 조용히 버리면 사용자가 적은 손절가가 사라지므로 400 으로 알린다. 화면은 국내 주식에서 계획 칸을 그리지 않는다
+   */
+  if (assetType === "kr_stock" && (rawPlan.stopPrice !== undefined || rawPlan.thesis || rawPlan.invalidation || checklist)) {
+    return "국내 주식 거래엔 아직 계획을 붙일 수 없습니다";
+  }
 
   return {
+    assetType,
     symbol: symbol.toUpperCase(),
     side: body.side,
     quantity: body.quantity,

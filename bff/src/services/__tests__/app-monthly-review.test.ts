@@ -184,7 +184,7 @@ describe("리스크 예산 — 시나리오 · 한 종목 상한", () => {
 });
 
 describe("거래 + 계획 기록 — 프리모템 · 체크리스트", () => {
-  const transaction = { id: "t1", symbol: "BTC", transactionType: "buy", quantity: "0.01", price: "100", transactionDate: "2026-09-27T00:00:00.000Z" };
+  const transaction = { id: "t1", assetType: "crypto", symbol: "BTC", transactionType: "buy", quantity: "0.01", price: "100", transactionDate: "2026-09-27T00:00:00.000Z" };
   const planRow = { id: "p1", symbol: "BTC", side: "buy", plannedAt: "2026-09-27T00:00:00.000Z" };
 
   it("프리모템 답만 있어도 계획을 만들고 체크리스트를 싣는다", async () => {
