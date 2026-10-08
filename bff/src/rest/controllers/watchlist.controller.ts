@@ -23,11 +23,12 @@ class AppWatchlistController {
     try {
       const { assetType, symbol, name } = req.body ?? {};
 
-      if (!assetType || !symbol || !name) {
+      // 국내 주식(F011 슬라이스 3)은 이름을 서버가 마스터에서 정한다 — 이름 없이 받는다
+      if (!assetType || !symbol || (!name && assetType !== "kr_stock")) {
         throw new AppError("assetType, symbol, name are required", 400);
       }
 
-      await appWatchlistService.add(req.token!, { assetType, symbol, name });
+      await appWatchlistService.add(req.token!, { assetType, symbol, name: name ?? "" });
       return res.status(201).end();
     } catch (error) {
       return next(error);

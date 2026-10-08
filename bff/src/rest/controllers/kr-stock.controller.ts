@@ -1,6 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { appKrStockService, type KrResult } from "../../services/app-kr-stock.service";
-import type { KrChartPeriod } from "../../services/kr-stock.viewmodel";
+import {
+  KR_LIST_ORDERS,
+  KR_LIST_PERIODS,
+  KR_LIST_SORTS,
+  type KrChartPeriod,
+  type KrListOrder,
+  type KrListPeriod,
+  type KrListSort,
+} from "../../services/kr-stock.viewmodel";
 
 /**
  * 국내 주식 (F011 슬라이스 2 · `BFF-REQ-040`).
@@ -19,6 +27,12 @@ const intQuery = (raw: unknown, fallback: number, min: number, max: number): num
   if (typeof raw !== "string" || !/^\d+$/.test(raw)) return null;
   const n = Number(raw);
   return n >= min && n <= max ? n : null;
+};
+
+/** 열거 쿼리 — 없으면 `""`(기본), 아는 값이 아니면 `null` */
+const enumQuery = <T extends string>(raw: unknown, values: readonly T[]): T | null => {
+  if (raw === undefined) return "" as T;
+  return typeof raw === "string" && (values as readonly string[]).includes(raw) ? (raw as T) : null;
 };
 
 /** 화면을 떠나면 upstream 도 끊는다(`judgment-scoreboard.controller` 와 같은 규칙) */
@@ -48,7 +62,14 @@ export class AppKrStockController {
     const limit = intQuery(req.query.limit, 50, 1, 100);
     const offset = intQuery(req.query.offset, 0, 0, Number.MAX_SAFE_INTEGER);
     if (limit === null || offset === null) return badRequest(res, "limit 은 1~100, offset 은 0 이상 정수입니다");
-    return respond(res, next, (signal) => appKrStockService.getOverview(req.token!, { limit, offset }, signal));
+    // 코인 시세 표와 같은 필터 문자열(F011 슬라이스 3) — 모르는 값은 서버를 부르지 않고 400
+    const sort = enumQuery<KrListSort>(req.query.sort, KR_LIST_SORTS);
+    const order = enumQuery<KrListOrder>(req.query.order, KR_LIST_ORDERS);
+    const period = enumQuery<KrListPeriod>(req.query.period, KR_LIST_PERIODS);
+    if (sort === null || order === null || period === null) return badRequest(res, "sort · order · period 값이 아닙니다");
+    return respond(res, next, (signal) =>
+      appKrStockService.getOverview(req.token!, { limit, offset, sort, order, period }, signal),
+    );
   };
 
   search = (req: Request, res: Response, next: NextFunction) => {

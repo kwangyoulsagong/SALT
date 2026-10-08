@@ -93,7 +93,8 @@ export const toWatchlistViewModels = (
 ): WatchlistItemVM[] =>
   serverItems.map((item) => {
     const serverAt = toDate(item.priceUpdatedAt);
-    const live = priceCache.get(item.symbol.toUpperCase());
+    // 업비트 실시간 캐시는 코인 것이다 — 국내 주식(6자리 코드)은 서버 값(`kr_stock_quotes`)만 쓴다(F011 슬라이스 3)
+    const live = item.assetType === "kr_stock" ? undefined : priceCache.get(item.symbol.toUpperCase());
 
     const useLive =
       live !== undefined &&

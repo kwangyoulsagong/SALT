@@ -38,6 +38,22 @@ export type KrRealtimeState = (typeof KR_REALTIME_STATES)[number];
 
 export type KrChartPeriod = "1d" | "5m";
 
+/**
+ * 시세 표 필터 — **코인 시세 표와 같은 문자열**(화면이 같은 필터를 보낸다). 빈 문자열 = 기본(정렬 시가총액 · 기간 실시간).
+ * 서버 DTO(`krListQuerySchema`)와 같은 집합이다 — 모르는 값은 400
+ */
+export const KR_LIST_SORTS = ["", "all", "trade_value", "change", "price", "name"] as const;
+export const KR_LIST_ORDERS = ["", "asc", "desc"] as const;
+export const KR_LIST_PERIODS = ["", "realtime", "1d", "7d", "1m", "3m", "6m", "1y"] as const;
+export type KrListSort = (typeof KR_LIST_SORTS)[number];
+export type KrListOrder = (typeof KR_LIST_ORDERS)[number];
+export type KrListPeriod = (typeof KR_LIST_PERIODS)[number];
+
+/** 시세 표 한 줄 — 시세 + 선택한 기간의 변동률(%). 실시간이면 전일 대비와 같고, 기준 일봉이 없으면 `null` */
+export interface KrOverviewItemVM extends KrQuoteVM {
+  periodChange: number | null;
+}
+
 export interface KrSessionVM {
   session: KrSession;
   now: string;
@@ -72,6 +88,10 @@ export interface KrQuoteVM {
   basePrice: number | null;
   upperLimit: number | null;
   lowerLimit: number | null;
+  /** 당일 시가 · 고가 · 저가(원) — 코인 표의 최고가 · 최저가 열(F011 슬라이스 3). 장 전엔 `null` */
+  openPrice: number | null;
+  highPrice: number | null;
+  lowPrice: number | null;
   limitState: "upper" | "lower" | null;
   status: KrStatusBadge[];
   isHalted: boolean;
@@ -203,6 +223,9 @@ export const toKrQuoteVM = (raw: unknown): KrQuoteVM => {
     basePrice: numOrNull(r, "basePrice"),
     upperLimit: numOrNull(r, "upperLimit"),
     lowerLimit: numOrNull(r, "lowerLimit"),
+    openPrice: numOrNull(r, "openPrice"),
+    highPrice: numOrNull(r, "highPrice"),
+    lowPrice: numOrNull(r, "lowPrice"),
     limitState,
     status: arr(r, "status").filter((s): s is KrStatusBadge => (KR_STATUS_BADGES as readonly unknown[]).includes(s)),
     isHalted: bool(r, "isHalted"),
@@ -217,7 +240,10 @@ export const toKrOverviewVM = (raw: unknown) => {
   const nextOffset = numOrNull(r, "nextOffset");
   return {
     session: toKrSessionVM(r.session),
-    items: arr(r, "items").map(toKrQuoteVM),
+    items: arr(r, "items").map((item): KrOverviewItemVM => ({
+      ...toKrQuoteVM(item),
+      periodChange: numOrNull(obj(item, "quote"), "periodChange"),
+    })),
     nextOffset,
   };
 };
