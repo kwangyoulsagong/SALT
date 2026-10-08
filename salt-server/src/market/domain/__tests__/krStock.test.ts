@@ -121,7 +121,7 @@ describe("krStockLogoUrl — 로고 주소는 서버가 정한다(F011 FR-47)", 
   it("logo.dev 키가 있으면 logo.dev — 없는 로고는 404(이니셜로 넘어가게)", () => {
     assert.equal(
       krStockLogoUrl("005930", "KOSPI", "pk_test"),
-      "https://img.logo.dev/ticker/005930.KS?token=pk_test&size=64&format=png&fallback=404",
+      "https://img.logo.dev/ticker/005930.KS?token=pk_test&size=128&format=png&fallback=404",
     );
   });
 });

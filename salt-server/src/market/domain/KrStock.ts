@@ -572,6 +572,9 @@ export const KR_PROVIDER_DEGRADED_AFTER = 5;
 /** 토큰 발급이 하루 이만큼을 넘으면 캐시가 깨진 것이다(FR-94) */
 export const KR_TOKEN_ISSUE_WARN_PER_DAY = 3;
 
+/** 로고 크기 — 화면 최대 48px 의 2배(레티나)를 덮는다. 64px 이면 40px 미리보기 아이콘이 레티나에서 흐렸다(2026-10-08) */
+const KR_LOGO_SIZE_PX = 128;
+
 /**
  * 종목 로고 주소(F011 FR-47) — KIS 는 로고를 주지 않는다. 2026-10-08 조사(체크리스트 `FE-REQ-041`):
  *
@@ -585,6 +588,6 @@ export const KR_TOKEN_ISSUE_WARN_PER_DAY = 3;
 export const krStockLogoUrl = (code: string, market: KrMarket, logoDevToken?: string): string => {
   const suffix = market === "KOSDAQ" ? "KQ" : "KS";
   return logoDevToken
-    ? `https://img.logo.dev/ticker/${code}.${suffix}?token=${encodeURIComponent(logoDevToken)}&size=64&format=png&fallback=404`
+    ? `https://img.logo.dev/ticker/${code}.${suffix}?token=${encodeURIComponent(logoDevToken)}&size=${KR_LOGO_SIZE_PX}&format=png&fallback=404`
     : `https://financialmodelingprep.com/image-stock/${code}.${suffix}.png`;
 };
