@@ -242,6 +242,8 @@ describe("CheckTradeSize · GetRiskBudget — 같은 스냅샷", () => {
   ];
   const market = {
     closeAtOrAfter: async (symbol: string) => (symbol === "BTC" ? 100_000_000 : 1_000_000),
+    // 사이즈 계산은 시세로 자산군을 고른다(수수료) — 비어 있으면 코인
+    quotes: async () => new Map(),
   } as unknown as MarketProbe;
   // 시나리오의 과거 구간 일봉 — 이 스위트는 게이지만 본다
   const forecasts = {
@@ -272,6 +274,69 @@ describe("CheckTradeSize · GetRiskBudget — 같은 스냅샷", () => {
     assert.equal(size.sizing.unavailable.volTargetWeight, "insufficient_data");
     assert.equal(size.sizing.currentWeight?.toNumber(), 0.92);
     assert.equal(size.orderExecution, false);
+  });
+});
+
+describe("리스크 예산 · 사이즈 — 국내 주식 보유 포함 (F011 슬라이스 4)", () => {
+  const now = new Date("2026-10-08T03:00:00Z");
+  const profile = {
+    userId: "u1",
+    monthlyLossBudget: { amount: new Decimal("0.1"), unit: "percent" },
+    perTradeMaxLoss: null,
+    targetVolatility: null,
+    maxSingleAssetWeight: 0.6,
+  } as unknown as CoachProfile;
+  const profiles = { findByUser: async () => profile } as unknown as CoachProfileStore;
+  const holdings = [
+    { symbol: "BTC", assetType: "crypto", totalQuantity: 0.1, currentValue: 9_000_000 } as CoachHolding,
+    { symbol: "005930", assetType: "kr_stock", totalQuantity: 10, currentValue: 1_000_000 } as CoachHolding,
+    // 미국 주식은 통화가 달라 원화 예산에 넣지 않는다
+    { symbol: "AAPL", assetType: "stock", totalQuantity: 1, currentValue: 300_000 } as CoachHolding,
+  ];
+  const ledgerAsked: unknown[] = [];
+  const portfolio = {
+    listHoldings: async () => holdings,
+    listLedgerSince: async (_u: string, _s: Date, _l: number, assetTypes?: readonly string[]) => {
+      ledgerAsked.push(assetTypes);
+      return { entries: [], truncated: false };
+    },
+  } as unknown as PortfolioProbe;
+  const market = {
+    closeAtOrAfter: async (symbol: string) => (symbol === "BTC" ? 90_000_000 : 100_000),
+    quotes: async (symbols: string[]) =>
+      new Map(symbols.map((symbol) => [symbol, { symbol, assetType: symbol === "005930" ? "kr_stock" : "crypto" }])),
+  } as unknown as MarketProbe;
+  const forecasts = {
+    realizedVolatility: async () => null,
+    symbolRisk: async () => new Map(),
+    dailyCloses: async () => new Map(),
+    marketRegime: async () => null,
+  } as unknown as ForecastReader;
+
+  it("예산 % 의 분모는 코인 + 국내 주식 평가금 합, 거래도 두 자산군을 읽는다", async () => {
+    const budget = await new GetRiskBudget(profiles, portfolio, market, forecasts, () => now).execute("u1");
+    // 10% × (9,000,000 + 1,000,000) — 미국 주식 300,000 은 빠진다
+    assert.equal(budget.settings.monthlyLossBudgetKrw?.toKrwInteger(), 1_000_000);
+    assert.deepEqual(ledgerAsked.at(-1), ["crypto", "kr_stock"]);
+  });
+
+  it("국내 주식 사이즈는 국내 주식 비용(왕복의 절반씩)으로 손실을 잡는다", async () => {
+    const check = new CheckTradeSize(profiles, portfolio, market, forecasts, () => now, null, {
+      crypto: 0.001,
+      kr_stock: 0.0023,
+    });
+    const size = await check.execute("u1", {
+      symbol: "005930",
+      side: "buy",
+      quantity: new Decimal(10),
+      price: new Decimal(100_000),
+      stopPrice: new Decimal(90_000),
+    });
+    assert.equal(size.assumptions.feeRatePerSide.toNumber(), 0.00115);
+    // (100,000 − 90,000) + (100,000 + 90,000) × 0.00115 = 10,218.5 → × 10
+    assert.equal(size.sizing.maxLoss?.toKrwInteger(), 102_185);
+    // 기존 비중 — 국내 주식 1,000,000 / 10,000,000
+    assert.equal(size.sizing.currentWeight?.toNumber(), 0.1);
   });
 });
 

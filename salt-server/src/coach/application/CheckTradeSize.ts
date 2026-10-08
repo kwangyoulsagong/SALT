@@ -5,9 +5,12 @@ import { Money } from "../../shared/domain";
 import {
   calculateSizing,
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
+  DEFAULT_ROUND_TRIP_COSTS,
   DEFAULT_TARGET_VOLATILITY,
+  judgmentAssetClassFor,
   resolveBudget,
-  SIZING_FEE_RATE_PER_SIDE,
+  sizingFeeRatePerSide,
+  type RoundTripCosts,
   type CoachProfileStore,
   type ForecastReader,
   type MarketProbe,
@@ -62,14 +65,16 @@ export class CheckTradeSize {
     private readonly market: MarketProbe,
     private readonly forecasts: ForecastReader,
     private readonly now: () => Date = () => new Date(),
-    private readonly preview: PreviewTradeBehavior | null = null
+    private readonly preview: PreviewTradeBehavior | null = null,
+    /** 국내 주식 수수료(F011 슬라이스 4) — 왕복 비용의 절반을 한쪽으로 */
+    private readonly costs: RoundTripCosts = DEFAULT_ROUND_TRIP_COSTS
   ) {}
 
   async execute(userId: string, command: CheckTradeSizeCommand): Promise<TradeSizeCheck> {
     const symbol = command.symbol.toUpperCase();
     const now = this.now();
 
-    const [snapshot, volatility, behavior] = await Promise.all([
+    const [snapshot, volatility, behavior, quotes] = await Promise.all([
       loadRiskSnapshot(
         { profiles: this.profiles, portfolio: this.portfolio, market: this.market },
         userId,
@@ -77,7 +82,10 @@ export class CheckTradeSize {
       ),
       this.forecasts.realizedVolatility(symbol),
       this.previewBehavior(userId, symbol, command),
+      // 자산군 — 수수료가 갈린다. 시세를 모르면 코인 수수료(지금까지와 같다)
+      this.market.quotes([symbol]).catch(() => new Map()),
     ]);
+    const feeRatePerSide = sizingFeeRatePerSide(judgmentAssetClassFor(quotes.get(symbol)?.assetType), this.costs);
 
     const profile = snapshot.profile;
     const existing = snapshot.holdings.find((holding) => holding.symbol === symbol);
@@ -111,6 +119,7 @@ export class CheckTradeSize {
         command.winRate && command.payoffRatio
           ? { winRate: command.winRate, payoffRatio: command.payoffRatio }
           : undefined,
+      feeRatePerSide,
     });
 
     return {
@@ -118,7 +127,7 @@ export class CheckTradeSize {
       side: command.side,
       sizing,
       assumptions: {
-        feeRatePerSide: SIZING_FEE_RATE_PER_SIDE,
+        feeRatePerSide,
         targetVolatility,
         targetVolatilityIsDefault: !profile?.targetVolatility,
         maxSingleAssetWeight,

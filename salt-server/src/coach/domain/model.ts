@@ -55,6 +55,8 @@ export type CoachAssetType = "crypto" | "stock" | "kr_stock";
 /** `portfolio` 의 보유. */
 export interface CoachHolding {
   symbol: string;
+  /** 리스크 예산 · 사이즈가 코인 + 국내 주식 보유를 합친다(F011 슬라이스 4) — 어느 쪽인지 남긴다 */
+  assetType?: CoachAssetType;
   totalQuantity: number;
   averageBuyPrice: number;
   totalInvested: number;
@@ -283,7 +285,7 @@ export interface CoachProfile {
 }
 
 /**
- * 예산의 단위. `krw` 는 원, `percent` 는 **코인 보유 평가금액 합** 대비 비율(0.05 = 5%)이다.
+ * 예산의 단위. `krw` 는 원, `percent` 는 **코인 + 국내 주식 보유 평가금액 합**(F011 슬라이스 4) 대비 비율(0.05 = 5%)이다.
  * 비율을 원으로 바꾸는 것은 계산하는 쪽(`riskBudget.resolveBudget`)이 그 시점의 평가금액으로 한다.
  */
 export type BudgetUnit = "krw" | "percent";

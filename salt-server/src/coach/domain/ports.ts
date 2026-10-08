@@ -238,15 +238,17 @@ export interface PortfolioProbe {
    */
   countTrades(userId: string): Promise<number>;
   /**
-   * `since` 이후 거래 — 금액 계산용(월 손익 · 회전율). 코인만.
+   * `since` 이후 거래 — 금액 계산용(월 손익 · 회전율). 기본은 코인만, 리스크 예산 · 사이즈는 코인 + 국내 주식
+   * (`assetTypes`, F011 슬라이스 4 — 둘 다 원화라 한 예산에 합친다).
    * `truncated` 가 참이면 `limit` 에 걸려 다 읽지 못했다 — 합을 만들면 거짓이 된다
    */
   listLedgerSince(
     userId: string,
     since: Date,
-    limit: number
+    limit: number,
+    assetTypes?: readonly CoachAssetType[]
   ): Promise<{ entries: CoachLedgerEntry[]; truncated: boolean }>;
-  /** 거래 한 건. 남의 것이면 `null` — 계획 연결 검사용 */
+  /** 거래 한 건(코인 · 국내 주식). 남의 것이면 `null` — 계획 연결 검사용 */
   findLedgerEntry(userId: string, transactionId: string): Promise<CoachLedgerEntry | null>;
 }
 

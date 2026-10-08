@@ -13,6 +13,7 @@ import {
   judgmentSignalType,
   krJudgmentExitWindow,
   krLatestClosedSession,
+  sizingFeeRatePerSide,
   staleKrJudgmentInputs,
   summarizeJudgmentTrack,
   toScoreboardGroup,
@@ -60,6 +61,12 @@ describe("적중 경계 — 자산군 비용 (FR-64)", () => {
     assert.equal(judgeOutcome("long_term", "review_accumulation", 0.002), "hit");
     assert.equal(judgeOutcome("long_term", "review_accumulation", 0.002, 0.0023), "miss");
     assert.equal(judgeOutcome("long_term", "avoid", 0.002, 0.0023), "hit");
+  });
+
+  it("사이즈 한쪽 비용 — 국내 주식은 왕복의 절반, 코인은 업비트 수수료", () => {
+    const costs = { crypto: 0.001, kr_stock: 0.0023 };
+    assert.equal(sizingFeeRatePerSide("kr_stock", costs).toNumber(), 0.00115);
+    assert.equal(sizingFeeRatePerSide("crypto", costs).toNumber(), 0.0005);
   });
 });
 

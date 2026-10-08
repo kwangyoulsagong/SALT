@@ -277,7 +277,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.market,
       deps.forecasts,
       undefined,
-      new PreviewTradeBehavior(deps.portfolio, deps.tradePlans, deps.decisionOutcomes, deps.market)
+      new PreviewTradeBehavior(deps.portfolio, deps.tradePlans, deps.decisionOutcomes, deps.market),
+      deps.roundTripCosts
     ),
     createTradePlan: new CreateTradePlan(deps.tradePlans, deps.portfolio),
     updateTradePlan: new UpdateTradePlan(deps.tradePlans, deps.portfolio),

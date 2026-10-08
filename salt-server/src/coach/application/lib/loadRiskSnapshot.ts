@@ -12,12 +12,18 @@ import {
 } from "../../domain";
 
 /**
+ * 리스크 예산이 보는 자산군 — 원화로 거래하는 둘(F011 슬라이스 4). 한 사람의 월 손실 한도는 시장을 가리지 않는다:
+ * 코인에서 잃고 국내 주식에서 잃으면 둘 다 같은 예산을 쓴다. 미국 주식(`stock`)은 통화가 달라 넣지 않는다
+ */
+export const RISK_ASSET_TYPES = ["crypto", "kr_stock"] as const;
+
+/**
  * 리스크 재료 조립 — 사이즈 계산(`CheckTradeSize`)과 리스크 게이지(`GetRiskBudget`)가 같이 쓴다.
  *
  * 두 유스케이스가 **같은 월 손익**을 봐야 한다. 각자 조립하면 게이지는 "예산 41% 사용"인데 사이즈 계산은
  * 다른 잔여로 %를 내는 일이 생긴다. 계산은 `domain/policy/riskBudget` 이고 여기는 읽기만 한다.
  *
- * 쿼리: 프로필 1 · 코인 보유 1 · 거래(최근 365일) 1 · 월초 종가(월초 보유 종목 수만큼, 보통 1~5).
+ * 쿼리: 프로필 1 · 보유 1(전 자산군을 읽고 코인 · 국내 주식만) · 거래(최근 365일) 1 · 월초 종가(월초 보유 종목 수만큼, 보통 1~5).
  */
 
 /** 거래를 한 번에 읽는 상한. 넘으면 `truncated` 이고 합을 만들지 않는다 */
@@ -51,11 +57,14 @@ export const loadRiskSnapshot = async (
 ): Promise<RiskSnapshot> => {
   const { monthStart, yearStart } = kstPeriodStarts(now);
 
-  const [profile, holdings, ledger] = await Promise.all([
+  const [profile, allHoldings, ledger] = await Promise.all([
     deps.profiles.findByUser(userId),
-    deps.portfolio.listHoldings(userId, "crypto"),
-    deps.portfolio.listLedgerSince(userId, new Date(now.getTime() - YEAR_MS), RISK_LEDGER_LIMIT),
+    deps.portfolio.listHoldings(userId),
+    deps.portfolio.listLedgerSince(userId, new Date(now.getTime() - YEAR_MS), RISK_LEDGER_LIMIT, RISK_ASSET_TYPES),
   ]);
+  const holdings = allHoldings.filter(
+    (holding) => !holding.assetType || (RISK_ASSET_TYPES as readonly string[]).includes(holding.assetType)
+  );
 
   const totalValue = holdings.reduce(
     (sum, holding) => sum.plus(Money.krw(holding.currentValue)),
