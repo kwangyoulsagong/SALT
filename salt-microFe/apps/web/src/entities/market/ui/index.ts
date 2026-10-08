@@ -23,3 +23,9 @@ export {
   MarketBriefingPanel,
   MarketBriefingPanelSkeleton,
 } from "./MarketBriefingPanel/MarketBriefingPanel";
+
+/** 국내 주식(F011 `FE-REQ-041`) — 장 상태 줄 · 배지 · 등락 · 상세 차트 */
+export { KrSessionLine } from "./KrStock/KrSessionLine";
+export { KrQuoteBadges } from "./KrStock/KrQuoteBadges";
+export { KrChangeText } from "./KrStock/KrChangeText";
+export { KrStockChart } from "./KrStock/KrStockChart";

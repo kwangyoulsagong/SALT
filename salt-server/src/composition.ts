@@ -37,6 +37,7 @@ import { createMarketApplication } from "./market/application/api";
 import { FearGreedClient } from "./market/infrastructure/FearGreedClient";
 import { KisClient } from "./market/infrastructure/KisClient";
 import { KisMasterFile } from "./market/infrastructure/KisMasterFile";
+import { DartHomepageSource, LogoDevImageProbe } from "./market/infrastructure/KrLogoClients";
 import { KisRealtimeClient } from "./market/infrastructure/KisRealtimeClient";
 import { PrismaKrMarketCalendarStore, PrismaKrStockStore } from "./market/infrastructure/PrismaKrStockStore";
 import { PrismaIndicatorRepository } from "./market/infrastructure/PrismaIndicatorRepository";
@@ -137,6 +138,9 @@ const krStock =
         store: new PrismaKrStockStore(),
         calendar: new PrismaKrMarketCalendarStore(),
         universeTopN: env.KIS_UNIVERSE_TOP_N,
+        logoDevToken: env.KR_LOGO_DEV_TOKEN,
+        logoImages: new LogoDevImageProbe(),
+        homepages: env.DART_API_KEY ? new DartHomepageSource(env.DART_API_KEY) : null,
         viewerEmails: env.FORECAST_OWNER_EMAILS,
       }
     : null;

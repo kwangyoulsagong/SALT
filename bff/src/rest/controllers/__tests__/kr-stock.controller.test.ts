@@ -53,9 +53,12 @@ describe("/api/app/market/kr", () => {
     await get("/api/app/market/kr/0001a0");
     await get("/api/app/market/kr/005930/chart");
     await get("/api/app/market/kr/overview");
+    await get("/api/app/market/kr/overview?sort=trade_value&order=asc&period=7d");
     assert.equal(detail.mock.calls[0]!.arguments[1], "0001A0");
     assert.deepEqual(chart.mock.calls[0]!.arguments[2], { period: "1d", count: 120 });
-    assert.deepEqual(overview.mock.calls[0]!.arguments[1], { limit: 50, offset: 0 });
+    // 코인 표와 같은 필터 문자열(F011 슬라이스 3) — 빈 문자열 = 기본(시가총액 · 실시간)
+    assert.deepEqual(overview.mock.calls[0]!.arguments[1], { limit: 50, offset: 0, sort: "", order: "", period: "" });
+    assert.deepEqual(overview.mock.calls[1]!.arguments[1], { limit: 50, offset: 0, sort: "trade_value", order: "asc", period: "7d" });
   });
 
   it("형식이 틀리면 400 — 서버를 부르지 않는다(경로 주입 · 범위)", async () => {
@@ -72,6 +75,9 @@ describe("/api/app/market/kr", () => {
       "/api/app/market/kr/005930/chart?count=501",
       "/api/app/market/kr/overview?limit=101",
       "/api/app/market/kr/overview?offset=-1",
+      "/api/app/market/kr/overview?sort=volume",
+      "/api/app/market/kr/overview?period=1w",
+      "/api/app/market/kr/overview?order=up",
       "/api/app/market/kr/search?q=a",
     ]) {
       assert.equal((await get(path)).status, 400, path);

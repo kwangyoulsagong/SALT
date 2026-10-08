@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
 import type {
+  KrLogoSource,
   Candle,
   KrCalendarSource,
   KrMarket,
@@ -98,7 +99,7 @@ export class PrismaKrStockStore implements KrStockStore {
     await prisma.$executeRaw`
       INSERT INTO kr_stock_quotes (code, price, change, change_rate, volume, trade_value, market_cap, base_price,
         upper_limit, lower_limit, status_code, warn_code, is_halted, per, pbr, eps, bps, week52_high, week52_low,
-        foreign_rate, feed, price_updated_at)
+        foreign_rate, open_price, high_price, low_price, feed, price_updated_at)
       SELECT u.*, ${feed}, (${at}::timestamptz AT TIME ZONE 'UTC') FROM unnest(
         ${col((f) => f.code)}::text[], ${col((f) => f.price)}::numeric[], ${col((f) => f.change)}::numeric[],
         ${col((f) => f.changeRate)}::numeric[], ${col((f) => f.volume)}::bigint[], ${col((f) => f.tradeValue)}::numeric[],
@@ -106,9 +107,11 @@ export class PrismaKrStockStore implements KrStockStore {
         ${col((f) => f.lowerLimit)}::numeric[], ${col((f) => f.statusCode)}::text[], ${col((f) => f.warnCode)}::text[],
         ${col((f) => f.isHalted)}::boolean[], ${col((f) => f.per)}::numeric[], ${col((f) => f.pbr)}::numeric[],
         ${col((f) => f.eps)}::numeric[], ${col((f) => f.bps)}::numeric[], ${col((f) => f.week52High)}::numeric[],
-        ${col((f) => f.week52Low)}::numeric[], ${col((f) => f.foreignRate)}::numeric[]
+        ${col((f) => f.week52Low)}::numeric[], ${col((f) => f.foreignRate)}::numeric[],
+        ${col((f) => f.openPrice)}::numeric[], ${col((f) => f.highPrice)}::numeric[], ${col((f) => f.lowPrice)}::numeric[]
       ) AS u(code, price, change, change_rate, volume, trade_value, market_cap, base_price, upper_limit, lower_limit,
-        status_code, warn_code, is_halted, per, pbr, eps, bps, week52_high, week52_low, foreign_rate)
+        status_code, warn_code, is_halted, per, pbr, eps, bps, week52_high, week52_low, foreign_rate,
+        open_price, high_price, low_price)
       -- 마스터에 없는 코드는 넣지 않는다(FK) — 관심 목록에 남은 상폐 종목 같은 경우
       WHERE EXISTS (SELECT 1 FROM kr_stock_master m WHERE m.code = u.code)
       ON CONFLICT (code) DO UPDATE SET
@@ -119,6 +122,7 @@ export class PrismaKrStockStore implements KrStockStore {
         per = EXCLUDED.per, pbr = EXCLUDED.pbr, eps = EXCLUDED.eps, bps = EXCLUDED.bps,
         week52_high = EXCLUDED.week52_high, week52_low = EXCLUDED.week52_low,
         foreign_rate = EXCLUDED.foreign_rate, price_updated_at = EXCLUDED.price_updated_at,
+        open_price = EXCLUDED.open_price, high_price = EXCLUDED.high_price, low_price = EXCLUDED.low_price,
         -- 실시간이 90초 안에 쓴 종목은 폴링 보충(5분마다)이 출처 표시를 되돌리지 않는다
         feed = CASE WHEN kr_stock_quotes.feed = 'realtime'
                      AND kr_stock_quotes.price_updated_at > EXCLUDED.price_updated_at - interval '90 seconds'
@@ -128,7 +132,7 @@ export class PrismaKrStockStore implements KrStockStore {
   async quotes(query: { codes?: string[]; limit: number; offset: number }) {
     const rows = await prisma.krStockQuote.findMany({
       where: query.codes ? { code: { in: query.codes } } : undefined,
-      include: { master: { select: { name: true, market: true } } },
+      include: { master: { select: QUOTE_MASTER_FIELDS } },
       orderBy: [{ marketCap: { sort: "desc", nulls: "last" } }, { code: "asc" }],
       skip: query.offset,
       take: query.limit,
@@ -139,9 +143,62 @@ export class PrismaKrStockStore implements KrStockStore {
   async quote(code: string) {
     const row = await prisma.krStockQuote.findUnique({
       where: { code },
-      include: { master: { select: { name: true, market: true } } },
+      include: { master: { select: QUOTE_MASTER_FIELDS } },
     });
     return row ? toStoredQuote(row) : null;
+  }
+
+  async logoTargets(codes: string[], checkedBefore: Date) {
+    if (codes.length === 0) return [];
+    const rows = await prisma.krStockMaster.findMany({
+      where: {
+        code: { in: codes },
+        delistedAt: null,
+        OR: [{ logoCheckedAt: null }, { logoCheckedAt: { lt: checkedBefore } }],
+      },
+      select: { code: true, market: true, homepage: true, homepageCheckedAt: true },
+    });
+    return rows.map((row) => ({ ...row, market: row.market as KrMarket }));
+  }
+
+  async saveLogo(code: string, result: { homepage?: string | null; logoSource: KrLogoSource; checkedAt: Date }) {
+    await prisma.krStockMaster.update({
+      where: { code },
+      data: {
+        ...(result.homepage !== undefined ? { homepage: result.homepage, homepageCheckedAt: result.checkedAt } : {}),
+        logoSource: result.logoSource,
+        logoCheckedAt: result.checkedAt,
+      },
+    });
+  }
+
+  async findListing(code: string) {
+    const row = await prisma.krStockMaster.findFirst({
+      where: { code, delistedAt: null },
+      select: { code: true, name: true, market: true },
+    });
+    return row ? { ...row, market: row.market as KrMarket } : null;
+  }
+
+  /**
+   * 기준 종가 — 종목별로 **그 종목 시세 날짜(KST) 이전** 일봉을 최신순으로 세어 `n` 번째. 당일 봉(장중 · 마감 뒤 관측)은
+   * 세지 않는다: 1 = 직전 거래일 종가라 전일 대비와 같은 기준이 된다. `(symbol, timeframe, timestamp)` 인덱스를 탄다
+   */
+  async baselineCloses(codes: string[], tradingDaysBack: number) {
+    const closes = new Map<string, number>();
+    if (codes.length === 0) return closes;
+    const rows = await prisma.$queryRaw<Array<{ symbol: string; close: Prisma.Decimal }>>`
+      SELECT symbol, close FROM (
+        SELECT ph.symbol, ph.close,
+          row_number() OVER (PARTITION BY ph.symbol ORDER BY ph.timestamp DESC) AS rn
+        FROM price_history ph
+        JOIN kr_stock_quotes q ON q.code = ph.symbol
+        WHERE ph.asset_type = 'kr_stock' AND ph.timeframe = '1d' AND ph.symbol = ANY(${codes}::text[])
+          AND (ph.timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')::date
+            < (q.price_updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')::date
+      ) x WHERE rn = ${tradingDaysBack}`;
+    for (const row of rows) closes.set(row.symbol, Number(row.close));
+    return closes;
   }
 
   /** 마스터 4,400행 — 접두 · 부분 일치를 순차 스캔으로 해도 1ms 대(실측은 검증 보고). 코드 일치를 앞에 */
@@ -195,12 +252,16 @@ export class PrismaKrStockStore implements KrStockStore {
     await prisma.$executeRaw`
       UPDATE kr_stock_quotes q SET
         price = u.price, change = u.change, change_rate = u.change_rate, volume = u.volume, trade_value = u.trade_value,
-        is_halted = u.is_halted, feed = 'realtime', price_updated_at = (${at}::timestamptz AT TIME ZONE 'UTC')
+        is_halted = u.is_halted, feed = 'realtime', price_updated_at = (${at}::timestamptz AT TIME ZONE 'UTC'),
+        -- 체결 프레임이 당일 시 · 고 · 저를 준다. 칸이 비면(형식 오류) 폴링 값을 남긴다
+        open_price = COALESCE(u.open_price, q.open_price), high_price = COALESCE(u.high_price, q.high_price),
+        low_price = COALESCE(u.low_price, q.low_price)
       FROM unnest(
         ${col((t) => t.code)}::text[], ${col((t) => t.price)}::numeric[], ${col((t) => t.change)}::numeric[],
         ${col((t) => t.changeRate)}::numeric[], ${col((t) => t.accVolume)}::bigint[], ${col((t) => t.accTradeValue)}::numeric[],
-        ${col((t) => t.isHalted)}::boolean[]
-      ) AS u(code, price, change, change_rate, volume, trade_value, is_halted)
+        ${col((t) => t.isHalted)}::boolean[], ${col((t) => t.openPrice)}::numeric[], ${col((t) => t.highPrice)}::numeric[],
+        ${col((t) => t.lowPrice)}::numeric[]
+      ) AS u(code, price, change, change_rate, volume, trade_value, is_halted, open_price, high_price, low_price)
       WHERE q.code = u.code`;
   }
 
@@ -285,12 +346,19 @@ export class PrismaKrStockStore implements KrStockStore {
   }
 }
 
-type QuoteRow = Prisma.KrStockQuoteGetPayload<{ include: { master: { select: { name: true; market: true } } } }>;
+const QUOTE_MASTER_FIELDS = { name: true, market: true, homepage: true, logoSource: true } as const;
+type QuoteRow = Prisma.KrStockQuoteGetPayload<{ include: { master: { select: typeof QUOTE_MASTER_FIELDS } } }>;
+
+const LOGO_SOURCES: readonly KrLogoSource[] = ["domain", "ticker", "none"];
+const toLogoSource = (v: string | null): KrLogoSource | null =>
+  v !== null && (LOGO_SOURCES as readonly string[]).includes(v) ? (v as KrLogoSource) : null;
 
 const toStoredQuote = (row: QuoteRow): StoredKrStockQuote => ({
   code: row.code,
   name: row.master.name,
   market: row.master.market as KrMarket,
+  homepage: row.master.homepage,
+  logoSource: toLogoSource(row.master.logoSource),
   price: Number(row.price),
   change: Number(row.change),
   changeRate: Number(row.changeRate),
@@ -310,6 +378,9 @@ const toStoredQuote = (row: QuoteRow): StoredKrStockQuote => ({
   week52High: toNum(row.week52High),
   week52Low: toNum(row.week52Low),
   foreignRate: toNum(row.foreignRate),
+  openPrice: toNum(row.openPrice),
+  highPrice: toNum(row.highPrice),
+  lowPrice: toNum(row.lowPrice),
   feed: row.feed as KrQuoteFeed,
   priceUpdatedAt: row.priceUpdatedAt,
 });

@@ -57,6 +57,10 @@ export interface KrStockQuoteFact {
   week52High: number | null;
   week52Low: number | null;
   foreignRate: number | null;
+  /** 당일 시가 · 고가 · 저가(원) — 코인 표의 최고가 · 최저가 열과 같은 자리(F011 슬라이스 3). 장 전 · 휴장일은 KIS 가 전일 값 또는 0 을 준다 → 0 은 `null` */
+  openPrice: number | null;
+  highPrice: number | null;
+  lowPrice: number | null;
 }
 
 export type KrQuoteFeed = "poll_1m" | "realtime";
@@ -64,6 +68,9 @@ export type KrQuoteFeed = "poll_1m" | "realtime";
 export interface StoredKrStockQuote extends KrStockQuoteFact {
   name: string;
   market: KrMarket;
+  /** 로고 판정(`ResolveKrStockLogos`) — 아직이면 `null` */
+  homepage: string | null;
+  logoSource: KrLogoSource | null;
   feed: KrQuoteFeed;
   priceUpdatedAt: Date;
 }
@@ -113,6 +120,17 @@ export interface KrStockStore {
   latestDailyCandleAt(codes: string[]): Promise<Map<string, Date>>;
   upsertDailyCandles(code: string, candles: Candle[]): Promise<void>;
   candles(code: string, timeframe: "1d" | "5m", count: number): Promise<Candle[]>;
+  /** 로고 판정 대상 — `checkedBefore` 전에 판정했거나 판정한 적 없는 종목(상폐 제외) */
+  logoTargets(codes: string[], checkedBefore: Date): Promise<Array<KrLogoTarget & { homepageCheckedAt: Date | null }>>;
+  /** 판정 결과 — 홈페이지(새로 알게 됐으면) · 출처 · 판정 시각 */
+  saveLogo(code: string, result: { homepage?: string | null; logoSource: KrLogoSource; checkedAt: Date }): Promise<void>;
+  /** 마스터 한 줄(상폐 제외) — 관심 종목 추가가 이름을 여기서 가져온다 */
+  findListing(code: string): Promise<Pick<KrStockListing, "code" | "name" | "market"> | null>;
+  /**
+   * 종목별 기준 종가 — 그 종목 시세 날짜(KST) **이전** 일봉 중 `tradingDaysBack` 번째(1 = 직전 거래일) 종가.
+   * 봉이 모자라면 그 종목은 빠진다(기간 변동률 `null`)
+   */
+  baselineCloses(codes: string[], tradingDaysBack: number): Promise<Map<string, number>>;
   /** 실시간 체결의 최신 값만 — 상하한 · PER 같은 나머지는 폴링 값을 남긴다(슬라이스 1) */
   applyTicks(ticks: KrTick[], at: Date): Promise<void>;
   /** 5분봉 upsert(종목 여럿 한 문장) */
@@ -350,6 +368,63 @@ export const krFeedState = (
 ): KrFeedState =>
   isKrQuoteWindow(session) && now.getTime() - q.priceUpdatedAt.getTime() > KR_QUOTE_STALE_MS ? "stale" : q.feed;
 
+// ==================== 시세 표 정렬 · 기간 변동률 (F011 슬라이스 3 — 코인 표와 같은 필터) ====================
+
+/**
+ * 정렬 · 기간 값은 **코인 시세 표와 같은 문자열**이다(`MarketOverviewSort` · `MarketOverviewPeriod`) — 화면이 같은 필터를
+ * 그대로 보낸다. 코인과 다른 것 하나: 기본(`all`)이 거래대금이 아니라 **시가총액** 순이다(국내 주식 표의 원래 순서)
+ */
+export type KrListSort = "all" | "trade_value" | "change" | "price" | "name";
+export type KrListPeriod = "realtime" | "1d" | "7d" | "1m" | "3m" | "6m" | "1y";
+
+/** 기간 → 몇 거래일 전 종가와 비교하는가. 코인은 달력 일수(24시간 열림), 주식은 거래일이라 셈이 다르다 */
+export const KR_PERIOD_TRADING_DAYS: Record<Exclude<KrListPeriod, "realtime">, number> = {
+  "1d": 1,
+  "7d": 5,
+  "1m": 21,
+  "3m": 63,
+  "6m": 126,
+  "1y": 250,
+};
+
+/** 기준 종가 대비 변동률(%). 기준이 없으면 `null` — 전일 대비로 대신 채우지 않는다(코인 `periodChange` 와 같은 규칙) */
+export const krPeriodChange = (price: number, baseClose: number | undefined): number | null =>
+  baseClose === undefined || !(baseClose > 0) || !(price > 0) ? null : ((price - baseClose) / baseClose) * 100;
+
+type KrRankable = Pick<StoredKrStockQuote, "code" | "name" | "price" | "changeRate" | "tradeValue" | "marketCap"> & {
+  periodChange: number | null;
+};
+
+/**
+ * 정렬. 값이 없는 종목(시총 · 기간 변동률 `null`)은 방향과 무관하게 뒤로 — 오름차순 첫 화면이 "—" 로 채워지지 않게.
+ * 같은 값은 시가총액 순(국내 표 기본), 그다음 코드 — 순서가 매번 같아야 페이지가 겹치지 않는다
+ */
+export const rankKrQuotes = <T extends KrRankable>(items: T[], sort: KrListSort, order: "asc" | "desc"): T[] => {
+  const sign = order === "asc" ? 1 : -1;
+  const key = (q: T): number | string | null => {
+    switch (sort) {
+      case "all":
+        return q.marketCap;
+      case "trade_value":
+        return q.tradeValue;
+      case "change":
+        return q.periodChange;
+      case "price":
+        return q.price;
+      case "name":
+        return q.name;
+    }
+  };
+  const tie = (a: T, b: T) => (b.marketCap ?? -1) - (a.marketCap ?? -1) || a.code.localeCompare(b.code);
+  return [...items].sort((a, b) => {
+    const ka = key(a);
+    const kb = key(b);
+    if (ka === null || kb === null) return ka === kb ? tie(a, b) : ka === null ? 1 : -1;
+    const cmp = typeof ka === "string" ? ka.localeCompare(kb as string, "ko") : ka - (kb as number);
+    return cmp !== 0 ? sign * cmp : tie(a, b);
+  });
+};
+
 // ==================== 실시간 (F011 슬라이스 1 · FR-24 · 25) ====================
 
 /** 체결 한 건(`H0STCNT0`) — KIS 필드 이름은 `KisRealtimeClient` 에서 끝난다 */
@@ -363,6 +438,10 @@ export interface KrTick {
   accVolume: bigint;
   accTradeValue: number;
   isHalted: boolean;
+  /** 당일 시가 · 고가 · 저가 — 체결 프레임이 같이 준다(`STCK_OPRC` · `STCK_HGPR` · `STCK_LWPR`). 0 · 형식 오류는 `null` */
+  openPrice: number | null;
+  highPrice: number | null;
+  lowPrice: number | null;
   /** 체결 시각(KST 영업일 + HHMMSS → UTC) */
   at: Date;
 }
@@ -499,3 +578,124 @@ export interface KrProviderHealthPort {
 export const KR_PROVIDER_DEGRADED_AFTER = 5;
 /** 토큰 발급이 하루 이만큼을 넘으면 캐시가 깨진 것이다(FR-94) */
 export const KR_TOKEN_ISSUE_WARN_PER_DAY = 3;
+
+/**
+ * 종목 로고(F011 FR-47) — KIS 는 로고를 주지 않는다. **logo.dev** 만 쓴다(2026-10-08 조사: 사용 조건이 가장 분명 · 저장 허용 ·
+ * 퍼블리셔블 키). FMP 는 뺐다 — 엉뚱한 이미지(LS ELECTRIC 에 건물 사진)가 나와 기본값으로 위험하다. 국내 증권 · 포털 앱 이미지
+ * 서버는 쓰지 않는다(허락 없는 자산).
+ *
+ * logo.dev 원본이 작은 종목이 있다(티커 조회가 16~32px 원본을 키운 것 — LG전자 · 삼성전기 · LS ELECTRIC). 그래서
+ * **어디서 받을지를 종목마다 판정해 저장한다**(`ResolveKrStockLogos`): 회사 도메인 조회(DART 홈페이지) → 티커 조회 → 둘 다
+ * 흐리면 `none`(화면이 이니셜). 저장하는 것은 출처뿐이고 주소는 읽을 때 지금 키로 만든다 — 키가 바뀌어도 DB 를 고치지 않는다
+ */
+export type KrLogoSource = "domain" | "ticker" | "none";
+
+/** 로고 크기 — 화면 최대 48px 의 2배(레티나)를 덮는다. 64px 이면 40px 미리보기 아이콘이 레티나에서 흐렸다(2026-10-08) */
+const KR_LOGO_SIZE_PX = 128;
+const LOGO_DEV = "https://img.logo.dev";
+
+const logoDevQuery = (token: string) =>
+  `token=${encodeURIComponent(token)}&size=${KR_LOGO_SIZE_PX}&format=png&fallback=404`;
+
+export interface KrLogoTarget {
+  code: string;
+  market: KrMarket;
+  /** 회사 홈페이지 도메인(`lg.com`) — DART 기업개황. 모르면 `null` */
+  homepage: string | null;
+}
+
+/** 판정 후보 — 도메인이 먼저다(티커 원본이 작은 종목이 도메인으로는 선명하다: LG전자 `lg.com`) */
+export const krLogoCandidates = (target: KrLogoTarget, token: string): Array<{ source: "domain" | "ticker"; url: string }> => {
+  const suffix = target.market === "KOSDAQ" ? "KQ" : "KS";
+  return [
+    ...(target.homepage ? [{ source: "domain" as const, url: `${LOGO_DEV}/${target.homepage}?${logoDevQuery(token)}` }] : []),
+    { source: "ticker" as const, url: `${LOGO_DEV}/ticker/${target.code}.${suffix}?${logoDevQuery(token)}` },
+  ];
+};
+
+/**
+ * 화면에 내보낼 로고 주소. 키가 없거나 판정이 `none` 이면 `null`(화면이 이니셜). **아직 판정 전이면 티커 주소** — 대부분 선명하고,
+ * 없으면 404 라 화면이 이니셜로 넘어간다
+ */
+export const krStockLogoUrl = (
+  target: KrLogoTarget & { logoSource: KrLogoSource | null },
+  logoDevToken?: string,
+): string | null => {
+  if (!logoDevToken || target.logoSource === "none") return null;
+  const candidates = krLogoCandidates(target, logoDevToken);
+  const pick = target.logoSource === "domain" ? candidates.find((c) => c.source === "domain") : undefined;
+  return (pick ?? candidates[candidates.length - 1]!).url;
+};
+
+/** DART `hm_url`(`www.lg.com` · `http://www.lgcorp.com/`) → 도메인(`lg.com`). 주소가 아니면 `null` */
+export const normalizeHomepageDomain = (raw: string | null | undefined): string | null => {
+  const text = raw?.trim();
+  if (!text) return null;
+  try {
+    const host = new URL(/^https?:\/\//i.test(text) ? text : `http://${text}`).hostname.toLowerCase();
+    const domain = host.replace(/^www\d*\./, "");
+    return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(domain) ? domain : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * 로고 선명도 — 경계에서 색이 **한 픽셀 안에서** 바뀌는 정도(0~1). 4픽셀 폭에 걸친 밝기 차가 큰 자리(경계)마다, 그 안의 가장 큰
+ * 1픽셀 차가 차지하는 몫의 중앙값이다. 선명한 로고는 1픽셀에서 거의 다 바뀌고(≈0.7~0.95) 작은 원본을 키운 로고는 여러 픽셀에
+ * 번진다(≈0.27~0.44). 2026-10-08 유니버스 51종목 실측에서 두 무리 사이가 비어 있었다(0.44 ↔ 0.70).
+ *
+ * 단순 축소 · 복원 오차는 쓰지 않는다 — 흰 바탕이 넓은 단순한 로고(효성중공업 "H")를 흐리다고 잘못 봤다
+ */
+export const krLogoSharpness = (luminance: Uint8Array, width: number, height: number): number | null => {
+  const ratios: number[] = [];
+  const at = (x: number, y: number) => luminance[y * width + x]!;
+  const EDGE = 80;
+  for (let y = 0; y < height; y++) {
+    for (let x = 2; x < width - 3; x++) {
+      const span = Math.abs(at(x + 2, y) - at(x - 2, y));
+      if (span < EDGE) continue;
+      let step = 0;
+      for (let i = -2; i < 2; i++) step = Math.max(step, Math.abs(at(x + i + 1, y) - at(x + i, y)));
+      ratios.push(step / span);
+    }
+  }
+  for (let x = 0; x < width; x++) {
+    for (let y = 2; y < height - 3; y++) {
+      const span = Math.abs(at(x, y + 2) - at(x, y - 2));
+      if (span < EDGE) continue;
+      let step = 0;
+      for (let i = -2; i < 2; i++) step = Math.max(step, Math.abs(at(x, y + i + 1) - at(x, y + i)));
+      ratios.push(step / span);
+    }
+  }
+  if (ratios.length === 0) return null;
+  ratios.sort((a, b) => a - b);
+  return ratios[Math.floor(ratios.length / 2)]!;
+};
+
+/** 선명도 하한 — 실측 무리 사이(0.44 ↔ 0.70)의 가운데쯤 */
+export const KR_LOGO_MIN_SHARPNESS = 0.6;
+
+/** RGBA → 흰 바탕에 합성한 밝기. 투명 로고의 경계가 흰 화면에서 보이는 모습 그대로 잰다 */
+export const toLuminanceOverWhite = (rgba: Uint8Array): Uint8Array => {
+  const out = new Uint8Array(rgba.length / 4);
+  for (let i = 0; i < out.length; i++) {
+    const a = rgba[i * 4 + 3]! / 255;
+    const r = rgba[i * 4]! * a + 255 * (1 - a);
+    const g = rgba[i * 4 + 1]! * a + 255 * (1 - a);
+    const b = rgba[i * 4 + 2]! * a + 255 * (1 - a);
+    out[i] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+  }
+  return out;
+};
+
+/** 로고 이미지 받기(트랜잭션 밖). 없으면(404) `null` */
+export interface KrLogoImageProbe {
+  fetchRgba(url: string): Promise<{ width: number; height: number; rgba: Uint8Array } | null>;
+}
+
+/** 회사 홈페이지(DART 기업개황 `hm_url`) — 종목 코드 → 도메인. 모르면 그 코드는 빠진다 */
+export interface KrCompanyHomepageSource {
+  homepages(codes: string[]): Promise<Map<string, string | null>>;
+}

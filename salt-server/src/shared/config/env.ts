@@ -38,6 +38,19 @@ const envSchema = z.object({
   KIS_REQUESTS_PER_SECOND: z.coerce.number().positive().max(15).default(3),
   KIS_UNIVERSE_TOP_N: z.coerce.number().int().min(0).max(200).default(50),
   /**
+   * 국내 주식 로고 — logo.dev **퍼블리셔블** 키(`pk_…`, 브라우저에 실려도 되는 키). 없으면 로고 없이 이니셜(F011 FR-47).
+   * 비밀 키(`sk_…`)를 넣지 않는다 — 로고 주소에 실려 화면으로 나간다
+   */
+  /**
+   * DART 오픈API 인증키(opendart.fss.or.kr) — 국내 주식 로고를 회사 도메인으로 찾을 때 홈페이지(`hm_url`)를 받는다. 없으면 티커 조회만
+   * (원본이 작은 종목은 이니셜). 서버 밖으로 나가지 않는다
+   */
+  DART_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  KR_LOGO_DEV_TOKEN: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().startsWith("pk_", "logo.dev 퍼블리셔블 키(pk_)만 넣는다").optional(),
+  ),
+  /**
    * 활성 계정 상한 (`SRV-REQ-008` FR-6 — **코드 상수 금지**).
    *
    * 제품 정의는 본인 + 최대 10명이다(글로벌 플랜 1-1절). 설정값인 이유는 상한이 찼을 때

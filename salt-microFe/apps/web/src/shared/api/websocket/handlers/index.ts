@@ -1,6 +1,7 @@
 import {
   WSClientContext,
   WSClientReceiveMessage,
+  WSAssetType,
   WSMessageType,
 } from "../types";
 import { handleCandle } from "./candle";
@@ -23,7 +24,10 @@ export function dispatchMessage(
     case WSMessageType.SubscribedCandle:
     case WSMessageType.UnsubscribedCandle:
     case WSMessageType.Pong:
+      return;
     case WSMessageType.Error:
+      // 국내 주식 구독 거부만 화면에 알린다 — 코인 오류는 지금처럼 버린다
+      if (msg.assetType === WSAssetType.KrStock) ctx.notifyKrError(msg.code ?? "UNKNOWN");
       return;
     default: {
       // TypeScript의 exhaustive check

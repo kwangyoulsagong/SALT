@@ -123,6 +123,17 @@ describe("toWatchlistViewModels", () => {
     assert.equal(vm.logoUrl, null);
   });
 
+  it("국내 주식은 업비트 캐시를 보지 않는다 — 같은 문자열 키가 있어도 서버 값(F011 슬라이스 3)", () => {
+    const [vm] = toWatchlistViewModels(
+      [serverItem({ assetType: "kr_stock", symbol: "005930", name: "삼성전자", currentPrice: 269_000, logoUrl: null })],
+      cache([{ symbol: "005930", currentPrice: 1, change24h: 9, timestamp: NOW }]),
+      NOW,
+    );
+    assert.equal(vm.currentPrice, 269_000);
+    assert.equal(vm.assetType, "kr_stock");
+    assert.equal(vm.priceStale, false);
+  });
+
   it("가격이 없고 캐시에 있으면 캐시로 채운다", () => {
     const [vm] = toWatchlistViewModels(
       [serverItem({ currentPrice: null, priceUpdatedAt: null })],

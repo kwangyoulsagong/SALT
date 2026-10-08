@@ -7,8 +7,14 @@ import {
   krFeedState,
   krLimitState,
   krMarketSession,
+  KR_LOGO_MIN_SHARPNESS,
+  krLogoCandidates,
+  krLogoSharpness,
   krStatusBadges,
+  krStockLogoUrl,
   krTickSize,
+  normalizeHomepageDomain,
+  toLuminanceOverWhite,
 } from "../index";
 
 /** KST 시각 → UTC Date */
@@ -110,3 +116,72 @@ describe("isKrQuoteWindow — 시세 받는 창 08:30~16:00 (시간외 단일가
   });
 });
 
+
+describe("krStockLogoUrl — 로고 주소는 서버가 정한다(F011 FR-47)", () => {
+  const target = { code: "066570", market: "KOSPI" as const, homepage: "lg.com" };
+
+  it("키가 없으면 로고 없음(화면 이니셜) — FMP 는 쓰지 않는다", () => {
+    assert.equal(krStockLogoUrl({ ...target, logoSource: "ticker" }), null);
+  });
+
+  it("판정 전 · 티커면 티커 주소, 도메인이면 도메인 주소, none 이면 null", () => {
+    assert.equal(
+      krStockLogoUrl({ ...target, logoSource: null }, "pk_t"),
+      "https://img.logo.dev/ticker/066570.KS?token=pk_t&size=128&format=png&fallback=404",
+    );
+    assert.equal(
+      krStockLogoUrl({ ...target, logoSource: "domain" }, "pk_t"),
+      "https://img.logo.dev/lg.com?token=pk_t&size=128&format=png&fallback=404",
+    );
+    assert.equal(krStockLogoUrl({ ...target, logoSource: "none" }, "pk_t"), null);
+  });
+
+  it("KOSDAQ 은 .KQ, 홈페이지가 없으면 후보는 티커 하나", () => {
+    const candidates = krLogoCandidates({ code: "247540", market: "KOSDAQ", homepage: null }, "pk_t");
+    assert.deepEqual(candidates.map((c) => c.source), ["ticker"]);
+    assert.match(candidates[0]!.url, /\/ticker\/247540\.KQ\?/);
+  });
+});
+
+describe("normalizeHomepageDomain — DART hm_url → 도메인", () => {
+  it("www · 스킴 · 경로를 떼고 소문자", () => {
+    assert.equal(normalizeHomepageDomain("www.lg.com"), "lg.com");
+    assert.equal(normalizeHomepageDomain("http://www.LGCorp.com/"), "lgcorp.com");
+    assert.equal(normalizeHomepageDomain("https://www2.samsung.com/sec"), "samsung.com");
+  });
+
+  it("주소가 아니면 null", () => {
+    assert.equal(normalizeHomepageDomain(""), null);
+    assert.equal(normalizeHomepageDomain(null), null);
+    assert.equal(normalizeHomepageDomain("없음"), null);
+  });
+});
+
+describe("krLogoSharpness — 경계가 한 픽셀 안에서 바뀌는가", () => {
+  const W = 32;
+  /** 가운데 세로 경계 — 폭 `blur` 픽셀에 걸쳐 0 → 255 */
+  const edge = (blur: number) => {
+    const lum = new Uint8Array(W * W);
+    for (let y = 0; y < W; y++) {
+      for (let x = 0; x < W; x++) {
+        const t = blur <= 1 ? (x >= W / 2 ? 1 : 0) : Math.min(1, Math.max(0, (x - (W / 2 - blur / 2)) / blur));
+        lum[y * W + x] = Math.round(255 * t);
+      }
+    }
+    return lum;
+  };
+
+  it("또렷한 경계는 기준을 넘고 여러 픽셀에 번진 경계는 못 넘는다", () => {
+    assert.ok(krLogoSharpness(edge(1), W, W)! >= KR_LOGO_MIN_SHARPNESS);
+    assert.ok(krLogoSharpness(edge(4), W, W)! < KR_LOGO_MIN_SHARPNESS);
+  });
+
+  it("경계가 없으면(단색) 판정 근거 없음", () => {
+    assert.equal(krLogoSharpness(new Uint8Array(W * W).fill(200), W, W), null);
+  });
+
+  it("투명 로고는 흰 바탕에 합성해 잰다", () => {
+    const rgba = new Uint8Array([0, 0, 0, 0, 0, 0, 0, 255]);
+    assert.deepEqual([...toLuminanceOverWhite(rgba)], [255, 0]);
+  });
+});

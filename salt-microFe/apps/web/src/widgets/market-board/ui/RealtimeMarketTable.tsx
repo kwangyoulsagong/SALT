@@ -1,5 +1,6 @@
 "use client";
 
+import { AssetIcon } from "@repo/ui/assetIcon";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Image } from "@repo/ui/image";
 import {
@@ -22,9 +23,12 @@ import {
   ChangeRateCell,
   displayedChange,
   indexWatchlistBySymbol,
+  KrQuoteBadges,
+  KrSessionLine,
   MARKET_CHANGE_MESSAGES,
   MARKET_MESSAGES,
   MARKET_TABLE_HEADERS,
+  MarketAssetClass,
   MarketFilterTabs,
   MarketOrder,
   MarketPeriod,
@@ -33,7 +37,10 @@ import {
   overviewItemToPreviewSubject,
   PriceCell,
   selectRowOnKey,
-  useMarketOverview,
+  toKrOverviewQuery,
+  useBoardOverview,
+  useKrMarketStatus,
+  useKrOverviewRealtime,
   useMarketOverviewRealtime,
   useWatchlist,
   WatchlistAssetType,
@@ -43,7 +50,13 @@ import { WatchlistStarButton } from "@/features/toggle-watchlist";
 import { useDetailLink } from "../lib";
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
 import type { PreviewRenderer } from "../model/previewSlot";
-import { nameLink, previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
+import {
+  headerLineFit,
+  nameLink,
+  previewPane,
+  splitLayout,
+  tablePane,
+} from "./MarketBoardLayout.css";
 import { RealtimeAsOf } from "./RealtimeAsOf";
 
 /**
@@ -59,12 +72,26 @@ const HOVER_SELECT_DELAY_MS = 80;
  * 실시간 테이블 + 우측 프리뷰 조합 (`market-board`).
  *
  * **변경 금지 목록이다** (FR-36): 5컬럼 · 필터 3그룹 · 변동률 blink 2초 · 2컬럼 배치.
+ *
+ * **국내 주식도 이 컴포넌트다**(F011 `FE-REQ-041` — "똑같은 화면, 데이터만 다르다"). 자산군이 바꾸는 것은 데이터 소스
+ * (`useBoardOverview`) · 실시간 구독(코인 업비트 중계 / 국내 주식 KIS 체결 중계) · 머리 첫 칸(실시간 기준 시각 / 장 상태 줄) ·
+ * 이름 옆 배지(상하한 · 종목 상태 · 시세 출처)뿐이다. 열 · 필터 · hover 미리보기 · 클릭 상세 · 깜빡임 · 관심 별은 같다.
  */
 export const RealtimeMarketTable = ({
   renderPreview,
+  assetClass: assetClassId = MarketAssetClass.Crypto,
 }: {
   renderPreview?: PreviewRenderer;
+  assetClass?: string;
 }) => {
+  // 탭 id(문자열)를 받는다 — `MarketBoard` 는 엔티티 barrel 을 값으로 부르지 않는다(첫 로드 번들)
+  const assetClass =
+    assetClassId === MarketAssetClass.KrStock
+      ? MarketAssetClass.KrStock
+      : MarketAssetClass.Crypto;
+  const isKr = assetClass === MarketAssetClass.KrStock;
+  // KIS 상태(시세 제공 지연 줄) — 탭 판정 잎과 같은 쿼리 키라 요청이 늘지 않는다
+  const krStatus = useKrMarketStatus();
   /**
    * 초기값이 `DEFAULT_MARKET_PARAMS` 와 **같아야 한다** — 관심 종목 탭의 프리뷰가
    * 그 파라미터로 같은 목록을 읽는다. 어긋나면 쿼리 키가 갈라져 목록을 두 번 받는다.
@@ -110,7 +137,7 @@ export const RealtimeMarketTable = ({
 
   // 크래시하지는 않지만(`data?.items ?? []`) 재시도 대기 구간에 빈 테이블이 번쩍인다.
   // 같은 이유로 `isPending` 을 본다.
-  const { data, isPending, isError } = useMarketOverview(params);
+  const { data, isPending, isError } = useBoardOverview(assetClass, params);
   const isRealtime = filters.period === MarketPeriod.Realtime;
   const items = useMemo(() => data?.items ?? [], [data?.items]);
 
@@ -125,7 +152,13 @@ export const RealtimeMarketTable = ({
     [watchlist?.items],
   );
   const symbols = useMemo(() => items.map((item) => item.symbol), [items]);
-  useMarketOverviewRealtime(params, symbols, handleBlink);
+  // 두 구독을 늘 부르고 쓰지 않는 쪽은 종목을 비운다(훅 순서 고정)
+  useMarketOverviewRealtime(params, isKr ? [] : symbols, handleBlink);
+  const krRealtimeRefused = useKrOverviewRealtime(
+    toKrOverviewQuery(params),
+    isKr ? symbols : [],
+    handleBlink,
+  );
   const firstSymbol = items[0]?.symbol;
 
   useEffect(() => {
@@ -167,7 +200,23 @@ export const RealtimeMarketTable = ({
               <TableHeader bordered={false}>
                 <TableRow>
                   <TableHeaderCell align="left">
-                    <RealtimeAsOf />
+                    {isKr ? (
+                      data?.krSession && (
+                        <div className={headerLineFit}>
+                          <KrSessionLine
+                            session={data.krSession}
+                            provider={
+                              krStatus.data?.status === "ok"
+                                ? krStatus.data.provider
+                                : undefined
+                            }
+                            realtimeRefused={krRealtimeRefused !== null}
+                          />
+                        </div>
+                      )
+                    ) : (
+                      <RealtimeAsOf />
+                    )}
                   </TableHeaderCell>
                   {MARKET_TABLE_HEADERS.map((th) => (
                     <TableHeaderCell key={th.id} align="right">
@@ -193,7 +242,7 @@ export const RealtimeMarketTable = ({
                   */
                       memoKey={`${item.currentPrice}-${change}-${blink}-${watchedBySymbol.has(
                         item.symbol.toUpperCase(),
-                      )}-${selected}`}
+                      )}-${selected}-${item.high24h}-${item.low24h}-${item.kr ? `${item.kr.feed}-${item.kr.limitState}-${item.kr.status.join()}` : ""}`}
                       hoverable
                       clickable
                       tabIndex={0}
@@ -211,18 +260,31 @@ export const RealtimeMarketTable = ({
                             )}
                             displayName={item.koreanName}
                             request={{
-                              assetType: WatchlistAssetType.Crypto,
+                              assetType: isKr
+                                ? WatchlistAssetType.KrStock
+                                : WatchlistAssetType.Crypto,
                               symbol: item.symbol,
                               name: item.koreanName,
                             }}
                           />
-                          <Image
-                            radius={9999}
-                            width={30}
-                            height={30}
-                            src={item.logoUrl}
-                            alt={item.koreanName}
-                          />
+                          {item.logoUrl && !item.kr ? (
+                            <Image
+                              radius={9999}
+                              width={30}
+                              height={30}
+                              src={item.logoUrl}
+                              alt={item.koreanName}
+                            />
+                          ) : (
+                            // 국내 주식 로고는 서버가 준 외부 주소라 없을 수 있다(404) — `AssetIcon` 이 실패하면 이름 이니셜로 넘어간다.
+                            // 로고(30px) 자리에 가장 가까운 32px
+                            <AssetIcon
+                              symbol={item.koreanName}
+                              src={item.logoUrl || undefined}
+                              name={item.koreanName}
+                              size="md"
+                            />
+                          )}
                           {/* 진짜 링크 — 가운데 클릭 · 새 탭 · 검색 로봇. 행 클릭과 겹쳐 두 번 가지 않게 멈춘다 */}
                           <Link
                             href={detailHref(item.symbol)}
@@ -232,6 +294,12 @@ export const RealtimeMarketTable = ({
                           >
                             <Text variant="bodyLarge">{item.koreanName}</Text>
                           </Link>
+                          {item.kr && data?.krSession && (
+                            <KrQuoteBadges
+                              quote={item.kr}
+                              session={data.krSession}
+                            />
+                          )}
                         </FlexBox>
                       </TableCell>
                       <TableCell align="right">

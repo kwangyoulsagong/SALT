@@ -34,11 +34,15 @@ const quote = (over: Record<string, unknown> = {}) => ({
   basePrice: 283_000,
   upperLimit: 367_500,
   lowerLimit: 198_500,
+  openPrice: 284_000,
+  highPrice: 287_000,
+  lowPrice: 283_500,
   limitState: null,
   status: [],
   isHalted: false,
   feed: "realtime",
   priceUpdatedAt: "2026-10-08T06:30:00.000Z",
+  logoUrl: "https://financialmodelingprep.com/image-stock/005930.KS.png",
   ...over,
 });
 
@@ -72,11 +76,23 @@ describe("toKrMarketStatusVM", () => {
   });
 });
 
+describe("toKrQuoteVM logoUrl", () => {
+  it("로고 주소가 없는 옛 서버 응답은 null — 계약 깨짐으로 보지 않는다", () => {
+    const { logoUrl: _omit, ...withoutLogo } = quote();
+    const vm = toKrOverviewVM({ session, items: [withoutLogo], nextOffset: null });
+    assert.equal(vm.items[0]!.logoUrl, null);
+  });
+});
+
 describe("toKrOverviewVM", () => {
   it("필드를 골라 옮긴다 — 서버가 늘린 필드는 화면 계약에 새지 않는다", () => {
-    const vm = toKrOverviewVM({ session, items: [quote({ per: 12.3, rawKis: { stck_prpr: "286500" } })], nextOffset: 50 });
+    const vm = toKrOverviewVM({
+      session,
+      items: [quote({ per: 12.3, rawKis: { stck_prpr: "286500" }, periodChange: 3.2 })],
+      nextOffset: 50,
+    });
     assert.equal(vm.items.length, 1);
-    assert.deepEqual(vm.items[0], quote());
+    assert.deepEqual(vm.items[0], { ...quote(), periodChange: 3.2 });
     assert.equal(vm.nextOffset, 50);
     assert.deepEqual(vm.session, session);
   });
@@ -95,6 +111,12 @@ describe("toKrOverviewVM", () => {
     const vm = toKrOverviewVM({ session, items: [quote({ marketCap: null, upperLimit: null, lowerLimit: null })], nextOffset: null });
     assert.equal(vm.items[0]!.marketCap, null);
     assert.equal(vm.items[0]!.upperLimit, null);
+  });
+
+  it("당일 시 · 고 · 저 · 기간 변동률이 없으면 null — 옛 서버(필드 없음)도 계약 깨짐이 아니다", () => {
+    const { openPrice: _o, highPrice: _h, lowPrice: _l, ...old } = quote();
+    const vm = toKrOverviewVM({ session, items: [old], nextOffset: null });
+    assert.deepEqual([vm.items[0]!.openPrice, vm.items[0]!.highPrice, vm.items[0]!.lowPrice, vm.items[0]!.periodChange], [null, null, null, null]);
   });
 });
 

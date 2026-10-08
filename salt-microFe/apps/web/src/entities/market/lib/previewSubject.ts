@@ -1,18 +1,17 @@
 import {
+  MarketAssetClass,
   MarketOverviewItem,
   MarketPreviewSubject,
   WatchlistItem,
 } from "../model/types";
 
-/** 시세 목록 한 줄은 크립토다 — 목록 자체가 업비트 KRW 마켓이다. */
-const CRYPTO = "crypto";
-
+/** 시세 목록 한 줄의 자산군 — 국내 주식 행은 `kr` 을 갖는다(`krQuoteToOverviewItem`), 아니면 업비트 KRW 마켓(코인)이다 */
 export const overviewItemToPreviewSubject = (
   item: MarketOverviewItem,
 ): MarketPreviewSubject => ({
   symbol: item.symbol,
   displayName: item.koreanName,
-  assetType: CRYPTO,
+  assetType: item.kr ? MarketAssetClass.KrStock : MarketAssetClass.Crypto,
   currentPrice: item.currentPrice,
   change24h: item.change24h,
   logoUrl: item.logoUrl,

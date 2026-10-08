@@ -19,7 +19,7 @@ import React, { ReactNode } from "react";
 
 import { selectRowOnKey } from "../lib/rowSelection";
 import { WATCHLIST_ASSET_LABELS, WATCHLIST_MESSAGES } from "../model/messages";
-import { WatchlistItem } from "../model/types";
+import { MarketAssetClass, WatchlistItem } from "../model/types";
 import { ChangeRateCell } from "./ChangeRateCell";
 import { PriceCell } from "./PriceCell";
 import { nameLink } from "./WatchlistTable.css";
@@ -105,7 +105,8 @@ export const WatchlistTable = React.memo(
                         이니셜 아이콘이다. 없는 URL 을 넣지 않는다 — 깨진 이미지가 그려진다.
                       */}
                       <AssetIcon
-                        symbol={item.symbol}
+                        // 국내 주식 코드(005930)는 이니셜이 "00" 이 된다 — 이름으로 만든다
+                        symbol={item.assetType === MarketAssetClass.KrStock ? item.name : item.symbol}
                         src={item.logoUrl ?? undefined}
                         name={item.name}
                         size="md"

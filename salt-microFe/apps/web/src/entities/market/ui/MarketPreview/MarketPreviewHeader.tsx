@@ -2,12 +2,13 @@
 
 // 클라이언트 잎: 상태·effect·memo 를 갖는다. barrel 로 노출되므로 경계를 스스로 갖는다.
 import { FlexBox } from "@repo/ui/flexBox";
+import { AssetIcon } from "@repo/ui/assetIcon";
 import { Image } from "@repo/ui/image";
 import { Text } from "@repo/ui/text";
 import React from "react";
 
 import { WATCHLIST_MESSAGES } from "../../model/messages";
-import { MarketPreviewSubject } from "../../model/types";
+import { MarketAssetClass, MarketPreviewSubject } from "../../model/types";
 import { ChangeRateCell } from "../ChangeRateCell";
 import { PriceCell } from "../PriceCell";
 
@@ -23,7 +24,7 @@ export const MarketPreviewHeader = React.memo(
   ({ subject }: { subject: MarketPreviewSubject }) => {
     return (
       <FlexBox align="center" gap="lg">
-        {subject.logoUrl ? (
+        {subject.logoUrl && subject.assetType !== MarketAssetClass.KrStock ? (
           <Image
             radius={9999}
             width={40}
@@ -31,7 +32,15 @@ export const MarketPreviewHeader = React.memo(
             src={subject.logoUrl}
             alt={subject.displayName}
           />
-        ) : null}
+        ) : (
+          // 국내 주식 · 로고 없는 종목 — 서버 주소를 시도하고 실패하면(404) 이름 이니셜. 아이콘 자리를 비우지 않는다
+          <AssetIcon
+            symbol={subject.displayName}
+            src={subject.logoUrl || undefined}
+            name={subject.displayName}
+            size="lg"
+          />
+        )}
         <FlexBox direction="column">
           <Text variant="bodyLarge">{subject.displayName}</Text>
           <FlexBox align="center">

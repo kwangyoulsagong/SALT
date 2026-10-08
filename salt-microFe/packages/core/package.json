@@ -10,6 +10,7 @@
     "./auth": "./src/auth/index.ts",
     "./coach": "./src/coach/index.ts",
     "./market": "./src/market/candleTime.ts",
+    "./marketKr": "./src/market/krStock.ts",
     "./sse": "./src/sse/parser.ts",
     "./embed": "./src/embed/index.ts"
   },

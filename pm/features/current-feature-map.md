@@ -60,7 +60,7 @@ flowchart LR
 | 대시보드 | Backend Only | shell home과 연계 가능 | app home aggregation 가능 | `/api/dashboard` | user/goal/portfolio/mission 집계 가능성 | FE 요구사항으로 명확화 필요 |
 | MFE 이벤트 버스 | Implemented | shell/goals/investments shared package | 없음 | 없음 | `packages/message-event-bus` | 앱 간 런타임 통신 기반 |
 | UI 디자인 시스템 | Implemented | `packages/ui` | 없음 | 없음 | Storybook/docs | 공통 Button/Input 등 UI 패키지 |
-| 국내 주식 시세 · 분석 연동 (F011) | Planned | 없음 — `/investments` 자산군 탭 · 상세 예정(`FE-REQ-041`) | 없음 — `/api/app/market/kr/*` 예정(`BFF-REQ-040`) | 없음 — `/api/market/kr/*` 예정(`SRV-REQ-040`). `salt-server/src/shared/config/env.ts` `KIS_*` env 4개만 있음 | 없음 — `KrStockMaster` · `ExternalApiToken` · `MarketHoliday` · `PriceHistory(kr_stock)` 예정(`DB-REQ-033`) · 전망 `FC-REQ-009` | **env 만 · 키 검증 완료 2026-09-27**(실전 토큰 · 현재가 · 승인키 · WS 구독). 한국투자증권 Open API 조회 TR 만 — 주문 · 계좌 경로 0건. 코치는 아직 `kr_stock` 제외(`COACH_EXCLUDED`). 기획 `FEATURE-011-kr-stock-kis.md` |
+| 국내 주식 시세 · 분석 연동 (F011) | Partial | `/investments` 제목 아래 자산군 탭(코인 · 국내 주식) — 코인과 같은 표 · 필터 · 미리보기 · 관심 종목, 소유자만 · `/investments/{6자리}` 상세(noindex) — `FE-REQ-041` | `/api/app/market/kr/{session,overview,search,:code,:code/chart}` · WS `assetType: kr_stock` 체결 중계 · 관심 종목 `kr_stock` — `BFF-REQ-040` | `/api/market/kr/*`(소유자 전용 · 정렬/기간 · 당일 OHLC) · SSE 체결 · 관심 종목 DTO `kr_stock` — `SRV-REQ-040` | `KrStockMaster` · `KrStockQuote`(OHLC) · `ExternalApiToken` · `MarketHoliday` · `PriceHistory(kr_stock 1d · 5m)` · 워커 마스터 · 일봉 · 1분 현재가 · WS 41 슬롯 · 5분봉 — `DB-REQ-033` | 슬라이스 0~3 완료(2026-10-08). 앱 키는 모의투자용(확인). 남은 것: 거래 기록 · 보유 `kr_stock`(3b) · 코치(4) · 전망(5) · 로고 소스(결정 대기). 주문 · 계좌 경로 0건 |
 
 ## 주요 데이터 모델
 

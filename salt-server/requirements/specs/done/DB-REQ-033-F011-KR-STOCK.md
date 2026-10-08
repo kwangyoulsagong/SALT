@@ -35,3 +35,10 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
 
 `DROP TABLE kr_stock_quotes, kr_stock_master, external_api_tokens, market_holidays;`. enum 값은 Postgres 에서 뺄 수 없다 —
 `kr_stock` 행을 지우고(`price_history` 국내 주식 행) 값은 미사용으로 둔다. 원장 3종 기존 행 영향 0.
+
+## Changelog
+
+- 2026-10-07: 초판 · FR-1~6 완료
+- 2026-10-08: `kr_stock_quotes` 에 `open_price` · `high_price` · `low_price`(Decimal 38,10, nullable) — 마이그레이션 `20261008100000_kr_stock_quote_ohlc`(로컬 `migrate deploy` 적용). 열 추가만이라 롤백은 `DROP COLUMN` 셋, 기존 행 영향 0. 사유: 화면 5열(최고가 · 최저가)이 코인과 같아야 한다(`SRV-REQ-040` FR-29)
+- 2026-10-08: `kr_stock_master` 에 `homepage` · `homepage_checked_at` · `logo_source` · `logo_checked_at`(전부 nullable) — 마이그레이션 `20261008120000_kr_stock_logo_source`(로컬 `migrate deploy` 적용). 로고 **출처만** 저장하고 주소(키 포함)는 저장하지 않는다 — 키가 바뀌어도 행을 고치지 않는다. 롤백은 `DROP COLUMN` 넷, 기존 행 영향 0. 사유: 흐린 로고를 종목마다 판정(`SRV-REQ-040` FR-32)
+

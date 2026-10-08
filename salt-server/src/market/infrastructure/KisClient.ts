@@ -124,6 +124,9 @@ const num = (value: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
+/** 가격 칸 — KIS 는 값 없음을 0 으로 준다 */
+const positiveOrNull = (n: number | null): number | null => (n !== null && n > 0 ? n : null);
+
 /** `YYYYMMDD` → `YYYY-MM-DD` */
 const isoDate = (yyyymmdd: string) =>
   `${yyyymmdd.slice(0, 4)}-${yyyymmdd.slice(4, 6)}-${yyyymmdd.slice(6, 8)}`;
@@ -228,6 +231,10 @@ export class KisClient implements KrStockQuotePort, KrProviderHealthPort {
       week52High: num(o.w52_hgpr),
       week52Low: num(o.w52_lwpr),
       foreignRate: num(o.hts_frgn_ehrt),
+      // 당일 시가 · 고가 · 저가 — 장 전 · 거래정지는 0 이 온다(값 없음)
+      openPrice: positiveOrNull(num(o.stck_oprc)),
+      highPrice: positiveOrNull(num(o.stck_hgpr)),
+      lowPrice: positiveOrNull(num(o.stck_lwpr)),
     };
   }
 

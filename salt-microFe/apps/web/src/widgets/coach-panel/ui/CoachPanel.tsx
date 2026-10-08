@@ -23,6 +23,8 @@ import {
   type GaugeFooters,
   type MarketChartOverlay,
   MarketPreview,
+  KR_STOCK_MESSAGES,
+  MarketAssetClass,
   type MarketPreviewSubject,
 } from "@/entities/market";
 import { CoachModeSwitch, useCoachModeParam } from "@/features/switch-coach-mode";
@@ -71,7 +73,9 @@ const JudgmentAndZone = ({
  * (`market-board` `useOpenDetail`). 패널은 hover 미리보기만 한다.
  */
 export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
-  const { data, isPending, isError, isSignedOut } = useSymbolCoach(subject?.symbol);
+  // 국내 주식은 아직 코치 판단 대상이 아니다(F011 슬라이스 4) — 코인 판단 조회를 부르지 않고 그 자리에 한 줄
+  const isKr = subject?.assetType === MarketAssetClass.KrStock;
+  const { data, isPending, isError, isSignedOut } = useSymbolCoach(isKr ? undefined : subject?.symbol);
   const [mode, setMode] = useCoachModeParam(data?.mode);
 
   const gaugeFooters = useMemo<GaugeFooters | undefined>(() => {
@@ -96,6 +100,7 @@ export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
   }, [data, mode]);
 
   const renderBlocks = () => {
+    if (isKr) return <Text color="tertiary">{KR_STOCK_MESSAGES.detail.noCoach}</Text>;
     if (isSignedOut) return <Text color="tertiary">{COACH_MESSAGES.signedOut}</Text>;
     if (isError) {
       return <StatusLine kind="error">{COACH_MESSAGES.judgmentUnavailable}</StatusLine>;

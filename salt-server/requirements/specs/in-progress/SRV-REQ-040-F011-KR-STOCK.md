@@ -28,7 +28,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | FR-5 | axios 원본 오류(요청 헤더에 시크릿)를 밖으로 내보내지 않고 `KisApiError` 로 정제 · 토큰 · 키 · 승인키 마스킹 | 완료 |
 | FR-6 | 키 없으면(빈 값 포함) 워커 미등록 · `/api/market/kr/*` 503 `KR_STOCK_DISABLED`(Shared Kernel `ErrorKind.Unavailable` 신설, `d6f9ce6`). 빈 값이 기동을 막던 것 수정(`89ff9d9`) | 완료 · 실측 |
 | FR-10 | 종목 마스터 `.mst` 매일 07:30 KST · 4,400종목 배치 upsert · 사라진 종목 `delisted_at`. 반쪽 마스터(< 500)면 중단 | 완료 |
-| FR-11 | 유니버스 = 관심(누구든) ∪ 주권 시총 상위 N(`KIS_UNIVERSE_TOP_N`=50, 우선주 제외). **보유는 슬라이스 3**(거래 입력이 `kr_stock` 을 받을 때) | 부분 |
+| FR-11 | 유니버스 = 관심(누구든) ∪ 주권 시총 상위 N(`KIS_UNIVERSE_TOP_N`=50, 우선주 제외). **보유는 슬라이스 3b**(거래 입력이 `kr_stock` 을 받을 때 — 슬라이스 3 은 관심 종목까지, FR-31) | 부분 |
 | FR-12 | WS 41 슬롯 — 관심 → 시총 순. 나머지는 1분 폴링. 42번째는 `OPSP0008 MAX SUBSCRIBE OVER`(실측) → 구독에서 빼고 폴링 | 완료(`7689823`) |
 | FR-13 | `GET /api/market/kr/search?q=` 마스터 전체 · 코드 접두 · 이름 부분 일치 · 시총 순 20건 | 완료 |
 | FR-14 | 개장일 달력 — KIS 휴장일 조회 1순위, **이 키로 거부(EGW02004)** 라 일봉 역산(지난날) + 평일 09:10 당일 봉 관측(오늘). 미래는 `calendarKnown=false` | 부분(미래 휴장) |
@@ -38,6 +38,10 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | FR-24 | 실시간 체결(정규장 09:00~15:30 것만) → 현재가 1초 반영 · SSE `GET /api/market/kr/stream`(사용자 JWT + 소유자, `event: status` · `tick` · 15초 하트비트) | 완료 |
 | FR-25 | WS 08:30~**16:00** KST 개장일만(시간외 단일가 16:00~18:00 은 시간외 값이 현재가를 덮어 뺐다 — FR-27 과 함께 슬라이스 6) · 백오프 1→60초 · 재접속 2회째부터 승인키 재발급 | 완료(`2eb3f85`) |
 | FR-26 | 장 상태 KST(pre_open · regular · closing_auction · after_hours_close · after_hours_single · closed · holiday) · `lastCloseAt` · `nextOpenAt` · `calendarKnown` | 완료 |
+| FR-29 | 당일 시가 · 고가 · 저가 — `kr_stock_quotes.open/high/low_price`(nullable). KIS 현재가 `stck_oprc` · `stck_hgpr` · `stck_lwpr`(0 은 null) · 실시간 `H0STCNT0` 7 · 8 · 9 필드(틱은 null 로 덮지 않음). 응답 `openPrice` · `highPrice` · `lowPrice` | 완료(`f136b6d`, 슬라이스 3 — 화면이 코인과 같은 5열) |
+| FR-30 | `GET /api/market/kr/assets` `sort`(`""`·`all`·`trade_value`·`change`·`price`·`name`) · `order`(`asc`·`desc`) · `period`(`""`·`realtime`·`1d`·`7d`·`1m`·`3m`·`6m`·`1y`) — **코인과 같은 값**. 정렬은 offset/limit 전 유니버스 전체. `periodChange` = 현재가 / N거래일 전 일봉 종가 −1(1 · 5 · 21 · 63 · 126 · 250), 실시간은 `changeRate`(코인과 같음), 없으면 null · `change` 정렬은 null 마지막 | 완료(`f136b6d`) |
+| FR-31 | 관심 종목 `assetType: kr_stock` — 소유자만 · 마스터에 있는 코드만(이름은 마스터), 비소유자 · 없는 코드 같은 404 · 중복 409. 목록 가격은 `kr_stock_quotes`, 비소유자 목록엔 국내 주식 행 없음. 업비트 구독 심볼(`distinctSymbols("crypto")`)엔 안 들어감 | 완료(`f136b6d`) |
+| FR-32 | 로고(F011 FR-47) — **종목마다 출처를 판정해 저장**(`ResolveKrStockLogos`, 매일 07:50 · 부팅): logo.dev 후보 도메인(DART 홈페이지 — 키 있을 때만) → 티커 → 둘 다 흐리면 `none`(화면 이니셜). 선명도 = 경계에서 1px 안에 바뀌는 몫의 중앙값, 기준 0.6. 출처만 저장(`kr_stock_master.logo_source` 등, 마이그레이션 `20261008120000_kr_stock_logo_source`)하고 주소는 읽을 때 지금 키(`KR_LOGO_DEV_TOKEN`, `pk_` 만)로 만든다. 크기 128px. FMP 제외(LS ELECTRIC 에 건물 사진). 국내 증권 · 포털 앱 이미지 서버 금지 | 완료(`aa9b1c3` · `0022da5` · `58f0c33`) — 50종목 티커 43 · 없음 7. DART(`DART_API_KEY`)는 코드만 있고 사용자가 쓰지 않기로(2026-10-08) |
 | FR-40~46(서버 몫) | 상태 배지 · 상하한 도달 · 지연(`stale` = 시세 시간대 3분 초과) · 호가 단위 — 서버 판정, 원 정수 | 완료 |
 | FR-90 | 연속 5회 실패면 회차 중단 · 실패 종목은 이전 값 유지 | 완료 |
 | FR-92 · 94 | `session.provider { status, since, lastSuccessAt, realtime }` · 10분 TR 별 호출/실패/초과 · 오늘 토큰 발급 로그(3회 초과 경고) | 완료(`89ff9d9`) |
@@ -50,6 +54,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 - 기존 응답 무변경. `MarketAsset` · 코인 경로 무변경(시세를 `kr_stock_quotes` 에 따로 둔 이유 — `DB-REQ-033`)
 - `ErrorKind.Unavailable`(503) — Shared Kernel 값 추가. 기존 값 매핑 무변경
 - BFF 짝 `BFF-REQ-040`(슬라이스 2) — 아직 소비처 없음
+- 슬라이스 3(2026-10-08): `assets` 쿼리 3개 · 시세 행 `openPrice` · `highPrice` · `lowPrice` · `periodChange` 추가(기존 필드 무변경) · 관심 종목 DTO `assetType` 에 `kr_stock`. 마이그레이션 `20261008100000_kr_stock_quote_ohlc`(`DB-REQ-033`). 소비처 `BFF-REQ-040` FR-11~13 · `FE-REQ-041`
 
 ## 기획 정정
 
@@ -64,3 +69,11 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 ## 하지 않는 것
 
 주문 · 계좌 · 잔고 · 체결통보 TR. 미국 주식. 호가 · 투자자별 · 시간외 단일가(슬라이스 6).
+
+## Changelog
+
+- 2026-10-07: 초판 · 슬라이스 0 · 1(FR-1~27 · 40~46 · 90~94)
+- 2026-10-08: FR-32 — 로고 주소를 서버가 정한다(`aa9b1c3`, 사용자 "베스트 케이스로"). 테스트 648/648(로고 2 · 관심 kr 로고 기대값 갱신)
+- 2026-10-08: FR-29~31 — 화면을 코인과 같게(사용자 "똑같은 화면이고 데이터만 다른거지"): 당일 시가/고가/저가 · 정렬/순서/기간 · 관심 종목 `kr_stock`(`f136b6d`). 휴장일 TR 거부 문구가 "실전투자 도메인은 모의투자 앱키로 호출하실 수 없습니다"로 확인 — **앱 키는 모의투자용**(슬라이스 1 의 추정이 사실)
+- 2026-10-08: FR-32 로고 크기 64 → 128px — 사용자 "화질 구린것도 있네". 64px 원본이 40px 미리보기 아이콘(레티나 80px)에서 흐렸다. 128 은 실제 고해상도 원본(파일 2.5~3배, 업스케일 아님). logo.dev 키 적용 후 유니버스 51/51 응답
+- 2026-10-08: FR-32 판정형으로 개정 — 사용자 "lg 전자 ls electronic은 여전히 흐려". logo.dev 티커 원본이 작은 종목(16~32px 를 키운 것)이 있다. 51종목 실측: 흐린 7 = 선명도 0.27~0.44, 선명 44 = 0.70 이상(사이 빔) → 기준 0.6. 단순 축소 · 복원 오차는 효성중공업 "H" 오탐으로 버림. 받다가 실패하면 판정 미룸(일시 장애가 30일 동안 로고를 지우지 않게). FMP 제외. DART 도메인 조회(LG전자 `lg.com` 은 선명 확인)는 사용자가 하지 않기로 — 키 없으면 건너뛴다. 테스트 661/661(선명도 · PNG 디코더 · 판정 4). `58f0c33`

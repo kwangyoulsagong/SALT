@@ -265,7 +265,9 @@ export interface WatchlistRepository {
     userId: string,
     assetType: MarketAssetType | undefined,
     page: number,
-    limit: number
+    limit: number,
+    /** 이 자산군 행은 빼고 센다 — 국내 주식을 볼 수 없는 사람(F011 소유자 전용) */
+    excludeAssetTypes?: MarketAssetType[]
   ): Promise<{ items: WatchlistItem[]; total: number }>;
   /** 남의 항목이면 지우지 않고 `false`. 소유 검사를 왕복 한 번에 끝낸다. */
   removeOwned(userId: string, watchlistId: string): Promise<boolean>;

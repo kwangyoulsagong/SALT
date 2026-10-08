@@ -1,6 +1,15 @@
 import type { ChartTimeframeSpec } from "../model/chartTimeframes";
 import { MarketOrder, MarketPeriod, MarketSort } from "../model/types";
 
+/** 국내 주식 시세 목록 조회 조건 — 코인 `MarketOverviewParams` 의 필터를 그대로 쓴다 */
+export interface KrOverviewQuery {
+  limit: number;
+  offset: number;
+  sort?: MarketSort;
+  order?: MarketOrder;
+  period?: MarketPeriod;
+}
+
 /** 차트 주기. 서버·BFF 가 아는 값이고 문자열을 직접 쓰지 않는다. */
 const CHART_PERIOD_MINUTE = "minute";
 
@@ -59,4 +68,16 @@ export const MARKET_ENDPOINTS = {
   /** 시장 요약 띠 — BFF 뷰모델(`BFF-REQ-035`). 공개 경로다 */
   summary: () => `/api/app/market/summary`,
   watchlistItem: (id: string) => `/api/app/watchlist/${encodeURIComponent(id)}`,
+  /**
+   * 국내 주식(F011 `FE-REQ-041`) — BFF 뷰모델 `BFF-REQ-040`. **전부 인증 필수 · 소유자 전용**(KRX 재배포 약관 —
+   * 비회원 · 공개 응답에 국내 주식 시세 0건). 코드는 호출 전에 `isKrStockCode` 로 거른다
+   */
+  krSession: () => `/api/app/market/kr/session`,
+  /** 정렬 · 순서 · 기간은 코인과 **같은 값**을 보낸다(`MarketSort` · `MarketOrder` · `MarketPeriod`) — 같은 필터 줄이 두 자산군을 고른다 */
+  krOverview: ({ limit, offset, sort, order, period }: KrOverviewQuery) =>
+    `/api/app/market/kr/overview?limit=${limit}&offset=${offset}` +
+    `&sort=${sort ?? ""}&order=${order ?? ""}&period=${period ?? ""}`,
+  krDetail: (code: string) => `/api/app/market/kr/${encodeURIComponent(code)}`,
+  krChart: (code: string, period: string, count: number) =>
+    `/api/app/market/kr/${encodeURIComponent(code)}/chart?period=${period}&count=${count}`,
 } as const;

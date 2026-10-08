@@ -1,4 +1,5 @@
 import { KrStockNotAvailableError, isKrStockViewer } from "../../domain";
+import type { KrCompanyHomepageSource, KrLogoImageProbe } from "../../domain";
 import type {
   KrProviderHealthPort,
   KrRealtimePort,
@@ -37,6 +38,7 @@ import {
   CollectWhaleTrades,
 } from "../AnalyzeMarketIntelligence";
 import { GetSymbolNews } from "../GetSymbolNews";
+import { ResolveKrStockLogos } from "../ResolveKrStockLogos";
 import {
   AddToWatchlist,
   ListWatchlist,
@@ -196,6 +198,12 @@ export interface KrStockDependencies {
   health: KrProviderHealthPort;
   /** 시총 상위 N(`KIS_UNIVERSE_TOP_N`) */
   universeTopN: number;
+  /** logo.dev 퍼블리셔블 키(`KR_LOGO_DEV_TOKEN`) — 없으면 로고 없음(화면 이니셜, `krStockLogoUrl`) */
+  logoDevToken?: string;
+  /** 로고 이미지 받기 — 선명도 판정(`ResolveKrStockLogos`) */
+  logoImages: KrLogoImageProbe;
+  /** DART 기업개황 홈페이지 — 키(`DART_API_KEY`)가 없으면 `null`(도메인 조회 없이 티커만) */
+  homepages: KrCompanyHomepageSource | null;
   /** 볼 수 있는 계정 — 소유자 전용(`FORECAST_OWNER_EMAILS`) */
   viewerEmails: readonly string[];
 }
@@ -208,6 +216,8 @@ export interface KrStockUseCases {
   syncMinuteBars: SyncKrMinuteBars;
   realtime: RunKrRealtime;
   reportMetrics: ReportKrProviderMetrics;
+  /** 종목별 로고 출처 판정(도메인 → 티커 → 없음) — 하루 한 번 · 30일마다 다시 */
+  resolveLogos: ResolveKrStockLogos;
   /** SSE 를 열기 전 소유자 판정 — 스트림도 시세다 */
   assertViewer: (viewer: { userId: string; email?: string }) => void;
   getSession: GetKrMarketSession;
@@ -229,7 +239,13 @@ const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
       realtime: realtime.status(),
     };
   };
-  const read = { store: deps.store, calendar: deps.calendar, viewerEmails: deps.viewerEmails, provider };
+  const read = {
+    store: deps.store,
+    calendar: deps.calendar,
+    viewerEmails: deps.viewerEmails,
+    provider,
+    logoDevToken: deps.logoDevToken,
+  };
   return {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
     syncCalendar: new SyncKrMarketCalendar(deps.kis, deps.calendar),
@@ -238,6 +254,13 @@ const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
     syncMinuteBars: new SyncKrMinuteBars(deps.kis, deps.store, deps.calendar, universe),
     realtime,
     reportMetrics: new ReportKrProviderMetrics(deps.health),
+    resolveLogos: new ResolveKrStockLogos({
+      store: deps.store,
+      universe,
+      images: deps.logoImages,
+      homepages: deps.homepages,
+      logoDevToken: deps.logoDevToken,
+    }),
     assertViewer: (viewer) => {
       if (!isKrStockViewer(viewer.email, deps.viewerEmails)) throw new KrStockNotAvailableError();
     },
@@ -276,6 +299,10 @@ export interface MarketUseCases {
 }
 
 export const createMarketApplication = (deps: MarketDependencies) => {
+  // 국내 주식 관심 종목 — 키가 없으면 `null`(담을 수 없고 목록에서도 빠진다, F011 슬라이스 3)
+  const krWatchlist = deps.krStock
+    ? { store: deps.krStock.store, viewerEmails: deps.krStock.viewerEmails, logoDevToken: deps.krStock.logoDevToken }
+    : null;
   const useCases: MarketUseCases = {
     calculateSentiment: new CalculateSentiment(
       deps.exchange,
@@ -292,10 +319,10 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     getSentimentHistory: new GetSentimentHistory(deps.sentiments),
     listWhaleTransactions: new ListWhaleTransactions(deps.whales),
     getSymbolNews: new GetSymbolNews(deps.news),
-    addToWatchlist: new AddToWatchlist(deps.watchlist, deps.exchange),
+    addToWatchlist: new AddToWatchlist(deps.watchlist, deps.exchange, krWatchlist),
     // 관심 목록이 자산 표를 함께 읽는다 — 행에 가격이 없거나 오래된 심볼을 보정한다
     // (`SRV-REQ-008` FR-33). 두 리포지토리 다 이 컨텍스트 것이라 경계를 넘지 않는다.
-    listWatchlist: new ListWatchlist(deps.watchlist, deps.assets),
+    listWatchlist: new ListWatchlist(deps.watchlist, deps.assets, krWatchlist),
     removeFromWatchlist: new RemoveFromWatchlist(deps.watchlist),
     listWatchlistSymbols: new ListWatchlistSymbols(deps.watchlist),
     updateWatchlistPrices: new UpdateWatchlistPrices(deps.watchlist),

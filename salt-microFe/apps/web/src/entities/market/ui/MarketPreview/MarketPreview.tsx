@@ -10,7 +10,7 @@ import { Text } from "@repo/ui/text";
 import React, { type ReactNode, Suspense } from "react";
 
 import { MARKET_MESSAGES } from "../../model";
-import { MarketPreviewSubject } from "../../model/types";
+import { MarketAssetClass, MarketPreviewSubject } from "../../model/types";
 import {
   type GaugeFooters,
   MarketIntelligencePreview,
@@ -35,8 +35,10 @@ interface MarketPreviewProps {
   chartOverlay?: MarketChartOverlay;
 }
 
-/** 차트·심리·스마트머니의 소스가 업비트다. 이 자산군에만 있다. */
-const MARKET_DATA_ASSET_TYPE = "crypto";
+/** 심리 · 스마트머니의 소스가 업비트다. 코인에만 있다 */
+const INTELLIGENCE_ASSET_TYPE = MarketAssetClass.Crypto;
+/** 미리보기 차트(5분봉)가 있는 자산군 — 국내 주식은 서버가 체결로 쌓은 5분봉(F011 `FE-REQ-041`) */
+const CHART_ASSET_TYPES: readonly string[] = [MarketAssetClass.Crypto, MarketAssetClass.KrStock];
 
 /**
  * 우측 프리뷰 패널.
@@ -58,7 +60,8 @@ export const MarketPreview = ({
   gaugeFooters,
   chartOverlay,
 }: MarketPreviewProps) => {
-  const hasMarketData = subject?.assetType === MARKET_DATA_ASSET_TYPE;
+  const hasChart = subject !== undefined && CHART_ASSET_TYPES.includes(subject.assetType);
+  const hasIntelligence = subject?.assetType === INTELLIGENCE_ASSET_TYPE;
 
   return (
     <Root width="lg" className={previewPanel}>
@@ -69,17 +72,25 @@ export const MarketPreview = ({
               <Padding paddingTop="sm">
                 <MarketPreviewHeader subject={subject} />
               </Padding>
-              {hasMarketData ? (
+              {hasChart ? (
                 <>
                   <Heading level={5} color="tertiary">
                     {MARKET_MESSAGES.chartHeading}
                   </Heading>
-                  <MarketPreviewChart symbol={subject.symbol} overlay={chartOverlay} />
-                  {coachSlot}
-                  <MarketIntelligencePreview
+                  <MarketPreviewChart
                     symbol={subject.symbol}
-                    gaugeFooters={gaugeFooters}
+                    overlay={chartOverlay}
+                    assetType={subject.assetType}
                   />
+                  {coachSlot}
+                  {hasIntelligence ? (
+                    <MarketIntelligencePreview
+                      symbol={subject.symbol}
+                      gaugeFooters={gaugeFooters}
+                    />
+                  ) : (
+                    <Text color="tertiary">{MARKET_MESSAGES.intelligenceUnavailable}</Text>
+                  )}
                 </>
               ) : (
                 <>

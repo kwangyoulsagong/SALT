@@ -31,6 +31,8 @@ export const startKrStockWorkers = () => {
 
   const jobs: Array<{ name: string; expression: string; run: () => Promise<unknown> }> = [
     { name: "kr-master-sync", expression: "30 7 * * *", run: () => kr.syncMaster.execute() },
+    // 로고 판정 — 마스터 뒤. 판정할 종목(새 종목 · 30일 지난 것)만 본다
+    { name: "kr-logo-resolve", expression: "50 7 * * *", run: () => kr.resolveLogos.execute() },
     { name: "kr-calendar-sync", expression: "10 9 * * 1-5", run: () => kr.syncCalendar.execute() },
     { name: "kr-daily-candles", expression: "45 15 * * 1-5", run: () => kr.syncDailyCandles.execute() },
     // 장 마감 보정 · 30일 백필 — 호출 상한에 걸리면 다음 회차(밤 · 다음 날)가 잇는다
@@ -56,6 +58,8 @@ export const startKrStockWorkers = () => {
       () => kr.realtime.reconcile(),
       () => kr.syncDailyCandles.execute(),
       () => kr.syncCalendar.execute(),
+      // 로고는 맨 뒤 — 화면은 판정 전에도 티커 로고를 쓴다
+      () => kr.resolveLogos.execute(),
     ];
     for (const job of boot) {
       try {

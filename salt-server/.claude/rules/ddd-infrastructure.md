@@ -104,6 +104,7 @@ class CostBasisAdapter implements CostBasisSource {
 |---|---|---|
 | Upbit REST/WS | `market` `ledger` | **조회 전용 키만.** 주문·출금 엔드포인트를 호출하는 코드를 만들지 않는다 |
 | KIS (한국투자증권) | `market` | **시세 조회 TR 허용 목록만**(`KisClient` `KIS_QUERY_TR`). 잔고 · 매수가능 · 체결통보도 계좌 정보라 금지 — 주문 · 계좌 TR 문자열 0건을 테스트가 본다(F011, 2026-10-07 개정: 앞 문장 "잔고·체결내역 GET만" 은 계좌 연동 없음 결정과 어긋났다) |
+| logo.dev · DART 기업개황 | `market` | 국내 주식 로고(F011 FR-47). logo.dev 는 퍼블리셔블 키만(`pk_` — 주소에 실려 화면으로 나간다). DART 키는 서버 밖으로 나가지 않는다(선택 — 없으면 티커 조회만). 이미지는 판정에만 받고 저장하지 않는다 |
 | 환율 소스 | `fx` | 결제일 기준환율. 결측 시 `degraded` |
 | 온체인 지표 (MVRV Z · Puell) | `indicator` | 일 1회. carry-forward + `staleDays` |
 | CAPE | `indicator` | 동일 |

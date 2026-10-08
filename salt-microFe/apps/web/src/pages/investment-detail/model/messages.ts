@@ -16,6 +16,11 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   metaDescriptionFallback: (symbol: string) =>
     `${symbol} 차트와 과거 적중률 · 틀렸던 사례까지 함께 보는 AI 코치 판단 — 예측이 아닙니다.`,
   breadcrumbInvestments: "코인 시세",
+
+  /** 국내 주식 상세(F011) — 메타데이터에 시세를 넣지 않는다(KRX 재배포 약관) */
+  krBack: "투자로 돌아가기",
+  krBlockName: "국내 주식 상세",
+  krMetaTitle: (code: string) => `국내 주식 ${code}`,
 } as const;
 
 /** 본문 자리 높이 — Hero + 차트(320) + 탭 · 여백. 도착 전 푸터가 올라붙지 않게 */

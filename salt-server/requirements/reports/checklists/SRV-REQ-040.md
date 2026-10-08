@@ -21,3 +21,22 @@
 ## 미검증 · 범위 밖
 
 루트 체크리스트 `requirements/reports/checklists/F011-slice0-1-kis-foundation.md` 의 표가 진실이다. 서버 몫: 앱 키 모의투자 여부 · 미래 휴장 · 15:40 보정 시점 15:30 분봉 미제공(20:40 · 다음 날이 메움) · 시간외 단일가 중 KIS 값 원인 · 운영 DB · 평문 저장 · 코치(FR-60~66) · 시간외 필드(FR-27).
+
+## 슬라이스 3 추가(2026-10-08, `f136b6d`)
+
+| FR | 결과 |
+|---|---|
+| FR-29 | 새 테스트 `kisRealtime.test.ts` OHLC 파싱 · 실서버 005930 시가 269,500 · 고가 270,000 · 저가 266,500 |
+| FR-30 | 새 테스트 `krStockList.test.ts`(정렬 · 기간 · 페이지 · 비소유자 404) · 실서버 `sort=trade_value&period=7d` SK하이닉스 첫 행 · `periodChange` −1.52 · 삼성전자 7d 기준 종가 DB 대조 |
+| FR-31 | 테스트(관심 추가 · 목록) · 실서버 추가 201 · 중복 409 · 잘못된 코드 404 · 비소유자 404 · 목록 267,500 · 제거 204(DB 원상) · 화면 별 추가/제거 |
+
+`tsc` · lint · `test:layer-check` · `npm test` 646/646 · `npm run build` 통과. 미검증: `baselineCloses` 쿼리 `EXPLAIN`(유니버스 ~50종목 × 일봉 2년 — 체감 지연 없음, 수치 안 잼) · 운영 DB 마이그레이션.
+
+
+### FR-32 로고 주소(2026-10-08, `aa9b1c3`)
+
+| FR | 검증 |
+|---|---|
+| FR-32 | 도메인 테스트 2(FMP `.KS`/`.KQ` · logo.dev `fallback=404`) · 관심 목록 kr 행 로고 기대값 · 실서버 유니버스 51종목 FMP 주소 HEAD 51/51 = 200 · env `KR_LOGO_DEV_TOKEN` 는 `pk_` 만 통과(zod) |
+
+`tsc` · lint · `npm test` 648/648 · `npm run build` 통과. 미검증: logo.dev 실제 응답(키 없음 — 사용자 결정) · FMP 사용 조건(약관 페이지 봇 403).

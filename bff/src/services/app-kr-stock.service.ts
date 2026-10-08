@@ -10,6 +10,9 @@ import {
   toKrOverviewVM,
   toKrSearchVM,
   type KrChartPeriod,
+  type KrListOrder,
+  type KrListPeriod,
+  type KrListSort,
 } from "./kr-stock.viewmodel";
 
 /**
@@ -80,11 +83,19 @@ export class AppKrStockService {
     return this.read("session", "/market/kr/session", token, toKrMarketStatusVM, { timeout: KR_READ_TIMEOUT_MS, signal });
   }
 
-  /** 시세 표(시총 순, 페이지) */
-  getOverview(token: string, query: { limit: number; offset: number }, signal?: AbortSignal) {
+  /** 시세 표(페이지) — 정렬 · 순서 · 기간은 코인 표와 같은 문자열을 그대로 넘긴다(검증은 컨트롤러가 했다) */
+  getOverview(
+    token: string,
+    query: { limit: number; offset: number; sort?: KrListSort; order?: KrListOrder; period?: KrListPeriod },
+    signal?: AbortSignal,
+  ) {
+    const filters =
+      `&sort=${encodeURIComponent(query.sort ?? "")}` +
+      `&order=${encodeURIComponent(query.order ?? "")}` +
+      `&period=${encodeURIComponent(query.period ?? "")}`;
     return this.read(
       "overview",
-      `/market/kr/assets?limit=${query.limit}&offset=${query.offset}`,
+      `/market/kr/assets?limit=${query.limit}&offset=${query.offset}${filters}`,
       token,
       toKrOverviewVM,
       { timeout: KR_READ_TIMEOUT_MS, signal },

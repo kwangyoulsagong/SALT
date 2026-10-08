@@ -1,12 +1,17 @@
 import { RECONNECT_TIME_PENDING, WEBSOCKET_URL } from "@/shared/config";
 
+import { readAccessToken } from "../authToken";
+
 import { dispatchMessage } from "./handlers";
 import {
   CandleListener,
   ConnectionStatus,
+  KrErrorListener,
+  KrPriceListener,
   PriceListener,
   Timeframe,
   WSClientReceiveMessage,
+  WSAssetType,
   WSClientSendMessage,
   WSMessageType,
 } from "./types";
@@ -54,6 +59,14 @@ class WSClient {
     string,
     Map<Timeframe, Set<CandleListener>>
   >();
+  /** 국내 주식 체결(F011 `FE-REQ-041`). 코인과 맵 · 구독 메시지가 따로다 — BFF 도 업비트 구독과 섞지 않는다 */
+  public readonly krPriceListeners = new Map<string, Set<KrPriceListener>>();
+  private readonly krErrorListeners = new Set<KrErrorListener>();
+
+  /** `dispatchMessage` 가 부른다 — BFF 가 국내 주식 구독을 거부했다 */
+  notifyKrError = (code: string) => {
+    this.krErrorListeners.forEach((fn) => fn(code));
+  };
 
   constructor(url: string) {
     this.url = url;
@@ -143,7 +156,11 @@ class WSClient {
   }
 
   private hasListeners() {
-    return this.priceListeners.size > 0 || this.candleListeners.size > 0;
+    return (
+      this.priceListeners.size > 0 ||
+      this.candleListeners.size > 0 ||
+      this.krPriceListeners.size > 0
+    );
   }
 
   /** 연결이 (다시) 열릴 때 지금 붙어 있는 구독 전부를 서버에 다시 알린다. */
@@ -152,6 +169,7 @@ class WSClient {
     if (symbols.length > 0) {
       this.send({ type: WSMessageType.Subscribe, symbols });
     }
+    this.sendKrSubscribe(Array.from(this.krPriceListeners.keys()));
     this.candleListeners.forEach((tfMap, symbol) => {
       tfMap.forEach((_, timeframe) => {
         this.send({ type: WSMessageType.SubscribeCandle, symbol, timeframe });
@@ -206,6 +224,67 @@ class WSClient {
       });
       if (removed.length > 0) {
         this.send({ type: WSMessageType.Unsubscribe, symbols: removed });
+      }
+    };
+  }
+
+  // ── 국내 주식 체결 구독 ──────────────────────────────────────
+
+  /**
+   * 토큰은 **보낼 때마다** 읽는다 — 재연결 시점의 토큰이어야 한다. 만료된 토큰으로 거부되면(`onError`) 화면은 저장값
+   * 조회로 내려가고, 다음 재연결이 `apiFetch` 가 갱신해 둔 토큰으로 다시 붙는다. 토큰이 없으면 보내지 않는다 —
+   * BFF 가 어차피 `KR_STOCK_AUTH_REQUIRED` 로 거부한다
+   */
+  private sendKrSubscribe(codes: string[]) {
+    if (codes.length === 0) return;
+    const token = readAccessToken();
+    if (!token) {
+      this.notifyKrError("KR_STOCK_AUTH_REQUIRED");
+      return;
+    }
+    this.send({ type: WSMessageType.Subscribe, assetType: WSAssetType.KrStock, symbols: codes, token });
+  }
+
+  /**
+   * 국내 주식 6자리 코드에 리스너를 붙인다. 참조 카운트 · 해제는 `subscribePrices` 와 같다.
+   * `onError` 는 이 연결의 국내 주식 구독이 거부됐을 때 — 비소유자는 `subscribed` 뒤에 `error` 가 온다(`BFF-REQ-040`)
+   */
+  subscribeKrPrices(
+    codes: string[],
+    listener: KrPriceListener,
+    onError?: KrErrorListener,
+  ): () => void {
+    const upper = Array.from(new Set(codes.map((c) => c.toUpperCase())));
+    const added: string[] = [];
+
+    upper.forEach((code) => {
+      let set = this.krPriceListeners.get(code);
+      if (!set) {
+        set = new Set();
+        this.krPriceListeners.set(code, set);
+        added.push(code);
+      }
+      set.add(listener);
+    });
+    if (onError) this.krErrorListeners.add(onError);
+
+    this.ensureConnected();
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) this.sendKrSubscribe(added);
+
+    return () => {
+      if (onError) this.krErrorListeners.delete(onError);
+      const removed: string[] = [];
+      upper.forEach((code) => {
+        const set = this.krPriceListeners.get(code);
+        if (!set) return;
+        set.delete(listener);
+        if (set.size === 0) {
+          this.krPriceListeners.delete(code);
+          removed.push(code);
+        }
+      });
+      if (removed.length > 0) {
+        this.send({ type: WSMessageType.Unsubscribe, assetType: WSAssetType.KrStock, symbols: removed });
       }
     };
   }

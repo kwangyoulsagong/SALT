@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 import { vars } from "../styles/tokens.css";
 import { assetIconStyles, imageStyles } from "./styles/assetIcon.css";
 
@@ -6,7 +10,7 @@ export type AssetIconSize = "sm" | "md" | "lg" | "xl";
 export interface AssetIconProps {
   /** 종목 코드나 티커. 로고가 없을 때 이니셜과 배경색의 근거가 된다. */
   symbol: string;
-  /** 로고 이미지 URL. 없으면 이니셜 폴백으로 렌더한다. */
+  /** 로고 이미지 URL. 없거나 **불러오지 못하면**(404 · 네트워크) 이니셜 폴백으로 렌더한다. */
   src?: string;
   size?: AssetIconSize;
   /** 스크린 리더가 읽을 이름. 없으면 `symbol`을 읽는다. */
@@ -51,11 +55,19 @@ export const AssetIcon = ({
 }: AssetIconProps) => {
   const label = name || symbol;
   const rootClassName = `${assetIconStyles({ size })} ${className || ""}`;
+  // 실패한 주소를 기억한다 — 주소가 바뀌면(다른 종목) 다시 시도한다. 깨진 이미지 아이콘을 그리지 않는다
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
-  if (src) {
+  if (src && src !== failedSrc) {
     return (
       <span className={rootClassName}>
-        <img className={imageStyles} src={src} alt={label} loading="lazy" />
+        <img
+          className={imageStyles}
+          src={src}
+          alt={label}
+          loading="lazy"
+          onError={() => setFailedSrc(src)}
+        />
       </span>
     );
   }

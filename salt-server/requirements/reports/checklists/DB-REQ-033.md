@@ -16,3 +16,19 @@
 | 운영 DB 적용 · `ALTER TYPE` 락 시간 | 운영 미접근. `ADD VALUE` 는 테이블 재작성이 없다(PG 12+) | 배포 시 |
 | 토큰 평문 저장 | Open Question(소유자 1인 운영) | 사용자 결정 |
 | `price_history` 국내 주식 5분봉 보관 | 기존 정리 작업이 5분봉 30일 · 일봉 2년을 자산군 구분 없이 지운다 — 국내 주식도 같다(의도와 일치) | — |
+
+## 2026-10-08 추가 — OHLC 열
+
+| 항목 | 결과 |
+|---|---|
+| 마이그레이션 `20261008100000_kr_stock_quote_ohlc` | 로컬 `prisma migrate deploy` 적용 · 클라이언트 재생성 · 기존 행 null(다음 1분 조회 · 체결이 채움, 실측 채워짐) |
+| 롤백 | `ALTER TABLE kr_stock_quotes DROP COLUMN open_price, DROP COLUMN high_price, DROP COLUMN low_price` — 미실행 |
+| 운영 적용 | 미검증 — 배포 시 |
+
+## 추가 — 로고 출처 컬럼(2026-10-08)
+
+| 항목 | 결과 |
+|---|---|
+| 마이그레이션 `20261008120000_kr_stock_logo_source` | 로컬 `migrate deploy` 적용 · `prisma generate` · `migrate status` up to date |
+| 기존 행 | nullable 추가만 — 영향 0. 판정 뒤 50행에 `logo_source`(ticker 43 · none 7) |
+| 롤백 | `DROP COLUMN` 넷 |

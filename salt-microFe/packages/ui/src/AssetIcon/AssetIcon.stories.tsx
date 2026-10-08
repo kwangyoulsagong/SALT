@@ -87,3 +87,14 @@ export const EmptySymbol: Story = {
     size: "lg",
   },
 };
+
+/** 로고 주소가 404 면 이니셜로 넘어간다 — 깨진 이미지 아이콘을 그리지 않는다. */
+export const BrokenImageFallback: Story = {
+  args: {
+    symbol: "삼성전자",
+    name: "삼성전자",
+    size: "lg",
+    src: "data:image/png;base64,broken",
+  },
+};
+
