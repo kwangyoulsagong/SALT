@@ -44,13 +44,18 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 | FR-8 | 열기 거부(4xx · 503 꺼짐)는 `error { assetType: "kr_stock", code }` 후 중계 해제 — 다시 열지 않는다. 5xx · 연결 실패 · upstream 끊김은 1 · 2 · 5 · 10 · 30초로 다시 연다. 하트비트 45초 무응답이면 끊긴 것 | 완료 |
 | FR-9 | WS 연결 종료 · 하트비트 종료 · 프로세스 종료에서 upstream 을 끊는다(유령 스트림 0). 동시 중계 상한 20 · 연결당 100코드(`KR_STREAM_LIMIT`) | 완료 |
 | FR-10 | 코인 `price_update.data.assetType = "crypto"` | 완료 |
+| FR-11 | `/overview` `sort` · `order` · `period` — 서버와 같은 값(코인 문자열 `""` · `trade_value` · `7d` …)만, 모르는 값은 서버를 부르지 않고 400(`period=1w` 400 확인) | 완료(`36ad645`, 슬라이스 3) |
+| FR-12 | `KrQuoteVM` `openPrice` · `highPrice` · `lowPrice`(numOrNull) · 목록 행 `periodChange` | 완료(`36ad645`) |
+| FR-13 | 관심 종목 — `kr_stock` 행은 업비트 가격 캐시를 보지 않고 서버 값 그대로(`logoUrl` null) · POST `assetType` 통과 | 완료(`36ad645`) |
 
 ## 계약 변경
 
 - **새 경로** `/api/app/market/kr/*` 5개(소비처 없음 — `FE-REQ-041` 이 첫 소비처)
+- **슬라이스 3(2026-10-08)** — `/overview` 쿼리 3개 · 응답 필드 4개 추가(기존 필드 무변경) · 관심 종목 `kr_stock` 통과. 소비처 `FE-REQ-041`
 - **WS 추가 필드** — 코인 `price_update.data.assetType`, 구독 메시지 `assetType` · `token`. 기존 메시지 그대로 동작(`assetType` 없으면 코인)
 - 서버 계약 변경 없음(`openAuthStream` 이 GET 도 연다 — BFF 내부)
 
 ## Changelog
 
 - 2026-10-08: 초판 · FR-1~10 완료
+- 2026-10-08: FR-11~13 — 화면을 코인과 같게(`FE-REQ-041`): 필터 · 당일 시가/고가/저가 · 기간 수익률 · 관심 종목 `kr_stock`. 첫 소비처가 생겨 미검증 "비소유자 subscribed 선응답"을 화면이 처리(탭 없음 · 거부 코드)
