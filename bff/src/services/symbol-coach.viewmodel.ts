@@ -30,6 +30,10 @@ export type JudgmentAction =
   | "avoid";
 
 export type JudgmentBlockedReason =
+  /** 이 자산군에 아직 열지 않은 모드 — 국내 주식 단타(F011 슬라이스 4 · `BFF-REQ-040` FR-17) */
+  | "mode_not_open"
+  /** 국내 주식 종목의 이력(일봉 120 거래일 · 일봉 지표)이 모자람 — 수치는 `history` */
+  | "insufficient_history"
   | "exchange_warning"
   /** 시세 · 지표가 기준보다 오래됐다(F010 슬라이스 7 · `BFF-REQ-039` FR-7). 서버 게이트 값을 그대로 옮긴다 */
   | "stale_inputs"
@@ -135,9 +139,21 @@ export type Zone =
  * 모드 하나. **`renderable: false` 에 `judgment` · `trackRecord` 가 없다.**
  * `zone` 은 판단이 막혀도 싣는다 — 구간은 판단이 아니라 과거 가격과 내 규칙이다.
  */
+/** 성적이 세는 자산군(F011 FR-61). 서버가 옛 버전이면 코인이다 */
+export type JudgmentAssetClass = "crypto" | "kr_stock";
+
+/** 국내 주식 판단을 여는 이력의 지금 수치(F011 FR-62). 코인엔 없다 */
+export interface JudgmentHistory {
+  ready: boolean;
+  dailyBars: number;
+  requiredDailyBars: number;
+  dailyIndicator: boolean;
+}
+
 export type ModeCoachViewModel =
   | {
       renderable: true;
+      assetClass: JudgmentAssetClass;
       judgment: Judgment;
       trackRecord: TrackRecord;
       failureCases: [FailureCase, ...FailureCase[]];
@@ -145,9 +161,12 @@ export type ModeCoachViewModel =
     }
   | {
       renderable: false;
+      assetClass: JudgmentAssetClass;
       blockedReason: JudgmentBlockedReason;
       /** "표본 N건" 표시용. 성적표가 없으면 `null` */
       trackSample: number | null;
+      /** `insufficient_history` 의 수치. 국내 주식만 */
+      history: JudgmentHistory | null;
       zone: Zone;
     };
 
@@ -218,6 +237,8 @@ export interface ServerModeView {
   trackRecord?: TrackRecord | null;
   failureCases?: FailureCase[];
   zone?: Zone;
+  assetClass?: unknown;
+  history?: unknown;
 }
 
 export interface ServerSymbolCoach {
@@ -259,6 +280,19 @@ const toZone = (zone: Zone): Zone => {
   return PRICE_BASES.includes(basis) ? zone : rest;
 };
 
+const toAssetClass = (value: unknown): JudgmentAssetClass => (value === "kr_stock" ? "kr_stock" : "crypto");
+
+/** 이력 수치 — 모양이 틀리면 `null`(문구가 숫자를 지어내지 않게) */
+const toHistory = (value: unknown): JudgmentHistory | null => {
+  if (typeof value !== "object" || value === null) return null;
+  const raw = value as Record<string, unknown>;
+  const count = (v: unknown) => (typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : null);
+  const dailyBars = count(raw.dailyBars);
+  const requiredDailyBars = count(raw.requiredDailyBars);
+  if (dailyBars === null || requiredDailyBars === null || typeof raw.ready !== "boolean") return null;
+  return { ready: raw.ready, dailyBars, requiredDailyBars, dailyIndicator: raw.dailyIndicator === true };
+};
+
 /**
  * 서버 모드 블록 → 화면 모드 블록. 계약이 깨졌으면 `null`.
  *
@@ -276,8 +310,10 @@ export const toModeViewModel = (
     if (!view.blockedReason) return null;
     return {
       renderable: false,
+      assetClass: toAssetClass(view.assetClass),
       blockedReason: view.blockedReason,
       trackSample: view.trackRecord?.sample ?? null,
+      history: toHistory(view.history),
       zone: toZone(view.zone),
     };
   }
@@ -295,6 +331,7 @@ export const toModeViewModel = (
   // `confidence` 가 서버에 남아 있어도 여기서 끊긴다 — 필드를 골라 옮긴다(D3)
   return {
     renderable: true,
+    assetClass: toAssetClass(view.assetClass),
     judgment: {
       action: judgment.action,
       label: judgment.label,
@@ -335,8 +372,10 @@ const blockWarned = (
   if (!mode || !flag?.warning || !mode.renderable) return mode;
   return {
     renderable: false,
+    assetClass: mode.assetClass,
     blockedReason: "exchange_warning",
     trackSample: mode.trackRecord.sample,
+    history: null,
     zone: mode.zone,
   };
 };

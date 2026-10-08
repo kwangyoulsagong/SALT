@@ -46,11 +46,10 @@ describe("POST /api/app/coach/trades — assetType", () => {
     assert.equal(call.mock.callCount(), 0);
   });
 
-  it("국내 주식에 계획을 붙이면 400 — 조용히 버리지 않는다(코치가 국내 주식 거래를 아직 모른다)", async () => {
+  it("국내 주식 거래에도 계획을 붙인다 — 서버 계획 연결이 국내 주식 거래를 받는다(F011 슬라이스 4)", async () => {
     const call = mock.method(appTradeRiskService, "recordTrade", async () => ({}) as never);
-    const r = await post({ ...trade, assetType: "kr_stock", plan: { stopPrice: 65_000 } });
-    assert.equal(r.status, 400);
-    assert.match(r.body.message ?? "", /국내 주식/);
-    assert.equal(call.mock.callCount(), 0);
+    const r = await post({ ...trade, assetType: "kr_stock", plan: { stopPrice: 65_000, thesis: "실적" } });
+    assert.equal(r.status, 201);
+    assert.equal(call.mock.calls[0]?.arguments[1].plan?.stopPrice, 65_000);
   });
 });

@@ -115,10 +115,29 @@ describe("toModeViewModel", () => {
 
     assert.deepEqual(vm, {
       renderable: false,
+      assetClass: "crypto",
       blockedReason: "insufficient_sample",
       trackSample: 24,
+      history: null,
       zone,
     });
+  });
+
+  it("국내 주식 — 자산군 · 이력 수치를 옮기고, 모양이 틀린 이력은 null (F011 슬라이스 4)", () => {
+    const history = { ready: false, dailyBars: 63, requiredDailyBars: 120, dailyIndicator: true };
+    const vm = toModeViewModel(
+      modeView({ renderable: false, blockedReason: "insufficient_history", assetClass: "kr_stock", history }),
+    );
+    assert.equal(vm?.renderable, false);
+    assert.equal(vm?.assetClass, "kr_stock");
+    assert.deepEqual(vm?.renderable === false && vm.history, history);
+
+    const broken = toModeViewModel(
+      modeView({ renderable: false, blockedReason: "insufficient_history", assetClass: "kr_stock", history: { dailyBars: "63" } }),
+    );
+    assert.equal(broken?.renderable === false && broken.history, null);
+    // 모르는 자산군은 코인으로 읽는다(서버가 옛 버전)
+    assert.equal(toModeViewModel(modeView({ renderable: false, blockedReason: "mode_not_open", assetClass: "x" }))?.assetClass, "crypto");
   });
 
   it("성적표가 없으면 trackSample 은 null 이다 — 0 을 만들지 않는다", () => {

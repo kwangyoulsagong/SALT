@@ -79,13 +79,7 @@ const parseRecordTrade = (body: Raw): RecordTradeInput | string => {
   if (rawPlan.invalidation !== undefined && typeof rawPlan.invalidation !== "string") return "프리모템 답은 문자열입니다";
   const checklist = parseChecklist(rawPlan.checklist);
   if (checklist === "invalid") return "checklist 는 { shown, checked } 문자열 배열입니다";
-  /**
-   * 국내 주식 거래엔 계획을 붙이지 않는다 — 코치가 국내 주식 거래를 아직 모른다(계획 연결이 코인 원장만 본다, 슬라이스 4).
-   * 조용히 버리면 사용자가 적은 손절가가 사라지므로 400 으로 알린다. 화면은 국내 주식에서 계획 칸을 그리지 않는다
-   */
-  if (assetType === "kr_stock" && (rawPlan.stopPrice !== undefined || rawPlan.thesis || rawPlan.invalidation || checklist)) {
-    return "국내 주식 거래엔 아직 계획을 붙일 수 없습니다";
-  }
+  // 국내 주식 거래에도 계획을 붙인다 — 서버 계획 연결이 국내 주식 거래를 받는다(F011 슬라이스 4, 3b 의 400 을 걷었다)
 
   return {
     assetType,

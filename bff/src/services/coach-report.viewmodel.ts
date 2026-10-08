@@ -66,7 +66,7 @@ export type ReportRecommendation =
       renderable: true;
       action: CoachAction;
       symbol: string;
-      assetType: "crypto" | "us_stock";
+      assetType: "crypto" | "us_stock" | "kr_stock";
       score: number;
       scoreNote: string;
       reasons: ReportReason[];
@@ -119,7 +119,15 @@ export interface CoachReportViewModel {
   candidates: Array<{ action: string; symbol: string; score: number; reasons: string[] }>;
   exitPlans: ReportExitPlan[];
   behaviorFacts: ReportBehaviorFact[];
-  excluded: Array<{ assetType: string; reasonCode: string }>;
+  /**
+   * 추천에서 빠진 자산군. 국내 주식은 종목 판단만 열렸다(F011 슬라이스 4) — `insufficient_history` | `symbol_judgment_only`
+   * + `progress`(가장 많이 쌓인 장기 판단 유형 표본 / 기준). 서버 값을 그대로 옮긴다
+   */
+  excluded: Array<{
+    assetType: string;
+    reasonCode: string;
+    progress?: { largestGroupSample: number; requiredSample: number };
+  }>;
   disclaimer: string;
   degradedFields: string[];
 }
@@ -218,7 +226,7 @@ export const toReportRecommendation = (
     renderable: true,
     action: raw.action as CoachAction,
     symbol: raw.symbol,
-    assetType: raw.assetType as "crypto" | "us_stock",
+    assetType: raw.assetType as "crypto" | "us_stock" | "kr_stock",
     score: raw.score,
     scoreNote: raw.scoreNote,
     reasons: reasons as ReportReason[],

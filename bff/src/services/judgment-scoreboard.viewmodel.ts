@@ -23,7 +23,8 @@ const num = (value: unknown): number | null =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 const str = (value: unknown): string | null => (typeof value === "string" && value !== "" ? value : null);
 
-const SIGNAL_TYPE = /^(scalp|long_term)\.[a-z_]+$/;
+/** `[kr_stock.]<mode>.<action>` — 국내 주식 그룹은 자산군 접두가 붙는다(F011 FR-61) */
+const SIGNAL_TYPE = /^(?:kr_stock\.)?(scalp|long_term)\.[a-z_]+$/;
 
 export interface ScoreboardCase {
   date: string;
@@ -37,6 +38,8 @@ export interface ScoreboardCase {
 
 export interface ScoreboardGroup {
   signalType: string;
+  /** 자산군(F011 FR-65) — 화면은 코인 옆에 국내 주식을 **나란히** 놓고 합산하지 않는다. 국내 주식은 소유자에게만 온다 */
+  assetClass: "crypto" | "kr_stock";
   mode: "scalp" | "long_term";
   sample: number;
   /** 표본 0 이면 `null` — 0% 가 아니다 */
@@ -91,10 +94,13 @@ const toGroup = (raw: unknown): ScoreboardGroup | null => {
   if (!isRecord(raw)) return null;
   const signalType = str(raw.signalType);
   const sample = num(raw.sample);
-  if (!signalType || !SIGNAL_TYPE.test(signalType) || sample === null || sample < 0) return null;
+  const matched = signalType ? SIGNAL_TYPE.exec(signalType) : null;
+  if (!signalType || !matched || sample === null || sample < 0) return null;
   return {
     signalType,
-    mode: signalType.startsWith("scalp.") ? "scalp" : "long_term",
+    // 그룹 키가 진실이다 — 서버 `assetClass` 와 다르면 키를 따른다(접두가 표본을 가른 실제 기준)
+    assetClass: signalType.startsWith("kr_stock.") ? "kr_stock" : "crypto",
+    mode: matched[1] === "scalp" ? "scalp" : "long_term",
     sample: Math.floor(sample),
     winRate: sample > 0 ? num(raw.winRate) : null,
     avgReturn: num(raw.avgReturn),
