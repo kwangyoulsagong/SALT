@@ -31,7 +31,7 @@ Status: In Progress
 | **F007** | 모바일 앱 (React Native · iOS+Android · 푸시 · 번들 MFE) | `FEATURE-007-mobile-app.md` |
 | **F008** | AI 전망 · 인텔리전스 (파이프라인 → 온톨로지 → 에이전트 · 확률 구간 · 채점 · 소유자 전용) — 2026-09-23 `ADR-003` · `ADR-004` | `FEATURE-008-forecast-intelligence.md` |
 | **F009** | 1인 펀드매니저 코치 (IPS · 리스크 예산 · 사이즈 계산 · 계획 기록 · 준수율 · 행동 미러 · 월간 복기) — 2026-09-24. 통제 · 차단 없음, 수동 입력 전제 | `FEATURE-009-behavior-risk-coach.md` |
-| **F011** | 국내 주식 시세 · 분석 연동 (한국투자증권 Open API — 조회 TR 만 · 시세 · 일봉 · 5분봉 누적 · 자산군 분리 채점 · 장 상태 표시) — 2026-09-27 기획, **in-progress** — 2026-10-07 슬라이스 0 · 1(서버 · DB · 실시간) 완료 · 2026-10-08 슬라이스 2(BFF) · 3(화면 — 자산군 탭, 코인과 같은 화면) · 3b(거래 기록 · 보유 평가) · 4(코치 — 자산군 분리 판단 · 리스크 예산 · 사이즈 · 계획 연결) · 5(전망 배치 — 거래일 격자 · 국내 주식 풀, 화면 없음) 완료, 다음 5b 전망 화면 · 6 시간외 | `FEATURE-011-kr-stock-kis.md` |
+| **F011** | 국내 주식 시세 · 분석 연동 (한국투자증권 Open API — 조회 TR 만 · 시세 · 일봉 · 5분봉 누적 · 자산군 분리 채점 · 장 상태 표시) — 2026-09-27 기획, **in-progress** — 2026-10-07 슬라이스 0 · 1(서버 · DB · 실시간) 완료 · 2026-10-08 슬라이스 2(BFF) · 3(화면 — 자산군 탭, 코인과 같은 화면) · 3b(거래 기록 · 보유 평가) · 4(코치 — 자산군 분리 판단 · 리스크 예산 · 사이즈 · 계획 연결) · 5(전망 배치 — 거래일 격자 · 국내 주식 풀, 화면 없음) · 5b(서버 전망 읽기 · 국내 σ, 실력 감사로 화면 보류) 완료, 다음 5c 정확도(`FC-REQ-020`) → 5d 화면 · 7 나머지 기능 국내 파라미터 · 6 시간외(후순위) | `FEATURE-011-kr-stock-kis.md` |
 
 > F005는 결번이다. `FEATURE-005-home-briefing.md`의 5탭 IA는 2026-09-09 결정(탭 축소·대화 중심)으로 **F006이 대체**한다. 홈 블록 요구사항만 F006으로 흡수한다.
 
@@ -482,6 +482,8 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 
 **F011 슬라이스 5 — 국내 주식 변동 범위 (2026-10-08, `feat/f011-slice5-kr-stock-forecast`)** — 사용자 "새브랜치 파고 진행해줘". 전망 배치가 국내 주식 변동 범위를 코인과 **같은 엔진 · 채점 · 게이트**로 만든다. 엔진의 시간 규칙(격자 · 라벨 기간 · 신선도 · 주당 봉 수)을 자산군 달력(`Schedule`)으로 빼고(코인 출력 해시 52,768행 불변), 국내 주식 달력 = 서버 개장일 ∪ 일봉 날짜 · as_of 거래일 09:00 KST · 격자 주 첫 거래일 · h주 = 5h 거래일 · 종가 공개 16:00 KST. Python 은 KIS 를 부르지 않고 서버 일봉을 옮긴다. 모델 버전 `kr-` 접두로 보정 · 채점 풀 · 게이트가 코인과 갈린다. 백테스트 51종목 × 78주: 90% 커버리지 87.9~91.2% · 기준 대비 +0.4~1.0% · 게이트 전체 렌더 11/204 · 범위 166. 과거 3시점 재현 1,224행 차이 0(이 비교가 개장일 `synced_at` 필터 버그를 잡음). 화면 경로 없음(서버가 `KRW-` 만 읽는다 — FR-83 은 5b). `FC-REQ-009`. 루트 `requirements/specs/in-progress/F011-slice5-kr-stock-forecast-slice.md`
 
+**F011 슬라이스 5b — 국내 주식 전망 서버 읽기 · σ · 실력 감사 (2026-10-09, 같은 브랜치)** — 사용자 "확인 못한것들 다해줘": `daily.sh` 경로 확인(휴장일 as_of 재사용 · 멱등) · 서버 전망 리더가 `KRW-X` · `X` 두 키로 국내 행을 읽고 봉 시각을 그날 00:00 UTC 로 정렬(`v_daily_close` 에 `kis`) · 국내 σ(252 거래일, 47/51). 사용자 "대충한거야? 딥하게" → 8주 블록 플라시보로 국내 게이트 11/204 가 우연과 구분 안 됨(p≈0.26, 코인 139/997 p<0.001) · 원인 = 현재 시총 상위 51종목 생존 편향 + 겹치는 라벨 iid 부트스트랩 + 종목별 다중 검정 → **국내 카드 화면 보류**. 사용자 "국내주식도 완벽하게" → 웹 딥리서치 6갈래(`requirements/reports/research/reports/국내 주식 코치 전망 설계.md`) → `FC-REQ-020`(to-do) · `SRV-REQ-040` FR-40~47(Draft). 결정: KIS 모의 키 유지 · 시간외 후순위 · 소유자 전용 유지(약관). 루트 `requirements/specs/in-progress/F011-slice5b-kr-forecast-read-slice.md` · 다음 `requirements/specs/to-do/F011-slice5c-kr-forecast-accuracy-slice.md`
+
 ### F010 판정 AI (2026-09-28)
 
 근거 `requirements/reports/research/2026-09-27-ai-judgment-upgrade.md` §10. PM 기획서 `pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md`(슬라이스 4 에서 작성) — 슬라이스 0~3 은 기존 REQ 개정 + 영역 신규 REQ.
@@ -536,7 +538,8 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | `DB-REQ-033-F011-KR-STOCK` | **done** | `AssetType` + `kr_stock` · `KrStockMaster` · `ExternalApiToken` · `MarketHoliday` · `MarketAsset` 확장 · `PriceHistory` 재사용 |
 | `BFF-REQ-040-F011-KR-STOCK` | **done** 2026-10-08 | `/api/app/market/kr/*` 뷰모델 · SSE → WS `price_update`(`assetType`) · 소유자 판정 통과 · 판단 자산군 · 성적표 `kr_stock.` 접두(슬라이스 4) |
 | `FE-REQ-041-F011-KR-STOCK` | **done** 2026-10-08 | 제목 아래 자산군 탭 · 코인과 같은 표 · 필터 · 미리보기 · 관심 종목 · 장 상태 줄 · 상태 배지 · 상세 · 차트. 검색 상자 없음(코인 화면에 없다) · 거래 폼 `kr_stock`(3b) · 장기 판단 칸 · 성적표 자산군(4) |
-| `FC-REQ-009-F011-KR-STOCK` | **done** 2026-10-08 (슬라이스 5) | `price_history(kr_stock)` → `forecast.price_bar`(`kis`) · 거래일 격자(주 첫 거래일 · 5h 거래일) · `available_at` 16:00 KST · `kr-` 모델 버전으로 보정 · 채점 풀 · 게이트 분리 · 엔진 `Schedule` 일반화. 화면은 5b |
+| `FC-REQ-020-F011-KR-FORECAST-ACCURACY` | **to-do** (슬라이스 5c) | 국내 전망 정확도 — 풀링 실력 검정(날짜 블록 · Holm) · 종목 거부권 · 위치 0 · 시점 고정 유니버스 · 상폐 오프라인 평가 · 척도/형태 풀링 · 상시 플라시보(거짓 발견 ≤ 20%) |
+| `FC-REQ-009-F011-KR-STOCK` | **done** 2026-10-08 (슬라이스 5) · 2026-10-09 FR-9 국내 σ · 실력 감사(카드 화면 보류) | `price_history(kr_stock)` → `forecast.price_bar`(`kis`) · 거래일 격자(주 첫 거래일 · 5h 거래일) · `available_at` 16:00 KST · `kr-` 모델 버전으로 보정 · 채점 풀 · 게이트 분리 · 엔진 `Schedule` 일반화. 화면은 5b |
 
 현재 있는 것은 `salt-server/src/shared/config/env.ts` 의 `KIS_*` env 4개뿐(`2218d32`). 2026-09-27 실전 도메인 프로브로 토큰 · 현재가 · 승인키 · WS 구독을 확인했다. 영역 REQ 파일은 슬라이스 착수 때 쓴다 — 번호만 예약.
 
@@ -631,3 +634,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-10-08 | **F011 슬라이스 4 — 국내 주식 코치.** `SRV-REQ-040` FR-60~66 · 37 · 38 · `BFF-REQ-040` FR-17~19 · `FE-REQ-041` FR-19~22 · Changelog `SRV-REQ-025` · `SRV-REQ-038` · `BFF-REQ-038` · `BFF-REQ-039` · `FE-REQ-026` · `FE-REQ-039` · `FE-REQ-040`. **BREAKING(응답)**: 코치 상세 `excluded[].reasonCode` `no_realtime_data` 삭제 → `insufficient_history` · `symbol_judgment_only` + `progress`. 추가: 판단 `blockedReason` `mode_not_open` · `insufficient_history` · `modes.*.assetClass` · `history` · 성적표 그룹 `assetClass` · env `KR_STOCK_ROUND_TRIP_FEE_RATE`. BFF 국내 주식 + 계획 400 해제. 마이그레이션 없음 |
 | 2026-10-08 | **F011 슬라이스 3b — 국내 주식 거래 기록 · 보유 평가.** `SRV-REQ-040` FR-11 · 33~36 · `BFF-REQ-040` FR-15 · 16 · `FE-REQ-041` FR-16~18 · `FE-REQ-039` Changelog · `SRV-REQ-006` 체크리스트 9-7 닫힘. 계약: 서버 거래 입력 `assetType`(선택 · 기본 crypto) · `kr/assets?codes=` · BFF 거래 `assetType`(국내 주식 + 계획 400) · 거래 응답 `assetType` · `@repo/core` `RecordTradeRequest.assetType`. 마이그레이션 없음. 사이즈 계산 · 리스크 예산 · 계획 연결은 슬라이스 4 |
 | 2026-10-08 | **F011 슬라이스 5 — 국내 주식 변동 범위(전망 배치).** `FC-REQ-009`(신규, done) · `FC-REQ-001` Changelog(엔진 `Schedule`). 계약 없음 — DDL · 뷰 · 서버 · BFF · FE 무변경, `forecast` 에 새 source `kis` · 모델 버전 2. `salt-forecast/.claude/rules/security-sources.md` 국내 주식 줄(TBA → 서버 일봉 읽기). 남은 것: 5b 화면(FR-83) · 국내 주식 σ |
+| 2026-10-09 | **F011 슬라이스 5b · 실력 감사 · 5c 스펙.** `FC-REQ-009` FR-9 · `SRV-REQ-040` FR-39(완료) · FR-40~47(Draft) · `DB-REQ-029` Changelog(`v_daily_close` `kis`, 열 무변경) · `FC-REQ-020`(신규, to-do) · FEATURE-011 FR-84 · 85 · 슬라이스 5c · 5d · 7. 계약: 서버 내부 포트 `ForecastCardRow.assetClass` · BFF · FE 무변경. 리서치 보고서 `requirements/reports/research/reports/국내 주식 코치 전망 설계.md` |
