@@ -227,6 +227,31 @@ export class PrismaKrStockStore implements KrStockStore {
     return latest;
   }
 
+  async commonStockListings() {
+    return prisma.krStockMaster.findMany({
+      where: { groupCode: "ST", delistedAt: null, isPreferred: false },
+      orderBy: { code: "asc" },
+      select: { code: true, listedAt: true },
+    });
+  }
+
+  async dailyCandleRange(codes: string[]) {
+    const range = new Map<string, { earliest: Date; latest: Date }>();
+    if (codes.length === 0) return range;
+    const rows = await prisma.priceHistory.groupBy({
+      by: ["symbol"],
+      where: { symbol: { in: codes }, timeframe: "1d", assetType: "kr_stock" },
+      _min: { timestamp: true },
+      _max: { timestamp: true },
+    });
+    for (const row of rows) {
+      if (row._min.timestamp && row._max.timestamp) {
+        range.set(row.symbol, { earliest: row._min.timestamp, latest: row._max.timestamp });
+      }
+    }
+    return range;
+  }
+
   async upsertDailyCandles(code: string, candles: Candle[]) {
     if (candles.length === 0) return;
     const col = <T,>(pick: (c: Candle) => T) => candles.map(pick);

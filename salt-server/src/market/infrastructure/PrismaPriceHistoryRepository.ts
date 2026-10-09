@@ -278,12 +278,14 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
    * 그래도 Prisma 의 파라미터 바인딩을 거치도록 `::interval` 캐스팅으로 넘긴다.
    */
   async purgeOlderThan(
-    retention: Array<{ timeframe: string; interval: string }>
+    retention: Array<{ timeframe: string; interval: string; exceptAssetType?: MarketAssetType }>
   ) {
     for (const rule of retention) {
+      const except = rule.exceptAssetType ?? null;
       await prisma.$executeRaw`
         DELETE FROM price_history
         WHERE timeframe = ${rule.timeframe}
+          AND (${except}::text IS NULL OR asset_type::text <> ${except}::text)
           -- NOW() 는 timestamptz — TIMESTAMP 열(UTC 벽시계)과 그냥 비교하면 세션 시간대(KST)로 해석돼 9시간 일찍 지운다
           AND timestamp < (NOW() AT TIME ZONE 'UTC') - ${rule.interval}::interval
       `;

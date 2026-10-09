@@ -68,10 +68,13 @@ const COLLECT_TARGETS: Array<{ timeframe: PriceTimeframe; count: number }> = [
   { timeframe: "1d", count: 120 },
 ];
 
-/** 보관 정책. 5분봉 30일 · 일봉 2년 (원문). */
+/**
+ * 보관 정책. 5분봉 30일 · 일봉 2년 (원문). **국내 주식 일봉은 지우지 않는다** — 전 종목 5년 백필(SRV-REQ-040 FR-40)이
+ * 전망 학습 · 채점 창이고(`FC-REQ-020`), 2년에 자르면 밤마다 받은 3년치를 다음 정리가 지운다. 약 2,450종목 × 250봉/년
+ */
 const RETENTION = [
   { timeframe: "5m", interval: "30 days" },
-  { timeframe: "1d", interval: "2 years" },
+  { timeframe: "1d", interval: "2 years", exceptAssetType: "kr_stock" as const },
 ];
 
 const SYMBOL_BATCH = 10;

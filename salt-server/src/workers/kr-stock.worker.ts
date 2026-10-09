@@ -15,6 +15,7 @@ import { schedule } from "../shared/infrastructure/scheduler";
  * | `kr-master-sync` | 매일 07:30 | 마스터는 영업일 장전 갱신(근거 [약]) |
  * | `kr-calendar-sync` | 평일 09:10 | KIS 휴장일 조회(권고 1일 1회) — 거부되면 일봉 역산 + 오늘 개장 관측 |
  * | `kr-daily-candles` | 평일 15:45 | 정규장 15:30 마감 + 정정 여유 |
+ * | `kr-full-daily-candles` | 평일 18:00 · 주말 08:00 → 다음 07:20 KST 멈춤 | 상장 보통주 전 종목 일봉 5년(FR-40) — 모의 키 약 2건/s 라 밤에만. 회차가 겹치면 건너뛴다 |
  * | `kr-minute-bars` | 평일 15:40 · 20:40 | 오늘 5분봉을 KIS 분봉으로 덮어씀 + 지난 30일 빈 날 백필(회차 1,200 호출 상한) |
  * | `kr-quote-poll` | 매분 | 부를지는 유스케이스가 장 상태로 정한다(정규장 매분 · 장전/시간외 5분). 뒤이어 국내 주식 보유 평가 |
  * | `kr-provider-metrics` | 10분 | TR 별 호출 · 실패 · 초과 · 오늘 토큰 발급 수(FR-94) |
@@ -36,6 +37,9 @@ export const startKrStockWorkers = () => {
     { name: "kr-logo-resolve", expression: "50 7 * * *", run: () => kr.resolveLogos.execute() },
     { name: "kr-calendar-sync", expression: "10 9 * * 1-5", run: () => kr.syncCalendar.execute() },
     { name: "kr-daily-candles", expression: "45 15 * * 1-5", run: () => kr.syncDailyCandles.execute() },
+    // 전 종목 일봉 — 시세 창(08:30~16:00)과 겹치지 않는 밤 · 주말. 부팅 실행은 하지 않는다(낮에 기동해도 한도를 안 태운다)
+    { name: "kr-full-daily-candles", expression: "0 18 * * 1-5", run: () => kr.syncFullDailyCandles.execute() },
+    { name: "kr-full-daily-candles-weekend", expression: "0 8 * * 0,6", run: () => kr.syncFullDailyCandles.execute() },
     // 장 마감 보정 · 30일 백필 — 호출 상한에 걸리면 다음 회차(밤 · 다음 날)가 잇는다
     { name: "kr-minute-bars", expression: "40 15,20 * * 1-5", run: () => kr.syncMinuteBars.execute() },
     // 보유 평가는 시세 회차 바로 뒤 — 같은 분에 같은 값을 본다(F011 슬라이스 3b)

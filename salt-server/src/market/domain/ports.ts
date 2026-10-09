@@ -450,7 +450,8 @@ export interface PriceHistoryRepository {
     timeframe: string,
     take: number
   ): Promise<Array<Candle & { assetType: MarketAssetType }>>;
-  purgeOlderThan(retention: Array<{ timeframe: string; interval: string }>): Promise<void>;
+  /** `exceptAssetType` 자산군은 그 규칙에서 지우지 않는다 — 국내 주식 일봉은 전망 학습 창이라 2년에 자르지 않는다(SRV-REQ-040 FR-40) */
+  purgeOlderThan(retention: Array<{ timeframe: string; interval: string; exceptAssetType?: MarketAssetType }>): Promise<void>;
 }
 
 /**
