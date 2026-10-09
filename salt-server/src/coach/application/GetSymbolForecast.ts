@@ -35,6 +35,11 @@ const DISCLAIMER =
  * ## 숫자는 전부 `salt-forecast` 가 채점한 것
  *
  * 여기서는 가격 · 원화 환산만 한다. 보유 수량이 있으면 "이 주에 판다면" 평가금액 변화 범위를 싣는다.
+ *
+ * ## 국내 주식(F011 슬라이스 5b)
+ *
+ * 같은 경로 · 같은 소유자 목록 · 같은 게이트. 기간 h주는 5h 거래일이고 기준가는 직전 거래일 종가다(salt-forecast
+ * `FC-REQ-009`). 보유는 행의 자산군(`kr_stock`)으로 읽는다.
  */
 export class GetSymbolForecast {
   constructor(
@@ -46,11 +51,12 @@ export class GetSymbolForecast {
   async execute(user: { userId: string; email?: string }, symbol: string): Promise<SymbolForecastView> {
     if (!isForecastOwner(user.email, this.ownerEmails)) throw new ForecastNotAvailableError();
     const normalized = symbol.trim().toUpperCase();
-    const [rows, holding, history] = await Promise.all([
+    const [rows, history] = await Promise.all([
       this.forecasts.cards(normalized),
-      this.portfolio.getHolding(user.userId, normalized),
       this.forecasts.recentCloses(normalized, FORECAST_HISTORY_DAYS),
     ]);
+    // 보유는 전망 행의 자산군에서 읽는다 — 6자리 코드 모양으로 추측하지 않는다(F011 슬라이스 5b). 행이 없으면 환산할 것도 없다
+    const holding = rows[0] ? await this.portfolio.getHolding(user.userId, normalized, rows[0].assetClass) : null;
     const horizons = [1, 2, 3, 4].map((h) => {
       const row = rows.find((r) => r.horizonWeeks === h);
       return row
