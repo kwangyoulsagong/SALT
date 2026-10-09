@@ -128,10 +128,16 @@ def skill_ci_low(model_pin: NDArray[np.float64], base_pin: NDArray[np.float64], 
     return float(np.quantile(skills, 0.025)) if skills.size else None
 
 
-def evaluate_gate(model: list[Score], baseline: list[Score], *, stale: bool) -> GateResult:
+def evaluate_gate(
+    model: list[Score], baseline: list[Score], *, stale: bool, pooled_skill: bool | None = None
+) -> GateResult:
     """최근 GATE_WINDOW 개(같은 as_of 로 짝지은 모델 · 기준 점수)로 판정한다.
 
     순서: 표본 → 신선도 → 보정 → 기준 대비 → 폭.
+
+    `pooled_skill` 이 주어지면(국내 주식, FC-REQ-020 FR-1 · FR-2) 종목 검사는 **거부권만** — 표본 · 신선도 · 보정 ·
+    폭. 실력은 자산군 × 기간 풀링 검정 한 번이 정하고(False 면 `skill_not_significant`), 종목별 iid 하한
+    (`skill_ci_low`)은 판정에 쓰지 않고 표시용으로만 계산한다. 종목 수백 개를 각각 시험하면 우연히 이기는 곳이 생긴다.
     """
     m = model[-GATE_WINDOW:]
     b = baseline[-GATE_WINDOW:]
@@ -181,7 +187,12 @@ def evaluate_gate(model: list[Score], baseline: list[Score], *, stale: bool) -> 
         np.asarray([s.pinball for s in m[-n_pair:]], dtype=np.float64),
         np.asarray([s.pinball for s in b[-n_pair:]], dtype=np.float64),
     )
-    if reason is None:
+    if reason is None and pooled_skill is not None:
+        if width >= base_width:
+            reason = "not_sharper_than_baseline"
+        elif not pooled_skill:
+            reason = "skill_not_significant"
+    elif reason is None:
         if skill is None or skill <= 0:
             reason = "underperforms_baseline"
         elif width >= base_width:
