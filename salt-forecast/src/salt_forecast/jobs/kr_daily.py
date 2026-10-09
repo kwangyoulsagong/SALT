@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from salt_forecast.domain.kr_universe import eligible_at
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
-from salt_forecast.jobs._data import load_kr
+from salt_forecast.jobs._data import load_kr, load_kr_bars
 from salt_forecast.models.engine import HORIZONS, WalkForward
 from salt_forecast.models.kr_stock import KR_BASELINE, KR_MODELS, KR_PRODUCTION, kr_model_params, kr_providers
 from salt_forecast.scoring.evaluate import score_prediction
@@ -42,7 +43,8 @@ def main(argv: list[str] | None = None) -> int:
         if not series or as_of is None:
             log.warning("국내 주식 일봉 · 거래일 없음 — 건너뜀", extra={"fields": {"job": JOB}})
             return 0
-        wf = WalkForward(series, kr_providers(cal), schedule=cal)
+        bars = load_kr_bars(eng, now)
+        wf = WalkForward(series, kr_providers(cal), schedule=cal, eligible=lambda t: eligible_at(bars, cal, t))
         preds = [
             PredictionRow(
                 e.symbol,

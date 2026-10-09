@@ -168,6 +168,11 @@ class KrxSessions:
         last = series.last_at()
         return i >= 0 and last is not None and last >= int(self.sessions[i]) + KRX_CLOSE_AVAILABLE
 
+    def known_closes(self, as_of: int, n: int) -> NDArray[np.int64]:
+        """as_of 에 종가를 아는 마지막 거래일 n 개의 종가 공개 시각(오름차순). 모자라면 있는 만큼."""
+        i = self._base(as_of)
+        return self.sessions[max(0, i - n + 1) : i + 1] + KRX_CLOSE_AVAILABLE
+
     def latest_session(self, now: int) -> int | None:
         """now 이전에 시작한 마지막 거래일 — 매일 작업의 as_of."""
         i = int(np.searchsorted(self.sessions, now, side="right")) - 1

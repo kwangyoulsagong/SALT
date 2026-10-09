@@ -11,8 +11,12 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 
+import numpy as np
+
+from salt_forecast.domain.kr_universe import KEY as UNIVERSE_KEY
+from salt_forecast.domain.kr_universe import eligible_at
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
-from salt_forecast.jobs._data import load_kr
+from salt_forecast.jobs._data import load_kr, load_kr_bars
 from salt_forecast.models.engine import HORIZONS, POOL_WEEKS, WalkForward
 from salt_forecast.models.kr_stock import (
     KR_BASELINE,
@@ -66,7 +70,10 @@ def main(argv: list[str] | None = None) -> int:
         if not series:
             log.warning("국내 주식 일봉 없음 — ingest_kr_stock 먼저", extra={"fields": {"job": JOB}})
             return 0
-        wf = WalkForward(series, kr_providers(cal, with_retired=True), schedule=cal)
+        bars = load_kr_bars(eng, now)
+        wf = WalkForward(
+            series, kr_providers(cal, with_retired=True), schedule=cal, eligible=lambda t: eligible_at(bars, cal, t)
+        )
         as_ofs = wf.backtest_as_ofs()
         preds: list[PredictionRow] = []
         scores: list[ScoreRow] = []
@@ -106,8 +113,11 @@ def main(argv: list[str] | None = None) -> int:
             f"({first} ~ 라벨 끝난 마지막 {last}) · 보정 풀 {POOL_WEEKS}주 · 엠바고 = 라벨 끝(5h 거래일 뒤 16:00 KST)",
             "- 기간 h주 = **5h 거래일**. 기준 종가 = as_of 에 아는 마지막 거래일 종가(직전 거래일)",
             "- 표본은 **겹친다**(h>1 이면 이웃 as_of 의 라벨이 겹친다) — 유효 표본은 표의 수보다 작다",
-            f"- 대상: 서버 시세 유니버스(보유 → 관심 → 시가총액) **현재** {len(series)}종목, 일봉 2년 — 생존 편향"
-            "(상장폐지 · 유니버스에서 빠진 종목 이력 없음) · 시가총액 상위 위주라 대형주 편향",
+            f"- 대상: 시점 고정 유니버스 `{UNIVERSE_KEY}` — as_of 마다 그때 알던 최근 20거래일 전부 거래 · 평균 "
+            f"거래대금(종가 × 거래량) ≥ 10억 원 · 일봉 ≥ 250개. "
+            f"후보 = 지금 상장된 보통주 {len(series)}종목(일봉 최대 5년). "
+            f"격자당 대상 중앙값 {int(np.median([len(wf.eligible_at(t)) for t in as_ofs])) if as_ofs else 0}종목",
+            "- **남은 생존 편향**: 후보가 지금 상장된 종목뿐(상장폐지 이력 없음 — FR-8 대기)",
             "- 보정 · 채점 풀은 국내 주식만(코인과 섞지 않음). LightGBM 없음 — 풀링 종목 200 미만",
         ]
         universe = sorted({(s, h) for s in series for h in HORIZONS})
