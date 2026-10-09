@@ -9,6 +9,7 @@ import type { CoachHolding } from "../model";
  */
 
 const row = (over: Partial<ForecastCardRow> = {}): ForecastCardRow => ({
+  assetClass: "crypto",
   horizonWeeks: 2,
   asOf: new Date("2026-09-23T00:00:00Z"),
   modelVersion: "ens-baseline@0.1.0",

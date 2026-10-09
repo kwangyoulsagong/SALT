@@ -4,7 +4,8 @@
 
 - 입력은 `as_of` 에 닫힌 일봉 종가뿐이다(`CloseSeries.as_of`) — time-and-leakage.md §1.
 - 평균 수익률은 0 으로 둔다. 일 단위 크립토 평균은 분산보다 두 자릿수 작고, 추정하면 잡음만 더한다.
-- 연율은 **365 일**(코인은 주말에도 거래된다).
+- 연율은 **365 일**(코인은 주말에도 거래된다). 국내 주식은 **252 거래일**(`KR_ANNUAL_DAYS`, FC-REQ-009 FR-9) —
+  수익률은 봉 단위라 이미 거래일 기준이다.
 - 숫자는 채점된 뒤에만 나간다(ADR-003 §3): 마지막 `EVAL_DAYS` 일을 표본 밖으로 두고 다음 날 분산 예측을
   QLIKE 로 잰다. 기준은 60 일 이동 분산 — 이것보다 못하면 막는다.
 - **내보내는 값은 EWMA 하나로 고정**한다. 채점 창 성적을 보고 EWMA · GARCH 중 고르면 그 창은 더 이상 검증이
@@ -16,6 +17,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -25,6 +27,7 @@ from numpy.typing import NDArray
 from salt_forecast.domain.series import DAY, CloseSeries
 
 ANNUAL_DAYS = 365
+KR_ANNUAL_DAYS = 252
 EWMA_LAMBDA = 0.94
 SEED_DAYS = 30
 BASELINE_DAYS = 60
@@ -142,12 +145,21 @@ def qlike(r: Vec, f: Vec) -> float:
     return float(np.mean(np.log(f) + r**2 / f))
 
 
-def _annual(daily_var: float) -> float:
-    return float(np.sqrt(daily_var * ANNUAL_DAYS))
+def _annual(daily_var: float, annual_days: int = ANNUAL_DAYS) -> float:
+    return float(np.sqrt(daily_var * annual_days))
 
 
-def estimate(series: CloseSeries, as_of: datetime) -> VolEstimate:
-    """as_of 에 알 수 있던 종가만으로 내일 변동성과 그 채점."""
+def estimate(
+    series: CloseSeries,
+    as_of: datetime,
+    annual_days: int = ANNUAL_DAYS,
+    fresh: Callable[[CloseSeries, int], bool] | None = None,
+) -> VolEstimate:
+    """as_of 에 알 수 있던 종가만으로 내일 변동성과 그 채점.
+
+    fresh 를 주면 시세 끊김 판정을 그 함수로 한다 — 국내 주식은 달력 일수(3일)로 재면 연휴마다 막힌다
+    (`KrxSessions.fresh`). 없으면 코인 규칙(마지막 봉 3일 이내).
+    """
     t = int(as_of.timestamp())
     s = series.as_of(t)
     last = s.last_at()
@@ -175,7 +187,8 @@ def estimate(series: CloseSeries, as_of: datetime) -> VolEstimate:
 
     if n < MIN_RETURNS:
         return blocked("insufficient_history")
-    if last is None or t - last > STALE_DAYS * DAY:
+    stale = (not fresh(s, t)) if fresh is not None else (last is None or t - last > STALE_DAYS * DAY)
+    if stale:
         return blocked("stale_prices")
     ewma = ewma_forecasts(r)
 
@@ -190,16 +203,16 @@ def estimate(series: CloseSeries, as_of: datetime) -> VolEstimate:
         oos = garch_forecasts(r, fit_garch(r[: n - EVAL_DAYS]))
         q_garch = qlike(r[ev], oos[:n][ev])
         params = fit_garch(r)
-        garch = _annual(float(garch_forecasts(r, params)[n]))
+        garch = _annual(float(garch_forecasts(r, params)[n]), annual_days)
 
-    chosen = _annual(float(ewma[n]))
+    chosen = _annual(float(ewma[n]), annual_days)
     ok = q_ewma <= q_base
     return VolEstimate(
         symbol=series.symbol,
         as_of=as_of,
         last_bar_at=last_at,
         sample=n,
-        ewma=_annual(float(ewma[n])),
+        ewma=_annual(float(ewma[n]), annual_days),
         garch=garch,
         garch_alpha=params.alpha if params else None,
         garch_beta=params.beta if params else None,

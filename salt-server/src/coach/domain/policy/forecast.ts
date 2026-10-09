@@ -29,6 +29,8 @@ export class ForecastNotAvailableError extends DomainError {
 }
 
 export interface ForecastCardRow {
+  /** 행이 어느 자산군 전망인가 — 보유 수량을 어느 자산군에서 읽을지 정한다(F011 슬라이스 5b) */
+  assetClass: "crypto" | "kr_stock";
   horizonWeeks: number;
   asOf: Date | null;
   modelVersion: string;

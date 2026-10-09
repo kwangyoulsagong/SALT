@@ -30,7 +30,7 @@
 | 감성 모델 `snunlp/KR-FinBert-SC` · `ProsusAI/finbert`(Hugging Face) | 한국어 · 영어 금융 감성 3분류 | 없음 | 로컬 CPU | FinBERT: 코드 저장소 Apache-2.0, 미세조정 데이터 Financial PhraseBank 는 비상업(CC BY-NC-SA) · KR-FinBert-SC: 모델 카드 · 저장소 모두 라이선스 표기 없음(2026-10-06 확인 — 기본은 모든 권리 유보) → **비공개 · 소유자 전용 · 재배포 안 함**으로만 쓴다. 상업 전환 · 공개 전에 저작자 허락. safetensors 자동 변환 리비전 · sha256 고정 | 슬라이스 F010-6 3차 |
 | 네이버 데이터랩 검색어트렌드 — NAVER API HUB `naverapihub.apigw.ntruss.com/search-trend/v1/search`(개발자센터는 2026-07-31 신규 키 중단) | 종목 한글명 검색 관심(상대 지수, 2016~) — `search-interest@1` | `FORECAST_NAVER_CLIENT_ID` · `_SECRET`(HUB 앱 Client ID/Secret) | 월 5만 회 · 50 RPS → 한 번에 400 · 초당 1 | 공식 · 이관기 무료(유료 전환 시 사전 공지). **피처 · 채점 전용**(표시하려면 출처 표기부터) | 슬라이스 F010-6 3차 — 키 대기 |
 | 업비트 공지 JSON | 상장 · 유의 · 유통량 공지 | 없음 | — | 비공식 · 약관 제10조 | **사용 안 함 (사용자 결정 2026-09-23)** — 호출 코드 0건 |
-| 국내 주식 | — | — | — | **TBA (사용자 결정 2026-09-23)** | 보류 |
+| 국내 주식 일봉 — 서버가 KIS 에서 받은 `public.price_history(kr_stock, 1d)` · `public.market_holidays` **읽기** | 국내 주식 변동 범위 · 채점(FC-REQ-009) | **없음 — KIS 키는 서버에만**(키 보유처 한 곳, FEATURE-011 FR-80) | 외부 호출 0 | KIS 시세 — 재배포 해석 미확정 → **소유자 전용**(FEATURE-011 OQ) | F011 슬라이스 5 |
 | 투자자별 수급(KRX) | 국내 수급 | — | 공식 API 미제공 · 증권사 API 는 계좌 필요 → **§1-2 충돌로 보류** | — | 보류 |
 
 - 한도는 문서 값의 **80%** 로 pacer 설정.

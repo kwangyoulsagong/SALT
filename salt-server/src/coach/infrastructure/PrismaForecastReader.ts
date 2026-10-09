@@ -14,8 +14,10 @@ import type {
   TargetWeightLiveRecord,
 } from "../domain";
 import { TARGET_WEIGHT_LIVE_PREREG_KEY } from "../domain";
+import { dailyOpenTime, forecastKeys, fromForecastKey, widen } from "./forecastSymbol";
 
 interface CardSqlRow {
+  symbol: string;
   horizon_weeks: number;
   as_of: Date | null;
   model_version: string;
@@ -53,7 +55,9 @@ interface CardSqlRow {
  * `forecast.v_forecast_card` 읽기 — **뷰만** 읽는다(`salt-forecast/.claude/rules/db-contract.md` §2 · §4).
  *
  * 쓰기 주인은 `salt-forecast`(Python)이고 Prisma 모델이 없다(`DB-REQ-029` — SQL 전용 마이그레이션).
- * 그래서 `$queryRaw` 다. 심볼은 코치 모양 `BTC` → 전망 모양 `KRW-BTC`.
+ * 그래서 `$queryRaw` 다. 심볼은 코치 모양 `BTC` → 전망 모양 `KRW-BTC`. 국내 주식(6자리)은 맨 코드다 —
+ * 종목 전망 · 일봉 · 변동성은 두 키를 다 묻는다(`forecastSymbol.ts`, F011 슬라이스 5b). 거시 일정 · 쏠림 · 유의 ·
+ * 국면은 코인 원천뿐이라 `KRW-` 만 묻는다.
  */
 interface EventSqlRow {
   kind: string;
@@ -223,7 +227,8 @@ export class PrismaForecastReader implements ForecastReader {
 
   /**
    * 닫힌 일봉만 — 뷰가 이미 `interval = '1d'` 이고 `available_at` 이 마감 시각이다. 지금보다 늦게 쓸 수 있는 봉
-   * (진행 중인 오늘 봉)은 거른다. 심볼은 코치 모양 `BTC` ↔ 전망 모양 `KRW-BTC`
+   * (진행 중인 오늘 봉)은 거른다. 심볼은 코치 모양 `BTC` ↔ 전망 모양 `KRW-BTC`, 국내 주식은 맨 코드이고
+   * `openTime` 을 그날 00:00 UTC 로 맞춘다(`dailyOpenTime`)
    */
   async dailyCloses(symbols: string[], from: Date, to?: Date): Promise<Map<string, DailyBar[]>> {
     const result = new Map<string, DailyBar[]>();
@@ -232,36 +237,42 @@ export class PrismaForecastReader implements ForecastReader {
     const until = to ?? new Date("9999-12-31T00:00:00Z");
     const rows = await prisma.$queryRaw<{ symbol: string; open_time: Date; close: string }[]>`
       SELECT symbol, open_time, close::text AS close FROM forecast.v_daily_close
-      WHERE symbol = ANY(${symbols.map((symbol) => `KRW-${symbol}`)}::text[])
-        AND open_time >= ${from} AND open_time <= ${until} AND available_at <= now()
+      WHERE symbol = ANY(${symbols.flatMap(forecastKeys)}::text[])
+        AND open_time >= ${widen(from)} AND open_time <= ${until} AND available_at <= now()
       ORDER BY symbol, open_time
     `;
     for (const row of rows) {
-      const symbol = row.symbol.replace(/^KRW-/, "");
+      const { symbol, assetClass } = fromForecastKey(row.symbol);
+      const openTime = dailyOpenTime(row.open_time, assetClass);
+      // SQL 은 보정 전 시각으로 9시간 넓게 읽었다 — 범위는 보정한 시각으로 다시 가른다
+      if (openTime < from || openTime > until) continue;
       const bars = result.get(symbol) ?? [];
-      bars.push({ openTime: row.open_time, close: new Decimal(row.close) });
+      bars.push({ openTime, close: new Decimal(row.close) });
       result.set(symbol, bars);
     }
     return result;
   }
 
   async recentCloses(symbol: string, days: number): Promise<{ date: string; close: number }[]> {
-    const rows = await prisma.$queryRaw<{ open_time: Date; close: string }[]>`
-      SELECT open_time, close::text AS close FROM forecast.v_daily_close
-      WHERE symbol = ${`KRW-${symbol}`} ORDER BY open_time DESC LIMIT ${days}
+    const rows = await prisma.$queryRaw<{ symbol: string; open_time: Date; close: string }[]>`
+      SELECT symbol, open_time, close::text AS close FROM forecast.v_daily_close
+      WHERE symbol = ANY(${forecastKeys(symbol)}::text[]) ORDER BY open_time DESC LIMIT ${days}
     `;
-    return rows.reverse().map((r) => ({ date: r.open_time.toISOString().slice(0, 10), close: Number(r.close) }));
+    return rows.reverse().map((r) => ({
+      date: dailyOpenTime(r.open_time, fromForecastKey(r.symbol).assetClass).toISOString().slice(0, 10),
+      close: Number(r.close),
+    }));
   }
 
   async cards(symbol: string): Promise<ForecastCardRow[]> {
     const rows = await prisma.$queryRaw<CardSqlRow[]>`
-      SELECT horizon_weeks, as_of, model_version, base_close::text AS base_close,
+      SELECT symbol, horizon_weeks, as_of, model_version, base_close::text AS base_close,
              q05, q10, q25, q50, q75, q90, q95, p_up, direction, renderable, blocked_reason,
              range_renderable, range_blocked_reason, score_kind, sample, coverage90, width90,
              baseline_width90, pinball_skill, pinball_skill_ci_low, direction_calls, direction_hits,
              direction_base_rate, recent_misses, window_from, window_to, miss_count
       FROM forecast.v_forecast_card
-      WHERE symbol = ${`KRW-${symbol}`}
+      WHERE symbol = ANY(${forecastKeys(symbol)}::text[])
       ORDER BY horizon_weeks
     `;
     return rows.map((r) => {
@@ -270,6 +281,7 @@ export class PrismaForecastReader implements ForecastReader {
         ? (q as ForecastCardRow["quantiles"])
         : null;
       return {
+        assetClass: fromForecastKey(r.symbol).assetClass,
         horizonWeeks: Number(r.horizon_weeks),
         asOf: r.as_of,
         modelVersion: r.model_version,
@@ -301,23 +313,29 @@ export class PrismaForecastReader implements ForecastReader {
   }
 
   /**
-   * 실현 변동성 — `forecast.v_realized_vol`(FC-REQ-006, EWMA λ 0.94 · 연율 365일). 종목별 최신 한 행.
+   * 실현 변동성 — `forecast.v_realized_vol`(FC-REQ-006, EWMA λ 0.94 · 연율 코인 365일 · 국내 주식 252 거래일). 종목별 최신 한 행.
    * 막힌 행(`annualized` null — 이력 부족 · 기준 대비 실력 없음 · 시세 끊김)과 3일 넘게 갱신 안 된 행은 `null` 이다.
    * 사이즈 계산은 그때 변동성 타깃 칸을 `insufficient_data` 로 준다(0 이 아니다).
    */
   /** 여러 종목 한 쿼리 — `symbol = ANY(...)`. 3일 넘은 행은 뺀다(`realizedVolatility` 와 같은 신선도) */
   async symbolRisk(symbols: string[]): Promise<Map<string, SymbolRisk>> {
     if (!symbols.length) return new Map();
-    const markets = symbols.map((symbol) => `KRW-${symbol.toUpperCase()}`);
+    const markets = symbols.flatMap((symbol) => forecastKeys(symbol.toUpperCase()));
     const rows = await prisma.$queryRaw<
-      { symbol: string; annualized: number | null; ewma: number | null; btc_beta: number | null; as_of: Date }[]
+      {
+        symbol: string;
+        annualized: number | null;
+        ewma: number | null;
+        btc_beta: number | null;
+        as_of: Date;
+      }[]
     >`
       SELECT symbol, annualized, ewma, btc_beta, as_of FROM forecast.v_realized_vol
       WHERE symbol = ANY(${markets}) AND as_of >= now() - interval '3 days'
     `;
     return new Map(
       rows.map((r) => [
-        r.symbol.replace(/^KRW-/, ""),
+        fromForecastKey(r.symbol).symbol,
         {
           annualized: r.annualized !== null && r.annualized > 0 ? r.annualized : null,
           ewma: r.ewma !== null && r.ewma > 0 ? r.ewma : null,
@@ -332,14 +350,25 @@ export class PrismaForecastReader implements ForecastReader {
   async marketWarnings(symbols: string[]): Promise<Map<string, MarketWarningState>> {
     if (!symbols.length) return new Map();
     const markets = symbols.map((symbol) => `KRW-${symbol.toUpperCase()}`);
-    const rows = await prisma.$queryRaw<{ symbol: string; warning: boolean; cautions: string[]; fetched_at: Date }[]>`
+    const rows = await prisma.$queryRaw<
+      {
+        symbol: string;
+        warning: boolean;
+        cautions: string[];
+        fetched_at: Date;
+      }[]
+    >`
       SELECT symbol, warning, cautions, fetched_at FROM forecast.v_market_warning
       WHERE symbol = ANY(${markets}) AND fetched_at >= now() - interval '3 days'
     `;
     return new Map(
       rows.map((r) => [
         r.symbol.replace(/^KRW-/, ""),
-        { warning: r.warning, cautions: [...r.cautions].sort(), fetchedAt: r.fetched_at },
+        {
+          warning: r.warning,
+          cautions: [...r.cautions].sort(),
+          fetchedAt: r.fetched_at,
+        },
       ])
     );
   }
@@ -413,10 +442,13 @@ export class PrismaForecastReader implements ForecastReader {
   async realizedVolatility(symbol: string): Promise<RealizedVolatility | null> {
     const rows = await prisma.$queryRaw<{ annualized: number | null; as_of: Date }[]>`
       SELECT annualized, as_of FROM forecast.v_realized_vol
-      WHERE symbol = ${`KRW-${symbol}`} AND as_of >= now() - interval '3 days'
+      WHERE symbol = ANY(${forecastKeys(symbol)}::text[]) AND as_of >= now() - interval '3 days'
     `;
     const row = rows[0];
     if (!row || row.annualized === null || !(row.annualized > 0)) return null;
-    return { annualized: new Decimal(row.annualized.toString()), asOf: row.as_of };
+    return {
+      annualized: new Decimal(row.annualized.toString()),
+      asOf: row.as_of,
+    };
   }
 }

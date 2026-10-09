@@ -66,3 +66,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-10-07 | FR-24 추가 — `20261007100000_forecast_ops_check`(추가만, `59c75db`). 로컬 적용 · 스키마 계약 테스트 통과 · 첫 실행 13행 · 재실행 13행 유지 |
 | 2026-10-07 | FR-25 추가 — `20261007120000_forecast_claim_window`(추가만, `a24e764`). 로컬 적용 · 스키마 계약 테스트 통과 · `regate` 1168행 · `events` 390행 · `signals` 9531행 재실행으로 새 열 채움 |
 | 2026-09-29 | FR-19 추가 — `20260929100000_judgment_ledger_rule_ic`(추가만). 로컬 적용 · 사전등록 1행(해시 커밋 파일과 일치) · `rule_ic` 297행(항목 × 모드 × 지평 × 라벨 × 국면 3). push 전 `mode` CHECK 에 `any` 를 더하도록 원 파일을 고쳤다 |
+- 2026-10-09: `v_daily_close` 에 국내 주식(`source = 'kis'`) — 열 그대로, 행만 늘어남. 롤백 = `20260924100000` 정의. 마이그레이션 `20261009100000_forecast_daily_close_kr_stock` · 로컬 적용 · `EXPLAIN` 0.6ms(4키 ANY · 60일) (F011 슬라이스 5b)

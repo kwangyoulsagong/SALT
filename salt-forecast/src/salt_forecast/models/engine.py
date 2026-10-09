@@ -7,6 +7,9 @@ as_of t 의 전망은
 3. 보정 · 방향 판정을 적용한다.
 
 보정 조정량 · 임계는 종목과 무관해 (t, h, 모델)마다 한 번 계산한다(performance.md §2).
+
+격자 · 라벨 기간 · 신선도는 `Schedule` 이 정한다 — 코인은 월요일 · 7일, 국내 주식은 주 첫 거래일 · 5거래일
+(FC-REQ-009). 보정 풀은 엔진 인스턴스 하나에 넣은 종목끼리만 차므로 자산군마다 엔진을 따로 만든다.
 """
 
 from __future__ import annotations
@@ -19,19 +22,17 @@ import numpy as np
 from numpy.typing import NDArray
 
 from salt_forecast.domain.baselines import RawForecast, empirical_quantiles, ensemble, random_walk_normal
-from salt_forecast.domain.calendar import weekly_grid
+from salt_forecast.domain.calendar import COIN, Schedule
 from salt_forecast.domain.calibration import Adjustments, ResidualPool, apply, fit_adjustments
 from salt_forecast.domain.quantiles import Direction, QuantileForecast
 from salt_forecast.domain.scoring import choose_threshold, direction_for
-from salt_forecast.domain.series import DAY, WEEK, CloseSeries, realized_log_return
+from salt_forecast.domain.series import CloseSeries
 from salt_forecast.features.as_of import closes_as_of
 
 ENSEMBLE = "ens-baseline@0.1.0"
 BASELINE = "rw-normal@0.1.0"
 HORIZONS: tuple[int, ...] = (1, 2, 3, 4)
 POOL_WEEKS = 52
-# 마지막 봉이 이보다 오래됐으면 전망하지 않는다(상장폐지 · 거래 중단 — 멈춘 가격으로 예측하지 않는다)
-MAX_STALENESS = 2 * DAY
 CALIBRATION = {"calibration": "normalized-CQR-pooled", "pool_weeks": POOL_WEEKS}
 
 
@@ -42,14 +43,20 @@ class Provider(Protocol):
 
 
 class RandomWalk:
+    def __init__(self, schedule: Schedule = COIN) -> None:
+        self.days, self.gap = schedule.days_per_week, schedule.max_gap
+
     def raw(self, symbol: str, sliced: CloseSeries, h: int, as_of: int) -> RawForecast | None:
-        return random_walk_normal(sliced, h)
+        return random_walk_normal(sliced, h, self.days, self.gap)
 
 
 class BaselineEnsemble:
+    def __init__(self, schedule: Schedule = COIN) -> None:
+        self.days, self.gap = schedule.days_per_week, schedule.max_gap
+
     def raw(self, symbol: str, sliced: CloseSeries, h: int, as_of: int) -> RawForecast | None:
-        a = random_walk_normal(sliced, h)
-        b = empirical_quantiles(sliced, h)
+        a = random_walk_normal(sliced, h, self.days, self.gap)
+        b = empirical_quantiles(sliced, h, self.days, self.gap)
         return ensemble([a, b]) if a and b else None
 
 
@@ -69,11 +76,6 @@ class Emitted:
     realized: float | None
 
 
-def _fresh(s: CloseSeries, as_of: int) -> bool:
-    last = s.last_at()
-    return last is not None and last >= as_of - MAX_STALENESS
-
-
 @dataclass(slots=True)
 class _GridEntry:
     raw_q: list[NDArray[np.float64]] = field(default_factory=lambda: [])
@@ -82,10 +84,10 @@ class _GridEntry:
     p_up: list[float] = field(default_factory=lambda: [])
 
 
-def grid_for(series: Mapping[str, CloseSeries]) -> list[int]:
+def grid_for(series: Mapping[str, CloseSeries], schedule: Schedule = COIN) -> list[int]:
     starts = [int(s.available_at[0]) for s in series.values() if s.available_at.size]
     ends = [int(s.available_at[-1]) for s in series.values() if s.available_at.size]
-    return weekly_grid(min(starts), max(ends)) if starts else []
+    return schedule.grid(min(starts), max(ends)) if starts else []
 
 
 class WalkForward:
@@ -96,11 +98,21 @@ class WalkForward:
         series: Mapping[str, CloseSeries],
         providers: Mapping[str, Provider] | None = None,
         horizons: Sequence[int] = HORIZONS,
+        schedule: Schedule = COIN,
     ) -> None:
         self.series = dict(series)
         self.providers = dict(providers) if providers is not None else baseline_providers()
         self.horizons = tuple(horizons)
-        self.grid = grid_for(self.series)
+        self.schedule = schedule
+        self.grid = grid_for(self.series, schedule)
+        # 격자 g 의 h주 라벨을 알게 되는 시각 — 보정 풀 엠바고 기준. 달력이 모르면 무한대(풀에 못 들어간다)
+        self._label_end = {
+            h: np.asarray(
+                [e if (e := schedule.label_end(g, h)) is not None else np.iinfo(np.int64).max for g in self.grid],
+                dtype=np.int64,
+            )
+            for h in self.horizons
+        }
         self._entries: dict[tuple[int, str], list[_GridEntry]] = {}
         self._build()
 
@@ -115,10 +127,10 @@ class WalkForward:
         for gi, g in enumerate(self.grid):
             sliced = closes_as_of(self.series, g)
             for sym, s in sliced.items():
-                if not _fresh(s, g):
+                if not self.schedule.fresh(s, g):
                     continue
                 for h in self.horizons:
-                    realized = realized_log_return(self.series[sym], g, h)
+                    realized = self.schedule.realized(self.series[sym], g, h)
                     if realized is None:
                         continue
                     for m, provider in self.providers.items():
@@ -132,8 +144,8 @@ class WalkForward:
                         e.p_up.append(raw.forecast.p_up)
 
     def _pool_indices(self, as_of: int, h: int) -> range:
-        """라벨이 as_of 이전에 끝난 최근 POOL_WEEKS 개 격자(엠바고)."""
-        last = int(np.searchsorted(self.grid, as_of - h * WEEK, side="right"))
+        """라벨이 as_of 이전에 끝난 최근 POOL_WEEKS 개 격자(엠바고). 라벨 끝은 격자를 따라 늘어난다."""
+        last = int(np.searchsorted(self._label_end[h], as_of, side="right"))
         return range(max(0, last - POOL_WEEKS), last)
 
     def _pool(self, as_of: int, h: int, m: str) -> tuple[ResidualPool | None, NDArray[np.float64]]:
@@ -160,9 +172,9 @@ class WalkForward:
                 fitted[m] = (adj, threshold)
             for sym, s in sliced.items():
                 base = s.last_close()
-                if base is None or not _fresh(s, as_of):
+                if base is None or not self.schedule.fresh(s, as_of):
                     continue
-                realized = realized_log_return(self.series[sym], as_of, h) if with_realized else None
+                realized = self.schedule.realized(self.series[sym], as_of, h) if with_realized else None
                 if with_realized and realized is None:
                     continue
                 for m, provider in self.providers.items():
