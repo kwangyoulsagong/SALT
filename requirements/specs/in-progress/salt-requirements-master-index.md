@@ -484,6 +484,8 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 
 **F011 슬라이스 5b — 국내 주식 전망 서버 읽기 · σ · 실력 감사 (2026-10-09, 같은 브랜치)** — 사용자 "확인 못한것들 다해줘": `daily.sh` 경로 확인(휴장일 as_of 재사용 · 멱등) · 서버 전망 리더가 `KRW-X` · `X` 두 키로 국내 행을 읽고 봉 시각을 그날 00:00 UTC 로 정렬(`v_daily_close` 에 `kis`) · 국내 σ(252 거래일, 47/51). 사용자 "대충한거야? 딥하게" → 8주 블록 플라시보로 국내 게이트 11/204 가 우연과 구분 안 됨(p≈0.26, 코인 139/997 p<0.001) · 원인 = 현재 시총 상위 51종목 생존 편향 + 겹치는 라벨 iid 부트스트랩 + 종목별 다중 검정 → **국내 카드 화면 보류**. 사용자 "국내주식도 완벽하게" → 웹 딥리서치 6갈래(`requirements/reports/research/reports/국내 주식 코치 전망 설계.md`) → `FC-REQ-020`(to-do) · `SRV-REQ-040` FR-40~47(Draft). 결정: KIS 모의 키 유지 · 시간외 후순위 · 소유자 전용 유지(약관). 루트 `requirements/specs/in-progress/F011-slice5b-kr-forecast-read-slice.md` · 다음 `requirements/specs/in-progress/F011-slice5c-kr-forecast-accuracy-slice.md`
 
+**F011 슬라이스 5c — 국내 주식 전망 정확도 (2026-10-09 ~, `feat/f011-slice5c-kr-forecast-accuracy`, 진행 중)** — 사용자 "새브랜치 파고 다음꺼 진행". P0(`FC-REQ-020` FR-1~6): 국내 실력 판정을 종목별 iid 하한에서 자산군 × 기간 풀링 검정(HLN-DM · 날짜 블록 부트스트랩 · 비중첩, Holm)으로, 종목은 거부권만, 모델은 위치 0(`kr-ens-baseline@0.2.0`), 상시 플라시보 · 꼬리별 커버리지 → 4기간 미통과. P1(사용자 "P1 진행해 백필은 5년으로"): 서버 전 종목 일봉 5년(`SRV-REQ-040` FR-40, 2,600종목 · 286만 행) + 사전등록 시점 고정 유니버스 `kr-universe@1`(20거래일 거래대금 ≥ 10억 · 250봉, 격자당 973종목) → 4기간 미통과(위치 0 이 기준보다 −0.1~−0.6%), 꼬리 쏠림은 해소 → **국내 카드 0 유지**. 다음 FR-8 상폐 · P2 척도 · 형태 · 보정. 체크리스트 `requirements/reports/checklists/F011-slice5c-kr-forecast-accuracy.md`.
+
 ### F010 판정 AI (2026-09-28)
 
 근거 `requirements/reports/research/2026-09-27-ai-judgment-upgrade.md` §10. PM 기획서 `pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md`(슬라이스 4 에서 작성) — 슬라이스 0~3 은 기존 REQ 개정 + 영역 신규 REQ.

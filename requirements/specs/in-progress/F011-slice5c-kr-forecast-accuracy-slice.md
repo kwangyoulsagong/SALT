@@ -26,6 +26,8 @@ created: 2026-10-09
 - 2026-10-09 1단계(P0) 완료 `a5f6643` — 4기간 모두 풀링 미통과, 국내 카드 0. 결과는 `FC-REQ-020` §P0 결과. 코인 플라시보 30% · p 0.080
 - 2026-10-12 2 · 3단계(P1 전 종목 일봉 · 시점 고정 유니버스) 완료 `874ac75` · `7936561` · `96c99ea` — 서버 5년 백필 2,605종목 · 286만 행, `kr-universe@1`(사전등록) 격자당 973종목. **4기간 미통과**(위치 0 이 기준보다 −0.1~−0.6%), 꼬리 기울기는 해소. 결과는 `FC-REQ-020` §P1 결과
 
+체크리스트 `requirements/reports/checklists/F011-slice5c-kr-forecast-accuracy.md` · 회고 `requirements/reports/retrospects/F011-slice5c-kr-forecast-accuracy.md`
+
 ## 결정 필요 (사용자)
 
 - 코인 게이트도 풀링 · 블록화할지 — 코인은 실제 효과(p<0.001)지만 카드 단위 우연 비율 약 32%. FR-5 리포트를 보고 결정
