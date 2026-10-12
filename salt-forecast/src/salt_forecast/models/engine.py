@@ -74,6 +74,7 @@ class Emitted:
     forecast: QuantileForecast
     direction: Direction
     realized: float | None
+    scale: float = 0.0  # 보정 전 척도(일 변동성 × √n) — 척도 QLIKE 채점용(FC-REQ-020 FR-11)
 
 
 @dataclass(slots=True)
@@ -82,6 +83,20 @@ class _GridEntry:
     scale: list[float] = field(default_factory=lambda: [])
     realized: list[float] = field(default_factory=lambda: [])
     p_up: list[float] = field(default_factory=lambda: [])
+    bucket: list[int] = field(default_factory=lambda: [])
+
+
+def mondrian(pool: ResidualPool, bucket: NDArray[np.int64]) -> dict[int, Adjustments]:
+    """버킷(1~)별 조정량(FC-REQ-020 FR-13). 버킷 풀이 작으면 빠진다 — 그 버킷은 풀 전체 조정량을 쓴다.
+    버킷 0(코인 · 버킷 없는 모델)은 여기 없다 → 지금 동작 그대로."""
+    out: dict[int, Adjustments] = {}
+    for b in np.unique(bucket[bucket > 0]).tolist():
+        sel = bucket == b
+        sub = ResidualPool(pool.raw_q[sel], pool.scale[sel], pool.realized[sel])
+        adj = fit_adjustments(sub)
+        if adj is not None:
+            out[int(b)] = adj
+    return out
 
 
 def grid_for(series: Mapping[str, CloseSeries], schedule: Schedule = COIN) -> list[int]:
@@ -157,34 +172,37 @@ class WalkForward:
                         e.scale.append(raw.scale)
                         e.realized.append(realized)
                         e.p_up.append(raw.forecast.p_up)
+                        e.bucket.append(raw.bucket)
 
     def _pool_indices(self, as_of: int, h: int) -> range:
         """라벨이 as_of 이전에 끝난 최근 POOL_WEEKS 개 격자(엠바고). 라벨 끝은 격자를 따라 늘어난다."""
         last = int(np.searchsorted(self._label_end[h], as_of, side="right"))
         return range(max(0, last - POOL_WEEKS), last)
 
-    def _pool(self, as_of: int, h: int, m: str) -> tuple[ResidualPool | None, NDArray[np.float64]]:
+    def _pool(self, as_of: int, h: int, m: str) -> tuple[ResidualPool | None, NDArray[np.float64], NDArray[np.int64]]:
         entries = [self._entries[(h, m)][i] for i in self._pool_indices(as_of, h)]
         rq = [q for e in entries for q in e.raw_q]
         if not rq:
-            return None, np.empty(0, dtype=np.float64)
+            return None, np.empty(0, dtype=np.float64), np.empty(0, dtype=np.int64)
         pool = ResidualPool(
             raw_q=np.stack(rq),
             scale=np.asarray([s for e in entries for s in e.scale], dtype=np.float64),
             realized=np.asarray([r for e in entries for r in e.realized], dtype=np.float64),
         )
         p_up = np.asarray([p for e in entries for p in e.p_up], dtype=np.float64)
-        return pool, p_up
+        bucket = np.asarray([b for e in entries for b in e.bucket], dtype=np.int64)
+        return pool, p_up, bucket
 
     def emit(self, as_of: int, *, with_realized: bool) -> Iterator[Emitted]:
         sliced = closes_as_of(self.series, as_of)
         for h in self.horizons:
-            fitted: dict[str, tuple[Adjustments | None, float | None]] = {}
+            fitted: dict[str, tuple[Adjustments | None, float | None, dict[int, Adjustments]]] = {}
             for m in self.providers:
-                pool, p_up = self._pool(as_of, h, m)
+                pool, p_up, bucket = self._pool(as_of, h, m)
                 adj = fit_adjustments(pool) if pool is not None else None
                 threshold = choose_threshold(p_up, pool.realized) if pool is not None and m != BASELINE else None
-                fitted[m] = (adj, threshold)
+                by_bucket = mondrian(pool, bucket) if pool is not None and adj is not None else {}
+                fitted[m] = (adj, threshold, by_bucket)
             for sym, s in sliced.items():
                 base = s.last_close()
                 if base is None or not self._allowed(as_of, sym) or not self.schedule.fresh(s, as_of):
@@ -193,12 +211,12 @@ class WalkForward:
                 if with_realized and realized is None:
                     continue
                 for m, provider in self.providers.items():
-                    adj, threshold = fitted[m]
+                    adj, threshold, by_bucket = fitted[m]
                     raw = provider.raw(sym, s, h, as_of)
                     if raw is None or adj is None:
                         continue
-                    fc = apply(raw.forecast, raw.scale, adj)
-                    yield Emitted(sym, h, as_of, m, base, fc, direction_for(fc.p_up, threshold), realized)
+                    fc = apply(raw.forecast, raw.scale, by_bucket.get(raw.bucket, adj))
+                    yield Emitted(sym, h, as_of, m, base, fc, direction_for(fc.p_up, threshold), realized, raw.scale)
 
     def backtest_as_ofs(self) -> list[int]:
         """보정 풀이 차기 시작한 뒤의 격자 전부. 라벨이 없는 것은 emit 이 거른다."""
