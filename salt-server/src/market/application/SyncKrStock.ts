@@ -6,6 +6,7 @@ import {
   addKstDays,
   krMinutesToFiveMinute,
   isKrQuoteWindow,
+  kstAt,
   krMarketSession,
   kstDateOf,
   type KrHeldCodesSource,
@@ -184,6 +185,143 @@ export class SyncKrDailyCandles {
 
     logger.info(`🕯️ 국내 주식 일봉: 종목 ${codes.length} · 요청 ${requests} · 봉 ${candles} · 실패 ${failed}`);
     return { codes: codes.length, requests, candles, failed };
+  }
+}
+
+/** 전 종목 일봉 하한 — 5년(사용자 결정 2026-10-09). 상장이 더 늦으면 상장일 */
+const FULL_BACKFILL_YEARS = 5;
+/** 첫 봉이 하한에서 이만큼 안이면 앞쪽은 다 받은 것으로 본다 — 하한 날이 휴장 · 연휴면 첫 봉이 며칠 늦다 */
+const FULL_BACKFILL_SLACK_DAYS = 10;
+/** 밤 회차가 멈추는 KST 시각 — 07:30 마스터 동기화 · 08:30 시세 창 전에 한도를 비워 둔다 */
+const FULL_STOP_KST = { hour: 7, minute: 20 };
+
+type FullWork = { code: string; from: string; to: string; direction: "forward" | "backward" };
+
+/**
+ * 전 종목 일봉(FR-40 · `FC-REQ-020` FR-7). 상장 보통주 약 2,450 종목 × 5년 — 시세 유니버스(약 50)와 따로 돈다.
+ *
+ * 모의 키 처리량이 약 2건/s 라 첫 백필은 약 3.4만 호출 · 5시간 남짓이다. 그래서 **밤에만** 돌고(워커: 평일 18:00 ·
+ * 주말 08:00 시작) 다음 07:20 KST 에 새 요청을 멈춘다. 다 못 받은 종목은 다음 회차가 저장된 봉에서 잇는다 —
+ * 진행 상태를 따로 두지 않고 **저장된 첫 · 마지막 봉**이 진행 표시다. 같은 프로세스에서 회차가 겹치면 뒤 회차는 건너뛴다.
+ *
+ * 순서: ① 전 종목 증분(마지막 봉 날짜부터 오늘까지, 대개 한 호출) ② 앞쪽 백필(첫 봉 직전부터 **거꾸로** 140일씩).
+ * 거꾸로 받다가 빈 페이지가 나오면 그 종목의 앞쪽은 끝이다(상장일 정보가 없거나 KIS 수정주가 이력이 짧은 종목) —
+ * 그 종목은 다음 밤에도 한 호출만 쓴다. 정규장(`J`) 수정주가만(`KisClient.dailyCandles`).
+ */
+export class SyncKrFullDailyCandles {
+  private running = false;
+
+  constructor(
+    private readonly kis: KrStockQuotePort,
+    private readonly store: KrStockStore,
+    private readonly now: () => Date = () => new Date()
+  ) {}
+
+  /** 지금 이후 첫 07:20 KST */
+  stopAt(at: Date): Date {
+    const today = kstDateOf(at);
+    const stop = kstAt(today, FULL_STOP_KST.hour, FULL_STOP_KST.minute);
+    return stop > at ? stop : kstAt(addKstDays(today, 1), FULL_STOP_KST.hour, FULL_STOP_KST.minute);
+  }
+
+  /** 할 일 — 증분 먼저(오늘 값이 빠지지 않게), 그다음 앞쪽 백필 */
+  plan(
+    listings: Array<{ code: string; listedAt: Date | null }>,
+    range: Map<string, { earliest: Date; latest: Date }>,
+    today: string
+  ): FullWork[] {
+    const floor = addKstDays(today, -Math.round(FULL_BACKFILL_YEARS * 365.25));
+    const forward: FullWork[] = [];
+    const backward: FullWork[] = [];
+    for (const { code, listedAt } of listings) {
+      const listed = listedAt ? listedAt.toISOString().slice(0, 10) : null;
+      const start = listed && listed > floor ? listed : floor;
+      const r = range.get(code);
+      if (!r) {
+        backward.push({ code, from: start, to: today, direction: "backward" });
+        continue;
+      }
+      const latest = kstDateOf(r.latest);
+      if (latest < today) forward.push({ code, from: latest, to: today, direction: "forward" });
+      const earliest = kstDateOf(r.earliest);
+      if (earliest > addKstDays(start, FULL_BACKFILL_SLACK_DAYS)) {
+        backward.push({ code, from: start, to: addKstDays(earliest, -1), direction: "backward" });
+      }
+    }
+    return [...forward, ...backward];
+  }
+
+  async execute() {
+    if (this.running) {
+      logger.info("🗄️ 국내 주식 전 종목 일봉 — 이전 회차가 아직 돈다, 건너뜀");
+      return { skipped: true as const };
+    }
+    this.running = true;
+    try {
+      return await this.run();
+    } finally {
+      this.running = false;
+    }
+  }
+
+  private async run() {
+    const startedAt = this.now();
+    const stop = this.stopAt(startedAt);
+    const today = kstDateOf(startedAt);
+    const listings = await this.store.commonStockListings();
+    const range = await this.store.dailyCandleRange(listings.map((l) => l.code));
+    const work = this.plan(listings, range, today);
+
+    let requests = 0;
+    let candles = 0;
+    let failed = 0;
+    let done = 0;
+    let stopped = false;
+
+    await mapConcurrent(work, KIS_CONCURRENCY, async (w) => {
+      if (stopped || this.now() >= stop) {
+        stopped = true;
+        return;
+      }
+      try {
+        if (w.direction === "forward") {
+          let from = w.from;
+          while (from <= w.to) {
+            const to = [addKstDays(from, PAGE_CALENDAR_DAYS - 1), w.to].sort()[0];
+            const page = await this.kis.dailyCandles(w.code, from, to);
+            requests++;
+            await this.store.upsertDailyCandles(w.code, page);
+            candles += page.length;
+            from = addKstDays(to, 1);
+          }
+        } else {
+          let to = w.to;
+          while (to >= w.from) {
+            if (this.now() >= stop) {
+              stopped = true;
+              return;
+            }
+            const from = [addKstDays(to, -(PAGE_CALENDAR_DAYS - 1)), w.from].sort().reverse()[0];
+            const page = await this.kis.dailyCandles(w.code, from, to);
+            requests++;
+            if (page.length === 0) break;
+            await this.store.upsertDailyCandles(w.code, page);
+            candles += page.length;
+            to = addKstDays(from, -1);
+          }
+        }
+        done++;
+      } catch (error) {
+        failed++;
+        logger.warn(`국내 주식 전 종목 일봉 실패 — ${w.code}: ${(error as Error).message}`);
+      }
+    });
+
+    const remaining = work.length - done - failed;
+    logger.info(
+      `🗄️ 국내 주식 전 종목 일봉: 대상 ${listings.length} · 할 일 ${work.length} · 끝 ${done} · 요청 ${requests} · 봉 ${candles} · 실패 ${failed} · 남음 ${remaining}${stopped ? " (07:20 멈춤 — 다음 밤에 잇는다)" : ""}`
+    );
+    return { skipped: false as const, listings: listings.length, work: work.length, done, requests, candles, failed, remaining, stopped };
   }
 }
 

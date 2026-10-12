@@ -93,3 +93,22 @@ def ensemble(parts: list[RawForecast]) -> RawForecast | None:
     q = np.mean(np.stack([p.forecast.array for p in parts]), axis=0)
     p_up = float(np.mean([p.forecast.p_up for p in parts]))
     return RawForecast(QuantileForecast.from_array(q, p_up), parts[0].scale)
+
+
+def empirical_shape_zero(
+    series: CloseSeries, horizon_weeks: int, days_per_week: int = 7, max_gap: int | None = COIN_MAX_GAP
+) -> RawForecast | None:
+    """기준 B 의 위치 0 판(FC-REQ-020 FR-6) — 과거 n 봉 수익률에서 **형태만** 빌린다.
+
+    표본을 중앙값으로 빼고 자기 표준편차로 나눈 뒤 지금 척도(기준 A 의 scale)를 곱한다. 중앙값은 0, 상승 확률은
+    0.5 로 고정 — 과거 창의 상승(국내 시총 상위 = 지난 2년 오른 종목)을 다음 기간의 드리프트로 옮기지 않는다.
+    """
+    base = random_walk_normal(series, horizon_weeks, days_per_week, max_gap)
+    samples = empirical_horizon_returns(series, horizon_weeks, days_per_week)
+    if base is None or samples.size < 60:
+        return None
+    sd = float(np.std(samples, ddof=1))
+    if sd <= 0:
+        return None
+    z = (samples - float(np.median(samples))) / sd
+    return RawForecast(QuantileForecast.from_array(np.quantile(z, LEVELS_ARR) * base.scale, 0.5), base.scale)

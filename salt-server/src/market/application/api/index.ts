@@ -74,6 +74,7 @@ import {
   SyncKrMinuteBars,
   ResolveKrStockUniverse,
   SyncKrDailyCandles,
+  SyncKrFullDailyCandles,
   SyncKrMarketCalendar,
   SyncKrStockMaster,
 } from "../SyncKrStock";
@@ -239,6 +240,8 @@ export interface KrStockUseCases {
   syncMaster: SyncKrStockMaster;
   syncCalendar: SyncKrMarketCalendar;
   syncDailyCandles: SyncKrDailyCandles;
+  /** 전 종목 일봉 5년(FR-40) — 밤 · 주말만 */
+  syncFullDailyCandles: SyncKrFullDailyCandles;
   pollQuotes: PollKrStockQuotes;
   syncMinuteBars: SyncKrMinuteBars;
   realtime: RunKrRealtime;
@@ -277,6 +280,7 @@ const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
     syncCalendar: new SyncKrMarketCalendar(deps.kis, deps.calendar),
     syncDailyCandles: new SyncKrDailyCandles(deps.kis, deps.store, universe),
+    syncFullDailyCandles: new SyncKrFullDailyCandles(deps.kis, deps.store),
     pollQuotes: new PollKrStockQuotes(deps.kis, deps.store, deps.calendar, universe),
     syncMinuteBars: new SyncKrMinuteBars(deps.kis, deps.store, deps.calendar, universe),
     realtime,

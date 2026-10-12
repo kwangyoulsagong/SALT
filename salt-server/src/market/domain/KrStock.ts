@@ -127,6 +127,10 @@ export interface KrStockStore {
   /** 종목별 마지막 일봉 시각. 백필이 어디서 이을지 정한다 */
   latestDailyCandleAt(codes: string[]): Promise<Map<string, Date>>;
   upsertDailyCandles(code: string, candles: Candle[]): Promise<void>;
+  /** 전 종목 일봉 대상(FR-40) — 주권(ST) · 우선주 제외 · 상폐 제외. 상장일은 백필 하한 */
+  commonStockListings(): Promise<Array<{ code: string; listedAt: Date | null }>>;
+  /** 종목별 첫 · 마지막 일봉 시각(봉이 없는 종목은 빠진다) — 전 종목 백필이 앞뒤로 어디서 이을지 정한다 */
+  dailyCandleRange(codes: string[]): Promise<Map<string, { earliest: Date; latest: Date }>>;
   candles(code: string, timeframe: "1d" | "5m", count: number): Promise<Candle[]>;
   /** 로고 판정 대상 — `checkedBefore` 전에 판정했거나 판정한 적 없는 종목(상폐 제외) */
   logoTargets(codes: string[], checkedBefore: Date): Promise<Array<KrLogoTarget & { homepageCheckedAt: Date | null }>>;

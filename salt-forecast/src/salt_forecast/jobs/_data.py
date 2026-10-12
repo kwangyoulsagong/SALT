@@ -8,7 +8,7 @@ import numpy as np
 from sqlalchemy import Engine
 
 from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, KrxSessions, krx_session
-from salt_forecast.domain.series import CloseSeries
+from salt_forecast.domain.series import CloseSeries, OhlcvSeries
 from salt_forecast.features.build import MarketContext
 from salt_forecast.ingest import krx_daily
 from salt_forecast.store.kr_stock import krx_open_dates
@@ -25,6 +25,12 @@ def load(engine: Engine, now: datetime, symbols: list[str] | None) -> tuple[dict
         ohlcv={s: b.as_of(t) for s, b in load_ohlcv_series(engine, "upbit", "1d", symbols).items()},
     )
     return series, ctx
+
+
+def load_kr_bars(engine: Engine, now: datetime) -> dict[str, OhlcvSeries]:
+    """국내 주식 OHLCV(거래대금 = 종가 × 거래량) — 시점 고정 유니버스(FC-REQ-020 FR-7)."""
+    t = int(now.timestamp())
+    return {s: b.as_of(t) for s, b in load_ohlcv_series(engine, krx_daily.SOURCE, krx_daily.INTERVAL).items()}
 
 
 def load_kr(engine: Engine, now: datetime) -> tuple[dict[str, CloseSeries], KrxSessions]:

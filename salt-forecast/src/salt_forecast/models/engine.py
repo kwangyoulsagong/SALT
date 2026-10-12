@@ -14,7 +14,7 @@ as_of t 의 전망은
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Protocol
 
@@ -99,8 +99,12 @@ class WalkForward:
         providers: Mapping[str, Provider] | None = None,
         horizons: Sequence[int] = HORIZONS,
         schedule: Schedule = COIN,
+        eligible: Callable[[int], frozenset[str]] | None = None,
     ) -> None:
+        """`eligible(t)` — t 에 대상인 종목(국내 주식 시점 고정 유니버스, FC-REQ-020 FR-7). None 이면 전부(코인)."""
         self.series = dict(series)
+        self._eligible = eligible
+        self._eligible_cache: dict[int, frozenset[str]] = {}
         self.providers = dict(providers) if providers is not None else baseline_providers()
         self.horizons = tuple(horizons)
         self.schedule = schedule
@@ -116,6 +120,17 @@ class WalkForward:
         self._entries: dict[tuple[int, str], list[_GridEntry]] = {}
         self._build()
 
+    def eligible_at(self, t: int) -> frozenset[str]:
+        """t 에 대상인 종목(필터가 없으면 전부)."""
+        if self._eligible is None:
+            return frozenset(self.series)
+        if t not in self._eligible_cache:
+            self._eligible_cache[t] = self._eligible(t)
+        return self._eligible_cache[t]
+
+    def _allowed(self, t: int, sym: str) -> bool:
+        return self._eligible is None or sym in self.eligible_at(t)
+
     @property
     def models(self) -> list[str]:
         return list(self.providers)
@@ -127,7 +142,7 @@ class WalkForward:
         for gi, g in enumerate(self.grid):
             sliced = closes_as_of(self.series, g)
             for sym, s in sliced.items():
-                if not self.schedule.fresh(s, g):
+                if not self._allowed(g, sym) or not self.schedule.fresh(s, g):
                     continue
                 for h in self.horizons:
                     realized = self.schedule.realized(self.series[sym], g, h)
@@ -172,7 +187,7 @@ class WalkForward:
                 fitted[m] = (adj, threshold)
             for sym, s in sliced.items():
                 base = s.last_close()
-                if base is None or not self.schedule.fresh(s, as_of):
+                if base is None or not self._allowed(as_of, sym) or not self.schedule.fresh(s, as_of):
                     continue
                 realized = self.schedule.realized(self.series[sym], as_of, h) if with_realized else None
                 if with_realized and realized is None:
