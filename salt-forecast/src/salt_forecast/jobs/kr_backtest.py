@@ -27,15 +27,13 @@ from salt_forecast.models.kr_scale import (
     KR_SCALE_MODELS,
     TRAIN_WEEKS,
     KrScalePanel,
-    scale_model_params,
     scale_providers,
 )
 from salt_forecast.models.kr_stock import (
     KR_BASELINE,
+    KR_ENSEMBLE,
     KR_ENSEMBLE_V1,
-    KR_MODELS,
     KR_PRODUCTION,
-    KR_RETIRED,
     kr_model_params,
     kr_providers,
 )
@@ -92,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
             return universe_cache[t]
 
         panel = KrScalePanel(bars, cal, eligible, HORIZONS)
-        models = (*KR_MODELS, *KR_RETIRED, *KR_SCALE_MODELS)
+        models = (KR_BASELINE, KR_ENSEMBLE, KR_ENSEMBLE_V1, *KR_SCALE_MODELS)
         providers = {**kr_providers(cal, with_retired=True), **scale_providers(panel)}
         wf = WalkForward(series, providers, schedule=cal, eligible=eligible)
         as_ofs = wf.backtest_as_ofs()
@@ -149,14 +147,14 @@ def main(argv: list[str] | None = None) -> int:
             "- 도전자는 적합에 26주가 필요해 기준보다 늦게 시작한다 — 풀링 검정은 같은 (종목, as_of) 짝만 본다",
         ]
         universe = sorted({(s, h) for s in series for h in HORIZONS})
-        prod_pairs = trim(paired_scores(scores, KR_PRODUCTION, KR_BASELINE, universe, cal.on_grid))
+        old_pairs = trim(paired_scores(scores, KR_ENSEMBLE, KR_BASELINE, universe, cal.on_grid))
         v1_pairs = trim(paired_scores(scores, KR_ENSEMBLE_V1, KR_BASELINE, universe, cal.on_grid))
-        _, verdicts = kr_cards(prod_pairs, KR_PRODUCTION, KR_BASELINE, HORIZONS)
+        _, verdicts = kr_cards(old_pairs, KR_ENSEMBLE, KR_BASELINE, HORIZONS)
         ch_pairs = trim(paired_scores(scores, KR_CHALLENGER, KR_BASELINE, universe, cal.on_grid))
         _, ch_verdicts = kr_cards(ch_pairs, KR_CHALLENGER, KR_BASELINE, HORIZONS)
 
         def count(p: Mapping[tuple[str, int], Paired]) -> int:
-            return kr_cards(p, KR_PRODUCTION, KR_BASELINE, HORIZONS)[0]
+            return kr_cards(p, KR_ENSEMBLE, KR_BASELINE, HORIZONS)[0]
 
         def count_challenger(p: Mapping[tuple[str, int], Paired]) -> int:
             return kr_cards(p, KR_CHALLENGER, KR_BASELINE, HORIZONS)[0]
@@ -174,20 +172,20 @@ def main(argv: list[str] | None = None) -> int:
             )
         ]
         sections = [
-            *render_pooled(f"풀링 실력 검정 — `{KR_CHALLENGER}`(도전자, `{SCALE_KEY}` 판정 대상)", ch_verdicts),
+            *render_pooled(f"풀링 실력 검정 — `{KR_CHALLENGER}`(운영 챔피언, `{SCALE_KEY}` 판정 대상)", ch_verdicts),
             *render_placebo(
                 f"상시 플라시보 — `{KR_CHALLENGER}` 풀링 게이트 + 종목 거부권", placebo(ch_pairs, count_challenger)
             ),
             *ablations,
             *render_qlike(
                 "척도 QLIKE",
-                {m: scales[m] for m in (KR_BASELINE, KR_PRODUCTION, *KR_SCALE_MODELS)},
+                {m: scales[m] for m in (KR_BASELINE, *KR_SCALE_MODELS)},
                 KR_BASELINE,
                 HORIZONS,
             ),
-            *render_pooled(f"풀링 실력 검정 — `{KR_PRODUCTION}`(운영, 위치 0)", verdicts),
+            *render_pooled(f"풀링 실력 검정 — `{KR_ENSEMBLE}`(은퇴 챔피언, 위치 0)", verdicts),
             *render_pooled(f"풀링 실력 검정 — `{KR_ENSEMBLE_V1}`(은퇴, 비교용)", pooled_gate(v1_pairs, HORIZONS)),
-            *render_placebo(f"상시 플라시보 — `{KR_PRODUCTION}` 풀링 게이트 + 종목 거부권", placebo(prod_pairs, count)),
+            *render_placebo(f"참고 플라시보 — `{KR_ENSEMBLE}` 풀링 게이트 + 종목 거부권", placebo(old_pairs, count)),
             *render_placebo(
                 f"참고 플라시보 — `{KR_ENSEMBLE_V1}` 옛 종목별 게이트(FC-REQ-009)", placebo(v1_pairs, count_old), None
             ),
@@ -204,10 +202,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.dry_run:
             print(report)
             return len(preds)
-        for m in (*KR_MODELS, *KR_RETIRED):
+        for m in models:
             register_model(eng, m, m.split("@")[0], kr_model_params(m))
-        for m in KR_SCALE_MODELS:
-            register_model(eng, m, m.split("@")[0], scale_model_params(m))
         n = write_predictions(eng, preds) + write_scores(eng, scores)
         REPORTS.mkdir(exist_ok=True)
         (REPORTS / f"kr-backtest-{now.date()}.md").write_text(report, encoding="utf-8")

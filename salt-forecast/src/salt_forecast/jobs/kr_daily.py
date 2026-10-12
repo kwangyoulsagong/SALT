@@ -11,8 +11,16 @@ from datetime import UTC, datetime
 from salt_forecast.domain.kr_universe import eligible_at
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.jobs._data import load_kr, load_kr_bars
-from salt_forecast.models.engine import HORIZONS, WalkForward
-from salt_forecast.models.kr_stock import KR_BASELINE, KR_MODELS, KR_PRODUCTION, kr_model_params, kr_providers
+from salt_forecast.models.engine import HORIZONS, WalkForward, pool_start
+from salt_forecast.models.kr_scale import KrScalePanel
+from salt_forecast.models.kr_stock import (
+    KR_BASELINE,
+    KR_MODELS,
+    KR_PRODUCTION,
+    KR_RETIRED,
+    kr_live_providers,
+    kr_model_params,
+)
 from salt_forecast.scoring.evaluate import score_prediction
 from salt_forecast.scoring.pooled_gate import pooled_gates
 from salt_forecast.store.db import engine
@@ -44,7 +52,18 @@ def main(argv: list[str] | None = None) -> int:
             log.warning("국내 주식 일봉 · 거래일 없음 — 건너뜀", extra={"fields": {"job": JOB}})
             return 0
         bars = load_kr_bars(eng, now)
-        wf = WalkForward(series, kr_providers(cal), schedule=cal, eligible=lambda t: eligible_at(bars, cal, t))
+        universe_cache: dict[int, frozenset[str]] = {}
+
+        def eligible(t: int) -> frozenset[str]:
+            if t not in universe_cache:
+                universe_cache[t] = eligible_at(bars, cal, t)
+            return universe_cache[t]
+
+        panel = KrScalePanel(bars, cal, eligible, HORIZONS)
+        # 보정 풀에 닿는 격자만 raw 를 만든다 — 전체 격자와 같은 결과(performance.md §1 매일 < 1분)
+        wf = WalkForward(
+            series, kr_live_providers(cal, panel), schedule=cal, eligible=eligible, since=pool_start(as_of)
+        )
         preds = [
             PredictionRow(
                 e.symbol,
@@ -58,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             for e in wf.emit(as_of, with_realized=False)
         ]
-        pending = unscored_live(eng, KR_MODELS)
+        pending = unscored_live(eng, (*KR_MODELS, *KR_RETIRED))
         scored: list[ScoreRow] = []
         for p in pending:
             s = series.get(p.symbol)
