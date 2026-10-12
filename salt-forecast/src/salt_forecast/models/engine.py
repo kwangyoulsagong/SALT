@@ -26,7 +26,7 @@ from salt_forecast.domain.calendar import COIN, Schedule
 from salt_forecast.domain.calibration import Adjustments, ResidualPool, apply, fit_adjustments
 from salt_forecast.domain.quantiles import Direction, QuantileForecast
 from salt_forecast.domain.scoring import choose_threshold, direction_for
-from salt_forecast.domain.series import CloseSeries
+from salt_forecast.domain.series import WEEK, CloseSeries
 from salt_forecast.features.as_of import closes_as_of
 
 ENSEMBLE = "ens-baseline@0.1.0"
@@ -99,6 +99,11 @@ def mondrian(pool: ResidualPool, bucket: NDArray[np.int64]) -> dict[int, Adjustm
     return out
 
 
+def pool_start(as_of: int, horizons: Sequence[int] = HORIZONS) -> int:
+    """as_of 의 보정 풀이 닿을 수 있는 가장 이른 격자 — 풀 주 수 + 최장 기간 + 휴장 여유 2주."""
+    return as_of - (POOL_WEEKS + max(horizons) + 2) * WEEK
+
+
 def grid_for(series: Mapping[str, CloseSeries], schedule: Schedule = COIN) -> list[int]:
     starts = [int(s.available_at[0]) for s in series.values() if s.available_at.size]
     ends = [int(s.available_at[-1]) for s in series.values() if s.available_at.size]
@@ -115,15 +120,20 @@ class WalkForward:
         horizons: Sequence[int] = HORIZONS,
         schedule: Schedule = COIN,
         eligible: Callable[[int], frozenset[str]] | None = None,
+        since: int | None = None,
     ) -> None:
-        """`eligible(t)` — t 에 대상인 종목(국내 주식 시점 고정 유니버스, FC-REQ-020 FR-7). None 이면 전부(코인)."""
+        """`eligible(t)` — t 에 대상인 종목(국내 주식 시점 고정 유니버스, FC-REQ-020 FR-7). None 이면 전부(코인).
+
+        `since` — 이 시각 이전 격자는 raw 를 만들지 않는다. 매일 작업은 보정 풀(라벨 끝난 최근 POOL_WEEKS 주)만
+        필요해 `pool_start(as_of)` 를 넘긴다 — 결과는 전체 격자와 같다(tests/models/test_engine_since.py).
+        """
         self.series = dict(series)
         self._eligible = eligible
         self._eligible_cache: dict[int, frozenset[str]] = {}
         self.providers = dict(providers) if providers is not None else baseline_providers()
         self.horizons = tuple(horizons)
         self.schedule = schedule
-        self.grid = grid_for(self.series, schedule)
+        self.grid = [g for g in grid_for(self.series, schedule) if since is None or g >= since]
         # 격자 g 의 h주 라벨을 알게 되는 시각 — 보정 풀 엠바고 기준. 달력이 모르면 무한대(풀에 못 들어간다)
         self._label_end = {
             h: np.asarray(
