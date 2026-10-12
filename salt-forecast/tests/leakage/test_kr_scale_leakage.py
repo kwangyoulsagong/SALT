@@ -64,9 +64,7 @@ def _tamper(bars: dict[str, OhlcvSeries], after: int, factor: float) -> dict[str
     for s, b in bars.items():
         k = np.where(b.available_at > after, factor, 1.0)
         # 미래 봉의 범위 · 수익률 · 거래량을 크게 흔든다
-        out[s] = OhlcvSeries(
-            s, b.available_at, b.open * k, b.high * k * k, b.low / k, b.close * k**1.5, b.volume * k
-        )
+        out[s] = OhlcvSeries(s, b.available_at, b.open * k, b.high * k * k, b.low / k, b.close * k**1.5, b.volume * k)
     return out
 
 
