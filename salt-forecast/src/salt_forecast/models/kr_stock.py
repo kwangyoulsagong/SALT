@@ -14,15 +14,24 @@ from salt_forecast.domain.baselines import RawForecast, empirical_shape_zero, en
 from salt_forecast.domain.calendar import KrxSessions
 from salt_forecast.domain.series import CloseSeries
 from salt_forecast.models.engine import CALIBRATION, BaselineEnsemble, Provider, RandomWalk
+from salt_forecast.models.kr_scale import (
+    KR_CHALLENGER,
+    KR_SCALE_MODELS,
+    KrScalePanel,
+    scale_model_params,
+    scale_providers,
+)
 
 KR_BASELINE = "kr-rw-normal@0.1.0"
 KR_ENSEMBLE_V1 = "kr-ens-baseline@0.1.0"
 KR_ENSEMBLE = "kr-ens-baseline@0.2.0"
-# 챔피언. 풀링 게이트(FC-REQ-020 FR-1)를 못 넘으면 카드는 꺼진 채다 — 챔피언이라는 건 "켜질 후보"일 뿐
-KR_PRODUCTION = KR_ENSEMBLE
-KR_MODELS: tuple[str, ...] = (KR_BASELINE, KR_ENSEMBLE)
-# 백테스트 리포트에만 — 매일 예측 · 게이트에는 없다
-KR_RETIRED: tuple[str, ...] = (KR_ENSEMBLE_V1,)
+# 챔피언 — 사전등록 `kr-scale@1` 도전자가 풀링 게이트 1 · 2주 통과 · 플라시보 거짓 발견 17%(≤ 20%)로 교체
+# (2026-10-12, reports/kr-backtest-2026-10-12.md). 풀링 게이트를 못 넘는 기간은 카드가 꺼진 채다
+KR_PRODUCTION = KR_CHALLENGER
+# 매일 live 예측 · 채점
+KR_MODELS: tuple[str, ...] = (KR_BASELINE, KR_PRODUCTION)
+# 백테스트 리포트에만 — 매일 예측 · 게이트에는 없다. 이미 낸 live 예측은 매일 작업이 계속 채점한다
+KR_RETIRED: tuple[str, ...] = (KR_ENSEMBLE, KR_ENSEMBLE_V1)
 
 _GRID = {"grid": "krx-first-session-of-week", "bars_per_week": 5, "close_available_kst": "16:00"}
 
@@ -40,13 +49,21 @@ class ZeroLocationEnsemble:
 
 
 def kr_providers(schedule: KrxSessions, *, with_retired: bool = False) -> dict[str, Provider]:
+    """기준 계열 — 기준 A + 위치 0 앙상블(은퇴 챔피언). 척도 패널이 필요 없는 모델만."""
     out: dict[str, Provider] = {KR_BASELINE: RandomWalk(schedule), KR_ENSEMBLE: ZeroLocationEnsemble(schedule)}
     if with_retired:
         out[KR_ENSEMBLE_V1] = BaselineEnsemble(schedule)
     return out
 
 
+def kr_live_providers(schedule: KrxSessions, panel: KrScalePanel) -> dict[str, Provider]:
+    """매일 작업 — 기준 A + 챔피언."""
+    return {KR_BASELINE: RandomWalk(schedule), KR_PRODUCTION: scale_providers(panel)[KR_PRODUCTION]}
+
+
 def kr_model_params(version: str) -> dict[str, object]:
+    if version in KR_SCALE_MODELS:
+        return {**scale_model_params(version), **_GRID}
     parts = {
         KR_BASELINE: ["rw-normal"],
         KR_ENSEMBLE_V1: ["rw-normal", "empirical-quantile"],

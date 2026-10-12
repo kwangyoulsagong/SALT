@@ -22,6 +22,7 @@ MIN_DAILY_RETURNS = 120
 class RawForecast:
     forecast: QuantileForecast
     scale: float  # 정규화 잔차에 쓰는 스케일 = 일 변동성 × √(기간 일수)
+    bucket: int = 0  # Mondrian 보정 버킷(1~). 0 = 버킷 없음 — 풀 전체 조정량(FC-REQ-020 FR-13)
 
 
 COIN_MAX_GAP = int(1.5 * DAY)
