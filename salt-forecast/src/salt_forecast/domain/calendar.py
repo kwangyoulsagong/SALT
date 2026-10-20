@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Protocol
 
 import numpy as np
@@ -95,6 +95,26 @@ COIN = WeeklyUtc()
 # KRX 정규장 15:30 KST 마감 + 정정 여유 30분 = 16:00 KST = 07:00 UTC(FEATURE-011 FR-80)
 KRX_CLOSE_AVAILABLE = 7 * 3600
 KRX_DAYS_PER_WEEK = 5
+
+
+def presumed_weekdays(known: Iterable[int], through: date) -> list[date]:
+    """마지막으로 아는 거래일 다음 날부터 through 까지의 평일 — 거래일로 **가정**한다.
+
+    달력 원천 둘(일봉이 있는 날 · 서버 개장일 표)은 서버 수집이 멈추면 같이 멈춘다(2026-10-20 실측: 둘 다 10-09).
+    그러면 신선도 검사가 "마지막 거래일 = 마지막 봉"으로 보고 멈춘 가격을 신선하다고 읽는다. 평일을 거래일로 두면
+    봉이 없는 날이 생겨 전망 · 게이트가 꺼진다 — 틀려도 끄는 쪽이다(휴장 평일 하루는 게이트 slack 이 봐준다).
+    봉이 없는 날은 실현값도 없어서 채점에는 들어가지 않는다(`realized` 는 끝 종가를 요구한다).
+    """
+    last = max(known, default=None)
+    if last is None:
+        return []
+    out: list[date] = []
+    d = datetime.fromtimestamp(last, tz=UTC).date() + timedelta(days=1)
+    while d <= through:
+        if d.weekday() < 5:
+            out.append(d)
+        d += timedelta(days=1)
+    return out
 
 
 def krx_session(d: date) -> int:

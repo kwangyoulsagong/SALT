@@ -77,6 +77,10 @@ def test_fit_recovers_pooled_coefficients_and_centers_shape() -> None:
     assert fit.beta[1] == pytest.approx(0.6, abs=0.05)
     assert fit.beta[2] == pytest.approx(0.3, abs=0.05)
     assert fit.smear == pytest.approx(np.exp(0.3**2 / 2), rel=0.05)  # 로그 정규 잔차의 스미어링
+    # 분산비 = h주 실현 분산 ÷ 적합 분산 — t(5) 분산 5/3 × 스미어링(kr-scale@2 절제)
+    assert fit.vr == pytest.approx(5 / 3 * np.exp(0.3**2 / 2), rel=0.1)
+    x0 = np.asarray([-8.0, -8.0])
+    assert fit.daily_var(x0, variance_ratio=True) / fit.daily_var(x0) == pytest.approx(fit.vr / fit.smear)
     for q in fit.z_by_bucket:
         assert q[3] == 0.0 and np.all(np.diff(q) >= 0)
     assert fit.bucket(np.asarray([-12.0, -12.0])) == 1

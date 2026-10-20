@@ -146,6 +146,7 @@ class HarFit:
 
     beta: Vec
     smear: float
+    vr: float  # h주 분산비 — 평균(ret² ÷ (exp(적합값) × n)). 스미어링 대신 쓰는 절제(사전등록 `kr-scale@2`)
     edges: Vec  # 예측 로그 일 분산의 3분위 경계 2개
     z_by_bucket: tuple[Vec, ...]  # 버킷별 표준화 잔차 분위수(LEVELS, 중앙값 0)
     rows: int
@@ -154,8 +155,8 @@ class HarFit:
     def log_var(self, x: Vec) -> float:
         return float(self.beta[0] + x @ self.beta[1:])
 
-    def daily_var(self, x: Vec) -> float:
-        return float(np.exp(self.log_var(x)) * self.smear)
+    def daily_var(self, x: Vec, *, variance_ratio: bool = False) -> float:
+        return float(np.exp(self.log_var(x)) * (self.vr if variance_ratio else self.smear))
 
     def bucket(self, x: Vec) -> int:
         """1 ~ N_BUCKETS(낮음 → 높음). 0 은 엔진이 '버킷 없음'으로 쓴다."""
@@ -173,6 +174,7 @@ def fit_har(x: Mat, y: Vec, ret: Vec, n_days: int, weeks: int) -> HarFit | None:
     beta, *_ = np.linalg.lstsq(design, y, rcond=None)
     fitted = design @ beta
     smear = float(np.mean(np.exp(y - fitted)))
+    vr = float(np.mean(ret**2 / (np.exp(fitted) * n_days)))
     edges = np.quantile(fitted, [1 / N_BUCKETS, 2 / N_BUCKETS])
     sigma = np.sqrt(np.exp(fitted) * smear * n_days)
     z = ret / sigma
@@ -182,7 +184,7 @@ def fit_har(x: Mat, y: Vec, ret: Vec, n_days: int, weeks: int) -> HarFit | None:
         zb = z[bucket == b]
         q = np.quantile(zb, LEVELS_ARR) if zb.size >= 50 else np.quantile(z, LEVELS_ARR)
         shapes.append(q - q[3])  # 위치 0(FR-6) — 중앙값을 뺀다
-    return HarFit(beta.astype(np.float64), smear, edges.astype(np.float64), tuple(shapes), int(y.size), weeks)
+    return HarFit(beta.astype(np.float64), smear, vr, edges.astype(np.float64), tuple(shapes), int(y.size), weeks)
 
 
 def qlike_loss(realized: Vec, variance: Vec) -> Vec:

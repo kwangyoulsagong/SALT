@@ -18,7 +18,7 @@ from datetime import datetime
 
 import numpy as np
 
-from salt_forecast.domain.pooled import PooledResult, block_flips, pooled_verdicts, weekly_skill
+from salt_forecast.domain.pooled import ALPHA, PooledResult, block_flips, pooled_verdicts, weekly_skill
 from salt_forecast.domain.scoring import GATE_WINDOW, Score
 from salt_forecast.scoring.evaluate import Paired, gates_from_pairs, paired_scores
 from salt_forecast.store.predictions import GateRow, ScoreRow
@@ -32,8 +32,9 @@ PLACEBO_SEED = 20261009
 FALSE_DISCOVERY_MAX = 0.20
 
 
-def weekly_d(pairs: Mapping[tuple[str, int], Paired]) -> dict[int, tuple[list[datetime], np.ndarray]]:
-    """기간 → (주, d̄_t). 그 주에 짝지은 종목 전부의 평균 pinball 로."""
+def weekly_d(pairs: Mapping[tuple[str, int], Paired], skip: int = 0) -> dict[int, tuple[list[datetime], np.ndarray]]:
+    """기간 → (주, d̄_t). 그 주에 짝지은 종목 전부의 평균 pinball 로. `skip` = 최근 몇 주를 빼고 그 앞 창을 본다
+    (사전등록 `kr-scale@2` 이전 창)."""
     acc: dict[int, dict[datetime, tuple[list[float], list[float]]]] = defaultdict(lambda: defaultdict(lambda: ([], [])))
     for (_, h), p in pairs.items():
         for t, m, b in zip(p.dates, p.model, p.baseline, strict=True):
@@ -42,23 +43,37 @@ def weekly_d(pairs: Mapping[tuple[str, int], Paired]) -> dict[int, tuple[list[da
             bs.append(b.pinball)
     out: dict[int, tuple[list[datetime], np.ndarray]] = {}
     for h, by_t in acc.items():
-        dates = sorted(by_t)[-POOLED_WEEKS:]
+        ordered = sorted(by_t)
+        dates = ordered[: len(ordered) - skip][-POOLED_WEEKS:]
         d = np.asarray([weekly_skill(np.asarray(by_t[t][0]), np.asarray(by_t[t][1])) for t in dates], dtype=np.float64)
         out[h] = (dates, d)
     return out
 
 
-def pooled_gate(pairs: Mapping[tuple[str, int], Paired], horizons: Sequence[int]) -> dict[int, PooledResult]:
-    by_h = weekly_d(pairs)
+def pooled_gate(
+    pairs: Mapping[tuple[str, int], Paired], horizons: Sequence[int], alpha: float = ALPHA, skip: int = 0
+) -> dict[int, PooledResult]:
+    by_h = weekly_d(pairs, skip)
     empty = np.empty(0, dtype=np.float64)
-    return pooled_verdicts({h: by_h[h][1] if h in by_h else empty for h in horizons})
+    return pooled_verdicts({h: by_h[h][1] if h in by_h else empty for h in horizons}, alpha)
+
+
+def window_dates(pairs: Mapping[tuple[str, int], Paired], h: int, skip: int = 0) -> tuple[datetime, datetime] | None:
+    """`pooled_gate(skip=…)` 가 본 기간 h 의 첫 주 · 마지막 주 — 리포트에 창을 적으려고."""
+    by_h = weekly_d(pairs, skip)
+    dates = by_h[h][0] if h in by_h else []
+    return (dates[0], dates[-1]) if dates else None
 
 
 def kr_cards(
-    pairs: Mapping[tuple[str, int], Paired], model: str, baseline: str, horizons: Sequence[int]
+    pairs: Mapping[tuple[str, int], Paired],
+    model: str,
+    baseline: str,
+    horizons: Sequence[int],
+    alpha: float = ALPHA,
 ) -> tuple[int, dict[int, PooledResult]]:
     """풀링 게이트 + 종목 거부권으로 켜지는 카드 수. 신선도는 백테스트라 빼고 센다."""
-    verdicts = pooled_gate(pairs, horizons)
+    verdicts = pooled_gate(pairs, horizons, alpha)
     rows = gates_from_pairs(pairs, model, baseline, set(), {h: r.passed for h, r in verdicts.items()})
     return sum(1 for g in rows if g.result.renderable), verdicts
 
@@ -144,11 +159,11 @@ def trim(
     }
 
 
-def render_pooled(title: str, verdicts: Mapping[int, PooledResult]) -> list[str]:
+def render_pooled(title: str, verdicts: Mapping[int, PooledResult], alpha: float = ALPHA) -> list[str]:
     lines = [
         f"## {title}",
         "",
-        "d̄_t = 1 − 주별 단면 평균(모델 pinball) ÷ 평균(기준 pinball). 기간 4개 한 가족 Holm(α 0.05). "
+        f"d̄_t = 1 − 주별 단면 평균(모델 pinball) ÷ 평균(기준 pinball). 기간 4개 한 가족 Holm(α {alpha:g}). "
         "통과 = HLN-DM(Holm) · 블록 부트스트랩 하한 > 0 · 비중첩(Holm) 셋 다",
         "",
         "| 기간 | 주 | 평균 d̄ | HLN-DM t · p | 블록 | 부트스트랩 95% | 비중첩 최소 평균 · p 중앙값 | 일치 | 통과 |",
