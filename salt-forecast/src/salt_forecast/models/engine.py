@@ -29,7 +29,15 @@ from salt_forecast.domain.baselines import (
     random_walk_from_sigma,
 )
 from salt_forecast.domain.calendar import COIN, Schedule
-from salt_forecast.domain.calibration import Adjustments, ResidualPool, apply, fit_adjustments
+from salt_forecast.domain.calibration import (
+    NOMINAL_ALPHA,
+    Adjustments,
+    ResidualPool,
+    aci_step,
+    apply,
+    fit_adjustments,
+    miss_rates,
+)
 from salt_forecast.domain.quantiles import LEVELS, Direction, QuantileForecast
 from salt_forecast.domain.scoring import choose_threshold, direction_for
 from salt_forecast.domain.series import WEEK, CloseSeries
@@ -176,11 +184,15 @@ class WalkForward:
         schedule: Schedule = COIN,
         eligible: Callable[[int], frozenset[str]] | None = None,
         since: int | None = None,
+        aci: Mapping[str, float] | None = None,
     ) -> None:
         """`eligible(t)` — t 에 대상인 종목(국내 주식 시점 고정 유니버스, FC-REQ-020 FR-7). None 이면 전부(코인).
 
         `since` — 이 시각 이전 격자는 raw 를 만들지 않는다. 매일 작업은 보정 풀(라벨 끝난 최근 POOL_WEEKS 주)만
         필요해 `pool_start(as_of)` 를 넘긴다 — 결과는 전체 격자와 같다(tests/models/test_engine_since.py).
+
+        `aci` — 모델 → γ. 그 모델은 명목 대신 적응 α 로 보정한다(사전등록 `kr-scale@2`). α 는 라벨 끝난 주의 단면
+        이탈률로 격자 순서대로 갱신된다 — 그래서 `since` 로 자른 엔진은 α 경로가 달라진다(백테스트 절제 전용).
         """
         self.series = dict(series)
         self._eligible = eligible
@@ -199,6 +211,8 @@ class WalkForward:
         }
         self._entries: dict[tuple[int, str], list[_GridEntry]] = {}
         self._grid_pos = {g: i for i, g in enumerate(self.grid)}
+        self._aci = dict(aci or {})
+        self._alpha_after: dict[tuple[int, str], list[tuple[float, ...]]] = {}
         self._build()
 
     def eligible_at(self, t: int) -> frozenset[str]:
@@ -261,6 +275,38 @@ class WalkForward:
         bucket = np.concatenate([e.bucket_arr for e in entries])
         return pool, p_up, bucket
 
+    def _adjust(self, as_of: int, h: int, m: str, pool: ResidualPool) -> Adjustments | None:
+        if m not in self._aci:
+            return fit_adjustments(pool)
+        return fit_adjustments(pool, tuple(1.0 - a for a in self.aci_alpha(as_of, h, m)))
+
+    def aci_alpha(self, as_of: int, h: int, m: str) -> tuple[float, ...]:
+        """as_of 에 쓰는 α — 라벨이 as_of 이전에 끝난 주를 격자 순서대로 전부 넣은 상태. 없으면 명목."""
+        after = self._alpha_path(h, m)
+        k = int(np.searchsorted(self._label_end[h], as_of, side="right"))
+        return after[k - 1] if k > 0 else NOMINAL_ALPHA
+
+    def _alpha_path(self, h: int, m: str) -> list[tuple[float, ...]]:
+        """after[j] = 주 j 까지 넣은 뒤의 α. 주 j 의 이탈률은 그 주에 **실제로 낸**(그때 α 로 보정한) 구간으로 잰다.
+        라벨 끝 ≤ 격자 j 인 주는 전부 j 보다 앞이라 순서대로 한 번에 채울 수 있다."""
+        key = (h, m)
+        if key in self._alpha_after:
+            return self._alpha_after[key]
+        gamma, ends = self._aci[m], self._label_end[h]
+        after: list[tuple[float, ...]] = []
+        alpha = NOMINAL_ALPHA
+        for j, g in enumerate(self.grid):
+            k = int(np.searchsorted(ends, g, side="right"))
+            a_j = after[k - 1] if k > 0 else NOMINAL_ALPHA
+            e = self._entries[(h, m)][j]
+            pool, _, _ = self._pool(g, h, m)
+            adj = fit_adjustments(pool, tuple(1.0 - a for a in a_j)) if pool is not None and e.forecast else None
+            if adj is not None:
+                alpha = aci_step(alpha, miss_rates(e.raw_q, e.scale_arr, e.realized_arr, adj), gamma)
+            after.append(alpha)
+        self._alpha_after[key] = after
+        return after
+
     def emit(self, as_of: int, *, with_realized: bool) -> Iterator[Emitted]:
         sliced = closes_as_of(self.series, as_of)
         # 격자 시점 · 실현값 있는 emit 은 `_build` 가 같은 조건(대상 · 신선 · 실현값)으로 이미 raw 를 만들었다
@@ -269,7 +315,7 @@ class WalkForward:
             fitted: dict[str, tuple[Adjustments | None, float | None, dict[int, Adjustments]]] = {}
             for m in self.providers:
                 pool, p_up, bucket = self._pool(as_of, h, m)
-                adj = fit_adjustments(pool) if pool is not None else None
+                adj = self._adjust(as_of, h, m, pool) if pool is not None else None
                 threshold = choose_threshold(p_up, pool.realized) if pool is not None and m != BASELINE else None
                 by_bucket = mondrian(pool, bucket) if pool is not None and adj is not None else {}
                 fitted[m] = (adj, threshold, by_bucket)

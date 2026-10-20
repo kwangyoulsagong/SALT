@@ -58,11 +58,48 @@ def finite_sample_quantile(scores: NDArray[np.float64], coverage: float) -> floa
     return float(np.quantile(scores, level, method="higher"))
 
 
-def fit_adjustments(pool: ResidualPool) -> Adjustments | None:
-    """풀이 작으면 None — 보정 안 된 구간을 내보내지 않는다."""
+def fit_adjustments(pool: ResidualPool, coverages: tuple[float, ...] | None = None) -> Adjustments | None:
+    """풀이 작으면 None — 보정 안 된 구간을 내보내지 않는다. `coverages` = 명목 대신 쓰는 구간별 목표(ACI)."""
     if pool.size < MIN_POOL:
         return None
-    return Adjustments(tuple(finite_sample_quantile(conformity_scores(pool, lo, hi), cov) for lo, hi, cov in INTERVALS))
+    covs = coverages if coverages is not None else tuple(cov for _, _, cov in INTERVALS)
+    return Adjustments(
+        tuple(
+            finite_sample_quantile(conformity_scores(pool, lo, hi), cov)
+            for (lo, hi, _), cov in zip(INTERVALS, covs, strict=True)
+        )
+    )
+
+
+def miss_rates(
+    raw_q: NDArray[np.float64], scale: NDArray[np.float64], realized: NDArray[np.float64], adj: Adjustments
+) -> tuple[float, ...]:
+    """`apply` 로 낸 구간들의 구간별 이탈 비율 — `apply` 와 같은 계산(조정 뒤 정렬)을 행렬로."""
+    q = raw_q.copy()
+    for (lo, hi, _), a in zip(INTERVALS, adj.by_interval, strict=True):
+        q[:, LEVELS.index(lo)] -= a * scale
+        q[:, LEVELS.index(hi)] += a * scale
+    q.sort(axis=1)
+    out: list[float] = []
+    for lo, hi, _ in INTERVALS:
+        i_lo, i_hi = LEVELS.index(lo), LEVELS.index(hi)
+        out.append(float(np.mean((realized < q[:, i_lo]) | (realized > q[:, i_hi]))))
+    return tuple(out)
+
+
+ACI_ALPHA_MIN = 0.005
+ACI_ALPHA_MAX = 0.5
+
+
+def aci_step(alpha: tuple[float, ...], err: tuple[float, ...], gamma: float) -> tuple[float, ...]:
+    """적응 보정 한 걸음(Gibbs & Candès 2021) — α ← clip(α + γ(α* − err)). α* = 명목 이탈률(사전등록 `kr-scale@2`)."""
+    return tuple(
+        min(max(a + gamma * ((1.0 - cov) - e), ACI_ALPHA_MIN), ACI_ALPHA_MAX)
+        for a, e, (_, _, cov) in zip(alpha, err, INTERVALS, strict=True)
+    )
+
+
+NOMINAL_ALPHA: tuple[float, ...] = tuple(1.0 - cov for _, _, cov in INTERVALS)
 
 
 def apply(raw: QuantileForecast, scale: float, adj: Adjustments) -> QuantileForecast:
