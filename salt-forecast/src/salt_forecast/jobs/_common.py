@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import resource
 import sys
 import time
 from collections.abc import Callable
@@ -92,6 +93,29 @@ def progress_logger(log: logging.Logger, job: str, every: int = 10) -> Callable[
         log.info(
             "학습 진행",
             extra={"fields": {"job": job, "done": done, "total": total, "elapsed_s": round(sec), "eta_s": round(eta)}},
+        )
+
+    return report
+
+
+def stage_logger(log: logging.Logger, job: str) -> Callable[[str], None]:
+    """단계 진행 — 시작부터 경과 · 최고 RSS 를 찍는다(performance.md §5). 긴 작업이 어디서 멈췄는지 보려고."""
+    start = time.perf_counter()
+
+    def report(name: str) -> None:
+        # macOS 는 바이트, Linux 는 KB
+        rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        mb = rss / 2**20 if sys.platform == "darwin" else rss / 2**10
+        log.info(
+            "단계",
+            extra={
+                "fields": {
+                    "job": job,
+                    "stage": name,
+                    "elapsed_s": round(time.perf_counter() - start, 1),
+                    "max_rss_mb": round(mb),
+                }
+            },
         )
 
     return report

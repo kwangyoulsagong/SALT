@@ -19,7 +19,8 @@ import numpy as np
 
 from salt_forecast.domain.kr_universe import KEY as UNIVERSE_KEY
 from salt_forecast.domain.kr_universe import eligible_at
-from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
+from salt_forecast.domain.pooled import PooledResult
+from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, stage_logger, symbols_arg
 from salt_forecast.jobs._data import load_kr, load_kr_bars
 from salt_forecast.models.engine import HORIZONS, POOL_WEEKS, WalkForward
 from salt_forecast.models.kr_scale import (
@@ -44,11 +45,13 @@ from salt_forecast.models.kr_stock import (
     kr_model_params,
     kr_providers,
 )
-from salt_forecast.scoring.coverage import TailObs, render_coverage
-from salt_forecast.scoring.evaluate import Paired, paired_scores, score_forecast
+from salt_forecast.scoring.coverage import render_coverage
+from salt_forecast.scoring.evaluate import Paired, paired_scores
+from salt_forecast.scoring.frame import ColumnsBuilder
 from salt_forecast.scoring.pooled_gate import (
     POOLED_WEEKS,
     kr_cards,
+    kr_placebo,
     per_symbol_cards,
     placebo,
     pooled_gate,
@@ -59,11 +62,9 @@ from salt_forecast.scoring.pooled_gate import (
     window_dates,
 )
 from salt_forecast.scoring.report import render
-from salt_forecast.scoring.scale_report import ScaleObs, render_qlike
+from salt_forecast.scoring.scale_report import render_qlike
 from salt_forecast.store.db import engine
 from salt_forecast.store.predictions import (
-    PredictionRow,
-    ScoreRow,
     register_model,
     scores_for,
     write_gates,
@@ -88,12 +89,20 @@ def main(argv: list[str] | None = None) -> int:
 
     def body() -> int:
         eng = engine()
+        stage = stage_logger(log, JOB)
         now = parse_as_of(args.as_of)
         series, cal = load_kr(eng, now)
+        wanted = symbols_arg(args.symbols)
+        if wanted is not None:
+            # 부분 실행은 프로파일 · 회귀 비교용 — 유니버스 단면이 달라 성적은 전체 실행과 다르다
+            series = {s: c for s, c in series.items() if s in wanted}
         if not series:
             log.warning("국내 주식 일봉 없음 — ingest_kr_stock 먼저", extra={"fields": {"job": JOB}})
             return 0
         bars = load_kr_bars(eng, now)
+        if wanted is not None:
+            bars = {s: b for s, b in bars.items() if s in wanted}
+        stage("읽기")
         universe_cache: dict[int, frozenset[str]] = {}
 
         def eligible(t: int) -> frozenset[str]:
@@ -106,41 +115,35 @@ def main(argv: list[str] | None = None) -> int:
         providers = {**kr_providers(cal, with_retired=True), **scale_providers(panel)}
         wf = WalkForward(series, providers, schedule=cal, eligible=eligible, aci=scale_aci())
         as_ofs = wf.backtest_as_ofs()
-        preds: list[PredictionRow] = []
-        scores: list[ScoreRow] = []
-        tails: dict[str, list[TailObs]] = {m: [] for m in models}
-        scales: dict[str, list[ScaleObs]] = {m: [] for m in models}
+        stage("raw 격자")
+        cols_builder = ColumnsBuilder()
         for t in as_ofs:
             for e in wf.emit(t, with_realized=True):
                 assert e.realized is not None
-                p = PredictionRow(
+                cols_builder.add(
                     e.symbol,
                     e.horizon_weeks,
-                    _dt(e.as_of),
+                    e.as_of,
                     e.model_version,
-                    "backtest",
                     e.base_close,
                     e.forecast,
                     e.direction,
+                    e.realized,
+                    e.scale,
                 )
-                preds.append(p)
-                lo, hi = e.forecast.interval(90)
-                tails[e.model_version].append(TailObs(e.symbol, e.horizon_weeks, e.as_of, lo, hi, e.realized))
-                scales[e.model_version].append(ScaleObs(e.symbol, e.horizon_weeks, e.as_of, e.scale, e.realized))
-                scores.append(
-                    score_forecast(
-                        p.symbol,
-                        p.horizon_weeks,
-                        p.as_of,
-                        p.model_version,
-                        "backtest",
-                        p.forecast,
-                        p.direction,
-                        e.realized,
-                    )
-                )
+            cols_builder.flush()
+        cols = cols_builder.build()
+        # 엔진 · 패널 · OHLCV 는 여기까지만 — 리포트에 필요한 값만 뽑고 놓는다(메모리, FC-REQ-020 P4)
+        median_eligible = int(np.median([len(wf.eligible_at(t)) for t in as_ofs])) if as_ofs else 0
+        last_t = as_ofs[-1] if as_ofs else 0
+        aci_lines = [
+            f"| {h}주 | " + " · ".join(f"{a:.3f}" for a in wf.aci_alpha(last_t, h, KR_HAR_RANGE_ACI)) + " |"
+            for h in HORIZONS
+        ]
+        del wf, providers, panel
+        stage("보정 · 채점")
         first = _dt(as_ofs[0]).date() if as_ofs else None
-        last = _dt(max(int(p.as_of.timestamp()) for p in preds)).date() if preds else None
+        last = _dt(int(cols.as_of.max())).date() if len(cols) else None
         notes = [
             f"- 실행 {now.date()} · 격자 = 주 첫 거래일 09:00 KST(월요일 휴장이면 화요일) {len(as_ofs)}주"
             f"({first} ~ 라벨 끝난 마지막 {last}) · 보정 풀 {POOL_WEEKS}주 · 엠바고 = 라벨 끝(5h 거래일 뒤 16:00 KST)",
@@ -149,7 +152,7 @@ def main(argv: list[str] | None = None) -> int:
             f"- 대상: 시점 고정 유니버스 `{UNIVERSE_KEY}` — as_of 마다 그때 알던 최근 20거래일 전부 거래 · 평균 "
             f"거래대금(종가 × 거래량) ≥ 10억 원 · 일봉 ≥ 250개. "
             f"후보 = 지금 상장된 보통주 {len(series)}종목(일봉 최대 5년). "
-            f"격자당 대상 중앙값 {int(np.median([len(wf.eligible_at(t)) for t in as_ofs])) if as_ofs else 0}종목",
+            f"격자당 대상 중앙값 {median_eligible}종목",
             "- **남은 생존 편향**: 후보가 지금 상장된 종목뿐(상장폐지 이력 없음 — FR-8 대기)",
             "- 보정 · 채점 풀은 국내 주식만(코인과 섞지 않음). LightGBM 없음(척도 회귀는 풀링 OLS)",
             f"- 척도 도전자 사전등록 `{SCALE_KEY}`(`preregistration/2026-10-12-kr-scale.toml`) — "
@@ -162,41 +165,37 @@ def main(argv: list[str] | None = None) -> int:
             "- 도전자는 적합에 26주가 필요해 기준보다 늦게 시작한다 — 풀링 검정은 같은 (종목, as_of) 짝만 본다",
         ]
         universe = sorted({(s, h) for s in series for h in HORIZONS})
-        old_pairs = trim(paired_scores(scores, KR_ENSEMBLE, KR_BASELINE, universe, cal.on_grid))
-        v1_pairs = trim(paired_scores(scores, KR_ENSEMBLE_V1, KR_BASELINE, universe, cal.on_grid))
+
+        def pairs_of(m: str) -> dict[tuple[str, int], Paired]:
+            """그 모델과 기준의 점수만 행 객체로 잠깐 만들어 짝짓는다."""
+            return paired_scores(cols.score_rows((m, KR_BASELINE)), m, KR_BASELINE, universe, cal.on_grid)
+
+        old_pairs = trim(pairs_of(KR_ENSEMBLE))
+        v1_pairs = trim(pairs_of(KR_ENSEMBLE_V1))
         _, verdicts = kr_cards(old_pairs, KR_ENSEMBLE, KR_BASELINE, HORIZONS)
-        ch_pairs = trim(paired_scores(scores, KR_CHALLENGER, KR_BASELINE, universe, cal.on_grid))
+        ch_pairs = trim(pairs_of(KR_CHALLENGER))
         _, ch_verdicts = kr_cards(ch_pairs, KR_CHALLENGER, KR_BASELINE, HORIZONS)
 
-        def count(p: Mapping[tuple[str, int], Paired]) -> int:
-            return kr_cards(p, KR_ENSEMBLE, KR_BASELINE, HORIZONS)[0]
-
-        def count_challenger(p: Mapping[tuple[str, int], Paired]) -> int:
-            return kr_cards(p, KR_CHALLENGER, KR_BASELINE, HORIZONS)[0]
-
-        def count_challenger_2(p: Mapping[tuple[str, int], Paired]) -> int:
-            return kr_cards(p, KR_CHALLENGER_2, KR_BASELINE, HORIZONS, SELECTED_ALPHA)[0]
-
-        full_pairs = {
-            m: paired_scores(scores, m, KR_BASELINE, universe, cal.on_grid)
-            for m in (KR_CHALLENGER_2, KR_CHALLENGER, *KR_SCALE_2_ABLATIONS)
-        }
-        recent2 = {m: pooled_gate(trim(p), HORIZONS, SELECTED_ALPHA) for m, p in full_pairs.items()}
-        earlier2 = {m: pooled_gate(p, HORIZONS, SELECTED_ALPHA, skip=POOLED_WEEKS) for m, p in full_pairs.items()}
+        # 판정 모델마다 짝 → 최근 · 이전 창 판정만 남기고 짝은 놓는다(전체 창 짝 넷을 한꺼번에 들지 않는다)
+        judged = (KR_CHALLENGER_2, KR_CHALLENGER, *KR_SCALE_2_ABLATIONS)
+        recent2: dict[str, dict[int, PooledResult]] = {}
+        earlier2: dict[str, dict[int, PooledResult]] = {}
+        full = pairs_of(KR_CHALLENGER_2)
+        ch2_placebo = kr_placebo(trim(full), HORIZONS, SELECTED_ALPHA)
+        span = window_dates(full, 1, POOLED_WEEKS)
+        del full
+        for m in judged:
+            full = pairs_of(m)
+            recent2[m] = pooled_gate(trim(full), HORIZONS, SELECTED_ALPHA)
+            earlier2[m] = pooled_gate(full, HORIZONS, SELECTED_ALPHA, skip=POOLED_WEEKS)
+            del full
 
         def passed2(m: str) -> list[int]:
             return [h for h in HORIZONS if recent2[m][h].passed and earlier2[m][h].passed]
 
-        ch2_placebo = placebo(trim(full_pairs[KR_CHALLENGER_2]), count_challenger_2)
         fd2 = ch2_placebo.false_discovery
         champ_set, ch2_set = set(passed2(KR_CHALLENGER)), set(passed2(KR_CHALLENGER_2))
         switch = ch2_set > {1, 2} and fd2 is not None and fd2 <= 0.20
-        span = window_dates(full_pairs[KR_CHALLENGER_2], 1, POOLED_WEEKS)
-        last_t = as_ofs[-1] if as_ofs else 0
-        aci_lines = [
-            f"| {h}주 | " + " · ".join(f"{a:.3f}" for a in wf.aci_alpha(last_t, h, KR_HAR_RANGE_ACI)) + " |"
-            for h in HORIZONS
-        ]
         scale2 = [
             f"## `{KEY_2}` 판정 — `{KR_CHALLENGER_2}`",
             "",
@@ -211,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"| `{m}` | {', '.join(f'{h}주' for h in HORIZONS if recent2[m][h].passed) or '없음'} | "
                 f"{', '.join(f'{h}주' for h in HORIZONS if earlier2[m][h].passed) or '없음'} | "
                 f"**{', '.join(f'{h}주' for h in passed2(m)) or '없음'}** |"
-                for m in full_pairs
+                for m in judged
             ),
             "",
             f"- 플라시보(`{KR_CHALLENGER_2}` · α {SELECTED_ALPHA:g} 최근 창 + 종목 거부권): 관측 {ch2_placebo.observed}"
@@ -251,46 +250,45 @@ def main(argv: list[str] | None = None) -> int:
             if m not in (KR_CHALLENGER, *KR_SCALE_2_ABLATIONS)
             for line in render_pooled(
                 f"절제 — `{m}`(판정 대상 아님)",
-                pooled_gate(trim(paired_scores(scores, m, KR_BASELINE, universe, cal.on_grid)), HORIZONS),
+                pooled_gate(trim(pairs_of(m)), HORIZONS),
             )
         ]
+        stage("kr-scale@2 판정")
         sections = [
             *scale2,
             *render_pooled(
                 f"풀링 실력 검정 — `{KR_CHALLENGER}`(`{SCALE_KEY}` 판정 대상, 2026-10-20 은퇴)", ch_verdicts
             ),
             *render_placebo(
-                f"상시 플라시보 — `{KR_CHALLENGER}` 풀링 게이트 + 종목 거부권", placebo(ch_pairs, count_challenger)
+                f"상시 플라시보 — `{KR_CHALLENGER}` 풀링 게이트 + 종목 거부권", kr_placebo(ch_pairs, HORIZONS)
             ),
             *ablations,
-            *render_qlike(
-                "척도 QLIKE",
-                {m: scales[m] for m in (KR_BASELINE, *KR_SCALE_MODELS)},
-                KR_BASELINE,
-                HORIZONS,
-            ),
+            *render_qlike("척도 QLIKE", (KR_BASELINE, *KR_SCALE_MODELS), cols.scales, KR_BASELINE, HORIZONS),
             *render_pooled(f"풀링 실력 검정 — `{KR_ENSEMBLE}`(은퇴 챔피언, 위치 0)", verdicts),
             *render_pooled(f"풀링 실력 검정 — `{KR_ENSEMBLE_V1}`(은퇴, 비교용)", pooled_gate(v1_pairs, HORIZONS)),
-            *render_placebo(f"참고 플라시보 — `{KR_ENSEMBLE}` 풀링 게이트 + 종목 거부권", placebo(old_pairs, count)),
+            *render_placebo(
+                f"참고 플라시보 — `{KR_ENSEMBLE}` 풀링 게이트 + 종목 거부권", kr_placebo(old_pairs, HORIZONS)
+            ),
             *render_placebo(
                 f"참고 플라시보 — `{KR_ENSEMBLE_V1}` 옛 종목별 게이트(FC-REQ-009)", placebo(v1_pairs, count_old), None
             ),
-            *render_coverage("꼬리별 커버리지", tails, HORIZONS),
+            *render_coverage("꼬리별 커버리지", models, cols.tails, HORIZONS),
         ]
         report = render(
-            scores,
+            cols,
             list(models),
             KR_BASELINE,
             f"국내 주식 워크포워드 백테스트 — 운영 {KR_PRODUCTION}",
             notes,
         ) + "\n".join(["", *sections])
-        log.info("백테스트", extra={"fields": {"job": JOB, "predictions": len(preds), "as_ofs": len(as_ofs)}})
+        stage("나머지 절 · 리포트")
+        log.info("백테스트", extra={"fields": {"job": JOB, "predictions": len(cols), "as_ofs": len(as_ofs)}})
         if args.dry_run:
             print(report)
-            return len(preds)
+            return len(cols)
         for m in models:
             register_model(eng, m, m.split("@")[0], kr_model_params(m))
-        n = write_predictions(eng, preds) + write_scores(eng, scores)
+        n = write_predictions(eng, cols.prediction_rows()) + write_scores(eng, cols.score_rows())
         REPORTS.mkdir(exist_ok=True)
         (REPORTS / f"kr-backtest-{now.date()}.md").write_text(report, encoding="utf-8")
         t_now = int(now.timestamp())

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import math
 from collections import defaultdict
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from itertools import pairwise
 
@@ -114,7 +114,10 @@ def _fmt(t: TailRate) -> str:
     return f"{t.rate:.1%} ± {1.96 * t.cluster_se:.1%}"
 
 
-def render_coverage(title: str, obs_by_model: Mapping[str, Iterable[TailObs]], horizons: Sequence[int]) -> list[str]:
+def render_coverage(
+    title: str, models: Sequence[str], obs_for: Callable[[str], Iterable[TailObs]], horizons: Sequence[int]
+) -> list[str]:
+    """`obs_for(모델)` 은 그 모델의 관측 — 모델 하나씩만 객체로 든다(FC-REQ-020 P4)."""
     lines = [
         f"## {title}",
         "",
@@ -124,8 +127,8 @@ def render_coverage(title: str, obs_by_model: Mapping[str, Iterable[TailObs]], h
         "|---|---|---|---|---|---|---|",
     ]
     buckets: list[str] = []
-    for m, obs_iter in obs_by_model.items():
-        obs_all = list(obs_iter)
+    for m in models:
+        obs_all = list(obs_for(m))
         for h in horizons:
             obs = nonoverlapping([o for o in obs_all if o.horizon_weeks == h], h)
             if not obs:
