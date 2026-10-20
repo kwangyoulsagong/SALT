@@ -217,14 +217,14 @@ def main(argv: list[str] | None = None) -> int:
             f"- 플라시보(`{KR_CHALLENGER_2}` · α {SELECTED_ALPHA:g} 최근 창 + 종목 거부권): 관측 {ch2_placebo.observed}"
             f" · 귀무 평균 {ch2_placebo.null_mean:.1f} · p {ch2_placebo.p_value:.3f}"
             f" · 거짓 발견 {'—' if fd2 is None else f'{fd2:.0%}'}",
-            f"- 챔피언 `{KR_CHALLENGER}` 이 같은 기준으로 통과한 기간: "
+            f"- 직전 챔피언 `{KR_CHALLENGER}` 이 같은 기준으로 통과한 기간: "
             f"{', '.join(f'{h}주' for h in sorted(champ_set)) or '없음'}",
             f"- **결정: {'교체' if switch else '유지'}** — 도전자 {sorted(ch2_set) or '없음'}"
             " · 챔피언 기준 집합 [1, 2]",
             "",
             *render_pooled(f"`{KR_CHALLENGER_2}` 최근 창", recent2[KR_CHALLENGER_2], SELECTED_ALPHA),
             *render_pooled(f"`{KR_CHALLENGER_2}` 이전 창", earlier2[KR_CHALLENGER_2], SELECTED_ALPHA),
-            *render_pooled(f"`{KR_CHALLENGER}`(챔피언) 이전 창", earlier2[KR_CHALLENGER], SELECTED_ALPHA),
+            *render_pooled(f"`{KR_CHALLENGER}`(직전 챔피언) 이전 창", earlier2[KR_CHALLENGER], SELECTED_ALPHA),
             *(
                 line
                 for m in KR_SCALE_2_ABLATIONS
@@ -256,7 +256,9 @@ def main(argv: list[str] | None = None) -> int:
         ]
         sections = [
             *scale2,
-            *render_pooled(f"풀링 실력 검정 — `{KR_CHALLENGER}`(운영 챔피언, `{SCALE_KEY}` 판정 대상)", ch_verdicts),
+            *render_pooled(
+                f"풀링 실력 검정 — `{KR_CHALLENGER}`(`{SCALE_KEY}` 판정 대상, 2026-10-20 은퇴)", ch_verdicts
+            ),
             *render_placebo(
                 f"상시 플라시보 — `{KR_CHALLENGER}` 풀링 게이트 + 종목 거부권", placebo(ch_pairs, count_challenger)
             ),

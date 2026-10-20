@@ -16,6 +16,7 @@ from salt_forecast.domain.series import CloseSeries
 from salt_forecast.models.engine import CALIBRATION, BaselineEnsemble, Provider, RandomWalk, SharedRandomWalk
 from salt_forecast.models.kr_scale import (
     KR_CHALLENGER,
+    KR_CHALLENGER_2,
     KR_SCALE_MODELS,
     KrScalePanel,
     scale_model_params,
@@ -25,13 +26,14 @@ from salt_forecast.models.kr_scale import (
 KR_BASELINE = "kr-rw-normal@0.1.0"
 KR_ENSEMBLE_V1 = "kr-ens-baseline@0.1.0"
 KR_ENSEMBLE = "kr-ens-baseline@0.2.0"
-# 챔피언 — 사전등록 `kr-scale@1` 도전자가 풀링 게이트 1 · 2주 통과 · 플라시보 거짓 발견 17%(≤ 20%)로 교체
-# (2026-10-12, reports/kr-backtest-2026-10-12.md). 풀링 게이트를 못 넘는 기간은 카드가 꺼진 채다
-KR_PRODUCTION = KR_CHALLENGER
+# 챔피언 — 사전등록 `kr-scale@2` 판정 대상(형태 없는 범위 HAR)이 선택 보정 α 0.0125 로 최근 · 이전 창 4기간 모두 통과 ·
+# 플라시보 거짓 발견 6%로 교체(2026-10-20, reports/kr-backtest-2026-10-20.md). 직전 `kr-har-mondrian@0.1.0`
+# (`kr-scale@1`, 2026-10-12)은 이전 창에서 한 기간도 못 넘었다. 풀링 게이트를 못 넘는 기간은 카드가 꺼진 채다
+KR_PRODUCTION = KR_CHALLENGER_2
 # 매일 live 예측 · 채점
 KR_MODELS: tuple[str, ...] = (KR_BASELINE, KR_PRODUCTION)
 # 백테스트 리포트에만 — 매일 예측 · 게이트에는 없다. 이미 낸 live 예측은 매일 작업이 계속 채점한다
-KR_RETIRED: tuple[str, ...] = (KR_ENSEMBLE, KR_ENSEMBLE_V1)
+KR_RETIRED: tuple[str, ...] = (KR_CHALLENGER, KR_ENSEMBLE, KR_ENSEMBLE_V1)
 
 _GRID = {"grid": "krx-first-session-of-week", "bars_per_week": 5, "close_available_kst": "16:00"}
 
