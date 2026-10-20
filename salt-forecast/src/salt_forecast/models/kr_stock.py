@@ -10,10 +10,10 @@ LightGBM 은 켜지 않는다 — 풀링 종목 200 미만(시세 유니버스 �
 
 from __future__ import annotations
 
-from salt_forecast.domain.baselines import RawForecast, empirical_shape_zero, ensemble, random_walk_normal
+from salt_forecast.domain.baselines import RawForecast, empirical_shape_zero_on, ensemble
 from salt_forecast.domain.calendar import KrxSessions
 from salt_forecast.domain.series import CloseSeries
-from salt_forecast.models.engine import CALIBRATION, BaselineEnsemble, Provider, RandomWalk
+from salt_forecast.models.engine import CALIBRATION, BaselineEnsemble, Provider, RandomWalk, SharedRandomWalk
 from salt_forecast.models.kr_scale import (
     KR_CHALLENGER,
     KR_SCALE_MODELS,
@@ -39,20 +39,21 @@ _GRID = {"grid": "krx-first-session-of-week", "bars_per_week": 5, "close_availab
 class ZeroLocationEnsemble:
     """기준 A(정규) + 형태만 빌린 경험 분위수 — 둘 다 중앙값 0 · 상승 확률 0.5."""
 
-    def __init__(self, schedule: KrxSessions) -> None:
-        self.days, self.gap = schedule.days_per_week, schedule.max_gap
+    def __init__(self, schedule: KrxSessions, shared: SharedRandomWalk | None = None) -> None:
+        self.rw = shared or SharedRandomWalk(schedule)
 
     def raw(self, symbol: str, sliced: CloseSeries, h: int, as_of: int) -> RawForecast | None:
-        a = random_walk_normal(sliced, h, self.days, self.gap)
-        b = empirical_shape_zero(sliced, h, self.days, self.gap)
+        a = self.rw.get(symbol, sliced, h, as_of)
+        b = empirical_shape_zero_on(a, sliced, h, self.rw.days)
         return ensemble([a, b]) if a and b else None
 
 
 def kr_providers(schedule: KrxSessions, *, with_retired: bool = False) -> dict[str, Provider]:
     """기준 계열 — 기준 A + 위치 0 앙상블(은퇴 챔피언). 척도 패널이 필요 없는 모델만."""
-    out: dict[str, Provider] = {KR_BASELINE: RandomWalk(schedule), KR_ENSEMBLE: ZeroLocationEnsemble(schedule)}
+    rw = SharedRandomWalk(schedule)
+    out: dict[str, Provider] = {KR_BASELINE: RandomWalk(shared=rw), KR_ENSEMBLE: ZeroLocationEnsemble(schedule, rw)}
     if with_retired:
-        out[KR_ENSEMBLE_V1] = BaselineEnsemble(schedule)
+        out[KR_ENSEMBLE_V1] = BaselineEnsemble(shared=rw)
     return out
 
 

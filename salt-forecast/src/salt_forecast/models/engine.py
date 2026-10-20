@@ -21,10 +21,16 @@ from typing import Protocol
 import numpy as np
 from numpy.typing import NDArray
 
-from salt_forecast.domain.baselines import RawForecast, empirical_quantiles, ensemble, random_walk_normal
+from salt_forecast.domain.baselines import (
+    RawForecast,
+    daily_sigma,
+    empirical_quantiles_on,
+    ensemble,
+    random_walk_from_sigma,
+)
 from salt_forecast.domain.calendar import COIN, Schedule
 from salt_forecast.domain.calibration import Adjustments, ResidualPool, apply, fit_adjustments
-from salt_forecast.domain.quantiles import Direction, QuantileForecast
+from salt_forecast.domain.quantiles import LEVELS, Direction, QuantileForecast
 from salt_forecast.domain.scoring import choose_threshold, direction_for
 from salt_forecast.domain.series import WEEK, CloseSeries
 from salt_forecast.features.as_of import closes_as_of
@@ -42,26 +48,52 @@ class Provider(Protocol):
     def raw(self, symbol: str, sliced: CloseSeries, h: int, as_of: int) -> RawForecast | None: ...
 
 
-class RandomWalk:
+class SharedRandomWalk:
+    """기준 A 를 (종목, 기간)마다 한 번 — 기준 · 앙상블 · 경험 형태가 모두 같은 기준 A 를 쓴다(performance.md §2).
+
+    엔진은 한 as_of 의 종목 · 기간 · 모델을 다 돈 뒤 다음 as_of 로 가므로 **지금 as_of 하나만** 들고 있는다.
+    as_of 가 바뀌면 비운다 — 메모리는 종목 수 × 기간 수로 묶인다. 같은 (종목, as_of) 의 잘린 시계열은 하나라
+    캐시가 결과를 바꾸지 않는다.
+    """
+
     def __init__(self, schedule: Schedule = COIN) -> None:
         self.days, self.gap = schedule.days_per_week, schedule.max_gap
+        self._as_of: int | None = None
+        self._sigma: dict[str, float | None] = {}
+        self._rw: dict[tuple[str, int], RawForecast | None] = {}
+
+    def get(self, symbol: str, sliced: CloseSeries, h: int, as_of: int) -> RawForecast | None:
+        if as_of != self._as_of:
+            self._as_of, self._sigma, self._rw = as_of, {}, {}
+        key = (symbol, h)
+        if key not in self._rw:
+            if symbol not in self._sigma:
+                self._sigma[symbol] = daily_sigma(sliced, self.gap)
+            self._rw[key] = random_walk_from_sigma(self._sigma[symbol], h, self.days)
+        return self._rw[key]
+
+
+class RandomWalk:
+    def __init__(self, schedule: Schedule = COIN, shared: SharedRandomWalk | None = None) -> None:
+        self.rw = shared or SharedRandomWalk(schedule)
 
     def raw(self, symbol: str, sliced: CloseSeries, h: int, as_of: int) -> RawForecast | None:
-        return random_walk_normal(sliced, h, self.days, self.gap)
+        return self.rw.get(symbol, sliced, h, as_of)
 
 
 class BaselineEnsemble:
-    def __init__(self, schedule: Schedule = COIN) -> None:
-        self.days, self.gap = schedule.days_per_week, schedule.max_gap
+    def __init__(self, schedule: Schedule = COIN, shared: SharedRandomWalk | None = None) -> None:
+        self.rw = shared or SharedRandomWalk(schedule)
 
     def raw(self, symbol: str, sliced: CloseSeries, h: int, as_of: int) -> RawForecast | None:
-        a = random_walk_normal(sliced, h, self.days, self.gap)
-        b = empirical_quantiles(sliced, h, self.days, self.gap)
+        a = self.rw.get(symbol, sliced, h, as_of)
+        b = empirical_quantiles_on(a, sliced, h, self.rw.days)
         return ensemble([a, b]) if a and b else None
 
 
 def baseline_providers() -> dict[str, Provider]:
-    return {BASELINE: RandomWalk(), ENSEMBLE: BaselineEnsemble()}
+    shared = SharedRandomWalk()
+    return {BASELINE: RandomWalk(shared=shared), ENSEMBLE: BaselineEnsemble(shared=shared)}
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,11 +111,34 @@ class Emitted:
 
 @dataclass(slots=True)
 class _GridEntry:
-    raw_q: list[NDArray[np.float64]] = field(default_factory=lambda: [])
+    """격자 하나 × 기간 × 모델의 raw 예측. `_build` 가 리스트로 쌓고 `freeze` 로 배열이 된다 — 보정 풀은 매 as_of
+    52개를 이어 붙이므로 행 단위 리스트를 매번 다시 쌓지 않는다. `forecast` · `index` 는 같은 격자에서 emit 할 때
+    provider 를 다시 부르지 않으려고 둔다(백테스트는 격자 시점에서만 emit 한다)."""
+
+    symbols: list[str] = field(default_factory=lambda: [])
+    forecast: list[QuantileForecast] = field(default_factory=lambda: [])
     scale: list[float] = field(default_factory=lambda: [])
     realized: list[float] = field(default_factory=lambda: [])
-    p_up: list[float] = field(default_factory=lambda: [])
     bucket: list[int] = field(default_factory=lambda: [])
+    index: dict[str, int] = field(default_factory=lambda: {})
+    raw_q: NDArray[np.float64] = field(default_factory=lambda: np.empty((0, len(LEVELS))))
+    scale_arr: NDArray[np.float64] = field(default_factory=lambda: np.empty(0))
+    realized_arr: NDArray[np.float64] = field(default_factory=lambda: np.empty(0))
+    p_up: NDArray[np.float64] = field(default_factory=lambda: np.empty(0))
+    bucket_arr: NDArray[np.int64] = field(default_factory=lambda: np.empty(0, dtype=np.int64))
+
+    def freeze(self) -> None:
+        if self.forecast:
+            self.raw_q = np.asarray([f.q for f in self.forecast], dtype=np.float64)
+            self.p_up = np.asarray([f.p_up for f in self.forecast], dtype=np.float64)
+        self.scale_arr = np.asarray(self.scale, dtype=np.float64)
+        self.realized_arr = np.asarray(self.realized, dtype=np.float64)
+        self.bucket_arr = np.asarray(self.bucket, dtype=np.int64)
+        self.index = {s: i for i, s in enumerate(self.symbols)}
+
+    def raw(self, symbol: str) -> RawForecast | None:
+        i = self.index.get(symbol)
+        return None if i is None else RawForecast(self.forecast[i], self.scale[i], self.bucket[i])
 
 
 def mondrian(pool: ResidualPool, bucket: NDArray[np.int64]) -> dict[int, Adjustments]:
@@ -143,6 +198,7 @@ class WalkForward:
             for h in self.horizons
         }
         self._entries: dict[tuple[int, str], list[_GridEntry]] = {}
+        self._grid_pos = {g: i for i, g in enumerate(self.grid)}
         self._build()
 
     def eligible_at(self, t: int) -> frozenset[str]:
@@ -178,11 +234,14 @@ class WalkForward:
                         if raw is None:
                             continue
                         e = self._entries[(h, m)][gi]
-                        e.raw_q.append(raw.forecast.array)
+                        e.symbols.append(sym)
+                        e.forecast.append(raw.forecast)
                         e.scale.append(raw.scale)
                         e.realized.append(realized)
-                        e.p_up.append(raw.forecast.p_up)
                         e.bucket.append(raw.bucket)
+        for entries in self._entries.values():
+            for e in entries:
+                e.freeze()
 
     def _pool_indices(self, as_of: int, h: int) -> range:
         """라벨이 as_of 이전에 끝난 최근 POOL_WEEKS 개 격자(엠바고). 라벨 끝은 격자를 따라 늘어난다."""
@@ -190,21 +249,22 @@ class WalkForward:
         return range(max(0, last - POOL_WEEKS), last)
 
     def _pool(self, as_of: int, h: int, m: str) -> tuple[ResidualPool | None, NDArray[np.float64], NDArray[np.int64]]:
-        entries = [self._entries[(h, m)][i] for i in self._pool_indices(as_of, h)]
-        rq = [q for e in entries for q in e.raw_q]
-        if not rq:
+        entries = [e for i in self._pool_indices(as_of, h) if (e := self._entries[(h, m)][i]).forecast]
+        if not entries:
             return None, np.empty(0, dtype=np.float64), np.empty(0, dtype=np.int64)
         pool = ResidualPool(
-            raw_q=np.stack(rq),
-            scale=np.asarray([s for e in entries for s in e.scale], dtype=np.float64),
-            realized=np.asarray([r for e in entries for r in e.realized], dtype=np.float64),
+            raw_q=np.concatenate([e.raw_q for e in entries]),
+            scale=np.concatenate([e.scale_arr for e in entries]),
+            realized=np.concatenate([e.realized_arr for e in entries]),
         )
-        p_up = np.asarray([p for e in entries for p in e.p_up], dtype=np.float64)
-        bucket = np.asarray([b for e in entries for b in e.bucket], dtype=np.int64)
+        p_up = np.concatenate([e.p_up for e in entries])
+        bucket = np.concatenate([e.bucket_arr for e in entries])
         return pool, p_up, bucket
 
     def emit(self, as_of: int, *, with_realized: bool) -> Iterator[Emitted]:
         sliced = closes_as_of(self.series, as_of)
+        # 격자 시점 · 실현값 있는 emit 은 `_build` 가 같은 조건(대상 · 신선 · 실현값)으로 이미 raw 를 만들었다
+        gi = self._grid_pos.get(as_of) if with_realized else None
         for h in self.horizons:
             fitted: dict[str, tuple[Adjustments | None, float | None, dict[int, Adjustments]]] = {}
             for m in self.providers:
@@ -222,7 +282,7 @@ class WalkForward:
                     continue
                 for m, provider in self.providers.items():
                     adj, threshold, by_bucket = fitted[m]
-                    raw = provider.raw(sym, s, h, as_of)
+                    raw = self._entries[(h, m)][gi].raw(sym) if gi is not None else provider.raw(sym, s, h, as_of)
                     if raw is None or adj is None:
                         continue
                     fc = apply(raw.forecast, raw.scale, by_bucket.get(raw.bucket, adj))

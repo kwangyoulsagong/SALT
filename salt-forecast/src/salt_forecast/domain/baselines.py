@@ -51,10 +51,19 @@ def random_walk_normal(
     series: CloseSeries, horizon_weeks: int, days_per_week: int = 7, max_gap: int | None = COIN_MAX_GAP
 ) -> RawForecast | None:
     """기준 A — 중앙값 0, 과거 1년 일 변동성 × √n 정규 분위수. 상승 확률 0.5. n = 주당 봉 수 × h."""
+    return random_walk_from_sigma(daily_sigma(series, max_gap), horizon_weeks, days_per_week)
+
+
+def daily_sigma(series: CloseSeries, max_gap: int | None = COIN_MAX_GAP) -> float | None:
+    """기준 A 의 과거 1년 일 변동성. 기간과 무관해 (종목, as_of)마다 한 번이면 된다. 표본이 모자라면 None."""
     r = daily_log_returns(series, VOL_LOOKBACK_DAYS, max_gap)
-    if r.size < MIN_DAILY_RETURNS:
+    return float(np.std(r, ddof=1)) if r.size >= MIN_DAILY_RETURNS else None
+
+
+def random_walk_from_sigma(sigma: float | None, horizon_weeks: int, days_per_week: int = 7) -> RawForecast | None:
+    """`random_walk_normal` 의 뒷부분 — 일 변동성을 이미 아는 호출자(여러 모델이 같은 기준 A 를 쓸 때)."""
+    if sigma is None:
         return None
-    sigma = float(np.std(r, ddof=1))
     scale = sigma * float(np.sqrt(days_per_week * horizon_weeks))
     if scale <= 0:
         return None
@@ -78,7 +87,15 @@ def empirical_quantiles(
     series: CloseSeries, horizon_weeks: int, days_per_week: int = 7, max_gap: int | None = COIN_MAX_GAP
 ) -> RawForecast | None:
     """기준 B — 과거 n 봉 수익률의 경험 분위수 · 경험 상승 확률."""
-    base = random_walk_normal(series, horizon_weeks, days_per_week, max_gap)
+    return empirical_quantiles_on(
+        random_walk_normal(series, horizon_weeks, days_per_week, max_gap), series, horizon_weeks, days_per_week
+    )
+
+
+def empirical_quantiles_on(
+    base: RawForecast | None, series: CloseSeries, horizon_weeks: int, days_per_week: int = 7
+) -> RawForecast | None:
+    """기준 B — 척도(기준 A)를 이미 아는 호출자용."""
     samples = empirical_horizon_returns(series, horizon_weeks, days_per_week)
     if base is None or samples.size < 60:
         return None
@@ -104,7 +121,15 @@ def empirical_shape_zero(
     표본을 중앙값으로 빼고 자기 표준편차로 나눈 뒤 지금 척도(기준 A 의 scale)를 곱한다. 중앙값은 0, 상승 확률은
     0.5 로 고정 — 과거 창의 상승(국내 시총 상위 = 지난 2년 오른 종목)을 다음 기간의 드리프트로 옮기지 않는다.
     """
-    base = random_walk_normal(series, horizon_weeks, days_per_week, max_gap)
+    return empirical_shape_zero_on(
+        random_walk_normal(series, horizon_weeks, days_per_week, max_gap), series, horizon_weeks, days_per_week
+    )
+
+
+def empirical_shape_zero_on(
+    base: RawForecast | None, series: CloseSeries, horizon_weeks: int, days_per_week: int = 7
+) -> RawForecast | None:
+    """위치 0 경험 형태 — 척도(기준 A)를 이미 아는 호출자용."""
     samples = empirical_horizon_returns(series, horizon_weeks, days_per_week)
     if base is None or samples.size < 60:
         return None

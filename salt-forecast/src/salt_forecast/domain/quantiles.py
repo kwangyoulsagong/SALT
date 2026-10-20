@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Literal
 
@@ -41,7 +42,7 @@ class QuantileForecast:
     def __post_init__(self) -> None:
         if len(self.q) != len(LEVELS):
             raise ValueError(f"분위수는 {len(LEVELS)}개여야 한다: {len(self.q)}")
-        if any(not np.isfinite(v) for v in self.q):
+        if not all(map(math.isfinite, self.q)):
             raise ValueError("분위수에 유한하지 않은 값")
         if any(a > b for a, b in zip(self.q, self.q[1:], strict=False)):
             raise ValueError("분위수가 단조가 아니다")
@@ -51,8 +52,8 @@ class QuantileForecast:
     @staticmethod
     def from_array(values: NDArray[np.float64], p_up: float) -> QuantileForecast:
         """정렬해서 교차를 없앤다(modeling-evaluation.md §1). 교차 수는 호출자가 센다."""
-        ordered = np.sort(values)
-        return QuantileForecast(q=tuple(float(v) for v in ordered), p_up=float(np.clip(p_up, 0.0, 1.0)))
+        ordered: list[float] = np.sort(values).tolist()
+        return QuantileForecast(q=tuple(ordered), p_up=min(max(float(p_up), 0.0), 1.0))
 
     def at(self, level: float) -> float:
         return self.q[LEVELS.index(level)]
