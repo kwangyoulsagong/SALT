@@ -138,14 +138,21 @@ class _GridEntry:
     p_up: NDArray[np.float64] = field(default_factory=lambda: np.empty(0))
     bucket_arr: NDArray[np.int64] = field(default_factory=lambda: np.empty(0, dtype=np.int64))
 
-    def freeze(self) -> None:
+    def freeze(self, shared: dict[tuple[str, ...], dict[str, int]] | None = None) -> None:
+        """`shared` — 같은 격자에서 종목 목록이 같은 칸끼리 `index` 사전 하나를 나눠 쓴다(모델 9개가 대개 같은 목록)."""
         if self.forecast:
             self.raw_q = np.asarray([f.q for f in self.forecast], dtype=np.float64)
             self.p_up = np.asarray([f.p_up for f in self.forecast], dtype=np.float64)
         self.scale_arr = np.asarray(self.scale, dtype=np.float64)
         self.realized_arr = np.asarray(self.realized, dtype=np.float64)
         self.bucket_arr = np.asarray(self.bucket, dtype=np.int64)
-        self.index = {s: i for i, s in enumerate(self.symbols)}
+        key = tuple(self.symbols)
+        index = None if shared is None else shared.get(key)
+        if index is None:
+            index = {s: i for i, s in enumerate(self.symbols)}
+            if shared is not None:
+                shared[key] = index
+        self.index = index
         self.symbols, self.forecast, self.scale, self.realized, self.bucket = [], [], [], [], []
 
     @property
@@ -264,9 +271,10 @@ class WalkForward:
                         e.scale.append(raw.scale)
                         e.realized.append(realized)
                         e.bucket.append(raw.bucket)
-        for entries in self._entries.values():
-            for e in entries:
-                e.freeze()
+            # 격자 하나가 끝날 때마다 굳힌다 — 끝에 한꺼번에 굳히면 raw 객체 전부가 한때 메모리에 있다(FC-REQ-020 P4)
+            shared: dict[tuple[str, ...], dict[str, int]] = {}
+            for entries in self._entries.values():
+                entries[gi].freeze(shared)
 
     def _pool_indices(self, as_of: int, h: int) -> range:
         """라벨이 as_of 이전에 끝난 최근 POOL_WEEKS 개 격자(엠바고). 라벨 끝은 격자를 따라 늘어난다."""
