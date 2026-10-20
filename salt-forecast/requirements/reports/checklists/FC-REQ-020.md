@@ -20,6 +20,7 @@
 
 ## 검증
 
+- P3 dry-run `--as-of 2026-06-30` main 대비: 코인 `daily` 예측 1,856 동일(53 → 29초) · 코인 `backtest` 리포트 37줄 **완전 동일**(185 → 125초) · `kr_daily` 예측 8,016(챔피언이 달라 내용은 다름 · 채점 대기 9,686 → 15,618 은 은퇴 챔피언 live 채점 포함)
 - P3: `ruff check` · `ruff format --check`(278) · `pyright` 0 · `lint-imports` 3 kept · `pytest` 290 통과 · 1 건너뜀 · `tests/leakage` 34 통과(새 2: ACI 미래 봉 · 다른 모델 불변) · 엔진 성능 수정 전후 출력 해시 동일(합성 코인 8,120 · 합성 국내 15,840 · 실데이터 60종목 138,212행) · 250종목 cProfile 500 → 188초 · `kr_backtest` **139분 · 최고 5.9GB**(예산 초과) · `kr_daily` 실제 64~72초 · 1.96GB
 
 - `ruff check` · `ruff format --check`(259) · `pyright` 0 · `lint-imports` 3 kept · `pytest` 전체 통과(새 13개) · `tests/leakage` 28 통과

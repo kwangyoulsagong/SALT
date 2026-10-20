@@ -7,7 +7,7 @@
 | P1 `FC-REQ-020` FR-7 | `7936561` 사전등록 → `96c99ea` 구현 → `5f50fc7` 결과. 격자당 973종목 · 4기간 미통과(d̄ −0.12~−0.56%) · 꼬리 쏠림 해소 · 옛 게이트 거짓 발견 77% |
 | P2 `FC-REQ-020` FR-11~13 · 15 | `21ac81b` 사전등록 `kr-scale@1` → `52db2ed` 엔진 Mondrian 자리(코인 해시 불변) → `8ceb78d` 도전자 4종 → `576a609` 엔진 since → `4ad1e07` **챔피언 교체**. 판정 대상 1주 +2.00% · 2주 +1.34% 통과 · 플라시보 17%(p 0.085) · 게이트 1주 662 · 2주 574 |
 | P3 `FC-REQ-020` FR-11 · 13 · 15 | `df4a936` 엔진 성능(출력 해시 동일) → `0115f0a` 사전등록 `kr-scale@2` → `10d97c7` 구현 → `c28d722` **챔피언 교체** `kr-har-range@0.1.0`(α 0.0125 최근 · 이전 창 4기간 · 플라시보 6%) → `b1b1a15` 국내 달력 신선도 수정 |
-| 검증 — Python(P3) | format 278 · pyright 0 · lint-imports 3 kept · pytest 290 · `tests/leakage` 34 · `kr_backtest` 139분 · 5.9GB · `kr_daily` 64~72초 |
+| 검증 — Python(P3) | format 278 · pyright 0 · lint-imports 3 kept · pytest 290 · `tests/leakage` 34 · `kr_backtest` 139분 · 5.9GB · `kr_daily` 64~72초 · dry-run `--as-of 2026-06-30` main 대비 코인 `daily` · `backtest` 출력 동일 |
 | 검증 — Python(P2) | format 273 · pyright 0 · lint-imports 3 kept · pytest 280 · `tests/leakage` 32 · 코인 기준 모델 해시 main 과 동일(55,832행) · `kr_daily --dry-run` 46초 · 1.78GB(이전 163초) |
 | 검증 — Python | ruff · format 265 · pyright 0 · lint-imports 3 kept · pytest 전체 · `tests/leakage` 28 · `ingest_kr_stock --dry-run --as-of 2026-06-30` 268만 행(as_of 뒤 봉 제외) |
 | 검증 — 서버 | `node --test` 717/717 · tsc · eslint |
