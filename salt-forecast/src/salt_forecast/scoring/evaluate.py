@@ -108,7 +108,9 @@ def gates_from_pairs(
     baseline_version: str,
     stale_symbols: set[str],
     pooled: Mapping[int, bool] | None = None,
+    display_ci: bool = True,
 ) -> list[GateRow]:
+    """`display_ci=False` 는 켜짐 여부만 세는 곳(플라시보)용 — 판정에 안 쓰이는 표시용 하한을 건너뛴다."""
     out: list[GateRow] = []
     for (sym, h), p in pairs.items():
         result: GateResult = evaluate_gate(
@@ -116,6 +118,7 @@ def gates_from_pairs(
             p.baseline,
             stale=sym in stale_symbols,
             pooled_skill=None if pooled is None else pooled.get(h, False),
+            display_ci=display_ci,
         )
         window = p.dates[-GATE_WINDOW:]
         out.append(
