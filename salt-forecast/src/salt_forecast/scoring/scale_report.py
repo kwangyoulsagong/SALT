@@ -9,7 +9,7 @@ h주 실현 수익률 r 로 채점한다: 손실 r²/σ̂² + ln σ̂²(Patton 2
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 
 import numpy as np
@@ -75,8 +75,13 @@ def qlike_rows(model: Iterable[ScaleObs], baseline: Iterable[ScaleObs], horizons
 
 
 def render_qlike(
-    title: str, obs_by_model: Mapping[str, Sequence[ScaleObs]], baseline: str, horizons: Sequence[int]
+    title: str,
+    models: Sequence[str],
+    obs_for: Callable[[str], Sequence[ScaleObs]],
+    baseline: str,
+    horizons: Sequence[int],
 ) -> list[str]:
+    """`obs_for(모델)` 은 그 모델의 관측 — 모델 하나씩만 객체로 든다(FC-REQ-020 P4)."""
     lines = [
         f"## {title}",
         "",
@@ -86,10 +91,11 @@ def render_qlike(
         "| 모델 | 기간 | 주 · 짝 | QLIKE 모델 · 기준 | 차이 | 95% | 나은 주 |",
         "|---|---|---|---|---|---|---|",
     ]
-    for m, obs in obs_by_model.items():
+    base = obs_for(baseline)
+    for m in models:
         if m == baseline:
             continue
-        for h, r in sorted(qlike_rows(obs, obs_by_model[baseline], horizons).items()):
+        for h, r in sorted(qlike_rows(obs_for(m), base, horizons).items()):
             lines.append(
                 f"| `{m}` | {h}주 | {r.weeks} · {r.pairs:,} | {r.mean_model:.4f} · {r.mean_baseline:.4f} | "
                 f"{r.diff:+.4f} | [{r.low:+.4f}, {r.high:+.4f}] | {r.better_weeks:.0%} |"

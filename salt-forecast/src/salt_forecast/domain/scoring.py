@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import cache
 from typing import Literal
 
 import numpy as np
@@ -110,6 +111,15 @@ class GateResult:
     miss_count: int | None = None
 
 
+@cache
+def _bootstrap_index(n: int, seed: int) -> NDArray[np.int64]:
+    """시드가 고정이라 (n, seed) 가 같으면 인덱스도 같다 — 종목 수천 × 플라시보 200회가 같은 난수를 다시 뽑던 것을
+    한 번으로(FC-REQ-020 P4). 읽기 전용으로 둔다."""
+    idx = np.random.default_rng(seed).integers(0, n, size=(BOOTSTRAP_RESAMPLES, n))
+    idx.flags.writeable = False
+    return idx
+
+
 def skill_ci_low(model_pin: NDArray[np.float64], base_pin: NDArray[np.float64], seed: int = 0) -> float | None:
     """짝지은 부트스트랩 — 1 − mean(모델)/mean(기준) 의 2.5% 분위수. 같은 as_of 끼리 짝이다.
 
@@ -118,8 +128,7 @@ def skill_ci_low(model_pin: NDArray[np.float64], base_pin: NDArray[np.float64], 
     n = model_pin.size
     if n < MIN_GATE_SAMPLE or base_pin.size != n:
         return None
-    rng = np.random.default_rng(seed)
-    idx = rng.integers(0, n, size=(BOOTSTRAP_RESAMPLES, n))
+    idx = _bootstrap_index(n, seed)
     m = model_pin[idx].mean(axis=1)
     b = base_pin[idx].mean(axis=1)
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -129,7 +138,12 @@ def skill_ci_low(model_pin: NDArray[np.float64], base_pin: NDArray[np.float64], 
 
 
 def evaluate_gate(
-    model: list[Score], baseline: list[Score], *, stale: bool, pooled_skill: bool | None = None
+    model: list[Score],
+    baseline: list[Score],
+    *,
+    stale: bool,
+    pooled_skill: bool | None = None,
+    display_ci: bool = True,
 ) -> GateResult:
     """최근 GATE_WINDOW 개(같은 as_of 로 짝지은 모델 · 기준 점수)로 판정한다.
 
@@ -183,10 +197,16 @@ def evaluate_gate(
         range_reason = "miscalibrated"
     reason: BlockedReason | None = range_reason
     n_pair = min(len(m), len(b))
-    ci_low = skill_ci_low(
-        np.asarray([s.pinball for s in m[-n_pair:]], dtype=np.float64),
-        np.asarray([s.pinball for s in b[-n_pair:]], dtype=np.float64),
-    )
+
+    def ci() -> float | None:
+        return skill_ci_low(
+            np.asarray([s.pinball for s in m[-n_pair:]], dtype=np.float64),
+            np.asarray([s.pinball for s in b[-n_pair:]], dtype=np.float64),
+        )
+
+    # display_ci=False(플라시보 셈) — 하한이 판정을 바꿀 수 있는 칸에서만 잰다. 켜짐 여부는 같다(FC-REQ-020 P4)
+    decides = reason is None and pooled_skill is None and skill is not None and skill > 0 and width < base_width
+    ci_low = ci() if display_ci or decides else None
     if reason is None and pooled_skill is not None:
         if width >= base_width:
             reason = "not_sharper_than_baseline"

@@ -1,4 +1,4 @@
-# FC-REQ-020 체크리스트 — 국내 주식 전망 정확도 (P0 · 2026-10-09 / P1 · P2 · 2026-10-12 / P3 · 2026-10-20)
+# FC-REQ-020 체크리스트 — 국내 주식 전망 정확도 (P0 · 2026-10-09 / P1 · P2 · 2026-10-12 / P3 · P4 · 2026-10-20)
 
 | FR | 위치 | 결과 |
 |---|---|---|
@@ -17,9 +17,12 @@
 | FR-13 (P3) | `domain/calibration.aci_step` · `miss_rates` · `models/engine.WalkForward(aci=)` | 절제 `kr-har-range-aci@0.1.0` — 최근 창 3 · 4주 미통과. 누수 테스트 `tests/leakage/test_aci_leakage.py`(as_of 뒤 봉 지워도 α · 전망 동일) |
 | FR-11 (P3) | `domain/har.HarFit.vr` · `kr-har-range-vr@0.1.0` | 분산비로도 QLIKE +0.37(도전자 +0.36) — 스미어링 가설 기각 |
 | 신선도 (P3) | `domain/calendar.presumed_weekdays` · `jobs/_data.load_kr` | 원천 멈춤(일봉 10-07 · 개장일 표 10-09) 뒤 평일 가정 → 국내 게이트 `stale_inputs` 7,473 · 켜짐 0(수정 전 2,658 켜짐). 같은 날 빠진 일봉(10-19 까지)을 채운 뒤 `stale_inputs` 10(못 받은 종목) · 켜짐 1주 776 · 2주 698 · 3주 613 · 4주 562 · `tests/domain/test_krx_calendar.py` 원천 멈춤 테스트 2 |
+| 성능 (P4) | `store/prices._read_grouped` · `scoring/pooled_gate.kr_placebo` · `domain/scoring` 하한 캐시 · 지연 · `models/engine._GridEntry` · `scoring/frame.py` · `scoring/report.py` · `jobs/_common.stage_logger` | `kr_backtest --dry-run --as-of 2026-06-30` 전체 2,605종목 **139분 · 4.9GB → 14.9분 · 2,041MB**, 리포트 P3 와 **바이트 동일**. 300종목 표본 589 → 160초 · 1.54 → 0.74GB(바이트 동일) |
 
 ## 검증
 
+- P4: `ruff check` · `ruff format --check`(280) · `pyright` 0 · `lint-imports` 3 kept · `pytest` 296 통과 · 1 건너뜀(새 6: 플라시보 배열판 · 하한 지연 · 열 점수 · 렌더 동치) · `tests/leakage` 34 통과 · 엔진 출력 해시 동일(합성 코인 8,120 · 합성 국내 15,840 · 실데이터 60종목 176,870행) · 일봉 읽기 kis · upbit · binance 배열 main 과 동일 · 코인 `backtest --dry-run` 리포트 main 과 바이트 동일 · `daily` · `kr_daily --dry-run` main 대비 행 수 동일(1,856 · 8,016, 채점 대기 15,618) · `kr_daily` 55초 · 1,433MB(main 1,756MB)
+- P4 공용 코드(일봉 읽기 · 게이트 판정)를 쓰는 다른 작업 16개 `--dry-run --as-of 2026-06-30` main 과 나란히: 전부 exit 0 · stdout 동일 · 로그 동일(리포트 경로만 다름) · dry-run 이 쓰는 리포트 9개(meta_model 1 · 2 · onchain_regime · regime_gate · dvol_sigma · rule_ic · search_interest · target_weight 1 · 2)는 실행 커밋 줄만 다르고 동일 — 대조로 생긴 파일은 지웠다. 대상: meta_model · meta_model_v2 · market_regime · target_weight_live · signals · regate · onchain_regime · events · regime_gate · dvol_sigma · rule_ic · search_interest · gate_audit · target_weight · target_weight_v2 · volatility
 - P3 `kr_backtest --dry-run --as-of 2026-06-30`: 격자 220주 · 예측 691만 · **139분 · 최고 4.9GB**(exit 0). 같은 결정 — `kr-har-range@0.1.0` 최근 · 이전 창 4기간 통과 · 플라시보 거짓 발견 4%(p 0.015) · 직전 챔피언 이전 창 0기간. 절제 ACI 는 이 시점엔 4기간 통과(10-20 시점은 3 · 4주 미통과 — 시점에 흔들림) · 분산비는 이전 창 2주 미통과. **DB 쓰기 없는 dry-run 도 139분 · sys 3,144초** → 병목은 DB 가 아니라 메모리(스왑 · 페이지 폴트)
 - P3 dry-run `--as-of 2026-06-30` main 대비: 코인 `daily` 예측 1,856 동일(53 → 29초) · 코인 `backtest` 리포트 37줄 **완전 동일**(185 → 125초) · `kr_daily` 예측 8,016(챔피언이 달라 내용은 다름 · 채점 대기 9,686 → 15,618 은 은퇴 챔피언 live 채점 포함)
 - P3: `ruff check` · `ruff format --check`(278) · `pyright` 0 · `lint-imports` 3 kept · `pytest` 290 통과 · 1 건너뜀 · `tests/leakage` 34 통과(새 2: ACI 미래 봉 · 다른 모델 불변) · 엔진 성능 수정 전후 출력 해시 동일(합성 코인 8,120 · 합성 국내 15,840 · 실데이터 60종목 138,212행) · 250종목 cProfile 500 → 188초 · `kr_backtest` **139분 · 최고 5.9GB**(예산 초과) · `kr_daily` 실제 64~72초 · 1.96GB
@@ -41,8 +44,9 @@
 | FR-8 | 상장폐지 원천 · 이용 조건 미확인 — 지금 후보는 현재 상장 종목뿐(남은 생존 편향) | `SRV-REQ-040` FR-41 원천 확인 뒤 |
 | FR-9 · FR-10 · FR-14 | 상태별 억제 · 수정주가 재작성 · 국면 표 | 다음 슬라이스 |
 | NexCP 보정 · ACI 채택 | ACI 가 시점에 흔들림(06-30 4기간 통과 · 10-20 3 · 4주 미통과) — 고정 CQR 이 안정 | 필요 시 새 등록 |
-| `kr_backtest` 성능 예산(139분 · 5.9GB) | 엔진은 2.7배 빨라졌지만 모델 9개 · 판정 절 · 플라시보 · 스왑으로 전체는 늘었다. 프로파일이 뒷단(짝 점수 · 플라시보 · 점수 쓰기)을 안 봤다 | 다음 슬라이스 착수 전 — dry-run 도 139분 · sys 절반이라 메모리(예측 691만 객체)가 병목. 은퇴 · 절제 모델을 기본에서 빼기 · 점수를 배열로 · 단계별 진행 로그 |
-| `kr_daily` 실제 64~72초(예산 1분) | DB 쓰기 포함 | 같이 |
+| `kr_backtest` 성능 예산(5분 · 2GB) | P4 로 14.9분 · 2,041MB(dry-run). 예산표는 ~300종목 × 모델 2 기준 — 일의 양이 약 47배. 남은 시간은 엔진 raw 격자(약 5분) · 은퇴 v1 옛 종목별 게이트 플라시보(약 5분) | 은퇴 · 절제 모델을 리포트에서 빼는 결정 시(리포트가 바뀌어 이번 범위 밖) · 실제 실행(DB 쓰기 포함) 측정은 다음 챔피언 등록 때 |
+| `kr_backtest` 실제 실행(쓰기 포함) 시간 · 메모리 | 이번엔 dry-run 만 쟀다 — 결과가 바뀌지 않는 성능 작업이라 691만 행 재기록이 필요 없었다 | 다음 백테스트 실제 실행 때 |
+| `kr_daily` 실제 64~72초(예산 1분) | dry-run 은 55초 · 1,433MB 로 줄었지만 실제(쓰기 포함)는 다시 재지 않았다 | 다음 매일 실행 기록(`job_run`) |
 | 11종목 일봉 누락(10-20 이어받기 실패 · 게이트 `stale_inputs` 10) | KIS 초당 한도(EGW00201) — 재시도 3회 뒤 실패 | 밤 정기 백필(`kr-full-daily-candles`)이 재시도 |
 | 커버리지 시총 버킷 · 국면 표(FR-14) | 시총 입력이 Python 에 없음. 표본이 2022-04~ 로 늘어 공매도 금지 구간이 들어왔다 | FR-14 |
 | 코인 게이트 풀링화 | 사용자 결정 | 이 리포트 뒤 |

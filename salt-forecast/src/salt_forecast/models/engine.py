@@ -120,8 +120,11 @@ class Emitted:
 @dataclass(slots=True)
 class _GridEntry:
     """격자 하나 × 기간 × 모델의 raw 예측. `_build` 가 리스트로 쌓고 `freeze` 로 배열이 된다 — 보정 풀은 매 as_of
-    52개를 이어 붙이므로 행 단위 리스트를 매번 다시 쌓지 않는다. `forecast` · `index` 는 같은 격자에서 emit 할 때
-    provider 를 다시 부르지 않으려고 둔다(백테스트는 격자 시점에서만 emit 한다)."""
+    52개를 이어 붙이므로 행 단위 리스트를 매번 다시 쌓지 않는다. `index` 는 같은 격자에서 emit 할 때 provider 를
+    다시 부르지 않으려고 둔다(백테스트는 격자 시점에서만 emit 한다).
+
+    freeze 뒤에는 **배열만** 남긴다 — 국내 전 종목 백테스트에서 raw 분위수 객체 수백만 개가 GB 단위였다
+    (FC-REQ-020 P4). `raw()` 는 배열 행에서 같은 값의 객체를 다시 만든다(float64 → float 는 값이 그대로다)."""
 
     symbols: list[str] = field(default_factory=lambda: [])
     forecast: list[QuantileForecast] = field(default_factory=lambda: [])
@@ -135,18 +138,33 @@ class _GridEntry:
     p_up: NDArray[np.float64] = field(default_factory=lambda: np.empty(0))
     bucket_arr: NDArray[np.int64] = field(default_factory=lambda: np.empty(0, dtype=np.int64))
 
-    def freeze(self) -> None:
+    def freeze(self, shared: dict[tuple[str, ...], dict[str, int]] | None = None) -> None:
+        """`shared` — 같은 격자에서 종목 목록이 같은 칸끼리 `index` 사전 하나를 나눠 쓴다(모델 9개가 대개 같은 목록)."""
         if self.forecast:
             self.raw_q = np.asarray([f.q for f in self.forecast], dtype=np.float64)
             self.p_up = np.asarray([f.p_up for f in self.forecast], dtype=np.float64)
         self.scale_arr = np.asarray(self.scale, dtype=np.float64)
         self.realized_arr = np.asarray(self.realized, dtype=np.float64)
         self.bucket_arr = np.asarray(self.bucket, dtype=np.int64)
-        self.index = {s: i for i, s in enumerate(self.symbols)}
+        key = tuple(self.symbols)
+        index = None if shared is None else shared.get(key)
+        if index is None:
+            index = {s: i for i, s in enumerate(self.symbols)}
+            if shared is not None:
+                shared[key] = index
+        self.index = index
+        self.symbols, self.forecast, self.scale, self.realized, self.bucket = [], [], [], [], []
+
+    @property
+    def size(self) -> int:
+        return int(self.realized_arr.size)
 
     def raw(self, symbol: str) -> RawForecast | None:
         i = self.index.get(symbol)
-        return None if i is None else RawForecast(self.forecast[i], self.scale[i], self.bucket[i])
+        if i is None:
+            return None
+        fc = QuantileForecast(tuple(self.raw_q[i].tolist()), float(self.p_up[i]))
+        return RawForecast(fc, float(self.scale_arr[i]), int(self.bucket_arr[i]))
 
 
 def mondrian(pool: ResidualPool, bucket: NDArray[np.int64]) -> dict[int, Adjustments]:
@@ -253,9 +271,10 @@ class WalkForward:
                         e.scale.append(raw.scale)
                         e.realized.append(realized)
                         e.bucket.append(raw.bucket)
-        for entries in self._entries.values():
-            for e in entries:
-                e.freeze()
+            # 격자 하나가 끝날 때마다 굳힌다 — 끝에 한꺼번에 굳히면 raw 객체 전부가 한때 메모리에 있다(FC-REQ-020 P4)
+            shared: dict[tuple[str, ...], dict[str, int]] = {}
+            for entries in self._entries.values():
+                entries[gi].freeze(shared)
 
     def _pool_indices(self, as_of: int, h: int) -> range:
         """라벨이 as_of 이전에 끝난 최근 POOL_WEEKS 개 격자(엠바고). 라벨 끝은 격자를 따라 늘어난다."""
@@ -263,7 +282,7 @@ class WalkForward:
         return range(max(0, last - POOL_WEEKS), last)
 
     def _pool(self, as_of: int, h: int, m: str) -> tuple[ResidualPool | None, NDArray[np.float64], NDArray[np.int64]]:
-        entries = [e for i in self._pool_indices(as_of, h) if (e := self._entries[(h, m)][i]).forecast]
+        entries = [e for i in self._pool_indices(as_of, h) if (e := self._entries[(h, m)][i]).size]
         if not entries:
             return None, np.empty(0, dtype=np.float64), np.empty(0, dtype=np.int64)
         pool = ResidualPool(
@@ -300,7 +319,7 @@ class WalkForward:
             a_j = after[k - 1] if k > 0 else NOMINAL_ALPHA
             e = self._entries[(h, m)][j]
             pool, _, _ = self._pool(g, h, m)
-            adj = fit_adjustments(pool, tuple(1.0 - a for a in a_j)) if pool is not None and e.forecast else None
+            adj = fit_adjustments(pool, tuple(1.0 - a for a in a_j)) if pool is not None and e.size else None
             if adj is not None:
                 alpha = aci_step(alpha, miss_rates(e.raw_q, e.scale_arr, e.realized_arr, adj), gamma)
             after.append(alpha)

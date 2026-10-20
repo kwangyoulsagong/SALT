@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
+from itertools import pairwise
+from typing import Any
 
 import numpy as np
-from sqlalchemy import Engine, func, select
+from numpy.typing import NDArray
+from sqlalchemy import Engine, Select, func, select
 
 from salt_forecast.domain.series import CloseSeries, OhlcvSeries
 from salt_forecast.store.bulk import bulk_upsert
@@ -91,15 +93,7 @@ def load_close_series(
     )
     if symbols is not None:
         stmt = stmt.where(price_bar.c.symbol.in_(list(symbols)))
-    times: dict[str, list[int]] = defaultdict(list)
-    closes: dict[str, list[float]] = defaultdict(list)
-    with engine.connect() as conn:
-        for sym, epoch, close in conn.execute(stmt):
-            times[str(sym)].append(int(epoch))
-            closes[str(sym)].append(float(close))
-    return {
-        s: CloseSeries(s, np.asarray(times[s], dtype=np.int64), np.asarray(closes[s], dtype=np.float64)) for s in times
-    }
+    return {s: CloseSeries(s, t, v[0]) for s, (t, v) in _read_grouped(engine, stmt, 1).items()}
 
 
 def symbols(engine: Engine, source: str, interval: str) -> list[str]:
@@ -137,20 +131,45 @@ def load_ohlcv_series(
     )
     if symbols is not None:
         stmt = stmt.where(price_bar.c.symbol.in_(list(symbols)))
-    cols: dict[str, list[list[float]]] = defaultdict(lambda: [[], [], [], [], [], []])
-    with engine.connect() as conn:
-        for sym, epoch, o, h, lo, c, v in conn.execute(stmt):
-            row = cols[str(sym)]
-            for arr, val in zip(row, (epoch, o, h, lo, c, v), strict=True):
-                arr.append(float("nan") if val is None else float(val))
-    return {
-        s: OhlcvSeries(
-            s,
-            np.asarray(r[0], dtype=np.int64),
-            *(np.asarray(a, dtype=np.float64) for a in r[1:]),
-        )
-        for s, r in cols.items()
-    }
+    return {s: OhlcvSeries(s, t, *v) for s, (t, v) in _read_grouped(engine, stmt, 5).items()}
+
+
+_CHUNK = 100_000
+
+
+def _read_grouped(
+    engine: Engine, stmt: Select[Any], n: int
+) -> dict[str, tuple[NDArray[np.int64], list[NDArray[np.float64]]]]:
+    """(종목, epoch, 값 n개) 행을 청크로 배열에 옮겨 종목별로 자른다. 종목 · 시각 순 정렬이 전제다.
+
+    행마다 파이썬 리스트에 쌓으면 국내 286만 행에서 중간 객체가 1GB 를 넘었다(FC-REQ-020 P4) — 청크 하나만 객체로
+    든다. 값 변환은 그대로다: 시각은 `int`, 값은 `float`(없으면 NaN, 0 으로 채우지 않는다). 종목 순서는 DB 순서.
+    """
+    names: dict[str, int] = {}
+    code_parts: list[NDArray[np.int32]] = []
+    time_parts: list[NDArray[np.int64]] = []
+    val_parts: list[list[NDArray[np.float64]]] = [[] for _ in range(n)]
+    with engine.connect().execution_options(stream_results=True, yield_per=_CHUNK) as conn:
+        for part in conn.execute(stmt).partitions(_CHUNK):
+            cols = list(zip(*part, strict=True))
+            code_parts.append(np.asarray([names.setdefault(str(x), len(names)) for x in cols[0]], dtype=np.int32))
+            time_parts.append(np.asarray([int(x) for x in cols[1]], dtype=np.int64))
+            for i in range(n):
+                val_parts[i].append(
+                    np.asarray([float("nan") if x is None else float(x) for x in cols[2 + i]], dtype=np.float64)
+                )
+    if not code_parts:
+        return {}
+    codes = np.concatenate(code_parts)
+    times = np.concatenate(time_parts)
+    del time_parts
+    vals: list[NDArray[np.float64]] = []
+    while val_parts:
+        vals.append(np.concatenate(val_parts.pop(0)))
+    by_code = list(names)
+    cuts = [0, *(np.flatnonzero(codes[1:] != codes[:-1]) + 1).tolist(), len(codes)]
+    # 조각은 큰 배열의 뷰다 — 복사하지 않는다(종목별 시리즈가 같은 버퍼를 나눠 쓴다)
+    return {by_code[int(codes[a])]: (times[a:b], [v[a:b] for v in vals]) for a, b in pairwise(cuts)}
 
 
 def top_by_value(engine: Engine, source: str, interval: str, as_of: datetime, days: int, n: int) -> list[str]:

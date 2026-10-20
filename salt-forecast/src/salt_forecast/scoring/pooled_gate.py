@@ -15,11 +15,13 @@ from collections import defaultdict
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import datetime
+from itertools import pairwise
 
 import numpy as np
+from numpy.typing import NDArray
 
 from salt_forecast.domain.pooled import ALPHA, PooledResult, block_flips, pooled_verdicts, weekly_skill
-from salt_forecast.domain.scoring import GATE_WINDOW, Score
+from salt_forecast.domain.scoring import COVERAGE90_MAX, COVERAGE90_MIN, GATE_WINDOW, MIN_GATE_SAMPLE, Score
 from salt_forecast.scoring.evaluate import Paired, gates_from_pairs, paired_scores
 from salt_forecast.store.predictions import GateRow, ScoreRow
 
@@ -95,7 +97,7 @@ def pooled_gates(
 
 def per_symbol_cards(pairs: Mapping[tuple[str, int], Paired], model: str, baseline: str) -> int:
     """지금의 종목별 게이트(코인)로 켜지는 카드 수."""
-    return sum(1 for g in gates_from_pairs(pairs, model, baseline, set()) if g.result.renderable)
+    return sum(1 for g in gates_from_pairs(pairs, model, baseline, set(), display_ci=False) if g.result.renderable)
 
 
 def _flipped(pairs: Mapping[tuple[str, int], Paired], flip: Mapping[datetime, bool]) -> dict[tuple[str, int], Paired]:
@@ -140,6 +142,119 @@ def placebo(
     for i in range(reps):
         flips = block_flips(len(dates), block, rng)
         null[i] = count(_flipped(pairs, dict(zip(dates, flips.tolist(), strict=True))))
+    return PlaceboResult(
+        observed,
+        float(null.mean()),
+        float(np.quantile(null, 0.95)),
+        float((1 + np.sum(null >= observed)) / (reps + 1)),
+        reps,
+    )
+
+
+class _FlipFrame:
+    """국내 풀링 게이트 + 종목 거부권(`kr_cards`)의 켜진 카드 수를 맞바꾸기 마스크로 다시 세는 배열판(FC-REQ-020 P4).
+
+    `kr_cards(_flipped(pairs, flip))` 와 **같은 수**를 낸다(tests/scoring/test_pooled_gate.py). 플라시보 200회마다
+    종목 × 기간 수천 칸의 점수 객체를 다시 만들던 것을, 한 번 평탄 배열로 옮겨 두고 `np.where` 로 맞바꾼다.
+
+    같은 수를 내려고 지키는 것:
+    - 주별 단면 d̄_t 는 원래와 **같은 순서**(짝 순서 → 날짜)로 모은 조각에 `mean` 을 부른다 — 합산 순서가 같다
+    - 종목 거부권은 렌더 조건만: 최근 GATE_WINDOW 표본 ≥ MIN_GATE_SAMPLE · 커버리지 범위 · 폭 < 기준 폭 · 풀링 통과.
+      신선도는 백테스트라 없다. 실력 하한(`skill_ci_low`)은 국내 판정에 쓰지 않는다(표시용)
+    - 폭 중앙값은 `np.median` 과 같은 값(정렬 뒤 가운데 하나 또는 둘의 평균)
+    """
+
+    def __init__(self, pairs: Mapping[tuple[str, int], Paired]) -> None:
+        self.dates = sorted({t for p in pairs.values() for t in p.dates})
+        pos = {t: i for i, t in enumerate(self.dates)}
+        hs: list[int] = []
+        di: list[int] = []
+        cols: tuple[list[float], ...] = ([], [], [], [], [], [])  # 모델 · 기준 × pinball · hit90 · width90
+        windows: list[list[int]] = []
+        key_h: list[int] = []
+        for (_, h), p in pairs.items():
+            start = len(hs)
+            for t, m, b in zip(p.dates, p.model, p.baseline, strict=True):
+                hs.append(h)
+                di.append(pos[t])
+                for col, v in zip(cols, (m.pinball, b.pinball, m.hit90, b.hit90, m.width90, b.width90), strict=True):
+                    col.append(float(v))
+            n = min(len(p.dates), GATE_WINDOW)
+            if n >= MIN_GATE_SAMPLE:  # 표본이 모자란 칸은 어떤 맞바꾸기에도 켜지지 않는다
+                windows.append(list(range(start + len(p.dates) - n, start + len(p.dates))))
+                key_h.append(h)
+        self.di = np.asarray(di, dtype=np.int64)
+        mp, bp, mh, bh, mw, bw = (np.asarray(c, dtype=np.float64) for c in cols)
+        # 주별 단면 — (기간, 날짜) 묶음이 붙도록 안정 정렬. 묶음 안은 원래 순서 그대로
+        h_arr = np.asarray(hs, dtype=np.int64)
+        order = np.lexsort((np.arange(len(hs)), self.di, h_arr))
+        self.w_di, self.w_mp, self.w_bp = self.di[order], mp[order], bp[order]
+        sh, sd = h_arr[order], self.w_di
+        cuts = [0, *(np.flatnonzero((sh[1:] != sh[:-1]) | (sd[1:] != sd[:-1])) + 1).tolist(), len(sh)]
+        groups: dict[int, list[tuple[int, int]]] = defaultdict(list)
+        for a, b in pairwise(cuts):
+            if b > a:
+                groups[int(sh[a])].append((a, b))
+        # weekly_d 처럼 날짜 오름차순 마지막 POOLED_WEEKS 주만
+        self.groups = {h: g[-POOLED_WEEKS:] for h, g in groups.items()}
+        # 종목 거부권 — 창 인덱스를 (칸 × GATE_WINDOW) 로. 빈자리는 마지막 칸(번호 len)을 가리킨다
+        self.key_h = np.asarray(key_h, dtype=np.int64)
+        self.n = np.asarray([len(w) for w in windows], dtype=np.int64)
+        pad = len(hs)
+        self.win = np.full((len(windows), GATE_WINDOW), pad, dtype=np.int64)
+        for i, w in enumerate(windows):
+            self.win[i, : len(w)] = w
+        self.mh, self.bh, self.mw, self.bw = mh, bh, mw, bw
+
+    def count(self, flip: NDArray[np.bool_], horizons: Sequence[int], alpha: float) -> int:
+        """flip[i] = 날짜 i 에서 모델 · 기준을 맞바꾼다."""
+        swap_w = flip[self.w_di]
+        mp = np.where(swap_w, self.w_bp, self.w_mp)
+        bp = np.where(swap_w, self.w_mp, self.w_bp)
+        d_by_h = {
+            h: np.asarray([weekly_skill(mp[a:b], bp[a:b]) for a, b in self.groups[h]], dtype=np.float64)
+            if h in self.groups
+            else np.empty(0, dtype=np.float64)
+            for h in horizons
+        }
+        verdicts = pooled_verdicts(d_by_h, alpha)
+        if not self.n.size:
+            return 0
+        swap = flip[self.di]
+        hit = np.append(np.where(swap, self.bh, self.mh), 0.0)[self.win]
+        mw = np.append(np.where(swap, self.bw, self.mw), np.inf)[self.win]
+        bw = np.append(np.where(swap, self.mw, self.bw), np.inf)[self.win]
+        coverage = hit.sum(axis=1) / self.n
+        ok = (coverage >= COVERAGE90_MIN) & (coverage <= COVERAGE90_MAX)
+        ok &= _row_median(mw, self.n) < _row_median(bw, self.n)
+        ok &= np.asarray([verdicts[int(h)].passed if int(h) in verdicts else False for h in self.key_h], dtype=bool)
+        return int(ok.sum())
+
+
+def _row_median(x: NDArray[np.float64], n: NDArray[np.int64]) -> NDArray[np.float64]:
+    """행마다 앞 n 개(뒤는 +inf 채움)의 중앙값 — `np.median` 과 같은 값."""
+    s = np.sort(x, axis=1)
+    rows: NDArray[np.int64] = np.arange(s.shape[0], dtype=np.int64)
+    lo = s[rows, (n - 1) // 2]
+    hi = s[rows, n // 2]
+    return np.where(n % 2 == 1, lo, (lo + hi) / 2.0)
+
+
+def kr_placebo(
+    pairs: Mapping[tuple[str, int], Paired],
+    horizons: Sequence[int],
+    alpha: float = ALPHA,
+    reps: int = PLACEBO_REPS,
+    seed: int = PLACEBO_SEED,
+    block: int = BLOCK_WEEKS,
+) -> PlaceboResult:
+    """`placebo(pairs, kr_cards 의 수)` 와 같은 결과 — 같은 난수 순서 · 같은 셈을 배열로."""
+    frame = _FlipFrame(pairs)
+    rng = np.random.default_rng(seed)
+    observed = frame.count(np.zeros(len(frame.dates), dtype=bool), horizons, alpha)
+    null = np.empty(reps, dtype=np.float64)
+    for i in range(reps):
+        null[i] = frame.count(block_flips(len(frame.dates), block, rng), horizons, alpha)
     return PlaceboResult(
         observed,
         float(null.mean()),

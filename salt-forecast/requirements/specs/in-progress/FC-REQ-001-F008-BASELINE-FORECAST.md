@@ -46,3 +46,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 |---|---|
 | 2026-09-28 | FR-11 추가 — F010 슬라이스 0 성적표 신뢰성. 감사(2026-09-27)에서 live 행이 매일 쌓여 "52주"가 실제로는 겹치는 라벨의 52일(유효 표본 2~8)이었던 것을 잡았다. `domain/calendar.on_weekly_grid` · `scoring/evaluate.weekly_only` |
 | 2026-10-08 | 엔진 일반화 — 격자 · 라벨 끝 · 실현 수익률 · 신선도 · 주당 봉 수를 `domain/calendar.Schedule` 로(코인 `WeeklyUtc` 기본값, 출력 해시 불변). `gates(on_grid=)` · `unscored_live(model_versions=)`. 국내 주식(`FC-REQ-009`)이 같은 엔진을 쓰려고 |
+| 2026-10-20 | 성능(FC-REQ-020 P4) — 엔진 `_GridEntry` 를 격자마다 배열로 굳히고 `raw()` 는 같은 값으로 다시 만든다 · `report.render` 를 열 기반 한 벌로 · 일봉 읽기 청크 배열. 코인 출력 해시 · `backtest` 리포트 main 과 동일 |

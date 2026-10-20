@@ -128,3 +128,14 @@
 | 라이브 게이트 실제 전환 | live 는 2026-09-23 시작 — 주 격자 as_of 가 아직 1~2개. 52주는 2027-09 이후 | 시간 |
 | `regate --dry-run` 실측 | DB 필요 | 마이그레이션 적용 때 함께 |
 | 기존 `gate` 행 재판정 | 필터 적용 전 판정이 남아 있다 — live 표본이 52 미만이라 kind 는 이미 `backtest`, 실질 차이 없음 | 다음 `daily` 실행이 덮어쓴다 |
+
+## 2026-10-20 — 엔진 · 리포트 공용 성능 변경 (`FC-REQ-020` P4)
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `models/engine._GridEntry` — 격자마다 굳혀 배열만 · 같은 종목 목록이면 `index` 공유 · `raw()` 는 배열 행에서 같은 값으로 | 엔진 출력 해시 동일(합성 코인 8,120행) |
+| `scoring/report.render` — 열 기반 한 벌(`ScoreRow` 입력도 같은 경로) | 코인 `backtest --dry-run --as-of 2026-06-30` 리포트 main 과 바이트 동일 |
+| `store/prices.load_close_series` · `load_ohlcv_series` — 청크 배열 | upbit · binance 종가 · OHLCV 배열 · 순서 main 과 동일 |
+| `domain/scoring.evaluate_gate(display_ci=)` · `skill_ci_low` 인덱스 캐시 — 기본값은 지금 동작 | `daily --dry-run` 예측 1,856 · 채점 대기 41,920 main 과 동일 |
+
+미검증 · 범위 밖: 없음 — 판정 · 출력 변경이 없는 성능 작업이다(공용 코드를 쓰는 다른 작업 dry-run 대조는 `FC-REQ-020` 체크리스트)

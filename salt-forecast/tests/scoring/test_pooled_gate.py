@@ -10,8 +10,8 @@ import numpy as np
 from salt_forecast.domain.quantiles import Z_SCORES, QuantileForecast
 from salt_forecast.domain.scoring import Score, evaluate_gate, score
 from salt_forecast.scoring.coverage import TailObs, nonoverlapping, tail_rate
-from salt_forecast.scoring.evaluate import Paired
-from salt_forecast.scoring.pooled_gate import kr_cards, per_symbol_cards, placebo
+from salt_forecast.scoring.evaluate import Paired, gates_from_pairs
+from salt_forecast.scoring.pooled_gate import kr_cards, kr_placebo, per_symbol_cards, placebo
 
 T0 = datetime(2024, 1, 1, tzinfo=UTC)
 
@@ -79,3 +79,46 @@ def test_tail_rate_cluster_se_counts_dates_not_rows() -> None:
 def test_nonoverlapping_keeps_every_hth_week() -> None:
     obs = [TailObs("S", 3, d, -1, 1, 0) for d in range(10)]
     assert [o.as_of for o in nonoverlapping(obs, 3)] == [0, 3, 6, 9]
+
+
+def _mixed_pairs(seed: int) -> dict[tuple[str, int], Paired]:
+    """기간 4개 · 길이 제각각(표본 부족 포함) · 날짜 구멍 · 실력 있는 칸과 없는 칸 · 커버리지 경계 근처."""
+    rng = np.random.default_rng(seed)
+    out: dict[tuple[str, int], Paired] = {}
+    for i in range(40):
+        for h in (1, 2, 3, 4):
+            weeks = int(rng.integers(10, 130))
+            start = int(rng.integers(0, 30))
+            idx = sorted(rng.choice(np.arange(start, start + weeks + 20), size=weeks, replace=False).tolist())
+            dates = [T0 + timedelta(weeks=k) for k in idx]
+            r = rng.normal(0.0, 0.05 * np.sqrt(h), weeks).tolist()
+            mw = float(rng.choice([0.05, 0.06, 0.07, 0.08, 0.09]))
+            out[(f"S{i}", h)] = Paired(
+                "backtest", dates, [_score(mw * np.sqrt(h), x) for x in r], [_score(0.08 * np.sqrt(h), x) for x in r]
+            )
+    return out
+
+
+def test_kr_placebo_matches_object_placebo() -> None:
+    """배열판 플라시보가 객체판(`placebo` + `kr_cards`)과 관측 · 귀무 분포까지 같다(FC-REQ-020 P4)."""
+    for seed, alpha in ((1, 0.05), (2, 0.0125), (3, 0.05)):
+        pairs = _mixed_pairs(seed)
+
+        def count(p: Mapping[tuple[str, int], Paired], a: float = alpha) -> int:
+            return kr_cards(p, "m", "b", (1, 2, 3, 4), a)[0]
+
+        slow = placebo(pairs, count, reps=25)
+        fast = kr_placebo(pairs, (1, 2, 3, 4), alpha, reps=25)
+        assert fast == slow
+    assert slow.observed > 0  # 켜진 카드가 있는 경우도 본다
+
+
+def test_lazy_ci_keeps_per_symbol_renderable() -> None:
+    """표시용 하한을 건너뛰어도(`display_ci=False`) 옛 종목별 게이트의 켜짐은 같다(FC-REQ-020 P4)."""
+    for seed in (4, 5):
+        pairs = _mixed_pairs(seed)
+        full = gates_from_pairs(pairs, "m", "b", set())
+        lazy = gates_from_pairs(pairs, "m", "b", set(), display_ci=False)
+        assert [g.result.renderable for g in full] == [g.result.renderable for g in lazy]
+        assert [g.result.blocked_reason for g in full] == [g.result.blocked_reason for g in lazy]
+        assert any(g.result.renderable for g in full)
