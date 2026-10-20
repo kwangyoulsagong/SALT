@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from salt_forecast.domain.baselines import random_walk_normal
-from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, KrxSessions, krx_session
+from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, KrxSessions, krx_session, presumed_weekdays
 from salt_forecast.domain.series import DAY, CloseSeries
 
 # 2026-09-28(월) ~ 2026-10-16(금). 실제 휴장: 10-05(월) 대체 · 10-09(금) 한글날
@@ -97,3 +97,26 @@ def test_random_walk_scale_uses_bars_per_week() -> None:
     sigma = float(np.std(np.diff(np.log(s.close[s.available_at >= s.available_at[-1] - 365 * DAY])), ddof=1))
     assert kr.scale == pytest.approx(sigma * np.sqrt(5))
     assert kr.scale != pytest.approx(coin_rule.scale)
+
+
+def test_presumed_weekdays_after_last_known_only() -> None:
+    known = [S[date(2026, 10, 8)], S[date(2026, 10, 6)]]
+    got = presumed_weekdays(known, date(2026, 10, 20))
+    assert got[0] == date(2026, 10, 9) and got[-1] == date(2026, 10, 20)
+    assert all(d.weekday() < 5 for d in got) and len(got) == 8
+    assert presumed_weekdays(known, date(2026, 10, 8)) == []
+    assert presumed_weekdays([], date(2026, 10, 20)) == []
+
+
+def test_stalled_sources_make_prices_stale() -> None:
+    """원천이 10-08 에 함께 멈추면 그 달력으로는 10-08 봉이 신선하다 — 평일 가정을 더하면 신선하지 않다."""
+    stalled = [d for d in _DATES if d <= date(2026, 10, 8)]
+    s = _series(stalled)
+    now = krx_session(date(2026, 10, 20)) + 3600
+    frozen = KrxSessions.from_dates(stalled)
+    assert frozen.fresh(s, frozen.latest_session(now) or 0, slack=1)  # 지금까지의 구멍
+    presumed = KrxSessions.from_dates([*stalled, *presumed_weekdays(frozen.sessions, date(2026, 10, 20))])
+    as_of = presumed.latest_session(now)
+    assert as_of is not None and as_of == krx_session(date(2026, 10, 20))
+    assert not presumed.fresh(s, as_of, slack=1)
+    assert presumed.realized(s, krx_session(date(2026, 10, 6)), 1) is None  # 봉 없는 가정일은 채점에 안 들어간다
