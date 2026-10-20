@@ -56,3 +56,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §F FR-80~
 
 - 2026-10-08: 초판 · FR-1~8 완료. 기획 정정: 개장일 표의 `synced_at` 으로 시점을 자르지 않는다(서버가 재동기화마다 덮어써 과거 as_of 달력이 빈다 — 실측)
 - 2026-10-09: FR-9(국내 주식 σ) · 실력 감사 절 — 국내 카드 화면 보류, 정확도는 `FC-REQ-020`
+- 2026-10-20: `jobs/kr_backtest` 성능만(`FC-REQ-020` P4) — 출력 열 저장 · 단계 진행 로그 · `--symbols` 부분 실행. 리포트 바이트 동일 · 139 → 14.9분
