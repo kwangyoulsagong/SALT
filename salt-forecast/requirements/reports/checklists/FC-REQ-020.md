@@ -16,7 +16,7 @@
 | FR-15 (P3) | 사전등록 `preregistration/2026-10-20-kr-scale-2.toml` · `jobs/kr_backtest.py` 판정 절 · `scoring/pooled_gate.pooled_gate(alpha, skip)` | `kr-har-range@0.1.0` α 0.0125 최근 · 이전 창 4기간 통과(이전 창 +1.22~+1.47%) · 플라시보 6%(p 0.025) → **챔피언 교체**. 직전 챔피언은 이전 창 0기간 |
 | FR-13 (P3) | `domain/calibration.aci_step` · `miss_rates` · `models/engine.WalkForward(aci=)` | 절제 `kr-har-range-aci@0.1.0` — 최근 창 3 · 4주 미통과. 누수 테스트 `tests/leakage/test_aci_leakage.py`(as_of 뒤 봉 지워도 α · 전망 동일) |
 | FR-11 (P3) | `domain/har.HarFit.vr` · `kr-har-range-vr@0.1.0` | 분산비로도 QLIKE +0.37(도전자 +0.36) — 스미어링 가설 기각 |
-| 신선도 (P3) | `domain/calendar.presumed_weekdays` · `jobs/_data.load_kr` | 원천 멈춤(일봉 10-07 · 개장일 표 10-09) 뒤 평일 가정 → 국내 게이트 `stale_inputs` 7,473 · 켜짐 0(수정 전 2,658 켜짐) |
+| 신선도 (P3) | `domain/calendar.presumed_weekdays` · `jobs/_data.load_kr` | 원천 멈춤(일봉 10-07 · 개장일 표 10-09) 뒤 평일 가정 → 국내 게이트 `stale_inputs` 7,473 · 켜짐 0(수정 전 2,658 켜짐). 같은 날 빠진 일봉(10-19 까지)을 채운 뒤 `stale_inputs` 10(못 받은 종목) · 켜짐 1주 776 · 2주 698 · 3주 613 · 4주 562 · `tests/domain/test_krx_calendar.py` 원천 멈춤 테스트 2 |
 
 ## 검증
 
@@ -40,9 +40,9 @@
 | 범위 계열 QLIKE 가 기준보다 나쁨 | 분산비 절제로 척도 상수배 가설 기각(P3) — 원인 미상 | 다음 척도 등록(`kr-scale@3`) — 단면 이질성 · 범위 극단값 |
 | FR-8 | 상장폐지 원천 · 이용 조건 미확인 — 지금 후보는 현재 상장 종목뿐(남은 생존 편향) | `SRV-REQ-040` FR-41 원천 확인 뒤 |
 | FR-9 · FR-10 · FR-14 | 상태별 억제 · 수정주가 재작성 · 국면 표 | 다음 슬라이스 |
-| NexCP 보정 | ACI 가 3 · 4주를 깎아 우선순위 낮음 | 필요 시 새 등록 |
+| NexCP 보정 · ACI 채택 | ACI 가 시점에 흔들림(06-30 4기간 통과 · 10-20 3 · 4주 미통과) — 고정 CQR 이 안정 | 필요 시 새 등록 |
 | `kr_backtest` 성능 예산(139분 · 5.9GB) | 엔진은 2.7배 빨라졌지만 모델 9개 · 판정 절 · 플라시보 · 스왑으로 전체는 늘었다. 프로파일이 뒷단(짝 점수 · 플라시보 · 점수 쓰기)을 안 봤다 | 다음 슬라이스 착수 전 — dry-run 도 139분 · sys 절반이라 메모리(예측 691만 객체)가 병목. 은퇴 · 절제 모델을 기본에서 빼기 · 점수를 배열로 · 단계별 진행 로그 |
 | `kr_daily` 실제 64~72초(예산 1분) | DB 쓰기 포함 | 같이 |
-| 5종목 일봉 누락 | KIS 초당 한도(EGW00201) — 3회차에도 실패 | 밤 정기 백필(`kr-full-daily-candles`)이 재시도 |
+| 11종목 일봉 누락(10-20 이어받기 실패 · 게이트 `stale_inputs` 10) | KIS 초당 한도(EGW00201) — 재시도 3회 뒤 실패 | 밤 정기 백필(`kr-full-daily-candles`)이 재시도 |
 | 커버리지 시총 버킷 · 국면 표(FR-14) | 시총 입력이 Python 에 없음. 표본이 2022-04~ 로 늘어 공매도 금지 구간이 들어왔다 | FR-14 |
 | 코인 게이트 풀링화 | 사용자 결정 | 이 리포트 뒤 |
