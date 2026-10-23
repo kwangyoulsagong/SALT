@@ -102,3 +102,11 @@
 - `launchctl load ~/Library/LaunchAgents/com.salt.server.plist` → health 200 · "국내 주식 워커 등록 (10)" · `~/Library/Logs/salt-server.log` 회전 파일
 - 노드 프로세스 강제 종료 → 45초 안에 새 PID 로 재기동 · health 200(KeepAlive · ThrottleInterval 30)
 - 미검증: 맥 잠자기 동안 놓친 cron 회차(node-cron 은 깨어난 뒤 따라잡지 않는다 — 부팅 실행만 순서대로 돈다) · 오늘 15:45 국내 일봉 회차 · 18:00 전 종목 회차
+
+## 슬라이스 5e (2026-10-23)
+
+- FR-10 정리매매 칸: KIS 실파일(2026-10-23) ST 그룹에서 거래정지 다음 칸 Y = 3종목(서울식품우 · 소프트센우 · 하나32호스팩) — 관리종목 칸(181) · 거래정지 칸(116)과 겹치지 않음. 파서 테스트에 칸 하나 Y 케이스
+- 마이그레이션 `20261023120000_kr_stock_master_liquidation` 로컬 적용 → `SyncKrStockMaster` 1회(4,408종목 · 상폐 표시 0) → `is_liquidation` 3행
+- 사유 4개 `KNOWN_RANGE_REASONS` — `forecast.test.ts` 국내 상태 사유 통과 · 실 DB 000650 `GetSymbolForecast` 4기간 `investment_warning`
+- `npm run build` 0 · `npm run lint` 0 · `npm test` 719/719 · `prisma generate`
+- 상시 서버(main 코드)는 새 컬럼을 upsert 에 안 써서 값이 유지되고, 새 사유 4개는 머지 · 재시작 전까지 "표본이 쌓이는 중"으로 접힌다(카드는 이미 꺼짐 — 문구만)

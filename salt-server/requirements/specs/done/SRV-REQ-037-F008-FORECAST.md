@@ -28,6 +28,8 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 
 ## Changelog
 
+- 2026-10-23: F011 5e — 국내 상태 사유 4개를 `KNOWN_RANGE_REASONS` 에(`FC-REQ-020` FR-9). 없으면 "표본이 쌓이는 중"으로 접힌다
+
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-24 | **F009 슬라이스 0 — C03.** FR-7a 신설 · 구현. 근거 `reports/checklists/SRV-REQ-037.md` C03 절 |

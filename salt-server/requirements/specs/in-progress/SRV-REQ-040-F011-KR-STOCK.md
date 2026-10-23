@@ -27,7 +27,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | FR-4 | 페이서 3건/s(`KIS_REQUESTS_PER_SECOND`, 실측 처리량 상한 약 2건/s — `89ff9d9`) · 동시 6 · `EGW00201` 만 재시도(업무 오류는 HTTP 500 이어도 재시도 안 함) · 초과 시 프로세스 감속 1→8초 | 완료 |
 | FR-5 | axios 원본 오류(요청 헤더에 시크릿)를 밖으로 내보내지 않고 `KisApiError` 로 정제 · 토큰 · 키 · 승인키 마스킹 | 완료 |
 | FR-6 | 키 없으면(빈 값 포함) 워커 미등록 · `/api/market/kr/*` 503 `KR_STOCK_DISABLED`(Shared Kernel `ErrorKind.Unavailable` 신설, `d6f9ce6`). 빈 값이 기동을 막던 것 수정(`89ff9d9`) | 완료 · 실측 |
-| FR-10 | 종목 마스터 `.mst` 매일 07:30 KST · 4,400종목 배치 upsert · 사라진 종목 `delisted_at`. 반쪽 마스터(< 500)면 중단 | 완료 |
+| FR-10 | 종목 마스터 `.mst` 매일 07:30 KST · 4,400종목 배치 upsert · 사라진 종목 `delisted_at`. 반쪽 마스터(< 500)면 중단 | 완료 · 2026-10-23 정리매매 칸(`is_liquidation`, 거래정지 다음 칸) 추가 — `FC-REQ-020` FR-9 상태 억제 원천(슬라이스 5e) |
 | FR-11 | 유니버스 = **보유 → 관심 → 주권 시총 상위 N**(`KIS_UNIVERSE_TOP_N`=50, 우선주 제외) — 보유는 `portfolio` 공개 API `heldSymbols("kr_stock")` 를 조립 지점이 넣는다(`KrHeldCodesSource`, `market` 이 `portfolio` 표를 읽지 않는다) | 완료(`422bc14`, 슬라이스 3b) |
 | FR-12 | WS 41 슬롯 — 보유 → 관심 → 시총 순(슬라이스 3b). 나머지는 1분 폴링. 42번째는 `OPSP0008 MAX SUBSCRIBE OVER`(실측) → 구독에서 빼고 폴링 | 완료(`7689823`) |
 | FR-13 | `GET /api/market/kr/search?q=` 마스터 전체 · 코드 접두 · 이름 부분 일치 · 시총 순 20건 | 완료 |
@@ -97,6 +97,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 
 ## Changelog
 
+- 2026-10-23: 슬라이스 5e — FR-10 마스터 정리매매 플래그(마이그레이션 `20261023120000_kr_stock_master_liquidation`, 추가만) · 전망 사유 4개(`delisting_liquidation` · `trading_halted` · `administrative_issue` · `investment_warning`)를 범위 사유 집합에. 실파일 정리매매 3종목. 테스트 719/719(파서 정리매매 칸 · 사유 통과)
 - 2026-10-08: 슬라이스 4 — FR-60~66 · 37 · 38(코치 판단 · 채점 · 성적표 자산군 분리 · 리스크 예산 · 사이즈 · 계획 연결). 테스트 706/706. 로컬 DB 실측: 지표 · 종목 코치(삼성전자 `kr_stock.long_term.wait` · 단타 `mode_not_open` · 비소유자 404) · 토요일 만기 → 금요일 종가 · 코인 성적표 숫자 무변경. 기획 정정 3: `stale_data` → 기존 `stale_inputs` · 표본은 관심 · 보유가 아니라 시세 유니버스 · 해설도 같은 막음(구멍이었다)
 
 - 2026-10-07: 초판 · 슬라이스 0 · 1(FR-1~27 · 40~46 · 90~94)

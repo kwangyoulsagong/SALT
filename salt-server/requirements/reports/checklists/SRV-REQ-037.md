@@ -75,3 +75,7 @@
 | 게이트 | `npm run build` · `npm run lint` · `npm test` · `npm run test:layer-check`(차단 10 · 통과 6) |
 | 실서버 | BFF 경유 소유자: 005930 `not_sharper_than_baseline` ×2 · `miscalibrated` ×2 · 003670 4기간 렌더 |
 | Swagger | 사유 열거가 Swagger 에 없다(문자열) — 변경 없음 |
+
+## F011 5e (2026-10-23)
+
+- 국내 상태 사유 4개를 `KNOWN_RANGE_REASONS` 에 — `forecast.test.ts` 통과 테스트 · 실 DB 000650 4기간 `investment_warning`(`SRV-REQ-040` 체크리스트 §5e)
