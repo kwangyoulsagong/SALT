@@ -92,3 +92,7 @@
 - BFF 경유 `/api/app/ai-coach/detail?symbol=005930` 소유자: 장기 `reasons_missing`(이력 486 / 120 충족) · 단타 `mode_not_open` · 비소유자 404 `COACH_KR_STOCK_NOT_AVAILABLE` · BTC 무변경 · 리포트 `excluded` 진행 0 / 20 · size-check 국내 주식 `feeRatePerSide` 0.00115 · 코인 0.0005
 - 3100 실데이터 `/investments/005930` 1440 · 800 — 판단 칸 · 계획 버튼 1 · 가로 넘침 0 · 콘솔 오류 0
 - 같은 회차 범위 밖 오류: 옛 모듈 `portfolio-rebalance.service` 의 `investment_insights (user_id, type, dedupe_key)` upsert 유니크 위반 1/5명 — 이번 변경이 건드리지 않은 경로(같은 키 동시 upsert 경합으로 보인다, 원인 미확정). 기동 직후 KIS `EGW00201` 재시도(기존 감속으로 흡수)
+
+## 슬라이스 5d 추가(2026-10-23)
+
+- FR-39 후속: 국내 범위 사유 2개 — `SRV-REQ-037` 체크리스트 §5d. 실서버 BFF 경유 005930 · 003670 확인

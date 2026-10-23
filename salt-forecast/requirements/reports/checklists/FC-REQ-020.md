@@ -50,3 +50,15 @@
 | 11종목 일봉 누락(10-20 이어받기 실패 · 게이트 `stale_inputs` 10) | KIS 초당 한도(EGW00201) — 재시도 3회 뒤 실패 | 밤 정기 백필(`kr-full-daily-candles`)이 재시도 |
 | 커버리지 시총 버킷 · 국면 표(FR-14) | 시총 입력이 Python 에 없음. 표본이 2022-04~ 로 늘어 공매도 금지 구간이 들어왔다 | FR-14 |
 | 코인 게이트 풀링화 | 사용자 결정 | 이 리포트 뒤 |
+
+## 2026-10-23 — FR-1 · FR-2 범위 카드 적용(F011 5d 에서 발견)
+
+| 항목 | 결과 |
+|---|---|
+| 발견 | 5d 화면 연결 뒤 실 DB: 국내 1주 범위 카드 48 중 32 가 `blocked_reason = not_sharper_than_baseline`(거부권)인데 `range_renderable = true` — 범위 게이트가 보정만 봤다 |
+| 수정 | `domain/scoring.evaluate_gate` 풀링 경로 — 거부권 · 풀링 패배를 `range_reason` 에도. `RangeBlockedReason` 두 값 추가 |
+| 실데이터 | `kr_daily`(as_of 10-23, 1분 21초) 재실행 → 국내 범위 카드 1주 48 → 16 · 2주 46 → 14 · 3주 42 → 10 · 4주 39 → 10(= 전체 게이트 통과 수), 거부권 32 · 32 · 32 · 29 꺼짐. 코인 201 · 191 · 176 · 168 그대로 |
+| 화면 | 실서버 · BFF 경유 — 삼성전자 4기간 꺼짐("단순 예측보다 범위가 좁지 않아 꺼 둠" ×2 · 보정 ×2) · 003670 4기간 렌더(폭 단순 대비 1~4% 좁음) · BTC 그대로 |
+| 테스트 | `test_pooled_veto_turns_off_range_card_too`(거부권 · 풀링 패배 · 통과 · 코인 경로) · ruff · pyright 0 · lint-imports 3/3 · pytest 전체 · leakage |
+| 소비 작업 | `evaluate_gate` 소비 7개 — 코인 4개(`backtest` · `daily` · `regate` · `regime_gate`)는 `pooled_skill=None` 이라 바뀐 분기 밖. 범위 필드를 읽는 곳은 `store` 쓰기뿐. `kr_backtest` 리포트 대조는 아래 |
+| 리포트 대조 | `kr_backtest --dry-run --as-of 2026-06-30` 이 브랜치 vs main 워크트리 — **바이트 동일**(37,900 B · 예측 691만 · 11분 38초 vs 11분 59초). 리포트는 전체 게이트(`renderable`) 수를 세고 범위 열을 쓰지 않는다 |
