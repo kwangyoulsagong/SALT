@@ -216,18 +216,6 @@ export class PrismaKrStockStore implements KrStockStore {
     return rows.map((row) => ({ ...row, market: row.market as KrMarket }));
   }
 
-  async latestDailyCandleAt(codes: string[]) {
-    const latest = new Map<string, Date>();
-    if (codes.length === 0) return latest;
-    const rows = await prisma.priceHistory.groupBy({
-      by: ["symbol"],
-      where: { symbol: { in: codes }, timeframe: "1d", assetType: "kr_stock" },
-      _max: { timestamp: true },
-    });
-    for (const row of rows) if (row._max.timestamp) latest.set(row.symbol, row._max.timestamp);
-    return latest;
-  }
-
   async commonStockListings() {
     return prisma.krStockMaster.findMany({
       where: { groupCode: "ST", delistedAt: null, isPreferred: false },
@@ -251,6 +239,55 @@ export class PrismaKrStockStore implements KrStockStore {
       }
     }
     return range;
+  }
+
+  async edgeDailyCloses(codes: string[], edge: "earliest" | "latest", days: number) {
+    const closes = new Map<string, Array<{ timestamp: Date; close: number }>>();
+    if (codes.length === 0) return closes;
+    // 종목마다 자기 첫 · 마지막 봉에서 — 오래 멈춘 종목 때문에 전 종목 창이 넓어지지 않게
+    const latest = edge === "latest";
+    const rows = await prisma.$queryRaw<Array<{ symbol: string; timestamp: Date; close: Prisma.Decimal }>>`
+      SELECT p.symbol, p.timestamp, p.close
+      FROM price_history p
+      JOIN (
+        SELECT symbol, min(timestamp) AS earliest, max(timestamp) AS latest FROM price_history
+        WHERE symbol = ANY(${codes}) AND asset_type = 'kr_stock' AND timeframe = '1d'
+        GROUP BY symbol
+      ) e ON e.symbol = p.symbol
+      WHERE p.asset_type = 'kr_stock' AND p.timeframe = '1d'
+        AND CASE WHEN ${latest} THEN p.timestamp >= e.latest - make_interval(days => ${days}::int)
+                 ELSE p.timestamp <= e.earliest + make_interval(days => ${days}::int) END
+      ORDER BY p.symbol, p.timestamp`;
+    for (const row of rows) {
+      const list = closes.get(row.symbol) ?? [];
+      list.push({ timestamp: row.timestamp, close: Number(row.close) });
+      closes.set(row.symbol, list);
+    }
+    return closes;
+  }
+
+  /**
+   * 새 이력에 없는 날을 지우고 나머지를 덮는다 — **한 문장**이라 중간에 실패해도 옛 이력이 그대로 남는다.
+   * 빈 배열이면 아무것도 안 한다(받기 실패를 "봉 없음"으로 읽어 다 지우지 않게)
+   */
+  async replaceDailyCandles(code: string, candles: Candle[]) {
+    if (candles.length === 0) return;
+    const col = <T,>(pick: (c: Candle) => T) => candles.map(pick);
+    await prisma.$executeRaw`
+      WITH gone AS (
+        DELETE FROM price_history
+        WHERE symbol = ${code} AND asset_type = 'kr_stock' AND timeframe = '1d'
+          AND timestamp <> ALL (SELECT ts AT TIME ZONE 'UTC' FROM unnest(${col((c) => c.timestamp)}::timestamptz[]) AS t(ts))
+      )
+      INSERT INTO price_history (id, symbol, asset_type, timeframe, open, high, low, close, volume, timestamp)
+      SELECT gen_random_uuid()::text, ${code}, 'kr_stock'::"AssetType", '1d', u.open, u.high, u.low, u.close, u.volume,
+        u.ts AT TIME ZONE 'UTC'
+      FROM unnest(
+        ${col((c) => c.open)}::numeric[], ${col((c) => c.high)}::numeric[], ${col((c) => c.low)}::numeric[],
+        ${col((c) => c.close)}::numeric[], ${col((c) => c.volume)}::numeric[], ${col((c) => c.timestamp)}::timestamptz[]
+      ) AS u(open, high, low, close, volume, ts)
+      ON CONFLICT (symbol, timeframe, timestamp) DO UPDATE SET
+        open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume`;
   }
 
   async upsertDailyCandles(code: string, candles: Candle[]) {
