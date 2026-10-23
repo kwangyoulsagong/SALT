@@ -979,6 +979,7 @@ model KrStockMaster {
   sharesOutstanding BigInt?   @map("shares_outstanding") // 주
   marketCap         Decimal?  @map("market_cap") @db.Decimal(38, 10) // 원, 전일 기준
   isHalted          Boolean   @default(false) @map("is_halted")
+  isLiquidation     Boolean   @default(false) @map("is_liquidation") // 정리매매(FC-REQ-020 FR-9)
   isAdministrative  Boolean   @default(false) @map("is_administrative")
   warnCode          String    @default("00") @map("warn_code") // 00 없음 · 01 주의 · 02 경고 · 03 위험
   overheatCode      String    @default("0") @map("overheat_code") // 단기과열 0 없음

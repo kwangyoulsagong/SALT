@@ -22,7 +22,7 @@ const MASTER_URLS: Record<KrMarket, string> = {
 };
 
 type FieldName =
-  | "group" | "sector" | "overheat" | "basePrice" | "halted" | "administrative"
+  | "group" | "sector" | "overheat" | "basePrice" | "halted" | "liquidation" | "administrative"
   | "warn" | "listedAt" | "shares" | "preferred" | "marketCap";
 
 /** 뒤 고정폭에서 쓰는 필드만 — [시작, 끝) 바이트 */
@@ -46,6 +46,7 @@ const LAYOUT: Record<KrMarket, { width: number; fields: Record<FieldName, [numbe
     2: "sector",
     [base]: "basePrice",
     [base + 3]: "halted",
+    [base + 4]: "liquidation", // 정리매매 — 2026-10-23 실측 3종목(우선주 2 · 스팩 1)
     [base + 5]: "administrative",
     [base + 6]: "warn",
     [base + 18]: "listedAt",
@@ -116,6 +117,7 @@ export const parseMasterFile = (market: KrMarket, raw: Buffer): KrStockListing[]
       sharesOutstanding: shares === null ? null : BigInt(shares) * 1000n,
       marketCap: capEok === null ? null : capEok * 100_000_000,
       isHalted: f("halted") === "Y",
+      isLiquidation: f("liquidation") === "Y",
       isAdministrative: f("administrative") === "Y",
       warnCode: f("warn").trim() || "00",
       overheatCode: f("overheat").trim() || "0",
