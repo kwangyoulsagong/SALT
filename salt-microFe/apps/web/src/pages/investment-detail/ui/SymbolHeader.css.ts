@@ -242,6 +242,58 @@ export const krBody = style({
   },
 });
 
+/** 국내 주식 오른쪽 열 — 자세히(변동 범위) 위, 거래 기록 아래. 코인 상세 오른쪽 열과 같은 순서(F011 슬라이스 5d) */
+export const krSideColumn = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "16px",
+  minWidth: 0,
+});
+
+/** 코인 상세의 "자세히"(`widgets/symbol-analysis` more*)와 같은 모양 — 위젯 스타일은 페이지에서 import 할 수 없다 */
+export const krMore = style({
+  display: "flex",
+  flexDirection: "column",
+  minWidth: 0,
+});
+
+export const krMoreSummary = style({
+  display: "flex",
+  alignItems: "center",
+  cursor: "pointer",
+  padding: "20px 24px",
+  borderRadius: CARD_RADIUS,
+  background: vars.colors.background.white,
+  boxShadow: CARD_SHADOW,
+  fontSize: "15px",
+  lineHeight: "22px",
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.text.primary,
+  ":hover": { background: vars.colors.neutral[50] },
+  selectors: { "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" } },
+  "@media": {
+    [NARROW]: { padding: "16px" },
+  },
+});
+
+/** neutral 600 은 4.41:1 로 AA 미달(2026-09-29 axe) — 700 */
+export const krMoreHint = style({
+  marginLeft: "auto",
+  flexShrink: 0,
+  whiteSpace: "nowrap",
+  color: vars.colors.neutral[700],
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.medium,
+});
+
+export const krMoreBody = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "16px",
+  marginTop: "16px",
+});
+
 export const krSideCard = style({
   display: "flex",
   flexDirection: "column",
