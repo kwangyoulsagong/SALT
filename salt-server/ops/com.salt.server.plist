@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- salt-server 상시 실행. 설치 · 내리기는 ops/run-server.sh 머리 주석. 전망 배치는 따로 com.salt.forecast-daily(매시) -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.salt.server</string>
+  <key>ProgramArguments</key>
+  <array><string>/bin/zsh</string><string>/Users/sagong-gwang-yeol/Desktop/SALT/salt-server/ops/run-server.sh</string></array>
+  <key>RunAtLoad</key><true/>
+  <!-- 죽으면 다시 띄운다. 기동 직후 반복 실패면 30초 간격 -->
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>30</integer>
+  <!-- 앱 로그는 run-server.sh 가 회전시킨다. 여기는 셸 자체 오류만 -->
+  <key>StandardOutPath</key><string>/Users/sagong-gwang-yeol/Library/Logs/salt-server.launchd.log</string>
+  <key>StandardErrorPath</key><string>/Users/sagong-gwang-yeol/Library/Logs/salt-server.launchd.log</string>
+</dict>
+</plist>

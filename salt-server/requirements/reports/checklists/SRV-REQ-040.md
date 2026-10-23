@@ -96,3 +96,9 @@
 ## 슬라이스 5d 추가(2026-10-23)
 
 - FR-39 후속: 국내 범위 사유 2개 — `SRV-REQ-037` 체크리스트 §5d. 실서버 BFF 경유 005930 · 003670 확인
+
+### 운영 — 서버 상시 실행(2026-10-23)
+
+- `launchctl load ~/Library/LaunchAgents/com.salt.server.plist` → health 200 · "국내 주식 워커 등록 (10)" · `~/Library/Logs/salt-server.log` 회전 파일
+- 노드 프로세스 강제 종료 → 45초 안에 새 PID 로 재기동 · health 200(KeepAlive · ThrottleInterval 30)
+- 미검증: 맥 잠자기 동안 놓친 cron 회차(node-cron 은 깨어난 뒤 따라잡지 않는다 — 부팅 실행만 순서대로 돈다) · 오늘 15:45 국내 일봉 회차 · 18:00 전 종목 회차
