@@ -158,6 +158,34 @@ describe("SyncKrFullDailyCandles", () => {
   });
 });
 
+describe("SyncKrFullDailyCandles — 토요일 회차", () => {
+  it("증분이 재작성을 보고 바꾼 종목은 같은 회차의 앞쪽 대조가 다시 받지 않는다", async () => {
+    const replaced: string[] = [];
+    const kis = {
+      dailyCandles: async (_code: string, from: string, to: string) => [
+        { ...bar(from), close: 1480 },
+        { ...bar(to), close: 1480 },
+      ],
+    } as unknown as KrStockQuotePort;
+    const recent = [{ timestamp: kstMidnight("2026-09-25"), close: 296 }];
+    const oldest = [{ timestamp: kstMidnight("2021-10-12"), close: 3534 }];
+    const store = {
+      commonStockListings: async () => [{ code: "093240", listedAt: null }],
+      dailyCandleRange: async () =>
+        new Map([["093240", { earliest: kstMidnight("2021-10-12"), latest: kstMidnight("2026-10-09") }]]),
+      // 앞쪽 끝 · 마지막 쪽 둘 다 옛 기준
+      edgeDailyCloses: async (_codes: string[], edge: "earliest" | "latest") =>
+        new Map([["093240", edge === "latest" ? recent : oldest]]),
+      upsertDailyCandles: async () => {},
+      replaceDailyCandles: async (code: string) => void replaced.push(code),
+    } as unknown as KrStockStore;
+    // 토요일 08:00 KST
+    const r = await new SyncKrFullDailyCandles(kis, store, () => new Date("2026-10-09T23:00:00Z")).execute();
+    assert.deepEqual(replaced, ["093240"]);
+    if (!r.skipped) assert.equal(r.rewritten, 1);
+  });
+});
+
 describe("SyncKrDailyCandles", () => {
   const universe = { execute: async () => ["000001", "000002"] } as unknown as ResolveKrStockUniverse;
 

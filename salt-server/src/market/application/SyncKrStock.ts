@@ -258,6 +258,8 @@ type FullWork = { code: string; from: string; to: string; direction: "forward" |
 
 /** 이 KST 요일(토)의 회차는 전 종목 앞쪽 끝도 한 페이지 받아 대조한다 — 겹침 창이 놓친 재작성(서버가 꺼져 있던 동안 등) */
 const AUDIT_WEEKDAY = 6;
+/** 계획의 단계 순서 — `plan` 이 돌려주는 순서와 같다 */
+const PHASES = ["forward", "audit", "backward"] as const;
 
 /**
  * 전 종목 일봉(FR-40 · `FC-REQ-020` FR-7). 상장 보통주 약 2,450 종목 × 5년 — 시세 유니버스(약 50)와 따로 돈다.
@@ -360,49 +362,56 @@ export class SyncKrFullDailyCandles {
     let done = 0;
     let stopped = false;
 
-    await mapConcurrent(work, KIS_CONCURRENCY, async (w) => {
-      if (stopped || this.now() >= stop) {
-        stopped = true;
-        return;
-      }
-      try {
-        if (replaced.has(w.code)) {
-          done++;
-          return;
-        }
-        if (w.direction === "forward" || w.direction === "audit") {
-          const r = range.get(w.code)!;
-          const page = await fetchDailyRange(this.kis, w.code, w.from, w.to);
-          const stored = (w.direction === "forward" ? recent : oldest).get(w.code) ?? [];
-          const applied = await applyDailyPage(this.kis, this.store, w.code, page.candles, stored, r, today);
-          requests += page.requests + applied.requests;
-          candles += applied.candles;
-          if (applied.rewrite) {
-            rewritten++;
-            replaced.add(w.code);
+    // 단계마다 끝까지 — 같은 종목의 증분과 대조가 동시에 돌면 둘 다 재작성을 보고 이력을 두 번 받는다(2026-10-23 실측 3종목)
+    for (const phase of PHASES) {
+      await mapConcurrent(
+        work.filter((w) => w.direction === phase),
+        KIS_CONCURRENCY,
+        async (w) => {
+          if (stopped || this.now() >= stop) {
+            stopped = true;
+            return;
           }
-        } else {
-          let to = w.to;
-          while (to >= w.from) {
-            if (this.now() >= stop) {
-              stopped = true;
+          try {
+            if (replaced.has(w.code)) {
+              done++;
               return;
             }
-            const from = [addKstDays(to, -(PAGE_CALENDAR_DAYS - 1)), w.from].sort().reverse()[0];
-            const page = await this.kis.dailyCandles(w.code, from, to);
-            requests++;
-            if (page.length === 0) break;
-            await this.store.upsertDailyCandles(w.code, page);
-            candles += page.length;
-            to = addKstDays(from, -1);
+            if (w.direction === "forward" || w.direction === "audit") {
+              const r = range.get(w.code)!;
+              const page = await fetchDailyRange(this.kis, w.code, w.from, w.to);
+              const stored = (w.direction === "forward" ? recent : oldest).get(w.code) ?? [];
+              const applied = await applyDailyPage(this.kis, this.store, w.code, page.candles, stored, r, today);
+              requests += page.requests + applied.requests;
+              candles += applied.candles;
+              if (applied.rewrite) {
+                rewritten++;
+                replaced.add(w.code);
+              }
+            } else {
+              let to = w.to;
+              while (to >= w.from) {
+                if (this.now() >= stop) {
+                  stopped = true;
+                  return;
+                }
+                const from = [addKstDays(to, -(PAGE_CALENDAR_DAYS - 1)), w.from].sort().reverse()[0];
+                const page = await this.kis.dailyCandles(w.code, from, to);
+                requests++;
+                if (page.length === 0) break;
+                await this.store.upsertDailyCandles(w.code, page);
+                candles += page.length;
+                to = addKstDays(from, -1);
+              }
+            }
+            done++;
+          } catch (error) {
+            failed++;
+            logger.warn(`국내 주식 전 종목 일봉 실패 — ${w.code}: ${(error as Error).message}`);
           }
         }
-        done++;
-      } catch (error) {
-        failed++;
-        logger.warn(`국내 주식 전 종목 일봉 실패 — ${w.code}: ${(error as Error).message}`);
-      }
-    });
+      );
+    }
 
     const remaining = work.length - done - failed;
     logger.info(
