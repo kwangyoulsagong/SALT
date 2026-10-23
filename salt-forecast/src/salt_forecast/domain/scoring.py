@@ -29,6 +29,11 @@ BlockedReason = Literal[
     "underperforms_baseline",
     "not_sharper_than_baseline",
     "skill_not_significant",
+    # 국내 종목 상태(FC-REQ-020 FR-9) — 오늘 게이트에만, `scoring/pooled_gate.with_status`
+    "delisting_liquidation",
+    "trading_halted",
+    "administrative_issue",
+    "investment_warning",
 ]
 # 국내(풀링 경로)는 종목 거부권 · 풀링 검정도 범위 카드를 끈다(FC-REQ-020 FR-1 · FR-2) — 코인은 앞 셋만
 RangeBlockedReason = Literal[
@@ -37,6 +42,10 @@ RangeBlockedReason = Literal[
     "miscalibrated",
     "not_sharper_than_baseline",
     "skill_not_significant",
+    "delisting_liquidation",
+    "trading_halted",
+    "administrative_issue",
+    "investment_warning",
 ]
 
 

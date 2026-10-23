@@ -69,6 +69,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 
 ## Changelog
 
+- 2026-10-23: 슬라이스 5e — 국내 상태 막힘 문구 4개(정리매매 · 거래정지 · 관리종목 · 투자경고/위험, `FC-REQ-020` FR-9). 문구 표는 카드 주인 `FE-REQ-038` 의 `forecastMessages`
 - 2026-10-23: 슬라이스 5d — FR-23. 5c P3 에서 국내 전망 모델(`kr-har-range@0.1.0`)이 풀링 게이트 4기간을 통과해 화면을 연다. 서버(`GetSymbolForecast` 두 키 조회, 5b) · BFF(`/api/app/coach/forecast` 심볼 통과)는 이미 국내 코드를 받아 화면만 붙였다. Playwright 고정 응답 4상태(렌더 · 보유 30주 · 전 기간 `stale_inputs` · 비소유자 404) · 콘솔 오류 0. axe — 새 요소 대비 0건(면책 tertiary 2.75:1 → secondary), 기존 카드 색 19건은 코인과 같은 카드라 그대로(체크리스트)
 
 - 2026-10-08: 슬라이스 4 — FR-19~22. Playwright(실제 `next start` 빌드 · 소유자 토큰 · 판단 · 성적표 · 리포트만 가로챔): 상세 "일봉 63 / 120거래일 · 정상 동작이에요" · "국내 주식 표본 4건" · 계획 버튼 1 · 리포트 "(표본 4 / 20)" · 성적표 자산군 칸 2 · 콘솔 오류 0. 첫 판의 판단 칸이 머리 카드 스타일(가로 배치)을 써 세 갈래로 흩어진 것을 보고 세로 카드로 고쳤다. 빌드 `/investments/[symbol]` 137 kB · `/coach/report` 130 kB

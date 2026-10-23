@@ -32,3 +32,8 @@
 | 마이그레이션 `20261008120000_kr_stock_logo_source` | 로컬 `migrate deploy` 적용 · `prisma generate` · `migrate status` up to date |
 | 기존 행 | nullable 추가만 — 영향 0. 판정 뒤 50행에 `logo_source`(ticker 43 · none 7) |
 | 롤백 | `DROP COLUMN` 넷 |
+
+## 2026-10-23 — 정리매매 컬럼(F011 5e)
+
+- `ALTER TABLE kr_stock_master ADD COLUMN is_liquidation BOOLEAN NOT NULL DEFAULT false` — 추가만, 기존 4,408행 false 로 채워짐 · 롤백 = DROP COLUMN
+- `prisma migrate deploy` 로컬 성공 · 동기화 뒤 3행 true

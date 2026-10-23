@@ -27,6 +27,8 @@ export interface KrStockListing {
   /** 전일 시가총액(원) */
   marketCap: number | null;
   isHalted: boolean;
+  /** 정리매매 — 상장폐지 직전 단일가 매매(FC-REQ-020 FR-9 상태 억제) */
+  isLiquidation: boolean;
   isAdministrative: boolean;
   warnCode: string;
   overheatCode: string;

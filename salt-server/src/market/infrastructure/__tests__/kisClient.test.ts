@@ -61,6 +61,12 @@ describe("종목 마스터 고정폭 파서 (FR-10)", () => {
     assert.equal(row.marketCap, 15_901_877 * 100_000_000);
     assert.equal(row.isHalted, false);
     assert.deepEqual(row.listedAt, new Date("1975-06-11T00:00:00Z"));
+    assert.equal(row.isLiquidation, false);
+
+    // 정리매매는 거래정지 다음 칸(35) — 관리종목(36)과 섞이지 않는다 (FC-REQ-020 FR-9)
+    const flagged = tail.slice(0, 61) + "Y" + tail.slice(62);
+    const [liq] = parseMasterFile("KOSPI", Buffer.concat([head, Buffer.from(flagged, "latin1"), Buffer.from("\n")]));
+    assert.deepEqual([liq.isHalted, liq.isLiquidation, liq.isAdministrative], [false, true, false]);
   });
 });
 

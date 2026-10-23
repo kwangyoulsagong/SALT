@@ -20,6 +20,7 @@ from itertools import pairwise
 import numpy as np
 from numpy.typing import NDArray
 
+from salt_forecast.domain.kr_status import StatusReason
 from salt_forecast.domain.pooled import ALPHA, PooledResult, block_flips, pooled_verdicts, weekly_skill
 from salt_forecast.domain.scoring import COVERAGE90_MAX, COVERAGE90_MIN, GATE_WINDOW, MIN_GATE_SAMPLE, Score
 from salt_forecast.scoring.evaluate import Paired, gates_from_pairs, paired_scores
@@ -93,6 +94,24 @@ def pooled_gates(
     pairs = paired_scores(scores, model, baseline, universe, on_grid)
     verdicts = pooled_gate(pairs, horizons)
     return gates_from_pairs(pairs, model, baseline, stale, {h: r.passed for h, r in verdicts.items()})
+
+
+def with_status(rows: Iterable[GateRow], status: Mapping[str, StatusReason]) -> list[GateRow]:
+    """종목 상태가 있으면 두 열 모두 그 상태로 끈다(FC-REQ-020 FR-9) — 표본 · 신선도 · 실력 사유보다 먼저 보인다.
+
+    지표(커버리지 · 폭 · 빗나간 수)는 그대로 둔다 — 성적은 상태와 무관하게 채점된 값이다.
+    """
+    out: list[GateRow] = []
+    for g in rows:
+        reason = status.get(g.symbol)
+        if reason is None:
+            out.append(g)
+            continue
+        result = replace(
+            g.result, renderable=False, blocked_reason=reason, range_renderable=False, range_blocked_reason=reason
+        )
+        out.append(replace(g, result=result))
+    return out
 
 
 def per_symbol_cards(pairs: Mapping[tuple[str, int], Paired], model: str, baseline: str) -> int:

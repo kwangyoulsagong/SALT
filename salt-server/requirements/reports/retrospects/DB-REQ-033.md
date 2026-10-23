@@ -4,3 +4,7 @@
 - 정밀도 규칙을 마이그레이션 생성 전에 보지 않아 한 번 다시 만들었다(커밋 전, 로컬만)
 - `ALTER TYPE … ADD VALUE IF NOT EXISTS` — 로컬에서 다시 만들 때 이미 있는 값 때문에 실패하지 않게 했다. 운영에서도 멱등이다
 - 원시 SQL 로 `TIMESTAMP` 열에 쓸 때 DB 세션 시간대가 끼어든다 — Prisma 는 UTC 벽시계를 쓰므로 `timestamptz AT TIME ZONE 'UTC'` 로 맞춘다
+
+## 2026-10-23 — 정리매매 컬럼
+
+- 추가만 · 기본값 있는 NOT NULL — 상시 서버가 옛 코드로 upsert 해도 깨지지 않는 모양을 골랐다(옛 upsert 는 컬럼을 나열해 새 컬럼을 건드리지 않는다)

@@ -56,6 +56,11 @@ export const FORECAST_MESSAGES = {
     // 국내 주식만(FC-REQ-020 FR-1 · FR-2) — 범위가 단순 예측보다 좁지 않거나, 자산군 전체로 단순 예측을 이긴 근거가 없는 기간
     not_sharper_than_baseline: "단순 예측보다 범위가 좁지 않아 꺼 둠",
     skill_not_significant: "단순 예측보다 낫다는 근거가 부족해 꺼 둠",
+    // 국내 주식만(FC-REQ-020 FR-9) — 과거 가격으로 만든 범위가 모르는 위험이 있는 상태
+    delisting_liquidation: "정리매매 중이라 꺼 둠",
+    trading_halted: "거래정지 중이라 꺼 둠",
+    administrative_issue: "관리종목이라 꺼 둠",
+    investment_warning: "투자경고 · 위험 종목이라 꺼 둠",
   } as Record<string, string>,
   blockedFallback: "지금은 보여 드릴 수 없어요",
 

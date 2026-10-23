@@ -21,3 +21,7 @@
 | 계약 | 서버 FR-11 응답 모양 그대로 + 막기만. `renderable: true` 를 만드는 경로 없음 |
 
 미검증: 실 토큰으로 서버 → BFF 한 바퀴(머지 뒤 재기동 · `QA-001` 로그인 QA).
+
+## F011 5e (2026-10-23)
+
+- 변경 없음 — 사유 문자열 통과(`forecast.viewmodel.ts:132`). 실 BFF 4101 → 브랜치 서버 4100 경유 000650 `investment_warning` ×4 · `npm run build` · `npm test` 251/251

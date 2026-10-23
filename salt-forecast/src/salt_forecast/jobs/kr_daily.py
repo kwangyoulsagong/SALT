@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from salt_forecast.domain.kr_status import StatusReason, status_known_at, status_reason
 from salt_forecast.domain.kr_universe import eligible_at
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.jobs._data import load_kr, load_kr_bars
@@ -22,8 +23,9 @@ from salt_forecast.models.kr_stock import (
     kr_model_params,
 )
 from salt_forecast.scoring.evaluate import score_prediction
-from salt_forecast.scoring.pooled_gate import pooled_gates
+from salt_forecast.scoring.pooled_gate import pooled_gates, with_status
 from salt_forecast.store.db import engine
+from salt_forecast.store.kr_stock import kr_status_flags
 from salt_forecast.store.predictions import (
     PredictionRow,
     ScoreRow,
@@ -108,6 +110,25 @@ def main(argv: list[str] | None = None) -> int:
             stale,
             cal.on_grid,
             HORIZONS,
+        )
+        # 종목 상태는 이력이 없어 동기화 시각 뒤 as_of 에만 — 과거 as_of 재실행엔 걸지 않는다(FC-REQ-020 FR-9)
+        flags, synced = kr_status_flags(eng)
+        known = status_known_at(synced, now)
+        status: dict[str, StatusReason] = (
+            {c: r for c, f in flags.items() if (r := status_reason(f)) is not None} if known else {}
+        )
+        rows = with_status(rows, status)
+        log.info(
+            "kr_status",
+            extra={
+                "fields": {
+                    "job": JOB,
+                    "synced_at": synced,
+                    "applied": known,
+                    "status_symbols": len(status),
+                    "suppressed": sum(1 for g in rows if g.symbol in status),
+                }
+            },
         )
         return n + write_gates(eng, rows)
 

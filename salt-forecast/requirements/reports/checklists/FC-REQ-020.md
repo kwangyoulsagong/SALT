@@ -62,3 +62,24 @@
 | 테스트 | `test_pooled_veto_turns_off_range_card_too`(거부권 · 풀링 패배 · 통과 · 코인 경로) · ruff · pyright 0 · lint-imports 3/3 · pytest 전체 · leakage |
 | 소비 작업 | `evaluate_gate` 소비 7개 — 코인 4개(`backtest` · `daily` · `regate` · `regime_gate`)는 `pooled_skill=None` 이라 바뀐 분기 밖. 범위 필드를 읽는 곳은 `store` 쓰기뿐. `kr_backtest` 리포트 대조는 아래 |
 | 리포트 대조 | `kr_backtest --dry-run --as-of 2026-06-30` 이 브랜치 vs main 워크트리 — **바이트 동일**(37,900 B · 예측 691만 · 11분 38초 vs 11분 59초). 리포트는 전체 게이트(`renderable`) 수를 세고 범위 열을 쓰지 않는다 |
+
+## 2026-10-23 — FR-9 상태별 억제(슬라이스 5e)
+
+| 항목 | 결과 |
+|---|---|
+| 판정 | `domain/kr_status.status_reason` — 정리매매 > 거래정지 > 관리종목 > 경고 · 위험(02 · 03). 투자주의 01 통과 · 정상 통과(`tests/domain/test_kr_status.py` 3) |
+| 게이트 | `scoring/pooled_gate.with_status` — 두 열 모두 상태 사유 · 지표(커버리지 · 폭 · 빗나간 수) 유지 · 상태 없는 종목 행 동일(`test_status_turns_off_both_columns_keeps_metrics`) |
+| 실데이터 | 마스터 1회 동기화(정리매매 3) 뒤 `kr_daily`(as_of 10-23, 1분 13초): 상태 종목 216 · 1주 행 정지 113 · 관리 81 · 경고/위험 8 · 정리매매 1(4기간 같음 203) · **켜진 범위 카드 16 · 14 · 10 · 10 그대로** · 오늘 예측이 있는 상태 종목 0(거래대금 유니버스가 이미 거른다) |
+| 화면 경로 | 브랜치 서버(워커 없이 4100) → BFF 4101 → 000650 4기간 `investment_warning` · 003670 렌더 그대로 → web 3100 카드에 "투자경고 · 위험 종목이라 꺼 둠" ×4(`FE-REQ-041` 체크리스트) |
+| 검증 | ruff · format · pyright 0 · lint-imports 3/3 · pytest 전체 · leakage |
+| 재현(수정) | 첫 판은 과거 `--as-of` 에도 오늘 상태를 걸었다 — 마스터 `synced_at` 을 `available_at` 으로: `status_known_at`(동기화 뒤 · 3일 안). 테스트 `test_status_known_only_after_sync_and_while_fresh` · 재실행 `applied: true`(synced 10-23 11:40 KST) 같은 수 |
+| 백테스트 대조 | `kr_backtest --dry-run --as-of 2026-06-30` 이 브랜치 vs main 워크트리 — 리포트 **바이트 동일**(37,900 B · 462줄 · 11분 5초 · 3.0GB vs 11분 20초 · 2.8GB). `kr_daily` 같은 조건 dry-run 도 같은 출력 |
+| 두 열 | 방향(`renderable`) · 범위(`range_renderable`) 켜진 수 같이 — 1주 16/16 · 2주 14/14 · 3주 10/10 · 4주 10/10(전과 같다) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 상태가 장중에 바뀐 종목 | 마스터는 하루 1회(07:30, 전날 기준) — 최대 하루 늦다 | 서버가 실시간 상태(`kr_stock_quotes.status_code`)를 판정에 줄 때(필요하면) |
+| 폐지 최종 수익률 채점 | 폐지 종목 원천이 없다 | FR-8 |
+| 지금 상태로 백테스트 억제 | 상태 이력이 없다 — 지금 상태를 과거에 쓰면 미래 정보 | 상태 이력 원천이 생길 때 |
