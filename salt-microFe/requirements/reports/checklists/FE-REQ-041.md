@@ -124,3 +124,28 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 - BFF 경유 `/api/app/ai-coach/detail?symbol=005930` 소유자: 장기 `reasons_missing`(이력 486 / 120 충족) · 단타 `mode_not_open` · 비소유자 404 `COACH_KR_STOCK_NOT_AVAILABLE` · BTC 무변경 · 리포트 `excluded` 진행 0 / 20 · size-check 국내 주식 `feeRatePerSide` 0.00115 · 코인 0.0005
 - 3100 실데이터 `/investments/005930` 1440 · 800 — 판단 칸 · 계획 버튼 1 · 가로 넘침 0 · 콘솔 오류 0
 - 같은 회차 범위 밖 오류: 옛 모듈 `portfolio-rebalance.service` 의 `investment_insights (user_id, type, dedupe_key)` upsert 유니크 위반 1/5명 — 이번 변경이 건드리지 않은 경로(같은 키 동시 upsert 경합으로 보인다, 원인 미확정). 기동 직후 KIS `EGW00201` 재시도(기존 감속으로 흡수)
+
+## 슬라이스 5d 추가(2026-10-23, FR-23)
+
+실측: web dev 3100 · Playwright 1.56 chromium 1440 · BFF 응답은 `route` 고정(`/api/app/coach/forecast` · `kr/005930` · `kr/session` · `chart`). 오늘 실 DB 의 국내 카드는
+`kr-har-range@0.1.0` 4기간 전부 `range_renderable = false`(`stale_inputs` 848 · `insufficient_sample` 47~51 · 예측 없음 1,710) — 실데이터로는 막힌 화면만 나온다.
+
+| 경우 | 결과 |
+|---|---|
+| 렌더(4기간 · 백테스트 104주) | "자세히 — 변동 범위" 1 → 펼침 · 거래일 안내 줄 · 부채꼴 차트 · 기간 칩 4 · 성적 표 · 4요소 줄 · 빗나간 때 · 면책 · 콘솔 오류 0 |
+| 보유 30주 | "기간 끝에 판다면 — 보유 30주 기준 평가금액 변화" · 나쁠 때 −153,120 · 좋을 때 +167,910(서버 값 그대로) |
+| 전 기간 `stale_inputs` | "지금은 모든 기간이 꺼져 있어요" · "N주 뒤 — 데이터가 오래돼 꺼 둠" ×4 |
+| 비소유자 404 | "자세히" 자리 0 · 문구 0 |
+| axe(wcag2a · 2aa, serious · critical, `details` 범위) | 새 요소 0 — 면책 tertiary 2.75:1 을 secondary 로. **기존 `ForecastCard` 색 19건**(badge 4.08 · lead · note · th · 범례 3.03 · 기간 칩 2.68 · 시나리오 칸 2.88)은 코인 상세와 같은 카드 — 기존 색 일괄 치환 금지 결정에 따라 그대로 |
+| 게이트 | `pnpm check-types` 5/5 · `pnpm lint` 5/5 · `pnpm test`(core 34 · ui 43) · `pnpm test:layer-check`(차단 8 · 통과 5) · `pnpm build`(`/investments/[symbol]` 137 kB — 슬라이스 4 와 같음 · `/investments` 153 kB) |
+| 공통 수용 기준(§6) | 주문 경로 0 · 금액 계산 0(시나리오 원화는 서버) · 방향 필드 없음(범위만) · 확신 · 목표가 · 명령형 0 · 소유자 전용 · 3종(채점 이력 · 기준 대비 · 빗나간 사례)은 BFF 가 막는다 |
+
+### 슬라이스 5d 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 실데이터로 렌더되는 국내 카드 | 서버(4000)가 10-20 뒤 꺼져 국내 일봉이 멈췄다 → 신선도 게이트가 4기간을 끔. 서버 · `kr_daily` 를 이 세션에서 돌리지 않았다(서버 범위) | 서버 재기동 → 일봉 채움 → `kr_daily` 다음 회차 뒤 `/investments/005930` |
+| 실서버 · BFF 경유 화면 | 4000 · 4001 이 떠 있지 않다 — 고정 응답만 | 위와 같이 |
+| 기존 카드 대비 19건 | 코인과 같은 카드 — 바꾸면 두 자산군 같이(사용자 결정 대기 중인 대비 건과 함께) | 대비 일괄 결정 때 |
+| 800px · 1024px 이하 한 줄 배치 | 1440 만 찍었다(오른쪽 열이 그대로 아래로 내려가는 기존 `krBody` 격자) | 다음 화면 확인 |
+| `web-tax` · Storybook | `pnpm build` 가 `web-tax` 포함 · `@repo/ui` 변경 없음 | 해당 없음 |
