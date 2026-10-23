@@ -97,6 +97,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 
 ## Changelog
 
+- 2026-10-23: 운영 — `server.ts` 가 Express 5 listen 실패(EADDRINUSE)를 무시해 launchd 재시작 겹침에 HTTP 없는 서버가 남았다 → 실패면 exit(1)(`acb66bf`), launchd 가 30초 뒤 재기동. 점유 시험 확인
 - 2026-10-23: 슬라이스 5e — FR-10 마스터 정리매매 플래그(마이그레이션 `20261023120000_kr_stock_master_liquidation`, 추가만) · 전망 사유 4개(`delisting_liquidation` · `trading_halted` · `administrative_issue` · `investment_warning`)를 범위 사유 집합에. 실파일 정리매매 3종목. 테스트 719/719(파서 정리매매 칸 · 사유 통과)
 - 2026-10-08: 슬라이스 4 — FR-60~66 · 37 · 38(코치 판단 · 채점 · 성적표 자산군 분리 · 리스크 예산 · 사이즈 · 계획 연결). 테스트 706/706. 로컬 DB 실측: 지표 · 종목 코치(삼성전자 `kr_stock.long_term.wait` · 단타 `mode_not_open` · 비소유자 404) · 토요일 만기 → 금요일 종가 · 코인 성적표 숫자 무변경. 기획 정정 3: `stale_data` → 기존 `stale_inputs` · 표본은 관심 · 보유가 아니라 시세 유니버스 · 해설도 같은 막음(구멍이었다)
 
