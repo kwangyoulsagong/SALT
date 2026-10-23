@@ -23,6 +23,8 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 
 ## Changelog
 
+- 2026-10-23: F011 5e — **변경 없음.** `forecast.viewmodel` 이 막힘 사유를 문자열 그대로 옮긴다(새 국내 상태 사유 4개도). 실 BFF 4101 경유 000650 `investment_warning` 확인 · build · 251/251
+
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-27 | **F008 슬라이스 23 — FR-9 쏠림 신호 중계.** 서버 `SRV-REQ-037` FR-11 짝. `toHorizon` · `HORIZONS` 를 `events.viewmodel` 에서 내보내 같이 쓴다. 근거 `reports/checklists/BFF-REQ-037.md` §슬라이스 23 |

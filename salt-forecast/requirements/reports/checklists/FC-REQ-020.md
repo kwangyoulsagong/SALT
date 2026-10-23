@@ -72,7 +72,8 @@
 | 실데이터 | 마스터 1회 동기화(정리매매 3) 뒤 `kr_daily`(as_of 10-23, 1분 13초): 상태 종목 216 · 1주 행 정지 113 · 관리 81 · 경고/위험 8 · 정리매매 1(4기간 같음 203) · **켜진 범위 카드 16 · 14 · 10 · 10 그대로** · 오늘 예측이 있는 상태 종목 0(거래대금 유니버스가 이미 거른다) |
 | 화면 경로 | 브랜치 서버(워커 없이 4100) → BFF 4101 → 000650 4기간 `investment_warning` · 003670 렌더 그대로 → web 3100 카드에 "투자경고 · 위험 종목이라 꺼 둠" ×4(`FE-REQ-041` 체크리스트) |
 | 검증 | ruff · format · pyright 0 · lint-imports 3/3 · pytest 전체 · leakage |
-| 백테스트 | `kr_backtest` 는 `with_status` 를 부르지 않는다(바뀐 작업은 `kr_daily` 하나) — 리포트 경로 무변경, 바이트 대조는 돌리지 않음 |
+| 재현(수정) | 첫 판은 과거 `--as-of` 에도 오늘 상태를 걸었다 — 마스터 `synced_at` 을 `available_at` 으로: `status_known_at`(동기화 뒤 · 3일 안). 테스트 `test_status_known_only_after_sync_and_while_fresh` · 재실행 `applied: true`(synced 10-23 11:40 KST) 같은 수 |
+| 백테스트 대조 | `kr_backtest --dry-run --as-of 2026-06-30` 이 브랜치 vs main 워크트리 — 리포트 **바이트 동일**(37,900 B · 462줄 · 11분 5초 · 3.0GB vs 11분 20초 · 2.8GB). `kr_daily` 같은 조건 dry-run 도 같은 출력 |
 | 두 열 | 방향(`renderable`) · 범위(`range_renderable`) 켜진 수 같이 — 1주 16/16 · 2주 14/14 · 3주 10/10 · 4주 10/10(전과 같다) |
 
 ### 미검증 · 범위 밖
