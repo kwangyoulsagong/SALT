@@ -32,5 +32,4 @@ created: 2026-10-23
 
 ## 검증 · 미검증
 
-`requirements/reports/checklists/F011-slice5d-kr-forecast-card.md` · 회고 `requirements/reports/retrospects/F011-slice5d-kr-forecast-card.md` · 영역 `salt-microFe/requirements/reports/checklists/FE-REQ-041.md` §슬라이스 5d · `FE-REQ-038.md` §슬라이스 5d. 실데이터 렌더는 서버가 꺼져 국내 카드가 `stale_inputs` 라 미검증 —
-서버 재기동 · `kr_daily` 다음 회차 뒤.
+`requirements/reports/checklists/F011-slice5d-kr-forecast-card.md` · 회고 `requirements/reports/retrospects/F011-slice5d-kr-forecast-card.md` · 영역 `salt-microFe/requirements/reports/checklists/FE-REQ-041.md` §슬라이스 5d · `FE-REQ-038.md` §슬라이스 5d. 실데이터 렌더 · 실서버 경유 · 1024/800 · 코인 재촬영까지 확인(2026-10-23).
