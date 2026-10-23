@@ -53,6 +53,9 @@ export const FORECAST_MESSAGES = {
     no_live_prediction: "아직 계산 전",
     contract_incomplete: "성적 정보가 모자라 꺼 둠",
     failure_cases_missing: "성적 정보가 모자라 꺼 둠",
+    // 국내 주식만(FC-REQ-020 FR-1 · FR-2) — 범위가 단순 예측보다 좁지 않거나, 자산군 전체로 단순 예측을 이긴 근거가 없는 기간
+    not_sharper_than_baseline: "단순 예측보다 범위가 좁지 않아 꺼 둠",
+    skill_not_significant: "단순 예측보다 낫다는 근거가 부족해 꺼 둠",
   } as Record<string, string>,
   blockedFallback: "지금은 보여 드릴 수 없어요",
 
