@@ -110,3 +110,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 - 2026-10-11: FR-40 코드 완료 — 전 종목 일봉 5년 백필 · 국내 일봉 보관 정리 제외. 1회차는 맥 잠자기로 605/2,605 에서 멈춤(코드 무관)
 - 2026-10-11: FR-40 백필 완료 — 2회차(`caffeinate`) 2,614 끝 · 54 실패 → 3회차 실패 5. 국내 일봉 286만 행(Python `ingest_kr_stock` 81초)
 - 2026-10-23: FR-39 후속(슬라이스 5d) — 국내 범위 사유 2개를 전망 읽기가 그대로 옮긴다(`SRV-REQ-037` Changelog). 국내 카드가 `FC-REQ-020` 거부권 · 풀링 결과로 꺼진다
+- 2026-10-23: 운영 — 서버 상시 실행 launchd `com.salt.server`(`ops/run-server.sh` · `ops/com.salt.server.plist`). 수집 워커가 서버 안에 있어 서버가 꺼지면 국내 일봉이 멈추고 전망 신선도 게이트가 국내 카드를 끈다(10-09 · 10-20 · 10-23 세 번). watch 없음 · 로그 20MB × 5 회전 · KeepAlive
