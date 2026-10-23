@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
-from sqlalchemy import Engine, Select, func, select
+from sqlalchemy import Engine, Select, func, select, text
 
 from salt_forecast.domain.series import CloseSeries, OhlcvSeries
 from salt_forecast.store.bulk import bulk_upsert
@@ -69,6 +69,28 @@ def upsert_bars(engine: Engine, bars: Iterable[Bar]) -> int:
         for b in bars
     )
     return bulk_upsert(engine, price_bar, _COLUMNS, rows, ("source", "symbol", "interval", "open_time"))
+
+
+def delete_bars_before(engine: Engine, source: str, interval: str, first_open: dict[str, datetime]) -> int:
+    """종목마다 first_open 보다 앞선 봉을 지운다 — 원천이 이력을 다시 써서 앞쪽이 짧아졌을 때 옛 기준 봉이 남지 않게.
+
+    국내 주식: 서버가 수정주가 재작성을 보면 그 종목 일봉을 통째로 바꾸는데(SRV-REQ-040 FR-42), upsert 는 지우지 않아
+    새 이력에 없는 앞쪽 날이 옛 기준으로 남는다(FC-REQ-020 FR-10). 한 문장 · 종목 배열.
+    """
+    if not first_open:
+        return 0
+    symbols = list(first_open)
+    stmt = text(
+        "DELETE FROM forecast.price_bar pb USING unnest(CAST(:symbols AS text[]), CAST(:firsts AS timestamptz[])) "
+        "AS f(symbol, first_open) "
+        "WHERE pb.source = :source AND pb.interval = :interval AND pb.symbol = f.symbol AND pb.open_time < f.first_open"
+    )
+    with engine.begin() as conn:
+        result = conn.execute(
+            stmt,
+            {"symbols": symbols, "firsts": [first_open[s] for s in symbols], "source": source, "interval": interval},
+        )
+    return int(result.rowcount)
 
 
 def earliest_open(engine: Engine, source: str, interval: str) -> dict[str, datetime]:
