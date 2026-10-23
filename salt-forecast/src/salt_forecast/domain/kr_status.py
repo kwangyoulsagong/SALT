@@ -5,6 +5,8 @@
 
 - 원천은 서버 종목 마스터(매일 07:30 KST, 전날 기준). 상태 **이력이 없어서** 오늘 게이트에만 걸고 백테스트 ·
   채점은 그대로 둔다 — 채점에서 빼면 아래 꼬리 커버리지가 좋아 보인다(보고서 "하지 말 것")
+- 마스터의 동기화 시각을 `available_at` 으로 본다(`status_known_at`). 과거 as_of 로 다시 돌리면 그때 상태를
+  모르므로 걸지 않는다 — 지금 상태를 과거에 쓰면 미래 정보다(time-and-leakage §1 · architecture §3 재현)
 - 상장 60거래일 미만은 따로 보지 않는다 — 유니버스 `kr-universe@1` 이 250봉을 요구해 그 종목은 예측이 없다
 - 투자주의(01)는 거르지 않는다 — 보고서 권고는 경고 · 위험부터다
 """
@@ -12,12 +14,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Literal
 
 StatusReason = Literal["delisting_liquidation", "trading_halted", "administrative_issue", "investment_warning"]
 
 # 시장경고 코드 — 00 없음 · 01 주의 · 02 경고 · 03 위험
 _WARN_SUPPRESS = frozenset({"02", "03"})
+# 마스터는 매일 동기화한다 — 사흘(주말 + 하루) 넘게 묵은 상태는 지금 상태로 보지 않는다
+STATUS_MAX_AGE = timedelta(days=3)
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,3 +44,8 @@ def status_reason(f: KrStatusFlags) -> StatusReason | None:
     if f.warn_code in _WARN_SUPPRESS:
         return "investment_warning"
     return None
+
+
+def status_known_at(synced_at: datetime | None, as_of: datetime) -> bool:
+    """마스터 상태를 as_of 시점의 사실로 쓸 수 있나 — 그 전에 받았고(미래 정보 아님) 너무 묵지 않았다."""
+    return synced_at is not None and synced_at <= as_of and as_of - synced_at <= STATUS_MAX_AGE

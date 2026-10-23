@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from salt_forecast.domain.kr_status import StatusReason, status_reason
+from salt_forecast.domain.kr_status import StatusReason, status_known_at, status_reason
 from salt_forecast.domain.kr_universe import eligible_at
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job
 from salt_forecast.jobs._data import load_kr, load_kr_bars
@@ -111,16 +111,20 @@ def main(argv: list[str] | None = None) -> int:
             cal.on_grid,
             HORIZONS,
         )
-        # 종목 상태는 이력이 없어 오늘 게이트에만 — 정리매매 · 정지 · 관리 · 경고/위험(FC-REQ-020 FR-9)
-        status: dict[str, StatusReason] = {
-            c: r for c, f in kr_status_flags(eng).items() if (r := status_reason(f)) is not None
-        }
+        # 종목 상태는 이력이 없어 동기화 시각 뒤 as_of 에만 — 과거 as_of 재실행엔 걸지 않는다(FC-REQ-020 FR-9)
+        flags, synced = kr_status_flags(eng)
+        known = status_known_at(synced, now)
+        status: dict[str, StatusReason] = (
+            {c: r for c, f in flags.items() if (r := status_reason(f)) is not None} if known else {}
+        )
         rows = with_status(rows, status)
         log.info(
             "kr_status",
             extra={
                 "fields": {
                     "job": JOB,
+                    "synced_at": synced,
+                    "applied": known,
                     "status_symbols": len(status),
                     "suppressed": sum(1 for g in rows if g.symbol in status),
                 }

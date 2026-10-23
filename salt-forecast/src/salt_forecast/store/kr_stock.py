@@ -7,7 +7,7 @@ UTC 이고 거래일 00:00 KST 다(2026-10-07 = 2026-10-06 15:00). 날짜 변환
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import Engine, text
@@ -55,16 +55,20 @@ def krx_open_dates(engine: Engine) -> list[date]:
     return [r[0] for r in rows]
 
 
-def kr_status_flags(engine: Engine) -> dict[str, KrStatusFlags]:
-    """상장 중 종목의 지금 상태(`kr_stock_master`, 서버가 매일 07:30 KST 마스터로 덮는다) — FC-REQ-020 FR-9.
+def kr_status_flags(engine: Engine) -> tuple[dict[str, KrStatusFlags], datetime | None]:
+    """상장 중 종목의 지금 상태 + 마지막 동기화 시각 — FC-REQ-020 FR-9.
 
-    **이력이 아니다** — 오늘 게이트에만 쓴다. 과거 as_of 로 돌려도 오늘 상태가 나온다(백테스트 · 채점은 안 읽는다).
+    `kr_stock_master` 는 서버가 매일 07:30 KST 마스터로 덮는다.
+
+    **이력이 아니다** — 동기화 시각이 상태의 `available_at` 이다. 쓸지는 `domain/kr_status.status_known_at` 이 정한다.
+    `synced_at` 은 시간대 없는 UTC 로 저장된다 — 세션 시간대와 무관하게 SQL 에서 붙인다.
     """
     with engine.connect() as conn:
         rows = conn.execute(
             text(
-                "SELECT code, is_liquidation, is_halted, is_administrative, warn_code "
+                "SELECT code, is_liquidation, is_halted, is_administrative, warn_code, synced_at AT TIME ZONE 'UTC' "
                 "FROM public.kr_stock_master WHERE delisted_at IS NULL"
             )
         ).all()
-    return {str(r[0]): KrStatusFlags(bool(r[1]), bool(r[2]), bool(r[3]), str(r[4])) for r in rows}
+    synced = max((r[5] for r in rows), default=None)
+    return {str(r[0]): KrStatusFlags(bool(r[1]), bool(r[2]), bool(r[3]), str(r[4])) for r in rows}, synced
