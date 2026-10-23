@@ -22,6 +22,7 @@ created: 2026-10-23
 |---|---|---|
 | 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-041-F011-KR-STOCK.md` FR-23 | 카드 · 문구 |
 | 기획 | `pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md` FR-83 · 슬라이스 표 5d | 완료 표시 · 영역 정정 |
+| 짝(변경 없음 · 기록만) | `FE-REQ-038`(카드 주인) · `BFF-REQ-037` · `BFF-REQ-040` · `FC-REQ-020` · `FC-REQ-009` · FEATURE-008 | Changelog · 범위 밖 닫힘 |
 
 ## 판단 — 리뷰가 볼 곳
 
@@ -31,5 +32,5 @@ created: 2026-10-23
 
 ## 검증 · 미검증
 
-`salt-microFe/requirements/reports/checklists/FE-REQ-041.md` §슬라이스 5d. 실데이터 렌더는 서버가 꺼져 국내 카드가 `stale_inputs` 라 미검증 —
+`requirements/reports/checklists/F011-slice5d-kr-forecast-card.md` · 회고 `requirements/reports/retrospects/F011-slice5d-kr-forecast-card.md` · 영역 `salt-microFe/requirements/reports/checklists/FE-REQ-041.md` §슬라이스 5d · `FE-REQ-038.md` §슬라이스 5d. 실데이터 렌더는 서버가 꺼져 국내 카드가 `stale_inputs` 라 미검증 —
 서버 재기동 · `kr_daily` 다음 회차 뒤.

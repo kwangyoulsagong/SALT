@@ -26,3 +26,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-27 | **F008 슬라이스 23 — FR-9 쏠림 신호 중계.** 서버 `SRV-REQ-037` FR-11 짝. `toHorizon` · `HORIZONS` 를 `events.viewmodel` 에서 내보내 같이 쓴다. 근거 `reports/checklists/BFF-REQ-037.md` §슬라이스 23 |
+| 2026-10-23 | F011 슬라이스 5d — **변경 없음.** 국내 상세가 `/api/app/coach/forecast?symbol=<6자리>` 를 부른다. 심볼은 그대로 서버로 넘기고 4xx(404 = 소유자 아님)는 그대로 · 5xx 는 `unavailable` — 코인과 같은 뷰모델. 소비처 `FE-REQ-041` FR-23 |
