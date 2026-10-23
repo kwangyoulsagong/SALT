@@ -110,3 +110,9 @@
 - 사유 4개 `KNOWN_RANGE_REASONS` — `forecast.test.ts` 국내 상태 사유 통과 · 실 DB 000650 `GetSymbolForecast` 4기간 `investment_warning`
 - `npm run build` 0 · `npm run lint` 0 · `npm test` 719/719 · `prisma generate`
 - 상시 서버(main 코드)는 새 컬럼을 upsert 에 안 써서 값이 유지되고, 새 사유 4개는 머지 · 재시작 전까지 "표본이 쌓이는 중"으로 접힌다(카드는 이미 꺼짐 — 문구만)
+
+### 운영 — 재시작 결함 수정(2026-10-23, 슬라이스 5e)
+
+- 증상 · 원인 · 수정은 루트 `requirements/reports/checklists/F011-slice5e-kr-status-suppression.md` §운영. 요약: Express 5 listen 콜백의 `EADDRINUSE` 무시 → `acb66bf` exit(1)
+- 확인: 4000 점유 kickstart → 실패 2회 · 해제 뒤 기동 · LISTEN · health 200 / build 0 · lint 0 · 719/719 · test:layer-check · 훅
+- 위 "미검증: 맥 잠자기 동안 놓친 cron" 은 그대로
