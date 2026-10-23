@@ -244,20 +244,24 @@ export class PrismaKrStockStore implements KrStockStore {
   async edgeDailyCloses(codes: string[], edge: "earliest" | "latest", days: number) {
     const closes = new Map<string, Array<{ timestamp: Date; close: number }>>();
     if (codes.length === 0) return closes;
-    // 종목마다 자기 첫 · 마지막 봉에서 — 오래 멈춘 종목 때문에 전 종목 창이 넓어지지 않게
+    // 종목마다 자기 첫 · 마지막 봉에서 — 오래 멈춘 종목 때문에 전 종목 창이 넓어지지 않게. 종목별 LATERAL 로
+    // (symbol, timeframe, timestamp) 인덱스 범위를 읽는다 — 유니버스 50종목 3.8ms · 전 종목 2,603 약 1.6s(회차당 한 번)
     const latest = edge === "latest";
     const rows = await prisma.$queryRaw<Array<{ symbol: string; timestamp: Date; close: Prisma.Decimal }>>`
-      SELECT p.symbol, p.timestamp, p.close
-      FROM price_history p
-      JOIN (
-        SELECT symbol, min(timestamp) AS earliest, max(timestamp) AS latest FROM price_history
-        WHERE symbol = ANY(${codes}) AND asset_type = 'kr_stock' AND timeframe = '1d'
-        GROUP BY symbol
-      ) e ON e.symbol = p.symbol
-      WHERE p.asset_type = 'kr_stock' AND p.timeframe = '1d'
-        AND CASE WHEN ${latest} THEN p.timestamp >= e.latest - make_interval(days => ${days}::int)
-                 ELSE p.timestamp <= e.earliest + make_interval(days => ${days}::int) END
-      ORDER BY p.symbol, p.timestamp`;
+      SELECT c.symbol, p.timestamp, p.close
+      FROM unnest(${codes}::text[]) AS c(symbol)
+      CROSS JOIN LATERAL (
+        SELECT min(timestamp) AS earliest, max(timestamp) AS latest FROM price_history
+        WHERE symbol = c.symbol AND timeframe = '1d' AND asset_type = 'kr_stock'
+      ) e
+      CROSS JOIN LATERAL (
+        SELECT timestamp, close FROM price_history p
+        WHERE p.symbol = c.symbol AND p.timeframe = '1d' AND p.asset_type = 'kr_stock'
+          AND p.timestamp BETWEEN
+            (CASE WHEN ${latest} THEN e.latest - make_interval(days => ${days}::int) ELSE e.earliest END) AND
+            (CASE WHEN ${latest} THEN e.latest ELSE e.earliest + make_interval(days => ${days}::int) END)
+      ) p
+      ORDER BY c.symbol, p.timestamp`;
     for (const row of rows) {
       const list = closes.get(row.symbol) ?? [];
       list.push({ timestamp: row.timestamp, close: Number(row.close) });
