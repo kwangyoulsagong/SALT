@@ -68,6 +68,11 @@ export type ForecastBlockedReason =
   /** 국내 주식만 — 종목 거부권(폭 ≥ 단순 예측) · 풀링 실력 검정 패배가 범위 카드도 끈다(salt-forecast `FC-REQ-020` FR-1 · FR-2) */
   | "not_sharper_than_baseline"
   | "skill_not_significant"
+  /** 국내 주식만 — 종목 상태(정리매매 · 거래정지 · 관리종목 · 투자경고/위험)면 범위 대신 상태(`FC-REQ-020` FR-9) */
+  | "delisting_liquidation"
+  | "trading_halted"
+  | "administrative_issue"
+  | "investment_warning"
   | "failure_cases_missing"
   | "not_generated";
 
@@ -134,6 +139,10 @@ const KNOWN_RANGE_REASONS = new Set([
   "no_live_prediction",
   "not_sharper_than_baseline",
   "skill_not_significant",
+  "delisting_liquidation",
+  "trading_halted",
+  "administrative_issue",
+  "investment_warning",
 ]);
 
 const price = (base: number, logReturn: number) => Math.round(base * Math.exp(logReturn));

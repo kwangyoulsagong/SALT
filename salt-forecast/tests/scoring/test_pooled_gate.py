@@ -11,7 +11,7 @@ from salt_forecast.domain.quantiles import Z_SCORES, QuantileForecast
 from salt_forecast.domain.scoring import Score, evaluate_gate, score
 from salt_forecast.scoring.coverage import TailObs, nonoverlapping, tail_rate
 from salt_forecast.scoring.evaluate import Paired, gates_from_pairs
-from salt_forecast.scoring.pooled_gate import kr_cards, kr_placebo, per_symbol_cards, placebo
+from salt_forecast.scoring.pooled_gate import kr_cards, kr_placebo, per_symbol_cards, placebo, with_status
 
 T0 = datetime(2024, 1, 1, tzinfo=UTC)
 
@@ -142,3 +142,21 @@ def test_lazy_ci_keeps_per_symbol_renderable() -> None:
         assert [g.result.renderable for g in full] == [g.result.renderable for g in lazy]
         assert [g.result.blocked_reason for g in full] == [g.result.blocked_reason for g in lazy]
         assert any(g.result.renderable for g in full)
+
+
+def test_status_turns_off_both_columns_keeps_metrics() -> None:
+    """상태가 있는 종목은 방향 · 범위 둘 다 상태 사유로 꺼지고, 성적 지표는 남는다(FC-REQ-020 FR-9)."""
+    pairs = _pairs(2, 52, 0.06, seed=3)
+    rows = gates_from_pairs(pairs, "m", "b", set(), {1: True})
+    out = with_status(rows, {"S0": "trading_halted"})
+    s0 = next(g for g in out if g.symbol == "S0")
+    s1 = next(g for g in out if g.symbol == "S1")
+    assert (s0.result.renderable, s0.result.blocked_reason) == (False, "trading_halted")
+    assert (s0.result.range_renderable, s0.result.range_blocked_reason) == (False, "trading_halted")
+    before = next(g for g in rows if g.symbol == "S0")
+    assert (s0.result.coverage90, s0.result.width90, s0.result.miss_count) == (
+        before.result.coverage90,
+        before.result.width90,
+        before.result.miss_count,
+    )
+    assert s1 == next(g for g in rows if g.symbol == "S1")

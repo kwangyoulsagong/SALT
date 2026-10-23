@@ -12,6 +12,8 @@ from decimal import Decimal
 
 from sqlalchemy import Engine, text
 
+from salt_forecast.domain.kr_status import KrStatusFlags
+
 # timestamp(UTC, 시간대 없음) → KST 날짜. 세션 tz 가 Asia/Seoul 이어도 같은 값(local-fullstack 의 9시간 사고)
 _KST_DATE = "((ph.timestamp AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul')::date"
 
@@ -51,3 +53,18 @@ def krx_open_dates(engine: Engine) -> list[date]:
             text("SELECT date FROM public.market_holidays WHERE market = 'KRX' AND is_open ORDER BY date")
         ).all()
     return [r[0] for r in rows]
+
+
+def kr_status_flags(engine: Engine) -> dict[str, KrStatusFlags]:
+    """상장 중 종목의 지금 상태(`kr_stock_master`, 서버가 매일 07:30 KST 마스터로 덮는다) — FC-REQ-020 FR-9.
+
+    **이력이 아니다** — 오늘 게이트에만 쓴다. 과거 as_of 로 돌려도 오늘 상태가 나온다(백테스트 · 채점은 안 읽는다).
+    """
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                "SELECT code, is_liquidation, is_halted, is_administrative, warn_code "
+                "FROM public.kr_stock_master WHERE delisted_at IS NULL"
+            )
+        ).all()
+    return {str(r[0]): KrStatusFlags(bool(r[1]), bool(r[2]), bool(r[3]), str(r[4])) for r in rows}

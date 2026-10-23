@@ -93,6 +93,13 @@ describe("toForecastHorizon", () => {
     }
   });
 
+  it("국내 종목 상태 사유도 그대로 옮긴다 (FC-REQ-020 FR-9)", () => {
+    for (const reason of ["delisting_liquidation", "trading_halted", "administrative_issue", "investment_warning"]) {
+      const v = toForecastHorizon(row({ assetClass: "kr_stock", rangeRenderable: false, rangeBlockedReason: reason }), holding(1));
+      assert.deepEqual([v.renderable, v.blockedReason, v.range, v.scenario], [false, reason, null, null]);
+    }
+  });
+
   it("커버리지는 폭 · 기준 폭과 함께만 나간다", () => {
     const v = toForecastHorizon(row({ baselineWidth90: null }), null);
     assert.equal(v.renderable, false);
