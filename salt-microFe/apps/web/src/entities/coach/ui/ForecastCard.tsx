@@ -36,10 +36,13 @@ interface ForecastCardProps {
   result: SymbolForecastResult;
   /** 실시간 현재가 — 차트 선 끝을 움직인다. 없으면 어제 종가에서 멈춘다 */
   livePrice?: number | null;
+  /** 국내 주식이면 거래일 안내 · 보유 단위 "주" · 직전 거래일 종가 기준가(F011 슬라이스 5d). 숫자는 같은 서버 값이다 */
+  assetType?: "crypto" | "kr_stock";
   className?: string;
 }
 
-export const ForecastCard = ({ result, livePrice = null, className }: ForecastCardProps) => {
+export const ForecastCard = ({ result, livePrice = null, assetType = "crypto", className }: ForecastCardProps) => {
+  const kr = assetType === "kr_stock";
   const count = result.status === "ok" ? result.horizons.filter((h) => h.renderable).length : 0;
   const [active, setActive] = useState(0);
   // 손을 대면 자동 넘김을 멈춘다 — 보고 있는 기간을 빼앗지 않는다
@@ -85,6 +88,7 @@ export const ForecastCard = ({ result, livePrice = null, className }: ForecastCa
         <span className={s.badge}>{M.badge}</span>
       </div>
       <p className={s.lead}>{M.lead}</p>
+      {kr && <p className={s.note}>{M.kr.tradingDays}</p>}
 
       {shown.length === 0 ? (
         <p className={s.note}>{M.allBlocked}</p>
@@ -97,7 +101,11 @@ export const ForecastCard = ({ result, livePrice = null, className }: ForecastCa
                 {M.live} · {M.livePrice(`${formatPrice(livePrice)}원`)}
               </span>
             ) : (
-              first && <span className={s.note}>{M.basePrice(`${formatPrice(first.basePrice)}원`, shortDate(first.asOf))}</span>
+              first && (
+                <span className={s.note}>
+                  {(kr ? M.kr.basePrice : M.basePrice)(`${formatPrice(first.basePrice)}원`, shortDate(first.asOf))}
+                </span>
+              )
             )}
           </div>
 
@@ -143,7 +151,7 @@ export const ForecastCard = ({ result, livePrice = null, className }: ForecastCa
               </div>
               {current.scenario && (
                 <>
-                  <p className={s.readoutSub}>{M.scenarioLead(String(current.scenario.quantity))}</p>
+                  <p className={s.readoutSub}>{(kr ? M.kr.scenarioLead : M.scenarioLead)(String(current.scenario.quantity))}</p>
                   <div className={s.scenarioGrid}>
                     {(
                       [

@@ -1,0 +1,47 @@
+---
+id: SLICE-F011-5D-KR-FORECAST-CARD
+title: "F011 슬라이스 5d — 국내 주식 변동 범위 카드 화면"
+priority: high
+labels: [F011, slice, forecast, fe]
+created: 2026-10-23
+---
+
+## Summary
+
+사용자 "새브랜치 파고 다음꺼 진행"(2026-10-23). 5c P3 에서 국내 전망 챔피언 `kr-har-range@0.1.0` 이 풀링 실력 게이트를 4기간 통과했다 —
+5b 에서 실력 감사 때문에 닫아 둔 화면을 연다. 국내 주식 상세 오른쪽 열에 코인 상세와 **같은** "자세히 — 변동 범위" 카드.
+
+| 질문 | 결정 |
+|---|---|
+| 어느 영역이 움직이나 | **FE 만.** BFF `/api/app/coach/forecast` 는 심볼을 그대로 넘기고, 서버는 5b 부터 국내 코드(`X`)를 읽는다 — 계약 변경 0 |
+| 같은 카드인가 | 같은 `ForecastCard` + 선택 prop `assetType`(기본 `crypto` — 코인 화면 무변경). 국내만 다른 문구 셋: 거래일 안내 · 보유 "주"(“이 주에 판다면”이 株와 겹쳐 “기간 끝에”) · 기준가 "개장 전 · 직전 거래일 종가" |
+| 어디에 | 코인과 같은 접기 자리("자세히") · 거래 기록 위. 소유자 아님 · 비로그인 · 불러오는 중에는 자리도 없다(ADR-003) |
+| 면책 | 카드 아래 서버 문장. 코인 상세는 코치 하단 띠에 있는데 국내 상세엔 그 띠가 없다 |
+
+| 영역 | REQ | 몫 |
+|---|---|---|
+| 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-041-F011-KR-STOCK.md` FR-23 | 카드 · 문구 |
+| 기획 | `pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md` FR-83 · 슬라이스 표 5d | 완료 표시 · 영역 정정 |
+| 짝(변경 없음 · 기록만) | `FE-REQ-038`(카드 주인) · `BFF-REQ-037` · `BFF-REQ-040` · `FC-REQ-020` · `FC-REQ-009` · FEATURE-008 | Changelog · 범위 밖 닫힘 |
+
+## 후속 — 국내 카드 게이트(2026-10-23, 사용자 "남은것까지 확인" → "규칙대로 고친다")
+
+실데이터로 켜진 국내 카드 48(1주) 중 32 가 종목 거부권(폭 ≥ 단순 예측)에 걸려 있었다. `FC-REQ-020` FR-1 · FR-2 판정이 방향 게이트에만 기록되고
+범위 카드는 ADR-003 §7(보정만)을 따랐다. 국내 풀링 경로만 범위 사유로도 쓰게 고쳤다 — 예측(`evaluate_gate`) · 서버(사유 2개) · 화면(문구 2개).
+코인 무변경. ADR-003 §8 · 규칙 `modeling-evaluation.md` §5.
+
+| 영역 | REQ | 몫 |
+|---|---|---|
+| 예측 | `FC-REQ-020` FR-2 | 범위 사유 |
+| 서버 | `SRV-REQ-037` · `SRV-REQ-040` FR-39 | 사유 2개 통과 |
+| 프론트 | `FE-REQ-038` · `FE-REQ-041` | 문구 2개 |
+
+## 판단 — 리뷰가 볼 곳
+
+1. **prop 하나로 분기** — 국내 전용 카드를 따로 만들지 않았다(“같은 화면, 데이터만 다르다”). 숫자 · 게이트는 전부 서버 값
+2. **서버에 자산군 필드를 추가하지 않은 것** — 화면은 라우트(`isKrStockCode`)로 이미 자산군을 안다. 응답에 넣으면 BFF · core 타입까지 3곳이 움직인다
+3. **“자세히” 스타일 복제** — 위젯(`symbol-analysis`) 스타일을 페이지가 import 할 수 없어(FSD) 페이지 css 에 같은 값으로 둠
+
+## 검증 · 미검증
+
+`requirements/reports/checklists/F011-slice5d-kr-forecast-card.md` · 회고 `requirements/reports/retrospects/F011-slice5d-kr-forecast-card.md` · 영역 `salt-microFe/requirements/reports/checklists/FE-REQ-041.md` §슬라이스 5d · `FE-REQ-038.md` §슬라이스 5d. 실데이터 렌더 · 실서버 경유 · 1024/800 · 코인 재촬영까지 확인(2026-10-23).

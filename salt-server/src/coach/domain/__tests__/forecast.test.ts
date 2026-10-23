@@ -86,6 +86,13 @@ describe("toForecastHorizon", () => {
     assert.deepEqual([v.renderable, v.blockedReason, v.range, v.scenario, v.trackRecord], [false, "miscalibrated", null, null, null]);
   });
 
+  it("국내 거부권 사유는 그대로 옮긴다 — 표본 부족으로 접지 않는다 (F011 5d · FC-REQ-020 FR-1 · FR-2)", () => {
+    for (const reason of ["not_sharper_than_baseline", "skill_not_significant"]) {
+      const v = toForecastHorizon(row({ assetClass: "kr_stock", rangeRenderable: false, rangeBlockedReason: reason }), holding(1));
+      assert.deepEqual([v.renderable, v.blockedReason, v.range, v.scenario], [false, reason, null, null]);
+    }
+  });
+
   it("커버리지는 폭 · 기준 폭과 함께만 나간다", () => {
     const v = toForecastHorizon(row({ baselineWidth90: null }), null);
     assert.equal(v.renderable, false);

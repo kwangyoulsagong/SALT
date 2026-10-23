@@ -32,3 +32,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 |---|---|
 | 2026-09-24 | **F009 슬라이스 0 — C03.** FR-7a 신설 · 구현. 근거 `reports/checklists/SRV-REQ-037.md` C03 절 |
 | 2026-09-27 | **F008 슬라이스 23 — FR-11 쏠림 신호.** `FC-REQ-007` · `DB-REQ-029` FR-16 · 17. 새 경로 `/api/coach/positioning`(BFF `BFF-REQ-037` FR-9 짝). 근거 `reports/checklists/SRV-REQ-037.md` §슬라이스 23 |
+| 2026-10-23 | **F011 슬라이스 5d — 국내 범위 사유 2개.** `ForecastBlockedReason` · `KNOWN_RANGE_REASONS` 에 `not_sharper_than_baseline` · `skill_not_significant`(국내 거부권 · 풀링 패배, `FC-REQ-020` FR-1 · FR-2 · ADR-003 §8). 없으면 "표본이 쌓이는 중"(`insufficient_sample`)으로 접혀 거짓 사유가 됐다. 응답 모양 무변경(사유 문자열 값만 늘어남). 근거 `reports/checklists/SRV-REQ-037.md` §5d |

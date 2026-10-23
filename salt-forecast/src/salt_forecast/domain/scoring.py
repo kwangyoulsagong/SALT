@@ -30,7 +30,14 @@ BlockedReason = Literal[
     "not_sharper_than_baseline",
     "skill_not_significant",
 ]
-RangeBlockedReason = Literal["insufficient_sample", "stale_inputs", "miscalibrated"]
+# 국내(풀링 경로)는 종목 거부권 · 풀링 검정도 범위 카드를 끈다(FC-REQ-020 FR-1 · FR-2) — 코인은 앞 셋만
+RangeBlockedReason = Literal[
+    "insufficient_sample",
+    "stale_inputs",
+    "miscalibrated",
+    "not_sharper_than_baseline",
+    "skill_not_significant",
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,6 +159,10 @@ def evaluate_gate(
     `pooled_skill` 이 주어지면(국내 주식, FC-REQ-020 FR-1 · FR-2) 종목 검사는 **거부권만** — 표본 · 신선도 · 보정 ·
     폭. 실력은 자산군 × 기간 풀링 검정 한 번이 정하고(False 면 `skill_not_significant`), 종목별 iid 하한
     (`skill_ci_low`)은 판정에 쓰지 않고 표시용으로만 계산한다. 종목 수백 개를 각각 시험하면 우연히 이기는 곳이 생긴다.
+
+    국내는 거부권 · 풀링 결과가 **범위 카드도** 끈다(`range_blocked_reason`, FR-1 "지면 그 기간 국내 카드 전부 없음").
+    코인 범위 카드는 보정 · 표본 · 신선도만 본다(ADR-003 — 방향만 실력으로 거른다). 2026-10-23 화면 연결(5d) 뒤
+    실데이터에서 거부권에 걸린 국내 카드 32/48 이 범위 게이트만 보고 켜진 것을 발견해 고쳤다.
     """
     m = model[-GATE_WINDOW:]
     b = baseline[-GATE_WINDOW:]
@@ -209,9 +220,10 @@ def evaluate_gate(
     ci_low = ci() if display_ci or decides else None
     if reason is None and pooled_skill is not None:
         if width >= base_width:
-            reason = "not_sharper_than_baseline"
+            range_reason = "not_sharper_than_baseline"
         elif not pooled_skill:
-            reason = "skill_not_significant"
+            range_reason = "skill_not_significant"
+        reason = range_reason
     elif reason is None:
         if skill is None or skill <= 0:
             reason = "underperforms_baseline"

@@ -53,9 +53,22 @@ export const FORECAST_MESSAGES = {
     no_live_prediction: "아직 계산 전",
     contract_incomplete: "성적 정보가 모자라 꺼 둠",
     failure_cases_missing: "성적 정보가 모자라 꺼 둠",
+    // 국내 주식만(FC-REQ-020 FR-1 · FR-2) — 범위가 단순 예측보다 좁지 않거나, 자산군 전체로 단순 예측을 이긴 근거가 없는 기간
+    not_sharper_than_baseline: "단순 예측보다 범위가 좁지 않아 꺼 둠",
+    skill_not_significant: "단순 예측보다 낫다는 근거가 부족해 꺼 둠",
   } as Record<string, string>,
   blockedFallback: "지금은 보여 드릴 수 없어요",
 
   unavailable: "변동 범위를 지금 불러올 수 없어요.",
   allBlocked: "지금은 모든 기간이 꺼져 있어요.",
+
+  /**
+   * 국내 주식(F011 슬라이스 5d · `FE-REQ-041` FR-23). 기간 h주 = 5h 거래일, 기준가 = as_of(거래일 09:00) 직전 거래일의
+   * 정규장 종가(salt-forecast `FC-REQ-009`). "이 주에 판다면"은 주식에서 "주(株)"와 겹쳐 읽혀 기간 끝으로 바꾼다
+   */
+  kr: {
+    tradingDays: "기간은 거래일로 세요 — 1주 = 5거래일, 휴장일은 빼요. 정규장 종가만 써요(시간외 · 대체거래소 제외).",
+    basePrice: (price: string, date: string) => `기준가 ${price} (${date} 개장 전 · 직전 거래일 종가)`,
+    scenarioLead: (quantity: string) => `기간 끝에 판다면 — 보유 ${quantity}주 기준 평가금액 변화`,
+  },
 } as const;

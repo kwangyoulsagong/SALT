@@ -65,6 +65,9 @@ export type ForecastBlockedReason =
   | "stale_inputs"
   | "miscalibrated"
   | "no_live_prediction"
+  /** 국내 주식만 — 종목 거부권(폭 ≥ 단순 예측) · 풀링 실력 검정 패배가 범위 카드도 끈다(salt-forecast `FC-REQ-020` FR-1 · FR-2) */
+  | "not_sharper_than_baseline"
+  | "skill_not_significant"
   | "failure_cases_missing"
   | "not_generated";
 
@@ -123,7 +126,15 @@ export interface ForecastHorizonView {
   modelVersion: string;
 }
 
-const KNOWN_RANGE_REASONS = new Set(["insufficient_sample", "stale_inputs", "miscalibrated", "no_live_prediction"]);
+// 모르는 사유는 `insufficient_sample` 로 접는다 — 국내 거부권 두 사유가 여기 없어 "표본이 쌓이는 중"으로 보일 뻔했다(F011 5d)
+const KNOWN_RANGE_REASONS = new Set([
+  "insufficient_sample",
+  "stale_inputs",
+  "miscalibrated",
+  "no_live_prediction",
+  "not_sharper_than_baseline",
+  "skill_not_significant",
+]);
 
 const price = (base: number, logReturn: number) => Math.round(base * Math.exp(logReturn));
 

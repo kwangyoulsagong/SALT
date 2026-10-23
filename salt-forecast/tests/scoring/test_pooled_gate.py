@@ -45,6 +45,26 @@ def test_veto_only_ignores_symbol_iid_skill() -> None:
     assert evaluate_gate(narrower, b, stale=False, pooled_skill=False).blocked_reason == "skill_not_significant"
 
 
+def test_pooled_veto_turns_off_range_card_too() -> None:
+    """국내는 거부권 · 풀링 검정이 범위 카드도 끈다(FC-REQ-020 FR-1 · FR-2).
+
+    코인 경로(pooled_skill=None)는 범위가 보정만 본다.
+    """
+    z = np.sort(np.random.default_rng(5).normal(size=52))
+    z[:2], z[-2:] = (-2.5, -2.2), (2.2, 2.5)
+    z[2:-2] = np.clip(z[2:-2], -1.5, 1.5)
+    m = [_score(0.05, 0.05 * x) for x in z]
+    b = [_score(0.05, 0.05 * x) for x in z]
+    wide = evaluate_gate(m, b, stale=False, pooled_skill=True)
+    assert (wide.range_renderable, wide.range_blocked_reason) == (False, "not_sharper_than_baseline")
+    narrower = [_score(0.045, s.realized) for s in m]
+    lost = evaluate_gate(narrower, b, stale=False, pooled_skill=False)
+    assert (lost.range_renderable, lost.range_blocked_reason) == (False, "skill_not_significant")
+    assert evaluate_gate(narrower, b, stale=False, pooled_skill=True).range_renderable
+    coin = evaluate_gate(m, b, stale=False)
+    assert coin.range_renderable and coin.blocked_reason == "underperforms_baseline"
+
+
 def test_pooled_gate_turns_on_real_skill_and_placebo_is_low() -> None:
     """실제 σ 0.05 · 모델 0.05 vs 기준 0.08 — 진짜로 더 잘 맞는다. 풀링이 통과하고 우연 비율이 낮다."""
     pairs = _pairs(20, 60, 0.05, seed=1)

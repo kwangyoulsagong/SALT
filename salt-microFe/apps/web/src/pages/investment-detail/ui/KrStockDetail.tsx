@@ -18,6 +18,7 @@ import {
 import { RecordTradeCard } from "@/features/record-transaction";
 
 import { KrCoachJudgment } from "./KrCoachJudgment";
+import { KrForecast } from "./KrForecast";
 import { useHasAccessToken } from "@/shared/api";
 import { formatKrwCompact, formatPrice } from "@/shared/lib";
 
@@ -27,6 +28,7 @@ import {
   identity,
   krBody,
   krSideCard,
+  krSideColumn,
   name as nameStyle,
   nameRow,
   price as priceStyle,
@@ -50,7 +52,7 @@ const ratio = (value: number | null, suffix = "") =>
  *
  * 값은 전부 서버 것이다 — 원 정수 · 전일 대비 · 상하한가 · 기준가 · 호가 단위 · 상태 배지. 거래정지면 가격 자리에 마지막 체결
  * 일시를 같이 쓴다(FR-44). 거래 기록은 코인과 같은 폼 — 계획 · 크기 계산까지(슬라이스 4). 코치 판단은 장기 한 모드
- * (`KrCoachJudgment`, 슬라이스 4). 해설 · 전망은 아직 열지 않았다.
+ * (`KrCoachJudgment`, 슬라이스 4). 변동 범위는 오른쪽 열 "자세히"(`KrForecast`, 슬라이스 5d — 소유자만). 해설은 아직 열지 않았다.
  */
 export const KrStockDetail = ({ code }: { code: string }) => {
   const signedIn = useHasAccessToken();
@@ -124,14 +126,18 @@ export const KrStockDetail = ({ code }: { code: string }) => {
       </header>
       <div className={krBody}>
         <KrStockChart code={quote.code} displayName={quote.name} />
-        {/* 현재가는 실시간 구독이 갱신한 값 — [현재가] 버튼이 옮겨 적기만 한다. 호가 단위는 안내만(FR-42) */}
-        <RecordTradeCard
-          className={krSideCard}
-          symbol={quote.code}
-          assetType="kr_stock"
-          tickSize={detail.tickSize}
-          livePrice={quote.price}
-        />
+        <div className={krSideColumn}>
+          {/* 코인 상세 오른쪽 열과 같은 순서 — 자세히(변동 범위) → 거래 기록. 차트 선 끝은 실시간 현재가 */}
+          <KrForecast code={quote.code} livePrice={quote.price} />
+          {/* 현재가는 실시간 구독이 갱신한 값 — [현재가] 버튼이 옮겨 적기만 한다. 호가 단위는 안내만(FR-42) */}
+          <RecordTradeCard
+            className={krSideCard}
+            symbol={quote.code}
+            assetType="kr_stock"
+            tickSize={detail.tickSize}
+            livePrice={quote.price}
+          />
+        </div>
       </div>
       <KrCoachJudgment code={quote.code} />
     </>

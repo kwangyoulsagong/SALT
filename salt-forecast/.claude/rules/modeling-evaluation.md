@@ -61,6 +61,10 @@
 
 소등은 **자동**, 재점등도 자동(조건 해소 시). 사람이 강제로 켜는 플래그를 만들지 않는다.
 
+**두 열이다.** `renderable`(방향 · 전망)은 위 전부, `range_renderable`(변동 범위 카드)은 코인이면 표본 · 신선도 · 보정만(ADR-003 §7),
+**국내 주식이면 + 풀링 실력 검정 · 종목 폭 거부권**(`not_sharper_than_baseline` · `skill_not_significant`, ADR-003 §8 · `FC-REQ-020`).
+게이트를 바꾸면 리포트 · 체크리스트에 두 열의 켜진 수를 같이 적는다 — "카드 0" 이 어느 열인지 모호해서 국내 범위 카드가 거부권을 안 본 채 지나갔다.
+
 ## 6. 모델 버전
 
 - `model_version = "<name>@<semver>+<git short sha>"`. 피처 목록 · 하이퍼파라미터 · 학습 창을 `forecast.model` 행에 JSON 으로.

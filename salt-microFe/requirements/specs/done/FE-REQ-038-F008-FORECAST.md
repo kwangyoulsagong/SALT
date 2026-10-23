@@ -32,3 +32,5 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 |---|---|
 | 2026-09-27 | FR-7 — 판단이 막힌 모드에서 해설 카드가 자리째 사라지던 것을 고쳤다(사용자 신고 "AI 코치해설은 왜 없어짐?"). C06(`6c18593`) 이후 판단 표본을 live 만 세면서 표본 20 미만 종목의 판단이 닫혔고, 카드가 `null` 을 돌려 기능이 없어진 것처럼 보였다. 자리 · 이유 · 표본 수만 남기고 3종 규칙은 그대로. 슬라이스 3(`68d6bd0`)이 거래 기록 폼 아래로 밀어 둔 해설 · 수익 플랜을 위로 되돌렸다. 사용자 결정(2026-09-27): 게이트 유지 · 이유 표시 · 위로 이동. 근거 `reports/checklists/FE-REQ-038.md` §2026-09-27 |
 | 2026-09-27 | **F008 슬라이스 23 — FR-14 쏠림 신호 카드.** 주요 사건 카드의 반응 분포를 `ReactionDetail` 로 떼어 두 카드가 같이 쓴다(동작 변화 없음). 근거 `reports/checklists/FE-REQ-038.md` §슬라이스 23 |
+| 2026-10-23 | **F011 슬라이스 5d — 국내 주식이 같은 카드를 쓴다.** `ForecastCard` 에 선택 prop `assetType`(기본 `crypto`). `kr_stock` 이면 거래일 안내 줄 · 기준가 "개장 전 · 직전 거래일 종가" · 시나리오 "기간 끝에 판다면 — 보유 N주". 코인 출력 무변경(prop 생략 = 이전과 같은 JSX). 문구는 `FORECAST_MESSAGES.kr`. 근거 `FE-REQ-041` FR-23 · `reports/checklists/FE-REQ-038.md` §슬라이스 5d |
+| 2026-10-23 | 막힘 사유 문구 2개 — `not_sharper_than_baseline` "단순 예측보다 범위가 좁지 않아 꺼 둠" · `skill_not_significant` "단순 예측보다 낫다는 근거가 부족해 꺼 둠"(국내 거부권 · 풀링 패배, ADR-003 §8). 없으면 "지금은 보여 드릴 수 없어요" 로 떨어졌다 |
