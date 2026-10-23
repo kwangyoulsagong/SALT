@@ -33,6 +33,7 @@ from salt_forecast.domain.har import (
     forward_log_mean,
     forward_log_return,
 )
+from salt_forecast.domain.kr_breaks import up_limit_breaks
 from salt_forecast.domain.quantiles import Z_SCORES, QuantileForecast
 from salt_forecast.domain.series import WEEK, CloseSeries, OhlcvSeries
 
@@ -64,11 +65,16 @@ Shape = Literal["normal", "fhs"]
 
 def _matrices(
     bars: Mapping[str, OhlcvSeries], schedule: KrxSessions
-) -> tuple[list[str], tuple[NDArray[np.float64], ...]]:
-    """(종목, 거래일) OHLCV 행렬. 달력에 없는 날의 봉은 버린다(달력 = 서버 개장일 ∪ 봉이 있는 날이라 보통 없다)."""
+) -> tuple[list[str], tuple[NDArray[np.float64], ...], NDArray[np.bool_]]:
+    """(종목, 거래일) OHLCV 행렬 + 원천 끊김(FR-10). 달력에 없는 날의 봉은 버린다(달력 = 서버 개장일 ∪ 봉이 있는 날이라
+    보통 없다).
+
+    끊김은 종목의 **이어진 봉끼리** 잰다(`up_limit_breaks`) — 빈 날이 끼어도 재개일 점프를 놓치지 않게.
+    """
     symbols = sorted(bars)
     days = schedule.sessions
     mats = tuple(np.full((len(symbols), days.size), np.nan) for _ in range(5))
+    breaks = np.zeros((len(symbols), days.size), dtype=np.bool_)
     for k, sym in enumerate(symbols):
         b = bars[sym]
         day = b.available_at - KRX_CLOSE_AVAILABLE
@@ -76,7 +82,8 @@ def _matrices(
         ok = (pos < days.size) & (days[np.minimum(pos, days.size - 1)] == day)
         for m, col in zip(mats, (b.open, b.high, b.low, b.close, b.volume), strict=True):
             m[k, pos[ok]] = col[ok]
-    return symbols, mats
+        breaks[k, pos[ok]] = up_limit_breaks(b.close)[ok]
+    return symbols, mats, breaks
 
 
 @dataclass(frozen=True, slots=True)
@@ -98,13 +105,13 @@ class KrScalePanel:
     ) -> None:
         self.schedule = schedule
         self._eligible = eligible
-        self.symbols, (o, hi, lo, c, v) = _matrices(bars, schedule)
+        self.symbols, (o, hi, lo, c, v), breaks = _matrices(bars, schedule)
         self._row = {s: i for i, s in enumerate(self.symbols)}
-        self.panel: DailyPanel = build_panel(o, hi, lo, c, v)
+        self.panel: DailyPanel = build_panel(o, hi, lo, c, v, breaks)
         self._close_known = schedule.sessions + KRX_CLOSE_AVAILABLE
         n_days = {h: schedule.days_per_week * h for h in horizons}
         self._target = {h: forward_log_mean(self.panel.r**2, n) for h, n in n_days.items()}
-        self._ret = {h: forward_log_return(self.panel.close, n) for h, n in n_days.items()}
+        self._ret = {h: forward_log_return(self.panel.close, n, breaks) for h, n in n_days.items()}
         self._features: dict[FeatureSpec, NDArray[np.float64]] = {}
         sessions = schedule.sessions
         # 첫 종가가 알려진 뒤부터 — 그 전 격자는 라벨 끝이 없다(정렬돼야 searchsorted 가 맞다)

@@ -8,6 +8,7 @@ import numpy as np
 from sqlalchemy import Engine
 
 from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE, KrxSessions, krx_session, presumed_weekdays
+from salt_forecast.domain.kr_breaks import with_breaks
 from salt_forecast.domain.series import CloseSeries, OhlcvSeries
 from salt_forecast.features.build import MarketContext
 from salt_forecast.ingest import krx_daily
@@ -39,7 +40,9 @@ def load_kr_bars(engine: Engine, now: datetime) -> dict[str, OhlcvSeries]:
 def load_kr(engine: Engine, now: datetime) -> tuple[dict[str, CloseSeries], KrxSessions]:
     """국내 주식 종가(`kis` 1d) + 거래일 달력. 달력 = 서버 개장일 ∪ 일봉이 있는 날 — 둘 중 하나만 알아도 거래일이다."""
     t = int(now.timestamp())
-    series = {s: c.as_of(t) for s, c in load_close_series(engine, krx_daily.SOURCE, krx_daily.INTERVAL).items()}
+    series = {
+        s: with_breaks(c.as_of(t)) for s, c in load_close_series(engine, krx_daily.SOURCE, krx_daily.INTERVAL).items()
+    }
     sessions = {int(x) - KRX_CLOSE_AVAILABLE for c in series.values() for x in c.available_at}
     sessions |= {krx_session(d) for d in krx_open_dates(engine)}
     # 원천이 멈춘 뒤의 평일은 거래일로 가정 — 멈춘 가격을 신선하다고 읽지 않게(presumed_weekdays)
