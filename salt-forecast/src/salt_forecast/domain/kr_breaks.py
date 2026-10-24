@@ -17,16 +17,18 @@ from numpy.typing import NDArray
 
 from salt_forecast.domain.series import CloseSeries
 
-# 가격제한 상한(호가 단위 내림이라 실제 상한가 비율은 이보다 작거나 같다)
-KRX_UP_LIMIT_RATIO = 1.30
+# 끊김 기준 — 가격제한 상한 1.30 에 여유를 둔다. 수정주가는 반올림돼 진짜 상한가가 1.3000~1.3008 로 찍힌다(2026-10-23
+# 실측 129건 — 1.30 으로 자르면 실제 +30% 를 채점에서 빼 위 꼬리가 좋아 보인다).
+# 그 위 첫 값은 1.3424(끊김)라 사이가 비었다
+KRX_UP_BREAK_RATIO = 1.31
 
 
 def up_limit_breaks(close: NDArray[np.float64]) -> NDArray[np.bool_]:
-    """봉마다 직전 봉 대비 상한을 넘었는가(첫 봉은 False). close 는 한 종목의 이어진 봉(결측 없음)."""
+    """봉마다 직전 봉 대비 끊김 기준을 넘었는가(첫 봉은 False). close 는 한 종목의 이어진 봉(결측 없음)."""
     out = np.zeros(close.shape, dtype=np.bool_)
     if close.size > 1:
         with np.errstate(divide="ignore", invalid="ignore"):
-            out[1:] = close[1:] / close[:-1] > KRX_UP_LIMIT_RATIO
+            out[1:] = close[1:] / close[:-1] > KRX_UP_BREAK_RATIO
     return out
 
 

@@ -29,8 +29,13 @@ def _series() -> CloseSeries:
 
 def test_up_jump_beyond_limit_is_a_break_down_crash_is_not() -> None:
     assert up_limit_breaks(_CLOSE).tolist() == [i == BREAK for i in range(_CLOSE.size)]
-    # 상한가(+30%)는 끊김이 아니다 · 정리매매 −90% 도 실제 손실이라 끊김이 아니다
+    # 상한가(+30%)는 끊김이 아니다 — 수정주가 반올림으로 1.3008 까지 찍힌다(실측 1415 → 1840 · 7989 → 10386)
+    # 정리매매 −90% 도 실제 손실이라 끊김이 아니다
     assert not up_limit_breaks(np.asarray([1000.0, 1300.0, 130.0])).any()
+    assert not up_limit_breaks(np.asarray([1415.0, 1840.0])).any()
+    assert not up_limit_breaks(np.asarray([7989.0, 10386.0])).any()
+    # 실측 가장 작은 끊김 1.3424(182400)
+    assert up_limit_breaks(np.asarray([2020.0, 2745.0])).tolist() == [False, True]
 
 
 def test_as_of_cuts_at_last_break_known_then() -> None:
