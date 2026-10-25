@@ -38,6 +38,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
 
 ## Changelog
 
+- 2026-10-23: 슬라이스 5f(`SRV-REQ-040` FR-42) — `price_history` 국내 일봉에 쿼리 두 개 추가(종목별 첫 · 마지막 창 종가 `LATERAL` · 한 종목 이력 교체 삭제 CTE + upsert). **DDL 없음** — 기존 유니크 `(symbol, timeframe, timestamp)` 인덱스를 쓴다(실행계획은 `SRV-REQ-040` 체크리스트)
 - 2026-10-07: 초판 · FR-1~6 완료
 - 2026-10-23: `kr_stock_master.is_liquidation BOOLEAN NOT NULL DEFAULT false`(`20261023120000_kr_stock_master_liquidation`) — 정리매매(`FC-REQ-020` FR-9). 추가만 · 롤백 = 컬럼 DROP · 로컬 적용 · 마스터 1회 동기화로 3종목 Y
 - 2026-10-08: `kr_stock_quotes` 에 `open_price` · `high_price` · `low_price`(Decimal 38,10, nullable) — 마이그레이션 `20261008100000_kr_stock_quote_ohlc`(로컬 `migrate deploy` 적용). 열 추가만이라 롤백은 `DROP COLUMN` 셋, 기존 행 영향 0. 사유: 화면 5열(최고가 · 최저가)이 코인과 같아야 한다(`SRV-REQ-040` FR-29)
