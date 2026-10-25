@@ -41,3 +41,12 @@ def to_bars(rows: Iterable[KrDailyRow], now: datetime) -> Iterator[Bar]:
             r.close,
             r.volume,
         )
+
+
+def first_open(bars: Iterable[Bar]) -> dict[str, datetime]:
+    """종목별 첫 봉 시작 — 원천 이력의 앞쪽 끝(FC-REQ-020 FR-10, `store.prices.delete_bars_before`)."""
+    out: dict[str, datetime] = {}
+    for b in bars:
+        if b.symbol not in out or b.open_time < out[b.symbol]:
+            out[b.symbol] = b.open_time
+    return out

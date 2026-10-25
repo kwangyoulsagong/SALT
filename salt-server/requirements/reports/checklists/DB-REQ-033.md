@@ -37,3 +37,9 @@
 
 - `ALTER TABLE kr_stock_master ADD COLUMN is_liquidation BOOLEAN NOT NULL DEFAULT false` — 추가만, 기존 4,408행 false 로 채워짐 · 롤백 = DROP COLUMN
 - `prisma migrate deploy` 로컬 성공 · 동기화 뒤 3행 true
+
+
+## 슬라이스 5f (2026-10-23)
+
+- 스키마 변경 없음 · 마이그레이션 없음. 새 쿼리 실행계획 · 원장 보존: 교체는 그 종목 국내 일봉만(재작성 10종목 · 1,232봉씩 다시 받음, 행 수는 받은 이력과 같다). 세부는 `SRV-REQ-040` 체크리스트 §5f
+- 미검증 · 범위 밖: 없음

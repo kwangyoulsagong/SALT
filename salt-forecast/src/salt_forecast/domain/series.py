@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
@@ -22,6 +22,9 @@ class CloseSeries:
     symbol: str
     available_at: NDArray[np.int64]
     close: NDArray[np.float64]
+    # 원천 이력이 끊긴 봉의 available_at(오름차순) — 그 봉 앞과 뒤는 다른 기준이라 잇지 않는다(FC-REQ-020 FR-10).
+    # 국내 주식만 채운다(`domain/kr_breaks`). 비어 있으면 동작이 전과 같다
+    breaks: NDArray[np.int64] = field(default_factory=lambda: np.empty(0, dtype=np.int64))
 
     def __post_init__(self) -> None:
         if self.available_at.shape != self.close.shape:
@@ -32,9 +35,23 @@ class CloseSeries:
             raise ValueError("0 이하 종가")
 
     def as_of(self, t: int) -> CloseSeries:
-        """t 시점에 알 수 있었던 부분만. 피처는 반드시 이걸 거친다."""
+        """t 시점에 알 수 있었던 부분만. 피처는 반드시 이걸 거친다.
+
+        끊김이 있으면 **t 까지 생긴 마지막 끊김 봉부터** — 그 앞은 다른 기준이다. t 뒤의 끊김은 모른다(누수 없음).
+        """
         end = int(np.searchsorted(self.available_at, t, side="right"))
-        return CloseSeries(self.symbol, self.available_at[:end], self.close[:end])
+        if not self.breaks.size:
+            return CloseSeries(self.symbol, self.available_at[:end], self.close[:end])
+        k = int(np.searchsorted(self.breaks, t, side="right"))
+        start = int(np.searchsorted(self.available_at, int(self.breaks[k - 1]), side="left")) if k else 0
+        return CloseSeries(self.symbol, self.available_at[start:end], self.close[start:end], self.breaks[:k])
+
+    def crosses_break(self, after: int, until: int) -> bool:
+        """(after, until] 에 끊김이 있나 — 그 구간 수익률은 두 기준을 잇는다."""
+        if not self.breaks.size:
+            return False
+        hi = int(np.searchsorted(self.breaks, until, side="right"))
+        return hi > int(np.searchsorted(self.breaks, after, side="right"))
 
     def last_close(self) -> float | None:
         return float(self.close[-1]) if self.close.size else None

@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   KR_QUOTE_STALE_MS,
+  findDailyRewrite,
   isKrQuoteWindow,
   krFeedState,
   krLimitState,
@@ -183,5 +184,36 @@ describe("krLogoSharpness — 경계가 한 픽셀 안에서 바뀌는가", () =
   it("투명 로고는 흰 바탕에 합성해 잰다", () => {
     const rgba = new Uint8Array([0, 0, 0, 0, 0, 0, 0, 255]);
     assert.deepEqual([...toLuminanceOverWhite(rgba)], [255, 0]);
+  });
+});
+
+describe("findDailyRewrite — 수정주가 재작성 판정(FR-42)", () => {
+  const day = (d: string) => new Date(`${d}T15:00:00Z`);
+  const candle = (d: string, close: number) => ({ open: close, high: close, low: close, close, volume: 1, timestamp: day(d) });
+  const stored = [
+    { timestamp: day("2026-10-05"), close: 296 },
+    { timestamp: day("2026-10-06"), close: 296 },
+    { timestamp: day("2026-10-07"), close: 300 },
+  ];
+
+  it("겹치는 확정 봉의 종가가 다르면 재작성 — 어긋난 첫 날을 준다(1:5 병합)", () => {
+    const fresh = [candle("2026-10-05", 1480), candle("2026-10-06", 1480), candle("2026-10-07", 1500)];
+    assert.deepEqual(findDailyRewrite(stored, fresh, day("2026-10-07")), { timestamp: day("2026-10-05"), stored: 296, fresh: 1480 });
+  });
+
+  it("저장된 마지막 날만 다르면 재작성이 아니다 — 장중 미확정 봉을 확정 값이 덮는 것", () => {
+    const fresh = [candle("2026-10-05", 296), candle("2026-10-06", 296), candle("2026-10-07", 310)];
+    assert.equal(findDailyRewrite(stored, fresh, day("2026-10-07")), null);
+  });
+
+  it("반올림 1원 차이 · 겹치지 않는 날은 무시한다", () => {
+    const fresh = [candle("2026-10-05", 297), candle("2026-10-08", 999)];
+    assert.equal(findDailyRewrite(stored, fresh, day("2026-10-07")), null);
+  });
+
+  it("비싼 종목은 0.1% 를 넘어야 재작성 — 원 단위 오차와 배당 수준 조정을 가른다", () => {
+    const rich = [{ timestamp: day("2026-10-05"), close: 100_000 }];
+    assert.equal(findDailyRewrite(rich, [candle("2026-10-05", 100_090)], day("2026-10-07")), null);
+    assert.notEqual(findDailyRewrite(rich, [candle("2026-10-05", 98_000)], day("2026-10-07")), null);
   });
 });

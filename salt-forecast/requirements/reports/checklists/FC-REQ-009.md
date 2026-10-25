@@ -58,3 +58,14 @@
 
 - `kr_daily --dry-run --as-of 2026-06-30` 이 브랜치 vs main 워크트리 — 같은 출력(예측 8,016 · 대기 15,920 · 채점 0). 상태 경로는 쓰기 실행에서만 돈다
 - 실행(as_of 10-23): `synced_at` 10-23 11:40 KST ≤ 지금 → 적용 · 상태 216종목 · 812행 · 켜진 카드 그대로. 과거 as_of 는 `status_known_at` 이 막는다(단위 테스트 — 실행은 게이트 표를 덮어 안 함)
+
+
+## 2026-10-23 — 수정주가 재작성 · 원천 끊김(`FC-REQ-020` FR-10, 슬라이스 5f)
+
+| 항목 | 결과 |
+|---|---|
+| `ingest_kr_stock` | 실행 2분 · 앞쪽 정리 0행(복구 이력 길이 그대로) · `first_open` 테스트 2 |
+| 달력 라벨 | `KrxSessions.realized` 끊김 걸침 None — `tests/domain/test_kr_breaks.py` |
+| 소비 작업 | `kr_daily` · `kr_volatility` · `kr_backtest` main 대조는 `FC-REQ-020` 체크리스트(의도된 차이) |
+
+미검증 · 범위 밖: 없음 — 세부 미검증은 `FC-REQ-020` 체크리스트 §FR-10

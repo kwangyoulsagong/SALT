@@ -39,8 +39,14 @@ class DailyPanel:
     market: Vec
 
 
-def build_panel(open_: Mat, high: Mat, low: Mat, close: Mat, volume: Mat) -> DailyPanel:
-    """(종목, 거래일) 행렬에서. 범위 분산 = 밤사이 ln(O/C₋₁)² + Rogers–Satchell."""
+def build_panel(
+    open_: Mat, high: Mat, low: Mat, close: Mat, volume: Mat, breaks: NDArray[np.bool_] | None = None
+) -> DailyPanel:
+    """(종목, 거래일) 행렬에서. 범위 분산 = 밤사이 ln(O/C₋₁)² + Rogers–Satchell.
+
+    breaks(같은 모양)가 참인 칸은 원천 이력이 끊긴 날이다(FC-REQ-020 FR-10, `domain/kr_breaks`) — 그날 수익률 ·
+    밤사이 성분은 두 기준을 잇는 값이라 결측으로 둔다. 앞뒤 날의 수익률은 기준과 무관해 그대로 쓴다.
+    """
     prev = np.full_like(close, np.nan)
     prev[:, 1:] = close[:, :-1]
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -49,6 +55,9 @@ def build_panel(open_: Mat, high: Mat, low: Mat, close: Mat, volume: Mat) -> Dai
         rs = np.log(high / close) * np.log(high / open_) + np.log(low / close) * np.log(low / open_)
         range_var = overnight + np.maximum(rs, 0.0)
         turnover = close * volume
+    if breaks is not None:
+        r = np.where(breaks, np.nan, r)
+        range_var = np.where(breaks, np.nan, range_var)
     ok = np.isfinite(r) & (np.abs(r) <= LIMIT_MOVE) & (turnover >= MARKET_MIN_TURNOVER)
     counts = ok.sum(axis=0)
     with np.errstate(invalid="ignore"):
@@ -95,8 +104,11 @@ def forward_log_mean(x: Mat, n_days: int) -> Mat:
     return out
 
 
-def forward_log_return(close: Mat, n_days: int) -> Mat:
-    """거래일 i 종가 → i + n 에 알던 마지막 종가(정지면 그 전 종가 — `close_at_or_before` 와 같은 뜻)."""
+def forward_log_return(close: Mat, n_days: int, breaks: NDArray[np.bool_] | None = None) -> Mat:
+    """거래일 i 종가 → i + n 에 알던 마지막 종가(정지면 그 전 종가 — `close_at_or_before` 와 같은 뜻).
+
+    (i, i + n] 에 끊김(breaks)이 있으면 NaN — 두 기준을 잇는 수익률은 모른다(`KrxSessions.realized` 와 같은 뜻).
+    """
     t = close.shape[1]
     cols: NDArray[np.int64] = np.broadcast_to(np.arange(t, dtype=np.int64), close.shape)
     idx: NDArray[np.int64] = np.where(np.isfinite(close), cols, np.int64(-1))
@@ -109,6 +121,9 @@ def forward_log_return(close: Mat, n_days: int) -> Mat:
     final = np.where(end >= 0, close[rows, np.maximum(end, 0)], np.nan)
     with np.errstate(divide="ignore", invalid="ignore"):
         out[:, : t - n_days] = np.log(final / close[:, : t - n_days])
+    if breaks is not None:
+        c = np.cumsum(breaks, axis=1)
+        out[:, : t - n_days] = np.where(c[:, n_days:] > c[:, : t - n_days], np.nan, out[:, : t - n_days])
     return out
 
 

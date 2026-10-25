@@ -126,13 +126,22 @@ export interface KrStockStore {
   quotes(query: { codes?: string[]; limit: number; offset: number }): Promise<StoredKrStockQuote[]>;
   quote(code: string): Promise<StoredKrStockQuote | null>;
   search(q: string, limit: number): Promise<Array<Pick<KrStockListing, "code" | "name" | "market">>>;
-  /** 종목별 마지막 일봉 시각. 백필이 어디서 이을지 정한다 */
-  latestDailyCandleAt(codes: string[]): Promise<Map<string, Date>>;
   upsertDailyCandles(code: string, candles: Candle[]): Promise<void>;
   /** 전 종목 일봉 대상(FR-40) — 주권(ST) · 우선주 제외 · 상폐 제외. 상장일은 백필 하한 */
   commonStockListings(): Promise<Array<{ code: string; listedAt: Date | null }>>;
   /** 종목별 첫 · 마지막 일봉 시각(봉이 없는 종목은 빠진다) — 전 종목 백필이 앞뒤로 어디서 이을지 정한다 */
   dailyCandleRange(codes: string[]): Promise<Map<string, { earliest: Date; latest: Date }>>;
+  /**
+   * 종목별 자기 마지막(`latest`) 또는 첫(`earliest`) 봉에서 `days` 달력일 안의 저장 종가(시각 오름차순) — 수정주가
+   * 재작성 판정의 겹치는 구간(FR-42). 한 문장
+   */
+  edgeDailyCloses(
+    codes: string[],
+    edge: "earliest" | "latest",
+    days: number
+  ): Promise<Map<string, Array<{ timestamp: Date; close: number }>>>;
+  /** 한 종목 일봉 전부를 새 이력으로 바꾼다(한 트랜잭션) — 옛 기준 봉이 섞여 남지 않게(FR-42) */
+  replaceDailyCandles(code: string, candles: Candle[]): Promise<void>;
   candles(code: string, timeframe: "1d" | "5m", count: number): Promise<Candle[]>;
   /** 로고 판정 대상 — `checkedBefore` 전에 판정했거나 판정한 적 없는 종목(상폐 제외) */
   logoTargets(codes: string[], checkedBefore: Date): Promise<Array<KrLogoTarget & { homepageCheckedAt: Date | null }>>;
@@ -713,3 +722,33 @@ export interface KrLogoImageProbe {
 export interface KrCompanyHomepageSource {
   homepages(codes: string[]): Promise<Map<string, string | null>>;
 }
+
+/**
+ * 수정주가 재작성 판정 기준(FR-42) — 저장 종가와 새로 받은 종가가 이만큼 넘게 다르면 다시 쓰인 것.
+ * 같은 날 확정 종가는 원 단위로 똑같이 온다. 수정주가 반올림 차이(1원)는 무시한다
+ */
+const REWRITE_TOLERANCE = 0.001;
+
+export type KrDailyRewrite = { timestamp: Date; stored: number; fresh: number };
+
+/**
+ * 겹치는 날의 저장 종가와 새 종가가 어긋나면 **KIS 가 수정주가 이력을 다시 쓴 것**이다(분할 · 병합 · 증자 · 감자
+ * 뒤 과거 쪽 전체가 새 기준으로 바뀐다, `FC-REQ-020` FR-10). 저장된 가장 최근 날은 비교하지 않는다 — 장중에 받은
+ * 미확정 봉일 수 있다. 어긋난 첫 날을 돌려준다(없으면 `null`).
+ */
+export const findDailyRewrite = (
+  stored: ReadonlyArray<{ timestamp: Date; close: number }>,
+  fresh: ReadonlyArray<Candle>,
+  newestStored: Date
+): KrDailyRewrite | null => {
+  const freshByTime = new Map(fresh.map((c) => [c.timestamp.getTime(), c.close]));
+  for (const s of stored) {
+    if (s.timestamp.getTime() >= newestStored.getTime()) continue;
+    const f = freshByTime.get(s.timestamp.getTime());
+    if (f === undefined || s.close <= 0) continue;
+    if (Math.abs(f - s.close) > Math.max(1, s.close * REWRITE_TOLERANCE)) {
+      return { timestamp: s.timestamp, stored: s.close, fresh: f };
+    }
+  }
+  return null;
+};

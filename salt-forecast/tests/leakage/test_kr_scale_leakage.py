@@ -10,6 +10,7 @@ from collections.abc import Mapping
 import numpy as np
 
 from salt_forecast.domain.calendar import KrxSessions
+from salt_forecast.domain.kr_breaks import with_breaks
 from salt_forecast.domain.kr_universe import LiquidityRule, eligible_at
 from salt_forecast.domain.series import CloseSeries, OhlcvSeries
 from salt_forecast.models.engine import WalkForward
@@ -110,3 +111,36 @@ def test_reproducible() -> None:
     bars = _bars(10, sessions)
     as_of = cal.grid(0, 2**62)[-15]
     assert _snapshot(_wf(bars, cal), as_of) == _snapshot(_wf(bars, cal), as_of)
+
+
+def test_future_source_break_does_not_change_earlier_forecasts() -> None:
+    """as_of 뒤에 미수정 병합 점프(×5)가 생겨도 그 전 as_of 의 전망(기준 포함)은 같다.
+
+    끊김은 생긴 뒤에만 자른다(FR-10) — 지금 아는 마지막 끊김으로 과거를 자르면 미래 정보로 표본을 고른다.
+    """
+    sessions = krx_sessions(DAYS)
+    cal = KrxSessions(sessions)
+    bars = _bars(16, sessions)
+    as_of = cal.grid(0, 2**62)[-30]
+    jumped = dict(bars)
+    b = bars["000003"]
+    k = np.where(b.available_at > as_of + 10 * 86_400, 5.0, 1.0)
+    jumped["000003"] = OhlcvSeries(
+        b.symbol, b.available_at, b.open * k, b.high * k, b.low * k, b.close * k, b.volume / k
+    )
+
+    def snap(src: dict[str, OhlcvSeries]) -> list[tuple[str, int, str, tuple[float, ...]]]:
+        def eligible(t: int) -> frozenset[str]:
+            return eligible_at(src, cal, t, RULE)
+
+        panel = KrScalePanel(src, cal, eligible, (1, 2, 3, 4))
+        providers = {KR_BASELINE: kr_providers(cal)[KR_BASELINE], **scale_providers(panel)}
+        closes = {s: with_breaks(c) for s, c in _closes(src).items()}
+        wf = WalkForward(closes, providers, schedule=cal, eligible=eligible)
+        return sorted(
+            (e.symbol, e.horizon_weeks, e.model_version, e.forecast.q) for e in wf.emit(as_of, with_realized=False)
+        )
+
+    a = snap(bars)
+    assert any(s == "000003" for s, *_ in a)
+    assert a == snap(jumped)

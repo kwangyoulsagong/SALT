@@ -172,6 +172,9 @@ class KrxSessions:
         last = series.last_at()
         if end is None or last is None or last < end:
             return None
+        # 기준 종가와 끝 종가 사이에 원천 끊김이 있으면 실제 수익률을 모른다 — 채점하지 않는다(FC-REQ-020 FR-10)
+        if series.crosses_break(as_of, end):
+            return None
         base = series.close_at_or_before(as_of)
         final = series.close_at_or_before(end)
         if base is None or final is None:

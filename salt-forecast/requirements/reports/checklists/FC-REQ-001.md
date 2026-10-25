@@ -139,3 +139,13 @@
 | `domain/scoring.evaluate_gate(display_ci=)` · `skill_ci_low` 인덱스 캐시 — 기본값은 지금 동작 | `daily --dry-run` 예측 1,856 · 채점 대기 41,920 main 과 동일 |
 
 미검증 · 범위 밖: 없음 — 판정 · 출력 변경이 없는 성능 작업이다(공용 코드를 쓰는 다른 작업 dry-run 대조는 `FC-REQ-020` 체크리스트)
+
+
+## 2026-10-23 — 공용 `CloseSeries.breaks`(`FC-REQ-020` FR-10, 슬라이스 5f)
+
+| 항목 | 결과 |
+|---|---|
+| 기본값 | `breaks` 빈 배열이면 `as_of` 가 전과 같은 코드 경로(`test_no_breaks_is_unchanged`) |
+| 소비 작업 | 공용 코드(`CloseSeries.breaks` · `KrxSessions.realized` · 패널) 소비 작업 dry-run main 대조(`--as-of 2026-10-22`, main = `git worktree` + `PYTHONPATH`): **코인 · 공용 20개 같다** — `backtest`(리포트 본문 같음, 진행 로그 `eta_s` 만 다름) · `daily` · `regate` · `regime_gate` · `volatility` · `signals` · `market_regime` · `meta_model` · `meta_model_v2` · `rule_ic` · `target_weight` · `target_weight_v2` · `target_weight_live` · `dvol_sigma` · `events` · `onchain_regime` · `search_interest` · `gate_audit` · `ops_monitor` · `due`(둘 다 인자 오류 exit 2). dry-run 이 쓴 리포트 9개는 "실행 커밋" 한 줄만 다르다 — 대조 뒤 지웠다(`rule-ic-…-2026-10-22.md` 는 세션 전부터 있던 미추적 파일인데 같은 이름으로 덮였다 — 내용은 커밋 줄만 다름). **국내 3개는 의도대로 다르다** — `kr_daily` · `kr_volatility` · `kr_backtest`(아래) |
+
+미검증 · 범위 밖: 없음 — 코인 출력 변경이 없는 공용 타입 확장이다
