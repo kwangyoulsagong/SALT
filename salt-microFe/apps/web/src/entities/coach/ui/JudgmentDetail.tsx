@@ -17,6 +17,7 @@ import {
   statTerm,
   statValue,
 } from "./CoachDetail.css";
+import { CaseIdentity } from "./CaseIdentity";
 import { JudgmentSummary } from "./JudgmentSummary";
 import { PerformanceClaimLine } from "./PerformanceClaimLine";
 
@@ -90,6 +91,7 @@ export const JudgmentCases = ({
       {cases.map((item) => (
         <li key={`${item.date}-${item.symbol}-${item.event}`} className={caseRow}>
           <span>{item.date}</span>
+          <CaseIdentity symbol={item.symbol} name={item.name} logoUrl={item.logoUrl} />
           <span>{DETAIL.outcome[item.outcome]}</span>
           <span>{formatSignedRate(item.returnRate)}</span>
         </li>

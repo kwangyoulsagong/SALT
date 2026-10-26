@@ -11,6 +11,9 @@ import type { PerformanceClaim } from "./performanceClaim";
 export interface ScoreboardCase {
   date: string;
   symbol: string;
+  /** 종목 이름 · 로고(F011 슬라이스 7b). 못 찾았으면 `null` */
+  name: string | null;
+  logoUrl: string | null;
   /** 그룹 키 `<mode>.<action>` */
   event: string;
   outcome: "hit" | "miss";
@@ -21,6 +24,8 @@ export interface ScoreboardCase {
 export interface ScoreboardGroup {
   /** `[kr_stock.]<mode>.<action>` */
   signalType: string;
+  /** 성적 출처 — `backtest` 면 과거 시세로 되돌려 채점한 모의(국내만, 실제 기록 20건 전). 합산 없음 */
+  sampleOrigin: "live" | "backtest";
   /** 자산군(F011 FR-65) — 코인 옆에 국내 주식을 나란히, 합산하지 않는다. 국내 주식은 소유자에게만 온다 */
   assetClass: "crypto" | "kr_stock";
   mode: "scalp" | "long_term";
