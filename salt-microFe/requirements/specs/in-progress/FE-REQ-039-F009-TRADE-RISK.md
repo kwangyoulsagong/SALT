@@ -61,6 +61,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | F011 7d 실데이터 수정 — `OutcomeList` 가 서버 이름이 있으면 `CaseIdentity`(국내 코드 "00" 이니셜 대신). 코인은 기존 `renderIdentity` |
 | 2026-10-26 | F011 슬라이스 7e — `RiskGaugeList` 다섯째 줄 "보유 전체 흔들림(연)"(`FE-REQ-041` FR-29) · `RISK_MESSAGES.gauge.portfolioVolatility*` |
 | 2026-10-26 | F011 슬라이스 7d 후속 — `MirrorLines` 의 계획 지킴 · 태그 손익 줄을 `adherenceMirrorItem` · `tagCostsMirrorItem` 로 빼고 연승 · 시간대 · 손실 비대칭 함수도 내보냈다(코인 출력 그대로) · `useDecisionOutcomes(assetType)` |
 | 2026-10-26 | F011 슬라이스 7d — 국내 미러(`FE-REQ-041` FR-28): `KrMirrorLines` 가 `MirrorItem` · `worse` 를 재사용, `KR_MIRROR_MESSAGES` 는 `mirrorMessages.ts` 에 · `useKrBehaviorMirror`(404 = `notOwner`) · `CoachReport` 두 분기에 `KrMirrorPanel`. 코인 미러 무변경 |
