@@ -18,7 +18,8 @@
     "invite:issue": "tsx scripts/issue-invite-codes.ts",
     "candles:backfill": "tsx scripts/backfill-daily-candles.ts",
     "judgments:seed": "tsx scripts/seed-judgment-snapshots.ts",
-    "judgments:seed:clear": "tsx scripts/seed-judgment-snapshots.ts --clear"
+    "judgments:seed:clear": "tsx scripts/seed-judgment-snapshots.ts --clear",
+    "judgments:kr-backtest": "tsx scripts/backtest-kr-judgments.ts"
   },
   "keywords": [],
   "author": "",
