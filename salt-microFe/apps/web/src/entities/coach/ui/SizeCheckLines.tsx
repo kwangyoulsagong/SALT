@@ -105,7 +105,8 @@ export const SizeCheckLines = ({ result, isPending = false, idleHint }: SizeChec
     }
     if (result.maxLossKrw !== null && result.assumptions.feeRatePerSide !== null) {
       const fee = formatFineRate(result.assumptions.feeRatePerSide);
-      notes.push(gaps ? GAP.assumptions(fee) : SIZE.assumptions(fee));
+      const tax = result.assumptions.sellTaxRate;
+      notes.push(tax !== null ? GAP.assumptions(fee, formatFineRate(tax)) : SIZE.assumptions(fee));
     }
     if (result.volTargetWeight !== null && result.assumptions.targetVolatilityIsDefault && result.assumptions.targetVolatility !== null) {
       notes.push(SIZE.targetVolDefault(formatRatio(result.assumptions.targetVolatility)));
