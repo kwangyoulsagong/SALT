@@ -186,3 +186,4 @@ written: 2026-09-22 (backfill)
 - Action: 다음 해설 실호출 뒤 `llm_call_logs` 의 `total_tokens` · `error_code` 분포를 본다
 
 - 2026-10-26 F011 7d · 7e: 국내 미러를 쿼리 스위치(`?assetType=`) 대신 경로로 나눴다 — 응답 모양이 달라 Swagger 하나에 두 모양을 적지 않게. Action: 없음
+- 2026-10-26 실데이터 수정: 응답 필드 추가만. Action: 없음

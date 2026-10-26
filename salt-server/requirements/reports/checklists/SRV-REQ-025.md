@@ -335,3 +335,5 @@
 ## F011 슬라이스 7d · 7e — 코치 경로 (2026-10-26)
 
 - 상시 서버 4000: `/api/coach/mirror/kr-stock` 소유자 200 · 비소유자 404 / `/api/coach/outcomes?assetType=kr_stock` 200 · `assetType=stock` 400 / `/api/coach/risk-budget` 200 · `portfolioVolatility` 실림(5ms). Swagger `failOnErrors` 생성 97경로 · 새 경로 200 · 401 · 404
+
+- 2026-10-26 실데이터 수정: 국내 청산 목록 `name` · `logoUrl` — 단위 테스트(국내만 · 코인은 묻지 않음 · 라벨 실패해도 목록) · 상시 서버 → BFF → 화면에서 SK하이닉스 · 삼성전자 로고 확인 · Swagger 97경로

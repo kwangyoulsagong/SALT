@@ -376,3 +376,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-10-07 | **F010 슬라이스 7 — 재료 신선도 게이트.** FR-194~196 신설 · 구현(`bc2fbf0`). 새 막힘 사유 `stale_inputs`(판단 · 목표 비중 — 소비처 유니온에 추가: `BFF-REQ-039` FR-7 · `BFF-REQ-041` FR-7 · `@repo/core`). 점수 · 원장 무변경. 근거 `reports/checklists/SRV-REQ-024.md` §16 |
 | 2026-10-26 | **FR-174 정정(F011 슬라이스 7b, `186876f`)** — 기저율을 그 판단 유형 표본에서 세 후보 · 피하기 초과 적중률이 늘 0 이었다(적중 조건 = 비용 넘겨 오름). 같은 자산군 · 모드 풀(행동 무관)로. 저장 추천도 같은 결함 → 같은 사용자 · 종목 범위 풀. 화면 영향 없었음(방향 판단 그룹 라이브 채점 0). 같은 날 국내 판단 성적 출처 `sampleOrigin` 추가(`SRV-REQ-040` FR-43) |
 | 2026-10-26 | F011 슬라이스 7d — 조립(`createCoachApplication`)에 `getKrBehaviorMirror`(portfolio · forecasts · market · tradePlans · decisionOutcomes · 소유자 목록). 기존 유스케이스 생성자 무변경 |
+| 2026-10-26 | F011 7d 실데이터 수정 — `ListDecisionOutcomes` 에 `market` 주입(국내 종목 이름 · 로고) |
