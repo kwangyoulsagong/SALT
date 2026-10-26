@@ -8,6 +8,10 @@ import {
   DEFAULT_ROUND_TRIP_COSTS,
   DEFAULT_TARGET_VOLATILITY,
   judgmentAssetClassFor,
+  KR_GAP_BREAK_BOUNDS,
+  KR_GAP_LOOKBACK_DAYS,
+  KR_GAP_QUANTILE,
+  krGapScenarios,
   resolveBudget,
   sizingFeeRatePerSide,
   type RoundTripCosts,
@@ -15,6 +19,8 @@ import {
   type ForecastReader,
   type MarketProbe,
   type PortfolioProbe,
+  type GapScenarios,
+  type OvernightGapHistory,
   type SizingResult,
 } from "../domain";
 import { loadRiskSnapshot } from "./lib/loadRiskSnapshot";
@@ -37,6 +43,11 @@ export interface TradeSizeCheck {
   symbol: string;
   side: "buy" | "sell";
   sizing: SizingResult;
+  /**
+   * 국내 주식 매수 — 손절가에서 안 팔렸을 때 두 줄(하한가 · 과거 하위 1% 갭, F011 FR-45). 코인 · 매도 · 손절가 없음은 `null`.
+   * 갭 분포를 못 읽으면 하한가 줄만 나간다
+   */
+  gapScenarios: GapScenarios | null;
   /** 계산에 쓴 전제 — 화면이 "수수료 0.05% 가정"처럼 밝힌다 */
   assumptions: {
     feeRatePerSide: Decimal;
@@ -85,7 +96,8 @@ export class CheckTradeSize {
       // 자산군 — 수수료가 갈린다. 시세를 모르면 코인 수수료(지금까지와 같다)
       this.market.quotes([symbol]).catch(() => new Map()),
     ]);
-    const feeRatePerSide = sizingFeeRatePerSide(judgmentAssetClassFor(quotes.get(symbol)?.assetType), this.costs);
+    const assetClass = judgmentAssetClassFor(quotes.get(symbol)?.assetType);
+    const feeRatePerSide = sizingFeeRatePerSide(assetClass, this.costs);
 
     const profile = snapshot.profile;
     const existing = snapshot.holdings.find((holding) => holding.symbol === symbol);
@@ -122,10 +134,23 @@ export class CheckTradeSize {
       feeRatePerSide,
     });
 
+    const gapScenarios =
+      assetClass === "kr_stock"
+        ? krGapScenarios({
+            side: command.side,
+            quantity: command.quantity,
+            price: Money.krw(command.price),
+            stopPrice: command.stopPrice ? Money.krw(command.stopPrice) : null,
+            feeRatePerSide,
+            history: command.side === "buy" && command.stopPrice ? await this.gapHistory(symbol, now) : null,
+          })
+        : null;
+
     return {
       symbol,
       side: command.side,
       sizing,
+      gapScenarios,
       assumptions: {
         feeRatePerSide,
         targetVolatility,
@@ -137,6 +162,23 @@ export class CheckTradeSize {
       asOf: now,
       orderExecution: false,
     };
+  }
+
+  /** 갭 분포는 보조 줄이다 — 못 읽으면 `null`(하한가 줄은 그대로 나간다). 자산군을 알아야 불러서 시세 조회 뒤 한 번 더 간다 */
+  private async gapHistory(symbol: string, now: Date): Promise<OvernightGapHistory | null> {
+    const since = new Date(now.getTime() - KR_GAP_LOOKBACK_DAYS * 24 * 3600_000);
+    try {
+      const stats = await this.market.overnightGapStats(symbol, since, KR_GAP_QUANTILE, KR_GAP_BREAK_BOUNDS);
+      return {
+        sample: stats.sample,
+        quantile: stats.quantile === null ? null : new Decimal(stats.quantile),
+        worst: stats.worst === null ? null : new Decimal(stats.worst),
+        since,
+      };
+    } catch (error) {
+      logger.warn(`사이즈 계산 갭 분포 실패: ${symbol} ${error instanceof Error ? error.name : "unknown"}`);
+      return null;
+    }
   }
 
   /** 미리보기는 보조 줄이다 — 실패를 사이즈 계산 실패로 번지게 하지 않는다 */

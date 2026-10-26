@@ -337,6 +337,48 @@ describe("리스크 예산 · 사이즈 — 국내 주식 보유 포함 (F011 �
     assert.equal(size.sizing.maxLoss?.toKrwInteger(), 102_185);
     // 기존 비중 — 국내 주식 1,000,000 / 10,000,000
     assert.equal(size.sizing.currentWeight?.toNumber(), 0.1);
+    // 갭 분포를 못 읽었다(이 가짜 시세엔 없다) → 하한가 줄만. 체결 63,000: (37,000 + 163,000 × 0.00115) × 10
+    assert.equal(size.gapScenarios?.limitDown.maxLoss.toDecimal().toNumber(), 371_874.5);
+    assert.equal(size.gapScenarios?.historicalUnavailable, "insufficient_data");
+  });
+
+  it("국내 주식 매수는 5년 갭 분포를 끊김 경계와 함께 묻고 하위 1% 줄을 붙인다 — 코인은 없다", async () => {
+    const asked: unknown[][] = [];
+    const withGaps = {
+      ...market,
+      overnightGapStats: async (...args: unknown[]) => {
+        asked.push(args);
+        return { sample: 1_200, excluded: 1, quantile: -0.05, worst: -0.11 };
+      },
+    } as unknown as MarketProbe;
+    const check = new CheckTradeSize(profiles, portfolio, withGaps, forecasts, () => now, null, {
+      crypto: 0.001,
+      kr_stock: 0.0023,
+    });
+    const size = await check.execute("u1", {
+      symbol: "005930",
+      side: "buy",
+      quantity: new Decimal(10),
+      price: new Decimal(100_000),
+      stopPrice: new Decimal(90_000),
+    });
+    const [symbol, since, fraction, bounds] = asked[0] ?? [];
+    assert.equal(symbol, "005930");
+    assert.equal((since as Date).toISOString(), new Date(now.getTime() - 5 * 365 * 86_400_000).toISOString());
+    assert.equal(fraction, 0.01);
+    assert.deepEqual(bounds, { min: 0.69, max: 1.31 });
+    // 체결 85,500: (14,500 + 185,500 × 0.00115) × 10
+    assert.equal(size.gapScenarios?.historical?.maxLoss.toDecimal().toNumber(), 147_133.25);
+
+    const coin = await check.execute("u1", {
+      symbol: "BTC",
+      side: "buy",
+      quantity: new Decimal("0.01"),
+      price: new Decimal(100_000_000),
+      stopPrice: new Decimal(92_000_000),
+    });
+    assert.equal(coin.gapScenarios, null);
+    assert.equal(asked.length, 1);
   });
 });
 

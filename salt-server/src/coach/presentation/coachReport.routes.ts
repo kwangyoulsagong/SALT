@@ -402,6 +402,11 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         `budget_not_set` · `no_portfolio_value` · `monthly_budget_exhausted` · `insufficient_data` · `not_applicable_sell`.
    *         0 이나 기본값으로 채우지 않는다
    *       - 최대 손실 = 수량 × ((단가 − 손절가) + (단가 + 손절가) × 수수료율). 갭(손절가 아래 체결)은 가정하지 않는다(`assumptions`)
+   *       - `gapScenarios`(국내 주식 매수 + 손절가, F011 `SRV-REQ-040` FR-45) — 손절가에서 안 팔렸을 때 두 줄을 최대 손실 옆에 나란히.
+   *         `limitDown` = 손절가 바로 위에서 다음 날 하한가(−30%)로 열린 경우, `historicalGap` = 그 종목 최근 5년 밤사이 갭
+   *         (시가 ÷ 전일 종가) 하위 1% 로 열린 경우(`worstGapRate` · `sample` · `since` 같이). 표본 250 미만이면 `historicalGap: null` ·
+   *         `historicalGapUnavailable: insufficient_data`. 시가 ÷ 전일 종가가 0.69~1.31 밖인 날은 원천 끊김이라 세지 않는다.
+   *         코인 · 매도 · 손절가 없음은 `gapScenarios: null`. `noteCode: stop_may_not_fill` — VI · 거래정지 · 연속 하한가엔 끝이 없다
    *       - `referenceMaxQuantity` = min(1회 예산 ÷ 단위 손실, 한 종목 상한 수량). 가용 현금은 모른다(수동 입력 · 현금 기록 없음)
    *       - `volTargetWeight` = 목표 변동성 ÷ 실현 변동성(최대 1). 실현 변동성은 F009 슬라이스 2 전까지 없다 → `insufficient_data`
    *       - `winRate` · `payoffRatio` 를 함께 보내면 `kelly`(풀 · 1/2 · 1/4)가 붙는다. 음수면 `hasEdge: false`
@@ -437,6 +442,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *           `{ symbol, side, status(ok|stop_not_below_entry|sell_side), maxLossKrw, lossPerUnitKrw, perTradeBudgetRate,
    *           monthlyBudgetRemainingRate, monthlyBudgetRemainingKrw, referenceMaxQuantity{value,limitedBy}, volTargetWeight,
    *           currentWeight, projectedWeight, consecutiveLoss{count,amountKrw,monthlyBudgetRate}, kelly, unavailable,
+   *           gapScenarios{limitDown{gapRate,maxLossKrw}, historicalGap{quantile,gapRate,worstGapRate,sample,since,maxLossKrw}, historicalGapUnavailable, noteCode},
    *           assumptions, volatilityAsOf, behavior{status, candidateTags, chasingUnknown, edgeWarnings[], sellFraming, checklist{items[{tag, question, count, netPnlKrw}], premortemQuestion}}, asOf,
    *           orderExecution }`
    *       400: { description: 요청 검증 실패(음수 · NaN · 무한대 · 승률만 보냄) }

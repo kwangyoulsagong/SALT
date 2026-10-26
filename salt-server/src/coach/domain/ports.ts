@@ -207,6 +207,16 @@ export interface MarketProbe {
     since: Date,
     fractions: number[]
   ): Promise<CloseDistribution>;
+  /**
+   * `since` 이후 일봉 밤사이 갭(시가 ÷ 전일 종가 − 1) 분포 — 국내 주식 사이즈 계산의 과거 최악 갭(F011 FR-45).
+   * `bounds` 밖 비율은 원천 끊김이라 세지 않는다. 표본이 없으면 `quantile` · `worst` 가 `null`
+   */
+  overnightGapStats(
+    symbol: string,
+    since: Date,
+    fraction: number,
+    bounds: { min: number; max: number }
+  ): Promise<{ sample: number; excluded: number; quantile: number | null; worst: number | null }>;
 }
 
 /** `portfolio` 조회 — ACL Port. */

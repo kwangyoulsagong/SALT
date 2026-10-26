@@ -13,6 +13,7 @@ import type {
   ClosePercentiles,
   ClosePoint,
   ExchangeQuotePort,
+  OvernightGapStats,
   TradeHistoryPort,
   FearGreedPort,
   MarketSummaryPolicy,
@@ -155,6 +156,17 @@ export interface MarketApi {
     fractions: number[]
   ): Promise<ClosePercentiles>;
   /**
+   * 한 심볼 밤사이 갭 분포 — 국내 주식 사이즈 계산의 "과거 최악 갭"(F011 `SRV-REQ-040` FR-45). `bounds` 밖 비율은
+   * 원천 끊김이라 세지 않는다
+   */
+  overnightGapStats(
+    symbol: string,
+    timeframe: PriceTimeframe,
+    since: Date,
+    fraction: number,
+    bounds: { min: number; max: number }
+  ): Promise<OvernightGapStats>;
+  /**
    * 심리 구간별 사후 수익률 분포. `coach` 의 게이지 적중률(F004 · B9)이 일 1회 읽는다.
    * 심리와 종가가 둘 다 `market` 의 것이라 합치는 것도 여기서 한다.
    */
@@ -184,6 +196,7 @@ export interface MarketApi {
 export type {
   AssetQuote,
   ClosePercentiles,
+  OvernightGapStats,
   ClosePoint,
   PriceTimeframe,
   SentimentForwardReturn,
@@ -439,6 +452,8 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     latestCloses: (symbols) => deps.prices.latestCloses(symbols),
     closePercentiles: (symbol, timeframe, since, fractions) =>
       deps.prices.closePercentiles(symbol, timeframe, since, fractions),
+    overnightGapStats: (symbol, timeframe, since, fraction, bounds) =>
+      deps.prices.overnightGapStats(symbol, timeframe, since, fraction, bounds),
     watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),
     krJudgmentUniverse: async () => (krUniverse ? krUniverse.execute() : []),
     krStockListing: async (email, code) => {

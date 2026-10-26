@@ -2,6 +2,7 @@ import prisma from "../../shared/infrastructure/prisma";
 import type {
   Candle,
   ClosePercentiles,
+  OvernightGapStats,
   ClosePoint,
   MarketAssetType,
   PeriodBaseline,
@@ -192,6 +193,46 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
     `;
 
     return { sample: row?.sample ?? 0, values: row?.values ?? null };
+  }
+
+  /**
+   * 밤사이 갭 분포 — `LAG` 로 전 봉 종가를 붙이고 `percentile_cont` · `MIN` 을 DB 가 한다. 한 심볼 5년 일봉 약 1,200행,
+   * `(symbol, timeframe, timestamp)` 인덱스를 탄다. 시가 0 · 전 봉 없음은 표본이 아니고, `bounds` 밖 비율은 `excluded` 로만 센다.
+   * 창 첫 봉은 창 밖 전 봉과 잇지 않는다(전 봉이 없는 것으로) — 표본 하나를 잃고 경계 조회를 하나 줄인다
+   */
+  async overnightGapStats(
+    symbol: string,
+    timeframe: PriceTimeframe,
+    since: Date,
+    fraction: number,
+    bounds: { min: number; max: number }
+  ): Promise<OvernightGapStats> {
+    const [row] = await prisma.$queryRaw<
+      Array<{ sample: number; excluded: number; quantile: number | null; worst: number | null }>
+    >`
+      WITH bars AS (
+        SELECT open::float8 / NULLIF(LAG(close::float8) OVER (ORDER BY timestamp), 0) AS ratio
+        FROM price_history
+        WHERE symbol = ${symbol}
+          AND timeframe = ${timeframe}
+          -- TIMESTAMP 열(UTC 벽시계) — 파라미터도 UTC 벽시계로(세션 시간대 KST 로 읽으면 9시간 어긋난다)
+          AND timestamp >= (${since}::timestamptz AT TIME ZONE 'UTC')
+          AND open > 0
+      ), kept AS (
+        SELECT ratio - 1 AS gap FROM bars WHERE ratio BETWEEN ${bounds.min}::float8 AND ${bounds.max}::float8
+      )
+      SELECT (SELECT COUNT(*)::int FROM kept) AS sample,
+             (SELECT COUNT(*)::int FROM bars WHERE ratio IS NOT NULL AND ratio NOT BETWEEN ${bounds.min}::float8 AND ${bounds.max}::float8) AS excluded,
+             (SELECT percentile_cont(${fraction}::float8) WITHIN GROUP (ORDER BY gap) FROM kept) AS quantile,
+             (SELECT MIN(gap) FROM kept) AS worst
+    `;
+
+    return {
+      sample: row?.sample ?? 0,
+      excluded: row?.excluded ?? 0,
+      quantile: row?.quantile ?? null,
+      worst: row?.worst ?? null,
+    };
   }
 
   /**

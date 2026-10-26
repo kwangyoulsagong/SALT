@@ -123,6 +123,15 @@ export class MarketSignalAdapter implements MarketProbe {
     return this.market.closeAtOrBefore(symbol, at, PRICE_TIMEFRAME[timeframe], notBefore);
   }
 
+  overnightGapStats(
+    symbol: string,
+    since: Date,
+    fraction: number,
+    bounds: { min: number; max: number }
+  ): Promise<{ sample: number; excluded: number; quantile: number | null; worst: number | null }> {
+    return this.market.overnightGapStats(symbol, "1d", since, fraction, bounds);
+  }
+
   dailyBarCounts(symbols: string[]): Promise<Map<string, number>> {
     return this.market.candleCounts(symbols, "1d");
   }

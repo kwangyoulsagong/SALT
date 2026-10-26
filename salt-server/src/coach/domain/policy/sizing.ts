@@ -149,6 +149,99 @@ export const kellyFraction = (winRate: Decimal, payoffRatio: Decimal): KellyResu
   };
 };
 
+// ─── 국내 주식 갭 시나리오 (F011 `SRV-REQ-040` FR-45) ─────────────────────────
+
+/**
+ * 정규장 하루 가격제한폭(2015-06-15 부터 ±30%). 손절가 바로 위에서 마감한 다음 날 하한가로 열리면 손절 주문은
+ * 손절가 × 0.7 근처에서야 체결된다 — 그날 안에 체결된다는 보장도 없다(VI · 거래정지 · 연속 하한가)
+ */
+export const KR_DAILY_PRICE_LIMIT = new Decimal("0.3");
+/** "과거 최악 갭"의 분위 — 하위 1% */
+export const KR_GAP_QUANTILE = 0.01;
+/** 갭 분포를 보는 창. 서버 국내 일봉이 5년이다(`SRV-REQ-040` FR-40) */
+export const KR_GAP_LOOKBACK_DAYS = 5 * 365;
+/** 하위 1% 가 한두 날로 정해지지 않을 최소 표본 — 약 1년 거래일 */
+export const KR_GAP_MIN_SAMPLE = 250;
+/**
+ * 시가 ÷ 전일 종가가 이 밖이면 원천 끊김(미수정 병합 · 분할)이다. 위 1.31 은 예측 `domain/kr_breaks` 와 같은 근거 — 진짜
+ * 상한가가 호가 반올림으로 1.3008 까지 간다. 아래 0.69 는 그 대칭. 정리매매(가격제한 없음)도 여기서 빠진다 — 그 위험은
+ * 하한가 줄과 "연속 하한가 · 정리매매엔 제한이 없다" 문구가 말한다
+ */
+export const KR_GAP_BREAK_BOUNDS = { min: 0.69, max: 1.31 } as const;
+
+/** 한 종목 밤사이 갭 분포(`MarketProbe.overnightGapStats` 결과) */
+export interface OvernightGapHistory {
+  sample: number;
+  /** 하위 `KR_GAP_QUANTILE` 갭률(음수면 하락) */
+  quantile: Decimal | null;
+  worst: Decimal | null;
+  since: Date;
+}
+
+export interface GapScenarios {
+  /** 손절가 바로 위에서 다음 날 하한가로 열렸다고 가정한 손실 */
+  limitDown: { gapRate: Decimal; maxLoss: Money };
+  /** 손절가 바로 위에서 그 종목 과거 하위 1% 갭으로 열렸다고 가정한 손실. 표본이 모자라면 `null` */
+  historical: {
+    quantile: number;
+    gapRate: Decimal;
+    worstGapRate: Decimal;
+    sample: number;
+    since: Date;
+    maxLoss: Money;
+  } | null;
+  historicalUnavailable: "insufficient_data" | null;
+}
+
+/** 체결가 `fill` 에서 손절됐을 때 손실 = 수량 × ((진입가 − 체결가) + (진입가 + 체결가) × 한쪽 비용) */
+const lossAtFill = (price: Money, fill: Money, quantity: Decimal, feeRatePerSide: Decimal): Money =>
+  price.minus(fill).plus(price.plus(fill).scale(feeRatePerSide)).scale(quantity);
+
+/**
+ * 국내 주식 매수의 "손절가에서 안 팔리면" 두 줄 — 손절 체결 가정 손실(`calculateSizing.maxLoss`) 옆에 **나란히** 둔다
+ * (리서치 권고 19). 셋 중 무엇이 "진짜 최대"라고 고르지 않는다 — 연속 하한가에는 끝이 없다.
+ *
+ * 갭은 **손절가 기준**이다: 전일 종가가 손절가 바로 위였다고 두고 그 다음 시가가 갭만큼 낮게 열린 경우. 진입가 기준
+ * −30% 를 쓰면 손절가를 깊게 둔 사람에겐 손절 손실보다 작은 "갭 손실"이 나온다 — 그건 시나리오가 아니다.
+ *
+ * 매도 · 손절가 없음 · 손절가가 진입가 이상이면 `null`(손절 손실도 없다)
+ */
+export const krGapScenarios = (input: {
+  side: "buy" | "sell";
+  quantity: Decimal;
+  price: Money;
+  stopPrice: Money | null;
+  feeRatePerSide: Decimal;
+  history: OvernightGapHistory | null;
+}): GapScenarios | null => {
+  const { side, quantity, price, stopPrice, feeRatePerSide, history } = input;
+  if (side !== "buy" || stopPrice === null || stopPrice.compare(price) >= 0) return null;
+
+  const limitDownRate = KR_DAILY_PRICE_LIMIT.negated();
+  const limitDown = {
+    gapRate: limitDownRate,
+    maxLoss: lossAtFill(price, stopPrice.scale(new Decimal(1).plus(limitDownRate)), quantity, feeRatePerSide),
+  };
+
+  if (!history || history.sample < KR_GAP_MIN_SAMPLE || !history.quantile || !history.worst) {
+    return { limitDown, historical: null, historicalUnavailable: "insufficient_data" };
+  }
+  // 하위 1% 가 0 이상(내림 갭이 드문 종목)이면 손절가 체결과 같다 — 오름 갭으로 손실이 줄지는 않는다
+  const gapRate = Decimal.min(history.quantile, 0);
+  return {
+    limitDown,
+    historical: {
+      quantile: KR_GAP_QUANTILE,
+      gapRate,
+      worstGapRate: history.worst,
+      sample: history.sample,
+      since: history.since,
+      maxLoss: lossAtFill(price, stopPrice.scale(new Decimal(1).plus(gapRate)), quantity, feeRatePerSide),
+    },
+    historicalUnavailable: null,
+  };
+};
+
 export const calculateSizing = (input: SizingInput): SizingResult => {
   const unavailable: SizingResult["unavailable"] = {};
   const notional = input.price.scale(input.quantity);

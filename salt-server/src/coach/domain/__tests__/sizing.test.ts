@@ -6,6 +6,8 @@ import Decimal from "decimal.js";
 import { Money } from "../../../shared/domain";
 import {
   calculateSizing,
+  KR_GAP_MIN_SAMPLE,
+  krGapScenarios,
   kellyFraction,
   weightCapQuantity,
   type SizingInput,
@@ -184,5 +186,80 @@ describe("kellyFraction (FR-6)", () => {
     const kelly = kellyFraction(new Decimal("0.4"), new Decimal("1"));
     assert.equal(kelly.full.toNumber(), -0.2);
     assert.equal(kelly.hasEdge, false);
+  });
+});
+
+/**
+ * 국내 주식 갭 두 줄 (F011 `SRV-REQ-040` FR-45). 기준 입력:
+ *   005930 4주 @ 100,000원, 손절 90,000원, 한쪽 비용 0.05%
+ *   하한가: 체결 90,000 × 0.7 = 63,000 → (37,000 + 163,000 × 0.0005) × 4 = 148,326
+ *   하위 1% 갭 −5%: 체결 85,500 → (14,500 + 185,500 × 0.0005) × 4 = 58,371
+ */
+describe("krGapScenarios — 손절가에서 안 팔리면", () => {
+  const gap = (overrides: Partial<Parameters<typeof krGapScenarios>[0]> = {}) =>
+    krGapScenarios({
+      side: "buy",
+      quantity: new Decimal(4),
+      price: Money.krw(100_000),
+      stopPrice: Money.krw(90_000),
+      feeRatePerSide: new Decimal("0.0005"),
+      history: {
+        sample: 1_200,
+        quantile: new Decimal("-0.05"),
+        worst: new Decimal("-0.11"),
+        since: new Date("2021-10-26T00:00:00Z"),
+      },
+      ...overrides,
+    });
+
+  it("하한가 · 과거 하위 1% 갭을 손절가 기준으로 계산한다", () => {
+    const result = gap();
+    assert.equal(result?.limitDown.gapRate.toNumber(), -0.3);
+    assert.equal(result?.limitDown.maxLoss.toKrwInteger(), 148_326);
+    assert.equal(result?.historical?.maxLoss.toKrwInteger(), 58_371);
+    assert.equal(result?.historical?.gapRate.toNumber(), -0.05);
+    assert.equal(result?.historical?.worstGapRate.toNumber(), -0.11);
+    assert.equal(result?.historical?.sample, 1_200);
+    assert.equal(result?.historicalUnavailable, null);
+  });
+
+  it("두 줄 모두 손절가 체결 손실보다 작지 않다 — 손절가를 깊게 둬도", () => {
+    const deep = gap({ stopPrice: Money.krw(50_000) });
+    const stopOnly = calculateSizing(
+      base({
+        quantity: new Decimal(4),
+        price: Money.krw(100_000),
+        stopPrice: Money.krw(50_000),
+        feeRatePerSide: new Decimal("0.0005"),
+      })
+    ).maxLoss;
+    assert.ok(stopOnly);
+    assert.ok(deep!.limitDown.maxLoss.compare(stopOnly) > 0);
+    assert.ok(deep!.historical!.maxLoss.compare(stopOnly) > 0);
+  });
+
+  it("하위 1% 가 0 이상이면 손절가 체결과 같다 — 오름 갭으로 손실이 줄지 않는다", () => {
+    const result = gap({
+      history: { sample: 1_200, quantile: new Decimal("0.002"), worst: new Decimal("0.001"), since: new Date() },
+    });
+    assert.equal(result?.historical?.gapRate.toNumber(), 0);
+    // (10,000 + 190,000 × 0.0005) × 4
+    assert.equal(result?.historical?.maxLoss.toKrwInteger(), 40_380);
+  });
+
+  it("표본이 모자라거나 분포를 못 읽으면 하한가 줄만", () => {
+    const thin = gap({
+      history: { sample: KR_GAP_MIN_SAMPLE - 1, quantile: new Decimal("-0.05"), worst: new Decimal("-0.1"), since: new Date() },
+    });
+    assert.equal(thin?.historical, null);
+    assert.equal(thin?.historicalUnavailable, "insufficient_data");
+    assert.equal(thin?.limitDown.maxLoss.toKrwInteger(), 148_326);
+    assert.equal(gap({ history: null })?.historicalUnavailable, "insufficient_data");
+  });
+
+  it("매도 · 손절가 없음 · 손절가가 단가 이상이면 없다", () => {
+    assert.equal(gap({ side: "sell" }), null);
+    assert.equal(gap({ stopPrice: null }), null);
+    assert.equal(gap({ stopPrice: Money.krw(100_000) }), null);
   });
 });
