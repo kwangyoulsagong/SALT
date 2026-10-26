@@ -20,7 +20,7 @@ import type {
 } from "../../domain";
 import { EvaluateTradeDecisions } from "../EvaluateTradeDecisions";
 import { GetBehaviorMirror } from "../GetBehaviorMirror";
-import { ConfirmOutcomeTags } from "../ManageDecisionOutcomes";
+import { ConfirmOutcomeTags, ListDecisionOutcomes } from "../ManageDecisionOutcomes";
 
 /**
  * F009 슬라이스 4 유스케이스 (`SRV-REQ-038` FR-9) — 배치 멱등 · 사용자 수정 보존 · 지운 매도 정리 · 잘린 거래.
@@ -289,6 +289,45 @@ describe("GetBehaviorMirror", () => {
     assert.equal(view.outcomeCount, 1);
     assert.equal(view.minSample, 20);
     assert.equal(view.tagCosts.length, 0, "계획이 있는 청산이라 off_plan 이 아니다");
+  });
+});
+
+describe("ListDecisionOutcomes · 국내 종목 이름 (F011 FR-47)", () => {
+  it("국내 목록에만 이름 · 로고를 싣고, 라벨 조회가 실패해도 목록은 나간다", async () => {
+    const ctx = setup({
+      ledger: [tx("b1", "buy", "2026-01-01T01:00:00Z", 100), tx("s1", "sell", "2026-01-05T01:00:00Z", 88)],
+      krLedger: [
+        { ...tx("kb1", "buy", "2026-01-13T00:00:00+09:00", 90), symbol: "005930" },
+        { ...tx("ks1", "sell", "2026-01-14T00:00:00+09:00", 95), symbol: "005930" },
+      ],
+      krBars: [
+        { openTime: new Date("2026-01-13T00:00:00Z"), close: new Decimal(90) },
+        { openTime: new Date("2026-01-14T00:00:00Z"), close: new Decimal(95) },
+      ],
+    });
+    await ctx.evaluate.execute("u1");
+    const asked: string[][] = [];
+    const market = {
+      async assetLabels(symbols: string[]) {
+        asked.push(symbols);
+        return [{ symbol: "005930", name: "삼성전자", logoUrl: "https://img.example/005930.png" }];
+      },
+    };
+    const list = new ListDecisionOutcomes(ctx.outcomes, market);
+    const [kr] = await list.execute("u1", 20, "kr_stock");
+    assert.equal(kr.name, "삼성전자");
+    assert.equal(kr.logoUrl, "https://img.example/005930.png");
+    const [coin] = await list.execute("u1", 20);
+    assert.equal(coin.name, null, "코인은 화면이 시세 목록에서 찾는다");
+    assert.deepEqual(asked, [["005930"]], "코인 목록은 라벨을 묻지 않는다");
+
+    const failing = new ListDecisionOutcomes(ctx.outcomes, {
+      async assetLabels() {
+        throw new Error("down");
+      },
+    });
+    const [still] = await failing.execute("u1", 20, "kr_stock");
+    assert.equal(still.name, null);
   });
 });
 

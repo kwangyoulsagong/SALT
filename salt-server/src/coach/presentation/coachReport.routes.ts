@@ -745,7 +745,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
    *       - in: query
    *         name: assetType
-   *         description: 청산 거래의 자산군(F011 FR-47). 없으면 코인
+   *         description: 청산 거래의 자산군(F011 FR-47). 없으면 코인. 국내면 줄마다 종목 `name` · `logoUrl`
    *         schema: { type: string, enum: [crypto, kr_stock], default: crypto }
    *     responses:
    *       200: { description: "`{ outcomes: [...] }`" }

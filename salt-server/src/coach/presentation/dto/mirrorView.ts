@@ -176,7 +176,9 @@ export const toBehaviorMirrorResponse = (view: BehaviorMirrorView) => ({
   asOf: view.asOf,
 });
 
-export const toDecisionOutcomeResponse = (outcome: DecisionOutcome) => ({
+export const toDecisionOutcomeResponse = (
+  outcome: DecisionOutcome & { name?: string | null; logoUrl?: string | null }
+) => ({
   id: outcome.id,
   planId: outcome.planId,
   closingTransactionId: outcome.closingTransactionId,
@@ -196,6 +198,9 @@ export const toDecisionOutcomeResponse = (outcome: DecisionOutcome) => ({
   userTags: outcome.userTags,
   tagsConfirmedAt: outcome.userTagsConfirmedAt,
   computedAt: outcome.computedAt,
+  /** 국내 청산 목록만(F011 FR-47) — 종목 이름 · 로고. 그 밖은 `null` */
+  name: outcome.name ?? null,
+  logoUrl: outcome.logoUrl ?? null,
 });
 
 /**
