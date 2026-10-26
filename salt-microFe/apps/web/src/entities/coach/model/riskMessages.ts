@@ -44,8 +44,12 @@ export const RISK_MESSAGES = {
       /** `noteCode: stop_may_not_fill` */
       note: "최대 손실은 손절가에서 팔린다고 가정한 값이에요. 갭 · VI · 거래정지 때는 손절가에서 팔리지 않을 수 있고, 연속 하한가에는 끝이 없어요",
       since: (year: string, month: string) => `${year}년 ${Number(month)}월`,
-      /** 국내 주식은 갭을 위 줄로 말하므로 수수료만 밝힌다 */
-      assumptions: (feeRate: string) => `편도 비용 ${feeRate}(수수료 · 거래세 왕복의 절반) 포함`,
+      /**
+       * 국내 주식은 갭을 위 줄로 말하므로 비용만 밝힌다(F011 FR-44). 수수료는 사고팔 때 두 번, 거래세는 파는 금액에만.
+       * 명시 비용만이라 호가 차이 · 미끄러짐은 빠진다
+       */
+      assumptions: (feeRate: string, sellTaxRate: string) =>
+        `수수료 편도 ${feeRate} · 매도 거래세 ${sellTaxRate} 포함 · 호가 차이로 더 나가는 비용은 빼고 계산했어요`,
     },
     targetVolDefault: (rate: string) => `목표 변동성 ${rate}(기본값)`,
     calculating: "계산하는 중",

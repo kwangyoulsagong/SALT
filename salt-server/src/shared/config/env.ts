@@ -38,10 +38,11 @@ const envSchema = z.object({
   KIS_REQUESTS_PER_SECOND: z.coerce.number().positive().max(15).default(3),
   KIS_UNIVERSE_TOP_N: z.coerce.number().int().min(0).max(200).default(50),
   /**
-   * 국내 주식 왕복 비용(비율) — 위탁 수수료 왕복 + 매도 거래세. 코치 판단 채점의 적중 경계 · 기저율 · 사이즈 계산의
-   * 수수료(F011 FR-64). 증권사 · 세율이 바뀌면 이 값만 바꾼다. 기본 0.0023 = 0.015% × 2 + 0.20%
+   * 국내 주식 위탁 수수료 **한쪽**(비율, 유관기관 제비용 포함) — 코치 판단 채점의 적중 경계 · 기저율 · 사이즈 계산(F011 FR-44).
+   * 증권사가 바뀌면 이 값만 바꾼다. 기본 0.000186 = 비대면 기본 0.015% + 유관기관 약 0.0036%. 매도 거래세는 env 가 아니라
+   * 매도일로 정해지는 도메인 표(`KR_STOCK_SELL_TAX`)다 — 2026-10-26 까지는 둘을 합친 왕복 `KR_STOCK_ROUND_TRIP_FEE_RATE`(0.0023)였다
    */
-  KR_STOCK_ROUND_TRIP_FEE_RATE: z.coerce.number().min(0).max(0.05).default(0.0023),
+  KR_STOCK_COMMISSION_RATE_PER_SIDE: z.coerce.number().min(0).max(0.01).default(0.000186),
   /**
    * 국내 주식 로고 — logo.dev **퍼블리셔블** 키(`pk_…`, 브라우저에 실려도 되는 키). 없으면 로고 없이 이니셜(F011 FR-47).
    * 비밀 키(`sk_…`)를 넣지 않는다 — 로고 주소에 실려 화면으로 나간다

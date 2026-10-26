@@ -22,17 +22,30 @@
 import Decimal from "decimal.js";
 
 import { Money } from "../../../shared/domain";
+import { krStockSellTaxRate } from "./krStockCost";
 import type { JudgmentAssetClass, RoundTripCosts } from "./symbolJudgment";
 
 /** 한쪽 거래 수수료율 — 업비트 KRW 마켓 일반 수수료. 손실 계산에 진입 · 청산 두 번 들어간다 */
 export const SIZING_FEE_RATE_PER_SIDE = new Decimal("0.0005");
 
+/** 손실 계산의 비용 — 수수료는 진입 · 청산 양쪽, 매도 거래세는 청산(매도) 금액에만 */
+export interface SizingCosts {
+  feeRatePerSide: Decimal;
+  sellTaxRate: Decimal;
+}
+
 /**
- * 자산군별 한쪽 비용(F011 슬라이스 4). 국내 주식은 왕복 비용(설정값 — 수수료 왕복 + 매도 거래세)의 절반으로 둔다 —
- * 실제로는 매도 쪽에 세금이 몰리지만 손실 계산은 진입 + 청산 두 번을 더하므로 합은 같다
+ * 자산군별 비용(F011 FR-44). 국내 주식은 위탁 수수료 한쪽(설정값) + **오늘 매도하면 내는** 거래세(`KR_STOCK_SELL_TAX`).
+ * 처음(슬라이스 4)엔 왕복 비용의 절반을 양쪽에 나눠 붙였다 — 세금이 진입 금액에도 붙어 손절가가 깊을수록 손실이 부풀었다.
+ * 코인은 업비트 수수료 양쪽, 세금 없음
  */
-export const sizingFeeRatePerSide = (assetClass: JudgmentAssetClass, costs: RoundTripCosts): Decimal =>
-  assetClass === "kr_stock" ? new Decimal(costs.kr_stock).div(2) : SIZING_FEE_RATE_PER_SIDE;
+export const sizingCosts = (assetClass: JudgmentAssetClass, costs: RoundTripCosts, at: Date): SizingCosts =>
+  assetClass === "kr_stock"
+    ? {
+        feeRatePerSide: new Decimal(costs.krStockCommissionPerSide),
+        sellTaxRate: new Decimal(krStockSellTaxRate(at)),
+      }
+    : { feeRatePerSide: SIZING_FEE_RATE_PER_SIDE, sellTaxRate: new Decimal(0) };
 /** FR-7 — "이 크기로 N번 연속 손절이면" */
 export const CONSECUTIVE_LOSS_COUNT = 5;
 /** 목표 연 변동성을 정하지 않았을 때(FR-1 "기본 15%"). 응답에 기본값이라고 밝힌다 */
@@ -77,8 +90,10 @@ export interface SizingInput {
   targetVolatility: Decimal;
   /** FR-6 — 사용자가 적은 승률 · 손익비. 없으면 켈리 섹션이 없다 */
   kelly?: { winRate: Decimal; payoffRatio: Decimal };
-  /** 한쪽 비용(`sizingFeeRatePerSide`). 없으면 코인 수수료 */
+  /** 한쪽 수수료(`sizingCosts`). 없으면 코인 수수료 */
   feeRatePerSide?: Decimal;
+  /** 매도 거래세(`sizingCosts`) — 손절 청산 금액에만. 없으면 0(코인) */
+  sellTaxRate?: Decimal;
 }
 
 export interface KellyResult {
@@ -193,9 +208,13 @@ export interface GapScenarios {
   historicalUnavailable: "insufficient_data" | null;
 }
 
-/** 체결가 `fill` 에서 손절됐을 때 손실 = 수량 × ((진입가 − 체결가) + (진입가 + 체결가) × 한쪽 비용) */
-const lossAtFill = (price: Money, fill: Money, quantity: Decimal, feeRatePerSide: Decimal): Money =>
-  price.minus(fill).plus(price.plus(fill).scale(feeRatePerSide)).scale(quantity);
+/** 단위당 비용 = 진입가 × 수수료 + 체결가 × (수수료 + 매도 거래세) */
+const unitCosts = (price: Money, fill: Money, costs: SizingCosts): Money =>
+  price.scale(costs.feeRatePerSide).plus(fill.scale(costs.feeRatePerSide.plus(costs.sellTaxRate)));
+
+/** 체결가 `fill` 에서 손절됐을 때 손실 = 수량 × ((진입가 − 체결가) + 비용) */
+const lossAtFill = (price: Money, fill: Money, quantity: Decimal, costs: SizingCosts): Money =>
+  price.minus(fill).plus(unitCosts(price, fill, costs)).scale(quantity);
 
 /**
  * 국내 주식 매수의 "손절가에서 안 팔리면" 두 줄 — 손절 체결 가정 손실(`calculateSizing.maxLoss`) 옆에 **나란히** 둔다
@@ -211,16 +230,16 @@ export const krGapScenarios = (input: {
   quantity: Decimal;
   price: Money;
   stopPrice: Money | null;
-  feeRatePerSide: Decimal;
+  costs: SizingCosts;
   history: OvernightGapHistory | null;
 }): GapScenarios | null => {
-  const { side, quantity, price, stopPrice, feeRatePerSide, history } = input;
+  const { side, quantity, price, stopPrice, costs, history } = input;
   if (side !== "buy" || stopPrice === null || stopPrice.compare(price) >= 0) return null;
 
   const limitDownRate = KR_DAILY_PRICE_LIMIT.negated();
   const limitDown = {
     gapRate: limitDownRate,
-    maxLoss: lossAtFill(price, stopPrice.scale(new Decimal(1).plus(limitDownRate)), quantity, feeRatePerSide),
+    maxLoss: lossAtFill(price, stopPrice.scale(new Decimal(1).plus(limitDownRate)), quantity, costs),
   };
 
   if (!history || history.sample < KR_GAP_MIN_SAMPLE || !history.quantile || !history.worst) {
@@ -236,7 +255,7 @@ export const krGapScenarios = (input: {
       worstGapRate: history.worst,
       sample: history.sample,
       since: history.since,
-      maxLoss: lossAtFill(price, stopPrice.scale(new Decimal(1).plus(gapRate)), quantity, feeRatePerSide),
+      maxLoss: lossAtFill(price, stopPrice.scale(new Decimal(1).plus(gapRate)), quantity, costs),
     },
     historicalUnavailable: null,
   };
@@ -318,8 +337,11 @@ export const calculateSizing = (input: SizingInput): SizingResult => {
   } else if (stopInvalid) {
     unavailable.maxLoss = "stop_not_below_entry";
   } else {
-    // 진입 수수료 + 손절 청산 수수료. 갭(손절가 아래 체결)은 가정하지 않는다 — 가정값은 응답 `assumptions` 에 있다
-    const fees = input.price.plus(input.stopPrice).scale(input.feeRatePerSide ?? SIZING_FEE_RATE_PER_SIDE);
+    // 진입 수수료 + 손절 청산 수수료 · 매도 거래세. 갭(손절가 아래 체결)은 가정하지 않는다 — 가정값은 응답 `assumptions` 에 있다
+    const fees = unitCosts(input.price, input.stopPrice, {
+      feeRatePerSide: input.feeRatePerSide ?? SIZING_FEE_RATE_PER_SIDE,
+      sellTaxRate: input.sellTaxRate ?? new Decimal(0),
+    });
     lossPerUnit = input.price.minus(input.stopPrice).plus(fees);
   }
 

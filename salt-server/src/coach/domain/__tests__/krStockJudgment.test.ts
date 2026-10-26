@@ -13,7 +13,10 @@ import {
   judgmentSignalType,
   krJudgmentExitWindow,
   krLatestClosedSession,
-  sizingFeeRatePerSide,
+  krStockRoundTripCost,
+  krStockSellTaxRate,
+  roundTripCostAt,
+  sizingCosts,
   staleKrJudgmentInputs,
   summarizeJudgmentTrack,
   toScoreboardGroup,
@@ -65,10 +68,40 @@ describe("적중 경계 — 자산군 비용 (FR-64)", () => {
     assert.equal(judgeOutcome("long_term", "avoid", 0.002, 0.0023), "hit");
   });
 
-  it("사이즈 한쪽 비용 — 국내 주식은 왕복의 절반, 코인은 업비트 수수료", () => {
-    const costs = { crypto: 0.001, kr_stock: 0.0023 };
-    assert.equal(sizingFeeRatePerSide("kr_stock", costs).toNumber(), 0.00115);
-    assert.equal(sizingFeeRatePerSide("crypto", costs).toNumber(), 0.0005);
+  it("사이즈 비용 — 국내 주식은 수수료 한쪽 + 그날 매도 거래세, 코인은 업비트 수수료 · 세금 0", () => {
+    const costs = { crypto: 0.001, krStockCommissionPerSide: 0.000186 };
+    const kr = sizingCosts("kr_stock", costs, new Date("2026-10-26T03:00:00Z"));
+    assert.equal(kr.feeRatePerSide.toNumber(), 0.000186);
+    assert.equal(kr.sellTaxRate.toNumber(), 0.002);
+    const coin = sizingCosts("crypto", costs, new Date("2026-10-26T03:00:00Z"));
+    assert.equal(coin.feeRatePerSide.toNumber(), 0.0005);
+    assert.equal(coin.sellTaxRate.toNumber(), 0);
+  });
+});
+
+describe("매도 거래세 표 — 매도일(KST)로 고른다 (FR-44)", () => {
+  it("연도마다 세율이 다르다 — 2021~22 0.23 · 2023 0.20 · 2024 0.18 · 2025 0.15 · 2026~ 0.20%", () => {
+    const at = (iso: string) => krStockSellTaxRate(new Date(iso));
+    assert.equal(at("2022-06-15T06:00:00Z"), 0.0023);
+    assert.equal(at("2023-06-15T06:00:00Z"), 0.002);
+    assert.equal(at("2024-06-15T06:00:00Z"), 0.0018);
+    assert.equal(at("2025-06-15T06:00:00Z"), 0.0015);
+    assert.equal(at("2026-06-15T06:00:00Z"), 0.002);
+    // 표보다 앞선 날짜는 첫 구간
+    assert.equal(at("2019-06-15T06:00:00Z"), 0.0023);
+  });
+
+  it("경계는 KST 날짜다 — UTC 12-31 15:00 은 KST 1-1 이라 새해 세율", () => {
+    assert.equal(krStockSellTaxRate(new Date("2025-12-31T14:59:59Z")), 0.0015);
+    assert.equal(krStockSellTaxRate(new Date("2025-12-31T15:00:00Z")), 0.002);
+  });
+
+  it("왕복 = 수수료 × 2 + 그날 거래세. 코인은 날짜와 무관", () => {
+    const soldAt = new Date("2025-03-04T07:00:00Z");
+    assert.equal(krStockRoundTripCost(soldAt, 0.000186), 0.000186 * 2 + 0.0015);
+    const costs = { crypto: 0.001, krStockCommissionPerSide: 0.000186 };
+    assert.equal(roundTripCostAt("kr_stock", soldAt, costs), 0.000186 * 2 + 0.0015);
+    assert.equal(roundTripCostAt("crypto", soldAt, costs), 0.001);
   });
 });
 

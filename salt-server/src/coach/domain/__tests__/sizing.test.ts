@@ -202,7 +202,7 @@ describe("krGapScenarios — 손절가에서 안 팔리면", () => {
       quantity: new Decimal(4),
       price: Money.krw(100_000),
       stopPrice: Money.krw(90_000),
-      feeRatePerSide: new Decimal("0.0005"),
+      costs: { feeRatePerSide: new Decimal("0.0005"), sellTaxRate: new Decimal(0) },
       history: {
         sample: 1_200,
         quantile: new Decimal("-0.05"),

@@ -68,6 +68,8 @@ export interface SizeCheckView {
   gapScenarios: GapScenariosView | null;
   assumptions: {
     feeRatePerSide: number | null;
+    /** 국내 주식 매도 거래세(청산 금액에만, BFF-REQ-040 FR-23). 코인은 `null` */
+    sellTaxRate: number | null;
     stopGapAssumed: false;
     targetVolatility: number | null;
     targetVolatilityIsDefault: boolean;

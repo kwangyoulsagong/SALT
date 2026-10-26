@@ -20,6 +20,7 @@ import {
   type MarketProbe,
   type ModeDecision,
   type PendingJudgment,
+  roundTripCostAt,
   type RoundTripCosts,
   type SymbolJudgmentStore,
   type TrackedAssetProbe,
@@ -188,7 +189,13 @@ export class EvaluateSymbolJudgments {
         id: item.id,
         exitPrice,
         returnRate,
-        outcome: judgeOutcome(item.mode, item.action, returnRate, this.costs[judgmentAssetClassOf(item.signalType)]),
+        // 비용은 매도일(= 채점 시각) 기준 — 국내 주식 거래세가 해마다 다르다(FR-44). 성적 SQL 도 `evaluated_at` 으로 고른다
+        outcome: judgeOutcome(
+          item.mode,
+          item.action,
+          returnRate,
+          roundTripCostAt(judgmentAssetClassOf(item.signalType), now, this.costs)
+        ),
         evaluatedAt: now,
       });
     });

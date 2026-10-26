@@ -2,6 +2,7 @@ import type { CoachMode } from "../model";
 import { COACH_HORIZON } from "./horizon";
 import type { ModeDecisionAction } from "./modeDecision";
 import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "./performanceClaim";
+import { DEFAULT_KR_STOCK_COMMISSION_PER_SIDE, krStockRoundTripCost } from "./krStockCost";
 
 /**
  * 종목 판단의 **사후 판정과 렌더 게이트** — F004 (감사 문서 D11 · B39).
@@ -44,18 +45,26 @@ export const ROUND_TRIP_COST = 0.001;
 export type JudgmentAssetClass = "crypto" | "kr_stock";
 
 /**
- * 자산군별 왕복 비용. 코인은 위 상수, 국내 주식은 **설정값**(`KR_STOCK_ROUND_TRIP_FEE_RATE` — 위탁 수수료 왕복 +
- * 매도 거래세. 증권사 · 세율이 바뀌어도 코드를 고치지 않는다). 조립 지점이 env 로 채운다
+ * 자산군별 비용 설정. 코인은 위 상수(왕복), 국내 주식은 **위탁 수수료 한쪽**(설정값 `KR_STOCK_COMMISSION_RATE_PER_SIDE`)
+ * — 매도 거래세는 매도일로 `KR_STOCK_SELL_TAX` 표가 정한다(F011 FR-44). 조립 지점이 env 로 채운다
  */
-export type RoundTripCosts = Record<JudgmentAssetClass, number>;
-
-/** 국내 주식 기본값 — 위탁 수수료 0.015% × 2 + 매도 거래세 0.20%(2026, 코스피 · 코스닥 같음) */
-export const DEFAULT_KR_STOCK_ROUND_TRIP_COST = 0.0023;
+export interface RoundTripCosts {
+  crypto: number;
+  krStockCommissionPerSide: number;
+}
 
 export const DEFAULT_ROUND_TRIP_COSTS: RoundTripCosts = {
   crypto: ROUND_TRIP_COST,
-  kr_stock: DEFAULT_KR_STOCK_ROUND_TRIP_COST,
+  krStockCommissionPerSide: DEFAULT_KR_STOCK_COMMISSION_PER_SIDE,
 };
+
+/** 그 매도일(= 판단 표본의 채점 시각)의 왕복 비용 — 국내 주식만 날짜에 따라 다르다 */
+export const roundTripCostAt = (
+  assetClass: JudgmentAssetClass,
+  soldAt: Date,
+  costs: RoundTripCosts
+): number =>
+  assetClass === "kr_stock" ? krStockRoundTripCost(soldAt, costs.krStockCommissionPerSide) : costs.crypto;
 
 /**
  * 자산군마다 여는 모드(F011 FR-63). 국내 주식은 **장기(30일)만** — 단타의 24시간은 주식에선 다음 거래일로

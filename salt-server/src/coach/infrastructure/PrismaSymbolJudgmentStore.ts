@@ -5,7 +5,7 @@ import {
   LIVE_ORIGINS,
   MODE_DECISION_RULE_VERSION,
   DEFAULT_ROUND_TRIP_COSTS,
-  judgmentAssetClassOf,
+  KR_STOCK_SELL_TAX,
   RETURN_BUCKETS,
 } from "../domain";
 import type {
@@ -97,6 +97,24 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       sampleOrigin: { in: this.counted },
       OR: [{ ruleVersion: this.ruleVersion }, { sampleOrigin: "synthetic" }],
     };
+  }
+
+  /**
+   * 그 행의 왕복 비용(SQL 식) — 기저율 분자 "비용을 넘겨 오름"의 경계. 국내 주식은 매도일(= `evaluated_at` 의 KST 날짜)
+   * 거래세 + 수수료 왕복(F011 FR-44). 구간은 도메인 표(`KR_STOCK_SELL_TAX`)를 그대로 펼친다 — SQL 에 숫자를 다시 적으면
+   * 채점(`roundTripCostAt`)과 갈라진다. `evaluated_at` 은 UTC 벽시계 TIMESTAMP 라 시간대를 두 번 옮긴다
+   */
+  private get costSql(): Prisma.Sql {
+    const soldOn = Prisma.sql`((evaluated_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul')::date`;
+    const tax = Prisma.sql`(CASE ${Prisma.join(
+      [...KR_STOCK_SELL_TAX]
+        .reverse()
+        .map((band) => Prisma.sql`WHEN ${soldOn} >= ${band.from}::date THEN ${band.rate}::numeric`),
+      " "
+    )} ELSE ${KR_STOCK_SELL_TAX[0].rate}::numeric END)`;
+    return Prisma.sql`(CASE WHEN LEFT(signal_type, 9) = 'kr_stock.'
+                            THEN ${this.costs.krStockCommissionPerSide * 2}::numeric + ${tax}
+                            ELSE ${this.costs.crypto}::numeric END)`;
   }
 
   /**
@@ -209,7 +227,6 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
 
   async summarize(signalType: string): Promise<JudgmentTrackStats> {
     const pool = { signalType: { startsWith: `${poolPrefixOf(signalType)}.` }, outcome: { not: null }, ...this.countedWhere };
-    const cost = this.costs[judgmentAssetClassOf(signalType)];
     const [all, hits, aboveCost, poolSample, poolAboveCost, months] = await Promise.all([
       prisma.symbolJudgmentSnapshot.aggregate({
         where: { signalType, outcome: { not: null }, ...this.countedWhere },
@@ -221,18 +238,16 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       prisma.symbolJudgmentSnapshot.count({
         where: { signalType, outcome: "hit", ...this.countedWhere },
       }),
-      // 기저율의 분자 — 비용 경계는 그 그룹 자산군의 왕복 비용(`RoundTripCosts`) 하나에서 온다
-      prisma.symbolJudgmentSnapshot.count({
-        where: {
-          signalType,
-          outcome: { not: null },
-          returnRate: { gt: cost },
-          ...this.countedWhere,
-        },
-      }),
+      // 기저율의 분자 — 비용 경계는 행마다 그 매도일의 왕복 비용(`costSql`, 국내 주식 거래세가 해마다 다르다)
+      prisma.$queryRaw<Array<{ n: number }>>`
+        SELECT COUNT(*)::int AS n FROM symbol_judgment_snapshots
+        WHERE signal_type = ${signalType} AND outcome IS NOT NULL AND return_rate > ${this.costSql} AND ${this.countedSql}`,
       // 기저율 — 규칙이 고르기 전의 풀(같은 자산군 · 모드, 행동 무관)
       prisma.symbolJudgmentSnapshot.count({ where: pool }),
-      prisma.symbolJudgmentSnapshot.count({ where: { ...pool, returnRate: { gt: cost } } }),
+      prisma.$queryRaw<Array<{ n: number }>>`
+        SELECT COUNT(*)::int AS n FROM symbol_judgment_snapshots
+        WHERE starts_with(signal_type, ${`${poolPrefixOf(signalType)}.`}) AND outcome IS NOT NULL
+          AND return_rate > ${this.costSql} AND ${this.countedSql}`,
       // 판단 달(KST) 수 — 국내 백테스트 표시 조건. `judged_at` 은 UTC 벽시계 TIMESTAMP 라 시간대를 두 번 옮긴다
       prisma.$queryRaw<Array<{ months: number }>>`
         SELECT COUNT(DISTINCT date_trunc('month', (judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul'))::int AS months
@@ -243,9 +258,9 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
     return {
       sample: all._count._all,
       hits,
-      aboveCost,
+      aboveCost: aboveCost[0]?.n ?? 0,
       poolSample,
-      poolAboveCost,
+      poolAboveCost: poolAboveCost[0]?.n ?? 0,
       judgedMonths: months[0]?.months ?? 0,
       avgReturn: all._avg.returnRate === null ? null : Number(all._avg.returnRate),
       worstReturn: all._min.returnRate === null ? null : Number(all._min.returnRate),
@@ -287,11 +302,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       SELECT signal_type,
              COUNT(*)::int AS sample,
              COUNT(*) FILTER (WHERE outcome = 'hit')::int AS hits,
-             COUNT(*) FILTER (
-               WHERE return_rate > (CASE WHEN LEFT(signal_type, 9) = 'kr_stock.'
-                                         THEN ${this.costs.kr_stock}::numeric
-                                         ELSE ${this.costs.crypto}::numeric END)
-             )::int AS above_cost,
+             COUNT(*) FILTER (WHERE return_rate > ${this.costSql})::int AS above_cost,
              AVG(return_rate) AS avg_return,
              MIN(return_rate) AS worst_return,
              COUNT(DISTINCT date_trunc('month', (judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul'))::int AS judged_months,

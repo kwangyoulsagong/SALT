@@ -85,6 +85,8 @@ export const toSizeCheckResponse = (result: TradeSizeCheck) => {
     gapScenarios: toGapScenariosResponse(result.gapScenarios),
     assumptions: {
       feeRatePerSide: rate(result.assumptions.feeRatePerSide),
+      // 매도 거래세(오늘 매도 기준). 코인은 null. 둘 다 명시 비용만 — 스프레드 · 슬리피지는 없다(F011 FR-44)
+      sellTaxRate: rate(result.assumptions.sellTaxRate),
       stopGapAssumed: false,
       targetVolatility: rate(result.assumptions.targetVolatility),
       targetVolatilityIsDefault: result.assumptions.targetVolatilityIsDefault,

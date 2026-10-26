@@ -6,7 +6,7 @@ import { PrismaInviteAttemptLog } from "./auth/infrastructure/PrismaInviteAttemp
 import { PrismaInviteCodeStore } from "./auth/infrastructure/PrismaInviteCodeStore";
 import { PrismaUserCountProbe } from "./auth/infrastructure/PrismaUserCountProbe";
 import { createAuthRouter } from "./auth/presentation/auth.routes";
-import { DEFAULT_ROUND_TRIP_COSTS } from "./coach/domain";
+import { DEFAULT_ROUND_TRIP_COSTS, type RoundTripCosts } from "./coach/domain";
 import { createCoachApplication } from "./coach/application/api";
 import { ArticleTextAdapter } from "./coach/infrastructure/ArticleTextAdapter";
 import { GeminiCoachExplainer } from "./coach/infrastructure/GeminiCoachExplainer";
@@ -188,8 +188,11 @@ const portfolio = createPortfolioApplication({
  * 테이블 여섯 개를 `prisma` 로 직접 뒤졌다 (`SRV-REQ-006` FR-32).
  */
 const llmUsage = new PrismaLlmUsageStore();
-// 판단 채점 · 기저율의 왕복 비용 — 코인은 도메인 상수, 국내 주식은 설정값(F011 FR-64)
-const roundTripCosts = { ...DEFAULT_ROUND_TRIP_COSTS, kr_stock: env.KR_STOCK_ROUND_TRIP_FEE_RATE };
+// 판단 채점 · 기저율 · 사이즈 비용 — 코인은 도메인 상수, 국내 주식은 수수료 설정값 + 매도일 거래세 표(F011 FR-44)
+const roundTripCosts: RoundTripCosts = {
+  ...DEFAULT_ROUND_TRIP_COSTS,
+  krStockCommissionPerSide: env.KR_STOCK_COMMISSION_RATE_PER_SIDE,
+};
 
 const coach = createCoachApplication({
   profiles: new PrismaCoachProfileStore(),

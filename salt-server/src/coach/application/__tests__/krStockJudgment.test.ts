@@ -222,14 +222,14 @@ describe("EvaluateSymbolJudgments — 국내 주식 거래일 채점 (FR-64)", (
 
     const result = await new EvaluateSymbolJudgments(probe, store, () => new Date("2026-10-05T01:00:00Z"), {
       crypto: 0.001,
-      kr_stock: 0.0023,
+      krStockCommissionPerSide: 0.00015,
     }).execute();
 
     assert.equal(result.evaluated, 1);
     assert.deepEqual(asked, [
       { at: "2026-10-03T15:00:00.000Z", timeframe: "d1", notBefore: "2026-09-23T15:00:00.000Z" },
     ]);
-    // +0.2% 는 코인 비용(0.1%)이면 적중이지만 국내 주식 비용(0.23%)은 못 넘었다
+    // +0.2% 는 코인 비용(0.1%)이면 적중이지만 국내 주식 비용(2026 매도 — 거래세 0.20% + 수수료 0.03% = 0.23%)은 못 넘었다
     assert.equal(store.rows[0].outcome, "miss");
   });
 
