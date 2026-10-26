@@ -135,8 +135,10 @@ describe("toKrBehaviorMirrorViewModel · 배치 결과 구역", () => {
 
 describe("appBehaviorMirrorService.listOutcomes · 자산군", () => {
   it("assetType 을 쿼리로 넘기고 · 없으면 붙이지 않는다", async () => {
-    const call = mock.method(backendApi, "proxyAuthRequest", async () => ok({ outcomes: [] }));
-    await appBehaviorMirrorService.listOutcomes("t", 20, undefined, "kr_stock");
+    const row = { id: "o1", symbol: "005930", openedAt: "2026-08-02T15:00:00.000Z", closedAt: "2026-08-31T15:00:00.000Z", netPnlKrw: 215000, name: "삼성전자", logoUrl: "https://img.example/005930.png" };
+    const call = mock.method(backendApi, "proxyAuthRequest", async () => ok({ outcomes: [row] }));
+    const listed = await appBehaviorMirrorService.listOutcomes("t", 20, undefined, "kr_stock");
+    assert.equal(listed.status === "ok" && listed.outcomes[0].name, "삼성전자", "국내 종목 이름 · 로고를 옮긴다");
     await appBehaviorMirrorService.listOutcomes("t", undefined);
     assert.equal(call.mock.calls[0].arguments[1], "/coach/outcomes?limit=20&assetType=kr_stock");
     assert.equal(call.mock.calls[1].arguments[1], "/coach/outcomes");

@@ -136,6 +136,9 @@ export interface DecisionOutcomeView {
   autoTags: string[];
   userTags: string[];
   tagsConfirmedAt: string | null;
+  /** 국내 청산 목록만 — 서버가 실은 종목 이름 · 로고(F011 FR-47). 없으면 화면이 시세 목록에서 찾는다 */
+  name: string | null;
+  logoUrl: string | null;
 }
 
 export type DecisionOutcomeListResult = { status: "ok"; outcomes: DecisionOutcomeView[] } | { status: "unavailable" };
@@ -470,6 +473,8 @@ export const toDecisionOutcomeViewModel = (raw: Raw): DecisionOutcomeView => {
     autoTags: strings(raw.autoTags),
     userTags: strings(raw.userTags),
     tagsConfirmedAt: str(raw.tagsConfirmedAt),
+    name: str(raw.name),
+    logoUrl: str(raw.logoUrl),
   };
 };
 
