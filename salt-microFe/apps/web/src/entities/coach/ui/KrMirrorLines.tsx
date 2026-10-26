@@ -3,7 +3,15 @@ import type { KrBehaviorMirrorView } from "@repo/core/coach";
 import { formatFineRate, formatRatio, formatSignedRate, formatTimes } from "../lib";
 import { KR_MIRROR_MESSAGES } from "../model";
 import { mirrorList } from "./Mirror.css";
-import { MirrorItem, worse } from "./MirrorLines";
+import {
+  adherenceMirrorItem,
+  lossAsymmetryMirrorItem,
+  MirrorItem,
+  streakMirrorItem,
+  tagCostsMirrorItem,
+  timingMirrorItem,
+  worse,
+} from "./MirrorLines";
 
 const K = KR_MIRROR_MESSAGES;
 
@@ -39,6 +47,8 @@ const DispositionItem = ({ disposition }: { disposition: NonNullable<KrBehaviorM
  * 국내 주식 거래 미러 (F011 FR-47 · `FE-REQ-041` FR-28). **표시만 한다** — 숫자는 서버가 거래일로 셌다.
  *
  * 순서는 국내 근거가 직접적인 순: 회전율 → 처분효과(익절 · 손절, 산 다음 거래일 매도율) → 추격(40거래일) → 복권형.
+ * 그 아래 판정 배치가 국내 청산으로 센 줄(계획 지킴 · 태그 손익 · 연승 · 시간대 · 손실 비대칭)은 코인 미러 줄 그대로 —
+ * 국내 청산이 없으면(`outcomeCount` 0) 그 줄들이 없다.
  * 표본 배지 · 흐림 규칙은 코인 미러(`MirrorItem`)와 같다. 참고값은 출처가 온 줄만 단다.
  */
 export const KrMirrorLines = ({ view }: { view: KrBehaviorMirrorView }) => {
@@ -124,6 +134,15 @@ export const KrMirrorLines = ({ view }: { view: KrBehaviorMirrorView }) => {
           evidence ? K.lottery.evidence(evidence.source, evidence.period, formatSignedRate(evidence.excessReturn)) : null,
         ]}
       />
+      {view.outcomeCount > 0 && (
+        <>
+          {view.adherence && adherenceMirrorItem(view.adherence)}
+          {view.tagCosts.length > 0 && tagCostsMirrorItem(view.tagCosts)}
+          {view.streak && streakMirrorItem(view.streak, view.minSample)}
+          {view.timing && timingMirrorItem(view.timing)}
+          {view.lossAsymmetry && lossAsymmetryMirrorItem(view.lossAsymmetry)}
+        </>
+      )}
     </ul>
   );
 };

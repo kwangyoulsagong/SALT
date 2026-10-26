@@ -55,12 +55,13 @@ export const useKrBehaviorMirror = () => {
   return { ...query, notOwner, isSignedOut: !token };
 };
 
-/** 청산별 결과 · 태그 — 태그 확정 목록 */
-export const useDecisionOutcomes = () => {
+/** 청산별 결과 · 태그 — 태그 확정 목록. `kr_stock` 이면 국내 청산(국내 미러 섹션, F011 FR-47) */
+export const useDecisionOutcomes = (assetType: "crypto" | "kr_stock" = "crypto") => {
   const token = readAccessToken();
+  const isKr = assetType === "kr_stock";
   const query = useQuery<DecisionOutcomeListResult, Error>({
-    queryKey: coachQueryKeys.outcomes(),
-    queryFn: ({ signal }) => coachApi.outcomes(OUTCOME_LIST_LIMIT, signal),
+    queryKey: isKr ? coachQueryKeys.krOutcomes() : coachQueryKeys.outcomes(),
+    queryFn: ({ signal }) => coachApi.outcomes(OUTCOME_LIST_LIMIT, signal, isKr ? assetType : undefined),
     enabled: Boolean(token),
     staleTime: MIRROR_STALE_TIME_MS,
     retry: retryServerErrorOnce,

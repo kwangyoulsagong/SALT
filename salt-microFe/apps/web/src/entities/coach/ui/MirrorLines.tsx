@@ -174,7 +174,7 @@ const sampleStatus = (count: number, minSample: number): MirrorStatus =>
  * 연승 · 연패(FR-20). "연승 뒤 매수 금액이 커졌다"는 서버가 관찰됐다고 할 때만 쓴다 — 표본이 모자란 비율은 말하지 않는다.
  * 청산이 없으면 줄이 없다
  */
-const streakMirrorItem = (streak: StreakView, minSample: number): ReactNode => {
+export const streakMirrorItem = (streak: StreakView, minSample: number): ReactNode => {
   if (streak.sampleSize === 0) return null;
   const { current } = streak;
   const patterns = [
@@ -250,7 +250,7 @@ const TimingRows = <K extends string>({
  * 손실 비대칭(F010 슬라이스 3 · `FE-REQ-040` FR-4) — 최근 청산 중 가장 큰 손실 ÷ 가장 큰 이익. 측정만 한다: 좋다 · 나쁘다는
  * 문장이 없고 "1 보다 크면" 뜻풀이 한 줄뿐이다. 한쪽이 없으면 값 대신 "둘 다 있어야 계산해요"
  */
-const lossAsymmetryMirrorItem = (asymmetry: LossAsymmetryView): ReactNode => {
+export const lossAsymmetryMirrorItem = (asymmetry: LossAsymmetryView): ReactNode => {
   const { ratio, maxLossKrw, maxGainKrw, window } = asymmetry;
   const ready = ratio.value !== null && maxLossKrw !== null && maxGainKrw !== null;
   return (
@@ -269,7 +269,7 @@ const lossAsymmetryMirrorItem = (asymmetry: LossAsymmetryView): ReactNode => {
   );
 };
 
-const timingMirrorItem = (timing: TradeTimingView): ReactNode => {
+export const timingMirrorItem = (timing: TradeTimingView): ReactNode => {
   const total = timing.weekdays.reduce((sum, bucket) => sum + bucket.count, 0);
   if (total === 0) return null;
   return (
@@ -289,6 +289,47 @@ const timingMirrorItem = (timing: TradeTimingView): ReactNode => {
     />
   );
 };
+
+/** 계획 지킴(FR-12) — 코인 · 국내 미러가 같이 쓴다 */
+export const adherenceMirrorItem = (adherence: NonNullable<BehaviorMirrorView["adherence"]>): ReactNode => {
+  const total = Object.values(adherence.labelCounts).reduce((sum, count) => sum + count, 0);
+  const returns = worse(adherence.honoredAvgReturn, adherence.violatedAvgReturn);
+  return (
+    <MirrorItem
+      key="adherence"
+      label={M.adherence.label}
+      sampleSize={adherence.rate.sampleSize}
+      status={adherence.rate.status}
+      text={
+        adherence.rate.value !== null
+          ? M.adherence.line(total, adherence.labelCounts.honored, formatRatio(adherence.rate.value))
+          : null
+      }
+      sub={[
+        returns !== "insufficient_data" &&
+        adherence.honoredAvgReturn.value !== null &&
+        adherence.violatedAvgReturn.value !== null
+          ? M.adherence.returns(
+              formatSignedRate(adherence.honoredAvgReturn.value),
+              formatSignedRate(adherence.violatedAvgReturn.value),
+            )
+          : null,
+      ]}
+    />
+  );
+};
+
+/** 실수 태그별 손익(FR-18 · 19) — 코인 · 국내 미러가 같이 쓴다 */
+export const tagCostsMirrorItem = (costs: readonly TagCostView[]): ReactNode => (
+  <MirrorItem
+    key="tags"
+    label={M.tags.label}
+    sampleSize={costs.reduce((sum, cost) => sum + cost.count, 0)}
+    // 줄마다 자기 표본 배지가 있다 — 머리 배지는 합계만
+    status="ok"
+    extra={<TagCostRows costs={costs} />}
+  />
+);
 
 interface MirrorLinesProps {
   view: BehaviorMirrorView;
@@ -361,50 +402,12 @@ export const MirrorLines = ({ view, behaviorFacts }: MirrorLinesProps) => {
     );
   }
 
-  if (adherence) {
-    const total = Object.values(adherence.labelCounts).reduce((sum, count) => sum + count, 0);
-    const returns = worse(adherence.honoredAvgReturn, adherence.violatedAvgReturn);
-    items.push(
-      <MirrorItem
-        key="adherence"
-        label={M.adherence.label}
-        sampleSize={adherence.rate.sampleSize}
-        status={adherence.rate.status}
-        text={
-          adherence.rate.value !== null
-            ? M.adherence.line(total, adherence.labelCounts.honored, formatRatio(adherence.rate.value))
-            : null
-        }
-        sub={[
-          returns !== "insufficient_data" &&
-          adherence.honoredAvgReturn.value !== null &&
-          adherence.violatedAvgReturn.value !== null
-            ? M.adherence.returns(
-                formatSignedRate(adherence.honoredAvgReturn.value),
-                formatSignedRate(adherence.violatedAvgReturn.value),
-              )
-            : null,
-        ]}
-      />,
-    );
-  }
+  if (adherence) items.push(adherenceMirrorItem(adherence));
 
   const brierItem = view.brier && brierMirrorItem(view.brier);
   if (brierItem) items.push(brierItem);
 
-  if (view.tagCosts.length > 0) {
-    const tagged = view.tagCosts.reduce((sum, cost) => sum + cost.count, 0);
-    items.push(
-      <MirrorItem
-        key="tags"
-        label={M.tags.label}
-        sampleSize={tagged}
-        // 줄마다 자기 표본 배지가 있다 — 머리 배지는 합계만
-        status="ok"
-        extra={<TagCostRows costs={view.tagCosts} />}
-      />,
-    );
-  }
+  if (view.tagCosts.length > 0) items.push(tagCostsMirrorItem(view.tagCosts));
 
   const streakItem = view.streak && streakMirrorItem(view.streak, view.minSample);
   if (streakItem) items.push(streakItem);

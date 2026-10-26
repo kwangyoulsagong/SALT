@@ -218,9 +218,13 @@ export const coachApi = {
     return body.data;
   },
 
-  /** 청산별 결과 · 태그 (`GET /api/app/coach/outcomes`). 최근 청산 순 */
-  outcomes: async (limit: number, signal?: AbortSignal): Promise<DecisionOutcomeListResult> => {
-    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.outcomes(limit)}`, {
+  /** 청산별 결과 · 태그 (`GET /api/app/coach/outcomes`). 최근 청산 순. `assetType` 이 없으면 코인 */
+  outcomes: async (
+    limit: number,
+    signal?: AbortSignal,
+    assetType?: "crypto" | "kr_stock",
+  ): Promise<DecisionOutcomeListResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.outcomes(limit, assetType)}`, {
       headers: authHeader(),
       signal,
     });

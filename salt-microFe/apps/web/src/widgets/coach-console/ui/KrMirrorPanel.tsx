@@ -3,10 +3,53 @@
 import { StatusLine } from "@repo/ui/statusLine";
 import { Text } from "@repo/ui/text";
 
-import { CoachBlockSkeleton, CoachDisclosure, KR_MIRROR_MESSAGES, KrMirrorLines, useKrBehaviorMirror } from "@/entities/coach";
+import {
+  CoachBlockSkeleton,
+  CoachDisclosure,
+  formatGeneratedAt,
+  KR_MIRROR_MESSAGES,
+  KrMirrorLines,
+  MIRROR_MESSAGES,
+  OutcomeList,
+  useDecisionOutcomes,
+  useKrBehaviorMirror,
+} from "@/entities/coach";
+import { AssetIdentity } from "@/entities/market";
+import { OutcomeTagEditor } from "@/features/confirm-outcome-tags";
 import { panel, panelDescription, panelHead, panelTitle } from "@/shared/ui/surface.css";
 
 const K = KR_MIRROR_MESSAGES;
+const M = MIRROR_MESSAGES;
+
+const renderIdentity = (symbol: string, size: "sm" | "md") => <AssetIdentity symbol={symbol} size={size} />;
+
+/** 국내 청산별 태그 — 코인 미러의 목록과 같은 모양, 국내 청산만. 미러와 따로 부르고 따로 실패한다 */
+const KrOutcomeSection = () => {
+  const outcomes = useDecisionOutcomes("kr_stock");
+  const body = () => {
+    if (outcomes.isPending) return <CoachBlockSkeleton block="zone" />;
+    if (outcomes.isError || outcomes.data.status === "unavailable") {
+      return <StatusLine kind="error">{M.outcomes.unavailable}</StatusLine>;
+    }
+    if (outcomes.data.outcomes.length === 0) return <StatusLine kind="empty">{M.outcomes.empty}</StatusLine>;
+    return (
+      <OutcomeList
+        outcomes={outcomes.data.outcomes}
+        renderIdentity={renderIdentity}
+        renderTags={(outcome) => <OutcomeTagEditor outcome={outcome} />}
+      />
+    );
+  };
+  return (
+    <>
+      <div className={panelHead}>
+        <h3 className={panelTitle}>{M.outcomes.heading}</h3>
+      </div>
+      <p className={panelDescription}>{M.outcomes.description}</p>
+      {body()}
+    </>
+  );
+};
 
 /**
  * 국내 주식 거래 미러 (F011 FR-47 · `FE-REQ-041` FR-28). 코인 미러 바로 아래 섹션 하나 — 새 화면 0개.
@@ -24,7 +67,13 @@ export const KrMirrorPanel = () => {
     const view = mirror.data;
     if (view.historyStatus === "truncated") return <Text color="tertiary">{K.truncated}</Text>;
     if (view.tradeCount === 0) return <StatusLine kind="empty">{K.empty}</StatusLine>;
-    return <KrMirrorLines view={view} />;
+    const computedAt = view.outcomesComputedAt ? formatGeneratedAt(view.outcomesComputedAt) : null;
+    return (
+      <>
+        <KrMirrorLines view={view} />
+        {computedAt && <p className={panelDescription}>{M.computedAt(computedAt)}</p>}
+      </>
+    );
   };
 
   return (
@@ -34,6 +83,7 @@ export const KrMirrorPanel = () => {
       </div>
       <p className={panelDescription}>{K.description}</p>
       {body()}
+      {mirror.data?.status === "ok" && mirror.data.outcomeCount > 0 && <KrOutcomeSection />}
       <CoachDisclosure />
     </section>
   );
