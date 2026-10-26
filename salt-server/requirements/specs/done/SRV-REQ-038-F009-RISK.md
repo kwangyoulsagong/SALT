@@ -65,6 +65,7 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | F011 7f 후속 — 월간 복기 IPS 이탈(FR-10)이 코인 · 국내 거래가 다 있는 달은 두 자산군 합산(`ipsDeviation.scope`, `combinedIpsSource`) — 리스크 예산 게이지와 같은 범위. 한 자산군만이면 그대로 |
 | 2026-10-26 | F011 슬라이스 7f(`SRV-REQ-040` FR-48) — 월간 복기(FR-10)가 자산군마다 한 벌: `BuildMonthlyReview`/`GetMonthlyReview` `assetType`(기본 코인 — 기존 의미 그대로) · `buildMonthlyReview` `kr` 옵션(KST 벽시계 · 거래일 · 거래일 보유) · `ipsDeviation`/`benchmarkMirror` `tradingDays` 옵션 · "오를 확률" 계획을 시세 자산군으로 가름(코인판이 국내 계획을 더는 채점하지 않는다) · 월초 배치가 두 자산군 |
 | 2026-10-26 | F011 7d 실데이터 수정 — `ListDecisionOutcomes` 가 국내 목록에만 종목 `name` · `logoUrl`(`assetLabels`). 코인 목록 무변경 |
 | 2026-10-26 | F011 슬라이스 7e(`SRV-REQ-040` FR-46) — `GetRiskBudget` 게이지 `portfolioVolatility`(보유 합산 변동성 범위). 일봉 조회 하나 추가(최근 400일) · 실패는 그 칸만 |
