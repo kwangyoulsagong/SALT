@@ -214,6 +214,8 @@ export interface JudgmentTrackStats {
    */
   poolSample: number;
   poolAboveCost: number;
+  /** 표본의 판단 달(KST) 수 — 국내 백테스트 표시 조건(`kr-judgment-backtest@1` [display]). 세지 않은 저장소는 없음 */
+  judgedMonths?: number;
   avgReturn: number | null;
   /** 가장 나빴던 기간 수익률. */
   worstReturn: number | null;
@@ -222,8 +224,15 @@ export interface JudgmentTrackStats {
   lastScoredAt: Date | null;
 }
 
+/**
+ * 성적의 출처 — `live`(실시간 판단을 채점) · `backtest`(과거 시세로 되돌려 채점한 모의, 국내 주식만 · 라이브 표본이
+ * 모자랄 동안). 둘을 합산한 성적은 없다
+ */
+export type JudgmentTrackOrigin = "live" | "backtest";
+
 export interface JudgmentTrackRecord {
   signalType: string;
+  sampleOrigin: JudgmentTrackOrigin;
   sample: number;
   /** 표본 0 이면 `null` — 0% 가 아니다. */
   winRate: number | null;
@@ -249,13 +258,15 @@ export interface JudgmentTrackRecord {
 export const summarizeJudgmentTrack = (
   mode: CoachMode,
   signalType: string,
-  stats: JudgmentTrackStats
+  stats: JudgmentTrackStats,
+  sampleOrigin: JudgmentTrackOrigin = "live"
 ): JudgmentTrackRecord => {
   const winRate = stats.sample > 0 ? stats.hits / stats.sample : null;
   const alwaysUpRate = stats.sample > 0 && stats.poolSample > 0 ? stats.poolAboveCost / stats.poolSample : null;
   const naive = naiveHitRate(judgmentActionOf(signalType), alwaysUpRate);
   return {
     signalType,
+    sampleOrigin,
     sample: stats.sample,
     winRate,
     avgReturn: stats.avgReturn,

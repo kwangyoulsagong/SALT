@@ -3,6 +3,7 @@ import {
   JUDGMENT_CASE_LIMIT,
   judgmentGate,
   judgmentSignalType,
+  krTrackOrigin,
   summarizeJudgmentTrack,
   type CoachMode,
   type JudgmentAssetClass,
@@ -92,21 +93,32 @@ export interface JudgmentGuards {
  *
  * 성적은 **같은 판단 유형 전체**(`<mode>.<action>`)의 것이다 — 이 종목만의 성적이 아니다.
  * 종목 하나로는 장기 판단이 30일에 1표본이라 20건이 쌓이는 데 1년 반이 걸린다.
+ *
+ * `backtest` — 국내 주식만, 라이브 표본이 모자랄 동안 과거 시세로 되돌려 채점한 성적(`krTrackOrigin`, 사전등록
+ * `kr-judgment-backtest@1`). 고르면 성적 · 실패사례 **둘 다** 백테스트다 — 섞지 않는다. 해설(LLM)은 넘기지 않는다(라이브만)
  */
 export const attachJudgmentTrack = async (
   store: SymbolJudgmentStore,
   decision: ModeDecision,
   guards: JudgmentGuards = {},
-  assetClass: JudgmentAssetClass = "crypto"
+  assetClass: JudgmentAssetClass = "crypto",
+  backtest: SymbolJudgmentStore | null = null
 ): Promise<ModeCoachView> => {
   const signalType = judgmentSignalType(decision.mode, decision.action, assetClass);
+  const fallback = assetClass === "kr_stock" ? backtest : null;
 
-  const [stats, misses] = await Promise.all([
+  const [live, liveMisses, backtestStats] = await Promise.all([
     store.summarize(signalType),
     store.recentCases(signalType, "miss", JUDGMENT_CASE_LIMIT),
+    fallback ? fallback.summarize(signalType) : Promise.resolve(null),
   ]);
+  const origin = krTrackOrigin(live.sample, backtestStats);
+  const [stats, misses] =
+    origin === "backtest" && fallback && backtestStats
+      ? [backtestStats, await fallback.recentCases(signalType, "miss", JUDGMENT_CASE_LIMIT)]
+      : [live, liveMisses];
 
-  const trackRecord = summarizeJudgmentTrack(decision.mode, signalType, stats);
+  const trackRecord = summarizeJudgmentTrack(decision.mode, signalType, stats, origin);
   const gate = judgmentGate({
     action: decision.action,
     reasons: decision.reasons,

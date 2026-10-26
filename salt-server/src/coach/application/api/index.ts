@@ -84,6 +84,8 @@ export interface CoachDependencies {
   llmUsage?: LlmUsageStore;
   llmLimits?: Partial<LlmBudgetLimits>;
   judgments: SymbolJudgmentStore;
+  /** 국내 주식 판단 백테스트 성적(`backtest` 출처만) — 종목 판단 카드만 읽는다(F011 슬라이스 7b). 없으면 라이브만 */
+  backtestJudgments?: SymbolJudgmentStore | null;
   ledger: JudgmentLedgerStore;
   /** 저장 추천 스냅샷 원장(F010 슬라이스 0) */
   recommendations: RecommendationSnapshotStore;
@@ -163,7 +165,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.gauges,
     undefined,
     deps.forecasts,
-    deps.forecastOwnerEmails
+    deps.forecastOwnerEmails,
+    deps.backtestJudgments ?? null
   );
   const analyzeNewsSentiment = new AnalyzeNewsSentiment(deps.news);
   const analyzeTradingBehavior = new AnalyzeTradingBehavior(

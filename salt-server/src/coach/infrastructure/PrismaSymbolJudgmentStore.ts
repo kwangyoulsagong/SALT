@@ -209,7 +209,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
   async summarize(signalType: string): Promise<JudgmentTrackStats> {
     const pool = { signalType: { startsWith: `${poolPrefixOf(signalType)}.` }, outcome: { not: null }, ...this.countedWhere };
     const cost = this.costs[judgmentAssetClassOf(signalType)];
-    const [all, hits, aboveCost, poolSample, poolAboveCost] = await Promise.all([
+    const [all, hits, aboveCost, poolSample, poolAboveCost, months] = await Promise.all([
       prisma.symbolJudgmentSnapshot.aggregate({
         where: { signalType, outcome: { not: null }, ...this.countedWhere },
         _count: { _all: true },
@@ -232,6 +232,11 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       // 기저율 — 규칙이 고르기 전의 풀(같은 자산군 · 모드, 행동 무관)
       prisma.symbolJudgmentSnapshot.count({ where: pool }),
       prisma.symbolJudgmentSnapshot.count({ where: { ...pool, returnRate: { gt: cost } } }),
+      // 판단 달(KST) 수 — 국내 백테스트 표시 조건. `judged_at` 은 UTC 벽시계 TIMESTAMP 라 시간대를 두 번 옮긴다
+      prisma.$queryRaw<Array<{ months: number }>>`
+        SELECT COUNT(DISTINCT date_trunc('month', (judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul'))::int AS months
+        FROM symbol_judgment_snapshots
+        WHERE signal_type = ${signalType} AND outcome IS NOT NULL AND ${this.countedSql}`,
     ]);
 
     return {
@@ -240,6 +245,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       aboveCost,
       poolSample,
       poolAboveCost,
+      judgedMonths: months[0]?.months ?? 0,
       avgReturn: all._avg.returnRate === null ? null : Number(all._avg.returnRate),
       worstReturn: all._min.returnRate === null ? null : Number(all._min.returnRate),
       firstScoredAt: all._min.evaluatedAt,

@@ -212,6 +212,8 @@ const coach = createCoachApplication({
     undefined,
     roundTripCosts
   ),
+  // 국내 주식 판단 백테스트(`backtest` 출처만) — 라이브 표본이 모자랄 동안 판단 카드만 읽는다(사전등록 kr-judgment-backtest@1)
+  backtestJudgments: new PrismaSymbolJudgmentStore(["backtest"], undefined, roundTripCosts),
   roundTripCosts,
   ledger: new PrismaJudgmentLedgerStore(),
   recommendations: new PrismaRecommendationSnapshotStore(
