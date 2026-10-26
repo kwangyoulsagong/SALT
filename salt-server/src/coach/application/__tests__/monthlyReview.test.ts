@@ -188,7 +188,7 @@ describe("GetRiskBudget — 시나리오 · 한 종목 상한", () => {
   it("시나리오는 게이지와 같은 보유에서 · 과거 구간 일봉이 실패해도 게이지는 나간다", async () => {
     const profiles = { findByUser: async () => null } as unknown as CoachProfileStore;
     const view = await new GetRiskBudget(profiles, portfolio, market, forecasts, () => now).execute("u1");
-    assert.deepEqual(requested, [["BTC", "ETH"]], "종목은 대문자로");
+    assert.deepEqual(requested, [["BTC", "ETH"], ["BTC", "ETH"]], "종목은 대문자로 — 시나리오 구간 · 합산 변동성 창(F011 FR-46)");
     assert.equal(view.scenarios.status, "ok");
     assert.equal(view.scenarios.totalValue.toKrwInteger(), view.totalValue.toKrwInteger());
     assert.equal(view.scenarios.shocks[1].loss.toKrwInteger(), -300_000);
@@ -200,6 +200,7 @@ describe("GetRiskBudget — 시나리오 · 한 종목 상한", () => {
     assert.equal(view.gauges.btcBeta.coveredWeight?.toNumber(), 0.7);
     assert.deepEqual(view.gauges.btcBeta.missingSymbols, ["ETH"]);
     assert.equal(view.market, null, "국면 읽기가 실패해도 게이지는 나간다");
+    assert.equal(view.gauges.portfolioVolatility.status, "insufficient_data", "일봉이 없으면 그 칸만 비운다");
   });
 
   it("한 종목 상한을 바꾸고 null 이면 기본으로 되돌린다", async () => {

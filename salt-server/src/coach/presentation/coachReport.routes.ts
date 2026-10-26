@@ -464,6 +464,10 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - `turnover` — 최근 365일 (매수 + 매도 대금) ÷ 2 ÷ 지금 평가금액, 올해 수수료. 기간 환산하지 않는다
    *       - `btcBeta`(F010 슬라이스 2) — Σ(평가금 비중 × 90일 BTC 베타). 베타가 없는 종목은 합에서 빼고
    *         `coveredWeight` · `missingSymbols` 로 알린다. `btcEquivalentKrw` 는 BTC 로 환산한 노출. 예산이 없어 `exceeded` 없음
+   *       - `portfolioVolatility`(F011 FR-46) — 보유 합산 변동성(연) 범위: `upper` 상관 1 가정(종목 변동성 가중 합) ·
+   *         `realized` 최근 250 축 날짜 실현 공분산. 국내 주식을 들고 있으면 KRX 거래일 축(코인은 그날 09:00 KST 종가로 as-of 정렬,
+   *         주말 변동은 다음 거래일에) · √252, 아니면 달력일 · √365. `crossCorrelation` 코인 몫 · 국내 몫 수익률 상관. 수익률 60 미만이면
+   *         `insufficient_data`. 판정 없음
    *       - `market`(F010 슬라이스 2) — BTC 200일선 위 여부 · HMM 고변동 확률 · 365일 낙폭 · 다음 FOMC/CPI. 사전등록
    *         `regime-gate@1` 판정이 게이트 · 이벤트 축소를 채택하지 않아 `gate.key: null` · `gate.open: true` · `eventFactor: 1`
    *         (아무것도 막거나 줄이지 않는다). 국면 작업이 없거나 3일 넘었으면 `null`
@@ -475,7 +479,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *     security:
    *       - bearerAuth: []
    *     responses:
-   *       200: { description: "`{ settings{…, maxSingleAssetWeight, investableCapitalKrw}, totalValueKrw, gauges{drawdown,concentration,turnover,btcBeta}, market, scenarios{status, totalValueKrw, shocks[], episodes[]}, monthStart, asOf }`" }
+   *       200: { description: "`{ settings{…, maxSingleAssetWeight, investableCapitalKrw}, totalValueKrw, gauges{drawdown,concentration,turnover,btcBeta,portfolioVolatility}, market, scenarios{status, totalValueKrw, shocks[], episodes[]}, monthStart, asOf }`" }
    *       401: { description: 인증 실패 }
    *   put:
    *     summary: 리스크 예산 수정

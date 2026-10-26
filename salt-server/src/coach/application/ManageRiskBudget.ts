@@ -3,6 +3,7 @@ import Decimal from "decimal.js";
 import { Money } from "../../shared/domain";
 import {
   btcBetaGauge,
+  portfolioVolatility,
   concentrationGauge,
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
   DEFAULT_TARGET_VOLATILITY,
@@ -21,9 +22,14 @@ import {
   type MarketRegimeState,
   type PortfolioScenarios,
   type PortfolioProbe,
+  type PortfolioVolatility,
   type TurnoverGauge,
 } from "../domain";
 import { loadRiskSnapshot } from "./lib/loadRiskSnapshot";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+/** 합산 변동성 창을 채우는 일봉 범위 — 250 거래일 ≈ 365일 + 연휴 · 첫날 이어 쓰기 여유 */
+const VOLATILITY_LOOKBACK_DAYS = 400;
 
 /**
  * 리스크 예산 조회 · 수정 — `GET · PUT /api/coach/risk-budget` (FEATURE-009 FR-1~3 · FR-17 · FR-23~24).
@@ -56,6 +62,11 @@ export interface RiskBudgetView {
     turnover: TurnoverGauge;
     /** BTC 베타 합(F010 슬라이스 2) */
     btcBeta: BtcBetaGauge;
+    /**
+     * 보유 합산 변동성(연) — 상관 1 가정 상한 ~ 최근 실현 상관(F011 FR-46). 국내 주식을 들고 있으면 KRX 거래일 축.
+     * 판정 없음 — 목표 변동성(`settings.targetVolatility`)과 나란히 둘 뿐이다
+     */
+    portfolioVolatility: PortfolioVolatility;
   };
   /**
    * 시장 국면 라벨(F010 슬라이스 2 · `FC-REQ-010`) — BTC 200일선 · HMM 고변동 확률 · 365일 낙폭 · 다음 이벤트.
@@ -94,8 +105,12 @@ export class GetRiskBudget {
     const range = episodeBarRange();
     // 과거 구간 일봉이 없어도 게이지는 나간다 — 시나리오의 구간 줄만 값이 빈다
     const symbols = holdings.map((holding) => holding.symbol);
-    const [episodeBars, risk, market] = await Promise.all([
+    const [episodeBars, recentBars, risk, market] = await Promise.all([
       this.forecasts.dailyCloses(symbols, range.from, range.to).catch(() => new Map()),
+      // 합산 변동성 창(250 거래일 + 연휴 · 이어 쓰기 여유). 실패하면 그 칸만 insufficient_data
+      this.forecasts
+        .dailyCloses(symbols, new Date(now.getTime() - VOLATILITY_LOOKBACK_DAYS * DAY_MS))
+        .catch(() => new Map()),
       // 베타 · 국면이 실패해도 게이지 셋은 나간다 — 그 칸만 insufficient_data · null
       this.forecasts.symbolRisk(symbols).catch(() => new Map<string, { btcBeta: number | null }>()),
       this.forecasts.marketRegime().catch(() => null),
@@ -129,6 +144,15 @@ export class GetRiskBudget {
         btcBeta: btcBetaGauge(
           snapshot.holdings.map((holding) => ({ symbol: holding.symbol, value: holding.currentValue })),
           betas
+        ),
+        portfolioVolatility: portfolioVolatility(
+          snapshot.holdings.map((holding) => ({
+            symbol: holding.symbol.toUpperCase(),
+            assetType: holding.assetType === "kr_stock" ? ("kr_stock" as const) : ("crypto" as const),
+            value: new Decimal(holding.currentValue),
+          })),
+          recentBars,
+          now
         ),
       },
       market,
