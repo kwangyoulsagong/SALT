@@ -10,6 +10,7 @@ import {
   type DecisionOutcomeListResult,
   type DecisionOutcomeView,
 } from "./behavior-mirror.viewmodel";
+import { toKrBehaviorMirrorViewModel, type KrBehaviorMirrorResult } from "./kr-behavior-mirror.viewmodel";
 import { toMonthlyReviewViewModel, type MonthlyReviewResult } from "./monthly-review.viewmodel";
 
 /**
@@ -18,6 +19,11 @@ import { toMonthlyReviewViewModel, type MonthlyReviewResult } from "./monthly-re
  */
 const MIRROR_READ_TIMEOUT_MS = 1_500;
 const OUTCOME_READ_TIMEOUT_MS = 1_500;
+/**
+ * 국내 미러(F011 FR-47) — 복권형 단면을 매수 달마다 처음 한 번 센다(구간 0.6초, 실측 4개월 3.0초 · 이후 서버 캐시 39ms).
+ * 1.5초로 끊으면 첫 요청이 늘 `unavailable` 이다. 최근 1년 13개월 최악 ≈ 7초 → 8초. 서버는 끊겨도 계산을 마쳐 캐시한다
+ */
+const KR_MIRROR_READ_TIMEOUT_MS = 8_000;
 /**
  * 월간 복기 — 저장돼 있으면 조회 한 번이다. 없으면 서버가 그 자리에서 만든다(쿼리 8개, 실측 31ms) — 미러와 같은 상한
  */
@@ -56,6 +62,24 @@ export class AppBehaviorMirrorService {
     } catch (error) {
       if (isPassThrough(error, signal)) throw error;
       logger.warn("[behavior-mirror] mirror unavailable", { reason: (error as Error)?.message });
+      return { status: "unavailable" };
+    }
+  }
+
+  /**
+   * 국내 주식 미러. 소유자가 아니면 서버 404(`COACH_KR_STOCK_NOT_AVAILABLE`)가 그대로 올라간다 — 화면은 섹션을 숨긴다.
+   * 재시도 없음 — 느린 첫 요청을 두 번 기다리게 하지 않는다(서버가 이미 캐시를 채우는 중이다)
+   */
+  async getKrMirror(token: string, signal?: AbortSignal): Promise<KrBehaviorMirrorResult> {
+    try {
+      const response = await backendApi.proxyAuthRequest("GET", "/coach/mirror/kr-stock", token, undefined, {
+        timeout: KR_MIRROR_READ_TIMEOUT_MS,
+        signal,
+      });
+      return toKrBehaviorMirrorViewModel(dataOf(response));
+    } catch (error) {
+      if (isPassThrough(error, signal)) throw error;
+      logger.warn("[behavior-mirror] kr mirror unavailable", { reason: (error as Error)?.message });
       return { status: "unavailable" };
     }
   }
