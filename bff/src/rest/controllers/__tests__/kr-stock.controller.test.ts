@@ -85,6 +85,21 @@ describe("/api/app/market/kr", () => {
     assert.equal(calls.reduce((n, c) => n + c.mock.callCount(), 0), 0);
   });
 
+  it("/kr/indices 가 /:code 로 잡히지 않고, 투자자 days 기본 20 · 범위 밖은 400", async () => {
+    const indices = mock.method(appKrStockService, "getIndices", async () => ({ status: "ok", items: [] }) as never);
+    const investors = mock.method(appKrStockService, "getInvestors", async () => ({ status: "unavailable" }) as never);
+    assert.equal((await get("/api/app/market/kr/indices")).status, 200);
+    assert.equal(indices.mock.callCount(), 1);
+    await get("/api/app/market/kr/005930/investors");
+    await get("/api/app/market/kr/005930/investors?days=30");
+    assert.equal(investors.mock.calls[0]!.arguments[2], 20);
+    assert.equal(investors.mock.calls[1]!.arguments[2], 30);
+    for (const path of ["/api/app/market/kr/005930/investors?days=31", "/api/app/market/kr/005930/investors?days=0", "/api/app/market/kr/59/investors"]) {
+      assert.equal((await get(path)).status, 400, path);
+    }
+    assert.equal(investors.mock.callCount(), 2);
+  });
+
   it("서비스가 올린 4xx(소유자 아님)는 error middleware 가 그대로", async () => {
     mock.method(appKrStockService, "getSession", async () => {
       throw Object.assign(new Error("404"), { response: { status: 404, data: { code: "KR_STOCK_NOT_AVAILABLE", message: "x" }, headers: {} } });

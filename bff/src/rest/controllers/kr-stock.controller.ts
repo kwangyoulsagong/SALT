@@ -93,6 +93,17 @@ export class AppKrStockController {
     if (count === null) return badRequest(res, "count 는 1~500 정수입니다");
     return respond(res, next, (signal) => appKrStockService.getChart(req.token!, code, { period, count }, signal));
   };
+
+  indices = (req: Request, res: Response, next: NextFunction) =>
+    respond(res, next, (signal) => appKrStockService.getIndices(req.token!, signal));
+
+  investors = (req: Request, res: Response, next: NextFunction) => {
+    const code = String(req.params.code ?? "").toUpperCase();
+    if (!CODE_PATTERN.test(code)) return badRequest(res, "종목 코드 형식이 아닙니다");
+    const days = intQuery(req.query.days, 20, 1, 30);
+    if (days === null) return badRequest(res, "days 는 1~30 정수입니다");
+    return respond(res, next, (signal) => appKrStockService.getInvestors(req.token!, code, days, signal));
+  };
 }
 
 export const appKrStockController = new AppKrStockController();
