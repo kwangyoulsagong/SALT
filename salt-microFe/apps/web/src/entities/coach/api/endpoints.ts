@@ -37,4 +37,9 @@ export const COACH_ENDPOINTS = {
   /** 월간 복기(F009 슬라이스 6 `BFF-REQ-038` FR-10). 달이 없으면 서버가 KST 지난달을 고른다 */
   monthlyReview: (month: string | null) =>
     month ? `/api/app/coach/review/monthly?month=${encodeURIComponent(month)}` : "/api/app/coach/review/monthly",
+  /** 월간 복기 국내판(F011 FR-48 `BFF-REQ-040` FR-26) — 소유자 전용 404 */
+  krMonthlyReview: (month: string | null) =>
+    month
+      ? `/api/app/coach/review/monthly/kr-stock?month=${encodeURIComponent(month)}`
+      : "/api/app/coach/review/monthly/kr-stock",
 } as const;

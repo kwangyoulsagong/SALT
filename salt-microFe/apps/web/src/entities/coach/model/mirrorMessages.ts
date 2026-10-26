@@ -191,6 +191,19 @@ export const REVIEW_MESSAGES = {
 } as const;
 
 /**
+ * 월간 복기 국내판 (F011 FR-48 · `FE-REQ-041` FR-30). 코인판과 같은 줄 · 같은 순서 — 바뀌는 말만 둔다.
+ * 날은 **거래일**이다(주말 · 휴장일은 기준을 넘은 날로 세지 않는다)
+ */
+export const KR_REVIEW_MESSAGES = {
+  heading: "국내 주식 월간 복기",
+  description: "국내 주식 거래만 거래일로 한 달을 정리해 둬요. 뒤에 태그를 고쳐도 이 복기는 그대로예요",
+  unavailable: "지금은 국내 주식 월간 복기를 불러올 수 없어요",
+  noLedger: "그달까지 적은 국내 주식 거래가 없어요",
+  ipsLine: (days: number, observed: number) => `${observed}거래일 중 ${days}일`,
+  observedDays: (days: number) => `관찰 ${days}거래일`,
+} as const;
+
+/**
  * 국내 주식 거래 미러 (F011 FR-47 · `FE-REQ-041` FR-28). 코인 미러와 같은 원칙 — 본인 기록의 통계만, 지시 · 평가 없음.
  * 창은 **거래일**이다. 참고값(KCMI)은 기간 · 정의가 달라 "나란히 두기만" 한다는 말을 같이 둔다.
  */

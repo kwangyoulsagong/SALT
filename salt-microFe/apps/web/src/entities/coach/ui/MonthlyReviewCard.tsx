@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { formatPrice } from "@/shared/lib";
 
 import { formatRatio, formatSignedKrw, formatSignedRate, formatTimes, tagName } from "../lib";
-import { MIRROR_MESSAGES, REVIEW_MESSAGES } from "../model";
+import { KR_MIRROR_MESSAGES, KR_REVIEW_MESSAGES, MIRROR_MESSAGES, REVIEW_MESSAGES } from "../model";
 import { brierMirrorItem, MirrorItem, TagCostRows, worse } from "./MirrorLines";
 import { mirrorHead, mirrorItem, mirrorLabel, mirrorList, mirrorSub, mirrorText } from "./Mirror.css";
 
@@ -16,9 +16,21 @@ const R = REVIEW_MESSAGES;
  *
  * 순서: 이번 달 한 가지 → 그달 거래 → 비용이 가장 컸던 태그 → 내 기준을 넘은 날 → 계획 지킴 → 익절 · 손절 → 그냥 들고 있었으면 →
  * 회전율 → "오를 확률" 채점. 미러와 같은 줄 모양 · 같은 표본 배지를 쓴다 — 두 섹션이 같은 말을 다르게 하지 않게.
+ *
+ * 국내판(F011 FR-48 · `FE-REQ-041` FR-30)도 같은 카드다 — 날 · 보유 기간만 **거래일**로 읽는다.
  */
-export const MonthlyReviewCard = ({ review }: { review: MonthlyReviewBody }) => {
+export const MonthlyReviewCard = ({
+  review,
+  assetType = "crypto",
+}: {
+  review: MonthlyReviewBody;
+  assetType?: "crypto" | "kr_stock";
+}) => {
   const { activity, adherence, disposition, benchmark, turnover, ipsDeviation: ips } = review;
+  const isKr = assetType === "kr_stock";
+  const ipsLine = isKr ? KR_REVIEW_MESSAGES.ipsLine : R.ips.line;
+  const observedDays = isKr ? KR_REVIEW_MESSAGES.observedDays : R.observedDays;
+  const holding = isKr ? KR_MIRROR_MESSAGES.disposition.holding : M.disposition.holding;
   const items: ReactNode[] = [];
 
   items.push(
@@ -59,10 +71,10 @@ export const MonthlyReviewCard = ({ review }: { review: MonthlyReviewBody }) => 
       key="ips"
       label={R.ips.label}
       sampleSize={ips.observedDays}
-      sampleText={R.observedDays(ips.observedDays)}
+      sampleText={observedDays(ips.observedDays)}
       // 일수는 표본이 아니라 관찰한 날이다 — "표본 부족"을 붙이지 않는다
       status={ips.days === null ? "insufficient_data" : "ok"}
-      text={ips.days === null ? null : R.ips.line(ips.days, ips.observedDays)}
+      text={ips.days === null ? null : ipsLine(ips.days, ips.observedDays)}
       sub={ipsLines}
     />,
   );
@@ -95,7 +107,7 @@ export const MonthlyReviewCard = ({ review }: { review: MonthlyReviewBody }) => 
   if (activity.closedCount > 0) {
     const holdingText =
       disposition.gainHoldingDays.value !== null && disposition.lossHoldingDays.value !== null
-        ? M.disposition.holding(
+        ? holding(
             formatTimes(disposition.gainHoldingDays.value),
             formatTimes(disposition.lossHoldingDays.value),
           )

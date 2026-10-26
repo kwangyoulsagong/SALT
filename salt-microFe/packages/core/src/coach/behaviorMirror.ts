@@ -108,6 +108,8 @@ export interface BrierView {
   unscorableCount: number;
   recentMisses: Array<{
     symbol: string;
+    /** 종목 이름 — 국내 월간 복기만 싣는다(F011 FR-48). 없으면 `null`(코드를 보인다) */
+    name: string | null;
     probabilityUp: number;
     plannedAt: string;
     dueAt: string;

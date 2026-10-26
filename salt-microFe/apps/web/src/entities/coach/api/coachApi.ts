@@ -206,9 +206,18 @@ export const coachApi = {
     return body.data;
   },
 
-  /** 월간 복기 (`GET /api/app/coach/review/monthly`, F009 슬라이스 6). 서버 장애는 BFF 가 200 `unavailable` */
-  monthlyReview: async (month: string | null, signal?: AbortSignal): Promise<MonthlyReviewResult> => {
-    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.monthlyReview(month)}`, {
+  /**
+   * 월간 복기 (`GET /api/app/coach/review/monthly`, F009 슬라이스 6). 서버 장애는 BFF 가 200 `unavailable`.
+   * `kr_stock` 이면 국내판(`/kr-stock`, F011 FR-48) — 소유자가 아니면 404, 부르는 쪽이 상태로 읽는다
+   */
+  monthlyReview: async (
+    month: string | null,
+    signal?: AbortSignal,
+    assetType: "crypto" | "kr_stock" = "crypto",
+  ): Promise<MonthlyReviewResult> => {
+    const path =
+      assetType === "kr_stock" ? COACH_ENDPOINTS.krMonthlyReview(month) : COACH_ENDPOINTS.monthlyReview(month);
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${path}`, {
       headers: authHeader(),
       signal,
     });

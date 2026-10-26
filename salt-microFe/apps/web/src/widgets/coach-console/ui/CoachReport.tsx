@@ -162,6 +162,7 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
 
         {/* F009 시나리오 6 — 월초에 만든 지난달 복기. 미러 바로 아래(지금 숫자 → 지난달에 굳힌 숫자) */}
         <MonthlyReviewPanel />
+        <MonthlyReviewPanel assetType="kr_stock" />
 
         {excluded.map((line) => (
           <p key={line} className={footnote}>
@@ -220,6 +221,7 @@ export const CoachReport = () => {
         <MirrorPanel behaviorFacts={null} />
         <KrMirrorPanel />
         <MonthlyReviewPanel />
+        <MonthlyReviewPanel assetType="kr_stock" />
       </>,
     );
   }

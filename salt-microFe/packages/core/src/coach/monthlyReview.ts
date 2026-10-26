@@ -54,6 +54,8 @@ export interface MonthlyReviewBody {
 
 export interface MonthlyReviewView {
   status: "ok";
+  /** 코인판 · 국내판(F011 FR-48). 국내판 보유 기간 · 관찰 날은 거래일이다 */
+  assetType: "crypto" | "kr_stock";
   month: string;
   reviewStatus: MonthlyReviewStatus;
   review: MonthlyReviewBody | null;
