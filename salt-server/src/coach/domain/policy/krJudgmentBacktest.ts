@@ -4,8 +4,8 @@ import { krJudgmentExitWindow } from "./krStockJudgment";
 import { JUDGMENT_HORIZON_MS, judgeOutcome, MIN_JUDGMENT_SAMPLE, type JudgmentOutcome } from "./symbolJudgment";
 
 /**
- * 국내 주식 판단 백테스트 표본 — 사전등록 `kr-judgment-backtest@1`(`salt-server/preregistration/2026-10-26-kr-judgment-backtest.toml`,
- * F011 슬라이스 7b · `SRV-REQ-040` FR-43).
+ * 국내 주식 판단 백테스트 표본 — 사전등록 `kr-judgment-backtest@2`(`salt-server/preregistration/2026-10-26-kr-judgment-backtest-v2.toml`,
+ * F011 슬라이스 7c · `SRV-REQ-040` FR-43 · FR-44). @1(7b)과 다른 것은 비용 하나 — 표본마다 자기 매도일 거래세로 채점한다.
  *
  * 라이브 국내 판단은 종목마다 30일에 1표본이라 근거가 몇 달 비어 있다. 같은 규칙(`scoreModeDecision` — 규칙을 두 곳에
  * 적지 않는다)을 서버 5년 일봉으로 되돌려 채점한다. 결과는 `backtest` 출처로만 저장되고 라이브와 섞이지 않는다.
@@ -14,7 +14,7 @@ import { JUDGMENT_HORIZON_MS, judgeOutcome, MIN_JUDGMENT_SAMPLE, type JudgmentOu
  */
 
 /** 등록 키. 바꾸면 새 등록 파일이다 */
-export const KR_JUDGMENT_BACKTEST_KEY = "kr-judgment-backtest@1";
+export const KR_JUDGMENT_BACKTEST_KEY = "kr-judgment-backtest@2";
 
 /** `kr-universe@1` — salt-forecast 2026-10-09 등록과 같은 규칙 */
 export const KR_BACKTEST_UNIVERSE = { windowSessions: 20, minTurnoverKrw: 1_000_000_000, minBars: 250 } as const;
@@ -64,6 +64,8 @@ export interface KrBacktestSample {
   exitPrice: number;
   returnRate: number;
   outcome: JudgmentOutcome;
+  /** 그 매도일(`evaluatedAt`)의 왕복 비용 — 적중 경계 · 풀 "항상 오른다" 경계가 표본마다 다르다(등록 @2 [scoring].cost) */
+  cost: number;
   /** 만기일 종가 확정 시각 — 성적 기간이 실행 시각이 아니라 과거를 말하게(등록 [scoring].evaluated_at) */
   evaluatedAt: Date;
 }
@@ -145,10 +147,11 @@ export const backtestKrSymbol = (input: {
   bars: readonly KrBacktestBar[];
   sessionIndex: ReadonlyMap<number, number>;
   liveStart: Date;
-  cost: number;
+  /** 매도일(만기 종가 확정 시각)의 왕복 비용 — `roundTripCostAt("kr_stock", ·)` */
+  costAt: (soldAt: Date) => number;
   rsiOf: (closes: number[]) => number | null;
 }): KrBacktestSymbolResult => {
-  const { symbol, bars, sessionIndex, liveStart, cost, rsiOf } = input;
+  const { symbol, bars, sessionIndex, liveStart, costAt, rsiOf } = input;
   const result: KrBacktestSymbolResult = { samples: [], droppedBreaks: 0, droppedNoExit: 0 };
   let cursor = KR_BACKTEST_START.getTime() + krBacktestOffsetDays(symbol) * DAY_MS;
 
@@ -186,6 +189,7 @@ export const backtestKrSymbol = (input: {
       missingData: [],
     });
     const returnRate = bars[exit].close / bars[i].close - 1;
+    const cost = costAt(exitWindow.readyAt);
     result.samples.push({
       symbol,
       judgedAt,
@@ -196,6 +200,7 @@ export const backtestKrSymbol = (input: {
       exitPrice: bars[exit].close,
       returnRate,
       outcome: judgeOutcome("long_term", decision.action, returnRate, cost),
+      cost,
       evaluatedAt: exitWindow.readyAt,
     });
   }
@@ -228,15 +233,12 @@ const monthOf = (at: Date): string => KstDate.fromInstant(at).toString().slice(0
 const naiveFor = (action: ModeDecisionAction, alwaysUp: number): number | null =>
   action === "wait" ? null : action === "avoid" ? 1 - alwaysUp : alwaysUp;
 
-/** 풀 "항상 오른다" 비율 — 비용을 넘겨 오른 표본 몫 */
-export const krBacktestAlwaysUp = (samples: readonly KrBacktestSample[], cost: number): number =>
-  samples.length === 0 ? 0 : samples.filter((sample) => sample.returnRate > cost).length / samples.length;
+/** 풀 "항상 오른다" 비율 — 자기 매도일 비용을 넘겨 오른 표본 몫 */
+export const krBacktestAlwaysUp = (samples: readonly KrBacktestSample[]): number =>
+  samples.length === 0 ? 0 : samples.filter((sample) => sample.returnRate > sample.cost).length / samples.length;
 
-export const summarizeKrBacktest = (
-  samples: readonly KrBacktestSample[],
-  cost: number
-): KrBacktestGroupStats[] => {
-  const alwaysUp = krBacktestAlwaysUp(samples, cost);
+export const summarizeKrBacktest = (samples: readonly KrBacktestSample[]): KrBacktestGroupStats[] => {
+  const alwaysUp = krBacktestAlwaysUp(samples);
   const groups = new Map<ModeDecisionAction, KrBacktestSample[]>();
   for (const sample of samples) pushTo(groups, sample.action, sample);
   return [...groups.entries()]
@@ -284,7 +286,6 @@ const quantile = (sorted: readonly number[], q: number): number => {
 export const krBacktestExcessInterval = (
   samples: readonly KrBacktestSample[],
   action: ModeDecisionAction,
-  cost: number,
   iterations: number,
   random: () => number
 ): { low: number; high: number } | null => {
@@ -301,7 +302,7 @@ export const krBacktestExcessInterval = (
     for (let m = 0; m < months.length; m += 1) {
       for (const sample of months[Math.floor(random() * months.length)]) {
         pool += 1;
-        if (sample.returnRate > cost) poolUp += 1;
+        if (sample.returnRate > sample.cost) poolUp += 1;
         if (sample.action === action) {
           group += 1;
           if (sample.outcome === "hit") groupHits += 1;
@@ -323,12 +324,11 @@ export const krBacktestExcessInterval = (
 export const krBacktestPlacebo = (
   samples: readonly KrBacktestSample[],
   action: ModeDecisionAction,
-  cost: number,
   iterations: number,
   random: () => number
 ): { observed: number; nullMean: number; p: number } | null => {
   if (action === "wait") return null;
-  const alwaysUp = krBacktestAlwaysUp(samples, cost);
+  const alwaysUp = krBacktestAlwaysUp(samples);
   const naive = naiveFor(action, alwaysUp) ?? 0;
   const excessOf = (labels: readonly ModeDecisionAction[]): number | null => {
     let group = 0;
@@ -336,7 +336,7 @@ export const krBacktestPlacebo = (
     samples.forEach((sample, index) => {
       if (labels[index] !== action) return;
       group += 1;
-      if (judgeOutcome("long_term", action, sample.returnRate, cost) === "hit") hits += 1;
+      if (judgeOutcome("long_term", action, sample.returnRate, sample.cost) === "hit") hits += 1;
     });
     return group === 0 ? null : hits / group - naive;
   };

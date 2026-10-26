@@ -13,7 +13,7 @@ import {
   KR_GAP_QUANTILE,
   krGapScenarios,
   resolveBudget,
-  sizingFeeRatePerSide,
+  sizingCosts,
   type RoundTripCosts,
   type CoachProfileStore,
   type ForecastReader,
@@ -51,6 +51,8 @@ export interface TradeSizeCheck {
   /** 계산에 쓴 전제 — 화면이 "수수료 0.05% 가정"처럼 밝힌다 */
   assumptions: {
     feeRatePerSide: Decimal;
+    /** 매도 거래세(오늘 매도 기준, 청산 금액에만). 코인은 `null` — 세금 줄이 없다(F011 FR-44) */
+    sellTaxRate: Decimal | null;
     targetVolatility: Decimal;
     targetVolatilityIsDefault: boolean;
     maxSingleAssetWeight: Decimal;
@@ -77,7 +79,7 @@ export class CheckTradeSize {
     private readonly forecasts: ForecastReader,
     private readonly now: () => Date = () => new Date(),
     private readonly preview: PreviewTradeBehavior | null = null,
-    /** 국내 주식 수수료(F011 슬라이스 4) — 왕복 비용의 절반을 한쪽으로 */
+    /** 국내 주식 수수료 한쪽(F011 FR-44) — 거래세는 날짜 표가 정한다 */
     private readonly costs: RoundTripCosts = DEFAULT_ROUND_TRIP_COSTS
   ) {}
 
@@ -97,7 +99,8 @@ export class CheckTradeSize {
       this.market.quotes([symbol]).catch(() => new Map()),
     ]);
     const assetClass = judgmentAssetClassFor(quotes.get(symbol)?.assetType);
-    const feeRatePerSide = sizingFeeRatePerSide(assetClass, this.costs);
+    const costs = sizingCosts(assetClass, this.costs, now);
+    const { feeRatePerSide, sellTaxRate } = costs;
 
     const profile = snapshot.profile;
     const existing = snapshot.holdings.find((holding) => holding.symbol === symbol);
@@ -132,6 +135,7 @@ export class CheckTradeSize {
           ? { winRate: command.winRate, payoffRatio: command.payoffRatio }
           : undefined,
       feeRatePerSide,
+      sellTaxRate,
     });
 
     const gapScenarios =
@@ -141,7 +145,7 @@ export class CheckTradeSize {
             quantity: command.quantity,
             price: Money.krw(command.price),
             stopPrice: command.stopPrice ? Money.krw(command.stopPrice) : null,
-            feeRatePerSide,
+            costs,
             history: command.side === "buy" && command.stopPrice ? await this.gapHistory(symbol, now) : null,
           })
         : null;
@@ -153,6 +157,7 @@ export class CheckTradeSize {
       gapScenarios,
       assumptions: {
         feeRatePerSide,
+        sellTaxRate: assetClass === "kr_stock" ? sellTaxRate : null,
         targetVolatility,
         targetVolatilityIsDefault: !profile?.targetVolatility,
         maxSingleAssetWeight,

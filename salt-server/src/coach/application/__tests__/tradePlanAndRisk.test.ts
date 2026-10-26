@@ -320,10 +320,10 @@ describe("리스크 예산 · 사이즈 — 국내 주식 보유 포함 (F011 �
     assert.deepEqual(ledgerAsked.at(-1), ["crypto", "kr_stock"]);
   });
 
-  it("국내 주식 사이즈는 국내 주식 비용(왕복의 절반씩)으로 손실을 잡는다", async () => {
+  it("국내 주식 사이즈는 수수료 양쪽 + 매도 거래세(청산 금액에만, 2026 0.20%)로 손실을 잡는다", async () => {
     const check = new CheckTradeSize(profiles, portfolio, market, forecasts, () => now, null, {
       crypto: 0.001,
-      kr_stock: 0.0023,
+      krStockCommissionPerSide: 0.000186,
     });
     const size = await check.execute("u1", {
       symbol: "005930",
@@ -332,13 +332,14 @@ describe("리스크 예산 · 사이즈 — 국내 주식 보유 포함 (F011 �
       price: new Decimal(100_000),
       stopPrice: new Decimal(90_000),
     });
-    assert.equal(size.assumptions.feeRatePerSide.toNumber(), 0.00115);
-    // (100,000 − 90,000) + (100,000 + 90,000) × 0.00115 = 10,218.5 → × 10
-    assert.equal(size.sizing.maxLoss?.toKrwInteger(), 102_185);
+    assert.equal(size.assumptions.feeRatePerSide.toNumber(), 0.000186);
+    assert.equal(size.assumptions.sellTaxRate?.toNumber(), 0.002);
+    // (100,000 − 90,000) + 100,000 × 0.000186 + 90,000 × (0.000186 + 0.002) = 10,215.34 → × 10
+    assert.equal(size.sizing.maxLoss?.toDecimal().toNumber(), 102_153.4);
     // 기존 비중 — 국내 주식 1,000,000 / 10,000,000
     assert.equal(size.sizing.currentWeight?.toNumber(), 0.1);
-    // 갭 분포를 못 읽었다(이 가짜 시세엔 없다) → 하한가 줄만. 체결 63,000: (37,000 + 163,000 × 0.00115) × 10
-    assert.equal(size.gapScenarios?.limitDown.maxLoss.toDecimal().toNumber(), 371_874.5);
+    // 갭 분포를 못 읽었다(이 가짜 시세엔 없다) → 하한가 줄만. 체결 63,000: (37,000 + 18.6 + 63,000 × 0.002186) × 10
+    assert.equal(size.gapScenarios?.limitDown.maxLoss.toDecimal().toNumber(), 371_563.18);
     assert.equal(size.gapScenarios?.historicalUnavailable, "insufficient_data");
   });
 
@@ -353,7 +354,7 @@ describe("리스크 예산 · 사이즈 — 국내 주식 보유 포함 (F011 �
     } as unknown as MarketProbe;
     const check = new CheckTradeSize(profiles, portfolio, withGaps, forecasts, () => now, null, {
       crypto: 0.001,
-      kr_stock: 0.0023,
+      krStockCommissionPerSide: 0.000186,
     });
     const size = await check.execute("u1", {
       symbol: "005930",
@@ -367,8 +368,8 @@ describe("리스크 예산 · 사이즈 — 국내 주식 보유 포함 (F011 �
     assert.equal((since as Date).toISOString(), new Date(now.getTime() - 5 * 365 * 86_400_000).toISOString());
     assert.equal(fraction, 0.01);
     assert.deepEqual(bounds, { min: 0.69, max: 1.31 });
-    // 체결 85,500: (14,500 + 185,500 × 0.00115) × 10
-    assert.equal(size.gapScenarios?.historical?.maxLoss.toDecimal().toNumber(), 147_133.25);
+    // 체결 85,500: (14,500 + 18.6 + 85,500 × 0.002186) × 10
+    assert.equal(size.gapScenarios?.historical?.maxLoss.toDecimal().toNumber(), 147_055.03);
 
     const coin = await check.execute("u1", {
       symbol: "BTC",

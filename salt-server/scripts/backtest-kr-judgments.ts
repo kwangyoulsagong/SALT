@@ -1,6 +1,6 @@
 /**
- * 국내 주식 판단 백테스트 — 사전등록 `kr-judgment-backtest@1`(`preregistration/2026-10-26-kr-judgment-backtest.toml`,
- * F011 슬라이스 7b · `SRV-REQ-040` FR-43).
+ * 국내 주식 판단 백테스트 — 사전등록 `kr-judgment-backtest@2`(`preregistration/2026-10-26-kr-judgment-backtest-v2.toml`,
+ * F011 슬라이스 7c · `SRV-REQ-040` FR-43 · FR-44). @1(7b)과 다른 것은 비용 — 표본마다 매도일 거래세 + 수수료 왕복.
  *
  * ```bash
  * npm run judgments:kr-backtest            # dry-run — 표본 · 재검증 리포트만, DB 쓰기 없음
@@ -11,7 +11,8 @@
  * 그대로** 부른다 — 규칙 · RSI 를 두 곳에 적으면 백테스트가 다른 규칙을 채점한다. 채점까지 끝난 행을 넣는 것이라
  * `SymbolJudgmentStore` Port(라이브 문은 `live` 만 쓴다)로는 표현하지 않는다 — 시드 스크립트와 같은 판단.
  *
- * 리포트: `requirements/reports/backtests/kr-judgment-backtest-<실행일>.md`(커밋한다 — 표시되는 성적의 근거).
+ * 리포트: `requirements/reports/backtests/kr-judgment-backtest-v<등록 번호>-<실행일>.md`(커밋한다 — 표시되는 성적의 근거).
+ * @1 리포트(`kr-judgment-backtest-2026-10-26.md`)는 덮어쓰지 않는다.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -20,13 +21,16 @@ import { Prisma } from "@prisma/client";
 
 import {
   backtestKrSymbol,
+  judgeOutcome,
   judgmentSignalType,
   KR_JUDGMENT_BACKTEST_KEY,
+  KR_STOCK_SELL_TAX,
   krBacktestAlwaysUp,
   krBacktestExcessInterval,
   krBacktestPlacebo,
   MIN_JUDGMENT_SAMPLE,
   MODE_DECISION_RULE_VERSION,
+  roundTripCostAt,
   seededRandom,
   summarizeKrBacktest,
   type KrBacktestBar,
@@ -41,6 +45,8 @@ const LIVE_START = new Date("2026-10-08T00:00:00+09:00");
 /** 등록 [display] — 판단 달 수 하한 */
 const MIN_MONTHS = 12;
 const SEED = 20261026;
+/** @1 의 고정 비용 — 비교 열(등록 @2 [revalidation].compare) */
+const V1_COST = 0.0023;
 const BOOTSTRAP = 2_000;
 const PLACEBO = 1_000;
 const CONCURRENCY = 8;
@@ -54,7 +60,7 @@ const rsiOf = (closes: number[]): number | null =>
 
 const pct = (value: number | null, digits = 1): string =>
   value === null ? "—" : `${value >= 0 ? "+" : "−"}${Math.abs(value * 100).toFixed(digits)}%`;
-const rate = (value: number): string => `${(value * 100).toFixed(1)}%`;
+const rate = (value: number, digits = 1): string => `${(value * 100).toFixed(digits)}%`;
 
 const loadBars = async (symbol: string): Promise<KrBacktestBar[]> => {
   const rows = await prisma.priceHistory.findMany({
@@ -71,7 +77,8 @@ const loadBars = async (symbol: string): Promise<KrBacktestBar[]> => {
 
 const main = async () => {
   const started = Date.now();
-  const cost = env.KR_STOCK_ROUND_TRIP_FEE_RATE;
+  const costs = { crypto: 0, krStockCommissionPerSide: env.KR_STOCK_COMMISSION_RATE_PER_SIDE };
+  const costAt = (soldAt: Date): number => roundTripCostAt("kr_stock", soldAt, costs);
 
   // DISTINCT 는 DB 가 한다 — Prisma `distinct` 는 286만 행을 가져와 메모리에서 거른다
   const [sessionRows, symbolRows] = await Promise.all([
@@ -91,7 +98,7 @@ const main = async () => {
     const batch = symbols.slice(offset, offset + CONCURRENCY);
     const loaded = await Promise.all(batch.map(async (symbol) => ({ symbol, bars: await loadBars(symbol) })));
     for (const { symbol, bars } of loaded) {
-      const result = backtestKrSymbol({ symbol, bars, sessionIndex, liveStart: LIVE_START, cost, rsiOf });
+      const result = backtestKrSymbol({ symbol, bars, sessionIndex, liveStart: LIVE_START, costAt, rsiOf });
       samples.push(...result.samples);
       droppedBreaks += result.droppedBreaks;
       droppedNoExit += result.droppedNoExit;
@@ -100,12 +107,22 @@ const main = async () => {
   }
   const computedMs = Date.now() - started;
 
-  const groups = summarizeKrBacktest(samples, cost);
+  const groups = summarizeKrBacktest(samples);
+  // @1 비교 — 같은 표본(비용은 표본 선택에 안 들어간다)을 0.23% 고정으로 다시 채점
+  const v1Samples = samples.map((sample) => ({
+    ...sample,
+    cost: V1_COST,
+    outcome: judgeOutcome("long_term", sample.action, sample.returnRate, V1_COST),
+  }));
+  const v1Groups = summarizeKrBacktest(v1Samples);
+  // 세율 차이(최대 0.08%p)는 0.1% 반올림 아래라 판정이 바뀐 표본 수를 같이 센다
+  const flipped = samples.filter((sample, index) => sample.outcome !== v1Samples[index].outcome).length;
+  const poolFlipped = samples.filter((sample) => sample.returnRate > sample.cost !== sample.returnRate > V1_COST).length;
   const random = seededRandom(SEED);
   const rows = groups.map((group) => ({
     group,
-    interval: krBacktestExcessInterval(samples, group.action, cost, BOOTSTRAP, random),
-    placebo: krBacktestPlacebo(samples, group.action, cost, PLACEBO, random),
+    interval: krBacktestExcessInterval(samples, group.action, BOOTSTRAP, random),
+    placebo: krBacktestPlacebo(samples, group.action, PLACEBO, random),
     displayable: group.sample >= MIN_JUDGMENT_SAMPLE && group.months >= MIN_MONTHS,
   }));
 
@@ -122,8 +139,10 @@ const main = async () => {
 
   const report = `# 국내 주식 판단 백테스트 — \`${KR_JUDGMENT_BACKTEST_KEY}\` (${runDate})
 
-사전등록 \`salt-server/preregistration/2026-10-26-kr-judgment-backtest.toml\` 그대로 돌린 결과다. 규칙 \`${MODE_DECISION_RULE_VERSION}\` 장기 ·
-유니버스 \`kr-universe@1\` · 30일 간격 · 만기 라이브 시작(2026-10-08) 전 · 비용 ${(cost * 100).toFixed(2)}% 고정.
+사전등록 \`salt-server/preregistration/2026-10-26-kr-judgment-backtest-v2.toml\` 그대로 돌린 결과다. 규칙 \`${MODE_DECISION_RULE_VERSION}\` 장기 ·
+유니버스 \`kr-universe@1\` · 30일 간격 · 만기 라이브 시작(2026-10-08) 전 · 비용 = 수수료 한쪽
+${(costs.krStockCommissionPerSide * 100).toFixed(4)}% × 2 + **매도일 거래세**(${KR_STOCK_SELL_TAX.map((band) => `${band.from.slice(0, 4)}~ ${(band.rate * 100).toFixed(2)}%`).join(" · ")}).
+명시 비용만 — 스프레드 · 슬리피지는 넣지 않았다(근거 수치 없음, 넣으면 후보가 그만큼 불리해진다). 세전.
 ${write ? "DB 에 썼다(`sample_origin = 'backtest'`)." : "dry-run — DB 에 쓰지 않았다."}
 
 ## 표본
@@ -136,7 +155,7 @@ ${write ? "DB 에 썼다(`sample_origin = 'backtest'`)." : "dry-run — DB 에 �
 | 판단 기간 | ${first.toISOString().slice(0, 10)} ~ ${last.toISOString().slice(0, 10)} |
 | 뺀 판단 — 원천 끊김 | ${droppedBreaks.toLocaleString("en-US")} |
 | 뺀 판단 — 만기 종가 없음 | ${droppedNoExit.toLocaleString("en-US")} |
-| 풀 "항상 오른다"(비용 넘겨 오름) | ${rate(krBacktestAlwaysUp(samples, cost))} |
+| 풀 "항상 오른다"(자기 매도일 비용 넘겨 오름) | ${rate(krBacktestAlwaysUp(samples))} |
 | 계산 시간 | ${(computedMs / 1000).toFixed(1)}s |
 
 상장폐지 종목은 서버 일봉에 없다(생존 편향 — \`SRV-REQ-040\` FR-41 보류). 끊김 기준에 정리매매 하락도 같이 빠진다.
@@ -155,6 +174,22 @@ ${rows
 기저율은 **같은 풀(행동 무관) 전체**의 "항상 오른다" 비율로 만든다. 등록 문구 "같은 표본"은 등록 직후 · 실행 전에 찾은 결함
 (그룹 표본으로 세면 후보 · 피하기 초과분이 늘 0 — \`186876f\`)에 따라 풀로 읽었다. 결과를 보기 전에 바꿨다.
 
+## @1(비용 0.23% 고정) 대비 — 차이 = 세율 효과
+
+| 판단 | @1 적중률 | @2 적중률 | @1 기저율 | @2 기저율 | @1 초과 | @2 초과 |
+|---|---|---|---|---|---|---|
+${groups
+  .map((group) => {
+    const v1 = v1Groups.find((item) => item.action === group.action);
+    return `| ${group.action} | ${v1 ? rate(v1.hitRate, 2) : "—"} | ${rate(group.hitRate, 2)} | ${v1?.naiveHitRate == null ? "—" : rate(v1.naiveHitRate, 2)} | ${group.naiveHitRate === null ? "—" : rate(group.naiveHitRate, 2)} | ${pct(v1?.excess ?? null, 2)} | ${pct(group.excess, 2)} |`;
+  })
+  .join("\n")}
+
+판정(적중 · 빗나감)이 바뀐 표본 ${flipped.toLocaleString("en-US")} / ${samples.length.toLocaleString("en-US")} · 풀 "항상 오른다"가 바뀐 표본 ${poolFlipped.toLocaleString("en-US")}.
+수익률이 0.15~0.24% 사이에 걸친 표본만 바뀔 수 있다 — 30일 수익률 분포에서 그 폭은 좁다.
+
+관망은 적중 경계가 ±10% 라 비용과 무관하다(두 열이 같아야 한다).
+
 ## 연도별 (참고 — 판정 아님)
 
 | 연도 | 표본 | ${groups.map((group) => `${group.action} 적중률`).join(" | ")} | 항상 오른다 |
@@ -162,13 +197,13 @@ ${rows
 ${[...years.entries()]
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([year, list]) => {
-    const byAction = summarizeKrBacktest(list, cost);
+    const byAction = summarizeKrBacktest(list);
     return `| ${year} | ${list.length.toLocaleString("en-US")} | ${groups
       .map((group) => {
         const found = byAction.find((item) => item.action === group.action);
         return found ? `${rate(found.hitRate)} (${found.sample})` : "—";
       })
-      .join(" | ")} | ${rate(krBacktestAlwaysUp(list, cost))} |`;
+      .join(" | ")} | ${rate(krBacktestAlwaysUp(list))} |`;
   })
   .join("\n")}
 
@@ -182,7 +217,8 @@ ${[...years.entries()]
 
   const dir = join(__dirname, "..", "requirements", "reports", "backtests");
   mkdirSync(dir, { recursive: true });
-  const path = join(dir, `kr-judgment-backtest-${runDate}.md`);
+  const version = KR_JUDGMENT_BACKTEST_KEY.split("@")[1];
+  const path = join(dir, `kr-judgment-backtest-v${version}-${runDate}.md`);
   writeFileSync(path, report);
   console.log(report);
   console.log(`리포트: ${path}`);

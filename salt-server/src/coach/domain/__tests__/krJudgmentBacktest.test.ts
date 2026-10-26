@@ -4,9 +4,12 @@ import { describe, it } from "node:test";
 import {
   backtestKrSymbol,
   isKrBacktestEligible,
+  krBacktestAlwaysUp,
   krBacktestExcessInterval,
   krBacktestOffsetDays,
   krBacktestPlacebo,
+  krStockSellTaxRate,
+  roundTripCostAt,
   seededRandom,
   summarizeKrBacktest,
   type KrBacktestBar,
@@ -42,7 +45,7 @@ const run = (input: Partial<Parameters<typeof backtestKrSymbol>[0]> = {}) =>
     bars: bars(),
     sessionIndex,
     liveStart: new Date("2026-10-08T00:00:00+09:00"),
-    cost: 0.0023,
+    costAt: () => 0.0023,
     rsiOf,
     ...input,
   });
@@ -100,6 +103,22 @@ describe("backtestKrSymbol — 같은 규칙 · 30일 간격 · 라이브 전 �
     }
   });
 
+  it("표본 비용은 매도일(만기 종가 확정 시각)의 거래세 표 — 판단일이 아니다 (@2)", () => {
+    const costs = { crypto: 0.001, krStockCommissionPerSide: 0.000186 };
+    const { samples } = run({
+      rsiOf: (closes) => (closes.length < 50 ? null : 75),
+      costAt: (soldAt) => roundTripCostAt("kr_stock", soldAt, costs),
+    });
+    assert.ok(samples.length > 10);
+    for (const item of samples) {
+      assert.equal(item.cost, 0.000372 + krStockSellTaxRate(item.evaluatedAt));
+      assert.equal(item.outcome, item.returnRate <= item.cost ? "hit" : "miss");
+    }
+    // 2024 · 2025 매도가 둘 다 있어 경계가 실제로 갈린다
+    assert.ok(samples.some((item) => item.cost === 0.000372 + 0.0015));
+    assert.ok(samples.some((item) => item.cost === 0.000372 + 0.0018));
+  });
+
   it("창 안에 원천 끊김(종가 ×0.05 · ×1.5)이 있으면 그 판단을 뺀다", () => {
     const clean = run().samples.length;
     const series = bars((i) => (i >= 700 ? 5 : 100));
@@ -110,7 +129,12 @@ describe("backtestKrSymbol — 같은 규칙 · 30일 간격 · 라이브 전 �
   });
 });
 
-const sample = (action: KrBacktestSample["action"], returnRate: number, day: string): KrBacktestSample => ({
+const sample = (
+  action: KrBacktestSample["action"],
+  returnRate: number,
+  day: string,
+  cost = 0.0023
+): KrBacktestSample => ({
   symbol: "X",
   judgedAt: new Date(`${day}T16:00:00+09:00`),
   action,
@@ -119,7 +143,8 @@ const sample = (action: KrBacktestSample["action"], returnRate: number, day: str
   entryPrice: 100,
   exitPrice: 100 * (1 + returnRate),
   returnRate,
-  outcome: action === "avoid" ? (returnRate <= 0.0023 ? "hit" : "miss") : Math.abs(returnRate) <= 0.1 ? "hit" : "miss",
+  outcome: action === "avoid" ? (returnRate <= cost ? "hit" : "miss") : Math.abs(returnRate) <= 0.1 ? "hit" : "miss",
+  cost,
   evaluatedAt: new Date(`${day}T16:00:00+09:00`),
 });
 
@@ -137,7 +162,7 @@ describe("재검증 통계 — 기저율은 행동 무관 풀", () => {
   ];
 
   it("그룹 표 — 초과 적중률은 풀 기저율 대비, 관망은 없음", () => {
-    const [avoid, wait] = summarizeKrBacktest(samples, 0.0023);
+    const [avoid, wait] = summarizeKrBacktest(samples);
     assert.equal(avoid.action, "avoid");
     assert.equal(avoid.hitRate, 0.75);
     assert.equal(avoid.naiveHitRate, 0.5);
@@ -147,14 +172,21 @@ describe("재검증 통계 — 기저율은 행동 무관 풀", () => {
   });
 
   it("블록 부트스트랩 · 플라시보는 시드가 같으면 같고, 관망은 없다", () => {
-    const a = krBacktestExcessInterval(samples, "avoid", 0.0023, 200, seededRandom(1));
-    const b = krBacktestExcessInterval(samples, "avoid", 0.0023, 200, seededRandom(1));
+    const a = krBacktestExcessInterval(samples, "avoid", 200, seededRandom(1));
+    const b = krBacktestExcessInterval(samples, "avoid", 200, seededRandom(1));
     assert.deepEqual(a, b);
     assert.ok(a && a.low <= 0.25 && a.high >= 0.25);
-    assert.equal(krBacktestExcessInterval(samples, "wait", 0.0023, 10, seededRandom(1)), null);
-    const placebo = krBacktestPlacebo(samples, "avoid", 0.0023, 200, seededRandom(2));
+    assert.equal(krBacktestExcessInterval(samples, "wait", 10, seededRandom(1)), null);
+    const placebo = krBacktestPlacebo(samples, "avoid", 200, seededRandom(2));
     assert.ok(placebo);
     assert.equal(placebo.observed, 0.25);
     assert.ok(placebo.p > 0 && placebo.p <= 1);
+  });
+});
+
+describe("풀 '항상 오른다'는 표본마다 자기 비용 (@2)", () => {
+  it("같은 +0.2% 가 2025 매도(0.19%)면 비용을 넘고 2026 매도(0.24%)면 못 넘는다", () => {
+    const pool = [sample("wait", 0.002, "2025-06-10", 0.001872), sample("wait", 0.002, "2026-06-10", 0.002372)];
+    assert.equal(krBacktestAlwaysUp(pool), 0.5);
   });
 });
