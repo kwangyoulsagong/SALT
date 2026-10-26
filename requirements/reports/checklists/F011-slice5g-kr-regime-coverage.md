@@ -8,7 +8,8 @@
 | 리포트 | `salt-forecast/reports/kr-backtest-2026-10-26.md`(dry-run 출력, DB 미기록) | — |
 | main 대조 | `kr_backtest --dry-run --as-of 2026-10-26` 새 절 앞 462줄 바이트 동일. 공용 함수 변경 없음(함수 추가만) | 같은 체크리스트 |
 | 검증 | ruff · format · pyright 0 · lint-imports 3/3 · pytest 318 passed 1 skipped · leakage 35 passed | — |
-| 코드가 건드린 기존 REQ | `FC-REQ-020` FR-4(국면 버킷 → FR-14) 상태 문구 | 같은 REQ |
+| 코드가 건드린 기존 REQ | `FC-REQ-020` FR-4(국면 버킷 → FR-14) 상태 문구 · `FC-REQ-009`(`kr_backtest` 주인) Changelog · 체크리스트 · 회고 | 각 REQ |
+| FR-8 · `SRV-REQ-040` FR-41 | **보류**(사용자 결정 2026-10-26) — 원천 조사 결과(KRX OPEN API 최선 · 키 필요)와 다시 열 조건을 REQ 에 기록. 코드 변경 없음 | `FC-REQ-020` FR-8 행 |
 | 공통 수용 기준(§6) | 주문 경로 0 · 금액 계산 0 · 화면 문구 변경 없음 · 소유자 전용 그대로 | — |
 | 계약 | DDL · 뷰 · API · BFF · 프론트 · `.claude/rules` 무변경 | — |
 
