@@ -115,6 +115,11 @@ export class GetSymbolCoach {
     private readonly backtestJudgments: SymbolJudgmentStore | null = null
   ) {}
 
+  /** 성적 출처(국내 백테스트) · 사례 종목 이름(F011 슬라이스 7b) */
+  private get trackExtras() {
+    return { backtest: this.backtestJudgments, market: this.market };
+  }
+
   private async sentimentTrack(
     symbol: string,
     sentiment: CoachSentiment | undefined
@@ -171,8 +176,8 @@ export class GetSymbolCoach {
     // `zone` 도 싣는다 — 생략은 "할 수 있다"이고, 모양이 둘이 되면 소비처가 둘을 다룬다
     const [scalpView, longTermView, zones, gaugeTrackRecords] =
       await Promise.all([
-        attachJudgmentTrack(this.judgments, scalp, guardsFor("scalp"), assetClass, this.backtestJudgments),
-        attachJudgmentTrack(this.judgments, longTerm, guardsFor("long_term"), assetClass, this.backtestJudgments),
+        attachJudgmentTrack(this.judgments, scalp, guardsFor("scalp"), assetClass, this.trackExtras),
+        attachJudgmentTrack(this.judgments, longTerm, guardsFor("long_term"), assetClass, this.trackExtras),
         resolveZones(this.market, {
           symbol,
           holding,

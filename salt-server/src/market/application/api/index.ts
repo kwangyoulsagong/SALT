@@ -1,4 +1,4 @@
-import { KrStockDisabledError, KrStockNotAvailableError, isKrStockCode, isKrStockViewer } from "../../domain";
+import { KrStockDisabledError, KrStockNotAvailableError, isKrStockCode, isKrStockViewer, krStockLogoUrl } from "../../domain";
 import type { KrCompanyHomepageSource, KrHeldCodesSource, KrLogoImageProbe } from "../../domain";
 import type {
   KrProviderHealthPort,
@@ -155,6 +155,12 @@ export interface MarketApi {
     since: Date,
     fractions: number[]
   ): Promise<ClosePercentiles>;
+  /**
+   * 심볼들의 사람이 읽는 이름 · 로고 — 코치 사례의 종목 표시(F011 슬라이스 7b, "종목이 나오는 자리엔 아이콘").
+   * 국내 주식은 마스터(유니버스 밖 · 상폐 포함, 로고는 `krStockLogoUrl`), 코인은 시세 표. 모르는 심볼은 빠진다 —
+   * 국내 주식이 꺼져 있으면 코인만
+   */
+  assetLabels(symbols: string[]): Promise<Array<{ symbol: string; name: string; logoUrl: string | null }>>;
   /**
    * 한 심볼 밤사이 갭 분포 — 국내 주식 사이즈 계산의 "과거 최악 갭"(F011 `SRV-REQ-040` FR-45). `bounds` 밖 비율은
    * 원천 끊김이라 세지 않는다
@@ -452,6 +458,23 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     latestCloses: (symbols) => deps.prices.latestCloses(symbols),
     closePercentiles: (symbol, timeframe, since, fractions) =>
       deps.prices.closePercentiles(symbol, timeframe, since, fractions),
+    assetLabels: async (symbols) => {
+      if (symbols.length === 0) return [];
+      const krCodes = deps.krStock ? symbols.filter(isKrStockCode) : [];
+      const [coins, kr] = await Promise.all([
+        deps.assets.findViews(symbols),
+        krCodes.length > 0 && deps.krStock ? deps.krStock.store.labels(krCodes) : [],
+      ]);
+      const labels = new Map<string, { symbol: string; name: string; logoUrl: string | null }>();
+      for (const view of coins) {
+        labels.set(view.symbol, { symbol: view.symbol, name: view.koreanName ?? view.symbol, logoUrl: view.logoUrl || null });
+      }
+      // 6자리 코드는 국내 주식이 먼저 — 코인 심볼과 겹치면 마스터에 있는 쪽이 그 코드의 주인이다
+      for (const row of kr) {
+        labels.set(row.code, { symbol: row.code, name: row.name, logoUrl: krStockLogoUrl(row, deps.krStock?.logoDevToken) });
+      }
+      return [...labels.values()];
+    },
     overnightGapStats: (symbol, timeframe, since, fraction, bounds) =>
       deps.prices.overnightGapStats(symbol, timeframe, since, fraction, bounds),
     watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),

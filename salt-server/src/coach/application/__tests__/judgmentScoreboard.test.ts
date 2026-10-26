@@ -70,6 +70,9 @@ describe("GetJudgmentScoreboard", () => {
     assert.deepEqual(only.hits[0], {
       date: "2026-09-01",
       symbol: "BTC",
+      // 이름 조회(market)를 안 넣었다 — 이름 칸은 비지만 사례는 그대로
+      name: null,
+      logoUrl: null,
       event: "scalp.review_short_opportunity",
       outcome: "hit",
       returnRate: 0.06,
@@ -119,5 +122,37 @@ describe("GetJudgmentScoreboard", () => {
       view.groups.map((item) => item.returnDistribution.horizonDays),
       [1, 30]
     );
+  });
+
+  it("국내 그룹은 라이브 < 20 동안 백테스트(판단 달 ≥ 12)로 · 합산 없음 · 사례에 종목 이름 (F011 슬라이스 7b)", async () => {
+    const live = fakeStore([group({ signalType: "long_term.wait" }), group({ signalType: "kr_stock.long_term.wait", sample: 3 })]);
+    const krCase: JudgmentCase = { symbol: "024850", judgedAt: T0, action: "avoid", returnRate: 0.1 };
+    const backtest = fakeStore(
+      [
+        group({ signalType: "kr_stock.long_term.wait", sample: 35_994, judgedMonths: 48 }),
+        group({ signalType: "kr_stock.long_term.avoid", sample: 15_311, judgedMonths: 48 }),
+        group({ signalType: "kr_stock.long_term.review_accumulation", sample: 30, judgedMonths: 5 }),
+      ],
+      { "kr_stock.long_term.avoid": { hit: [], miss: [krCase] } }
+    );
+    const asked: string[][] = [];
+    const market = {
+      assetLabels: async (symbols: string[]) => {
+        asked.push(symbols);
+        return [{ symbol: "024850", name: "국내종목A", logoUrl: null }];
+      },
+    };
+    const view = await new GetJudgmentScoreboard(live, ["owner@salt.test"], backtest, market).execute("owner@salt.test");
+    assert.deepEqual(
+      view.groups.map((item) => `${item.signalType}:${item.sampleOrigin}:${item.sample}`),
+      ["long_term.wait:live:22", "kr_stock.long_term.wait:backtest:35994", "kr_stock.long_term.avoid:backtest:15311"]
+    );
+    const avoid = view.groups.find((item) => item.signalType === "kr_stock.long_term.avoid");
+    assert.equal(avoid?.misses[0].name, "국내종목A");
+    assert.deepEqual(asked, [["024850"]]);
+
+    // 비소유자는 국내 그룹이 없고 백테스트를 묻지도 않는다
+    const other = await new GetJudgmentScoreboard(live, ["owner@salt.test"], backtest, market).execute("x@salt.test");
+    assert.deepEqual(other.groups.map((item) => item.signalType), ["long_term.wait"]);
   });
 });

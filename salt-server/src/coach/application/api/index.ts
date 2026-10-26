@@ -232,7 +232,12 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.portfolio,
       deps.judgments,
       deps.news,
-      { usage: deps.llmUsage, limits: deps.llmLimits, krViewerEmails: deps.forecastOwnerEmails }
+      {
+        usage: deps.llmUsage,
+        limits: deps.llmLimits,
+        krViewerEmails: deps.forecastOwnerEmails,
+        backtestJudgments: deps.backtestJudgments ?? null,
+      }
     ),
     analyzeNewsSentiment,
     analyzeTradingBehavior,
@@ -244,7 +249,12 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     ),
     listProfitPlans: new ListProfitPlans(deps.portfolio, deps.forecasts),
     getSignalPerformance: new GetSignalPerformance(deps.recommendations),
-    getJudgmentScoreboard: new GetJudgmentScoreboard(deps.judgments, deps.forecastOwnerEmails),
+    getJudgmentScoreboard: new GetJudgmentScoreboard(
+      deps.judgments,
+      deps.forecastOwnerEmails,
+      deps.backtestJudgments ?? null,
+      deps.market
+    ),
     getSymbolForecast: new GetSymbolForecast(deps.forecasts, deps.portfolio, deps.forecastOwnerEmails),
     getSymbolEvents: new GetSymbolEvents(deps.forecasts, deps.forecastOwnerEmails),
     getSymbolPositioning: new GetSymbolPositioning(deps.forecasts, deps.forecastOwnerEmails),

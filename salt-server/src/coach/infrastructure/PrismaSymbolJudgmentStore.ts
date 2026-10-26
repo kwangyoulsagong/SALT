@@ -31,6 +31,7 @@ interface ScoreboardRow extends Record<string, unknown> {
   above_cost: number;
   pool_sample: number;
   pool_above_cost: number;
+  judged_months: number;
   avg_return: Prisma.Decimal | null;
   worst_return: Prisma.Decimal | null;
   first_scored_at: Date | null;
@@ -293,6 +294,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
              )::int AS above_cost,
              AVG(return_rate) AS avg_return,
              MIN(return_rate) AS worst_return,
+             COUNT(DISTINCT date_trunc('month', (judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul'))::int AS judged_months,
              MIN(evaluated_at) AS first_scored_at,
              MAX(evaluated_at) AS last_scored_at,
              PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY return_rate) AS p25,
@@ -313,6 +315,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       aboveCost: row.above_cost,
       poolSample: row.pool_sample,
       poolAboveCost: row.pool_above_cost,
+      judgedMonths: row.judged_months,
       avgReturn: toNumberOrNull(row.avg_return),
       worstReturn: toNumberOrNull(row.worst_return),
       firstScoredAt: row.first_scored_at,
@@ -341,13 +344,14 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       FROM (
         SELECT signal_type, symbol, action, judged_at, return_rate, outcome,
                ROW_NUMBER() OVER (
-                 PARTITION BY signal_type, outcome ORDER BY judged_at DESC
+                 -- 같은 시각 판단(백테스트는 종가 16:00 로 겹친다)은 종목 코드로 — 판단 카드(recentCases)와 같은 사례가 나오게
+                 PARTITION BY signal_type, outcome ORDER BY judged_at DESC, symbol ASC
                ) AS rn
         FROM symbol_judgment_snapshots
         WHERE outcome IS NOT NULL AND return_rate IS NOT NULL AND ${this.countedSql}
       ) ranked
       WHERE rn <= ${limit}
-      ORDER BY signal_type, outcome, judged_at DESC
+      ORDER BY signal_type, outcome, judged_at DESC, symbol ASC
     `;
 
     const grouped = new Map<string, Record<JudgmentOutcome, JudgmentCase[]>>();
@@ -372,7 +376,8 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
   ): Promise<JudgmentCase[]> {
     const rows = await prisma.symbolJudgmentSnapshot.findMany({
       where: { signalType, outcome, ...this.countedWhere },
-      orderBy: { judgedAt: "desc" },
+      // 같은 시각 판단은 종목 코드로 — 성적표(`recentCasesByGroup`)와 같은 순서
+      orderBy: [{ judgedAt: "desc" }, { symbol: "asc" }],
       take: limit,
       select: { symbol: true, judgedAt: true, action: true, returnRate: true },
     });

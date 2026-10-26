@@ -45,6 +45,11 @@ export interface ExplainOptions {
   limits?: Partial<LlmBudgetLimits>;
   /** 국내 주식 해설을 받을 수 있는 이메일 — 종목 판단과 같은 소유자 목록(F011 §정책). 없으면 아무도 */
   krViewerEmails?: readonly string[];
+  /**
+   * 국내 주식 백테스트 성적(F011 슬라이스 7b, 사용자 결정 2026-10-26) — 종목 판단 카드와 같은 출처 선택. 해설 문장(LLM)
+   * 입력엔 성적 숫자가 없다 — 카드(`trackRecord`)에 `sampleOrigin` 이 붙어 화면이 모의 라벨을 단다
+   */
+  backtestJudgments?: SymbolJudgmentStore | null;
 }
 
 /** 해설 요청 — 종목과 관점뿐이다. 사실은 서버가 조립한다(C01 · `SRV-REQ-025` FR-58) */
@@ -344,7 +349,8 @@ export class ExplainCoachDecision {
       this.judgments,
       decision,
       materialGuards(materials, request.mode, this.now()),
-      materials.assetClass
+      materials.assetClass,
+      { backtest: this.options.backtestJudgments ?? null, market: this.market }
     );
     if (!view.renderable) return { ok: false, blockedReason: view.blockedReason! };
 

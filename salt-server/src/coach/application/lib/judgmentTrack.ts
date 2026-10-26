@@ -11,10 +11,12 @@ import {
   type JudgmentCase,
   type JudgmentTrackRecord,
   type KrJudgmentHistory,
+  type MarketProbe,
   type ModeDecision,
   type StaleInput,
   type SymbolJudgmentStore,
 } from "../../domain";
+import { logger } from "../../../shared/config/logger";
 
 /** 점수 옆에 늘 붙는 문장 (공통 수용 기준 4 — 확신 표현 0건). */
 export const SCORE_NOTE = "점수는 확률이 아닙니다";
@@ -27,6 +29,12 @@ export interface JudgmentCaseView {
   /** 판단 날짜 (`YYYY-MM-DD`, UTC). */
   date: string;
   symbol: string;
+  /**
+   * 사람이 읽는 종목 이름 · 로고(F011 슬라이스 7b) — 성적은 유형 전체 표본이라 사례가 **다른 종목**이다. 국내 주식은 6자리
+   * 코드만으로 어느 종목인지 모른다. 못 찾으면 `null`(화면은 심볼 · 이니셜)
+   */
+  name: string | null;
+  logoUrl: string | null;
   /** 성적표 그룹 키 — `<mode>.<action>`. 문구가 아니라 코드다. */
   event: string;
   outcome: "hit" | "miss";
@@ -68,14 +76,37 @@ export interface ModeCoachView {
 export const toCaseView = (
   event: string,
   outcome: "hit" | "miss",
-  item: JudgmentCase
+  item: JudgmentCase,
+  labels: CaseLabels = new Map()
 ): JudgmentCaseView => ({
   date: item.judgedAt.toISOString().slice(0, 10),
   symbol: item.symbol,
+  name: labels.get(item.symbol)?.name ?? null,
+  logoUrl: labels.get(item.symbol)?.logoUrl ?? null,
   event,
   outcome,
   returnRate: item.returnRate,
 });
+
+export type CaseLabels = ReadonlyMap<string, { name: string; logoUrl: string | null }>;
+
+/**
+ * 사례 종목의 이름 · 로고. **보조 정보**다 — 조회가 실패해도 성적 · 사례는 그대로 나간다(이름 칸만 `null`)
+ */
+export const loadCaseLabels = async (
+  market: Pick<MarketProbe, "assetLabels"> | null,
+  symbols: readonly string[]
+): Promise<CaseLabels> => {
+  const unique = [...new Set(symbols)];
+  if (!market || unique.length === 0) return new Map();
+  try {
+    const rows = await market.assetLabels(unique);
+    return new Map(rows.map((row) => [row.symbol, { name: row.name, logoUrl: row.logoUrl }]));
+  } catch (error) {
+    logger.warn(`판단 사례 종목 이름 조회 실패: ${error instanceof Error ? error.name : "unknown"}`);
+    return new Map();
+  }
+};
 
 /**
  * 성적과 무관하게 판정을 막는 조건 — 거래소 투자유의(슬라이스 6) · 오래된 재료(슬라이스 7) ·
@@ -102,8 +133,13 @@ export const attachJudgmentTrack = async (
   decision: ModeDecision,
   guards: JudgmentGuards = {},
   assetClass: JudgmentAssetClass = "crypto",
-  backtest: SymbolJudgmentStore | null = null
+  extras: {
+    backtest?: SymbolJudgmentStore | null;
+    /** 사례 종목 이름 · 로고(없으면 이름 칸 `null`) */
+    market?: Pick<MarketProbe, "assetLabels"> | null;
+  } = {}
 ): Promise<ModeCoachView> => {
+  const backtest = extras.backtest ?? null;
   const signalType = judgmentSignalType(decision.mode, decision.action, assetClass);
   const fallback = assetClass === "kr_stock" ? backtest : null;
 
@@ -119,6 +155,7 @@ export const attachJudgmentTrack = async (
       : [live, liveMisses];
 
   const trackRecord = summarizeJudgmentTrack(decision.mode, signalType, stats, origin);
+  const labels = await loadCaseLabels(extras.market ?? null, misses.map((item) => item.symbol));
   const gate = judgmentGate({
     action: decision.action,
     reasons: decision.reasons,
@@ -149,6 +186,6 @@ export const attachJudgmentTrack = async (
     renderable: gate.renderable,
     blockedReason: gate.blockedReason,
     trackRecord,
-    failureCases: misses.map((item) => toCaseView(signalType, "miss", item)),
+    failureCases: misses.map((item) => toCaseView(signalType, "miss", item, labels)),
   };
 };

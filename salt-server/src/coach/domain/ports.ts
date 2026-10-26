@@ -217,6 +217,8 @@ export interface MarketProbe {
     fraction: number,
     bounds: { min: number; max: number }
   ): Promise<{ sample: number; excluded: number; quantile: number | null; worst: number | null }>;
+  /** 심볼들의 이름 · 로고 — 판단 사례의 종목 표시(F011 슬라이스 7b). 모르는 심볼은 빠진다 */
+  assetLabels(symbols: string[]): Promise<Array<{ symbol: string; name: string; logoUrl: string | null }>>;
 }
 
 /** `portfolio` 조회 — ACL Port. */

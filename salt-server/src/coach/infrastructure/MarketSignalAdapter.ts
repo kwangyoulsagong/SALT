@@ -132,6 +132,10 @@ export class MarketSignalAdapter implements MarketProbe {
     return this.market.overnightGapStats(symbol, "1d", since, fraction, bounds);
   }
 
+  assetLabels(symbols: string[]): Promise<Array<{ symbol: string; name: string; logoUrl: string | null }>> {
+    return this.market.assetLabels(symbols);
+  }
+
   dailyBarCounts(symbols: string[]): Promise<Map<string, number>> {
     return this.market.candleCounts(symbols, "1d");
   }

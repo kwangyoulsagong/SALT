@@ -3,6 +3,7 @@ import {
   JUDGMENT_HORIZON_MS,
   judgmentAssetClassOf,
   summarizeJudgmentTrack,
+  type JudgmentTrackOrigin,
   type JudgmentAssetClass,
   type JudgmentTrackRecord,
   type JudgmentTrackStats,
@@ -105,9 +106,10 @@ export const judgmentModeOf = (signalType: string): CoachMode | null => {
  */
 export const toScoreboardGroup = (
   mode: CoachMode,
-  stats: JudgmentGroupStats
+  stats: JudgmentGroupStats,
+  sampleOrigin: JudgmentTrackOrigin = "live"
 ): ScoreboardGroupStats => ({
-  ...summarizeJudgmentTrack(mode, stats.signalType, stats),
+  ...summarizeJudgmentTrack(mode, stats.signalType, stats, sampleOrigin),
   assetClass: judgmentAssetClassOf(stats.signalType),
   returnDistribution: {
     horizonDays: JUDGMENT_HORIZON_MS[mode] / DAY_MS,

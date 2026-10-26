@@ -162,6 +162,20 @@ export class PrismaKrStockStore implements KrStockStore {
     return rows.map((row) => ({ ...row, market: row.market as KrMarket }));
   }
 
+  /** `code` 기본키 `in` 조회 한 번 — 사례 수(그룹당 3)만큼이라 작다 */
+  async labels(codes: string[]) {
+    if (codes.length === 0) return [];
+    const rows = await prisma.krStockMaster.findMany({
+      where: { code: { in: codes } },
+      select: { code: true, name: true, market: true, homepage: true, logoSource: true },
+    });
+    return rows.map((row) => ({
+      ...row,
+      market: row.market as KrMarket,
+      logoSource: (row.logoSource as KrLogoSource | null) ?? null,
+    }));
+  }
+
   async saveLogo(code: string, result: { homepage?: string | null; logoSource: KrLogoSource; checkedAt: Date }) {
     await prisma.krStockMaster.update({
       where: { code },
