@@ -2,7 +2,7 @@
 
 코인 `backtest` 와 같은 엔진 · 같은 채점 — 다른 것은 달력(주 첫 거래일 · 5거래일)과 모델 버전 이름, 보정 · 채점 풀에
 국내 주식만 들어간다는 것(FEATURE-011 FR-82), 그리고 **게이트**: 실력은 기간마다 풀링 검정 한 번, 종목은 거부권만
-(FC-REQ-020 FR-1 · FR-2). 리포트에 풀링 표 · 상시 플라시보(FR-5) · 꼬리별 커버리지(FR-4)를 싣는다.
+(FC-REQ-020 FR-1 · FR-2). 리포트에 풀링 표 · 상시 플라시보(FR-5) · 꼬리별 커버리지(FR-4) · 국면별(FR-14)을 싣는다.
 
 척도 도전자(사전등록 `kr-scale@1`, FR-11 ~ FR-15)도 여기서만 돈다 — 판정 대상 하나 + 절제 셋. 매일 작업 · 게이트에는
 챔피언이 바뀌기 전까지 없다. `kr-scale@2` 는 형태 없는 범위 HAR 를 선택 보정 α · 이전 창까지 재고, 절제 둘
@@ -17,6 +17,7 @@ from pathlib import Path
 
 import numpy as np
 
+from salt_forecast.domain.kr_regime import REGIMES, kr_regime
 from salt_forecast.domain.kr_universe import KEY as UNIVERSE_KEY
 from salt_forecast.domain.kr_universe import eligible_at
 from salt_forecast.domain.pooled import PooledResult
@@ -45,7 +46,7 @@ from salt_forecast.models.kr_stock import (
     kr_model_params,
     kr_providers,
 )
-from salt_forecast.scoring.coverage import render_coverage
+from salt_forecast.scoring.coverage import render_coverage, render_regime_coverage
 from salt_forecast.scoring.evaluate import Paired, paired_scores
 from salt_forecast.scoring.frame import ColumnsBuilder
 from salt_forecast.scoring.pooled_gate import (
@@ -273,6 +274,9 @@ def main(argv: list[str] | None = None) -> int:
                 f"참고 플라시보 — `{KR_ENSEMBLE_V1}` 옛 종목별 게이트(FC-REQ-009)", placebo(v1_pairs, count_old), None
             ),
             *render_coverage("꼬리별 커버리지", models, cols.tails, HORIZONS),
+            *render_regime_coverage(
+                "국면별 꼬리 커버리지(FR-14)", (KR_BASELINE, KR_PRODUCTION), cols.tails, HORIZONS, kr_regime, REGIMES
+            ),
         ]
         report = render(
             cols,

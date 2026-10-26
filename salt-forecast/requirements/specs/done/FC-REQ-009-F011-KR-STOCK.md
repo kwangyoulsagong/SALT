@@ -54,6 +54,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §F FR-80~
 
 ## Changelog
 
+- 2026-10-26: `kr_backtest` 리포트에 국면별 꼬리 커버리지 절 추가(`FC-REQ-020` FR-14) — 예측 · 채점 · 게이트 무변경, 새 절 앞 리포트 main 과 바이트 동일
 - 2026-10-23: 국내 일봉 옮기기 · 달력 라벨에 수정주가 재작성 · 원천 끊김(`FC-REQ-020` FR-10) — `ingest_kr_stock` 이 서버 이력보다 앞선 `forecast.price_bar` 봉을 지운다(`store/prices.delete_bars_before`) · `KrxSessions.realized` 는 끊김을 걸친 라벨을 None 으로. 일봉 공개 시각 · 격자 · 기간 정의 무변경
 - 2026-10-23: `kr_daily` 게이트에 국내 종목 상태 억제(`FC-REQ-020` FR-9) — 마스터 동기화 시각 뒤 as_of 에만. 예측 · 채점 · 백테스트 무변경
 
