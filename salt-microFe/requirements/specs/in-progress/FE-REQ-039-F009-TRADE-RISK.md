@@ -61,6 +61,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | F011 슬라이스 7c — `SizeCheckLines` 국내 비용 고지를 수수료 편도 · 매도 거래세로(`FE-REQ-041` FR-27). 코인 문구 무변경 |
 | 2026-10-26 | F011 슬라이스 7 — `SizeCheckLines` 에 국내 주식 갭 두 줄 · 고지(`FE-REQ-041` FR-24). 코인 줄 · 문구 무변경 |
 | 2026-09-24 | 신설 · FR-1~12 구현, FR-13 보류. 근거 `reports/checklists/FE-REQ-039.md` |
 | 2026-09-27 | 슬라이스 5 FR-14~20 — 내 거래 미러 · 청산별 태그 확정 · 폼 한 줄(엣지 없음 · 매도 프레이밍) · 행동 알림 → 미러 줄. 새 feature `confirm-outcome-tags`(레지스트리 등록). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 5 |
