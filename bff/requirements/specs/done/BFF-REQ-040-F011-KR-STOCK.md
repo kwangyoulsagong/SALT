@@ -57,6 +57,7 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 | FR-21 | 판단 성적 출처 `trackRecord.sampleOrigin` 통과(슬라이스 7b · `SRV-REQ-040` FR-43) — 없으면(옛 서버) `live`, 모르는 값은 `backtest`(모의 라벨이 빠지는 쪽이 더 위험) | 완료(`bb58933`) |
 | FR-22 | 성적표 그룹 `sampleOrigin`(모르는 값은 backtest) · 사례 `name` · `logoUrl` 통과(슬라이스 7b 후속) — 해설 SSE 카드는 이벤트 그대로 중계라 변경 없음 | 완료(`3456b52`) |
 | FR-23 | 사이즈 계산 `assumptions.sellTaxRate` 통과(슬라이스 7c · `SRV-REQ-040` FR-44) — 숫자가 아니면 `null`(코인 · 옛 서버) | 완료(`fbc9ea8`) |
+| FR-24 | **국내 주식 미러**(슬라이스 7d · `SRV-REQ-040` FR-47) — `GET /api/app/coach/mirror/kr-stock` → 서버 `/coach/mirror/kr-stock`. 뷰모델 `toKrBehaviorMirrorViewModel`(코인 미러 규칙 그대로 · 기준점은 출처 · 기간 · 숫자가 다 있을 때만 · 못 잰 추격 매수는 `excluded` 하나로). 소유자 404 그대로 · 5xx · 타임아웃은 `unavailable`. 타임아웃 8초 · 재시도 없음(서버 첫 요청이 복권형 단면을 세느라 수 초 — 실측 4개월 3.0초, 이후 39ms) | 완료(`1eeee66`) |
 
 ## 계약 변경
 
@@ -68,6 +69,7 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 
 ## Changelog
 
+- 2026-10-26: 슬라이스 7d — FR-24 국내 미러 경로 · 뷰모델 **신설**(화면 계약 추가, 기존 `/mirror` 무변경). 미러 주인 `BFF-REQ-038`(Changelog 같이). 테스트 255 → 260
 - 2026-10-26: 슬라이스 7c — FR-23 `sellTaxRate`(추가 필드). 뷰모델 주인 `BFF-REQ-038`(Changelog 같이). 테스트 255(+1)
 - 2026-10-26: 슬라이스 7b 후속 — FR-22. 성적표 뷰모델 주인 `BFF-REQ-039`(Changelog 같이). 테스트 254
 - 2026-10-26: 슬라이스 7b — FR-21 `sampleOrigin`(추가 필드). 뷰모델 주인 `BFF-REQ-024`(Changelog 같이)

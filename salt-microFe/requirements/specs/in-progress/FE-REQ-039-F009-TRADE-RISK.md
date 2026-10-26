@@ -61,6 +61,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | F011 슬라이스 7d — 국내 미러(`FE-REQ-041` FR-28): `KrMirrorLines` 가 `MirrorItem` · `worse` 를 재사용, `KR_MIRROR_MESSAGES` 는 `mirrorMessages.ts` 에 · `useKrBehaviorMirror`(404 = `notOwner`) · `CoachReport` 두 분기에 `KrMirrorPanel`. 코인 미러 무변경 |
 | 2026-10-26 | F011 슬라이스 7c — `SizeCheckLines` 국내 비용 고지를 수수료 편도 · 매도 거래세로(`FE-REQ-041` FR-27). 코인 문구 무변경 |
 | 2026-10-26 | F011 슬라이스 7 — `SizeCheckLines` 에 국내 주식 갭 두 줄 · 고지(`FE-REQ-041` FR-24). 코인 줄 · 문구 무변경 |
 | 2026-09-24 | 신설 · FR-1~12 구현, FR-13 보류. 근거 `reports/checklists/FE-REQ-039.md` |

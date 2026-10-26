@@ -55,6 +55,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | F011 슬라이스 7d — `AppBehaviorMirrorService.getKrMirror` · 컨트롤러 `krMirror` · 경로 `/mirror/kr-stock`(`BFF-REQ-040` FR-24). 뷰모델은 새 파일 `kr-behavior-mirror.viewmodel` — 코인 `toMetric` · 계약 에러 재사용. 코인 미러 무변경 |
 | 2026-10-26 | F011 슬라이스 7c — `toSizeCheckViewModel` `assumptions.sellTaxRate`(`BFF-REQ-040` FR-23). 코인은 `null` |
 | 2026-10-26 | F011 슬라이스 7 — `toSizeCheckViewModel` 에 `gapScenarios`(`BFF-REQ-040` FR-20). 코인은 `null` |
 | 2026-09-24 | 신설 · FR-1~6 구현. 근거 `reports/checklists/BFF-REQ-038.md` |

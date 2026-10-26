@@ -65,6 +65,7 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | F011 슬라이스 7d(`SRV-REQ-040` FR-47) — 국내 미러는 별도 유스케이스(`GetKrBehaviorMirror`)로, 코인 미러는 무변경. 공용 규칙에 옵션 두 개만: `walkPortfolioDays(…, tradingDays)`(주어지면 그 날만 걷는다) · `dispositionMirror(…, { carryForward })`(그날 봉이 없으면 직전 거래일 종가). 둘 다 기본값이 기존 동작 |
 | 2026-10-26 | F011 슬라이스 7c(`SRV-REQ-040` FR-44) — `sizingCosts`: 국내 주식 손실은 수수료 양쪽 + 매도 거래세(청산 금액에만, 매도일 표). `sizingFeeRatePerSide` 삭제 · `calculateSizing` 에 `sellTaxRate`(없으면 0 — 코인 무변경) · 응답 `assumptions.sellTaxRate` |
 | 2026-10-26 | F011 슬라이스 7(`SRV-REQ-040` FR-45) — `CheckTradeSize` 가 국내 주식 매수에 `gapScenarios` 를 더한다(정책 `krGapScenarios` 는 `sizing.ts`). 코인 응답 무변경 · `calculateSizing` 무변경 |
 | 2026-09-24 | 신설 · 슬라이스 1 FR-1~8 구현. 근거 `reports/checklists/SRV-REQ-038.md` |

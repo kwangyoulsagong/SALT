@@ -67,7 +67,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | FR-44 | 비용 — 연도별 거래세 표(2025 이전 · 2026~ 0.20%) + 수수료, 명시 왕복 0.207~0.237%. 암묵 비용은 "가정" 파라미터. 세금은 "세전" 명시 | **완료 2026-10-26**(사전등록 `kr-judgment-backtest@2` `00cd7c1` → `29caa3f` 구현 · `4527fc5` 실행) — 거래세는 매도일(KST) 구간 표 `KR_STOCK_SELL_TAX`(2021~22 0.23 · 2023 0.20 · 2024 0.18 · 2025 0.15 · 2026~ 0.20%, 코스피 = 거래세 + 농특세 · 코스닥 단일 — 두 시장 합계 같음), env 는 수수료 한쪽만 `KR_STOCK_COMMISSION_RATE_PER_SIDE`(기본 0.000186 = 0.015% + 유관기관 0.0036% → 2026 왕복 0.237%, 우대 0.207% 는 env 로). 채점 `judgeOutcome` 은 채점 시각 기준 · 기저율 SQL `costSql` 은 `evaluated_at` KST 날짜로 같은 표를 펼친다. 사이즈 손실은 거래세를 **청산 금액에만**(전엔 왕복 절반을 진입에도) · 응답 `assumptions.sellTaxRate`(코인 `null`). 백테스트 @2 = 표본마다 매도일 비용 — @1 대비 판정 6 · 풀 39 / 51,305 바뀜, 피하기 초과 +3.29% 그대로. 암묵 비용(스프레드 · 슬리피지)은 **넣지 않음** — 근거 수치 없음(권고 18 "약"), 리포트 · 화면에 "빼고 계산" 명시. "세전"은 화면 문구 대신 리포트에만 — 사이즈 손실엔 양도세가 없다(소액주주 비과세) |
 | FR-45 | 사이즈 · 1회 최대 손실 — 손절 체결 가정 손실 · 일 −30% 갭 손실 · 과거 최악 갭 분위수를 나란히(VI · 정지 · 연속 하한가 때 손절 미체결 가능 문구) | **완료 2026-10-26**(`dfb2d1b`) — `POST /api/coach/size-check` 응답 `gapScenarios`(국내 주식 매수 + 손절가만): `limitDown`(손절가 바로 위에서 다음 날 하한가 −30% 로 열린 경우) · `historicalGap`(그 종목 최근 5년 밤사이 갭 = 시가 ÷ 전일 종가 하위 1%, `worstGapRate` · `sample` · `since` 같이) · `noteCode: stop_may_not_fill`. 갭은 **손절가 기준**(진입가 기준이면 손절가를 깊게 둔 사람에게 손절 손실보다 작은 갭 손실이 나온다). 시가 ÷ 전일 종가 0.69~1.31 밖은 원천 끊김이라 제외(예측 `kr_breaks` 와 같은 근거) · 표본 250 미만이면 하한가 줄만 · 분포는 DB `LAG` + `percentile_cont`(인덱스 · 5ms). 변동성 역비례 크기는 이미 "참고 비중" 숫자로만 나간다(목표 아님) — 그대로. 실데이터 삼성전자 하위 1% −5.0% · 최악 −10.9% · 1,220거래일 |
 | FR-46 | 코인 + 국내 주식 위험 합산 — 상관 1 상한과 최근 실현 상관 두 값을 범위로, 코인을 KRX 종가 시각에 정렬 · 365/252 환산 | Draft — 권고 20(근거 약) |
-| FR-47 | 행동 미러 국내 — 거래일 창, 순위 회전율 → 처분효과 → 추격 매수(40거래일) → 복권형 비중 | Draft — 권고 22 |
+| FR-47 | 행동 미러 국내 — 거래일 창, 순위 회전율 → 처분효과 → 추격 매수(40거래일) → 복권형 비중 | **완료 2026-10-26**(`fdf8ed1`) — `GET /api/coach/mirror/kr-stock`(`GetKrBehaviorMirror`, 코인 미러와 따로 · 소유자 전용 404 `COACH_KR_STOCK_NOT_AVAILABLE`). 국내 거래만 읽고 거래 시각을 **KST 벽시계**로 옮겨 일봉에 붙인다(화면이 지난 날짜를 00:00 KST = 전날 15:00 UTC 로 저장 — UTC 로 붙이면 하루 앞 거래일). ① 회전율 = 최근 250거래일 (매수 + 매도 대금) ÷ 2 ÷ 보유 거래일 종가 평가금 합(일 단위 — `TURNOVER_BASELINE` 과 같은 단위) ② PGR · PLR(휴장일 매도는 직전 거래일 종가) · 보유 **거래일** + 매수 다음 거래일 매도율(이익 · 손실, KCMI 41% · 22% 참고 — 정의 원문 미확인) ③ 매수 직전 40거래일 종가 상승률 평균 · 중앙값(KCMI 25.8% 참고, 봉 41개 미만 · 종가 비율 0.69~1.31 밖은 제외) ④ 복권형 = Kumar(2009) 총변동판(지난달 말까지 6개월, 주가 < 중앙값 · 변동성 > 중앙값 · 왜도 > 중앙값, 국내 전 종목 단면 · 수익률 ≥ 100) — 최근 365일 매수 대금 몫 + 같은 단면의 복권형 종목 비율. 단면은 `market` `krDailyReturnProfiles`(price_history SQL 0.58초) · 코치 어댑터가 구간 캐시(지난 구간은 안 바뀐다). 판정 배치 결과(준수 · 태그 · 시간대 · 연승)는 코인만(FR-38)이라 없다. 신용 사용 입력은 범위 밖(리서치 결정 사항) |
 
 ## 계약
 
@@ -75,6 +75,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 - 기존 응답 무변경. `MarketAsset` · 코인 경로 무변경(시세를 `kr_stock_quotes` 에 따로 둔 이유 — `DB-REQ-033`)
 - `ErrorKind.Unavailable`(503) — Shared Kernel 값 추가. 기존 값 매핑 무변경
 - BFF 짝 `BFF-REQ-040`(슬라이스 2) — 아직 소비처 없음
+- 슬라이스 7d(FR-47, 2026-10-26): `GET /api/coach/mirror/kr-stock` **신설**(소유자 전용 404) — 기존 `/api/coach/mirror` 무변경(코인만). `market` 공개 API `krDailyReturnProfiles` 추가 · `walkPortfolioDays` 거래일 옵션 · `dispositionMirror` `carryForward` 옵션(코인 경로 무변경). DDL 없음. 소비처 `BFF-REQ-040` FR-24 · `FE-REQ-041` FR-28
 - 슬라이스 7c(FR-44, 2026-10-26): size-check `assumptions.sellTaxRate` **추가**(코인 `null`). 국내 `assumptions.feeRatePerSide` 는 값 의미가 바뀐다 — 왕복 절반(0.00115) → 수수료 한쪽(0.000186). 사이즈 손실 · 갭 줄 금액이 국내만 약간 준다(005930 10주 손절 −102,185 → −102,153). env `KR_STOCK_ROUND_TRIP_FEE_RATE` → `KR_STOCK_COMMISSION_RATE_PER_SIDE`(설정한 곳 없음). backtest 행 51,305 를 @2 로 교체(DDL 없음). 소비처 `BFF-REQ-040` FR-23 · `FE-REQ-041` FR-27
 - 슬라이스 7b(FR-43, 2026-10-26): 판단 응답 `trackRecord.sampleOrigin`(live · backtest) **추가** — 기존 필드 무변경. 판단 · 추천 기저율 정정(`alwaysUpRate` · `excessWinRate` 값만 — 행동 무관 풀, `186876f`). 새 행 `symbol_judgment_snapshots` backtest 51,305(DDL 없음, 지우면 되돌림). 소비처 `BFF-REQ-040` FR-21 · `FE-REQ-041` FR-25
 - 슬라이스 7(FR-45, 2026-10-26): size-check 응답에 `gapScenarios` **추가만**(코인 · 매도 · 손절가 없음은 `null`) — 기존 필드 무변경. `market` 공개 API `overnightGapStats` 추가. 소비처 `BFF-REQ-040` FR-20 · `FE-REQ-041` FR-24. 마이그레이션 없음
@@ -100,6 +101,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 
 ## Changelog
 
+- 2026-10-26: 슬라이스 7d — FR-47 국내 행동 미러(거래일 회전율 · 처분효과 · 다음 거래일 매도율 · 40거래일 추격 · 복권형 비중). 테스트 751 → 762. 미러 주인 `SRV-REQ-038`(Changelog 같이)
 - 2026-10-26: 슬라이스 7c — FR-44 매도일 거래세 표 · 수수료 env · 사이즈 세금은 청산에만 · 백테스트 @2. 테스트 745 → 751
 - 2026-10-26: 슬라이스 7b 후속 — 성적표 · 해설 백테스트 출처 · 사례 종목 이름 · 로고(`assetLabels`) · 사례 순서 고정. 테스트 746
 - 2026-10-26: 슬라이스 7b — FR-43 국내 판단 백테스트 표본 · 출처 선택 · 기저율 정정. 테스트 → 745(갭 브랜치 위). 상시 서버(launchd)가 이 브랜치 코드로 돈다
