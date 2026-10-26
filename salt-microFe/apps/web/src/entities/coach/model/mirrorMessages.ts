@@ -182,6 +182,7 @@ export const REVIEW_MESSAGES = {
     lossUnavailable: "월 손실 예산은 월초 평가금이 없어 세지 못했어요",
     concentration: (days: number, limit: string) => `한 종목 비중이 상한 ${limit}보다 컸던 날 ${days}일`,
     basis: "지금 정해 둔 기준으로 셌어요",
+    basisAllAssets: "코인 · 국내 주식을 합쳐 지금 정해 둔 기준으로 셌어요",
   },
   turnover: {
     label: "그달 회전율",

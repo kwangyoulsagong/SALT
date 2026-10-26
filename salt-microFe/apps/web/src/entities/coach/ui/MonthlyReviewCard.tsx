@@ -28,8 +28,10 @@ export const MonthlyReviewCard = ({
 }) => {
   const { activity, adherence, disposition, benchmark, turnover, ipsDeviation: ips } = review;
   const isKr = assetType === "kr_stock";
-  const ipsLine = isKr ? KR_REVIEW_MESSAGES.ipsLine : R.ips.line;
-  const observedDays = isKr ? KR_REVIEW_MESSAGES.observedDays : R.observedDays;
+  // 합산(`all_assets`)은 코인 시장 때문에 달력일로 센다 — 국내판이어도 "거래일"이 아니다
+  const tradingDayIps = isKr && ips.scope !== "all_assets";
+  const ipsLine = tradingDayIps ? KR_REVIEW_MESSAGES.ipsLine : R.ips.line;
+  const observedDays = tradingDayIps ? KR_REVIEW_MESSAGES.observedDays : R.observedDays;
   const holding = isKr ? KR_MIRROR_MESSAGES.disposition.holding : M.disposition.holding;
   const items: ReactNode[] = [];
 
@@ -64,7 +66,8 @@ export const MonthlyReviewCard = ({
     ips.concentration.days !== null && ips.concentration.limit !== null
       ? R.ips.concentration(ips.concentration.days, formatRatio(ips.concentration.limit))
       : null,
-    R.ips.basis,
+    // 두 자산군을 다 가진 달은 합쳐 센다 — 예산 · 상한은 사용자 하나에 하나(리스크 예산 게이지와 같은 범위)
+    ips.scope === "all_assets" ? R.ips.basisAllAssets : R.ips.basis,
   ];
   items.push(
     <MirrorItem
