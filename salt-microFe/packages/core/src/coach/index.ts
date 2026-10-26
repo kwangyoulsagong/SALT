@@ -6,6 +6,7 @@ export * from "./macroEvents";
 export * from "./positioning";
 export * from "./tradeRisk";
 export * from "./behaviorMirror";
+export * from "./krBehaviorMirror";
 export * from "./monthlyReview";
 export * from "./judgmentScoreboard";
 export * from "./targetWeight";

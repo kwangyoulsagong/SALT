@@ -189,3 +189,51 @@ export const REVIEW_MESSAGES = {
   },
   observedDays: (days: number) => `관찰 ${days}일`,
 } as const;
+
+/**
+ * 국내 주식 거래 미러 (F011 FR-47 · `FE-REQ-041` FR-28). 코인 미러와 같은 원칙 — 본인 기록의 통계만, 지시 · 평가 없음.
+ * 창은 **거래일**이다. 참고값(KCMI)은 기간 · 정의가 달라 "나란히 두기만" 한다는 말을 같이 둔다.
+ */
+export const KR_MIRROR_MESSAGES = {
+  heading: "국내 주식 거래 미러",
+  description: "국내 주식 거래만 거래일로 센 통계예요. 표본이 20건보다 적으면 흐리게 보여요",
+  unavailable: "지금은 국내 주식 거래 미러를 불러올 수 없어요",
+  truncated: "거래가 너무 많아 통계를 만들지 못했어요",
+  empty: "국내 주식 거래를 기록하면 미러가 채워져요",
+
+  turnover: {
+    label: "회전율",
+    line: (days: number, rate: string) => `최근 ${days}거래일 하루 평균 ${rate}`,
+    baseline: (source: string, period: string, newRetail: string, market: string) =>
+      `참고: ${source}(${period}) 신규 개인 ${newRetail} · 시장 ${market} — 기간이 달라 나란히 두기만 해요`,
+  },
+  disposition: {
+    label: "익절 · 손절",
+    sample: (gains: number, losses: number) => `익절 ${gains} · 손절 ${losses}`,
+    holding: (gain: string, loss: string) => `익절은 평균 ${gain}거래일, 손절은 평균 ${loss}거래일 들고 있었어요`,
+    ratio: (pgr: string, plr: string) => `이익 실현 비율 ${pgr} · 손실 실현 비율 ${plr}`,
+  },
+  nextDaySell: {
+    label: "산 다음 거래일에 판 비율",
+    sample: (gains: number, losses: number) => `이익 ${gains} · 손실 ${losses}`,
+    line: (gain: string, loss: string) => `그날 이익이던 매수 중 ${gain} · 손실이던 매수 중 ${loss}`,
+    baseline: (source: string, period: string, gain: string, loss: string) =>
+      `참고: ${source}(${period}) 개인 이익 ${gain} · 손실 ${loss} — 정의가 같은지 원문으로 확인하지 못했어요`,
+  },
+  chase: {
+    label: "사기 전 40거래일 상승률",
+    line: (avg: string, median: string) => `평균 ${avg} · 중앙값 ${median}`,
+    excluded: (count: number) => `이력이 짧거나 가격 기록이 끊긴 매수 ${count}건은 뺐어요`,
+    baseline: (source: string, period: string, value: string) =>
+      `참고: ${source}(${period}) 개인이 산 종목 평균 ${value} — 상승장 기간이라 나란히 두기만 해요`,
+  },
+  lottery: {
+    label: "복권형 종목 비중",
+    line: (share: string, market: string) => `최근 1년 매수 금액 중 ${share} · 같은 시기 전 종목 중 ${market}`,
+    definition: (months: number) =>
+      `복권형 = 지난 ${months}개월 주가가 낮고 · 변동이 크고 · 급등 쪽 꼬리가 긴 종목(셋 다 전 종목 중간값 너머)`,
+    unknown: (count: number) => `이력이 짧아 가르지 못한 매수 ${count}건`,
+    evidence: (source: string, period: string, value: string) =>
+      `참고: ${source}(${period}) 복권형 종목 매수 비중이 큰 개인의 시장 대비 성과 ${value}`,
+  },
+} as const;

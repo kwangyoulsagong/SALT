@@ -1,5 +1,6 @@
 import type {
   BehaviorMirrorResult,
+  KrBehaviorMirrorResult,
   CoachGenerationStatus,
   DecisionOutcomeListResult,
   JudgmentScoreboardResult,
@@ -163,6 +164,21 @@ export const coachApi = {
     if (!response.ok) throw new CoachApiError(response.status);
 
     const body = (await response.json()) as AppEnvelope<BehaviorMirrorResult>;
+    return body.data;
+  },
+
+  /**
+   * 국내 주식 미러 (`GET /api/app/coach/mirror/kr-stock`, F011 FR-47). 소유자가 아니면 404 — 부르는 쪽이 상태로 읽는다.
+   * 서버 장애는 BFF 가 200 `unavailable`
+   */
+  krMirror: async (signal?: AbortSignal): Promise<KrBehaviorMirrorResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.krMirror}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<KrBehaviorMirrorResult>;
     return body.data;
   },
 
