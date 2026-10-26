@@ -284,3 +284,11 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 - 2026-10-26 실데이터 수정: `ListDecisionOutcomes(outcomes, market)` 조립 · build 0 · 상시 서버 kickstart 뒤 200
 
 - 2026-10-26 F011 7f: `BuildMonthlyReview`(+`market`) · `GetMonthlyReview`(+`forecastOwnerEmails` · `market`) 조립 · build 0 · 상시 서버 kickstart 뒤 새 PID LISTEN · 200
+
+## F011 슬라이스 6 — 국내 지수 · 투자자 순매수 (2026-10-26, 파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| `env.ts` | 국내 지수 설정 한 줄 — 코치 설정값 무변경 · 기동 확인(상시 서버 kickstart 뒤 4000 LISTEN) |
+
+미검증: 없음

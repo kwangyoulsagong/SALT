@@ -618,3 +618,12 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 **남은 것**: 같은 IP 에서 다른 프로세스가 거래소를 부르면 이 프로세스는 그 몫을 모른다
 (한도보다 2건 낮게 잡은 이유). 서버 인스턴스를 둘 띄우는 배포가 오면 다시 본다.
 
+
+## F011 슬라이스 6 — 국내 지수 · 투자자 순매수 (2026-10-26, 파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| 조립 지점 | `composition.ts` 에 `PrismaKrSupplementStore` · `parseKrSummaryIndices` — 구현을 아는 곳은 여전히 이 파일 하나. `application` → `infrastructure` import 0(훅 사후 실행 · `test:layer-check` 통과) |
+| 레이어 | 새 파일 4개(domain `KrSupplement` · application `SyncKrSupplement` · infra `PrismaKrSupplementStore` · 테스트) 의존 방향 위반 0 · lint 0 |
+
+미검증: 없음

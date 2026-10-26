@@ -75,3 +75,7 @@ FR-36 은 Should 였고 "끊겨 있으면 잇는다"였다. 확인해 보니 끊
 - 지출 목이 실패하면 옆의 실제 보유 목록까지 가렸다 — 가짜 데이터가 진짜 데이터의 게이트가 돼 있었다
 - 목이 가리던 수화 불일치(렌더 중 `localStorage` 토큰)가 목을 걷자 드러났다 → `useHasAccessToken`
 - Action: 렌더 중 `readAccessToken()` 을 부르는 나머지 훅(`useSymbolCoach` · `useWatchlist` · `useCoachReport`)도 같은 훅으로 옮긴다 — 지금은 결과가 수화 중 같아 경고가 안 날 뿐이다
+
+## F011 슬라이스 6 — 국내 지수 · 투자자 순매수 (2026-10-26, 파일만 걸침)
+
+- 파일만 걸침(엔드포인트 2). Action 없음
