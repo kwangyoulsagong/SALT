@@ -2,6 +2,7 @@ import prisma from "../../shared/infrastructure/prisma";
 import type {
   Candle,
   ClosePercentiles,
+  DailyReturnProfile,
   OvernightGapStats,
   ClosePoint,
   MarketAssetType,
@@ -233,6 +234,58 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
       quantile: row?.quantile ?? null,
       worst: row?.worst ?? null,
     };
+  }
+
+  /**
+   * 국내 주식 전 종목 구간 수익률 요약 — `LAG` 로 전 봉을 붙이고 집계를 DB 가 한다. 6개월이면 약 2,600종목 × 125행
+   * (실측 0.5초, 순차 스캔 — `asset_type` 인덱스가 없다. 결과는 구간이 지나면 바뀌지 않아 코치 어댑터가 캐시한다).
+   * 구간 첫 봉은 구간 밖 전 봉과 잇지 않는다. 왜도 = (E[x³] − 3μE[x²] + 2μ³) ÷ σ³(모집단)
+   */
+  async krDailyReturnProfiles(
+    from: Date,
+    to: Date,
+    minReturns: number,
+    bounds: { min: number; max: number }
+  ): Promise<DailyReturnProfile[]> {
+    const rows = await prisma.$queryRaw<
+      Array<{ symbol: string; last_close: number; returns: number; volatility: number | null; skewness: number | null }>
+    >`
+      WITH bars AS (
+        SELECT symbol, timestamp, close::float8 AS close,
+               close::float8 / NULLIF(LAG(close::float8) OVER (PARTITION BY symbol ORDER BY timestamp), 0) AS ratio
+        FROM price_history
+        WHERE asset_type = 'kr_stock'
+          AND timeframe = '1d'
+          -- TIMESTAMP 열(UTC 벽시계) — 파라미터도 UTC 벽시계로
+          AND timestamp >= (${from}::timestamptz AT TIME ZONE 'UTC')
+          AND timestamp < (${to}::timestamptz AT TIME ZONE 'UTC')
+      ), kept AS (
+        SELECT symbol, timestamp, close,
+               CASE WHEN ratio BETWEEN ${bounds.min}::float8 AND ${bounds.max}::float8 THEN ln(ratio) END AS r
+        FROM bars
+      ), stats AS (
+        SELECT symbol,
+               (array_agg(close ORDER BY timestamp DESC))[1] AS last_close,
+               COUNT(r)::int AS returns,
+               stddev_samp(r) AS volatility,
+               stddev_pop(r) AS sd,
+               avg(r) AS m1, avg(r * r) AS m2, avg(r * r * r) AS m3
+        FROM kept
+        GROUP BY symbol
+      )
+      SELECT symbol, last_close, returns, volatility,
+             CASE WHEN sd > 0 THEN (m3 - 3 * m1 * m2 + 2 * m1 * m1 * m1) / (sd * sd * sd) END AS skewness
+      FROM stats
+      WHERE returns >= ${minReturns}
+      ORDER BY symbol
+    `;
+    return rows.map((row) => ({
+      symbol: row.symbol,
+      lastClose: row.last_close,
+      returns: row.returns,
+      volatility: row.volatility,
+      skewness: row.skewness,
+    }));
   }
 
   /**

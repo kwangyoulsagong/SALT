@@ -8,6 +8,7 @@ import {
   type DecisionOutcome,
   type DecisionOutcomeDraft,
   type DecisionOutcomeStore,
+  type OutcomeAssetType,
   type SampleOrigin,
 } from "../domain";
 
@@ -75,11 +76,13 @@ export class PrismaDecisionOutcomeStore implements DecisionOutcomeStore {
   async replaceForUser(
     userId: string,
     drafts: DecisionOutcomeDraft[],
-    computedAt: Date
+    computedAt: Date,
+    assetType: OutcomeAssetType = "crypto"
   ): Promise<{ written: number; removed: number }> {
     const { count: removed } = await prisma.decisionOutcome.deleteMany({
       where: {
         userId,
+        closingTransaction: { assetType },
         closingTransactionId: { notIn: drafts.map((draft) => draft.closingTransactionId) },
       },
     });
@@ -93,9 +96,10 @@ export class PrismaDecisionOutcomeStore implements DecisionOutcomeStore {
     return { written: drafts.length, removed };
   }
 
-  async listOwned(userId: string, limit: number): Promise<DecisionOutcome[]> {
+  async listOwned(userId: string, limit: number, assetType: OutcomeAssetType = "crypto"): Promise<DecisionOutcome[]> {
     const rows = await prisma.decisionOutcome.findMany({
-      where: { userId },
+      // 자산군은 청산 거래의 것 — 결과 표에 열을 두지 않는다(거래가 이미 갖고 있다)
+      where: { userId, closingTransaction: { assetType } },
       // (user_id, closed_at DESC) 인덱스
       orderBy: [{ closedAt: "desc" }, { id: "desc" }],
       take: limit,

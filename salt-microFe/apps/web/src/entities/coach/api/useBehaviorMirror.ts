@@ -1,6 +1,11 @@
 "use client";
 
-import type { BehaviorMirrorResult, DecisionOutcomeListResult, MonthlyReviewResult } from "@repo/core/coach";
+import type {
+  BehaviorMirrorResult,
+  DecisionOutcomeListResult,
+  KrBehaviorMirrorResult,
+  MonthlyReviewResult,
+} from "@repo/core/coach";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { readAccessToken } from "@/shared/api";
@@ -33,12 +38,30 @@ export const useBehaviorMirror = () => {
   return { ...query, isSignedOut: !token };
 };
 
-/** 청산별 결과 · 태그 — 태그 확정 목록 */
-export const useDecisionOutcomes = () => {
+/**
+ * 국내 주식 미러 (F011 FR-47). **404 는 "소유자가 아니다"** — 에러가 아니라 상태다(`notOwner`, 섹션을 그리지 않는다).
+ * 코인 미러와 따로 부르고 따로 실패한다. 첫 요청은 서버가 복권형 단면을 세느라 몇 초 걸린다
+ */
+export const useKrBehaviorMirror = () => {
   const token = readAccessToken();
+  const query = useQuery<KrBehaviorMirrorResult, Error>({
+    queryKey: coachQueryKeys.krMirror(),
+    queryFn: ({ signal }) => coachApi.krMirror(signal),
+    enabled: Boolean(token),
+    staleTime: MIRROR_STALE_TIME_MS,
+    retry: retryServerErrorOnce,
+  });
+  const notOwner = query.error instanceof CoachApiError && query.error.status === HTTP_STATUS_CODE.NOT_FOUND;
+  return { ...query, notOwner, isSignedOut: !token };
+};
+
+/** 청산별 결과 · 태그 — 태그 확정 목록. `kr_stock` 이면 국내 청산(국내 미러 섹션, F011 FR-47) */
+export const useDecisionOutcomes = (assetType: "crypto" | "kr_stock" = "crypto") => {
+  const token = readAccessToken();
+  const isKr = assetType === "kr_stock";
   const query = useQuery<DecisionOutcomeListResult, Error>({
-    queryKey: coachQueryKeys.outcomes(),
-    queryFn: ({ signal }) => coachApi.outcomes(OUTCOME_LIST_LIMIT, signal),
+    queryKey: isKr ? coachQueryKeys.krOutcomes() : coachQueryKeys.outcomes(),
+    queryFn: ({ signal }) => coachApi.outcomes(OUTCOME_LIST_LIMIT, signal, isKr ? assetType : undefined),
     enabled: Boolean(token),
     staleTime: MIRROR_STALE_TIME_MS,
     retry: retryServerErrorOnce,

@@ -23,8 +23,12 @@ export const COACH_ENDPOINTS = {
   plans: (symbol: string) => `/api/app/coach/plans?symbol=${encodeURIComponent(symbol)}`,
   /** 내 거래 미러 (F009 슬라이스 5 `BFF-REQ-038` FR-7) */
   mirror: "/api/app/coach/mirror",
+  /** 국내 주식 미러(F011 FR-47) — 소유자 전용, 아니면 404 */
+  krMirror: "/api/app/coach/mirror/kr-stock",
   /** 청산별 결과 · 태그. 확정은 `outcomeTags` 에 PUT(`features/confirm-outcome-tags`) */
-  outcomes: (limit: number) => `/api/app/coach/outcomes?limit=${limit}`,
+  /** `assetType` 이 없으면 코인(BFF · 서버 기본). 국내 미러는 `kr_stock`(F011 FR-47) */
+  outcomes: (limit: number, assetType?: "crypto" | "kr_stock") =>
+    `/api/app/coach/outcomes?limit=${limit}${assetType ? `&assetType=${assetType}` : ""}`,
   outcomeTags: (id: string) => `/api/app/coach/outcomes/${encodeURIComponent(id)}/tags`,
   /** 판정 성적표 — 신호 유형별, 사용자별 아님 (F010 슬라이스 3 `BFF-REQ-039` FR-5) */
   scoreboard: "/api/app/coach/scoreboard",

@@ -57,12 +57,28 @@ export class AppBehaviorMirrorController {
     }
   };
 
+  /** 국내 주식 미러(F011 FR-47) — 소유자 전용 404 는 그대로 */
+  krMirror = async (req: Request, res: Response, next: NextFunction) => {
+    const aborter = abortOnClose(res);
+    try {
+      const data = await appBehaviorMirrorService.getKrMirror(req.token!, aborter.signal);
+      return res.json({ success: true, data });
+    } catch (error) {
+      if (aborter.signal.aborted) return;
+      next(error);
+    }
+  };
+
   listOutcomes = async (req: Request, res: Response, next: NextFunction) => {
     const limit = parseLimit(req.query.limit);
     if (limit === null) return badRequest(res, "limit 은 1~100 정수입니다");
+    const assetType = req.query.assetType;
+    if (assetType !== undefined && assetType !== "crypto" && assetType !== "kr_stock") {
+      return badRequest(res, "assetType 은 crypto · kr_stock 입니다");
+    }
     const aborter = abortOnClose(res);
     try {
-      const data = await appBehaviorMirrorService.listOutcomes(req.token!, limit, aborter.signal);
+      const data = await appBehaviorMirrorService.listOutcomes(req.token!, limit, aborter.signal, assetType);
       return res.json({ success: true, data });
     } catch (error) {
       if (aborter.signal.aborted) return;

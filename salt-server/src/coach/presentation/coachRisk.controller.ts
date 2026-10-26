@@ -21,6 +21,7 @@ import {
   toSizeCheckResponse,
   toTradePlanResponse,
 } from "./dto/riskView";
+import { toKrBehaviorMirrorResponse } from "./dto/krMirrorView";
 import { toBehaviorMirrorResponse, toDecisionOutcomeResponse } from "./dto/mirrorView";
 import { toMonthlyReviewResponse } from "./dto/monthlyReviewView";
 import { toTargetWeightResponse } from "./dto/targetWeightView";
@@ -165,10 +166,22 @@ export class CoachRiskController {
     }
   };
 
+  getKrBehaviorMirror = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const view = await this.useCases.getKrBehaviorMirror.execute({
+        userId: req.user!.userId,
+        viewerEmail: req.user!.email,
+      });
+      return ResponseUtil.success(res, toKrBehaviorMirrorResponse(view));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   listDecisionOutcomes = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { limit } = listDecisionOutcomesQuerySchema.parse(req.query);
-      const outcomes = await this.useCases.listDecisionOutcomes.execute(req.user!.userId, limit);
+      const { limit, assetType } = listDecisionOutcomesQuerySchema.parse(req.query);
+      const outcomes = await this.useCases.listDecisionOutcomes.execute(req.user!.userId, limit, assetType);
       return ResponseUtil.success(res, { outcomes: outcomes.map(toDecisionOutcomeResponse) });
     } catch (error) {
       next(error);

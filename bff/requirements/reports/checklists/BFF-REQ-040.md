@@ -121,3 +121,24 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 상시 BFF 경유 | 상시 BFF 프로세스가 없다(4101 로 확인 뒤 끔) | 배포 환경 확정 시 |
+
+## 슬라이스 7d — FR-24 국내 미러 (2026-10-26)
+
+- `toKrBehaviorMirrorViewModel` — 지표 · 기준점 · `excluded` 합 · 출처 없는 기준점 `null` · 값 없는 `ok` → `insufficient_data` · 잘린 원장 · 뼈대 깨짐 던짐 / 서비스 — 경로 · 8초 · 1회 호출 · 404 통과 · 503 → `unavailable`(테스트 5, 260/260) · `npm run build` 0
+- 실경로: 상시 서버 4000 은 확인(서버 체크리스트), BFF 는 Playwright 고정 응답으로 화면까지(FE 체크리스트)
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| BFF 프로세스 경유 실호출 | 상시 BFF 가 없다 — 서버 직접 · 단위 테스트로 확인 | 배포 환경 확정 시 |
+
+## 슬라이스 7d 후속 · 7e — FR-24 · FR-25 (2026-10-26)
+
+- FR-24 후속: 배치 결과 구역 옮김 · 빈 구역 · `listOutcomes` `assetType` 쿼리(있을 때만) · 컨트롤러 400 / FR-25: 합산 변동성 통과 · 한 끝 없으면 `insufficient_data` · 모르는 축 `null` · 옛 서버(테스트 +3, 263/263) · `npm run build` 0
+- `toAdherenceView` 를 빼며 코인 미러 기존 테스트 그대로 통과
+- 화면 픽스처: 상시 서버 실제 risk-budget 응답을 `toRiskBudgetViewModel` 에 통과시켜 만듦(합산 변동성만 실측값으로 바꿈)
+
+## 실데이터 확인 (2026-10-26)
+
+- BFF 4101 → 상시 서버 4000, 소유자 시험 거래: `POST /api/app/coach/trades` 6건 201(계획 1 `ok`) · `/mirror/kr-stock` 200 · 1.7초 · `/risk-budget` 200 · `/outcomes?assetType=kr_stock` 이름 · 로고. 테스트 263(이름 통과 단언 추가) · build 0

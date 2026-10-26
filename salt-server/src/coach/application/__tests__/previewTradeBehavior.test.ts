@@ -163,4 +163,51 @@ describe("CheckTradeSize × 미리보기", () => {
     await check.execute("u1", { ...command, hasPlan: true });
     assert.deepEqual(seen, [false, true, true]);
   });
+
+  it("국내 주식 종목이면 미리보기가 국내 원장 · 국내 결과 · 국내 편도 수수료로 본다 (F011 FR-47)", async () => {
+    const seen: Array<{ assetType?: string; feeRatePerSide?: Decimal }> = [];
+    const spy = {
+      execute: async (_: string, input: { assetType?: string; feeRatePerSide?: Decimal }) => {
+        seen.push(input);
+        return { status: "truncated" as const };
+      },
+    } as unknown as PreviewTradeBehavior;
+    const krMarket = {
+      ...market,
+      quotes: async () => new Map([["005930", { symbol: "005930", assetType: "kr_stock", currentPrice: 100 }]]),
+    } as unknown as MarketProbe;
+    await new CheckTradeSize(profiles, portfolio, krMarket, forecasts, () => NOW, spy).execute("u1", {
+      ...command,
+      symbol: "005930",
+    });
+    await new CheckTradeSize(profiles, portfolio, market, forecasts, () => NOW, spy).execute("u1", command);
+    assert.equal(seen[0].assetType, "kr_stock");
+    assert.equal(seen[0].feeRatePerSide?.toNumber(), 0.000186);
+    assert.equal(seen[1].assetType, "crypto", "시세를 모르면 코인(지금까지와 같다)");
+  });
+});
+
+describe("PreviewTradeBehavior · 자산군", () => {
+  it("assetType 을 원장 · 결과 조회에 그대로 넘긴다", async () => {
+    const asked: unknown[] = [];
+    const portfolio = {
+      listLedgerSince: async (_u: string, _s: Date, _l: number, assetTypes: unknown) => {
+        asked.push(assetTypes);
+        return { entries: [], truncated: false };
+      },
+    } as unknown as PortfolioProbe;
+    const outcomes = {
+      listOwned: async (_u: string, _l: number, assetType: unknown) => {
+        asked.push(assetType);
+        return [];
+      },
+    } as unknown as DecisionOutcomeStore;
+    const market = { highestCloseBetween: async () => null } as unknown as MarketProbe;
+    await new PreviewTradeBehavior(portfolio, {} as TradePlanStore, outcomes, market, () => NOW).execute("u1", {
+      ...buy,
+      symbol: "005930",
+      assetType: "kr_stock",
+    });
+    assert.deepEqual(asked, [["kr_stock"], "kr_stock"]);
+  });
 });

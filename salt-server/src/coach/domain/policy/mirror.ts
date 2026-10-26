@@ -105,15 +105,22 @@ export interface DispositionMirror {
 const barAt = (bars: DailyBar[] | undefined, at: Date): DailyBar | null =>
   bars?.find((bar) => bar.openTime <= at && at < barCloseTime(bar)) ?? null;
 
+/** `at` 이전 마지막 일봉(그날 봉 포함) — 국내 주식은 휴장일 매도도 직전 거래일 종가로 본다 */
+const barAtOrBefore = (bars: DailyBar[] | undefined, at: Date): DailyBar | null =>
+  bars?.filter((bar) => bar.openTime <= at).at(-1) ?? null;
+
 /**
  * 매도가 일어난 날마다: 판 종목은 실현 이익/손실, 그날 들고 있던 **다른** 종목은 그날 종가와 평단을 비교해
  * 장부상 이익/손실로 센다. 순손익 0 인 매도는 어느 쪽에도 넣지 않는다.
+ * `carryForward` 면 그날 봉이 없을 때 직전 거래일 종가(국내 주식 — 코인은 매일 봉이 있어 비면 결측이다).
  */
 export const dispositionMirror = (
   replay: LedgerReplay,
   barsBySymbol: Map<string, DailyBar[]>,
-  outcomes: Array<Pick<DecisionOutcome, "netPnlKrw" | "holdingDays">>
+  outcomes: Array<Pick<DecisionOutcome, "netPnlKrw" | "holdingDays">>,
+  options: { carryForward?: boolean } = {}
 ): DispositionMirror => {
+  const closeOn = options.carryForward ? barAtOrBefore : barAt;
   const counts = { realizedGains: 0, paperGains: 0, realizedLosses: 0, paperLosses: 0 };
   const missing = new Set<string>();
   const pnlBySell = new Map(replay.closings.map((closing) => [closing.sell.id, closing.netPnlKrw]));
@@ -124,7 +131,7 @@ export const dispositionMirror = (
     else if (pnl?.lt(0)) counts.realizedLosses += 1;
 
     for (const holding of moment.otherHoldings) {
-      const bar = barAt(barsBySymbol.get(holding.symbol), moment.at);
+      const bar = closeOn(barsBySymbol.get(holding.symbol), moment.at);
       if (!bar) {
         missing.add(holding.symbol);
         continue;

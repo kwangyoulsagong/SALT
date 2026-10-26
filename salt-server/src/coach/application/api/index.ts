@@ -32,6 +32,7 @@ import { EvaluateTradeDecisions } from "../EvaluateTradeDecisions";
 import { ExplainCoachDecision } from "../ExplainCoachDecision";
 import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
 import { GetBehaviorMirror } from "../GetBehaviorMirror";
+import { GetKrBehaviorMirror } from "../GetKrBehaviorMirror";
 import { GetCoachDetail } from "../GetCoachDetail";
 import { GetCoachGenerationStatus } from "../GetCoachGenerationStatus";
 import { GetCoachRecommendation } from "../GetCoachRecommendation";
@@ -149,6 +150,7 @@ export interface CoachUseCases {
   /** F009 슬라이스 4 — 준수 판정 · 결정 결과 배치 · 미러 · 태그 확정 */
   evaluateTradeDecisions: EvaluateTradeDecisions;
   getBehaviorMirror: GetBehaviorMirror;
+  getKrBehaviorMirror: GetKrBehaviorMirror;
   listDecisionOutcomes: ListDecisionOutcomes;
   confirmOutcomeTags: ConfirmOutcomeTags;
   /** F009 슬라이스 6 — 월간 복기(월초 배치 · 첫 조회가 만든다) */
@@ -312,7 +314,15 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.decisionOutcomes,
       deps.forecasts
     ),
-    listDecisionOutcomes: new ListDecisionOutcomes(deps.decisionOutcomes),
+    getKrBehaviorMirror: new GetKrBehaviorMirror(
+      deps.portfolio,
+      deps.forecasts,
+      deps.market,
+      deps.tradePlans,
+      deps.decisionOutcomes,
+      deps.forecastOwnerEmails
+    ),
+    listDecisionOutcomes: new ListDecisionOutcomes(deps.decisionOutcomes, deps.market),
     confirmOutcomeTags: new ConfirmOutcomeTags(deps.decisionOutcomes),
     buildMonthlyReview,
     getMonthlyReview: new GetMonthlyReview(deps.monthlyReviews, buildMonthlyReview),

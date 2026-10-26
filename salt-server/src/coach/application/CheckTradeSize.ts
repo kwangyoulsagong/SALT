@@ -18,6 +18,7 @@ import {
   type CoachProfileStore,
   type ForecastReader,
   type MarketProbe,
+  type OutcomeAssetType,
   type PortfolioProbe,
   type GapScenarios,
   type OvernightGapHistory,
@@ -87,18 +88,23 @@ export class CheckTradeSize {
     const symbol = command.symbol.toUpperCase();
     const now = this.now();
 
-    const [snapshot, volatility, behavior, quotes] = await Promise.all([
+    // 자산군 — 수수료가 갈리고, 행동 미리보기가 같은 자산군 기록만 본다(F011 FR-47). 시세를 모르면 코인(지금까지와 같다)
+    const assetClassP = this.market
+      .quotes([symbol])
+      .catch(() => new Map())
+      .then((quotes) => judgmentAssetClassFor(quotes.get(symbol)?.assetType));
+    const [snapshot, volatility, behavior, assetClass] = await Promise.all([
       loadRiskSnapshot(
         { profiles: this.profiles, portfolio: this.portfolio, market: this.market },
         userId,
         now
       ),
       this.forecasts.realizedVolatility(symbol),
-      this.previewBehavior(userId, symbol, command),
-      // 자산군 — 수수료가 갈린다. 시세를 모르면 코인 수수료(지금까지와 같다)
-      this.market.quotes([symbol]).catch(() => new Map()),
+      assetClassP.then((assetClass) =>
+        this.previewBehavior(userId, symbol, command, assetClass, sizingCosts(assetClass, this.costs, now).feeRatePerSide)
+      ),
+      assetClassP,
     ]);
-    const assetClass = judgmentAssetClassFor(quotes.get(symbol)?.assetType);
     const costs = sizingCosts(assetClass, this.costs, now);
     const { feeRatePerSide, sellTaxRate } = costs;
 
@@ -190,7 +196,9 @@ export class CheckTradeSize {
   private async previewBehavior(
     userId: string,
     symbol: string,
-    command: CheckTradeSizeCommand
+    command: CheckTradeSizeCommand,
+    assetType: OutcomeAssetType,
+    feeRatePerSide: Decimal
   ): Promise<TradeBehaviorPreview | null> {
     if (!this.preview) return null;
     try {
@@ -200,6 +208,8 @@ export class CheckTradeSize {
         quantity: command.quantity,
         price: command.price,
         hasPlan: command.hasPlan ?? command.stopPrice !== undefined,
+        assetType,
+        feeRatePerSide,
       });
     } catch (error) {
       logger.warn(`사이즈 계산 행동 미리보기 실패: ${error instanceof Error ? error.name : "unknown"}`);

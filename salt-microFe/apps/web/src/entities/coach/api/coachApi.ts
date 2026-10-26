@@ -1,5 +1,6 @@
 import type {
   BehaviorMirrorResult,
+  KrBehaviorMirrorResult,
   CoachGenerationStatus,
   DecisionOutcomeListResult,
   JudgmentScoreboardResult,
@@ -166,6 +167,21 @@ export const coachApi = {
     return body.data;
   },
 
+  /**
+   * 국내 주식 미러 (`GET /api/app/coach/mirror/kr-stock`, F011 FR-47). 소유자가 아니면 404 — 부르는 쪽이 상태로 읽는다.
+   * 서버 장애는 BFF 가 200 `unavailable`
+   */
+  krMirror: async (signal?: AbortSignal): Promise<KrBehaviorMirrorResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.krMirror}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw new CoachApiError(response.status);
+
+    const body = (await response.json()) as AppEnvelope<KrBehaviorMirrorResult>;
+    return body.data;
+  },
+
   /** 판정 성적표 (`GET /api/app/coach/scoreboard`, F010 슬라이스 3). 신호 유형별 · 사용자별 아님. 서버 장애는 BFF 가 200 `unavailable` */
   scoreboard: async (signal?: AbortSignal): Promise<JudgmentScoreboardResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.scoreboard}`, {
@@ -202,9 +218,13 @@ export const coachApi = {
     return body.data;
   },
 
-  /** 청산별 결과 · 태그 (`GET /api/app/coach/outcomes`). 최근 청산 순 */
-  outcomes: async (limit: number, signal?: AbortSignal): Promise<DecisionOutcomeListResult> => {
-    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.outcomes(limit)}`, {
+  /** 청산별 결과 · 태그 (`GET /api/app/coach/outcomes`). 최근 청산 순. `assetType` 이 없으면 코인 */
+  outcomes: async (
+    limit: number,
+    signal?: AbortSignal,
+    assetType?: "crypto" | "kr_stock",
+  ): Promise<DecisionOutcomeListResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.outcomes(limit, assetType)}`, {
       headers: authHeader(),
       signal,
     });

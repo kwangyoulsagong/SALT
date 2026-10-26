@@ -39,6 +39,7 @@ import {
   title,
   titleBlock,
 } from "./CoachReport.css";
+import { KrMirrorPanel } from "./KrMirrorPanel";
 import { MirrorPanel } from "./MirrorPanel";
 import { MonthlyReviewPanel } from "./MonthlyReviewPanel";
 import { RiskBudgetPanel } from "./RiskBudgetPanel";
@@ -157,6 +158,7 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
         <MirrorPanel
           behaviorFacts={degraded(REPORT_BLOCK_FIELDS.behaviorFacts) ? null : report.behaviorFacts}
         />
+        <KrMirrorPanel />
 
         {/* F009 시나리오 6 — 월초에 만든 지난달 복기. 미러 바로 아래(지금 숫자 → 지난달에 굳힌 숫자) */}
         <MonthlyReviewPanel />
@@ -216,6 +218,7 @@ export const CoachReport = () => {
         <RiskBudgetPanel />
         <ScoreboardPanel />
         <MirrorPanel behaviorFacts={null} />
+        <KrMirrorPanel />
         <MonthlyReviewPanel />
       </>,
     );

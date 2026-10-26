@@ -11,3 +11,5 @@
 - 이 REQ 는 슬라이스 4 · 6 이 이미 많은 FR 을 구현했는데 to-do 에 있었다 — 이번에 in-progress 로 옮기고 체크리스트를 만들었다
 - 앱 테스트 러너가 없어 `describeBehaviorFact` · `passesRecommendationGate` 가 테스트 밖이다. `@repo/core` 로 옮길지 앱에 vitest 를 둘지 정한다
 - FR-60(서버 컴포넌트 조회)은 `FE-REQ-013` 쿠키 세션 후에 닫는다
+
+- 2026-10-26 F011 7d · 7e: 리포트 두 분기(리포트 있음 · 없음)에 같은 패널을 둘 다 넣어야 한다 — 한쪽만 넣으면 리포트가 실패한 날 국내 미러가 사라진다. Action: 없음

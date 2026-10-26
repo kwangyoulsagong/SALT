@@ -219,6 +219,25 @@ export interface MarketProbe {
   ): Promise<{ sample: number; excluded: number; quantile: number | null; worst: number | null }>;
   /** 심볼들의 이름 · 로고 — 판단 사례의 종목 표시(F011 슬라이스 7b). 모르는 심볼은 빠진다 */
   assetLabels(symbols: string[]): Promise<Array<{ symbol: string; name: string; logoUrl: string | null }>>;
+  /**
+   * `[from, to)` 국내 주식 전 종목 일간 수익률 요약 — 복권형 단면(F011 FR-47). `bounds` 밖 비율은 원천 끊김이라 세지
+   * 않고, 수익률이 `minReturns` 미만인 종목은 빠진다. 지난 구간은 바뀌지 않아 구현이 캐시해도 된다
+   */
+  krDailyReturnProfiles(
+    from: Date,
+    to: Date,
+    minReturns: number,
+    bounds: { min: number; max: number }
+  ): Promise<KrReturnProfile[]>;
+}
+
+/** 국내 주식 한 종목의 구간 일간 수익률 요약 */
+export interface KrReturnProfile {
+  symbol: string;
+  lastClose: number;
+  returns: number;
+  volatility: number | null;
+  skewness: number | null;
 }
 
 /** `portfolio` 조회 — ACL Port. */
@@ -720,18 +739,26 @@ export interface TradePlanStore {
  * 결정 결과 저장 — `decision_outcomes` (FEATURE-009 FR-14 · FR-18 · `DB-REQ-031`).
  * 모든 조회 · 수정이 `userId` 로 좁혀진다.
  */
+/**
+ * 결과를 가르는 자산군 — 청산 거래(`portfolio_transactions.asset_type`)의 것. 코인 · 국내 주식은 배치 · 미러가 따로 돈다
+ * (F011 FR-47). 기본은 코인 — 국내가 생기기 전 소비처(코인 미러 · 월간 복기)의 뜻이 그대로다
+ */
+export type OutcomeAssetType = "crypto" | "kr_stock";
+
 export interface DecisionOutcomeStore {
   /**
    * 사용자 결과를 이 회차 것으로 맞춘다 — 매도 id 로 덮어쓰고, 이번에 없는 행(지운 매도 · 원가 모르는 매도)은 지운다.
-   * **사용자 태그(`userTags` · `userTagsConfirmedAt`)는 덮지 않는다.** 같은 회차를 두 번 돌려도 같은 결과다
+   * **사용자 태그(`userTags` · `userTagsConfirmedAt`)는 덮지 않는다.** 같은 회차를 두 번 돌려도 같은 결과다.
+   * 지우는 범위는 `assetType` 청산뿐이다 — 코인 회차가 국내 결과를 지우지 않는다
    */
   replaceForUser(
     userId: string,
     drafts: DecisionOutcomeDraft[],
-    computedAt: Date
+    computedAt: Date,
+    assetType?: OutcomeAssetType
   ): Promise<{ written: number; removed: number }>;
-  /** 최신 청산이 앞 */
-  listOwned(userId: string, limit: number): Promise<DecisionOutcome[]>;
+  /** 최신 청산이 앞. `assetType` 청산만(기본 코인) */
+  listOwned(userId: string, limit: number, assetType?: OutcomeAssetType): Promise<DecisionOutcome[]>;
   /** 사용자 태그 확정. 남의 것이면 `null` */
   confirmTags(
     userId: string,

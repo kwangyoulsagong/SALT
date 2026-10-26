@@ -92,6 +92,15 @@ export const RISK_MESSAGES = {
     btcBetaEquivalent: (krw: string) => `BTC 로 환산하면 ${krw}원어치`,
     btcBetaHint: "최근 90일 · 1 이면 BTC 와 같은 폭으로 움직였어요",
     btcBetaCovered: (rate: string, symbols: string) => `${symbols} 은 베타를 몰라 빼고 셌어요(보유의 ${rate})`,
+    /** 보유 합산 변동성(F011 FR-46) — 한 값이 아니라 범위. 좋다 · 나쁘다를 말하지 않는다 */
+    portfolioVolatility: "보유 전체 흔들림(연)",
+    portfolioVolatilityValue: (realized: string, upper: string) => `${realized} ~ ${upper}`,
+    portfolioVolatilityTarget: (target: string) => `내가 정한 목표 변동성 ${target}`,
+    portfolioVolatilityHint:
+      "앞은 최근 1년 실제로 같이 움직인 만큼, 뒤는 전부 같이 움직인다고 본 값이에요 — 둘이 얼마나 같이 움직일지는 정해져 있지 않아요",
+    portfolioVolatilityCross: (correlation: string) => `최근 1년 코인 몫 · 국내 주식 몫 상관 ${correlation}`,
+    portfolioVolatilityGrid: "국내 주식 거래일로 셌어요 · 코인은 그날 오전 9시 가격",
+    portfolioVolatilityCovered: (rate: string, symbols: string) => `${symbols} 은 이력이 짧아 빼고 셌어요(보유의 ${rate}로 계산)`,
     signedOut: "로그인하면 내 리스크 예산을 볼 수 있어요",
     unavailable: "지금은 리스크 예산을 불러올 수 없어요",
     progressLabel: (name: string) => `${name} 사용률`,

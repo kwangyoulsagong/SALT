@@ -13,13 +13,14 @@ import type {
   DecisionOutcomeStore,
   ForecastReader,
   MarketProbe,
+  OutcomeAssetType,
   PortfolioProbe,
   TradePlan,
   TradePlanStore,
 } from "../../domain";
 import { EvaluateTradeDecisions } from "../EvaluateTradeDecisions";
 import { GetBehaviorMirror } from "../GetBehaviorMirror";
-import { ConfirmOutcomeTags } from "../ManageDecisionOutcomes";
+import { ConfirmOutcomeTags, ListDecisionOutcomes } from "../ManageDecisionOutcomes";
 
 /**
  * F009 슬라이스 4 유스케이스 (`SRV-REQ-038` FR-9) — 배치 멱등 · 사용자 수정 보존 · 지운 매도 정리 · 잘린 거래.
@@ -27,13 +28,16 @@ import { ConfirmOutcomeTags } from "../ManageDecisionOutcomes";
 
 class MemoryOutcomes implements DecisionOutcomeStore {
   rows = new Map<string, DecisionOutcome>();
+  /** 청산 거래 id → 자산군(실제 저장소는 거래 표에서 읽는다) */
+  assetOf = new Map<string, OutcomeAssetType>();
   private seq = 0;
 
-  async replaceForUser(userId: string, drafts: DecisionOutcomeDraft[], computedAt: Date) {
+  async replaceForUser(userId: string, drafts: DecisionOutcomeDraft[], computedAt: Date, assetType: OutcomeAssetType = "crypto") {
     const keep = new Set(drafts.map((draft) => draft.closingTransactionId));
     let removed = 0;
+    for (const draft of drafts) this.assetOf.set(draft.closingTransactionId, assetType);
     for (const [key, row] of this.rows) {
-      if (row.userId === userId && !keep.has(key)) {
+      if (row.userId === userId && (this.assetOf.get(key) ?? "crypto") === assetType && !keep.has(key)) {
         this.rows.delete(key);
         removed += 1;
       }
@@ -51,8 +55,10 @@ class MemoryOutcomes implements DecisionOutcomeStore {
     return { written: drafts.length, removed };
   }
 
-  async listOwned(userId: string) {
-    return [...this.rows.values()].filter((row) => row.userId === userId);
+  async listOwned(userId: string, _limit?: number, assetType: OutcomeAssetType = "crypto") {
+    return [...this.rows.values()].filter(
+      (row) => row.userId === userId && (this.assetOf.get(row.closingTransactionId) ?? "crypto") === assetType
+    );
   }
 
   async confirmTags(userId: string, outcomeId: string, tags: string[], confirmedAt: Date) {
@@ -115,11 +121,19 @@ const plan = (overrides: Partial<TradePlan>): TradePlan => ({
   ...overrides,
 });
 
-const setup = (options: { ledger: CoachLedgerEntry[]; truncated?: boolean; plans?: TradePlan[] }) => {
-  const state = { ledger: options.ledger };
+const setup = (options: {
+  ledger: CoachLedgerEntry[];
+  krLedger?: CoachLedgerEntry[];
+  truncated?: boolean;
+  plans?: TradePlan[];
+  krBars?: DailyBar[];
+}) => {
+  const state = { ledger: options.ledger, krLedger: options.krLedger ?? [] };
   const portfolio = {
-    async listLedgerSince() {
-      return { entries: [...state.ledger].reverse(), truncated: options.truncated ?? false };
+    // 실제 어댑터처럼 자산군을 지킨다 — 국내 회차가 코인 거래를 다시 세지 않는다
+    async listLedgerSince(_userId: string, _since: Date, _limit: number, assetTypes: readonly string[] = ["crypto"]) {
+      const entries = assetTypes.includes("kr_stock") ? state.krLedger : state.ledger;
+      return { entries: [...entries].reverse(), truncated: options.truncated ?? false };
     },
     async listHoldings() {
       return [];
@@ -130,8 +144,11 @@ const setup = (options: { ledger: CoachLedgerEntry[]; truncated?: boolean; plans
     { openTime: new Date("2026-01-02T00:00:00Z"), close: new Decimal(85) },
   ];
   const forecasts = {
-    async dailyCloses() {
-      return new Map([["BTC", bars]]);
+    async dailyCloses(symbols: string[]) {
+      return new Map([
+        ["BTC", bars],
+        ["005930", options.krBars ?? []],
+      ].filter(([symbol]) => symbols.includes(symbol as string)) as Array<[string, DailyBar[]]>);
     },
   } as unknown as ForecastReader;
   const market = {
@@ -210,6 +227,54 @@ describe("EvaluateTradeDecisions", () => {
   });
 });
 
+describe("EvaluateTradeDecisions · 국내 주식 (F011 FR-47)", () => {
+  /** 국내 일봉은 거래일 00:00 UTC 로 온다(`forecastSymbol.dailyOpenTime`) */
+  const krBars: DailyBar[] = [
+    { openTime: new Date("2026-01-12T00:00:00Z"), close: new Decimal(100) },
+    { openTime: new Date("2026-01-13T00:00:00Z"), close: new Decimal(85) },
+    { openTime: new Date("2026-01-14T00:00:00Z"), close: new Decimal(95) },
+  ];
+  const kr = (id: string, side: "buy" | "sell", date: string, price: number): CoachLedgerEntry => ({
+    ...tx(id, side, `${date}T00:00:00+09:00`, price),
+    symbol: "005930",
+  });
+
+  it("국내 회차가 따로 돌고 · 코인 회차가 국내 결과를 지우지 않는다", async () => {
+    const ctx = setup({
+      ledger: [tx("b1", "buy", "2026-01-01T01:00:00Z", 100), tx("s1", "sell", "2026-01-05T01:00:00Z", 88)],
+      krLedger: [kr("kb1", "buy", "2026-01-13", 90), kr("ks1", "sell", "2026-01-14", 95)],
+      plans: [plan({}), plan({ id: "kp1", transactionId: "kb1", symbol: "005930", stopPrice: new Decimal(80) })],
+      krBars,
+    });
+    const result = await ctx.evaluate.execute("u1");
+    assert.equal(result.outcomes, 2);
+    assert.deepEqual((await ctx.outcomes.listOwned("u1")).map((row) => row.closingTransactionId), ["s1"]);
+    assert.deepEqual((await ctx.outcomes.listOwned("u1", 10, "kr_stock")).map((row) => row.closingTransactionId), ["ks1"]);
+    assert.equal(ctx.plans.rows[0].adherenceLabel, "stop_not_honored", "코인 계획은 코인 회차가");
+    assert.equal(ctx.plans.rows[1].adherenceLabel, "honored", "국내 계획은 국내 회차가 — 산 날(01-13) 종가 85 > 손절 80");
+
+    ctx.state.krLedger = [];
+    const second = await ctx.evaluate.execute("u1");
+    assert.equal(second.removed, 1, "지운 국내 매도의 결과만 사라진다");
+    assert.equal((await ctx.outcomes.listOwned("u1")).length, 1);
+  });
+
+  it("00:00 KST 로 적은 국내 매수에 전 거래일 종가를 '산 뒤'로 세지 않는다", async () => {
+    // 01-13 00:00 KST 매수 · 손절 90. 전 거래일(01-12) 종가 80 · 그날 91 — 산 뒤 위반은 없다
+    const ctx = setup({
+      ledger: [],
+      krLedger: [kr("kb1", "buy", "2026-01-13", 92)],
+      plans: [plan({ id: "kp1", transactionId: "kb1", symbol: "005930", stopPrice: new Decimal(90) })],
+      krBars: [
+        { openTime: new Date("2026-01-12T00:00:00Z"), close: new Decimal(80) },
+        { openTime: new Date("2026-01-13T00:00:00Z"), close: new Decimal(91) },
+      ],
+    });
+    await ctx.evaluate.execute("u1");
+    assert.equal(ctx.plans.rows[0].adherenceLabel, "honored", "전날 종가 80 은 사기 전 — 봉을 옮기지 않으면 stop_not_honored");
+  });
+});
+
 describe("GetBehaviorMirror", () => {
   it("배치 결과로 준수율 · 태그 비용을 센다", async () => {
     const ctx = setup({
@@ -224,6 +289,45 @@ describe("GetBehaviorMirror", () => {
     assert.equal(view.outcomeCount, 1);
     assert.equal(view.minSample, 20);
     assert.equal(view.tagCosts.length, 0, "계획이 있는 청산이라 off_plan 이 아니다");
+  });
+});
+
+describe("ListDecisionOutcomes · 국내 종목 이름 (F011 FR-47)", () => {
+  it("국내 목록에만 이름 · 로고를 싣고, 라벨 조회가 실패해도 목록은 나간다", async () => {
+    const ctx = setup({
+      ledger: [tx("b1", "buy", "2026-01-01T01:00:00Z", 100), tx("s1", "sell", "2026-01-05T01:00:00Z", 88)],
+      krLedger: [
+        { ...tx("kb1", "buy", "2026-01-13T00:00:00+09:00", 90), symbol: "005930" },
+        { ...tx("ks1", "sell", "2026-01-14T00:00:00+09:00", 95), symbol: "005930" },
+      ],
+      krBars: [
+        { openTime: new Date("2026-01-13T00:00:00Z"), close: new Decimal(90) },
+        { openTime: new Date("2026-01-14T00:00:00Z"), close: new Decimal(95) },
+      ],
+    });
+    await ctx.evaluate.execute("u1");
+    const asked: string[][] = [];
+    const market = {
+      async assetLabels(symbols: string[]) {
+        asked.push(symbols);
+        return [{ symbol: "005930", name: "삼성전자", logoUrl: "https://img.example/005930.png" }];
+      },
+    };
+    const list = new ListDecisionOutcomes(ctx.outcomes, market);
+    const [kr] = await list.execute("u1", 20, "kr_stock");
+    assert.equal(kr.name, "삼성전자");
+    assert.equal(kr.logoUrl, "https://img.example/005930.png");
+    const [coin] = await list.execute("u1", 20);
+    assert.equal(coin.name, null, "코인은 화면이 시세 목록에서 찾는다");
+    assert.deepEqual(asked, [["005930"]], "코인 목록은 라벨을 묻지 않는다");
+
+    const failing = new ListDecisionOutcomes(ctx.outcomes, {
+      async assetLabels() {
+        throw new Error("down");
+      },
+    });
+    const [still] = await failing.execute("u1", 20, "kr_stock");
+    assert.equal(still.name, null);
   });
 });
 

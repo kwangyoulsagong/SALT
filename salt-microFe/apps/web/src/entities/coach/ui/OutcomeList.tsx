@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { effectiveOutcomeTags, formatShortDate, formatSignedDecimal, formatSignedKrw, formatSignedRate, formatTimes, tagName } from "../lib";
 import { MIRROR_MESSAGES } from "../model";
+import { CaseIdentity } from "./CaseIdentity";
 import { outcomeHead, outcomeItem, outcomeList, outcomeMeta, outcomePnl, tagChip } from "./Mirror.css";
 
 const { outcomes: OUT } = MIRROR_MESSAGES;
@@ -57,7 +58,12 @@ export const OutcomeList = ({ outcomes, renderIdentity, renderTags }: OutcomeLis
         return (
           <li key={outcome.id} className={outcomeItem}>
             <div className={outcomeHead}>
-              {renderIdentity(outcome.symbol, "sm")}
+              {/* 국내 청산은 서버가 이름 · 로고를 싣는다 — 시세 목록(코인)에 없어 이니셜로 떨어지던 자리(F011 FR-47) */}
+              {outcome.name ? (
+                <CaseIdentity symbol={outcome.symbol} name={outcome.name} logoUrl={outcome.logoUrl ?? null} />
+              ) : (
+                renderIdentity(outcome.symbol, "sm")
+              )}
               <span className={outcomePnl}>{OUT.pnl(formatSignedKrw(outcome.netPnlKrw))}</span>
             </div>
             <span className={outcomeMeta}>

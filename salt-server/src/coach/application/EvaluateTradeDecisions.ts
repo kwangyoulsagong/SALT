@@ -9,6 +9,7 @@ import {
   type DecisionOutcomeStore,
   type ForecastReader,
   type MarketProbe,
+  type OutcomeAssetType,
   type PortfolioProbe,
   type TradePlan,
   type TradePlanStore,
@@ -23,7 +24,12 @@ import { loadTradeHistory } from "./lib/loadTradeHistory";
  * 사용자가 고친 라벨 · 확정한 태그는 덮지 않는다(저장소 경계).
  *
  * 규칙은 전부 `domain/policy`(`adherence` · `decisionOutcome` · `tradeLedger`)에 있고 여기는 순서만 잡는다.
+ *
+ * 코인 · 국내 주식을 **따로** 되감는다(F011 FR-47) — 원가 · 계획 · 결과 지우기 범위가 자산군 안에서 닫힌다.
+ * 한쪽이 잘려도(5,000건) 다른 쪽은 돈다. 결과는 두 회차의 합이다.
  */
+
+const ASSET_TYPES: readonly OutcomeAssetType[] = ["crypto", "kr_stock"];
 
 /** 5분봉 보관(30일)보다 하루 짧게 — 경계에서 반쯤 지워진 구간으로 "추격 아님"을 내지 않게 */
 const CHASING_DATA_WINDOW_MS = 29 * 24 * 60 * 60 * 1000;
@@ -53,6 +59,33 @@ export class EvaluateTradeDecisions {
 
   async execute(userId: string): Promise<EvaluateTradeDecisionsResult> {
     const now = this.now();
+    const total: EvaluateTradeDecisionsResult = {
+      status: "ok",
+      outcomes: 0,
+      removed: 0,
+      labels: { honored: 0, stop_not_honored: 0, stop_slipped: 0, size_exceeded: 0, none: 0 },
+      unmatchedSells: 0,
+      chasingUnknown: 0,
+    };
+    for (const assetType of ASSET_TYPES) {
+      const part = await this.evaluate(userId, assetType, now);
+      if (part.status === "truncated") total.status = "truncated";
+      total.outcomes += part.outcomes;
+      total.removed += part.removed;
+      total.unmatchedSells += part.unmatchedSells;
+      total.chasingUnknown += part.chasingUnknown;
+      for (const key of Object.keys(total.labels) as Array<keyof typeof total.labels>) {
+        total.labels[key] += part.labels[key];
+      }
+    }
+    return total;
+  }
+
+  private async evaluate(
+    userId: string,
+    assetType: OutcomeAssetType,
+    now: Date
+  ): Promise<EvaluateTradeDecisionsResult> {
     const labels: EvaluateTradeDecisionsResult["labels"] = {
       honored: 0,
       stop_not_honored: 0,
@@ -62,7 +95,8 @@ export class EvaluateTradeDecisions {
     };
     const history = await loadTradeHistory(
       { portfolio: this.portfolio, tradePlans: this.tradePlans, forecasts: this.forecasts },
-      userId
+      userId,
+      assetType
     );
     if (history.status === "truncated") {
       return { status: "truncated", outcomes: 0, removed: 0, labels, unmatchedSells: 0, chasingUnknown: 0 };
@@ -108,7 +142,7 @@ export class EvaluateTradeDecisions {
     }
 
     // 3. 결과
-    const previous = await this.outcomes.listOwned(userId, OUTCOME_READ_LIMIT);
+    const previous = await this.outcomes.listOwned(userId, OUTCOME_READ_LIMIT, assetType);
     const drafts = buildDecisionOutcomes({
       userId,
       replay,
@@ -118,7 +152,7 @@ export class EvaluateTradeDecisions {
       barsBySymbol,
       now,
     });
-    const { written, removed } = await this.outcomes.replaceForUser(userId, drafts, now);
+    const { written, removed } = await this.outcomes.replaceForUser(userId, drafts, now, assetType);
 
     return {
       status: "ok",

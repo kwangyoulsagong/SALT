@@ -55,3 +55,4 @@ FEATURE-009 의 "계획 · 사이즈 · 행동 미러"가 쓸 저장소. 슬라�
 | 2026-09-24 | 슬라이스 2 FR-8 — `forecast.realized_vol` · `v_realized_vol`(`20260924170000_forecast_realized_vol`, `FC-REQ-006`) |
 | 2026-09-27 | 슬라이스 6 FR-11 · 12 — `monthly_reviews` · `trade_plans.checklist`. 목적이 둘이라 마이그레이션도 둘(`20260927120000` · `20260927120100`). 로컬 `migrate deploy` 뒤 스키마 diff 0 |
 | 2026-09-29 | F010 슬라이스 5 FR-9 — `investable_capital`(`20260929120000_profile_investable_capital`, 추가만 · CHECK > 0). 로컬 `migrate deploy` 적용 |
+| 2026-10-26 | F011 슬라이스 7d 후속(`SRV-REQ-040` FR-47) — **DDL 없음.** `decision_outcomes` 를 자산군으로 가를 때 열을 더하지 않고 청산 거래(`closing_transaction_id` → `portfolio_transactions.asset_type`)로 거른다 — 거래가 이미 자산군을 갖는다. 행 ≤ 5,000/사용자라 조인 비용은 작다(인덱스 `(user_id, closed_at DESC)` 그대로) |

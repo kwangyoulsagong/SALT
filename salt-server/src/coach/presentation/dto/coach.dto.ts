@@ -222,6 +222,8 @@ export const listTradePlansQuerySchema = z.object({
 /** `GET /api/coach/outcomes` */
 export const listDecisionOutcomesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+  // 청산 거래의 자산군(F011 FR-47). 없으면 코인 — 기존 화면 그대로
+  assetType: z.enum(["crypto", "kr_stock"]).optional().default("crypto"),
 });
 
 export const decisionOutcomeParamsSchema = z.object({ id: z.string().uuid() });

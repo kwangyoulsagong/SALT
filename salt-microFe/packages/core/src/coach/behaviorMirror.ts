@@ -179,6 +179,9 @@ export interface DecisionOutcomeView {
   userTags: string[];
   /** 사용자가 확정했으면 시각. 확정 전에는 `autoTags` 가 쓰인다 */
   tagsConfirmedAt: string | null;
+  /** 국내 청산 목록만 — 서버가 실은 종목 이름 · 로고(F011 FR-47). 없으면 화면이 시세 목록에서 찾는다 */
+  name?: string | null;
+  logoUrl?: string | null;
 }
 
 export type DecisionOutcomeListResult = { status: "ok"; outcomes: DecisionOutcomeView[] } | { status: "unavailable" };

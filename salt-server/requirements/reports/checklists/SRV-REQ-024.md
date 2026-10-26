@@ -276,3 +276,9 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 | 시장 심리 신선도 | 심리가 market-intelligence API 호출 때만 계산돼 로컬에서 2026-09-30 뒤로 멈춰 있다 — 게이트에 넣으면 판정 전부 막힘 | 심리 계산을 워커로 옮기는 별도 REQ(사용자 결정 필요) |
 | 화면에서 `stale_inputs` 실측 | 로컬 재료가 신선해 상태가 재현되지 않았다 | PR 머지 전 Playwright route(3100) 또는 다음 화면 QA |
 | 인증된 HTTP 실측 | 로컬 토큰 발급 불가 — 유스케이스 · 어댑터 직접 확인 | `QA-001` 로그인 QA(사용자) |
+
+## F011 슬라이스 7d — 조립 한 줄 (2026-10-26)
+
+- `getKrBehaviorMirror` 조립 · `npm run build` 0 · 상시 서버 기동(포트 충돌 재시작 약 1분 뒤 자동 회복)
+
+- 2026-10-26 실데이터 수정: `ListDecisionOutcomes(outcomes, market)` 조립 · build 0 · 상시 서버 kickstart 뒤 200

@@ -20,6 +20,7 @@ export { RiskGaugeList } from "./RiskGaugeList";
 export { MarketRegimeNote } from "./MarketRegimeNote";
 export { TradePlanCard } from "./TradePlanCard";
 export { MirrorLines } from "./MirrorLines";
+export { KrMirrorLines } from "./KrMirrorLines";
 export { OutcomeList, OutcomeTagChips } from "./OutcomeList";
 export { TradeBehaviorLines } from "./TradeBehaviorLines";
 export { ScenarioList } from "./ScenarioList";

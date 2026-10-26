@@ -144,6 +144,21 @@ export interface RiskBudgetView {
       coveredWeight: number | null;
       missingSymbols: string[];
     };
+    /**
+     * 보유 합산 변동성(연) 범위(F011 FR-46) — `realized` 최근 실현 상관 · `upper` 상관 1 가정. 판정 없음.
+     * `grid` 가 `krx_trading_day` 면 국내 주식 거래일 축(코인은 그날 09:00 KST 가격), 아니면 달력일
+     */
+    portfolioVolatility: {
+      status: GaugeStatus;
+      upper: number | null;
+      realized: number | null;
+      /** 코인 몫 · 국내 주식 몫 수익률 상관(둘 다 들고 있을 때만) */
+      crossCorrelation: number | null;
+      grid: "krx_trading_day" | "calendar_day" | null;
+      returns: number | null;
+      coveredWeight: number | null;
+      missingSymbols: string[];
+    };
   };
   /** 시장 국면 라벨(F010 슬라이스 2) — 아무것도 막거나 줄이지 않는다. 없거나 낡았으면 `null` */
   market: MarketRegimeView | null;

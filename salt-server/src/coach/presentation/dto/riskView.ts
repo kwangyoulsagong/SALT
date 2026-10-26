@@ -100,7 +100,7 @@ export const toSizeCheckResponse = (result: TradeSizeCheck) => {
 };
 
 export const toRiskBudgetResponse = (view: RiskBudgetView) => {
-  const { drawdown, concentration, turnover, btcBeta } = view.gauges;
+  const { drawdown, concentration, turnover, btcBeta, portfolioVolatility } = view.gauges;
   return {
     settings: {
       monthlyLossBudget: budget(view.settings.monthlyLossBudget),
@@ -141,6 +141,20 @@ export const toRiskBudgetResponse = (view: RiskBudgetView) => {
         btcEquivalentKrw: krw(btcBeta.btcEquivalent),
         coveredWeight: rate(btcBeta.coveredWeight),
         missingSymbols: btcBeta.missingSymbols,
+      },
+      // F011 FR-46 — 합산 변동성(연) 범위. 판정 없음
+      portfolioVolatility: {
+        status: portfolioVolatility.status,
+        upper: rate(portfolioVolatility.upper),
+        realized: rate(portfolioVolatility.realized),
+        crossCorrelation: rate(portfolioVolatility.crossCorrelation),
+        grid: portfolioVolatility.grid,
+        periodsPerYear: portfolioVolatility.periodsPerYear,
+        returns: portfolioVolatility.returns,
+        from: portfolioVolatility.from,
+        to: portfolioVolatility.to,
+        coveredWeight: rate(portfolioVolatility.coveredWeight),
+        missingSymbols: portfolioVolatility.missingSymbols,
       },
     },
     market: view.market

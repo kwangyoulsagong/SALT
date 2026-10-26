@@ -464,6 +464,10 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - `turnover` — 최근 365일 (매수 + 매도 대금) ÷ 2 ÷ 지금 평가금액, 올해 수수료. 기간 환산하지 않는다
    *       - `btcBeta`(F010 슬라이스 2) — Σ(평가금 비중 × 90일 BTC 베타). 베타가 없는 종목은 합에서 빼고
    *         `coveredWeight` · `missingSymbols` 로 알린다. `btcEquivalentKrw` 는 BTC 로 환산한 노출. 예산이 없어 `exceeded` 없음
+   *       - `portfolioVolatility`(F011 FR-46) — 보유 합산 변동성(연) 범위: `upper` 상관 1 가정(종목 변동성 가중 합) ·
+   *         `realized` 최근 250 축 날짜 실현 공분산. 국내 주식을 들고 있으면 KRX 거래일 축(코인은 그날 09:00 KST 종가로 as-of 정렬,
+   *         주말 변동은 다음 거래일에) · √252, 아니면 달력일 · √365. `crossCorrelation` 코인 몫 · 국내 몫 수익률 상관. 수익률 60 미만이면
+   *         `insufficient_data`. 판정 없음
    *       - `market`(F010 슬라이스 2) — BTC 200일선 위 여부 · HMM 고변동 확률 · 365일 낙폭 · 다음 FOMC/CPI. 사전등록
    *         `regime-gate@1` 판정이 게이트 · 이벤트 축소를 채택하지 않아 `gate.key: null` · `gate.open: true` · `eventFactor: 1`
    *         (아무것도 막거나 줄이지 않는다). 국면 작업이 없거나 3일 넘었으면 `null`
@@ -475,7 +479,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *     security:
    *       - bearerAuth: []
    *     responses:
-   *       200: { description: "`{ settings{…, maxSingleAssetWeight, investableCapitalKrw}, totalValueKrw, gauges{drawdown,concentration,turnover,btcBeta}, market, scenarios{status, totalValueKrw, shocks[], episodes[]}, monthStart, asOf }`" }
+   *       200: { description: "`{ settings{…, maxSingleAssetWeight, investableCapitalKrw}, totalValueKrw, gauges{drawdown,concentration,turnover,btcBeta,portfolioVolatility}, market, scenarios{status, totalValueKrw, shocks[], episodes[]}, monthStart, asOf }`" }
    *       401: { description: 인증 실패 }
    *   put:
    *     summary: 리스크 예산 수정
@@ -691,6 +695,39 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
 
   /**
    * @swagger
+   * /api/coach/mirror/kr-stock:
+   *   get:
+   *     summary: 내 국내 주식 거래 미러 (F011 FR-47)
+   *     description: |
+   *       국내 주식 거래만 — 코인 미러와 따로다. 창은 **거래일**이고, 순서는 국내 근거가 직접적인 순이다. 지표 모양은 코인 미러와 같은
+   *       `{ value, sampleSize, status }`(표본 < 20 이면 `insufficient_sample`, 값은 준다). 지시 · 판정 문구 없음.
+   *
+   *       - `turnover` — 최근 250거래일 일 회전율 = (매수 + 매도 대금) ÷ 2 ÷ 보유한 거래일 종가 평가금 합. 기준선은 코인 미러와 같은
+   *         국내 일 회전율(KCMI 2020)
+   *       - `disposition` — PGR · PLR(매도일 종가, 휴장일 매도는 직전 거래일 종가) · 익절/손절 평균 **보유 거래일**
+   *       - `nextDaySell` — 매수 다음 거래일에 이익이던 매수 중 그날 판 비율 · 손실이던 매수 중 그날 판 비율 + 기준점(KCMI 41% · 22%,
+   *         정의 원문 미확인)
+   *       - `chase` — 매수 직전 40거래일 종가 상승률 평균 · 중앙값 + 기준점(KCMI 매수 전 40일 평균 25.8%, 2020-03~10).
+   *         봉 41개 미만 · 원천 끊김(종가 비율 0.69~1.31 밖)은 표본이 아니다
+   *       - `lottery` — 최근 365일 매수 대금 중 복권형 종목 몫(Kumar 2009 를 총변동으로: 지난달 말까지 6개월 주가 < 중앙값 ·
+   *         변동성 > 중앙값 · 왜도 > 중앙값, 국내 전 종목 단면) + 같은 단면의 복권형 종목 비율(`marketShare`) + 성과 근거(KCMI −10.42%)
+   *       - `adherence` · `tagCosts` · `streak` · `timing` · `lossAsymmetry` · `outcomeCount` · `outcomesComputedAt` — 판정 배치가 국내
+   *         회차로 저장한 결과(국내 청산)로 센다. 모양은 코인 미러와 같다
+   *       - 거래 시각은 KST 날짜로 일봉에 붙인다
+   *       - 거래가 5,000건을 넘으면 `status: truncated` — 값이 전부 `null`
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: "`{ status, turnover, disposition, nextDaySell, chase, lottery, adherence, tagCosts[], streak, timing, lossAsymmetry, outcomeCount, outcomesComputedAt, tradeCount, minSample, asOf }`"
+   *       401: { description: 인증 실패 }
+   *       404: { description: "`COACH_KR_STOCK_NOT_AVAILABLE` — 국내 주식을 볼 수 없다(소유자 전용)" }
+   */
+  router.get("/mirror/kr-stock", risk.getKrBehaviorMirror);
+
+  /**
+   * @swagger
    * /api/coach/outcomes:
    *   get:
    *     summary: 내 결정 결과(청산) 목록 (F009 FR-14 · FR-18)
@@ -706,6 +743,10 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - in: query
    *         name: limit
    *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+   *       - in: query
+   *         name: assetType
+   *         description: 청산 거래의 자산군(F011 FR-47). 없으면 코인. 국내면 줄마다 종목 `name` · `logoUrl`
+   *         schema: { type: string, enum: [crypto, kr_stock], default: crypto }
    *     responses:
    *       200: { description: "`{ outcomes: [...] }`" }
    *       401: { description: 인증 실패 }

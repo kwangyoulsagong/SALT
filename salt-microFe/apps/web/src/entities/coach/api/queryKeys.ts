@@ -24,8 +24,12 @@ export const coachQueryKeys = {
   sizeCheckAll: () => ["coach", "size-check"] as const,
   /** 내 거래 미러. 거래 저장 · 태그 확정 뒤 무효화한다(결과 · 라벨은 배치가 6시간마다 다시 만든다) */
   mirror: () => ["coach", "mirror"] as const,
+  /** 국내 주식 미러 — `mirror()` 아래라 거래 저장 · 태그 확정의 미러 무효화가 같이 걸린다 */
+  krMirror: () => ["coach", "mirror", "kr-stock"] as const,
   /** 청산별 결과 · 태그. 태그를 확정하면 무효화한다 */
   outcomes: () => ["coach", "outcomes"] as const,
+  /** 국내 청산 결과 · 태그 — `outcomes()` 아래라 태그 확정의 무효화가 같이 걸린다 */
+  krOutcomes: () => ["coach", "outcomes", "kr-stock"] as const,
   /** 판정 성적표. 채점은 배치가 하루 한 번 — 사용자 행동으로 무효화하지 않는다 */
   scoreboard: () => ["coach", "scoreboard"] as const,
   /** 목표 비중 안내. 보유 · 투자금 · 목표 변동성 · 상한으로 계산된다 — 거래 · 예산을 저장하면 무효화한다 */
