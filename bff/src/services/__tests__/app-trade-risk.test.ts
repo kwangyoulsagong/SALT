@@ -209,6 +209,38 @@ describe("toRiskBudgetViewModel", () => {
     assert.equal(withBeta({ status: "exceeded", betaSum: 2.1 }), "insufficient_data");
   });
 
+  // F011 슬라이스 7e — `BFF-REQ-040` FR-25
+  it("합산 변동성 범위를 옮기고 · 한 끝이라도 없으면 '데이터 부족' · 모르는 축은 null", () => {
+    const withVol = (portfolioVolatility: Record<string, unknown>) =>
+      toRiskBudgetViewModel({ ...budget, gauges: { ...budget.gauges, portfolioVolatility } }).gauges.portfolioVolatility;
+    assert.deepEqual(
+      withVol({
+        status: "ok",
+        upper: 0.582,
+        realized: 0.471,
+        crossCorrelation: 0.238,
+        grid: "krx_trading_day",
+        periodsPerYear: 252,
+        returns: 250,
+        coveredWeight: 1,
+        missingSymbols: [],
+      }),
+      {
+        status: "ok",
+        upper: 0.582,
+        realized: 0.471,
+        crossCorrelation: 0.238,
+        grid: "krx_trading_day",
+        returns: 250,
+        coveredWeight: 1,
+        missingSymbols: [],
+      },
+    );
+    assert.equal(withVol({ status: "ok", upper: 0.5, realized: null }).status, "insufficient_data");
+    assert.equal(withVol({ status: "ok", upper: 0.5, realized: 0.4, grid: "weekly" }).grid, null);
+    assert.equal(toRiskBudgetViewModel(budget).gauges.portfolioVolatility.status, "insufficient_data", "옛 서버");
+  });
+
   it("국면은 라벨로 옮기고 게이트 채택 여부를 key 로 판단한다 — 날짜가 없거나 서버가 null 이면 null", () => {
     const market = {
       asOf: "2026-09-28",

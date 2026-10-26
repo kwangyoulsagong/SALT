@@ -303,6 +303,21 @@ export interface RiskBudgetView {
       coveredWeight: number | null;
       missingSymbols: string[];
     };
+    /**
+     * 보유 합산 변동성(연) 범위(F011 슬라이스 7e · `BFF-REQ-040` FR-25) — `upper` 상관 1 가정 · `realized` 최근 실현 상관.
+     * 국내 주식을 들고 있으면 KRX 거래일 축(`krx_trading_day`, 252), 아니면 달력일(365). 판정 없음 — 둘 중 하나라도 없으면
+     * `insufficient_data`. 서버가 아직 주지 않아도 `insufficient_data`
+     */
+    portfolioVolatility: {
+      status: GaugeStatus;
+      upper: number | null;
+      realized: number | null;
+      crossCorrelation: number | null;
+      grid: "krx_trading_day" | "calendar_day" | null;
+      returns: number | null;
+      coveredWeight: number | null;
+      missingSymbols: string[];
+    };
   };
   /**
    * 시장 국면 라벨(F010 슬라이스 2) — **아무것도 막거나 줄이지 않는다.** 사전등록 `regime-gate@1` 이 게이트를 채택하지
@@ -452,6 +467,10 @@ export const toRiskBudgetViewModel = (data: Raw): RiskBudgetView => {
   const turnover = isRecord(gauges.turnover) ? gauges.turnover : {};
   const btcBeta = isRecord(gauges.btcBeta) ? gauges.btcBeta : {};
   const betaSum = num(btcBeta.betaSum);
+  const volatility = isRecord(gauges.portfolioVolatility) ? gauges.portfolioVolatility : {};
+  const upper = num(volatility.upper);
+  const realized = num(volatility.realized);
+  const grid = volatility.grid === "krx_trading_day" || volatility.grid === "calendar_day" ? volatility.grid : null;
 
   return {
     status: "ok",
@@ -497,6 +516,17 @@ export const toRiskBudgetViewModel = (data: Raw): RiskBudgetView => {
         btcEquivalentKrw: num(btcBeta.btcEquivalentKrw),
         coveredWeight: num(btcBeta.coveredWeight),
         missingSymbols: stringList(btcBeta.missingSymbols),
+      },
+      portfolioVolatility: {
+        // 범위의 두 끝이 다 있어야 `ok` — 한 끝만 보여 주면 범위가 아니다
+        status: upper !== null && realized !== null && volatility.status === "ok" ? "ok" : "insufficient_data",
+        upper,
+        realized,
+        crossCorrelation: num(volatility.crossCorrelation),
+        grid,
+        returns: num(volatility.returns),
+        coveredWeight: num(volatility.coveredWeight),
+        missingSymbols: stringList(volatility.missingSymbols),
       },
     },
     market: toMarketRegime(data.market),
