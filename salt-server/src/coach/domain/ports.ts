@@ -775,11 +775,17 @@ export interface DecisionOutcomeStore {
  * 읽는 쪽이 `StoredMonthlyReview.payload` 를 응답으로 옮긴다. 모든 조회가 `userId` 로 좁혀진다.
  */
 export interface MonthlyReviewStore {
-  find(userId: string, month: string): Promise<StoredMonthlyReview | null>;
+  /** `assetType` 이 없으면 코인 — 자산군마다 한 벌이다(F011 FR-48) */
+  find(userId: string, month: string, assetType?: OutcomeAssetType): Promise<StoredMonthlyReview | null>;
   /** 저장된 달(최신이 앞) */
-  listMonths(userId: string, limit: number): Promise<string[]>;
+  listMonths(userId: string, limit: number, assetType?: OutcomeAssetType): Promise<string[]>;
   /** 이미 있으면 **덮지 않고** 있는 것을 돌려준다 — 배치 · 요청이 겹쳐도 한 벌 */
-  saveIfAbsent(userId: string, review: MonthlyReview, generatedAt: Date): Promise<StoredMonthlyReview>;
+  saveIfAbsent(
+    userId: string,
+    review: MonthlyReview,
+    generatedAt: Date,
+    assetType?: OutcomeAssetType
+  ): Promise<StoredMonthlyReview>;
 }
 
 /** Decimal → 문자열, Date → ISO 문자열로 굳힌 모양 */

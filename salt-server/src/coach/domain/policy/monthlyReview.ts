@@ -13,11 +13,19 @@
  *
  * 예산 · 상한 설정의 이력을 저장하지 않는다. 그래서 "그달에 **지금 기준**을 넘은 날"이다(`basis: current_settings`).
  * 비율 예산은 월초 평가금 대비다(게이지는 지금 평가금 대비 — 한 달이 끝난 뒤엔 월초가 기준이 맞다).
+ *
+ * ## 국내 주식판(F011 `SRV-REQ-040` FR-48)
+ *
+ * 자산군마다 한 벌이다. 국내판은 `kr` 를 주고, **모든 시각이 KST 벽시계로 옮겨져 들어온다**(국내 미러와 같은 축 —
+ * 일봉 `openTime` 이 KST 날짜 00:00 UTC 다). 날은 거래일만 걷고(주말 · 휴장일은 IPS 이탈 날이 아니다),
+ * 휴장일 매도의 장부 손익은 직전 거래일 종가, 보유 기간은 거래일이다. 저장하는 시각(`from` · `to` · 빗나간 예측)은
+ * 실제 시각으로 되돌린다 — 화면이 코인판과 같은 규칙으로 읽는다.
  */
 
 import Decimal from "decimal.js";
 
 import type { DailyBar } from "./adherence";
+import { krClosingHoldings } from "./krMirror";
 import { brierSummary, type BrierPlan, type BrierSummary } from "./brier";
 import type { DecisionOutcome } from "./decisionOutcome";
 import {
@@ -53,6 +61,15 @@ export const reviewMonthWindow = (month: string): MirrorWindow => {
   return {
     from: new Date(Date.UTC(year, index, 1) - KST_OFFSET_MS),
     to: new Date(Date.UTC(year, index + 1, 1) - KST_OFFSET_MS),
+  };
+};
+
+/** 같은 달을 KST 벽시계 축으로 — 국내판 계산 창(그달 1일 00:00 UTC ~ 다음 달 1일 00:00 UTC) */
+const reviewMonthWallWindow = (month: string): MirrorWindow => {
+  const window = reviewMonthWindow(month);
+  return {
+    from: new Date(window.from.getTime() + KST_OFFSET_MS),
+    to: new Date(window.to.getTime() + KST_OFFSET_MS),
   };
 };
 
@@ -96,6 +113,8 @@ export const ipsDeviation = (input: {
   now: Date;
   monthlyLossBudget: BudgetSetting | null;
   maxSingleAssetWeight: Decimal;
+  /** 국내 주식(벽시계 축) — 이 날만 센다 */
+  tradingDays?: ReadonlySet<number>;
 }): IpsDeviation => {
   const from = input.window.from.getTime();
   const closedLastDay = Math.floor(input.now.getTime() / DAY_MS) * DAY_MS - DAY_MS;
@@ -113,7 +132,7 @@ export const ipsDeviation = (input: {
     missingCloses,
   });
 
-  const walk = walkPortfolioDays(input.entries, input.barsBySymbol, lastDay, from - DAY_MS);
+  const walk = walkPortfolioDays(input.entries, input.barsBySymbol, lastDay, from - DAY_MS, input.tradingDays);
   if (walk.status === "missing_close") return unavailable(walk.missingCloses);
 
   const before = walk.days.filter((day) => day.day < from).at(-1);
@@ -219,6 +238,11 @@ export interface MonthlyReviewInput {
   monthlyLossBudget: BudgetSetting | null;
   maxSingleAssetWeight: Decimal;
   now: Date;
+  /**
+   * 국내 주식판 — 있으면 `entries` · `replay` · 결과 `closedAt` · 계획 시각 · `now` 가 전부 KST 벽시계이고
+   * `barsBySymbol` 은 옮기지 않은 일봉이다. `tradingDays` 는 그 일봉에 나온 날(`krTradingDays`)
+   */
+  kr?: { tradingDays: ReadonlySet<number> };
 }
 
 const inWindow = (at: Date, window: MirrorWindow) => at >= window.from && at < window.to;
@@ -231,8 +255,20 @@ export const oneThingSentence = (month: string, top: TagCost | null, closedCount
   return `${label}에 손익을 가장 많이 깎은 태그는 '${name}'(${top.count}건)이에요.`;
 };
 
+/** 벽시계로 센 빗나간 예측의 시각을 실제 시각으로 */
+const brierToRealClock = (brier: BrierSummary): BrierSummary => ({
+  ...brier,
+  recentMisses: brier.recentMisses.map((miss) => ({
+    ...miss,
+    plannedAt: new Date(miss.plannedAt.getTime() - KST_OFFSET_MS),
+    dueAt: new Date(miss.dueAt.getTime() - KST_OFFSET_MS),
+  })),
+});
+
 export const buildMonthlyReview = (input: MonthlyReviewInput): MonthlyReview => {
-  const window = reviewMonthWindow(input.month);
+  const realWindow = reviewMonthWindow(input.month);
+  const window = input.kr ? reviewMonthWallWindow(input.month) : realWindow;
+  const tradingDays = input.kr?.tradingDays;
   const monthEntries = input.entries.filter((entry) => inWindow(entry.transactionDate, window));
   const monthOutcomes = input.outcomes.filter((outcome) => inWindow(outcome.closedAt, window));
 
@@ -247,7 +283,7 @@ export const buildMonthlyReview = (input: MonthlyReviewInput): MonthlyReview => 
     sellMoments: input.replay.sellMoments.filter((moment) => inWindow(moment.at, window)),
   };
 
-  const benchmark = benchmarkMirror(input.entries, input.barsBySymbol, input.now, window);
+  const benchmark = benchmarkMirror(input.entries, input.barsBySymbol, input.now, window, tradingDays);
   const tradedNotional = monthEntries.reduce((sum, entry) => sum.plus(entry.totalAmount), ZERO);
   const fees = monthEntries.reduce((sum, entry) => sum.plus(entry.fee), ZERO);
   const endValue = benchmark.endValue;
@@ -259,10 +295,22 @@ export const buildMonthlyReview = (input: MonthlyReviewInput): MonthlyReview => 
   const costs = tagCosts(monthOutcomes);
   const topMistake = costs.find((cost) => cost.netPnlKrw.isNegative()) ?? null;
 
+  // 국내는 보유 기간을 거래일로 센다(국내 미러와 같은 규칙) — 그달에 판 청산만
+  const holdingSample = input.kr
+    ? krClosingHoldings(
+        {
+          ...input.replay,
+          closings: input.replay.closings.filter((closing) => inWindow(closing.sell.transactionDate, window)),
+        },
+        input.barsBySymbol
+      )
+    : monthOutcomes;
+  const brier = brierSummary(input.forecastPlans, input.barsBySymbol, input.now, window);
+
   return {
     month: input.month,
-    from: window.from,
-    to: window.to,
+    from: realWindow.from,
+    to: realWindow.to,
     activity: {
       tradeCount: monthEntries.length,
       buyCount: monthEntries.filter((entry) => entry.side === "buy").length,
@@ -270,7 +318,7 @@ export const buildMonthlyReview = (input: MonthlyReviewInput): MonthlyReview => 
       closedCount: monthOutcomes.length,
     },
     adherence: adherenceMirror(monthPlans, monthOutcomes),
-    disposition: dispositionMirror(monthReplay, input.barsBySymbol, monthOutcomes),
+    disposition: dispositionMirror(monthReplay, input.barsBySymbol, holdingSample, { carryForward: Boolean(input.kr) }),
     benchmark,
     turnover,
     tagCosts: costs,
@@ -282,8 +330,9 @@ export const buildMonthlyReview = (input: MonthlyReviewInput): MonthlyReview => 
       now: input.now,
       monthlyLossBudget: input.monthlyLossBudget,
       maxSingleAssetWeight: input.maxSingleAssetWeight,
+      tradingDays,
     }),
-    brier: brierSummary(input.forecastPlans, input.barsBySymbol, input.now, window),
+    brier: input.kr ? brierToRealClock(brier) : brier,
     oneThing: oneThingSentence(input.month, topMistake, monthOutcomes.length),
   };
 };

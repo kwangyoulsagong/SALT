@@ -40,7 +40,14 @@ describe("toMonthlyReviewResponse", () => {
   const stored = { month: "2026-01", payload: JSON.parse(JSON.stringify(review)), generatedAt: new Date("2026-02-01T21:40:00Z") };
 
   it("비율은 소수 6자리 숫자 · 금액은 원 정수 · 없는 값은 null", () => {
-    const body = toMonthlyReviewResponse({ month: "2026-01", status: "ok", review: stored, availableMonths: ["2026-01"] });
+    const body = toMonthlyReviewResponse({
+      assetType: "crypto",
+      month: "2026-01",
+      status: "ok",
+      review: stored,
+      availableMonths: ["2026-01"],
+      symbolNames: {},
+    });
     assert.ok(body.review);
     // 01-01 300 → 01-02 301 → 01-03 302(1월 말까지 닫힌 봉만 있는 세트): TWR 302 ÷ 300 − 1
     assert.equal(body.review.benchmark.actualReturn, new Decimal(302).div(300).minus(1).toDecimalPlaces(6).toNumber());
@@ -57,7 +64,20 @@ describe("toMonthlyReviewResponse", () => {
   });
 
   it("복기가 없으면 상태와 목록만", () => {
-    const body = toMonthlyReviewResponse({ month: "2026-02", status: "month_not_closed", review: null, availableMonths: [] });
-    assert.deepEqual(body, { month: "2026-02", status: "month_not_closed", review: null, availableMonths: [] });
+    const body = toMonthlyReviewResponse({
+      assetType: "kr_stock",
+      month: "2026-02",
+      status: "month_not_closed",
+      review: null,
+      availableMonths: [],
+      symbolNames: {},
+    });
+    assert.deepEqual(body, {
+      assetType: "kr_stock",
+      month: "2026-02",
+      status: "month_not_closed",
+      review: null,
+      availableMonths: [],
+    });
   });
 });

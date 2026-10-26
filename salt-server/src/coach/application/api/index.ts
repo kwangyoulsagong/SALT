@@ -199,7 +199,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.portfolio,
     deps.tradePlans,
     deps.decisionOutcomes,
-    deps.forecasts
+    deps.forecasts,
+    deps.market
   );
 
   const useCases: CoachUseCases = {
@@ -325,7 +326,12 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     listDecisionOutcomes: new ListDecisionOutcomes(deps.decisionOutcomes, deps.market),
     confirmOutcomeTags: new ConfirmOutcomeTags(deps.decisionOutcomes),
     buildMonthlyReview,
-    getMonthlyReview: new GetMonthlyReview(deps.monthlyReviews, buildMonthlyReview),
+    getMonthlyReview: new GetMonthlyReview(
+      deps.monthlyReviews,
+      buildMonthlyReview,
+      deps.forecastOwnerEmails,
+      deps.market
+    ),
   };
 
   return { useCases };

@@ -651,16 +651,18 @@ model TradePlan {
 // 월초에 지난달 것을 한 번 만들고 **고치지 않는다** — 뒤에 태그를 고쳐도 그달에 본 숫자가 남는다(W06).
 // payload 는 화면 모양 그대로의 스냅샷이다(숫자는 문자열). 조회 조건은 (user_id, month) 뿐이라 JSON 으로 둔다
 model MonthlyReview {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  // 자산군마다 한 벌(F011 SRV-REQ-040 FR-48) — 코인 · 국내 주식은 시간 축(24시간 · 거래일)과 시세 공개 범위가 달라 섞지 않는다
+  assetType   AssetType @default(crypto) @map("asset_type")
   month       String // "2026-09" — KST 달
   payload     Json
-  generatedAt DateTime @map("generated_at")
-  createdAt   DateTime @default(now()) @map("created_at")
+  generatedAt DateTime  @map("generated_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, month(sort: Desc)])
+  @@unique([userId, assetType, month(sort: Desc)])
   @@map("monthly_reviews")
 }
 
