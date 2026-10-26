@@ -65,7 +65,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | FR-42 | 수정주가 재작성 — 기업 행사(배당락 · 증자 · 감자 · 분할) 뒤 겹치는 구간 종가 비율이 다르면 그 종목 창을 다시 받는다 | **완료 2026-10-23**(`95f8b92` · `9446210`) — 두 일봉 동기화(유니버스 15:45 · 전 종목 밤)가 마지막 봉 앞 14일부터 겹쳐 받아 확정 봉 종가를 대조(`findDailyRewrite`, 0.1% · 1원 넘게 다르면, 마지막 날은 장중 미확정이라 제외) → 첫 봉부터 다시 받아 한 문장으로 교체(`replaceDailyCandles`). 토요일 전 종목 회차는 앞쪽 끝 한 페이지도 대조(약 2,600 호출). 실데이터 44종목 회차: 재작성 10 · 252호출 · 4분 13초. **KIS 원천이 수정하지 않은 병합 점프는 못 고친다**(예측이 끊김으로 처리 — `FC-REQ-020` FR-10) |
 | FR-43 | 코치 판단 국내 파라미터 — 추세 · 모멘텀 규칙은 국내 채점 풀 재검증 전 렌더 금지(국내 개별 종목은 반전 우세), 평가 지평 ≥ 20거래일 | Draft — 리서치 권고 17 |
 | FR-44 | 비용 — 연도별 거래세 표(2025 이전 · 2026~ 0.20%) + 수수료, 명시 왕복 0.207~0.237%. 암묵 비용은 "가정" 파라미터. 세금은 "세전" 명시 | Draft — 권고 18 |
-| FR-45 | 사이즈 · 1회 최대 손실 — 손절 체결 가정 손실 · 일 −30% 갭 손실 · 과거 최악 갭 분위수를 나란히(VI · 정지 · 연속 하한가 때 손절 미체결 가능 문구) | Draft — 권고 19 |
+| FR-45 | 사이즈 · 1회 최대 손실 — 손절 체결 가정 손실 · 일 −30% 갭 손실 · 과거 최악 갭 분위수를 나란히(VI · 정지 · 연속 하한가 때 손절 미체결 가능 문구) | **완료 2026-10-26**(`dfb2d1b`) — `POST /api/coach/size-check` 응답 `gapScenarios`(국내 주식 매수 + 손절가만): `limitDown`(손절가 바로 위에서 다음 날 하한가 −30% 로 열린 경우) · `historicalGap`(그 종목 최근 5년 밤사이 갭 = 시가 ÷ 전일 종가 하위 1%, `worstGapRate` · `sample` · `since` 같이) · `noteCode: stop_may_not_fill`. 갭은 **손절가 기준**(진입가 기준이면 손절가를 깊게 둔 사람에게 손절 손실보다 작은 갭 손실이 나온다). 시가 ÷ 전일 종가 0.69~1.31 밖은 원천 끊김이라 제외(예측 `kr_breaks` 와 같은 근거) · 표본 250 미만이면 하한가 줄만 · 분포는 DB `LAG` + `percentile_cont`(인덱스 · 5ms). 변동성 역비례 크기는 이미 "참고 비중" 숫자로만 나간다(목표 아님) — 그대로. 실데이터 삼성전자 하위 1% −5.0% · 최악 −10.9% · 1,220거래일 |
 | FR-46 | 코인 + 국내 주식 위험 합산 — 상관 1 상한과 최근 실현 상관 두 값을 범위로, 코인을 KRX 종가 시각에 정렬 · 365/252 환산 | Draft — 권고 20(근거 약) |
 | FR-47 | 행동 미러 국내 — 거래일 창, 순위 회전율 → 처분효과 → 추격 매수(40거래일) → 복권형 비중 | Draft — 권고 22 |
 
@@ -75,6 +75,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 - 기존 응답 무변경. `MarketAsset` · 코인 경로 무변경(시세를 `kr_stock_quotes` 에 따로 둔 이유 — `DB-REQ-033`)
 - `ErrorKind.Unavailable`(503) — Shared Kernel 값 추가. 기존 값 매핑 무변경
 - BFF 짝 `BFF-REQ-040`(슬라이스 2) — 아직 소비처 없음
+- 슬라이스 7(FR-45, 2026-10-26): size-check 응답에 `gapScenarios` **추가만**(코인 · 매도 · 손절가 없음은 `null`) — 기존 필드 무변경. `market` 공개 API `overnightGapStats` 추가. 소비처 `BFF-REQ-040` FR-20 · `FE-REQ-041` FR-24. 마이그레이션 없음
 - 슬라이스 3b(2026-10-08): 거래 입력 `assetType`(선택 · 기본 crypto) · `assets?codes=` 추가. 기존 응답 무변경. 소비처 `BFF-REQ-040` FR-15 · 16. 마이그레이션 없음
 - 슬라이스 3(2026-10-08): `assets` 쿼리 3개 · 시세 행 `openPrice` · `highPrice` · `lowPrice` · `periodChange` 추가(기존 필드 무변경) · 관심 종목 DTO `assetType` 에 `kr_stock`. 마이그레이션 `20261008100000_kr_stock_quote_ohlc`(`DB-REQ-033`). 소비처 `BFF-REQ-040` FR-11~13 · `FE-REQ-041`
 
@@ -97,6 +98,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 
 ## Changelog
 
+- 2026-10-26: 슬라이스 7 — FR-45 갭 손실 두 줄(`krGapScenarios` · `overnightGapStats`). 테스트 727 → 733. FR-43 · 44 · 46 · 47 은 Draft 그대로(사용자가 FR-45 선택)
 - 2026-10-26: FR-41 보류 — `FC-REQ-020` FR-8 과 같이(코드 변경 없음)
 - 2026-10-23: 슬라이스 5f — FR-42 수정주가 재작성 감지 · 이력 교체 · 토요일 앞쪽 대조 · 증분 → 대조 → 백필 단계별(같은 종목 두 번 교체 실측 뒤 수정). 포트 `edgeDailyCloses` · `replaceDailyCandles` 추가, `latestDailyCandleAt` 삭제. 테스트 727/727. DDL 없음 · API 계약 변경 없음
 - 2026-10-23: 운영 — `server.ts` 가 Express 5 listen 실패(EADDRINUSE)를 무시해 launchd 재시작 겹침에 HTTP 없는 서버가 남았다 → 실패면 exit(1)(`acb66bf`), launchd 가 30초 뒤 재기동. 점유 시험 확인

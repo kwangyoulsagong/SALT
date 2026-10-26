@@ -86,3 +86,15 @@
 ## F011 5e (2026-10-23)
 
 - 변경 없음 — 국내 코드 전망은 `BFF-REQ-037` 경로(위 체크리스트)
+
+## 슬라이스 7 — FR-20 size-check 갭 두 줄 (2026-10-26)
+
+- `toSizeCheckViewModel` → `gapScenarios`(`toGapScenarios`): 정상 통과 · 과거 줄 깨짐 → `null` + `insufficient_data` · 하한가 금액이 문자열이면 묶음째 `null` · 없으면 `null`(테스트 1건, 252/252)
+- 실경로: BFF 4101 → 브랜치 서버 4100 `POST /api/app/coach/size-check` 005930 응답에 서버와 같은 값(하한가 −371,875 · 하위 1% −147,017)
+- `npm run build` 0
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 상시 BFF 경유 | 상시 BFF 프로세스가 없다(브랜치 4101 로 확인 뒤 끔) | 배포 환경 확정 시 |
