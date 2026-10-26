@@ -148,7 +148,7 @@ export const brierMirrorItem = (brier: BrierView, key = "brier"): ReactNode => {
   const misses = brier.recentMisses.flatMap((miss) => {
     const from = formatShortDate(miss.plannedAt);
     const to = formatShortDate(miss.dueAt);
-    return from && to ? [M.brier.miss(miss.symbol, formatRatio(miss.probabilityUp), from, to, miss.up)] : [];
+    return from && to ? [M.brier.miss(miss.name ?? miss.symbol, formatRatio(miss.probabilityUp), from, to, miss.up)] : [];
   });
   return (
     <MirrorItem

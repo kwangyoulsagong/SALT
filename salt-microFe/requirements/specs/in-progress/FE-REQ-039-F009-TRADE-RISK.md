@@ -61,6 +61,8 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | F011 7f 후속 — `MonthlyReviewCard` IPS 줄: 합산이면 `basisAllAssets` 문구 · 날 단위는 계산 범위를 따른다 |
+| 2026-10-26 | F011 7f — `MonthlyReviewPanel` · `MonthlyReviewCard` · `useMonthlyReview` 에 `assetType`(기본 코인 — 코인판 무변경). 국내판 문구 `KR_REVIEW_MESSAGES` |
 | 2026-10-26 | F011 7d 실데이터 수정 — `OutcomeList` 가 서버 이름이 있으면 `CaseIdentity`(국내 코드 "00" 이니셜 대신). 코인은 기존 `renderIdentity` |
 | 2026-10-26 | F011 슬라이스 7e — `RiskGaugeList` 다섯째 줄 "보유 전체 흔들림(연)"(`FE-REQ-041` FR-29) · `RISK_MESSAGES.gauge.portfolioVolatility*` |
 | 2026-10-26 | F011 슬라이스 7d 후속 — `MirrorLines` 의 계획 지킴 · 태그 손익 줄을 `adherenceMirrorItem` · `tagCostsMirrorItem` 로 빼고 연승 · 시간대 · 손실 비대칭 함수도 내보냈다(코인 출력 그대로) · `useDecisionOutcomes(assetType)` |

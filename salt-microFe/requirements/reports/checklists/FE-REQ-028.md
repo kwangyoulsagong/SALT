@@ -78,3 +78,6 @@
 
 - `coachApi.krMirror` · `outcomes(…, assetType)` · 키 두 개 — tsc · eslint 0 · Playwright 에서 `assetType=kr_stock` 요청 확인(고정 응답이 그 URL 로만 국내 청산을 줌)
 - 미검증: 없음(BFF 경유 실호출은 상시 BFF 가 없어 `BFF-REQ-040` 미검증 행과 같음)
+
+
+- 2026-10-26 F011 7f: 국내 복기 엔드포인트 · 쿼리 키 — check-types · build

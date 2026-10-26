@@ -42,6 +42,8 @@ router.get("/outcomes", appBehaviorMirrorController.listOutcomes);
 router.put("/outcomes/:id/tags", appBehaviorMirrorController.confirmOutcomeTags);
 // F009 슬라이스 6 — 월간 복기(`BFF-REQ-038` FR-10)
 router.get("/review/monthly", appBehaviorMirrorController.monthlyReview);
+// F011 FR-48 — 월간 복기 국내판(소유자 전용, `BFF-REQ-040` FR-26)
+router.get("/review/monthly/kr-stock", appBehaviorMirrorController.krMonthlyReview);
 
 /** F010 슬라이스 3 — 판정 성적표(신호 유형별, 사용자별 아님). `/investments` 카드(`BFF-REQ-039` FR-5) */
 router.get("/scoreboard", appJudgmentScoreboardController.scoreboard);

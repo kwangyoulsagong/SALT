@@ -40,6 +40,8 @@ export interface MonthlyReviewBody {
   ipsDeviation: {
     /** 설정 이력이 없어 **지금 설정**으로 셌다 */
     basis: "current_settings";
+    /** 두 자산군 합산(`all_assets`) · 그 판 몫만(`asset_type`) — F011 FR-48 후속 */
+    scope: "all_assets" | "asset_type";
     observedDays: number;
     /** 둘 중 하나라도 넘은 날. 둘 다 못 쟀으면 `null` */
     days: number | null;
@@ -54,6 +56,8 @@ export interface MonthlyReviewBody {
 
 export interface MonthlyReviewView {
   status: "ok";
+  /** 코인판 · 국내판(F011 FR-48). 국내판 보유 기간 · 관찰 날은 거래일이다 */
+  assetType: "crypto" | "kr_stock";
   month: string;
   reviewStatus: MonthlyReviewStatus;
   review: MonthlyReviewBody | null;

@@ -282,3 +282,5 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 - `getKrBehaviorMirror` 조립 · `npm run build` 0 · 상시 서버 기동(포트 충돌 재시작 약 1분 뒤 자동 회복)
 
 - 2026-10-26 실데이터 수정: `ListDecisionOutcomes(outcomes, market)` 조립 · build 0 · 상시 서버 kickstart 뒤 200
+
+- 2026-10-26 F011 7f: `BuildMonthlyReview`(+`market`) · `GetMonthlyReview`(+`forecastOwnerEmails` · `market`) 조립 · build 0 · 상시 서버 kickstart 뒤 새 PID LISTEN · 200

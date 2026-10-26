@@ -305,3 +305,4 @@ type ExplainResult =
 | 2026-10-26 | F011 슬라이스 7b — `GET /api/coach/scoreboard` 그룹 `sampleOrigin`(live · backtest, 국내만 라이브 20 전) · 판단 사례(`failureCases` · 성적표 `hits` · `misses`) `name` · `logoUrl` 추가 · 같은 시각 사례는 종목 코드 순. 해설(`/explain`) 카드 `trackRecord` 도 같은 출처 선택. 모두 추가 필드 |
 | 2026-10-26 | F011 슬라이스 7d · 7e(`SRV-REQ-040` FR-46 · 47) — `GET /api/coach/mirror/kr-stock` 신설(소유자 404) · `GET /api/coach/outcomes` `assetType` 쿼리(zod enum, 기본 crypto) · `GET /api/coach/risk-budget` `gauges.portfolioVolatility` 추가. `MarketSignalAdapter.krDailyReturnProfiles`(구간 캐시 32개 · 실패는 캐시 안 함). Swagger `failOnErrors` 통과 |
 | 2026-10-26 | F011 7d 실데이터 수정 — `GET /api/coach/outcomes?assetType=kr_stock` 응답 줄에 `name` · `logoUrl`(코인 `null`). Swagger 쿼리 설명 갱신 · `failOnErrors` 통과 |
+| 2026-10-26 | F011 7f — `GET /api/coach/review/monthly/kr-stock` 신설(소유자 404) · 복기 응답 `assetType` · `brier.recentMisses[].name` 추가. 코인 경로 무변경 |

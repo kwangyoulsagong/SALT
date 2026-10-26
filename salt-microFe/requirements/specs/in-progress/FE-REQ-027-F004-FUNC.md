@@ -193,3 +193,4 @@ F004의 기능 규칙은 거의 전부 **"하지 않는 것"** 이다. 게이트
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. FR-12 개정(D13). `distancePct` → `priceGap` |
 | 2026-09-23 | **`to-do → in-progress`** (슬라이스 4 · 6 이 이미 FR-80~93 을 구현했는데 옮기지 않았다). F004 슬라이스 15 — 리포트 FR-1~7 · 10~15 · 21~26 · 40~46 · 70~72 · 94. **FR-60 다르게**(클라이언트 조회 — 토큰). 체크리스트 `salt-microFe/requirements/reports/checklists/FE-REQ-027.md` 신설 |
 | 2026-10-26 | F011 슬라이스 7d · 7e — 코치 리포트(`CoachReport`) 두 분기(리포트 있음 · 없음)에 코인 미러 바로 아래 `KrMirrorPanel`(`FE-REQ-041` FR-28). 비소유자면 섹션 없음 · 리포트와 따로 부르고 따로 실패. 리스크 예산 게이지 다섯째 줄(FR-29)은 `RiskBudgetPanel` 안 |
+| 2026-10-26 | F011 7f — 코치 리포트에 국내 주식 월간 복기 섹션(코인 복기 바로 아래, 리포트 없음 화면에도) |

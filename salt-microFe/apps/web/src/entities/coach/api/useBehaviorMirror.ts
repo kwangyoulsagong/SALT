@@ -74,18 +74,20 @@ const MONTHLY_REVIEW_STALE_TIME_MS = 60 * 60_000;
 
 /**
  * 월간 복기 (F009 슬라이스 6 FR-28). `month` 가 `null` 이면 서버가 고른 지난달(KST).
- * 미러 · 리포트와 따로 부르고 따로 실패한다
+ * 미러 · 리포트와 따로 부르고 따로 실패한다. `kr_stock` 이면 국내판(F011 FR-48) — **404 는 "소유자가 아니다"**(`notOwner`)
  */
-export const useMonthlyReview = (month: string | null) => {
+export const useMonthlyReview = (month: string | null, assetType: "crypto" | "kr_stock" = "crypto") => {
   const token = readAccessToken();
+  const isKr = assetType === "kr_stock";
   const query = useQuery<MonthlyReviewResult, Error>({
-    queryKey: coachQueryKeys.monthlyReview(month),
-    queryFn: ({ signal }) => coachApi.monthlyReview(month, signal),
+    queryKey: isKr ? coachQueryKeys.krMonthlyReview(month) : coachQueryKeys.monthlyReview(month),
+    queryFn: ({ signal }) => coachApi.monthlyReview(month, signal, assetType),
     enabled: Boolean(token),
     staleTime: MONTHLY_REVIEW_STALE_TIME_MS,
     // 달을 바꾸는 동안 앞 달을 두고 자리를 지킨다 — 고르기 칸이 사라졌다 나타나지 않게
     placeholderData: keepPreviousData,
     retry: retryServerErrorOnce,
   });
-  return { ...query, isSignedOut: !token };
+  const notOwner = isKr && query.error instanceof CoachApiError && query.error.status === HTTP_STATUS_CODE.NOT_FOUND;
+  return { ...query, notOwner, isSignedOut: !token };
 };

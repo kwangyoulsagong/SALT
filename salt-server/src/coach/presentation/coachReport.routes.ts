@@ -802,8 +802,10 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - `month` 가 없으면 KST 지난달. 끝나지 않은 달은 `status: month_not_closed`
    *       - 그달 말까지 거래가 없으면 `no_ledger`, 거래가 5,000건을 넘으면 `truncated` — 둘 다 `review: null`
    *       - `ipsDeviation` 은 **지금 설정** 기준이다(`basis: current_settings` — 설정 이력을 저장하지 않는다).
+   *         `scope` — 코인 · 국내 거래가 다 있는 달은 두 자산군 합산(`all_assets`), 아니면 이 판 몫(`asset_type`)
    *         월 손실 예산의 비율 단위는 월초 평가금 대비
    *       - `oneThing` 은 금액이 없는 문장이다. 금액은 `topMistake` 숫자로
+   *       - 코인 거래만 센다(`assetType: crypto`). 국내 주식은 `/api/coach/review/monthly/kr-stock`
    *     tags: [Coach Risk]
    *     security:
    *       - bearerAuth: []
@@ -813,11 +815,41 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         schema: { type: string, pattern: "^\\d{4}-(0[1-9]|1[0-2])$", example: "2026-08" }
    *     responses:
    *       200:
-   *         description: "`{ month, status, availableMonths[], review: { month, from, to, generatedAt, activity, adherence, disposition, benchmark, turnover, tagCosts[], topMistake, ipsDeviation, brier, oneThing } | null }`"
+   *         description: "`{ assetType, month, status, availableMonths[], review: { month, from, to, generatedAt, activity, adherence, disposition, benchmark, turnover, tagCosts[], topMistake, ipsDeviation, brier, oneThing } | null }`"
    *       400: { description: month 형식 오류 }
    *       401: { description: 인증 실패 }
    */
   router.get("/review/monthly", risk.getMonthlyReview);
+
+  /**
+   * @swagger
+   * /api/coach/review/monthly/kr-stock:
+   *   get:
+   *     summary: 월간 복기 국내 주식판 (F011 FR-48)
+   *     description: |
+   *       코인판(`/api/coach/review/monthly`)과 **같은 모양 · 같은 규칙**이고 국내 주식 거래 · 결과 · 연결 계획 · "오를 확률" 계획
+   *       (종목 시세가 국내 주식인 것)만 센다. `assetType: kr_stock`. 코인판과 따로 저장되고(자산군마다 한 벌) 고치지 않는다.
+   *
+   *       - 거래 시각은 KST 날짜로 일봉에 붙인다. 날은 **거래일**만 걷는다 — 주말 · 휴장일은 IPS 이탈 날이 아니다
+   *       - 휴장일 매도의 장부 손익은 직전 거래일 종가, 익절 · 손절 평균 보유 기간은 **거래일**
+   *       - 회전율 · 보유 대비는 국내 주식 몫만 본다(코인판도 코인 몫만). IPS 이탈은 그달에 코인 · 국내 거래가 다 있으면 **두 자산군 합산**
+   *         (`ipsDeviation.scope: all_assets` — 두 판에 같은 값, 달력일), 아니면 그 판 몫(`asset_type`)
+   *       - `brier.recentMisses[].name` — 빗나간 예측의 종목 이름(읽을 때 붙인다, 모르면 `null`). 코인판은 늘 `null`
+   *     tags: [Coach Risk]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: month
+   *         schema: { type: string, pattern: "^\\d{4}-(0[1-9]|1[0-2])$", example: "2026-09" }
+   *     responses:
+   *       200:
+   *         description: "코인판과 같은 모양 — `assetType: kr_stock`"
+   *       400: { description: month 형식 오류 }
+   *       401: { description: 인증 실패 }
+   *       404: { description: "`COACH_KR_STOCK_NOT_AVAILABLE` — 국내 주식을 볼 수 없다(소유자 전용)" }
+   */
+  router.get("/review/monthly/kr-stock", risk.getKrMonthlyReview);
 
   return router;
 };

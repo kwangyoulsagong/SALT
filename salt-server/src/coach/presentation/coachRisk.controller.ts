@@ -198,6 +198,19 @@ export class CoachRiskController {
     }
   };
 
+  getKrMonthlyReview = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { month } = monthlyReviewQuerySchema.parse(req.query);
+      const view = await this.useCases.getMonthlyReview.execute(req.user!.userId, month, {
+        assetType: "kr_stock",
+        viewerEmail: req.user!.email,
+      });
+      return ResponseUtil.success(res, toMonthlyReviewResponse(view));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   confirmOutcomeTags = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = decisionOutcomeParamsSchema.parse(req.params);

@@ -39,4 +39,6 @@ export const coachQueryKeys = {
    * `null` 은 "서버가 고른 지난달"이다
    */
   monthlyReview: (month: string | null) => ["coach", "monthly-review", month ?? "latest"] as const,
+  /** 국내판(F011 FR-48) — 코인판과 따로 저장되고 따로 바뀌지 않는다 */
+  krMonthlyReview: (month: string | null) => ["coach", "monthly-review", "kr-stock", month ?? "latest"] as const,
 } as const;

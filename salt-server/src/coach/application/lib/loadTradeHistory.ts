@@ -2,6 +2,7 @@ import {
   replayLedger,
   sortLedgerAscending,
   toKrBarClock,
+  toKrTradingClock,
   type CoachLedgerEntry,
   type DailyBar,
   type ForecastReader,
@@ -22,6 +23,8 @@ import {
  *
  * 자산군마다 따로 읽는다(F011 FR-47) — 계획은 **이 자산군 거래에 연결된 것만**(연결 거래가 지워지면 `SetNull` 이라
  * 연결 계획의 거래는 늘 둘 중 한 자산군에 있다). 국내 주식 일봉은 실제 KST 하루 축으로 옮겨 준다(`toKrBarClock`).
+ * 월간 복기 국내판(FR-48)은 반대로 **거래를 KST 벽시계로** 옮긴다(`krClock: "trades"`) — 날을 걷는 계산
+ * (`walkPortfolioDays`)이 UTC 날 경계를 쓰기 때문이다. 국내 미러와 같은 축이다.
  */
 
 /** 한 사용자 거래를 한 번에 읽는 상한. 넘으면 합을 만들지 않는다(`truncated`) */
@@ -42,7 +45,9 @@ export type TradeHistory =
 export const loadTradeHistory = async (
   deps: { portfolio: PortfolioProbe; tradePlans: TradePlanStore; forecasts: ForecastReader },
   userId: string,
-  assetType: OutcomeAssetType = "crypto"
+  assetType: OutcomeAssetType = "crypto",
+  /** 국내 주식만 — 봉을 실제 KST 하루로 옮길지(`bars`, 판정 배치), 거래를 벽시계로 옮길지(`trades`, 월간 복기) */
+  krClock: "bars" | "trades" = "bars"
 ): Promise<TradeHistory> => {
   const [ledger, linked] = await Promise.all([
     deps.portfolio.listLedgerSince(userId, new Date(0), TRADE_HISTORY_LIMIT, [assetType]),
@@ -50,16 +55,16 @@ export const loadTradeHistory = async (
   ]);
   if (ledger.truncated) return { status: "truncated" };
 
-  const entries = sortLedgerAscending(
-    ledger.entries.map((entry) => ({ ...entry, symbol: entry.symbol.toUpperCase() }))
-  );
+  const wallClock = assetType === "kr_stock" && krClock === "trades";
+  const upper = ledger.entries.map((entry) => ({ ...entry, symbol: entry.symbol.toUpperCase() }));
+  const entries = sortLedgerAscending(wallClock ? toKrTradingClock(upper) : upper);
   const entryIds = new Set(entries.map((entry) => entry.id));
   const plans = linked.filter((plan) => plan.transactionId !== null && entryIds.has(plan.transactionId));
   const symbols = [...new Set(entries.map((entry) => entry.symbol))];
   // 첫 거래 하루 전부터 — 산 날 봉이 비었을 때 직전 종가를 쓸 수 있게
   const from = entries.length ? new Date(entries[0].transactionDate.getTime() - 2 * DAY_MS) : new Date();
   const bars = await deps.forecasts.dailyCloses(symbols, from);
-  const barsBySymbol = assetType === "kr_stock" ? toKrBarClock(bars) : bars;
+  const barsBySymbol = assetType === "kr_stock" && !wallClock ? toKrBarClock(bars) : bars;
 
   return { status: "ok", entries, replay: replayLedger(entries), plans, barsBySymbol };
 };

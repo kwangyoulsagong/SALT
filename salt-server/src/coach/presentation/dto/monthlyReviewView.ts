@@ -7,6 +7,7 @@ import { days, metric, rate, tagCost, toBrierResponse } from "./mirrorView";
 /**
  * 월간 복기 응답(FR-28) — 저장된 스냅샷(숫자 문자열)을 미러와 **같은 규칙**으로 옮긴다.
  * 문자열을 `Decimal` 로 되살려 미러 변환 함수를 그대로 쓴다 — 두 화면의 반올림이 갈라지지 않게.
+ * 코인판 · 국내판(F011 FR-48)이 같은 모양이다. `assetType` 으로 가른다 — 국내판의 보유 기간은 **거래일**이다.
  */
 
 const dec = (value: string | null): Decimal | null => (value === null ? null : new Decimal(value));
@@ -38,14 +39,27 @@ const reviveBrier = (brier: Jsonified<BrierSummary>): BrierSummary => ({
   })),
 });
 
+/** 국내판 빗나간 예측에 종목 이름(F011 FR-48) — 모르면 `null`(화면은 코드) */
+const withMissNames = (brier: ReturnType<typeof toBrierResponse>, names: Record<string, string>) => ({
+  ...brier,
+  recentMisses: brier.recentMisses.map((miss) => ({ ...miss, name: names[miss.symbol] ?? null })),
+});
+
 export const toMonthlyReviewResponse = (view: MonthlyReviewView) => {
   const stored = view.review;
   if (!stored) {
-    return { month: view.month, status: view.status, review: null, availableMonths: view.availableMonths };
+    return {
+      assetType: view.assetType,
+      month: view.month,
+      status: view.status,
+      review: null,
+      availableMonths: view.availableMonths,
+    };
   }
   const review = stored.payload;
   const { adherence, disposition, benchmark, turnover, ipsDeviation } = review;
   return {
+    assetType: view.assetType,
     month: view.month,
     status: view.status,
     availableMonths: view.availableMonths,
@@ -91,6 +105,8 @@ export const toMonthlyReviewResponse = (view: MonthlyReviewView) => {
       topMistake: review.topMistake && tagCost(reviveTagCost(review.topMistake)),
       ipsDeviation: {
         basis: ipsDeviation.basis,
+        // 합산 전에 저장된 복기는 필드가 없다 — 그때는 그 판 몫만 셌다
+        scope: ipsDeviation.scope ?? "asset_type",
         observedDays: ipsDeviation.observedDays,
         days: ipsDeviation.days,
         lossBudget: {
@@ -105,7 +121,7 @@ export const toMonthlyReviewResponse = (view: MonthlyReviewView) => {
         },
         missingCloses: ipsDeviation.missingCloses,
       },
-      brier: toBrierResponse(reviveBrier(review.brier)),
+      brier: withMissNames(toBrierResponse(reviveBrier(review.brier)), view.symbolNames),
       oneThing: review.oneThing,
     },
   };

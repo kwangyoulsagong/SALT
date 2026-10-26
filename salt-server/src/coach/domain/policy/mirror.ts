@@ -236,7 +236,9 @@ export const benchmarkMirror = (
   entries: CoachLedgerEntry[],
   barsBySymbol: Map<string, DailyBar[]>,
   now: Date,
-  window?: MirrorWindow
+  window?: MirrorWindow,
+  /** 국내 주식(벽시계 축) — 이 날만 걷는다. 코인은 없음 */
+  tradingDays?: ReadonlySet<number>
 ): BenchmarkMirror => {
   const empty = (missingCloses: string[] = []): BenchmarkMirror => ({
     status: "insufficient_data",
@@ -257,7 +259,7 @@ export const benchmarkMirror = (
   const windowFrom = window ? window.from.getTime() : Number.NEGATIVE_INFINITY;
   const lastDay = window ? Math.min(closedLastDay, window.to.getTime() - DAY_MS) : closedLastDay;
 
-  const walk = walkPortfolioDays(entries, barsBySymbol, lastDay, windowFrom - DAY_MS);
+  const walk = walkPortfolioDays(entries, barsBySymbol, lastDay, windowFrom - DAY_MS, tradingDays);
   if (walk.status === "missing_close") return empty(walk.missingCloses);
 
   let actual = new Decimal(1);

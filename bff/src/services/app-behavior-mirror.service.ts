@@ -114,14 +114,21 @@ export class AppBehaviorMirrorService {
 
   /**
    * 월간 복기(슬라이스 6, `BFF-REQ-038` FR-10). GET 이지만 서버가 없던 복기를 만들 수 있다 — 만드는 쪽이 멱등이라
-   * (있으면 읽고 끝) 재시도 1회는 안전하다
+   * (있으면 읽고 끝) 재시도 1회는 안전하다.
+   * 국내판(F011 `BFF-REQ-040` FR-26)은 서버 경로가 따로다 — 소유자가 아니면 서버 404 가 그대로 올라간다(국내 미러와 같다)
    */
-  async getMonthlyReview(token: string, month: string | undefined, signal?: AbortSignal): Promise<MonthlyReviewResult> {
+  async getMonthlyReview(
+    token: string,
+    month: string | undefined,
+    signal?: AbortSignal,
+    assetType: "crypto" | "kr_stock" = "crypto",
+  ): Promise<MonthlyReviewResult> {
     const query = month === undefined ? "" : `?month=${month}`;
+    const path = assetType === "kr_stock" ? "/coach/review/monthly/kr-stock" : "/coach/review/monthly";
     try {
       const response = await retryOnceOnGet(
         () =>
-          backendApi.proxyAuthRequest("GET", `/coach/review/monthly${query}`, token, undefined, {
+          backendApi.proxyAuthRequest("GET", `${path}${query}`, token, undefined, {
             timeout: REVIEW_READ_TIMEOUT_MS,
             signal,
           }),
@@ -130,7 +137,7 @@ export class AppBehaviorMirrorService {
       return toMonthlyReviewViewModel(dataOf(response));
     } catch (error) {
       if (isPassThrough(error, signal)) throw error;
-      logger.warn("[behavior-mirror] monthly review unavailable", { reason: (error as Error)?.message });
+      logger.warn("[behavior-mirror] monthly review unavailable", { assetType, reason: (error as Error)?.message });
       return { status: "unavailable" };
     }
   }

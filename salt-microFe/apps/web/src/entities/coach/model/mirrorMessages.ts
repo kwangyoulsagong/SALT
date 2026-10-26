@@ -182,12 +182,26 @@ export const REVIEW_MESSAGES = {
     lossUnavailable: "월 손실 예산은 월초 평가금이 없어 세지 못했어요",
     concentration: (days: number, limit: string) => `한 종목 비중이 상한 ${limit}보다 컸던 날 ${days}일`,
     basis: "지금 정해 둔 기준으로 셌어요",
+    basisAllAssets: "코인 · 국내 주식을 합쳐 지금 정해 둔 기준으로 셌어요",
   },
   turnover: {
     label: "그달 회전율",
     line: (times: string, fees: string) => `${times}배 · 수수료 ${fees}원`,
   },
   observedDays: (days: number) => `관찰 ${days}일`,
+} as const;
+
+/**
+ * 월간 복기 국내판 (F011 FR-48 · `FE-REQ-041` FR-30). 코인판과 같은 줄 · 같은 순서 — 바뀌는 말만 둔다.
+ * 날은 **거래일**이다(주말 · 휴장일은 기준을 넘은 날로 세지 않는다)
+ */
+export const KR_REVIEW_MESSAGES = {
+  heading: "국내 주식 월간 복기",
+  description: "국내 주식 거래만 거래일로 한 달을 정리해 둬요. 뒤에 태그를 고쳐도 이 복기는 그대로예요",
+  unavailable: "지금은 국내 주식 월간 복기를 불러올 수 없어요",
+  noLedger: "그달까지 적은 국내 주식 거래가 없어요",
+  ipsLine: (days: number, observed: number) => `${observed}거래일 중 ${days}일`,
+  observedDays: (days: number) => `관찰 ${days}거래일`,
 } as const;
 
 /**

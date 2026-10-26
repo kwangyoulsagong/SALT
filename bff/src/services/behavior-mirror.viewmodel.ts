@@ -171,6 +171,8 @@ export interface BrierView {
   unscorableCount: number;
   recentMisses: Array<{
     symbol: string;
+    /** 종목 이름 — 국내 월간 복기만 서버가 싣는다(F011 FR-26). 없으면 `null`(화면은 코드) */
+    name: string | null;
     probabilityUp: number;
     plannedAt: string;
     dueAt: string;
@@ -280,7 +282,9 @@ export const toBrierView = (raw: unknown): BrierView | null => {
       if (!symbol || probabilityUp === null || !plannedAt || !dueAt || referenceClose === null || outcomeClose === null) {
         return [];
       }
-      return [{ symbol, probabilityUp, plannedAt, dueAt, referenceClose, outcomeClose, up: item.up === true }];
+      return [
+        { symbol, name: str(item.name), probabilityUp, plannedAt, dueAt, referenceClose, outcomeClose, up: item.up === true },
+      ];
     }),
   };
 };

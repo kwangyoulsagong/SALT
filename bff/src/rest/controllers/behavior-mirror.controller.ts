@@ -87,14 +87,19 @@ export class AppBehaviorMirrorController {
   };
 
   /** 월간 복기 — `month` 가 없으면 서버가 KST 지난달을 고른다 */
-  monthlyReview = async (req: Request, res: Response, next: NextFunction) => {
+  monthlyReview = (req: Request, res: Response, next: NextFunction) => this.review(req, res, next, "crypto");
+
+  /** 월간 복기 국내판(F011 FR-48) — 소유자 전용 404 는 그대로 */
+  krMonthlyReview = (req: Request, res: Response, next: NextFunction) => this.review(req, res, next, "kr_stock");
+
+  private review = async (req: Request, res: Response, next: NextFunction, assetType: "crypto" | "kr_stock") => {
     const month = req.query.month;
     if (month !== undefined && (typeof month !== "string" || !MONTH_PATTERN.test(month))) {
       return badRequest(res, "month 는 YYYY-MM 입니다");
     }
     const aborter = abortOnClose(res);
     try {
-      const data = await appBehaviorMirrorService.getMonthlyReview(req.token!, month, aborter.signal);
+      const data = await appBehaviorMirrorService.getMonthlyReview(req.token!, month, aborter.signal, assetType);
       return res.json({ success: true, data });
     } catch (error) {
       if (aborter.signal.aborted) return;
