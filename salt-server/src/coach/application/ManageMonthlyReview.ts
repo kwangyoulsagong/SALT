@@ -2,6 +2,7 @@ import Decimal from "decimal.js";
 
 import {
   buildMonthlyReview,
+  combinedIpsSource,
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
   isForecastOwner,
   isReviewMonthClosed,
@@ -38,6 +39,9 @@ import { loadTradeHistory } from "./lib/loadTradeHistory";
  * 종목 시세의 자산군, 모르면 코인 — 사이즈 점검과 같은 규칙). 국내판은 모든 시각을 KST 벽시계로 옮기고 거래일만 걷는다
  * (`domain/policy/monthlyReview` 머리 주석). 국내 화면은 소유자 전용이다(`GetMonthlyReview`) — 배치는 거르지 않고
  * 만들어 두되(국내 거래가 없으면 `no_ledger` 로 안 만든다) 보여 주는 쪽이 막는다.
+ *
+ * IPS 이탈만은 두 자산군을 합쳐 센다 — 그달 말까지 두 자산군 거래가 다 있으면 다른 자산군 기록도 읽어
+ * `combinedIpsSource` 로 넘긴다(두 판에 같은 값). 다른 자산군 기록이 잘렸으면 그 판 몫만(`asset_type`).
  */
 
 const OUTCOME_READ_LIMIT = 5000;
@@ -81,13 +85,11 @@ export class BuildMonthlyReview {
 
     const kr = assetType === "kr_stock";
     const window = reviewMonthWindow(month);
-    const [history, outcomes, allForecastPlans, profile] = await Promise.all([
-      loadTradeHistory(
-        { portfolio: this.portfolio, tradePlans: this.tradePlans, forecasts: this.forecasts },
-        userId,
-        assetType,
-        "trades"
-      ),
+    const historyDeps = { portfolio: this.portfolio, tradePlans: this.tradePlans, forecasts: this.forecasts };
+    const [history, otherHistory, outcomes, allForecastPlans, profile] = await Promise.all([
+      loadTradeHistory(historyDeps, userId, assetType, "trades"),
+      // IPS 합산용 다른 자산군 — 국내는 벽시계 거래 · KST 날짜 봉, 코인은 실제 시각(합칠 때 옮긴다)
+      loadTradeHistory(historyDeps, userId, kr ? "crypto" : "kr_stock", "trades"),
       this.outcomes.listOwned(userId, OUTCOME_READ_LIMIT, assetType),
       this.tradePlans.listForecasted(userId, FORECAST_PLAN_LIMIT),
       this.profiles.findByUser(userId),
@@ -100,6 +102,7 @@ export class BuildMonthlyReview {
     const forecastPlans = await this.plansOf(allForecastPlans, assetType);
     const barsBySymbol = await this.withForecastBars(history.barsBySymbol, forecastPlans);
     const live = outcomes.filter((outcome) => outcome.sampleOrigin === "live");
+    const combinedIps = this.combinedIps(history, otherHistory, kr, window.to, now);
     const review = buildMonthlyReview({
       month,
       entries: history.entries,
@@ -118,9 +121,26 @@ export class BuildMonthlyReview {
       maxSingleAssetWeight: new Decimal(profile?.maxSingleAssetWeight ?? DEFAULT_MAX_SINGLE_ASSET_WEIGHT),
       now: kr ? krWallClock(now) : now,
       kr: kr ? { tradingDays: krTradingDays(history.barsBySymbol) } : undefined,
+      combinedIps,
     });
     const stored = await this.reviews.saveIfAbsent(userId, review, now, assetType);
     return { status: "ok", review: stored, created: stored.generatedAt.getTime() === now.getTime() };
+  }
+
+  /** 그달 말까지 두 자산군 거래가 다 있으면 합산 IPS 재료. 아니면 `undefined`(그 판 몫만) */
+  private combinedIps(
+    own: Extract<Awaited<ReturnType<typeof loadTradeHistory>>, { status: "ok" }>,
+    other: Awaited<ReturnType<typeof loadTradeHistory>>,
+    kr: boolean,
+    windowEnd: Date,
+    now: Date
+  ) {
+    if (other.status !== "ok") return undefined;
+    const [crypto, krStock] = kr ? [other, own] : [own, other];
+    const hasCrypto = crypto.entries.some((entry) => entry.transactionDate < windowEnd);
+    const hasKr = krStock.entries.some((entry) => entry.transactionDate < krWallClock(windowEnd));
+    if (!hasCrypto || !hasKr) return undefined;
+    return { ...combinedIpsSource(crypto, krStock), wallNow: krWallClock(now) };
   }
 
   /** "오를 확률" 계획 중 이 자산군 종목 것만 — 시세의 자산군, 시세를 모르면 코인(사이즈 점검과 같은 규칙) */

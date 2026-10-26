@@ -8,6 +8,7 @@ import {
   benchmarkMirror,
   brierSummary,
   buildMonthlyReview,
+  combinedIpsSource,
   entryChecklist,
   episodeScenario,
   HISTORICAL_EPISODES,
@@ -352,5 +353,78 @@ describe("월간 복기 — 조립", () => {
       assert.deepEqual(languageViolations(sentence), [], sentence);
       assert.doesNotMatch(sentence, /원|310/, "금액은 숫자 필드로만");
     }
+  });
+});
+
+describe("IPS 이탈 — 코인 + 국내 합산 (F011 FR-48 후속)", () => {
+  // 국내: 01-05(월) 00:00 KST 삼성 1 @100 — 벽시계 거래 · KST 날짜 봉(01-05 100 · 01-06 90)
+  const krEntries = [tx("k1", "buy", "2026-01-05T00:00:00Z", 1, 100, "005930")];
+  const krBars = new Map([["005930", [bar("2026-01-02", 100), bar("2026-01-05", 100), bar("2026-01-06", 90)]]]);
+  // 코인: 01-05 10:00 KST(01:00Z) BTC 1 @100 — 실제 시각 · UTC 봉. 01-05Z 봉(01-06 09:00 KST 에 닫힘) 100 → 01-06Z 봉 90
+  const cryptoEntries = [tx("c1", "buy", "2026-01-05T01:00:00Z", 1, 100)];
+  const cryptoBars = new Map([["BTC", [bar("2026-01-04", 100), bar("2026-01-05", 100), bar("2026-01-06", 90)]]]);
+  const budget = { unit: "krw" as const, amount: new Decimal(15) };
+  const wallWindow = { from: at("2026-01-01T00:00:00Z"), to: at("2026-02-01T00:00:00Z") };
+  const wallNow = at("2026-02-02T09:00:00Z");
+
+  it("둘 다 −10 이라 따로는 예산(15) 안 · 합치면 01-07 부터 −20 으로 넘는다", () => {
+    const source = combinedIpsSource({ entries: cryptoEntries, barsBySymbol: cryptoBars }, { entries: krEntries, barsBySymbol: krBars });
+    const combined = ipsDeviation({
+      ...source,
+      window: wallWindow,
+      now: wallNow,
+      monthlyLossBudget: budget,
+      maxSingleAssetWeight: new Decimal("0.6"),
+      scope: "all_assets",
+    });
+    assert.equal(combined.scope, "all_assets");
+    // 코인 봉은 하루 뒤 날짜 값(as-of): 01-06 = 100, 01-07 = 90 / 국내 01-06 = 90 → 01-06 −10 · 01-07 부터 −20
+    // 01-05 ~ 01-31 = 27일 관찰(코인 시장은 매일), 넘은 날 01-07 ~ 01-31 = 25일
+    assert.equal(combined.observedDays, 27);
+    assert.equal(combined.lossBudget.days, 25);
+    // 두 종목 50:50 — 한 종목 상한(60%)은 넘지 않는다
+    assert.equal(combined.concentration.days, 0);
+
+    const krOnly = ipsDeviation({
+      entries: krEntries,
+      barsBySymbol: krBars,
+      window: wallWindow,
+      now: wallNow,
+      monthlyLossBudget: budget,
+      maxSingleAssetWeight: new Decimal("0.6"),
+      tradingDays: new Set(krBars.get("005930")!.map((b) => b.openTime.getTime())),
+    });
+    assert.equal(krOnly.scope, "asset_type");
+    assert.equal(krOnly.lossBudget.days, 0, "국내 몫만이면 −10 — 넘지 않는다");
+  });
+
+  it("복기 두 판이 같은 합산 값을 싣는다", () => {
+    const source = combinedIpsSource({ entries: cryptoEntries, barsBySymbol: cryptoBars }, { entries: krEntries, barsBySymbol: krBars });
+    const base = {
+      month: "2026-01",
+      linkedPlans: [],
+      outcomes: [],
+      forecastPlans: [],
+      monthlyLossBudget: budget,
+      maxSingleAssetWeight: new Decimal("0.6"),
+      combinedIps: { ...source, wallNow },
+    };
+    const cryptoReview = buildMonthlyReview({
+      ...base,
+      entries: cryptoEntries,
+      replay: replayLedger(cryptoEntries),
+      barsBySymbol: cryptoBars,
+      now: at("2026-02-02T00:00:00Z"),
+    });
+    const krReview = buildMonthlyReview({
+      ...base,
+      entries: krEntries,
+      replay: replayLedger(krEntries),
+      barsBySymbol: krBars,
+      now: wallNow,
+      kr: { tradingDays: new Set(krBars.get("005930")!.map((b) => b.openTime.getTime())) },
+    });
+    assert.deepEqual(cryptoReview.ipsDeviation, krReview.ipsDeviation);
+    assert.equal(cryptoReview.ipsDeviation.lossBudget.days, 25);
   });
 });

@@ -183,7 +183,7 @@ describe("월간 복기 국내판 (F011 FR-48)", () => {
       sampleOrigin: "live",
     }) as TradePlan;
 
-  const setupKr = () => {
+  const setupKr = (options: { withCrypto?: boolean } = {}) => {
     const calls: Array<{ assetTypes?: string[]; outcomesAssetType?: string }> = [];
     const krOutcome = {
       ...outcome(-10, ["averaging_down"]),
@@ -196,7 +196,8 @@ describe("월간 복기 국내판 (F011 FR-48)", () => {
       async listLedgerSince(_userId: string, _since: Date, _limit: number, assetTypes?: string[]) {
         calls.push({ assetTypes });
         const kr = [krTx("b1", "buy", "2026-01-02", 100), krTx("s1", "sell", "2026-01-06", 90)];
-        return { entries: assetTypes?.includes("kr_stock") ? [...kr].reverse() : [], truncated: false };
+        const crypto = options.withCrypto ? [tx("cb1", "buy", "2026-01-05T01:00:00Z", 100)] : [];
+        return { entries: assetTypes?.includes("kr_stock") ? [...kr].reverse() : crypto, truncated: false };
       },
     } as unknown as PortfolioProbe;
     const plans = {
@@ -240,7 +241,12 @@ describe("월간 복기 국내판 (F011 FR-48)", () => {
     const view = await ctx.get.execute("u1", "2026-01", { assetType: "kr_stock", viewerEmail: "owner@salt.dev" });
     assert.equal(view.assetType, "kr_stock");
     assert.equal(view.status, "ok");
-    assert.deepEqual(ctx.calls.slice(0, 2), [{ assetTypes: ["kr_stock"] }, { outcomesAssetType: "kr_stock" }]);
+    // 이 판 원장 · 결과는 국내, IPS 합산용으로 코인 원장도 읽는다
+    assert.deepEqual(ctx.calls.slice(0, 3), [
+      { assetTypes: ["kr_stock"] },
+      { assetTypes: ["crypto"] },
+      { outcomesAssetType: "kr_stock" },
+    ]);
     const review = view.review!.payload;
     assert.deepEqual(review.activity, { tradeCount: 2, buyCount: 1, sellCount: 1, closedCount: 1 });
     assert.equal(review.topMistake?.tag, "averaging_down");
@@ -256,6 +262,21 @@ describe("월간 복기 국내판 (F011 FR-48)", () => {
     assert.deepEqual(await ctx.reviews.listMonths("u1", 12, "crypto"), [], "코인판과 섞이지 않는다");
     assert.deepEqual(view.availableMonths, ["2026-01"]);
     assert.deepEqual(view.symbolNames, { "005930": "삼성전자" }, "빗나간 예측 종목 이름은 읽을 때 붙인다");
+    assert.equal(review.ipsDeviation.scope, "asset_type", "코인 거래가 없으면 국내 몫만");
+  });
+
+  it("두 자산군 거래가 다 있으면 IPS 이탈은 합산 — 두 판이 같은 값", async () => {
+    const ctx = setupKr({ withCrypto: true });
+    const kr = await ctx.build.execute("u1", "2026-01", "kr_stock");
+    const crypto = await ctx.build.execute("u1", "2026-01", "crypto");
+    assert.ok(kr.status === "ok" && crypto.status === "ok");
+    assert.equal(kr.review.payload.ipsDeviation.scope, "all_assets");
+    assert.deepEqual(kr.review.payload.ipsDeviation, crypto.review.payload.ipsDeviation);
+    // 코인 시장은 매일 — 관찰 날이 거래일(3)이 아니라 01-02 ~ 01-31 달력일
+    assert.equal(kr.review.payload.ipsDeviation.observedDays, 30);
+    // 판마다 나머지는 그 자산군 몫
+    assert.equal(kr.review.payload.activity.tradeCount, 2);
+    assert.equal(crypto.review.payload.activity.tradeCount, 1);
   });
 
   it("코인판은 국내 계획을 채점하지 않는다", async () => {

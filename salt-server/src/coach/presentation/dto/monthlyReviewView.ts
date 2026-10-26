@@ -105,6 +105,8 @@ export const toMonthlyReviewResponse = (view: MonthlyReviewView) => {
       topMistake: review.topMistake && tagCost(reviveTagCost(review.topMistake)),
       ipsDeviation: {
         basis: ipsDeviation.basis,
+        // 합산 전에 저장된 복기는 필드가 없다 — 그때는 그 판 몫만 셌다
+        scope: ipsDeviation.scope ?? "asset_type",
         observedDays: ipsDeviation.observedDays,
         days: ipsDeviation.days,
         lossBudget: {

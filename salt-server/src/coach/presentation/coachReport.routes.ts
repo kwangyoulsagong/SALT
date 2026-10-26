@@ -802,6 +802,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - `month` 가 없으면 KST 지난달. 끝나지 않은 달은 `status: month_not_closed`
    *       - 그달 말까지 거래가 없으면 `no_ledger`, 거래가 5,000건을 넘으면 `truncated` — 둘 다 `review: null`
    *       - `ipsDeviation` 은 **지금 설정** 기준이다(`basis: current_settings` — 설정 이력을 저장하지 않는다).
+   *         `scope` — 코인 · 국내 거래가 다 있는 달은 두 자산군 합산(`all_assets`), 아니면 이 판 몫(`asset_type`)
    *         월 손실 예산의 비율 단위는 월초 평가금 대비
    *       - `oneThing` 은 금액이 없는 문장이다. 금액은 `topMistake` 숫자로
    *       - 코인 거래만 센다(`assetType: crypto`). 국내 주식은 `/api/coach/review/monthly/kr-stock`
@@ -831,7 +832,8 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *
    *       - 거래 시각은 KST 날짜로 일봉에 붙인다. 날은 **거래일**만 걷는다 — 주말 · 휴장일은 IPS 이탈 날이 아니다
    *       - 휴장일 매도의 장부 손익은 직전 거래일 종가, 익절 · 손절 평균 보유 기간은 **거래일**
-   *       - IPS 이탈 · 회전율 · 보유 대비는 국내 주식 몫만 본다(코인판도 코인 몫만)
+   *       - 회전율 · 보유 대비는 국내 주식 몫만 본다(코인판도 코인 몫만). IPS 이탈은 그달에 코인 · 국내 거래가 다 있으면 **두 자산군 합산**
+   *         (`ipsDeviation.scope: all_assets` — 두 판에 같은 값, 달력일), 아니면 그 판 몫(`asset_type`)
    *       - `brier.recentMisses[].name` — 빗나간 예측의 종목 이름(읽을 때 붙인다, 모르면 `null`). 코인판은 늘 `null`
    *     tags: [Coach Risk]
    *     security:

@@ -20,12 +20,19 @@
  * 일봉 `openTime` 이 KST 날짜 00:00 UTC 다). 날은 거래일만 걷고(주말 · 휴장일은 IPS 이탈 날이 아니다),
  * 휴장일 매도의 장부 손익은 직전 거래일 종가, 보유 기간은 거래일이다. 저장하는 시각(`from` · `to` · 빗나간 예측)은
  * 실제 시각으로 되돌린다 — 화면이 코인판과 같은 규칙으로 읽는다.
+ *
+ * ## IPS 이탈은 두 자산군을 합쳐 센다(코인 · 국내를 다 가진 달)
+ *
+ * 월 손실 예산 · 한 종목 상한은 사용자 하나에 하나다. 리스크 예산 게이지도 코인 + 국내 합산으로 본다 — 복기가 판마다 그 자산군
+ * 몫만 세면 "게이지는 넘었는데 복기 둘은 안 넘음"이 된다. 그래서 두 자산군 거래가 다 있으면 두 판 모두 **같은 합산 값**을 싣는다
+ * (`scope: all_assets`, `combinedIpsSource`). 축은 KST 날짜(벽시계)이고 코인 가격은 그날 09:00 KST 에 닫힌 일봉 종가(as-of —
+ * 합산 변동성 FR-46 과 같은 규칙), 코인 시장은 매일 열려 날은 모든 날이다. 한 자산군만 있으면 그 판 계산 그대로(`asset_type`).
  */
 
 import Decimal from "decimal.js";
 
 import type { DailyBar } from "./adherence";
-import { krClosingHoldings } from "./krMirror";
+import { krClosingHoldings, toKrTradingClock } from "./krMirror";
 import { brierSummary, type BrierPlan, type BrierSummary } from "./brier";
 import type { DecisionOutcome } from "./decisionOutcome";
 import {
@@ -40,7 +47,7 @@ import {
   type TagCost,
 } from "./mirror";
 import { DAY_MS, walkPortfolioDays } from "./portfolioSeries";
-import type { LedgerReplay } from "./tradeLedger";
+import { sortLedgerAscending, type LedgerReplay } from "./tradeLedger";
 import type { TradePlan } from "./tradePlan";
 import type { BudgetSetting, CoachLedgerEntry } from "../model";
 
@@ -88,6 +95,8 @@ export const isReviewMonthClosed = (month: string, now: Date): boolean => review
 export interface IpsDeviation {
   /** 판단 기준 — 설정 이력이 없어 지금 설정으로 센다 */
   basis: "current_settings";
+  /** 센 범위 — 두 자산군 합산(`all_assets`) · 이 판의 자산군만(`asset_type`). 이 필드 전에 저장된 복기엔 없다 = `asset_type` */
+  scope?: "all_assets" | "asset_type";
   observedDays: number;
   lossBudget: {
     status: "ok" | "budget_not_set" | "insufficient_data";
@@ -115,12 +124,15 @@ export const ipsDeviation = (input: {
   maxSingleAssetWeight: Decimal;
   /** 국내 주식(벽시계 축) — 이 날만 센다 */
   tradingDays?: ReadonlySet<number>;
+  scope?: IpsDeviation["scope"];
 }): IpsDeviation => {
+  const scope = input.scope ?? "asset_type";
   const from = input.window.from.getTime();
   const closedLastDay = Math.floor(input.now.getTime() / DAY_MS) * DAY_MS - DAY_MS;
   const lastDay = Math.min(closedLastDay, input.window.to.getTime() - DAY_MS);
   const unavailable = (missingCloses: string[] = []): IpsDeviation => ({
     basis: "current_settings",
+    scope,
     observedDays: 0,
     lossBudget: {
       status: input.monthlyLossBudget ? "insufficient_data" : "budget_not_set",
@@ -173,6 +185,7 @@ export const ipsDeviation = (input: {
 
   return {
     basis: "current_settings",
+    scope,
     observedDays: inMonth.length,
     lossBudget: {
       status: setting === null ? "budget_not_set" : budget === null ? "insufficient_data" : "ok",
@@ -184,6 +197,25 @@ export const ipsDeviation = (input: {
     missingCloses: [],
   };
 };
+
+/**
+ * 두 자산군 합산 IPS 재료 — KST 벽시계 축 하나로(F011 FR-48 후속). 국내는 이미 벽시계(거래) · KST 날짜(봉)이고,
+ * 코인은 거래를 벽시계로 옮기고 봉을 하루 뒤로 민다 — UTC 00:00 에 연 봉은 다음 날 09:00 KST 에 닫히니 그 날짜의 값이다(as-of).
+ * 종목 코드는 겹치지 않는다(코인 영문 · 국내 6자리)
+ */
+export const combinedIpsSource = (
+  crypto: { entries: CoachLedgerEntry[]; barsBySymbol: Map<string, DailyBar[]> },
+  kr: { entries: CoachLedgerEntry[]; barsBySymbol: Map<string, DailyBar[]> }
+): { entries: CoachLedgerEntry[]; barsBySymbol: Map<string, DailyBar[]> } => ({
+  entries: sortLedgerAscending([...toKrTradingClock(crypto.entries), ...kr.entries]),
+  barsBySymbol: new Map([
+    ...[...crypto.barsBySymbol].map(
+      ([symbol, bars]) =>
+        [symbol, bars.map((bar) => ({ ...bar, openTime: new Date(bar.openTime.getTime() + DAY_MS) }))] as const
+    ),
+    ...kr.barsBySymbol,
+  ]),
+});
 
 // ─── 복기 ────────────────────────────────────────────────────────────────────
 
@@ -243,6 +275,11 @@ export interface MonthlyReviewInput {
    * `barsBySymbol` 은 옮기지 않은 일봉이다. `tradingDays` 는 그 일봉에 나온 날(`krTradingDays`)
    */
   kr?: { tradingDays: ReadonlySet<number> };
+  /**
+   * 두 자산군 합산 IPS 재료(`combinedIpsSource`, 벽시계 축) + 벽시계 `now`. 있으면 IPS 이탈을 이걸로 센다(`all_assets`) —
+   * 판의 축과 상관없이 같은 값이 두 판에 실린다
+   */
+  combinedIps?: { entries: CoachLedgerEntry[]; barsBySymbol: Map<string, DailyBar[]>; wallNow: Date };
 }
 
 const inWindow = (at: Date, window: MirrorWindow) => at >= window.from && at < window.to;
@@ -323,15 +360,25 @@ export const buildMonthlyReview = (input: MonthlyReviewInput): MonthlyReview => 
     turnover,
     tagCosts: costs,
     topMistake,
-    ipsDeviation: ipsDeviation({
-      entries: input.entries,
-      barsBySymbol: input.barsBySymbol,
-      window,
-      now: input.now,
-      monthlyLossBudget: input.monthlyLossBudget,
-      maxSingleAssetWeight: input.maxSingleAssetWeight,
-      tradingDays,
-    }),
+    ipsDeviation: input.combinedIps
+      ? ipsDeviation({
+          entries: input.combinedIps.entries,
+          barsBySymbol: input.combinedIps.barsBySymbol,
+          window: reviewMonthWallWindow(input.month),
+          now: input.combinedIps.wallNow,
+          monthlyLossBudget: input.monthlyLossBudget,
+          maxSingleAssetWeight: input.maxSingleAssetWeight,
+          scope: "all_assets",
+        })
+      : ipsDeviation({
+          entries: input.entries,
+          barsBySymbol: input.barsBySymbol,
+          window,
+          now: input.now,
+          monthlyLossBudget: input.monthlyLossBudget,
+          maxSingleAssetWeight: input.maxSingleAssetWeight,
+          tradingDays,
+        }),
     brier: input.kr ? brierToRealClock(brier) : brier,
     oneThing: oneThingSentence(input.month, topMistake, monthOutcomes.length),
   };
