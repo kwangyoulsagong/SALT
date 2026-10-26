@@ -73,6 +73,8 @@ export interface MonthlyReviewBody {
   ipsDeviation: {
     /** 설정 이력이 없어 지금 설정으로 셌다 — 화면이 이 한 줄을 밝힌다 */
     basis: "current_settings";
+    /** 두 자산군 합산(`all_assets`, F011 FR-26 후속) · 그 판 몫만(`asset_type`). 모르면 `asset_type` */
+    scope: "all_assets" | "asset_type";
     observedDays: number;
     days: number | null;
     lossBudget: { status: "ok" | "budget_not_set" | "insufficient_data"; days: number | null; budgetKrw: number | null };
@@ -151,6 +153,7 @@ const toBody = (raw: Raw): MonthlyReviewBody => {
     topMistake: toTagCost(raw.topMistake),
     ipsDeviation: {
       basis: "current_settings",
+      scope: ips.scope === "all_assets" ? "all_assets" : "asset_type",
       observedDays: count(ips.observedDays),
       days: countOrNull(ips.days),
       lossBudget: {

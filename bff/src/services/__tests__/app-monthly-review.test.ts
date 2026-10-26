@@ -139,9 +139,13 @@ describe("월간 복기 뷰모델", () => {
     mock.restoreAll();
   });
 
-  it("assetType 이 없으면 코인(국내판 전 서버)", () => {
+  it("assetType 이 없으면 코인(국내판 전 서버) · IPS scope 통과(F011 FR-48 후속)", () => {
     const view = toMonthlyReviewViewModel({ month: "2026-08", status: "ok", review: review(), availableMonths: [] });
     assert.equal(view.assetType, "crypto");
+    assert.equal(view.review?.ipsDeviation.scope, "asset_type", "합산 전 복기 — 그 판 몫만");
+    const ips = review().ipsDeviation;
+    const combined = toMonthlyReviewViewModel({ month: "2026-08", status: "ok", review: review({ ipsDeviation: { ...ips, scope: "all_assets" } }) });
+    assert.equal(combined.review?.ipsDeviation.scope, "all_assets");
   });
 });
 
