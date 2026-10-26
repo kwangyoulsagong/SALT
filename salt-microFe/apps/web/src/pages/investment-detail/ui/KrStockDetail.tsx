@@ -19,6 +19,7 @@ import { RecordTradeCard } from "@/features/record-transaction";
 
 import { KrCoachJudgment } from "./KrCoachJudgment";
 import { KrForecast } from "./KrForecast";
+import { KrInvestorFlows } from "./KrInvestorFlows";
 import { useHasAccessToken } from "@/shared/api";
 import { formatKrwCompact, formatPrice } from "@/shared/lib";
 
@@ -139,6 +140,8 @@ export const KrStockDetail = ({ code }: { code: string }) => {
           />
         </div>
       </div>
+      {/* 투자자별 순매수(슬라이스 6) — 시세 사실이라 코치 판단보다 위 */}
+      <KrInvestorFlows code={quote.code} />
       <KrCoachJudgment code={quote.code} />
     </>
   );

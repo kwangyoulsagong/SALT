@@ -23,7 +23,7 @@ import {
   WATCH_LIST_TAB,
   type PreviewRenderer,
 } from "../model";
-import { headingRow, reportLink } from "./MarketBoardLayout.css";
+import { headingRow, krIndexPlaceholder, reportLink } from "./MarketBoardLayout.css";
 import { placeholder as summaryPlaceholder } from "./MarketSummaryStrip.css";
 
 const RealtimeMarketTable = dynamic(
@@ -62,6 +62,12 @@ const MarketSummaryStrip = dynamic(
     loading: () => <div className={summaryPlaceholder} aria-hidden="true" />,
   }
 );
+
+/** 국내 주식 탭 요약 띠(F011 슬라이스 6) — 코인 띠와 같은 이유로 늦게 온다. 자리는 칸 높이만큼 잡는다 */
+const KrIndexStrip = dynamic(() => import("./KrIndexStrip").then((mod) => mod.KrIndexStrip), {
+  ssr: false,
+  loading: () => <div className={krIndexPlaceholder} aria-hidden="true" />,
+});
 
 /** 국내 주식(F011) 자산군 탭을 보일지 정하는 잎 — 엔티티 barrel 을 쓰므로 늦게 온다 */
 const KrStockAvailability = dynamic(
@@ -116,12 +122,17 @@ export const MarketBoard = ({ renderPreview, lead }: MarketBoardProps) => {
         )}
         {/*
           목표 비중 · 위험 · 판정 성적표 띠와 시장 요약 띠는 코인 데이터다(BTC · ETH 비중 · 업비트 요약). 국내 주식 탭에 코인 숫자를
-          두지 않는다 — 국내 주식 요약(코스피 · 코스닥)은 서버 수집이 생기면 같은 자리에 온다(F011 FR-48)
+          두지 않는다 — 국내 주식 탭은 같은 자리에 코스피 · 코스닥 요약(F011 FR-48)
         */}
         {isCrypto && lead}
         {isCrypto && (
           <Margin top="xl">
             <MarketSummaryStrip />
+          </Margin>
+        )}
+        {!isCrypto && (
+          <Margin top="xl">
+            <KrIndexStrip />
           </Margin>
         )}
         <Margin top="xl">

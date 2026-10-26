@@ -107,4 +107,28 @@ export const KR_STOCK_MESSAGES = {
     /** 국내 주식 코치 판단(F011 슬라이스 4) — 장기만 · 국내 주식 표본만. 전망은 아직(슬라이스 5) */
     coachNote: "국내 주식은 장기 관점만 판단하고, 국내 주식 판단 기록으로만 채점해요",
   },
+
+  /** 국내 주식 탭 지수 요약(F011 슬라이스 6 · FR-48) — 값 · 등락 · 종목 수 사실만. 방향 해석 문구 없음 */
+  indices: {
+    regionLabel: "국내 지수",
+    breadth: (up: number, down: number) => `상승 ${up.toLocaleString("ko-KR")} · 하락 ${down.toLocaleString("ko-KR")}`,
+    /** 스크린리더용 — 화면은 숫자와 부호만 쓴다 */
+    breadthLabel: (up: number, flat: number, down: number) =>
+      `상승 ${up}종목, 보합 ${flat}종목, 하락 ${down}종목`,
+    stale: "지연",
+    staleTitle: "지수 제공이 늦어져 마지막으로 받은 값이에요",
+    asOf: (when: string) => `${when} 기준`,
+  },
+
+  /** 상세 투자자 순매수(F011 슬라이스 6 · FR-29) — 매수 − 매도 사실만. "수급 좋다" 같은 해석 문구 없음 */
+  investors: {
+    heading: "투자자별 순매수",
+    caption: (days: number) => `최근 ${days}거래일 · 순매수 금액 = 매수 − 매도`,
+    columns: { date: "날짜", individual: "개인", foreign: "외국인", institution: "기관" },
+    totalRow: (days: number) => `${days}거래일 합계`,
+    empty: "아직 모인 기록이 없어요. 개장일 저녁 6시 뒤에 채워져요.",
+    unavailable: "투자자별 순매수를 잠시 볼 수 없습니다.",
+    collectedAt: (when: string) => `${when} 수집 · 개장일 저녁에 하루 한 번 모아요`,
+    quantity: (shares: string) => `${shares}주`,
+  },
 } as const;

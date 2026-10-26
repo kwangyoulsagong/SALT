@@ -29,3 +29,4 @@ export { KrSessionLine } from "./KrStock/KrSessionLine";
 export { KrQuoteBadges } from "./KrStock/KrQuoteBadges";
 export { KrChangeText } from "./KrStock/KrChangeText";
 export { KrStockChart } from "./KrStock/KrStockChart";
+export { KrIndexSummary } from "./KrStock/KrIndexSummary";
