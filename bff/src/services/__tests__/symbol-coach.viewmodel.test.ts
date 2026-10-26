@@ -98,6 +98,17 @@ describe("toModeViewModel", () => {
     assert.deepEqual(vm.zone, zone);
   });
 
+  it("성적 출처 — backtest 는 그대로, 없으면(옛 서버) live, 모르는 값은 모의 라벨 쪽 (F011 슬라이스 7b)", () => {
+    const origin = (sampleOrigin: unknown) => {
+      const vm = toModeViewModel(modeView({ trackRecord: { ...trackRecord, sampleOrigin } as ServerModeView["trackRecord"] }));
+      return vm && vm.renderable ? vm.trackRecord.sampleOrigin : null;
+    };
+    assert.equal(origin("backtest"), "backtest");
+    assert.equal(origin("live"), "live");
+    assert.equal(origin(undefined), "live");
+    assert.equal(origin("synthetic"), "backtest");
+  });
+
   it("confidence 를 서버가 보내도 옮기지 않는다 (D3)", () => {
     const view = modeView();
     (view.judgment as unknown as Record<string, unknown>).confidence = 0.8;

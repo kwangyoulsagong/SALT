@@ -72,6 +72,11 @@ export interface FailureCase {
 
 export interface TrackRecord {
   signalType: string;
+  /**
+   * 성적 출처 — `backtest` 면 과거 시세로 되돌려 채점한 **모의** 성적(국내 주식만, 라이브 표본이 모자랄 동안).
+   * 화면은 라벨을 붙인다. 둘을 합산한 성적은 없다(F011 슬라이스 7b)
+   */
+  sampleOrigin: "live" | "backtest";
   sample: number;
   /** 표본 0 이면 `null` — 0% 가 아니다 */
   winRate: number | null;
@@ -79,7 +84,7 @@ export interface TrackRecord {
   worstObservedReturn: number | null;
   lowSample: boolean;
   horizonHours: number;
-  /** 같은 표본에서 "항상 오른다"가 비용을 넘겨 맞은 비율(F010 슬라이스 0) */
+  /** 같은 자산군 · 모드 판단 전체(행동 무관)에서 "항상 오른다"가 비용을 넘겨 맞은 비율(F010 슬라이스 0 · 2026-10-26 풀로 정정) */
   alwaysUpRate: number | null;
   /** 적중률 − 기저율. 관망은 `null` */
   excessWinRate: number | null;
@@ -343,7 +348,12 @@ export const toModeViewModel = (
       reasons: judgment.reasons,
       risks: judgment.risks,
     },
-    trackRecord: { ...trackRecord, claim: toPerformanceClaim(trackRecord.claim) },
+    trackRecord: {
+      ...trackRecord,
+      // 모르는 값은 라이브로 읽지 않는다 — 모의 라벨이 빠지는 쪽이 더 위험하다. 서버가 안 주면(옛 버전 = 라이브만) 라이브
+      sampleOrigin: trackRecord.sampleOrigin === undefined || trackRecord.sampleOrigin === "live" ? "live" : "backtest",
+      claim: toPerformanceClaim(trackRecord.claim),
+    },
     failureCases: failureCases as [FailureCase, ...FailureCase[]],
     zone: toZone(view.zone),
   };
