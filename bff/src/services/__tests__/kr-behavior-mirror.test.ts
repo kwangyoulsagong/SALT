@@ -105,6 +105,44 @@ describe("toKrBehaviorMirrorViewModel", () => {
   });
 });
 
+describe("toKrBehaviorMirrorViewModel · 배치 결과 구역", () => {
+  it("코인 미러와 같은 조각 함수로 태그 손익 · 준수율 · 손실 비대칭을 옮긴다 · 없으면 비운다", () => {
+    const view = toKrBehaviorMirrorViewModel(
+      krMirror({
+        adherence: {
+          rate: metric(0.5, 2, "insufficient_sample"),
+          labelCounts: { honored: 1, stop_not_honored: 1 },
+          honoredAvgReturn: metric(0.02, 1, "insufficient_sample"),
+          violatedAvgReturn: metric(-0.05, 1, "insufficient_sample"),
+        },
+        tagCosts: [{ tag: "off_plan", count: 2, netPnlKrw: -10_000, avgReturn: -0.01, avgR: null, rSampleSize: 0, status: "insufficient_sample", noEdge: false }],
+        lossAsymmetry: { ratio: metric(0.5, 2, "insufficient_sample"), maxLossKrw: -10_000, maxGainKrw: 20_000, window: 20 },
+        outcomeCount: 2,
+        outcomesComputedAt: "2026-10-26T00:00:00.000Z",
+      }),
+    );
+    assert.equal(view.adherence?.labelCounts.stop_slipped, 0, "빠진 라벨은 0");
+    assert.equal(view.tagCosts[0].tag, "off_plan");
+    assert.equal(view.lossAsymmetry?.maxGainKrw, 20_000);
+    assert.equal(view.outcomeCount, 2);
+    const empty = toKrBehaviorMirrorViewModel(krMirror());
+    assert.equal(empty.adherence, null);
+    assert.deepEqual(empty.tagCosts, []);
+    assert.equal(empty.streak, null);
+    assert.equal(empty.outcomeCount, 0);
+  });
+});
+
+describe("appBehaviorMirrorService.listOutcomes · 자산군", () => {
+  it("assetType 을 쿼리로 넘기고 · 없으면 붙이지 않는다", async () => {
+    const call = mock.method(backendApi, "proxyAuthRequest", async () => ok({ outcomes: [] }));
+    await appBehaviorMirrorService.listOutcomes("t", 20, undefined, "kr_stock");
+    await appBehaviorMirrorService.listOutcomes("t", undefined);
+    assert.equal(call.mock.calls[0].arguments[1], "/coach/outcomes?limit=20&assetType=kr_stock");
+    assert.equal(call.mock.calls[1].arguments[1], "/coach/outcomes");
+  });
+});
+
 describe("appBehaviorMirrorService.getKrMirror", () => {
   it("국내 경로를 8초 · 재시도 없이 부른다", async () => {
     const call = mock.method(backendApi, "proxyAuthRequest", async () => ok(krMirror()));

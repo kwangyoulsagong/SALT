@@ -360,13 +360,25 @@ export const toLossAsymmetryView = (raw: unknown): LossAsymmetryView | null => {
   };
 };
 
+/** 계획 지킴(FR-12) — 코인 · 국내 미러가 같이 쓴다. 모양이 아니면 `null` */
+export const toAdherenceView = (raw: unknown): BehaviorMirrorView["adherence"] => {
+  if (!isRecord(raw)) return null;
+  const counts = isRecord(raw.labelCounts) ? raw.labelCounts : {};
+  return {
+    rate: toMetric(raw.rate),
+    labelCounts: Object.fromEntries(
+      ADHERENCE_LABELS.map((label) => [label, sampleSize(counts[label])]),
+    ) as Record<AdherenceLabel, number>,
+    honoredAvgReturn: toMetric(raw.honoredAvgReturn),
+    violatedAvgReturn: toMetric(raw.violatedAvgReturn),
+  };
+};
+
 export const toBehaviorMirrorViewModel = (data: Raw): BehaviorMirrorView => {
   const historyStatus = oneOf(data.status, ["ok", "truncated"] as const);
   if (!historyStatus) throw new BehaviorMirrorContractError("status");
   if (!Array.isArray(data.tagCosts)) throw new BehaviorMirrorContractError("tagCosts");
 
-  const adherence = isRecord(data.adherence) ? data.adherence : null;
-  const counts = isRecord(adherence?.labelCounts) ? adherence.labelCounts : {};
   const disposition = isRecord(data.disposition) ? data.disposition : null;
   const benchmark = isRecord(data.benchmark) ? data.benchmark : null;
   const turnover = isRecord(data.turnover) ? data.turnover : {};
@@ -382,14 +394,7 @@ export const toBehaviorMirrorViewModel = (data: Raw): BehaviorMirrorView => {
   return {
     status: "ok",
     historyStatus,
-    adherence: adherence && {
-      rate: toMetric(adherence.rate),
-      labelCounts: Object.fromEntries(
-        ADHERENCE_LABELS.map((label) => [label, sampleSize(counts[label])]),
-      ) as Record<AdherenceLabel, number>,
-      honoredAvgReturn: toMetric(adherence.honoredAvgReturn),
-      violatedAvgReturn: toMetric(adherence.violatedAvgReturn),
-    },
+    adherence: toAdherenceView(data.adherence),
     disposition: disposition && {
       pgr: toMetric(disposition.pgr),
       plr: toMetric(disposition.plr),

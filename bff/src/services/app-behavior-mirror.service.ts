@@ -84,8 +84,17 @@ export class AppBehaviorMirrorService {
     }
   }
 
-  async listOutcomes(token: string, limit: number | undefined, signal?: AbortSignal): Promise<DecisionOutcomeListResult> {
-    const query = limit === undefined ? "" : `?limit=${limit}`;
+  /** `assetType` 이 없으면 코인(서버 기본). 국내 미러 화면은 `kr_stock` 을 준다(F011 FR-47) */
+  async listOutcomes(
+    token: string,
+    limit: number | undefined,
+    signal?: AbortSignal,
+    assetType?: "crypto" | "kr_stock",
+  ): Promise<DecisionOutcomeListResult> {
+    const params = new URLSearchParams();
+    if (limit !== undefined) params.set("limit", String(limit));
+    if (assetType !== undefined) params.set("assetType", assetType);
+    const query = params.size ? `?${params}` : "";
     try {
       const response = await retryOnceOnGet(
         () =>
