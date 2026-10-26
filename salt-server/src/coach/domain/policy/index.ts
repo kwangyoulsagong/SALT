@@ -33,6 +33,7 @@ export * from "./tradeLedger";
 export * from "./adherence";
 export * from "./decisionOutcome";
 export * from "./mirror";
+export * from "./krMirror";
 export * from "./tradePreview";
 export * from "./portfolioSeries";
 export * from "./scenario";

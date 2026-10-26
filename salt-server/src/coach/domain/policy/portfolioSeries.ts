@@ -38,12 +38,14 @@ export type PortfolioWalk =
 /**
  * 첫 거래일부터 `lastDay`(닫힌 마지막 일봉)까지 하루씩.
  * `requireFrom` 이전 날은 종가가 비어도 건너뛰고(그날은 결과에 없다), 이후 날에 비면 `missing_close` 다.
+ * `tradingDays` 를 주면 그 날만 걷는다(국내 주식 — 주말 · 휴장일은 날이 아니다). 건너뛴 날의 거래는 다음 거래일 입출금이 된다
  */
 export const walkPortfolioDays = (
   entries: CoachLedgerEntry[],
   barsBySymbol: Map<string, DailyBar[]>,
   lastDay: number,
-  requireFrom = Number.NEGATIVE_INFINITY
+  requireFrom = Number.NEGATIVE_INFINITY,
+  tradingDays?: ReadonlySet<number>
 ): PortfolioWalk => {
   if (!entries.length) return { status: "ok", days: [] };
 
@@ -59,6 +61,7 @@ export const walkPortfolioDays = (
   let cursor = 0;
 
   for (let day = firstDay; day <= lastDay; day += DAY_MS) {
+    if (tradingDays && !tradingDays.has(day)) continue;
     const closeAt = day + DAY_MS;
     let flow = ZERO;
     let flowFeeless = ZERO;

@@ -397,6 +397,19 @@ export interface OvernightGapStats {
   worst: number | null;
 }
 
+/** 국내 주식 한 종목의 구간 일간 수익률 요약 — 복권형 판정 재료(F011 `SRV-REQ-040` FR-47) */
+export interface DailyReturnProfile {
+  symbol: string;
+  /** 구간 마지막 종가 */
+  lastClose: number;
+  /** 센 일간 수익률 수(`bounds` 밖 비율 제외) */
+  returns: number;
+  /** 일간 로그 수익률 표준편차(표본) */
+  volatility: number | null;
+  /** 일간 로그 수익률 왜도(모집단 모멘트) */
+  skewness: number | null;
+}
+
 export interface PriceHistoryRepository {
   upsertCandles(
     symbol: string,
@@ -455,6 +468,16 @@ export interface PriceHistoryRepository {
     fraction: number,
     bounds: { min: number; max: number }
   ): Promise<OvernightGapStats>;
+  /**
+   * `[from, to)` 국내 주식 **전 종목** 일봉 수익률 요약 — **DB 가 계산한다**(한 구간 약 30만 행을 옮기지 않는다).
+   * 종가 ÷ 전일 종가가 `bounds` 밖이면 원천 끊김이라 세지 않는다. 수익률이 `minReturns` 미만인 종목은 빠진다
+   */
+  krDailyReturnProfiles(
+    from: Date,
+    to: Date,
+    minReturns: number,
+    bounds: { min: number; max: number }
+  ): Promise<DailyReturnProfile[]>;
   /**
    * 기간 변동률의 **기준 종가**를 심볼별로. 구간 안에 캔들이 없는 심볼은 결과에 없다.
    * 구간의 **가장 최근** 캔들을 쓴다.

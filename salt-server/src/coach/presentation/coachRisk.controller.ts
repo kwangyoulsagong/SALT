@@ -21,6 +21,7 @@ import {
   toSizeCheckResponse,
   toTradePlanResponse,
 } from "./dto/riskView";
+import { toKrBehaviorMirrorResponse } from "./dto/krMirrorView";
 import { toBehaviorMirrorResponse, toDecisionOutcomeResponse } from "./dto/mirrorView";
 import { toMonthlyReviewResponse } from "./dto/monthlyReviewView";
 import { toTargetWeightResponse } from "./dto/targetWeightView";
@@ -160,6 +161,18 @@ export class CoachRiskController {
     try {
       const view = await this.useCases.getBehaviorMirror.execute(req.user!.userId);
       return ResponseUtil.success(res, toBehaviorMirrorResponse(view));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getKrBehaviorMirror = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const view = await this.useCases.getKrBehaviorMirror.execute({
+        userId: req.user!.userId,
+        viewerEmail: req.user!.email,
+      });
+      return ResponseUtil.success(res, toKrBehaviorMirrorResponse(view));
     } catch (error) {
       next(error);
     }

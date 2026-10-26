@@ -219,6 +219,25 @@ export interface MarketProbe {
   ): Promise<{ sample: number; excluded: number; quantile: number | null; worst: number | null }>;
   /** 심볼들의 이름 · 로고 — 판단 사례의 종목 표시(F011 슬라이스 7b). 모르는 심볼은 빠진다 */
   assetLabels(symbols: string[]): Promise<Array<{ symbol: string; name: string; logoUrl: string | null }>>;
+  /**
+   * `[from, to)` 국내 주식 전 종목 일간 수익률 요약 — 복권형 단면(F011 FR-47). `bounds` 밖 비율은 원천 끊김이라 세지
+   * 않고, 수익률이 `minReturns` 미만인 종목은 빠진다. 지난 구간은 바뀌지 않아 구현이 캐시해도 된다
+   */
+  krDailyReturnProfiles(
+    from: Date,
+    to: Date,
+    minReturns: number,
+    bounds: { min: number; max: number }
+  ): Promise<KrReturnProfile[]>;
+}
+
+/** 국내 주식 한 종목의 구간 일간 수익률 요약 */
+export interface KrReturnProfile {
+  symbol: string;
+  lastClose: number;
+  returns: number;
+  volatility: number | null;
+  skewness: number | null;
 }
 
 /** `portfolio` 조회 — ACL Port. */

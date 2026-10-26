@@ -10,6 +10,7 @@ import type {
   CoachWhaleTransaction,
   GaugeForwardReturn,
   IndicatorTimeframe,
+  KrReturnProfile,
   MarketProbe,
   ZoneTimeframe,
 } from "../domain";
@@ -39,7 +40,16 @@ const PRICE_TIMEFRAME: Record<ZoneTimeframe, PriceTimeframe> = {
   d1: "1d",
 };
 
+/** 복권형 단면 캐시 상한 — 국내 미러는 최근 1년 매수 달(≤ 13)만 묻는다 */
+const RETURN_PROFILE_CACHE_LIMIT = 32;
+
 export class MarketSignalAdapter implements MarketProbe {
+  /**
+   * 구간 → 단면. 구간 끝이 지난 달 첫날이라 결과가 바뀌지 않는다(국내 미러 FR-47) — 한 구간 0.5초를 프로세스 동안 한 번만.
+   * 일봉을 다시 쓰는 날(5f 재작성)엔 재시작 전까지 옛 단면이 남는다 — 중앙값 셋이라 영향이 작다
+   */
+  private readonly returnProfiles = new Map<string, Promise<KrReturnProfile[]>>();
+
   constructor(private readonly market: MarketApi) {}
 
   async latestIndicators(
@@ -134,6 +144,25 @@ export class MarketSignalAdapter implements MarketProbe {
 
   assetLabels(symbols: string[]): Promise<Array<{ symbol: string; name: string; logoUrl: string | null }>> {
     return this.market.assetLabels(symbols);
+  }
+
+  krDailyReturnProfiles(
+    from: Date,
+    to: Date,
+    minReturns: number,
+    bounds: { min: number; max: number }
+  ): Promise<KrReturnProfile[]> {
+    const key = [from.toISOString(), to.toISOString(), minReturns, bounds.min, bounds.max].join("|");
+    const cached = this.returnProfiles.get(key);
+    if (cached) return cached;
+    if (this.returnProfiles.size >= RETURN_PROFILE_CACHE_LIMIT) {
+      this.returnProfiles.delete(this.returnProfiles.keys().next().value!);
+    }
+    const pending = this.market.krDailyReturnProfiles(from, to, minReturns, bounds);
+    this.returnProfiles.set(key, pending);
+    // 실패는 캐시하지 않는다 — 다음 요청이 다시 묻는다
+    pending.catch(() => this.returnProfiles.delete(key));
+    return pending;
   }
 
   dailyBarCounts(symbols: string[]): Promise<Map<string, number>> {

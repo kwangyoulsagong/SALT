@@ -12,6 +12,7 @@ import type {
   AssetQuote,
   ClosePercentiles,
   ClosePoint,
+  DailyReturnProfile,
   ExchangeQuotePort,
   OvernightGapStats,
   TradeHistoryPort,
@@ -173,6 +174,16 @@ export interface MarketApi {
     bounds: { min: number; max: number }
   ): Promise<OvernightGapStats>;
   /**
+   * `[from, to)` 국내 주식 전 종목 일간 수익률 요약(F011 `SRV-REQ-040` FR-47 복권형 단면). `bounds` 밖 비율은 원천 끊김이라
+   * 세지 않고, 수익률이 `minReturns` 미만인 종목은 빠진다. 국내 주식이 꺼져 있어도 저장된 일봉으로 답한다
+   */
+  krDailyReturnProfiles(
+    from: Date,
+    to: Date,
+    minReturns: number,
+    bounds: { min: number; max: number }
+  ): Promise<DailyReturnProfile[]>;
+  /**
    * 심리 구간별 사후 수익률 분포. `coach` 의 게이지 적중률(F004 · B9)이 일 1회 읽는다.
    * 심리와 종가가 둘 다 `market` 의 것이라 합치는 것도 여기서 한다.
    */
@@ -202,6 +213,7 @@ export interface MarketApi {
 export type {
   AssetQuote,
   ClosePercentiles,
+  DailyReturnProfile,
   OvernightGapStats,
   ClosePoint,
   PriceTimeframe,
@@ -477,6 +489,8 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     },
     overnightGapStats: (symbol, timeframe, since, fraction, bounds) =>
       deps.prices.overnightGapStats(symbol, timeframe, since, fraction, bounds),
+    krDailyReturnProfiles: (from, to, minReturns, bounds) =>
+      deps.prices.krDailyReturnProfiles(from, to, minReturns, bounds),
     watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),
     krJudgmentUniverse: async () => (krUniverse ? krUniverse.execute() : []),
     krStockListing: async (email, code) => {
