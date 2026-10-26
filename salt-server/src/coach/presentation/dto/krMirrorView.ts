@@ -1,6 +1,15 @@
 import type { DispositionMirror } from "../../domain";
 import type { KrBehaviorMirrorView } from "../../application/GetKrBehaviorMirror";
-import { days, metric, rate } from "./mirrorView";
+import {
+  days,
+  metric,
+  rate,
+  tagCost,
+  toAdherenceResponse,
+  toLossAsymmetryResponse,
+  toStreakResponse,
+  toTimingResponse,
+} from "./mirrorView";
 
 /**
  * 국내 주식 미러 응답(F011 FR-47). 규칙은 코인 미러(`mirrorView`)와 같다 — 비율 · 수익률은 소수 6자리, 금액은 원 정수.
@@ -62,6 +71,14 @@ export const toKrBehaviorMirrorResponse = (view: KrBehaviorMirrorView) => {
       definition: "kumar2009_total_volatility" as const,
       evidence: { ...lottery.evidence, excessReturn: lottery.evidence.excessReturn.toNumber() },
     },
+    // 판정 배치 결과(국내 청산) — 코인 미러와 같은 모양
+    adherence: toAdherenceResponse(view.adherence),
+    tagCosts: view.tagCosts.map(tagCost),
+    streak: toStreakResponse(view.streak),
+    timing: toTimingResponse(view.timing),
+    lossAsymmetry: toLossAsymmetryResponse(view.lossAsymmetry),
+    outcomeCount: view.outcomeCount,
+    outcomesComputedAt: view.outcomesComputedAt,
     tradeCount: view.tradeCount,
     minSample: view.minSample,
     asOf: view.asOf,

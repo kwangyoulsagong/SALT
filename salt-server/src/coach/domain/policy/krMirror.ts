@@ -41,6 +41,19 @@ export const toKrTradingClock = (entries: CoachLedgerEntry[]): CoachLedgerEntry[
 /** KST 벽시계 시각의 거래일(그날 00:00 UTC ms) */
 export const krDayOf = (at: Date): number => Math.floor(at.getTime() / DAY_MS) * DAY_MS;
 
+/**
+ * 일봉을 **실제 KST 하루**([00:00 KST, 다음 날 00:00 KST))로 옮긴다 — 거래 시각을 그대로 두는 경로(판정 배치)용.
+ * 저장된 결과의 시각은 실제 시각이어야 해서 거래 대신 봉을 옮긴다. 00:00 KST 로 적은 매수가 그날 봉 안에 들고,
+ * 전 거래일 종가는 산 뒤가 아니게 된다(옮기지 않으면 전날 종가 확정 시각이 그날 09:00 KST 로 잡힌다)
+ */
+export const toKrBarClock = (barsBySymbol: Map<string, DailyBar[]>): Map<string, DailyBar[]> =>
+  new Map(
+    [...barsBySymbol].map(([symbol, bars]) => [
+      symbol,
+      bars.map((bar) => ({ ...bar, openTime: new Date(bar.openTime.getTime() - KST_OFFSET_MS) })),
+    ])
+  );
+
 /** 읽어 온 종목 일봉에 한 번이라도 나온 날 — 주말 · 휴장일이 빠진 거래일 */
 export const krTradingDays = (barsBySymbol: Map<string, DailyBar[]>): Set<number> => {
   const days = new Set<number>();

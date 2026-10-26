@@ -180,8 +180,8 @@ export class CoachRiskController {
 
   listDecisionOutcomes = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { limit } = listDecisionOutcomesQuerySchema.parse(req.query);
-      const outcomes = await this.useCases.listDecisionOutcomes.execute(req.user!.userId, limit);
+      const { limit, assetType } = listDecisionOutcomesQuerySchema.parse(req.query);
+      const outcomes = await this.useCases.listDecisionOutcomes.execute(req.user!.userId, limit, assetType);
       return ResponseUtil.success(res, { outcomes: outcomes.map(toDecisionOutcomeResponse) });
     } catch (error) {
       next(error);

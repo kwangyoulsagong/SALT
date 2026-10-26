@@ -1,9 +1,11 @@
 import Decimal from "decimal.js";
 
 import type {
+  AdherenceMirror,
   BrierSummary,
   DecisionOutcome,
   EntryChecklist,
+  LossAsymmetryMirror,
   MirrorMetric,
   StreakMirror,
   StreakSizing,
@@ -111,14 +113,26 @@ const toChecklistResponse = (checklist: EntryChecklist | null) =>
     premortemQuestion: checklist.premortemQuestion,
   };
 
+/** 계획 지킴(FR-12) — 코인 · 국내 미러가 같이 쓴다 */
+export const toAdherenceResponse = (adherence: AdherenceMirror | null) =>
+  adherence && {
+    rate: metric(adherence.rate),
+    labelCounts: adherence.labelCounts,
+    honoredAvgReturn: metric(adherence.honoredAvgReturn),
+    violatedAvgReturn: metric(adherence.violatedAvgReturn),
+  };
+
+/** 최근 20건 최대 손실 ÷ 최대 이익(F010 슬라이스 2) — 코인 · 국내 미러가 같이 쓴다 */
+export const toLossAsymmetryResponse = (asymmetry: LossAsymmetryMirror) => ({
+  ratio: metric(asymmetry.ratio),
+  maxLossKrw: asymmetry.maxLossKrw ? krw(asymmetry.maxLossKrw) : null,
+  maxGainKrw: asymmetry.maxGainKrw ? krw(asymmetry.maxGainKrw) : null,
+  window: asymmetry.window,
+});
+
 export const toBehaviorMirrorResponse = (view: BehaviorMirrorView) => ({
   status: view.status,
-  adherence: view.adherence && {
-    rate: metric(view.adherence.rate),
-    labelCounts: view.adherence.labelCounts,
-    honoredAvgReturn: metric(view.adherence.honoredAvgReturn),
-    violatedAvgReturn: metric(view.adherence.violatedAvgReturn),
-  },
+  adherence: toAdherenceResponse(view.adherence),
   disposition: view.disposition && {
     pgr: metric(view.disposition.pgr),
     plr: metric(view.disposition.plr),
@@ -155,12 +169,7 @@ export const toBehaviorMirrorResponse = (view: BehaviorMirrorView) => ({
   brier: toBrierResponse(view.brier),
   streak: toStreakResponse(view.streak),
   timing: toTimingResponse(view.timing),
-  lossAsymmetry: {
-    ratio: metric(view.lossAsymmetry.ratio),
-    maxLossKrw: view.lossAsymmetry.maxLossKrw ? krw(view.lossAsymmetry.maxLossKrw) : null,
-    maxGainKrw: view.lossAsymmetry.maxGainKrw ? krw(view.lossAsymmetry.maxGainKrw) : null,
-    window: view.lossAsymmetry.window,
-  },
+  lossAsymmetry: toLossAsymmetryResponse(view.lossAsymmetry),
   outcomeCount: view.outcomeCount,
   outcomesComputedAt: view.outcomesComputedAt,
   minSample: view.minSample,

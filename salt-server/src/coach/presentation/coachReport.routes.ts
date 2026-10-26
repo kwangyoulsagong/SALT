@@ -707,14 +707,16 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         봉 41개 미만 · 원천 끊김(종가 비율 0.69~1.31 밖)은 표본이 아니다
    *       - `lottery` — 최근 365일 매수 대금 중 복권형 종목 몫(Kumar 2009 를 총변동으로: 지난달 말까지 6개월 주가 < 중앙값 ·
    *         변동성 > 중앙값 · 왜도 > 중앙값, 국내 전 종목 단면) + 같은 단면의 복권형 종목 비율(`marketShare`) + 성과 근거(KCMI −10.42%)
-   *       - 거래 시각은 KST 날짜로 일봉에 붙인다. 판정 배치 결과(준수 · 태그 · 시간대 · 연승)는 코인만이라 없다
+   *       - `adherence` · `tagCosts` · `streak` · `timing` · `lossAsymmetry` · `outcomeCount` · `outcomesComputedAt` — 판정 배치가 국내
+   *         회차로 저장한 결과(국내 청산)로 센다. 모양은 코인 미러와 같다
+   *       - 거래 시각은 KST 날짜로 일봉에 붙인다
    *       - 거래가 5,000건을 넘으면 `status: truncated` — 값이 전부 `null`
    *     tags: [Coach Risk]
    *     security:
    *       - bearerAuth: []
    *     responses:
    *       200:
-   *         description: "`{ status, turnover, disposition, nextDaySell, chase, lottery, tradeCount, minSample, asOf }`"
+   *         description: "`{ status, turnover, disposition, nextDaySell, chase, lottery, adherence, tagCosts[], streak, timing, lossAsymmetry, outcomeCount, outcomesComputedAt, tradeCount, minSample, asOf }`"
    *       401: { description: 인증 실패 }
    *       404: { description: "`COACH_KR_STOCK_NOT_AVAILABLE` — 국내 주식을 볼 수 없다(소유자 전용)" }
    */
@@ -737,6 +739,10 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - in: query
    *         name: limit
    *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+   *       - in: query
+   *         name: assetType
+   *         description: 청산 거래의 자산군(F011 FR-47). 없으면 코인
+   *         schema: { type: string, enum: [crypto, kr_stock], default: crypto }
    *     responses:
    *       200: { description: "`{ outcomes: [...] }`" }
    *       401: { description: 인증 실패 }

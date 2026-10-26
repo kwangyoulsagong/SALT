@@ -14,6 +14,7 @@ import {
   type DecisionOutcomeStore,
   type EntryChecklist,
   type MarketProbe,
+  type OutcomeAssetType,
   type PortfolioProbe,
   type SellFraming,
   type TagCost,
@@ -31,6 +32,12 @@ export interface PreviewTradeBehaviorCommand {
   quantity: Decimal;
   price: Decimal;
   hasPlan: boolean;
+  /**
+   * 그 종목의 자산군(F011 FR-47) — 같은 자산군 원장 · 결과로만 미리 본다(국내 매수의 물타기 · 엣지 경고가 국내 기록에서).
+   * 없으면 코인. `feeRatePerSide` 는 그 자산군 편도 수수료(없으면 코인 상수)
+   */
+  assetType?: OutcomeAssetType;
+  feeRatePerSide?: Decimal;
 }
 
 export type TradeBehaviorPreview =
@@ -69,7 +76,8 @@ export class PreviewTradeBehavior {
     const symbol = command.symbol.toUpperCase();
     const now = this.now();
 
-    const ledger = await this.portfolio.listLedgerSince(userId, new Date(0), TRADE_HISTORY_LIMIT);
+    const assetType = command.assetType ?? "crypto";
+    const ledger = await this.portfolio.listLedgerSince(userId, new Date(0), TRADE_HISTORY_LIMIT, [assetType]);
     if (ledger.truncated) return { status: "truncated" };
     const entries = ledger.entries.map((entry) => ({ ...entry, symbol: entry.symbol.toUpperCase() }));
 
@@ -95,7 +103,7 @@ export class PreviewTradeBehavior {
     }
 
     const [outcomes, high] = await Promise.all([
-      this.outcomes.listOwned(userId, OUTCOME_READ_LIMIT),
+      this.outcomes.listOwned(userId, OUTCOME_READ_LIMIT, assetType),
       this.market.highestCloseBetween(symbol, new Date(now.getTime() - CHASING_LOOKBACK_MS), now),
     ]);
     const preview = previewBuyTags({
@@ -103,7 +111,7 @@ export class PreviewTradeBehavior {
       symbol,
       quantity: command.quantity,
       price: command.price,
-      fee: command.quantity.times(command.price).times(SIZING_FEE_RATE_PER_SIDE),
+      fee: command.quantity.times(command.price).times(command.feeRatePerSide ?? SIZING_FEE_RATE_PER_SIDE),
       at: now,
       highBefore: high === null ? null : new Decimal(high),
       hasPlan: command.hasPlan,

@@ -3,6 +3,7 @@ import {
   normalizeTags,
   type DecisionOutcome,
   type DecisionOutcomeStore,
+  type OutcomeAssetType,
 } from "../domain";
 
 /**
@@ -17,8 +18,9 @@ export const DECISION_OUTCOME_LIST_MAX = 100;
 export class ListDecisionOutcomes {
   constructor(private readonly outcomes: DecisionOutcomeStore) {}
 
-  execute(userId: string, limit: number): Promise<DecisionOutcome[]> {
-    return this.outcomes.listOwned(userId, Math.min(limit, DECISION_OUTCOME_LIST_MAX));
+  /** `assetType` 청산만(기본 코인 — 코인 미러 화면). 국내는 국내 미러 화면이 부른다(F011 FR-47) */
+  execute(userId: string, limit: number, assetType: OutcomeAssetType = "crypto"): Promise<DecisionOutcome[]> {
+    return this.outcomes.listOwned(userId, Math.min(limit, DECISION_OUTCOME_LIST_MAX), assetType);
   }
 }
 

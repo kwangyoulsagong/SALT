@@ -318,6 +318,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.portfolio,
       deps.forecasts,
       deps.market,
+      deps.tradePlans,
+      deps.decisionOutcomes,
       deps.forecastOwnerEmails
     ),
     listDecisionOutcomes: new ListDecisionOutcomes(deps.decisionOutcomes),
