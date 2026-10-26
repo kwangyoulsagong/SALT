@@ -331,3 +331,7 @@
 | 동시 요청 경합 | 확인과 호출 사이 한두 건 넘을 수 있다 — 락 없음(초대제 10명 판단) | 사용자 수가 늘 때 |
 | `usageSince` 집계 `EXPLAIN (ANALYZE, BUFFERS)` | 표가 작다 | 행이 수백을 넘으면 |
 | 캐시 · 상한의 다중 인스턴스 공유 | 상한은 DB 라 공유된다. 해설 캐시는 인스턴스 메모리 그대로 | 다중 인스턴스 배포 시 |
+
+## F011 슬라이스 7d · 7e — 코치 경로 (2026-10-26)
+
+- 상시 서버 4000: `/api/coach/mirror/kr-stock` 소유자 200 · 비소유자 404 / `/api/coach/outcomes?assetType=kr_stock` 200 · `assetType=stock` 400 / `/api/coach/risk-budget` 200 · `portfolioVolatility` 실림(5ms). Swagger `failOnErrors` 생성 97경로 · 새 경로 200 · 401 · 404

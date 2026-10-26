@@ -44,3 +44,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
 - 2026-10-08: `kr_stock_quotes` 에 `open_price` · `high_price` · `low_price`(Decimal 38,10, nullable) — 마이그레이션 `20261008100000_kr_stock_quote_ohlc`(로컬 `migrate deploy` 적용). 열 추가만이라 롤백은 `DROP COLUMN` 셋, 기존 행 영향 0. 사유: 화면 5열(최고가 · 최저가)이 코인과 같아야 한다(`SRV-REQ-040` FR-29)
 - 2026-10-08: `kr_stock_master` 에 `homepage` · `homepage_checked_at` · `logo_source` · `logo_checked_at`(전부 nullable) — 마이그레이션 `20261008120000_kr_stock_logo_source`(로컬 `migrate deploy` 적용). 로고 **출처만** 저장하고 주소(키 포함)는 저장하지 않는다 — 키가 바뀌어도 행을 고치지 않는다. 롤백은 `DROP COLUMN` 넷, 기존 행 영향 0. 사유: 흐린 로고를 종목마다 판정(`SRV-REQ-040` FR-32)
 
+- 2026-10-26: F011 슬라이스 7d(`SRV-REQ-040` FR-47) — **DDL 없음.** `price_history` 국내 일봉(`asset_type='kr_stock'`, `timeframe='1d'`)을 전 종목 단면으로 읽는 쿼리 추가(`krDailyReturnProfiles`, 6개월 약 32만 행 · 병렬 순차 스캔 0.58초 — `asset_type` 단독 인덱스 없음, 결과는 코치 어댑터가 구간 캐시). 인덱스는 더하지 않았다(쓰기 잦은 3백만 행 표 · 요청은 달마다 한 번)

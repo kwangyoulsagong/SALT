@@ -184,3 +184,5 @@ written: 2026-09-22 (backfill)
 - 공용 `isRetryableHttpError` 가 axios 모양만 읽는 것을 시도 단위 기록을 넣다 찾았다 — Gemini 4xx 를 3번씩 보내고 있었다. 공용 유틸을 다른 SDK 오류에 쓸 때 오류 모양을 테스트로 고정한다
 - 실 Gemini 로 토큰 열을 보지 않았다 — 원장이 실제로 채워지는지는 다음 실호출 때 확인
 - Action: 다음 해설 실호출 뒤 `llm_call_logs` 의 `total_tokens` · `error_code` 분포를 본다
+
+- 2026-10-26 F011 7d · 7e: 국내 미러를 쿼리 스위치(`?assetType=`) 대신 경로로 나눴다 — 응답 모양이 달라 Swagger 하나에 두 모양을 적지 않게. Action: 없음
