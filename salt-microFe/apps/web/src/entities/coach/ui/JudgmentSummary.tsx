@@ -81,7 +81,11 @@ export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProp
       <p className={summaryLine}>
         <span>{COACH_MESSAGES.reasonCount(judgment.reasons.length)}</span>
         <span aria-hidden="true">·</span>
-        <span>{COACH_MESSAGES.trackSample(trackRecord.sample)}</span>
+        <span>
+          {trackRecord.sampleOrigin === "backtest"
+            ? COACH_MESSAGES.backtestTrackSample(trackRecord.sample)
+            : COACH_MESSAGES.trackSample(trackRecord.sample)}
+        </span>
         {trackRecord.lowSample && (
           <Badge size="sm" tone="neutral">
             {COACH_MESSAGES.lowSample}
