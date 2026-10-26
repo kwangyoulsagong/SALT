@@ -55,6 +55,7 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 | FR-19 | 국내 주식 거래 + 계획 400 해제(FR-15 의 임시 막음) — 서버 계획 연결이 국내 주식 거래를 받는다. 사이즈 계산은 그대로 통과(자산군 · 수수료는 서버가 시세로 고른다) | 완료(`c0d9aad`) |
 | FR-20 | 사이즈 계산 `gapScenarios` 통과(슬라이스 7 · `SRV-REQ-040` FR-45) — 서버 금액을 옮기기만. 하한가 금액이 깨지면 묶음째 `null`(한 줄만 그리면 "최악"으로 읽힌다) · 과거 갭 줄이 없으면 `historicalGapUnavailable: insufficient_data` | 완료(`ca3003f`) |
 | FR-21 | 판단 성적 출처 `trackRecord.sampleOrigin` 통과(슬라이스 7b · `SRV-REQ-040` FR-43) — 없으면(옛 서버) `live`, 모르는 값은 `backtest`(모의 라벨이 빠지는 쪽이 더 위험) | 완료(`bb58933`) |
+| FR-22 | 성적표 그룹 `sampleOrigin`(모르는 값은 backtest) · 사례 `name` · `logoUrl` 통과(슬라이스 7b 후속) — 해설 SSE 카드는 이벤트 그대로 중계라 변경 없음 | 완료(`3456b52`) |
 
 ## 계약 변경
 
@@ -66,6 +67,7 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 
 ## Changelog
 
+- 2026-10-26: 슬라이스 7b 후속 — FR-22. 성적표 뷰모델 주인 `BFF-REQ-039`(Changelog 같이). 테스트 254
 - 2026-10-26: 슬라이스 7b — FR-21 `sampleOrigin`(추가 필드). 뷰모델 주인 `BFF-REQ-024`(Changelog 같이)
 - 2026-10-26: 슬라이스 7 — FR-20 size-check `gapScenarios`(추가 필드, 기존 무변경). 뷰모델 주인은 `BFF-REQ-038`(Changelog 같이). 테스트 251 → 252
 - 2026-10-08: 초판 · FR-1~10 완료
