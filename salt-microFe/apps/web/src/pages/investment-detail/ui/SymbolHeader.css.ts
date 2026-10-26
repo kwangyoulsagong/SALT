@@ -53,6 +53,8 @@ export const krCoachCard = style({
   borderRadius: CARD_RADIUS,
   background: vars.colors.background.white,
   boxShadow: CARD_SHADOW,
+  // 판단이 열리면 상세 카드(근거 목록 · 성적 표 · 사례)가 맨 `p` · `li` 를 그린다 — 글꼴을 카드가 준다(F011 슬라이스 7b)
+  fontFamily: vars.fontFamily.base,
   "@media": {
     [NARROW]: { padding: vars.space.lg },
   },

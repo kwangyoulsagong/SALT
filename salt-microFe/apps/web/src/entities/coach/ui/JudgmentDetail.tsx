@@ -123,16 +123,19 @@ export const JudgmentDetail = ({ view, mode }: JudgmentDetailProps) => {
   return (
     <>
       <JudgmentSummary view={view} mode={mode} labelAs={3} />
-      <section className={detailSection}>
-        <Heading level={5} as={4} color="tertiary">
-          {DETAIL.reasonsHeading}
-        </Heading>
-        <ul className={plainList}>
-          {judgment.reasons.map((reason, index) => (
-            <li key={`${index}-${reason}`}>{reason}</li>
-          ))}
-        </ul>
-      </section>
+      {/* 피하기는 긍정 근거가 없을 수 있다 — 근거는 아래 "주의할 점"이다. 빈 제목을 두지 않는다 */}
+      {judgment.reasons.length > 0 && (
+        <section className={detailSection}>
+          <Heading level={5} as={4} color="tertiary">
+            {DETAIL.reasonsHeading}
+          </Heading>
+          <ul className={plainList}>
+            {judgment.reasons.map((reason, index) => (
+              <li key={`${index}-${reason}`}>{reason}</li>
+            ))}
+          </ul>
+        </section>
+      )}
       {judgment.risks.length > 0 && (
         <section className={detailSection}>
           <Heading level={5} as={4} color="tertiary">
