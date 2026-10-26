@@ -8,13 +8,18 @@ import {
 } from "../../shared/infrastructure";
 import {
   KR_PROVIDER_DEGRADED_AFTER,
+  KR_RATE_LIMITED_CODE,
   kstDateOf,
   type Candle,
+  type KrIndexQuoteFact,
+  type KrInvestorFlowFact,
+  type KrInvestorNet,
   type KrMarketDay,
   type KrProviderHealthPort,
   type KrProviderSnapshot,
   type KrStockQuoteFact,
   type KrStockQuotePort,
+  type KrSupplementPort,
 } from "../domain";
 
 /**
@@ -46,6 +51,10 @@ export const KIS_QUERY_TR = {
   dailyMinutes: "FHKST03010230",
   /** 국내 휴장일 조회 — KIS 권고 "가급적 1일 1회" */
   holiday: "CTCA0903R",
+  /** 국내업종 현재지수 — 코스피 · 코스닥 요약(슬라이스 6 FR-48) */
+  indexPrice: "FHPUP02100000",
+  /** 주식현재가 투자자 — 최근 30거래일 개인 · 외국인 · 기관 순매수(슬라이스 6 FR-29) */
+  investor: "FHKST01010900",
 } as const;
 
 /**
@@ -82,8 +91,8 @@ export class KisApiError extends Error {
   }
 }
 
-/** 초당 거래건수 초과 — HTTP 상태와 무관하게 이 코드로 온다 */
-const RATE_LIMITED = "EGW00201";
+/** 초당 거래건수 초과 — HTTP 상태와 무관하게 이 코드로 온다. 부가 작업이 같은 코드로 물러난다(FR-91) */
+const RATE_LIMITED = KR_RATE_LIMITED_CODE;
 /** 토큰 재발급 제한(1분 1회) — 캐시된 토큰을 그대로 쓴다(FR-2) */
 const TOKEN_ISSUE_LIMITED = "EGW00133";
 /** 만료 · 무효 토큰 — 한 번 다시 발급한다 */
@@ -143,7 +152,7 @@ export interface KisClientOptions {
   now?: () => Date;
 }
 
-export class KisClient implements KrStockQuotePort, KrProviderHealthPort {
+export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProviderHealthPort {
   private readonly http;
   private readonly pacer: RatePacer;
   private readonly now: () => Date;
@@ -332,6 +341,60 @@ export class KisClient implements KrStockQuotePort, KrProviderHealthPort {
         isBusinessDay: row.bzdy_yn === "Y",
         isSettlementDay: row.sttl_day_yn === "Y",
       }));
+  }
+
+  /**
+   * 업종 현재지수. 등락은 부호가 붙어 온다(2026-10-26 실측: 코스피 5469.47 · −80.83 · −1.46%).
+   * 상승 · 보합 · 하락 종목 수도 같은 응답에 있다
+   */
+  async indexQuote(code: string): Promise<KrIndexQuoteFact> {
+    const body = await this.get("/uapi/domestic-stock/v1/quotations/inquire-index-price", KIS_QUERY_TR.indexPrice, {
+      FID_COND_MRKT_DIV_CODE: "U",
+      FID_INPUT_ISCD: code,
+    });
+    const o = body.output ?? {};
+    const value = num(o.bstp_nmix_prpr);
+    if (value === null) throw new KisApiError(undefined, undefined, `KIS 지수 없음 — ${code}`);
+    const count = (v: unknown) => {
+      const n = num(v);
+      return n === null ? null : Math.trunc(n);
+    };
+    return {
+      code,
+      value,
+      change: num(o.bstp_nmix_prdy_vrss) ?? 0,
+      changeRate: num(o.bstp_nmix_prdy_ctrt) ?? 0,
+      advancers: count(o.ascn_issu_cnt),
+      unchanged: count(o.stnr_issu_cnt),
+      decliners: count(o.down_issu_cnt),
+    };
+  }
+
+  /**
+   * 투자자별 순매수 — 최근 30거래일(최신이 앞). 금액 칸(`*_ntby_tr_pbmn`)은 **백만 원** 단위다
+   * (2026-10-26 실측: 삼성전자 외국인 −1,002,291주 × 종가 213,500 ≈ −2,139억 = `-213891`)
+   */
+  async investorFlows(code: string): Promise<KrInvestorFlowFact[]> {
+    const body = await this.get("/uapi/domestic-stock/v1/quotations/inquire-investor", KIS_QUERY_TR.investor, {
+      FID_COND_MRKT_DIV_CODE: "J",
+      FID_INPUT_ISCD: code,
+    });
+    const rows: any[] = Array.isArray(body.output) ? body.output : [];
+    return rows.flatMap((row) => {
+      const date = row?.stck_bsop_date;
+      if (typeof date !== "string" || date.length !== 8) return [];
+      const net = (qty: unknown, millions: unknown): KrInvestorNet | null => {
+        const q = num(qty);
+        const v = num(millions);
+        return q === null || v === null ? null : { quantity: BigInt(Math.trunc(q)), value: v * 1_000_000 };
+      };
+      const individual = net(row.prsn_ntby_qty, row.prsn_ntby_tr_pbmn);
+      const foreign = net(row.frgn_ntby_qty, row.frgn_ntby_tr_pbmn);
+      const institution = net(row.orgn_ntby_qty, row.orgn_ntby_tr_pbmn);
+      // 장중 · 휴장 행은 빈 칸으로 온다 — 0 으로 채우면 "순매수 0" 이라는 거짓 사실이 된다
+      if (!individual || !foreign || !institution) return [];
+      return [{ date: isoDate(date), individual, foreign, institution }];
+    });
   }
 
   // ==================== 요청 ====================

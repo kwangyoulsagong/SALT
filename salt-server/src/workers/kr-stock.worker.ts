@@ -20,6 +20,8 @@ import { schedule } from "../shared/infrastructure/scheduler";
  * | `kr-quote-poll` | 매분 | 부를지는 유스케이스가 장 상태로 정한다(정규장 매분 · 장전/시간외 5분). 뒤이어 국내 주식 보유 평가 |
  * | `kr-provider-metrics` | 10분 | TR 별 호출 · 실패 · 초과 · 오늘 토큰 발급 수(FR-94) |
  * | `kr-realtime` | 매분 | 08:30~16:00 개장일이면 WS 를 붙이고 슬롯을 맞춘다 · 밖이면 끊는다(시간외 단일가는 슬라이스 6) |
+ * | `kr-quote-poll` 뒤 지수 | 매분 | 코스피 · 코스닥(FR-49) — 현재가와 같은 박자 · 부를지는 유스케이스가 정한다 |
+ * | `kr-investor-flows` | 평일 18:40 | 투자자 순매수 30거래일(FR-50) — 당일 값이 18:00 뒤라 그 뒤 · 전 종목 일봉(18:00) 앞쪽이 대개 끝난 뒤. 한도 초과면 회차를 접는다(FR-91) |
  */
 const TZ = "Asia/Seoul";
 
@@ -49,8 +51,11 @@ export const startKrStockWorkers = () => {
       run: async () => {
         await kr.pollQuotes.execute();
         await portfolio.revalueKrStockHoldings.execute();
+        // 부가 정보는 맨 뒤 — 지수가 실패해도 보유 평가는 이미 끝났다(FR-91)
+        await kr.pollIndices.execute();
       },
     },
+    { name: "kr-investor-flows", expression: "40 18 * * 1-5", run: () => kr.syncInvestorFlows.execute() },
     { name: "kr-realtime", expression: "* * * * *", run: () => kr.realtime.reconcile() },
     // 관측 지표(FR-94) — 로그가 지표다
     { name: "kr-provider-metrics", expression: "*/10 * * * *", run: async () => kr.reportMetrics.execute() },
@@ -69,6 +74,8 @@ export const startKrStockWorkers = () => {
       () => kr.pollQuotes.execute(),
       // 밤에 기동해도 보유 평가가 마지막 저장값으로 선다(폴링은 장 시간에만 시세를 받는다)
       () => portfolio.revalueKrStockHoldings.execute(),
+      // 지수 — 기동 뒤 한 번은 받는다(빈 요약 띠로 시작하지 않게)
+      () => kr.pollIndices.execute(),
       // 실시간은 현재가 행이 생긴 뒤(체결은 기존 행만 갱신한다)
       () => kr.realtime.reconcile(),
       () => kr.syncDailyCandles.execute(),

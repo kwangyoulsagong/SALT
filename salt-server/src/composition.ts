@@ -41,6 +41,8 @@ import { KisMasterFile } from "./market/infrastructure/KisMasterFile";
 import { DartHomepageSource, LogoDevImageProbe } from "./market/infrastructure/KrLogoClients";
 import { KisRealtimeClient } from "./market/infrastructure/KisRealtimeClient";
 import { PrismaKrMarketCalendarStore, PrismaKrStockStore } from "./market/infrastructure/PrismaKrStockStore";
+import { parseKrSummaryIndices } from "./market/domain";
+import { PrismaKrSupplementStore } from "./market/infrastructure/PrismaKrSupplementStore";
 import { PrismaIndicatorRepository } from "./market/infrastructure/PrismaIndicatorRepository";
 import { PrismaMarketAssetRepository } from "./market/infrastructure/PrismaMarketAssetRepository";
 import { PrismaPriceHistoryRepository } from "./market/infrastructure/PrismaPriceHistoryRepository";
@@ -149,6 +151,9 @@ const krStock =
         logoImages: new LogoDevImageProbe(),
         homepages: env.DART_API_KEY ? new DartHomepageSource(env.DART_API_KEY) : null,
         viewerEmails: env.FORECAST_OWNER_EMAILS,
+        supplementSource: kis,
+        supplement: new PrismaKrSupplementStore(),
+        summaryIndices: parseKrSummaryIndices(env.KIS_SUMMARY_INDICES),
       }
     : null;
 const market = createMarketApplication({

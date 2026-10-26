@@ -41,3 +41,8 @@ export const krChartQuerySchema = z.object({
 export const krSearchQuerySchema = z.object({
   q: z.string().trim().min(2).max(30),
 });
+
+/** 투자자 순매수 거래일 수 — KIS 가 한 번에 주는 것이 30거래일이라 그 이상은 없다(FR-50) */
+export const krInvestorQuerySchema = z.object({
+  days: z.coerce.number().int().min(1).max(30).default(20),
+});
