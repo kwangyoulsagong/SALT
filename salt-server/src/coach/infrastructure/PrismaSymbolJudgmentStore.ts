@@ -29,6 +29,8 @@ interface ScoreboardRow extends Record<string, unknown> {
   sample: number;
   hits: number;
   above_cost: number;
+  pool_sample: number;
+  pool_above_cost: number;
   avg_return: Prisma.Decimal | null;
   worst_return: Prisma.Decimal | null;
   first_scored_at: Date | null;
@@ -49,6 +51,12 @@ interface CaseRow {
 
 const toNumberOrNull = (value: Prisma.Decimal | null): number | null =>
   value === null ? null : Number(value);
+
+/**
+ * 기저율 풀 — 그룹 키에서 행동을 뗀 `[<자산군>.]<mode>`. 풀은 이 접두 + `.` 로 시작하는 그룹 전부다
+ * (코인 `long_term.` 은 국내 `kr_stock.long_term.` 과 겹치지 않는다)
+ */
+const poolPrefixOf = (signalType: string): string => signalType.slice(0, signalType.lastIndexOf("."));
 
 /**
  * 종목 판단 스냅샷 (`symbol_judgment_snapshots`).
@@ -199,7 +207,9 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
   }
 
   async summarize(signalType: string): Promise<JudgmentTrackStats> {
-    const [all, hits, aboveCost] = await Promise.all([
+    const pool = { signalType: { startsWith: `${poolPrefixOf(signalType)}.` }, outcome: { not: null }, ...this.countedWhere };
+    const cost = this.costs[judgmentAssetClassOf(signalType)];
+    const [all, hits, aboveCost, poolSample, poolAboveCost] = await Promise.all([
       prisma.symbolJudgmentSnapshot.aggregate({
         where: { signalType, outcome: { not: null }, ...this.countedWhere },
         _count: { _all: true },
@@ -215,16 +225,21 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
         where: {
           signalType,
           outcome: { not: null },
-          returnRate: { gt: this.costs[judgmentAssetClassOf(signalType)] },
+          returnRate: { gt: cost },
           ...this.countedWhere,
         },
       }),
+      // 기저율 — 규칙이 고르기 전의 풀(같은 자산군 · 모드, 행동 무관)
+      prisma.symbolJudgmentSnapshot.count({ where: pool }),
+      prisma.symbolJudgmentSnapshot.count({ where: { ...pool, returnRate: { gt: cost } } }),
     ]);
 
     return {
       sample: all._count._all,
       hits,
       aboveCost,
+      poolSample,
+      poolAboveCost,
       avgReturn: all._avg.returnRate === null ? null : Number(all._avg.returnRate),
       worstReturn: all._min.returnRate === null ? null : Number(all._min.returnRate),
       firstScoredAt: all._min.evaluatedAt,
@@ -256,7 +271,12 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       )})::int AS ${Prisma.raw(`bucket_${index}`)}`;
     });
 
+    // 기저율 풀은 그룹 결과 위의 창 함수 — 같은 접두(`[<자산군>.]<mode>`) 그룹을 합친다. 스캔은 한 번 그대로
     const rows = await prisma.$queryRaw<ScoreboardRow[]>`
+      SELECT g.*,
+             SUM(g.sample) OVER (PARTITION BY regexp_replace(g.signal_type, '[.][^.]+$', ''))::int AS pool_sample,
+             SUM(g.above_cost) OVER (PARTITION BY regexp_replace(g.signal_type, '[.][^.]+$', ''))::int AS pool_above_cost
+      FROM (
       SELECT signal_type,
              COUNT(*)::int AS sample,
              COUNT(*) FILTER (WHERE outcome = 'hit')::int AS hits,
@@ -276,7 +296,8 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       FROM symbol_judgment_snapshots
       WHERE outcome IS NOT NULL AND return_rate IS NOT NULL AND ${this.countedSql}
       GROUP BY signal_type
-      ORDER BY signal_type
+      ) g
+      ORDER BY g.signal_type
     `;
 
     return rows.map((row) => ({
@@ -284,6 +305,8 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       sample: row.sample,
       hits: row.hits,
       aboveCost: row.above_cost,
+      poolSample: row.pool_sample,
+      poolAboveCost: row.pool_above_cost,
       avgReturn: toNumberOrNull(row.avg_return),
       worstReturn: toNumberOrNull(row.worst_return),
       firstScoredAt: row.first_scored_at,
