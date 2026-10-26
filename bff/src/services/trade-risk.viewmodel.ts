@@ -151,6 +151,8 @@ export interface SizeCheckView {
   gapScenarios: GapScenariosView | null;
   assumptions: {
     feeRatePerSide: number | null;
+    /** 국내 주식 매도 거래세(오늘 매도 기준, 청산 금액에만 — `SRV-REQ-040` FR-44). 코인 · 없는 값은 `null` */
+    sellTaxRate: number | null;
     stopGapAssumed: false;
     targetVolatility: number | null;
     targetVolatilityIsDefault: boolean;
@@ -233,6 +235,7 @@ export const toSizeCheckViewModel = (data: Raw): SizeCheckView => {
     gapScenarios: toGapScenarios(data.gapScenarios),
     assumptions: {
       feeRatePerSide: num(assumptions.feeRatePerSide),
+      sellTaxRate: num(assumptions.sellTaxRate),
       // 갭 가정은 없다 — 서버가 달리 말해도 화면은 "갭 미반영"을 말해야 안전하다
       stopGapAssumed: false,
       targetVolatility: num(assumptions.targetVolatility),

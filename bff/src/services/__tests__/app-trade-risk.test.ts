@@ -136,6 +136,15 @@ describe("toSizeCheckViewModel", () => {
     );
     assert.equal(toSizeCheckViewModel(sizeCheck()).gapScenarios, null);
   });
+
+  it("국내 주식 매도 거래세를 옮기고, 코인(서버가 null · 없음)은 null (F011 FR-44)", () => {
+    const kr = toSizeCheckViewModel(
+      sizeCheck({ assumptions: { feeRatePerSide: 0.000186, sellTaxRate: 0.002, targetVolatilityIsDefault: true } })
+    );
+    assert.equal(kr.assumptions.feeRatePerSide, 0.000186);
+    assert.equal(kr.assumptions.sellTaxRate, 0.002);
+    assert.equal(toSizeCheckViewModel(sizeCheck()).assumptions.sellTaxRate, null);
+  });
 });
 
 describe("toRiskBudgetViewModel", () => {
