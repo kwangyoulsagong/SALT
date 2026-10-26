@@ -55,6 +55,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | F011 7f — 월간 복기(FR-10) 뷰모델 `assetType` · 서비스 `getMonthlyReview(…, assetType)` 경로 분기 · Brier 빗나간 사례 `name`(미러는 `null`) |
 | 2026-10-26 | F011 7d 실데이터 수정 — `toDecisionOutcomeViewModel` `name` · `logoUrl` 통과 |
 | 2026-10-26 | F011 슬라이스 7e — `toRiskBudgetViewModel` `gauges.portfolioVolatility`(`BFF-REQ-040` FR-25) |
 | 2026-10-26 | F011 슬라이스 7d 후속 — `toAdherenceView` 를 빼 코인 · 국내 미러가 같이 쓴다(코인 출력 그대로) · `listOutcomes(…, assetType)` · 컨트롤러 `assetType` 검증 |

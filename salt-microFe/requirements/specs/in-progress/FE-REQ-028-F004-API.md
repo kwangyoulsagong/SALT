@@ -192,3 +192,4 @@ created: 2026-09-09
 | 2026-09-23 | F004 슬라이스 15 — 리포트 조회(FR-3 · 4) · 재생성 · 폴링(FR-20~26). FR-1 · FR-27 다르게(클라이언트 조회 → 쿼리 무효화). 완료 판정은 `@repo/core/coach` `readGenerationOutcome` — 워커 행은 `inProgress` 로만 본다 |
 | 2026-09-24 | **F009 슬라이스 0 — C01.** FR-86a 신설. `buildExplainRequest(view, mode)` · `ExplainSubject` 삭제 · 근거 라벨 메시지 삭제(서버 소유) |
 | 2026-10-26 | F011 슬라이스 7d · 7e — `coachApi.krMirror`(`/api/app/coach/mirror/kr-stock`, 404 = 소유자 아님) · `coachApi.outcomes(limit, signal, assetType?)` · 키 `krMirror()` = `["coach","mirror","kr-stock"]` · `krOutcomes()` = `["coach","outcomes","kr-stock"]` — 기존 키 아래라 거래 저장 · 태그 확정 무효화가 같이 걸린다(`FE-REQ-041` FR-28) |
+| 2026-10-26 | F011 7f — `COACH_ENDPOINTS.krMonthlyReview` · `coachQueryKeys.krMonthlyReview` · `coachApi.monthlyReview(…, assetType)` |

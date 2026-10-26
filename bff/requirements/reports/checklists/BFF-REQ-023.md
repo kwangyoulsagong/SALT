@@ -91,3 +91,6 @@ BFF 경유 실측(로컬 테스트 계정 로그인 → 실제 토큰):
 ## F011 슬라이스 7d — 경로 두 줄 (2026-10-26)
 
 - `GET /mirror/kr-stock` · `/outcomes?assetType=` — 서비스 테스트(경로 · 쿼리 · 400) · `npm run build` 0. 세부 `BFF-REQ-040` 체크리스트
+
+
+- 2026-10-26 F011 7f: `/api/app/coach/review/monthly/kr-stock` 라우트 · build 0

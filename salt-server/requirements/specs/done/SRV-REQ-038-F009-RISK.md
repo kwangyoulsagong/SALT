@@ -65,6 +65,7 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | F011 슬라이스 7f(`SRV-REQ-040` FR-48) — 월간 복기(FR-10)가 자산군마다 한 벌: `BuildMonthlyReview`/`GetMonthlyReview` `assetType`(기본 코인 — 기존 의미 그대로) · `buildMonthlyReview` `kr` 옵션(KST 벽시계 · 거래일 · 거래일 보유) · `ipsDeviation`/`benchmarkMirror` `tradingDays` 옵션 · "오를 확률" 계획을 시세 자산군으로 가름(코인판이 국내 계획을 더는 채점하지 않는다) · 월초 배치가 두 자산군 |
 | 2026-10-26 | F011 7d 실데이터 수정 — `ListDecisionOutcomes` 가 국내 목록에만 종목 `name` · `logoUrl`(`assetLabels`). 코인 목록 무변경 |
 | 2026-10-26 | F011 슬라이스 7e(`SRV-REQ-040` FR-46) — `GetRiskBudget` 게이지 `portfolioVolatility`(보유 합산 변동성 범위). 일봉 조회 하나 추가(최근 400일) · 실패는 그 칸만 |
 | 2026-10-26 | F011 슬라이스 7d 후속(`SRV-REQ-040` FR-47) — `EvaluateTradeDecisions` 가 코인 · 국내를 따로 되감는다 · `DecisionOutcomeStore` 자산군 인자(기본 코인) · `loadTradeHistory(…, assetType)` 계획은 그 자산군 거래 연결분만(그전엔 코인 회차가 국내 연결 계획 라벨을 `null` 로 덮었다) · `PreviewTradeBehavior` 자산군 · 편도 수수료 · `ListDecisionOutcomes` 자산군. 코인 숫자 무변경 |
