@@ -160,3 +160,40 @@ def render_coverage(
         "",
     ]
     return lines
+
+
+def render_regime_coverage(
+    title: str,
+    models: Sequence[str],
+    obs_for: Callable[[str], Iterable[TailObs]],
+    horizons: Sequence[int],
+    regime_of: Callable[[int], str],
+    regimes: Sequence[str],
+) -> list[str]:
+    """국면별 꼬리 이탈(FC-REQ-020 FR-14). 비중첩 주를 전체에서 먼저 고른 뒤 as_of 국면으로 가른다 — 위 표와 같은 주."""
+    lines = [
+        f"## {title}",
+        "",
+        "명목 각 5%. ± 는 날짜 클러스터 95%. 매 h번째 주(전체 표와 같은 주)를 as_of 날짜로 가른다 — 국면 경계는 결과를"
+        " 보기 전에 공개 일정으로 정했다(`domain/kr_regime`). 국면 안 주 수가 적어 ± 가 넓다",
+        "",
+        "| 모델 | 기간 | 국면 | 표본(주) | 위 꼬리 | 아래 꼬리 | 90% 폭 중앙값(로그) |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    for m in models:
+        obs_all = list(obs_for(m))
+        for h in horizons:
+            obs = nonoverlapping([o for o in obs_all if o.horizon_weeks == h], h)
+            by: dict[str, list[TailObs]] = defaultdict(list)
+            for o in obs:
+                by[regime_of(o.as_of)].append(o)
+            for r in regimes:
+                sub = by.get(r, [])
+                if not sub:
+                    lines.append(f"| `{m}` | {h}주 | {r} | 0 | — | — | — |")
+                    continue
+                up = tail_rate(sub, [o.upper for o in sub])
+                dn = tail_rate(sub, [o.lower for o in sub])
+                width = float(np.median([o.hi90 - o.lo90 for o in sub]))
+                lines.append(f"| `{m}` | {h}주 | {r} | {up.n}({up.dates}) | {_fmt(up)} | {_fmt(dn)} | {width:.3f} |")
+    return [*lines, ""]

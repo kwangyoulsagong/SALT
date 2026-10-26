@@ -9,7 +9,7 @@ import numpy as np
 
 from salt_forecast.domain.quantiles import Z_SCORES, QuantileForecast
 from salt_forecast.domain.scoring import Score, evaluate_gate, score
-from salt_forecast.scoring.coverage import TailObs, nonoverlapping, tail_rate
+from salt_forecast.scoring.coverage import TailObs, nonoverlapping, render_regime_coverage, tail_rate
 from salt_forecast.scoring.evaluate import Paired, gates_from_pairs
 from salt_forecast.scoring.pooled_gate import kr_cards, kr_placebo, per_symbol_cards, placebo, with_status
 
@@ -160,3 +160,13 @@ def test_status_turns_off_both_columns_keeps_metrics() -> None:
         before.result.miss_count,
     )
     assert s1 == next(g for g in rows if g.symbol == "S1")
+
+
+def test_regime_coverage_splits_the_same_nonoverlapping_weeks() -> None:
+    # 주 0~9, h=2 → 0 · 2 · 4 · 6 · 8. 국면 = 주 < 5 이면 A. A 는 위 꼬리만, B 는 이탈 없음
+    obs = [TailObs(f"S{i}", 2, d, -0.1, 0.1, 0.2 if d < 5 else 0.0) for d in range(10) for i in range(2)]
+    lines = render_regime_coverage("t", ["m"], lambda _m: obs, [2], lambda t: "A" if t < 5 else "B", ["A", "B", "C"])
+    rows = [ln for ln in lines if ln.startswith("| `m`")]
+    assert rows[0].startswith("| `m` | 2주 | A | 6(3) | 100.0%")
+    assert rows[1].startswith("| `m` | 2주 | B | 4(2) | 0.0%")
+    assert rows[2] == "| `m` | 2주 | C | 0 | — | — | — |"
