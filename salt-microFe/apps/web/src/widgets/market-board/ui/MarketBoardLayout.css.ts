@@ -198,3 +198,8 @@ export const headerLineFit = style({
   width: 0,
   minWidth: "100%",
 });
+
+/** 국내 지수 띠 청크 · 응답 전 자리 — 지수 칸 높이(이름 16 + 값 22 + 종목 수 16 + 여백 20) */
+export const krIndexPlaceholder = style({
+  height: "74px",
+});

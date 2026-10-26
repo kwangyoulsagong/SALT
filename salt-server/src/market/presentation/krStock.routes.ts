@@ -116,6 +116,24 @@ export const createKrStockRouter = (useCases: KrStockUseCases | null): Router =>
 
   /**
    * @swagger
+   * /api/market/kr/indices:
+   *   get:
+   *     summary: 국내 지수 요약(코스피 · 코스닥) — 소유자 전용
+   *     description: |
+   *       저장값만 읽는다(수집은 현재가 회차 뒤 매분). 어떤 지수를 어떤 순서로 줄지는 서버 설정 `KIS_SUMMARY_INDICES`.
+   *       한 번도 못 받은 지수는 빠진다. `stale` = 시세 시간대인데 3분 넘게 안 바뀜.
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     responses:
+   *       200:
+   *         description: "`{ session, items: [{ code, name, value, change, changeRate, advancers, unchanged, decliners, updatedAt, stale }] }`"
+   *       404: { description: 소유자가 아님 }
+   *       503: { description: KIS 키 없음 }
+   */
+  router.get("/indices", controller.indices);
+
+  /**
+   * @swagger
    * /api/market/kr/stream:
    *   get:
    *     summary: 국내 주식 실시간 체결 SSE — 소유자 전용
@@ -167,6 +185,28 @@ export const createKrStockRouter = (useCases: KrStockUseCases | null): Router =>
    *       503: { description: KIS 키 없음 }
    */
   router.get("/:code/chart", controller.chart);
+
+  /**
+   * @swagger
+   * /api/market/kr/{code}/investors:
+   *   get:
+   *     summary: 국내 주식 투자자 순매수(개인 · 외국인 · 기관) 일별 — 소유자 전용
+   *     description: |
+   *       저장값만 읽는다(개장일 18:40 KST 수집, 당일 값은 18:00 뒤에만). 순매수 = 매수 − 매도, 금액은 원 정수 ·
+   *       수량은 주(문자열). `totals` 는 받은 거래일 합계(행이 없으면 `null`). 마스터에 있는데 아직 안 모였으면 빈 `rows`.
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - { in: path, name: code, required: true, schema: { type: string, pattern: "^[0-9A-Z]{6}$" } }
+   *       - { in: query, name: days, schema: { type: integer, default: 20, minimum: 1, maximum: 30 } }
+   *     responses:
+   *       200:
+   *         description: "`{ code, days, collectedAt, rows: [{ date, individual: { quantity, value }, foreign, institution }], totals }`"
+   *       400: { description: days 형식 오류 }
+   *       404: { description: 소유자가 아니거나 마스터에 없는 종목 }
+   *       503: { description: KIS 키 없음 }
+   */
+  router.get("/:code/investors", controller.investors);
 
   return router;
 };

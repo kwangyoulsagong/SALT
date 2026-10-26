@@ -80,3 +80,64 @@ describe("AppKrStockService", () => {
     await assert.rejects(() => appKrStockService.getSession("t", aborter.signal), /canceled/);
   });
 });
+
+/** 부가 정보(F011 슬라이스 6 · `BFF-REQ-040` FR-27 · 28) */
+describe("AppKrStockService — 지수 · 투자자 순매수", () => {
+  afterEach(() => mock.restoreAll());
+
+  const sessionOnly = { session: "regular", now: "2026-10-26T01:00:00.000Z", lastCloseAt: null, nextOpenAt: null, calendarKnown: true };
+  const index = {
+    code: "0001",
+    name: "코스피",
+    value: 5469.47,
+    change: -80.83,
+    changeRate: -1.46,
+    advancers: 101,
+    unchanged: 22,
+    decliners: 792,
+    updatedAt: "2026-10-26T01:00:00.000Z",
+    stale: false,
+    internal: "옮기지 않는다",
+  };
+
+  it("지수 — 필드를 골라 옮긴다(서버 순서 그대로)", async () => {
+    mock.method(backendApi, "proxyAuthRequest", async () => ok({ session: sessionOnly, items: [index, { ...index, code: "1001", name: "코스닥" }] }));
+    const r = await appKrStockService.getIndices("t");
+    assert.equal(r.status, "ok");
+    if (r.status !== "ok") return;
+    assert.deepEqual(r.items.map((i) => i.name), ["코스피", "코스닥"]);
+    assert.equal("internal" in r.items[0]!, false);
+  });
+
+  it("지수 계약이 깨지면 unavailable — 0 으로 채우지 않는다", async () => {
+    mock.method(backendApi, "proxyAuthRequest", async () => ok({ session: sessionOnly, items: [{ ...index, value: null }] }));
+    assert.equal((await appKrStockService.getIndices("t")).status, "unavailable");
+  });
+
+  it("투자자 — 행 · 합계를 옮기고, 아직 없으면 totals null 그대로", async () => {
+    const net = { quantity: "-868997", value: -179719000000 };
+    const row = { date: "2026-10-23", individual: net, foreign: net, institution: net };
+    const calls: string[] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, path: string) => {
+      calls.push(path);
+      return path.includes("000660")
+        ? ok({ code: "000660", days: 0, collectedAt: null, rows: [], totals: null })
+        : ok({ code: "005930", days: 1, collectedAt: "2026-10-26T09:40:00.000Z", rows: [row], totals: { individual: net, foreign: net, institution: net } });
+    });
+    const full = await appKrStockService.getInvestors("t", "005930", 20);
+    assert.equal(full.status, "ok");
+    if (full.status !== "ok") return;
+    assert.equal(full.rows[0]!.foreign.quantity, "-868997");
+    assert.equal(full.totals!.foreign.value, -179719000000);
+    assert.equal(calls[0], "/market/kr/005930/investors?days=20");
+    const empty = await appKrStockService.getInvestors("t", "000660", 20);
+    assert.equal(empty.status === "ok" && empty.totals, null);
+  });
+
+  it("투자자 404(소유자 아님)는 그대로 올린다", async () => {
+    mock.method(backendApi, "proxyAuthRequest", async () => {
+      throw httpError(404, "KR_STOCK_NOT_AVAILABLE");
+    });
+    await assert.rejects(appKrStockService.getInvestors("t", "005930", 20));
+  });
+});

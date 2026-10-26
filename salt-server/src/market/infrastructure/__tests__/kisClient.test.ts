@@ -106,3 +106,39 @@ describe("KIS 상태 · 지표 (FR-92 · 94)", () => {
   });
 });
 
+
+describe("부가 조회 응답 해석 (슬라이스 6)", () => {
+  const withBody = (body: unknown) => {
+    const c = new KisClient({ appKey: "k", appSecret: "s", baseUrl: "http://127.0.0.1:9" });
+    (c as unknown as { get: () => Promise<unknown> }).get = async () => body;
+    return c;
+  };
+
+  it("투자자 순매수 금액은 백만 원 → 원, 빈 칸 행은 버린다", async () => {
+    const rows = await withBody({
+      output: [
+        {
+          stck_bsop_date: "20261026",
+          prsn_ntby_qty: "357058",
+          prsn_ntby_tr_pbmn: "75298",
+          frgn_ntby_qty: "-1002291",
+          frgn_ntby_tr_pbmn: "-213891",
+          orgn_ntby_qty: "612382",
+          orgn_ntby_tr_pbmn: "131614",
+        },
+        { stck_bsop_date: "20261027", prsn_ntby_qty: "", prsn_ntby_tr_pbmn: "", frgn_ntby_qty: "", frgn_ntby_tr_pbmn: "", orgn_ntby_qty: "", orgn_ntby_tr_pbmn: "" },
+      ],
+    }).investorFlows("005930");
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0]!.date, "2026-10-26");
+    assert.equal(rows[0]!.foreign.quantity, -1002291n);
+    assert.equal(rows[0]!.foreign.value, -213_891_000_000);
+  });
+
+  it("지수는 부호 붙은 등락과 상승 · 보합 · 하락 종목 수를 그대로", async () => {
+    const q = await withBody({
+      output: { bstp_nmix_prpr: "5469.47", bstp_nmix_prdy_vrss: "-80.83", bstp_nmix_prdy_ctrt: "-1.46", ascn_issu_cnt: "101", stnr_issu_cnt: "22", down_issu_cnt: "792" },
+    }).indexQuote("0001");
+    assert.deepEqual(q, { code: "0001", value: 5469.47, change: -80.83, changeRate: -1.46, advancers: 101, unchanged: 22, decliners: 792 });
+  });
+});

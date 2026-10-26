@@ -83,7 +83,7 @@
 | FR-26 | 장 상태 `session` 을 서버가 KST 시계 + `MarketHoliday` 로 계산한다: `pre_open`(08:30~09:00) · `regular`(09:00~15:30, 15:20~ `closing_auction`) · `after_hours_close`(15:40~16:00) · `after_hours_single`(16:00~18:00) · `closed` · `holiday`. 응답마다 `session` · `lastTradeAt` · `nextOpenAt` | Must | 완료(S0·1) |
 | FR-27 | 시간외 단일가 현재가는 별도 필드(`afterHours.price` · `changeRate` · `at`) — 정규장 현재가 · 등락률과 섞지 않는다 | Should | Draft |
 | FR-28 | 호가 10단계(매수 · 매도 잔량, 총잔량) — 상세 화면 Should. 실시간 호가(`H0STASP0`) 는 슬롯을 두 배로 먹으므로 **보유 종목만** | Should | Draft |
-| FR-29 | 투자자별 매매동향(외국인 · 기관 · 개인 순매수) 일별 — 상세 Should. 전망 피처 후보는 채점이 정한다(F008 FR-54 와 같은 선) | Should | Draft |
+| FR-29 | 투자자별 매매동향(외국인 · 기관 · 개인 순매수) 일별 — 상세 Should. 전망 피처 후보는 채점이 정한다(F008 FR-54 와 같은 선) | Should | 완료 2026-10-26(슬라이스 6) — 유니버스 종목 · 개장일 18:40 · 30거래일 덮어쓰기 · 상세 최근 10거래일 + 합계. 전망 피처는 아니다(`FC-REQ-020`) |
 
 ### D. 화면 · 표시 규칙
 
@@ -97,7 +97,7 @@
 | FR-45 | 슬롯 밖(1분 폴링) 종목은 행에 "1분" 배지, KIS 장애 · 한도로 오래된 값은 "N분 전 시세" 배지 — `priceUpdatedAt` 기준으로 프론트가 **표시만** 한다 | Must | 완료(S3) |
 | FR-46 | 상세 `/investments/[symbol]` 는 6자리 코드를 심볼로 그대로 쓴다. 차트 기간 선택에 5분봉이 누적 전이면 "N 거래일치" 안내, 일봉은 백필 즉시 | Must | 완료(S3) |
 | FR-47 | 종목 아이콘: KIS 는 로고를 주지 않는다 → 이니셜 배지(시장 색) 를 기본으로, 로고 소스는 Open Question. 글자만 두지 않는다 | Must | 완료(S3) — 서버가 종목마다 판정한 logo.dev 로고(키 적용 · 128px), 흐린 원본 7종목은 이니셜. FMP 제외 |
-| FR-48 | 요약 띠(`MARKET_SUMMARY_SYMBOLS`) 는 코인 그대로. 국내주식 요약(코스피 · 코스닥 지수) 은 서버 env `KIS_SUMMARY_INDICES` 로 따로 — Should | Should | Draft |
+| FR-48 | 요약 띠(`MARKET_SUMMARY_SYMBOLS`) 는 코인 그대로. 국내주식 요약(코스피 · 코스닥 지수) 은 서버 env `KIS_SUMMARY_INDICES` 로 따로 — Should | Should | 완료 2026-10-26(슬라이스 6) — 국내 주식 탭 요약 띠 자리 · 서버 `GET /api/market/kr/indices`(기본 코스피 · 코스닥) |
 
 ### E. 지표 · 코치 판정 · 성적표 — 자산군 분리
 
@@ -127,7 +127,7 @@
 | ID | 요구사항 | 우선 | 상태 |
 |---|---|---|---|
 | FR-90 | KIS REST 5회 연속 실패 → 그 작업 5분 정지(서킷). 응답은 마지막 저장값 + `stale: true` · `priceUpdatedAt`. 화면은 FR-45 배지. **빈 값으로 덮어쓰지 않는다** | Must | 완료(S0·1) |
-| FR-91 | 한도 초과(`EGW00201`) → 작업 우선순위대로 줄인다: 실시간 유지 > 보유 · 관심 폴링 > 시총 상위 폴링 > 일봉 백필 > 부가(호가 · 투자자) | Must | Draft |
+| FR-91 | 한도 초과(`EGW00201`) → 작업 우선순위대로 줄인다: 실시간 유지 > 보유 · 관심 폴링 > 시총 상위 폴링 > 일봉 백필 > 부가(호가 · 투자자) | Must | 부분 2026-10-26(슬라이스 6) — 부가 작업(지수 · 투자자)은 한도 초과를 만나면 회차를 접고 양보한다. 작업 전체 우선순위 큐는 아직 — 호가(FR-28)가 붙어 부가 작업이 셋이 될 때 |
 | FR-92 | 토큰 오류(401 · `EGW00121` 등) → 1회 재발급 시도, 실패면 국내주식 기능을 `degraded` 로 표시(`GET /api/market/kr/session` 에 `provider: { status, since }`) | Must | 완료(S1) |
 | FR-93 | WS 30초 무응답(PINGPONG 누락) → 재접속. 재접속 3회 실패 → 슬롯 종목도 1분 폴링으로 내려간다 | Must | 완료(S0·1) |
 | FR-94 | 관측: 작업별 호출 수 · 실패 수 · 429 수 · 토큰 발급 횟수(일) · WS 재접속 수 · 유니버스 크기 · 마지막 성공 시각을 로그 지표로. 토큰 발급이 하루 3회를 넘으면 경고 | Must | 완료(S1 — 로그) |
@@ -235,7 +235,8 @@
 | GET | `/api/market/kr/:code` | `/api/app/market/kr/:code` | 필수 | — | `{ session, quote: KrStockQuote, detail: { per, pbr, eps, bps, week52High, week52Low, foreignRate, tickSize } }` — `afterHours` 는 슬라이스 6 | 완료(S2) |
 | GET | `/api/market/kr/:code/chart?period=1d｜5m&count=` | `/api/app/market/kr/:code/chart` | 필수 | 기간(1h 는 서버에 없다) · `count` ≤500 | `{ period, candles[], coverage: { from, to, tradingDays } }` | 완료(S2) |
 | GET | `/api/market/kr/:code/orderbook` | `/api/app/market/kr/:code/orderbook` | 필수 | — | `{ asks[10], bids[10], totalAsk, totalBid, at }` | Should |
-| GET | `/api/market/kr/:code/investors?days=20` | `/api/app/market/kr/:code/investors` | 필수 | — | `{ rows: [{ date, foreign, institution, individual }] }` | Should |
+| GET | `/api/market/kr/indices` | `/api/app/market/kr/indices` | 필수 | — | `{ session, items: [{ code, name, value, change, changeRate, advancers, unchanged, decliners, updatedAt, stale }] }` — 지수 · 순서는 서버 설정 | 완료(슬라이스 6) |
+| GET | `/api/market/kr/:code/investors?days=20` | `/api/app/market/kr/:code/investors` | 필수 | — | `{ rows: [{ date, foreign, institution, individual }] }` | 완료(슬라이스 6) — 실제 응답 `{ code, days, collectedAt, rows: [{ date, individual: { quantity, value }, foreign, institution }], totals }`(수량 문자열 · 금액 원 · 합계는 서버) |
 | GET | `/api/market/kr/search?q=` | `/api/app/market/kr/search` | 필수 | `q`(2자 이상) | `{ items: [{ code, name, market, inUniverse }] }` 최대 20 | 완료(S2) |
 | GET | `/api/market/kr/stream` (SSE) | — (BFF 가 **WS 연결마다** 그 연결의 토큰으로 소비 → WS `price_update`) | 사용자 JWT · 소유자 | — | `event: status` 1회 · `event: tick` `[{ code, price, change, changeRate, volume, at }]` · 15초 하트비트 | 완료(S1 · S2) |
 | POST | `/api/investment/watchlist` (기존) | 기존 | 필수 | `assetType: "kr_stock"` 허용 | 기존 | 변경 |
@@ -372,7 +373,8 @@ WS `price_update` 메시지에 `assetType` 필드 추가(코인 `crypto` 기본)
 | 7d ✅ 2026-10-26 | 서버 · BFF · FE | `SRV-REQ-040` FR-47 · `BFF-REQ-040` FR-24 · `FE-REQ-041` FR-28 | 국내 거래 미러 — 거래일 회전율 · 처분효과 · 산 다음 거래일 매도율 · 40거래일 추격 · 복권형 비중(코인 미러와 따로, 소유자만) | 국내 거래 습관을 국내 근거로 본다 |
 | 7e ✅ 2026-10-26 | 서버 · BFF · FE | `SRV-REQ-040` FR-46 · `BFF-REQ-040` FR-25 · `FE-REQ-041` FR-29 | 코인 + 국내 보유 합산 변동성 — 실현 상관 ~ 상관 1 가정 범위(KRX 거래일 축) | 코인과 주식을 같이 들 때 전체 흔들림을 한 축으로 본다 |
 | 7f ✅ 2026-10-26 | 서버 · DB · BFF · FE | `SRV-REQ-040` FR-48 · `DB-REQ-031` FR-11 개정 · `BFF-REQ-040` FR-26 · `FE-REQ-041` FR-30 | 월간 복기 국내판 — 같은 복기를 국내 거래만 거래일로, 코인판과 따로 저장(소유자 전용) | 학습 루프를 국내에도 |
-| 6 | 서버 · BFF · FE | 각 REQ 개정 | 호가 · 투자자별 · 시간외 단일가 · 코스피 · 코스닥 요약(Should) | 부가 정보 |
+| 6 ✅ 2026-10-26 | 서버 · DB · BFF · FE | `SRV-REQ-040` FR-49 · 50 · `DB-REQ-033` FR-7 · 8 · `BFF-REQ-040` FR-27 · 28 · `FE-REQ-041` FR-31 · 32 | 코스피 · 코스닥 요약 · 투자자별 순매수(사용자가 넷 중 둘을 골랐다) · 부가 작업 한도 양보(FR-91 부분) | 국내 탭 머리에 지수, 상세에 개인 · 외국인 · 기관 순매수 |
+| 6b | 서버 · BFF · FE | 각 REQ 개정 | 호가 10단계(FR-28) · 시간외 단일가(FR-27, 후순위) · FR-91 작업 전체 우선순위(Should) | 부가 정보 나머지 |
 
 영역 REQ 파일은 각 슬라이스 착수 때 쓴다 — 지금은 번호만 예약.
 
@@ -380,6 +382,7 @@ WS `price_update` 메시지에 `assetType` 필드 추가(코인 `crypto` 기본)
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | **슬라이스 6 — 국내 지수 · 투자자별 순매수** — 사용자 "새 브랜치 파고 다음꺼 진행" → 슬라이스 6 넷 중 **지수 요약 · 투자자별**을 골랐다. 국내 주식 탭 머리(코인 요약 띠 자리)에 코스피 · 코스닥 값 · 등락 · 상승/하락 종목 수, 국내 종목 상세 차트 아래에 최근 10거래일 개인 · 외국인 · 기관 순매수(매수 − 매도 금액)와 합계. 해석 문구는 두지 않는다. 투자자 기록은 개장일 저녁 6시 뒤(확정 뒤) 하루 한 번 모으고 다음 날 다시 받아 고친다. 이 부가 정보는 시세 호출이 몰리면 가장 먼저 물러난다. 호가 · 시간외 단일가는 남았다(6b) |
 | 2026-10-26 | **7f 후속 — 내 기준은 합쳐서** — 사용자 "베스트 케이스로". 월 손실 예산 · 한 종목 상한은 하나라서, 코인과 국내 주식을 같이 한 달은 두 복기 모두 둘을 합친 숫자로 "기준을 넘은 날"을 센다(리스크 예산 게이지와 같은 기준). 한쪽만 하면 지금과 같다 |
 | 2026-10-26 | **슬라이스 7f — 국내 주식 월간 복기** — 사용자 "새 브랜치 파고 다음꺼 진행". 월간 복기가 코인 거래만 세서 국내 거래가 있어도 "적은 거래가 없어요"였다. 이제 코인 복기 바로 아래 "국내 주식 월간 복기"가 국내 거래만 거래일로 한 달을 정리한다(기준을 넘은 날 · 보유 기간도 거래일, 주말 · 휴장일은 세지 않는다). 코인 복기와 따로 저장되고 한 번 만들면 고치지 않는다. "오를 확률" 채점의 빗나간 사례는 종목 이름으로 보인다. 국내 숫자라 소유자만 본다 |
 | 2026-10-26 | **7d · 7e 실데이터 확인** — 사용자 "2번". 소유자 계정에 시험 거래를 넣어 실제 화면으로 본 뒤 지웠다. 청산별 태그에 국내 종목이 이름 없이 "00"으로 나오던 것을 고쳤다(이제 종목 로고 · 이름). 월간 복기는 아직 코인 거래만 센다 — 다음 후보 |

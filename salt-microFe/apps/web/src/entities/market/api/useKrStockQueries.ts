@@ -89,3 +89,32 @@ export const useKrChart = (code: string, period: KrChartPeriod, count = KR_CHART
     retry: retryUnlessClientError,
   });
 };
+
+/** 코스피 · 코스닥 요약 — 서버가 현재가 회차 뒤 매분 받는다. 표와 같은 1분 주기 */
+export const useKrIndices = (enabled = true) => {
+  const signedIn = useHasAccessToken() === true;
+  return useQuery({
+    queryKey: marketQueryKeys.krIndices,
+    queryFn: ({ signal }) => krStockApi.indices(signal),
+    enabled: signedIn && enabled,
+    staleTime: KR_STALE_MS,
+    refetchInterval: refreshUnlessClientError,
+    retry: retryUnlessClientError,
+  });
+};
+
+/** 투자자 순매수 화면 거래일 수 — 표 한 장(2주). 합계도 이 거래일만큼이다(서버가 받은 행으로 낸다) */
+export const KR_INVESTOR_DAYS = 10;
+/** 하루 한 번(개장일 18:40 KST) 모인다 — 1분마다 받을 이유가 없다 */
+const KR_INVESTOR_STALE_MS = 30 * 60_000;
+
+export const useKrInvestors = (code: string, days = KR_INVESTOR_DAYS) => {
+  const signedIn = useHasAccessToken() === true;
+  return useQuery({
+    queryKey: [...marketQueryKeys.krInvestors, code, days],
+    queryFn: ({ signal }) => krStockApi.investors(code, days, signal),
+    enabled: signedIn && Boolean(code),
+    staleTime: KR_INVESTOR_STALE_MS,
+    retry: retryUnlessClientError,
+  });
+};

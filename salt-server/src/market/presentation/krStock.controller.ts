@@ -6,6 +6,7 @@ import { KrStockDisabledError } from "../domain";
 import {
   krChartQuerySchema,
   krCodeParamSchema,
+  krInvestorQuerySchema,
   krListQuerySchema,
   krSearchQuerySchema,
 } from "./dto/krStock.dto";
@@ -94,6 +95,24 @@ export class KrStockController {
       const { code } = krCodeParamSchema.parse(req.params);
       const { period, count } = krChartQuerySchema.parse(req.query);
       return ResponseUtil.success(res, await this.enabled().getChart.execute(this.viewer(req), code, period, count));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  indices = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      return ResponseUtil.success(res, await this.enabled().getIndices.execute(this.viewer(req)));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  investors = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code } = krCodeParamSchema.parse(req.params);
+      const { days } = krInvestorQuerySchema.parse(req.query);
+      return ResponseUtil.success(res, await this.enabled().getInvestorFlows.execute(this.viewer(req), code, days));
     } catch (error) {
       next(error);
     }

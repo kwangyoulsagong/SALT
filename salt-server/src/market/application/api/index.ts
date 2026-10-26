@@ -6,6 +6,8 @@ import type {
   KrMarketCalendarStore,
   KrStockMasterSource,
   KrStockQuotePort,
+  KrSupplementPort,
+  KrSupplementStore,
   KrStockStore,
 } from "../../domain";
 import type {
@@ -68,6 +70,8 @@ import {
   GetKrStockDetail,
   ListKrStockQuotes,
   SearchKrStocks,
+  GetKrIndices,
+  GetKrInvestorFlows,
 } from "../ReadKrStock";
 import { RunKrRealtime } from "../RunKrRealtime";
 import {
@@ -80,6 +84,7 @@ import {
   SyncKrMarketCalendar,
   SyncKrStockMaster,
 } from "../SyncKrStock";
+import { PollKrIndices, SyncKrInvestorFlows } from "../SyncKrSupplement";
 
 /**
  * `market` 의 **공개 API** — 컨텍스트 밖으로 열리는 유일한 지점 (FR-4).
@@ -265,6 +270,11 @@ export interface KrStockDependencies {
   homepages: KrCompanyHomepageSource | null;
   /** 볼 수 있는 계정 — 소유자 전용(`FORECAST_OWNER_EMAILS`) */
   viewerEmails: readonly string[];
+  /** 지수 · 투자자 동향 조회(슬라이스 6) — 같은 `KisClient` 라 한도를 같은 페이서가 지킨다 */
+  supplementSource: KrSupplementPort;
+  supplement: KrSupplementStore;
+  /** 요약 지수 코드(`KIS_SUMMARY_INDICES`) */
+  summaryIndices: readonly string[];
 }
 
 export interface KrStockUseCases {
@@ -286,6 +296,12 @@ export interface KrStockUseCases {
   getDetail: GetKrStockDetail;
   getChart: GetKrStockChart;
   search: SearchKrStocks;
+  /** 코스피 · 코스닥 현재값 — 현재가 회차 뒤 매분(부를지는 유스케이스가 정한다) */
+  pollIndices: PollKrIndices;
+  /** 투자자 순매수 — 개장일 저녁 한 번 */
+  syncInvestorFlows: SyncKrInvestorFlows;
+  getIndices: GetKrIndices;
+  getInvestorFlows: GetKrInvestorFlows;
 }
 
 const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
@@ -306,6 +322,8 @@ const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
     viewerEmails: deps.viewerEmails,
     provider,
     logoDevToken: deps.logoDevToken,
+    supplement: deps.supplement,
+    summaryIndices: deps.summaryIndices,
   };
   return {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
@@ -331,6 +349,10 @@ const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
     getDetail: new GetKrStockDetail(read),
     getChart: new GetKrStockChart(read),
     search: new SearchKrStocks(read),
+    pollIndices: new PollKrIndices(deps.supplementSource, deps.supplement, deps.calendar, deps.summaryIndices),
+    syncInvestorFlows: new SyncKrInvestorFlows(deps.supplementSource, deps.supplement, deps.calendar, universe),
+    getIndices: new GetKrIndices(read),
+    getInvestorFlows: new GetKrInvestorFlows(read),
   };
 };
 

@@ -64,48 +64,48 @@
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-1 | **레거시 제거**: `AIAnalysisSession`, `AIAnalysis`, `AnalysisStatus`, `PredictionType` 삭제. **삭제 전 `grep -rn "AIAnalysis" src` 결과 0 확인 필수** | Must | Draft |
-| FR-2 | **중복 worker 제거**: 서버 `market-price-updater.worker`. 가격 갱신은 BFF `price-updater.worker` 단일 경로로 통일 | Must | Draft |
-| FR-3 | **커밋된 빌드 산출물 제거**: `market-price-updater.worker.js/.d.ts/.js.map` + `.gitignore` 반영 | Must | Draft |
-| FR-4 | **근거 없는 이벤트 제거**: `@repo/message-event-bus`의 `ACCOUNT_SELECTED`. 은행/계좌 API가 없어 동작 근거가 없다 | Must | Draft |
-| FR-5 | **기획 문서에서 내리기**: 랭킹·이달의 저축왕·소셜 저축·저축 게임. 코드에 없고 사용자 1~10명이면 성립하지 않는다. `README.md`를 v1/v2 2섹션 구조로 개편(삭제 아님) | Should | Draft |
+| FR-1 | **레거시 제거**: `AIAnalysisSession`, `AIAnalysis`, `AnalysisStatus`, `PredictionType` 삭제. **삭제 전 `grep -rn "AIAnalysis" src` 결과 0 확인 필수** | Must | Draft — 코드 참조는 0건이지만 `schema.prisma` 에 `AIAnalysisSession` · `AIAnalysis` · enum 2개가 남아 있다 |
+| FR-2 | **중복 worker 제거**: 서버 `market-price-updater.worker`. 가격 갱신은 BFF `price-updater.worker` 단일 경로로 통일 | Must | Draft — 파일은 `market.worker.ts` 로 합쳐졌지만 서버 `market-price-update` 잡이 매분 돈다(`BFF-REQ-010` FR-14 미착수 · `SRV-REQ-010` FR-30 to-do) |
+| FR-3 | **커밋된 빌드 산출물 제거**: `market-price-updater.worker.js/.d.ts/.js.map` + `.gitignore` 반영 | Must | 완료 2026-09-11 — `e8055bc`(`market-price-updater.worker.js/.d.ts/.js.map` 삭제) · `4d0fe0e`(`.gitignore` `dist`). `git ls-files "*worker.js"` = 0 |
+| FR-4 | **근거 없는 이벤트 제거**: `@repo/message-event-bus`의 `ACCOUNT_SELECTED`. 은행/계좌 API가 없어 동작 근거가 없다 | Must | 완료 2026-09-11 — `d425cbe` `@repo/message-event-bus` 패키지째 제거(`FE-REQ-007` FR-6~8). `ACCOUNT_SELECTED` 코드 0건 |
+| FR-5 | **기획 문서에서 내리기**: 랭킹·이달의 저축왕·소셜 저축·저축 게임. 코드에 없고 사용자 1~10명이면 성립하지 않는다. `README.md`를 v1/v2 2섹션 구조로 개편(삭제 아님) | Should | Draft — 루트 `README.md` 가 아직 v1/v2 구조가 아니고 저축왕 · 게임 · 소셜 절이 남아 있다 |
 
 ### B. 보류(동면) — 지우지 않고 끈다
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-10 | **미션/포인트/업적 비활성**: `modules/mission` route를 앱에서 등록 해제하고 BFF proxy에서 제거. **Prisma model(`DailyMission`, `UserMissionProgress`, `UserAchievement`, `PointTransaction`)은 유지** | Must | Draft |
-| FR-11 | **알림 파이프라인 축소**: `SentimentAlert`/`SmartMoneyAlert` 생성 worker를 끄고 `InvestmentNotification` 타입을 **지표·추천 갱신 1종**으로 제한. `MarketSentiment`/`WhaleTransaction` model과 **프리뷰 화면은 유지**(FR-22). **개정 2026-09-21** — 세금 D-Day 가 빠져 2종 → 1종(ADR-002 · D5). 알림 목록 · 읽음 · 안 읽은 수는 F006 이 소유한다. **뉴스 북마크는 알림이 아니다**(FR-43) | Must | Draft |
-| FR-12 | **인사이트 랭킹·피드 비활성**: `insight-ranking.controller`, `modules/feed`, BFF `app-feed.service` route 등록 해제. 코드/모델 유지 | Should | Draft |
-| FR-13 | **대시보드 비활성**: 홈 aggregation이 BFF로 이동한 뒤 `/api/dashboard` 등록 해제. 삭제는 이후 결정 | Should | Draft |
-| FR-14 | **비활성 route 응답**: 등록 해제된 경로는 404 대신 **410 Gone + 1회 로그**로 1주 유지해 프론트 잔여 호출을 탐지 | Should | **In Progress** — BFF 2026-09-22(`BFF-REQ-036`) · 서버 `SRV-REQ-009` FR-7·8 남음 · 1주 확인 2026-09-29 |
+| FR-10 | **미션/포인트/업적 비활성**: `modules/mission` route를 앱에서 등록 해제하고 BFF proxy에서 제거. **Prisma model(`DailyMission`, `UserMissionProgress`, `UserAchievement`, `PointTransaction`)은 유지** | Must | 부분 — BFF 410 완료 2026-09-22(`BFF-REQ-036` · `BFF-REQ-007` A절). 서버 `app.ts` 가 `/api/missions` 를 아직 등록(`SRV-REQ-009` FR-7·8) |
+| FR-11 | **알림 파이프라인 축소**: `SentimentAlert`/`SmartMoneyAlert` 생성 worker를 끄고 `InvestmentNotification` 타입을 **지표·추천 갱신 1종**으로 제한. `MarketSentiment`/`WhaleTransaction` model과 **프리뷰 화면은 유지**(FR-22). **개정 2026-09-21** — 세금 D-Day 가 빠져 2종 → 1종(ADR-002 · D5). 알림 목록 · 읽음 · 안 읽은 수는 F006 이 소유한다. **뉴스 북마크는 알림이 아니다**(FR-43) | Must | Draft — `SRV-REQ-008` FR-20~25 · `BFF-REQ-007` C절 남음. `kindGate` · `signal_update` 코드 0건 |
+| FR-12 | **인사이트 랭킹·피드 비활성**: `insight-ranking.controller`, `modules/feed`, BFF `app-feed.service` route 등록 해제. 코드/모델 유지 | Should | 부분 — BFF `/api/app/feed` 410 완료 2026-09-22(`BFF-REQ-007` FR-1). 서버 `/api/feed` · `/investment-insight/top` 아직 등록 |
+| FR-13 | **대시보드 비활성**: 홈 aggregation이 BFF로 이동한 뒤 `/api/dashboard` 등록 해제. 삭제는 이후 결정 | Should | 부분 — BFF `/api/dashboard` 410 완료 2026-09-22. 서버 `/api/dashboard` 등록 유지 · BFF `app-home.service` 가 아직 `/dashboard` 호출(`BFF-REQ-007` B절) |
+| FR-14 | **비활성 route 응답**: 등록 해제된 경로는 404 대신 **410 Gone + 1회 로그**로 1주 유지해 프론트 잔여 호출을 탐지 | Should | 부분 — BFF 410 완료 2026-09-22(`BFF-REQ-036`) · 서버 `SRV-REQ-009` FR-7·8 남음 · 1주 로그 확인(`BFF-REQ-007` FR-6) 기록 없음 |
 
 ### C. 수리 — 지금 있는데 깨진 것
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-20 | **"관심 종목" 탭 채우기**: 현재 `{activeTab === "realtime" && <RealtimeInvestment/>}`뿐이라 탭을 누르면 빈 화면이다. 서버 watchlist CRUD에 연결한 목록 화면을 붙인다. **탭 자체를 없애지 않는다** | Must | **Done** |
-| FR-21 | **하드코딩 문자열 교체**: 테이블 헤더의 `"실시간 오늘 19:30 기준"`을 WebSocket 마지막 수신 시각으로 | Must | **Done** |
-| FR-22 | **뉴스 프리뷰 실데이터 연결**: `MarketIntelligenceNewsPreview`의 제목·요약·이미지·출처·조회수가 전부 상수이고 제목에 테스트 문자열(`faskdljfaksjf…`)이 남아 있다. 서버 `/api/news`에 연결한다. **블록을 없애지 않는다** | Must | **Done** |
-| FR-23 | **오타 수정**: `MyInvestments.tsx`의 `{difference}% 덜 썻어요` → `덜 썼어요` | Must | **Done** |
-| FR-24 | **비어 있는 "주식" 섹션 채우기**: `<Heading>주식</Heading>`만 있고 자식이 없다. 포트폴리오 API로 보유 요약(종목·평가금액·손익률·세금 배지)을 렌더 | Must | **Done** |
-| FR-25 | **터치 선택 추가**: 테이블 행 선택이 `onMouseEnter`만이라 터치 기기에서 우측 상세가 바뀌지 않는다. `onClick`을 **추가**한다(hover는 유지) | Must | **Done** |
-| FR-26 | **반응형 분기 추가**: 레이아웃을 바꾸지 않고 ① 표에 자체 `overflow-x` 컨테이너 ② 모바일에서 `MarketPreview`를 아래로 접기 ③ `maxHeight="800px"` 고정을 뷰포트 기준으로 | Must | **Done** |
-| FR-27 | **차트 기간 쿼리 오타**: `period=miniute` → `minute` (FE/BFF/서버 계약 동시) | Must | **Done** |
-| FR-28 | **인증 축소**: 회원가입/비밀번호 변경/계정 삭제 route 및 화면 제거. `POST /api/auth/login` + refresh 유지. **초대 코드 기반 계정 생성**(`InviteCode`, 최대 10명) | Must | **Done** |
-| FR-29 | **목표 저축 submit 연결 확인**: 목표 추가 폼이 실제로 `POST /api/goals`까지 연결되는지 검증하고 끊겨 있으면 잇는다. **UI는 유지** | Should | **Done** |
+| FR-20 | **"관심 종목" 탭 채우기**: 현재 `{activeTab === "realtime" && <RealtimeInvestment/>}`뿐이라 탭을 누르면 빈 화면이다. 서버 watchlist CRUD에 연결한 목록 화면을 붙인다. **탭 자체를 없애지 않는다** | Must | 완료 2026-09-18 — `FE-REQ-010` FR-1 · `F000-watchlist-tab-slice` |
+| FR-21 | **하드코딩 문자열 교체**: 테이블 헤더의 `"실시간 오늘 19:30 기준"`을 WebSocket 마지막 수신 시각으로 | Must | 완료 2026-09-18 — `FE-REQ-010` FR-2 · 끊김 표시 `FE-REQ-011` FR-11~14(`RealtimeAsOf`) |
+| FR-22 | **뉴스 프리뷰 실데이터 연결**: `MarketIntelligenceNewsPreview`의 제목·요약·이미지·출처·조회수가 전부 상수이고 제목에 테스트 문자열(`faskdljfaksjf…`)이 남아 있다. 서버 `/api/news`에 연결한다. **블록을 없애지 않는다** | Must | 완료 2026-09-18 — `FE-REQ-010` FR-3 · `BFF-REQ-007` FR-30~34 |
+| FR-23 | **오타 수정**: `MyInvestments.tsx`의 `{difference}% 덜 썻어요` → `덜 썼어요` | Must | 완료 2026-09-18 — `FE-REQ-010` FR-4 |
+| FR-24 | **비어 있는 "주식" 섹션 채우기**: `<Heading>주식</Heading>`만 있고 자식이 없다. 포트폴리오 API로 보유 요약(종목·평가금액·손익률·세금 배지)을 렌더 | Must | 완료 2026-09-18 — `FE-REQ-010` FR-5 · `SRV-REQ-008` FR-60·63 |
+| FR-25 | **터치 선택 추가**: 테이블 행 선택이 `onMouseEnter`만이라 터치 기기에서 우측 상세가 바뀌지 않는다. `onClick`을 **추가**한다(hover는 유지) | Must | 완료 2026-09-18 — `FE-REQ-010` FR-6 |
+| FR-26 | **반응형 분기 추가**: 레이아웃을 바꾸지 않고 ① 표에 자체 `overflow-x` 컨테이너 ② 모바일에서 `MarketPreview`를 아래로 접기 ③ `maxHeight="800px"` 고정을 뷰포트 기준으로 | Must | 완료 2026-09-18 — `FE-REQ-010` FR-7(375/390/1440) · 1280 보정 2026-09-21 `F000-market-table` |
+| FR-27 | **차트 기간 쿼리 오타**: `period=miniute` → `minute` (FE/BFF/서버 계약 동시) | Must | 완료 2026-09-18 — `FE-REQ-010` FR-8 · `SRV-REQ-008` FR-50~52 · `BFF-REQ-007` FR-50 (422) |
+| FR-28 | **인증 축소**: 회원가입/비밀번호 변경/계정 삭제 route 및 화면 제거. `POST /api/auth/login` + refresh 유지. **초대 코드 기반 계정 생성**(`InviteCode`, 최대 10명) | Must | 완료 2026-09-18 — `F000-invite-onboarding-slice` · `SRV-REQ-008` FR-1~7·10~12 · `BFF-REQ-007` FR-60~64 |
+| FR-29 | **목표 저축 submit 연결 확인**: 목표 추가 폼이 실제로 `POST /api/goals`까지 연결되는지 검증하고 끊겨 있으면 잇는다. **UI는 유지** | Should | 완료 2026-09-18 — `FE-REQ-010` FR-9(제출 → 서버 1건 생성 E2E) |
 
 ### D. 추가 — 지금 화면의 탭과 블록으로
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-30 | **개정 2026-09-21 — 대체됨(D6 → F006).** ~~홈 최상단 2줄: `이번 주 적립`과 `세금 D-Day`~~. 홈은 **3블록(총자산 → 이번 주 적립 → AI 추천) + 그 아래 기존 목표 카드 · `AnalysisGraph` · `TipsApp`** 이고 `FEATURE-006` 이 소유한다. 세금 D-Day 는 ADR-002 로 소멸. **E절(기존 블록 순서 · 디자인 유지)은 그대로 걸린다** | — | Superseded |
-| FR-31 | **개정 2026-09-21 — 대체됨(D7 + ADR-002).** ~~`/investments` 탭 4개(`ai-coach` · `invoice` · `tax` · `position`) 추가~~. `/investments` 는 **자산 탭의 `시장` 세그먼트**다. 자산 탭 = `포지션` / `시장` / `관심 종목`(F006). 청구서 · 세금 탭은 없다. 종목 → **상세 분석 페이지 push**(F004). **PC 2컬럼은 지금 그대로** | — | Superseded |
-| FR-32 | **개정 2026-09-21 — F004 로 이관.** 게이지 아래 적중률 한 줄은 서버 신규 집계(감사 문서 B9)가 필요해 `FEATURE-004` 가 소유한다. F000 은 **게이지 시각을 바꾸지 않는 것**(E절)만 책임진다 | — | Moved |
-| FR-33 | **개정 2026-09-21 — F004 로 이관.** 우측 패널은 "카드 1개"가 아니라 **AI 코치 패널**(모드 · 판단 · 바이존/관찰 구간 · 게이지 · 뉴스 · 상세 이동)이다. `FEATURE-004` 가 소유한다. 3종 게이트(근거 · 적중률 · 실패사례)는 그대로 | — | Moved |
-| FR-34 | **`AssetType` enum 확장**: `crypto`, `kr_stock`, `us_stock`. 기존 row는 `crypto`로 마이그레이션. **개정 2026-09-21 — 열린 질문 Q2.** 주된 근거가 세금 차이(F002)였고 ADR-002 로 빠졌다. **Q2 결정 전 마이그레이션(`DB-REQ-003` M1 · M2 · M5)을 실행하지 않는다** | Must | Blocked (Q2) |
-| FR-35 | **KIS 연동 자리 확보**: `external/kis/` 조회 전용 클라이언트 스켈레톤. **개정 2026-09-21 — 열린 질문 Q2.** "실제 import 는 FEATURE-001" 의 F001 이 삭제됐다. 국내 · 미국 주식을 다룰지(Q2)가 정해지기 전 스켈레톤을 만들지 않는다 | Must | Blocked (Q2) |
-| FR-36 | **개정 2026-09-21 — 대체됨(F006 3탭).** ~~모바일 하단 탭 5개(`홈/코치/청구서/세금/포지션`)~~. 하단 탭은 **`홈` / `코치` / `자산` 3개**이고 `FEATURE-006` 이 소유한다 | — | Superseded |
+| FR-30 | **개정 2026-09-21 — 대체됨(D6 → F006).** ~~홈 최상단 2줄: `이번 주 적립`과 `세금 D-Day`~~. 홈은 **3블록(총자산 → 이번 주 적립 → AI 추천) + 그 아래 기존 목표 카드 · `AnalysisGraph` · `TipsApp`** 이고 `FEATURE-006` 이 소유한다. 세금 D-Day 는 ADR-002 로 소멸. **E절(기존 블록 순서 · 디자인 유지)은 그대로 걸린다** | — | 대체됨 — `FEATURE-006` 홈 3블록(D6) · 세금 D-Day 는 ADR-002 로 소멸 |
+| FR-31 | **개정 2026-09-21 — 대체됨(D7 + ADR-002).** ~~`/investments` 탭 4개(`ai-coach` · `invoice` · `tax` · `position`) 추가~~. `/investments` 는 **자산 탭의 `시장` 세그먼트**다. 자산 탭 = `포지션` / `시장` / `관심 종목`(F006). 청구서 · 세금 탭은 없다. 종목 → **상세 분석 페이지 push**(F004). **PC 2컬럼은 지금 그대로** | — | 대체됨 — `FEATURE-006` 자산 탭 3세그먼트(D7) · 청구서 · 세금 탭은 ADR-002 로 소멸 |
+| FR-32 | **개정 2026-09-21 — F004 로 이관.** 게이지 아래 적중률 한 줄은 서버 신규 집계(감사 문서 B9)가 필요해 `FEATURE-004` 가 소유한다. F000 은 **게이지 시각을 바꾸지 않는 것**(E절)만 책임진다 | — | 이관됨 — `FEATURE-004` 소유. F004 슬라이스 2 · 4(2026-09-21~22)에서 게이지 적중률 한 줄 구현 |
+| FR-33 | **개정 2026-09-21 — F004 로 이관.** 우측 패널은 "카드 1개"가 아니라 **AI 코치 패널**(모드 · 판단 · 바이존/관찰 구간 · 게이지 · 뉴스 · 상세 이동)이다. `FEATURE-004` 가 소유한다. 3종 게이트(근거 · 적중률 · 실패사례)는 그대로 | — | 이관됨 — `FEATURE-004` 소유. F004 슬라이스 1~4(2026-09-21~22)에서 우측 AI 코치 패널 구현 |
+| FR-34 | **`AssetType` enum 확장**: `crypto`, `kr_stock`, `us_stock`. 기존 row는 `crypto`로 마이그레이션. **개정 2026-09-21 — 열린 질문 Q2.** 주된 근거가 세금 차이(F002)였고 ADR-002 로 빠졌다. **Q2 결정 전 마이그레이션(`DB-REQ-003` M1 · M2 · M5)을 실행하지 않는다** | Must | 대체됨 — F011 `DB-REQ-033`(2026-10-07 `317d440`)이 `kr_stock` 추가. `stock` = 미국 유지(`DB-REQ-003` M2 실행 안 함) · `us_stock` 없음 |
+| FR-35 | **KIS 연동 자리 확보**: `external/kis/` 조회 전용 클라이언트 스켈레톤. **개정 2026-09-21 — 열린 질문 Q2.** "실제 import 는 FEATURE-001" 의 F001 이 삭제됐다. 국내 · 미국 주식을 다룰지(Q2)가 정해지기 전 스켈레톤을 만들지 않는다 | Must | 대체됨 — F011 `SRV-REQ-040` `KisClient`(조회 TR 허용 목록, 2026-10-07 `ee38042`). 위치는 `market/infrastructure` 이고 `external/kis/` 가 아니다 |
+| FR-36 | **개정 2026-09-21 — 대체됨(F006 3탭).** ~~모바일 하단 탭 5개(`홈/코치/청구서/세금/포지션`)~~. 하단 탭은 **`홈` / `코치` / `자산` 3개**이고 `FEATURE-006` 이 소유한다 | — | 대체됨 — `FEATURE-006` 하단 탭 3개(`홈` / `코치` / `자산`) |
 
 ### D-2. 추가 — 2026-09-21 스토리보드 갭 감사
 
@@ -113,13 +113,13 @@
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-40 | **종목 검색**(D8): 앱바 🔍 → 검색 화면. 종목명 · 심볼로 찾는다. 결과 행 = 로고 · 종목명 · 심볼 · 자산군 · 현재가 · 변동률 · `보유` 배지 · ★. 행 → 종목 상세, ★ → 추적 등록/해제. **전체 시장 목록을 대신하는 화면이 아니다** — 시장 목록은 `시장` 세그먼트가 한다 | Must | Draft |
-| FR-41 | **추적 자산 상한 10**(D8): 추적 자산 = **관심 종목(★) ∪ 보유 종목**. 상한은 **보유가 아닌 관심 종목**에만 걸린다. 보유 종목은 늘 추적되고 세지 않는다. 11번째 ★ 는 서버가 거부하고 화면은 "하나를 빼야 추가할 수 있어요". 상한은 **설정값**이다. 새 테이블을 만들지 않는다(`InvestmentWatchlist` 재사용) | Must | Draft |
-| FR-42 | **뉴스 감정 배지 + 종목 연결**(기본안 — 감사 문서 B11): 기사마다 `긍정` · `중립` · `부정` 배지(서버 `NewsArticle.sentiment`, 없으면 배지 없음)와 종목 칩(`symbols`). 칩 → 그 종목 **상세 분석 페이지**(F004 소유 · 그 전까지는 `시장` 세그먼트에서 그 종목 선택). **BFF 뷰모델이 `sentiment` · `symbols` 를 버리지 않는다**. 감정은 **표시만** 한다 — 코치 점수에 더하지 않고 알림을 만들지 않는다 | Must | Draft |
-| FR-43 | **뉴스 북마크**(D5): 기사마다 ☆ 토글. 서버에 이미 있는 `POST /api/news/bookmark` · `GET /api/news/bookmarks` · `DELETE /api/news/bookmark/:newsId` 를 BFF 가 연다. **북마크 목록은 `관심 종목` 세그먼트(웹 `/investments` 관심 종목 탭) 아래 `북마크한 뉴스` 블록**에 모은다(기본안 — 이 문서에서 정함. 스토리보드 `news` n2 의 "알림 탭"은 D5 "알림이 아니다"로 대체). 별도 북마크 화면을 만들지 않는다 | Must | Draft |
-| FR-44 | **목표 수량 입력**(기본안 — 감사 문서 B5): 목표 추가 폼에 `금액` / `수량` 선택. 수량 목표 = 종목(검색 재사용) + 목표 수량. 진행률은 **서버가** 보유 수량 ÷ 목표 수량으로 계산한다. **목표 카드 시각은 바꾸지 않는다**(E절) — 진행 바 옆 숫자만 금액 대신 수량 | Should | Draft |
-| FR-45 | **투자 화면 UX 상태**(기본안 — 감사 문서 B22): 시세 표 · 프리뷰 · 관심 종목 · 검색 · 뉴스 각각에 loading · error · partial · empty 를 정의한다(`FE-REQ-010` · `RN-REQ-004`). 부분 실패는 **블록 단위로 격리**한다. **웹 오프라인은 별도 화면 없이 WS "연결 끊김" 표시로 갈음한다**(`FE-REQ-011` FR-12) | Must | Draft |
-| FR-46 | **관심 종목 신호 컬럼을 두지 않는다**(D4): 관심 종목 표 · 카드에 action · 점수를 넣지 않는다. 판단은 우측 패널 · 상세에서만(F004). 스토리보드 `watchlist` n2 는 폐기 | Must | Draft |
+| FR-40 | **종목 검색**(D8): 앱바 🔍 → 검색 화면. 종목명 · 심볼로 찾는다. 결과 행 = 로고 · 종목명 · 심볼 · 자산군 · 현재가 · 변동률 · `보유` 배지 · ★. 행 → 종목 상세, ★ → 추적 등록/해제. **전체 시장 목록을 대신하는 화면이 아니다** — 시장 목록은 `시장` 세그먼트가 한다 | Must | Draft — 검색 화면 · `GET /api/app/search` · `SearchAssets` 0건. 국내 주식 `/api/app/market/kr/search`(F011)는 별개 |
+| FR-41 | **추적 자산 상한 10**(D8): 추적 자산 = **관심 종목(★) ∪ 보유 종목**. 상한은 **보유가 아닌 관심 종목**에만 걸린다. 보유 종목은 늘 추적되고 세지 않는다. 11번째 ★ 는 서버가 거부하고 화면은 "하나를 빼야 추가할 수 있어요". 상한은 **설정값**이다. 새 테이블을 만들지 않는다(`InvestmentWatchlist` 재사용) | Must | Draft — `trackingLimit` · `TrackedAssetLimitError` · `HoldingProbe` 코드 0건(`SRV-REQ-008` FR-80~87) |
+| FR-42 | **뉴스 감정 배지 + 종목 연결**(기본안 — 감사 문서 B11): 기사마다 `긍정` · `중립` · `부정` 배지(서버 `NewsArticle.sentiment`, 없으면 배지 없음)와 종목 칩(`symbols`). 칩 → 그 종목 **상세 분석 페이지**(F004 소유 · 그 전까지는 `시장` 세그먼트에서 그 종목 선택). **BFF 뷰모델이 `sentiment` · `symbols` 를 버리지 않는다**. 감정은 **표시만** 한다 — 코치 점수에 더하지 않고 알림을 만들지 않는다 | Must | Draft — BFF 뉴스 뷰모델에 `sentiment` · `symbols` 없음 · 화면 배지 0건(`SRV-REQ-008` FR-90~95) |
+| FR-43 | **뉴스 북마크**(D5): 기사마다 ☆ 토글. 서버에 이미 있는 `POST /api/news/bookmark` · `GET /api/news/bookmarks` · `DELETE /api/news/bookmark/:newsId` 를 BFF 가 연다. **북마크 목록은 `관심 종목` 세그먼트(웹 `/investments` 관심 종목 탭) 아래 `북마크한 뉴스` 블록**에 모은다(기본안 — 이 문서에서 정함. 스토리보드 `news` n2 의 "알림 탭"은 D5 "알림이 아니다"로 대체). 별도 북마크 화면을 만들지 않는다 | Must | Draft — BFF · 웹에 북마크 경로 · 화면 0건(서버 `/api/news/bookmark*` 는 원래 있음) |
+| FR-44 | **목표 수량 입력**(기본안 — 감사 문서 B5): 목표 추가 폼에 `금액` / `수량` 선택. 수량 목표 = 종목(검색 재사용) + 목표 수량. 진행률은 **서버가** 보유 수량 ÷ 목표 수량으로 계산한다. **목표 카드 시각은 바꾸지 않는다**(E절) — 진행 바 옆 숫자만 금액 대신 수량 | Should | Draft — `targetQuantity` 스키마 · 서버 · 화면 0건(`SRV-REQ-008` FR-100~104) |
+| FR-45 | **투자 화면 UX 상태**(기본안 — 감사 문서 B22): 시세 표 · 프리뷰 · 관심 종목 · 검색 · 뉴스 각각에 loading · error · partial · empty 를 정의한다(`FE-REQ-010` · `RN-REQ-004`). 부분 실패는 **블록 단위로 격리**한다. **웹 오프라인은 별도 화면 없이 WS "연결 끊김" 표시로 갈음한다**(`FE-REQ-011` FR-12) | Must | 부분 — WS 끊김 표시(`FE-REQ-011` FR-12) · 시세 표 · 관심 종목 오류 문구는 있음. `FE-REQ-010` FR-100~107 체크리스트 미검증 · 검색 · 북마크 블록 없음 |
+| FR-46 | **관심 종목 신호 컬럼을 두지 않는다**(D4): 관심 종목 표 · 카드에 action · 점수를 넣지 않는다. 판단은 우측 패널 · 상세에서만(F004). 스토리보드 `watchlist` n2 는 폐기 | Must | 완료 — 웹 `WatchlistItem` · BFF `watchlist.viewmodel.ts` 에 action · 점수 필드 0건(코드 확인. `FE-REQ-010` FR-36 체크리스트 기록 없음) |
 
 ### E. 유지 — 손대지 않는 것 (변경 금지 목록)
 
@@ -401,3 +401,4 @@ flowchart TB
 | 2026-09-22 | **BFF 부채 정리 슬라이스.** FR-14 를 BFF 쪽에서 구현 — `/api/app/feed` · `/api/missions*` · `/api/users/points/*` · `/api/users/achievements` · `/api/dashboard*` · `/api/users/dashboard`(미션 · 포인트 요약, 스펙 목록 밖) 가 `410 ENDPOINT_DORMANT`(프론트 호출 0건). 같은 PR 에서 BFF 가 서버 4xx 를 500 으로 뭉개던 5경로를 고쳐 **토큰 만료가 401 로 보인다.** 서버 동면(`SRV-REQ-009` FR-7·8)은 남음. 근거: `requirements/reports/checklists/F000-bff-cleanup.md` |
 | 2026-09-23 | 구현 진행 기록 — **세션 슬라이스 (FE)**: 로그인이 목이었다. `POST /api/v1/auth/login` MSW 목이 `mock-jwt-token` 을 주고 화면이 그것을 세션으로 저장해, 초대제 계정(FR-20~23)으로 들어와도 `/api/app/*` 가 전부 401 이었다 — 사용자에게는 "로그인은 됐는데 코치 · 관심 목록 · 자산이 비어 있는" 상태로 보였다. 실제 계약(`POST /api/auth/login`, BFF 프록시)에 붙이고 목을 지웠으며, 액세스 토큰 15분에 맞춰 갱신을 넣었다(`FE-REQ-011` FR-62). 로그인 화면에 초대 안내를 넣어 **계정이 없는 사람의 경로가 화면에서 이어진다**(FR-63). 남은 것: 비공개 경로 가드(FR-61)와 토큰 쿠키 이관은 `FE-REQ-013`. 근거 `requirements/reports/checklists/F000-web-session.md` |
 | 2026-09-23 | 구현 진행 — **목(가짜 데이터) 전부 제거**: 홈 목표는 실제 서버 데이터로 보인다(D-Day · 달성률은 서버에 없어 "—"). 홈의 "지난주 대비 N% 덜 썼어요"는 지어낸 숫자라 지웠다 — 소비 데이터를 모으는 기능이 없다. 홈 보유 목록에 종목 로고. **PM 확인**: 소비 분석을 다시 넣으려면 소비 데이터 출처부터 정해야 한다. 근거 `salt-microFe/requirements/reports/checklists/FE-REQ-012.md` |
+| 2026-10-26 | **상태 칸 정리** — 사용자 "정리". 기능 표 상태 칸이 "Draft" 로 남아 실제 진행과 어긋났다. REQ 상태 표 · 체크리스트 · 커밋 · 코드로 확인한 것만 바꿨다: 완료 13 · 부분 5(서버 동면 경로 `/api/missions` · `/api/feed` · `/api/dashboard` 가 아직 등록됨 등) · Draft 9 · 대체/이관 7(국내 주식 자리는 F011 이 대신). 요구 문장은 그대로 |

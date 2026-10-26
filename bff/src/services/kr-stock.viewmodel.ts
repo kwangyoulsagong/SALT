@@ -321,3 +321,93 @@ export const toKrPriceUpdate = (raw: unknown): KrPriceUpdate | null => {
     return null;
   }
 };
+
+// ==================== 부가 정보 (F011 슬라이스 6 · FR-27 · 28) ====================
+
+/** 지수 한 칸 — 이름 · 순서는 서버 설정(`KIS_SUMMARY_INDICES`)이 정한다. 값은 포인트 */
+export interface KrIndexVM {
+  code: string;
+  name: string;
+  value: number;
+  change: number;
+  changeRate: number;
+  /** 상승 · 보합 · 하락 종목 수 — 없으면 `null`(그 줄을 그리지 않는다) */
+  advancers: number | null;
+  unchanged: number | null;
+  decliners: number | null;
+  updatedAt: string;
+  /** 시세 시간대인데 3분 넘게 안 바뀌었다 — 서버 판정 */
+  stale: boolean;
+}
+
+/** `GET /api/market/kr/indices` — 국내 주식 탭 요약 띠. 서버가 한 번도 못 받은 지수는 빠져 온다 */
+export const toKrIndicesVM = (raw: unknown) => {
+  const r = obj(raw, "data");
+  return {
+    session: toKrSessionVM(r.session),
+    items: arr(r, "items").map((i): KrIndexVM => {
+      const x = obj(i, "index");
+      return {
+        code: str(x, "code"),
+        name: str(x, "name"),
+        value: num(x, "value"),
+        change: num(x, "change"),
+        changeRate: num(x, "changeRate"),
+        advancers: numOrNull(x, "advancers"),
+        unchanged: numOrNull(x, "unchanged"),
+        decliners: numOrNull(x, "decliners"),
+        updatedAt: str(x, "updatedAt"),
+        stale: bool(x, "stale"),
+      };
+    }),
+  };
+};
+
+/** 순매수(매수 − 매도) — 수량은 주(서버가 BigInt 를 문자열로), 금액은 원 정수. 음수면 순매도 */
+export interface KrInvestorNetVM {
+  quantity: string;
+  value: number;
+}
+
+export interface KrInvestorDayVM {
+  /** 거래일(KST, YYYY-MM-DD) */
+  date: string;
+  individual: KrInvestorNetVM;
+  foreign: KrInvestorNetVM;
+  institution: KrInvestorNetVM;
+}
+
+const toNetVM = (raw: unknown, field: string): KrInvestorNetVM => {
+  const r = obj(raw, field);
+  return { quantity: str(r, "quantity"), value: num(r, "value") };
+};
+
+/**
+ * `GET /api/market/kr/:code/investors` — 최근 거래일(최신이 앞) + 기간 합계. 합계는 서버가 낸다(금액 계산 0건).
+ * 아직 안 모였으면 `rows: []` · `totals: null` — 0 으로 바꾸지 않는다
+ */
+export const toKrInvestorsVM = (raw: unknown) => {
+  const r = obj(raw, "data");
+  const totals = r.totals === null || r.totals === undefined ? null : obj(r.totals, "totals");
+  return {
+    code: str(r, "code"),
+    days: num(r, "days"),
+    collectedAt: strOrNull(r, "collectedAt"),
+    rows: arr(r, "rows").map((d): KrInvestorDayVM => {
+      const x = obj(d, "row");
+      return {
+        date: str(x, "date"),
+        individual: toNetVM(x.individual, "individual"),
+        foreign: toNetVM(x.foreign, "foreign"),
+        institution: toNetVM(x.institution, "institution"),
+      };
+    }),
+    totals: totals
+      ? {
+          individual: toNetVM(totals.individual, "totals.individual"),
+          foreign: toNetVM(totals.foreign, "totals.foreign"),
+          institution: toNetVM(totals.institution, "totals.institution"),
+        }
+      : null,
+  };
+};

@@ -47,3 +47,19 @@
 ## F011 슬라이스 7d — 단면 읽기 쿼리 (2026-10-26)
 
 - DDL 없음. `EXPLAIN (ANALYZE, BUFFERS)` 581ms — 병렬 순차 스캔 204ms(행 31.8만) + 정렬 디스크 3MB × 3. 인덱스 추가 안 함(사유 Changelog)
+
+## 슬라이스 6 — FR-7 `kr_index_quotes` · FR-8 `kr_stock_investor_flows` (2026-10-26)
+
+| 항목 | 결과 |
+|---|---|
+| 마이그레이션 `20261026180000_kr_index_investor_flows` | 새 표 2개 · FK 1(master cascade) · 기존 표 무변경. `prisma migrate diff` 에 섞여 나온 기존 인덱스 이름 차이 2건(코치 스냅샷)은 이 목적과 무관해 넣지 않았다 — 마이그레이션 1개 = 목적 1개 |
+| 로컬 적용 · generate | `migrate deploy` 통과 · `prisma:generate` |
+| 쓰기 | 종목마다 `unnest` 한 문장 upsert(1,450행 39초 중 대부분은 KIS 대기) · 시각 `timestamptz AT TIME ZONE 'UTC'` · 거래일 `date` |
+| 읽기 | 투자자: PK `(code, trade_date)` 접두 + `ORDER BY trade_date DESC LIMIT n` — 별도 인덱스 없음. 지수: 2~3행 PK |
+| 롤백 | 마이그레이션 머리 `DROP TABLE` 두 줄 · 원장 3종 무관 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| `EXPLAIN (ANALYZE, BUFFERS)` | 행 1,450 이라 계획이 의미 없다 — PK 를 탄다는 것만 구조로 확인 | 1년 쌓인 뒤(약 12,500행) 상세 요청이 느리다는 관찰이 있을 때 |

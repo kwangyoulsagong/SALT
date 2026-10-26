@@ -38,6 +38,11 @@ const envSchema = z.object({
   KIS_REQUESTS_PER_SECOND: z.coerce.number().positive().max(15).default(3),
   KIS_UNIVERSE_TOP_N: z.coerce.number().int().min(0).max(200).default(50),
   /**
+   * 국내 주식 탭 요약 띠의 지수 — KIS 업종 코드, 쉼표 구분 · 설정 순서 = 화면 순서(F011 FR-48). 0001 코스피 · 1001 코스닥 ·
+   * 2001 코스피 200. 이름을 모르는 코드는 조립 지점(`parseKrSummaryIndices`)이 버린다. 비우면 요약 띠가 없다
+   */
+  KIS_SUMMARY_INDICES: z.string().default("0001,1001"),
+  /**
    * 국내 주식 위탁 수수료 **한쪽**(비율, 유관기관 제비용 포함) — 코치 판단 채점의 적중 경계 · 기저율 · 사이즈 계산(F011 FR-44).
    * 증권사가 바뀌면 이 값만 바꾼다. 기본 0.000186 = 비대면 기본 0.015% + 유관기관 약 0.0036%. 매도 거래세는 env 가 아니라
    * 매도일로 정해지는 도메인 표(`KR_STOCK_SELL_TAX`)다 — 2026-10-26 까지는 둘을 합친 왕복 `KR_STOCK_ROUND_TRIP_FEE_RATE`(0.0023)였다

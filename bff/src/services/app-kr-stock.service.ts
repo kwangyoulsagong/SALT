@@ -6,6 +6,8 @@ import {
   KrContractError,
   toKrChartVM,
   toKrDetailVM,
+  toKrIndicesVM,
+  toKrInvestorsVM,
   toKrMarketStatusVM,
   toKrOverviewVM,
   toKrSearchVM,
@@ -126,6 +128,19 @@ export class AppKrStockService {
       toKrChartVM,
       { timeout: KR_CHART_TIMEOUT_MS, signal },
     );
+  }
+
+  /** 국내 주식 탭 요약 띠 — 코스피 · 코스닥(F011 슬라이스 6) */
+  getIndices(token: string, signal?: AbortSignal) {
+    return this.read("indices", "/market/kr/indices", token, toKrIndicesVM, { timeout: KR_READ_TIMEOUT_MS, signal });
+  }
+
+  /** 상세 투자자 순매수 — 최근 `days` 거래일(최대 30) */
+  getInvestors(token: string, code: string, days: number, signal?: AbortSignal) {
+    return this.read("investors", `/market/kr/${encodeURIComponent(code)}/investors?days=${days}`, token, toKrInvestorsVM, {
+      timeout: KR_READ_TIMEOUT_MS,
+      signal,
+    });
   }
 }
 

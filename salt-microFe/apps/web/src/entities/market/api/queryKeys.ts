@@ -19,4 +19,6 @@ export const marketQueryKeys = {
   krOverview: ["KrStockOverview"] as const,
   krDetail: ["KrStockDetail"] as const,
   krChart: ["KrStockChart"] as const,
+  krIndices: ["KrStockIndices"] as const,
+  krInvestors: ["KrStockInvestors"] as const,
 } as const;

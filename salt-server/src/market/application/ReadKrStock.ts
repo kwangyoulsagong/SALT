@@ -1,5 +1,6 @@
 import {
   KrStockNotAvailableError,
+  isKrQuoteWindow,
   isKrStockCode,
   isKrStockViewer,
   KR_PERIOD_TRADING_DAYS,
@@ -10,7 +11,12 @@ import {
   krStatusBadges,
   krStockLogoUrl,
   krTickSize,
+  KR_INDEX_NAMES,
+  KR_INVESTOR_MAX_DAYS,
+  KR_QUOTE_STALE_MS,
   type Candle,
+  type KrInvestorNet,
+  type KrSupplementStore,
   type KrFeedState,
   type KrListPeriod,
   type KrListSort,
@@ -135,6 +141,10 @@ export interface KrStockReadDependencies {
   provider: () => KrProviderView;
   /** logo.dev 퍼블리셔블 키(`KR_LOGO_DEV_TOKEN`) — 없으면 로고 없음(화면 이니셜) */
   logoDevToken?: string;
+  /** 지수 · 투자자 동향(슬라이스 6) */
+  supplement: KrSupplementStore;
+  /** 요약에 보일 지수 코드(`KIS_SUMMARY_INDICES`, 설정 순서 = 화면 순서) */
+  summaryIndices: readonly string[];
   now?: () => Date;
 }
 
@@ -270,5 +280,99 @@ export class SearchKrStocks extends KrStockRead {
       (await this.deps.store.quotes({ codes: items.map((i) => i.code), limit: KR_SEARCH_LIMIT, offset: 0 })).map((q) => q.code)
     );
     return { items: items.map((item) => ({ ...item, inUniverse: inUniverse.has(item.code) })) };
+  }
+}
+
+// ==================== 부가 정보 (슬라이스 6 · FR-49 · 50) ====================
+
+export interface KrIndexView {
+  code: string;
+  name: string;
+  /** 포인트 — 소수 둘째 자리(KIS 가 주는 자릿수) */
+  value: number;
+  change: number;
+  changeRate: number;
+  advancers: number | null;
+  unchanged: number | null;
+  decliners: number | null;
+  updatedAt: string;
+  /** 시세 받는 시간대인데 3분 넘게 안 바뀌었다 — 현재가와 같은 기준(`KR_QUOTE_STALE_MS`) */
+  stale: boolean;
+}
+
+const points = (v: number) => Math.round(v * 100) / 100;
+
+/**
+ * 코스피 · 코스닥 요약(FR-49) — 저장값만. 무엇을 · 어떤 순서로 보일지는 설정(`KIS_SUMMARY_INDICES`)이 정하고,
+ * 아직 한 번도 못 받은 지수는 빠진다(빈 칸을 그리지 않는다)
+ */
+export class GetKrIndices extends KrStockRead {
+  async execute(viewer: KrStockViewer) {
+    this.access.assert(viewer);
+    const now = this.now();
+    const codes = [...this.deps.summaryIndices];
+    const [session, stored] = await Promise.all([loadKrSession(this.deps.calendar, now), this.deps.supplement.indexQuotes(codes)]);
+    const byCode = new Map(stored.map((q) => [q.code, q]));
+    const live = isKrQuoteWindow(session);
+    const items: KrIndexView[] = codes.flatMap((code) => {
+      const q = byCode.get(code);
+      if (!q) return [];
+      return [
+        {
+          code,
+          name: KR_INDEX_NAMES[code] ?? code,
+          value: points(q.value),
+          change: points(q.change),
+          changeRate: q.changeRate,
+          advancers: q.advancers,
+          unchanged: q.unchanged,
+          decliners: q.decliners,
+          updatedAt: q.updatedAt.toISOString(),
+          stale: live && now.getTime() - q.updatedAt.getTime() > KR_QUOTE_STALE_MS,
+        },
+      ];
+    });
+    return { session: toSessionResponse(session, now), items };
+  }
+}
+
+const toNetView = (n: KrInvestorNet) => ({ quantity: n.quantity.toString(), value: won(n.value) });
+
+/**
+ * 종목 투자자 순매수(FR-50) — 저장값만, 최근 `days` 거래일(최신이 앞). 기간 합계는 서버가 낸다(금액은 서버).
+ * 마스터에 없는 종목은 404 — 있는데 아직 안 모였으면 빈 `rows`(다음 개장일 저녁 수집이 채운다)
+ */
+export class GetKrInvestorFlows extends KrStockRead {
+  async execute(viewer: KrStockViewer, code: string, days: number) {
+    this.access.assert(viewer);
+    if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
+    const listing = await this.deps.store.findListing(code);
+    if (!listing) throw new KrStockNotAvailableError();
+    const take = Math.min(Math.max(days, 1), KR_INVESTOR_MAX_DAYS);
+    const { rows, collectedAt } = await this.deps.supplement.investorFlows(code, take);
+    const sum = (pick: (r: (typeof rows)[number]) => KrInvestorNet) => ({
+      quantity: rows.reduce((acc, r) => acc + pick(r).quantity, 0n),
+      value: rows.reduce((acc, r) => acc + pick(r).value, 0),
+    });
+    return {
+      code,
+      days: rows.length,
+      collectedAt: collectedAt?.toISOString() ?? null,
+      rows: rows.map((r) => ({
+        date: r.date,
+        individual: toNetView(r.individual),
+        foreign: toNetView(r.foreign),
+        institution: toNetView(r.institution),
+      })),
+      // 기간 합계 — 행이 없으면 null(0 을 "순매수 0" 으로 읽게 두지 않는다)
+      totals:
+        rows.length === 0
+          ? null
+          : {
+              individual: toNetView(sum((r) => r.individual)),
+              foreign: toNetView(sum((r) => r.foreign)),
+              institution: toNetView(sum((r) => r.institution)),
+            },
+    };
   }
 }

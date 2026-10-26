@@ -147,6 +147,51 @@ export interface KrPriceUpdate {
 }
 
 /** 서버 · BFF 코드 규칙과 같다(`^[0-9A-Z]{6}$`) */
+/** 지수 한 칸(F011 슬라이스 6 · `BFF-REQ-040` FR-27) — 이름 · 순서는 서버 설정. 값은 포인트 */
+export interface KrIndex {
+  code: string;
+  name: string;
+  value: number;
+  change: number;
+  changeRate: number;
+  /** 상승 · 보합 · 하락 종목 수 — 없으면 `null` */
+  advancers: number | null;
+  unchanged: number | null;
+  decliners: number | null;
+  updatedAt: string;
+  /** 시세 시간대인데 3분 넘게 안 바뀌었다(서버 판정) */
+  stale: boolean;
+}
+
+export interface KrIndices {
+  session: KrSessionView;
+  items: KrIndex[];
+}
+
+/** 순매수(매수 − 매도) — 수량은 주(문자열 — BigInt), 금액은 원 정수. 음수면 순매도 */
+export interface KrInvestorNet {
+  quantity: string;
+  value: number;
+}
+
+export interface KrInvestorDay {
+  /** 거래일(KST, YYYY-MM-DD) */
+  date: string;
+  individual: KrInvestorNet;
+  foreign: KrInvestorNet;
+  institution: KrInvestorNet;
+}
+
+/** 종목 투자자 순매수(`BFF-REQ-040` FR-28) — 최신이 앞. 아직 안 모였으면 `rows: []` · `totals: null` */
+export interface KrInvestors {
+  code: string;
+  days: number;
+  collectedAt: string | null;
+  rows: KrInvestorDay[];
+  /** 받은 거래일 합계 — 서버가 낸다 */
+  totals: { individual: KrInvestorNet; foreign: KrInvestorNet; institution: KrInvestorNet } | null;
+}
+
 export const KR_STOCK_CODE_PATTERN = /^[0-9A-Z]{6}$/;
 
 /**
