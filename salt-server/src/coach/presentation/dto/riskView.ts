@@ -22,6 +22,27 @@ const quantity = (value: Decimal | null): number | null =>
 const budget = (setting: BudgetSetting | null) =>
   setting ? { amount: setting.amount.toNumber(), unit: setting.unit } : null;
 
+/** 국내 주식 갭 두 줄(F011 FR-45). 갭률은 소수(−0.3 = −30%), 금액은 원 정수 */
+const toGapScenariosResponse = (scenarios: TradeSizeCheck["gapScenarios"]) =>
+  scenarios
+    ? {
+        limitDown: { gapRate: rate(scenarios.limitDown.gapRate), maxLossKrw: krw(scenarios.limitDown.maxLoss) },
+        historicalGap: scenarios.historical
+          ? {
+              quantile: scenarios.historical.quantile,
+              gapRate: rate(scenarios.historical.gapRate),
+              worstGapRate: rate(scenarios.historical.worstGapRate),
+              sample: scenarios.historical.sample,
+              since: scenarios.historical.since,
+              maxLossKrw: krw(scenarios.historical.maxLoss),
+            }
+          : null,
+        historicalGapUnavailable: scenarios.historicalUnavailable,
+        // 손절가에서 팔린다는 보장이 없다(VI · 거래정지 · 연속 하한가) — 문장은 화면이 코드로 고른다
+        noteCode: "stop_may_not_fill" as const,
+      }
+    : null;
+
 export const toSizeCheckResponse = (result: TradeSizeCheck) => {
   const { sizing } = result;
   return {
@@ -61,6 +82,7 @@ export const toSizeCheckResponse = (result: TradeSizeCheck) => {
         }
       : null,
     unavailable: sizing.unavailable,
+    gapScenarios: toGapScenariosResponse(result.gapScenarios),
     assumptions: {
       feeRatePerSide: rate(result.assumptions.feeRatePerSide),
       stopGapAssumed: false,

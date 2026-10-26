@@ -45,3 +45,4 @@ export * from "./targetWeight";
 export * from "./targetWeightRecord";
 export * from "./performanceClaim";
 export * from "./krStockJudgment";
+export * from "./krJudgmentBacktest";

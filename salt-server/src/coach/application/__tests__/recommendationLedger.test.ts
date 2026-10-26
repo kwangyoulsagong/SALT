@@ -56,10 +56,14 @@ class MemoryLedger implements RecommendationSnapshotStore {
   async summarize(userId: string, f: RecommendationFilter) {
     const done = this.scoped(userId, f);
     const returns = done.map((r) => r.returnRate!);
+    // 기저율 풀 — 행동(그룹 키) 무관
+    const pool = this.scoped(userId, { ...f, signalType: undefined }).map((r) => r.returnRate!);
     return {
       sample: done.length,
       hits: done.filter((r) => r.outcome === "hit").length,
       aboveCost: returns.filter((r) => r > 0.001).length,
+      poolSample: pool.length,
+      poolAboveCost: pool.filter((r) => r > 0.001).length,
       avgReturn: returns.length ? returns.reduce((a, b) => a + b, 0) / returns.length : null,
       worstReturn: returns.length ? Math.min(...returns) : null,
     };

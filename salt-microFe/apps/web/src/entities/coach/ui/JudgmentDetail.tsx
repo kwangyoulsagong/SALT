@@ -17,6 +17,7 @@ import {
   statTerm,
   statValue,
 } from "./CoachDetail.css";
+import { CaseIdentity } from "./CaseIdentity";
 import { JudgmentSummary } from "./JudgmentSummary";
 import { PerformanceClaimLine } from "./PerformanceClaimLine";
 
@@ -28,11 +29,14 @@ const orEmpty = (value: number | null, format: (v: number) => string) =>
 /** 이 판단의 과거 성적 — 적중률 · 평균 · 가장 나빴던 수익률. 해설 카드도 같은 것을 쓴다(FR-135) */
 export const TrackRecordStats = ({ record }: { record: TrackRecord }) => {
   const tone = record.lowSample ? "lowSample" : "normal";
+  const backtest = record.sampleOrigin === "backtest";
   return (
     <section className={detailSection}>
       <Heading level={5} as={4} color="tertiary">
-        {DETAIL.trackRecordHeading}
+        {backtest ? DETAIL.backtestHeading : DETAIL.trackRecordHeading}
       </Heading>
+      {/* 모의 성적은 숫자보다 먼저 밝힌다(F011 슬라이스 7b — 라이브와 섞지 않는다) */}
+      {backtest && <p className={statTerm}>{DETAIL.backtestNote}</p>}
       <dl className={statRow}>
         <div>
           <dt className={statTerm}>{DETAIL.winRate}</dt>
@@ -71,15 +75,23 @@ export const TrackRecordStats = ({ record }: { record: TrackRecord }) => {
 };
 
 /** 최근 틀렸던 때(서버가 최근 3건만 보낸다). 해설 카드도 같은 것을 쓴다(FR-135) */
-export const JudgmentCases = ({ cases }: { cases: readonly FailureCase[] }) => (
+export const JudgmentCases = ({
+  cases,
+  backtest = false,
+}: {
+  cases: readonly FailureCase[];
+  /** 사례가 과거 시세로 되돌려 채점한 것(모의)인가 — 성적과 같은 출처다 */
+  backtest?: boolean;
+}) => (
   <section className={detailSection}>
     <Heading level={5} as={4} color="tertiary">
-      {DETAIL.failureHeading}
+      {backtest ? DETAIL.backtestFailureHeading : DETAIL.failureHeading}
     </Heading>
     <ul className={caseList}>
       {cases.map((item) => (
         <li key={`${item.date}-${item.symbol}-${item.event}`} className={caseRow}>
           <span>{item.date}</span>
+          <CaseIdentity symbol={item.symbol} name={item.name} logoUrl={item.logoUrl} />
           <span>{DETAIL.outcome[item.outcome]}</span>
           <span>{formatSignedRate(item.returnRate)}</span>
         </li>
@@ -113,16 +125,19 @@ export const JudgmentDetail = ({ view, mode }: JudgmentDetailProps) => {
   return (
     <>
       <JudgmentSummary view={view} mode={mode} labelAs={3} />
-      <section className={detailSection}>
-        <Heading level={5} as={4} color="tertiary">
-          {DETAIL.reasonsHeading}
-        </Heading>
-        <ul className={plainList}>
-          {judgment.reasons.map((reason, index) => (
-            <li key={`${index}-${reason}`}>{reason}</li>
-          ))}
-        </ul>
-      </section>
+      {/* 피하기는 긍정 근거가 없을 수 있다 — 근거는 아래 "주의할 점"이다. 빈 제목을 두지 않는다 */}
+      {judgment.reasons.length > 0 && (
+        <section className={detailSection}>
+          <Heading level={5} as={4} color="tertiary">
+            {DETAIL.reasonsHeading}
+          </Heading>
+          <ul className={plainList}>
+            {judgment.reasons.map((reason, index) => (
+              <li key={`${index}-${reason}`}>{reason}</li>
+            ))}
+          </ul>
+        </section>
+      )}
       {judgment.risks.length > 0 && (
         <section className={detailSection}>
           <Heading level={5} as={4} color="tertiary">
@@ -136,7 +151,7 @@ export const JudgmentDetail = ({ view, mode }: JudgmentDetailProps) => {
         </section>
       )}
       <TrackRecordStats record={trackRecord} />
-      <JudgmentCases cases={failureCases} />
+      <JudgmentCases cases={failureCases} backtest={trackRecord.sampleOrigin === "backtest"} />
     </>
   );
 };

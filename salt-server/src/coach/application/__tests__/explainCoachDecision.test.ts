@@ -60,9 +60,12 @@ const newsProbe = {
   recentForSymbol: async () => [{ title: "현물 ETF 순유입", summary: null, source: "코인뉴스", sentiment: null }],
 } as unknown as NewsProbe;
 
-const store = (stats: Omit<JudgmentTrackStats, "aboveCost">, misses: number): SymbolJudgmentStore =>
+const store = (
+  stats: Omit<JudgmentTrackStats, "aboveCost" | "poolSample" | "poolAboveCost">,
+  misses: number
+): SymbolJudgmentStore =>
   ({
-    summarize: async () => ({ ...stats, aboveCost: stats.hits }),
+    summarize: async () => ({ ...stats, aboveCost: stats.hits, poolSample: stats.sample, poolAboveCost: stats.hits }),
     recentCases: async () =>
       Array.from({ length: misses }, (_, i) => ({
         symbol: "ETH",
@@ -449,7 +452,7 @@ describe("ExplainCoachDecision — 국내 주식 (F011 슬라이스 4)", () => {
   const krStore = {
     summarize: async (signalType: string) => {
       asked.push(signalType);
-      return { sample: 25, hits: 15, aboveCost: 15, avgReturn: 0.01, worstReturn: -0.08, firstScoredAt: null, lastScoredAt: null };
+      return { sample: 25, hits: 15, aboveCost: 15, poolSample: 25, poolAboveCost: 15, avgReturn: 0.01, worstReturn: -0.08, firstScoredAt: null, lastScoredAt: null };
     },
     recentCases: async () => [{ symbol: "000660", judgedAt: T0, action: "review_accumulation", returnRate: -0.08 }],
   } as unknown as SymbolJudgmentStore;

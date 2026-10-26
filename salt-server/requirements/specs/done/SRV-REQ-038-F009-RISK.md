@@ -65,6 +65,7 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | F011 슬라이스 7(`SRV-REQ-040` FR-45) — `CheckTradeSize` 가 국내 주식 매수에 `gapScenarios` 를 더한다(정책 `krGapScenarios` 는 `sizing.ts`). 코인 응답 무변경 · `calculateSizing` 무변경 |
 | 2026-09-24 | 신설 · 슬라이스 1 FR-1~8 구현. 근거 `reports/checklists/SRV-REQ-038.md` |
 | 2026-09-24 | 슬라이스 2 FR-11 — 실현 변동성 읽기(`FC-REQ-006`). 메서드 하나 · 응답 계약 변경 없음 |
 | 2026-09-24 | 슬라이스 3 — **서버 변경 없음.** BFF(`BFF-REQ-038`)가 FR-1 · 5 · 6 · 7 과 `POST /portfolio/transactions` 를 그대로 소비. 거래 + 계획은 BFF 가 순서대로 두 번 부른다 — 한 트랜잭션으로 옮길지는 슬라이스 4 전에 결정 |

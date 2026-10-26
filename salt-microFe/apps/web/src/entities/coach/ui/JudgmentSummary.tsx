@@ -79,9 +79,18 @@ export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProp
         </p>
       )}
       <p className={summaryLine}>
-        <span>{COACH_MESSAGES.reasonCount(judgment.reasons.length)}</span>
+        {/* 피하기는 위험 신호가 곧 근거다 — 서버 `judgmentEvidence` 와 같은 수(게이트가 그 수로 열었다) */}
+        <span>
+          {COACH_MESSAGES.reasonCount(
+            judgment.action === "avoid" ? judgment.reasons.length + judgment.risks.length : judgment.reasons.length,
+          )}
+        </span>
         <span aria-hidden="true">·</span>
-        <span>{COACH_MESSAGES.trackSample(trackRecord.sample)}</span>
+        <span>
+          {trackRecord.sampleOrigin === "backtest"
+            ? COACH_MESSAGES.backtestTrackSample(trackRecord.sample)
+            : COACH_MESSAGES.trackSample(trackRecord.sample)}
+        </span>
         {trackRecord.lowSample && (
           <Badge size="sm" tone="neutral">
             {COACH_MESSAGES.lowSample}

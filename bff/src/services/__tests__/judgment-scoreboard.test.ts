@@ -44,8 +44,8 @@ describe("toJudgmentScoreboardViewModel", () => {
     assert.equal(view.status, "ok");
     assert.equal(view.groups[0]?.mode, "long_term");
     assert.equal(view.groups[0]?.excessWinRate, 0.03);
-    assert.deepEqual(view.groups[0]?.misses, [miss]);
-    assert.deepEqual(view.groups[0]?.hits, [hit]);
+    assert.deepEqual(view.groups[0]?.misses, [{ ...miss, name: null, logoUrl: null }]);
+    assert.deepEqual(view.groups[0]?.hits, [{ ...hit, name: null, logoUrl: null }]);
     assert.equal("returnDistribution" in (view.groups[0] ?? {}), false);
   });
 
@@ -68,7 +68,7 @@ describe("toJudgmentScoreboardViewModel", () => {
       }),
     );
     assert.equal(view.groups.length, 1);
-    assert.deepEqual(view.groups[0]?.misses, [miss]);
+    assert.deepEqual(view.groups[0]?.misses, [{ ...miss, name: null, logoUrl: null }]);
     assert.equal(toJudgmentScoreboardViewModel(board({ groups: [group({ signalType: 3 })] })).status, "insufficient_data");
   });
 
@@ -122,5 +122,21 @@ describe("AppJudgmentScoreboardService", () => {
       throw httpError(401);
     });
     await assert.rejects(() => appJudgmentScoreboardService.get("t"));
+  });
+
+  it("성적 출처 · 사례 종목 이름을 옮긴다 — 모르는 출처는 모의 쪽 (F011 슬라이스 7b)", () => {
+    const krMiss = { date: "2026-09-07", symbol: "024850", name: "국내종목A", logoUrl: "https://img.example/a.png", event: "kr_stock.long_term.avoid", outcome: "miss", returnRate: 0.1 };
+    const view = toJudgmentScoreboardViewModel(
+      board({
+        groups: [
+          group({ signalType: "kr_stock.long_term.avoid", sampleOrigin: "backtest", misses: [krMiss], hits: [] }),
+          group({ signalType: "long_term.wait", sampleOrigin: "mystery" }),
+          group({ signalType: "scalp.wait" }),
+        ],
+      })
+    );
+    assert.deepEqual(view.groups.map((g) => g.sampleOrigin), ["backtest", "backtest", "live"]);
+    assert.equal(view.groups[0]?.misses[0]?.name, "국내종목A");
+    assert.equal(view.groups[0]?.misses[0]?.logoUrl, "https://img.example/a.png");
   });
 });

@@ -109,7 +109,9 @@ export class PrismaRecommendationSnapshotStore implements RecommendationSnapshot
 
   async summarize(userId: string, filter: RecommendationFilter): Promise<JudgmentTrackStats> {
     const where = { ...this.scope(userId, filter), outcome: { not: null } };
-    const [all, hits, aboveCost] = await Promise.all([
+    // 기저율 풀 — 행동(그룹 키)을 빼고 같은 사용자 · 종목 범위의 추천 전체. 그룹 표본으로 세면 매수의 초과분이 늘 0 이다
+    const pool = { ...this.scope(userId, { ...filter, signalType: undefined }), outcome: { not: null } };
+    const [all, hits, aboveCost, poolSample, poolAboveCost] = await Promise.all([
       prisma.coachRecommendationSnapshot.aggregate({
         where,
         _count: { _all: true },
@@ -119,11 +121,15 @@ export class PrismaRecommendationSnapshotStore implements RecommendationSnapshot
       }),
       prisma.coachRecommendationSnapshot.count({ where: { ...where, outcome: "hit" } }),
       prisma.coachRecommendationSnapshot.count({ where: { ...where, returnRate: { gt: ROUND_TRIP_COST } } }),
+      prisma.coachRecommendationSnapshot.count({ where: pool }),
+      prisma.coachRecommendationSnapshot.count({ where: { ...pool, returnRate: { gt: ROUND_TRIP_COST } } }),
     ]);
     return {
       sample: all._count._all,
       hits,
       aboveCost,
+      poolSample,
+      poolAboveCost,
       avgReturn: all._avg.returnRate === null ? null : Number(all._avg.returnRate),
       worstReturn: all._min.returnRate === null ? null : Number(all._min.returnRate),
       firstScoredAt: all._min.evaluatedAt,

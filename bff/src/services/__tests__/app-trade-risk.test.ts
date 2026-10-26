@@ -97,6 +97,45 @@ describe("toSizeCheckViewModel", () => {
     assert.deepEqual(v.kelly, { full: 0.2, half: 0.1, quarter: 0.05, hasEdge: true, noteCode: "edge_estimate_uncertain" });
     assert.equal(toSizeCheckViewModel(sizeCheck({ kelly: { full: 0.2 } })).kelly, null);
   });
+
+  it("국내 주식 갭 두 줄을 옮기고, 하한가 금액이 깨지면 묶음째 버린다 (F011 FR-45)", () => {
+    const historicalGap = {
+      quantile: 0.01,
+      gapRate: -0.049871,
+      worstGapRate: -0.109422,
+      sample: 1220,
+      since: "2021-10-27T00:00:00.000Z",
+      maxLossKrw: 147133,
+    };
+    const v = toSizeCheckViewModel(
+      sizeCheck({
+        gapScenarios: {
+          limitDown: { gapRate: -0.3, maxLossKrw: 371875 },
+          historicalGap,
+          historicalGapUnavailable: null,
+          noteCode: "stop_may_not_fill",
+        },
+      })
+    );
+    assert.deepEqual(v.gapScenarios, {
+      limitDown: { gapRate: -0.3, maxLossKrw: 371875 },
+      historicalGap,
+      historicalGapUnavailable: null,
+      noteCode: "stop_may_not_fill",
+    });
+
+    const thin = toSizeCheckViewModel(
+      sizeCheck({ gapScenarios: { limitDown: { gapRate: -0.3, maxLossKrw: 371875 }, historicalGap: { sample: 12 } } })
+    );
+    assert.equal(thin.gapScenarios?.historicalGap, null);
+    assert.equal(thin.gapScenarios?.historicalGapUnavailable, "insufficient_data");
+
+    assert.equal(
+      toSizeCheckViewModel(sizeCheck({ gapScenarios: { limitDown: { gapRate: -0.3, maxLossKrw: "371875" } } })).gapScenarios,
+      null
+    );
+    assert.equal(toSizeCheckViewModel(sizeCheck()).gapScenarios, null);
+  });
 });
 
 describe("toRiskBudgetViewModel", () => {

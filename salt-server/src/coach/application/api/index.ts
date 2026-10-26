@@ -84,6 +84,8 @@ export interface CoachDependencies {
   llmUsage?: LlmUsageStore;
   llmLimits?: Partial<LlmBudgetLimits>;
   judgments: SymbolJudgmentStore;
+  /** 국내 주식 판단 백테스트 성적(`backtest` 출처만) — 종목 판단 카드만 읽는다(F011 슬라이스 7b). 없으면 라이브만 */
+  backtestJudgments?: SymbolJudgmentStore | null;
   ledger: JudgmentLedgerStore;
   /** 저장 추천 스냅샷 원장(F010 슬라이스 0) */
   recommendations: RecommendationSnapshotStore;
@@ -163,7 +165,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.gauges,
     undefined,
     deps.forecasts,
-    deps.forecastOwnerEmails
+    deps.forecastOwnerEmails,
+    deps.backtestJudgments ?? null
   );
   const analyzeNewsSentiment = new AnalyzeNewsSentiment(deps.news);
   const analyzeTradingBehavior = new AnalyzeTradingBehavior(
@@ -229,7 +232,12 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.portfolio,
       deps.judgments,
       deps.news,
-      { usage: deps.llmUsage, limits: deps.llmLimits, krViewerEmails: deps.forecastOwnerEmails }
+      {
+        usage: deps.llmUsage,
+        limits: deps.llmLimits,
+        krViewerEmails: deps.forecastOwnerEmails,
+        backtestJudgments: deps.backtestJudgments ?? null,
+      }
     ),
     analyzeNewsSentiment,
     analyzeTradingBehavior,
@@ -241,7 +249,12 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     ),
     listProfitPlans: new ListProfitPlans(deps.portfolio, deps.forecasts),
     getSignalPerformance: new GetSignalPerformance(deps.recommendations),
-    getJudgmentScoreboard: new GetJudgmentScoreboard(deps.judgments, deps.forecastOwnerEmails),
+    getJudgmentScoreboard: new GetJudgmentScoreboard(
+      deps.judgments,
+      deps.forecastOwnerEmails,
+      deps.backtestJudgments ?? null,
+      deps.market
+    ),
     getSymbolForecast: new GetSymbolForecast(deps.forecasts, deps.portfolio, deps.forecastOwnerEmails),
     getSymbolEvents: new GetSymbolEvents(deps.forecasts, deps.forecastOwnerEmails),
     getSymbolPositioning: new GetSymbolPositioning(deps.forecasts, deps.forecastOwnerEmails),

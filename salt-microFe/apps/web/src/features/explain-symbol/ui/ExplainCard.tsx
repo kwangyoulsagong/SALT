@@ -208,7 +208,7 @@ export const ExplainCard = ({ view, mode, className }: ExplainCardProps) => {
       <StatusToast trigger={finished && !ruleBased ? (state.generatedAt ?? "done") : null}>{M.finished}</StatusToast>
       {renderBody()}
       <TrackRecordStats record={modeView.trackRecord} />
-      <JudgmentCases cases={modeView.failureCases} />
+      <JudgmentCases cases={modeView.failureCases} backtest={modeView.trackRecord.sampleOrigin === "backtest"} />
     </section>
   );
 };

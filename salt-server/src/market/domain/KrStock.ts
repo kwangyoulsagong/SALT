@@ -150,6 +150,11 @@ export interface KrStockStore {
   /** 마스터 한 줄(상폐 제외) — 관심 종목 추가가 이름을 여기서 가져온다 */
   findListing(code: string): Promise<Pick<KrStockListing, "code" | "name" | "market"> | null>;
   /**
+   * 코드들의 이름 · 로고 판정 재료 — 마스터 전체(시세 유니버스 밖 종목 포함, 상폐 포함). 코치 사례의 종목 이름(F011 슬라이스 7b).
+   * 없는 코드는 빠진다
+   */
+  labels(codes: string[]): Promise<Array<KrLogoTarget & { name: string; logoSource: KrLogoSource | null }>>;
+  /**
    * 종목별 기준 종가 — 그 종목 시세 날짜(KST) **이전** 일봉 중 `tradingDaysBack` 번째(1 = 직전 거래일) 종가.
    * 봉이 모자라면 그 종목은 빠진다(기간 변동률 `null`)
    */

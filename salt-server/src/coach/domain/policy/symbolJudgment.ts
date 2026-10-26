@@ -26,7 +26,12 @@ import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "
  *
  * 후보 · 피하기의 적중 경계는 0 이 아니라 **왕복 수수료 0.1%** 다 — 0.05% 오른 것을 "맞았다"고 세면 실제로는
  * 잃은 판단이 적중이 된다. 그리고 적중률은 혼자 뜻이 없다: 상승장에선 "항상 오른다"도 70% 맞는다. 그래서
- * 같은 표본에서 **비용을 넘겨 오른 비율(`alwaysUpRate`)** 을 같이 세고, 그 기저율 대비 초과분(`excessWinRate`)을 붙인다.
+ * **같은 자산군 · 모드의 판단 전체(행동 무관)** 에서 비용을 넘겨 오른 비율(`alwaysUpRate`)을 세고, 그 기저율 대비
+ * 초과분(`excessWinRate`)을 붙인다.
+ *
+ * 2026-10-26 정정(F011 슬라이스 7b): 처음엔 기저율을 **그 판단 유형의 표본**에서 셌다. 후보의 적중이 곧 "비용을 넘겨
+ * 오름"이라 적중률 = 기저율, 초과분은 늘 0 이었다(피하기도 같다) — 규칙이 고른 표본에 "항상 산다"를 대 보면 규칙과
+ * 같은 답이 나온다. 기저율은 규칙이 고르기 **전**의 풀에서 센다.
  */
 
 /** 업비트 KRW 마켓 편도 0.05% × 2. `sizing.ts` 의 수수료와 같은 값이다. */
@@ -201,8 +206,16 @@ export const naiveHitRate = (
 export interface JudgmentTrackStats {
   sample: number;
   hits: number;
-  /** 표본 중 기간 수익률이 그 자산군 왕복 비용(`RoundTripCosts`)을 넘긴 수 — 기저율의 분자. */
+  /** 표본 중 기간 수익률이 그 자산군 왕복 비용(`RoundTripCosts`)을 넘긴 수 */
   aboveCost: number;
+  /**
+   * 같은 자산군 · 모드의 채점된 판단 **전체**(행동 무관) 수와 그중 비용을 넘겨 오른 수 — 기저율의 분모 · 분자.
+   * 이 판단 유형의 표본으로 세면 후보 · 피하기의 초과분이 늘 0 이다(위 머리 주석 정정)
+   */
+  poolSample: number;
+  poolAboveCost: number;
+  /** 표본의 판단 달(KST) 수 — 국내 백테스트 표시 조건(`kr-judgment-backtest@1` [display]). 세지 않은 저장소는 없음 */
+  judgedMonths?: number;
   avgReturn: number | null;
   /** 가장 나빴던 기간 수익률. */
   worstReturn: number | null;
@@ -211,8 +224,15 @@ export interface JudgmentTrackStats {
   lastScoredAt: Date | null;
 }
 
+/**
+ * 성적의 출처 — `live`(실시간 판단을 채점) · `backtest`(과거 시세로 되돌려 채점한 모의, 국내 주식만 · 라이브 표본이
+ * 모자랄 동안). 둘을 합산한 성적은 없다
+ */
+export type JudgmentTrackOrigin = "live" | "backtest";
+
 export interface JudgmentTrackRecord {
   signalType: string;
+  sampleOrigin: JudgmentTrackOrigin;
   sample: number;
   /** 표본 0 이면 `null` — 0% 가 아니다. */
   winRate: number | null;
@@ -224,7 +244,7 @@ export interface JudgmentTrackRecord {
   worstObservedReturn: number | null;
   lowSample: boolean;
   horizonHours: number;
-  /** 같은 표본에서 "항상 오른다"가 비용을 넘겨 맞은 비율. 표본 0 이면 `null`. */
+  /** 같은 자산군 · 모드의 판단 전체에서 "항상 오른다"가 비용을 넘겨 맞은 비율. 이 유형 표본 · 풀이 0 이면 `null`. */
   alwaysUpRate: number | null;
   /**
    * 적중률 − 기저율(`naiveHitRate`). 후보는 항상 오른다 대비, 피하기는 항상 안 오른다 대비.
@@ -238,13 +258,15 @@ export interface JudgmentTrackRecord {
 export const summarizeJudgmentTrack = (
   mode: CoachMode,
   signalType: string,
-  stats: JudgmentTrackStats
+  stats: JudgmentTrackStats,
+  sampleOrigin: JudgmentTrackOrigin = "live"
 ): JudgmentTrackRecord => {
   const winRate = stats.sample > 0 ? stats.hits / stats.sample : null;
-  const alwaysUpRate = stats.sample > 0 ? stats.aboveCost / stats.sample : null;
+  const alwaysUpRate = stats.sample > 0 && stats.poolSample > 0 ? stats.poolAboveCost / stats.poolSample : null;
   const naive = naiveHitRate(judgmentActionOf(signalType), alwaysUpRate);
   return {
     signalType,
+    sampleOrigin,
     sample: stats.sample,
     winRate,
     avgReturn: stats.avgReturn,

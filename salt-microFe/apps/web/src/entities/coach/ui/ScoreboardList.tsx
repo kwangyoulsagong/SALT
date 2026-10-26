@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { formatRatio, formatShortDate, formatSignedPoints, formatSignedRate } from "../lib";
 import { SCOREBOARD_MESSAGES } from "../model";
 import { caseList } from "./CoachDetail.css";
+import { CaseIdentity } from "./CaseIdentity";
 import { PerformanceClaimLine } from "./PerformanceClaimLine";
 import { gauge, gaugeLabel, gaugeList, gaugeStatus, gaugeValue, gaugeValueMuted, hint, missRow } from "./TradeRisk.css";
 
@@ -88,8 +89,16 @@ const ScoreboardSection = ({
                 <Badge size="sm" tone="neutral">
                   {S.sample(group.sample)}
                 </Badge>{" "}
+                {group.sampleOrigin === "backtest" && (
+                  <>
+                    <Badge size="sm" tone="neutral">
+                      {S.backtestBadge}
+                    </Badge>{" "}
+                  </>
+                )}
                 {group.horizonHours !== null && S.horizon(group.horizonHours)}
               </span>
+              {group.sampleOrigin === "backtest" && <span className={hint}>{S.backtestNote}</span>}
               <PerformanceClaimLine claim={group.claim} />
             </li>
           );
@@ -104,7 +113,8 @@ const ScoreboardSection = ({
             // 같은 날 · 같은 종목 · 같은 판단이 둘일 수 있다(단타 하루 두 번) — 자리 번호를 붙인다
             <li key={`${item.date}-${item.symbol}-${item.event}-${index}`} className={missRow}>
               <span>{formatShortDate(item.date) ?? item.date}</span>
-              {renderIdentity(item.symbol)}
+              {/* 서버가 이름을 붙였으면 그것 — 국내 주식 코드는 시세 목록에 없어 위젯 조회로는 숫자만 나온다(F011 슬라이스 7b) */}
+              {item.name ? <CaseIdentity symbol={item.symbol} name={item.name} logoUrl={item.logoUrl} /> : renderIdentity(item.symbol)}
               <span>{S.missLine(labelOf(item.event) ?? "", formatSignedRate(item.returnRate))}</span>
             </li>
           ))}

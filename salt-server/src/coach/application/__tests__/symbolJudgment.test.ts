@@ -94,6 +94,8 @@ class MemoryJudgmentStore implements SymbolJudgmentStore {
       sample: done.length,
       hits: done.filter((row) => row.outcome === "hit").length,
       aboveCost: returns.filter((r) => r > 0.001).length,
+      poolSample: 0,
+      poolAboveCost: 0,
       avgReturn: returns.length
         ? returns.reduce((a, b) => a + b, 0) / returns.length
         : null,

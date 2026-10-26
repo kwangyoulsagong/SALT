@@ -69,7 +69,7 @@ const ledger = (sample: number, misses: number, aboveCost = Math.floor(sample / 
   const store = {
     summarize: async (_u: string, filter: { signalType?: string }) => {
       asked.push(filter.signalType ?? "*");
-      return { sample, hits: sample - misses, aboveCost, avgReturn: sample ? 0.02 : null, worstReturn: sample ? -0.1 : null };
+      return { sample, hits: sample - misses, aboveCost, poolSample: sample, poolAboveCost: aboveCost, avgReturn: sample ? 0.02 : null, worstReturn: sample ? -0.1 : null };
     },
     recentCases: async (): Promise<RecommendationCase[]> =>
       Array.from({ length: Math.min(misses, 3) }, (_, i) => ({

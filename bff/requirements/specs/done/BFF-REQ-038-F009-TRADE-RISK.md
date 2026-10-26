@@ -55,6 +55,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-26 | F011 슬라이스 7 — `toSizeCheckViewModel` 에 `gapScenarios`(`BFF-REQ-040` FR-20). 코인은 `null` |
 | 2026-09-24 | 신설 · FR-1~6 구현. 근거 `reports/checklists/BFF-REQ-038.md` |
 | 2026-09-27 | 슬라이스 5 FR-7(미러) · FR-8(결과 · 태그 확정) · FR-9(size-check `behavior` · `hasPlan`). 근거 `reports/checklists/BFF-REQ-038.md` §슬라이스 5 |
 | 2026-09-27 | 슬라이스 6 FR-10(월간 복기) · FR-11(Brier · 체크리스트 · 시나리오 · 한 종목 상한) · FR-12(프리모템 · 체크리스트 기록). 새 경로 1. 근거 `reports/checklists/BFF-REQ-038.md` §슬라이스 6 |

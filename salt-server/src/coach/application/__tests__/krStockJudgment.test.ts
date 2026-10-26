@@ -62,6 +62,8 @@ class MemoryStore implements SymbolJudgmentStore {
       sample: done.length,
       hits: done.filter((row) => row.outcome === "hit").length,
       aboveCost: 0,
+      poolSample: 0,
+      poolAboveCost: 0,
       avgReturn: null,
       worstReturn: null,
       firstScoredAt: null,

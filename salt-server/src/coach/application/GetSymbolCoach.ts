@@ -110,8 +110,15 @@ export class GetSymbolCoach {
     /** 보유 익절 계획의 실현 변동성(F010 슬라이스 2). 없으면 고정 비율 */
     private readonly forecasts: Pick<ForecastReader, "symbolRisk" | "marketWarnings"> | null = null,
     /** 국내 주식 판단을 볼 수 있는 이메일 — 시세 경로와 같은 목록(`FORECAST_OWNER_EMAILS`) */
-    private readonly krViewerEmails: readonly string[] = []
+    private readonly krViewerEmails: readonly string[] = [],
+    /** 국내 주식 백테스트 성적(`backtest` 출처만 세는 저장소) — 라이브 표본이 모자랄 동안. 없으면 라이브만 */
+    private readonly backtestJudgments: SymbolJudgmentStore | null = null
   ) {}
+
+  /** 성적 출처(국내 백테스트) · 사례 종목 이름(F011 슬라이스 7b) */
+  private get trackExtras() {
+    return { backtest: this.backtestJudgments, market: this.market };
+  }
 
   private async sentimentTrack(
     symbol: string,
@@ -169,8 +176,8 @@ export class GetSymbolCoach {
     // `zone` 도 싣는다 — 생략은 "할 수 있다"이고, 모양이 둘이 되면 소비처가 둘을 다룬다
     const [scalpView, longTermView, zones, gaugeTrackRecords] =
       await Promise.all([
-        attachJudgmentTrack(this.judgments, scalp, guardsFor("scalp"), assetClass),
-        attachJudgmentTrack(this.judgments, longTerm, guardsFor("long_term"), assetClass),
+        attachJudgmentTrack(this.judgments, scalp, guardsFor("scalp"), assetClass, this.trackExtras),
+        attachJudgmentTrack(this.judgments, longTerm, guardsFor("long_term"), assetClass, this.trackExtras),
         resolveZones(this.market, {
           symbol,
           holding,

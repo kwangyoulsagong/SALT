@@ -114,7 +114,8 @@ export const summarizeRecommendationTrack = (
   stats: JudgmentTrackStats
 ): RecommendationTrackRecord => {
   const winRate = stats.sample > 0 ? stats.hits / stats.sample : null;
-  const alwaysUpRate = stats.sample > 0 ? stats.aboveCost / stats.sample : null;
+  // 기저율은 행동 무관 풀에서(`JudgmentTrackStats.poolSample`) — 그룹 표본으로 세면 매수 초과분이 늘 0 이다(2026-10-26 정정)
+  const alwaysUpRate = stats.sample > 0 && stats.poolSample > 0 ? stats.poolAboveCost / stats.poolSample : null;
   const naive = recommendationNaiveHitRate(recommendationActionOf(signalType), alwaysUpRate);
   return {
     signalType,

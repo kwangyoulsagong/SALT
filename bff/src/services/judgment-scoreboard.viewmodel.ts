@@ -29,6 +29,9 @@ const SIGNAL_TYPE = /^(?:kr_stock\.)?(scalp|long_term)\.[a-z_]+$/;
 export interface ScoreboardCase {
   date: string;
   symbol: string;
+  /** 종목 이름 · 로고(F011 슬라이스 7b) — 성적은 유형 전체라 사례가 다른 종목이다. 서버가 못 찾았으면 `null` */
+  name: string | null;
+  logoUrl: string | null;
   /** 그룹 키 `<mode>.<action>`. 문구가 아니다 */
   event: string;
   outcome: "hit" | "miss";
@@ -38,6 +41,8 @@ export interface ScoreboardCase {
 
 export interface ScoreboardGroup {
   signalType: string;
+  /** 성적 출처 — `backtest` 면 과거 시세로 되돌려 채점한 모의(국내만, 라이브 20 전). 모르는 값은 모의 쪽(F011 슬라이스 7b) */
+  sampleOrigin: "live" | "backtest";
   /** 자산군(F011 FR-65) — 화면은 코인 옆에 국내 주식을 **나란히** 놓고 합산하지 않는다. 국내 주식은 소유자에게만 온다 */
   assetClass: "crypto" | "kr_stock";
   mode: "scalp" | "long_term";
@@ -81,7 +86,7 @@ const toCase = (raw: unknown, outcome: "hit" | "miss"): ScoreboardCase | null =>
   const returnRate = num(raw.returnRate);
   // 맞음 칸에 틀림이 섞여 오면 옮기지 않는다 — 칸 이름이 곧 주장이다
   if (!date || !symbol || !event || returnRate === null || raw.outcome !== outcome) return null;
-  return { date, symbol, event, outcome, returnRate };
+  return { date, symbol, name: str(raw.name) || null, logoUrl: str(raw.logoUrl) || null, event, outcome, returnRate };
 };
 
 const toCases = (raw: unknown, outcome: "hit" | "miss"): ScoreboardCase[] =>
@@ -98,6 +103,7 @@ const toGroup = (raw: unknown): ScoreboardGroup | null => {
   if (!signalType || !matched || sample === null || sample < 0) return null;
   return {
     signalType,
+    sampleOrigin: raw.sampleOrigin === undefined || raw.sampleOrigin === "live" ? "live" : "backtest",
     // 그룹 키가 진실이다 — 서버 `assetClass` 와 다르면 키를 따른다(접두가 표본을 가른 실제 기준)
     assetClass: signalType.startsWith("kr_stock.") ? "kr_stock" : "crypto",
     mode: matched[1] === "scalp" ? "scalp" : "long_term",

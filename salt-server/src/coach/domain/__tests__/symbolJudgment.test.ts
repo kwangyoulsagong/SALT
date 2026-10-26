@@ -110,6 +110,8 @@ describe("성적 4요소 claim (F009 FR-33)", () => {
     sample: 25,
     hits: 15,
     aboveCost: 12,
+    poolSample: 25,
+    poolAboveCost: 12,
     avgReturn: 0.01,
     worstReturn: -0.2,
     firstScoredAt: new Date("2026-09-24T03:00:00Z"),
@@ -211,7 +213,7 @@ describe("judgmentGate — 3종 게이트 (FR-137)", () => {
 
 describe("기저율 · 초과 적중률 (F010 슬라이스 0)", () => {
   it("후보는 '항상 오른다' 대비, 피하기는 '항상 안 오른다' 대비, 관망은 없다", () => {
-    const stats = { sample: 20, hits: 14, aboveCost: 12, avgReturn: 0.02, worstReturn: -0.1 };
+    const stats = { sample: 20, hits: 14, aboveCost: 12, poolSample: 20, poolAboveCost: 12, avgReturn: 0.02, worstReturn: -0.1 };
     const review = summarizeJudgmentTrack("scalp", "scalp.review_short_opportunity", stats);
     assert.equal(review.alwaysUpRate, 0.6);
     assert.ok(Math.abs(review.excessWinRate! - 0.1) < 1e-9); // 0.7 − 0.6
@@ -220,8 +222,21 @@ describe("기저율 · 초과 적중률 (F010 슬라이스 0)", () => {
     assert.equal(summarizeJudgmentTrack("scalp", "scalp.wait", stats).excessWinRate, null);
   });
   it("표본 0 이면 둘 다 null 이다", () => {
-    const r = summarizeJudgmentTrack("scalp", "scalp.avoid", { sample: 0, hits: 0, aboveCost: 0, avgReturn: null, worstReturn: null });
+    const r = summarizeJudgmentTrack("scalp", "scalp.avoid", { sample: 0, hits: 0, aboveCost: 0, poolSample: 30, poolAboveCost: 12, avgReturn: null, worstReturn: null });
     assert.equal(r.alwaysUpRate, null);
     assert.equal(r.excessWinRate, null);
+  });
+  it("기저율은 행동 무관 풀에서 — 그룹 표본으로 세면 후보 · 피하기 초과분이 늘 0 이다 (2026-10-26 정정)", () => {
+    // 후보 20건: 적중 = 비용 넘겨 오름 = 14. 풀(같은 모드 판단 전체) 40건 중 오름 20
+    const review = summarizeJudgmentTrack("long_term", "long_term.review_accumulation", {
+      sample: 20, hits: 14, aboveCost: 14, poolSample: 40, poolAboveCost: 20, avgReturn: 0.02, worstReturn: -0.1,
+    });
+    assert.equal(review.alwaysUpRate, 0.5);
+    assert.ok(Math.abs(review.excessWinRate! - 0.2) < 1e-9); // 0.7 − 0.5 (그룹 표본으로 셌다면 0.7 − 0.7 = 0)
+    // 피하기 20건: 적중 = 비용 넘겨 안 오름 = 20 − 8
+    const avoid = summarizeJudgmentTrack("long_term", "kr_stock.long_term.avoid", {
+      sample: 20, hits: 12, aboveCost: 8, poolSample: 40, poolAboveCost: 20, avgReturn: -0.01, worstReturn: -0.2,
+    });
+    assert.ok(Math.abs(avoid.excessWinRate! - 0.1) < 1e-9); // 0.6 − (1 − 0.5)
   });
 });

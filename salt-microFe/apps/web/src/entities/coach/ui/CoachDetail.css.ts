@@ -74,7 +74,8 @@ export const caseList = style({
  */
 export const caseRow = style({
   display: "flex",
-  alignItems: "baseline",
+  // 종목 아이콘이 들어오며(F011 슬라이스 7b) 글자 기준선 대신 가운데 — 아이콘과 글자 높이가 다르다
+  alignItems: "center",
   justifyContent: "space-between",
   gap: vars.space.sm,
   padding: `${vars.space.sm} 0`,
@@ -188,4 +189,20 @@ export const swatch = styleVariants({
   neutralDashed: [swatchBase, { borderTopStyle: "dashed", borderTopColor: vars.colors.neutral[500] }],
   zoneSolid: [swatchBase, { borderTopStyle: "solid", borderTopColor: vars.colors.ai.primary }],
   zoneDashed: [swatchBase, { borderTopStyle: "dashed", borderTopColor: vars.colors.ai.primary }],
+});
+
+/** 사례 종목(아이콘 + 이름) — 날짜와 결과 사이를 채우고, 긴 이름은 말줄임(F011 슬라이스 7b) */
+export const caseIdentity = style({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: vars.space.xs,
+  flex: 1,
+  minWidth: 0,
+});
+
+export const caseIdentityName = style({
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  color: vars.colors.text.primary,
 });

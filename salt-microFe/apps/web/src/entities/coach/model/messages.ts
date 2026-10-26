@@ -34,6 +34,8 @@ export const COACH_MESSAGES = {
   scoreAccessible: (score: number) => `100점 중 ${score}점`,
   reasonCount: (count: number) => `근거 ${count}`,
   trackSample: (count: number) => `이 판단 성적 ${count}회`,
+  /** 국내 주식 — 라이브 표본이 모자랄 동안 과거 시세로 되돌려 채점한 성적(F011 슬라이스 7b). 라이브와 합산하지 않는다 */
+  backtestTrackSample: (count: number) => `과거 시세로 되돌려 채점 ${count.toLocaleString("ko-KR")}회 · 모의`,
   /** 표본 전체에서 빗나간 수(성적 4요소, F009 FR-33) — 사례 목록 길이가 아니다 */
   failureCount: (count: number) => `틀렸던 때 ${count}건`,
   /** 서버가 4요소를 안 줬을 때 — 목록 길이(최대 3)라는 것을 밝힌다 */
@@ -135,6 +137,9 @@ export const COACH_MESSAGES = {
     reasonsHeading: "근거",
     risksHeading: "주의할 점",
     trackRecordHeading: "이 판단의 과거 성적",
+    /** 사전등록 kr-judgment-backtest@1 [display] — 모의 라벨 · 언제 바뀌는지 · 한계 */
+    backtestHeading: "이 판단의 과거 성적 — 모의(과거 시세로 되돌려 채점)",
+    backtestNote: "실제로 낸 판단의 기록이 아니라, 같은 규칙을 지난 시세에 적용해 채점한 값이에요. 실제와 다를 수 있고, 실제 판단 기록이 20건 쌓이면 그 기록으로 바뀌어요",
     trackSample: (count: number) => `표본 ${count}회`,
     winRate: "적중률",
     avgReturn: "평균",
@@ -145,6 +150,7 @@ export const COACH_MESSAGES = {
     horizon: (hours: number) => `판단 뒤 ${hours}시간 기준`,
     /** 서버는 틀렸던 때만 최근 3건 보낸다 — "맞았던 때"를 제목에 쓰지 않는다(F009 FR-33) */
     failureHeading: "최근 틀렸던 때",
+    backtestFailureHeading: "되돌려 채점에서 틀렸던 때(모의)",
     outcome: { hit: "맞음", miss: "틀림" },
     emptyValue: "—",
   },

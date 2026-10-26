@@ -22,6 +22,8 @@ const track = (sample: number) =>
     sample,
     hits: Math.floor(sample / 2),
     aboveCost: Math.floor(sample / 2),
+    poolSample: sample,
+    poolAboveCost: Math.floor(sample / 2),
     avgReturn: sample ? 0.01 : null,
     worstReturn: sample ? -0.1 : null,
   });

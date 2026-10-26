@@ -225,3 +225,4 @@ type SymbolCoachViewModel = {
 | 2026-09-24 | **F009 슬라이스 0 — C04.** FR-39 신설 · 계약 코드블록 `maxDrawdown` → `worstObservedReturn`. 근거 `requirements/reports/feature-audits/2026-09-24-ai-investment-deep-research.md` C04 |
 | 2026-09-24 | **F009 슬라이스 0 — C05.** 코드 변경 없음 — `validity.code` 를 그대로 옮긴다(`BFF-REQ-023` FR-98). 값이 `scalp_24h` · `long_term_30d` 로 바뀌어 테스트 픽스처만 고쳤다(`SRV-REQ-025` FR-56) |
 | 2026-09-28 | **F010 슬라이스 0.** FR-40 신설 · 구현. 근거 `reports/checklists/BFF-REQ-024.md` §2026-09-28 |
+| 2026-10-26 | F011 슬라이스 7b — `symbol-coach.viewmodel` `trackRecord.sampleOrigin`(live · backtest, `BFF-REQ-040` FR-21). 기저율 값은 서버 정정(행동 무관 풀)을 그대로 통과 |

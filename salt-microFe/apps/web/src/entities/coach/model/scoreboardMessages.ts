@@ -18,7 +18,10 @@ export const SCOREBOARD_MESSAGES = {
   } as Record<string, string | undefined>,
   /** 자산군 머리(F011 FR-65) — 두 자산군이 같이 올 때만 그린다. 표본을 섞지 않고 나란히 둔다 */
   assetClasses: { crypto: "코인", kr_stock: "국내 주식" },
-  sample: (count: number) => `채점 ${count}회`,
+  sample: (count: number) => `채점 ${count.toLocaleString("ko-KR")}회`,
+  /** 국내 그룹이 과거 시세로 되돌려 채점한 모의 성적일 때(F011 슬라이스 7b) — 숫자 옆에 늘 */
+  backtestBadge: "모의",
+  backtestNote: "과거 시세로 되돌려 채점 — 실제 판단 기록이 20건 쌓이면 그 기록으로 바뀌어요",
   /** 서버가 표본 부족이라고 한 그룹 — 적중률을 그리지 않는 이유 */
   lowSample: "아직 채점 표본이 적어 적중률을 보이지 않아요",
   winRate: (rate: string) => `적중 ${rate}`,

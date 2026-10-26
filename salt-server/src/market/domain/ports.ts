@@ -384,6 +384,19 @@ export interface ClosePercentiles {
   values: number[] | null;
 }
 
+/**
+ * 밤사이 갭(그날 시가 ÷ 전 봉 종가 − 1)의 분포. `bounds` 밖 비율은 **원천 끊김**(미수정 병합 · 분할)으로 보고
+ * 세지 않는다 — 수는 `excluded` 에 남긴다
+ */
+export interface OvernightGapStats {
+  sample: number;
+  excluded: number;
+  /** 요청한 분위의 갭률. 표본이 없으면 `null` */
+  quantile: number | null;
+  /** 표본 안 가장 나쁜 갭률 */
+  worst: number | null;
+}
+
 export interface PriceHistoryRepository {
   upsertCandles(
     symbol: string,
@@ -434,6 +447,14 @@ export interface PriceHistoryRepository {
     since: Date,
     fractions: number[]
   ): Promise<ClosePercentiles>;
+  /** `since` 이후 한 심볼 밤사이 갭 분포 — **DB 가 계산한다**(5년 일봉 약 1,200행을 옮기지 않는다) */
+  overnightGapStats(
+    symbol: string,
+    timeframe: PriceTimeframe,
+    since: Date,
+    fraction: number,
+    bounds: { min: number; max: number }
+  ): Promise<OvernightGapStats>;
   /**
    * 기간 변동률의 **기준 종가**를 심볼별로. 구간 안에 캔들이 없는 심볼은 결과에 없다.
    * 구간의 **가장 최근** 캔들을 쓴다.

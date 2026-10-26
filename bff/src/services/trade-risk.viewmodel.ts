@@ -68,6 +68,66 @@ const SIZING_FIELDS = [
 const QUANTITY_LIMITS = ["per_trade_budget", "single_asset_weight"] as const;
 
 export type SizingUnavailableReason = (typeof UNAVAILABLE_REASONS)[number];
+
+/**
+ * 국내 주식 매수의 "손절가에서 안 팔리면" 두 줄(F011 `SRV-REQ-040` FR-45). 서버가 손절가 기준으로 계산한 금액을 옮길 뿐이다.
+ * 하한가 줄 금액이 깨졌으면 묶음 전체를 `null` — 두 줄 중 하나만 그리면 "이게 최악"으로 읽힌다
+ */
+export interface GapScenariosView {
+  limitDown: { gapRate: number; maxLossKrw: number };
+  historicalGap: {
+    quantile: number;
+    gapRate: number;
+    worstGapRate: number;
+    sample: number;
+    since: string;
+    maxLossKrw: number;
+  } | null;
+  historicalGapUnavailable: "insufficient_data" | null;
+  noteCode: "stop_may_not_fill";
+}
+
+const toGapScenarios = (raw: unknown): GapScenariosView | null => {
+  if (!isRecord(raw)) return null;
+  const limitDown = isRecord(raw.limitDown) ? raw.limitDown : null;
+  const limitRate = num(limitDown?.gapRate);
+  const limitLoss = num(limitDown?.maxLossKrw);
+  if (limitRate === null || limitLoss === null) return null;
+
+  const hist = isRecord(raw.historicalGap) ? raw.historicalGap : null;
+  const fields = {
+    quantile: num(hist?.quantile),
+    gapRate: num(hist?.gapRate),
+    worstGapRate: num(hist?.worstGapRate),
+    sample: num(hist?.sample),
+    since: str(hist?.since),
+    maxLossKrw: num(hist?.maxLossKrw),
+  };
+  const historicalGap =
+    fields.quantile !== null &&
+    fields.gapRate !== null &&
+    fields.worstGapRate !== null &&
+    fields.sample !== null &&
+    fields.since !== null &&
+    fields.maxLossKrw !== null
+      ? {
+          quantile: fields.quantile,
+          gapRate: fields.gapRate,
+          worstGapRate: fields.worstGapRate,
+          sample: fields.sample,
+          since: fields.since,
+          maxLossKrw: fields.maxLossKrw,
+        }
+      : null;
+
+  return {
+    limitDown: { gapRate: limitRate, maxLossKrw: limitLoss },
+    historicalGap,
+    // 과거 줄이 없으면 이유가 있어야 화면이 빈자리를 설명한다 — 서버가 말하지 않았어도 "표본 부족"으로 둔다
+    historicalGapUnavailable: historicalGap ? null : "insufficient_data",
+    noteCode: "stop_may_not_fill",
+  };
+};
 export type SizingField = (typeof SIZING_FIELDS)[number];
 
 export interface SizeCheckView {
@@ -87,6 +147,8 @@ export interface SizeCheckView {
   consecutiveLoss: { count: number; amountKrw: number; monthlyBudgetRate: number | null } | null;
   kelly: { full: number; half: number; quarter: number; hasEdge: boolean; noteCode: "edge_estimate_uncertain" } | null;
   unavailable: Partial<Record<SizingField, SizingUnavailableReason>>;
+  /** 국내 주식 매수 + 손절가일 때만. 코인 · 매도 · 손절가 없음 · 깨진 모양은 `null` */
+  gapScenarios: GapScenariosView | null;
   assumptions: {
     feeRatePerSide: number | null;
     stopGapAssumed: false;
@@ -168,6 +230,7 @@ export const toSizeCheckViewModel = (data: Raw): SizeCheckView => {
           }
         : null,
     unavailable: toUnavailable(data.unavailable),
+    gapScenarios: toGapScenarios(data.gapScenarios),
     assumptions: {
       feeRatePerSide: num(assumptions.feeRatePerSide),
       // 갭 가정은 없다 — 서버가 달리 말해도 화면은 "갭 미반영"을 말해야 안전하다
