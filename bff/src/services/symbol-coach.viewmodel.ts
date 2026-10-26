@@ -63,6 +63,9 @@ export interface ExchangeFlag {
 export interface FailureCase {
   date: string;
   symbol: string;
+  /** 종목 이름 · 로고(F011 슬라이스 7b) — 성적은 유형 전체라 사례가 다른 종목이다. 서버가 못 찾았으면 `null` · 옛 서버면 없음 */
+  name?: string | null;
+  logoUrl?: string | null;
   /** 성적표 그룹 키 `<mode>.<action>`. 문구가 아니다 */
   event: string;
   outcome: "hit" | "miss";
