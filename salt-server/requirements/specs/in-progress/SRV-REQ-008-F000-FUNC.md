@@ -206,6 +206,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 
 ## Changelog
 
+- 2026-10-26: F011 슬라이스 6(국내 지수 · 투자자 순매수) — `market` 공개 팩토리(`application/api`)에 국내 유스케이스 4개 · `schema.prisma` 새 표 2개 · `env.ts` `KIS_SUMMARY_INDICES`. 이 REQ 의 관심 종목 · 추적 자산 규칙은 그대로(본문 `SRV-REQ-040` FR-49 · 50)
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-18 | **관심 목록·뉴스·차트·포지션 요약을 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-30·33(watchlist 동작 유지 + 현재가·변동률 포함) · FR-40~44(뉴스 — 이미 있던 조회를 소비처가 생겼다) · FR-50~52(`period` 422) · FR-60·63(보유 요약 · Projection 조회). **남은 것**: FR-1~7(초대 코드) · FR-10~14(인증 축소·온보딩 상태) · FR-20~25(알림 2종) · FR-32(`AssetType` 3값 — `DB-REQ-003` 대기) · FR-61·62(환율 — `fx` 컨텍스트 대기) · FR-70~72(동면). 근거: `requirements/reports/checklists/SRV-REQ-008.md` |

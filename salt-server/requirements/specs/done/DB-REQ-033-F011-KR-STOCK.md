@@ -24,6 +24,8 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
 | FR-4 | `external_api_tokens`(provider, token_type PK) — 접근 토큰 · WS 승인키. 평문(소유자 1인 운영 — Open Question) | 완료 |
 | FR-5 | `market_holidays`(market, date PK) — 개장 · 거래일 · 영업일 · 결제일 플래그 · 출처(`kis` · `candles` · `probe`). KIS 원문을 역산 · 관측이 덮지 않는다. 전망(`salt-forecast`)이 읽을 표 | 완료 |
 | FR-6 | 정밀도 — 금액 `Decimal(38,10)` · 비율(등락률 · PER · PBR · 소진율) `(18,8)` | 완료 |
+| FR-7 | `kr_index_quotes`(code PK — KIS 업종 코드) — 값 · 전일 대비(포인트 `Decimal(18,4)`) · 등락률 `(18,8)` · 상승 · 보합 · 하락 종목 수 · 갱신 시각. 지수 2~3행이라 인덱스는 PK 뿐(슬라이스 6 · `SRV-REQ-040` FR-49) | 완료 2026-10-26(`20261026180000_kr_index_investor_flows`) |
+| FR-8 | `kr_stock_investor_flows`((code, trade_date) PK → master FK cascade) — 개인 · 외국인 · 기관 순매수 수량 `BIGINT` · 금액 원 `Decimal(38,10)` · 수집 시각. 읽기는 한 종목 최근 N거래일(`code = ? ORDER BY trade_date DESC LIMIT N`)이라 PK 가 그대로 받는다 — 별도 인덱스 없음. 쓰기는 종목마다 `unnest` 한 문장 upsert(같은 키는 덮는다 — 잠정치 → 확정치). 크기: 유니버스 약 50종목 × 거래일 하나씩 늘어 1년 약 12,500행(슬라이스 6 · `SRV-REQ-040` FR-50) | 완료 2026-10-26(같은 마이그레이션) |
 
 ## 왜 `MarketAsset` 이 아닌가
 
@@ -33,11 +35,12 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
 
 ## 롤백
 
-`DROP TABLE kr_stock_quotes, kr_stock_master, external_api_tokens, market_holidays;`. enum 값은 Postgres 에서 뺄 수 없다 —
+`DROP TABLE kr_stock_investor_flows, kr_index_quotes, kr_stock_quotes, kr_stock_master, external_api_tokens, market_holidays;`(슬라이스 6 두 표만 되돌리면 앞의 둘만). enum 값은 Postgres 에서 뺄 수 없다 —
 `kr_stock` 행을 지우고(`price_history` 국내 주식 행) 값은 미사용으로 둔다. 원장 3종 기존 행 영향 0.
 
 ## Changelog
 
+- 2026-10-26: 슬라이스 6 — FR-7 `kr_index_quotes` · FR-8 `kr_stock_investor_flows`(새 표 2개, 기존 표 무변경 · 로컬 적용). 실행 계획: 지수는 2~3행 PK, 투자자는 PK 접두 `code` + 정렬 `trade_date DESC` 로 받는다
 - 2026-10-23: 슬라이스 5f(`SRV-REQ-040` FR-42) — `price_history` 국내 일봉에 쿼리 두 개 추가(종목별 첫 · 마지막 창 종가 `LATERAL` · 한 종목 이력 교체 삭제 CTE + upsert). **DDL 없음** — 기존 유니크 `(symbol, timeframe, timestamp)` 인덱스를 쓴다(실행계획은 `SRV-REQ-040` 체크리스트)
 - 2026-10-07: 초판 · FR-1~6 완료
 - 2026-10-23: `kr_stock_master.is_liquidation BOOLEAN NOT NULL DEFAULT false`(`20261023120000_kr_stock_master_liquidation`) — 정리매매(`FC-REQ-020` FR-9). 추가만 · 롤백 = 컬럼 DROP · 로컬 적용 · 마스터 1회 동기화로 3종목 Y
