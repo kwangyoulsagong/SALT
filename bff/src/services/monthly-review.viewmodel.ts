@@ -3,6 +3,9 @@
  *
  * 서버(`SRV-REQ-038` FR-10)가 월초에 한 번 만든 스냅샷이다. 숫자 · 문장 모두 서버 것 — 미러와 같은 규칙으로 모양만 본다:
  * 숫자가 아니면 `null`, 모르는 상태는 `insufficient_data`, 뼈대(달 · 상태)가 깨졌으면 `MonthlyReviewContractError`.
+ *
+ * 코인판 · 국내판(F011 `BFF-REQ-040` FR-26)이 같은 모양이다. `assetType` 으로 가른다 — 국내판 보유 기간은 거래일이다.
+ * 서버가 `assetType` 을 안 주면 코인(국내판 전 서버)이다.
  */
 
 import {
@@ -82,6 +85,7 @@ export interface MonthlyReviewBody {
 
 export interface MonthlyReviewView {
   status: "ok";
+  assetType: "crypto" | "kr_stock";
   month: string;
   reviewStatus: (typeof REVIEW_STATUSES)[number];
   review: MonthlyReviewBody | null;
@@ -175,6 +179,7 @@ export const toMonthlyReviewViewModel = (data: Raw): MonthlyReviewView => {
   if (reviewStatus === "ok" && !review) throw new MonthlyReviewContractError("review");
   return {
     status: "ok",
+    assetType: data.assetType === "kr_stock" ? "kr_stock" : "crypto",
     month,
     reviewStatus,
     review: reviewStatus === "ok" ? review : null,

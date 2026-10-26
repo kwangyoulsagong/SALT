@@ -117,6 +117,32 @@ describe("월간 복기 뷰모델", () => {
     });
     await assert.rejects(appBehaviorMirrorService.getMonthlyReview("t", "2026-07"));
   });
+
+  it("국내판(F011 FR-26) — 서버 경로가 따로 · assetType 을 옮긴다 · 소유자 404 는 그대로", async () => {
+    mock.restoreAll();
+    const paths: string[] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, path: string) => {
+      paths.push(path);
+      return ok({ assetType: "kr_stock", month: "2026-09", status: "ok", review: review({ month: "2026-09", brier: { ...brier, recentMisses: [{ ...brier.recentMisses[0], symbol: "005930", name: "삼성전자" }] } }), availableMonths: ["2026-09"] });
+    });
+    const view = await appBehaviorMirrorService.getMonthlyReview("t", "2026-09", undefined, "kr_stock");
+    assert.deepEqual(paths, ["/coach/review/monthly/kr-stock?month=2026-09"]);
+    assert.equal(view.status === "ok" && view.assetType, "kr_stock");
+    assert.equal(view.status === "ok" && view.review?.brier?.recentMisses[0].name, "삼성전자");
+    assert.equal(toMonthlyReviewViewModel({ month: "2026-08", status: "ok", review: review() }).review?.brier?.recentMisses[0].name, null);
+
+    mock.restoreAll();
+    mock.method(backendApi, "proxyAuthRequest", async () => {
+      throw httpError(404);
+    });
+    await assert.rejects(appBehaviorMirrorService.getMonthlyReview("t", undefined, undefined, "kr_stock"));
+    mock.restoreAll();
+  });
+
+  it("assetType 이 없으면 코인(국내판 전 서버)", () => {
+    const view = toMonthlyReviewViewModel({ month: "2026-08", status: "ok", review: review(), availableMonths: [] });
+    assert.equal(view.assetType, "crypto");
+  });
 });
 
 describe("미러 Brier · 미리보기 체크리스트", () => {
