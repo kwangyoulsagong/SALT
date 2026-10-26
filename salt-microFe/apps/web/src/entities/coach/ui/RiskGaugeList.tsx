@@ -3,7 +3,7 @@ import { ProgressBar } from "@repo/ui/progressBar";
 
 import { formatPrice } from "@/shared/lib";
 
-import { formatRatio, formatTimes } from "../lib";
+import { formatRatio, formatScore, formatTimes } from "../lib";
 import { RISK_MESSAGES } from "../model";
 import {
   gauge,
@@ -61,14 +61,15 @@ const GaugeItem = ({
 };
 
 /**
- * 리스크 예산 게이지 4 (F009 FR-17 · FR-23 · FR-24 · `FE-REQ-039` + F010 BTC 베타 합 `FE-REQ-040` FR-2). **표시만 한다.**
+ * 리스크 예산 게이지 5 (F009 FR-17 · FR-23 · FR-24 · `FE-REQ-039` + F010 BTC 베타 합 `FE-REQ-040` FR-2 + F011 보유 합산 변동성
+ * `FE-REQ-041` FR-29). **표시만 한다.**
  *
  * - 기준이 없으면 `기준을 정하면 보여요` — 0 · 기본값으로 막대를 그리지 않는다(FR-2)
  * - 넘어도 막지 않는다. 막대 색 + "기준을 넘었어요" 글자뿐(FR-23)
  * - 막대는 100% 에서 잘린다(`ProgressBar`) — 넘친 정도는 숫자가 말한다
  */
 export const RiskGaugeList = ({ view }: { view: RiskBudgetView }) => {
-  const { drawdown, concentration, turnover, btcBeta } = view.gauges;
+  const { drawdown, concentration, turnover, btcBeta, portfolioVolatility: volatility } = view.gauges;
 
   const drawdownReady =
     (drawdown.status === "ok" || drawdown.status === "exceeded") &&
@@ -85,6 +86,8 @@ export const RiskGaugeList = ({ view }: { view: RiskBudgetView }) => {
 
   const turnoverReady = turnover.status === "ok" && turnover.trailingYearTurnover !== null;
   const betaReady = btcBeta.status === "ok" && btcBeta.betaSum !== null;
+  // 옛 BFF 는 이 칸을 주지 않는다 — 없으면 줄이 없다
+  const volatilityReady = volatility?.status === "ok" && volatility.realized !== null && volatility.upper !== null;
 
   return (
     <ul className={gaugeList}>
@@ -152,6 +155,35 @@ export const RiskGaugeList = ({ view }: { view: RiskBudgetView }) => {
             : null,
         ]}
       />
+      {/* F011 FR-46 — 범위만 보인다. 목표 변동성과 나란히 두지만 넘었다 · 아니다를 말하지 않는다 */}
+      {volatility && (
+        <GaugeItem
+          name={GAUGE.portfolioVolatility}
+          muted={!volatilityReady}
+          value={
+            volatilityReady
+              ? GAUGE.portfolioVolatilityValue(formatRatio(volatility.realized ?? 0), formatRatio(volatility.upper ?? 0))
+              : GAUGE.status.insufficient_data
+          }
+          progress={null}
+          status="ok"
+          detail={
+            volatilityReady && view.settings.targetVolatility !== null
+              ? GAUGE.portfolioVolatilityTarget(formatRatio(view.settings.targetVolatility))
+              : null
+          }
+          notes={[
+            volatilityReady ? GAUGE.portfolioVolatilityHint : null,
+            volatilityReady && volatility.crossCorrelation !== null
+              ? GAUGE.portfolioVolatilityCross(formatScore(volatility.crossCorrelation))
+              : null,
+            volatilityReady && volatility.grid === "krx_trading_day" ? GAUGE.portfolioVolatilityGrid : null,
+            volatilityReady && volatility.missingSymbols.length > 0 && volatility.coveredWeight !== null
+              ? GAUGE.portfolioVolatilityCovered(formatRatio(volatility.coveredWeight), volatility.missingSymbols.join(", "))
+              : null,
+          ]}
+        />
+      )}
     </ul>
   );
 };
