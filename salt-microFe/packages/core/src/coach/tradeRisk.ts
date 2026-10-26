@@ -28,6 +28,25 @@ export type SizingField =
   | "currentWeight"
   | "consecutiveLoss";
 
+/**
+ * 국내 주식 매수의 "손절가에서 안 팔리면" 두 줄(F011 `SRV-REQ-040` FR-45 · `BFF-REQ-040`). 손절가 기준 갭이다 — 손절가 바로 위에서
+ * 마감한 다음 날 하한가로(`limitDown`) · 그 종목 과거 하위 1% 갭으로(`historicalGap`) 열렸을 때. 금액은 서버 계산
+ */
+export interface GapScenariosView {
+  limitDown: { gapRate: number; maxLossKrw: number };
+  historicalGap: {
+    quantile: number;
+    gapRate: number;
+    worstGapRate: number;
+    sample: number;
+    /** 분포를 본 창의 시작(ISO) */
+    since: string;
+    maxLossKrw: number;
+  } | null;
+  historicalGapUnavailable: "insufficient_data" | null;
+  noteCode: "stop_may_not_fill";
+}
+
 export interface SizeCheckView {
   status: "ok";
   symbol: string;
@@ -45,6 +64,8 @@ export interface SizeCheckView {
   consecutiveLoss: { count: number; amountKrw: number; monthlyBudgetRate: number | null } | null;
   kelly: { full: number; half: number; quarter: number; hasEdge: boolean; noteCode: "edge_estimate_uncertain" } | null;
   unavailable: Partial<Record<SizingField, SizingUnavailableReason>>;
+  /** 국내 주식 매수 + 손절가일 때만. 코인 · 매도 · 손절가 없음은 `null` */
+  gapScenarios: GapScenariosView | null;
   assumptions: {
     feeRatePerSide: number | null;
     stopGapAssumed: false;

@@ -34,6 +34,19 @@ export const RISK_MESSAGES = {
     streak: (count: number, krw: string) => `이 크기로 ${count}번 연속 손절이면 −${krw}원`,
     streakOfBudget: (rate: string) => `(월 예산의 ${rate})`,
     assumptions: (feeRate: string) => `편도 수수료 ${feeRate} 포함 · 가격이 손절가를 건너뛰는 경우는 반영하지 않았어요`,
+    /** 국내 주식 갭 두 줄(F011 FR-45) — 최대 손실 줄 옆에 나란히. 어느 것이 "진짜 최대"인지 고르지 않는다 */
+    gap: {
+      limitDown: (rate: string, krw: string) => `손절가 바로 위에서 다음 날 하한가(${rate})로 열리면 −${krw}원`,
+      historical: (since: string, rate: string, krw: string) =>
+        `이 종목 ${since} 이후 밤사이 하위 1% 갭(${rate})으로 열리면 −${krw}원`,
+      worst: (rate: string, sample: number) => `같은 기간 가장 컸던 갭 ${rate} · ${sample.toLocaleString("ko-KR")}거래일`,
+      historicalUnavailable: "이 종목은 일봉이 모자라 과거 갭 줄은 계산하지 않았어요",
+      /** `noteCode: stop_may_not_fill` */
+      note: "최대 손실은 손절가에서 팔린다고 가정한 값이에요. 갭 · VI · 거래정지 때는 손절가에서 팔리지 않을 수 있고, 연속 하한가에는 끝이 없어요",
+      since: (year: string, month: string) => `${year}년 ${Number(month)}월`,
+      /** 국내 주식은 갭을 위 줄로 말하므로 수수료만 밝힌다 */
+      assumptions: (feeRate: string) => `편도 비용 ${feeRate}(수수료 · 거래세 왕복의 절반) 포함`,
+    },
     targetVolDefault: (rate: string) => `목표 변동성 ${rate}(기본값)`,
     calculating: "계산하는 중",
     unavailable: "지금은 계산할 수 없어요. 저장은 그대로 할 수 있어요",

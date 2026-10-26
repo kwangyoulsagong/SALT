@@ -3,11 +3,15 @@ import type { SizeCheckResult, SizingUnavailableReason } from "@repo/core/coach"
 import { formatPrice } from "@/shared/lib";
 import { StatusLine } from "@repo/ui/statusLine";
 
-import { formatFineRate, formatQuantity, formatRatio } from "../lib";
+import { formatFineRate, formatQuantity, formatRatio, formatSignedRate } from "../lib";
 import { RISK_MESSAGES } from "../model";
 import { hint, line, lines, lineStrong, pending as pendingStyle, stack } from "./TradeRisk.css";
 
 const { size: SIZE } = RISK_MESSAGES;
+const { gap: GAP } = SIZE;
+
+/** `2021-10-27T…` → `2021년 10월`. 날짜 부분만 잘라 쓴다 — 시간대에 따라 문자열이 갈리지 않는다 */
+const formatSince = (iso: string): string => GAP.since(iso.slice(0, 4), iso.slice(5, 7));
 
 interface SizeCheckLinesProps {
   /** `null` 이면 아직 계산하지 않았다(입력이 모자라다) — 안내 한 줄만 */
@@ -34,6 +38,24 @@ export const SizeCheckLines = ({ result, isPending = false, idleHint }: SizeChec
     const rows: { key: string; text: string; strong?: boolean }[] = [];
     if (result.maxLossKrw !== null) {
       rows.push({ key: "maxLoss", text: SIZE.maxLoss(formatPrice(result.maxLossKrw)), strong: true });
+    }
+    // 국내 주식 — 손절가에서 안 팔렸을 때 두 줄을 최대 손실 바로 아래 같은 굵기로(F011 FR-45 "나란히")
+    const gaps = result.maxLossKrw !== null ? result.gapScenarios : null;
+    if (gaps) {
+      rows.push({
+        key: "gapLimitDown",
+        text: GAP.limitDown(formatSignedRate(gaps.limitDown.gapRate), formatPrice(gaps.limitDown.maxLossKrw)),
+        strong: true,
+      });
+      if (gaps.historicalGap) {
+        const { since, gapRate, maxLossKrw, worstGapRate, sample } = gaps.historicalGap;
+        rows.push({
+          key: "gapHistorical",
+          text: GAP.historical(formatSince(since), formatSignedRate(gapRate), formatPrice(maxLossKrw)),
+          strong: true,
+        });
+        rows.push({ key: "gapWorst", text: GAP.worst(formatSignedRate(worstGapRate), sample) });
+      }
     }
     if (result.perTradeBudgetRate !== null) {
       rows.push({ key: "perTrade", text: SIZE.perTradeBudget(formatRatio(result.perTradeBudgetRate)) });
@@ -77,8 +99,13 @@ export const SizeCheckLines = ({ result, isPending = false, idleHint }: SizeChec
       (reason): reason is SizingUnavailableReason => reason !== undefined,
     );
     const notes: string[] = reasons.map((reason) => SIZE.reasons[reason]);
+    if (gaps) {
+      if (gaps.historicalGapUnavailable) notes.push(GAP.historicalUnavailable);
+      notes.push(GAP.note);
+    }
     if (result.maxLossKrw !== null && result.assumptions.feeRatePerSide !== null) {
-      notes.push(SIZE.assumptions(formatFineRate(result.assumptions.feeRatePerSide)));
+      const fee = formatFineRate(result.assumptions.feeRatePerSide);
+      notes.push(gaps ? GAP.assumptions(fee) : SIZE.assumptions(fee));
     }
     if (result.volTargetWeight !== null && result.assumptions.targetVolatilityIsDefault && result.assumptions.targetVolatility !== null) {
       notes.push(SIZE.targetVolDefault(formatRatio(result.assumptions.targetVolatility)));
