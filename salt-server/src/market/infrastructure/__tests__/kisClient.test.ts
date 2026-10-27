@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { describe, it } from "node:test";
 
-import { KIS_QUERY_TR, KisClient, assertQueryTr, maskKisSecrets } from "../KisClient";
+import { KIS_PRIORITY, KIS_QUERY_TR, KisClient, assertQueryTr, maskKisSecrets } from "../KisClient";
 import { parseMasterFile } from "../KisMasterFile";
 
 describe("KIS 조회 TR 허용 목록 — 주문 · 계좌 경로 0건 (F011 FR-3 · 공통 수용 기준 2)", () => {
@@ -140,5 +140,30 @@ describe("부가 조회 응답 해석 (슬라이스 6)", () => {
       output: { bstp_nmix_prpr: "5469.47", bstp_nmix_prdy_vrss: "-80.83", bstp_nmix_prdy_ctrt: "-1.46", ascn_issu_cnt: "101", stnr_issu_cnt: "22", down_issu_cnt: "792" },
     }).indexQuote("0001");
     assert.deepEqual(q, { code: "0001", value: 5469.47, change: -80.83, changeRate: -1.46, advancers: 101, unchanged: 22, decliners: 792 });
+  });
+});
+
+describe("한도 나눠 쓰기 순서 (FR-91 · 슬라이스 6b)", () => {
+  // 어떤 호출이 어느 줄에 서는지만 본다 — 줄의 순서 자체는 pacer.test.ts
+  const priorities = async (call: (c: KisClient) => Promise<unknown>) => {
+    const c = new KisClient({ appKey: "k", appSecret: "s", baseUrl: "http://127.0.0.1:9" });
+    let seen: number | undefined;
+    (c as unknown as { get: (...args: unknown[]) => Promise<unknown> }).get = async (...args: unknown[]) => {
+      seen = args[3] as number;
+      return { output: { stck_prpr: "1", bstp_nmix_prpr: "1" }, output2: [] };
+    };
+    await call(c).catch(() => undefined);
+    return seen;
+  };
+
+  it("현재가 · 달력 < 일봉 · 분봉 < 지수 · 투자자", async () => {
+    assert.equal(await priorities((c) => c.quote("005930")), KIS_PRIORITY.poll);
+    assert.equal(await priorities((c) => c.marketDays("2026-10-27")), KIS_PRIORITY.poll);
+    assert.equal(await priorities((c) => c.dailyCandles("005930", "2026-10-01", "2026-10-27")), KIS_PRIORITY.candles);
+    assert.equal(await priorities((c) => c.intradayMinuteCandles("005930", "153000")), KIS_PRIORITY.candles);
+    assert.equal(await priorities((c) => c.dayMinuteCandles("005930", "2026-10-27", "153000")), KIS_PRIORITY.candles);
+    assert.equal(await priorities((c) => c.indexQuote("0001")), KIS_PRIORITY.supplement);
+    assert.equal(await priorities((c) => c.investorFlows("005930")), KIS_PRIORITY.supplement);
+    assert.ok(KIS_PRIORITY.realtime < KIS_PRIORITY.poll && KIS_PRIORITY.poll < KIS_PRIORITY.candles && KIS_PRIORITY.candles < KIS_PRIORITY.supplement);
   });
 });

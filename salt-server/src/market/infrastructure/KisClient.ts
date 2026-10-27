@@ -108,11 +108,21 @@ const isRetryableKisError = (error: unknown): boolean => {
 };
 
 /**
- * 기본 상한 3건/s. 실시간 · 백필 · 폴링이 이 한 줄을 나눠 쓴다. 한도는 앱 키 단위라 이 페이서가 프로세스에 하나여야
- * 한다(`composition.ts` 가 한 벌만 만든다). 2026-10-07 실측 처리량 상한이 약 2건/s 라 문서상 20건/s 의 30%(6)에서
- * 내렸다 — 값은 설정(`KIS_REQUESTS_PER_SECOND`)이 정하고 이것은 테스트용 기본이다
+ * 한도를 나눠 쓰는 순서(F011 FR-91): 실시간 유지 > 보유 · 관심 · 시총 폴링 > 일봉 · 분봉 > 부가(지수 · 투자자 · 호가).
+ * 페이서가 출발 자리가 날 때마다 작은 값부터 보낸다. 폴링 안의 보유 → 관심 → 시총 순서는 유니버스 순서가 정한다
+ * (같은 우선순위는 요청 순서). 실시간(WS) 자체는 REST 를 쓰지 않는다 — 승인키 · 토큰 발급이 그 자리다
  */
-const DEFAULT_REQUESTS_PER_SECOND = 3;
+export const KIS_PRIORITY = { realtime: 0, poll: 1, candles: 2, supplement: 3 } as const;
+type KisPriority = (typeof KIS_PRIORITY)[keyof typeof KIS_PRIORITY];
+
+/**
+ * 기본 상한 2건/s. 실시간 · 백필 · 폴링이 이 한 줄을 나눠 쓴다. 한도는 앱 키 단위라 이 페이서가 프로세스에 하나여야
+ * 한다(`composition.ts` 가 한 벌만 만든다). 2026-10-07 실측 처리량 상한이 약 2건/s 라 문서상 20건/s 의 30%(6)에서
+ * 내렸다 — 값은 설정(`KIS_REQUESTS_PER_SECOND`)이 정하고 이것은 테스트용 기본이다.
+ * 2026-10-27 3건/s 로 장중 현재가 호출의 약 23% 가 초과였다(10:00 10분 230건 중 57건 — 매분 머리에 유니버스를
+ * 몰아 보낸다) → 실측 상한 2건/s 로 내렸다(슬라이스 6b)
+ */
+const DEFAULT_REQUESTS_PER_SECOND = 2;
 
 /**
  * 초당 건수 초과를 받으면 이 프로세스의 KIS 호출 전체를 잠깐 세운다 — 1초에서 시작해 연속이면 두 배, 상한 8초.
@@ -211,7 +221,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
     const body = await this.get("/uapi/domestic-stock/v1/quotations/inquire-price", KIS_QUERY_TR.inquirePrice, {
       FID_COND_MRKT_DIV_CODE: "J",
       FID_INPUT_ISCD: code,
-    });
+    }, KIS_PRIORITY.poll);
     const o = body.output ?? {};
     const price = num(o.stck_prpr);
     if (price === null) throw new KisApiError(undefined, undefined, `KIS 현재가 없음 — ${code}`);
@@ -259,7 +269,8 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
         FID_PERIOD_DIV_CODE: "D",
         // 0 = 수정주가 — 지표 · 전망은 액면분할로 끊기지 않은 값을 쓴다(Open Question: 원주가 병행)
         FID_ORG_ADJ_PRC: "0",
-      }
+      },
+      KIS_PRIORITY.candles
     );
     const rows: any[] = Array.isArray(body.output2) ? body.output2 : [];
     return rows
@@ -286,7 +297,8 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
         FID_INPUT_ISCD: code,
         FID_INPUT_HOUR_1: hhmmss,
         FID_PW_DATA_INCU_YN: "N",
-      }
+      },
+      KIS_PRIORITY.candles
     );
     const rows: any[] = Array.isArray(body.output2) ? body.output2 : [];
     return rows.flatMap((row) => {
@@ -313,7 +325,8 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
         FID_INPUT_DATE_1: compactDate(date),
         FID_PW_DATA_INCU_YN: "Y",
         FID_FAKE_TICK_INCU_YN: "",
-      }
+      },
+      KIS_PRIORITY.candles
     );
     const rows: any[] = Array.isArray(body.output2) ? body.output2 : [];
     return rows.flatMap((row) => {
@@ -330,7 +343,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
       BASS_DT: compactDate(baseDate),
       CTX_AREA_NK: "",
       CTX_AREA_FK: "",
-    });
+    }, KIS_PRIORITY.poll);
     const rows: any[] = Array.isArray(body.output) ? body.output : body.output ? [body.output] : [];
     return rows
       .filter((row) => typeof row?.bass_dt === "string" && row.bass_dt.length === 8)
@@ -351,7 +364,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
     const body = await this.get("/uapi/domestic-stock/v1/quotations/inquire-index-price", KIS_QUERY_TR.indexPrice, {
       FID_COND_MRKT_DIV_CODE: "U",
       FID_INPUT_ISCD: code,
-    });
+    }, KIS_PRIORITY.supplement);
     const o = body.output ?? {};
     const value = num(o.bstp_nmix_prpr);
     if (value === null) throw new KisApiError(undefined, undefined, `KIS 지수 없음 — ${code}`);
@@ -378,7 +391,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
     const body = await this.get("/uapi/domestic-stock/v1/quotations/inquire-investor", KIS_QUERY_TR.investor, {
       FID_COND_MRKT_DIV_CODE: "J",
       FID_INPUT_ISCD: code,
-    });
+    }, KIS_PRIORITY.supplement);
     const rows: any[] = Array.isArray(body.output) ? body.output : [];
     return rows.flatMap((row) => {
       const date = row?.stck_bsop_date;
@@ -399,21 +412,21 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
 
   // ==================== 요청 ====================
 
-  private async get(path: string, trId: string, params: Record<string, string>): Promise<any> {
+  private async get(path: string, trId: string, params: Record<string, string>, priority: KisPriority): Promise<any> {
     assertQueryTr(trId);
     let reissued = false;
 
     const once = async () => {
       const token = await this.accessToken();
       try {
-        return await this.send(path, trId, params, token);
+        return await this.send(path, trId, params, token, priority);
       } catch (error) {
         // 토큰이 서버에서 먼저 죽었다 — 한 번만 새로 받는다(FR-92)
         if (!reissued && error instanceof KisApiError && TOKEN_INVALID.has(error.msgCode ?? "")) {
           reissued = true;
           this.cached = null;
           await prisma.externalApiToken.deleteMany({ where: { provider: "kis", tokenType: "access" } });
-          return this.send(path, trId, params, await this.accessToken());
+          return this.send(path, trId, params, await this.accessToken(), priority);
         }
         throw error;
       }
@@ -427,7 +440,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
   }
 
   /** 페이서 안쪽 — 재시도도 KIS 에는 한 건이다 */
-  private send(path: string, trId: string, params: Record<string, string>, token: string) {
+  private send(path: string, trId: string, params: Record<string, string>, token: string, priority: KisPriority) {
     return this.pacer.run(async () => {
       const wait = this.cooldownUntil - Date.now();
       if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
@@ -460,7 +473,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
         }
         throw sanitized;
       }
-    });
+    }, priority);
   }
 
   private describe(trId: string, status: number | undefined, body: any) {
@@ -498,7 +511,8 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
           grant_type: "client_credentials",
           appkey: this.options.appKey,
           secretkey: this.options.appSecret,
-        })
+        }),
+        KIS_PRIORITY.realtime
       );
       const key = response.data?.approval_key;
       if (typeof key !== "string") {
@@ -551,7 +565,8 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
           grant_type: "client_credentials",
           appkey: this.options.appKey,
           appsecret: this.options.appSecret,
-        })
+        }),
+        KIS_PRIORITY.realtime
       );
       const body = response.data ?? {};
       if (typeof body.access_token !== "string") {

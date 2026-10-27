@@ -21,10 +21,19 @@ import { setTimeout as delay } from "node:timers/promises";
  *
  * 응답 시간이 아니라 **출발 시각**이다. 거래소가 세는 것도 도착한 요청 수다.
  * 재시도도 한 건이다 — 그래서 부르는 쪽은 재시도 **안쪽**에서 `run` 을 쓴다.
- * 출발 순서는 요청 순서다(FIFO).
+ *
+ * ## 출발 순서 — 우선순위, 같은 우선순위는 요청 순서
+ *
+ * 한도 하나를 여러 작업이 나눠 쓰면 "누가 먼저 나가나" 가 곧 한도가 모자랄 때 누가 밀리나다. 줄이 FIFO 하나면
+ * 밤새 도는 일봉 백필 뒤에 보유 종목 시세가 선다(KIS — F011 FR-91). 그래서 `priority`(작을수록 먼저)를 받고,
+ * 출발 자리가 날 때마다 **그 순간** 기다리는 것 중 가장 앞 우선순위를 보낸다 — 간격을 기다리는 동안 들어온
+ * 급한 호출이 앞질러 나간다. 우선순위를 주지 않으면 전부 0 이라 예전과 같은 FIFO 다.
+ *
+ * 낮은 우선순위는 높은 쪽이 줄을 비울 때까지 기다린다(굶을 수 있다). 부르는 쪽이 동시 호출 수를 묶어 두므로
+ * 높은 쪽 줄은 회차가 끝나면 빈다 — 그래서 나이 들이기(aging)는 두지 않았다.
  */
 export interface RatePacer {
-  run<T>(operation: () => Promise<T>): Promise<T>;
+  run<T>(operation: () => Promise<T>, priority?: number): Promise<T>;
 }
 
 export interface RatePacerOptions {
@@ -42,21 +51,50 @@ export const createRatePacer = ({
 }: RatePacerOptions): RatePacer => {
   const intervalMs = 1_000 / perSecond;
   let nextStart = 0;
-  let tail: Promise<void> = Promise.resolve();
+  /** 우선순위별 대기 줄 — 출발시키는 함수만 담는다 */
+  const queues = new Map<number, Array<() => void>>();
+  let pumping = false;
 
-  const acquire = async () => {
-    const t = now();
-    const startAt = Math.max(t, nextStart);
-    nextStart = startAt + intervalMs;
-    if (startAt > t) await sleep(startAt - t);
+  const takeNext = () => {
+    let best: number | null = null;
+    for (const [priority, queue] of queues) {
+      if (queue.length > 0 && (best === null || priority < best)) best = priority;
+    }
+    return best === null ? null : queues.get(best)!.shift()!;
+  };
+
+  // 출발 자리를 하나씩 내준다. 고르는 것은 간격을 기다린 **뒤** — 그사이 들어온 급한 호출이 앞선다
+  const pump = async () => {
+    if (pumping) return;
+    pumping = true;
+    try {
+      while ([...queues.values()].some((queue) => queue.length > 0)) {
+        const wait = nextStart - now();
+        if (wait > 0) await sleep(wait);
+        const start = takeNext()!;
+        nextStart = Math.max(now(), nextStart) + intervalMs;
+        start();
+      }
+    } finally {
+      pumping = false;
+    }
   };
 
   return {
-    run(operation) {
-      const slot = tail.then(acquire);
-      // 앞 호출의 실패가 뒤 호출의 출발을 막지 않는다 — 줄은 자리만 관리한다
-      tail = slot.catch(() => undefined);
-      return slot.then(operation);
+    run(operation, priority = 0) {
+      return new Promise((resolve, reject) => {
+        const queue = queues.get(priority) ?? [];
+        queues.set(priority, queue);
+        // 출발은 동기로 — 출발 시각이 곧 자리를 받은 시각이다. 앞 호출의 실패는 뒤 호출을 막지 않는다
+        queue.push(() => {
+          try {
+            operation().then(resolve, reject);
+          } catch (error) {
+            reject(error);
+          }
+        });
+        void pump();
+      });
     },
   };
 };
