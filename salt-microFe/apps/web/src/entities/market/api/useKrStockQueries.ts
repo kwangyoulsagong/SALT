@@ -118,3 +118,21 @@ export const useKrInvestors = (code: string, days = KR_INVESTOR_DAYS) => {
     retry: retryUnlessClientError,
   });
 };
+
+/**
+ * 호가 10초 — 서버 캐시와 같은 박자라 더 자주 불러도 같은 값이다. 장이 열린 동안만(`live`) 다시 받는다 — 밤 · 휴장엔
+ * 호가가 바뀌지 않는다. 화면이 안 보이면 TanStack 이 멈춘다(`refetchIntervalInBackground` 기본 false)
+ */
+const KR_ORDERBOOK_REFRESH_MS = 10_000;
+
+export const useKrOrderbook = (code: string, live: boolean) => {
+  const signedIn = useHasAccessToken() === true;
+  return useQuery({
+    queryKey: [...marketQueryKeys.krOrderbook, code],
+    queryFn: ({ signal }) => krStockApi.orderbook(code, signal),
+    enabled: signedIn && Boolean(code),
+    staleTime: KR_ORDERBOOK_REFRESH_MS,
+    refetchInterval: (query) => (live && !isClientError(query.state.error) ? KR_ORDERBOOK_REFRESH_MS : false),
+    retry: retryUnlessClientError,
+  });
+};

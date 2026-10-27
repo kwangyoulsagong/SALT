@@ -159,6 +159,15 @@ export const stat = style({
   },
 });
 
+/** 시간외 단일가 한 줄(슬라이스 6b) — 새 요소라 흰 카드 위 4.5 이상 회색(`lightGray` 4.6). `statLabel`(neutral 500)은 기존 값 */
+export const afterHoursLine = style({
+  margin: 0,
+  fontSize: "12px",
+  lineHeight: "16px",
+  fontWeight: vars.fontWeights.medium,
+  color: vars.colors.text.lightGray,
+});
+
 export const statLabel = style({
   fontSize: "12px",
   lineHeight: "16px",
@@ -242,6 +251,11 @@ export const krBody = style({
   "@media": {
     "screen and (max-width: 1024px)": { gridTemplateColumns: "minmax(0, 1fr)" },
   },
+});
+
+/** `krBody` 격자 한 칸 — 빈 칸이어도 자리를 지킨다(투자자 표가 없을 때 호가가 왼쪽으로 밀리지 않게) */
+export const krCell = style({
+  minWidth: 0,
 });
 
 /** 국내 주식 오른쪽 열 — 자세히(변동 범위) 위, 거래 기록 아래. 코인 상세 오른쪽 열과 같은 순서(F011 슬라이스 5d) */

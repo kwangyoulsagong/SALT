@@ -21,4 +21,5 @@ export const marketQueryKeys = {
   krChart: ["KrStockChart"] as const,
   krIndices: ["KrStockIndices"] as const,
   krInvestors: ["KrStockInvestors"] as const,
+  krOrderbook: ["KrStockOrderbook"] as const,
 } as const;

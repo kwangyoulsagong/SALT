@@ -20,14 +20,17 @@ import { RecordTradeCard } from "@/features/record-transaction";
 import { KrCoachJudgment } from "./KrCoachJudgment";
 import { KrForecast } from "./KrForecast";
 import { KrInvestorFlows } from "./KrInvestorFlows";
+import { KrOrderbook } from "./KrOrderbook";
 import { useHasAccessToken } from "@/shared/api";
 import { formatKrwCompact, formatPrice } from "@/shared/lib";
 
 import { INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT } from "../model";
 import {
+  afterHoursLine,
   headerCard,
   identity,
   krBody,
+  krCell,
   krSideCard,
   krSideColumn,
   name as nameStyle,
@@ -110,6 +113,14 @@ export const KrStockDetail = ({ code }: { code: string }) => {
             <KrChangeText rate={quote.changeRate} amount={quote.change} />
             <KrQuoteBadges quote={quote} session={session} />
           </div>
+          {/* 시간외 단일가(슬라이스 6b) — 정규장 현재가와 섞지 않고 따로 한 줄. 정규장이 열리면 서버가 null 로 준다 */}
+          {quote.afterHours && (
+            <p className={afterHoursLine}>
+              {`${M.afterHours.label} ${formatPrice(quote.afterHours.price)}원 `}
+              <KrChangeText rate={quote.afterHours.changeRate} amount={quote.afterHours.change} strong />
+              {` · ${M.afterHours.asOf(kstClock(quote.afterHours.at))}`}
+            </p>
+          )}
           {quote.isHalted && <StatusLine kind="blocked">{M.detail.halted(updated)}</StatusLine>}
           <KrSessionLine session={session} />
           <p className={statLabel}>{M.detail.tickSize(formatPrice(detail.tickSize))}</p>
@@ -140,8 +151,21 @@ export const KrStockDetail = ({ code }: { code: string }) => {
           />
         </div>
       </div>
-      {/* 투자자별 순매수(슬라이스 6) — 시세 사실이라 코치 판단보다 위 */}
-      <KrInvestorFlows code={quote.code} />
+      {/*
+        시세 사실 줄 — 투자자별 순매수(슬라이스 6) | 호가 10단계(슬라이스 6b). 위 줄과 같은 격자라 호가가 거래 기록 바로 아래
+        같은 폭에 선다. 호가를 오른쪽 열에 넣으면 열이 길어져 차트 아래가 비었다(2026-10-27 1440px 확인). 코치 판단보다 위.
+        칸을 div 로 감싸 투자자 표가 자리를 안 그려도 호가가 오른쪽 칸에 남는다. 거래정지면 호가가 없다
+      */}
+      <div className={krBody}>
+        <div className={krCell}>
+          <KrInvestorFlows code={quote.code} />
+        </div>
+        <div className={krCell}>
+          {!quote.isHalted && (
+            <KrOrderbook code={quote.code} session={session} basePrice={quote.basePrice} currentPrice={quote.price} />
+          )}
+        </div>
+      </div>
       <KrCoachJudgment code={quote.code} />
     </>
   );

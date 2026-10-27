@@ -131,4 +131,26 @@ export const KR_STOCK_MESSAGES = {
     collectedAt: (when: string) => `${when} 수집 · 개장일 저녁에 하루 한 번 모아요`,
     quantity: (shares: string) => `${shares}주`,
   },
+
+  /** 상세 호가 10단계(F011 슬라이스 6b · FR-28) — 잔량 사실만. "매수세 우위" 같은 해석 문구 없음 */
+  orderbook: {
+    heading: "호가",
+    columns: { ask: "매도 잔량", price: "호가", bid: "매수 잔량" },
+    total: "총잔량",
+    asOf: (when: string) => `${when} 기준`,
+    stale: "지연",
+    staleTitle: "호가를 새로 받지 못해 마지막으로 받은 값이에요",
+    unavailable: "호가를 잠시 볼 수 없습니다.",
+    empty: "지금은 호가가 없습니다.",
+    /** 스크린리더용 — 화면은 막대 길이와 숫자로 보인다 */
+    rowLabel: (side: "ask" | "bid", level: number, price: string, quantity: string) =>
+      `${side === "ask" ? "매도" : "매수"} ${level}호가 ${price}원, 잔량 ${quantity}주`,
+    current: "현재가",
+  },
+
+  /** 시간외 단일가(F011 슬라이스 6b · FR-27) — 정규장 현재가와 따로 한 줄 */
+  afterHours: {
+    label: "시간외 단일가",
+    asOf: (when: string) => `${when} 기준`,
+  },
 } as const;

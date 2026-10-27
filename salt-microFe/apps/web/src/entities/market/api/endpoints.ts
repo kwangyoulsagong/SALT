@@ -84,4 +84,6 @@ export const MARKET_ENDPOINTS = {
   krIndices: () => `/api/app/market/kr/indices`,
   /** 상세 투자자 순매수 — 최근 `days` 거래일(최대 30) */
   krInvestors: (code: string, days: number) => `/api/app/market/kr/${encodeURIComponent(code)}/investors?days=${days}`,
+  /** 상세 호가 10단계(슬라이스 6b) — 서버가 요청 시점에 받는다(10초 캐시) */
+  krOrderbook: (code: string) => `/api/app/market/kr/${encodeURIComponent(code)}/orderbook`,
 } as const;

@@ -79,6 +79,22 @@ export interface KrQuote {
   periodChange?: number | null;
   /** 로고 주소 — 서버가 종목마다 판정한 logo.dev 주소. 선명한 로고가 없으면 `null`, 못 불러오면 `AssetIcon` 이 이니셜로 넘어간다 */
   logoUrl: string | null;
+  /**
+   * 시간외 단일가(16:00~18:00 · F011 슬라이스 6b · `BFF-REQ-040` FR-30) — 현재가 · 등락과 따로다. 서버가 마지막 정규장 마감 뒤
+   * 값만 주고 정규장이 열리면 `null`
+   */
+  afterHours: KrAfterHours | null;
+}
+
+export interface KrAfterHours {
+  price: number;
+  /** 정규장 종가 대비(원, 부호 포함) */
+  change: number;
+  changeRate: number;
+  /** 시간외 누적 거래량 — BigInt 문자열 */
+  volume: string;
+  /** 받은 회차 시각 */
+  at: string;
 }
 
 export interface KrOverview {
@@ -236,3 +252,26 @@ export const isKrRegularSession = (session: KrSession): boolean =>
  */
 export const krStaleMinutes = (priceUpdatedAt: string, nowIso: string): number =>
   Math.max(1, Math.floor((Date.parse(nowIso) - Date.parse(priceUpdatedAt)) / 60_000));
+
+/** 호가 한 단계 — 가격은 원 정수, 잔량은 주(BigInt 문자열) */
+export interface KrOrderbookLevel {
+  price: number;
+  quantity: string;
+}
+
+/**
+ * 호가 10단계(F011 슬라이스 6b · `BFF-REQ-040` FR-29) — 매도 · 매수 모두 1단계(최우선)부터. 서버가 요청 시점에 받고 10초 캐시한다.
+ * `available: false` 면 한 번도 못 받았다 · `stale` 이면 받아 둔 값이다
+ */
+export interface KrOrderbook {
+  code: string;
+  available: boolean;
+  asks: KrOrderbookLevel[];
+  bids: KrOrderbookLevel[];
+  totalAskQuantity: string | null;
+  totalBidQuantity: string | null;
+  /** KIS 호가 접수 시각 */
+  at: string | null;
+  fetchedAt: string | null;
+  stale: boolean;
+}
