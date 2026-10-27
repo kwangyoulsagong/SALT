@@ -21,7 +21,9 @@ import { schedule } from "../shared/infrastructure/scheduler";
  * | `kr-provider-metrics` | 10분 | TR 별 호출 · 실패 · 초과 · 오늘 토큰 발급 수(FR-94) |
  * | `kr-realtime` | 매분 | 08:30~16:00 개장일이면 WS 를 붙이고 슬롯을 맞춘다 · 밖이면 끊는다(시간외 단일가는 슬라이스 6b) |
  * | `kr-quote-poll` 뒤 지수 | 매분 | 코스피 · 코스닥(FR-49) — 현재가와 같은 박자 · 부를지는 유스케이스가 정한다 |
- * | `kr-investor-flows` | 평일 18:40 | 투자자 순매수 30거래일(FR-50) — 당일 값이 18:00 뒤라 그 뒤 · 전 종목 일봉(18:00) 앞쪽이 대개 끝난 뒤. 한도 초과면 회차를 접는다(FR-91) |
+ * | `kr-investor-flows` | 평일 18:40 · 21:40 | 투자자 순매수 30거래일(FR-50) — 당일 값이 18:00 뒤라 그 뒤 · 전 종목 일봉(18:00) 앞쪽이 대개 끝난 뒤. 한도 초과면 회차를 접고 21:40 이 남은 종목을 이어 받는다(FR-91) |
+ *
+ * 매분 작업이 아닌 것은 `catchUp` — 놓친 회차(맥 수면)를 깨어난 자리에서 한 번 돈다. 2026-10-26 18:40 투자자 회차가 그렇게 사라졌다(6b).
  */
 const TZ = "Asia/Seoul";
 
@@ -33,17 +35,19 @@ export const startKrStockWorkers = () => {
     return;
   }
 
-  const jobs: Array<{ name: string; expression: string; run: () => Promise<unknown> }> = [
-    { name: "kr-master-sync", expression: "30 7 * * *", run: () => kr.syncMaster.execute() },
+  /** `catchUp` — 하루 몇 번 도는 작업은 맥 수면 등으로 놓친 회차를 깨어난 자리에서 한 번 돈다(`scheduler.ts` 머리 주석) */
+  const jobs: Array<{ name: string; expression: string; run: () => Promise<unknown>; catchUp?: boolean }> = [
+    { name: "kr-master-sync", expression: "30 7 * * *", run: () => kr.syncMaster.execute(), catchUp: true },
     // 로고 판정 — 마스터 뒤. 판정할 종목(새 종목 · 30일 지난 것)만 본다
-    { name: "kr-logo-resolve", expression: "50 7 * * *", run: () => kr.resolveLogos.execute() },
-    { name: "kr-calendar-sync", expression: "10 9 * * 1-5", run: () => kr.syncCalendar.execute() },
-    { name: "kr-daily-candles", expression: "45 15 * * 1-5", run: () => kr.syncDailyCandles.execute() },
-    // 전 종목 일봉 — 시세 창(08:30~16:00)과 겹치지 않는 밤 · 주말. 부팅 실행은 하지 않는다(낮에 기동해도 한도를 안 태운다)
+    { name: "kr-logo-resolve", expression: "50 7 * * *", run: () => kr.resolveLogos.execute(), catchUp: true },
+    { name: "kr-calendar-sync", expression: "10 9 * * 1-5", run: () => kr.syncCalendar.execute(), catchUp: true },
+    { name: "kr-daily-candles", expression: "45 15 * * 1-5", run: () => kr.syncDailyCandles.execute(), catchUp: true },
+    // 전 종목 일봉 — 시세 창(08:30~16:00)과 겹치지 않는 밤 · 주말. 부팅 실행은 하지 않는다(낮에 기동해도 한도를 안 태운다).
+    // 같은 이유로 catchUp 도 없다 — 멈춤이 "다음 07:20" 이라 낮에 따라 돌면 장중 내내 돈다. 놓친 밤은 다음 밤이 할 일로 잇는다
     { name: "kr-full-daily-candles", expression: "0 18 * * 1-5", run: () => kr.syncFullDailyCandles.execute() },
     { name: "kr-full-daily-candles-weekend", expression: "0 8 * * 0,6", run: () => kr.syncFullDailyCandles.execute() },
     // 장 마감 보정 · 30일 백필 — 호출 상한에 걸리면 다음 회차(밤 · 다음 날)가 잇는다
-    { name: "kr-minute-bars", expression: "40 15,20 * * 1-5", run: () => kr.syncMinuteBars.execute() },
+    { name: "kr-minute-bars", expression: "40 15,20 * * 1-5", run: () => kr.syncMinuteBars.execute(), catchUp: true },
     // 보유 평가는 시세 회차 바로 뒤 — 같은 분에 같은 값을 본다(F011 슬라이스 3b)
     {
       name: "kr-quote-poll",
@@ -55,12 +59,15 @@ export const startKrStockWorkers = () => {
         await kr.pollIndices.execute();
       },
     },
-    { name: "kr-investor-flows", expression: "40 18 * * 1-5", run: () => kr.syncInvestorFlows.execute() },
+    // 21:40 은 이어 받기 — 18:40 이 한도에 양보했거나 놓쳤으면 남은 종목만, 다 받았으면 호출 0(6b)
+    { name: "kr-investor-flows", expression: "40 18,21 * * 1-5", run: () => kr.syncInvestorFlows.execute(), catchUp: true },
     { name: "kr-realtime", expression: "* * * * *", run: () => kr.realtime.reconcile() },
     // 관측 지표(FR-94) — 로그가 지표다
     { name: "kr-provider-metrics", expression: "*/10 * * * *", run: async () => kr.reportMetrics.execute() },
   ];
-  for (const job of jobs) schedule(job.name, job.expression, () => job.run().then(() => undefined), { timezone: TZ });
+  for (const job of jobs) {
+    schedule(job.name, job.expression, () => job.run().then(() => undefined), { timezone: TZ, catchUp: job.catchUp });
+  }
 
   /**
    * 부팅 실행은 **순서가 있다** — 마스터가 있어야 유니버스(시총 상위)가 서고, 달력이 있어야 장 상태가

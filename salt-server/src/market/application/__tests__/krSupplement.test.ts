@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import {
   isKrRateLimited,
   isSettledInvestorDay,
+  latestInvestorSettleAt,
   parseKrSummaryIndices,
   type KrInvestorFlowFact,
   type KrMarketCalendarStore,
@@ -51,9 +52,10 @@ describe("지수 설정 · 당일 확정 · 한도 판정", () => {
   });
 });
 
-const flowsSetup = (opts: { open?: boolean | null; failOn?: Record<string, Error>; at?: string }) => {
+const flowsSetup = (opts: { open?: boolean | null; failOn?: Record<string, Error>; at?: string; done?: string[] }) => {
   const asked: string[] = [];
   const saved = new Map<string, KrInvestorFlowFact[]>();
+  const sinceAsked: string[] = [];
   const kis = {
     investorFlows: async (code: string) => {
       asked.push(code);
@@ -64,11 +66,15 @@ const flowsSetup = (opts: { open?: boolean | null; failOn?: Record<string, Error
   } as unknown as KrSupplementPort;
   const store = {
     upsertInvestorFlows: async (code: string, rows: KrInvestorFlowFact[]) => void saved.set(code, rows),
+    investorFlowCodesCollectedSince: async (since: Date) => {
+      sinceAsked.push(since.toISOString());
+      return opts.done ?? [];
+    },
   } as unknown as KrSupplementStore;
   const universe = { execute: async () => ["005930", "000660", "035420"] } as unknown as ResolveKrStockUniverse;
   const at = opts.at ?? "2026-10-26T09:40:00Z"; // 18:40 KST
   const sync = new SyncKrInvestorFlows(kis, store, calendar(opts.open ?? true), universe, () => new Date(at));
-  return { sync, asked, saved };
+  return { sync, asked, saved, sinceAsked };
 };
 
 describe("SyncKrInvestorFlows", () => {
@@ -99,6 +105,25 @@ describe("SyncKrInvestorFlows", () => {
     await sync.execute();
     assert.equal(asked.length, 3);
     assert.deepEqual([...saved.keys()], ["005930", "035420"]);
+  });
+
+  it("같은 확정(18:00) 뒤에 받은 종목은 건너뛴다 — 양보한 회차를 다음 회차가 이어 받는다(6b)", async () => {
+    const { sync, asked, sinceAsked } = flowsSetup({ done: ["005930"], at: "2026-10-26T12:40:00Z" }); // 21:40 KST
+    await sync.execute();
+    assert.deepEqual(asked, ["000660", "035420"]);
+    assert.deepEqual(sinceAsked, ["2026-10-26T09:00:00.000Z"]);
+  });
+
+  it("다 받았으면 KIS 를 부르지 않는다", async () => {
+    const { sync, asked } = flowsSetup({ done: ["005930", "000660", "035420"] });
+    const r = await sync.execute();
+    assert.equal(r.skipped, true);
+    assert.deepEqual(asked, []);
+  });
+
+  it("놓친 회차를 다음 날 아침에 따라 돌면 기준은 전날 18:00 이다", () => {
+    assert.equal(latestInvestorSettleAt(new Date("2026-10-26T23:30:00Z")).toISOString(), "2026-10-26T09:00:00.000Z"); // 10-27 08:30 KST
+    assert.equal(latestInvestorSettleAt(new Date("2026-10-26T09:00:00Z")).toISOString(), "2026-10-26T09:00:00.000Z");
   });
 
   it("휴장일엔 부르지 않는다 · 달력을 모르면 받는다", async () => {

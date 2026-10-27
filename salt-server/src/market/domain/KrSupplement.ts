@@ -73,6 +73,16 @@ export const isSettledInvestorDay = (date: string, at: Date): boolean => {
   return date < today || (date === today && at.getTime() >= kstAt(today, KR_INVESTOR_SETTLE_KST_HOUR).getTime());
 };
 
+/**
+ * 가장 최근 확정 시각(`at` 이전 18:00 KST). 이 뒤에 받은 종목은 그 회차에서 다시 부르지 않는다 — 놓친 회차를 다음 날 아침에
+ * 따라 돌아도, 한도에 양보한 회차를 21:40 이 이어 받아도 같은 기준이다(슬라이스 6b)
+ */
+export const latestInvestorSettleAt = (at: Date): Date => {
+  const today = kstAt(kstDateOf(at), KR_INVESTOR_SETTLE_KST_HOUR);
+  // KST 는 서머타임이 없다 — 하루 전 18:00 은 24시간 전이다
+  return at.getTime() >= today.getTime() ? today : new Date(today.getTime() - 86_400_000);
+};
+
 /** 상세 화면이 받는 최대 거래일 — KIS 가 한 번에 주는 것이 30거래일이다 */
 export const KR_INVESTOR_MAX_DAYS = 30;
 
@@ -99,6 +109,8 @@ export interface KrSupplementStore {
   indexQuotes(codes: string[]): Promise<StoredKrIndexQuote[]>;
   /** 한 종목의 여러 날을 한 문장으로. 같은 (종목, 날짜)는 덮는다 — 잠정치가 확정치로 바뀐다 */
   upsertInvestorFlows(code: string, rows: KrInvestorFlowFact[], at: Date): Promise<void>;
+  /** `since` 뒤에 한 번이라도 저장한 종목 — 이어 받기가 건너뛸 목록 */
+  investorFlowCodesCollectedSince(since: Date): Promise<string[]>;
   /** 최근 `days` 거래일(최신이 앞) · 마지막 수집 시각 */
   investorFlows(code: string, days: number): Promise<{ rows: KrInvestorFlowFact[]; collectedAt: Date | null }>;
 }

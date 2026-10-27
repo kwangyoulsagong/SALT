@@ -63,6 +63,15 @@ export class PrismaKrSupplementStore implements KrSupplementStore {
         collected_at = EXCLUDED.collected_at`;
   }
 
+  async investorFlowCodesCollectedSince(since: Date) {
+    const rows = await prisma.krStockInvestorFlow.findMany({
+      where: { collectedAt: { gte: since } },
+      distinct: ["code"],
+      select: { code: true },
+    });
+    return rows.map((r) => r.code);
+  }
+
   async investorFlows(code: string, days: number) {
     const rows = await prisma.krStockInvestorFlow.findMany({
       where: { code },
