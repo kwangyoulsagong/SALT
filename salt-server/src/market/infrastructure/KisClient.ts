@@ -125,13 +125,12 @@ export const KIS_PRIORITY = { realtime: 0, poll: 1, candles: 2, supplement: 3 } 
 type KisPriority = (typeof KIS_PRIORITY)[keyof typeof KIS_PRIORITY];
 
 /**
- * 기본 상한 2건/s. 실시간 · 백필 · 폴링이 이 한 줄을 나눠 쓴다. 한도는 앱 키 단위라 이 페이서가 프로세스에 하나여야
+ * 기본 상한 3건/s. 실시간 · 백필 · 폴링이 이 한 줄을 나눠 쓴다. 한도는 앱 키 단위라 이 페이서가 프로세스에 하나여야
  * 한다(`composition.ts` 가 한 벌만 만든다). 2026-10-07 실측 처리량 상한이 약 2건/s 라 문서상 20건/s 의 30%(6)에서
  * 내렸다 — 값은 설정(`KIS_REQUESTS_PER_SECOND`)이 정하고 이것은 테스트용 기본이다.
- * 2026-10-27 3건/s 로 장중 현재가 호출의 약 23% 가 초과였다(10:00 10분 230건 중 57건 — 매분 머리에 유니버스를
- * 몰아 보낸다) → 실측 상한 2건/s 로 내렸다(슬라이스 6b)
+ * 2026-10-27 장중 10분 창 현재가 초과율 3건/s 23% · 2건/s 19% · 1.5건/s 21% — 속도를 내려도 줄지 않아 3 그대로(슬라이스 6b)
  */
-const DEFAULT_REQUESTS_PER_SECOND = 2;
+const DEFAULT_REQUESTS_PER_SECOND = 3;
 
 /**
  * 초당 건수 초과를 받으면 이 프로세스의 KIS 호출 전체를 잠깐 세운다 — 1초에서 시작해 연속이면 두 배, 상한 8초.
