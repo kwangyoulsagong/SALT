@@ -1,5 +1,6 @@
 export * from "./authMiddleware";
 export * from "./errorMiddleware";
+export * from "./goneMiddleware";
 export * from "./healthRouter";
 export * from "./httpErrors";
 export * from "./loggerMiddleware";
