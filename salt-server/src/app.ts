@@ -6,6 +6,7 @@ import { healthRouter } from "./shared/presentation/healthRouter";
 import { loggerMiddleware } from "./shared/presentation/loggerMiddleware";
 import { setupSwagger } from "./shared/config/swagger";
 import { NotFoundError } from "./shared/presentation/httpErrors";
+import { DORMANT_PATHS, goneMiddleware } from "./shared/presentation/goneMiddleware";
 import { InvestmentInsightWorker } from "./workers/investment-insight.worker";
 import { NotificationCleanupWorker } from "./workers/notification-cleanup.worker";
 import { startMarketWorkers } from "./workers/market.worker";
@@ -17,12 +18,9 @@ import { contextRouters } from "./composition";
 
 // Routes (이관 전 모듈)
 import goalsRoutes from "./modules/goals/goals.routes";
-import missionRoutes from "./modules/mission/mission.routes";
 import userRoutes from "./modules/user/user.routes";
 import investmentInsightRoutes from "./modules/investment-insight/investment-insight.routes";
 import investmentNotificationRoutes from "./modules/investment-notification/investment-notification.routes";
-import dashboardRoutes from "./modules/dashboard/dashboard.routes";
-import investmentFeedRoutes from "./modules/feed/feed.routes";
 
 const app: Application = express();
 
@@ -61,12 +59,15 @@ setupSwagger(app);
 // Health check — 서버 자신의 상태만 답한다 (`ddd-shared.md` §5)
 app.use(healthRouter);
 
+// 동면 경로 — 404 가 아니라 410 (`SRV-REQ-009` FR-7 · 8). 살아 있는 라우터 안의 경로
+// (`/api/users/points` 등)를 가리려면 라우터보다 먼저 와야 한다
+app.use([...DORMANT_PATHS], goneMiddleware);
+
 // API Routes
 app.use("/api/auth", contextRouters.auth);
 app.use("/api/onboarding", contextRouters.onboarding);
 app.use("/api/goals", goalsRoutes);
 app.use("/api/investment", contextRouters.investment);
-app.use("/api/missions", missionRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/portfolio", contextRouters.portfolio);
 app.use("/api/news", contextRouters.news);
@@ -74,8 +75,6 @@ app.use("/api/market-intelligence", contextRouters.marketIntelligence);
 app.use("/api/market/kr", contextRouters.krStock);
 app.use("/api/investment-insight", investmentInsightRoutes);
 app.use("/api/investment-notifications", investmentNotificationRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/feed", investmentFeedRoutes);
 app.use("/api/ai-coach", contextRouters.aiCoach);
 app.use("/api/trade-preflight", contextRouters.tradePreflight);
 app.use("/api/behavior-coach", contextRouters.behaviorCoach);

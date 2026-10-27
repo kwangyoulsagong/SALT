@@ -142,7 +142,7 @@ flowchart LR
 | 모바일 | 없음 | **`apps/mobile` 신설** (React Native, iOS+Android, FSD) | `RN-REQ-001`~`003` |
 | BFF | 레이어 경계 혼재 | 레이어드 + **SSE 스트리밍** | `BFF-REQ-006` |
 | 서버 | `src/modules/*` | **DDD 컨텍스트 우선** `{context}/{domain,application,infrastructure,presentation}` | `SRV-REQ-006` |
-| 서버 정리 | 삭제 대상 잔존 | 삭제 5건 · 동면 4건 · `410 Gone` | `SRV-REQ-007` |
+| 서버 정리 | 삭제 대상 잔존 | 삭제 5건 · 동면 4건 · `410 Gone`(동면 410 완료 2026-10-27) | `SRV-REQ-007` |
 
 **`@module-federation/nextjs-mf`를 버린 이유**: App Router 미지원 + Next.js 지원 종료. 대체 선정 근거와 4안 비교는 `requirements/decisions/ADR-001-microfrontend-replacement.md`.
 

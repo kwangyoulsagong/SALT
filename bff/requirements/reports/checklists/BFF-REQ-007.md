@@ -101,3 +101,27 @@
 
 프론트 호출 0건(`salt-microFe/apps` · `packages` grep). `/api/users/dashboard` 도 더했다(스펙 목록 밖 — 근거 `BFF-REQ-036.md` §3).
 테스트 3건(`gone.middleware.test.ts`). 실측과 명령은 `BFF-REQ-036.md`.
+
+## 10. B절 — 홈 조립 (2026-10-27, `chore/adr-002-remnants` `545270b`)
+
+| FR | 내용 | 결과 | 근거 |
+|---|---|---|---|
+| FR-10 | 블록 함수 구조 · 동면 소스 제거까지 | **부분** | 동면 소스 제거 pass. 블록별 엔드포인트 · 블록 함수 export 는 F006 `BFF-REQ-027`(소비처 0건 — 웹 홈은 블록마다 다른 경로를 부른다) |
+| FR-11 | `Promise.allSettled` | **pass** | `app-home.service` |
+| FR-12 | `/dashboard` 호출 제거 | **pass** | 단위 테스트가 부른 경로 = `/investment-notifications/unread-count` 하나 |
+| FR-13 | `/investment-insight/top` 호출 제거 | **pass** | 동일 |
+| FR-14 | F000 최소 구성(보유 요약 + 알림 + 시장 개요) | **pass** | 보유 요약은 `/api/app/portfolio/summary` 와 같은 함수(이름 · 로고 · `namesDegraded`) |
+| FR-15 | 서버 봉투가 아니라 뷰모델 | **pass** | `AppHomeVM { portfolio, unreadNotifications: number \| null, marketOverview, degradedBlocks }` |
+
+실경로: BFF 4101 → 워커 없는 스크래치 서버 4100(동면 410 상태) · 소유자 토큰 `GET /api/app/home` **200 · 70ms** · `degradedBlocks: []` · 보유 0 · 시장 20 · 안 읽은 알림 0.
+부분 실패: 단위 테스트(알림 · 시장 실패 → 둘만 `null` + `degradedBlocks`, 보유는 내려감).
+**main 에서도 이미 실패하고 있었다** — 서버 `/api/dashboard` · `/investment-insight/top` 이 라우터 바인딩 결함으로 언제나 500(`SRV-REQ-007` 체크리스트 §2).
+프론트 계약: `/api/app/home` 소비처 0건(`salt-microFe` grep — 스트리밍 프로브 주석 한 줄뿐) → shape 변경 영향 없음.
+
+명령: `npm run build` · `npm test` 278 pass(`app-home.test.ts` 2).
+
+| 남은 것 | 언제 닫히나 |
+|---|---|
+| 블록별 엔드포인트 · 블록 함수 | F006 `BFF-REQ-027` · `028` |
+| 블록 타임아웃 · 총 상한(`performance-bff.md` §3) | 동일 — 지금은 `backendApi` 클라이언트 타임아웃만 |
+| C절 알림 1종 | `notification` 컨텍스트 |

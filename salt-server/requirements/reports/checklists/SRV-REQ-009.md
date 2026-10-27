@@ -63,7 +63,22 @@
 
 | 항목 | 언제 닫히나 |
 |---|---|
-| 동면 5경로 **410 Gone + 1회 로그** (FR-7·8) | `SRV-REQ-007` · `BFF-REQ-007` A절과 함께 |
-| 410 로그 1주 수집 | 위가 끝난 뒤 1주 |
+| ~~동면 5경로 **410 Gone + 1회 로그** (FR-7·8)~~ | **닫힘 2026-10-27** — §9 |
+| 410 로그 1주 수집 | 2026-11-03 (머지 · 상시 서버 재시작 뒤 1주) |
 | 알림 `kind` 422 (FR-12·13) | `notification` 컨텍스트 |
 | 유지 경로 응답 스냅샷 테스트 (FR-23) | 미착수 |
+
+## 9. 동면 410 (2026-10-27, `chore/adr-002-remnants` `d344a50`)
+
+| FR | 내용 | 결과 | 근거 |
+|---|---|---|---|
+| FR-7 | 동면 경로 **410 + 1회 로그** | **pass** | 워커 없는 스크래치 서버(4100) 실측: `/api/missions`(+ `POST /x/start`) · `/api/users/points/stats` · `/api/users/achievements` · `/api/users/dashboard` · `/api/dashboard` · `/api/feed` · `/api/investment-insight/top` 410. 마운트 지점 7곳 호출 → 로그 7줄(반복 호출은 한 줄) |
+| FR-8 | `{ code: 'ENDPOINT_DORMANT', revivable: true }` | **pass** | 위 8경로 본문 |
+| — | 유지 경로가 가려지지 않는다 | **pass** | `/api/users/profile` · `/investment-insight/insights` · `/investment-notifications/unread-count` 401(인증으로 그대로) · `/api/nope` 404. 단위 테스트가 목록과 유지 경로 겹침 0을 본다 |
+| — | 1주 로그 잔여 0건 | **대기** | 2026-11-03 |
+
+**스펙 표와 다른 것** — `/api/investment-insight/ranking*` 은 없는 경로다. `insight-ranking.controller` 가 거는 `/top` 을 껐다.
+`/api/users/dashboard` 를 더했다(BFF 목록과 같다 — 미션 · 포인트 요약).
+
+명령: `npm run build` · `npm run lint` · `npm test` 820 pass(`goneMiddleware.test.ts` 2) · `npm run test:layer-check` · 레이어 훅 사후 실행 4파일 exit 0.
+Swagger: 동면 모듈 JSDoc 은 스캔 경로(`src/modules/**/*.routes.ts`)에 그대로 남는다 — 동면은 코드를 지우지 않는다(`SRV-REQ-007`).

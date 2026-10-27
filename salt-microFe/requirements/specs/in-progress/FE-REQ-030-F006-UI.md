@@ -199,7 +199,7 @@ created: 2026-09-09
 
 - [ ] **탭이 정확히 3개다**
 - [ ] 자산 탭 세그먼트가 `포지션` / `시장` / `관심 종목`이다
-- [ ] **`/tax` 링크 · 세금 칩 · 청구서 문구가 화면 코드에 0건이다**
+- [x] **`/tax` 링크 · 세금 칩 · 청구서 문구가 화면 코드에 0건이다** (2026-10-27 — `/tax` 링크. 세금 칩 · 청구서 문구는 원래 0건)
 - [ ] 탭바에 `role="tablist"` + `aria-current`가 있다
 - [ ] **홈 블록 순서가 고정이고 설정 항목이 0건이다**
 - [ ] **375×667 스크롤 전에 총자산·적립·추천이 보인다**
@@ -266,3 +266,4 @@ created: 2026-09-09
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. 개정: FSD 표 · 3탭 경로 · FR-2(세그먼트 D7) · FR-3(`/tax` 링크 제거, Q1) · FR-10(3블록 D6) · FR-15 · FR-16 · FR-18 · FR-21 · FR-32(Chip) · FR-51(격자 = 코치 탭) · FR-60(온보딩 B12, **BREAKING** 단계 키). 추가: FR-22(B6) · FR-23(B7) · FR-24 · FR-80~82(헤더 · 검색 D8) · FR-90~93(시장 · 관심 종목 D4 · D7) · FR-100~109(포지션 · 거래 시트 · `RadarChart`, B13 · B14) · FR-110~113(알림 D5 · B4 · B19) · FR-120~127(설정 D9 · B16 · B19). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
+| 2026-10-27 | **FR-3 구현**, `to-do` → `in-progress`(`chore/adr-002-remnants` `e2f2dfc`, 루트 `F000-dormant-410`). 홈 브리핑 `CrossZoneLink href="/tax"` · 문구 `taxCockpitLink` 삭제. `CrossZoneLink` 는 소비처 0 이 됐지만 `shared/ui` 에 남긴다(zone 이 둘인 한 다음 교차 링크가 쓴다). `apps/web-tax` zone 은 Q1. 나머지 FR 은 F006. 근거: `requirements/reports/checklists/FE-REQ-030.md` |

@@ -126,9 +126,9 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 - [x] 동면 경로가 **410 Gone**이고 1회 로그를 남긴다 (2026-09-22)
 - [x] 동면 경로 목록이 상수다 (2026-09-22)
 - [ ] **410 로그 1주 수집 결과 잔여 호출이 0건이다**
-- [ ] `app-home.service`에 `/dashboard`·`/investment-insight/top` 호출이 0건이다
-- [ ] `Promise.all`이 0건이다
-- [ ] 홈 반환이 서버 응답 봉투가 아니라 뷰모델이다 (`.data` 중첩 0건)
+- [x] `app-home.service`에 `/dashboard`·`/investment-insight/top` 호출이 0건이다 (2026-10-27)
+- [x] `Promise.all`이 0건이다 (2026-10-27 — `app-home.service`)
+- [x] 홈 반환이 서버 응답 봉투가 아니라 뷰모델이다 (`.data` 중첩 0건) (2026-10-27)
 - [ ] 알림 `kind`가 **1종**(`signal_update`)뿐이다 (개정 2026-09-21)
 - [ ] 서버가 다른 `kind`를 줘도 오류 없이 필터된다
 - [ ] 알림 응답에 금액이 0건이다
@@ -174,6 +174,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 | 2026-09-18 | **G절을 구현했다.** 닫힌 것: FR-60~64(proxy `register` 제거 · 온보딩 3라우트 · `check` 무인증 + rate limit · `403` + `reasonCode` 그대로). `users/password`·`users/account` proxy 도 함께 제거. **남은 것**: A절(동면 410) · B절(홈 조립) · C절(알림 2종). 근거: `requirements/reports/checklists/BFF-REQ-007.md` §6~§8 |
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: H절 FR-70~74(종목 검색 · 추적 상한 409 전달 · 신호 필드 없음 — D8 · D4) · I절 FR-80~86(뉴스 뷰모델 `sentiment` · `symbols` 유지 · `isBookmarked` · 북마크 3경로 · 알림과 분리 — B11 · D5) · J절 FR-90~91(목표 수량 proxy 통과 — B5). 개정: FR-14 · 20 알림 2종 → **1종**, 홈 최종 형태 5블록 → F006 3블록(D6). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-09-22 | **A절을 구현했다**(`BFF-REQ-036` FR-4). 닫힌 것: FR-1~5(feed 등록 해제 · 파일 유지 · proxy 동면 경로 제거 · `410 { code: 'ENDPOINT_DORMANT', revivable: true }` · `DORMANT_PATHS` 상수 · 마운트 지점당 1회 로그). **남은 것**: FR-6(1주 로그 확인, 2026-09-29) · B절 · C절. 근거: `requirements/reports/checklists/BFF-REQ-007.md` §9 |
+| 2026-10-27 | **B절을 구현했다**(FR-10~15, `chore/adr-002-remnants` `545270b`, 루트 `F000-dormant-410`). 서버 동면 410(`SRV-REQ-009` FR-7 · 8)과 같은 PR — 서버만 바꾸면 `Promise.all` 이 홈 전체를 실패시킨다. 블록 셋(보유 요약 = `appPortfolioService.getSummary` 재사용 · 안 읽은 알림 수 · 시장 개요)을 `allSettled` 로 받고 실패 블록만 `null` + `degradedBlocks`. FR-10 의 "블록 함수 구조"는 F006(`BFF-REQ-027`)으로 둔다 — 지금 소비처 0건. 덧: main 에서도 서버 `/dashboard` · `/investment-insight/top` 이 언제나 500 이라 이 경로는 이미 실패하고 있었다. **남은 것**: C절 · FR-6 1주 로그. 근거: `requirements/reports/checklists/BFF-REQ-007.md` §10 |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 
