@@ -62,9 +62,12 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 | FR-26 | **월간 복기 국내판**(슬라이스 7f · `SRV-REQ-040` FR-48) — `GET /api/app/coach/review/monthly/kr-stock` → 서버 `/coach/review/monthly/kr-stock`. 뷰모델은 코인판과 같은 `toMonthlyReviewViewModel` + `assetType`(없으면 코인 — 옛 서버) · 빗나간 예측 `name`(없으면 `null`, 미러 Brier 도 같은 조각이라 `null`) · IPS `scope`(`all_assets` · `asset_type`, 모르면 `asset_type` — 7f 후속). 소유자 404 그대로 · 5xx · 타임아웃은 `unavailable` · 재시도 1회(만드는 쪽이 멱등) · 타임아웃 1.5초(코인판과 같다 — 실 DB 국내 복기 생성 32ms) | 완료(7f) |
 | FR-27 | **국내 지수 요약**(슬라이스 6 · `SRV-REQ-040` FR-49) — `GET /api/app/market/kr/indices` → 서버 `/market/kr/indices`. `toKrIndicesVM`: 이름 · 값 · 등락 · 상승/보합/하락 수(numOrNull) · `updatedAt` · `stale` 만 옮긴다(서버 순서 그대로). 실패 규칙은 다른 국내 경로와 같다(4xx 그대로 · 503 꺼짐 `disabled` · 5xx · 계약 깨짐 `unavailable`) · 캐시 없음 | 완료 2026-10-26(`0cb5ceb`) |
 | FR-28 | **투자자 순매수**(슬라이스 6 · `SRV-REQ-040` FR-50) — `GET /api/app/market/kr/:code/investors?days=`(1~30, 기본 20 — 범위 밖 · 코드 형식 틀림은 서버를 부르지 않고 400). `toKrInvestorsVM`: 행(날짜 · 세 부류 `{ quantity: string, value }`) · 서버 합계 `totals`(없으면 `null` 그대로) · `collectedAt`. 금액 계산 0건 | 완료 2026-10-26(`0cb5ceb`) |
+| FR-29 | **호가 10단계**(슬라이스 6b · `SRV-REQ-040` FR-51) — `GET /api/app/market/kr/:code/orderbook`(코드 형식 틀리면 400 · 서비스 안 부름). 뷰모델 `toKrOrderbookVM` — 매도 · 매수 1단계부터 그대로, 잔량 문자열 · 합계 `null` 그대로 · `available` · `stale` · `at` · `fetchedAt`. 다른 국내 경로와 같은 실패 규칙(4xx 그대로 · 503 꺼짐 `disabled` · 5xx · 계약 깨짐 `unavailable`). **타임아웃만 5초**(국내 읽기 800ms) — 서버가 요청 시점에 KIS 를 불러 장중 0.4~3.5초. BFF 캐시 없음(서버가 10초 캐시) | 완료 2026-10-27(`e291cb2`) |
+| FR-30 | **시세 뷰모델 `afterHours`**(슬라이스 6b · `SRV-REQ-040` FR-52) — 목록 · 상세 `KrQuoteVM.afterHours { price, change, changeRate, volume, at } \| null`. 정규장 값과 따로 옮기고 금액 계산 0건. 필드가 없는 옛 서버는 `null`, 칸이 깨지면 계약 깨짐 | 완료 2026-10-27(`e291cb2`) |
 
 ## 계약 변경
 
+- **슬라이스 6b(2026-10-27)** — 새 경로 `/api/app/market/kr/:code/orderbook`(소유자 404). 시세 뷰모델 `afterHours` **추가만**(목록 · 상세). 서버 짝 `SRV-REQ-040` FR-51 · 52, 소비처 `FE-REQ-041` FR-33 · 34
 - **슬라이스 6(2026-10-26)** — 새 경로 `/api/app/market/kr/indices` · `/:code/investors`(소유자 404, 라우터 순서상 `/indices` 는 `/:code` 앞). 기존 경로 무변경. 서버 짝 `SRV-REQ-040` FR-49 · 50, 소비처 `FE-REQ-041` FR-31 · 32
 - **슬라이스 7f(2026-10-26)** — 새 경로 `/api/app/coach/review/monthly/kr-stock`(소유자 404). 복기 뷰 `assetType` · Brier 빗나간 사례 `name` **추가만**. 서버 짝 `SRV-REQ-040` FR-48, 소비처 `FE-REQ-041` FR-30
 - **새 경로** `/api/app/market/kr/*` 5개(소비처 없음 — `FE-REQ-041` 이 첫 소비처)
@@ -75,6 +78,7 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 
 ## Changelog
 
+- 2026-10-27: 슬라이스 6b — FR-29 호가 경로 · 뷰모델(타임아웃 5초) · FR-30 시세 `afterHours`. 테스트 270 → 276(뷰모델 4 · 서비스 1 · 컨트롤러 1)
 - 2026-10-26: 슬라이스 6 — FR-27 지수 · FR-28 투자자 순매수 경로 · 뷰모델. 테스트 265 → 270(서비스 4 · 컨트롤러 1)
 - 2026-10-26: 슬라이스 7f — FR-26 월간 복기 국내판 경로 · `assetType` · `name`. 뷰모델 주인 `BFF-REQ-038` · 경로 `BFF-REQ-023`(Changelog 같이). 테스트 263 → 265
 - 2026-10-26: 슬라이스 7e — FR-25 합산 변동성(추가 필드). 뷰모델 주인 `BFF-REQ-038`(Changelog 같이). 테스트 263

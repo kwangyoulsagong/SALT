@@ -355,6 +355,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 
 ## Changelog
 
+- 2026-10-27: F011 슬라이스 6b(호가 · 시간외 · KIS 우선순위) — `env.ts` 국내 호출 속도 주석(값 무변경) — 코치 설정값 무변경(파일만 걸침)
 - 2026-10-26: F011 슬라이스 6(국내 지수 · 투자자 순매수) — `env.ts` 에 국내 지수 설정 한 줄 추가 — 코치 설정값 무변경(파일만 걸침)
 | 날짜 | 변경 |
 |---|---|

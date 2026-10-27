@@ -134,6 +134,17 @@ describe("AppKrStockService — 지수 · 투자자 순매수", () => {
     assert.equal(empty.status === "ok" && empty.totals, null);
   });
 
+  it("호가 — 서버 경로 · 응답을 옮긴다(슬라이스 6b)", async () => {
+    const calls: string[] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, path: string) => {
+      calls.push(path);
+      return ok({ code: "005930", available: true, asks: [], bids: [], totalAskQuantity: "0", totalBidQuantity: "0", at: null, fetchedAt: "2026-10-27T01:20:17.114Z", stale: false });
+    });
+    const r = await appKrStockService.getOrderbook("t", "005930");
+    assert.equal(r.status === "ok" && r.available, true);
+    assert.equal(calls[0], "/market/kr/005930/orderbook");
+  });
+
   it("투자자 404(소유자 아님)는 그대로 올린다", async () => {
     mock.method(backendApi, "proxyAuthRequest", async () => {
       throw httpError(404, "KR_STOCK_NOT_AVAILABLE");

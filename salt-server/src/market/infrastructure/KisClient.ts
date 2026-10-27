@@ -7,6 +7,7 @@ import {
   type RatePacer,
 } from "../../shared/infrastructure";
 import {
+  KR_ORDERBOOK_DEPTH,
   KR_PROVIDER_DEGRADED_AFTER,
   KR_RATE_LIMITED_CODE,
   kstDateOf,
@@ -14,7 +15,10 @@ import {
   type KrIndexQuoteFact,
   type KrInvestorFlowFact,
   type KrInvestorNet,
+  type KrAfterHoursFact,
   type KrMarketDay,
+  type KrOrderbookFact,
+  type KrOrderbookLevel,
   type KrProviderHealthPort,
   type KrProviderSnapshot,
   type KrStockQuoteFact,
@@ -55,6 +59,10 @@ export const KIS_QUERY_TR = {
   indexPrice: "FHPUP02100000",
   /** 주식현재가 투자자 — 최근 30거래일 개인 · 외국인 · 기관 순매수(슬라이스 6 FR-29) */
   investor: "FHKST01010900",
+  /** 주식현재가 호가/예상체결 — 매도 · 매수 10단계 잔량(슬라이스 6b FR-28) */
+  askingPrice: "FHKST01010200",
+  /** 국내주식 시간외현재가 — 시간외 단일가(슬라이스 6b FR-27). 장중엔 전부 0 이다(2026-10-27 10:12 실측) */
+  overtimePrice: "FHPST02300000",
 } as const;
 
 /**
@@ -108,9 +116,19 @@ const isRetryableKisError = (error: unknown): boolean => {
 };
 
 /**
+ * 한도를 나눠 쓰는 순서(F011 FR-91): 실시간 유지 > 보유 · 관심 · 시총 폴링 > 일봉 · 분봉 > 부가(지수 · 투자자).
+ * 호가는 부가 정보지만 **화면이 기다리는** 요청 시점 조회라 폴링 줄에 선다 — 폴링은 동시 6건이라 앞에 많아야 6건이다.
+ * 페이서가 출발 자리가 날 때마다 작은 값부터 보낸다. 폴링 안의 보유 → 관심 → 시총 순서는 유니버스 순서가 정한다
+ * (같은 우선순위는 요청 순서). 실시간(WS) 자체는 REST 를 쓰지 않는다 — 승인키 · 토큰 발급이 그 자리다
+ */
+export const KIS_PRIORITY = { realtime: 0, poll: 1, candles: 2, supplement: 3 } as const;
+type KisPriority = (typeof KIS_PRIORITY)[keyof typeof KIS_PRIORITY];
+
+/**
  * 기본 상한 3건/s. 실시간 · 백필 · 폴링이 이 한 줄을 나눠 쓴다. 한도는 앱 키 단위라 이 페이서가 프로세스에 하나여야
  * 한다(`composition.ts` 가 한 벌만 만든다). 2026-10-07 실측 처리량 상한이 약 2건/s 라 문서상 20건/s 의 30%(6)에서
- * 내렸다 — 값은 설정(`KIS_REQUESTS_PER_SECOND`)이 정하고 이것은 테스트용 기본이다
+ * 내렸다 — 값은 설정(`KIS_REQUESTS_PER_SECOND`)이 정하고 이것은 테스트용 기본이다.
+ * 2026-10-27 장중 10분 창 현재가 초과율 3건/s 23% · 2건/s 19% · 1.5건/s 21% — 속도를 내려도 줄지 않아 3 그대로(슬라이스 6b)
  */
 const DEFAULT_REQUESTS_PER_SECOND = 3;
 
@@ -211,7 +229,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
     const body = await this.get("/uapi/domestic-stock/v1/quotations/inquire-price", KIS_QUERY_TR.inquirePrice, {
       FID_COND_MRKT_DIV_CODE: "J",
       FID_INPUT_ISCD: code,
-    });
+    }, KIS_PRIORITY.poll);
     const o = body.output ?? {};
     const price = num(o.stck_prpr);
     if (price === null) throw new KisApiError(undefined, undefined, `KIS 현재가 없음 — ${code}`);
@@ -259,7 +277,8 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
         FID_PERIOD_DIV_CODE: "D",
         // 0 = 수정주가 — 지표 · 전망은 액면분할로 끊기지 않은 값을 쓴다(Open Question: 원주가 병행)
         FID_ORG_ADJ_PRC: "0",
-      }
+      },
+      KIS_PRIORITY.candles
     );
     const rows: any[] = Array.isArray(body.output2) ? body.output2 : [];
     return rows
@@ -286,7 +305,8 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
         FID_INPUT_ISCD: code,
         FID_INPUT_HOUR_1: hhmmss,
         FID_PW_DATA_INCU_YN: "N",
-      }
+      },
+      KIS_PRIORITY.candles
     );
     const rows: any[] = Array.isArray(body.output2) ? body.output2 : [];
     return rows.flatMap((row) => {
@@ -313,7 +333,8 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
         FID_INPUT_DATE_1: compactDate(date),
         FID_PW_DATA_INCU_YN: "Y",
         FID_FAKE_TICK_INCU_YN: "",
-      }
+      },
+      KIS_PRIORITY.candles
     );
     const rows: any[] = Array.isArray(body.output2) ? body.output2 : [];
     return rows.flatMap((row) => {
@@ -330,7 +351,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
       BASS_DT: compactDate(baseDate),
       CTX_AREA_NK: "",
       CTX_AREA_FK: "",
-    });
+    }, KIS_PRIORITY.poll);
     const rows: any[] = Array.isArray(body.output) ? body.output : body.output ? [body.output] : [];
     return rows
       .filter((row) => typeof row?.bass_dt === "string" && row.bass_dt.length === 8)
@@ -351,7 +372,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
     const body = await this.get("/uapi/domestic-stock/v1/quotations/inquire-index-price", KIS_QUERY_TR.indexPrice, {
       FID_COND_MRKT_DIV_CODE: "U",
       FID_INPUT_ISCD: code,
-    });
+    }, KIS_PRIORITY.supplement);
     const o = body.output ?? {};
     const value = num(o.bstp_nmix_prpr);
     if (value === null) throw new KisApiError(undefined, undefined, `KIS 지수 없음 — ${code}`);
@@ -378,7 +399,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
     const body = await this.get("/uapi/domestic-stock/v1/quotations/inquire-investor", KIS_QUERY_TR.investor, {
       FID_COND_MRKT_DIV_CODE: "J",
       FID_INPUT_ISCD: code,
-    });
+    }, KIS_PRIORITY.supplement);
     const rows: any[] = Array.isArray(body.output) ? body.output : [];
     return rows.flatMap((row) => {
       const date = row?.stck_bsop_date;
@@ -397,23 +418,80 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
     });
   }
 
+  /**
+   * 호가 10단계. `askp1` 이 가장 싼 매도 · `bidp1` 이 가장 비싼 매수다. 가격 0 은 그 단계가 비었다는 뜻이라 뺀다.
+   * 접수 시각 `aspr_acpt_hour` 는 오늘 KST hhmmss(2026-10-27 실측 10:11:45 삼성전자 223,500 / 223,000 · 총잔량 703,049 / 457,349)
+   */
+  async orderbook(code: string): Promise<KrOrderbookFact> {
+    const body = await this.get(
+      "/uapi/domestic-stock/v1/quotations/inquire-asking-price-exp-ccn",
+      KIS_QUERY_TR.askingPrice,
+      { FID_COND_MRKT_DIV_CODE: "J", FID_INPUT_ISCD: code },
+      KIS_PRIORITY.poll
+    );
+    const o = body.output1 ?? {};
+    const side = (price: string, qty: string): KrOrderbookLevel[] =>
+      Array.from({ length: KR_ORDERBOOK_DEPTH }, (_, i) => i + 1).flatMap((n) => {
+        const p = num(o[`${price}${n}`]);
+        return p && p > 0 ? [{ price: p, quantity: BigInt(Math.trunc(num(o[`${qty}${n}`]) ?? 0)) }] : [];
+      });
+    const hour = typeof o.aspr_acpt_hour === "string" && /^\d{6}$/.test(o.aspr_acpt_hour) ? o.aspr_acpt_hour : null;
+    // 날짜는 응답에 없다 — 자정 넘어 본 장 마감 호가(15:30)는 오늘 날짜면 미래가 되니 하루 앞으로 돌린다
+    const now = this.now();
+    let at = hour ? new Date(`${kstDateOf(now)}T${hour.slice(0, 2)}:${hour.slice(2, 4)}:${hour.slice(4, 6)}+09:00`) : null;
+    if (at && at.getTime() > now.getTime() + 60_000) at = new Date(at.getTime() - 86_400_000);
+    return {
+      code,
+      asks: side("askp", "askp_rsqn"),
+      bids: side("bidp", "bidp_rsqn"),
+      totalAskQuantity: BigInt(Math.trunc(num(o.total_askp_rsqn) ?? 0)),
+      totalBidQuantity: BigInt(Math.trunc(num(o.total_bidp_rsqn) ?? 0)),
+      at,
+    };
+  }
+
+  /**
+   * 시간외 단일가. 가격이 0 이면 그날 체결이 없다 → `null`. 등락은 부호 칸(`*_sign` 1 · 2 상승, 4 · 5 하락)으로 방향을
+   * 정한다 — 값 칸에 부호가 붙어 오는지 아직 실측 전이라(장중엔 전부 0) 둘 다 받아도 같은 답이 나오게 절댓값에 부호를 씌운다
+   */
+  async afterHoursQuote(code: string): Promise<KrAfterHoursFact | null> {
+    const body = await this.get(
+      "/uapi/domestic-stock/v1/quotations/inquire-overtime-price",
+      KIS_QUERY_TR.overtimePrice,
+      { FID_COND_MRKT_DIV_CODE: "J", FID_INPUT_ISCD: code },
+      KIS_PRIORITY.supplement
+    );
+    const o = body.output ?? {};
+    const price = num(o.ovtm_untp_prpr);
+    if (!price || price <= 0) return null;
+    const sign = o.ovtm_untp_prdy_vrss_sign === "4" || o.ovtm_untp_prdy_vrss_sign === "5" ? -1 : 1;
+    const flat = o.ovtm_untp_prdy_vrss_sign === "3";
+    return {
+      code,
+      price,
+      change: flat ? 0 : sign * Math.abs(num(o.ovtm_untp_prdy_vrss) ?? 0),
+      changeRate: flat ? 0 : sign * Math.abs(num(o.ovtm_untp_prdy_ctrt) ?? 0),
+      volume: BigInt(Math.trunc(num(o.ovtm_untp_vol) ?? 0)),
+    };
+  }
+
   // ==================== 요청 ====================
 
-  private async get(path: string, trId: string, params: Record<string, string>): Promise<any> {
+  private async get(path: string, trId: string, params: Record<string, string>, priority: KisPriority): Promise<any> {
     assertQueryTr(trId);
     let reissued = false;
 
     const once = async () => {
       const token = await this.accessToken();
       try {
-        return await this.send(path, trId, params, token);
+        return await this.send(path, trId, params, token, priority);
       } catch (error) {
         // 토큰이 서버에서 먼저 죽었다 — 한 번만 새로 받는다(FR-92)
         if (!reissued && error instanceof KisApiError && TOKEN_INVALID.has(error.msgCode ?? "")) {
           reissued = true;
           this.cached = null;
           await prisma.externalApiToken.deleteMany({ where: { provider: "kis", tokenType: "access" } });
-          return this.send(path, trId, params, await this.accessToken());
+          return this.send(path, trId, params, await this.accessToken(), priority);
         }
         throw error;
       }
@@ -427,7 +505,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
   }
 
   /** 페이서 안쪽 — 재시도도 KIS 에는 한 건이다 */
-  private send(path: string, trId: string, params: Record<string, string>, token: string) {
+  private send(path: string, trId: string, params: Record<string, string>, token: string, priority: KisPriority) {
     return this.pacer.run(async () => {
       const wait = this.cooldownUntil - Date.now();
       if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
@@ -460,7 +538,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
         }
         throw sanitized;
       }
-    });
+    }, priority);
   }
 
   private describe(trId: string, status: number | undefined, body: any) {
@@ -498,7 +576,8 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
           grant_type: "client_credentials",
           appkey: this.options.appKey,
           secretkey: this.options.appSecret,
-        })
+        }),
+        KIS_PRIORITY.realtime
       );
       const key = response.data?.approval_key;
       if (typeof key !== "string") {
@@ -551,7 +630,8 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
           grant_type: "client_credentials",
           appkey: this.options.appKey,
           appsecret: this.options.appSecret,
-        })
+        }),
+        KIS_PRIORITY.realtime
       );
       const body = response.data ?? {};
       if (typeof body.access_token !== "string") {

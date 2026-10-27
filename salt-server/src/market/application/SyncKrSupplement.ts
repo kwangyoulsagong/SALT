@@ -1,9 +1,12 @@
 import { logger } from "../../shared/config/logger";
 import {
+  isKrAfterHoursPollMinute,
   isKrQuoteWindow,
   isKrRateLimited,
   isSettledInvestorDay,
   kstDateOf,
+  latestInvestorSettleAt,
+  type KrAfterHoursFact,
   type KrIndexQuoteFact,
   type KrMarketCalendarStore,
   type KrSupplementPort,
@@ -77,7 +80,8 @@ const CIRCUIT_FAILURES = 5;
 /**
  * 종목별 투자자 순매수(FR-50) — 개장일 저녁 한 번, 유니버스(보유 → 관심 → 시총 순)만. 종목마다 최근 30거래일을 받아
  * 덮는다 — 처음 보는 종목도 첫 회차에 30거래일이 차고, 어제 저장한 잠정치는 오늘 확정치로 바뀐다.
- * 당일 행은 18:00 KST 뒤에만 저장한다(`isSettledInvestorDay`).
+ * 당일 행은 18:00 KST 뒤에만 저장한다(`isSettledInvestorDay`). 같은 확정 뒤에 이미 받은 종목은 건너뛴다 — 한도에 양보한
+ * 회차 · 놓친 회차를 다음 회차가 이어 받는다(슬라이스 6b).
  */
 export class SyncKrInvestorFlows {
   constructor(
@@ -95,7 +99,14 @@ export class SyncKrInvestorFlows {
     const [day] = await this.calendar.days(today, today);
     if (day && !day.isOpen) return { skipped: true as const, reason: "closed" as const };
 
-    const codes = await this.universe.execute();
+    // 이어 받기 — 가장 최근 확정(18:00) 뒤에 이미 받은 종목은 건너뛴다. 30거래일을 통째로 덮으므로 다시 받아도 같은 행이다
+    const universe = await this.universe.execute();
+    const done = new Set(await this.store.investorFlowCodesCollectedSince(latestInvestorSettleAt(at)));
+    const codes = universe.filter((code) => !done.has(code));
+    if (codes.length === 0) {
+      logger.info(`🇰🇷 국내 투자자 동향: 이미 받음 ${done.size}/${universe.length}종목`);
+      return { skipped: true as const, reason: "already_collected" as const };
+    }
     let saved = 0;
     let rows = 0;
     let failed = 0;
@@ -120,7 +131,55 @@ export class SyncKrInvestorFlows {
       }
     }
     const stopped = yielded ? " · 한도 초과로 양보" : consecutive >= CIRCUIT_FAILURES ? " · 연속 실패로 중단" : "";
-    logger.info(`🇰🇷 국내 투자자 동향: ${saved}/${codes.length}종목 · ${rows}행 · 실패 ${failed}${stopped}`);
+    const resumed = done.size > 0 ? ` · 이어 받기(앞서 ${done.size})` : "";
+    logger.info(`🇰🇷 국내 투자자 동향: ${saved}/${codes.length}종목 · ${rows}행 · 실패 ${failed}${resumed}${stopped}`);
     return { skipped: false as const, codes: codes.length, saved, rows, failed, yielded };
+  }
+}
+
+/**
+ * 시간외 단일가(FR-27) — 16:11 … 18:01, 10분마다 체결 1분 뒤에 유니버스만. 워커가 매분 부르고 부를지는 여기서 정한다
+ * (`isKrAfterHoursPollMinute`). 부가 작업이라 한도 초과를 만나면 회차를 접는다(FR-91) — 10분 뒤 회차가 다시 받는다.
+ * 체결이 없는 종목(`null`)은 쓰지 않는다 — 앞 회차 값이 그대로 마지막 시간외 값이다
+ */
+export class PollKrAfterHours {
+  constructor(
+    private readonly kis: KrSupplementPort,
+    private readonly store: KrSupplementStore,
+    private readonly calendar: KrMarketCalendarStore,
+    private readonly universe: ResolveKrStockUniverse,
+    private readonly now: () => Date = () => new Date()
+  ) {}
+
+  async execute() {
+    const at = this.now();
+    const session = await loadKrSession(this.calendar, at);
+    if (!isKrAfterHoursPollMinute(at, session)) return { skipped: true as const, reason: "not_due" as const };
+
+    const codes = await this.universe.execute();
+    const facts: KrAfterHoursFact[] = [];
+    let failed = 0;
+    let consecutive = 0;
+    let yielded = false;
+    for (const code of codes) {
+      try {
+        const fact = await this.kis.afterHoursQuote(code);
+        if (fact) facts.push(fact);
+        consecutive = 0;
+      } catch (error) {
+        failed++;
+        consecutive++;
+        logger.warn(`국내 시간외 단일가 실패 — ${code}: ${(error as Error).message}`);
+        if (isKrRateLimited(error)) {
+          yielded = true;
+          break;
+        }
+        if (consecutive >= CIRCUIT_FAILURES) break;
+      }
+    }
+    await this.store.upsertAfterHours(facts, this.now());
+    const stopped = yielded ? " · 한도 초과로 양보" : consecutive >= CIRCUIT_FAILURES ? " · 연속 실패로 중단" : "";
+    logger.info(`🌙 국내 시간외 단일가: 체결 ${facts.length}/${codes.length}종목 · 실패 ${failed}${stopped}`);
+    return { skipped: false as const, codes: codes.length, traded: facts.length, failed, yielded };
   }
 }

@@ -8,6 +8,7 @@ import {
   toKrDetailVM,
   toKrIndicesVM,
   toKrInvestorsVM,
+  toKrOrderbookVM,
   toKrMarketStatusVM,
   toKrOverviewVM,
   toKrSearchVM,
@@ -23,6 +24,11 @@ import {
  */
 const KR_READ_TIMEOUT_MS = 800;
 const KR_CHART_TIMEOUT_MS = 1_500;
+/**
+ * 호가는 저장값이 아니라 서버가 요청 시점에 KIS 를 부른다(F011 슬라이스 6b) — 장중 실측 0.4~3.5초(시세 폴링 뒤에
+ * 선다). 800ms 면 거의 늘 unavailable 이라 따로 준다. 서버는 10초 캐시라 다시 불러도 KIS 를 또 부르지 않는다
+ */
+const KR_ORDERBOOK_TIMEOUT_MS = 5_000;
 
 /** 서버가 KIS 키 없이 기동했다 — `503 KR_STOCK_DISABLED`(서버 `KrStockDisabledError`) */
 const DISABLED_CODE = "KR_STOCK_DISABLED";
@@ -133,6 +139,14 @@ export class AppKrStockService {
   /** 국내 주식 탭 요약 띠 — 코스피 · 코스닥(F011 슬라이스 6) */
   getIndices(token: string, signal?: AbortSignal) {
     return this.read("indices", "/market/kr/indices", token, toKrIndicesVM, { timeout: KR_READ_TIMEOUT_MS, signal });
+  }
+
+  /** 상세 호가 10단계(슬라이스 6b) */
+  getOrderbook(token: string, code: string, signal?: AbortSignal) {
+    return this.read("orderbook", `/market/kr/${encodeURIComponent(code)}/orderbook`, token, toKrOrderbookVM, {
+      timeout: KR_ORDERBOOK_TIMEOUT_MS,
+      signal,
+    });
   }
 
   /** 상세 투자자 순매수 — 최근 `days` 거래일(최대 30) */

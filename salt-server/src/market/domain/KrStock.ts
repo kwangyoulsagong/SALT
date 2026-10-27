@@ -75,7 +75,39 @@ export interface StoredKrStockQuote extends KrStockQuoteFact {
   logoSource: KrLogoSource | null;
   feed: KrQuoteFeed;
   priceUpdatedAt: Date;
+  /** 마지막으로 받은 시간외 단일가(FR-27) — 보일지는 `krAfterHoursVisible` 이 정한다 */
+  afterHours: KrAfterHoursQuote | null;
 }
+
+/** 시간외 단일가 한 회차(16:00~18:00, 10분 단일가 · F011 FR-27). 정규장 현재가 · 등락과 섞지 않는다 */
+export interface KrAfterHoursQuote {
+  price: number;
+  /** 정규장 종가 대비(원, 부호 포함) */
+  change: number;
+  changeRate: number;
+  volume: bigint;
+  /** 받은 회차 시각 */
+  at: Date;
+}
+
+/**
+ * 시간외 값은 **마지막 정규장 마감 뒤에 받은 것만** 보인다. 다음 정규장이 열리면(`lastCloseAt` = null) 숨는다 —
+ * 어제 시간외가 오늘 장중 현재가 옆에 남지 않게. 장전(08:30~09:00)엔 어제 시간외가 아직 마지막 값이라 보인다
+ */
+export const krAfterHoursVisible = (q: KrAfterHoursQuote | null, session: KrSessionView): KrAfterHoursQuote | null =>
+  q && session.lastCloseAt && q.at.getTime() >= session.lastCloseAt.getTime() ? q : null;
+
+/**
+ * 시간외 단일가 받을 분인가 — 체결이 16:10 부터 18:00 까지 10분마다라 그 1분 뒤(16:11 … 18:01). 오늘이 개장일이었는지는
+ * 마지막 정규장 마감이 오늘인지로 본다(휴장일 · 주말이면 마감이 앞 거래일이다)
+ */
+export const isKrAfterHoursPollMinute = (at: Date, session: KrSessionView): boolean => {
+  if (session.session !== "after_hours_single" && session.session !== "closed") return false;
+  if (!session.lastCloseAt || kstDateOf(session.lastCloseAt) !== kstDateOf(at)) return false;
+  const kst = new Date(at.getTime() + KST_OFFSET_MS);
+  const minute = kst.getUTCHours() * 60 + kst.getUTCMinutes();
+  return minute >= MIN(16, 11) && minute <= MIN(18, 1) && minute % 10 === 1;
+};
 
 /** 개장일 달력 하루(KIS 휴장일 조회 원문 플래그) */
 export interface KrMarketDay {

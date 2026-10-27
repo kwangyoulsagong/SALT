@@ -81,3 +81,46 @@ describe("createRatePacer", () => {
     assert.equal(await next, "ok");
   });
 });
+
+describe("createRatePacer — 우선순위(F011 FR-91)", () => {
+  it("자리가 날 때 기다리는 것 중 작은 우선순위가 먼저 나간다 · 같은 우선순위는 요청 순서", async () => {
+    const clock = fakeClock();
+    const pacer = createRatePacer({ perSecond: 1, now: clock.now, sleep: clock.sleep });
+
+    const order: string[] = [];
+    await Promise.all([
+      pacer.run(async () => order.push("candle-1"), 2),
+      pacer.run(async () => order.push("candle-2"), 2),
+      pacer.run(async () => order.push("extra"), 3),
+      pacer.run(async () => order.push("poll-1"), 1),
+      pacer.run(async () => order.push("poll-2"), 1),
+    ]);
+
+    // 첫 호출은 줄이 비어 바로 나간다 — 그 뒤부터 우선순위
+    assert.deepEqual(order, ["candle-1", "poll-1", "poll-2", "candle-2", "extra"]);
+  });
+
+  it("간격을 기다리는 동안 들어온 급한 호출이 앞선다", async () => {
+    let t = 0;
+    let onSleep: (() => void) | null = null;
+    const pacer = createRatePacer({
+      perSecond: 1,
+      now: () => t,
+      sleep: async (ms: number) => {
+        onSleep?.();
+        onSleep = null;
+        t += ms;
+      },
+    });
+
+    const order: string[] = [];
+    const first = pacer.run(async () => order.push("a"), 2);
+    // 두 번째 출발을 기다리는 사이 보유 종목 시세가 들어온다
+    onSleep = () => void pacer.run(async () => order.push("urgent"), 0);
+    const second = pacer.run(async () => order.push("b"), 2);
+    await Promise.all([first, second]);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    assert.deepEqual(order, ["a", "urgent", "b"]);
+  });
+});

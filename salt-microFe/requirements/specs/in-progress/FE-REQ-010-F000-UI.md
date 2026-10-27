@@ -232,6 +232,7 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 
 ## Changelog
 
+- 2026-10-27: F011 슬라이스 6b(호가 · 시간외) — `MARKET_ENDPOINTS` · `marketQueryKeys` 에 국내 호가 키 · `KrChangeText` 에 `strong`(새 자리 진한 색, 기존 자리 무변경). 이 REQ 의 수리 · 변경 금지 목록 무변경(본문 `FE-REQ-041` FR-33 · 34)
 - 2026-10-26: F011 슬라이스 6(국내 지수 · 투자자 순매수) — `MARKET_ENDPOINTS` · `marketQueryKeys` 에 국내 두 키 · 시장 화면 레이아웃 CSS 에 국내 지수 자리(74px). 이 REQ 의 수리 · 변경 금지 목록 무변경(본문 `FE-REQ-041` FR-31 · 32)
 | 날짜 | 변경 |
 |---|---|

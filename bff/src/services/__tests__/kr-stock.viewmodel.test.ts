@@ -6,6 +6,7 @@ import {
   toKrChartVM,
   toKrDetailVM,
   toKrMarketStatusVM,
+  toKrOrderbookVM,
   toKrOverviewVM,
   toKrPriceUpdate,
   toKrSearchVM,
@@ -42,6 +43,7 @@ const quote = (over: Record<string, unknown> = {}) => ({
   isHalted: false,
   feed: "realtime",
   priceUpdatedAt: "2026-10-08T06:30:00.000Z",
+  afterHours: null,
   logoUrl: "https://financialmodelingprep.com/image-stock/005930.KS.png",
   ...over,
 });
@@ -81,6 +83,44 @@ describe("toKrQuoteVM logoUrl", () => {
     const { logoUrl: _omit, ...withoutLogo } = quote();
     const vm = toKrOverviewVM({ session, items: [withoutLogo], nextOffset: null });
     assert.equal(vm.items[0]!.logoUrl, null);
+  });
+});
+
+describe("toKrQuoteVM afterHours (슬라이스 6b · FR-27)", () => {
+  it("시간외 단일가를 정규장 값과 따로 옮긴다 · 없는(옛 서버) 응답은 null", () => {
+    const afterHours = { price: 222_000, change: -1_500, changeRate: -0.67, volume: "1234", at: "2026-10-27T08:01:00.000Z", internal: "x" };
+    const vm = toKrOverviewVM({ session, items: [quote({ afterHours }), quote({ code: "000660" })], nextOffset: null });
+    assert.deepEqual(vm.items[0]!.afterHours, { price: 222_000, change: -1_500, changeRate: -0.67, volume: "1234", at: "2026-10-27T08:01:00.000Z" });
+    assert.equal(vm.items[0]!.price, 286_500);
+    assert.equal(vm.items[1]!.afterHours, null);
+  });
+
+  it("시간외 칸이 깨지면 계약 깨짐 — 0 으로 채우지 않는다", () => {
+    assert.throws(() => toKrOverviewVM({ session, items: [quote({ afterHours: { price: null } })], nextOffset: null }), KrContractError);
+  });
+});
+
+describe("toKrOrderbookVM (슬라이스 6b · FR-28)", () => {
+  it("1단계부터 그대로 · 잔량은 문자열 · 못 받았으면 available false 와 null 합계", () => {
+    const vm = toKrOrderbookVM({
+      code: "005930",
+      available: true,
+      asks: [{ price: 224_500, quantity: "118381" }],
+      bids: [{ price: 224_000, quantity: "17079" }],
+      totalAskQuantity: "722779",
+      totalBidQuantity: "461091",
+      at: "2026-10-27T01:20:17.000Z",
+      fetchedAt: "2026-10-27T01:20:17.114Z",
+      stale: false,
+    });
+    assert.deepEqual(vm.asks, [{ price: 224_500, quantity: "118381" }]);
+    assert.equal(vm.totalBidQuantity, "461091");
+    const empty = toKrOrderbookVM({ code: "005930", available: false, asks: [], bids: [], totalAskQuantity: null, totalBidQuantity: null, at: null, fetchedAt: null, stale: true });
+    assert.deepEqual([empty.available, empty.totalAskQuantity, empty.stale], [false, null, true]);
+  });
+
+  it("잔량이 숫자로 오면 계약 깨짐", () => {
+    assert.throws(() => toKrOrderbookVM({ code: "005930", available: true, asks: [{ price: 1, quantity: 5 }], bids: [], totalAskQuantity: "5", totalBidQuantity: "0", at: null, fetchedAt: null, stale: false }), KrContractError);
   });
 });
 

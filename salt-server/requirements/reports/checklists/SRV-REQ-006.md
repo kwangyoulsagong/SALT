@@ -627,3 +627,18 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 | 레이어 | 새 파일 4개(domain `KrSupplement` · application `SyncKrSupplement` · infra `PrismaKrSupplementStore` · 테스트) 의존 방향 위반 0 · lint 0 |
 
 미검증: 없음
+
+## F011 슬라이스 6b — 공용 인프라 (2026-10-27)
+
+| 파일 | 바뀐 것 | 확인 |
+|---|---|---|
+| `shared/infrastructure/pacer.ts` | `run(op, priority)` — 우선순위 줄(안 주면 0 = FIFO) | 기존 테스트 4개 그대로 통과 + 우선순위 2 · Upbit 호출 무변경(우선순위 안 줌) |
+| `shared/infrastructure/scheduler.ts` | `catchUp` 옵션 — 놓친 회차 한 번 | 테스트 3 · 국내 워커만 켬(코인 워커 무변경) |
+| 레이어 | `shared` 가 컨텍스트를 모른다 그대로 | 훅 사후 실행 차단 0 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| `catchUp` 실발동 | 맥 수면을 재현하지 않았다(이벤트를 손으로 쏜 테스트) | 다음 수면 뒤 로그 "놓친 회차를 지금 돈다" |
+| 코인 하루 한 번 작업의 놓친 회차 | 이번 범위는 국내 — 코인 워커는 켜지 않았다 | 코인 쪽에 같은 빠짐이 관찰될 때 |

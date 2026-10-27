@@ -104,6 +104,12 @@ export class AppKrStockController {
     if (days === null) return badRequest(res, "days 는 1~30 정수입니다");
     return respond(res, next, (signal) => appKrStockService.getInvestors(req.token!, code, days, signal));
   };
+
+  orderbook = (req: Request, res: Response, next: NextFunction) => {
+    const code = String(req.params.code ?? "").toUpperCase();
+    if (!CODE_PATTERN.test(code)) return badRequest(res, "종목 코드 형식이 아닙니다");
+    return respond(res, next, (signal) => appKrStockService.getOrderbook(req.token!, code, signal));
+  };
 }
 
 export const appKrStockController = new AppKrStockController();

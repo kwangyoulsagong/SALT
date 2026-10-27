@@ -4,6 +4,7 @@ import type {
   KrIndices,
   KrInvestors,
   KrMarketStatus,
+  KrOrderbook,
   KrOverview,
   KrResult,
   KrStockDetail,
@@ -43,4 +44,6 @@ export const krStockApi = {
   indices: (signal?: AbortSignal) => getKr<KrResult<KrIndices>>("krIndices", MARKET_ENDPOINTS.krIndices(), signal),
   investors: (code: string, days: number, signal?: AbortSignal) =>
     getKr<KrResult<KrInvestors>>("krInvestors", MARKET_ENDPOINTS.krInvestors(code, days), signal),
+  orderbook: (code: string, signal?: AbortSignal) =>
+    getKr<KrResult<KrOrderbook>>("krOrderbook", MARKET_ENDPOINTS.krOrderbook(code), signal),
 };

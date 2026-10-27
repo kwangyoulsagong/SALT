@@ -98,10 +98,26 @@ export interface KrQuoteVM {
   feed: KrFeed;
   priceUpdatedAt: string;
   /**
+   * 시간외 단일가(16:00~18:00 · F011 FR-27) — 정규장 현재가 · 등락과 따로. 서버가 마지막 정규장 마감 뒤 값만 주고
+   * 정규장이 열리면 `null`. 이 필드가 없는 옛 서버면 `null`
+   */
+  afterHours: KrAfterHoursVM | null;
+  /**
    * 로고 주소 — 서버가 종목마다 판정한 logo.dev 주소. 키가 없거나 선명한 로고가 없으면 `null`(화면 이니셜).
    * 이 필드가 없는 옛 서버면 `null`(계약 깨짐이 아니다 — 로고는 꾸밈이다)
    */
   logoUrl: string | null;
+}
+
+export interface KrAfterHoursVM {
+  price: number;
+  /** 정규장 종가 대비(원, 부호 포함) */
+  change: number;
+  changeRate: number;
+  /** 시간외 누적 거래량(주, 문자열) */
+  volume: string;
+  /** 받은 회차 시각 */
+  at: string;
 }
 
 export interface KrDetailVM {
@@ -236,7 +252,20 @@ export const toKrQuoteVM = (raw: unknown): KrQuoteVM => {
     isHalted: bool(r, "isHalted"),
     feed: oneOf(r, "feed", KR_FEEDS),
     priceUpdatedAt: str(r, "priceUpdatedAt"),
+    afterHours: toAfterHoursVM(r.afterHours),
     logoUrl: strOrNull(r, "logoUrl"),
+  };
+};
+
+const toAfterHoursVM = (raw: unknown): KrAfterHoursVM | null => {
+  if (raw === null || raw === undefined) return null;
+  const r = obj(raw, "afterHours");
+  return {
+    price: num(r, "price"),
+    change: num(r, "change"),
+    changeRate: num(r, "changeRate"),
+    volume: str(r, "volume"),
+    at: str(r, "at"),
   };
 };
 
@@ -409,5 +438,37 @@ export const toKrInvestorsVM = (raw: unknown) => {
           institution: toNetVM(totals.institution, "totals.institution"),
         }
       : null,
+  };
+};
+
+// ==================== 호가 (F011 슬라이스 6b · FR-28) ====================
+
+/** 호가 한 단계 — 가격은 원 정수, 잔량은 주(서버가 BigInt 를 문자열로) */
+export interface KrOrderbookLevelVM {
+  price: number;
+  quantity: string;
+}
+
+const toLevelVM = (raw: unknown): KrOrderbookLevelVM => {
+  const r = obj(raw, "level");
+  return { price: num(r, "price"), quantity: str(r, "quantity") };
+};
+
+/**
+ * `GET /api/market/kr/:code/orderbook` — 매도 · 매수 모두 1단계(최우선)부터. 서버가 요청 시점에 KIS 를 부르고
+ * 10초 캐시한다. `available: false` 면 한 번도 못 받았다(빈 호가) · `stale` 이면 받아 둔 값이다
+ */
+export const toKrOrderbookVM = (raw: unknown) => {
+  const r = obj(raw, "data");
+  return {
+    code: str(r, "code"),
+    available: bool(r, "available"),
+    asks: arr(r, "asks").map(toLevelVM),
+    bids: arr(r, "bids").map(toLevelVM),
+    totalAskQuantity: strOrNull(r, "totalAskQuantity"),
+    totalBidQuantity: strOrNull(r, "totalBidQuantity"),
+    at: strOrNull(r, "at"),
+    fetchedAt: strOrNull(r, "fetchedAt"),
+    stale: bool(r, "stale"),
   };
 };

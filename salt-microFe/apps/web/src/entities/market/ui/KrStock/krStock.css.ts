@@ -44,6 +44,16 @@ export const change = styleVariants({
   flat: { color: vars.colors.text.secondary, fontVariantNumeric: "tabular-nums" },
 });
 
+/**
+ * 새 요소용 진한 쌍 — 12~13px 에서 4.5 이상(`upDark` · `downDark`). 기존 등락 칸 색은 정해 둔 값이라 그대로 두고
+ * 새로 붙는 자리(시간외 단일가 줄, 슬라이스 6b)만 이것을 쓴다
+ */
+export const changeStrong = styleVariants({
+  up: { color: vars.colors.special.upDark, fontVariantNumeric: "tabular-nums" },
+  down: { color: vars.colors.special.downDark, fontVariantNumeric: "tabular-nums" },
+  flat: { color: vars.colors.text.secondary, fontVariantNumeric: "tabular-nums" },
+});
+
 /** 스크린리더만 읽는 글자(상한가 · 하한가 전체 이름) */
 export const visuallyHidden = style({
   position: "absolute",
