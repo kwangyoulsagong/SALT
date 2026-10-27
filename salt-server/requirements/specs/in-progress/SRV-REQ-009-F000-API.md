@@ -112,8 +112,8 @@ created: 2026-09-09
 - [ ] `check`가 상한 초과를 노출하지 않는다
 - [ ] `POST /api/auth/register`가 404다
 - [ ] `PATCH /api/users/password`·`DELETE /api/users/account`가 404다
-- [ ] 동면 경로 5종이 **410 Gone**이고 1회 로그를 남긴다
-- [ ] 410 응답에 `code: 'ENDPOINT_DORMANT'`가 있다
+- [x] 동면 경로 5종이 **410 Gone**이고 1회 로그를 남긴다 (2026-10-27 — 8경로, `goneMiddleware`)
+- [x] 410 응답에 `code: 'ENDPOINT_DORMANT'`가 있다 (2026-10-27)
 - [ ] `period=miniute`가 422다
 - [ ] `period=minute`가 200이다
 - [ ] watchlist 응답에 현재가·변동률이 있다
@@ -155,6 +155,7 @@ created: 2026-09-09
 | 2026-09-18 | **초대 2경로·온보딩 상태를 열고 제거 3경로를 닫았다.** 닫힌 것: FR-1~6(`invite/accept` · `invite/check` · `register`·`password`·`account` 404) · FR-16 부분(제거 경로 Swagger 0건) · 신규 `GET /api/onboarding/status`. **남은 것**: 410 Gone(FR-7·8) · 알림 422(FR-12·13) · 응답 스냅샷(FR-23). 근거: `requirements/reports/checklists/SRV-REQ-009.md` §7·§8 |
 | 2026-09-21 | **시세 개요의 기간 7 · 순서 2 가 실제로 동작한다.** 서버가 `period` 를 읽지 않아 기간 버튼 7개가 같은 목록을 돌려줬다. `MarketOverviewPeriod` 로 해석하고 항목에 `periodChange`(기준 시세 없으면 `null`)를 **추가**했다(FR-20). 모르는 기간은 422. FR-11 pass — 필터 수·값·`limit=100` 은 그대로다. FR-23 **부분** — overview 한 경로에 필드 계약 테스트. 일봉 백필 스크립트(`candles:backfill`). 근거: `requirements/reports/checklists/F000-market-table.md` |
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 신규 `GET /api/investment/search`(D8). 기존 경로 계약 추가: watchlist `409 TRACKED_ASSET_LIMIT` · `tracked{count,limit}` · 뉴스 `sentiment` · `symbols` · `isBookmarked` · 북마크 3경로 문서화(`:newsId`) · 목표 금액/수량 택일. FR-30~38 추가. 개정: FR-12 알림 2종 → 1종 · FR-14 자산군 Q2. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-27 | **동면 경로 410 을 열었다**(FR-7 · 8, `chore/adr-002-remnants` `d344a50`). `shared/presentation/goneMiddleware` `DORMANT_PATHS` 8경로(표의 5종 + `/api/users/dashboard` · 스펙 `/investment-insight/ranking*` 의 실제 경로 `/top`)를 **살아 있는 라우터보다 먼저** 마운트 — `/api/users/profile` · `/investment-insight/insights` 는 그대로. `mission` · `dashboard` · `feed` 라우터 등록 해제, 코드 · 모델 유지. **남은 것**: 1주 로그(2026-11-03) · FR-12 · 13 · FR-23. 근거: `requirements/reports/checklists/SRV-REQ-009.md` §9 · 루트 `F000-dormant-410` |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

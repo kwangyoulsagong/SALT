@@ -101,15 +101,15 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 - [ ] `.gitignore`에 빌드 산출물 패턴이 있다
 - [ ] `grep -rn "ACCOUNT_SELECTED" salt-microFe` = 0 (확인)
 - [ ] `README.md`가 v1/v2 2섹션 구조이고 랭킹·저축왕·소셜·게임이 v2로 내려가 있다
-- [ ] `app.ts`에 `/api/missions` · `/api/feed` · `/api/dashboard` 등록이 없다
-- [ ] 동면 경로 요청이 **410 Gone**을 반환하고 1회 로그를 남긴다
-- [ ] **동면 모듈의 코드 파일이 `src/`에 그대로 있다** (`modules/mission` · `modules/feed` · `modules/dashboard`)
+- [x] `app.ts`에 `/api/missions` · `/api/feed` · `/api/dashboard` 등록이 없다 (2026-10-27)
+- [x] 동면 경로 요청이 **410 Gone**을 반환하고 1회 로그를 남긴다 (2026-10-27)
+- [x] **동면 모듈의 코드 파일이 `src/`에 그대로 있다** (`modules/mission` · `modules/feed` · `modules/dashboard`)
 - [ ] **Prisma 미션/포인트/업적/센티먼트/고래 모델 8종이 `\dt`에 있다**
 - [ ] `User.totalPoints` · `User.userLevel` 컬럼이 있다
 - [ ] `SentimentAlert`/`SmartMoneyAlert` **생성** 코드가 실행되지 않는다 (worker 중단 확인)
 - [ ] `MarketSentiment`/`WhaleTransaction` **조회** 경로가 동작한다 (프리뷰 화면 확인)
 - [ ] `InvestmentNotification.type` 생성 값이 2종뿐이다
-- [ ] 되살리기 테스트 1회 통과 (route 재등록 → 200 → 되돌림)
+- [x] 되살리기 테스트 1회 통과 (route 재등록 → 200 → 되돌림) (2026-10-27 `/api/missions`)
 - [ ] 원장 3종 row 수가 전후 동일하다
 - [ ] `npm run build` 통과. 빌드 시간·기동 worker 수 기록
 
@@ -136,3 +136,12 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 - 410을 1주 유지한 뒤 무엇으로 바꿀지. 404가 기본이지만, **되살릴 가능성이 있는 경로**라면 410을 유지하는 것도 근거가 있다.
 - `modules/dashboard` 삭제 여부. 홈 aggregation이 BFF로 완전히 넘어간 뒤 판단한다. **지금은 동면.**
 - `InvestmentNotification.type`을 2종으로 제한할 때 기존 row의 다른 타입을 어떻게 할지. **읽기는 허용하고 생성만 막는 것**이 기본안.
+- **동면 컨트롤러 셋이 동면 전부터 언제나 500 이다**(2026-10-27 되살리기 테스트에서 발견) — `dashboard` · `feed` · `insight-ranking`
+  라우터가 `this` 를 쓰는 메서드를 묶지 않고 넘긴다(`router.get("/", controller.getDashboard)`). 되살리는 PR 에서 화살표 함수로 고친다.
+  `mission` · `user` 컨트롤러는 화살표 함수라 되살리면 바로 동작한다
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-10-27 | **동면 FR-10 · 12 · 13 · 14 구현**, `to-do` → `in-progress`(`chore/adr-002-remnants` `d344a50`, 루트 `F000-dormant-410`). 410 핸들러는 `SRV-REQ-009` FR-7 · 8 과 같은 것이다. FR-10 의 points · achievements 는 라우트 줄을 지우지 않고 **라우터 앞에서 410 으로 가린다**(목록 한 곳에서 되살린다). FR-12 는 `insight-ranking.controller` 의 `/top` 만 — 같은 라우터의 `/insights` 등은 유지. 되살리기 1회(`/api/missions` 200). **남은 것**: 삭제 FR-1 · 2 · 5 · FR-11 알림 · 1주 로그(2026-11-03). 근거: `requirements/reports/checklists/SRV-REQ-007.md` |
