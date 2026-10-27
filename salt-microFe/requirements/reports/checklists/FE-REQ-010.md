@@ -185,3 +185,7 @@ Playwright: 블록 클릭 → `/investments`. 포커스 링 · 스크린 리더 
 | 시장 레이아웃 CSS | 국내 지수 자리 74px — 코인 띠 자리(`summaryPlaceholder`) 무변경 |
 
 미검증: 없음
+
+## F011 슬라이스 6b (2026-10-27) — 파일만 걸침
+
+`MARKET_ENDPOINTS` · `marketQueryKeys` 국내 호가 키 · `KrChangeText strong`(기본 false — 기존 자리 무변경). check-types · lint 통과. 미검증: 없음

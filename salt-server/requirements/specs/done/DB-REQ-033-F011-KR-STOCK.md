@@ -26,6 +26,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
 | FR-6 | 정밀도 — 금액 `Decimal(38,10)` · 비율(등락률 · PER · PBR · 소진율) `(18,8)` | 완료 |
 | FR-7 | `kr_index_quotes`(code PK — KIS 업종 코드) — 값 · 전일 대비(포인트 `Decimal(18,4)`) · 등락률 `(18,8)` · 상승 · 보합 · 하락 종목 수 · 갱신 시각. 지수 2~3행이라 인덱스는 PK 뿐(슬라이스 6 · `SRV-REQ-040` FR-49) | 완료 2026-10-26(`20261026180000_kr_index_investor_flows`) |
 | FR-8 | `kr_stock_investor_flows`((code, trade_date) PK → master FK cascade) — 개인 · 외국인 · 기관 순매수 수량 `BIGINT` · 금액 원 `Decimal(38,10)` · 수집 시각. 읽기는 한 종목 최근 N거래일(`code = ? ORDER BY trade_date DESC LIMIT N`)이라 PK 가 그대로 받는다 — 별도 인덱스 없음. 쓰기는 종목마다 `unnest` 한 문장 upsert(같은 키는 덮는다 — 잠정치 → 확정치). 크기: 유니버스 약 50종목 × 거래일 하나씩 늘어 1년 약 12,500행(슬라이스 6 · `SRV-REQ-040` FR-50) | 완료 2026-10-26(같은 마이그레이션) |
+| FR-9 | `kr_stock_quotes` 시간외 단일가 칸 5개 — `after_hours_price` · `after_hours_change`(원 `Decimal(38,10)`) · `after_hours_change_rate`(`(18,8)`) · `after_hours_volume`(`BIGINT`) · `after_hours_at`(받은 회차 시각). 전부 nullable 추가라 기존 행 · 쓰기 경로 무변경. 쓰기는 회차마다 `unnest` 한 문장 `UPDATE … FROM`(정규장 칸은 건드리지 않는다 · 현재가 행이 없는 종목은 버린다). 읽기는 기존 시세 조회가 같은 행에서 함께 읽어 쿼리 수 무변경(슬라이스 6b · `SRV-REQ-040` FR-52) | 완료 2026-10-27(`20261027120000_kr_stock_after_hours` · 로컬 적용) |
 
 ## 왜 `MarketAsset` 이 아닌가
 
@@ -40,6 +41,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
 
 ## Changelog
 
+- 2026-10-27: 슬라이스 6b — FR-9 `kr_stock_quotes` 시간외 칸 5개(nullable 추가만 · 로컬 적용 · 롤백 SQL 은 마이그레이션 머리). 새 인덱스 없음 — 기존 PK 행에서 함께 읽고 쓴다
 - 2026-10-26: 슬라이스 6 — FR-7 `kr_index_quotes` · FR-8 `kr_stock_investor_flows`(새 표 2개, 기존 표 무변경 · 로컬 적용). 실행 계획: 지수는 2~3행 PK, 투자자는 PK 접두 `code` + 정렬 `trade_date DESC` 로 받는다
 - 2026-10-23: 슬라이스 5f(`SRV-REQ-040` FR-42) — `price_history` 국내 일봉에 쿼리 두 개 추가(종목별 첫 · 마지막 창 종가 `LATERAL` · 한 종목 이력 교체 삭제 CTE + upsert). **DDL 없음** — 기존 유니크 `(symbol, timeframe, timestamp)` 인덱스를 쓴다(실행계획은 `SRV-REQ-040` 체크리스트)
 - 2026-10-07: 초판 · FR-1~6 완료

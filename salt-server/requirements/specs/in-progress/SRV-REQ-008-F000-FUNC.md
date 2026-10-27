@@ -206,6 +206,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 
 ## Changelog
 
+- 2026-10-27: F011 슬라이스 6b(호가 · 시간외 단일가 · KIS 우선순위) — `market` 공개 팩토리에 국내 유스케이스 2개(`getOrderbook` · `pollAfterHours`) · `schema.prisma` `kr_stock_quotes` nullable 칸 5개 · `env.ts` 주석만(기본 속도 실험 기록 — 값 3 그대로). 이 REQ 의 관심 종목 · 추적 자산 규칙은 그대로(본문 `SRV-REQ-040` FR-51~53)
 - 2026-10-26: F011 슬라이스 6(국내 지수 · 투자자 순매수) — `market` 공개 팩토리(`application/api`)에 국내 유스케이스 4개 · `schema.prisma` 새 표 2개 · `env.ts` `KIS_SUMMARY_INDICES`. 이 REQ 의 관심 종목 · 추적 자산 규칙은 그대로(본문 `SRV-REQ-040` FR-49 · 50)
 | 날짜 | 변경 |
 |---|---|

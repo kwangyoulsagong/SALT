@@ -118,3 +118,7 @@
 | 호출 계약 | `/api/app/market/kr/indices` · `/:code/investors?days=10` 추가, 기존 호출 무변경. 실경로 BFF 4101 200 · 비소유자 404 |
 
 미검증: 없음
+
+## F011 슬라이스 6b (2026-10-27) — 파일만 걸침
+
+엔드포인트 `krOrderbook` 추가 · 국내 시세 응답 `afterHours` 추가만. 기존 호출 무변경. 미검증: 없음
