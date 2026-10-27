@@ -464,6 +464,16 @@ const toStoredQuote = (row: QuoteRow): StoredKrStockQuote => ({
   lowPrice: toNum(row.lowPrice),
   feed: row.feed as KrQuoteFeed,
   priceUpdatedAt: row.priceUpdatedAt,
+  afterHours:
+    row.afterHoursPrice !== null && row.afterHoursAt !== null
+      ? {
+          price: Number(row.afterHoursPrice),
+          change: toNum(row.afterHoursChange) ?? 0,
+          changeRate: toNum(row.afterHoursChangeRate) ?? 0,
+          volume: row.afterHoursVolume ?? 0n,
+          at: row.afterHoursAt,
+        }
+      : null,
 });
 
 export class PrismaKrMarketCalendarStore implements KrMarketCalendarStore {

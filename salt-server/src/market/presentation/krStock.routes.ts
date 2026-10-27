@@ -208,5 +208,26 @@ export const createKrStockRouter = (useCases: KrStockUseCases | null): Router =>
    */
   router.get("/:code/investors", controller.investors);
 
+  /**
+   * @swagger
+   * /api/market/kr/{code}/orderbook:
+   *   get:
+   *     summary: 국내 주식 호가 10단계(매도 · 매수 잔량) — 소유자 전용
+   *     description: |
+   *       저장하지 않고 요청 시점에 KIS 를 부른다. 같은 종목은 10초 안이면 받아 둔 값(`fetchedAt`). 매도 · 매수 모두
+   *       1단계(최우선)부터, 가격은 원 정수 · 잔량은 주(문자열). KIS 실패면 받아 둔 값을 `stale: true` 로, 그것도 없으면
+   *       `available: false` 빈 호가. `at` 은 KIS 호가 접수 시각.
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - { in: path, name: code, required: true, schema: { type: string, pattern: "^[0-9A-Z]{6}$" } }
+   *     responses:
+   *       200:
+   *         description: "`{ code, available, asks: [{ price, quantity }], bids, totalAskQuantity, totalBidQuantity, at, fetchedAt, stale }`"
+   *       404: { description: 소유자가 아니거나 마스터에 없는 종목 }
+   *       503: { description: KIS 키 없음 }
+   */
+  router.get("/:code/orderbook", controller.orderbook);
+
   return router;
 };

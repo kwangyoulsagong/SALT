@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
 import type {
+  KrAfterHoursFact,
   KrIndexQuoteFact,
   KrInvestorFlowFact,
   KrSupplementStore,
@@ -61,6 +62,20 @@ export class PrismaKrSupplementStore implements KrSupplementStore {
         foreign_quantity = EXCLUDED.foreign_quantity, foreign_value = EXCLUDED.foreign_value,
         institution_quantity = EXCLUDED.institution_quantity, institution_value = EXCLUDED.institution_value,
         collected_at = EXCLUDED.collected_at`;
+  }
+
+  async upsertAfterHours(facts: KrAfterHoursFact[], at: Date) {
+    if (facts.length === 0) return;
+    const col = <T,>(pick: (f: KrAfterHoursFact) => T) => facts.map(pick);
+    await prisma.$executeRaw`
+      UPDATE kr_stock_quotes q SET
+        after_hours_price = u.price, after_hours_change = u.change, after_hours_change_rate = u.change_rate,
+        after_hours_volume = u.volume, after_hours_at = (${at}::timestamptz AT TIME ZONE 'UTC')
+      FROM unnest(
+        ${col((f) => f.code)}::text[], ${col((f) => f.price)}::numeric[], ${col((f) => f.change)}::numeric[],
+        ${col((f) => f.changeRate)}::numeric[], ${col((f) => f.volume)}::bigint[]
+      ) AS u(code, price, change, change_rate, volume)
+      WHERE q.code = u.code`;
   }
 
   async investorFlowCodesCollectedSince(since: Date) {

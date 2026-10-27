@@ -143,6 +143,53 @@ describe("부가 조회 응답 해석 (슬라이스 6)", () => {
   });
 });
 
+describe("호가 응답 해석 (FR-28 · 슬라이스 6b)", () => {
+  const withBody = (body: unknown, now: string) => {
+    const c = new KisClient({ appKey: "k", appSecret: "s", baseUrl: "http://127.0.0.1:9", now: () => new Date(now) });
+    (c as unknown as { get: () => Promise<unknown> }).get = async () => body;
+    return c;
+  };
+  // 2026-10-27 10:11:45 삼성전자 실측 응답의 앞 단계
+  const output1 = {
+    aspr_acpt_hour: "101145",
+    askp1: "223500", askp_rsqn1: "20134", askp2: "224000", askp_rsqn2: "31000",
+    bidp1: "223000", bidp_rsqn1: "53870", bidp2: "0", bidp_rsqn2: "0",
+    total_askp_rsqn: "703049", total_bidp_rsqn: "457349",
+  };
+
+  it("1단계부터 · 가격 0 인 단계는 뺀다 · 접수 시각은 오늘 KST", async () => {
+    const b = await withBody({ output1 }, "2026-10-27T01:12:00Z").orderbook("005930");
+    assert.deepEqual(b.asks.map((l) => [l.price, l.quantity]), [[223_500, 20_134n], [224_000, 31_000n]]);
+    assert.deepEqual(b.bids.map((l) => [l.price, l.quantity]), [[223_000, 53_870n]]);
+    assert.equal(b.totalAskQuantity, 703_049n);
+    assert.equal(b.at!.toISOString(), "2026-10-27T01:11:45.000Z");
+  });
+
+  it("자정 넘어 본 장 마감 호가는 어제 날짜다", async () => {
+    const b = await withBody({ output1: { ...output1, aspr_acpt_hour: "153000" } }, "2026-10-27T16:30:00Z").orderbook("005930"); // 10-28 01:30 KST
+    assert.equal(b.at!.toISOString(), "2026-10-27T06:30:00.000Z");
+  });
+});
+
+describe("시간외 단일가 응답 해석 (FR-27 · 슬라이스 6b)", () => {
+  const withBody = (output: Record<string, string>) => {
+    const c = new KisClient({ appKey: "k", appSecret: "s", baseUrl: "http://127.0.0.1:9" });
+    (c as unknown as { get: () => Promise<unknown> }).get = async () => ({ output });
+    return c;
+  };
+
+  it("가격 0 은 그날 체결 없음 — null(10-27 10:12 장중 실측 응답)", async () => {
+    assert.equal(await withBody({ ovtm_untp_prpr: "0", ovtm_untp_prdy_vrss: "0", ovtm_untp_prdy_vrss_sign: "0", ovtm_untp_prdy_ctrt: "0.00", ovtm_untp_vol: "0" }).afterHoursQuote("005930"), null);
+  });
+
+  it("하락 부호면 값 칸에 부호가 있든 없든 음수", async () => {
+    for (const v of ["1500", "-1500"]) {
+      const q = await withBody({ ovtm_untp_prpr: "222000", ovtm_untp_prdy_vrss: v, ovtm_untp_prdy_vrss_sign: "5", ovtm_untp_prdy_ctrt: v.replace("1500", "0.67"), ovtm_untp_vol: "1234" }).afterHoursQuote("005930");
+      assert.deepEqual(q, { code: "005930", price: 222_000, change: -1500, changeRate: -0.67, volume: 1234n });
+    }
+  });
+});
+
 describe("한도 나눠 쓰기 순서 (FR-91 · 슬라이스 6b)", () => {
   // 어떤 호출이 어느 줄에 서는지만 본다 — 줄의 순서 자체는 pacer.test.ts
   const priorities = async (call: (c: KisClient) => Promise<unknown>) => {
@@ -164,6 +211,9 @@ describe("한도 나눠 쓰기 순서 (FR-91 · 슬라이스 6b)", () => {
     assert.equal(await priorities((c) => c.dayMinuteCandles("005930", "2026-10-27", "153000")), KIS_PRIORITY.candles);
     assert.equal(await priorities((c) => c.indexQuote("0001")), KIS_PRIORITY.supplement);
     assert.equal(await priorities((c) => c.investorFlows("005930")), KIS_PRIORITY.supplement);
+    // 호가는 화면이 기다린다 — 폴링 줄(동시 6건 뒤)
+    assert.equal(await priorities((c) => c.orderbook("005930")), KIS_PRIORITY.poll);
+    assert.equal(await priorities((c) => c.afterHoursQuote("005930")), KIS_PRIORITY.supplement);
     assert.ok(KIS_PRIORITY.realtime < KIS_PRIORITY.poll && KIS_PRIORITY.poll < KIS_PRIORITY.candles && KIS_PRIORITY.candles < KIS_PRIORITY.supplement);
   });
 });

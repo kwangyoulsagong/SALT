@@ -996,7 +996,7 @@ model KrStockMaster {
   logoSource        String?   @map("logo_source")
   logoCheckedAt     DateTime? @map("logo_checked_at")
 
-  quote KrStockQuote?
+  quote         KrStockQuote?
   investorFlows KrStockInvestorFlow[]
 
   @@index([groupCode, marketCap])
@@ -1005,31 +1005,37 @@ model KrStockMaster {
 
 /// 현재가 — 유니버스 종목만. 빈 값으로 덮어쓰지 않는다(FR-90)
 model KrStockQuote {
-  code           String   @id
-  price          Decimal  @db.Decimal(38, 10)
-  change         Decimal  @db.Decimal(38, 10) // 전일 대비(원)
-  changeRate     Decimal  @map("change_rate") @db.Decimal(18, 8) // %
-  volume         BigInt
-  tradeValue     Decimal  @map("trade_value") @db.Decimal(38, 10) // 원
-  marketCap      Decimal? @map("market_cap") @db.Decimal(38, 10) // 원
-  basePrice      Decimal? @map("base_price") @db.Decimal(38, 10)
-  upperLimit     Decimal? @map("upper_limit") @db.Decimal(38, 10)
-  lowerLimit     Decimal? @map("lower_limit") @db.Decimal(38, 10)
-  statusCode     String?  @map("status_code") // iscd_stat_cls_code
-  warnCode       String?  @map("warn_code") // mrkt_warn_cls_code
-  isHalted       Boolean  @default(false) @map("is_halted")
-  per            Decimal? @db.Decimal(18, 8)
-  pbr            Decimal? @db.Decimal(18, 8)
-  eps            Decimal? @db.Decimal(38, 10)
-  bps            Decimal? @db.Decimal(38, 10)
-  week52High     Decimal? @map("week52_high") @db.Decimal(38, 10)
-  week52Low      Decimal? @map("week52_low") @db.Decimal(38, 10)
-  foreignRate    Decimal? @map("foreign_rate") @db.Decimal(18, 8) // 외국인 소진율 %
-  openPrice      Decimal? @map("open_price") @db.Decimal(38, 10) // 당일 시가(F011 슬라이스 3)
-  highPrice      Decimal? @map("high_price") @db.Decimal(38, 10) // 당일 고가
-  lowPrice       Decimal? @map("low_price") @db.Decimal(38, 10) // 당일 저가
-  feed           String // poll_1m | realtime(슬라이스 1)
-  priceUpdatedAt DateTime @map("price_updated_at")
+  code                 String    @id
+  price                Decimal   @db.Decimal(38, 10)
+  change               Decimal   @db.Decimal(38, 10) // 전일 대비(원)
+  changeRate           Decimal   @map("change_rate") @db.Decimal(18, 8) // %
+  volume               BigInt
+  tradeValue           Decimal   @map("trade_value") @db.Decimal(38, 10) // 원
+  marketCap            Decimal?  @map("market_cap") @db.Decimal(38, 10) // 원
+  basePrice            Decimal?  @map("base_price") @db.Decimal(38, 10)
+  upperLimit           Decimal?  @map("upper_limit") @db.Decimal(38, 10)
+  lowerLimit           Decimal?  @map("lower_limit") @db.Decimal(38, 10)
+  statusCode           String?   @map("status_code") // iscd_stat_cls_code
+  warnCode             String?   @map("warn_code") // mrkt_warn_cls_code
+  isHalted             Boolean   @default(false) @map("is_halted")
+  per                  Decimal?  @db.Decimal(18, 8)
+  pbr                  Decimal?  @db.Decimal(18, 8)
+  eps                  Decimal?  @db.Decimal(38, 10)
+  bps                  Decimal?  @db.Decimal(38, 10)
+  week52High           Decimal?  @map("week52_high") @db.Decimal(38, 10)
+  week52Low            Decimal?  @map("week52_low") @db.Decimal(38, 10)
+  foreignRate          Decimal?  @map("foreign_rate") @db.Decimal(18, 8) // 외국인 소진율 %
+  openPrice            Decimal?  @map("open_price") @db.Decimal(38, 10) // 당일 시가(F011 슬라이스 3)
+  highPrice            Decimal?  @map("high_price") @db.Decimal(38, 10) // 당일 고가
+  lowPrice             Decimal?  @map("low_price") @db.Decimal(38, 10) // 당일 저가
+  feed                 String // poll_1m | realtime(슬라이스 1)
+  priceUpdatedAt       DateTime  @map("price_updated_at")
+  /// 시간외 단일가(16:00~18:00, 10분 단일가 · F011 FR-27) — 정규장 칸과 섞지 않는다. 체결 없는 회차(0)는 덮지 않는다
+  afterHoursPrice      Decimal?  @map("after_hours_price") @db.Decimal(38, 10)
+  afterHoursChange     Decimal?  @map("after_hours_change") @db.Decimal(38, 10) // 전일 종가 대비(원)
+  afterHoursChangeRate Decimal?  @map("after_hours_change_rate") @db.Decimal(18, 8) // %
+  afterHoursVolume     BigInt?   @map("after_hours_volume")
+  afterHoursAt         DateTime? @map("after_hours_at") // 그 값을 받은 회차 시각
 
   master KrStockMaster @relation(fields: [code], references: [code], onDelete: Cascade)
 

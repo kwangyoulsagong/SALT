@@ -4,6 +4,7 @@ import {
   isKrStockCode,
   isKrStockViewer,
   KR_PERIOD_TRADING_DAYS,
+  krAfterHoursVisible,
   krFeedState,
   krLimitState,
   krPeriodChange,
@@ -13,9 +14,14 @@ import {
   krTickSize,
   KR_INDEX_NAMES,
   KR_INVESTOR_MAX_DAYS,
+  KR_ORDERBOOK_CACHE_MS,
   KR_QUOTE_STALE_MS,
   type Candle,
+  type KrAfterHoursQuote,
   type KrInvestorNet,
+  type KrOrderbookFact,
+  type KrOrderbookLevel,
+  type KrSupplementPort,
   type KrSupplementStore,
   type KrFeedState,
   type KrListPeriod,
@@ -64,6 +70,10 @@ export interface KrStockQuoteView {
   isHalted: boolean;
   feed: KrFeedState;
   priceUpdatedAt: string;
+  /**
+   * 시간외 단일가(FR-27) — 마지막 정규장 마감 뒤에 받은 것만, 정규장이 열리면 `null`. 현재가 · 등락과 섞지 않는다
+   */
+  afterHours: { price: number; change: number; changeRate: number; volume: string; at: string } | null;
   /** 로고 주소 — `krStockLogoUrl`(종목별 판정한 출처 · 지금 키). 키가 없거나 선명한 로고가 없으면 `null` — 화면이 이니셜 */
   logoUrl: string | null;
 }
@@ -122,8 +132,12 @@ const toQuoteView = (
   isHalted: q.isHalted,
   feed: krFeedState(q, now, session),
   priceUpdatedAt: q.priceUpdatedAt.toISOString(),
+  afterHours: toAfterHoursView(krAfterHoursVisible(q.afterHours, session)),
   logoUrl: krStockLogoUrl(q, logoDevToken),
 });
+
+const toAfterHoursView = (q: KrAfterHoursQuote | null): KrStockQuoteView["afterHours"] =>
+  q && { price: won(q.price), change: won(q.change), changeRate: q.changeRate, volume: q.volume.toString(), at: q.at.toISOString() };
 
 class KrStockAccess {
   constructor(private readonly viewers: readonly string[]) {}
@@ -145,6 +159,8 @@ export interface KrStockReadDependencies {
   supplement: KrSupplementStore;
   /** 요약에 보일 지수 코드(`KIS_SUMMARY_INDICES`, 설정 순서 = 화면 순서) */
   summaryIndices: readonly string[];
+  /** 호가는 저장하지 않고 요청 시점에 부른다(슬라이스 6b FR-28) */
+  orderbookSource: Pick<KrSupplementPort, "orderbook">;
   now?: () => Date;
 }
 
@@ -374,5 +390,61 @@ export class GetKrInvestorFlows extends KrStockRead {
               institution: toNetView(sum((r) => r.institution)),
             },
     };
+  }
+}
+
+const toLevelView = (l: KrOrderbookLevel) => ({ price: won(l.price), quantity: l.quantity.toString() });
+
+/**
+ * 호가 10단계(FR-28) — **저장하지 않는 요청 시점 조회**. 같은 종목은 10초 안이면 받아 둔 값을 준다(`KR_ORDERBOOK_CACHE_MS`),
+ * 같은 순간 겹친 요청은 KIS 한 번을 같이 기다린다. KIS 가 실패하면 받아 둔 값을 `stale` 로, 그것도 없으면
+ * `available: false` 빈 호가로 준다 — 500 으로 상세 화면 전체를 깨지 않는다(부가 정보).
+ * 캐시는 프로세스 메모리다(단일 프로세스). 무효화는 시간뿐이다
+ */
+export class GetKrOrderbook extends KrStockRead {
+  private readonly cache = new Map<string, { fact: KrOrderbookFact; fetchedAt: Date }>();
+  private readonly inflight = new Map<string, Promise<KrOrderbookFact>>();
+
+  async execute(viewer: KrStockViewer, code: string) {
+    this.access.assert(viewer);
+    if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
+    const listing = await this.deps.store.findListing(code);
+    if (!listing) throw new KrStockNotAvailableError();
+
+    const now = this.now();
+    let cached = this.cache.get(code);
+    let stale = false;
+    if (!cached || now.getTime() - cached.fetchedAt.getTime() >= KR_ORDERBOOK_CACHE_MS) {
+      try {
+        const fact = await this.fetch(code);
+        cached = { fact, fetchedAt: this.now() };
+        this.cache.set(code, cached);
+      } catch {
+        stale = true;
+      }
+    }
+    if (!cached) {
+      return { code, available: false, asks: [], bids: [], totalAskQuantity: null, totalBidQuantity: null, at: null, fetchedAt: null, stale: true };
+    }
+    const { fact, fetchedAt } = cached;
+    return {
+      code,
+      available: true,
+      asks: fact.asks.map(toLevelView),
+      bids: fact.bids.map(toLevelView),
+      totalAskQuantity: fact.totalAskQuantity.toString(),
+      totalBidQuantity: fact.totalBidQuantity.toString(),
+      at: fact.at?.toISOString() ?? null,
+      fetchedAt: fetchedAt.toISOString(),
+      stale,
+    };
+  }
+
+  private fetch(code: string) {
+    const running = this.inflight.get(code);
+    if (running) return running;
+    const call = this.deps.orderbookSource.orderbook(code).finally(() => this.inflight.delete(code));
+    this.inflight.set(code, call);
+    return call;
   }
 }

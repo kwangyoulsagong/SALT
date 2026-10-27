@@ -117,4 +117,13 @@ export class KrStockController {
       next(error);
     }
   };
+
+  orderbook = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code } = krCodeParamSchema.parse(req.params);
+      return ResponseUtil.success(res, await this.enabled().getOrderbook.execute(this.viewer(req), code));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

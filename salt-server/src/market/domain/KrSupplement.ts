@@ -6,6 +6,7 @@
  */
 
 import { kstAt, kstDateOf } from "./KrStock";
+import type { KrAfterHoursQuote } from "./KrStock";
 
 // ==================== 지수 (FR-48) ====================
 
@@ -86,6 +87,40 @@ export const latestInvestorSettleAt = (at: Date): Date => {
 /** 상세 화면이 받는 최대 거래일 — KIS 가 한 번에 주는 것이 30거래일이다 */
 export const KR_INVESTOR_MAX_DAYS = 30;
 
+// ==================== 호가 (FR-28) ====================
+
+/** 매도 · 매수 각 10단계 — KIS 호가 TR 이 주는 깊이 그대로 */
+export const KR_ORDERBOOK_DEPTH = 10;
+
+/**
+ * 같은 종목 호가를 다시 부르지 않는 시간. 저장하지 않는 **요청 시점 조회**라(10초면 낡는 값을 표에 쌓을 이유가 없다)
+ * 화면 여러 개 · 새로고침이 같은 10초 안이면 한 번만 부른다 — 기획서 한도 예산의 "호가 10초" 와 같은 값
+ */
+export const KR_ORDERBOOK_CACHE_MS = 10_000;
+
+export interface KrOrderbookLevel {
+  price: number;
+  /** 잔량(주) */
+  quantity: bigint;
+}
+
+export interface KrOrderbookFact {
+  code: string;
+  /** 매도 — 1단계(가장 싼 매도)부터. 값이 없는 단계(상한가에서 매도 없음 등)는 빠진다 */
+  asks: KrOrderbookLevel[];
+  /** 매수 — 1단계(가장 비싼 매수)부터 */
+  bids: KrOrderbookLevel[];
+  totalAskQuantity: bigint;
+  totalBidQuantity: bigint;
+  /** 호가 접수 시각(KST 벽시계 → 실제 시각). 모르면 null */
+  at: Date | null;
+}
+
+// ==================== 시간외 단일가 (FR-27) ====================
+
+/** 시간외 단일가 조회 한 건 — 체결이 없으면(가격 0) 어댑터가 `null` 을 준다. 시각은 저장할 때 회차 시각이 붙는다 */
+export type KrAfterHoursFact = Omit<KrAfterHoursQuote, "at"> & { code: string };
+
 // ==================== 한도 (FR-91) ====================
 
 /** KIS 초당 거래건수 초과 메시지 코드 — 어댑터 오류가 `msgCode` 로 들고 온다 */
@@ -102,6 +137,10 @@ export interface KrSupplementPort {
   indexQuote(code: string): Promise<KrIndexQuoteFact>;
   /** 최근 30거래일(최신이 앞). 거래 없는 날 · 빈 칸은 빠진다 */
   investorFlows(code: string): Promise<KrInvestorFlowFact[]>;
+  /** 매도 · 매수 10단계 잔량(FR-28) — 화면이 기다리는 조회라 현재가와 같은 줄에 선다 */
+  orderbook(code: string): Promise<KrOrderbookFact>;
+  /** 시간외 단일가(FR-27). 그날 체결이 없으면 `null`(KIS 는 0 을 준다) */
+  afterHoursQuote(code: string): Promise<KrAfterHoursFact | null>;
 }
 
 export interface KrSupplementStore {
@@ -109,6 +148,8 @@ export interface KrSupplementStore {
   indexQuotes(codes: string[]): Promise<StoredKrIndexQuote[]>;
   /** 한 종목의 여러 날을 한 문장으로. 같은 (종목, 날짜)는 덮는다 — 잠정치가 확정치로 바뀐다 */
   upsertInvestorFlows(code: string, rows: KrInvestorFlowFact[], at: Date): Promise<void>;
+  /** 시간외 단일가를 현재가 행에 쓴다 — 정규장 칸은 건드리지 않는다. 현재가 행이 없는 종목은 버린다 */
+  upsertAfterHours(facts: KrAfterHoursFact[], at: Date): Promise<void>;
   /** `since` 뒤에 한 번이라도 저장한 종목 — 이어 받기가 건너뛸 목록 */
   investorFlowCodesCollectedSince(since: Date): Promise<string[]>;
   /** 최근 `days` 거래일(최신이 앞) · 마지막 수집 시각 */

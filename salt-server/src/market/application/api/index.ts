@@ -72,6 +72,7 @@ import {
   SearchKrStocks,
   GetKrIndices,
   GetKrInvestorFlows,
+  GetKrOrderbook,
 } from "../ReadKrStock";
 import { RunKrRealtime } from "../RunKrRealtime";
 import {
@@ -84,7 +85,7 @@ import {
   SyncKrMarketCalendar,
   SyncKrStockMaster,
 } from "../SyncKrStock";
-import { PollKrIndices, SyncKrInvestorFlows } from "../SyncKrSupplement";
+import { PollKrAfterHours, PollKrIndices, SyncKrInvestorFlows } from "../SyncKrSupplement";
 
 /**
  * `market` 의 **공개 API** — 컨텍스트 밖으로 열리는 유일한 지점 (FR-4).
@@ -270,7 +271,7 @@ export interface KrStockDependencies {
   homepages: KrCompanyHomepageSource | null;
   /** 볼 수 있는 계정 — 소유자 전용(`FORECAST_OWNER_EMAILS`) */
   viewerEmails: readonly string[];
-  /** 지수 · 투자자 동향 조회(슬라이스 6) — 같은 `KisClient` 라 한도를 같은 페이서가 지킨다 */
+  /** 지수 · 투자자 동향 · 호가 조회(슬라이스 6 · 6b) — 같은 `KisClient` 라 한도를 같은 페이서가 지킨다 */
   supplementSource: KrSupplementPort;
   supplement: KrSupplementStore;
   /** 요약 지수 코드(`KIS_SUMMARY_INDICES`) */
@@ -298,10 +299,14 @@ export interface KrStockUseCases {
   search: SearchKrStocks;
   /** 코스피 · 코스닥 현재값 — 현재가 회차 뒤 매분(부를지는 유스케이스가 정한다) */
   pollIndices: PollKrIndices;
+  /** 시간외 단일가 — 현재가 회차 뒤 매분(16:11 … 18:01 10분마다만 부른다) */
+  pollAfterHours: PollKrAfterHours;
   /** 투자자 순매수 — 개장일 저녁 한 번 */
   syncInvestorFlows: SyncKrInvestorFlows;
   getIndices: GetKrIndices;
   getInvestorFlows: GetKrInvestorFlows;
+  /** 호가 10단계 — 요청 시점 조회 · 10초 캐시(슬라이스 6b) */
+  getOrderbook: GetKrOrderbook;
 }
 
 const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
@@ -324,6 +329,7 @@ const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
     logoDevToken: deps.logoDevToken,
     supplement: deps.supplement,
     summaryIndices: deps.summaryIndices,
+    orderbookSource: deps.supplementSource,
   };
   return {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
@@ -351,8 +357,10 @@ const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
     search: new SearchKrStocks(read),
     pollIndices: new PollKrIndices(deps.supplementSource, deps.supplement, deps.calendar, deps.summaryIndices),
     syncInvestorFlows: new SyncKrInvestorFlows(deps.supplementSource, deps.supplement, deps.calendar, universe),
+    pollAfterHours: new PollKrAfterHours(deps.supplementSource, deps.supplement, deps.calendar, universe),
     getIndices: new GetKrIndices(read),
     getInvestorFlows: new GetKrInvestorFlows(read),
+    getOrderbook: new GetKrOrderbook(read),
   };
 };
 
