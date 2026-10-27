@@ -100,6 +100,14 @@ describe("/api/app/market/kr", () => {
     assert.equal(investors.mock.callCount(), 2);
   });
 
+  it("호가 — 코드 형식이 틀리면 서비스를 부르지 않고 400(슬라이스 6b)", async () => {
+    const orderbook = mock.method(appKrStockService, "getOrderbook", async () => ({ status: "unavailable" }) as never);
+    await get("/api/app/market/kr/005930/orderbook");
+    assert.equal(orderbook.mock.calls[0]!.arguments[1], "005930");
+    assert.equal((await get("/api/app/market/kr/59/orderbook")).status, 400);
+    assert.equal(orderbook.mock.callCount(), 1);
+  });
+
   it("서비스가 올린 4xx(소유자 아님)는 error middleware 가 그대로", async () => {
     mock.method(appKrStockService, "getSession", async () => {
       throw Object.assign(new Error("404"), { response: { status: 404, data: { code: "KR_STOCK_NOT_AVAILABLE", message: "x" }, headers: {} } });

@@ -19,5 +19,6 @@ router.get("/indices", appKrStockController.indices);
 router.get("/:code", appKrStockController.detail);
 router.get("/:code/chart", appKrStockController.chart);
 router.get("/:code/investors", appKrStockController.investors);
+router.get("/:code/orderbook", appKrStockController.orderbook);
 
 export default router;
