@@ -58,4 +58,6 @@ created: 2026-09-22
 
 ## Changelog
 
+- 2026-10-28: `F000-api-error-normalize`(파일만 걸침) — `MarketApiError` → `ApiError` · `shared/api` 가 `apiError` 를 공개. 전부 `apiFetch` 경유 그대로. 동작 변화: 시세 쿼리(전역 기본값)가 4xx 를 더는 재시도하지 않는다
+
 - 2026-09-22 신설 · 구현

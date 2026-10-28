@@ -48,3 +48,12 @@ First Load 가 그대로인 이유: axios 는 처음부터 지연 청크(`next/d
 | 4xx · 5xx 에서 화면 동작(재시도 · 오류 문구) | 실패 계약(던진다)은 같고 에러 모양에 기대는 소비처가 0건(`grep` `isAxiosError` · `.response`)이라 실측하지 않았다 | 슬라이스별 오류 화면을 만질 때 |
 | RN 이 `@repo/core/market` 사용 | RN 시세 화면에 실시간 봉이 없다 | RN 시세 실시간 REQ |
 | lockfile 의 turbo 2.10 → 2.11 | 루트 `"turbo": "latest"` 가 설치 때 같이 풀렸다. 빌드 · lint · test 는 2.11 로 돌렸다 | 없음 — 기록만 |
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| `entities/market/api/marketApi.ts · shared/api/index.ts` | `MarketApiError` → `ApiError` · `shared/api` 가 `apiError` 를 공개. 전부 `apiFetch` 경유 그대로 |
+| 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
+
+미검증: 없음 — 판단 · 화면 무변경

@@ -81,3 +81,12 @@
 
 
 - 2026-10-26 F011 7f: 국내 복기 엔드포인트 · 쿼리 키 — check-types · build
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| `useCoachReport · useSymbolCoach · regenerateCoachApi` | 재시도 판정 → `retryWhileRetriable(1)` · `RegenerateCoachApiError` → `ApiError`. 429 쿨다운은 결과로 읽기 그대로 |
+| 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
+
+미검증: 없음 — 판단 · 화면 무변경

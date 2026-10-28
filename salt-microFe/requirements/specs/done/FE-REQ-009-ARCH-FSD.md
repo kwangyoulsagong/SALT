@@ -282,3 +282,9 @@ export { importLedger as POST } from '@/app/api-routes';
 - `packages/mocks`(MSW) 위치. 슬라이스별 `api/mock`으로 내릴지 `shared`에 둘지.
 - `MovableGrid`가 `packages/ui`에 있는데 사용처가 PC 한 화면뿐이다. `widgets/pc-panel-grid`로 내릴지 관찰 대상으로 둔다.
 - FSD `app` 레이어와 Next 루트 `app/` 디렉터리가 **이름이 같다.** 공식 가이드가 그렇게 하라고 하지만 사람이 혼동한다. 규칙 문서에 "루트 `app/` = 라우팅, `src/app/` = FSD 초기화"를 반복 명시한다.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-10-28 | `F000-api-error-normalize`(파일만 걸침) — `GoalApiError` → `readApiError(response, "goal")`. 동작 무변경(4xx 재시도 0 유지) |

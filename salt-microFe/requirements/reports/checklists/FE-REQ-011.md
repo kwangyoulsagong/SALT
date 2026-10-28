@@ -156,3 +156,12 @@
 | 서버 측 리프레시 토큰 무효화 | 서버 · BFF 에 로그아웃 경로가 없다(JWT, 서버 저장 없음) | `FE-REQ-013` 쿠키 세션 |
 | 설정 화면 | 코치 성향 설정(FEATURE-004 FR-12) 화면이 없다 | F004 설정 슬라이스 |
 | 실제 로그인 계정 실측 | 토큰을 스텁으로 넣고 BFF 를 Playwright route 로 가로챘다 | 사용자 가입 후 |
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| `shared/api/apiFetch.ts · features/sign-in` | `apiFetch` 에 410 개발 경고 · `SignInError` → `ApiError`(`code` 그대로 — 로그인 문구 매핑 무변경) |
+| 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
+
+미검증: 없음 — 판단 · 화면 무변경

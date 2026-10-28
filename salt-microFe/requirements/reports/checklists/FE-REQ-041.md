@@ -314,3 +314,12 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 | 시세 표의 시간외 칸 | 기획 시나리오 3(표에 시간외 한 줄)은 이번엔 상세만 — 표 열은 코인과 같은 5열이 사용자 결정 | 사용자가 국내 표에 시간외를 원할 때 |
 | 현재가 행 테두리가 안 보이는 때 | 현재가가 통합(KRX+NXT) 체결가면 호가 격자에 없다(10:28 223,250원) — 사실이라 맞추지 않았다 | 없음 — 알려진 동작 |
 | 1024 폭 | 1440 · 800 만 찍었다(격자 경계가 1024 라 같은 쌓임) | 다음 상세 손볼 때 |
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| `useKrStockQueries · KrStockDetail` | 4xx 정지 · 재시도 판정 → `isClientApiError` · `retryWhileRetriable(1)` · 없는 종목 404 → `hasApiStatus` |
+| 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
+
+미검증: 없음 — 판단 · 화면 무변경

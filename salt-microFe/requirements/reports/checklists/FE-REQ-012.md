@@ -122,3 +122,28 @@
 ## F011 슬라이스 6b (2026-10-27) — 파일만 걸침
 
 엔드포인트 `krOrderbook` 추가 · 국내 시세 응답 `afterHours` 추가만. 기존 호출 무변경. 미검증: 없음
+
+## 2026-10-28 — 에러 정규화 · `period` enum (`feat/fe-req-012-error-normalize`)
+
+루트: `requirements/reports/checklists/F000-api-error-normalize.md`
+
+| FR | 판정 | 근거 · 위치 |
+|---|---|---|
+| FR-2 `period` enum | **pass (개정)** | `ChartPeriod`(`minute` · `day`) — `entities/market/model/types.ts`. `chartTimeframes` · `endpoints` · `MarketDetailChart` 가 쓴다. 리터럴 0건 |
+| FR-4 `miniute` grep 0 | **미충족(유지)** | 경위 주석 1건(`endpoints.ts`) — 위 판단 그대로 |
+| FR-40 문구 `shared/i18n` | **pass (개정)** | `@repo/core/http` 재수출로 갈음 — RN 이 같은 값을 본다 |
+| FR-41 `{ status, code, retriable }` | **pass** | `shared/api/apiError.ts`. 9개 클래스(`CoachApiError` · `MarketApiError` · `GoalApiError` · `StreamHttpError` · `SignInError` · `RecordTransactionApiError` · `RegenerateCoachApiError` · `SetRiskBudgetApiError` · `ConfirmOutcomeTagsApiError`) 삭제 · grep 0 |
+| FR-42 `shared/api` 가 문장을 만들지 않는다 | **pass** | `ApiError.message` 는 로그용 `"<이름> <status> <code>"` — 화면에 안 나간다 |
+| FR-43 410 개발 경고 | **pass** | `apiFetch` `warnIfGone` — Playwright 410 고정 응답에서 콘솔 1건 |
+| FR-44 서버 원문 미노출 | **pass (코드)** | 앱 전체 `error.message` grep 0. 문구는 `code`(로그인 · 거래 기록) · `reasonCode`(초대) · `status`(404 · 429)로만 |
+| FR-51 enum | **부분** | `period` 완료 · `alertKind` · `newsSentiment` 소비처 없음 |
+| 재시도 실측 | **pass** | 상세 차트 404 · 422 요청 4 → 2(dev 이중 마운트), 마지막 4.2 → 1.0s · 500 백오프 유지 — 루트 §2 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 로그인 · 거래 기록 오류 문구 실화면 | 테스트 계정 비밀번호 기록 없음 | QA 단계 |
+| `ApiError` 단위 테스트 | 웹 러너 없음 | `FE-REQ-013` |
+| `alertKind` · `newsSentiment` enum | 소비처 없음 | F006 `FE-REQ-030` · D-2절 |
+| 운영 빌드 재시도 실측 | dev 만 | 배포 환경 확정 시 |

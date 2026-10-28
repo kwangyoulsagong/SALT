@@ -91,3 +91,12 @@ DOM 범례 글자 리플로다 — 범례를 숨기면 0.12ms 로 돌아간다. 
 | 핀치 확대 | `pan-y` 와 충돌 — 버튼으로 대체(FR-23) | 필요가 관측되면 |
 | 이동평균 프론트 계산(Open Question) | 공통 수용 기준 3 해석 — 표시용 가격 변환으로 봤다 | PM 확인 |
 | 판단이 열린 상세 화면 실데이터 | 표본 0 | 판단 유형당 표본 20건 |
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| `entities/market/ui/MarketDetailChart.tsx` | `spec.period === "minute"` → `ChartPeriod.Minute`. 상세 차트 4xx 가 전역 기본값에서 두 번 더 불리던 것이 멎었다(실측 요청 4 → 2) |
+| 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
+
+미검증: 없음 — 판단 · 화면 무변경

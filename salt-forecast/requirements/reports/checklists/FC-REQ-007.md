@@ -36,3 +36,7 @@
 - `ruff` · `ruff format` · `pyright`(0) · `lint-imports`(3 kept) · `pytest` 전체 통과(+10: `test_signals.py` 8 · ECB 1 · 누수 1) · `tests/leakage` 14건 · 스키마 계약(DB 연결로 실행 — 새 두 표 포함)
 - 드라이런 `--as-of 2026-06-30`(7,597행 · 3.5초) · `--as-of 2025-01-15`(2,973행 · 2.0초)
 - 실행 4.8~5.1초(224종목, 예산 < 1분). 서버 뷰 `EXPLAIN ANALYZE` 0.028ms · 0.034ms(`DB-REQ-029` 체크리스트)
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (짝 영역 변경 없음)
+
+웹이 이 경로의 실패를 `ApiError { status, code, retriable }` 로 받게 바뀌었다(`FE-REQ-012`). 이 영역 코드 · 계약 **변경 없음** — 파일 머리 주석 참조뿐.
