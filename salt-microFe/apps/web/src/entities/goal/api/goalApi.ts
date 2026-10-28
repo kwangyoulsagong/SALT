@@ -1,4 +1,4 @@
-import { apiFetch, authHeader } from "@/shared/api";
+import { apiFetch, authHeader, readApiError } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 import { formatPrice } from "@/shared/lib";
 
@@ -35,12 +35,6 @@ const SCREEN_CATEGORY: Readonly<Record<string, GoalCategory>> = {
   wedding: GoalCategory.Married,
 };
 
-export class GoalApiError extends Error {
-  constructor(readonly status: number) {
-    super(`goal api ${status}`);
-  }
-}
-
 /** 금액은 서버 값의 **표시 포맷**만 한다 — 더하거나 나누지 않는다 */
 const money = (value: string | number): string => formatPrice(Number(value));
 
@@ -55,7 +49,7 @@ export const goalApi = {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}/api/goals/statistics`, {
       headers: authHeader(),
     });
-    if (!response.ok) throw new GoalApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "goal");
 
     const { data } = (await response.json()) as Envelope<ServerGoalStatistics>;
     return {
@@ -73,7 +67,7 @@ export const goalApi = {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}/api/goals`, {
       headers: authHeader(),
     });
-    if (!response.ok) throw new GoalApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "goal");
 
     const { data } = (await response.json()) as Envelope<{ goals: ServerGoal[] }>;
     return data.goals.map((goal) => ({

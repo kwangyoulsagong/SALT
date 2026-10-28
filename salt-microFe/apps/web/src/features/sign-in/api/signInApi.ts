@@ -1,4 +1,4 @@
-import { apiFetch } from "@/shared/api";
+import { ApiError, apiFetch } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
 import type { SignInRequest, SignInResponse } from "../model/types";
@@ -19,16 +19,6 @@ interface LoginEnvelope {
   data?: SignInResponse;
 }
 
-/** 상태 코드와 서버 코드를 들고 던진다 — 문구는 화면이 고른다. */
-export class SignInError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string | null
-  ) {
-    super(`sign-in ${status}${code ? ` ${code}` : ""}`);
-  }
-}
-
 /** mutation 은 feature 가 갖는다 (`fsd-entities.md` — entities/api 는 조회만). */
 export const signInApi = {
   signIn: async (body: SignInRequest): Promise<SignInResponse> => {
@@ -42,13 +32,14 @@ export const signInApi = {
       .json()
       .catch(() => null)) as LoginEnvelope | null;
 
+    // 본문은 토큰을 꺼내려고 이미 읽었다 — `readApiError` 대신 같은 모양을 직접 만든다
     if (!response.ok) {
-      throw new SignInError(response.status, envelope?.code ?? null);
+      throw new ApiError("sign-in", response.status, typeof envelope?.code === "string" ? envelope.code : null);
     }
     // 200 인데 토큰이 없으면 계약이 깨진 것이다. 빈 세션을 저장하지 않는다 —
     // 저장하면 "로그인됨 + 데이터 없음" 이라는 그 상태가 다시 만들어진다.
     if (!envelope?.data?.accessToken || !envelope.data.refreshToken) {
-      throw new SignInError(response.status, null);
+      throw new ApiError("sign-in", response.status);
     }
 
     return envelope.data;

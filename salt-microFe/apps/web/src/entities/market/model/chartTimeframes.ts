@@ -9,11 +9,13 @@
  */
 import { Timeframe } from "@/shared/api";
 
+import { ChartPeriod } from "./types";
+
 export type ChartTimeframe = "1m" | "5m" | "15m" | "1h" | "1d";
 
 export interface ChartTimeframeSpec {
   value: ChartTimeframe;
-  period: "minute" | "day";
+  period: ChartPeriod;
   /** 분봉 단위. 일봉은 서버가 무시한다 */
   unit: number;
   /**
@@ -24,11 +26,11 @@ export interface ChartTimeframeSpec {
 }
 
 export const CHART_TIMEFRAMES: readonly ChartTimeframeSpec[] = [
-  { value: "1m", period: "minute", unit: 1, realtime: Timeframe.OneMinute },
-  { value: "5m", period: "minute", unit: 5, realtime: Timeframe.FiveMinutes },
-  { value: "15m", period: "minute", unit: 15, realtime: null },
-  { value: "1h", period: "minute", unit: 60, realtime: Timeframe.OneHour },
-  { value: "1d", period: "day", unit: 1, realtime: null },
+  { value: "1m", period: ChartPeriod.Minute, unit: 1, realtime: Timeframe.OneMinute },
+  { value: "5m", period: ChartPeriod.Minute, unit: 5, realtime: Timeframe.FiveMinutes },
+  { value: "15m", period: ChartPeriod.Minute, unit: 15, realtime: null },
+  { value: "1h", period: ChartPeriod.Minute, unit: 60, realtime: Timeframe.OneHour },
+  { value: "1d", period: ChartPeriod.Day, unit: 1, realtime: null },
 ];
 
 /** 첫 기간 — 패널 프리뷰(5분봉)와 같은 것으로 연다 */

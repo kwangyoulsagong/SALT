@@ -6,7 +6,7 @@ import type {
   TradePlanView,
 } from "@repo/core/coach";
 
-import { apiFetch, authHeader } from "@/shared/api";
+import { apiFetch, authHeader, readApiError } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
 /** F009 뷰모델 경로(`BFF-REQ-038`). 조회 경로는 `entities/coach` 가 갖고, 쓰기 · 계산은 이 기능이 갖는다 */
@@ -21,21 +21,6 @@ interface Envelope<T> {
   data: T;
 }
 
-/** status 와 서버 오류 코드를 든다 — 화면은 코드로 문구를 고른다(보유 부족 등) */
-export class RecordTransactionApiError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string | null,
-  ) {
-    super(`record transaction ${status}`);
-  }
-}
-
-const readCode = async (response: Response): Promise<string | null> => {
-  const body = (await response.json().catch(() => null)) as { code?: unknown } | null;
-  return typeof body?.code === "string" ? body.code : null;
-};
-
 const postJson = async <T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> => {
   const response = await apiFetch(`${INVESTMENTS_BASE_URL}${path}`, {
     method: "POST",
@@ -43,7 +28,8 @@ const postJson = async <T>(path: string, body: unknown, signal?: AbortSignal): P
     body: JSON.stringify(body),
     signal,
   });
-  if (!response.ok) throw new RecordTransactionApiError(response.status, await readCode(response));
+  // 실패는 `ApiError` — 화면은 `code` 로 문구를 고른다(보유 부족 등)
+  if (!response.ok) throw await readApiError(response, "record transaction");
   const envelope = (await response.json()) as Envelope<T>;
   return envelope.data;
 };

@@ -8,10 +8,10 @@ import type {
 } from "@repo/core/coach";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import { readAccessToken } from "@/shared/api";
+import { hasApiStatus, readAccessToken, retryWhileRetriable } from "@/shared/api";
 import { HTTP_STATUS_CODE } from "@/shared/config";
 
-import { coachApi, CoachApiError } from "./coachApi";
+import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";
 
 /** 결과 · 라벨은 배치가 6시간마다 만든다 — 화면에 머무는 동안 다시 부를 이유가 적다 */
@@ -19,8 +19,7 @@ const MIRROR_STALE_TIME_MS = 5 * 60_000;
 /** 태그를 고치는 목록. 최근 청산부터 이만큼 */
 export const OUTCOME_LIST_LIMIT = 20;
 
-const retryServerErrorOnce = (count: number, error: Error) =>
-  count < 1 && !(error instanceof CoachApiError && error.status < HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR);
+const retryServerErrorOnce = retryWhileRetriable(1);
 
 /**
  * 내 거래 미러 (F009 슬라이스 5 `FE-REQ-039`). 코치 리포트와 따로 부르고 따로 실패한다.
@@ -51,7 +50,7 @@ export const useKrBehaviorMirror = () => {
     staleTime: MIRROR_STALE_TIME_MS,
     retry: retryServerErrorOnce,
   });
-  const notOwner = query.error instanceof CoachApiError && query.error.status === HTTP_STATUS_CODE.NOT_FOUND;
+  const notOwner = hasApiStatus(query.error, HTTP_STATUS_CODE.NOT_FOUND);
   return { ...query, notOwner, isSignedOut: !token };
 };
 
@@ -88,6 +87,6 @@ export const useMonthlyReview = (month: string | null, assetType: "crypto" | "kr
     placeholderData: keepPreviousData,
     retry: retryServerErrorOnce,
   });
-  const notOwner = isKr && query.error instanceof CoachApiError && query.error.status === HTTP_STATUS_CODE.NOT_FOUND;
+  const notOwner = isKr && hasApiStatus(query.error, HTTP_STATUS_CODE.NOT_FOUND);
   return { ...query, notOwner, isSignedOut: !token };
 };

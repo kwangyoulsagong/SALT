@@ -17,6 +17,7 @@ import { useMarketChart } from "../api";
 import { useMarketChartRealtime } from "../lib";
 import {
   CHART_TIMEFRAMES,
+  ChartPeriod,
   type ChartTimeframe,
   chartTimeframeSpec,
   DEFAULT_CHART_TIMEFRAME,
@@ -133,7 +134,7 @@ export const MarketDetailChart = ({
           <TradingChart
             candles={candles}
             height={DETAIL_CHART_HEIGHT}
-            intraday={spec.period === "minute"}
+            intraday={spec.period === ChartPeriod.Minute}
             name={MARKET_MESSAGES.chartName(displayName, MARKET_MESSAGES.chartTimeframes[timeframe])}
             priceLines={priceLines}
             priceBand={priceBand}

@@ -3,11 +3,10 @@
 import type { KrChartPeriod } from "@repo/core/marketKr";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import { useHasAccessToken } from "@/shared/api";
+import { isClientApiError, retryWhileRetriable, useHasAccessToken } from "@/shared/api";
 
 import type { KrOverviewQuery } from "./endpoints";
 import { krStockApi } from "./krStockApi";
-import { MarketApiError } from "./marketApi";
 import { marketQueryKeys } from "./queryKeys";
 
 /**
@@ -25,15 +24,11 @@ const KR_CHART_STALE_MS = 5 * 60_000;
 /** 상세 차트 봉 수 — 일봉 약 1년 · 5분봉 약 6거래일(서버 상한 500) */
 export const KR_CHART_CANDLE_COUNT = 240;
 
-const isClientError = (error: unknown) =>
-  error instanceof MarketApiError && error.status >= 400 && error.status < 500;
-
-const retryUnlessClientError = (failureCount: number, error: unknown) =>
-  !isClientError(error) && failureCount < 1;
+const retryUnlessClientError = retryWhileRetriable(1);
 
 /** 1분 주기 — 4xx(소유자 아님 · 없는 종목)면 멈춘다. 멈추지 않으면 비소유자 화면이 1분마다 404 를 낸다 */
 const refreshUnlessClientError = (query: { state: { error: unknown } }) =>
-  isClientError(query.state.error) ? false : KR_REFRESH_MS;
+  isClientApiError(query.state.error) ? false : KR_REFRESH_MS;
 
 export const useKrMarketStatus = () => {
   const signedIn = useHasAccessToken() === true;
@@ -132,7 +127,7 @@ export const useKrOrderbook = (code: string, live: boolean) => {
     queryFn: ({ signal }) => krStockApi.orderbook(code, signal),
     enabled: signedIn && Boolean(code),
     staleTime: KR_ORDERBOOK_REFRESH_MS,
-    refetchInterval: (query) => (live && !isClientError(query.state.error) ? KR_ORDERBOOK_REFRESH_MS : false),
+    refetchInterval: (query) => (live && !isClientApiError(query.state.error) ? KR_ORDERBOOK_REFRESH_MS : false),
     retry: retryUnlessClientError,
   });
 };

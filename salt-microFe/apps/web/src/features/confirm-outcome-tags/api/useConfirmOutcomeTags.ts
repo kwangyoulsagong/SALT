@@ -4,8 +4,9 @@ import type { DecisionOutcomeView } from "@repo/core/coach";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { coachQueryKeys } from "@/entities/coach";
+import type { ApiError } from "@/shared/api";
 
-import { ConfirmOutcomeTagsApiError, confirmOutcomeTagsApi } from "./confirmOutcomeTagsApi";
+import { confirmOutcomeTagsApi } from "./confirmOutcomeTagsApi";
 
 export interface ConfirmOutcomeTagsVariables {
   id: string;
@@ -18,7 +19,7 @@ export interface ConfirmOutcomeTagsVariables {
  */
 export const useConfirmOutcomeTags = () => {
   const queryClient = useQueryClient();
-  return useMutation<DecisionOutcomeView, ConfirmOutcomeTagsApiError, ConfirmOutcomeTagsVariables>({
+  return useMutation<DecisionOutcomeView, ApiError, ConfirmOutcomeTagsVariables>({
     mutationFn: ({ id, tags }) => confirmOutcomeTagsApi.confirm(id, { tags }),
     retry: 0,
     onSuccess: () =>

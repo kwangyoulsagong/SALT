@@ -5,8 +5,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { coachQueryKeys } from "@/entities/coach";
 import { portfolioQueryKeys } from "@/entities/portfolio";
+import type { ApiError } from "@/shared/api";
 
-import { RecordTransactionApiError, recordTransactionApi } from "./recordTransactionApi";
+import { recordTransactionApi } from "./recordTransactionApi";
 
 /**
  * 거래 + 계획 저장 (F009 FR-10). 성공하면 그 종목 계획 · 리스크 게이지 · 사이즈 계산 캐시를 버린다
@@ -28,7 +29,7 @@ export const useRecordTrade = () => {
       queryClient.invalidateQueries({ queryKey: portfolioQueryKeys.summary }),
     ]);
 
-  const record = useMutation<RecordTradeResult, RecordTransactionApiError, RecordTradeRequest>({
+  const record = useMutation<RecordTradeResult, ApiError, RecordTradeRequest>({
     mutationFn: recordTransactionApi.record,
     retry: 0,
     onSuccess: (result) => invalidate(result.transaction.symbol),
@@ -37,7 +38,7 @@ export const useRecordTrade = () => {
   /** 계획만 다시 저장 — 거래는 이미 있다 */
   const retryPlan = useMutation<
     TradePlanView,
-    RecordTransactionApiError,
+    ApiError,
     Parameters<typeof recordTransactionApi.savePlan>[0]
   >({
     mutationFn: recordTransactionApi.savePlan,

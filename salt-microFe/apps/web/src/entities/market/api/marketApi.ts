@@ -1,4 +1,4 @@
-import { apiFetch, authHeader } from "@/shared/api";
+import { apiFetch, authHeader, readApiError } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
 import type { ChartTimeframeSpec } from "../model/chartTimeframes";
@@ -14,18 +14,8 @@ import {
 } from "../model/types";
 import { MARKET_ENDPOINTS } from "./endpoints";
 
-/** 상태 코드를 들고 던진다 — 재시도 판단이 4xx 와 5xx 를 가른다(`CoachApiError` 와 같다) */
-export class MarketApiError extends Error {
-  constructor(
-    readonly endpoint: string,
-    readonly status: number,
-  ) {
-    super(`market ${endpoint} ${status}`);
-  }
-}
-
 /**
- * GET 후 본문을 그대로 돌려준다. 실패는 `MarketApiError` 로 던진다 — 예전 `axios.get` 의
+ * GET 후 본문을 그대로 돌려준다. 실패는 `ApiError`(`shared/api`)로 던진다 — 예전 `axios.get` 의
  * "2xx 가 아니면 던진다"와 같은 계약이라 부르는 훅은 바뀌지 않는다.
  */
 const getJson = async <T>(
@@ -34,7 +24,7 @@ const getJson = async <T>(
   init?: RequestInit,
 ): Promise<T> => {
   const response = await apiFetch(`${INVESTMENTS_BASE_URL}${path}`, init);
-  if (!response.ok) throw new MarketApiError(endpoint, response.status);
+  if (!response.ok) throw await readApiError(response, `market ${endpoint}`);
   return (await response.json()) as T;
 };
 

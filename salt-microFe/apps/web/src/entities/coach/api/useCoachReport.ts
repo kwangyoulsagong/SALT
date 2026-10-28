@@ -3,10 +3,9 @@
 import type { CoachReportResult } from "@repo/core/coach";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
-import { readAccessToken } from "@/shared/api";
-import { HTTP_STATUS_CODE } from "@/shared/config";
+import { readAccessToken, retryWhileRetriable } from "@/shared/api";
 
-import { coachApi, CoachApiError } from "./coachApi";
+import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";
 
 /**
@@ -16,12 +15,7 @@ import { coachQueryKeys } from "./queryKeys";
 const COACH_REPORT_STALE_TIME_MS = 60_000;
 const COACH_REPORT_RETRY_COUNT = 1;
 
-const shouldRetry = (failureCount: number, error: Error) =>
-  failureCount < COACH_REPORT_RETRY_COUNT &&
-  !(
-    error instanceof CoachApiError &&
-    error.status < HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR
-  );
+const shouldRetry = retryWhileRetriable(COACH_REPORT_RETRY_COUNT);
 
 /**
  * 코치 리포트 조회 (`FE-REQ-028` FR-1 · FR-3).

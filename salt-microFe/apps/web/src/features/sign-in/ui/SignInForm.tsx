@@ -5,8 +5,9 @@ import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 import { useState, type FormEvent } from "react";
 
+import { isApiError } from "@/shared/api";
+
 import { useSignIn } from "../api/useSignIn";
-import { SignInError } from "../api/signInApi";
 import { SIGN_IN_ERROR_MESSAGES, SIGN_IN_MESSAGES } from "../model/messages";
 import { fields, form, submitRow } from "./SignInForm.css";
 
@@ -80,7 +81,7 @@ export const SignInForm = () => {
 
 /** 서버 코드 → 문구. 네트워크 실패(코드 없음)는 따로 말한다. */
 const messageOf = (error: Error): string => {
-  if (!(error instanceof SignInError)) return SIGN_IN_MESSAGES.networkError;
+  if (!isApiError(error)) return SIGN_IN_MESSAGES.networkError;
   if (error.code && SIGN_IN_ERROR_MESSAGES[error.code]) {
     return SIGN_IN_ERROR_MESSAGES[error.code];
   }

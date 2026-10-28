@@ -1,5 +1,5 @@
 import type { ChartTimeframeSpec } from "../model/chartTimeframes";
-import { MarketOrder, MarketPeriod, MarketSort } from "../model/types";
+import { ChartPeriod, MarketOrder, MarketPeriod, MarketSort } from "../model/types";
 
 /** 국내 주식 시세 목록 조회 조건 — 코인 `MarketOverviewParams` 의 필터를 그대로 쓴다 */
 export interface KrOverviewQuery {
@@ -9,9 +9,6 @@ export interface KrOverviewQuery {
   order?: MarketOrder;
   period?: MarketPeriod;
 }
-
-/** 차트 주기. 서버·BFF 가 아는 값이고 문자열을 직접 쓰지 않는다. */
-const CHART_PERIOD_MINUTE = "minute";
 
 /**
  * 시세 upstream 의 엔드포인트 경로.
@@ -47,7 +44,7 @@ export const MARKET_ENDPOINTS = {
    * BFF 와 서버가 모르는 값을 422 로 거부한다 — **프론트가 먼저 배포되어야 한다.**
    */
   chartPreview: (symbol: string) =>
-    `/api/investment/crypto/${symbol}/chart?period=${CHART_PERIOD_MINUTE}&unit=5&count=30`,
+    `/api/investment/crypto/${symbol}/chart?period=${ChartPeriod.Minute}&unit=5&count=30`,
   /** 상세 분석 차트 — 기간 탭이 `period` · `unit` 을 고른다(`model/chartTimeframes.ts`) */
   chart: (symbol: string, spec: ChartTimeframeSpec, count: number) =>
     `/api/investment/crypto/${encodeURIComponent(symbol)}/chart` +

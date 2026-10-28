@@ -1,18 +1,12 @@
 import type { ConfirmOutcomeTagsRequest, DecisionOutcomeView } from "@repo/core/coach";
 
 import { COACH_ENDPOINTS } from "@/entities/coach";
-import { apiFetch, authHeader } from "@/shared/api";
+import { apiFetch, authHeader, readApiError } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
 interface Envelope<T> {
   success: boolean;
   data: T;
-}
-
-export class ConfirmOutcomeTagsApiError extends Error {
-  constructor(readonly status: number) {
-    super(`confirm outcome tags ${status}`);
-  }
 }
 
 /**
@@ -26,7 +20,7 @@ export const confirmOutcomeTagsApi = {
       headers: { "Content-Type": "application/json", ...authHeader() },
       body: JSON.stringify(body),
     });
-    if (!response.ok) throw new ConfirmOutcomeTagsApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "confirm outcome tags");
     const envelope = (await response.json()) as Envelope<DecisionOutcomeView>;
     return envelope.data;
   },

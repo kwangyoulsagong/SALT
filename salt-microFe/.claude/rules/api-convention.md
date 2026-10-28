@@ -10,7 +10,7 @@
 
 ## 서비스 함수
 
-- `Response` 를 UI로 노출하지 말고 본문(`data`)만 반환한다. `!response.ok` 면 status 를 든 에러를 던진다(`CoachApiError` · `MarketApiError`).
+- `Response` 를 UI로 노출하지 말고 본문(`data`)만 반환한다. `!response.ok` 면 `throw await readApiError(response, "<호출 이름>")` — 슬라이스별 에러 클래스를 새로 만들지 않는다.
 - 본문을 보내면 `Content-Type: application/json` 을 직접 적는다 — 빠뜨리면 BFF 가 빈 본문을 받는다.
 - 반환 타입을 명시한다.
 - 조회 함수는 가능하면 `AbortSignal`을 받는다.
@@ -19,15 +19,17 @@
 ```ts
 export const getPortfolio = async (signal?: AbortSignal): Promise<Portfolio> => {
   const response = await apiFetch(`${INVESTMENTS_BASE_URL}/api/app/portfolio`, { headers: authHeader(), signal });
-  if (!response.ok) throw new PortfolioApiError(response.status);
+  if (!response.ok) throw await readApiError(response, "portfolio");
   return (await response.json()) as Portfolio;
 };
 ```
 
 ## 에러
 
-- API error shape은 한 곳에서 정규화한다.
-- UI는 HTTP 에러 내부 구조에 의존하지 않는다. 판단에 쓰는 것은 `status` 하나다.
+- 실패 모양은 `shared/api` 의 `ApiError` 하나다 — `{ status, code, retriable }` (`FE-REQ-012` FR-41). `code` 는 BFF 봉투의 `code`, 서버 `message` 는 읽지 않는다(문구는 화면이 `code` 로 고른다).
+- 판단은 헬퍼로 한다: `hasApiStatus(error, 404)` · `isClientApiError` · `retry: retryWhileRetriable(n)`. 훅마다 재시도 판정을 다시 적지 않는다.
+- `retriable` 은 5xx · 408 만 `true`. **429 는 `false`** — 다시 부를 시각은 서버가 정했다.
+- 도메인 사유(초대 거부 `reasonCode`)는 그 기능이 따로 든다 — `shared` 는 도메인을 모른다.
 - catch 후 조용히 삼키지 않는다. 복구 가능하면 fallback 값을 명시하고, 아니면 throw한다.
 
 ## Query Key

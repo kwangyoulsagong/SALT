@@ -10,11 +10,10 @@ import type {
   KrStockDetail,
 } from "@repo/core/marketKr";
 
-import { apiFetch, authHeader } from "@/shared/api";
+import { apiFetch, authHeader, readApiError } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
 import { type KrOverviewQuery, MARKET_ENDPOINTS } from "./endpoints";
-import { MarketApiError } from "./marketApi";
 
 /**
  * 국내 주식 조회(F011 `FE-REQ-041`) — BFF `/api/app/market/kr/*`(`BFF-REQ-040`). `{ success, data }` 로 싸여 온다.
@@ -22,12 +21,12 @@ import { MarketApiError } from "./marketApi";
  * 상태는 세 갈래다. 화면이 갈라 그린다:
  * - `ok` — 값
  * - `disabled`(키 없음) · `unavailable`(서버 5xx · 계약 깨짐) — **200 으로 온다.** 값이지 오류가 아니다
- * - 404(소유자 아님 · 없는 종목) · 401 · 400 — `MarketApiError` 로 던진다. 404 는 존재를 알리지 않는 응답이라 화면은
+ * - 404(소유자 아님 · 없는 종목) · 401 · 400 — `ApiError` 로 던진다. 404 는 존재를 알리지 않는 응답이라 화면은
  *   국내 주식 자리를 **숨긴다**
  */
 const getKr = async <T>(endpoint: string, path: string, signal?: AbortSignal): Promise<T> => {
   const response = await apiFetch(`${INVESTMENTS_BASE_URL}${path}`, { headers: authHeader(), signal });
-  if (!response.ok) throw new MarketApiError(endpoint, response.status);
+  if (!response.ok) throw await readApiError(response, `market ${endpoint}`);
   const body = (await response.json()) as { data: T };
   return body.data;
 };

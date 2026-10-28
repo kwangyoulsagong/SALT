@@ -1,13 +1,7 @@
 import { createSseParser, type SseEvent } from "@repo/core/sse";
 
+import { ApiError, readApiError } from "./apiError";
 import { apiFetch } from "./apiFetch";
-
-/** 스트림을 열기 전에 온 HTTP 오류 — 화면은 `status` 하나로 가른다(429 잠시 후 · 나머지 규칙 기반) */
-export class StreamHttpError extends Error {
-  constructor(readonly status: number) {
-    super(`stream http ${status}`);
-  }
-}
 
 /**
  * POST SSE 스트림을 읽는다 — `EventSource` 는 GET 전용이라 `fetch` 본문을 직접 읽는다.
@@ -16,6 +10,7 @@ export class StreamHttpError extends Error {
  * - `ping` 은 여기서 버린다 — 연결 유지용이다
  * - `signal` 로 끊으면 읽기를 멈추고 BFF → 서버 → LLM 까지 끊긴다(`streaming-sse.md` §4)
  * - 끝나면(서버가 닫으면) resolve. 읽는 도중 끊긴 연결은 reject
+ * - 스트림을 열기 전에 온 HTTP 오류는 `ApiError` — 화면은 `status` 로 가른다(429 잠시 후 · 나머지 규칙 기반)
  */
 export const streamSse = async (
   url: string,
@@ -28,7 +23,8 @@ export const streamSse = async (
     body: JSON.stringify(init.body),
     signal: init.signal,
   });
-  if (!response.ok || !response.body) throw new StreamHttpError(response.status);
+  if (!response.ok) throw await readApiError(response, "stream");
+  if (!response.body) throw new ApiError("stream", response.status);
 
   const parse = createSseParser((event) => {
     if (event.event !== "ping") onEvent(event);
