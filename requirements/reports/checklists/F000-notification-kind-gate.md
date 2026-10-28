@@ -20,8 +20,13 @@
 | 실 DB 발행 | 코치 어댑터 → 공개 API → 행 `signal_update` · `coach.decision_changed` · `title`/`message` NULL · 24시간 만료 · 중복 억제 false → true · `decision_change` 발행 422 코드 |
 | 서버 실경로(상시 4000, 재시작) | 목록 1종만(옛 행 숨김) · 숫자 인자 빠짐 · 안 읽은 수 1 · 모두 읽음이 옛 행 안 건드림 · 단건 읽음도 · `size=500` 400 · 무인증 401 |
 | BFF 실경로(4001) | `{ alerts: 2건 최신순, unreadCount: 2 }` · 서버가 실은 `avgPrice` 문자열 제거 · `/api/app/home` 200 |
-| 시험 행 | `qa-*` 전부 삭제 — 알림 0행(시작과 같음) |
-| 게이트 | 서버 `build` · `lint` · `test` 829 · `test:layer-check` · `prisma generate` · Swagger `failOnErrors` · Bash 로 쓴 18파일 레이어 훅 사후 실행 exit 0 · BFF `tsc` · `test` 282 |
+| 코치 워커 실제 회차 | 상시 서버 코치 워커 실제 회차(10:50): 테스트 계정 직전 판단을 `wait` → `hold` 로 바꿔 두자 다음 회차가 `signal_update` · `ai_coach` · `coach.decision_changed` · 인자 `{ mode, symbol, previousAction, nextAction }` · 문장 NULL · 24시간 만료 1건을 만들었다. 다시 `hold` 로 바꾼 11:00 회차는 **2시간 억제로 0건 추가**. 판단은 회차가 원래 값(`wait`)으로 덮었고 시험 알림은 지웠다 |
+| 홈 · 알림 BFF(실제 행) | `/api/app/alerts` 1건 · `unreadCount: 1` · `/api/app/home` `unreadNotifications: 1` · `degradedBlocks: []` |
+| 마이그레이션 되돌리기 | migration 머리 SQL 을 NULL 문장 행이 있는 상태로 트랜잭션 안에서 실행 → `title` · `message` NOT NULL · `messageCode` 삭제 성공 → ROLLBACK 후 원상태 |
+| 실행 계획 | 목록 · 안 읽은 수 `InvestmentNotification_userId_isRead_idx` · 억제 조회 `symbol` 인덱스(행 0이라 seqscan 끄고 확인 — 24시간 만료라 사용자당 소량) |
+| 만료 정리 워커 | 새 모양 행: 만료 1 삭제 · 유효 1 유지 |
+| 시험 행 | `qa-*` · 실제 회차 알림 전부 삭제 — 알림 0행(시작과 같음) |
+| 게이트 | 모노레포 `check-types` · `lint` 5/5(프론트 변경 없음 — 캐시) · 서버 `build` · `lint` · `test` 829 · `test:layer-check` · `prisma generate` · Swagger `failOnErrors` · Bash 로 쓴 18파일 레이어 훅 사후 실행 exit 0 · BFF `tsc` · `test` 282 |
 
 ## 3. 짝 · 참조 REQ — 변경 없음
 
@@ -36,6 +41,4 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 코치 워커가 실제 판단 변화로 알림을 만드는 회차 | 판단이 바뀌어야 생긴다 — 같은 어댑터 · API 를 실 DB 로 확인 | 다음 판단 변화 회차(알림 행 `messageCode` 확인) |
 | 알림 화면 · i18n 문장 | 프론트 소비처 없음 | F006 `FE-REQ-030` |
-| 모노레포(`salt-microFe`) 게이트 | 프론트 파일 변경 0 | 해당 없음 |
