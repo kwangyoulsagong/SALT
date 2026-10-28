@@ -82,3 +82,16 @@
 
 명령: `npm run build` · `npm run lint` · `npm test` 820 pass(`goneMiddleware.test.ts` 2) · `npm run test:layer-check` · 레이어 훅 사후 실행 4파일 exit 0.
 Swagger: 동면 모듈 JSDoc 은 스캔 경로(`src/modules/**/*.routes.ts`)에 그대로 남는다 — 동면은 코드를 지우지 않는다(`SRV-REQ-007`).
+
+## 알림 경로 1종 — FR-12 · 13 (2026-10-28)
+
+루트 `F000-notification-kind-gate` · 브랜치 `feat/f000-notification-kind-gate` · 커밋 `3320883`
+
+| 항목 | 결과 |
+|---|---|
+| FR-12 생성 422 | 생성은 HTTP 가 아니라 `NotificationApi.publish` — `ErrorKind.Blocked` → 422(단위 · 실 DB). HTTP 생성 경로 0건 |
+| FR-13 금액 0 | 실경로 `GET /api/investment-notifications` 항목 `{ id, kind, symbol, messageCode, params, isRead, createdAt }` |
+| 경로 4개 | 같은 경로 · 무인증 401 · `size=500` → 400(Zod) · 모두 읽음 · 안 읽은 수 1종만 |
+| Swagger | 4경로 `/api/investment-notifications*`(전엔 `/api` 접두 누락) |
+
+미검증: 없음

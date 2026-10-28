@@ -155,12 +155,12 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 - [ ] `ChangePassword`·`DeleteAccount` 유스케이스가 0건이다
 - [ ] 토큰 재발급이 동작한다
 - [ ] 온보딩 상태 3단계가 계산되고 `portfolio`·`plan`의 공개 API를 경유한다 (개정 2026-09-21 — `ledger` 없음)
-- [ ] `NotificationKind`가 **1종**(`signal_update`)이다 (개정 2026-09-21)
-- [ ] **그 외 종류 생성이 거부되고 기존 row 읽기는 허용된다**
-- [ ] 센티먼트·고래 알림 생성 코드가 실행되지 않는다
+- [x] `NotificationKind`가 **1종**(`signal_update`)이다 (개정 2026-09-21) (2026-10-28 — `notification/domain/NotificationKind`)
+- [x] **그 외 종류 생성이 거부되고 기존 row 읽기는 허용된다** (2026-10-28 — `kindGate` 422. 옛 행은 지우지 않지만 목록 · 안 읽은 수는 `SRV-REQ-028` FR-94 대로 1종만 보여 준다 — 아래 "구현이 REQ와 다른 지점")
+- [x] 센티먼트·고래 알림 생성 코드가 실행되지 않는다 (2026-10-28 확인 — `src` 에 `SentimentAlert` · `SmartMoneyAlert` 생성 0건, 모델만 남음)
 - [ ] `MarketSentiment`·`WhaleTransaction` 조회가 동작한다
-- [ ] 알림 페이로드에 금액이 0건이다
-- [ ] 알림 문구가 코드이고 서버가 문장을 만들지 않는다
+- [x] 알림 페이로드에 금액이 0건이다 (2026-10-28 — `messageGuard` 금액 키 · 숫자 값 거부, 목록은 문자열 인자만)
+- [x] 알림 문구가 코드이고 서버가 문장을 만들지 않는다 (2026-10-28 — `messageCode` + `params`, `title` · `message` 새 행 NULL)
 - [ ] watchlist CRUD가 `market` 컨텍스트에 있고 동작이 이전과 같다
 - [ ] watchlist가 `AssetType` 3값을 받는다
 - [ ] 관심 종목 목록에 현재가·변동률이 포함된다
@@ -213,7 +213,13 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 | 2026-09-18 | **관심 목록·뉴스·차트·포지션 요약을 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-30·33(watchlist 동작 유지 + 현재가·변동률 포함) · FR-40~44(뉴스 — 이미 있던 조회를 소비처가 생겼다) · FR-50~52(`period` 422) · FR-60·63(보유 요약 · Projection 조회). **남은 것**: FR-1~7(초대 코드) · FR-10~14(인증 축소·온보딩 상태) · FR-20~25(알림 2종) · FR-32(`AssetType` 3값 — `DB-REQ-003` 대기) · FR-61·62(환율 — `fx` 컨텍스트 대기) · FR-70~72(동면). 근거: `requirements/reports/checklists/SRV-REQ-008.md` |
 | 2026-09-18 | **초대 코드·인증 축소·온보딩 상태를 구현했다.** 닫힌 것: FR-1~7(검증 4개 · 예외 4종 · `UserCountProbe` · 원자적 사용 · 상한 설정값 · 실패 기록) · FR-10~12(인증 축소, `register`·`ChangePassword`·`DeleteAccount` **유스케이스 0건**) · FR-13·14(온보딩 3단계 — **소스는 대체**). **남은 것**: FR-20~25(알림 2종) · FR-32(`AssetType`) · FR-61·62(환율) · FR-70~72(동면). 근거: `requirements/reports/checklists/SRV-REQ-008.md` §5~§8 |
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: FR-80~87(추적 자산 · 종목 검색 — 관심 ∪ 보유, 상한 10 설정값, 보유는 무관, `HoldingProbe`, D8) · FR-90~95(뉴스 `sentiment` · `symbols` 유지 · `isBookmarked` · 북마크는 알림 아님, B11 · D5) · FR-100~104(목표 수량, 기본안 B5). 개정: FR-20 알림 2종 → **1종** · FR-13 · 14 온보딩 2단계 → 첫 보유 기록(B12), 입력 `ledger` → `portfolio` · FR-32 · 61 **Q2 보류**. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-28 | **알림 1종 · 코드만 · 금액 없음을 닫았다**(FR-20~22 · 24 · 25, 루트 `F000-notification-kind-gate`, `feat/f000-notification-kind-gate` `3320883`). 새 `notification` 컨텍스트(레지스트리 기존 행) — 만드는 길은 공개 API `NotificationApi.publish` 하나이고 관문 셋(`policy/kindGate` · `messageGuard` 코드 형식 · 금액 인자)이 거기 있다. 코치 판단 변화는 `decision_change` + 완성 문장 → `signal_update` + `coach.decision_changed` + 코드 인자. 마이그레이션 `20261028100000_notification_message_code`(`messageCode` 추가 · `title`/`message` nullable). `modules/investment-notification` 삭제(경로 같음). FR-23 은 손대지 않음(조회 경로 그대로) |
 | 2026-10-08 | F011 슬라이스 3b — `UpdateHoldingPrices`(BFF 내부 시세 반영)가 `crypto` 보유만 갱신(`findBySymbols(symbols, assetType)`). 국내 주식 보유는 서버가 저장 시세로 평가(`RevalueKrStockHoldings`, `SRV-REQ-040` FR-34). 보유 요약 · 통계는 자산군을 섞어 그대로 합산(원화끼리) |
+
+## 구현이 REQ와 다른 지점 (2026-10-28)
+
+- **FR-21 "기존 row 읽기 허용"을 "지우지 않는다"로 읽었다.** 목록 · 안 읽은 수 · 읽음 · 모두 읽음은 1종만 본다 — 안 읽은 수가 목록과 같아야 하고(`DB-REQ-022` FR-83) F006 이 같은 경로를 1종으로 좁힌다(`SRV-REQ-028` FR-94). 옛 종류를 따로 보여 줄 화면이 없다. 로컬 DB 알림 행은 0건이었다
+- **알림 생성 HTTP 경로는 만들지 않았다**(`SRV-REQ-009` FR-12). 만드는 쪽이 서버 안(코치 · 이후 F003 밴드)뿐이라 공개 API 가 생성 지점이고, 거부는 `ErrorKind.Blocked` → 422 다
 
 ## 구현 중 드러난 사실 (2026-09-18)
 

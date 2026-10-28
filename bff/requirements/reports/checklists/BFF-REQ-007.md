@@ -125,3 +125,20 @@
 | 블록별 엔드포인트 · 블록 함수 | F006 `BFF-REQ-027` · `028` |
 | 블록 타임아웃 · 총 상한(`performance-bff.md` §3) | 동일 — 지금은 `backendApi` 클라이언트 타임아웃만 |
 | C절 알림 1종 | `notification` 컨텍스트 |
+
+## C절 — 알림 1종 축소 (2026-10-28)
+
+루트 `F000-notification-kind-gate` · 브랜치 `feat/f000-notification-kind-gate` · 커밋 `ed1615f`
+
+| 항목 | 결과 |
+|---|---|
+| FR-20 · 21 | `alerts.viewmodel` 단위: 옛 종류 3 · 종류 없음 1 → 버림, 오류 없음 |
+| FR-22 금액 | 단위: 금액 키 2 · 숫자 문자열 2 · 숫자 1 제거. 실경로: 서버가 `avgPrice: "91000000"` 를 실어 보낸 행(직접 넣은 행)에서 빠짐 |
+| FR-23 코드만 | `messageCode` 없는 행 버림 · 항목 키 7개 고정 |
+| FR-24 | `createdAt` 내림차순 · 20건(25건 → 20) · 실경로 두 행 순서 확인 |
+| 실경로 | BFF 4001 → 상시 서버 4000: `{ alerts: [...2], unreadCount: 2 }` · `/api/app/home` 200 그대로 |
+| 게이트 | `tsc` · `test` 282(+4) |
+
+짝 영역: 프론트 `/api/app/alerts` 소비처 0건 — 변경 없음(F006 `FE-REQ-030` 알림 화면이 첫 소비처, 문장은 `FE-REQ-011` FR-44 i18n 매핑).
+
+미검증: 없음

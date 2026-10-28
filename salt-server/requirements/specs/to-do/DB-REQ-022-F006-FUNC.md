@@ -179,3 +179,4 @@ F006의 불변식은 **스트리밍의 멱등성**에 걸린다. SSE는 자동 �
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. 개정: INV-7 · FR-50 · FR-52 · FR-53(세금 환율 구분 삭제, 홈 3블록). 추가: INV-10~15 · FR-70~74(거래 기록 B14) · FR-80~84(알림 D5 · D9, 온보딩 B12). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
+| 2026-10-28 | **FR-81 · 82 · 83 을 F000 에서 먼저 닫았다**(`3320883`). 읽음 · 모두 읽음 UPDATE 에 `userId` + `type in ('signal_update')` · 안 읽은 수가 목록과 같은 범위. 스키마: `InvestmentNotification.messageCode` 추가 · `title`/`message` nullable(마이그레이션 `20261028100000`). FR-80(`alertsEnabled`)은 그대로 열림 |

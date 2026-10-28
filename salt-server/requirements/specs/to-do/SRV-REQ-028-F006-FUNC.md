@@ -237,3 +237,4 @@ created: 2026-09-09
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. 개정: 컨텍스트 라우팅(세금 → 리스크 질문, 청구서 삭제) · FR-71(3블록, D6) · FR-76(`FxRate` 구분 삭제). 추가: FR-80~89(`portfolio` 포지션 · `1y` · MDD · 레이더 4축 · 미리보기, B13 · B14) · FR-90~95(알림 1종, D5 · B4 · B19) · FR-100~103(온보딩 `first_holding`, B12) · FR-110~112(설정 조립, D9 · B16). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
+| 2026-10-28 | **F000 이 알림 관문을 먼저 깔았다**(루트 `F000-notification-kind-gate`, `3320883`). FR-90 첫 원인(F004 추천 행동 변경)은 `signal_update` + `coach.decision_changed` 로 이미 만든다 — 지금 원인은 **코치 워커의 판단 행동 변경**(심볼 변경 아님). FR-94 는 닫혔다(네 경로가 1종만). 남은 것: FR-90 둘째 원인(F003 밴드) · FR-91 딥링크 코드(`target`) · FR-92 `alertsEnabled`(필드 없음) · FR-93 `dedupeKey`(지금은 `source`+`symbol`+`messageCode`+2시간 억제) |
