@@ -149,4 +149,5 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-28 | 웹 로그인 실패가 `ApiError { status, code, retriable }` 로 바뀌었다(`FE-REQ-012`, `F000-api-error-normalize`). 이 경로(`/api/auth/login` 통과) 코드 · 계약 **변경 없음** — 실 BFF 틀린 비밀번호 401 `AUTH_INVALID_CREDENTIALS` 가 화면 문구로 이어짐을 확인 |
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 호출 맵에 `searchAssets` · `newsBookmarks` · 북마크 추가/해제 · 목표 proxy 필드 추가. FR-3 · 4 에 북마크 mutation 재시도 금지 · `409 TRACKED_ASSET_LIMIT` · 북마크 404 전달. 신규 FR-50~53(검색 1회 · `isBookmarked` 는 서버 값 · 해제는 `newsId` · 목표 수량은 proxy). 계약 의존 표 4행 추가. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
