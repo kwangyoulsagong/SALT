@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import type { NextFunction, Request, Response } from "express";
 
 import { AppError } from "../../../utils/error.util";
+import { logger } from "../../../config/logger";
 import { errorMiddleware } from "../error.middleware";
 
 const fakeRes = () => {
@@ -95,5 +96,42 @@ describe("errorMiddleware", () => {
     errorMiddleware(new AppError("explain_busy", 429), req, res, next);
     assert.equal(out.status, 429);
     assert.deepEqual(out.body, { success: false, message: "explain_busy" });
+  });
+});
+
+describe("errorMiddleware — 로그 레벨 (4xx 는 warn, 5xx 만 error)", () => {
+  const levels = (err: Error) => {
+    const calls: { level: string; meta: Record<string, unknown> }[] = [];
+    const original = { warn: logger.warn, error: logger.error };
+    logger.warn = ((_: string, meta: Record<string, unknown>) => {
+      calls.push({ level: "warn", meta });
+      return logger;
+    }) as typeof logger.warn;
+    logger.error = ((_: string, meta: Record<string, unknown>) => {
+      calls.push({ level: "error", meta });
+      return logger;
+    }) as typeof logger.error;
+    try {
+      errorMiddleware(err, req, fakeRes().res, next);
+    } finally {
+      logger.warn = original.warn;
+      logger.error = original.error;
+    }
+    return calls;
+  };
+
+  it("서버 400 · 401 · 422 → warn 한 줄 · 스택 없음", () => {
+    for (const status of [400, 401, 422]) {
+      const calls = levels(upstream(status, { success: false, message: "m" }));
+      assert.deepEqual(calls.map((c) => c.level), ["warn"]);
+      assert.equal(calls[0].meta.stack, undefined);
+    }
+  });
+
+  it("AppError 4xx → warn, 모르는 예외 → error + 스택", () => {
+    assert.deepEqual(levels(new AppError("bad", 400)).map((c) => c.level), ["warn"]);
+    const calls = levels(new Error("boom"));
+    assert.deepEqual(calls.map((c) => c.level), ["error"]);
+    assert.equal(typeof calls[0].meta.stack, "string");
   });
 });
