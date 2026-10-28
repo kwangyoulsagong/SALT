@@ -69,3 +69,7 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
 | 게이트 | `tsc` · `test` 284 |
 
 미검증: 없음
+
+## 로거 추가 인자 (`0be9644`)
+
+단위 2(문자열 · 여러 인자 → 본문, 객체 meta 그대로) · `test` 286 · `tsc`. 실경로: 서버 404 `MARKET_SYMBOL_NOT_FOUND` 를 BFF 가 404 로 전달 · `Backend API rejected` warn. 미검증: 없음

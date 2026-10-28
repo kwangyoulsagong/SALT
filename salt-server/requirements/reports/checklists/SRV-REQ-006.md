@@ -658,3 +658,19 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 | 게이트 | `tsc` · `lint` · `test` 833 · 레이어 훅 사후 실행 exit 0 |
 
 미검증: 없음
+
+## 로거 추가 인자 · 모르는 종목 404 (`a7706d7` · `ffc0732`)
+
+2026-10-28 · `feat/f000-notification-kind-gate` · 사용자 "잘못된 요청 그건 고쳐야지" 후속
+
+| 항목 | 결과 |
+|---|---|
+| 로거 | winston 이 문자열 추가 인자를 버려 외부 연동 실패 로그 20곳 넘게 원인이 빠져 있었다 → 형식 `appendExtraArgs`. 단위 2 · 실로그 `Upbit API error: Request failed with status code 404`(전엔 `Upbit API error:` 에서 끝) |
+| 모르는 종목 | `UpbitClient` 단건 404 → `UnknownMarketSymbolError`(`MARKET_SYMBOL_NOT_FOUND`, NotFound). 실경로: `/api/investment/crypto/NOPEZZ/price` 500 → **404** · `/api/market-intelligence/NOPEZZ/sentiment` 404 · BFF 프록시 404 그대로 전달 · BTC 200 · 로그 warn 한 줄 |
+| 게이트 | `tsc` · `lint` · `test` 835 · 레이어 훅 사후 실행 4파일 exit 0 |
+
+미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 여러 종목 시세 조회에 틀린 심볼 하나가 섞일 때 | Upbit 이 전체를 404 로 준다 — 어느 것이 틀렸는지 모른 채 빈 목록으로 바꾸면 정상 종목까지 사라진다. 지금처럼 실패(500)로 둔다. 목록은 서버가 고른 심볼이라 사용자 입력이 아니다 | 사용자 입력 심볼을 여러 개 받는 경로가 생길 때 |

@@ -95,3 +95,7 @@ Swagger: 동면 모듈 JSDoc 은 스캔 경로(`src/modules/**/*.routes.ts`)에 
 | Swagger | 4경로 `/api/investment-notifications*`(전엔 `/api` 접두 누락) |
 
 미검증: 없음
+
+## 모르는 종목 404 (2026-10-28, `ffc0732`)
+
+확인은 `SRV-REQ-006.md` 같은 날 절(서버 · BFF 실경로 404, BTC 200). 미검증: 없음
