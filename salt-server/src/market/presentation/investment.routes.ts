@@ -139,6 +139,8 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *     responses:
    *       200:
    *         description: 차트 데이터
+   *       404:
+   *         description: 거래소가 모르는 종목 (`MARKET_SYMBOL_NOT_FOUND`, 2026-10-28 — 전에는 500)
    *       422:
    *         description: 알 수 없는 `period` (`MARKET_CHART_PERIOD_UNSUPPORTED`)
    */

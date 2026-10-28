@@ -109,3 +109,5 @@ Swagger: 동면 모듈 JSDoc 은 스캔 경로(`src/modules/**/*.routes.ts`)에 
 | 테스트 | `npm test` 835 pass · `test:layer-check` · `build` pass |
 
 미검증: 없음
+
+| Swagger | `/crypto/{symbol}/chart` 응답에 404 `MARKET_SYMBOL_NOT_FOUND` 추가 — `swagger-jsdoc` `failOnErrors` 생성 통과 · 200 · 404 · 422 |

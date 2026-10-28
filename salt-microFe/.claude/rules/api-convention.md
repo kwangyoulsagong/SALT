@@ -26,7 +26,7 @@ export const getPortfolio = async (signal?: AbortSignal): Promise<Portfolio> => 
 
 ## 에러
 
-- 실패 모양은 `shared/api` 의 `ApiError` 하나다 — `{ status, code, retriable }` (`FE-REQ-012` FR-41). `code` 는 BFF 봉투의 `code`, 서버 `message` 는 읽지 않는다(문구는 화면이 `code` 로 고른다).
+- 실패 모양은 `shared/api` 의 `ApiError` 하나다(정의 · 테스트는 `@repo/core/http` — 웹은 재수출만) — `{ status, code, retriable }` (`FE-REQ-012` FR-41). `code` 는 BFF 봉투의 `code`, 서버 `message` 는 읽지 않는다(문구는 화면이 `code` 로 고른다).
 - 판단은 헬퍼로 한다: `hasApiStatus(error, 404)` · `isClientApiError` · `retry: retryWhileRetriable(n)`. 훅마다 재시도 판정을 다시 적지 않는다.
 - `retriable` 은 5xx · 408 만 `true`. **429 는 `false`** — 다시 부를 시각은 서버가 정했다.
 - 도메인 사유(초대 거부 `reasonCode`)는 그 기능이 따로 든다 — `shared` 는 도메인을 모른다.

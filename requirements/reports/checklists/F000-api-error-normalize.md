@@ -20,7 +20,7 @@
 | 확인 | 결과 |
 |---|---|
 | `pnpm check-types` · `pnpm lint`(`--max-warnings 0`) | 5/5 pass |
-| `pnpm test` | `@repo/core` 34 · `@repo/ui` 43 pass (웹에 테스트 러너 없음 — 아래) |
+| `pnpm test` | `@repo/core` 34 · `@repo/ui` 43 pass (첫 커밋 시점. 후속에서 `ApiError` 를 core 로 옮겨 51 — §5) |
 | `pnpm test:layer-check` | 차단 8 · 통과 5 |
 | 훅 사후 실행(Bash · python 으로 쓴 37파일) | 위반 0 |
 | `web` · `web-tax` 빌드 | pass. `/investments/[symbol]` 137 kB(First Load), 공용 104 kB |
