@@ -14,7 +14,7 @@ F000 알림 1종(`F000-notification-kind-gate`) 다음, 마스터 인덱스가 �
 
 웹에는 슬라이스마다 에러 클래스가 하나씩(9개) 있었다. 모양이 제각각이라 "4xx 면 다시 부르지 않는다"를 코치 훅 10곳 · 국내 주식 쿼리에
 다시 적었고, **전역 기본값은 4xx 도 두 번 더 불렀다** — 상세 차트 404 · 422 가 백오프 3초 뒤에야 실패로 보였다.
-`shared/api` 에 `ApiError { status, code, retriable }` 하나를 두고 전부 옮겼다. **FE 만** — BFF · 서버 계약 변경 없음.
+`shared/api` 에 `ApiError { status, code, retriable }` 하나를 두고 전부 옮겼다. 처음엔 **FE 만**이었고, 사용자 "다 검증하고 ㄱㄱ" 뒤 실측에서 찾은 서버 차트 500 과 BFF `code` 누락을 같은 브랜치에서 닫았다(커밋 분리 — 각자 revert 가능). 계약은 **추가만**(실패 본문에 `code`).
 
 ## 범위
 
@@ -23,6 +23,9 @@ F000 알림 1종(`F000-notification-kind-gate`) 다음, 마스터 인덱스가 �
 | `FE-REQ-012` | A FR-2 | 코인 차트 `period` 를 `ChartPeriod` enum(`minute` · `day`)으로. 4종이 아니라 서버가 가진 2종 · 자리는 `entities/market/model`(도메인 값이라 `shared/config` 아님) |
 | `FE-REQ-012` | E FR-41 · 42 · 43 · 44 | `ApiError` · `readApiError`(본문 `code` 만, `message` 안 읽음) · `apiFetch` 410 개발 경고 · 전 경로 서버 원문 미노출 |
 | `FE-REQ-012` | F FR-51 일부 | `period` enum 완료(`alertKind` · `newsSentiment` 는 소비처가 없다) |
+| `SRV-REQ-009` (후속) | — | 모르는 코인 차트 500 → 404 `MARKET_SYMBOL_NOT_FOUND`(캔들 두 읽기, `f74c34f`) |
+| `BFF-REQ-025` · `BFF-REQ-007` FR-52 (후속) | — | `AppError` 선택 `code` · 차트 주기 422 `MARKET_CHART_PERIOD_UNSUPPORTED`(`3f38160`) |
+| `FE-REQ-007` (후속) | FR-32 | `ApiError` 를 `@repo/core/http` 로 · 단위 17건(`2ff2ae6`) |
 | 파일만 걸침 | `FE-REQ-009` · `010` · `011` · `024` · `026` · `028` · `034` · `035` · `038` · `039` · `040` · `041` · `042` | 에러 클래스 · 재시도 판정 교체. 판정(404 = 소유자 아님 · 429 = 잠시 후)은 그대로, 재시도 동작 변화는 아래 판단 3의 셋 |
 
 ## 판단 — 리뷰가 볼 곳
@@ -37,8 +40,8 @@ F000 알림 1종(`F000-notification-kind-gate`) 다음, 마스터 인덱스가 �
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 서버: 모르는 코인 **차트**가 500(`Failed to fetch minute chart data from Upbit`) | 어제 `ffc0732` 가 가격 · 감성만 404 로 고쳤다. 서버 변경은 명시 요청이 있어야 한다(루트 `CLAUDE.md`) | 사용자 지시 시 `SRV-REQ-009` 후속 |
-| BFF 422(`chartPeriod` 미들웨어) · `AppError` 응답에 `code` 없음 | 계약 추가라 BFF 범위. 웹은 `code: null` 로 받는다 | `BFF-REQ-025` 후속 |
+| ~~서버: 모르는 코인 차트 500~~ | 닫힘 `f74c34f` | 2026-10-28 |
+| ~~BFF 422 · `AppError` `code` 없음~~ | 닫힘 `3f38160`(다른 `AppError` 호출에 코드를 붙이는 것은 화면이 문구를 가를 때) | 2026-10-28 |
 | `alertKind` · `newsSentiment` enum (FR-51) | 소비처(알림 화면 · 뉴스 감성)가 없다 | F006 `FE-REQ-030` · 뉴스 D-2절 |
 | FR-50 · 53 타입 `packages/core` 공유 | `bff` workspace 밖 | `FE-REQ-024` |
-| 운영 빌드에서 재시도 실측 | dev(StrictMode 이중 마운트)만 쟀다. 판정은 같은 함수다 | 배포 환경 확정 시 |
+| ~~운영 빌드 재시도 실측~~ | 닫힘 — 로컬 `next start` 로 쟀다 | 2026-10-28 |

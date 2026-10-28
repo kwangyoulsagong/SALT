@@ -194,3 +194,11 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 - **세금 zone의 인증 공유**: **미해결.** 토큰이 `localStorage`(`ACCESS_TOKEN_KEY`)에 있어 zone 간 공유가 안 된다.
   키를 `@repo/core/auth` 한 곳에 모아 이관 지점을 좁혀 두었다. 쿠키 이관은 `FE-REQ-013`(F000 API)에서 한다.
   **현재 `/tax`는 인증이 필요한 화면이 아니므로 지금 막히는 것은 없다.**
+
+## 2026-10-28 — F000 웹 API 에러 정규화 후속 (`f74c34f` · `2ff2ae6` · `3f38160`)
+
+| 항목 | 결과 |
+|---|---|
+| `packages/core` `"./http"` | `index.ts` 로 — 기존 소비처 3곳(`shared/config/network` · `shared/i18n` · `shared/api`) 무변경 타입 통과 · `web` · `web-tax` 빌드 pass |
+
+미검증: 없음

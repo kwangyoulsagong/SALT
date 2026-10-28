@@ -18,6 +18,7 @@
 
 - 기존 `success`, `data`, `message`, `error` envelope 패턴이 있는 route는 같은 패턴을 유지한다.
 - 에러는 공통 error middleware 또는 `error.util.ts` 유틸 흐름을 우선 사용한다.
+- 화면이 문구를 갈라야 하는 거부는 `new AppError(message, status, true, "<CODE>")` 로 `code` 를 싣는다 — 서버가 같은 거부에 쓰는 코드가 있으면 그것을 쓴다(웹은 `code` 로 문구를 고르고 `message` 는 읽지 않는다, `FE-REQ-012`)
 - 목록 응답은 pagination, sort, filter 정보가 필요하면 명시적으로 포함한다.
 - 컨트롤러에서 backend raw response를 그대로 노출하지 말고 화면 계약에 맞춰 필요한 필드만 전달한다.
 

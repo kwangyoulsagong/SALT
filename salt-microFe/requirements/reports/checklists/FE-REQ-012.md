@@ -147,3 +147,14 @@
 | `ApiError` 단위 테스트 | 웹 러너 없음 | `FE-REQ-013` |
 | `alertKind` · `newsSentiment` enum | 소비처 없음 | F006 `FE-REQ-030` · D-2절 |
 | 운영 빌드 재시도 실측 | dev 만 | 배포 환경 확정 시 |
+
+## 2026-10-28 후속 — 미검증 닫기 (사용자 "다 검증하고 ㄱㄱ")
+
+| 항목 | 결과 |
+|---|---|
+| ~~`ApiError` 단위 테스트~~ | **pass** — `packages/core/src/http/apiError.test.ts` 17건(봉투 `code` 만 · `message` 미적재 · JSON 아닌 본문 · status 10종 `retriable` · `TypeError` · 횟수 · 헬퍼). 웹 `shared/api` 는 재수출 |
+| ~~운영 빌드 재시도~~ | **pass** — `next start -p 3100`: 404 · 422 요청 **1** · 500 요청 3(316 · 1321 · 3325ms) · 410 경고 0(운영은 찍지 않음 — 설계대로) |
+| ~~로그인 · 거래 기록 오류 문구 실화면~~ | **pass** — 로그인: 실 BFF → 서버 틀린 비밀번호 "이메일 또는 비밀번호가 맞지 않습니다." · 500 "로그인하지 못했습니다." · 연결 실패 "연결이 닿지 않았습니다." 각 요청 1. 거래 기록(인증 요청만 고정 응답): 409 `PORTFOLIO_INSUFFICIENT_QUANTITY` · 400 `KR_STOCK_NOT_AVAILABLE` · 500 각 문구, 요청 1. 6건 모두 서버 문장 화면 노출 0 |
+| ~~서버 모르는 코인 차트 500~~ | 404 (`f74c34f`) — `SRV-REQ-009` |
+| ~~BFF 422 · `AppError` code 없음~~ | `3f38160` — `BFF-REQ-025` |
+| `alertKind` · `newsSentiment` enum | 남음 — 소비처 없음(F006 `FE-REQ-030` · D-2절) |

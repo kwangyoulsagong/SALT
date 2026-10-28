@@ -170,6 +170,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-28 | FR-52 차트 주기 422 가 `code: MARKET_CHART_PERIOD_UNSUPPORTED`(서버와 같은 코드)를 싣는다(`3f38160`) |
 | 2026-09-18 | **D·E·F절을 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-30~34(뉴스 프리뷰 실데이터) · FR-40~43(관심 종목 조립 · `priceStale` · 0건 빈 배열) · FR-50~52(`period` 교정하지 않고 422). **남은 것**: A절 FR-1~6(동면 route 410) · B절 FR-10~15(홈 조립 재작성) · C절 FR-20~24(알림 2종) · G절 FR-60~64(온보딩·인증). 근거: `requirements/reports/checklists/BFF-REQ-007.md` |
 | 2026-09-18 | **G절을 구현했다.** 닫힌 것: FR-60~64(proxy `register` 제거 · 온보딩 3라우트 · `check` 무인증 + rate limit · `403` + `reasonCode` 그대로). `users/password`·`users/account` proxy 도 함께 제거. **남은 것**: A절(동면 410) · B절(홈 조립) · C절(알림 2종). 근거: `requirements/reports/checklists/BFF-REQ-007.md` §6~§8 |
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: H절 FR-70~74(종목 검색 · 추적 상한 409 전달 · 신호 필드 없음 — D8 · D4) · I절 FR-80~86(뉴스 뷰모델 `sentiment` · `symbols` 유지 · `isBookmarked` · 북마크 3경로 · 알림과 분리 — B11 · D5) · J절 FR-90~91(목표 수량 proxy 통과 — B5). 개정: FR-14 · 20 알림 2종 → **1종**, 홈 최종 형태 5블록 → F006 3블록(D6). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |

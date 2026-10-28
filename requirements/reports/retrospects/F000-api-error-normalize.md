@@ -12,5 +12,11 @@
 
 ## Action
 
-- 사용자 지시 시: 서버 차트 경로 Upbit 404 → `MARKET_SYMBOL_NOT_FOUND` 404 (`SRV-REQ-009` 후속)
+- ~~사용자 지시 시: 서버 차트 경로 Upbit 404 → `MARKET_SYMBOL_NOT_FOUND` 404~~ — 같은 날 닫힘(`f74c34f`)
 - 새 슬라이스 API 는 `throw await readApiError(response, "<이름>")` — `api-convention.md` 에 적었다. 클래스를 새로 만들면 리뷰에서 막는다
+
+## 후속 (사용자 "다 검증하고 ㄱㄱ")
+
+- 처음 보고의 미검증 다섯 중 넷은 **막힌 것이 아니었다** — 러너(→ `@repo/core`) · 운영 빌드(→ 로컬 `next start`) · 테스트 계정(→ 인증 요청만 고정 응답) · BFF `code`(추가만). 사유를 적기 전에 우회로를 먼저 찾았어야 했다([[feedback-finish-in-scope-followups]] 와 같은 실수)
+- 서버 차트 500 은 어제 수정의 빠진 경로였다 — 같은 클라이언트의 같은 오류 처리를 grep 했으면 어제 함께 닫혔다
+- Action: 외부 클라이언트 오류 변환을 고칠 때는 그 파일의 `catch` 전부를 본다(`ddd-infrastructure.md` 에 한 줄)

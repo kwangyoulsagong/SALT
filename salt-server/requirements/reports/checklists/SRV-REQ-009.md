@@ -99,3 +99,13 @@ Swagger: 동면 모듈 JSDoc 은 스캔 경로(`src/modules/**/*.routes.ts`)에 
 ## 모르는 종목 404 (2026-10-28, `ffc0732`)
 
 확인은 `SRV-REQ-006.md` 같은 날 절(서버 · BFF 실경로 404, BTC 200). 미검증: 없음
+
+## 2026-10-28 — F000 웹 API 에러 정규화 후속 (`f74c34f` · `2ff2ae6` · `3f38160`)
+
+| 항목 | 결과 |
+|---|---|
+| `/api/investment/crypto/KRW-NOPEX/chart`(분봉) · `/NOPEX/chart`(일봉) | 500 → **404** `MARKET_SYMBOL_NOT_FOUND` — 상시 4000 재시작(pid 80629) 뒤 실측 |
+| 회귀 | `BTC/chart` 200 · `/NOPEX/price` 404 그대로 · 로그 `warn` 한 줄 |
+| 테스트 | `npm test` 835 pass · `test:layer-check` · `build` pass |
+
+미검증: 없음

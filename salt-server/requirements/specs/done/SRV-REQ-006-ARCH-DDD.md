@@ -239,3 +239,9 @@ F001은 `behavior-coach`의 편향 판정을 **거래 단위 라벨러로 재사
 - `investment-insight/`의 12개 서비스를 `coach`·`indicator`·`market` 중 어디로 나눌지. `market-regime`·`news-analysis`·`whale-signal`은 `market`, `behavior-analysis`·`insight-ranking`·`ai-coach`는 `coach`, `technical-indicator`는 `indicator`가 기본안.
 - 의존성 주입 방식. 현재는 클래스를 컨트롤러에서 `new`한다. DDD 4층에서는 Port 주입이 필요하다. **컨테이너 라이브러리를 도입할지, 조립 함수를 손으로 쓸지** 결정 필요. 컨텍스트 14개면 손으로도 가능하다.
 - `presentation`에서 다른 컨텍스트를 못 부르는 규칙이 기존 `/api/dashboard`류 조합 엔드포인트와 충돌한다. **동면 대상이므로 문제가 아니지만** 되살릴 때 조합 컨텍스트로 옮겨야 한다.
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-10-28 | `UpbitClient` 캔들 두 읽기가 Upbit 404 를 `UnknownMarketSymbolError` 로(`f74c34f`) — 수집 워커는 모든 예외를 잡아 `warn` 이라 동작 같음 |

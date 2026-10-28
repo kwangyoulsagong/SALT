@@ -142,3 +142,11 @@
 짝 영역: 프론트 `/api/app/alerts` 소비처 0건 — 변경 없음(F006 `FE-REQ-030` 알림 화면이 첫 소비처, 문장은 `FE-REQ-011` FR-44 i18n 매핑).
 
 미검증: 없음
+
+## 2026-10-28 — F000 웹 API 에러 정규화 후속 (`f74c34f` · `2ff2ae6` · `3f38160`)
+
+| 항목 | 결과 |
+|---|---|
+| FR-52 `chartPeriod.middleware` | 422 본문에 `code` — 실측 `/api/investment/crypto/BTC/chart?period=week` |
+
+미검증: 없음
