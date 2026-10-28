@@ -105,3 +105,26 @@
 ## F011 슬라이스 6b (2026-10-27) — 파일만 걸침
 
 `market` 공개 팩토리 국내 유스케이스 +2 · 스키마 칸 5 · env 주석 1(값 무변경) — 이 REQ 의 관심 종목 · 추적 자산 동작 무변경(서버 테스트 818 통과). 미검증: 없음
+
+## 알림 1종 · 코드만 · 금액 없음 — FR-20~25 (2026-10-28)
+
+루트 `F000-notification-kind-gate` · 브랜치 `feat/f000-notification-kind-gate` · 커밋 `3320883`
+
+| 항목 | 결과 |
+|---|---|
+| FR-20 종류 1종 | `notification/domain/NotificationKind` `NOTIFICATION_KINDS = ["signal_update"]` |
+| FR-21 생성 거부 | 단위: `decision_change` · `tax_deadline` · `sentiment` · `smart_money` 4종 거부 · 행 0. 실 DB: 공개 API 로 `decision_change` → `NOTIFICATION_KIND_UNSUPPORTED` |
+| FR-21 옛 행 | 실경로(상시 4000): 옛 `decision_change` 행이 목록 · 안 읽은 수에 0, 모두 읽음 · 단건 읽음 뒤에도 `isRead=false` 그대로(안 건드림) · 지우지 않음 |
+| FR-22 센티먼트 · 고래 생성 | `src` grep 생성 0건(모델 · 관계만) — 이미 닫혀 있던 것을 확인 |
+| FR-23 조회 경로 | 손대지 않음 |
+| FR-24 금액 | 단위: 금액 키 2 · 숫자 문자열 3 거부. 실경로: payload 에 숫자 `158000000` 를 넣은 행 → 목록 `params` 에서 빠짐 |
+| FR-25 코드만 | 코치 → 공개 API → 실 DB 행 `title` · `message` NULL · `messageCode` `coach.decision_changed` · 인자 4개(코드). 완성 문장 · 공백 · 대문자 코드 거부 |
+| 중복 억제 | `hasRecentDecisionChange` 발행 전 false → 뒤 true(실 DB) |
+| 게이트 | `build` · `lint` · `test` 829 · `test:layer-check` · `prisma generate` · 마이그레이션 로컬 적용 · Bash 로 쓴 18파일 레이어 훅 사후 실행 exit 0(위반 샘플은 exit 2) · Swagger `failOnErrors` 4경로 |
+
+미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| ~~코치 워커가 실제 판단 변화로 알림을 만드는 회차~~ | **닫힘 2026-10-28** — 상시 서버 코치 워커 실제 회차(10:50): 테스트 계정 직전 판단을 `wait` → `hold` 로 바꿔 두자 다음 회차가 `signal_update` · `ai_coach` · `coach.decision_changed` · 인자 `{ mode, symbol, previousAction, nextAction }` · 문장 NULL · 24시간 만료 1건을 만들었다. 다시 `hold` 로 바꾼 11:00 회차는 **2시간 억제로 0건 추가**. 판단은 회차가 원래 값(`wait`)으로 덮었고 시험 알림은 지웠다 | — |
+| 옛 행 정리(삭제 · 변환) | 로컬 0건 · 운영 DB 없음. FR-21 이 지우지 말라 한다 | 필요 없음 — 만료(`expiresAt`)가 지운다 |

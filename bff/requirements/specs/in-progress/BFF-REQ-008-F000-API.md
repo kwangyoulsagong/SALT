@@ -104,8 +104,9 @@ type PortfolioSummaryVM = {
 type AlertVM = {
   id: string;
   kind: 'signal_update';                     // 1종 (개정 2026-09-21 — tax_deadline 은 ADR-002 로 소멸)
-  messageCode: string;                       // 코드. 문구는 프론트
-  params: Record<string, string | number>;   // 문구 치환용
+  symbol: string | null;                     // 원인 종목 (2026-10-28 추가 — 딥링크 대상)
+  messageCode: string;                       // 코드. 문구는 프론트 (예 `coach.decision_changed`)
+  params: Record<string, string>;            // 문구 치환용 — 코드 문자열만 (2026-10-28 개정: number 를 열면 금액이 숫자로 샌다)
   isRead: boolean;
   createdAt: string;
 };
@@ -141,9 +142,9 @@ type AlertVM = {
 
 - [ ] 신규 엔드포인트 7개가 등록된다
 - [x] 제거 경로 6종이 없거나 410이다 (2026-09-22)
-- [ ] 알림 `kind`가 **1종**이고 타입으로 강제된다 (개정 2026-09-21)
-- [ ] 알림이 `messageCode` + `params`이고 완성 문장이 0건이다
-- [ ] 알림에 금액 필드가 0건이다
+- [x] 알림 `kind`가 **1종**이고 타입으로 강제된다 (개정 2026-09-21) (2026-10-28 — `AlertVM.kind: typeof ALERT_KIND`)
+- [x] 알림이 `messageCode` + `params`이고 완성 문장이 0건이다 (2026-10-28)
+- [x] 알림에 금액 필드가 0건이다 (2026-10-28)
 - [ ] 뉴스 `imageUrl` 없으면 `null`이고 플레이스홀더 URL이 0건이다
 - [ ] 뉴스에 `content`가 0건이다
 - [ ] **뉴스에 `faskdljf` 등 테스트 문자열이 0건이다**
@@ -159,7 +160,7 @@ type AlertVM = {
 **추가 2026-09-21**
 
 - [ ] 신규 엔드포인트 3개(`search` · `news/bookmarks` · `news/:id/bookmark`)가 등록된다
-- [ ] `AlertVM.kind` 가 1종이다
+- [x] `AlertVM.kind` 가 1종이다 (2026-10-28)
 - [ ] 뉴스 뷰모델에 `sentiment` · `symbols` 가 항상 있고, `isBookmarked` 는 인증 요청에만 있다
 - [ ] 북마크 목록 항목 타입이 `NewsPreviewVM` 이다
 - [ ] 추적 상한 초과가 `409 TRACKED_ASSET_LIMIT` 다
@@ -185,6 +186,7 @@ type AlertVM = {
 | 2026-09-18 | **신규 계약 중 다섯을 열고 `in-progress` 로 옮겼다.** 닫힌 것: `GET·POST·DELETE /api/app/watchlist` · `GET /api/app/news` · `GET /api/app/portfolio/summary`. **남은 것**: 온보딩 3개(`invite/check` · `invite` · `status`) · 제거 목록(`/api/auth/register` 등). 근거: `requirements/reports/checklists/BFF-REQ-008.md` |
 | 2026-09-18 | **온보딩 3계약을 열고 제거 목록을 닫았다.** `invite/check`(무인증·rate limit) · `invite`(무인증·`403 { reasonCode }`) · `status`(인증). FR-9·10 통과, **FR-13(`packages/core` 공유)은 미충족** — `bff` 가 workspace 밖이다. **남은 것**: 동면 경로 410(FR-11). 근거: `requirements/reports/checklists/BFF-REQ-008.md` |
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 신규 계약 3개: `GET /api/app/search`(`AssetSearchResultVM`, D8) · `GET /api/app/news/bookmarks` · `POST·DELETE /api/app/news/:id/bookmark`(D5). 기존 계약 변경: watchlist `409 TRACKED_ASSET_LIMIT` · `tracked` · 뉴스 `sentiment` · `symbols` · `isBookmarked?`(B11) · 목표 수량 통과(B5). 규약 FR-15~21 추가. 개정: FR-1 · `AlertVM.kind` 2종 → **1종**. 관심 종목 뷰모델에 신호 필드 없음(D4) 명시. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-28 | **`AlertVM` 을 열었다**(FR-1~3, `ed1615f` · `BFF-REQ-007` C절). `GET /api/app/alerts` → `{ alerts: AlertVM[], unreadCount }`. 개정: `symbol` 추가 · `params` 값 `string` 만(금액이 숫자로 새는 길을 닫는다 — 서버 `messageGuard` 와 같은 기준). Open Question "코드별 `params` 좁히기"는 코드가 하나(`coach.decision_changed`)라 아직 열어 둔다 |
 | 2026-09-22 | **FR-11 동면 경로 410 을 닫았다**(`BFF-REQ-036`). `/api/app/feed` · `/api/missions*` · `/api/users/points/*` · `/api/users/achievements` · `/api/dashboard*` → `410 ENDPOINT_DORMANT`. **남은 것**: FR-13(`packages/core` 공유). 근거: `requirements/reports/checklists/BFF-REQ-008.md` §5 |
 | 2026-09-23 | 보유 요약 항목에 `logoUrl`(추가 · null 허용) — 홈 보유 목록 종목 아이콘. 주소 규칙은 서버 시세 목록의 것을 그대로 옮긴다 |
 | 2026-10-08 | F011 슬라이스 3b — 보유 요약에 국내 주식 행이 생겼다. 이름 · 로고는 국내 주식 보유가 있을 때만 서버 `/market/kr/assets?codes=` 로 붙이고, 실패 · 404 면 코드 + `namesDegraded`(코인 이름 조회와 같은 규칙). 응답 모양 무변경. 근거 `BFF-REQ-040` FR-16 |

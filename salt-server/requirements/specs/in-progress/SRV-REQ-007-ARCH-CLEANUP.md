@@ -59,7 +59,7 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 | ID | 동면 대상 | 끄는 것 | 남기는 것 | 우선순위 |
 |---|---|---|---|---|
 | FR-10 | 미션/포인트/업적 | `app.use("/api/missions")` 등록 해제 + `modules/user`의 points·achievements 핸들러 route 해제 + BFF proxy 제거 | **`modules/mission/**` 코드 전부** · Prisma `DailyMission`·`UserMissionProgress`·`UserAchievement`·`PointTransaction` · `User.totalPoints`·`User.userLevel` | Must |
-| FR-11 | 알림 파이프라인 축소 | `SentimentAlert`/`SmartMoneyAlert` **생성** worker 중단. `InvestmentNotification.type`을 **세금 D-Day + 지표/추천 갱신 2종**으로 제한 | `MarketSentiment`·`WhaleTransaction` 모델과 **프리뷰 조회 경로**(심리 온도계·스마트 머니 게이지가 계속 읽는다) | Must |
+| FR-11 | 알림 파이프라인 축소 | `SentimentAlert`/`SmartMoneyAlert` **생성** worker 중단. `InvestmentNotification.type`을 ~~세금 D-Day + 지표/추천 갱신 2종~~ **`signal_update` 1종**으로 제한(개정 — ADR-002, `SRV-REQ-008` FR-20. **닫힘 2026-10-28** `notification` 컨텍스트) | `MarketSentiment`·`WhaleTransaction` 모델과 **프리뷰 조회 경로**(심리 온도계·스마트 머니 게이지가 계속 읽는다) | Must |
 | FR-12 | 인사이트 랭킹·피드 | `insight-ranking.controller` route 해제 · `app.use("/api/feed")` 해제 · BFF `app-feed.service` route 제거 | 코드·모델 전부 | Should |
 | FR-13 | 대시보드 | `app.use("/api/dashboard")` 해제. 홈 aggregation은 BFF `homeBlocks`가 담당한다 | `modules/dashboard/**` 코드 | Should |
 | FR-14 | 동면 route 응답 | 404가 아니라 **410 Gone + 1회 로그**로 **1주 유지**해 프론트 잔여 호출을 탐지한다 | — | Should |
@@ -80,7 +80,7 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 | `modules/news` | 뉴스 프리뷰 실데이터 연결이 사용 |
 | `modules/portfolio` · `technical-indicator` | 신규 기능 전부의 입력 |
 | `PortfolioTransaction` · `PortfolioHolding` · `PriceHistory` | 모든 신규 기능의 원장. **row 수 보존이 수용 기준** |
-| worker: `market-sync` · `price-history` · `technical-indicator` · `investment-insight` · `news-crawler` · `notification-cleanup` | 전부 유지. `news-crawler`는 뉴스 실데이터가 필요하므로, `notification-cleanup`은 알림 2종에도 필요하므로 |
+| worker: `market-sync` · `price-history` · `technical-indicator` · `investment-insight` · `news-crawler` · `notification-cleanup` | 전부 유지. `news-crawler`는 뉴스 실데이터가 필요하므로, `notification-cleanup`은 알림 1종에도 필요하므로 |
 
 ## Non-Functional
 
@@ -145,3 +145,4 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-27 | **동면 FR-10 · 12 · 13 · 14 구현**, `to-do` → `in-progress`(`chore/adr-002-remnants` `d344a50`, 루트 `F000-dormant-410`). 410 핸들러는 `SRV-REQ-009` FR-7 · 8 과 같은 것이다. FR-10 의 points · achievements 는 라우트 줄을 지우지 않고 **라우터 앞에서 410 으로 가린다**(목록 한 곳에서 되살린다). FR-12 는 `insight-ranking.controller` 의 `/top` 만 — 같은 라우터의 `/insights` 등은 유지. 되살리기 1회(`/api/missions` 200). **남은 것**: 삭제 FR-1 · 2 · 5 · FR-11 알림 · 1주 로그(2026-11-03). 근거: `requirements/reports/checklists/SRV-REQ-007.md` |
+| 2026-10-28 | **FR-11 닫힘**(루트 `F000-notification-kind-gate`, `3320883`). `modules/investment-notification` → `notification` 컨텍스트(FR-33 이관 하나). 생성 worker 중단은 이미 0건이었다. 동면 `feed.service` 는 `title`/`message` nullable 에 맞춰 타입만(`?? ""`) — 동작 무변경 |

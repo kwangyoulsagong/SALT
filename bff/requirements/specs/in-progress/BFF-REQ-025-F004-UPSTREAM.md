@@ -148,3 +148,7 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `exitPlans[].priceGap`(D13) |
 | 2026-09-23 | **슬라이스 14.** `generate` 1s(FR-3 — 서버가 202 를 준다) · `coachReport` 800ms · `generationStatus` 300ms. 근거 `reports/checklists/BFF-REQ-025.md` |
 | 2026-09-24 | **F009 슬라이스 0 — C01.** FR-34 주석만 — 요청 본문 축소, BFF 코드 변경 없음(`npm run build` · `npm test` 121 / 0) |
+
+| 2026-10-28 | **로그 레벨 정정**(`0d1e670`). error middleware · `backend-api` 인터셉터가 서버 4xx 를 `error`(+ 스택)로 남겼고 인터셉터는 두 번째 인자가 문자열이라 상태 · 경로가 버려졌다 → 4xx `warn` 한 줄 · 5xx · 응답 없음 `error`. FR-6 응답 · `Retry-After` 동작 무변경. 접근 로그 `[object Object]` 도 문자열로 |
+
+| 2026-10-28 | **로거 추가 인자**(`0be9644`). winston 이 문자열 추가 인자를 버려 websocket · 워커 · 서비스의 실패 원인이 빠져 있었다 → 형식 `appendExtraArgs`(서버와 같음). 서버 모르는 종목 404 는 FR-6 대로 그대로 전달됨을 실경로로 확인 |

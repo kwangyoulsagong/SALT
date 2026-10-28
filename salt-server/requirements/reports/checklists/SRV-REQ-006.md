@@ -374,13 +374,13 @@ FR-22 는 네 값(`NOT_FOUND`·`CONFLICT`·`INVALID`·`BLOCKED`)만 적었다. �
 
 | # | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|---|
-| 11-1 | `modules` 8개가 남아 있다 (`auth`·`user`·`goals`·`investment-insight` 잔여·`investment-notification`+동면 3종) | FR-33 이고 `coach` 뒤 순서다 | `SRV-REQ-007` |
+| 11-1 | `modules` 8개가 남아 있다 (`auth`·`user`·`goals`·`investment-insight` 잔여·~~`investment-notification`~~(2026-10-28 `notification` 컨텍스트)+동면 3종) | FR-33 이고 `coach` 뒤 순서다 | `SRV-REQ-007` |
 | 11-2 | ~~LLM 해설의 `expectedReturn`(수익률 예측)~~ | **닫혔다 (§12-1).** 타입·프롬프트·응답 셋 다에서 없앴다. 남은 것은 `timeframe`(관찰 기간)이고 그건 예측이 아니다 | 2026-09-18 |
 | 11-3 | 지표 주기를 `m5` 로 통일했다 | `buildSymbolCoach` 경로는 원문이 주기를 안 정했다(=`m5`·`h1` 중 최신). 값이 달라질 수 있다 — 대신 호출마다 흔들리지 않는다 (§10-4) | 유지 (판단 완료) |
 | 11-4 | 성적표 진입가가 판단 1건마다 조회다 | **판단 완료 — 그대로 둔다 (§12-6).** 배치가 더 나쁘다: `ai_coach` 행은 `dedupeKey` 로 upsert 되어 사용자당 1건이고, 배치는 그 1건 때문에 5분봉 수천 행을 옮긴다 | 성적을 스냅샷 테이블로 옮길 때 (F004) |
 | 11-5 | `generate`·`getLatest` 응답에서 `userId`·`assetType` 이 빠졌다 | 도메인 모델이 DB row 를 그대로 싣지 않는다. `userId` 는 토큰에서 오고 `assetType` 은 이 행에서 항상 `null` 이다. BFF·프론트 소비처 grep 0건 | 유지 (판단 완료) |
 | 11-6 | `InvestmentInsight` 테이블의 주인이 둘이다 | `smart_buy_zone`·`risk_alert` 은 아직 `modules/investment-insight` 워커가 쓴다. 코치는 **읽기만** 한다 | `SRV-REQ-007` |
-| 11-7 | 판단 변화 통보를 알림 테이블에 직접 쓴다 | `notification` 컨텍스트가 없다. 지금 이벤트로 내면 받을 쪽이 없다. `CoachNotifier` 구현 한 파일만 바뀐다 | FR-33 (`notification` 이관) |
+| ~~11-7~~ | ~~판단 변화 통보를 알림 테이블에 직접 쓴다~~ **닫힘 2026-10-28** — `coach/infrastructure/SignalUpdateNotifier` 가 `notification` 공개 API 를 부른다(이벤트가 아니라 API: 관문이 거부하면 부르는 쪽이 알아야 한다) | | `SRV-REQ-008` FR-20~25 |
 | 11-8 | ~~LLM 호출에 타임아웃·백오프가 없다~~ | **닫혔다 (§12-2).** 타임아웃 20초 · 재시도 2회(상한 3 안). 거래소·Fear&Greed·영문 뉴스에도 타임아웃을 넣었다 | 2026-09-18 |
 | 11-9 | `coach` 공개 API 가 없다 | 부르는 컨텍스트가 0개다. 소비처 없이 열면 첫 소비처가 그 모양에 끌려간다 | F006 `homebriefing` |
 | 11-10 | `/api/ai-coach/explain` 이 **인증 없이** 공개다 | **절반 닫혔다 (§12-7).** 분당 10회 제한을 걸었다. 인증은 BFF 가 이 경로를 비인증으로 프록시해서 서버만 바꾸면 기능이 죽는다 | 인증은 F004(프론트·BFF 계약과 함께) |
@@ -642,3 +642,35 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 |---|---|---|
 | `catchUp` 실발동 | 맥 수면을 재현하지 않았다(이벤트를 손으로 쏜 테스트) | 다음 수면 뒤 로그 "놓친 회차를 지금 돈다" |
 | 코인 하루 한 번 작업의 놓친 회차 | 이번 범위는 국내 — 코인 워커는 켜지 않았다 | 코인 쪽에 같은 빠짐이 관찰될 때 |
+
+## `notification` 이관 (2026-10-28)
+
+루트 `F000-notification-kind-gate` · `3320883`. `composition.ts` 에 `notification` 조립(코치보다 앞 — 만들러 오는 쪽이 뒤) · `contextRouters.notification`. 레이어 훅 사후 실행 18파일 exit 0. §11-7 닫힘. 미검증: 없음
+
+## 에러 미들웨어 로그 레벨 · 접근 로그 (`a26be7d`)
+
+2026-10-28 · 브랜치 `feat/f000-notification-kind-gate`(알림 슬라이스 검증 중 사용자 "잘못된 요청 그건 고쳐야지"). 전역 에러 미들웨어(§FR-22 매핑 자리)가 4xx 까지 `error` + 스택을 남겼고 접근 로그는 `[object Object]` 였다.
+
+| 항목 | 결과 |
+|---|---|
+| 단위 | `errorMiddleware.test.ts` 4 — Zod 400 · 401 · 도메인 422 → warn 한 줄 · 스택 없음 · 사유 한 줄, 500 → error + 스택, 응답 본문 전과 같음 |
+| 실로그(상시 4000 재시작) | `[warn]: Request rejected 400 VALIDATION_ERROR {"reason":"size: Too big: …"}` · `401 UnauthorizedError` · 접근 로그 `GET /api/investment-notifications?size=500 400 9ms` |
+| 게이트 | `tsc` · `lint` · `test` 833 · 레이어 훅 사후 실행 exit 0 |
+
+미검증: 없음
+
+## 로거 추가 인자 · 모르는 종목 404 (`a7706d7` · `ffc0732`)
+
+2026-10-28 · `feat/f000-notification-kind-gate` · 사용자 "잘못된 요청 그건 고쳐야지" 후속
+
+| 항목 | 결과 |
+|---|---|
+| 로거 | winston 이 문자열 추가 인자를 버려 외부 연동 실패 로그 20곳 넘게 원인이 빠져 있었다 → 형식 `appendExtraArgs`. 단위 2 · 실로그 `Upbit API error: Request failed with status code 404`(전엔 `Upbit API error:` 에서 끝) |
+| 모르는 종목 | `UpbitClient` 단건 404 → `UnknownMarketSymbolError`(`MARKET_SYMBOL_NOT_FOUND`, NotFound). 실경로: `/api/investment/crypto/NOPEZZ/price` 500 → **404** · `/api/market-intelligence/NOPEZZ/sentiment` 404 · BFF 프록시 404 그대로 전달 · BTC 200 · 로그 warn 한 줄 |
+| 게이트 | `tsc` · `lint` · `test` 835 · 레이어 훅 사후 실행 4파일 exit 0 |
+
+미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 여러 종목 시세 조회에 틀린 심볼 하나가 섞일 때 | Upbit 이 전체를 404 로 준다 — 어느 것이 틀렸는지 모른 채 빈 목록으로 바꾸면 정상 종목까지 사라진다. 지금처럼 실패(500)로 둔다. 목록은 서버가 고른 심볼이라 사용자 입력이 아니다 | 사용자 입력 심볼을 여러 개 받는 경로가 생길 때 |

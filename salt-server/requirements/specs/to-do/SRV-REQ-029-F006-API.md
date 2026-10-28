@@ -243,3 +243,4 @@ type TransactionPreview = {
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. 개정: 홈 블록 엔드포인트 3개 · `HomeBriefingResult`(세금 · 청구서 · 보유 미리보기 · 알림 목록 삭제, `unreadAlertCount` 추가, `fxBasisCode` nullable) · FR-25 · 온보딩 `nextStep`. 추가: 포지션 계약(`overview` · `performance` `1y`+MDD · `risk` · `transactions/preview` · PATCH 거래일) · 알림 좁힘 + `preferences` · 온보딩 건너뛰기 · FR-40~48. **BREAKING**: 온보딩 `link_account` 키 삭제. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
+| 2026-10-28 | **알림 목록 항목이 FR-24 · 45 모양에 가까워졌다**(F000 `3320883`). 지금 서버 항목 `{ id, kind, symbol, messageCode, params, isRead, createdAt }` — FR-45 와 다른 것: `target` 없음 · `kind` · `symbol` 추가 · `?cursor&limit` 대신 `?page&size`(상한 50). F006 이 커서 · `target` 을 붙인다 |

@@ -5,6 +5,7 @@ import {
   isRetryableHttpError,
   withRetry,
 } from "../../shared/infrastructure";
+import { UnknownMarketSymbolError } from "../domain";
 import type {
   Candle,
   DailyCandleView,
@@ -109,12 +110,8 @@ export class UpbitClient implements ExchangeQuotePort, TradeHistoryPort {
   async currentPrice(symbol: string): Promise<Quote> {
     const tickers = await this.tickers([symbol], "Upbit API error:");
 
-    if (tickers.length === 0) {
-      // 원문은 "Symbol not found" 를 던지고 **자기 catch 에서 다시 감쌌다.**
-      // 밖에서 보이는 메시지는 아래 하나였고, 그것을 유지한다.
-      logger.error("Upbit API error:", "Symbol not found");
-      throw new Error("Failed to fetch price from Upbit");
-    }
+    // 거래소가 모르는 종목 — 요청이 틀린 것이라 404 다(서버 오류로 남기지 않는다)
+    if (tickers.length === 0) throw new UnknownMarketSymbolError(symbol);
 
     return this.toQuote(tickers[0], symbol);
   }
@@ -276,6 +273,9 @@ export class UpbitClient implements ExchangeQuotePort, TradeHistoryPort {
         markets: symbols.map(marketOf).join(","),
       })) ?? [];
     } catch (error: any) {
+      // 단건 조회의 404(`Code not found`)는 모르는 종목이다 — 빈 목록으로 돌려 부르는 쪽이 404 로 옮긴다.
+      // 여러 종목 조회는 하나만 틀려도 전체가 404 라 그대로 실패로 둔다
+      if (error.response?.status === 404 && symbols.length === 1) return [];
       logger.error(logPrefix, error.message);
       throw new Error("Failed to fetch price from Upbit");
     }

@@ -121,4 +121,4 @@ export interface PriceProbe {
 
 `if`가 쌓인 서비스를 Domain Service라고 부르는 것이 가장 흔한 오용이다 — 그건 Aggregate에서 새어 나온 규칙이다.
 
-우리 정당한 `policy/` 목록: `invoice/policy/reconciliation` · `invoice/policy/biasLabel` · `tax/policy/harvest` · `tax/policy/settlementYear` · `plan/policy/band` · `coach/policy/symbolJudgment`(`judgmentGate`) · `coach/policy/coachDetail`(`recommendationGate`) · `coach/policy/score`.
+우리 정당한 `policy/` 목록: `invoice/policy/reconciliation` · `invoice/policy/biasLabel` · `tax/policy/harvest` · `tax/policy/settlementYear` · `plan/policy/band` · `coach/policy/symbolJudgment`(`judgmentGate`) · `coach/policy/coachDetail`(`recommendationGate`) · `coach/policy/score` · `notification/policy/kindGate` · `notification/policy/messageGuard`(알림 1종 · 코드만 · 금액 없음 — 만드는 쪽이 여럿이라 Aggregate 가 아니라 관문).

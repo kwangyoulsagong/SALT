@@ -1,11 +1,12 @@
 import { backendApi } from "./backend-api.service";
+import { ALERT_LIMIT, toAlertViewModels, type AlertsVM } from "./alerts.viewmodel";
 
 class AppAlertsService {
-  async getAlerts(token: string) {
+  async getAlerts(token: string): Promise<AlertsVM> {
     const [notifications, unread] = await Promise.all([
       backendApi.proxyAuthRequest(
         "GET",
-        "/investment-notifications?page=1&size=20",
+        `/investment-notifications?page=1&size=${ALERT_LIMIT}`,
         token,
       ),
       backendApi.proxyAuthRequest(
@@ -15,9 +16,11 @@ class AppAlertsService {
       ),
     ]);
 
+    const items = notifications.data?.data?.items;
+    const unreadCount = unread.data?.data?.unreadCount;
     return {
-      notifications: notifications.data,
-      unreadCount: unread.data,
+      alerts: toAlertViewModels(Array.isArray(items) ? items : []),
+      unreadCount: typeof unreadCount === "number" ? unreadCount : 0,
     };
   }
 }

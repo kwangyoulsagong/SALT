@@ -118,8 +118,8 @@ created: 2026-09-09
 - [ ] `period=minute`가 200이다
 - [ ] watchlist 응답에 현재가·변동률이 있다
 - [ ] `market/overview`의 `limit`·필터가 변경 전과 동일하다 (스냅샷 테스트)
-- [ ] 알림 생성에 `signal_update` 외 `kind`를 주면 422다 (개정 2026-09-21)
-- [ ] 알림 응답에 금액이 0건이다
+- [x] 알림 생성에 `signal_update` 외 `kind`를 주면 422다 (개정 2026-09-21) (2026-10-28 — 생성은 HTTP 가 아니라 공개 API 다. `UnsupportedNotificationKindError` `Blocked` → 422)
+- [x] 알림 응답에 금액이 0건이다 (2026-10-28 — 항목 `{ id, kind, symbol, messageCode, params, isRead, createdAt }`, 실경로 확인)
 - [ ] `portfolio/summary`가 3자산군 합산 + 환율 기준을 준다
 - [ ] `news`가 실데이터를 주고 더미가 0건이다
 - [ ] 제거된 경로의 Swagger 문서가 0건이다
@@ -156,6 +156,8 @@ created: 2026-09-09
 | 2026-09-21 | **시세 개요의 기간 7 · 순서 2 가 실제로 동작한다.** 서버가 `period` 를 읽지 않아 기간 버튼 7개가 같은 목록을 돌려줬다. `MarketOverviewPeriod` 로 해석하고 항목에 `periodChange`(기준 시세 없으면 `null`)를 **추가**했다(FR-20). 모르는 기간은 422. FR-11 pass — 필터 수·값·`limit=100` 은 그대로다. FR-23 **부분** — overview 한 경로에 필드 계약 테스트. 일봉 백필 스크립트(`candles:backfill`). 근거: `requirements/reports/checklists/F000-market-table.md` |
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 신규 `GET /api/investment/search`(D8). 기존 경로 계약 추가: watchlist `409 TRACKED_ASSET_LIMIT` · `tracked{count,limit}` · 뉴스 `sentiment` · `symbols` · `isBookmarked` · 북마크 3경로 문서화(`:newsId`) · 목표 금액/수량 택일. FR-30~38 추가. 개정: FR-12 알림 2종 → 1종 · FR-14 자산군 Q2. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-27 | **동면 경로 410 을 열었다**(FR-7 · 8, `chore/adr-002-remnants` `d344a50`). `shared/presentation/goneMiddleware` `DORMANT_PATHS` 8경로(표의 5종 + `/api/users/dashboard` · 스펙 `/investment-insight/ranking*` 의 실제 경로 `/top`)를 **살아 있는 라우터보다 먼저** 마운트 — `/api/users/profile` · `/investment-insight/insights` 는 그대로. `mission` · `dashboard` · `feed` 라우터 등록 해제, 코드 · 모델 유지. **남은 것**: 1주 로그(2026-11-03) · FR-12 · 13 · FR-23. 근거: `requirements/reports/checklists/SRV-REQ-009.md` §9 · 루트 `F000-dormant-410` |
+| 2026-10-28 | **알림 경로를 1종으로 좁혔다**(FR-12 · 13, `3320883`). `/api/investment-notifications*` 네 경로가 `notification` 컨텍스트로 옮겨 갔고 경로는 같다. 목록 항목이 문장(`title` · `message` · `payload` 원문) 대신 `messageCode` + `params` — **BREAKING**, 소비처는 BFF `/api/app/alerts` 뿐(`BFF-REQ-007` C절 같은 PR). `size` 상한 50(Zod 400). Swagger 경로가 `/investment-notifications`(접두 누락)였던 것을 `/api/...` 로 바로잡았다 |
+| 2026-10-28 | **모르는 종목 404**(`ffc0732`). `/api/investment/crypto/:symbol/price` · `/api/market-intelligence/:symbol/sentiment` 이 Upbit 이 모르는 심볼에 500(`Failed to fetch price from Upbit`) → 404 `MARKET_SYMBOL_NOT_FOUND`. BFF 는 4xx 를 그대로 전달(`BFF-REQ-025` FR-6). 프론트 소비처 grep 0건 |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

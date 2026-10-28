@@ -37,12 +37,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   res.on("finish", () => {
     const duration = Date.now() - start;
-    logger.info({
-      method: req.method,
-      url: req.url,
-      status: res.statusCode,
-      duration: `${duration}ms`,
-    });
+    // 첫 인자는 문자열이어야 한다 — 객체를 주면 콘솔 형식이 `[object Object]` 로 찍는다(2026-10-28)
+    logger.info(`${req.method} ${req.url} ${res.statusCode} ${duration}ms`);
   });
   next();
 });

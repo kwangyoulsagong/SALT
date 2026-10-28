@@ -200,11 +200,11 @@ flowchart TB
 | `FE-REQ-009` FSD 전환 | **done** | 두 zone 모두 6레이어. 슬라이스 8개(`auth`·`goal`·`market`·`portfolio` / `sign-in`·`add-goal` / `home-briefing`·`market-board`). `layer-check` 훅 + `@repo/fsd/layers` lint가 **같은 규칙 표 하나**를 읽는다(차단 8 · 통과 5 테스트). 렌더 동일성 4경로 × 3뷰포트 통과, 공통 청크 증가 **0**. 남은 것은 `checklists/FE-REQ-009.md` §8 — 이 REQ 미달 2건(FR-37 · `/investments` +7kB), 범위 밖 5건 |
 | `SRV-REQ-006` DDD 전환 | **done** (4/4단계) | `shared` Kernel + `layer-check` 훅·ESLint(1) · `coach/domain/policy` 추출 + 특성화 테스트 23건(2) · `news`·`market`·`portfolio` 이관(3, FR-32a) · **`coach` 통합(4, FR-32)**. 컨텍스트 **4개** · 동사형 유스케이스 **49개** · 공개 API **17개**. `modules` 15 → 12 → **8개**(원문 29파일 3,538줄 삭제). 테스트 18 → 85 → **137건**. 4단계에서 **같은 이름의 값이 경로마다 다르게 정의돼 있던 것**(기술 지표 주기 `m5` vs 무관)이 드러나 통일했다. 그 뒤 **미충족 8건을 닫았다**(§12) — **수익률 예측(`expectedReturn`) 제거**, 외부 호출 타임아웃·지수 백오프(캔들 수집 실패 **다수 → 0건**), `external/` 삭제, 한글 뉴스 언어 필터 복구, 공개 LLM 경로 요청 제한. 테스트 **153건**. 남은 12건은 전부 `ledger`(F001)·`DB-REQ-*`·**FR-33(`SRV-REQ-007`)**·프론트 계약을 기다린다. 상세는 `checklists/SRV-REQ-006.md` §10~§13 |
 | `FE-REQ-010` F000 UI | **in-progress** | 수리 9건(FR-1~9)·표시·접근성·반응형에 이어 **초대 코드·온보딩 3스텝(FR-20~26·64)이 닫혔다**. 슬라이스 셋이 생겼다 — `features/accept-invite` · `widgets/onboarding-flow` · `pages/onboarding`. **회원가입 화면은 구현된 적이 없었다**(경로만 `PUBLIC_PATHS` 에 있었다). 남은 것은 FR-63 과 **브라우저 화면 실측**이다. FR-63 은 `role="tablist"` 대신 `role="group"`+`aria-pressed` 로 갔다(탭이 아니다 — tabpanel 이 없다). `checklists/FE-REQ-010.md` · **홈 보유 아이콘 · 지출 막대 삭제**(2026-09-23, 목 제거) |
-| `BFF-REQ-007` F000 FUNC | **in-progress** | D·E·F절(뉴스·관심 종목·`period`)에 이어 **G절(온보딩 3라우트·`register` 제거·rate limit)** · **A절 FR-1~5(동면 410, 2026-09-22)** 완료. **B절(홈 조립 — 동면 소스 제거 · `allSettled` · 뷰모델, 2026-10-27)** 완료. A절 FR-6(1주 로그, 2026-09-29) · C절(알림) 남음. **테스트 러너가 이 작업에서 처음 생겼다**(23건) |
+| `BFF-REQ-007` F000 FUNC | **in-progress** | D·E·F절(뉴스·관심 종목·`period`)에 이어 **G절(온보딩 3라우트·`register` 제거·rate limit)** · **A절 FR-1~5(동면 410, 2026-09-22)** 완료. **B절(홈 조립 — 동면 소스 제거 · `allSettled` · 뷰모델, 2026-10-27)** 완료. **C절(알림 1종 뷰모델 — 1종 필터 · 금액 제거 · 코드만, 2026-10-28)** 완료. A절 FR-6(1주 로그, 2026-09-29) 남음. **테스트 러너가 이 작업에서 처음 생겼다**(23건) |
 | `BFF-REQ-008` F000 API | **in-progress** | 신규 **7개 전부** 열렸다(`watchlist` 3 · `news` · `portfolio/summary` · 온보딩 3). 제거 목록도 닫혔다. 동면 경로 410(FR-11)도 2026-09-22 닫혔다. 남은 것은 `packages/core` 타입 공유(FR-13 — `bff` 가 workspace 밖이다) · **보유 요약 `logoUrl` 추가**(2026-09-23) |
-| `SRV-REQ-008` F000 FUNC | **in-progress** | 관심 목록·뉴스·`period`·포지션 요약에 이어 **초대(FR-1~7)·인증 축소(FR-10~12)·온보딩 상태(FR-13·14)** 완료. `auth` 가 DDD 컨텍스트로 섰고 `modules/auth` 를 지웠다. 알림 2종·`AssetType` 3값·환율·동면 남음 |
-| `SRV-REQ-009` F000 API | **in-progress** | `/api/portfolio/summary` · `period` 422 에 이어 **초대 2경로 · `/api/onboarding/status` · 제거 3경로(404)** 완료. **시세 개요 기간 7 · 순서 2 가 실제로 동작**(`periodChange` 추가 · 모르는 기간 422). **동면 410(FR-7·8, 2026-10-27 — 8경로 · 라우터 앞에서 가림)** 완료. 1주 로그(2026-11-03) · 알림 422 남음 |
-| `SRV-REQ-007` 서버 정리 | **in-progress** 2026-10-27 | 동면 FR-10 · 12 · 13 · 14(등록 해제 · 410 · 코드 · 모델 유지 · 되살리기 1회 200). 되살리기에서 **동면 컨트롤러 셋이 동면 전부터 언제나 500**(라우터 바인딩) 발견 — 되살리는 PR 에서. 삭제 FR-1 · 2 · 5 · 알림 FR-11 남음 |
+| `SRV-REQ-008` F000 FUNC | **in-progress** | 관심 목록·뉴스·`period`·포지션 요약에 이어 **초대(FR-1~7)·인증 축소(FR-10~12)·온보딩 상태(FR-13·14)** 완료. `auth` 가 DDD 컨텍스트로 섰고 `modules/auth` 를 지웠다. **알림 1종(FR-20~25, 2026-10-28 — `notification` 컨텍스트 · `kindGate` · 코드만 · 금액 없음)** 완료. `AssetType` 3값·환율 남음 |
+| `SRV-REQ-009` F000 API | **in-progress** | `/api/portfolio/summary` · `period` 422 에 이어 **초대 2경로 · `/api/onboarding/status` · 제거 3경로(404)** 완료. **시세 개요 기간 7 · 순서 2 가 실제로 동작**(`periodChange` 추가 · 모르는 기간 422). **동면 410(FR-7·8, 2026-10-27 — 8경로 · 라우터 앞에서 가림)** 완료. **알림 1종(FR-12 · 13, 2026-10-28 — 생성은 공개 API 422 · 항목 `messageCode` + `params`)** 완료. 1주 로그(2026-11-03) 남음 |
+| `SRV-REQ-007` 서버 정리 | **in-progress** 2026-10-27 | 동면 FR-10 · 12 · 13 · 14(등록 해제 · 410 · 코드 · 모델 유지 · 되살리기 1회 200). 되살리기에서 **동면 컨트롤러 셋이 동면 전부터 언제나 500**(라우터 바인딩) 발견 — 되살리는 PR 에서. 알림 FR-11(2026-10-28, `notification` 이관) 완료. 삭제 FR-1 · 2 · 5 남음 |
 | `FE-REQ-030` F006 웹 UI | **in-progress** 2026-10-27 | FR-3(`/tax` 진입 링크 0건 — 홈 브리핑 링크 제거)만. 나머지(3탭 · 홈 3블록 · 대화 · 포지션 등)는 F006 |
 | `FE-REQ-011` F000 FUNC | **in-progress** | **세션(FR-62 · 63)** — 로그인이 MSW 목이었던 것을 실제 계약으로, 401 이면 갱신 1회 후 재시도, 리프레시까지 죽으면 로그인으로(2026-09-23 · `checklists/F000-web-session.md`). 실시간 수신 표시(FR-11~14) — BFF 가 끊기면 헤더가 **"연결 끊김 · 재연결 중"** 이고 기준 시각을 쓰지 않는다. FR-10 은 수신 시각을 `wsClient` 에 두는 것으로 다르게 갔다. `checklists/F000-realtime-reliability.md` |
 | `FE-REQ-012` F000 API | **in-progress** | 호출 배치에 **`login` · `refresh`** 추가(표에 없던 두 호출, 2026-09-23). WS 절(FR-24~26) — 참조 카운트 구독으로 **떠난 화면의 구독을 해제**한다(원래는 리스너만 뗐다). 재연결 3s→30s 백오프 · **MSW 목 전부 제거 · 목표 조회 BFF 실경로 · 공개 시세 서버 조회**(2026-09-23) |
@@ -276,7 +276,7 @@ flowchart TB
 > 0건"이 한 회차만 본 거짓이었고, 이제 재현된다.
 
 남은 F000 묶음은 **동면 route 410**(`SRV-REQ-009` FR-7·8 · `BFF-REQ-007` A·B절 — **BFF A절은 2026-09-22, 서버 · B절은 2026-10-27 닫힘**, 아래)과
-**알림 2종**(`SRV-REQ-008` FR-20~25 · `BFF-REQ-007` C절)이다. Investment 쪽 다음 후보는
+~~**알림 2종**~~ **알림 1종**(`SRV-REQ-008` FR-20~25 · `BFF-REQ-007` C절 — **2026-10-28 닫힘**, 아래)이다. Investment 쪽 다음 후보는
 `AssetType` 3값(`DB-REQ-003` · `SRV-REQ-008` FR-32)과 `FE-REQ-012` A절(`period` enum 4종)이다.
 
 **네 번째 수직 슬라이스 — 시세 표 필터 · 기간 변동률 · 레이아웃 (2026-09-21).** 범위는
@@ -299,6 +299,12 @@ flowchart TB
 (`BFF-REQ-007` B절 → `allSettled` · 뷰모델 — 서버와 한 PR), 홈에 `/tax` 링크가 남아 있었다(`FE-REQ-030` FR-3 · `FEATURE-006` FR-4).
 되살리기 테스트가 **동면 셋이 동면 전부터 언제나 500** 이었음을 찾았다 — BFF `/api/app/home` 은 main 에서도 실패하고 있었다(소비처 0건).
 남은 것: 1주 로그(2026-11-03) · `apps/web-tax` zone 존속(사용자 결정).
+
+**F000 알림 1종 슬라이스 (서버 · BFF, 2026-10-28, `feat/f000-notification-kind-gate`)** — 동면 410 다음 F000 마지막 묶음.
+범위 `F000-notification-kind-gate-slice.md`, 검증 `checklists/F000-notification-kind-gate.md`. 알림을 만드는 곳(코치 판단 변화)이
+테이블에 직접 `decision_change` + 완성 문장을 써서 규칙을 걸 자리가 없었다 → `notification` 컨텍스트 · 공개 API 하나 · 관문 셋
+(`kindGate` · 코드 형식 · 금액 인자). 목록 · 안 읽은 수 · 읽음이 `signal_update` 만(F006 `SRV-REQ-028` FR-94 · `DB-REQ-022` FR-81~83 앞당김).
+BFF `alerts.viewmodel` 이 한 번 더 거른다 — 실경로에서 서버가 실은 금액 문자열을 막았다. 남은 것: 알림 화면 · i18n(F006).
 
 ~~**다음은 투자 화면 우측 AI 코치 패널의 요구사항이다.**~~ 2026-09-21 REQ 로 내렸고(스토리보드 갭 감사)
 F004 슬라이스 1~4 로 서버 → BFF → 프론트까지 이었다(아래).
@@ -670,6 +676,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-10-08 | **F011 슬라이스 3b — 국내 주식 거래 기록 · 보유 평가.** `SRV-REQ-040` FR-11 · 33~36 · `BFF-REQ-040` FR-15 · 16 · `FE-REQ-041` FR-16~18 · `FE-REQ-039` Changelog · `SRV-REQ-006` 체크리스트 9-7 닫힘. 계약: 서버 거래 입력 `assetType`(선택 · 기본 crypto) · `kr/assets?codes=` · BFF 거래 `assetType`(국내 주식 + 계획 400) · 거래 응답 `assetType` · `@repo/core` `RecordTradeRequest.assetType`. 마이그레이션 없음. 사이즈 계산 · 리스크 예산 · 계획 연결은 슬라이스 4 |
 | 2026-10-08 | **F011 슬라이스 5 — 국내 주식 변동 범위(전망 배치).** `FC-REQ-009`(신규, done) · `FC-REQ-001` Changelog(엔진 `Schedule`). 계약 없음 — DDL · 뷰 · 서버 · BFF · FE 무변경, `forecast` 에 새 source `kis` · 모델 버전 2. `salt-forecast/.claude/rules/security-sources.md` 국내 주식 줄(TBA → 서버 일봉 읽기). 남은 것: 5b 화면(FR-83) · 국내 주식 σ |
 | 2026-10-27 | **F000 동면 410 · ADR-002 잔재 슬라이스.** `SRV-REQ-009` FR-7 · 8 · `SRV-REQ-007`(to-do → in-progress, FR-10 · 12 · 13 · 14) · `BFF-REQ-007` B절 FR-10~15 · `FE-REQ-030`(to-do → in-progress, FR-3) · `FEATURE-000` FR-10 · 12 · 13 · 14 · `FEATURE-006` FR-4 · 규칙 `ddd-presentation.md` §5(제거 404 vs 동면 410 · 목록 위치). 계약: 서버 8경로 410(BFF 는 이미 410 — 소비처 0) · BFF `/api/app/home` 뷰모델(소비처 0). 루트 3종 `F000-dormant-410` |
+| 2026-10-28 | **F000 알림 1종 슬라이스.** `SRV-REQ-008` FR-20~22 · 24 · 25 · `SRV-REQ-009` FR-12 · 13 · `SRV-REQ-007` FR-11 · `BFF-REQ-007` C절 FR-20~24 · `BFF-REQ-008` FR-1~3(`AlertVM` 개정: `symbol` · `params` 문자열만) · F006 앞당김 `SRV-REQ-028` FR-90 첫 원인 · 94 · `DB-REQ-022` FR-81~83 · `SRV-REQ-029` FR-24 · 45 부분 · `SRV-REQ-006` §11-7 · `FEATURE-000` FR-11 · 규칙 `ddd-domain.md` §7(`notification` 관문 둘). 계약: 서버 알림 항목 BREAKING(소비처 BFF 하나 · 같은 PR) · BFF `/api/app/alerts` 뷰모델(프론트 소비처 0). 마이그레이션 `20261028100000_notification_message_code`. 루트 3종 `F000-notification-kind-gate` 같은 브랜치 덧붙임: 서버 · BFF 4xx 로그 `warn` · 접근 로그 `[object Object]` · BFF 인터셉터 원인 누락 정정(`SRV-REQ-006` · `BFF-REQ-025`, 규칙 `ddd-presentation.md` §4 · `backend-integration.md`) · 로거 문자열 원인 누락(서버 · BFF) · 모르는 종목 500 → 404(`SRV-REQ-009`) |
 | 2026-10-26 | **기획서 상태 칸 정리(F000 · F004 · F006 · F008).** 기능 표 상태 칸이 "Draft" 로 방치돼 실제 진행과 어긋났다 — REQ · 체크리스트 · 커밋 · 코드로 확인한 칸만 고침(131칸, 요구 문장 무변경). 확인 필요 2건: F004 FR-4 후보 목록 · F006 FR-62 모바일 표 |
 | 2026-10-26 | **F011 슬라이스 6 — 국내 지수 · 투자자별 순매수.** `SRV-REQ-040` FR-49 · 50 · `DB-REQ-033` FR-7 · 8(마이그레이션 `20261026180000_kr_index_investor_flows`) · `BFF-REQ-040` FR-27 · 28 · `FE-REQ-041` FR-31 · 32 · Changelog `SRV-REQ-008` · `SRV-REQ-024` · `SRV-REQ-036` · `FE-REQ-010` · `FE-REQ-012` · `FE-REQ-013` · `FE-REQ-037` · `FC-REQ-020` · FEATURE-011(FR-29 · 48 완료 · FR-91 부분 · 슬라이스 6b) · FEATURE-008. 계약: 새 경로 서버 · BFF 각 2개(소유자 전용) · 새 표 2개 · env `KIS_SUMMARY_INDICES`(기본값 있음). 기존 응답 무변경 |
 | 2026-10-26 | **F011 7f 후속 — IPS 이탈 두 자산군 합산.** `SRV-REQ-040` FR-48 후속 · `BFF-REQ-040` FR-26 · `FE-REQ-041` FR-30 · Changelog `SRV-REQ-038` · `BFF-REQ-038` · `FE-REQ-039` · FEATURE-011 · 009. 복기 응답 `ipsDeviation.scope` 추가 |
