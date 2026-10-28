@@ -7,6 +7,22 @@ export class WatchlistDuplicateError extends DomainError {
   }
 }
 
+/**
+ * 거래소가 모르는 종목(Upbit `404 Code not found`) → 404.
+ *
+ * 전에는 `Failed to fetch price from Upbit` 로 감싸 **500** 이었다 — 사용자가 틀린 심볼을 준 것이
+ * 서버 장애로 기록됐다(2026-10-28).
+ */
+export class UnknownMarketSymbolError extends DomainError {
+  constructor(symbol: string) {
+    super(
+      "MARKET_SYMBOL_NOT_FOUND",
+      ErrorKind.NotFound,
+      `Unknown market symbol: ${symbol}`
+    );
+  }
+}
+
 export class WatchlistItemNotFoundError extends DomainError {
   constructor() {
     super(
