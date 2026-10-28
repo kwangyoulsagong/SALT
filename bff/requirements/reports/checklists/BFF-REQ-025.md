@@ -57,3 +57,15 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
 ## F009 슬라이스 0 — C01 (FR-34, 2026-09-24)
 
 코드 변경 없음 — 본문을 그대로 넘긴다. `npm run build` · `npm test` **121 / 0**.
+
+## 로그 레벨 정정 (`0d1e670`)
+
+2026-10-28 · 브랜치 `feat/f000-notification-kind-gate`(알림 슬라이스 검증 중 사용자 "잘못된 요청 그건 고쳐야지")
+
+| 항목 | 결과 |
+|---|---|
+| 단위 | `error.middleware.test.ts` +2 — 서버 400 · 401 · 422 → warn · 스택 없음, AppError 400 → warn, 모르는 예외 → error + 스택. 기존 7(FR-6 보존) 통과 |
+| 실로그(BFF 4001) | 잘못된 토큰: `[warn]: Backend API rejected {"status":401,"method":"GET","url":"/investment-notifications?page=1&size=20",…}` · `Request rejected 401 UPSTREAM_4XX` · 접근 로그 `GET /api/app/alerts 401 23ms` · 정상 토큰 200 |
+| 게이트 | `tsc` · `test` 284 |
+
+미검증: 없음

@@ -11,6 +11,8 @@
 |---|---|---|
 | `3320883` feat(server) | `notification` 컨텍스트 · 마이그레이션 · 코치 어댑터 | 알림 항목이 문장 모양으로 돌아간다 — **BFF 커밋이 남아 있으면 `alerts` 가 빈 배열**(항목에 `kind`/`messageCode` 가 없어 전부 버린다). 둘을 같이 되돌린다. 스키마는 migration 머리 SQL 로 |
 | `ed1615f` feat(bff) | `alerts.viewmodel` | `/api/app/alerts` 가 서버 envelope 를 그대로 넘긴다 |
+| `a26be7d` fix(server) | 4xx 로그 warn · 접근 로그 | 4xx 가 다시 error + 스택 · 접근 로그 `[object Object]`. 응답은 같다 — 단독 revert 가능 |
+| `0d1e670` fix(bff) | 같은 수정 + 인터셉터 원인 누락 | 같음 — 단독 revert 가능 |
 
 ## 2. 요약
 
@@ -21,6 +23,7 @@
 | 서버 실경로(상시 4000, 재시작) | 목록 1종만(옛 행 숨김) · 숫자 인자 빠짐 · 안 읽은 수 1 · 모두 읽음이 옛 행 안 건드림 · 단건 읽음도 · `size=500` 400 · 무인증 401 |
 | BFF 실경로(4001) | `{ alerts: 2건 최신순, unreadCount: 2 }` · 서버가 실은 `avgPrice` 문자열 제거 · `/api/app/home` 200 |
 | 코치 워커 실제 회차 | 상시 서버 코치 워커 실제 회차(10:50): 테스트 계정 직전 판단을 `wait` → `hold` 로 바꿔 두자 다음 회차가 `signal_update` · `ai_coach` · `coach.decision_changed` · 인자 `{ mode, symbol, previousAction, nextAction }` · 문장 NULL · 24시간 만료 1건을 만들었다. 다시 `hold` 로 바꾼 11:00 회차는 **2시간 억제로 0건 추가**. 판단은 회차가 원래 값(`wait`)으로 덮었고 시험 알림은 지웠다 |
+| 로그 레벨(사용자 지시로 추가) | 서버 · BFF 4xx → `warn` 한 줄(상태 · 코드 · 사유 · 경로), 5xx 만 `error` + 스택. 실로그 400 · 401 확인 — 영역 체크리스트 `SRV-REQ-006` · `BFF-REQ-025` |
 | 홈 · 알림 BFF(실제 행) | `/api/app/alerts` 1건 · `unreadCount: 1` · `/api/app/home` `unreadNotifications: 1` · `degradedBlocks: []` |
 | 마이그레이션 되돌리기 | migration 머리 SQL 을 NULL 문장 행이 있는 상태로 트랜잭션 안에서 실행 → `title` · `message` NOT NULL · `messageCode` 삭제 성공 → ROLLBACK 후 원상태 |
 | 실행 계획 | 목록 · 안 읽은 수 `InvestmentNotification_userId_isRead_idx` · 억제 조회 `symbol` 인덱스(행 0이라 seqscan 끄고 확인 — 24시간 만료라 사용자당 소량) |

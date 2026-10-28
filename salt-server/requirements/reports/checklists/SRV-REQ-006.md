@@ -646,3 +646,15 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 ## `notification` 이관 (2026-10-28)
 
 루트 `F000-notification-kind-gate` · `3320883`. `composition.ts` 에 `notification` 조립(코치보다 앞 — 만들러 오는 쪽이 뒤) · `contextRouters.notification`. 레이어 훅 사후 실행 18파일 exit 0. §11-7 닫힘. 미검증: 없음
+
+## 에러 미들웨어 로그 레벨 · 접근 로그 (`a26be7d`)
+
+2026-10-28 · 브랜치 `feat/f000-notification-kind-gate`(알림 슬라이스 검증 중 사용자 "잘못된 요청 그건 고쳐야지"). 전역 에러 미들웨어(§FR-22 매핑 자리)가 4xx 까지 `error` + 스택을 남겼고 접근 로그는 `[object Object]` 였다.
+
+| 항목 | 결과 |
+|---|---|
+| 단위 | `errorMiddleware.test.ts` 4 — Zod 400 · 401 · 도메인 422 → warn 한 줄 · 스택 없음 · 사유 한 줄, 500 → error + 스택, 응답 본문 전과 같음 |
+| 실로그(상시 4000 재시작) | `[warn]: Request rejected 400 VALIDATION_ERROR {"reason":"size: Too big: …"}` · `401 UnauthorizedError` · 접근 로그 `GET /api/investment-notifications?size=500 400 9ms` |
+| 게이트 | `tsc` · `lint` · `test` 833 · 레이어 훅 사후 실행 exit 0 |
+
+미검증: 없음
