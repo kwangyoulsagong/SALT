@@ -171,4 +171,5 @@ type KimchiPremiumViewModel = {
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-28 | `F000-api-error-normalize`(파일만 걸침) — `ChartPeriod` enum 추가(파일 머리 REQ). FR-50 타입 공유 범위 밖 그대로. 동작 무변경(4xx 재시도 0 유지) |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 설정 저장 PUT→PATCH · 월 적립액 1필드(D9 · B12), `monthly-summary` 신설(B20), 422 코드 개정. FR-12~15 추가 |

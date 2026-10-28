@@ -4,12 +4,12 @@ import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/r
 import { useRouter } from "next/navigation";
 
 import { setUser } from "@/entities/auth";
-import { writeSession } from "@/shared/api";
+import { type ApiError, writeSession } from "@/shared/api";
 import { ROUTES, USER_KEY } from "@/shared/config";
 import { useAppDispatch } from "@/shared/lib";
 
 import type { SignInRequest, SignInResponse } from "../model/types";
-import { signInApi, SignInError } from "./signInApi";
+import { signInApi } from "./signInApi";
 
 /**
  * 로그인 성공 시 세션을 저장하고 홈으로 보낸다.
@@ -26,14 +26,14 @@ import { signInApi, SignInError } from "./signInApi";
  */
 export const useSignIn = (): UseMutationResult<
   SignInResponse,
-  SignInError,
+  ApiError,
   SignInRequest
 > => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  return useMutation<SignInResponse, SignInError, SignInRequest>({
+  return useMutation<SignInResponse, ApiError, SignInRequest>({
     mutationFn: signInApi.signIn,
     // 자격 증명이 틀린 것은 다시 보내도 같다. mutation 이라 기본값도 0 이지만 명시한다.
     retry: false,

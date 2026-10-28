@@ -1,6 +1,6 @@
 import type { CoachGenerationAccepted } from "@repo/core/coach";
 
-import { apiFetch, authHeader } from "@/shared/api";
+import { ApiError, apiFetch, authHeader, readApiError } from "@/shared/api";
 import { HTTP_STATUS_CODE, INVESTMENTS_BASE_URL } from "@/shared/config";
 
 /** 서버 경로를 그대로 옮기는 BFF 프록시(`/api/*`)다. 뷰모델 경로(`/api/app/*`)가 아니다 */
@@ -15,12 +15,6 @@ interface Envelope<T> {
 export type RegenerateResult =
   | { kind: "accepted"; accepted: CoachGenerationAccepted }
   | { kind: "cooldown"; retryAfterSeconds: number };
-
-export class RegenerateCoachApiError extends Error {
-  constructor(readonly status: number) {
-    super(`regenerate coach ${status}`);
-  }
-}
 
 /**
  * 코치 재생성 요청 (`FE-REQ-028` FR-20 · FR-24).
@@ -48,9 +42,9 @@ export const regenerateCoachApi = {
       if (Number.isInteger(seconds) && seconds >= 0) {
         return { kind: "cooldown", retryAfterSeconds: seconds };
       }
-      throw new RegenerateCoachApiError(response.status);
+      throw new ApiError("regenerate coach", response.status);
     }
-    if (!response.ok) throw new RegenerateCoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "regenerate coach");
 
     const envelope = (await response.json()) as Envelope<CoachGenerationAccepted>;
     return { kind: "accepted", accepted: envelope.data };

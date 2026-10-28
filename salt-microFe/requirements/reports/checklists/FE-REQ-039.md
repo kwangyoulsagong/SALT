@@ -136,3 +136,16 @@
 
 
 - 2026-10-26 F011 7f: 복기 패널 · 카드 · 훅 `assetType` — 모노레포 검증 · Playwright(`FE-REQ-041` §7f). 코인 복기 섹션 그대로
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| `useBehaviorMirror · useRiskBudget · useTradePlans · record-transaction · set-risk-budget · confirm-outcome-tags` | 재시도 판정 · 에러 클래스 3개 → `ApiError`. 거래 기록 `code` 문구 매핑 무변경 |
+| 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
+
+미검증: 없음 — 판단 · 화면 무변경
+
+## 2026-10-28 — 오류 문구 실화면 (F000 웹 API 에러 정규화 후속)
+
+거래 기록 오류 3종(409 보유 부족 · 400 기록 불가 · 500) 문구가 `code` · `status` 로 골라지고 요청 1건 · 서버 문장 노출 0 — 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §5

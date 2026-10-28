@@ -11,12 +11,27 @@
  * `@repo/core/auth` 에 있고 테스트가 붙어 있다.
  *
  * 2026-09-23 — MSW 목과 목 기동을 기다리던 게이트(`mockGate`)를 지웠다. 모든 호출이 실제 BFF 다.
+ *
+ * ## 410 은 개발 중에 콘솔로 알린다 (`FE-REQ-012` FR-43)
+ *
+ * 410 = 동면(ADR-002)으로 닫힌 경로다. 화면은 그것을 그냥 실패로 그리므로, 남은 호출을 개발 중에 찾으려면
+ * 여기서 경로를 찍어야 한다. 운영 빌드에서는 찍지 않는다.
  */
 import { withAuthRefresh } from "@repo/core/auth";
 
 import { refreshAccessToken } from "./refreshSession";
 
+const GONE = 410;
+
+const warnIfGone = (input: RequestInfo | URL, response: Response): Response => {
+  if (process.env.NODE_ENV !== "production" && response.status === GONE) {
+    const url = input instanceof Request ? input.url : String(input);
+    console.warn(`[apiFetch] 410 — 동면 경로를 아직 부른다: ${url}`);
+  }
+  return response;
+};
+
 export const apiFetch: typeof fetch = withAuthRefresh({
-  fetchImpl: (input, init) => fetch(input, init),
+  fetchImpl: async (input, init) => warnIfGone(input, await fetch(input, init)),
   refreshAccessToken,
 });

@@ -80,6 +80,8 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 
 ## Changelog
 
+- 2026-10-28: `F000-api-error-normalize`(파일만 걸침) — 4xx 정지 · 재시도 판정 → `isClientApiError` · `retryWhileRetriable(1)` · 없는 종목 404 → `hasApiStatus`. 동작 변화: 연결 실패(`TypeError`) · 429 는 다시 부르지 않는다
+
 - 2026-10-27: 슬라이스 6b — FR-33 상세 호가 10단계(차트 아래 [투자자 \| 호가] 줄) · FR-34 시간외 단일가 줄. 엔드포인트/키 `FE-REQ-010` · `FE-REQ-012` · 성능 `FE-REQ-013`(Changelog 같이)
 - 2026-10-26: 슬라이스 6 — FR-31 국내 지수 띠 · FR-32 투자자별 순매수 표. 요약 띠 자리 주인 `FE-REQ-037` · 엔드포인트/키 `FE-REQ-010` · `FE-REQ-012` · 시장 화면 `FE-REQ-013` · 스트리밍 경계 `FE-REQ-008`(Changelog 같이)
 - 2026-10-26: 슬라이스 7f — FR-30 국내 주식 월간 복기 섹션. 복기 화면 주인 `FE-REQ-039` · Brier 줄 `FE-REQ-040` · 리포트 배치 `FE-REQ-027` · 클라이언트 `FE-REQ-028`(Changelog 같이)

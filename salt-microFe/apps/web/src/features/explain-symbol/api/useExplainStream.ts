@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
 
-import { StreamHttpError } from "@/shared/api";
+import { hasApiStatus } from "@/shared/api";
 import { HTTP_STATUS_CODE } from "@/shared/config";
 
 import {
@@ -39,7 +39,7 @@ export const useExplainStream = () => {
       .then(() => dispatch({ type: "ended" }))
       .catch((error: unknown) => {
         // 끊김 · 타임아웃 · 읽기 실패 — 받은 글자가 있으면 그것이 최종이다(리듀서가 가른다)
-        const busy = error instanceof StreamHttpError && error.status === HTTP_STATUS_CODE.TOO_MANY_REQUESTS;
+        const busy = hasApiStatus(error, HTTP_STATUS_CODE.TOO_MANY_REQUESTS);
         dispatch({ type: "failed", busy });
       })
       .finally(() => {

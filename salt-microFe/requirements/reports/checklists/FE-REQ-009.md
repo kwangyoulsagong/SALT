@@ -183,3 +183,12 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 | B-3 | `apps/mobile` FSD (REQ Summary의 세 번째 앱) | 앱이 아직 없다. 훅·lint 규칙은 RN 경로를 **이미** 검사한다(테스트 6번) | `RN-REQ-001` |
 | B-4 | `packages/core` 공유 범위 (Open Question) | RN이 React Query를 쓰는지에 달렸다 | `RN-REQ-001` |
 | B-5 | 죽은 코드 7건 | `Overlay`·`ButtonWrapper`·`BankAccountValid`·`TradingViewChart`·`GoalsBlockWrapper`·`uiStore`·`settingsTypes`를 슬라이스로 옮기기만 했다. 삭제는 F000의 범위다 | F000 `FE-REQ-011` |
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| `entities/goal/api/goalApi.ts` | `GoalApiError` → `readApiError(response, "goal")` |
+| 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
+
+미검증: 없음 — 판단 · 화면 무변경

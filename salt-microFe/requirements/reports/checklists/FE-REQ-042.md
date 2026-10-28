@@ -62,3 +62,12 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 목표 비중 `stale_inputs` 막힘 화면 실측 | 로컬 재료가 신선해 상태가 재현되지 않았고 Playwright route 고정 데이터로 찍지 않았다 | PR 머지 전 Playwright route(3100) 또는 다음 화면 QA |
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| `useTargetWeights` | 재시도 판정 → `retryWhileRetriable(1)` |
+| 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
+
+미검증: 없음 — 판단 · 화면 무변경

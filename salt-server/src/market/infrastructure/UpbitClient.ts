@@ -311,6 +311,8 @@ export class UpbitClient implements ExchangeQuotePort, TradeHistoryPort {
         ...(before ? { to: before.toISOString() } : {}),
       });
     } catch (error: any) {
+      // 거래소가 모르는 종목(`404 Code not found`) — 캔들은 언제나 한 종목이라 그대로 404 로 옮긴다(현재가와 같다)
+      if (error.response?.status === 404) throw new UnknownMarketSymbolError(symbol);
       logger.error("Upbit candles API error:", error.message);
       throw new Error("Failed to fetch chart data from Upbit");
     }
@@ -329,6 +331,7 @@ export class UpbitClient implements ExchangeQuotePort, TradeHistoryPort {
         ...(before ? { to: before.toISOString() } : {}),
       });
     } catch (error: any) {
+      if (error.response?.status === 404) throw new UnknownMarketSymbolError(symbol);
       logger.error("Upbit minute candles API error:", error.message);
       throw new Error("Failed to fetch minute chart data from Upbit");
     }

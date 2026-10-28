@@ -144,6 +144,7 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-28 | `AppError` 선택 `code` — 있으면 본문에 싣는다(`3f38160`, `F000-api-error-normalize`). 기존 본문 무변경 · 로그 코드 칸도 `code` 우선 |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 호출 맵에 `symbolCoach` · `symbolNews` 추가, `coachDetail` → `coachReport` 개정. 계약 의존 표에 모드별 게이트 · `confidence` 제거 · `zone` · 게이지 적중률 · `validity` 추가. 신규 FR-40~46(모드별 게이트 누락 처리(B10) · `confidence` 제거 배포 순서(D3) · 병렬 호출 · `defaultMode` 위임(B16) · 관심 종목 분리(D4)) |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `exitPlans[].priceGap`(D13) |
 | 2026-09-23 | **슬라이스 14.** `generate` 1s(FR-3 — 서버가 202 를 준다) · `coachReport` 800ms · `generationStatus` 300ms. 근거 `reports/checklists/BFF-REQ-025.md` |

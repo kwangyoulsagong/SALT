@@ -43,6 +43,8 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9 · �
 
 ## Changelog
 
+- 2026-10-28: `F000-api-error-normalize`(파일만 걸침) — 재시도 판정 → `retryWhileRetriable(1)`. 동작 변화: 연결 실패(`TypeError`) · 429 는 다시 부르지 않는다
+
 - 2026-09-29: 초판 · FR-1~8 완료(`34344b8` · `7220bec` · `85786ed` · `ee8778c` · `ad82aeb` · `1fb09b8`)
 - 2026-09-29: FR-9 의 [오늘의 판정]을 `FE-REQ-042` 로 넘김(슬라이스 5)
 - 2026-09-29: FR-11~13 — 투자 화면 카드 셋을 요약 띠로, 본문은 코치 리포트로(사용자 지적 · Chrome 실측 876px 카드 · 시세 표 1890px)

@@ -224,3 +224,9 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 - [vercel-labs/microfrontends-nextjs-app-multi-zone](https://github.com/vercel-labs/microfrontends-nextjs-app-multi-zone)
 - [Vercel Microfrontends](https://vercel.com/docs/microfrontends)
 - [Announcing Rspack 2.0](https://www.rspack.dev/blog/announcing-2-0)
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-10-28 | `@repo/core/http` 진입점 `constants.ts` → `index.ts`(상수 + `apiError`, `2ff2ae6`). 두 zone · RN 이 같은 판정을 본다(FR-32 범위 확장) |

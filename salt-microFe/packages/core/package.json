@@ -6,7 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./zones": "./src/zones/registry.ts",
-    "./http": "./src/http/constants.ts",
+    "./http": "./src/http/index.ts",
     "./auth": "./src/auth/index.ts",
     "./coach": "./src/coach/index.ts",
     "./market": "./src/market/candleTime.ts",

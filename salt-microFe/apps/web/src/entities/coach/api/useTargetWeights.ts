@@ -3,17 +3,15 @@
 import type { TargetWeightResult } from "@repo/core/coach";
 import { useQuery } from "@tanstack/react-query";
 
-import { useHasAccessToken } from "@/shared/api";
-import { HTTP_STATUS_CODE } from "@/shared/config";
+import { retryWhileRetriable, useHasAccessToken } from "@/shared/api";
 
-import { coachApi, CoachApiError } from "./coachApi";
+import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";
 
 /** σ 는 하루 한 번 바뀐다. 보유 · 예산이 바뀌면 저장 쪽이 무효화한다 — 게이지와 같은 간격 */
 const TARGET_WEIGHT_STALE_TIME_MS = 60_000;
 
-const retryServerErrorOnce = (count: number, error: Error) =>
-  count < 1 && !(error instanceof CoachApiError && error.status < HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR);
+const retryServerErrorOnce = retryWhileRetriable(1);
 
 /**
  * 목표 비중 안내 (F010 슬라이스 5 `FE-REQ-042`). `/investments` [오늘의 판정] 카드 하나라 따로 부르고 따로 실패한다.

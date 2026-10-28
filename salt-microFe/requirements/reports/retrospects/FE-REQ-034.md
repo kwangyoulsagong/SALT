@@ -43,3 +43,7 @@
 - `performance-frontend.md` §3 을 이번에 고쳤다(두 차트 · 오버레이만 · 좌표 캐시 · 병합 한 곳)
 - `canvas.md` 에 "측정 스크립트가 요소 핸들을 쥐면 누수처럼 보인다 — `evaluate` 안에서 조작하라" 한 줄 후보
 - `ssr.md` · `performance.md` 의 `next/dynamic` 권장에 "데이터 뒤에 렌더되는 잎은 Suspense 300ms 에 걸린다" 한 줄 후보
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+- 파일만 걸침 — 이 REQ 판단 없음. Action 없음

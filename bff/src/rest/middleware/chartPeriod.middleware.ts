@@ -33,7 +33,10 @@ export const assertChartPeriod = (
     return next(
       new AppError(
         `Unsupported chart period: ${String(period)}`,
-        422
+        422,
+        true,
+        // 서버가 같은 거부에 쓰는 코드(`UnsupportedChartPeriodError`) — 어느 쪽이 막아도 화면이 같은 키를 받는다
+        "MARKET_CHART_PERIOD_UNSUPPORTED"
       )
     );
   }

@@ -3,10 +3,9 @@
 import type { TradePlanListResult } from "@repo/core/coach";
 import { useQuery } from "@tanstack/react-query";
 
-import { readAccessToken } from "@/shared/api";
-import { HTTP_STATUS_CODE } from "@/shared/config";
+import { readAccessToken, retryWhileRetriable } from "@/shared/api";
 
-import { coachApi, CoachApiError } from "./coachApi";
+import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";
 
 const TRADE_PLANS_STALE_TIME_MS = 60_000;
@@ -20,8 +19,7 @@ export const useTradePlans = (symbol: string) => {
     queryFn: ({ signal }) => coachApi.plans(symbol, signal),
     enabled: Boolean(token) && symbol !== "",
     staleTime: TRADE_PLANS_STALE_TIME_MS,
-    retry: (count, error) =>
-      count < 1 && !(error instanceof CoachApiError && error.status < HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR),
+    retry: retryWhileRetriable(1),
   });
 
   return { ...query, isSignedOut: !token };

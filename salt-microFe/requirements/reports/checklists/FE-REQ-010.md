@@ -189,3 +189,12 @@ Playwright: 블록 클릭 → `/investments`. 포커스 링 · 스크린 리더 
 ## F011 슬라이스 6b (2026-10-27) — 파일만 걸침
 
 `MARKET_ENDPOINTS` · `marketQueryKeys` 국내 호가 키 · `KrChangeText strong`(기본 false — 기존 자리 무변경). check-types · lint 통과. 미검증: 없음
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| `entities/market/api/endpoints.ts` | 프리뷰 차트 `period` 상수 → `ChartPeriod.Minute` |
+| 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
+
+미검증: 없음 — 판단 · 화면 무변경

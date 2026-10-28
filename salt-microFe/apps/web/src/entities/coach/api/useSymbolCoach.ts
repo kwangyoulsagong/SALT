@@ -3,10 +3,9 @@
 import type { SymbolCoachViewModel } from "@repo/core/coach";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
-import { readAccessToken } from "@/shared/api";
-import { HTTP_STATUS_CODE } from "@/shared/config";
+import { readAccessToken, retryWhileRetriable } from "@/shared/api";
 
-import { coachApi, CoachApiError } from "./coachApi";
+import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";
 
 /** `FE-REQ-028` FR-81 */
@@ -14,12 +13,7 @@ const SYMBOL_COACH_STALE_TIME_MS = 30_000;
 /** 5xx · 네트워크만 한 번 더. 4xx 는 다시 불러도 같다 */
 const SYMBOL_COACH_RETRY_COUNT = 1;
 
-const shouldRetry = (failureCount: number, error: Error) =>
-  failureCount < SYMBOL_COACH_RETRY_COUNT &&
-  !(
-    error instanceof CoachApiError &&
-    error.status < HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR
-  );
+const shouldRetry = retryWhileRetriable(SYMBOL_COACH_RETRY_COUNT);
 
 /**
  * 우측 AI 코치 패널의 종목 판단 (`FE-REQ-028` FR-80~83).

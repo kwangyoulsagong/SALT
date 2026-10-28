@@ -122,3 +122,39 @@
 ## F011 슬라이스 6b (2026-10-27) — 파일만 걸침
 
 엔드포인트 `krOrderbook` 추가 · 국내 시세 응답 `afterHours` 추가만. 기존 호출 무변경. 미검증: 없음
+
+## 2026-10-28 — 에러 정규화 · `period` enum (`feat/fe-req-012-error-normalize`)
+
+루트: `requirements/reports/checklists/F000-api-error-normalize.md`
+
+| FR | 판정 | 근거 · 위치 |
+|---|---|---|
+| FR-2 `period` enum | **pass (개정)** | `ChartPeriod`(`minute` · `day`) — `entities/market/model/types.ts`. `chartTimeframes` · `endpoints` · `MarketDetailChart` 가 쓴다. 리터럴 0건 |
+| FR-4 `miniute` grep 0 | **미충족(유지)** | 경위 주석 1건(`endpoints.ts`) — 위 판단 그대로 |
+| FR-40 문구 `shared/i18n` | **pass (개정)** | `@repo/core/http` 재수출로 갈음 — RN 이 같은 값을 본다 |
+| FR-41 `{ status, code, retriable }` | **pass** | `shared/api/apiError.ts`. 9개 클래스(`CoachApiError` · `MarketApiError` · `GoalApiError` · `StreamHttpError` · `SignInError` · `RecordTransactionApiError` · `RegenerateCoachApiError` · `SetRiskBudgetApiError` · `ConfirmOutcomeTagsApiError`) 삭제 · grep 0 |
+| FR-42 `shared/api` 가 문장을 만들지 않는다 | **pass** | `ApiError.message` 는 로그용 `"<이름> <status> <code>"` — 화면에 안 나간다 |
+| FR-43 410 개발 경고 | **pass** | `apiFetch` `warnIfGone` — Playwright 410 고정 응답에서 콘솔 1건 |
+| FR-44 서버 원문 미노출 | **pass (코드)** | 앱 전체 `error.message` grep 0. 문구는 `code`(로그인 · 거래 기록) · `reasonCode`(초대) · `status`(404 · 429)로만 |
+| FR-51 enum | **부분** | `period` 완료 · `alertKind` · `newsSentiment` 소비처 없음 |
+| 재시도 실측 | **pass** | 상세 차트 404 · 422 요청 4 → 2(dev 이중 마운트), 마지막 4.2 → 1.0s · 500 백오프 유지 — 루트 §2 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| ~~로그인 · 거래 기록 오류 문구 실화면~~ | 같은 날 닫힘 — 아래 후속 절 | 2026-10-28 |
+| ~~`ApiError` 단위 테스트~~ | 같은 날 닫힘 — `@repo/core` 17건 | 2026-10-28 |
+| `alertKind` · `newsSentiment` enum | 소비처 없음 | F006 `FE-REQ-030` · D-2절 |
+| ~~운영 빌드 재시도 실측~~ | 같은 날 닫힘 — 로컬 `next start` | 2026-10-28 |
+
+## 2026-10-28 후속 — 미검증 닫기 (사용자 "다 검증하고 ㄱㄱ")
+
+| 항목 | 결과 |
+|---|---|
+| ~~`ApiError` 단위 테스트~~ | **pass** — `packages/core/src/http/apiError.test.ts` 17건(봉투 `code` 만 · `message` 미적재 · JSON 아닌 본문 · status 10종 `retriable` · `TypeError` · 횟수 · 헬퍼). 웹 `shared/api` 는 재수출 |
+| ~~운영 빌드 재시도~~ | **pass** — `next start -p 3100`: 404 · 422 요청 **1** · 500 요청 3(316 · 1321 · 3325ms) · 410 경고 0(운영은 찍지 않음 — 설계대로) |
+| ~~로그인 · 거래 기록 오류 문구 실화면~~ | **pass** — 로그인: 실 BFF → 서버 틀린 비밀번호 "이메일 또는 비밀번호가 맞지 않습니다." · 500 "로그인하지 못했습니다." · 연결 실패 "연결이 닿지 않았습니다." 각 요청 1. 거래 기록(인증 요청만 고정 응답): 409 `PORTFOLIO_INSUFFICIENT_QUANTITY` · 400 `KR_STOCK_NOT_AVAILABLE` · 500 각 문구, 요청 1. 6건 모두 서버 문장 화면 노출 0 |
+| ~~서버 모르는 코인 차트 500~~ | 404 (`f74c34f`) — `SRV-REQ-009` |
+| ~~BFF 422 · `AppError` code 없음~~ | `3f38160` — `BFF-REQ-025` |
+| `alertKind` · `newsSentiment` enum | 남음 — 소비처 없음(F006 `FE-REQ-030` · D-2절) |

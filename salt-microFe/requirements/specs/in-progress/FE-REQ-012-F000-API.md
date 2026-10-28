@@ -43,7 +43,7 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-1 | `constants/api.ts`의 `period=miniute` → **`period=minute`** 로 고친다 | Must |
-| FR-2 | 유효값 4종(`minute`·`day`·`week`·`month`)을 **`shared/config`의 enum**으로 정의한다. 문자열 리터럴을 URL에 박지 않는다 | Must |
+| FR-2 | 유효값 4종(`minute`·`day`·`week`·`month`)을 **`shared/config`의 enum**으로 정의한다. 문자열 리터럴을 URL에 박지 않는다. **개정 2026-10-28** — 서버가 가진 2종(`minute` · `day`)만 `ChartPeriod` enum 으로, 자리는 `entities/market/model`(도메인 값 — `fsd-shared.md` 도메인 무관 원칙). `week` · `month` 는 서버가 열 때 한 줄씩 | Must |
 | FR-3 | **프론트가 먼저 배포**된다. 그 뒤 서버가 오타를 422로 거부한다. 순서를 뒤집으면 차트가 깨진다 | Must |
 | FR-4 | `grep -rn "miniute"` = 0 | Must |
 
@@ -96,8 +96,8 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-40 | `HTTP_ERROR_MESSAGE`·`TOAST_MESSAGES`·`ERROR_MESSAGE`를 **`shared/i18n`으로 옮긴다** | Must |
-| FR-41 | `shared/api`가 에러를 정규화한다: `{ status, code, retriable }` | Must |
+| FR-40 | `HTTP_ERROR_MESSAGE`·`TOAST_MESSAGES`·`ERROR_MESSAGE`를 **`shared/i18n`으로 옮긴다**. **개정 2026-10-28** — `@repo/core/http` 에 두고 `shared/i18n` 이 재수출하는 것으로 갈음한다. 옮기면 RN(`@repo/core` 소비자)이 잃는다 · 웹 소비처는 재수출 하나 | Must |
+| FR-41 | `shared/api`가 에러를 정규화한다: `{ status, code, retriable }`. `retriable` = 5xx · 408(429 는 `false` — `Retry-After`) · 슬라이스별 에러 클래스 금지(2026-10-28) | Must |
 | FR-42 | 문구 매핑은 `shared/i18n`이 한다. `shared/api`가 문장을 만들지 않는다 | Must |
 | FR-43 | `410` 응답을 받으면 **개발 환경에서 콘솔 경고**를 낸다. 잔여 호출을 개발 중에 발견하기 위함 | Should |
 | FR-44 | 서버 에러 원문을 화면에 노출하지 않는다 | Must |
@@ -166,6 +166,8 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 - 2026-10-26: F011 슬라이스 6(국내 지수 · 투자자 순매수) — 엔드포인트 2개 추가(`krIndices` · `krInvestors`) — 기존 호출 계약 무변경
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-28 | **후속 — 미검증 전부 닫음.** `ApiError` 를 `@repo/core/http` 로 옮기고 단위 17건(`2ff2ae6`) · 운영 빌드 재시도 실측 · 로그인 · 거래 기록 오류 문구 실화면 · 서버 차트 404(`f74c34f`) · BFF `AppError.code`(`3f38160`) |
+| 2026-10-28 | **A절 FR-2 · E절 FR-41~44 구현**(`F000-api-error-normalize`). `ApiError` · `readApiError` · `retryWhileRetriable` — 슬라이스 에러 클래스 9개 삭제, 코치 훅 10곳 · 국내 쿼리 · 전역 기본값의 재시도 판정을 하나로(전역이 4xx 를 두 번 더 부르던 것 수정 · 429 재시도 중단). `apiFetch` 410 개발 경고. 개정: FR-2(2종 · `entities/market/model`) · FR-40(재수출로 갈음) · FR-41(`retriable` 정의). 근거 `requirements/reports/checklists/FE-REQ-012.md` 2026-10-28 절 |
 | 2026-09-21 | **WS 절(C)을 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-24(참조 카운트 구독 — 언마운트 시 `unsubscribe`·`unsubscribe_candle` 전송, 브라우저 실측) · FR-25(재연결 3s→30s 백오프 + 끊김 표시) · FR-26(캔들 동작 유지). FR-21(`limit=100`)은 건드리지 않았다. **남은 것**: A·B·D·E·F절과 FR-22(`useThrottle` — 이미 rAF 로 묶여 있어 필요성부터 판정) · FR-23. 근거: `requirements/reports/checklists/F000-realtime-reliability.md` |
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 호출 배치에 검색 · 북마크 목록 · 북마크 토글 추가, 알림 `kind` 1종 표시. 신규 D-2절 FR-60~66(검색 훅 · `409 TRACKED_ASSET_LIMIT` 정규화 · 무효화 · 뉴스 필드 · 북마크 훅 · 인증 전 호출 금지 · 목표 판별 유니온). FR-51 에 `newsSentiment` enum. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-09-23 | **MSW 목 전부 제거.** 목표 요약 · 목록을 BFF `/api/goals/statistics` · `/api/goals` 로, 지출 분석(`/api/v1/investments/preview`)은 서버에 데이터가 없어 삭제. 공개 시세 서버 조회(SEO · sitemap)를 `pages/investment-detail/api` 에 추가 |

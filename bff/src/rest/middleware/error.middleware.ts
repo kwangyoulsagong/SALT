@@ -37,9 +37,10 @@ export const errorMiddleware = (
   _next: NextFunction
 ) => {
   if (err instanceof AppError) {
-    logFailure(err.statusCode, err.constructor.name, err, req);
+    logFailure(err.statusCode, err.code ?? err.constructor.name, err, req);
     return res.status(err.statusCode).json({
       success: false,
+      ...(err.code ? { code: err.code } : {}),
       message: err.message,
     });
   }

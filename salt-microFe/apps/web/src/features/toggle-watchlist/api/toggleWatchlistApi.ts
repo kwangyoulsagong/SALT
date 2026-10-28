@@ -1,9 +1,8 @@
 import {
   AddWatchlistRequest,
   MARKET_ENDPOINTS,
-  MarketApiError,
 } from "@/entities/market";
-import { apiFetch, authHeader } from "@/shared/api";
+import { apiFetch, authHeader, readApiError } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
 const send = async (
@@ -15,7 +14,7 @@ const send = async (
     ...init,
     headers: { ...authHeader(), ...init.headers },
   });
-  if (!response.ok) throw new MarketApiError(endpoint, response.status);
+  if (!response.ok) throw await readApiError(response, `market ${endpoint}`);
 };
 
 /**

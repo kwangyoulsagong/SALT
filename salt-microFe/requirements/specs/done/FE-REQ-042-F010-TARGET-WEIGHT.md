@@ -46,6 +46,8 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §4-3 6 
 
 ## Changelog
 
+- 2026-10-28: `F000-api-error-normalize`(파일만 걸침) — 재시도 판정 → `retryWhileRetriable(1)`. 동작 변화: 연결 실패(`TypeError`) · 429 는 다시 부르지 않는다
+
 - 2026-09-29: 초판 · FR-1~7 완료(`26eef7c` · `e1ef668` · 번호 정정 `11e7a65`)
 - 2026-09-29: FR-9~13 — target-weight@2 알트 규칙 밖 · 라이브 · 투자 화면 요약 띠로 재배치(사용자 지적 "invest 메인에 다 있어야 하나")
 - 2026-10-07: FR-14 — 재료 정지 막힘 문구(F010 슬라이스 7)

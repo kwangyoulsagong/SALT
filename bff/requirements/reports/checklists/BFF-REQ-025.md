@@ -73,3 +73,12 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
 ## 로거 추가 인자 (`0be9644`)
 
 단위 2(문자열 · 여러 인자 → 본문, 객체 meta 그대로) · `test` 286 · `tsc`. 실경로: 서버 404 `MARKET_SYMBOL_NOT_FOUND` 를 BFF 가 404 로 전달 · `Backend API rejected` warn. 미검증: 없음
+
+## 2026-10-28 — F000 웹 API 에러 정규화 후속 (`f74c34f` · `2ff2ae6` · `3f38160`)
+
+| 항목 | 결과 |
+|---|---|
+| `error.middleware` | `AppError.code` 가 있으면 `{ success, code, message }`, 없으면 그대로 — 테스트 1건 추가(287 pass) |
+| 실측 4001 | `period=week` 422 `MARKET_CHART_PERIOD_UNSUPPORTED` · 서버 404 `MARKET_SYMBOL_NOT_FOUND` 통과 · 로그 `Request rejected 422 MARKET_CHART_PERIOD_UNSUPPORTED` |
+
+미검증: 없음

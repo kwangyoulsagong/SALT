@@ -91,3 +91,7 @@ hover 색이 터치 기기에서 sticky 가 됐다(FR-23). `(hover: hover)` 안�
 - `FE-REQ-013`: 토큰을 쿠키로 옮기면 이 파일들(`authToken` · `refreshSession`)이 바뀐다.
   BFF 규칙(`bff-architecture.md` §6)이 이미 쿠키 → `Authorization` 변환을 BFF 책임으로 적어 뒀다
 - FR-61(비공개 경로 가드)은 쿠키 이관과 같은 슬라이스로 묶는다 — 미들웨어가 토큰을 읽을 수 있어야 한다
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+- 파일만 걸침 — 이 REQ 판단 없음. Action 없음

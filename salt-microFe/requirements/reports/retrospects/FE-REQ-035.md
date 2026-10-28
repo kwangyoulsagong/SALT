@@ -28,3 +28,7 @@ axios 직접 호출 둘을 `apiFetch` 로 옮기고 import 를 lint 로 막았�
 ## 5. 다음에 보완할 규칙 · 문서
 
 - `performance-frontend.md` 번들 게이트에 "First Load 와 함께 **클라이언트 정적 JS 합계**" 한 줄 후보
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+- 파일만 걸침 — 이 REQ 판단 없음. Action 없음

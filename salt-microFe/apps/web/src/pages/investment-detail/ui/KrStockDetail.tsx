@@ -11,7 +11,6 @@ import {
   KrQuoteBadges,
   KrSessionLine,
   KrStockChart,
-  MarketApiError,
   useKrDetail,
   useKrDetailRealtime,
 } from "@/entities/market";
@@ -21,7 +20,8 @@ import { KrCoachJudgment } from "./KrCoachJudgment";
 import { KrForecast } from "./KrForecast";
 import { KrInvestorFlows } from "./KrInvestorFlows";
 import { KrOrderbook } from "./KrOrderbook";
-import { useHasAccessToken } from "@/shared/api";
+import { hasApiStatus, useHasAccessToken } from "@/shared/api";
+import { HTTP_STATUS_CODE } from "@/shared/config";
 import { formatKrwCompact, formatPrice } from "@/shared/lib";
 
 import { INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT } from "../model";
@@ -66,7 +66,7 @@ export const KrStockDetail = ({ code }: { code: string }) => {
   useKrDetailRealtime(code, ok !== null && !ok.quote.isHalted);
 
   if (signedIn === false) return <StatusLine kind="blocked">{M.signInRequired}</StatusLine>;
-  if (error instanceof MarketApiError && error.status === 404) {
+  if (hasApiStatus(error, HTTP_STATUS_CODE.NOT_FOUND)) {
     return <StatusLine kind="empty">{M.detail.notFound}</StatusLine>;
   }
   if (isPending || signedIn === null) {

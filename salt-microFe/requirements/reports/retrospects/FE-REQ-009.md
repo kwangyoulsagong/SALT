@@ -105,3 +105,7 @@ re-export 껍데기가 필요하고(FR-38), 껍데기가 남으면 done이 아�
 | 죽은 코드 7건을 옮기기만 했다 | F000 `FE-REQ-011` |
 | `apps/web/src/shared/ui/tokens.css.ts`가 `@repo/ui/tokens`와 겹친다 | 디자인 시스템 적용 시 |
 | `wsClient`가 모듈 스코프에서 `new WebSocket`을 부른다 | 서버 컴포넌트가 `shared/api`를 쓰게 되는 시점 |
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+- 파일만 걸침 — 이 REQ 판단 없음. Action 없음

@@ -86,3 +86,12 @@
 
 
 - 2026-10-26 F011 7f: Brier 빗나간 사례 이름 — Playwright 로 "삼성전자 오를 확률 80%…" 확인
+
+## 2026-10-28 — F000 웹 API 에러 정규화 (파일만 걸침)
+
+| 항목 | 결과 |
+|---|---|
+| `useJudgmentScoreboard` | 재시도 판정 → `retryWhileRetriable(1)` |
+| 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
+
+미검증: 없음 — 판단 · 화면 무변경

@@ -15,7 +15,7 @@ import type {
   TradePlanListResult,
 } from "@repo/core/coach";
 
-import { apiFetch, authHeader } from "@/shared/api";
+import { apiFetch, authHeader, readApiError } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
 import { COACH_ENDPOINTS } from "./endpoints";
@@ -24,13 +24,6 @@ import { COACH_ENDPOINTS } from "./endpoints";
 interface AppEnvelope<T> {
   success: boolean;
   data: T;
-}
-
-/** 상태 코드를 들고 던진다 — 재시도 판단이 4xx 와 5xx 를 가른다 */
-export class CoachApiError extends Error {
-  constructor(readonly status: number) {
-    super(`coach api ${status}`);
-  }
 }
 
 /**
@@ -54,7 +47,7 @@ export const coachApi = {
       `${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.symbolDetail(symbol)}`,
       { headers: authHeader(), signal },
     );
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<SymbolCoachViewModel>;
     return body.data;
@@ -71,7 +64,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<CoachReportResult>;
     return body.data;
@@ -83,7 +76,7 @@ export const coachApi = {
       `${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.generationStatus}`,
       { headers: authHeader(), signal },
     );
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<CoachGenerationStatus>;
     return body.data;
@@ -98,7 +91,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<SymbolForecastResult>;
     return body.data;
@@ -110,7 +103,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<SymbolEventsResult>;
     return body.data;
@@ -122,7 +115,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<SymbolPositioningResult>;
     return body.data;
@@ -137,7 +130,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<RiskBudgetResult>;
     return body.data;
@@ -149,7 +142,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<TradePlanListResult>;
     return body.data;
@@ -161,7 +154,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<BehaviorMirrorResult>;
     return body.data;
@@ -176,7 +169,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<KrBehaviorMirrorResult>;
     return body.data;
@@ -188,7 +181,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<JudgmentScoreboardResult>;
     return body.data;
@@ -200,7 +193,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<TargetWeightResult>;
     return body.data;
@@ -221,7 +214,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<MonthlyReviewResult>;
     return body.data;
@@ -237,7 +230,7 @@ export const coachApi = {
       headers: authHeader(),
       signal,
     });
-    if (!response.ok) throw new CoachApiError(response.status);
+    if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<DecisionOutcomeListResult>;
     return body.data;
