@@ -1,8 +1,13 @@
+/**
+ * `code` 는 화면이 문구를 고르는 키다(서버 `DomainError` 코드와 같은 자리). 있으면 응답 본문에 싣고, 없으면 본문 모양 그대로다
+ * — 웹은 `code` 없는 실패를 `code: null` 로 받는다(`FE-REQ-012` FR-41, 2026-10-28).
+ */
 export class AppError extends Error {
   constructor(
     public message: string,
     public statusCode: number = 500,
-    public isOperational: boolean = true
+    public isOperational: boolean = true,
+    public code?: string
   ) {
     super(message);
     Object.setPrototypeOf(this, AppError.prototype);
