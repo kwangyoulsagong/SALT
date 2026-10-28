@@ -528,9 +528,12 @@ model InvestmentNotification {
 
   source String?
 
-  type    String
-  title   String
-  message String
+  // 종류는 `signal_update` 하나다(SRV-REQ-008 FR-20) — `notification/domain/policy/kindGate` 가 지킨다
+  type        String
+  // 문장은 프론트 i18n 이 만든다(FR-25). 새 행은 `messageCode` 만 쓰고 두 칸은 옛 행을 읽으려고 남긴다
+  messageCode String?
+  title       String?
+  message     String?
 
   severity Int @default(50)
 

@@ -53,8 +53,9 @@ export class InvestmentFeedService {
       feed.push({
         id: n.id,
         type: "notification",
-        title: n.title,
-        summary: n.message,
+        // 동면 경로(410) — 새 알림은 문장이 없다(SRV-REQ-008 FR-25). 되살릴 때 코드로 옮긴다
+        title: n.title ?? n.messageCode ?? "",
+        summary: n.message ?? "",
         severity: n.severity,
         createdAt: n.createdAt,
         payload: n.payload,

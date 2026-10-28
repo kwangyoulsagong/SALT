@@ -135,8 +135,9 @@ export interface DecisionChangeNotice {
 /**
  * 판단 변화 통보.
  *
- * > `notification` 컨텍스트가 아직 없다(`SRV-REQ-006` FR-33). 그때 이 Port 의 구현이
- * > **Domain Event 발행**으로 바뀐다 — 지금 이벤트로 내면 받을 쪽이 없다.
+ * 구현(`SignalUpdateNotifier`)은 `notification` 공개 API 로 `signal_update` 알림을 만든다
+ * (`SRV-REQ-008` FR-20). 이벤트로 바꾸지 않은 이유: 받는 쪽이 하나이고 관문(종류 · 코드 ·
+ * 금액)이 거부하면 **부르는 쪽이 알아야** 한다.
  */
 export interface CoachNotifier {
   /** `since` 이후 같은 통보가 있었나. 원문의 2시간 중복 억제다. */

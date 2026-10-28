@@ -20,7 +20,6 @@ import { contextRouters } from "./composition";
 import goalsRoutes from "./modules/goals/goals.routes";
 import userRoutes from "./modules/user/user.routes";
 import investmentInsightRoutes from "./modules/investment-insight/investment-insight.routes";
-import investmentNotificationRoutes from "./modules/investment-notification/investment-notification.routes";
 
 const app: Application = express();
 
@@ -74,7 +73,7 @@ app.use("/api/news", contextRouters.news);
 app.use("/api/market-intelligence", contextRouters.marketIntelligence);
 app.use("/api/market/kr", contextRouters.krStock);
 app.use("/api/investment-insight", investmentInsightRoutes);
-app.use("/api/investment-notifications", investmentNotificationRoutes);
+app.use("/api/investment-notifications", contextRouters.notification);
 app.use("/api/ai-coach", contextRouters.aiCoach);
 app.use("/api/trade-preflight", contextRouters.tradePreflight);
 app.use("/api/behavior-coach", contextRouters.behaviorCoach);
