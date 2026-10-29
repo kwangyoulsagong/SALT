@@ -133,3 +133,4 @@ F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 �
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. `/ai-coach/detail` 을 종목 판단으로 개정해 예산 200ms, `/coach/report` 450ms 신설. 신규 FR-50~54(병렬 · 모드 전환 무호출 · upstream 취소 · 모드별 미렌더율) |
+| 2026-10-29 | **변경 없음(BFF).** 프론트 `entities/coach/api/coachApi.ts`(머리 주석이 이 REQ 를 가리킨다)의 리스크 예산 호출 주석 "게이지 3" → "게이지 · 측정". BFF 코드 무변경 |

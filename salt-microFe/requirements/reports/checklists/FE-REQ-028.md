@@ -90,3 +90,7 @@
 | 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
 
 미검증: 없음 — 판단 · 화면 무변경
+
+## 2026-10-29 주석 정정
+
+- 주석만 — `entities/coach/api/endpoints.ts` 리스크 예산 경로 설명 "게이지 3" → "게이지 · 측정"(F010 부터 다섯, F009 슬라이스 9 로 측정 칸 2 추가). 경로 · 코드 무변경. 훅 exit 0 · `web` check-types · lint

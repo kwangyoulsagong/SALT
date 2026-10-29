@@ -343,3 +343,4 @@
 ## F009 FR-26 Swagger (2026-10-29)
 
 - `coachReport.routes.ts` 설명만 바뀜 — `swagger-jsdoc failOnErrors` 생성 통과 · 경로 17개 그대로
+- 2026-10-29 후속: summary 낡은 개수 정정 · build 에러 0 · `failOnErrors` 생성 통과

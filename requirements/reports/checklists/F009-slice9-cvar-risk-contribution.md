@@ -28,3 +28,4 @@
 - 수정 뒤 재검증: `pnpm check-types` · `lint` · `test`(core 51 · ui 43) · `test:layer-check`(차단 8 · 통과 5) · `web` · `web-tax` 빌드 · 훅 사후 실행 exit 0
 
 - 2026-10-29 재점검: 코드에 나오는 REQ 12개 전부 문서 기록(주인 6 · 소비 2 · 변경 없음 3 · 규칙 준수 1) · 공용 함수 `portfolioVolatility` 소비처 `ManageRiskBudget` 하나 · `npm run prisma:generate` 통과(스키마 무변경)
+- 2026-10-29 전체 재점검 정정: 낡은 문장 4(`SRV-REQ-038` 체크리스트 범위 밖 행 · 루트 slice7 문서 2 · slice7 체크리스트 · 마스터 인덱스 slice7 단락) 닫힘 표시, 낡은 개수 주석 4(서버 Swagger summary · 프론트 API 주석 3 — 주인 `SRV-REQ-025` · `FE-REQ-039` · `FE-REQ-028` · `BFF-REQ-026`)

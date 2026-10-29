@@ -33,3 +33,7 @@
 ## 2026-10-28 — F000 웹 API 에러 정규화 (짝 영역 변경 없음)
 
 웹이 이 경로의 실패를 `ApiError { status, code, retriable }` 로 받게 바뀌었다(`FE-REQ-012`). 이 영역 코드 · 계약 **변경 없음** — 파일 머리 주석 참조뿐.
+
+## 2026-10-29 주석 정정
+
+- **변경 없음(BFF).** 프론트 `entities/coach/api/coachApi.ts`(머리 주석이 이 REQ 를 가리킨다)의 리스크 예산 호출 주석 "게이지 3" → "게이지 · 측정". BFF 코드 무변경. 훅 exit 0 · `web` check-types · lint
