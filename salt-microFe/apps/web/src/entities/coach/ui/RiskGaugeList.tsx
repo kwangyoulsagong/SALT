@@ -3,7 +3,7 @@ import { ProgressBar } from "@repo/ui/progressBar";
 
 import { formatPrice } from "@/shared/lib";
 
-import { formatRatio, formatScore, formatSignedRate, formatTimes } from "../lib";
+import { formatCoveredRatio, formatRatio, formatScore, formatSignedRate, formatTimes } from "../lib";
 import { RISK_MESSAGES } from "../model";
 import { CaseIdentity } from "./CaseIdentity";
 import {
@@ -191,7 +191,7 @@ export const RiskGaugeList = ({ view }: { view: RiskBudgetView }) => {
         notes={[
           betaReady ? GAUGE.btcBetaHint : null,
           betaReady && btcBeta.missingSymbols.length > 0 && btcBeta.coveredWeight !== null
-            ? GAUGE.btcBetaCovered(formatRatio(btcBeta.coveredWeight), btcBeta.missingSymbols.join(", "))
+            ? GAUGE.btcBetaCovered(formatCoveredRatio(btcBeta.coveredWeight), btcBeta.missingSymbols.join(", "))
             : null,
         ]}
       />
@@ -219,7 +219,7 @@ export const RiskGaugeList = ({ view }: { view: RiskBudgetView }) => {
               : null,
             volatilityReady && volatility.grid === "krx_trading_day" ? GAUGE.portfolioVolatilityGrid : null,
             volatilityReady && volatility.missingSymbols.length > 0 && volatility.coveredWeight !== null
-              ? GAUGE.portfolioVolatilityCovered(formatRatio(volatility.coveredWeight), volatility.missingSymbols.join(", "))
+              ? GAUGE.portfolioVolatilityCovered(formatCoveredRatio(volatility.coveredWeight), volatility.missingSymbols.join(", "))
               : null,
           ]}
         />
