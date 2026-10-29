@@ -34,7 +34,8 @@ export const RUN_PREFLIGHT_MESSAGES = {
     maxLoss: (stop: string, loss: string) => `손절가 ${stop}원에서 최대 손실 ${loss}원`,
     maxLossOfTotal: (rate: string) => `보유 코인 전체(이번 금액 포함) 대비 ${rate}`,
     noStop: "손절을 고르면 최대 손실을 계산해요",
-    riskReward: (target: string, ratio: string) => `목표가 ${target}원까지 손익비 ${ratio}`,
+    targetGain: (target: string, amount: string, rate: string) => `목표가 ${target}원 도달 시 ${amount}원(${rate})`,
+    riskReward: (ratio: string) => `손익비 ${ratio}`,
     noTarget: "목표가를 넣으면 손익비를 계산해요",
   },
   /** 서버 경고 코드 → 문장. 서버 `message` 는 읽지 않는다(`api-convention.md`) */

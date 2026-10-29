@@ -2,10 +2,10 @@ import type { TradePreflightView } from "@repo/core/coach";
 import { Badge } from "@repo/ui/badge";
 import { StatusLine } from "@repo/ui/statusLine";
 
-import { formatFineRate } from "@/entities/coach";
+import { formatFineRate, formatSignedRate } from "@/entities/coach";
 import { formatPrice } from "@/shared/lib";
 
-import { formatRiskReward } from "../lib";
+import { formatRiskReward, formatSignedKrw } from "../lib";
 import { RUN_PREFLIGHT_MESSAGES as MSG } from "../model";
 import { hint, line, lines, lineStrong, pending as pendingStyle, stack, warningText } from "./Preflight.css";
 
@@ -25,6 +25,7 @@ interface PreflightResultProps {
  * - 상한 초과는 배지 한 개와 한 줄뿐이다. 막지 않는다(FR-156)
  * - 비율은 소수 2자리까지 — 정수로 반올림하면 상한 60% 를 60.4% 로 넘었는데 "60%" 로 보여 배지와 어긋난다
  * - 손절 · 목표가가 없어 못 구한 값은 0 이 아니라 안내 한 줄이다
+ * - 목표 도달 시 손익은 부호를 붙인다 — 목표가를 진입가 아래에 적으면 서버가 음수를 준다(잘못 적은 값이 숨지 않게)
  * - 결과가 바뀌면 `aria-live="polite"` 로 읽힌다
  */
 export const PreflightResult = ({ result, isError, isPending, hasTarget }: PreflightResultProps) => {
@@ -57,15 +58,21 @@ export const PreflightResult = ({ result, isError, isPending, hasTarget }: Prefl
           {calculation.maxLossOfTotalRate !== null && (
             <li className={line}>{MSG.result.maxLossOfTotal(formatFineRate(calculation.maxLossOfTotalRate))}</li>
           )}
-          {calculation.riskRewardRatio !== null && calculation.takeProfitPrices[0] !== undefined ? (
+          {calculation.targetGainAmount !== null &&
+          calculation.targetGainRate !== null &&
+          calculation.takeProfitPrices[0] !== undefined ? (
             <li className={line}>
-              {MSG.result.riskReward(
+              {MSG.result.targetGain(
                 formatPrice(calculation.takeProfitPrices[0]),
-                formatRiskReward(calculation.riskRewardRatio),
+                formatSignedKrw(calculation.targetGainAmount),
+                formatSignedRate(calculation.targetGainRate),
               )}
             </li>
           ) : (
             !hasTarget && <li className={line}>{MSG.result.noTarget}</li>
+          )}
+          {calculation.riskRewardRatio !== null && (
+            <li className={line}>{MSG.result.riskReward(formatRiskReward(calculation.riskRewardRatio))}</li>
           )}
         </ul>
         {warnings.map((warning) => (

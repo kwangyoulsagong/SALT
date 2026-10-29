@@ -45,6 +45,13 @@ export interface TradePreflightView {
     maxLossRate: number | null;
     /** 최대 손실 ÷ 진입 후 코인 평가금 합. 보유가 없으면(분모 0) `null` */
     maxLossOfTotalRate: number | null;
+    /**
+     * 첫 목표가 도달 시 손익(원 정수). **부호 그대로** — 목표가가 진입가 아래면 음수. 수수료 미포함.
+     * 목표가가 없으면 `null`(서버 `SRV-REQ-025`, 2026-10-29)
+     */
+    targetGainAmount: number | null;
+    /** 같은 손익의 이번 금액 대비 비율(소수). 목표가가 없으면 `null` */
+    targetGainRate: number | null;
     projectedWeight: number;
     maxSingleAssetWeight: number;
   };
