@@ -344,3 +344,7 @@
 
 - `coachReport.routes.ts` 설명만 바뀜 — `swagger-jsdoc failOnErrors` 생성 통과 · 경로 17개 그대로
 - 2026-10-29 후속: summary 낡은 개수 정정 · build 에러 0 · `failOnErrors` 생성 통과
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: `explain` 은 "현재 public · TODO"가 아니다 — `aiCoach.routes.ts` 에 `authMiddleware` + `rateLimit` / 수용 기준은 Changelog 상 FR-1~18 · 20 · 32 · 40~64 가 닫혔다. 남은 것: FR-31(계약 테스트) · 54 · 19 부분 → 그래서

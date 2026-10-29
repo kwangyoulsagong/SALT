@@ -10,6 +10,11 @@ created: 2026-09-09
 source: FEATURE-000 FR-1/FR-34/FR-44, DB-REQ-001, DB-REQ-002 FR-60~62, pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - M3 실행됨(`20260918071852`) · M1 은 `kr_stock` 만(`20261007140000`) — Q2 관련 수용 기준 · Open Q 는 닫힘(같은 문서 개정 단락과 맞춤)
+> - 서버 정리 선행은 `SRV-REQ-007`
+
+
 ## Summary
 
 DB-REQ-001의 스키마 변경을 **독립 롤백 가능한 5단계**로 쪼갠다. enum 값 제거는 Postgres에서 되돌리기 어려우므로 별도 릴리스로 분리한다. drop 전에 `pg_dump` 스냅샷과 grep 감사를 강제한다.
@@ -123,3 +128,4 @@ DB-REQ-001의 스키마 변경을 **독립 롤백 가능한 5단계**로 쪼갠�
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: M6 `20260921_goal_quantity_target` · FR-40~43(목표 수량 — 추가 + NOT NULL 해제 + CHECK, 기본안 B5). 개정: M1 · M2 · M5 를 **열린 질문 Q2 결정 전 실행 금지**로. 후속 목록에서 삭제된 DB-REQ-006 · 009 · 012 제거. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

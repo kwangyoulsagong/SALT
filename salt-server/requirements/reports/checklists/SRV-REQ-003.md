@@ -28,3 +28,7 @@ npm run prisma:generate
 npm run build
 # FAIL: 기존 투자/포트폴리오 타입 오류
 ```
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: **`SRV-REQ-038` FR-13 으로 대체** — `behavior_analysis` 저장을 지웠고 `AnalyzeTradingBehavior` 가 저장 

@@ -9,6 +9,11 @@ labels: [performance, budget, n+1, llm, cooldown]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-10 비동기 202 · FR-20~23 쿨다운 429 + `retryAfterSeconds` · FR-43 `coach_generation_logs (user_id, requested_at DESC)` 인덱스는 구현됨 — 측정 FR 만 남음
+> - FR-1~6 의 N+1 전제는 지난 일 · FR-32 실패사례 출처는 스냅샷 원장
+
+
 ## Summary
 
 F004의 성능은 **두 개의 병목**에서 결정된다: ① `signal-performance`의 **200 쿼리 N+1** ② **LLM 호출 수십 초**. 전자는 Projection으로, 후자는 비동기 + 저장으로 해결한다.
@@ -178,3 +183,4 @@ F004의 성능은 **두 개의 병목**에서 결정된다: ① `signal-performa
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 예산에 종목 판단 · 두 워커 추가, `explain` 미렌더 경로 50ms. 신규 FR-70~77(두 모드 1회 계산 · 병렬 조립 · 게이지 사전 집계(B9) · 초기 LLM 비용 0 · 경로별 미렌더율 관측) |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

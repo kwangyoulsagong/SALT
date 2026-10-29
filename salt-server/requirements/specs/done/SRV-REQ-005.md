@@ -6,6 +6,10 @@ labels: [기능 정의, API 연동]
 created: 2026-05-25
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - **대체** — 성적은 최근 insight 100건이 아니라 원장 `coach_recommendation_snapshots` 채점(`SRV-REQ-024` FR-176), `maxDrawdown` → `worstObservedReturn`(`SRV-REQ-025` FR-55), `insufficient_data` = 표본 20 미만
+
+
 ## Summary
 
 서버는 AI Coach insight와 가격 이력을 비교해 신호 성과 metrics를 계산한다.
@@ -33,3 +37,4 @@ AI 코치 판단의 품질을 개선하려면 과거 신호가 이후 가격 흐
 ## Notes
 
 - 구현 위치: `salt-server/src/modules/signal-performance/**`
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

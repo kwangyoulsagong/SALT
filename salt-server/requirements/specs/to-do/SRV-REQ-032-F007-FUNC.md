@@ -9,6 +9,10 @@ labels: [server, func, ddd, device, notification]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 구조 경로 `src/contexts/device/` 는 `src/device/`(실제 구조 `src/{context}/{domain,...}`, 예 `src/notification/domain/ports.ts`)
+
+
 ## Summary
 
 서버에 **`device` 컨텍스트를 신설**한다. 이 컨텍스트가 책임지는 것은 셋이다: **기기를 안다**, **한 번만 보낸다**, **낡은 앱을 막는다**. 푸시 provider는 인프라이지 도메인이 아니다.
@@ -193,3 +197,4 @@ ADR-002 · 기본안 — 감사 문서 B21. `tax-deadline-notify.worker`를 만�
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` 반영. 머리 배너 추가. 푸시 1종(`SIGNAL_UPDATE`)으로 C절 개정(FR-20 · 21 · 24), D절(세금 D-Day) 삭제·개정(FR-30~35), 이벤트 표 개정. FR-26 · 27(F006 알림 생성 트리거 · 딥링크 대상) 추가. `UpdateNotificationPrefsUseCase` 삭제 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

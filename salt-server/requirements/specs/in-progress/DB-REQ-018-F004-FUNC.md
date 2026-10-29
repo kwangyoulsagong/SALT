@@ -9,6 +9,13 @@ labels: [db, invariant, render-gate, cooldown, feedback]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 실패사례 출처는 `IndicatorTrackRecord` 가 아니라 판단 · 추천 스냅샷 원장(`symbol_judgment_snapshots` · `coach_recommendation_snapshots`) — `src` 에 `IndicatorTrack*` 0건
+> - FR-3 "표본 1건 이상 통과 + `lowSample`"은 `SRV-REQ-024` FR-176 이 폐기 — 표본 20 미만은 `insufficient_sample`
+> - FR-20~24 쿨다운(`generationCooldown.ts` · `cooldown_rejected` · 429/202) · FR-60~66 게이지 · 구간은 **구현됨**(FR-61 은 별도 표로 다르게) → to-do → **in-progress**
+> - FR-53 · 67 "`kr_stock` 은 실시간 · 지표 없어 제외"는 낡음 — F011 이 KIS 실시간 · 국내 판단 · 구간을 붙였다(소유자 전용). 남는 제외는 저장 추천뿐
+
+
 ## Summary
 
 F004의 불변식은 대부분 **렌더 게이트**에 걸린다 — 근거·적중률·실패사례 3종이 없으면 추천이 렌더되지 않아야 하고, 그 판정의 근거가 DB에 있어야 한다.
@@ -166,3 +173,4 @@ F004의 불변식은 대부분 **렌더 게이트**에 걸린다 — 근거·적
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. INV-10~14 · 신규 FR-60~68(종목 판단 스냅샷 · 신뢰도 미사용(D3) · 바이존 서버 계산(D2) · 게이지 적중률 표본 규칙(B9) · Q3 보수안 · 보유 = `PortfolioTransaction`(ADR-002)). FR-32 개정(kind 5종). 표본 < 20 Open Question 을 B18 로 닫음 |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. INV-14 · FR-67 확정(D12 — `out_of_scope`). Q3 닫음 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

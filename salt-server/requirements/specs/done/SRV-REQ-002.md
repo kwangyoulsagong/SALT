@@ -6,6 +6,10 @@ labels: [기능 정의, API 연동]
 created: 2026-05-25
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 구현 위치는 `src/modules/trade-preflight/**` 가 아니라 `src/coach/application/CheckTradePreflight.ts`(DDD 이관)
+
+
 ## Summary
 
 서버는 외부 주문 전 손익비, 손실 한도, 포트폴리오 비중, 데이터 최신성을 계산한다.
@@ -34,3 +38,4 @@ SALT는 사용자의 주문을 실행하지 않고, 외부 앱에서 주문하�
 ## Notes
 
 - 구현 위치: `salt-server/src/modules/trade-preflight/**`
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

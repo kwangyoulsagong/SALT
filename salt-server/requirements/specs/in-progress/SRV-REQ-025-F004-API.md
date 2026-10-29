@@ -9,6 +9,11 @@ labels: [api, rest, contract, coach, render-gate]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - `explain` 은 "현재 public · TODO"가 아니다 — `aiCoach.routes.ts` 에 `authMiddleware` + `rateLimit`(2026-09-22 닫힘)
+> - 수용 기준은 Changelog 상 FR-1~18 · 20 · 32 · 40~64 가 닫혔다. 남은 것: FR-31(계약 테스트) · 54 · 19 부분 → 그래서 in-progress 유지
+
+
 ## Summary
 
 **기존 경로를 유지하고 필드를 추가**한다. F004는 새 엔드포인트가 적고, 대신 **렌더 게이트 필드**(`renderable`·`blockedReason`)와 **3종 세트**(`signalTrackRecord`·`failureCases`)를 응답에 추가하는 것이 핵심이다.
@@ -308,3 +313,4 @@ type ExplainResult =
 | 2026-10-26 | F011 7f — `GET /api/coach/review/monthly/kr-stock` 신설(소유자 404) · 복기 응답 `assetType` · `brier.recentMisses[].name` 추가. 코인 경로 무변경 |
 | 2026-10-29 | F009 FR-26 — `GET /api/coach/risk-budget` Swagger 설명에 `contributions[]` · `tail` 두 줄. 경로 · 인증 · 상태 코드 무변경. 근거 `SRV-REQ-038` FR-17 |
 | 2026-10-29 | F009 슬라이스 9 후속 — `/api/coach/risk-budget` Swagger summary "게이지 3종" → "게이지 · 측정"(FR-23~26). `failOnErrors` 생성 통과 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

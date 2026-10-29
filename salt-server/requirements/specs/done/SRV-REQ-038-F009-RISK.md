@@ -9,6 +9,10 @@ created: 2026-09-24
 source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - Summary "예산 게이지 3개"는 슬라이스 1 당시 — 지금 게이지 5(+ `btcBeta` · `portfolioVolatility`) + 측정 2(FR-17)
+
+
 ## Summary
 
 FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 서버 Decimal 로 계산하고, 계획을 저장하고, 예산 게이지 3개를 준다.
@@ -83,3 +87,4 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 | 2026-09-27 | 슬라이스 4 FR-9(9a~9f) — 판정 배치 · 결정 결과 · 자동 태그 · 미러 · 태그 확정. 새 경로 3(`GET /mirror` · `GET /outcomes` · `PUT /outcomes/:id/tags`) + `PATCH /plans/:id` 에 `userAdherenceLabel`. 마이그레이션 없음(슬라이스 1 스키마). 근거 `reports/checklists/SRV-REQ-038.md` §슬라이스 4 |
 | 2026-10-08 | F011 슬라이스 4 — 리스크 스냅샷 · 사이즈 · 계획 연결에 국내 주식(보유 · 거래 코인 + 국내 주식, 미국 주식 제외 · 국내 주식 수수료 env 절반씩). 응답 모양 무변경. 근거 `SRV-REQ-040` FR-38 |
 | 2026-10-29 | 슬라이스 9 FR-17(FEATURE-009 FR-26) — risk-budget `portfolioVolatility.contributions` · `tail` **추가만**. 계산은 `policy/portfolioVolatility`(FR-46 행렬 재사용), 국내 이름 · 로고는 `MarketProbe.assetLabels`(실패해도 게이지 나감). DDL 없음. 근거 `reports/checklists/SRV-REQ-038.md` §슬라이스 9 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

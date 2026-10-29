@@ -6,6 +6,10 @@ labels: [기능 정의, API 연동, 계약 정의]
 created: 2026-05-25
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - **`SRV-REQ-025` 로 대체** — explain 은 인증 + rate limit, 구현 위치는 `src/coach/**`(`modules/investment-insight/ai-coach` 없음). 아래는 2026-05 당시 기록
+
+
 ## Summary
 
 서버는 AI Coach 후보를 점수화하고 preview/detail/profile/feedback/explain API를 제공한다.
@@ -36,3 +40,4 @@ created: 2026-05-25
 ## Notes
 
 - 구현 위치: `salt-server/src/modules/investment-insight/ai-coach/**`, `salt-server/src/modules/investment-insight/ai-investment-coach.service.ts`
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

@@ -348,3 +348,7 @@
 - `portfolioVolatility.test.ts` 기존 5 그대로 통과 + 새 3(`SRV-REQ-038` 체크리스트 §슬라이스 9) · 실 응답 `upper` · `realized` · `returns` 변화 없음(새 필드만 늘었다)
 - 미검증: 국내 + 코인 실보유 계정 — `SRV-REQ-038` 미검증 표와 같은 행
 - 2026-10-29: 위 미검증 행 닫힘 — 혼합 실보유 KRX 축 · 덮은 몫 · 종목별 변동성 서버 함수와 파이썬 6자리 일치(`SRV-REQ-038` 체크리스트 §슬라이스 9)
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: "BFF 짝 `BFF-REQ-040` — 아직 소비처 없음"은 지난 일 — `bff/src/services/app-kr-stock.service.ts` · `we / FR-3 허용 TR 5개 이후 FR-49~53 이 `FHPUP02100000` · `FHKST01010900` · `FHKST01010200` · `FHPST02

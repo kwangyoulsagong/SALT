@@ -9,6 +9,11 @@ labels: [db, migration, backfill, json-to-column, seed]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - M6 · M7 · M9 실행됨(`20260923042043_add_coach_generation_log` · `20260923041818_add_coach_profile_mode_level` · `20260921084152_add_gauge_track_record`) · M8 은 별도 표로 대체
+> - 실패사례 출처 · FR-12 의 N+1 `signal-performance.service.ts` 는 지난 일 — 스냅샷 원장 · `collectPerformanceSamples` 삭제(`SRV-REQ-024` FR-176)
+
+
 ## Summary
 
 F004의 마이그레이션 위험은 **`payload` JSON에서 컬럼으로 값을 백필하는 것**이다. JSON 구조가 문서화되어 있지 않아 **실제 데이터를 보고 백필 SQL을 써야 한다.**
@@ -138,3 +143,4 @@ payload.mode
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. M8(`mode` 컬럼) · M9(`GaugeTrackRecord`) 추가. 신규 FR-40~46(백필 없음 · 첫 집계는 워커 · `confidence`/`smart_buy_zone` drop 금지 · 매핑 시드를 종목 경로 8종까지 확장(B18)) |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. FR-45 개정 — 종목 판단 8행은 `IndicatorTrackRecord` 와 잇지 않는다(D11). Open Question 닫음 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

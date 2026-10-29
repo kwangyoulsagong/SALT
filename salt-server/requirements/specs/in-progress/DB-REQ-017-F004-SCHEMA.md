@@ -10,6 +10,11 @@ created: 2026-09-09
 source: pm/requirements/specs/in-progress/FEATURE-004-ai-coach-screen.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - "Prisma 에 컬럼이 없다 · `unsupportedPersistedFields`"는 지난 일 — `default_mode` · `notification_level` 열이 있다(FR-20~22 완료 2026-09-23, `ManageCoachProfile.ts`)
+> - "지금 문제" 절의 `signal-performance.service.ts` 는 없다 — `coach/application/GetSignalPerformance.ts`, 저장 추천 성적은 원장 `coach_recommendation_snapshots`(`SRV-REQ-024` FR-176). 절은 2026-09-09 당시 기록
+
+
 ## Summary
 
 F004는 **서버에 이미 있는 엔진을 화면으로 만드는 것**이므로 신규 모델이 적다. 핵심 스키마 변경은 **`InvestmentInsight.payload` JSON을 조건으로 뒤지는 현재 패턴을 컬럼으로 승격**하는 것과 **`CoachFeedback` 신설**이다.
@@ -257,3 +262,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-09-29 | **FR-64 신설 · 구현.** `20260929100200_judgment_rule_version`. 로컬 기존 267행(live 27 · synthetic 240) → `@1`, v2 live 6행이 v1 관찰 기간을 기다리지 않고 바로 쓰였다 |
 | 2026-10-07 | **FR-65 신설 · 구현 (F010 슬라이스 7).** `20261007015852_llm_call_logs`(추가만, `bc2fbf0`). 로컬 적용. Prisma 가 함께 생성한 RenameIndex 2건(이전 마이그레이션 드리프트 — `coach_recommendation_snapshots` 인덱스 이름 63자 잘림)은 목적 하나 원칙으로 뺐다 — 드리프트는 남아 다음 `migrate dev` 가 또 만든다. 근거 `reports/checklists/DB-REQ-017.md` |
 | 2026-10-26 | F011 슬라이스 7b — `symbol_judgment_snapshots` 에 `sample_origin='backtest'` 첫 쓰기(국내 51,305행, `scripts/backtest-kr-judgments.ts`, 사전등록 `kr-judgment-backtest@1`). DDL 없음 — FR-60 출처 값 그대로. 워커 경로(`lastJudgedAt` · `listPending`)는 `live` 만이라 영향 없음 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

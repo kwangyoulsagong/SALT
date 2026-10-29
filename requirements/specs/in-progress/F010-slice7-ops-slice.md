@@ -22,7 +22,7 @@ created: 2026-10-07
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-024-F004-FUNC.md` FR-194~196(신규) | 신선도 게이트 |
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-025-F004-API.md` FR-62~64(신규) | 해설 비용 상한 · 시도 기록 · 재시도 버그 |
 | DB | `salt-server/requirements/specs/in-progress/DB-REQ-017-F004-SCHEMA.md` FR-65(신규) | `public.llm_call_logs` |
-| DB | `salt-server/requirements/specs/in-progress/DB-REQ-029-F008-SCHEMA.md` FR-24(신규) | `forecast.ops_check` |
+| DB | `salt-server/requirements/specs/done/DB-REQ-029-F008-SCHEMA.md` FR-24(신규) | `forecast.ops_check` |
 | 예측 | `salt-forecast/requirements/specs/done/FC-REQ-018-F010-OPS-MONITOR.md`(신규) | 운영 점검 · rule_ic 주기 |
 | BFF | `bff/requirements/specs/done/BFF-REQ-039-F010-JUDGMENT-SCREEN.md` FR-7 · `BFF-REQ-041-F010-TARGET-WEIGHT.md` FR-7 | `stale_inputs` 옮기기 |
 | 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-040-F010-JUDGMENT-SCREEN.md` FR-15 · `FE-REQ-042-F010-TARGET-WEIGHT.md` FR-14 | 막힘 문구 · `@repo/core` 유니온 |

@@ -24,7 +24,7 @@ created: 2026-10-09
 |---|---|---|
 | 예측 | `salt-forecast/requirements/specs/done/FC-REQ-009-F011-KR-STOCK.md` FR-9 · 실력 감사 절 | 국내 σ |
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-040-F011-KR-STOCK.md` FR-39 | 전망 읽기 |
-| DB | `salt-server/requirements/specs/in-progress/DB-REQ-029-F008-SCHEMA.md` Changelog | `v_daily_close` `kis` |
+| DB | `salt-server/requirements/specs/done/DB-REQ-029-F008-SCHEMA.md` Changelog | `v_daily_close` `kis` |
 | 다음 | `salt-forecast/requirements/specs/to-do/FC-REQ-020-F011-KR-FORECAST-ACCURACY.md` · `SRV-REQ-040` FR-40~47 | 정확도 · 나머지 기능 |
 
 ## 커밋

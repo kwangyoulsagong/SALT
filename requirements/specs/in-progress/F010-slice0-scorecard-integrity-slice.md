@@ -16,7 +16,7 @@ created: 2026-09-28
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
 | 예측(Python) | `salt-forecast/requirements/specs/done/FC-REQ-001-F008-BASELINE-FORECAST.md` FR-11 | 라이브 게이트 표본을 주 격자(월요일) as_of 로만 |
-| DB | `salt-server/requirements/specs/in-progress/DB-REQ-029-F008-SCHEMA.md` FR-18 · `DB-REQ-017-F004-SCHEMA.md` FR-61 | `v_forecast_card` 빗나간 사례 kind 필터 · `coach_recommendation_snapshots` |
+| DB | `salt-server/requirements/specs/done/DB-REQ-029-F008-SCHEMA.md` FR-18 · `DB-REQ-017-F004-SCHEMA.md` FR-61 | `v_forecast_card` 빗나간 사례 kind 필터 · `coach_recommendation_snapshots` |
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-024-F004-FUNC.md` FR-173~176 · `SRV-REQ-025-F004-API.md` FR-59 | 지표 주기 · 종가 주기 · 수수료 · 기저율 · 추천 원장 · 게이트 |
 | BFF | `bff/requirements/specs/in-progress/BFF-REQ-024-F004-API.md` FR-40 | 계약 통과(사유 · 필드) |
 | 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-026-F004-UI.md` FR-165 | "기준 대비 +N%p" · 실패사례 종목 · 수익률 |

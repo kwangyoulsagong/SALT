@@ -3,6 +3,7 @@
 - REQ: `requirements/specs/in-progress/SRV-REQ-008-F000-FUNC.md`
 - 브랜치: `feat/f000-watchlist-tab` → `feat/f000-invite-onboarding-slice` · 검증일: 2026-09-18
 - 상태: **부분 완료** — 관심 목록·뉴스·차트·포지션 요약에 이어 **초대 코드·인증 축소·온보딩 상태**가 닫혔다. 알림 2종·동면·`AssetType`·환율이 남았다
+> **2026-10-29 전수 조사:** 위 상태 줄은 작성 당시 — 알림 · 동면은 2026-10-27 · 28 닫힘. 본문 표가 진실
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-watchlist-tab.md`
 
 ## 1. 닫힌 것
@@ -128,3 +129,7 @@
 |---|---|---|
 | ~~코치 워커가 실제 판단 변화로 알림을 만드는 회차~~ | **닫힘 2026-10-28** — 상시 서버 코치 워커 실제 회차(10:50): 테스트 계정 직전 판단을 `wait` → `hold` 로 바꿔 두자 다음 회차가 `signal_update` · `ai_coach` · `coach.decision_changed` · 인자 `{ mode, symbol, previousAction, nextAction }` · 문장 NULL · 24시간 만료 1건을 만들었다. 다시 `hold` 로 바꾼 11:00 회차는 **2시간 억제로 0건 추가**. 판단은 회차가 원래 값(`wait`)으로 덮었고 시험 알림은 지웠다 | — |
 | 옛 행 정리(삭제 · 변환) | 로컬 0건 · 운영 DB 없음. FR-21 이 지우지 말라 한다 | 필요 없음 — 만료(`expiresAt`)가 지운다 |
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: FR-70~72(동면 · 되살리기)는 2026-10-27 `SRV-REQ-007` 에서 구현 — `DORMANT_PATHS` 410 · `/api/missions / 초대 · 인증 · 온보딩 · watchlist · 뉴스 · period 수용 기준은 2026-09-18 Changelog 두 행이 닫았다(`auth/applica / FR-32 `AssetType` 3값: `kr_stock` 은 F011 이 닫음(2026-10-07) · `us_stock` 은 미국 주식 착수 때

@@ -9,6 +9,12 @@ labels: [ddd, infrastructure, worker, kis, dormant]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-1 · 20~24 · 31 · 40~42 는 대부분 구현됨 — 컨텍스트 `src/{auth,market,news,notification,portfolio}` · 동면 410 `shared/presentation/goneMiddleware.ts`(`SRV-REQ-007` 체크리스트) · 스케줄러 `shared/infrastructure/scheduler.ts` · 추적 `.js` 0건. FR-30 은 미완 → to-do → **in-progress**
+> - 온보딩은 `auth` 안이 아니라 조합 컨텍스트 `src/onboarding`, `plan` 컨텍스트는 없다(판정은 거래 수 · goal 행)
+> - KIS 절은 Q2 닫힘 뒤 `SRV-REQ-040`(F011) 이 대체 — `KisClient.ts` · `KisRealtimeClient.ts`
+
+
 ## Summary
 
 F000의 데이터 계층 작업은 **① 기존 모듈을 컨텍스트로 옮기고 ② 동면 모듈을 그대로 두고 ③ KIS 조회 전용 클라이언트 자리를 잡는 것**이다.
@@ -144,3 +150,4 @@ FEATURE-000 FR-35: *"`external/kis/` 조회 전용 클라이언트 스켈레톤.
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: FR-7(`HoldingProbeAdapter` — 추적 판정 · 수량 목표가 보유를 ACL 로 읽는다, D8 · B5). 개정: FR-3 · 4 `ledger` ACL → `portfolio`(B12) · KIS 절 전체 **보류(Q2)**, `ledger/KisClient` 만들지 않음 · 알림 2종 → 1종 · `price-history.worker` 유지 근거 F001 → F004 · 삭제된 SRV-REQ-012 후속 제거. 정리 항목(레거시 모델 · 중복 worker · 동면 410 · `AssetType`)은 **본문 그대로** — FEATURE-000 이 이 REQ 를 가리킨다. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

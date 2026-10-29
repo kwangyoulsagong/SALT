@@ -10,6 +10,10 @@ created: 2026-09-09
 source: FEATURE-000, ~~FEATURE-001 4절(계산 정의)~~(ADR-002 로 삭제), 글로벌 플랜 11절
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - `signal-performance.service` 는 없다 — `GetSignalPerformance.ts` 가 `coach_recommendation_snapshots` 를 읽는다. `kind` 승격 주인은 `DB-REQ-013` 이 아니라 `DB-REQ-017`
+
+
 ## Summary
 
 DB-REQ-004 이후 모든 신규 모델이 따르는 **데이터 정책**을 정의한다. 금액 타입, 반올림 시점, 멱등 키, 시각 저장, JSON 사용 한계, 인덱스 근거, 보존 규칙. ~~이 문서를 어기면 청구서 항등식(잔차 ≤ 100원)과 세금 계산이 성립하지 않는다.~~ **개정 2026-09-21** — 청구서 · 세금은 ADR-002 로 빠졌다. 이 정책을 어기면 적립 배수 · 코치 금액 · 수량 목표 진행률이 조용히 틀린다.
@@ -129,3 +133,4 @@ DB-REQ-004 이후 모든 신규 모델이 따르는 **데이터 정책**을 정�
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | **ADR-002 반영.** 폐기 표시(번호 유지): FR-6(`TaxLawConfig` 반올림 설정) · FR-21(세금 기준일 예외) · FR-52(`YearEndPriceSnapshot`). 개정: FR-4(DB-REQ-006 삭제 — 계산 경로 승격만) · FR-10 · 13(CSV · 거래소 sync · 환율 수집 제거) · FR-54(키를 암호화 저장 → **저장하지 않는다**). 수용 기준 · Trace · 적용 대상에서 F001 · F002 모델 제거, `Goal.targetQuantity`(FR-2) 추가. 근거: `requirements/decisions/ADR-002-drop-ledger-invoice-tax.md` · `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

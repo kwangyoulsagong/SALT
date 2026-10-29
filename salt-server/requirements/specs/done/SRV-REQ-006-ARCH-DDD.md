@@ -8,6 +8,11 @@ labels: [architecture, ddd, refactoring, layer-check, migration]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-3 조합 컨텍스트: `onboarding` 만 있고 `homebriefing` 은 없다 — F006 `SRV-REQ-029` 로 넘김
+> - FR-33 남은 이관(살아 있는 `modules/goals` · `investment-insight` · `user`, `app.ts` 마운트)은 `SRV-REQ-007` 에 이관 FR 이 없어 주인이 없었다 → `SRV-REQ-007` **FR-15** 로 명시(2026-10-29). 수용 기준 "최상위에 컨텍스트와 shared 만"은 그때까지 미충족
+
+
 > **정정 기록 (2026-09-11, 1단계 구현 후).** FR-12 · FR-31 · FR-32 · NFR 동작 동일성 네 항목을
 > 정정했다. 근거는 `requirements/reports/retrospects/SRV-REQ-006.md` §6.
 > 각 정정은 해당 섹션 아래 인용 블록에 있다.
@@ -245,3 +250,4 @@ F001은 `behavior-coach`의 편향 판정을 **거래 단위 라벨러로 재사
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-28 | `UpbitClient` 캔들 두 읽기가 Upbit 404 를 `UnknownMarketSymbolError` 로(`f74c34f`) — 수집 워커는 모든 예외를 잡아 `warn` 이라 동작 같음 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

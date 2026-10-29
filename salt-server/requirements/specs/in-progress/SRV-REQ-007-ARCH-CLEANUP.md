@@ -9,6 +9,14 @@ created: 2026-09-09
 source: pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md (A절 FR-1~5, B절 FR-10~14)
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-2 대상 `src/workers/market-price-updater.worker.ts` 는 이미 없다 — 같은 일이 `workers/market.worker.ts` 의 `market-price-update` 잡으로 매분 돈다(BFF `price-updater.worker.ts` 와 이중 갱신은 그대로). 지금 수용 기준(파일 부재)으로는 **거짓 통과** — 기준을 잡 제거로 고친다(미완)
+> - FR-3 추적 빌드 산출물 24개 → **닫힘**: `git ls-files 'salt-server/src/**/*.js'` 0건 · `.gitignore` `dist`
+> - 유지 목록의 `modules/market-intelligence` · `investment` · `news` · `portfolio` · `technical-indicator`, 워커 `market-sync` · `price-history` · `technical-indicator` 는 지금 `market` · `news` · `portfolio` 컨텍스트와 `market.worker.ts` 하나로 바뀌었다
+> - 수용 기준 "`InvestmentNotification.type` 생성 값 2종" → **1종(`signal_update`)**, FR-11 2026-10-28 닫힘
+> - **FR-15 추가(아래 표)** — `SRV-REQ-006` FR-33 이 넘긴 남은 이관(살아 있는 `modules/goals` · `investment-insight` · `user`)의 주인이 없었다
+
+
 ## Summary
 
 **화면 밖 죽은 코드만 삭제한다.** 화면이 없는 백엔드는 **지우지 않고 동면**시킨다 — route만 끄고 코드와 모델은 남긴다. 되살리는 비용이 커밋 하나여야 한다.
@@ -63,6 +71,7 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 | FR-12 | 인사이트 랭킹·피드 | `insight-ranking.controller` route 해제 · `app.use("/api/feed")` 해제 · BFF `app-feed.service` route 제거 | 코드·모델 전부 | Should |
 | FR-13 | 대시보드 | `app.use("/api/dashboard")` 해제. 홈 aggregation은 BFF `homeBlocks`가 담당한다 | `modules/dashboard/**` 코드 | Should |
 | FR-14 | 동면 route 응답 | 404가 아니라 **410 Gone + 1회 로그**로 **1주 유지**해 프론트 잔여 호출을 탐지한다 | — | Should |
+| FR-15 | 남은 모듈 이관(2026-10-29 추가) | `SRV-REQ-006` FR-33 이 넘긴 것 — 살아 있는 `modules/goals` · `modules/investment-insight` · `modules/user`(`app.ts` 마운트)를 컨텍스트로 옮기거나 동면. 동면 대상 `dashboard` · `feed` · `mission` 은 FR-10~13 | — | Should |
 
 ### 동면이 삭제가 아니라는 것을 무엇으로 증명하는가
 
@@ -146,3 +155,4 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 |---|---|
 | 2026-10-27 | **동면 FR-10 · 12 · 13 · 14 구현**, `to-do` → `in-progress`(`chore/adr-002-remnants` `d344a50`, 루트 `F000-dormant-410`). 410 핸들러는 `SRV-REQ-009` FR-7 · 8 과 같은 것이다. FR-10 의 points · achievements 는 라우트 줄을 지우지 않고 **라우터 앞에서 410 으로 가린다**(목록 한 곳에서 되살린다). FR-12 는 `insight-ranking.controller` 의 `/top` 만 — 같은 라우터의 `/insights` 등은 유지. 되살리기 1회(`/api/missions` 200). **남은 것**: 삭제 FR-1 · 2 · 5 · FR-11 알림 · 1주 로그(2026-11-03). 근거: `requirements/reports/checklists/SRV-REQ-007.md` |
 | 2026-10-28 | **FR-11 닫힘**(루트 `F000-notification-kind-gate`, `3320883`). `modules/investment-notification` → `notification` 컨텍스트(FR-33 이관 하나). 생성 worker 중단은 이미 0건이었다. 동면 `feed.service` 는 `title`/`message` nullable 에 맞춰 타입만(`?? ""`) — 동작 무변경 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

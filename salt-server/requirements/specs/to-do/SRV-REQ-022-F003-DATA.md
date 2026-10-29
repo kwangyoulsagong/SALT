@@ -9,6 +9,11 @@ labels: [ddd, infrastructure, worker, indicator, binance, kimchi]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 김프 선행 조건이 깨졌다 — F006 은 `FxRate` 를 보류했고(`DB-REQ-021` FR-33) `fx` 컨텍스트도 없다. 반면 `forecast.market_signal` 이 `kimchi_premium` · `fx_usdkrw` 를 이미 저장한다 — 재사용 여부는 F003 착수 때 결정
+> - F004 3종 게이트가 `IndicatorTrackRecord` · `signalTypes` GIN 에 의존한다는 전제는 사실 아님 — F004 는 판단 · 추천 스냅샷 원장에서 실패사례를 읽는다(`SRV-REQ-024` FR-105 · 134 · 176, `GetCoachDetail.ts`). "M2 가 F004 보다 먼저" 순서 근거도 사라짐 — `indicator` 컨텍스트 근거는 F003 착수 때 다시 쓴다
+
+
 ## Summary
 
 `plan`·`indicator` 컨텍스트 구조와 **외부 지표 소스 연동**. 소스가 미확정이라 **어댑터를 교체 가능하게** 만드는 것이 이 REQ의 설계 요점이다.
@@ -178,3 +183,4 @@ ADR-002(원장 · 청구서 · 세금 제거) · 기본안 — 감사 문서 B20
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 원장 매칭 절(FR-50~53) 삭제·개정, FR-3·FR-30 개정(ADR-002 · B20). `BandPreset` 읽기 전용 FR-60·61 추가(D9). 월 합계 Projection 추가 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

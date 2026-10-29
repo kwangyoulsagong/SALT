@@ -10,6 +10,12 @@ created: 2026-09-09
 source: pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md (FR-1, FR-34, FR-41, FR-44), FEATURE-005 (InviteCode), pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-20~23 `InviteCode` 는 **구현됨**(`20260918071852_add_invite_code`) — 모양이 다르다: `issuedBy` 대신 `note`, `usedByUserId @unique` 라 역참조는 `User.inviteCode?` 단수 → to-do → **in-progress**
+> - Q2 는 2026-10-07 닫힘(`DB-REQ-033`) — enum 은 `crypto · stock · kr_stock`, `stock` 은 미국 주식 의미로 남는다. FR-10 의 `us_stock` 추가 · `stock` 제거는 미국 주식 착수 때
+> - 서버 정리 선행은 `SRV-REQ-006` 이 아니라 `SRV-REQ-007`("M4 전 배포")
+
+
 ## Summary
 
 신규 기능 4개가 올라갈 바닥을 고른다. 참조 0건인 모델 2개·enum 2개를 스키마에서 뺀다. `AssetType`을 3자산군으로 확장한다. 초대제 계정 생성을 위한 `InviteCode`를 신설한다. 화면이 없는 백엔드의 모델은 **보존한다.**
@@ -175,3 +181,4 @@ model Goal {
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 추가: FR-40~43(목표 수량 — `targetQuantity` · `symbol` · `targetAmount` nullable + CHECK, 기본안 B5) · FR-50~53(추적 자산은 새 모델 없이 관심 ∪ 보유, `isTracked` 컬럼 없음, 뉴스 스키마 변경 없음 — D8 · D5). 개정: FR-10 과 Background 의 `AssetType` 근거 → **열린 질문 Q2**(ADR-002 로 세금 근거 소멸). 선행 목록에서 삭제된 DB-REQ-007 · 010 제거. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

@@ -10,6 +10,10 @@ created: 2026-09-09
 source: pm/requirements/specs/in-progress/FEATURE-006-coach-conversation-ia.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - Q2 는 닫혔다 — `kr_stock` 은 원화, 비원화는 미국 주식 착수 때. 환율 모델 결정 시점을 "미국 주식 착수 시"로
+
+
 > **2026-09-21 개정.** `ADR-002`로 F001 · F002가 빠졌다 — 홈 **3블록**(세금 D-Day · 청구서 소스 `TaxLawConfig` · `SettlementCalendar` · `CounterfactualSnapshot` 삭제), 알림 **1종**, `FxRate`의 출처였던 `DB-REQ-005` 삭제. 포지션 세그먼트 · 알림 설정 · 온보딩 2단계용 컬럼 2개를 추가했다(§포지션 · 알림 설정 · 온보딩). 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14.
 
 ## Summary
@@ -202,3 +206,4 @@ model User {
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. 개정: 홈 5블록 → 3블록(D6), FR-32(`FxRate` 전제 제거) · FR-33 보류 · FR-41 · 알림 1종(D5). 추가: FR-42~43(알림 타입 · 중복), FR-50~58(포지션 신규 모델 없음 B13 · 거래일 수정 B14 · `User.alertsEnabled` D9 · `User.firstHoldingSkippedAt` B12 · 레이더 설정값 · F004 컬럼 소유). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

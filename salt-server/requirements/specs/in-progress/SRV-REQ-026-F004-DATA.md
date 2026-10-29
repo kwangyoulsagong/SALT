@@ -9,6 +9,11 @@ labels: [ddd, infrastructure, worker, llm, gemini, projection]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 5개 경로가 `coach` 컨텍스트에 있다 · 게이지 워커(`investment-insight.worker.ts`) · 판단 스냅샷(`RecordSymbolJudgments.ts`, 10분) · 생성 로그 — `SRV-REQ-024` · `025` · F004 슬라이스가 구현 → to-do → **in-progress**
+> - 실패사례 출처 `IndicatorTrackAdapter` · FR-30~36 의 N+1 · `payload` fallback 은 지난 일(스냅샷 원장)
+
+
 ## Summary
 
 `coach` 컨텍스트의 구조. **기존 5개 모듈을 통합**하고, LLM 클라이언트를 격리하고, 성적표 N+1을 Projection으로 제거한다.
@@ -201,3 +206,4 @@ src/coach/
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 신규 FR-70~80(관찰 구간 · 게이지 적중률 도메인 정책, 해설 입력 `confidence` 삭제(D3) · `validity` 주입 · 미렌더 시 LLM 미호출 · 뉴스 5줄(B3), 종목 판단 스냅샷 워커 · 게이지 집계 워커(B9 · B18), 관심 종목 분리(D4)). ACL 2개 추가. 개정: FR-3(`ledger` 없음) · FR-4(`BiasLabelQuery` 무효) · `TransactionAdapter` 가 `portfolio` 를 감싼다 — ADR-002 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

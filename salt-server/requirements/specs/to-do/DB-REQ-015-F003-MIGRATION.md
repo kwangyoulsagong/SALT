@@ -9,6 +9,10 @@ labels: [db, migration, seed, track-record, gin-index]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - F004 3종 게이트가 `IndicatorTrackRecord` · `signalTypes` GIN 에 의존한다는 전제는 사실 아님 — F004 는 판단 · 추천 스냅샷 원장에서 실패사례를 읽는다(`SRV-REQ-024` FR-105 · 134 · 176, `GetCoachDetail.ts`). "M2 가 F004 보다 먼저" 순서 근거도 사라짐 — `indicator` 컨텍스트 근거는 F003 착수 때 다시 쓴다
+
+
 ## Summary
 
 신규 테이블 4개라 마이그레이션 위험이 낮다. **위험은 `IndicatorTrackRecord` 시드**에 있다 — 그 데이터가 없으면 **F003의 배수 카드도 F004의 추천 카드도 렌더되지 않는다.**
@@ -121,3 +125,4 @@ created: 2026-09-09
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. M5(`BandPreset`) 추가, FR-1·FR-20·FR-21 개정(D9 · B12), FR-25 추가. M4에서 `matchedTransactionId` 제거(ADR-002) |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

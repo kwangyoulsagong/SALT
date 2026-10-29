@@ -9,6 +9,12 @@ labels: [ddd, domain, coach, render-gate, llm, signal-performance]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-140~142(해설 3종 동봉 · `newsSummary` · 미렌더면 LLM 미호출) · FR-150~153(preflight `stopLossRate` · `maxLossOfTotalRate` · 목표가 선택)은 **2026-09-22 슬라이스 10 으로 구현**(`ExplainCoachDecision.ts` · `domain/policy/preflight.ts`) — 기록이 `SRV-REQ-025` 에만 있었다
+> - FR-107 스냅샷은 `InvestmentInsight(kind: symbol_judgment)` upsert 가 아니라 별도 표 `SymbolJudgmentSnapshot`(`symbol_judgment_snapshots`) — 매핑 표의 성적 표본도 그 표
+> - FR-22 "`kr_stock` 은 추천 대상에서 제외"는 **저장 추천만** 해당 — 국내 종목 판단은 F011 슬라이스 4 로 열렸다(`SRV-REQ-040` FR-60~66, `coachDetail.ts`). `resolveZones.ts` 의 "enum 이 crypto · stock 둘뿐" 주석은 낡은 전제
+
+
 ## Summary
 
 **서버에는 이미 엔진이 다 있다.** `ai-coach`(점수 엔진 468줄 + Gemini explainer) · `signal-performance` · `profit-plan` · `trade-preflight` · `behavior-coach`. F004의 도메인 작업은 **그것들을 `coach` 컨텍스트로 통합하고, 3종 세트 렌더 게이트를 도메인 정책으로 만들고, 추천 범위 제한을 코드로 강제하는 것**이다.
@@ -380,3 +386,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-10-26 | F011 슬라이스 7d — 조립(`createCoachApplication`)에 `getKrBehaviorMirror`(portfolio · forecasts · market · tradePlans · decisionOutcomes · 소유자 목록). 기존 유스케이스 생성자 무변경 |
 | 2026-10-26 | F011 7d 실데이터 수정 — `ListDecisionOutcomes` 에 `market` 주입(국내 종목 이름 · 로고) |
 | 2026-10-26 | F011 7f — `BuildMonthlyReview` 에 `market`(시세 자산군) · `GetMonthlyReview` 에 `forecastOwnerEmails` · `market`(`assetLabels`) 조립 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

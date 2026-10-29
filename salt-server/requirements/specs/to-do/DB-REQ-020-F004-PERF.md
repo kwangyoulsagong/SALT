@@ -9,6 +9,10 @@ labels: [db, performance, index, json-to-column, projection]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - "지금 문제"의 200쿼리 N+1(`signal-performance.service.ts`) · `payload` fallback 체인은 **삭제됨**(`SRV-REQ-024` FR-176) — 성적표는 스냅샷 store 에서 읽는다. 이 REQ 의 동기는 해소, 남은 FR 은 착수 때 재검토
+
+
 ## Summary
 
 F004의 성능 개선은 **`payload` JSON 조건 쿼리를 컬럼으로 승격하는 것**에서 나온다. 현재 `signal-performance`가 100건을 읽어와 루프로 버리고, 그 안에서 **거래마다 `PriceHistory`를 두 번 조회한다** — N+1이다.
@@ -187,3 +191,4 @@ for (const insight of insights) {
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 예산에 종목 판단 패널 · 관찰 구간 · 게이지 적중률 추가. 신규 FR-70~76(두 모드 1회 조립 · DB 백분위수 · 게이지 적중률 사전 집계(B9) · 스냅샷 쓰기 단위) |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

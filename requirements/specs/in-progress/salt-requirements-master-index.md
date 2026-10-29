@@ -442,7 +442,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 
 | REQ | 상태 | 비고 |
 |---|---|---|
-| `DB-REQ-029` F008 SCHEMA | **in-progress** | `forecast` 스키마 — SQL 전용 마이그레이션 7건(차트 일봉 뷰 · 주요 사건 3테이블 + 뷰, 2026-09-24 · 쏠림 신호 2테이블 + 뷰 2, 2026-09-27). `checklists/DB-REQ-029.md` |
+| `DB-REQ-029` F008 SCHEMA | **done** 2026-10-29(FR-1~25 전부 마이그레이션 · 남은 범위 밖 2 — 전수 조사로 이동) | `forecast` 스키마 — SQL 전용 마이그레이션 7건(차트 일봉 뷰 · 주요 사건 3테이블 + 뷰, 2026-09-24 · 쏠림 신호 2테이블 + 뷰 2, 2026-09-27). `checklists/DB-REQ-029.md` |
 | `FC-REQ-001` 기준 모델 · 채점 | **done** 2026-10-29(FR-1~11 완료 · cron 은 `ops/daily.sh` — 전수 조사로 이동) | 90% 구간 커버리지 90.0~90.7%, 기준 대비 +0.7~1% — 예측력 거의 없음(정상). 방향 적중은 기저율과 같았다 → `direction_base_rate` |
 | `FC-REQ-004` 수집 · 트리거 | **done** | 바이낸스 224종목 · FRED 8 · DefiLlama. launchd 실패(macOS 권한) → 서버 부팅 트리거 |
 | `SRV-REQ-037` F008 전망 API | **done** | `GET /api/coach/forecast` · `/events` · 소유자 404 · 원화 환산 · 3종 게이트 · 해설 말투 · 숫자 검증기 · 템플릿 · **해설 SSE**(템플릿 먼저 → 검증 통과 LLM 교체, 2026-09-24) |

@@ -9,6 +9,10 @@ labels: [db, migration, conversation, fx-kind]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - Q2 닫힘 — 환율 결정 시점은 미국 주식 착수 때
+
+
 > **2026-09-21 개정.** `ADR-002` — M4(`FxRate.kind = 'current'`)는 `FxRate`의 출처(`DB-REQ-005`)가 삭제돼 **보류**. `User` 컬럼 2개(M5)와 알림 `dedupeKey`(M6)를 추가했다. 근거: 스토리보드 갭 감사 D5 · D9 · B12.
 
 ## Summary
@@ -124,3 +128,4 @@ F006 FR-22: 추천 질문 4개("지금 팔아야 하나?" · "이번 주 얼마 
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. M4 · FR-10~15(`FxRate.kind`) 보류. 시드 FR-30 추천 질문 문구 개정. 추가: M5(`User.alertsEnabled` · `firstHoldingSkippedAt`) · M6(알림 `dedupeKey`) · FR-50~54. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

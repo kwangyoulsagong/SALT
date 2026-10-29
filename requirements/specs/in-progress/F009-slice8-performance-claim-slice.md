@@ -25,7 +25,7 @@ created: 2026-10-07
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
 | 서버 | `salt-server/requirements/specs/done/SRV-REQ-039-F009-PERFORMANCE-CLAIM.md`(신규) | `claim` 모양 · 성적 자리 8곳 · `performance_wording` 금지어 |
-| DB | `salt-server/requirements/specs/in-progress/DB-REQ-029-F008-SCHEMA.md` FR-25(신규) | `forecast.gate` · `event_reaction_stats` 열 · 뷰 3 |
+| DB | `salt-server/requirements/specs/done/DB-REQ-029-F008-SCHEMA.md` FR-25(신규) | `forecast.gate` · `event_reaction_stats` 열 · 뷰 3 |
 | 예측 | `salt-forecast/requirements/specs/done/FC-REQ-019-F009-CLAIM-WINDOW.md`(신규) | 판정 창 · 빗나간 수 · 판정 대상 수 |
 | BFF | `bff/requirements/specs/done/BFF-REQ-042-F009-PERFORMANCE-CLAIM.md`(신규) | `toPerformanceClaim` · 뷰모델 7 |
 | 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-045-F009-PERFORMANCE-CLAIM.md`(신규) | `PerformanceClaimLine` · 라벨 정정 |

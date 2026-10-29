@@ -10,6 +10,12 @@ created: 2026-09-09
 source: pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md, pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-70~72(동면 · 되살리기)는 2026-10-27 `SRV-REQ-007` 에서 구현 — `DORMANT_PATHS` 410 · `/api/missions` 되살리기 1회 테스트
+> - 초대 · 인증 · 온보딩 · watchlist · 뉴스 · period 수용 기준은 2026-09-18 Changelog 두 행이 닫았다(`auth/application/AcceptInviteCode.ts` · `onboarding/application/GetOnboardingStatus.ts`) — 체크박스 대신 체크리스트가 진실
+> - FR-32 `AssetType` 3값: `kr_stock` 은 F011 이 닫음(2026-10-07) · `us_stock` 은 미국 주식 착수 때
+
+
 ## Summary
 
 F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이다. 도메인 로직으로 새로 생기는 것은 **초대 코드 검증**과 **알림 타입 제한** 둘뿐이고, 나머지는 기존 로직을 컨텍스트로 옮기는 작업이다.
@@ -231,3 +237,4 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
   해당 보유만 갱신하도록 바꿨다(`findBySymbols`).
 - FR-61·62 의 환율 필드는 **자리만 만들고 `null`** 이다. 보유가 전부 원화 크립토이고
   `fx` 컨텍스트가 없다 — 미국주식이 들어올 때 응답 모양이 바뀌지 않게 지금 뒀다.
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

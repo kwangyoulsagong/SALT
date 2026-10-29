@@ -9,6 +9,11 @@ created: 2026-10-07
 source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - "BFF 짝 `BFF-REQ-040` — 아직 소비처 없음"은 지난 일 — `bff/src/services/app-kr-stock.service.ts` · `websocket/managers/kr-stream.manager.ts` 가 소비한다
+> - FR-3 허용 TR 5개 이후 FR-49~53 이 `FHPUP02100000` · `FHKST01010900` · `FHKST01010200` · `FHPST02300000` 을 더했다 — 현재 목록은 `KisClient` `KIS_QUERY_TR`(코드가 진실)
+
+
 ## Summary
 
 국내 주식을 코인처럼 보려면 서버 DB 에 시세 · 일봉 · 5분봉이 먼저 쌓여야 한다. 슬라이스 0 · 1 은 그 재료를 만든다 —
@@ -145,3 +150,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 - 2026-10-23: FR-39 후속(슬라이스 5d) — 국내 범위 사유 2개를 전망 읽기가 그대로 옮긴다(`SRV-REQ-037` Changelog). 국내 카드가 `FC-REQ-020` 거부권 · 풀링 결과로 꺼진다
 - 2026-10-23: 운영 — 서버 상시 실행 launchd `com.salt.server`(`ops/run-server.sh` · `ops/com.salt.server.plist`). 수집 워커가 서버 안에 있어 서버가 꺼지면 국내 일봉이 멈추고 전망 신선도 게이트가 국내 카드를 끈다(10-09 · 10-20 · 10-23 세 번). watch 없음 · 로그 20MB × 5 회전 · KeepAlive
 - 2026-10-29: F009 FR-26(`SRV-REQ-038` FR-17) — FR-46 `portfolioVolatility` 가 같은 행렬로 `contributions` · `tail` 을 더 낸다. 기존 필드 · 축 · 값 무변경(기존 테스트 5 그대로 통과)
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

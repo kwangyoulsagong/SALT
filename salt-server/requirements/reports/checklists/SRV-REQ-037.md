@@ -79,3 +79,7 @@
 ## F011 5e (2026-10-23)
 
 - 국내 상태 사유 4개를 `KNOWN_RANGE_REASONS` 에 — `forecast.test.ts` 통과 테스트 · 실 DB 000650 4기간 `investment_warning`(`SRV-REQ-040` 체크리스트 §5e)
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: FR-9 history 일봉은 업비트 1d **+ 국내 KIS**(`v_daily_close`, `SRV-REQ-040` FR-39)

@@ -9,6 +9,10 @@ labels: [db, invariant, idempotency, week-boundary, render-gate]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - F004 3종 게이트가 `IndicatorTrackRecord` · `signalTypes` GIN 에 의존한다는 전제는 사실 아님 — F004 는 판단 · 추천 스냅샷 원장에서 실패사례를 읽는다(`SRV-REQ-024` FR-105 · 134 · 176, `GetCoachDetail.ts`). "M2 가 F004 보다 먼저" 순서 근거도 사라짐 — `indicator` 컨텍스트 근거는 F003 착수 때 다시 쓴다
+
+
 ## Summary
 
 F003의 불변식은 **지표 수집 멱등**, **주차 경계**, 그리고 **실패 이력이 없으면 배수 카드를 렌더하지 않는다**는 게이트다.
@@ -163,3 +167,4 @@ FEATURE-003 FR-10: *"실패 이력 노출은 렌더 조건이다. 실패 이력 
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. INV-7·FR-13·FR-14·FR-40·FR-41 개정(ADR-002 · D9 · B20). INV-10·11, FR-44~46(환산 · 첫 저장 · 프리셋 읽기 전용), H절 FR-70~73(이번 달 적립 합계) 추가 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

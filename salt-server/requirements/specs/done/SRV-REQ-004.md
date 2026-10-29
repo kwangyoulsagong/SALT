@@ -6,6 +6,10 @@ labels: [기능 정의, API 연동]
 created: 2026-05-25
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 구현 위치는 `src/modules/profit-plan/**` 가 아니라 `src/coach/application/ListProfitPlans.ts`(DDD 이관)
+
+
 ## Summary
 
 서버는 보유 종목별 손실 제한, 1차 익절, 추세 유지 단계 계획을 생성한다.
@@ -32,3 +36,4 @@ created: 2026-05-25
 ## Notes
 
 - 구현 위치: `salt-server/src/modules/profit-plan/**`
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
