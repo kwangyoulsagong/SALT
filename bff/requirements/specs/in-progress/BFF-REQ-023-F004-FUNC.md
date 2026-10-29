@@ -202,3 +202,4 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | 2026-09-23 | FE 소비 시작(F004 슬라이스 15 — `/coach/report` 화면). BFF 변경 없음. **FE 가 `candidates` 를 읽지 않는다** — 3종 세트 없는 추천이고 막힌 추천의 종목이 후보 1위로 남는다. 게이트 붙은 후보 계약 또는 필드 제거를 PM 과 정한다(`FEATURE-004` 변경 이력). 참고: 서버 후보에는 `reasons` 가 없는데 뷰모델 타입은 `reasons: string[]` 이다 |
 | 2026-10-26 | F011 슬라이스 7d — `coach.routes` 에 `GET /mirror/kr-stock`(`BFF-REQ-040` FR-24) · `GET /outcomes` 가 `assetType` 쿼리를 통과(crypto · kr_stock, 다른 값 400). 기존 경로 무변경 |
 | 2026-10-26 | F011 7f — 라우트 `GET /api/app/coach/review/monthly/kr-stock` 한 줄(컨트롤러 `krMonthlyReview`) |
+| 2026-10-29 | **변경 없음.** 프론트 `entities/coach/api/endpoints.ts` 의 다른 줄(리스크 예산 경로 주석 "게이지 3" → "게이지 · 측정")만 바뀌었다 — 이 REQ 를 가리키는 경로 상수 · 주석 무변경(F009 슬라이스 9) |

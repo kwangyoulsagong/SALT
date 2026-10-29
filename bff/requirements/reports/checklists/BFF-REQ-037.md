@@ -25,3 +25,7 @@
 ## F011 5e (2026-10-23)
 
 - 변경 없음 — 사유 문자열 통과(`forecast.viewmodel.ts:132`). 실 BFF 4101 → 브랜치 서버 4100 경유 000650 `investment_warning` ×4 · `npm run build` · `npm test` 251/251
+
+## F009 슬라이스 9 (2026-10-29)
+
+- **변경 없음.** 프론트 `entities/coach/api/endpoints.ts` 의 다른 줄(리스크 예산 경로 주석 "게이지 3" → "게이지 · 측정")만 바뀌었다 — 이 REQ 를 가리키는 경로 상수 · 주석 무변경(F009 슬라이스 9)
