@@ -50,6 +50,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | FR-24 | **진입 전 체크**(`features/record-transaction` `EntryChecklist`) — "계획(선택)" 안에 또 접힘, 매수 · 서버가 질문을 줄 때만. 질문 체크(네이티브 체크박스 · 무채색) + 프리모템 한 줄 → 계획 `invalidation`. 펼쳤을 때 보인 질문 · 체크를 계획 `checklist` 로. 막지 않는다 · 기록만. 미러에 "오를 확률" 채점 줄(확률을 적은 계획이 없으면 줄 없음) | FR-30 · FR-13 | 완료(슬라이스 6) |
 | FR-25 | 미러 **"연승 · 연패"** 줄(`entities/coach` `MirrorLines` · `mirrorMessages.ts` `streak`) — 태그 손익 · 엣지와 회전율 사이. 지금 이어지는 연승/연패(없으면 "없어요") · 가장 길었던 연승 · 연패. "N연승 뒤 매수 금액이 평소의 X배였어요"는 **서버 `observed` 일 때만**, 그때 "매수 금액으로 비교했어요 · 자본이 늘어난 몫은 가르지 않았어요" 한 줄을 같이. 표본 배지 기준은 서버 `minSample`(프론트 상수 없음). 청산이 없으면 줄이 없다. 지시 문구 없음 | FR-20 | 완료(슬라이스 7) |
 | FR-26 | 미러 **"진입 시간대 · 요일"** 줄 — 새벽(0~6시) · 오전 · 오후 · 저녁 4구간과 월~일, 칸마다 "N건 · 이익 X% · 평균 ±Y% · ±Z원", 0건 칸은 빼고 줄마다 표본 부족 배지(태그 손익과 같은 줄 모양). 시각을 적은 진입이 없으면 시간대 목록 없음(요일은 보임) · "날짜만 적은 거래 N건은 시간대에서 뺐어요" | FR-22 | 완료(슬라이스 7) |
+| FR-27 | (2026-10-29) 리스크 예산 **"흔들림 몫"** 칸(`entities/coach` `RiskGaugeList` `RiskShareItem`) — 종목 아이콘 · 이름(`CaseIdentity` — 국내는 서버 이름) + "몫 · 비중 N%", 몫 큰 순 위 4종목 + 음수 몫(“N% 줄임”)은 늘 보이고 나머지는 "그 밖 N종목". 종목 하나면 칸 없음. **"나빴던 날 평균"** 칸 — 서버 금액 · "최근 1년 가장 나빴던 N일(국내 보유면 거래일) 평균 · 보유의 −X%" · 가장 나빴던 날 · "다시 일어날 확률은 말하지 않아요". 막대 · 넘었어요 없음. 옛 BFF 면 두 칸 없음 | FR-26 | 완료 |
 | FR-20 | 행동 알림 → 미러 "최근 행동" 줄 — 기존 리포트의 "최근 거래 기록" 패널을 지우고 미러 안으로(`BehaviorFactList` 삭제). 서버가 알림 저장을 끈다(`SRV-REQ-038` FR-13) | FR-21 | 완료 |
 
 ## 하지 않은 것
@@ -76,3 +77,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-09-27 | 슬라이스 7 FR-25 · 26 — 미러 연승 · 연패 · 진입 시간대 · 요일 줄. 새 슬라이스 · 파일 없음(`MirrorLines` · `mirrorMessages` · `@repo/core/coach` `behaviorMirror.ts`). 근거 `reports/checklists/FE-REQ-039.md` §슬라이스 7 |
 | 2026-10-08 | F011 슬라이스 3b — `RecordTradeCard` 에 `assetType` · `tickSize`(기본 코인 — 코인 화면 무변경). 국내 주식은 계획 · 사이즈 계산 없이 거래만(`FE-REQ-041` FR-16). 기록 뒤 홈 보유 요약 무효화를 코인에도 더함 |
 | 2026-10-08 | F011 슬라이스 4 — `RecordTradeCard` 의 국내 주식 막음(계획 · 사이즈 계산 · 체크 숨김, 한 줄 안내)을 걷었다 — 코인과 같은 폼. 근거 `FE-REQ-041` FR-22 |
+| 2026-10-29 | FR-27 — 흔들림 몫 · 나빴던 날 평균 칸(F009 FR-26). 근거 `BFF-REQ-038` FR-14 · `SRV-REQ-038` FR-17 |

@@ -306,3 +306,4 @@ type ExplainResult =
 | 2026-10-26 | F011 슬라이스 7d · 7e(`SRV-REQ-040` FR-46 · 47) — `GET /api/coach/mirror/kr-stock` 신설(소유자 404) · `GET /api/coach/outcomes` `assetType` 쿼리(zod enum, 기본 crypto) · `GET /api/coach/risk-budget` `gauges.portfolioVolatility` 추가. `MarketSignalAdapter.krDailyReturnProfiles`(구간 캐시 32개 · 실패는 캐시 안 함). Swagger `failOnErrors` 통과 |
 | 2026-10-26 | F011 7d 실데이터 수정 — `GET /api/coach/outcomes?assetType=kr_stock` 응답 줄에 `name` · `logoUrl`(코인 `null`). Swagger 쿼리 설명 갱신 · `failOnErrors` 통과 |
 | 2026-10-26 | F011 7f — `GET /api/coach/review/monthly/kr-stock` 신설(소유자 404) · 복기 응답 `assetType` · `brier.recentMisses[].name` 추가. 코인 경로 무변경 |
+| 2026-10-29 | F009 FR-26 — `GET /api/coach/risk-budget` Swagger 설명에 `contributions[]` · `tail` 두 줄. 경로 · 인증 · 상태 코드 무변경. 근거 `SRV-REQ-038` FR-17 |

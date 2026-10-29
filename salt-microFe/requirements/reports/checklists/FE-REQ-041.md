@@ -323,3 +323,7 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 | 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
 
 미검증: 없음 — 판단 · 화면 무변경
+
+## F009 FR-26 이 FR-29 옆에 (2026-10-29)
+
+- FR-29 칸 문구 · 값 그대로(실데이터 화면 38% ~ 39%) · 국내 이름 · "거래일" 표시는 응답 덮어쓰기로 확인(`FE-REQ-039` 체크리스트 §FR-27)

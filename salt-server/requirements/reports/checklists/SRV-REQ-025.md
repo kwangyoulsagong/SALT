@@ -339,3 +339,7 @@
 - 2026-10-26 실데이터 수정: 국내 청산 목록 `name` · `logoUrl` — 단위 테스트(국내만 · 코인은 묻지 않음 · 라벨 실패해도 목록) · 상시 서버 → BFF → 화면에서 SK하이닉스 · 삼성전자 로고 확인 · Swagger 97경로
 
 - 2026-10-26 F011 7f: `/api/coach/review/monthly/kr-stock` — 상시 서버 4000 소유자 200(`no_ledger`) · 비소유자 404 · Swagger `failOnErrors` 로 새 경로 · `month` 패턴 확인 · 코인 경로 기존 행 그대로
+
+## F009 FR-26 Swagger (2026-10-29)
+
+- `coachReport.routes.ts` 설명만 바뀜 — `swagger-jsdoc failOnErrors` 생성 통과 · 경로 17개 그대로

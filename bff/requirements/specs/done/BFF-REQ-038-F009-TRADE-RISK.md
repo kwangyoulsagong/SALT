@@ -41,6 +41,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | FR-11 | 미러 응답 `brier`(깨졌으면 `null`, 사례는 가격 · 날짜가 온전한 것만) · size-check `behavior.checklist`(질문 빈 줄 제외, 프리모템 문장이 없으면 `null`) · risk-budget `settings.maxSingleAssetWeight` · `scenarios`(금액이 빈 충격 줄 제외, `ok` 인데 손실이 없는 구간은 `insufficient_data`) · PUT 키 `maxSingleAssetWeight` 통과 · 계획 `checklist` | 완료(슬라이스 6) |
 | FR-12 | 거래 + 계획 기록(`POST /trades`)의 계획에 `invalidation`(프리모템 답) · `checklist` 통과. **체크리스트만으로는 계획을 만들지 않는다** — 계획이 생기면 "계획 없음" 자동 태그가 빠진다. `POST /plans` 는 `checklist` 를 받고 `PATCH` 는 받지 않는다 | 완료(슬라이스 6) |
 | FR-13 | 미러 응답 `streak` · `timing`(`toStreakView` · `toTradeTimingView`) — 서버 숫자 그대로. 서버가 아직 주지 않거나 깨졌으면 **그 블록만 `null`**(미러 전체는 산다). 모르는 연속 종류는 `current: null`, 비율 값이 `null` 이면 `observed` 를 켜지 않는다(패턴 문장이 숫자 없이 나가지 않게). 시간대 · 요일은 고정 순서로 펴고 빠진 칸은 0건 · `insufficient_data`, 서버 `bands: null` 이면 `null`(섹션 없음). `basis` 는 화면 문구가 대신해 옮기지 않는다 | 완료(슬라이스 7) |
+| FR-14 | (F009 FR-26, 2026-10-29) risk-budget `portfolioVolatility.contributions` · `tail` — 서버 숫자 그대로(`toContributions` · `toTailLoss`). 깨진 몫 항목은 빼고, 꼬리는 칸 하나라도 없거나 `days` 0 이면 `null`(반쪽 문장 금지). 옛 서버는 `[]` · `null` | 완료 |
 | FR-9 | `POST /api/app/coach/size-check` — 요청 키 `hasPlan` 통과 · 응답 `behavior`(`candidateTags` · `chasingUnknown` · `edgeWarnings`(noEdge 만) · `sellFraming{stopPrice, currentPrice}`). 서버 `null` · `truncated` · 깨진 모양이면 던지지 않고 `null` — 사이즈 결과는 그대로 | 완료(슬라이스 5) |
 
 ## 영향
@@ -69,3 +70,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-09-27 | 슬라이스 7 FR-13(미러 `streak` · `timing`). 새 경로 없음. 근거 `reports/checklists/BFF-REQ-038.md` §슬라이스 7 |
 | 2026-10-08 | F011 슬라이스 3b — `POST /trades` 가 `assetType`(`crypto` · `kr_stock`, 없으면 crypto)을 받아 서버로 · 모르는 값 400 · 국내 주식 + 계획 400(코치 계획 연결이 코인 원장만 본다) · 거래 응답 `RecordedTransactionView.assetType`(계약 검사). 사이즈 계산 · 리스크 예산 무변경(국내 주식은 화면이 부르지 않는다). 근거 `BFF-REQ-040` FR-15 · `reports/checklists/BFF-REQ-038.md` §F011 3b |
 | 2026-10-08 | F011 슬라이스 4 — 국내 주식 거래 + 계획 400 해제(서버 계획 연결이 국내 주식 거래를 받는다). 사이즈 계산 요청은 그대로 — 자산군 · 수수료는 서버가 시세로 고른다. 근거 `BFF-REQ-040` FR-19 |
+| 2026-10-29 | FR-14 — 흔들림 몫 · 나빴던 날 평균 통과(`RiskContributionView` · `TailLossView`, `@repo/core` 같은 모양). 근거 `SRV-REQ-038` FR-17 |
