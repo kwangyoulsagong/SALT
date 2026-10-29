@@ -317,6 +317,13 @@ export interface RiskBudgetView {
       returns: number | null;
       coveredWeight: number | null;
       missingSymbols: string[];
+      /**
+       * 종목별 흔들림 몫(FEATURE-009 FR-26) — 몫 큰 순, 합 1, 음수면 전체 흔들림을 줄였다. `ok` 가 아니면 빈 배열.
+       * `name` · `logoUrl` 은 국내 종목만(서버가 붙인다)
+       */
+      contributions: RiskContributionView[];
+      /** 최근 창 가장 나빴던 5% 날의 평균(과거 CVaR, FR-26). 확률이 아니다. 없으면 `null` */
+      tail: TailLossView | null;
     };
   };
   /**
@@ -328,6 +335,25 @@ export interface RiskBudgetView {
   scenarios: ScenariosView | null;
   monthStart: string | null;
   asOf: string | null;
+}
+
+export interface RiskContributionView {
+  symbol: string;
+  assetType: "crypto" | "kr_stock";
+  name: string | null;
+  logoUrl: string | null;
+  weight: number;
+  share: number;
+}
+
+export interface TailLossView {
+  fraction: number;
+  days: number;
+  averageRate: number;
+  /** 원, 음수가 손실 */
+  averageKrw: number;
+  worstRate: number;
+  worstOn: string;
 }
 
 export interface ScenariosView {
@@ -399,6 +425,34 @@ const toBudget = (raw: unknown): BudgetSetting | null => {
   const amount = num(raw.amount);
   const unit = oneOf(raw.unit, BUDGET_UNITS);
   return amount !== null && unit ? { amount, unit } : null;
+};
+
+/** 흔들림 몫 — 한 칸이라도 깨진 항목은 뺀다(몫 합이 1 이 아니게 되면 화면이 합을 말하지 않는다) */
+const toContributions = (value: unknown): RiskContributionView[] =>
+  Array.isArray(value)
+    ? value.filter(isRecord).flatMap((item) => {
+        const symbol = str(item.symbol);
+        const weight = num(item.weight);
+        const share = num(item.share);
+        const assetType = item.assetType === "kr_stock" ? "kr_stock" : item.assetType === "crypto" ? "crypto" : null;
+        return symbol && assetType && weight !== null && share !== null
+          ? [{ symbol, assetType, name: str(item.name), logoUrl: str(item.logoUrl), weight, share }]
+          : [];
+      })
+    : [];
+
+/** 나빴던 날 평균 — 칸이 하나라도 없으면 `null`(반쪽 문장을 만들지 않는다) */
+const toTailLoss = (value: unknown): TailLossView | null => {
+  if (!isRecord(value)) return null;
+  const fraction = num(value.fraction);
+  const days = num(value.days);
+  const averageRate = num(value.averageRate);
+  const averageKrw = num(value.averageKrw);
+  const worstRate = num(value.worstRate);
+  const worstOn = str(value.worstOn);
+  return fraction !== null && days !== null && days > 0 && averageRate !== null && averageKrw !== null && worstRate !== null && worstOn
+    ? { fraction, days, averageRate, averageKrw, worstRate, worstOn }
+    : null;
 };
 
 const stringList = (value: unknown): string[] =>
@@ -527,6 +581,8 @@ export const toRiskBudgetViewModel = (data: Raw): RiskBudgetView => {
         returns: num(volatility.returns),
         coveredWeight: num(volatility.coveredWeight),
         missingSymbols: stringList(volatility.missingSymbols),
+        contributions: toContributions(volatility.contributions),
+        tail: toTailLoss(volatility.tail),
       },
     },
     market: toMarketRegime(data.market),

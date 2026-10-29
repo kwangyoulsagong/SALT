@@ -28,7 +28,7 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md OQ 5
 | FR-2 | `domain/target_weight.py` — `sleeve_weights`(core 목표 σ × (1 − a) · 알트 × a 를 따로 역변동성, a = 0 이면 @1 core) · `paired_ci(alpha=)`(Bonferroni) · `week_outcome`(매주 리밸런스 주간 수익 = Σ w·R − 회전 비용) · `live_summary` | 완료(`95dea9b` · `558d496`) |
 | FR-3 | `scoring/target_weight_v2.py` + `jobs/target_weight_v2` — 후보 2 × 목표 5 · a = 0 과 같은 부트스트랩 인덱스 · 판정 · 탐색 3(a 0.05 · 알트 상위 3 × 2) · 리포트 `reports/target-weight-target-weight-2-2026-09-29.md` | 완료(실행 코드 `95dea9b`, 4.8초, 리포트 `85dc938`) |
 | FR-4 | 판정을 서버로 — 채택 없음 → `TARGET_WEIGHT_ALT_SHARE = null` · 판정 기록 상수(`SRV-REQ-024` FR-187 · 189) | 완료 |
-| FR-5 | `scoring/target_weight_live.py` + `store/target_weight_live.py` + `jobs/target_weight_live` — 2026-10-05 부터 월요일 봉 · σ 가 둘 다 있으면 목표 5개 비중을 쓰고, t+7 봉 뒤 결과(ok · late(기록이 24h 넘게 늦음) · missing_bar)를 쓰고, 목표별 요약을 다시 계산. 저장값과 다시 계산한 값이 다르면 `LedgerMismatch` 로 멈춘다. `ops/daily.sh` 마지막 단계 | 완료(`558d496`) |
+| FR-5 | `scoring/target_weight_live.py` + `store/target_weight_live.py` + `jobs/target_weight_live` — 2026-10-05 부터 월요일 봉 · σ 가 둘 다 있으면 목표 5개 비중을 쓰고, t+7 봉 뒤 결과(ok · late(기록이 24h 넘게 늦음) · missing_bar)를 쓰고, 목표별 요약을 다시 계산. 저장값과 다시 계산한 값이 다르면 `LedgerMismatch` 로 멈춘다. `ops/daily.sh` 단계 | 완료(`558d496`) |
 | FR-6 | DB 계약 `DB-REQ-029` FR-21(비중 · 결과 불변 표 · 요약 · `v_target_weight_live`) — DDL 은 `salt-server` 마이그레이션 | 완료(`6e9f651`) |
 
 ## 하지 않는 것
@@ -40,3 +40,5 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md OQ 5
 ## Changelog
 
 - 2026-09-29: 초판 · FR-1~6 완료. 판정 채택 없음
+- 2026-10-29: 전수 조사 정정 — "`ops/daily.sh` 마지막 단계" → 단계(실제 순서는 `steps`)
+- 2026-10-29: **in-progress 로 둔 이유**: FR-1~6 완료, 라이브 원장이 쌓이는 중 — 라이브 30주 성적 문장 2027-05-03 전후

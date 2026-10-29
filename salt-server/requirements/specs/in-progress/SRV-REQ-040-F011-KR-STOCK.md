@@ -9,6 +9,11 @@ created: 2026-10-07
 source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - "BFF 짝 `BFF-REQ-040` — 아직 소비처 없음"은 지난 일 — `bff/src/services/app-kr-stock.service.ts` · `websocket/managers/kr-stream.manager.ts` 가 소비한다
+> - FR-3 허용 TR 5개 이후 FR-49~53 이 `FHPUP02100000` · `FHKST01010900` · `FHKST01010200` · `FHPST02300000` 을 더했다 — 현재 목록은 `KisClient` `KIS_QUERY_TR`(코드가 진실)
+
+
 ## Summary
 
 국내 주식을 코인처럼 보려면 서버 DB 에 시세 · 일봉 · 5분봉이 먼저 쌓여야 한다. 슬라이스 0 · 1 은 그 재료를 만든다 —
@@ -144,3 +149,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 - 2026-10-11: FR-40 백필 완료 — 2회차(`caffeinate`) 2,614 끝 · 54 실패 → 3회차 실패 5. 국내 일봉 286만 행(Python `ingest_kr_stock` 81초)
 - 2026-10-23: FR-39 후속(슬라이스 5d) — 국내 범위 사유 2개를 전망 읽기가 그대로 옮긴다(`SRV-REQ-037` Changelog). 국내 카드가 `FC-REQ-020` 거부권 · 풀링 결과로 꺼진다
 - 2026-10-23: 운영 — 서버 상시 실행 launchd `com.salt.server`(`ops/run-server.sh` · `ops/com.salt.server.plist`). 수집 워커가 서버 안에 있어 서버가 꺼지면 국내 일봉이 멈추고 전망 신선도 게이트가 국내 카드를 끈다(10-09 · 10-20 · 10-23 세 번). watch 없음 · 로그 20MB × 5 회전 · KeepAlive
+- 2026-10-29: F009 FR-26(`SRV-REQ-038` FR-17) — FR-46 `portfolioVolatility` 가 같은 행렬로 `contributions` · `tail` 을 더 낸다. 기존 필드 · 축 · 값 무변경(기존 테스트 5 그대로 통과)
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
+- 2026-10-29: FR-52 시간외 단일가 — 앱 키가 **모의투자용**(사용자 확인)이라 KIS 가 시간외 단일가를 늘 0 으로 준다(일자별 `FHPST02320000` 교차 확인). 코드는 0 을 체결 없음으로 처리해 값을 내지 않는다 — 실전 키 전환 계획은 없다(사용자 결정 2026-10-29 — 실전 키는 본인 계좌에 묶여 계좌가 노출된다 · 계좌 연동 없음 원칙) — 기능은 계속 값이 없다. 휴장일 TR 거부 · 약 2건/s 한도도 같은 원인
+- 2026-10-29: FR-52 운영 — 시간외 단일가 수집을 env `KIS_AFTER_HOURS_ENABLED`(기본 `false`)로 끔 — 모의 키는 늘 0 이고 실전 키는 쓰지 않는다(계좌 노출, 사용자 결정). 켜 두면 평일 16:11~18:01 약 600호출이 같은 키의 초당 한도(약 2건/s, 요금 없음)를 차지해 저녁 투자자 · 5분봉 보정 회차가 한도 초과에 더 걸린다. 코드 · 화면 처리는 그대로(값이 없으면 줄 숨김)

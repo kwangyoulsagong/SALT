@@ -23,3 +23,7 @@ cd bff
 npm run build
 # OK
 ```
+
+## 2026-10-29 REQ 전수 조사
+
+- 필드명 정정

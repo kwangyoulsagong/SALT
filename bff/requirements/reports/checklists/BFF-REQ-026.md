@@ -3,6 +3,7 @@
 - REQ: `bff/requirements/specs/in-progress/BFF-REQ-026-F004-PERF.md`
 - 브랜치: `feat/f004-bff-judgment` (base `main` `ebadcf9`) · 검증일: 2026-09-22
 - 상태: **부분 완료** — 종목 판단 경로(`/api/app/ai-coach/detail`)만 닫혔다. 코치 리포트 · 성적표 · 재생성 · 해설 인증은 미착수
+> **2026-10-29 전수 조사:** 위 상태 줄은 작성 당시 — 이후 닫힌 절(B · C절 10-27 · 10-28, 코치 리포트 · 재생성 · 해설 인증 슬라이스 5 · 14)은 본문 표가 진실
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-bff-symbol-judgment.md`
 - **2026-09-22 슬라이스 5** (`feat/f004-bff-slice4`): 서버 4xx 전달 · `explain` 인증 · GET 재시도 — 루트 `checklists/F004-bff-upstream-errors.md`
 
@@ -33,3 +34,8 @@
 ## 2026-10-28 — F000 웹 API 에러 정규화 (짝 영역 변경 없음)
 
 웹이 이 경로의 실패를 `ApiError { status, code, retriable }` 로 받게 바뀌었다(`FE-REQ-012`). 이 영역 코드 · 계약 **변경 없음** — 파일 머리 주석 참조뿐.
+
+## 2026-10-29 주석 정정
+
+- **변경 없음(BFF).** 프론트 `entities/coach/api/coachApi.ts`(머리 주석이 이 REQ 를 가리킨다)의 리스크 예산 호출 주석 "게이지 3" → "게이지 · 측정". BFF 코드 무변경. 훅 exit 0 · `web` check-types · lint
+- 2026-10-29 전수 조사: 예산표 generate 경로 정정

@@ -13,9 +13,20 @@
  * 코인만 들고 있으면 달력일 축 · √365.
  *
  * 국내 종목 정지일은 직전 종가 그대로(수익률 0 — 결측이 아니다). 종가 비율이 0.69~1.31 밖인 날은 원천 끊김이라 그날을 통째로 뺀다.
+ *
+ * ## 흔들림 몫 · 나빴던 날 평균 (FEATURE-009 FR-26, 2026-10-29)
+ *
+ * 같은 수익률 행렬로 두 가지를 더 낸다. 둘 다 **지난 창의 기록**이다 — 확률 · 예측을 붙이지 않는다(FR-25 와 같은 규칙).
+ *
+ * - 흔들림 몫: 실현 공분산 분산 wᵀΣw 를 종목마다 wᵢ(Σw)ᵢ 로 나눈다(오일러 분해 — 합이 1). 비중과 다르면 그 종목이 다른 보유와
+ *   같이 움직이는(또는 반대로 움직이는) 만큼이다. 음수면 그 종목이 전체 흔들림을 줄였다
+ * - 나빴던 날 평균: 지금 비중을 창의 날마다 얹은 보유 하루 수익률 Σwᵢ(e^{rᵢ}−1) 중 가장 나빴던 5%(올림, 최소 1일)의 평균
+ *   = 과거 시뮬레이션 CVaR 95%. 금액은 값을 낸 보유의 지금 평가금에 곱한다. 날짜 수가 적어도(60일이면 3일) 그대로 날짜 수를 함께 준다
  */
 
 import Decimal from "decimal.js";
+
+import { Money } from "../../../shared/domain";
 
 import type { DailyBar } from "./adherence";
 import { KR_RETURN_BREAK_BOUNDS } from "./krMirror";
@@ -25,6 +36,8 @@ import { DAY_MS } from "./portfolioSeries";
 export const PORTFOLIO_VOL_WINDOW = 250;
 /** 수익률이 이만큼 있어야 값을 낸다 */
 export const PORTFOLIO_VOL_MIN_RETURNS = 60;
+/** 나빴던 날 평균에 쓰는 아래 꼬리 비율(5% = CVaR 95%) */
+export const PORTFOLIO_TAIL_FRACTION = 0.05;
 
 export type VolatilityGrid = "krx_trading_day" | "calendar_day";
 
@@ -32,6 +45,32 @@ export interface VolatilityHolding {
   symbol: string;
   assetType: "crypto" | "kr_stock";
   value: Decimal;
+}
+
+/** 종목 하나의 흔들림 몫(FR-26) */
+export interface RiskContribution {
+  symbol: string;
+  assetType: VolatilityHolding["assetType"];
+  /** 값을 낸 보유 안 평가금 비중 */
+  weight: Decimal;
+  /** 실현 공분산 분산 중 이 종목 몫. 합 1, 음수면 줄였다 */
+  share: Decimal;
+}
+
+/** 최근 창 보유 하루 수익률의 아래 꼬리(FR-26, 과거 CVaR) */
+export interface TailLoss {
+  /** 아래 꼬리 비율(0.05) */
+  fraction: number;
+  /** 평균에 들어간 날 수 = ceil(수익률 수 × fraction) */
+  days: number;
+  /** 그 날들 보유 하루 수익률 평균(음수가 손실) */
+  averageRate: Decimal;
+  /** `averageRate` × 값을 낸 보유 지금 평가금(원) */
+  averageAmount: Money;
+  /** 가장 나빴던 하루 */
+  worstRate: Decimal;
+  /** 그날(축 날짜, 00:00 UTC — 국내는 KST 거래일, 코인 축은 09:00 KST 에 시작한 일봉) */
+  worstOn: Date;
 }
 
 export interface PortfolioVolatility {
@@ -50,6 +89,10 @@ export interface PortfolioVolatility {
   /** 값을 낸 보유의 평가금 몫(이력이 모자란 종목은 빠진다) */
   coveredWeight: Decimal | null;
   missingSymbols: string[];
+  /** 종목별 흔들림 몫, 몫 큰 순(FR-26). `ok` 가 아니면 빈 배열 */
+  contributions: RiskContribution[];
+  /** 나빴던 날 평균(FR-26). `ok` 가 아니면 `null` */
+  tail: TailLoss | null;
 }
 
 const empty = (grid: VolatilityGrid, missingSymbols: string[] = []): PortfolioVolatility => ({
@@ -64,6 +107,8 @@ const empty = (grid: VolatilityGrid, missingSymbols: string[] = []): PortfolioVo
   to: null,
   coveredWeight: null,
   missingSymbols,
+  contributions: [],
+  tail: null,
 });
 
 /** 축 날짜마다 종가(이전 값 이어 쓰기). 그 종목 첫 봉 전 날은 `null` */
@@ -140,6 +185,7 @@ export const portfolioVolatility = (
 
   // 수익률 행렬 — 끊긴 날(국내 종가 비율 경계 밖)은 그 행을 통째로 뺀다
   const rows: number[][] = [];
+  const rowDays: number[] = [];
   for (let t = 1; t < axis.length; t++) {
     let broken = false;
     const row = covered.map(({ holding, prices }) => {
@@ -149,7 +195,10 @@ export const portfolioVolatility = (
       }
       return Math.log(ratio);
     });
-    if (!broken) rows.push(row);
+    if (!broken) {
+      rows.push(row);
+      rowDays.push(axis[t]);
+    }
   }
   if (rows.length < PORTFOLIO_VOL_MIN_RETURNS) return { ...empty(grid, missingSymbols), returns: rows.length };
 
@@ -162,10 +211,31 @@ export const portfolioVolatility = (
 
   let variance = 0;
   let upper = 0;
+  // (Σw)ᵢ — 흔들림 몫의 재료
+  const marginal = covered.map(() => 0);
   for (let i = 0; i < covered.length; i++) {
     upper += weights[i] * Math.sqrt(covariance(columns[i], columns[i]));
-    for (let j = 0; j < covered.length; j++) variance += weights[i] * weights[j] * covariance(columns[i], columns[j]);
+    for (let j = 0; j < covered.length; j++) marginal[i] += weights[j] * covariance(columns[i], columns[j]);
+    variance += weights[i] * marginal[i];
   }
+  const contributions: RiskContribution[] =
+    variance > 0
+      ? covered
+          .map((entry, i) => ({
+            symbol: entry.holding.symbol,
+            assetType: entry.holding.assetType,
+            weight: new Decimal(weights[i]),
+            share: new Decimal((weights[i] * marginal[i]) / variance),
+          }))
+          .sort((a, b) => b.share.comparedTo(a.share) || a.symbol.localeCompare(b.symbol))
+      : [];
+
+  // 지금 비중을 창의 날마다 얹은 보유 하루 수익률(단순 수익률 — 원으로 바꿀 수 있게)
+  const daily = rows
+    .map((row, t) => ({ day: rowDays[t], value: row.reduce((sum, logReturn, i) => sum + weights[i] * Math.expm1(logReturn), 0) }))
+    .sort((a, b) => a.value - b.value || a.day - b.day);
+  const tailDays = Math.max(1, Math.ceil(daily.length * PORTFOLIO_TAIL_FRACTION));
+  const tailAverage = new Decimal(mean(daily.slice(0, tailDays).map((entry) => entry.value)));
 
   // 자산군 몫 수익률(그 몫 안 가중 평균)의 상관
   const part = (assetType: VolatilityHolding["assetType"]): number[] | null => {
@@ -191,5 +261,14 @@ export const portfolioVolatility = (
     to: new Date(axis[axis.length - 1] + DAY_MS),
     coveredWeight: totalValue.gt(0) ? coveredValue.div(totalValue) : null,
     missingSymbols,
+    contributions,
+    tail: {
+      fraction: PORTFOLIO_TAIL_FRACTION,
+      days: tailDays,
+      averageRate: tailAverage,
+      averageAmount: Money.krw(tailAverage.mul(coveredValue)),
+      worstRate: new Decimal(daily[0].value),
+      worstOn: new Date(daily[0].day),
+    },
   };
 };

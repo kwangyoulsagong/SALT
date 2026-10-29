@@ -9,6 +9,10 @@ labels: [bff, upstream, backend-integration, coach, llm]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-42 의 "지금 순차 호출"은 고쳐짐 — `allSettled` 병렬(`app-ai-coach.service.ts`)
+
+
 ## Summary
 
 BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`explain`)의 타임아웃과 재시도 정책**이 이 REQ의 핵심이다.
@@ -153,3 +157,4 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | 2026-10-28 | **로그 레벨 정정**(`0d1e670`). error middleware · `backend-api` 인터셉터가 서버 4xx 를 `error`(+ 스택)로 남겼고 인터셉터는 두 번째 인자가 문자열이라 상태 · 경로가 버려졌다 → 4xx `warn` 한 줄 · 5xx · 응답 없음 `error`. FR-6 응답 · `Retry-After` 동작 무변경. 접근 로그 `[object Object]` 도 문자열로 |
 
 | 2026-10-28 | **로거 추가 인자**(`0be9644`). winston 이 문자열 추가 인자를 버려 websocket · 워커 · 서비스의 실패 원인이 빠져 있었다 → 형식 `appendExtraArgs`(서버와 같음). 서버 모르는 종목 404 는 FR-6 대로 그대로 전달됨을 실경로로 확인 |
+| 2026-10-29 | 전수 조사 — FR-42 현재형 문장 정정 |

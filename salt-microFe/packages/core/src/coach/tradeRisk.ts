@@ -158,6 +158,13 @@ export interface RiskBudgetView {
       returns: number | null;
       coveredWeight: number | null;
       missingSymbols: string[];
+      /**
+       * 종목별 흔들림 몫(F009 FR-26) — 몫 큰 순, 합 1, 음수면 전체 흔들림을 줄였다. 값을 못 냈으면 빈 배열.
+       * 옛 BFF 는 주지 않는다(`undefined`)
+       */
+      contributions?: RiskContributionView[];
+      /** 최근 1년 가장 나빴던 5% 날의 평균(과거 CVaR, FR-26) — 지난 기록이지 확률이 아니다. 없으면 `null` */
+      tail?: TailLossView | null;
     };
   };
   /** 시장 국면 라벨(F010 슬라이스 2) — 아무것도 막거나 줄이지 않는다. 없거나 낡았으면 `null` */
@@ -166,6 +173,28 @@ export interface RiskBudgetView {
   scenarios: ScenariosView | null;
   monthStart: string | null;
   asOf: string | null;
+}
+
+export interface RiskContributionView {
+  symbol: string;
+  assetType: "crypto" | "kr_stock";
+  /** 국내 종목만 서버가 붙인다 */
+  name: string | null;
+  logoUrl: string | null;
+  weight: number;
+  share: number;
+}
+
+export interface TailLossView {
+  fraction: number;
+  /** 평균에 들어간 날 수 */
+  days: number;
+  averageRate: number;
+  /** 원, 음수가 손실 */
+  averageKrw: number;
+  worstRate: number;
+  /** 축 날짜 00:00 UTC — 앞 10자가 그날 */
+  worstOn: string;
 }
 
 export interface ScenariosView {

@@ -9,6 +9,12 @@ labels: [fe, api, fsd, cleanup, websocket]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - "현재 `constants/api.ts`"는 없다(위와 같음)
+> - 규칙 `event-bus.md` 는 없다 · `PreviewChart` 는 SVG — "언마운트 때 `remove()`" 대신 구독 · 리스너 해제
+> - 뷰모델 한 벌화(FR-50)는 이 REQ 가 주인 — 다른 문서 · 코드 주석이 `FE-REQ-024` 로 가리키던 것을 2026-10-29 바로잡았다
+
+
 ## Summary
 
 F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 신규 5개 연결 ④ 문구 상수를 i18n으로 분리** 넷이다.
@@ -171,3 +177,4 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | 2026-09-21 | **WS 절(C)을 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-24(참조 카운트 구독 — 언마운트 시 `unsubscribe`·`unsubscribe_candle` 전송, 브라우저 실측) · FR-25(재연결 3s→30s 백오프 + 끊김 표시) · FR-26(캔들 동작 유지). FR-21(`limit=100`)은 건드리지 않았다. **남은 것**: A·B·D·E·F절과 FR-22(`useThrottle` — 이미 rAF 로 묶여 있어 필요성부터 판정) · FR-23. 근거: `requirements/reports/checklists/F000-realtime-reliability.md` |
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 호출 배치에 검색 · 북마크 목록 · 북마크 토글 추가, 알림 `kind` 1종 표시. 신규 D-2절 FR-60~66(검색 훅 · `409 TRACKED_ASSET_LIMIT` 정규화 · 무효화 · 뉴스 필드 · 북마크 훅 · 인증 전 호출 금지 · 목표 판별 유니온). FR-51 에 `newsSentiment` enum. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-09-23 | **MSW 목 전부 제거.** 목표 요약 · 목록을 BFF `/api/goals/statistics` · `/api/goals` 로, 지출 분석(`/api/v1/investments/preview`)은 서버에 데이터가 없어 삭제. 공개 시세 서버 조회(SEO · sitemap)를 `pages/investment-detail/api` 에 추가 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

@@ -3,6 +3,7 @@
 - REQ: `requirements/specs/in-progress/SRV-REQ-007-ARCH-CLEANUP.md`
 - 브랜치: `chore/adr-002-remnants` (`d344a50`) · 검증일: 2026-10-27
 - 상태: **부분 완료** — 동면 FR-10 · 12 · 13 · 14 가 닫혔다. 삭제 FR-1 · 2 · 5 · 알림 FR-11 이 남았다
+> **2026-10-29 전수 조사:** 위 상태 줄은 작성 당시 — 알림 FR-11 은 2026-10-28 닫힘(본문 표). 본문 표가 진실
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-dormant-410.md`
 
 ## 1. 동면 (FR-10~14)
@@ -39,3 +40,7 @@
 ## FR-11 알림 1종 (2026-10-28)
 
 루트 `F000-notification-kind-gate` · `3320883`. 확인은 `SRV-REQ-008.md` 같은 날 절. 동면 `feed.service` 타입 수정은 410 뒤라 실행 경로 없음 — `build` 로만. 미검증: 없음
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: FR-2 대상 `src/workers/market-price-updater.worker.ts` 는 이미 없다 — 같은 일이 `workers/market.worke / FR-3 추적 빌드 산출물 24개 → **닫힘**: `git ls-files 'salt-server/src/**/*.js'` 0건 · `.gitignore` `d / 유지 목록의 `modules/market-intelligence` · `investment` · `news` · `portfolio` · `technical-in / 수용 기준 "`InvestmentNotification.type` 생성 값 2종" → **1종(`signal_update`)**, FR-11 2026-10-28  / **FR-15 추가(아래 표)** — `SRV-REQ-006` FR-33 이 넘긴 남은 이관(살아 있는 `modules/goals` · `investment-in

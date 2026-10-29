@@ -9,6 +9,10 @@ labels: [fe, chart, canvas, performance, a11y, realtime]
 created: 2026-09-22
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 병합 · 파싱 테스트는 일회성이 아니다 — `packages/core/src/market/candleTime.test.ts`(vitest, FE-REQ-035 FR-7 로 상시화)
+
+
 ## Summary
 
 상세 분석 페이지(`/investments/[symbol]`, `FE-REQ-026` L)의 차트를 **프리뷰 차트(`PreviewChart`)에서 떼어내고
@@ -162,3 +166,4 @@ created: 2026-09-22
 | 2026-09-22 | 작성 — 슬라이스 6 상세 차트를 자체 구현 캔버스 차트로 분리. 실시간 병합 버그(문제 4) 발견 · 포함 |
 | 2026-09-22 | 구현 · 검증. 개정 FR-8(가장자리 표시 왼쪽 · 자리 비움) · FR-23(버튼 캔버스 밖) · FR-24(`pointercancel` ≠ 탭) · FR-43(요약은 전체 구간). 실측 중 발견: 서버 일봉 응답은 시각 키가 `date`(분봉 `timestamp`) — 슬라이스 6 일봉 탭이 NaN 이었다. `next/dynamic` 의 Suspense 가 그리기를 최대 300ms 늦춰 청크를 직접 불러 쓴다. 체크리스트 `requirements/reports/checklists/FE-REQ-034.md` |
 | 2026-09-22 | **FR-23 버튼 모양 개정** — 떨어진 tonal 버튼 셋 → 테두리 캡슐 하나(`FE-REQ-036` FR-5, 사용자 피드백). 가격선에 `zone` 톤 · `priceBand` 추가(`FE-REQ-036` FR-1 · FR-2) |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

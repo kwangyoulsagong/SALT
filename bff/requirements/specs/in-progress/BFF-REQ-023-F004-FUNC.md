@@ -9,6 +9,12 @@ labels: [bff, viewmodel, render-gate, coach]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 재생성 경로는 프록시 `POST /api/ai-coach/generate`(`proxy.routes.ts`) — 본문을 정정했다
+> - FR-91 · 93 · 94 · 97 의 "지금 mapDecision 이 confidence 복사 / '관망' 생성 / scalp 로 채움 / 순차 호출"은 **모두 고쳐짐** — confidence 차단(`symbol-coach.viewmodel.ts`) · `badge ?? null` · mode 는 보낼 때만 · `allSettled` 병렬(`app-ai-coach.service.ts`)
+> - 수용 기준 미체크는 체크리스트가 진실 — 남은 미구현: groupBy · gapFromCurrent
+
+
 ## Summary
 
 BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` · `/trade-preflight` · `/behavior-coach` 5개 라우트를 갖고 있다. F004의 BFF 작업은 **신규가 아니라 필드 추가와 조립**이다.
@@ -25,7 +31,7 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | `GET/PATCH /api/app/ai-coach/profile` | 기존 |
 | `POST /api/app/ai-coach/feedback` | 기존 — `reasonCode` 추가 |
 | `POST /api/app/ai-coach/explain` | 기존 — **인증 전달 추가** |
-| `POST /api/app/ai-coach/generate` (proxy) | 기존 — **쿨다운 429 전달** |
+| `POST /api/ai-coach/generate` (proxy) | 기존 — **쿨다운 429 전달** |
 | `GET /api/app/profit-plan` | 기존 — `gapFromCurrent` 추가 |
 | `GET /api/app/signal-performance` | 기존 — **그룹 지원 추가** |
 | `POST /api/app/trade-preflight` | 기존 |
@@ -202,3 +208,5 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | 2026-09-23 | FE 소비 시작(F004 슬라이스 15 — `/coach/report` 화면). BFF 변경 없음. **FE 가 `candidates` 를 읽지 않는다** — 3종 세트 없는 추천이고 막힌 추천의 종목이 후보 1위로 남는다. 게이트 붙은 후보 계약 또는 필드 제거를 PM 과 정한다(`FEATURE-004` 변경 이력). 참고: 서버 후보에는 `reasons` 가 없는데 뷰모델 타입은 `reasons: string[]` 이다 |
 | 2026-10-26 | F011 슬라이스 7d — `coach.routes` 에 `GET /mirror/kr-stock`(`BFF-REQ-040` FR-24) · `GET /outcomes` 가 `assetType` 쿼리를 통과(crypto · kr_stock, 다른 값 400). 기존 경로 무변경 |
 | 2026-10-26 | F011 7f — 라우트 `GET /api/app/coach/review/monthly/kr-stock` 한 줄(컨트롤러 `krMonthlyReview`) |
+| 2026-10-29 | **변경 없음.** 프론트 `entities/coach/api/endpoints.ts` 의 다른 줄(리스크 예산 경로 주석 "게이지 3" → "게이지 · 측정")만 바뀌었다 — 이 REQ 를 가리키는 경로 상수 · 주석 무변경(F009 슬라이스 9) |
+| 2026-10-29 | 전수 조사 — generate 경로 · 고쳐진 "지금" 문장 표시 |

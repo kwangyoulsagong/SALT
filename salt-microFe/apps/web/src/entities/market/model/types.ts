@@ -2,7 +2,7 @@
  * 시세 슬라이스의 데이터 계약.
  *
  * 열거값은 enum, 데이터 구조는 interface 다 (`layered-architecture.md` §6).
- * 지금 응답을 주는 것은 투자 upstream 이다. BFF 뷰모델로 바뀌면(`FE-REQ-024`)
+ * 지금 응답을 주는 것은 투자 upstream 이다. BFF 뷰모델로 바뀌면(`FE-REQ-012` FR-50)
  * 이 파일이 `@repo/core` 의 계약을 re-export 하는 자리가 된다.
  */
 
@@ -213,7 +213,7 @@ export interface MarketIntelligencePreviewResponse {
  *
  * `bff` 는 pnpm workspace 밖의 독립 npm 프로젝트라 `@repo/core` 를 import 할 수 없다.
  * 그래서 계약이 지금은 두 곳에 있다 — 합치는 것은 이 파일 상단 주석이 예고한 대로
- * `FE-REQ-024` 다. 필드 이름을 바꿀 때 `bff/src/services/app-watchlist.service.ts` 를
+ * `FE-REQ-012` FR-50 이다. 필드 이름을 바꿀 때 `bff/src/services/app-watchlist.service.ts` 를
  * 같이 본다.
  */
 export interface WatchlistItem {

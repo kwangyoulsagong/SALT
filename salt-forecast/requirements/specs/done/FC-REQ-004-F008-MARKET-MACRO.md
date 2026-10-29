@@ -34,4 +34,5 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 이 데이터를 피처로 · 채점 | 수집이 먼저. 채택은 채점이 정한다(FR-54) | 슬라이스 20 |
 | 김치 프리미엄 계산 | 피처 층(시점 고정 환율 필요) | **닫힘 — `FC-REQ-007`(슬라이스 23, ECB 환율)**. 피처 채택은 여전히 FR-54 |
 | 한국은행 ECOS | FRED `DEXKOUS` 로 원/달러가 된다 | 필요 시 |
-| cron | 미결제약정 때문에 **매일** 돌아야 한다 — 로컬 운영 방식 결정 필요 | 슬라이스 17 전 (급함) |
+| ~~cron~~ | 미결제약정 때문에 **매일** 돌아야 한다 | **닫힘** — `ops/daily.sh`(LaunchAgent, `FC-REQ-015` FR-4) `ingest_market` 단계 |
+| 2026-10-29 | 전수 조사 정정 — cron 행 닫힘 |

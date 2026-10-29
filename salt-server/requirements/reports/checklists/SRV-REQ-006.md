@@ -683,3 +683,7 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 | 소비처 | `ReadMarketData`(차트 404) · `SyncMarketData` 수집 두 곳(예외를 잡아 warn — 무변경) · `AnalyzeMarketIntelligence`(거래대금 — 404 로 바뀜, 이미 현재가가 404) |
 
 미검증: 없음
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: FR-3 조합 컨텍스트: `onboarding` 만 있고 `homebriefing` 은 없다 — F006 `SRV-REQ-029` 로 넘김 / FR-33 남은 이관(살아 있는 `modules/goals` · `investment-insight` · `user`, `app.ts` 마운트)은 `SRV-REQ

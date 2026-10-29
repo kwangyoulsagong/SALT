@@ -192,3 +192,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 | 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
 
 미검증: 없음 — 판단 · 화면 무변경
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: Open Q `packages/mocks`(MSW) 위치는 닫힘 — MSW 2026-09-23 삭제, `packages/mocks` 없음

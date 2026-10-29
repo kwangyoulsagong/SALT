@@ -30,7 +30,7 @@ export interface AuthRootState {
  *
  * 계약의 주인은 BFF 다. 그런데 `bff` 는 pnpm workspace 밖의 독립 npm 프로젝트라
  * `@repo/core` 를 import 할 수 없다 — `entities/market/model/types.ts` 가 관심 목록
- * 뷰모델에 대해 같은 상황을 적어 둔 것과 같다. 한 벌로 합치는 것은 `FE-REQ-024` 의 일이다.
+ * 뷰모델에 대해 같은 상황을 적어 둔 것과 같다. 한 벌로 합치는 것은 `FE-REQ-012` FR-50 의 일이다.
  *
  * **그때까지는 BFF 뷰모델이 진실이고 이 타입이 그것을 따라간다.**
  */

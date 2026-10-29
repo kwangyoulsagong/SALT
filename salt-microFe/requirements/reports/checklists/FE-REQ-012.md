@@ -73,7 +73,7 @@
 
 | FR | 판정 | 근거 · 위치 |
 |---|---|---|
-| FR-50 뷰모델 타입 `packages/core` | **미충족** | 프론트가 `entities/*/model/types.ts` 에 다시 선언한다. `bff` 가 workspace 밖(`BFF-REQ-008` FR-13 · `FE-REQ-024`) |
+| FR-50 뷰모델 타입 `packages/core` | **미충족** | 프론트가 `entities/*/model/types.ts` 에 다시 선언한다. `bff` 가 workspace 밖(`BFF-REQ-008` FR-13). 합치는 주인은 이 REQ(2026-10-29 정정 — 전엔 `FE-REQ-024`) |
 | FR-51 `period` · `assetType` · `alertKind` · `newsSentiment` enum | **미충족** | `MarketPeriod` · `WatchlistAssetType` 은 enum. 차트 `period` 는 문자열 상수, `alertKind` · `newsSentiment` 없음 |
 | FR-52 `any` 0건 | **pass** | 2026-09-22 `apps/web/src` grep 0 |
 | FR-53 WS 메시지 타입 `packages/core` | **미충족** | `shared/api/websocket/types.ts`. `a76cec1` 이 BFF 메시지 5종을 enum 에 더했다 |
@@ -88,7 +88,7 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | FR-31~33 서버 컴포넌트 조회 | 토큰이 `localStorage` 다 | `FE-REQ-013`(쿠키) |
-| FR-50 · 53 타입 공유 | `bff` workspace 밖 | `FE-REQ-024` |
+| FR-50 · 53 타입 공유 | `bff` workspace 밖 | 이 REQ FR-50(2026-10-29 정정 — 전엔 `FE-REQ-024`) |
 | FR-10~13 동면 · 410 | BFF 410 선행 | `BFF-REQ-007` A절 |
 | `wsClient` 자동 테스트 · 375/390 끊김 문구 | 러너 없음 · 1440 만 봄 | `FE-REQ-013` · 다음 투자 화면 작업 |
 
@@ -158,3 +158,8 @@
 | ~~서버 모르는 코인 차트 500~~ | 404 (`f74c34f`) — `SRV-REQ-009` |
 | ~~BFF 422 · `AppError` code 없음~~ | `3f38160` — `BFF-REQ-025` |
 | `alertKind` · `newsSentiment` enum | 남음 — 소비처 없음(F006 `FE-REQ-030` · D-2절) |
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: "현재 `constants/api.ts`"는 없다(위와 같음) / 규칙 `event-bus.md` 는 없다 · `PreviewChart` 는 SVG — "언마운트 때 `remove()`" 대신 구독 · 리스너 해제 / 뷰모델 한 벌화(FR-50)는 이 REQ 가 주인 — 다른 문서 · 코드 주석이 `FE-REQ-024` 로 가리키던 것을 2026-10-29 바로잡았다
+- 2026-10-29: 코드 주석 3곳(`entities/auth` · `entities/market` `model/types.ts`)의 한 벌화 주인을 이 REQ FR-50 으로 · 훅 exit 0 · `web` check-types · lint

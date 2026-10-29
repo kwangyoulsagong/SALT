@@ -10,6 +10,15 @@ created: 2026-09-09
 source: pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md (C절 FR-20~29, D-2절 FR-40~46), pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 변경 금지 목록의 `AnalysisGraph` · `TipsApp` 은 코드에 없다 — 지출 그래프는 `7b2663a`(MSW 제거)로 삭제, 팁은 `widgets/home-briefing/ui/SavingTipBlock.tsx`. 홈은 Goals · Investments · SavingTip
+> - `SegmentedControl` 은 `@repo/ui` 에 있다(`3f67f12`, FE-REQ-044 B) — 쟁점은 `MarketFilterTabs` 를 교체할지만
+> - FR-73 · 81 목적지는 `/investments/[symbol]`(상세 라우트 있음) — Open Q 닫힘
+> - "현재 `constants/api.ts`"는 없다 — 문구는 `@repo/core/http`(웹 `shared/i18n` 재수출), period 는 `ChartPeriod` enum
+> - 768px 미만은 `NarrowScreenNotice`(FE-REQ-043)가 대신 — FR-52 · 54 의 모바일 접기는 앱 웹뷰에만 해당
+> - 온보딩 ③은 "월 적립액"이 아니라 "첫 목표"(`widgets/onboarding-flow/model/messages.ts`, `d6342a1`)
+
+
 ## Summary
 
 F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대 코드·온보딩 둘뿐이고, 나머지는 수리 9건이다. 그리고 **변경 금지 목록을 침범하지 않는 것**이 이 REQ의 가장 중요한 수용 기준이다.
@@ -254,3 +263,4 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 지금 동작을 정확히 말하게 했다. `radiogroup` 이 의미상 더 가깝지만 roving tabindex 와
 화살표 이동을 요구하고, 시각 구성이 변경 금지 목록이라 상호작용까지 바꾸는 것은 범위를
 넘는다. **REQ 문구를 고칠지 `SegmentedControl` 로 갈지는 열린 판단이다.**
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

@@ -112,6 +112,20 @@ export const gaugeStatus = styleVariants({
   },
 });
 
+/** 흔들림 몫 한 줄(F009 FR-26) — 종목(로고 · 이름) | 몫 · 비중. 좁은 칸이라 몫이 줄바꿈되지 않게 오른쪽에 붙인다 */
+export const shareRow = style({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: vars.space.sm,
+  minWidth: 0,
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontVariantNumeric: vars.numeric.tabular,
+});
+
+export const shareValue = style({ flexShrink: 0, color: vars.colors.text.primary, fontWeight: vars.fontWeights.semibold });
+
 /* ── 시장 국면(F010 슬라이스 3) ───────────────────────────── */
 
 export const marketNote = style({

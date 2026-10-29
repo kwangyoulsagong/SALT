@@ -7,6 +7,10 @@ created: 2026-05-25
 updated: 2026-05-25
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - **FE-REQ-007 · ADR-001 로 대체 — 역사 기록**: shell/goals/investments 앱 · Module Federation · `@repo/mocks` · `message-event-bus` 는 지금 없다(`apps/` 는 `web` · `web-tax`)
+
+
 ## Summary
 
 현재 shell은 Module Federation remote인 `goals/*`, `investments/*`를 `React.lazy`로 소비한다. 이 방식은 Next.js Pages Router의 preload/SSR 의도를 코드상에서 명확히 드러내지 못하고, remote 장애 처리도 `Suspense` fallback에만 의존한다.
@@ -125,3 +129,4 @@ updated: 2026-05-25
 ## Status
 
 - done (검증 완료: 체크리스트 `reports/checklists/FE-REQ-001.md`의 tsc/lint/build 산출 기준). 본 spec은 `requirements/specs/done/`에 위치한다.
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

@@ -1,0 +1,51 @@
+---
+id: FC-REQ-001
+feature: F008
+area: forecast
+kind: FUNC
+title: "F008 슬라이스 16 — Python 뼈대 · 업비트 일봉 · 기준 모델 · 보정 · 워크포워드 채점 · 자동 소등"
+priority: high
+created: 2026-09-23
+source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
+---
+
+## Summary
+
+화면 없이 **"코인 전망 + 정직한 채점"이 DB 에 쌓이는 상태**를 만든다. 모델은 기준 모델뿐이다 — 기준을 먼저 세워야
+다음 슬라이스의 LightGBM 이 "이겼는지"를 잴 수 있다(`modeling-evaluation.md` §2).
+
+## FR
+
+| FR | 내용 | FEATURE-008 |
+|---|---|---|
+| FR-1 | `uv` 프로젝트 · 층 구조 · `import-linter` 계약 · ruff · pyright strict · pytest | — |
+| FR-2 | 업비트 일봉 수집 + 백필(`--since`), `available_at` = 봉 마감, 멱등 upsert | FR-20 · 26 |
+| FR-3 | 기준 A(무작위 보행 정규) · 기준 B(경험 분위수) · 앙상블(A·B 분위수 평균) | FR-1 · 2 · 5 |
+| FR-4 | 분위수 보정(CQR + 적응형 ACI) — 학습 창 잔차만 | FR-3 |
+| FR-5 | 워크포워드 백테스트(엠바고 h 주) → `prediction` · `score` `kind=backtest` | FR-4 |
+| FR-6 | 매일 예측 `kind=live` · 기간 지난 예측 채점 | FR-4 |
+| FR-7 | "자신 있을 때만" 방향 판정 — 임계는 학습 창 안에서 | FR-9 |
+| FR-8 | 게이트: 표본 · 기준 대비 pinball · 90% 커버리지 · 폭 · 신선도 | FR-6 · 10 |
+| FR-9 | 누수 테스트 4종(`time-and-leakage.md` §6) | FR-4 |
+| FR-10 | 백테스트 리포트 `reports/` | — |
+| FR-11 | 라이브 게이트 표본은 **주 격자(월요일 00:00 UTC) as_of 만** 센다 — `LIVE_SAMPLE_FOR_LIVE_GATE = 52` 는 일 단위 행이 아니라 주 as_of 52개다. 매일 live 예측은 계속 쓰고 채점한다(카드 최신 예측). 백테스트 행은 원래 주 격자라 무변화 (완료, 2026-09-28) | FR-67 |
+
+## 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| LightGBM · 공시 · 내부자 피처 | 기준이 먼저 | 슬라이스 20 `FC-REQ-002` |
+| ETS 기준(`statsforecast`) | 기준 A · B 로 게이트가 선다. 의존성 무게 대비 — 슬라이스 20(`FC-REQ-002`)도 넣지 않았다 | 하지 않음(기준 A · B 로 충분 — 필요가 보이면 새 REQ) |
+| 주식 시세 | 무료 소스 미정 | 열린 질문 |
+| 규칙 가격 도달 확률(FR-7 of F008) | 보유 규칙 가격은 서버가 안다 — 서버 조합 방식 결정 필요 | 슬라이스 17 |
+| ~~cron 등록~~ | 로컬 운영 방식 미정 — 작업은 CLI 로 돈다 | **닫힘** — `ops/daily.sh`(LaunchAgent) 매시 · 매일 |
+
+## 변경 이력
+
+| 날짜 | 내용 |
+|---|---|
+| 2026-09-28 | FR-11 추가 — F010 슬라이스 0 성적표 신뢰성. 감사(2026-09-27)에서 live 행이 매일 쌓여 "52주"가 실제로는 겹치는 라벨의 52일(유효 표본 2~8)이었던 것을 잡았다. `domain/calendar.on_weekly_grid` · `scoring/evaluate.weekly_only` |
+| 2026-10-08 | 엔진 일반화 — 격자 · 라벨 끝 · 실현 수익률 · 신선도 · 주당 봉 수를 `domain/calendar.Schedule` 로(코인 `WeeklyUtc` 기본값, 출력 해시 불변). `gates(on_grid=)` · `unscored_live(model_versions=)`. 국내 주식(`FC-REQ-009`)이 같은 엔진을 쓰려고 |
+| 2026-10-23 | 공용 `CloseSeries` 에 `breaks`(기본 빈 배열) · `crosses_break` — 비면 `as_of` 가 전과 같은 경로. 국내 원천 끊김(`FC-REQ-020` FR-10)만 채운다. 코인 · 공용 작업 20개 dry-run main 과 같음 |
+| 2026-10-20 | 성능(FC-REQ-020 P4) — 엔진 `_GridEntry` 를 격자마다 배열로 굳히고 `raw()` 는 같은 값으로 다시 만든다 · `report.render` 를 열 기반 한 벌로 · 일봉 읽기 청크 배열. 코인 출력 해시 · `backtest` 리포트 main 과 동일 |
+| 2026-10-29 | 전수 조사 정정 — cron 닫힘 · ETS 하지 않음. FR-1~11 전부 완료 · 남은 행은 배포(DB 역할 분리) · 운영 메모 → **done 으로 이동** |

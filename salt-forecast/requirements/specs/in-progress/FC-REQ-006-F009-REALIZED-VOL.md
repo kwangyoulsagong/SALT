@@ -36,7 +36,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | FR-4 | 채점 — 마지막 180일 다음 날 분산 예측의 QLIKE(`log f + r²/f`). EWMA · GARCH · 기준(60일 이동 분산) 셋 | 완료 |
 | FR-5 | 게이트 — 수익률 < 240일 `insufficient_history` · 마지막 봉이 3일 넘게 전 `stale_prices` · EWMA QLIKE > 기준 `no_skill_vs_baseline`. 막히면 `annualized` null | 완료 |
 | FR-6 | 멱등 — `(symbol, as_of)` upsert. 같은 날 두 번 = 289행 그대로 | 완료 |
-| FR-7 | 매일 배치 `ops/daily.sh` 마지막 단계 `volatility` | 완료 |
+| FR-7 | 매일 배치 `ops/daily.sh` 단계 `volatility`(순서는 `ops/daily.sh` `steps` — 뒤에 `market_regime` · `target_weight_live`) | 완료 |
 | FR-8 | 서버 읽기 — `forecast.v_realized_vol`(종목별 최신 1행). 서버는 `annualized` null 이거나 `as_of` 가 3일 넘으면 `null`(`SRV-REQ-038` FR-11) | 완료 |
 | FR-9 | GARCH 승격 판정 — 도전자가 EWMA 를 이긴 종목 비율 · 차이를 26주 라이브로 본 뒤 결정 | to-do |
 
@@ -54,3 +54,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | h 일 누적 변동성(GARCH 기간 구조) | 사이즈 계산은 연율 하나만 쓴다 | 보유 기간별 사이즈가 필요할 때 |
 | 장중 봉 · 점프(청산 캐스케이드) | 일봉만. GARCH 도 점프를 못 잡는다(리서치 표) | P2 국면 카드 |
 | 전망 구간 폭 기저로 쓰기 | F008 도전자 실험의 몫(리서치 D1) | F008 도전자 재개 시 |
+| 2026-10-29 | 전수 조사 정정 — FR-7 "마지막 단계" → 실제 순서 |

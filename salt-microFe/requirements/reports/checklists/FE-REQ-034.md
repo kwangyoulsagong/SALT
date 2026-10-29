@@ -100,3 +100,7 @@ DOM 범례 글자 리플로다 — 범례를 숨기면 0.12ms 로 돌아간다. 
 | 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
 
 미검증: 없음 — 판단 · 화면 무변경
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: 병합 · 파싱 테스트는 일회성이 아니다 — `packages/core/src/market/candleTime.test.ts`(vitest, FE-REQ-035 F

@@ -12,7 +12,7 @@ import { coachQueryKeys } from "./queryKeys";
 const RISK_BUDGET_STALE_TIME_MS = 60_000;
 
 /**
- * 리스크 예산 게이지 3 · 설정 (F009 `FE-REQ-039`). 4xx 는 다시 부르지 않는다.
+ * 리스크 예산 게이지 · 측정 · 설정 (F009 `FE-REQ-039`). 4xx 는 다시 부르지 않는다.
  * 토큰이 없으면 부르지 않는다 — 로그인하지 않은 것은 실패가 아니라 상태다.
  */
 export const useRiskBudget = () => {

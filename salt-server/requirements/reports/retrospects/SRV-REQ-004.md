@@ -42,3 +42,7 @@ npm run build           # FAIL: existing type errors outside this module path
 | 타입 안전성 | 4/5 |
 | 플랜 계산 완성도 | 4/5 |
 | 검증 통과도 | 2/5 |
+
+## 2026-10-29 REQ 전수 조사
+
+- 현재 상태를 말하는 문장이 뒤 슬라이스를 따라가지 못했다. Action: 슬라이스를 닫을 때 그 결과가 바꾸는 다른 REQ 의 본문 · 범위 밖 · 수용 기준을 grep 한다

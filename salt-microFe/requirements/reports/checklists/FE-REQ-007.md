@@ -202,3 +202,7 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 | `packages/core` `"./http"` | `index.ts` 로 — 기존 소비처 3곳(`shared/config/network` · `shared/i18n` · `shared/api`) 무변경 타입 통과 · `web` · `web-tax` 빌드 pass |
 
 미검증: 없음
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: Open Q `apps/goals` 이관은 닫힘 — `app/goals` 로 이관됨 / 3탭 `/` · `/coach` · `/assets` 는 아직 없다 — 지금 라우트는 `/home` · `/investments` · `/coach/report`

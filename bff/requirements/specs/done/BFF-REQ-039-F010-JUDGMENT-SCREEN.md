@@ -41,3 +41,4 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9-4 ·
 - 2026-10-07: FR-7 추가 · 완료 — 재료 정지 `stale_inputs`(F010 슬라이스 7)
 - 2026-10-08: F011 슬라이스 4 — 성적표 정규식이 `kr_stock.<mode>.<action>` 그룹을 버리던 것을 받고 그룹 `assetClass` 추가 · 판단 사유 2종(`mode_not_open` · `insufficient_history`) 타입. 근거 `BFF-REQ-040` FR-17 · 18
 - 2026-10-26: F011 슬라이스 7b — 성적표 그룹 `sampleOrigin` · 사례 `name` · `logoUrl`(`BFF-REQ-040` FR-22)
+- 2026-10-29: F009 슬라이스 9 — **변경 없음.** 같은 뷰모델 파일(`trade-risk.viewmodel.ts`)에 `portfolioVolatility` 두 칸이 붙었고(주인 `BFF-REQ-038` FR-14), 프론트가 BTC 베타 덮은 몫 표시를 내림으로 고쳤다(`FE-REQ-040` FR-2) — FR-1 `btcBeta` · FR-2 `market` 뷰모델 · 테스트 무변경(288/0)

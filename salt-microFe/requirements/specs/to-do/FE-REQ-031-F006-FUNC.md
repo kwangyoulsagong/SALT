@@ -9,6 +9,14 @@ labels: [fe, func, fsd, sse, reconnect, layout-tree]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 온보딩 3단계는 지금 "첫 목표" · `ONBOARDING_STEP_BODY.pending` 키는 코드에 없다
+> - 거래 기록 추가는 이미 있다 — `features/record-transaction`(FE-REQ-039 FR-1, F009)이 `/api/app/coach/trades` · `size-check` 를 부른다. F006 은 수정 · 삭제 · 평단 미리보기 몫. 두 경로(`coach/trades` · `portfolio/transactions`)가 같은 기록인지 착수 때 확인
+> - FR-102 `home.weekly-plan` 목적지는 `/home#weekly-plan`(`/` 는 로그인)
+> - FR-35 "블록 대신 온보딩 카드"와 지금 동작(카드 + 블록 공존, FE-REQ-010 FR-25)이 다르다 — 착수 때 결정
+> - FR-10~13 `EventSource` 재연결 · `Last-Event-ID` 전제 재검토: 레포 선례 `shared/api/streamSse.ts` · `@repo/core/sse` 는 POST fetch 스트림 + Bearer 이고 파서가 `id:` 를 버린다
+
+
 > **2026-09-21 개정.** `ADR-002` · 스토리보드 갭 감사 반영. 홈 블록은 3개(FR-32 순서), 총자산 툴팁에서 세금 비교 삭제(FR-36). 거래 기록 · 알림 읽음 · 설정 · 온보딩 건너뛰기 · 세그먼트 경로의 기능 규칙을 추가했다(§2026-09-21). 근거: 감사 D5 · D6 · D7 · D9 · B12 · B13 · B14 · B16.
 
 ## Summary
@@ -220,3 +228,4 @@ created: 2026-09-09
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. 개정: FR-32(블록 순서 D6) · FR-36(세금 툴팁 삭제). 추가: FR-70~72(세그먼트 D7 · 벨 D5) · FR-80~87(거래 시트 B14) · FR-90~93(포지션 B13) · FR-100~103(알림 D5 · B19) · FR-110~113(설정 D9 · B16) · FR-120~122(온보딩 B12). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

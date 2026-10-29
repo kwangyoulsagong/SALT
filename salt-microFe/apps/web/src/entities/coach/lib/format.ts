@@ -29,6 +29,12 @@ export const formatSignedPoints = (diff: number): string => {
 /** 비율(0.57) → `57%`. 부호 없는 몫(적중률 · 비중)만. 점수에 쓰지 않는다(`FE-REQ-027` FR-83) */
 export const formatRatio = (ratio: number): string => `${Math.round(ratio * 100)}%`;
 
+/**
+ * 계산에 들어간 몫(0.995) → `99%`. **내림**이다 — 반올림하면 일부를 빼고 셌는데 "100%로 계산"이 된다(2026-10-29 실데이터).
+ * 덮은 몫 · 포함 비율처럼 "다 들어갔다"고 읽히면 안 되는 자리에만
+ */
+export const formatCoveredRatio = (ratio: number): string => `${Math.floor(ratio * 100)}%`;
+
 /** 현재가와의 차이 문장 — "현재가보다 N원 위/아래". 방향은 말로, 크기는 금액으로(D13) */
 export const describePriceGap = (gap: number): string => {
   const { zone } = COACH_MESSAGES;

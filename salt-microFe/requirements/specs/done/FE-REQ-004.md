@@ -7,6 +7,10 @@ created: 2026-09-08
 updated: 2026-09-08
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - **FE-REQ-007 · ADR-001 로 대체 — 역사 기록**: shell/goals/investments 앱 · Module Federation · `@repo/mocks` · `message-event-bus` 는 지금 없다(`apps/` 는 `web` · `web-tax`)
+
+
 ## Summary
 
 FE-REQ-003으로 `@repo/ui` lint를 통과시킨 뒤에도 루트 `pnpm lint`(turbo lint)는 실패했다. 남은 실패는 `@repo/message-event-bus`와 `@repo/mocks`이고, 원인은 경고가 아니라 **eslint 실행 자체의 크래시**였다. 두 패키지는 자체 eslint devDependency가 없어 워크스페이스 루트의 `eslint@^8`(8.57.1) 바이너리로 실행되는데, 공유 flat config는 eslint 9 기준 `typescript-eslint` v8 규칙을 로드하기 때문에 규칙 로딩 단계에서 `TypeError`로 죽는다.
@@ -100,3 +104,4 @@ pnpm --filter @repo/ui lint                  # OK (eslint 9.19.0로 실행됨)
 ## Status
 
 - done (검증 완료: 루트 `pnpm lint` 6/6 통과, 3패키지 check-types, 3앱 tsc/lint/build, build-storybook 통과). 본 spec은 `requirements/specs/done/`에 위치한다.
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

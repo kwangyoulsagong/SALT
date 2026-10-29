@@ -9,6 +9,10 @@ labels: [fe, api, fsd, rsc, polling, llm]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-80 의 "쿠키 세션 · `localStorage` 에 두지 않는다"는 아직 아님 — 토큰은 `localStorage`, 이전 주인은 `FE-REQ-013` FR-80
+
+
 ## Summary
 
 코치 화면의 BFF 호출. **조회는 서버 컴포넌트**, mutation·폴링·preflight는 클라이언트다. LLM이 걸린 `explain`은 사용자 액션 기반이어야 한다.
@@ -194,3 +198,5 @@ created: 2026-09-09
 | 2026-09-24 | **F009 슬라이스 0 — C01.** FR-86a 신설. `buildExplainRequest(view, mode)` · `ExplainSubject` 삭제 · 근거 라벨 메시지 삭제(서버 소유) |
 | 2026-10-26 | F011 슬라이스 7d · 7e — `coachApi.krMirror`(`/api/app/coach/mirror/kr-stock`, 404 = 소유자 아님) · `coachApi.outcomes(limit, signal, assetType?)` · 키 `krMirror()` = `["coach","mirror","kr-stock"]` · `krOutcomes()` = `["coach","outcomes","kr-stock"]` — 기존 키 아래라 거래 저장 · 태그 확정 무효화가 같이 걸린다(`FE-REQ-041` FR-28) |
 | 2026-10-26 | F011 7f — `COACH_ENDPOINTS.krMonthlyReview` · `coachQueryKeys.krMonthlyReview` · `coachApi.monthlyReview(…, assetType)` |
+| 2026-10-29 | 주석만 — `entities/coach/api/endpoints.ts` 리스크 예산 경로 설명 "게이지 3" → "게이지 · 측정"(F010 부터 다섯, F009 슬라이스 9 로 측정 칸 2 추가). 경로 · 코드 무변경 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

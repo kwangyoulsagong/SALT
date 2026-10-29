@@ -34,7 +34,7 @@ const VOLATILITY_LOOKBACK_DAYS = 400;
 /**
  * 리스크 예산 조회 · 수정 — `GET · PUT /api/coach/risk-budget` (FEATURE-009 FR-1~3 · FR-17 · FR-23~24).
  *
- * 게이지 3개(이번 달 낙폭 · 종목 집중도 · 회전율 · 수수료)와 사용자가 정한 예산. 아무것도 막지 않는다 —
+ * 게이지(이번 달 낙폭 · 종목 집중도 · 회전율 · 수수료)와 사용자가 정한 예산. 아무것도 막지 않는다 —
  * 예산을 넘으면 상태가 `exceeded` 가 될 뿐이다.
  *
  * 시나리오(FR-25, 슬라이스 6)가 같이 나간다 — 게이지와 같은 보유 · 평가금을 봐야 "지금 보유가 −30% 면"이
@@ -68,6 +68,11 @@ export interface RiskBudgetView {
      */
     portfolioVolatility: PortfolioVolatility;
   };
+  /**
+   * 흔들림 몫 종목의 이름 · 로고(FR-26). 국내 코드는 숫자라 화면이 이니셜을 못 만든다 — 판단 사례 · 청산 목록과 같은
+   * `assetLabels`. 코인은 싣지 않는다(화면이 심볼로 아이콘을 그린다). 실패하면 빈 배열
+   */
+  assetLabels: Array<{ symbol: string; name: string; logoUrl: string | null }>;
   /**
    * 시장 국면 라벨(F010 슬라이스 2 · `FC-REQ-010`) — BTC 200일선 · HMM 고변동 확률 · 365일 낙폭 · 다음 이벤트.
    * 사전등록 `regime-gate@1` 이 게이트를 채택하지 않아 **아무것도 막거나 줄이지 않는다**. 없거나 낡았으면 `null`
@@ -116,6 +121,19 @@ export class GetRiskBudget {
       this.forecasts.marketRegime().catch(() => null),
     ]);
     const betas = new Map([...risk].map(([symbol, row]) => [symbol, row.btcBeta]));
+    const volatility = portfolioVolatility(
+      snapshot.holdings.map((holding) => ({
+        symbol: holding.symbol.toUpperCase(),
+        assetType: holding.assetType === "kr_stock" ? ("kr_stock" as const) : ("crypto" as const),
+        value: new Decimal(holding.currentValue),
+      })),
+      recentBars,
+      now
+    );
+    const krSymbols = volatility.contributions
+      .filter((contribution) => contribution.assetType === "kr_stock")
+      .map((contribution) => contribution.symbol);
+    const assetLabels = krSymbols.length ? await this.market.assetLabels(krSymbols).catch(() => []) : [];
 
     return {
       settings: {
@@ -145,16 +163,9 @@ export class GetRiskBudget {
           snapshot.holdings.map((holding) => ({ symbol: holding.symbol, value: holding.currentValue })),
           betas
         ),
-        portfolioVolatility: portfolioVolatility(
-          snapshot.holdings.map((holding) => ({
-            symbol: holding.symbol.toUpperCase(),
-            assetType: holding.assetType === "kr_stock" ? ("kr_stock" as const) : ("crypto" as const),
-            value: new Decimal(holding.currentValue),
-          })),
-          recentBars,
-          now
-        ),
+        portfolioVolatility: volatility,
       },
+      assetLabels,
       market,
       scenarios: portfolioScenarios(holdings, episodeBars),
       monthStart: snapshot.monthStart,

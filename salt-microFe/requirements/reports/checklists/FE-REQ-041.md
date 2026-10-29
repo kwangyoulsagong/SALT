@@ -323,3 +323,15 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 | 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
 
 미검증: 없음 — 판단 · 화면 무변경
+
+## F009 FR-26 이 FR-29 옆에 (2026-10-29)
+
+- FR-29 칸 문구 · 값 그대로(실데이터 화면 38% ~ 39%) · 국내 이름 · "거래일" 표시는 응답 덮어쓰기로 확인(`FE-REQ-039` 체크리스트 §FR-27)
+
+## FR-29 덮은 몫 내림 (2026-10-29)
+
+- 임시 사용자 실화면 — 114800 제외 덮은 몫 0.995: 전 "보유의 100%로 계산" → 후 "99%". BTC 베타 줄(54%)은 값이 같아 표시 무변경 · check-types · lint · 훅 exit 0
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: 범위 밖 "국내 거래 폼 · 해설 · 전망은 국내 주식을 받지 않는다"는 지난 일 — FR-16 · 22(거래 폼) · FR-23(`KrForecast.tsx`)

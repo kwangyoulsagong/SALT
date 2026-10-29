@@ -6,6 +6,10 @@ labels: [API 연동, 계약 정의, 기능 정의]
 created: 2026-05-25
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - **`BFF-REQ-023` · `024` 로 대체** — explain 은 인증 뒤(`ai-coach.routes.ts`), `confidence` 는 D3 로 제거, 상세는 `SymbolCoachViewModel`(modes). 아래 계약은 2026-05 당시 기록
+
+
 ## Summary
 
 BFF는 서버 AI Coach 응답을 프론트가 바로 쓰는 preview/detail/profile/feedback/explain view model로 변환한다.
@@ -35,3 +39,4 @@ BFF는 서버 AI Coach 응답을 프론트가 바로 쓰는 preview/detail/profi
 ## Notes
 
 - 구현 위치: `bff/src/rest/routes/ai-coach.routes.ts`, `bff/src/rest/controllers/ai-coach.controller.ts`, `bff/src/services/app-ai-coach.service.ts`
+- 2026-10-29: 전수 조사 — 023 · 024 대체 표시

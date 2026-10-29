@@ -9,6 +9,10 @@ labels: [fe, api, bff, plan]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-50 은 이 REQ 가 아니라 `FE-REQ-012` FR-50(뷰모델 타입 공유) — Changelog 의 "FR-50 범위 밖"은 그 뜻. 시세 · 관심 · 인증 뷰모델 한 벌화를 이 REQ 로 가리키던 코드 주석 3 · 문서 7곳을 `FE-REQ-012` FR-50 으로 바로잡았다
+
+
 ## Summary
 
 프론트는 **BFF만** 부른다. `salt-server`, 지표 제공자, Upbit/Binance를 직접 부르지 않는다.
@@ -173,3 +177,4 @@ type KimchiPremiumViewModel = {
 |---|---|
 | 2026-10-28 | `F000-api-error-normalize`(파일만 걸침) — `ChartPeriod` enum 추가(파일 머리 REQ). FR-50 타입 공유 범위 밖 그대로. 동작 무변경(4xx 재시도 0 유지) |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 설정 저장 PUT→PATCH · 월 적립액 1필드(D9 · B12), `monthly-summary` 신설(B20), 422 코드 개정. FR-12~15 추가 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

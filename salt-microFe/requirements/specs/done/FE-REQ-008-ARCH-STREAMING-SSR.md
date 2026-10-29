@@ -9,6 +9,11 @@ created: 2026-09-09
 decision: requirements/decisions/ADR-001-microfrontend-replacement.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-4 `/investments` → `/assets` 리다이렉트 · 3탭 `/coach` · `/assets` 는 구현되지 않았다(ADR-002 뒤 IA 미착수, `FE-REQ-030`)
+> - FR-22 · 23 세금 콕핏 · 청구서 스트리밍 경계는 **ADR-002 로 폐기**
+
+
 ## Summary
 
 라우팅을 Pages Router(`src/pages/**`)에서 **App Router(`src/app/**`)** 로 옮기고, 화면을 **Suspense 경계로 쪼개 스트리밍**한다. 홈 5블록·세금 콕핏·청구서처럼 **소스가 여러 개이고 그중 하나가 느린 화면**에서, 먼저 온 블록을 먼저 보여준다.
@@ -195,3 +200,4 @@ RSC에서는 그 근거가 달라진다. 서버 컴포넌트가 BFF를 여러 �
 - Next 15의 `cookies()`가 dynamic rendering을 강제하므로 **정적 최적화가 사라진다.** 이 앱은 전부 인증 화면이라 문제가 아니지만, 로그인 화면만 정적으로 남길지 결정 필요.
 - `@repo/ui` 44종 중 몇 개가 `"use client"`를 필요로 하는지 실측. `feature/repo-ui-component` 병합 후 확인.
 - 스트리밍과 React Query의 역할 분담. 서버에서 첫 데이터를 흘리고 클라이언트에서 갱신하려면 `HydrationBoundary`가 필요하다. **서버 컴포넌트로 조회하고 React Query는 mutation·실시간 갱신에만** 쓰는 것이 기본안.
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

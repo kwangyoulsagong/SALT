@@ -3,6 +3,7 @@
 - REQ: `requirements/specs/in-progress/SRV-REQ-009-F000-API.md`
 - 브랜치: `feat/f000-watchlist-tab` → `feat/f000-invite-onboarding-slice` · 검증일: 2026-09-18
 - 상태: **부분 완료** — `portfolio/summary`·`period` 에 이어 **초대 2경로·온보딩 상태·제거 3경로**가 닫혔다. 410 Gone 이 남았다
+> **2026-10-29 전수 조사:** 위 상태 줄은 작성 당시 — 410 Gone 은 2026-10-27 닫힘. 본문 표가 진실
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-watchlist-tab.md`
 
 ## 1. 신규 엔드포인트
@@ -111,3 +112,7 @@ Swagger: 동면 모듈 JSDoc 은 스캔 경로(`src/modules/**/*.routes.ts`)에 
 미검증: 없음
 
 | Swagger | `/crypto/{symbol}/chart` 응답에 404 `MARKET_SYMBOL_NOT_FOUND` 추가 — `swagger-jsdoc` `failOnErrors` 생성 통과 · 200 · 404 · 422 |
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: 초대 · 제거 경로 · `period` 수용 기준은 Changelog(FR-1~6 · 9)로 닫혔다 / 알림 "생성 거부, 조회 허용" → 지금은 옛 행을 지우지 않지만 **목록 · 안 읽은 수도 1종만** 보인다(`SRV-REQ-008` "다른 지점")

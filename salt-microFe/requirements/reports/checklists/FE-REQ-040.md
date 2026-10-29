@@ -95,3 +95,11 @@
 | 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
 
 미검증: 없음 — 판단 · 화면 무변경
+
+## FR-2 덮은 몫 내림 (2026-10-29)
+
+- 임시 사용자 실화면 — 114800 제외 덮은 몫 0.995: 전 "보유의 100%로 계산" → 후 "99%". BTC 베타 줄(54%)은 값이 같아 표시 무변경 · check-types · lint · 훅 exit 0
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: FR-5 · 6 · 7 `/investments` 위험 카드 · 성적표 "완료" → FR-11 · 12 · 13 으로 대체(카드를 `/coach/report` 로

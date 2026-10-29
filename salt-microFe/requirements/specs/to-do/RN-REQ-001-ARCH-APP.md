@@ -8,6 +8,11 @@ labels: [architecture, react-native, ios, android, expo, fsd, design-system]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - `packages/tokens` · `packages/core` 는 이미 있다(FE-REQ-007 FR-30, done) — FR-10~12 · FR-40 은 웹 쪽 닫힘, 남은 일은 FR-13(RN `StyleSheet`). `feature/repo-ui-component` 브랜치 선행은 낡음
+> - **ADR-002**: 모바일 근거의 세금 마감(F002) D-30~1 알림 · FR-41 D-Day · FR-51 "세금은 자산 탭 내부 스택"은 폐기 — 알림은 지표 · 추천 갱신 1종(`RN-REQ-024` FR-3 과 맞춤)
+
+
 ## Summary
 
 `salt-microFe/apps/mobile`에 React Native 앱을 만든다. **iOS와 Android를 하나의 코드로** 지원한다. 내부 구조는 **FSD**이고 슬라이스 이름을 웹·서버와 공유한다. 웹 디자인 시스템은 재사용할 수 없으므로 **`packages/tokens`(플랫폼 중립)를 추출하고 `packages/ui-native`를 새로 만든다.**
@@ -206,3 +211,4 @@ bare RN은 Re.Pack + Module Federation 2를 쓸 수 있어 **Phase 2의 길이 �
 사용자 결정: 앱은 네이티브 화면 + **정보가 많은 화면은 웹뷰**로 빠르게 띄운다. 웹뷰는 반드시 User-Agent 끝에 `SALTApp/<앱 버전>` 을 붙인다
 (`react-native-webview` `applicationNameForUserAgent`, 값은 `@repo/core/embed` `APP_WEBVIEW_UA_TOKEN`). 빠뜨리면 웹이 768px 미만에서
 "PC로 접속해 주세요" 안내로 화면을 덮는다(`FE-REQ-043` FR-6). 웹뷰로 띄울 화면이 정해지면 그 화면의 휴대폰 폭 레이아웃 REQ 를 따로 만든다.
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

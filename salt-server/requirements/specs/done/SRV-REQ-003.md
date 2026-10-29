@@ -6,6 +6,10 @@ labels: [기능 정의, API 연동]
 created: 2026-05-25
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - **`SRV-REQ-038` FR-13 으로 대체** — `behavior_analysis` 저장을 지웠고 `AnalyzeTradingBehavior` 가 저장 없이 측정만 한다. `modules/behavior-coach` 없음
+
+
 ## Summary
 
 서버는 사용자 거래 내역을 기반으로 행동 분석 insight를 생성하고 행동 코치 응답을 제공한다.
@@ -33,3 +37,4 @@ created: 2026-05-25
 ## Notes
 
 - 구현 위치: `salt-server/src/modules/behavior-coach/**`, `salt-server/src/modules/investment-insight/behavior-analysis.service.ts`
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

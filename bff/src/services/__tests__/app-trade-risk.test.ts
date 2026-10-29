@@ -234,11 +234,38 @@ describe("toRiskBudgetViewModel", () => {
         returns: 250,
         coveredWeight: 1,
         missingSymbols: [],
+        contributions: [],
+        tail: null,
       },
     );
     assert.equal(withVol({ status: "ok", upper: 0.5, realized: null }).status, "insufficient_data");
     assert.equal(withVol({ status: "ok", upper: 0.5, realized: 0.4, grid: "weekly" }).grid, null);
     assert.equal(toRiskBudgetViewModel(budget).gauges.portfolioVolatility.status, "insufficient_data", "옛 서버");
+  });
+
+  it("흔들림 몫 · 나빴던 날 평균(FR-26)을 옮기고, 깨진 항목은 빼고 반쪽 꼬리는 null", () => {
+    const withVol = (extra: Record<string, unknown>) =>
+      toRiskBudgetViewModel({
+        ...budget,
+        gauges: { ...budget.gauges, portfolioVolatility: { status: "ok", upper: 0.5, realized: 0.4, ...extra } },
+      }).gauges.portfolioVolatility;
+    const tail = { fraction: 0.05, days: 13, averageRate: -0.041, averageKrw: -410_000, worstRate: -0.072, worstOn: "2026-03-05T00:00:00.000Z" };
+    const v = withVol({
+      contributions: [
+        { symbol: "BTC", assetType: "crypto", name: null, logoUrl: null, weight: 0.4, share: 0.62 },
+        { symbol: "005930", assetType: "kr_stock", name: "삼성전자", logoUrl: "https://img/x.png", weight: 0.6, share: 0.38 },
+        { symbol: "BAD", assetType: "crypto", weight: 0.1 },
+      ],
+      tail,
+    });
+    assert.deepEqual(v.contributions, [
+      { symbol: "BTC", assetType: "crypto", name: null, logoUrl: null, weight: 0.4, share: 0.62 },
+      { symbol: "005930", assetType: "kr_stock", name: "삼성전자", logoUrl: "https://img/x.png", weight: 0.6, share: 0.38 },
+    ]);
+    assert.deepEqual(v.tail, tail);
+    assert.equal(withVol({ tail: { ...tail, averageKrw: null } }).tail, null);
+    assert.equal(withVol({ tail: { ...tail, days: 0 } }).tail, null);
+    assert.deepEqual(withVol({ contributions: "x" }).contributions, []);
   });
 
   it("국면은 라벨로 옮기고 게이트 채택 여부를 key 로 판단한다 — 날짜가 없거나 서버가 null 이면 null", () => {

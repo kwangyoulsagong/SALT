@@ -9,6 +9,14 @@ labels: [fe, ui, fsd, coach, render-gate, a11y]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FSD 표의 `ReasonList` · `SignalTrackRecordBadge` · `FailureCaseAccordion` · `CandidateList` 는 없다 — 실제 `entities/coach/ui` 의 `JudgmentSummary` · `JudgmentCases` · `ExitPlanList` · `ScoreboardList` · `ReportRiskList`. 후보 목록은 2026-09-23 그리지 않기로
+> - FR-140 진입점은 `/coach` 탭이 아니라 투자 화면 제목 줄 링크(`widgets/market-board/ui/MarketBoard.tsx`) — `/coach` 라우트 없음(`/coach/report` 만)
+> - FR-119 ⑦ 버튼은 지워졌다(`coach-panel/ui/CoachPanel.tsx`) — 행 클릭으로 이동
+> - FR-132 기간 탭은 6개가 아니라 **5개**(1m · 5m · 15m · 1h · 1d, `entities/market/model/chartTimeframes.ts`)
+> - "지금 `MarketPreview` 에는 헤더 · 차트 · 게이지 · 뉴스만"은 지난 일 — K절 패널(`widgets/coach-panel`, `ZoneSummary`)
+
+
 ## Summary
 
 **서버에 엔진이 다 있는데 화면이 없어서 0원인 기능**을 화면으로 만든다. 이 REQ의 핵심은 **3종 세트가 없으면 카드를 렌더하지 않는 것**이고, 그것을 컴포넌트 레벨에서 강제한다.
@@ -389,3 +397,5 @@ PC                                                   모바일(세로 스택)
 | 2026-09-28 | **F010 슬라이스 0.** FR-165 신설 · 구현. `@repo/core` `ReportTrackRecord` · `TrackRecord` · `RecommendationBlockedReason` · `ReportFailureCase` 확장(`SRV-REQ-025` FR-59 · `BFF-REQ-024` FR-40 과 짝). 화면은 타입 · 린트만 — 표본이 0 이라 카드가 막힌 상태(`reports/checklists/FE-REQ-026.md` §2026-09-28) |
 | 2026-10-08 | F011 슬라이스 4 — `BlockedNotice` 에 `assetClass` · `history`(선택). 리포트 제외 사유 `kr_stock:no_realtime_data` → `insufficient_history` · `symbol_judgment_only` + 진행 수치. 투자 패널이 국내 주식에도 판단을 조회한다. 근거 `FE-REQ-041` FR-19~21 |
 | 2026-10-26 | F011 슬라이스 7b — `JudgmentDetail` · `JudgmentSummary` · `TrackRecordStats` · `JudgmentCases` 에 성적 출처 라벨(`sampleOrigin: backtest` → 모의) · 피하기 근거 수 = 근거 + 주의할 점(서버 `judgmentEvidence`) · 근거가 없으면 근거 제목 없음(`FE-REQ-041` FR-25). 코인 라이브 표시 무변경 |
+| 2026-10-29 | `entities/coach/lib/format.ts` 에 덮은 몫 표시 내림 `formatCoveredRatio`(합산 변동성 · BTC 베타 "빼고 셌어요(보유의 N%)" — 0.995 가 "100%"로 보이던 것) 추가 — 기존 포맷터 무변경. 주인 칸 `FE-REQ-041` FR-29 · `FE-REQ-040` FR-2 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

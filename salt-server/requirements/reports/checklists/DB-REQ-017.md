@@ -130,3 +130,7 @@
 | Prisma 인덱스 이름 드리프트 | 이 REQ 목적 밖 · 다음 `migrate dev` 가 또 만든다 | 기술부채 — 인덱스 이름 정리 마이그레이션 |
 | `EXPLAIN (ANALYZE, BUFFERS)` | 표가 작다 | 행이 수백을 넘으면 |
 | 운영 DB 적용 | 로컬만 | 배포 시 |
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: "Prisma 에 컬럼이 없다 · `unsupportedPersistedFields`"는 지난 일 — `default_mode` · `notification_le / "지금 문제" 절의 `signal-performance.service.ts` 는 없다 — `coach/application/GetSignalPerformance.

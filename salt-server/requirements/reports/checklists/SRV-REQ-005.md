@@ -28,3 +28,7 @@ npm run prisma:generate
 npm run build
 # FAIL: 기존 투자/포트폴리오 타입 오류
 ```
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: **대체** — 성적은 최근 insight 100건이 아니라 원장 `coach_recommendation_snapshots` 채점(`SRV-REQ-024` FR-

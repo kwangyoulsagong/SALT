@@ -122,7 +122,7 @@ export const coachApi = {
   },
 
   /**
-   * 리스크 예산 게이지 3 · 설정 (`GET /api/app/coach/risk-budget`, F009). 서버 장애는 BFF 가 200
+   * 리스크 예산 게이지 · 측정 · 설정 (`GET /api/app/coach/risk-budget`, F009). 서버 장애는 BFF 가 200
    * `{ status: "unavailable" }` 로 준다 — 게이지 카드만 "불러올 수 없음"이다.
    */
   riskBudget: async (signal?: AbortSignal): Promise<RiskBudgetResult> => {

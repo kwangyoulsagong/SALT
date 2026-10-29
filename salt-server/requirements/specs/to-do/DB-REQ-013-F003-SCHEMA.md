@@ -10,6 +10,10 @@ created: 2026-09-09
 source: pm/requirements/specs/to-do/FEATURE-003-valuation-band-accumulation.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - F004 3종 게이트가 `IndicatorTrackRecord` · `signalTypes` GIN 에 의존한다는 전제는 사실 아님 — F004 는 판단 · 추천 스냅샷 원장에서 실패사례를 읽는다(`SRV-REQ-024` FR-105 · 134 · 176, `GetCoachDetail.ts`). "M2 가 F004 보다 먼저" 순서 근거도 사라짐 — `indicator` 컨텍스트 근거는 F003 착수 때 다시 쓴다
+
+
 ## Summary
 
 "이번 주 얼마 넣을지" 한 숫자를 만드는 데이터. 그리고 **`IndicatorTrackRecord`(실패 이력)** — 이것은 F003만의 것이 아니라 **F004의 3종 세트 렌더 게이트가 의존하는 모델**이다.
@@ -174,3 +178,4 @@ model WeeklyPlanExecution {
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. FR-1·FR-2·FR-11 개정(D9 · ADR-002 · B20). FR-13~16 추가 — `BandPreset` 전역 읽기 전용 · `monthlyBaseKrw` 원값 · 이번 달 적립 합계 집계 기준 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

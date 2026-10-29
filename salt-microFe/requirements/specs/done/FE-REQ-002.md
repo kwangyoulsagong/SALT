@@ -7,6 +7,10 @@ created: 2026-05-31
 updated: 2026-05-31
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - **FE-REQ-007 · ADR-001 로 대체 — 역사 기록**: shell/goals/investments 앱 · Module Federation · `@repo/mocks` · `message-event-bus` 는 지금 없다(`apps/` 는 `web` · `web-tax`)
+
+
 ## Summary
 
 `investments` remote의 `MarketPreview`는 기존에 종목 헤더와 단일 차트(`MarketChartPreview`)만 보여줬다. 이번 작업은 미리보기를 "실시간 캔들 차트 + 시장 인텔리전스(심리 온도계 / 스마트머니 / 뉴스)"로 확장한다.
@@ -112,3 +116,4 @@ updated: 2026-05-31
 ## Status
 
 - done (검증 완료: 3앱 tsc/lint/build 통과). 본 spec은 `requirements/specs/done/`에 위치한다.
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

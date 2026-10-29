@@ -9,6 +9,10 @@ labels: [bff, performance, budget, websocket, cache]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 수용 기준이 비어 있지만 FR-1 p95 23.1ms · FR-4 히트율 실측 · FR-53 rate limit · FR-50 `allSettled` 는 Changelog · 코드에 있다 — 진실은 체크리스트
+
+
 ## Summary
 
 F000의 성능 요구는 **① 변경 금지 목록(실시간 테이블·시세 WS)의 성능을 유지하고 ② 정리 효과를 측정하는 것** 둘이다.
@@ -17,7 +21,7 @@ F000의 성능 요구는 **① 변경 금지 목록(실시간 테이블·시세 
 
 | 엔드포인트 | 예산 | 비고 |
 |---|---|---|
-| `GET /api/app/market/overview` (`limit=100`) | **350ms** | **변경 금지 — 현재 성능 유지** |
+| `GET /api/investment/market/overview` (`limit=100`, 프록시 — `/api/app/market/overview` 경로는 없다) | **350ms** | **변경 금지 — 현재 성능 유지** |
 | `GET /api/app/watchlist` | 200ms | 현재가 보정 포함 |
 | `GET /api/app/news?limit=5` | 150ms | |
 | `GET /api/app/portfolio/summary` | 250ms | |
@@ -149,3 +153,4 @@ F000의 성능 요구는 **① 변경 금지 목록(실시간 테이블·시세 
 | 2026-09-21 | **WS 절을 다루고 `in-progress` 로 옮겼다.** FR-15 측정: 100심볼 구독 시 14.8~19.5건/초 · 심볼당 최대 2.6건/초. **FR-11 throttle 은 만들지 않는다** — 그 수치에서 프론트가 이미 프레임 단위로 묶는다. FR-12 는 **부분** — 닫힌 소켓의 심볼은 구독 집합에서 빠지지만 Upbit 쪽은 마켓 전체를 늘 구독해 줄일 대상이 없다. 같은 작업에서 시세가 조용히 멈추는 경로 넷을 고쳤다(연결 키 충돌 · Upbit 구독 대체 · 서버 장애 시 0건 · SIGTERM 뒤 생존). **남은 것**: FR-1~5 · FR-20~63. 근거: `requirements/reports/checklists/F000-realtime-reliability.md` |
 | 2026-09-21 | **시세 개요 A절(FR-1~4).** FR-4 측정 결과 가격 캐시 히트율 **0%** — 그 캐시는 워커 프로세스에서만 찬다. 덧씌우기를 걷어내고 서버 응답을 그대로 넘긴다. FR-1 p95 23.1ms. **FR-2 는 다르게** — 서버가 `periodChange` 를 더해 정리 전 응답과 바이트가 다르다. BFF 는 서버 응답과 바이트 동일(테스트). 서버 4xx 를 500 으로 바꾸던 것도 고쳤다. `performance-bff.md` §4 정정. 근거: `requirements/reports/checklists/F000-market-table.md` |
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 예산 4행(검색 · 뉴스 `isBookmarked` · 북마크 목록 · 토글)과 캐시 표 2행(검색 · 북마크 — 캐시하지 않음), 수용 기준 2개(예산 · 검색어 로그 0건) 추가. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-29 | 전수 조사 — 예산 대상 경로를 실제 프록시 경로로 · 수용 기준 구현분 표시 |

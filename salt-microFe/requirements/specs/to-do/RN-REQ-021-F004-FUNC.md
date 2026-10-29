@@ -9,6 +9,10 @@ labels: [rn, func, fsd, render-gate, offline, cooldown]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-1 게이트 함수 공유는 선행 필요 — 지금 `apps/web/src/entities/coach/lib`(core 아님)
+
+
 ## Summary
 
 모바일 코치의 동작 규칙. 게이트·금지 표현·주문 미실행은 **웹과 완전히 같고 `packages/core`에서 공유**한다. 다른 것은 오프라인과 백그라운드 처리다.
@@ -186,3 +190,4 @@ created: 2026-09-09
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 신규 FR-90~101(모드 navigation param 공유(D3) · `defaultMode` 위임(B16) · 모드 전환 무요청 · 모드별 게이트(B10) · 신뢰도/유효시간 상수 금지 · 무계산(D2 · B9) · 금지 표현 6개 · 해설 게이트(B3) · 주문 전 체크(B1) · 목록 분리(D4) · 초기 미렌더 정상(B18) · 오프라인 모드 전환). 개정: FR-85 |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `distancePct` → `priceGap`(D13) |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

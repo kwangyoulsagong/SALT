@@ -31,3 +31,7 @@ npm run build
 # FAIL: portfolio-rebalance.service.ts, whale-signal.service.ts,
 # portfolio.service.ts 기존 타입 오류
 ```
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: **`SRV-REQ-025` 로 대체** — explain 은 인증 + rate limit, 구현 위치는 `src/coach/**`(`modules/investm

@@ -68,3 +68,7 @@ pnpm --filter shell        build                    # OK
 - `pnpm --filter @repo/ui lint`는 여전히 `--max-warnings 0`을 통과하지 못한다. 남은 23개 경고는 stories/`useDebounce`/`useThrottle`/`Table`/`Tabs` 등 **이번 작업 이전부터 있던** 경고이며 FE-REQ-001 회고에서 이미 별도 정리 대상으로 기록되어 있다(범위 밖).
 - `pnpm --filter shell build`는 remote dev server(goals 3001, investments 3002)가 꺼져 있으면 `goals/AddGoals offline` 등 remote offline 로그를 남기지만 `RemoteBoundary` fallback이 동작해 build는 성공한다.
 - 테이블 실시간 회귀 수정 후 `investments` tsc/lint/build를 재실행해 모두 통과 확인.
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: **FE-REQ-007 · ADR-001 로 대체 — 역사 기록**: shell/goals/investments 앱 · Module Federation · `@r

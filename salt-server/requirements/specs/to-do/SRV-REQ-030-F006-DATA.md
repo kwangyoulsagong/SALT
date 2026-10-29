@@ -9,6 +9,10 @@ labels: [ddd, infrastructure, sse, llm-streaming, homebriefing, fx]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - Q2 닫힘 — 환율은 미국 주식 착수 때
+
+
 > **2026-09-21 개정.** `ADR-002` — `homebriefing` 어댑터는 **3개**, `ContextAssembler`에서 `tax` · `invoice` 삭제, **환율 워커 확장(FR-60~63)은 보류**. `portfolio` · `notification` · `onboarding` 인프라 연동을 추가했다(§2026-09-21). 근거: 스토리보드 갭 감사 D5 · B12 · B13 · B14.
 
 ## Summary
@@ -201,3 +205,4 @@ src/panel/                                   (또는 coach 안에)
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. 개정: FR-3 · FR-40 · FR-50(3블록, `tax` · `invoice` 삭제), 환율 워커 FR-60~63 보류. 추가: FR-80~87(일봉 다종목 · 뉴스 감정 · 레이더 설정 B13, 미리보기 B14, 알림 생성 연결 D5 · B19, 온보딩 probe B12). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

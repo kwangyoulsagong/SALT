@@ -3,6 +3,7 @@
 - REQ: `requirements/specs/in-progress/BFF-REQ-007-F000-FUNC.md`
 - 브랜치: `feat/f000-watchlist-tab` → `feat/f000-invite-onboarding-slice` · 검증일: 2026-09-18
 - 상태: **부분 완료** — D·E·F·G절에 이어 **A절(동면 410, 2026-09-22)** 이 닫혔다(FR-6 1주 로그만 2026-09-29). B·C절(홈 조립·알림)이 남았다
+> **2026-10-29 전수 조사:** 위 상태 줄은 작성 당시 — 이후 닫힌 절(B · C절 10-27 · 10-28, 코치 리포트 · 재생성 · 해설 인증 슬라이스 5 · 14)은 본문 표가 진실
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F000-watchlist-tab.md`
 
 ## 1. 닫힌 것
@@ -150,3 +151,11 @@
 | FR-52 `chartPeriod.middleware` | 422 본문에 `code` — 실측 `/api/investment/crypto/BTC/chart?period=week` |
 
 미검증: 없음
+
+## 2026-10-29 REQ 전수 조사
+
+- FR-52 2종 · 홈 3블록 · 현재형 문장 정정 · 수용 기준 구현분 표시
+
+## 2026-10-29 FR-6(1주 410 로그) 확인
+
+- **관찰 불가로 닫고 대체** — BFF 는 상시 실행되지 않는다(launchd 에 `com.salt.server` · `com.salt.forecast-daily` 만, BFF 로그 파일 없음). 9-22~29 1주 로그가 쌓일 수 없었다. 같은 신호(동면 경로 잔여 호출)를 상시 서버의 410 1회 로그로 본다 — `F000-dormant-410` 체크리스트 2026-11-03 확인으로 넘김
