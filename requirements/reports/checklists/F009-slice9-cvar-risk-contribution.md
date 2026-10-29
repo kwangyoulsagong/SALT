@@ -1,6 +1,6 @@
 # F009 슬라이스 9 — 흔들림 몫 · 나빴던 날 평균 체크리스트 (2026-10-29)
 
-범위 `requirements/specs/in-progress/F009-slice9-cvar-risk-contribution-slice.md`. 영역 근거는 각 REQ 체크리스트.
+범위 `requirements/specs/done/F009-slice9-cvar-risk-contribution-slice.md`. 영역 근거는 각 REQ 체크리스트.
 
 | 항목 | 결과 | 근거 |
 |---|---|---|

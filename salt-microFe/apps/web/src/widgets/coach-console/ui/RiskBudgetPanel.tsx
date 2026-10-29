@@ -13,6 +13,7 @@ import {
   useRiskBudget,
 } from "@/entities/coach";
 import { RiskBudgetForm } from "@/features/set-risk-budget";
+import { PurchasePriceToggle } from "@/features/toggle-purchase-price";
 import { COACH_REPORT_SECTIONS } from "@/shared/config";
 import { panel, panelDescription, panelHead, panelTitle } from "@/shared/ui/surface.css";
 
@@ -60,6 +61,8 @@ export const RiskBudgetPanel = () => {
       </div>
       <p className={panelDescription}>{GAUGE.description}</p>
       {body()}
+      {/* 매입가 숨김(FR-27) — 예산 응답과 따로 부르고 따로 실패한다. 숨는 곳은 홈 보유 요약 */}
+      <PurchasePriceToggle />
       <CoachDisclosure />
     </section>
   );

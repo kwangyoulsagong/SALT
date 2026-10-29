@@ -15,6 +15,8 @@ export const coachQueryKeys = {
   positioning: (symbol: string) => ["coach", "positioning", symbol] as const,
   /** 리스크 예산 게이지. 거래 · 예산을 저장하면 무효화한다 */
   riskBudget: () => ["coach", "risk-budget"] as const,
+  /** 코치 설정(매입가 숨김). 토글 저장 응답을 그대로 넣는다 */
+  profile: () => ["coach", "profile"] as const,
   /** 종목별 거래 계획. 거래 + 계획을 저장하면 그 종목 키를 무효화한다 */
   plans: (symbol: string) => ["coach", "plans", symbol] as const,
   /**

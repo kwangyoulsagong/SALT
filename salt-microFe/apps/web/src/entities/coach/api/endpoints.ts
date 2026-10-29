@@ -19,6 +19,8 @@ export const COACH_ENDPOINTS = {
   positioning: (symbol: string) => `/api/app/coach/positioning?symbol=${encodeURIComponent(symbol)}`,
   /** 리스크 예산 게이지 · 측정 · 설정 (F009 `BFF-REQ-038`). 조회 · 저장이 같은 경로다 */
   riskBudget: "/api/app/coach/risk-budget",
+  /** 코치 설정 — 매입가 숨김(F009 FR-27). 조회 GET · 저장 PATCH 가 같은 경로다 */
+  profile: "/api/app/ai-coach/profile",
   /** 종목별 거래 계획 (F009 `BFF-REQ-038`) */
   plans: (symbol: string) => `/api/app/coach/plans?symbol=${encodeURIComponent(symbol)}`,
   /** 내 거래 미러 (F009 슬라이스 5 `BFF-REQ-038` FR-7) */

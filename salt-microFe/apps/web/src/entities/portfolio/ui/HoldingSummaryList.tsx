@@ -24,11 +24,21 @@ import { PortfolioSummaryItem } from "../model/types";
  * 표시 전용이다. 평가금액·손익률은 서버가 계산한 값을 그대로 쓴다 — 프론트에서
  * 금액을 만들지 않는다(전 영역 공통 수용 기준).
  *
+ * 매입가 숨김(F009 FR-27)이면 손익률을 **그리지 않는다** — 흐리게 하거나 가리지 않는다. 숨김 여부는
+ * 서버 설정이고 조합하는 쪽이 넘긴다(이 슬라이스는 코치 설정을 모른다).
+ *
  * 손익 부호는 색과 **문자(`+`/`−`)를 함께** 쓴다. 색만으로 상태를 표현하지 않는다
  * (`a11y-policy.md`).
  */
 export const HoldingSummaryList = React.memo(
-  ({ items }: { items: readonly PortfolioSummaryItem[] }) => {
+  ({
+    items,
+    showProfitRate = true,
+  }: {
+    items: readonly PortfolioSummaryItem[];
+    /** 매입가 숨김(F009 FR-27)이면 `false` — 손익률 칸을 그리지 않는다. 평가금액은 그대로 */
+    showProfitRate?: boolean;
+  }) => {
     if (items.length === 0) {
       return <StatusLine kind="empty">{PORTFOLIO_MESSAGES.holdingsEmpty}</StatusLine>;
     }
@@ -66,12 +76,14 @@ export const HoldingSummaryList = React.memo(
                 <Text variant="bodyLarge">
                   {PORTFOLIO_MESSAGES.amount(formatPrice(item.currentValue))}
                 </Text>
-                <Text
-                  variant="bodyLarge"
-                  color={isFlat ? "tertiary" : isUp ? "up" : "down"}
-                >
-                  {PORTFOLIO_MESSAGES.profitRate(item.profitRate)}
-                </Text>
+                {showProfitRate ? (
+                  <Text
+                    variant="bodyLarge"
+                    color={isFlat ? "tertiary" : isUp ? "up" : "down"}
+                  >
+                    {PORTFOLIO_MESSAGES.profitRate(item.profitRate)}
+                  </Text>
+                ) : null}
               </FlexBox>
             </FlexBox>
           );

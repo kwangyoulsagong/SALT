@@ -72,3 +72,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-10-08 | F011 슬라이스 4 — 국내 주식 거래 + 계획 400 해제(서버 계획 연결이 국내 주식 거래를 받는다). 사이즈 계산 요청은 그대로 — 자산군 · 수수료는 서버가 시세로 고른다. 근거 `BFF-REQ-040` FR-19 |
 | 2026-10-29 | FR-14 — 흔들림 몫 · 나빴던 날 평균 통과(`RiskContributionView` · `TailLossView`, `@repo/core` 같은 모양). 근거 `SRV-REQ-038` FR-17 |
 | 2026-10-29 | 전수 조사 — FR-2 "게이지 3" 정정 |
+| 2026-10-29 | F009 슬라이스 10(FR-27 매입가 숨김 화면) — **변경 없음.** 프로필 `hidePurchasePrice` 통과(S3)를 웹이 처음 읽는다(`GET · PATCH /api/app/ai-coach/profile`) |

@@ -305,3 +305,12 @@ export interface RecordTradeResult {
   transaction: RecordedTransactionView;
   plan: { status: "ok"; plan: TradePlanView } | { status: "unavailable" } | { status: "none" };
 }
+
+/**
+ * 코치 설정 중 화면이 읽는 것 (`GET · PATCH /api/app/ai-coach/profile`, F009 FR-27 · `BFF-REQ-038`).
+ * 나머지 설정 필드도 오지만 웹 소비처가 없어 싣지 않는다. 서버가 안 주면 BFF 가 `false` 로 준다
+ */
+export interface CoachProfileSettings {
+  /** 매입가 숨김 — 켜면 보유 손익률을 보이지 않는다. 서버 저장 */
+  hidePurchasePrice: boolean;
+}
