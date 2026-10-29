@@ -231,3 +231,4 @@ type SymbolCoachViewModel = {
 | 2026-09-28 | **F010 슬라이스 0.** FR-40 신설 · 구현. 근거 `reports/checklists/BFF-REQ-024.md` §2026-09-28 |
 | 2026-10-26 | F011 슬라이스 7b — `symbol-coach.viewmodel` `trackRecord.sampleOrigin`(live · backtest, `BFF-REQ-040` FR-21). 기저율 값은 서버 정정(행동 무관 풀)을 그대로 통과 |
 | 2026-10-29 | 전수 조사 — generate 경로 · scoreboard 를 연 REQ · 구현분 표시 |
+| 2026-10-29 | F004 슬라이스 16 — 웹 주문 전 체크가 `POST /api/app/trade-preflight` 를 처음 소비한다. **BFF 변경 없음**(경로 · 응답 그대로). 계약 타입은 `@repo/core/coach` `TradePreflightView` 로 웹이 읽는다 |

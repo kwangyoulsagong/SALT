@@ -314,3 +314,4 @@ type ExplainResult =
 | 2026-10-29 | F009 FR-26 — `GET /api/coach/risk-budget` Swagger 설명에 `contributions[]` · `tail` 두 줄. 경로 · 인증 · 상태 코드 무변경. 근거 `SRV-REQ-038` FR-17 |
 | 2026-10-29 | F009 슬라이스 9 후속 — `/api/coach/risk-budget` Swagger summary "게이지 3종" → "게이지 · 측정"(FR-23~26). `failOnErrors` 생성 통과 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-29 | F004 슬라이스 16(FE) — `/trade-preflight` 를 웹 화면이 처음 소비. **서버 변경 없음.** 화면에서 남은 것: 목표 도달 시 금액(원) 응답 필드가 없어 FR-154 한 칸이 비었다 — 추가는 `salt-server` 변경 승인 시. 관찰: 거래 직후 보유 평가가 시세 워커 전(약 18초) 0 이라 그 사이 계산은 보유 0 기준 |
