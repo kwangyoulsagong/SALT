@@ -468,6 +468,11 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         `realized` 최근 250 축 날짜 실현 공분산. 국내 주식을 들고 있으면 KRX 거래일 축(코인은 그날 09:00 KST 종가로 as-of 정렬,
    *         주말 변동은 다음 거래일에) · √252, 아니면 달력일 · √365. `crossCorrelation` 코인 몫 · 국내 몫 수익률 상관. 수익률 60 미만이면
    *         `insufficient_data`. 판정 없음
+   *         - `contributions[]`(FEATURE-009 FR-26) — 종목별 흔들림 몫 `{symbol, assetType, name, logoUrl, weight, share}`, 몫 큰 순.
+   *           `share` = wᵢ(Σw)ᵢ ÷ wᵀΣw(오일러 분해, 합 1, 음수면 전체 흔들림을 줄였다). `name` · `logoUrl` 은 국내 종목만(코인 `null`)
+   *         - `tail`(FR-26) — 같은 창에서 지금 비중을 날마다 얹은 보유 하루 수익률 중 가장 나빴던 5%(올림)의 평균(과거 CVaR 95%)
+   *           `{fraction, days, averageRate, averageKrw, worstRate, worstOn}`. 금액은 값을 낸 보유의 지금 평가금 기준(음수). **확률 필드가 없다**.
+   *           값을 못 내면 `contributions: []` · `tail: null`
    *       - `market`(F010 슬라이스 2) — BTC 200일선 위 여부 · HMM 고변동 확률 · 365일 낙폭 · 다음 FOMC/CPI. 사전등록
    *         `regime-gate@1` 판정이 게이트 · 이벤트 축소를 채택하지 않아 `gate.key: null` · `gate.open: true` · `eventFactor: 1`
    *         (아무것도 막거나 줄이지 않는다). 국면 작업이 없거나 3일 넘었으면 `null`

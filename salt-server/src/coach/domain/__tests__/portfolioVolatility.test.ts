@@ -124,4 +124,68 @@ describe("portfolioVolatility", () => {
     assert.deepEqual(v.missingSymbols, ["NEW"]);
     assert.equal(v.coveredWeight?.toNumber(), 0.75);
   });
+
+  it("흔들림 몫(FR-26) — 합 1, 같이 움직이면 비중 그대로, 반대로 움직이는 종목은 음수", () => {
+    const same = portfolioVolatility(
+      [holding("A", "kr_stock", 75), holding("B", "kr_stock", 25)],
+      new Map([
+        ["A", bars(140, (i) => wiggle(i, 1), true)],
+        ["B", bars(140, (i) => wiggle(i, 1), true)],
+      ]),
+      NOW
+    );
+    assert.deepEqual(
+      same.contributions.map((c) => [c.symbol, c.share.toFixed(6), c.weight.toFixed(6)]),
+      [
+        ["A", "0.750000", "0.750000"],
+        ["B", "0.250000", "0.250000"],
+      ]
+    );
+
+    // B 가 A 와 반대로 움직이고 비중이 작으면 B 는 전체 흔들림을 줄인다
+    const hedge = portfolioVolatility(
+      [holding("A", "kr_stock", 80), holding("B", "kr_stock", 20)],
+      new Map([
+        ["A", bars(140, (i) => wiggle(i, 1), true)],
+        ["B", bars(140, (i) => 10_000 / wiggle(i, 1), true)],
+      ]),
+      NOW
+    );
+    const sum = hedge.contributions.reduce((acc, c) => acc + c.share.toNumber(), 0);
+    assert.ok(Math.abs(sum - 1) < 1e-9);
+    assert.equal(hedge.contributions[0].symbol, "A");
+    assert.ok(hedge.contributions[1].share.lt(0), "반대로 움직이는 작은 비중은 음수 몫");
+  });
+
+  it("나빴던 날 평균(FR-26) — 아래 5% 날 평균 · 금액은 값을 낸 평가금 × 비율 · 가장 나빴던 날", () => {
+    const series = bars(140, (i) => wiggle(i, 11), false);
+    const v = portfolioVolatility([holding("BTC", "crypto", 1_000_000)], new Map([["BTC", series]]), NOW);
+    assert.equal(v.status, "ok");
+    const tail = v.tail!;
+    assert.equal(tail.fraction, 0.05);
+    assert.equal(tail.days, Math.ceil(v.returns * 0.05));
+
+    // 손으로 다시 계산 — 같은 축(달력일) 단순 수익률
+    const closes = series.map((bar) => bar.close.toNumber());
+    const simple = closes.slice(1).map((close, i) => close / closes[i] - 1).slice(-v.returns);
+    const sorted = [...simple].sort((a, b) => a - b);
+    const expected = sorted.slice(0, tail.days).reduce((a, b) => a + b, 0) / tail.days;
+    assert.ok(Math.abs(tail.averageRate.toNumber() - expected) < 1e-12);
+    assert.ok(tail.averageRate.lt(0));
+    assert.equal(tail.averageAmount.toKrwInteger(), Math.round(expected * 1_000_000));
+    assert.ok(Math.abs(tail.worstRate.toNumber() - sorted[0]) < 1e-12);
+    const worstIndex = simple.indexOf(sorted[0]);
+    const offset = closes.length - 1 - v.returns;
+    assert.equal(tail.worstOn.getTime(), series[offset + worstIndex + 1].openTime.getTime());
+  });
+
+  it("값을 못 내면 몫 · 꼬리도 비운다", () => {
+    const short = portfolioVolatility(
+      [holding("A", "kr_stock")],
+      new Map([["A", bars(50, (i) => wiggle(i, 7), true)]]),
+      new Date(START + 50 * DAY)
+    );
+    assert.deepEqual(short.contributions, []);
+    assert.equal(short.tail, null);
+  });
 });

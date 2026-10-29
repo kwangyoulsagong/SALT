@@ -155,6 +155,28 @@ export const toRiskBudgetResponse = (view: RiskBudgetView) => {
         to: portfolioVolatility.to,
         coveredWeight: rate(portfolioVolatility.coveredWeight),
         missingSymbols: portfolioVolatility.missingSymbols,
+        // FR-26 — 흔들림 몫(합 1) · 나빴던 날 평균. 확률 필드가 없다
+        contributions: portfolioVolatility.contributions.map((contribution) => {
+          const label = view.assetLabels.find((item) => item.symbol === contribution.symbol);
+          return {
+            symbol: contribution.symbol,
+            assetType: contribution.assetType,
+            name: label?.name ?? null,
+            logoUrl: label?.logoUrl ?? null,
+            weight: rate(contribution.weight),
+            share: rate(contribution.share),
+          };
+        }),
+        tail: portfolioVolatility.tail
+          ? {
+              fraction: portfolioVolatility.tail.fraction,
+              days: portfolioVolatility.tail.days,
+              averageRate: rate(portfolioVolatility.tail.averageRate),
+              averageKrw: krw(portfolioVolatility.tail.averageAmount),
+              worstRate: rate(portfolioVolatility.tail.worstRate),
+              worstOn: portfolioVolatility.tail.worstOn,
+            }
+          : null,
       },
     },
     market: view.market
