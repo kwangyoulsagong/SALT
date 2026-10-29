@@ -14,7 +14,7 @@
 | FR-10 코치 리포트 자리 · 격리 | `widgets/coach-console/ui/RiskBudgetPanel.tsx` — 리포트 `unavailable` 이어도 패널이 보인다 | Playwright(리포트 `unavailable` 고정) |
 | FR-11 3종 고지 | `@repo/ui/disclosureSlot` · `entities/coach` `CoachDisclosure` | 세 카드 모두 세 줄 |
 | FR-12 `compact` 입력 | `@repo/ui/textField` 변형 + `Compact` 스토리 | `build-storybook` |
-| FR-13 매입가 숨김 | — | **보류**(아래 표) |
+| FR-13 매입가 숨김 | `features/toggle-purchase-price` · `widgets/home-briefing/ui/InvestmentsSummaryLeaf.tsx` · `entities/portfolio` `showProfitRate` | **완료 2026-10-29** — 아래 §FR-13 |
 
 | 확인 | 결과 |
 |---|---|
@@ -33,7 +33,7 @@
 |---|---|---|
 | 실 서버 값으로 화면(로그인 상태) | 로컬 토큰 발급 불가 — Playwright 고정 응답으로만 확인 | `QA-001` 로그인 QA(사용자) |
 | 거래 1건 + 계획 30초(사람 5회 평균) | 사람이 재야 한다 | `QA-001` 로그인 QA |
-| 매입가 숨김 토글(FR-13) | 웹에 평단 · 손익률을 보이는 화면이 없다 | 포지션 화면(`position-overview`) 생길 때 |
+| ~~매입가 숨김 토글(FR-13)~~ | **2026-10-29 닫힘** — 손익률은 홈 보유 요약에 있었다(보류 사유가 낡음). 아래 §FR-13 | — |
 | 손절 % 프리셋(−5/−8/−10%) | 가격 × 비율 = 프론트 금액 계산 | 서버가 프리셋 가격을 주면(`SRV-REQ-038` 후속) |
 | 손절까지 거리(원) · 4주 도달 확률 | 서버 필드 없음 · 도달 확률은 F008 소유자 전용 | 서버가 거리 필드를 주면 · F008 FR-7 연동 |
 | 예산 % 단위 입력 · 목표 변동성 입력 | 원만 받는다 | 슬라이스 6(코치 대화 3문항과 같이) |
@@ -171,3 +171,23 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: FR-13 매입가 숨김 보류 사유 "`HoldingSummaryList` 소비처 0 · 손익률 화면 없음"은 낡음 — `entities/portfolio/ui/I / FR-8 리스크 게이지 "3줄" → 지금 게이지 5 + 측정 2(FR-27)
+
+## FR-13 — 매입가 숨김 (2026-10-29, 슬라이스 10)
+
+| 확인 | 결과 |
+|---|---|
+| 실스택 | 임시 사용자(BTC · ETH 보유) · 로컬 JWT · web 3100 → BFF 4001 → 서버 4000, 가로챔 없음. 홈 `/home` 손익률 −38.16 % · +18.84 % → `/coach/report` 토글 켬(PATCH `{"hidePurchasePrice":true}`) → 홈 손익률 없음 · 평가금액 · 합계 그대로 · "오늘 처음 본다면" 한 줄 → 새로고침 뒤 토글 켜짐 유지(서버 저장) → 끔 → 홈 손익률 다시 보임. 페이지 에러 0 · 1440 가로 스크롤 없음 |
+| 키보드 · 접근성 | 처음엔 저장 중 `disabled` 가 포커스를 버튼에서 빼 두 번째 Space 가 먹지 않았다 → 입력 무시 + `aria-busy` 로 고침. 고친 뒤 포커스 유지 · Space 두 번 모두 반영 · 접근성 트리 `switch "매입가 숨기기" checked` |
+| 정적 | `pnpm check-types` · `pnpm lint`(web) · `pnpm test:layer-check`(차단 8 · 통과 5) · Bash 로 쓴 21개 파일 훅 사후 실행 exit 0 · 음성 대조(`entities/portfolio` → `entities/coach`) 차단 exit 2 |
+| 빌드 · 번들 | `pnpm --filter web build` 통과. 첫 로드 `/home` 176 → 177 kB(+1, 같은 날 main 워크트리 빌드와 비교) · `/coach/report` 130 → 130 kB |
+| 정리 | 임시 사용자 삭제 → users 5 · holdings 2 · profiles 1 (전과 같음) · 토큰 파일 삭제 · web 3100 끔 |
+| 문구 | 숨기라고 권하지 않음 · 홈 한 줄은 물음(지시 0) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 평단 · 손익금 숨김 | 웹에 평단 · 손익금을 보이는 화면이 없다 — 숨길 것이 손익률뿐 | 포지션 화면(`position-overview`) 생길 때 같은 설정을 읽는다 |
+| 토글 화면 390 | 웹 768 미만은 기존 안내가 덮는다(의도) | RN(F007) |
+| 단위 테스트 | web 앱에 테스트 러너가 없다 — 실스택 Playwright 로 대신 | `FE-REQ-039` 다른 FR 과 같음 |
+

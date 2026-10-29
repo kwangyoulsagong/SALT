@@ -10,7 +10,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 ---
 
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
-> - FR-13 매입가 숨김 보류 사유 "`HoldingSummaryList` 소비처 0 · 손익률 화면 없음"은 낡음 — `entities/portfolio/ui/InvestmentSummary.tsx` 가 렌더하고 홈 `InvestmentsBlock` 이 쓴다(손익률 표시). FR-13 은 다시 판단할 대상
+> - FR-13 매입가 숨김 보류 사유 "`HoldingSummaryList` 소비처 0 · 손익률 화면 없음"은 낡음 — `entities/portfolio/ui/InvestmentSummary.tsx` 가 렌더하고 홈 `InvestmentsBlock` 이 쓴다(손익률 표시). FR-13 은 다시 판단할 대상 → **2026-10-29 완료**(아래 FR-13 행)
 > - FR-8 리스크 게이지 "3줄" → 지금 게이지 5 + 측정 2(FR-27)
 
 
@@ -42,7 +42,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | FR-10 | 게이지 자리는 **코치 리포트** — 웹에 포지션 화면(`position-overview`)이 없다. 리포트와 따로 부르고 따로 실패한다 | 시나리오 3 | 완료 |
 | FR-11 | 3종 고지 — `@repo/ui/disclosureSlot`(세 줄 튜플 필수 · 끄는 prop 없음) + `entities/coach` `CoachDisclosure`(prop 없음). 새 카드 셋에 고정 | FR-32 | 완료 |
 | FR-12 | `@repo/ui/textField` `compact` 변형(32px · 헤어라인 · 초점 링 · 오류 링) + 스토리 | 보기 좋음 | 완료 |
-| FR-13 | 매입가 숨김 토글 | FR-27 | **보류** — 웹에 평단 · 손익률을 보이는 화면이 없다(`HoldingSummaryList` 소비처 0). BFF 는 필드를 통과시킨다 |
+| FR-13 | 매입가 숨김 토글 | FR-27 | **완료 2026-10-29(슬라이스 10)** — 토글은 리스크 예산 패널 아래(`features/toggle-purchase-price`, PATCH `/api/app/ai-coach/profile`, 낙관적 갱신 · 실패 시 되돌림 · 저장 중 입력 무시 — `disabled` 는 키보드 포커스를 뺀다). 숨는 곳은 웹에서 손익률을 보이는 **유일한 자리**인 홈 보유 요약(`entities/portfolio` `HoldingSummaryList` 손익률 칸을 그리지 않는다 · 평가금액 · 합계는 그대로) + 목록 아래 "오늘 처음 본다면, 지금 값으로 이만큼 담을까요?" 한 줄. 설정이 오기 전엔 손익률을 그리지 않고, 못 불러오면 서버 기본(보임). 웹에 평단 화면은 여전히 없다 |
 | FR-14 | 코치 리포트 **"내 거래 미러"** 섹션(`widgets/coach-console` `MirrorPanel`) — 리포트 · 게이지와 따로 부르고 따로 실패. 리포트가 `unavailable` 이어도 보인다 | 시나리오 4 | 완료(슬라이스 5) |
 | FR-15 | 미러 줄(`entities/coach` `MirrorLines`, 표시만) — 익절 · 손절 보유일 + PGR/PLR · 그냥 들고 있었으면 vs 실제 + 수수료 몫 · 계획 지킴(판정 수 · 비율 · 평균 수익률) · 실수 태그별 손익 · 기대값(R 또는 %) · 회전율 + 기준선 출처. 줄마다 표본 배지, 20 미만은 "표본 부족" 배지 + 굵기로 흐림(값은 보인다), 재료 없으면 "기록이 모자라" | FR-12 · 15~18 | 완료 |
 | FR-16 | 엣지 없음 배지 — 서버 `noEdge` 인 태그 줄에만. 판정은 서버 | FR-19 | 완료 |
@@ -85,3 +85,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-10-29 | FR-27 — 흔들림 몫 · 나빴던 날 평균 칸(F009 FR-26). 근거 `BFF-REQ-038` FR-14 · `SRV-REQ-038` FR-17 |
 | 2026-10-29 | `RiskGaugeList` 후속 — 덮은 몫 표시 내림 `formatCoveredRatio`(합산 변동성 · BTC 베타 "빼고 셌어요(보유의 N%)" — 0.995 가 "100%"로 보이던 것). 이 REQ 의 FR-27 두 칸과 같은 패널, 칸 주인은 `FE-REQ-041` FR-29 · `FE-REQ-040` FR-2 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-29 | FR-13 완료(슬라이스 10) — 매입가 숨김 토글 · 홈 보유 요약 손익률 숨김. 서버 · BFF 무변경(S1 저장 · S3 통과 그대로). 주인 `FE-REQ-010` FR-5(보유 요약) Changelog |

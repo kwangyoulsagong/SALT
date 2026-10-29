@@ -88,3 +88,4 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 | 2026-10-08 | F011 슬라이스 4 — 리스크 스냅샷 · 사이즈 · 계획 연결에 국내 주식(보유 · 거래 코인 + 국내 주식, 미국 주식 제외 · 국내 주식 수수료 env 절반씩). 응답 모양 무변경. 근거 `SRV-REQ-040` FR-38 |
 | 2026-10-29 | 슬라이스 9 FR-17(FEATURE-009 FR-26) — risk-budget `portfolioVolatility.contributions` · `tail` **추가만**. 계산은 `policy/portfolioVolatility`(FR-46 행렬 재사용), 국내 이름 · 로고는 `MarketProbe.assetLabels`(실패해도 게이지 나감). DDL 없음. 근거 `reports/checklists/SRV-REQ-038.md` §슬라이스 9 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-29 | F009 슬라이스 10(FR-27 매입가 숨김 화면) — **변경 없음.** S1 저장(`hidePurchasePrice` · PATCH 검증 `z.boolean()`)을 그대로 쓴다 |
