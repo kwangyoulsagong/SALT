@@ -56,7 +56,12 @@ export const PreflightResult = ({ result, isError, isPending, hasTarget }: Prefl
             <li className={line}>{MSG.result.noStop}</li>
           )}
           {calculation.maxLossOfTotalRate !== null && (
-            <li className={line}>{MSG.result.maxLossOfTotal(formatFineRate(calculation.maxLossOfTotalRate))}</li>
+            <li className={line}>
+              {MSG.result.maxLossOfTotal(
+                MSG.result.totalScope[result.assetType],
+                formatFineRate(calculation.maxLossOfTotalRate),
+              )}
+            </li>
           )}
           {calculation.targetGainAmount !== null &&
           calculation.targetGainRate !== null &&

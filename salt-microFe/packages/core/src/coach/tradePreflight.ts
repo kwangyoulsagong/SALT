@@ -29,6 +29,8 @@ export interface TradePreflightRequest {
 
 export interface TradePreflightView {
   symbol: string;
+  /** 서버가 시세로 고른 자산군. 비중 분모는 같은 자산군 보유다(`SRV-REQ-025` FR-66) */
+  assetType: "crypto" | "kr_stock";
   mode: PreflightMode;
   orderExecution: false;
   calculation: {
@@ -43,7 +45,7 @@ export interface TradePreflightView {
     /** 원 정수. 손절 기준이 없으면 `null` — 0 이 아니다 */
     maxLossAmount: number | null;
     maxLossRate: number | null;
-    /** 최대 손실 ÷ 진입 후 코인 평가금 합. 보유가 없으면(분모 0) `null` */
+    /** 최대 손실 ÷ 진입 후 같은 자산군 평가금 합. 보유가 없으면(분모 0) `null` */
     maxLossOfTotalRate: number | null;
     /**
      * 첫 목표가 도달 시 손익(원 정수). **부호 그대로** — 목표가가 진입가 아래면 음수. 수수료 미포함.
