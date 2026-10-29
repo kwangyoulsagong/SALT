@@ -1,10 +1,11 @@
-import type { GaugeStatus, RiskBudgetView } from "@repo/core/coach";
+import type { GaugeStatus, RiskBudgetView, RiskContributionView } from "@repo/core/coach";
 import { ProgressBar } from "@repo/ui/progressBar";
 
 import { formatPrice } from "@/shared/lib";
 
-import { formatRatio, formatScore, formatTimes } from "../lib";
+import { formatRatio, formatScore, formatSignedRate, formatTimes } from "../lib";
 import { RISK_MESSAGES } from "../model";
+import { CaseIdentity } from "./CaseIdentity";
 import {
   gauge,
   gaugeLabel,
@@ -12,10 +13,14 @@ import {
   gaugeStatus,
   gaugeValue,
   gaugeValueMuted,
+  shareRow,
+  shareValue,
 } from "./TradeRisk.css";
 
 const { gauge: GAUGE } = RISK_MESSAGES;
 const MINUS = "−";
+/** 흔들림 몫은 이만큼만 줄로 — 나머지는 수만 */
+const SHARE_ROWS = 4;
 
 /** 게이지 칸 하나 — 이름 · 값 · 막대(값이 있을 때만) · 상태 글자. 색만으로 뜻을 전하지 않는다 */
 const GaugeItem = ({
@@ -61,8 +66,40 @@ const GaugeItem = ({
 };
 
 /**
- * 리스크 예산 게이지 5 (F009 FR-17 · FR-23 · FR-24 · `FE-REQ-039` + F010 BTC 베타 합 `FE-REQ-040` FR-2 + F011 보유 합산 변동성
- * `FE-REQ-041` FR-29). **표시만 한다.**
+ * 흔들림 몫(F009 FR-26) — 종목마다 로고 · 이름과 몫 · 비중. 음수 몫은 "줄임"을 글자로 붙인다(부호만으로 뜻을 전하지 않는다).
+ * 종목이 하나면 몫이 늘 100% 라 칸을 그리지 않는다
+ */
+const RiskShareItem = ({ contributions }: { contributions: RiskContributionView[] }) => {
+  // 몫 순 정렬에서 음수(줄인 종목)는 맨 끝이다 — 줄 제한에 묻히지 않게 늘 보인다
+  const adding = contributions.filter((item) => item.share >= 0);
+  const reducing = contributions.filter((item) => item.share < 0);
+  const shown = [...adding.slice(0, SHARE_ROWS), ...reducing];
+  const rest = contributions.length - shown.length;
+  return (
+    <li className={gauge}>
+      <span className={gaugeLabel}>{GAUGE.riskShare}</span>
+      {shown.map((item) => {
+        const weight = formatRatio(item.weight);
+        return (
+          <span key={item.symbol} className={shareRow}>
+            <CaseIdentity symbol={item.symbol} name={item.name} logoUrl={item.logoUrl} />
+            <span className={shareValue}>
+              {item.share < 0
+                ? GAUGE.riskShareReducing(formatRatio(-item.share), weight)
+                : GAUGE.riskShareLine(formatRatio(item.share), weight)}
+            </span>
+          </span>
+        );
+      })}
+      {rest > 0 && <span className={gaugeStatus.normal}>{GAUGE.riskShareMore(rest)}</span>}
+      <span className={gaugeStatus.normal}>{GAUGE.riskShareHint}</span>
+    </li>
+  );
+};
+
+/**
+ * 리스크 예산 게이지 5 + 측정 2 (F009 FR-17 · FR-23 · FR-24 · `FE-REQ-039` + F010 BTC 베타 합 `FE-REQ-040` FR-2 + F011 보유 합산 변동성
+ * `FE-REQ-041` FR-29 + F009 FR-26 흔들림 몫 · 나빴던 날 평균 `FE-REQ-039`). **표시만 한다.**
  *
  * - 기준이 없으면 `기준을 정하면 보여요` — 0 · 기본값으로 막대를 그리지 않는다(FR-2)
  * - 넘어도 막지 않는다. 막대 색 + "기준을 넘었어요" 글자뿐(FR-23)
@@ -88,6 +125,9 @@ export const RiskGaugeList = ({ view }: { view: RiskBudgetView }) => {
   const betaReady = btcBeta.status === "ok" && btcBeta.betaSum !== null;
   // 옛 BFF 는 이 칸을 주지 않는다 — 없으면 줄이 없다
   const volatilityReady = volatility?.status === "ok" && volatility.realized !== null && volatility.upper !== null;
+  // FR-26 — 옛 BFF 는 두 칸을 주지 않는다. 값이 없으면 칸이 없다(빈 칸 문구를 늘리지 않는다)
+  const contributions = volatilityReady ? (volatility.contributions ?? []) : [];
+  const tail = volatilityReady ? (volatility.tail ?? null) : null;
 
   return (
     <ul className={gaugeList}>
@@ -181,6 +221,28 @@ export const RiskGaugeList = ({ view }: { view: RiskBudgetView }) => {
             volatilityReady && volatility.missingSymbols.length > 0 && volatility.coveredWeight !== null
               ? GAUGE.portfolioVolatilityCovered(formatRatio(volatility.coveredWeight), volatility.missingSymbols.join(", "))
               : null,
+          ]}
+        />
+      )}
+      {contributions.length > 1 && <RiskShareItem contributions={contributions} />}
+      {/* FR-26 과거 CVaR — 금액은 서버가 냈다. 확률 · 막대 · "넘었어요"가 없다 */}
+      {tail && (
+        <GaugeItem
+          name={GAUGE.tailLoss}
+          muted={false}
+          value={GAUGE.tailLossValue(
+            tail.averageKrw < 0 ? `${MINUS}${formatPrice(-tail.averageKrw)}` : formatPrice(tail.averageKrw),
+          )}
+          progress={null}
+          status="ok"
+          detail={GAUGE.tailLossDetail(
+            tail.days,
+            GAUGE.tailLossUnit[volatility.grid === "krx_trading_day" ? "krx_trading_day" : "calendar_day"],
+            formatSignedRate(tail.averageRate),
+          )}
+          notes={[
+            GAUGE.tailLossWorst(formatSignedRate(tail.worstRate), tail.worstOn.slice(0, 10).replaceAll("-", ".")),
+            GAUGE.tailLossHint,
           ]}
         />
       )}

@@ -101,6 +101,20 @@ export const RISK_MESSAGES = {
     portfolioVolatilityCross: (correlation: string) => `최근 1년 코인 몫 · 국내 주식 몫 상관 ${correlation}`,
     portfolioVolatilityGrid: "국내 주식 거래일로 셌어요 · 코인은 그날 오전 9시 가격",
     portfolioVolatilityCovered: (rate: string, symbols: string) => `${symbols} 은 이력이 짧아 빼고 셌어요(보유의 ${rate}로 계산)`,
+    /**
+     * 흔들림 몫 · 나빴던 날 평균(F009 FR-26). **지난 1년 기록**이다 — 확률 · 예측 · 줄여라를 말하지 않는다(FR-25 와 같은 규칙)
+     */
+    riskShare: "흔들림 몫",
+    riskShareLine: (share: string, weight: string) => `${share} · 비중 ${weight}`,
+    riskShareReducing: (share: string, weight: string) => `${share} 줄임 · 비중 ${weight}`,
+    riskShareHint: "보유 전체 흔들림(앞 값)을 종목마다 나눈 몫이에요. 비중보다 크면 다른 보유와 같이 움직인 만큼 커져요",
+    riskShareMore: (count: number) => `그 밖 ${count}종목`,
+    tailLoss: "나빴던 날 평균",
+    tailLossValue: (amount: string) => `${amount}원`,
+    tailLossDetail: (days: number, unit: string, rate: string) => `최근 1년 가장 나빴던 ${days}${unit} 평균 · 보유의 ${rate}`,
+    tailLossWorst: (rate: string, date: string) => `가장 나빴던 날 ${rate}(${date})`,
+    tailLossHint: "지난 기록을 지금 보유에 그대로 얹은 값이에요. 다시 일어날 확률은 말하지 않아요",
+    tailLossUnit: { krx_trading_day: "거래일", calendar_day: "일" } as const,
     signedOut: "로그인하면 내 리스크 예산을 볼 수 있어요",
     unavailable: "지금은 리스크 예산을 불러올 수 없어요",
     progressLabel: (name: string) => `${name} 사용률`,
