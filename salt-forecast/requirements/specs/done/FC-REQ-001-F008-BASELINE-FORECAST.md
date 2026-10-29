@@ -35,10 +35,10 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | LightGBM · 공시 · 내부자 피처 | 기준이 먼저 | 슬라이스 20 `FC-REQ-002` |
-| ETS 기준(`statsforecast`) | 기준 A · B 로 게이트가 선다. 의존성 무게 대비 | 슬라이스 20 |
+| ETS 기준(`statsforecast`) | 기준 A · B 로 게이트가 선다. 의존성 무게 대비 — 슬라이스 20(`FC-REQ-002`)도 넣지 않았다 | 하지 않음(기준 A · B 로 충분 — 필요가 보이면 새 REQ) |
 | 주식 시세 | 무료 소스 미정 | 열린 질문 |
 | 규칙 가격 도달 확률(FR-7 of F008) | 보유 규칙 가격은 서버가 안다 — 서버 조합 방식 결정 필요 | 슬라이스 17 |
-| cron 등록 | 로컬 운영 방식 미정 — 작업은 CLI 로 돈다 | 슬라이스 17 전 |
+| ~~cron 등록~~ | 로컬 운영 방식 미정 — 작업은 CLI 로 돈다 | **닫힘** — `ops/daily.sh`(LaunchAgent) 매시 · 매일 |
 
 ## 변경 이력
 
@@ -48,3 +48,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-10-08 | 엔진 일반화 — 격자 · 라벨 끝 · 실현 수익률 · 신선도 · 주당 봉 수를 `domain/calendar.Schedule` 로(코인 `WeeklyUtc` 기본값, 출력 해시 불변). `gates(on_grid=)` · `unscored_live(model_versions=)`. 국내 주식(`FC-REQ-009`)이 같은 엔진을 쓰려고 |
 | 2026-10-23 | 공용 `CloseSeries` 에 `breaks`(기본 빈 배열) · `crosses_break` — 비면 `as_of` 가 전과 같은 경로. 국내 원천 끊김(`FC-REQ-020` FR-10)만 채운다. 코인 · 공용 작업 20개 dry-run main 과 같음 |
 | 2026-10-20 | 성능(FC-REQ-020 P4) — 엔진 `_GridEntry` 를 격자마다 배열로 굳히고 `raw()` 는 같은 값으로 다시 만든다 · `report.render` 를 열 기반 한 벌로 · 일봉 읽기 청크 배열. 코인 출력 해시 · `backtest` 리포트 main 과 동일 |
+| 2026-10-29 | 전수 조사 정정 — cron 닫힘 · ETS 하지 않음. FR-1~11 전부 완료 · 남은 행은 배포(DB 역할 분리) · 운영 메모 → **done 으로 이동** |

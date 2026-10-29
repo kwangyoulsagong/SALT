@@ -443,7 +443,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | REQ | 상태 | 비고 |
 |---|---|---|
 | `DB-REQ-029` F008 SCHEMA | **in-progress** | `forecast` 스키마 — SQL 전용 마이그레이션 7건(차트 일봉 뷰 · 주요 사건 3테이블 + 뷰, 2026-09-24 · 쏠림 신호 2테이블 + 뷰 2, 2026-09-27). `checklists/DB-REQ-029.md` |
-| `FC-REQ-001` 기준 모델 · 채점 | **in-progress** | 90% 구간 커버리지 90.0~90.7%, 기준 대비 +0.7~1% — 예측력 거의 없음(정상). 방향 적중은 기저율과 같았다 → `direction_base_rate` |
+| `FC-REQ-001` 기준 모델 · 채점 | **done** 2026-10-29(FR-1~11 완료 · cron 은 `ops/daily.sh` — 전수 조사로 이동) | 90% 구간 커버리지 90.0~90.7%, 기준 대비 +0.7~1% — 예측력 거의 없음(정상). 방향 적중은 기저율과 같았다 → `direction_base_rate` |
 | `FC-REQ-004` 수집 · 트리거 | **done** | 바이낸스 224종목 · FRED 8 · DefiLlama. launchd 실패(macOS 권한) → 서버 부팅 트리거 |
 | `SRV-REQ-037` F008 전망 API | **done** | `GET /api/coach/forecast` · `/events` · 소유자 404 · 원화 환산 · 3종 게이트 · 해설 말투 · 숫자 검증기 · 템플릿 · **해설 SSE**(템플릿 먼저 → 검증 통과 LLM 교체, 2026-09-24) |
 | `BFF-REQ-037` F008 전망 중계 | **done** | 404 그대로 · 전망 3종 막기 · 기간 4개 · 해설 SSE 중계 · 주요 사건 뷰모델 |
@@ -552,7 +552,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | `FC-REQ-015` 독립 데이터 2차 | **in-progress** (FR-1~6 완료 · `onchain-regime@1` **채택 없음** · FR-7 `dominance@1` 라이브 통계 2027-05-17) | Coin Metrics BTC 온체인 5지표 수집 · MVRV 과열 상한 판정(4조건 전부 ✗) · CoinGecko 도미넌스 매일 스냅샷 |
 | `FC-REQ-016` 뉴스 감성 원장 | **in-progress** (FR-1~6 완료 · FR-7 `news-sentiment@1` 라이브 통계 2027-02-08) | 매시 RSS 13피드 직접 수집 · 로컬 KR-FinBert-SC/FinBERT(종목명 가림 · 가중치 해시 고정) · 규칙 사건 태그 + 부정어 · `forecast.news_item` · `news_score` 불변 |
 | `FC-REQ-017` 검색 관심 | **done** (FR-1~6 완료 · `search-interest@1` **근거 없음** — 증분 수집 끔) | 데이터랩 검색어트렌드 2016~ 백필 · 60일 겹침 이어 붙이기 · 비율 신호 · 사전등록 `search-interest@1`(BTC 양측 · 알트 반전 단측 · BY-FDR) |
-| `FC-REQ-018` 운영 점검 | **in-progress** (FR-1~7 완료 · 알림 · 서버 표시 없음) | `ops_monitor` 매시 — 정기 작업 11 · 주간 비중 원장 · 매일 판단 원장 판정 · `forecast.ops_check` · 막지 않는다(WARN). `rule_ic` 요일 → 마지막 성공 156시간 |
+| `FC-REQ-018` 운영 점검 | **done** 2026-10-29 (FR-1~7 완료 · 매일 12단계 · 알림 · 서버 표시는 범위 밖 — 전수 조사로 이동) | `ops_monitor` 매시 — 정기 작업 14(매시 1 · 매일 12 · 주간 1) · 주간 비중 원장 · 매일 판단 원장 판정 · `forecast.ops_check` · 막지 않는다(WARN). `rule_ic` 요일 → 마지막 성공 156시간 |
 | `BFF-REQ-039` 판정 화면 계약 | **done** (FR-1~7 완료) | 베타 합 · 국면 · 손실 비대칭 · `basis` 뷰모델 · `/api/app/coach/scoreboard` 중계 · 거래소 투자유의 막힘 · `exchangeFlag` · 재료 정지 `stale_inputs` |
 | `FE-REQ-040` 판정 화면 재배치 | **done** (FR-1~8 · 11~15 완료 · FR-9 [오늘의 판정]은 `FE-REQ-042` · FR-10 다음 화면 슬라이스) | `/investments` **요약 띠**(목표 비중 · 위험 · 성적표 → 리포트 앵커) · 성적표는 리포트로 · 위험 카드 삭제(리포트와 중복) · 종목 상세 판정 먼저 · σ 근거 · 국면 참고 · 손실 비대칭 · 재료 정지 막힘 문구 |
 | `BFF-REQ-041` 목표 비중 안내 중계 | **done** (FR-1~7 완료) | `/api/app/coach/target-weights` · 3종 고지 게이트 · 투자금 칸 · 알트 `no_record` · 라이브 문턱 30 · `stale_inputs` |

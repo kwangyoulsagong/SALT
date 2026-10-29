@@ -59,3 +59,7 @@
 ## FR-9 — 재현 v2 (2026-09-29)
 
 `contributions(version="mode-decision@2")` — 서버 특성화 값(+5% 단타 −12 · 장기 −6, −5% 단타 +10 · 장기 +6, 장기 심리 0, 단타 공포 +4, 고래 0 · 결측 NaN 유지), 모르는 버전은 예외. pytest 100 passed · 1 skipped · ruff · pyright 0.
+
+## 2026-10-29 REQ 전수 조사
+
+- 문서 정정: BY-FDR · DSR 부분 닫힘. 근거는 코드(`ops/daily.sh` · `domain/ops_health.py` · `models/kr_stock.py`) · 같은 문서 결과 절 · 교차 REQ. 코드 무변경

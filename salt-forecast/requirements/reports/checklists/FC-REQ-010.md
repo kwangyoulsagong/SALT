@@ -42,3 +42,7 @@
 ## F009 슬라이스 9 (2026-10-29)
 
 - F009 슬라이스 9 — **변경 없음.** `salt-server` `ManageRiskBudget` 파일 머리가 국면 라벨 근거로 이 REQ 를 가리킨다. 그 파일에 흔들림 몫 · 국내 이름 조회가 붙었을 뿐 `marketRegime()` 읽기 · `market` 응답 · `forecast.market_regime` 무변경. 예측 코드 · DB 무변경
+
+## 2026-10-29 REQ 전수 조사
+
+- 문서 정정: 삼중 장벽 닫힘 조건 · "마지막 단계". 근거는 코드(`ops/daily.sh` · `domain/ops_health.py` · `models/kr_stock.py`) · 같은 문서 결과 절 · 교차 REQ. 코드 무변경

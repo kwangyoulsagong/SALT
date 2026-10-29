@@ -23,7 +23,7 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-1 | `domain/ops_health.py` 기대표 — `news` 매시(3시간) · 매일 9단계 `ingest_prices` · `ingest_market` · `backfill_whale` · `daily` · `events` · `signals` · `volatility` · `market_regime` · `target_weight_live`(26시간 = 20시간 게이트 + 매시 트리거 + 여유) · `rule_ic` 주간(8일). 판정 `ok` · `overdue` · `failed` · `never` — 실패가 지연보다 먼저. 오류는 타입만(원문 없음) | 완료(`59c75db`) |
+| FR-1 | `domain/ops_health.py` 기대표 — `news` 매시(3시간) · 매일 12단계 `ingest_prices` · `ingest_market` · `backfill_whale` · `daily` · `ingest_kr_stock` · `kr_daily` · `kr_volatility`(국내 3단계 — `FC-REQ-009` FR-7 · 9) · `events` · `signals` · `volatility` · `market_regime` · `target_weight_live`(26시간 = 20시간 게이트 + 매시 트리거 + 여유) · `rule_ic` 주간(8일). 판정 `ok` · `overdue` · `failed` · `never` — 실패가 지연보다 먼저. 오류는 타입만(원문 없음) | 완료(`59c75db`) |
 | FR-2 | 주간 비중 원장(`target_weight_live_weight`) — 월요일 00:00 UTC 리밸런스 + 24시간 마감 → `ok` · `due`(마감 전 아직 없음 — 지금 돌면 늦지 않다) · `late` · `missing` | 완료 |
 | FR-3 | 매일 판단 원장(`public.judgment_ledger`, `sample_origin = live`) — 어제까지 7일 중 첫 발행일 이후 빈 날 → `missing`, 행이 하나도 없으면 `never` | 완료 |
 | FR-4 | `store/ops.py`(`as_of` 까지만 읽는다) · `scoring/ops_monitor.py`(조립) · `jobs/ops_monitor.py`. `forecast.ops_check`((as_of 정시 내림, subject) PK) upsert — 같은 시각 재실행은 같은 행(멱등). 마이그레이션 `20261007100000_forecast_ops_check`(`DB-REQ-029` FR-24, 추가만, 뷰 없음) | 완료 |
@@ -50,3 +50,4 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 ## Changelog
 
 - 2026-10-07: 초판 · FR-1~7 완료(`59c75db` · `42df20b`). 번호 009 는 F011 예약이라 018
+- 2026-10-29: 전수 조사 정정 — FR-1 기대표 9 → 12단계(`domain/ops_health.py:37-50` · `ops/daily.sh` 와 같음). FR-1~7 전부 완료 · 남은 행은 배포 · 별도 작업 → **done 으로 이동**

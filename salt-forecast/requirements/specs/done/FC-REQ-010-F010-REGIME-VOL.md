@@ -31,7 +31,7 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §4 · �
 | FR-5 | 이벤트일 — 발표 시각을 포함한 UTC 일봉, 2021-01 ~. σ 비율 두 집합 각각 iid 복원 추출 CI. 탐색: FOMC · CPI 따로 · 고용 · 다음 날 |
 | FR-6 | 손절 · 익절 도달(기록) — 동일가중 종목 × 매일 진입, 20일 안 첫 도달(같은 날 둘 다면 손절), 손절 시 **그날 종가** 손실(갭 포함). σ 계획(−1σ · +2σ · +3σ, EWMA λ 0.94 × √20) vs 고정(×0.92 · ×1.12 · ×1.25) |
 | FR-7 | 리포트 `reports/regime-gate-regime-gate-1-<date>.md` — 1차 판정표 먼저, 곡선 전체 · 이벤트 · 도달 전부(선별 없음). 창 시작이 밀린 날 수 · 표본 선택(생존 편향)을 적는다. `jobs/regime_gate`(주기 없음 — 사전등록 실행 1회) |
-| FR-8 | 매일 국면 행 `jobs/market_regime` → `forecast.market_regime`(`DB-REQ-029` FR-20): BTC 종가 · 200일선 · trend_open · HMM p_high(그 달 적합 · 그날까지 필터) · 적합 기준 월 · 상태별 연 σ · 365일 낙폭 · EWMA 연 σ · 채택 게이트 · gate_open · 이벤트 계수 · 다음 FOMC/CPI(알려진 일정만) · 사전등록 키. **백테스트와 같은 함수**(`fit_for_month` · `p_high_through` · `sma` · `trend_open` · `drawdown_from_peak`). 게이트 · 계수는 코드 상수(`domain/regime.py` — 판정 결과를 주석으로) — 표가 서버 동작을 자동으로 바꾸지 않는다. `ops/daily.sh` 마지막 단계 |
+| FR-8 | 매일 국면 행 `jobs/market_regime` → `forecast.market_regime`(`DB-REQ-029` FR-20): BTC 종가 · 200일선 · trend_open · HMM p_high(그 달 적합 · 그날까지 필터) · 적합 기준 월 · 상태별 연 σ · 365일 낙폭 · EWMA 연 σ · 채택 게이트 · gate_open · 이벤트 계수 · 다음 FOMC/CPI(알려진 일정만) · 사전등록 키. **백테스트와 같은 함수**(`fit_for_month` · `p_high_through` · `sma` · `trend_open` · `drawdown_from_peak`). 게이트 · 계수는 코드 상수(`domain/regime.py` — 판정 결과를 주석으로) — 표가 서버 동작을 자동으로 바꾸지 않는다. `ops/daily.sh` 단계 |
 | FR-9 | 종목 BTC 베타 — `volatility` 작업이 90일 일 로그수익 OLS 기울기(연속한 두 봉만, 둘 다 있는 날 60 미만이면 NULL)를 `realized_vol.btc_beta` 에 같이 쓴다. `--symbols` 로 좁혀도 BTC 를 따로 읽는다 |
 
 ## 결과 (as_of 2026-09-29, 2019-10-03 ~ 2026-09-28, 실행 코드 `472f50c`)
@@ -64,7 +64,7 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §4 · �
 |---|---|---|
 | 게이트 재등록(`regime-gate@2`) | 사전등록 밖에서 문턱(상승 포착 0.5)을 낮추면 엿보기다. `both` 는 BTC 에서 반쯤 통과했다 | 라이브 원장 국면 재료(`SRV-REQ-024` FR-181)가 쌓인 뒤 · 문턱을 결과 전에 다시 정할 근거가 생기면 |
 | 변동성 타깃 노출(탐색 1위 ΔMDD) | 탐색이라 판정에 쓰지 않는다. 사이즈 점검이 이미 목표 σ 로 크기를 권한다(F009 FR-5) | `regime-gate@2` 에 1차로 |
-| 삼중 장벽 재설정(슬라이스 1 이월) | 이번 도달표가 같은 정의(+2σ · −1σ)에서 +1 12% · −1 36% — 여전히 20~60% 밖 쪽. 1차 판정은 고정 지평이라 영향 없음 | 슬라이스 4(메타 모델 라벨 고를 때) |
+| 삼중 장벽 재설정(슬라이스 1 이월) | 이번 도달표가 같은 정의(+2σ · −1σ)에서 +1 12% · −1 36% — 여전히 20~60% 밖 쪽. 1차 판정은 고정 지평이라 영향 없음 | 슬라이스 4(`FC-REQ-011`)는 재설정하지 않기로 했다 — `meta-model@3` 등록 때(라이브 원장 2026-11-23~) |
 | 생존 편향 | 상장폐지 종목 원천 없음 — ew 보유 곡선이 실제보다 좋다(게이트에 불리한 쪽) | 리서치 §10 슬라이스 7 |
 | 백테스트 소요 | 1차 + 탐색(3상태 HMM 84회) 168초(월별 적합 병렬, CPU − 1) — 성능 예산 "워크포워드 < 5분" 안. 3상태만 적합당 12초 | — |
 | HMM 월 재적합 날의 국면 단절 | 달이 바뀌면 파라미터가 바뀌어 p_high 가 계단으로 움직일 수 있다 — 게이트를 안 쓰므로 라벨에만 영향 | `regime-gate@2` 에서 게이트로 다시 볼 때 |
@@ -74,3 +74,5 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §4 · �
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-29 | F009 슬라이스 9 — **변경 없음.** `salt-server` `ManageRiskBudget` 파일 머리가 국면 라벨 근거로 이 REQ 를 가리킨다. 그 파일에 흔들림 몫 · 국내 이름 조회가 붙었을 뿐 `marketRegime()` 읽기 · `market` 응답 · `forecast.market_regime` 무변경. 예측 코드 · DB 무변경 |
+| 2026-10-29 | 전수 조사 정정 — 삼중 장벽 재설정 닫힘 조건을 `FC-REQ-011` 결정과 맞춤 |
+| 2026-10-29 | 전수 조사 정정 — "`ops/daily.sh` 마지막 단계" → 단계(실제 순서는 `steps`) |

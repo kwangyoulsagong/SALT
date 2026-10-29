@@ -25,3 +25,7 @@
 | `daily` 외 단계 실패의 같은 날 재시도 | 20시간 게이트가 `daily` 성공만 본다 | `daily.sh` 게이트를 단계별로 나누는 별도 작업 |
 | ops 조회 `EXPLAIN (ANALYZE, BUFFERS)` | 표가 작다(13행/시) | 행이 수백을 넘으면 |
 | 운영 DB 마이그레이션 | 로컬만 | 배포 시 |
+
+## 2026-10-29 REQ 전수 조사
+
+- 문서 정정: FR-1 9 → 12단계 · done 이동. 근거는 코드(`ops/daily.sh` · `domain/ops_health.py` · `models/kr_stock.py`) · 같은 문서 결과 절 · 교차 REQ. 코드 무변경
