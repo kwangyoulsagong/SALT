@@ -24,4 +24,5 @@
 
 ## 확인 중 고친 결함 (2026-10-29)
 
-- 덮은 몫 반올림 — "보유의 100%로 계산"(실제 99.5%) → 내림 `formatCoveredRatio` "99%". 주인 `FE-REQ-041` FR-29 · `FE-REQ-040` FR-2(BTC 베타 같은 문장)
+- 덮은 몫 반올림 — "보유의 100%로 계산"(실제 99.5%) → 내림 `formatCoveredRatio` "99%". 주인 `FE-REQ-041` FR-29 · `FE-REQ-040` FR-2(BTC 베타 같은 문장) · 포맷터 파일 주인 `FE-REQ-026` · 패널 `FE-REQ-039` · FEATURE-011 · 010 이력
+- 수정 뒤 재검증: `pnpm check-types` · `lint` · `test`(core 51 · ui 43) · `test:layer-check`(차단 8 · 통과 5) · `web` · `web-tax` 빌드 · 훅 사후 실행 exit 0

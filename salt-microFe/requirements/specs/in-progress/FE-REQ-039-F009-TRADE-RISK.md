@@ -78,3 +78,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-10-08 | F011 슬라이스 3b — `RecordTradeCard` 에 `assetType` · `tickSize`(기본 코인 — 코인 화면 무변경). 국내 주식은 계획 · 사이즈 계산 없이 거래만(`FE-REQ-041` FR-16). 기록 뒤 홈 보유 요약 무효화를 코인에도 더함 |
 | 2026-10-08 | F011 슬라이스 4 — `RecordTradeCard` 의 국내 주식 막음(계획 · 사이즈 계산 · 체크 숨김, 한 줄 안내)을 걷었다 — 코인과 같은 폼. 근거 `FE-REQ-041` FR-22 |
 | 2026-10-29 | FR-27 — 흔들림 몫 · 나빴던 날 평균 칸(F009 FR-26). 근거 `BFF-REQ-038` FR-14 · `SRV-REQ-038` FR-17 |
+| 2026-10-29 | `RiskGaugeList` 후속 — 덮은 몫 표시 내림 `formatCoveredRatio`(합산 변동성 · BTC 베타 "빼고 셌어요(보유의 N%)" — 0.995 가 "100%"로 보이던 것). 이 REQ 의 FR-27 두 칸과 같은 패널, 칸 주인은 `FE-REQ-041` FR-29 · `FE-REQ-040` FR-2 |

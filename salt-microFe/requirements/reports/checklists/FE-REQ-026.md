@@ -190,3 +190,7 @@
 | 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
 
 미검증: 없음 — 판단 · 화면 무변경
+
+## 2026-10-29 `formatCoveredRatio` 추가
+
+- 기존 `formatRatio` · `formatSignedRate` 등 무변경 — 소비처 2줄만 새 함수로. `pnpm check-types` · `lint` · `test` · `test:layer-check` · `web` · `web-tax` 빌드 · 임시 사용자 실화면 "99%"
