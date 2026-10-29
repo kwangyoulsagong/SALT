@@ -23,3 +23,8 @@ cd bff
 npm run build
 # OK
 ```
+
+## 2026-10-29 `assetType` 필드 (파일만)
+
+- 상세는 `BFF-REQ-024` 체크리스트 같은 날 항목. build · test 288 통과. 미검증: 없음
+

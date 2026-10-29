@@ -237,6 +237,7 @@ type ExplainResult =
 | FR-63 | 사용량 원장을 못 읽으면 부르지 않는다(**fail-closed**) — 템플릿 | Must |
 | FR-64 | **시도마다 기록.** `GeminiCoachExplainer` 가 시도마다 `llm_call_logs`(`DB-REQ-017` FR-65) 한 행 — 재시도도 과금 단위. 토큰은 `usageMetadata`. `errorCode` 는 분류만(`aborted` · `schema_mismatch` · `http_<status>` · `timeout` · `error`), 프롬프트 · 응답 원문 없음. 기록 실패는 해설을 막지 않는다. **함께 고친 버그**: Gemini SDK 오류는 상태를 `error.status` 에 싣는데 공용 `isRetryableHttpError` 는 axios 모양(`error.response.status`)만 읽어 4xx 까지 재시도했다(요청 하나 = 과금 3회). 이제 429 · 5xx · 응답 없음만 재시도, 스키마 불일치는 재시도 안 함(파싱을 시도 안으로 옮겨 토큰을 쓴 불일치도 기록) | Must |
 | FR-65 | **(F004 슬라이스 16 후속) 목표 도달 시 손익.** `trade-preflight` `calculation` 에 `targetGainAmount`(첫 목표가 기준 `amount × (목표가 − 진입가) / 진입가`, 원 정수 · **부호 그대로** · 수수료 미포함) · `targetGainRate`. 목표가가 없으면 둘 다 `null`. 손익비 `rewardRate` 의 0 막음과 다르다 — 잘못 적은 목표가가 숨지 않게 | Must |
+| FR-66 | **(F004 슬라이스 16 후속) 주문 전 계산 자산군.** 자산군은 시세 조회 `assetType`(사이즈 계산과 같다, 모르면 코인). 비중 분모 · 기존 보유는 **같은 자산군 보유만**. 응답에 `assetType`(`crypto` · `kr_stock`) | Must |
 
 ## Acceptance Criteria
 
@@ -317,3 +318,4 @@ type ExplainResult =
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-29 | F004 슬라이스 16(FE) — `/trade-preflight` 를 웹 화면이 처음 소비. **서버 변경 없음.** 화면에서 남은 것: 목표 도달 시 금액(원) 응답 필드가 없어 FR-154 한 칸이 비었다 — 추가는 `salt-server` 변경 승인 시. 관찰: 거래 직후 보유 평가가 시세 워커 전(약 18초) 0 이라 그 사이 계산은 보유 0 기준 |
 | 2026-10-29 | FR-65 구현 — 목표 도달 시 손익 `targetGainAmount` · `targetGainRate`(`coach/domain/policy/preflight.ts` · `CheckTradePreflight` · Swagger). 특성화 테스트 3(값 · 음수 · null). 필드 추가만 — 기존 소비처 무변경. 화면 `FE-REQ-026` FR-154 가 이 값으로 닫힘. 위 줄의 "목표 도달 시 금액 필드가 없다"는 이 행으로 해소 |
+| 2026-10-29 | FR-66 구현 — `CheckTradePreflight` 코인 고정 제거 · 시세로 자산군 · 같은 자산군 분모 · 응답 `assetType` · Swagger. 유스케이스 테스트 3. 국내 주식 상세 주문 전 체크가 이 값으로 열림 |

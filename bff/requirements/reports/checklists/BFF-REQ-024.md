@@ -71,3 +71,10 @@
 - 실 BFF(4001) 응답 확인: 목표 1.2억 → `36449` · `0.1215` / 1억 → `-19626` / 목표 없음 → `null`. 계약 타입은 `@repo/core/coach` `TradePreflightView`(웹 소유 사본)
 - BFF build · test 는 코드 무변경이라 돌리지 않음
 - 미검증: 없음
+
+## 2026-10-29 `trade-preflight` `assetType` 전달 (SRV-REQ-025 FR-66)
+
+- `app-trade-preflight.service.ts` 한 줄. 재시작한 BFF(4001)에서 005930 → `kr_stock` · BTC → `crypto` 확인
+- `npm run build` · `npm test` 288 통과
+- 미검증: 없음
+

@@ -31,3 +31,4 @@ SALT는 주문을 실행하지 않는다. 사용자가 외부 거래소/증권 �
 ## Notes
 
 - 구현 위치: `bff/src/rest/routes/trade-preflight.routes.ts`, `bff/src/rest/controllers/trade-preflight.controller.ts`, `bff/src/services/app-trade-preflight.service.ts`
+- 2026-10-29: 뷰모델에 `assetType` 추가(`SRV-REQ-025` FR-66 · `BFF-REQ-024` 이력). 웹 주문 전 체크 화면이 이 경로를 처음 소비한다(F004 슬라이스 16)
