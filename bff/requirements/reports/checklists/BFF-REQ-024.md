@@ -64,3 +64,10 @@
 ## 2026-10-29 REQ 전수 조사
 
 - generate 경로 · scoreboard 039 표시
+
+## 2026-10-29 F004 슬라이스 16 — 웹 주문 전 체크가 `trade-preflight` 첫 소비 · 서버 FR-65 필드 통과
+
+- BFF 코드 변경 없음. `app-trade-preflight.service` 가 `calculation` 을 통째로 넘겨 서버 새 필드 `targetGainAmount` · `targetGainRate` 가 그대로 지나간다
+- 실 BFF(4001) 응답 확인: 목표 1.2억 → `36449` · `0.1215` / 1억 → `-19626` / 목표 없음 → `null`. 계약 타입은 `@repo/core/coach` `TradePreflightView`(웹 소유 사본)
+- BFF build · test 는 코드 무변경이라 돌리지 않음
+- 미검증: 없음

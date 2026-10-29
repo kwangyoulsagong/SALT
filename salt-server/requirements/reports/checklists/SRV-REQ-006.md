@@ -687,3 +687,8 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: FR-3 조합 컨텍스트: `onboarding` 만 있고 `homebriefing` 은 없다 — F006 `SRV-REQ-029` 로 넘김 / FR-33 남은 이관(살아 있는 `modules/goals` · `investment-insight` · `user`, `app.ts` 마운트)은 `SRV-REQ
+
+## 2026-10-29 파일만 — 특성화 테스트 추가 (`SRV-REQ-025` FR-65)
+
+- `coach/domain/__tests__/policy.test.ts` `calculatePreflight` 에 목표 도달 시 손익 3개(값 · 음수 · null). 기존 특성화 값 무변경 — 36 통과 · `npm test` 841
+- 미검증: 없음
