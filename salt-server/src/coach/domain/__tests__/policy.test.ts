@@ -399,6 +399,27 @@ describe("calculatePreflight — 특성화", () => {
     assert.equal(result.effectiveStopPrice, null);
   });
 
+  it("목표 도달 시 손익 = 금액 × (목표가 − 진입가) / 진입가, 원 정수 (FE-REQ-026 FR-154)", () => {
+    const result = calculatePreflight({ ...base, stopLossRate: -0.1 });
+    assert.equal(result.targetGainRate, 0.3); // (130 − 100) / 100
+    assert.equal(result.targetGainAmount, 300); // 1000 × 0.3
+    const odd = calculatePreflight({ ...base, amount: 333, takeProfitPrices: [101.5] });
+    assert.equal(odd.targetGainAmount, 5); // 333 × 0.015 = 4.995
+  });
+
+  it("목표가가 진입가 아래면 손익이 음수다 — 0 으로 막지 않는다 (손익비는 0 으로 막는다)", () => {
+    const result = calculatePreflight({ ...base, stopLossRate: -0.1, takeProfitPrices: [90] });
+    assert.equal(result.targetGainAmount, -100);
+    assert.equal(result.targetGainRate, -0.1);
+    assert.equal(result.riskRewardRatio, 0);
+  });
+
+  it("목표가가 없으면 목표 도달 시 손익은 null — 0 이 아니다", () => {
+    const result = calculatePreflight({ ...base, stopLossRate: -0.1, takeProfitPrices: [] });
+    assert.equal(result.targetGainAmount, null);
+    assert.equal(result.targetGainRate, null);
+  });
+
   it("최대 손실은 원 단위 정수다 (FR-19)", () => {
     const result = calculatePreflight({ ...base, amount: 333, stopLossRate: -0.015 });
     assert.equal(result.maxLossAmount, 5); // 333 × 0.015 = 4.995

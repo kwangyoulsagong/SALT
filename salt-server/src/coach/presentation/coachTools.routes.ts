@@ -176,7 +176,7 @@ export const createTradePreflightRouter = (
    *                 enum: [scalp, long_term]
    *     responses:
    *       200:
-   *         description: 체크 결과. calculation 에 stopPrice(환산 포함) · maxLossAmount(원 정수) · maxLossOfTotalRate(총자산 대비 최대 손실). 게이트 · 차단 · 주문 필드 없음
+   *         description: 체크 결과. calculation 에 stopPrice(환산 포함) · maxLossAmount(원 정수) · maxLossOfTotalRate(총자산 대비 최대 손실) · targetGainAmount(첫 목표가 도달 시 손익, 원 정수 · 부호 그대로 · 수수료 미포함) · targetGainRate. 목표가가 없으면 둘 다 null. 게이트 · 차단 · 주문 필드 없음
    *       400:
    *         description: 요청 검증 실패
    *       401:

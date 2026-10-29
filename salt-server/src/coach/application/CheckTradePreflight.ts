@@ -86,6 +86,9 @@ export class CheckTradePreflight {
         maxLossAmount: calculation.maxLossAmount,
         maxLossRate: calculation.maxLossRate,
         maxLossOfTotalRate: calculation.maxLossOfTotalRate,
+        // 첫 목표가 도달 시 손익(원 정수 · 부호 그대로) — 목표가를 넣었을 때만
+        targetGainAmount: calculation.targetGainAmount,
+        targetGainRate: calculation.targetGainRate,
         projectedWeight: calculation.projectedWeight,
         maxSingleAssetWeight,
       },
