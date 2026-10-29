@@ -454,7 +454,7 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    * @swagger
    * /api/coach/risk-budget:
    *   get:
-   *     summary: 리스크 예산 · 게이지 3종 (F009 FR-1~3 · FR-17 · FR-23~24)
+   *     summary: 리스크 예산 · 게이지 · 측정 (F009 FR-1~3 · FR-17 · FR-23~26)
    *     description: |
    *       사용자가 정한 예산(월 허용 손실 · 1회 최대 손실 · 목표 변동성)과 게이지 셋.
    *
