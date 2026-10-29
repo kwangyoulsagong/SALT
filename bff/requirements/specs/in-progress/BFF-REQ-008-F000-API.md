@@ -9,6 +9,10 @@ labels: [bff, api, contract, onboarding, cleanup]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 수용 기준 중 "신규 7개 등록"은 2026-09-18 에 열렸다(`onboarding.routes.ts` · `watchlist.routes.ts` · `portfolio.routes.ts`) — 미구현은 search · 북마크만
+
+
 ## Summary
 
 F000의 프론트 대면 계약. 신규는 **온보딩 3개**와 **뉴스·관심종목** 뿐이고, 나머지는 제거와 정정이다.
@@ -127,7 +131,7 @@ type AlertVM = {
 | FR-9 | 초대 실패는 `403` + `reasonCode`다. `reasonCode`는 코드이고 문구는 프론트 | Must |
 | FR-10 | `invite/check`는 **상한 초과를 노출하지 않는다** | Must |
 | FR-11 | 동면 경로는 **410 Gone**이다. 404 금지 | Must |
-| FR-12 | `period` 유효값 4종. `miniute`는 **422** | Must |
+| FR-12 | `period` 유효값 **2종**(`minute` · `day` — `CHART_PERIODS`). `miniute`는 **422** | Must |
 | FR-13 | 뷰모델 타입을 `packages/core`로 공유 | Should |
 | FR-14 | 유지 경로의 응답은 **하위 호환**이다. 필드 추가 허용, 제거·이름 변경은 프론트 동시 변경 | Must |
 | FR-15 | 뉴스 뷰모델에 `sentiment` · `symbols` 가 **항상** 있다(값이 없으면 `null` · `[]`). 화면이 필드 존재를 분기하지 않게 한다 (기본안 — 감사 문서 B11) | Must |
@@ -199,3 +203,4 @@ type AlertVM = {
 
 `PortfolioSummaryVM` 에 `namesDegraded` 를 더했다. 종목명을 시세 목록에서 붙이는데
 그 조회가 실패해도 금액은 내려보내야 하고, 화면이 "이름이 심볼로 보이는 이유"를 알아야 한다.
+- 2026-10-29: 전수 조사 — FR-12 기간 2종 · 수용 기준 구현분 표시

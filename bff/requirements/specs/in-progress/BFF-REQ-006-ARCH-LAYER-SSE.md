@@ -8,6 +8,13 @@ labels: [architecture, sse, streaming, viewmodel, refactoring]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 문제 1(`Promise.all` · 뷰모델 없음)은 **해결됨** — `app-home.service.ts` 가 `allSettled` + `degradedBlocks`(`BFF-REQ-007` B절, 2026-10-27)
+> - 홈 블록 5개(`taxDeadline` · `invoice`) · FR-24(세금 콕핏 · 청구서) · FR-42 알림 2종(세금 D-Day) · 세금 zone CORS 는 **ADR-002 로 폐기** — 홈은 3블록(`BFF-REQ-027` FR-20), 알림은 `signal_update` 1종(`alerts.viewmodel.ts`)
+> - 이미 구현된 FR(다른 REQ 가 함): FR-40 · 41 동면 410(`rest/middleware/gone.middleware.ts`) · FR-43 register 제거(`proxy.routes.ts`) · FR-44 기간 검사(`rest/middleware/chartPeriod.middleware.ts`) · FR-34 · 35 SSE 헤더 · ping(`ai-coach.controller.ts`) → to-do → **in-progress** 로 옮김
+> - 이 REQ 취지와 다른 코드: `app-alerts.service.ts` 는 아직 `Promise.all` 이고 `unreadCount` 가 없으면 `0` 으로 채운다(FR-10 · 12 미구현)
+
+
 ## Summary
 
 BFF의 책임을 **"프록시"에서 "화면 계약의 소유자"** 로 명시한다. 조합 응답을 `Promise.allSettled` 기반 **블록 격리** 구조로 바꾸고, 코치 대화를 위한 **SSE 중계 기반**을 만든다. 웹(블록별)과 모바일(집계 1콜) **두 형태를 같은 서비스 함수에서** 만든다.
@@ -187,3 +194,4 @@ F001 청구서 · F002 세금 콕핏 · F003 주간 적립 · F004 코치 상세
 - 홈 블록별 엔드포인트 5개가 각각 인증을 통과하므로 **토큰 검증이 5회** 일어난다. 사용자 ≤10명이면 무시할 수 있지만, 서버 부하 측정 후 캐시 여부 결정.
 - `packages/core`로 뷰모델 타입을 export하는 방법. BFF는 `salt-microFe` workspace 밖에 있다 — **별도 npm 패키지로 만들지, 타입만 복사하고 계약 테스트로 검증할지** 결정 필요.
 - 세금 zone이 별도 도메인이면 BFF CORS 설정이 zone 2개를 허용해야 한다.
+- 2026-10-29: 전수 조사 — ADR-002 폐기 FR(세금 블록 · 세금 알림 · 세금 zone CORS) 표시 · 이미 구현된 FR 기록 · to-do → in-progress

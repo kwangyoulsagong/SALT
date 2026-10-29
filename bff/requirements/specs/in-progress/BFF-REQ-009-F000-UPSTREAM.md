@@ -9,6 +9,10 @@ labels: [bff, upstream, backend-integration, cleanup]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-1~4(제거 호출 0건 · 초대 · mutation)와 FR-30~32(`priceStale`, `watchlist.viewmodel.ts`)는 구현됐다 — 미구현은 search · 북마크(FR-50~52) → to-do → **in-progress** 로 옮김
+
+
 ## Summary
 
 F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 **경로가 그대로인 채 컨텍스트만 바뀌는 호출**을 구분하는 것이 핵심이다.
@@ -68,8 +72,8 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-20 | BFF는 프론트가 준 `period`를 **그대로 서버에 넘긴다.** `miniute`를 `minute`로 바꾸지 않는다 | Must |
-| FR-21 | 서버가 422를 주면 그대로 전달한다 | Must |
+| FR-20 | BFF는 `period`를 **교정하지 않는다.** 모르는 값은 BFF 가 서버를 부르지 않고 **422** 로 거부한다(`chartPeriod.middleware.ts`, `BFF-REQ-007` FR-50) — 처음 적은 "그대로 서버에 넘긴다"에서 바뀜 | Must |
+| FR-21 | 서버가 4xx 를 주면 그대로 전달한다(BFF 422 가 서버 앞에서 먼저) | Must |
 | FR-22 | 교정하지 않는 이유: BFF가 오타를 흡수하면 프론트 오타가 영구화되고, 다음 사람이 그 흡수 코드를 발견할 방법이 없다 | Must |
 
 ## 가격 캐시 사용
@@ -120,7 +124,7 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 - [ ] 서버 에러 코드 4종이 그대로 전달된다
 - [ ] **서버 DDD 이관 전/후 BFF 코드가 바뀌지 않았다** (diff 0)
 - [ ] 계약 스냅샷 테스트가 이관 전/후 통과한다
-- [ ] BFF가 `period`를 교정하지 않는다 (`miniute` → `miniute` 그대로 전달)
+- [x] BFF가 `period`를 교정하지 않는다 (`miniute` → BFF 422, 서버 호출 없음)
 - [ ] 서버 422가 그대로 전달된다
 - [ ] 현재가가 BFF 가격 캐시에서 읽힌다
 - [ ] 캐시 미스 시 서버를 다시 부르지 않는다
@@ -151,3 +155,4 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 |---|---|
 | 2026-10-28 | 웹 로그인 실패가 `ApiError { status, code, retriable }` 로 바뀌었다(`FE-REQ-012`, `F000-api-error-normalize`). 이 경로(`/api/auth/login` 통과) 코드 · 계약 **변경 없음** — 실 BFF 틀린 비밀번호 401 `AUTH_INVALID_CREDENTIALS` 가 화면 문구로 이어짐을 확인 |
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 호출 맵에 `searchAssets` · `newsBookmarks` · 북마크 추가/해제 · 목표 proxy 필드 추가. FR-3 · 4 에 북마크 mutation 재시도 금지 · `409 TRACKED_ASSET_LIMIT` · 북마크 404 전달. 신규 FR-50~53(검색 1회 · `isBookmarked` 는 서버 값 · 해제는 `newsId` · 목표 수량은 proxy). 계약 의존 표 4행 추가. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-29 | 전수 조사 — FR-20 · 21 실제 동작(BFF 422)으로 정정 · 구현분 기록 · to-do → in-progress |

@@ -30,7 +30,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | FR | 내용 | 상태 |
 |---|---|---|
 | FR-1 | `POST /api/app/coach/size-check` — 화면 키만 서버로(`symbol · side · quantity · price · stopPrice · winRate · payoffRatio`), 심볼 400. 뷰모델 `SizeCheckView`(`sizingStatus` · 금액 · 비율 · `unavailable` 사유 · `assumptions`). 5xx · 타임아웃 · 계약 깨짐 → 200 `unavailable`, 4xx 그대로 | 완료 |
-| FR-2 | `GET · PUT /api/app/coach/risk-budget` — 게이지 3 + 설정. GET 800ms · 재시도 1회, 5xx → `unavailable`. PUT 은 실패를 그대로 올린다(저장 실패를 저장됨처럼 보이지 않게) | 완료 |
+| FR-2 | `GET · PUT /api/app/coach/risk-budget` — 게이지 · 측정 + 설정(슬라이스 3 때 3, 지금 게이지 5 + 측정 2). GET 800ms · 재시도 1회, 5xx → `unavailable`. PUT 은 실패를 그대로 올린다(저장 실패를 저장됨처럼 보이지 않게) | 완료 |
 | FR-3 | `GET /api/app/coach/plans?symbol=` — 서버 `{ plans }` 를 풀고 깨진 행만 뺀다. `POST /plans` · `PATCH /plans/:id`(uuid 400, 409 잠금 그대로) | 완료 |
 | FR-4 | `POST /api/app/coach/trades` — 거래(`/portfolio/transactions`) → 계획(선택, 거래 id 연결). 거래 실패(보유 부족 400 등)는 그대로, 계획 실패는 거래를 두고 `plan.status = 'unavailable'`. 계획 필드가 없으면 서버 1회 | 완료 |
 | FR-5 | 거래 응답의 Prisma `Decimal` 문자열을 숫자로 읽는다(표시 전용) | 완료 |
@@ -71,3 +71,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-10-08 | F011 슬라이스 3b — `POST /trades` 가 `assetType`(`crypto` · `kr_stock`, 없으면 crypto)을 받아 서버로 · 모르는 값 400 · 국내 주식 + 계획 400(코치 계획 연결이 코인 원장만 본다) · 거래 응답 `RecordedTransactionView.assetType`(계약 검사). 사이즈 계산 · 리스크 예산 무변경(국내 주식은 화면이 부르지 않는다). 근거 `BFF-REQ-040` FR-15 · `reports/checklists/BFF-REQ-038.md` §F011 3b |
 | 2026-10-08 | F011 슬라이스 4 — 국내 주식 거래 + 계획 400 해제(서버 계획 연결이 국내 주식 거래를 받는다). 사이즈 계산 요청은 그대로 — 자산군 · 수수료는 서버가 시세로 고른다. 근거 `BFF-REQ-040` FR-19 |
 | 2026-10-29 | FR-14 — 흔들림 몫 · 나빴던 날 평균 통과(`RiskContributionView` · `TailLossView`, `@repo/core` 같은 모양). 근거 `SRV-REQ-038` FR-17 |
+| 2026-10-29 | 전수 조사 — FR-2 "게이지 3" 정정 |

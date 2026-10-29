@@ -9,6 +9,11 @@ labels: [bff, sse, streaming, home, allsettled]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-25 · Open Q 의 "서버 `/api/home` 이 이미 조립한다 · `homebriefing` 컨텍스트가 있다"는 **사실 아님** — 서버에 `homebriefing` 컨텍스트 · `/api/home` 경로가 없다(`salt-server/src` 최상위: auth · coach · market · news · notification · onboarding · portfolio). `SRV-REQ-029` 가 만들 예정
+> - 거래 쓰기: BFF 에 조회만 있던 것이 아니라 `POST /api/app/coach/trades`(`BFF-REQ-038` FR-4)가 이미 서버 `/portfolio/transactions` 에 기록한다 — F006 의 수정 · 삭제와 이 경로의 관계를 착수 때 정한다
+
+
 > **2026-09-21 개정.** `ADR-002` — 홈 블록 함수는 **3개**(`totalAsset` · `weeklyPlan` · `coach`). 작업 4개를 추가했다: ③ 포지션 조립 ④ 거래 기록 **쓰기 중계**(서버에 이미 있는 `POST/PATCH/DELETE`를 연다) ⑤ 알림 읽음 · 안 읽은 수 ⑥ 설정 한 화면 조립. 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14 · B16.
 
 ## Summary
@@ -183,3 +188,4 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. 개정: 홈 3블록(FR-20 · 25), FR-27(`fxBasisCode` nullable), FR-29(홈 알림 목록 → 안 읽은 수, D6). 추가: FR-70~73(포지션 B13) · FR-80~85(거래 쓰기 중계 B14) · FR-90~93(알림 D5 · B19) · FR-100~104(설정 D9 · B16) · FR-110~112(온보딩 B12, **BREAKING** 단계 키). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
+| 2026-10-29 | 전수 조사 — 서버 홈 조립 부재 · 기존 거래 쓰기 경로 기록 |

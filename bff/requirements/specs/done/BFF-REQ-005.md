@@ -19,7 +19,7 @@ AI 코치의 판단 품질을 추적하려면 과거 신호의 승률, 평균 �
 - `GET /api/app/signal-performance`는 인증 토큰을 서버에 전달하고 `/signal-performance`를 호출한다.
 - `symbol`, `signalKey` query를 서버에 전달한다.
 - 응답은 `status`, `metrics`, `samples`, `generatedAt`을 포함한다.
-- `metrics`는 `sampleCount`, `winRate`, `avgReturn`, `maxDrawdown`을 포함한다.
+- `metrics`는 `sampleCount`, `winRate`, `avgReturn`, `worstObservedReturn`(옛 `maxDrawdown` — C04 로 이름 정정, 별칭 금지 `BFF-REQ-024` FR-39)을 포함한다.
 
 ## Acceptance Criteria
 
@@ -31,3 +31,4 @@ AI 코치의 판단 품질을 추적하려면 과거 신호의 승률, 평균 �
 ## Notes
 
 - 구현 위치: `bff/src/rest/routes/signal-performance.routes.ts`, `bff/src/rest/controllers/signal-performance.controller.ts`, `bff/src/services/app-signal-performance.service.ts`
+- 2026-10-29: 전수 조사 — `maxDrawdown` → `worstObservedReturn`

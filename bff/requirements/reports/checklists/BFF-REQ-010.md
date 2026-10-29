@@ -86,3 +86,7 @@
 
 `npm run build` pass · `npm test` 28(#42) → 32(#43, 연결 관리 +4) → **35**(#44, 컨트롤러 +3) pass.
 lint 스크립트는 BFF 에 없다.
+
+## 2026-10-29 REQ 전수 조사
+
+- 예산 경로 정정(`/api/investment/market/overview`)

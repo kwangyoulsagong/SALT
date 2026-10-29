@@ -3,6 +3,7 @@
 - REQ: `bff/requirements/specs/in-progress/BFF-REQ-024-F004-API.md`
 - 브랜치: `feat/f004-bff-judgment` (base `main` `ebadcf9`) · 검증일: 2026-09-22
 - 상태: **부분 완료** — 종목 판단 경로(`/api/app/ai-coach/detail`)만 닫혔다. 코치 리포트 · 성적표 · 재생성 · 해설 인증은 미착수
+> **2026-10-29 전수 조사:** 위 상태 줄은 작성 당시 — 이후 닫힌 절(B · C절 10-27 · 10-28, 코치 리포트 · 재생성 · 해설 인증 슬라이스 5 · 14)은 본문 표가 진실
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-bff-symbol-judgment.md`
 
 ## 1. 종목 판단 뷰모델 (FR-30~38)
@@ -59,3 +60,7 @@
 | 단위 | `npm test` 174 / 0(+1: `insufficient_sample` 은 정상 사유 · 모르는 사유는 계약 깨짐) · `tsc` |
 | 통과 필드 | `signalTrackRecord.{horizonHours, alwaysUpRate, excessWinRate}` 없으면 `null` · `samples` 서버 모양 그대로 |
 | 미검증 | 떠 있는 BFF 가 이 브랜치가 아님 — 실 경로는 머지 뒤 |
+
+## 2026-10-29 REQ 전수 조사
+
+- generate 경로 · scoreboard 039 표시

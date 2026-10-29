@@ -89,3 +89,7 @@
 ## `AlertVM` — FR-1~3 (2026-10-28)
 
 루트 `F000-notification-kind-gate` · 브랜치 `feat/f000-notification-kind-gate` · 커밋 `ed1615f` · 확인은 `BFF-REQ-007.md` C절과 같다. 계약 개정: `symbol` 추가 · `params` 값 `string` 만. 미검증: 없음
+
+## 2026-10-29 REQ 전수 조사
+
+- FR-12 기간 2종 · 7계약 구현 표시

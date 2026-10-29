@@ -9,6 +9,10 @@ labels: [bff, api, contract, viewmodel, coach, render-gate]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - `@repo/core/coach/symbolCoach.ts` 가 있다(FR-30) · explain 인증 · 20s · 동시 2(`app-ai-coach.service.ts`) — 수용 기준 미체크는 체크리스트가 진실. 미구현: `stopLossRate` 표시
+
+
 ## Summary
 
 코치 화면이 쓰는 뷰모델. **3종 세트 게이트 필드가 계약의 핵심**이고, 화면이 그것을 우회할 수 없어야 한다.
@@ -20,12 +24,12 @@ created: 2026-09-09
 | GET | `/api/app/ai-coach/preview` | 홈 요약 (기존) | 홈 블록 |
 | GET | `/api/app/ai-coach/detail` | ~~코치 상세 (기존, 필드 추가) — 코치 탭~~ **개정 2026-09-21**: **종목 판단** `?symbol&mode` (기존 코드 그대로) → `SymbolCoachViewModel` | 투자 화면 우측 AI 코치 패널 · 상세 분석 페이지 |
 | GET | `/api/app/coach/report` | 코치 리포트 (신규 2026-09-21 — 이전 `/detail` 의 `CoachDetailViewModel`) | 코치 리포트 화면(B15) |
-| GET | `/api/app/coach/scoreboard` | 신호 성적표 표 (신규) | 코치 탭 |
+| GET | `/api/app/coach/scoreboard` | 신호 성적표 표 (`BFF-REQ-039` FR-5 로 열림) | 코치 탭 |
 | GET | `/api/app/coach/generation-status` | 쿨다운 남은 시간 (신규) | 재생성 버튼 |
 | GET/PATCH | `/api/app/ai-coach/profile` | 성향 설정 (기존) | 설정 |
 | POST | `/api/app/ai-coach/feedback` | 피드백 (기존, `reasonCode`) | 추천 카드 |
 | POST | `/api/app/ai-coach/explain` | 즉석 해설 (기존, **인증 추가**) | 상세 분석 페이지 [해설 보기] |
-| POST | `/api/app/ai-coach/generate` | 재생성 (기존, **429**) | 새로 생성 |
+| POST | `/api/ai-coach/generate` | 재생성 (기존, **429**) | 새로 생성 |
 | GET | `/api/app/profit-plan` | 익절 플랜 (기존, `priceGap`) | 코치 탭 |
 | GET | `/api/app/signal-performance` | 성적표 (기존, `groupBy`) | 코치 탭 |
 | POST | `/api/app/trade-preflight` | 주문 전 계산 (기존, 2026-09-21 `stopLossRate` · `maxLossOfTotalRate`) | 상세 분석 페이지 · 코치 리포트 |
@@ -226,3 +230,4 @@ type SymbolCoachViewModel = {
 | 2026-09-24 | **F009 슬라이스 0 — C05.** 코드 변경 없음 — `validity.code` 를 그대로 옮긴다(`BFF-REQ-023` FR-98). 값이 `scalp_24h` · `long_term_30d` 로 바뀌어 테스트 픽스처만 고쳤다(`SRV-REQ-025` FR-56) |
 | 2026-09-28 | **F010 슬라이스 0.** FR-40 신설 · 구현. 근거 `reports/checklists/BFF-REQ-024.md` §2026-09-28 |
 | 2026-10-26 | F011 슬라이스 7b — `symbol-coach.viewmodel` `trackRecord.sampleOrigin`(live · backtest, `BFF-REQ-040` FR-21). 기저율 값은 서버 정정(행동 무관 풀)을 그대로 통과 |
+| 2026-10-29 | 전수 조사 — generate 경로 · scoreboard 를 연 REQ · 구현분 표시 |

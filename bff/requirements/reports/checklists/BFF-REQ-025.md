@@ -3,6 +3,7 @@
 - REQ: `bff/requirements/specs/in-progress/BFF-REQ-025-F004-UPSTREAM.md`
 - 브랜치: `feat/f004-bff-judgment` (base `main` `ebadcf9`) · 검증일: 2026-09-22
 - 상태: **부분 완료** — 종목 판단 경로(`/api/app/ai-coach/detail`)만 닫혔다. 코치 리포트 · 성적표 · 재생성 · 해설 인증은 미착수
+> **2026-10-29 전수 조사:** 위 상태 줄은 작성 당시 — 이후 닫힌 절(B · C절 10-27 · 10-28, 코치 리포트 · 재생성 · 해설 인증 슬라이스 5 · 14)은 본문 표가 진실
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-bff-symbol-judgment.md`
 - **2026-09-22 슬라이스 5** (`feat/f004-bff-slice4`): 서버 4xx 전달 · `explain` 인증 · GET 재시도 — 루트 `checklists/F004-bff-upstream-errors.md`
 
@@ -82,3 +83,7 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
 | 실측 4001 | `period=week` 422 `MARKET_CHART_PERIOD_UNSUPPORTED` · 서버 404 `MARKET_SYMBOL_NOT_FOUND` 통과 · 로그 `Request rejected 422 MARKET_CHART_PERIOD_UNSUPPORTED` |
 
 미검증: 없음
+
+## 2026-10-29 REQ 전수 조사
+
+- FR-42 현재형 문장
