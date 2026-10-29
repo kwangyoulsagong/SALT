@@ -1,14 +1,12 @@
 import {
   calculatePreflight,
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
+  judgmentAssetClassFor,
   PreflightMode,
   type CoachProfileStore,
   type MarketProbe,
   type PortfolioProbe,
 } from "../domain";
-
-/** 이 계산이 보는 자산군. 원문이 `crypto` 로 좁혔다. */
-const COACH_ASSET_TYPE = "crypto" as const;
 
 export interface TradePreflightCommand {
   symbol: string;
@@ -30,6 +28,12 @@ export interface TradePreflightCommand {
  * 스위치가 아니다 — 켜면 주문이 되는 코드가 이 뒤에 없다.
  *
  * 산술은 `domain/policy/preflight` 에 있고 여기는 재료만 모은다.
+ *
+ * ## 자산군은 시세가 정한다
+ *
+ * 비중 분모는 **같은 자산군 보유**다 — 원문이 코인으로 좁혔고(비중 한도는 같은 자산군 안에서만 뜻이 있다) 국내 주식도
+ * 같은 규칙으로 국내 주식 보유만 본다(F004 슬라이스 16 후속). 자산군은 사이즈 계산(`CheckTradeSize`)과 같이 시세 조회의
+ * `assetType` 으로 고른다 — 시세를 모르면 코인(지금까지와 같다). 응답 `assetType` 으로 화면이 분모 이름을 밝힌다
  */
 export class CheckTradePreflight {
   constructor(
@@ -41,12 +45,14 @@ export class CheckTradePreflight {
   async execute(userId: string, command: TradePreflightCommand) {
     const symbol = command.symbol.toUpperCase();
 
-    const [holdings, holding, profile, quotes] = await Promise.all([
-      // 원문이 `assetType: crypto` 로 좁혔다. 비중 한도는 같은 자산군 안에서만 뜻이 있다
-      this.portfolio.listHoldings(userId, COACH_ASSET_TYPE),
-      this.portfolio.getHolding(userId, symbol),
-      this.profiles.findByUser(userId),
+    const [quotes, profile] = await Promise.all([
       this.market.quotes([symbol]),
+      this.profiles.findByUser(userId),
+    ]);
+    const assetType = judgmentAssetClassFor(quotes.get(symbol)?.assetType);
+    const [holdings, holding] = await Promise.all([
+      this.portfolio.listHoldings(userId, assetType),
+      this.portfolio.getHolding(userId, symbol, assetType),
     ]);
 
     const totalValue = holdings.reduce(
@@ -72,6 +78,7 @@ export class CheckTradePreflight {
 
     return {
       symbol,
+      assetType,
       mode: command.mode,
       orderExecution: false,
       calculation: {
