@@ -64,3 +64,5 @@
 | 서버 차트 404(`f74c34f`) | 상시 4000 재시작 pid 80629: 분봉 · 일봉 모르는 코인 404 `MARKET_SYMBOL_NOT_FOUND` · BTC 200 · `npm test` 835 · `test:layer-check` · build pass |
 | BFF `code`(`3f38160`) | 4001: `period=week` 422 `MARKET_CHART_PERIOD_UNSUPPORTED` · 서버 404 코드 통과 · `npm test` 287 · build pass |
 | 모노레포 재실행 | check-types · lint 5/5 · test(ui 43 · core 51) · `test:layer-check` · 훅 사후(신규 4파일) · web · web-tax build pass |
+
+- 2026-10-29 전수 조사: **done 으로 이동** — 머지 · FR 완료, 남은 항목은 장기 라이브 관찰 · 다른 REQ · QA · 사용자 결정으로 넘긴 것뿐(영역 REQ 체크리스트가 추적)
