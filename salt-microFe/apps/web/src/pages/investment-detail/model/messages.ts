@@ -7,6 +7,8 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   statTradeValue: "거래대금",
   statSentiment: "심리 온도",
   statUpdatedAt: "시세 기준",
+  /** 머리의 주문 전 체크 링크(FR-131) — 계산 카드로 간다. 주문하지 않는다 */
+  preflight: "주문 전 체크",
 
   /** 메타데이터 — 검색 결과 · 공유 미리보기. 예측 · 확신 표현을 쓰지 않는다 */
   metaTitle: (name: string, symbol: string) => `${name}(${symbol}) 시세 · 차트 · AI 코치 판단`,

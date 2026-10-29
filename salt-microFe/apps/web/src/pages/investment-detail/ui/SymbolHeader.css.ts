@@ -323,3 +323,26 @@ export const krSideCard = style({
     [NARROW]: { padding: "16px 16px 20px" },
   },
 });
+
+/**
+ * 머리의 [주문 전 체크] — 관심 별 옆 옅은 면 보조 버튼 모양의 해시 링크(FR-131). 거래 기록 폼의 [현재가] 와 같은 면 ·
+ * 13/600 이고, 터치 타깃 44px 를 높이로 채운다. 주문 버튼처럼 보이지 않게 채운 색을 쓰지 않는다
+ */
+export const preflightLink = style({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "6px",
+  minHeight: "44px",
+  padding: "0 12px",
+  borderRadius: "10px",
+  background: "rgba(7, 25, 76, 0.04)",
+  color: "rgba(26, 31, 41, 0.89)",
+  fontSize: "13px",
+  fontWeight: vars.fontWeights.semibold,
+  textDecoration: "none",
+  whiteSpace: "nowrap",
+  selectors: {
+    "&:hover": { background: vars.colors.neutral[100] },
+    "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" },
+  },
+});
