@@ -12,7 +12,7 @@
 | 모노레포 | `pnpm check-types` · `lint` · `test` · `test:layer-check` · `web` · `web-tax` 빌드 | 같음 |
 | 훅 사후 실행 | Bash · python 으로 쓴 서버 3 · 프론트 4 파일 layer-check exit 0 | — |
 | 공통 수용 기준 | 주문 경로 0 · 금액 서버 계산(`Money`, 반올림 한 곳) · 확률 · 확신 · 명령형 0 · 추천 아님(3종 게이트 대상 아님) | — |
-| 짝 영역 변경 없음 | `FC-REQ-010` — `ManageRiskBudget` 파일 머리에 국면 근거로만 걸림, 국면 읽기 무변경 · DB(`DB-REQ-031`) DDL 없음 · 예측(`salt-forecast`) 무변경 | — |
+| 짝 영역 변경 없음 | `BFF-REQ-039`(FR-1 `btcBeta` 뷰모델 — 프론트 표시만 고침) · `FE-REQ-027` FR-83 준수 기록 · `FC-REQ-010` — `ManageRiskBudget` 파일 머리에 국면 근거로만 걸림, 국면 읽기 무변경 · DB(`DB-REQ-031`) DDL 없음 · 예측(`salt-forecast`) 무변경 | — |
 
 ## 미검증 · 범위 밖
 
@@ -26,3 +26,5 @@
 
 - 덮은 몫 반올림 — "보유의 100%로 계산"(실제 99.5%) → 내림 `formatCoveredRatio` "99%". 주인 `FE-REQ-041` FR-29 · `FE-REQ-040` FR-2(BTC 베타 같은 문장) · 포맷터 파일 주인 `FE-REQ-026` · 패널 `FE-REQ-039` · FEATURE-011 · 010 이력
 - 수정 뒤 재검증: `pnpm check-types` · `lint` · `test`(core 51 · ui 43) · `test:layer-check`(차단 8 · 통과 5) · `web` · `web-tax` 빌드 · 훅 사후 실행 exit 0
+
+- 2026-10-29 재점검: 코드에 나오는 REQ 12개 전부 문서 기록(주인 6 · 소비 2 · 변경 없음 3 · 규칙 준수 1) · 공용 함수 `portfolioVolatility` 소비처 `ManageRiskBudget` 하나 · `npm run prisma:generate` 통과(스키마 무변경)

@@ -68,3 +68,9 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §4 · �
 | 생존 편향 | 상장폐지 종목 원천 없음 — ew 보유 곡선이 실제보다 좋다(게이트에 불리한 쪽) | 리서치 §10 슬라이스 7 |
 | 백테스트 소요 | 1차 + 탐색(3상태 HMM 84회) 168초(월별 적합 병렬, CPU − 1) — 성능 예산 "워크포워드 < 5분" 안. 3상태만 적합당 12초 | — |
 | HMM 월 재적합 날의 국면 단절 | 달이 바뀌면 파라미터가 바뀌어 p_high 가 계단으로 움직일 수 있다 — 게이트를 안 쓰므로 라벨에만 영향 | `regime-gate@2` 에서 게이트로 다시 볼 때 |
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-10-29 | F009 슬라이스 9 — **변경 없음.** `salt-server` `ManageRiskBudget` 파일 머리가 국면 라벨 근거로 이 REQ 를 가리킨다. 그 파일에 흔들림 몫 · 국내 이름 조회가 붙었을 뿐 `marketRegime()` 읽기 · `market` 응답 · `forecast.market_regime` 무변경. 예측 코드 · DB 무변경 |
