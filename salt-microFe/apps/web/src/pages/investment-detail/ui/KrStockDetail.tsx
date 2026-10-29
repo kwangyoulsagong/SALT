@@ -4,6 +4,7 @@ import { kstClock, kstMonthDay } from "@repo/core/marketKr";
 import { AssetIcon } from "@repo/ui/assetIcon";
 import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
+import { ShieldCheck } from "lucide-react";
 
 import {
   KR_STOCK_MESSAGES as M,
@@ -15,16 +16,17 @@ import {
   useKrDetailRealtime,
 } from "@/entities/market";
 import { RecordTradeCard } from "@/features/record-transaction";
+import { PreflightCard } from "@/features/run-preflight";
 
 import { KrCoachJudgment } from "./KrCoachJudgment";
 import { KrForecast } from "./KrForecast";
 import { KrInvestorFlows } from "./KrInvestorFlows";
 import { KrOrderbook } from "./KrOrderbook";
 import { hasApiStatus, useHasAccessToken } from "@/shared/api";
-import { HTTP_STATUS_CODE } from "@/shared/config";
+import { HTTP_STATUS_CODE, PREFLIGHT_ANCHOR_ID } from "@/shared/config";
 import { formatKrwCompact, formatPrice } from "@/shared/lib";
 
-import { INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT } from "../model";
+import { INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT, INVESTMENT_DETAIL_PAGE_MESSAGES } from "../model";
 import {
   afterHoursLine,
   headerCard,
@@ -35,6 +37,7 @@ import {
   krSideColumn,
   name as nameStyle,
   nameRow,
+  preflightLink,
   price as priceStyle,
   priceRow,
   stat,
@@ -134,6 +137,11 @@ export const KrStockDetail = ({ code }: { code: string }) => {
               </div>
             ))}
           </dl>
+          {/* 주문 전 체크 — 코인 머리와 같은 해시 링크(FR-131). 카드가 누름을 받아 스크롤 · 포커스 또는 시트를 연다 */}
+          <a href={`#${PREFLIGHT_ANCHOR_ID}`} className={preflightLink}>
+            <ShieldCheck size={16} aria-hidden="true" />
+            {INVESTMENT_DETAIL_PAGE_MESSAGES.preflight}
+          </a>
         </div>
       </header>
       <div className={krBody}>
@@ -141,6 +149,8 @@ export const KrStockDetail = ({ code }: { code: string }) => {
         <div className={krSideColumn}>
           {/* 코인 상세 오른쪽 열과 같은 순서 — 자세히(변동 범위) → 거래 기록. 차트 선 끝은 실시간 현재가 */}
           <KrForecast code={quote.code} livePrice={quote.price} />
+          {/* 주문 전 체크(F004 FR-30) — 코인 상세와 같은 자리. 국내 주식 판단은 장기 한 모드라 장기로 계산한다 */}
+          <PreflightCard className={krSideCard} symbol={quote.code} mode="long_term" livePrice={quote.price} />
           {/* 현재가는 실시간 구독이 갱신한 값 — [현재가] 버튼이 옮겨 적기만 한다. 호가 단위는 안내만(FR-42) */}
           <RecordTradeCard
             className={krSideCard}

@@ -1,8 +1,9 @@
 import { AssetIcon } from "@repo/ui/assetIcon";
+import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 import type { MarketOverviewItem } from "@/entities/market";
-import { COACH_MODE_PARAM, ROUTES } from "@/shared/config";
+import { COACH_MODE_PARAM, PREFLIGHT_ANCHOR_ID, ROUTES } from "@/shared/config";
 import { formatKrwCompact, formatPrice, formatSeoulClockTime } from "@/shared/lib";
 import { backLink } from "@/shared/ui/surface.css";
 
@@ -14,6 +15,7 @@ import {
   identity,
   name as nameStyle,
   nameRow,
+  preflightLink,
   rangeDot,
   rangeTrack,
   stat,
@@ -121,6 +123,14 @@ export const SymbolHeader = ({ symbol, listing, mode }: SymbolHeaderProps) => {
             </dl>
           )}
           <HeaderWatchlistStar symbol={symbol} displayName={displayName} />
+          {/*
+            주문 전 체크(FR-131 · FR-155) — 해시 링크 하나라 머리에 JS 가 늘지 않는다. 넓은 화면은 카드로 스크롤 + 포커스,
+            좁은 폭은 본문의 카드가 누름을 받아 바텀시트를 연다(`features/run-preflight`). 주문 버튼이 아니다
+          */}
+          <a href={`#${PREFLIGHT_ANCHOR_ID}`} className={preflightLink}>
+            <ShieldCheck size={16} aria-hidden="true" />
+            {MESSAGES.preflight}
+          </a>
         </div>
       </header>
     </>

@@ -199,3 +199,30 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: FSD 표의 `ReasonList` · `SignalTrackRecordBadge` · `FailureCaseAccordion` · `CandidateList`  / FR-140 진입점은 `/coach` 탭이 아니라 투자 화면 제목 줄 링크(`widgets/market-board/ui/MarketBoard.tsx`) — `/c / FR-119 ⑦ 버튼은 지워졌다(`coach-panel/ui/CoachPanel.tsx`) — 행 클릭으로 이동 / FR-132 기간 탭은 6개가 아니라 **5개**(1m · 5m · 15m · 1h · 1d, `entities/market/model/chartTimeframe / "지금 `MarketPreview` 에는 헤더 · 차트 · 게이지 · 뉴스만"은 지난 일 — K절 패널(`widgets/coach-panel`, `ZoneSumm
+
+## 2026-10-29 — F004 슬라이스 16 주문 전 체크 (FR-50~54 · FR-131 · FR-150~156)
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-150 · 53 | `features/run-preflight` — 주문 버튼 · 외부 링크 0, 끝 문구 한 줄 | 실화면 |
+| FR-151 | 진입가 = 현재가 한 번(실시간 → 공개 시세) · 목표가 빈칸 | 실화면 진입가 채움 · 빈 목표가 안내 |
+| FR-152 · 54 | 금액 칩 4 + 직접 입력 · 전액 없음 | 실화면 |
+| FR-153 | 손절 칩 비율 그대로 `stopLossRate` | 요청 본문 · 서버 `stopPrice` |
+| FR-154 | 비중 + 상한 배지 · 최대 손실 · 보유 코인 대비 · 목표 도달 시 손익 · 손익비 | 임시 사용자 실데이터 손 계산 일치. 목표 도달 시는 같은 날 후속(`SRV-REQ-025` FR-65)으로 닫힘 |
+| FR-155 · 131 | 상주 카드 · 좁은 폭 바텀시트 · Hero 해시 링크(스크롤 + 제목 포커스) | 1440 · 390 앱 웹뷰 |
+| FR-51 · 52 · 156 | 상한 초과 = 배지 + 한 줄 | 실화면 |
+
+검증: `pnpm check-types` · `lint` · `test` · `test:layer-check` · 훅 사후 실행 · web · web-tax build · axe 카드 0건. 상세는 루트 `requirements/reports/checklists/F004-fe-preflight-check.md`.
+
+| 미검증 · 범위 밖 | 사유 | 언제 닫히나 |
+|---|---|---|
+
+### 2026-10-29 후속 — FR-154 목표 도달 시 손익
+
+- 실화면(1440): 목표 1.2억 → "목표가 120,000,000원 도달 시 +36,449원(+12.1%)" · 손익비 2.43 / 목표 1억 → "−19,626원(−6.5%)" · 손익비 0 / 비움 → 안내 한 줄. check-types · lint · test · layer-check · 훅 · web · web-tax build
+
+### 2026-10-29 후속 — 미검증 닫음
+
+- 실시간 현재가: 로컬에 BFF WS(4002) · 시세 워커가 꺼져 있던 것이 원인(코드 아님). 켜고 BTC 프레임 22개 · [현재가] = 최신 WS 값(107,745,000) 확인
+- 국내 주식 상세: `FE-REQ-041` FR-35 · 분모 문구 자산군별
+- 남은 미검증: 없음(소유자 실계정 화면은 `QA-001` — 같은 경로를 임시 사용자로 확인)

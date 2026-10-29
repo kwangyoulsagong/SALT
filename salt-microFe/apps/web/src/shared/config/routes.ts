@@ -43,3 +43,9 @@ export {
  * 경계가 된다.
  */
 export const COACH_MODE_PARAM = "mode";
+
+/**
+ * 상세 분석의 주문 전 체크 카드 자리(F004 FR-155). 머리는 서버 컴포넌트라 기능 배럴을 값으로 부르지 않는다
+ * (`performance-frontend.md` §7) — 해시 링크와 카드가 이 id 하나를 같이 본다.
+ */
+export const PREFLIGHT_ANCHOR_ID = "preflight-check";

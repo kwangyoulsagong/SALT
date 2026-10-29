@@ -83,6 +83,14 @@ export interface PreflightCalculation {
    * 화면 계약(FR-52)이 뜻이 드러나는 이름을 요구했고, 기존 이름은 하위 호환으로 남긴다.
    */
   maxLossOfTotalRate: number | null;
+  /**
+   * 첫 목표가에 닿았을 때의 손익(원 정수) — `amount × (목표가 − 진입가) / 진입가`. 목표가가 없으면 `null`.
+   * **부호를 그대로 둔다** — 목표가를 진입가 아래에 적으면 음수다(손익비의 `rewardRate` 는 0 으로 막지만,
+   * 금액을 0 으로 보이면 잘못 적은 목표가가 숨는다). 수수료는 최대 손실과 같이 넣지 않는다(`FE-REQ-026` FR-154)
+   */
+  targetGainAmount: number | null;
+  /** 같은 손익의 이번 금액 대비 비율 — `(목표가 − 진입가) / 진입가`. 목표가가 없으면 `null` */
+  targetGainRate: number | null;
   /** 실제로 쓴 손절가 — 입력 `stopPrice`, 없으면 `stopLossRate` 로 환산한 값 */
   effectiveStopPrice: number | null;
   projectedWeight: number;
@@ -137,6 +145,13 @@ export const calculatePreflight = (input: PreflightInput): PreflightCalculation 
     ? Math.max(0, (primaryTakeProfit - input.entryPrice) / input.entryPrice)
     : null;
 
+  // 목표 도달 시 손익 — 손익비와 달리 0 으로 막지 않는다(타입 주석)
+  const targetGainRate = primaryTakeProfit
+    ? (primaryTakeProfit - input.entryPrice) / input.entryPrice
+    : null;
+  const targetGainAmount =
+    targetGainRate === null ? null : Math.round(input.amount * targetGainRate);
+
   const riskRewardRatio =
     rewardRate !== null && stopLossRate && stopLossRate > 0
       ? Number((rewardRate / stopLossRate).toFixed(2))
@@ -189,6 +204,8 @@ export const calculatePreflight = (input: PreflightInput): PreflightCalculation 
     maxLossAmount,
     maxLossRate,
     maxLossOfTotalRate: maxLossRate,
+    targetGainAmount,
+    targetGainRate,
     effectiveStopPrice,
     projectedWeight,
     projectedTotalValue,

@@ -28,6 +28,7 @@ import {
 import { MarketDetailChart, useMarketListing } from "@/entities/market";
 import { ExplainCard } from "@/features/explain-symbol";
 import { RecordTradeCard } from "@/features/record-transaction";
+import { PreflightCard } from "@/features/run-preflight";
 import {
   CoachModeSwitch,
   useCoachModeParam,
@@ -66,7 +67,7 @@ import {
  * 볼 수 없다(`FE-REQ-013` 전). 경로가 하나라 FR-84 가 걱정한 "두 경로의 staleness 차이"도 없다.
  *
  * 레이아웃(F010 슬라이스 3 재배치 · 리서치 §9-4): PC 는 좌(코치 판단 → 차트 · 구간) / 우(자세히[변동 범위 · 주요 사건 ·
- * 쏠림] → 해설 → 수익 플랜 → 내 계획 → 거래 기록), 1024px 이하는 그 순서 그대로 한 줄이다. 첫 화면에 판정이 있다. 머리(뒤로 · 종목 · 가격)는 서버에서도 그려지도록 페이지(`pages/investment-detail`)에 있다.
+ * 쏠림] → 해설 → 수익 플랜 → 주문 전 체크 → 내 계획 → 거래 기록), 1024px 이하는 그 순서 그대로 한 줄이다. 첫 화면에 판정이 있다. 머리(뒤로 · 종목 · 가격)는 서버에서도 그려지도록 페이지(`pages/investment-detail`)에 있다.
  */
 export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   const coach = useSymbolCoach(symbol);
@@ -88,6 +89,8 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   const [mode, setMode] = useCoachModeParam(coach.data?.mode);
 
   const modeView = coach.data && mode ? selectModeView(coach.data, mode) : null;
+  // 주문 전 체크의 모드 — 판단이 오기 전에는 기다리고(모드가 바뀌며 두 번 계산하지 않게), 판단을 못 받았으면 서버 기본값
+  const preflightMode = mode ?? (coach.isPending && !coach.isSignedOut ? null : "scalp");
   const priceLines = useMemo(
     () => (modeView ? zoneToPriceLines(modeView.zone) : []),
     [modeView],
@@ -212,6 +215,16 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                   </section>
                 )}
               </>
+            )}
+            {/* F004 FR-30 — 수익 플랜 다음 주문 전 체크(FR-25 순서). 사기 전 계산이라 이미 한 거래를 적는 폼보다 위 */}
+            {preflightMode && (
+              <PreflightCard
+                className={card}
+                symbol={symbol}
+                mode={preflightMode}
+                // 실시간 값이 아직 없으면 공개 시세(서버 조회)로 — 진입가 기본 = 현재가(FR-151), 비어 있으면 계산이 시작되지 않는다
+                livePrice={livePrice ?? listing.item?.currentPrice ?? null}
+              />
             )}
             {/* F009 — 변동 범위 카드 아래 "내 계획", 그 아래 거래 기록(시나리오 1 · 2). 새 화면이 아니다 */}
             {plans.data && (
