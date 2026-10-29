@@ -40,6 +40,15 @@ const envSchema = z.object({
   KIS_REQUESTS_PER_SECOND: z.coerce.number().positive().max(15).default(3),
   KIS_UNIVERSE_TOP_N: z.coerce.number().int().min(0).max(200).default(50),
   /**
+   * 시간외 단일가 수집(F011 FR-27 · `SRV-REQ-040` FR-52)을 돌릴지. 기본 끔 — 앱 키가 모의투자용이라 KIS 가 시간외 단일가를
+   * 늘 0 으로 주고(2026-10-29 확인), 실전 키는 계좌가 노출돼 쓰지 않는다(사용자 결정). 켜 두면 평일 16:11~18:01 에
+   * 유니버스 × 12회(약 600호출)가 같은 키의 초당 한도(약 2건/s — 요금은 없다)를 차지해 저녁 투자자 · 5분봉 보정 회차가 한도 초과에 더 걸린다. 실전 키를 쓰게 되면 `true`
+   */
+  KIS_AFTER_HOURS_ENABLED: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
+  /**
    * 국내 주식 탭 요약 띠의 지수 — KIS 업종 코드, 쉼표 구분 · 설정 순서 = 화면 순서(F011 FR-48). 0001 코스피 · 1001 코스닥 ·
    * 2001 코스피 200. 이름을 모르는 코드는 조립 지점(`parseKrSummaryIndices`)이 버린다. 비우면 요약 띠가 없다
    */
