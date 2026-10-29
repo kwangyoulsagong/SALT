@@ -400,3 +400,4 @@ PC                                                   모바일(세로 스택)
 | 2026-10-29 | `entities/coach/lib/format.ts` 에 덮은 몫 표시 내림 `formatCoveredRatio`(합산 변동성 · BTC 베타 "빼고 셌어요(보유의 N%)" — 0.995 가 "100%"로 보이던 것) 추가 — 기존 포맷터 무변경. 주인 칸 `FE-REQ-041` FR-29 · `FE-REQ-040` FR-2 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-29 | F004 슬라이스 16 — 주문 전 체크 FR-50~54 · FR-131 [주문 전 체크] · FR-150~156 구현(`features/run-preflight`, 상세 분석 오른쪽 열 수익 플랜 다음 · 좁은 폭 바텀시트 · Hero 해시 링크). 배치는 FSD 표의 `coach-console` 이 아니라 `symbol-analysis`(FR-155 상세 상주 카드). FR-53 끝 문구는 거래소 이름 없이 "거래소에서 직접". **FR-154 "목표 도달 시" 금액은 미충족** — 서버 응답에 없고 프론트 계산 금지(`SRV-REQ-025` 필드 추가 시). 국내 주식 상세는 서버가 코인만 보아 범위 밖. 루트 `requirements/specs/in-progress/F004-fe-preflight-check-slice.md` |
+| 2026-10-29 | FR-154 "목표 도달 시" 닫힘 — 서버 `targetGainAmount` · `targetGainRate`(`SRV-REQ-025` FR-65, 사용자 "필드에 추가 ㄱㄱ")로 "목표가 N원 도달 시 ±X원(±Y%)" 한 줄, 부호 그대로. 손익비는 별도 줄 |

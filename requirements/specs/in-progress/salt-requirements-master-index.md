@@ -217,7 +217,7 @@ flowchart TB
 | `BFF-REQ-024` F004 API | **in-progress** | 모드 블록 `renderable` 판별 union. **FR-30 `packages/core` 닫힘**(`@repo/core/coach`, 사본 — BFF 는 workspace 밖) |
 | `BFF-REQ-025` F004 UPSTREAM | **in-progress** | 2026-10-28 `AppError` 선택 `code`. 면책 없으면 502 · 모드 계약 깨지면 `null`. **서버 4xx · `Retry-After` 보존**(main 은 500) · `explain` 토큰 · 20s · 동시 2 · GET 재시도 1회(슬라이스 5). `generate` 1s · 202 는 서버 대기 |
 | `BFF-REQ-026` F004 PERF | **in-progress** | p95 32ms · 클라이언트 종료 시 upstream 취소(코드 — 서버 로그 미확인) · `explain` 동시 2 초과 즉시 429(슬라이스 5) |
-| `FE-REQ-026` F004 UI | **in-progress** | **L절 화면 마감**(2026-09-23 — 헤더 위계 · 요약 지표 · 카드/표 마감 · 하단 면책 띠). **K절 우측 AI 코치 패널**(슬라이스 4) · **L절 상세 분석 `/investments/[symbol]` + ⑦**(슬라이스 6) — 차트 구간 선 · 코치 카드 · 해설 · 수익 플랜. **주문 전 체크**(슬라이스 16, 2026-10-29 — 상주 카드 · 좁은 폭 바텀시트 · Hero 링크, 목표 도달 시 금액은 서버 필드 대기). **M절 코치 리포트 `/coach/report` · 추천 게이트 카드 · 재생성**(슬라이스 15 — 성적표 표 · 근거 상세 · 피드백 · 성향 남음). `checklists/F004-fe-coach-panel.md` · `F004-fe-detail-page.md` · `F004-fe-coach-report.md` · **M절 후속 — 진입 투자 화면 · 행 클릭 · 이름 링크 · 머리 서버 렌더 · 참고 화면 실측 디자인**(FR-119 · 140 개정) |
+| `FE-REQ-026` F004 UI | **in-progress** | **L절 화면 마감**(2026-09-23 — 헤더 위계 · 요약 지표 · 카드/표 마감 · 하단 면책 띠). **K절 우측 AI 코치 패널**(슬라이스 4) · **L절 상세 분석 `/investments/[symbol]` + ⑦**(슬라이스 6) — 차트 구간 선 · 코치 카드 · 해설 · 수익 플랜. **주문 전 체크**(슬라이스 16, 2026-10-29 — 상주 카드 · 좁은 폭 바텀시트 · Hero 링크 · 목표 도달 시 손익). **M절 코치 리포트 `/coach/report` · 추천 게이트 카드 · 재생성**(슬라이스 15 — 성적표 표 · 근거 상세 · 피드백 · 성향 남음). `checklists/F004-fe-coach-panel.md` · `F004-fe-detail-page.md` · `F004-fe-coach-report.md` · **M절 후속 — 진입 투자 화면 · 행 클릭 · 이름 링크 · 머리 서버 렌더 · 참고 화면 실측 디자인**(FR-119 · 140 개정) |
 | `FE-REQ-027` F004 FUNC | **in-progress** | (2026-09-23 to-do 에서 옮김) 게이트 재확인 `renderGate` · 쿨다운 서버 판정 · 폴링 중단 4 · 코드 → 문장 · 부분 실패(슬라이스 15). 패널 · 상세 FR-80~93 은 슬라이스 4 · 6 |
 | `FE-REQ-028` F004 API | **in-progress** | 패널 클라이언트 조회 · 키에 모드 없음 · 취소. 모드 전환은 `history.replaceState`(FR-83 개정) — 실측 요청 0건. 해설 버튼만 · 재시도 0 · 20s · 연타 1건(슬라이스 6). 상세도 클라이언트 조회(FR-84 다르게) · 리포트 조회 · 재생성 202 → `generation-status` 폴링 · 429 남은 시간(슬라이스 15) |
 | `FE-REQ-029` F004 PERF | **in-progress** | `/investments` First Load 135 → 136 kB · 취소 6~8/11. 상세 차트 p95 534ms · CLS 0.004(슬라이스 6). 행 선택 p95 · 표 리렌더 미측정 · **상세 113 kB · 리포트 109 kB**(슬라이스 15 후속, 중간 회귀 161 kB 닫음) |
@@ -392,8 +392,8 @@ FR-150~156 을 막던 계약이 풀렸다. 해설 응답이 합 타입이 돼 �
 
 **슬라이스 16 (FE, 2026-10-29) — 주문 전 체크.** 서버 · BFF 가 끝나 있던 `/trade-preflight` 에 화면을 붙였다(`FE-REQ-026` FR-50~54 · 131 · 150~156).
 상세 분석 오른쪽 열 수익 플랜 다음 상주 카드, 좁은 폭(앱 웹뷰)은 바텀시트, Hero 는 해시 링크 하나(머리 JS 0). 금액 칩 · 손절 칩(비율 그대로 전송) ·
-목표가 빈칸 · 결과 전부 서버 값 · 상한 초과는 배지만. 같은 페이지 거래 기록 사이즈 계산과는 **따로 둔다**(사용자 결정). 남은 것: 목표 도달 시 금액(서버 필드) ·
-국내 주식(서버가 코인만). 범위 · 검증은 `requirements/specs/in-progress/F004-fe-preflight-check-slice.md` · `reports/checklists/F004-fe-preflight-check.md`.
+목표가 빈칸 · 결과 전부 서버 값 · 상한 초과는 배지만. 같은 페이지 거래 기록 사이즈 계산과는 **따로 둔다**(사용자 결정). 목표 도달 시 손익은 사용자 승인으로
+서버 필드를 더해 같은 날 닫았다(`SRV-REQ-025` FR-65, 부호 그대로). 남은 것: 국내 주식(서버가 코인만). 범위 · 검증은 `requirements/specs/in-progress/F004-fe-preflight-check-slice.md` · `reports/checklists/F004-fe-preflight-check.md`.
 
 **세션 슬라이스 (FE, 2026-09-23)** — 사용자가 "코치가 안 뜬다"고 했고 원인은 코치가 아니었다.
 **로그인이 MSW 목**(`POST /api/v1/auth/login` → `token: "mock-jwt-token"`)이었고 화면은 그 문자열을
@@ -704,6 +704,7 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-10-29 | **시간외 단일가 수집 기본 끔.** `SRV-REQ-040` FR-52 — env `KIS_AFTER_HOURS_ENABLED`(기본 `false`). KIS 앱 키는 모의투자용(사용자 확인)이라 늘 0, 실전 키는 계좌 노출로 쓰지 않는다. 저녁 초당 한도를 투자자 · 5분봉 보정에 돌려준다. 계약 · 화면 무변경 |
 | 2026-10-29 | **REQ 내용 감사(영역 7갈래) · 기한 지난 미검증 확인 · done 정리.** 발견 약 140건을 코드로 재확인해 반영 — 영역 REQ 현재 상태 문장(머리 정정 블록 · 상태 칸) · 폴더: to-do → in-progress `BFF-REQ-006` · `009` · `SRV-REQ-010` · `026` · `DB-REQ-001` · `018`, → done `FC-REQ-001` · `018` · `DB-REQ-029` · `FE-REQ-036` · `037`, 루트 슬라이스 29개 done(남은 것: `F000-dormant-410` 11-03 · `F011-slice6` · `6b` 오늘 18:40 · `F009-slice9` 머지 전). 주인 정리: 뷰모델 한 벌화 `FE-REQ-012` FR-50 · 쿠키 세션 `FE-REQ-013` FR-80 · 남은 모듈 이관 `SRV-REQ-007` FR-15. 확인 중 찾은 것: KIS 가 시간외 단일가를 0 으로 준다(원천) · 맥 수면으로 15:40 · 18:40 회차를 놓치고 catchUp 이 불안정한 네트워크에서 몰려 돈다(운영) · 라이브 해설 호출 0건이라 극성 오탐률 측정 불가 |
 | 2026-10-29 | **F004 슬라이스 16 (FE) — 주문 전 체크.** `FE-REQ-026` FR-50~54 · 131 · 150~156 · `FE-REQ-040` FR-8 순서 · `FE-REQ-039` 파일만(디바운스 훅 `shared/lib`). 서버 · BFF 변경 없음(`SRV-REQ-025` · `BFF-REQ-024` 이력에 기록). FR-154 목표 도달 시 금액 미충족 — 서버 필드 대기. 상태표 · 슬라이스 단락 갱신 |
+| 2026-10-29 | **F004 슬라이스 16 후속 (서버 · FE) — 목표 도달 시 손익.** `SRV-REQ-025` FR-65 신설 · 구현(`targetGainAmount` · `targetGainRate`, 부호 그대로 · 수수료 미포함) · `FE-REQ-026` FR-154 닫힘 · `BFF-REQ-024` 코드 무변경(통과 확인). FEATURE-004 FR-30 완료 |
 | 2026-10-26 | **기획서 상태 칸 정리(F000 · F004 · F006 · F008).** 기능 표 상태 칸이 "Draft" 로 방치돼 실제 진행과 어긋났다 — REQ · 체크리스트 · 커밋 · 코드로 확인한 칸만 고침(131칸, 요구 문장 무변경). 확인 필요 2건: F004 FR-4 후보 목록 · F006 FR-62 모바일 표 |
 | 2026-10-26 | **F011 슬라이스 6 — 국내 지수 · 투자자별 순매수.** `SRV-REQ-040` FR-49 · 50 · `DB-REQ-033` FR-7 · 8(마이그레이션 `20261026180000_kr_index_investor_flows`) · `BFF-REQ-040` FR-27 · 28 · `FE-REQ-041` FR-31 · 32 · Changelog `SRV-REQ-008` · `SRV-REQ-024` · `SRV-REQ-036` · `FE-REQ-010` · `FE-REQ-012` · `FE-REQ-013` · `FE-REQ-037` · `FC-REQ-020` · FEATURE-011(FR-29 · 48 완료 · FR-91 부분 · 슬라이스 6b) · FEATURE-008. 계약: 새 경로 서버 · BFF 각 2개(소유자 전용) · 새 표 2개 · env `KIS_SUMMARY_INDICES`(기본값 있음). 기존 응답 무변경 |
 | 2026-10-26 | **F011 7f 후속 — IPS 이탈 두 자산군 합산.** `SRV-REQ-040` FR-48 후속 · `BFF-REQ-040` FR-26 · `FE-REQ-041` FR-30 · Changelog `SRV-REQ-038` · `BFF-REQ-038` · `FE-REQ-039` · FEATURE-011 · 009. 복기 응답 `ipsDeviation.scope` 추가 |

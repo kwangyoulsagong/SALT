@@ -6,7 +6,7 @@
 | FR-151 진입가 = 현재가 · 목표가 빈칸 | `PreflightForm` 첫 시세 한 번 채움(실시간 → 공개 시세) · 목표가 기본 `""` | 실화면 진입가 `107,644,000` · 목표가 비움 → "목표가를 넣으면 손익비를 계산해요" |
 | FR-152 금액 칩 4 + 직접 입력, 전액 없음 | `PREFLIGHT_AMOUNT_CHIPS` | 실화면 칩 4개 · 직접 입력 칸 |
 | FR-153 손절 칩 → `stopLossRate` | `PREFLIGHT_STOP_CHIPS` 비율 그대로 전송 | 요청 본문 `"stopLossRate":-0.05` · 응답 `stopPrice` 서버 환산 |
-| FR-154 결과(서버 값) | `PreflightResult` | 아래 대조. **목표 도달 시 금액 미충족**(서버 필드 없음) |
+| FR-154 결과(서버 값) | `PreflightResult` · 서버 `targetGainAmount` · `targetGainRate`(`SRV-REQ-025` FR-65) | 아래 대조 |
 | FR-155 PC 상주 카드 · 모바일 바텀시트 · Hero 스크롤 + 포커스 | `PreflightCard` · `SymbolHeader` 해시 링크 | 1440: 링크 → 카드 top 16px · 포커스 `H2 주문 전 체크`. 390 앱 웹뷰(UA `SALTApp/`): 링크 → 시트 열림 · 해시 안 바뀜 · 가로 스크롤 없음(scrollWidth 390) |
 | FR-156 게이트 · 차단 0 | 상한 초과 = 배지 + 한 줄 | 비중 100% · "상한 60% 넘음" 배지 · 결과 그대로 |
 | 디바운스 300ms | `useDebouncedValue`(shared) | 칩 2 + 목표가 입력이 요청 **1건** |
@@ -21,20 +21,22 @@
 | BTC 30만 · −5% · 목표 120,000,000 · 진입 107,489,000 | 최대 손실 15,000 · 대비 1.0910% · 손익비 2.33 | 300,000 × 0.05 · 15,000 ÷ (1,074,890 + 300,000) · (120,000,000/107,489,000 − 1) ÷ 0.05 |
 | ETH 10만 · −1.5% · 목표 5,050,000 · 진입 5,000,000 | 비중 8.51% · 손익비 0.67 · `weak_risk_reward` | 100,000 ÷ 1,174,890 · 0.01 ÷ 0.015 |
 | BTC 50만 · 손절 없음 · 장기 | 최대 손실 · 대비 · 손익비 `null` · `missing_stop_price` | — |
+| BFF 경유 목표 도달 시(후속) — BTC 30만 · 진입 107,000,000 · 목표 120,000,000 / 100,000,000 / 없음 | +36,449 · +12.1% / −19,626 · −6.5% / null | 300,000 × 13/107 = 36,448.6 · 300,000 × (−7/107) = −19,626.2 |
 
-확인 뒤 임시 사용자 삭제 — 남은 행 0(user_id 열 전 테이블) · users 5 → 5.
+화면(1440): "목표가 120,000,000원 도달 시 +36,449원(+12.1%)" · "−19,626원(−6.5%)" · 비우면 안내 한 줄.
+
+확인 뒤 임시 사용자 삭제(두 번 모두) — 남은 행 0(user_id 열 전 테이블) · users 5 → 5.
 
 관찰(서버, 기존 동작): 거래 직후 보유 `current_value` 가 0 이었다가 시세 워커가 18초 뒤 채웠다 — 그 사이 주문 전 체크는 보유 0 으로 계산한다.
 
 ## 검증 명령
 
-`pnpm check-types` · `pnpm lint` · `pnpm test`(core 51 · ui 43) · `pnpm test:layer-check`(차단 8 · 통과 5) · Bash 로 쓴 21파일 layer-check 훅 사후 실행 0 · `web` build · `web-tax` build.
+서버: `npm test` 841 · lint · build · `test:layer-check` · Swagger `failOnErrors`. FE: `pnpm check-types` · `pnpm lint` · `pnpm test`(core 51 · ui 43) · `pnpm test:layer-check`(차단 8 · 통과 5) · Bash 로 쓴 21파일 layer-check 훅 사후 실행 0 · `web` build · `web-tax` build.
 번들(같은 날 main 워크트리 빌드 대비): `/investments/[symbol]` 137 → 137 kB(본문은 `ssr:false` 지연 청크) · `/home` 177 → 178 kB(`shared/lib` 배럴 한 줄).
 
 ## 미검증 · 범위 밖
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 목표 도달 시 금액(FR-154) | 서버 응답에 없다 — 프론트 계산 금지 | `SRV-REQ-025` 필드 추가(`salt-server` 변경 승인 시) |
 | 실시간 현재가(WS)로 진입가 채움 | 이 환경에서 상세 WS 값이 오지 않아 공개 시세 대체 경로만 확인. 거래 기록 폼 [현재가]도 같은 상태 | `QA-001` 로그인 QA(실시간 연결) |
 | 소유자 계정 화면 | 임시 사용자로 같은 경로 전부 확인 | `QA-001` |
