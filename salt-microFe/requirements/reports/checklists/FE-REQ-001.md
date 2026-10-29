@@ -55,3 +55,7 @@ pnpm --filter shell build
 
 - `pnpm --filter shell build`는 remote dev server가 켜져 있지 않으면 remote offline 로그를 남긴다. fallback 경로가 동작해 build는 성공한다.
 - `pnpm --filter investments build`는 Browserslist 최신화 경고를 출력하지만 build 실패 요인은 아니다.
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: **FE-REQ-007 · ADR-001 로 대체 — 역사 기록**: shell/goals/investments 앱 · Module Federation · `@r

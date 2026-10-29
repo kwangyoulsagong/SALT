@@ -73,3 +73,7 @@ pnpm --filter @repo/ui     build-storybook          # OK
 - `pnpm install`로 `pnpm-lock.yaml`이 갱신됐다. 의도한 변경은 eslint 9.19.0 devDependency 3건이며, 그 외에 루트의 floating specifier(`turbo: "latest"`)와 전이 의존성 재해석이 함께 반영됐다: `eslint-plugin-turbo`의 turbo peer 엔트리 `2.6.2 → 2.10.12`, `debug 4.4.0 → 4.4.3`, `@types/estree 1.0.6 → 1.0.8`, 사용되지 않는 `@storybook/builder-webpack5@8.5.2` 엔트리 정리.
 - 실제 설치되어 실행되는 turbo 바이너리는 `2.3.4`로 변경 전과 동일하고(`npx turbo --version`), 위 검증 명령이 모두 통과한다.
 - `pnpm install` 출력의 storybook v8/v10 peer 경고는 이번 작업 이전부터 있던 것으로 FE-REQ-003 회고의 후속 과제(미사용 v8 의존성 제거)와 같은 항목이다.
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: **FE-REQ-007 · ADR-001 로 대체 — 역사 기록**: shell/goals/investments 앱 · Module Federation · `@r

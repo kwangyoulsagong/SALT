@@ -198,3 +198,7 @@ Playwright: 블록 클릭 → `/investments`. 포커스 링 · 스크린 리더 
 | 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
 
 미검증: 없음 — 판단 · 화면 무변경
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: 변경 금지 목록의 `AnalysisGraph` · `TipsApp` 은 코드에 없다 — 지출 그래프는 `7b2663a`(MSW 제거)로 삭제, 팁은 `widget / `SegmentedControl` 은 `@repo/ui` 에 있다(`3f67f12`, FE-REQ-044 B) — 쟁점은 `MarketFilterTabs` 를 교 / FR-73 · 81 목적지는 `/investments/[symbol]`(상세 라우트 있음) — Open Q 닫힘 / "현재 `constants/api.ts`"는 없다 — 문구는 `@repo/core/http`(웹 `shared/i18n` 재수출), period 는 `ChartP / 768px 미만은 `NarrowScreenNotice`(FE-REQ-043)가 대신 — FR-52 · 54 의 모바일 접기는 앱 웹뷰에만 해당 / 온보딩 ③은 "월 적립액"이 아니라 "첫 목표"(`widgets/onboarding-flow/model/messages.ts`, `d6342a1`)

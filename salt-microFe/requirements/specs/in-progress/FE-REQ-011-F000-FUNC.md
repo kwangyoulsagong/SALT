@@ -9,6 +9,12 @@ labels: [fe, func, fsd, repair, state-sync, i18n]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - "현재 `constants/api.ts` 에 문구 · `period=miniute`"는 지난 일 — 문구 `@repo/core/http`, 기간 `ChartPeriod` enum
+> - FR-53 토큰은 쿠키가 아니라 아직 `localStorage`(`shared/api/authToken.ts` "그게 지금의 미달이다") — 쿠키 이전 주인은 `FE-REQ-013` FR-80(2026-10-29 명시)
+> - FR-30 모바일 접기는 768 미만 안내(FE-REQ-043)로 웹에선 해당 없음
+
+
 ## Summary
 
 수리 9건의 **동작 규칙**과 초대·온보딩의 상태 관리. 그리고 사용자 노출 문구를 `shared/i18n`으로 모으는 작업(현재 `constants/api.ts`에 섞여 있다).
@@ -184,3 +190,4 @@ created: 2026-09-09
 | 2026-09-21 | **실시간 수신 표시를 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-11 · FR-12("연결 끊김 · 재연결 중", 기준 시각을 쓰지 않는다) · FR-13(헤더를 `RealtimeAsOf` 로 떼어 표가 리렌더되지 않는다) · FR-14(`FE-REQ-010` FR-2 에서). **FR-10 은 다르게** — 수신 시각을 `entities/market/model` 이 아니라 `wsClient.getLastMessageAt()` 에 둔다. 수신 시각은 시세가 아니라 연결의 사실이고 `shared/api` 가 그 연결을 소유한다. **남은 것**: FR-1~5 · FR-20~73 중 미구현분. 근거: `requirements/reports/checklists/F000-realtime-reliability.md` |
 | 2026-09-21 | **터치 선택 절 판정.** FR-23 pass(`(hover: hover)`) · FR-30 유지. **FR-22 는 다르게** — 선택 행에 색을 칠하지 않는다(05b0427 사용자 결정, 팔레트 밖 보라). 선택은 우측 프리뷰가 말하고 `aria-selected` 를 둔다 — 그 값이 `memoKey` 누락으로 첫 행에 멈춰 있던 것을 고쳤다. 같은 작업에서 `MarketOrder.Ascending` 이 빈 문자열이던 것(오름차순 = 내림차순)과 기간 변동률 표시를 고쳤다. 근거: `requirements/reports/checklists/F000-market-table.md` |
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 추가: FR-6 · 7(★ 단일 소스에 검색 포함 · 보유 ★ 해제 금지 — D8) · FR-80~84(검색 동작 — 디바운스 · 취소 · URL 동기화 · 최근 검색 로컬) · FR-85~88(북마크 — 낙관적 · 단일 소스 · 알림과 분리, D5) · FR-90~92(목표 수량 폼, 기본안 B5). 개정: FR-5 상한이 실제로 생겼다(추적 10, `409 TRACKED_ASSET_LIMIT`). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

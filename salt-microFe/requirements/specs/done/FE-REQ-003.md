@@ -7,6 +7,10 @@ created: 2026-09-08
 updated: 2026-09-08
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - **FE-REQ-007 · ADR-001 로 대체 — 역사 기록**: shell/goals/investments 앱 · Module Federation · `@repo/mocks` · `message-event-bus` 는 지금 없다(`apps/` 는 `web` · `web-tax`)
+
+
 ## Summary
 
 `pnpm --filter @repo/ui lint`(`eslint . --max-warnings 0`)이 경고 23건으로 실패한다. 세 앱(`shell`/`goals`/`investments`)의 lint는 통과하지만 `@repo/ui`만 빨간불이라 루트 `pnpm lint`(turbo lint) 전체가 실패한다. FE-REQ-001/FE-REQ-002 회고에서 "이번 작업 이전부터 있던 경고, 별도 정리 대상"으로 기록되어 미뤄둔 항목을 이번 요구사항에서 정리한다.
@@ -124,3 +128,4 @@ updated: 2026-09-08
 ## Status
 
 - done (검증 완료: `@repo/ui` lint 0 warnings, 3앱 tsc/lint/build, build-storybook 통과). 본 spec은 `requirements/specs/done/`에 위치한다.
+- 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠

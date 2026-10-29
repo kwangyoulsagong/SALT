@@ -102,3 +102,7 @@ validated: 2026-09-09
 | 320px 폭 브라우저 확인 | `Narrow` story는 있으나 실제 확인 미실시 |
 | 번들 예산 | 위 표 참조. subpath별 tree-shaking이라 앱은 import한 것만 가져가지만, NFR 문구를 "앱별 실사용 증가분"으로 다시 써야 한다 |
 | `Tooltip` 잘림 | 감싸는 `span` 기준 `position: absolute`라 좁은 스크롤 컨테이너 안에서는 말풍선이 잘릴 수 있다. JSDoc에 명시하고 `placement`로 회피하도록 했다 |
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: 하단 5탭(청구서 · 세금) 축소 결정은 닫힘 — ADR-002 로 F001 · F002 폐기 · IA 확정

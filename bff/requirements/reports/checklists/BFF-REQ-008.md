@@ -30,7 +30,7 @@
 | `PortfolioSummaryVM` | `namesDegraded` 를 **더했다** — 종목명 조회가 실패해도 금액은 내려보내고, 화면이 "이름이 심볼인 이유"를 알아야 한다 |
 
 프론트는 같은 모양을 `entities/*/model/types.ts` 에 다시 선언한다. `bff` 가 pnpm workspace
-밖이라 `@repo/core` 를 import 할 수 없기 때문이고, 합치는 것은 `FE-REQ-024` 다.
+밖이라 `@repo/core` 를 import 할 수 없기 때문이고, 합치는 것은 `FE-REQ-012` FR-50 이다(2026-10-29 정정).
 
 ## 3. 판단이 REQ와 다른 것
 
@@ -54,7 +54,7 @@
 |---|---|---|
 | FR-9 | 초대 실패가 `403` + `reasonCode`, 문구는 프론트 | **pass** |
 | FR-10 | `invite/check` 가 상한 초과를 노출하지 않는다 | **pass** — 서버가 지우고 **BFF 가 한 번 더 지운다** |
-| FR-13 | 뷰모델 타입을 `packages/core` 로 공유 | **미충족** — `bff` 는 workspace 밖이라 import 할 수 없다. 프론트가 같은 모양을 선언한다(`FE-REQ-024`) |
+| FR-13 | 뷰모델 타입을 `packages/core` 로 공유 | **미충족** — `bff` 는 workspace 밖이라 import 할 수 없다. 프론트가 같은 모양을 선언한다(합치는 주인 `FE-REQ-012` FR-50 — 2026-10-29 정정) |
 
 **제거 목록**(`/api/auth/register` · `/users/password` · `/users/account`)도 함께 닫혔다.
 동면 경로 410(FR-11)은 §5 에서 닫혔다.

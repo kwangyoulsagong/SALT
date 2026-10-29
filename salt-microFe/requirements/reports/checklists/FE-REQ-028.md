@@ -94,3 +94,7 @@
 ## 2026-10-29 주석 정정
 
 - 주석만 — `entities/coach/api/endpoints.ts` 리스크 예산 경로 설명 "게이지 3" → "게이지 · 측정"(F010 부터 다섯, F009 슬라이스 9 로 측정 칸 2 추가). 경로 · 코드 무변경. 훅 exit 0 · `web` check-types · lint
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: FR-80 의 "쿠키 세션 · `localStorage` 에 두지 않는다"는 아직 아님 — 토큰은 `localStorage`, 이전 주인은 `FE-REQ-013`

@@ -133,3 +133,4 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: FR-70~72(동면 · 되살리기)는 2026-10-27 `SRV-REQ-007` 에서 구현 — `DORMANT_PATHS` 410 · `/api/missions / 초대 · 인증 · 온보딩 · watchlist · 뉴스 · period 수용 기준은 2026-09-18 Changelog 두 행이 닫았다(`auth/applica / FR-32 `AssetType` 3값: `kr_stock` 은 F011 이 닫음(2026-10-07) · `us_stock` 은 미국 주식 착수 때
+- 2026-10-29 전수 조사: 프론트 `entities/auth/model/types.ts`(머리 주석이 이 REQ) 주석만 — 뷰모델 한 벌화 주인 `FE-REQ-024` → `FE-REQ-012` FR-50. 서버 무변경

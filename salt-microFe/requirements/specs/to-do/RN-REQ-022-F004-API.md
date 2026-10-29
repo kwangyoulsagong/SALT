@@ -9,6 +9,10 @@ labels: [rn, api, react-query, polling, llm, offline]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-67 · 50 타입 `SymbolCoachViewModel` · `ModeCoachViewModel` 은 이미 `packages/core/src/coach/symbolCoach.ts` — RN 은 소비만. 게이트 함수는 `apps/web/src/entities/coach/lib` 에 있어 core 로 올리는 선행이 필요
+
+
 ## Summary
 
 모바일 코치의 BFF 호출. **전부 React Query**(RSC 없음)이고, LLM 경로와 폴링이 백그라운드 전환에 반응해야 한다.
@@ -164,3 +168,4 @@ created: 2026-09-09
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 호출 배치 개정 — 코치 리포트 `/api/app/coach/report`, 상세 분석 화면 `/api/app/ai-coach/detail?symbol&mode`. 신규 G 절 FR-60~67(모드 무관 쿼리 키 · `defaultMode` 위임(B16) · 취소 · 종목별 persist · 해설 union(B3) · `stopLossRate`(B1) · 관심 추가 분리(D4) · 판별 union 타입(B10)) |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

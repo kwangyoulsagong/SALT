@@ -9,6 +9,10 @@ labels: [rn, api, bff, plan, security]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - 경로는 `/api/app/plan/*`(`BFF-REQ-020`) — "BFF-REQ-020 과 동일" 주장은 그 경로 기준으로 읽는다
+
+
 ## Summary
 
 모바일도 **BFF만** 부른다. 웹과 다른 점은 **인증 방식**(쿠키 아님 → Bearer + Keychain/Keystore)과 **네트워크 신뢰성**(재시도·타임아웃)이다. 뷰모델 타입은 `packages/core`에서 웹과 **공유**한다.
@@ -131,3 +135,4 @@ created: 2026-09-09
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 엔드포인트 개정(설정 PATCH · 월 적립액만 — D9 · B12, `monthly-summary` 신설 — B20). FR-8·9 추가, FR-21·에러 매핑 개정 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

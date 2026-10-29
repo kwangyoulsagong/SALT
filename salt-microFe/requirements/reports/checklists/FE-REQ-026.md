@@ -4,6 +4,7 @@
 - 브랜치: `feat/f004-fe-coach-panel` (base `main` `157c624`) · 검증일: 2026-09-22
 - 브랜치: `feat/f004-fe-detail-page` (base `main` `3648186`) · 검증일: 2026-09-22 — §5
 - 상태: **부분 완료** — K절(우측 AI 코치 패널) · **L절(상세 분석 페이지 · 해설)**. 주문 전 체크 · 리포트(M) · 추천 카드(A~J 의 카드 본체) 미착수
+> **2026-10-29 전수 조사:** 위 "리포트 · 카드 본체 미착수"는 작성 당시 — §6 이 FR-1~5 · 20 · 21 · 30~45 pass(`CoachReport.tsx`). 진입점은 `/coach` 탭 · 홈이 아니라 투자 화면 제목 줄 링크
 - **전 영역 통합 기록**: 루트 `requirements/reports/checklists/F004-fe-coach-panel.md` · `F004-fe-detail-page.md`
 
 ## 1. 게이트 (A · B)
@@ -194,3 +195,7 @@
 ## 2026-10-29 `formatCoveredRatio` 추가
 
 - 기존 `formatRatio` · `formatSignedRate` 등 무변경 — 소비처 2줄만 새 함수로. `pnpm check-types` · `lint` · `test` · `test:layer-check` · `web` · `web-tax` 빌드 · 임시 사용자 실화면 "99%"
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: FSD 표의 `ReasonList` · `SignalTrackRecordBadge` · `FailureCaseAccordion` · `CandidateList`  / FR-140 진입점은 `/coach` 탭이 아니라 투자 화면 제목 줄 링크(`widgets/market-board/ui/MarketBoard.tsx`) — `/c / FR-119 ⑦ 버튼은 지워졌다(`coach-panel/ui/CoachPanel.tsx`) — 행 클릭으로 이동 / FR-132 기간 탭은 6개가 아니라 **5개**(1m · 5m · 15m · 1h · 1d, `entities/market/model/chartTimeframe / "지금 `MarketPreview` 에는 헤더 · 차트 · 게이지 · 뉴스만"은 지난 일 — K절 패널(`widgets/coach-panel`, `ZoneSumm

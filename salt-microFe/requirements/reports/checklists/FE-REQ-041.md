@@ -331,3 +331,7 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 ## FR-29 덮은 몫 내림 (2026-10-29)
 
 - 임시 사용자 실화면 — 114800 제외 덮은 몫 0.995: 전 "보유의 100%로 계산" → 후 "99%". BTC 베타 줄(54%)은 값이 같아 표시 무변경 · check-types · lint · 훅 exit 0
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: 범위 밖 "국내 거래 폼 · 해설 · 전망은 국내 주식을 받지 않는다"는 지난 일 — FR-16 · 22(거래 폼) · FR-23(`KrForecast.tsx`)

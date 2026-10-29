@@ -34,3 +34,7 @@ date: 2026-09-08
 3. **`@repo/ui`에 테스트가 없다.** `@storybook/addon-vitest`와 `vitest`가 설치되어 있는데 테스트 파일이 없다. `useDebounce` 같은 유틸 hook은 이번 버그처럼 조용히 깨질 수 있어 테스트 대상 1순위다.
 4. **다른 패키지/앱의 빌드 산출물 ignore도 점검이 필요하다.** 이번엔 `packages/ui`에만 `storybook-static/**`를 넣었다. 공유 설정(`packages/eslint-config/base.js`)의 ignore 목록에 `.next/**`, `storybook-static/**`, `coverage/**`를 올리는 편이 반복을 줄인다(공유 설정 변경이라 별도 작업).
 5. **`salt-microFe/.husky/pre-commit`이 `npm test`를 호출하지만 루트에 `test` 스크립트가 없다.** 훅을 실제로 쓰려면 스크립트를 만들거나 훅 내용을 바꿔야 한다.
+
+## 2026-10-29 REQ 전수 조사
+
+- 현재 상태를 말하는 문장이 뒤 슬라이스를 따라가지 못했다. Action: 슬라이스를 닫을 때 그 결과가 바꾸는 다른 REQ 의 본문 · 범위 밖 · 수용 기준을 grep 한다

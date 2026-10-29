@@ -10,6 +10,10 @@ decision: requirements/decisions/ADR-001-microfrontend-replacement.md
 reference: https://feature-sliced.design/kr/docs/guides/tech/with-nextjs
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - Open Q `packages/mocks`(MSW) 위치는 닫힘 — MSW 2026-09-23 삭제, `packages/mocks` 없음
+
+
 ## Summary
 
 `apps/web`·`apps/web-tax`·`apps/mobile`의 내부 구조를 **Feature-Sliced Design**으로 바꾼다. 레이어 6개(`shared` → `entities` → `features` → `widgets` → `pages` → `app`)와 **슬라이스 레지스트리**를 도입하고, 레이어 위반을 **쓰기 시점에 차단하는 훅**을 붙인다. Next.js 라우팅은 **공식 가이드대로 프로젝트 루트에 두고 `src/`의 FSD를 re-export**한다. 슬라이스 이름은 서버 DDD 컨텍스트 이름과 **동일하게** 맞춘다.
@@ -288,3 +292,4 @@ export { importLedger as POST } from '@/app/api-routes';
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-28 | `F000-api-error-normalize`(파일만 걸침) — `GoalApiError` → `readApiError(response, "goal")`. 동작 무변경(4xx 재시도 0 유지) |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

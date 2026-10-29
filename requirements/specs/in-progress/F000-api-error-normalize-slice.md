@@ -43,5 +43,5 @@ F000 알림 1종(`F000-notification-kind-gate`) 다음, 마스터 인덱스가 �
 | ~~서버: 모르는 코인 차트 500~~ | 닫힘 `f74c34f` | 2026-10-28 |
 | ~~BFF 422 · `AppError` `code` 없음~~ | 닫힘 `3f38160`(다른 `AppError` 호출에 코드를 붙이는 것은 화면이 문구를 가를 때) | 2026-10-28 |
 | `alertKind` · `newsSentiment` enum (FR-51) | 소비처(알림 화면 · 뉴스 감성)가 없다 | F006 `FE-REQ-030` · 뉴스 D-2절 |
-| FR-50 · 53 타입 `packages/core` 공유 | `bff` workspace 밖 | `FE-REQ-024` |
+| FR-50 · 53 타입 `packages/core` 공유 | `bff` workspace 밖 | `FE-REQ-012` FR-50(주인 — 2026-10-29 정정, 전엔 `FE-REQ-024`) |
 | ~~운영 빌드 재시도 실측~~ | 닫힘 — 로컬 `next start` 로 쟀다 | 2026-10-28 |

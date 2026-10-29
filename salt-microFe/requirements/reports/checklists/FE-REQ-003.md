@@ -71,3 +71,7 @@ pnpm --filter @repo/ui build-storybook              # OK
 - 루트 `pnpm lint`(turbo lint, 8 패키지)는 여전히 실패한다. 실패 패키지는 `@repo/message-event-bus`와 `@repo/mocks`이고, `@repo/ui`는 이제 통과한다.
   - 원인: 두 패키지에 자체 eslint devDependency가 없어 루트 `eslint@^8`(8.57.1) 바이너리로 실행되는데, 공유 설정이 가져오는 `@typescript-eslint` v8 규칙은 eslint 9 기준이라 규칙 로딩 단계에서 `TypeError`로 크래시한다(`Error while loading rule '@typescript-eslint/no-unused-expressions'`).
   - 이번 요구사항 범위(`packages/ui/**`, 의존성 변경 제외) 밖이라 수정하지 않았다. 후속 과제로 회고에 기록했다.
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: **FE-REQ-007 · ADR-001 로 대체 — 역사 기록**: shell/goals/investments 앱 · Module Federation · `@r

@@ -9,6 +9,10 @@ labels: [fe, ui, fsd, ia, conversation, movable-grid, a11y]
 created: 2026-09-09
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - `AnalysisGraph` · `TipsApp` 자리(FR-10 · 21 · 22 · 24) — 그래프는 삭제(`7b2663a`), 팁은 `SavingTipBlock`
+
+
 > **2026-09-21 개정.** `ADR-002` · 스토리보드 갭 감사 반영. 홈 **3블록 + 기존 블록 그대로**(D6), 자산 탭 = `포지션` / `시장`(지금 `/investments`) / `관심 종목`(D7), `/tax` 진입 링크 제거(zone은 Q1), 알림 1종 화면(D5), 설정 한 화면(D9), 포지션 · 거래 기록 시트 · `RadarChart`(B13 · B14), 온보딩 2단계 교체(B12)를 추가했다. 근거: 스토리보드 갭 감사 D4~D9 · B6 · B7 · B12~B14 · B16 · B19.
 
 ## Summary
@@ -267,3 +271,4 @@ created: 2026-09-09
 |---|---|
 | 2026-09-21 | ADR-002 머리 배너. 개정: FSD 표 · 3탭 경로 · FR-2(세그먼트 D7) · FR-3(`/tax` 링크 제거, Q1) · FR-10(3블록 D6) · FR-15 · FR-16 · FR-18 · FR-21 · FR-32(Chip) · FR-51(격자 = 코치 탭) · FR-60(온보딩 B12, **BREAKING** 단계 키). 추가: FR-22(B6) · FR-23(B7) · FR-24 · FR-80~82(헤더 · 검색 D8) · FR-90~93(시장 · 관심 종목 D4 · D7) · FR-100~109(포지션 · 거래 시트 · `RadarChart`, B13 · B14) · FR-110~113(알림 D5 · B4 · B19) · FR-120~127(설정 D9 · B16 · B19). 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` · `ADR-002` |
 | 2026-10-27 | **FR-3 구현**, `to-do` → `in-progress`(`chore/adr-002-remnants` `e2f2dfc`, 루트 `F000-dormant-410`). 홈 브리핑 `CrossZoneLink href="/tax"` · 문구 `taxCockpitLink` 삭제. `CrossZoneLink` 는 소비처 0 이 됐지만 `shared/ui` 에 남긴다(zone 이 둘인 한 다음 교차 링크가 쓴다). `apps/web-tax` zone 은 Q1. 나머지 FR 은 F006. 근거: `requirements/reports/checklists/FE-REQ-030.md` |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

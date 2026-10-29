@@ -52,3 +52,7 @@ FE-REQ-005로 25종을 채웠는데도 **주문 화면과 코치 대화 화면�
 | 성능 | 4/5 | 애니메이션은 transform/opacity만, `layoutTree`는 순수 계산, `ResizeObserver` 1개. 번들 기준 미정리가 감점 |
 | 접근성 | 3/5 | focus trap 공용화, `role` 정확, `BarChart` 표 병기, reduced-motion 존중. **`MovableGrid` 이동 키보드 부재**와 `Tooltip` 잘림, `role="log"` 미강제가 감점 |
 | 테스트 | 4/5 | 순수 모듈 17개 테스트로 커버. 컴포넌트 상호작용 테스트는 없음(Storybook 시각 확인에 의존) |
+
+## 2026-10-29 REQ 전수 조사
+
+- 현재 상태를 말하는 문장이 뒤 슬라이스를 따라가지 못했다. Action: 슬라이스를 닫을 때 그 결과가 바꾸는 다른 REQ 의 본문 · 범위 밖 · 수용 기준을 grep 한다

@@ -128,3 +128,7 @@
 | 토스트 퇴장 화면 실측 | 앱에 토스트를 쓰는 화면이 아직 없다 | 토스트를 쓰는 화면이 생길 때 |
 | 실기기 · 저사양 프레임 | 헤드리스 Chrome 만 | `QA-001` |
 | RN 모션 | 같은 토큰을 `reanimated` 로 | `RN-REQ` |
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: FR-34 밑줄 이동은 `layoutId` 가 아니라 `packages/ui/src/Motion/useSlidingIndicator`(`layoutId` 0건)

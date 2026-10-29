@@ -104,7 +104,7 @@ BFF 는 그것을 그대로 프록시하는데, 화면이 그 경로를 부르�
 
 - 뷰모델 타입은 BFF 가 소유하지만 `bff` 는 pnpm workspace 밖의 독립 npm 프로젝트라
   `@repo/core` 를 import 할 수 없다. 프론트가 `entities/market/model/types.ts` 에 같은 모양을
-  선언하고, `@repo/core` 로 합치는 것은 `FE-REQ-024` 의 일이다(그 파일 상단 주석의 예고와 같다).
+  선언하고, `@repo/core` 로 합치는 것은 `FE-REQ-012` FR-50 의 일이다(2026-10-29 정정)(그 파일 상단 주석의 예고와 같다).
 - 검증 결과는 루트 `requirements/reports/checklists/F000-watchlist-tab.md` 에 남긴다
   (`requirements/README.md` 워크플로 4).
 - 수용 기준 13건은 2026-09-18 로컬 풀스택에서 전부 통과했다. **미충족·범위 밖은 그 리포트 §5 가 진실이다.**

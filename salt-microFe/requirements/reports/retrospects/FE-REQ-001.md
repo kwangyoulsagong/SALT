@@ -51,3 +51,7 @@ shell의 remote 소비 방식을 `next/dynamic`으로 정리하고, goals/invest
 | 타입 안전성 | 4/5 | event bus registry와 remote declaration을 정리했고 필수 typecheck를 통과했다. |
 | 장애 격리 | 4/5 | shell remote fallback을 추가했지만 운영 모니터링/재시도 정책은 별도 작업이 필요하다. |
 | 검증 완성도 | 5/5 | 필수 lint/typecheck와 shell/goals/investments build가 모두 통과했다. |
+
+## 2026-10-29 REQ 전수 조사
+
+- 현재 상태를 말하는 문장이 뒤 슬라이스를 따라가지 못했다. Action: 슬라이스를 닫을 때 그 결과가 바꾸는 다른 REQ 의 본문 · 범위 밖 · 수용 기준을 grep 한다

@@ -9,6 +9,11 @@ created: 2026-09-09
 decision: requirements/decisions/ADR-001-microfrontend-replacement.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - Open Q `apps/goals` 이관은 닫힘 — `app/goals` 로 이관됨
+> - 3탭 `/` · `/coach` · `/assets` 는 아직 없다 — 지금 라우트는 `/home` · `/investments` · `/coach/report` · `/goals` · `/onboarding`
+
+
 ## Summary
 
 `@module-federation/nextjs-mf`를 제거하고 **Next.js Multi-Zones**로 갈아탄다. 앱 3개(`shell`·`goals`·`investments`)를 **zone 2개**(`apps/web` · `apps/web-tax`)로 재편한다. 마이크로프론트엔드를 포기하는 것이 아니라, **App Router와 스트리밍 SSR이 동작하는 방식으로 옮기는 것**이다.
@@ -230,3 +235,4 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-28 | `@repo/core/http` 진입점 `constants.ts` → `index.ts`(상수 + `apiError`, `2ff2ae6`). 두 zone · RN 이 같은 판정을 본다(FR-32 범위 확장) |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |

@@ -169,3 +169,7 @@
 ## 2026-10-28 — 오류 문구 실화면 (F000 웹 API 에러 정규화 후속)
 
 로그인 오류 3종(실 BFF 틀린 비밀번호 · 500 · 연결 실패) 문구가 `code` · `status` 로 골라지고 요청 1건 · 서버 문장 노출 0 — 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §5
+
+## 2026-10-29 REQ 전수 조사
+
+- 머리 정정 블록: "현재 `constants/api.ts` 에 문구 · `period=miniute`"는 지난 일 — 문구 `@repo/core/http`, 기간 `ChartPer / FR-53 토큰은 쿠키가 아니라 아직 `localStorage`(`shared/api/authToken.ts` "그게 지금의 미달이다") — 쿠키 이전 주인은 ` / FR-30 모바일 접기는 768 미만 안내(FE-REQ-043)로 웹에선 해당 없음

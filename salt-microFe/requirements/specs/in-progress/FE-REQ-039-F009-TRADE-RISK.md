@@ -9,6 +9,11 @@ created: 2026-09-24
 source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 ---
 
+> **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - FR-13 매입가 숨김 보류 사유 "`HoldingSummaryList` 소비처 0 · 손익률 화면 없음"은 낡음 — `entities/portfolio/ui/InvestmentSummary.tsx` 가 렌더하고 홈 `InvestmentsBlock` 이 쓴다(손익률 표시). FR-13 은 다시 판단할 대상
+> - FR-8 리스크 게이지 "3줄" → 지금 게이지 5 + 측정 2(FR-27)
+
+
 ## Summary
 
 사용자가 처음 쓰는 슬라이스. 이미 한 거래를 적고(수동 입력), 원하면 손절가 · 이유를 붙이고, 그 크기가 내 손실 예산에서
@@ -79,3 +84,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-10-08 | F011 슬라이스 4 — `RecordTradeCard` 의 국내 주식 막음(계획 · 사이즈 계산 · 체크 숨김, 한 줄 안내)을 걷었다 — 코인과 같은 폼. 근거 `FE-REQ-041` FR-22 |
 | 2026-10-29 | FR-27 — 흔들림 몫 · 나빴던 날 평균 칸(F009 FR-26). 근거 `BFF-REQ-038` FR-14 · `SRV-REQ-038` FR-17 |
 | 2026-10-29 | `RiskGaugeList` 후속 — 덮은 몫 표시 내림 `formatCoveredRatio`(합산 변동성 · BTC 베타 "빼고 셌어요(보유의 N%)" — 0.995 가 "100%"로 보이던 것). 이 REQ 의 FR-27 두 칸과 같은 패널, 칸 주인은 `FE-REQ-041` FR-29 · `FE-REQ-040` FR-2 |
+| 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
