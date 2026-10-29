@@ -1,5 +1,6 @@
 import type {
   BehaviorMirrorResult,
+  CoachProfileSettings,
   KrBehaviorMirrorResult,
   CoachGenerationStatus,
   DecisionOutcomeListResult,
@@ -134,6 +135,18 @@ export const coachApi = {
 
     const body = (await response.json()) as AppEnvelope<RiskBudgetResult>;
     return body.data;
+  },
+
+  /** 코치 설정 (`GET /api/app/ai-coach/profile`). 없으면 서버가 만든다 — 빈 상태가 없다 */
+  profile: async (signal?: AbortSignal): Promise<CoachProfileSettings> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.profile}`, {
+      headers: authHeader(),
+      signal,
+    });
+    if (!response.ok) throw await readApiError(response, "coach");
+
+    const body = (await response.json()) as AppEnvelope<CoachProfileSettings>;
+    return { hidePurchasePrice: body.data.hidePurchasePrice === true };
   },
 
   /** 종목별 거래 계획 (`GET /api/app/coach/plans`, F009). 최근 순 */

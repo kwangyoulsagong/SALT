@@ -28,9 +28,15 @@ import { HoldingSummaryList } from "./HoldingSummaryList";
 interface InvestmentSummaryProps {
   /** 머리 줄 오른쪽 — 블록이 다른 화면으로 가면 조합하는 쪽이 셰브론을 넣는다(표시 전용이라 이동은 모른다) */
   trailing?: ReactNode;
+  /**
+   * 매입가 숨김(F009 FR-27). 서버 설정이라 조합하는 쪽이 읽어 넘긴다.
+   * `"unknown"` 은 설정이 아직 안 왔다 — 손익률을 그리지 않는다(켠 사람에게 한 번 보였다 사라지면 숨김이 아니다).
+   * 한 줄 물음은 `"hidden"` 일 때만
+   */
+  purchasePrice?: "shown" | "hidden" | "unknown";
 }
 
-export const InvestmentSummary = ({ trailing }: InvestmentSummaryProps) => {
+export const InvestmentSummary = ({ trailing, purchasePrice = "shown" }: InvestmentSummaryProps) => {
   const holdings = usePortfolioSummary();
 
   return (
@@ -67,7 +73,10 @@ export const InvestmentSummary = ({ trailing }: InvestmentSummaryProps) => {
                   </StatusLine>
                 ) : (
                   <>
-                    <HoldingSummaryList items={holdings.data.items} />
+                    <HoldingSummaryList
+                      items={holdings.data.items}
+                      showProfitRate={purchasePrice === "shown"}
+                    />
                     {holdings.data.items.length > 0 ? (
                       <FlexBox justify="between" align="center" fullWidth>
                         <Text color="tertiary">
@@ -75,6 +84,9 @@ export const InvestmentSummary = ({ trailing }: InvestmentSummaryProps) => {
                         </Text>
                         <RolledTotal totalKrw={holdings.data.totalKrw} />
                       </FlexBox>
+                    ) : null}
+                    {purchasePrice === "hidden" && holdings.data.items.length > 0 ? (
+                      <Text color="tertiary">{PORTFOLIO_MESSAGES.firstLookQuestion}</Text>
                     ) : null}
                   </>
                 )}

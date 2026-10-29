@@ -69,6 +69,7 @@ const REGISTRY = {
     "record-transaction",
     "set-risk-budget",
     "confirm-outcome-tags",
+    "toggle-purchase-price",
     "mark-alert-read",
     "toggle-alerts",
     "skip-onboarding-step",

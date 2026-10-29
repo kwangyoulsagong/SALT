@@ -3,12 +3,11 @@ import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
 import Link from "next/link";
 
-import { InvestmentSummary } from "@/entities/portfolio";
 import { ROUTES } from "@/shared/config";
-import { NavChevron } from "@/shared/ui";
 
 import { HOME_BRIEFING_MESSAGES } from "../model/messages";
 import { investmentsLink } from "./InvestmentsBlock.css";
+import { InvestmentsSummaryLeaf } from "./InvestmentsSummaryLeaf";
 
 /**
  * 투자 요약 블록. 조합만 한다.
@@ -27,7 +26,7 @@ export const InvestmentsBlock = () => {
           aria-label={HOME_BRIEFING_MESSAGES.investmentsLinkLabel}
         >
           <Card>
-            <InvestmentSummary trailing={<NavChevron size={20} />} />
+            <InvestmentsSummaryLeaf />
           </Card>
         </Link>
       </FlexBox>
