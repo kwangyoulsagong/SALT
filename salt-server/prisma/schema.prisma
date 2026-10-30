@@ -29,8 +29,6 @@ model User {
   goals                   Goal[]
   savingTransactions      SavingTransaction[]
   watchlist               InvestmentWatchlist[]
-  analysisSessions        AIAnalysisSession[]
-  aiAnalyses              AIAnalysis[]
   missionProgress         UserMissionProgress[]
   achievements            UserAchievement[]
   pointTransactions       PointTransaction[]
@@ -174,61 +172,6 @@ enum AssetType {
   crypto
   stock // 미국 주식(TBA) — 국내 주식은 kr_stock(F011, DB-REQ-033)
   kr_stock
-}
-
-// ==================== AI Analysis Session ====================
-model AIAnalysisSession {
-  id           String         @id @default(uuid())
-  userId       String         @map("user_id")
-  assetType    AssetType      @map("asset_type")
-  symbol       String
-  status       AnalysisStatus @default(pending)
-  progress     Int            @default(0)
-  errorMessage String?        @map("error_message")
-  createdAt    DateTime       @default(now()) @map("created_at")
-  startedAt    DateTime?      @map("started_at")
-  completedAt  DateTime?      @map("completed_at")
-
-  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  analyses AIAnalysis[]
-
-  @@index([userId, createdAt])
-  @@map("ai_analysis_sessions")
-}
-
-enum AnalysisStatus {
-  pending
-  processing
-  completed
-  failed
-}
-
-// ==================== AI Analysis ====================
-model AIAnalysis {
-  id              String         @id @default(uuid())
-  sessionId       String         @map("session_id")
-  userId          String         @map("user_id")
-  assetType       AssetType      @map("asset_type")
-  symbol          String
-  prediction      PredictionType
-  confidenceScore Decimal?       @map("confidence_score")
-  analysisText    String         @map("analysis_text")
-  keyFactors      Json?          @map("key_factors")
-  priceAtAnalysis Decimal        @map("price_at_analysis")
-  analyzedAt      DateTime       @default(now()) @map("analyzed_at")
-
-  session AIAnalysisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([sessionId])
-  @@index([userId, analyzedAt])
-  @@map("ai_analyses")
-}
-
-enum PredictionType {
-  bullish
-  bearish
-  neutral
 }
 
 // ==================== Daily Mission ====================
