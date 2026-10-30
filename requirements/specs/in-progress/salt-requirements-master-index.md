@@ -395,7 +395,7 @@ FR-150~156 을 막던 계약이 풀렸다. 해설 응답이 합 타입이 돼 �
 목표가 빈칸 · 결과 전부 서버 값 · 상한 초과는 배지만. 같은 페이지 거래 기록 사이즈 계산과는 **따로 둔다**(사용자 결정). 목표 도달 시 손익은 사용자 승인으로
 서버 필드를 더해 같은 날 닫았다(`SRV-REQ-025` FR-65, 부호 그대로). 후속으로 국내 주식 상세에도 같은 카드(서버 FR-66 자산군 · `FE-REQ-041` FR-35). 남은 것: 소유자 실계정 화면(`QA-001`). 범위 · 검증은 `requirements/specs/in-progress/F004-fe-preflight-check-slice.md` · `reports/checklists/F004-fe-preflight-check.md`.
 
-**슬라이스 17 (BFF · FE, 2026-10-30) — 판정 근거 상세.** 사용자 "새브랜치 파고 다음꺼 진행". 서버가 슬라이스 11 부터 주던 성적표 그룹의 관찰 기간 수익률 분포를 BFF 가 버리고 있었다 → `BFF-REQ-039` FR-8 로 옮기고(구간 6개가 다 와야, 아니면 `null` — 0 으로 채우지 않는다) `/coach/signals/[signalType]`(`FE-REQ-026` FR-141 · 142): 성적 4칸 · 분포 6구간 가로 막대 + 표 · 맞았던 때/틀렸던 때를 같은 컴포넌트로 나란히. 성적표와 같은 응답에서 그룹을 고른다(추가 요청 0). 진입은 리포트 성적표 그룹 링크(`FE-REQ-040`). 서버 무변경(`SRV-REQ-025`). F004 FR-33 · 34 완료(웹). 남은 것: 국내 주식 그룹 화면(`QA-001`) · RN push. 범위 · 검증은 `requirements/specs/in-progress/F004-fe-signal-evidence-slice.md` · `reports/checklists/F004-fe-signal-evidence.md`.
+**슬라이스 17 (BFF · FE, 2026-10-30) — 판정 근거 상세.** 사용자 "새브랜치 파고 다음꺼 진행". 서버가 슬라이스 11 부터 주던 성적표 그룹의 관찰 기간 수익률 분포를 BFF 가 버리고 있었다 → `BFF-REQ-039` FR-8 로 옮기고(구간 6개가 다 와야, 아니면 `null` — 0 으로 채우지 않는다) `/coach/signals/[signalType]`(`FE-REQ-026` FR-141 · 142): 성적 4칸 · 분포 6구간 가로 막대 + 표 · 맞았던 때/틀렸던 때를 같은 컴포넌트로 나란히. 성적표와 같은 응답에서 그룹을 고른다(추가 요청 0). 진입은 리포트 성적표 그룹 링크(`FE-REQ-040`). 서버 무변경(`SRV-REQ-025`). F004 FR-33 · 34 완료(웹). 국내 주식 그룹 화면은 같은 날 닫음(임시 사용자 토큰에 소유자 이메일 · 서버 집계 독립 재계산 같음 · 비소유자 노출 0). 남은 것: RN push(앱 미착수). 범위 · 검증은 `requirements/specs/in-progress/F004-fe-signal-evidence-slice.md` · `reports/checklists/F004-fe-signal-evidence.md`.
 
 **세션 슬라이스 (FE, 2026-09-23)** — 사용자가 "코치가 안 뜬다"고 했고 원인은 코치가 아니었다.
 **로그인이 MSW 목**(`POST /api/v1/auth/login` → `token: "mock-jwt-token"`)이었고 화면은 그 문자열을

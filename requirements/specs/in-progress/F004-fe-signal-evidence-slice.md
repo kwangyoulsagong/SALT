@@ -44,6 +44,5 @@ created: 2026-10-30
 |---|---|---|
 | RN push 화면 | 앱 화면 미착수 | `RN-REQ-020`~`023` |
 | 공용 뒤로 가기 링크(`backLink`) 대비 3.0:1 | 리포트 · 상세가 같이 쓰는 기존 스타일 — 새 화면에서 일괄 치환하지 않는다 | `@repo/ui` 대비 정리 REQ(F009 남은 것) |
-| 소유자 계정 화면(국내 주식 그룹) | 임시 사용자로 코인 그룹 전부 확인 · 국내 그룹은 같은 컴포넌트 | `QA-001` |
 
 검증은 `requirements/reports/checklists/F004-fe-signal-evidence.md`, 회고는 `requirements/reports/retrospects/F004-fe-signal-evidence.md`.

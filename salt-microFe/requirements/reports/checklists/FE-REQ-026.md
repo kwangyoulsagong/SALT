@@ -238,4 +238,4 @@
 | 접근성 | 새 글 neutral 700 | axe 새 요소 0(공용 `backLink` 1건은 리포트 기준선과 같음) |
 
 검증: `pnpm check-types` · `pnpm lint` · `pnpm test` · `pnpm test:layer-check` · 훅 사후 실행 15파일 0 · web · web-tax build. 상세는 루트 `requirements/reports/checklists/F004-fe-signal-evidence.md`.
-미검증: 국내 주식 그룹 화면(소유자에게만 옴) → `QA-001` · RN push → `RN-REQ-020`~`023`.
+미검증: RN push → `RN-REQ-020`~`023`(앱 미착수). 국내 주식 그룹 화면은 같은 날 닫음 — 임시 사용자 토큰에 소유자 이메일, 1440 · 390 · 독립 재계산 같음 · 비소유자 노출 0(루트 체크리스트 후속).
