@@ -100,12 +100,12 @@ describe("errorMiddleware", () => {
 
   it("AppError 에 code 가 있으면 본문에 싣는다 — 없으면 위처럼 본문 모양 그대로", () => {
     const { res, out } = fakeRes();
-    errorMiddleware(new AppError("Unsupported chart period: week", 422, true, "MARKET_CHART_PERIOD_UNSUPPORTED"), req, res, next);
+    errorMiddleware(new AppError("Unsupported chart period: month", 422, true, "MARKET_CHART_PERIOD_UNSUPPORTED"), req, res, next);
     assert.equal(out.status, 422);
     assert.deepEqual(out.body, {
       success: false,
       code: "MARKET_CHART_PERIOD_UNSUPPORTED",
-      message: "Unsupported chart period: week",
+      message: "Unsupported chart period: month",
     });
   });
 });
