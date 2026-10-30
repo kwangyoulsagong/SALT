@@ -63,7 +63,7 @@
 |---|---|---|---|
 | FR-1 | **추천 카드**: `recommendation`을 action/symbol/score로 렌더. action 4종(`buy`/`sell`/`hold`/`rebalance`) 시각 구분 | Must | 완료 2026-09-23 — `RecommendationCard` action 4종 색 · 글자 · 모양(FE-REQ-026 M절, PR #67). 열린 카드 실데이터 렌더는 미검증 |
 | FR-2 | **3종 세트 강제**: 근거(`reasons` + `debug.topCandidateFactors`), 적중률(`signal-performance`), 실패사례(`IndicatorTrackRecord`) 중 **하나라도 없으면 카드를 렌더하지 않고** 대체 문구 표시 | Must | 완료 2026-09-28 — 카드 자체 게이트 `RecommendationCard` · `BlockedNotice`(슬라이스 15) + 실패사례 출처 = 저장 추천 원장(F010 슬라이스 0, `SRV-REQ-024` FR-176) |
-| FR-3 | **리스크 섹션**: `risks[]`를 `severity` 내림차순. 자산별 필터 | Must | 부분 — `ReportRiskList` severity 내림차순(슬라이스 15). 자산별 필터 없음 |
+| FR-3 | **리스크 섹션**: `risks[]`를 `severity` 내림차순. 자산별 필터 | Must | 완료(웹) 2026-10-30 — `ReportRiskList` severity 내림차순(슬라이스 15) · 자산별 칩(슬라이스 20, `FE-REQ-026` FR-166). RN 은 `RN-REQ-020` |
 | FR-4 | **후보 목록**: `candidates[]` 상위 3개, 각 접힌 근거 | Must | 확인 필요 — 3종 세트가 없는 추천이라 일부러 그리지 않았다(슬라이스 15 · 마스터 인덱스). 후보에 3종을 붙일지 · FR 을 뺄지 PM 결정 기록 없음 |
 | FR-5 | **점수 해석 안내**: 점수가 확률이 아님을 명시. "72점은 72% 확률이 아닙니다" | Must | 완료 2026-09-23 — `scoreNote` 같은 줄 · 없으면 점수 숨김(`FE-REQ-026` FR-10~14, `JudgmentSummary` · `RecommendationCard`) |
 | FR-6 | **매도 3단계 카드**: `profit-plan`의 손실제한/1차익절/추세유지를 보유 종목별 가격 + 현재가와의 **가격 차이**. (2026-09-21) 같은 가격이 투자 화면 스마트 바이존의 "내 규칙 가격"이다(FR-21). **거리 % 는 싣지도 그리지도 않는다** — 수익률로 읽힌다(D13) | Must | 완료 2026-09-23 — `ExitPlanList` 가격 + 현재가와의 차이 금액, 거리 % 없음(`SRV-REQ-025` 슬라이스 12 `gapFromCurrent`). 가격은 F010 슬라이스 2 부터 σ 기준 |
@@ -339,7 +339,7 @@ flowchart TB
 |---|---|---|---|---|---|
 | FR-1 | `RecommendationCard` | `/ai-coach/detail` | `ai-coach.controller` | `InvestmentInsight` | action 4종 렌더 |
 | FR-2 | 동일 (게이트) | `renderable`, `blockedReason` | 조립 로직 | `IndicatorTrackRecord`, signal-performance | 3종 중 1개 제거 시 미렌더 |
-| FR-3 | `RiskList` | `risks[]` | 기존 | — | severity 정렬 |
+| FR-3 | `RiskList` | `risks[]` | 기존 | — | severity 정렬 · 자산별 칩(종목 2개 이상일 때) |
 | FR-4 | `CandidateList` | `candidates[]` | 기존 | — | 상위 3개 |
 | FR-5 | `scoreNote` | 동일 | 동일 | — | 문구 노출 |
 | FR-6 | `ExitPlanCard` | `exitPlans[]` | `profit-plan` | `PortfolioHolding` | 가격 차이 손검산 |
@@ -395,6 +395,7 @@ flowchart TB
 - [ ] 상세 분석 페이지에 Hero(관심 추가 · 주문 전 체크) · 차트 가격선 3개 · 코치 카드 · 해설 · 수익 플랜 · 주문 전 체크가 있고 [알림 만들기] 가 없다.
 - [ ] 해설이 버튼으로만 불리고 뉴스 5줄 요약 · 적중률 · 실패사례가 있으며 예상 수익이 0건이다. 판단 미렌더면 해설 버튼이 없다.
 - [ ] 주문 전 체크의 목표가가 빈칸으로 열리고, 금액 · 손절 칩 · 총자산 대비 최대손실이 있으며 외부 주문 링크가 0건이다. PC 에서는 상주 카드다.
+- [x] (2026-10-30) 리스크가 심각도 순이고, 종목이 둘 이상이면 종목별로 걸러 볼 수 있다(웹 — 슬라이스 20).
 - [ ] 코치 탭은 대화 + 추천 카드이고 리스크 · 후보 · 익절 · 성적표 · 주문 전 계산 · 행동 기록은 코치 리포트에 있다.
 - [ ] 추천 근거 상세에 30일 수익률 분포가 있고 맞았던 때 · 틀렸던 때가 같은 크기로 나란히 있다.
 - [ ] 표본이 없어 전부 미렌더일 때 "표본이 쌓이는 중" 상태가 보이고 오류 · 빈 화면이 아니다.
@@ -466,3 +467,4 @@ flowchart TB
 | 2026-10-30 | 종목 상세 재설계 기획(`FE-REQ-049`, to-do) — 코인 · 국내 한 틀 · 판단 카드와 해설 칸의 성적 중복 제거 · 탭 제목 실시간 가격 |
 | 2026-10-30 | 슬라이스 18 — 사용자 "새브랜치 파고 다음꺼 진행"(마스터 인덱스 §4-1 순위 2 F004 부분 FR): **FR-12 완료(웹)** — 설정 화면 `/settings`. 서버를 grep 하니 6항목 중 셋은 저장만 되고 읽는 곳이 없어 사용자 결정으로 효과 있는 칸만 둔다. 서버 · BFF 무변경. 루트 `requirements/specs/done/F004-fe-coach-profile-settings-slice.md` |
 | 2026-10-30 | 슬라이스 19 — 사용자 "새브랜치 파고 다음꺼 진행"(마스터 인덱스 §4-1 순위 2 F004 부분 FR): **FR-27 완료(웹)** — 상세 차트 기간 탭 6개. 1주가 빠진 이유는 서버가 `minute` · `day` 만 줬기 때문이라 서버 `week`(Upbit 주봉) → BFF 통과 → 프론트 탭. `month` 는 소비 화면이 없어 열지 않음. 국내 상세 차트는 `1d` · `5m` 그대로(`FE-REQ-049` FR-10). 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
+| 2026-10-30 | 슬라이스 20 — 사용자 "새브랜치 파고 다음꺼 진행"(마스터 인덱스 §4-1 순위 2 F004 부분 FR): **FR-3 완료(웹)** — 코치 리포트 "주의할 점"에 종목별 칩. 칩은 목록에 나온 종목만, 종목 없는 포트폴리오 단위 주의는 "전체"에서만, 종목이 하나면 칩 없음. 같은 칸의 FR-18 · 25 · 26 은 웹 완료 · RN 만, FR-32 는 F006 대기라 웹에서 닫을 F004 부분 FR 은 이것이 마지막. 서버 · BFF 무변경. 루트 `requirements/specs/done/F004-risk-asset-filter-slice.md` |

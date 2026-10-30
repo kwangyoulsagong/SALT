@@ -312,3 +312,8 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 
 - 파일만 걸침 — 서버 `market/domain/ports.ts` 에 `ExchangeQuotePort.weeklyCandles`. 이 REQ 의 판단 · 설정 무변경
 - 미검증 · 범위 밖: 없음
+
+## 2026-10-30 — F004 슬라이스 20 주의할 점 종목별 칩
+
+- 변경 없음 — 프론트가 받은 목록을 종목으로 거를 뿐이다. `risks[]` 조립 · `severity` 그대로
+- 미검증 · 범위 밖: 없음
