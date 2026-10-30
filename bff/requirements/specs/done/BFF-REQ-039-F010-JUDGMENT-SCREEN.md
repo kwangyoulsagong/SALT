@@ -33,6 +33,7 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9-4 ·
 | FR-5 | `GET /api/app/coach/scoreboard` — 서버 `/coach/scoreboard` 중계(1,500ms · 재시도 1회). 깨진 그룹 · 칸이 틀린 사례 제외, 남은 그룹이 없으면 `insufficient_data`, 고지 · 그룹 배열 없으면 계약 깨짐 → 200 `unavailable`. 4xx · 취소 그대로 | 완료 |
 | FR-6 | **거래소 투자유의 · 주의**(F010 슬라이스 6, `SRV-REQ-024` FR-191~193) — 판정 막힘 사유에 `exchange_warning`. 응답 최상위 `exchangeFlag { warning, cautions[], fetchedAt } \| null`(주의 코드는 업비트 원문 5종 화이트리스트, 모르는 코드는 버림 · 모양이 틀리면 `null`). 투자유의인데 서버 모드가 `renderable: true` 면 **막는 쪽으로만** 고친다. 하위 호환 `getPreview` 는 유의면 `headline` · `badge` · `decisions` · 근거를 비운다(서버 게이트가 없는 필드) | 완료 |
 | FR-7 | **재료 정지**(F010 슬라이스 7, `SRV-REQ-024` FR-194) — 판정 막힘 사유 `JudgmentBlockedReason` 에 `stale_inputs`. 서버 게이트 값을 그대로 옮긴다(추가 값 · 소비처 `@repo/core` 같은 브랜치). 해설 비용 상한(`SRV-REQ-025` FR-62)은 계약 무변화 — 템플릿 해설이 기존 모양으로 온다 | 완료(`1efb44d`) |
+| FR-8 | **관찰 기간 수익률 분포**(F004 슬라이스 17, FR-33 · `SRV-REQ-025` FR-53) — 성적표 그룹에 `returnDistribution { horizonDays, buckets[6], p25, median, p75 } \| null`. 구간은 서버 코드 순서(`lte_m20` … `gte_p20`)로 정렬, 하나라도 없거나 횟수가 음수 · 소수 · `horizonDays ≤ 0` 이면 **`null`**(0 으로 채우지 않는다). 사분위는 각자 `null` 가능. 확률 · 기대 수익 필드 0 | 완료 |
 
 ## Changelog
 
@@ -42,3 +43,4 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9-4 ·
 - 2026-10-08: F011 슬라이스 4 — 성적표 정규식이 `kr_stock.<mode>.<action>` 그룹을 버리던 것을 받고 그룹 `assetClass` 추가 · 판단 사유 2종(`mode_not_open` · `insufficient_history`) 타입. 근거 `BFF-REQ-040` FR-17 · 18
 - 2026-10-26: F011 슬라이스 7b — 성적표 그룹 `sampleOrigin` · 사례 `name` · `logoUrl`(`BFF-REQ-040` FR-22)
 - 2026-10-29: F009 슬라이스 9 — **변경 없음.** 같은 뷰모델 파일(`trade-risk.viewmodel.ts`)에 `portfolioVolatility` 두 칸이 붙었고(주인 `BFF-REQ-038` FR-14), 프론트가 BTC 베타 덮은 몫 표시를 내림으로 고쳤다(`FE-REQ-040` FR-2) — FR-1 `btcBeta` · FR-2 `market` 뷰모델 · 테스트 무변경(288/0)
+- 2026-10-30: FR-8 추가 · 완료 — 성적표 그룹 `returnDistribution` 전달(F004 슬라이스 17 판정 근거 상세). 예전 주석 "분포는 화면이 아직 안 써서 옮기지 않는다"를 지웠다. 근거 `requirements/specs/in-progress/F004-fe-signal-evidence-slice.md`

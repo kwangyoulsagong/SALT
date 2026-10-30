@@ -226,3 +226,16 @@
 - 실시간 현재가: 로컬에 BFF WS(4002) · 시세 워커가 꺼져 있던 것이 원인(코드 아님). 켜고 BTC 프레임 22개 · [현재가] = 최신 WS 값(107,745,000) 확인
 - 국내 주식 상세: `FE-REQ-041` FR-35 · 분모 문구 자산군별
 - 남은 미검증: 없음(소유자 실계정 화면은 `QA-001` — 같은 경로를 임시 사용자로 확인)
+
+## F004 슬라이스 17 — 판정 근거 상세 (2026-10-30)
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-141 | `entities/coach/ui/SignalEvidence.tsx` · `widgets/coach-console/ui/SignalEvidence.tsx` · `pages/coach/ui/SignalEvidencePage.tsx` · `app/coach/signals/[signalType]` | 실화면 `scalp.wait` 47회 · 55% · −1.7% · −9.6% · 막대 38 · 9 · `sr-only` 표 |
+| FR-142 | `SignalCaseColumns` | 1440 같은 너비 두 칸 · 390 위아래 · 접기 0 |
+| FR-144 | `signalTypeLabel` | 없는 키 → "기록 없음", 코드 원문 0 |
+| 상태 | 로그아웃 · 로딩 · 실패(route 500) · 분포 `null`(route) · 표본 부족 | 각 문구 확인 |
+| 접근성 | 새 글 neutral 700 | axe 새 요소 0(공용 `backLink` 1건은 리포트 기준선과 같음) |
+
+검증: `pnpm check-types` · `pnpm lint` · `pnpm test` · `pnpm test:layer-check` · 훅 사후 실행 15파일 0 · web · web-tax build. 상세는 루트 `requirements/reports/checklists/F004-fe-signal-evidence.md`.
+미검증: 국내 주식 그룹 화면(소유자에게만 옴) → `QA-001` · RN push → `RN-REQ-020`~`023`.
