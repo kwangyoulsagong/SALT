@@ -30,7 +30,15 @@ export const hoursField = style({ width: "140px", maxWidth: "100%" });
 
 export const unit = style({ color: "rgba(26, 31, 41, 0.89)", fontSize: "13px", fontWeight: vars.fontWeights.medium });
 
-export const hint = style({ margin: 0, maxWidth: "720px", color: vars.colors.neutral[600], fontSize: "12px", lineHeight: "18px" });
+/** 단어 중간에서 꺾이지 않게(390 앱 웹뷰에서 "관/점은"으로 꺾였다) */
+export const hint = style({
+  margin: 0,
+  maxWidth: "720px",
+  color: vars.colors.neutral[600],
+  fontSize: "12px",
+  lineHeight: "18px",
+  wordBreak: "keep-all",
+});
 
 export const actions = style({ display: "flex", flexWrap: "wrap", alignItems: "center", gap: vars.space.sm });
 

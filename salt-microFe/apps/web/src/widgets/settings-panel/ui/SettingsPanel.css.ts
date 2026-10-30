@@ -19,6 +19,7 @@ export const navRow = style({
   lineHeight: "20px",
   fontWeight: vars.fontWeights.semibold,
   textDecoration: "none",
+  wordBreak: "keep-all",
   selectors: {
     "&:hover": { background: "rgba(7, 25, 76, 0.04)" },
     "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px" },
