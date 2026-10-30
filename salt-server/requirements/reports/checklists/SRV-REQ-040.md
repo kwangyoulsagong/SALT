@@ -379,3 +379,8 @@
 
 - 파일만 걸침 — 웹 `@repo/core` `tradeRisk.ts`(이 REQ 를 언급) 설정 타입 추가. 서버 무변경
 - 미검증 · 범위 밖: 없음
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- 파일만 걸침 — 서버 `market/domain/ports.ts` 에 코인 `weeklyCandles`. 국내 차트 `KrChartPeriod` 무변경
+- 미검증 · 범위 밖: 없음

@@ -203,3 +203,8 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 - 확인: test:layer-check · 훅 사후
 
 미검증: 없음 — 판단 무변경
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- 파일만 걸침 — 웹 `entities/market/model/messages.ts` 에 차트 기간 이름 `1w`. 레이어 · 슬라이스 무변경
+- 미검증 · 범위 밖: 없음

@@ -4,11 +4,11 @@ import { AppError } from "../../utils/error.util";
 /**
  * 차트 주기 유효값 (`BFF-REQ-007` FR-52).
  *
- * **서버가 실제로 주는 값과 같아야 한다.** REQ 초안은 `week`·`month` 까지 넷을 적었지만
+ * **서버가 실제로 주는 값과 같아야 한다.** REQ 초안은 `month` 까지 넷을 적었지만
  * 서버에 그 경로가 없다 — 여기에만 넣으면 BFF 는 통과시키고 서버가 422 를 준다.
- * 서버가 주기를 늘릴 때 이 목록도 같이 늘린다.
+ * 서버가 주기를 늘릴 때 이 목록도 같이 늘린다. `week` 는 서버와 같이 열었다(2026-10-30, 상세 차트 1주 탭).
  */
-export const CHART_PERIODS = ["minute", "day"] as const;
+export const CHART_PERIODS = ["minute", "day", "week"] as const;
 
 /**
  * 잘못된 `period` 를 **교정하지 않고 거부한다** (FR-50·FR-51).

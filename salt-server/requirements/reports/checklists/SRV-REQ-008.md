@@ -151,3 +151,15 @@
 관심 목록 응답에 `tracked` · 행 `isHeld`(`FE-REQ-011` FR-7). 서버 857 pass · build · lint · layer-check · 훅 사후 · Swagger. 실검증 · 실화면 상세는 루트 `requirements/reports/checklists/F000-asset-search.md` §2
 
 미검증: 없음 — 소유자 실계정 화면은 `QA-001`
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-50 `week` | `MarketOverview.ts` `ChartPeriod.Week` · `GetChartData` 분기 · `UpbitClient.weeklyCandles` | 실서버 `GET /api/investment/crypto/BTC/chart?period=week&count=3` → 주봉 3개(`date` 10-26 · 10-19 · 10-12, 월요일). 단위 테스트 "week 는 주봉, day 는 일봉, minute 은 분 단위 봉" |
+| FR-51 `month` | 열지 않음 | 실서버 `period=month` → 422 `MARKET_CHART_PERIOD_UNSUPPORTED` |
+| Swagger | `investment.routes.ts` `enum: [day, minute, week]` | `swagger-jsdoc` `failOnErrors` 로 생성 — `period` enum 3종 |
+| 주석 인용 | `errors.ts` · `MarketOverview.ts` · `investment.controller.ts` · `investment.routes.ts` | `FE-REQ-010` FR-50 · 51 → `SRV-REQ-008`(`36b09989`) |
+
+검증: `npm test` 858 · `npm run build` · `npx eslint src/market` · `npm run test:layer-check`(차단 10 · 통과 6) · 훅 사후 실행 6파일 0. Prisma 무변경(스키마 안 건드림 — `prisma:generate` 불필요).
+미검증 · 범위 밖: `month`(소비 화면이 생길 때 — 이 FR-50) · 주봉 과거 이동(`to` 파라미터, `FE-REQ-034` Open Questions 서버 후속).

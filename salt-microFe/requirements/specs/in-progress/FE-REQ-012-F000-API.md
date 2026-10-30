@@ -49,7 +49,7 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-1 | `constants/api.ts`의 `period=miniute` → **`period=minute`** 로 고친다 | Must |
-| FR-2 | 유효값 4종(`minute`·`day`·`week`·`month`)을 **`shared/config`의 enum**으로 정의한다. 문자열 리터럴을 URL에 박지 않는다. **개정 2026-10-28** — 서버가 가진 2종(`minute` · `day`)만 `ChartPeriod` enum 으로, 자리는 `entities/market/model`(도메인 값 — `fsd-shared.md` 도메인 무관 원칙). `week` · `month` 는 서버가 열 때 한 줄씩 | Must |
+| FR-2 | 유효값 4종(`minute`·`day`·`week`·`month`)을 **`shared/config`의 enum**으로 정의한다. 문자열 리터럴을 URL에 박지 않는다. **개정 2026-10-28** — 서버가 가진 2종(`minute` · `day`)만 `ChartPeriod` enum 으로, 자리는 `entities/market/model`(도메인 값 — `fsd-shared.md` 도메인 무관 원칙). `week` · `month` 는 서버가 열 때 한 줄씩. **개정 2026-10-30** — 서버가 `week` 를 열어 3종(`ChartPeriod.Week`) | Must |
 | FR-3 | **프론트가 먼저 배포**된다. 그 뒤 서버가 오타를 422로 거부한다. 순서를 뒤집으면 차트가 깨진다 | Must |
 | FR-4 | `grep -rn "miniute"` = 0 | Must |
 
@@ -122,6 +122,7 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 - [ ] **`grep -rn "miniute" apps/` = 0**
 - [ ] `period` 유효값이 `shared/config`의 enum이다
 - [ ] `period=minute` 요청이 200이다
+- [x] 1주 탭 요청 `period=week`(`ChartPeriod.Week`)가 200이다 (2026-10-30 실화면, F004 슬라이스 19)
 - [ ] 동면 API 호출·훅·쿼리 키가 0건이다
 - [ ] `register`·`password`·`account` 호출이 0건이다
 - [ ] **BFF 410 로그 1주 검증 결과 잔여 호출이 0건이다**
@@ -179,3 +180,4 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | 2026-09-23 | **MSW 목 전부 제거.** 목표 요약 · 목록을 BFF `/api/goals/statistics` · `/api/goals` 로, 지출 분석(`/api/v1/investments/preview`)은 서버에 데이터가 없어 삭제. 공개 시세 서버 조회(SEO · sitemap)를 `pages/investment-detail/api` 에 추가 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | D-2절 구현 — FR-60 **개정**(조회 훅은 `entities/market/api` `useAssetSearch`, 키에 `q` · 자산군) · FR-61 `isTrackedLimitError` · FR-62 무효화 둘 · FR-65 로그인 전 호출 없음(`enabled`) — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-10-30 | F004 슬라이스 19 차트 1주 탭(`52d6c1ee`) — FR-2 개정: `ChartPeriod.Week`(3종). URL 은 여전히 enum 으로만(`endpoints.ts` 무변경). 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |

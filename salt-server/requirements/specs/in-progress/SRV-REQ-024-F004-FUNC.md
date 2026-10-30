@@ -388,3 +388,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-10-26 | F011 7f — `BuildMonthlyReview` 에 `market`(시세 자산군) · `GetMonthlyReview` 에 `forecastOwnerEmails` · `market`(`assetLabels`) 조립 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | 파일만 걸침 — `env.ts` · `ports.ts` 에 추적 상한 · `HoldingProbe` 추가. 이 REQ 의 판단 · 설정 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-10-30 | 파일만 걸침 — 서버 `market/domain/ports.ts` 에 `ExchangeQuotePort.weeklyCandles`. 이 REQ 의 판단 · 설정 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |

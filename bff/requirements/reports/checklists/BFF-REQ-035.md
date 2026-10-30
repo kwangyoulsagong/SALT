@@ -24,3 +24,8 @@
 - 확인: web build
 
 미검증: 없음 — 판단 무변경
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- 파일만 걸침 — 웹 `entities/market/model/types.ts` 에 `ChartPeriod.Week`
+- 미검증 · 범위 밖: 없음

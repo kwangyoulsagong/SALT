@@ -699,3 +699,8 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 - 확인: 단위 — `toErrorResponse` 가 두 수를 싣고 키를 덮지 못함(`searchAssets.test.ts`)
 
 미검증: 없음 — 판단 무변경
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- Port 메서드 1 추가(`weeklyCandles`) — 조회만. 레이어: domain Port → infrastructure 어댑터 → application 유스케이스(`GetChartData`). `test:layer-check` 통과 · 훅 사후 실행 0
+- 미검증 · 범위 밖: 없음

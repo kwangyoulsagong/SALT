@@ -61,7 +61,7 @@ created: 2026-09-09
 
 | Method | Path | 변경 |
 |---|---|---|
-| GET | `/api/investment/crypto/:symbol/chart` | `period` 유효값을 `minute\|day\|week\|month`로. **`miniute` 거부(422)** |
+| GET | `/api/investment/crypto/:symbol/chart` | `period` 유효값을 `minute\|day\|week\|month`로. **`miniute` 거부(422)**. 2026-10-30 `week` 열림 · `month` 는 422 |
 | GET | `/api/investment/watchlist` | 응답에 현재가·변동률 포함. `AssetType` 3값 |
 | GET | `/api/investment/market/overview` | **`limit=100` 유지**(변경 금지 목록) |
 | GET | `/api/investment-notifications*` | `kind` **1종**(`signal_update`)으로 제한. 생성 거부, 조회 허용. 개정 2026-09-21 — ADR-002 |
@@ -121,6 +121,7 @@ created: 2026-09-09
 - [x] 410 응답에 `code: 'ENDPOINT_DORMANT'`가 있다 (2026-10-27)
 - [ ] `period=miniute`가 422다
 - [ ] `period=minute`가 200이다
+- [x] `period=week`가 200(주봉)이고 `period=month`는 422다 (2026-10-30 실측 — 서버 · BFF, F004 슬라이스 19)
 - [ ] watchlist 응답에 현재가·변동률이 있다
 - [ ] `market/overview`의 `limit`·필터가 변경 전과 동일하다 (스냅샷 테스트)
 - [x] 알림 생성에 `signal_update` 외 `kind`를 주면 422다 (개정 2026-09-21) (2026-10-28 — 생성은 HTTP 가 아니라 공개 API 다. `UnsupportedNotificationKindError` `Blocked` → 422)
@@ -170,8 +171,10 @@ created: 2026-09-09
 **차트 주기를 `minute`·`day` 둘로 정의했다**(`FE-REQ-010` FR-50 은 `week`·`month` 까지
 넷을 적었다). 거래소 호출도 소비 화면도 없어서, 목록에만 넣으면 200 을 기대하게 되고
 실제로는 빈 배열이 온다. 필요해질 때 `ExchangeQuotePort` 와 함께 늘린다.
+(2026-10-30 — 상세 차트 1주 탭이 생겨 `week` 를 그렇게 늘렸다. 남은 것은 `month`.)
 
 `/api/portfolio/summary` 의 `fxRateUsed`·`fxBasisCode` 는 **언제나 `null`** 이다(`fx`
 컨텍스트 없음). 필드를 지금 두는 이유는 미국주식이 들어올 때 계약이 바뀌지 않게 하기 위해서다.
 - 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
 - 2026-10-30: F000 종목 검색 계약 구현 — `GET /api/investment/search` · FR-32 409 두 수 · FR-33 `tracked` · 행 `isHeld`. **FR-30 개정** — `q` ≤ 30 · `limit` ≤ 30 · 형식 위반 400(서버 DTO 전부 Zod 400) · `changeRate` · `logoUrl` · `name`. Swagger 생성 확인. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
+- 2026-10-30: F004 슬라이스 19 차트 1주 탭(`143904c3`) — 차트 경로 `period=week`(주봉) 계약 추가 · Swagger `enum: [day, minute, week]`. 응답 모양은 일봉과 같다(`date`). `month` 422 그대로. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`

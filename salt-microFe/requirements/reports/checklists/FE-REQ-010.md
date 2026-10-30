@@ -232,3 +232,8 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 ## 2026-10-30 — F004 슬라이스 18 설정 화면
 
 - 파일만 걸침: `ROUTES.settings` 한 줄. 프로필 메뉴 → `/settings` 이동 실화면 확인(홈에서). 미검증 · 범위 밖: 없음
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- 파일만 걸침 — `messages.ts` 기간 이름 `1w`. 서버 주석의 잘못된 인용(FR-50 · 51) 정정
+- 미검증 · 범위 밖: 없음

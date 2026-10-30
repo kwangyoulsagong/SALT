@@ -178,3 +178,4 @@ created: 2026-09-09
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | F004 슬라이스 17 — `/coach/signals/[signalType]` 첫 로드 130 kB(리포트와 같은 `ssr:false` 위젯 청크) · `/coach/report` 1.59 → 1.65 kB(130 kB 그대로). 페이지 경계 상수 `SIGNAL_EVIDENCE_PAGE` 한 벌(리포트와 같은 320px) |
 | 2026-10-30 | F004 슬라이스 18 — `/settings` 첫 로드 130 kB(`/coach/report` 130 kB 와 같은 `ssr:false` 위젯 청크) · 라우트 1.79 kB. 페이지 경계 상수 `SETTINGS_PAGE` 한 벌(520px — 코치 · 보기 · 내 기준 세 패널 실제 높이). 경계 1개 |
+| 2026-10-30 | F004 슬라이스 19 차트 1주 탭 — `/investments/[symbol]` 라우트 3.07 kB · 첫 로드 137 kB(슬라이스 16 기록과 같음). 1주 조회는 탭을 누를 때만 — 첫 로드 차트 요청은 5분봉 1회 그대로. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |

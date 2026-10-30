@@ -89,7 +89,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-50 | `period` 유효값을 `minute`·`day`·`week`·`month`로 정의한다. **`miniute`(오타)를 받지 않는다** | Must |
+| FR-50 | `period` 유효값을 `minute`·`day`·`week`·`month`로 정의한다. **`miniute`(오타)를 받지 않는다**. 2026-10-30 — `minute` · `day` · `week` 구현, `month` 는 소비 화면이 생길 때(그전엔 FR-51 대로 422) | Must |
 | FR-51 | 잘못된 `period`는 `422`로 거부한다. 조용히 기본값으로 처리하지 않는다 | Must |
 | FR-52 | 프론트가 `miniute`를 보내고 있다(`constants/api.ts`). **프론트 수정이 선행**이고, 그 뒤에 서버가 오타를 받지 않게 된다 | Must |
 
@@ -173,6 +173,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 - [ ] 심볼별 뉴스가 실데이터로 조회되고 **더미가 0건이다**
 - [ ] 뉴스가 없으면 빈 배열이다
 - [ ] `period=miniute`가 `422`로 거부된다
+- [x] `period=week`가 주봉을 주고 `month`는 `422`다 (2026-10-30 실측 — 서버 · BFF, F004 슬라이스 19)
 - [ ] 보유 요약이 3자산군 원화 합산이고 `fxRateUsed`가 있다
 - [ ] 보유 요약이 Projection으로 조회된다
 - [ ] 동면 모듈 코드가 `src/modules/`에 남아 있다
@@ -239,3 +240,4 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
   `fx` 컨텍스트가 없다 — 미국주식이 들어올 때 응답 모양이 바뀌지 않게 지금 뒀다.
 - 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
 - 2026-10-30: **F000 종목 검색 · 추적 자산 상한 구현**(`feat/f000-asset-search` `34128987` · 커널 `36368363`). FR-80~87 — `SearchAssets` · `policy/trackingLimit`(보유가 아닌 관심 수 < `TRACKED_ASSET_LIMIT` 기본 10) · `TrackedAssetLimitError`(409 + `trackedCount` · `trackedLimit`, `DomainError.details`) · `HoldingProbe` = `HeldAssetsAdapter`(→ `portfolio.api.listHoldings`, 수량 0 제외) · 요청당 관심 · 보유 1회 · 자동 정리 없음 · 빈 검색어 = 추적 목록 · 검색어 로그 `q=*`. **FR-87 개정** — Q2 닫힘, 코인 + 국내(소유자만). 중복 검사가 상한보다 먼저. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
+- 2026-10-30: F004 슬라이스 19 차트 1주 탭(`143904c3`) — **FR-50 `week` 구현**: `ChartPeriod.Week` · `ExchangeQuotePort.weeklyCandles`(Upbit `/candles/weeks`, 일봉과 같은 모양 · `date` = 그 주 월요일 KST). `month` 는 소비 화면이 없어 열지 않는다(FR-51 422 그대로). 코드 주석 4곳이 FR-50 · 51 을 `FE-REQ-010`(레이아웃 FR)으로 잘못 인용하던 것 정정(`36b09989`). 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`

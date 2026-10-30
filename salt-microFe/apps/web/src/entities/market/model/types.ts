@@ -37,12 +37,13 @@ export enum MarketOrder {
 }
 
 /**
- * 코인 차트 `period` — 서버 `ChartPeriod` 와 같은 두 값이다(`FE-REQ-012` FR-2). 모르는 값은 BFF · 서버가 422.
- * REQ 는 `week` · `month` 까지 4종을 적었지만 서버에 없다 — 서버가 열면 여기 한 줄씩 더한다.
+ * 코인 차트 `period` — 서버 `ChartPeriod` 와 같은 세 값이다(`FE-REQ-012` FR-2). 모르는 값은 BFF · 서버가 422.
+ * REQ 는 `month` 까지 4종을 적었지만 서버에 없다 — 서버가 열면 여기 한 줄 더한다. `week` 는 2026-10-30 상세 차트 1주 탭.
  */
 export enum ChartPeriod {
   Minute = "minute",
   Day = "day",
+  Week = "week",
 }
 
 export enum MarketPeriod {

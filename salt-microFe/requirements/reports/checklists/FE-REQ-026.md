@@ -262,3 +262,14 @@
 검증: `pnpm check-types` · `pnpm lint` · `pnpm test`(core 51 · ui 43) · `pnpm test:layer-check` · 훅 사후 실행 38파일 0 · web · web-tax build(`/settings` 130 kB). 상세는 루트 `requirements/reports/checklists/F004-fe-coach-profile-settings.md`.
 수정 커밋 `3710bb79`: 390 앱 웹뷰에서 설명 · 내 기준 링크 줄이 단어 중간에서 꺾임 → `keep-all`(`CoachProfileForm.css.ts` · `SettingsPanel.css.ts`). 수정 뒤 모노레포 전체 재검증(빌드 2 · 테스트 · 타입 · 린트 · 레이어) 통과 · 훅 사후 실행 2파일 0.
 미검증 · 범위 밖: 범위 밖 3필드(서버 소비처가 생길 때) · RN 설정 화면(`RN-REQ-020` FR-70, 앱 착수 때) · 공용 스타일 대비 3건(`@repo/ui` 대비 정리 REQ).
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-132 기간 탭 6개 | `entities/market/model/chartTimeframes.ts` `1w` · `messages.ts` `"1주"` | 실화면(3100 빌드본) 1440 · 390(앱 웹뷰 UA): 탭 6개 한 줄 · 1주 누르면 `period=week&unit=1&count=200` · 날짜 축 · "실시간 아님" · 가로 스크롤 0 |
+| FR-132 오버레이 | 기간 무관 | 임시 사용자 로그인 · `?mode=short_term` · `long_term` 1주: 관찰 구간 띠 + 3선 + `예측 아님` 2곳 |
+| 실패 | 기존 차트 실패 분기 | route `period=week` 500 → "차트를 불러올 수 없습니다." · 1일로 바꾸면 복구 |
+
+임시 사용자는 확인 뒤 삭제(users 5 → 6 → 5). `RN-REQ-020` FR-105 · `RN-REQ-023` 은 이미 6탭 — 변경 없음(서버 `week` 가 생겨 앱도 막힘 없음).
+미검증 · 범위 밖: 국내 상세 1주(`FE-REQ-049` FR-10 코인 · 국내 같은 차트 패널) · RN 1주 탭(`RN-REQ-020` FR-105, 앱 착수 때).

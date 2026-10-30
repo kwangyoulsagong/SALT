@@ -412,3 +412,4 @@ flowchart TB
 | 2026-10-29 | 전수 조사 — Q2 닫힘(2026-10-07, F011) 반영 머리 블록 |
 | 2026-10-29 | (같은 날) `external/kis` · `AssetType` 보류 행은 F011 이 대체 — 같은 문서 FR 표 "대체됨 — F011"과 맞춤 |
 | 2026-10-30 | **FR-40 · 41 완료**(F000 종목 검색 슬라이스, `feat/f000-asset-search`). 검색 = 코인 + 국내(소유자만) · 같음 → 시작 → 포함 · 빈 검색어 = 추적 목록. 상한 = 보유가 아닌 관심 수 < 설정값 10, 보유는 늘 추적 · 해제 불가. `SRV-REQ-009` FR-30 계약 개정(400 · 30자 · `changeRate`). 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-10-30 | F004 슬라이스 19(차트 1주 탭) — 차트 주기 계약에 `week`(`SRV-REQ-008` FR-50 · `SRV-REQ-009` · `BFF-REQ-007` FR-52 · `BFF-REQ-008` FR-12 · `FE-REQ-012` FR-2 개정 3종). `month` 는 여전히 422. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |

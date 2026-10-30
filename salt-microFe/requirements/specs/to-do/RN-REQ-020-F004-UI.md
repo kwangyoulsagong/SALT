@@ -294,3 +294,4 @@ AssetDetailScreen (push)
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. **F000 FR-33 이관.** 신규 J(FR-100~110 `AssetDetailScreen` — 모드 공유(D3) · 중립 라벨 · 신뢰도 없음 · 내 규칙 가격/관찰 구간(D2) · 게이지 적중률(B9) · 해설 뉴스 5줄(B3) · Hero(B23) · 신호 컬럼 없음(D4)), K(FR-130~134 주문 전 체크 B1), L(FR-140~143 코치 리포트 B15 · 분포 B17 · 동등 B2 · 초기 미렌더 B18). 개정: FSD 배치 · 화면 구조(코치 리포트) · FR-41 · FR-42(B1) · FR-52(ADR-002) · FR-70(B16) |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. FR-31 개정(D13). Q3 닫음(D12) |
 | 2026-10-30 | FR-70 개정 — 웹 설정 화면(F004 슬라이스 18)과 같은 칸만. 서버가 읽지 않는 3필드는 두지 않는다 |
+| 2026-10-30 | 참고 — FR-105 기간 탭 6개의 1주를 서버가 준다(`period=week`, F004 슬라이스 19 차트 1주 탭). 앱 착수 때 막힘 없음 |

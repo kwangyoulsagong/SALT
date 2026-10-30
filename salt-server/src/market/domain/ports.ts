@@ -109,6 +109,8 @@ export interface ExchangeQuotePort {
   currentPrice(symbol: string): Promise<Quote>;
   currentPrices(symbols: string[]): Promise<Quote[]>;
   dailyCandles(symbol: string, count: number): Promise<DailyCandleView[]>;
+  /** 주봉. 모양은 일봉과 같다 — `date` 는 그 주 첫날(KST) */
+  weeklyCandles(symbol: string, count: number): Promise<DailyCandleView[]>;
   minuteCandles(
     symbol: string,
     unit: number,

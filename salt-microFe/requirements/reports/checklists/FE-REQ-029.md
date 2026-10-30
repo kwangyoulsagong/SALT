@@ -69,3 +69,9 @@
 | 경계 | `BlockBoundary` 1개 · `SETTINGS_PAGE.blockMinHeight` 520 |
 
 미검증 · 범위 밖: 스트리밍 게이트 측정 — 본문이 `ssr:false` 라 서버 스트리밍 블록이 없다(리포트와 같음, `FE-REQ-013` 때 다시)
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- `pnpm --filter web build` — `/investments/[symbol]` 3.07 kB · 첫 로드 137 kB(슬라이스 16 `F004-fe-preflight-check` 137 kB 와 같음)
+- 첫 로드 차트 요청 `period=minute&unit=5&count=200` 1회(1주는 탭 누를 때만)
+- 미검증 · 범위 밖: 없음

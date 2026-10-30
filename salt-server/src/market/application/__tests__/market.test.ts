@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { SentimentLabel } from "../../domain";
+import { ChartPeriod, SentimentLabel } from "../../domain";
 import type {
   AssetQuote,
   ExchangeQuotePort,
@@ -40,6 +40,7 @@ const stubExchange = (overrides: Partial<ExchangeQuotePort> = {}) =>
     currentPrice: async () => quote(),
     currentPrices: async () => [],
     dailyCandles: async () => [],
+    weeklyCandles: async () => [],
     minuteCandles: async () => [],
     dailyTradeValues: async () => [700, 700, 700, 700, 700, 700, 700],
     candlesByTimeframe: async () => [],
@@ -490,5 +491,23 @@ describe("GetSymbolNews", () => {
     assert.deepEqual(asked, { symbol: "BTC", limit: 3 });
     assert.equal(result.status, "empty");
     assert.equal(result.symbol, "BTC");
+  });
+});
+
+describe("GetChartData", () => {
+  // 주기마다 다른 거래소 호출이다 — 주봉을 일봉으로 돌려주면 탭 이름만 바뀌고 봉은 그대로다
+  const calls: string[] = [];
+  const exchange = stubExchange({
+    dailyCandles: async () => (calls.push("day"), []),
+    weeklyCandles: async () => (calls.push("week"), []),
+    minuteCandles: async (_s, unit) => (calls.push(`minute:${unit}`), []),
+  });
+
+  it("week 는 주봉, day 는 일봉, minute 은 분 단위 봉을 부른다", async () => {
+    const { useCases } = build({ exchange });
+    for (const period of [ChartPeriod.Week, ChartPeriod.Day, ChartPeriod.Minute]) {
+      await useCases.getChartData.execute({ symbol: "BTC", period, count: 200, unit: 15 });
+    }
+    assert.deepEqual(calls, ["week", "day", "minute:15"]);
   });
 });

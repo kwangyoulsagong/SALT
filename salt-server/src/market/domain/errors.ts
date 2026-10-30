@@ -45,7 +45,7 @@ export class WatchlistItemNotFoundError extends DomainError {
 /**
  * 알 수 없는 차트 주기.
  *
- * **조용히 기본값으로 떨어뜨리지 않는다** (`FE-REQ-010` FR-51). 프론트가 오랫동안
+ * **조용히 기본값으로 떨어뜨리지 않는다** (`SRV-REQ-008` FR-51). 프론트가 오랫동안
  * `period=miniute`(오타)를 보냈는데 서버가 그것을 `day` 도 `minute` 도 아닌 값으로
  * 받아 **분봉을 돌려줬다** — 오타가 동작해 버리면 아무도 고치지 않는다.
  *
