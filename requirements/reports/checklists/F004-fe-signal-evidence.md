@@ -6,6 +6,7 @@
 | FR-141 성적 4칸 + 분포 6구간 + 표 대체 | `entities/coach/ui/SignalEvidence.tsx` `SignalMetrics` · `ReturnDistributionBars` | 실화면 `scalp.wait` 47회 · 55% · −1.7% · −9.6% · 막대 38 · 9 (가장 나빴던 −9.6% 가 −10~0% 구간과 맞음) · `sr-only` 표 캡션 "판단 뒤 하루 수익률 구간별 채점 횟수" |
 | FR-141 기간은 그룹 기준 | `horizonDays` → "판단 뒤 하루" · "판단 뒤 30일" | `scalp.wait` 제목 "판단 뒤 하루 수익률 분포" · `long_term.wait` "판단 뒤 30일 수익률 분포" |
 | FR-142 맞았던 때 · 틀렸던 때 같은 크기 | `SignalCaseColumns` — 같은 `CaseColumn` 두 번 | 1440 두 칸 같은 너비 · 390 위아래 · 접기 · 더보기 0 |
+| `FE-REQ-027` FR-95 같은 컴포넌트 | `CaseColumn` 하나를 두 번 | 코드 · 실화면(위 FR-142 행). 처음 주인 REQ 집계에서 빠졌다(코드에 번호 없음) — 낡은 문장 grep 으로 찾음 |
 | FR-144 코드 원문 0 | `signalTypeLabel` 매핑 없으면 "기록 없음" | `/coach/signals/bogus.key` → 제목 "판정 근거" · "이 판단 유형의 채점 기록이 없어요" |
 | 표본 부족 | 서버 `lowSample` → 비율 셋 "표본 적음" + 이유 | `long_term.wait`(3회) · `scalp.avoid`(4회) |
 | 분포 `null` | 막대 대신 이유 | route 로 분포 `null` → "수익률 분포를 아직 받지 못했어요" · 사례는 그대로 |

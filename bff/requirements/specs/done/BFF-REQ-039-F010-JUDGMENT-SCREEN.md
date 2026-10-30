@@ -20,7 +20,7 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9-4 ·
    `exceeded` 는 옮기지 않는다. 성적표 `lowSample` 이 빠지면 부족으로 둔다
 2. **서버의 "없으면 true" 기본값을 화면 사실로 옮기지 않는다.** 200일선이 없을 때 `trendOpen: true`(게이트 없음)는 `null`
 3. `basis` 는 아는 값(`volatility` · `fixed`)만 남기고 모르면 필드를 지운다 — 화면이 "변동성 기준"을 잘못 말하지 않게
-4. 성적표 수익률 분포는 옮기지 않는다(화면 소비처 없음). 맞았던 때 · 틀렸던 때는 같은 모양으로 둘 다
+4. ~~성적표 수익률 분포는 옮기지 않는다(화면 소비처 없음).~~ **개정 2026-10-30** — 판정 근거 상세(F004 슬라이스 17)가 소비처가 되어 옮긴다(FR-8, 깨지면 `null`). 맞았던 때 · 틀렸던 때는 같은 모양으로 둘 다
 
 ## FR
 
@@ -43,4 +43,4 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9-4 ·
 - 2026-10-08: F011 슬라이스 4 — 성적표 정규식이 `kr_stock.<mode>.<action>` 그룹을 버리던 것을 받고 그룹 `assetClass` 추가 · 판단 사유 2종(`mode_not_open` · `insufficient_history`) 타입. 근거 `BFF-REQ-040` FR-17 · 18
 - 2026-10-26: F011 슬라이스 7b — 성적표 그룹 `sampleOrigin` · 사례 `name` · `logoUrl`(`BFF-REQ-040` FR-22)
 - 2026-10-29: F009 슬라이스 9 — **변경 없음.** 같은 뷰모델 파일(`trade-risk.viewmodel.ts`)에 `portfolioVolatility` 두 칸이 붙었고(주인 `BFF-REQ-038` FR-14), 프론트가 BTC 베타 덮은 몫 표시를 내림으로 고쳤다(`FE-REQ-040` FR-2) — FR-1 `btcBeta` · FR-2 `market` 뷰모델 · 테스트 무변경(288/0)
-- 2026-10-30: FR-8 추가 · 완료 — 성적표 그룹 `returnDistribution` 전달(F004 슬라이스 17 판정 근거 상세). 예전 주석 "분포는 화면이 아직 안 써서 옮기지 않는다"를 지웠다. 근거 `requirements/specs/in-progress/F004-fe-signal-evidence-slice.md`
+- 2026-10-30: FR-8 추가 · 완료 — 성적표 그룹 `returnDistribution` 전달(F004 슬라이스 17 판정 근거 상세). 예전 주석 "분포는 화면이 아직 안 써서 옮기지 않는다"를 지웠고 결정 4 를 개정했다. 근거 `requirements/specs/in-progress/F004-fe-signal-evidence-slice.md`
