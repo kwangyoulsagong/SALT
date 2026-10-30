@@ -273,3 +273,15 @@
 
 임시 사용자는 확인 뒤 삭제(users 5 → 6 → 5). `RN-REQ-020` FR-105 · `RN-REQ-023` 은 이미 6탭 — 변경 없음(서버 `week` 가 생겨 앱도 막힘 없음).
 미검증 · 범위 밖: 국내 상세 1주(`FE-REQ-049` FR-10 코인 · 국내 같은 차트 패널) · RN 1주 탭(`RN-REQ-020` FR-105, 앱 착수 때).
+
+## 2026-10-30 — F004 슬라이스 20 주의할 점 종목별 칩
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-166 칩 | `entities/coach/ui/ReportRiskList.tsx` · `messages.ts` `risksFilterLabel` · `risksFilterAll` (`13900cd8`) | 3100 dev · route 고정 리포트(BTC 2 · ETH 1 · 종목 없음 1): 칩 "전체 · 비트코인 · 이더리움"(아이콘) · 전체 4줄 → 비트코인 2줄(`aria-pressed` true) → 전체 4줄 · severity 순 유지 |
+| FR-166 칩 없음 | 종목 하나 | route 고정 리포트(BTC 2): 칩 묶음 0 · 목록 2줄 |
+| 접근성 | `role="group"` + 이름 "주의할 점 종목별로 보기" · 칩 `aria-pressed` | Playwright 역할 · 이름으로 찾음 |
+
+미검증 · 범위 밖: 로그인 실계정 리포트(`QA-001` — 소유자 리스크가 실제로 여러 종목인지) · RN(`RN-REQ-020`, 앱 착수 때).
+
+- fix(2026-10-30, 같은 슬라이스): `ReportRiskList` 에 `"use client"` — `useState` 가 생겼는데 지시문이 없었다(`fsd-entities.md` "barrel 로 노출되는 상호작용 잎에 직접"). 부모 위젯이 클라이언트라 빌드는 통과했었다. fix 뒤 모노레포 전체 재검증: check-types 5/5 · lint 5/5 · test core 51 · ui 43 · layer-check 8/5 · build web · web-tax 통과

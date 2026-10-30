@@ -21,7 +21,7 @@ FEATURE-008 FR-25(Draft). `ontology/__init__.py` 0줄. 뉴스 · 일정 · 신�
 | FR-1 | `forecast.entity`(id · kind · canonical_name · external_ids jsonb · created_at). kind: asset · company · person · institution · wallet · event · document · sector · policy | FR-25 |
 | FR-2 | `forecast.relation`(subject · predicate · object · valid_from · valid_to · observed_at · ingested_at · source_url · source_kind · confidence). predicate: issued · listed_as · holds · traded · mentions · affects · belongs_to · regulates | FR-25 |
 | FR-3 | `forecast.fact`(entity · attribute · value_num · value_text · unit · valid_from · valid_to · observed_at · ingested_at · source_url) | FR-25 |
-| FR-4 | 계약 뷰 `v_entity_asof(as_of)` — `ingested_at <= as_of` 만. `v_neighbors(entity_id, depth≤3, as_of)` — 재귀 CTE | FR-25 |
+| FR-4 | 계약 뷰 `v_entity_asof(as_of)` — `available_at <= as_of` 만(**2026-10-30 정정** — 처음엔 `ingested_at`, 이력 참고). `v_neighbors(entity_id, depth≤3, as_of)` — 재귀 CTE | FR-25 |
 | FR-5 | 적재 잡 `ontology_build` — 종목 마스터 · 업비트 마켓 → asset · company · listed_as · belongs_to sector / `news_item` · `news_score` → document · mentions · 감성 fact / `scheduled_event` · `signal_event` → event · affects / `event_reaction` → 반응 fact | FR-25 |
 | FR-6 | 멱등 — 같은 원천 행 재적재 시 중복 0(원천 키를 external_ids 에) | — |
 | FR-7 | DDL — 지금은 `salt-server/prisma/migrations`(ADR-004 §5), O5 이후 `salt-forecast` 안(`FC-REQ-025`) | — |
@@ -50,3 +50,4 @@ FEATURE-008 FR-25(Draft). `ontology/__init__.py` 0줄. 뉴스 · 일정 · 신�
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-10-30 | **FR-4 정정** — as-of 거르기 기준 `ingested_at <= as_of` → **`available_at <= as_of`**. `time-and-leakage.md` §1 "수집 시각은 available_at 이 아니다 — 백필하면 ingested_at 이 전부 오늘" 과 반대였다(백필 사실이 과거 as-of 에서 사라져 백테스트가 틀린다). 테이블에 `available_at` 열 추가 · `ingested_at` 은 감사용. 규칙 `ontology.md` §3 |

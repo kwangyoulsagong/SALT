@@ -39,6 +39,8 @@ npm run prisma:studio
 - 백그라운드 작업은 `src/workers`에 두고, **스케줄과 락만** 담당하고 `application`의 유스케이스를 부른다.
 - 레이어·컨텍스트 위반은 `.claude/hooks/layer-check.mjs`가 쓰기 시점에 차단한다.
 
+> **전환 2 (2026-10-30, `ADR-006`).** 서버를 도메인 서비스 8개로 나누고 Spring Boot · Kotlin(`salt-platform/`)으로 스트랭글러 이전한다(S0~S7). **서버 REQ 를 구현하기 전에 `msa-services.md` §1 네 질문**(어느 서비스 · 어느 단계 · 테이블 주인 · BFF 계약)에 답한다. Kotlin 코드는 `kotlin-platform.md`. 이 문서의 나머지는 Express 쪽 규칙이다.
+
 > **전환 중.** 현재 코드는 `src/modules/{domain}` 4파일 패턴이다. 전환 근거와 순서는 `SRV-REQ-006`(DDD 전환)에 있다. 새 컨텍스트는 DDD로 쓰고, 기존 모듈은 그 REQ 순서로 옮긴다.
 
 ## 규칙 인덱스
@@ -50,6 +52,10 @@ npm run prisma:studio
 - `.claude/rules/ddd-application.md` — 유스케이스 · 트랜잭션 경계 · 공개 API
 - `.claude/rules/ddd-infrastructure.md` — Port 구현 · Prisma 매핑 · 외부 클라이언트 · ACL
 - `.claude/rules/ddd-presentation.md` — 컨트롤러 · 응답 규약(`degraded`·`reconciliation`·렌더 게이트) · SSE
+
+### MSA · Kotlin (2026-10-30, `ADR-006`)
+- `.claude/rules/msa-services.md` — 서비스 레지스트리 · 어디에 쓰나(단계) · 데이터 주인 · 서비스 간 통신 · 스트랭글러 절차
+- `.claude/rules/kotlin-platform.md` — `salt-platform/` 스택 · 모듈 구조 · Express 규칙 대응표 · 테스트
 
 ### 성능
 - `.claude/rules/performance-server.md` — 예산 · 트랜잭션 · 스냅샷 분리 · 워커

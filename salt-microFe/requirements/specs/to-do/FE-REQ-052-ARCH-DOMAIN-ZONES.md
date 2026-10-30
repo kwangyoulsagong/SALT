@@ -42,3 +42,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-10-30 | **FR-1 먼저 완료** — 사용자 "새로 생긴 아키텍처 규칙 다 싱크": `microfrontend.md` 를 ADR-005 로 개정(세 조건 · 탭 문장 삭제). 코드가 아직 2 zone 이라 §0 "지금 코드 상태" 표를 두고 FR-2~7 이 닫힐 때 행을 지운다. FR-8 일부(`salt-microFe/CLAUDE.md` · 루트 서피스 표 · `layered-architecture.md` 세금 행 · `fsd-pages.md` · `rn-microfrontend.md` 경계 기준). 되돌리기 지점(코드 단일 커밋)은 그대로 |

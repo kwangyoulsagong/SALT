@@ -6,6 +6,7 @@
 
 - Monorepo: `pnpm` workspace + Turborepo
 - Apps: `apps/web`(default zone, 3000), `apps/web-tax`(tax zone, 3001), `apps/mobile`(React Native, iOS+Android — 미착수)
+- **zone = 도메인(2026-10-30 `ADR-005`)**: 셸 `web` + `web-investment` · `web-savings` · `web-household` · `web-tips`, `web-tax` 삭제. 규칙은 `microfrontend.md`(개정됨), 코드 전환은 `FE-REQ-052` — 그 전까지 지금 상태는 `microfrontend.md` §0
 - Framework: Next.js 15, React 18, TypeScript strict / React Native
 - 아키텍처: **FSD**(6레이어) · **Next.js Multi-Zones**(마이크로프론트엔드) · **스트리밍 SSR**(RSC + Suspense)
 - Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`(웹) / `StyleSheet` + `@repo/ui-native`(모바일)

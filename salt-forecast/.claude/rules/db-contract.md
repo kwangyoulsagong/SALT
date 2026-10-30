@@ -5,12 +5,14 @@
 | 스키마 | 쓰기 | 읽기 |
 |---|---|---|
 | `public` (Prisma 기존) | `salt-server` | `salt-forecast`(시세 · 보유 · 관심 목록 **읽기만**) |
-| `forecast` | **`salt-forecast` 만** | `salt-server` (`intelligence` · `coach` 컨텍스트) |
+| `forecast` | **`salt-forecast` 만** | `salt-server` `coach`(전망 · 에이전트 도구 — `ontology.md` §6) |
 
 - DB 역할(role)을 나눈다: `salt_forecast` 는 `forecast` 에 쓰기 + `public` 일부 테이블 SELECT 만. 권한으로 강제한다.
 - `salt-server` 는 `forecast` 에 SELECT 만.
 
 ## 2. DDL 은 한 곳에서
+
+> **주인 이전 예정(`ADR-007` §1-4 · `FC-REQ-025`).** 서버 S5(Flyway 전환)에 `forecast` DDL 은 `salt-forecast/migrations/`(plain SQL + `forecast.schema_version`)로, `public` 직접 읽기 4곳은 export 뷰(`market.v_*_export` · `coach.v_judgment_ledger_export`)로 옮긴다. **그 전까지는 아래 그대로** — 한 시점에 DDL 위치는 하나다.
 
 - **`forecast` 스키마 DDL 도 `salt-server/prisma/migrations` 로 만든다** — `prisma migrate dev --create-only` 로 빈
   마이그레이션을 만들고 SQL 을 손으로 쓴다. Prisma 모델은 만들지 않는다(`multiSchema` 는 기존 모델 전부에
@@ -39,7 +41,7 @@
 | `market_warning_snapshot` | (symbol, fetched_at) | 업비트 유의 · 주의 스냅샷 — 불변(UPDATE 트리거 금지), 받을 때마다 쌓음(`FC-REQ-014`) |
 | `news_item` · `news_score` | item_id · (item_id, model_version) | 뉴스 RSS 원장(fetched_at = available) · 로컬 금융 감성 · 사건 태그 — 둘 다 불변, 뷰 없음(`FC-REQ-016`) |
 | `ops_check` | (as_of 정시, subject) | 운영 점검 — 정기 작업 · 주간 비중 · 매일 판단 원장. 같은 시간 재실행은 덮어쓴다, 뷰 없음(`FC-REQ-018`) |
-| `v_symbol_facts` · `v_symbol_actors` · `v_forecast_card` · `v_realized_vol` · `v_market_signal` · `v_signal_reaction` · `v_market_regime` · `v_market_warning` | 뷰 | **서버가 읽는 계약** |
+| `v_entity_asof` · `v_neighbors`(계획 — `FC-REQ-022` · `023`, 9월 초안 `v_symbol_facts` · `v_symbol_actors` 대체) · `v_forecast_card` · `v_realized_vol` · `v_market_signal` · `v_signal_reaction` · `v_market_regime` · `v_market_warning` | 뷰 | **서버가 읽는 계약** |
 
 - 수치는 `numeric`(금액) · `double precision`(수익률 · 확률). 금액을 float 로 저장하지 않는다.
 - 시각은 전부 `timestamptz`, UTC 저장. 표시 시간대는 서버 · 프론트 몫.

@@ -1,10 +1,10 @@
 # SALT Forecast Claude 하네스
 
 `salt-forecast/**` 작업에 적용한다. 데이터 파이프라인 · 온톨로지 · 예측 · 채점을 맡는 **Python 배치 서비스**다.
-근거는 `requirements/decisions/ADR-003` · `ADR-004`, 기획은 `pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md`.
+근거는 `requirements/decisions/ADR-003` · `ADR-004` · `ADR-007`(온톨로지 · 에이전트 도구 · 개인 투영 채점 · 스키마 주인), 기획은 `pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md`.
 
 `salt-server/**` · `bff/**` · `salt-microFe/**` 는 사용자가 계약 변경을 명시하지 않으면 수정하지 않는다.
-**DB 스키마(DDL)는 여기서 바꾸지 않는다** — `salt-server` Prisma 마이그레이션이 유일한 DDL 출처다(`db-contract.md`).
+**DB 스키마(DDL)는 여기서 바꾸지 않는다** — 서버 S5 전까지 `salt-server` Prisma 마이그레이션이 유일한 DDL 출처다. S5 에 `salt-forecast/migrations/` 로 옮긴다(`ADR-007` · `FC-REQ-025`, `db-contract.md` §2).
 
 ## 한 문장
 
@@ -56,7 +56,7 @@ salt-forecast/
 | `.claude/rules/time-and-leakage.md` | **가장 중요.** 시점 고정 · 룩어헤드 금지 · 두 개의 시각 |
 | `.claude/rules/modeling-evaluation.md` | 예측 대상 · 워크포워드 · 지표 · 기준 모델 · 자동 소등 · 모델 버전 |
 | `.claude/rules/data-pipeline.md` | 수집 · 멱등 · 재시도 · 레이트 리밋 · 신선도 |
-| `.claude/rules/ontology.md` | 엔티티 · 관계 · 사실 · 출처 · 식별자 해소 |
+| `.claude/rules/ontology.md` | 엔티티 · 관계 · 사실(bitemporal) · 식별자 해소 · 계약 뷰 · 에이전트 도구는 문장만 (2026-10-30 `ADR-007` 개정) |
 | `.claude/rules/db-contract.md` | `forecast` 스키마 · 쓰기 주인 · 서버가 읽는 계약 |
 | `.claude/rules/python-style.md` | 타입 · 금액 · 에러 · 로깅 · 테스트 · 검증 명령 |
 | `.claude/rules/security-sources.md` | 키 · 약관 · 개인정보 · 소유자 전용 |

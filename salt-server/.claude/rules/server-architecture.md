@@ -100,7 +100,7 @@ import type { WeeklyPlanQuery, WeeklyPlanView } from '../plan/application/api';
 
 - 공개 API를 부를 수 있는 것은 **`application`과 `infrastructure`뿐**이다. `presentation`이 남의 컨텍스트를 부르고 있으면 그 조합은 조합 컨텍스트의 일이다.
 - 번역이 필요하면 소비하는 쪽 `domain`에 Port를 두고 `infrastructure`에 **ACL 어댑터**를 만든다.
-- 상태 변화 전파는 **Domain Event**로 한다. 단일 프로세스이므로 브로커를 두지 않는다.
+- 상태 변화 전파는 **Domain Event**로 한다. Express 는 단일 프로세스이므로 브로커를 두지 않는다. Kotlin 서비스 사이는 아웃박스 + RabbitMQ(`msa-services.md` §5, `ADR-006`).
 - **barrel `index.ts`가 Java 가시성을 대신한다.** 컨텍스트 밖에서 쓰는 것은 `{context}/application/api/index.ts`에만 export한다.
 
 ## 5. 조립 지점은 `src/composition.ts` 하나다

@@ -47,3 +47,4 @@ S0~S2 동안은 한 프로세스(모듈러 모놀리스)로 띄운다. 이 단�
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-10-30 | **FR-12 일부 먼저** — 사용자 "msa rule · kotlin rule 없고": `salt-server/.claude/rules/msa-services.md`(서비스 경계 · 데이터 · 통신 · 스트랭글러) · `kotlin-platform.md`(스택 · 모듈 · Express 규칙 대응 · 테스트 · 보안 · 성능 대응) 신설, 루트 `CLAUDE.md` 서피스 표에 `salt-platform` 행 · `salt-server/CLAUDE.md` 색인. 코드(FR-1~11 · 13)는 그대로 to-do — 규칙은 착수 기준으로 쓰고 S0 에서 실제 구조와 대조해 고친다 |
