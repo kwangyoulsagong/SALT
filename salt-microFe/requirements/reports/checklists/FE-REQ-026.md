@@ -260,4 +260,5 @@
 | 접근성 · 폭 | 세그먼트 `radiogroup` 이름 · 시간 칸 `label` | axe 1440 · 390(앱 웹뷰): 새 요소 0. 남은 3건은 기존 공용(`panelDescription` · `@repo/ui` 세그먼트 미선택 글자 · 매입가 토글 설명) — `/search` 기준선도 3건. 가로 스크롤 0 |
 
 검증: `pnpm check-types` · `pnpm lint` · `pnpm test`(core 51 · ui 43) · `pnpm test:layer-check` · 훅 사후 실행 38파일 0 · web · web-tax build(`/settings` 130 kB). 상세는 루트 `requirements/reports/checklists/F004-fe-coach-profile-settings.md`.
+수정 커밋 `3710bb79`: 390 앱 웹뷰에서 설명 · 내 기준 링크 줄이 단어 중간에서 꺾임 → `keep-all`(`CoachProfileForm.css.ts` · `SettingsPanel.css.ts`). 수정 뒤 모노레포 전체 재검증(빌드 2 · 테스트 · 타입 · 린트 · 레이어) 통과 · 훅 사후 실행 2파일 0.
 미검증 · 범위 밖: 범위 밖 3필드(서버 소비처가 생길 때) · RN 설정 화면(`RN-REQ-020` FR-70, 앱 착수 때) · 공용 스타일 대비 3건(`@repo/ui` 대비 정리 REQ).

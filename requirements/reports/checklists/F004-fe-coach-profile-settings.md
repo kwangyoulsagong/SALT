@@ -33,6 +33,7 @@
 | `pnpm test:layer-check` | 차단 8 · 통과 5 |
 | 훅 사후 실행(셸로 쓴 파일) | 38파일 + 수정 2파일 exit 0 |
 | `pnpm build`(web · web-tax) | 통과 · `/settings` 1.79 kB · 첫 로드 130 kB(`/coach/report` 130 kB) |
+| 수정 커밋 뒤 재검증 | `pnpm build` · `test` · `check-types` · `lint` · `test:layer-check` 전부 다시 통과 |
 
 ## 미검증 · 범위 밖
 

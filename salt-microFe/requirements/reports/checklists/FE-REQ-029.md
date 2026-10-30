@@ -60,3 +60,12 @@
 | `/coach/report` (같은 날 main 워크트리 빌드 대비) | 1.59 → 1.65 kB · 첫 로드 130 → 130 kB |
 | `/coach/signals/[signalType]` (신규) | 1.65 kB · 첫 로드 130 kB — 본문은 리포트와 같은 위젯 청크(추가 요청 0, 리포트에서 오면 캐시) |
 | 경계 | `BlockBoundary` 1개 · 최소 높이 320(리포트와 같음) |
+
+## 2026-10-30 — F004 슬라이스 18 설정 화면
+
+| 항목 | 확인 |
+|---|---|
+| 번들 | `pnpm build` — `/settings` 1.79 kB · 첫 로드 130 kB(리포트와 같음, 증가분 0) |
+| 경계 | `BlockBoundary` 1개 · `SETTINGS_PAGE.blockMinHeight` 520 |
+
+미검증 · 범위 밖: 스트리밍 게이트 측정 — 본문이 `ssr:false` 라 서버 스트리밍 블록이 없다(리포트와 같음, `FE-REQ-013` 때 다시)
