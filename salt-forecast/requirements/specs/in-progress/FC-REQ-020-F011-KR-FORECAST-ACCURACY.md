@@ -209,3 +209,4 @@ source: requirements/reports/research/reports/국내 주식 코치 전망 설계
 
 - 2026-10-09: 초안 — 리서치 6갈래 + 실력 감사 근거. 사용자 "국내주식도 완벽하게 · 기능은 코인과 똑같다 · 스펙 작성해두고 머지, 다음 세션에 진행"
 - 2026-10-29: 전수 조사 정정 — FR-5 · 범위 밖 행의 코인 게이트 수치를 P0 실측(p 0.080 · 30%)으로. 같은 문서 P0 결과와 맞춤
+- 2026-10-30: 파일만 걸침 — `jobs/_data.py` `load_kr` 가 개장일 표를 실행 날짜까지 잘라 읽는다(`FC-REQ-009` FR-3). `presumed_weekdays`(원천 멈춤 → 평일 거래일 가정) 동작 무변경 — 서버의 미래 공시 행이 그걸 끄지 않게 하는 보호. 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`

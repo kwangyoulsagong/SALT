@@ -354,3 +354,8 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 
 - 파일만 걸침 — 웹 `entities/market/model/types.ts` 에 코인 `ChartPeriod.Week`. 국내 차트(`KrChartPeriod` `1d` · `5m`)는 그대로 — 국내 1주는 `FE-REQ-049` FR-10
 - 미검증 · 범위 밖: 없음
+
+## 2026-10-30 — F011 FR-14 미래 휴장일(KRX 공시 표)
+
+- 변경 없음(짝 영역) — `KrSessionLine` "달력 추정"은 `calendarKnown` 거짓일 때만. 평일 아침 · 공시가 덮는 날(~2027-01-01)엔 이제 안 나온다
+- 미검증 · 범위 밖: 실화면 확인(평일 09:10 전) — 2026-11-02 `QA-001`. 휴장 사유 이름(FR-41)은 서버 응답부터 — §4-1 다음 줄. 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`

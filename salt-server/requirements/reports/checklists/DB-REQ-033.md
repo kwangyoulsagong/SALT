@@ -90,3 +90,10 @@
 
 - 파일만 걸침 — 서버 `market/domain/ports.ts` 에 `ExchangeQuotePort.weeklyCandles`(Upbit 조회만). 스키마 · 쿼리 무변경
 - 미검증 · 범위 밖: 없음
+
+## 2026-10-30 — F011 FR-14 미래 휴장일(KRX 공시 표)
+
+- DDL 없음 — `source` 값 `krx_notice` · upsert 출처 우선순위(kis 3 > candles · probe 2 > krx_notice 1). 실 DB: `krx_notice` 45행(11-02 ~ 2027-01-01, 휴장 3) · 오늘 `probe` 유지
+- 백업: 적용 전 540행 CSV · 되돌리기 `DELETE FROM market_holidays WHERE source = 'krx_notice'`
+- 스키마는 `source` 주석만(`prisma:generate` 확인, 마이그레이션 0). `schema.prisma` 첫 REQ 언급(`SRV-REQ-008`)은 이 줄과 무관
+- 미검증 · 범위 밖: 없음. 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`

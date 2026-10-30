@@ -209,3 +209,8 @@
 
 - 파일만 걸침 — 같은 `@repo/core` 파일(`tradeRisk.ts`)에 설정 타입이 늘었다. 이 REQ 계약 무변경
 - 미검증 · 범위 밖: 없음
+
+## 2026-10-30 — F011 FR-14 미래 휴장일(KRX 공시 표)
+
+- 변경 없음(짝 영역) — FR-1 `calendarKnown` 을 그대로 옮긴다. 서버가 참을 내는 때가 늘어날 뿐 모양 무변경
+- 미검증 · 범위 밖: 없음. 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`

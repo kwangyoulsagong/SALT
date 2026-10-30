@@ -114,3 +114,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 - 2026-10-29: FR-35 국내 주식 상세 주문 전 체크(F004 슬라이스 16 후속 · 서버 `SRV-REQ-025` FR-66). 소유자 전용 화면이라 KRX 재배포 약관 무관 — 사용자 본인 계산
 - 2026-10-30: 파일만 걸침 — `ui/index.ts` 에 `AssetSearchTable` · 관심 종목 탭 카운터(자산군 탭과 무관한 사용자 전체 수) · 보유 ★ 비활성(국내 포함). 국내 탭 판단 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: 파일만 걸침 — 웹 `entities/market/model/types.ts` 에 코인 `ChartPeriod.Week`. 국내 차트(`KrChartPeriod` `1d` · `5m`)는 그대로 — 국내 1주는 `FE-REQ-049` FR-10. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
+- 2026-10-30: F011 FR-14(`SRV-REQ-040`) — **변경 없음.** 장 상태 줄 "달력 추정"이 평일 아침 · 공시가 덮는 날엔 안 나온다(`calendarKnown` 참). 연휴 전날 "다음 개장"이 휴장일 다음 개장일로 바르게 나온다. 휴장 사유 이름은 아직(서버 응답 먼저). 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`

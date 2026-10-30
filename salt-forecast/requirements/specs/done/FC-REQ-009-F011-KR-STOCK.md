@@ -22,7 +22,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §F FR-80~
 |---|---|---|---|
 | FR-1 | 엔진 일반화 — `domain/calendar.Schedule`(격자 · 라벨 끝 · 실현 수익률 · 신선도 · 주당 봉 수 · 간격 상한). 코인 `WeeklyUtc` 가 기본값, 출력 불변 | — | 완료(`006d32f`) |
 | FR-2 | 일봉 옮기기 `jobs/ingest_kr_stock` — 서버 `public.price_history(kr_stock, 1d)` → `forecast.price_bar` source=`kis`. Python 은 KIS 를 부르지 않는다. `available_at` = 거래일 16:00 KST(15:30 마감 + 30분), 그 전에 본 봉은 버린다. 매번 전부 다시 읽는다(약 2.5만 행 · 0.7초) | FR-80 | 완료(`1355883`) |
-| FR-3 | 거래일 달력 `KrxSessions` = 서버 개장일(`market_holidays.is_open`) ∪ 일봉 날짜. as_of = 거래일 09:00 KST(그날 종가 모름) · 격자 = **주 첫 거래일**(월요일 휴장이면 화요일) · 기간 h주 = **5h 거래일** · 기준 종가 = as_of 에 아는 마지막 거래일 | FR-81 | 완료 |
+| FR-3 | 거래일 달력 `KrxSessions` = 서버 개장일(`market_holidays.is_open`, **2026-10-30 실행 날짜(KST)까지만** — 서버가 미래 개장일을 공시 표로 미리 쓴다) ∪ 일봉 날짜. as_of = 거래일 09:00 KST(그날 종가 모름) · 격자 = **주 첫 거래일**(월요일 휴장이면 화요일) · 기간 h주 = **5h 거래일** · 기준 종가 = as_of 에 아는 마지막 거래일 | FR-81 | 완료 |
 | FR-4 | 기준 모델 주당 봉 수 5 · 간격 상한 없음(주말 · 휴장을 건넌 이웃 봉 = 이웃 거래일) | FR-81 | 완료 |
 | FR-5 | 모델 버전 `kr-rw-normal@0.1.0`(기준) · `kr-ens-baseline@0.1.0`(당시 챔피언 — 현재 `kr-har-range@0.1.0`, `FC-REQ-020` P3) — 보정 · 채점 풀 · 게이트 · 리포트가 버전으로 갈린다. LightGBM 없음(풀링 종목 약 50 < 200) | FR-82 | 완료 |
 | FR-6 | `jobs/kr_backtest`(워크포워드 · 리포트 `reports/kr-backtest-<날짜>.md`) · `jobs/kr_daily`(live 예측 · 채점 · 게이트). 게이트 표본은 주 첫 거래일 as_of 만(`gates(on_grid=)`) · 신선도 2 영업일(slack 1) | FR-82 | 완료 |
@@ -63,3 +63,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §F FR-80~
 - 2026-10-20: `jobs/kr_backtest` 성능만(`FC-REQ-020` P4) — 출력 열 저장 · 단계 진행 로그 · `--symbols` 부분 실행. 리포트 바이트 동일 · 139 → 14.9분
 - 2026-10-23: 화면 연결(F011 슬라이스 5d, `FE-REQ-041` FR-23) — 이 REQ 의 시간 규칙(h주 = 5h 거래일 · 기준가 = as_of 직전 거래일 종가)을 카드 문구가 그대로 안내한다. 코드 변경 없음
 - 2026-10-29: 전수 조사 정정 — 현재 상태 문장 5곳(화면 연결 5d · FC-REQ-020 상태 · 범위 밖 2행 닫힘 · 현재 챔피언). 내용 결정 무변경
+- 2026-10-30: FR-3 — `krx_open_dates(engine, through)`: 서버가 미래 개장일(`source = krx_notice`, `SRV-REQ-040` FR-14)을 쓰기 시작해 실행 날짜까지만 읽는다. 안 자르면 마지막 아는 거래일이 12-30 이 돼 원천 멈춤 감지(`presumed_weekdays`, `FC-REQ-020`)가 꺼진다. 거래일 배열 = 공시 행 없을 때와 완전 동일(1,237 · 마지막 10-30) · `kr_daily` · `kr_volatility` dry-run 수 동일. 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`

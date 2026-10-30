@@ -98,3 +98,4 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 - 2026-10-29: F009 FR-26 — FR-25 `portfolioVolatility` 뷰모델에 `contributions` · `tail` 추가(주인 `BFF-REQ-038` FR-14). FR-25 필드 · `ok` 판정 무변경
 - 2026-10-30: 파일만 걸침 — 웹 `endpoints.ts` 에 검색 경로 추가(국내 경로 옆). 국내 계약 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: 파일만 걸침 — 같은 `@repo/core` 파일(`tradeRisk.ts`)에 설정 타입이 늘었다. 이 REQ 계약 무변경
+- 2026-10-30: F011 FR-14(`SRV-REQ-040`) — **변경 없음.** 서버가 KRX 공시 표로 미래 휴장을 알아 `calendarKnown` 이 참인 때가 늘어난다. FR-1 모양 무변경. 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`

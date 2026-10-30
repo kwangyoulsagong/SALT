@@ -81,3 +81,11 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 문서 정정: 현재 상태 문장 5곳(5d 연결 · FC-020 상태 · 범위 밖 2 · 현재 챔피언). 근거는 코드(`ops/daily.sh` · `domain/ops_health.py` · `models/kr_stock.py`) · 같은 문서 결과 절 · 교차 REQ. 코드 무변경
+
+## 2026-10-30 — F011 FR-14 미래 휴장일(KRX 공시 표)
+
+- FR-3 — `krx_open_dates(engine, through)` 실행 날짜(KST)까지. `load_kr` 가 넘긴다
+- 거래일 배열(as_of 10-30): 이 브랜치 = 공시 행을 뺀 표로 만든 배열(1,237 · 마지막 10-30) 완전 동일. main 읽기는 1,279 · 마지막 12-30(→ `presumed_weekdays` 꺼짐)
+- dry-run 공시 행 쓰기 전후: `kr_daily` 예측 400 · 대기 19,044 · 채점 0 / `kr_volatility` 2,611 — 같다. `reports/` 새 파일 0
+- 게이트: `ruff check` · `ruff format --check` · `pyright` 0 · `lint-imports` 3 kept · `pytest` · `pytest tests/leakage` 통과
+- 미검증 · 범위 밖: `kr_backtest` dry-run 안 돌림 — 같은 `load_kr` 를 쓰고 거래일 배열이 동일함을 직접 비교했다(14.9분 작업 생략). 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`
