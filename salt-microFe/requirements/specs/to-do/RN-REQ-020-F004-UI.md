@@ -139,7 +139,7 @@ created: 2026-09-09
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-70 | 성향 6항목. `Slider`·`SegmentedControl`로. **2026-09-21 (B16)**: `defaultMode` · `notificationLevel` 을 노출한다 — `FEATURE-004` FR-12 충돌은 노출로 닫힘 | Must |
+| FR-70 | **개정 2026-10-30**: 웹 `FE-REQ-026` FR-80 개정을 따른다 — 효과 있는 설정만(기본 모드 · 매도 돌아보는 기간). 원문: 성향 6항목. `Slider`·`SegmentedControl`로. **2026-09-21 (B16)**: `defaultMode` · `notificationLevel` 을 노출한다 — `FEATURE-004` FR-12 충돌은 노출로 닫힘 | Must |
 | FR-71 | 저장 후 추천 재조회 | Must |
 | FR-72 | **면책 하단 고정.** `disclaimer` 없으면 화면 렌더 안 함 | Must |
 | FR-73 | `excluded[]`에 따라 국내주식 제외 표시 | Must |
@@ -293,3 +293,4 @@ AssetDetailScreen (push)
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. **F000 FR-33 이관.** 신규 J(FR-100~110 `AssetDetailScreen` — 모드 공유(D3) · 중립 라벨 · 신뢰도 없음 · 내 규칙 가격/관찰 구간(D2) · 게이지 적중률(B9) · 해설 뉴스 5줄(B3) · Hero(B23) · 신호 컬럼 없음(D4)), K(FR-130~134 주문 전 체크 B1), L(FR-140~143 코치 리포트 B15 · 분포 B17 · 동등 B2 · 초기 미렌더 B18). 개정: FSD 배치 · 화면 구조(코치 리포트) · FR-41 · FR-42(B1) · FR-52(ADR-002) · FR-70(B16) |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. FR-31 개정(D13). Q3 닫음(D12) |
+| 2026-10-30 | FR-70 개정 — 웹 설정 화면(F004 슬라이스 18)과 같은 칸만. 서버가 읽지 않는 3필드는 두지 않는다 |

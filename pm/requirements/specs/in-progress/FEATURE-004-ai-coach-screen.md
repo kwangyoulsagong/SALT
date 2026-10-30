@@ -72,7 +72,7 @@
 | FR-9 | **행동 기록 요약**: `behavior-coach` 결과를 사실 서술 문장으로 변환. 인격 평가·라벨 노출 금지 | Must | 완료 2026-09-23 — `describeBehaviorFact` 사실 문장(`FE-REQ-026` FR-60 · 61). 지금은 코치 리포트 `MirrorPanel`(F009) 안 |
 | FR-10 | **LLM 해설**: 기존 `ai-coach-gemini-explainer`로 카드 해설 생성. **숫자는 주입, 문장만 생성.** 실패 시 규칙 기반 문장 폴백(`ai-coach-explainer.ts` 재사용) | Must | 완료 2026-09-22 — 상세 `ExplainCard`(슬라이스 6 · 10): 숫자는 서버 주입, 실패 시 규칙 문장 + `규칙 기반 설명` 배지. 스트리밍 해설은 `FEATURE-008` |
 | FR-11 | **피드백**: `[도움 안 됨]` / `[도움 됐음]` → `POST /api/ai-coach/feedback`. 사유 선택(근거 부족 / 이미 알고 있음 / 틀린 것 같음 / 실행 불가) | Should | 부분 — 서버 `RecordCoachFeedback` · BFF `POST /api/app/ai-coach/feedback` 있음. 화면(`FE-REQ-026` FR-70~72) 미착수 |
-| FR-12 | **성향 설정**: `UserInvestmentProfile` 편집 화면. **개정 2026-09-21 (D3 · B16)**: `defaultMode`/`notificationLevel`을 **노출한다** — 두 모드를 노출하기로 했으므로(D3) 숨길 이유가 없다. 컬럼을 추가해 `unsupportedPersistedFields`를 없앤다(`DB-REQ-017` FR-20). `defaultMode` = 모드 스위치 초기값, `notificationLevel` = 알림 1종(지표 · 추천 갱신, D5)의 빈도. `FE-REQ-026` FR-81 과의 충돌을 이 개정으로 닫는다. 원래 문장: "UI에서 숨긴다(또는 FEATURE-000에서 컬럼 추가)" | Must | 부분 — 서버 프로필 영속화 · 기본 모드(`SRV-REQ-025` 슬라이스 13) · BFF `GET/PATCH profile` 있음. 편집 화면(`FE-REQ-026` FR-80~82) 미착수 |
+| FR-12 | **성향 설정**: `UserInvestmentProfile` 편집 화면. **개정 2026-09-21 (D3 · B16)**: `defaultMode`/`notificationLevel`을 **노출한다** — 두 모드를 노출하기로 했으므로(D3) 숨길 이유가 없다. 컬럼을 추가해 `unsupportedPersistedFields`를 없앤다(`DB-REQ-017` FR-20). `defaultMode` = 모드 스위치 초기값, `notificationLevel` = 알림 1종(지표 · 추천 갱신, D5)의 빈도. `FE-REQ-026` FR-81 과의 충돌을 이 개정으로 닫는다. 원래 문장: "UI에서 숨긴다(또는 FEATURE-000에서 컬럼 추가)" | Must | 완료(웹) 2026-10-30 — 슬라이스 18 설정 화면 `/settings`(헤더 프로필 메뉴 "설정"): 기본 모드 · 매도 돌아보는 기간 + 한 종목 상한은 리포트 내 기준 링크 · 매입가 숨김. **사용자 결정: 서버가 읽지 않는 `riskTolerance` · `rebalanceBand` · `notificationLevel` 은 칸을 두지 않는다**(`FE-REQ-026` FR-80 개정). RN 은 앱 착수 때(`RN-REQ-020` FR-70) |
 | FR-13 | **자산군 확장**: 크립토 외 미국주식 추천을 지원. **개별 미국 주식 신규 매수 추천은 하지 않고**, 보유 종목의 비중·손절과 지수/ETF 단위 적립만(1-3절). (2026-09-21 "세금" 삭제 — ADR-002. 자산군 3종 유지 여부는 감사 문서 Q2) | Must | 부분 — 응답 자산군에 `us_stock` 은 있다. 개별 미국주식 신규 매수 거부(`recommendationScope`, `SRV-REQ-024` FR-20~24) 미착수 |
 | FR-14 | **국내주식 범위**: 추천 대상에서 제외(실시간 데이터·지표 부재). 보유 표시와 비중 경고만 | Should | 완료 — 저장 추천에서 국내주식 제외 + 문구(`coachExclusions` · `FE-REQ-026` FR-91). 사유는 F011 슬라이스 4 로 "실시간 부재" → "종목 화면 장기 판단만" |
 | FR-15 | **생성 트리거**: 기존 `POST /api/ai-coach/generate` + `investment-insight.worker`. 화면에서는 최신 결과를 읽고, 수동 새로고침 시 재생성(쿨다운 5분) | Must | 완료 2026-09-23 — `generate` 202 · 5분 쿨다운 429 · `generation-status`(`SRV-REQ-025` 슬라이스 13) + `features/regenerate-coach`(슬라이스 15) |
@@ -348,7 +348,7 @@ flowchart TB
 | FR-9 | `BehaviorFactRow` | `behaviorFacts[]` | `behavior-coach` | `PortfolioTransaction` | 인격 평가 문구 0건 |
 | FR-10 | `explanation` | 동일 | gemini explainer | — | LLM 실패 → rule 폴백 |
 | FR-11 | `FeedbackButtons` | `POST feedback` | 기존 | `CoachFeedback` | 사유 4종 저장 |
-| FR-12 | `CoachProfileForm` | `GET/PATCH profile` | 기존 | `UserInvestmentProfile` | 미지원 필드 숨김 또는 컬럼 추가 |
+| FR-12 | `CoachProfileForm` | `GET/PATCH profile` | 기존 | `UserInvestmentProfile` | ~~미지원 필드 숨김 또는 컬럼 추가~~ 컬럼 추가(09-23) · 화면은 서버가 읽는 설정만(2026-10-30, `/settings`) |
 | FR-13 | 자산군 필터 | `assetType` | `CoachPayload` | `InvestmentInsight.assetType` | 개별 미국주식 신규매수 추천 0건 |
 | FR-14 | `excluded` | 동일 | 동일 | — | 국내주식 제외 문구 |
 | FR-15 | [새로 생성] | `POST generate` | 기존 + 쿨다운 | — | 5분 내 2회 → 429 |
@@ -464,3 +464,4 @@ flowchart TB
 | 2026-10-29 | 슬라이스 16 후속 2 — 사용자 "남은것 다 해": 국내 주식 상세 주문 전 체크(서버 `SRV-REQ-025` FR-66 자산군 · BFF `assetType` · `FE-REQ-041` FR-35) · 실시간 현재가 · 평가 지연 미검증은 로컬 BFF WS · 워커 미기동이었음을 재서 닫음. 남은 것: 소유자 실계정 화면(`QA-001`) |
 | 2026-10-30 | 슬라이스 17 — 사용자 "새브랜치 파고 다음꺼 진행": 판정 근거 상세 `/coach/signals/[signalType]`. BFF 가 버리던 서버 분포(`SRV-REQ-025` FR-53)를 옮기고(`BFF-REQ-039` FR-8, 깨지면 `null`) 화면(`FE-REQ-026` FR-141 · 142). **FR-33 · FR-34 완료**(웹). 서버 무변경. 루트 `requirements/specs/done/F004-fe-signal-evidence-slice.md` |
 | 2026-10-30 | 종목 상세 재설계 기획(`FE-REQ-049`, to-do) — 코인 · 국내 한 틀 · 판단 카드와 해설 칸의 성적 중복 제거 · 탭 제목 실시간 가격 |
+| 2026-10-30 | 슬라이스 18 — 사용자 "새브랜치 파고 다음꺼 진행"(마스터 인덱스 §4-1 순위 2 F004 부분 FR): **FR-12 완료(웹)** — 설정 화면 `/settings`. 서버를 grep 하니 6항목 중 셋은 저장만 되고 읽는 곳이 없어 사용자 결정으로 효과 있는 칸만 둔다. 서버 · BFF 무변경. 루트 `requirements/specs/done/F004-fe-coach-profile-settings-slice.md` |

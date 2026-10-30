@@ -264,3 +264,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-10-26 | F011 슬라이스 7b — `symbol_judgment_snapshots` 에 `sample_origin='backtest'` 첫 쓰기(국내 51,305행, `scripts/backtest-kr-judgments.ts`, 사전등록 `kr-judgment-backtest@1`). DDL 없음 — FR-60 출처 값 그대로. 워커 경로(`lastJudgedAt` · `listPending`)는 `live` 만이라 영향 없음 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | 파일만 걸침 — `env.ts` 에 `TRACKED_ASSET_LIMIT` 추가. 합성 표본 설정 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-10-30 | F004 슬라이스 18 — **변경 없음.** FR-20 `default_mode` 를 웹 설정 화면이 쓴다. `notification_level` 은 열은 있지만 읽는 코드가 없어 화면에 두지 않았다(`FE-REQ-026` FR-80 개정) |

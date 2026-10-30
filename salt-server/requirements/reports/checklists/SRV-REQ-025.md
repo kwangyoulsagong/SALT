@@ -380,3 +380,8 @@
 - 확인: build · test pass
 
 미검증: 없음 — 판단 무변경
+
+## 2026-10-30 — F004 슬라이스 18 설정 화면
+
+- F004 슬라이스 18 — **변경 없음.** FR-13 profile 그대로 소비. 관찰: `riskTolerance` · `rebalanceBand` · `notificationLevel` 은 저장만 되고 서버 안 소비처 0건(2026-10-30 grep) — 웹은 칸을 두지 않는다(`FE-REQ-026` FR-80 개정). 쓰게 되면 그때 화면을 연다
+- 미검증 · 범위 밖: 없음

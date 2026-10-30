@@ -98,3 +98,13 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: FR-80 의 "쿠키 세션 · `localStorage` 에 두지 않는다"는 아직 아님 — 토큰은 `localStorage`, 이전 주인은 `FE-REQ-013`
+
+## 2026-10-30 — F004 슬라이스 18 설정 화면
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-50 | `editCoachProfileApi.save` · `retry: 0` | PATCH 1회 · 실패 시 재시도 0(route 500) |
+| FR-51(다르게) | `symbolAll()` · `report()` 무효화 | 실화면 |
+| FR-52(개정) | `CoachProfileSettings.defaultMode` · `panicSellWindowHours` | 타입 · 실화면 |
+
+미검증 · 범위 밖: `notificationLevel` 칸(서버 소비처가 생길 때)

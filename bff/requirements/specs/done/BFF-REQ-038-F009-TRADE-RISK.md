@@ -73,3 +73,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-10-29 | FR-14 — 흔들림 몫 · 나빴던 날 평균 통과(`RiskContributionView` · `TailLossView`, `@repo/core` 같은 모양). 근거 `SRV-REQ-038` FR-17 |
 | 2026-10-29 | 전수 조사 — FR-2 "게이지 3" 정정 |
 | 2026-10-29 | F009 슬라이스 10(FR-27 매입가 숨김 화면) — **변경 없음.** 프로필 `hidePurchasePrice` 통과(S3)를 웹이 처음 읽는다(`GET · PATCH /api/app/ai-coach/profile`) |
+| 2026-10-30 | F004 슬라이스 18 — **변경 없음.** `@repo/core` `CoachProfileSettings` 에 `defaultMode` · `panicSellWindowHours` 를 더했다(BFF 가 이미 주던 필드). `CoachProfileUpdate` 신설 |
