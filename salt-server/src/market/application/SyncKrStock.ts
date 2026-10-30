@@ -9,7 +9,9 @@ import {
   isKrQuoteWindow,
   kstAt,
   krMarketSession,
+  krxNoticeDays,
   kstDateOf,
+  KRX_NOTICE_COVERED_THROUGH,
   type KrHeldCodesSource,
   type KrMarketCalendarStore,
   type KrProviderHealthPort,
@@ -86,6 +88,8 @@ const DERIVE_DAYS = 730;
 /** 오늘 개장 관측 기준 종목(시총 1위) · 시각 — 09:00 개장 뒤 첫 체결이 봉에 잡힐 여유 */
 const PROBE_CODE = "005930";
 const PROBE_AFTER_MINUTES = 9 * 60 + 10;
+/** 공시 표 끝 며칠 전부터 경고하나 — 거래소 다음 해 공시(12월)를 놓치지 않게 */
+const NOTICE_EXPIRY_WARN_DAYS = 31;
 
 /**
  * 개장일 달력(FR-14). 매 평일 09:10 KST · 부팅.
@@ -94,8 +98,10 @@ const PROBE_AFTER_MINUTES = 9 * 60 + 10;
  *    `EGW02004`) — 실패하면 2 · 3 으로 지난날과 오늘을 채운다. 키 권한이 풀리면 1 이 그대로 이긴다
  * 2. 저장된 일봉으로 지난 개장일 역산 — 실제 체결 기록이라 지난날은 정확하다
  * 3. 오늘 09:10 이후면 시총 1위 종목의 당일 봉 유무로 오늘 개장을 확정한다(호출 1건)
+ * 4. 오늘 ~ 공시 표 끝을 KRX 휴장일 공시(`krxNoticeDays`)로 채운다 — 2 · 3 이 쓴 행은 덮지 않는다(출처 우선순위).
+ *    지난날 역산과 공시 표가 어긋나면 경고한다(표 오타 · 공시 뒤 임시공휴일)
  *
- * 미래 휴장은 1 이 없으면 모른다 — 장 상태가 `calendarKnown = false` 로 그 추정을 드러낸다.
+ * 표 끝 뒤 미래는 모른다 — 장 상태가 `calendarKnown = false` 로 그 추정을 드러낸다. 끝나기 31일 전부터 경고한다.
  */
 export class SyncKrMarketCalendar {
   constructor(
@@ -133,9 +139,22 @@ export class SyncKrMarketCalendar {
       );
     }
 
+    const notice = krxNoticeDays(today, KRX_NOTICE_COVERED_THROUGH);
+    await this.calendar.upsertDays(notice, at, "krx_notice");
+
+    const noticed = new Map(krxNoticeDays(derived[0]?.date ?? today, today).map((d) => [d.date, d.isOpen]));
+    const mismatched = derived.filter((d) => noticed.has(d.date) && noticed.get(d.date) !== d.isOpen).map((d) => d.date);
+    if (mismatched.length > 0) logger.warn(`KRX 휴장일 공시 표가 일봉 역산과 어긋난다 — ${mismatched.join(", ")}`);
+    if (addKstDays(today, NOTICE_EXPIRY_WARN_DAYS) > KRX_NOTICE_COVERED_THROUGH) {
+      logger.warn(`KRX 휴장일 공시 표가 ${KRX_NOTICE_COVERED_THROUGH} 에 끝난다 — 다음 해 공시를 KRX_NOTICE_CLOSURES 에 더할 것`);
+    }
+
     const closed = derived.filter((d) => !d.isOpen).length;
-    logger.info(`🗓️ KRX 달력(역산): ${derived.length}일 · 휴장 ${closed} · 오늘 ${todayOpen ?? "미확인"}`);
-    return { source: "candles" as const, days: derived.length, closed, todayOpen };
+    const noticeClosed = notice.filter((d) => !d.isOpen).length;
+    logger.info(
+      `🗓️ KRX 달력(역산): ${derived.length}일 · 휴장 ${closed} · 오늘 ${todayOpen ?? "미확인"} · 공시 ${notice.length}일(휴장 ${noticeClosed}, ~${KRX_NOTICE_COVERED_THROUGH})`
+    );
+    return { source: "candles" as const, days: derived.length, closed, todayOpen, noticeDays: notice.length, mismatched };
   }
 }
 

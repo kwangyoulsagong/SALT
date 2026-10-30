@@ -206,11 +206,15 @@ export interface KrStockStore {
 /**
  * 달력 출처. `kis` 휴장일 조회가 1순위인데, 2026-10-07 실측에서 이 앱 키로는 `EGW02004`(실전 도메인 · 모의
  * 앱 키)로 거부됐다 — 현재가 · 일봉은 같은 키로 된다. 그래서 둘을 더 둔다: `candles` = 저장된 일봉으로 지난
- * 개장일 역산(평일인데 어느 종목에도 봉이 없으면 휴장) · `probe` = 오늘 09:10 이후 당일 봉 유무
+ * 개장일 역산(평일인데 어느 종목에도 봉이 없으면 휴장) · `probe` = 오늘 09:10 이후 당일 봉 유무.
+ * 둘 다 지난날 · 오늘뿐이라 미래는 `krx_notice` = KRX 연간 휴장일 공시 표(`KRX_NOTICE_CLOSURES`)로 채운다(FR-14, 2026-10-30).
+ *
+ * 우선순위 `kis` > `candles` · `probe`(실제 체결) > `krx_notice`(공시) — 낮은 출처는 높은 출처 행을 덮지 않는다
  */
-export type KrCalendarSource = "kis" | "candles" | "probe";
+export type KrCalendarSource = "kis" | "candles" | "probe" | "krx_notice";
 
 export interface KrMarketCalendarStore {
+  /** 같은 날 행은 출처 우선순위(위)가 같거나 높을 때만 덮는다 */
   upsertDays(days: KrMarketDay[], at: Date, source: KrCalendarSource): Promise<void>;
   /** `[from, to]` 평일 중 국내 주식 일봉이 하나라도 있는 날 = 개장. 마지막 저장 봉 날짜 뒤는 내지 않는다 */
   daysFromDailyCandles(from: string, to: string): Promise<KrMarketDay[]>;
@@ -291,6 +295,57 @@ export const addKstDays = (date: string, days: number): string =>
 const isWeekend = (date: string) => {
   const dow = new Date(`${date}T00:00:00Z`).getUTCDay();
   return dow === 0 || dow === 6;
+};
+
+/**
+ * KRX 평일 휴장일 공시(FR-14) — KIS 휴장일 조회가 이 키로 막혀(`EGW02004`) **미래 휴장을 아는 유일한 출처**다.
+ * 거래소가 매년 12월에 다음 해 휴장일을 공시한다 — 그때 다음 해 줄을 더하고 `KRX_NOTICE_COVERED_THROUGH` 를 옮긴다
+ * (끝나기 31일 전부터 달력 동기화가 경고를 남긴다). 주말은 적지 않는다.
+ *
+ * 2026-01-01~10-29 줄은 저장 일봉 역산(`candles`)과 날짜까지 같다(2026-10-30 대조 — 제헌절 7-17 · 지방선거 6-3 포함).
+ * 2027-01-01 은 다음 해 공시 전이지만 법정 공휴일(신정)이라 연말 연휴 다음 개장일 계산을 위해 넣었다.
+ * 공시 뒤 정해진 임시공휴일은 이 표가 모른다 — 그날 09:10 관측(`probe`)이 덮는다
+ */
+export const KRX_NOTICE_CLOSURES: ReadonlyArray<{ date: string; name: string }> = [
+  { date: "2026-01-01", name: "신정" },
+  { date: "2026-02-16", name: "설날 연휴" },
+  { date: "2026-02-17", name: "설날" },
+  { date: "2026-02-18", name: "설날 연휴" },
+  { date: "2026-03-02", name: "삼일절 대체공휴일" },
+  { date: "2026-05-01", name: "근로자의 날" },
+  { date: "2026-05-05", name: "어린이날" },
+  { date: "2026-05-25", name: "부처님오신날 대체공휴일" },
+  { date: "2026-06-03", name: "전국동시지방선거" },
+  { date: "2026-07-17", name: "제헌절" },
+  { date: "2026-08-17", name: "광복절 대체공휴일" },
+  { date: "2026-09-24", name: "추석 연휴" },
+  { date: "2026-09-25", name: "추석" },
+  { date: "2026-10-05", name: "개천절 대체공휴일" },
+  { date: "2026-10-09", name: "한글날" },
+  { date: "2026-12-25", name: "성탄절" },
+  { date: "2026-12-31", name: "연말 휴장일" },
+  { date: "2027-01-01", name: "신정" },
+];
+
+/** 공시 표가 덮는 첫날 · 마지막 날 — 끝 뒤는 모른다(평일 = 개장 추정 · `calendarKnown = false`) */
+export const KRX_NOTICE_COVERED_FROM = "2026-01-01";
+export const KRX_NOTICE_COVERED_THROUGH = "2027-01-01";
+
+/**
+ * `[from, to]` 중 공시 표가 덮는 평일 — 표에 있으면 휴장, 없으면 개장. 표 범위 밖은 내지 않는다(모르는 날을
+ * 개장으로 적으면 `calendarKnown` 이 거짓이 된다)
+ */
+export const krxNoticeDays = (from: string, to: string): KrMarketDay[] => {
+  const closed = new Set(KRX_NOTICE_CLOSURES.map((c) => c.date));
+  const start = from > KRX_NOTICE_COVERED_FROM ? from : KRX_NOTICE_COVERED_FROM;
+  const end = to < KRX_NOTICE_COVERED_THROUGH ? to : KRX_NOTICE_COVERED_THROUGH;
+  const days: KrMarketDay[] = [];
+  for (let d = start; d <= end; d = addKstDays(d, 1)) {
+    if (isWeekend(d)) continue;
+    const isOpen = !closed.has(d);
+    days.push({ date: d, isOpen, isTradingDay: isOpen, isBusinessDay: isOpen, isSettlementDay: isOpen });
+  }
+  return days;
 };
 
 /**

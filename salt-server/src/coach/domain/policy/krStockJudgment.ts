@@ -128,7 +128,8 @@ export const krJudgmentExitWindow = (judgedAt: Date): KrJudgmentExitWindow => {
 
 /**
  * 찾은 봉을 판정 가격으로 받아도 되나. 만기일 이전 마지막 평일의 봉이면 바로(주말 만기는 금요일 봉), 그보다 오래된
- * 봉이면 사흘 기다려도 그 평일 봉이 안 왔을 때만(평일 휴장 — 미래 휴장을 몰라 시간으로 가른다). 수집이 늦은 날을
+ * 봉이면 사흘 기다려도 그 평일 봉이 안 왔을 때만(평일 휴장 — 개장일 달력은 `market` 표라 코치가 읽지 않고 시간으로
+ * 가른다. 달력은 2026-10-30 부터 미래 휴장도 알지만 결과는 같고 지연만 사흘이다). 수집이 늦은 날을
  * 휴장으로 잘못 채점하면 한 번 매긴 결과는 다시 고치지 않는다 — 그래서 기다린다
  */
 export const isKrExitSettled = (window: KrJudgmentExitWindow, barAt: Date, now: Date): boolean => {

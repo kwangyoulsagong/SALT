@@ -1040,7 +1040,7 @@ model MarketHoliday {
   isTradingDay    Boolean  @map("is_trading_day") // tr_day_yn
   isBusinessDay   Boolean  @map("is_business_day") // bzdy_yn
   isSettlementDay Boolean  @map("is_settlement_day") // sttl_day_yn
-  source          String // kis
+  source          String // kis | candles | probe | krx_notice(공시 표 — 미래 휴장, FR-14). 우선순위는 PrismaKrMarketCalendarStore
   syncedAt        DateTime @map("synced_at")
 
   @@id([market, date])

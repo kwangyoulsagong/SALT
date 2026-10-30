@@ -489,8 +489,9 @@ export class PrismaKrMarketCalendarStore implements KrMarketCalendarStore {
       ON CONFLICT (market, date) DO UPDATE SET
         is_open = EXCLUDED.is_open, is_trading_day = EXCLUDED.is_trading_day, is_business_day = EXCLUDED.is_business_day,
         is_settlement_day = EXCLUDED.is_settlement_day, source = EXCLUDED.source, synced_at = EXCLUDED.synced_at
-      -- KIS 원문이 이미 있으면 역산 · 관측으로 덮지 않는다
-      WHERE market_holidays.source = 'kis' AND EXCLUDED.source = 'kis' OR market_holidays.source <> 'kis'`;
+      -- 출처 우선순위 kis > candles · probe(실제 체결) > krx_notice(공시) — 낮은 출처가 높은 출처 행을 덮지 않는다
+      WHERE (CASE EXCLUDED.source WHEN 'kis' THEN 3 WHEN 'krx_notice' THEN 1 ELSE 2 END)
+         >= (CASE market_holidays.source WHEN 'kis' THEN 3 WHEN 'krx_notice' THEN 1 ELSE 2 END)`;
   }
 
   /**
