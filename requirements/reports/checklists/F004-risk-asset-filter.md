@@ -21,6 +21,7 @@
 | `pnpm test:layer-check` | 차단 8 · 통과 5 |
 | `pnpm build`(web · web-tax) · `--filter web-tax build` | 통과 · `/coach/report` 1.66 kB · 첫 로드 130 kB |
 | 훅 사후 실행(셸로 쓴 파일) | `ReportRiskList.tsx` · `messages.ts` exit 0 |
+| fix `"use client"` 뒤 재검증 | 위 명령 전부 다시 통과 · `/coach/report` 1.66 kB · 130 kB(`FE-REQ-029` 기록) |
 | Playwright(route) | 위 표 — dev 서버는 확인 뒤 내리고 빌드 |
 
 ## 미검증 · 범위 밖

@@ -75,3 +75,10 @@
 - `pnpm --filter web build` — `/investments/[symbol]` 3.07 kB · 첫 로드 137 kB(슬라이스 16 `F004-fe-preflight-check` 137 kB 와 같음)
 - 첫 로드 차트 요청 `period=minute&unit=5&count=200` 1회(1주는 탭 누를 때만)
 - 미검증 · 범위 밖: 없음
+
+## F004 슬라이스 20 (2026-10-30)
+
+| 항목 | 값 |
+|---|---|
+| `/coach/report` (슬라이스 17 기록 대비) | 1.65 → 1.66 kB · 첫 로드 130 → 130 kB — `Chip` 은 위젯 청크에 이미 있음 |
+| 경계 | 무변경(`BlockBoundary` 1개) |

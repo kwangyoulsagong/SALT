@@ -283,3 +283,5 @@
 | 접근성 | `role="group"` + 이름 "주의할 점 종목별로 보기" · 칩 `aria-pressed` | Playwright 역할 · 이름으로 찾음 |
 
 미검증 · 범위 밖: 로그인 실계정 리포트(`QA-001` — 소유자 리스크가 실제로 여러 종목인지) · RN(`RN-REQ-020`, 앱 착수 때).
+
+- fix(2026-10-30, 같은 슬라이스): `ReportRiskList` 에 `"use client"` — `useState` 가 생겼는데 지시문이 없었다(`fsd-entities.md` "barrel 로 노출되는 상호작용 잎에 직접"). 부모 위젯이 클라이언트라 빌드는 통과했었다. fix 뒤 모노레포 전체 재검증: check-types 5/5 · lint 5/5 · test core 51 · ui 43 · layer-check 8/5 · build web · web-tax 통과
