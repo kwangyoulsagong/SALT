@@ -122,6 +122,7 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 - [ ] **`grep -rn "miniute" apps/` = 0**
 - [ ] `period` 유효값이 `shared/config`의 enum이다
 - [ ] `period=minute` 요청이 200이다
+- [x] 1주 탭 요청 `period=week`(`ChartPeriod.Week`)가 200이다 (2026-10-30 실화면, F004 슬라이스 19)
 - [ ] 동면 API 호출·훅·쿼리 키가 0건이다
 - [ ] `register`·`password`·`account` 호출이 0건이다
 - [ ] **BFF 410 로그 1주 검증 결과 잔여 호출이 0건이다**

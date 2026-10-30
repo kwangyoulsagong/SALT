@@ -144,6 +144,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 - [ ] 관심 종목에 현재가가 있고 캐시 미스 시 `priceStale`이 표시된다
 - [ ] `period=miniute`가 **422**이고 BFF가 교정하지 않는다
 - [ ] `period=minute`가 200이다
+- [x] `period=week`가 200이고 `month`는 **422**다(`CHART_PERIODS` 3종) (2026-10-30 실측 — 서버 · BFF, F004 슬라이스 19)
 - [ ] proxy에 `/api/auth/register`가 0건이다
 - [ ] 온보딩 3개 라우트가 동작한다
 - [ ] `invite/check`가 인증 없이 통과하고 rate limit이 있다

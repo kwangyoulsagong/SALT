@@ -121,6 +121,7 @@ created: 2026-09-09
 - [x] 410 응답에 `code: 'ENDPOINT_DORMANT'`가 있다 (2026-10-27)
 - [ ] `period=miniute`가 422다
 - [ ] `period=minute`가 200이다
+- [x] `period=week`가 200(주봉)이고 `period=month`는 422다 (2026-10-30 실측 — 서버 · BFF, F004 슬라이스 19)
 - [ ] watchlist 응답에 현재가·변동률이 있다
 - [ ] `market/overview`의 `limit`·필터가 변경 전과 동일하다 (스냅샷 테스트)
 - [x] 알림 생성에 `signal_update` 외 `kind`를 주면 422다 (개정 2026-09-21) (2026-10-28 — 생성은 HTTP 가 아니라 공개 API 다. `UnsupportedNotificationKindError` `Blocked` → 422)
