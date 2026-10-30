@@ -156,3 +156,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 - 2026-10-30: 슬라이스 6 · 6b 기한 지난 확인 닫음(투자자 10-28 50/50 · 5분봉 3종목 채움 · 시간외 끔 로그 0). 새 결함 기록: 5분봉 보정(`SyncKrMinuteBars`)의 30일 창 **끝 날**에 실패하면 다음 회차부터 창 밖이라 영영 다시 받지 않는다(012450 2026-09-29 0봉) — 미수정, 서버 변경은 사용자 명시 뒤
 - 2026-10-30: 파일만 걸침 — `market/application/api/index.ts` 에 `searchAssets` 조립(국내 관심 소스 `krWatchlist` 재사용) · `env.ts` 에 `TRACKED_ASSET_LIMIT`. 국내 검색은 기존 `store.search` · `labels` · `quotes` 를 읽기만 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: 파일만 걸침 — 웹 `@repo/core` `tradeRisk.ts`(이 REQ 를 언급) 설정 타입 추가. 서버 무변경
+- 2026-10-30: 파일만 걸침 — 서버 `market/domain/ports.ts` 에 코인 `weeklyCandles`. 국내 차트 `KrChartPeriod` 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`

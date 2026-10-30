@@ -173,3 +173,13 @@
 BFF 295 pass · build. 실검증은 새 코드 BFF 4011(기존 4001 은 watch 없는 옛 프로세스 — 루트 체크리스트 §3). 실검증 · 실화면 상세는 루트 `requirements/reports/checklists/F000-asset-search.md` §2
 
 미검증: 없음
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-52(개정 3종) | `chartPeriod.middleware.ts` `CHART_PERIODS = ["minute", "day", "week"]` | 실BFF(4001) `period=week` 200 주봉 · `period=month` 422. 테스트 `chartPeriod.middleware.test.ts` 2건 |
+| FR-50 · 51 | 교정하지 않고 422 | 위 테스트(`miniute` 422) |
+
+검증: `npm test` 297 · `npm run build`. 훅 사후 실행 3파일 0.
+미검증 · 범위 밖: 없음

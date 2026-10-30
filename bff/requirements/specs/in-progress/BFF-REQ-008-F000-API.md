@@ -131,7 +131,7 @@ type AlertVM = {
 | FR-9 | 초대 실패는 `403` + `reasonCode`다. `reasonCode`는 코드이고 문구는 프론트 | Must |
 | FR-10 | `invite/check`는 **상한 초과를 노출하지 않는다** | Must |
 | FR-11 | 동면 경로는 **410 Gone**이다. 404 금지 | Must |
-| FR-12 | `period` 유효값 **2종**(`minute` · `day` — `CHART_PERIODS`). `miniute`는 **422** | Must |
+| FR-12 | `period` 유효값 **3종**(`minute` · `day` · `week` — `CHART_PERIODS`, 2026-10-30 `week` 추가). `miniute` · `month` 는 **422** | Must |
 | FR-13 | 뷰모델 타입을 `packages/core`로 공유 | Should |
 | FR-14 | 유지 경로의 응답은 **하위 호환**이다. 필드 추가 허용, 제거·이름 변경은 프론트 동시 변경 | Must |
 | FR-15 | 뉴스 뷰모델에 `sentiment` · `symbols` 가 **항상** 있다(값이 없으면 `null` · `[]`). 화면이 필드 존재를 분기하지 않게 한다 (기본안 — 감사 문서 B11) | Must |
@@ -205,3 +205,4 @@ type AlertVM = {
 그 조회가 실패해도 금액은 내려보내야 하고, 화면이 "이름이 심볼로 보이는 이유"를 알아야 한다.
 - 2026-10-29: 전수 조사 — FR-12 기간 2종 · 수용 기준 구현분 표시
 - 2026-10-30: 화면 계약 구현 — `GET /api/app/search` 뷰모델 `{ items: [{ assetType, symbol, name, logoUrl, currentPrice, changeRate, isTracked, isHeld }], tracked }`(`AssetSearchResultVM` 이름 대신 `AssetSearchVM`) · FR-19 409 `TRACKED_ASSET_LIMIT` + 두 수 · 관심 목록 `tracked` · 행 `isHeld` — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
+- 2026-10-30: F004 슬라이스 19 차트 1주 탭 — FR-12 개정 3종(`week`, `a6accc80`). 응답은 서버 차트 그대로 전달. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`

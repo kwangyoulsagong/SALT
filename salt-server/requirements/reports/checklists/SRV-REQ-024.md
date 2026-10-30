@@ -307,3 +307,8 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 - 확인: build · test pass
 
 미검증: 없음 — 판단 무변경
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- 파일만 걸침 — 서버 `market/domain/ports.ts` 에 `ExchangeQuotePort.weeklyCandles`. 이 REQ 의 판단 · 설정 무변경
+- 미검증 · 범위 밖: 없음

@@ -85,3 +85,8 @@
 - 확인: prisma generate · build pass
 
 미검증: 없음 — 판단 무변경
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- 파일만 걸침 — 서버 `market/domain/ports.ts` 에 `ExchangeQuotePort.weeklyCandles`(Upbit 조회만). 스키마 · 쿼리 무변경
+- 미검증 · 범위 밖: 없음

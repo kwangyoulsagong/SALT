@@ -186,3 +186,8 @@
 실검증 · 실화면 상세는 루트 `requirements/reports/checklists/F000-asset-search.md` §2
 
 미검증: 없음
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- 파일만 걸침 — 웹 `messages.ts` · `types.ts` · 서버 `ports.ts`(파일이 이 REQ 를 언급) — 차트 주기 `week` 추가. 검색 · 관심 동작 무변경
+- 미검증 · 범위 밖: 없음

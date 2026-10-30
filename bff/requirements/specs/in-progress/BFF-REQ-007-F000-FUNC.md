@@ -82,7 +82,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 |---|---|---|
 | FR-50 | 차트 프록시가 **`period=minute`** 으로 서버를 부른다. 프론트가 `miniute`를 보내면 **BFF가 교정하지 않고 422로 거부**한다 | Must |
 | FR-51 | 교정하지 않는 이유: BFF가 오타를 흡수하면 프론트 오타가 영구화된다 | Must |
-| FR-52 | 유효값을 상수로 관리한다 — **2종**(`minute` · `day`, `CHART_PERIODS`). 처음 적은 4종은 서버가 받지 않아 줄였다 | Must |
+| FR-52 | 유효값을 상수로 관리한다 — **3종**(`minute` · `day` · `week`, `CHART_PERIODS`). 처음 적은 4종은 서버가 받지 않아 줄였다가 2026-10-30 서버와 같이 `week` 를 더했다(`month` 는 서버에 없다) | Must |
 
 ### G. 인증 경로 정리
 
@@ -191,5 +191,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
   때만 이긴다(FR-41 의 의도 그대로). 임계값 60초는 실측(p50 2.5s · 최대 4.8s) 근거다.
 - **`CHART_PERIODS` 를 `minute`·`day` 둘로 뒀다**(FR-52 는 넷을 적었다). 서버에
   `week`·`month` 경로가 없어서 넷을 적으면 BFF 는 통과시키고 서버가 422 를 준다.
+  (2026-10-30 — 서버가 `week` 를 열어 같이 더했다. 남은 것은 `month`.)
 - 2026-10-29: 전수 조사 — 홈 조립 현재형 문장 과거형 · FR-52 기간 2종 · 후속 3블록 · 수용 기준 구현 표시
 - 2026-10-30: **H절 구현**(`c6f310c5`) — FR-70 `/api/app/search`(`app-search.service` 400ms · 재시도 1회) · FR-71 서버 값 그대로(`asset-search.viewmodel`) · FR-72 가격 없으면 `null` · 캐시 없음 · FR-73 409 두 수(error middleware) · FR-74 관심 목록 `tracked` + 행 `isHeld`. **신규 FR-75** 검색어 로그 가림. 접근 로그 `originalUrl`(라우터 아래 요청이 전부 `/` 로 찍히던 기존 결함). 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
+- 2026-10-30: F004 슬라이스 19 차트 1주 탭(`a6accc80`) — **FR-52 개정 3종**: `CHART_PERIODS` 에 `week`(서버와 같은 목록). `assertChartPeriod` 테스트 신설(세 주기 · 값 없음 통과, `month` · `miniute` 422). 기존 `error.middleware` 테스트가 `week` 를 "모르는 주기" 예시로 쓰던 것을 `month` 로. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`

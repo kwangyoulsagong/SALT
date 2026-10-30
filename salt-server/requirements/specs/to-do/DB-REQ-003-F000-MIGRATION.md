@@ -130,3 +130,4 @@ DB-REQ-001의 스키마 변경을 **독립 롤백 가능한 5단계**로 쪼갠�
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: M6 `20260921_goal_quantity_target` · FR-40~43(목표 수량 — 추가 + NOT NULL 해제 + CHECK, 기본안 B5). 개정: M1 · M2 · M5 를 **열린 질문 Q2 결정 전 실행 금지**로. 후속 목록에서 삭제된 DB-REQ-006 · 009 · 012 제거. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | 참고 — 검색 자산군은 `crypto` · `kr_stock`(F011). `us_stock` 은 이 REQ 대로 미국 주식 착수 때. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-10-30 | 파일만 걸침 — 웹 `entities/market/model/messages.ts` · `types.ts` 에 차트 기간 `1w` 이름 · `ChartPeriod.Week`. 스키마 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |

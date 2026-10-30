@@ -349,3 +349,8 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 - 확인: 실화면
 
 미검증: 없음 — 판단 무변경
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- 파일만 걸침 — 웹 `entities/market/model/types.ts` 에 코인 `ChartPeriod.Week`. 국내 차트(`KrChartPeriod` `1d` · `5m`)는 그대로 — 국내 1주는 `FE-REQ-049` FR-10
+- 미검증 · 범위 밖: 없음

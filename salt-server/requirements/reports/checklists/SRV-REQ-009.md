@@ -129,3 +129,9 @@ Swagger: 동면 모듈 JSDoc 은 스캔 경로(`src/modules/**/*.routes.ts`)에 
 Swagger(`failOnErrors`) 생성 · 실검증 · 실화면 상세는 루트 `requirements/reports/checklists/F000-asset-search.md` §2
 
 미검증: 없음
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- 차트 경로 `period=week` — 실서버 200 · 주봉, BFF 경유(`localhost:4001`) 같은 응답. `period=month` 422(서버 · BFF 둘 다 `MARKET_CHART_PERIOD_UNSUPPORTED`)
+- Swagger enum 3종(`swagger-jsdoc` `failOnErrors`)
+- 미검증 · 범위 밖: `month`(소비 화면이 생길 때, `SRV-REQ-008` FR-50)

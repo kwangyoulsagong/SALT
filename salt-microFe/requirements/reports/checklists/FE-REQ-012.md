@@ -170,3 +170,8 @@
 - 확인: 실화면
 
 미검증: 없음 — 판단 무변경
+
+## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
+
+- FR-2(개정 3종) — `entities/market/model/types.ts` `ChartPeriod.Week`. 실화면 1주 탭 요청 `period=week&unit=1&count=200`
+- 미검증 · 범위 밖: `month`(서버가 열 때)
