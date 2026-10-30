@@ -56,7 +56,7 @@ F000의 성능 요구는 **① 변경 금지 목록(실시간 테이블·시세 
 | FR-11 | 가격 갱신을 **throttle해서 내려보낸다.** 초당 수십 회를 그대로 밀면 프론트가 리렌더로 죽는다 | Must |
 | FR-12 | 클라이언트 연결이 끊기면 상위 구독을 정리한다. **유령 구독 0건** | Must |
 | FR-13 | worker는 **직접 실행될 때만** 시작한다. import side effect로 interval·socket이 중복 생성되지 않게 한다 | Must |
-| FR-14 | **서버 `market-price-updater` 제거로 BFF `price-updater.worker`가 단일 경로**가 된다. 갱신이 끊기지 않는지 확인한다 | Must |
+| FR-14 | ~~**서버 `market-price-updater` 제거로 BFF `price-updater.worker`가 단일 경로**가 된다.~~ **정정 2026-10-30** — 서버 잡은 유지된다. BFF `price-updater.worker` 는 관심 목록 · 보유 가격의 단일 경로다. 갱신이 끊기지 않는지 확인한다 | Must |
 | FR-15 | 동시 WS 연결 수와 구독 심볼 수를 측정한다 | Must |
 
 ## 정리 효과 측정

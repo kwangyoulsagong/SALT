@@ -197,7 +197,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 ## Dependencies
 
 - **선행:** `SRV-REQ-006`(DDD) · `SRV-REQ-007`(정리) · `DB-REQ-001`(`InviteCode`·`AssetType`·`Goal` 수량 — FR-40~43)
-- **정리 항목 참조(2026-09-21):** 레거시 모델 · 중복 worker · 동면 410 · `AssetType` 은 `SRV-REQ-007` · `SRV-REQ-010` 이 가진다(감사 문서 §4 `scope` 행 — 코드 미완)
+- **정리 항목 참조(2026-09-21):** 레거시 모델 · 중복 worker · 동면 410 · `AssetType` 은 `SRV-REQ-007` · `SRV-REQ-010` 이 가진다(감사 문서 §4 `scope` 행 — 코드 미완. 2026-10-30: 레거시 모델 drop · 중복 worker 는 중복 아님으로 정정)
   - 2026-10-30: 레거시 모델 drop 완료 · "중복 worker" 는 중복이 아니었음(서버 잡 유지) — 루트 `F000-legacy-cleanup`
 - **연동:** `FE-REQ-011`(F000 FUNC)이 `period` 오타를 먼저 고친다
 - **규칙:** `ddd-domain.md` · `ddd-application.md`

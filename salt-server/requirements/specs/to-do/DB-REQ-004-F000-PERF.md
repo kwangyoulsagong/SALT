@@ -96,14 +96,14 @@ M2의 `UPDATE ... SET asset_type = 'kr_stock' WHERE asset_type = 'stock'`이 대
 | FR-42 | M6 소요 시간을 기록한다(1s 예산) (기본안 — 감사 문서 B5) | Should |
 | FR-43 | 뉴스 목록에 `isBookmarked` 를 붙이는 것도 FR-41 과 같다 — 사용자 북마크 `newsId` 집합을 **해당 기사 id 로 한 번** 조회한다(`WHERE user_id = ? AND news_id IN (...)`) (D5) | Must |
 
-## 부수 효과 — worker 1개 감소
+## 부수 효과 — ~~worker 1개 감소~~ 정리 전/후 커넥션
 
-`market-price-updater.worker`(서버) 제거로 DB 커넥션 상시 사용량이 줄어야 한다.
+~~`market-price-updater.worker`(서버) 제거로 DB 커넥션 상시 사용량이 줄어야 한다.~~ **정정 2026-10-30** — 서버 시세 잡은 지우지 않는다. 서버 잡은 `market_assets`, BFF 워커는 관심 목록 · 보유 가격을 써서 중복이 아니었다(`SRV-REQ-007` FR-2 정정).
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-30 | 정리 전/후 **상시 커넥션 수**를 측정해 기록한다 (`pg_stat_activity`) | Should |
-| FR-31 | 정리 전/후 `MarketAsset` 갱신 빈도를 확인한다. BFF worker 단일 경로로 갱신이 유지되어야 한다 | Must |
+| FR-31 | 정리 전/후 `MarketAsset` 갱신 빈도를 확인한다. ~~BFF worker 단일 경로로 갱신이 유지되어야 한다~~ **정정 2026-10-30** — 서버 잡 단일 경로로 유지되어야 한다 | Must |
 
 ## Acceptance Criteria
 
@@ -116,7 +116,7 @@ M2의 `UPDATE ... SET asset_type = 'kr_stock' WHERE asset_type = 'stock'`이 대
 - [ ] 그 인덱스의 `EXPLAIN (ANALYZE, BUFFERS)` 결과가 checklist에 있다 (`Seq Scan` 없음)
 - [ ] 마이그레이션 중 워커가 중단되었고 재기동 순서가 문서에 있다
 - [ ] 정리 전/후 상시 커넥션 수가 기록되어 있다
-- [ ] `MarketAsset` 갱신이 BFF worker 단일 경로로 유지된다
+- [ ] `MarketAsset` 갱신이 ~~BFF worker~~ 서버 잡 단일 경로로 유지된다 (**정정 2026-10-30**)
 - [ ] 종목 검색 `EXPLAIN (ANALYZE)` 결과가 checklist 에 있고 30ms 이내다
 - [ ] 검색 · 뉴스 목록에서 `isTracked` · `isHeld` · `isBookmarked` 판정이 요청당 쿼리 1~2회다 (N+1 0건)
 - [ ] M6 소요 시간이 기록되어 있다

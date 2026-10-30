@@ -91,7 +91,7 @@ DB-REQ-001의 스키마 변경을 **독립 롤백 가능한 5단계**로 쪼갠�
 
 - [ ] M1~M5가 각각 독립된 마이그레이션 파일이다
 - [x] M4 커밋 메시지에 grep 결과(0건)와 `pg_dump` 경로가 있다 (2026-10-30)
-- [ ] `pg_dump` 복원 테스트 기록이 `requirements/reports/checklists/DB-REQ-003.md`에 있다
+- [x] `pg_dump` 복원 테스트 기록이 `requirements/reports/checklists/DB-REQ-003.md`에 있다 (2026-10-30 M4 — 1회 · 오류 0)
 - [ ] M2 전후 `asset_type` 분포가 기록되고, 사후에 `stock`이 0건이다
 - [ ] M5 전 `"stock"` 리터럴 grep이 0건이다
 - [ ] 원장 3종 row 수가 M1 전 = M5 후

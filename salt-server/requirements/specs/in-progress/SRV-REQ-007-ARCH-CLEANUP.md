@@ -52,7 +52,7 @@ $ grep -rn "ACCOUNT_SELECTED" salt-microFe/apps salt-microFe/packages --include=
 | ID | 삭제 대상 | 근거 | 우선순위 |
 |---|---|---|---|
 | FR-1 | Prisma 모델 `AIAnalysisSession` · `AIAnalysis`, enum `AnalysisStatus` · `PredictionType` | 서버 코드 참조 **0건** | Must |
-| FR-2 | `src/workers/market-price-updater.worker.ts` | 가격 갱신은 BFF `price-updater.worker`가 한다. **서버에도 있어 이중 갱신**이다. `app.ts`에서 `marketPriceUpdater.start()` 제거 | Must |
+| FR-2 | ~~`src/workers/market-price-updater.worker.ts`~~ | **정정 2026-10-30** — 삭제하지 않는다. 서버 잡은 `market_assets`, BFF 워커는 관심 목록 · 보유 가격을 써서 중복이 아니었다. 잡을 지우면 코치 판정 가격이 멈춘다. ~~가격 갱신은 BFF `price-updater.worker`가 한다. **서버에도 있어 이중 갱신**이다. `app.ts`에서 `marketPriceUpdater.start()` 제거~~ | Must |
 | FR-3 | 커밋된 빌드 산출물 **24개 파일** (`src/**/*.js`, `*.d.ts`, `*.js.map`) + `.gitignore` 반영 | 소스 트리에 컴파일 결과가 추적되고 있다. `src/config/database.js` 등이 `.ts`와 공존해 어느 것이 진실인지 모호하다 | Must |
 | FR-4 | `packages/message-event-bus`의 `ACCOUNT_SELECTED` | **이미 코드에 없다.** 이 항목은 확인만 하고 닫는다. 은행/계좌 API가 없어 동작 근거가 없었다 | Must |
 | FR-5 | 기획 문서에서 랭킹·이달의 저축왕·소셜 저축·저축 게임 내리기 | 코드에 없고 사용자 ≤10명이면 성립하지 않는다. `README.md`를 v1/v2 2섹션으로 개편(**삭제 아님**) | Should |
@@ -98,7 +98,7 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 |---|---|
 | 되돌리기 | 브랜치 + FR 단위 커밋. FR-1 실행 전 `pg_dump -Fc` 스냅샷 + 복원 테스트 1회 |
 | 데이터 안전 | 원장 3종 row 수가 전후 동일 |
-| 성능 | 정리 후 `npm run build` 시간과 기동 worker 수를 측정해 기록. worker 1개 감소로 DB 커넥션 상시 사용량이 줄어야 한다 |
+| 성능 | 정리 후 `npm run build` 시간과 기동 worker 수를 측정해 기록. ~~worker 1개 감소로 DB 커넥션 상시 사용량이 줄어야 한다~~ **정정 2026-10-30** — 지우는 워커가 없다(FR-2) |
 | 관측성 | 410 응답 1회 로그. 1주 후 잔여 호출 0건 확인 |
 | 순서 | **프론트 → BFF → 서버 → Prisma.** 역순이면 빌드가 계속 깨진다 |
 
@@ -120,7 +120,7 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 - [ ] `MarketSentiment`/`WhaleTransaction` **조회** 경로가 동작한다 (프리뷰 화면 확인)
 - [ ] `InvestmentNotification.type` 생성 값이 2종뿐이다
 - [x] 되살리기 테스트 1회 통과 (route 재등록 → 200 → 되돌림) (2026-10-27 `/api/missions`)
-- [ ] 원장 3종 row 수가 전후 동일하다
+- [x] 원장 3종 row 수가 전후 동일하다 (2026-10-30 FR-1 drop 전후)
 - [ ] `npm run build` 통과. 빌드 시간·기동 worker 수 기록
 
 ## Trace
