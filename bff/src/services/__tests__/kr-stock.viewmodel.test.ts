@@ -20,6 +20,7 @@ const session = {
   lastCloseAt: "2026-10-08T06:30:00.000Z",
   nextOpenAt: "2026-10-09T00:00:00.000Z",
   calendarKnown: true,
+  holidayName: null,
 };
 
 const quote = (over: Record<string, unknown> = {}) => ({
@@ -68,6 +69,14 @@ describe("toKrMarketStatusVM", () => {
         realtime: { state: "open", lastTickAt: "2026-10-08T06:29:59.000Z" },
       },
     });
+  });
+
+  it("휴장 사유(FR-41)는 그대로 · 필드 없는 옛 서버 응답은 null · 문자열 아니면 계약 깨짐", () => {
+    const provider = { status: "ok", since: null, lastSuccessAt: null, realtime: { state: "idle", lastTickAt: null } };
+    assert.equal(toKrMarketStatusVM({ ...session, session: "holiday", holidayName: "성탄절", provider }).holidayName, "성탄절");
+    const { holidayName: _omit, ...old } = session;
+    assert.equal(toKrMarketStatusVM({ ...old, provider }).holidayName, null);
+    assert.throws(() => toKrMarketStatusVM({ ...session, holidayName: 1, provider }), KrContractError);
   });
 
   it("모르는 장 상태는 계약 깨짐 — 화면 분기가 그 값에 걸려 있다", () => {

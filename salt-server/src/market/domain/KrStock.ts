@@ -266,6 +266,11 @@ export interface KrSessionView {
    * 안 돌았거나 실패한 경우이고, 화면이 그 사실을 숨기지 않게 응답에 싣는다
    */
   calendarKnown: boolean;
+  /**
+   * 평일 휴장의 사유(FR-41) — KRX 공시 표 이름. 휴장이 아니거나 주말이거나 표에 없는 휴장(공시 뒤 임시공휴일 —
+   * 09:10 관측이 찾은 날)이면 `null`. 이름을 지어내지 않는다
+   */
+  holidayName: string | null;
 }
 
 const KST_OFFSET_MS = 9 * 3_600_000;
@@ -331,6 +336,10 @@ export const KRX_NOTICE_CLOSURES: ReadonlyArray<{ date: string; name: string }> 
 export const KRX_NOTICE_COVERED_FROM = "2026-01-01";
 export const KRX_NOTICE_COVERED_THROUGH = "2027-01-01";
 
+/** 그 날의 공시 휴장 이름 — 표에 없으면 `null`(FR-41) */
+export const krxHolidayName = (date: string): string | null =>
+  KRX_NOTICE_CLOSURES.find((c) => c.date === date)?.name ?? null;
+
 /**
  * `[from, to]` 중 공시 표가 덮는 평일 — 표에 있으면 휴장, 없으면 개장. 표 범위 밖은 내지 않는다(모르는 날을
  * 개장으로 적으면 `calendarKnown` 이 거짓이 된다)
@@ -392,6 +401,7 @@ export const krMarketSession = (
       lastCloseAt: kstAt(prevOpenDay(today), 15, 30),
       nextOpenAt: kstAt(nextOpenDay(today), 9, 0),
       calendarKnown,
+      holidayName: isWeekend(today) ? null : krxHolidayName(today),
     };
   }
 
@@ -405,6 +415,7 @@ export const krMarketSession = (
     lastCloseAt: inRegular ? null : kstAt(beforeOpen ? prevOpenDay(today) : today, 15, 30),
     nextOpenAt: inRegular ? null : kstAt(beforeOpen ? today : nextOpenDay(today), 9, 0),
     calendarKnown,
+    holidayName: null,
   };
 };
 

@@ -110,6 +110,17 @@ describe("krxNoticeDays — KRX 휴장일 공시로 미래 달력 채우기 (F01
     assert.equal(v.calendarKnown, true);
     assert.deepEqual(v.lastCloseAt, kst("2026-12-24T15:30:00"));
     assert.deepEqual(v.nextOpenAt, kst("2026-12-28T09:00:00"));
+    assert.equal(v.holidayName, "성탄절");
+  });
+
+  it("휴장 사유는 공시 표에 있는 평일 휴장에만 — 주말 · 장날 · 표에 없는 휴장은 null (FR-41)", () => {
+    const cal = asCalendar("2026-12-01", "2027-01-01");
+    assert.equal(krMarketSession(kst("2026-12-26T10:00:00"), cal).holidayName, null);
+    assert.equal(krMarketSession(kst("2026-12-24T10:00:00"), cal).holidayName, null);
+    // 관측이 찾은 임시 휴장(표에 없음) — 이름을 지어내지 않는다
+    const temp = krMarketSession(kst("2026-11-04T10:00:00"), new Map([["2026-11-04", false]]));
+    assert.equal(temp.session, "holiday");
+    assert.equal(temp.holidayName, null);
   });
 
   it("연말 휴장 · 신정을 건너 다음 개장은 2027-01-04 월요일", () => {

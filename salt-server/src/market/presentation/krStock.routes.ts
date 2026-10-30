@@ -25,6 +25,7 @@ export const createKrStockRouter = (useCases: KrStockUseCases | null): Router =>
    *     description: |
    *       `session` 은 pre_open · regular · closing_auction · after_hours_close · after_hours_single · closed · holiday.
    *       `calendarKnown=false` 면 오늘이 개장일 달력에 없어 평일 = 개장으로 추정했다.
+   *       `holidayName` 은 평일 휴장의 사유(KRX 공시 표 — 표에 없는 임시 휴장은 `null`).
    *     tags: [Market - KR Stock]
    *     security: [{ bearerAuth: [] }]
    *     responses:
@@ -45,6 +46,7 @@ export const createKrStockRouter = (useCases: KrStockUseCases | null): Router =>
    *                     lastCloseAt: { type: string, format: date-time, nullable: true }
    *                     nextOpenAt: { type: string, format: date-time, nullable: true }
    *                     calendarKnown: { type: boolean }
+   *                     holidayName: { type: string, nullable: true, description: "평일 휴장 사유 — 휴장이 아니거나 표에 없으면 null" }
    *                     provider:
    *                       type: object
    *                       description: KIS 상태(FR-92) — degraded 는 진짜 실패 5회 연속(초과 응답은 세지 않는다)
