@@ -26,5 +26,6 @@ export { TradeBehaviorLines } from "./TradeBehaviorLines";
 export { ScenarioList } from "./ScenarioList";
 export { MonthlyReviewCard } from "./MonthlyReviewCard";
 export { ScoreboardList } from "./ScoreboardList";
+export { ReturnDistributionBars, SignalCaseColumns, SignalMetrics, signalTypeLabel } from "./SignalEvidence";
 export { TargetWeightList } from "./TargetWeightList";
 export { TargetWeightSummary } from "./TargetWeightSummary";
