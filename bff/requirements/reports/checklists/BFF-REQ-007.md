@@ -159,3 +159,17 @@
 ## 2026-10-29 FR-6(1주 410 로그) 확인
 
 - **관찰 불가로 닫고 대체** — BFF 는 상시 실행되지 않는다(launchd 에 `com.salt.server` · `com.salt.forecast-daily` 만, BFF 로그 파일 없음). 9-22~29 1주 로그가 쌓일 수 없었다. 같은 신호(동면 경로 잔여 호출)를 상시 서버의 410 1회 로그로 본다 — `F000-dormant-410` 체크리스트 2026-11-03 확인으로 넘김
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한
+
+| FR | 결과 |
+|---|---|
+| FR-70 | `rest/routes/search.routes.ts` · `controllers/search.controller.ts`(q ≤ 30 · assetType · limit 1~30 400) · 인증 필수 |
+| FR-71 · 72 | `services/asset-search.viewmodel.ts` — 단위 3 |
+| FR-73 | `utils/error.util.ts` · `error.middleware.ts` — 단위 1 · 실서버 본문 두 수 |
+| FR-74 | `app-watchlist.service.ts` · `watchlist.viewmodel.ts` `isHeld` — 단위 1 · 실화면 카운터 |
+| FR-75 | `loggableUrl` — 단위 3 · 실로그 `GET /api/app/search?q=*&limit=20` |
+
+BFF 295 pass · build. 실검증은 새 코드 BFF 4011(기존 4001 은 watch 없는 옛 프로세스 — 루트 체크리스트 §3). 실검증 · 실화면 상세는 루트 `requirements/reports/checklists/F000-asset-search.md` §2
+
+미검증: 없음

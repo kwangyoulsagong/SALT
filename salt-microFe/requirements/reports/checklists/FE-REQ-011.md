@@ -173,3 +173,16 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: "현재 `constants/api.ts` 에 문구 · `period=miniute`"는 지난 일 — 문구 `@repo/core/http`, 기간 `ChartPer / FR-53 토큰은 쿠키가 아니라 아직 `localStorage`(`shared/api/authToken.ts` "그게 지금의 미달이다") — 쿠키 이전 주인은 ` / FR-30 모바일 접기는 768 미만 안내(FE-REQ-043)로 웹에선 해당 없음
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한
+
+| FR | 결과 |
+|---|---|
+| FR-5 | `isTrackedLimitError` → 인라인. 실화면 · 콘솔만(토스트 0) |
+| FR-6 | `useToggleWatchlist` `onSettled` 두 키 · 행 `actionKey` — 제거 직후 별 "추가" |
+| FR-7 | 검색 · 관심 종목 탭 보유 ★ 비활성(`aria-disabled`) — 실화면 둘 다 |
+| FR-80~84 | `features/search-asset/lib/useAssetSearchQuery.ts` · `recentSearches.ts` — 주소 복원(뒤로) · 요청 1번 · 칩 |
+
+실검증 · 실화면 상세는 루트 `requirements/reports/checklists/F000-asset-search.md` §2
+
+미검증: 없음

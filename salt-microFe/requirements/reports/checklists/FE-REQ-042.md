@@ -71,3 +71,10 @@
 | 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
 
 미검증: 없음 — 판단 · 화면 무변경
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- 파일만 걸침 — `fsd-widgets.md` 위젯 표에 `asset-search` 행
+- 확인: 문서
+
+미검증: 없음 — 판단 무변경

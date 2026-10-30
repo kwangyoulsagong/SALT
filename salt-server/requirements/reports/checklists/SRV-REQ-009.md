@@ -116,3 +116,16 @@ Swagger: 동면 모듈 JSDoc 은 스캔 경로(`src/modules/**/*.routes.ts`)에 
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: 초대 · 제거 경로 · `period` 수용 기준은 Changelog(FR-1~6 · 9)로 닫혔다 / 알림 "생성 거부, 조회 허용" → 지금은 옛 행을 지우지 않지만 **목록 · 안 읽은 수도 1종만** 보인다(`SRV-REQ-008` "다른 지점")
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한
+
+| FR | 결과 |
+|---|---|
+| FR-30 | 개정대로 — 실서버 31자 400 · 무인증 401 · `limit` 5 |
+| FR-31 | 별도 경로 — `market/overview` 무변경 |
+| FR-32 | 409 `TRACKED_ASSET_LIMIT` + 두 수 · 중복은 기존 409 그대로 |
+| FR-33 | `tracked` + 행 `isHeld` 추가(기존 필드 무변경) |
+
+Swagger(`failOnErrors`) 생성 · 실검증 · 실화면 상세는 루트 `requirements/reports/checklists/F000-asset-search.md` §2
+
+미검증: 없음

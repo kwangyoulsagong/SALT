@@ -103,6 +103,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 | FR-72 | 현재가가 없으면 `null`. 0 을 만들지 않는다. 검색 결과는 캐시하지 않는다(사용자별 판정) | Must |
 | FR-73 | `POST /api/app/watchlist` 가 서버 **`409 TRACKED_ASSET_LIMIT` + `trackedCount` · `trackedLimit`** 을 그대로 전달한다. 500 으로 바꾸지 않는다 | Must |
 | FR-74 | `GET /api/app/watchlist` 가 서버의 `tracked{count,limit}` 를 뷰모델에 싣는다. **신호(action · 점수) 필드를 싣지 않는다**(D4) | Must |
+| FR-75 | 검색어(`q`)를 로그에 남기지 않는다 — 요청 · 거부 로그는 `q=*` 로 가린다(`loggableUrl`). 서버 `SRV-REQ-008` FR-86 과 같은 규칙 (2026-10-30) | Must |
 
 ### I. 뉴스 — 감정 · 종목 · 북마크 (2026-09-21)
 
@@ -191,3 +192,4 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 - **`CHART_PERIODS` 를 `minute`·`day` 둘로 뒀다**(FR-52 는 넷을 적었다). 서버에
   `week`·`month` 경로가 없어서 넷을 적으면 BFF 는 통과시키고 서버가 422 를 준다.
 - 2026-10-29: 전수 조사 — 홈 조립 현재형 문장 과거형 · FR-52 기간 2종 · 후속 3블록 · 수용 기준 구현 표시
+- 2026-10-30: **H절 구현**(`c6f310c5`) — FR-70 `/api/app/search`(`app-search.service` 400ms · 재시도 1회) · FR-71 서버 값 그대로(`asset-search.viewmodel`) · FR-72 가격 없으면 `null` · 캐시 없음 · FR-73 409 두 수(error middleware) · FR-74 관심 목록 `tracked` + 행 `isHeld`. **신규 FR-75** 검색어 로그 가림. 접근 로그 `originalUrl`(라우터 아래 요청이 전부 `/` 로 찍히던 기존 결함). 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`

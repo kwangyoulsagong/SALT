@@ -320,3 +320,4 @@ type ExplainResult =
 | 2026-10-29 | FR-65 구현 — 목표 도달 시 손익 `targetGainAmount` · `targetGainRate`(`coach/domain/policy/preflight.ts` · `CheckTradePreflight` · Swagger). 특성화 테스트 3(값 · 음수 · null). 필드 추가만 — 기존 소비처 무변경. 화면 `FE-REQ-026` FR-154 가 이 값으로 닫힘. 위 줄의 "목표 도달 시 금액 필드가 없다"는 이 행으로 해소 |
 | 2026-10-29 | FR-66 구현 — `CheckTradePreflight` 코인 고정 제거 · 시세로 자산군 · 같은 자산군 분모 · 응답 `assetType` · Swagger. 유스케이스 테스트 3. 국내 주식 상세 주문 전 체크가 이 값으로 열림 |
 | 2026-10-30 | F004 슬라이스 17(판정 근거 상세) — **변경 없음.** FR-53 `returnDistribution` · `hits` · `misses` 를 BFF(`BFF-REQ-039` FR-8) · 화면이 처음 소비. 실응답 3그룹 구간 합 = 표본 |
+| 2026-10-30 | 파일만 걸침 — `env.ts` 에 `TRACKED_ASSET_LIMIT` 추가. LLM 예산 설정 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |

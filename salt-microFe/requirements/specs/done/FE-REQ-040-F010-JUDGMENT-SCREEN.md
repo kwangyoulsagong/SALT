@@ -62,3 +62,4 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9 · �
 - 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
 - 2026-10-29: FR-8 순서에 주문 전 체크 한 칸(F004 슬라이스 16 · `FE-REQ-026` FR-155) — 수익 플랜 다음, 내 계획 위. 사기 전 계산이라 이미 한 거래를 적는 폼보다 위. 판정 첫 카드 · 소유자 카드 접기 무변경
 - 2026-10-30: FR-6 성적표 그룹마다 판정 근거 상세 링크(F004 슬라이스 17 · `FE-REQ-026` FR-141) — "분포 · 맞았던 때 · 틀렸던 때 ›"(`NavChevron`). 그룹 이름 함수는 상세와 한 벌(`signalTypeLabel`). 성적표 표시 자체 무변경
+- 2026-10-30: 파일만 걸침 — `fsd-widgets.md` 위젯 표에 `asset-search` 행 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`

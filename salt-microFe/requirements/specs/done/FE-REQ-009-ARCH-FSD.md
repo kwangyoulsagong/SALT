@@ -293,3 +293,4 @@ export { importLedger as POST } from '@/app/api-routes';
 |---|---|
 | 2026-10-28 | `F000-api-error-normalize`(파일만 걸침) — `GoalApiError` → `readApiError(response, "goal")`. 동작 무변경(4xx 재시도 0 유지) |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-30 | 레지스트리 — 위젯 `asset-search` 추가(`layer-rules.cjs` · `layered-architecture.md` §4 · `fsd-widgets.md`). 페이지 `search` · 기능 `search-asset` 은 이미 있었다 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |

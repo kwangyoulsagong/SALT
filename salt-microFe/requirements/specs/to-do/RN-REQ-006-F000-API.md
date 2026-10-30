@@ -166,3 +166,4 @@ created: 2026-09-09
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 호출 배치에 검색 · 북마크 목록 · 토글 · 목표 수량 본문 추가, 알림 1종 표시. 신규 D-2절 FR-60~65. 개정: FR-12 persist 대상에 북마크 목록 추가 · 검색 제외 · FR-51 `newsSentiment` enum. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-30 | BFF `/api/app/search` · 409 `TRACKED_ASSET_LIMIT` + 두 수 · 관심 목록 `tracked` · `isHeld` 구현 — 앱이 같은 계약을 쓴다. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |

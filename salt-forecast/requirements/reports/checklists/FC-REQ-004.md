@@ -109,3 +109,10 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 문서 정정: cron 범위 밖 행 닫힘. 근거는 코드(`ops/daily.sh` · `domain/ops_health.py` · `models/kr_stock.py`) · 같은 문서 결과 절 · 교차 REQ. 코드 무변경
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- 파일만 걸침 — 서버 `env.ts`(전망 배치 설정이 있는 파일)에 `TRACKED_ASSET_LIMIT` 추가. 배치 설정 무변경
+- 확인: 서버 build · test pass
+
+미검증: 없음 — 판단 무변경

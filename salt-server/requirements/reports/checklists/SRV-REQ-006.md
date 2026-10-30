@@ -692,3 +692,10 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 
 - `coach/domain/__tests__/policy.test.ts` `calculatePreflight` 에 목표 도달 시 손익 3개(값 · 음수 · null). 기존 특성화 값 무변경 — 36 통과 · `npm test` 841
 - 미검증: 없음
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- Shared Kernel `DomainError` 에 선택 `details`(응답 본문 최상위) — 컨텍스트 예외가 화면용 값을 실을 자리. 미들웨어가 `success` · `code` · `message` 를 뒤에 써 덮지 못한다(`ddd-shared.md` §2 개정, `36368363`)
+- 확인: 단위 — `toErrorResponse` 가 두 수를 싣고 키를 덮지 못함(`searchAssets.test.ts`)
+
+미검증: 없음 — 판단 무변경

@@ -36,3 +36,8 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 한국은행 ECOS | FRED `DEXKOUS` 로 원/달러가 된다 | 필요 시 |
 | ~~cron~~ | 미결제약정 때문에 **매일** 돌아야 한다 | **닫힘** — `ops/daily.sh`(LaunchAgent, `FC-REQ-015` FR-4) `ingest_market` 단계 |
 | 2026-10-29 | 전수 조사 정정 — cron 행 닫힘 |
+
+
+## Changelog
+
+- 2026-10-30: 파일만 걸침 — 서버 `env.ts`(전망 배치 설정이 있는 파일)에 `TRACKED_ASSET_LIMIT` 추가. 배치 설정 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`

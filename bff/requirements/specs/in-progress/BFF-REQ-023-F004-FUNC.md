@@ -210,3 +210,4 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | 2026-10-26 | F011 7f — 라우트 `GET /api/app/coach/review/monthly/kr-stock` 한 줄(컨트롤러 `krMonthlyReview`) |
 | 2026-10-29 | **변경 없음.** 프론트 `entities/coach/api/endpoints.ts` 의 다른 줄(리스크 예산 경로 주석 "게이지 3" → "게이지 · 측정")만 바뀌었다 — 이 REQ 를 가리키는 경로 상수 · 주석 무변경(F009 슬라이스 9) |
 | 2026-10-29 | 전수 조사 — generate 경로 · 고쳐진 "지금" 문장 표시 |
+| 2026-10-30 | 파일만 걸침 — `error.util.ts` 에 `trackedCount` · `trackedLimit` 옮김 추가(`retryAfterSeconds` 옆). 쿨다운 전달 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |

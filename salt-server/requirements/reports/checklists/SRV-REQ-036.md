@@ -31,3 +31,10 @@
 | 코인 요약 경로 | 무변경 — 국내 탭은 `/api/market/kr/indices`(`SRV-REQ-040` FR-49)를 따로 쓴다. 같은 원칙(설정이 정함 · 저장값) |
 
 미검증: 없음
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- 파일만 걸침 — `investment.controller.ts` 에 `searchAssets` 핸들러 추가. 시장 요약 경로 무변경
+- 확인: build · test pass
+
+미검증: 없음 — 판단 무변경

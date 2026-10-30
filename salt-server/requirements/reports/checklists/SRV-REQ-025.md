@@ -373,3 +373,10 @@
 ## F004 슬라이스 17 (2026-10-30) — 변경 없음
 
 - FR-53 분포 · 사례를 BFF · 화면이 처음 소비. 로컬 서버(4000) 실응답: `long_term.wait` 3 · `scalp.avoid` 4 · `scalp.wait` 47 — 구간 합 = 표본, `horizonDays` 30 · 1 · 1
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- 파일만 걸침 — `env.ts` 에 `TRACKED_ASSET_LIMIT` 추가. LLM 예산 설정 무변경
+- 확인: build · test pass
+
+미검증: 없음 — 판단 무변경

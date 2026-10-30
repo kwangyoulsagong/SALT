@@ -170,3 +170,4 @@ created: 2026-09-09
 | 날짜 | 변경 |
 |---|---|
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 추가: FR-34 · 35(추적 상한 409 되돌림 · 보유 ★ 해제 금지, D8) · FR-36~39(검색 디바운스 · 최근 검색 기기 로컬 · ☆ 낙관적 · 북마크는 알림과 분리, D8 · D5) · FR-56(오프라인에서 검색 · ★ · ☆ 비활성). FR-33 에 검색 화면 포함. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
+| 2026-10-30 | 웹 검색 동작 구현 — 최근 검색은 기기에만(웹 `localStorage`), 보유 ★ 해제 불가 · 상한 409 인라인. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |

@@ -209,3 +209,22 @@ Playwright: 블록 클릭 → `/investments`. 포커스 링 · 스크린 리더 
 | 수락 → 다음 단계 | 실스택 390 앱 웹뷰 — "초대를 수락했어요" · 점 진행 · 단계 밀림(퇴장 15 · 진입 24프레임). 로딩 화면 깜빡임 0 |
 | 비로그인 첫 진입 | 초대 단계 그대로(토큰 모를 때 로딩 — 무변경) |
 | 끝 화면 | 거래 · 목표 뒤 완료 화면 |
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한
+
+| FR | 위치 | 확인(실화면) |
+|---|---|---|
+| FR-33 | `widgets/market-board/ui/WatchlistTab.tsx` 빈 상태 `action` | 코드 · 빌드(빈 상태 계정은 임시 사용자에 관심이 있어 화면 미표시 — 링크는 머리 링크와 같은 컴포넌트) |
+| FR-37 | 같은 파일 표 위 카운터 | "추적 10 / 10" |
+| FR-70 | `pages/search` · `app/search/page.tsx` · `MarketBoard` 머리 링크 | `/investments` → `/search` |
+| FR-71 | `features/search-asset` | 자동 포커스 · "삼성" 타이핑 요청 1번 |
+| FR-72 · 73 | `entities/market/ui/AssetSearchTable.tsx` | 보유 배지 · 행 클릭 → `/investments/000660` |
+| FR-74 · 75 | `WatchlistStarButton` `held` · `onTrackedLimit` | 보유 ★ 비활성 · 인라인 안내 · 9/10 → 10/10 |
+| FR-76 | 최근 검색 칩 · 빈 검색어 추적 목록 | 칩 "하이닉스" · 추적 12행 |
+| FR-77 | 위젯 칩 | "비트" → 전체 · 크립토 · 국내주식, "btc" → 칩 없음 |
+| FR-78 | `type=search`(searchbox) · `aria-live` 결과 수 · `aria-pressed` | 역할 이름으로 찾음 |
+| FR-103 검색 | 첫 요청 스켈레톤 · 이후 이전 결과 + 스피너 · 실패 다시 시도 · 0건 한 줄 | 1.5초 지연 · 500 · "zzzzq" |
+
+check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 kB · `/investments` 153 kB 그대로). 실검증 · 실화면 상세는 루트 `requirements/reports/checklists/F000-asset-search.md` §2
+
+미검증: FR-33 빈 상태 화면 — 임시 사용자에 관심을 비운 경우를 안 찍었다(링크 코드는 머리 링크와 같다). 닫히는 때: 다음 관심 종목 탭 작업 또는 `QA-001`

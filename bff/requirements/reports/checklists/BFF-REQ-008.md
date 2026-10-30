@@ -93,3 +93,10 @@
 ## 2026-10-29 REQ 전수 조사
 
 - FR-12 기간 2종 · 7계약 구현 표시
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- 화면 계약 구현 — `GET /api/app/search` 뷰모델 `{ items: [{ assetType, symbol, name, logoUrl, currentPrice, changeRate, isTracked, isHeld }], tracked }`(`AssetSearchResultVM` 이름 대신 `AssetSearchVM`) · FR-19 409 `TRACKED_ASSET_LIMIT` + 두 수 · 관심 목록 `tracked` · 행 `isHeld`
+- 확인: 실서버 응답 모양 · 단위
+
+미검증: 없음 — 판단 무변경

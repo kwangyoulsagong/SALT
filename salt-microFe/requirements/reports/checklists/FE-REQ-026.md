@@ -239,3 +239,10 @@
 
 검증: `pnpm check-types` · `pnpm lint` · `pnpm test` · `pnpm test:layer-check` · 훅 사후 실행 15파일 0 · web · web-tax build. 상세는 루트 `requirements/reports/checklists/F004-fe-signal-evidence.md`.
 미검증: RN push → `RN-REQ-020`~`023`(앱 미착수). 국내 주식 그룹 화면은 같은 날 닫음 — 임시 사용자 토큰에 소유자 이메일, 1440 · 390 · 독립 재계산 같음 · 비소유자 노출 0(루트 체크리스트 후속).
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- 파일만 걸침 — 투자 화면 머리 코치 리포트 링크 옆에 검색 링크(같은 스타일 `reportLink`). 리포트 진입 무변경
+- 확인: 실화면 두 링크
+
+미검증: 없음 — 판단 무변경
