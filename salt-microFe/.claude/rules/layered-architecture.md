@@ -98,7 +98,8 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `position-overview` | portfolio (Hero · 평가금 흐름 · 보유 · 리스크 레이더) |
 | `coach-panel` · `symbol-analysis` | market + coach + indicator (투자 우측 패널 · 상세 분석) |
 | `judgment-overview` | coach — 투자 화면 머리 아래 **요약 띠**(목표 비중 · 위험 · 판정 성적표 한 줄씩 → 코치 리포트 섹션). 본문은 `coach-console` (F010, 2026-09-29) |
-| `app-header` · `alert-list` · `settings-panel` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 설정 · 거래 목록 |
+| `app-header` · `alert-list` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 거래 목록 |
+| `settings-panel` | coach + 코치 설정(`edit-coach-profile`) + 매입가 숨김(`toggle-purchase-price`) — 설정 화면 `/settings` (F004 FR-12, 2026-10-30) |
 | `market-list` | 모바일 시장 목록 (웹은 `market-board`) |
 | `market-board` | market + news + indicator — 자산군(코인 · 국내 주식)은 매개변수, 화면은 하나 |
 | `asset-search` | market + 검색어 상태(`search-asset`) + ★(`toggle-watchlist`) — 종목 검색 화면 `/search` (F000 FR-40 · 41, 2026-10-30) |

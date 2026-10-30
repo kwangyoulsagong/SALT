@@ -2,7 +2,7 @@
 export const SIGN_OUT_MESSAGES = {
   /** 스크린 리더가 읽는 메뉴 이름 */
   menuLabel: "내 계정 메뉴",
-  settings: "설정 (준비 중)",
+  settings: "설정",
   signOut: "로그아웃",
 } as const;
 

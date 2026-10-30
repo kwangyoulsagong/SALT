@@ -4,3 +4,4 @@ export * from "./zoneOverlay";
 export * from "./behaviorFact";
 export * from "./renderGate";
 export * from "./mirrorTag";
+export * from "./profileSettings";

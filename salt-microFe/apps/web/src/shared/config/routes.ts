@@ -21,6 +21,8 @@ export const ROUTES = {
   investments: "/investments",
   /** 종목 검색 — 투자 화면 머리 · 관심 종목 빈 상태에서 들어온다(`FE-REQ-010` FR-70) */
   search: "/search",
+  /** 설정 — 헤더 프로필 메뉴에서 들어온다(F004 FR-12) */
+  settings: "/settings",
   /** 상세 분석. 투자 우측 패널 · 시장 요약 띠가 같이 쓴다 */
   investmentDetail: (symbol: string) => `/investments/${encodeURIComponent(symbol)}`,
   /** 코치 리포트. 투자 화면 머리에서 들어온다 */

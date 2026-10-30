@@ -42,7 +42,7 @@ features/{slice}/
 | `accept-invite` | 초대 코드 입력·검증 | F000 |
 | `arrange-panels` | PC 이진분할 격자 배치 변경 | F006 |
 | `sign-in` | 로그인 · 세션 저장 · 홈 이동 | 현행 |
-| `sign-out` | 헤더 프로필 메뉴(설정 · 로그아웃) · 세션 · 캐시 비우기 · 로그인 이동 | 현행 (2026-09-24) |
+| `sign-out` | 헤더 프로필 메뉴(설정 `/settings` · 로그아웃) · 세션 · 캐시 비우기 · 로그인 이동 | 현행 (2026-09-24) |
 | `search-asset` | 종목 검색 · 추적 자산 추가(상한 10) | F000 |
 | `toggle-news-bookmark` | 뉴스 북마크 추가·해제 | F000 |
 | `switch-coach-mode` | 단타/장기 모드 전환 (URL 이 유일한 저장소) | F004 |
@@ -52,6 +52,7 @@ features/{slice}/
 | `set-risk-budget` | 내 기준(월 허용 손실 · 1회 최대 손실 — 원 또는 % · 한 종목 상한 · 투자금 · 목표 변동성) 설정. 필수 아님 | F009 · F010 |
 | `confirm-outcome-tags` | 청산별 실수 태그 확정 · 수정(자동 후보 → 사용자 확정). 원본 판정은 서버가 보존 | F009 |
 | `toggle-purchase-price` | 매입가 숨김 켜기/끄기(서버 설정). 숨는 곳은 홈 보유 요약 손익률 | F009 |
+| `edit-coach-profile` | 코치 설정(기본 모드 · 매도 돌아보는 기간) 저장. 서버가 읽지 않는 설정은 칸을 두지 않는다 | F004 (2026-10-30) |
 | `mark-alert-read` | 알림 읽음 · 모두 읽음 | F006 |
 | `toggle-alerts` | 알림 켜기/끄기 | F006 |
 | `skip-onboarding-step` | 온보딩 2단계 건너뛰기 | F006 |

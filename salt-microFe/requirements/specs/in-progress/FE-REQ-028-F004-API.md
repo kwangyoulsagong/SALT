@@ -94,8 +94,8 @@ created: 2026-09-09
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-50 | PATCH mutation. 재시도 0회 | Must |
-| FR-51 | 성공 시 **`router.refresh()`** 로 추천을 재조회한다. 성향이 점수에 영향한다 | Must |
-| FR-52 | `defaultMode`·`notificationLevel`이 영속화되므로 폼에 포함한다 | Must |
+| FR-51 | 성공 시 **`router.refresh()`** 로 추천을 재조회한다. 성향이 점수에 영향한다. **다르게 2026-10-30**: 쿼리 무효화(`FE-REQ-027` FR-62 와 같은 이유) | Must |
+| FR-52 | `defaultMode`·`notificationLevel`이 영속화되므로 폼에 포함한다. **개정 2026-10-30**: `defaultMode` 만 — `notificationLevel` 은 서버 소비처가 없어 칸을 두지 않는다(`FE-REQ-026` FR-80 개정) | Must |
 
 ### G. 에러 처리
 
@@ -155,8 +155,8 @@ created: 2026-09-09
 - [ ] 피드백이 낙관적 갱신이고 실패 시 되돌아간다
 - [ ] preflight가 버튼 클릭으로만 호출되고 캐시가 0건이다
 - [ ] **preflight 응답 타입에 게이트·차단 필드가 없다** (있으면 컴파일 실패)
-- [ ] 성향 저장 후 `router.refresh()`가 일어난다
-- [ ] `defaultMode`·`notificationLevel`이 폼에 있다
+- [x] 성향 저장 후 ~~`router.refresh()`~~ 판단 · 리포트 쿼리가 무효화된다 (2026-10-30)
+- [x] `defaultMode` 가 폼에 있다(`notificationLevel` 은 FR-52 개정으로 제외)
 - [ ] `429`·`401`·타임아웃이 각각 다르게 처리된다
 - [ ] 서버 에러 원문이 화면에 0건이다
 - [ ] 뷰모델 타입이 `packages/core`에서 온다
@@ -200,3 +200,4 @@ created: 2026-09-09
 | 2026-10-26 | F011 7f — `COACH_ENDPOINTS.krMonthlyReview` · `coachQueryKeys.krMonthlyReview` · `coachApi.monthlyReview(…, assetType)` |
 | 2026-10-29 | 주석만 — `entities/coach/api/endpoints.ts` 리스크 예산 경로 설명 "게이지 3" → "게이지 · 측정"(F010 부터 다섯, F009 슬라이스 9 로 측정 칸 2 추가). 경로 · 코드 무변경 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-30 | F004 슬라이스 18 — F절 성향 설정 완료: FR-50(PATCH · 재시도 0) · FR-51(다르게 — 쿼리 무효화) · FR-52(개정 — `notificationLevel` 제외). `queryKeys.ts` 에 `symbolAll` 추가. 응답 매퍼 `toCoachProfileSettings` 를 조회 · 저장 셋(`coachApi` · `edit-coach-profile` · `toggle-purchase-price`)이 같이 쓴다 |

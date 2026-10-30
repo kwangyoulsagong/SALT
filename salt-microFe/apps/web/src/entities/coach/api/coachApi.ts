@@ -19,6 +19,7 @@ import type {
 import { apiFetch, authHeader, readApiError } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
+import { toCoachProfileSettings } from "../lib/profileSettings";
 import { COACH_ENDPOINTS } from "./endpoints";
 
 /** BFF `/api/app/*` 응답 봉투 */
@@ -145,8 +146,8 @@ export const coachApi = {
     });
     if (!response.ok) throw await readApiError(response, "coach");
 
-    const body = (await response.json()) as AppEnvelope<CoachProfileSettings>;
-    return { hidePurchasePrice: body.data.hidePurchasePrice === true };
+    const body = (await response.json()) as AppEnvelope<Record<string, unknown>>;
+    return toCoachProfileSettings(body.data);
   },
 
   /** 종목별 거래 계획 (`GET /api/app/coach/plans`, F009). 최근 순 */

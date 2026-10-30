@@ -246,3 +246,19 @@
 - 확인: 실화면 두 링크
 
 미검증: 없음 — 판단 무변경
+
+## 2026-10-30 — F004 슬라이스 18 설정 화면
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-80(개정) | `features/edit-coach-profile/ui/CoachProfileForm.tsx` — 기본 모드 세그먼트 · 매도 돌아보는 기간(1~168 정수) · `widgets/settings-panel` 내 기준 링크 | 실화면: 임시 사용자 단타 · 24 → 장기 · 48 저장, PATCH 본문 `{"defaultMode":"long_term","panicSellWindowHours":48}`(바꾼 칸만) · 새로고침 뒤 유지 |
+| FR-80 범위 밖 3필드 | 칸 없음 · `@repo/core` `CoachProfileSettings` 에도 싣지 않음 | 서버 소비처 grep 0건(`riskTolerance` · `rebalanceBand` · `notificationLevel`) |
+| FR-81 | 기본 모드 = 종목 판단 첫 모드 | 저장 뒤 `/investments/BTC`(주소에 모드 없음) → 장기 선택 |
+| FR-82 | `useEditCoachProfile` — 설정 캐시 갱신 + `symbolAll` · `report` 무효화 | 코드 · 위 실화면 |
+| 입력 검증 | 범위 밖 · 빈 칸이면 요청 0 | `500` 입력 → 오류 문구 · PATCH 0건. 서버도 400 |
+| 상태 | 로그아웃 · 로딩 · 조회 실패 · 저장 실패 · 모르는 값 | route: GET 500 → "설정을 불러오지 못했어요" · PATCH 500 → 입력 유지 + 실패 문구 · `defaultMode` 모르는 값 → 그 칸만 "불러오지 못했어요" |
+| 접근성 · 폭 | 세그먼트 `radiogroup` 이름 · 시간 칸 `label` | axe 1440 · 390(앱 웹뷰): 새 요소 0. 남은 3건은 기존 공용(`panelDescription` · `@repo/ui` 세그먼트 미선택 글자 · 매입가 토글 설명) — `/search` 기준선도 3건. 가로 스크롤 0 |
+
+검증: `pnpm check-types` · `pnpm lint` · `pnpm test`(core 51 · ui 43) · `pnpm test:layer-check` · 훅 사후 실행 38파일 0 · web · web-tax build(`/settings` 130 kB). 상세는 루트 `requirements/reports/checklists/F004-fe-coach-profile-settings.md`.
+수정 커밋 `3710bb79`: 390 앱 웹뷰에서 설명 · 내 기준 링크 줄이 단어 중간에서 꺾임 → `keep-all`(`CoachProfileForm.css.ts` · `SettingsPanel.css.ts`). 수정 뒤 모노레포 전체 재검증(빌드 2 · 테스트 · 타입 · 린트 · 레이어) 통과 · 훅 사후 실행 2파일 0.
+미검증 · 범위 밖: 범위 밖 3필드(서버 소비처가 생길 때) · RN 설정 화면(`RN-REQ-020` FR-70, 앱 착수 때) · 공용 스타일 대비 3건(`@repo/ui` 대비 정리 REQ).

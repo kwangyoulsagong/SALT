@@ -78,3 +78,7 @@
 - `npm run build` · `npm test` 288 통과
 - 미검증: 없음
 
+## 2026-10-30 — F004 슬라이스 18 설정 화면
+
+- F004 슬라이스 18 — **변경 없음.** `GET/PATCH /api/app/ai-coach/profile` 이 6필드 + 숨김을 이미 그대로 넘긴다. 웹 설정 화면이 그중 `defaultMode` · `panicSellWindowHours` 를 새로 읽는다
+- 미검증 · 범위 밖: 없음

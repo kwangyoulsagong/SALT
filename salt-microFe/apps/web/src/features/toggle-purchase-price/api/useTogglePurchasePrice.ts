@@ -27,7 +27,8 @@ export const useTogglePurchasePrice = () => {
     onMutate: async (hidePurchasePrice) => {
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<CoachProfileSettings>(key);
-      queryClient.setQueryData<CoachProfileSettings>(key, { ...previous, hidePurchasePrice });
+      // 값이 없으면 토글이 그려지지 않는다 — 없는 캐시에 숨김 하나만 넣어 다른 칸을 비우지 않는다
+      if (previous) queryClient.setQueryData<CoachProfileSettings>(key, { ...previous, hidePurchasePrice });
       return { previous };
     },
     onError: (_error, _next, context) => {

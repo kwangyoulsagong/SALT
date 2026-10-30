@@ -228,3 +228,7 @@ Playwright: 블록 클릭 → `/investments`. 포커스 링 · 스크린 리더 
 check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 kB · `/investments` 153 kB 그대로). 실검증 · 실화면 상세는 루트 `requirements/reports/checklists/F000-asset-search.md` §2
 
 미검증: FR-33 빈 상태 화면 — 임시 사용자에 관심을 비운 경우를 안 찍었다(링크 코드는 머리 링크와 같다). 닫히는 때: 다음 관심 종목 탭 작업 또는 `QA-001`
+
+## 2026-10-30 — F004 슬라이스 18 설정 화면
+
+- 파일만 걸침: `ROUTES.settings` 한 줄. 프로필 메뉴 → `/settings` 이동 실화면 확인(홈에서). 미검증 · 범위 밖: 없음

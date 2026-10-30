@@ -39,3 +39,8 @@
 
 - **변경 없음(BFF).** 프론트 `entities/coach/api/coachApi.ts`(머리 주석이 이 REQ 를 가리킨다)의 리스크 예산 호출 주석 "게이지 3" → "게이지 · 측정". BFF 코드 무변경. 훅 exit 0 · `web` check-types · lint
 - 2026-10-29 전수 조사: 예산표 generate 경로 정정
+
+## 2026-10-30 — F004 슬라이스 18 설정 화면
+
+- 파일만 걸침 — 웹 `coachApi.ts`(이 REQ 가 머리 주석 주인) 설정 조회가 응답 매퍼(`toCoachProfileSettings`)를 쓴다. BFF 무변경
+- 미검증 · 범위 밖: 없음

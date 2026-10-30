@@ -166,9 +166,9 @@ created: 2026-09-09
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-80 | `riskTolerance` · `maxSingleAssetWeight` · `rebalanceBand` · `panicSellWindowHours` · `defaultMode` · `notificationLevel` | Must |
-| FR-81 | `defaultMode`·`notificationLevel`이 **영속화되므로 UI에 노출**한다(`unsupportedPersistedFields` 제거 후). **2026-09-21 확정 (B16)**: `FEATURE-004` FR-12 의 "UI 숨김"과의 충돌을 **노출**로 닫는다. `defaultMode` 는 모드 스위치(FR-111)의 초기값, `notificationLevel` 은 알림 1종(D5)의 빈도 | Must |
-| FR-82 | 저장 후 추천을 재조회한다. 성향이 점수에 영향한다 | Must |
+| FR-80 | ~~`riskTolerance` · `maxSingleAssetWeight` · `rebalanceBand` · `panicSellWindowHours` · `defaultMode` · `notificationLevel`~~ **개정 2026-10-30 (사용자 결정)**: **바꾸면 무언가 달라지는 설정만 칸으로 둔다.** `defaultMode`(종목 판단 첫 모드) · `panicSellWindowHours`(리포트 "최근 행동" 매도 기간) — 설정 화면 `/settings`. `maxSingleAssetWeight` 는 코치 리포트 내 기준(`set-risk-budget`)에 이미 있어 링크한다. `riskTolerance` · `rebalanceBand` · `notificationLevel` 은 서버가 저장만 하고 읽는 곳이 0건(2026-10-30 grep)이라 칸을 두지 않는다 — 서버 소비처가 생길 때 연다. **완료(웹)** | Must |
+| FR-81 | **2026-10-30**: `defaultMode` 노출 완료 · `notificationLevel` 은 FR-80 개정대로 보류(알림 발송 코드가 이 값을 보지 않는다). 원문: `defaultMode`·`notificationLevel`이 **영속화되므로 UI에 노출**한다(`unsupportedPersistedFields` 제거 후). **2026-09-21 확정 (B16)**: `FEATURE-004` FR-12 의 "UI 숨김"과의 충돌을 **노출**로 닫는다. `defaultMode` 는 모드 스위치(FR-111)의 초기값, `notificationLevel` 은 알림 1종(D5)의 빈도 | Must |
+| FR-82 | 저장 후 추천을 재조회한다. 성향이 점수에 영향한다. **2026-10-30 완료**: 저장 응답을 설정 캐시에 넣고 종목 판단 전체 · 코치 리포트를 무효화한다(두 칸이 바꾸는 것이 그 둘). 점수에 들어가는 한 종목 상한은 내 기준 저장(`set-risk-budget`)이 이미 무효화한다 | Must |
 
 ### J. 면책과 제외
 
@@ -332,7 +332,7 @@ PC                                                   모바일(세로 스택)
 - [ ] 쿨다운 중 버튼이 비활성이고 남은 시간이 표시된다
 - [ ] 429가 오류가 아니라 남은 시간으로 표시된다
 - [ ] 재생성 중 버튼이 `loading`이고 흐려지지 않는다
-- [ ] 성향 설정 6항목이 있고 저장 후 추천이 재조회된다
+- [x] ~~성향 설정 6항목~~ 효과 있는 설정(기본 모드 · 매도 돌아보는 기간 + 상한 링크)이 있고 저장 후 판단 · 리포트가 재조회된다 (2026-10-30, FR-80 개정)
 - [ ] **면책 배너가 상시 노출되고 `disclaimer` 없으면 화면이 렌더되지 않는다**
 - [ ] `excluded[]`에 따라 국내주식 제외가 표시된다
 - [ ] LLM 실패 시 `규칙 기반 설명` 배지가 나온다
@@ -404,3 +404,4 @@ PC                                                   모바일(세로 스택)
 | 2026-10-29 | 슬라이스 16 후속 — 국내 주식 상세에도 주문 전 체크(`FE-REQ-041` FR-35) · 분모 문구 자산군별(서버 `assetType`, `SRV-REQ-025` FR-66) · 끝 문구 "주문은 직접 하세요"(FR-150 원문, 국내 주식은 증권사 주문). 실시간 현재가(WS 4002)로 [현재가] 채움 확인 — 남은 미검증 0 |
 | 2026-10-30 | F004 슬라이스 17 — **FR-141 · 142 완료** `/coach/signals/[signalType]`(판정 근거 상세): 성적 4칸 · 관찰 기간 수익률 분포 6구간 + 표 · 맞았던 때/틀렸던 때 같은 컴포넌트. 성적표와 같은 응답(`/coach/scoreboard`)에서 그룹을 고른다 — 추가 요청 0. 진입은 리포트 성적표 그룹 링크(`FE-REQ-040`). FR-141 문구 개정(30일 → 관찰 기간 · 최대낙폭 → 가장 나빴던 한 번). BFF `BFF-REQ-039` FR-8 · 서버 무변경. 루트 `requirements/specs/done/F004-fe-signal-evidence-slice.md` |
 | 2026-10-30 | 파일만 걸침 — 투자 화면 머리 코치 리포트 링크 옆에 검색 링크(같은 스타일 `reportLink`). 리포트 진입 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-10-30 | F004 슬라이스 18 — 사용자 "새브랜치 파고 다음꺼 진행": **I절 설정 화면 `/settings`**(`features/edit-coach-profile` · `widgets/settings-panel` · `pages/settings`). **FR-80 개정**(사용자 결정 — 서버가 읽지 않는 3필드는 칸을 두지 않는다) · FR-81 · 82 완료. 헤더 프로필 메뉴 "설정" 활성. 루트 `requirements/specs/done/F004-fe-coach-profile-settings-slice.md` |

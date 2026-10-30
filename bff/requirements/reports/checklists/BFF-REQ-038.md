@@ -115,3 +115,8 @@
 
 미검증 · 범위 밖: 없음(BFF 는 lint 스크립트가 없다 — 기존과 같음)
 - 2026-10-29 전수 조사: FR-2 게이지 개수 문장 정정
+
+## 2026-10-30 — F004 슬라이스 18 설정 화면
+
+- F004 슬라이스 18 — **변경 없음.** `@repo/core` `CoachProfileSettings` 에 `defaultMode` · `panicSellWindowHours` 를 더했다(BFF 가 이미 주던 필드). `CoachProfileUpdate` 신설
+- 미검증 · 범위 밖: 없음

@@ -321,3 +321,4 @@ type ExplainResult =
 | 2026-10-29 | FR-66 구현 — `CheckTradePreflight` 코인 고정 제거 · 시세로 자산군 · 같은 자산군 분모 · 응답 `assetType` · Swagger. 유스케이스 테스트 3. 국내 주식 상세 주문 전 체크가 이 값으로 열림 |
 | 2026-10-30 | F004 슬라이스 17(판정 근거 상세) — **변경 없음.** FR-53 `returnDistribution` · `hits` · `misses` 를 BFF(`BFF-REQ-039` FR-8) · 화면이 처음 소비. 실응답 3그룹 구간 합 = 표본 |
 | 2026-10-30 | 파일만 걸침 — `env.ts` 에 `TRACKED_ASSET_LIMIT` 추가. LLM 예산 설정 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-10-30 | F004 슬라이스 18 — **변경 없음.** FR-13 profile 그대로 소비. 관찰: `riskTolerance` · `rebalanceBand` · `notificationLevel` 은 저장만 되고 서버 안 소비처 0건(2026-10-30 grep) — 웹은 칸을 두지 않는다(`FE-REQ-026` FR-80 개정). 쓰게 되면 그때 화면을 연다 |
