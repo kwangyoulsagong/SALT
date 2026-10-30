@@ -15,7 +15,7 @@ export const isMarketOverviewSort = (
 /**
  * 차트 주기.
  *
- * **서버가 실제로 주는 것은 셋이다.** `FE-REQ-010` FR-50 은 `month` 까지 네 값을 적었지만
+ * **서버가 실제로 주는 것은 셋이다.** `SRV-REQ-008` FR-50 은 `month` 까지 네 값을 적었지만
  * `month` 는 소비 화면이 없다 — 목록에만 넣으면 200 을 기대하게 되고 실제로는 빈 배열이 온다.
  * 필요해질 때 `ExchangeQuotePort` 와 함께 늘린다. `week` 는 상세 차트 1주 탭이 생겨 열었다
  * (2026-10-30, `FEATURE-004` FR-27 · `FE-REQ-026` FR-132).
