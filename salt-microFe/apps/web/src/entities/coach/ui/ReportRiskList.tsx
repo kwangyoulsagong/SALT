@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReportRisk } from "@repo/core/coach";
 import { Chip } from "@repo/ui/chip";
 import { FlexBox } from "@repo/ui/flexBox";
