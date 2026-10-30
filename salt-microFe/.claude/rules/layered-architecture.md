@@ -5,7 +5,7 @@ SALT는 **네 서피스**로 구성된다. 같은 원칙을 쓰고 각자의 언
 | 서피스 | 경로 | 방법론 | 레이어 |
 |---|---|---|---|
 | 웹 (default zone) | `apps/web` | **FSD** | `shared` → `entities` → `features` → `widgets` → `pages` → `app` |
-| 웹 (세금 zone) | `apps/web-tax` | **FSD** | 동일 |
+| 웹 (세금 zone) | `apps/web-tax` — 삭제 예정, 도메인 zone 4개로(`ADR-005` · `microfrontend.md` §0) | **FSD** | 동일 |
 | 모바일 | `apps/mobile` | **FSD** | 동일 (`pages` = 화면 셸) |
 | BFF | `bff/src` | 레이어드 | `routes` → `controllers` → `services` |
 | 서버 | `salt-server/src` | **DDD** | `{context}/{domain · application · infrastructure · presentation}` |

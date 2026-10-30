@@ -34,3 +34,4 @@ source: requirements/decisions/ADR-007-forecast-ontology-schema-owner.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-10-30 | FR-2 의 문장 갱신을 미리 — 루트 `CLAUDE.md` · `salt-forecast/CLAUDE.md` · `db-contract.md` §2 에 "S5 전까지 Prisma, S5 에 `salt-forecast/migrations/`" 로. 이전 자체는 그대로 to-do |

@@ -33,7 +33,7 @@ pages/{page-name}/
 `not-found`(`app/not-found.tsx` — 2026-09-30, `FE-REQ-044`).
 `investments`는 F006에서 `assets`로 바뀐다(`FE-REQ-030`). 코치 탭 `/coach`(대화)는 그때 생긴다.
 
-### `apps/web-tax` (세금 zone)
+### `apps/web-tax` (세금 zone) — 삭제 예정(`ADR-005`, `FE-REQ-052` FR-6)
 
 `tax`(`/tax`)
 

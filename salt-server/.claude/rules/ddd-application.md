@@ -84,7 +84,7 @@ export type RecomputeInvoiceCommand = { userId: UserId; window: InvoiceWindow };
 
 - 발행은 **커밋 이후**에 한다. 트랜잭션이 롤백되면 후속 처리도 일어나지 않아야 한다
 - 핸들러는 **얇게** 유지하고 실제 작업은 자기 컨텍스트의 유스케이스에 위임한다
-- 이벤트 버스는 `shared/infrastructure`의 인프로세스 구현. 브로커를 두지 않는다
+- 이벤트 버스는 `shared/infrastructure`의 인프로세스 구현. Express 쪽엔 브로커를 두지 않는다 — 서비스 사이(Kotlin)는 `msa-services.md` §5
 
 ## 6. 공개 API — 컨텍스트 밖으로 열리는 유일한 문
 

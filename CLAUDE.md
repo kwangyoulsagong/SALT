@@ -12,7 +12,7 @@ PM 작업은 `pm/**`를 작업 범위로 보고, `pm/.claude/rules/`의 관련 �
 
 BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관련 규칙을 먼저 읽는다. 프론트엔드 응답 계약이나 백엔드 API 호출 계약 변경이 있으면 `salt-microFe/**`, `salt-server/**` 영향 여부를 함께 확인한다.
 
-예측 작업은 `salt-forecast/**`를 작업 범위로 보고, `salt-forecast/.claude/rules/`의 관련 규칙을 먼저 읽는다. 특히 `time-and-leakage.md`. `forecast` 스키마 DDL 은 `salt-server/prisma` 에서만 바꾸고, 뷰 계약(`v_forecast_card` 등)이 바뀌면 `salt-server/**` 영향을 함께 확인한다.
+예측 작업은 `salt-forecast/**`를 작업 범위로 보고, `salt-forecast/.claude/rules/`의 관련 규칙을 먼저 읽는다. 특히 `time-and-leakage.md`. `forecast` 스키마 DDL 은 서버 S5 전까지 `salt-server/prisma` 에서만 바꾸고(S5 에 `salt-forecast/migrations/` 로 — `ADR-007`), 뷰 계약(`v_forecast_card` 등)이 바뀌면 `salt-server/**` 영향을 함께 확인한다.
 
 백엔드 작업은 사용자가 `salt-server/**` 변경을 명시한 경우에만 수행하고, `salt-server/.claude/rules/`의 관련 규칙을 먼저 읽는다. API 계약 변경이 있으면 `salt-microFe/**` 영향 여부를 함께 확인한다.
 
@@ -39,11 +39,13 @@ BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관�
 
 | 서피스 | 방법론 | 전환 근거 |
 |---|---|---|
-| 웹 `salt-microFe/apps/web`, `apps/web-tax` | **FSD** + Next.js **Multi-Zones** + App Router **스트리밍 SSR** | `ADR-001`, `FE-REQ-007`~`009` |
+| 웹 `salt-microFe/apps/web` + 도메인 zone 4(`web-investment` · `web-savings` · `web-household` · `web-tips`) | **FSD** + Next.js **Multi-Zones(zone = 도메인)** + App Router **스트리밍 SSR** | `ADR-001`, `ADR-005`(2026-10-30 — 코드 전환 `FE-REQ-052`), `FE-REQ-007`~`009` |
 | 모바일 `salt-microFe/apps/mobile` | **FSD** + React Native (iOS+Android) | `RN-REQ-001`~`003` |
 | BFF `bff` | 레이어드 + SSE | `BFF-REQ-006` |
-| 서버 `salt-server` | **DDD (컨텍스트 우선)** | `SRV-REQ-006` |
-| 예측 `salt-forecast` | Python 배치 · 층(`import-linter`) · DB 스키마가 계약 | `ADR-004`, `FC-REQ-001`~ |
+| 서버 `salt-server` (Express) | **DDD (컨텍스트 우선)** — S7 까지 공존 | `SRV-REQ-006` |
+| 서버 `salt-platform` (Kotlin · S0 에서 생김) | **MSA — 서비스 = 도메인** · Gradle 멀티모듈 · Spring Modulith · 스트랭글러 | `ADR-006`, `SRV-REQ-043`~`049` · 규칙 `salt-server/.claude/rules/msa-services.md` · `kotlin-platform.md` |
+| 예측 `salt-forecast` | Python 배치 · 층(`import-linter`) · DB 스키마가 계약 · 온톨로지(bitemporal) | `ADR-004`, `ADR-007`, `FC-REQ-001`~ |
+| 배포 | 같은 OCI 이미지 · 관리형 컨테이너 · 한 origin 경로 라우팅 · 관리형 Postgres · RabbitMQ | `ADR-008`, `OPS-001` |
 
 - **`@module-federation/nextjs-mf`를 쓰지 않는다.** App Router 미지원 + Next 지원 종료(`ADR-001`).
 - 프론트 FSD 슬라이스 이름과 서버 DDD 컨텍스트 이름은 **동일**하다. 레지스트리는 `salt-microFe/.claude/rules/layered-architecture.md` §4.
