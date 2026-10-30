@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 32" width="110" height="32" role="img" aria-label="SALT">
+  <g stroke-linejoin="round" stroke-width="2.4">
+    <path d="M16 3.2 L27.1 9.6 L16 16 L4.9 9.6 Z" fill="#C9B8FF" stroke="#C9B8FF"/>
+    <path d="M4.9 9.6 L16 16 L16 28.8 L4.9 22.4 Z" fill="#7949FF" stroke="#7949FF"/>
+    <path d="M16 16 L27.1 9.6 L27.1 22.4 L16 28.8 Z" fill="#5A2FE0" stroke="#5A2FE0"/>
+    <path d="M10.2 9.6 L16 6.4" stroke="#FFFFFF" stroke-opacity=".9" stroke-width="2" stroke-linecap="round" fill="none"/>
+  </g>
+  <g transform="translate(42 6)" fill="none" stroke="#191F28" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M13 5 C12.2 2.9 10.2 2 7.8 2 C4.6 2 2.6 3.6 2.6 6 C2.6 11.4 13.4 8.8 13.4 14.4 C13.4 16.9 11.2 18.4 7.8 18.4 C5.1 18.4 3 17.4 2.2 15.2"/>
+    <path d="M19.5 18.4 L25.6 2.4 L31.7 18.4 M21.9 12.6 H29.3"/>
+    <path d="M37.6 2.4 V18.4 H46.4"/>
+    <path d="M51 2.4 H63.4 M57.2 2.4 V18.4"/>
+  </g>
+</svg>

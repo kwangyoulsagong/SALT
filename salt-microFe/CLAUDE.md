@@ -89,6 +89,8 @@ pnpm test:layer-check           # layer-check 훅 위반 케이스 8 + 통과 �
 - `.claude/rules/performance.md` — 렌더링/번들/네트워크 성능
 - `.claude/rules/canvas.md` — 고부하 시 Canvas 도입 기준
 - `.claude/rules/design-system.md` — `@repo/ui` 디자인 시스템
+- `.claude/rules/screen-desktop.md` — 데스크톱 화면 틀 · 글자 위계 · 컨트롤 값(실측 근거)
+- `.claude/rules/screen-mobile.md` — 모바일(RN · 앱 웹뷰) 글자 토큰 · 배치 · 컴포넌트 · 라이팅
 - `.claude/rules/a11y-policy.md` — 접근성
 - `.claude/rules/i18n-policy.md` — 문구/i18n 정책
 - `.claude/rules/requirements-management.md` — 요구사항/리포트 관리
