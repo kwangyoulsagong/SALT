@@ -203,3 +203,14 @@ export const headerLineFit = style({
 export const krIndexPlaceholder = style({
   height: "74px",
 });
+
+/** 관심 종목 표 위 추적 카운터 `추적 n / 상한`(`FE-REQ-010` FR-37) — 라벨 단, 고정폭 숫자 */
+export const trackedCounter = style({
+  margin: `0 0 ${vars.space.sm}`,
+  textAlign: "right",
+  color: vars.colors.text.tertiary,
+  fontSize: vars.typography.t7.fontSize,
+  lineHeight: vars.typography.t7.lineHeight,
+  fontWeight: vars.fontWeights.semibold,
+  fontVariantNumeric: "tabular-nums",
+});

@@ -37,6 +37,7 @@ widgets/{slice}/
 | `coach-panel` | market + coach + indicator | 투자 우측 AI 코치 패널 |
 | `judgment-overview` | coach | 투자 화면 머리 아래 요약 띠 — 칸마다 한 줄 값 + 한 줄 고지, 누르면 `/coach/report#섹션`. 카드 본문을 투자 화면에 펼치지 않는다 (F010 `FE-REQ-040` · `FE-REQ-042`) |
 | `market-board` | market + news + indicator | 자산군 탭(코인 · 국내 주식) + 실시간 테이블 + 우측 프리뷰. 자산군은 데이터 소스만 바꾼다 — 같은 표 · 같은 인터랙션 (F011 `FE-REQ-041`) |
+| `asset-search` | market + `search-asset` + `toggle-watchlist` | 종목 검색 `/search` — 코인 + 국내 한 검색 · 추적 카운터 · 상한 안내 · 최근 검색 (F000 FR-40 · 41, 2026-10-30) |
 | `onboarding-flow` | auth + portfolio + plan | 초대→첫 보유 기록→적립 3스텝 |
 | `pc-panel-grid` | `MovableGrid` + 위 위젯들 | PC 이진분할 배치 |
 

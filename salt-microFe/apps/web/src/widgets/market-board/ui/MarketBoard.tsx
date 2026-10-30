@@ -104,11 +104,18 @@ export const MarketBoard = ({ renderPreview, lead }: MarketBoardProps) => {
               {MARKET_BOARD_MESSAGES.heading}
             </Heading>
           </FlexBox>
-          {/* 코치 리포트 진입(`FE-REQ-026` FR-140). 보유 전체의 리포트라 종목 패널이 아니라 화면 머리에 둔다 */}
-          <Link href={ROUTES.coachReport} className={reportLink}>
-            {MARKET_BOARD_MESSAGES.coachReportLink}
-            <NavChevron />
-          </Link>
+          <FlexBox direction="row" align="center" gap="lg">
+            {/* 종목 검색 진입(`FE-REQ-010` FR-70) — 추적 종목을 고르는 화면. 전역 헤더 검색(`FE-REQ-047` FR-1)이 생기면 그리로 옮긴다 */}
+            <Link href={ROUTES.search} className={reportLink}>
+              {MARKET_BOARD_MESSAGES.searchLink}
+              <NavChevron />
+            </Link>
+            {/* 코치 리포트 진입(`FE-REQ-026` FR-140). 보유 전체의 리포트라 종목 패널이 아니라 화면 머리에 둔다 */}
+            <Link href={ROUTES.coachReport} className={reportLink}>
+              {MARKET_BOARD_MESSAGES.coachReportLink}
+              <NavChevron />
+            </Link>
+          </FlexBox>
         </div>
         {/*
           자산군 탭(F011 `FE-REQ-041`) — 제목 바로 아래. 아래 화면은 탭마다 같고 데이터만 다르다. 국내 주식을 볼 수 없는

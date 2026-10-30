@@ -21,6 +21,8 @@ import {
   MarketSummaryResponse,
   NewsPreviewResponse,
   WatchlistResponse,
+  AssetSearchResponse,
+  MarketAssetClass,
 } from "../model/types";
 import { marketApi } from "./marketApi";
 import { marketQueryKeys } from "./queryKeys";
@@ -188,4 +190,31 @@ export const useWatchlist = (): UseQueryResult<WatchlistResponse> & {
   return { ...query, isSignedOut: !token } as UseQueryResult<WatchlistResponse> & {
     isSignedOut: boolean;
   };
+};
+
+/** 한 번에 보이는 검색 결과 수 — 서버 상한(30) 안. 검색은 고르는 화면이지 시장 목록이 아니다(`FEATURE-000` FR-40) */
+export const ASSET_SEARCH_LIMIT = 20;
+const ASSET_SEARCH_STALE_TIME_MS = 30_000;
+
+/**
+ * 종목 검색. `q` 는 **이미 디바운스 · 공백 제거된 값**이다(`features/search-asset`). 빈 문자열이면 서버가 추적 목록(관심 ∪ 보유)을
+ * 준다 — 그래서 빈 검색어도 부른다(`FE-REQ-010` FR-76).
+ *
+ * 키에 검색어가 들어가 타이핑마다 새 쿼리다 — 앞 쿼리의 `signal` 이 끊기고 늦은 응답이 최신 결과를 덮지 않는다(FR-81).
+ * `keepPreviousData` 로 다음 결과가 올 때까지 **이전 결과를 유지**한다(`FE-REQ-010` FR-103). 클라이언트에서만 부른다(FR-84)
+ */
+export const useAssetSearch = (
+  q: string,
+  /** 자산군 칩(`FE-REQ-010` FR-77) — 없으면 전체. 서버가 거른다(상한 20 안에서 한 자산군이 다른 쪽을 밀어내지 않게) */
+  assetType?: MarketAssetClass,
+): UseQueryResult<AssetSearchResponse> & { isSignedOut: boolean } => {
+  const token = readAccessToken();
+  const query = useQuery({
+    queryKey: [...marketQueryKeys.search, q, assetType ?? "all"],
+    queryFn: ({ signal }) => marketApi.search(q, ASSET_SEARCH_LIMIT, assetType, signal),
+    enabled: Boolean(token),
+    placeholderData: keepPreviousData,
+    staleTime: ASSET_SEARCH_STALE_TIME_MS,
+  });
+  return { ...query, isSignedOut: !token } as UseQueryResult<AssetSearchResponse> & { isSignedOut: boolean };
 };

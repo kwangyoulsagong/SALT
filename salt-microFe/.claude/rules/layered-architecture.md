@@ -101,6 +101,7 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `app-header` · `alert-list` · `settings-panel` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 설정 · 거래 목록 |
 | `market-list` | 모바일 시장 목록 (웹은 `market-board`) |
 | `market-board` | market + news + indicator — 자산군(코인 · 국내 주식)은 매개변수, 화면은 하나 |
+| `asset-search` | market + 검색어 상태(`search-asset`) + ★(`toggle-watchlist`) — 종목 검색 화면 `/search` (F000 FR-40 · 41, 2026-10-30) |
 | `onboarding-flow` | auth + portfolio + plan (초대 → 첫 보유 기록 → 적립액) |
 | `pc-panel-grid` | `MovableGrid` + 위 widget들 |
 

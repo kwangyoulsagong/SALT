@@ -72,6 +72,40 @@ export const WATCHLIST_MESSAGES = {
   remove: (name: string) => `${name} 관심 종목 제거`,
   removeFailed: "관심 종목을 바꾸지 못했습니다.",
   signInRequired: "로그인하면 관심 종목을 볼 수 있습니다.",
+  /** 빈 상태에서 검색으로 (`FE-REQ-010` FR-33 · 70) */
+  searchEntry: "종목 검색",
+  /** 표 위 카운터 (`FE-REQ-010` FR-37) — `n` 은 보유 제외 관심 수 */
+  trackedCounter: (count: number, limit: number) => `추적 ${count} / ${limit}`,
+  trackedCounterTitle: "보유 종목은 늘 추적되고 세지 않아요",
+  /** 상한 409 (`FE-REQ-010` FR-75) */
+  trackedLimitReached: "하나를 빼야 추가할 수 있어요",
+  /** 보유 종목의 ★ 는 해제할 수 없다 (FR-74) */
+  heldAlwaysTracked: "보유 중인 종목은 늘 추적돼요",
+} as const;
+
+/** 종목 검색 화면 문구 (`FE-REQ-010` FR-70~78 · FR-103) */
+export const SEARCH_MESSAGES = {
+  title: "종목 검색",
+  fieldLabel: "종목 검색",
+  placeholder: "종목명 · 심볼 · 종목 코드",
+  heldBadge: "보유",
+  /** 검색어가 없을 때 보이는 목록 머리 */
+  trackedHeading: "추적 중인 종목",
+  trackedEmpty: "추적 중인 종목이 없어요. 종목을 검색해 ★ 를 눌러 보세요",
+  recentHeading: "최근 검색",
+  resultHeading: "검색 결과",
+  empty: (q: string) => `'${q}' 와 맞는 종목이 없어요`,
+  loading: "검색하는 중이에요",
+  failed: "검색하지 못했어요",
+  retry: "다시 시도",
+  /** `aria-live` 로 한 번 알린다 (FR-78) */
+  resultCount: (count: number) => `${count}개 종목`,
+  signInRequired: "로그인하면 종목을 검색할 수 있어요.",
+  columns: { asset: "종목", price: "현재가", change: "변동률", assetType: "자산군" },
+  /** 자산군 칩 (FR-77) — 결과에 실제로 있는 자산군만 보인다 */
+  filterGroupLabel: "자산군",
+  filterAll: "전체",
+  searching: "검색하는 중이에요",
 } as const;
 
 /**

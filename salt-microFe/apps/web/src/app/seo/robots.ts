@@ -14,7 +14,7 @@ export const robots = (): MetadataRoute.Robots => ({
     {
       userAgent: "*",
       allow: ["/", "/investments"],
-      disallow: ["/home", "/coach", "/onboarding", "/goals", "/streaming-probe", "/tax"],
+      disallow: ["/home", "/coach", "/onboarding", "/goals", "/streaming-probe", "/tax", "/search"],
     },
   ],
   sitemap: `${SITE_URL}/sitemap.xml`,
