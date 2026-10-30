@@ -197,7 +197,8 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 ## Dependencies
 
 - **선행:** `SRV-REQ-006`(DDD) · `SRV-REQ-007`(정리) · `DB-REQ-001`(`InviteCode`·`AssetType`·`Goal` 수량 — FR-40~43)
-- **정리 항목 참조(2026-09-21):** 레거시 모델 · 중복 worker · 동면 410 · `AssetType` 은 `SRV-REQ-007` · `SRV-REQ-010` 이 가진다(감사 문서 §4 `scope` 행 — 코드 미완)
+- **정리 항목 참조(2026-09-21):** 레거시 모델 · 중복 worker · 동면 410 · `AssetType` 은 `SRV-REQ-007` · `SRV-REQ-010` 이 가진다(감사 문서 §4 `scope` 행 — 코드 미완. 2026-10-30: 레거시 모델 drop · 중복 worker 는 중복 아님으로 정정)
+  - 2026-10-30: 레거시 모델 drop 완료 · "중복 worker" 는 중복이 아니었음(서버 잡 유지) — 루트 `F000-legacy-cleanup`
 - **연동:** `FE-REQ-011`(F000 FUNC)이 `period` 오타를 먼저 고친다
 - **규칙:** `ddd-domain.md` · `ddd-application.md`
 
@@ -241,3 +242,4 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 - 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
 - 2026-10-30: **F000 종목 검색 · 추적 자산 상한 구현**(`feat/f000-asset-search` `34128987` · 커널 `36368363`). FR-80~87 — `SearchAssets` · `policy/trackingLimit`(보유가 아닌 관심 수 < `TRACKED_ASSET_LIMIT` 기본 10) · `TrackedAssetLimitError`(409 + `trackedCount` · `trackedLimit`, `DomainError.details`) · `HoldingProbe` = `HeldAssetsAdapter`(→ `portfolio.api.listHoldings`, 수량 0 제외) · 요청당 관심 · 보유 1회 · 자동 정리 없음 · 빈 검색어 = 추적 목록 · 검색어 로그 `q=*`. **FR-87 개정** — Q2 닫힘, 코인 + 국내(소유자만). 중복 검사가 상한보다 먼저. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: F004 슬라이스 19 차트 1주 탭(`143904c3`) — **FR-50 `week` 구현**: `ChartPeriod.Week` · `ExchangeQuotePort.weeklyCandles`(Upbit `/candles/weeks`, 일봉과 같은 모양 · `date` = 그 주 월요일 KST). `month` 는 소비 화면이 없어 열지 않는다(FR-51 422 그대로). 코드 주석 4곳이 FR-50 · 51 을 `FE-REQ-010`(레이아웃 FR)으로 잘못 인용하던 것 정정(`36b09989`). 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
+- 2026-10-30: 파일만 걸침 — `schema.prisma`(이 REQ 가 머리 주석 주인)에서 레거시 `AIAnalysis*` 모델 drop(`DB-REQ-001` FR-1~3). 이 REQ 내용 무변경. 루트 `F000-legacy-cleanup`

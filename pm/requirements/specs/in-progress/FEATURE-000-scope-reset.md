@@ -13,7 +13,7 @@
 
 - **새로 짜지 않는다.** 현재 `/` 홈과 `/investments` 투자 페이지의 레이아웃·컬럼·필터·색 규칙을 그대로 유지한다.
 - 판정 축을 5개로 재정의한다: **유지 13 · 수리 9 · 추가 5 · 빼기 5 · 보류 4** (총 36건).
-- **실제로 빼는 것은 화면 밖 죽은 코드뿐**이다 — 레거시 `AIAnalysis*` 모델, 서버 쪽 중복 `market-price-updater.worker`, 커밋된 빌드 산출물, 근거 없는 `ACCOUNT_SELECTED` 이벤트, 그리고 코드에 없는 기획상 항목(랭킹·저축왕·소셜·게임).
+- **실제로 빼는 것은 화면 밖 죽은 코드뿐**이다 — 레거시 `AIAnalysis*` 모델, ~~서버 쪽 중복 `market-price-updater.worker`~~(2026-10-30 정정 — 중복이 아니어서 유지, FR-2), 커밋된 빌드 산출물, 근거 없는 `ACCOUNT_SELECTED` 이벤트, 그리고 코드에 없는 기획상 항목(랭킹·저축왕·소셜·게임).
 - **화면이 없는 백엔드는 삭제하지 않고 `보류(동면)`** 한다 — 미션/포인트/업적, 고래·스마트머니 알림 파이프라인, 인사이트 랭킹·피드, 대시보드. route만 비활성하고 모델은 남긴다.
 - 신규 기능은 새 앱이 아니라 **지금 화면의 탭과 블록으로 들어간다**: 홈 최상단 2줄 추가, `/investments` 탭 4개 추가.
 
@@ -68,8 +68,8 @@
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-1 | **레거시 제거**: `AIAnalysisSession`, `AIAnalysis`, `AnalysisStatus`, `PredictionType` 삭제. **삭제 전 `grep -rn "AIAnalysis" src` 결과 0 확인 필수** | Must | Draft — 코드 참조는 0건이지만 `schema.prisma` 에 `AIAnalysisSession` · `AIAnalysis` · enum 2개가 남아 있다 |
-| FR-2 | **중복 worker 제거**: 서버 `market-price-updater.worker`. 가격 갱신은 BFF `price-updater.worker` 단일 경로로 통일 | Must | Draft — 파일은 `market.worker.ts` 로 합쳐졌지만 서버 `market-price-update` 잡이 매분 돈다(`BFF-REQ-010` FR-14 미착수 · `SRV-REQ-010` FR-30 to-do) |
+| FR-1 | **레거시 제거**: `AIAnalysisSession`, `AIAnalysis`, `AnalysisStatus`, `PredictionType` 삭제. **삭제 전 `grep -rn "AIAnalysis" src` 결과 0 확인 필수** | Must | 완료 2026-10-30 — 마이그레이션 `20261030160000_drop_legacy_ai_analysis`(행 0 · 스냅샷 복원 1회) · 루트 `F000-legacy-cleanup` |
+| FR-2 | **중복 worker 제거**: 서버 `market-price-updater.worker`. 가격 갱신은 BFF `price-updater.worker` 단일 경로로 통일 | Must | **정정 · 닫힘 2026-10-30** — 중복이 아니었다. 서버 잡은 `market_assets`(코치 판정 가격 신선도가 읽는다), BFF 워커는 관심 목록 · 보유 가격을 쓴다. 잡을 지우면 판정이 막혀 **유지** — `market_assets` 단일 경로 = 서버(`SRV-REQ-007` FR-2 · `SRV-REQ-010` FR-30 · 34 · `BFF-REQ-010` FR-14) |
 | FR-3 | **커밋된 빌드 산출물 제거**: `market-price-updater.worker.js/.d.ts/.js.map` + `.gitignore` 반영 | Must | 완료 2026-09-11 — `e8055bc`(`market-price-updater.worker.js/.d.ts/.js.map` 삭제) · `4d0fe0e`(`.gitignore` `dist`). `git ls-files "*worker.js"` = 0 |
 | FR-4 | **근거 없는 이벤트 제거**: `@repo/message-event-bus`의 `ACCOUNT_SELECTED`. 은행/계좌 API가 없어 동작 근거가 없다 | Must | 완료 2026-09-11 — `d425cbe` `@repo/message-event-bus` 패키지째 제거(`FE-REQ-007` FR-6~8). `ACCOUNT_SELECTED` 코드 0건 |
 | FR-5 | **기획 문서에서 내리기**: 랭킹·이달의 저축왕·소셜 저축·저축 게임. 코드에 없고 사용자 1~10명이면 성립하지 않는다. `README.md`를 v1/v2 2섹션 구조로 개편(삭제 아님) | Should | Draft — 루트 `README.md` 가 아직 v1/v2 구조가 아니고 저축왕 · 게임 · 소셜 절이 남아 있다 |
@@ -175,7 +175,7 @@
 - **추적 상한은 서버가 판정한다.** 프론트는 세지 않는다. 상한 10 은 설정값이다(D8).
 - **뉴스 감정은 표시만 한다.** 코치 점수 입력 · 알림 트리거로 쓰지 않는다(스토리보드 `news` "뉴스가 하지 않는 것").
 - **수량 목표의 진행률은 서버가 계산한다.** 프론트는 표시만 한다(공통 기준 ③).
-- 레거시 모델 · 중복 worker · 동면 410 · `AssetType` 정리는 **`SRV-REQ-007` · `SRV-REQ-010` 에 이미 있다**(감사 문서 §4 `scope` 행). 이 스펙은 다시 쓰지 않고 그 REQ 를 가리킨다.
+- 레거시 모델 · 중복 worker(2026-10-30 중복 아님으로 정정) · 동면 410 · `AssetType` 정리는 **`SRV-REQ-007` · `SRV-REQ-010` 에 이미 있다**(감사 문서 §4 `scope` 행). 이 스펙은 다시 쓰지 않고 그 REQ 를 가리킨다.
 - 색·간격·타이포는 `apps/investments/src/styles/tokens.css.ts`를 따른다. 새 팔레트를 도입하지 않는다.
 
 ## 화면/프론트엔드 영향
@@ -271,7 +271,7 @@
 | DB | `InviteCode` | 추가 | `id, code @unique, issuedBy, usedByUserId?, usedAt?, expiresAt` |
 | DB | 미션/포인트/업적/알림/뉴스/센티먼트 model | 보류 | **drop하지 않음** |
 | DB | migration | — | `20260908_edit_in_place` (drop 2 model + enum 2 + AssetType 확장 + InviteCode) |
-| Worker | `market-price-updater.worker` (서버) | 빼기 | 삭제 |
+| Worker | `market-price-updater.worker` (서버) | ~~빼기~~ 유지 | ~~삭제~~ **정정 2026-10-30** — `market_assets` 를 쓴다. BFF 워커와 테이블이 다르다(FR-2) |
 | Worker | `news-crawler.worker` | 유지 | 뉴스 프리뷰가 실데이터를 쓰므로 필요 |
 | Worker | `notification-cleanup.worker` | 유지 | 알림 1종에도 필요 |
 | Worker | `market-sync.worker` | 유지 | `limit=100` 유지이므로 필요 |
@@ -287,7 +287,7 @@ flowchart TB
     I1["/investments: 탭2 · 필터3 · 표+프리뷰"]
   end
   subgraph Edit["편집"]
-    A["빼기 5 — 죽은 모델·중복 worker·빌드 산출물·근거없는 이벤트"]
+    A["빼기 5 — 죽은 모델·빌드 산출물·근거없는 이벤트 (중복 worker 는 2026-10-30 정정 — 유지)"]
     B["보류 4 — 미션/포인트·알림파이프·랭킹/피드·대시보드 (route만 끔)"]
     C["수리 9 — 빈 탭·하드코딩·더미뉴스·오타·빈 섹션·터치선택·반응형·오타쿼리·인증"]
     D["추가 — 검색·추적 10 · 뉴스 감정/북마크 · 수량 목표 · UX 상태 (홈 2줄·탭 4개는 F006, 적중률·AI 카드는 F004로)"]
@@ -347,7 +347,7 @@ flowchart TB
 - [ ] 375px 폭에서 body가 가로로 스크롤되지 않고, 표만 자체 스크롤된다.
 - [ ] 터치(클릭)로 테이블 행을 선택하면 우측/하단 상세가 바뀐다.
 - [ ] ~~`/investments` 탭이 6개~~ · ~~적중률 한 줄~~ — **개정 2026-09-21**: 대체(F006) · 이관(F004). 이 스펙에서 확인하지 않는다.
-- [ ] `grep -rn "AIAnalysis" salt-server/src` = 0, `git ls-files "*worker.js"` = 0.
+- [x] `grep -rn "AIAnalysis" salt-server/src` = 0, `git ls-files "*worker.js"` = 0. (2026-10-30 — 모델도 drop)
 - [ ] **미션/포인트/업적 Prisma model이 여전히 존재한다**(보류이므로 삭제되지 않았다).
 - [ ] 보류 route가 410 Gone을 반환한다.
 - [ ] `AssetType`이 `crypto`/`kr_stock`/`us_stock` 3값이고 기존 row가 모두 `crypto`다. **개정 2026-09-21 — Q2 결정 전까지 보류.**
@@ -413,3 +413,4 @@ flowchart TB
 | 2026-10-29 | (같은 날) `external/kis` · `AssetType` 보류 행은 F011 이 대체 — 같은 문서 FR 표 "대체됨 — F011"과 맞춤 |
 | 2026-10-30 | **FR-40 · 41 완료**(F000 종목 검색 슬라이스, `feat/f000-asset-search`). 검색 = 코인 + 국내(소유자만) · 같음 → 시작 → 포함 · 빈 검색어 = 추적 목록. 상한 = 보유가 아닌 관심 수 < 설정값 10, 보유는 늘 추적 · 해제 불가. `SRV-REQ-009` FR-30 계약 개정(400 · 30자 · `changeRate`). 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-10-30 | F004 슬라이스 19(차트 1주 탭) — 차트 주기 계약에 `week`(`SRV-REQ-008` FR-50 · `SRV-REQ-009` · `BFF-REQ-007` FR-52 · `BFF-REQ-008` FR-12 · `FE-REQ-012` FR-2 개정 3종). `month` 는 여전히 422. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
+| 2026-10-30 | **FR-1 완료 · FR-2 정정.** 레거시 `AIAnalysis*` drop(행 0 · 스냅샷 복원 1회). FR-2 "중복 worker" 는 중복이 아니었다 — 서버 잡은 `market_assets`(코치 판정 가격), BFF 워커는 관심 목록 · 보유 가격. 서버 잡 유지. 루트 `F000-legacy-cleanup` |

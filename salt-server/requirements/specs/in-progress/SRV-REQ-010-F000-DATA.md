@@ -11,6 +11,7 @@ created: 2026-09-09
 
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - FR-1 · 20~24 · 31 · 40~42 는 대부분 구현됨 — 컨텍스트 `src/{auth,market,news,notification,portfolio}` · 동면 410 `shared/presentation/goneMiddleware.ts`(`SRV-REQ-007` 체크리스트) · 스케줄러 `shared/infrastructure/scheduler.ts` · 추적 `.js` 0건. FR-30 은 미완 → to-do → **in-progress**
+> - **2026-10-30 FR-30 · 34 정정 → 닫힘** — 서버 `market-price-update` 잡은 `market_assets` 의 **유일한 정기 쓰기**이고 BFF `price-updater.worker` 는 `market_assets` 를 쓰지 않는다(관심 목록 · 보유 가격만). FR-34 의 "BFF 단일 경로" 는 코드에 없던 경로다. 잡을 지우면 코치 판정 가격 신선도(`inputFreshness` · `preflight`)가 막힌다 → **잡 유지, 단일 경로 = 서버**(`ADR-006` `market-ingest` 와 같은 방향). FR-33 은 지운 워커가 없어 측정 대상 없음. 근거 `SRV-REQ-007` 체크리스트 · 루트 `F000-legacy-cleanup`
 > - 온보딩은 `auth` 안이 아니라 조합 컨텍스트 `src/onboarding`, `plan` 컨텍스트는 없다(판정은 거래 수 · goal 행)
 > - KIS 절은 Q2 닫힘 뒤 `SRV-REQ-040`(F011) 이 대체 — `KisClient.ts` · `KisRealtimeClient.ts`
 
@@ -83,7 +84,7 @@ FEATURE-000 FR-35: *"`external/kis/` 조회 전용 클라이언트 스켈레톤.
 
 | 워커 | 조치 | 근거 |
 |---|---|---|
-| `market-price-updater.worker` (서버) | **삭제** | BFF `price-updater.worker`와 이중 갱신 |
+| `market-price-updater.worker` (서버) — 지금은 `market.worker.ts` 의 `market-price-update` 잡 | ~~**삭제**~~ **유지** | ~~BFF `price-updater.worker`와 이중 갱신~~ **정정 2026-10-30** — 서버 잡은 `market_assets`, BFF 워커는 관심 목록 · 보유 가격을 써서 중복이 아니었다(`SRV-REQ-007` FR-2 정정) |
 | `market-sync.worker` | 유지 | `limit=100` 유지이므로 필요 |
 | `price-history.worker` | 유지 | ~~F001이 일봉을 쓴다~~ F004 관찰 구간 · 적중률(감사 문서 D2 · B9)과 기간 변동률이 일봉을 쓴다 (개정 2026-09-21) |
 | `technical-indicator.worker` | 유지 | 코치가 지표를 쓴다 |
@@ -94,11 +95,11 @@ FEATURE-000 FR-35: *"`external/kis/` 조회 전용 클라이언트 스켈레톤.
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-30 | `market-price-updater.worker`를 삭제하고 `app.ts`에서 `marketPriceUpdater.start()`를 제거한다 | Must |
+| FR-30 | ~~`market-price-updater.worker`를 삭제하고 `app.ts`에서 `marketPriceUpdater.start()`를 제거한다~~ **정정 2026-10-30** — 삭제하지 않는다(머리 블록) | Must |
 | FR-31 | 워커 등록을 **`shared/infrastructure`의 스케줄러**로 옮긴다. `app.ts`에 `new Worker().start()`를 늘리지 않는다 | Must |
 | FR-32 | 워커는 스케줄과 락만 담당하고 `application` 유스케이스를 부른다 | Must |
 | FR-33 | 정리 전/후 **기동 워커 수와 상시 DB 커넥션 수**를 측정해 기록한다 | Must |
-| FR-34 | `MarketAsset` 갱신이 **BFF worker 단일 경로**로 유지됨을 확인한다 | Must |
+| FR-34 | ~~`MarketAsset` 갱신이 **BFF worker 단일 경로**로 유지됨을 확인한다~~ **정정 2026-10-30** — `MarketAsset` 의 정기 갱신은 서버 잡 단일 경로다. BFF 워커는 `MarketAsset` 을 쓰지 않는다 | Must |
 
 ## 빌드 산출물 제거
 
@@ -123,10 +124,10 @@ FEATURE-000 FR-35: *"`external/kis/` 조회 전용 클라이언트 스켈레톤.
 - [ ] **되살리기 테스트 1회가 수행되고 기록되어 있다**
 - [ ] 센티먼트·고래 알림 생성 호출이 0건이고 worker 파일은 남아 있다
 - [ ] `MarketSentiment`·`WhaleTransaction` 조회가 동작한다
-- [ ] `market-price-updater.worker`가 없고 `app.ts`에 참조가 0건이다
+- [x] ~~`market-price-updater.worker`가 없고 `app.ts`에 참조가 0건이다~~ **정정 2026-10-30** — 서버 잡과 BFF 워커가 쓰는 테이블이 겹치지 않음을 확인했다. 잡 유지
 - [ ] 워커 등록이 `shared/infrastructure` 스케줄러 경유다
 - [ ] **정리 전/후 워커 수와 상시 커넥션 수가 기록되어 있다**
-- [ ] `MarketAsset` 갱신이 BFF 단일 경로다
+- [x] ~~`MarketAsset` 갱신이 BFF 단일 경로다~~ **정정 2026-10-30** — `MarketAsset` 정기 갱신은 서버 잡 단일 경로다(재기동 1초 안에 다시 씀)
 - [ ] `git ls-files 'salt-server/src/**/*.js' 'salt-server/src/**/*.d.ts' 'salt-server/src/**/*.js.map'` = 0
 - [ ] `.gitignore`에 빌드 산출물 패턴이 있다
 - [ ] `npm run build` 통과
@@ -135,7 +136,7 @@ FEATURE-000 FR-35: *"`external/kis/` 조회 전용 클라이언트 스켈레톤.
 
 - **선행:** `SRV-REQ-006`(DDD) · `SRV-REQ-007`(정리 결정) · `SRV-REQ-008`(도메인)
 - ~~**후속:** `SRV-REQ-012`(F001)가 KIS 스켈레톤을 채운다~~ — 개정 2026-09-21: SRV-REQ-012 는 ADR-002 로 삭제. KIS 는 Q2 에 달렸다
-- **정리 항목의 소유:** 레거시 모델 · 중복 worker · 동면 410 · `AssetType` 은 `SRV-REQ-007`(결정)과 이 REQ(실행)가 가진다. `FEATURE-000` 은 여기를 가리킨다(감사 문서 §4 `scope` 행 — 코드 미완)
+- **정리 항목의 소유:** 레거시 모델 · ~~중복 worker~~(2026-10-30 중복 아님으로 정정) · 동면 410 · `AssetType` 은 `SRV-REQ-007`(결정)과 이 REQ(실행)가 가진다. `FEATURE-000` 은 여기를 가리킨다(감사 문서 §4 `scope` 행 — 레거시 모델은 2026-10-30 drop)
 - **규칙:** `ddd-infrastructure.md` · `workers-external.md`
 
 ## Open Questions
@@ -151,3 +152,4 @@ FEATURE-000 FR-35: *"`external/kis/` 조회 전용 클라이언트 스켈레톤.
 |---|---|
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: FR-7(`HoldingProbeAdapter` — 추적 판정 · 수량 목표가 보유를 ACL 로 읽는다, D8 · B5). 개정: FR-3 · 4 `ledger` ACL → `portfolio`(B12) · KIS 절 전체 **보류(Q2)**, `ledger/KisClient` 만들지 않음 · 알림 2종 → 1종 · `price-history.worker` 유지 근거 F001 → F004 · 삭제된 SRV-REQ-012 후속 제거. 정리 항목(레거시 모델 · 중복 worker · 동면 410 · `AssetType`)은 **본문 그대로** — FEATURE-000 이 이 REQ 를 가리킨다. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-30 | **FR-30 · 34 정정 → 닫힘** — 이중 갱신이 아니었다(서버 잡 `market_assets` · BFF 워커 관심 목록 · 보유). `market_assets` 단일 경로는 서버 잡. FR-33 측정 대상 없음(지운 워커 0). 코드 무변경. 루트 `F000-legacy-cleanup` |

@@ -38,6 +38,8 @@ const jobs = (): MarketJob[] => {
       run: () => market.syncMarketListings.execute(),
     },
     {
+      // `market_assets` 의 유일한 정기 쓰기다. BFF `price-updater.worker` 는 관심 목록 · 보유 가격만 쓴다 —
+      // 둘은 중복이 아니다. 지우면 코치 판정 가격 신선도(`inputFreshness` · `preflight`)가 막힌다(SRV-REQ-007 FR-2 정정, 2026-10-30)
       name: "market-price-update",
       expression: "* * * * *",
       runAtBoot: true,

@@ -14,6 +14,7 @@ source: pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md (A절 FR-1~
 > - FR-3 추적 빌드 산출물 24개 → **닫힘**: `git ls-files 'salt-server/src/**/*.js'` 0건 · `.gitignore` `dist`
 > - 유지 목록의 `modules/market-intelligence` · `investment` · `news` · `portfolio` · `technical-indicator`, 워커 `market-sync` · `price-history` · `technical-indicator` 는 지금 `market` · `news` · `portfolio` 컨텍스트와 `market.worker.ts` 하나로 바뀌었다
 > - 수용 기준 "`InvestmentNotification.type` 생성 값 2종" → **1종(`signal_update`)**, FR-11 2026-10-28 닫힘
+> - **2026-10-30 FR-1 닫힘 · FR-2 정정** — FR-1 은 마이그레이션 `20261030160000_drop_legacy_ai_analysis` 로 drop(행 0 · 뷰 0 · 스냅샷 복원 1회). **FR-2 의 "이중 갱신" 전제가 틀렸다** — 서버 `market-price-update` 는 `market_assets`(코치 판정 · 주문 전 체크 · 판정 원장 진입가가 `priceUpdatedAt` 으로 신선도를 본다)를, BFF `price-updater.worker` 는 `investment_watchlist` · `portfolio_holdings` 를 쓴다. 같은 행을 두 번 쓰는 경로가 없다. 서버 잡을 지우면 `market_assets` 를 쓰는 경로가 화면 조회 때의 보조 갱신(`refreshStalePrices`)만 남아 판정이 stale 로 막힌다. 그래서 **잡을 유지하고 FR-2 를 "중복 없음 확인"으로 닫는다**(`ADR-006` 도 수집을 서버 `market-ingest` 에 둔다). 실측: 같은 시각 `market_assets` 최신 29초 · 관심 목록 · 보유 5시간 20분 — BFF 워커는 상시 프로세스가 아니다(지금 `dev:rest` · `dev:ws` 만 떠 있고 워커 없음). 상시인 것은 서버(launchd)뿐이라 단일 경로를 BFF 로 두면 그 전제가 깨진다
 > - **FR-15 추가(아래 표)** — `SRV-REQ-006` FR-33 이 넘긴 남은 이관(살아 있는 `modules/goals` · `investment-insight` · `user`)의 주인이 없었다
 
 
@@ -51,7 +52,7 @@ $ grep -rn "ACCOUNT_SELECTED" salt-microFe/apps salt-microFe/packages --include=
 | ID | 삭제 대상 | 근거 | 우선순위 |
 |---|---|---|---|
 | FR-1 | Prisma 모델 `AIAnalysisSession` · `AIAnalysis`, enum `AnalysisStatus` · `PredictionType` | 서버 코드 참조 **0건** | Must |
-| FR-2 | `src/workers/market-price-updater.worker.ts` | 가격 갱신은 BFF `price-updater.worker`가 한다. **서버에도 있어 이중 갱신**이다. `app.ts`에서 `marketPriceUpdater.start()` 제거 | Must |
+| FR-2 | ~~`src/workers/market-price-updater.worker.ts`~~ | **정정 2026-10-30** — 삭제하지 않는다. 서버 잡은 `market_assets`, BFF 워커는 관심 목록 · 보유 가격을 써서 중복이 아니었다. 잡을 지우면 코치 판정 가격이 멈춘다. ~~가격 갱신은 BFF `price-updater.worker`가 한다. **서버에도 있어 이중 갱신**이다. `app.ts`에서 `marketPriceUpdater.start()` 제거~~ | Must |
 | FR-3 | 커밋된 빌드 산출물 **24개 파일** (`src/**/*.js`, `*.d.ts`, `*.js.map`) + `.gitignore` 반영 | 소스 트리에 컴파일 결과가 추적되고 있다. `src/config/database.js` 등이 `.ts`와 공존해 어느 것이 진실인지 모호하다 | Must |
 | FR-4 | `packages/message-event-bus`의 `ACCOUNT_SELECTED` | **이미 코드에 없다.** 이 항목은 확인만 하고 닫는다. 은행/계좌 API가 없어 동작 근거가 없었다 | Must |
 | FR-5 | 기획 문서에서 랭킹·이달의 저축왕·소셜 저축·저축 게임 내리기 | 코드에 없고 사용자 ≤10명이면 성립하지 않는다. `README.md`를 v1/v2 2섹션으로 개편(**삭제 아님**) | Should |
@@ -97,15 +98,15 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 |---|---|
 | 되돌리기 | 브랜치 + FR 단위 커밋. FR-1 실행 전 `pg_dump -Fc` 스냅샷 + 복원 테스트 1회 |
 | 데이터 안전 | 원장 3종 row 수가 전후 동일 |
-| 성능 | 정리 후 `npm run build` 시간과 기동 worker 수를 측정해 기록. worker 1개 감소로 DB 커넥션 상시 사용량이 줄어야 한다 |
+| 성능 | 정리 후 `npm run build` 시간과 기동 worker 수를 측정해 기록. ~~worker 1개 감소로 DB 커넥션 상시 사용량이 줄어야 한다~~ **정정 2026-10-30** — 지우는 워커가 없다(FR-2) |
 | 관측성 | 410 응답 1회 로그. 1주 후 잔여 호출 0건 확인 |
 | 순서 | **프론트 → BFF → 서버 → Prisma.** 역순이면 빌드가 계속 깨진다 |
 
 ## Acceptance Criteria
 
-- [ ] `grep -rn "AIAnalysis\|AnalysisStatus\|PredictionType" salt-server/src bff/src --include="*.ts"` = 0
-- [ ] `User`에 `analysisSessions` · `aiAnalyses` 관계 필드가 없다
-- [ ] `src/workers/market-price-updater.worker.ts`가 없고 `app.ts`에 `marketPriceUpdater` 참조가 없다
+- [x] `grep -rn "AIAnalysis\|AnalysisStatus\|PredictionType" salt-server/src bff/src --include="*.ts"` = 0 (2026-10-30)
+- [x] `User`에 `analysisSessions` · `aiAnalyses` 관계 필드가 없다 (2026-10-30)
+- [x] ~~`src/workers/market-price-updater.worker.ts`가 없고 `app.ts`에 `marketPriceUpdater` 참조가 없다~~ **정정 2026-10-30** — 서버 시세 잡(`market_assets`)과 BFF 워커(`investment_watchlist` · `portfolio_holdings`)가 쓰는 테이블이 겹치지 않음을 확인한다. 잡은 유지
 - [ ] `git ls-files 'salt-server/src/**/*.js' 'salt-server/src/**/*.d.ts' 'salt-server/src/**/*.js.map'` = 0
 - [ ] `.gitignore`에 빌드 산출물 패턴이 있다
 - [ ] `grep -rn "ACCOUNT_SELECTED" salt-microFe` = 0 (확인)
@@ -119,7 +120,7 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 - [ ] `MarketSentiment`/`WhaleTransaction` **조회** 경로가 동작한다 (프리뷰 화면 확인)
 - [ ] `InvestmentNotification.type` 생성 값이 2종뿐이다
 - [x] 되살리기 테스트 1회 통과 (route 재등록 → 200 → 되돌림) (2026-10-27 `/api/missions`)
-- [ ] 원장 3종 row 수가 전후 동일하다
+- [x] 원장 3종 row 수가 전후 동일하다 (2026-10-30 FR-1 drop 전후)
 - [ ] `npm run build` 통과. 빌드 시간·기동 worker 수 기록
 
 ## Trace
@@ -156,3 +157,4 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 | 2026-10-27 | **동면 FR-10 · 12 · 13 · 14 구현**, `to-do` → `in-progress`(`chore/adr-002-remnants` `d344a50`, 루트 `F000-dormant-410`). 410 핸들러는 `SRV-REQ-009` FR-7 · 8 과 같은 것이다. FR-10 의 points · achievements 는 라우트 줄을 지우지 않고 **라우터 앞에서 410 으로 가린다**(목록 한 곳에서 되살린다). FR-12 는 `insight-ranking.controller` 의 `/top` 만 — 같은 라우터의 `/insights` 등은 유지. 되살리기 1회(`/api/missions` 200). **남은 것**: 삭제 FR-1 · 2 · 5 · FR-11 알림 · 1주 로그(2026-11-03). 근거: `requirements/reports/checklists/SRV-REQ-007.md` |
 | 2026-10-28 | **FR-11 닫힘**(루트 `F000-notification-kind-gate`, `3320883`). `modules/investment-notification` → `notification` 컨텍스트(FR-33 이관 하나). 생성 worker 중단은 이미 0건이었다. 동면 `feed.service` 는 `title`/`message` nullable 에 맞춰 타입만(`?? ""`) — 동작 무변경 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-30 | **FR-1 닫힘 · FR-2 정정**(`chore/f000-legacy-cleanup`, 루트 `F000-legacy-cleanup`). FR-1 = 마이그레이션 `20261030160000_drop_legacy_ai_analysis`(테이블 2 · enum 2, 행 0, 스냅샷 + 복원 테스트). FR-2 = 이중 갱신이 아니었다 — 서버 잡과 BFF 워커가 쓰는 테이블이 다르고 `market_assets` 의 유일한 정기 쓰기가 서버 잡이다. 지우면 코치 판정 가격 신선도 게이트가 막힌다 → 잡 유지, 수용 기준을 "중복 없음 확인"으로. 남은 것: FR-5 README · 1주 로그(11-03) |

@@ -44,3 +44,10 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: FR-2 대상 `src/workers/market-price-updater.worker.ts` 는 이미 없다 — 같은 일이 `workers/market.worke / FR-3 추적 빌드 산출물 24개 → **닫힘**: `git ls-files 'salt-server/src/**/*.js'` 0건 · `.gitignore` `d / 유지 목록의 `modules/market-intelligence` · `investment` · `news` · `portfolio` · `technical-in / 수용 기준 "`InvestmentNotification.type` 생성 값 2종" → **1종(`signal_update`)**, FR-11 2026-10-28  / **FR-15 추가(아래 표)** — `SRV-REQ-006` FR-33 이 넘긴 남은 이관(살아 있는 `modules/goals` · `investment-in
+
+## 2026-10-30 — F000 레거시 모델 drop · 중복 워커 정정 (루트 `F000-legacy-cleanup`)
+
+- **FR-1 닫힘** — 마이그레이션 `20261030160000_drop_legacy_ai_analysis`. 삭제 전 grep 0(스키마 · 첫 마이그레이션 제외) · 행 0 · 의존 뷰 0 · `pg_dump -Fc` + 복원 테스트 1회(139초 · 오류 0) · 원장 3종 전후 동일 · `User` 관계 필드 2 제거
+- **FR-2 정정 → 닫힘** — 서버 `market-price-update` = `market_assets`, BFF 워커 = `investment_watchlist` · `portfolio_holdings`. 겹치는 쓰기 0. 실측 같은 시각 `market_assets` 29초 · 관심 목록 · 보유 5시간 20분(BFF 워커 미기동). 잡 유지 · `market.worker.ts` 주석 1줄
+- 게이트: `prisma:generate` · `build` · `lint` · `test` fail 0 · `test:layer-check` · 상시 서버 재시작 `/health` 200 · 재시작 뒤 시세 잡 1초 안 갱신
+- 미검증: BFF 워커 상시 실행(운영 구성 — `ADR-008`) · FR-5 README · FR-14 1주 로그(2026-11-03)
