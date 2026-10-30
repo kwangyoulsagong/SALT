@@ -212,5 +212,10 @@
 
 ## 2026-10-30 — F011 FR-14 미래 휴장일(KRX 공시 표)
 
-- 변경 없음(짝 영역) — FR-1 `calendarKnown` 을 그대로 옮긴다. 서버가 참을 내는 때가 늘어날 뿐 모양 무변경
+- ~~변경 없음(짝 영역)~~ **정정 2026-10-30 같은 날 후속** FR-1 `holidayName` 추가(아래). `calendarKnown` 은 그대로 옮긴다 — 서버가 참을 내는 때가 늘어날 뿐
 - 미검증 · 범위 밖: 없음. 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`
+
+## 2026-10-30 — 후속: 휴장 사유 이름(F011 FR-41)
+
+- FR-1 `holidayName` — 옛 서버 응답(필드 없음) `null` · 문자열 아니면 `KrContractError`. 테스트 +1 · `build` · `test` 298 pass
+- 실서버 → BFF HTTP 응답에 실림(소유자 이메일 토큰). 미검증 · 범위 밖: 없음

@@ -88,4 +88,4 @@
 - 거래일 배열(as_of 10-30): 이 브랜치 = 공시 행을 뺀 표로 만든 배열(1,237 · 마지막 10-30) 완전 동일. main 읽기는 1,279 · 마지막 12-30(→ `presumed_weekdays` 꺼짐)
 - dry-run 공시 행 쓰기 전후: `kr_daily` 예측 400 · 대기 19,044 · 채점 0 / `kr_volatility` 2,611 — 같다. `reports/` 새 파일 0
 - 게이트: `ruff check` · `ruff format --check` · `pyright` 0 · `lint-imports` 3 kept · `pytest` · `pytest tests/leakage` 통과
-- 미검증 · 범위 밖: `kr_backtest` dry-run 안 돌림 — 같은 `load_kr` 를 쓰고 거래일 배열이 동일함을 직접 비교했다(14.9분 작업 생략). 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`
+- ~~미검증 · 범위 밖: `kr_backtest` dry-run 안 돌림~~ **닫힘 2026-10-30** — `--as-of 2026-10-30` 을 공시 행 있음(45행) · 뺌 두 번: 리포트 493줄 바이트 동일(sha256 `71fee458…`) · 7,450,872행 같음 · 12.8 · 13.4분. 뺀 행은 상시 서버 재시작으로 다시 채움(45 · 휴장 3). `reports/` 새 파일 0. 미검증 · 범위 밖: 없음. 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`

@@ -49,3 +49,8 @@
 ## 2026-10-30 — F004 슬라이스 18 설정 화면
 
 - `/settings` 첫 로드 130 kB(`/coach/report` 130 kB 와 같음). `ssr:false` 화면 목록에 하나 추가. 미검증 · 범위 밖: 서버 렌더 전환은 이 REQ 본 작업 때
+
+## 2026-10-30 — F011 FR-41 휴장 사유 이름(장 상태 줄)
+
+- 번들: `/investments` 154 kB · `/investments/[symbol]` 137 kB. 바꾸기 직전 웹 파일 3개를 사본으로 바꿔 넣은 같은 빌드도 154 · 137 — 이 변경의 증가 0(153 → 154 는 그 사이 머지분). `web-tax` 102 kB
+- 미검증 · 범위 밖: 없음. 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`
