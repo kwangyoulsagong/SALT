@@ -151,6 +151,9 @@ export class GetChartData {
     if (query.period === ChartPeriod.Day) {
       return this.exchange.dailyCandles(query.symbol, query.count);
     }
+    if (query.period === ChartPeriod.Week) {
+      return this.exchange.weeklyCandles(query.symbol, query.count);
+    }
     return this.exchange.minuteCandles(query.symbol, query.unit, query.count);
   }
 }

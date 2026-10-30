@@ -136,6 +136,21 @@ export class UpbitClient implements ExchangeQuotePort, TradeHistoryPort {
     }));
   }
 
+  async weeklyCandles(
+    symbol: string,
+    count: number
+  ): Promise<DailyCandleView[]> {
+    const candles = await this.rawWeeklyCandles(symbol, count);
+    return candles.map((candle: any) => ({
+      date: candle.candle_date_time_kst,
+      open: candle.opening_price,
+      high: candle.high_price,
+      low: candle.low_price,
+      close: candle.trade_price,
+      volume: candle.candle_acc_trade_volume,
+    }));
+  }
+
   async minuteCandles(
     symbol: string,
     unit: number,
@@ -315,6 +330,16 @@ export class UpbitClient implements ExchangeQuotePort, TradeHistoryPort {
       if (error.response?.status === 404) throw new UnknownMarketSymbolError(symbol);
       logger.error("Upbit candles API error:", error.message);
       throw new Error("Failed to fetch chart data from Upbit");
+    }
+  }
+
+  private async rawWeeklyCandles(symbol: string, count: number) {
+    try {
+      return await get("/candles/weeks", { market: marketOf(symbol), count });
+    } catch (error: any) {
+      if (error.response?.status === 404) throw new UnknownMarketSymbolError(symbol);
+      logger.error("Upbit week candles API error:", error.message);
+      throw new Error("Failed to fetch week chart data from Upbit");
     }
   }
 

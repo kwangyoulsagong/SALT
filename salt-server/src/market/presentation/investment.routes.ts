@@ -124,10 +124,10 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *         name: period
    *         schema:
    *           type: string
-   *           enum: [day, minute]
+   *           enum: [day, minute, week]
    *         description: |
    *           없으면 `day`. **모르는 값은 422 다** — 조용히 기본값으로 떨어뜨리지 않는다
-   *           (`FE-REQ-010` FR-51). `week`·`month` 는 아직 없다.
+   *           (`FE-REQ-010` FR-51). `week` 는 주봉(`date` = 그 주 첫날, 2026-10-30). `month` 는 아직 없다.
    *       - in: query
    *         name: unit
    *         scehma: number
