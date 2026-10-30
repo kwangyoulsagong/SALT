@@ -7,6 +7,7 @@
  */
 
 import type { TradeBehaviorPreviewResult } from "./behaviorMirror";
+import type { CoachMode } from "./symbolCoach";
 
 export type TradeSide = "buy" | "sell";
 
@@ -307,10 +308,27 @@ export interface RecordTradeResult {
 }
 
 /**
- * 코치 설정 중 화면이 읽는 것 (`GET · PATCH /api/app/ai-coach/profile`, F009 FR-27 · `BFF-REQ-038`).
- * 나머지 설정 필드도 오지만 웹 소비처가 없어 싣지 않는다. 서버가 안 주면 BFF 가 `false` 로 준다
+ * 코치 설정 중 화면이 읽는 것 (`GET · PATCH /api/app/ai-coach/profile`, F009 FR-27 · F004 FR-12 · `BFF-REQ-038`).
+ *
+ * `riskTolerance` · `rebalanceBand` · `notificationLevel` 도 오지만 싣지 않는다 — 서버가 저장만 하고 읽는 곳이
+ * 없어(2026-10-30 grep) 바꿔도 아무것도 달라지지 않는다(`FE-REQ-026` FR-80 개정). 한 종목 상한은 리스크 예산
+ * 응답(`RiskBudgetView.settings`)이 원 환산과 같이 준다 — 여기 두면 두 경로에서 다른 모양이 된다
  */
 export interface CoachProfileSettings {
   /** 매입가 숨김 — 켜면 보유 손익률을 보이지 않는다. 서버 저장 */
   hidePurchasePrice: boolean;
+  /**
+   * 종목 판단을 처음 열 때의 모드. 주소에 `?mode=` 가 있으면 그것이 이긴다. 고른 적 없으면 서버 기본이 온다.
+   * `null` = 응답에 모르는 값이 왔다 — 화면은 그 칸만 "불러올 수 없음"으로 둔다
+   */
+  defaultMode: CoachMode | null;
+  /** 최근 매도를 지금 가격과 견주는 기간(시간, 1~168). 리포트 "최근 행동" 매도 줄이 이 기간을 본다. `null` 은 위와 같다 */
+  panicSellWindowHours: number | null;
+}
+
+/** 코치 설정 저장 — 빠진 필드는 그대로 둔다(PATCH) */
+export interface CoachProfileUpdate {
+  hidePurchasePrice?: boolean;
+  defaultMode?: CoachMode;
+  panicSellWindowHours?: number;
 }

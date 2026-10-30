@@ -1,8 +1,10 @@
 "use client";
 
 import { Menu } from "@repo/ui/menu";
+import { useRouter } from "next/navigation";
 
 import { ProfileImage, ProfileSection, useAuthState } from "@/entities/auth";
+import { ROUTES } from "@/shared/config";
 
 import { useSignOut } from "../api";
 import { PROFILE_MENU_ITEM, SIGN_OUT_MESSAGES as MESSAGES } from "../model";
@@ -14,12 +16,13 @@ import { header, trigger } from "./ProfileMenu.css";
  * 프로필은 여러 화면 머리에 같이 뜬다(홈 · 투자). 그래서 메뉴를 화면마다 만들지 않고 이 한 컴포넌트가
  * 전의 `ProfileHeader` 자리를 대신한다. 표시는 `entities/auth` 의 조각을 그대로 쓴다.
  *
- * **설정은 아직 없다** — 코치 성향 설정 화면(FEATURE-004 FR-12)이 서기 전까지 "준비 중"으로 비활성이다.
- * 누를 수 있는데 아무 일도 안 일어나는 항목을 두지 않는다.
+ * 설정은 `/settings`(코치 설정 · 매입가 숨김, FEATURE-004 FR-12)로 간다 — 2026-10-30 전에는 화면이 없어
+ * "준비 중"으로 비활성이었다.
  */
 export const ProfileMenu = () => {
   const profile = useAuthState();
   const signOut = useSignOut();
+  const router = useRouter();
 
   return (
     <header className={header}>
@@ -27,10 +30,11 @@ export const ProfileMenu = () => {
         align="start"
         label={MESSAGES.menuLabel}
         items={[
-          { id: PROFILE_MENU_ITEM.settings, label: MESSAGES.settings, disabled: true },
+          { id: PROFILE_MENU_ITEM.settings, label: MESSAGES.settings },
           { id: PROFILE_MENU_ITEM.signOut, label: MESSAGES.signOut, tone: "danger" },
         ]}
         onSelect={(id) => {
+          if (id === PROFILE_MENU_ITEM.settings) router.push(ROUTES.settings);
           if (id === PROFILE_MENU_ITEM.signOut) signOut();
         }}
         trigger={(props) => (

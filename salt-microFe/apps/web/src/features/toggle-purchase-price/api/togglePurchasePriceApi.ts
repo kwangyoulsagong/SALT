@@ -1,6 +1,6 @@
 import type { CoachProfileSettings } from "@repo/core/coach";
 
-import { COACH_ENDPOINTS } from "@/entities/coach";
+import { COACH_ENDPOINTS, toCoachProfileSettings } from "@/entities/coach";
 import { apiFetch, authHeader, readApiError } from "@/shared/api";
 import { INVESTMENTS_BASE_URL } from "@/shared/config";
 
@@ -18,7 +18,8 @@ export const togglePurchasePriceApi = {
       body: JSON.stringify({ hidePurchasePrice }),
     });
     if (!response.ok) throw await readApiError(response, "toggle purchase price");
-    const envelope = (await response.json()) as Envelope<CoachProfileSettings>;
-    return { hidePurchasePrice: envelope.data.hidePurchasePrice === true };
+    const envelope = (await response.json()) as Envelope<Record<string, unknown>>;
+    // 응답 전체를 읽는다 — 캐시에 그대로 들어가므로 숨김만 읽으면 기본 모드 · 기간 칸이 비었다
+    return toCoachProfileSettings(envelope.data);
   },
 };
