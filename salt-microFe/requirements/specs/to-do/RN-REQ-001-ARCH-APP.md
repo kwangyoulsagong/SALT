@@ -8,6 +8,8 @@ labels: [architecture, react-native, ios, android, expo, fsd, design-system]
 created: 2026-09-09
 ---
 
+> **2026-10-30 — 도메인 구조 전환(`ADR-005` · `RN-REQ-032`)으로 바뀌는 것** — 서비스 번들 이름은 `invest` · `savings` · `household` · `tips` + 셸(`tax` 삭제), 앱 탭은 홈 · 저축 · 가계부 · 투자 4개, 투자 기능은 동결 범위 안에서만, 알림은 도메인별 · 기본 꺼짐. 본문과 다르면 `RN-REQ-032` 가 우선한다.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - `packages/tokens` · `packages/core` 는 이미 있다(FE-REQ-007 FR-30, done) — FR-10~12 · FR-40 은 웹 쪽 닫힘, 남은 일은 FR-13(RN `StyleSheet`). `feature/repo-ui-component` 브랜치 선행은 낡음
 > - **ADR-002**: 모바일 근거의 세금 마감(F002) D-30~1 알림 · FR-41 D-Day · FR-51 "세금은 자산 탭 내부 스택"은 폐기 — 알림은 지표 · 추천 갱신 1종(`RN-REQ-024` FR-3 과 맞춤)

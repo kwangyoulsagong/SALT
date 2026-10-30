@@ -32,6 +32,12 @@ Status: In Progress
 | **F008** | AI 전망 · 인텔리전스 (파이프라인 → 온톨로지 → 에이전트 · 확률 구간 · 채점 · 소유자 전용) — 2026-09-23 `ADR-003` · `ADR-004` | `FEATURE-008-forecast-intelligence.md` |
 | **F009** | 1인 펀드매니저 코치 (IPS · 리스크 예산 · 사이즈 계산 · 계획 기록 · 준수율 · 행동 미러 · 월간 복기) — 2026-09-24. 통제 · 차단 없음, 수동 입력 전제 | `FEATURE-009-behavior-risk-coach.md` |
 | **F011** | 국내 주식 시세 · 분석 연동 (한국투자증권 Open API — 조회 TR 만 · 시세 · 일봉 · 5분봉 누적 · 자산군 분리 채점 · 장 상태 표시) — 2026-09-27 기획, **in-progress** — 2026-10-07 슬라이스 0 · 1(서버 · DB · 실시간) 완료 · 2026-10-08 슬라이스 2(BFF) · 3(화면 — 자산군 탭, 코인과 같은 화면) · 3b(거래 기록 · 보유 평가) · 4(코치 — 자산군 분리 판단 · 리스크 예산 · 사이즈 · 계획 연결) · 5(전망 배치 — 거래일 격자 · 국내 주식 풀, 화면 없음) · 5b(서버 전망 읽기 · 국내 σ, 실력 감사로 화면 보류) 완료 · 2026-10-09 ~ 12 5c P0 · P1 · P2 — 2026-10-12 P2 척도 도전자(`kr-scale@1`)가 1 · 2주 풀링 통과 → 챔피언 교체 · 2026-10-20 P3 `kr-scale@2` 범위 HAR 4기간(선택 보정 · 앞 창) → 챔피언 교체, 국내 4기간 카드 자격 · 2026-10-23 5d 화면(상세 "자세히 — 변동 범위", 소유자만) 완료 · 5e 상태 억제(정리매매 · 정지 · 관리 · 경고/위험 → 상태 문구) 완료 · 5f 수정주가 재작성 · 원천 끊김 완료, 다음 상폐 평가 · 7 나머지 기능 국내 파라미터 · 6 시간외(후순위) | `FEATURE-011-kr-stock-kis.md` |
+| **F012** | 저축 목표 (양방향 계산 · 도달 구간 + 적중 이력 · 목표 저울 · 모으는 재미) — 2026-10-30 돈 관리 앱 재정의 | `FEATURE-012-savings-goals.md` |
+| **F013** | 가계부 `household` (3초 입력 · 결제 문자 붙여넣기 · 막지 않는 봉투 예산 · 월말 착지 구간 · 목표 시계) — 2026-10-30 | `FEATURE-013-household-budget.md` |
+| **F014** | 금융 팁 (공적 제도 설명만 · 유효기한 · 때맞춘 한 줄 · 제도 파라미터 표의 주인) — 2026-10-30, 법무 확인 전 공개 금지 | `FEATURE-014-money-tips.md` |
+| **F015** | 셸 — 홈 요약 카드 · 도메인 선택 온보딩 · 내 데이터 · 4탭 IA(홈 · 저축 · 가계부 · 투자) — 2026-10-30 | `FEATURE-015-shell-home-onboarding.md` |
+
+> **2026-10-30 투자 동결** — 투자 기능(F000 투자 FR · F003 · F004 · F006 · F008 · F009 · F010 · F011)은 지금 기획된 것까지만 만든다. 새 투자 FR 추가 0. 남은 목록은 `pm/docs/2026-10-30-money-domains-spec.html` "투자 — 동결 범위". 전 영역 계획은 `requirements/specs/to-do/MONEY-domains-global-plan.md`.
 
 > F005는 결번이다. `FEATURE-005-home-briefing.md`의 5탭 IA는 2026-09-09 결정(탭 축소·대화 중심)으로 **F006이 대체**한다. 홈 블록 요구사항만 F006으로 흡수한다.
 
@@ -42,7 +48,7 @@ Status: In Progress
 | `DB` | 데이터베이스 | `salt-server/prisma/**` | Prisma + PostgreSQL |
 | `SRV` | 서버 | `salt-server/src/**` | **DDD (컨텍스트 우선)** |
 | `BFF` | BFF | `bff/src/**` | 레이어드 + SSE |
-| `FE` | 웹 | `salt-microFe/apps/web`, `apps/web-tax` | **FSD** + App Router + Multi-Zones |
+| `FE` | 웹 | `salt-microFe/apps/web`, `apps/web-tax` → 2026-10-30 `ADR-005`: 셸 `apps/web` + 도메인 zone `apps/web-{investment,savings,household,tips}` · 화면 코드 `packages/domain-*`, `web-tax` 삭제 | **FSD** + App Router + Multi-Zones |
 | `RN` | 모바일 | `salt-microFe/apps/mobile` | **FSD** + Shared/Service 번들 |
 | `FC` | 예측 · 데이터 파이프라인 | `salt-forecast/**` | Python 배치 · `import-linter` 층 · DB 스키마 계약 (`ADR-004`) |
 
@@ -72,6 +78,15 @@ Status: In Progress
 | `RN-REQ-001` | RN 앱 신설 | `apps/mobile`, Expo prebuild, iOS+Android, FSD, `packages/ui-native` |
 | `RN-REQ-002` | RN 마이크로프론트엔드 | Shared/Service 번들, ESBuild, CDN, 카나리 |
 | `RN-REQ-003` | 릴리스·스토어 | 코드 서명, TestFlight/Play 내부 테스트, OTA 정책, 버전 게이트 |
+| `FE-REQ-052` | 도메인 zone (2026-10-30, `ADR-005`) | 규칙 개정 · 레지스트리 5 zone · lint 도메인 축 · `web-tax` 삭제 |
+| `FE-REQ-053` | 투자 zone 분리 | `domain-invest` + `apps/web-investment`, 동작 변경 0 |
+| `RN-REQ-032` | 모바일 도메인 정렬 | 번들 이름 · 4탭 · 네이티브/웹뷰 경계 · 기존 RN REQ 대체 블록 |
+| `SRV-REQ-043` | Kotlin 플랫폼 S0 (`ADR-006`) | Gradle 멀티모듈 · Spring Modulith · Compose · 규칙 Kotlin 판 |
+| `SRV-REQ-044` | 도메인 이벤트 | 아웃박스 · RabbitMQ · `contracts/events` · 멱등 구독 |
+| `SRV-REQ-049` | 투자 서비스 이전 S4~S7 | portfolio · market(+수집 프로세스) · coach · Express 종료 |
+| `DB-REQ-036` | 서비스별 스키마 | 스키마 9 · 계정 · Flyway 주인 이전 · export 뷰 |
+| `BFF-REQ-045` | 스트랭글러 장치 | 라우팅 스위치 · 골든 JSON · 그림자 실행 · 이중 토큰 |
+| `FC-REQ-025` | forecast 스키마 주인 (`ADR-007`) | DDL → `salt-forecast` · public 읽기 → export 뷰 |
 
 ### 기능 × 영역 × 종류
 
@@ -84,6 +99,12 @@ Status: In Progress
 | **F004** | `DB-017` `DB-018` `DB-019` `DB-020` | `SRV-024` `SRV-025` `SRV-026` `SRV-027` | `BFF-023` `BFF-024` `BFF-025` `BFF-026` | `FE-026` `FE-027` `FE-028` `FE-029` `FE-034` | `RN-020` `RN-021` `RN-022` `RN-023` |
 | **F006** | `DB-021` `DB-022` `DB-023` `DB-024` | `SRV-028` `SRV-029` `SRV-030` `SRV-031` | `BFF-027` `BFF-028` `BFF-029` `BFF-030` | `FE-030` `FE-031` `FE-032` `FE-033` | `RN-024` `RN-025` `RN-026` `RN-027` |
 | **F007** | `DB-025` `DB-026` `DB-027` `DB-028` | `SRV-032` `SRV-033` `SRV-034` `SRV-035` | `BFF-031` `BFF-032` `BFF-033` `BFF-034` | `FE-043`(웹 좁은 화면 안내) | `RN-028` `RN-029` `RN-030` `RN-031` |
+| **F012** | `DB-037` | `SRV-045` | `BFF-047` | `FE-056` | `RN-033` (+ FC `FC-024`) |
+| **F013** | `DB-038` | `SRV-046` | `BFF-048` | `FE-057` | `RN-034` |
+| **F014** | `DB-039` | `SRV-047` | `BFF-049` | `FE-058` | (웹뷰) |
+| **F015** | `DB-040` | `SRV-048` | `BFF-046` | `FE-054` `FE-055` | `RN-035` |
+
+F012~F015 는 영역당 한 파일(F011 이후 관례) — 종류는 파일 안 FR 표로 나눈다. F008 온톨로지 · 에이전트는 `FC-REQ-022` · `023`.
 
 파일명 규칙: `<AREA>-REQ-<NNN>-<F기능>-<종류>.md`
 예: `DB-REQ-005-F001-SCHEMA.md` · `FE-REQ-026-F004-UI.md` · `RN-REQ-024-F006-UI.md`
@@ -169,7 +190,7 @@ flowchart TB
 
 | 순위 | 묶음 | 항목 | 근거 · 막는 것 |
 |---|---|---|---|
-| **1** | 진행 중 닫기 | `feat/f004-signal-detail` 머지(F004 FR-33 · 34 판정 근거 상세, 슬라이스 17) | 커밋 끝 · PR 대기 |
+| **1** | 진행 중 닫기 | ~~`feat/f004-signal-detail` 머지(F004 FR-33 · 34 판정 근거 상세, 슬라이스 17)~~ **머지 PR #122** | — |
 | 1 | 진행 중 닫기 | `QA-001` 로그인 QA — 소유자 실계정으로 화면 확인(주문 전 체크 · 매입가 숨김 · 그래픽 `FE-REQ-044` · 성적 4요소 `FE-REQ-045`) | 체크리스트 70곳의 "로그인 QA(사용자)" 미검증이 여기 모인다 |
 | **2** | 남은 기능(Must) | ~~F000 FR-40 **종목 검색**(코인 + 국내 한 검색) · FR-41 추적 자산 상한 10~~ **완료 2026-10-30** `feat/f000-asset-search`(`F000-asset-search-slice.md`) | 전역 헤더 검색 상자(`FE-REQ-047` FR-1)가 `/search` 를 쓴다 |
 | 2 | 남은 기능(Must) | F004 부분 FR — FR-3 리스크 섹션 · FR-12 성향 설정 화면 · FR-18 모드 스위치 마감 · FR-25~27 상세 Hero · 차트 오버레이 · FR-32 코치 탭 진입 | `FEATURE-004` 표의 "부분" 행 |
@@ -179,6 +200,9 @@ flowchart TB
 | **3** | 추가된 기능 | F008 슬라이스 24 **1단계** — 국내 증시 일정(금통위 · 물가 · 수출입 · 동시만기) · 국내 상세 주요 사건 · 국내 탭 다가오는 일정(`FC-REQ-021` · `DB-REQ-034` · `SRV-REQ-041` · `BFF-REQ-043` · `FE-REQ-046`) | 2026-10-30 추가 |
 | 3 | 추가된 기능 | 국내 탭 요약을 코인과 같은 정보로(`DB-REQ-035` → `SRV-REQ-042` → `BFF-REQ-044` → `FE-REQ-050`) | 새 서버 계약(지수 분 기록 · 국내 요약 경로) — 데이터가 먼저라 기능 쪽에 둔다. 띠의 "다가오는 일정" 칸은 바로 위 슬라이스 24 를 쓴다 |
 | 3 | 추가된 기능 | F008 슬라이스 24 **2단계** — 종목 실적 공시 · 예상 창 | **DART 공시 수집 허용(사용자 결정) 뒤** |
+| **3a** | 돈 관리 앱 재정의(2026-10-30) | 아키텍처 바탕 — `FE-REQ-052`(F0) → `FE-REQ-053` + `FE-REQ-055` + `BFF-REQ-046`(F1, 한 PR) · 서버 S0(`SRV-REQ-043` · `044` · `DB-REQ-036` · `BFF-REQ-045`) | `ADR-005` · `ADR-006`. 계획 `MONEY-domains-global-plan.md` |
+| 3a | 돈 관리 앱 재정의 | F012 저축(S1 · F3) → F013 가계부(S1 · F4) → F014 금융 팁(S2 · F5, 법무 확인 뒤 공개) → F015 나머지(S3) | 투자 남은 작업과 **번갈아** — 투자만 연속으로 잡지 않는다 |
+| 3a | 예측 바탕 | `FC-REQ-022` 온톨로지(O1 · O2) → `FC-REQ-023` 에이전트(O3) · `FC-REQ-024` 개인 재무 채점(S1 과 같이) | `ADR-007`. F008 FR-25 · FR-41 |
 | **4** | 착수 전 기능 | F006 코치 대화 + 3탭 IA(`FE-REQ-030`~`033` · `BFF-REQ-027`~`030`) · F003 적립(`FEATURE-003`, to-do) | 범위가 커서 3 다음. 시작 전에 기획서 재확인 |
 | **5** | 디자인 | `FE-REQ-051` 로고 → `FE-REQ-047` 틀(헤더 · 뒤로 · 탭 주소) → `FE-REQ-049` 상세 재설계(국내 깨짐 B1~B8 · 탭 제목 실시간 가격) → `FE-REQ-048` 홈 데스크톱 | 기능이 화면 칸을 정한 뒤에 틀을 입힌다. 규칙 `salt-microFe/.claude/rules/screen-desktop.md` · 지도 `requirements/specs/to-do/DESIGN-desktop-redesign-plan.md` |
 | **6** | 모바일 | F007 RN(`RN-REQ-001`~) · `screen-mobile.md` 규칙 | 웹 계약 확정 뒤(P4 원칙 그대로) |
@@ -767,3 +791,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-10-30 | **§4-1 지금 우선순위 신설** — 사용자 "기능 남은 것이랑 추가된 기능을 우선순위로 하고 디자인은 그 후에". 1 진행 중 닫기(F004 슬라이스 17 머지 · `QA-001`) → 2 남은 기능(F000 종목 검색 — 헤더 검색이 의존 · F004 부분 FR · 정리 · F011 · F008 해설 근거) → 3 추가된 기능(슬라이스 24 1단계 · 국내 탭 요약 계약 · 24 2단계는 DART 결정 뒤) → 4 F006 · F003 → 5 디자인(051 → 047 → 049 → 048) → 6 RN |
 | 2026-10-30 | **in-progress → done 대조 · 확인할 수 있는 미검증 전부 확인.** 기준(기존 done 선례): FR 전부 완료 + 남은 것이 `QA-001` · 조건부 후속뿐이면 done, 라이브 날짜 · 데이터 대기면 유지. → done: `FE-REQ-039`(BFF 경유 국내 주식 저장 임시 계정 확인) · `FE-REQ-044`(확인용 초대 코드로 앱 화면 P-3 · 4 · 5 · 35 · 36 · 40 실측 — **P-40 초대 수락 밀림이 재생되지 않던 결함 수정** `16bd446`, 주인 `FE-REQ-010`) · 루트 `F011-slice6` · `6b`(투자자 10-28 50/50 · 5분봉 3종목 · 시간외 끔). 유지: 라이브 날짜(`FC-REQ-006` · `008` · `011` · `013` · `014` · `015` · `016` · `FEATURE-010` 11-23~) · 표본 20 대기(`FE-REQ-045`) · 남은 FR(`FE-REQ-034` 서버 후속 · 1분봉 확인, 묶음 REQ 들) · 수용 기준 미체크(`FEATURE-009` 7개) · `F000-dormant-410`(11-03). 새 결함 기록: 5분봉 보정 창 끝 날 실패가 다시 받히지 않는다(`SRV-REQ-040`, 미수정) |
 | 2026-10-30 | **F000 종목 검색 · 추적 자산 상한 슬라이스.** `SRV-REQ-008` FR-80~87(FR-87 개정) · `SRV-REQ-009` FR-30(개정) · 32 · 33 · `SRV-REQ-006`(커널 `details` — `ddd-shared.md` §2) · `BFF-REQ-007` H FR-70~74 · 신규 75 · `BFF-REQ-008` · `009` · `010` · `025` · `FE-REQ-010` FR-33 · 37 · 70~78 · 103 · `FE-REQ-011` FR-5~7 · 80~84 · `FE-REQ-012` D-2 FR-60(개정) · 61 · 62 · 65. 위젯 레지스트리 `asset-search`(`FE-REQ-009`). 파일만 걸침 Changelog · 체크리스트 · 회고 `SRV-REQ-024` · `025` · `036` · `040` · `DB-REQ-001` · `017` · `033` · `FC-REQ-004` · `BFF-REQ-023` · `035` · `040` · `FE-REQ-008` · `013` · `026` · `035` · `037` · `040` · `041` · `042` · `044`, to-do Changelog `FE-REQ-030` · `047` · `SRV-REQ-011` · `DB-REQ-003` · `004` · `RN-REQ-004~006`. `FEATURE-000` FR-40 · 41 완료 · `FEATURE-006` FR-63 상태. §4-1 순위 2 첫 줄 완료. 루트 3종 `F000-asset-search` |
+| 2026-10-30 | **돈 관리 앱 재정의** — F012~F015 기능 행 · 투자 동결 표시 · 아키텍처 REQ 9 · 기능 REQ 23(FE · RN · BFF · SRV · DB · FC) · ADR-005~007 · §4-1 순위 3a · 순위 1 머지(PR #122) 반영. 계획 `requirements/specs/to-do/MONEY-domains-global-plan.md` |

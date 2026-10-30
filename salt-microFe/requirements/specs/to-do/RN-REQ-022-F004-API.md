@@ -9,6 +9,8 @@ labels: [rn, api, react-query, polling, llm, offline]
 created: 2026-09-09
 ---
 
+> **2026-10-30 — 도메인 구조 전환(`ADR-005` · `RN-REQ-032`)으로 바뀌는 것** — 서비스 번들 이름은 `invest` · `savings` · `household` · `tips` + 셸(`tax` 삭제), 앱 탭은 홈 · 저축 · 가계부 · 투자 4개, 투자 기능은 동결 범위 안에서만, 알림은 도메인별 · 기본 꺼짐. 본문과 다르면 `RN-REQ-032` 가 우선한다.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - FR-67 · 50 타입 `SymbolCoachViewModel` · `ModeCoachViewModel` 은 이미 `packages/core/src/coach/symbolCoach.ts` — RN 은 소비만. 게이트 함수는 `apps/web/src/entities/coach/lib` 에 있어 core 로 올리는 선행이 필요
 
