@@ -12,6 +12,7 @@ source: FEATURE-000 FR-1/FR-34/FR-44, DB-REQ-001, DB-REQ-002 FR-60~62, pm/requir
 
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - M3 실행됨(`20260918071852`) · M1 은 `kr_stock` 만(`20261007140000`) — Q2 관련 수용 기준 · Open Q 는 닫힘(같은 문서 개정 단락과 맞춤)
+> - **M4 실행됨 2026-10-30** — 이름은 `20261030160000_drop_legacy_ai_analysis`(계획 이름 `20260909_drop_ai_analysis` 대신 실제 날짜). FR-4 grep 0 · FR-5 `pg_dump -Fc` + 복원 테스트 1회(139초, 원장 3종 일치) — 커밋 메시지에 기록. 마이그레이션 diff 에 섞여 나온 기존 인덱스 이름 드리프트 2건(`coach_recommendation_snapshots`)은 목적이 달라 넣지 않았다
 > - 서버 정리 선행은 `SRV-REQ-007`
 
 
@@ -89,7 +90,7 @@ DB-REQ-001의 스키마 변경을 **독립 롤백 가능한 5단계**로 쪼갠�
 ## Acceptance Criteria
 
 - [ ] M1~M5가 각각 독립된 마이그레이션 파일이다
-- [ ] M4 커밋 메시지에 grep 결과(0건)와 `pg_dump` 경로가 있다
+- [x] M4 커밋 메시지에 grep 결과(0건)와 `pg_dump` 경로가 있다 (2026-10-30)
 - [ ] `pg_dump` 복원 테스트 기록이 `requirements/reports/checklists/DB-REQ-003.md`에 있다
 - [ ] M2 전후 `asset_type` 분포가 기록되고, 사후에 `stock`이 0건이다
 - [ ] M5 전 `"stock"` 리터럴 grep이 0건이다
@@ -131,3 +132,4 @@ DB-REQ-001의 스키마 변경을 **독립 롤백 가능한 5단계**로 쪼갠�
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | 참고 — 검색 자산군은 `crypto` · `kr_stock`(F011). `us_stock` 은 이 REQ 대로 미국 주식 착수 때. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-10-30 | 파일만 걸침 — 웹 `entities/market/model/messages.ts` · `types.ts` 에 차트 기간 `1w` 이름 · `ChartPeriod.Week`. 스키마 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
+| 2026-10-30 | **M4 실행** — `20261030160000_drop_legacy_ai_analysis`. FR-4 · 5 충족. M1 · M3 · M4 실행으로 to-do → in-progress. 루트 `F000-legacy-cleanup` |

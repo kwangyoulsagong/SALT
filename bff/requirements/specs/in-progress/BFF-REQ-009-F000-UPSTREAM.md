@@ -10,6 +10,7 @@ created: 2026-09-09
 ---
 
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - **FR-33 정정** — 2026-10-30 정정 — 서버 시세 잡은 지우지 않는다. 서버 잡은 `market_assets`, BFF `price-updater.worker` 는 관심 목록 · 보유 가격을 써서 중복이 아니었다(`SRV-REQ-007` FR-2 정정, 루트 `F000-legacy-cleanup`). 이 워커는 관심 목록 · 보유 가격의 단일 경로이고, 서버 `market_assets` 는 서버 잡이 쓴다
 > - FR-1~4(제거 호출 0건 · 초대 · mutation)와 FR-30~32(`priceStale`, `watchlist.viewmodel.ts`)는 구현됐다 — 미구현은 search · 북마크(FR-50~52) → to-do → **in-progress** 로 옮김
 
 
@@ -157,3 +158,4 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 호출 맵에 `searchAssets` · `newsBookmarks` · 북마크 추가/해제 · 목표 proxy 필드 추가. FR-3 · 4 에 북마크 mutation 재시도 금지 · `409 TRACKED_ASSET_LIMIT` · 북마크 404 전달. 신규 FR-50~53(검색 1회 · `isBookmarked` 는 서버 값 · 해제는 `newsId` · 목표 수량은 proxy). 계약 의존 표 4행 추가. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-29 | 전수 조사 — FR-20 · 21 실제 동작(BFF 422)으로 정정 · 구현분 기록 · to-do → in-progress |
 | 2026-10-30 | 호출 맵 `searchAssets` 구현 — 400ms · 재시도 1회 · FR-4 409 전달 · FR-50 검색 1회(overview 를 거르지 않는다) — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-10-30 | FR-33 정정(머리 블록) — 서버 잡 유지. BFF 코드 무변경. 루트 `F000-legacy-cleanup` |

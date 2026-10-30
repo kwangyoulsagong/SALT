@@ -163,3 +163,7 @@
 
 검증: `npm test` 858 · `npm run build` · `npx eslint src/market` · `npm run test:layer-check`(차단 10 · 통과 6) · 훅 사후 실행 6파일 0. Prisma 무변경(스키마 안 건드림 — `prisma:generate` 불필요).
 미검증 · 범위 밖: `month`(소비 화면이 생길 때 — 이 FR-50) · 주봉 과거 이동(`to` 파라미터, `FE-REQ-034` Open Questions 서버 후속).
+
+## 2026-10-30 — F000 레거시 모델 drop · 중복 워커 정정 (루트 `F000-legacy-cleanup`)
+
+- 정리 항목 참조 줄에 결과 한 줄 — 내용 무변경

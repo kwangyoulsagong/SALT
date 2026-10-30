@@ -68,8 +68,8 @@
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-1 | **레거시 제거**: `AIAnalysisSession`, `AIAnalysis`, `AnalysisStatus`, `PredictionType` 삭제. **삭제 전 `grep -rn "AIAnalysis" src` 결과 0 확인 필수** | Must | Draft — 코드 참조는 0건이지만 `schema.prisma` 에 `AIAnalysisSession` · `AIAnalysis` · enum 2개가 남아 있다 |
-| FR-2 | **중복 worker 제거**: 서버 `market-price-updater.worker`. 가격 갱신은 BFF `price-updater.worker` 단일 경로로 통일 | Must | Draft — 파일은 `market.worker.ts` 로 합쳐졌지만 서버 `market-price-update` 잡이 매분 돈다(`BFF-REQ-010` FR-14 미착수 · `SRV-REQ-010` FR-30 to-do) |
+| FR-1 | **레거시 제거**: `AIAnalysisSession`, `AIAnalysis`, `AnalysisStatus`, `PredictionType` 삭제. **삭제 전 `grep -rn "AIAnalysis" src` 결과 0 확인 필수** | Must | 완료 2026-10-30 — 마이그레이션 `20261030160000_drop_legacy_ai_analysis`(행 0 · 스냅샷 복원 1회) · 루트 `F000-legacy-cleanup` |
+| FR-2 | **중복 worker 제거**: 서버 `market-price-updater.worker`. 가격 갱신은 BFF `price-updater.worker` 단일 경로로 통일 | Must | **정정 · 닫힘 2026-10-30** — 중복이 아니었다. 서버 잡은 `market_assets`(코치 판정 가격 신선도가 읽는다), BFF 워커는 관심 목록 · 보유 가격을 쓴다. 잡을 지우면 판정이 막혀 **유지** — `market_assets` 단일 경로 = 서버(`SRV-REQ-007` FR-2 · `SRV-REQ-010` FR-30 · 34 · `BFF-REQ-010` FR-14) |
 | FR-3 | **커밋된 빌드 산출물 제거**: `market-price-updater.worker.js/.d.ts/.js.map` + `.gitignore` 반영 | Must | 완료 2026-09-11 — `e8055bc`(`market-price-updater.worker.js/.d.ts/.js.map` 삭제) · `4d0fe0e`(`.gitignore` `dist`). `git ls-files "*worker.js"` = 0 |
 | FR-4 | **근거 없는 이벤트 제거**: `@repo/message-event-bus`의 `ACCOUNT_SELECTED`. 은행/계좌 API가 없어 동작 근거가 없다 | Must | 완료 2026-09-11 — `d425cbe` `@repo/message-event-bus` 패키지째 제거(`FE-REQ-007` FR-6~8). `ACCOUNT_SELECTED` 코드 0건 |
 | FR-5 | **기획 문서에서 내리기**: 랭킹·이달의 저축왕·소셜 저축·저축 게임. 코드에 없고 사용자 1~10명이면 성립하지 않는다. `README.md`를 v1/v2 2섹션 구조로 개편(삭제 아님) | Should | Draft — 루트 `README.md` 가 아직 v1/v2 구조가 아니고 저축왕 · 게임 · 소셜 절이 남아 있다 |
@@ -413,3 +413,4 @@ flowchart TB
 | 2026-10-29 | (같은 날) `external/kis` · `AssetType` 보류 행은 F011 이 대체 — 같은 문서 FR 표 "대체됨 — F011"과 맞춤 |
 | 2026-10-30 | **FR-40 · 41 완료**(F000 종목 검색 슬라이스, `feat/f000-asset-search`). 검색 = 코인 + 국내(소유자만) · 같음 → 시작 → 포함 · 빈 검색어 = 추적 목록. 상한 = 보유가 아닌 관심 수 < 설정값 10, 보유는 늘 추적 · 해제 불가. `SRV-REQ-009` FR-30 계약 개정(400 · 30자 · `changeRate`). 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-10-30 | F004 슬라이스 19(차트 1주 탭) — 차트 주기 계약에 `week`(`SRV-REQ-008` FR-50 · `SRV-REQ-009` · `BFF-REQ-007` FR-52 · `BFF-REQ-008` FR-12 · `FE-REQ-012` FR-2 개정 3종). `month` 는 여전히 422. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
+| 2026-10-30 | **FR-1 완료 · FR-2 정정.** 레거시 `AIAnalysis*` drop(행 0 · 스냅샷 복원 1회). FR-2 "중복 worker" 는 중복이 아니었다 — 서버 잡은 `market_assets`(코치 판정 가격), BFF 워커는 관심 목록 · 보유 가격. 서버 잡 유지. 루트 `F000-legacy-cleanup` |

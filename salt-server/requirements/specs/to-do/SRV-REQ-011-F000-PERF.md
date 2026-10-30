@@ -10,6 +10,7 @@ created: 2026-09-09
 ---
 
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - **FR-10 · 11 정정** — 2026-10-30 정정 — 서버 시세 잡은 지우지 않는다. 서버 잡은 `market_assets`, BFF `price-updater.worker` 는 관심 목록 · 보유 가격을 써서 중복이 아니었다(`SRV-REQ-007` FR-2 정정, 루트 `F000-legacy-cleanup`). 줄어들 워커가 없어 "1개 감소" 기대값이 사라졌다 — 측정은 정리 효과가 아니라 현재 값 기록으로
 > - FR-20~23 초대 동시성(조건부 UPDATE · 유니크) · `check` rate limit(`auth.routes.ts`)은 `SRV-REQ-008` 이 구현 — 측정 FR 만 남음
 
 
@@ -148,3 +149,4 @@ F000은 신규 계산이 없으므로 성능 요구가 가볍다. 이 REQ의 목
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 예산 6행(검색 · 상한 판정 · 뉴스 `isBookmarked` · 북마크 목록 · 토글 · 목표 수량 진행률)과 FR-60~63(판정 N+1 금지 · 검색 p95 · 검색어 로그 금지 · 검색 캐시 없음) 추가. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | `GET /api/investment/search` 실측 11~27ms(BFF 경유, 임시 사용자 · 국내 포함) — 예산 150ms 안. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-10-30 | FR-10 · 11 정정(머리 블록) — 서버 시세 잡 유지, 워커 감소 없음. 루트 `F000-legacy-cleanup` |

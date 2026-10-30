@@ -10,6 +10,7 @@ created: 2026-09-09
 ---
 
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
+> - **FR-30 · 31 · 수용 기준 "BFF worker 단일 경로" 정정** — 2026-10-30 정정 — 서버 시세 잡은 지우지 않는다. 서버 잡은 `market_assets`, BFF `price-updater.worker` 는 관심 목록 · 보유 가격을 써서 중복이 아니었다(`SRV-REQ-007` FR-2 정정, 루트 `F000-legacy-cleanup`). `market_assets` 단일 경로는 서버 잡이다. 그 수용 기준은 "`market_assets` 정기 쓰기가 서버 잡 하나"로 읽는다(2026-10-30 확인 — 재시작 뒤 1초 안에 갱신)
 > - 위험 2(M2 백필)는 소멸 — M2 는 실행하지 않기로 확정(`DB-REQ-003`)
 > - Q2 닫힘(2026-10-07)
 
@@ -139,3 +140,4 @@ M2의 `UPDATE ... SET asset_type = 'kr_stock' WHERE asset_type = 'stock'`이 대
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: 예산 3행(M6 · 검색 · 추적 판정) · FR-40~43(검색 EXPLAIN · 판정 N+1 금지 · M6 시간 · 북마크 판정). 인덱스 점검 표에서 반사실 · 취득가액 · 세금 소비처를 F003 · F004 · F006 으로 바꾸고 추적 · 검색 · 북마크 행 추가. 위험 1 · 2 는 **Q2 결정 전 해당 없음**. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | 추적 상한 판정 — 관심 `listAll`(사용자당 ≤ 수십 행) + 보유 1회. 새 인덱스 없음(`@@index([userId, assetType])`). 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-10-30 | FR-30 · 31 정정(머리 블록) — `market_assets` 단일 경로 = 서버 잡. 코드 · 스키마 무변경. 루트 `F000-legacy-cleanup` |
