@@ -16,6 +16,7 @@ import type {
   ClosePoint,
   DailyReturnProfile,
   ExchangeQuotePort,
+  HoldingProbe,
   OvernightGapStats,
   TradeHistoryPort,
   FearGreedPort,
@@ -42,6 +43,7 @@ import {
   CollectWhaleTrades,
 } from "../AnalyzeMarketIntelligence";
 import { GetSymbolNews } from "../GetSymbolNews";
+import { SearchAssets } from "../SearchAssets";
 import { ResolveKrStockLogos } from "../ResolveKrStockLogos";
 import {
   AddToWatchlist,
@@ -248,6 +250,8 @@ export interface MarketDependencies {
    * 코인 의존과 묶지 않는다: KIS 장애 · 미설정이 코인 시세를 막지 않는다
    */
   krStock: KrStockDependencies | null;
+  /** 추적 자산 상한(`SRV-REQ-008` FR-80~87) — 보유는 `portfolio` 의 사실이라 조립 지점이 넣는다. 상한은 `TRACKED_ASSET_LIMIT` */
+  tracking: { held: HoldingProbe; limit: number };
 }
 
 export interface KrStockDependencies {
@@ -373,6 +377,8 @@ export interface MarketUseCases {
   getSymbolNews: GetSymbolNews;
   addToWatchlist: AddToWatchlist;
   listWatchlist: ListWatchlist;
+  /** 종목 검색 — 코인 + 국내 한 검색(`FEATURE-000` FR-40) */
+  searchAssets: SearchAssets;
   removeFromWatchlist: RemoveFromWatchlist;
   listWatchlistSymbols: ListWatchlistSymbols;
   updateWatchlistPrices: UpdateWatchlistPrices;
@@ -414,10 +420,11 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     getSentimentHistory: new GetSentimentHistory(deps.sentiments),
     listWhaleTransactions: new ListWhaleTransactions(deps.whales),
     getSymbolNews: new GetSymbolNews(deps.news),
-    addToWatchlist: new AddToWatchlist(deps.watchlist, deps.exchange, krWatchlist),
+    addToWatchlist: new AddToWatchlist(deps.watchlist, deps.exchange, krWatchlist, deps.tracking),
     // 관심 목록이 자산 표를 함께 읽는다 — 행에 가격이 없거나 오래된 심볼을 보정한다
     // (`SRV-REQ-008` FR-33). 두 리포지토리 다 이 컨텍스트 것이라 경계를 넘지 않는다.
-    listWatchlist: new ListWatchlist(deps.watchlist, deps.assets, krWatchlist),
+    listWatchlist: new ListWatchlist(deps.watchlist, deps.assets, krWatchlist, deps.tracking),
+    searchAssets: new SearchAssets(deps.watchlist, deps.assets, deps.tracking, krWatchlist),
     removeFromWatchlist: new RemoveFromWatchlist(deps.watchlist),
     listWatchlistSymbols: new ListWatchlistSymbols(deps.watchlist),
     updateWatchlistPrices: new UpdateWatchlistPrices(deps.watchlist),

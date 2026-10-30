@@ -170,6 +170,14 @@ export interface AssetQuote {
   priceUpdatedAt: Date | null;
 }
 
+/**
+ * 사용자의 보유 종목(수량 > 0) — 보유는 `portfolio` 의 사실이다. `market` 이 `PortfolioHolding` 을 직접 읽지 않고 이 Port 로
+ * 받는다(`SRV-REQ-008` FR-83). 구현은 `portfolio` 공개 API 를 감싸는 어댑터
+ */
+export interface HoldingProbe {
+  heldAssets(userId: string): Promise<Array<{ assetType: MarketAssetType; symbol: string }>>;
+}
+
 export interface MarketAssetRepository {
   /** 저장된 시세. 거래소를 부르지 않는다 — 판단용 조회는 DB 값을 쓴다. */
   findQuotes(symbols: string[]): Promise<AssetQuote[]>;
@@ -245,6 +253,10 @@ export interface WatchlistItemView {
    */
   logoUrl: string | null;
   addedAt: Date;
+  /**
+   * 보유 종목(수량 > 0) — 늘 추적되므로 화면이 ★ 해제를 막는다(`FE-REQ-011` FR-7). 추적 상한이 꺼진 조립(테스트)에서는 없다
+   */
+  isHeld?: boolean;
 }
 
 export interface WatchlistRepository {
@@ -269,6 +281,11 @@ export interface WatchlistRepository {
     /** 이 자산군 행은 빼고 센다 — 국내 주식을 볼 수 없는 사람(F011 소유자 전용) */
     excludeAssetTypes?: MarketAssetType[]
   ): Promise<{ items: WatchlistItem[]; total: number }>;
+  /**
+   * 한 사용자의 관심 목록 전부(추가 순 최신 먼저). 추적 상한 판정 · 검색의 `isTracked` 가 요청당 **한 번** 읽는다(FR-84).
+   * 상한이 10 이라 한 사용자 행이 수십을 넘지 않는다 — 넘으면 그것 자체가 조사할 일이다
+   */
+  listAll(userId: string): Promise<WatchlistItem[]>;
   /** 남의 항목이면 지우지 않고 `false`. 소유 검사를 왕복 한 번에 끝낸다. */
   removeOwned(userId: string, watchlistId: string): Promise<boolean>;
   distinctSymbols(assetType: MarketAssetType): Promise<string[]>;

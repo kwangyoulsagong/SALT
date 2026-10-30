@@ -179,8 +179,63 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *     responses:
    *       201:
    *         description: 관심 목록 추가 성공
+   *       409:
+   *         description: |
+   *           `MARKET_WATCHLIST_DUPLICATE` 이미 있음 · `TRACKED_ASSET_LIMIT` 추적 상한 — 보유가 아닌 관심 수가 상한에 닿았다.
+   *           보유 종목은 상한과 무관하게 담긴다. 본문에 `trackedCount` · `trackedLimit`(정수)
    */
   router.post("/watchlist", authMiddleware, investmentController.addToWatchlist);
+
+  /**
+   * @swagger
+   * /api/investment/search:
+   *   get:
+   *     summary: 종목 검색 — 코인 + 국내 주식 한 검색(추적 자산 고르기)
+   *     description: |
+   *       심볼 · 코드 · 한글명 · 영문명 부분 일치. 같음 → 시작 → 포함 순, 같은 순위 안은 코인 거래대금 · 국내 시총 순.
+   *       국내 주식은 소유자에게만 나온다. `q` 가 비면 추적 목록(관심 ∪ 보유)을 준다. 검색어는 로그에 남기지 않는다.
+   *       `isTracked` = 관심 또는 보유, `isHeld` = 보유(수량 > 0). `tracked.count` = 보유가 아닌 관심 수, `tracked.limit` = 설정값.
+   *     tags: [Investment - Protected]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - { in: query, name: q, schema: { type: string, maxLength: 30, default: "" } }
+   *       - { in: query, name: assetType, schema: { type: string, enum: [crypto, kr_stock] } }
+   *       - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 30, default: 20 } }
+   *     responses:
+   *       200:
+   *         description: 검색 결과
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     items:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           assetType: { type: string, enum: [crypto, stock, kr_stock] }
+   *                           symbol: { type: string }
+   *                           name: { type: string }
+   *                           logoUrl: { type: string, nullable: true }
+   *                           currentPrice: { type: number, nullable: true, description: "저장 시세. 없으면 null(0 을 만들지 않는다)" }
+   *                           changeRate: { type: number, nullable: true, description: "% — 코인 24시간 · 국내 전일 대비" }
+   *                           isTracked: { type: boolean }
+   *                           isHeld: { type: boolean }
+   *                     tracked:
+   *                       type: object
+   *                       properties:
+   *                         count: { type: integer }
+   *                         limit: { type: integer }
+   *       400: { description: q · assetType · limit 형식 오류 }
+   *       401: { description: 인증 실패 }
+   */
+  router.get("/search", authMiddleware, investmentController.searchAssets);
 
   /**
    * @swagger
@@ -252,6 +307,17 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *                           addedAt:
    *                             type: string
    *                             format: date-time
+   *                           isHeld:
+   *                             type: boolean
+   *                             description: 보유 종목(수량 > 0) — 늘 추적돼 화면이 ★ 해제를 막는다
+   *                     tracked:
+   *                       type: object
+   *                       description: 사용자 전체(필터 · 페이지 무관) — `count` 보유가 아닌 관심 수, `limit` 상한 설정값
+   *                       properties:
+   *                         count:
+   *                           type: integer
+   *                         limit:
+   *                           type: integer
    *                     pagination:
    *                       type: object
    *                       properties:

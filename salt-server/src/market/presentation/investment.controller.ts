@@ -17,6 +17,7 @@ import {
   addToWatchlistSchema,
   queryWatchlistSchema,
 } from "./dto/watchlist.dto";
+import { searchAssetsSchema } from "./dto/search.dto";
 
 /** 분봉에서 거래소가 받는 단위. 그 외 값은 5분으로 떨어뜨린다(원문). */
 const ALLOWED_UNITS = [1, 3, 5, 15, 30, 60, 240];
@@ -51,6 +52,20 @@ export class InvestmentController {
         query,
         { email: req.user!.email }
       );
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  searchAssets = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = searchAssetsSchema.parse(req.query);
+      const result = await this.useCases.searchAssets.execute({
+        userId: req.user!.userId,
+        email: req.user!.email,
+        ...query,
+      });
       return ResponseUtil.success(res, result);
     } catch (error) {
       next(error);

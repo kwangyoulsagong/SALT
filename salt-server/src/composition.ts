@@ -48,6 +48,7 @@ import { PrismaMarketAssetRepository } from "./market/infrastructure/PrismaMarke
 import { PrismaPriceHistoryRepository } from "./market/infrastructure/PrismaPriceHistoryRepository";
 import { PrismaSentimentRepository } from "./market/infrastructure/PrismaSentimentRepository";
 import { PrismaWatchlistRepository } from "./market/infrastructure/PrismaWatchlistRepository";
+import { HeldAssetsAdapter } from "./market/infrastructure/HeldAssetsAdapter";
 import { PrismaWhaleTransactionRepository } from "./market/infrastructure/PrismaWhaleTransactionRepository";
 import { SymbolNewsAdapter } from "./market/infrastructure/SymbolNewsAdapter";
 import { UpbitClient } from "./market/infrastructure/UpbitClient";
@@ -183,6 +184,8 @@ const market = createMarketApplication({
     wideMoveRate: env.MARKET_SUMMARY_WIDE_MOVE_RATE,
   },
   krStock,
+  // 보유는 `portfolio` 공개 API 로 — `portfolio` 가 아래에서 조립되므로 부를 때 찾는다(`held` 와 같은 이유)
+  tracking: { held: new HeldAssetsAdapter(() => portfolio.api), limit: env.TRACKED_ASSET_LIMIT },
 });
 
 /**
