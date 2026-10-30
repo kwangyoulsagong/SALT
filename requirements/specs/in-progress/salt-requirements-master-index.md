@@ -70,7 +70,7 @@ Status: In Progress
 | `SRV-REQ-007` | 서버 정리 (삭제·동면) | 삭제 5건 · 동면 4건 · 410 Gone. **grep 근거 첨부** |
 | `BFF-REQ-006` | 레이어 정리 + SSE 기반 | route/controller/service 경계 재정의, 스트리밍 송신 |
 | `RN-REQ-001` | RN 앱 신설 | `apps/mobile`, Expo prebuild, iOS+Android, FSD, `packages/ui-native` |
-| `RN-REQ-002` | RN 마이크로프론트엔드 | Shared/Service 번들, ESBuild, CDN, 카나리 (토스 방식) |
+| `RN-REQ-002` | RN 마이크로프론트엔드 | Shared/Service 번들, ESBuild, CDN, 카나리 |
 | `RN-REQ-003` | 릴리스·스토어 | 코드 서명, TestFlight/Play 내부 테스트, OTA 정책, 버전 게이트 |
 
 ### 기능 × 영역 × 종류
@@ -730,4 +730,6 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-10-12 | **F011 슬라이스 5c P1.** `SRV-REQ-040` FR-40(전 종목 일봉 5년 · 밤 · 주말 백필 · 국내 일봉 2년 정리 제외) · `FC-REQ-020` FR-7(시점 고정 유니버스 `kr-universe@1`, 사전등록 뒤 측정). 2,605종목 · 286만 행 · 격자당 973종목 — 4기간 미통과, 위치 0 이 기준보다 나쁨 → 국내 카드 0 유지, 다음 P2. 계약 변경 없음 |
 | 2026-10-09 | **F011 슬라이스 5c P0.** `FC-REQ-020` FR-1~6 — 국내 게이트를 풀링 검정(HLN-DM · 블록 부트스트랩 · 비중첩, Holm) + 종목 거부권으로, `kr-ens-baseline@0.2.0` 위치 0, 상시 플라시보 · 꼬리별 커버리지. 4기간 미통과 → 국내 카드 0. 코인 게이트 플라시보 30% · p 0.080(지난 p<0.001 정정, 코인 게이트는 무변경). 계약: `forecast.gate` 열 무변경 · 국내 `blocked_reason` 값 분포만 바뀜 |
 | 2026-10-09 | **F011 슬라이스 5b · 실력 감사 · 5c 스펙.** `FC-REQ-009` FR-9 · `SRV-REQ-040` FR-39(완료) · FR-40~47(Draft) · `DB-REQ-029` Changelog(`v_daily_close` `kis`, 열 무변경) · `FC-REQ-020`(신규, to-do) · FEATURE-011 FR-84 · 85 · 슬라이스 5c · 5d · 7. 계약: 서버 내부 포트 `ForecastCardRow.assetClass` · BFF · FE 무변경. 리서치 보고서 `requirements/reports/research/reports/국내 주식 코치 전망 설계.md` |
+| 2026-10-30 | **`FE-REQ-047` 데스크톱 화면 틀 재설계(to-do).** 기준 증권 앱 웹 11화면 실측 — 표는 유지, 전역 헤더 52px · 패널 면 · 가득 찬 폭 · 오른쪽 사이드 · 글자 위계 3단 색 · 4단 크기 · 필터 칩 |
+| 2026-10-30 | **데스크톱 재설계 REQ(to-do).** `FE-REQ-048`(홈 데스크톱) · `FE-REQ-049`(상세 재설계 · 국내 깨짐 B1~B8 · 탭 제목 실시간 가격) · `FE-REQ-050` · `BFF-REQ-044` · `SRV-REQ-042` · `DB-REQ-035`(국내 탭 요약을 코인과 같게) · `FE-REQ-051`(로고 SVG 초안 `salt-microFe/docs/design-system/brand/`) · `FE-REQ-047` 개정(헤더 · 뒤로 · 탭 주소). 규칙 신설 `salt-microFe/.claude/rules/screen-desktop.md` · `screen-mobile.md`. 지도 `requirements/specs/to-do/DESIGN-desktop-redesign-plan.md` |
 | 2026-10-30 | **F008 슬라이스 24 기획(to-do).** 국내 증시 일정 · 실적 공시 — `FC-REQ-021` · `DB-REQ-034` · `SRV-REQ-041` · `BFF-REQ-043` · `FE-REQ-046` 신규, FEATURE-008 FR-69~72. 계약(예정): `scheduled_event` PK 에 `symbol` · `v_event_card` `event_symbol` 열 · 새 경로 `GET /api/market/kr/schedule`. 루트 `requirements/specs/to-do/F008-slice24-kr-market-events-slice.md` |
