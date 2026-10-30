@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SALT 돈 관리 기능 기획서</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 레이아웃: 기획서. 왜 → 공통 원칙 → 기능 3개(각각 문제 · 핵심 아이디어 · FR 표 · 근거) → 연결 → 순서 → 미확인 · 출처 */
+:root{
+  --bg:#f6f7f9; --surface:#fff; --fg:#17202b; --muted:#5a6675; --line:#d9dee5;
+  --accent:#1f6f8b; --accent-soft:#e3f0f5;
+  --sav:#2f7d4f; --led:#8a5a12; --tip:#6b4fa3; --sav-soft:#e5f3ea; --led-soft:#f6ecdc; --tip-soft:#ece6f6;
+  --new:#b2421f; --new-soft:#fbe9e2; --warn:#a2621a; --warn-soft:#f8eedf;
+  --sans:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ef; --muted:#97a3b1; --line:#2c3743;
+  --accent:#6bb7d2; --accent-soft:#183340;
+  --sav:#74c493; --led:#e0b06a; --tip:#b39ae6; --sav-soft:#173326; --led-soft:#36291a; --tip-soft:#2a2240;
+  --new:#f0957a; --new-soft:#3a2119; --warn:#e0a55c; --warn-soft:#382a17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ef; --muted:#97a3b1; --line:#2c3743;
+  --accent:#6bb7d2; --accent-soft:#183340;
+  --sav:#74c493; --led:#e0b06a; --tip:#b39ae6; --sav-soft:#173326; --led-soft:#36291a; --tip-soft:#2a2240;
+  --new:#f0957a; --new-soft:#3a2119; --warn:#e0a55c; --warn-soft:#382a17; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.7}
+.wrap{max-width:940px;margin:0 auto;padding-block:40px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:48px}
+h1{font-size:28px;line-height:1.3;margin:0;text-wrap:balance}
+h2{font-size:21px;margin:0;text-wrap:balance}
+h3{font-size:16px;margin:0}
+p{margin:0;max-width:72ch}
+section{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+.muted{color:var(--muted)}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.sav{color:var(--sav);background:var(--sav-soft)} .led{color:var(--led);background:var(--led-soft)} .tip{color:var(--tip);background:var(--tip-soft)}
+.new{color:var(--new);background:var(--new-soft)} .must{color:var(--accent);background:var(--accent-soft)} .warn{color:var(--warn);background:var(--warn-soft)}
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:10px 13px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--muted);font-weight:600;background:var(--bg)}
+tr:last-child td{border-bottom:none}
+td.id{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+td small{color:var(--muted);display:block;margin-top:4px;font-size:12.5px;line-height:1.5}
+ul,ol{margin:0;padding-left:1.25em;display:flex;flex-direction:column;gap:6px;max-width:74ch}
+.feature{border-top:3px solid var(--line);padding-top:22px}
+.feature.s{border-color:var(--sav)} .feature.h{border-color:var(--led)} .feature.t{border-color:var(--tip)}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
+.head .num{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.ideas{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.idea{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.idea .t{font-weight:600}
+.idea .w{font-size:13px;color:var(--muted)}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.rules div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;min-width:0}
+.callout{border-left:3px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 8px 8px 0}
+.sources{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.sources a{color:var(--accent);word-break:break-all}
+a{color:var(--accent)}
+@media (max-width:640px){h1{font-size:24px}}
+</style>
+
+<div class="wrap">
+<header style="display:flex;flex-direction:column;gap:10px">
+  <div class="eyebrow">pm · FEATURE-012 · 013 · 014 · 015 + 투자 동결 · 초안 2026-10-30</div>
+  <h1>SALT 돈 관리 기능 기획서</h1>
+  <p class="muted">SALT를 돈 관리 앱으로 되돌리는 기획서다. 새 기능은 저축 목표, 가계부, 금융 팁, 셸(홈 · 온보딩 · 내 데이터) 넷이고, 투자는 지금 기획된 범위에서 동결한다(완료 · 남은 것 · 버린 것을 한 곳에 정리). 모든 기능은 수동 입력이고, 측정 · 거울 · 계산기까지만 한다. 아이디어마다 근거 연구를 붙였고, 확인 못 한 숫자는 "미확인"으로 남겼다.</p>
+</header>
+
+<section>
+  <h2>왜 지금</h2>
+  <ul>
+    <li><b>제품이 투자로 쏠렸다.</b> 최근 기능(F004 · F009 · F010 · F011)이 전부 투자다. 저축 쪽은 목표 추가 화면 하나(62줄)와 서버 <code>modules/goals</code>(601줄, 구식 구조)뿐이다.</li>
+    <li><b>한국 성인이 약한 곳이 정확히 여기다.</b> 2024 전국민 금융이해력 조사에서 <b>평소 재무상황 점검 43.4점</b>, <b>장기 재무목표 설정 42.5점</b>이 가장 낮았다. 태도 영역은 53.7점으로 OECD 평균(58.0)에 못 미쳤고, 인플레이션의 실질가치 문항은 78.3 → 56.6으로 가장 크게 떨어졌다(언론 보도 기준, 한국은행 원문 미대조). 가계부는 점검, 저축 목표는 장기 목표, 금융 팁은 물가 · 실질가치를 맡는다.</li>
+    <li><b>교육보다 결정 시점이 낫다.</b> 일반 금융교육의 효과는 작지만 있고(Kaiser 외 2022, RCT 76건), 결정 직전에 주는 정보가 더 낫다는 제안(Fernandes 외 2014)이 있다. 그래서 금융 팁은 읽을거리보다 "때맞춘 한 줄"이 중심이다.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>세 기능 공통 원칙</h2>
+  <div class="rules">
+    <div><b>수동 입력만.</b> 계좌 · 카드 연동 없음. "연결 · 연동 · 가져오기" 문구 금지. 결제 문자 붙여넣기는 사용자가 직접 붙이는 입력 방식이다.</div>
+    <div><b>막지 않는다.</b> 지출 차단 · 타이머 · 약속 강제 · 경고 팝업 없음. 초과는 색과 문장으로만 보여 준다.</div>
+    <div><b>금액은 서버가 계산한다.</b> 기간 · 월 적립액 · 착지 구간 · 공제 추정 전부. 프론트는 표시만, LLM은 분류 제안과 문장만.</div>
+    <div><b>예측은 구간 + 채점 이력.</b> "X월 도달" 한 점 대신 "빠르면 ~ 늦으면"과 지난 구간이 맞았는지를 같이 보여 준다(ADR-003 정신).</div>
+    <div><b>재미는 보여 주기로, 평가는 하지 않는다.</b> 모으는 장면 · 실물 환산 · 수집은 크게 하되 "잘했어요" 같은 앱의 칭찬은 없다. 진척을 칭찬하면 상충하는 소비가 늘어난다(Fishbach &amp; Dhar 2005).</div>
+    <div><b>상품을 권하지 않는다.</b> 금융상품명 · 금리 비교 · 가입 링크 · 제휴 대가 0. 공적 제도는 설명하되 명령형 없이, 공식 페이지 링크만.</div>
+    <div><b>제도 숫자는 기준일과 함께.</b> 청약 인정액 · 이자 과세 · 공제율 · 일몰일은 해마다 바뀐다. 유효 구간이 붙은 표 하나(content 서비스)에서 읽는다.</div>
+    <div><b>밀려도 다시 시작하게.</b> 기록은 끊기는 게 기본이다(Epstein 외 2015). 죄책감 없이 재개하는 흐름을 설계에 넣는다.</div>
+  </div>
+</section>
+
+<section>
+  <h2>바탕 — 모으는 재미</h2>
+  <p>돈 관리 앱이 실패하는 가장 흔한 이유는 재미가 없어서 안 여는 것이다. 그래서 재미를 장식이 아니라 세 기능의 바탕으로 둔다. 재미의 원천은 <b>모이는 게 눈에 보이는 것</b>, <b>내가 고른 놀이</b>, <b>모은 것을 모아 두는 것</b> 세 가지다. 재촉 · 벌칙 · 운에 기대는 재미는 쓰지 않는다.</p>
+  <div class="ideas">
+    <div class="idea"><span class="pill sav" style="align-self:flex-start">저축</span><div class="t">모이는 장면</div><div>목표마다 채워지는 그림. 여행은 지도 위 비행기가 목적지로 날아가고, 차는 부품이 하나씩 조립되고, 비상금은 우산이 펴진다. 적립을 넣을 때마다 한 칸 움직이는 짧은 모션.</div><div class="w">목표에 가까울수록 빨라진다(Kivetz 외 2006) · 기존 모션 장면(FE-REQ-044) 재사용</div></div>
+    <div class="idea"><span class="pill sav" style="align-self:flex-start">저축</span><div class="t">실물로 바꿔 보기</div><div>"지금 모은 돈 = 제주 왕복 항공권 3장", "타이어 네 짝까지 모였다". 목표 템플릿마다 단위를 두고, 사용자가 자기 단위를 만든다.</div><div class="w">숫자보다 사물이 기억에 남는다 — 효과 연구 미확인, 재미 기능으로</div></div>
+    <div class="idea"><span class="pill sav" style="align-self:flex-start">저축</span><div class="t">도장판</div><div>적립 한 번에 도장 하나. 목표를 만드는 것도 실제 첫걸음이라 첫 도장이 찍힌 채로 시작한다.</div><div class="w">부여된 진척 효과(Nunes &amp; Drèze 2006)</div></div>
+    <div class="idea"><span class="pill sav" style="align-self:flex-start">저축</span><div class="t">엽서 보관함</div><div>달성한 목표는 사진 · 걸린 기간 · 적립 횟수가 적힌 엽서로 보관함에 남는다. 다음 목표를 만들 때 지난 엽서가 보인다.</div><div class="w">수집 · 회고</div></div>
+    <div class="idea"><span class="pill led" style="align-self:flex-start">가계부</span><div class="t">내가 고르는 챌린지</div><div>"무지출 주말", "커피 한 잔 아끼기"를 사용자가 고르고 기간도 정한다. 안 쓴 돈을 "아낀 돈"으로 기록해 목표 장면에 보탤 수 있다. 언제든 그만두고, 실패 표시가 없다.</div><div class="w">자기 선택 · 벌칙 없음</div></div>
+    <div class="idea"><span class="pill led" style="align-self:flex-start">가계부</span><div class="t">달력 스티커</div><div>무지출일 · 챌린지 성공일에 스티커. 연속 일수를 세지 않는다 — 끊겨도 잃는 게 없다.</div><div class="w">스트릭 압박 제외</div></div>
+    <div class="idea"><span class="pill must" style="align-self:flex-start">공통</span><div class="t">올해 모은 이야기</div><div>연말 · 월말 스토리 카드: 가장 많이 모은 달, 달성한 엽서, 가장 많이 쓴 분류, 맞힌 퀴즈. 공유할 때는 금액을 가리는 옵션이 기본.</div><div class="w">회고 · 공유</div></div>
+    <div class="idea"><span class="pill must" style="align-self:flex-start">공통</span><div class="t">함께 모으기 응원</div><div>공동 목표에서 상대의 적립에 이모지로 반응. 응원은 사람이 하고, 앱은 하지 않는다.</div><div class="w">사회적 재미 · 금액 순위 없음</div></div>
+    <div class="idea"><span class="pill tip" style="align-self:flex-start">팁</span><div class="t">30초 맞히기 기록</div><div>퀴즈를 먼저 맞혀 보고, 맞힌 문제는 카드로 모인다.</div><div class="w">태도 영역 겨냥</div></div>
+    <div class="idea"><span class="pill must" style="align-self:flex-start">앱</span><div class="t">홈 화면 위젯</div><div>모이는 장면을 휴대폰 홈 화면 위젯으로. 앱을 열지 않아도 비행기가 얼마나 왔는지 보인다.</div><div class="w">RN 네이티브 위젯</div></div>
+  </div>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:26%">쓰지 않는 재미</th><th>왜</th></tr></thead>
+    <tbody>
+      <tr><td>연속 기록 끊김 벌칙 · 스트릭 리셋</td><td>잃을까 봐 여는 것은 재촉이다(원칙: 통제 · 강제 금지). 끊긴 뒤 재개를 막는다</td></tr>
+      <tr><td>뽑기 · 랜덤 보상 · 추첨형 적금</td><td>운에 기대는 보상은 사행성 문제가 있고, 금융상품 연계가 된다</td></tr>
+      <tr><td>남과 금액 비교 · 순위표</td><td>금액은 민감 정보이고, 비교는 재미보다 압박이 된다</td></tr>
+      <tr><td>앱의 칭찬 · 응원 문구</td><td>진척 칭찬이 일탈을 허락한다(Fishbach &amp; Dhar 2005). 장면과 숫자가 대신 말한다</td></tr>
+      <tr><td>재촉 알림("오늘 아직 안 모았어요")</td><td>알림은 사용자가 켠 것만(FEATURE-015 FR-4)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:14px">재미 요구사항은 각 기능 표에 <span class="pill new">재미</span>로 표시했다. 계측(FEATURE-015 FR-6)으로 재미 기능이 실제로 재방문 · 기록 재개를 늘리는지 본다.</p>
+</section>
+
+<!-- ============ FEATURE-012 ============ -->
+<section class="feature s">
+  <div class="head"><span class="num">FEATURE-012</span><h2>저축 목표 — 이걸 모으려면 얼마나 걸리나</h2><span class="pill sav">savings</span></div>
+  <p><b>문제.</b> 지금 목표는 이름 · 금액 · 날짜를 적는 칸이다. 사용자가 실제로 묻는 건 "차 사려면 매달 얼마씩, 언제까지?", "여행이랑 결혼을 같이 모으면 결혼은 얼마나 밀리나?"다. 그리고 사람은 미래 저축을 부풀려 추정한다(Dholakia 2011, Peetz 등) — 한 점 날짜는 거의 늘 틀린다.</p>
+  <h3>신박한 것</h3>
+  <div class="ideas">
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">도달 구간 팬 차트 + 적중 이력</div><div>내 실제 적립 기록의 흔들림으로 "빠르면 2027년 3월 ~ 늦으면 9월". 기록이 쌓일수록 구간이 좁아지고, 6개월 전에 낸 구간이 맞았는지 같이 보여 준다.</div><div class="w">근거: 계획 오류 · 저축 과대추정(Dholakia 2011)</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">목표 저울 (트레이드오프)</div><div>"여행에 월 10만 원 더 → 결혼 도달 구간 4~6개월 늦춰짐." 목표끼리 돈을 옮겨 보는 시뮬레이터. 결정은 사용자가 한다.</div><div class="w">근거: 좁은 목표 묶기(Koch &amp; Nafziger 2016)</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">오늘 돈으로 다시 보기</div><div>"2년 전 정한 3,000만 원은 오늘 돈으로 2,8xx만 원어치." 공식 물가지수로 목표 금액의 실질가치를 보여 주고, 금액을 고칠지는 사용자가 정한다.</div><div class="w">근거: 실질가치 이해 최대 하락 문항</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">프레임 자동 전환</div><div>절반 전에는 "모은 돈", 절반 뒤에는 "남은 돈"을 크게. 중간에서 동기가 꺼지는 구간을 피한다.</div><div class="w">근거: Bonezzi, Brendl &amp; De Angelis 2011</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">비상시 비교 카드</div><div>목표 이름이 붙은 돈은 급할 때도 안 꺼내고 비싼 대출을 쓰는 경향이 있다. "목표에서 200만 원 꺼내기 vs 연 15% 대출 6개월" 비용을 나란히 보여 준다.</div><div class="w">근거: Sussman &amp; O'Brien 2016</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">생애 이벤트 기준선</div><div>결혼 · 신혼집 · 첫 차 · 여행 · 비상금 템플릿에 공식 통계 기준선을 출처 · 연도와 함께. "평균보다 많다/적다" 판단 문구는 없다.</div><div class="w">통계 일부 미확인 — 아래 미확인 표</div></div>
+  </div>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:62px">ID</th><th>요구사항</th><th style="width:72px">우선</th></tr></thead>
+    <tbody>
+      <tr><td class="id">FR-1</td><td>생애 이벤트 템플릿으로 목표를 만든다: 결혼 · 주거(전세 · 매매 계약금) · 첫 차 · 여행 · 비상금 · 출산 · 기타. 템플릿은 기본 금액 제안과 출처 · 기준 연도를 보여 주고 사용자가 고친다.<small>현재 <code>GoalCategory</code>에 주거 · 비상금 · 출산이 없다 → enum 확장 마이그레이션.</small></td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-2</td><td>양방향 계산기: 금액 + 기한 → 월 적립액, 금액 + 월 적립액 → 도달 시점. 세후 이자(15.4% 원천징수)를 넣을지 고를 수 있고, 넣으면 기준일을 표시한다.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-3</td><td>적립 기록을 수동으로 남긴다(기존 <code>SavingTransaction</code>). 한 번에 여러 목표로 나눠 넣기를 지원한다.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-4</td><td>도달 구간: 기록 3개월 이상이면 경험 분위수로 구간을 보여 준다. 3개월 미만이면 "계획대로면 X월"과 구간이 없는 이유를 보여 준다.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-5</td><td>구간 채점: 3 · 6개월 전에 보여 준 구간에 실제 진척이 들어갔는지 목표 화면에 쌓는다. 채점은 forecast 서비스(예측 설계 O4).</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-6</td><td>목표 저울: 목표 사이에 월 적립액을 옮겨 보면 각 목표의 도달 구간 변화를 서버가 계산해 보여 준다. 저장은 사용자가 확정할 때만.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-7</td><td>이번 달 이정표: 이번 달 넣은 돈과 계획 금액의 차이만 보여 준다. 미달 경고 · 알림 강제 없음.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-8</td><td>프레임 전환: 진척 50% 전후로 강조 숫자를 "모은 돈" ↔ "남은 돈"으로 바꾼다. 문구는 중립(칭찬 · 응원 금지).</td><td>Should</td></tr>
+      <tr><td class="id">FR-9</td><td>오늘 돈으로 다시 보기: 목표 생성 후 6개월마다, 또는 물가지수 발표 뒤 목표 금액의 실질가치를 보여 준다.</td><td>Should</td></tr>
+      <tr><td class="id">FR-10</td><td>놓친 달 회고: 적립을 건너뛴 달이 도달 구간을 얼마나 옮겼는지 사후에 보여 준다.</td><td>Should</td></tr>
+      <tr><td class="id">FR-11</td><td>비상시 비교 카드: 목표에서 꺼내기 vs 사용자가 입력한 대출 금리로 빌리기의 비용 비교. 비상금 목표가 없으면 비상금 템플릿을 안내한다(명령형 없이).</td><td>Should</td></tr>
+      <tr><td class="id">FR-12</td><td>제도 파라미터 반영: 주택청약 월 인정액 상한, 청년 정책 적금 기여금 구조를 계산에 넣을 수 있다. 상품 가입 안내 · 링크 없음, 기준일 필수.</td><td>Could</td></tr>
+      <tr><td class="id">FR-13</td><td>공동 목표: 두 사람이 각자 수동 입력, 합의 비율 대비 실제 기여 비율 차이만 보여 준다.</td><td>Could</td></tr>
+      <tr><td class="id">FR-14</td><td>홈 요약 카드: 가장 가까운 목표의 진척 · 이번 달 이정표 차이(<code>HomeSummaryCard</code>).</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-15</td><td><span class="pill new">재미</span> 모이는 장면: 목표 템플릿마다 채워지는 그림 + 적립 시 한 칸 움직이는 모션. <code>prefers-reduced-motion</code>이면 정지 그림.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-16</td><td><span class="pill new">재미</span> 실물로 바꿔 보기: 템플릿 단위 + 사용자 단위(이름 · 단가). 환산은 서버.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-17</td><td><span class="pill new">재미</span> 도장판: 적립 1회 = 도장 1개, 목표 생성 시 첫 도장.</td><td>Should</td></tr>
+      <tr><td class="id">FR-18</td><td><span class="pill new">재미</span> 엽서 보관함: 달성 목표를 사진 · 기간 · 적립 횟수 엽서로 보관.</td><td>Should</td></tr>
+      <tr><td class="id">FR-19</td><td><span class="pill new">재미</span> 공동 목표 이모지 응원(FR-13 위에).</td><td>Could</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:14px">하지 않는 것: 자동 이체 · 자투리 적립(계좌 연동 필요) · 달성 축하 애니메이션의 과장 · "잘하고 있어요" 류 칭찬 · 특정 적금 상품 추천.</p>
+</section>
+
+<!-- ============ FEATURE-013 ============ -->
+<section class="feature h">
+  <div class="head"><span class="num">FEATURE-013</span><h2>가계부 — 3초 입력, 막지 않는 예산</h2><span class="pill led">household</span></div>
+  <p><b>문제.</b> 수동 가계부는 입력 피로와 "하루 밀리면 포기"로 끝난다. 그런데 직접 기록하는 수고는 효과의 일부이기도 하다 — 진척을 모니터링하면 목표 달성이 오르고, 물리적으로 기록할 때 효과가 더 컸다(Harkin 외 2016, 실험 138개 메타분석). 그래서 입력은 최대한 빠르게 하되, "보이게 만드는 것"은 남긴다. 카드는 지출을 안 보이게 만든다(Soman 2001) — 수동 입력은 그걸 다시 보이게 하는 장치다.</p>
+  <h3>신박한 것</h3>
+  <div class="ideas">
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">목표 시계</div><div>지출을 넣는 순간 "결혼 목표 3일 늦어짐" 한 줄. 막지 않고 환산만 한다. 가계부와 저축을 잇는 SALT만의 연결.</div><div class="w">근거: 심적 회계 · 결제의 고통(Prelec &amp; Loewenstein 1998)</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">결제 문자 붙여넣기</div><div>카드 결제 문자 여러 건을 한 번에 붙이면 금액 · 가맹점 · 할부 개월을 뽑아 확인 목록으로. 연동이 아니라 입력 방식이다.</div><div class="w">정형 문자라 파싱이 쉬움 · 개인정보 마스킹 필수</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">밀린 날 대략 합계</div><div>빈 날을 "대략 3만 원쯤" 한 칸으로 메우고 정확도 라벨을 붙인다. 끊긴 기록을 재개로 바꾼다.</div><div class="w">근거: 기록 중단은 기본값(Epstein 외 2015)</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">월말 착지 구간 + 채점</div><div>"지금 속도면 월말 지출 182~205만 원." 지난달 같은 날짜에 낸 구간이 맞았는지도 같이.</div><div class="w">투자 전망과 같은 규율</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">다음 날 만족도 거울</div><div>감정 태그(스트레스 · 보상 · 지루함)를 단 지출에 다음 날 한 번 "만족했나요?" — 산 직후와 다음 날 만족을 태그별로 비교한다.</div><div class="w">효과 연구 미확인 — 측정 기능으로만</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">공제 계기판</div><div>연말정산 카드 공제 문턱(총급여 25%)까지 남은 금액과 결제수단별 추정 공제액. "추정"이라는 문구와 기준 연도 필수, 결제수단을 바꾸라는 말은 없다.</div><div class="w">공제율: 신용 15% · 체크 · 현금영수증 30%(2차 자료, 국세청 미대조)</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">사람 장부</div><div>경조사 주고받은 기록을 사람별로. 축의금 평균은 2026년 조사에서 9만 7,900원, 65.3%가 10만 원.</div><div class="w">한국 맥락 · 관계별 평균만, 권고 금액 없음</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">유령 구독 점검</div><div>반복 템플릿마다 "지난 30일 썼나요?" 체크, 안 쓴 구독의 누적액만 보여 준다.</div><div class="w">해지는 사용자가 직접</div></div>
+  </div>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:62px">ID</th><th>요구사항</th><th style="width:72px">우선</th></tr></thead>
+    <tbody>
+      <tr><td class="id">FR-1</td><td>빠른 입력: 금액 먼저 → 분류 → 저장. 최근 항목 재사용 · 자주 쓰는 가맹점 제안. 세 번 탭 안에 저장.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-2</td><td>한 줄 입력: "점심 12000 회사 근처". 금액은 숫자로 확정, 분류는 서버(LLM 가능)가 제안하고 사용자가 확인.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-3</td><td>결제 문자 붙여넣기: 여러 건 한 번에 → 금액 · 가맹점 · 일시 · 할부 개월 추출 → 확인 목록 → 저장. 카드번호 · 이름은 저장 전에 지운다.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-4</td><td>반복 템플릿: 월세 · 통신 · 구독을 예정 거래로. 해당 날짜에 "이번 달에도 나갔나요?" 확인 한 번.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-5</td><td>밀린 날 대략 합계: 빈 날을 합계 한 칸으로 메우고 "대략" 라벨. 통계에서 정확 / 대략을 나눠 보여 준다.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-6</td><td>예산 방식 선택: 50/30/20 · 봉투 · 통장 쪼개기 라벨(급여 · 생활비 · 저축 · 비상금). 봉투별 남은 금액과 남은 날 대비 하루 가용액. 초과해도 막지 않고 회색 음수로.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-7</td><td>월말 착지 구간 + 지난달 같은 날짜 구간의 적중 여부.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-8</td><td>목표 시계: 지출 저장 시 영향받는 저축 목표의 도달 지연 일수를 보여 준다(household → savings 이벤트, 서버 계산).</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-9</td><td>월 마감 리뷰 3문항: 이번 달 가장 큰 지출 · 예산 차이 · 다음 달 바꿀 하나. 답은 저장만, 평가하지 않는다.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-10</td><td>할부 · 리볼빙 띠: 할부는 원거래 1건 + 월 청구 N건으로 둘 다 보이고, 앞으로 6개월 고정 청구를 띠로. 리볼빙은 사용자가 넣은 수수료율로 월 비용 추정.</td><td>Should</td></tr>
+      <tr><td class="id">FR-11</td><td>공제 계기판: 결제수단 태그 → 공제 문턱 진척 · 결제수단별 추정 공제액. 기준 연도 · "추정" 표시.</td><td>Should</td></tr>
+      <tr><td class="id">FR-12</td><td>고정비 · 이상치 감지: 같은 금액 · 가맹점이 약 30일 주기면 고정비 후보, 분류별 중앙값의 몇 배인지로 이상치 표시.</td><td>Should</td></tr>
+      <tr><td class="id">FR-13</td><td>감정 태그 + 다음 날 만족도 거울.</td><td>Should</td></tr>
+      <tr><td class="id">FR-14</td><td>사람 장부(경조사 주고받기) · 비정기 경조사 봉투.</td><td>Could</td></tr>
+      <tr><td class="id">FR-15</td><td>노동시간 환산: 입력한 시급 · 월급 기준 "이 지출 = 근무 2.3시간". 끄고 켤 수 있다.</td><td>Could</td></tr>
+      <tr><td class="id">FR-16</td><td>무지출일 달력. 연속 일수 압박 · 알림 강제 없음.</td><td>Could</td></tr>
+      <tr><td class="id">FR-17</td><td>영수증 사진 인식: 총액은 높고 가맹점명은 낮아(업체 집계 73~88%) 반드시 확인 단계. 한국어 영수증 정확도 미확인 → 실측 후 결정.</td><td>Could</td></tr>
+      <tr><td class="id">FR-18</td><td>홈 요약 카드: 이번 달 지출 · 착지 구간 · 예산 남은 금액.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-19</td><td><span class="pill new">재미</span> 내가 고르는 챌린지: 종류 · 기간을 사용자가 정하고, "아낀 돈"을 기록해 저축 목표 장면에 보탤 수 있다(실제 적립과 구분 표시). 실패 표시 없음.</td><td>Should</td></tr>
+      <tr><td class="id">FR-20</td><td><span class="pill new">재미</span> 달력 스티커: 무지출일 · 챌린지 날. 연속 일수 없음.</td><td>Should</td></tr>
+      <tr><td class="id">FR-21</td><td><span class="pill new">재미</span> 월말 · 연말 이야기 카드(가장 큰 분류 · 아낀 돈 · 달성 엽서). 공유 시 금액 가림이 기본.</td><td>Should</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:14px">하지 않는 것: 카드 · 계좌 연동, 예산 초과 차단 · 경고 팝업, 결제수단을 바꾸라는 지시, 감정 태그로 사람을 평가하는 문구.</p>
+</section>
+
+<!-- ============ FEATURE-014 ============ -->
+<section class="feature t">
+  <div class="head"><span class="num">FEATURE-014</span><h2>금융 팁 — 유통기한 있는, 때맞춘 한 줄</h2><span class="pill tip">content</span></div>
+  <p><b>문제.</b> 금융 글은 두 가지로 실패한다. 읽고 잊히거나(결정 시점과 떨어져 있어서), 제도가 바뀌어 틀린 채로 남는다(결혼세액공제는 현행 일몰이 2026-12-31, 청년도약계좌는 2025-12-31 신규가입 종료). 그리고 앱이 특정 상품을 홍보하면 금융소비자보호법상 광고 · 중개 문제가 생긴다.</p>
+  <h3>신박한 것</h3>
+  <div class="ideas">
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">유통기한 있는 팁</div><div>모든 글에 기준 연도 · 유효기한. 일몰 · 개정이 오면 자동으로 "확인 필요"로 바뀌고 검색 노출을 내린다. 남은 유효일을 카드에 표시.</div><div class="w">신뢰 장치를 형식으로</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">내 숫자로 다시 읽기</div><div>로그인하면 글의 예시 숫자가 내 가계부 · 목표 값으로 바뀐다(서버 계산). 공개 글은 그대로 일반 예시.</div><div class="w">결정 시점 정보(Fernandes 외 2014)</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">제도 변경 diff</div><div>작년 요건과 올해 요건을 코드 diff처럼 나란히. 무엇이 바뀌었는지 한눈에.</div><div class="w">검색 유입 기대(추정)</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">30초 먼저 맞혀 보기</div><div>"물가 3%면 10년 뒤 1,000만 원의 실질가치는?" 먼저 추측하고 답을 본다. 지식보다 태도 영역을 겨냥.</div><div class="w">태도 53.7점 · 실질가치 문항 최대 하락</div></div>
+    <div class="idea"><span class="pill new" style="align-self:flex-start">새로움</span><div class="t">놓친 경우 모음</div><div>"혼인신고가 해를 넘겨 공제를 못 받은 경우" 같은 실패 사례. 제품 공통 기준의 '실패 사례'와 같은 결.</div><div class="w">—</div></div>
+  </div>
+  <h3>때맞춘 팁 트리거 (첫 묶음)</h3>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:36%">언제</th><th>무엇을 (제도 + 요건 체크 + 공식 링크, 명령형 없음)</th></tr></thead>
+    <tbody>
+      <tr><td>결혼 목표 생성 (<code>savings.GoalCreated</code>)</td><td>결혼세액공제 기준(혼인신고일) · 일몰일, 신혼부부 주거 제도 개요</td></tr>
+      <tr><td>주거 목표 생성</td><td>확정일자 · 전입신고 체크, 전세보증 개념, 월세 세액공제 요건</td></tr>
+      <tr><td>비상금 목표 없음 + 변동 지출 큼</td><td>비상자금 개념(생활비 몇 개월 — 일반 관행, 공식 기준 미확인)</td></tr>
+      <tr><td>11~12월 진입</td><td>연말정산 공제 점검표 + 공제 계기판 연결</td></tr>
+      <tr><td>5월 진입</td><td>종합소득세 신고 기간 · 부업 · 이자소득 신고 개념</td></tr>
+      <tr><td>고정비 전월 대비 증가 (<code>household</code>)</td><td>구독 · 자동이체 점검 체크리스트</td></tr>
+      <tr><td>같은 가맹점 정기결제 신규</td><td>무료 체험 후 유료 전환 점검</td></tr>
+      <tr><td>월초 첫 접속</td><td>한 달 점검 3문항(점검 습관 43.4점 영역)</td></tr>
+      <tr><td>목표에 기한 없음</td><td>장기 목표 세우는 법(42.5점 영역)</td></tr>
+      <tr><td>물가지수 발표일</td><td>내 목표 금액의 실질가치(저축 FR-9 연결)</td></tr>
+      <tr><td>만 34세 근접</td><td>청년 정책 나이 상한 안내</td></tr>
+      <tr><td>목표 달성 직후</td><td>모은 돈 보관에 관한 일반 개념(예금자보호 등) — 상품 없음</td></tr>
+    </tbody>
+  </table></div>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:62px">ID</th><th>요구사항</th><th style="width:72px">우선</th></tr></thead>
+    <tbody>
+      <tr><td class="id">FR-1</td><td>공개 글(로그인 없이) — 출처(법령정보센터 · 국세청 · 운영기관) · 작성일 · 최종 검수일 · 기준 연도 · 유효기한 필수. 하나라도 없으면 발행하지 않는다.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-2</td><td>유효기한이 지나면 "확인 필요" 배지 + <code>noindex</code> + 때맞춘 팁에서 제외. 변경 이력 공개.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-3</td><td>제도 파라미터 표(유효 구간)의 주인. 저축 · 가계부 계산이 이 표를 읽고, 바뀌면 <code>content.PolicyParamChanged</code> 이벤트.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-4</td><td>때맞춘 팁: 위 트리거를 도메인 이벤트로 받아 해당 도메인 화면 안에 한 줄 카드. 같은 팁은 한 번 닫으면 다시 안 띄운다.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-5</td><td>법적 선 검사기: 금융회사 상품명 · 금리 비교 · 가입 링크 · 명령형("가입하세요") · 종목 · 매매 시점이 원문에 있으면 발행 실패. 기존 금지 표현 검증기를 재사용.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-6</td><td>내 숫자로 다시 읽기(로그인 시).</td><td>Should</td></tr>
+      <tr><td class="id">FR-7</td><td>제도 변경 diff 뷰.</td><td>Should</td></tr>
+      <tr><td class="id">FR-8</td><td><span class="pill new">재미</span> 30초 먼저 맞혀 보기 · 맞힌 문제 카드 모음.</td><td>Should</td></tr>
+      <tr><td class="id">FR-9</td><td>놓친 경우 모음.</td><td>Could</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout"><p><b>법적 선 — 법무 확인 전 가정.</b> 2024-08 시행 개정 자본시장법은 유사투자자문을 "단방향 · 불특정다수 · 개별성 없는 조언"으로 좁혔다. 금소법은 판매업자가 아닌 자의 금융상품 광고를 제한하고, 입점 선별 · 계약 연결 · 수수료가 있으면 중개로 본 사례가 있다. 그래서 팁은 무료 · 공적 제도 설명 · 상품 0 · 대가 0 · 명령형 0으로 둔다. 개인화는 "해당될 수 있는 제도 + 요건 체크"까지. 조문 원문(제22조 · 제101조)은 아직 대조하지 못했다.</p></div>
+</section>
+
+<section>
+  <h2>세 기능이 서로 잇는 곳</h2>
+  <div class="tablebox"><table>
+    <thead><tr><th>이벤트</th><th>보내는 곳 → 받는 곳</th><th>화면에서 보이는 것</th></tr></thead>
+    <tbody>
+      <tr><td><code>household.ExpenseRecorded</code></td><td>가계부 → 저축</td><td>"결혼 목표 3일 늦어짐"(목표 시계)</td></tr>
+      <tr><td><code>household.MonthClosed</code></td><td>가계부 → 저축</td><td>월 저축 속도 갱신 → 도달 구간 다시 계산</td></tr>
+      <tr><td><code>savings.GoalCreated</code></td><td>저축 → 팁</td><td>결혼 · 주거 목표 → 관련 제도 한 줄</td></tr>
+      <tr><td>고정비 증가 감지</td><td>가계부 → 팁</td><td>구독 점검 체크리스트</td></tr>
+      <tr><td><code>content.PolicyParamChanged</code></td><td>팁 → 저축 · 가계부</td><td>세후 이자 · 공제 추정이 새 기준일로</td></tr>
+      <tr><td>구간 발행 · 실제 진척</td><td>저축 · 가계부 → 예측</td><td>"이 계산기의 90% 구간은 지난 6개월 87% 맞았다"</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ FEATURE-015 ============ -->
+<section class="feature">
+  <div class="head"><span class="num">FEATURE-015</span><h2>셸 — 홈 · 온보딩 · 내 데이터</h2><span class="pill must">shell · identity</span></div>
+  <p><b>문제.</b> 지금 온보딩은 "초대 → 첫 보유 기록 → 적립액" 3스텝이라 첫 화면부터 투자 앱이다. 홈 브리핑도 투자 데이터를 직접 읽는다. 그리고 수기 가계부 · 결제 문자처럼 민감한 데이터를 받기 시작하면 "내 데이터를 내가 가져갈 수 있고 지울 수 있다"가 기본 신뢰 조건이 된다.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:62px">ID</th><th>요구사항</th><th style="width:72px">우선</th></tr></thead>
+    <tbody>
+      <tr><td class="id">FR-1</td><td>온보딩을 "무엇을 관리하고 싶나" 고르기로 바꾼다: 모으기(저축) · 쓰는 돈(가계부) · 투자. 고른 도메인의 첫 입력 하나만 받고 끝낸다(3단계 이내). 투자는 고르지 않으면 묻지 않는다.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-2</td><td>홈 = 도메인 요약 카드(<code>HomeSummaryCard</code>). 사용자가 카드 순서 · 숨김을 정한다. 기본은 온보딩에서 고른 순서.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-3</td><td>내 데이터 내보내기: 가계부 · 목표 · 적립 · 보유 기록을 CSV · JSON으로. 계정 삭제 시 전부 지우고 지운 범위를 보여 준다.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-4</td><td>알림 설정을 도메인별로: 기본은 전부 꺼짐, 사용자가 켠 것만(월 마감 리뷰 · 반복 거래 확인 · 때맞춘 팁 · 투자 지표 갱신). 지금 알림 1종(F000 FR-50) 게이트를 도메인 단위로 넓힌다.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-5</td><td>개인정보 처리 범위 갱신: 결제 문자 원문은 파싱 후 저장하지 않는다 · 감정 태그 · 사람 장부는 민감 정보로 분류 · LLM 분류에 보내는 필드 목록 공개.</td><td><span class="pill must">Must</span></td></tr>
+      <tr><td class="id">FR-6</td><td>도메인 사용 계측: 도메인별 주간 활성 · 입력 끊김 뒤 재개율 · 카드 클릭. Should 기능을 고르는 근거. 개인 금액은 계측에 넣지 않는다.</td><td>Should</td></tr>
+      <tr><td class="id">FR-7</td><td>도메인 색: 투자 · 저축 · 가계부 · 팁에 구분 색 토큰. 기존 색을 바꾸지 않고 새 토큰만 추가한다(이전 UI 결정 존중).</td><td>Should</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ 투자 동결 ============ -->
+<section class="feature" style="border-color:var(--accent)">
+  <div class="head"><span class="num">FEATURE-000 · 003 · 004 · 006 · 008 · 009 · 010 · 011</span><h2>투자 — 동결 범위</h2><span class="pill must">invest</span></div>
+  <p><b>결정.</b> 투자 기능은 지금 기획된 것까지만 만든다. 아래 표와 남은 작업 목록이 투자 영역의 전부이고, 새 투자 FR은 추가하지 않는다. 남은 작업은 투자 zone(<code>apps/web-investment</code>) 안에서 진행한다. 상태는 각 기획서 FR 표와 마스터 인덱스에 적힌 그대로다(코드 대조 아님, 2026-10-30).</p>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:17%">기능</th><th style="width:25%">한 줄 목적</th><th style="width:16%">완료 / 부분 / 미착수</th><th>대표 완료 기능</th></tr></thead>
+    <tbody>
+      <tr><td>F000 (투자 FR)</td><td>기존 투자 화면 정리</td><td>13 / 1 / 4</td><td>관심 종목, 실시간 시각, 뉴스, 보유 요약, 알림 1종, 종목 검색 · 추적 상한 10(10-30)</td></tr>
+      <tr><td>F003 적립</td><td>"이번 주 얼마 넣을까"를 숫자 하나로</td><td>0 / 0 / 18</td><td>착수 전(to-do)</td></tr>
+      <tr><td>F004 AI 코치</td><td>근거 · 적중률 · 실패사례 3종이 붙은 판단만</td><td>24 / 9 / 1</td><td>3종 게이트, 코치 패널, 관찰 구간, 수익 플랜, 주문 전 체크, 성적표, 판정 근거 상세</td></tr>
+      <tr><td>F006 코치 대화 · IA</td><td>대화 중심 화면 구조</td><td>9 / 11 / 50</td><td>시장 요약 띠, 매도 초과 거부, 초대 가입</td></tr>
+      <tr><td>F008 전망</td><td>확률 · 구간 전망을 채점하고 못 이기면 끈다</td><td>25 / 15 / 14</td><td>분위수 전망 · 보정 · 채점, 기준 모델, 게이트, 주요 사건 카드, 스트리밍 해설</td></tr>
+      <tr><td>F009 행동 · 위험 코치</td><td>내 행동과 위험을 숫자로 비춤</td><td>32 / 1 / 0</td><td>리스크 예산, 계획 준수율, 처분효과 미러, 월간 복기, 흔들림 몫, 매입가 숨김</td></tr>
+      <tr><td>F010 판정 AI v2</td><td>점수를 채점되는 판단 · 비중으로</td><td>요구 1~8 완료</td><td>불변 원장, 규칙 IC, σ 기준 익절 · 손절, 목표 비중 안내</td></tr>
+      <tr><td>F011 국내 주식</td><td>조회 전용 시세 · 판단 · 전망</td><td>46 / 1 / 1</td><td>조회 전용 클라이언트, 실시간, 일봉 · 5분봉, 국내 판단 · 성적표, 호가 · 순매수 · 지수</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>남은 투자 작업 — 이것이 전부</h3>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:18%">묶음</th><th>항목</th><th style="width:20%">조건</th></tr></thead>
+    <tbody>
+      <tr><td>닫기</td><td>QA-001 소유자 실계정 확인(주문 전 체크 · 매입가 숨김 · 성적 4요소) · F000 FR-1 · 2 레거시 AI 분석 모델 · 중복 시세 워커 제거 · 410 마무리</td><td>QA는 사용자 실계정 · 410은 11-03 로그</td></tr>
+      <tr><td>남은 Must</td><td>F004 FR-3 자산별 필터 · FR-12 성향 편집 · FR-25~27 차트 1주 탭 · FR-32 <code>/coach</code> 대화 탭 / F000 FR-42 · 43 뉴스 감정 배지 · 북마크 / F008 FR-44 인용 출처 · FR-48 · FR-49 해설 A/B / F011 FR-14 미래 휴장일</td><td>휴장일은 모의 키 제약</td></tr>
+      <tr><td>추가 확정분</td><td>F008 슬라이스 24 1단계 국내 시장 일정(FR-69 · 71) · 국내 탭 요약을 코인과 같은 정보로(DB-035 → SRV-042 → BFF-044 → FE-050)</td><td>—</td></tr>
+      <tr><td>예측 바탕</td><td>F008 FR-25 온톨로지 · FR-41 도구 호출 에이전트(예측 설계 O1~O3)</td><td>마스터 인덱스 순서에 아직 없음 → 이번에 올린다</td></tr>
+      <tr><td>착수 전</td><td>F003 적립 18 FR · F006 대화 FR-20~32 · 포지션 FR-70~78 · 설정 FR-80~87</td><td>아래 "새 구조와 충돌" 정리 뒤</td></tr>
+      <tr><td>디자인</td><td>FE-REQ-051 → 047(헤더 검색) → 049(종목 상세 · 국내 깨짐 B1~B8) → 048</td><td>—</td></tr>
+      <tr><td>모바일</td><td>F004 FR-18 · 25 · 32 · 33의 RN 몫 · F006 FR-62</td><td>F007 착수 시</td></tr>
+      <tr><td>날짜만 기다림</td><td>11-23 규칙 IC 라이브 · 11-25 시장 경고 통계 · 2027-02-08 뉴스 감성 · 2027-05 도미넌스 · 목표 비중 라이브 30주 · 라이브 52주 전 "백테스트" 라벨</td><td>작업 아님</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>새 구조와 충돌 — 동결 전에 정해야 할 것</h3>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:28%">충돌</th><th>제안</th></tr></thead>
+    <tbody>
+      <tr><td>F006 FR-1~6 "홈 · 코치 · 자산 3탭"</td><td>앱 전체 IA는 FEATURE-015(홈 · 저축 · 가계부 · 투자)로 바뀐다. F006의 3탭은 <b>투자 zone 안의 탭</b>(시장 · 코치 · 내 자산)으로 다시 쓴다.</td></tr>
+      <tr><td>F006 홈 3블록 FR-10~15a · 온보딩 FR-44</td><td>홈은 FEATURE-015 요약 카드로. 투자 카드 한 장 안에 "이번 주 적립"(F003) · 코치 한 줄을 넣는다. 온보딩은 투자를 고른 사람에게만.</td></tr>
+      <tr><td>F003 적립 vs 저축 목표</td><td>F003은 투자 자산 적립(밸류에이션 밴드), FEATURE-012는 생활 목표 저축. 이름이 겹쳐 보이므로 F003 화면 문구를 "투자 적립"으로 고정하고, 저축 목표와 금액을 섞지 않는다.</td></tr>
+      <tr><td>DART 방향</td><td>F008 FR-22 · 23 · 27은 "DART 미사용(10-08)", FR-70 · 마스터 인덱스는 "허용 대기". 동결 범위에 넣을지 사용자 결정 1건.</td></tr>
+      <tr><td>미국 주식</td><td>F008 FR-33~38 TBA 6건. 동결이면 TBA가 아니라 "만들지 않음"으로 닫을지 결정 1건.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>버린 것 · 만들지 않는 것</h3>
+  <ul>
+    <li>ADR-002: 개입 청구서 · 원장(F001), 세금 콕핏(F002). 보유 기록은 유지.</li>
+    <li>ADR-003: 한 점 목표가 · 확신 표현 · 명령형 · 채점 이력 없는 전망 · 주문 경로.</li>
+    <li>F010 사전등록 검정 미통과로 채택 안 함: 국면 게이트, 확률 표시, 알트 목표 비중, DVOL σ, 온체인 국면, 검색 관심.</li>
+    <li>F009 FR-34 위험 성향 · 재무 점수화, 서약 · 쿨다운 · 차단. F008 FR-72 일정 요약 LLM 문장. F011 실전 키 전환 · 파생 · 공매도.</li>
+  </ul>
+
+  <h3>문서 정리할 곳 (분석 중 발견)</h3>
+  <ul style="font-size:14px">
+    <li>마스터 인덱스 §4-1 순위 1이 <code>feat/f004-signal-detail</code>을 "PR 대기"로 둔다 — PR #122로 머지됨.</li>
+    <li>루트 <code>F000-asset-search-slice.md</code>가 in-progress에 남음 — PR #123 머지됨.</li>
+    <li>F004 FR-26 상태 칸 안에 "부분"과 "완료"가 같이 있음.</li>
+    <li>국내 탭 요약(SRV-042 등)이 F011 FR 표에 ID 없이 변경 이력에만 있음.</li>
+    <li>FEATURE-005는 폐기 문서인데 <code>done/</code>에 있고 FR 칸이 Draft.</li>
+    <li>F011 FR-27 시간외 단일가는 "완료"지만 모의 키라 값이 늘 0이고 수집이 꺼져 있다.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>이 기획과 함께 필요한 것</h2>
+  <p>기능만 써서는 만들 수 없는 것들이다. 각 항목의 주인과 언제 하는지를 적는다.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:34%">항목</th><th>왜</th><th style="width:20%">언제</th></tr></thead>
+    <tbody>
+      <tr><td>ADR-005 프론트 도메인 zone</td><td><code>microfrontend.md</code> §2 "세 조건" · "탭으로 자르지 않는다"를 뒤집는 결정이라 기록이 필요하다</td><td>코드 착수 전</td></tr>
+      <tr><td>ADR-006 서버 MSA · Kotlin</td><td>언어 · 런타임 · 배포 단위 변경. 되돌리기 비용이 가장 크다</td><td>S0 전</td></tr>
+      <tr><td>ADR-007 예측 스키마 주인 · 온톨로지</td><td>ADR-004 §5(DDL은 salt-server 한 곳)를 바꾼다</td><td>O1 전</td></tr>
+      <tr><td>마스터 인덱스 · 할 일 순서(§4-1)</td><td>F012~F015 행 추가, 투자 동결 표시, 순서 재배치</td><td>이 초안 확정 시</td></tr>
+      <tr><td>규칙 개정: 루트 <code>CLAUDE.md</code> 영역 표 · <code>microfrontend.md</code> · 서버 규칙 Kotlin판</td><td>규칙이 모든 후속 작업의 전제다</td><td>ADR과 같은 PR</td></tr>
+      <tr><td>법무 확인</td><td>금융 팁 · 공제 계기판 · 제도 계산이 광고 · 중개 · 자문에 안 걸리는지</td><td>FEATURE-014 공개 전</td></tr>
+      <tr><td>공식 통계 원문 대조</td><td>생애 이벤트 기준선 · 공제율 · 제도 파라미터 (아래 미확인 표)</td><td>FEATURE-012 FR-1 전</td></tr>
+      <tr><td>모바일(FEATURE-007) 정렬</td><td>RN 서비스 번들을 같은 도메인 이름으로. 앱 탭도 홈 · 저축 · 가계부 · 투자</td><td>FEATURE-007 착수 시</td></tr>
+      <tr><td>배포 환경</td><td>zone 5개 + 서비스 여러 개를 맥 한 대 launchd로는 못 돌린다. Compose → 실제 호스팅</td><td>서버 S0 · 웹 F1</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>만드는 순서</h2>
+  <ol>
+    <li><b>FEATURE-012 저축 Must</b> — 기존 goal 위에 올리므로 가장 빠르다. 서버 savings(Kotlin S1) · 웹 zone F3.</li>
+    <li><b>FEATURE-013 가계부 Must</b> — 신규. 목표 시계(FR-8)가 저축과 이어지는 첫 이벤트.</li>
+    <li><b>FEATURE-014 금융 팁 Must</b> — 제도 파라미터 표가 저축 FR-2 · 가계부 FR-11의 기준일 근거가 된다. 원문 10편으로 시작.</li>
+    <li><b>FEATURE-015 셸 Must</b> — 웹 zone F1(투자 zone 분리)과 같이. 홈 요약 카드 · 온보딩 도메인 선택.</li>
+    <li>투자 남은 작업은 위 목록 순서대로, 새 도메인 작업과 번갈아 진행한다(투자만 연속으로 잡지 않는다).</li>
+    <li>각 기능의 Should를 사용 데이터를 보고 고른다.</li>
+  </ol>
+  <p class="muted" style="font-size:14px">영역 REQ(DB · SRV · BFF · FE · RN)로 내리는 건 이 초안을 사용자가 확정한 뒤다. 아키텍처는 프론트엔드 · 서버 · 예측 설계 문서를 따른다.</p>
+</section>
+
+<section>
+  <h2>미확인 — 기획서에 숫자로 넣기 전에 원문 대조</h2>
+  <div class="tablebox"><table>
+    <thead><tr><th>항목</th><th>현재 상태</th></tr></thead>
+    <tbody>
+      <tr><td>결혼 비용(주거 제외) 공식값</td><td>2차 블로그 인용만. 항목 합계도 맞지 않음</td></tr>
+      <tr><td>신혼부부 전세 보증금 평균</td><td>미확인. 대체 지표: 신혼부부 대출잔액 중앙값 1억 7,900만 원(2024 신혼부부 통계)</td></tr>
+      <tr><td>첫 차 평균 구매가</td><td>최근 확인값이 2021년 신차 평균 4,420만 원뿐</td></tr>
+      <tr><td>해외여행 1인 142만 3천 원</td><td>1회 기준인지 연간인지 미확인</td></tr>
+      <tr><td>비상금 공식 권장 개월 수</td><td>공식 기관 기준 미확인 → 사용자가 고르는 값으로</td></tr>
+      <tr><td>연말정산 카드 공제율 · 한도</td><td>2차 자료. 국세청 원문 대조 필요</td></tr>
+      <tr><td>결혼세액공제 연장안 · 청년미래적금 조건 · 예금자보호 한도 상향 시점</td><td>보도 · 블로그만</td></tr>
+      <tr><td>금소법 제22조 · 자본시장법 제101조 원문</td><td>미열람. 법무 확인 필요</td></tr>
+      <tr><td>수동 가계부 이탈률</td><td>원자료 공개된 연구 없음(업체 수치만)</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer class="sources">
+  <b>연구</b>
+  <span>Harkin 외 2016 Psychological Bulletin(자기 모니터링 메타분석) — <a href="https://eprints.whiterose.ac.uk/id/eprint/87431/">eprints.whiterose.ac.uk</a></span>
+  <span>Soman 2001 JCR(지불 투명성) — <a href="https://ideas.repec.org/a/oup/jconrs/v27y2001i4p460-74.html">ideas.repec.org</a> · Prelec &amp; Loewenstein 1998 — <a href="https://ideas.repec.org/a/inm/ormksc/v17y1998i1p4-28.html">ideas.repec.org</a> · Heath &amp; Soll 1996 — <a href="https://econpapers.repec.org/RePEc:oup:jconrs:v:23:y:1996:i:1:p:40-52">econpapers</a></span>
+  <span>Epstein 외 2015 CHI(기록 중단) — <a href="https://my.eng.utah.edu/~cs5540/au16/readings/PersonalInformatics-Epstein2015.pdf">PDF</a></span>
+  <span>Nunes &amp; Drèze 2006 JCR(부여된 진척 효과, "The Endowed Progress Effect")</span>
+  <span>Kivetz 외 2006(goal gradient) — <a href="https://business.columbia.edu/sites/default/files-efs/pubfiles/1200/goalgradient.pdf">PDF</a> · Bonezzi 외 2011 — <a href="https://pubmed.ncbi.nlm.nih.gov/21474842/">PubMed</a> · Fishbach &amp; Dhar 2005 — <a href="https://econpapers.repec.org/RePEc:oup:jconrs:v:32:y:2005:i:3:p:370-377">econpapers</a></span>
+  <span>Koch &amp; Nafziger 2016 JET — <a href="https://econpapers.repec.org/RePEc:eee:jetheo:v:162:y:2016:i:c:p:305-351">econpapers</a> · Sussman &amp; O'Brien 2016 JMR — <a href="https://www.eurekalert.org/pub_releases/2015-11/ama-ban103015.php">eurekalert</a> · Dholakia 2011 — <a href="https://ideas.repec.org/a/eee/jobhdp/v114y2011i2p142-152.html">ideas.repec.org</a></span>
+  <span>Thaler &amp; Benartzi 2004 — <a href="https://www.chicagobooth.edu/research/rustandy/social-impact-research/research-papers/2004/save-more-tomorrow-using-behavioral-economics-to-increase-employee-saving">chicagobooth.edu</a></span>
+  <span>Fernandes, Lynch, Netemeyer 2014 — <a href="https://nefe.org/news/nefe-digest/2014/time-for-financial-education-to-evolve.aspx">nefe.org</a> · Kaiser 외 2022 JFE — <a href="https://papers.ssrn.com/abstract=3584941">SSRN</a> · Rodríguez &amp; Saavedra 2019 — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6469704">PMC</a></span>
+  <b style="margin-top:8px">제도 · 통계 · 규제</b>
+  <span>금융위 유사투자자문 개정 — <a href="https://www.fsc.go.kr/no010101/82887">fsc.go.kr</a> · 금융광고규제 가이드라인 — <a href="https://www.fsc.go.kr/no010101/76045">fsc.go.kr</a> · 청년도약계좌 — <a href="https://www.fsc.go.kr/po010103/83729">fsc.go.kr</a></span>
+  <span>2024 금융이해력 조사 보도 — <a href="https://www.dt.co.kr/article/11661613">dt.co.kr</a> · 2024 신혼부부 통계 — <a href="https://www.newsis.com/view/NISX20251212_0003438790">newsis</a> · 2025 국민여행조사 — <a href="https://kyeonggi.com/article/20260630580100">kyeonggi.com</a></span>
+  <span>결혼세액공제 — <a href="https://www.newsis.com/view/NISX20260619_0003676402">newsis</a> · 축의금 조사 — <a href="https://v.daum.net/v/20260516003319431">daum</a> · 주택청약 인정액 — <a href="https://www.etoday.co.kr/news/view/2403689">etoday</a></span>
+</footer>
+</div>
+
+</html>

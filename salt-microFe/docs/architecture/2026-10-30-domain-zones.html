@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SALT 프론트엔드 도메인 아키텍처</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 레이아웃: 한 단 설계 문서. 결론 → zone 지도 → 매핑 표 → 구조 → 규칙(개정안) → 이동 완화 → 단계 */
+:root{
+  --bg:#f6f7f9; --surface:#fff; --fg:#17202b; --muted:#5a6675; --line:#d9dee5;
+  --accent:#1f6f8b; --accent-soft:#e3f0f5;
+  --inv:#1f6f8b; --sav:#2f7d4f; --led:#8a5a12; --tip:#6b4fa3;
+  --inv-soft:#e3f0f5; --sav-soft:#e5f3ea; --led-soft:#f6ecdc; --tip-soft:#ece6f6;
+  --bad:#b03a3a; --bad-soft:#f8e4e4;
+  --sans:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ef; --muted:#97a3b1; --line:#2c3743;
+  --accent:#6bb7d2; --accent-soft:#183340;
+  --inv:#6bb7d2; --sav:#74c493; --led:#e0b06a; --tip:#b39ae6;
+  --inv-soft:#183340; --sav-soft:#173326; --led-soft:#36291a; --tip-soft:#2a2240;
+  --bad:#e58585; --bad-soft:#3a1d1d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ef; --muted:#97a3b1; --line:#2c3743;
+  --accent:#6bb7d2; --accent-soft:#183340;
+  --inv:#6bb7d2; --sav:#74c493; --led:#e0b06a; --tip:#b39ae6;
+  --inv-soft:#183340; --sav-soft:#173326; --led-soft:#36291a; --tip-soft:#2a2240;
+  --bad:#e58585; --bad-soft:#3a1d1d; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.7}
+.wrap{max-width:900px;margin:0 auto;padding-block:40px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:44px}
+h1{font-size:28px;line-height:1.3;margin:0;text-wrap:balance}
+h2{font-size:20px;margin:0;text-wrap:balance}
+h3{font-size:16px;margin:0}
+p{margin:0;max-width:70ch}
+section{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+.muted{color:var(--muted)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.inv{color:var(--inv);background:var(--inv-soft)} .sav{color:var(--sav);background:var(--sav-soft)}
+.led{color:var(--led);background:var(--led-soft)} .tip{color:var(--tip);background:var(--tip-soft)}
+.shellp{color:var(--accent);background:var(--accent-soft)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;overflow-x:auto}
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:700px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:10px 13px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--muted);font-weight:600;background:var(--bg)}
+tr:last-child td{border-bottom:none}
+ul,ol{margin:0;padding-left:1.25em;display:flex;flex-direction:column;gap:6px;max-width:72ch}
+pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.6;white-space:pre}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0}
+.map{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px;min-width:680px}
+.n{border:1.5px dashed var(--line);border-radius:8px;padding:12px;background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.n .t{font-weight:600;font-size:14px}
+.n .s{font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.5}
+.n.shell{grid-column:1/-1;border-style:solid;border-color:var(--accent)}
+.n.inv{border-color:var(--inv)} .n.sav{border-color:var(--sav)} .n.led{border-color:var(--led)} .n.tip{border-color:var(--tip)}
+.n.base{grid-column:1/-1;border-style:solid}
+.lane{grid-column:1/-1;font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center}
+.phases{display:flex;flex-direction:column;gap:10px}
+.ph{display:grid;grid-template-columns:64px 1fr;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.ph .k{font-family:var(--mono);font-weight:500;color:var(--accent)}
+.ph div{min-width:0;display:flex;flex-direction:column;gap:4px}
+.ph p{font-size:14px}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.rule .no{font-family:var(--mono);font-size:12px;color:var(--accent)}
+a{color:var(--accent)}
+@media (max-width:640px){h1{font-size:24px}.ph{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+<header style="display:flex;flex-direction:column;gap:10px">
+  <div class="eyebrow">salt-microFe · 설계안 · 2026-10-30</div>
+  <h1>SALT 프론트엔드 도메인 아키텍처</h1>
+  <p class="muted">SALT를 투자 앱이 아니라 돈 관리 앱으로 다시 세운다. 마이크로프론트엔드의 경계를 도메인으로 긋는다. 셸 하나와 도메인 zone 넷(투자 · 저축 · 가계부 · 금융 팁)이 각자 독립 Next 앱으로 배포되고, 경계는 규칙과 lint가 강제한다.</p>
+</header>
+
+<section>
+  <h2>결론</h2>
+  <ol>
+    <li><b>zone = 도메인.</b> <code>apps/web</code>(셸) · <code>apps/web-investment</code> · <code>apps/web-savings</code> · <code>apps/web-household</code> · <code>apps/web-tips</code>. 각자 빌드 · 배포 · 롤백한다. <code>apps/web-tax</code>는 지운다.</li>
+    <li><b>셸은 도메인을 모른다.</b> 로그인 · 온보딩 · 홈 · 공용 크롬(하단 탭 · 헤더)만 갖는다. 홈은 도메인마다 요약 카드 한 장을 BFF에서 받는다.</li>
+    <li><b>화면 코드는 도메인 패키지에.</b> <code>packages/domain-*</code> 안이 FSD다. zone 앱은 라우트 · 레이아웃 · 설정만 갖는 얇은 조립 층이다.</li>
+    <li><b>규칙을 바꾼다.</b> 지금 <code>microfrontend.md</code> §2(세 조건 + "탭으로 자르지 않는다")를 "도메인으로 자른다"로 개정한다. 대가인 zone 간 새로고침은 미리 렌더 · 문서 간 전환으로 줄인다.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>zone 지도</h2>
+  <div class="box">
+    <div class="map">
+      <div class="n shell">
+        <div class="t">apps/web · 셸 <span class="pill shellp">default zone · :3000</span></div>
+        <div class="s">/  /home  /login  /onboarding · 공용 크롬(하단 탭 · 헤더) · 인증 · 홈 요약 카드 · rewrites 로 도메인 경로를 각 zone 에 보냄</div>
+      </div>
+      <div class="lane">↓ 경로 단위 라우팅 (같은 origin) · 각 zone 은 독립 앱</div>
+      <div class="n inv"><div class="t">투자 <span class="pill inv">:3002</span></div><div class="s">apps/web-investment<br>/investments /coach /search<br>pkg domain-invest<br>/investment-static</div></div>
+      <div class="n sav"><div class="t">저축 <span class="pill sav">:3003</span></div><div class="s">apps/web-savings<br>/goals<br>pkg domain-savings<br>/savings-static</div></div>
+      <div class="n led"><div class="t">가계부 <span class="pill led">:3004</span></div><div class="s">apps/web-household<br>/household<br>pkg domain-household<br>/household-static</div></div>
+      <div class="n tip"><div class="t">금융 팁 <span class="pill tip">:3005</span></div><div class="s">apps/web-tips<br>/tips (공개 · ISR)<br>pkg domain-tips<br>/tips-static</div></div>
+      <div class="lane">↓ 공용 패키지 — 도메인끼리는 서로 모른다</div>
+      <div class="n base"><div class="t">packages/ui · tokens · core</div><div class="s">디자인 시스템 · 토큰 · ApiError · 인증 클라이언트 · <b>AppChrome</b>(하단 탭 · 헤더) · zone 레지스트리 · <b>HomeSummaryCard</b> 계약</div></div>
+    </div>
+  </div>
+  <p class="muted" style="font-size:14px">점선 = 별도 zone. 모바일(RN)은 같은 도메인 이름으로 서비스 번들을 나눈다(ADR-001 §4). 서버 서비스도 같은 이름이다(서버 설계 문서).</p>
+</section>
+
+<section>
+  <h2>도메인 한 줄 지도</h2>
+  <div class="tablebox"><table>
+    <thead><tr><th>도메인</th><th>zone 앱</th><th>URL</th><th>FE 패키지</th><th>BFF</th><th>서버 서비스</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill shellp">셸</span></td><td><code>apps/web</code></td><td><code>/</code> <code>/home</code> <code>/login</code> <code>/onboarding</code></td><td>—</td><td><code>/api/app/home</code> · <code>/onboarding</code></td><td>identity</td></tr>
+      <tr><td><span class="pill inv">투자</span></td><td><code>apps/web-investment</code></td><td><code>/investments</code> <code>/coach</code> <code>/search</code></td><td><code>domain-invest</code></td><td><code>/api/app/invest/*</code></td><td>market · portfolio · coach · forecast</td></tr>
+      <tr><td><span class="pill sav">저축</span></td><td><code>apps/web-savings</code></td><td><code>/goals</code></td><td><code>domain-savings</code></td><td><code>/api/app/savings/*</code></td><td>savings</td></tr>
+      <tr><td><span class="pill led">가계부</span></td><td><code>apps/web-household</code></td><td><code>/household</code></td><td><code>domain-household</code></td><td><code>/api/app/household/*</code></td><td>household</td></tr>
+      <tr><td><span class="pill tip">금융 팁</span></td><td><code>apps/web-tips</code></td><td><code>/tips</code></td><td><code>domain-tips</code></td><td><code>/api/app/tips/*</code> (공개)</td><td>content</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:14px">가계부 이름은 <code>household</code>로 둔다. ADR-002가 지운 <code>ledger</code>(개입 청구서 원장)와 섞이지 않게 하려는 것이다. 도메인 이름은 프론트 · BFF · 서버 · 모바일이 모두 같다.</p>
+</section>
+
+<section>
+  <h2>디렉터리 구조</h2>
+  <div class="box"><pre>salt-microFe/
+├── apps/
+│   ├── web/              셸 · default zone · app/{page,home,login,onboarding} · rewrites
+│   ├── web-investment/   app/{investments,investments/[symbol],coach/report,coach/signals/[type],search}
+│   ├── web-savings/      app/goals/{page,[id],new}
+│   ├── web-household/    app/household/{page,new,month/[ym]}
+│   ├── web-tips/         app/tips/{page,[slug]}
+│   └── web-tax/          <span style="color:var(--bad)">삭제</span>
+└── packages/
+    ├── domain-invest/     src/{entities,features,widgets,pages}  ← 지금 apps/web/src 의 coach · market · portfolio
+    ├── domain-savings/    src/{entities,features,widgets,pages}  ← 지금 entities/goal · features/add-goal + 신규
+    ├── domain-household/  src/{entities,features,widgets,pages}  신규
+    ├── domain-tips/       src/{entities,widgets,pages}           신규 (서버 컴포넌트 위주)
+    ├── core/   ApiError · auth · zones 레지스트리 · HomeSummaryCard
+    ├── ui/     AppChrome(하단 탭 · 헤더) 포함 · tokens/
+    └── eslint-plugin-fsd/ · eslint-plugin-zone/</pre></div>
+  <p>zone 앱에 화면 코드를 두지 않는 이유: 각 zone은 따로 배포되지만 같은 디자인 시스템과 크롬을 써야 한 앱처럼 보인다. 화면 코드가 패키지에 있으면 Storybook · 테스트 · 모바일 웹뷰가 같은 코드를 쓰고, zone을 합치거나 다시 나누는 일이 설정 수준으로 끝난다.</p>
+</section>
+
+<section>
+  <h2>규칙 개정안 — <code>microfrontend.md</code></h2>
+  <p>지금 규칙은 "세 조건을 모두 만족해야 zone"이고 "탭으로 자르지 않는다"다. 이걸 아래로 바꾼다. 규칙 표는 문서가 아니라 코드(<code>@repo/core/zones</code> · <code>layer-rules.cjs</code>)가 진실이라는 기존 원칙은 그대로다.</p>
+  <div class="rule"><div class="no">§1 zone 경계</div><p><b>zone 하나 = 도메인 하나.</b> 도메인 목록은 <code>@repo/core/zones</code> 레지스트리 한 곳이고, 서버 서비스 · BFF 라우트 · 모바일 서비스 번들 이름과 같다. 새 도메인은 레지스트리에 먼저 추가한다.</p></div>
+  <div class="rule"><div class="no">§2 셸의 책임</div><p>셸은 인증 · 온보딩 · 홈 · 공용 크롬만 갖는다. <b>셸은 어떤 <code>domain-*</code> 패키지도 import하지 않는다.</b> 홈의 도메인 정보는 <code>HomeSummaryCard[]</code>로만 받는다.</p></div>
+  <div class="rule"><div class="no">§3 도메인 격리</div><p><code>domain-*</code> 패키지끼리 import 금지. 도메인 사이의 연결은 URL 링크와 BFF 응답(서버가 계산한 값)으로만 한다. 예: 가계부의 "이 지출이 목표를 며칠 늦추나"는 household 응답에 서버가 넣는다.</p></div>
+  <div class="rule"><div class="no">§4 zone 앱은 얇다</div><p><code>apps/web-*</code>는 <code>app/</code> 라우트 · 레이아웃 · <code>next.config.js</code>만 갖는다. <code>src/</code>에 entities · features · widgets를 만들지 않는다.</p></div>
+  <div class="rule"><div class="no">§5 zone 간 링크</div><p>다른 zone 경로는 <code>CrossZoneLink</code>(<code>&lt;a&gt;</code> + 로딩 상태 + 미리 렌더 힌트). <code>next/link</code>는 같은 zone 안에서만. lint가 레지스트리를 읽어 강제한다.</p></div>
+  <div class="rule"><div class="no">§6 공용 크롬 · 버전</div><p>하단 탭 · 헤더는 <code>@repo/ui</code>의 <code>AppChrome</code> 하나. 공용 패키지가 바뀌면 영향받는 zone을 같이 배포한다(turbo 영향 그래프로 판정). zone을 넘는 기능은 기능 플래그로 동시에 켠다.</p></div>
+  <div class="rule"><div class="no">§7 경로 · 자산</div><p>경로 prefix와 <code>assetPrefix</code>(<code>/{zone}-static</code>)는 zone 간 유일하다. 셸 rewrites는 레지스트리에서 생성한다(손으로 쓰지 않는다).</p></div>
+  <table style="min-width:0;margin-top:4px"><thead><tr><th>강제 위치</th><th>무엇을</th></tr></thead><tbody>
+    <tr><td><code>packages/eslint-plugin-fsd/layer-rules.cjs</code></td><td>§2 · §3 · §4 — 도메인 축(<code>domain-*</code> ↔ <code>domain-*</code>, 셸 → <code>domain-*</code>) 추가. 쓰기 시점 훅도 같은 표를 읽는다</td></tr>
+    <tr><td><code>packages/eslint-plugin-zone</code></td><td>§5 — 대상 경로를 <code>/tax</code>에서 레지스트리 전체로</td></tr>
+    <tr><td><code>packages/core/src/zones/registry.ts</code></td><td>§1 · §7 — zone 5개 · 포트 · prefix · assetPrefix. 셸 <code>next.config.js</code>가 여기서 rewrites를 만든다</td></tr>
+  </tbody></table>
+</section>
+
+<section>
+  <h2>zone 이동 완화</h2>
+  <p>zone을 넘는 이동은 문서 이동이다. 모든 zone이 같은 origin이라 자체 호스팅에서도 아래 장치를 쓸 수 있다. 하단 탭이 zone을 넘는 가장 잦은 이동이라 여기에 집중한다.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:24%">장치</th><th>무엇을 하나</th><th style="width:22%">한계</th></tr></thead>
+    <tbody>
+      <tr><td>Speculation Rules (prerender)</td><td><code>AppChrome</code>이 하단 탭 링크에 <code>&lt;script type="speculationrules"&gt;</code>를 건다. 마우스를 올리거나 누르기 시작할 때(<code>eagerness: moderate</code>) 해당 zone 첫 화면을 미리 렌더해서 누르면 바로 바뀐다</td><td>Chromium 계열. Safari는 일반 이동</td></tr>
+      <tr><td>문서 간 View Transitions</td><td>모든 zone CSS에 <code>@view-transition { navigation: auto; }</code>. 하단 탭 · 헤더에 같은 <code>view-transition-name</code>을 줘서 크롬은 제자리, 본문만 바뀐다</td><td>같은 origin만(조건 충족)</td></tr>
+      <tr><td>서버 렌더 첫 화면</td><td>각 zone 첫 화면의 핵심 숫자(시세 · 목표 진척 · 이번 달 지출)를 RSC 스트리밍으로 HTML에 넣는다. 클라이언트 캐시가 비어 있어도 숫자가 바로 보여 "가격 깜빡임 금지"를 지킨다</td><td>—</td></tr>
+      <tr><td>공용 정적 자산 캐시</td><td>React · 디자인 시스템 청크를 zone끼리 같은 해시로 내보내면 브라우저 캐시를 같이 쓴다(공용 패키지를 같은 버전으로 묶는 이유)</td><td>zone별 번들러 설정이 같아야 한다</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:14px">각 zone 안의 이동(예: <code>/investments</code> → <code>/investments/[symbol]</code> → <code>/coach/report</code>)은 같은 앱이라 지금처럼 부드럽다.</p>
+</section>
+
+<section>
+  <h2>홈은 어떻게 도메인을 모으나</h2>
+  <p>셸이 도메인 코드를 모르므로, 홈은 도메인마다 카드 한 장을 받는다. 카드 모양은 <code>packages/core</code>의 <code>HomeSummaryCard</code> 하나로 고정하고, BFF <code>/api/app/home</code>이 도메인 서비스를 병렬로 불러 채운다(<code>allSettled</code> — 한 도메인이 죽어도 홈은 뜬다).</p>
+  <div class="box"><pre>type HomeSummaryCard = {
+  domain: "invest" | "savings" | "household" | "tips";
+  title: string;                               // "이번 달 지출"
+  primary: { label: string; value: string };   // 서버가 포맷한 문자열 — FE 계산 0
+  secondary?: { label: string; value: string };
+  href: string;                                // 도메인 zone 진입 경로
+  state: "ok" | "empty" | "degraded";
+  updatedAt: string;
+};</pre></div>
+  <p class="muted" style="font-size:14px">기본 순서는 저축 → 가계부 → 투자 → 팁이고 사용자가 바꾼다. 지금 <code>home-briefing</code>이 <code>entities/coach</code> · <code>portfolio</code>를 직접 읽는 것은 §2 위반이 되므로 F1에서 같이 끊는다.</p>
+</section>
+
+<section>
+  <h2>하단 탭과 IA</h2>
+  <ul>
+    <li>탭 4개: <b>홈 · 저축 · 가계부 · 투자</b>. 금융 팁은 탭이 아니다. 홈 카드 · 각 도메인 안의 때맞춘 팁으로 들어오고, 공개 URL <code>/tips</code>는 검색으로 들어온다.</li>
+    <li>"탭을 줄인다"는 기존 방향(2026-09-09)에 맞춰 5개를 넘기지 않는다.</li>
+    <li>데스크톱은 왼쪽 내비 4항목. FE-REQ-047(헤더 · 패널 위계)과 같이 조정한다.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>모바일(RN) — 바뀌는 것</h2>
+  <p>RN 앱은 아직 코드가 없다(<code>apps/mobile</code> 없음). 요구사항 23건(RN-REQ-001~031)이 전부 to-do다. 코드 변경은 없지만, 이번 설계와 어긋나는 문서가 있어 착수 전에 고쳐야 한다.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:30%">문서</th><th>지금</th><th>바꿀 것</th></tr></thead>
+    <tbody>
+      <tr><td><code>RN-REQ-002</code> 모바일 MFE</td><td>서비스 번들 경계 <code>coach</code> · <code>assets</code> · <code>tax</code> · <code>plan</code>(ADR-001 §4)</td><td><code>invest</code> · <code>savings</code> · <code>household</code> · <code>tips</code> + 셸. 웹 zone과 같은 이름. tax 삭제. "OTA로 시작, 번들 분리는 조건이 생길 때"는 유지</td></tr>
+      <tr><td><code>RN-REQ-001</code> 앱 구조 · 웹뷰 계약</td><td>네이티브 + 정보 많은 화면은 웹뷰, UA <code>SALTApp/</code></td><td>어느 zone을 웹뷰로 쓸지 정한다. 안: 금융 팁 · 투자 상세 · 코치 리포트 = 웹뷰, 홈 · 가계부 입력 · 저축 = 네이티브(입력 속도 · 위젯)</td></tr>
+      <tr><td>RN 탭 (F006 · F007 REQ)</td><td>투자 중심 탭</td><td><b>홈 · 저축 · 가계부 · 투자</b> 4탭. 웹과 같은 IA</td></tr>
+      <tr><td><code>RN-REQ-016~027</code> (F003 · F004 · F006)</td><td>투자 기능 화면</td><td>투자 동결 기준으로 범위 재확인. 웹뷰로 대체되는 화면은 REQ를 웹뷰 계약으로 줄인다</td></tr>
+      <tr><td><code>RN-REQ-028~031</code> (F007 푸시)</td><td>알림 1종 · 세금 D-Day 삭제 반영</td><td>FEATURE-015 FR-4 도메인별 알림(기본 꺼짐)으로</td></tr>
+      <tr><td>신규 RN REQ</td><td>없음</td><td>F012 저축 · F013 가계부 · F014 팁 · F015 셸 각 UI · FUNC · API · PERF</td></tr>
+    </tbody>
+  </table></div>
+  <h3>RN에서만 생기는 것</h3>
+  <ul>
+    <li><b>가계부 입력이 네이티브여야 하는 이유</b>: 3초 입력(금액 먼저 숫자 키패드), 결제 문자를 공유 시트로 앱에 보내기(Android 공유 인텐트 · iOS 공유 확장 — 문자 읽기 권한이 아니라 사용자가 보내는 것).</li>
+    <li><b>홈 화면 위젯</b>: 저축 "모이는 장면" 위젯(기획서 재미 항목). iOS WidgetKit · Android 앱 위젯은 네이티브 모듈이 필요하다.</li>
+    <li><b>웹뷰가 되는 zone은 휴대폰 폭이 필요하다</b>: 지금 웹은 768px 미만에서 안내 한 장으로 덮는다(FE-REQ-043). 웹뷰로 쓰는 zone과, 공개 검색 유입을 받는 <code>apps/web-tips</code>는 이 규칙에서 빼고 휴대폰 폭 레이아웃 REQ를 따로 만든다.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>이전 단계</h2>
+  <div class="phases">
+    <div class="ph"><div class="k">F0</div><div><h3>규칙 · 레지스트리 · ADR-005</h3><p><code>microfrontend.md</code> 개정, 레지스트리 5 zone, lint 도메인 축, web-tax 제거. 아키텍처 변경이라 단일 커밋으로 둔다.</p></div></div>
+    <div class="ph"><div class="k">F1</div><div><h3>투자 zone — apps/web-investment</h3><p>투자 화면을 <code>domain-invest</code>로 기계적 이동(커밋 1) → 새 앱이 조립 · 셸 rewrites · 홈을 <code>HomeSummaryCard</code>로(커밋 2, BFF 홈 계약 변경과 같은 PR). 가장 큰 이동이라 먼저 해서 규칙을 증명한다.</p></div></div>
+    <div class="ph"><div class="k">F2</div><div><h3>AppChrome · 이동 완화</h3><p>하단 탭 · 헤더를 공용 컴포넌트로, Speculation Rules · View Transitions. 셸 ↔ 투자에서 실측(전환 시간 · 깜빡임)한 뒤 다른 zone에 붙인다.</p></div></div>
+    <div class="ph"><div class="k">F3</div><div><h3>저축 zone — apps/web-savings</h3><p>기존 goal 이전 + 목표 고도화(FEATURE-012).</p></div></div>
+    <div class="ph"><div class="k">F4</div><div><h3>가계부 zone — apps/web-household</h3><p>신규(FEATURE-013).</p></div></div>
+    <div class="ph"><div class="k">F5</div><div><h3>금융 팁 zone — apps/web-tips</h3><p>공개 · ISR · robots 허용(FEATURE-014).</p></div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Open Questions</h2>
+  <ul>
+    <li>금융 팁 원문 위치: 레포 안 MDX(검수 = PR 리뷰) vs content 서비스 DB(운영 화면 필요). 1인 운영이면 MDX가 싸다.</li>
+    <li>로컬 개발에서 zone 5개를 같이 띄우는 방법: turbo로 전부 vs 셸 + 작업 중인 zone만(나머지는 rewrites가 스텁으로).</li>
+    <li>Safari 사용자 비율. 미리 렌더가 없는 브라우저에서 탭 전환 체감을 실측한다(QA-001에 항목 추가).</li>
+    <li>모바일(FEATURE-007, to-do)이 이 도메인 이름을 서비스 번들 이름으로 그대로 쓸지.</li>
+  </ul>
+</section>
+
+<footer class="muted" style="font-size:13px">근거: <code>apps/web/app/**</code> 라우트 · 슬라이스별 줄 수 · <code>packages/core/src/zones/registry.ts</code> · <code>.claude/rules/microfrontend.md</code> · ADR-001 · ADR-002. 외부: <a href="https://nextjs.org/docs/app/guides/multi-zones">Next.js Multi-zones</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API">Speculation Rules API</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@view-transition">@view-transition</a>.</footer>
+</div>
+
+</html>
