@@ -30,6 +30,7 @@ export const MARKET_MESSAGES = {
     "15m": "15분",
     "1h": "1시간",
     "1d": "1일",
+    "1w": "1주",
   },
   chartUnavailable: "차트를 불러올 수 없습니다.",
   chartNotRealtime: "실시간 아님",
