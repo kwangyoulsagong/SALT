@@ -7,6 +7,7 @@ import {
   type WatchlistItemVM,
 } from "./watchlist.viewmodel";
 import { AppError } from "../utils/error.util";
+import { toTrackedCounterVM, type TrackedCounterVM } from "./asset-search.viewmodel";
 import { logger } from "../config/logger";
 
 export type { WatchlistItemVM };
@@ -26,6 +27,8 @@ const MAX_PAGES = 10;
 interface ServerWatchlistPage {
   items: ServerWatchlistItem[];
   pagination?: { totalPages?: number };
+  /** 사용자 전체 카운터 — 페이지마다 같은 값이다(`SRV-REQ-008` FR-82) */
+  tracked?: unknown;
 }
 
 class AppWatchlistService {
@@ -39,8 +42,9 @@ class AppWatchlistService {
   async list(
     token: string,
     now: Date = new Date(),
-  ): Promise<{ items: WatchlistItemVM[] }> {
+  ): Promise<{ items: WatchlistItemVM[]; tracked: TrackedCounterVM | null }> {
     const serverItems: ServerWatchlistItem[] = [];
+    let tracked: TrackedCounterVM | null = null;
 
     for (let page = 1; page <= MAX_PAGES; page += 1) {
       const response = await backendApi.proxyAuthRequest(
@@ -52,6 +56,8 @@ class AppWatchlistService {
       const body: ServerWatchlistPage | undefined = response.data?.data;
       const items = body?.items ?? [];
       serverItems.push(...items);
+      // 서버 값 그대로 — BFF 가 세지 않는다(`BFF-REQ-007` FR-74). 없으면 `null`(화면은 카운터를 그리지 않는다)
+      if (page === 1) tracked = toTrackedCounterVM(body?.tracked);
 
       const totalPages = body?.pagination?.totalPages ?? 1;
       if (page >= totalPages || items.length === 0) break;
@@ -64,14 +70,14 @@ class AppWatchlistService {
     }
 
     // 0건은 빈 배열이다. 더미를 만들지 않는다 (FR-43)
-    if (serverItems.length === 0) return { items: [] };
+    if (serverItems.length === 0) return { items: [], tracked };
 
     const priceCache = upbitWSService.getPriceCache() as Map<
       string,
       CachedPrice
     >;
 
-    return { items: toWatchlistViewModels(serverItems, priceCache, now) };
+    return { items: toWatchlistViewModels(serverItems, priceCache, now), tracked };
   }
 
   /** 추가. 서버의 중복(409)·검증(400) 상태를 그대로 올린다. */

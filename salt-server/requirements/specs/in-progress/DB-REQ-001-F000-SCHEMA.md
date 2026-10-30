@@ -182,3 +182,4 @@ model Goal {
 |---|---|
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 추가: FR-40~43(목표 수량 — `targetQuantity` · `symbol` · `targetAmount` nullable + CHECK, 기본안 B5) · FR-50~53(추적 자산은 새 모델 없이 관심 ∪ 보유, `isTracked` 컬럼 없음, 뉴스 스키마 변경 없음 — D8 · D5). 개정: FR-10 과 Background 의 `AssetType` 근거 → **열린 질문 Q2**(ADR-002 로 세금 근거 소멸). 선행 목록에서 삭제된 DB-REQ-007 · 010 제거. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-30 | 짝 영역 변경 없음 — FR-51(추적 상한은 DB 제약이 아니다) 대로 서비스 설정값 `TRACKED_ASSET_LIMIT` 로 구현(`SRV-REQ-008` FR-81). 스키마 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |

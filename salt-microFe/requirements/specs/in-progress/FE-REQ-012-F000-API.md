@@ -90,8 +90,8 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-60 | 검색 훅은 `features/search-asset/api/`. 쿼리 키에 `q` · `assetType` 을 포함하고 `staleTime` 30s. `AbortSignal` 연결 (D8) | Must |
-| FR-61 | `features/toggle-watchlist` 가 `409` + `code: 'TRACKED_ASSET_LIMIT'` 을 **정규화된 에러 코드**로 구분한다(`{ status: 409, code, retriable: false }`). 문구는 `shared/i18n` (D8) | Must |
+| FR-60 | 검색 훅은 `features/search-asset/api/`. 쿼리 키에 `q` · `assetType` 을 포함하고 `staleTime` 30s. `AbortSignal` 연결 (D8). **개정 2026-10-30(구현)** — 조회라 `entities/market/api` `useAssetSearch`(`fsd-entities.md` "api 는 조회만"), `search-asset` 은 검색어 상태(주소 `?q=` · 디바운스 · 최근 검색)만 | Must |
+| FR-61 | `features/toggle-watchlist` 가 `409` + `code: 'TRACKED_ASSET_LIMIT'` 을 **정규화된 에러 코드**로 구분한다(`{ status: 409, code, retriable: false }`). 문구는 `shared/i18n` (D8). **개정 2026-10-30(구현)** — `isTrackedLimitError`(`ApiError` 하나로 판정). 문구는 슬라이스 문구 `entities/market/model/messages.ts`(`i18n-policy` — 도메인 문구는 슬라이스) | Must |
 | FR-62 | watchlist · search 성공 무효화 대상: `watchlist` · `search` 쿼리 키 둘 다 (D8) | Must |
 | FR-63 | 뉴스 뷰모델 타입에 `sentiment` · `symbols` · `isBookmarked?` 를 추가한다. `sentiment` 는 enum 으로(FR-51) (기본안 — 감사 문서 B11) | Must |
 | FR-64 | 북마크 훅: 조회는 `entities/news/api/`, 토글은 `features/toggle-news-bookmark/api/`. mutation **재시도 0회** (D5) | Must |
@@ -178,3 +178,4 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 호출 배치에 검색 · 북마크 목록 · 북마크 토글 추가, 알림 `kind` 1종 표시. 신규 D-2절 FR-60~66(검색 훅 · `409 TRACKED_ASSET_LIMIT` 정규화 · 무효화 · 뉴스 필드 · 북마크 훅 · 인증 전 호출 금지 · 목표 판별 유니온). FR-51 에 `newsSentiment` enum. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-09-23 | **MSW 목 전부 제거.** 목표 요약 · 목록을 BFF `/api/goals/statistics` · `/api/goals` 로, 지출 분석(`/api/v1/investments/preview`)은 서버에 데이터가 없어 삭제. 공개 시세 서버 조회(SEO · sitemap)를 `pages/investment-detail/api` 에 추가 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-30 | D-2절 구현 — FR-60 **개정**(조회 훅은 `entities/market/api` `useAssetSearch`, 키에 `q` · 자산군) · FR-61 `isTrackedLimitError` · FR-62 무효화 둘 · FR-65 로그인 전 호출 없음(`enabled`) — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |

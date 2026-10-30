@@ -151,3 +151,10 @@
 관찰(범위 밖): 홈 보유 섹션 제목이 "주식"인데 코인 보유도 그 아래에 있다(`PORTFOLIO_MESSAGES.stockHeading`, 기존).
 
 검증: `pnpm check-types` · `pnpm lint` · `pnpm test`(core 51 · ui 43) · `test:layer-check` · `web` · `web-tax` build(`/onboarding` 152 kB).
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- 파일만 걸침 — 관심 종목 빈 상태 `EmptyState` 에 검색 링크 `action`(그래픽 무변경). 검색 화면 상태는 `StatusLine`(그래픽 포함) · 스켈레톤
+- 확인: 실화면 실패 · 0건 상태
+
+미검증: 없음 — 판단 무변경

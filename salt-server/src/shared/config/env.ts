@@ -103,6 +103,11 @@ const envSchema = z.object({
       )
     )
     .pipe(z.array(z.string()).min(1)),
+  /**
+   * 추적 자산 상한 — 보유가 아닌 관심 종목 수(`FEATURE-000` FR-41 · `SRV-REQ-008` FR-81). **코드 상수 금지**, 기본 10.
+   * 낮추면 이미 넘은 사용자의 관심 종목을 지우지 않고 새 등록만 막는다(FR-85)
+   */
+  TRACKED_ASSET_LIMIT: z.coerce.number().int().positive().default(10),
   /** 요약 태그 `wide_move` 임계(24시간 변동률 %, 절댓값) */
   MARKET_SUMMARY_WIDE_MOVE_RATE: z.coerce.number().positive().default(5),
   /**

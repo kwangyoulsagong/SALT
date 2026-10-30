@@ -342,3 +342,10 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 - check-types · lint · test · layer-check · 훅 · web · web-tax build
 - 미검증: 없음
 
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- 파일만 걸침 — `ui/index.ts` 에 `AssetSearchTable` · 관심 종목 탭 카운터(자산군 탭과 무관한 사용자 전체 수) · 보유 ★ 비활성(국내 포함). 국내 탭 판단 무변경
+- 확인: 실화면
+
+미검증: 없음 — 판단 무변경

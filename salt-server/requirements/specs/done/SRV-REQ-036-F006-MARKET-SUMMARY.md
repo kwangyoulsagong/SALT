@@ -44,3 +44,4 @@ created: 2026-09-22
 - 2026-10-26: F011 슬라이스 6(국내 지수 · 투자자 순매수) — 국내 주식 탭 요약은 이 경로를 쓰지 않는다 — 따로 `GET /api/market/kr/indices`(소유자 전용 · 설정 `KIS_SUMMARY_INDICES`, `SRV-REQ-040` FR-49). 같은 원칙(무엇을 보일지는 서버 설정 · 값은 저장값). 코인 요약 무변경
 - 2026-09-22 신설 (`FE-REQ-037` 서버 소유 전환)
 - 2026-09-22 개정 — FR-7 · FR-8(분위기 · 뉴스 · 고가/저가/거래대금), 기본 종목 10개. 화면이 비어 보인다는 피드백
+- 2026-10-30: 파일만 걸침 — `investment.controller.ts` 에 `searchAssets` 핸들러 추가. 시장 요약 경로 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`

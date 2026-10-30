@@ -30,6 +30,8 @@ export interface WatchlistItemVM {
   /** 크립토만 있다. 주식은 `null` — 플레이스홀더를 만들지 않는다. 화면이 판단한다 */
   logoUrl: string | null;
   priceUpdatedAt: string | null;
+  /** 보유 종목 — ★ 해제 불가(`FE-REQ-011` FR-7). 서버 값 그대로, 없으면 `false` */
+  isHeld: boolean;
 }
 
 export interface ServerWatchlistItem {
@@ -41,6 +43,7 @@ export interface ServerWatchlistItem {
   priceChange24h: number | null;
   priceUpdatedAt: string | null;
   logoUrl: string | null;
+  isHeld?: boolean;
 }
 
 /**
@@ -117,5 +120,6 @@ export const toWatchlistViewModels = (
         now.getTime() - priceAt.getTime() > PRICE_STALE_AFTER_MS,
       logoUrl: item.logoUrl,
       priceUpdatedAt: priceAt ? priceAt.toISOString() : null,
+      isHeld: item.isHeld === true,
     };
   });

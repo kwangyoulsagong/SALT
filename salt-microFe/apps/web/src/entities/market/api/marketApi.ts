@@ -11,6 +11,7 @@ import {
   MarketSummaryResponse,
   NewsPreviewResponse,
   WatchlistResponse,
+  AssetSearchResponse,
 } from "../model/types";
 import { MARKET_ENDPOINTS } from "./endpoints";
 
@@ -101,6 +102,19 @@ export const marketApi = {
    * 부르는 쪽(`useWatchlist`)이 토큰 유무로 `enabled` 를 정한다. 여기서 던지지 않는
    * 이유는 "로그인 안 됨"이 오류가 아니라 **상태**이기 때문이다.
    */
+  /** 종목 검색 — `{ data }` 로 싸여 온다(BFF 뷰모델 응답). 타이핑 중 이전 요청은 `signal` 이 끊는다(`FE-REQ-011` FR-81) */
+  search: async (
+    q: string,
+    limit: number,
+    assetType: string | undefined,
+    signal?: AbortSignal,
+  ): Promise<AssetSearchResponse> => {
+    const body = await getJson<{ data: AssetSearchResponse }>("search", MARKET_ENDPOINTS.search(q, limit, assetType), {
+      headers: authHeader(),
+      signal,
+    });
+    return body.data;
+  },
   watchlist: async (signal?: AbortSignal): Promise<WatchlistResponse> => {
     return getJson("watchlist", MARKET_ENDPOINTS.watchlist(), {
       headers: authHeader(),

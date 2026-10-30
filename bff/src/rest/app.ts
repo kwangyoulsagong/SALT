@@ -4,6 +4,7 @@ import helmet from "helmet";
 import { errorMiddleware } from "./middleware/error.middleware";
 import { DORMANT_PATHS, goneMiddleware } from "./middleware/gone.middleware";
 import { logger } from "../config/logger";
+import { loggableUrl } from "../utils/error.util";
 
 // Routes
 import healthRoutes from "./routes/health.routes";
@@ -13,6 +14,7 @@ import portfolioRoutes from "./routes/portfolio.routes";
 import alertsRoutes from "./routes/alerts.routes";
 import marketRoutes from "./routes/market.routes";
 import watchlistRoutes from "./routes/watchlist.routes";
+import searchRoutes from "./routes/search.routes";
 import newsRoutes from "./routes/news.routes";
 import onboardingRoutes from "./routes/onboarding.routes";
 import aiCoachRoutes from "./routes/ai-coach.routes";
@@ -38,7 +40,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     // 첫 인자는 문자열이어야 한다 — 객체를 주면 콘솔 형식이 `[object Object]` 로 찍는다(2026-10-28)
-    logger.info(`${req.method} ${req.url} ${res.statusCode} ${duration}ms`);
+    // `originalUrl` — 끝난 시점의 `req.url` 은 라우터 기준 상대 경로라 `/api/app/*` 요청이 전부 `/` 로 찍혔다(2026-10-30 실측)
+    logger.info(`${req.method} ${loggableUrl(req.originalUrl ?? req.url)} ${res.statusCode} ${duration}ms`);
   });
   next();
 });
@@ -51,6 +54,7 @@ app.use("/api/app/portfolio", portfolioRoutes);
 app.use("/api/app/alerts", alertsRoutes);
 app.use("/api/app/market", marketRoutes);
 app.use("/api/app/watchlist", watchlistRoutes);
+app.use("/api/app/search", searchRoutes);
 app.use("/api/app/news", newsRoutes);
 app.use("/api/app/onboarding", onboardingRoutes);
 app.use("/api/app/ai-coach", aiCoachRoutes);

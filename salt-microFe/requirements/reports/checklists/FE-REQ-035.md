@@ -57,3 +57,10 @@ First Load 가 그대로인 이유: axios 는 처음부터 지연 청크(`next/d
 | 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
 
 미검증: 없음 — 판단 · 화면 무변경
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- 파일만 걸침 — `marketApi.search` 도 `apiFetch` · `readApiError`(axios 없음)
+- 확인: lint pass
+
+미검증: 없음 — 판단 무변경

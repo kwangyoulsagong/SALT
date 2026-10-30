@@ -163,3 +163,10 @@
 
 - 머리 정정 블록: "현재 `constants/api.ts`"는 없다(위와 같음) / 규칙 `event-bus.md` 는 없다 · `PreviewChart` 는 SVG — "언마운트 때 `remove()`" 대신 구독 · 리스너 해제 / 뷰모델 한 벌화(FR-50)는 이 REQ 가 주인 — 다른 문서 · 코드 주석이 `FE-REQ-024` 로 가리키던 것을 2026-10-29 바로잡았다
 - 2026-10-29: 코드 주석 3곳(`entities/auth` · `entities/market` `model/types.ts`)의 한 벌화 주인을 이 REQ FR-50 으로 · 훅 exit 0 · `web` check-types · lint
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- D-2절 구현 — FR-60 **개정**(조회 훅은 `entities/market/api` `useAssetSearch`, 키에 `q` · 자산군) · FR-61 `isTrackedLimitError` · FR-62 무효화 둘 · FR-65 로그인 전 호출 없음(`enabled`)
+- 확인: 실화면
+
+미검증: 없음 — 판단 무변경

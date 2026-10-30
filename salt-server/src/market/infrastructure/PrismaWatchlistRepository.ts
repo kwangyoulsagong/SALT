@@ -92,6 +92,14 @@ export class PrismaWatchlistRepository implements WatchlistRepository {
     return { items: items.map(toItem), total };
   }
 
+  async listAll(userId: string) {
+    const rows = await prisma.investmentWatchlist.findMany({
+      where: { userId },
+      orderBy: { addedAt: "desc" },
+    });
+    return rows.map(toItem);
+  }
+
   /**
    * `userId` 를 조건에 넣어 **소유 검사와 삭제를 한 번에** 한다.
    *

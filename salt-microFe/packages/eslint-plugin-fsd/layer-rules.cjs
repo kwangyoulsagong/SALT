@@ -79,6 +79,7 @@ const REGISTRY = {
     "coach-console",
     "asset-workspace",
     "market-board",
+    "asset-search",
     "onboarding-flow",
     "pc-panel-grid",
     "coach-panel",

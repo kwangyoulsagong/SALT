@@ -147,3 +147,4 @@ F000은 신규 계산이 없으므로 성능 요구가 가볍다. 이 REQ의 목
 |---|---|
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 예산 6행(검색 · 상한 판정 · 뉴스 `isBookmarked` · 북마크 목록 · 토글 · 목표 수량 진행률)과 FR-60~63(판정 N+1 금지 · 검색 p95 · 검색어 로그 금지 · 검색 캐시 없음) 추가. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-30 | `GET /api/investment/search` 실측 11~27ms(BFF 경유, 임시 사용자 · 국내 포함) — 예산 150ms 안. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |

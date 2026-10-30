@@ -300,3 +300,10 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: FR-140~142(해설 3종 동봉 · `newsSummary` · 미렌더면 LLM 미호출) · FR-150~153(preflight `stopLossRate`  / FR-107 스냅샷은 `InvestmentInsight(kind: symbol_judgment)` upsert 가 아니라 별도 표 `SymbolJudgmentSn / FR-22 "`kr_stock` 은 추천 대상에서 제외"는 **저장 추천만** 해당 — 국내 종목 판단은 F011 슬라이스 4 로 열렸다(`SRV-REQ-040`
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- 파일만 걸침 — `env.ts` · `ports.ts` 에 추적 상한 · `HoldingProbe` 추가. 이 REQ 의 판단 · 설정 무변경
+- 확인: build · test pass
+
+미검증: 없음 — 판단 무변경

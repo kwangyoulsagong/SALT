@@ -52,7 +52,12 @@ export abstract class DomainError extends Error {
   constructor(
     readonly code: string,
     readonly kind: ErrorKind,
-    message: string
+    message: string,
+    /**
+     * 화면이 문구 옆에 그릴 숫자 · 식별자(예: 추적 상한 `trackedCount` · `trackedLimit`). 응답 본문 최상위에 그대로
+     * 실린다 — 코치 쿨다운의 `retryAfterSeconds` 와 같은 자리. **원인 메시지 · 내부 값을 넣지 않는다**(본문으로 나간다)
+     */
+    readonly details?: Readonly<Record<string, string | number | boolean | null>>
   ) {
     super(message);
     this.name = new.target.name;

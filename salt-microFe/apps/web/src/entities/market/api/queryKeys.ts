@@ -12,6 +12,11 @@ export const marketQueryKeys = {
    */
   watchlist: ["MarketWatchlist"] as const,
   symbolNews: ["MarketSymbolNews"] as const,
+  /**
+   * 종목 검색. 별을 누르면 관심 목록과 **함께** 무효화한다 — 결과의 `isTracked` 가 같이 바뀐다(`FE-REQ-011` FR-6).
+   * 사용자별 판정이라 로그아웃 때 `queryClient.clear()` 가 지운다
+   */
+  search: ["MarketAssetSearch"] as const,
   /** 시장 요약 띠. 서버가 종목을 정하므로 파라미터가 없다 */
   summary: ["MarketSummary"] as const,
   /** 국내 주식(F011). 응답이 사용자(소유자 판정)에 걸려 있다 — 로그아웃 때 `queryClient.clear()` 가 지운다 */

@@ -10,7 +10,7 @@ import {
   WatchlistItem,
 } from "@/entities/market";
 
-import { useToggleWatchlist } from "../api/useToggleWatchlist";
+import { isTrackedLimitError, useToggleWatchlist } from "../api/useToggleWatchlist";
 
 interface WatchlistStarButtonProps {
   /** 이미 담겨 있으면 그 항목. `undefined` 면 빈 별이고 누르면 추가다 */
@@ -18,6 +18,12 @@ interface WatchlistStarButtonProps {
   request: AddWatchlistRequest;
   /** 표시 이름. 추가 요청의 `name` 과 같지만 라벨 문구가 이것을 쓴다 */
   displayName: string;
+  /**
+   * 보유 종목 — 늘 추적되므로 별이 차 있고 해제할 수 없다. mutation 을 보내지 않는다(`FE-REQ-011` FR-7 · `FE-REQ-010` FR-74)
+   */
+  held?: boolean;
+  /** 추적 상한 409 — 부르는 화면이 인라인 안내를 띄운다(`FE-REQ-010` FR-75). 없으면 아무것도 하지 않는다 */
+  onTrackedLimit?: () => void;
 }
 
 /**
@@ -31,7 +37,7 @@ interface WatchlistStarButtonProps {
  * 화면에 보이는 것과 다를 수 있다.
  */
 export const WatchlistStarButton = React.memo(
-  ({ entry, request, displayName }: WatchlistStarButtonProps) => {
+  ({ entry, request, displayName, held = false, onTrackedLimit }: WatchlistStarButtonProps) => {
     const toggle = useToggleWatchlist();
 
     const onClick = useCallback((event: React.MouseEvent) => {
@@ -40,21 +46,32 @@ export const WatchlistStarButton = React.memo(
       // `disabled` 를 두고도 막는다. 이 버튼은 `TableRow` 안에 있고 그 행은 `memoKey`
       // 만 비교하므로, 부모가 넘기는 prop 변화가 늦게 반영될 수 있다. 진행 중 클릭은
       // 같은 항목에 DELETE 를 두 번 보내 404 를 만든다.
-      if (toggle.isPending) return;
-      toggle.mutate({ entry, request });
-    }, [entry, request, toggle]);
+      if (toggle.isPending || held) return;
+      toggle.mutate(
+        { entry, request },
+        {
+          onError: (error) => {
+            if (isTrackedLimitError(error)) onTrackedLimit?.();
+          },
+        },
+      );
+    }, [entry, request, toggle, held, onTrackedLimit]);
 
-    const label = entry
-      ? WATCHLIST_MESSAGES.remove(displayName)
-      : WATCHLIST_MESSAGES.add(displayName);
+    const tracked = held || Boolean(entry);
+    const label = held
+      ? WATCHLIST_MESSAGES.heldAlwaysTracked
+      : entry
+        ? WATCHLIST_MESSAGES.remove(displayName)
+        : WATCHLIST_MESSAGES.add(displayName);
 
     return (
       <IconButton
-        icon={<StarIcon filled={Boolean(entry)} />}
+        icon={<StarIcon filled={tracked} />}
         label={label}
+        title={held ? WATCHLIST_MESSAGES.heldAlwaysTracked : undefined}
         size="sm"
-        aria-pressed={Boolean(entry)}
-        disabled={toggle.isPending}
+        aria-pressed={tracked}
+        disabled={toggle.isPending || held}
         onClick={onClick}
       />
     );

@@ -204,3 +204,4 @@ type AlertVM = {
 `PortfolioSummaryVM` 에 `namesDegraded` 를 더했다. 종목명을 시세 목록에서 붙이는데
 그 조회가 실패해도 금액은 내려보내야 하고, 화면이 "이름이 심볼로 보이는 이유"를 알아야 한다.
 - 2026-10-29: 전수 조사 — FR-12 기간 2종 · 수용 기준 구현분 표시
+- 2026-10-30: 화면 계약 구현 — `GET /api/app/search` 뷰모델 `{ items: [{ assetType, symbol, name, logoUrl, currentPrice, changeRate, isTracked, isHeld }], tracked }`(`AssetSearchResultVM` 이름 대신 `AssetSearchVM`) · FR-19 409 `TRACKED_ASSET_LIMIT` + 두 수 · 관심 목록 `tracked` · 행 `isHeld` — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`

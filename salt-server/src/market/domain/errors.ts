@@ -23,6 +23,15 @@ export class UnknownMarketSymbolError extends DomainError {
   }
 }
 
+/**
+ * 추적 자산 상한(`SRV-REQ-008` FR-82). 화면이 카운터 `n / 상한` 을 그릴 수 있게 두 수를 본문에 싣는다 — 문구는 프론트가 정한다
+ */
+export class TrackedAssetLimitError extends DomainError {
+  constructor(trackedCount: number, trackedLimit: number) {
+    super("TRACKED_ASSET_LIMIT", ErrorKind.Conflict, "Tracked asset limit reached", { trackedCount, trackedLimit });
+  }
+}
+
 export class WatchlistItemNotFoundError extends DomainError {
   constructor() {
     super(

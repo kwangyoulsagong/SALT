@@ -134,3 +134,20 @@
 
 - 머리 정정 블록: FR-70~72(동면 · 되살리기)는 2026-10-27 `SRV-REQ-007` 에서 구현 — `DORMANT_PATHS` 410 · `/api/missions / 초대 · 인증 · 온보딩 · watchlist · 뉴스 · period 수용 기준은 2026-09-18 Changelog 두 행이 닫았다(`auth/applica / FR-32 `AssetType` 3값: `kr_stock` 은 F011 이 닫음(2026-10-07) · `us_stock` 은 미국 주식 착수 때
 - 2026-10-29 전수 조사: 프론트 `entities/auth/model/types.ts`(머리 주석이 이 REQ) 주석만 — 뷰모델 한 벌화 주인 `FE-REQ-024` → `FE-REQ-012` FR-50. 서버 무변경
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-80 | `market/application/SearchAssets.ts` — 같음 → 시작 → 포함, 같은 순위 안 원천 순서. 결과 `isTracked` · `isHeld` · `tracked` | 단위 5 · 실서버 `삼성` · `비트` · `000660` · `btc` · `zzzz` |
+| FR-81 | `domain/policy/trackingLimit.ts` `canStartTracking` · env `TRACKED_ASSET_LIMIT` | 단위(상한 3 설정) · 실서버 12번째 409 · 상한에서 보유 201 |
+| FR-82 | `TrackedAssetLimitError` + `DomainError.details` | 단위(`toErrorResponse` 본문 대조) · 실서버 본문 두 수 |
+| FR-83 | `HoldingProbe` · `infrastructure/HeldAssetsAdapter.ts`(조립 `composition.ts`, 부를 때 공개 API) | 실서버 보유 ETH · 005930 |
+| FR-84 | `readTrackedSummary` — 관심 `listAll` 1 · 보유 1 | 코드 확인 |
+| FR-85 | 새 등록만 막는다(정리 코드 없음) | 코드 확인 |
+| FR-86 | 빈 검색어 = 관심 ∪ 보유 · `loggableUrl` | 단위 · 실서버 로그 `q=*` |
+| FR-87 | 개정 — 코인 + 국내(소유자만, 비소유자는 마스터 조회 0) | 단위 · 실서버 비소유자 0건 |
+
+관심 목록 응답에 `tracked` · 행 `isHeld`(`FE-REQ-011` FR-7). 서버 857 pass · build · lint · layer-check · 훅 사후 · Swagger. 실검증 · 실화면 상세는 루트 `requirements/reports/checklists/F000-asset-search.md` §2
+
+미검증: 없음 — 소유자 실계정 화면은 `QA-001`

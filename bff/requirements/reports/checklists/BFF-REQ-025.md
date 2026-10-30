@@ -87,3 +87,10 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
 ## 2026-10-29 REQ 전수 조사
 
 - FR-42 현재형 문장
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- error middleware 가 409 `trackedCount` · `trackedLimit` 을 옮긴다 · 로그 주소 `originalUrl` + `q=*`. 4xx 보존 규칙 무변경
+- 확인: 단위 · 기존 errorMiddleware 테스트 10건(가짜 요청에 `originalUrl` 없음 → `?? req.url`)
+
+미검증: 없음 — 판단 무변경

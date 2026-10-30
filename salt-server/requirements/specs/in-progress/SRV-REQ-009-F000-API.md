@@ -27,7 +27,7 @@ created: 2026-09-09
 | GET | `/api/onboarding/status` | Y | — | `{ steps: [{ key, done }], nextStep }` |
 | GET | `/api/portfolio/summary` | Y | — | `{ items[], totalKrw, fxRateUsed, fxBasisCode }` |
 | GET | `/api/news?symbol=&limit=` | Y | — | `{ items[] }` |
-| GET | `/api/investment/search?q=&assetType=&limit=20` | Y | — | `{ items: [{ symbol, name, assetType, currentPrice, change24h, isTracked, isHeld }], tracked: { count, limit } }` (2026-09-21, D8) |
+| GET | `/api/investment/search?q=&assetType=&limit=20` | Y | — | `{ items: [{ symbol, name, assetType, currentPrice, change24h, isTracked, isHeld }], tracked: { count, limit } }` (2026-09-21, D8). **개정 2026-10-30** — `{ items: [{ assetType, symbol, name, logoUrl, currentPrice, changeRate, isTracked, isHeld }], tracked }`(FR-30) |
 
 > **2026-09-21 — 기존 경로의 계약 추가.** 새 경로가 아니라 **필드 · 상태 코드 추가**다(FR-20 하위 호환).
 >
@@ -91,7 +91,7 @@ created: 2026-09-09
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-30 | `GET /api/investment/search` 를 연다(인증 필수). `q` 는 1자 이상 50자 이하, 없으면 추적 목록을 준다. `limit` 기본 20 · 최대 50. 형식 위반은 **422** (D8) | Must |
+| FR-30 | `GET /api/investment/search` 를 연다(인증 필수). `q` 는 1자 이상 50자 이하, 없으면 추적 목록을 준다. `limit` 기본 20 · 최대 50. 형식 위반은 **422** (D8). **개정 2026-10-30(구현)** — `q` 0~30자(빈 값 = 추적 목록) · `limit` 1~30 · 형식 위반 **400**: 서버 DTO 전부가 Zod 400 이고(`errorMiddleware`) 국내 마스터 검색이 이미 30자다. 등락은 `change24h` 가 아니라 `changeRate`(국내는 전일 대비라 24시간이 아니다) · 행마다 `logoUrl` · `name`. `assetType` 은 `crypto` · `kr_stock`(소유자만) | Must |
 | FR-31 | 검색은 **`market/overview` 와 별도 경로**다. overview 에 사용자별 필드를 섞지 않는다 — overview 는 공개 · `limit=100` · 스냅샷 고정(FR-11)이다 (D8) | Must |
 | FR-32 | `POST /api/investment/watchlist` 가 추적 상한 초과 시 **409** + `code: 'TRACKED_ASSET_LIMIT'` + `trackedCount` · `trackedLimit` 이다. 이미 관심인 종목 재추가는 기존 동작 그대로(409 가 아니다) (D8) | Must |
 | FR-33 | `GET /api/investment/watchlist` 응답에 `tracked: { count, limit }` 를 **추가**한다. 기존 필드는 그대로 (D8) | Must |
@@ -174,3 +174,4 @@ created: 2026-09-09
 `/api/portfolio/summary` 의 `fxRateUsed`·`fxBasisCode` 는 **언제나 `null`** 이다(`fx`
 컨텍스트 없음). 필드를 지금 두는 이유는 미국주식이 들어올 때 계약이 바뀌지 않게 하기 위해서다.
 - 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
+- 2026-10-30: F000 종목 검색 계약 구현 — `GET /api/investment/search` · FR-32 409 두 수 · FR-33 `tracked` · 행 `isHeld`. **FR-30 개정** — `q` ≤ 30 · `limit` ≤ 30 · 형식 위반 400(서버 DTO 전부 Zod 400) · `changeRate` · `logoUrl` · `name`. Swagger 생성 확인. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`

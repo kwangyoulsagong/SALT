@@ -52,11 +52,12 @@ shared/
 export enum ErrorKind { NotFound, Conflict, Invalid, Blocked, Forbidden, Unauthenticated, Unavailable } // 실제는 문자열 값
 
 export abstract class DomainError extends Error {
-  constructor(readonly code: string, readonly kind: ErrorKind, message: string) { super(message); }
+  constructor(readonly code: string, readonly kind: ErrorKind, message: string, readonly details?: Record<string, string | number | boolean | null>) { super(message); }
 }
 ```
 
 - `ErrorKind` → HTTP status 매핑은 미들웨어가 **한 번만** 한다
+- `details` 는 응답 본문 최상위에 실린다(`success` · `code` · `message` 는 덮지 못한다). 화면이 문구 옆에 그릴 값만 — 추적 상한 `trackedCount` · `trackedLimit`(`SRV-REQ-008` FR-82, 2026-10-30)
 - **도메인이 HTTP status를 알지 않는다** — `ErrorKind`는 의미 분류이고, 그것을 404/409/400으로 옮기는 것은 `presentation`의 판단이다
 - **값을 늘리는 것은 전 컨텍스트에 걸리는 판단이다.** 한 컨텍스트가 자기 편의로 늘리지 않는다. `FORBIDDEN`은 사용자 소유 검사가 모든 컨텍스트에 걸리고(`auth-security.md`) 그 응답이 이미 403이라 들어왔다 — 없으면 이관이 **응답 코드를 바꾸거나 `domain`이 `shared/presentation`을 import해야** 했다(`SRV-REQ-006` FR-22 정정). `UNAUTHENTICATED`(401)는 `auth` 컨텍스트 이관 때 같은 이유로 들어왔다 — 403 과 섞으면 클라이언트가 토큰 재발급을 판단할 수 없다. `UNAVAILABLE`(503)은 F011 국내 주식이 KIS 키 없이 **꺼진 채 기동**할 때 들어왔다(2026-10-07) — 선택 외부 연동이 꺼진 상태는 404(없는 리소스) · 422(틀린 요청)와 섞이면 BFF 가 숨길지 다시 시도할지 판단할 수 없고, 같은 상황이 다른 선택 연동(LLM · 전망 배치)에도 생긴다
 

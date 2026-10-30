@@ -96,3 +96,4 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 - 2026-10-08: 슬라이스 4 — FR-17~19(판단 자산군 · 이력 · 사유 2종 · 성적표 접두 · 계획 400 해제). 테스트 251/251(모드 블록 국내 주식 1 · 성적표 1 · 계획 400 기대값을 201 로)
 - 2026-10-23: F011 슬라이스 5d — **변경 없음.** 국내 상세가 `/api/app/coach/forecast?symbol=<6자리>` 를 부른다(심볼 그대로 서버로 · 4xx 그대로 · 5xx `unavailable`, 코인과 같은 뷰모델). 소비처 `FE-REQ-041` FR-23
 - 2026-10-29: F009 FR-26 — FR-25 `portfolioVolatility` 뷰모델에 `contributions` · `tail` 추가(주인 `BFF-REQ-038` FR-14). FR-25 필드 · `ok` 판정 무변경
+- 2026-10-30: 파일만 걸침 — 웹 `endpoints.ts` 에 검색 경로 추가(국내 경로 옆). 국내 계약 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`

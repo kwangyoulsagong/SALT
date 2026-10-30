@@ -251,3 +251,4 @@ F001은 `behavior-coach`의 편향 판정을 **거래 단위 라벨러로 재사
 |---|---|
 | 2026-10-28 | `UpbitClient` 캔들 두 읽기가 Upbit 404 를 `UnknownMarketSymbolError` 로(`f74c34f`) — 수집 워커는 모든 예외를 잡아 `warn` 이라 동작 같음 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-30 | Shared Kernel `DomainError` 에 선택 `details`(응답 본문 최상위) — 컨텍스트 예외가 화면용 값을 실을 자리. 미들웨어가 `success` · `code` · `message` 를 뒤에 써 덮지 못한다(`ddd-shared.md` §2 개정, `36368363`) — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |

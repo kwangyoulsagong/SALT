@@ -1,15 +1,20 @@
 import { logger } from "../../shared/config/logger";
 import {
+  canStartTracking,
+  countTowardTrackingLimit,
   isKrStockCode,
+  trackedAssetKey,
   isKrStockViewer,
   KrStockDisabledError,
   KrStockNotAvailableError,
   krStockLogoUrl,
+  TrackedAssetLimitError,
   logoUrlOf,
   WatchlistDuplicateError,
   WatchlistItemNotFoundError,
   type AssetQuote,
   type ExchangeQuotePort,
+  type HoldingProbe,
   type KrStockStore,
   type MarketAssetRepository,
   type MarketAssetType,
@@ -38,6 +43,31 @@ export interface WatchlistKrSource {
   logoDevToken?: string;
 }
 
+/**
+ * 추적 자산 상한(`SRV-REQ-008` FR-80~85). `null` 이면 상한을 걸지 않는다 — 조립(`composition.ts`)은 늘 준다. 상한은 설정값
+ * `TRACKED_ASSET_LIMIT`(기본 10)이고 코드 상수가 아니다(FR-81)
+ */
+export interface WatchlistTracking {
+  held: HoldingProbe;
+  limit: number;
+}
+
+/** 화면 카운터 `추적 n / 상한` — `n` 은 보유 제외 관심 수(`FE-REQ-010` FR-37) */
+export interface TrackedSummary {
+  count: number;
+  limit: number;
+}
+
+/** 관심 · 보유를 한 번씩 읽어 카운터를 만든다(FR-84 — 행마다 조회하지 않는다) */
+export const readTrackedSummary = async (
+  watchlist: WatchlistRepository,
+  tracking: WatchlistTracking,
+  userId: string
+) => {
+  const [watched, held] = await Promise.all([watchlist.listAll(userId), tracking.held.heldAssets(userId)]);
+  return { watched, held, summary: { count: countTowardTrackingLimit(watched, held), limit: tracking.limit } };
+};
+
 const canViewKr = (kr: WatchlistKrSource | null, email: string | undefined): kr is WatchlistKrSource =>
   kr !== null && isKrStockViewer(email, kr.viewerEmails);
 
@@ -52,7 +82,8 @@ export class AddToWatchlist {
   constructor(
     private readonly watchlist: WatchlistRepository,
     private readonly exchange: ExchangeQuotePort,
-    private readonly kr: WatchlistKrSource | null = null
+    private readonly kr: WatchlistKrSource | null = null,
+    private readonly tracking: WatchlistTracking | null = null
   ) {}
 
   async execute(command: AddToWatchlistCommand) {
@@ -64,6 +95,7 @@ export class AddToWatchlist {
     ) {
       throw new WatchlistDuplicateError();
     }
+    await this.assertCanTrack(command.userId, command.assetType, symbol);
 
     let currentPrice: number | null = null;
     let priceChange24h: number | null = null;
@@ -101,6 +133,7 @@ export class AddToWatchlist {
     const listing = await this.kr.store.findListing(code);
     if (!listing) throw new KrStockNotAvailableError();
     if (await this.watchlist.exists(command.userId, "kr_stock", code)) throw new WatchlistDuplicateError();
+    await this.assertCanTrack(command.userId, "kr_stock", code);
     const quote = await this.kr.store.quote(code);
     return this.watchlist.add({
       userId: command.userId,
@@ -110,6 +143,18 @@ export class AddToWatchlist {
       currentPrice: quote?.price ?? null,
       priceChange24h: quote?.changeRate ?? null,
     });
+  }
+
+  /**
+   * 중복 검사 **뒤**에 본다 — 이미 담긴 종목을 다시 누른 것은 상한 문제가 아니라 중복(409 `MARKET_WATCHLIST_DUPLICATE`)이다.
+   * 판정과 추가 사이에 다른 요청이 끼면 상한을 하나 넘을 수 있다 — 사용자 ≤ 10명 · 별 버튼이 진행 중 비활성이라 잠그지 않는다
+   */
+  private async assertCanTrack(userId: string, assetType: MarketAssetType, symbol: string) {
+    if (!this.tracking) return;
+    const { watched, held, summary } = await readTrackedSummary(this.watchlist, this.tracking, userId);
+    if (!canStartTracking({ candidate: { assetType, symbol }, watched, held, limit: summary.limit })) {
+      throw new TrackedAssetLimitError(summary.count, summary.limit);
+    }
   }
 }
 
@@ -170,7 +215,8 @@ export class ListWatchlist {
   constructor(
     private readonly watchlist: WatchlistRepository,
     private readonly assets: MarketAssetRepository,
-    private readonly kr: WatchlistKrSource | null = null
+    private readonly kr: WatchlistKrSource | null = null,
+    private readonly tracking: WatchlistTracking | null = null
   ) {}
 
   async execute(
@@ -182,8 +228,12 @@ export class ListWatchlist {
     const limit = query.limit || 20;
     // 국내 주식 시세를 볼 수 없는 사람(비소유자 · 키 없음)에게는 국내 주식 행 자체를 주지 않는다
     const krVisible = canViewKr(this.kr, viewer.email);
+    // 카운터는 필터 · 페이지와 무관한 사용자 전체 값이다(`BFF-REQ-007` FR-74). 상한이 없으면 싣지 않는다
+    const trackedRead = this.tracking ? await readTrackedSummary(this.watchlist, this.tracking, userId) : undefined;
+    const tracked: TrackedSummary | undefined = trackedRead?.summary;
+    const heldKeys = trackedRead ? new Set(trackedRead.held.map(trackedAssetKey)) : undefined;
     if (query.assetType === "kr_stock" && !krVisible) {
-      return { items: [], pagination: { page, limit, total: 0, totalPages: 0 } };
+      return { items: [], pagination: { page, limit, total: 0, totalPages: 0 }, ...(tracked ? { tracked } : {}) };
     }
 
     const { items, total } = await this.watchlist.findPage(
@@ -233,6 +283,7 @@ export class ListWatchlist {
                 ? krStockLogoUrl(krQuote, this.kr?.logoDevToken)
                 : null,
           addedAt: item.addedAt,
+          ...(heldKeys ? { isHeld: heldKeys.has(trackedAssetKey(item)) } : {}),
         };
       }),
       pagination: {
@@ -241,6 +292,7 @@ export class ListWatchlist {
         total,
         totalPages: Math.ceil(total / limit),
       },
+      ...(tracked ? { tracked } : {}),
     };
   }
 }

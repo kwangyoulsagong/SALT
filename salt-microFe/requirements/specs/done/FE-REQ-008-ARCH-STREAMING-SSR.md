@@ -201,3 +201,8 @@ RSC에서는 그 근거가 달라진다. 서버 컴포넌트가 BFF를 여러 �
 - `@repo/ui` 44종 중 몇 개가 `"use client"`를 필요로 하는지 실측. `feature/repo-ui-component` 병합 후 확인.
 - 스트리밍과 React Query의 역할 분담. 서버에서 첫 데이터를 흘리고 클라이언트에서 갱신하려면 `HydrationBoundary`가 필요하다. **서버 컴포넌트로 조회하고 React Query는 mutation·실시간 갱신에만** 쓰는 것이 기본안.
 - 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
+
+
+## Changelog
+
+- 2026-10-30: 파일만 걸침 — `MarketBoard.tsx` 머리에 "종목 검색 ›" 링크(코치 리포트 링크 옆). 스트리밍 경계 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`

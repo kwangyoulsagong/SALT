@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { DomainError, ErrorKind } from "../domain/DomainError";
 import { logger } from "../config/logger";
 import { AppError } from "./httpErrors";
+import { loggableUrl } from "./loggerMiddleware";
 import { ZodError } from "zod";
 
 /**
@@ -56,7 +57,8 @@ export const toErrorResponse = (err: Error): ErrorResponse => {
       status: ERROR_KIND_STATUS[err.kind],
       code: err.code,
       reason: err.message,
-      body: { success: false, code: err.code, message: err.message },
+      // `details` 를 먼저 펼친다 — 상세가 `success` · `code` · `message` 를 덮지 못한다
+      body: { ...err.details, success: false, code: err.code, message: err.message },
     };
   }
 
@@ -103,14 +105,14 @@ export const errorMiddleware = (
     logger.error("Error:", {
       message: err.message,
       stack: err.stack,
-      url: req.url,
+      url: loggableUrl(req.url),
       method: req.method,
     });
   } else {
     // meta 에 `message` 키를 두면 winston 이 본문에 이어 붙인다 — 사유는 `reason` 으로
     logger.warn(`Request rejected ${response.status} ${response.code}`, {
       reason: response.reason,
-      url: req.url,
+      url: loggableUrl(req.url),
       method: req.method,
     });
   }

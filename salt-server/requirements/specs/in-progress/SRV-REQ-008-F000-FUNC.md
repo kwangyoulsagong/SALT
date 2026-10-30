@@ -110,12 +110,12 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 |---|---|---|
 | FR-80 | `SearchAssets(userId, q, assetType?, limit)` 유스케이스. `MarketAsset` 활성 종목을 심볼 · 한글명 · 영문명 부분 일치로 찾는다. 결과마다 `isTracked` · `isHeld` 를 붙이고 `tracked { count, limit }` 를 함께 준다 | Must |
 | FR-81 | `policy/trackingLimit`: **보유가 아닌 관심 종목 수 < 상한** 일 때만 `AddToWatchlist` 가 성공한다. 이미 보유한 종목의 추가는 상한과 무관하게 성공한다. 상한은 **설정값**(기본 10) — 코드 상수 금지 | Must |
-| FR-82 | 상한 초과는 도메인 예외 `TrackedAssetLimitError`(`code: TRACKED_ASSET_LIMIT`, `ErrorKind: Conflict`)다. 응답에 `trackedCount` · `trackedLimit` 을 담는다 | Must |
+| FR-82 | 상한 초과는 도메인 예외 `TrackedAssetLimitError`(`code: TRACKED_ASSET_LIMIT`, `ErrorKind: Conflict`)다. 응답에 `trackedCount` · `trackedLimit` 을 담는다 **구현 2026-10-30** — 두 수는 `DomainError.details` 로 본문 최상위에 싣는다(Shared Kernel 확장, `ddd-shared.md` §2) | Must |
 | FR-83 | `isHeld` 는 **`HoldingProbe`(Port) → `portfolio` 공개 API** 로 읽는다. `market` 이 `PortfolioHolding` 을 Prisma 로 직접 읽지 않는다 | Must |
 | FR-84 | 판정은 요청당 관심 · 보유 심볼 집합을 **한 번씩** 읽는다. 결과 행마다 조회하지 않는다(`DB-REQ-004` FR-41) | Must |
 | FR-85 | 상한을 넘은 상태(보유 매도로 관심만 남은 경우)를 **자동으로 정리하지 않는다.** 새 등록만 막는다(`FEATURE-000` OQ-2 기본안) | Must |
 | FR-86 | 검색어가 비면 결과 대신 `tracked` 목록(관심 ∪ 보유)을 준다. 검색어는 **로그에 남기지 않는다**(관심 종목은 투자 의도다) | Must |
-| FR-87 | 열린 질문 Q2 결정 전까지 검색 대상은 현재 `MarketAsset` 에 있는 자산군뿐이다. 주식 시세 소스를 이 REQ 에서 만들지 않는다 | Must |
+| FR-87 | 열린 질문 Q2 결정 전까지 검색 대상은 현재 `MarketAsset` 에 있는 자산군뿐이다. 주식 시세 소스를 이 REQ 에서 만들지 않는다 **개정 2026-10-30(구현)** — Q2 가 닫혔다(F011 `kr_stock`, 2026-10-07). 검색 대상 = 코인(`MarketAsset`) + 국내 주식(`KrStockMaster`, **소유자만** — 비소유자는 마스터를 읽지도 않는다). 미국 주식(`stock`)은 시세 원천이 없어 제외 | Must |
 
 ## 뉴스 — 감정 · 종목 · 북마크 (2026-09-21)
 
@@ -238,3 +238,4 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 - FR-61·62 의 환율 필드는 **자리만 만들고 `null`** 이다. 보유가 전부 원화 크립토이고
   `fx` 컨텍스트가 없다 — 미국주식이 들어올 때 응답 모양이 바뀌지 않게 지금 뒀다.
 - 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
+- 2026-10-30: **F000 종목 검색 · 추적 자산 상한 구현**(`feat/f000-asset-search` `34128987` · 커널 `36368363`). FR-80~87 — `SearchAssets` · `policy/trackingLimit`(보유가 아닌 관심 수 < `TRACKED_ASSET_LIMIT` 기본 10) · `TrackedAssetLimitError`(409 + `trackedCount` · `trackedLimit`, `DomainError.details`) · `HoldingProbe` = `HeldAssetsAdapter`(→ `portfolio.api.listHoldings`, 수량 0 제외) · 요청당 관심 · 보유 1회 · 자동 정리 없음 · 빈 검색어 = 추적 목록 · 검색어 로그 `q=*`. **FR-87 개정** — Q2 닫힘, 코인 + 국내(소유자만). 중복 검사가 상한보다 먼저. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`

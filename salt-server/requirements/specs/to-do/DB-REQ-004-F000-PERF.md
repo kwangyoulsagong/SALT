@@ -138,3 +138,4 @@ M2의 `UPDATE ... SET asset_type = 'kr_stock' WHERE asset_type = 'stock'`이 대
 |---|---|
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: 예산 3행(M6 · 검색 · 추적 판정) · FR-40~43(검색 EXPLAIN · 판정 N+1 금지 · M6 시간 · 북마크 판정). 인덱스 점검 표에서 반사실 · 취득가액 · 세금 소비처를 F003 · F004 · F006 으로 바꾸고 추적 · 검색 · 북마크 행 추가. 위험 1 · 2 는 **Q2 결정 전 해당 없음**. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-10-30 | 추적 상한 판정 — 관심 `listAll`(사용자당 ≤ 수십 행) + 보유 1회. 새 인덱스 없음(`@@index([userId, assetType])`). 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |

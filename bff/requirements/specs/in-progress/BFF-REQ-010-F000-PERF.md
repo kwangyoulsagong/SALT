@@ -154,3 +154,4 @@ F000의 성능 요구는 **① 변경 금지 목록(실시간 테이블·시세 
 | 2026-09-21 | **시세 개요 A절(FR-1~4).** FR-4 측정 결과 가격 캐시 히트율 **0%** — 그 캐시는 워커 프로세스에서만 찬다. 덧씌우기를 걷어내고 서버 응답을 그대로 넘긴다. FR-1 p95 23.1ms. **FR-2 는 다르게** — 서버가 `periodChange` 를 더해 정리 전 응답과 바이트가 다르다. BFF 는 서버 응답과 바이트 동일(테스트). 서버 4xx 를 500 으로 바꾸던 것도 고쳤다. `performance-bff.md` §4 정정. 근거: `requirements/reports/checklists/F000-market-table.md` |
 | 2026-09-21 | **스토리보드 갭 감사 반영.** 예산 4행(검색 · 뉴스 `isBookmarked` · 북마크 목록 · 토글)과 캐시 표 2행(검색 · 북마크 — 캐시하지 않음), 수용 기준 2개(예산 · 검색어 로그 0건) 추가. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-29 | 전수 조사 — 예산 대상 경로를 실제 프록시 경로로 · 수용 기준 구현분 표시 |
+| 2026-10-30 | 예산 실측 — `GET /api/app/search` 11~27ms(첫 요청 101ms), 예산 200ms 안 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |

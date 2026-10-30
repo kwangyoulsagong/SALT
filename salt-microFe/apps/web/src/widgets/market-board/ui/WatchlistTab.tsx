@@ -5,6 +5,7 @@ import { StatusGraphic } from "@repo/ui/statusGraphic";
 import { FlexBox } from "@repo/ui/flexBox";
 import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -20,11 +21,13 @@ import {
   WatchlistTable,
 } from "@/entities/market";
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
+import { ROUTES } from "@/shared/config";
+import { NavChevron } from "@/shared/ui";
 
 import { useDetailLink } from "../lib";
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
 import type { PreviewRenderer } from "../model/previewSlot";
-import { previewPane, splitLayout, tablePane } from "./MarketBoardLayout.css";
+import { previewPane, reportLink, splitLayout, tablePane, trackedCounter } from "./MarketBoardLayout.css";
 
 /**
  * 관심 종목 탭 (`FE-REQ-010` FR-1 · FR-30~35).
@@ -106,6 +109,7 @@ export const WatchlistTab = ({
       <WatchlistStarButton
         entry={item}
         displayName={item.name}
+        held={item.isHeld === true}
         request={{
           assetType: starAssetType,
           symbol: item.symbol,
@@ -141,6 +145,13 @@ export const WatchlistTab = ({
         icon={<StatusGraphic kind="empty" />}
         title={WATCHLIST_MESSAGES.emptyTitle}
         description={WATCHLIST_MESSAGES.emptyDescription}
+        action={
+          // 빈 상태에서 검색으로(`FE-REQ-010` FR-33 · 70)
+          <Link href={ROUTES.search} className={reportLink}>
+            {WATCHLIST_MESSAGES.searchEntry}
+            <NavChevron />
+          </Link>
+        }
       />
     );
   }
@@ -148,6 +159,12 @@ export const WatchlistTab = ({
   return (
     <FlexBox justify="between" gap="2xl" className={splitLayout}>
       <div className={tablePane}>
+        {/* 추적 카운터(`FE-REQ-010` FR-37) — 서버가 센 값. 자산군 탭과 무관한 사용자 전체 수다 */}
+        {data?.tracked ? (
+          <p className={trackedCounter} title={WATCHLIST_MESSAGES.trackedCounterTitle}>
+            {WATCHLIST_MESSAGES.trackedCounter(data.tracked.count, data.tracked.limit)}
+          </p>
+        ) : null}
         <WatchlistTable
           items={items}
           selectedSymbol={selectedSymbol}

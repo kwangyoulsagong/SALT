@@ -235,10 +235,44 @@ export interface WatchlistItem {
   /** 크립토만 있다. 주식은 `null` — 플레이스홀더를 만들지 않고 영역을 비운다 */
   logoUrl: string | null;
   priceUpdatedAt: string | null;
+  /** 보유 종목 — 늘 추적되므로 ★ 를 해제할 수 없다(`FE-REQ-011` FR-7). 옛 BFF 응답엔 없다 */
+  isHeld?: boolean;
+}
+
+/**
+ * 추적 카운터 `추적 n / limit` (`FE-REQ-010` FR-37). `count` 는 **보유가 아닌** 관심 종목 수 — 보유 종목은 늘 추적되고
+ * 세지 않는다(D8). 서버가 센 값 그대로다. 프론트가 세지 않는다(`FE-REQ-011` FR-5)
+ */
+export interface TrackedCounter {
+  count: number;
+  limit: number;
 }
 
 export interface WatchlistResponse {
   items: WatchlistItem[];
+  /** 서버가 안 주면 `null` — 카운터를 그리지 않는다. 0 · 10 을 지어내지 않는다 */
+  tracked?: TrackedCounter | null;
+}
+
+/** 종목 검색 결과 한 줄(BFF `GET /api/app/search`, `BFF-REQ-007` H절) */
+export interface AssetSearchItem {
+  /** `WatchlistItem.assetType` 과 같은 이유로 열거로 좁히지 않는다 */
+  assetType: string;
+  symbol: string;
+  name: string;
+  logoUrl: string | null;
+  /** 없으면 `null` — 국내 주식은 시세 유니버스 밖이면 없다. 0 이 아니다 */
+  currentPrice: number | null;
+  changeRate: number | null;
+  /** 관심 또는 보유 */
+  isTracked: boolean;
+  /** 보유(수량 > 0) — 이 종목의 ★ 는 해제할 수 없다(`FE-REQ-010` FR-74) */
+  isHeld: boolean;
+}
+
+export interface AssetSearchResponse {
+  items: AssetSearchItem[];
+  tracked: TrackedCounter | null;
 }
 
 /** 추가할 때 **우리가 고르는** 값이라 열거로 좁힌다. */

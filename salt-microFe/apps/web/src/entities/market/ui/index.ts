@@ -4,6 +4,7 @@ export { MarketFilterTabs } from "./MarketFilterTabs";
 export type { MarketFilterValue } from "./MarketFilterTabs";
 export { PriceCell } from "./PriceCell";
 export { WatchlistTable } from "./WatchlistTable";
+export { AssetSearchTable } from "./AssetSearchTable";
 export { MarketPreview } from "./MarketPreview/MarketPreview";
 export { MarketIntelligencePreview } from "./MarketPreview/MarketIntelligencePreview";
 export type { GaugeFooters } from "./MarketPreview/MarketIntelligencePreview";

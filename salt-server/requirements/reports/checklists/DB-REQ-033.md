@@ -78,3 +78,10 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 실회차 쓰기 | 16:11 전 | 2026-10-27 16:11 뒤 `after_hours_at` 이 찍힌 행 수 |
+
+## 2026-10-30 — F000 종목 검색 · 추적 자산 상한 (파일만 걸침)
+
+- 파일만 걸침 — `market/domain/ports.ts` 에 `WatchlistRepository.listAll` · `HoldingProbe` · 행 `isHeld?`. 스키마 · 마이그레이션 없음(`@@index([userId, assetType])` 로 충분)
+- 확인: prisma generate · build pass
+
+미검증: 없음 — 판단 무변경

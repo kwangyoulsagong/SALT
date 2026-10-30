@@ -27,3 +27,4 @@ created: 2026-09-22
 
 - 2026-09-22 신설 (`FE-REQ-037` 서버 소유 전환)
 - 2026-09-22 개정 — `breadth` · `headlines` · 고가/저가/거래대금 전달
+- 2026-10-30: 파일만 걸침 — 웹 `endpoints.ts` 에 검색 경로 추가(시장 요약 경로 옆). 계약 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`

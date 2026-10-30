@@ -64,6 +64,12 @@ export const MARKET_ENDPOINTS = {
     `/api/app/news?symbol=${encodeURIComponent(symbol)}&limit=${limit}`,
   /** 시장 요약 띠 — BFF 뷰모델(`BFF-REQ-035`). 공개 경로다 */
   summary: () => `/api/app/market/summary`,
+  /**
+   * 종목 검색 — 코인 + 국내 한 검색(`FE-REQ-010` FR-71). 인증 필수(사용자별 `isTracked`). 검색어가 비면 추적 목록이 온다
+   */
+  search: (q: string, limit: number, assetType?: string) =>
+    `/api/app/search?q=${encodeURIComponent(q)}&limit=${limit}` +
+    (assetType ? `&assetType=${encodeURIComponent(assetType)}` : ""),
   watchlistItem: (id: string) => `/api/app/watchlist/${encodeURIComponent(id)}`,
   /**
    * 국내 주식(F011 `FE-REQ-041`) — BFF 뷰모델 `BFF-REQ-040`. **전부 인증 필수 · 소유자 전용**(KRX 재배포 약관 —
