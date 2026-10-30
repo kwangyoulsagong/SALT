@@ -25,6 +25,8 @@ export const ROUTES = {
   coachReport: "/coach/report",
   /** 코치 리포트의 한 섹션 — 투자 화면 요약 띠가 여기로 간다 */
   coachReportSection: (id: CoachReportSection) => `/coach/report#${id}`,
+  /** 판정 근거 상세 — 성적표 그룹 하나(`[kr_stock.]<mode>.<action>`). 성적표 그룹이 여기로 온다(F004 FR-33) */
+  signalEvidence: (signalType: string) => `/coach/signals/${encodeURIComponent(signalType)}`,
   onboarding: "/onboarding",
   addGoal: "/goals/addgoals",
 } as const;

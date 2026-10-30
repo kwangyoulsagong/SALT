@@ -14,6 +14,17 @@ const httpError = (status: number) =>
 const miss = { date: "2026-09-12", symbol: "SOL", event: "long_term.avoid", outcome: "miss", returnRate: 0.041 };
 const hit = { date: "2026-09-10", symbol: "BTC", event: "long_term.avoid", outcome: "hit", returnRate: -0.052 };
 
+const BUCKETS = ["lte_m20", "m20_m10", "m10_0", "0_p10", "p10_p20", "gte_p20"];
+const distribution = (over: Record<string, unknown> = {}) => ({
+  horizonDays: 30,
+  // 서버 순서와 다르게 와도 막대 순서는 구간 순서다
+  buckets: [...BUCKETS].reverse().map((code, index) => ({ code, count: index })),
+  p25: -0.05,
+  median: 0,
+  p75: 0.04,
+  ...over,
+});
+
 const group = (over: Record<string, unknown> = {}) => ({
   signalType: "long_term.avoid",
   sample: 31,
@@ -24,7 +35,7 @@ const group = (over: Record<string, unknown> = {}) => ({
   horizonHours: 720,
   alwaysUpRate: 0.45,
   excessWinRate: 0.03,
-  returnDistribution: { horizonDays: 30, buckets: [], p25: -0.05, median: 0, p75: 0.04 },
+  returnDistribution: distribution(),
   hits: [hit],
   misses: [miss],
   ...over,
@@ -39,14 +50,46 @@ const board = (over: Record<string, unknown> = {}) => ({
 });
 
 describe("toJudgmentScoreboardViewModel", () => {
-  it("그룹 성적과 맞았던 때 · 틀렸던 때를 같은 모양으로 옮기고 분포는 옮기지 않는다", () => {
+  it("그룹 성적과 맞았던 때 · 틀렸던 때를 같은 모양으로 옮긴다", () => {
     const view = toJudgmentScoreboardViewModel(board());
     assert.equal(view.status, "ok");
     assert.equal(view.groups[0]?.mode, "long_term");
     assert.equal(view.groups[0]?.excessWinRate, 0.03);
     assert.deepEqual(view.groups[0]?.misses, [{ ...miss, name: null, logoUrl: null }]);
     assert.deepEqual(view.groups[0]?.hits, [{ ...hit, name: null, logoUrl: null }]);
-    assert.equal("returnDistribution" in (view.groups[0] ?? {}), false);
+  });
+
+  it("수익률 분포는 구간 순서로 옮긴다 — 구간이 빠지거나 깨지면 0 으로 채우지 않고 null (F004 FR-33 · 서버 FR-53)", () => {
+    const view = toJudgmentScoreboardViewModel(board());
+    const shown = view.groups[0]?.returnDistribution;
+    assert.equal(shown?.horizonDays, 30);
+    assert.deepEqual(
+      shown?.buckets.map((bucket) => bucket.code),
+      BUCKETS,
+    );
+    assert.deepEqual(
+      shown?.buckets.map((bucket) => bucket.count),
+      [5, 4, 3, 2, 1, 0],
+    );
+    assert.equal(shown?.median, 0);
+    assert.equal("probability" in (shown ?? {}), false);
+
+    const broken = [
+      undefined,
+      distribution({ buckets: distribution().buckets.slice(1) }),
+      distribution({ buckets: [...distribution().buckets.slice(1), { code: "lte_m20", count: -1 }] }),
+      distribution({ buckets: [...distribution().buckets.slice(1), { code: "lte_m20", count: 1.5 }] }),
+      distribution({ horizonDays: 0 }),
+      distribution({ buckets: "x" }),
+    ];
+    for (const returnDistribution of broken) {
+      const result = toJudgmentScoreboardViewModel(board({ groups: [group({ returnDistribution })] }));
+      assert.equal(result.groups[0]?.returnDistribution, null);
+    }
+    // 사분위수가 비면 그 칸만 null — 막대는 남는다
+    const noQuantile = toJudgmentScoreboardViewModel(board({ groups: [group({ returnDistribution: distribution({ median: null }) })] }));
+    assert.equal(noQuantile.groups[0]?.returnDistribution?.median, null);
+    assert.equal(noQuantile.groups[0]?.returnDistribution?.buckets.length, 6);
   });
 
   it("표본 부족은 서버 값만 — 모르면 부족이다. 표본 0 이면 적중률 null", () => {

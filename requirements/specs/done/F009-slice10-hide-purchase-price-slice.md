@@ -20,7 +20,7 @@ created: 2026-10-29
 
 | 영역 | REQ | 이 슬라이스 몫 |
 |---|---|---|
-| 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-039-F009-TRADE-RISK.md` FR-13 | 토글 · 홈 숨김 |
+| 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-039-F009-TRADE-RISK.md` FR-13 | 토글 · 홈 숨김 |
 | 프론트(주인) | `salt-microFe/requirements/specs/in-progress/FE-REQ-010-F000-UI.md` FR-5 | 보유 요약 `showProfitRate` — Changelog |
 | BFF | `bff/requirements/specs/done/BFF-REQ-038-F009-TRADE-RISK.md` | **변경 없음** — 프로필 통과 그대로 |
 | 서버 | `salt-server/requirements/specs/done/SRV-REQ-038-F009-RISK.md` | **변경 없음** — 저장 · 검증 그대로 |

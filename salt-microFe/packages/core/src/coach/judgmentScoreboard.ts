@@ -21,6 +21,20 @@ export interface ScoreboardCase {
   returnRate: number;
 }
 
+/** 수익률 구간 코드 — 막대 순서(`min < r <= max`, 양 끝 열림). 문구는 화면 i18n (서버 `RETURN_BUCKETS`) */
+export const RETURN_BUCKET_CODES = ["lte_m20", "m20_m10", "m10_0", "0_p10", "p10_p20", "gte_p20"] as const;
+export type ReturnBucketCode = (typeof RETURN_BUCKET_CODES)[number];
+
+/** 관찰 기간 수익률 분포(F004 FR-33) — 과거 표본의 모양이지 앞날의 확률이 아니다. 구간 6개가 늘 다 있다 */
+export interface ReturnDistribution {
+  /** 그룹 관찰 기간(단타 1 · 장기 30) */
+  horizonDays: number;
+  buckets: Array<{ code: ReturnBucketCode; count: number }>;
+  p25: number | null;
+  median: number | null;
+  p75: number | null;
+}
+
 export interface ScoreboardGroup {
   /** `[kr_stock.]<mode>.<action>` */
   signalType: string;
@@ -43,6 +57,8 @@ export interface ScoreboardGroup {
   claim: PerformanceClaim | null;
   hits: ScoreboardCase[];
   misses: ScoreboardCase[];
+  /** 분포가 없거나 깨졌으면 `null` */
+  returnDistribution: ReturnDistribution | null;
 }
 
 export interface JudgmentScoreboardView {

@@ -7,8 +7,10 @@
  * 1. 모양을 검사한다. 신호 유형 · 표본 수가 깨진 그룹은 뺀다(0 으로 채우지 않는다)
  * 2. 표본 부족(`lowSample`) 판정은 **서버 값만** 옮긴다. 여기서 문턱을 다시 세지 않는다
  * 3. 맞았던 때 · 틀렸던 때를 **같은 모양 · 같은 상한**으로 둘 다 옮긴다(서버 B2). 어느 쪽을 먼저 그릴지는 화면 몫
+ * 4. 관찰 기간 수익률 분포(`returnDistribution`, 서버 FR-53)를 옮긴다 — 추천 근거 상세(F004 FR-33)가 막대로 그린다.
+ *    구간 6개가 다 와야 옮긴다. 빠진 구간을 0 으로 채우면 "그 구간에 표본이 없었다"는 거짓 주장이 된다
  *
- * 하지 않는 것: 수익률 분포(`returnDistribution`) 옮기기 — 화면이 아직 쓰지 않는다. 목표가 · 예측 필드는 서버에 없다.
+ * 하지 않는 것: 목표가 · 예측 필드는 서버에 없다. 분포에서 확률 · 기대 수익을 만들지 않는다.
  *
  * 여기에는 import 가 없다(`symbol-coach.viewmodel.ts` 와 같은 이유 — 순수 뷰모델 `performance-claim` 만 예외).
  */
@@ -39,6 +41,20 @@ export interface ScoreboardCase {
   returnRate: number;
 }
 
+/** 서버 `RETURN_BUCKETS` 의 구간 코드 — 순서가 막대 순서다(`min < r <= max`, 양 끝 열림). 문구는 화면 i18n */
+export const RETURN_BUCKET_CODES = ["lte_m20", "m20_m10", "m10_0", "0_p10", "p10_p20", "gte_p20"] as const;
+export type ReturnBucketCode = (typeof RETURN_BUCKET_CODES)[number];
+
+/** 관찰 기간 수익률 분포 — 과거 표본의 모양이지 앞날의 확률이 아니다 */
+export interface ReturnDistribution {
+  /** 그룹 관찰 기간(단타 1 · 장기 30). 30 고정이 아니다 */
+  horizonDays: number;
+  buckets: Array<{ code: ReturnBucketCode; count: number }>;
+  p25: number | null;
+  median: number | null;
+  p75: number | null;
+}
+
 export interface ScoreboardGroup {
   signalType: string;
   /** 성적 출처 — `backtest` 면 과거 시세로 되돌려 채점한 모의(국내만, 라이브 20 전). 모르는 값은 모의 쪽(F011 슬라이스 7b) */
@@ -61,6 +77,8 @@ export interface ScoreboardGroup {
   claim: PerformanceClaim | null;
   hits: ScoreboardCase[];
   misses: ScoreboardCase[];
+  /** 분포가 없거나 깨졌으면 `null` — 화면은 막대 대신 이유를 쓴다 */
+  returnDistribution: ReturnDistribution | null;
 }
 
 export interface JudgmentScoreboardView {
@@ -95,6 +113,30 @@ const toCases = (raw: unknown, outcome: "hit" | "miss"): ScoreboardCase[] =>
     return view ? [view] : [];
   });
 
+const toDistribution = (raw: unknown): ReturnDistribution | null => {
+  if (!isRecord(raw) || !Array.isArray(raw.buckets)) return null;
+  const horizonDays = num(raw.horizonDays);
+  if (horizonDays === null || horizonDays <= 0) return null;
+  const counts = new Map<string, number>();
+  for (const item of raw.buckets) {
+    if (!isRecord(item)) return null;
+    const code = str(item.code);
+    const count = num(item.count);
+    if (!code || count === null || count < 0 || !Number.isInteger(count)) return null;
+    counts.set(code, count);
+  }
+  const buckets = RETURN_BUCKET_CODES.map((code) => ({ code, count: counts.get(code) }));
+  // 한 구간이라도 없으면 옮기지 않는다 — 0 으로 채우지 않는다
+  if (buckets.some((bucket) => bucket.count === undefined)) return null;
+  return {
+    horizonDays,
+    buckets: buckets.map((bucket) => ({ code: bucket.code, count: bucket.count ?? 0 })),
+    p25: num(raw.p25),
+    median: num(raw.median),
+    p75: num(raw.p75),
+  };
+};
+
 const toGroup = (raw: unknown): ScoreboardGroup | null => {
   if (!isRecord(raw)) return null;
   const signalType = str(raw.signalType);
@@ -119,6 +161,7 @@ const toGroup = (raw: unknown): ScoreboardGroup | null => {
     claim: toPerformanceClaim(raw.claim),
     hits: toCases(raw.hits, "hit"),
     misses: toCases(raw.misses, "miss"),
+    returnDistribution: toDistribution(raw.returnDistribution),
   };
 };
 

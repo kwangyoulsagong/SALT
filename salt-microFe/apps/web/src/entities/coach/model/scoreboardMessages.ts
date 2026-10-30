@@ -36,3 +36,53 @@ export const SCOREBOARD_MESSAGES = {
   signedOut: "로그인하면 판정 성적표를 볼 수 있어요",
   generatedAt: (at: string) => `${at} 기준`,
 } as const;
+
+/**
+ * 판정 근거 상세(`/coach/signals/[signalType]`, F004 FR-33 · 34 · `FE-REQ-026` FR-141 · 142).
+ * 분포는 **지난 표본의 모양**이다 — "이 구간에 들 확률" · 기대 수익 문구를 두지 않는다.
+ */
+export const SIGNAL_EVIDENCE_MESSAGES = {
+  back: "코치 리포트",
+  /** 성적표 그룹에서 이 화면으로 — 이름 뒤에 셰브론 */
+  openLink: "분포 · 맞았던 때 · 틀렸던 때",
+  openLinkLabel: (label: string) => `${label} 판정 근거 자세히 보기`,
+  headingSuffix: "판정 근거",
+  description: "이 판단이 나온 뒤 관찰 기간 동안 실제로 어떻게 움직였는지예요. 모든 사용자에게 같은 기록이에요",
+  metrics: {
+    sample: "채점",
+    winRate: "적중률",
+    avgReturn: "평균",
+    worst: "가장 나빴던 한 번",
+  },
+  sampleValue: (count: number) => `${count.toLocaleString("ko-KR")}회`,
+  /** 표본 부족 — 비율 칸은 숫자 대신 이 말 */
+  lowSampleValue: "표본 적음",
+  lowSampleNote: "아직 채점 표본이 적어 비율 숫자를 보이지 않아요. 아래 분포와 사례는 지금까지 채점된 그대로예요",
+  worstNote: "최대 낙폭이 아니라 표본 중 가장 낮았던 한 번의 수익률이에요",
+  distributionHeading: (horizon: string | null) => (horizon ? `${horizon} 수익률 분포` : "수익률 분포"),
+  horizonDays: (days: number) => (days === 1 ? "판단 뒤 하루" : `판단 뒤 ${days}일`),
+  distributionNote: "지난 판단이 어느 구간에서 끝났는지 센 것이에요. 다음 판단이 어느 구간에 들지 알려 주지 않아요",
+  bucketLabels: {
+    lte_m20: "−20% 이하",
+    m20_m10: "−20 ~ −10%",
+    m10_0: "−10 ~ 0%",
+    "0_p10": "0 ~ +10%",
+    p10_p20: "+10 ~ +20%",
+    gte_p20: "+20% 초과",
+  },
+  bucketCount: (count: number) => `${count.toLocaleString("ko-KR")}회`,
+  quartiles: (p25: string, median: string, p75: string) => `가운데 절반 ${p25} ~ ${p75} · 중앙값 ${median}`,
+  tableCaption: (horizon: string) => `${horizon} 수익률 구간별 채점 횟수`,
+  colBucket: "구간",
+  colCount: "횟수",
+  noDistribution: "수익률 분포를 아직 받지 못했어요",
+  hitsHeading: "맞았던 때",
+  missesHeading: "틀렸던 때",
+  casesNote: "가장 최근 것부터 같은 개수까지만 보여요. 좋은 사례만 골라 올리지 않아요. 숫자는 관찰 기간이 끝났을 때의 수익률이에요",
+  noHits: "아직 맞았던 기록이 없어요",
+  noMisses: "아직 틀렸던 기록이 없어요",
+  notFound: "이 판단 유형의 채점 기록이 없어요",
+  signedOut: "로그인하면 판정 근거를 볼 수 있어요",
+  unavailable: "지금은 판정 근거를 불러올 수 없어요",
+  assetClassMeta: { crypto: "코인", kr_stock: "국내 주식" },
+} as const;

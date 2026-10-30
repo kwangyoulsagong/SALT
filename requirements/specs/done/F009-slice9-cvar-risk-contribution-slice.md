@@ -22,7 +22,7 @@ F011 FR-46(7e)이 이미 코인 + 국내 보유의 일간 수익률 행렬 · �
 |---|---|---|
 | 서버 | `salt-server/requirements/specs/done/SRV-REQ-038-F009-RISK.md` FR-17 | `policy/portfolioVolatility` `contributions` · `tail` · 국내 이름 · 로고 |
 | BFF | `bff/requirements/specs/done/BFF-REQ-038-F009-TRADE-RISK.md` FR-14 | `toContributions` · `toTailLoss` |
-| 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-039-F009-TRADE-RISK.md` FR-27 | `RiskGaugeList` 두 칸 |
+| 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-039-F009-TRADE-RISK.md` FR-27 | `RiskGaugeList` 두 칸 |
 
 하지 않는 것:
 

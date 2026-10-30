@@ -202,3 +202,10 @@ Playwright: 블록 클릭 → `/investments`. 포커스 링 · 스크린 리더 
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: 변경 금지 목록의 `AnalysisGraph` · `TipsApp` 은 코드에 없다 — 지출 그래프는 `7b2663a`(MSW 제거)로 삭제, 팁은 `widget / `SegmentedControl` 은 `@repo/ui` 에 있다(`3f67f12`, FE-REQ-044 B) — 쟁점은 `MarketFilterTabs` 를 교 / FR-73 · 81 목적지는 `/investments/[symbol]`(상세 라우트 있음) — Open Q 닫힘 / "현재 `constants/api.ts`"는 없다 — 문구는 `@repo/core/http`(웹 `shared/i18n` 재수출), period 는 `ChartP / 768px 미만은 `NarrowScreenNotice`(FE-REQ-043)가 대신 — FR-52 · 54 의 모바일 접기는 앱 웹뷰에만 해당 / 온보딩 ③은 "월 적립액"이 아니라 "첫 목표"(`widgets/onboarding-flow/model/messages.ts`, `d6342a1`)
+## 2026-10-30 — 온보딩 초대 수락 전환 (`FE-REQ-044` P-40)
+
+| 항목 | 확인 |
+|---|---|
+| 수락 → 다음 단계 | 실스택 390 앱 웹뷰 — "초대를 수락했어요" · 점 진행 · 단계 밀림(퇴장 15 · 진입 24프레임). 로딩 화면 깜빡임 0 |
+| 비로그인 첫 진입 | 초대 단계 그대로(토큰 모를 때 로딩 — 무변경) |
+| 끝 화면 | 거래 · 목표 뒤 완료 화면 |

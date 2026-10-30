@@ -55,8 +55,10 @@ export const OnboardingFlow = () => {
   const { data, isLoading: isQuerying } = useOnboardingStatus();
   // 토큰이 있는지 아직 모르면(서버 · 하이드레이션) 단계를 정하지 않는다 — 초대 단계가 번쩍였다가 바뀌지 않게
   const tokenKnown = useHasAccessToken() !== null;
-  const isLoading = !tokenKnown || isQuerying;
   const [inviteAccepted, setInviteAccepted] = useState(false);
+  // 초대 수락 직후의 첫 조회는 로딩 화면으로 바꾸지 않는다 — 바꾸면 단계 영역이 내려갔다 `initial={false}` 로 다시 올라와
+  // 다음 단계가 밀려 들어오지 않는다(P-40, 2026-10-30 프레임 기록). 응답이 올 때까지 초대 단계를 그대로 두고 그때 넘긴다
+  const isLoading = !tokenKnown || (isQuerying && !inviteAccepted);
 
   const steps = data?.steps ?? FALLBACK_STEPS;
   const currentStep: OnboardingStepKey | null = data ? data.nextStep : "invite";

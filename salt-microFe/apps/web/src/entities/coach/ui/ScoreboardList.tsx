@@ -1,12 +1,19 @@
-import type { JudgmentScoreboardView, ScoreboardCase, ScoreboardGroup } from "@repo/core/coach";
-import { Badge } from "@repo/ui/badge";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
+import type { JudgmentScoreboardView, ScoreboardCase, ScoreboardGroup } from "@repo/core/coach";
+import { Badge } from "@repo/ui/badge";
+
+import { ROUTES } from "@/shared/config";
+import { NavChevron } from "@/shared/ui";
+
 import { formatRatio, formatShortDate, formatSignedPoints, formatSignedRate } from "../lib";
-import { SCOREBOARD_MESSAGES } from "../model";
+import { SCOREBOARD_MESSAGES, SIGNAL_EVIDENCE_MESSAGES } from "../model";
 import { caseList } from "./CoachDetail.css";
 import { CaseIdentity } from "./CaseIdentity";
 import { PerformanceClaimLine } from "./PerformanceClaimLine";
+import { signalTypeLabel } from "./SignalEvidence";
+import { evidenceLink } from "./SignalEvidence.css";
 import { gauge, gaugeLabel, gaugeList, gaugeStatus, gaugeValue, gaugeValueMuted, hint, missRow } from "./TradeRisk.css";
 
 const S = SCOREBOARD_MESSAGES;
@@ -14,8 +21,8 @@ const S = SCOREBOARD_MESSAGES;
 /** 최근 빗나간 판정을 몇 건 보이나 — 리서치 §9-3 "최근 빗나간 3건" */
 const RECENT_MISS_COUNT = 3;
 
-/** 그룹 키의 이름 — 국내 주식 키는 `kr_stock.` 접두를 떼고 같은 이름을 쓴다(자산군은 머리가 말한다) */
-const labelOf = (signalType: string): string | undefined => S.signalTypes[signalType.replace(/^kr_stock\./, "")];
+/** 그룹 키의 이름 — 국내 주식 키는 `kr_stock.` 접두를 떼고 같은 이름을 쓴다(자산군은 머리가 말한다). 상세와 같은 함수 */
+const labelOf = signalTypeLabel;
 
 const ASSET_CLASSES = ["crypto", "kr_stock"] as const;
 
@@ -100,6 +107,15 @@ const ScoreboardSection = ({
               </span>
               {group.sampleOrigin === "backtest" && <span className={hint}>{S.backtestNote}</span>}
               <PerformanceClaimLine claim={group.claim} />
+              {/* 분포 · 맞았던 때 · 틀렸던 때는 상세에서 같은 크기로(F004 FR-33 · 34) — 표본 부족이어도 사례는 사실이라 연다 */}
+              <Link
+                href={ROUTES.signalEvidence(group.signalType)}
+                className={evidenceLink}
+                aria-label={SIGNAL_EVIDENCE_MESSAGES.openLinkLabel(labelOf(group.signalType) ?? "")}
+              >
+                {SIGNAL_EVIDENCE_MESSAGES.openLink}
+                <NavChevron />
+              </Link>
             </li>
           );
         })}
