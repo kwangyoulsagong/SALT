@@ -9,6 +9,8 @@ labels: [rn, api, react-query, sse, aggregate, offline]
 created: 2026-09-09
 ---
 
+> **2026-10-30 — 도메인 구조 전환(`ADR-005` · `RN-REQ-032`)으로 바뀌는 것** — 서비스 번들 이름은 `invest` · `savings` · `household` · `tips` + 셸(`tax` 삭제), 앱 탭은 홈 · 저축 · 가계부 · 투자 4개, 투자 기능은 동결 범위 안에서만, 알림은 도메인별 · 기본 꺼짐. 본문과 다르면 `RN-REQ-032` 가 우선한다.
+
 > **2026-09-21 개정.** `ADR-002` — 홈 집계는 3블록 + `unreadAlertCount`(알림 목록은 홈에 없다). 포지션 · 거래 · 알림 · 설정 · 온보딩 건너뛰기 호출을 추가했다(§H). 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14.
 
 ## Summary

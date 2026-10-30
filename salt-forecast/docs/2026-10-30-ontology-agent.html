@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SALT 예측 · 온톨로지 설계</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 레이아웃: 한 단 설계 문서. 현황(된 것 / 빠진 것) → 온톨로지 모델 → 에이전트 → 개인 재무 전망 → MSA 속 위치 → 단계 */
+:root{
+  --bg:#f6f7f9; --surface:#fff; --fg:#17202b; --muted:#5a6675; --line:#d9dee5;
+  --accent:#1f6f8b; --accent-soft:#e3f0f5;
+  --ok:#2f7d4f; --ok-soft:#e5f3ea; --warn:#a2621a; --warn-soft:#f8eedf; --bad:#b03a3a; --bad-soft:#f8e4e4;
+  --sans:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ef; --muted:#97a3b1; --line:#2c3743;
+  --accent:#6bb7d2; --accent-soft:#183340;
+  --ok:#74c493; --ok-soft:#173326; --warn:#e0a55c; --warn-soft:#382a17; --bad:#e58585; --bad-soft:#3a1d1d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ef; --muted:#97a3b1; --line:#2c3743;
+  --accent:#6bb7d2; --accent-soft:#183340;
+  --ok:#74c493; --ok-soft:#173326; --warn:#e0a55c; --warn-soft:#382a17; --bad:#e58585; --bad-soft:#3a1d1d; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.7}
+.wrap{max-width:900px;margin:0 auto;padding-block:40px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:44px}
+h1{font-size:28px;line-height:1.3;margin:0;text-wrap:balance}
+h2{font-size:20px;margin:0;text-wrap:balance}
+h3{font-size:16px;margin:0}
+p{margin:0;max-width:72ch}
+section{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+.muted{color:var(--muted)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.ok{color:var(--ok);background:var(--ok-soft)} .warn{color:var(--warn);background:var(--warn-soft)} .bad{color:var(--bad);background:var(--bad-soft)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;overflow-x:auto}
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:10px 13px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--muted);font-weight:600;background:var(--bg)}
+tr:last-child td{border-bottom:none}
+ul,ol{margin:0;padding-left:1.25em;display:flex;flex-direction:column;gap:6px;max-width:72ch}
+pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.6;white-space:pre}
+.callout{border-left:3px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 8px 8px 0}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;min-width:680px}
+.f{border:1.5px solid var(--line);border-radius:8px;padding:12px;background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.f .t{font-weight:600;font-size:14px}
+.f .d{font-size:12px;color:var(--muted);line-height:1.5}
+.f.done{border-color:var(--ok)} .f.miss{border-color:var(--bad);border-style:dashed}
+.phases{display:flex;flex-direction:column;gap:10px}
+.ph{display:grid;grid-template-columns:64px 1fr;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.ph .k{font-family:var(--mono);font-weight:500;color:var(--accent)}
+.ph div{min-width:0;display:flex;flex-direction:column;gap:4px}
+.ph p{font-size:14px}
+a{color:var(--accent)}
+@media (max-width:640px){h1{font-size:24px}.ph{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+<header style="display:flex;flex-direction:column;gap:10px">
+  <div class="eyebrow">salt-forecast · 설계안 · 2026-10-30</div>
+  <h1>SALT 예측 · 온톨로지 설계</h1>
+  <p class="muted">FEATURE-008은 "데이터 파이프라인 → 온톨로지 → 에이전트"를 약속했다. 파이프라인과 예측 · 채점은 크게 만들어졌는데, 가운데 온톨로지와 끝의 에이전트가 비어 있다. 이 문서는 그 두 칸을 채우는 설계와, 예측을 투자 밖(저축 · 가계부)으로 넓히는 방법, MSA 안에서 예측 서비스의 위치를 정한다.</p>
+</header>
+
+<section>
+  <h2>지금 어디까지 왔나</h2>
+  <div class="box">
+    <div class="flow">
+      <div class="f done"><div class="t">수집 <span class="pill ok">있음</span></div><div class="d"><code>ingest/</code> 16종 — 업비트 · 바이낸스 · 코인메트릭스 · DefiLlama · Deribit · FRED · ECB · KRX 일봉 · RSS · 검색 관심도 등</div></div>
+      <div class="f miss"><div class="t">온톨로지 <span class="pill bad">비어 있음</span></div><div class="d"><code>ontology/__init__.py</code> 0줄. entity · relation 테이블 없음. FEATURE-008 FR-25 Draft</div></div>
+      <div class="f done"><div class="t">예측 · 채점 <span class="pill ok">있음</span></div><div class="d">LightGBM 분위수 · 메타 모델 · 국면 게이트 · 커버리지 채점 · 자동 소등. 잡 30개 · <code>forecast</code> 테이블 24 · 뷰 13</div></div>
+      <div class="f miss"><div class="t">에이전트 <span class="pill bad">없음</span></div><div class="d">도구 호출로 온톨로지 · 전망을 조회해 문장만 쓰는 층. 지금 해설은 템플릿(서버 coach)</div></div>
+    </div>
+  </div>
+  <p class="muted" style="font-size:14px">Python 1.7만 줄. FEATURE-008 상태(2026-10-26 정리): 완료 25 · 부분 15 · Draft 8(DART · SEC · 온톨로지 · 도구 호출 에이전트 등) · TBA 6.</p>
+  <div class="callout"><p><b>온톨로지가 비어 있어서 생기는 일.</b> 뉴스(<code>news_item</code>) · 일정(<code>scheduled_event</code>) · 신호(<code>signal_event</code>) · 종목 마스터가 각자 테이블로 흩어져 있다. "이 뉴스가 어느 회사 · 어느 종목에 관한 것인가", "이 사건 뒤에 같은 업종이 어떻게 움직였나"를 묻는 쿼리가 매번 새로 짜인다. 에이전트가 쓸 도구도 그래서 못 만든다.</p></div>
+</section>
+
+<section>
+  <h2>온톨로지 모델</h2>
+  <p>ADR-004 결정대로 그래프 DB 없이 Postgres로 한다(2~3홉은 재귀 CTE). 모든 사실은 <b>출처 · 관측 시각 · 수집 시각</b>을 갖고, 시점 고정(as-of) 질의가 되도록 유효 구간을 둔다. 이게 누수 방지 규칙(<code>time-and-leakage.md</code>)과 같은 원칙이다.</p>
+  <div class="box"><pre>forecast.entity
+  id · kind · canonical_name · external_ids jsonb   -- kind: asset | company | person | institution | wallet | event | document | sector | policy
+  created_at
+
+forecast.relation                                    -- 엔티티 사이의 관계 (시점이 있는 간선)
+  id · subject_id → entity · predicate · object_id → entity
+  valid_from · valid_to                              -- 관계가 사실이었던 기간
+  observed_at                                        -- 출처가 그 사실을 말한 시각
+  ingested_at                                        -- 우리가 안 시각 (as-of 질의의 기준)
+  source_url · source_kind · confidence
+  -- predicate: issued · listed_as · holds · traded · mentions · affects · belongs_to · regulates
+
+forecast.fact                                        -- 엔티티의 수치 · 속성 (시점이 있는 값)
+  entity_id · attribute · value_num · value_text · unit
+  valid_from · valid_to · observed_at · ingested_at · source_url
+
+forecast.v_entity_asof(as_of timestamptz)            -- 계약 뷰: ingested_at &lt;= as_of 만
+forecast.v_neighbors(entity_id, depth, as_of)        -- 재귀 CTE, 최대 3홉</pre></div>
+  <h3>처음 채울 것 — 이미 있는 데이터부터</h3>
+  <div class="tablebox"><table>
+    <thead><tr><th>원천</th><th>만드는 엔티티 · 관계</th><th>새 수집 필요</th></tr></thead>
+    <tbody>
+      <tr><td><code>public.kr_stock_master</code> · 업비트 마켓</td><td><code>asset</code> · <code>company</code> · <code>listed_as</code> · <code>belongs_to sector</code></td><td>없음</td></tr>
+      <tr><td><code>forecast.news_item</code> · <code>news_score</code></td><td><code>document</code> · <code>mentions</code>(종목명 · 티커 매칭) · 감성은 <code>fact</code></td><td>없음</td></tr>
+      <tr><td><code>forecast.scheduled_event</code> · <code>signal_event</code></td><td><code>event</code> · <code>affects</code>(대상 자산)</td><td>없음</td></tr>
+      <tr><td><code>forecast.event_reaction</code></td><td>사건 뒤 반응을 <code>fact</code>로 — "이 종류 사건 뒤 같은 업종 평균 반응"</td><td>없음</td></tr>
+      <tr><td>DART 공시 · 대량보유 · 임원 거래</td><td><code>person</code> · <code>institution</code> · <code>holds</code> · <code>traded</code></td><td>FC-REQ-026 (사용 결정 2026-10-30)</td></tr>
+      <tr><td>제도 파라미터(청약 인정액 · 이자 과세 · 공제율 · 일몰일)</td><td><code>policy</code> · <code>regulates</code> · 수치는 <code>fact</code>(유효 구간 = 시행일 ~ 일몰일)</td><td>content 서비스가 원문 관리 → 아래 §개인 재무</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>에이전트 — 숫자는 만들지 않는다</h2>
+  <p>ADR-004 원칙 그대로: 숫자는 채점되는 통계 모델이 내고, LLM은 문장만 쓴다. 에이전트는 아래 도구만 쓸 수 있고, 도구 결과에 없는 숫자를 문장에 쓰면 검증기가 막는다.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:30%">도구</th><th>돌려주는 것</th></tr></thead>
+    <tbody>
+      <tr><td><code>get_forecast_card(asset, as_of)</code></td><td><code>v_forecast_card</code> — 구간 · 커버리지 · 기준 대비 · 빗나간 사례</td></tr>
+      <tr><td><code>get_neighbors(entity, depth≤3, as_of)</code></td><td>관련 엔티티와 관계 + 출처 URL</td></tr>
+      <tr><td><code>get_event_reactions(event_kind, sector)</code></td><td>과거 같은 종류 사건 뒤 반응 분포</td></tr>
+      <tr><td><code>get_documents(entity, since)</code></td><td>언급 문서 제목 · 출처 · 시각</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><b>검증기(이미 있는 것 재사용):</b> 숫자 대조 · 금지어 · 명령형 · 인용(출처 URL 없는 주장 금지).</li>
+    <li><b>개인 금액은 넣지 않는다.</b> 보유 수량 · 평단 · 원화 손익은 프롬프트 밖. 화면이 서버 값을 직접 그린다.</li>
+    <li><b>어디서 도나:</b> 문장 생성은 요청 경로(서버 coach의 <code>CoachExplainer</code> 포트)에서, 도구는 forecast 스키마의 계약 뷰를 읽는다. 에이전트 때문에 Python 상시 서버를 띄우지 않는다.</li>
+    <li><b>실패하면 템플릿.</b> 지금 템플릿 해설이 기본값으로 남는다(FEATURE-008 FR-45).</li>
+  </ul>
+</section>
+
+<section>
+  <h2>예측을 투자 밖으로 — 개인 재무 전망</h2>
+  <p>저축 · 가계부에도 "언제 / 얼마"를 묻는 화면이 생긴다. 이것도 예측이므로 투자 전망과 <b>같은 규율</b>로 다룬다: 한 점이 아니라 구간, 그리고 그 구간이 실제로 맞았는지 채점 이력을 같이 보여 준다(ADR-003 정신, 제품 공통 수용 기준 §6-4).</p>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:24%">전망</th><th>계산</th><th style="width:22%">채점</th></tr></thead>
+    <tbody>
+      <tr><td>목표 도달 구간</td><td>사용자의 실제 적립 기록(월별 입금)의 경험 분위수로 "빠르면 ~ 늦으면" 날짜. 기록이 3개월 미만이면 구간 대신 "계획대로면 X월"만 보여 주고 이유를 쓴다</td><td>3 · 6개월 전에 낸 구간에 실제 진척이 들어갔나</td></tr>
+      <tr><td>월말 지출 착지</td><td>지금까지 지출 + 예정된 반복 지출 + 변동 지출 일평균 분포 × 남은 날</td><td>지난달 같은 날짜에 낸 구간이 맞았나</td></tr>
+      <tr><td>목표 금액 실질가치</td><td>물가지수(공식 CPI)로 "처음 정한 금액은 오늘 돈으로 얼마"</td><td>계산값 — 채점 대상 아님, 기준일 표시</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><b>계산은 도메인 서비스(savings · household)가 요청 시 한다.</b> 사용자 데이터가 forecast 배치로 흘러가지 않게 한다.</li>
+    <li><b>채점은 forecast가 한다.</b> 서비스가 낸 구간을 이벤트(<code>savings.ProjectionIssued</code>)로 받아 <code>forecast.personal_projection_score</code>에 쌓고, 사용자 식별자는 해시로만 둔다. 커버리지(구간 안에 들어간 비율) 집계만 서비스로 돌려준다 — "이 계산기의 90% 구간은 지난 6개월간 실제로 87% 맞았다".</li>
+    <li>CPI 같은 공공 계열은 forecast의 <code>ingest</code>가 이미 하는 일(FRED · ECB와 같은 방식)이라 거기서 수집한다.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>MSA 안에서의 위치</h2>
+  <ul>
+    <li><b>forecast는 이미 분리된 서비스다.</b> Python 배치 · 상시 HTTP 없음 · 계약은 <code>forecast</code> 스키마 뷰. 이 모양을 유지한다.</li>
+    <li><b>DDL 주인을 옮긴다.</b> 지금은 <code>forecast</code> DDL이 <code>salt-server/prisma/migrations</code>에 있다(ADR-004 §5). 서버가 Kotlin · Flyway로 가면, forecast 스키마 마이그레이션은 salt-forecast 안(plain SQL + 버전 표)으로 옮겨 "자기 스키마는 자기가"를 맞춘다. 뷰 계약이 바뀌면 소비자(coach)와 같은 PR 규칙은 그대로.</li>
+    <li><b><code>public</code> 직접 읽기 4곳을 끊는다.</b> <code>price_history</code> · <code>market_holidays</code> · <code>kr_stock_master</code> · <code>judgment_ledger</code> → market · coach가 내보내는 export 뷰로. 서버 설계 S5와 같은 시점.</li>
+    <li><b>이벤트 구독:</b> <code>market.DailyCandleClosed</code>를 받으면 해당 시장 일일 잡을 당긴다(지금은 cron 매시 확인). 놓친 회차 보정은 지금 로직 유지.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>단계</h2>
+  <div class="phases">
+    <div class="ph"><div class="k">O1</div><div><h3>온톨로지 테이블 + 기존 데이터 적재</h3><p><code>entity</code> · <code>relation</code> · <code>fact</code> + as-of 뷰. 종목 마스터 · 뉴스 · 일정 · 신호 · 사건 반응으로 첫 그래프. 새 수집 없음. 누수 테스트: as-of 질의가 미래 <code>ingested_at</code>을 절대 돌려주지 않는다.</p></div></div>
+    <div class="ph"><div class="k">O2</div><div><h3>엔티티 연결 품질</h3><p>뉴스 → 종목 매칭 정밀도 · 재현율을 표본 200건 수기 라벨로 잰다. 기준을 넘기 전에는 에이전트 도구에 <code>mentions</code>를 쓰지 않는다.</p></div></div>
+    <div class="ph"><div class="k">O3</div><div><h3>에이전트 도구 + 검증기 연결</h3><p>도구 4종 · 블라인드 A/B 20건(템플릿 vs 에이전트). 이긴 경우만 소유자 전용으로 켠다.</p></div></div>
+    <div class="ph"><div class="k">O4</div><div><h3>개인 재무 전망 채점</h3><p>savings · household 서비스(서버 S1)와 같이. 채점 테이블 · 커버리지 집계 뷰.</p></div></div>
+    <div class="ph"><div class="k">O5</div><div><h3>스키마 주인 이전 · public 읽기 제거</h3><p>서버 S5와 같은 시점.</p></div></div>
+    <div class="ph"><div class="k">O6</div><div><h3>DART 공시 · 내부자 (FC-REQ-026)</h3><p>온톨로지가 서 있어야 의미가 있다. 그래서 O1 뒤.</p></div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Open Questions</h2>
+  <ul>
+    <li>제도(<code>policy</code>) 엔티티를 forecast 온톨로지에 둘지, content 서비스에만 둘지. 같은 제도가 금융 팁 · 저축 계산기 · 투자(세금) 해설에 다 쓰여서 한 곳이 좋은데, 주인은 content가 맞다. 안: content가 원문 · 유효 구간의 주인, forecast는 이벤트로 받아 사본.</li>
+    <li>개인 재무 채점에서 사용자 해시를 쓰는 것으로 충분한지(개인정보 처리 범위).</li>
+    <li>에이전트 공급자 — 무료 Gemini는 입력이 학습에 쓰일 수 있어 개인 데이터가 없는 문장만 맡긴다(ADR-004 §4).</li>
+  </ul>
+</section>
+
+<footer class="muted" style="font-size:13px">근거: <code>salt-forecast/src/salt_forecast/{ingest,jobs,models,scoring,ontology}</code> · <code>salt-server/prisma/migrations/**</code>의 forecast DDL · <code>store/*.py</code>의 public 읽기 · <code>FEATURE-008</code> FR-25 · ADR-003 · ADR-004.</footer>
+</div>
+
+</html>

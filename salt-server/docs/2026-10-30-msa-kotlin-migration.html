@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SALT 서버 MSA 전환 설계</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 레이아웃: 한 단 설계 문서. 현황 → 목표 서비스 지도 → 통신 · 데이터 → 스택 → 이전 단계 → 비용 */
+:root{
+  --bg:#f6f7f9; --surface:#fff; --fg:#17202b; --muted:#5a6675; --line:#d9dee5;
+  --accent:#1f6f8b; --accent-soft:#e3f0f5;
+  --inv:#1f6f8b; --sav:#2f7d4f; --led:#8a5a12; --tip:#6b4fa3; --core:#45505e;
+  --inv-soft:#e3f0f5; --sav-soft:#e5f3ea; --led-soft:#f6ecdc; --tip-soft:#ece6f6; --core-soft:#e8ebef;
+  --warn:#a2621a; --warn-soft:#f8eedf; --bad:#b03a3a; --bad-soft:#f8e4e4;
+  --sans:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ef; --muted:#97a3b1; --line:#2c3743;
+  --accent:#6bb7d2; --accent-soft:#183340;
+  --inv:#6bb7d2; --sav:#74c493; --led:#e0b06a; --tip:#b39ae6; --core:#aab4c0;
+  --inv-soft:#183340; --sav-soft:#173326; --led-soft:#36291a; --tip-soft:#2a2240; --core-soft:#252d37;
+  --warn:#e0a55c; --warn-soft:#382a17; --bad:#e58585; --bad-soft:#3a1d1d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ef; --muted:#97a3b1; --line:#2c3743;
+  --accent:#6bb7d2; --accent-soft:#183340;
+  --inv:#6bb7d2; --sav:#74c493; --led:#e0b06a; --tip:#b39ae6; --core:#aab4c0;
+  --inv-soft:#183340; --sav-soft:#173326; --led-soft:#36291a; --tip-soft:#2a2240; --core-soft:#252d37;
+  --warn:#e0a55c; --warn-soft:#382a17; --bad:#e58585; --bad-soft:#3a1d1d; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.7}
+.wrap{max-width:920px;margin:0 auto;padding-block:40px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:44px}
+h1{font-size:28px;line-height:1.3;margin:0;text-wrap:balance}
+h2{font-size:20px;margin:0;text-wrap:balance}
+h3{font-size:16px;margin:0}
+p{margin:0;max-width:72ch}
+section{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+.muted{color:var(--muted)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.inv{color:var(--inv);background:var(--inv-soft)} .sav{color:var(--sav);background:var(--sav-soft)}
+.led{color:var(--led);background:var(--led-soft)} .tip{color:var(--tip);background:var(--tip-soft)} .core{color:var(--core);background:var(--core-soft)}
+.warn{color:var(--warn);background:var(--warn-soft)} .bad{color:var(--bad);background:var(--bad-soft)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;overflow-x:auto}
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:700px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:10px 13px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--muted);font-weight:600;background:var(--bg)}
+tr:last-child td{border-bottom:none}
+td.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+ul,ol{margin:0;padding-left:1.25em;display:flex;flex-direction:column;gap:6px;max-width:74ch}
+pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.6;white-space:pre}
+.callout{border-left:3px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 8px 8px 0}
+.callout.info{border-color:var(--accent);background:var(--accent-soft)}
+.svc{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px;min-width:720px}
+.s{border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--bg);display:flex;flex-direction:column;gap:4px}
+.s .t{font-weight:600;font-size:14px}
+.s .d{font-size:12px;color:var(--muted);line-height:1.5}
+.s .m{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.s.full{grid-column:1/-1}
+.s.half{grid-column:span 2}
+.s.inv{border-color:var(--inv);background:var(--bg)} .s.sav{border-color:var(--sav);background:var(--bg)} .s.led{border-color:var(--led);background:var(--bg)} .s.tip{border-color:var(--tip);background:var(--bg)} .s.core{border-color:var(--core);background:var(--bg)}
+.lane{grid-column:1/-1;font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center}
+.phases{display:flex;flex-direction:column;gap:10px}
+.ph{display:grid;grid-template-columns:64px 1fr;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.ph .k{font-family:var(--mono);font-weight:500;color:var(--accent)}
+.ph div{min-width:0;display:flex;flex-direction:column;gap:4px}
+.ph p{font-size:14px}
+a{color:var(--accent)}
+@media (max-width:640px){h1{font-size:24px}.ph{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+<header style="display:flex;flex-direction:column;gap:10px">
+  <div class="eyebrow">salt-server · bff · 설계안 · 2026-10-30</div>
+  <h1>SALT 서버 MSA 전환 설계</h1>
+  <p class="muted">Express · TypeScript 모놀리스를 도메인별 서비스로 나누고, 서비스는 Spring Boot · Kotlin으로 다시 쓴다. 한 번에 갈아엎지 않고 BFF 뒤에서 경로를 하나씩 옮긴다(스트랭글러). 새 도메인(저축 · 가계부 · 금융 팁)이 처음부터 Kotlin 서비스로 태어나고, 투자 쪽은 맨 뒤에 옮긴다.</p>
+</header>
+
+<section>
+  <h2>결론</h2>
+  <ol>
+    <li><b>서비스 경계 = 도메인 경계.</b> 프론트 도메인 패키지와 같은 이름으로 identity · savings · household · content · notification · portfolio · market · coach 8개. 예측(salt-forecast, Python)은 이미 분리된 9번째다.</li>
+    <li><b>BFF는 그대로 Node로 둔다.</b> 프론트가 보는 계약(뷰모델 · SSE · 시세 WebSocket)을 지키는 층이라, 뒤의 서비스가 TS에서 Kotlin으로 바뀌어도 프론트는 모른다. 이게 이전을 안전하게 만드는 장치다.</li>
+    <li><b>순서는 위험이 낮은 것부터.</b> 신규 → 작은 기존 → 인증 → 투자. 가장 큰 coach(2.2만 줄)는 마지막이다.</li>
+    <li><b>배포 단위는 단계적으로 늘린다.</b> 처음엔 Kotlin 멀티모듈 하나에 서비스 모듈을 담고(Spring Modulith로 경계 검증), 서비스를 프로세스로 쪼개는 건 각 단계에서 이유가 생길 때 한다. 코드 경계는 처음부터 MSA, 프로세스 경계는 필요에 따라.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>지금 서버</h2>
+  <div class="tablebox"><table>
+    <thead><tr><th>항목</th><th>현황</th></tr></thead>
+    <tbody>
+      <tr><td>런타임</td><td>Node · Express 5 · TypeScript · Prisma 6 · Zod · JWT · node-cron · ws · Gemini</td></tr>
+      <tr><td>구조</td><td>컨텍스트 우선 DDD(<code>{context}/{domain,application,infrastructure,presentation}</code>) + 아직 남은 구식 <code>src/modules/*</code> 6개</td></tr>
+      <tr><td>배포</td><td>맥 한 대에서 launchd <code>com.salt.server</code> 상시 실행(포트 4000). 시세 수집 · 전망 실행 워커가 서버 프로세스 안에 있다</td></tr>
+      <tr><td>DB</td><td>PostgreSQL 하나. <code>public</code>(Prisma 모델 42개) + <code>forecast</code>(SQL 마이그레이션, 테이블 24 · 뷰 13). salt-forecast가 <code>public.price_history</code> · <code>market_holidays</code> · <code>kr_stock_master</code> · <code>judgment_ledger</code>를 직접 읽는다</td></tr>
+      <tr><td>BFF</td><td>Express · 서비스/뷰모델 약 40개 · SSE · 업비트 WebSocket 중계 · 1.5만 줄</td></tr>
+    </tbody>
+  </table></div>
+  <div class="tablebox"><table>
+    <thead><tr><th>컨텍스트</th><th class="num">줄 수</th><th>목표 서비스</th></tr></thead>
+    <tbody>
+      <tr><td><code>coach</code></td><td class="num">22,102</td><td><span class="pill inv">coach</span></td></tr>
+      <tr><td><code>market</code></td><td class="num">10,640</td><td><span class="pill inv">market</span></td></tr>
+      <tr><td><code>portfolio</code></td><td class="num">1,966</td><td><span class="pill inv">portfolio</span></td></tr>
+      <tr><td><code>news</code></td><td class="num">1,649</td><td><span class="pill inv">market</span> (종목 뉴스) — 금융 팁과 별개</td></tr>
+      <tr><td><code>auth</code> · <code>modules/user</code> · <code>onboarding</code></td><td class="num">1,746</td><td><span class="pill core">identity</span></td></tr>
+      <tr><td><code>modules/investment-insight</code></td><td class="num">947</td><td><span class="pill inv">coach</span> 흡수 또는 폐기</td></tr>
+      <tr><td><code>modules/mission</code> · <code>dashboard</code> · <code>feed</code></td><td class="num">990</td><td>동면(410) — 이전하지 않는다</td></tr>
+      <tr><td><code>modules/goals</code></td><td class="num">601</td><td><span class="pill sav">savings</span></td></tr>
+      <tr><td><code>notification</code></td><td class="num">587</td><td><span class="pill core">notification</span></td></tr>
+      <tr><td>—</td><td class="num">0</td><td><span class="pill led">household</span> 가계부 · <span class="pill tip">content</span> 금융 팁 (신규)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:13px">줄 수는 <code>src/**</code>의 테스트 제외 <code>.ts</code> 합계(2026-10-30).</p>
+</section>
+
+<section>
+  <h2>목표 서비스 지도</h2>
+  <div class="box">
+    <div class="svc">
+      <div class="s full core"><div class="t">웹 · 앱</div><div class="d">apps/web(셸) · apps/web-tips · RN 앱</div></div>
+      <div class="lane">↓ HTTPS · SSE · WebSocket</div>
+      <div class="s full core"><div class="t">BFF (Node · 유지)</div><div class="d">인증 토큰 확인 · 화면별 뷰모델 조립 · 홈 요약 카드 병렬 호출(allSettled) · SSE 중계 · 시세 WebSocket · <b>경로별 라우팅 스위치</b>(이전 중 옛 서버 ↔ 새 서비스)</div></div>
+      <div class="lane">↓ 내부 REST (서비스 토큰) — 도메인 간 직접 호출은 최소</div>
+      <div class="s core"><div class="t">identity</div><div class="d">초대 코드 · 가입 · 로그인 · 토큰 발급(JWKS 공개) · 프로필</div><div class="m">auth · user · onboarding</div></div>
+      <div class="s sav"><div class="t">savings</div><div class="d">저축 목표 · 적립 기록 · 도달 구간 계산 · 목표 간 시뮬레이션 · 제도 파라미터 적용</div><div class="m">goals → 신규</div></div>
+      <div class="s led"><div class="t">household</div><div class="d">가계부 거래 · 봉투 예산 · 반복 템플릿 · 할부 · 월 착지 구간 · 공제 계기판</div><div class="m">신규</div></div>
+      <div class="s tip"><div class="t">content</div><div class="d">금융 팁 원문 · 유효기한 · 제도 파라미터(기준일 붙은 표) · 때맞춘 팁 트리거</div><div class="m">신규</div></div>
+      <div class="s inv"><div class="t">market</div><div class="d">시세 수집(KIS · 업비트) · 캔들 · 검색 · 관심 종목 · 종목 뉴스 · 휴장일</div><div class="m">market · news</div></div>
+      <div class="s inv"><div class="t">portfolio</div><div class="d">보유 거래 기록 · 보유 재계산 · 평가 · 리스크 레이더</div><div class="m">portfolio</div></div>
+      <div class="s inv"><div class="t">coach</div><div class="d">판정 엔진 · 추천 · 판정 원장(불변) · 성적표 · 해설 · 행동 미러 · 주문 전 체크</div><div class="m">coach · investment-insight</div></div>
+      <div class="s core"><div class="t">notification</div><div class="d">알림 저장 · 읽음 · 푸시 발송(앱 출시 후) — 이벤트를 구독만 한다</div><div class="m">notification</div></div>
+      <div class="lane">↕ 도메인 이벤트 (아웃박스 → 브로커)</div>
+      <div class="s half inv"><div class="t">forecast (Python 배치 · 유지)</div><div class="d">수집 · 온톨로지 · 예측 · 채점. 계약은 <code>forecast</code> 스키마 뷰. 별도 설계 문서</div></div>
+      <div class="s half core"><div class="t">PostgreSQL</div><div class="d">서비스마다 스키마 + DB 계정 하나. 다른 서비스 스키마는 권한이 없다. 서버를 늘릴 때 물리 DB 분리</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>서비스 사이를 어떻게 잇나</h2>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:26%">상황</th><th>방법</th><th style="width:28%">예</th></tr></thead>
+    <tbody>
+      <tr><td>화면이 여러 도메인을 모은다</td><td>BFF가 각 서비스를 병렬로 부른다. 서비스끼리 서로 부르지 않는다</td><td>홈 요약 카드 4장</td></tr>
+      <tr><td>한 도메인의 사건이 다른 도메인에 영향</td><td>발행 서비스가 같은 트랜잭션에 아웃박스 행을 쓰고, 릴레이가 브로커로 보낸다. 받는 쪽은 멱등 처리</td><td><code>household.ExpenseRecorded</code> → savings가 "목표 지연 일수" 재계산</td></tr>
+      <tr><td>다른 도메인의 데이터를 자주 읽는다</td><td>이벤트로 받아 자기 스키마에 읽기 전용 사본(프로젝션)을 둔다</td><td>coach가 portfolio 보유를 프로젝션으로 가진다</td></tr>
+      <tr><td>지금 당장 답이 필요한 조회</td><td>내부 REST 한 번 + 타임아웃 · 서킷 브레이커. 실패하면 <code>degraded</code>로 내린다(기존 응답 규약)</td><td>coach가 market에 현재가 조회</td></tr>
+    </tbody>
+  </table></div>
+  <h3>첫 이벤트 목록</h3>
+  <div class="box"><pre>identity.UserRegistered          → savings · household · content (초기 상태), notification
+savings.GoalCreated              → content (결혼 · 주거 목표 → 관련 제도 팁 트리거)
+savings.GoalReached              → notification, content
+household.ExpenseRecorded        → savings (지연 일수), content (고정비 증가 감지)
+household.MonthClosed            → savings (월 저축 속도 갱신), notification
+portfolio.TransactionRecorded    → coach (보유 프로젝션)
+market.DailyCandleClosed         → coach, forecast (가격 테이블 직접 읽기를 대체)
+coach.JudgmentPublished          → notification
+content.PolicyParamChanged       → savings · household (계산 파라미터 재로딩)</pre></div>
+  <p class="muted" style="font-size:14px">브로커는 RabbitMQ로 시작한다. 맥 한 대에서 돌리기 가볍고 Spring Modulith 이벤트 외부화가 지원한다. 이벤트 재생이 필요해지면(예: 프로젝션 재구성) Kafka로 옮긴다. 이벤트 스키마는 <code>contracts/events/*.json</code>에 두고 BFF · Python도 같은 정의를 읽는다.</p>
+</section>
+
+<section>
+  <h2>데이터 소유권</h2>
+  <ul>
+    <li><b>테이블 하나에 주인 하나.</b> 이전 중에도 마찬가지다. 경로를 Kotlin으로 넘길 때 그 테이블의 DDL 주인도 Prisma에서 Flyway로 넘긴다.</li>
+    <li><b>스키마로 먼저 가른다.</b> <code>identity</code> · <code>savings</code> · <code>household</code> · <code>content</code> · <code>market</code> · <code>portfolio</code> · <code>coach</code> · <code>notification</code> · <code>forecast</code>. 서비스별 DB 계정은 자기 스키마만 쓴다. 다른 스키마를 조인하는 쿼리는 이벤트 · 프로젝션으로 바꾼다.</li>
+    <li><b>forecast가 <code>public</code>을 직접 읽는 4곳</b>(가격 이력 · 휴장일 · 종목 마스터 · 판정 원장)은 market · coach가 내보내는 읽기 전용 뷰(<code>market.v_daily_close_export</code> 등)로 바꾼다. 테이블이 아니라 뷰가 계약이라는 ADR-004 원칙을 서버 쪽에도 똑같이 적용한다.</li>
+    <li><b>금액은 <code>BigDecimal</code>.</b> Prisma <code>Decimal</code>과 같은 정밀도(NUMERIC)를 유지하고, Shared Kernel의 <code>Money</code> VO를 Kotlin으로 옮긴다(<code>value class</code> + 통화).</li>
+    <li><b>판정 원장 불변 트리거</b>(UPDATE 차단)는 DB에 있으므로 언어와 무관하게 유지된다.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Spring · Kotlin 스택</h2>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:22%">영역</th><th>선택</th><th style="width:34%">지금 것과의 대응</th></tr></thead>
+    <tbody>
+      <tr><td>언어 · 프레임워크</td><td>Kotlin 2.2+ · Spring Boot 4.x(Spring Framework 7, Kotlin 2.2 기준선) · JDK 21+ 가상 스레드</td><td>Node · Express 5</td></tr>
+      <tr><td>빌드</td><td>Gradle Kotlin DSL 멀티모듈. 서비스마다 <code>domain</code> · <code>application</code> · <code>infrastructure</code> · <code>api</code> 모듈</td><td>DDD 4층을 디렉터리 → 모듈로. 의존 방향을 컴파일러가 막는다</td></tr>
+      <tr><td>경계 검증</td><td>Spring Modulith(모듈 간 의존 검사 · 이벤트 발행 기록 · 외부화) + ArchUnit</td><td><code>.claude/hooks/layer-check.mjs</code></td></tr>
+      <tr><td>영속</td><td>jOOQ(SQL 우선, 기존 스키마 · 뷰에서 코드 생성). 도메인 모델은 순수 Kotlin, 매핑은 infrastructure</td><td>Prisma. "Prisma를 도메인에 들이지 않는다"(server-architecture §3)가 그대로 옮겨진다</td></tr>
+      <tr><td>마이그레이션</td><td>Flyway, 서비스별 스키마. 현재 Prisma 마이그레이션 마지막 상태를 baseline으로</td><td><code>prisma/migrations</code></td></tr>
+      <tr><td>API</td><td>Spring MVC + springdoc-openapi. 검증은 Jakarta Validation + 도메인 VO 생성자</td><td>Express 라우터 · Zod · swagger-jsdoc</td></tr>
+      <tr><td>스트리밍</td><td><code>SseEmitter</code>(가상 스레드). 코치 해설 토큰 스트림</td><td>SSE 유틸</td></tr>
+      <tr><td>스케줄 · 락</td><td><code>@Scheduled</code> + ShedLock(DB 락). 워커는 market-ingest 프로세스로 따로 띄운다</td><td>node-cron · 서버 프로세스 안 워커</td></tr>
+      <tr><td>외부 API</td><td>Resilience4j(KIS 초당 약 2건 제한 · 재시도 · 서킷). <b>주문 · 출금 API 클라이언트를 만들지 않는다</b></td><td>axios + 자체 재시도</td></tr>
+      <tr><td>LLM</td><td><code>CoachExplainer</code> 포트 뒤에 Spring AI(Gemini 등 공급자 교체). 금액 · 수량을 프롬프트에 넣지 않는 규칙 유지</td><td>@google/generative-ai</td></tr>
+      <tr><td>인증</td><td>identity가 JWT 발급 · JWKS 공개. 다른 서비스는 Spring Security 리소스 서버로 검증만</td><td>jsonwebtoken 공용 비밀키</td></tr>
+      <tr><td>테스트</td><td>JUnit 5 · Kotest · Testcontainers(Postgres · RabbitMQ) · 계약 테스트(아래)</td><td>node:test</td></tr>
+      <tr><td>관측</td><td>Micrometer + OpenTelemetry(서비스 사이 추적 ID) · 구조화 로그</td><td>winston</td></tr>
+      <tr><td>실행</td><td>Docker Compose(맥 한 대) → 배포 환경이 정해지면 같은 이미지를 그대로</td><td>launchd</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>이전 단계 — 스트랭글러</h2>
+  <p>매 단계가 같은 모양이다. ① 지금 응답을 골든 JSON으로 녹화 ② Kotlin 서비스 구현 ③ 같은 요청을 두 서버에 보내 응답을 비교(그림자 실행) ④ BFF 라우팅 스위치를 넘김 ⑤ 1주 지켜본 뒤 옛 코드 삭제. 되돌리기는 스위치 하나다.</p>
+  <div class="phases">
+    <div class="ph"><div class="k">S0</div><div><h3>기반 · ADR-006</h3><p><code>salt-platform/</code>(Gradle 멀티모듈) · Docker Compose(Postgres · RabbitMQ) · identity JWKS를 위한 키 정리 · BFF에 경로별 라우팅 스위치 · 계약 테스트 하네스(BFF가 부르는 서버 API 전부를 골든 JSON으로). 하네스 규칙 <code>salt-server/.claude/rules/**</code>를 Kotlin판으로 새로 쓴다.</p></div></div>
+    <div class="ph"><div class="k">S1</div><div><h3>savings · household — 새로 태어나는 도메인</h3><p>기존 <code>modules/goals</code>(601줄)는 savings로 옮기고, 가계부는 처음부터 Kotlin. 옛 코드와 맞출 응답이 거의 없어 이전 위험이 가장 낮다. 이 단계에서 아웃박스 · 이벤트 · 스키마 권한 분리를 처음 증명한다.</p></div></div>
+    <div class="ph"><div class="k">S2</div><div><h3>content · notification</h3><p>금융 팁은 신규. notification은 587줄 · 이벤트 구독자로 바꾸기 좋은 첫 기존 컨텍스트.</p></div></div>
+    <div class="ph"><div class="k">S3</div><div><h3>identity</h3><p>토큰 발급자가 바뀌는 단계. 옛 비밀키 토큰과 새 JWKS 토큰을 일정 기간 둘 다 받는다(이중 검증). 초대 코드 시도 제한 · 감사 로그 그대로.</p></div></div>
+    <div class="ph"><div class="k">S4</div><div><h3>portfolio</h3><p>금액 계산 정확성이 핵심. 그림자 실행에서 평가금 · 평단을 소수점까지 비교한다.</p></div></div>
+    <div class="ph"><div class="k">S5</div><div><h3>market + 수집 워커</h3><p>KIS · 업비트 수집이 별도 프로세스(market-ingest)로 나간다. 국내 일봉이 멈추면 전망 카드가 꺼지는 의존(2026-10-09 · 10-20 사고)을 이 단계에서 끊는다 — 수집 프로세스가 API 서버와 따로 죽고 산다. forecast의 <code>public</code> 직접 읽기를 export 뷰로 바꾼다.</p></div></div>
+    <div class="ph"><div class="k">S6</div><div><h3>coach</h3><p>가장 크고(2.2만 줄) 규칙이 많다(근거 3종 렌더 게이트 · 판정 원장 불변 · 소유자 전용 전망 · 금지 표현 검증기). 유스케이스 33개를 묶음별로 나눠 옮긴다. 판정 엔진은 같은 입력에 같은 출력을 내는지 백테스트 스크립트로 전수 비교한다.</p></div></div>
+    <div class="ph"><div class="k">S7</div><div><h3>Express 서버 종료</h3><p>launchd <code>com.salt.server</code>를 내리고 Compose로 대체. 동면 모듈(mission · dashboard · feed)은 이전하지 않고 410 응답도 BFF로 옮긴 뒤 지운다.</p></div></div>
+  </div>
+</section>
+
+<section>
+  <h2>비용과 위험</h2>
+  <div class="callout">
+    <p><b>MSA의 운영 비용은 코드보다 운영에서 나온다.</b> 지금은 한 사람이 맥 한 대에서 서버 하나를 돌린다. 서비스 8개 + 브로커 + 추적을 띄우면 로컬 개발도 Compose 없이는 안 된다. 그래서 S0~S2 동안은 서비스 모듈들을 <b>한 프로세스(모듈러 모놀리스)</b>로 띄우고, 프로세스 분리는 다음 신호가 있을 때 서비스 단위로 한다.</p>
+  </div>
+  <ul>
+    <li><b>분리 신호:</b> 장애 격리가 필요하다(수집 워커 → S5에서 무조건), 확장 특성이 다르다(코치 LLM 대기), 배포 주기가 다르다(콘텐츠).</li>
+    <li><b>이중 언어 기간:</b> S1~S6 동안 TS와 Kotlin 서버가 같이 돈다. 규칙 · 훅 · 테스트를 두 벌 유지하는 기간을 줄이려고 한 단계가 끝나면 옛 코드를 바로 지운다.</li>
+    <li><b>계약이 진실:</b> BFF 골든 JSON이 이전의 합격 기준이다. 응답 필드 하나가 달라져도 프론트가 조용히 깨진다(PR 규칙 §5).</li>
+    <li><b>제품 공통 수용 기준은 그대로:</b> 주문 코드 경로 0 · 금액은 서버 · 근거 3종 · 확신 표현 0.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Open Questions</h2>
+  <ul>
+    <li>BFF도 Kotlin으로 옮길까. 지금 안은 유지(프론트 소유 · TS 타입 공유). Spring Cloud Gateway로 대체하면 뷰모델 조립을 어디서 할지가 다시 문제가 된다.</li>
+    <li>RN 앱 푸시(FEATURE-007)가 열리면 notification을 S2보다 먼저 프로세스로 분리할지.</li>
+    <li>배포 환경. 자체 호스팅(FR-21) 위에 Compose로 갈지, 관리형 컨테이너로 갈지에 따라 S7 모양이 바뀐다.</li>
+  </ul>
+</section>
+
+<footer class="muted" style="font-size:13px">근거: <code>salt-server/src/**</code> 줄 수 · <code>prisma/schema.prisma</code> · <code>prisma/migrations/**</code>의 forecast DDL · <code>salt-forecast/src/salt_forecast/store/*.py</code>의 public 읽기 · <code>ops/run-server.sh</code> · <code>.claude/rules/server-architecture.md</code> · ADR-004. 외부: <a href="https://blog.jetbrains.com/idea/2025/11/spring-boot-4/">Spring Boot 4 · Kotlin 2.2 기준선</a> · <a href="https://www.infoq.com/news/2025/11/spring-7-spring-boot-4">Spring Framework 7 / Boot 4 출시</a> · <a href="https://spring.io/blog/page-10">Spring Modulith 2.0</a>.</footer>
+</div>
+
+</html>

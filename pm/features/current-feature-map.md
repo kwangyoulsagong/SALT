@@ -194,3 +194,22 @@ flowchart LR
 - 아키텍처 결정: `requirements/decisions/ADR-001-microfrontend-replacement.md` · `ADR-002-drop-ledger-invoice-tax.md`
 - 스토리보드 갭 감사와 결정: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md`
 - 스토리보드(인터랙티브 HTML): `pm/storyboard/SALT-Storyboard(20260908-1557).html`
+
+## 돈 관리 앱 재정의 (2026-10-30)
+
+사용자 결정: SALT 는 투자 앱이 아니라 돈 관리 앱이다 — 셸(홈) + 투자 · 저축 · 가계부 · 금융 팁. 투자는 기획된 범위에서 **동결**한다(완료 · 남은 것 · 버린 것은 아래 기획서 HTML 의 "투자 — 동결 범위"). 웹은 도메인마다 zone, 서버는 MSA + Spring Boot · Kotlin 단계 이전 — 전부 **설계안**이고 ADR · 영역 REQ 전이다.
+
+| 기능 | 상태 | 프론트 | BFF | 서버 | 데이터/Worker | 메모 |
+|---|---|---|---|---|---|---|
+| 저축 목표 고도화 (FEATURE-012) | Planned | `entities/goal` · `features/add-goal` 만 있음 | 기존 goals 프록시 | `src/modules/goals` (구식 4파일) | `Goal` · `SavingTransaction` | 템플릿 · 계산기 · 도달 구간 · 목표 저울 · 재미(모이는 장면 · 실물 환산) |
+| 가계부 (FEATURE-013) | Planned | 없음 | 없음 | 없음 | 없음 | 도메인 이름 `household` (ADR-002 `ledger` 와 다름) |
+| 금융 팁 (FEATURE-014) | Planned | 없음 | 없음 | 없음 | 없음 | 공개 zone · 유효기한 · 제도 파라미터 주인 · 법무 확인 전 공개 금지 |
+| 셸 · 홈 · 온보딩 · 내 데이터 (FEATURE-015) | Planned | `home-briefing` · `onboarding-flow` 투자 중심 | `/api/app/home` · `/api/app/onboarding` | `onboarding` 컨텍스트 | — | 4탭 홈 · 저축 · 가계부 · 투자, `HomeSummaryCard` |
+
+### 관련 문서 (2026-10-30)
+
+- 기획서(읽기용 HTML, 리서치 출처 포함): `pm/docs/2026-10-30-money-domains-spec.html`
+- 기획서(MD): `pm/requirements/specs/in-progress/FEATURE-012`~`015-*.md`
+- 프론트 도메인 zone 설계: `salt-microFe/docs/architecture/2026-10-30-domain-zones.html`
+- 서버 MSA · Kotlin 이전 설계: `salt-server/docs/2026-10-30-msa-kotlin-migration.html`
+- 예측 · 온톨로지 설계: `salt-forecast/docs/2026-10-30-ontology-agent.html`

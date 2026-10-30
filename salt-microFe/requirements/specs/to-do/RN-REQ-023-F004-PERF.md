@@ -9,6 +9,8 @@ labels: [rn, performance, budget, polling, llm, battery]
 created: 2026-09-09
 ---
 
+> **2026-10-30 — 도메인 구조 전환(`ADR-005` · `RN-REQ-032`)으로 바뀌는 것** — 서비스 번들 이름은 `invest` · `savings` · `household` · `tips` + 셸(`tax` 삭제), 앱 탭은 홈 · 저축 · 가계부 · 투자 4개, 투자 기능은 동결 범위 안에서만, 알림은 도메인별 · 기본 꺼짐. 본문과 다르면 `RN-REQ-032` 가 우선한다.
+
 ## Summary
 
 F004 모바일의 급소는 **폴링·LLM이 배터리와 데이터를 먹는 것**이다. 렌더 부하는 낮다(계산이 전부 서버이고 리스트가 짧다).
