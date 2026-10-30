@@ -55,7 +55,7 @@ JUnit 5 · Kotest · Testcontainers · Micrometer + OpenTelemetry · Docker Comp
 
 - 이중 언어 기간(S1~S6) 동안 규칙 · 훅 · 테스트가 두 벌 — 단계가 끝나면 옛 코드를 바로 지운다.
 - `salt-server/.claude/rules/**` 의 Kotlin 판이 필요하다(`SRV-REQ-043`). 200줄 상한 그대로.
-- 배포 환경: launchd `com.salt.server` → Docker Compose(S7). 관리형 호스팅은 별도 결정.
+- 배포 환경: launchd `com.salt.server` → `ADR-008`(같은 이미지 · 관리형 컨테이너 · 관리형 Postgres · RabbitMQ). 로컬은 Compose.
 - 제품 공통 수용 기준은 그대로 — 주문 코드 경로 0 · 금액은 서버 · 근거 3종 · 확신 표현 0.
 
 ## 6. 되돌리기

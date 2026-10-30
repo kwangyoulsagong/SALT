@@ -108,7 +108,7 @@ forecast.v_neighbors(entity_id, depth, as_of)        -- 재귀 CTE, 최대 3홉<
       <tr><td><code>forecast.news_item</code> · <code>news_score</code></td><td><code>document</code> · <code>mentions</code>(종목명 · 티커 매칭) · 감성은 <code>fact</code></td><td>없음</td></tr>
       <tr><td><code>forecast.scheduled_event</code> · <code>signal_event</code></td><td><code>event</code> · <code>affects</code>(대상 자산)</td><td>없음</td></tr>
       <tr><td><code>forecast.event_reaction</code></td><td>사건 뒤 반응을 <code>fact</code>로 — "이 종류 사건 뒤 같은 업종 평균 반응"</td><td>없음</td></tr>
-      <tr><td>DART 공시 · 대량보유 · 임원 거래</td><td><code>person</code> · <code>institution</code> · <code>holds</code> · <code>traded</code></td><td>FC-REQ-002 (Draft)</td></tr>
+      <tr><td>DART 공시 · 대량보유 · 임원 거래</td><td><code>person</code> · <code>institution</code> · <code>holds</code> · <code>traded</code></td><td>FC-REQ-026 (사용 결정 2026-10-30)</td></tr>
       <tr><td>제도 파라미터(청약 인정액 · 이자 과세 · 공제율 · 일몰일)</td><td><code>policy</code> · <code>regulates</code> · 수치는 <code>fact</code>(유효 구간 = 시행일 ~ 일몰일)</td><td>content 서비스가 원문 관리 → 아래 §개인 재무</td></tr>
     </tbody>
   </table></div>
@@ -170,7 +170,7 @@ forecast.v_neighbors(entity_id, depth, as_of)        -- 재귀 CTE, 최대 3홉<
     <div class="ph"><div class="k">O3</div><div><h3>에이전트 도구 + 검증기 연결</h3><p>도구 4종 · 블라인드 A/B 20건(템플릿 vs 에이전트). 이긴 경우만 소유자 전용으로 켠다.</p></div></div>
     <div class="ph"><div class="k">O4</div><div><h3>개인 재무 전망 채점</h3><p>savings · household 서비스(서버 S1)와 같이. 채점 테이블 · 커버리지 집계 뷰.</p></div></div>
     <div class="ph"><div class="k">O5</div><div><h3>스키마 주인 이전 · public 읽기 제거</h3><p>서버 S5와 같은 시점.</p></div></div>
-    <div class="ph"><div class="k">O6</div><div><h3>DART 공시 · 내부자 (FC-REQ-002)</h3><p>온톨로지가 서 있어야 의미가 있다. 그래서 O1 뒤.</p></div></div>
+    <div class="ph"><div class="k">O6</div><div><h3>DART 공시 · 내부자 (FC-REQ-026)</h3><p>온톨로지가 서 있어야 의미가 있다. 그래서 O1 뒤.</p></div></div>
   </div>
 </section>
 
