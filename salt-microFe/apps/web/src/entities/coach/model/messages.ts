@@ -223,6 +223,8 @@ export const COACH_MESSAGES = {
 
     risksHeading: "주의할 점",
     noRisks: "지금 주의할 점은 없어요.",
+    risksFilterLabel: "주의할 점 종목별로 보기",
+    risksFilterAll: "전체",
 
     exitPlanHeading: "익절 플랜",
     exitPlanDescription: "내 보유 기록에 규칙을 적용한 가격이에요.",
