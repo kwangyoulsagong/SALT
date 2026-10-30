@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { AppError, toUpstreamClientError } from "../../utils/error.util";
+import { AppError, loggableUrl, toUpstreamClientError } from "../../utils/error.util";
 import { logger } from "../../config/logger";
 
 /**
@@ -17,7 +17,7 @@ const logFailure = (
     logger.error("Error:", {
       message: err.message,
       stack: err.stack,
-      url: req.url,
+      url: loggableUrl(req.originalUrl ?? req.url),
       method: req.method,
     });
     return;
@@ -25,7 +25,7 @@ const logFailure = (
   // meta 에 `message` 키를 두면 winston 이 본문에 이어 붙인다 — 사유는 `reason` 으로
   logger.warn(`Request rejected ${status} ${code}`, {
     reason: err.message,
-    url: req.url,
+    url: loggableUrl(req.originalUrl ?? req.url),
     method: req.method,
   });
 };
@@ -58,6 +58,9 @@ export const errorMiddleware = (
       ...(upstream.retryAfterSeconds !== undefined
         ? { retryAfterSeconds: upstream.retryAfterSeconds }
         : {}),
+      // 추적 상한 409 — 화면 카운터 `n / 상한`(`BFF-REQ-007` FR-73)
+      ...(upstream.trackedCount !== undefined ? { trackedCount: upstream.trackedCount } : {}),
+      ...(upstream.trackedLimit !== undefined ? { trackedLimit: upstream.trackedLimit } : {}),
     });
   }
 

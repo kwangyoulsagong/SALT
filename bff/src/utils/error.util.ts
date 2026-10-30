@@ -2,6 +2,12 @@
  * `code` 는 화면이 문구를 고르는 키다(서버 `DomainError` 코드와 같은 자리). 있으면 응답 본문에 싣고, 없으면 본문 모양 그대로다
  * — 웹은 `code` 없는 실패를 `code: null` 로 받는다(`FE-REQ-012` FR-41, 2026-10-28).
  */
+/**
+ * 로그에 남길 주소 — 검색어(`q`) 값을 `*` 로 가린다. 검색어는 투자 의도라 로그에 남기지 않는다(`BFF-REQ-007` FR-75,
+ * 서버 `SRV-REQ-008` FR-86 과 같은 규칙)
+ */
+export const loggableUrl = (url: string): string => url.replace(/([?&]q=)[^&#]*/g, "$1*");
+
 export class AppError extends Error {
   constructor(
     public message: string,
@@ -36,6 +42,8 @@ export class UnauthorizedError extends AppError {
  * `ResponseUtil.error` · `AICoachController.generate`). 전부 옮기면 proxy 가 본문을
  * 통째로 넘기던 것과 같다 — 그래서 컨트롤러가 4xx 를 따로 잡을 이유가 없다.
  *
+ * 추적 상한 409(`TRACKED_ASSET_LIMIT`)의 `trackedCount` · `trackedLimit`(정수)도 옮긴다(`BFF-REQ-007` FR-73, 2026-10-30).
+ *
  * `retryAfterSeconds` 는 헤더(`Retry-After`)와 같은 값이지만 **본문에도** 옮긴다 — 화면은
  * 헤더를 읽지 않고 본문으로 남은 시간을 그린다(`BFF-REQ-023` FR-60).
  */
@@ -46,7 +54,12 @@ export interface UpstreamClientError {
   errors?: unknown[];
   retryAfter?: string;
   retryAfterSeconds?: number;
+  trackedCount?: number;
+  trackedLimit?: number;
 }
+
+const nonNegativeInteger = (value: unknown): value is number =>
+  typeof value === "number" && Number.isInteger(value) && value >= 0;
 
 export const toUpstreamClientError = (
   error: unknown
@@ -60,6 +73,8 @@ export const toUpstreamClientError = (
           message?: unknown;
           errors?: unknown;
           retryAfterSeconds?: unknown;
+          trackedCount?: unknown;
+          trackedLimit?: unknown;
         };
         headers?: Record<string, unknown>;
       };
@@ -73,6 +88,8 @@ export const toUpstreamClientError = (
   const errors = response?.data?.errors;
   const retryAfter = response?.headers?.["retry-after"];
   const retryAfterSeconds = response?.data?.retryAfterSeconds;
+  const trackedCount = response?.data?.trackedCount;
+  const trackedLimit = response?.data?.trackedLimit;
 
   return {
     status,
@@ -87,5 +104,7 @@ export const toUpstreamClientError = (
     retryAfterSeconds >= 0
       ? { retryAfterSeconds }
       : {}),
+    ...(nonNegativeInteger(trackedCount) ? { trackedCount } : {}),
+    ...(nonNegativeInteger(trackedLimit) ? { trackedLimit } : {}),
   };
 };
