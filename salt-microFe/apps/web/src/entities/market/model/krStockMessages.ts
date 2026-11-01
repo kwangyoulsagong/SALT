@@ -29,6 +29,8 @@ export const KR_STOCK_MESSAGES = {
     live: "정규장 · 실시간",
     liveRefused: "정규장 · 1분마다 갱신",
     notRegular: "정규장 아님",
+    /** 평일 휴장 사유가 있으면 상태 이름 뒤에(FR-41) — 없으면 "휴장일"만 */
+    holidayWithName: (name: string) => `휴장일(${name})`,
     lastClose: (when: string) => `마지막 체결 ${when}`,
     nextOpen: (day: string, time: string) => `다음 개장 ${day} ${time}`,
     calendarGuess: "개장일은 평일 기준 추정",

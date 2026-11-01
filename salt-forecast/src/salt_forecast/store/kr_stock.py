@@ -41,8 +41,12 @@ def kr_daily_rows(engine: Engine) -> list[KrDailyRow]:
     return [KrDailyRow(str(r[0]), r[1], r[2], r[3], r[4], r[5], r[6]) for r in rows]
 
 
-def krx_open_dates(engine: Engine) -> list[date]:
-    """KRX 개장일(`market_holidays.is_open`) 전부.
+def krx_open_dates(engine: Engine, through: date) -> list[date]:
+    """KRX 개장일(`market_holidays.is_open`) 중 `through`(KST 날짜) 까지.
+
+    서버가 미래 개장일을 KRX 휴장일 공시 표로 미리 쓴다(`source = krx_notice`, SRV-REQ-040 FR-14 2026-10-30).
+    자르지 않으면 마지막 아는 거래일이 연말이 돼 원천이 멈춘 걸 못 알아챈다(`presumed_weekdays`) — 그래서 실행 시각
+    날짜까지만 읽는다.
 
     `synced_at` 으로 시점을 자르지 않는다 — 서버가 재동기화마다 그 값을 새로 써서(2026-10-08 실측: 전 행이 같은 시각)
     과거 as_of 로 돌리면 달력이 비고, 장이 열린 날을 휴장으로 읽는다. 거래일 날짜는 가격 정보가 아니고, as_of 뒤의
@@ -50,7 +54,11 @@ def krx_open_dates(engine: Engine) -> list[date]:
     """
     with engine.connect() as conn:
         rows = conn.execute(
-            text("SELECT date FROM public.market_holidays WHERE market = 'KRX' AND is_open ORDER BY date")
+            text(
+                "SELECT date FROM public.market_holidays"
+                " WHERE market = 'KRX' AND is_open AND date <= :through ORDER BY date"
+            ),
+            {"through": through},
         ).all()
     return [r[0] for r in rows]
 

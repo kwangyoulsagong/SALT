@@ -150,3 +150,8 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 문서 정정: 코인 게이트 수치 P0 실측(p 0.080 · 30%). 근거는 코드(`ops/daily.sh` · `domain/ops_health.py` · `models/kr_stock.py`) · 같은 문서 결과 절 · 교차 REQ. 코드 무변경
+
+## 2026-10-30 — F011 FR-14 미래 휴장일(KRX 공시 표)
+
+- 파일만 걸침 — `jobs/_data.py` `load_kr` 가 `today` 를 `krx_open_dates` · `presumed_weekdays` 둘에 넘긴다. `presumed_weekdays` 무변경 · 거래일 배열 동일(`FC-REQ-009` 체크리스트)
+- 미검증 · 범위 밖: 없음. 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`

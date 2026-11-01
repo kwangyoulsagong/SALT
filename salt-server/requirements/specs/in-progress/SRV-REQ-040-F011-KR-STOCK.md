@@ -36,13 +36,13 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | FR-11 | 유니버스 = **보유 → 관심 → 주권 시총 상위 N**(`KIS_UNIVERSE_TOP_N`=50, 우선주 제외) — 보유는 `portfolio` 공개 API `heldSymbols("kr_stock")` 를 조립 지점이 넣는다(`KrHeldCodesSource`, `market` 이 `portfolio` 표를 읽지 않는다) | 완료(`422bc14`, 슬라이스 3b) |
 | FR-12 | WS 41 슬롯 — 보유 → 관심 → 시총 순(슬라이스 3b). 나머지는 1분 폴링. 42번째는 `OPSP0008 MAX SUBSCRIBE OVER`(실측) → 구독에서 빼고 폴링 | 완료(`7689823`) |
 | FR-13 | `GET /api/market/kr/search?q=` 마스터 전체 · 코드 접두 · 이름 부분 일치 · 시총 순 20건 | 완료 |
-| FR-14 | 개장일 달력 — KIS 휴장일 조회 1순위, **이 키로 거부(EGW02004)** 라 일봉 역산(지난날) + 평일 09:10 당일 봉 관측(오늘). 미래는 `calendarKnown=false` | 부분(미래 휴장) |
+| FR-14 | 개장일 달력 — KIS 휴장일 조회 1순위, **이 키로 거부(EGW02004)** 라 일봉 역산(지난날) + 평일 09:10 당일 봉 관측(오늘) + **KRX 휴장일 공시 표(미래)**. ~~미래는 `calendarKnown=false`~~ **정정 2026-10-30** 공시 표가 덮는 날(지금 ~2027-01-01)은 미래도 안다, 표 밖만 `false` | **완료 2026-10-30** — `KRX_NOTICE_CLOSURES`(2026 평일 휴장 17 + 2027-01-01 신정) · `krxNoticeDays` · 동기화 4단계 `krx_notice`(오늘 ~ 표 끝). 우선순위 kis > candles · probe > krx_notice(공시 뒤 임시공휴일은 그날 09:10 관측이 덮는다). 지난날 역산과 매일 대조 → 어긋나면 경고 · 표 끝 31일 전 경고. 2026 지난 줄 15개 = 역산과 같음(실측). 사유 이름은 표에만 — 응답은 FR-41 다음 줄 |
 | FR-20 | 일봉 수정주가 2년 백필(140일 페이지) · 평일 15:45 확정 · 마지막 저장일부터 다시 받아 미확정 봉 덮어씀 | 완료 |
 | FR-21 | 5분봉 — 정규장 체결 5분 집계(15:30 종가 체결은 15:25 봉) · 1초 배치 · 재시작 병합 · 평일 15:40 · 20:40 KIS 일별 1분봉으로 오늘 덮어쓰기 + 지난 30일 빈 날 백필(회차 1,200 호출). 보관은 코인과 같은 30일(기획의 1년 → 정정) | 완료(`89ff9d9`) |
 | FR-23 | 현재가 필드(상하한 · 기준가 · 시총 원 · 상태 · 경고 · PER/PBR/EPS/BPS · 52주 · 외국인 소진율) — 빈 값으로 덮지 않음 | 완료 |
 | FR-24 | 실시간 체결(정규장 09:00~15:30 것만) → 현재가 1초 반영 · SSE `GET /api/market/kr/stream`(사용자 JWT + 소유자, `event: status` · `tick` · 15초 하트비트) | 완료 |
 | FR-25 | WS 08:30~**16:00** KST 개장일만(시간외 단일가 16:00~18:00 은 시간외 값이 현재가를 덮어 뺐다 — FR-27 과 함께 슬라이스 6) · 백오프 1→60초 · 재접속 2회째부터 승인키 재발급 | 완료(`2eb3f85`) |
-| FR-26 | 장 상태 KST(pre_open · regular · closing_auction · after_hours_close · after_hours_single · closed · holiday) · `lastCloseAt` · `nextOpenAt` · `calendarKnown` | 완료 |
+| FR-26 | 장 상태 KST(pre_open · regular · closing_auction · after_hours_close · after_hours_single · closed · holiday) · `lastCloseAt` · `nextOpenAt` · `calendarKnown` · **`holidayName`(2026-10-30)** | 완료 — `holidayName` = 평일 휴장일 때 KRX 공시 표 이름(`krxHolidayName`), 주말 · 장날 · 표에 없는 휴장(관측이 찾은 임시)은 `null`. 장 상태를 싣는 응답 전부(세션 · 목록 · 상세 · 지수)에 같이 |
 | FR-29 | 당일 시가 · 고가 · 저가 — `kr_stock_quotes.open/high/low_price`(nullable). KIS 현재가 `stck_oprc` · `stck_hgpr` · `stck_lwpr`(0 은 null) · 실시간 `H0STCNT0` 7 · 8 · 9 필드(틱은 null 로 덮지 않음). 응답 `openPrice` · `highPrice` · `lowPrice` | 완료(`f136b6d`, 슬라이스 3 — 화면이 코인과 같은 5열) |
 | FR-30 | `GET /api/market/kr/assets` `sort`(`""`·`all`·`trade_value`·`change`·`price`·`name`) · `order`(`asc`·`desc`) · `period`(`""`·`realtime`·`1d`·`7d`·`1m`·`3m`·`6m`·`1y`) — **코인과 같은 값**. 정렬은 offset/limit 전 유니버스 전체. `periodChange` = 현재가 / N거래일 전 일봉 종가 −1(1 · 5 · 21 · 63 · 126 · 250), 실시간은 `changeRate`(코인과 같음), 없으면 null · `change` 정렬은 null 마지막 | 완료(`f136b6d`) |
 | FR-31 | 관심 종목 `assetType: kr_stock` — 소유자만 · 마스터에 있는 코드만(이름은 마스터), 비소유자 · 없는 코드 같은 404 · 중복 409. 목록 가격은 `kr_stock_quotes`, 비소유자 목록엔 국내 주식 행 없음. 업비트 구독 심볼(`distinctSymbols("crypto")`)엔 안 들어감 | 완료(`f136b6d`) |
@@ -103,7 +103,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 |---|---|---|
 | `MarketAsset` 확장 | `kr_stock_quotes` 별도 표 | 코인 경로가 자산군을 안 거른다(상폐 처리가 6시간마다 국내 주식을 끔 · 업비트에 6자리 코드 · 비소유자 시장표 노출) |
 | SSE 내부 토큰 | 사용자 JWT + 소유자 판정 | 기존 SSE 와 같은 방식 · 새 비밀값 없음. 소유자 전용이라 BFF 가 소유자 연결에 붙어 받으면 된다 |
-| 휴장일 = KIS 조회 | 일봉 역산 + 오늘 관측 + KIS 시도 | 이 앱 키로 `CTCA0903R` 가 `EGW02004` |
+| 휴장일 = KIS 조회 | 일봉 역산 + 오늘 관측 + KIS 시도 + **KRX 공시 표(미래, 2026-10-30)** | 이 앱 키로 `CTCA0903R` 가 `EGW02004` — 미래 휴장은 거래소 연간 공시를 상수 표로 |
 | 5분봉 1년 백필 | 30일 | 5분봉 정리가 자산군 구분 없이 30일을 지운다 — 코인과 같은 보관 |
 | 유니버스에 보유 | 슬라이스 3b | `kr_stock` 보유 행이 생길 수 없었다(입력 DTO 미지원) — 3b 에서 입력과 함께 |
 | 보유 평가는 BFF 가 밀어 넣는다(코인과 같게) | 서버가 저장 시세로 읽어서 평가 | 국내 주식 시세는 서버가 이미 갖는다 — BFF 를 거쳐 되돌려 받을 이유가 없다 |
@@ -157,3 +157,5 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 - 2026-10-30: 파일만 걸침 — `market/application/api/index.ts` 에 `searchAssets` 조립(국내 관심 소스 `krWatchlist` 재사용) · `env.ts` 에 `TRACKED_ASSET_LIMIT`. 국내 검색은 기존 `store.search` · `labels` · `quotes` 를 읽기만 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: 파일만 걸침 — 웹 `@repo/core` `tradeRisk.ts`(이 REQ 를 언급) 설정 타입 추가. 서버 무변경
 - 2026-10-30: 파일만 걸침 — 서버 `market/domain/ports.ts` 에 코인 `weeklyCandles`. 국내 차트 `KrChartPeriod` 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
+- 2026-10-30: **FR-14 완료 — 미래 휴장일.** KRX 휴장일 공시 표를 3순위 출처 `krx_notice` 로(서버 상수 `KRX_NOTICE_CLOSURES` · `KRX_NOTICE_COVERED_THROUGH`). 장 상태가 연휴 전날 다음 개장을 휴장일로 내던 것(12-24 → 12-25)과 평일 아침 `calendarKnown=false` 가 사라진다. 실서버 부팅 회차 공시 46일(휴장 3) · 어긋남 0. 예측 읽기를 같은 PR 에서 실행 날짜까지 자름(`FC-REQ-009` FR-3). 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`
+- 2026-10-30: FR-26 — `holidayName`(FEATURE-011 FR-41 휴장 사유). DB 무변경(공시 표 상수에서). Swagger 갱신. 실 유스케이스(시각 주입 · 실 DB): 12-25 `holiday` · "성탄절" · 다음 개장 12-28. 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`

@@ -14,6 +14,9 @@ import {
   krStatusBadges,
   krStockLogoUrl,
   krTickSize,
+  krxNoticeDays,
+  KRX_NOTICE_CLOSURES,
+  KRX_NOTICE_COVERED_THROUGH,
   normalizeHomepageDomain,
   toLuminanceOverWhite,
 } from "../index";
@@ -69,6 +72,66 @@ describe("krMarketSession — 장 상태는 KST 시계 + 달력 (F011 FR-26)", (
     const v = krMarketSession(kst("2026-11-04T10:00:00"), new Map());
     assert.equal(v.session, "regular");
     assert.equal(v.calendarKnown, false);
+  });
+});
+
+describe("krxNoticeDays — KRX 휴장일 공시로 미래 달력 채우기 (F011 FR-14)", () => {
+  const asCalendar = (from: string, to: string) => new Map(krxNoticeDays(from, to).map((d) => [d.date, d.isOpen]));
+
+  it("공시 표의 날짜는 전부 평일이고 겹치지 않는다 — 주말을 적으면 '휴장' 으로 잘못 읽힌다", () => {
+    const dates = KRX_NOTICE_CLOSURES.map((c) => c.date);
+    assert.equal(new Set(dates).size, dates.length);
+    for (const d of dates) assert.ok(![0, 6].includes(new Date(`${d}T00:00:00Z`).getUTCDay()), d);
+  });
+
+  it("평일만 내고, 표에 있으면 휴장 · 없으면 개장", () => {
+    const days = krxNoticeDays("2026-12-21", "2026-12-27");
+    assert.deepEqual(
+      days.map((d) => [d.date, d.isOpen]),
+      [
+        ["2026-12-21", true],
+        ["2026-12-22", true],
+        ["2026-12-23", true],
+        ["2026-12-24", true],
+        ["2026-12-25", false],
+      ]
+    );
+  });
+
+  it("표 범위 밖은 내지 않는다 — 모르는 날을 개장으로 적지 않는다", () => {
+    assert.equal(krxNoticeDays("2027-01-04", "2027-03-31").length, 0);
+    assert.equal(krxNoticeDays("2025-12-01", "2025-12-31").length, 0);
+    assert.equal(krxNoticeDays("2026-12-28", "2027-12-31").at(-1)?.date, KRX_NOTICE_COVERED_THROUGH);
+  });
+
+  it("공시로 채운 달력이면 성탄절은 휴장 · 미리 안다(calendarKnown) · 다음 개장은 월요일", () => {
+    const v = krMarketSession(kst("2026-12-25T10:00:00"), asCalendar("2026-12-01", "2027-01-01"));
+    assert.equal(v.session, "holiday");
+    assert.equal(v.calendarKnown, true);
+    assert.deepEqual(v.lastCloseAt, kst("2026-12-24T15:30:00"));
+    assert.deepEqual(v.nextOpenAt, kst("2026-12-28T09:00:00"));
+    assert.equal(v.holidayName, "성탄절");
+  });
+
+  it("휴장 사유는 공시 표에 있는 평일 휴장에만 — 주말 · 장날 · 표에 없는 휴장은 null (FR-41)", () => {
+    const cal = asCalendar("2026-12-01", "2027-01-01");
+    assert.equal(krMarketSession(kst("2026-12-26T10:00:00"), cal).holidayName, null);
+    assert.equal(krMarketSession(kst("2026-12-24T10:00:00"), cal).holidayName, null);
+    // 관측이 찾은 임시 휴장(표에 없음) — 이름을 지어내지 않는다
+    const temp = krMarketSession(kst("2026-11-04T10:00:00"), new Map([["2026-11-04", false]]));
+    assert.equal(temp.session, "holiday");
+    assert.equal(temp.holidayName, null);
+  });
+
+  it("연말 휴장 · 신정을 건너 다음 개장은 2027-01-04 월요일", () => {
+    const v = krMarketSession(kst("2026-12-30T16:30:00"), asCalendar("2026-12-01", "2027-01-01"));
+    assert.deepEqual(v.nextOpenAt, kst("2027-01-04T09:00:00"));
+  });
+
+  it("09:10 관측 전 아침에도 오늘이 달력에 있다 — 예전엔 평일 아침마다 calendarKnown=false 였다", () => {
+    const v = krMarketSession(kst("2026-11-04T08:00:00"), asCalendar("2026-11-04", "2026-11-30"));
+    assert.equal(v.session, "closed");
+    assert.equal(v.calendarKnown, true);
   });
 });
 

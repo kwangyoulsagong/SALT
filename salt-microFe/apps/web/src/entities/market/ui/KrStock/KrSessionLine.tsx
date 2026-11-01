@@ -50,7 +50,11 @@ export const KrSessionLine = ({ session, provider, realtimeRefused = false }: Kr
           ? live
             ? M.session.live
             : M.session.liveRefused
-          : `${M.session.notRegular} · ${M.sessionNames[session.session]}`}
+          : `${M.session.notRegular} · ${
+              session.session === "holiday" && session.holidayName
+                ? M.session.holidayWithName(session.holidayName)
+                : M.sessionNames[session.session]
+            }`}
       </span>
       {parts.map((part) => (
         <span key={part}>

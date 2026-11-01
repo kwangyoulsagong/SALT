@@ -354,3 +354,14 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 
 - 파일만 걸침 — 웹 `entities/market/model/types.ts` 에 코인 `ChartPeriod.Week`. 국내 차트(`KrChartPeriod` `1d` · `5m`)는 그대로 — 국내 1주는 `FE-REQ-049` FR-10
 - 미검증 · 범위 밖: 없음
+
+## 2026-10-30 — F011 FR-14 미래 휴장일(KRX 공시 표)
+
+- ~~변경 없음(짝 영역)~~ **정정 2026-10-30 같은 날 후속** 휴장 사유 추가(아래). `KrSessionLine` "달력 추정"은 `calendarKnown` 거짓일 때만. 평일 아침 · 공시가 덮는 날(~2027-01-01)엔 이제 안 나온다
+- 미검증 · 범위 밖: ~~실화면 확인(평일 09:10 전) · 휴장 사유 이름~~ **정정 2026-10-30 같은 날 후속** 닫음(아래). 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`
+
+## 2026-10-30 — 후속: 휴장 사유 이름(F011 FR-41)
+
+- FR-4 — `KrSessionView.holidayName`(`@repo/core`) · `holidayWithName` 문구 · `KrSessionLine` 휴장일이면 "휴장일(이름)", 이름 없으면 "휴장일"
+- 실화면(웹 dev · Playwright · 실 BFF 응답 + 시각 주입 장 상태): 12-25 "정규장 아님 · 휴장일(성탄절) · 마지막 체결 12/24 15:30 · 다음 개장 월요일 09:00" · 11-02 08:00 "다음 개장 오늘 09:00" · 12-24 "다음 개장 월요일 09:00" — 추정 표시 없음 · 페이지 오류 0
+- 게이트: `check-types` · `lint` · `test`(core 51 · ui 43) · `test:layer-check`(차단 8 · 통과 5) · 훅 exit 0 · `web` 빌드(`/investments` 154 · 상세 137 kB — 직전 파일 사본 빌드도 같음, 증가 0) · `web-tax` 빌드 102 kB. 미검증 · 범위 밖: 없음

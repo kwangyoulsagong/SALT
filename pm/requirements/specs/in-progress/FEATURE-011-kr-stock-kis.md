@@ -68,7 +68,7 @@
 | FR-11 | 시세 수집 유니버스 = 보유(`PortfolioHolding` kr_stock) ∪ 관심(`InvestmentWatchlist`) ∪ **시가총액 상위 N**(기본 50, env `KIS_UNIVERSE_TOP_N`). 유니버스 종목만 `MarketAsset` 행을 갖는다 | Must | 완료(S3b — 보유 → 관심 → 시총) |
 | FR-12 | WS 실시간 슬롯(세션당 41 건 — §KIS 사실) 은 보유 → 관심 → 시총 순으로 채우고, 나머지는 1분 폴링. 슬롯 배정은 유니버스가 바뀔 때 다시 계산 | Must | 완료(S0·1) |
 | FR-13 | 종목 검색 `GET /api/market/kr/search?q=` — 마스터 전체(약 2,700)에서 이름 · 코드 부분 일치. 유니버스 밖 종목을 관심에 추가하면 다음 주기부터 수집 | Must | 완료(S0·1) |
-| FR-14 | 휴장일을 KIS 휴장일 조회로 받아 `MarketHoliday` 에 저장(주 1회 + 부팅). 장 상태 계산 · 전망 거래일 격자가 같은 표를 본다 | Must | 부분(S0 — 미래 휴장 모름) |
+| FR-14 | 휴장일을 KIS 휴장일 조회로 받아 `MarketHoliday` 에 저장(주 1회 + 부팅). 장 상태 계산 · 전망 거래일 격자가 같은 표를 본다 | Must | **완료 2026-10-30** — KIS 조회는 이 키로 거부라 **KRX 연간 휴장일 공시 표**(서버 상수, ~2027-01-01)로 미래를 채운다. 지난날은 일봉 역산 · 오늘은 09:10 관측이 공시보다 우선. 매년 12월 공시 뒤 다음 해 줄 추가(`SRV-REQ-040` FR-14) |
 
 ### C. 시세 수집 — 일봉 · 분봉 · 실시간
 
@@ -90,7 +90,7 @@
 | ID | 요구사항 | 우선 | 상태 |
 |---|---|---|---|
 | FR-40 | `/investments` 시장표에 자산군 탭(코인 · 국내주식). 국내주식 표: 이름 · 코드 · 시장 · 현재가(원 정수) · 등락률 · 거래대금 · 시총. 정렬 기본 시총 | Must | 완료(S3) — 자산군 탭 · 코인과 같은 5열 |
-| FR-41 | 표 머리 **장 상태 줄**: 정규장이면 "실시간" · 아니면 "정규장 아님 · 마지막 체결 {HH:mm} · 다음 개장 {요일 HH:mm}". 휴장일은 사유 이름 | Must | 완료(S3) |
+| FR-41 | 표 머리 **장 상태 줄**: 정규장이면 "실시간" · 아니면 "정규장 아님 · 마지막 체결 {HH:mm} · 다음 개장 {요일 HH:mm}". 휴장일은 사유 이름 | Must | 완료(S3) — ~~휴장일 사유 이름~~ **정정 2026-10-30** S3 은 이름 없이 "휴장일"만이었다. 이름은 2026-10-30 KRX 공시 표로("휴장일(성탄절)" · 표에 없는 임시 휴장은 "휴장일"만) |
 | FR-42 | 가격은 **원화 정수 · 천 단위 구분**. 호가 단위(가격대별 1 · 5 · 10 · 50 · 100 · 500 · 1,000원) 를 상세 머리에 표시. 거래 기록 폼 단가 입력은 호가 단위 배수가 아니어도 **막지 않고** 안내만(수동 입력 원칙) | Must | 완료(S3 · S3b) — 호가 단위는 상세 머리 · 거래 폼 단가 아래 안내(막지 않음) |
 | FR-43 | 상한가 · 하한가 도달 시 가격 옆 배지(`상`/`하`) · 상세에 상하한가 · 기준가 줄 | Must | 완료(S3) |
 | FR-44 | 종목 상태 배지: 거래정지 · 관리종목 · 투자주의 · 투자경고 · 투자위험 · 단기과열. 거래정지면 실시간 자리 대신 마지막 체결 일시 | Must | 완료(S3) |
@@ -230,7 +230,7 @@
 
 | Method | 서버 Path | BFF Path | Auth | Request | Response | Status |
 |---|---|---|---|---|---|---|
-| GET | `/api/market/kr/session` | `/api/app/market/kr/session` | 필수 | — | `{ session, now, lastCloseAt, nextOpenAt, calendarKnown, provider: { status, since, lastSuccessAt, realtime: { state, lastTickAt } } }` — 휴장 사유 이름은 아직 없다 | 완료(S2) |
+| GET | `/api/market/kr/session` | `/api/app/market/kr/session` | 필수 | — | `{ session, now, lastCloseAt, nextOpenAt, calendarKnown, holidayName, provider: { status, since, lastSuccessAt, realtime: { state, lastTickAt } } }` — ~~휴장 사유 이름은 아직 없다~~ **정정 2026-10-30** `holidayName`(FR-41, 공시 표에 없는 휴장은 `null`) | 완료(S2) |
 | GET | `/api/market/kr/assets?limit=50&offset=` | `/api/app/market/kr/overview` | 필수 | `limit`(≤100) · `offset` — 정렬은 시총 고정 | `{ session, items: KrStockQuote[], nextOffset }` — 종목마다 `code · name · market · price · change · changeRate · volume(문자열) · tradeValue · marketCap · upperLimit · lowerLimit · basePrice · limitState · status[] · isHalted · feed: "realtime"｜"poll_1m"｜"stale" · priceUpdatedAt` | 완료(S2) |
 | GET | `/api/market/kr/:code` | `/api/app/market/kr/:code` | 필수 | — | `{ session, quote: KrStockQuote, detail: { per, pbr, eps, bps, week52High, week52Low, foreignRate, tickSize } }` — `afterHours` 는 슬라이스 6 | 완료(S2) |
 | GET | `/api/market/kr/:code/chart?period=1d｜5m&count=` | `/api/app/market/kr/:code/chart` | 필수 | 기간(1h 는 서버에 없다) · `count` ≤500 | `{ period, candles[], coverage: { from, to, tradingDays } }` | 완료(S2) |
@@ -319,7 +319,7 @@ WS `price_update` 메시지에 `assetType` 필드 추가(코인 `crypto` 기본)
 - [ ] 정규장 30분 실측에서 초당 호출 최대값 ≤ 6, 429 0건
 - [ ] 유니버스 100종목 일봉 2년 백필 후 `PriceHistory(kr_stock, 1d)` 종목당 ≥ 480행, 휴장일 행 0건
 - [ ] 5m 버킷과 KIS 당일 분봉의 종가 불일치 ≤ 0.1%(표본 10종목 × 1일)
-- [ ] 21:00 KST 조회 시 `session = closed` · `lastTradeAt` 이 15:30 봉, 휴장일엔 `holiday` + 이름
+- [x] 21:00 KST 조회 시 `session = closed` · `lastTradeAt` 이 15:30 봉, 휴장일엔 `holiday` + 이름 — **2026-10-30** 필드 이름은 `lastCloseAt` · `holidayName`(공시 표에 있는 평일 휴장만, 실 유스케이스 12-25 → "성탄절")
 - [ ] 거래정지 · 관리종목 · 상한가 종목이 배지와 함께 렌더되고 색만으로 구분하지 않는다
 - [ ] 비회원 · 공개 SEO 응답에 국내주식 시세 0건. 소유자 전용 시작 시 비소유자 응답에 `kr` 항목 자체가 없다
 - [x] 코치 상세 — 조건 미달 종목은 `insufficient_history` + 수치, 충족 종목은 장기 모드 판단 + 3종 세트(국내주식 표본만). 코인 적중률 숫자가 변하지 않는다(회귀) — 슬라이스 4(2026-10-08). 실 DB 코인 성적표 `above_cost` 무변경 확인. 충족 종목의 **렌더**는 표본 20 뒤(재시작 + 2~3개월)
@@ -382,6 +382,8 @@ WS `price_update` 메시지에 `assetType` 필드 추가(코인 `crypto` 기본)
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-10-30 | **휴장 사유 이름(FR-41)** — 사용자 "검증안한거 다해". 장 상태 줄이 휴장일에 "휴장일(성탄절)"처럼 사유를 보인다. 거래소 공시 표에 없는 임시 휴장은 이름을 지어내지 않고 "휴장일"만. 서버 응답 `holidayName` · BFF · 화면. 실화면 확인(성탄절 · 평일 아침 · 연휴 전날). `SRV-REQ-040` FR-26 · `BFF-REQ-040` FR-1 · `FE-REQ-041` FR-4. 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md` |
+| 2026-10-30 | **미래 휴장일(FR-14 완료)** — 사용자 "새 브랜치 파고 다음꺼 진행"(§4-1 순위 2). 국내 장 상태가 연휴 전날 다음 개장을 휴장일로 냈다(12-24 → 12-25) · 평일 아침마다 "달력 추정"이 붙었다. 이제 거래소가 공시한 휴장일 표로 올해 끝 + 신정까지 미리 안다(12-24 → 다음 개장 12-28 · 12-30 → 2027-01-04). 실제 체결이 공시보다 우선 — 공시 뒤 임시공휴일은 그날 09:10 에 바로잡힌다. 해마다 12월 거래소 공시 뒤 다음 해 줄을 더한다(한 달 전부터 서버가 알린다). 전망 계산은 무변경(미래 날짜를 읽지 않게 잘랐다). 휴장 사유 이름 표시는 다음 줄. `SRV-REQ-040` FR-14 · `DB-REQ-033` · `FC-REQ-009` FR-3. 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md` |
 | 2026-10-29 | 시간외 단일가 수집을 기본으로 껐다 — 모의 키는 늘 0, 실전 키는 쓰지 않는다. 저녁 KIS 초당 한도(요금 없음)를 투자자 · 5분봉 보정에 돌려준다. 다시 켜려면 `KIS_AFTER_HOURS_ENABLED=true` |
 | 2026-10-29 | **KIS 앱 키는 모의투자용(사용자 확인)** — 그래서 시간외 단일가(FR-27)는 원천이 늘 0 이라 화면에 나오지 않고, 휴장일 조회 거부 · 처리량 약 2건/s 도 같은 원인. 실전 키 전환 계획은 없다(사용자 결정 2026-10-29 — 실전 키는 본인 계좌에 묶여 계좌가 노출된다 · 계좌 연동 없음 원칙) |
 | 2026-10-29 | FR-46 칸 정정 — 일부 종목을 빼고 셌을 때 "보유의 100%로 계산"으로 보이던 것(덮은 몫 0.995 반올림)을 내림 "99%"로(`FE-REQ-041` FR-29). 국내 + 코인 임시 사용자 실데이터 확인 중 발견 |

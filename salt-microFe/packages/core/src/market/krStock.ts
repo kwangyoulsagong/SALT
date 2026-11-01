@@ -39,6 +39,8 @@ export interface KrSessionView {
   nextOpenAt: string | null;
   /** `false` 면 오늘이 개장일 달력에 없어 평일 = 개장으로 **추정**했다. 화면이 숨기지 않는다 */
   calendarKnown: boolean;
+  /** 평일 휴장 사유(F011 FR-41) — 서버 KRX 공시 표 이름. 휴장이 아니거나 표에 없으면 `null` */
+  holidayName: string | null;
 }
 
 export interface KrProviderView {

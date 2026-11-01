@@ -34,7 +34,7 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 
 | FR | 내용 | 상태 |
 |---|---|---|
-| FR-1 | `GET /api/app/market/kr/session` → `{ status, session, now, lastCloseAt, nextOpenAt, calendarKnown, provider: { status, since, lastSuccessAt, realtime: { state, lastTickAt } } }`. 슬롯 수는 옮기지 않는다 | 완료 |
+| FR-1 | `GET /api/app/market/kr/session` → `{ status, session, now, lastCloseAt, nextOpenAt, calendarKnown, holidayName(2026-10-30 — 없는 옛 서버 응답은 null), provider: { status, since, lastSuccessAt, realtime: { state, lastTickAt } } }`. 슬롯 수는 옮기지 않는다 | 완료 |
 | FR-2 | `GET /api/app/market/kr/overview?limit(1~100, 50)&offset(0)` → `{ status, session, items: KrQuote[], nextOffset }`. 행: `code · name · market · price · change · changeRate · volume(문자열) · tradeValue · marketCap · basePrice · upperLimit · lowerLimit · limitState · status[] · isHalted · feed · priceUpdatedAt` | 완료 |
 | FR-3 | `GET /api/app/market/kr/search?q(2~30자)` · `GET /:code`(+`detail` 8필드 · `tickSize`) · `GET /:code/chart?period(1d·5m)&count(1~500, 120)` → `{ candles[], coverage: { from, to, tradingDays } }` | 완료 |
 | FR-4 | 형식 검증은 서버 DTO 와 같은 규칙으로 먼저 — 코드 `^[0-9A-Z]{6}$`(소문자는 대문자로), 범위 밖 400 · 서버를 부르지 않는다(경로 주입 차단) | 완료 |
@@ -98,3 +98,5 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 - 2026-10-29: F009 FR-26 — FR-25 `portfolioVolatility` 뷰모델에 `contributions` · `tail` 추가(주인 `BFF-REQ-038` FR-14). FR-25 필드 · `ok` 판정 무변경
 - 2026-10-30: 파일만 걸침 — 웹 `endpoints.ts` 에 검색 경로 추가(국내 경로 옆). 국내 계약 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: 파일만 걸침 — 같은 `@repo/core` 파일(`tradeRisk.ts`)에 설정 타입이 늘었다. 이 REQ 계약 무변경
+- 2026-10-30: F011 FR-14(`SRV-REQ-040`) — ~~**변경 없음.**~~ **정정 2026-10-30 같은 날 후속** 아래 FR-1 `holidayName` 추가. 서버가 KRX 공시 표로 미래 휴장을 알아 `calendarKnown` 이 참인 때가 늘어난다. FR-1 모양 무변경. 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`
+- 2026-10-30: FR-1 — `holidayName` 추가(F011 FR-41). 필드 없는 옛 서버 응답은 `null` · 문자열 아니면 계약 깨짐. 테스트 1 추가(298 pass). 실서버 → BFF HTTP 응답에 실림 확인. 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`

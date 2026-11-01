@@ -39,7 +39,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 | FR-1 | 자산군 탭 `코인 · 국내 주식` — 제목 바로 아래(`MarketBoard`). 판정 잎 `KrStockAvailability`(`ssr:false`) — 탭 줄 껍데기가 엔티티 barrel 을 값으로 부르지 않는다. 탭이 사라지면 코인으로 돌아온다 | 완료 |
 | FR-2 | `RealtimeMarketTable` · `WatchlistTab` 에 `assetClass` — 같은 5열 · 필터 3그룹 · hover 미리보기(80ms) · 클릭/Enter 상세 · 변동률 깜빡임 · 관심 별. 데이터 소스 `useBoardOverview` | 완료 |
 | FR-3 | 필터 — 코인과 같은 `MarketSort` · `MarketOrder` · `MarketPeriod` 값을 그대로 보낸다(`BFF-REQ-040` FR-11). 기간 수익률 · 정렬은 서버 | 완료 |
-| FR-4 | 표 머리 첫 칸 — 코인은 실시간 기준 시각, 국내 주식은 장 상태 줄(`KrSessionLine`: 정규장 · 실시간 / 거부면 "1분마다 갱신" / 정규장 아님 · 마지막 체결 · 다음 개장 · 개장일 추정 · 지연 중) | 완료 |
+| FR-4 | 표 머리 첫 칸 — 코인은 실시간 기준 시각, 국내 주식은 장 상태 줄(`KrSessionLine`: 정규장 · 실시간 / 거부면 "1분마다 갱신" / 정규장 아님 · 마지막 체결 · 다음 개장 · 개장일 추정 · 지연 중 · **휴장 사유 "휴장일(성탄절)" 2026-10-30**) | 완료 |
 | FR-5 | 이름 옆 배지 — 상한가 `상` · 하한가 `하`(스크린리더 전체 이름) · 거래정지 · 관리 · 투자주의/경고/위험 · 단기과열 · `1분` · `N분 전 시세`(서버 `now` 기준). F011 FR-43 · 44 · 45 | 완료 · 라이브는 배지 없는 정규장만 관찰 |
 | FR-6 | 우측 미리보기 — 국내 주식도 5분봉 미리보기 차트(서버 집계 30봉) · 심리 · 스마트머니 자리엔 "아직 제공하지 않습니다". 로고 없으면 이니셜 | 완료 |
 | FR-7 | 코치 패널 — 국내 주식 행은 코인 판단 조회를 부르지 않고 "아직 코치 판단 대상이 아니에요" | 완료 |
@@ -114,3 +114,5 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 - 2026-10-29: FR-35 국내 주식 상세 주문 전 체크(F004 슬라이스 16 후속 · 서버 `SRV-REQ-025` FR-66). 소유자 전용 화면이라 KRX 재배포 약관 무관 — 사용자 본인 계산
 - 2026-10-30: 파일만 걸침 — `ui/index.ts` 에 `AssetSearchTable` · 관심 종목 탭 카운터(자산군 탭과 무관한 사용자 전체 수) · 보유 ★ 비활성(국내 포함). 국내 탭 판단 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: 파일만 걸침 — 웹 `entities/market/model/types.ts` 에 코인 `ChartPeriod.Week`. 국내 차트(`KrChartPeriod` `1d` · `5m`)는 그대로 — 국내 1주는 `FE-REQ-049` FR-10. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
+- 2026-10-30: F011 FR-14(`SRV-REQ-040`) — ~~**변경 없음.**~~ **정정 2026-10-30 같은 날 후속** 아래 FR-4 휴장 사유. 장 상태 줄 "달력 추정"이 평일 아침 · 공시가 덮는 날엔 안 나온다(`calendarKnown` 참). 연휴 전날 "다음 개장"이 휴장일 다음 개장일로 바르게 나온다. ~~휴장 사유 이름은 아직(서버 응답 먼저).~~ 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`
+- 2026-10-30: FR-4 — 장 상태 줄 휴장 사유 이름(F011 FR-41, `@repo/core` `KrSessionView.holidayName` · 문구 `holidayWithName`). 이름이 없으면 "휴장일" 그대로. 실화면(Playwright — 실 BFF 응답의 장 상태만 시각 주입 유스케이스 결과로 교체): 12-25 "정규장 아님 · 휴장일(성탄절) · 마지막 체결 12/24 15:30 · 다음 개장 월요일 09:00" · 11-02 08:00 "다음 개장 오늘 09:00"(추정 표시 없음). 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`

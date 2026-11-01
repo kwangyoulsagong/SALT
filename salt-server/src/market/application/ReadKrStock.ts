@@ -91,6 +91,7 @@ export interface KrSessionResponse {
   lastCloseAt: string | null;
   nextOpenAt: string | null;
   calendarKnown: boolean;
+  holidayName: string | null;
 }
 
 const toSessionResponse = (view: KrSessionView, now: Date): KrSessionResponse => ({
@@ -99,6 +100,7 @@ const toSessionResponse = (view: KrSessionView, now: Date): KrSessionResponse =>
   lastCloseAt: view.lastCloseAt?.toISOString() ?? null,
   nextOpenAt: view.nextOpenAt?.toISOString() ?? null,
   calendarKnown: view.calendarKnown,
+  holidayName: view.holidayName,
 });
 
 /** 원 단위 정수 — 반올림은 응답 직전 한 번(`ddd-domain.md` §3) */
