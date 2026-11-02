@@ -84,6 +84,19 @@ describe("AppHomeService.getHome", () => {
     assert.equal(vm.cards.find((c) => c.domain === "invest")!.state, "ok");
   });
 
+  it("인증 거절(401)은 카드 degraded 가 아니라 홈 전체 401 — 프론트가 토큰 갱신 · 로그인으로 간다", async () => {
+    hideByDefault();
+    const unauthorized = Object.assign(new Error("401"), { response: { status: 401 } });
+    mock.method(backendApi, "proxyAuthRequest", async () => {
+      throw unauthorized;
+    });
+    mock.method(appPortfolioService, "getSummary", async () => {
+      throw unauthorized;
+    });
+
+    await assert.rejects(appHomeService.getHome("t"), (error) => error === unauthorized);
+  });
+
   it(`카드 하나가 ${HOME_CARD_TIMEOUT_MS}ms 를 넘기면 그 카드만 degraded`, async () => {
     hideByDefault();
     mock.method(backendApi, "proxyAuthRequest", async () => goalStats({ totalGoals: 1, activeGoals: 1, totalSaved: 10 }));

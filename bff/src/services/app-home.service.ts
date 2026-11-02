@@ -47,6 +47,14 @@ const visibleProfitRate = (
   return typeof rate === "number" && Number.isFinite(rate) ? rate : null;
 };
 
+/**
+ * 인증이 거절됐는지 — 카드 하나의 실패가 아니라 **사용자 전체의 상태**다. 그대로 올려 홈이 401 이 되게 한다
+ * (오류 미들웨어가 서버 4xx 를 그대로 옮긴다). 카드 `degraded` 로 덮으면 프론트가 토큰 갱신 · 로그인 이동을 못 한다
+ * — 만료 토큰으로 홈이 "불러오지 못했어요" 두 장으로 남았다(2026-11-02 실측).
+ */
+const isUnauthenticated = (reason: unknown): boolean =>
+  (reason as { response?: { status?: number } } | undefined)?.response?.status === 401;
+
 interface CardSource {
   domain: HomeDomain;
   title: string;
@@ -102,6 +110,11 @@ class AppHomeService {
     const settled = await Promise.allSettled(
       CARD_SOURCES.map((source) => withinBudget(source.load(token, now), HOME_CARD_TIMEOUT_MS)),
     );
+
+    const unauthenticated = settled.find(
+      (result): result is PromiseRejectedResult => result.status === "rejected" && isUnauthenticated(result.reason),
+    );
+    if (unauthenticated) throw unauthenticated.reason;
 
     const cards = settled.map((result, index) => {
       const source = CARD_SOURCES[index];
