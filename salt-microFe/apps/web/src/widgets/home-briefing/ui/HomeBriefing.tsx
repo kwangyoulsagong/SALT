@@ -5,21 +5,19 @@ import { BlockBoundary } from "@repo/web-shared/ui";
 
 import { HOME_BLOCK_MIN_HEIGHT, HOME_BRIEFING_MESSAGES } from "../model/messages";
 import { GoalsBlock } from "./GoalsBlock";
-import { InvestmentsBlock } from "./InvestmentsBlock";
+import { HomeCards } from "./HomeCards";
 import { SavingTipBlock } from "./SavingTipBlock";
 
 /**
- * 홈 브리핑 — 블록 조합과 **부분 실패 격리**를 담당한다 (`fsd-widgets.md`).
+ * 홈 — 도메인 요약 카드 + (임시) 목표 목록 + 저축 팁 (`FE-REQ-055` FR-2, `ADR-005` §2).
+ *
+ * **셸은 도메인 코드를 모른다.** 투자 블록(보유 요약 · 매입가 숨김)이 `entities/portfolio` · `coach` 를 직접 읽던 것을
+ * BFF 카드(`HomeSummaryCard[]`)로 바꿨다(`FE-REQ-053` FR-3). 카드 값은 BFF 문자열 그대로다.
  *
  * ## 지금은 스트리밍되지 않는다
  *
- * 블록마다 `BlockBoundary`(Suspense + error boundary)를 뒀지만, **서버에서 기다리는
- * 데이터가 없다.** 목표·투자 블록이 클라이언트에서 React Query 로 BFF 를 부르기 때문이다
- * (토큰이 `localStorage` 에 있다 — `FE-REQ-013` 전). 그래서 경계는 현재 **부분 실패 격리**만 실제로 하고 있다.
- *
- * 서버 스트리밍이 되는 시점은 F006(`FE-REQ-030`~`033`)에서 5블록 홈을 만들고
- * `BFF-REQ-028` 의 블록별 엔드포인트가 생길 때다. 그때 각 블록이
- * **서버 컴포넌트 + `await fetch`** 로 바뀌고, 경계는 그대로 둔다.
+ * 카드가 클라이언트에서 React Query 로 BFF 를 부른다(토큰이 `localStorage` 에 있다 — `FE-REQ-013` 전). 경계는
+ * **부분 실패 격리**만 한다. 카드 하나의 실패는 BFF 가 카드 단위로 격리해 `degraded` 로 준다.
  *
  * 경계 수는 화면당 5개 이하다 (FE-REQ-008 FR-26). 현재 2개.
  */
@@ -27,17 +25,11 @@ export const HomeBriefing = () => {
   return (
     <Container size="full" padding="none">
       <FlexBox direction="column" justify="center" gap="lg">
-        <BlockBoundary
-          name={HOME_BRIEFING_MESSAGES.goalsBlockName}
-          minHeight={HOME_BLOCK_MIN_HEIGHT.goals}
-        >
-          <GoalsBlock />
+        <BlockBoundary name={HOME_BRIEFING_MESSAGES.cardsBlockName} minHeight={HOME_BLOCK_MIN_HEIGHT.cards}>
+          <HomeCards />
         </BlockBoundary>
-        <BlockBoundary
-          name={HOME_BRIEFING_MESSAGES.investmentsBlockName}
-          minHeight={HOME_BLOCK_MIN_HEIGHT.investments}
-        >
-          <InvestmentsBlock />
+        <BlockBoundary name={HOME_BRIEFING_MESSAGES.goalsBlockName} minHeight={HOME_BLOCK_MIN_HEIGHT.goals}>
+          <GoalsBlock />
         </BlockBoundary>
         <SavingTipBlock />
       </FlexBox>

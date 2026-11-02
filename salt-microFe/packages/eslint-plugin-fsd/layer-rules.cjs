@@ -66,6 +66,8 @@ const REGISTRY = {
     "news",
     "notification",
     "device",
+    // 셸 홈 요약 카드 조회 · 표시 — 도메인을 모르는 카드 계약(`FE-REQ-055`)
+    "home",
   ],
   features: [
     "ask-coach",
