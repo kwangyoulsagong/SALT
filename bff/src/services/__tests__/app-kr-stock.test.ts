@@ -109,6 +109,21 @@ describe("AppKrStockService — 지수 · 투자자 순매수", () => {
     assert.equal("internal" in r.items[0]!, false);
   });
 
+  it("요약 띠(BFF-REQ-044) — 경로 · 404 는 그대로 올린다 · 503 꺼짐은 disabled", async () => {
+    const paths: string[] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, path: string) => {
+      paths.push(path);
+      throw httpError(404, "KR_STOCK_NOT_AVAILABLE");
+    });
+    await assert.rejects(appKrStockService.getSummary("t"));
+    assert.deepEqual(paths, ["/market/kr/summary"]);
+    mock.restoreAll();
+    mock.method(backendApi, "proxyAuthRequest", async () => {
+      throw httpError(503, "KR_STOCK_DISABLED");
+    });
+    assert.deepEqual(await appKrStockService.getSummary("t"), { status: "disabled" });
+  });
+
   it("지수 계약이 깨지면 unavailable — 0 으로 채우지 않는다", async () => {
     mock.method(backendApi, "proxyAuthRequest", async () => ok({ session: sessionOnly, items: [{ ...index, value: null }] }));
     assert.equal((await appKrStockService.getIndices("t")).status, "unavailable");

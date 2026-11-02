@@ -97,6 +97,10 @@ export class AppKrStockController {
   indices = (req: Request, res: Response, next: NextFunction) =>
     respond(res, next, (signal) => appKrStockService.getIndices(req.token!, signal));
 
+  /** 국내 요약 띠(`BFF-REQ-044`) — 입력 없음 */
+  summary = (req: Request, res: Response, next: NextFunction) =>
+    respond(res, next, (signal) => appKrStockService.getSummary(req.token!, signal));
+
   /** 다가오는 국내 시장 일정 — `days` 1~35(기본 14, 상한은 서버와 같다) */
   schedule = (req: Request, res: Response, next: NextFunction) => {
     const days = intQuery(req.query.days, 14, 1, 35);

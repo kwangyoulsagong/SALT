@@ -507,3 +507,96 @@ export const toKrScheduleVM = (raw: unknown): { days: number; items: KrScheduleI
     }),
   };
 };
+
+// ==================== 국내 요약 띠 (BFF-REQ-044 · 서버 SRV-REQ-042) ====================
+
+/** 화면이 아는 태그 — 코인 요약(`market-summary.viewmodel` `KNOWN_SUMMARY_TAGS`)과 같은 값. 모르는 코드는 버린다 */
+const KR_SUMMARY_TAGS = ["wide_move"] as const;
+export type KrSummaryTagVM = (typeof KR_SUMMARY_TAGS)[number];
+const KR_SUMMARY_KINDS = ["index", "stock"] as const;
+
+/**
+ * 국내 요약 한 칸 — 코인 `MarketSummaryItemVM` 과 **같은 이름 · 같은 뜻**(화면이 같은 칸 컴포넌트로 그린다) + `kind`.
+ * 다른 점 셋: 등락이 전일 종가 대비(응답 `changeBasis`) · 지수는 로고가 없다(`logoUrl: null`) · 고가 · 저가 · 거래대금은
+ * 못 받았으면 `null`(0 이 아니다)
+ */
+export interface KrSummaryItemVM {
+  symbol: string;
+  /** 지수 칸은 링크가 없다(상세 화면이 없다) */
+  kind: (typeof KR_SUMMARY_KINDS)[number];
+  name: string;
+  logoUrl: string | null;
+  currentPrice: number;
+  change24h: number;
+  /** 서버가 반올림한 전일 대비 금액(종목 원 정수 · 지수 포인트) */
+  change24hAmount: number;
+  tags: KrSummaryTagVM[];
+  sparkline: number[] | null;
+  high24h: number | null;
+  low24h: number | null;
+  tradeValue24h: number | null;
+}
+
+export interface KrMarketSummaryVM {
+  assetClass: "kr_stock";
+  changeBasis: "prev_close";
+  featured: KrSummaryItemVM | null;
+  items: KrSummaryItemVM[];
+  sparklineWindowMinutes: number;
+  /** 스파크라인이 그린 날(KST `YYYY-MM-DD`) — 화면이 "오늘 장중" · "10/31 장중" 을 고른다 */
+  sparklineDate: string | null;
+  breadth: { up: number; flat: number; down: number; total: number } | null;
+  /** 국내 뉴스는 모으지 않는다 — 늘 빈 배열. 소식 자리는 `schedule` */
+  headlines: [];
+  schedule: KrScheduleItemVM[];
+  degraded: boolean;
+}
+
+const toKrSummaryItemVM = (raw: unknown): KrSummaryItemVM => {
+  const x = obj(raw, "summaryItem");
+  const sparkline = x.sparkline;
+  if (sparkline !== null && !(Array.isArray(sparkline) && sparkline.every((v) => typeof v === "number"))) {
+    throw new KrContractError("sparkline");
+  }
+  return {
+    symbol: str(x, "symbol"),
+    kind: oneOf(x, "kind", KR_SUMMARY_KINDS),
+    name: str(x, "koreanName") || str(x, "symbol"),
+    logoUrl: strOrNull(x, "logoUrl"),
+    currentPrice: num(x, "currentPrice"),
+    change24h: num(x, "change24h"),
+    change24hAmount: num(x, "change24hAmount"),
+    tags: (Array.isArray(x.tags) ? x.tags : []).filter((t): t is KrSummaryTagVM =>
+      (KR_SUMMARY_TAGS as readonly unknown[]).includes(t),
+    ),
+    // 점 하나는 선이 아니다 — 코인 뷰모델과 같은 규칙
+    sparkline: sparkline && sparkline.length >= 2 ? (sparkline as number[]) : null,
+    high24h: numOrNull(x, "high24h"),
+    low24h: numOrNull(x, "low24h"),
+    tradeValue24h: numOrNull(x, "tradeValue24h"),
+  };
+};
+
+/** `GET /api/market/kr/summary` — 계산 없음. 서버 `degraded` 는 지우지 않고 옮긴다(`bff-architecture.md` §5) */
+export const toKrMarketSummaryVM = (raw: unknown): KrMarketSummaryVM => {
+  const r = obj(raw, "data");
+  if (r.assetClass !== "kr_stock" || r.changeBasis !== "prev_close") throw new KrContractError("assetClass");
+  const breadth = r.breadth === null || r.breadth === undefined ? null : obj(r.breadth, "breadth");
+  const total = breadth ? num(breadth, "total") : 0;
+  return {
+    assetClass: "kr_stock",
+    changeBasis: "prev_close",
+    featured: r.featured === null ? null : toKrSummaryItemVM(r.featured),
+    items: arr(r, "items").map(toKrSummaryItemVM),
+    sparklineWindowMinutes: num(r, "sparklineWindowMinutes"),
+    sparklineDate: strOrNull(r, "sparklineDate"),
+    // 합이 0 이면 셀 것이 없던 것이다 — 빈 막대를 그리지 않게 null(코인 뷰모델과 같다)
+    breadth:
+      breadth && total > 0
+        ? { up: num(breadth, "up"), flat: num(breadth, "flat"), down: num(breadth, "down"), total }
+        : null,
+    headlines: [],
+    schedule: toKrScheduleVM({ days: 0, items: r.schedule ?? [] }).items,
+    degraded: bool(r, "degraded"),
+  };
+};
