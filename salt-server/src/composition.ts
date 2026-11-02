@@ -169,7 +169,15 @@ const krStock =
         viewerEmails: env.FORECAST_OWNER_EMAILS,
         supplementSource: kis,
         supplement: new PrismaKrSupplementStore(),
-        summaryIndices: parseKrSummaryIndices(env.KIS_SUMMARY_INDICES),
+        // 요약 띠 지수도 수집한다 — 설정에서 빠뜨려도 대표 칸 선이 비지 않게(`SRV-REQ-042`)
+        summaryIndices: parseKrSummaryIndices(
+          [env.KIS_SUMMARY_INDICES, env.KR_SUMMARY_FEATURED, env.KR_SUMMARY_ITEMS].join(",")
+        ),
+        summaryPolicy: {
+          featured: parseKrSummaryIndices(env.KR_SUMMARY_FEATURED)[0] ?? "0001",
+          indexItems: parseKrSummaryIndices(env.KR_SUMMARY_ITEMS),
+          wideMoveRate: env.KR_SUMMARY_WIDE_MOVE_RATE,
+        },
       }
     : null;
 const market = createMarketApplication({

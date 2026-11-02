@@ -139,7 +139,22 @@ describe("부가 조회 응답 해석 (슬라이스 6)", () => {
     const q = await withBody({
       output: { bstp_nmix_prpr: "5469.47", bstp_nmix_prdy_vrss: "-80.83", bstp_nmix_prdy_ctrt: "-1.46", ascn_issu_cnt: "101", stnr_issu_cnt: "22", down_issu_cnt: "792" },
     }).indexQuote("0001");
-    assert.deepEqual(q, { code: "0001", value: 5469.47, change: -80.83, changeRate: -1.46, advancers: 101, unchanged: 22, decliners: 792 });
+    assert.deepEqual(q, {
+      code: "0001", value: 5469.47, change: -80.83, changeRate: -1.46, advancers: 101, unchanged: 22, decliners: 792,
+      high: null, low: null, tradeValue: null,
+    });
+  });
+
+  it("고가 · 저가는 포인트, 거래대금은 백만 원 → 원(SRV-REQ-042 · 2026-11-02 실측 필드)", async () => {
+    const q = await withBody({
+      output: {
+        bstp_nmix_prpr: "5889.73", bstp_nmix_prdy_vrss: "158.99", bstp_nmix_prdy_ctrt: "2.77",
+        bstp_nmix_hgpr: "5907.21", bstp_nmix_lwpr: "5616.50", acml_tr_pbmn: "11022338",
+      },
+    }).indexQuote("0001");
+    assert.equal(q.high, 5907.21);
+    assert.equal(q.low, 5616.5);
+    assert.equal(q.tradeValue, 11_022_338_000_000);
   });
 });
 

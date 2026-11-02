@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { KrStockUseCases, MarketUseCases } from "../application/api";
+import type { KrSummaryItem } from "../application/GetKrMarketSummary";
 import { KrStockDisabledError } from "../domain";
 import {
   krChartQuerySchema,
@@ -40,6 +41,36 @@ export class KrStockController {
   private viewer(req: Request) {
     return { userId: req.user!.userId, email: req.user!.email };
   }
+
+  /**
+   * 국내 요약 띠(`SRV-REQ-042`) — 반올림은 여기 한 번: 종목 가격 · 등락 금액 · 거래대금은 원 정수, 지수는 포인트 소수 둘째 자리
+   * (KIS 가 주는 자릿수)
+   */
+  summary = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const view = await this.enabled().getSummary.execute(this.viewer(req));
+      const toDto = (item: KrSummaryItem) => {
+        const round = item.kind === "index" ? (v: number) => Math.round(v * 100) / 100 : (v: number) => Math.round(v) || 0;
+        const roundOrNull = (v: number | null) => (v === null ? null : round(v));
+        return {
+          ...item,
+          currentPrice: round(item.currentPrice),
+          change24hAmount: round(item.change24hAmount),
+          high24h: roundOrNull(item.high24h),
+          low24h: roundOrNull(item.low24h),
+          tradeValue24h: item.tradeValue24h === null ? null : Math.round(item.tradeValue24h),
+          priceUpdatedAt: item.priceUpdatedAt.toISOString(),
+        };
+      };
+      return ResponseUtil.success(res, {
+        ...view,
+        featured: view.featured ? toDto(view.featured) : null,
+        items: view.items.map(toDto),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 
   session = async (req: Request, res: Response, next: NextFunction) => {
     try {

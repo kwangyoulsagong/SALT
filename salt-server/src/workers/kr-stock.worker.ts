@@ -67,6 +67,8 @@ export const startKrStockWorkers = () => {
     // 21:40 은 이어 받기 — 18:40 이 한도에 양보했거나 놓쳤으면 남은 종목만, 다 받았으면 호출 0(6b)
     { name: "kr-investor-flows", expression: "40 18,21 * * 1-5", run: () => kr.syncInvestorFlows.execute(), catchUp: true },
     { name: "kr-realtime", expression: "* * * * *", run: () => kr.realtime.reconcile() },
+    // 지수 분 기록 정리(`DB-REQ-035` FR-2) — 장 마감 뒤 하루 한 번, 10일 앞을 지운다(하루 약 780행)
+    { name: "kr-index-ticks-prune", expression: "50 15 * * 1-5", run: () => kr.pruneIndexTicks.execute() },
     // 관측 지표(FR-94) — 로그가 지표다
     { name: "kr-provider-metrics", expression: "*/10 * * * *", run: async () => kr.reportMetrics.execute() },
   ];

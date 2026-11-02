@@ -70,7 +70,27 @@ export class PollKrIndices {
       }
     }
     await this.store.upsertIndexQuotes(facts, this.now());
+    // 장중 선(`DB-REQ-035`) — 지수가 움직이는 정규장 · 종가 단일가 때만 쌓는다. 장전 · 장후엔 값이 그대로라 같은 점만 는다
+    if (regular) await this.store.appendIndexTicks(facts, at);
     return { skipped: false as const, updated: facts.length, failed };
+  }
+}
+
+/** 지수 분 기록 보존(달력일) — 긴 연휴(설 · 추석 5일)에도 3거래일 이상 남는다(`DB-REQ-035` FR-2) */
+export const KR_INDEX_TICK_RETENTION_DAYS = 10;
+
+/** 지수 분 기록 정리 — 장 마감 뒤 하루 한 번(워커). 요약 띠는 마지막 거래일 하루치만 읽는다 */
+export class PruneKrIndexTicks {
+  constructor(
+    private readonly store: KrSupplementStore,
+    private readonly now: () => Date = () => new Date()
+  ) {}
+
+  async execute() {
+    const before = new Date(this.now().getTime() - KR_INDEX_TICK_RETENTION_DAYS * 86_400_000);
+    const deleted = await this.store.pruneIndexTicks(before);
+    logger.info(`🇰🇷 국내 지수 분 기록 정리: ${deleted}행`);
+    return { deleted };
   }
 }
 

@@ -1,4 +1,5 @@
 import { DomainError, ErrorKind } from "../../shared/domain";
+import type { KrIntradayPoint } from "./KrMarketSummary";
 import type { Candle } from "./ports";
 
 /**
@@ -175,6 +176,11 @@ export interface KrStockStore {
   /** 한 종목 일봉 전부를 새 이력으로 바꾼다(한 트랜잭션) — 옛 기준 봉이 섞여 남지 않게(FR-42) */
   replaceDailyCandles(code: string, candles: Candle[]): Promise<void>;
   candles(code: string, timeframe: "1d" | "5m", count: number): Promise<Candle[]>;
+  /**
+   * 종목마다 **마지막 5분봉이 있는 KST 날짜**의 5분봉 종가(시간순) — 요약 띠 스파크라인(`SRV-REQ-042` FR-3). 봉이 없는 종목은
+   * 빠진다. 쿼리 한 번
+   */
+  latestSessionCloses(codes: string[]): Promise<Map<string, KrIntradayPoint[]>>;
   /** 로고 판정 대상 — `checkedBefore` 전에 판정했거나 판정한 적 없는 종목(상폐 제외) */
   logoTargets(codes: string[], checkedBefore: Date): Promise<Array<KrLogoTarget & { homepageCheckedAt: Date | null }>>;
   /** 판정 결과 — 홈페이지(새로 알게 됐으면) · 출처 · 판정 시각 */

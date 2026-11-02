@@ -388,6 +388,13 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
       advancers: count(o.ascn_issu_cnt),
       unchanged: count(o.stnr_issu_cnt),
       decliners: count(o.down_issu_cnt),
+      // 고가 · 저가는 포인트, 거래대금은 **백만 원** 단위다(2026-11-02 실측: 코스피 장중 `11022338` ≈ 11조) — 원으로 바꾼다
+      high: positiveOrNull(num(o.bstp_nmix_hgpr)),
+      low: positiveOrNull(num(o.bstp_nmix_lwpr)),
+      tradeValue: (() => {
+        const v = num(o.acml_tr_pbmn);
+        return v === null ? null : v * 1_000_000;
+      })(),
     };
   }
 

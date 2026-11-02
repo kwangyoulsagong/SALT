@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import prisma from "../../shared/infrastructure/prisma";
 import type {
   KrAfterHoursFact,
+  KrIntradayPoint,
   KrIndexQuoteFact,
   KrInvestorFlowFact,
   KrSupplementStore,
@@ -18,21 +19,24 @@ export class PrismaKrSupplementStore implements KrSupplementStore {
     if (facts.length === 0) return;
     const col = <T,>(pick: (f: KrIndexQuoteFact) => T) => facts.map(pick);
     await prisma.$executeRaw`
-      INSERT INTO kr_index_quotes (code, value, change, change_rate, advancers, unchanged, decliners, updated_at)
+      INSERT INTO kr_index_quotes (code, value, change, change_rate, advancers, unchanged, decliners, high, low, trade_value, updated_at)
       SELECT u.*, (${at}::timestamptz AT TIME ZONE 'UTC') FROM unnest(
         ${col((f) => f.code)}::text[], ${col((f) => f.value)}::numeric[], ${col((f) => f.change)}::numeric[],
         ${col((f) => f.changeRate)}::numeric[], ${col((f) => f.advancers)}::int[], ${col((f) => f.unchanged)}::int[],
-        ${col((f) => f.decliners)}::int[]
+        ${col((f) => f.decliners)}::int[], ${col((f) => f.high)}::numeric[], ${col((f) => f.low)}::numeric[],
+        ${col((f) => f.tradeValue)}::numeric[]
       ) AS u
       ON CONFLICT (code) DO UPDATE SET
         value = EXCLUDED.value, change = EXCLUDED.change, change_rate = EXCLUDED.change_rate,
         advancers = EXCLUDED.advancers, unchanged = EXCLUDED.unchanged, decliners = EXCLUDED.decliners,
+        high = EXCLUDED.high, low = EXCLUDED.low, trade_value = EXCLUDED.trade_value,
         updated_at = EXCLUDED.updated_at`;
   }
 
   async indexQuotes(codes: string[]): Promise<StoredKrIndexQuote[]> {
     if (codes.length === 0) return [];
     const rows = await prisma.krIndexQuote.findMany({ where: { code: { in: codes } } });
+    const orNull = (v: Prisma.Decimal | null) => (v === null ? null : Number(v));
     return rows.map((r) => ({
       code: r.code,
       value: Number(r.value),
@@ -41,8 +45,48 @@ export class PrismaKrSupplementStore implements KrSupplementStore {
       advancers: r.advancers,
       unchanged: r.unchanged,
       decliners: r.decliners,
+      high: orNull(r.high),
+      low: orNull(r.low),
+      tradeValue: orNull(r.tradeValue),
       updatedAt: r.updatedAt,
     }));
+  }
+
+  /** 분으로 내린 시각 — 같은 분 두 번(재기동 · 겹친 회차)은 덮는다 */
+  async appendIndexTicks(facts: Array<{ code: string; value: number }>, at: Date) {
+    if (facts.length === 0) return;
+    await prisma.$executeRaw`
+      INSERT INTO kr_index_ticks (code, at, value)
+      SELECT u.code, date_trunc('minute', ${at}::timestamptz AT TIME ZONE 'UTC'), u.value FROM unnest(
+        ${facts.map((f) => f.code)}::text[], ${facts.map((f) => f.value)}::numeric[]
+      ) AS u(code, value)
+      ON CONFLICT (code, at) DO UPDATE SET value = EXCLUDED.value`;
+  }
+
+  /**
+   * 지수마다 마지막 기록의 KST 날짜 하루치 — PK `(code, at)` 범위 스캔. KST 자정 = UTC 전날 15:00 이라 `+9h` 로 날을 자르고 되돌린다
+   */
+  async latestSessionIndexTicks(codes: string[]) {
+    const out = new Map<string, KrIntradayPoint[]>();
+    if (codes.length === 0) return out;
+    const rows = await prisma.$queryRaw<Array<{ code: string; at: Date; value: Prisma.Decimal }>>`
+      SELECT t.code, t.at, t.value
+      FROM unnest(${codes}::text[]) AS c(code)
+      CROSS JOIN LATERAL (SELECT max(at) AS m FROM kr_index_ticks WHERE code = c.code) l
+      JOIN kr_index_ticks t ON t.code = c.code
+        AND t.at >= date_trunc('day', l.m + interval '9 hours') - interval '9 hours'
+      ORDER BY t.code, t.at`;
+    for (const r of rows) {
+      const list = out.get(r.code) ?? [];
+      list.push({ at: r.at, value: Number(r.value) });
+      out.set(r.code, list);
+    }
+    return out;
+  }
+
+  /** 하루 약 780행이라 한 문장이다 — 나눠 지울 크기가 아니다(`performance-database.md` §8 은 대량 정리 규칙) */
+  async pruneIndexTicks(before: Date) {
+    return prisma.$executeRaw`DELETE FROM kr_index_ticks WHERE at < (${before}::timestamptz AT TIME ZONE 'UTC')`;
   }
 
   async upsertInvestorFlows(code: string, rows: KrInvestorFlowFact[], at: Date) {

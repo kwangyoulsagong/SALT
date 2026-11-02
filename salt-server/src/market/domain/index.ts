@@ -9,3 +9,4 @@ export * from "./KrStock";
 export * from "./KrSupplement";
 export * from "./policy";
 export * from "./KrMarketSchedule";
+export * from "./KrMarketSummary";

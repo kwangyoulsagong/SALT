@@ -181,6 +181,81 @@ export const createKrStockRouter = (
 
   /**
    * @swagger
+   * /api/market/kr/summary:
+   *   get:
+   *     summary: 국내 주식 시장 요약 띠(대표 지수 · 작은 칸 · 오늘의 시장) — 소유자 전용
+   *     description: |
+   *       코인 요약(`/api/investment/market/summary`)과 **같은 열** + `assetClass` · `changeBasis` · 칸별 `kind`(SRV-REQ-042).
+   *       저장값만 읽는다(요청이 KIS 를 부르지 않는다). 대표 = `KR_SUMMARY_FEATURED`(기본 코스피), 작은 칸 = `KR_SUMMARY_ITEMS`
+   *       지수(기본 코스닥) 뒤에 수집 유니버스 순서(보유 → 관심 → 시총)로 9칸까지.
+   *       `change24h` · `change24hAmount` 는 **전일 종가 대비**(`changeBasis: prev_close`). 종목 가격 · 금액은 원 정수, 지수는
+   *       포인트(소수 둘째 자리). `sparkline` 은 마지막 거래일 장중 5분 간격 종가(지수는 분 기록을 5분으로 줄임) — 없으면 null.
+   *       `high24h` · `low24h` · `tradeValue24h` 는 당일 값, 못 받았으면 null. `breadth` 는 코스피 + 코스닥 상승 · 보합 · 하락
+   *       종목 수. `headlines` 는 늘 빈 배열(국내 뉴스는 모으지 않는다) — 그 자리는 `schedule`(다가오는 국내 일정 최대 3건).
+   *       분 기록 · 5분봉 · 일정 중 못 읽은 것이 있으면 `degraded: true`(전체를 실패시키지 않는다).
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     responses:
+   *       200:
+   *         description: 성공
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     assetClass: { type: string, enum: [kr_stock] }
+   *                     changeBasis: { type: string, enum: [prev_close] }
+   *                     featured: { $ref: '#/components/schemas/KrSummaryItem' }
+   *                     items: { type: array, items: { $ref: '#/components/schemas/KrSummaryItem' } }
+   *                     sparklineWindowMinutes: { type: integer, description: "정규장 길이(390)" }
+   *                     sparklineDate: { type: string, format: date, nullable: true, description: "스파크라인이 그린 날(KST)" }
+   *                     breadth:
+   *                       type: object
+   *                       nullable: true
+   *                       properties: { up: { type: integer }, flat: { type: integer }, down: { type: integer }, total: { type: integer } }
+   *                     headlines: { type: array, maxItems: 0, items: { type: object } }
+   *                     schedule:
+   *                       type: array
+   *                       maxItems: 3
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           kind: { type: string, enum: [kr_bok_rate, kr_cpi, kr_trade, kr_quad_expiry] }
+   *                           eventAt: { type: string, format: date-time }
+   *                           daysUntil: { type: integer }
+   *                     degraded: { type: boolean }
+   *       401: { description: 인증 실패 }
+   *       404: { description: 소유자가 아님 }
+   *       503: { description: KIS 키 없음 — 국내 주식 꺼짐 }
+   * components:
+   *   schemas:
+   *     KrSummaryItem:
+   *       type: object
+   *       nullable: true
+   *       properties:
+   *         symbol: { type: string, description: "지수 4자리 · 종목 6자리 코드" }
+   *         kind: { type: string, enum: [index, stock] }
+   *         koreanName: { type: string }
+   *         logoUrl: { type: string, nullable: true }
+   *         currentPrice: { type: number }
+   *         change24h: { type: number, description: "전일 대비 변동률(%)" }
+   *         change24hAmount: { type: number, description: "전일 대비 금액(원 정수 · 지수는 포인트)" }
+   *         tags: { type: array, items: { type: string, enum: [wide_move] } }
+   *         sparkline: { type: array, nullable: true, items: { type: number } }
+   *         high24h: { type: number, nullable: true }
+   *         low24h: { type: number, nullable: true }
+   *         tradeValue24h: { type: integer, nullable: true }
+   *         priceUpdatedAt: { type: string, format: date-time }
+   */
+  router.get("/summary", controller.summary);
+
+  /**
+   * @swagger
    * /api/market/kr/stream:
    *   get:
    *     summary: 국내 주식 실시간 체결 SSE — 소유자 전용
