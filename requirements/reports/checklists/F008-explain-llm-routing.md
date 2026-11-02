@@ -1,6 +1,6 @@
 # F008 슬라이스 — 해설 공급자 라우팅 · 진짜 스트리밍 — 검증
 
-범위: `requirements/specs/in-progress/F008-explain-llm-routing-slice.md`. 영역: `salt-server/requirements/reports/checklists/SRV-REQ-050.md` · `bff/.../BFF-REQ-050.md` · `salt-microFe/.../FE-REQ-059.md` · 파일만 걸침 각 REQ §F008 해설 공급자 라우팅
+범위: `requirements/specs/done/F008-explain-llm-routing-slice.md`. 영역: `salt-server/requirements/reports/checklists/SRV-REQ-050.md` · `bff/.../BFF-REQ-050.md` · `salt-microFe/.../FE-REQ-059.md` · 파일만 걸침 각 REQ §F008 해설 공급자 라우팅
 
 ## 코드 검증
 
@@ -26,7 +26,7 @@
 |---|---|
 | 1 | 1 : 16 — 평가지 관찰 기간 누락 |
 | 2 | 16 : 1 |
-| 3 | (새 프롬프트로 처음부터 생성) |
+| 3 | 17 : 3(새 프롬프트로 처음부터 · opus 19:1 · sonnet 17:3 · haiku 1:19) — 라벨 누출 1건 고침 |
 
 ## 미검증
 

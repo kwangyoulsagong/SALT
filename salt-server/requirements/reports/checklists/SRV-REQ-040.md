@@ -429,4 +429,4 @@
 
 `tsc` · 기본값으로 기동(auto → claude 감지)
 
-루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

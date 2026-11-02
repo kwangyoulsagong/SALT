@@ -371,7 +371,7 @@ BFF `AppError` 선택 `code`(차트 주기 422 `MARKET_CHART_PERIOD_UNSUPPORTED`
 **F008 해설 공급자 라우팅 슬라이스 (서버 · BFF · FE · 운영, 2026-11-02, `feat/f008-explain-llm-routing`)** — 사용자 "새 브랜치 파고 다음꺼 진행"(§4-1 순위 3 FR-73 줄)
 + 구현 중 "스트리밍 제대로 — 정보가 짝 나와" · "클로드 코덱스가 들어왔으니 더 정확하게". 범위 `F008-explain-llm-routing-slice.md`, 검증 `checklists/F008-explain-llm-routing.md`.
 로컬 Claude(허용 사용자 · 웹) / Gemini(모바일 · 그 밖) 라우팅 · CLI 격리(stdin · 도구 0 · env 허용 목록 · 그룹 종료) · 원장 provider. 토큰 스트림을 문장마다 검사해 즉시 흘린다(FR-47 개정) ·
-분석 프롬프트 · 검증기 문장 단위. 실스택: 첫 문장 1.85초 · 실화면 4.7~16초 계속 흐름. 블라인드 평가 Claude 대 템플릿 1회 1:16(평가지 결함) → 2회 16:1. launchd PATH 에 `~/.local/bin`.
+분석 프롬프트 · 검증기 문장 단위. 실스택: 첫 문장 1.85초 · 실화면 4.7~16초 계속 흐름. 블라인드 평가 Claude 대 템플릿 1회 1:16(평가지 결함) → 2회 16:1 → 3회 17:3. launchd PATH 에 `~/.local/bin`.
 
 **F008 해설 근거 슬라이스 (서버 · FE, 2026-11-02, `feat/f008-explain-citations`)** — 사용자 "새 브랜치 파고 다음꺼 진행"(§4-1 순위 2 F008 줄).
 범위 `F008-explain-citations-slice.md`, 검증 `checklists/F008-explain-citations.md`. FR-44 인용 칩이 원문 링크 + 게시 시각(서버는 주소 · 시각을 갖고 있었고 ACL 이 버렸다) ·

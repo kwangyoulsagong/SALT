@@ -163,4 +163,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 - 2026-11-02: FR-21 후속 — 종가 봉(15:25) 없는 지난 날은 최근 개장일 5일까지만 다시 받는다. KIS 에 15:30 종가 1분봉이 아예 없는 날(10-08 8종목 · 034020 직접 조회)이 30일 내내 회차마다 다시 받혔다. 실 DB 오늘 15:40 작업 108 → 100. 미검증 둘(11-05 회차 · 10-30 종가)은 시각 주입 dry-run · KIS 직접 조회로 닫음
 - 2026-11-02: 파일만 걸침 — `shared/config/env.ts`(이 REQ 가 머리 주석 주인)에 `COACH_EXPLAIN_LLM`(on · off, 기본 on). 루트 `requirements/specs/done/F008-explain-citations-slice.md`
 - 2026-11-02: 서버 종료 처리 5초 상한(`src/server.ts`) · 실행 스크립트 `ops/lib-run.sh`(고아 정리) — 10-23 "포트를 못 열면 종료"(`acb66bf0`)의 짝: 그때 남던 옛 프로세스의 원인이 종료 처리 멈춤이었다. 루트 `requirements/specs/done/OPS-002-local-process-supervisor.md`
-- 2026-11-02: 파일만 걸침 — `shared/config/env.ts`(이 REQ 가 머리 주석 주인)에 `COACH_LLM_LOCAL`(auto · claude · codex · off) · `COACH_LLM_LOCAL_USERS` · `COACH_LLM_LOCAL_MODEL`. 근거 `SRV-REQ-050`. 루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md`
+- 2026-11-02: 파일만 걸침 — `shared/config/env.ts`(이 REQ 가 머리 주석 주인)에 `COACH_LLM_LOCAL`(auto · claude · codex · off) · `COACH_LLM_LOCAL_USERS` · `COACH_LLM_LOCAL_MODEL`. 근거 `SRV-REQ-050`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md`

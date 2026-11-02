@@ -30,4 +30,4 @@
 
 요소 스크린샷(긴 요소 이어 붙이기)이 페이드 도중을 찍어 본문이 흐려 보였다 — 계산된 불투명도 1 · 뷰포트 스크린샷으로 확인. 화면 결함 판정은 측정값으로.
 
-루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

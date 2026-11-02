@@ -90,4 +90,4 @@
 
 Playwright route 6종 · 실스택 화면(3100, 임시 사용자) · `pnpm check-types` · `lint` · `--filter web build`(3.06 kB · 137 kB 그대로) · `web-tax build`
 
-루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

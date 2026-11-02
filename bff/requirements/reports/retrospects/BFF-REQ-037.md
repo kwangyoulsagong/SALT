@@ -17,4 +17,4 @@
 
 이벤트 이름 허용 목록 중계라 서버가 칸을 늘려도 BFF 코드 무변경 — 설계가 맞았다.
 
-루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

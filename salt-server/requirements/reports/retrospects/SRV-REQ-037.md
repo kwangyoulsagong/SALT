@@ -44,4 +44,4 @@
 
 FR-47("LLM 원문 무스트림")은 '검사 전 원문을 흘리지 않는다'는 뜻이었지 '템플릿만 흘린다'가 아니었다 — 문장 단위 검사로 그 뜻을 지키며 실제 스트림을 얻었다. 평가지 사실 누락이 두 번째로 결과를 뒤집었다(템플릿 16:1 → Claude 17:0).
 
-루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

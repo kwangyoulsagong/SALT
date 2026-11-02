@@ -1,6 +1,6 @@
 # SRV-REQ-050 — 해설 다듬기 공급자 라우팅 · 진짜 스트리밍 — 검증
 
-스펙: `salt-server/requirements/specs/in-progress/SRV-REQ-050-F008-EXPLAIN-LLM-ROUTING.md` · 루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md`
+스펙: `salt-server/requirements/specs/done/SRV-REQ-050-F008-EXPLAIN-LLM-ROUTING.md` · 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md`
 
 ## 착수 전 네 질문
 
@@ -35,7 +35,7 @@
 |---|---|---|---|
 | 1 | `explain-ab-2026-11-02-local_claude.md`(20건 중 17, 시간 초과 2 · 1건 앞서 실패) | **1 : 16** | 평가지 "입력 사실"에 관찰 기간 줄이 없어 셋 다 "판단 뒤 24시간/30일"을 근거 없는 숫자로 판정(평가지 결함) + 진짜 빈틈(완곡 권유 · 근거 개수 · 가중치 추측) |
 | 2 | `-local_claude-2.md`(1회차 문장을 지금 검증기로 다시 검사 + 관찰 기간 줄) | **16 : 1** | 남은 지적: 입력 밖 추론("숨 고르기 부담" · 분할 문구를 변동성 근거로) |
-| 3 | 새 프롬프트(규칙 12 · 13)로 처음부터 생성 | 아래 | |
+| 3 | `-local_claude-3.md` — 새 프롬프트(규칙 12 · 13)로 처음부터 20건 · 시간 초과 0 | **17 : 3** | 평가자별 opus 19:1 · sonnet 17:3 · **haiku 1:19**(짧은 쪽 선호 — 지적은 3건뿐). 셋이 공통으로 짚은 10번 = 문장 안 줄 라벨 누출("뉴스1과…") → 규칙 14 · 검사 `prompt_label` 추가(같은 날) |
 
 ## 미검증 · 범위 밖
 

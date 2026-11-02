@@ -1,6 +1,6 @@
 # BFF-REQ-050 — 해설 요청 클라이언트 헤더 · provider 통과 — 검증
 
-스펙: `bff/requirements/specs/done/BFF-REQ-050-F008-EXPLAIN-CLIENT.md` · 루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md`
+스펙: `bff/requirements/specs/done/BFF-REQ-050-F008-EXPLAIN-CLIENT.md` · 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md`
 
 | 항목 | 결과 |
 |---|---|

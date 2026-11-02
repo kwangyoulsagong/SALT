@@ -136,4 +136,4 @@ F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 �
 | 2026-10-29 | **변경 없음(BFF).** 프론트 `entities/coach/api/coachApi.ts`(머리 주석이 이 REQ 를 가리킨다)의 리스크 예산 호출 주석 "게이지 3" → "게이지 · 측정". BFF 코드 무변경 |
 | 2026-10-29 | 전수 조사 — 예산표 generate 경로 `/api/ai-coach/generate`(프록시) |
 | 2026-10-30 | 파일만 걸침 — 웹 `coachApi.ts`(이 REQ 가 머리 주석 주인) 설정 조회가 응답 매퍼(`toCoachProfileSettings`)를 쓴다. BFF 무변경 |
-| 2026-11-02 | 파일만 걸침 — `ai-coach.controller` 가 UA 로 클라이언트를 정해 서비스에 넘긴다. 근거 `BFF-REQ-050`. 루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` |
+| 2026-11-02 | 파일만 걸침 — `ai-coach.controller` 가 UA 로 클라이언트를 정해 서비스에 넘긴다. 근거 `BFF-REQ-050`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |

@@ -184,4 +184,4 @@
 
 `tsc` · `lint` · `test:layer-check`(차단 10 · 통과 6) · 기동 로그 `해설 로컬 CLI local_claude 2.1.316`
 
-루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

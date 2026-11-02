@@ -266,4 +266,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-10-30 | 파일만 걸침 — `env.ts` 에 `TRACKED_ASSET_LIMIT` 추가. 합성 표본 설정 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-10-30 | F004 슬라이스 18 — **변경 없음.** FR-20 `default_mode` 를 웹 설정 화면이 쓴다. `notification_level` 은 열은 있지만 읽는 코드가 없어 화면에 두지 않았다(`FE-REQ-026` FR-80 개정) |
 | 2026-11-02 | 파일만 걸침 — `coach/domain/model.ts`(이 REQ 가 머리 주석 주인) `CoachSymbolArticle` 에 `url` · `publishedAt`(뉴스 표 기존 열 — DDL 0). 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
-| 2026-11-02 | `llm_call_logs` 에 `provider TEXT NOT NULL DEFAULT 'gemini'` · `dropped_sentences INT NULL`(마이그레이션 `20261102120000_llm_call_provider`, 추가만 · 되돌리기 SQL 은 파일 머리). 기존 행은 전부 Gemini 시도. 근거 `SRV-REQ-050` FR-8 · 9. 루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` |
+| 2026-11-02 | `llm_call_logs` 에 `provider TEXT NOT NULL DEFAULT 'gemini'` · `dropped_sentences INT NULL`(마이그레이션 `20261102120000_llm_call_provider`, 추가만 · 되돌리기 SQL 은 파일 머리). 기존 행은 전부 Gemini 시도. 근거 `SRV-REQ-050` FR-8 · 9. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |

@@ -28,7 +28,7 @@ created: 2026-11-02
 
 | 영역 | REQ | 상태 |
 |---|---|---|
-| 서버 | `SRV-REQ-050` FR-1~14 | in-progress — FR-11 3회차 평가 기록 뒤 done |
+| 서버 | `SRV-REQ-050` FR-1~14 | done — 블라인드 3회(다수결 17:3) |
 | BFF | `BFF-REQ-050` | done |
 | 프론트 | `FE-REQ-059` FR-1~5 | done |
 | 운영 | `OPS-002` — launchd · 서버 실행 PATH 에 `~/.local/bin` | 완료 |

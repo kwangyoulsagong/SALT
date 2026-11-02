@@ -157,4 +157,4 @@
 
 `prisma validate` · `migrate deploy`(로컬) · 실스택에서 provider · 실모델 · 버린 문장 수가 남고 임시 행 삭제 뒤 행 수 복원(3 → 3)
 
-루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

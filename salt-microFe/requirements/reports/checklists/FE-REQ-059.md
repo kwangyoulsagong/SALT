@@ -1,6 +1,6 @@
 # FE-REQ-059 — 해설 카드 공급자 문구 · 흘린 문장 — 검증
 
-스펙: `salt-microFe/requirements/specs/done/FE-REQ-059-F008-EXPLAIN-PROVIDER.md` · 루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md`
+스펙: `salt-microFe/requirements/specs/done/FE-REQ-059-F008-EXPLAIN-PROVIDER.md` · 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md`
 
 | 항목 | 결과 |
 |---|---|

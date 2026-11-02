@@ -49,4 +49,4 @@ FR-6(4xx · `Retry-After` 전달) · FR-7(동시 2) · FR-10~12(토큰 전달)�
 
 `headers` 를 펼친 뒤 `Authorization` 을 써서 호출자가 인증 헤더를 덮지 못하게 했다.
 
-루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
