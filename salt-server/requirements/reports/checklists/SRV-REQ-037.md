@@ -29,9 +29,9 @@
 
 | 미검증 · 범위 밖 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 블라인드 A/B 20건(템플릿 vs Gemini) | 사람 평가가 필요하다 | 사용자 평가 |
+| 블라인드 A/B 20건(템플릿 vs Gemini) — **2026-11-02 평가지 생성**(`requirements/reports/explain-ab/explain-ab-2026-11-02.md`, FR-15). 고르는 것만 남음 | 사람 평가가 필요하다 | 사용자 평가 → `npm run explain:ab -- --score <평가지>` |
 | 화면의 `source: template` 배지 | 프론트 미착수 | 슬라이스 19 |
-| 한국어 조사(은/는) 처리 | 템플릿이 조사를 붙이지 않는 문장 모양으로 피했다 | 템플릿 문장이 늘 때 |
+| ~~한국어 조사(은/는) 처리~~ **닫음 2026-11-02**(FR-14) — 피했다던 템플릿에도 변수 뒤 조사 2곳이 있었다(`explain.ts` "SOL는") | 템플릿이 조사를 붙이지 않는 문장 모양으로 피했다 | — |
 
 ## F009 슬라이스 0 — C03 숫자 검증 (FR-7a, 2026-09-24, `feat/f009-slice0-reliability`)
 
@@ -83,3 +83,22 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: FR-9 history 일봉은 업비트 1d **+ 국내 KIS**(`v_daily_close`, `SRV-REQ-040` FR-39)
+
+## F008 해설 근거 슬라이스 — FR-12 ~ 15 (2026-11-02, `feat/f008-explain-citations`)
+
+| 확인 | 결과 |
+|---|---|
+| FR-12 인용 | 실 DB(`ArticleTextAdapter` → `assembleExplanationFacts`, 쓰기 없음): BTC · ETH · XRP 각 5건 전부 `https://news.google.com/...` · 게시 시각 채워짐 · 못 쓰는 주소 0. 테스트: `javascript:` 주소 · 깨진 시각 → `null` |
+| FR-13 검증기 | 새 판정 3 · 통과 2(테스트). 강화 뒤 규칙 문장 전수 검사가 기존 4문장을 잡아 고침 · 서버 전체 문자열 리터럴 스캔(코치 밖 포함) 위반 0 |
+| FR-14 조사 | `josa.test.ts` 6 · `explainJosa.test.ts` 4(SOL은 · BTC는 · ATOM은 · ETH는) |
+| FR-15 픽스처 50 | `[explain-quality] fixtures=50 sentences=357 dropped=0 violations=0 cited=65/65 empty=0 avgLen=28.2 maxLen=41`. 근거 빈 판단은 게이트가 막아 픽스처에서 뺀다(전엔 빈 칸 4로 셌다) |
+| FR-15 평가지 | Gemini 20회 호출 · 실패 0 · LLM 7건이 검증기에 10문장을 버리고 템플릿으로 채움(`llm_checked`). 집계 정규식 버그(빈 칸에서 다음 줄 `---` 를 답으로 읽음) 고친 뒤 가짜 답 20건으로 7 · 7 · 6 확인 |
+| 변이 | main 의 `explain.ts` · `languageGuard.ts` · `explanationFacts.ts` · `ExplainCoachDecision.ts` 로 바꿔 새 테스트 실패(조사 2 · 검증기 1 · 인용 2) — 사본으로 되돌림 |
+| 게이트 | `npm run build` · `lint` · `test` **887 / 0**(+17) · `test:layer-check`(차단 10 · 통과 6) · 훅 사후 실행 전 파일 exit 0 |
+
+| 미검증 · 범위 밖 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 블라인드 A/B 사람 평가 20건 | 사람이 골라야 한다 | 사용자 평가 뒤 `--score` |
+| LLM 완곡 권유("스캘핑 전략을 고려해볼 수 있습니다" · "관망하는 것이 적절해 보입니다") | 평가지에서 보였다. 명령형이 아니라 검증기가 안 잡는다. 금지어로 넓힐지는 사람 평가와 같이 본다 | A/B 평가 결과 판단 때 |
+| 뉴스 수집 멈춤(최신 기사 2026-09-29, 최근 7일 0건) | 뉴스 워커는 상시 서버와 별개 프로세스(`npm run dev:news`)라 띄우지 않으면 안 돈다. 인용은 맞게 붙지만 기사가 한 달 전이다 — 칩의 "N일 전"이 그대로 드러낸다 | 전체 기동 명령(`ops`, 사용자 요청 2026-11-02 — 다음 브랜치) |
+| 실 토큰 서버 → BFF → 화면 | 상시 서버를 이 브랜치로 재기동하지 않았다 | 머지 뒤 재기동 · `QA-001` |

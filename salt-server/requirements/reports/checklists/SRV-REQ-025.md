@@ -385,3 +385,13 @@
 
 - F004 슬라이스 18 — **변경 없음.** FR-13 profile 그대로 소비. 관찰: `riskTolerance` · `rebalanceBand` · `notificationLevel` 은 저장만 되고 서버 안 소비처 0건(2026-10-30 grep) — 웹은 칸을 두지 않는다(`FE-REQ-026` FR-80 개정). 쓰게 되면 그때 화면을 연다
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — F008 해설 근거 슬라이스
+
+| 확인 | 결과 |
+|---|---|
+| 해설 스트림 인용 | `explainCoachDecision.test.ts` — 카드 인용 `url` · `publishedAt` · `javascript:` 주소 `null` · 사실의 뉴스 칸. 26 / 26 |
+| 행동 규칙 문장 | `buildBehaviorRules` 4문장 사실 서술(대기 시간 강제 "30분을 기다리세요" 삭제) — `coachPolicy.test.ts` 특성화 갱신 |
+| 계약 | 추가 필드만. BFF 는 이벤트 이름만 걸러 통과(`BFF-REQ-037` 변경 없음) |
+
+미검증: 실 토큰 스트림(상시 서버 미재기동 — 머지 뒤 · `QA-001`).

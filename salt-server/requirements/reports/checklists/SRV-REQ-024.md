@@ -317,3 +317,13 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 
 - 변경 없음 — 프론트가 받은 목록을 종목으로 거를 뿐이다. `risks[]` 조립 · `severity` 그대로
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — FR-108 정정 (F008 해설 근거 슬라이스)
+
+| 확인 | 결과 |
+|---|---|
+| 헤드라인 | `coachPolicy.test.ts` 특성화 문장 갱신 · `languageGuard` 새 판정이 옛 문장을 잡는다(테스트) |
+| 규칙 버전 | `mode-decision@2` 그대로 — 헤드라인은 점수 · 행동 · 채점 무관 |
+| 소비처 | BFF `getPreview` `headline` · `mapDecision` 이 그대로 옮긴다(모양 무변경). 화면 소비는 판단 경로 `judgment.headline` 이 주 |
+
+미검증: 없음.

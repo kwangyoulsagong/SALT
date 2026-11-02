@@ -99,4 +99,6 @@ Prisma client 단일 인스턴스 · HTTP 클라이언트 팩토리(타임아웃
 
 날짜 경계(KST 주차·영업일 판정 보조) · 해시 · 문자열 정규화. **도메인 판정을 두지 않는다.**
 
+한국어 조사 `josa.ts`(`withJosa` — `es-hangul` + 영문 · 숫자 래퍼, 2026-11-02 `SRV-REQ-037` FR-14)도 여기다. **도메인이 외부 라이브러리를 쓸 일이 생기면 `shared/lib` 순수 함수로 감싼다** — 도메인 허용 목록(`decimal.js` 만)을 늘리지 않는다.
+
 `isSettlementInTaxYear()`처럼 보이는 함수는 `tax/domain/policy/settlementYear.ts`의 것이다.

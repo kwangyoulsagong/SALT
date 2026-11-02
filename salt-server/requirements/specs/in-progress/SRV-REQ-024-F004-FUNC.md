@@ -166,7 +166,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-105 | 근거 = `reasons[]`(비어 있지 않음). 적중률 = 매핑 표(FR-130)로 찾은 `<mode>.<action>` 성적표. 실패사례 = 같은 `<mode>.<action>` 스냅샷 중 **빗나간 것**(FR-134 · D11). `IndicatorTrackRecord` 를 쓰지 않는다 | Must |
 | FR-106 | `renderable: false` 여도 **200** 이고, 게이지 · 뉴스 · 바이존은 그대로 응답한다. 게이트는 **판단 블록**에만 걸린다 | Must |
 | FR-107 | **종목 판단 스냅샷을 남긴다.** 워커가 추적 자산(D8 — 최대 10 + 보유) × 2모드 판단을 `InvestmentInsight(kind: symbol_judgment, mode, signalType)` 로 upsert 한다(`DB-REQ-017` FR-50~53). 스냅샷이 없으면 종목 경로 성적표 표본이 영원히 0이다 | Must |
-| FR-108 | 헤드라인 문구(`headline`)에 확신 표현 · 목표가 · 수익률이 없다. 기존 문구("손절 기준 없이 진입하지 마세요")는 행동 서술이라 유지한다 | Must |
+| FR-108 | 헤드라인 문구(`headline`)에 확신 표현 · 목표가 · 수익률이 없다. ~~기존 문구("손절 기준 없이 진입하지 마세요")는 행동 서술이라 유지한다~~ **정정 2026-11-02 — 명령형 매매 지시였다**(공통 수용 기준 4). 사실 서술로: 단타 "손절 기준이 없는 진입은 손실 폭을 미리 정하지 못합니다." · 장기 "나눠 들어가면 한 번에 들어갈 때보다 가격 변동 위험이 작습니다." 검증기가 부정 명령을 몰라 통과했다(`SRV-REQ-037` FR-13) | Must |
 
 ### B. 스마트 바이존 — 보유 = 내 규칙 가격, 미보유 = 관찰 구간 (D2)
 
@@ -389,3 +389,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | 파일만 걸침 — `env.ts` · `ports.ts` 에 추적 상한 · `HoldingProbe` 추가. 이 REQ 의 판단 · 설정 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-10-30 | 파일만 걸침 — 서버 `market/domain/ports.ts` 에 `ExchangeQuotePort.weeklyCandles`. 이 REQ 의 판단 · 설정 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
+| 2026-11-02 | **FR-108 정정** — 헤드라인 "진입하지 마세요" · "잡으세요" 를 사실 서술로(규칙 버전 무변경 — 점수 · 행동 무관). 같은 날 `behavior.ts` 규칙 문장 4 · `profitPlan.ts` 1 도 사실 서술로(이 REQ 가 아니라 `SRV-REQ-025` 주인 파일 · 주인 없는 파일). F008 해설 근거 슬라이스. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |

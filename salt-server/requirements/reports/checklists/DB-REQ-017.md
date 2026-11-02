@@ -146,3 +146,9 @@
 
 - F004 슬라이스 18 — **변경 없음.** FR-20 `default_mode` 를 웹 설정 화면이 쓴다. `notification_level` 은 열은 있지만 읽는 코드가 없어 화면에 두지 않았다(`FE-REQ-026` FR-80 개정)
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — 파일만 걸침 (F008 해설 근거)
+
+- `news_articles.url` · `published_at` 기존 열을 읽기만. 마이그레이션 0 · `prisma:generate` 불필요
+
+미검증: 없음.

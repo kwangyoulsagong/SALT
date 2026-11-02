@@ -82,3 +82,8 @@
 |---|---|
 | `/coach/report` (슬라이스 17 기록 대비) | 1.65 → 1.66 kB · 첫 로드 130 → 130 kB — `Chip` 은 위젯 청크에 이미 있음 |
 | 경계 | 무변경(`BlockBoundary` 1개) |
+
+## 2026-11-02 — F008 해설 근거 (출처 칩 링크)
+
+- `pnpm --filter web build` — `/investments/[symbol]` 3.06 kB · 첫 로드 137 kB(슬라이스 19 137 kB 와 같음). 새 의존 0(`formatRelativeTime` 은 기존 `shared/lib`)
+- 미검증 · 범위 밖: 없음

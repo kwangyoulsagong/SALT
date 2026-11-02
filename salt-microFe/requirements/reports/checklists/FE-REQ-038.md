@@ -74,3 +74,14 @@
 | 검증 | check-types · lint · web · web-tax build · layer-check pass. 재시도 실측은 루트 `requirements/reports/checklists/F000-api-error-normalize.md` §2 |
 
 미검증: 없음 — 판단 · 화면 무변경
+
+## 2026-11-02 — FR-7 출처 칩 링크 (F008 해설 근거)
+
+| 확인 | 결과 |
+|---|---|
+| 코드 | 주소 있으면 `<a target="_blank" rel="noopener noreferrer">` · 없으면 이름만 · 시각 없으면 시각 칸 없음 |
+| 게이트 | `pnpm check-types` · `pnpm lint` · `pnpm test`(core 51 · ui 43) · `pnpm test:layer-check` · `pnpm --filter web build` · 훅 사후 실행 exit 0 |
+
+| 미검증 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 화면에서 칩 링크를 눌러 원문이 열리는지 | 상시 서버를 이 브랜치로 재기동하지 않았고 뉴스가 09-29 에서 멈춰 있다(해설은 나오지만 기사가 한 달 전) | 머지 뒤 재기동 · `QA-001` |

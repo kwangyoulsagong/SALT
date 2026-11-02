@@ -158,3 +158,9 @@
 - 확인: 실화면 실패 · 0건 상태
 
 미검증: 없음 — 판단 무변경
+
+## 2026-11-02 — 파일만 걸침 (F008 해설 근거)
+
+- `explain-symbol/model/messages.ts`(이 REQ 가 머리 주석 주인)에 칩 링크 스크린리더 문구 `citationLinkLabel` 추가 — 그래픽 · 모션 무변경. `pnpm check-types` · `lint` · `web build` 통과
+
+미검증: 없음(화면 확인은 `FE-REQ-038` 표).
