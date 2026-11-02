@@ -1,0 +1,94 @@
+{
+ "round": "2",
+ "sheet": "explain-ab-2026-11-02-2.md",
+ "raters": {
+  "opus": [
+   "B",
+   "B",
+   "A",
+   "A",
+   "B",
+   "B",
+   "B",
+   "B",
+   "B",
+   "B",
+   "A",
+   "A",
+   "A",
+   "B",
+   "B",
+   "B",
+   "B",
+   "A",
+   "B",
+   "B"
+  ],
+  "sonnet": [
+   "B",
+   "B",
+   "A",
+   "A",
+   "B",
+   "B",
+   "B",
+   "B",
+   "B",
+   "B",
+   "A",
+   "A",
+   "A",
+   "B",
+   "B",
+   "B",
+   "B",
+   "A",
+   "B",
+   "B"
+  ],
+  "haiku": [
+   "B",
+   "B",
+   "A",
+   "A",
+   "A",
+   "B",
+   "B",
+   "B",
+   "B",
+   "B",
+   "A",
+   "A",
+   "A",
+   "B",
+   "B",
+   "A",
+   "B",
+   "A",
+   "A",
+   "A"
+  ]
+ },
+ "perRater": {
+  "opus": {
+   "template": 20,
+   "llm": 0,
+   "same": 0
+  },
+  "sonnet": {
+   "template": 20,
+   "llm": 0,
+   "same": 0
+  },
+  "haiku": {
+   "template": 16,
+   "llm": 4,
+   "same": 0
+  }
+ },
+ "majority": {
+  "template": 20,
+  "llm": 0
+ },
+ "note": "독립 평가자 3(opus · sonnet · haiku, 키 미열람). 기준: 사실 일치 > 금지 표현 > 읽기 쉬움"
+}
