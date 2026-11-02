@@ -84,6 +84,8 @@ export interface CoachDependencies {
   /** LLM 시도 원장 — 해설 비용 상한(F010 슬라이스 7). 같은 원장을 `explainer` 구현도 받아 시도마다 쓴다 */
   llmUsage?: LlmUsageStore;
   llmLimits?: Partial<LlmBudgetLimits>;
+  /** 해설 LLM 다듬기 — 없으면 켜짐. 운영 조립은 env(`COACH_EXPLAIN_LLM`, 기본 on) */
+  llmEnabled?: boolean;
   judgments: SymbolJudgmentStore;
   /** 국내 주식 판단 백테스트 성적(`backtest` 출처만) — 종목 판단 카드만 읽는다(F011 슬라이스 7b). 없으면 라이브만 */
   backtestJudgments?: SymbolJudgmentStore | null;
@@ -238,6 +240,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       {
         usage: deps.llmUsage,
         limits: deps.llmLimits,
+        llmEnabled: deps.llmEnabled,
         krViewerEmails: deps.forecastOwnerEmails,
         backtestJudgments: deps.backtestJudgments ?? null,
       }

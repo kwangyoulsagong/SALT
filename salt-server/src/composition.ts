@@ -219,6 +219,8 @@ const coach = createCoachApplication({
   notifier: new SignalUpdateNotifier(notification.api),
   explainer: new GeminiCoachExplainer(llmUsage),
   llmUsage,
+  // 기본 켜짐(지금 동작). `COACH_EXPLAIN_LLM=off` 면 템플릿만(`SRV-REQ-037` FR-16)
+  llmEnabled: env.COACH_EXPLAIN_LLM === "on",
   // 비운 칸은 코드 기준(`DEFAULT_LLM_BUDGET`)
   llmLimits: {
     userCalls: env.LLM_USER_DAILY_CALL_LIMIT,

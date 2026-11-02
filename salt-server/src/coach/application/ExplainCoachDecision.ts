@@ -43,6 +43,11 @@ export interface ExplainOptions {
   usage?: LlmUsageStore;
   /** 비운 칸은 `DEFAULT_LLM_BUDGET` */
   limits?: Partial<LlmBudgetLimits>;
+  /**
+   * LLM 다듬기를 부르나(`SRV-REQ-037` FR-16). `false` 면 템플릿만 — 스트림은 다듬기 · 검사 단계를 `skipped` 로 내고 `source: template`.
+   * 없으면 켜짐. 운영 조립은 env `COACH_EXPLAIN_LLM`(기본 on)
+   */
+  llmEnabled?: boolean;
   /** 국내 주식 해설을 받을 수 있는 이메일 — 종목 판단과 같은 소유자 목록(F011 §정책). 없으면 아무도 */
   krViewerEmails?: readonly string[];
   /**
@@ -185,6 +190,7 @@ export class ExplainCoachDecision {
    * **원장을 못 읽으면 막는다** — 비용이 얼마 나갔는지 모르는 채로 부르지 않는다. 막혀도 템플릿 해설은 나간다
    */
   private async llmAllowed(userId: string): Promise<boolean> {
+    if (this.options.llmEnabled === false) return false;
     const usage = this.options.usage;
     if (!usage) return true;
     try {

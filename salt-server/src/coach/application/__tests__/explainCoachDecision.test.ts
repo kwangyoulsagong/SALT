@@ -453,6 +453,22 @@ describe("ExplainCoachDecision", () => {
       const done = events.at(-1);
       assert.ok(done?.event === "message.done" && done.data.source === "template");
     });
+
+    // SRV-REQ-037 FR-16 — 블라인드 A/B(2026-11-02) 뒤 운영 기본은 템플릿만. 끄면 원장도 안 읽고 LLM 도 안 부른다
+    it("LLM 다듬기를 끄면(llmEnabled: false) 부르지 않고 템플릿이 최종이다 — 단건 · 스트림", async () => {
+      const { explainer, calls } = spyExplainer();
+      const usage = { usageSince: async () => { throw new Error("읽으면 안 된다"); } } as unknown as ExplainOptions["usage"];
+      const off = explainAt(explainer, market, noHolding, passing(), newsProbe, { llmEnabled: false, usage });
+      const single = await off.execute("user-1", input);
+      assert.ok(single.renderable && single.source === "template");
+      const events: ExplainStreamEvent[] = [];
+      await off.stream("user-1", input, (e) => events.push(e));
+      assert.equal(calls.length, 0);
+      assert.ok(events.some((e) => e.event === "message.step" && e.data.step === "polish" && e.data.status === "skipped"));
+      assert.ok(!events.some((e) => e.event === "message.replace"));
+      const done = events.at(-1);
+      assert.ok(done?.event === "message.done" && done.data.source === "template");
+    });
   });
 });
 

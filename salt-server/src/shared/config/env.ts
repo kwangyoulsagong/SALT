@@ -125,6 +125,12 @@ const envSchema = z.object({
    * 지난 24시간 사용자 시도 · 전체 시도 · 전체 토큰
    */
   LLM_USER_DAILY_CALL_LIMIT: z.coerce.number().int().positive().optional(),
+  /**
+   * 해설 LLM 다듬기 켜기(`SRV-REQ-037` FR-16 · FEATURE-008 FR-45). 기본 켜짐 — 지금 동작(Gemini) 그대로. `off` 면 템플릿만.
+   * 블라인드 A/B(2026-11-02, 독립 평가자 3 다수결 템플릿 20/20)는 끄는 근거였지만, 사용자 결정(같은 날)으로 다듬기 계층은
+   * 로컬 CLI(Claude · Codex) / Gemini 로 나눠 남긴다 — 라우팅은 `SRV-REQ-050`
+   */
+  COACH_EXPLAIN_LLM: z.enum(["on", "off"]).default("on"),
   LLM_DAILY_CALL_LIMIT: z.coerce.number().int().positive().optional(),
   LLM_DAILY_TOKEN_LIMIT: z.coerce.number().int().positive().optional(),
   /**
