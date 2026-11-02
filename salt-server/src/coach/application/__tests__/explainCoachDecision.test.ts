@@ -5,6 +5,7 @@ import type {
   CoachExplainer,
   CoachExplanation,
   CoachExplanationInput,
+  ExplainCaller,
   JudgmentTrackStats,
   LlmUsageStore,
   MarketProbe,
@@ -17,6 +18,7 @@ import {
   ExplainCoachDecision,
   sentencesOf,
   type CoachExplainRequest,
+  type ExplainSection,
   type ExplainStreamEvent,
   type ExplainOptions,
 } from "../ExplainCoachDecision";
@@ -289,6 +291,70 @@ describe("ExplainCoachDecision", () => {
       assert.equal(calls.length, 0);
     });
 
+    /** 토큰 스트림 공급자 흉내 — 줄을 하나씩 알린다(`SRV-REQ-050` FR-13) */
+    const streamingLlm = (lines: Array<[ExplainSection, string]>): CoachExplainer => ({
+      explain: async (_input, _signal, _caller, hooks) => {
+        hooks?.onProvider?.("local_claude", true);
+        for (const [section, text] of lines) hooks?.onLine?.({ section, text });
+        return { ...explanation, provider: "local_claude", callId: "call-1" };
+      },
+    });
+
+    it("토큰 스트림 공급자면 템플릿을 쏟지 않고, 검사를 통과한 줄을 쓰는 즉시 흘린다 (SRV-REQ-050 FR-13)", async () => {
+      const events = await collect(
+        streamingLlm([
+          ["modeReasoning", "심리가 공포 구간이라 장기 관점이 맞습니다."],
+          ["modeReasoning", "4주 뒤 145,000원까지 오를 가능성이 높습니다."],
+          ["keyDrivers", "심리가 공포 구간입니다."],
+          ["risks", "변동이 큰 편이에요."],
+          ["newsSummary", "현물 ETF 로 돈이 들어왔다는 소식이에요."],
+        ])
+      );
+      const order = names(events);
+      assert.ok(order.includes("step:draft:skipped"), "템플릿 초안 단계를 건너뛴다");
+      // 끊겨도 화면이 출처를 안다 — 스트림 시작 단계에 공급자
+      const polish = events.find((e) => e.event === "message.step" && e.data.step === "polish" && e.data.status === "active");
+      assert.ok(polish?.event === "message.step" && polish.data.provider === "local_claude");
+      assert.ok(!order.includes("step:draft:active"));
+      const deltas = events.flatMap((e) => (e.event === "message.delta" ? [`${e.data.section}#${e.data.index}:${e.data.text}`] : []));
+      assert.deepEqual(deltas, [
+        "modeReasoning#0:심리가 공포 구간이라 장기 관점이 맞습니다.",
+        "keyDrivers#0:심리가 공포 구간입니다.",
+        "risks#0:변동이 큰 편이에요.",
+        "newsSummary#0:현물 ETF 로 돈이 들어왔다는 소식이에요.",
+      ]);
+      assert.ok(!JSON.stringify(events).includes("145,000"), "걸린 줄은 어디에도 없다");
+      assert.ok(!order.includes("message.replace"), "칸이 다 찼으면 갈아 끼우지 않는다");
+      const done = events.at(-1);
+      assert.ok(done?.event === "message.done");
+      assert.equal(done.data.source, "llm_checked");
+      assert.equal(done.data.provider, "local_claude");
+      assert.equal(done.data.droppedSentences, 1);
+    });
+
+    it("스트림에서 빈 칸은 끝에 그 칸만 템플릿으로 replace", async () => {
+      const events = await collect(streamingLlm([["modeReasoning", "심리가 공포 구간이라 장기 관점이 맞습니다."]]));
+      const replace = events.find((e) => e.event === "message.replace");
+      assert.ok(replace?.event === "message.replace");
+      assert.equal(replace.data.modeReasoning, "심리가 공포 구간이라 장기 관점이 맞습니다.");
+      assert.ok(replace.data.keyDrivers.length > 0, "근거 칸은 템플릿");
+      assert.equal(replace.data.provider, "local_claude");
+    });
+
+    it("스트리밍 못 하는 공급자(Gemini)는 예전 길 — 템플릿 먼저 · replace 에 provider", async () => {
+      const gemini: CoachExplainer = {
+        explain: async (_i, _s, _c, hooks) => {
+          hooks?.onProvider?.("gemini", false);
+          return { ...explanation, modeReasoning: "심리가 공포 구간이라 장기 관점이 맞습니다.", provider: "gemini" };
+        },
+      };
+      const events = await collect(gemini);
+      const order = names(events);
+      assert.ok(order.indexOf("step:draft:active") < order.indexOf("message.replace"));
+      const replace = events.find((e) => e.event === "message.replace");
+      assert.ok(replace?.event === "message.replace" && replace.data.provider === "gemini");
+    });
+
     it("끊기면 더 내지 않는다", async () => {
       const controller = new AbortController();
       const slow: CoachExplainer = {
@@ -380,6 +446,7 @@ describe("ExplainCoachDecision", () => {
   describe("신선도 · 비용 상한 (F010 슬라이스 7)", () => {
     const usageOf = (user: number, total: number, tokens = 0): LlmUsageStore => ({
       record: async () => undefined,
+      markDropped: async () => undefined,
       usageSince: async () => ({ user: { calls: user, tokens: 0 }, total: { calls: total, tokens } }),
     });
 
@@ -395,21 +462,33 @@ describe("ExplainCoachDecision", () => {
     });
 
     it("상한 아래면 부르고, 누구의 요청인지 넘긴다", async () => {
-      const seen: Array<{ userId: string } | undefined> = [];
+      const seen: Array<ExplainCaller | undefined> = [];
       const explainer: CoachExplainer = {
         explain: async (_input, _signal, caller) => (seen.push(caller), explanation),
       };
       const result = await explainAt(explainer, market, noHolding, passing(), newsProbe, {
         usage: usageOf(29, 299),
-      }).execute("user-1", input);
+      }).execute("user-1", { ...input, viewerEmail: "owner@salt.test", client: "mobile" });
       assert.ok(result.renderable && result.source !== "template");
-      assert.deepEqual(seen, [{ userId: "user-1" }]);
+      // 공급자 라우팅 재료(`SRV-REQ-050` FR-3) — 이메일 · 클라이언트 · Gemini 토큰 상한
+      assert.deepEqual(seen, [{ userId: "user-1", email: "owner@salt.test", client: "mobile", geminiAllowed: true }]);
+    });
+
+    it("토큰 상한은 Gemini 만 막는다 — 로컬 CLI 는 구독이라 부르되 geminiAllowed: false (SRV-REQ-050 FR-9)", async () => {
+      const seen: Array<ExplainCaller | undefined> = [];
+      const explainer: CoachExplainer = {
+        explain: async (_input, _signal, caller) => (seen.push(caller), explanation),
+      };
+      await explainAt(explainer, market, noHolding, passing(), newsProbe, {
+        usage: usageOf(0, 1, 1_500_000),
+      }).execute("user-1", input);
+      assert.equal(seen.length, 1);
+      assert.equal(seen[0]?.geminiAllowed, false);
     });
 
     for (const [name, usage, limits] of [
       ["사용자 상한", usageOf(30, 30), {}],
       ["전체 상한", usageOf(0, 300), {}],
-      ["토큰 상한", usageOf(0, 1, 1_500_000), {}],
       ["env 로 낮춘 상한", usageOf(5, 5), { userCalls: 5 }],
     ] as const) {
       it(`${name}에 닿으면 LLM 없이 템플릿 — 에러가 아니다`, async () => {
@@ -428,6 +507,7 @@ describe("ExplainCoachDecision", () => {
       const { explainer, calls } = spyExplainer();
       const broken: LlmUsageStore = {
         record: async () => undefined,
+        markDropped: async () => undefined,
         usageSince: async () => {
           throw new Error("db down");
         },

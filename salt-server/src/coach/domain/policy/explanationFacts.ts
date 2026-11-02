@@ -92,7 +92,8 @@ export const assembleExplanationFacts = (m: ExplanationMaterials): CoachExplanat
     ...m.judgment.risks.map((risk) => ({ label: label.risk, value: clip(risk) })),
   ];
   const rsi = m.indicator?.rsi14;
-  if (rsi !== null && rsi !== undefined) evidence.push({ label: label.rsi, value: String(Number(rsi)) });
+  // 소수 1자리 — 원값(28.42105263157895)을 그대로 실으면 모델이 열네 자리를 옮겨 적는다(2026-11-02 실측)
+  if (rsi !== null && rsi !== undefined) evidence.push({ label: label.rsi, value: String(Math.round(Number(rsi) * 10) / 10) });
   const scored = SCORED_ITEMS[m.mode];
   if (m.sentiment && scored.includes("sentiment")) {
     evidence.push({

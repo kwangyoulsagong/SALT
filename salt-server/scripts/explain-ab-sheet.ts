@@ -8,6 +8,7 @@
  * npm run explain:ab                                   # 평가지 · 키 만들기(LLM 20회 호출)
  * npm run explain:ab -- --score <평가지>               # 채운 평가지를 키와 맞춰 집계
  * npm run explain:ab -- --reuse <앞 평가지>             # LLM 을 다시 부르지 않고 앞 평가지의 LLM 문장을 지금 검증기 · 템플릿으로 다시 짠다
+ * npm run explain:ab -- --provider local_claude         # 공급자별 평가지(`SRV-REQ-050` FR-11) — gemini(기본) · local_claude · local_codex
  * ```
  *
  * - 입력은 품질 테스트와 같은 픽스처(`explanationFixtures`) 앞 20건 — 판단 문장은 규칙이 만든 것, 가격 · 기사는 지어낸 값
@@ -28,6 +29,17 @@ import type { CoachExplanation, CoachExplanationInput } from "../src/coach/domai
 import { templateExplanation, verifyExplanation } from "../src/coach/domain/policy/explanationTemplate";
 import { explanationFixtures } from "../src/coach/domain/__tests__/fixtures/explanationFixtures";
 import { GeminiCoachExplainer } from "../src/coach/infrastructure/GeminiCoachExplainer";
+import { detectLocalCli, LocalCliCoachExplainer } from "../src/coach/infrastructure/LocalCliCoachExplainer";
+
+type Provider = "gemini" | "local_claude" | "local_codex";
+
+/** 공급자 — 운영과 같은 구현을 원장 없이(null) 부른다. 로컬 CLI 는 부팅 감지와 같은 함수로 찾는다 */
+const explainerFor = async (provider: Provider) => {
+  if (provider === "gemini") return new GeminiCoachExplainer(null);
+  const found = await detectLocalCli(provider === "local_claude" ? "claude" : "codex");
+  if (!found) throw new Error(`${provider} CLI 를 PATH 에서 찾지 못했다`);
+  return new LocalCliCoachExplainer(found.provider, found.bin, null);
+};
 
 const COUNT = 20;
 const OUT_DIR = join(__dirname, "..", "requirements", "reports", "explain-ab");
@@ -44,6 +56,8 @@ interface KeyRow {
   llmSource?: string;
   llmDropped?: number;
   skipped?: string;
+  /** 어느 공급자의 문장인가(`SRV-REQ-050` FR-11). 옛 키는 없다 — Gemini */
+  provider?: Provider;
 }
 
 const sideA = (no: number): Side =>
@@ -105,9 +119,9 @@ const reuseLlm = (prevSheet: string): Map<number, CoachExplanation> => {
   return out;
 };
 
-const generate = async (reuseFrom?: string) => {
+const generate = async (reuseFrom?: string, provider: Provider = "gemini") => {
   const today = new Date().toISOString().slice(0, 10);
-  const explainer = new GeminiCoachExplainer(null);
+  const explainer = await explainerFor(provider);
   const reused = reuseFrom ? reuseLlm(reuseFrom) : null;
   const inputs = explanationFixtures(COUNT);
   const sheet: string[] = [
@@ -125,7 +139,7 @@ const generate = async (reuseFrom?: string) => {
   for (const [i, input] of inputs.entries()) {
     const no = i + 1;
     const A = sideA(no);
-    const row: KeyRow = { no, symbol: input.symbol, mode: input.mode, A, B: A === "template" ? "llm" : "template" };
+    const row: KeyRow = { no, symbol: input.symbol, mode: input.mode, A, B: A === "template" ? "llm" : "template", provider };
     const now = new Date();
     const template = templateExplanation(input, now);
     try {
@@ -159,12 +173,13 @@ const generate = async (reuseFrom?: string) => {
       console.log(`${no}/${COUNT} ${input.symbol} ${input.mode} — LLM 실패(${row.skipped}), 평가지에서 뺌`);
     }
     key.push(row);
-    if (!reused && i < inputs.length - 1) await new Promise((r) => setTimeout(r, PACE_MS));
+    // 간격은 Gemini 무료 등급 분당 상한 때문 — 로컬 CLI 는 구독이라 기다리지 않는다
+    if (!reused && provider === "gemini" && i < inputs.length - 1) await new Promise((r) => setTimeout(r, PACE_MS));
   }
 
   mkdirSync(OUT_DIR, { recursive: true });
   // 같은 날 두 번째부터는 `-2` · `-3` — 앞 평가지(평가가 끝났을 수 있다)를 덮지 않는다
-  let base = `explain-ab-${today}`;
+  let base = provider === "gemini" ? `explain-ab-${today}` : `explain-ab-${today}-${provider}`;
   for (let n = 2; existsSync(join(OUT_DIR, `${base}.md`)); n += 1) base = `explain-ab-${today}-${n}`;
   const sheetPath = join(OUT_DIR, `${base}.md`);
   writeFileSync(sheetPath, sheet.join("\n"));
@@ -199,5 +214,8 @@ const scoreAt = process.argv.indexOf("--score");
 if (scoreAt >= 0) score(process.argv[scoreAt + 1]!);
 else {
   const reuseAt = process.argv.indexOf("--reuse");
-  void generate(reuseAt >= 0 ? process.argv[reuseAt + 1] : undefined);
+  const providerAt = process.argv.indexOf("--provider");
+  const provider = (providerAt >= 0 ? process.argv[providerAt + 1] : "gemini") as Provider;
+  if (!["gemini", "local_claude", "local_codex"].includes(provider)) throw new Error(`모르는 공급자: ${provider}`);
+  void generate(reuseAt >= 0 ? process.argv[reuseAt + 1] : undefined, provider);
 }

@@ -31,6 +31,9 @@ import type {
   JudgmentLedgerDraft,
   TargetWeightLiveRecord,
   LlmUsage,
+  ExplainClient,
+  ExplainProvider,
+  ExplanationLineSection,
 } from "./policy";
 import type {
   CoachAction,
@@ -348,6 +351,21 @@ export interface CoachExplanation {
   disclaimer: string;
   generatedAt: string;
   cached: boolean;
+  /** 누가 썼나(`SRV-REQ-050` FR-10). 없으면 옛 구현 — 소비처는 `gemini` 로 읽지 않고 모른다로 둔다 */
+  provider?: ExplainProvider;
+  /** 이 문장을 낸 원장 행(`LlmCallRecord.id`). 캐시 적중이면 `null` — 버린 문장 수를 그 행에 단다(FR-8) */
+  callId?: string | null;
+}
+
+/**
+ * 해설 요청자(`SRV-REQ-050` FR-3). `email` · `client` 로 공급자를 고르고, `geminiAllowed: false` 면
+ * Gemini 토큰 상한에 닿았다는 뜻이다 — 로컬 CLI 는 구독이라 토큰 상한을 세지 않는다(FR-9)
+ */
+export interface ExplainCaller {
+  userId: string;
+  email?: string;
+  client?: ExplainClient;
+  geminiAllowed?: boolean;
 }
 
 /**
@@ -356,6 +374,17 @@ export interface CoachExplanation {
  * **숫자는 우리가 주입하고 문장만 받는다** (`ddd-infrastructure.md` §6).
  * 호출이 수 초~수십 초라 **트랜잭션 밖에서만** 부른다 (`ddd-application.md` §3).
  */
+/**
+ * 해설 스트림 훅(`SRV-REQ-050` FR-13). 문장을 다 만들고 나서가 아니라 **쓰는 동안** 알린다 —
+ * 줄 원문은 검사 전이다. 받는 쪽(유스케이스)이 한 줄씩 검사해 통과한 것만 화면으로 보낸다
+ */
+export interface ExplainHooks {
+  /** 공급자가 정해졌다. 로컬 CLI 가 실패해 Gemini 로 내려가면 다시 온다. `streaming` 이면 `onLine` 이 온다 */
+  onProvider?(provider: ExplainProvider, streaming: boolean): void;
+  /** 한 줄(한 문장) 완성 */
+  onLine?(line: { section: ExplanationLineSection; text: string }): void;
+}
+
 export interface CoachExplainer {
   /**
    * `signal` — 요청한 화면이 떠나면 끊는다. 안 끊으면 아무도 안 읽을 LLM 호출이
@@ -366,13 +395,18 @@ export interface CoachExplainer {
   explain(
     input: CoachExplanationInput,
     signal?: AbortSignal,
-    caller?: { userId: string }
+    caller?: ExplainCaller,
+    hooks?: ExplainHooks
   ): Promise<CoachExplanation>;
 }
 
 /** LLM 시도 한 건 — 프롬프트 · 응답 원문은 담지 않는다(`ddd-infrastructure.md` §6). */
 export interface LlmCallRecord {
+  /** 없으면 저장소가 만든다. 문장 검사 뒤 버린 수를 이 행에 단다(`markDropped`) */
+  id?: string;
   userId: string | null;
+  /** 어느 공급자의 시도인가(`SRV-REQ-050` FR-9). 토큰 상한은 `gemini` 만 센다 */
+  provider: ExplainProvider;
   /** 어느 기능의 호출인가 — 지금은 `coach_explain` 하나 */
   purpose: "coach_explain";
   model: string;
@@ -392,7 +426,9 @@ export interface LlmCallRecord {
  */
 export interface LlmUsageStore {
   record(entry: LlmCallRecord): Promise<void>;
-  /** `since` 뒤 시도 수 · 토큰 합 — 전체와 사용자 한 명 */
+  /** 검사기가 버린 문장 수를 그 시도에 단다(`SRV-REQ-050` FR-8 — 공급자 비교의 근거) */
+  markDropped(callId: string, droppedSentences: number): Promise<void>;
+  /** `since` 뒤 시도 수(전 공급자) · 토큰 합(`gemini` 만, FR-9) — 전체와 사용자 한 명 */
   usageSince(since: Date, userId: string): Promise<{ user: LlmUsage; total: LlmUsage }>;
 }
 

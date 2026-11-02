@@ -30,7 +30,7 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    * @swagger
    * /api/ai-coach/explain:
    *   post:
-   *     summary: AI 코치 해설 (Gemini)
+   *     summary: AI 코치 해설 (로컬 CLI · Gemini)
    *     description: |
    *       종목·모드만 받는다. 시세·근거·뉴스는 **서버가 판단 게이트와 같은 재료로 조립한다**(C01 · SRV-REQ-025 FR-58) —
    *       예전 본문 필드를 보내도 무시된다. 한국어 해설(왜 단타/장기, 관찰 기간, 뉴스 요약 — 뉴스 수 이하, 최대 5줄)을
@@ -40,9 +40,18 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *       시세가 30분 · 지표 봉이 단타 3시간 · 장기 3일 넘게 멈췄으면 `blockedReason: stale_inputs`(F010 슬라이스 7).
    *       국내 주식은 종목 판단과 같은 막음(`mode_not_open` · `insufficient_history` · 거래일 신선도)이고, 비소유자는 `facts_unavailable`(F011 슬라이스 4).
    *       LLM 비용 상한(지난 24시간 사용자 · 전체 시도, 전체 토큰)에 닿으면 에러가 아니라 `source: template` 이다.
+   *       다듬기 공급자(SRV-REQ-050) — 서버 맥에 로컬 CLI(Claude Code · Codex)가 있고 허용 사용자(`COACH_LLM_LOCAL_USERS`, 비우면
+   *       소유자)이고 `X-Salt-Client` 가 `mobile` 이 아니면 로컬 CLI, 아니면 Gemini. 응답 `provider` — `local_claude` · `local_codex` ·
+   *       `gemini` · 템플릿이면 `null`. 토큰 상한은 Gemini 만 센다.
    *     tags: [AI Coach]
    *     security:
    *       - bearerAuth: []
+   *     parameters:
+   *       - in: header
+   *         name: X-Salt-Client
+   *         required: false
+   *         description: BFF 가 정한 요청 클라이언트(UA `SALTApp/` → mobile). 없으면 web
+   *         schema: { type: string, enum: [web, mobile] }
    *     requestBody:
    *       required: true
    *       content:
@@ -71,12 +80,20 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    * @swagger
    * /api/ai-coach/explain/stream:
    *   post:
-   *     summary: 해설 스트림 (SSE) — 템플릿 문장을 먼저 흘리고, 검증을 통과한 LLM 문장으로 바꾼다
+   *     summary: 해설 스트림 (SSE) — 검사를 통과한 문장만 흘린다
    *     tags: [AI Coach]
    *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - in: header
+   *         name: X-Salt-Client
+   *         required: false
+   *         schema: { type: string, enum: [web, mobile] }
    *     description: |
-   *       본문은 `/explain` 과 같다. 이벤트 — message.start · message.step · message.blocked · message.card ·
+   *       본문 · 헤더는 `/explain` 과 같다. 이벤트 — message.start · message.step · message.blocked · message.card ·
    *       message.delta · message.replace · message.done · message.error · ping. 분당 한도는 `/explain` 과 같다.
+   *       토큰 스트림 공급자(로컬 Claude)는 문장마다 검사해 통과한 것을 바로 `delta` 로 흘리고 빈 칸만 끝에 `replace`
+   *       (`polish:active` 단계에 `provider`). 그 밖(Gemini · Codex)은 템플릿을 먼저 흘리고 검사를 통과한 LLM 문장으로
+   *       `replace`. `replace` · `done` 에 `provider`(SRV-REQ-050 FR-10 · FR-13).
    *     responses:
    *       200: { description: text/event-stream }
    *       400: { description: 요청 검증 실패 }

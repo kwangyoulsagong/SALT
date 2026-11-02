@@ -131,6 +131,18 @@ const envSchema = z.object({
    * 로컬 CLI(Claude · Codex) / Gemini 로 나눠 남긴다 — 라우팅은 `SRV-REQ-050`
    */
   COACH_EXPLAIN_LLM: z.enum(["on", "off"]).default("on"),
+  /**
+   * 다듬기 로컬 CLI(`SRV-REQ-050` FR-2) — `auto` 는 PATH 에서 `claude` → `codex`. `off` 면 전부 Gemini.
+   * 배포 컨테이너엔 CLI 가 없어 감지 실패 → Gemini(`OPS-001`)
+   */
+  COACH_LLM_LOCAL: z.enum(["auto", "claude", "codex", "off"]).default("auto"),
+  /** 로컬 CLI 를 쓸 이메일(쉼표). 비우면 `FORECAST_OWNER_EMAILS` — 소유자 구독을 다른 초대 사용자가 쓰지 않게(FR-3) */
+  COACH_LLM_LOCAL_USERS: z
+    .string()
+    .default("")
+    .transform((raw) => raw.split(",").map((email) => email.trim()).filter((email) => email !== "")),
+  /** CLI 기본 모델을 덮는다(선택) */
+  COACH_LLM_LOCAL_MODEL: z.string().min(1).optional(),
   LLM_DAILY_CALL_LIMIT: z.coerce.number().int().positive().optional(),
   LLM_DAILY_TOKEN_LIMIT: z.coerce.number().int().positive().optional(),
   /**

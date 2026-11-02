@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { CoachUseCases } from "../application/api";
+import { explainClientOf } from "../domain";
 import {
   coachFeedbackSchema,
   explainCoachSchema,
@@ -128,7 +129,7 @@ export class AICoachController {
       const data = explainCoachSchema.parse(req.body ?? {});
       const result = await this.useCases.explainDecision.execute(
         req.user!.userId,
-        { ...data, viewerEmail: req.user!.email },
+        { ...data, viewerEmail: req.user!.email, client: explainClientOf(req.get("X-Salt-Client")) },
         controller.signal
       );
       if (controller.signal.aborted) return;
@@ -179,7 +180,7 @@ export class AICoachController {
     try {
       await this.useCases.explainDecision.stream(
         req.user!.userId,
-        { ...data, viewerEmail: req.user!.email },
+        { ...data, viewerEmail: req.user!.email, client: explainClientOf(req.get("X-Salt-Client")) },
         ({ event, data: payload }) => write(event, payload),
         controller.signal
       );

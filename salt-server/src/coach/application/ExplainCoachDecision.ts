@@ -10,8 +10,12 @@ import {
   llmBudgetVerdict,
   resolveLlmLimits,
   isForecastOwner,
+  completeExplanation,
+  guardExplanationLine,
   templateExplanation,
   verifyExplanation,
+  type ExplainClient,
+  type ExplainProvider,
   type ExplanationSource,
 } from "../domain";
 import type {
@@ -19,6 +23,8 @@ import type {
   CoachExplanation,
   CoachExplanationInput,
   CoachMode,
+  ExplainCaller,
+  ExplainHooks,
   JudgmentBlockedReason,
   LlmBudgetLimits,
   LlmUsageStore,
@@ -63,6 +69,8 @@ export interface CoachExplainRequest {
   mode: CoachMode;
   /** 보는 사람 이메일 — 국내 주식 종목은 소유자만(F011 §정책). 본문이 아니라 인증에서 온다 */
   viewerEmail?: string;
+  /** 요청이 온 곳 — BFF 가 정한 헤더(`X-Salt-Client`). 모바일은 로컬 CLI 를 고르지 않는다(`SRV-REQ-050` FR-4) */
+  client?: ExplainClient;
 }
 
 /** 해설이 쓴 사실 — 언제 모은 무엇인지. `hash` 가 같으면 같은 사실로 만든 문장이다 */
@@ -84,7 +92,7 @@ export type ExplainBlockedReason = JudgmentBlockedReason | "facts_unavailable";
  * 따로 떠도 공통 수용 기준 1 을 혼자 지킨다. 막히면 **LLM 을 부르지 않았다**는 뜻이다.
  */
 export type ExplainResult =
-  | (CoachExplanation & {
+  | (Omit<CoachExplanation, "provider" | "callId"> & {
       renderable: true;
       /**
        * 문장 출처(추가 필드, 2026-09-24). `llm` — 검증 통과 · `llm_checked` — 일부 문장을 걸러 템플릿으로 채움 ·
@@ -93,6 +101,8 @@ export type ExplainResult =
       source: ExplanationSource;
       /** 걸러낸 문장 수(말투 · 지어낸 숫자). 관측용 */
       droppedSentences: number;
+      /** 다듬은 공급자(`SRV-REQ-050` FR-10) — 템플릿이면 `null` */
+      provider: ExplainProvider | null;
       validity: ModeCoachView["judgment"]["validity"];
       trackRecord: ModeCoachView["trackRecord"];
       failureCases: ModeCoachView["failureCases"];
@@ -126,7 +136,18 @@ export interface ExplainCitation {
  */
 export type ExplainStreamEvent =
   | { event: "message.start"; data: { messageId: string; createdAt: string } }
-  | { event: "message.step"; data: { step: ExplainStep; status: "active" | "done" | "skipped" } }
+  | {
+      event: "message.step";
+      data: {
+        step: ExplainStep;
+        status: "active" | "done" | "skipped";
+        /**
+         * 토큰 스트림이 시작될 때(`polish:active`)만 — 누가 쓰는지 화면이 미리 안다. 스트림이 `done` 없이 끊겨도
+         * 이미 흘린 문장을 "규칙 기반"으로 잘못 붙이지 않게(`SRV-REQ-050` FR-13, 2026-11-02 실측: 맥 잠자기로 끊김)
+         */
+        provider?: ExplainProvider;
+      };
+    }
   | { event: "message.blocked"; data: { blockedReason: ExplainBlockedReason } }
   | {
       event: "message.card";
@@ -142,11 +163,22 @@ export type ExplainStreamEvent =
   | { event: "message.delta"; data: { section: ExplainSection; index: number; text: string } }
   | {
       event: "message.replace";
-      data: Pick<CoachExplanation, ExplainSection> & { source: ExplanationSource; droppedSentences: number };
+      data: Pick<CoachExplanation, ExplainSection> & {
+        source: ExplanationSource;
+        droppedSentences: number;
+        provider: ExplainProvider | null;
+      };
     }
   | {
       event: "message.done";
-      data: { messageId: string; source: ExplanationSource; droppedSentences: number; generatedAt: string };
+      data: {
+        messageId: string;
+        source: ExplanationSource;
+        droppedSentences: number;
+        /** 추가만(`SRV-REQ-050` FR-10) — 템플릿이면 `null` */
+        provider: ExplainProvider | null;
+        generatedAt: string;
+      };
     };
 
 
@@ -189,22 +221,54 @@ export class ExplainCoachDecision {
    * 이번 요청에 LLM 을 불러도 되나(FR-62). 원장이 없으면(테스트 · 조립 전) 상한 없이 간다.
    * **원장을 못 읽으면 막는다** — 비용이 얼마 나갔는지 모르는 채로 부르지 않는다. 막혀도 템플릿 해설은 나간다
    */
-  private async llmAllowed(userId: string): Promise<boolean> {
-    if (this.options.llmEnabled === false) return false;
+  private async llmAllowed(userId: string): Promise<{ allowed: boolean; geminiAllowed: boolean }> {
+    if (this.options.llmEnabled === false) return { allowed: false, geminiAllowed: false };
     const usage = this.options.usage;
-    if (!usage) return true;
+    if (!usage) return { allowed: true, geminiAllowed: true };
     try {
       const since = new Date(this.now().getTime() - LLM_BUDGET_WINDOW_MS);
       const verdict = llmBudgetVerdict(
         await usage.usageSince(since, userId),
         resolveLlmLimits(this.options.limits)
       );
+      // 토큰 상한은 Gemini 만 센다 — 로컬 CLI 는 구독이라 시도 상한만 건다(`SRV-REQ-050` FR-9)
+      if (verdict.exceeded === "total_tokens") {
+        logger.warn("LLM 토큰 상한 도달 — Gemini 는 쉬고 로컬 CLI 만");
+        return { allowed: true, geminiAllowed: false };
+      }
       if (!verdict.allowed) logger.warn(`LLM 상한 도달(${verdict.exceeded}) — 템플릿 해설`);
-      return verdict.allowed;
+      return { allowed: verdict.allowed, geminiAllowed: verdict.allowed };
     } catch (error) {
       logger.warn(`LLM 사용량 조회 실패 — 템플릿 해설: ${(error as Error).message}`);
-      return false;
+      return { allowed: false, geminiAllowed: false };
     }
+  }
+
+  /** 다듬기 한 번 — 상한을 보고 요청자 정보를 실어 부른다. 단건 · 스트림이 같은 길이다 */
+  private async callExplainer(
+    userId: string,
+    request: CoachExplainRequest,
+    input: CoachExplanationInput,
+    signal?: AbortSignal,
+    hooks?: ExplainHooks
+  ): Promise<CoachExplanation> {
+    const budget = await this.llmAllowed(userId);
+    if (!budget.allowed) throw new LlmBudgetReached();
+    const caller: ExplainCaller = {
+      userId,
+      email: request.viewerEmail,
+      client: request.client ?? "web",
+      geminiAllowed: budget.geminiAllowed,
+    };
+    return this.explainer.explain(input, signal, caller, hooks);
+  }
+
+  /** 검사기가 버린 문장 수를 그 시도에 단다(FR-8). 기록 실패가 해설을 막지 않는다 */
+  private markDropped(explanation: CoachExplanation, dropped: number): void {
+    if (!explanation.callId || !this.options.usage) return;
+    this.options.usage
+      .markDropped(explanation.callId, dropped)
+      .catch((error: unknown) => logger.warn(`버린 문장 수 기록 실패: ${(error as Error).message}`));
   }
 
   async execute(
@@ -218,13 +282,15 @@ export class ExplainCoachDecision {
     }
     const { view, input, facts } = prepared;
 
-    const verified = await this.polish(userId, input, signal);
-    const explanation = verified.explanation;
+    const verified = await this.polish(userId, request, input, signal);
+    // 원장 행 id 는 서버 안의 것 — 응답에 싣지 않는다
+    const { callId: _callId, provider: _provider, ...explanation } = verified.explanation;
 
     return {
       ...explanation,
       source: verified.source,
       droppedSentences: verified.dropped.length,
+      provider: verified.provider,
       // 면책은 판단 경로와 같은 문장이다 — 모델이 쓴 면책은 쓰지 않는다
       disclaimer: JUDGMENT_DISCLAIMER,
       renderable: true,
@@ -236,10 +302,13 @@ export class ExplainCoachDecision {
   }
 
   /**
-   * 스트림 해설 (FEATURE-008 FR-47 · FR-60 · FR-61).
+   * 스트림 해설 (FEATURE-008 FR-47 · FR-60 · FR-61 · `SRV-REQ-050` FR-13).
    *
-   * 템플릿 문장을 먼저 흘리고(기다리게 하지 않는다), LLM 은 **같은 시각에** 출발시켜 검증을 통과하면
-   * `replace` 로 바꾼다. 단계 이벤트는 실제 작업 경계에서만 낸다. 끊기면(`signal`) 더 내지 않는다.
+   * - **토큰 스트림 공급자(로컬 Claude)**: 줄(문장)이 끝날 때마다 검사하고 통과한 문장을 바로 흘린다. 템플릿을 먼저 쏟고
+   *   통째로 갈아 끼우던 것(2026-11-02 사용자 "스트리밍이 안 되고 정보가 짝 나온다")을 대신한다. 빈 칸만 끝에 템플릿 `replace`
+   * - **그 밖(Gemini · Codex)**: 템플릿을 먼저 흘리고 검사를 통과한 LLM 문장으로 `replace`(예전 길) — 기다리게 하지 않는다
+   *
+   * 단계 이벤트는 실제 작업 경계에서만 낸다. 끊기면(`signal`) 더 내지 않는다.
    */
   async stream(
     userId: string,
@@ -278,55 +347,113 @@ export class ExplainCoachDecision {
       },
     });
 
-    // LLM 은 지금 출발한다 — 템플릿을 흘리는 동안 기다린다. 실패는 여기서 삼키고 아래에서 판정한다
-    const llm = this.llmAllowed(userId)
-      .then((allowed) => {
-        if (!allowed) throw new LlmBudgetReached();
-        return this.explainer.explain(input, signal, { userId });
-      })
-      .then(
+    const now = new Date();
+    const template = templateExplanation(input, now);
+
+    // ── 화면에 이미 나간 것 ──────────────────────────────────────────────────────────
+    // `template` — 템플릿 문장을 흘렸다(스트리밍 못 하는 공급자 · 실패). 그 뒤 LLM 문장은 `replace` 로만 바뀐다
+    // `streamed` — 검사를 통과한 LLM 줄을 쓰는 즉시 흘렸다. 템플릿을 섞지 않는다(빈 칸만 끝에 채운다)
+    type Shown = "none" | "template" | "streamed";
+    // 훅(콜백) 안에서 바뀐다 — 선언 타입으로 고정해 TS 가 "none" 으로 좁히지 않게
+    let shown = "none" as Shown;
+    const kept: Record<ExplainSection, string[]> = { modeReasoning: [], keyDrivers: [], risks: [], newsSummary: [] };
+    let streamDropped = 0;
+
+    const showTemplate = () => {
+      if (shown !== "none") return;
+      shown = "template";
+      send({ event: "message.step", data: { step: "draft", status: "active" } });
+      sentencesOf(template.modeReasoning).forEach((text) =>
+        send({ event: "message.delta", data: { section: "modeReasoning", index: 0, text } })
+      );
+      (["keyDrivers", "risks", "newsSummary"] as const).forEach((section) =>
+        template[section].forEach((text, index) => send({ event: "message.delta", data: { section, index, text } }))
+      );
+      send({ event: "message.step", data: { step: "draft", status: "done" } });
+      send({ event: "message.step", data: { step: "polish", status: "active" } });
+    };
+
+    /**
+     * 줄 하나 = 문장 하나(`SRV-REQ-050` FR-13). 검사(`guardExplanationLine` — 끝 검사와 같은 사실 · 극성)를 통과하면
+     * **바로** 흘린다. LLM 원문은 여전히 검사 전엔 나가지 않는다(FR-47). 템플릿이 먼저 나갔으면 줄은 모으기만 한다
+     */
+    const hooks: ExplainHooks = {
+      onProvider: (provider, streaming) => {
+        if (shown !== "none") return;
+        if (!streaming) return showTemplate();
+        send({ event: "message.step", data: { step: "draft", status: "skipped" } });
+        send({ event: "message.step", data: { step: "polish", status: "active", provider } });
+        // 줄마다 검사가 같이 돈다 — 실제로 하는 일이라 같이 켠다(가짜 단계 아님, FR-61)
+        send({ event: "message.step", data: { step: "verify", status: "active" } });
+      },
+      onLine: ({ section, text }) => {
+        if (shown === "template") return;
+        if (!guardExplanationLine(section, text, input).ok) {
+          streamDropped += 1;
+          return;
+        }
+        shown = "streamed";
+        const index = section === "modeReasoning" ? 0 : kept[section].length;
+        const piece = section === "modeReasoning" && kept.modeReasoning.length > 0 ? ` ${text}` : text;
+        kept[section].push(text);
+        send({ event: "message.delta", data: { section, index, text: piece } });
+      },
+    };
+
+    const result = await this.callExplainer(userId, request, input, signal, hooks).then(
       (value) => ({ ok: true as const, value }),
       (error: unknown) => ({ ok: false as const, error })
     );
-
-    send({ event: "message.step", data: { step: "draft", status: "active" } });
-    const now = new Date();
-    const template = templateExplanation(input, now);
-    sentencesOf(template.modeReasoning).forEach((text) =>
-      send({ event: "message.delta", data: { section: "modeReasoning", index: 0, text } })
-    );
-    (["keyDrivers", "risks", "newsSummary"] as const).forEach((section) =>
-      template[section].forEach((text, index) => send({ event: "message.delta", data: { section, index, text } }))
-    );
-    send({ event: "message.step", data: { step: "draft", status: "done" } });
-
-    send({ event: "message.step", data: { step: "polish", status: "active" } });
-    const result = await llm;
     if (signal?.aborted) return;
 
     let source: ExplanationSource = "template";
     let dropped = 0;
-    if (result.ok) {
+    let provider: ExplainProvider | null = null;
+
+    if (shown === "streamed") {
+      // 흘린 문장이 최종이다. 판단 줄이 하나도 안 남았거나 칸이 비면 그 칸만 템플릿 → `replace` 한 번
+      const completed = completeExplanation(kept, input, now);
+      dropped = streamDropped;
+      source = dropped > 0 || completed.filled.length > 0 ? "llm_checked" : "llm";
+      provider = result.ok ? (result.value.provider ?? null) : null;
+      // 중간에 끊긴 로컬 CLI 가 Gemini 로 내려가 성공했어도, 화면엔 이미 앞 공급자 문장이 있다 — 섞지 않는다
+      if (result.ok) this.markDropped(result.value, dropped);
+      send({ event: "message.step", data: { step: "polish", status: "done" } });
+      send({ event: "message.step", data: { step: "verify", status: "done" } });
+      if (completed.filled.length > 0) {
+        const { modeReasoning, keyDrivers, risks, newsSummary } = completed.explanation;
+        send({
+          event: "message.replace",
+          data: { modeReasoning, keyDrivers, risks, newsSummary, source, droppedSentences: dropped, provider },
+        });
+      }
+    } else if (result.ok) {
+      // 스트리밍 못 하는 공급자 · 줄이 다 걸린 경우 — 통째 검사 뒤 `replace`(예전 길)
+      showTemplate();
       send({ event: "message.step", data: { step: "polish", status: "done" } });
       send({ event: "message.step", data: { step: "verify", status: "active" } });
       const verified = verifyExplanation(result.value, input, now);
       send({ event: "message.step", data: { step: "verify", status: "done" } });
       source = verified.source;
-      dropped = verified.dropped.length;
+      dropped = verified.dropped.length + streamDropped;
+      // 검사가 전부 버려 템플릿이 됐으면 공급자도 없다 — 화면에 보이는 문장을 쓴 쪽만 적는다
+      provider = source === "template" ? null : (result.value.provider ?? null);
+      this.markDropped(result.value, dropped);
       const { modeReasoning, keyDrivers, risks, newsSummary } = verified.explanation;
       send({
         event: "message.replace",
-        data: { modeReasoning, keyDrivers, risks, newsSummary, source, droppedSentences: dropped },
+        data: { modeReasoning, keyDrivers, risks, newsSummary, source, droppedSentences: dropped, provider },
       });
     } else {
-      // LLM 실패 — 이미 흘린 템플릿이 최종 문장이다. 원문 · 오류 본문은 싣지 않는다
+      // LLM 실패 — 템플릿이 최종 문장이다(아직 안 흘렸으면 지금). 원문 · 오류 본문은 싣지 않는다
+      showTemplate();
       send({ event: "message.step", data: { step: "polish", status: "skipped" } });
       send({ event: "message.step", data: { step: "verify", status: "skipped" } });
     }
 
     send({
       event: "message.done",
-      data: { messageId, source, droppedSentences: dropped, generatedAt: now.toISOString() },
+      data: { messageId, source, droppedSentences: dropped, provider, generatedAt: now.toISOString() },
     });
   }
 
@@ -398,17 +525,27 @@ export class ExplainCoachDecision {
    * LLM 문장은 그대로 믿지 않는다 — 문장마다 말투 · 숫자를 검사하고 걸린 칸은 템플릿으로 채운다.
    * LLM 이 실패하면 전부 템플릿이다(중단은 제외 — 화면이 떠났으면 만들 이유가 없다).
    */
-  private async polish(userId: string, input: CoachExplanationInput, signal?: AbortSignal) {
+  private async polish(
+    userId: string,
+    request: CoachExplainRequest,
+    input: CoachExplanationInput,
+    signal?: AbortSignal
+  ) {
     try {
-      if (!(await this.llmAllowed(userId))) throw new LlmBudgetReached();
-      const llm = await this.explainer.explain(input, signal, { userId });
-      return verifyExplanation(llm, input, new Date());
+      const llm = await this.callExplainer(userId, request, input, signal);
+      const verified = verifyExplanation(llm, input, new Date());
+      this.markDropped(llm, verified.dropped.length);
+      return {
+        ...verified,
+        provider: verified.source === "template" ? null : (llm.provider ?? null),
+      };
     } catch (error) {
       if (signal?.aborted) throw error;
       return {
         explanation: templateExplanation(input, new Date()),
         source: "template" as ExplanationSource,
         dropped: [] as unknown[],
+        provider: null,
       };
     }
   }
