@@ -13,7 +13,7 @@ importers:
         version: 1.17.4
       next:
         specifier: ^15.5.25
-        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18
         version: 18.2.0
@@ -149,23 +149,131 @@ importers:
         specifier: ^5
         version: 5.7.3
 
-  apps/web-tax:
+  apps/web-household:
     dependencies:
       '@repo/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@repo/tokens':
+      next:
+        specifier: ^15.5.25
+        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18
+        version: 18.2.0
+      react-dom:
+        specifier: ^18
+        version: 18.2.0(react@18.2.0)
+    devDependencies:
+      '@repo/eslint-plugin-fsd':
         specifier: workspace:*
-        version: link:../../packages/tokens
-      '@repo/ui':
+        version: link:../../packages/eslint-plugin-fsd
+      '@repo/eslint-plugin-zone':
         specifier: workspace:*
-        version: link:../../packages/ui
-      '@tanstack/react-query':
-        specifier: ^5.64.1
-        version: 5.65.1(react@18.2.0)
-      '@vanilla-extract/next-plugin':
-        specifier: ^2.4.8
-        version: 2.4.9(next@15.5.25)(webpack@5.97.1)
+        version: link:../../packages/eslint-plugin-zone
+      '@types/node':
+        specifier: ^20
+        version: 20.17.16
+      '@types/react':
+        specifier: ^18
+        version: 18.3.18
+      '@types/react-dom':
+        specifier: ^18
+        version: 18.3.5(@types/react@18.3.18)
+      eslint:
+        specifier: ^8
+        version: 8.57.1
+      eslint-config-next:
+        specifier: ^15.5.25
+        version: 15.5.25(eslint@8.57.1)(typescript@5.7.3)
+      typescript:
+        specifier: ^5
+        version: 5.7.3
+
+  apps/web-investment:
+    dependencies:
+      '@repo/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      next:
+        specifier: ^15.5.25
+        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18
+        version: 18.2.0
+      react-dom:
+        specifier: ^18
+        version: 18.2.0(react@18.2.0)
+    devDependencies:
+      '@repo/eslint-plugin-fsd':
+        specifier: workspace:*
+        version: link:../../packages/eslint-plugin-fsd
+      '@repo/eslint-plugin-zone':
+        specifier: workspace:*
+        version: link:../../packages/eslint-plugin-zone
+      '@types/node':
+        specifier: ^20
+        version: 20.17.16
+      '@types/react':
+        specifier: ^18
+        version: 18.3.18
+      '@types/react-dom':
+        specifier: ^18
+        version: 18.3.5(@types/react@18.3.18)
+      eslint:
+        specifier: ^8
+        version: 8.57.1
+      eslint-config-next:
+        specifier: ^15.5.25
+        version: 15.5.25(eslint@8.57.1)(typescript@5.7.3)
+      typescript:
+        specifier: ^5
+        version: 5.7.3
+
+  apps/web-savings:
+    dependencies:
+      '@repo/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      next:
+        specifier: ^15.5.25
+        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18
+        version: 18.2.0
+      react-dom:
+        specifier: ^18
+        version: 18.2.0(react@18.2.0)
+    devDependencies:
+      '@repo/eslint-plugin-fsd':
+        specifier: workspace:*
+        version: link:../../packages/eslint-plugin-fsd
+      '@repo/eslint-plugin-zone':
+        specifier: workspace:*
+        version: link:../../packages/eslint-plugin-zone
+      '@types/node':
+        specifier: ^20
+        version: 20.17.16
+      '@types/react':
+        specifier: ^18
+        version: 18.3.18
+      '@types/react-dom':
+        specifier: ^18
+        version: 18.3.5(@types/react@18.3.18)
+      eslint:
+        specifier: ^8
+        version: 8.57.1
+      eslint-config-next:
+        specifier: ^15.5.25
+        version: 15.5.25(eslint@8.57.1)(typescript@5.7.3)
+      typescript:
+        specifier: ^5
+        version: 5.7.3
+
+  apps/web-tips:
+    dependencies:
+      '@repo/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       next:
         specifier: ^15.5.25
         version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
@@ -2237,7 +2345,7 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.0
+      debug: 4.4.3
       espree: 9.6.1
       globals: 13.24.0
       ignore: 5.3.2
@@ -2308,7 +2416,7 @@ packages:
     deprecated: Use @eslint/config-array instead
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
-      debug: 4.4.0
+      debug: 4.4.3
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -5531,7 +5639,7 @@ packages:
       fast-glob: 3.3.3
       is-glob: 4.0.3
       minimatch: 9.0.5
-      semver: 7.7.0
+      semver: 7.8.5
       ts-api-utils: 2.0.0(typescript@5.7.3)
       typescript: 5.7.3
     transitivePeerDependencies:
@@ -6128,14 +6236,6 @@ packages:
     dependencies:
       acorn: 8.15.0
     dev: false
-
-  /acorn-jsx@5.3.2(acorn@8.14.0):
-    resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
-    peerDependencies:
-      acorn: ^6.0.0 || ^7.0.0 || ^8.0.0
-    dependencies:
-      acorn: 8.14.0
-    dev: true
 
   /acorn-jsx@5.3.2(acorn@8.15.0):
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -8447,8 +8547,8 @@ packages:
     resolution: {integrity: sha512-oruZaFkjorTpF32kDSI5/75ViwGeZginGGy2NoOSg3Q9bnwlnmDm4HLnkl0RE3n+njDXR037aY1+x58Z/zFdwQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dependencies:
-      acorn: 8.14.0
-      acorn-jsx: 5.3.2(acorn@8.14.0)
+      acorn: 8.15.0
+      acorn-jsx: 5.3.2(acorn@8.15.0)
       eslint-visitor-keys: 3.4.3
     dev: true
 
@@ -8778,7 +8878,7 @@ packages:
       minimatch: 3.1.2
       node-abort-controller: 3.1.1
       schema-utils: 3.3.0
-      semver: 7.7.0
+      semver: 7.8.5
       tapable: 2.2.1
       typescript: 5.7.3
       webpack: 5.97.1(esbuild@0.24.2)
@@ -9749,7 +9849,7 @@ packages:
       '@babel/parser': 7.28.5
       '@istanbuljs/schema': 0.1.3
       istanbul-lib-coverage: 3.2.2
-      semver: 7.7.0
+      semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -10172,7 +10272,7 @@ packages:
       jest-util: 29.7.0
       natural-compare: 1.4.0
       pretty-format: 29.7.0
-      semver: 7.7.0
+      semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
     dev: true

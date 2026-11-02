@@ -33,9 +33,9 @@ pages/{page-name}/
 `not-found`(`app/not-found.tsx` — 2026-09-30, `FE-REQ-044`).
 `investments`는 F006에서 `assets`로 바뀐다(`FE-REQ-030`). 코치 탭 `/coach`(대화)는 그때 생긴다.
 
-### `apps/web-tax` (세금 zone) — 삭제 예정(`ADR-005`, `FE-REQ-052` FR-6)
+### 도메인 zone 4개(`apps/web-investment` · `web-savings` · `web-household` · `web-tips`)
 
-`tax`(`/tax`)
+빈 골격(2026-11-02 `FE-REQ-052` FR-7). zone 앱은 `src/pages` 를 갖지 않는다 — 루트 `app/` 이 `@repo/domain-*` 의 페이지를 re-export 한다(`microfrontend.md` §2-4). `apps/web-tax` 는 지웠다(FR-6).
 
 ### `apps/mobile`
 
@@ -64,7 +64,7 @@ export { CoachPage as default, metadata } from '@/pages/coach';
 | 자산 | `assets` | `asset-workspace` — 세그먼트 3(포지션/시장/관심 종목). 종목 → `investment-detail` push |
 
 - **탭을 4개로 늘리지 않는다.** 새 기능은 기존 탭 내부로 들어간다.
-- 세금 기능은 빠졌다(`ADR-002`). `/tax` zone 코드는 남아 있고 존폐는 열린 질문이다. zone 을 넘는 링크는 여전히 **`<a>`** 다(`microfrontend.md`).
+- 세금 기능은 빠졌다(`ADR-002`). `/tax` zone 은 지웠다(2026-11-02 `FE-REQ-052`) — zone 은 이제 도메인이다(`ADR-005`). zone 을 넘는 링크는 **`CrossZoneLink`(`<a>`)** 다(`microfrontend.md`).
 - PC에서는 탭 대신 `pc-panel-grid`로 여러 패널을 동시에 본다. **같은 페이지 슬라이스가 두 배치를 모두 제공**한다.
 
 ## 클라이언트 전용 컴포넌트 배치

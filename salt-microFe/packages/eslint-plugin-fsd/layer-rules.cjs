@@ -16,7 +16,15 @@
  * CommonJS 인 이유는 앱이 eslintrc 모드를 쓰고 **eslintrc 는 ESM 플러그인을 로드하지
  * 못하기 때문**이다. ESM 쪽(훅)이 `createRequire` 로 이 파일을 읽는다.
  * REQ 는 `layer-rules.mjs` 를 적었지만 그러면 표가 두 벌이 된다.
+ *
+ * ## 축이 둘이다 (`FE-REQ-052` FR-4, `ADR-005` §2)
+ *
+ * - **레이어 축** — FSD 6레이어 · 슬라이스 (아래 대부분)
+ * - **도메인 축** — `domain-*` 끼리 금지 · 셸 → `domain-*` 금지 · zone 앱은 자기 도메인 패키지만 ·
+ *   zone 앱 `src/{entities,features,widgets}` 금지. 도메인 목록은 zone 레지스트리(`registry.json`)에서 온다
  */
+
+const zones = require("../core/src/zones/registry.cjs");
 
 /** 아래에서 위로. 인덱스가 rank 다. */
 const LAYERS = [
@@ -103,7 +111,6 @@ const REGISTRY = {
     "investment-detail",
     "search",
     "settings",
-    "tax",
     "onboarding",
     "login",
     "streaming-probe",
@@ -157,6 +164,10 @@ const unitOf = (location) => {
 /** `apps/web/src/entities/market/ui/PriceCell.tsx` → 앱·영역·레이어·슬라이스 */
 const locate = (filePath) => {
   const normalized = filePath.split("\\").join("/");
+  const domainMatch = normalized.match(/(?:^|\/)packages\/(domain-[^/]+)\/(.+)$/);
+  if (domainMatch) {
+    return { app: null, domainPackage: `@repo/${domainMatch[1]}`, area: "domain-package" };
+  }
   const match = normalized.match(/(?:^|\/)apps\/([^/]+)\/(.+)$/);
   if (!match) return null;
 
@@ -177,6 +188,55 @@ const locate = (filePath) => {
   }
 
   return { app, area: "other" };
+};
+
+/** `@repo/domain-invest/...` → `@repo/domain-invest`, 아니면 null */
+const domainPackageOf = (source) => {
+  const match = source.match(/^(@repo\/domain-[^/]+)/);
+  return match ? match[1] : null;
+};
+
+/** 상대 경로가 `packages/domain-<x>` 안을 가리키면 그 패키지 이름 */
+const domainPackageOfPath = (resolved) => {
+  const match = resolved.match(/(?:^|\/)packages\/(domain-[^/]+)(?:\/|$)/);
+  return match ? `@repo/${match[1]}` : null;
+};
+
+/**
+ * 도메인 축 (`FE-REQ-052` FR-4). 위반이면 `{ rule, message }`.
+ *
+ * | 어디서 | 무엇을 | 규칙 |
+ * |---|---|---|
+ * | `packages/domain-A` | `domain-B` | `cross-domain` — 도메인 사이는 URL 링크와 BFF 응답으로만 |
+ * | 셸 `apps/web` | `domain-*` | `shell-domain` — 홈은 BFF 카드로만 받는다 |
+ * | zone 앱 `apps/web-<x>` | 남의 `domain-*` | `foreign-domain` — zone 은 자기 도메인 패키지만 |
+ */
+const checkDomainImport = (here, source, resolved) => {
+  const target = domainPackageOf(source) || domainPackageOfPath(resolved);
+  if (!target) return null;
+
+  if (here.area === "domain-package") {
+    if (target === here.domainPackage) return null;
+    return {
+      rule: "cross-domain",
+      message: `'${source}' — \`${here.domainPackage}\` 가 다른 도메인 \`${target}\` 를 import 했다. 도메인 사이는 URL 링크(\`CrossZoneLink\`)와 BFF 응답(서버 계산 값)으로만 잇는다 (ADR-005 §2-3).`,
+    };
+  }
+  if (here.app === zones.SHELL_APP) {
+    return {
+      rule: "shell-domain",
+      message: `'${source}' — 셸(\`apps/${zones.SHELL_APP}\`)은 도메인 화면 코드를 import 하지 않는다. 홈은 BFF \`HomeSummaryCard[]\` 로만 받는다 (ADR-005 §2-2).`,
+    };
+  }
+  if (zones.DOMAIN_ZONE_APPS.includes(here.app)) {
+    const own = zones.domainPackageOfApp(here.app);
+    if (target === own) return null;
+    return {
+      rule: "foreign-domain",
+      message: `'${source}' — zone \`apps/${here.app}\` 은 자기 도메인 패키지(\`${own}\`)만 소비한다. 다른 도메인은 링크로 넘어간다 (microfrontend.md §7).`,
+    };
+  }
+  return null;
 };
 
 /** `@/entities/market/model/types` → { layer, slice, deeper } */
@@ -200,9 +260,14 @@ const checkImport = (filePath, source) => {
   const isRelative = source.startsWith(".");
   const resolved = isRelative ? resolveRelative(filePath, source) : source;
 
+  // FE-REQ-052 FR-4 — 도메인 축. 상대 경로로 패키지 경계를 넘어도 같은 판정
+  const domainViolation = checkDomainImport(here, source, resolved);
+  if (domainViolation) return domainViolation;
+
   // FR-23 · FR-24 — 앱(zone) 경계는 어디서든 넘지 못한다. 상대 경로도 마찬가지다.
   const crossApp = resolved.match(/apps\/([^/]+)\/src/);
   if (crossApp && crossApp[1] !== here.app) {
+    // 도메인 패키지가 앱 src 를 찌르는 것도 같은 위반이다(here.app = null)
     return {
       rule: "cross-app",
       message: `'${source}' — zone 은 독립 배포 단위다. 다른 앱의 \`src\` 를 직접 import 하지 않는다. 공유는 workspace 패키지로만 한다 (FR-23).`,
@@ -311,10 +376,20 @@ const checkImport = (filePath, source) => {
   return null;
 };
 
-/** 파일이 놓인 자리 자체가 규칙을 어기는지 본다 (레이어 이름·레지스트리). */
+/** zone 앱이 가지면 안 되는 레이어 — 화면은 `domain-*` 패키지에 (ADR-005 §2-4) */
+const THIN_ZONE_FORBIDDEN_LAYERS = ["entities", "features", "widgets"];
+
+/** 파일이 놓인 자리 자체가 규칙을 어기는지 본다 (레이어 이름·레지스트리·얇은 zone). */
 const checkLocation = (filePath) => {
   const here = locate(filePath);
   if (!here || here.area !== "src") return null;
+
+  if (zones.DOMAIN_ZONE_APPS.includes(here.app) && THIN_ZONE_FORBIDDEN_LAYERS.includes(here.layer)) {
+    return {
+      rule: "thin-zone",
+      message: `\`apps/${here.app}/src/${here.layer}\` — zone 앱은 얇다. 라우트 · 레이아웃 · next.config 만 두고 화면은 \`${zones.domainPackageOfApp(here.app)}\` 에 둔다 (FE-REQ-052 FR-4, ADR-005 §2-4).`,
+    };
+  }
 
   if (here.unknownLayer) {
     return {
@@ -352,6 +427,8 @@ const extractImportSources = (code) => {
 };
 
 module.exports = {
+  THIN_ZONE_FORBIDDEN_LAYERS,
+  checkDomainImport,
   LAYERS,
   REGISTRY,
   ROUTING_ALLOWED_ALIAS,

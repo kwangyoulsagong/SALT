@@ -1,0 +1,60 @@
+{
+  "$comment": "zone 레지스트리 — 단일 소스(ADR-005 · FE-REQ-052 FR-2). TS(registry.ts)와 CommonJS(registry.cjs: next.config · eslint · 훅)가 이 파일 하나를 읽는다. hostedIn = 그 도메인 화면을 지금 실제로 서비스하는 앱. 화면을 자기 zone 으로 옮기는 REQ(hostedUntil)가 닫히면 자기 app 으로 바꾼다.",
+  "zones": {
+    "shell": {
+      "app": "web",
+      "domain": null,
+      "domainPackage": null,
+      "devPort": 3000,
+      "pathPrefixes": ["/", "/home", "/login", "/onboarding", "/settings", "/streaming-probe"],
+      "assetPrefix": null,
+      "hostedIn": "web",
+      "hostedUntil": null,
+      "reason": "셸 — 인증 · 온보딩 · 홈 · 설정 · 공용 크롬. domain-* 를 import 하지 않는다"
+    },
+    "invest": {
+      "app": "web-investment",
+      "domain": "invest",
+      "domainPackage": "@repo/domain-invest",
+      "devPort": 3002,
+      "pathPrefixes": ["/investments", "/coach", "/search"],
+      "assetPrefix": "/investment-static",
+      "hostedIn": "web",
+      "hostedUntil": "FE-REQ-053",
+      "reason": "투자 — 시세 · 상세 · 코치 · 검색. 동결(기획된 것까지)"
+    },
+    "savings": {
+      "app": "web-savings",
+      "domain": "savings",
+      "domainPackage": "@repo/domain-savings",
+      "devPort": 3003,
+      "pathPrefixes": ["/goals"],
+      "assetPrefix": "/savings-static",
+      "hostedIn": "web",
+      "hostedUntil": "FE-REQ-056",
+      "reason": "저축 목표 — 모으는 데 얼마나 걸리나"
+    },
+    "household": {
+      "app": "web-household",
+      "domain": "household",
+      "domainPackage": "@repo/domain-household",
+      "devPort": 3004,
+      "pathPrefixes": ["/household"],
+      "assetPrefix": "/household-static",
+      "hostedIn": "web-household",
+      "hostedUntil": null,
+      "reason": "가계부 — 지운 ledger(개입 청구서)와 다른 이름"
+    },
+    "tips": {
+      "app": "web-tips",
+      "domain": "tips",
+      "domainPackage": "@repo/domain-tips",
+      "devPort": 3005,
+      "pathPrefixes": ["/tips"],
+      "assetPrefix": "/tips-static",
+      "hostedIn": "web-tips",
+      "hostedUntil": null,
+      "reason": "금융 팁 — 공개 · ISR. 공개 전 법무 확인"
+    }
+  }
+}

@@ -5,7 +5,7 @@ SALT는 **네 서피스**로 구성된다. 같은 원칙을 쓰고 각자의 언
 | 서피스 | 경로 | 방법론 | 레이어 |
 |---|---|---|---|
 | 웹 (default zone) | `apps/web` | **FSD** | `shared` → `entities` → `features` → `widgets` → `pages` → `app` |
-| 웹 (세금 zone) | `apps/web-tax` — 삭제 예정, 도메인 zone 4개로(`ADR-005` · `microfrontend.md` §0) | **FSD** | 동일 |
+| 웹 (도메인 zone 4) | `apps/web-{investment,savings,household,tips}` — 얇은 앱, 화면은 `packages/domain-*`(`ADR-005` · `microfrontend.md`) | **FSD**(패키지 안) | 동일 |
 | 모바일 | `apps/mobile` | **FSD** | 동일 (`pages` = 화면 셸) |
 | BFF | `bff/src` | 레이어드 | `routes` → `controllers` → `services` |
 | 서버 | `salt-server/src` | **DDD** | `{context}/{domain · application · infrastructure · presentation}` |
@@ -45,7 +45,7 @@ ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹
 **피드백 시점이 다르다** — lint는 파일이 쓰인 다음에 보고, 그 사이에 위반 위에 위반이 쌓인다.
 
 **규칙 표는 `packages/eslint-plugin-fsd/layer-rules.cjs` 한 곳**이고 둘이 같은 파일을 읽는다.
-미러가 아니다. 위반 케이스 8개는 `pnpm test:layer-check`가 훅을 실제로 실행해 검증한다.
+미러가 아니다. 위반 케이스 12개(레이어 8 + 도메인 4, `FE-REQ-052`)는 `pnpm test:layer-check`가 훅을 실제로 실행해 검증한다.
 
 **훅이 막으면 우회하지 말고 구조를 고친다.**
 
@@ -55,7 +55,9 @@ ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹
 | 같은 레이어의 다른 슬라이스 | §2 |
 | 슬라이스 내부 경로 직접 참조 (`@/entities/tax/model/types`) | barrel의 유일한 목적이 내부 구조 변경 차단이다 |
 | 슬라이스를 벗어나는 상대 경로 | alias 없이 경계를 넘는 우회로다 |
-| `apps/web-tax` → `apps/web/src/**` | zone은 독립 배포 단위다 |
+| `apps/web-*` → 다른 앱 `src/**` | zone은 독립 배포 단위다 |
+| `domain-*` → 다른 `domain-*` · 셸 → `domain-*` · zone 앱 → 남의 `domain-*` | 도메인 사이는 URL 링크와 BFF 응답으로만(`ADR-005` §2, `FE-REQ-052`) |
+| `apps/web-*/src/{entities,features,widgets}` | zone 앱은 얇다 — 화면은 `domain-*` |
 | `apps/mobile` → `packages/ui` | vanilla-extract는 RN에서 동작하지 않는다 |
 | 루트 `app/**`·`pages/**`에서 `@/pages`·`@/app` 외의 import | 라우팅 파일은 연결만 한다 |
 | 레지스트리에 없는 슬라이스 생성 | §4 |
@@ -68,19 +70,21 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 
 새 슬라이스는 **이 표에 먼저 추가**한다. 웹·모바일은 하이픈 허용, 서버 컨텍스트는 하이픈 없이.
 
-| 슬라이스 | 책임 | 서버 컨텍스트 |
-|---|---|---|
-| `auth` | 초대 코드 검증 · 세션 · 토큰 갱신 | `auth` |
-| `portfolio` | 보유 · 포지션 · 평가금액 · 3자산군 합산 | `portfolio` |
-| `market` | 시세 · 실시간 구독 · 차트 · 관심 종목 | `market` |
-| `coach` | 추천 · 점수 · 근거 3종 · 대화 · 성적표 · 피드백 | `coach` |
-| `plan` | 밸류에이션 밴드 · 주간 적립 · 김프 · 실행 기록 | `plan` |
-| `indicator` | 지표 스냅샷 · **실패 이력**(추천 렌더 게이트의 근거) | `indicator` |
-| `fx` | 환율 · 김프 (F003 적립) | `fx` |
-| `goal` | 목표 저축 (변경 금지 목록) | `goal` |
-| `news` | 뉴스 목록 · 프리뷰 | `news` |
-| `notification` | 알림 1종 (지표/추천 갱신) · 읽음 | `notification` |
-| `device` | 디바이스 등록 · 푸시 토큰 · 앱 버전 게이트 (모바일만) | `device` |
+| 슬라이스 | 책임 | 서버 컨텍스트 | 도메인 패키지(`ADR-005`) |
+|---|---|---|---|
+| `auth` | 초대 코드 검증 · 세션 · 토큰 갱신 | `auth` | 셸 |
+| `portfolio` | 보유 · 포지션 · 평가금액 · 3자산군 합산 | `portfolio` | `invest` |
+| `market` | 시세 · 실시간 구독 · 차트 · 관심 종목 | `market` | `invest` |
+| `coach` | 추천 · 점수 · 근거 3종 · 대화 · 성적표 · 피드백 | `coach` | `invest` |
+| `plan` | 밸류에이션 밴드 · 주간 적립 · 김프 · 실행 기록 | `plan` | `invest` |
+| `indicator` | 지표 스냅샷 · **실패 이력**(추천 렌더 게이트의 근거) | `indicator` | `invest` |
+| `fx` | 환율 · 김프 (F003 적립) | `fx` | `invest` |
+| `goal` | 목표 저축 (변경 금지 목록) | `goal` | `savings` |
+| `news` | 뉴스 목록 · 프리뷰 | `news` | `invest` |
+| `notification` | 알림 1종 (지표/추천 갱신) · 읽음 | `notification` | 셸 |
+| `device` | 디바이스 등록 · 푸시 토큰 · 앱 버전 게이트 (모바일만) | `device` | 셸(모바일) |
+
+도메인 패키지 열은 옮길 곳이다 — `invest` = `packages/domain-invest`(`FE-REQ-053`), `savings` = `domain-savings`(`FE-REQ-056`), 셸 = `apps/web`. 지금 코드는 전부 `apps/web/src`(`microfrontend.md` §0).
 
 **2026-09-22 기준 실재하는 엔티티는 5개다** — `auth` · `goal` · `market` · `portfolio` · `coach`.
 나머지는 해당 기능 REQ에서 생긴다. 표에 있다고 폴더가 있는 것은 아니다.
@@ -171,8 +175,8 @@ export enum AssetClass {
 
 | 패키지 | 내용 | 소비자 |
 |---|---|---|
-| `packages/tokens` | 플랫폼 중립 토큰 객체 (순수 TS, CSS 의존 없음) | web · web-tax · mobile |
-| `packages/ui` | 웹 컴포넌트 (vanilla-extract) — 공개 subpath 83 | web · web-tax |
+| `packages/tokens` | 플랫폼 중립 토큰 객체 (순수 TS, CSS 의존 없음) | web · 도메인 zone · mobile |
+| `packages/ui` | 웹 컴포넌트 (vanilla-extract) — 공개 subpath 83 | web · 도메인 zone · `domain-*` |
 | `packages/ui-native` | RN 컴포넌트 | mobile |
 | `packages/core` | 플랫폼 무관 `model`·`api`·`lib` | 전부 |
 | `packages/eslint-config` `packages/typescript-config` | 툴링 | 전부 |

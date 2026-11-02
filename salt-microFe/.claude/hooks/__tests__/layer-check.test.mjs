@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * `layer-check` 훅의 위반 케이스 (`FE-REQ-009` 수용 기준 — 위반 8개로 테스트).
+ * 도메인 축 4개(`FE-REQ-052` FR-4 — 도메인 간 · 셸 → 도메인 · 남의 도메인 · zone 앱 안 features)를 더했다.
  *
  * 훅을 **실제로 실행**한다. 판정 함수를 부르는 것으로는 훅이 stdin 을 못 읽거나
  * exit code 를 잘못 내는 것을 못 잡는다.
@@ -56,9 +57,9 @@ const BLOCKED = [
     rule: "segment-internal",
   },
   {
-    name: "5. zone 교차 (web-tax → web/src)",
-    file: "/repo/salt-microFe/apps/web-tax/src/pages/tax/ui/TaxPage.tsx",
-    code: `import { Layout } from "../../../../../web/src/shared/ui";`,
+    name: "5. zone 교차 (web-investment → web/src)",
+    file: "/repo/salt-microFe/apps/web-investment/src/app/styles/globals.css.ts",
+    code: `import { Layout } from "../../../../web/src/shared/ui";`,
     rule: "cross-app",
   },
   {
@@ -78,6 +79,30 @@ const BLOCKED = [
     file: `${APP}/src/entities/crypto-wallet/model/types.ts`,
     code: `export interface Wallet { id: string }`,
     rule: "registry",
+  },
+  {
+    name: "9. 도메인 간 import (domain-savings → domain-invest)",
+    file: "/repo/salt-microFe/packages/domain-savings/src/widgets/goal-board/ui/GoalBoard.tsx",
+    code: `import { HoldingRow } from "@repo/domain-invest";`,
+    rule: "cross-domain",
+  },
+  {
+    name: "10. 셸 → 도메인 패키지",
+    file: `${APP}/src/pages/home/ui/HomePage.tsx`,
+    code: `import { InvestmentsPage } from "@repo/domain-invest";`,
+    rule: "shell-domain",
+  },
+  {
+    name: "11. zone 앱이 남의 도메인 패키지 (web-tips → domain-household)",
+    file: "/repo/salt-microFe/apps/web-tips/app/tips/page.tsx",
+    code: `export { HouseholdPage as default } from "@repo/domain-household";`,
+    rule: "foreign-domain",
+  },
+  {
+    name: "12. zone 앱 안 features — zone 앱은 얇다",
+    file: "/repo/salt-microFe/apps/web-savings/src/features/add-goal/ui/Form.tsx",
+    code: `export const Form = () => null;`,
+    rule: "thin-zone",
   },
 ];
 
@@ -102,6 +127,16 @@ const ALLOWED = [
     name: "루트 라우팅 파일의 @/pages re-export",
     file: `${APP}/app/home/page.tsx`,
     code: `export { HomePage as default } from "@/pages/home";`,
+  },
+  {
+    name: "zone 앱 라우팅이 자기 도메인 패키지를 re-export",
+    file: "/repo/salt-microFe/apps/web-investment/app/investments/page.tsx",
+    code: `export { InvestmentsPage as default } from "@repo/domain-invest";`,
+  },
+  {
+    name: "도메인 패키지가 공용 패키지 import",
+    file: "/repo/salt-microFe/packages/domain-invest/src/entities/market/ui/PriceCell.tsx",
+    code: `import { Button } from "@repo/ui/button";\nimport { ZONES } from "@repo/core/zones";`,
   },
   {
     name: "검사 대상이 아닌 파일",

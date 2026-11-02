@@ -1,5 +1,5 @@
 ---
-globs: apps/web/src/**, apps/web-tax/src/**
+globs: apps/web/src/**, apps/web-*/app/**, packages/domain-*/src/**
 ---
 
 # 웹 성능 규칙
@@ -21,7 +21,7 @@ globs: apps/web/src/**, apps/web-tax/src/**
 | 코치 대화 첫 페인트 | 400ms | 최신 insight 읽기 |
 | 코치 첫 토큰 도착 | 1s | SSE. 이후 스트리밍 |
 | 라우트 전환(같은 zone) | 200ms | soft navigation |
-| zone 전환(`/tax`) | **예산 제외** | hard navigation. 세금 기능은 빠졌고 zone 존폐는 열린 질문(감사 문서 Q1) |
+| zone 전환(셸 ↔ 도메인) | 측정 후 정한다 | hard navigation. prerender · 문서 간 전환으로 가린다 — 수치는 `FE-REQ-054` FR-6 |
 | 입력 → 화면 반영 | 100ms | 검색 · 슬라이더 |
 | 실시간 테이블 스크롤 | 60fps | 100행 + WS 갱신 |
 

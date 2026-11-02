@@ -1,0 +1,19 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "plugins": [
+    "@repo/zone",
+    "@repo/fsd"
+  ],
+  "rules": {
+    "@repo/zone/no-cross-zone-link": "error",
+    "@repo/fsd/layers": "error"
+  },
+  "ignorePatterns": [
+    "next-env.d.ts",
+    ".next/",
+    "next.config.js"
+  ]
+}

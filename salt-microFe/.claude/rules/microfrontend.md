@@ -6,15 +6,17 @@
 
 ## 0. 지금 코드 상태 — 규칙과 다른 곳
 
+2026-11-02 `FE-REQ-052` 로 zone 앱 5개(도메인 4개는 빈 골격) · 레지스트리 · rewrites 생성 · lint/훅 도메인 축이 코드가 됐고 `apps/web-tax` 는 지웠다.
+
 | 항목 | 규칙(목표) | 지금 코드 | 닫는 곳 |
 |---|---|---|---|
-| zone 앱 | 5개(§1) | `apps/web` · `apps/web-tax`(90줄 자리표시자) | `FE-REQ-052` FR-2 · 6 · 7 |
-| 레지스트리 · rewrites | `@repo/core/zones` 에서 생성 | 셸 `next.config.js` 에 `/tax` 손으로 | `FE-REQ-052` FR-2 · 3 |
-| lint · 훅 도메인 축 | §3 | 레이어 축만 · `/tax` 하드코딩 | `FE-REQ-052` FR-4 · 5 |
-| 화면 코드 위치 | `packages/domain-*` | `apps/web/src/**`(FSD) | `FE-REQ-053`(투자) · F012~F014 |
+| 화면 코드 위치 | `packages/domain-*` | 투자 · 저축 화면이 `apps/web/src/**` — 레지스트리 `hostedIn: "web"` | `FE-REQ-053`(투자) · `FE-REQ-056`(저축) |
+| `domain-*` 안 레이어 축 | FSD 6레이어(§2 끝) | 도메인 축만 검사 — 패키지가 아직 없다 | `FE-REQ-053` |
+| 크롬 · 완화 장치 | `AppChrome` · §5 | 없음 | `FE-REQ-054` · `FE-REQ-055` |
 
-**강제는 코드다**(`layer-rules.cjs` · `eslint-plugin-zone` · `registry.ts`). 이 표의 행이 남아 있는 동안 새 화면은 지금 위치에 쓰되
-§3 의 도메인 격리를 **지금부터** 지킨다 — 옮길 때 끊을 import 를 새로 만들지 않는다. 행이 닫히면 이 절에서 지운다.
+**옮기기 전 상태는 레지스트리 `hostedIn` 이 적는다.** cross-zone 판정(lint · `CrossZoneLink`)은 `hostedIn` 기준이라 셸에 남은
+투자 화면 사이는 지금도 `<Link>` 다. 셸 rewrites 는 경로를 `fallback` 으로 걸어 셸에 화면이 있으면 셸이 받는다 — 화면을 옮기는
+REQ 는 셸 라우트를 지우고 `hostedIn` 을 자기 앱으로 바꾸는 것까지 한 커밋으로. 행이 닫히면 이 절에서 지운다.
 
 ## 1. zone = 도메인 (`ADR-005` §1)
 
@@ -46,11 +48,13 @@
 ## 3. 설정
 
 ```js
-// apps/web-<domain>/next.config.js — basePath 없음, assetPrefix 만
-const nextConfig = { assetPrefix: '/<domain>-static' };
+// apps/web-<domain>/next.config.js — basePath 없음, assetPrefix 는 레지스트리 값
+const { ZONES } = require("@repo/core/zones/node");
+const nextConfig = { assetPrefix: ZONES.<id>.assetPrefix };
 
 // apps/web/next.config.js — 셸이 로컬 · 폴백 프록시. 규칙은 레지스트리에서 생성
-async rewrites() { return zoneRewrites(ZONES, process.env); }   // ZONE_<NAME>_ORIGIN
+const { zoneRewrites } = require("@repo/core/zones/node");
+async rewrites() { return zoneRewrites(process.env); }   // ZONE_<ID>_ORIGIN · 경로는 fallback
 ```
 
 - 셸은 `assetPrefix` 를 갖지 않는다. Next 15+ 에서 정적 자산용 추가 rewrite 는 불필요 — 그 우회를 남기지 않는다
@@ -66,7 +70,7 @@ async rewrites() { return zoneRewrites(ZONES, process.env); }   // ZONE_<NAME>_O
 <Link href="/goals">저축</Link>                       // ❌ 깨진다 — lint 실패
 ```
 
-- zone 판정은 레지스트리. `@repo/zone/no-cross-zone-link` 가 레지스트리 전체를 본다(지금은 `/tax` 만 — §0)
+- zone 판정은 레지스트리(`registry.json` 한 곳 — TS `registry.ts` · CommonJS `registry.cjs` 가 읽고 `registry.test.ts` 가 대조). `@repo/zone/no-cross-zone-link` 는 파일이 놓인 앱을 보고 레지스트리 전체로 판정한다 — 앱 설정에 경로를 복사하지 않는다
 
 ## 5. 대가와 완화 — hard navigation (`ADR-005` §3 · `FE-REQ-054`)
 
