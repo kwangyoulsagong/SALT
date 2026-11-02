@@ -1,13 +1,12 @@
 import type {
   KrChart,
   KrChartPeriod,
-  KrIndices,
   KrInvestors,
+  KrMarketSummary,
   KrMarketStatus,
   KrOrderbook,
   KrOverview,
   KrResult,
-  KrSchedule,
   KrStockDetail,
 } from "@repo/core/marketKr";
 
@@ -41,9 +40,8 @@ export const krStockApi = {
     getKr<KrResult<KrStockDetail>>("krDetail", MARKET_ENDPOINTS.krDetail(code), signal),
   chart: (code: string, period: KrChartPeriod, count: number, signal?: AbortSignal) =>
     getKr<KrResult<KrChart>>("krChart", MARKET_ENDPOINTS.krChart(code, period, count), signal),
-  indices: (signal?: AbortSignal) => getKr<KrResult<KrIndices>>("krIndices", MARKET_ENDPOINTS.krIndices(), signal),
-  schedule: (days: number, signal?: AbortSignal) =>
-    getKr<KrResult<KrSchedule>>("krSchedule", MARKET_ENDPOINTS.krSchedule(days), signal),
+  summary: (signal?: AbortSignal) =>
+    getKr<KrResult<KrMarketSummary>>("krSummary", MARKET_ENDPOINTS.krSummary(), signal),
   investors: (code: string, days: number, signal?: AbortSignal) =>
     getKr<KrResult<KrInvestors>>("krInvestors", MARKET_ENDPOINTS.krInvestors(code, days), signal),
   orderbook: (code: string, signal?: AbortSignal) =>

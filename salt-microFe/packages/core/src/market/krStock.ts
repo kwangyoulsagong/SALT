@@ -204,6 +204,42 @@ export interface KrSchedule {
   items: KrScheduleItem[];
 }
 
+/**
+ * 국내 요약 띠 한 칸 — BFF `GET /api/app/market/kr/summary`(`BFF-REQ-044`). 코인 요약 칸(`entities/market` `MarketSummaryItem`)과
+ * **같은 이름 · 같은 뜻**이라 같은 칸 컴포넌트가 그린다. 등락은 전일 종가 대비(`changeBasis`), 지수는 로고가 없고(`null`),
+ * 고가 · 저가 · 거래대금은 못 받았으면 `null`. 금액은 서버가 반올림했다(종목 원 정수 · 지수 포인트)
+ */
+export interface KrSummaryItem {
+  symbol: string;
+  /** 지수 칸은 링크가 없다(상세 화면이 없다) */
+  kind: "index" | "stock";
+  name: string;
+  logoUrl: string | null;
+  currentPrice: number;
+  change24h: number;
+  change24hAmount: number;
+  tags: Array<"wide_move">;
+  sparkline: number[] | null;
+  high24h: number | null;
+  low24h: number | null;
+  tradeValue24h: number | null;
+}
+
+export interface KrMarketSummary {
+  assetClass: "kr_stock";
+  changeBasis: "prev_close";
+  featured: KrSummaryItem | null;
+  items: KrSummaryItem[];
+  sparklineWindowMinutes: number;
+  /** 스파크라인이 그린 날(KST `YYYY-MM-DD`) — 오늘이면 "오늘 장중" */
+  sparklineDate: string | null;
+  breadth: { up: number; flat: number; down: number; total: number } | null;
+  /** 국내 뉴스는 모으지 않는다 — 늘 빈 배열. 그 자리는 `schedule` */
+  headlines: [];
+  schedule: KrScheduleItem[];
+  degraded: boolean;
+}
+
 /** 순매수(매수 − 매도) — 수량은 주(문자열 — BigInt), 금액은 원 정수. 음수면 순매도 */
 export interface KrInvestorNet {
   quantity: string;

@@ -7,6 +7,8 @@
  */
 export const JUDGMENT_OVERVIEW_MESSAGES = {
   regionLabel: "이번 주 목표 비중 · 위험 · 판정 성적 요약",
+  /** 국내 탭 — 목표 비중 칸이 없다(`FE-REQ-050` FR-5) */
+  krRegionLabel: "위험 · 국내 주식 판정 성적 요약",
   targetWeight: {
     label: "이번 주 목표 비중",
     linkLabel: "코치 리포트에서 이번 주 목표 비중 · 근거 · 과거 기록 보기",

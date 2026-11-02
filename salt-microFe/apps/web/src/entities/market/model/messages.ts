@@ -138,10 +138,20 @@ export const MARKET_SUMMARY_MESSAGES = {
     return [hours ? `${hours}시간` : "", rest ? `${rest}분` : ""].filter(Boolean).join(" ");
   },
   sparklineLabel: (name: string, window: string, trend: string) =>
-    `${name} 최근 ${window} 흐름, ${trend}. 점선은 구간 시작 값`,
+    `${name} ${window} 흐름, ${trend}. 점선은 구간 시작 값`,
+  /** 코인 — "최근 2시간 30분" */
+  recentWindow: (window: string) => `최근 ${window}`,
+  /** 국내 — 스파크라인은 마지막 거래일 장중(서버가 날을 준다). 오늘이면 "오늘 장중" */
+  sessionWindow: (date: string | null, today: string) =>
+    !date || date === today ? "오늘 장중" : `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))} 장중`,
   /** 스파크라인 첫 값 → 끝 값. 스크린리더가 선 모양 대신 읽는다 */
   sparklineTrend: { up: "오름", down: "내림", flat: "변동 없음" },
-  changeTitle: "24시간 등락 금액과 변동률",
+  changeTitle: {
+    "24h": "24시간 등락 금액과 변동률",
+    prev_close: "전일 종가 대비 등락과 변동률",
+  },
+  /** 국내 요약 띠 이름 — 코인은 `regionLabel` */
+  krRegionLabel: "국내 시장 요약",
   /** 대표 칸 아래 줄 */
   stats: { high: "고가", low: "저가", tradeValue: "거래대금" },
   /**
@@ -150,13 +160,19 @@ export const MARKET_SUMMARY_MESSAGES = {
    */
   briefing: {
     title: "오늘의 시장",
-    window: "24시간",
+    window: { "24h": "24시간", prev_close: "전일 대비" },
     up: "상승",
     flat: "보합",
     down: "하락",
     count: (count: number) => `${count.toLocaleString("ko-KR")}`,
-    barLabel: (up: number, flat: number, down: number) =>
-      `활성 종목 중 상승 ${up}종목, 보합 ${flat}종목, 하락 ${down}종목`,
+    barLabel: {
+      "24h": (up: number, flat: number, down: number) =>
+        `활성 종목 중 상승 ${up}종목, 보합 ${flat}종목, 하락 ${down}종목`,
+      prev_close: (up: number, flat: number, down: number) =>
+        `코스피 · 코스닥 종목 중 상승 ${up}종목, 보합 ${flat}종목, 하락 ${down}종목`,
+    },
+    /** 국내 — 소식 줄 자리에 다가오는 일정(국내 뉴스는 모으지 않는다) */
+    scheduleLabel: "다가오는 국내 시장 일정",
     newsLabel: (name: string) => `${name} 최근 뉴스`,
     newsLinkTitle: (source: string) => `${source} · 새 창에서 열기`,
   },

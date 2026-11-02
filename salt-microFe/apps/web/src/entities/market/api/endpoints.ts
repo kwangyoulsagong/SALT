@@ -83,10 +83,8 @@ export const MARKET_ENDPOINTS = {
   krDetail: (code: string) => `/api/app/market/kr/${encodeURIComponent(code)}`,
   krChart: (code: string, period: string, count: number) =>
     `/api/app/market/kr/${encodeURIComponent(code)}/chart?period=${period}&count=${count}`,
-  /** 국내 주식 탭 요약 띠 — 코스피 · 코스닥(F011 슬라이스 6). 무엇을 보일지는 서버 설정 */
-  krIndices: () => `/api/app/market/kr/indices`,
-  /** 다가오는 국내 시장 일정(F008 슬라이스 24) — 공개 일정, 분포 없음 */
-  krSchedule: (days: number) => `/api/app/market/kr/schedule?days=${days}`,
+  /** 국내 요약 띠 — 코인 요약과 같은 칸(`BFF-REQ-044`) */
+  krSummary: () => `/api/app/market/kr/summary`,
   /** 상세 투자자 순매수 — 최근 `days` 거래일(최대 30) */
   krInvestors: (code: string, days: number) => `/api/app/market/kr/${encodeURIComponent(code)}/investors?days=${days}`,
   /** 상세 호가 10단계(슬라이스 6b) — 서버가 요청 시점에 받는다(10초 캐시) */

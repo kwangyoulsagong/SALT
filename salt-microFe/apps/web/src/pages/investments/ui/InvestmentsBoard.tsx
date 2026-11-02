@@ -31,13 +31,15 @@ const JudgmentOverview = dynamic(
 const renderCoachPanel: PreviewRenderer = (subject) => (
   <CoachPanel subject={subject} />
 );
+/** 자산군 탭마다 머리 띠 — 국내 탭엔 국내 성적만(`FE-REQ-050` FR-5) */
+const renderLead = (assetClass: string) => <JudgmentOverview assetClass={assetClass} />;
 
 /**
  * 시세 보드 + 머리 아래 위험 · 성적표 카드 + 우측 AI 코치 패널 조합. `widgets` 끼리 import 할 수 없어서 조합은
  * 페이지가 한다(`fsd-widgets.md` — `pc-panel-grid` 와 같은 방식).
  */
 export const InvestmentsBoard = () => (
-  <MarketBoard renderPreview={renderCoachPanel} lead={<JudgmentOverview />} />
+  <MarketBoard renderPreview={renderCoachPanel} renderLead={renderLead} />
 );
 
 export default InvestmentsBoard;

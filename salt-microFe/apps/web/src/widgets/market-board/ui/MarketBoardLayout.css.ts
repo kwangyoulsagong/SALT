@@ -199,17 +199,6 @@ export const headerLineFit = style({
   minWidth: "100%",
 });
 
-/** 국내 지수 띠 청크 · 응답 전 자리 — 지수 칸 높이(이름 16 + 값 22 + 종목 수 16 + 여백 20) */
-export const krIndexPlaceholder = style({
-  height: "74px",
-});
-
-/** 다가오는 일정 줄 자리 — `KrScheduleLine` 높이(44)와 같다(F008 슬라이스 24) */
-export const krSchedulePlaceholder = style({
-  height: "44px",
-  marginTop: vars.space.md,
-});
-
 /** 관심 종목 표 위 추적 카운터 `추적 n / 상한`(`FE-REQ-010` FR-37) — 라벨 단, 고정폭 숫자 */
 export const trackedCounter = style({
   margin: `0 0 ${vars.space.sm}`,

@@ -18,7 +18,8 @@ const linkBase = style({
   textDecoration: "none",
   transition: "background-color 120ms ease",
   selectors: {
-    "&:hover": { backgroundColor: vars.colors.neutral[100] },
+    // 링크인 칸만 — 국내 지수 칸(`span`, 누를 수 없음)에 면이 뜨면 누를 수 있는 것처럼 보인다(`FE-REQ-050` FR-2)
+    "a&:hover": { backgroundColor: vars.colors.neutral[100] },
     "&:focus-visible": {
       outline: `2px solid ${vars.colors.border.focus}`,
       outlineOffset: "-2px",

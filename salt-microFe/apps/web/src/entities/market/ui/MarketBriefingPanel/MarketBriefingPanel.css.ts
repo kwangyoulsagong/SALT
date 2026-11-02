@@ -118,3 +118,26 @@ export const time = style({
   color: vars.colors.text.tertiary,
   fontVariantNumeric: "tabular-nums",
 });
+
+/** 국내 — 소식 줄 자리의 일정 행(`FE-REQ-050` FR-4). 날짜 · 종류 · D-day, 뉴스 행과 같은 높이 */
+export const scheduleKind = style({
+  flex: 1,
+  minWidth: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  fontSize: "13px",
+  color: vars.colors.text.primary,
+});
+
+/** D-day — 판정이 아니라 날짜 표시라 중립 면(일정 줄과 같은 모양). 고정폭 숫자 */
+export const dday = style({
+  flexShrink: 0,
+  padding: "0 6px",
+  borderRadius: 6,
+  background: "rgba(2, 32, 71, 0.05)",
+  color: vars.colors.text.secondary,
+  fontSize: 12,
+  lineHeight: "18px",
+  fontVariantNumeric: "tabular-nums",
+});

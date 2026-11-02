@@ -1,6 +1,6 @@
 "use client";
 
-import type { KrOverview, KrQuote, KrResult, KrStockDetail } from "@repo/core/marketKr";
+import type { KrMarketSummary, KrOverview, KrQuote, KrResult, KrStockDetail, KrSummaryItem } from "@repo/core/marketKr";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
@@ -127,6 +127,38 @@ export const useKrOverviewRealtime = (
       ...prev,
       items: prev.items.map((item) => patchQuote(item, ticks.get(item.code))),
     });
+  });
+};
+
+/** 체결 → 요약 칸. 지수 칸은 체결이 없다(1분 재조회). 금액은 서버(KIS) 값을 옮긴다 */
+const patchSummaryItem = (item: KrSummaryItem, ticks: Map<string, PriceUpdate>): KrSummaryItem => {
+  const tick = item.kind === "stock" ? ticks.get(item.symbol) : undefined;
+  return tick
+    ? {
+        ...item,
+        currentPrice: tick.currentPrice,
+        change24h: tick.change24h,
+        change24hAmount: tick.change24hAmount ?? item.change24hAmount,
+      }
+    : item;
+};
+
+/**
+ * 국내 요약 띠의 종목 칸(`FE-REQ-050` · `BFF-REQ-044` FR-4) — 기존 국내 체결 중계를 구독해 `useKrMarketSummary` 캐시를 고친다.
+ * 표와 같이 프레임당 한 번. 거부 코드를 돌려주지만 띠는 쓰지 않는다 — 1분 재조회가 값을 잇는다
+ */
+export const useKrSummaryRealtime = (codes: string[]): string | null => {
+  const queryClient = useQueryClient();
+  return useKrTicks(codes, (ticks) => {
+    queryClient.setQueryData<KrResult<KrMarketSummary>>(marketQueryKeys.krSummary, (prev) =>
+      prev?.status === "ok"
+        ? {
+            ...prev,
+            featured: prev.featured && patchSummaryItem(prev.featured, ticks),
+            items: prev.items.map((item) => patchSummaryItem(item, ticks)),
+          }
+        : prev,
+    );
   });
 };
 

@@ -22,6 +22,12 @@ export const strip = style({
   "@media": { "screen and (max-width: 1024px)": { gridTemplateColumns: "minmax(0, 1fr)" } },
 });
 
+/** 국내 탭 — 목표 비중 칸이 없어 두 칸이 같은 폭(`FE-REQ-050` FR-5) */
+export const stripTwo = style({
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  "@media": { "screen and (max-width: 1024px)": { gridTemplateColumns: "minmax(0, 1fr)" } },
+});
+
 /** 수화 전 자리 — 띠와 같은 높이(로그아웃이면 수화 뒤 사라진다) */
 export const stripPending = style({ minHeight: "1px" });
 
