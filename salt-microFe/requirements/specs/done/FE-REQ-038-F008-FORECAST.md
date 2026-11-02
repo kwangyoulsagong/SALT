@@ -39,3 +39,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-10-23 | 막힘 사유 문구 2개 — `not_sharper_than_baseline` "단순 예측보다 범위가 좁지 않아 꺼 둠" · `skill_not_significant` "단순 예측보다 낫다는 근거가 부족해 꺼 둠"(국내 거부권 · 풀링 패배, ADR-003 §8). 없으면 "지금은 보여 드릴 수 없어요" 로 떨어졌다 |
 | 2026-11-02 | **FR-7 출처 칩 → 원문 링크 + 게시 시각**(FEATURE-008 FR-44 · `SRV-REQ-037` FR-12). `ExplainCitation` 에 `url` · `publishedAt`(`@repo/core`). 시각 문구는 클라이언트(`formatRelativeTime`). 초점 표시는 다른 폼과 같은 `neutral[800]`. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
 | 2026-11-02 | 해설 카드 끝 문구 — 흘린 문장("Claude 문장을 한 문장씩 검사해 보여 드렸어요") · 공급자별 교체 알림. 근거 `FE-REQ-059`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
+| 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `EventsCard` 가 국내 · 미국 섞임을 그린다 — 지역 표시 · 짧은 이름 · 범위 묶음 · 국내 안내 문구(`FE-REQ-046` FR-1 · 2). 종류 이름은 `@repo/core/coach` 한 벌 |

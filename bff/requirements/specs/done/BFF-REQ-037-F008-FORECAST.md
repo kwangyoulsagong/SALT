@@ -33,3 +33,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-10-29 | **변경 없음.** 프론트 `entities/coach/api/endpoints.ts` 의 다른 줄(리스크 예산 경로 주석 "게이지 3" → "게이지 · 측정")만 바뀌었다 — 이 REQ 를 가리키는 경로 상수 · 주석 무변경(F009 슬라이스 9) |
 | 2026-11-02 | **변경 없음.** 해설 스트림 `message.card.citations[]` 에 서버가 `url` · `publishedAt` 을 더했다(`SRV-REQ-037` FR-12). BFF 는 이벤트 이름만 걸러 데이터는 그대로 옮긴다 — 코드 무변경. F008 해설 근거 슬라이스. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
 | 2026-11-02 | 해설 스트림 중계 — `provider`(`replace` · `done` · `polish:active` 단계)가 데이터 그대로 지난다(테스트 고정). `@repo/core` `ExplainStreamEvent` 에 `ExplainProvider` · 계약 주석(흐르는 글자가 검사한 LLM 문장일 수 있다). 근거 `BFF-REQ-050` · `SRV-REQ-050` FR-13. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
+| 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 주요 사건 뷰모델에 국내 종류 4 · `scope` · `region`(옛 응답은 `market` · `us`)(`BFF-REQ-043` FR-1 · 2) |

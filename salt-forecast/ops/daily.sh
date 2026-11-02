@@ -21,6 +21,7 @@ fi
 rc=0
 # ingest_search(데이터랩)는 search-interest@1 근거 없음으로 껐다(등록 [decision], FC-REQ-017) — 다시 켜려면 새 등록과 함께
 # backfill_whale 은 매일 돌면 증분이다(이미 있는 날은 건너뛴다 — 새 날 하루치 30종목만 받는다)
+# 주요 사건(events)은 kr_daily 뒤 — 국내 일정(금통위 · 물가 · 수출입 · 동시만기) 반응이 옮긴 국내 일봉을 읽는다(FC-REQ-021 FR-10).
 # 국내 주식(FC-REQ-009)은 서버가 채운 일봉을 옮기고(ingest_kr_stock) 예측 · 채점 · 게이트(kr_daily) · 실현 변동성(kr_volatility). 서버 KIS 가
 # 꺼져 있으면 0건 — 실패로 남지만 코인 단계는 막지 않는다
 steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily kr_volatility events signals volatility market_regime target_weight_live)

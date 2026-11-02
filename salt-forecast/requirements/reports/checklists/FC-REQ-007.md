@@ -40,3 +40,9 @@
 ## 2026-10-28 — F000 웹 API 에러 정규화 (짝 영역 변경 없음)
 
 웹이 이 경로의 실패를 `ApiError { status, code, retriable }` 로 받게 바뀌었다(`FE-REQ-012`). 이 영역 코드 · 계약 **변경 없음** — 파일 머리 주석 참조뿐.
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 변경: `config.py` 에 `kr_event_symbols` · `kr_event_top`(`FC-REQ-021` FR-6). 쏠림 신호 설정 무변경
+- 검증: pyright · 전체 pytest 통과
+- 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)

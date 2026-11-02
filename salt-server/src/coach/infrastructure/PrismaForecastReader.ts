@@ -164,14 +164,18 @@ interface TargetWeightLiveSqlRow {
 }
 
 export class PrismaForecastReader implements ForecastReader {
+  /**
+   * 코인(`KRW-BTC`) · 국내 주식(맨 코드) 두 키를 다 묻고, 걸린 행의 키로 자산군을 안다(`forecastSymbol.ts`).
+   * 종목 사건 행은 뷰가 이미 그 종목에만 붙인다(`DB-REQ-034` FR-3) — `event_symbol` 로 시장 · 종목을 가른다
+   */
   async eventCards(symbol: string): Promise<EventCardRow[]> {
-    const rows = await prisma.$queryRaw<EventSqlRow[]>`
-      SELECT kind, event_at, announced_at, source, horizon_days, as_of, sample,
+    const rows = await prisma.$queryRaw<(EventSqlRow & { symbol: string; event_symbol: string })[]>`
+      SELECT kind, event_at, announced_at, source, symbol, event_symbol, horizon_days, as_of, sample,
              q05, q25, q50, q75, q95, up_rate, baseline_q05, baseline_q50, baseline_q95,
              move_ratio, pre_return_5d_median, recent_misses, recent_events, renderable, blocked_reason,
              window_from, window_to, miss_count, miss_judged
       FROM forecast.v_event_card
-      WHERE symbol = ${`KRW-${symbol}`}
+      WHERE symbol = ANY(${forecastKeys(symbol)}::text[])
       ORDER BY event_at, horizon_days
     `;
     return rows.map((r) => ({
@@ -179,6 +183,8 @@ export class PrismaForecastReader implements ForecastReader {
       eventAt: r.event_at,
       announcedAt: r.announced_at,
       source: r.source,
+      eventSymbol: r.event_symbol,
+      assetClass: fromForecastKey(r.symbol).assetClass,
       ...toStats(r),
     }));
   }

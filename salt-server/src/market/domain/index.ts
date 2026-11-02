@@ -8,3 +8,4 @@ export * from "./SmartMoney";
 export * from "./KrStock";
 export * from "./KrSupplement";
 export * from "./policy";
+export * from "./KrMarketSchedule";

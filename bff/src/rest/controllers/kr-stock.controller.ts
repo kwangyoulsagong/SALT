@@ -97,6 +97,13 @@ export class AppKrStockController {
   indices = (req: Request, res: Response, next: NextFunction) =>
     respond(res, next, (signal) => appKrStockService.getIndices(req.token!, signal));
 
+  /** 다가오는 국내 시장 일정 — `days` 1~35(기본 14, 상한은 서버와 같다) */
+  schedule = (req: Request, res: Response, next: NextFunction) => {
+    const days = intQuery(req.query.days, 14, 1, 35);
+    if (days === null) return badRequest(res, "days 는 1~35 정수입니다");
+    return respond(res, next, (signal) => appKrStockService.getSchedule(req.token!, days, signal));
+  };
+
   investors = (req: Request, res: Response, next: NextFunction) => {
     const code = String(req.params.code ?? "").toUpperCase();
     if (!CODE_PATTERN.test(code)) return badRequest(res, "종목 코드 형식이 아닙니다");

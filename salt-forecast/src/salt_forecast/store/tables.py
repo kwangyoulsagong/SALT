@@ -160,6 +160,8 @@ scheduled_event = Table(
     Column("source", Text, nullable=False),
     Column("source_ref", Text, nullable=False),
     Column("ingested_at", DateTime(timezone=True), nullable=False),
+    # 20261102140000_forecast_kr_market_events (DB-REQ-034 FR-2) — 시장 일정 '' · 종목 사건 = 종목 코드
+    Column("symbol", Text, primary_key=True),
 )
 
 event_reaction = Table(
@@ -168,6 +170,7 @@ event_reaction = Table(
     Column("kind", Text, primary_key=True),
     Column("event_at", DateTime(timezone=True), primary_key=True),
     Column("symbol", Text, primary_key=True),
+    Column("event_symbol", Text, primary_key=True),
     Column("ref_bar_open", DateTime(timezone=True), nullable=False),
     Column("pre_return_5d", Float),
     Column("pre_volume_ratio", Float),

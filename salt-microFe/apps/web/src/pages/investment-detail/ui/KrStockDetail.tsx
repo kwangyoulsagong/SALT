@@ -19,6 +19,7 @@ import { RecordTradeCard } from "@/features/record-transaction";
 import { PreflightCard } from "@/features/run-preflight";
 
 import { KrCoachJudgment } from "./KrCoachJudgment";
+import { KrEvents } from "./KrEvents";
 import { KrForecast } from "./KrForecast";
 import { KrInvestorFlows } from "./KrInvestorFlows";
 import { KrOrderbook } from "./KrOrderbook";
@@ -177,6 +178,8 @@ export const KrStockDetail = ({ code }: { code: string }) => {
         </div>
       </div>
       <KrCoachJudgment code={quote.code} />
+      {/* 주요 사건(F008 슬라이스 24) — 국내 판단 카드 아래(`FE-REQ-046` FR-1). 소유자만 */}
+      <KrEvents code={quote.code} />
     </>
   );
 };

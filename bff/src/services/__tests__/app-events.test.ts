@@ -101,3 +101,39 @@ describe("AppForecastService.getEvents", () => {
     assert.deepEqual(await appForecastService.getEvents("tok", "BTC"), { status: "unavailable" });
   });
 });
+
+describe("국내 주요 사건 (BFF-REQ-043 FR-1 · FR-2 · FR-4)", () => {
+  afterEach(() => mock.restoreAll());
+
+  it("국내 종류 · 범위 · 지역을 그대로 싣는다 — 종류 코드를 문장으로 바꾸지 않는다", () => {
+    const v = toEventsViewModel(
+      server([
+        { ...event([horizon(1)], "kr_bok_rate"), scope: "market", region: "kr" },
+        { ...event([horizon(1)], "fomc"), scope: "market", region: "us" },
+      ]),
+    );
+    assert.ok(v.status === "ok");
+    assert.deepEqual(
+      v.events.map((e) => [e.kind, e.scope, e.region]),
+      [
+        ["kr_bok_rate", "market", "kr"],
+        ["fomc", "market", "us"],
+      ],
+    );
+  });
+
+  it("옛 서버(범위 · 지역 없음)는 미국 시장 일정으로 읽는다", () => {
+    const v = toEventsViewModel(server([event([horizon(1)])]));
+    assert.ok(v.status === "ok" && v.events[0]?.scope === "market" && v.events[0]?.region === "us");
+  });
+
+  it("국내 종목 코드를 그대로 넘기고 404 는 그대로", async () => {
+    const calls: unknown[][] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (...args: unknown[]) => {
+      calls.push(args);
+      throw httpError(404);
+    });
+    await assert.rejects(appForecastService.getEvents("tok", "005930"), /404/);
+    assert.equal(calls[0]?.[1], "/coach/events?symbol=005930");
+  });
+});

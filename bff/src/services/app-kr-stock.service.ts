@@ -11,6 +11,7 @@ import {
   toKrOrderbookVM,
   toKrMarketStatusVM,
   toKrOverviewVM,
+  toKrScheduleVM,
   toKrSearchVM,
   type KrChartPeriod,
   type KrListOrder,
@@ -139,6 +140,17 @@ export class AppKrStockService {
   /** 국내 주식 탭 요약 띠 — 코스피 · 코스닥(F011 슬라이스 6) */
   getIndices(token: string, signal?: AbortSignal) {
     return this.read("indices", "/market/kr/indices", token, toKrIndicesVM, { timeout: KR_READ_TIMEOUT_MS, signal });
+  }
+
+  /**
+   * 다가오는 국내 시장 일정(F008 슬라이스 24, `BFF-REQ-043` FR-3) — 공개 일정이라 서버가 소유자 · 키를 보지 않는다.
+   * 서버 503(예측 DB 없음)은 `unavailable` — 화면이 줄을 숨긴다
+   */
+  getSchedule(token: string, days: number, signal?: AbortSignal) {
+    return this.read("schedule", `/market/kr/schedule?days=${days}`, token, toKrScheduleVM, {
+      timeout: KR_READ_TIMEOUT_MS,
+      signal,
+    });
   }
 
   /** 상세 호가 10단계(슬라이스 6b) */

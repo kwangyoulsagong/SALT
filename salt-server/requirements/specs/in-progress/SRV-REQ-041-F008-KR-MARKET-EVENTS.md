@@ -9,6 +9,8 @@ created: 2026-10-30
 source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 ---
 
+> **2026-11-02 1단계 구현** — FR-1 · 2 · 3 · 5 · 6 · 7. FR-4(예상 창)는 2단계. 검증 `checklists/SRV-REQ-041.md`.
+
 ## Summary
 
 `GET /api/coach/events`(`SRV-REQ-037` FR-10 · `GetSymbolEvents`)는 종류를 `fomc | cpi | jobs` 로 좁혀 읽고 그 밖의 행을 버린다
@@ -25,7 +27,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | FR-2 | `GetSymbolEvents` 가 국내 종목 코드(6자리, 전망 카드와 같은 표기)를 받는다. 국내 종목엔 국내 종류 + 미국 거시(`FC-REQ-021` FR-8 이 계산했으면)를, 코인엔 미국 거시만 |
 | FR-3 | 응답 행에 `scope: "market" \| "symbol"` · `region: "us" \| "kr"`. 금액 없음 · 문장 없음(라벨은 프론트 i18n). 3종(표본 · 분포와 평소 분포 · 빗나간 때) 게이트는 지금 함수 그대로 |
 | FR-4 | 2단계 — 종목에 `kr_ir` 확정 일정이 없으면 `expectedWindow: { from, to, sample }`(`v_kr_earnings_window`, 마지막 분기 종료일 + lag 최소 · 최대). `renderable=false` 면 창도 싣지 않는다(표본 < 8) |
-| FR-5 | 신규 `GET /api/market/kr/schedule?days=14` — 앞으로 N일(최대 35) 국내 **시장** 일정 날짜 · 종류만. 분포 없음 → 소유자 검사 없음, `authMiddleware` 만. 국내 주식 기능이 꺼진(KIS 키 없음) 상태여도 일정은 예측 DB 에서 오므로 동작한다. 예측 DB 가 꺼져 있으면 `UNAVAILABLE`(503) |
+| FR-5 | 신규 `GET /api/market/kr/schedule?days=14` — 앞으로 N일(최대 35) 국내 **시장** 일정 날짜 · 종류만. 분포 없음 → 소유자 검사 없음, `authMiddleware` 만. 국내 주식 기능이 꺼진(KIS 키 없음) 상태여도 일정은 예측 DB 에서 오므로 동작한다. 예측 DB 가 꺼져 있으면 `UNAVAILABLE`(503). **(2026-11-02 구현 메모)** `market` 컨텍스트 포트 `MarketScheduleReader` + `PrismaMarketScheduleReader`(`forecast.v_upcoming_event`, `DB-REQ-034` FR-7) — `coach` 가 `market` 뒤에 조립돼 coach API 를 부르면 순환이다. 응답 `{ days, items: [{ kind, eventAt, daysUntil }] }` — `daysUntil` 은 KST 달력 차이를 서버가 센다. 지난 일정 · 종목 사건 제외. 오류 코드 `MARKET_SCHEDULE_UNAVAILABLE` |
 | FR-6 | 성능 — 두 경로 모두 뷰 1회 읽기 · 100ms(`performance-server.md` 단순 조회) |
 | FR-7 | Swagger — `/api/coach/events` 응답 스키마에 FR-3 · FR-4 필드, FR-5 신규 경로 |
 
@@ -46,3 +48,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-02 | 1단계 구현 · in-progress. 국내 종목은 두 전망 키(`KRW-` · 맨 코드)를 다 묻고 걸린 키로 자산군을 안다 — 코인엔 미국 거시만(`REGIONS_FOR`). 종류 → 지역 · 범위 표 `EVENT_KIND_META` 한 곳. 응답 순서 = 종목 사건 → 시장 일정, 같은 범위 안은 시각 순. 실서버 p95 11ms |

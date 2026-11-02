@@ -186,6 +186,24 @@ export interface KrIndices {
   items: KrIndex[];
 }
 
+/**
+ * 다가오는 국내 시장 일정 — BFF `GET /api/app/market/kr/schedule`(F008 슬라이스 24, `BFF-REQ-043` FR-3).
+ * 날짜 · 종류 · 남은 날만 — 과거 반응 분포(전망)는 없다. 종류 · 기간은 서버가 정한다
+ */
+export type KrScheduleKind = "kr_bok_rate" | "kr_cpi" | "kr_trade" | "kr_quad_expiry";
+
+export interface KrScheduleItem {
+  kind: KrScheduleKind;
+  eventAt: string;
+  /** KST 날짜 차이(서버 계산) — 0 = 오늘 */
+  daysUntil: number;
+}
+
+export interface KrSchedule {
+  days: number;
+  items: KrScheduleItem[];
+}
+
 /** 순매수(매수 − 매도) — 수량은 주(문자열 — BigInt), 금액은 원 정수. 음수면 순매도 */
 export interface KrInvestorNet {
   quantity: string;

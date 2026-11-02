@@ -1,4 +1,5 @@
 import type { IndicatorSet } from "./Indicators";
+import type { UpcomingEventRow } from "./KrMarketSchedule";
 import type {
   MarketAssetView,
   MarketOverviewQuery,
@@ -553,6 +554,14 @@ export interface IndicatorRepository {
     symbols: string[],
     timeframe?: string
   ): Promise<StoredIndicator[]>;
+}
+
+/**
+ * 다가오는 일정 — `forecast.v_upcoming_event`(앞으로 35일 · 지난 하루 포함, `DB-REQ-034` FR-7). 쓰기는 salt-forecast 만.
+ * 읽을 수 없으면(예측 스키마 없음) `MarketScheduleUnavailableError`
+ */
+export interface MarketScheduleReader {
+  upcoming(): Promise<UpcomingEventRow[]>;
 }
 
 export type { SortDirection };

@@ -30,6 +30,8 @@ const row = (over: Partial<EventCardRow> = {}): EventCardRow => ({
   windowTo: new Date("2026-09-11T12:30:00Z"),
   missCount: 5,
   missJudged: 38,
+  eventSymbol: "",
+  assetClass: "crypto",
   ...over,
 });
 
@@ -83,5 +85,42 @@ describe("사건 반응 성적 4요소 (F009 FR-33)", () => {
       baseline: { present: true, code: "ordinary_days" },
       misses: { present: true, count: 5, outOf: 38 },
     });
+  });
+});
+
+describe("toMacroEvents — 국내 일정 (SRV-REQ-041 FR-1 · FR-2 · FR-3)", () => {
+  const kr = (over: Partial<EventCardRow> = {}) => row({ assetClass: "kr_stock", ...over });
+
+  it("국내 종목엔 국내 4종 + 미국 거시, 행마다 지역 · 범위", () => {
+    const events = toMacroEvents([
+      kr({ kind: "kr_bok_rate", eventAt: new Date("2026-11-26T01:00:00Z") }),
+      kr({ kind: "fomc", eventAt: new Date("2026-12-09T19:00:00Z") }),
+      kr({ kind: "kr_quad_expiry", eventAt: new Date("2026-12-10T00:00:00Z") }),
+    ]);
+    assert.deepEqual(
+      events.map((e) => [e.kind, e.region, e.scope]),
+      [
+        ["kr_bok_rate", "kr", "market"],
+        ["fomc", "us", "market"],
+        ["kr_quad_expiry", "kr", "market"],
+      ]
+    );
+  });
+
+  it("코인엔 국내 일정을 싣지 않는다 — 예측이 계산했어도", () => {
+    const events = toMacroEvents([row({ kind: "kr_cpi" }), row({ kind: "cpi" })]);
+    assert.deepEqual(events.map((e) => e.kind), ["cpi"]);
+  });
+
+  it("모르는 종류 · 시장 종류인데 종목이 붙은 행은 버린다", () => {
+    const events = toMacroEvents([kr({ kind: "kr_earnings", eventSymbol: "005930" }), kr({ kind: "kr_cpi", eventSymbol: "005930" })]);
+    assert.equal(events.length, 0);
+  });
+
+  it("같은 시각 · 같은 종류라도 사건 종목이 다르면 다른 일정이다", () => {
+    const at = new Date("2026-11-03T23:00:00Z");
+    const events = toMacroEvents([kr({ kind: "kr_cpi", eventAt: at }), kr({ kind: "kr_cpi", eventAt: at, horizonDays: 5 })]);
+    assert.equal(events.length, 1);
+    assert.equal(events[0]?.horizons.filter((h) => h.renderable).length, 2);
   });
 });

@@ -1,4 +1,7 @@
-"""주요 사건 일정 · 반응 · 통계 읽기 · 쓰기 (FC-REQ-005)."""
+"""주요 사건 일정 · 반응 · 통계 읽기 · 쓰기 (FC-REQ-005 · FC-REQ-021).
+
+키에 사건 종목(`symbol` · `event_symbol`)이 있다(DB-REQ-034).
+"""
 
 from __future__ import annotations
 
@@ -14,13 +17,13 @@ from salt_forecast.store.tables import event_reaction, event_reaction_stats, sch
 
 
 def upsert_events(engine: Engine, events: Iterable[ScheduledEvent], now: datetime) -> int:
-    rows = [(e.kind, e.event_at, e.announced_at, e.source, e.source_ref, now) for e in events]
+    rows = [(e.kind, e.event_at, e.symbol, e.announced_at, e.source, e.source_ref, now) for e in events]
     return bulk_upsert(
         engine,
         scheduled_event,
-        ("kind", "event_at", "announced_at", "source", "source_ref", "ingested_at"),
+        ("kind", "event_at", "symbol", "announced_at", "source", "source_ref", "ingested_at"),
         rows,
-        ("kind", "event_at"),
+        ("kind", "event_at", "symbol"),
     )
 
 
@@ -28,7 +31,10 @@ def events_known(engine: Engine, as_of: datetime) -> list[ScheduledEvent]:
     """as_of 에 알 수 있던 일정(announced_at <= as_of) — time-and-leakage.md §2."""
     stmt = select(scheduled_event).where(scheduled_event.c.announced_at <= as_of).order_by(scheduled_event.c.event_at)
     with engine.connect() as conn:
-        return [ScheduledEvent(r.kind, r.event_at, r.announced_at, r.source, r.source_ref) for r in conn.execute(stmt)]
+        return [
+            ScheduledEvent(r.kind, r.event_at, r.announced_at, r.source, r.source_ref, r.symbol)
+            for r in conn.execute(stmt)
+        ]
 
 
 def upsert_reactions(engine: Engine, reactions: Iterable[Reaction], now: datetime) -> int:
@@ -37,6 +43,7 @@ def upsert_reactions(engine: Engine, reactions: Iterable[Reaction], now: datetim
             r.kind,
             r.event_at,
             r.symbol,
+            r.event_symbol,
             r.ref_bar_open,
             r.pre_return_5d,
             r.pre_volume_ratio,
@@ -52,6 +59,7 @@ def upsert_reactions(engine: Engine, reactions: Iterable[Reaction], now: datetim
             "kind",
             "event_at",
             "symbol",
+            "event_symbol",
             "ref_bar_open",
             "pre_return_5d",
             "pre_volume_ratio",
@@ -61,7 +69,7 @@ def upsert_reactions(engine: Engine, reactions: Iterable[Reaction], now: datetim
             "computed_at",
         ),
         rows,
-        ("kind", "event_at", "symbol"),
+        ("kind", "event_at", "symbol", "event_symbol"),
     )
 
 

@@ -185,3 +185,9 @@
 `tsc` · `lint` · `test:layer-check`(차단 10 · 통과 6) · 기동 로그 `해설 로컬 CLI local_claude 2.1.316`
 
 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 변경: `composition.ts` 에 `PrismaMarketScheduleReader` 조립 · 예측이 보유 · 관심 국내 종목(`symbol` 만)을 읽는 근거로 FR-87(국내 추가 = 소유자만)을 인용
+- 검증: 조립 · 빌드 통과
+- 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)

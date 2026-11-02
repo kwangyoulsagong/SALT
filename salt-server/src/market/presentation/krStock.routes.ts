@@ -1,21 +1,66 @@
 import { Router } from "express";
 
 import { authMiddleware } from "../../shared/presentation/authMiddleware";
-import type { KrStockUseCases } from "../application/api";
+import type { KrStockUseCases, MarketUseCases } from "../application/api";
 import { KrStockController } from "./krStock.controller";
 
 /**
  * 국내 주식 조회 경로 — `/api/market/kr` (F011 · `SRV-REQ-040`).
  *
  * 전부 인증 필수 · 소유자 전용(재배포 약관 확인 전). 비회원 · 공개 응답에 국내 주식 시세는 0건이다.
+ * 예외 하나 — `/schedule`(공개 일정, 시세 아님)은 소유자 검사 · 키 검사가 없다.
  * 키가 없으면 전 경로 `503 KR_STOCK_DISABLED`, 소유자가 아니거나 없는 종목은 `404 KR_STOCK_NOT_AVAILABLE`.
  * 응답은 저장값이다 — 요청이 KIS 를 부르지 않는다.
  */
-export const createKrStockRouter = (useCases: KrStockUseCases | null): Router => {
+export const createKrStockRouter = (
+  useCases: KrStockUseCases | null,
+  getSchedule: MarketUseCases["getKrMarketSchedule"]
+): Router => {
   const router = Router();
-  const controller = new KrStockController(useCases);
+  const controller = new KrStockController(useCases, getSchedule);
 
   router.use(authMiddleware);
+
+  /**
+   * @swagger
+   * /api/market/kr/schedule:
+   *   get:
+   *     summary: 다가오는 국내 시장 일정(금통위 · 소비자물가 · 수출입 · 선물옵션 동시만기) — 로그인 사용자 전부
+   *     description: |
+   *       날짜 · 종류 · 남은 날(KST 달력)만. 과거 반응 분포는 없다(전망은 `/api/coach/events`, 소유자 전용).
+   *       **이 경로만 예외다** — 소유자 검사가 없고, 국내 주식(KIS 키)이 꺼져 있어도 동작한다. 일정은 예측 DB 뷰
+   *       `forecast.v_upcoming_event` 에서 온다(`SRV-REQ-041` FR-5). 지난 일정 · 종목 사건(2단계)은 빠진다.
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - { in: query, name: days, schema: { type: integer, minimum: 1, maximum: 35, default: 14 } }
+   *     responses:
+   *       200:
+   *         description: 성공 — 없으면 items 빈 배열
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     days: { type: integer }
+   *                     items:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           kind: { type: string, enum: [kr_bok_rate, kr_cpi, kr_trade, kr_quad_expiry] }
+   *                           eventAt: { type: string, format: date-time }
+   *                           daysUntil: { type: integer, description: "KST 날짜 차이 — 0 = 오늘" }
+   *       400: { description: days 형식 오류 }
+   *       401: { description: 인증 실패 }
+   *       503: { description: "예측 DB 를 읽을 수 없다(`MARKET_SCHEDULE_UNAVAILABLE`)" }
+   */
+  router.get("/schedule", controller.schedule);
 
   /**
    * @swagger

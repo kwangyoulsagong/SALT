@@ -242,3 +242,25 @@ export const srOnly = style({
   clip: "rect(0 0 0 0)",
   whiteSpace: "nowrap",
 });
+
+/** 지역 표시(국내 · 미국) — 판정이 아니라 출처 표시라 배지와 같은 중립 회색. 국내 종목처럼 두 지역이 섞일 때만 그린다 */
+export const regionTag = style({
+  display: "inline-block",
+  marginRight: vars.space.xs,
+  padding: `0 6px`,
+  borderRadius: vars.radius.small,
+  background: vars.colors.background.tertiary,
+  color: vars.colors.text.tertiary,
+  fontSize: vars.typography.t8.fontSize,
+  lineHeight: vars.typography.t8.lineHeight,
+  fontWeight: vars.fontWeights.semibold,
+  verticalAlign: "1px",
+});
+
+/** 범위 묶음 제목(이 종목 일정 · 시장 일정) — 두 묶음이 다 있을 때만 */
+export const groupTitle = style({
+  margin: `${vars.space.sm} 0 0`,
+  color: vars.colors.text.tertiary,
+  fontSize: vars.typography.t7.fontSize,
+  fontWeight: vars.fontWeights.semibold,
+});

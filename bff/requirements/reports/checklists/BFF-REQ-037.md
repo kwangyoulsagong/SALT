@@ -41,3 +41,9 @@
 중계 테스트 · core 51/0
 
 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 변경: 주요 사건 뷰모델에 국내 종류 4 · `scope` · `region`(옛 응답은 `market` · `us`)(`BFF-REQ-043` FR-1 · 2)
+- 검증: `app-events.test.ts` 국내 3건 추가 통과
+- 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
