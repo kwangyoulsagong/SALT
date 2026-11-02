@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { AppShell, EMBED_SCRIPT, ZoneProviders } from "@repo/web-shared/chrome";
+import { AppShell, EMBED_SCRIPT, FONT_VARIABLES, ZoneProviders } from "@repo/web-shared/chrome";
 import "@repo/web-shared/chrome/globals.css";
 
 /**
@@ -15,7 +15,7 @@ export { rootMetadata as metadata } from "@repo/web-shared/chrome";
 export default function InvestZoneLayout({ children }: { children: ReactNode }) {
   return (
     // 앱 웹뷰 판단 스크립트가 <html> 속성을 단다 — 그 한 곳의 불일치만 허용(셸과 같다)
-    <html lang="ko" data-zone="invest" suppressHydrationWarning>
+    <html lang="ko" data-zone="invest" className={FONT_VARIABLES} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: EMBED_SCRIPT }} />
       </head>
