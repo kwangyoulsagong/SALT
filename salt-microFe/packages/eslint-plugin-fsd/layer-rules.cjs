@@ -29,7 +29,7 @@
  * |---|---|---|
  * | `apps/<app>/src/<layer>/<slice>` | 6레이어 | 슬라이스 |
  * | `packages/domain-<x>/src/<layer>/<slice>` | `entities` · `features` · `widgets` · `pages` | 슬라이스 |
- * | `packages/web-shared/src/<segment>` | `shared` 하나(+ `chrome` — 앱 크롬) | 패키지 전체 |
+ * | `packages/web-shared/src/<segment>` | `shared` 하나(+ `layout` — 공용 레이아웃) | 패키지 전체 |
  *
  * `@repo/web-shared/<segment>` 는 `@/shared/<segment>` 와 같은 판정을 탄다 — 세그먼트 내부 경로 금지(`*.css` 예외).
  */
@@ -80,7 +80,7 @@ const REGISTRY = {
     "accept-invite",
     "arrange-panels",
     "sign-in",
-    // "sign-out" — 헤더 프로필 메뉴는 zone 이 같이 쓴다 → `@repo/web-shared/chrome` (FE-REQ-053)
+    // "sign-out" — 헤더 프로필 메뉴는 zone 이 같이 쓴다 → `@repo/web-shared/layout` (FE-REQ-053)
     "search-asset",
     "toggle-news-bookmark",
     "switch-coach-mode",
@@ -126,7 +126,7 @@ const REGISTRY = {
     "onboarding",
     "login",
     "streaming-probe",
-    // "not-found" — 404 는 zone 이 같이 쓴다 → `@repo/web-shared/chrome` (FE-REQ-044 P-15 → FE-REQ-053)
+    // "not-found" — 404 는 zone 이 같이 쓴다 → `@repo/web-shared/layout` (FE-REQ-044 P-15 → FE-REQ-053)
   ],
 };
 
@@ -134,10 +134,10 @@ const REGISTRY = {
 const WEB_SHARED_PACKAGE = "@repo/web-shared";
 
 /**
- * `@repo/web-shared` 의 공개 단위 — shared 세그먼트 + `chrome`(앱 크롬: 프로바이더 · 프레임 · 프로필 메뉴).
- * `chrome` 은 `FE-REQ-054` 가 `@repo/ui` `AppChrome` 으로 옮길 때까지의 자리다.
+ * `@repo/web-shared` 의 공개 단위 — shared 세그먼트 + `layout`(zone 루트 레이아웃이 같이 쓰는 것: 프로바이더 · 프레임 · 프로필 메뉴 · 404 · 글꼴).
+ * `layout` 은 `FE-REQ-054` 가 `@repo/ui` `AppChrome` 으로 옮길 때까지의 자리다.
  */
-const WEB_SHARED_ENTRIES = [...SHARED_SEGMENTS, "chrome"];
+const WEB_SHARED_ENTRIES = [...SHARED_SEGMENTS, "layout"];
 
 /** 도메인 패키지 안에 둘 수 있는 레이어. shared 는 `@repo/web-shared`, app 은 zone 앱이 갖는다 */
 const DOMAIN_PACKAGE_LAYERS = ["entities", "features", "widgets", "pages"];
@@ -297,7 +297,7 @@ const checkDomainImport = (here, source, resolved) => {
 
 /**
  * `@repo/web-shared/<segment>` 를 `@/shared/<segment>` 꼴로 읽는다 — 같은 shared 판정을 태운다 (FE-REQ-053).
- * `chrome` 은 shared 세그먼트가 아니라 앱 크롬 자리다(`WEB_SHARED_ENTRIES`).
+ * `layout` 은 shared 세그먼트가 아니라 공용 레이아웃 자리다(`WEB_SHARED_ENTRIES`).
  */
 const asLayerAlias = (source) => {
   if (source === WEB_SHARED_PACKAGE) return "@/shared";

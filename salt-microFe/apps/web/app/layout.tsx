@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { AppProviders, AppShell, EMBED_SCRIPT, FONT_VARIABLES } from "@/app";
-import "@repo/web-shared/chrome/globals.css";
+import "@repo/web-shared/layout/globals.css";
 
 /**
  * default zone 의 루트 레이아웃 (FE-REQ-008 FR-1 · FR-2).

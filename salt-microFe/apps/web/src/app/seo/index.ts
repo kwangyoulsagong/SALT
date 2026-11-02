@@ -1,2 +1,2 @@
 export * from "./robots";
-export { rootMetadata } from "@repo/web-shared/chrome";
+export { rootMetadata } from "@repo/web-shared/layout";

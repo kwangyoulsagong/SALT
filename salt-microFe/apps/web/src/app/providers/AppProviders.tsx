@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Provider as ReduxProvider } from "react-redux";
 
-import { ZoneProviders } from "@repo/web-shared/chrome";
+import { ZoneProviders } from "@repo/web-shared/layout";
 
 import { store } from "../store";
 import AuthInitializer from "./AuthInitializer";
@@ -18,7 +18,7 @@ import AuthInitializer from "./AuthInitializer";
  * 컴포넌트는 서버에서 렌더돼 이미 만들어진 트리로 꽂힌다. 그래서 페이지·블록은
  * 서버 컴포넌트로 남을 수 있다.
  *
- * React Query · 모션은 모든 zone 이 같은 설정을 쓴다 — `ZoneProviders`(`@repo/web-shared/chrome`, FE-REQ-053).
+ * React Query · 모션은 모든 zone 이 같은 설정을 쓴다 — `ZoneProviders`(`@repo/web-shared/layout`, FE-REQ-053).
  * Redux(`auth` · `goal`) · 세션 복원은 셸만 갖는다. 투자 zone 은 store 가 없다.
  */
 const AppProviders = ({ children }: { children: ReactNode }) => {

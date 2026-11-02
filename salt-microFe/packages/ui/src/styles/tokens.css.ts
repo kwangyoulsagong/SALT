@@ -25,7 +25,7 @@ const motionCss = {
 /**
  * 글꼴은 **웹에서 실제로 실린 글꼴 변수**로 잇는다(2026-11-02). 전에는 여기서 구글 폰트 파일 주소를 직접 박은
  * `@font-face` 를 걸었는데 그 버전 파일이 사라져(404) 모든 화면이 시스템 글꼴로 그려지고 있었다. 이제 zone 레이아웃이
- * `next/font` 로 빌드 때 받아 같은 origin 으로 서비스하고(`@repo/web-shared/chrome` `FONT_VARIABLES`) 그 변수를
+ * `next/font` 로 빌드 때 받아 같은 origin 으로 서비스하고(`@repo/web-shared/layout` `FONT_VARIABLES`) 그 변수를
  * `<html>` 에 건다. 변수가 없는 곳(Storybook)은 토큰의 이름 그대로 — 값은 `@repo/tokens` 와 같다(RN 이 같은 이름을 쓴다).
  */
 const webFont = {

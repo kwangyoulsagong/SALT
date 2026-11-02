@@ -1,16 +1,16 @@
 import type { ReactNode } from "react";
 
-import { AppShell, EMBED_SCRIPT, FONT_VARIABLES, ZoneProviders } from "@repo/web-shared/chrome";
-import "@repo/web-shared/chrome/globals.css";
+import { AppShell, EMBED_SCRIPT, FONT_VARIABLES, ZoneProviders } from "@repo/web-shared/layout";
+import "@repo/web-shared/layout/globals.css";
 
 /**
  * 투자 zone 루트 레이아웃 (FE-REQ-052 FR-7 → FE-REQ-053).
  *
- * 셸과 같은 껍데기다 — 프레임 · 768 미만 안내 · 앱 웹뷰 표지 · 전역 스타일은 `@repo/web-shared/chrome` 하나에서 온다.
+ * 셸과 같은 껍데기다 — 프레임 · 768 미만 안내 · 앱 웹뷰 표지 · 전역 스타일은 `@repo/web-shared/layout` 하나에서 온다.
  * 다른 점은 프로바이더: React Query · 모션만 갖고 Redux(셸의 `auth` · `goal`)는 없다 — 투자 화면은 store 를 쓰지 않는다.
  * `data-zone` 은 셸 rewrites 가 이 앱에 닿았는지 확인하는 표지다.
  */
-export { rootMetadata as metadata } from "@repo/web-shared/chrome";
+export { rootMetadata as metadata } from "@repo/web-shared/layout";
 
 export default function InvestZoneLayout({ children }: { children: ReactNode }) {
   return (
