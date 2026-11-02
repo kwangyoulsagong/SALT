@@ -49,6 +49,20 @@ export const stanceOf = (action: ModeDecisionAction): JudgmentStance =>
 
 const clip = (text: string, max = EVIDENCE_VALUE_MAX) => (text.length > max ? text.slice(0, max) : text);
 
+/**
+ * 화면이 링크로 열어도 되는 주소인가 — `http(s)` 만(FEATURE-008 FR-44). 수집한 기사 주소는 외부 입력이라
+ * `javascript:` · `data:` 가 섞이면 링크 하나로 스크립트가 돈다. 못 쓰는 주소는 빼고 출처 이름만 남긴다
+ */
+export const citableUrl = (url: string | null | undefined): boolean => {
+  if (!url) return false;
+  try {
+    const { protocol } = new URL(url);
+    return protocol === "https:" || protocol === "http:";
+  } catch {
+    return false;
+  }
+};
+
 export interface ExplanationMaterials {
   symbol: string;
   mode: CoachMode;
@@ -96,6 +110,8 @@ export const assembleExplanationFacts = (m: ExplanationMaterials): CoachExplanat
     ...(item.summary ? { summary: clip(item.summary, 500) } : {}),
     source: item.source,
     ...(item.sentiment ? { sentiment: item.sentiment } : {}),
+    ...(citableUrl(item.url) ? { url: item.url } : {}),
+    ...(Number.isFinite(item.publishedAt?.getTime()) ? { publishedAt: item.publishedAt.toISOString() } : {}),
   }));
 
   return {

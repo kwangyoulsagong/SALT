@@ -41,7 +41,9 @@ export const templateExplanation = (input: CoachExplanationInput, now: Date): Co
   const headline = firstValue(input, "판단");
   const tradeValue = Math.round(input.tradeValue24h / 1e8);
   const modeReasoning = [
-    headline ? `${MODE_LABEL[input.mode]} 관점 판단은 "${headline}"입니다.` : `${MODE_LABEL[input.mode]} 관점 판단입니다.`,
+    // 판단 문장을 그대로 앞에 둔다(2026-11-02). 전엔 `단타 관점 판단은 "…입니다. …못합니다."입니다.` 로 따옴표 안에 두 문장을 넣고
+    // "입니다"를 또 붙였다 — 블라인드 평가지 · 실화면에서 어색했다(FEATURE-008 FR-49). 판단 문장은 이미 "<종목> <모드> 관점은 …"으로 시작한다
+    headline ? (/[.!?]$/.test(headline.trim()) ? headline.trim() : `${headline.trim()}.`) : `${MODE_LABEL[input.mode]} 관점 판단입니다.`,
     `24시간 변동 ${signed(input.change24h)} · 거래대금 약 ${tradeValue.toLocaleString("ko-KR")}억 원 기준입니다.`,
   ].join(" ");
 
@@ -52,7 +54,9 @@ export const templateExplanation = (input: CoachExplanationInput, now: Date): Co
   ).slice(0, 3);
 
   const cautions = valuesOf(input, "주의").slice(0, 2);
-  const risks = cautions.length > 0 ? cautions : ["가격 변동이 커질 수 있는 구간입니다."];
+  // 규칙이 준 주의가 없으면 그 사실을 말한다(2026-11-02). 전엔 "가격 변동이 커질 수 있는 구간입니다."를 끼워 넣었는데,
+  // 입력에 없는 일반론이라 블라인드 평가자 셋이 2차에서 근거 없는 문장으로 짚었다(FEATURE-008 FR-49)
+  const risks = cautions.length > 0 ? cautions : ["이 판단에 규칙이 적은 주의 사항은 없습니다."];
 
   const newsSummary = (input.news ?? [])
     .slice(0, NEWS_MAX)

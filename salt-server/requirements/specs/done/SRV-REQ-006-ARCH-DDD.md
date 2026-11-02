@@ -253,3 +253,4 @@ F001은 `behavior-coach`의 편향 판정을 **거래 단위 라벨러로 재사
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | Shared Kernel `DomainError` 에 선택 `details`(응답 본문 최상위) — 컨텍스트 예외가 화면용 값을 실을 자리. 미들웨어가 `success` · `code` · `message` 를 뒤에 써 덮지 못한다(`ddd-shared.md` §2 개정, `36368363`) — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-10-30 | `ExchangeQuotePort.weeklyCandles` 추가 — 조회 메서드만(주문 · 출금 메서드 0 원칙 그대로). 어댑터 `UpbitClient` 의 캔들 404 → `UnknownMarketSymbolError` 규칙도 같게. F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
+| 2026-11-02 | `shared/lib/josa.ts` 추가 — 순수 문자열 유틸(`es-hangul` 감쌈). 도메인은 `shared/lib` 만 부른다(외부 라이브러리를 도메인에 직접 들이지 않는다 — 예외는 `decimal.js` 그대로). `policy.test.ts`(이 REQ 주인) 기대 문구 갱신. F008 해설 근거 슬라이스. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |

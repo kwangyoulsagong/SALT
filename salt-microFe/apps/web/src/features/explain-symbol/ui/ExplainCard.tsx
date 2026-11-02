@@ -10,7 +10,7 @@ import { StatusToast } from "@repo/ui/statusToast";
 import { Text } from "@repo/ui/text";
 
 import { JudgmentCases, selectModeView, TrackRecordStats } from "@/entities/coach";
-import { formatClockTime } from "@/shared/lib";
+import { formatClockTime, formatRelativeTime } from "@/shared/lib";
 
 import { useExplainStream } from "../api";
 import { buildExplainRequest, EXPLAIN_MESSAGES, type ExplainStreamState } from "../model";
@@ -78,11 +78,29 @@ const StreamedBody = ({ state, footer }: { state: ExplainStreamState; footer: Re
         <ul className={s.chips} aria-label={M.citationsLabel}>
           {state.citations
             .filter((c) => c.source)
-            .map((c) => (
-              <li key={`${c.source}-${c.title}`} className={s.chip} title={c.title}>
-                {c.source}
-              </li>
-            ))}
+            .map((c) => {
+              // 출처마다 원문 주소 · 게시 시각(FEATURE-008 FR-44). 주소가 없으면 이름만 — 링크를 지어내지 않는다
+              const when = c.publishedAt ? formatRelativeTime(c.publishedAt) : "";
+              const label = when ? `${c.source} · ${when}` : c.source;
+              return (
+                <li key={`${c.source}-${c.title}`} className={s.chip} title={c.title}>
+                  {c.url ? (
+                    // 새 탭 + `noopener` — 없으면 열린 문서가 `window.opener` 로 이 탭을 조작할 수 있다
+                    <a
+                      className={s.chipLink}
+                      href={c.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={M.citationLinkLabel(c.source ?? "", c.title)}
+                    >
+                      {label}
+                    </a>
+                  ) : (
+                    label
+                  )}
+                </li>
+              );
+            })}
         </ul>
       )}
       {/* 알림(바뀜 · 규칙 기반)은 글자가 다 드러난 뒤에 — 읽는 중에 끼어들지 않는다 */}

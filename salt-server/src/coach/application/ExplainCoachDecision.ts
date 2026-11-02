@@ -43,6 +43,11 @@ export interface ExplainOptions {
   usage?: LlmUsageStore;
   /** 비운 칸은 `DEFAULT_LLM_BUDGET` */
   limits?: Partial<LlmBudgetLimits>;
+  /**
+   * LLM 다듬기를 부르나(`SRV-REQ-037` FR-16). `false` 면 템플릿만 — 스트림은 다듬기 · 검사 단계를 `skipped` 로 내고 `source: template`.
+   * 없으면 켜짐. 운영 조립은 env `COACH_EXPLAIN_LLM`(기본 on)
+   */
+  llmEnabled?: boolean;
   /** 국내 주식 해설을 받을 수 있는 이메일 — 종목 판단과 같은 소유자 목록(F011 §정책). 없으면 아무도 */
   krViewerEmails?: readonly string[];
   /**
@@ -101,10 +106,15 @@ export type ExplainStep = "judgment" | "draft" | "polish" | "verify";
 /** 해설 본문 칸. 목록 칸은 `index` 로 항목을 가른다 */
 export type ExplainSection = "modeReasoning" | "keyDrivers" | "risks" | "newsSummary";
 
-/** 인용 출처 — 해설에 들어간 뉴스의 출처(FEATURE-008 FR-44). 문장이 아니라 입력에서 온다 */
+/**
+ * 인용 출처 — 해설에 들어간 뉴스의 출처(FEATURE-008 FR-44). 문장이 아니라 입력에서 온다.
+ * `url` 은 `http(s)` 만(`citableUrl`), 없으면 `null` — 화면은 이름만 그린다. `publishedAt` 은 기사 게시 시각(ISO)
+ */
 export interface ExplainCitation {
   title: string;
   source: string | null;
+  url: string | null;
+  publishedAt: string | null;
 }
 
 /**
@@ -180,6 +190,7 @@ export class ExplainCoachDecision {
    * **원장을 못 읽으면 막는다** — 비용이 얼마 나갔는지 모르는 채로 부르지 않는다. 막혀도 템플릿 해설은 나간다
    */
   private async llmAllowed(userId: string): Promise<boolean> {
+    if (this.options.llmEnabled === false) return false;
     const usage = this.options.usage;
     if (!usage) return true;
     try {
@@ -257,7 +268,12 @@ export class ExplainCoachDecision {
         trackRecord: view.trackRecord,
         failureCases: view.failureCases,
         disclaimer: JUDGMENT_DISCLAIMER,
-        citations: (input.news ?? []).map((n) => ({ title: n.title, source: n.source ?? null })),
+        citations: (input.news ?? []).map((n) => ({
+          title: n.title,
+          source: n.source ?? null,
+          url: n.url ?? null,
+          publishedAt: n.publishedAt ?? null,
+        })),
         facts,
       },
     });

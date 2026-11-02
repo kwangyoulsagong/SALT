@@ -197,10 +197,12 @@ export const scoreModeDecision = (input: ModeDecisionInput): ScoredModeDecision 
     // 고치면 응답의 `riskLevel` 이 바뀌므로 이관에서 건드리지 않았다.
     riskLevel: normalized >= 50 ? "medium" : "high",
     timeframe: COACH_HORIZON[input.mode].timeframe,
+    // 2026-11-02 사실 서술로(`SRV-REQ-024` FR-108 정정) — "진입하지 마세요" · "잡으세요" 는 명령형 매매 지시였고
+    // 검증기가 부정 명령 · `-으세요` 를 몰라 통과했다(FEATURE-008 FR-49 측정에서 찾음)
     headline:
       input.mode === "scalp"
-        ? `${input.symbol} 단타 관점은 ${label}입니다. 손절 기준 없이 진입하지 마세요.`
-        : `${input.symbol} 장기 관점은 ${label}입니다. 한 번에 진입하기보다 분할 기준을 먼저 잡으세요.`,
+        ? `${input.symbol} 단타 관점은 ${label}입니다. 손절 기준이 없는 진입은 손실 폭을 미리 정하지 못합니다.`
+        : `${input.symbol} 장기 관점은 ${label}입니다. 나눠 들어가면 한 번에 들어갈 때보다 가격 변동 위험이 작습니다.`,
     reasons: reasons.slice(0, 3),
     risks: risks.slice(0, 3),
     score: normalized,

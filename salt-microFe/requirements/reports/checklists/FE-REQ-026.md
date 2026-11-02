@@ -285,3 +285,9 @@
 미검증 · 범위 밖: 로그인 실계정 리포트(`QA-001` — 소유자 리스크가 실제로 여러 종목인지) · RN(`RN-REQ-020`, 앱 착수 때).
 
 - fix(2026-10-30, 같은 슬라이스): `ReportRiskList` 에 `"use client"` — `useState` 가 생겼는데 지시문이 없었다(`fsd-entities.md` "barrel 로 노출되는 상호작용 잎에 직접"). 부모 위젯이 클라이언트라 빌드는 통과했었다. fix 뒤 모노레포 전체 재검증: check-types 5/5 · lint 5/5 · test core 51 · ui 43 · layer-check 8/5 · build web · web-tax 통과
+
+## 2026-11-02 — 파일만 걸침 (F008 해설 근거)
+
+- `ExplainCard.tsx`(이 REQ 가 머리 주석 주인) 출처 칩이 원문 링크 + 게시 시각(주인 FR 은 `FE-REQ-038` FR-7). 이 REQ 화면 구조 무변경. `pnpm check-types` · `lint` · `web build` 통과
+
+미검증: 없음(화면 확인은 `FE-REQ-038` 표).

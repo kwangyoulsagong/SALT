@@ -412,3 +412,15 @@
 | build · lint · test 870 · test:layer-check · 훅 사후 | 통과 |
 | 실회차 | ~~**미검증** — 30일 전 날이 처음 개장일인 2026-11-05 15:4x 로그(종목·일 ≈ 53)~~ **닫음 2026-11-02** 시각 주입 dry-run(실 DB): 10-30 main 09-30 ×51 → 0 · 11-05 창 10-07~ |
 | 종가 재시도 5개장일(후속) | 테스트 · 변이 · dry-run 오늘 108 → 100 · KIS 034020 10-08 종가 1분봉 없음 · 10-30 은 있음(다음 회차가 채움) |
+
+## 2026-11-02 — 파일만 걸침 (해설 LLM 스위치)
+
+- `shared/config/env.ts`(이 REQ 가 머리 주석 주인)에 `COACH_EXPLAIN_LLM`(on · off, 기본 on). `npm run build` · `test` 889 통과
+
+미검증: 없음.
+
+## 2026-11-02 — 서버 종료 5초 상한 (`OPS-002`)
+
+- 증상 · 원인 · 결과는 루트 `requirements/reports/checklists/OPS-002.md` §재시작 고아. `restart server` 10초 · 7초 · 고아 0 · `npm run build` · `test` 889 · layer-check
+
+미검증: 없음.

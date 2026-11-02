@@ -19,7 +19,8 @@
     "candles:backfill": "tsx scripts/backfill-daily-candles.ts",
     "judgments:seed": "tsx scripts/seed-judgment-snapshots.ts",
     "judgments:seed:clear": "tsx scripts/seed-judgment-snapshots.ts --clear",
-    "judgments:kr-backtest": "tsx scripts/backtest-kr-judgments.ts"
+    "judgments:kr-backtest": "tsx scripts/backtest-kr-judgments.ts",
+    "explain:ab": "tsx scripts/explain-ab-sheet.ts"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +35,7 @@
     "cors": "^2.8.5",
     "decimal.js": "^10.6.0",
     "dotenv": "^17.2.3",
+    "es-hangul": "^2.4.0",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",

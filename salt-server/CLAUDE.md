@@ -23,6 +23,9 @@ npm run prisma:migrate
 npm run prisma:studio
 ```
 
+> **상시 프로세스는 launchd 다(`OPS-002`).** 서버 4000(`com.salt.server`)과 뉴스 워커(`com.salt.news`)는 `ops/salt.sh` 가 감독한다 —
+> 코드를 바꾸면 `ops/salt.sh restart server`(또는 `news`). 상태 · 마지막 수집 시각은 `ops/salt.sh status`.
+
 ## 구조 원칙
 
 - 서버 작업은 `salt-server/**` 범위에서 수행한다.

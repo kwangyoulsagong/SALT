@@ -414,3 +414,7 @@ LLM 해설이 `expectedReturn.lowPercent/highPercent` 를 만든다. 전 영역 
 ## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
 
 - Port 에 메서드를 더하자 테스트 스텁(`market.test.ts` `stubExchange`)이 타입으로 먼저 깨져 빠뜨릴 수 없었다 — Port 를 인터페이스 하나로 둔 효과. Action: 없음
+
+## 2026-11-02 — 파일만 걸침
+
+- 외부 라이브러리를 `shared/lib` 로 감싸 도메인 허용 목록(`decimal.js` 만)을 늘리지 않았다. 같은 요구가 또 오면 이 방식이 기준

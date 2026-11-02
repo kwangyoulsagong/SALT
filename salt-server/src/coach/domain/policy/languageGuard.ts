@@ -8,7 +8,8 @@
  * - **확신 표현**: 확실 · 무조건 · 보장 · 100% · 틀림없 · 반드시 오른/내린
  * - **명령형 매매 지시**: 매수 · 매도 · 진입 · 청산 · 손절 · 익절 · 비중 조절 + 명령 어미(하세요 · 고려하세요 · 검토하세요 …),
  *   "사세요 · 파세요 · 팔아야 · 사야"
- * - **한 점 목표가**: 목표가 · 목표 주가 · 목표 가격
+ * - **한 점 목표가**: 목표가 · 목표 주가 · 목표 가격 · "N달러(원)까지 상승"(2026-11-02)
+ * - **완곡 권유**: "고려해볼 만" · "~하는 것이 좋아(적절해) 보입니다" · "전략이 유효" — 명령형이 아니어도 권유다(2026-11-02 블라인드 평가)
  * - **지어낸 숫자**: 문장 속 숫자가 입력 사실과 값 · 단위 · 방향으로 맞지 않으면 — LLM 문장에만 건다(아래 C03)
  * - **근거 없는 인과**: "~해서 · 때문에 · 영향으로" 인데 사실과 맞은 숫자가 없으면 — LLM 문장에만 건다
  * - **판단과 반대 극성**: 판단이 관망 · 피하기인데 "매수 적기 · 오를 가능성이 높" — LLM 문장에만 건다(F010 슬라이스 6 · `SRV-REQ-025` FR-61)
@@ -28,14 +29,26 @@ export type LanguageViolation =
   | "unverified_number"
   | "unsupported_causal"
   | "judgment_polarity"
-  | "performance_wording";
+  | "performance_wording"
+  | "advice_wording";
 
 // "보장하지 않습니다"는 면책이다 — 부정형은 통과시킨다
 const CERTAINTY = /(확실|무조건|보장(?!\s*(하지|되지|할\s*수\s*없))|100\s*%|틀림없|반드시\s*(오|내|상승|하락))/;
 const TRADE_VERB = "(매수|매도|진입|청산|손절|익절|물타기|비중\\s*(확대|축소|조절|재조정)|차익\\s*실현|리밸런싱)";
 const IMPERATIVE = "(하세요|하십시오|해\\s*보세요|하라|고려하세요|검토하세요|추천합니다|권합니다|해야\\s*합니다)";
-const IMPERATIVE_TRADE = new RegExp(`${TRADE_VERB}[^.。!?\\n]{0,14}${IMPERATIVE}|(사세요|파세요|팔아야|사야\\s*합니다|사\\s*두세요|팔\\s*때입니다)`);
-const TARGET_PRICE = /(목표\s*(주)?가|목표\s*가격)/;
+// 부정 명령("진입하지 마세요")과 `-(으)세요` 어미("분할 기준을 먼저 잡으세요")도 명령이다 — 2026-11-02 전엔 둘 다 통과했다
+// (`modeDecision` 헤드라인, FEATURE-008 FR-49 측정에서 찾음). 매매 동사 뒤 24자 안의 `-세요 · -십시오` 를 잡는다
+const IMPERATIVE_ENDING = "(마세요|마십시오|말라|[가-힣]세요|[가-힣]십시오)";
+const IMPERATIVE_TRADE = new RegExp(
+  `${TRADE_VERB}[^.。!?\\n]{0,14}${IMPERATIVE}|${TRADE_VERB}[^.。!?\\n]{0,24}${IMPERATIVE_ENDING}|(사세요|파세요|팔아야|사야\\s*합니다|사\\s*두세요|팔\\s*때입니다)`
+);
+// 가격 수준까지 간다는 주장도 한 점 목표가다 — "체인링크가 100달러까지 상승할 수 있다"(2026-11-02 실호출 뉴스 요약, FEATURE-008 FR-49).
+// 기사 제목을 그대로 옮긴 줄(템플릿 뉴스 칸)은 인용이라 여기 걸리지 않게 "까지 + 움직임 동사" 꼴만 잡는다
+const TARGET_PRICE = /(목표\s*(주)?가|목표\s*가격|\d[\d,.]*\s*(원|달러|만\s*원|억\s*원)\s*(선)?까지\s*(상승|하락|오르|내리|올라|떨어|갈|도달|회복))/;
+// 완곡 권유 — 명령형이 아니어도 매매 · 관망을 권하는 말(2026-11-02 블라인드 평가 · 실호출: "분할 매수를 고려해볼 만합니다" ·
+// "관망하는 것이 적절해 보입니다" · "신중하게 접근하는 것이 좋아 보입니다" · "합리적인 전략일 수 있습니다"). 검증기가 몰라 화면에 나갔다
+const ADVICE_WORDING =
+  /(고려해\s*볼\s*(만|수)|고려하는\s*것이|(것|편)이\s*(좋|적절|적합|합리|유리|바람직|낫|나을)[가-힣\s]{0,10}(보입니다|보여요|겠습니다|수\s*있습니다|입니다|합니다|습니다)|전략이\s*유효|접근이\s*필요|적합한\s*(자산|종목|시점)|매수\s*(적기|기회)로\s*볼)/;
 
 // 영어 — 부정형("not guaranteed")은 면책이라 통과시킨다
 const CERTAINTY_EN = /(?<!not\s)\b(guaranteed?|definitely|certainly|risk[- ]free|can(?:no|')t\s+lose|sure\s+thing|100\s*%\s*(sure|certain))\b/i;
@@ -54,6 +67,7 @@ export const languageViolations = (sentence: string): LanguageViolation[] => {
   if (IMPERATIVE_TRADE.test(sentence) || IMPERATIVE_TRADE_EN.test(sentence)) out.push("imperative_trade");
   if (TARGET_PRICE.test(sentence) || TARGET_PRICE_EN.test(sentence)) out.push("target_price");
   if (PERFORMANCE_WORDING.test(sentence) || PERFORMANCE_WORDING_EN.test(sentence)) out.push("performance_wording");
+  if (ADVICE_WORDING.test(sentence)) out.push("advice_wording");
   return out;
 };
 

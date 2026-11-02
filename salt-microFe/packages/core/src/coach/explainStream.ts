@@ -10,9 +10,15 @@ export type ExplainSection = "modeReasoning" | "keyDrivers" | "risks" | "newsSum
 /** `llm` 통과 · `llm_checked` 일부 문장을 걸러 템플릿으로 채움 · `template` LLM 실패 */
 export type ExplanationSource = "llm" | "llm_checked" | "template";
 
+/**
+ * 해설에 들어간 기사의 출처(FEATURE-008 FR-44). `url` 은 서버가 `http(s)` 만 싣는다 — 없으면 이름만 그린다.
+ * `publishedAt` 은 기사 게시 시각(ISO). 시각 문구는 클라이언트가 만든다(서버에서 만들면 굳는다)
+ */
 export interface ExplainCitation {
   title: string;
   source: string | null;
+  url: string | null;
+  publishedAt: string | null;
 }
 
 export interface ExplainSections {

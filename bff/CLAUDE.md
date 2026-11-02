@@ -25,6 +25,10 @@ npm run start:ws
 npm run start:worker
 ```
 
+> **상시 프로세스는 launchd 다(2026-11-02, `OPS-002`).** REST 4001 · WS 4002 · 시세 워커는 `ops/salt.sh` 가 등록한
+> `com.salt.bff-*` 로 떠 있다 — `npm run dev` 를 그대로 치면 포트가 겹친다. 코드를 바꾸면 `ops/salt.sh restart bff-rest`(ws · worker),
+> 새 코드를 따로 보려면 `REST_PORT=4011 npx tsx src/rest/server.ts`. 상태는 `ops/salt.sh status`.
+
 ## 구조 원칙
 
 - BFF 작업은 `bff/**` 범위에서 수행한다.

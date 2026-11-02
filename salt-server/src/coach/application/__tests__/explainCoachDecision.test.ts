@@ -57,7 +57,25 @@ const market = {
 const noHolding = { getHolding: async () => null } as unknown as PortfolioProbe;
 
 const newsProbe = {
-  recentForSymbol: async () => [{ title: "현물 ETF 순유입", summary: null, source: "코인뉴스", sentiment: null }],
+  recentForSymbol: async () => [
+    {
+      title: "현물 ETF 순유입",
+      summary: null,
+      source: "코인뉴스",
+      sentiment: null,
+      url: "https://news.example/etf",
+      publishedAt: new Date("2026-11-01T03:00:00.000Z"),
+    },
+    // 수집한 주소는 외부 입력이다 — `javascript:` 는 링크로 내보내지 않는다(FR-44)
+    {
+      title: "거래소 공지",
+      summary: null,
+      source: "커뮤니티",
+      sentiment: null,
+      url: "javascript:alert(1)",
+      publishedAt: new Date("invalid"),
+    },
+  ],
 } as unknown as NewsProbe;
 
 const store = (
@@ -232,7 +250,15 @@ describe("ExplainCoachDecision", () => {
       assert.ok(card?.event === "message.card");
       assert.equal(card.data.trackRecord.sample, 20);
       assert.equal(card.data.failureCases.length, 3);
-      assert.deepEqual(card.data.citations, [{ title: "현물 ETF 순유입", source: "코인뉴스" }]);
+      assert.deepEqual(card.data.citations, [
+        {
+          title: "현물 ETF 순유입",
+          source: "코인뉴스",
+          url: "https://news.example/etf",
+          publishedAt: "2026-11-01T03:00:00.000Z",
+        },
+        { title: "거래소 공지", source: "커뮤니티", url: null, publishedAt: null },
+      ]);
 
       const done = events.at(-1);
       assert.ok(done?.event === "message.done" && done.data.source === "llm");
@@ -295,7 +321,15 @@ describe("ExplainCoachDecision", () => {
       assert.equal(input.mode, "long_term");
       assert.ok(!facts.evidence.some((e) => e.label === "시장 심리"));
       assert.ok(!facts.evidence.some((e) => e.label.startsWith("고래")));
-      assert.deepEqual(facts.news, [{ title: "현물 ETF 순유입", source: "코인뉴스" }]);
+      assert.deepEqual(facts.news, [
+        {
+          title: "현물 ETF 순유입",
+          source: "코인뉴스",
+          url: "https://news.example/etf",
+          publishedAt: "2026-11-01T03:00:00.000Z",
+        },
+        { title: "거래소 공지", source: "커뮤니티" },
+      ]);
       assert.ok(result.renderable);
       if (!result.renderable) return;
       assert.equal(result.facts.hash, explanationFactsHash(facts));
@@ -416,6 +450,22 @@ describe("ExplainCoachDecision", () => {
       );
       assert.equal(calls.length, 0);
       assert.ok(events.some((e) => e.event === "message.step" && e.data.step === "polish" && e.data.status === "skipped"));
+      const done = events.at(-1);
+      assert.ok(done?.event === "message.done" && done.data.source === "template");
+    });
+
+    // SRV-REQ-037 FR-16 — 블라인드 A/B(2026-11-02) 뒤 운영 기본은 템플릿만. 끄면 원장도 안 읽고 LLM 도 안 부른다
+    it("LLM 다듬기를 끄면(llmEnabled: false) 부르지 않고 템플릿이 최종이다 — 단건 · 스트림", async () => {
+      const { explainer, calls } = spyExplainer();
+      const usage = { usageSince: async () => { throw new Error("읽으면 안 된다"); } } as unknown as ExplainOptions["usage"];
+      const off = explainAt(explainer, market, noHolding, passing(), newsProbe, { llmEnabled: false, usage });
+      const single = await off.execute("user-1", input);
+      assert.ok(single.renderable && single.source === "template");
+      const events: ExplainStreamEvent[] = [];
+      await off.stream("user-1", input, (e) => events.push(e));
+      assert.equal(calls.length, 0);
+      assert.ok(events.some((e) => e.event === "message.step" && e.data.step === "polish" && e.data.status === "skipped"));
+      assert.ok(!events.some((e) => e.event === "message.replace"));
       const done = events.at(-1);
       assert.ok(done?.event === "message.done" && done.data.source === "template");
     });

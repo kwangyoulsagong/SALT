@@ -159,3 +159,5 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 | 2026-10-29 | 전수 조사 — FR-20 · 21 실제 동작(BFF 422)으로 정정 · 구현분 기록 · to-do → in-progress |
 | 2026-10-30 | 호출 맵 `searchAssets` 구현 — 400ms · 재시도 1회 · FR-4 409 전달 · FR-50 검색 1회(overview 를 거르지 않는다) — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-10-30 | FR-33 정정(머리 블록) — 서버 잡 유지. BFF 코드 무변경. 루트 `F000-legacy-cleanup` |
+| 2026-11-02 | FR-33 시세 워커가 launchd 상시(`com.salt.bff-worker`, `bff/ops/run.sh`) — 2026-11-02 꺼진 채 발견. REST · WS 도 상시. 코드 무변경. 루트 `requirements/specs/done/OPS-002-local-process-supervisor.md` |
+| 2026-11-02 | 실행 스크립트 `bff/ops/run.sh` 가 공용 `ops/lib-run.sh` 를 쓴다 — 종료 신호에 프로세스 그룹 전체 · 시작 때 같은 폴더 옛 프로세스 정리 · (REST · WS) 포트 대기. 재시작 고아 0. 코드 무변경. 루트 `requirements/specs/done/OPS-002-local-process-supervisor.md` FR-6 |

@@ -229,7 +229,8 @@ export const buildProfitPlanWarnings = (status: ProfitPlanStatus): string[] => {
     return ["수익 중인 종목 — 전량 매도보다 단계형 익절이 흔히 쓰이는 방식입니다."];
   }
   if (status === ProfitPlanStatus.StopLossReview) {
-    return ["손실 중인 종목은 물타기보다 최초 투자 논리 훼손 여부를 먼저 확인하세요."];
+    // 2026-11-02 사실 서술로 — "확인하세요"는 검증기의 `-세요` 빈틈으로 통과하던 명령형이었다(FEATURE-008 FR-49)
+    return ["손실 중인 종목 — 물타기 전에는 처음 투자한 이유가 아직 유효한지가 확인할 점입니다."];
   }
   return ["현재는 계획 유지와 다음 점검 가격 확인이 우선입니다."];
 };

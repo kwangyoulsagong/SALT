@@ -6,6 +6,7 @@ import type {
   RiskLevel,
   ScoredCandidate,
 } from "../model";
+import { withJosa } from "../../../shared/lib/josa";
 
 /**
  * 근거·리스크·가이드 조립 — `ai-coach-explainer` 에서 옮겨온 **순수 조립**.
@@ -27,14 +28,14 @@ const buildActionGuide = (
   const guides: string[] = [];
 
   if (top.action === "buy") {
-    guides.push(`${top.symbol}는 점수상 매수 검토 구간입니다 — 나눠 들어가면 한 번에 들어갈 때보다 가격 변동 위험이 작습니다.`);
+    guides.push(`${withJosa(top.symbol, "은/는")} 점수상 매수 검토 구간입니다 — 나눠 들어가면 한 번에 들어갈 때보다 가격 변동 위험이 작습니다.`);
     guides.push(
       "추가 비중이 전체 포트폴리오 집중도 상한을 넘는지가 확인할 점입니다."
     );
   }
 
   if (top.action === "sell") {
-    guides.push(`${top.symbol}는 점수상 일부 차익 실현 · 비중 축소 검토 구간입니다.`);
+    guides.push(`${withJosa(top.symbol, "은/는")} 점수상 일부 차익 실현 · 비중 축소 검토 구간입니다.`);
     guides.push(
       "부분 정리는 전량 정리보다 리스크를 나눠 관리하는 방식입니다."
     );

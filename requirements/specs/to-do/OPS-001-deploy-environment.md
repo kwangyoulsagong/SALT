@@ -43,3 +43,5 @@ source: requirements/decisions/ADR-008-deployment-environment.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+
+- 2026-11-02: 배포 전 로컬 감독은 `OPS-002`(`ops/salt.sh`, launchd). 배포 때 프로세스 목록(서버 · 뉴스 워커 · BFF REST · WS · 시세 워커 · 예측 배치)은 그 이름 표를 옮긴다
