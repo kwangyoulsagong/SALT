@@ -55,3 +55,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-02 | **in-progress** — FR-1~4 · 9 완료(위 표), FR-5~8 은 서버 identity(S3). 실서버(임시 사용자): 카드 2장 · 숨김 끔 +5.7% / 켬 종목 수 · 잘못된 토큰 401. 슬라이스 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |
+| 2026-11-02 | 커밋: `62129b1d`(계약 · 조립) · `417076d8`(프론트 소비 — 계약 테스트가 읽는 `@repo/core/home`) · `d28f1c0a`(손익률 · 매입가 숨김) · `5b6d5320`(401) · `0f8683f8`(`note`) |
