@@ -7,6 +7,7 @@ import {
   toKrChartVM,
   toKrDetailVM,
   toKrIndicesVM,
+  toKrMarketSummaryVM,
   toKrInvestorsVM,
   toKrOrderbookVM,
   toKrMarketStatusVM,
@@ -140,6 +141,14 @@ export class AppKrStockService {
   /** 국내 주식 탭 요약 띠 — 코스피 · 코스닥(F011 슬라이스 6) */
   getIndices(token: string, signal?: AbortSignal) {
     return this.read("indices", "/market/kr/indices", token, toKrIndicesVM, { timeout: KR_READ_TIMEOUT_MS, signal });
+  }
+
+  /**
+   * 국내 요약 띠 — 코인 요약과 같은 칸(대표 지수 · 작은 칸 9 · 오늘의 시장, `BFF-REQ-044`). 소유자 판정 응답이라 BFF 캐시 없음.
+   * 404 는 그대로 올리고 503 꺼짐은 `disabled` — 화면이 띠를 그리지 않는다
+   */
+  getSummary(token: string, signal?: AbortSignal) {
+    return this.read("summary", "/market/kr/summary", token, toKrMarketSummaryVM, { timeout: KR_READ_TIMEOUT_MS, signal });
   }
 
   /**

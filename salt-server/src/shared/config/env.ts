@@ -54,6 +54,14 @@ const envSchema = z.object({
    */
   KIS_SUMMARY_INDICES: z.string().default("0001,1001"),
   /**
+   * 국내 탭 요약 띠(`SRV-REQ-042`) — 대표 지수 · 작은 칸 앞자리 지수(쉼표 구분). 나머지 칸은 수집 유니버스 순서(보유 → 관심 →
+   * 시총)로 9칸을 채운다. 여기 적은 지수는 조립 지점이 수집 대상(`KIS_SUMMARY_INDICES`)에 더한다 — 분 기록이 쌓이게
+   */
+  KR_SUMMARY_FEATURED: z.string().default("0001"),
+  KR_SUMMARY_ITEMS: z.string().default("1001"),
+  /** 국내 요약 태그 `wide_move` 임계(전일 대비 변동률 %, 절댓값) — 코인 임계와 따로 둔다(시장이 다르다) */
+  KR_SUMMARY_WIDE_MOVE_RATE: z.coerce.number().positive().default(5),
+  /**
    * 국내 주식 위탁 수수료 **한쪽**(비율, 유관기관 제비용 포함) — 코치 판단 채점의 적중 경계 · 기저율 · 사이즈 계산(F011 FR-44).
    * 증권사가 바뀌면 이 값만 바꾼다. 기본 0.000186 = 비대면 기본 0.015% + 유관기관 약 0.0036%. 매도 거래세는 env 가 아니라
    * 매도일로 정해지는 도메인 표(`KR_STOCK_SELL_TAX`)다 — 2026-10-26 까지는 둘을 합친 왕복 `KR_STOCK_ROUND_TRIP_FEE_RATE`(0.0023)였다

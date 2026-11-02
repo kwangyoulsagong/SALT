@@ -11,6 +11,7 @@ import type {
   KrSupplementPort,
   KrSupplementStore,
   KrStockStore,
+  KrSummaryPolicy,
 } from "../../domain";
 import type {
   AssetQuote,
@@ -89,7 +90,8 @@ import {
   SyncKrMarketCalendar,
   SyncKrStockMaster,
 } from "../SyncKrStock";
-import { PollKrAfterHours, PollKrIndices, SyncKrInvestorFlows } from "../SyncKrSupplement";
+import { PollKrAfterHours, PollKrIndices, PruneKrIndexTicks, SyncKrInvestorFlows } from "../SyncKrSupplement";
+import { GetKrMarketSummary } from "../GetKrMarketSummary";
 
 /**
  * `market` 의 **공개 API** — 컨텍스트 밖으로 열리는 유일한 지점 (FR-4).
@@ -282,8 +284,10 @@ export interface KrStockDependencies {
   /** 지수 · 투자자 동향 · 호가 조회(슬라이스 6 · 6b) — 같은 `KisClient` 라 한도를 같은 페이서가 지킨다 */
   supplementSource: KrSupplementPort;
   supplement: KrSupplementStore;
-  /** 요약 지수 코드(`KIS_SUMMARY_INDICES`) */
+  /** 요약 지수 코드(`KIS_SUMMARY_INDICES`) — 수집 대상. 요약 띠 지수(`summaryPolicy`)도 여기 들어 있어야 분 기록이 쌓인다 */
   summaryIndices: readonly string[];
+  /** 국내 요약 띠(`SRV-REQ-042`) — 대표 · 지수 칸 · 태그 임계(`KR_SUMMARY_*`) */
+  summaryPolicy: KrSummaryPolicy;
 }
 
 export interface KrStockUseCases {
@@ -312,12 +316,16 @@ export interface KrStockUseCases {
   /** 투자자 순매수 — 개장일 저녁 한 번 */
   syncInvestorFlows: SyncKrInvestorFlows;
   getIndices: GetKrIndices;
+  /** 국내 요약 띠 — 코인 요약과 같은 모양(`SRV-REQ-042`) */
+  getSummary: GetKrMarketSummary;
+  /** 지수 분 기록 정리 — 장 마감 뒤 하루 한 번(`DB-REQ-035` FR-2) */
+  pruneIndexTicks: PruneKrIndexTicks;
   getInvestorFlows: GetKrInvestorFlows;
   /** 호가 10단계 — 요청 시점 조회 · 10초 캐시(슬라이스 6b) */
   getOrderbook: GetKrOrderbook;
 }
 
-const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
+const createKrStockUseCases = (deps: KrStockDependencies, schedule: MarketScheduleReader): KrStockUseCases => {
   const universe = new ResolveKrStockUniverse(deps.store, deps.held, deps.universeTopN);
   const realtime = new RunKrRealtime(deps.realtime, deps.store, deps.calendar, universe);
   const provider = () => {
@@ -367,6 +375,16 @@ const createKrStockUseCases = (deps: KrStockDependencies): KrStockUseCases => {
     syncInvestorFlows: new SyncKrInvestorFlows(deps.supplementSource, deps.supplement, deps.calendar, universe),
     pollAfterHours: new PollKrAfterHours(deps.supplementSource, deps.supplement, deps.calendar, universe),
     getIndices: new GetKrIndices(read),
+    getSummary: new GetKrMarketSummary({
+      store: deps.store,
+      supplement: deps.supplement,
+      universe,
+      schedule,
+      policy: deps.summaryPolicy,
+      viewerEmails: deps.viewerEmails,
+      logoDevToken: deps.logoDevToken,
+    }),
+    pruneIndexTicks: new PruneKrIndexTicks(deps.supplement),
     getInvestorFlows: new GetKrInvestorFlows(read),
     getOrderbook: new GetKrOrderbook(read),
   };
@@ -467,7 +485,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.indicators,
       krUniverse ? () => krUniverse.execute() : null
     ),
-    krStock: deps.krStock ? createKrStockUseCases(deps.krStock) : null,
+    krStock: deps.krStock ? createKrStockUseCases(deps.krStock, deps.schedule) : null,
     getKrMarketSchedule: new GetKrMarketSchedule(deps.schedule),
   };
 

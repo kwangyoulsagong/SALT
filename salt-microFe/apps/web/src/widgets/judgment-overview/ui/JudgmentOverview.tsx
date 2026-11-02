@@ -15,7 +15,7 @@ import { COACH_REPORT_SECTIONS, ROUTES } from "@/shared/config";
 import { NavChevron } from "@/shared/ui";
 
 import { JUDGMENT_OVERVIEW_MESSAGES } from "../model";
-import { cell, cellBody, cellLabel, cellNote, cellValue, strip, stripPending } from "./JudgmentOverview.css";
+import { cell, cellBody, cellLabel, cellNote, cellValue, strip, stripPending, stripTwo } from "./JudgmentOverview.css";
 
 const M = JUDGMENT_OVERVIEW_MESSAGES;
 const betaFormatter = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -60,7 +60,14 @@ const TargetWeightCell = () => {
   );
 };
 
-const RiskCell = () => {
+/** 국내 탭(`FE-REQ-050` FR-5) — `MarketAssetClass` 값과 같다. 엔티티 barrel 을 값으로 끌어오지 않게 문자열로 비교한다 */
+const KR_STOCK = "kr_stock";
+
+/**
+ * 위험 칸 — 손실 예산 · 가장 큰 비중은 **보유 전체**(코인 + 국내, 서버 `RISK_ASSET_TYPES`)라 두 탭에 같다. BTC 동조는 코인
+ * 숫자라 국내 탭에서 뺀다
+ */
+const RiskCell = ({ withBeta }: { withBeta: boolean }) => {
   const budget = useRiskBudget();
   const d = budget.data;
   const R = M.risk;
@@ -80,7 +87,7 @@ const RiskCell = () => {
       concentration.topSymbol && concentration.topWeight !== null
         ? R.top(concentration.topSymbol, formatRatio(concentration.topWeight))
         : null,
-      btcBeta.betaSum !== null ? R.beta(betaFormatter.format(btcBeta.betaSum)) : null,
+      withBeta && btcBeta.betaSum !== null ? R.beta(betaFormatter.format(btcBeta.betaSum)) : null,
     ].filter(Boolean);
     return <Line value={value} note={notes.length ? notes.join(" · ") : R.noteFallback} />;
   };
@@ -91,15 +98,15 @@ const RiskCell = () => {
   );
 };
 
-const ScoreboardCell = () => {
+const ScoreboardCell = ({ assetClass }: { assetClass: string }) => {
   const board = useJudgmentScoreboard();
   const d = board.data;
   const S = M.scoreboard;
   const line = () => {
     if (board.isPending) return <Line value={" "} />;
     if (board.isError || !d || d.status === "unavailable") return <Line value={S.unavailable} />;
-    // 코인 판정만 센다 — 국내 주식 표본과 더하면 어느 쪽 성적도 아닌 숫자가 된다(F011 FR-65). 국내 주식은 리포트 성적표에 따로
-    const groups = d.groups.filter((group) => (group.assetClass ?? "crypto") === "crypto");
+    // 탭의 자산군 판정만 센다 — 코인 · 국내 표본을 더하면 어느 쪽 성적도 아닌 숫자가 된다(F011 FR-65 · `FE-REQ-050` FR-5)
+    const groups = d.groups.filter((group) => (group.assetClass ?? "crypto") === assetClass);
     const sample = groups.reduce((sum, group) => sum + group.sample, 0);
     // 적중률은 여기 없다 — 기준 대비 · 표본 없이 한 숫자만 보이면 오해를 산다(`modeling-evaluation.md` §4)
     if (d.status === "insufficient_data" || sample === 0) return <Line value={S.empty} note={S.note} />;
@@ -121,16 +128,20 @@ const ScoreboardCell = () => {
  *
  * 목표 비중 칸은 비중만 두지 않는다 — 고지 한 줄(근거 · 과거 성적 · 실패 사례)이 같이 있다(`TargetWeightSummary`).
  * 세 조회는 리포트와 같은 query key 라 리포트로 넘어가도 다시 부르지 않는다. 로그인 여부는 수화 뒤에 본다.
+ *
+ * 국내 탭(`FE-REQ-050` FR-5): 목표 비중 칸 없음 · 위험은 보유 전체(BTC 동조 줄 뺌) · 성적표는 `kr_stock` 그룹만.
  */
-export const JudgmentOverview = () => {
+export const JudgmentOverview = ({ assetClass = "crypto" }: { assetClass?: string }) => {
   const signedIn = useHasAccessToken();
   if (signedIn === null) return <div className={stripPending} aria-hidden="true" />;
   if (!signedIn) return null;
+  const isKr = assetClass === KR_STOCK;
   return (
-    <nav className={strip} aria-label={M.regionLabel}>
-      <TargetWeightCell />
-      <RiskCell />
-      <ScoreboardCell />
+    <nav className={isKr ? `${strip} ${stripTwo}` : strip} aria-label={isKr ? M.krRegionLabel : M.regionLabel}>
+      {/* 목표 비중은 BTC · ETH 값뿐이다 — 국내 값이 없으니 국내 탭엔 칸을 두지 않는다(코인 숫자를 국내 탭에 두지 않는다) */}
+      {!isKr && <TargetWeightCell />}
+      <RiskCell withBeta={!isKr} />
+      <ScoreboardCell assetClass={isKr ? KR_STOCK : "crypto"} />
     </nav>
   );
 };

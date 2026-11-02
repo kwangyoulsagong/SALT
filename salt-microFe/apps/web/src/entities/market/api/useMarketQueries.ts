@@ -46,10 +46,12 @@ export const useMarketOverview = (
  */
 const SUMMARY_REFRESH_MS = 60_000;
 
-export const useMarketSummary = (): UseQueryResult<MarketSummaryResponse> =>
+/** `enabled` — 국내 탭에서는 코인 요약을 부르지 않는다(`FE-REQ-050`, 같은 띠가 데이터 소스만 바꾼다) */
+export const useMarketSummary = (enabled = true): UseQueryResult<MarketSummaryResponse> =>
   useQuery({
     queryKey: marketQueryKeys.summary,
     queryFn: ({ signal }) => marketApi.summary(signal),
+    enabled,
     staleTime: SUMMARY_REFRESH_MS,
     refetchInterval: SUMMARY_REFRESH_MS,
   });

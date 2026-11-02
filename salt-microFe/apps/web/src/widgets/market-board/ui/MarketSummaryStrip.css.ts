@@ -37,8 +37,10 @@ export const strip = style({
   gridTemplateColumns: `${FEATURED_WIDTH} auto minmax(${PANEL_MIN_WIDTH}, 1fr)`,
   height: STRIP_HEIGHT,
   "@media": {
+    // 좁으면 항목 열이 띠 안에서 가로로 밀린다 — 상자는 남긴다(국내 탭은 다가오는 일정이 상자에만 있다, `FE-REQ-050` FR-4).
+    // 2026-11-02 전에는 상자를 숨기고 항목 열(280 × 3)이 페이지 밖으로 넘쳤다(1024 폭 145px)
     [NARROW]: {
-      gridTemplateColumns: `${FEATURED_WIDTH} minmax(0, 1fr)`,
+      gridTemplateColumns: `${FEATURED_WIDTH} minmax(0, 1fr) ${PANEL_MIN_WIDTH}`,
     },
     [MOBILE]: {
       gridTemplateColumns: "minmax(0, 1fr)",
@@ -74,6 +76,11 @@ export const itemGrid = style({
   columnGap: vars.space.md,
   minWidth: 0,
   "@media": {
+    [NARROW]: {
+      overflowX: "auto",
+      scrollSnapType: "x mandatory",
+      scrollbarWidth: "none",
+    },
     [MOBILE]: {
       borderLeft: "none",
       paddingLeft: 0,
@@ -96,12 +103,15 @@ export const placeholder = style({
   },
 });
 
-/** 오른쪽 상자 칸. 좁은 화면에서는 숨긴다 — 항목 열이 먼저다 */
+/**
+ * 오른쪽 상자 칸. 좁은 데스크톱에서도 남긴다(항목 열이 대신 밀린다) — 국내 탭은 일정이 여기에만 있다(`FE-REQ-050` FR-4).
+ * 모바일(768 미만)은 웹 안내 화면이라 숨긴다
+ */
 export const panelCell = style({
   minWidth: 0,
   height: STRIP_HEIGHT,
   marginLeft: vars.space.lg,
   "@media": {
-    [NARROW]: { display: "none" },
+    [MOBILE]: { display: "none" },
   },
 });

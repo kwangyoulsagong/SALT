@@ -141,18 +141,24 @@ describe("SyncKrInvestorFlows", () => {
 
 const indexSetup = (stored: string[], at: string, failOn?: Error) => {
   const asked: string[] = [];
+  const ticks: string[] = [];
   const kis = {
     indexQuote: async (code: string) => {
       asked.push(code);
       if (failOn) throw failOn;
-      return { code, value: 1, change: 0, changeRate: 0, advancers: null, unchanged: null, decliners: null };
+      return {
+        code, value: 1, change: 0, changeRate: 0, advancers: null, unchanged: null, decliners: null, high: null, low: null, tradeValue: null,
+      };
     },
   } as unknown as KrSupplementPort;
   const store = {
     indexQuotes: async (codes: string[]) => stored.filter((c) => codes.includes(c)).map((code) => ({ code })),
     upsertIndexQuotes: async () => {},
+    appendIndexTicks: async (facts: Array<{ code: string }>) => {
+      ticks.push(...facts.map((f) => f.code));
+    },
   } as unknown as KrSupplementStore;
-  return { poll: new PollKrIndices(kis, store, calendar(true), ["0001", "1001"], () => new Date(at)), asked };
+  return { poll: new PollKrIndices(kis, store, calendar(true), ["0001", "1001"], () => new Date(at)), asked, ticks };
 };
 
 // 2026-10-26(월) 21:00 KST · 10:00 KST
@@ -174,6 +180,15 @@ describe("PollKrIndices", () => {
     await poll.execute();
     await poll.execute();
     assert.equal(asked.length, 4);
+  });
+
+  it("분 기록(DB-REQ-035)은 정규장 회차만 쌓는다 — 장 밖 기동 회차는 지수 행만", async () => {
+    const night = indexSetup([], NIGHT);
+    await night.poll.execute();
+    assert.deepEqual(night.ticks, []);
+    const day = indexSetup([], REGULAR);
+    await day.poll.execute();
+    assert.deepEqual(day.ticks, ["0001", "1001"]);
   });
 
   it("한도 초과면 남은 지수를 부르지 않는다", async () => {

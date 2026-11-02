@@ -7,6 +7,7 @@
 
 import { kstAt, kstDateOf } from "./KrStock";
 import type { KrAfterHoursQuote } from "./KrStock";
+import type { KrIntradayPoint } from "./KrMarketSummary";
 
 // ==================== 지수 (FR-48) ====================
 
@@ -40,6 +41,10 @@ export interface KrIndexQuoteFact {
   advancers: number | null;
   unchanged: number | null;
   decliners: number | null;
+  /** 당일 고가 · 저가(포인트) · 누적 거래대금(원) — 요약 띠 대표 칸 아래 줄(`SRV-REQ-042`). KIS 가 비우면 `null` */
+  high: number | null;
+  low: number | null;
+  tradeValue: number | null;
 }
 
 export interface StoredKrIndexQuote extends KrIndexQuoteFact {
@@ -154,4 +159,10 @@ export interface KrSupplementStore {
   investorFlowCodesCollectedSince(since: Date): Promise<string[]>;
   /** 최근 `days` 거래일(최신이 앞) · 마지막 수집 시각 */
   investorFlows(code: string, days: number): Promise<{ rows: KrInvestorFlowFact[]; collectedAt: Date | null }>;
+  /** 지수 분 기록(`DB-REQ-035`) — `at` 을 분으로 내려 쌓는다. 같은 분 두 번은 덮는다 */
+  appendIndexTicks(facts: Pick<KrIndexQuoteFact, "code" | "value">[], at: Date): Promise<void>;
+  /** 지수마다 **마지막 기록이 있는 KST 날짜**의 분 기록(시간순). 기록이 없는 지수는 빠진다 — 쿼리 한 번 */
+  latestSessionIndexTicks(codes: string[]): Promise<Map<string, KrIntradayPoint[]>>;
+  /** `before` 앞 분 기록을 지운다. 지운 행 수 */
+  pruneIndexTicks(before: Date): Promise<number>;
 }

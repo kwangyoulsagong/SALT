@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
 import type {
+  KrIntradayPoint,
   KrLogoSource,
   Candle,
   KrCalendarSource,
@@ -406,6 +407,31 @@ export class PrismaKrStockStore implements KrStockStore {
       ) AS u(open, high, low, close, volume, ts)
       ON CONFLICT (symbol, timeframe, timestamp) DO UPDATE SET
         open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume`;
+  }
+
+  /**
+   * 종목마다 마지막 5분봉의 KST 날짜 하루치 종가 — `(symbol, timeframe, timestamp)` 유니크 인덱스로 종목당 max 한 번 + 범위 스캔.
+   * 열은 UTC 벽시계(timestamp without time zone)라 `+9h` 로 KST 날을 자르고 되돌린다
+   */
+  async latestSessionCloses(codes: string[]) {
+    const out = new Map<string, KrIntradayPoint[]>();
+    if (codes.length === 0) return out;
+    const rows = await prisma.$queryRaw<Array<{ symbol: string; timestamp: Date; close: Prisma.Decimal }>>`
+      SELECT p.symbol, p.timestamp, p.close
+      FROM unnest(${codes}::text[]) AS c(code)
+      CROSS JOIN LATERAL (
+        SELECT max(timestamp) AS m FROM price_history
+        WHERE symbol = c.code AND timeframe = '5m' AND asset_type = 'kr_stock'
+      ) l
+      JOIN price_history p ON p.symbol = c.code AND p.timeframe = '5m' AND p.asset_type = 'kr_stock'
+        AND p.timestamp >= date_trunc('day', l.m + interval '9 hours') - interval '9 hours'
+      ORDER BY p.symbol, p.timestamp`;
+    for (const r of rows) {
+      const list = out.get(r.symbol) ?? [];
+      list.push({ at: r.timestamp, value: Number(r.close) });
+      out.set(r.symbol, list);
+    }
+    return out;
   }
 
   /** 최신 n 개를 시간 오름차순으로 — `(symbol, timeframe, timestamp)` 인덱스 역순 스캔 */

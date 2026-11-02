@@ -323,14 +323,29 @@ export enum MarketSummaryTag {
   WideMove = "wide_move",
 }
 
+/** 등락 기준 — 코인은 24시간, 국내 주식은 전일 종가(`BFF-REQ-044`). 라벨 · 고지 문구가 갈린다 */
+export enum SummaryChangeBasis {
+  Last24h = "24h",
+  PrevClose = "prev_close",
+}
+
+/** 요약 칸 종류 — 지수 칸은 상세 화면이 없어 링크가 없다(`FE-REQ-050` FR-2). 코인 칸은 늘 종목 */
+export enum SummaryItemKind {
+  Index = "index",
+  Stock = "stock",
+}
+
 /**
  * 시장 요약 한 항목. **BFF 가 소유한 뷰모델**이다(`/api/app/market/summary`, `BFF-REQ-035`).
  * 필드를 바꿀 때 `bff/src/services/market-summary.viewmodel.ts` 를 같이 본다.
  */
 export interface MarketSummaryItem {
   symbol: string;
+  /** 국내 요약만 준다. 없으면 종목 */
+  kind?: SummaryItemKind;
   name: string;
-  logoUrl: string;
+  /** 국내 지수 칸은 `null` — 로고 자리를 그리지 않는다 */
+  logoUrl: string | null;
   currentPrice: number;
   change24h: number;
   /** 서버가 계산 · 반올림한 원 단위 정수. 없으면 `null` — 프론트가 역산하지 않는다(공통 수용 기준 3) */
@@ -338,10 +353,10 @@ export interface MarketSummaryItem {
   tags: MarketSummaryTag[];
   /** 종가(시간순). 없으면 `null` — 그 자리를 비운다 */
   sparkline: number[] | null;
-  /** 24시간 고가 · 저가 · 거래대금 — 대표 칸 아래 줄. 서버 저장 시세 그대로 */
-  high24h: number;
-  low24h: number;
-  tradeValue24h: number;
+  /** 고가 · 저가 · 거래대금 — 대표 칸 아래 줄. 서버 저장 시세 그대로. 국내는 못 받았으면 `null`(그 값만 숨긴다) */
+  high24h: number | null;
+  low24h: number | null;
+  tradeValue24h: number | null;
 }
 
 export interface MarketSummaryHeadline {

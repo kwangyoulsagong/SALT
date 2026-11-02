@@ -381,3 +381,9 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 - 변경: `KrIndexSummary` 띠에 본문 글꼴 지정 — 명조로 떨어지던 기존 결함(F008 슬라이스 24 실화면에서 발견)
 - 검증: 실화면 3000 계산 글꼴 `Inter, "Noto Sans KR"` · 훅 exit 0 · check-types · lint
 - 미검증 · 범위 밖: 없음
+
+## 국내 탭 요약 띠 (F011, 2026-11-02)
+
+- 변경: 지수 띠 · 지수 · 일정 조회 삭제, 국내 요약 조회 · 체결 패치 · 공용 계약 타입 추가
+- 검증: `check-types` · `lint` · `test`(core 55 · ui 43) · `test:layer-check` · 훅 사후 실행 exit 0 · `web`(154 · 137 kB) · `web-tax` 빌드 · 실화면 3000 국내 · 코인 탭
+- 미검증 · 범위 밖: 없음

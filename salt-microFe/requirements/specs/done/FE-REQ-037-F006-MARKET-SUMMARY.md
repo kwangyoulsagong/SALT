@@ -44,7 +44,7 @@ created: 2026-09-22
 | FR-4 | 태그: 서버 코드 → 문구(`wide_move` → `변동 큼`, 회색 알약 11px). 태그 붙은 작은 항목은 변동률 방향 색으로 옅게 칠한다 | Must |
 | FR-5 | 실시간: 가격 · 변동률 · 등락 금액이 WS 로 갱신된다 — 관심 종목 탭에서도. 응답은 1분마다 다시 받는다(스파크라인) | Must |
 | FR-6 | 항목 = 링크 → 상세 분석(`ROUTES.investmentDetail`). 포커스 표시 유지 | Must |
-| FR-7 | 배치: PC 대표 칸 240px · 항목 열 280px(3줄씩, 서버 기본 9개 = 3열) · 오른쪽 상자(남는 폭, 최소 220). 1379px 이하는 상자를 숨긴다. 767px 이하는 대표 + 항목 가로 스크롤 한 줄 | Must |
+| FR-7 | 배치: PC 대표 칸 240px · 항목 열 280px(3줄씩, 서버 기본 9개 = 3열) · 오른쪽 상자(남는 폭, 최소 220). ~~1379px 이하는 상자를 숨긴다.~~ **정정 2026-11-02: 1379px 이하는 항목 열이 띠 안에서 가로로 밀리고 상자는 남는다**(항목 열 280 × 3 이 페이지 밖으로 145px 넘쳤다 · 국내 탭은 일정이 상자에만 있다). 767px 이하는 대표 + 항목 가로 스크롤 한 줄 | Must |
 | FR-8 | 상태: 로딩 = **실제 칸과 같은 배치 · 폭**의 스켈레톤(대표 · 항목 · 상자, CLS 0). 조회 실패 = 띠를 그리지 않는다. 스파크라인만 없음 = 그 자리 비움 | Must |
 | FR-10 | 대표 칸 아래 줄: 고가 · 저가 · 거래대금(거래대금은 `조 · 억 · 만` 표기). 오른쪽 상자 "오늘의 시장": 상승 · 보합 · 하락 종목 수(서버가 센다) + 얇은 막대(`flex-grow` = 수) + 대표 종목 최근 뉴스 3줄(서버가 중복 제목을 합쳤다). 해석 문구 0 | Must |
 | FR-9 | 번들: `/investments` First Load 가 늘지 않는다 — 띠는 `ssr:false` 잎 | Must |
@@ -68,3 +68,5 @@ created: 2026-09-22
 - 2026-09-22 개정 — 사용자 피드백 "너무 텅 비었다 · 우측에 설명 같은 걸": 항목 3열(서버 기본 9개), 대표 칸 아래 고가 · 저가 · 거래대금, 오른쪽 "오늘의 시장" 상자(FR-10). 상자 첫 안(두 줄 문장 + 굵은 막대)은 "구리다"로 수 세 칸 + 얇은 막대로. 스켈레톤을 실제 배치 · 폭과 같게. 항목 열 260 → 280(ETH 변동률 잘림)
 - 2026-10-30: 파일만 걸침 — `useMarketQueries.ts` 에 `useAssetSearch` 추가. 시장 요약 훅 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: 파일만 걸침 — 웹 `entities/market/model/messages.ts` 에 차트 기간 이름 `1w`. 시장 요약 문구 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
+- 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 칸 컴포넌트(`MarketSummaryFeatured` · `MarketSummaryItemLink`) · 오늘의 시장 상자가 국내 칸도 받는다 — `href?`(없으면 링크 아닌 `span`, 호버 면 없음) · `changeBasis` · `windowLabel` prop, `logoUrl` · 고가 · 저가 · 거래대금 null 허용, 상자에 `schedule` 행. `MarketSummaryStrip` 이 `assetClass` 로 조회를 고른다 · `useMarketSummary(enabled)`. 코인 화면 무변경(실화면 대조)
+- 2026-11-02: `d57f10fb` fix(fe): FR-7 정정 — 1379px 이하 항목 열 가로 밀기 · 상자 유지(1024 폭 페이지 가로 넘침 145px 기존 결함, 코인 탭도 같았다)

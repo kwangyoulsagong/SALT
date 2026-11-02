@@ -85,12 +85,15 @@ export const useKrChart = (code: string, period: KrChartPeriod, count = KR_CHART
   });
 };
 
-/** 코스피 · 코스닥 요약 — 서버가 현재가 회차 뒤 매분 받는다. 표와 같은 1분 주기 */
-export const useKrIndices = (enabled = true) => {
+/**
+ * 국내 요약 띠(`FE-REQ-050`) — 지수는 서버가 매분 받는다. 표와 같은 1분 주기로 다시 받는다(지수 칸 · 선). 종목 가격은 체결 중계가
+ * 고친다(`useKrSummaryRealtime`). 404 · 4xx 면 멈춘다(소유자 아님)
+ */
+export const useKrMarketSummary = (enabled = true) => {
   const signedIn = useHasAccessToken() === true;
   return useQuery({
-    queryKey: marketQueryKeys.krIndices,
-    queryFn: ({ signal }) => krStockApi.indices(signal),
+    queryKey: marketQueryKeys.krSummary,
+    queryFn: ({ signal }) => krStockApi.summary(signal),
     enabled: signedIn && enabled,
     staleTime: KR_STALE_MS,
     refetchInterval: refreshUnlessClientError,
@@ -128,24 +131,6 @@ export const useKrOrderbook = (code: string, live: boolean) => {
     enabled: signedIn && Boolean(code),
     staleTime: KR_ORDERBOOK_REFRESH_MS,
     refetchInterval: (query) => (live && !isClientApiError(query.state.error) ? KR_ORDERBOOK_REFRESH_MS : false),
-    retry: retryUnlessClientError,
-  });
-};
-
-/**
- * 다가오는 국내 시장 일정(F008 슬라이스 24, `FE-REQ-046` FR-5). 일정은 예측 배치가 하루 1회 넣는다 — 화면 안에서
- * 다시 부르지 않는다. 기간은 서버 기본값과 같은 14일을 묻고, 몇 건을 보일지만 화면이 정한다
- */
-const KR_SCHEDULE_STALE_MS = 30 * 60_000;
-export const KR_SCHEDULE_DAYS = 14;
-
-export const useKrSchedule = (enabled = true) => {
-  const signedIn = useHasAccessToken() === true;
-  return useQuery({
-    queryKey: marketQueryKeys.krSchedule(KR_SCHEDULE_DAYS),
-    queryFn: ({ signal }) => krStockApi.schedule(KR_SCHEDULE_DAYS, signal),
-    enabled: signedIn && enabled,
-    staleTime: KR_SCHEDULE_STALE_MS,
     retry: retryUnlessClientError,
   });
 };

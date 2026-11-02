@@ -28,7 +28,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | FR-4 | `kind` CHECK 에 `kr_earnings` · `kr_ir` 추가 | 2 |
 | FR-5 | `forecast.kr_earnings_window(symbol, as_of, quarter_lag_min, quarter_lag_median, quarter_lag_max, sample, PRIMARY KEY (symbol, as_of))` · 읽기 뷰 `v_kr_earnings_window`(종목별 최신 1행) | 2 |
 | FR-6 | 인덱스 — `scheduled_event (event_at)` 부분 인덱스 없음(행 수 수천). `event_reaction_stats` 기존 PK 그대로 | — |
-| FR-7 | **(2026-11-02 추가)** `forecast.v_upcoming_event(kind, event_at, event_symbol, source)` — 앞으로 35일(지난 하루 포함) 일정만, 통계와 조인하지 않는다. 다가오는 일정 줄(`SRV-REQ-041` FR-5)은 분포가 없어 `v_event_card`(통계가 있어야 행이 나온다)로는 막 쌓인 일정을 못 본다 | 1 |
+| FR-7 | **(2026-11-02 추가)** `forecast.v_upcoming_event(kind, event_at, event_symbol, source)` — 앞으로 35일(지난 하루 포함) 일정만, 통계와 조인하지 않는다. 다가오는 일정 줄(`SRV-REQ-041` FR-5)은 분포가 없어 `v_event_card`(통계가 있어야 행이 나온다)로는 막 쌓인 일정을 못 본다. **2026-11-02: 웹 소비처는 국내 요약 응답 `schedule`(`SRV-REQ-042` FR-5) — 같은 뷰** | 1 |
 
 ## 롤백
 
@@ -46,3 +46,4 @@ FR-2 는 PK 교체라 되돌리려면 `symbol <> ''` 행을 먼저 지워야 한
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-02 | 1단계 구현 · in-progress — FR-1~3 · FR-7 추가. `EXPLAIN ANALYZE` 0.10ms(`v_upcoming_event`) · 0.19ms(`v_event_card` 한 종목, `event_reaction_stats_latest` 인덱스) |
+| 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`): **DDL 없음** — FR-7 `v_upcoming_event` 의 웹 소비처가 국내 요약 응답 `schedule`(`SRV-REQ-042` FR-5)로 바뀌었다(같은 읽기) |

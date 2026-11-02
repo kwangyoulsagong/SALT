@@ -175,3 +175,9 @@
 
 - FR-2(개정 3종) — `entities/market/model/types.ts` `ChartPeriod.Week`. 실화면 1주 탭 요청 `period=week&unit=1&count=200`
 - 미검증 · 범위 밖: `month`(서버가 열 때)
+
+## 국내 탭 요약 띠 (F011, 2026-11-02)
+
+- 변경: 파일만 걸침 — `entities/market/model/types.ts`(이 REQ 가 머리 주석 주인) — `MarketSummaryItem` 의 `logoUrl` · 고가 · 저가 · 거래대금 null 허용 · `kind?` · 열거 `SummaryChangeBasis` · `SummaryItemKind`
+- 검증: `check-types` · `lint` · `test`(core 55 · ui 43) · `test:layer-check` · 훅 사후 실행 exit 0 · `web`(154 · 137 kB) · `web-tax` 빌드 · 실화면 3000 국내 · 코인 탭
+- 미검증 · 범위 밖: 없음

@@ -23,7 +23,7 @@ import {
   WATCH_LIST_TAB,
   type PreviewRenderer,
 } from "../model";
-import { headingRow, krIndexPlaceholder, krSchedulePlaceholder, reportLink } from "./MarketBoardLayout.css";
+import { headingRow, reportLink } from "./MarketBoardLayout.css";
 import { placeholder as summaryPlaceholder } from "./MarketSummaryStrip.css";
 
 const RealtimeMarketTable = dynamic(
@@ -63,18 +63,6 @@ const MarketSummaryStrip = dynamic(
   }
 );
 
-/** 국내 주식 탭 요약 띠(F011 슬라이스 6) — 코인 띠와 같은 이유로 늦게 온다. 자리는 칸 높이만큼 잡는다 */
-const KrIndexStrip = dynamic(() => import("./KrIndexStrip").then((mod) => mod.KrIndexStrip), {
-  ssr: false,
-  loading: () => <div className={krIndexPlaceholder} aria-hidden="true" />,
-});
-
-/** 다가오는 국내 시장 일정 한 줄(F008 슬라이스 24) — 지수 띠와 같은 이유로 늦게 온다 */
-const KrScheduleStrip = dynamic(() => import("./KrScheduleStrip").then((mod) => mod.KrScheduleStrip), {
-  ssr: false,
-  loading: () => <div className={krSchedulePlaceholder} aria-hidden="true" />,
-});
-
 /** 국내 주식(F011) 자산군 탭을 보일지 정하는 잎 — 엔티티 barrel 을 쓰므로 늦게 온다 */
 const KrStockAvailability = dynamic(
   () => import("./KrStockAvailability").then((mod) => mod.KrStockAvailability),
@@ -86,19 +74,19 @@ interface MarketBoardProps {
   renderPreview?: PreviewRenderer;
   /**
    * 머리 바로 아래 칸(F010 `FE-REQ-040` FR-7). 페이지가 위험 · 판정 성적표 카드를 주입한다 — 위젯끼리 import 할 수 없다.
-   * 시세 요약 띠보다 위다: 첫 화면에 "오늘 내 위험"이 먼저 보여야 한다(리서치 §9-4)
+   * 시세 요약 띠보다 위다: 첫 화면에 "오늘 내 위험"이 먼저 보여야 한다(리서치 §9-4). 자산군 탭마다 다시 그린다 —
+   * 국내 탭엔 국내 성적만(`FE-REQ-050` FR-5)
    */
-  lead?: ReactNode;
+  renderLead?: (assetClass: string) => ReactNode;
 }
 
 /** 조합만 한다. 비즈니스 로직은 `entities/market` 과 그 위의 feature 가 갖는다. */
-export const MarketBoard = ({ renderPreview, lead }: MarketBoardProps) => {
+export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => {
   const [activeTab, setActiveTab] = useState(DEFAULT_MARKET_BOARD_TAB);
   const [assetTab, setAssetTab] = useState(DEFAULT_ASSET_CLASS_TAB);
   const [krAvailable, setKrAvailable] = useState(false);
   // 자산군 탭이 사라지면(로그아웃 · 소유자 아님) 코인으로 돌아온다 — 빈 국내 주식 화면에 남지 않는다
   const assetClass = krAvailable ? assetTab : DEFAULT_ASSET_CLASS_TAB;
-  const isCrypto = assetClass === DEFAULT_ASSET_CLASS_TAB;
   return (
     <Section noContainer>
       <FlexBox direction="column">
@@ -134,24 +122,14 @@ export const MarketBoard = ({ renderPreview, lead }: MarketBoardProps) => {
           </Margin>
         )}
         {/*
-          목표 비중 · 위험 · 판정 성적표 띠와 시장 요약 띠는 코인 데이터다(BTC · ETH 비중 · 업비트 요약). 국내 주식 탭에 코인 숫자를
-          두지 않는다 — 국내 주식 탭은 같은 자리에 코스피 · 코스닥 요약(F011 FR-48)
+          머리 띠 · 시장 요약 띠는 자산군마다 같은 자리 · 같은 컴포넌트, 데이터만 다르다(`FE-REQ-050` FR-1 · FR-5). 국내 탭에 코인
+          숫자를 두지 않는다 — 머리 띠는 국내 성적만, 요약 띠는 국내 요약(대표 지수 · 작은 칸 · 오늘의 시장 + 다가오는 일정).
+          `key` — 탭을 바꾸면 띠가 새로 선다(이전 자산군 값이 한 프레임 남지 않게)
         */}
-        {isCrypto && lead}
-        {isCrypto && (
-          <Margin top="xl">
-            <MarketSummaryStrip />
-          </Margin>
-        )}
-        {!isCrypto && (
-          <>
-            <Margin top="xl">
-              <KrIndexStrip />
-            </Margin>
-            {/* 간격은 줄이 가진다 — 0건이면 줄을 숨겨 여백도 남지 않는다 */}
-            <KrScheduleStrip />
-          </>
-        )}
+        {renderLead?.(assetClass)}
+        <Margin top="xl">
+          <MarketSummaryStrip key={assetClass} assetClass={assetClass} />
+        </Margin>
         <Margin top="xl">
           <Tabs
             tabs={MARKET_BOARD_TABS}
