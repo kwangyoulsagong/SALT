@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { NextFunction, Request, Response } from "express";
 
+import { AxiosError } from "axios";
+
 import { AppError } from "../../../utils/error.util";
 import { logger } from "../../../config/logger";
 import { errorMiddleware } from "../error.middleware";
@@ -144,5 +146,21 @@ describe("errorMiddleware — 로그 레벨 (4xx 는 warn, 5xx 만 error)", () =
     const calls = levels(new Error("boom"));
     assert.deepEqual(calls.map((c) => c.level), ["error"]);
     assert.equal(typeof calls[0].meta.stack, "string");
+  });
+});
+
+describe("errorMiddleware — 서버 시간 초과", () => {
+  it("응답 없이 우리 예산이 끝나면 504 UPSTREAM_TIMEOUT(500 아님)", () => {
+    const { res, out } = fakeRes();
+    const timeout = new AxiosError("timeout of 300ms exceeded", AxiosError.ECONNABORTED);
+    errorMiddleware(timeout, req, res, next);
+    assert.equal(out.status, 504);
+    assert.deepEqual(out.body, { success: false, code: "UPSTREAM_TIMEOUT", message: "Upstream timeout" });
+  });
+
+  it("연결 실패(응답 없음 · 시간 초과 아님)는 그대로 500", () => {
+    const { res, out } = fakeRes();
+    errorMiddleware(new AxiosError("connect ECONNREFUSED", "ECONNREFUSED"), req, res, next);
+    assert.equal(out.status, 500);
   });
 });
