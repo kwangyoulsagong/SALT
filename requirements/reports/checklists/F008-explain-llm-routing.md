@@ -6,7 +6,7 @@
 
 | 항목 | 결과 |
 |---|---|
-| 서버 | `build` · `lint` · `test` **913 / 0** · `test:layer-check` · `prisma validate` · Swagger 생성 · 고아 0 변이 |
+| 서버 | `build` · `lint` · `test` **914 / 0** · `test:layer-check` · `prisma validate` · Swagger 생성 · 고아 0 변이 |
 | BFF | `build` · `test` **302 / 0** |
 | 프론트 | `check-types` · `lint` · `test`(core 51 · ui 43) · `test:layer-check` · `web build`(3.06 kB · 137 kB 그대로) · `web-tax build` |
 | 훅 사후 실행 | 바뀐 · 새 `.ts`/`.tsx` 전부(서버 · 프론트 훅) exit 0 |

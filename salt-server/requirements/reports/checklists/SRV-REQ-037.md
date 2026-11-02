@@ -124,3 +124,7 @@
 `ExplainCoachDecision.stream` 3갈래(흘림 · 템플릿→replace · 실패) 테스트 30/30 · `guardExplanationLine` · `completeExplanation` · 완곡 권유 회귀 · 서버 문자열 리터럴 1,544개 스캔 — 새 규칙에 걸린 실사용 문장 0(금지어 예시만) · 전체 913/0
 
 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+
+## 후속 — `prompt_label` (2026-11-02)
+
+`prompt_label` 회귀("뉴스1과…" 걸림 · "뉴스 1건" 통과) · 전체 914/0 · 문자열 리터럴 1,549개 스캔 실사용 문장 0

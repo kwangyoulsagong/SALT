@@ -325,3 +325,4 @@ type ExplainResult =
 | 2026-11-02 | F008 해설 근거 슬라이스 — 해설 스트림 `message.card.citations[]` 에 `url` · `publishedAt` 추가(추가만 — 기존 `title` · `source` 무변경, `SRV-REQ-037` FR-12). `explanationFacts.ts` 뉴스 사실에 같은 두 칸 · `citableUrl`(프롬프트 · 지문 무변경). `behavior.ts` 행동 규칙 4문장 사실 서술로(`SRV-REQ-037` FR-13). 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
 | 2026-11-02 | 해설 `llmEnabled` 옵션(`SRV-REQ-037` FR-16) — `false` 면 원장 조회 · LLM 호출 0 · 템플릿. 테스트 "LLM 다듬기를 끄면…". 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
 | 2026-11-02 | 파일만 걸침 — 프롬프트 사실 부분 공용(`factsBlock`, Gemini 프롬프트 글자 그대로) · 줄 형식 프롬프트 · RSI 소수 1자리(사실 지문이 바뀐다 — 5분 캐시만 영향) · Gemini 시도에 `provider`·id. 근거 `SRV-REQ-050`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
+| 2026-11-02 | 파일만 걸침 — `aiCoach.routes.ts` Swagger: `/explain` · `/explain/stream` 에 `X-Salt-Client` 헤더 · `provider` · 흘림 방식 서술(`failOnErrors` 생성 확인). 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |

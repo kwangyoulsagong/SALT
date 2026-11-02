@@ -10,7 +10,7 @@
 
 | 항목 | 결과 |
 |---|---|
-| 서버 | `npm run build` · `lint` · `test` **913 / 0**(+24) · `test:layer-check`(차단 10 · 통과 6) · `prisma validate` · Swagger `failOnErrors` 생성(`X-Salt-Client` 헤더) |
+| 서버 | `npm run build` · `lint` · `test` **914 / 0**(+25) · `test:layer-check`(차단 10 · 통과 6) · `prisma validate` · Swagger `failOnErrors` 생성(`X-Salt-Client` 헤더) |
 | 격리(가짜 CLI · 실제 자식 프로세스) | 프롬프트 stdin 에만 · argv 에 없음 · 도구 `--tools ""` · 자식 env 에 `DATABASE_URL` · `JWT_SECRET` · `GEMINI_API_KEY` 없음 · 작업 폴더 끝나면 없음 |
 | 상한 | 시간 초과 → 손자까지 그룹째 종료(고아 0) · 중단 → 3초 안 · SIGTERM 무시 → SIGKILL |
 | 변이 | `process.kill(-pid)` → `child.kill` 로 바꾸면 고아 테스트 실패 — 사본으로 되돌림 |

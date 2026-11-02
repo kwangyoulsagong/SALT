@@ -407,3 +407,7 @@
 Gemini 프롬프트 바이트 동일(같은 줄 배열) · RSI 반올림 테스트 · 기존 해설 테스트 통과
 
 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+
+## 후속 — Swagger (2026-11-02, `SRV-REQ-050`)
+
+Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-Client`

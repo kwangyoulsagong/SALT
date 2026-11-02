@@ -232,3 +232,7 @@ written: 2026-09-22 (backfill)
 사실 조립의 원값 그대로(`String(Number(rsi))`)가 모델 출력에 14자리로 나타났다 — 사실은 사람이 읽을 정밀도로 싣는다.
 
 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+
+## 후속 — Swagger (2026-11-02, `SRV-REQ-050`)
+
+Swagger 를 처음 문서 커밋에서 빠뜨렸다 — 주인 REQ 를 셀 때 마지막 커밋까지 다시 센다
