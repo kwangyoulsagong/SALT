@@ -50,3 +50,5 @@ FR-6(4xx · `Retry-After` 전달) · FR-7(동시 2) · FR-10~12(토큰 전달)�
 `headers` 를 펼친 뒤 `Authorization` 을 써서 호출자가 인증 헤더를 덮지 못하게 했다.
 
 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+
+- 2026-11-02 MONEY-F1 전수 점검 — `0440a654` — 서버 시간 초과(호출 맵 예산 초과)를 500 → **504 `UPSTREAM_TIMEOUT`**. 종목 코치 상세 300ms 예산을 서버 재기동 직후 첫 계산이 넘을 때 500 이 나가던 기존 결함(F1 전수 점검). 예산은 그대로(서버 측 p95 267 · p99 326ms, 178건). Action: 예산을 넘긴 호출의 상태는 원인 따라(시간 초과 504 · 서버 4xx 그대로) — 모르는 예외 500 으로 섞지 않는다

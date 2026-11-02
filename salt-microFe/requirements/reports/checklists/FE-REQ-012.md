@@ -186,3 +186,5 @@
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 4개(경로 이동 내용 무변경 2 · 수정 2 · 추가 0 · 삭제 0). 계약 · 동작 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+- 2026-11-02 MONEY-F1 전수 점검 — `0440a654` — BFF 가 시간 초과를 504 `UPSTREAM_TIMEOUT` 으로 준다(전 500). `ApiError` retriable(5xx) 판정 그대로 — 화면 재시도 동작 무변경. 프론트에 500 숫자 의존 0. 테스트 +2 · 변이 실패 1 · 전체 326
