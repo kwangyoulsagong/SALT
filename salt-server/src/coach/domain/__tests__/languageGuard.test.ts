@@ -30,6 +30,21 @@ describe("languageViolations", () => {
     // 매매 동사가 없는 안내 · 사실 서술은 통과
     assert.deepEqual(languageViolations("손절 기준이 없는 진입은 손실 폭을 미리 정하지 못합니다."), []);
     assert.deepEqual(languageViolations("설정에서 기본 모드를 바꿔 보세요."), []);
+    // 2026-11-02 — 완곡 권유 · 가격 수준 목표(블라인드 평가 · 실호출 문장 그대로)
+    for (const advice of [
+      "XRP는 현재 단기 하락 구간에 있어 장기적인 관점에서 분할 매수를 고려해볼 만합니다.",
+      "현재로서는 단타(스캘프) 관점에서 관망하는 것이 적절해 보입니다.",
+      "따라서 지금은 단타 모드에 신중하게 접근하는 것이 좋아 보입니다.",
+      "관망하며 신중하게 접근하는 것이 합리적인 전략일 수 있습니다.",
+      "한 번에 매수하기보다는 나눠서 접근하는 것이 유리할 수 있습니다.",
+      "단기적인 변동성을 활용한 스캘핑 전략을 고려해볼 수 있습니다.",
+      "따라서 신중한 접근이 필요해 보입니다.",
+    ]) assert.deepEqual(languageViolations(advice), ["advice_wording"], advice);
+    assert.deepEqual(languageViolations("체인링크가 100달러까지 상승할 수 있다는 초강세 시나리오가 제시되었습니다."), ["target_price"]);
+    // 사실 서술 · 기사 제목 인용은 통과
+    assert.deepEqual(languageViolations("나눠 들어가면 한 번에 들어갈 때보다 가격 변동 위험이 작습니다."), []);
+    assert.deepEqual(languageViolations("체인링크(LINK) 100달러·XRP 10달러 초강세 시나리오 등장 (코인리더스)"), []);
+    assert.deepEqual(languageViolations("하루 3% 넘게 내린 뒤에는 다음 날 반등이 더 잦았습니다."), []);
     assert.deepEqual(languageViolations("목표가는 1억 5천입니다."), ["target_price"]);
   });
 
