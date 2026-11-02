@@ -23,6 +23,13 @@ describe("languageViolations", () => {
     assert.deepEqual(languageViolations("지금 분할 매수를 고려하세요."), ["imperative_trade"]);
     assert.deepEqual(languageViolations("비중 축소를 검토하세요."), ["imperative_trade"]);
     assert.deepEqual(languageViolations("지금 파세요."), ["imperative_trade"]);
+    // 2026-11-02 — 부정 명령 · `-(으)세요` 어미(`modeDecision` 헤드라인이 통과하던 문장, FEATURE-008 FR-49)
+    assert.deepEqual(languageViolations("BTC 단타 관점은 관망입니다. 손절 기준 없이 진입하지 마세요."), ["imperative_trade"]);
+    assert.deepEqual(languageViolations("한 번에 진입하기보다 분할 기준을 먼저 잡으세요."), ["imperative_trade"]);
+    assert.deepEqual(languageViolations("지금은 매도하지 마십시오."), ["imperative_trade"]);
+    // 매매 동사가 없는 안내 · 사실 서술은 통과
+    assert.deepEqual(languageViolations("손절 기준이 없는 진입은 손실 폭을 미리 정하지 못합니다."), []);
+    assert.deepEqual(languageViolations("설정에서 기본 모드를 바꿔 보세요."), []);
     assert.deepEqual(languageViolations("목표가는 1억 5천입니다."), ["target_price"]);
   });
 

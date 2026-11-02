@@ -131,7 +131,7 @@ describe("calculateProfitPlan — 특성화", () => {
 
   it("경고는 상태마다 하나씩, 없으면 기본 문구", () => {
     assert.match(buildProfitPlanWarnings(ProfitPlanStatus.TakeProfitReview)[0], /단계형 익절/);
-    assert.match(buildProfitPlanWarnings(ProfitPlanStatus.StopLossReview)[0], /투자 논리/);
+    assert.match(buildProfitPlanWarnings(ProfitPlanStatus.StopLossReview)[0], /처음 투자한 이유/);
     assert.match(buildProfitPlanWarnings(ProfitPlanStatus.RaiseStopReview)[0], /계획 유지/);
     assert.match(buildProfitPlanWarnings(ProfitPlanStatus.HoldPlan)[0], /계획 유지/);
   });

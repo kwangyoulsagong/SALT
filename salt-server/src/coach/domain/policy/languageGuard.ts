@@ -34,7 +34,12 @@ export type LanguageViolation =
 const CERTAINTY = /(확실|무조건|보장(?!\s*(하지|되지|할\s*수\s*없))|100\s*%|틀림없|반드시\s*(오|내|상승|하락))/;
 const TRADE_VERB = "(매수|매도|진입|청산|손절|익절|물타기|비중\\s*(확대|축소|조절|재조정)|차익\\s*실현|리밸런싱)";
 const IMPERATIVE = "(하세요|하십시오|해\\s*보세요|하라|고려하세요|검토하세요|추천합니다|권합니다|해야\\s*합니다)";
-const IMPERATIVE_TRADE = new RegExp(`${TRADE_VERB}[^.。!?\\n]{0,14}${IMPERATIVE}|(사세요|파세요|팔아야|사야\\s*합니다|사\\s*두세요|팔\\s*때입니다)`);
+// 부정 명령("진입하지 마세요")과 `-(으)세요` 어미("분할 기준을 먼저 잡으세요")도 명령이다 — 2026-11-02 전엔 둘 다 통과했다
+// (`modeDecision` 헤드라인, FEATURE-008 FR-49 측정에서 찾음). 매매 동사 뒤 24자 안의 `-세요 · -십시오` 를 잡는다
+const IMPERATIVE_ENDING = "(마세요|마십시오|말라|[가-힣]세요|[가-힣]십시오)";
+const IMPERATIVE_TRADE = new RegExp(
+  `${TRADE_VERB}[^.。!?\\n]{0,14}${IMPERATIVE}|${TRADE_VERB}[^.。!?\\n]{0,24}${IMPERATIVE_ENDING}|(사세요|파세요|팔아야|사야\\s*합니다|사\\s*두세요|팔\\s*때입니다)`
+);
 const TARGET_PRICE = /(목표\s*(주)?가|목표\s*가격)/;
 
 // 영어 — 부정형("not guaranteed")은 면책이라 통과시킨다

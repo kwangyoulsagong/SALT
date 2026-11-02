@@ -243,12 +243,12 @@ describe("makeModeDecision — 특성화 (mode-decision@2)", () => {
     }
   });
 
-  it("헤드라인이 손절·분할을 함께 말한다 — 확신 표현이 없다", () => {
+  it("헤드라인이 분할을 사실로 말한다 — 확신 · 명령형이 없다(2026-11-02 SRV-REQ-024 FR-108 정정)", () => {
     const decision = makeModeDecision({ ...input, mode: "long_term" });
 
     assert.equal(
       decision.headline,
-      "BTC 장기 관점은 지금은 피하기입니다. 한 번에 진입하기보다 분할 기준을 먼저 잡으세요."
+      "BTC 장기 관점은 지금은 피하기입니다. 나눠 들어가면 한 번에 들어갈 때보다 가격 변동 위험이 작습니다."
     );
   });
 });
@@ -404,7 +404,7 @@ describe("행동 판정 — 특성화", () => {
 
   it("패턴이 없으면 빈 목록 대신 기록 습관을 권한다", () => {
     assert.deepEqual(buildBehaviorRules([]), [
-      "현재 뚜렷한 반복 손실 패턴은 적지만, 거래 전 계획 기록은 유지하세요.",
+      "현재 뚜렷한 반복 손실 패턴은 적습니다 — 거래 전 계획 기록이 쌓일수록 비교가 정확해집니다.",
     ]);
   });
 
