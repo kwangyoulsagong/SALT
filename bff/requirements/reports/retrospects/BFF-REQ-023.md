@@ -59,3 +59,5 @@
 ## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
 
 - 파일만 걸침(경로 · import) — Action 없음
+
+- 2026-11-02 MONEY-F1 후속 — 파일만 걸침 · Action 없음

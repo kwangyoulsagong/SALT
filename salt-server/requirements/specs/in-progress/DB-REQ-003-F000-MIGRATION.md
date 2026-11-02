@@ -134,3 +134,4 @@ DB-REQ-001의 스키마 변경을 **독립 롤백 가능한 5단계**로 쪼갠�
 | 2026-10-30 | 파일만 걸침 — 웹 `entities/market/model/messages.ts` · `types.ts` 에 차트 기간 `1w` 이름 · `ChartPeriod.Week`. 스키마 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
 | 2026-10-30 | **M4 실행** — `20261030160000_drop_legacy_ai_analysis`. FR-4 · 5 충족. M1 · M3 · M4 실행으로 to-do → in-progress. 루트 `F000-legacy-cleanup` |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 1개(경로 이동 내용 무변경 1 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 후속 — `c5ec66ed` — 이 REQ 를 머리에 적은 프론트 파일(`entities/portfolio/model/messages.ts`)에서 홈 전용 머리 문구 둘을 지웠다(보유 요약을 코치 리포트 "내 보유" 패널로). DB 무변경 |

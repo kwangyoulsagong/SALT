@@ -41,3 +41,5 @@
 ## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
 
 - 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`
+
+- 2026-11-02 MONEY-F1 번들 기록 — 처음엔 일반 줄만 적고 수치를 빠뜨렸다(파이프라인 확인 때 채움). 화면이 zone 을 옮기면 PERF REQ 에 옮긴 뒤 수치

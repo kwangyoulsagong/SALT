@@ -23,7 +23,7 @@
 | `pnpm --filter "./apps/web*" build` | 5/5 |
 | `test:layer-check` | 차단 16(+4 패키지 안 레이어) · 통과 10 |
 | 훅 사후 실행 | 바뀐 프론트 TS 502 · 서버 3 — 막힘 0 |
-| 번들(main 워크트리 빌드 대조, First Load) | 셸 공용 105→103 · `/home` 178→169 · `/` 149→146 · 투자 zone `/investments` 154→158 · `/coach/*` 131→135 · 상세 · 검색 같음 |
+| 번들(main 워크트리 빌드 대조, First Load) | 셸 공용 105→103 · `/home` 178→169 · `/` 149→146 · 투자 zone `/investments` 154→159(최종 — 타일 수정 포함) · `/coach/*` 131→135 · 상세 138 같음 · 검색 156→157 |
 | DOM 구조 대조(main 3100 vs 3000, 숫자 지움) | 상세 · 리포트 · 검색 · 404 차이 0 · `/investments` 는 시세 타일 수정분뿐 |
 | 실화면(임시 사용자) | 홈 카드 → `/investments`(`data-zone=invest`) · `/settings` → `/coach/settings` · 잘못된 종목 404 · 7화면 × 1024~1600 가로 넘침 0 · 페이지 오류 0 |
 | FR-6 이동(dev · 셸 프록시 · 5회 중앙) | Chromium 홈→투자 455 · 투자→홈 476ms / WebKit 447 · 562ms · 로드 시점 숫자 5/5 |

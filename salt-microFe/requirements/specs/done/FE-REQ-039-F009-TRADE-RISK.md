@@ -91,3 +91,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-10-30 | BFF 경유 국내 주식 저장 확인(임시 계정) — 미검증 실경로 0. **done 이동** — 남은 것은 `QA-001` · 조건부 후속 |
 | 2026-10-30 | F004 슬라이스 18 — FR-13 토글 코드 수정: 저장 응답을 숨김 한 필드가 아니라 설정 전체로 읽는다(`toCoachProfileSettings`) · 낙관적 갱신은 캐시가 있을 때만. 같은 토글이 설정 화면 `/settings` "보기"에도 놓인다(리포트 자리 그대로). 동작 변화 없음 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 셸 홈 → 도메인 요약 카드(투자 블록 · 매입가 숨김 잎 삭제)(`417076d8`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 조회 훅 렌더 중 `localStorage` 토큰 읽기 → `useHasAccessToken`(`/search` 수화 불일치 수정)(`b4a59677`). 파일 28개(경로 이동 내용 무변경 12 · 수정 15 · 추가 0 · 삭제 1). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 후속 — `c5ec66ed` — 매입가 숨김 토글 설명: 숨는 자리 둘(홈 투자 카드 · 코치 리포트 "내 보유"). FR-13 본문도 그 자리 정정. 실화면 켬/끔 확인 |
