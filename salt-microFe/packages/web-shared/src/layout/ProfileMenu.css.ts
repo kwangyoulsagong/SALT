@@ -2,13 +2,11 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "../ui/tokens.css";
 
-/** 헤더 한 줄 — 전의 `ProfileHeader` 와 같은 자리 · 같은 높이(화면마다 헤더가 흔들리지 않게). */
+/** 머리 오른쪽 칸 — 높이는 머리(52, `AppNavigation`)가 정한다. 전의 화면별 80px 줄은 지웠다(`FE-REQ-054`) */
 export const header = style({
-  width: "100%",
-  padding: "20px",
-  height: "80px",
   display: "flex",
   alignItems: "center",
+  minWidth: 0,
 });
 
 /** 프로필 전체가 버튼이다. 버튼 기본 모양을 걷고 프로필 모양 그대로 둔다. */

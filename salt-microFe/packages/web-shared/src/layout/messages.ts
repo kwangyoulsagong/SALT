@@ -7,6 +7,12 @@ export const PROFILE_MENU_MESSAGES = {
   profileImageAlt: "프로필 이미지",
 } as const;
 
+/** 앱 내비게이션(`FE-REQ-054`) — 탭 이름 · 순서는 `@repo/core/navigation` 한 벌(앱과 같다) */
+export const NAVIGATION_FRAME_MESSAGES = {
+  /** 레일 · 하단 탭의 화면 리더 이름 */
+  navLabel: "주요 메뉴",
+} as const;
+
 export const PROFILE_MENU_ITEM = {
   settings: "settings",
   signOut: "sign-out",

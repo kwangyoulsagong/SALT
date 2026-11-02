@@ -1,4 +1,3 @@
-import { ProfileMenu } from "@repo/web-shared/layout";
 import { HomeBriefing } from "@/widgets/home-briefing";
 import { OnboardingCard } from "@/widgets/onboarding-flow";
 
@@ -23,11 +22,10 @@ export const HomePage = () => {
         (`layered-architecture.md`), 그러면 두 위젯이 함께가 아니면 못 쓰게 된다.
       */}
       {/*
-        헤더 프로필(설정 · 로그아웃 메뉴)은 **페이지가** 놓는다(2026-09-24). `home-briefing` 은 읽기 전용
-        위젯이라 feature 를 넣지 않는다(`fsd-widgets.md`). 투자 화면도 같은 `ProfileMenu` 를 놓는다.
+        헤더 프로필(설정 · 로그아웃 메뉴)은 모든 화면 머리 한 자리다 — zone 공용 `AppShell` 이 놓는다(`FE-REQ-054`,
+        2026-11-03). 전에는 이 페이지와 투자 화면이 따로 놓았다(2026-09-24).
       */}
       <h1 className={srOnly}>{HOME_PAGE_MESSAGES.heading}</h1>
-      <ProfileMenu />
       <OnboardingCard />
       <HomeBriefing />
     </>

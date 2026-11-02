@@ -13,8 +13,9 @@ import { ProfileSection } from "./ProfileSection";
 /**
  * 헤더 프로필 — 누르면 계정 메뉴(설정 · 로그아웃)가 열린다 (2026-09-24 사용자 요청).
  *
- * 프로필은 여러 화면 머리에 같이 뜬다(홈 · 투자). **zone 이 갈려서**(`ADR-005`) 셸 `features/sign-out` 에서
- * 이리로 옮겼다(`FE-REQ-053`). `FE-REQ-054` 의 `AppChrome`(`@repo/ui`) 헤더가 생기면 그 안으로 들어간다.
+ * 프로필은 모든 화면 머리 오른쪽 한 자리다 — `AppShell` 이 `@repo/ui` `AppNavigation` 머리에 넣는다(`FE-REQ-054`, 2026-11-03).
+ * 전에는 화면마다(홈 · 투자) 따로 놓았다. **zone 이 갈려서**(`ADR-005`) 셸 `features/sign-out` 에서 이리로 옮겼다(`FE-REQ-053`).
+ * 머리가 `<header>` 라 여기는 `<div>` 다(중첩 금지).
  *
  * ## 이동은 문서 이동이다
  *
@@ -39,9 +40,9 @@ export const ProfileMenu = () => {
   };
 
   return (
-    <header className={header}>
+    <div className={header}>
       <Menu
-        align="start"
+        align="end"
         label={MESSAGES.menuLabel}
         items={[
           { id: PROFILE_MENU_ITEM.settings, label: MESSAGES.settings },
@@ -64,6 +65,6 @@ export const ProfileMenu = () => {
           </button>
         )}
       />
-    </header>
+    </div>
   );
 };
