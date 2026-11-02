@@ -175,6 +175,9 @@ export interface CoachSymbolArticle {
   summary: string | null;
   source: string;
   sentiment: string | null;
+  /** 원문 주소 · 게시 시각 — 해설 인용 출처(FEATURE-008 FR-44). 문장 재료가 아니라 화면 링크다 */
+  url: string;
+  publishedAt: Date;
 }
 
 export type CoachAction = "buy" | "sell" | "hold" | "rebalance";

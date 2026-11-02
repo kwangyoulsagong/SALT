@@ -57,7 +57,25 @@ const market = {
 const noHolding = { getHolding: async () => null } as unknown as PortfolioProbe;
 
 const newsProbe = {
-  recentForSymbol: async () => [{ title: "현물 ETF 순유입", summary: null, source: "코인뉴스", sentiment: null }],
+  recentForSymbol: async () => [
+    {
+      title: "현물 ETF 순유입",
+      summary: null,
+      source: "코인뉴스",
+      sentiment: null,
+      url: "https://news.example/etf",
+      publishedAt: new Date("2026-11-01T03:00:00.000Z"),
+    },
+    // 수집한 주소는 외부 입력이다 — `javascript:` 는 링크로 내보내지 않는다(FR-44)
+    {
+      title: "거래소 공지",
+      summary: null,
+      source: "커뮤니티",
+      sentiment: null,
+      url: "javascript:alert(1)",
+      publishedAt: new Date("invalid"),
+    },
+  ],
 } as unknown as NewsProbe;
 
 const store = (
@@ -232,7 +250,15 @@ describe("ExplainCoachDecision", () => {
       assert.ok(card?.event === "message.card");
       assert.equal(card.data.trackRecord.sample, 20);
       assert.equal(card.data.failureCases.length, 3);
-      assert.deepEqual(card.data.citations, [{ title: "현물 ETF 순유입", source: "코인뉴스" }]);
+      assert.deepEqual(card.data.citations, [
+        {
+          title: "현물 ETF 순유입",
+          source: "코인뉴스",
+          url: "https://news.example/etf",
+          publishedAt: "2026-11-01T03:00:00.000Z",
+        },
+        { title: "거래소 공지", source: "커뮤니티", url: null, publishedAt: null },
+      ]);
 
       const done = events.at(-1);
       assert.ok(done?.event === "message.done" && done.data.source === "llm");
@@ -295,7 +321,15 @@ describe("ExplainCoachDecision", () => {
       assert.equal(input.mode, "long_term");
       assert.ok(!facts.evidence.some((e) => e.label === "시장 심리"));
       assert.ok(!facts.evidence.some((e) => e.label.startsWith("고래")));
-      assert.deepEqual(facts.news, [{ title: "현물 ETF 순유입", source: "코인뉴스" }]);
+      assert.deepEqual(facts.news, [
+        {
+          title: "현물 ETF 순유입",
+          source: "코인뉴스",
+          url: "https://news.example/etf",
+          publishedAt: "2026-11-01T03:00:00.000Z",
+        },
+        { title: "거래소 공지", source: "커뮤니티" },
+      ]);
       assert.ok(result.renderable);
       if (!result.renderable) return;
       assert.equal(result.facts.hash, explanationFactsHash(facts));

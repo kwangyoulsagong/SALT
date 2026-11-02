@@ -32,6 +32,8 @@ export class ArticleTextAdapter implements NewsProbe {
       summary: article.summary,
       source: article.source,
       sentiment: article.sentiment ?? null,
+      url: article.url,
+      publishedAt: article.publishedAt,
     }));
   }
 }

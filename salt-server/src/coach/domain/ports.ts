@@ -317,6 +317,12 @@ export interface CoachExplanationInput {
     summary?: string;
     source?: string;
     sentiment?: string;
+    /**
+     * 인용 출처(FEATURE-008 FR-44) — `http(s)` 주소만 · ISO 시각. **프롬프트에 싣지 않는다**(`explanationPrompt.ts` 가
+     * 필드를 골라 쓴다) · 사실 지문(`explanationFactsHash`)에도 넣지 않는다 — 문장이 쓰는 사실이 아니라 화면 링크다
+     */
+    url?: string;
+    publishedAt?: string;
   }>;
 }
 

@@ -101,10 +101,15 @@ export type ExplainStep = "judgment" | "draft" | "polish" | "verify";
 /** 해설 본문 칸. 목록 칸은 `index` 로 항목을 가른다 */
 export type ExplainSection = "modeReasoning" | "keyDrivers" | "risks" | "newsSummary";
 
-/** 인용 출처 — 해설에 들어간 뉴스의 출처(FEATURE-008 FR-44). 문장이 아니라 입력에서 온다 */
+/**
+ * 인용 출처 — 해설에 들어간 뉴스의 출처(FEATURE-008 FR-44). 문장이 아니라 입력에서 온다.
+ * `url` 은 `http(s)` 만(`citableUrl`), 없으면 `null` — 화면은 이름만 그린다. `publishedAt` 은 기사 게시 시각(ISO)
+ */
 export interface ExplainCitation {
   title: string;
   source: string | null;
+  url: string | null;
+  publishedAt: string | null;
 }
 
 /**
@@ -257,7 +262,12 @@ export class ExplainCoachDecision {
         trackRecord: view.trackRecord,
         failureCases: view.failureCases,
         disclaimer: JUDGMENT_DISCLAIMER,
-        citations: (input.news ?? []).map((n) => ({ title: n.title, source: n.source ?? null })),
+        citations: (input.news ?? []).map((n) => ({
+          title: n.title,
+          source: n.source ?? null,
+          url: n.url ?? null,
+          publishedAt: n.publishedAt ?? null,
+        })),
         facts,
       },
     });
