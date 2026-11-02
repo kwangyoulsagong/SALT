@@ -8,7 +8,7 @@ import type {
 } from "@repo/core/coach";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import { hasApiStatus, readAccessToken, retryWhileRetriable } from "@repo/web-shared/api";
+import { hasApiStatus, useHasAccessToken, retryWhileRetriable } from "@repo/web-shared/api";
 import { HTTP_STATUS_CODE } from "@repo/web-shared/config";
 
 import { coachApi } from "./coachApi";
@@ -26,15 +26,16 @@ const retryServerErrorOnce = retryWhileRetriable(1);
  * 토큰이 없으면 부르지 않는다 — 로그인하지 않은 것은 실패가 아니라 상태다.
  */
 export const useBehaviorMirror = () => {
-  const token = readAccessToken();
+  // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
+  const signedIn = useHasAccessToken();
   const query = useQuery<BehaviorMirrorResult, Error>({
     queryKey: coachQueryKeys.mirror(),
     queryFn: ({ signal }) => coachApi.mirror(signal),
-    enabled: Boolean(token),
+    enabled: signedIn === true,
     staleTime: MIRROR_STALE_TIME_MS,
     retry: retryServerErrorOnce,
   });
-  return { ...query, isSignedOut: !token };
+  return { ...query, isSignedOut: signedIn === false };
 };
 
 /**
@@ -42,30 +43,32 @@ export const useBehaviorMirror = () => {
  * 코인 미러와 따로 부르고 따로 실패한다. 첫 요청은 서버가 복권형 단면을 세느라 몇 초 걸린다
  */
 export const useKrBehaviorMirror = () => {
-  const token = readAccessToken();
+  // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
+  const signedIn = useHasAccessToken();
   const query = useQuery<KrBehaviorMirrorResult, Error>({
     queryKey: coachQueryKeys.krMirror(),
     queryFn: ({ signal }) => coachApi.krMirror(signal),
-    enabled: Boolean(token),
+    enabled: signedIn === true,
     staleTime: MIRROR_STALE_TIME_MS,
     retry: retryServerErrorOnce,
   });
   const notOwner = hasApiStatus(query.error, HTTP_STATUS_CODE.NOT_FOUND);
-  return { ...query, notOwner, isSignedOut: !token };
+  return { ...query, notOwner, isSignedOut: signedIn === false };
 };
 
 /** 청산별 결과 · 태그 — 태그 확정 목록. `kr_stock` 이면 국내 청산(국내 미러 섹션, F011 FR-47) */
 export const useDecisionOutcomes = (assetType: "crypto" | "kr_stock" = "crypto") => {
-  const token = readAccessToken();
+  // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
+  const signedIn = useHasAccessToken();
   const isKr = assetType === "kr_stock";
   const query = useQuery<DecisionOutcomeListResult, Error>({
     queryKey: isKr ? coachQueryKeys.krOutcomes() : coachQueryKeys.outcomes(),
     queryFn: ({ signal }) => coachApi.outcomes(OUTCOME_LIST_LIMIT, signal, isKr ? assetType : undefined),
-    enabled: Boolean(token),
+    enabled: signedIn === true,
     staleTime: MIRROR_STALE_TIME_MS,
     retry: retryServerErrorOnce,
   });
-  return { ...query, isSignedOut: !token };
+  return { ...query, isSignedOut: signedIn === false };
 };
 
 /** 한 번 만든 복기는 바뀌지 않는다 — 화면에 머무는 동안 다시 부르지 않는다 */
@@ -76,17 +79,18 @@ const MONTHLY_REVIEW_STALE_TIME_MS = 60 * 60_000;
  * 미러 · 리포트와 따로 부르고 따로 실패한다. `kr_stock` 이면 국내판(F011 FR-48) — **404 는 "소유자가 아니다"**(`notOwner`)
  */
 export const useMonthlyReview = (month: string | null, assetType: "crypto" | "kr_stock" = "crypto") => {
-  const token = readAccessToken();
+  // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
+  const signedIn = useHasAccessToken();
   const isKr = assetType === "kr_stock";
   const query = useQuery<MonthlyReviewResult, Error>({
     queryKey: isKr ? coachQueryKeys.krMonthlyReview(month) : coachQueryKeys.monthlyReview(month),
     queryFn: ({ signal }) => coachApi.monthlyReview(month, signal, assetType),
-    enabled: Boolean(token),
+    enabled: signedIn === true,
     staleTime: MONTHLY_REVIEW_STALE_TIME_MS,
     // 달을 바꾸는 동안 앞 달을 두고 자리를 지킨다 — 고르기 칸이 사라졌다 나타나지 않게
     placeholderData: keepPreviousData,
     retry: retryServerErrorOnce,
   });
   const notOwner = isKr && hasApiStatus(query.error, HTTP_STATUS_CODE.NOT_FOUND);
-  return { ...query, notOwner, isSignedOut: !token };
+  return { ...query, notOwner, isSignedOut: signedIn === false };
 };

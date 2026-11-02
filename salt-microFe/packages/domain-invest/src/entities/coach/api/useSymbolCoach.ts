@@ -3,7 +3,7 @@
 import type { SymbolCoachViewModel } from "@repo/core/coach";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
-import { readAccessToken, retryWhileRetriable } from "@repo/web-shared/api";
+import { useHasAccessToken, retryWhileRetriable } from "@repo/web-shared/api";
 
 import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";
@@ -30,17 +30,18 @@ const shouldRetry = retryWhileRetriable(SYMBOL_COACH_RETRY_COUNT);
 export const useSymbolCoach = (
   symbol: string | undefined,
 ): UseQueryResult<SymbolCoachViewModel> & { isSignedOut: boolean } => {
-  const token = readAccessToken();
+  // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
+  const signedIn = useHasAccessToken();
 
   const query = useQuery({
     queryKey: coachQueryKeys.symbol(symbol ?? ""),
     queryFn: ({ signal }) => coachApi.symbolDetail(symbol ?? "", signal),
-    enabled: Boolean(token && symbol),
+    enabled: signedIn === true && Boolean(symbol),
     staleTime: SYMBOL_COACH_STALE_TIME_MS,
     retry: shouldRetry,
   });
 
-  return { ...query, isSignedOut: !token } as UseQueryResult<SymbolCoachViewModel> & {
+  return { ...query, isSignedOut: signedIn === false } as UseQueryResult<SymbolCoachViewModel> & {
     isSignedOut: boolean;
   };
 };

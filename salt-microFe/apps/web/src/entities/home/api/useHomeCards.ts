@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { readAccessToken } from "@repo/web-shared/api";
+import { useHasAccessToken } from "@repo/web-shared/api";
 
 import { homeApi } from "./homeApi";
 import { homeQueryKeys } from "./queryKeys";
@@ -15,6 +15,6 @@ export const useHomeCards = () =>
   useQuery({
     queryKey: homeQueryKeys.cards(),
     queryFn: ({ signal }) => homeApi.cards(signal),
-    enabled: Boolean(readAccessToken()),
+    enabled: useHasAccessToken() === true,
     staleTime: HOME_STALE_TIME_MS,
   });

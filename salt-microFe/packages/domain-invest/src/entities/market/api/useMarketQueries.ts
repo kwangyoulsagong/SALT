@@ -6,7 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 
-import { readAccessToken } from "@repo/web-shared/api";
+import { useHasAccessToken } from "@repo/web-shared/api";
 
 import {
   type ChartTimeframe,
@@ -180,16 +180,17 @@ const WATCHLIST_STALE_TIME_MS = 30_000;
 export const useWatchlist = (): UseQueryResult<WatchlistResponse> & {
   isSignedOut: boolean;
 } => {
-  const token = readAccessToken();
+  // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
+  const signedIn = useHasAccessToken();
 
   const query = useQuery({
     queryKey: marketQueryKeys.watchlist,
     queryFn: ({ signal }) => marketApi.watchlist(signal),
-    enabled: Boolean(token),
+    enabled: signedIn === true,
     staleTime: WATCHLIST_STALE_TIME_MS,
   });
 
-  return { ...query, isSignedOut: !token } as UseQueryResult<WatchlistResponse> & {
+  return { ...query, isSignedOut: signedIn === false } as UseQueryResult<WatchlistResponse> & {
     isSignedOut: boolean;
   };
 };
@@ -210,13 +211,14 @@ export const useAssetSearch = (
   /** 자산군 칩(`FE-REQ-010` FR-77) — 없으면 전체. 서버가 거른다(상한 20 안에서 한 자산군이 다른 쪽을 밀어내지 않게) */
   assetType?: MarketAssetClass,
 ): UseQueryResult<AssetSearchResponse> & { isSignedOut: boolean } => {
-  const token = readAccessToken();
+  // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
+  const signedIn = useHasAccessToken();
   const query = useQuery({
     queryKey: [...marketQueryKeys.search, q, assetType ?? "all"],
     queryFn: ({ signal }) => marketApi.search(q, ASSET_SEARCH_LIMIT, assetType, signal),
-    enabled: Boolean(token),
+    enabled: signedIn === true,
     placeholderData: keepPreviousData,
     staleTime: ASSET_SEARCH_STALE_TIME_MS,
   });
-  return { ...query, isSignedOut: !token } as UseQueryResult<AssetSearchResponse> & { isSignedOut: boolean };
+  return { ...query, isSignedOut: signedIn === false } as UseQueryResult<AssetSearchResponse> & { isSignedOut: boolean };
 };

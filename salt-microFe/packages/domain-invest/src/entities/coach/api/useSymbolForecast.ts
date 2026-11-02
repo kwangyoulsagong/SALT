@@ -3,7 +3,7 @@
 import type { SymbolForecastResult } from "@repo/core/coach";
 import { useQuery } from "@tanstack/react-query";
 
-import { hasApiStatus, readAccessToken, retryWhileRetriable } from "@repo/web-shared/api";
+import { hasApiStatus, useHasAccessToken, retryWhileRetriable } from "@repo/web-shared/api";
 import { HTTP_STATUS_CODE } from "@repo/web-shared/config";
 
 import { coachApi } from "./coachApi";
@@ -19,16 +19,17 @@ const FORECAST_STALE_TIME_MS = 10 * 60_000;
  * 4xx 는 다시 부르지 않는다.
  */
 export const useSymbolForecast = (symbol: string) => {
-  const token = readAccessToken();
+  // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
+  const signedIn = useHasAccessToken();
 
   const query = useQuery<SymbolForecastResult, Error>({
     queryKey: coachQueryKeys.forecast(symbol),
     queryFn: ({ signal }) => coachApi.forecast(symbol, signal),
-    enabled: Boolean(token) && symbol !== "",
+    enabled: signedIn === true && symbol !== "",
     staleTime: FORECAST_STALE_TIME_MS,
     retry: retryWhileRetriable(1),
   });
 
   const notOwner = hasApiStatus(query.error, HTTP_STATUS_CODE.NOT_FOUND);
-  return { ...query, notOwner, isSignedOut: !token };
+  return { ...query, notOwner, isSignedOut: signedIn === false };
 };

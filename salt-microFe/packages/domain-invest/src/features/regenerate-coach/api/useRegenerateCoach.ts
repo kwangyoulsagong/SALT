@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { coachApi, coachQueryKeys } from "@/entities/coach";
-import { readAccessToken } from "@repo/web-shared/api";
+import { useHasAccessToken } from "@repo/web-shared/api";
 
 import { regenerateCoachApi, type RegenerateResult } from "./regenerateCoachApi";
 
@@ -41,7 +41,8 @@ export type RegenerateNotice = "done" | "failed" | "timeout" | "requestFailed" |
  */
 export const useRegenerateCoach = () => {
   const queryClient = useQueryClient();
-  const token = readAccessToken();
+  // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
+  const signedIn = useHasAccessToken();
 
   const [accepted, setAccepted] = useState<CoachGenerationAccepted | null>(null);
   const [notice, setNotice] = useState<RegenerateNotice>(null);
@@ -54,7 +55,7 @@ export const useRegenerateCoach = () => {
   const status = useQuery({
     queryKey: coachQueryKeys.generationStatus(),
     queryFn: ({ signal }) => coachApi.generationStatus(signal),
-    enabled: Boolean(token),
+    enabled: signedIn === true,
     staleTime: GENERATION_STATUS_STALE_TIME_MS,
     retry: 0,
     refetchInterval: accepted ? POLL_INTERVAL_MS : false,
@@ -148,6 +149,6 @@ export const useRegenerateCoach = () => {
     isGenerating: mutation.isPending || accepted !== null,
     remainingSeconds,
     notice,
-    isSignedOut: !token,
+    isSignedOut: signedIn === false,
   };
 };
