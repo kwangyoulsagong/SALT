@@ -85,13 +85,16 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    * @swagger
    * /api/coach/events:
    *   get:
-   *     summary: 다가오는 주요 사건(거시 일정)과 과거 반응 (소유자 전용) — F008 슬라이스 22
+   *     summary: 다가오는 주요 사건(거시 · 국내 시장 일정)과 과거 반응 (소유자 전용) — F008 슬라이스 22 · 24
    *     description: |
-   *       FOMC · CPI · 고용보고서 중 앞으로 35일 안의 일정과, 과거 같은 일정 뒤 1 · 5 · 20일 수익률 분포(워크포워드).
+   *       앞으로 35일 안의 일정과, 과거 같은 일정 뒤 1 · 5 · 20 일봉 수익률 분포(워크포워드).
    *
+   *       - 코인(`BTC`): 미국 거시(`fomc` · `cpi` · `jobs`)만. 국내 종목(6자리 `005930`): 국내 4종
+   *         (`kr_bok_rate` · `kr_cpi` · `kr_trade` · `kr_quad_expiry`) + 미국 거시 — 국내 거래일 기준(`SRV-REQ-041` FR-2)
+   *       - 행마다 `scope`(`market` 시장 일정 · `symbol` 종목 사건 — 2단계) · `region`(`us` · `kr`). 종목 사건이 먼저, 같은 범위 안은 시각 순
    *       - **소유자 계정만.** 아니면 404(`ADR-003`)
    *       - 기간마다 `renderable`. 표본 · 분포와 평소 분포 · 빗나간 때 중 하나라도 없으면 분포 없이 사유만
-   *       - 호재 · 악재 판정 필드는 없다 — 예상 대비 서프라이즈 데이터가 없다
+   *       - 호재 · 악재 판정 필드는 없다 — 예상 대비 서프라이즈 데이터가 없다. 종류 이름은 코드 그대로(문장은 프론트)
    *     tags: [Coach Report]
    *     security:
    *       - bearerAuth: []
@@ -99,9 +102,37 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - in: query
    *         name: symbol
    *         required: true
-   *         schema: { type: string, example: BTC }
+   *         schema: { type: string, example: "005930" }
+   *         description: 코인 심볼(`BTC`) 또는 국내 종목 코드(6자리)
    *     responses:
-   *       200: { description: 일정 목록. 없으면 빈 배열 }
+   *       200:
+   *         description: 일정 목록. 없으면 빈 배열
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     symbol: { type: string }
+   *                     label: { type: string }
+   *                     disclaimer: { type: string }
+   *                     events:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           kind: { type: string, enum: [fomc, cpi, jobs, kr_bok_rate, kr_cpi, kr_trade, kr_quad_expiry] }
+   *                           scope: { type: string, enum: [market, symbol] }
+   *                           region: { type: string, enum: [us, kr] }
+   *                           eventAt: { type: string, format: date-time }
+   *                           announcedAt: { type: string, format: date-time }
+   *                           source: { type: string }
+   *                           horizons:
+   *                             type: array
+   *                             description: "1 · 5 · 20일. `renderable=false` 면 `blockedReason` 만"
+   *                             items: { type: object }
    *       400: { description: 심볼 형식 오류 }
    *       401: { description: 인증 실패 }
    *       404: { description: 소유자가 아니다 }

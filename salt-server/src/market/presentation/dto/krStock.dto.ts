@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { KR_SCHEDULE_DEFAULT_DAYS, KR_SCHEDULE_MAX_DAYS } from "../../domain";
 
 /** F011 · `SRV-REQ-040` — 국내 주식 조회 입력 */
 
@@ -43,6 +44,11 @@ export const krSearchQuerySchema = z.object({
 });
 
 /** 투자자 순매수 거래일 수 — KIS 가 한 번에 주는 것이 30거래일이라 그 이상은 없다(FR-50) */
+/** 다가오는 일정 기간(`SRV-REQ-041` FR-5) — 상한은 도메인 값 */
+export const krScheduleQuerySchema = z.object({
+  days: z.coerce.number().int().min(1).max(KR_SCHEDULE_MAX_DAYS).default(KR_SCHEDULE_DEFAULT_DAYS),
+});
+
 export const krInvestorQuerySchema = z.object({
   days: z.coerce.number().int().min(1).max(30).default(20),
 });

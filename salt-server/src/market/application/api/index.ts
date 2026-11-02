@@ -1,5 +1,7 @@
 import { KrStockDisabledError, KrStockNotAvailableError, isKrStockCode, isKrStockViewer, krStockLogoUrl } from "../../domain";
 import type { KrCompanyHomepageSource, KrHeldCodesSource, KrLogoImageProbe } from "../../domain";
+import type { MarketScheduleReader } from "../../domain";
+import { GetKrMarketSchedule } from "../GetKrMarketSchedule";
 import type {
   KrProviderHealthPort,
   KrRealtimePort,
@@ -250,6 +252,8 @@ export interface MarketDependencies {
    * 코인 의존과 묶지 않는다: KIS 장애 · 미설정이 코인 시세를 막지 않는다
    */
   krStock: KrStockDependencies | null;
+  /** 다가오는 국내 시장 일정(`SRV-REQ-041` FR-5) — 예측 DB 뷰. 국내 주식 키와 무관하게 늘 있다 */
+  schedule: MarketScheduleReader;
   /** 추적 자산 상한(`SRV-REQ-008` FR-80~87) — 보유는 `portfolio` 의 사실이라 조립 지점이 넣는다. 상한은 `TRACKED_ASSET_LIMIT` */
   tracking: { held: HoldingProbe; limit: number };
 }
@@ -394,6 +398,8 @@ export interface MarketUseCases {
   refreshTechnicalIndicators: RefreshTechnicalIndicators;
   /** 키가 없으면 `null`(FR-6) */
   krStock: KrStockUseCases | null;
+  /** 국내 시장 일정 — 키가 없어도 있다(일정은 예측 DB 에서 온다) */
+  getKrMarketSchedule: GetKrMarketSchedule;
 }
 
 export const createMarketApplication = (deps: MarketDependencies) => {
@@ -462,6 +468,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       krUniverse ? () => krUniverse.execute() : null
     ),
     krStock: deps.krStock ? createKrStockUseCases(deps.krStock) : null,
+    getKrMarketSchedule: new GetKrMarketSchedule(deps.schedule),
   };
 
   const api: MarketApi = {

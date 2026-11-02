@@ -1,13 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
-import type { KrStockUseCases } from "../application/api";
+import type { KrStockUseCases, MarketUseCases } from "../application/api";
 import { KrStockDisabledError } from "../domain";
 import {
   krChartQuerySchema,
   krCodeParamSchema,
   krInvestorQuerySchema,
   krListQuerySchema,
+  krScheduleQuerySchema,
   krSearchQuerySchema,
 } from "./dto/krStock.dto";
 
@@ -16,7 +17,20 @@ import {
  * 볼 수 있는지(소유자) 판정은 유스케이스가 한다 — 컨트롤러는 신원만 넘긴다.
  */
 export class KrStockController {
-  constructor(private readonly useCases: KrStockUseCases | null) {}
+  constructor(
+    private readonly useCases: KrStockUseCases | null,
+    private readonly getSchedule: MarketUseCases["getKrMarketSchedule"]
+  ) {}
+
+  /** 다가오는 국내 시장 일정 — 키가 꺼져 있어도 · 소유자가 아니어도 된다(공개 사실, `SRV-REQ-041` FR-5) */
+  schedule = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { days } = krScheduleQuerySchema.parse(req.query);
+      return ResponseUtil.success(res, await this.getSchedule.execute(days));
+    } catch (error) {
+      next(error);
+    }
+  };
 
   private enabled(): KrStockUseCases {
     if (!this.useCases) throw new KrStockDisabledError();

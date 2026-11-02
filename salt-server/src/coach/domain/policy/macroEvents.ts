@@ -7,8 +7,31 @@
 
 import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "./performanceClaim";
 
-export type MacroEventKind = "fomc" | "cpi" | "jobs";
-export const MACRO_EVENT_KINDS: readonly MacroEventKind[] = ["fomc", "cpi", "jobs"];
+export type MacroEventKind = "fomc" | "cpi" | "jobs" | "kr_bok_rate" | "kr_cpi" | "kr_trade" | "kr_quad_expiry";
+export type EventRegion = "us" | "kr";
+/** 시장 일정(모든 종목) · 종목 사건(그 종목만 — 2단계 `kr_earnings` · `kr_ir`) */
+export type EventScope = "market" | "symbol";
+
+/**
+ * 종류 → 지역 · 범위. **이 표 한 곳**이 정한다(`SRV-REQ-041` FR-1). 모르는 종류는 버린다 — 예측이 먼저 늘려도
+ * 화면에 이름 없는 행이 나가지 않는다
+ */
+export const EVENT_KIND_META: Readonly<Record<MacroEventKind, { region: EventRegion; scope: EventScope }>> = {
+  fomc: { region: "us", scope: "market" },
+  cpi: { region: "us", scope: "market" },
+  jobs: { region: "us", scope: "market" },
+  kr_bok_rate: { region: "kr", scope: "market" },
+  kr_cpi: { region: "kr", scope: "market" },
+  kr_trade: { region: "kr", scope: "market" },
+  kr_quad_expiry: { region: "kr", scope: "market" },
+};
+export const MACRO_EVENT_KINDS = Object.keys(EVENT_KIND_META) as readonly MacroEventKind[];
+
+/** 코인엔 미국 거시만, 국내 종목엔 국내 + 미국(`FC-REQ-021` FR-8) */
+const REGIONS_FOR: Readonly<Record<"crypto" | "kr_stock", readonly EventRegion[]>> = {
+  crypto: ["us"],
+  kr_stock: ["kr", "us"],
+};
 export const EVENT_HORIZON_DAYS = [1, 5, 20] as const;
 /** `FC-REQ-005` FR-6 과 같은 값 — 서버도 한 번 더 막는다 */
 const MIN_SAMPLE = 10;
@@ -41,10 +64,17 @@ export interface EventCardRow {
   windowTo: Date | null;
   missCount: number | null;
   missJudged: number | null;
+  /** 사건의 종목 — 시장 일정 `''` · 종목 사건은 그 종목(`DB-REQ-034` FR-3) */
+  eventSymbol: string;
+  /** 반응을 잰 종목의 자산군 — 걸린 전망 키로 안다(`forecastSymbol.ts`) */
+  assetClass: "crypto" | "kr_stock";
 }
 
 /** 반응 통계 한 행 — 일정 칸을 뺀 것. 쏠림 신호(`positioning.ts`)도 같은 게이트를 쓴다 */
-export type ReactionStatsRow = Omit<EventCardRow, "kind" | "eventAt" | "announcedAt" | "source">;
+export type ReactionStatsRow = Omit<
+  EventCardRow,
+  "kind" | "eventAt" | "announcedAt" | "source" | "eventSymbol" | "assetClass"
+>;
 
 export type EventHorizonView =
   | {
@@ -69,6 +99,8 @@ export type EventHorizonView =
 
 export interface MacroEventView {
   kind: MacroEventKind;
+  scope: EventScope;
+  region: EventRegion;
   eventAt: string;
   announcedAt: string;
   source: string;
@@ -115,19 +147,32 @@ export const toEventHorizon = (row: ReactionStatsRow): EventHorizonView => {
   };
 };
 
-/** 뷰 행(일정 × 기간)을 일정 하나씩으로 묶는다. 모르는 종류 · 빠진 기간은 막힌 기간으로 채운다 */
+const isKnownKind = (kind: string): kind is MacroEventKind => Object.hasOwn(EVENT_KIND_META, kind);
+
+/**
+ * 뷰 행(일정 × 기간)을 일정 하나씩으로 묶는다. 모르는 종류 · 자산군에 안 맞는 지역은 버리고, 빠진 기간은 막힌 기간으로 채운다.
+ * 순서는 종목 사건 → 시장 일정, 같은 범위 안은 시각 순(`FE-REQ-046` FR-2)
+ */
 export const toMacroEvents = (rows: EventCardRow[]): MacroEventView[] => {
   const byEvent = new Map<string, EventCardRow[]>();
   for (const row of rows) {
-    if (!MACRO_EVENT_KINDS.includes(row.kind as MacroEventKind)) continue;
-    const key = `${row.kind}|${row.eventAt.toISOString()}`;
+    if (!isKnownKind(row.kind)) continue;
+    const meta = EVENT_KIND_META[row.kind];
+    if (!REGIONS_FOR[row.assetClass].includes(meta.region)) continue;
+    // 종목 사건이 시장 일정으로 표시된 행(또는 그 반대)은 계약 위반 — 버린다
+    if ((meta.scope === "symbol") !== (row.eventSymbol !== "")) continue;
+    const key = `${row.kind}|${row.eventAt.toISOString()}|${row.eventSymbol}`;
     byEvent.set(key, [...(byEvent.get(key) ?? []), row]);
   }
+  const scopeOrder: Record<EventScope, number> = { symbol: 0, market: 1 };
   return [...byEvent.values()]
     .map((group) => {
       const first = group[0]!;
+      const kind = first.kind as MacroEventKind;
       return {
-        kind: first.kind as MacroEventKind,
+        kind,
+        scope: EVENT_KIND_META[kind].scope,
+        region: EVENT_KIND_META[kind].region,
         eventAt: first.eventAt.toISOString(),
         announcedAt: first.announcedAt.toISOString(),
         source: first.source,
@@ -137,5 +182,5 @@ export const toMacroEvents = (rows: EventCardRow[]): MacroEventView[] => {
         }),
       };
     })
-    .sort((a, b) => a.eventAt.localeCompare(b.eventAt));
+    .sort((a, b) => scopeOrder[a.scope] - scopeOrder[b.scope] || a.eventAt.localeCompare(b.eventAt));
 };

@@ -45,6 +45,7 @@ import { KisRealtimeClient } from "./market/infrastructure/KisRealtimeClient";
 import { PrismaKrMarketCalendarStore, PrismaKrStockStore } from "./market/infrastructure/PrismaKrStockStore";
 import { parseKrSummaryIndices } from "./market/domain";
 import { PrismaKrSupplementStore } from "./market/infrastructure/PrismaKrSupplementStore";
+import { PrismaMarketScheduleReader } from "./market/infrastructure/PrismaMarketScheduleReader";
 import { PrismaIndicatorRepository } from "./market/infrastructure/PrismaIndicatorRepository";
 import { PrismaMarketAssetRepository } from "./market/infrastructure/PrismaMarketAssetRepository";
 import { PrismaPriceHistoryRepository } from "./market/infrastructure/PrismaPriceHistoryRepository";
@@ -187,6 +188,7 @@ const market = createMarketApplication({
     wideMoveRate: env.MARKET_SUMMARY_WIDE_MOVE_RATE,
   },
   krStock,
+  schedule: new PrismaMarketScheduleReader(),
   // 보유는 `portfolio` 공개 API 로 — `portfolio` 가 아래에서 조립되므로 부를 때 찾는다(`held` 와 같은 이유)
   tracking: { held: new HeldAssetsAdapter(() => portfolio.api), limit: env.TRACKED_ASSET_LIMIT },
 });
@@ -324,7 +326,7 @@ export const contextRouters = {
   news: createNewsRouter(news.useCases),
   investment: createInvestmentRouter(market.useCases),
   marketIntelligence: createMarketIntelligenceRouter(market.useCases),
-  krStock: createKrStockRouter(market.useCases.krStock),
+  krStock: createKrStockRouter(market.useCases.krStock, market.useCases.getKrMarketSchedule),
   portfolio: createPortfolioRouter(portfolio.useCases),
   aiCoach: createAICoachRouter(coach.useCases),
   behaviorCoach: createBehaviorCoachRouter(coach.useCases),
