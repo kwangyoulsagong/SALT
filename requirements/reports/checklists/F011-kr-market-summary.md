@@ -1,6 +1,6 @@
 # F011 국내 탭 요약 띠 — 검증 · 2026-11-02
 
-범위: `requirements/specs/in-progress/F011-kr-market-summary-slice.md`. 영역 체크리스트: `salt-server/.../DB-REQ-035.md` · `SRV-REQ-042.md` ·
+범위: `requirements/specs/done/F011-kr-market-summary-slice.md`. 영역 체크리스트: `salt-server/.../DB-REQ-035.md` · `SRV-REQ-042.md` ·
 `bff/.../BFF-REQ-044.md` · `salt-microFe/.../FE-REQ-050.md` · 파일만 걸침 각 REQ §국내 탭 요약 띠
 
 ## 코드 검증
@@ -26,7 +26,7 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 원/달러 칸 | KIS 환율 TR 모의 키 거부(`EGW02004`) | 실전 KIS 키 또는 장중 환율 소스 결정 |
+| ~~원/달러 칸~~ | **범위에서 뺌 2026-11-02**(사용자 결정 — 실전 키 안 씀, 모의 키는 환율 TR 거부) | 닫힘 |
 | 지수 대표 선 하루치 | 분 기록이 배포 시각(14:06)부터 | 2026-11-03 장중 |
 | 분 기록 정리 실제 삭제 | 지울 행이 10일 뒤에 생긴다 | 2026-11-12 15:50 로그 |
 | 로그인 QA(사용자) | 소유자 실계정 눈 확인 | `QA-001` |

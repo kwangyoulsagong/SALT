@@ -7,7 +7,7 @@ title: "국내 주식 시장 요약 중계 — 코인 요약과 같은 뷰모델
 priority: high
 created: 2026-10-30
 status: done (2026-11-02)
-source: salt-server/requirements/specs/in-progress/SRV-REQ-042-F011-KR-MARKET-SUMMARY.md
+source: salt-server/requirements/specs/done/SRV-REQ-042-F011-KR-MARKET-SUMMARY.md
 ---
 
 > **구현 2026-11-02** (`feat/kr-market-summary` `2018f8c6`). `app-kr-stock.service.ts` `getSummary` · `kr-stock.viewmodel.ts` `toKrMarketSummaryVM` ·

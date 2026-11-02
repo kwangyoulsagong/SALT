@@ -7,7 +7,7 @@ title: "국내 지수 장중 분 기록 — 요약 띠 스파크라인"
 priority: high
 created: 2026-10-30
 status: done (2026-11-02)
-source: salt-server/requirements/specs/in-progress/SRV-REQ-042-F011-KR-MARKET-SUMMARY.md
+source: salt-server/requirements/specs/done/SRV-REQ-042-F011-KR-MARKET-SUMMARY.md
 ---
 
 ## Summary
