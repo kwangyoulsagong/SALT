@@ -1,3 +1,4 @@
+import { SALT_CLIENT_HEADER, type ExplainClient } from "../utils/client-kind.util";
 import { createConcurrencyGate } from "../utils/concurrency.util";
 import { AppError } from "../utils/error.util";
 import { retryOnceOnGet } from "../utils/retry.util";
@@ -202,7 +203,7 @@ export class AppAICoachService {
    * - 동시 2개. 넘으면 서버에 보내지 않고 429 `explain_busy`.
    * - 본문을 가공 · 로깅하지 않는다. `{ renderable: false }` 도 200 으로 그대로 전달한다.
    */
-  async explain(token: string, body: unknown, signal?: AbortSignal) {
+  async explain(token: string, body: unknown, signal?: AbortSignal, client: ExplainClient = "web") {
     const release = explainGate.tryAcquire();
     if (!release) throw new AppError("explain_busy", 429);
 
@@ -212,7 +213,7 @@ export class AppAICoachService {
         "/ai-coach/explain",
         token,
         body,
-        { timeout: EXPLAIN_TIMEOUT_MS, signal },
+        { timeout: EXPLAIN_TIMEOUT_MS, signal, headers: { [SALT_CLIENT_HEADER]: client } },
       );
       return (response.data as BackendEnvelope<unknown>).data;
     } finally {
@@ -230,7 +231,7 @@ export class AppAICoachService {
    *
    * 반환된 `events` 를 다 읽거나 `close()` 하면 문이 열린다.
    */
-  async openExplainStream(token: string, body: unknown, signal: AbortSignal) {
+  async openExplainStream(token: string, body: unknown, signal: AbortSignal, client: ExplainClient = "web") {
     const release = explainGate.tryAcquire();
     if (!release) throw new AppError("explain_busy", 429);
 
@@ -249,6 +250,8 @@ export class AppAICoachService {
       stream = await backendApi.openAuthStream("/ai-coach/explain/stream", token, body, {
         timeout: EXPLAIN_STREAM_IDLE_MS,
         signal: upstreamAbort.signal,
+        // 모바일이면 서버가 로컬 CLI 를 고르지 않는다(`SRV-REQ-050` FR-4)
+        headers: { [SALT_CLIENT_HEADER]: client },
       });
     } catch (error) {
       close();

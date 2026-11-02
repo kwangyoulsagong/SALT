@@ -51,4 +51,27 @@ describe("openExplainStream (BFF-REQ-037 FR-6)", () => {
     a.close();
     b.close();
   });
+
+  it("서버로 BFF 가 정한 클라이언트를 싣는다 — 기본 web · 앱이면 mobile (BFF-REQ-050 FR-1)", async () => {
+    const seen: Array<Record<string, string> | undefined> = [];
+    mock.method(backendApi, "openAuthStream", async (_u: string, _t: string, _d: unknown, o: { headers?: Record<string, string> }) => {
+      seen.push(o.headers);
+      return Readable.from([formatSseEvent("message.done", "{}")]);
+    });
+    await drain(await appAICoachService.openExplainStream("t", {}, new AbortController().signal));
+    await drain(await appAICoachService.openExplainStream("t", {}, new AbortController().signal, "mobile"));
+    assert.deepEqual(seen, [{ "X-Salt-Client": "web" }, { "X-Salt-Client": "mobile" }]);
+  });
+
+  it("provider 칸은 데이터 그대로 지난다 — 이름 허용 목록 중계 (BFF-REQ-050 FR-2)", async () => {
+    const replace = '{"modeReasoning":"a","keyDrivers":[],"risks":[],"newsSummary":[],"source":"llm","droppedSentences":0,"provider":"local_claude"}';
+    const done = '{"messageId":"m","source":"llm","droppedSentences":0,"provider":"local_claude","generatedAt":"t"}';
+    mock.method(backendApi, "openAuthStream", async () =>
+      Readable.from([formatSseEvent("message.replace", replace) + formatSseEvent("message.done", done)]),
+    );
+    const opened = await appAICoachService.openExplainStream("t", {}, new AbortController().signal);
+    const got: string[] = [];
+    for await (const e of opened.events) got.push(e.data);
+    assert.deepEqual(got, [replace, done]);
+  });
 });
