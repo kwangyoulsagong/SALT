@@ -30,10 +30,19 @@ async function startServer() {
   }
 }
 
-// Graceful shutdown
+// Graceful shutdown — **5초 안에 끝낸다**(2026-11-02, `OPS-002`). 전엔 DB 연결 닫기를 기다리다 멈춰 SIGTERM 뒤에도 포트 4000 을
+// 20초 넘게 쥐었다 — launchd 재시작마다 새 서버가 EADDRINUSE 로 죽고 1~2분 꺼져 있었다. 로그 파이프(rotatelogs)가 먼저 닫혀도
+// 쓰기 오류(EPIPE)가 종료를 막지 않게 stdout · stderr 오류는 삼킨다
+const SHUTDOWN_DEADLINE_MS = 5_000;
+let shuttingDown = false;
 async function gracefulShutdown(signal: string) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  process.stdout.on('error', () => undefined);
+  process.stderr.on('error', () => undefined);
+  setTimeout(() => process.exit(0), SHUTDOWN_DEADLINE_MS);
   logger.info(`${signal} signal received: closing server gracefully`);
-  await disconnectDatabase();
+  await disconnectDatabase().catch(() => undefined);
   process.exit(0);
 }
 
