@@ -77,6 +77,9 @@ describe("해설 품질 — 템플릿 픽스처 50건 (FEATURE-008 FR-49)", () =
     assert.ok(m.avg <= 60, `avg ${m.avg}`);
     assert.ok(m.max <= 160, `max ${m.max}`);
   });
+  it("판단 문장을 따옴표로 감싸 \"입니다\"를 덧붙이지 않는다(2026-11-02 블라인드 평가 · 실화면)", () => {
+    for (const f of FIXTURES) assert.doesNotMatch(templateExplanation(f, NOW).modeReasoning, /["”]입니다/);
+  });
   it("결정적이다 — 같은 입력이면 같은 문장", () => {
     const a = FIXTURES.map((f) => JSON.stringify(templateExplanation(f, NOW)));
     const b = FIXTURES.map((f) => JSON.stringify(templateExplanation(f, NOW)));
