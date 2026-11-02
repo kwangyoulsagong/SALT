@@ -418,3 +418,9 @@
 - `shared/config/env.ts`(이 REQ 가 머리 주석 주인)에 `COACH_EXPLAIN_LLM`(on · off, 기본 on). `npm run build` · `test` 889 통과
 
 미검증: 없음.
+
+## 2026-11-02 — 서버 종료 5초 상한 (`OPS-002`)
+
+- 증상 · 원인 · 결과는 루트 `requirements/reports/checklists/OPS-002.md` §재시작 고아. `restart server` 10초 · 7초 · 고아 0 · `npm run build` · `test` 889 · layer-check
+
+미검증: 없음.
