@@ -41,3 +41,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-02 | `FE-REQ-052` done — `apps/web-investment` 빈 골격 · 레지스트리 `invest` 가 생겼다. **FR-2 에 더한다**: 셸 라우트를 지우는 커밋에서 `registry.json` `invest.hostedIn` 을 `"web"` → `"web-investment"` 로(그래야 셸 링크가 cross-zone 으로 잡히고 rewrites `fallback` 이 zone 으로 보낸다). FR-1 에서 `packages/domain-invest` 를 만들 때 `.eslintrc`(`@repo/fsd/layers`)를 같이 넣고 `cross-domain` 변이를 ESLint 로 확인. `ops/salt.sh` 이름 표에 `web-investment`(3002) |

@@ -208,3 +208,9 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 
 - 파일만 걸침 — 웹 `entities/market/model/messages.ts` 에 차트 기간 이름 `1w`. 레이어 · 슬라이스 무변경
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — zone = 도메인 F0 (`FE-REQ-052`)
+
+- 변경: 도메인 축 4 규칙 · 훅 대상 `packages/domain-*` · 페이지 레지스트리 `tax` 삭제. 레이어 축 무변경
+- 검증: `pnpm lint` · `check-types` · `test`(core 62 · ui 43) · `test:layer-check`(차단 12 · 통과 7) · `build` 5/5 · 실기동 rewrites — `checklists/FE-REQ-052.md` §2
+- 미검증 · 범위 밖: `domain-*` 안 레이어 축 — 패키지가 없다(`FE-REQ-053` FR-1)

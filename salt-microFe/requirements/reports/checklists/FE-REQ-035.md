@@ -64,3 +64,9 @@ First Load 가 그대로인 이유: axios 는 처음부터 지연 청크(`next/d
 - 확인: lint pass
 
 미검증: 없음 — 판단 무변경
+
+## 2026-11-02 — zone = 도메인 F0 (`FE-REQ-052`)
+
+- 변경: 파일만 걸침 — 같은 eslintrc 의 zone 규칙만. `axios` 금지 무변경
+- 검증: `pnpm lint` · `check-types` · `test`(core 62 · ui 43) · `test:layer-check`(차단 12 · 통과 7) · `build` 5/5 · 실기동 rewrites — `checklists/FE-REQ-052.md` §2
+- 미검증 · 범위 밖: 없음

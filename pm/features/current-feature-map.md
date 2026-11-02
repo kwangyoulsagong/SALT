@@ -138,7 +138,7 @@ flowchart LR
 
 | 서피스 | 현재 | 전환 목표 | 근거 |
 |---|---|---|---|
-| 웹 | `@module-federation/nextjs-mf` 3앱(shell/goals/investments), Pages Router | **Multi-Zones 2앱**(`apps/web` + `apps/web-tax`) · App Router **스트리밍 SSR** · **FSD** | `ADR-001` · `FE-REQ-007`~`009` |
+| 웹 | `@module-federation/nextjs-mf` 3앱(shell/goals/investments), Pages Router | **Multi-Zones — zone = 도메인**(`apps/web` 셸 + 도메인 zone 4 골격, `web-tax` 삭제 2026-11-02 `ADR-005` · `FE-REQ-052`) · App Router **스트리밍 SSR** · **FSD** | `ADR-001` · `FE-REQ-007`~`009` |
 | 모바일 | 없음 | **`apps/mobile` 신설** (React Native, iOS+Android, FSD) | `RN-REQ-001`~`003` |
 | BFF | 레이어 경계 혼재 | 레이어드 + **SSE 스트리밍** | `BFF-REQ-006` |
 | 서버 | `src/modules/*` | **DDD 컨텍스트 우선** `{context}/{domain,application,infrastructure,presentation}` | `SRV-REQ-006` |

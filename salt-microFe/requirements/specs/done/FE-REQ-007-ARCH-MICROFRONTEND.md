@@ -12,11 +12,15 @@ decision: requirements/decisions/ADR-001-microfrontend-replacement.md
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - Open Q `apps/goals` 이관은 닫힘 — `app/goals` 로 이관됨
 > - 3탭 `/` · `/coach` · `/assets` 는 아직 없다 — 지금 라우트는 `/home` · `/investments` · `/coach/report` · `/goals` · `/onboarding`
+>
+> **2026-11-02 정정 (`FE-REQ-052`, `ADR-005`)** — zone 경계를 도메인으로 다시 그었다. `apps/web-tax` · `/tax` rewrites · `TAX_ZONE_ORIGIN` 삭제,
+> 셸 `apps/web` + 도메인 zone 4(`web-investment` · `web-savings` · `web-household` · `web-tips`). 레지스트리는 `registry.json` 하나, rewrites 는 생성(`ZONE_<ID>_ORIGIN`).
+> 아래 FR-2 · 3 · 33 · 수용 기준의 세금 zone 행은 그 자리에 정정 표시를 달았다. Multi-Zones · `CrossZoneLink` · 공유 패키지 원칙은 그대로다.
 
 
 ## Summary
 
-`@module-federation/nextjs-mf`를 제거하고 **Next.js Multi-Zones**로 갈아탄다. 앱 3개(`shell`·`goals`·`investments`)를 **zone 2개**(`apps/web` · `apps/web-tax`)로 재편한다. 마이크로프론트엔드를 포기하는 것이 아니라, **App Router와 스트리밍 SSR이 동작하는 방식으로 옮기는 것**이다.
+`@module-federation/nextjs-mf`를 제거하고 **Next.js Multi-Zones**로 갈아탄다. 앱 3개(`shell`·`goals`·`investments`)를 ~~**zone 2개**(`apps/web` · `apps/web-tax`)로~~ 재편한다. **정정 2026-11-02** — `apps/web-tax` 는 지웠다. zone = 도메인 5개(`ADR-005` · `FE-REQ-052`). 마이크로프론트엔드를 포기하는 것이 아니라, **App Router와 스트리밍 SSR이 동작하는 방식으로 옮기는 것**이다.
 
 ## 왜 지금 것을 버리는가 — 확인된 사실 4개
 
@@ -75,7 +79,7 @@ Rspack 2.0은 이 방향에 가장 가깝다. RSC 지시어(`"use client"`, 모�
 
 **우리에게 안 맞은 이유:** 우리는 지금부터 **REQ 100여 개와 모바일 앱**을 올린다. 그 전부의 실패 원인이 빌드 층에서 나올 수 있는 조합을 기반으로 깔 수 없다. 우리 조직은 빌드 툴체인 전담이 없다(토스는 RN 플랫폼 팀이 4명이다). **실험적 조합을 감당할 인력이 없다는 것이 결정적이었다.**
 
-> 다시 볼 조건: `next-rspack` 안정 선언 + `@module-federation/enhanced`의 App Router 공식 지원. 그때는 `web-tax` zone 하나를 실험 대상으로 삼아 점진적으로 옮길 수 있다 — **Multi-Zones가 그 실험을 zone 단위로 격리해 준다는 것도 C의 장점이다.**
+> 다시 볼 조건: `next-rspack` 안정 선언 + `@module-federation/enhanced`의 App Router 공식 지원. 그때는 ~~`web-tax`~~ 도메인 zone(**정정 2026-11-02** — `web-tax` 삭제) 하나를 실험 대상으로 삼아 점진적으로 옮길 수 있다 — **Multi-Zones가 그 실험을 zone 단위로 격리해 준다는 것도 C의 장점이다.**
 
 ### D를 버린 이유
 Vite + `@module-federation/vite`는 안정적으로 동작한다. 하지만 **Next를 떠나면 SSR·이미지 최적화·라우팅을 직접 만들어야 한다.** 이 제품은 비공개·초대제라 SEO 요구가 없고, SSR을 자작해서 얻을 것이 없다. 이미 있는 Next 자산(라우팅·번들·이미지)을 버리는 비용만 남는다.
@@ -134,8 +138,8 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-1 | `apps/shell` + `apps/investments` + `apps/goals`를 **`apps/web`** 하나로 통합한다. 이것이 default zone이며 `assetPrefix`를 갖지 않는다 | Must |
-| FR-2 | **`apps/web-tax`** zone을 신설한다. `assetPrefix: '/tax-static'`. 담당 경로는 `/tax/*` | Must |
-| FR-3 | default zone의 `next.config.js`에 `rewrites`로 `/tax`, `/tax/:path+`, `/tax-static/:path+`를 세금 zone 도메인으로 보낸다. `destination`은 scheme+도메인을 포함한 절대 URL이며 환경변수(`TAX_ZONE_ORIGIN`)로 주입한다 | Must |
+| FR-2 | ~~**`apps/web-tax`** zone을 신설한다. `assetPrefix: '/tax-static'`. 담당 경로는 `/tax/*`~~ **정정 2026-11-02** — `apps/web-tax` 는 지웠다. zone = 도메인 5개(`ADR-005` · `FE-REQ-052`) | Must |
+| FR-3 | default zone의 `next.config.js`에 `rewrites`로 `/tax`, `/tax/:path+`, `/tax-static/:path+`를 세금 zone 도메인으로 보낸다. `destination`은 scheme+도메인을 포함한 절대 URL이며 환경변수(`TAX_ZONE_ORIGIN`)로 주입한다 ~~(세금 zone 행)~~ **정정 2026-11-02** — rewrites 는 레지스트리에서 생성, env `ZONE_<ID>_ORIGIN`(`FE-REQ-052` FR-3) | Must |
 | FR-4 | zone 간 경로는 **유일**해야 한다. 두 zone이 같은 경로를 서비스하지 않는다 | Must |
 | FR-5 | zone 간 링크는 `<a>`를 쓴다. `<Link>`를 쓰면 prefetch·soft navigation이 동작하지 않는다. **ESLint 규칙으로 강제**한다 (`no-restricted-imports`가 아니라 zone 경로 목록 기반 커스텀 규칙) | Must |
 | FR-6 | `@module-federation/nextjs-mf` 의존성과 모든 `NextFederationPlugin` 설정을 제거한다 | Must |
@@ -167,38 +171,38 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 | FR-30 | `packages/tokens` 신규 — 플랫폼 중립 토큰 객체(순수 TS). 현재 토큰은 `createGlobalTheme` 호출이라 **RN에서 import가 불가능**하다. 값을 객체로 빼고 웹은 그것으로 `createGlobalTheme`을, RN은 `StyleSheet`를 만든다 | Must |
 | FR-31 | `packages/ui`는 **웹 전용**으로 유지한다. `feature/repo-ui-component` 브랜치의 44종(공개 subpath 83개)을 병합해 그대로 쓴다. **병합이 이 REQ의 선행이다** | Must |
 | FR-32 | `packages/core` 신규 — FSD `entities`/`features`의 `model`·`api`·`lib` 중 플랫폼 무관한 것. 두 zone과 RN이 공유한다 | Should |
-| FR-33 | zone 간 코드 공유는 **workspace 패키지로만** 한다. `apps/web-tax`가 `apps/web/src/**`를 직접 import하지 않는다 | Must |
+| FR-33 | zone 간 코드 공유는 **workspace 패키지로만** 한다. ~~`apps/web-tax`가~~ zone 앱이 다른 앱 `src/**`를 직접 import하지 않는다 **정정 2026-11-02** — 도메인 축 추가(`FE-REQ-052` FR-4) | Must |
 
 ## Non-Functional
 
 | 구분 | 요구사항 |
 |---|---|
-| 성능 | zone 내부 이동은 soft navigation(리로드 없음). default zone 첫 페인트 예산은 `performance-frontend.md` 참조. **세금 zone 진입 1회의 hard navigation은 예산에서 제외**하고 별도 측정한다 |
-| 빌드 | `turbo build`가 zone 2개를 빌드한다. turbo 캐시 outputs를 `.next/**`로 유지 |
+| 성능 | zone 내부 이동은 soft navigation(리로드 없음). default zone 첫 페인트 예산은 `performance-frontend.md` 참조. ~~**세금 zone 진입 1회의 hard navigation은 예산에서 제외**하고 별도 측정한다~~ **정정 2026-11-02** — 셸 ↔ 도메인 zone 전환은 `FE-REQ-054` FR-6 이 잰다 |
+| 빌드 | `turbo build`가 ~~zone 2개를~~ zone 5개를(**정정 2026-11-02**, `FE-REQ-052`) 빌드한다. turbo 캐시 outputs를 `.next/**`로 유지 |
 | 되돌리기 | `nextjs-mf` 제거는 커밋 하나로 되돌릴 수 있게 **단일 커밋**으로 한다. 앱 통합은 별도 커밋 |
 | 관측성 | zone별 첫 페인트, cross-zone 이동 횟수, `rewrites` 프록시 지연을 측정한다 |
 
 ## Acceptance Criteria
 
-- [ ] `apps/` 아래에 `web`, `web-tax`, `mobile` 셋만 있다 (`shell`·`goals`·`investments` 없음)
+- [ ] `apps/` 아래에 `web`, `web-tax`, `mobile` 셋만 있다 (`shell`·`goals`·`investments` 없음) — **정정 2026-11-02** 세금 zone 삭제, 같은 확인은 도메인 zone 으로(`checklists/FE-REQ-052.md` §2)
 - [ ] `grep -rn "nextjs-mf\|NextFederationPlugin" salt-microFe --include="*.ts" --include="*.js" --include="*.json"` = 0 (node_modules 제외)
 - [ ] `grep -rn "message-event-bus" salt-microFe/apps` = 0
-- [ ] `/tax`로 접근하면 세금 zone이 응답하고, 정적 자산이 `/tax-static/_next/...`로 서비스된다
+- [ ] `/tax`로 접근하면 세금 zone이 응답하고, 정적 자산이 `/tax-static/_next/...`로 서비스된다 — **정정 2026-11-02** 세금 zone 삭제, 같은 확인은 도메인 zone 으로(`checklists/FE-REQ-052.md` §2)
 - [ ] `/`에서 `/coach`, `/assets`로 이동할 때 **full reload가 발생하지 않는다** (Performance 패널로 확인)
-- [ ] `/`에서 `/tax`로 이동할 때 hard navigation이고, 그 링크가 `<a>`다
+- [ ] `/`에서 `/tax`로 이동할 때 hard navigation이고, 그 링크가 `<a>`다 — **정정 2026-11-02** 세금 zone 삭제, 같은 확인은 도메인 zone 으로(`checklists/FE-REQ-052.md` §2)
 - [ ] zone 간 경로 중복이 0건이다
 - [ ] `packages/tokens`가 존재하고 `@vanilla-extract/css`를 import하지 않는다
-- [ ] `apps/web-tax`가 `apps/web/src/**`를 import하지 않는다
-- [ ] `pnpm build`가 zone 2개 + `packages/*`를 통과한다
-- [ ] `pnpm dev`가 두 zone을 동시에 띄우고 `/tax`가 로컬에서 프록시된다
+- [ ] `apps/web-tax`가 `apps/web/src/**`를 import하지 않는다 — **정정 2026-11-02** 세금 zone 삭제, 같은 확인은 도메인 zone 으로(`checklists/FE-REQ-052.md` §2)
+- [ ] `pnpm build`가 ~~zone 2개~~ zone 5개(**정정 2026-11-02**) + `packages/*`를 통과한다
+- [ ] `pnpm dev`가 두 zone을 동시에 띄우고 `/tax`가 로컬에서 프록시된다 — **정정 2026-11-02** 세금 zone 삭제, 같은 확인은 도메인 zone 으로(`checklists/FE-REQ-052.md` §2)
 - [ ] zone 목록·근거 표가 `microfrontend.md`에 있다
 
 ## Trace
 
 | FR | 산출물 | 검증 |
 |---|---|---|
-| FR-1~2 | `apps/web`, `apps/web-tax` | 디렉터리 존재 + 빌드 |
-| FR-3~4 | `apps/web/next.config.js` `rewrites` | `/tax` 응답 확인 |
+| FR-1~2 | `apps/web`, ~~`apps/web-tax`~~ 도메인 zone 4(**정정 2026-11-02**) | 디렉터리 존재 + 빌드 |
+| FR-3~4 | `apps/web/next.config.js` `rewrites` | ~~`/tax` 응답 확인~~ 도메인 경로 → 각 zone(**정정 2026-11-02**) |
 | FR-5 | ESLint 커스텀 규칙 | zone 경로에 `<Link>` 사용 시 lint 실패 |
 | FR-6~7 | `package.json`, 설정 파일 | grep 0 |
 | FR-8 | `next@^15` | `next --version` |
@@ -236,3 +240,4 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 |---|---|
 | 2026-10-28 | `@repo/core/http` 진입점 `constants.ts` → `index.ts`(상수 + `apiError`, `2ff2ae6`). 두 zone · RN 이 같은 판정을 본다(FR-32 범위 확장) |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-02 | `FE-REQ-052`(F0 zone = 도메인) — `apps/web-tax` 삭제 · 레지스트리 `registry.json`(TS · CommonJS) · 셸 rewrites 생성 · zone lint 가 레지스트리 전체를 본다. 머리 정정 블록 + FR-2 · 3 · 33 · 수용 기준 그 자리 정정 |

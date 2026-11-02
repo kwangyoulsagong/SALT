@@ -170,3 +170,4 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 - 2026-10-30: 앱 화면 실측으로 P-3 · 4 · 5 · 35 · 36 · 40 · 줄인 모션 숫자 닫음. **P-40 결함 수정** — 초대 수락 직후 로딩 화면이 단계 영역을 내려 밀림이 재생되지 않았다(`16bd446`, 주인 `FE-REQ-010`). 남은 것: 기존 대비 3건(사용자 결정) · 토스트 화면 없음 · 실기기(`QA-001`) · RN — done 이동
 - 2026-10-30: 파일만 걸침 — 관심 종목 빈 상태 `EmptyState` 에 검색 링크 `action`(그래픽 무변경). 검색 화면 상태는 `StatusLine`(그래픽 포함) · 스켈레톤 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-11-02: 파일만 걸침 — `explain-symbol/model/messages.ts`(이 REQ 가 머리 주석 주인)에 칩 링크 스크린리더 문구 `citationLinkLabel` 추가 — 그래픽 · 모션 무변경. 루트 `requirements/specs/done/F008-explain-citations-slice.md`
+- 2026-11-02: 파일만 걸침 — `apps/web/.eslintrc.json` · `layer-rules.cjs`(이 REQ 가 `not-found` 페이지 레지스트리 줄 주인)의 다른 줄이 바뀜(`FE-REQ-052`). `motion/react` 금지 · `not-found` 줄 무변경. 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md`

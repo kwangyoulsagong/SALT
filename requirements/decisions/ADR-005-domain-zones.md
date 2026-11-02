@@ -66,3 +66,7 @@ zone 을 넘는 이동은 문서 이동(hard navigation)이다. 하단 탭이 �
 
 zone 은 설정 수준이다 — 화면 코드가 `domain-*` 패키지에 있으므로 zone 을 합치려면 레지스트리 · rewrites 만 바꾼다.
 되돌리기 지점은 `FE-REQ-052` 단일 커밋(PR 규칙 §4).
+
+## 7. 실행 기록
+
+- 2026-11-02 `FE-REQ-052` — §2 규칙 1 · 4 · 5 · 7 이 코드가 됐다(레지스트리 `registry.json` · rewrites 생성 · lint/훅 도메인 축 · 빈 zone 4 · `web-tax` 삭제). 화면 이전 전 상태는 레지스트리 `hostedIn`. 규칙 2(홈 카드) · 6(`AppChrome`)은 `FE-REQ-055` · `054`

@@ -206,3 +206,9 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 ## 2026-10-29 REQ 전수 조사
 
 - 머리 정정 블록: Open Q `apps/goals` 이관은 닫힘 — `app/goals` 로 이관됨 / 3탭 `/` · `/coach` · `/assets` 는 아직 없다 — 지금 라우트는 `/home` · `/investments` · `/coach/report`
+
+## 2026-11-02 — zone = 도메인 F0 (`FE-REQ-052`)
+
+- 변경: 세금 zone 삭제 · 레지스트리 `registry.json` · rewrites 생성 · zone lint 레지스트리 전체 — 본문 FR-2 · 3 · 33 · 수용 기준 그 자리 정정
+- 검증: `pnpm lint` · `check-types` · `test`(core 62 · ui 43) · `test:layer-check`(차단 12 · 통과 7) · `build` 5/5 · 실기동 rewrites — `checklists/FE-REQ-052.md` §2
+- 미검증 · 범위 밖: `checklists/FE-REQ-052.md` §4

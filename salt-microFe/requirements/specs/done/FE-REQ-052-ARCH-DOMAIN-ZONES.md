@@ -27,11 +27,11 @@ source: requirements/decisions/ADR-005-domain-zones.md
 
 ## Acceptance Criteria
 
-- [ ] lint 변이 3종(도메인 간 import · 셸 → 도메인 · zone 앱 안 features) 각각 실패
-- [ ] 다른 zone 경로에 `next/link` 쓰면 lint 실패
-- [ ] `apps/web-tax` 0 · `TAX_ZONE_ORIGIN` grep 0
-- [ ] 셸 기동 후 `/goals` 등 4 경로가 각 zone(빈 골격)으로 rewrites
-- [ ] 규칙 문서 200줄 이하
+- [x] lint 변이 3종(도메인 간 import · 셸 → 도메인 · zone 앱 안 features) 각각 실패 — 셸 → 도메인 · 남의 도메인 · zone 앱 안 features 는 ESLint stdin 변이로, 도메인 간은 훅 실행 테스트로(`domain-*` 패키지가 아직 없어 그 안의 eslint 설정이 없다 — 판정 함수는 같은 `layer-rules.cjs`). 체크리스트 §2
+- [x] 다른 zone 경로에 `next/link` 쓰면 lint 실패 — 셸에서 `/household` · `/tips/abc`, 저축 zone 에서 `/home` 실패 · 셸에서 `/investments` 통과(옮기기 전 `hostedIn`)
+- [x] `apps/web-tax` 0 · `TAX_ZONE_ORIGIN` grep 0(코드 · 활성 문서. 지난 REQ · 체크리스트의 기록은 이력이라 둔다)
+- [x] 셸 기동 후 `/goals` 등 4 경로가 각 zone(빈 골격)으로 rewrites — `/goals` · `/household` · `/tips` · `/coach` 가 `data-zone` 표지를 단 각 zone 404, 셸 화면(`/investments` · `/investments/BTC` · `/goals/addgoals` · `/home`)은 셸 200
+- [x] 규칙 문서 200줄 이하 — `microfrontend.md` 105줄
 
 ## 계약 영향
 
@@ -42,4 +42,5 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-02 | **done** — FR-2~8 구현(브랜치 `feat/fe-req-052-domain-zones`). 설계 판단 둘: ① 레지스트리 데이터를 `registry.json` 하나로 두고 TS(`registry.ts`) · CommonJS(`registry.cjs`)가 같이 읽는다 — FR-5 의 "JSON 생성본" 대신 생성 단계 없이 계산 대조 테스트로 갈라짐을 막는다 ② **`hostedIn`** 칸 — 화면은 아직 셸에 있으므로 cross-zone 판정은 "그 화면을 지금 서비스하는 앱" 기준, 셸 rewrites 경로는 `fallback`(셸 라우트가 이긴다 — `afterFiles` 면 동적 라우트 `/investments/[symbol]` 을 가로챈다). 옮기는 REQ(`FE-REQ-053` · `056`)가 `hostedIn` 을 자기 앱으로 바꾼다. zone id 는 `default`/`tax` → `shell` · `invest` · `savings` · `household` · `tips`. 셸 공용 청크 105 → 105 kB |
 | 2026-10-30 | **FR-1 먼저 완료** — 사용자 "새로 생긴 아키텍처 규칙 다 싱크": `microfrontend.md` 를 ADR-005 로 개정(세 조건 · 탭 문장 삭제). 코드가 아직 2 zone 이라 §0 "지금 코드 상태" 표를 두고 FR-2~7 이 닫힐 때 행을 지운다. FR-8 일부(`salt-microFe/CLAUDE.md` · 루트 서피스 표 · `layered-architecture.md` 세금 행 · `fsd-pages.md` · `rn-microfrontend.md` 경계 기준). 되돌리기 지점(코드 단일 커밋)은 그대로 |
