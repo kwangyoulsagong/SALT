@@ -70,3 +70,4 @@ zone 은 설정 수준이다 — 화면 코드가 `domain-*` 패키지에 있으
 ## 7. 실행 기록
 
 - 2026-11-02 `FE-REQ-052` — §2 규칙 1 · 4 · 5 · 7 이 코드가 됐다(레지스트리 `registry.json` · rewrites 생성 · lint/훅 도메인 축 · 빈 zone 4 · `web-tax` 삭제). 화면 이전 전 상태는 레지스트리 `hostedIn`. 규칙 2(홈 카드) · 6(`AppChrome`)은 `FE-REQ-055` · `054`
+- 2026-11-02 `FE-REQ-053` · `055` · `BFF-REQ-046`(F1) — 투자 화면이 `packages/domain-invest` + `apps/web-investment` 에서 서비스된다(`invest.hostedIn`). 규칙 2 가 코드가 됐다 — 셸 홈은 `HomeSummaryCard[]` 만 그린다. 규칙 3 · 4 를 패키지 안까지(도메인 패키지 FSD 레이어 · zone lint 판정). 공용 코드는 `@repo/web-shared`(shared + zone 공용 레이아웃). 규칙 6 은 `FE-REQ-054` 전까지 그 레이아웃이 임시로 맡는다

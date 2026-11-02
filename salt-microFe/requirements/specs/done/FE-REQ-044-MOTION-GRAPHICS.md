@@ -171,3 +171,7 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 - 2026-10-30: 파일만 걸침 — 관심 종목 빈 상태 `EmptyState` 에 검색 링크 `action`(그래픽 무변경). 검색 화면 상태는 `StatusLine`(그래픽 포함) · 스켈레톤 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-11-02: 파일만 걸침 — `explain-symbol/model/messages.ts`(이 REQ 가 머리 주석 주인)에 칩 링크 스크린리더 문구 `citationLinkLabel` 추가 — 그래픽 · 모션 무변경. 루트 `requirements/specs/done/F008-explain-citations-slice.md`
 - 2026-11-02: 파일만 걸침 — `apps/web/.eslintrc.json` · `layer-rules.cjs`(이 REQ 가 `not-found` 페이지 레지스트리 줄 주인)의 다른 줄이 바뀜(`FE-REQ-052`). `motion/react` 금지 · `not-found` 줄 무변경. 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md`
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 9개(경로 이동 내용 무변경 3 · 수정 4 · 추가 1 · 삭제 1). 계약 · 동작 무변경 |

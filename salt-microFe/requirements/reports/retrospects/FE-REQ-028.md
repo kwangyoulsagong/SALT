@@ -58,3 +58,7 @@
 ## 2026-10-30 — F004 슬라이스 18 설정 화면
 
 - 설정 응답 매퍼가 조회와 토글 저장에 따로 있어 한쪽만 필드를 늘리면 다른 칸이 비는 구조였다. Action: 없음(이번에 하나로)
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
+
+- 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`

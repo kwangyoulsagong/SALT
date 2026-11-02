@@ -35,3 +35,8 @@
 | 대표 선 · degraded | 14:35 대표 선 7점(5분 칸) · 선 없는 칸 0 · `degraded: false` |
 | 지난 거래일 라벨 | `sessionWindow` 같은 날 "오늘 장중" · 10-31 "10/31 장중" |
 | 실시간 | 장중 25초 종목 칸 8 중 5 갱신 |
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 시세 타일 등락 — 금액만 말줄임, 변동률은 늘 보임(`a55d8ca4`). 파일 9개(경로 이동 내용 무변경 4 · 수정 5 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2

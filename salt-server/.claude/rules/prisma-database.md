@@ -33,4 +33,6 @@
 
 - 삭제는 cascade 영향과 참조 관계를 확인한다.
 - 외부 시세/뉴스 같은 volatile 데이터 저장은 중복 키와 upsert 전략을 먼저 정한다.
+- **경합은 오류가 안 나게 만든다 — DB 오류 코드(`P2002` 등)를 잡아 되살리지 않는다.** "없으면 넣기"는 `createMany({ skipDuplicates: true })`(ON CONFLICT DO NOTHING) 뒤 update/읽기. Prisma `upsert` 는 이 모양이 아니면 조회 → create 두 단계라 동시 첫 요청이 unique 위반이 된다(2026-11-02 코치 프로필 500). 선례 `PrismaCoachProfileStore.upsert` · `PrismaMonthlyReviewStore.saveIfAbsent`
+- **여러 행 갱신을 `Promise.all(updateMany…)` 로 흩지 않는다** — 한 번에 연결 풀을 다 잡아 다른 요청이 줄을 선다(313종목 시세 갱신 → 위험 예산 조회 타임아웃, 2026-11-02). 한 문장 `UPDATE … FROM (VALUES …)`(`$executeRaw`, 선례 `PrismaWatchlistRepository.applyPrices` · `PrismaSymbolJudgmentStore`)
 - seed성 데이터와 runtime 데이터 생성을 혼동하지 않는다.

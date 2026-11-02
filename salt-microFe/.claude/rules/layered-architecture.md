@@ -45,7 +45,7 @@ ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹
 **피드백 시점이 다르다** — lint는 파일이 쓰인 다음에 보고, 그 사이에 위반 위에 위반이 쌓인다.
 
 **규칙 표는 `packages/eslint-plugin-fsd/layer-rules.cjs` 한 곳**이고 둘이 같은 파일을 읽는다.
-미러가 아니다. 위반 케이스 12개(레이어 8 + 도메인 4, `FE-REQ-052`)는 `pnpm test:layer-check`가 훅을 실제로 실행해 검증한다.
+미러가 아니다. 위반 케이스 16개(레이어 8 + 도메인 4 + 패키지 안 4, `FE-REQ-052` · `053`)는 `pnpm test:layer-check`가 훅을 실제로 실행해 검증한다.
 
 **훅이 막으면 우회하지 말고 구조를 고친다.**
 
@@ -58,11 +58,12 @@ ESLint `@repo/fsd/layers`가 같은 것을 에디터·CI에서 보여준다. 겹
 | `apps/web-*` → 다른 앱 `src/**` | zone은 독립 배포 단위다 |
 | `domain-*` → 다른 `domain-*` · 셸 → `domain-*` · zone 앱 → 남의 `domain-*` | 도메인 사이는 URL 링크와 BFF 응답으로만(`ADR-005` §2, `FE-REQ-052`) |
 | `apps/web-*/src/{entities,features,widgets}` | zone 앱은 얇다 — 화면은 `domain-*` |
+| `packages/domain-*/src/{shared,app}` · `web-shared` 에서 `@/…` | shared 는 `@repo/web-shared`, app 은 zone 앱 — shared 는 위를 모른다 |
 | `apps/mobile` → `packages/ui` | vanilla-extract는 RN에서 동작하지 않는다 |
 | 루트 `app/**`·`pages/**`에서 `@/pages`·`@/app` 외의 import | 라우팅 파일은 연결만 한다 |
 | 레지스트리에 없는 슬라이스 생성 | §4 |
 
-**예외 하나 — `*.css` 토큰 모듈.** `@/shared/ui/tokens.css`는 세그먼트 내부 경로지만 허용한다.
+**예외 하나 — `*.css` 토큰 모듈.** `@repo/web-shared/ui/tokens.css`는 세그먼트 내부 경로지만 허용한다.
 `.css.ts`는 빌드 타임에 node에서 평가되므로 barrel로 가져오면 React 컴포넌트가
 vanilla-extract 그래프에 들어와 빌드가 깨진다.
 
@@ -73,6 +74,7 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | 슬라이스 | 책임 | 서버 컨텍스트 | 도메인 패키지(`ADR-005`) |
 |---|---|---|---|
 | `auth` | 초대 코드 검증 · 세션 · 토큰 갱신 | `auth` | 셸 |
+| `home` | 홈 요약 카드 조회 · 표시(`HomeSummaryCard`, BFF 계약) — 도메인을 모른다(`FE-REQ-055`) | — (BFF 조립) | 셸 |
 | `portfolio` | 보유 · 포지션 · 평가금액 · 3자산군 합산 | `portfolio` | `invest` |
 | `market` | 시세 · 실시간 구독 · 차트 · 관심 종목 | `market` | `invest` |
 | `coach` | 추천 · 점수 · 근거 3종 · 대화 · 성적표 · 피드백 | `coach` | `invest` |
@@ -84,9 +86,9 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `notification` | 알림 1종 (지표/추천 갱신) · 읽음 | `notification` | 셸 |
 | `device` | 디바이스 등록 · 푸시 토큰 · 앱 버전 게이트 (모바일만) | `device` | 셸(모바일) |
 
-도메인 패키지 열은 옮길 곳이다 — `invest` = `packages/domain-invest`(`FE-REQ-053`), `savings` = `domain-savings`(`FE-REQ-056`), 셸 = `apps/web`. 지금 코드는 전부 `apps/web/src`(`microfrontend.md` §0).
+도메인 패키지 열은 있는 곳이다 — `invest` = `packages/domain-invest`(2026-11-02 `FE-REQ-053`), 셸 = `apps/web`. `savings` 는 아직 `apps/web/src`(`FE-REQ-056` 이 `domain-savings` 로). shared 레이어는 `packages/web-shared`(`@repo/web-shared/<세그먼트>`).
 
-**2026-09-22 기준 실재하는 엔티티는 5개다** — `auth` · `goal` · `market` · `portfolio` · `coach`.
+**실재하는 엔티티는 6개다** — `auth` · `goal` · `home`(셸, 2026-11-02) · `market` · `portfolio` · `coach`(뒤 셋은 `domain-invest`).
 나머지는 해당 기능 REQ에서 생긴다. 표에 있다고 폴더가 있는 것은 아니다.
 
 > store 조립은 `app` 레이어가 한다. 슬라이스는 `RootState`를 보지 않고 **자기 가지만 타이핑한
@@ -96,14 +98,14 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 
 | widget | 엮는 것 |
 |---|---|
-| `home-briefing` | portfolio + plan + coach (3블록) |
-| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio |
+| `home-briefing` | 셸 홈 — 도메인 요약 카드(`entities/home`) + 목표 목록(임시, `FE-REQ-056` 까지) + 저축 팁. 도메인 엔티티를 읽지 않는다 |
+| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio — 코치 리포트 맨 위 "내 보유"(보유 요약 + 매입가 숨김, 2026-11-02 홈에서 옮김) |
 | `asset-workspace` | 포지션 / 시장 / 관심 종목 세그먼트 |
 | `position-overview` | portfolio (Hero · 평가금 흐름 · 보유 · 리스크 레이더) |
 | `coach-panel` · `symbol-analysis` | market + coach + indicator (투자 우측 패널 · 상세 분석) |
 | `judgment-overview` | coach — 투자 화면 머리 아래 **요약 띠**(목표 비중 · 위험 · 판정 성적표 한 줄씩 → 코치 리포트 섹션). 본문은 `coach-console` (F010, 2026-09-29) |
 | `app-header` · `alert-list` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 거래 목록 |
-| `settings-panel` | coach + 코치 설정(`edit-coach-profile`) + 매입가 숨김(`toggle-purchase-price`) — 설정 화면 `/settings` (F004 FR-12, 2026-10-30) |
+| `settings-panel` | coach + 코치 설정(`edit-coach-profile`) + 매입가 숨김(`toggle-purchase-price`) — 투자 코치 설정 `/coach/settings` (F004 FR-12 · 2026-11-02 셸 `/settings` 에서 옮김) |
 | `market-list` | 모바일 시장 목록 (웹은 `market-board`) |
 | `market-board` | market + news + indicator — 자산군(코인 · 국내 주식)은 매개변수, 화면은 하나(요약 띠까지 — `FE-REQ-050`) |
 | `asset-search` | market + 검색어 상태(`search-asset`) + ★(`toggle-watchlist`) — 종목 검색 화면 `/search` (F000 FR-40 · 41, 2026-10-30) |
@@ -162,9 +164,10 @@ export enum AssetClass {
 
 | Alias | Target |
 |---|---|
-| `@/shared` `@/entities` `@/features` `@/widgets` `@/pages` `@/app` | `src/{layer}` |
+| `@/entities` `@/features` `@/widgets` `@/pages` `@/app` | `src/{layer}` — 도메인 zone 앱은 `packages/domain-<x>/src/{layer}` |
+| `@repo/web-shared/<세그먼트>` | shared 레이어 패키지(2026-11-02 — `@/shared` 는 없다) |
 
-`tsconfig.json`의 `paths`에 레이어별로 **두 줄씩**(`@/shared`와 `@/shared/*`) 넣는다.
+`tsconfig.json`의 `paths`에 레이어별로 **두 줄씩**(`@/entities`와 `@/entities/*`) 넣는다.
 `@/*` 하나만 있으면 alias 목록이 규칙의 근거가 되지 못한다.
 
 - **다른 레이어 참조**: 반드시 alias. `../../shared/api` 금지
@@ -179,6 +182,8 @@ export enum AssetClass {
 | `packages/ui` | 웹 컴포넌트 (vanilla-extract) — 공개 subpath 83 | web · 도메인 zone · `domain-*` |
 | `packages/ui-native` | RN 컴포넌트 | mobile |
 | `packages/core` | 플랫폼 무관 `model`·`api`·`lib` | 전부 |
+| `packages/web-shared` | 웹 shared 레이어(`api` · `config` · `i18n` · `lib` · `model` · `ui`) + zone 공용 레이아웃(`layout`: 프로바이더 · 프레임 · 프로필 메뉴 · 404 · 글꼴) | web · 도메인 zone · `domain-*` |
+| `packages/domain-*` | 도메인 화면(FSD `entities`~`pages`) — `domain-invest` 만 있다 | 자기 zone 앱만 |
 | `packages/eslint-config` `packages/typescript-config` | 툴링 | 전부 |
 
 ## 9. 레이어별 규칙 문서

@@ -125,3 +125,7 @@ re-export 껍데기가 필요하고(FR-38), 껍데기가 남으면 done이 아�
 ## 2026-11-02 — zone = 도메인 F0 (`FE-REQ-052`)
 
 - 도메인 축을 같은 표 파일에 더했다 — 훅 · lint 가 계속 같은 파일을 읽는다. Action: `domain-*` 패키지가 생기면 그 안 레이어 축(`locate`)을 넓힌다(`FE-REQ-053`)
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
+
+- 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`

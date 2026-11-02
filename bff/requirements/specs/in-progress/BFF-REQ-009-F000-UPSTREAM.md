@@ -161,3 +161,4 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 | 2026-10-30 | FR-33 정정(머리 블록) — 서버 잡 유지. BFF 코드 무변경. 루트 `F000-legacy-cleanup` |
 | 2026-11-02 | FR-33 시세 워커가 launchd 상시(`com.salt.bff-worker`, `bff/ops/run.sh`) — 2026-11-02 꺼진 채 발견. REST · WS 도 상시. 코드 무변경. 루트 `requirements/specs/done/OPS-002-local-process-supervisor.md` |
 | 2026-11-02 | 실행 스크립트 `bff/ops/run.sh` 가 공용 `ops/lib-run.sh` 를 쓴다 — 종료 신호에 프로세스 그룹 전체 · 시작 때 같은 폴더 옛 프로세스 정리 · (REST · WS) 포트 대기. 재시작 고아 0. 코드 무변경. 루트 `requirements/specs/done/OPS-002-local-process-supervisor.md` FR-6 |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

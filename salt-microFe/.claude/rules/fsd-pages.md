@@ -1,5 +1,5 @@
 ---
-globs: apps/*/src/pages/**
+globs: "{apps/*/src,packages/domain-*/src}/pages/**"
 ---
 
 # pages 레이어 (Layer 4 — 라우트 셸)
@@ -8,7 +8,7 @@ globs: apps/*/src/pages/**
 
 ## 허용 Import
 
-- `@/shared/*` · `@/entities/*` · `@/features/*` · `@/widgets/*` — 허용
+- `@repo/web-shared/*` · `@/entities/*` · `@/features/*` · `@/widgets/*` — 허용
 - `@/pages/*` (다른 슬라이스) — **금지** (cross-slice)
 - `@/app/*` — **금지** (상위 레이어)
 
@@ -28,14 +28,14 @@ pages/{page-name}/
 
 **목표:** `home`(`/`) · `coach`(`/coach`) · `assets`(`/assets`) · `goals` · `onboarding` · `login`
 
-**2026-09-23 현재:** `login`(`/`) · `home`(`/home`) · `investments`(`/investments`) ·
-`investment-detail`(`/investments/[symbol]`) · `add-goal`(`/goals/addgoals`) · `coach`(`/coach/report` — 2026-09-23 · `/coach/signals/[signalType]` 판정 근거 상세 — 2026-10-30) · `search`(`/search` 종목 검색 — 2026-10-30, F000 FR-40) · `settings`(`/settings` 설정 — 2026-10-30, F004 FR-12) · `streaming-probe`(측정 전용, 기본 404) ·
-`not-found`(`app/not-found.tsx` — 2026-09-30, `FE-REQ-044`).
+**2026-11-02 현재(셸):** `login`(`/`) · `home`(`/home`) · `add-goal`(`/goals/addgoals`) · `onboarding` · `settings`(`/settings` — 도메인별 설정 링크 목록, 2026-11-02) · `streaming-probe`(측정 전용, 기본 404).
+404 는 zone 이 같이 쓴다 — `@repo/web-shared/layout` `NotFoundPage`(`FE-REQ-044` → `FE-REQ-053`).
+투자 페이지(`investments` · `investment-detail` · `coach`(`/coach/report` · `/coach/signals/[signalType]` · `/coach/settings`) · `search`)는 `packages/domain-invest/src/pages` 로 옮겼다(2026-11-02 `FE-REQ-053`).
 `investments`는 F006에서 `assets`로 바뀐다(`FE-REQ-030`). 코치 탭 `/coach`(대화)는 그때 생긴다.
 
 ### 도메인 zone 4개(`apps/web-investment` · `web-savings` · `web-household` · `web-tips`)
 
-빈 골격(2026-11-02 `FE-REQ-052` FR-7). zone 앱은 `src/pages` 를 갖지 않는다 — 루트 `app/` 이 `@repo/domain-*` 의 페이지를 re-export 한다(`microfrontend.md` §2-4). `apps/web-tax` 는 지웠다(FR-6).
+zone 앱은 `src/pages` 를 갖지 않는다 — 루트 `app/` 이 `@repo/domain-<x>/pages/<slice>` 를 re-export 한다(`microfrontend.md` §2-4). 투자 zone 이 첫 실례다(2026-11-02 `FE-REQ-053`). 저축 · 가계부 · 팁은 빈 골격. `apps/web-tax` 는 지웠다(`FE-REQ-052` FR-6).
 
 ### `apps/mobile`
 

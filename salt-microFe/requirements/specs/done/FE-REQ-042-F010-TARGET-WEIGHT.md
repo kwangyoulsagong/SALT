@@ -53,3 +53,7 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §4-3 6 
 - 2026-10-07: FR-14 — 재료 정지 막힘 문구(F010 슬라이스 7)
 - 2026-10-30: 파일만 걸침 — `fsd-widgets.md` 위젯 표에 `asset-search` 행 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — `widgets/judgment-overview/model/messages.ts` 에 국내 탭 이름(`krRegionLabel`). 목표 비중 칸은 국내 탭에 두지 않는다(BTC · ETH 값뿐 — `FE-REQ-050` FR-5)
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 5개(경로 이동 내용 무변경 2 · 수정 3 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

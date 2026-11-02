@@ -48,7 +48,7 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 | FR-12 | `KrQuoteVM` `openPrice` · `highPrice` · `lowPrice`(numOrNull) · 목록 행 `periodChange` | 완료(`36ad645`) |
 | FR-13 | 관심 종목 — `kr_stock` 행은 업비트 가격 캐시를 보지 않고 서버 값 그대로(`logoUrl` null) · POST `assetType` 통과 | 완료(`36ad645`) |
 | FR-15 | 거래 기록 `POST /api/app/coach/trades` `assetType`(`crypto` · `kr_stock`, 없으면 crypto) 통과 · 모르는 값 400. **국내 주식 + 계획은 400** — 코치 계획 연결이 코인 원장만 본다(슬라이스 4), 조용히 버리면 손절가가 사라진다. 거래 응답 `assetType`(모르는 값은 계약 깨짐) | 완료(`ba2ddc6`, 슬라이스 3b) |
-| FR-16 | 홈 보유 요약 — 국내 주식 보유가 있을 때만 서버 `/market/kr/assets?codes=` 로 이름 · 로고(코인 이름 조회와 같은 규칙: 실패 · 404 면 코드 + `namesDegraded`, 금액은 그대로) | 완료(`ba2ddc6`) |
+| FR-16 | ~~홈~~ 보유 요약(**정정 2026-11-02** — 홈은 도메인 카드라 종목별 이름 · 로고를 그리지 않는다. 응답 `/api/app/portfolio/summary` 는 그대로 — 홈 투자 카드가 종목 수에 쓴다) — 국내 주식 보유가 있을 때만 서버 `/market/kr/assets?codes=` 로 이름 · 로고(코인 이름 조회와 같은 규칙: 실패 · 404 면 코드 + `namesDegraded`, 금액은 그대로) | 완료(`ba2ddc6`) |
 | FR-14 | 시세 행 `logoUrl` 통과(서버가 정한 logo.dev · FMP 주소) — 필드가 없는 옛 서버 응답은 `null`(로고는 꾸밈이라 계약 깨짐으로 보지 않는다) | 완료(`ad5217a`) |
 | FR-17 | 종목 판단 모드 블록에 `assetClass`(모르면 crypto) · `history`(모양이 틀리면 null — 문구가 숫자를 지어내지 않게) · `blockedReason` 에 `mode_not_open` · `insufficient_history`(서버 값 통과) | 완료(`c0d9aad`, 슬라이스 4) |
 | FR-18 | 성적표 정규식이 `kr_stock.<mode>.<action>` 을 **조용히 버리던 것** — 접두를 받고 `assetClass` 는 그룹 키에서 정한다. 코치 상세 `excluded[].progress` · 추천 `assetType` `kr_stock` 타입 | 완료(`c0d9aad`) |
@@ -103,3 +103,7 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 - 2026-11-02: **변경 없음**(짝 영역) — 서버 5분봉 보정 창(`SRV-REQ-040` FR-21) 정정. 응답 · 계약 무변경. 루트 `F011-minute-bar-window-slice.md`
 - 2026-11-02: F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 국내 라우터에 `/schedule`(`/:code` 앞) · `getSchedule` · `toKrScheduleVM` — 공개 일정이라 서버가 소유자 · 키를 안 본다(`BFF-REQ-043` FR-3)
 - 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 국내 라우터에 `/summary`(`/:code` 앞) · `getSummary`(공용 `read` — 404 올림 · 503 → disabled · 계약 깨짐 → unavailable) · `toKrMarketSummaryVM` — `BFF-REQ-044`
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`). 파일 1개(경로 이동 내용 무변경 1 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

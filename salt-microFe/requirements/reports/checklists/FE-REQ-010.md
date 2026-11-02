@@ -249,3 +249,11 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 - 변경: 파일만 걸침 — `entities/market/api/endpoints.ts` · `queryKeys.ts`(국내 요약 · 지수/일정 삭제) · `model/messages.ts`(요약 문구 기준별) · `widgets/market-board/ui/MarketBoardLayout.css.ts`(옛 지수 · 일정 자리 스타일 삭제)
 - 검증: `check-types` · `lint` · `test`(core 55 · ui 43) · `test:layer-check` · 훅 사후 실행 exit 0 · `web`(154 · 137 kB) · `web-tax` 빌드 · 실화면 3000 국내 · 코인 탭
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 코치 설정 `/settings` → `/coach/settings`(셸 `/settings` 는 링크 목록)(`08a3aabf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 24개(경로 이동 내용 무변경 12 · 수정 12 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+
+- 2026-11-02 후속(`c5ec66ed`): 홈에서 빠진 보유 목록을 코치 리포트 맨 위 "내 보유"로(사용자 결정) — 실화면 숨김 끔 손익률 · 켬 숨김 + 물음 줄 · 넘침 0

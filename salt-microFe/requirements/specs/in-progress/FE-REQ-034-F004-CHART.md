@@ -168,3 +168,4 @@ created: 2026-09-22
 | 2026-09-22 | **FR-23 버튼 모양 개정** — 떨어진 tonal 버튼 셋 → 테두리 캡슐 하나(`FE-REQ-036` FR-5, 사용자 피드백). 가격선에 `zone` 톤 · `priceBand` 추가(`FE-REQ-036` FR-1 · FR-2) |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | F004 슬라이스 19 차트 1주 탭 — 기간 표에 `1w`(서버 주봉). 엔진 · 정규화 무변경(일봉과 같은 `date` 키 · `intraday=false`). 1주는 실시간 봉 없음 → FR-64 "실시간 아님". Open Questions 주봉 줄 갱신. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 3개(경로 이동 내용 무변경 1 · 수정 2 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

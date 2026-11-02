@@ -445,3 +445,4 @@ FSD 슬라이스 기준. 상세는 `FE-REQ-030`~`033`(F006 UI/FUNC/API/PERF)과 
 | 2026-11-02 | FR-65 — 국내 탭 "다가오는 일정" 줄(F008 슬라이스 24, `FE-REQ-046` FR-5 · 6). 코인 띠의 일정 칸은 여전히 없음 |
 | 2026-11-02 | FR-64~67 — 국내 탭에 같은 띠(F011 `FE-REQ-050`): 같은 칸 컴포넌트 · 서버가 칸을 정한다 · 실패면 안 그림 · 종목 칸은 국내 체결로 실시간. 등락 기준은 전일 종가. FR-65 정정(국내 띠의 지수 · 일정 칸). 코인 띠 무변경 |
 | 2026-11-02 | FR-4 · Q1 정정 — `apps/web-tax` zone 삭제(`FE-REQ-052`). 투자 3탭은 `FE-REQ-053` FR-4 에서 투자 zone 안 탭으로 다시 읽는다. 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md` |
+| 2026-11-02 | FR-1~6 "3탭"을 zone 안 탭으로 다시 읽는다 — 투자 화면이 투자 zone(`apps/web-investment`)이 되어 홈 ↔ 투자는 문서 이동, 투자 안(목록 → 상세 → 리포트)은 soft. 탭 IA 갱신은 `FE-REQ-054`(AppChrome). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |

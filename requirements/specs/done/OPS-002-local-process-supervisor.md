@@ -44,3 +44,4 @@ source: 사용자 "전체 서버 다 키는 명령어가 필요하네 이거 보
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-02 | FR-7 PATH(`~/.local/bin`) — `requirements/specs/done/F008-explain-llm-routing-slice.md` |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

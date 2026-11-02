@@ -241,3 +241,4 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 | 2026-10-28 | `@repo/core/http` 진입점 `constants.ts` → `index.ts`(상수 + `apiError`, `2ff2ae6`). 두 zone · RN 이 같은 판정을 본다(FR-32 범위 확장) |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-11-02 | `FE-REQ-052`(F0 zone = 도메인) — `apps/web-tax` 삭제 · 레지스트리 `registry.json`(TS · CommonJS) · 셸 rewrites 생성 · zone lint 가 레지스트리 전체를 본다. 머리 정정 블록 + FR-2 · 3 · 33 · 수용 기준 그 자리 정정 |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 코치 설정 `/settings` → `/coach/settings`(셸 `/settings` 는 링크 목록)(`08a3aabf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 웹 글꼴 404 → `next/font` 같은 origin · body 기본 글꼴(`9725dd20`) · 로그인 표지 쿠키 + 셸 미들웨어(로그인 상태 `/` → 서버에서 `/home`)(`562adfad`). 파일 6개(경로 이동 내용 무변경 1 · 수정 5 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |

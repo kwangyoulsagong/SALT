@@ -63,3 +63,7 @@ created: 2026-09-22
 - 2026-09-22 신설 · 구현
 - 2026-10-30: 파일만 걸침 — `marketApi.search` 도 `apiFetch` · `readApiError`(axios 없음) — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-11-02: 파일만 걸침 — `apps/web/.eslintrc.json` 의 zone 규칙만 바뀜(`zonePaths` 복사 삭제, `FE-REQ-052` FR-5). 이 REQ 의 `axios` 금지 줄 무변경. 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md`
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 3개(경로 이동 내용 무변경 0 · 수정 2 · 추가 1 · 삭제 0). 계약 · 동작 무변경 |

@@ -15,17 +15,16 @@ globs: apps/*/src/app/**
 
 ```
 src/app/
-├── providers/     React Query · Redux · 세션 복원 — "use client"
-├── styles/        전역 스타일 · reset · 토큰 주입
-├── ui/            앱 껍데기(AppShell) — 화면이 아니라 프레임이다
+├── providers/     셸만의 것(Redux · 세션 복원) — React Query · 모션은 `@repo/web-shared/layout` `ZoneProviders`
+├── seo/ index.ts  robots · 공용 레이아웃 다시 열기(라우팅 파일이 `@/app` 만 보도록)
 ├── store.ts       슬라이스 reducer 조립 · RootState
 ├── api-routes/    Route Handler 로직 (루트 app/api/**/route.ts 가 re-export) — 아직 없다
 └── index.ts
 ```
 
-`ui/`에 **화면을 두지 않는다.** 여기 들어갈 수 있는 것은 루트 `layout.tsx`가 쓰는 프레임뿐이다.
-`shared/ui`에 두지 않는 이유는 라우팅 파일이 `@/app`·`@/pages`만 import할 수 있기 때문이다
-(`FE-REQ-009` FR-25).
+**프레임(AppShell · 768 미만 안내) · 전역 스타일 · 글꼴 · 404 · 프로필 메뉴는 zone 이 같이 쓴다** — `@repo/web-shared/layout`
+(2026-11-02 `FE-REQ-053`). 도메인 zone 앱은 `src/app` 없이 루트 `layout.tsx` 에서 직접 쓰고, 셸은 `src/app/index.ts` 가
+다시 연다 — 라우팅 파일이 `@/app`·`@/pages` 만 import 할 수 있어서다(`FE-REQ-009` FR-25).
 
 **목(MSW)을 두지 않는다 (2026-09-23 제거).** 목이 남아 있으면 그것이 계약이 된다 — 로그인 목이
 `mock-jwt-token` 과 `id: number` 를 정하고 있었고, 지출 목은 서버에 없는 숫자를 홈에 그리며 실패하면

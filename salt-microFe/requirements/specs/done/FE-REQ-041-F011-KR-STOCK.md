@@ -52,7 +52,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 | FR-14 | 로고 — 서버 `logoUrl`(종목마다 판정한 logo.dev 주소, 선명한 로고가 없으면 `null`)을 표 · 미리보기 · 상세 · 관심 목록에. `AssetIcon` 이 이미지 실패 · `null` 이면 이니셜(`996633b`) | 완료(`09659d7` · 서버 `58f0c33`) — 50종목 로고 43 · 이니셜 7 |
 | FR-16 | 거래 기록 — 국내 주식 상세 오른쪽 열에 **코인과 같은 `RecordTradeCard`**(`assetType="kr_stock"`). 계획 칸 · 사이즈 계산 · 행동 줄은 그리지 않고 한 줄 안내(코치는 슬라이스 4). 수량 단위 "주" · [현재가] = 실시간 갱신 값 · 비소유/없는 코드 문구 | 완료(`137b876`, 슬라이스 3b) |
 | FR-17 | 호가 단위 안내(F011 FR-42) — 단가 칸 아래 "현재가 기준 호가 단위는 N원이에요. 배수가 아니어도 그대로 기록돼요". 서버 `detail.tickSize` 를 보여 주기만(배수 판정 없음 — 가격대별 단위 표는 서버에 있다) | 완료 |
-| FR-18 | 상세 본문 격자 — 차트 | 오른쪽 380 열(코인 상세와 같은 폭 · 1024 이하 한 줄). 기록 뒤 홈 보유 요약 무효화 · 요약의 국내 주식 아이콘 이니셜을 이름으로(코드면 "00") | 완료 |
+| FR-18 | 상세 본문 격자 — 차트 | 오른쪽 380 열(코인 상세와 같은 폭 · 1024 이하 한 줄). 기록 뒤 ~~홈~~ 보유 요약 무효화(**정정 2026-11-02** — 홈은 셸 zone 이라 문서 이동으로 새로 받는다, 무효화는 투자 zone 안 캐시만) · 요약의 국내 주식 아이콘 이니셜을 이름으로(코드면 "00") | 완료 |
 | FR-19 | 국내 주식 코치 판단 — 상세에 `KrCoachJudgment`(장기 한 모드, 막힌 자리도 정상 상태), 투자 패널은 코인과 같은 판단 조회(단타는 서버가 `mode_not_open`). "국내 주식은 장기 관점만 · 국내 주식 기록으로만 채점" 한 줄 | 완료(`badf62e`, 슬라이스 4) |
 | FR-20 | 막음 사유 2종 문구 · 둘째 줄 — `insufficient_history` "일봉 63 / 120거래일"(+ 일봉 지표 준비 중) · 국내 주식 표본은 "국내 주식 표본 N건" · `mode_not_open` "장이 닫히는 시장이라 장기 관점만 판단해요". 수와 기준은 서버 값 | 완료 |
 | FR-21 | 성적표 — 자산군 머리(코인 · 국내 주식)로 나란히, 한 자산군이면 전과 같은 화면. 요약 띠 "판정 성적표" 는 코인만 센다(합산 없음). 리포트 제외 사유 2종 + "(표본 N / 20)" | 완료 |
@@ -120,3 +120,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 - 2026-11-02: F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 국내 API · 쿼리 · 문구 · 상세에 일정(`useKrSchedule` · `KrScheduleLine` · `KrEvents`) — `FE-REQ-046`
 - 2026-11-02: 결함 고침 — 국내 지수 띠(`KrIndexSummary`)가 본문 글꼴을 받지 못해 명조로 그려졌다. 띠에 `fontFamily` 지정(F008 슬라이스 24 실화면에서 발견)
 - 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): FR-31 `KrIndexStrip` · `KrIndexSummary` · `useKrIndices` 삭제(`FE-REQ-050` FR-7) · 국내 API 에서 `indices` · `schedule` 조회 · 키 삭제, `summary` 추가 · 체결 패치 `useKrSummaryRealtime`(종목 칸) · `@repo/core/marketKr` `KrSummaryItem` · `KrMarketSummary`
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 15개(경로 이동 내용 무변경 7 · 수정 8 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

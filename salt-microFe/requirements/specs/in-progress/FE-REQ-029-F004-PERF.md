@@ -184,3 +184,4 @@ created: 2026-09-09
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 번들 — `/investments` 154 kB · `/investments/[symbol]` 137 kB, 직전 기록과 같음(새 코드는 지연 조각) · 새 의존 0 |
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 번들 — `/investments` 7.42 kB · 첫 로드 154 kB · `/investments/[symbol]` 137 kB, 직전 기록과 같음(띠는 지연 조각, 옛 지수 · 일정 잎 삭제) · 새 의존 0 |
 | 2026-11-02 | `d57f10fb` fix(fe): 번들 — `/investments` 7.41 kB · 154 kB 그대로(CSS 만) |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 코치 설정 `/settings` → `/coach/settings`(셸 `/settings` 는 링크 목록)(`08a3aabf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 3개(경로 이동 내용 무변경 1 · 수정 2 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |

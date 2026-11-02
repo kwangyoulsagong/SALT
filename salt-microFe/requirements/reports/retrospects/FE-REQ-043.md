@@ -19,3 +19,7 @@
 
 - 사용자가 실제 계정 캡처를 주면 `public/narrow-screen/*.webp` 교체
 - RN 앱이 생기면 안내에 앱 링크(지금은 없음)
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
+
+- 파일만 걸침(경로 · import) — Action 없음

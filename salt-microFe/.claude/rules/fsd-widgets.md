@@ -1,12 +1,12 @@
 ---
-globs: apps/*/src/widgets/**
+globs: "{apps/*/src,packages/domain-*/src}/widgets/**"
 ---
 
 # widgets 레이어 (Layer 3)
 
 ## 허용 Import
 
-- `@/shared/*` · `@/entities/*` · `@/features/*` — 허용
+- `@repo/web-shared/*` · `@/entities/*` · `@/features/*` — 허용
 - `@/widgets/*` (다른 슬라이스) — **금지** (cross-slice)
 - `@/pages/*` · `@/app/*` — **금지** (상위 레이어)
 
@@ -31,14 +31,14 @@ widgets/{slice}/
 
 | widget | 엮는 것 | 화면 |
 |---|---|---|
-| `home-briefing` | portfolio + plan + coach | 홈 3블록 (2026-09-21, `ADR-002`) |
-| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio | 코치 리포트 — 이번 주 목표 비중 · 리스크 예산 · 판정 성적표 · 추천 · 미러 (대화는 F006). 판정 근거 상세 `/coach/signals/[signalType]`(F004, 2026-10-30) |
+| `home-briefing` | `entities/home` 카드 + 목표 목록(임시) | 셸 홈 — 도메인 요약 카드(2026-11-02 `FE-REQ-055`). 도메인 엔티티를 읽지 않는다 |
+| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio | 코치 리포트 — 맨 위 "내 보유"(2026-11-02 홈에서 옮김) · 이번 주 목표 비중 · 리스크 예산 · 판정 성적표 · 추천 · 미러 (대화는 F006). 판정 근거 상세 `/coach/signals/[signalType]`(F004, 2026-10-30) |
 | `asset-workspace` | portfolio + market | 자산 탭 세그먼트 3 (포지션/시장/관심 종목) |
 | `coach-panel` | market + coach + indicator | 투자 우측 AI 코치 패널 |
 | `judgment-overview` | coach | 투자 화면 머리 아래 요약 띠 — 칸마다 한 줄 값 + 한 줄 고지, 누르면 `/coach/report#섹션`. 카드 본문을 투자 화면에 펼치지 않는다 (F010 `FE-REQ-040` · `FE-REQ-042`) |
 | `market-board` | market + news + indicator | 자산군 탭(코인 · 국내 주식) + 실시간 테이블 + 우측 프리뷰. 자산군은 데이터 소스만 바꾼다 — 같은 표 · 같은 인터랙션 · 같은 요약 띠(머리 띠 포함, 자산군 문자열을 넘긴다) (F011 `FE-REQ-041` · `FE-REQ-050`) |
 | `asset-search` | market + `search-asset` + `toggle-watchlist` | 종목 검색 `/search` — 코인 + 국내 한 검색 · 추적 카운터 · 상한 안내 · 최근 검색 (F000 FR-40 · 41, 2026-10-30) |
-| `settings-panel` | coach + `edit-coach-profile` + `toggle-purchase-price` | 설정 `/settings` — 코치 설정 · 보기 · 내 기준 링크 (F004 FR-12, 2026-10-30) |
+| `settings-panel` | coach + `edit-coach-profile` + `toggle-purchase-price` | 투자 코치 설정 `/coach/settings` — 코치 설정 · 보기 · 내 기준 링크 (F004 FR-12, 2026-11-02 셸에서 옮김) |
 | `onboarding-flow` | auth + portfolio + plan | 초대→첫 보유 기록→적립 3스텝 |
 | `pc-panel-grid` | `MovableGrid` + 위 위젯들 | PC 이진분할 배치 |
 

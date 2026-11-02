@@ -202,3 +202,4 @@ F004의 기능 규칙은 거의 전부 **"하지 않는 것"** 이다. 게이트
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | F004 슬라이스 17 — **FR-95 완료**: 판정 근거 상세 `/coach/signals/[signalType]` 맞았던 때 · 틀렸던 때가 같은 `CaseColumn`(이름 · 갈래 방식은 스펙과 다르다 — 행 참조). 수용 기준 "같은 컴포넌트" 체크 |
 | 2026-10-30 | F004 슬라이스 18 — FR-62 완료(다르게: `router.refresh()` 대신 쿼리 무효화 — 조회가 클라이언트에 있다). FR-82(모드 스위치는 저장하지 않는다) 그대로 — 저장은 설정 화면에서만. 루트 `requirements/specs/done/F004-fe-coach-profile-settings-slice.md` |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 1 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

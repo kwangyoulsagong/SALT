@@ -26,12 +26,22 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-7 | 개인정보 — LLM 에 보내는 필드 목록 화면(서버 API) | FR-5 |
 | FR-8 | 문구 — "연결 · 연동" 0, 칭찬 · 재촉 0 | 정책 |
 
+## 구현 현황 (2026-11-02 — 슬라이스 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md`)
+
+| FR | 상태 |
+|---|---|
+| FR-1 | ✅ `HomeSummaryCard` — `@repo/core/home`(BFF 정의와 글자 대조 테스트, 값 아래 한 줄 `note` 를 더했다 — 매입가 숨김 문장) · 셸 `entities/home`(조회 + 카드 하나 표시, 레지스트리 추가). 링크는 `ZoneLink`(레지스트리 판정) |
+| FR-2 | 일부 — 카드 목록(BFF `order` · `hidden` 그대로). **순서 · 숨김 편집 없음**(저장할 곳이 서버 identity, S3). 카드별 Suspense 대신 응답 하나 · 카드별 `degraded`(토큰이 `localStorage` 라 서버 렌더 불가 — `FE-REQ-013`). 목표 목록은 저축 목록 화면(`/goals`)이 생길 때까지 홈에 남김(`FE-REQ-056`) |
+| FR-3 | 미착수 — `FE-REQ-048`(to-do) 착수 때 |
+| FR-4 · 5 · 6 · 7 | 미착수 — 서버 identity(S3, `SRV-REQ-048`) |
+| FR-8 | ✅ 카드 문구는 BFF — 금지어("연동 · 연결 · 칭찬 · 재촉") 0 |
+
 ## Acceptance Criteria
 
-- [ ] 셸 코드에 `domain-*` import 0(lint)
-- [ ] 홈 카드 하나 강제 실패 시 나머지 표시
-- [ ] 온보딩 경로 3종 E2E(저축만 · 가계부만 · 투자 포함)
-- [ ] 금지 문구 grep 0
+- [x] 셸 코드에 `domain-*` import 0(lint · 훅)
+- [x] 홈 카드 하나 강제 실패 시 나머지 표시 — 실화면(Playwright 로 투자 카드만 degraded): 투자 "지금은 불러오지 못했어요", 0원 표시 없음
+- [ ] 온보딩 경로 3종 E2E — FR-4 미착수(S3)
+- [x] 금지 문구 grep 0(카드 문구 · `entities/home` 문구)
 
 ## 계약 영향
 
@@ -42,3 +52,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-02 | **in-progress** — FR-1 · 8 완료, FR-2 일부(편집 없음). 셸 `/settings` 는 투자 코치 설정 링크 목록이 됐다(FR-5 · 6 이 붙을 자리). 슬라이스 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |

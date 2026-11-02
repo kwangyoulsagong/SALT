@@ -1,12 +1,12 @@
 ---
-globs: apps/*/src/features/**
+globs: "{apps/*/src,packages/domain-*/src}/features/**"
 ---
 
 # features 레이어 (Layer 2)
 
 ## 허용 Import
 
-- `@/shared/*` · `@/entities/*` — 허용
+- `@repo/web-shared/*` · `@/entities/*` — 허용
 - `@/features/*` (다른 슬라이스) — **금지** (cross-slice)
 - `@/widgets/*` · `@/pages/*` · `@/app/*` — **금지** (상위 레이어)
 
@@ -42,7 +42,7 @@ features/{slice}/
 | `accept-invite` | 초대 코드 입력·검증 | F000 |
 | `arrange-panels` | PC 이진분할 격자 배치 변경 | F006 |
 | `sign-in` | 로그인 · 세션 저장 · 홈 이동 | 현행 |
-| `sign-out` | 헤더 프로필 메뉴(설정 `/settings` · 로그아웃) · 세션 · 캐시 비우기 · 로그인 이동 | 현행 (2026-09-24) |
+| ~~`sign-out`~~ | ~~헤더 프로필 메뉴~~ **2026-11-02 삭제** — zone 이 같이 쓰므로 `@repo/web-shared/layout` `ProfileMenu`(설정 · 로그아웃은 문서 이동, `FE-REQ-053`) | — |
 | `search-asset` | 종목 검색 · 추적 자산 추가(상한 10) | F000 |
 | `toggle-news-bookmark` | 뉴스 북마크 추가·해제 | F000 |
 | `switch-coach-mode` | 단타/장기 모드 전환 (URL 이 유일한 저장소) | F004 |

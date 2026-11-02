@@ -45,7 +45,7 @@
 | FR-11 | 비상시 비교 카드: 목표에서 꺼내기 vs 사용자 입력 금리 대출 | Should | Draft |
 | FR-12 | 제도 파라미터 반영(청약 인정액 · 청년 적금 기여금). 상품 안내 · 링크 없음 | Could | Draft |
 | FR-13 | 공동 목표: 합의 비율 대비 실제 기여 비율 차이 | Could | Draft |
-| FR-14 | 홈 요약 카드(`HomeSummaryCard`) | Must | Draft |
+| FR-14 | 홈 요약 카드(`HomeSummaryCard`) | Must | 부분(2026-11-02) — 카드 틀 · 모은 돈 · 진행 중 목표 수(지금 Express goals). 가장 가까운 목표 진척 · 이달 이정표 차이는 저축 서비스(S1 `SRV-REQ-045`) 뒤 |
 | FR-15 | 재미 — 모이는 장면 + 적립 모션(reduced-motion이면 정지) | Must | Draft |
 | FR-16 | 재미 — 실물로 바꿔 보기(템플릿 단위 + 사용자 단위, 서버 환산) | Must | Draft |
 | FR-17 | 재미 — 도장판(목표 생성 시 첫 도장) | Should | Draft |
@@ -139,3 +139,4 @@ flowchart LR
 |---|---|
 | 2026-10-30 | 초안 — 딥리서치(저축 · 행동경제학 · 제도) · 재미 바탕 |
 | 2026-10-30 | 영역 REQ 작성 · 링크(위 머리 블록) |
+| 2026-11-02 | FR-14 부분 — 셸 홈 저축 카드(모은 돈 · 진행 중 목표 수, 지금 Express goals). 홈 목표 목록은 `/goals` 가 생길 때까지 남김(`FE-REQ-056`). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |

@@ -6,23 +6,23 @@
 
 ## 0. 지금 코드 상태 — 규칙과 다른 곳
 
-2026-11-02 `FE-REQ-052` 로 zone 앱 5개(도메인 4개는 빈 골격) · 레지스트리 · rewrites 생성 · lint/훅 도메인 축이 코드가 됐고 `apps/web-tax` 는 지웠다.
+2026-11-02 `FE-REQ-052` 로 zone 앱 5개 · 레지스트리 · rewrites 생성 · lint/훅 도메인 축이 코드가 됐고, 같은 날 `FE-REQ-053` 으로
+**투자 화면이 `packages/domain-invest` + `apps/web-investment` 로 옮겨 갔다**(레지스트리 `invest.hostedIn = "web-investment"`).
 
 | 항목 | 규칙(목표) | 지금 코드 | 닫는 곳 |
 |---|---|---|---|
-| 화면 코드 위치 | `packages/domain-*` | 투자 · 저축 화면이 `apps/web/src/**` — 레지스트리 `hostedIn: "web"` | `FE-REQ-053`(투자) · `FE-REQ-056`(저축) |
-| `domain-*` 안 레이어 축 | FSD 6레이어(§2 끝) | 도메인 축만 검사 — 패키지가 아직 없다 | `FE-REQ-053` |
-| 크롬 · 완화 장치 | `AppChrome` · §5 | 없음 | `FE-REQ-054` · `FE-REQ-055` |
+| 화면 코드 위치 | `packages/domain-*` | 저축 화면이 `apps/web/src/**` — `savings.hostedIn: "web"`. 가계부 · 팁은 빈 zone | `FE-REQ-056`(저축) |
+| 하단 탭 · 헤더 · 완화 장치 | `AppChrome` · §5 | 프레임 · 프로필 메뉴는 `@repo/web-shared/layout` 에 임시로(zone 공용) | `FE-REQ-054` · `FE-REQ-055` |
 
 **옮기기 전 상태는 레지스트리 `hostedIn` 이 적는다.** cross-zone 판정(lint · `CrossZoneLink`)은 `hostedIn` 기준이라 셸에 남은
-투자 화면 사이는 지금도 `<Link>` 다. 셸 rewrites 는 경로를 `fallback` 으로 걸어 셸에 화면이 있으면 셸이 받는다 — 화면을 옮기는
+저축 화면 사이는 지금도 `<Link>` 다. 셸 rewrites 는 경로를 `fallback` 으로 걸어 셸에 화면이 있으면 셸이 받는다 — 화면을 옮기는
 REQ 는 셸 라우트를 지우고 `hostedIn` 을 자기 앱으로 바꾸는 것까지 한 커밋으로. 행이 닫히면 이 절에서 지운다.
 
 ## 1. zone = 도메인 (`ADR-005` §1)
 
 | zone 앱 | 도메인 | 경로 | 화면 코드 | 포트 · assetPrefix |
 |---|---|---|---|---|
-| `apps/web` | 셸(default) | `/` `/home` `/login` `/onboarding` · 설정 | 셸 전용 | 3000 · — |
+| `apps/web` | 셸(default) | `/` `/home` `/login` `/onboarding` `/settings`(도메인별 설정 링크) | 셸 전용 | 3000 · — |
 | `apps/web-investment` | 투자 `invest` | `/investments` `/coach` `/search` | `packages/domain-invest` | 3002 · `/investment-static` |
 | `apps/web-savings` | 저축 `savings` | `/goals` | `packages/domain-savings` | 3003 · `/savings-static` |
 | `apps/web-household` | 가계부 `household` | `/household` | `packages/domain-household` | 3004 · `/household-static` |
@@ -70,7 +70,8 @@ async rewrites() { return zoneRewrites(process.env); }   // ZONE_<ID>_ORIGIN · 
 <Link href="/goals">저축</Link>                       // ❌ 깨진다 — lint 실패
 ```
 
-- zone 판정은 레지스트리(`registry.json` 한 곳 — TS `registry.ts` · CommonJS `registry.cjs` 가 읽고 `registry.test.ts` 가 대조). `@repo/zone/no-cross-zone-link` 는 파일이 놓인 앱을 보고 레지스트리 전체로 판정한다 — 앱 설정에 경로를 복사하지 않는다
+- zone 판정은 레지스트리(`registry.json` 한 곳 — TS `registry.ts` · CommonJS `registry.cjs` 가 읽고 `registry.test.ts` 가 대조). `@repo/zone/no-cross-zone-link` 는 파일이 놓인 앱(`packages/domain-<x>` 는 그 zone 앱)을 보고 레지스트리 전체로 판정한다 — 앱 설정에 경로를 복사하지 않는다
+- 공용 코드(`@repo/web-shared`)는 여러 zone 에 들어가므로 **실행 중인 앱 기준**으로 판정한다 — 각 zone `next.config.js` 가 `env.NEXT_PUBLIC_ZONE_APP` 을 넣는다. 경로가 서버에서 오거나(홈 카드 `href`) 옮겨 가는 중이면 `ZoneLink`, 코드 이동은 `useZoneNavigate`(다른 zone 이면 `location.assign`)
 
 ## 5. 대가와 완화 — hard navigation (`ADR-005` §3 · `FE-REQ-054`)
 
@@ -94,7 +95,8 @@ zone 을 넘는 이동은 문서 이동이다. 하단 탭이 가장 잦은 zone 
 Multi-Zones 는 코드 공유 수단이 없다. **workspace 패키지로만** 공유한다.
 
 - `apps/web-*` 가 다른 앱의 `src/**` 를 import 하면 **훅이 차단**한다
-- 공유: `packages/tokens` · `ui` · `core` · `domain-*`(자기 zone 만 소비)
+- 공유: `packages/tokens` · `ui` · `core` · `web-shared`(웹 shared 레이어 + zone 공용 레이아웃) · `domain-*`(자기 zone 만 소비)
+- 도메인 패키지는 안에서 레이어 alias(`@/entities` …)를 그대로 쓰고, 그 zone 앱 `tsconfig` `paths` 가 패키지 `src` 로 푼다 — 셸은 `domain-*` 를 import 하지 않으므로 한 빌드에 두 `@/` 가 섞이지 않는다
 - zone 별 릴리스가 어긋날 수 있으므로 **zone 을 넘나드는 기능은 기능 플래그로 동시 활성화**한다
 
 ## 8. 하지 않는 것

@@ -1,12 +1,12 @@
 ---
-globs: apps/*/src/entities/**
+globs: "{apps/*/src,packages/domain-*/src}/entities/**"
 ---
 
 # entities 레이어 (Layer 1)
 
 ## 허용 Import
 
-- `@/shared/*` — 허용
+- `@repo/web-shared/*`(shared 레이어 패키지) — 허용
 - `@/entities/*` (다른 슬라이스) — **금지** (cross-slice)
 - `@/features/*` · `@/widgets/*` · `@/pages/*` · `@/app/*` — **금지** (상위 레이어)
 

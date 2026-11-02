@@ -20,3 +20,7 @@
 
 - 새 성적 숫자를 그릴 때는 `PerformanceClaimLine` 을 같이 붙인다
 - 스타일 파일을 바꾸면 tsc 뒤 dev 컴파일까지 확인한다
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
+
+- 파일만 걸침(경로 · import) — Action 없음

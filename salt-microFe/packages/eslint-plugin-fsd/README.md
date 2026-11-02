@@ -26,7 +26,7 @@ FSD 레이어 경계와 도메인 경계를 lint 로 강제한다 (`FE-REQ-009` 
 | `foreign-domain` | zone 앱 `apps/web-<x>` → 자기 것이 아닌 `@repo/domain-*` |
 | `thin-zone` | `apps/web-<x>/src/{entities,features,widgets}` — 화면은 `domain-*` 에 |
 
-`domain-*` 패키지 안의 레이어 축은 패키지가 생길 때 넓힌다(`FE-REQ-053`).
+패키지 안 레이어(`FE-REQ-053`): `packages/domain-*/src` 는 `entities` · `features` · `widgets` · `pages`(shared 는 `@repo/web-shared`, app 은 zone 앱), `packages/web-shared/src` 는 패키지 전체가 shared — 앱 alias(`@/…`) import 금지 · 세그먼트끼리 상대 경로. `@repo/web-shared/<세그먼트>` 는 `@/shared/<세그먼트>` 와 같은 판정.
 
 ```jsonc
 // apps/web/.eslintrc.json
@@ -40,13 +40,13 @@ FSD 레이어 경계와 도메인 경계를 lint 로 강제한다 (`FE-REQ-009` 
 
 판정 로직과 레지스트리는 **`layer-rules.cjs`** 에만 있다.
 `.claude/hooks/layer-check.mjs` 가 같은 파일을 읽는다 — 미러가 아니라 같은 파일이다.
-훅 실행 테스트 `pnpm test:layer-check` — 차단 12(레이어 8 + 도메인 4) · 통과 7.
+훅 실행 테스트 `pnpm test:layer-check` — 차단 16(레이어 8 + 도메인 4 + 패키지 안 4) · 통과 10.
 
 CommonJS 인 이유: 앱이 eslintrc 모드를 쓰고, eslintrc 는 ESM 플러그인을 로드하지 못한다.
 `FE-REQ-009` FR-20 은 `layer-rules.mjs` 를 적었지만 그러면 표가 두 벌이 된다.
 
 ## 예외 하나 — `*.css` 토큰 모듈
 
-`@/shared/ui/tokens.css` 는 세그먼트 내부 경로지만 허용한다.
+`@repo/web-shared/ui/tokens.css`(전 `@/shared/ui/tokens.css`) 는 세그먼트 내부 경로지만 허용한다.
 `.css.ts` 는 **빌드 타임에 node 에서 평가**되므로 barrel 로 가져오면 React 컴포넌트가
 vanilla-extract 그래프에 들어와 빌드가 깨진다.

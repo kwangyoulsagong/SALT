@@ -133,3 +133,4 @@ DB-REQ-001의 스키마 변경을 **독립 롤백 가능한 5단계**로 쪼갠�
 | 2026-10-30 | 참고 — 검색 자산군은 `crypto` · `kr_stock`(F011). `us_stock` 은 이 REQ 대로 미국 주식 착수 때. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-10-30 | 파일만 걸침 — 웹 `entities/market/model/messages.ts` · `types.ts` 에 차트 기간 `1w` 이름 · `ChartPeriod.Week`. 스키마 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
 | 2026-10-30 | **M4 실행** — `20261030160000_drop_legacy_ai_analysis`. FR-4 · 5 충족. M1 · M3 · M4 실행으로 to-do → in-progress. 루트 `F000-legacy-cleanup` |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 1개(경로 이동 내용 무변경 1 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

@@ -73,3 +73,8 @@
 - 변경: 1379px 이하 항목 열 `overflowX: auto` · 상자 숨김을 767px 이하로
 - 검증: 1024 · 1280 · 1440 · 1600 × 코인 · 국내 탭 가로 넘침 0(전 1024 에서 145px) · 상자 보임 · 국내 일정 3행 · `check-types` · `lint` · 훅 exit 0 · `web` 빌드 154 kB
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 조회 훅 렌더 중 `localStorage` 토큰 읽기 → `useHasAccessToken`(`/search` 수화 불일치 수정)(`b4a59677`). 파일 3개(경로 이동 내용 무변경 0 · 수정 3 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2

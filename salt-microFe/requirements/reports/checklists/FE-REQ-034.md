@@ -109,3 +109,8 @@ DOM 범례 글자 리플로다 — 범례를 숨기면 0.12ms 로 돌아간다. 
 
 - 주봉 200개 그리기 · 날짜 축(연 · 월 라벨) · 이동평균 4 · 거래량 — 1440 · 390 실화면. FR-64 "실시간 아님" 표시
 - 미검증 · 범위 밖: 월 · 년 봉(서버에 없음 — 소비 화면이 생길 때 `SRV-REQ-008` FR-50) · 200봉 이전 과거 이동(서버 `to`, Open Questions)
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 3개(경로 이동 내용 무변경 1 · 수정 2 · 추가 0 · 삭제 0). 계약 · 동작 무변경
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2

@@ -97,3 +97,8 @@ Playwright route 6종 · 실스택 화면(3100, 임시 사용자) · `pnpm check
 - 변경: `EventsCard` 가 국내 · 미국 섞임을 그린다 — 지역 표시 · 짧은 이름 · 범위 묶음 · 국내 안내 문구(`FE-REQ-046` FR-1 · 2). 종류 이름은 `@repo/core/coach` 한 벌
 - 검증: 코인 상세 카드 동작 무변경(지역 하나면 표시 없음) · 실화면 국내 카드
 - 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 조회 훅 렌더 중 `localStorage` 토큰 읽기 → `useHasAccessToken`(`/search` 수화 불일치 수정)(`b4a59677`). 파일 11개(경로 이동 내용 무변경 4 · 수정 7 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
