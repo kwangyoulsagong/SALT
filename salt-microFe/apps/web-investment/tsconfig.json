@@ -21,7 +21,33 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "paths": {
+      "@/pages": [
+        "../../packages/domain-invest/src/pages"
+      ],
+      "@/pages/*": [
+        "../../packages/domain-invest/src/pages/*"
+      ],
+      "@/widgets": [
+        "../../packages/domain-invest/src/widgets"
+      ],
+      "@/widgets/*": [
+        "../../packages/domain-invest/src/widgets/*"
+      ],
+      "@/features": [
+        "../../packages/domain-invest/src/features"
+      ],
+      "@/features/*": [
+        "../../packages/domain-invest/src/features/*"
+      ],
+      "@/entities": [
+        "../../packages/domain-invest/src/entities"
+      ],
+      "@/entities/*": [
+        "../../packages/domain-invest/src/entities/*"
+      ]
+    }
   },
   "include": [
     "**/*.ts",

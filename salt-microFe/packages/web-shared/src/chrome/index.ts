@@ -9,6 +9,7 @@
  */
 export { AppShell } from "./AppShell";
 export { EMBED_SCRIPT } from "./embed";
+export { NotFoundPage, notFoundMetadata } from "./NotFoundPage";
 export { ProfileMenu } from "./ProfileMenu";
 export { rootMetadata } from "./rootMetadata";
 export { ZoneProviders } from "./ZoneProviders";

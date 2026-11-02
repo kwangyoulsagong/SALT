@@ -19,8 +19,8 @@
       "devPort": 3002,
       "pathPrefixes": ["/investments", "/coach", "/search"],
       "assetPrefix": "/investment-static",
-      "hostedIn": "web",
-      "hostedUntil": "FE-REQ-053",
+      "hostedIn": "web-investment",
+      "hostedUntil": null,
       "reason": "투자 — 시세 · 상세 · 코치 · 검색. 동결(기획된 것까지)"
     },
     "savings": {

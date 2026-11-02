@@ -36,6 +36,8 @@ const nextConfig = {
     ],
   },
   reactStrictMode: true,
+  // 공용 코드(`ZoneLink` · `CrossZoneLink`)가 "다른 zone 인가"를 이 앱 기준으로 판정한다(`FE-REQ-053`)
+  env: { NEXT_PUBLIC_ZONE_APP: "web" },
   transpilePackages: ["@repo/ui", "@repo/tokens", "@repo/core", "@repo/web-shared"],
   experimental: {
     serverActions: {

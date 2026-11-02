@@ -13,7 +13,8 @@
 # 나머지는 사람이 기억해서 띄웠다. 2026-11-02 뉴스 워커가 09-29 부터 · BFF 시세 워커도 꺼진 채 발견 — 사용자 "계속 머 까먹어서".
 # 데이터를 모으는 프로세스(뉴스 · 시세)는 전부 상시로 둔다. 웹 dev 만 상시가 아니다(빌드 · 재시작이 잦다).
 #
-# 이름: server · news · bff-rest · bff-ws · bff-worker · forecast · web
+# 이름: server · news · bff-rest · bff-ws · bff-worker · forecast · web · web-investment
+# 웹 dev 는 zone 마다 하나(셸 web 3000 · 투자 web-investment 3002 — `FE-REQ-053`). 셸이 투자 경로를 3002 로 프록시한다
 set -u
 ROOT="${0:A:h:h}"
 UID_NUM="$(id -u)"
@@ -30,14 +31,18 @@ LABEL=(server com.salt.server news com.salt.news bff-rest com.salt.bff-rest bff-
 SCRIPT=(server "$ROOT/salt-server/ops/run-server.sh" news "$ROOT/salt-server/ops/run-news.sh"
         bff-rest "$ROOT/bff/ops/run.sh rest" bff-ws "$ROOT/bff/ops/run.sh ws" bff-worker "$ROOT/bff/ops/run.sh worker"
         forecast "$ROOT/salt-forecast/ops/daily.sh")
-PORT=(server 4000 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - web 3000)
+PORT=(server 4000 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - web 3000 web-investment 3002)
 HEALTH=(server http://localhost:4000/health bff-rest http://localhost:4001/health)
 LOG=(server "$LOGS/salt-server.log" news "$LOGS/salt-news.log" bff-rest "$LOGS/salt-bff-rest.log" bff-ws "$LOGS/salt-bff-ws.log"
-     bff-worker "$LOGS/salt-bff-worker.log" forecast "$LOGS/salt-forecast-daily.log" web "$LOGS/salt-web.log")
+     bff-worker "$LOGS/salt-bff-worker.log" forecast "$LOGS/salt-forecast-daily.log" web "$LOGS/salt-web.log"
+     web-investment "$LOGS/salt-web-investment.log")
 # 포트 없는 상시 프로세스를 수동으로 띄웠는지 알아보는 명령줄 조각
 typeset -A PATTERN
 PATTERN=(news "workers/news-crawler.worker" bff-worker "workers/price-updater.worker")
-ORDER=(server news bff-rest bff-ws bff-worker forecast web)
+ORDER=(server news bff-rest bff-ws bff-worker forecast web web-investment)
+# launchd 가 아니라 pnpm dev 로 띄우는 zone 앱(이름 = pnpm 필터)
+DEV_APPS=(web web-investment)
+is_dev() { (( ${DEV_APPS[(Ie)$1]} )); }
 SERVICES=(server news bff-rest bff-ws bff-worker forecast)
 
 say() { print -r -- "$*"; }
@@ -119,14 +124,14 @@ start_service() {
   say "  ▲ $name — launchd 에 올렸다(${LABEL[$name]})"
 }
 
-start_web() {
-  local holder; holder=$(port_pid 3000)
+start_dev() {
+  local name=$1 port=${PORT[$1]} holder; holder=$(port_pid "$port")
   if [[ -n $holder ]]; then
-    if is_salt "$holder"; then say "  ✓ web — 떠 있다(PID $holder)"; else say "  ✗ web — 3000 을 다른 프로젝트가 쓴다(PID $holder). 건너뜀"; fi
+    if is_salt "$holder"; then say "  ✓ $name — 떠 있다(PID $holder)"; else say "  ✗ $name — $port 을 다른 프로젝트가 쓴다(PID $holder). 건너뜀"; fi
     return
   fi
-  (cd "$ROOT/salt-microFe" && nohup pnpm --filter web dev >"${LOG[web]}" 2>&1 &)
-  say "  ▲ web — pnpm --filter web dev (3000, 로그 ${LOG[web]})"
+  (cd "$ROOT/salt-microFe" && nohup pnpm --filter "$name" dev >"${LOG[$name]}" 2>&1 &)
+  say "  ▲ $name — pnpm --filter $name dev ($port, 로그 ${LOG[$name]})"
 }
 
 latest() {
@@ -149,12 +154,12 @@ latest() {
 
 status() {
   say "SALT 상태 — $(date '+%m-%d %H:%M')"
-  printf "  %-11s %-8s %-8s %-6s %s\n" 이름 방식 PID 포트 헬스
+  printf "  %-15s %-8s %-8s %-6s %s\n" 이름 방식 PID 포트 헬스
   local name pid how port h
   for name in $ORDER; do
     port=${PORT[$name]}; h=""
-    if [[ $name == web ]]; then
-      pid=$(port_pid 3000); how=dev
+    if is_dev "$name"; then
+      pid=$(port_pid "$port"); how=dev
       [[ -n $pid ]] && ! is_salt "$pid" && { how=남의것; }
     elif loaded "$name"; then
       pid=$(agent_pid "$name"); how=launchd
@@ -167,7 +172,7 @@ status() {
     if [[ -n ${HEALTH[$name]:-} ]]; then
       h=$(curl -s -o /dev/null -m 3 -w '%{http_code}' "${HEALTH[$name]}" 2>/dev/null); [[ $h == 200 ]] && h="ok" || h="✗ ${h:-응답 없음}"
     fi
-    printf "  %-11s %-8s %-8s %-6s %s\n" "$name" "$how" "$pid" "$port" "$h"
+    printf "  %-15s %-8s %-8s %-6s %s\n" "$name" "$how" "$pid" "$port" "$h"
   done
   pg_isready -q -h localhost -p 5432 && say "  postgres    ok" || say "  postgres    ✗ 꺼짐 — brew services start postgresql"
   latest
@@ -175,9 +180,9 @@ status() {
 
 down_one() {
   local name=$1
-  if [[ $name == web ]]; then
-    local p; p=$(port_pid 3000)
-    if [[ -n $p ]] && is_salt "$p"; then pkill -P "$p" 2>/dev/null; kill "$p"; say "  ▼ web"; else say "  · web — 안 떠 있다"; fi
+  if is_dev "$name"; then
+    local p; p=$(port_pid "${PORT[$name]}")
+    if [[ -n $p ]] && is_salt "$p"; then pkill -P "$p" 2>/dev/null; kill "$p"; say "  ▼ $name"; else say "  · $name — 안 떠 있다"; fi
     return
   fi
   if loaded "$name"; then
@@ -196,7 +201,7 @@ case "${1:-status}" in
     pg_isready -q -h localhost -p 5432 || say "  ! postgres 가 꺼져 있다 — brew services start postgresql 먼저"
     say "켜기"
     for name in $SERVICES; do start_service "$name" "$replace"; done
-    start_web
+    for name in $DEV_APPS; do start_dev "$name"; done
     sleep 4
     status ;;
   status) status ;;
@@ -204,7 +209,7 @@ case "${1:-status}" in
     if [[ -n "${2:-}" ]]; then valid "$2"; down_one "$2"; else for name in ${(Oa)ORDER}; do down_one "$name"; done; fi ;;
   restart)
     valid "${2:-}"
-    if [[ $2 == web ]]; then down_one web; sleep 1; start_web
+    if is_dev "$2"; then down_one "$2"; sleep 1; start_dev "$2"
     elif loaded "$2"; then
       # kickstart -k 를 쓰지 않는다 — 옛 node 가 종료(DB 연결 닫기) 중일 때 새 프로세스가 떠 EADDRINUSE 로 죽고,
       # launchd 가 재시도를 미뤄 1~2분 꺼져 있었다(2026-11-02 실측). 내리고 · 비기를 확인하고 · 올린다
@@ -220,8 +225,8 @@ case "${1:-status}" in
   logs)
     valid "${2:-}"; tail -n 50 -f "${LOG[$2]}" ;;
   plist)
-    valid "${2:-}"; [[ $2 == web ]] && { say "web 은 launchd 가 아니다(dev)"; exit 2; }
+    valid "${2:-}"; is_dev "$2" && { say "$2 은 launchd 가 아니다(dev)"; exit 2; }
     write_plist "$2" /dev/stdout ;;
-  -h|--help|help) sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//' ;;
+  -h|--help|help) sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//' ;;
   *) say "모르는 명령: $1 — up | status | down | restart | logs | plist"; exit 2 ;;
 esac

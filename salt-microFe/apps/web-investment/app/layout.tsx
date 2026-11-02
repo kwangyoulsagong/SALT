@@ -1,15 +1,29 @@
 import type { ReactNode } from "react";
 
+import { AppShell, EMBED_SCRIPT, ZoneProviders } from "@repo/web-shared/chrome";
+import "@repo/web-shared/chrome/globals.css";
+
 /**
- * 투자 zone 루트 레이아웃 — 빈 골격 (FE-REQ-052 FR-7).
+ * 투자 zone 루트 레이아웃 (FE-REQ-052 FR-7 → FE-REQ-053).
  *
- * `data-zone` 은 셸 rewrites 가 이 앱에 닿았는지 확인하는 표지다(셸 경유 404 문서에 남는다).
- * 크롬(`AppChrome`)과 화면은 `@repo/domain-invest` 가 생길 때 붙는다.
+ * 셸과 같은 껍데기다 — 프레임 · 768 미만 안내 · 앱 웹뷰 표지 · 전역 스타일은 `@repo/web-shared/chrome` 하나에서 온다.
+ * 다른 점은 프로바이더: React Query · 모션만 갖고 Redux(셸의 `auth` · `goal`)는 없다 — 투자 화면은 store 를 쓰지 않는다.
+ * `data-zone` 은 셸 rewrites 가 이 앱에 닿았는지 확인하는 표지다.
  */
+export { rootMetadata as metadata } from "@repo/web-shared/chrome";
+
 export default function InvestZoneLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ko" data-zone="invest">
-      <body>{children}</body>
+    // 앱 웹뷰 판단 스크립트가 <html> 속성을 단다 — 그 한 곳의 불일치만 허용(셸과 같다)
+    <html lang="ko" data-zone="invest" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: EMBED_SCRIPT }} />
+      </head>
+      <body>
+        <ZoneProviders>
+          <AppShell>{children}</AppShell>
+        </ZoneProviders>
+      </body>
     </html>
   );
 }

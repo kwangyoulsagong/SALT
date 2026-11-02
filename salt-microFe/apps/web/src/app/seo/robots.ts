@@ -17,5 +17,6 @@ export const robots = (): MetadataRoute.Robots => ({
       disallow: ["/home", "/coach", "/onboarding", "/goals", "/streaming-probe", "/tax", "/search", "/settings"],
     },
   ],
-  sitemap: `${SITE_URL}/sitemap.xml`,
+  // 시세 목록 · 종목 상세는 투자 zone 이 만든다(`FE-REQ-053`). 셸에는 검색에 실을 화면이 로그인 첫 화면 하나다
+  sitemap: `${SITE_URL}/investments/sitemap.xml`,
 });

@@ -61,15 +61,20 @@ describe("zone 레지스트리 (ADR-005)", () => {
     }
   });
 
-  it("옮기기 전 투자 · 저축 화면은 셸 안 이동, 가계부 · 팁은 zone 을 넘는다", () => {
-    expect(isCrossZonePath("/investments/BTC")).toBe(false);
+  it("투자는 자기 zone(FE-REQ-053) · 옮기기 전 저축은 셸 안 이동 · 가계부 · 팁은 zone 을 넘는다", () => {
+    expect(isCrossZonePath("/investments/BTC")).toBe(true);
+    expect(isCrossZonePath("/coach/settings")).toBe(true);
     expect(isCrossZonePath("/goals/addgoals")).toBe(false);
     expect(isCrossZonePath("/household")).toBe(true);
     expect(isCrossZonePath("/tips/abc#top")).toBe(true);
     expect(isCrossZonePath("/investment-static/_next/a.js")).toBe(true);
-    // 투자 zone 앱에서 보면 셸이 서비스하는 투자 경로는 앱을 넘는다
-    expect(isCrossZonePath("/investments", "web-investment")).toBe(true);
+    // 투자 zone 앱에서 보면 자기 경로는 안, 셸 · 셸이 서비스하는 저축 경로는 앱을 넘는다
+    expect(isCrossZonePath("/investments/BTC", "web-investment")).toBe(false);
+    expect(isCrossZonePath("/coach/report#scoreboard", "web-investment")).toBe(false);
     expect(isCrossZonePath("/", "web-investment")).toBe(true);
+    expect(isCrossZonePath("/home", "web-investment")).toBe(true);
+    expect(isCrossZonePath("/settings", "web-investment")).toBe(true);
+    expect(isCrossZonePath("/goals/addgoals", "web-investment")).toBe(true);
     expect(CROSS_ZONE_PATH_PREFIXES).not.toContain("/");
   });
 

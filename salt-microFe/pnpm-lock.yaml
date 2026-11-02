@@ -13,7 +13,7 @@ importers:
         version: 1.17.4
       next:
         specifier: ^15.5.25
-        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18
         version: 18.2.0
@@ -159,7 +159,7 @@ importers:
         version: link:../../packages/core
       next:
         specifier: ^15.5.25
-        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18
         version: 18.2.0
@@ -197,6 +197,33 @@ importers:
       '@repo/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@repo/domain-invest':
+        specifier: workspace:*
+        version: link:../../packages/domain-invest
+      '@repo/tokens':
+        specifier: workspace:*
+        version: link:../../packages/tokens
+      '@repo/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@repo/web-shared':
+        specifier: workspace:*
+        version: link:../../packages/web-shared
+      '@tanstack/react-query':
+        specifier: ^5.64.1
+        version: 5.65.1(react@18.2.0)
+      '@vanilla-extract/css':
+        specifier: ^1.14.0
+        version: 1.17.4
+      '@vanilla-extract/next-plugin':
+        specifier: ^2.4.8
+        version: 2.4.9(next@15.5.25)(webpack@5.97.1)
+      framer-motion:
+        specifier: ^12
+        version: 12.43.0(react-dom@18.2.0)(react@18.2.0)
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
       next:
         specifier: ^15.5.25
         version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
@@ -239,7 +266,7 @@ importers:
         version: link:../../packages/core
       next:
         specifier: ^15.5.25
-        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18
         version: 18.2.0
@@ -279,7 +306,7 @@ importers:
         version: link:../../packages/core
       next:
         specifier: ^15.5.25
-        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18
         version: 18.2.0
@@ -332,6 +359,76 @@ importers:
       vitest:
         specifier: ^4.0.9
         version: 4.0.9(@types/node@20.17.16)(@vitest/browser-playwright@4.0.9)
+
+  packages/domain-invest:
+    dependencies:
+      '@repo/core':
+        specifier: workspace:*
+        version: link:../core
+      '@repo/tokens':
+        specifier: workspace:*
+        version: link:../tokens
+      '@repo/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@repo/web-shared':
+        specifier: workspace:*
+        version: link:../web-shared
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
+    devDependencies:
+      '@reduxjs/toolkit':
+        specifier: ^2.5.0
+        version: 2.5.1(react-redux@9.2.0)(react@18.2.0)
+      '@repo/eslint-plugin-fsd':
+        specifier: workspace:*
+        version: link:../eslint-plugin-fsd
+      '@repo/eslint-plugin-zone':
+        specifier: workspace:*
+        version: link:../eslint-plugin-zone
+      '@tanstack/react-query':
+        specifier: ^5.64.1
+        version: 5.65.1(react@18.2.0)
+      '@types/node':
+        specifier: ^20
+        version: 20.17.16
+      '@types/react':
+        specifier: ^18
+        version: 18.3.18
+      '@types/react-dom':
+        specifier: ^18
+        version: 18.3.5(@types/react@18.3.18)
+      '@vanilla-extract/css':
+        specifier: ^1.14.0
+        version: 1.17.4
+      eslint:
+        specifier: ^8
+        version: 8.57.1
+      eslint-config-next:
+        specifier: ^15.5.25
+        version: 15.5.25(eslint@8.57.1)(typescript@5.7.3)
+      framer-motion:
+        specifier: ^12
+        version: 12.43.0(react-dom@18.2.0)(react@18.2.0)
+      next:
+        specifier: ^15.5.25
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18
+        version: 18.2.0
+      react-dom:
+        specifier: ^18
+        version: 18.2.0(react@18.2.0)
+      react-redux:
+        specifier: ^9.2.0
+        version: 9.2.0(@types/react@18.3.18)(react@18.2.0)(redux@5.0.1)
+      typescript:
+        specifier: ^5
+        version: 5.7.3
+      zustand:
+        specifier: ^5.0.3
+        version: 5.0.3(@types/react@18.3.18)(react@18.2.0)
 
   packages/eslint-config:
     devDependencies:
@@ -576,7 +673,7 @@ importers:
         version: 12.43.0(react-dom@18.2.0)(react@18.2.0)
       next:
         specifier: ^15.5.25
-        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18
         version: 18.2.0
@@ -11535,9 +11632,6 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /pathe@2.0.2:
-    resolution: {integrity: sha512-15Ztpk+nov8DR524R4BF7uEuzESgzUEAV4Ah7CUMNGXdE5ELuvxElxGXndBl32vMSsWa1jpNf22Z+Er3sKwq+w==}
-
   /pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
 
@@ -11625,7 +11719,7 @@ packages:
     dependencies:
       confbox: 0.1.8
       mlly: 1.7.4
-      pathe: 2.0.2
+      pathe: 2.0.3
 
   /playwright-core@1.50.0:
     resolution: {integrity: sha512-CXkSSlr4JaZs2tZHI40DsZUN/NIwgaUPsyLuOAaIZp2CyF2sN5MM5NJsyB188lFSSozFxQ5fPT4qM+f0tH/6wQ==}

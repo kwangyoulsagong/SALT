@@ -14,6 +14,7 @@ import { useOnboardingStatus, type OnboardingStepKey } from "@/entities/auth";
 import { InviteCodeForm } from "@/features/accept-invite";
 import { useHasAccessToken } from "@repo/web-shared/api";
 import { ROUTES } from "@repo/web-shared/config";
+import { useZoneNavigate } from "@repo/web-shared/lib";
 
 import {
   ONBOARDING_COMPLETE_HEADLINE,
@@ -52,6 +53,8 @@ import * as s from "./OnboardingFlow.css";
  */
 export const OnboardingFlow = () => {
   const router = useRouter();
+  // 단계 화면이 다른 zone(투자)일 수 있다 — 문서 이동은 이 훅이 고른다(`FE-REQ-053`)
+  const navigate = useZoneNavigate();
   const { data, isLoading: isQuerying } = useOnboardingStatus();
   // 토큰이 있는지 아직 모르면(서버 · 하이드레이션) 단계를 정하지 않는다 — 초대 단계가 번쩍였다가 바뀌지 않게
   const tokenKnown = useHasAccessToken() !== null;
@@ -163,7 +166,7 @@ export const OnboardingFlow = () => {
               </Button>
             ) : (
               <>
-                <Button variant="primary" size="lg" fullWidth onClick={() => router.push(STEP_ROUTE[currentStep])}>
+                <Button variant="primary" size="lg" fullWidth onClick={() => navigate(STEP_ROUTE[currentStep])}>
                   {body?.action}
                 </Button>
                 <Button variant="ghost" size="md" fullWidth onClick={() => router.push(ROUTES.home)}>

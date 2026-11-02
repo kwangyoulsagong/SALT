@@ -126,8 +126,7 @@ const REGISTRY = {
     "onboarding",
     "login",
     "streaming-probe",
-    // 404 — `app/not-found.tsx` 가 re-export (FE-REQ-044 P-15)
-    "not-found",
+    // "not-found" — 404 는 zone 이 같이 쓴다 → `@repo/web-shared/chrome` (FE-REQ-044 P-15 → FE-REQ-053)
   ],
 };
 
