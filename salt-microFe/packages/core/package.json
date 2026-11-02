@@ -13,7 +13,8 @@
     "./market": "./src/market/candleTime.ts",
     "./marketKr": "./src/market/krStock.ts",
     "./sse": "./src/sse/parser.ts",
-    "./embed": "./src/embed/index.ts"
+    "./embed": "./src/embed/index.ts",
+    "./home": "./src/home/homeSummaryCard.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
