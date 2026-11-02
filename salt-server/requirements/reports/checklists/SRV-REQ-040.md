@@ -430,3 +430,9 @@
 `tsc` · 기본값으로 기동(auto → claude 감지)
 
 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 변경: 국내 라우터에 `/schedule` — **이 경로만** 소유자 · 키 검사 없음(공개 일정, `SRV-REQ-041` FR-5) · 예측 `store/kr_stock.py` 가 `market_holidays` 휴장일 전부(미래 공시 행 포함)를 일정 규칙에만 읽는다
+- 검증: 실서버 비소유자 200 · 소유자 200 · 400
+- 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)

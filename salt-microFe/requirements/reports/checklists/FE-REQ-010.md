@@ -237,3 +237,9 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 
 - 파일만 걸침 — `messages.ts` 기간 이름 `1w`. 서버 주석의 잘못된 인용(FR-50 · 51) 정정
 - 미검증 · 범위 밖: 없음
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 변경: 시장 엔드포인트 · 쿼리 키에 국내 일정 · 시장 보드 레이아웃 css 에 일정 자리(44) — 같은 파일
+- 검증: check-types · lint · build
+- 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)

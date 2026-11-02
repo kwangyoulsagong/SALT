@@ -101,3 +101,4 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 - 2026-10-30: F011 FR-14(`SRV-REQ-040`) — ~~**변경 없음.**~~ **정정 2026-10-30 같은 날 후속** 아래 FR-1 `holidayName` 추가. 서버가 KRX 공시 표로 미래 휴장을 알아 `calendarKnown` 이 참인 때가 늘어난다. FR-1 모양 무변경. 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`
 - 2026-10-30: FR-1 — `holidayName` 추가(F011 FR-41). 필드 없는 옛 서버 응답은 `null` · 문자열 아니면 계약 깨짐. 테스트 1 추가(298 pass). 실서버 → BFF HTTP 응답에 실림 확인. 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`
 - 2026-11-02: **변경 없음**(짝 영역) — 서버 5분봉 보정 창(`SRV-REQ-040` FR-21) 정정. 응답 · 계약 무변경. 루트 `F011-minute-bar-window-slice.md`
+- 2026-11-02: F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 국내 라우터에 `/schedule`(`/:code` 앞) · `getSchedule` · `toKrScheduleVM` — 공개 일정이라 서버가 소유자 · 키를 안 본다(`BFF-REQ-043` FR-3)

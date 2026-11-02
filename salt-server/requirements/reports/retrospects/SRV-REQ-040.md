@@ -176,3 +176,7 @@
 없음 — 설정 칸 추가만.
 
 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 파일만 걸쳤다 — 판단은 `FC-REQ-021` · `SRV-REQ-041` · `FE-REQ-046` 회고에 있다.

@@ -4,6 +4,7 @@ title: "F008 슬라이스 24 — 국내 증시 일정 · 실적 공시 (FR-69 ·
 priority: high
 labels: [F008, F011, slice, forecast, db, server, bff, fe]
 created: 2026-10-30
+status: in-progress (1단계 구현 2026-11-02)
 ---
 
 ## Summary
@@ -19,11 +20,11 @@ created: 2026-10-30
 
 | 영역 | REQ | 몫 |
 |---|---|---|
-| 예측 | `salt-forecast/requirements/specs/to-do/FC-REQ-021-F008-KR-MARKET-EVENTS.md` | 일정 수집 · 규칙 계산 · 반응 · 통계 · 예상 창 |
-| DB | `salt-server/requirements/specs/to-do/DB-REQ-034-F008-KR-MARKET-EVENTS.md` | 종류 확장 · `symbol` 열 · PK 교체 · 예상 창 테이블 |
-| 서버 | `salt-server/requirements/specs/to-do/SRV-REQ-041-F008-KR-MARKET-EVENTS.md` | 국내 종목 읽기 · 범위/지역 · 다가오는 일정 경로 |
-| BFF | `bff/requirements/specs/to-do/BFF-REQ-043-F008-KR-MARKET-EVENTS.md` | 중계 |
-| 프론트 | `salt-microFe/requirements/specs/to-do/FE-REQ-046-F008-KR-MARKET-EVENTS.md` | 국내 상세 카드 · 국내 탭 일정 띠 |
+| 예측 | `salt-forecast/requirements/specs/in-progress/FC-REQ-021-F008-KR-MARKET-EVENTS.md` | 일정 수집 · 규칙 계산 · 반응 · 통계 · 예상 창 |
+| DB | `salt-server/requirements/specs/in-progress/DB-REQ-034-F008-KR-MARKET-EVENTS.md` | 종류 확장 · `symbol` 열 · PK 교체 · 예상 창 테이블 |
+| 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-041-F008-KR-MARKET-EVENTS.md` | 국내 종목 읽기 · 범위/지역 · 다가오는 일정 경로 |
+| BFF | `bff/requirements/specs/in-progress/BFF-REQ-043-F008-KR-MARKET-EVENTS.md` | 중계 |
+| 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-046-F008-KR-MARKET-EVENTS.md` | 국내 상세 카드 · 국내 탭 일정 띠 |
 | 주인 REQ(구현 때 Changelog) | `FC-REQ-005` · `DB-REQ-029` · `SRV-REQ-037` · `BFF-REQ-037` · `FE-REQ-038` · `FE-REQ-041` · `FEATURE-006` FR-65 | 같은 함수 · 테이블 · 카드를 넓힌다 |
 
 ## 판단 — 리뷰가 볼 곳
@@ -37,6 +38,17 @@ created: 2026-10-30
 5. **LLM 일정 요약은 넣지 않는다** — 분포 숫자 위에 문장이 더할 정보가 적고, 생성형 결과물 표시(AI 기본법 제31조) 화면
    규칙이 먼저다(FEATURE-008 FR-72)
 
-## 검증 · 미검증
+## 진행
 
-구현 전(to-do). 착수 시 `in-progress/` 로 옮기고 체크리스트 · 회고를 만든다.
+| 단계 | 상태 |
+|---|---|
+| 1 | **구현 2026-11-02**(`feat/f008-slice24-kr-market-events`) — 사용자 "새브랜치 파고 다음꺼 진행"(§4-1 순위 3 첫 줄). 검증 `requirements/reports/checklists/F008-slice24-kr-market-events.md`, 회고 `requirements/reports/retrospects/F008-slice24-kr-market-events.md` |
+| 2 | 대기 — `FC-REQ-026` 공시 수집(온톨로지 `FC-REQ-022` 뒤) |
+
+### 1단계에서 바뀐 판단 (영역 REQ 본문에 정정)
+
+6. **소스는 수동 입력 없이** — 한국은행 연도별 회의 페이지 · 국가데이터처 보도계획 + 게시판 · 수출입은 규칙(8년치 전부 1일) · 동시만기 규칙(`FC-REQ-021` Q2)
+7. **시장 대용 = 동일가중**(`KR-EW`) — 지수 일봉 이력이 없다(Q3). 시점 고정 구성
+8. **기본 반응 종목 = 보유 · 관심 국내 ∪ 거래대금 상위 30** — 예측은 소유자를 모른다(FR-6 정정)
+9. **다가오는 일정 경로는 `market` 컨텍스트** · 새 뷰 `v_upcoming_event`(`DB-REQ-034` FR-7) — 통계와 조인한 뷰로는 막 쌓인 일정이 안 보인다
+10. **화면상 일정 줄은 소유자만** — 국내 탭 자체가 소유자에게만 보인다. 계약은 공개(`FE-REQ-046` FR-5)

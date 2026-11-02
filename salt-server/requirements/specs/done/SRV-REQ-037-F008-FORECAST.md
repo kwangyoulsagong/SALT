@@ -50,3 +50,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | 후속(사용자 "베스트로 니가 해 사람이 직접 하지말고") — FR-15 평가 완료(독립 평가자 3 · 2회 · 템플릿 20/20) · FR-13 확장(완곡 권유 · 가격 수준 목표) · FR-16 전체 스위치 · FR-17 템플릿 문장. 평가지 스크립트 입력 사실 보완 · `--reuse` · 간격 8초. 다듬기 공급자 라우팅은 `SRV-REQ-050`(to-do) |
 | 2026-11-02 | 해설 스트림 의미 변경 — 토큰 스트림 공급자(로컬 Claude)는 검사를 통과한 문장을 즉시 `delta`(템플릿 선흘림 없음), 그 밖은 예전 길. FR-13 완곡 권유 확장("보는 게 중요해요" · "필요가 있어요/생겨요" · "열어 둘 필요") · 판단 문단 문장 단위 · 금액 사실 방향 없음. 평가지 `--provider` · 관찰 기간 줄 · 이름 버그. 근거 `SRV-REQ-050` FR-11 · 13 · 14. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | 검증기 후속 — `prompt_label`(블라인드 3회차 "뉴스1과…" 누출) · FR-13 행 그 자리에 확장 기록. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
+| 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `macroEvents.ts` 종류 표 `EVENT_KIND_META`(지역 · 범위) · 자산군별 지역 · 계약 위반 행 버림 · 종목 사건 → 시장 일정 순(`SRV-REQ-041` FR-1~3) |

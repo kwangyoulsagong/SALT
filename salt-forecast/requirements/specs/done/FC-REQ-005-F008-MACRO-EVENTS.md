@@ -46,3 +46,9 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 토큰 언락 · 거래소 공지 | 업비트 공지 안 씀(사용자 결정), 언락은 수동 입력만 | 수동 입력 화면 |
 | 사건을 전망 피처로 | 채택은 채점이 정한다(FR-54) | 도전자 실험 재개 시 |
 | BTC 외 종목 | 화면 초점이 BTC. 계산은 종목 목록 설정으로 늘릴 수 있다 | 필요 시 |
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `domain/events` · `store/events` · `jobs/events` 를 국내로 넓혔다 — 종류 4 · KST 발표 시각 · 규칙 종류 30일 전 · 끊김 `break_cum` · 사건 종목 키(`FC-REQ-021` · `DB-REQ-034`). 코인 묶음 결과 무변화(`ref_bar_open` 식 · `_closed_by` 조건은 업비트 봉에서 전과 같다) |

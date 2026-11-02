@@ -164,3 +164,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 - 2026-11-02: 파일만 걸침 — `shared/config/env.ts`(이 REQ 가 머리 주석 주인)에 `COACH_EXPLAIN_LLM`(on · off, 기본 on). 루트 `requirements/specs/done/F008-explain-citations-slice.md`
 - 2026-11-02: 서버 종료 처리 5초 상한(`src/server.ts`) · 실행 스크립트 `ops/lib-run.sh`(고아 정리) — 10-23 "포트를 못 열면 종료"(`acb66bf0`)의 짝: 그때 남던 옛 프로세스의 원인이 종료 처리 멈춤이었다. 루트 `requirements/specs/done/OPS-002-local-process-supervisor.md`
 - 2026-11-02: 파일만 걸침 — `shared/config/env.ts`(이 REQ 가 머리 주석 주인)에 `COACH_LLM_LOCAL`(auto · claude · codex · off) · `COACH_LLM_LOCAL_USERS` · `COACH_LLM_LOCAL_MODEL`. 근거 `SRV-REQ-050`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md`
+- 2026-11-02: F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 국내 라우터에 `/schedule` — **이 경로만** 소유자 · 키 검사 없음(공개 일정, `SRV-REQ-041` FR-5) · 예측 `store/kr_stock.py` 가 `market_holidays` 휴장일 전부(미래 공시 행 포함)를 일정 규칙에만 읽는다

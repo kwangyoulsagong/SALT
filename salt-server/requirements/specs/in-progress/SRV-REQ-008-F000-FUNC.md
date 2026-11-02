@@ -223,6 +223,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: FR-80~87(추적 자산 · 종목 검색 — 관심 ∪ 보유, 상한 10 설정값, 보유는 무관, `HoldingProbe`, D8) · FR-90~95(뉴스 `sentiment` · `symbols` 유지 · `isBookmarked` · 북마크는 알림 아님, B11 · D5) · FR-100~104(목표 수량, 기본안 B5). 개정: FR-20 알림 2종 → **1종** · FR-13 · 14 온보딩 2단계 → 첫 보유 기록(B12), 입력 `ledger` → `portfolio` · FR-32 · 61 **Q2 보류**. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-28 | **알림 1종 · 코드만 · 금액 없음을 닫았다**(FR-20~22 · 24 · 25, 루트 `F000-notification-kind-gate`, `feat/f000-notification-kind-gate` `3320883`). 새 `notification` 컨텍스트(레지스트리 기존 행) — 만드는 길은 공개 API `NotificationApi.publish` 하나이고 관문 셋(`policy/kindGate` · `messageGuard` 코드 형식 · 금액 인자)이 거기 있다. 코치 판단 변화는 `decision_change` + 완성 문장 → `signal_update` + `coach.decision_changed` + 코드 인자. 마이그레이션 `20261028100000_notification_message_code`(`messageCode` 추가 · `title`/`message` nullable). `modules/investment-notification` 삭제(경로 같음). FR-23 은 손대지 않음(조회 경로 그대로) |
 | 2026-10-08 | F011 슬라이스 3b — `UpdateHoldingPrices`(BFF 내부 시세 반영)가 `crypto` 보유만 갱신(`findBySymbols(symbols, assetType)`). 국내 주식 보유는 서버가 저장 시세로 평가(`RevalueKrStockHoldings`, `SRV-REQ-040` FR-34). 보유 요약 · 통계는 자산군을 섞어 그대로 합산(원화끼리) |
+| 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `composition.ts` 에 `PrismaMarketScheduleReader` 조립 · 예측이 보유 · 관심 국내 종목(`symbol` 만)을 읽는 근거로 FR-87(국내 추가 = 소유자만)을 인용 |
 
 ## 구현이 REQ와 다른 지점 (2026-10-28)
 

@@ -5,7 +5,7 @@
 | 스키마 | 쓰기 | 읽기 |
 |---|---|---|
 | `public` (Prisma 기존) | `salt-server` | `salt-forecast`(시세 · 보유 · 관심 목록 **읽기만**) |
-| `forecast` | **`salt-forecast` 만** | `salt-server` `coach`(전망 · 에이전트 도구 — `ontology.md` §6) |
+| `forecast` | **`salt-forecast` 만** | `salt-server` `coach`(전망 · 에이전트 도구 — `ontology.md` §6) · `market`(공개 일정 `v_upcoming_event` 만, 2026-11-02 `DB-REQ-034` FR-7) |
 
 - DB 역할(role)을 나눈다: `salt_forecast` 는 `forecast` 에 쓰기 + `public` 일부 테이블 SELECT 만. 권한으로 강제한다.
 - `salt-server` 는 `forecast` 에 SELECT 만.
@@ -34,6 +34,7 @@
 | `score` | (symbol, horizon_weeks, as_of, model_version) | 실현 r · 적중 여부 · pinball — 기준 모델도 같은 표 |
 | `gate` | (symbol, horizon_weeks) | 최신 판정 · `blocked_reason` · 26주 지표 요약 · 판정 창(`window_from` · `window_to`) · 90% 밖 수(`miss_count`) — 성적 4요소(`FC-REQ-019`) |
 | `realized_vol` | (symbol, as_of) | 실현 변동성 EWMA · GARCH 도전자 · QLIKE 채점 · 게이트(`FC-REQ-006`) |
+| `scheduled_event` · `event_reaction` · `event_reaction_stats` | (kind, event_at, symbol) · (kind, event_at, symbol, event_symbol) · (kind, symbol, horizon_days, as_of) | 주요 사건 일정(미국 거시 3 · 국내 4 — 시장 일정 `symbol = ''`) · 반응 · 워크포워드 통계(`FC-REQ-005` · `FC-REQ-021`, `DB-REQ-034`) |
 | `market_signal` · `signal_event` | (symbol, as_of) · (kind, symbol, event_at) | 쏠림 신호 상태 · 사건. 반응 통계는 `event_reaction_stats` 에 kind 로(`FC-REQ-007`) — 표본 창 · 빗나간 수 · 판정 대상 수 포함(`FC-REQ-019`) |
 | `preregistration` | key | 사전등록 — 한 번만, UPDATE 트리거 금지(`FC-REQ-008`) |
 | `rule_ic` | (prereg_key, run_as_of, source, item, mode, horizon_days, label_kind, regime) | 규칙 항목별 IC · 실행마다 쌓음. 서버는 아직 읽지 않는다 |
@@ -41,7 +42,7 @@
 | `market_warning_snapshot` | (symbol, fetched_at) | 업비트 유의 · 주의 스냅샷 — 불변(UPDATE 트리거 금지), 받을 때마다 쌓음(`FC-REQ-014`) |
 | `news_item` · `news_score` | item_id · (item_id, model_version) | 뉴스 RSS 원장(fetched_at = available) · 로컬 금융 감성 · 사건 태그 — 둘 다 불변, 뷰 없음(`FC-REQ-016`) |
 | `ops_check` | (as_of 정시, subject) | 운영 점검 — 정기 작업 · 주간 비중 · 매일 판단 원장. 같은 시간 재실행은 덮어쓴다, 뷰 없음(`FC-REQ-018`) |
-| `v_entity_asof` · `v_neighbors`(계획 — `FC-REQ-022` · `023`, 9월 초안 `v_symbol_facts` · `v_symbol_actors` 대체) · `v_forecast_card` · `v_realized_vol` · `v_market_signal` · `v_signal_reaction` · `v_market_regime` · `v_market_warning` | 뷰 | **서버가 읽는 계약** |
+| `v_entity_asof` · `v_neighbors`(계획 — `FC-REQ-022` · `023`, 9월 초안 `v_symbol_facts` · `v_symbol_actors` 대체) · `v_forecast_card` · `v_realized_vol` · `v_market_signal` · `v_signal_reaction` · `v_market_regime` · `v_market_warning` · `v_event_card`(사건 종목 `event_symbol` — `DB-REQ-034`) · `v_upcoming_event` | 뷰 | **서버가 읽는 계약** |
 
 - 수치는 `numeric`(금액) · `double precision`(수익률 · 확률). 금액을 float 로 저장하지 않는다.
 - 시각은 전부 `timestamptz`, UTC 저장. 표시 시간대는 서버 · 프론트 몫.

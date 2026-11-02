@@ -46,3 +46,9 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 김프 교차 알림 | 알림은 측정 · 미러까지(FEATURE-009 결정 — 통제 없음). 화면 카드만 | 알림 요구가 생기면 PM |
 | ETF 유입 · 스테이블코인 발행량 신호 | 이 슬라이스는 이미 쌓인 둘만 | P2 다음 슬라이스 |
 | 다중 비교 | 224종목 × 4 × 3 = 2,688 조합. 게이트는 조합별이라 우연히 통과하는 조합이 있다 — 분포는 "과거에 이랬다"이지 엣지 주장이 아니다(화면 면책) | CPCV · DSR 슬라이스(P2) |
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `config.py` 에 `kr_event_symbols` · `kr_event_top`(`FC-REQ-021` FR-6). 쏠림 신호 설정 무변경 |

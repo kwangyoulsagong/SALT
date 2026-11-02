@@ -97,3 +97,9 @@
 - 백업: 적용 전 540행 CSV · 되돌리기 `DELETE FROM market_holidays WHERE source = 'krx_notice'`
 - 스키마는 `source` 주석만(`prisma:generate` 확인, 마이그레이션 0). `schema.prisma` 첫 REQ 언급(`SRV-REQ-008`)은 이 줄과 무관
 - 미검증 · 범위 밖: 없음. 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 변경: `market/domain/ports.ts` 에 `MarketScheduleReader`(`forecast.v_upcoming_event`, `DB-REQ-034` FR-7) — 같은 파일, 이 REQ 의 표는 무변경
+- 검증: 변경 없음 — 같은 파일 다른 포트
+- 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)

@@ -91,3 +91,9 @@
 Playwright route 6종 · 실스택 화면(3100, 임시 사용자) · `pnpm check-types` · `lint` · `--filter web build`(3.06 kB · 137 kB 그대로) · `web-tax build`
 
 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 변경: `EventsCard` 가 국내 · 미국 섞임을 그린다 — 지역 표시 · 짧은 이름 · 범위 묶음 · 국내 안내 문구(`FE-REQ-046` FR-1 · 2). 종류 이름은 `@repo/core/coach` 한 벌
+- 검증: 코인 상세 카드 동작 무변경(지역 하나면 표시 없음) · 실화면 국내 카드
+- 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)

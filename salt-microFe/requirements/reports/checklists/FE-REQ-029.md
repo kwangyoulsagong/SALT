@@ -87,3 +87,9 @@
 
 - `pnpm --filter web build` — `/investments/[symbol]` 3.06 kB · 첫 로드 137 kB(슬라이스 19 137 kB 와 같음). 새 의존 0(`formatRelativeTime` 은 기존 `shared/lib`)
 - 미검증 · 범위 밖: 없음
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 변경: 번들 — `/investments` 154 kB · `/investments/[symbol]` 137 kB, 직전 기록과 같음(새 코드는 지연 조각) · 새 의존 0
+- 검증: `pnpm --filter web build`
+- 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)

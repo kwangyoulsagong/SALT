@@ -369,3 +369,9 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 ## 2026-11-02 — F011 5분봉 보정 창(서버)
 
 - 변경 없음 · 서버 쪽만(`SRV-REQ-040` FR-21). Action: 없음
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 변경: 국내 API · 쿼리 · 문구 · 상세에 일정(`useKrSchedule` · `KrScheduleLine` · `KrEvents`) — `FE-REQ-046`
+- 검증: 실화면 소유자 국내 탭 · 상세
+- 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)

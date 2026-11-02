@@ -40,3 +40,9 @@
 ## 2026-10-28 — F000 웹 API 에러 정규화 (짝 영역 변경 없음)
 
 웹이 이 경로의 실패를 `ApiError { status, code, retriable }` 로 받게 바뀌었다(`FE-REQ-012`). 이 영역 코드 · 계약 **변경 없음** — 파일 머리 주석 참조뿐.
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 변경: `domain/events` · `store/events` · `jobs/events` 를 국내로 넓혔다 — 종류 4 · KST 발표 시각 · 규칙 종류 30일 전 · 끊김 `break_cum` · 사건 종목 키(`FC-REQ-021` · `DB-REQ-034`). 코인 묶음 결과 무변화(`ref_bar_open` 식 · `_closed_by` 조건은 업비트 봉에서 전과 같다)
+- 검증: 기존 `test_events` · `test_events_leakage` 그대로 통과 · 실행 뒤 KRW-BTC 통계 렌더 9행 그대로
+- 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)

@@ -9,6 +9,9 @@ created: 2026-10-30
 source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 ---
 
+> **2026-11-02 1단계 구현** — FR-1 · 2 · 3 + FR-7(새) `20261102140000_forecast_kr_market_events`. 로컬 DB 적용(전 두 표 `pg_dump` · 원장 3종 행 수 동일).
+> 2단계(FR-4 · 5)는 `FC-REQ-021` 2단계와 같이. 검증 `checklists/DB-REQ-034.md`.
+
 ## Summary
 
 `forecast.scheduled_event` 는 `kind IN ('fomc','cpi','jobs')` CHECK 와 PK `(kind, event_at)` 로 만들어졌다(`DB-REQ-029` FR-14).
@@ -25,6 +28,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | FR-4 | `kind` CHECK 에 `kr_earnings` · `kr_ir` 추가 | 2 |
 | FR-5 | `forecast.kr_earnings_window(symbol, as_of, quarter_lag_min, quarter_lag_median, quarter_lag_max, sample, PRIMARY KEY (symbol, as_of))` · 읽기 뷰 `v_kr_earnings_window`(종목별 최신 1행) | 2 |
 | FR-6 | 인덱스 — `scheduled_event (event_at)` 부분 인덱스 없음(행 수 수천). `event_reaction_stats` 기존 PK 그대로 | — |
+| FR-7 | **(2026-11-02 추가)** `forecast.v_upcoming_event(kind, event_at, event_symbol, source)` — 앞으로 35일(지난 하루 포함) 일정만, 통계와 조인하지 않는다. 다가오는 일정 줄(`SRV-REQ-041` FR-5)은 분포가 없어 `v_event_card`(통계가 있어야 행이 나온다)로는 막 쌓인 일정을 못 본다 | 1 |
 
 ## 롤백
 
@@ -41,3 +45,4 @@ FR-2 는 PK 교체라 되돌리려면 `symbol <> ''` 행을 먼저 지워야 한
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-02 | 1단계 구현 · in-progress — FR-1~3 · FR-7 추가. `EXPLAIN ANALYZE` 0.10ms(`v_upcoming_event`) · 0.19ms(`v_event_card` 한 종목, `event_reaction_stats_latest` 인덱스) |

@@ -411,3 +411,9 @@ Gemini 프롬프트 바이트 동일(같은 줄 배열) · RSI 반올림 테스�
 ## 후속 — Swagger (2026-11-02, `SRV-REQ-050`)
 
 Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-Client`
+
+## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
+
+- 변경: `/api/coach/events` Swagger — 국내 종목 · `scope` · `region` · 응답 스키마(`SRV-REQ-041` FR-7)
+- 검증: 빌드 통과(JSDoc)
+- 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)

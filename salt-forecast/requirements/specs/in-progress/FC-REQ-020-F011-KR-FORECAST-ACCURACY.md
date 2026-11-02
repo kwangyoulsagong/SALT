@@ -211,3 +211,4 @@ source: requirements/reports/research/reports/국내 주식 코치 전망 설계
 - 2026-10-29: 전수 조사 정정 — FR-5 · 범위 밖 행의 코인 게이트 수치를 P0 실측(p 0.080 · 30%)으로. 같은 문서 P0 결과와 맞춤
 - 2026-10-30: 파일만 걸침 — `jobs/_data.py` `load_kr` 가 개장일 표를 실행 날짜까지 잘라 읽는다(`FC-REQ-009` FR-3). `presumed_weekdays`(원천 멈춤 → 평일 거래일 가정) 동작 무변경 — 서버의 미래 공시 행이 그걸 끄지 않게 하는 보호. 루트 `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md`
 - 2026-11-02: 파일만 걸침 — 서버 `SyncKrStock.ts`(이 REQ 를 일봉 작업 주석에서 언급) 의 5분봉 보정만 바뀜. 예측은 5분봉을 읽지 않는다 — 무변경. 루트 `F011-minute-bar-window-slice.md`
+- 2026-11-02: F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 끊김 규칙(FR-10)을 사건 반응에도 — 끊김을 걸친 반응 · 평소 창을 뺀다(`FC-REQ-021`). `kr_breaks` 코드 무변경
