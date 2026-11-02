@@ -1,6 +1,6 @@
 # F011 슬라이스 — 미래 휴장일(FR-14) · KRX 휴장일 공시 표 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F011-fr14-future-holidays-slice.md` · 2026-10-30
+슬라이스: `requirements/specs/done/F011-fr14-future-holidays-slice.md` · 2026-10-30
 브랜치: `feat/f011-fr14-future-holidays` (base `main` `6929834c`)
 영역 체크리스트: `salt-server/requirements/reports/checklists/SRV-REQ-040.md` · `DB-REQ-033.md` ·
 `salt-forecast/requirements/reports/checklists/FC-REQ-009.md` · `FC-REQ-020.md` · `bff/requirements/reports/checklists/BFF-REQ-040.md` ·

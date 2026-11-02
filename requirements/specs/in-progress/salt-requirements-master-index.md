@@ -363,6 +363,11 @@ BFF `alerts.viewmodel` 이 한 번 더 거른다 — 실경로에서 서버가 �
 BFF `AppError` 선택 `code`(차트 주기 422 `MARKET_CHART_PERIOD_UNSUPPORTED`, `BFF-REQ-025` · `007`) · `ApiError` 를 `@repo/core/http` 로 옮겨 단위 17건 ·
 운영 빌드 재시도(404 요청 1) · 로그인 · 거래 기록 오류 문구 실화면 — 미검증 0.
 
+**F011 5분봉 보정 창 슬라이스 (서버, 2026-11-02, `fix/f011-kr-minute-bar-window-edge`)** — 사용자 "새 브랜치 파고 다음꺼 진행"(§4-1 순위 2 F011 줄 마지막).
+범위 `F011-minute-bar-window-slice.md`, 검증 `checklists/F011-minute-bar-window.md`. 10-30 결함 기록("창 끝 날 실패가 영영 남는다")은 **진단 오류** — 09-29 0봉은 30일 정리가
+전 종목에서 지운 것. 진짜 낭비 둘: 창이 이미 지워진 `오늘 − 30` 을 넣어 회차 호출 절반을 버림(창 29일) · KIS 에 종가 1분봉이 없는 날을 30일 내내 다시 받음(최근 개장일 5일까지만).
+미검증은 시각 주입 dry-run(실 DB) · KIS 직접 조회로 닫음. BFF · FE · 예측 무변경.
+
 **F011 미래 휴장일 슬라이스 (서버 · 예측, 2026-10-30, `feat/f011-fr14-future-holidays`)** — 사용자 "새 브랜치 파고 다음꺼 진행"(§4-1 순위 2).
 범위 `F011-fr14-future-holidays-slice.md`, 검증 `checklists/F011-fr14-future-holidays.md`. KIS 휴장일 조회가 모의 키로 거부라 미래 휴장을 몰랐다 — 연휴 전날 다음 개장이
 휴장일로, 평일 아침마다 `calendarKnown=false`. KRX 연간 휴장일 공시를 서버 상수 표 `krx_notice`(~2027-01-01)로 두고, 실제 체결 출처(역산 · 관측)가 우선한다.
@@ -819,3 +824,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-10-30 | **F011 FR-14 미래 휴장일(서버 · 예측).** `SRV-REQ-040` FR-14 부분 → 완료(KRX 공시 표 `krx_notice`) · `DB-REQ-033` FR-5(출처 값 · 우선순위, DDL 없음) · `FC-REQ-009` FR-3(실행 날짜까지 읽기) · 파일만 `FC-REQ-020` · 변경 없음 `BFF-REQ-040` · `FE-REQ-041`. §4-1 순위 2 F011 줄 갱신. 루트 `F011-fr14-future-holidays-slice.md` |
 | 2026-10-30 | **F011 FR-41 휴장 사유 이름 · FR-14 미검증 닫기(서버 · BFF · FE).** `SRV-REQ-040` FR-26 `holidayName` · `BFF-REQ-040` FR-1 · `FE-REQ-041` FR-4. 사용자 "검증안한거 다해" — 평일 아침 · 성탄절 장 상태를 시각 주입 유스케이스 + 실화면으로 확인, 114800 빈 봉은 결함 아님. FEATURE-011 FR-41 "완료(S3)" 정정(S3 은 이름 없었음). 루트 `F011-fr14-future-holidays-slice.md` |
 | 2026-11-02 | **F011 5분봉 보정 창 정정(서버).** `SRV-REQ-040` FR-21 — 10-30 결함 기록(창 끝 날 실패)은 진단 오류(30일 정리가 전 종목에서 지움), 대신 창이 이미 지워진 `오늘 − 30` 을 넣어 회차 호출 절반을 버리던 것을 고침(창 29일 · 로그 "남은" 실패 포함). 변경 없음 `BFF-REQ-040` · `FE-REQ-041`. §4-1 순위 2 F011 줄 닫음. 루트 `F011-minute-bar-window-slice.md` |
+| 2026-11-02 | **후속 · done 대조.** `SRV-REQ-040` FR-21 종가 재시도 최근 개장일 5일. 미검증 둘 시각 주입 dry-run · KIS 직접 조회로 닫음. 짝 변경 없음 기록 `BFF-REQ-040` · `FE-REQ-041` · 파일만 `FC-REQ-020`. 루트 슬라이스 done 셋: `F011-minute-bar-window` · `F011-fr14-future-holidays`(#129 · 남은 것 2027 공시 연례 작업) · `F000-asset-search`(#123 · 남은 것 `QA-001` · 조건부). 영역 in-progress 40 대조 — 라이브 날짜 · 표본 대기(FC-011 · 013 · 014~016 · 006 · FE-045 · SRV-040 보류 FR)라 유지, 중복 스펙 · 체크리스트 · 회고 누락 · 인덱스 상태 불일치 0 |

@@ -365,3 +365,7 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 - FR-4 — `KrSessionView.holidayName`(`@repo/core`) · `holidayWithName` 문구 · `KrSessionLine` 휴장일이면 "휴장일(이름)", 이름 없으면 "휴장일"
 - 실화면(웹 dev · Playwright · 실 BFF 응답 + 시각 주입 장 상태): 12-25 "정규장 아님 · 휴장일(성탄절) · 마지막 체결 12/24 15:30 · 다음 개장 월요일 09:00" · 11-02 08:00 "다음 개장 오늘 09:00" · 12-24 "다음 개장 월요일 09:00" — 추정 표시 없음 · 페이지 오류 0
 - 게이트: `check-types` · `lint` · `test`(core 51 · ui 43) · `test:layer-check`(차단 8 · 통과 5) · 훅 exit 0 · `web` 빌드(`/investments` 154 · 상세 137 kB — 직전 파일 사본 빌드도 같음, 증가 0) · `web-tax` 빌드 102 kB. 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — F011 5분봉 보정 창(서버)
+
+- 변경 없음 · 서버 쪽만(`SRV-REQ-040` FR-21). Action: 없음

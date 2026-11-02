@@ -155,3 +155,7 @@
 
 - 파일만 걸침 — `jobs/_data.py` `load_kr` 가 `today` 를 `krx_open_dates` · `presumed_weekdays` 둘에 넘긴다. `presumed_weekdays` 무변경 · 거래일 배열 동일(`FC-REQ-009` 체크리스트)
 - 미검증 · 범위 밖: 없음. 루트 `requirements/reports/checklists/F011-fr14-future-holidays.md`
+
+## 2026-11-02 — F011 5분봉 보정 창(서버)
+
+- 변경 없음 · 서버 쪽만(`SRV-REQ-040` FR-21). Action: 없음
