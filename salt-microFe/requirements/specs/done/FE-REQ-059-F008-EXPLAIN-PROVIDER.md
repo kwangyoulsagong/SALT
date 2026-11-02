@@ -21,11 +21,14 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-050-F008-EXPLAIN-LLM-ROUTIN
 | FR-2 | 템플릿 최종(`provider: null`)은 지금 템플릿 안내 그대로 | Must |
 | FR-3 | 공급자 이름은 메시지 상수 한 곳(`messages.ts`) — 컴포넌트에 문자열 0 | Must |
 | FR-4 | 스크린리더도 같은 문구(알림 영역 그대로) | Must |
+| FR-5 | **흘린 문장(토큰 스트림, `SRV-REQ-050` FR-13)** — 바꾼 것이 아니라 한 문장씩 검사해 보여 준 것: "Claude 문장을 한 문장씩 검사해 보여 드렸어요." (+ "검사에 걸린 문장 N개는 뺐어요."). 공급자는 `polish:active` 단계에서 미리 받는다 — 스트림이 `done` 없이 끊겨도(2026-11-02 실측: 맥 잠자기) 흘린 문장을 "규칙 기반"으로 붙이지 않고 `llm_checked` 로 정산 | Must |
 
 ## Acceptance Criteria
 
-- [ ] Playwright route 로 `provider` 셋 · `null` · 칸 없음을 재생 — 문구 다섯 가지
-- [ ] `pnpm check-types` · `pnpm lint` · `pnpm --filter web build` · 레이어 훅
+체크리스트: `salt-microFe/requirements/reports/checklists/FE-REQ-059.md`
+
+- [x] Playwright route 로 `provider` 셋 · `null` · 칸 없음을 재생 — 문구 다섯 가지 + 끊긴 스트림 1(FR-5)
+- [x] `pnpm check-types` · `pnpm lint` · `pnpm --filter web build` · 레이어 훅
 
 ## 계약 영향
 
@@ -36,3 +39,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-050-F008-EXPLAIN-LLM-ROUTIN
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-02 | 작성 — `SRV-REQ-050` 짝 |
+| 2026-11-02 | 완료 — FR-5 더함(진짜 스트리밍 · 끊긴 스트림 정산). 실스택 화면(임시 사용자, 3100): 흘린 Claude 문장 · 끝 문구 확인 |

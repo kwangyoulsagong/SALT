@@ -35,3 +35,9 @@
 - 중계(`app-ai-coach.service.ts` 스트림)는 이벤트 이름 허용 목록만 본다 — 새 칸이 그대로 지난다. `npm run build` · `npm test` 298 / 0
 
 ~~미검증: 실 스트림 중계~~ **닫음 2026-11-02** — launchd BFF 경유 LINK 단타 스트림, 인용 `url` · `publishedAt` 그대로.
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 검증
+
+중계 테스트 · core 51/0
+
+루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

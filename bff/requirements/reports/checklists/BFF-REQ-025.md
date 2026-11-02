@@ -94,3 +94,9 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
 - 확인: 단위 · 기존 errorMiddleware 테스트 10건(가짜 요청에 `originalUrl` 없음 → `?? req.url`)
 
 미검증: 없음 — 판단 무변경
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 검증
+
+`npm run build` · `npm test` 302/0 · 헤더 테스트(web · mobile)
+
+루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

@@ -24,3 +24,9 @@
 ## 2026-10-30 — F004 슬라이스 18 설정 화면
 
 - 변경 없음 · 파일만 걸침. Action: 없음
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 회고
+
+없음.
+
+루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

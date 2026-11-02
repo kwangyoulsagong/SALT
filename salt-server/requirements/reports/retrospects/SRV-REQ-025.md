@@ -226,3 +226,9 @@ written: 2026-09-22 (backfill)
 ## 2026-11-02 — 해설 LLM 스위치
 
 - 기본값을 "꺼짐"으로 넣었다가 같은 턴의 사용자 결정(로컬 CLI / Gemini 라우팅)으로 "켜짐"으로 되돌렸다 — 근거(A/B)가 강해도 계층을 없애는 결정은 사용자 몫이었다
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 회고
+
+사실 조립의 원값 그대로(`String(Number(rsi))`)가 모델 출력에 14자리로 나타났다 — 사실은 사람이 읽을 정밀도로 싣는다.
+
+루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

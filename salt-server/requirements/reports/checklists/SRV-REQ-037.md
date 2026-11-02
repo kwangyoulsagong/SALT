@@ -118,3 +118,9 @@
 | 게이트 | `npm run build` · `lint` · `test` **889 / 0** · `test:layer-check` · 훅 사후 실행 exit 0 · 품질 픽스처 `avgLen=26.2 maxLen=40` |
 
 미검증: 없음. Gemini 할당량 소진 시간대(그날 남은 시간)는 해설이 전부 템플릿 — 설계대로(해설이 비지 않음).
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 검증
+
+`ExplainCoachDecision.stream` 3갈래(흘림 · 템플릿→replace · 실패) 테스트 30/30 · `guardExplanationLine` · `completeExplanation` · 완곡 권유 회귀 · 서버 문자열 리터럴 1,544개 스캔 — 새 규칙에 걸린 실사용 문장 0(금지어 예시만) · 전체 913/0
+
+루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

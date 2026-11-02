@@ -159,3 +159,4 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | 2026-10-28 | **로거 추가 인자**(`0be9644`). winston 이 문자열 추가 인자를 버려 websocket · 워커 · 서비스의 실패 원인이 빠져 있었다 → 형식 `appendExtraArgs`(서버와 같음). 서버 모르는 종목 404 는 FR-6 대로 그대로 전달됨을 실경로로 확인 |
 | 2026-10-29 | 전수 조사 — FR-42 현재형 문장 정정 |
 | 2026-10-30 | error middleware 가 409 `trackedCount` · `trackedLimit` 을 옮긴다 · 로그 주소 `originalUrl` + `q=*`. 4xx 보존 규칙 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-11-02 | 파일만 걸침 — `backendApi.proxyAuthRequest` · `openAuthStream` 에 `headers`(BFF 가 정한 것만, Authorization 은 덮지 못한다) · 해설 단건 · 스트림이 `X-Salt-Client` 를 싣는다. 근거 `BFF-REQ-050`. 루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` |

@@ -5,7 +5,7 @@ kind: FUNC
 title: "F008 해설 다듬기 라우팅 — 로컬 CLI(Claude Code · Codex)가 있는 사용자는 그것으로, 없거나 모바일이면 지금처럼 Gemini"
 priority: medium
 created: 2026-11-02
-source: 사용자 결정 2026-11-02 "로컬 llm 이 있는 사람은 터미널로 claude 나 코덱스로 하고 없거나 모바일이면 제미나이 지금으로" · pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md FR-45 · FR-69
+source: 사용자 결정 2026-11-02 "로컬 llm 이 있는 사람은 터미널로 claude 나 코덱스로 하고 없거나 모바일이면 제미나이 지금으로" · pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md FR-45 · FR-69 · 구현 중 사용자 "스트리밍도 제대로 안 되는 느낌으로 하다가 그냥 정보 짝 나와 — 스트리밍 제대로 만들어" · "클로드 코덱스가 들어왔으니 더 정확하게 — 더 분석 잘하니까"(같은 날)
 ---
 
 ## Summary
@@ -46,18 +46,24 @@ source: 사용자 결정 2026-11-02 "로컬 llm 이 있는 사람은 터미널�
 | FR-10 | **스트림에 공급자** — `message.replace` · `message.done` 에 `provider`(`local_claude` · `local_codex` · `gemini` · 템플릿이면 `null`). 추가만 — 기존 칸 무변경. `message.step(polish)` 는 공급자와 무관하게 같은 이름 | Must |
 | FR-11 | **측정** — `npm run explain:ab -- --provider <이름>` 으로 공급자별 평가지(템플릿 vs 그 공급자). 로컬 CLI 를 기본 공급자로 두기 전에 독립 평가자 블라인드 20건에서 템플릿 대비 열세가 아니어야 한다(FR-49). 결과를 이 REQ 체크리스트에 | Should |
 | FR-12 | **로그 · 비밀** — 프롬프트 · 응답 원문 로깅 0(지금 규칙). CLI stderr 는 첫 200자만 · 토큰처럼 보이는 문자열 마스킹. CLI 의 계정 · 구독 정보는 응답 · 로그에 0 | Must |
+| FR-13 | **진짜 스트리밍**(사용자 2026-11-02) — 전엔 템플릿 문장을 한 틱에 전부 `delta` 로 쏟고 LLM 문장은 끝에 `replace` 한 번이라 "정보가 짝 나왔다". 로컬 CLI 는 **줄 형식**(`판단:` · `근거:` · `주의:` · `뉴스N:` — 한 줄 한 문장)으로 쓰고, 토큰 스트림(Claude `stream-json`)에서 줄이 끝날 때마다 **검사(`guardExplanationLine` — 끝 검사와 같은 사실 · 극성)를 통과한 문장만 즉시 `delta`**. 템플릿을 먼저 쏟지 않는다(`draft:skipped` · `polish`/`verify` 동시 active, `polish:active` 에 `provider`). 빈 칸만 끝에 템플릿 `replace`. 토큰 스트림이 없는 공급자(Gemini · Codex — `exec` 는 끝에 한 번, 실측)는 예전 길(템플릿 먼저 → `replace`). 검사 전 원문은 여전히 0(FEATURE-008 FR-47) | Must |
+| FR-14 | **더 깊은 분석 · 덜 버리기**(사용자 2026-11-02) — 로컬 CLI 프롬프트는 "설명"이 아니라 "분석": 근거끼리 같은 방향인지 엇갈리는지 · 판단이 약해지는 조건 · 기사와 판단의 관련 약함. 새 숫자 · 가격 수준 · 과거 성적 숫자 금지(성적은 4요소 한 벌로만 — F009 FR-33, 카드가 그린다). 검증기는 판단 문단을 **문장 단위**로(예전엔 한 문장만 걸려도 문단 통째 템플릿) · 금액 사실(현재가 · 거래대금)은 방향 없음(근처 "하락" 이 금액에 음수를 붙여 맞는 숫자가 걸렸다 — 실측) · RSI 는 소수 1자리로 실음(원값 14자리를 모델이 옮겨 적었다 — 실측) | Must |
 
 ## Acceptance Criteria
 
-- [ ] 로컬 CLI 있음 · 허용 사용자 · 웹 → `provider: local_claude`(또는 codex) · 같은 요청 모바일 헤더 → `gemini`
-- [ ] 허용 밖 사용자 → `gemini` · `COACH_LLM_LOCAL=off` → `gemini` · `COACH_EXPLAIN_LLM=off` → 템플릿
-- [ ] CLI 를 PATH 에서 지운 채 기동 → 기동 로그 "로컬 CLI 없음" · 전 요청 `gemini`
-- [ ] CLI 시간 초과(가짜 CLI 로 60초 대기) → 같은 요청 Gemini 로 · 자식 프로세스 0(`pgrep`)
-- [ ] 요청 중단 → 자식 프로세스 3초 안에 종료
-- [ ] 프롬프트가 argv 에 없다(`ps` 로 확인) · 작업 폴더가 요청 뒤 없다 · 자식 env 에 `DATABASE_URL` · `JWT_SECRET` · `GEMINI_API_KEY` 0
-- [ ] 로컬 CLI 출력도 검증기를 지난다 — 완곡 권유 문장을 내는 가짜 CLI → 그 칸 템플릿
-- [ ] 공급자별 블라인드 평가지 1회(FR-11) 결과 기록
-- [ ] 주문 경로 0 · 프롬프트 금액 0 테스트 유지
+체크리스트: `salt-server/requirements/reports/checklists/SRV-REQ-050.md`
+
+- [x] 로컬 CLI 있음 · 허용 사용자 · 웹 → `provider: local_claude`(또는 codex) · 같은 요청 모바일 헤더 → `gemini` — 단위 · 실스택(임시 사용자)
+- [x] 허용 밖 사용자 → `gemini` · `COACH_LLM_LOCAL=off` → `gemini`(감지 null) · `COACH_EXPLAIN_LLM=off` → 템플릿(기존 테스트)
+- [x] CLI 를 PATH 에서 지운 채 기동 → "로컬 CLI 없음" · 전 요청 `gemini` — `detectLocalCli` PATH 없음 테스트 + 기동 로그 문구
+- [x] CLI 시간 초과 → 같은 요청 Gemini 로 · 자식 · 손자 프로세스 0 — 가짜 CLI(손자 포함) · 그룹 종료 변이로 확인
+- [x] 요청 중단 → 자식 3초 안에 종료 · SIGTERM 무시해도 SIGKILL
+- [x] 프롬프트가 argv 에 없다 · 작업 폴더가 요청 뒤 없다 · 자식 env 에 `DATABASE_URL` · `JWT_SECRET` · `GEMINI_API_KEY` 0 — 가짜 CLI 가 받은 것을 기록해 대조
+- [x] 로컬 CLI 출력도 검증기를 지난다 — 권유 · 지어낸 숫자 줄은 흘리지 않음(스트림 테스트 · 실측 "4200억원" 오탐을 고침)
+- [ ] 공급자별 블라인드 평가지 1회(FR-11) 결과 기록 — 체크리스트 참고
+- [x] 주문 경로 0 · 프롬프트 금액 0 테스트 유지(전체 911 → 통과)
+- [x] (FR-13) 토큰 스트림 공급자는 템플릿을 쏟지 않고 검사를 통과한 문장을 쓰는 즉시 흘린다 — 실화면 클릭 후 약 4.7초부터 16초까지 0.25초마다 글자가 늘어남
+- [x] (FR-14) 판단 문단 문장 단위 · 금액 방향 없음 · RSI 1자리 — 회귀 테스트
 
 ## 열린 질문
 
@@ -76,3 +82,4 @@ source: 사용자 결정 2026-11-02 "로컬 llm 이 있는 사람은 터미널�
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-02 | 작성 — 사용자 결정. 블라인드 A/B · Gemini 할당량 소진(같은 날)이 근거 |
+| 2026-11-02 | 구현(`feat/f008-explain-llm-routing`) — 라우터 · 로컬 CLI(격리 · 그룹 종료) · 원장 `provider` · `dropped_sentences`(마이그레이션 `20261102120000_llm_call_provider`) · 토큰 상한은 Gemini 만. 사용자 추가 요구로 **FR-13 진짜 스트리밍 · FR-14 깊은 분석** 더함. launchd PATH 에 `~/.local/bin`(`OPS-002`) |

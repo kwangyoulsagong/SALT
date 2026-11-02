@@ -101,3 +101,9 @@ REQ 쪽이 틀렸다: FR-50~53 은 `InvestmentInsight` 의 소비처를 보지 �
 ## 2026-11-02 — 파일만 걸침
 
 - 스키마 무변경 — 기록만
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 회고
+
+새 인덱스 없음 — 토큰 합은 기존 `requested_at` 범위 스캔 + `provider` 필터(창 안 수백 행).
+
+루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

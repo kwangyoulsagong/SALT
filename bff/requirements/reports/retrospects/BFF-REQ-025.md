@@ -44,3 +44,9 @@ FR-6(4xx · `Retry-After` 전달) · FR-7(동시 2) · FR-10~12(토큰 전달)�
 ## 2026-10-30 — F000 종목 검색 · 추적 자산 상한
 
 - 파일만 걸침 — 판단 무변경. Action: 없음
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 회고
+
+`headers` 를 펼친 뒤 `Authorization` 을 써서 호출자가 인증 헤더를 덮지 못하게 했다.
+
+루트 `requirements/specs/in-progress/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
