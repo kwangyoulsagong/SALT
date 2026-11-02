@@ -99,3 +99,7 @@
 - 변경: 번들 `/investments` 154 kB · 상세 137 kB 그대로 · 새 의존 0
 - 검증: `pnpm --filter web build`
 - 미검증 · 범위 밖: 없음
+
+## 요약 띠 좁은 폭 고침 (2026-11-02)
+
+- 번들 `/investments` 154 kB 그대로 · CSS 만
