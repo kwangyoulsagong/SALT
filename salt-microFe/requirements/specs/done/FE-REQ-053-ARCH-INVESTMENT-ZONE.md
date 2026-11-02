@@ -55,4 +55,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-02 | `FE-REQ-052` done — `apps/web-investment` 빈 골격 · 레지스트리 `invest` 가 생겼다. **FR-2 에 더한다**: 셸 라우트를 지우는 커밋에서 `registry.json` `invest.hostedIn` 을 `"web"` → `"web-investment"` 로(그래야 셸 링크가 cross-zone 으로 잡히고 rewrites `fallback` 이 zone 으로 보낸다). FR-1 에서 `packages/domain-invest` 를 만들 때 `.eslintrc`(`@repo/fsd/layers`)를 같이 넣고 `cross-domain` 변이를 ESLint 로 확인. `ops/salt.sh` 이름 표에 `web-investment`(3002) |
-| 2026-11-02 | **done** — 위 "구현" 표. 슬라이스 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md`. 같이 고친 기존 결함 6(실화면 확인 중 발견): `/search` 수화 불일치(조회 훅 14곳) · 코치 프로필 첫 저장 경합 500 · 관심 종목 시세 갱신이 연결 풀 점유 · 웹 글꼴 404 · 시세 타일 변동률 잘림 · 로그인 상태에서 `/` 로그인 화면 깜빡임 — 각 주인 REQ 에 기록 |
+| 2026-11-02 | **done** — 위 "구현" 표. 슬라이스 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md`. 같이 고친 기존 결함 7(실화면 확인 중 발견): `/search` 수화 불일치(조회 훅 14곳) · 코치 프로필 첫 저장 경합 500 · 관심 종목 시세 갱신이 연결 풀 점유 · 웹 글꼴 404 · 시세 타일 변동률 잘림 · 로그인 상태에서 `/` 로그인 화면 깜빡임 · 서버 시간 초과 500 → 504(`0440a654`) — 각 주인 REQ 에 기록 |
