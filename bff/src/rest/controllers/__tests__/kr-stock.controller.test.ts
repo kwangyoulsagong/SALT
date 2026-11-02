@@ -39,6 +39,15 @@ describe("/api/app/market/kr", () => {
     assert.deepEqual(await get("/api/app/market/kr/session"), { status: 200, body: { success: true, data: { status: "disabled" } } });
   });
 
+  it("/kr/schedule 이 /:code 로 잡히지 않고 days 는 1~35 (기본 14)", async () => {
+    const call = mock.method(appKrStockService, "getSchedule", async () => ({ status: "ok", days: 14, items: [] }) as never);
+    assert.equal((await get("/api/app/market/kr/schedule")).status, 200);
+    assert.equal(call.mock.calls[0]!.arguments[1], 14);
+    assert.equal((await get("/api/app/market/kr/schedule?days=36")).status, 400);
+    assert.equal((await get("/api/app/market/kr/schedule?days=35")).status, 200);
+    assert.equal(call.mock.callCount(), 2);
+  });
+
   it("/kr/search 가 /:code 로 잡히지 않는다", async () => {
     const call = mock.method(appKrStockService, "search", async () => ({ status: "ok", items: [] }) as never);
     const r = await get(`/api/app/market/kr/search?q=${encodeURIComponent(" 삼성 ")}`);

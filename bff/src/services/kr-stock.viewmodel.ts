@@ -475,3 +475,35 @@ export const toKrOrderbookVM = (raw: unknown) => {
     stale: bool(r, "stale"),
   };
 };
+
+/**
+ * 다가오는 국내 시장 일정(`BFF-REQ-043` FR-3) — 날짜 · 종류 · 남은 날만. 종류 · 기간은 서버가 정한다(프론트 상수 0).
+ * 모르는 종류 · 깨진 행은 버린다(새 종류를 서버가 먼저 늘려도 이름 없는 행이 화면에 가지 않는다)
+ */
+export type KrScheduleKind = "kr_bok_rate" | "kr_cpi" | "kr_trade" | "kr_quad_expiry";
+const KR_SCHEDULE_KINDS: readonly KrScheduleKind[] = ["kr_bok_rate", "kr_cpi", "kr_trade", "kr_quad_expiry"];
+
+export interface KrScheduleItemVM {
+  kind: KrScheduleKind;
+  eventAt: string;
+  daysUntil: number;
+}
+
+export const toKrScheduleVM = (raw: unknown): { days: number; items: KrScheduleItemVM[] } => {
+  const r = obj(raw, "data");
+  return {
+    days: num(r, "days"),
+    items: arr(r, "items").flatMap((i): KrScheduleItemVM[] => {
+      const x = i as Record<string, unknown> | null;
+      if (
+        !x ||
+        !KR_SCHEDULE_KINDS.includes(x.kind as KrScheduleKind) ||
+        typeof x.eventAt !== "string" ||
+        !Number.isInteger(x.daysUntil)
+      ) {
+        return [];
+      }
+      return [{ kind: x.kind as KrScheduleKind, eventAt: x.eventAt, daysUntil: x.daysUntil as number }];
+    }),
+  };
+};

@@ -1,5 +1,5 @@
 /**
- * 주요 사건(거시 일정) 뷰모델 — **순수 함수** (F008 `BFF-REQ-037` FR-8 · `FC-REQ-005`).
+ * 주요 사건(거시 · 국내 시장 일정) 뷰모델 — **순수 함수** (F008 `BFF-REQ-037` FR-8 · `FC-REQ-005` · 국내 `BFF-REQ-043`).
  *
  * 서버가 이미 3종 게이트를 본다. BFF 는 **막을 수만** 있다 — 모양이 깨졌거나(분위수 · 평소 분포 · 빗나간 때)
  * 하나라도 비면 그 기간을 `contract_incomplete` 로 막는다. `renderable: true` 를 만드는 경로는 없다.
@@ -8,7 +8,9 @@
 
 import { toPerformanceClaim, type PerformanceClaim } from "./performance-claim.viewmodel";
 
-export type MacroEventKind = "fomc" | "cpi" | "jobs";
+export type MacroEventKind = "fomc" | "cpi" | "jobs" | "kr_bok_rate" | "kr_cpi" | "kr_trade" | "kr_quad_expiry";
+export type EventScope = "market" | "symbol";
+export type EventRegion = "us" | "kr";
 
 export type EventHorizon =
   | {
@@ -30,6 +32,9 @@ export type EventHorizon =
 
 export interface MacroEvent {
   kind: MacroEventKind;
+  /** 서버 값 그대로 — 종류 코드를 문장으로 바꾸지 않는다(프론트 i18n, `BFF-REQ-043` FR-2) */
+  scope: EventScope;
+  region: EventRegion;
   eventAt: string;
   announcedAt: string;
   horizons: EventHorizon[];
@@ -39,7 +44,9 @@ export type EventsResult =
   | { status: "ok"; symbol: string; label: string; disclaimer: string; events: MacroEvent[] }
   | { status: "unavailable" };
 
-const KINDS: readonly MacroEventKind[] = ["fomc", "cpi", "jobs"];
+const KINDS: readonly MacroEventKind[] = ["fomc", "cpi", "jobs", "kr_bok_rate", "kr_cpi", "kr_trade", "kr_quad_expiry"];
+const SCOPES: readonly EventScope[] = ["market", "symbol"];
+const REGIONS: readonly EventRegion[] = ["us", "kr"];
 export const HORIZONS = [1, 5, 20];
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -114,6 +121,9 @@ export const toEventsViewModel = (data: Record<string, unknown>): EventsResult =
         const horizons = Array.isArray(e.horizons) ? (e.horizons as Record<string, unknown>[]) : [];
         return {
           kind: e.kind as MacroEventKind,
+          // 옛 서버(범위 · 지역 없음)는 미국 거시 시장 일정뿐이었다
+          scope: SCOPES.includes(e.scope as EventScope) ? (e.scope as EventScope) : "market",
+          region: REGIONS.includes(e.region as EventRegion) ? (e.region as EventRegion) : "us",
           eventAt: e.eventAt as string,
           announcedAt: String(e.announcedAt ?? ""),
           horizons: HORIZONS.map((h) => toHorizon(h, horizons.find((x) => x.horizonDays === h))),

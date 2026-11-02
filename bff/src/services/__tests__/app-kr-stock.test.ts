@@ -152,3 +152,41 @@ describe("AppKrStockService — 지수 · 투자자 순매수", () => {
     await assert.rejects(appKrStockService.getInvestors("t", "005930", 20));
   });
 });
+
+describe("AppKrStockService.getSchedule (BFF-REQ-043 FR-3 · FR-4)", () => {
+  afterEach(() => mock.restoreAll());
+
+  it("서버 /market/kr/schedule?days= 를 부르고 모르는 종류 · 깨진 행은 버린다", async () => {
+    const calls: unknown[][] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (...args: unknown[]) => {
+      calls.push(args);
+      return ok({
+        days: 14,
+        items: [
+          { kind: "kr_cpi", eventAt: "2026-11-02T23:00:00.000Z", daysUntil: 1 },
+          { kind: "kr_earnings", eventAt: "2026-11-05T09:00:00.000Z", daysUntil: 3 },
+          { kind: "kr_bok_rate", eventAt: "2026-11-26T01:00:00.000Z", daysUntil: "24" },
+        ],
+      });
+    });
+    const r = await appKrStockService.getSchedule("t", 14);
+    assert.equal(calls[0]?.[1], "/market/kr/schedule?days=14");
+    assert.deepEqual(r, {
+      status: "ok",
+      days: 14,
+      items: [{ kind: "kr_cpi", eventAt: "2026-11-02T23:00:00.000Z", daysUntil: 1 }],
+    });
+  });
+
+  it("503(예측 DB 없음)은 unavailable — 화면이 줄을 숨긴다", async () => {
+    mock.method(backendApi, "proxyAuthRequest", async () => {
+      throw httpError(503, "MARKET_SCHEDULE_UNAVAILABLE");
+    });
+    assert.deepEqual(await appKrStockService.getSchedule("t", 14), { status: "unavailable" });
+  });
+
+  it("0건이면 빈 목록 그대로", async () => {
+    mock.method(backendApi, "proxyAuthRequest", async () => ok({ days: 14, items: [] }));
+    assert.deepEqual(await appKrStockService.getSchedule("t", 14), { status: "ok", days: 14, items: [] });
+  });
+});
