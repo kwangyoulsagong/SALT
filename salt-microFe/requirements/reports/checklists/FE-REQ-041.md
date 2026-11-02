@@ -375,3 +375,9 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 - 변경: 국내 API · 쿼리 · 문구 · 상세에 일정(`useKrSchedule` · `KrScheduleLine` · `KrEvents`) — `FE-REQ-046`
 - 검증: 실화면 소유자 국내 탭 · 상세
 - 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
+
+## F008 슬라이스 24 — 지수 띠 글꼴 (2026-11-02)
+
+- 변경: `KrIndexSummary` 띠에 본문 글꼴 지정 — 명조로 떨어지던 기존 결함(F008 슬라이스 24 실화면에서 발견)
+- 검증: 실화면 3000 계산 글꼴 `Inter, "Noto Sans KR"` · 훅 exit 0 · check-types · lint
+- 미검증 · 범위 밖: 없음
