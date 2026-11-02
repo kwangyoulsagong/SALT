@@ -6,7 +6,7 @@ import { NavChevron, ZoneLink } from "@repo/web-shared/ui";
 
 import { HOME_CARD_MESSAGES } from "../model/messages";
 import type { HomeCardValue, HomeSummaryCard } from "../model/types";
-import { cardLink, head, value, values } from "./HomeSummaryCardView.css";
+import { cardLink, head, note, value, values } from "./HomeSummaryCardView.css";
 
 interface HomeSummaryCardViewProps {
   card: HomeSummaryCard;
@@ -34,6 +34,11 @@ export const HomeSummaryCardView = ({ card }: HomeSummaryCardViewProps) => {
           <CardValue item={card.secondary} />
         </dl>
       )}
+      {card.note && card.state !== "degraded" ? (
+        <div className={note}>
+          <Text color="tertiary">{card.note}</Text>
+        </div>
+      ) : null}
     </Card>
   );
 

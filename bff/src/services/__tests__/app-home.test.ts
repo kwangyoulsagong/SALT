@@ -122,6 +122,7 @@ describe("AppHomeService.getHome", () => {
     const invest = (await appHomeService.getHome("t")).cards.find((c) => c.domain === "invest")!;
 
     assert.deepEqual(invest.secondary, { label: "손익률", value: "+12.3%" });
+    assert.equal(invest.note, null);
   });
 
   it("음수 손익률은 부호를 글자로", async () => {
@@ -142,7 +143,10 @@ describe("AppHomeService.getHome", () => {
     const vm = await appHomeService.getHome("t");
 
     assert.ok(!JSON.stringify(vm).includes("%"));
-    assert.deepEqual(vm.cards.find((c) => c.domain === "invest")!.secondary, { label: "보유 종목", value: "1개" });
+    const invest = vm.cards.find((c) => c.domain === "invest")!;
+    assert.deepEqual(invest.secondary, { label: "보유 종목", value: "1개" });
+    // 숨김을 켠 사람에게는 산 값 대신 지금 값으로 보게 하는 한 줄(F009 FR-27 — 전에 홈 보유 요약 아래 있던 줄)
+    assert.equal(invest.note, "오늘 처음 본다면, 지금 값으로 이만큼 담을까요?");
   });
 
   it("설정을 못 받았으면 숨김 쪽으로 — 손익률 0건, 카드는 ok", async () => {
@@ -157,6 +161,8 @@ describe("AppHomeService.getHome", () => {
 
     assert.equal(invest.state, "ok");
     assert.ok(!JSON.stringify(vm).includes("%"));
+    // 숨김인지 모르면 "숨김" 문장도 달지 않는다 — 확인된 사람에게만
+    assert.equal(invest.note, null);
   });
 
   it("통계를 못 받았으면 손익률만 빠지고 카드는 ok", async () => {

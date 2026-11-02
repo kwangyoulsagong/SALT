@@ -90,7 +90,8 @@ const CARD_SOURCES: CardSource[] = [
         backendApi.proxyAuthRequest("GET", "/portfolio/stats", token, undefined, { timeout: HOME_CARD_TIMEOUT_MS }),
       ]);
       if (summary.status === "rejected") throw summary.reason;
-      return toInvestCard(summary.value, now, visibleProfitRate(profile, stats));
+      const hidden = profile.status === "fulfilled" && profile.value.hidePurchasePrice;
+      return toInvestCard(summary.value, now, visibleProfitRate(profile, stats), hidden);
     },
   },
 ];

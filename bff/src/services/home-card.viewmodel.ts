@@ -29,6 +29,8 @@ export interface HomeSummaryCard {
   href: string;
   state: HomeCardState;
   updatedAt: string;
+  /** 값 아래 한 줄 — 도메인이 카드에 붙이는 문장(예: 매입가 숨김일 때 "오늘 처음 본다면"). 없으면 null */
+  note: string | null;
 }
 
 export interface AppHomeVM {
@@ -66,6 +68,8 @@ export const HOME_CARD_TEXT = {
     profitRate: "손익률",
     emptyLabel: "보유",
     emptyValue: "기록이 없어요",
+    /** 매입가 숨김을 켠 사람에게 — 산 값 대신 지금 값으로 보게 하는 질문(F009 FR-27, 전에 홈 보유 요약 아래 있던 줄) */
+    firstLookQuestion: "오늘 처음 본다면, 지금 값으로 이만큼 담을까요?",
   },
   count: (n: number) => `${n}개`,
 } as const;
@@ -89,7 +93,7 @@ export interface PortfolioCardSource {
  */
 export const toSavingsCard = (stats: ServerGoalStatistics, now: string): HomeSummaryCard => {
   const total = stats.totalGoals ?? 0;
-  const base = { domain: "savings" as const, title: HOME_CARD_TEXT.savings.title, href: "/goals/addgoals", updatedAt: now };
+  const base = { domain: "savings" as const, title: HOME_CARD_TEXT.savings.title, href: "/goals/addgoals", updatedAt: now, note: null };
   if (total === 0) {
     return {
       ...base,
@@ -119,18 +123,22 @@ export const toInvestCard = (
   summary: PortfolioCardSource,
   now: string,
   profitRate: number | null = null,
+  /** 매입가 숨김을 켰다고 **확인된** 사람 — "오늘 처음 본다면" 줄을 단다 */
+  purchasePriceHidden = false,
 ): HomeSummaryCard => {
-  const base = { domain: "invest" as const, title: HOME_CARD_TEXT.invest.title, href: "/investments", updatedAt: now };
+  const base = { domain: "invest" as const, title: HOME_CARD_TEXT.invest.title, href: "/investments", updatedAt: now, note: null };
   if (summary.items.length === 0) {
     return {
       ...base,
       primary: { label: HOME_CARD_TEXT.invest.emptyLabel, value: HOME_CARD_TEXT.invest.emptyValue },
       secondary: null,
       state: "empty",
+      note: null,
     };
   }
   return {
     ...base,
+    note: purchasePriceHidden ? HOME_CARD_TEXT.invest.firstLookQuestion : null,
     primary: { label: HOME_CARD_TEXT.invest.total, value: formatKrw(summary.totalKrw) },
     secondary:
       profitRate === null
@@ -149,4 +157,5 @@ export const degradedCard = (domain: HomeDomain, title: string, href: string, no
   href,
   state: "degraded",
   updatedAt: now,
+  note: null,
 });

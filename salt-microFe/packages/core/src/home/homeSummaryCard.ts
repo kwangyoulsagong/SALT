@@ -27,6 +27,8 @@ export interface HomeSummaryCard {
   href: string;
   state: HomeCardState;
   updatedAt: string;
+  /** 값 아래 한 줄 — 도메인이 카드에 붙이는 문장(예: 매입가 숨김일 때 "오늘 처음 본다면"). 없으면 null */
+  note: string | null;
 }
 
 export interface AppHomeVM {

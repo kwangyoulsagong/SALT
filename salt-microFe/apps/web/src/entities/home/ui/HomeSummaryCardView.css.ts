@@ -34,3 +34,6 @@ export const value = style({
   fontVariantNumeric: "tabular-nums",
   fontWeight: 600,
 });
+
+/** 값 아래 한 줄(`note`) — 서버가 붙인 문장 */
+export const note = style({ marginTop: "8px" });
