@@ -16,6 +16,8 @@
 | FRED · ALFRED | 금리 · 환율 · 지수 · CPI · VIX | `FORECAST_FRED_API_KEY` | 분당 120 | 공공(일부 시리즈 저작권 표기 — 지수는 표시 전 확인) | 슬라이스 16b |
 | FRED 발표 일정 `release/dates` | CPI(10) · 고용보고서(50) 발표일 — 미래 예정일 포함 | `FORECAST_FRED_API_KEY` | 위와 같음 | 공공 | 슬라이스 22 |
 | 연준 FOMC 일정 페이지 `federalreserve.gov/monetarypolicy/fomccalendars.htm` | FOMC 결정일 | 없음. User-Agent 는 서비스 이름만(개인 정보 싣지 않음) | 하루 1회 | 공공(미 정부 저작물) · HTML 구조가 바뀌면 0건 → 실패로 기록 | 슬라이스 22 |
+| 한국은행 「통화정책방향 결정회의」 연도별 페이지 `bok.or.kr/portal/singl/crncyPolicyDrcMtg/listYear.do?pYear=` | 금통위 결정일(2021~ · 다음 해는 공표 뒤) | 없음. User-Agent 는 서비스 이름만 | 명시 한도 없음 → 하루 1회 · 초당 1(연도 7쪽) | 공공 · HTML 구조가 바뀌면 0건 → 실패로 기록 | 슬라이스 24 |
+| 국가데이터처 보도계획(`mods.go.kr/newsPln.es`, 올해 전체 · POST) · 물가 보도자료 게시판(`board.es?bid=213`, 과거 게시일) | 소비자물가동향 보도일 · 시각 | 없음 | 명시 한도 없음 → 하루 1회 · 초당 1(11쪽) | 공공 · 게시일이 수정일로 바뀐 행이 있다 → 범위 검사로 거르고 버린 수를 로그에 | 슬라이스 24 |
 | 한국은행 ECOS | 원/달러 | `FORECAST_ECOS_API_KEY` | 일 한도 | 공공 | 슬라이스 16b |
 | 바이낸스 선물 공개 API | 펀딩비 · 미결제약정 | 없음 | 가중치 한도 | 공개 시세. **미결제약정 이력 30일** | 슬라이스 16b |
 | DefiLlama | 스테이블코인 발행량 | 없음 | — | 공개 | 슬라이스 16b |

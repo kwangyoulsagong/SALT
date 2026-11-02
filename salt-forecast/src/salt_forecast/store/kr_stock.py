@@ -80,3 +80,34 @@ def kr_status_flags(engine: Engine) -> tuple[dict[str, KrStatusFlags], datetime 
         ).all()
     synced = max((r[5] for r in rows), default=None)
     return {str(r[0]): KrStatusFlags(bool(r[1]), bool(r[2]), bool(r[3]), str(r[4])) for r in rows}, synced
+
+
+def krx_closed_dates(engine: Engine) -> list[date]:
+    """KRX 휴장일(`is_open = false`) 전부 — 미래 공시 행(`krx_notice`) 포함.
+
+    가격 정보가 아니라 일정 규칙(동시만기 둘째 목요일이 휴장이면 직전 거래일, FC-REQ-021 FR-2)에만 쓴다. 미래 행을
+    `krx_open_dates` 처럼 자르지 않는 이유 — 다가오는 만기일이 휴장인지 알아야 한다.
+    일정의 `announced_at` 은 30일 전이라(FR-4) 과거 as_of 의 통계가 미래 휴장을 쓰는 경로가 없다.
+    """
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text("SELECT date FROM public.market_holidays WHERE market = 'KRX' AND NOT is_open ORDER BY date")
+        ).all()
+    return [r[0] for r in rows]
+
+
+def kr_tracked_symbols(engine: Engine) -> list[str]:
+    """보유 · 관심 목록의 국내 종목 코드(사용자 무관 · `symbol` 만 — security-sources.md §3).
+
+    국내 종목 검색 · 추가는 소유자만 된다(SRV-REQ-008 FR-87) — 이 서비스는 소유자를 모르지만
+    이 목록이 곧 소유자 종목이다.
+    """
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                "SELECT symbol FROM public.portfolio_holdings WHERE asset_type = 'kr_stock'"
+                " UNION SELECT symbol FROM public.investment_watchlist WHERE asset_type = 'kr_stock'"
+                " ORDER BY 1"
+            )
+        ).all()
+    return [str(r[0]) for r in rows]

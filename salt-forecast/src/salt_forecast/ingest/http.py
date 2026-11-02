@@ -65,3 +65,37 @@ def get_json(
         time.sleep(delay)
         delay *= 2
     raise AssertionError("unreachable")
+
+
+def fetch_text(
+    client: httpx.Client,
+    url: str,
+    pacer: Pacer,
+    *,
+    params: dict[str, Any] | None = None,
+    form: dict[str, str] | None = None,
+    headers: dict[str, str] | None = None,
+    label: str = "",
+) -> str:
+    """HTML 페이지 — `form` 이 있으면 POST. 재시도 규칙은 `get_json` 과 같다(FC-REQ-021 일정 페이지)."""
+    delay = 1.0
+    for attempt in range(MAX_RETRIES + 1):
+        pacer.wait()
+        try:
+            if form is None:
+                res = client.get(url, params=params, headers=headers, timeout=TIMEOUT)
+            else:
+                res = client.post(url, params=params, data=form, headers=headers, timeout=TIMEOUT)
+        except httpx.TransportError as e:
+            if attempt == MAX_RETRIES:
+                raise SourceError(f"{label} 연결 실패: {type(e).__name__}", retryable=True) from e
+        else:
+            if res.status_code == 200:
+                return res.text
+            if res.status_code != 429 and res.status_code < 500:
+                raise SourceError(f"{label} {res.status_code}", retryable=False)
+            if attempt == MAX_RETRIES:
+                raise SourceError(f"{label} {res.status_code} 재시도 소진", retryable=True)
+        time.sleep(delay)
+        delay *= 2
+    raise AssertionError("unreachable")

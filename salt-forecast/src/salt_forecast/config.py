@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     fred_api_key: SecretStr | None = None
     # 주요 사건 반응을 계산할 종목(FC-REQ-005) — 화면 초점이 BTC
     event_symbols: str = "KRW-BTC"
+    # 국내 종목 사건 반응(FC-REQ-021 FR-6) — 비우면 보유 · 관심 국내 종목 + 거래대금 상위 N(최근 30일)
+    # + 시장 대용(KR-EW)
+    kr_event_symbols: str = ""
+    kr_event_top: int = 30
 
     @field_validator("fred_api_key", "naver_client_id", "naver_client_secret", mode="before")
     @classmethod
@@ -62,6 +66,9 @@ class Settings(BaseSettings):
 
     def event_symbol_list(self) -> list[str]:
         return [s.strip() for s in self.event_symbols.split(",") if s.strip()]
+
+    def kr_event_symbol_list(self) -> list[str]:
+        return [s.strip() for s in self.kr_event_symbols.split(",") if s.strip()]
 
     def extra_symbol_list(self) -> list[str]:
         return [s.strip() for s in self.extra_symbols.split(",") if s.strip()]
