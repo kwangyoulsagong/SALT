@@ -17,7 +17,32 @@
  * 서버(SSR)에서는 `null` 이다. `typeof window` 는 **함수 안에서만** 읽는다 —
  * 모듈 최상단 분기는 서버 컴파일에서도 평가된다 (`ssr.md`).
  */
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from "../config";
+import {
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  SESSION_HINT_COOKIE,
+  SESSION_HINT_MAX_AGE_SECONDS,
+  USER_KEY,
+} from "../config";
+
+/**
+ * 로그인 표지 쿠키(`SESSION_HINT_COOKIE`)를 단다 · 지운다. 토큰은 담지 않는다 — 셸 미들웨어가 `/` 에서 바로 홈으로
+ * 보내는 데만 쓴다. 세션을 저장 · 비우는 이 파일 한 곳에서만 만진다.
+ */
+const writeSessionHint = (signedIn: boolean): void => {
+  if (typeof document === "undefined") return;
+  document.cookie = signedIn
+    ? `${SESSION_HINT_COOKIE}=1; Path=/; Max-Age=${SESSION_HINT_MAX_AGE_SECONDS}; SameSite=Lax`
+    : `${SESSION_HINT_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
+};
+
+/**
+ * 표지를 토큰에 맞춘다 — 표지가 생기기 전에 로그인한 사람(토큰만 있다)에게 달고, 저장소를 손으로 비운 사람(표지만 남았다)
+ * 에게서 뗀다. 프로바이더가 마운트 때 부른다.
+ */
+export const syncSessionHint = (): void => {
+  writeSessionHint(readAccessToken() !== null);
+};
 
 export const readAccessToken = (): string | null => {
   if (typeof window === "undefined") return null;
@@ -59,6 +84,8 @@ export const clearSession = (): void => {
   } catch {
     // 지울 수 없으면 다음 인증 호출이 401 이다 — 그게 사용자에게 보이는 정직한 상태다.
   }
+  // 저장소가 막혀(프라이빗 모드) 위에서 던져도 표지는 지운다 — 남으면 미들웨어가 계속 홈으로 보낸다
+  writeSessionHint(false);
 };
 
 /**
@@ -85,6 +112,7 @@ export const writeSession = (session: {
   try {
     if (session.accessToken) {
       window.localStorage.setItem(ACCESS_TOKEN_KEY, session.accessToken);
+      writeSessionHint(true);
     }
     if (session.refreshToken) {
       window.localStorage.setItem(REFRESH_TOKEN_KEY, session.refreshToken);
