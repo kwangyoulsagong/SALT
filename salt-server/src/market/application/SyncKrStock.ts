@@ -561,13 +561,19 @@ const MINUTE_CALLS_PER_RUN = 1_200;
 const MINUTE_PAGES_PER_DAY = 4;
 /** 이만큼 있고 종가 봉(15:25)이 있으면 그날은 채워진 것으로 본다 — 체결 없는 5분이 드물게 있다 */
 const MINUTE_DAY_COMPLETE = KR_FIVE_MINUTE_BUCKETS_PER_DAY - 8;
+/**
+ * 종가 봉(15:25)이 없는 날을 다시 받는 기간 — 최근 개장일 이만큼. 15:40 회차엔 15:30 종가 1분봉이 아직 없는 날이 있어
+ * 다음 회차가 채운다(10-30 실측). 그런데 KIS 에 종가 1분봉이 아예 없는 날도 있다(10-08 8종목 — 2026-11-02 KIS 직접 조회).
+ * 그런 날을 30일 내내 회차마다 다시 받지 않게, 지난 날은 봉 수만 본다. 5 = 서버가 며칠 꺼져 있어도 종가를 놓치지 않는 여유
+ */
+const MINUTE_CLOSE_RETRY_OPEN_DAYS = 5;
 
 /**
  * 5분봉 장 마감 보정 · 백필(FR-21). 평일 15:40 KST.
  *
  * - **오늘**(개장일 · 15:35 뒤): 실시간 집계를 KIS 1분봉에서 만든 5분봉으로 덮어쓴다 — 재시작 · 끊김으로 빈 버킷과
  *   슬롯 밖 종목(실시간 집계가 없다)을 채운다
- * - **지난 30일**: 종가 봉이 없거나 봉이 모자란 날만, 최신 날부터. 회차 호출 상한을 넘으면 다음 회차가 잇는다
+ * - **지난 29일**(보관 30일 중 정리가 아직 안 지운 날): 봉이 모자란 날 · 종가 봉이 없는 최근 5개장일만, 최신 날부터. 회차 호출 상한을 넘으면 다음 회차가 잇는다
  */
 export class SyncKrMinuteBars {
   constructor(
@@ -582,7 +588,9 @@ export class SyncKrMinuteBars {
     const at = this.now();
     const today = kstDateOf(at);
     const kstMinutes = Math.floor(((at.getTime() + 9 * 3_600_000) % 86_400_000) / 60_000);
-    const from = addKstDays(today, -MINUTE_BACKFILL_DAYS);
+    // 정리는 "지금 − 30일" 앞을 지운다 — 어느 시각에 돌든 30일 전 날은 장중 봉이 이미 없거나 몇 시간 안에 사라진다.
+    // 그날까지 창에 넣으면 회차마다 전 종목을 다시 받고 정리가 다시 지운다(2026-11-02 실측: 회차 호출의 절반)
+    const from = addKstDays(today, -(MINUTE_BACKFILL_DAYS - 1));
     const openDays = (await this.calendar.days(from, today))
       .filter((d) => d.isOpen && (d.date < today || kstMinutes >= 15 * 60 + 35))
       .map((d) => d.date)
@@ -592,10 +600,12 @@ export class SyncKrMinuteBars {
     const coverage = await this.store.minuteBarCoverage(codes, from);
 
     const work: Array<{ code: string; date: string }> = [];
+    const closeRetryFrom = openDays[Math.min(MINUTE_CLOSE_RETRY_OPEN_DAYS, openDays.length) - 1] ?? today;
     for (const date of openDays) {
       for (const code of codes) {
         const c = coverage.get(code)?.get(date);
-        if (date === today || !c || !c.hasClose || c.count < MINUTE_DAY_COMPLETE) work.push({ code, date });
+        const missingClose = !c?.hasClose && date >= closeRetryFrom;
+        if (date === today || !c || c.count < MINUTE_DAY_COMPLETE || missingClose) work.push({ code, date });
       }
     }
 
@@ -628,8 +638,9 @@ export class SyncKrMinuteBars {
       }
     });
 
-    const remaining = Math.max(0, work.length - budget);
-    logger.info(`🧱 국내 주식 5분봉 보정: 종목·일 ${days} · 호출 ${calls} · 봉 ${bars} · 실패 ${failed} · 남은 ${remaining}`);
+    // 남은 = 다음 회차가 받을 것 — 상한에 걸려 못 고른 것 + 실패한 것. 실패를 빼면 "남은 0" 이 다 된 것처럼 읽힌다
+    const remaining = work.length - days;
+    logger.info(`🧱 국내 주식 5분봉 보정: 종목·일 ${days} · 호출 ${calls} · 봉 ${bars} · 실패 ${failed} · 남은 ${remaining}(실패 포함)`);
     return { days, calls, bars, failed, remaining };
   }
 }

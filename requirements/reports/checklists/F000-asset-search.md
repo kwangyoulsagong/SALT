@@ -1,6 +1,6 @@
 # F000 슬라이스 — 종목 검색 · 추적 자산 상한 — 체크리스트
 
-슬라이스: `requirements/specs/in-progress/F000-asset-search-slice.md` · 2026-10-30
+슬라이스: `requirements/specs/done/F000-asset-search-slice.md` · 2026-10-30
 브랜치: `feat/f000-asset-search` (base `main` `455780b5`)
 영역 체크리스트(주): `salt-server/requirements/reports/checklists/SRV-REQ-008.md` · `bff/.../BFF-REQ-007.md` · `salt-microFe/.../FE-REQ-010.md` · `FE-REQ-011.md` — 파일만 걸친 REQ 는 §4
 

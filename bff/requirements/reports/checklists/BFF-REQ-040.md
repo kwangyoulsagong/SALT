@@ -219,3 +219,7 @@
 
 - FR-1 `holidayName` — 옛 서버 응답(필드 없음) `null` · 문자열 아니면 `KrContractError`. 테스트 +1 · `build` · `test` 298 pass
 - 실서버 → BFF HTTP 응답에 실림(소유자 이메일 토큰). 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — F011 5분봉 보정 창(서버)
+
+- 변경 없음 · 서버 쪽만(`SRV-REQ-040` FR-21). Action: 없음
