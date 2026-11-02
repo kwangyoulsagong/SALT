@@ -140,12 +140,15 @@ export class PrismaCoachProfileStore implements CoachProfileStore {
         : {}),
     };
 
-    const row = await prisma.userInvestmentProfile.upsert({
-      where: { userId },
-      create: { userId, ...data },
-      update: data,
-    });
-
+    // 행을 먼저 보장하고(INSERT … ON CONFLICT DO NOTHING) 준 값만 update 한다. 같은 사용자의 첫 요청 둘이 동시에
+    // 와도 행은 하나만 생기고 나머지는 아무것도 하지 않는다 — 경합이 오류가 되지 않는다. 전에는 `upsert` 였는데 Prisma 가
+    // 이 모양을 조회 → create 두 단계로 돌려 둘 다 "없음"을 보고 create 해서 하나가 unique(user_id) 위반 → 500 이었다
+    // (새 사용자가 코치 화면을 열면 프로필 GET 이 여러 곳에서 동시에 난다, 2026-11-02 실측 15건 중 10건)
+    await prisma.userInvestmentProfile.createMany({ data: [{ userId }], skipDuplicates: true });
+    const row =
+      Object.keys(data).length === 0
+        ? await prisma.userInvestmentProfile.findUniqueOrThrow({ where: { userId } })
+        : await prisma.userInvestmentProfile.update({ where: { userId }, data });
     return toDomain(row);
   }
 }
