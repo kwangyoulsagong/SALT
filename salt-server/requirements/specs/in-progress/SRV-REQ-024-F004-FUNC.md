@@ -390,3 +390,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-10-30 | 파일만 걸침 — `env.ts` · `ports.ts` 에 추적 상한 · `HoldingProbe` 추가. 이 REQ 의 판단 · 설정 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-10-30 | 파일만 걸침 — 서버 `market/domain/ports.ts` 에 `ExchangeQuotePort.weeklyCandles`. 이 REQ 의 판단 · 설정 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
 | 2026-11-02 | **FR-108 정정** — 헤드라인 "진입하지 마세요" · "잡으세요" 를 사실 서술로(규칙 버전 무변경 — 점수 · 행동 무관). 같은 날 `behavior.ts` 규칙 문장 4 · `profitPlan.ts` 1 도 사실 서술로(이 REQ 가 아니라 `SRV-REQ-025` 주인 파일 · 주인 없는 파일). F008 해설 근거 슬라이스. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
+| 2026-11-02 | 파일만 걸침 — `coach/application/api/index.ts`(이 REQ 가 머리 주석 주인) 조립에 `llmEnabled` 한 칸. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |

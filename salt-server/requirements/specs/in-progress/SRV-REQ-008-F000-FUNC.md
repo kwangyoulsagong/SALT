@@ -244,3 +244,4 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 - 2026-10-30: F004 슬라이스 19 차트 1주 탭(`143904c3`) — **FR-50 `week` 구현**: `ChartPeriod.Week` · `ExchangeQuotePort.weeklyCandles`(Upbit `/candles/weeks`, 일봉과 같은 모양 · `date` = 그 주 월요일 KST). `month` 는 소비 화면이 없어 열지 않는다(FR-51 422 그대로). 코드 주석 4곳이 FR-50 · 51 을 `FE-REQ-010`(레이아웃 FR)으로 잘못 인용하던 것 정정(`36b09989`). 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
 - 2026-10-30: 파일만 걸침 — `schema.prisma`(이 REQ 가 머리 주석 주인)에서 레거시 `AIAnalysis*` 모델 drop(`DB-REQ-001` FR-1~3). 이 REQ 내용 무변경. 루트 `F000-legacy-cleanup`
 - 2026-11-02: 파일만 걸침 — `coach/domain/ports.ts`(이 REQ 가 머리 주석 주인) `CoachExplanationInput.news` 에 `url` · `publishedAt`(F008 FR-44). 이 REQ 내용 무변경. 루트 `requirements/specs/done/F008-explain-citations-slice.md`
+- 2026-11-02: 파일만 걸침 — `composition.ts`(이 REQ 가 머리 주석 주인)에서 env 를 `llmEnabled` 로. 루트 `requirements/specs/done/F008-explain-citations-slice.md`

@@ -173,3 +173,9 @@
 - `ports.ts` 뉴스 사실 두 칸 추가 — 타입 추가만. `npm run build` · `test` 887 통과
 
 미검증: 없음.
+
+## 2026-11-02 — 파일만 걸침 (해설 LLM 스위치)
+
+- `composition.ts`(이 REQ 가 머리 주석 주인)에서 env 를 `llmEnabled` 로. `npm run build` · `test` 889 통과
+
+미검증: 없음.

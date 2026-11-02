@@ -34,4 +34,4 @@
 
 - 중계(`app-ai-coach.service.ts` 스트림)는 이벤트 이름 허용 목록만 본다 — 새 칸이 그대로 지난다. `npm run build` · `npm test` 298 / 0
 
-미검증: 실 스트림 중계(상시 서버 미재기동 — 머지 뒤 · `QA-001`).
+~~미검증: 실 스트림 중계~~ **닫음 2026-11-02** — launchd BFF 경유 LINK 단타 스트림, 인용 `url` · `publishedAt` 그대로.

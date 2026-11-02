@@ -395,3 +395,9 @@
 | 계약 | 추가 필드만. BFF 는 이벤트 이름만 걸러 통과(`BFF-REQ-037` 변경 없음) |
 
 미검증: 실 토큰 스트림(상시 서버 미재기동 — 머지 뒤 · `QA-001`).
+
+## 2026-11-02 — 해설 LLM 스위치
+
+- `explainCoachDecision.test.ts` 27/27 — 끄면 단건 · 스트림 모두 LLM 0회 · 원장 미조회 · `polish skipped` · `replace` 없음 · `source: template`
+
+미검증: 없음.

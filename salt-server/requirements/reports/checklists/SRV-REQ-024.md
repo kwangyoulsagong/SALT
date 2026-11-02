@@ -327,3 +327,9 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 | 소비처 | BFF `getPreview` `headline` · `mapDecision` 이 그대로 옮긴다(모양 무변경). 화면 소비는 판단 경로 `judgment.headline` 이 주 |
 
 미검증: 없음.
+
+## 2026-11-02 — 파일만 걸침 (해설 LLM 스위치)
+
+- `coach/application/api/index.ts`(이 REQ 가 머리 주석 주인) 조립에 `llmEnabled` 한 칸. `npm run build` · `test` 889 통과
+
+미검증: 없음.
