@@ -178,10 +178,16 @@ export const ExplainCard = ({ view, mode, className }: ExplainCardProps) => {
             footer={
               state.replaced ? (
                 <p className={s.flash} role="status">
-                  {state.droppedSentences > 0 ? M.droppedNote(state.droppedSentences) : M.replacedNote}
+                  {state.droppedSentences > 0 ? M.droppedNote(state.droppedSentences) : M.replacedNote(state.provider)}
                 </p>
               ) : ruleBased ? (
                 <p className={s.flash}>{M.templateNote}</p>
+              ) : finished && state.provider ? (
+                <p className={s.flash} role="status">
+                  {state.droppedSentences > 0
+                    ? `${M.streamedNote(state.provider)} ${M.streamedDroppedNote(state.droppedSentences)}`
+                    : M.streamedNote(state.provider)}
+                </p>
               ) : null
             }
           />
