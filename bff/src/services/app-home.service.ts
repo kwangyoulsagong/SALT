@@ -1,4 +1,5 @@
 import { logger } from "../config/logger";
+import { appAICoachService } from "./app-ai-coach.service";
 import { appPortfolioService } from "./app-portfolio.service";
 import { backendApi } from "./backend-api.service";
 import {
@@ -32,6 +33,20 @@ const withinBudget = <T>(work: Promise<T>, ms: number): Promise<T> =>
     );
   });
 
+/**
+ * 손익률을 보여도 되는 경우만 숫자를 준다 — 매입가 숨김을 **확인하고 꺼져 있을 때**(F009 FR-27).
+ * 설정을 못 받았으면 보이지 않는 쪽으로(숨김을 켠 사람에게 한 번 보였다 사라지면 숨김이 아니다).
+ */
+const visibleProfitRate = (
+  profile: PromiseSettledResult<{ hidePurchasePrice: boolean }>,
+  stats: PromiseSettledResult<{ data?: { data?: { profitRate?: unknown } } }>,
+): number | null => {
+  if (profile.status !== "fulfilled" || profile.value.hidePurchasePrice) return null;
+  if (stats.status !== "fulfilled") return null;
+  const rate = stats.value.data?.data?.profitRate;
+  return typeof rate === "number" && Number.isFinite(rate) ? rate : null;
+};
+
 interface CardSource {
   domain: HomeDomain;
   title: string;
@@ -59,7 +74,16 @@ const CARD_SOURCES: CardSource[] = [
     domain: "invest",
     title: HOME_CARD_TEXT.invest.title,
     href: "/investments",
-    load: async (token, now) => toInvestCard(await appPortfolioService.getSummary(token), now),
+    load: async (token, now) => {
+      // 셋을 같이 부른다. 보유 요약이 실패하면 카드가 degraded, 설정 · 통계가 실패하면 손익률만 뺀다
+      const [summary, profile, stats] = await Promise.allSettled([
+        appPortfolioService.getSummary(token),
+        appAICoachService.getProfile(token),
+        backendApi.proxyAuthRequest("GET", "/portfolio/stats", token, undefined, { timeout: HOME_CARD_TIMEOUT_MS }),
+      ]);
+      if (summary.status === "rejected") throw summary.reason;
+      return toInvestCard(summary.value, now, visibleProfitRate(profile, stats));
+    },
   },
 ];
 

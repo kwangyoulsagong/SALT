@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
+import { appAICoachService } from "../app-ai-coach.service";
 import { appHomeService } from "../app-home.service";
 import { appPortfolioService } from "../app-portfolio.service";
 import { backendApi } from "../backend-api.service";
@@ -13,10 +14,26 @@ const portfolio = (items: unknown[], totalKrw: number) =>
 
 const goalStats = (data: Record<string, number>) => ({ data: { success: true, data } }) as never;
 
+/** 서버 경로별 응답 — `/goals/statistics` 와 `/portfolio/stats` 를 같은 목으로 받는다 */
+const byPath =
+  (goals: Record<string, number>, profitRate: number | null = 12.34) =>
+  async (_method: string, url: string) => {
+    if (url === "/portfolio/stats") {
+      if (profitRate === null) throw new Error("503");
+      return { data: { success: true, data: { profitRate } } } as never;
+    }
+    return goalStats(goals);
+  };
+
+const profile = (hidePurchasePrice: boolean) => async () => ({ hidePurchasePrice }) as never;
+
 describe("AppHomeService.getHome", () => {
   afterEach(() => mock.restoreAll());
+  // 기본: 매입가 숨김 켬 — 손익률 칸이 없는 쪽. 손익률 케이스는 아래에서 따로 바꾼다
+  const hideByDefault = () => mock.method(appAICoachService, "getProfile", profile(true));
 
   it("저축 · 투자 카드를 서버 숫자의 표시 문자열로 낸다 — 기본 순서 저축 → 투자", async () => {
+    hideByDefault();
     mock.method(backendApi, "proxyAuthRequest", async () =>
       goalStats({ totalGoals: 3, activeGoals: 2, completedGoals: 1, totalSaved: 1234567 }),
     );
@@ -36,6 +53,7 @@ describe("AppHomeService.getHome", () => {
   });
 
   it("목표 · 보유가 없으면 empty — 0원을 그리지 않는다", async () => {
+    hideByDefault();
     mock.method(backendApi, "proxyAuthRequest", async () => goalStats({ totalGoals: 0, totalSaved: 0 }));
     mock.method(appPortfolioService, "getSummary", async () => portfolio([], 0));
 
@@ -51,6 +69,7 @@ describe("AppHomeService.getHome", () => {
   });
 
   it("한 도메인이 실패해도 홈은 뜨고 그 카드만 degraded(값 null)", async () => {
+    hideByDefault();
     mock.method(backendApi, "proxyAuthRequest", async () => {
       throw new Error("503");
     });
@@ -66,6 +85,7 @@ describe("AppHomeService.getHome", () => {
   });
 
   it(`카드 하나가 ${HOME_CARD_TIMEOUT_MS}ms 를 넘기면 그 카드만 degraded`, async () => {
+    hideByDefault();
     mock.method(backendApi, "proxyAuthRequest", async () => goalStats({ totalGoals: 1, activeGoals: 1, totalSaved: 10 }));
     mock.method(
       appPortfolioService,
@@ -81,15 +101,59 @@ describe("AppHomeService.getHome", () => {
     assert.equal(vm.cards.find((c) => c.domain === "savings")!.state, "ok");
   });
 
-  it("카드에 손익률을 싣지 않는다 — 매입가 숨김(F009 FR-27)을 홈에서 깨지 않게", async () => {
-    mock.method(backendApi, "proxyAuthRequest", async () => goalStats({ totalGoals: 0 }));
-    mock.method(appPortfolioService, "getSummary", async () =>
-      portfolio([{ symbol: "BTC", profitRate: 12.3, currentValue: 1 }], 1),
-    );
+  it("매입가 숨김을 끈 사람 — 투자 카드 둘째 줄이 서버 총 손익률(포맷만)", async () => {
+    mock.method(appAICoachService, "getProfile", profile(false));
+    mock.method(backendApi, "proxyAuthRequest", byPath({ totalGoals: 0 }, 12.34));
+    mock.method(appPortfolioService, "getSummary", async () => portfolio([{}], 1));
+
+    const invest = (await appHomeService.getHome("t")).cards.find((c) => c.domain === "invest")!;
+
+    assert.deepEqual(invest.secondary, { label: "손익률", value: "+12.3%" });
+  });
+
+  it("음수 손익률은 부호를 글자로", async () => {
+    mock.method(appAICoachService, "getProfile", profile(false));
+    mock.method(backendApi, "proxyAuthRequest", byPath({ totalGoals: 0 }, -3.05));
+    mock.method(appPortfolioService, "getSummary", async () => portfolio([{}], 1));
+
+    const invest = (await appHomeService.getHome("t")).cards.find((c) => c.domain === "invest")!;
+
+    assert.equal(invest.secondary?.value, "-3.0%");
+  });
+
+  it("매입가 숨김을 켠 사람 — 손익률 0건(F009 FR-27), 종목 수만", async () => {
+    mock.method(appAICoachService, "getProfile", profile(true));
+    mock.method(backendApi, "proxyAuthRequest", byPath({ totalGoals: 0 }, 12.34));
+    mock.method(appPortfolioService, "getSummary", async () => portfolio([{}], 1));
 
     const vm = await appHomeService.getHome("t");
 
-    assert.ok(!JSON.stringify(vm).includes("12.3"));
     assert.ok(!JSON.stringify(vm).includes("%"));
+    assert.deepEqual(vm.cards.find((c) => c.domain === "invest")!.secondary, { label: "보유 종목", value: "1개" });
+  });
+
+  it("설정을 못 받았으면 숨김 쪽으로 — 손익률 0건, 카드는 ok", async () => {
+    mock.method(appAICoachService, "getProfile", async () => {
+      throw new Error("500");
+    });
+    mock.method(backendApi, "proxyAuthRequest", byPath({ totalGoals: 0 }, 12.34));
+    mock.method(appPortfolioService, "getSummary", async () => portfolio([{}], 1));
+
+    const vm = await appHomeService.getHome("t");
+    const invest = vm.cards.find((c) => c.domain === "invest")!;
+
+    assert.equal(invest.state, "ok");
+    assert.ok(!JSON.stringify(vm).includes("%"));
+  });
+
+  it("통계를 못 받았으면 손익률만 빠지고 카드는 ok", async () => {
+    mock.method(appAICoachService, "getProfile", profile(false));
+    mock.method(backendApi, "proxyAuthRequest", byPath({ totalGoals: 0 }, null));
+    mock.method(appPortfolioService, "getSummary", async () => portfolio([{}], 1));
+
+    const invest = (await appHomeService.getHome("t")).cards.find((c) => c.domain === "invest")!;
+
+    assert.equal(invest.state, "ok");
+    assert.equal(invest.secondary?.label, "보유 종목");
   });
 });

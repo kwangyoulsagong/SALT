@@ -47,6 +47,9 @@ export const HOME_CARD_TIMEOUT_MS = 800;
 /** 원 단위 표시. 서버 숫자를 **포맷만** 한다 */
 export const formatKrw = (value: number): string => `${Math.round(value).toLocaleString("ko-KR")}원`;
 
+/** 퍼센트 표시 — 부호를 글자로 붙인다(색만으로 방향을 전하지 않는다). 서버 숫자를 **포맷만** 한다 */
+export const formatRate = (value: number): string => `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
+
 /** 카드 문구 — 화면 문구는 BFF 가 소유한 계약이다(카드 `title` · `label`). 칭찬 · 재촉 · 연동 문구 0 */
 export const HOME_CARD_TEXT = {
   savings: {
@@ -60,6 +63,7 @@ export const HOME_CARD_TEXT = {
     title: "투자",
     total: "보유 평가",
     holdings: "보유 종목",
+    profitRate: "손익률",
     emptyLabel: "보유",
     emptyValue: "기록이 없어요",
   },
@@ -103,13 +107,19 @@ export const toSavingsCard = (stats: ServerGoalStatistics, now: string): HomeSum
 };
 
 /**
- * 투자 카드 — 보유 평가 한 줄 + 보유 종목 수.
+ * 투자 카드 — 보유 평가 한 줄 + (손익률 | 보유 종목 수).
  *
- * **손익률은 싣지 않는다** — 매입가 숨김(F009 FR-27)을 켠 사람에게 홈에서 보이면 숨김이 아니다. 숨김 설정을
- * 읽어 분기하는 대신 카드에서 뺐다(손익은 투자 zone 안에서 본다). 코치 한 줄도 싣지 않는다 — 판단은 근거 ·
- * 적중률 · 실패사례 3종이 같이 있어야 렌더한다(제품 공통 수용 기준 1). 적립(F003)은 아직 없다.
+ * **손익률은 매입가 숨김(F009 FR-27)을 끈 사람에게만 싣는다.** 전에 홈 보유 요약이 그랬고, 설정 화면의 문구
+ * ("켜면 홈 보유 요약에서 손익률이 빠져요")가 그 약속이다. `profitRate` 는 서버 `/portfolio/stats` 의 총 손익률
+ * (서버 계산) — 숨김이거나 설정 · 통계를 못 받았으면 `null` 이 오고 종목 수를 싣는다(숨김을 깨는 쪽으로 넘어지지 않는다).
+ * 코치 한 줄은 싣지 않는다 — 판단은 근거 · 적중률 · 실패사례 3종이 같이 있어야 렌더한다(제품 공통 수용 기준 1).
+ * 적립(F003)은 아직 없다.
  */
-export const toInvestCard = (summary: PortfolioCardSource, now: string): HomeSummaryCard => {
+export const toInvestCard = (
+  summary: PortfolioCardSource,
+  now: string,
+  profitRate: number | null = null,
+): HomeSummaryCard => {
   const base = { domain: "invest" as const, title: HOME_CARD_TEXT.invest.title, href: "/investments", updatedAt: now };
   if (summary.items.length === 0) {
     return {
@@ -122,7 +132,10 @@ export const toInvestCard = (summary: PortfolioCardSource, now: string): HomeSum
   return {
     ...base,
     primary: { label: HOME_CARD_TEXT.invest.total, value: formatKrw(summary.totalKrw) },
-    secondary: { label: HOME_CARD_TEXT.invest.holdings, value: HOME_CARD_TEXT.count(summary.items.length) },
+    secondary:
+      profitRate === null
+        ? { label: HOME_CARD_TEXT.invest.holdings, value: HOME_CARD_TEXT.count(summary.items.length) }
+        : { label: HOME_CARD_TEXT.invest.profitRate, value: formatRate(profitRate) },
     state: "ok",
   };
 };
