@@ -7,11 +7,11 @@ import {
   frame,
   header,
   headerSpacer,
-  icon as iconClass,
   item as itemStyle,
   label as labelClass,
   rail,
   srOnly,
+  tile,
 } from "./AppNavigation.css";
 
 /**
@@ -27,12 +27,10 @@ import {
 export interface AppNavigationItem {
   id: string;
   label: string;
-  /** 20×20 아이콘 — `aria-hidden` 으로 넘긴다(이름은 `label`) */
+  /** 아이콘 — `AppNavigationIcon` 을 넘긴다(크기는 자리가 정한다: 레일 16 · 하단 탭 20, `aria-hidden`) */
   icon: ReactNode;
   href: string;
   active?: boolean;
-  /** 지금 탭일 때 아이콘 색(도메인 색 토큰) */
-  accentColor?: string;
   /** 눌리지 않는 탭 — 화면 리더 · 툴팁이 이 말을 같이 읽는다 */
   disabledReason?: string;
 }
@@ -74,8 +72,7 @@ const NavItem = ({
 }) => {
   const body = (
     <>
-      {/* 도메인 색은 지금 탭 아이콘에만 — 항목마다 다른 동적 값이라 inline(`component-convention.md`) */}
-      <span className={iconClass} style={item.active && item.accentColor ? { color: item.accentColor } : undefined}>
+      <span className={tile}>
         {item.icon}
       </span>
       <span className={labelClass}>{item.label}</span>
@@ -132,5 +129,7 @@ export const AppNavigation = ({
     </nav>
   </div>
 );
+
+export { AppNavigationIcon, type AppNavigationIconName } from "./AppNavigationIcon";
 
 export default AppNavigation;

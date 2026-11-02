@@ -1,7 +1,6 @@
 "use client";
 
 // 클라이언트 잎: 지금 경로(usePathname)로 탭을 고르고, 탭을 누른 시각을 계측 표지로 남긴다.
-import { ChartLine, House, PiggyBank, Wallet, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
@@ -12,46 +11,31 @@ import {
   APP_TAB_NOT_READY_LABEL,
   activeAppTab,
   type AppTab,
-  type AppTabIcon,
 } from "@repo/core/navigation";
-import { zoneOfPath, type ZoneId } from "@repo/core/zones";
-import { AppNavigation, type AppNavigationItem } from "@repo/ui/app-navigation";
-import { vars as ds } from "@repo/ui/tokens";
+import { zoneOfPath } from "@repo/core/zones";
+import { AppNavigation, AppNavigationIcon, type AppNavigationItem } from "@repo/ui/app-navigation";
 
 import { isCrossZonePath, ZONE_APP } from "../config";
 import { NAVIGATION_FRAME_MESSAGES } from "./messages";
 import { PRERENDER_TAB_ATTRIBUTE } from "./prerenderRules";
 import { readZoneNavigationMetric, recordZoneNavigationStart } from "./zoneNavigationMetrics";
 
-const ICONS: Record<AppTabIcon, LucideIcon> = {
-  home: House,
-  "piggy-bank": PiggyBank,
-  wallet: Wallet,
-  chart: ChartLine,
-};
-
-/** 탭 zone → 도메인 색 토큰(`FE-REQ-054` FR-7). 셸 탭은 홈 색 */
-const accentOf = (zone: ZoneId): string => {
-  const key = zone === "shell" ? "home" : zone;
-  return ds.colors.domain[key];
-};
-
 /** 로그인 · 온보딩 같은 공개 화면에는 탭 · 머리가 없다 — 아직 계정이 없거나 들어가는 중이다 */
 const isPublicPath = (pathname: string): boolean =>
   PUBLIC_PATHS.some((path) => (path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`)));
 
-const toItem = (tab: AppTab, active: boolean): AppNavigationItem => {
-  const Icon = ICONS[tab.icon];
-  return {
-    id: tab.id,
-    label: tab.label,
-    href: tab.href,
-    icon: <Icon size={20} aria-hidden="true" />,
-    active,
-    accentColor: accentOf(tab.zone),
-    disabledReason: tab.readyBy ? APP_TAB_NOT_READY_LABEL : undefined,
-  };
-};
+/**
+ * 아이콘은 면을 채운 단색 글리프(`@repo/ui` `AppNavigationIcon`, 이름은 `APP_TABS` 의 것 그대로) — 선 아이콘은 탭 크기에서 흐렸다
+ * (2026-11-03 사용자). 도메인 색은 탭에 쓰지 않는다 — 지금 탭은 진한 아이콘 + 옅은 판으로 가른다(기준 레일 실측).
+ */
+const toItem = (tab: AppTab, active: boolean): AppNavigationItem => ({
+  id: tab.id,
+  label: tab.label,
+  href: tab.href,
+  icon: <AppNavigationIcon name={tab.icon} />,
+  active,
+  disabledReason: tab.readyBy ? APP_TAB_NOT_READY_LABEL : undefined,
+});
 
 /**
  * zone 공용 내비게이션 (`FE-REQ-054`) — `@repo/ui` `AppNavigation` 에 레지스트리 판정을 입힌다.

@@ -1,16 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { ChartLine, House, PiggyBank, Wallet } from "lucide-react";
-
 import { AppNavigation } from "./AppNavigation";
 import type { AppNavigationItem } from "./AppNavigation";
-
-const iconProps = { size: 20, "aria-hidden": true } as const;
+import { AppNavigationIcon } from "./AppNavigationIcon";
 
 const items: AppNavigationItem[] = [
-  { id: "home", label: "홈", href: "#home", icon: <House {...iconProps} />, active: true, accentColor: "#3182F6" },
-  { id: "savings", label: "저축", href: "#savings", icon: <PiggyBank {...iconProps} /> },
-  { id: "household", label: "가계부", href: "#household", icon: <Wallet {...iconProps} />, disabledReason: "준비 중" },
-  { id: "invest", label: "투자", href: "#invest", icon: <ChartLine {...iconProps} /> },
+  { id: "home", label: "홈", href: "#home", icon: <AppNavigationIcon name="home" />, active: true },
+  { id: "savings", label: "저축", href: "#savings", icon: <AppNavigationIcon name="piggy-bank" /> },
+  { id: "household", label: "가계부", href: "#household", icon: <AppNavigationIcon name="wallet" />, disabledReason: "준비 중" },
+  { id: "invest", label: "투자", href: "#invest", icon: <AppNavigationIcon name="chart" /> },
 ];
 
 const Body = () => (
@@ -55,4 +52,15 @@ export const LongLabel: Story = {
   args: {
     items: items.map((item) => (item.id === "invest" ? { ...item, label: "투자 포트폴리오" } : item)),
   },
+};
+
+/** 아이콘 한 벌 — 면을 채운 단색 글리프(지금 탭 = 진한 색, 나머지 = 옅은 회색) */
+export const Icons: Story = {
+  render: () => (
+    <div style={{ display: "flex", gap: 24, padding: 24 }}>
+      {(["home", "piggy-bank", "wallet", "chart"] as const).map((name) => (
+        <AppNavigationIcon key={name} name={name} size={32} />
+      ))}
+    </div>
+  ),
 };
