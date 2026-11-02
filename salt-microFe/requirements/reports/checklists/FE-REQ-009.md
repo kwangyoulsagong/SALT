@@ -214,3 +214,4 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 - 변경: 도메인 축 4 규칙 · 훅 대상 `packages/domain-*` · 페이지 레지스트리 `tax` 삭제. 레이어 축 무변경
 - 검증: `pnpm lint` · `check-types` · `test`(core 62 · ui 43) · `test:layer-check`(차단 12 · 통과 7) · `build` 5/5 · 실기동 rewrites — `checklists/FE-REQ-052.md` §2
 - 미검증 · 범위 밖: `domain-*` 안 레이어 축 — 패키지가 없다(`FE-REQ-053` FR-1)
+- 후속: `packages/eslint-plugin-fsd/README.md` 에 도메인 축 4 규칙 표 · 훅 테스트 수(빠졌던 것)

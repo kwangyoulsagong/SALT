@@ -212,3 +212,4 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 - 변경: 세금 zone 삭제 · 레지스트리 `registry.json` · rewrites 생성 · zone lint 레지스트리 전체 — 본문 FR-2 · 3 · 33 · 수용 기준 그 자리 정정
 - 검증: `pnpm lint` · `check-types` · `test`(core 62 · ui 43) · `test:layer-check`(차단 12 · 통과 7) · `build` 5/5 · 실기동 rewrites — `checklists/FE-REQ-052.md` §2
 - 미검증 · 범위 밖: `checklists/FE-REQ-052.md` §4
+- 후속: `packages/core/src/http/constants.ts` · `apps/web/src/shared/config/network.ts` 주석 "두 zone" → "모든 zone(셸 + 도메인 zone)" — 값 무변경
