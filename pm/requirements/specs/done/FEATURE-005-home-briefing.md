@@ -10,7 +10,7 @@
 > 1. **5탭 → 3탭.** 사용자 명시: *"너무 많은 탭은 별로"*. 청구서·세금·포지션은 모두 "내 자산에 대한 사실"이므로 `자산` 탭 하나로 묶인다.
 > 2. **대화가 제품의 핵심이 되었다.** 화면을 여러 개 만들어 답하는 대신 묻고 답하는 하나의 화면으로 간다.
 > 3. **FR-10(삭제 목록)이 FEATURE-000 개정과 충돌한다.** 이 문서는 `TipsApp`·`Goals`·`MarketIntelligencePreview`·`InvestmentFilterTabs` **삭제**를 요구했으나, 같은 날 FEATURE-000 개정이 그것을 **변경 금지 목록**으로 뒤집었다(*"현재 홈 화면은 이뻐서 그건 냅두고 싶어, 의미도 있고"*). **FEATURE-000이 이긴다.**
-> 4. **FR-13(MFE 2앱)이 ADR-001과 충돌한다.** 웹은 Multi-Zones 2 zone(`web` + `web-tax`) + RN 1앱이다.
+> 4. **FR-13(MFE 2앱)이 ADR-001과 충돌한다.** 웹은 Multi-Zones ~~2 zone(`web` + `web-tax`)~~ **정정 2026-11-02** — 셸 `web` + 도메인 zone 4(`ADR-005` · `FE-REQ-052`, `web-tax` 삭제) + RN 1앱이다.
 >
 > 아래 내용 중 **홈 5블록 요구사항(FR-2~FR-7)과 `HomeViewModel` 계약은 FEATURE-006으로 흡수**되었다. 나머지는 참조용으로만 남긴다.
 
@@ -268,3 +268,4 @@ flowchart TB
 | 2026-09-09 | **폐기.** `FEATURE-006-coach-conversation-ia.md`가 대체한다. 홈 블록 요구사항과 `HomeViewModel`은 흡수, 5탭 IA와 삭제 목록(FR-10)·MFE 2앱(FR-13)은 폐기 |
 | 2026-09-21 | 머리 배너 추가. 흡수됐던 홈 5블록 중 ④ 세금 D-Day · ⑤ 청구서가 `ADR-002`로, 블록 구성 전체가 D6(3블록 + 기존 블록)으로 대체됐다. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-09-30 | **done/ 으로 보관(REQ 정리).** 2026-09-09 폐기 — `FEATURE-006` 이 대체했다. 완료가 아니라 닫힘 |
+| 2026-11-02 | 머리 블록 4 의 "2 zone(`web` + `web-tax`)" 정정 — 셸 + 도메인 zone 4(`FE-REQ-052`). 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md` |

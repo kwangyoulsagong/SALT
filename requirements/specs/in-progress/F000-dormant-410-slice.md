@@ -32,7 +32,7 @@ created: 2026-10-27
    라우트 줄을 지우지 않고 목록 하나(`DORMANT_PATHS`)로 끈다 — 되살리기가 한 줄이다
 2. **스펙 표의 `/api/investment-insight/ranking*` 을 실제 경로 `/top` 으로 읽었다** — `insight-ranking.controller` 가 그 경로다
 3. **홈 조립은 F000 최소 구성까지만** — 블록 함수 · 블록별 엔드포인트는 F006(`BFF-REQ-027`)이 한다. 프론트 호출 0건이라 응답 shape 변경 영향이 없다
-4. **`apps/web-tax` zone 은 그대로** — ADR-002 §5 · `FEATURE-006` Q1 의 아키텍처 결정이라 링크만 뺐다
+4. ~~**`apps/web-tax` zone 은 그대로** — ADR-002 §5 · `FEATURE-006` Q1 의 아키텍처 결정이라 링크만 뺐다~~ **정정 2026-11-02** — 닫힘: zone 을 도메인으로 다시 긋고(`ADR-005`) `apps/web-tax` 를 지웠다(`FE-REQ-052`)
 
 ## 범위 밖
 
@@ -40,5 +40,5 @@ created: 2026-10-27
 |---|---|---|
 | 서버 410 로그 1주 잔여 0건 | 시간 게이트 | 2026-11-03 (머지 · 상시 서버 재시작 뒤 1주) |
 | `/api/dashboard` · `/api/feed` · `/api/investment-insight/top` 컨트롤러 `this` 결함(라우터가 묶이지 않은 메서드를 넘긴다 — 언제나 500) | 동면 코드 — 되살릴 때 고친다 | 되살리는 PR |
-| `apps/web-tax` zone 존속 | 아키텍처 결정(ADR-002 §5 · F006 Q1) | 사용자 결정 |
+| ~~`apps/web-tax` zone 존속~~ | ~~아키텍처 결정(ADR-002 §5 · F006 Q1)~~ | **정정 2026-11-02** — 닫힘: zone 을 도메인으로 다시 긋고(`ADR-005`) `apps/web-tax` 를 지웠다(`FE-REQ-052`) |
 | 알림 1종(`FEATURE-000` FR-11 · `BFF-REQ-007` C절) | 별도 묶음 | `notification` 컨텍스트 |

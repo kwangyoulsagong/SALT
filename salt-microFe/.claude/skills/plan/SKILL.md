@@ -24,7 +24,7 @@ argument-hint: <요구사항 파일명 또는 자유 텍스트>
 ### 1. 요구사항 분해
 
 - 작업을 독립 단위로 나눈다.
-- 각 작업에 범위 태그를 붙인다: `[web]`, `[web-tax]`, `[ui]`, `[tokens]`, `[core]`, `[mocks]`, `[shared-config]`.
+- 각 작업에 범위 태그를 붙인다: `[web]`, `[web-<domain>]`, `[domain-<domain>]`, `[ui]`, `[tokens]`, `[core]`, `[mocks]`, `[shared-config]`.
 - 도메인이 필요한 경우 `src/domains/{domain}` 후보를 제안한다.
 
 ### 2. 도메인/컴포넌트 배치 결정

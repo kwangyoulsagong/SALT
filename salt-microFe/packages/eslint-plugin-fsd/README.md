@@ -1,6 +1,6 @@
 # `@repo/eslint-plugin-fsd`
 
-FSD 레이어 경계를 lint 로 강제한다 (`FE-REQ-009` FR-21).
+FSD 레이어 경계와 도메인 경계를 lint 로 강제한다 (`FE-REQ-009` FR-21 · `FE-REQ-052` FR-4).
 
 ## `@repo/fsd/layers`
 
@@ -15,6 +15,19 @@ FSD 레이어 경계를 lint 로 강제한다 (`FE-REQ-009` FR-21).
 | 루트 `app/**`·`pages/**` 에서 `@/pages`·`@/app` 외 import | FR-25 |
 | 레지스트리에 없는 슬라이스 | FR-26 |
 
+### 도메인 축 (`FE-REQ-052` FR-4, `ADR-005` §2)
+
+도메인 목록은 zone 레지스트리(`packages/core/src/zones/registry.json`)에서 온다 — 여기 복사하지 않는다.
+
+| 규칙 이름 | 막는 것 |
+|---|---|
+| `cross-domain` | `packages/domain-A` → `@repo/domain-B`(상대 경로로 넘는 것도) |
+| `shell-domain` | 셸 `apps/web` → `@repo/domain-*` — 홈은 BFF 카드로만 |
+| `foreign-domain` | zone 앱 `apps/web-<x>` → 자기 것이 아닌 `@repo/domain-*` |
+| `thin-zone` | `apps/web-<x>/src/{entities,features,widgets}` — 화면은 `domain-*` 에 |
+
+`domain-*` 패키지 안의 레이어 축은 패키지가 생길 때 넓힌다(`FE-REQ-053`).
+
 ```jsonc
 // apps/web/.eslintrc.json
 {
@@ -27,6 +40,7 @@ FSD 레이어 경계를 lint 로 강제한다 (`FE-REQ-009` FR-21).
 
 판정 로직과 레지스트리는 **`layer-rules.cjs`** 에만 있다.
 `.claude/hooks/layer-check.mjs` 가 같은 파일을 읽는다 — 미러가 아니라 같은 파일이다.
+훅 실행 테스트 `pnpm test:layer-check` — 차단 12(레이어 8 + 도메인 4) · 통과 7.
 
 CommonJS 인 이유: 앱이 eslintrc 모드를 쓰고, eslintrc 는 ESM 플러그인을 로드하지 못한다.
 `FE-REQ-009` FR-20 은 `layer-rules.mjs` 를 적었지만 그러면 표가 두 벌이 된다.

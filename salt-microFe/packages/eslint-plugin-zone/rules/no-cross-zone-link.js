@@ -1,23 +1,33 @@
 "use strict";
 
 /**
- * zone 경로에 `next/link`의 `<Link>`를 쓰지 못하게 한다 (FE-REQ-007 FR-5).
+ * zone 경로에 `next/link`의 `<Link>`를 쓰지 못하게 한다 (FE-REQ-007 FR-5 → FE-REQ-052 FR-5).
  *
  * Multi-Zones에서 zone을 넘는 이동은 **hard navigation**이다. `<Link>`는 상대 경로를
  * prefetch하고 soft navigate하려 하는데, 대상이 다른 Next 앱이면 그 둘 다 동작하지 않는다.
  *
- * 경로 목록의 단일 소스는 `@repo/core/zones`의 `CROSS_ZONE_PATH_PREFIXES`다.
- * 이 규칙은 CommonJS 플러그인이라 TS 소스를 import할 수 없어 `zonePaths` 옵션으로 받는다.
- * **두 곳이 어긋나면 안 된다** — 앱의 eslint 설정이 레지스트리 값을 그대로 넘긴다.
+ * 경로 목록은 **레지스트리 전체**에서 계산한다 — 파일이 놓인 앱(`apps/<app>/`)을 보고
+ * `@repo/core` 의 `registry.cjs`(데이터는 `registry.json` 한 곳)에 묻는다. eslintrc 는 ESM 을 못 읽어
+ * CommonJS 사본을 둔다. TS 쪽과 계산이 같은지는 `registry.test.ts` 가 대조한다.
+ * `zonePaths` 옵션은 테스트 · 앱 밖 파일용 덮어쓰기다 — 앱 설정에 경로를 복사하지 않는다.
  */
 
-const DEFAULT_ZONE_PATHS = ["/tax", "/tax-static"];
+const registry = require("../../core/src/zones/registry.cjs");
 
-/** `/tax`, `/tax/...`는 걸리고 `/taxes`는 걸리지 않는다. */
+/** `apps/<app>/...` 의 앱 이름. 앱 밖이면 셸로 본다. */
+const appOf = (filename) => {
+  const match = (filename || "").split("\\").join("/").match(/(?:^|\/)apps\/([^/]+)\//);
+  return match ? match[1] : registry.SHELL_APP;
+};
+
+/** 셸의 `/` 는 루트 하나만 — 나머지 경로를 전부 삼키지 않는다. */
+const matchesPrefix = (href, prefix) =>
+  prefix === "/" ? href === "/" : href === prefix || href.startsWith(prefix + "/");
+
 const isCrossZonePath = (href, zonePaths) =>
   typeof href === "string" &&
   href.startsWith("/") &&
-  zonePaths.some((prefix) => href === prefix || href.startsWith(prefix + "/"));
+  zonePaths.some((prefix) => matchesPrefix(href.split(/[?#]/)[0], prefix));
 
 /** 정적으로 값을 알 수 있는 href만 판정한다. */
 const readStaticHref = (attribute) => {
@@ -33,7 +43,7 @@ const readStaticHref = (attribute) => {
     if (expression.type === "Literal") {
       return typeof expression.value === "string" ? expression.value : null;
     }
-    // `` `/tax/${id}` `` — 앞부분만 보면 zone 판정에 충분하다.
+    // `` `/tips/${id}` `` — 앞부분만 보면 zone 판정에 충분하다.
     if (expression.type === "TemplateLiteral" && expression.quasis.length > 0) {
       return expression.quasis[0].value.cooked;
     }
@@ -63,13 +73,14 @@ module.exports = {
     ],
     messages: {
       crossZoneLink:
-        "'{{href}}'는 다른 zone({{prefix}})의 경로다. <Link>는 zone을 넘을 때 prefetch·soft navigation이 동작하지 않는다. <a href> 또는 CrossZoneLink를 쓴다. (FE-REQ-007 FR-5)",
+        "'{{href}}'는 다른 zone({{prefix}})의 경로다. <Link>는 zone을 넘을 때 prefetch·soft navigation이 동작하지 않는다. <a href> 또는 CrossZoneLink를 쓴다. (FE-REQ-052 · microfrontend.md §4)",
     },
   },
 
   create(context) {
     const options = context.options[0] || {};
-    const zonePaths = options.zonePaths || DEFAULT_ZONE_PATHS;
+    const filename = context.filename || context.getFilename();
+    const zonePaths = options.zonePaths || registry.crossZonePathPrefixes(appOf(filename));
 
     /** `next/link`의 default import에 붙은 지역 이름들 */
     const nextLinkNames = new Set();
@@ -96,8 +107,8 @@ module.exports = {
           const href = readStaticHref(attribute);
           if (!isCrossZonePath(href, zonePaths)) continue;
 
-          const prefix = zonePaths.find(
-            (candidate) => href === candidate || href.startsWith(candidate + "/")
+          const prefix = zonePaths.find((candidate) =>
+            matchesPrefix(href.split(/[?#]/)[0], candidate)
           );
 
           context.report({
@@ -111,4 +122,4 @@ module.exports = {
   },
 };
 
-module.exports.DEFAULT_ZONE_PATHS = DEFAULT_ZONE_PATHS;
+module.exports.appOf = appOf;

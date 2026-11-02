@@ -98,8 +98,8 @@ ASCII 예시:
 
 ```text
 브라우저 요청
-  ├─ /…      → apps/web      (default zone)
-  ├─ /tax/…  → apps/web-tax  (tax zone, rewrites 프록시)
+  ├─ /…          → apps/web             (셸 zone)
+  ├─ /household/… → apps/web-household  (도메인 zone, rewrites 프록시)
   └─ 공유: @repo/tokens · @repo/ui · @repo/core
 ```
 

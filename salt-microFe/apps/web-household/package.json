@@ -1,0 +1,28 @@
+{
+  "name": "web-household",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3004",
+    "build": "next build",
+    "start": "next start --port 3004",
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/core": "workspace:*",
+    "next": "^15.5.25",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@repo/eslint-plugin-fsd": "workspace:*",
+    "@repo/eslint-plugin-zone": "workspace:*",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "^15.5.25",
+    "typescript": "^5"
+  }
+}

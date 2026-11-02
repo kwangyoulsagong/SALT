@@ -3,18 +3,19 @@ const { createVanillaExtractPlugin } = require("@vanilla-extract/next-plugin");
 
 const withVanillaExtract = createVanillaExtractPlugin();
 
-/**
- * default zone (FE-REQ-007 FR-1 · FR-3).
- *
- * - `assetPrefix` 를 갖지 않는다. default zone 이기 때문이다.
- * - 세금 zone(`apps/web-tax`)으로 가는 요청을 `rewrites` 로 프록시한다.
- * - Next 15+ 이므로 정적 자산용 추가 rewrite 우회가 필요 없다 (FR-8).
- *
- * zone 목록의 근거는 `.claude/rules/microfrontend.md` §1, 레지스트리는 `@repo/core/zones`.
- */
-const TAX_ZONE_ORIGIN = process.env.TAX_ZONE_ORIGIN || "http://localhost:3001";
+const { zoneRewrites } = require("@repo/core/zones/node");
 
-/** 사용자 대면 도메인. 한 도메인이 두 앱을 서비스하므로 Server Actions 에 명시가 필요하다 (FR-23). */
+/**
+ * 셸 zone (FE-REQ-007 FR-1 · FR-3 → FE-REQ-052 FR-3, ADR-005).
+ *
+ * - `assetPrefix` 를 갖지 않는다. 셸(default zone)이기 때문이다.
+ * - 도메인 zone 4개로 가는 요청을 `rewrites` 로 프록시한다 — **레지스트리에서 생성**, 손으로 쓰지 않는다.
+ *   경로는 `fallback`: 화면이 아직 셸에 있으면(옮기기 전) 셸이 받는다. origin 은 env `ZONE_<ID>_ORIGIN`.
+ * - 운영 진입은 한 origin 경로 라우팅이 zone 에 직접 보낸다(`ADR-008`). 여기 rewrites 는 로컬 · 폴백.
+ *
+ * 규칙은 `.claude/rules/microfrontend.md`, 레지스트리는 `@repo/core/zones`(`registry.json`).
+ */
+/** 사용자 대면 도메인. 한 도메인이 여러 앱을 서비스하므로 Server Actions 에 명시가 필요하다 (FR-23). */
 const APP_ORIGINS = (process.env.APP_ALLOWED_ORIGINS || "localhost:3000")
   .split(",")
   .map((origin) => origin.trim())
@@ -42,14 +43,7 @@ const nextConfig = {
     },
   },
   async rewrites() {
-    return [
-      { source: "/tax", destination: `${TAX_ZONE_ORIGIN}/tax` },
-      { source: "/tax/:path+", destination: `${TAX_ZONE_ORIGIN}/tax/:path+` },
-      {
-        source: "/tax-static/:path+",
-        destination: `${TAX_ZONE_ORIGIN}/tax-static/:path+`,
-      },
-    ];
+    return zoneRewrites(process.env);
   },
 };
 

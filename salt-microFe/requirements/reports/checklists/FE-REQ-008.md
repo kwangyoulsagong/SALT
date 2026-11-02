@@ -333,3 +333,9 @@ FR-11("인증 토큰을 클라이언트로 내리지 않는다 — 쿠키에서 
 - 변경: 파일만 걸침 — `widgets/market-board/ui/MarketBoard.tsx` — 지연 잎 `KrIndexStrip` · `KrScheduleStrip` 삭제, `MarketSummaryStrip`(`ssr: false` · 자리 고정) 두 탭 공용. 스트리밍 경계 무변경
 - 검증: `check-types` · `lint` · `test`(core 55 · ui 43) · `test:layer-check` · 훅 사후 실행 exit 0 · `web`(154 · 137 kB) · `web-tax` 빌드 · 실화면 3000 국내 · 코인 탭
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — zone = 도메인 F0 (`FE-REQ-052`)
+
+- 변경: `apps/web-tax/app/layout.tsx` 삭제(zone 과 함께). 셸 스트리밍 경계 무변경
+- 검증: `pnpm lint` · `check-types` · `test`(core 62 · ui 43) · `test:layer-check`(차단 12 · 통과 7) · `build` 5/5 · 실기동 rewrites — `checklists/FE-REQ-052.md` §2
+- 미검증 · 범위 밖: 없음

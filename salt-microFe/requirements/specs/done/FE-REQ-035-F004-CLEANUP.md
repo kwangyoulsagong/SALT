@@ -62,3 +62,4 @@ created: 2026-09-22
 
 - 2026-09-22 신설 · 구현
 - 2026-10-30: 파일만 걸침 — `marketApi.search` 도 `apiFetch` · `readApiError`(axios 없음) — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
+- 2026-11-02: 파일만 걸침 — `apps/web/.eslintrc.json` 의 zone 규칙만 바뀜(`zonePaths` 복사 삭제, `FE-REQ-052` FR-5). 이 REQ 의 `axios` 금지 줄 무변경. 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md`

@@ -5,8 +5,8 @@
 ## 프로젝트 개요
 
 - Monorepo: `pnpm` workspace + Turborepo
-- Apps: `apps/web`(default zone, 3000), `apps/web-tax`(tax zone, 3001), `apps/mobile`(React Native, iOS+Android — 미착수)
-- **zone = 도메인(2026-10-30 `ADR-005`)**: 셸 `web` + `web-investment` · `web-savings` · `web-household` · `web-tips`, `web-tax` 삭제. 규칙은 `microfrontend.md`(개정됨), 코드 전환은 `FE-REQ-052` — 그 전까지 지금 상태는 `microfrontend.md` §0
+- Apps: `apps/web`(셸 zone, 3000) · `apps/web-investment`(3002) · `apps/web-savings`(3003) · `apps/web-household`(3004) · `apps/web-tips`(3005) — 도메인 zone 4개는 빈 골격(2026-11-02 `FE-REQ-052`), `apps/mobile`(React Native, iOS+Android — 미착수)
+- **zone = 도메인(2026-10-30 `ADR-005`)**: 셸 `web` + `web-investment` · `web-savings` · `web-household` · `web-tips`, `web-tax` 삭제됨. 규칙 · 레지스트리(`registry.json`) · lint 도메인 축은 `FE-REQ-052`(2026-11-02)로 코드가 됐다. **화면은 아직 셸에 있다** — 레지스트리 `hostedIn` 이 옮기기 전 상태를 적고, 남은 차이는 `microfrontend.md` §0
 - Framework: Next.js 15, React 18, TypeScript strict / React Native
 - 아키텍처: **FSD**(6레이어) · **Next.js Multi-Zones**(마이크로프론트엔드) · **스트리밍 SSR**(RSC + Suspense)
 - Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`(웹) / `StyleSheet` + `@repo/ui-native`(모바일)
@@ -26,19 +26,19 @@
 ## Commands
 
 ```bash
-pnpm dev                        # 두 zone 동시 기동 (web:3000, web-tax:3001)
+pnpm dev                        # zone 5개 동시 기동 (web:3000, 도메인 zone 3002~3005 — 지금은 빈 골격)
 pnpm build
 pnpm lint
 pnpm check-types
 pnpm test                       # 단위 테스트 — @repo/core · @repo/ui (vitest, node)
 pnpm --filter web dev
-pnpm --filter web-tax dev
+pnpm --filter web-investment dev  # 도메인 zone 하나만 (savings · household · tips 도 같은 꼴)
 pnpm --filter @repo/ui lint
 pnpm --filter @repo/ui check-types
 pnpm --filter @repo/ui test
 pnpm --filter @repo/core test
 pnpm --filter @repo/ui storybook
-pnpm test:layer-check           # layer-check 훅 위반 케이스 8 + 통과 케이스 5
+pnpm test:layer-check           # layer-check 훅 위반 케이스 12(레이어 8 + 도메인 4) + 통과 케이스 7
 ```
 
 ## 구조 원칙

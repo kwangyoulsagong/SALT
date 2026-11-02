@@ -38,11 +38,14 @@ const readStdin = async () => {
   return Buffer.concat(chunks).toString("utf8");
 };
 
-/** 검사 대상은 두 앱의 TS/TSX 뿐이다. */
-const isTarget = (filePath) =>
-  /(^|\/)salt-microFe\/apps\/[^/]+\/(src|app|pages)\/.+\.(ts|tsx)$/.test(
-    filePath.split("\\").join("/")
+/** 검사 대상은 zone 앱(`apps/*`)과 도메인 패키지(`packages/domain-*`)의 TS/TSX 다 (`FE-REQ-052` FR-4). */
+const isTarget = (filePath) => {
+  const normalized = filePath.split("\\").join("/");
+  return (
+    /(^|\/)salt-microFe\/apps\/[^/]+\/(src|app|pages)\/.+\.(ts|tsx)$/.test(normalized) ||
+    /(^|\/)salt-microFe\/packages\/domain-[^/]+\/src\/.+\.(ts|tsx)$/.test(normalized)
   );
+};
 
 /** Write 는 `content`, Edit 는 `new_string`, MultiEdit 는 `edits[].new_string`. */
 const codeOf = (toolInput) => {
@@ -83,7 +86,7 @@ const main = async () => {
   const lines = violations.map((v) => `  · [${v.rule}] ${v.message}`);
   process.stderr.write(
     [
-      `FSD 레이어 위반 ${violations.length}건 — 쓰기를 막았다 (FE-REQ-009 FR-20).`,
+      `FSD 레이어 · 도메인 위반 ${violations.length}건 — 쓰기를 막았다 (FE-REQ-009 FR-20 · FE-REQ-052 FR-4).`,
       `  파일: ${filePath}`,
       ...lines,
       "",

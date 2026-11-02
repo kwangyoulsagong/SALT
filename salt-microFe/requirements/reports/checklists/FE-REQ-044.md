@@ -164,3 +164,9 @@
 - `explain-symbol/model/messages.ts`(이 REQ 가 머리 주석 주인)에 칩 링크 스크린리더 문구 `citationLinkLabel` 추가 — 그래픽 · 모션 무변경. `pnpm check-types` · `lint` · `web build` 통과
 
 미검증: 없음(화면 확인은 `FE-REQ-038` 표).
+
+## 2026-11-02 — zone = 도메인 F0 (`FE-REQ-052`)
+
+- 변경: 파일만 걸침 — 같은 eslintrc · `layer-rules.cjs` 의 다른 줄만. `motion/react` 금지 · `not-found` 무변경
+- 검증: `pnpm lint` · `check-types` · `test`(core 62 · ui 43) · `test:layer-check`(차단 12 · 통과 7) · `build` 5/5 · 실기동 rewrites — `checklists/FE-REQ-052.md` §2
+- 미검증 · 범위 밖: 없음

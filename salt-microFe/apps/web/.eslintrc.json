@@ -8,15 +8,7 @@
     "@repo/fsd"
   ],
   "rules": {
-    "@repo/zone/no-cross-zone-link": [
-      "error",
-      {
-        "zonePaths": [
-          "/tax",
-          "/tax-static"
-        ]
-      }
-    ],
+    "@repo/zone/no-cross-zone-link": "error",
     "@repo/fsd/layers": "error",
     "no-restricted-imports": [
       "error",

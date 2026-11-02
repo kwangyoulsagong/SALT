@@ -47,3 +47,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-02 | `FE-REQ-052` done — `apps/web-savings` 빈 골격 · 레지스트리 `savings`(`/goals`). 저축 화면(`/goals/addgoals`)을 옮기는 커밋에서 `registry.json` `savings.hostedIn` 을 `"web"` → `"web-savings"` 로 |

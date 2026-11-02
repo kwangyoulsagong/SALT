@@ -1,9 +1,9 @@
-# `apps/web` — default zone
+# `apps/web` — 셸 zone
 
-SALT 웹의 **default zone**이다. 세금(`/tax/*`)을 제외한 모든 경로를 담당한다.
+SALT 웹의 **셸**(default zone)이다 — 인증 · 온보딩 · 홈 · 설정(`ADR-005`). 투자 · 저축 화면은 옮기기 전까지 여기 있다(레지스트리 `hostedIn`, 옮기는 REQ `FE-REQ-053` · `FE-REQ-056`).
 
 - `assetPrefix`가 **없다.** default zone이기 때문이다.
-- `/tax`, `/tax/:path+`, `/tax-static/:path+`를 `TAX_ZONE_ORIGIN`으로 프록시한다 (`next.config.js`의 `rewrites`).
+- 도메인 zone 4개로 프록시한다 (`next.config.js`의 `rewrites` = `@repo/core/zones/node` 의 `zoneRewrites`). 경로는 `fallback` — 셸에 화면이 있으면 셸이 받는다.
 - zone 내부 이동은 soft navigation이다. **zone을 넘는 링크는 `CrossZoneLink`(=`<a>`)를 쓴다.**
   `next/link`의 `<Link>`로 zone을 넘으면 `@repo/zone/no-cross-zone-link`가 lint에서 막는다.
 
@@ -56,7 +56,7 @@ Module Federation으로 런타임에 합치던 것을 그만두었다 — 근거
 
 | 변수 | 기본값 | 용도 |
 |---|---|---|
-| `TAX_ZONE_ORIGIN` | `http://localhost:3001` | 세금 zone origin. scheme+도메인을 포함한 절대 URL |
+| `ZONE_<ID>_ORIGIN` | `http://localhost:<devPort>` | 도메인 zone origin(`INVEST` · `SAVINGS` · `HOUSEHOLD` · `TIPS`). scheme+도메인을 포함한 절대 URL |
 | `APP_ALLOWED_ORIGINS` | `localhost:3000` | Server Actions `allowedOrigins` (쉼표 구분) |
 | `NEXT_PUBLIC_BASE_URL` | `http://localhost:8000` | 인증·목표 API |
 | `NEXT_PUBLIC_INVESTMENTS_BASE_URL` | `http://localhost:4001` | 투자 API |

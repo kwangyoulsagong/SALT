@@ -1,7 +1,7 @@
 /**
  * 플랫폼 무관 HTTP 상수 (FE-REQ-007 FR-32).
  *
- * 두 zone과 RN이 같은 값을 본다. 앱 안에 복사본을 두지 않는다.
+ * 모든 zone(셸 + 도메인 zone)과 RN이 같은 값을 본다. 앱 안에 복사본을 두지 않는다.
  */
 
 export const NETWORK = {

@@ -14,7 +14,8 @@ cd salt-microFe
 pnpm lint
 pnpm build
 pnpm --filter web build
-pnpm --filter web-tax build
+pnpm --filter "./apps/web-*" build   # 도메인 zone 4개 — 단독 빌드가 성공해야 한다
+pnpm test:layer-check                 # 레이어 8 + 도메인 4 위반 케이스
 pnpm check-types
 pnpm --filter @repo/ui lint
 pnpm --filter @repo/ui check-types
@@ -29,7 +30,7 @@ pnpm --filter @repo/ui check-types
 - `next/dynamic` import에는 SSR 의도와 loading fallback이 있는지 확인.
 - zone 간 경로가 유일한지, 다른 zone 경로에 `next/link`의 `<Link>`를 쓰지 않았는지 확인 (`@repo/zone/no-cross-zone-link`).
 - `transpilePackages`에 존재하지 않는 workspace package가 없는지 확인.
-- `apps/web-tax`가 `apps/web/src/**`를 직접 import하지 않는지 확인.
+- 도메인 축(`FE-REQ-052`): `domain-*` 끼리 · 셸 → `domain-*` · zone 앱 → 남의 `domain-*` import 가 없는지, zone 앱에 `src/{entities,features,widgets}` 가 없는지 확인.
 - `packages/tokens`가 `@vanilla-extract/css`를 import하지 않는지 확인 (RN이 못 쓰게 된다).
 
 ## 결과 보고

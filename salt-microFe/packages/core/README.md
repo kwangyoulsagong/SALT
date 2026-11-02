@@ -1,6 +1,6 @@
 # `@repo/core`
 
-플랫폼 무관한 모델·상수·정책 (FE-REQ-007 FR-32). 두 zone(`apps/web`, `apps/web-tax`)과 RN이 공유한다.
+플랫폼 무관한 모델·상수·정책 (FE-REQ-007 FR-32). zone 5개(`apps/web` 셸 + 도메인 zone 4)와 RN이 공유한다.
 
 | subpath | 내용 |
 |---|---|

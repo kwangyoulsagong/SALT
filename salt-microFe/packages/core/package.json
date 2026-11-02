@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./zones": "./src/zones/registry.ts",
+    "./zones/node": "./src/zones/registry.cjs",
     "./http": "./src/http/index.ts",
     "./auth": "./src/auth/index.ts",
     "./coach": "./src/coach/index.ts",

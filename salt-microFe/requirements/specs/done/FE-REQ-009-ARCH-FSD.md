@@ -295,3 +295,4 @@ export { importLedger as POST } from '@/app/api-routes';
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | 레지스트리 — 위젯 `asset-search` 추가(`layer-rules.cjs` · `layered-architecture.md` §4 · `fsd-widgets.md`). 페이지 `search` · 기능 `search-asset` 은 이미 있었다 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-10-30 | 파일만 걸침 — 웹 `entities/market/model/messages.ts` 에 차트 기간 이름 `1w`. 레이어 · 슬라이스 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
+| 2026-11-02 | **도메인 축** 추가(`FE-REQ-052` FR-4) — `layer-rules.cjs` `checkDomainImport`(`cross-domain` · `shell-domain` · `foreign-domain`) · `thin-zone`, 훅 대상에 `packages/domain-*/src`, 훅 테스트 차단 8 → 12 · 통과 5 → 7. 페이지 레지스트리 `tax` 삭제. 레이어 축 무변경. 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md` |

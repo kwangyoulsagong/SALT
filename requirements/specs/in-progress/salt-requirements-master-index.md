@@ -69,7 +69,7 @@ Status: In Progress
 
 | ID | 문서 | 내용 |
 |---|---|---|
-| `FE-REQ-007` | MFE 교체 | `nextjs-mf` 제거 → Multi-Zones 2 zone. 3앱 → `apps/web` + `apps/web-tax` |
+| `FE-REQ-007` | MFE 교체 | `nextjs-mf` 제거 → Multi-Zones 2 zone. 3앱 → `apps/web` + ~~`apps/web-tax`~~(**정정 2026-11-02** — 삭제, zone = 도메인 5 `FE-REQ-052`) |
 | `FE-REQ-008` | App Router + 스트리밍 SSR | 라우팅 이관, RSC 경계, Suspense 스트리밍, SSE와 비교 측정 |
 | `FE-REQ-009` | FSD 전환 | 레이어 5 + 슬라이스 레지스트리 + layer-check 훅 + `packages/tokens`·`core` 추출 |
 | `SRV-REQ-006` | DDD 전환 | 컨텍스트 우선 4층. 현재 `modules/*` → `{context}/{domain,application,infrastructure,presentation}` |
@@ -78,7 +78,7 @@ Status: In Progress
 | `RN-REQ-001` | RN 앱 신설 | `apps/mobile`, Expo prebuild, iOS+Android, FSD, `packages/ui-native` |
 | `RN-REQ-002` | RN 마이크로프론트엔드 | Shared/Service 번들, ESBuild, CDN, 카나리 |
 | `RN-REQ-003` | 릴리스·스토어 | 코드 서명, TestFlight/Play 내부 테스트, OTA 정책, 버전 게이트 |
-| `FE-REQ-052` | 도메인 zone (2026-10-30, `ADR-005`) | 규칙 개정 · 레지스트리 5 zone · lint 도메인 축 · `web-tax` 삭제 |
+| `FE-REQ-052` | 도메인 zone (2026-10-30, `ADR-005`) | 규칙 개정 · 레지스트리 5 zone · lint 도메인 축 · `web-tax` 삭제 — **done 2026-11-02** |
 | `FE-REQ-053` | 투자 zone 분리 | `domain-invest` + `apps/web-investment`, 동작 변경 0 |
 | `RN-REQ-032` | 모바일 도메인 정렬 | 번들 이름 · 4탭 · 네이티브/웹뷰 경계 · 기존 RN REQ 대체 블록 |
 | `SRV-REQ-043` | Kotlin 플랫폼 S0 (`ADR-006`) | Gradle 멀티모듈 · Spring Modulith · Compose · 규칙 Kotlin 판 |
@@ -201,7 +201,7 @@ flowchart TB
 | 3 | 추가된 기능 | ~~F008 FR-73 **해설 다듬기 공급자 라우팅** — 로컬 CLI(Claude Code · Codex) / 없거나 모바일이면 Gemini(`SRV-REQ-050` → `BFF-REQ-050` → `FE-REQ-059`)~~ **구현 2026-11-02** + 진짜 스트리밍 · 깊은 분석(`feat/f008-explain-llm-routing`, `F008-explain-llm-routing-slice.md`) | 2026-11-02 사용자 결정. 근거: 블라인드 A/B 템플릿 20/20 · Gemini 할당량 소진 |
 | 3 | 추가된 기능 | ~~국내 탭 요약을 코인과 같은 정보로(`DB-REQ-035` → `SRV-REQ-042` → `BFF-REQ-044` → `FE-REQ-050`)~~ **구현 2026-11-02**(`feat/kr-market-summary`, `F011-kr-market-summary-slice.md` — 원/달러 칸은 범위에서 뺌: 실전 키 안 씀) | 새 서버 계약(지수 분 기록 · 국내 요약 경로) — 데이터가 먼저라 기능 쪽에 둔다. 띠의 "다가오는 일정" 칸은 바로 위 슬라이스 24 를 쓴다 |
 | 3 | 추가된 기능 | F008 슬라이스 24 **2단계** — 종목 실적 공시 · 예상 창 | DART 사용 결정(2026-10-30) — 공시 수집 `FC-REQ-026`(온톨로지 `FC-REQ-022` 뒤) 다음 |
-| **3a** | 돈 관리 앱 재정의(2026-10-30) | 아키텍처 바탕 — `FE-REQ-052`(F0) → `FE-REQ-053` + `FE-REQ-055` + `BFF-REQ-046`(F1, 한 PR) · 서버 S0(`SRV-REQ-043` · `044` · `DB-REQ-036` · `BFF-REQ-045`) | `ADR-005` · `ADR-006`. 계획 `MONEY-domains-global-plan.md` |
+| **3a** | 돈 관리 앱 재정의(2026-10-30) | 아키텍처 바탕 — ~~`FE-REQ-052`(F0)~~ **done 2026-11-02**(`feat/fe-req-052-domain-zones`, `MONEY-F0-domain-zones-slice.md`) → `FE-REQ-053` + `FE-REQ-055` + `BFF-REQ-046`(F1, 한 PR) · 서버 S0(`SRV-REQ-043` · `044` · `DB-REQ-036` · `BFF-REQ-045`) | `ADR-005` · `ADR-006`. 계획 `MONEY-domains-global-plan.md` |
 | 3a | 돈 관리 앱 재정의 | F012 저축(S1 · F3) → F013 가계부(S1 · F4) → F014 금융 팁(S2 · F5, 법무 확인 뒤 공개) → F015 나머지(S3) | 투자 남은 작업과 **번갈아** — 투자만 연속으로 잡지 않는다 |
 | 3a | 예측 바탕 | `FC-REQ-022` 온톨로지(O1 · O2) → `FC-REQ-023` 에이전트(O3) · `FC-REQ-024` 개인 재무 채점(S1 과 같이) | `ADR-007`. F008 FR-25 · FR-41 |
 | **4** | 착수 전 기능 | F006 코치 대화 + 3탭 IA(`FE-REQ-030`~`033` · `BFF-REQ-027`~`030`) · F003 적립(`FEATURE-003`, to-do) | 범위가 커서 3 다음. 시작 전에 기획서 재확인 |
@@ -242,9 +242,10 @@ flowchart TB
 
 | REQ | 상태 | 비고 |
 |---|---|---|
-| `FE-REQ-007` MFE 교체 | **done** | Multi-Zones 전환(`apps/web` + `apps/web-tax`). 미충족 6건 중 **2건이 닫혔다** — §4-6(브라우저 확인)은 `FE-REQ-008`, §4-4(레이어 검사 수단)는 `FE-REQ-009`. 남은 4건은 판정 대상(경로·배포 인프라·zone 넘나드는 기능·스트리밍 전제 화면)이 **아직 없어서** 이 REQ 안에서 닫을 방법이 없다. `checklists/FE-REQ-007.md` §4 |
+| `FE-REQ-007` MFE 교체 | **done** | Multi-Zones 전환(`apps/web` + ~~`apps/web-tax`~~ — **정정 2026-11-02** 삭제, zone = 도메인 5 `FE-REQ-052`). 미충족 6건 중 **2건이 닫혔다** — §4-6(브라우저 확인)은 `FE-REQ-008`, §4-4(레이어 검사 수단)는 `FE-REQ-009`. 남은 4건은 판정 대상(경로·배포 인프라·zone 넘나드는 기능·스트리밍 전제 화면)이 **아직 없어서** 이 REQ 안에서 닫을 방법이 없다. `checklists/FE-REQ-007.md` §4 |
 | `FE-REQ-008` App Router + 스트리밍 SSR | **done** | 두 zone 모두 App Router. 스트리밍 게이트 **첫 블록 p95 31.9ms**(기준 300ms), 번들 증가 최대 +16.2 kB gzip(예산 40KB). 미충족 7건 중 **2건이 닫혔다**(§6-1 FSD pages 레이어 → `FE-REQ-009`, §6-7 Codex 미러 → 하네스 제거). **§6-4(인증 토큰이 `localStorage`)는 이 REQ 의 실제 미달**이고 `FE-REQ-013`이 담당한다. `checklists/FE-REQ-008.md` §6 |
 | `FE-REQ-009` FSD 전환 | **done** | 두 zone 모두 6레이어. 슬라이스 8개(`auth`·`goal`·`market`·`portfolio` / `sign-in`·`add-goal` / `home-briefing`·`market-board`). `layer-check` 훅 + `@repo/fsd/layers` lint가 **같은 규칙 표 하나**를 읽는다(차단 8 · 통과 5 테스트). 렌더 동일성 4경로 × 3뷰포트 통과, 공통 청크 증가 **0**. 남은 것은 `checklists/FE-REQ-009.md` §8 — 이 REQ 미달 2건(FR-37 · `/investments` +7kB), 범위 밖 5건 |
+| `FE-REQ-052` zone = 도메인(F0) | **done** 2026-11-02 | zone 앱 5(도메인 4 빈 골격) · 레지스트리 `registry.json`(TS · CommonJS + 대조 테스트) · `hostedIn`(화면은 아직 셸) · 셸 rewrites 생성(경로 `fallback`) · lint/훅 도메인 축 4 · `web-tax` 삭제. 셸 공용 청크 105 → 105 kB. 남은 것은 `checklists/FE-REQ-052.md` §4 — 화면 이전 `FE-REQ-053` · `056` |
 | `SRV-REQ-006` DDD 전환 | **done** (4/4단계) | `shared` Kernel + `layer-check` 훅·ESLint(1) · `coach/domain/policy` 추출 + 특성화 테스트 23건(2) · `news`·`market`·`portfolio` 이관(3, FR-32a) · **`coach` 통합(4, FR-32)**. 컨텍스트 **4개** · 동사형 유스케이스 **49개** · 공개 API **17개**. `modules` 15 → 12 → **8개**(원문 29파일 3,538줄 삭제). 테스트 18 → 85 → **137건**. 4단계에서 **같은 이름의 값이 경로마다 다르게 정의돼 있던 것**(기술 지표 주기 `m5` vs 무관)이 드러나 통일했다. 그 뒤 **미충족 8건을 닫았다**(§12) — **수익률 예측(`expectedReturn`) 제거**, 외부 호출 타임아웃·지수 백오프(캔들 수집 실패 **다수 → 0건**), `external/` 삭제, 한글 뉴스 언어 필터 복구, 공개 LLM 경로 요청 제한. 테스트 **153건**. 남은 12건은 전부 `ledger`(F001)·`DB-REQ-*`·**FR-33(`SRV-REQ-007`)**·프론트 계약을 기다린다. 상세는 `checklists/SRV-REQ-006.md` §10~§13 |
 | `FE-REQ-010` F000 UI | **in-progress** (2026-10-30 FR-33 · 37 · 70~78 · 103 `/search` · 카운터) | 수리 9건(FR-1~9)·표시·접근성·반응형에 이어 **초대 코드·온보딩 3스텝(FR-20~26·64)이 닫혔다**. 슬라이스 셋이 생겼다 — `features/accept-invite` · `widgets/onboarding-flow` · `pages/onboarding`. **회원가입 화면은 구현된 적이 없었다**(경로만 `PUBLIC_PATHS` 에 있었다). 남은 것은 FR-63 과 **브라우저 화면 실측**이다. FR-63 은 `role="tablist"` 대신 `role="group"`+`aria-pressed` 로 갔다(탭이 아니다 — tabpanel 이 없다). `checklists/FE-REQ-010.md` · **홈 보유 아이콘 · 지출 막대 삭제**(2026-09-23, 목 제거) |
 | `BFF-REQ-007` F000 FUNC | **in-progress** (2026-10-30 H절 FR-70~75 검색 · 409 전달 · 로그 가림) | D·E·F절(뉴스·관심 종목·`period`)에 이어 **G절(온보딩 3라우트·`register` 제거·rate limit)** · **A절 FR-1~5(동면 410, 2026-09-22)** 완료. **B절(홈 조립 — 동면 소스 제거 · `allSettled` · 뷰모델, 2026-10-27)** 완료. **C절(알림 1종 뷰모델 — 1종 필터 · 금액 제거 · 코드만, 2026-10-28)** 완료. A절 FR-6(1주 로그, 2026-09-29) 남음. **테스트 러너가 이 작업에서 처음 생겼다**(23건) |
@@ -347,7 +348,7 @@ flowchart TB
 살아 있었고(`SRV-REQ-009` FR-7 · 8 · `SRV-REQ-007` FR-10~14 → 8경로 410), BFF 홈 조립이 그 경로를 `Promise.all` 로 불렀고
 (`BFF-REQ-007` B절 → `allSettled` · 뷰모델 — 서버와 한 PR), 홈에 `/tax` 링크가 남아 있었다(`FE-REQ-030` FR-3 · `FEATURE-006` FR-4).
 되살리기 테스트가 **동면 셋이 동면 전부터 언제나 500** 이었음을 찾았다 — BFF `/api/app/home` 은 main 에서도 실패하고 있었다(소비처 0건).
-남은 것: 1주 로그(2026-11-03) · `apps/web-tax` zone 존속(사용자 결정).
+남은 것: 1주 로그(2026-11-03) · ~~`apps/web-tax` zone 존속(사용자 결정)~~ **정정 2026-11-02** — 닫힘: zone 을 도메인으로 다시 긋고(`ADR-005`) `apps/web-tax` 를 지웠다(`FE-REQ-052`).
 
 **F000 알림 1종 슬라이스 (서버 · BFF, 2026-10-28, `feat/f000-notification-kind-gate`)** — 동면 410 다음 F000 마지막 묶음.
 범위 `F000-notification-kind-gate-slice.md`, 검증 `checklists/F000-notification-kind-gate.md`. 알림을 만드는 곳(코치 판단 변화)이
@@ -367,6 +368,11 @@ BFF `AppError` 선택 `code`(차트 주기 422 `MARKET_CHART_PERIOD_UNSUPPORTED`
 **로컬 전체 기동 · 상태 `OPS-002` (2026-11-02, 같은 브랜치 `feat/f008-explain-citations` — 사용자 "한 브랜치로 다해")** — 사용자 "전체 서버 다 키는 명령어가 필요" · "계속 머 까먹어서".
 `ops/salt.sh up | status | down | restart | logs | plist`. 뉴스 워커 · BFF REST · WS · 시세 워커를 서버 · 예측처럼 launchd 상시로. `status` 가 마지막 뉴스 · 시세 시각으로 "떠 있는데 안 모으는" 것을 잡는다.
 뉴스 302건 수집 확인(09-29 뒤 처음). launchd 등록 2026-11-02 10:07(사용자 "등록 니가 해줘") — 전부 상시 · 뉴스 · 시세 ok.
+
+**돈 관리 앱 F0 — zone = 도메인 (FE, 2026-11-02, `feat/fe-req-052-domain-zones`)** — 사용자 "새 브랜치 파고 다음꺼 파이프라인 진행". §4-1 순위 3 넷째 줄(슬라이스 24 2단계)은 공시 수집 `FC-REQ-026` 뒤라 막혀 3a 첫 줄 `FE-REQ-052`.
+범위 `MONEY-F0-domain-zones-slice.md`, 검증 `checklists/MONEY-F0-domain-zones.md`. `ADR-005` 를 실행되는 코드로: 레지스트리 `registry.json` 한 곳(TS · CommonJS 가 읽고 대조 테스트) ·
+셸 rewrites 생성(`ZONE_<ID>_ORIGIN`, 경로 `fallback` — 셸에 남은 화면이 이긴다) · zone lint 가 레지스트리 전체 · 훅/lint 도메인 축 4(도메인 간 · 셸 → 도메인 · 남의 도메인 · 얇은 zone) ·
+빈 zone 앱 4 · `apps/web-tax` 삭제. 화면은 옮기지 않았다 — 레지스트리 `hostedIn` 이 "지금 서비스하는 앱"을 적어 셸 안 투자 링크는 그대로 `<Link>`. 화면 이전은 `FE-REQ-053`(투자) · `056`(저축).
 
 **F011 국내 탭 요약 띠 (DB · 서버 · BFF · FE, 2026-11-02, `feat/kr-market-summary`)** — 사용자 "새 브랜치 파고 다음꺼 파이프라인 진행"(§4-1 순위 3 셋째 줄).
 범위 `F011-kr-market-summary-slice.md`, 검증 `checklists/F011-kr-market-summary.md`. 국내 탭 머리의 코스피 · 코스닥 상자 둘을 코인과 **같은 띠 컴포넌트**로(대표 코스피 · 코스닥 +
@@ -862,3 +868,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-02 | **F011 국내 탭 요약 띠 구현(DB · 서버 · BFF · FE).** `DB-REQ-035`(done — FR-2 보존 정정 · FR-5 지수 열 추가) · `SRV-REQ-042`(in-progress → **done 같은 날** — FR-3 원/달러는 범위에서 뺌 · FR-4 코드 변경 없음 · FR-8 쿼리 수 정정) · `BFF-REQ-044`(done — FR-1 정정) · `FE-REQ-050`(done — FR-8 일정 줄 제거 추가). 정정: `FE-REQ-041` FR-31 · `FE-REQ-046` FR-5 · FEATURE-006 FR-65 · FEATURE-011 FR-48. 파일만 걸침: `SRV-REQ-040` · `008` · `036` · `041` · `DB-REQ-033` · `036` · `FC-REQ-020` · `BFF-REQ-040` · `043` · `FE-REQ-010` · `012` · `026` · `037` · `040` · `042` · `008` · `029`. 규칙 `fsd-widgets.md` · `layered-architecture.md` market-board 행 |
 | 2026-11-02 | **F011 국내 탭 요약 띠 후속** — `d57f10fb` fix(fe): 1379px 이하 요약 띠 항목 열이 페이지 밖으로 145px 넘치던 기존 결함 · 상자 숨김 때문에 1280 폭에서 국내 일정이 사라진 퇴행 고침(`FE-REQ-037` FR-7 정정 · `FE-REQ-050` FR-9). FEATURE-008 이력(`FE-REQ-046` FR-5 정정) |
 | 2026-11-02 | **F011 국내 탭 요약 띠 done** — 원/달러 칸을 범위에서 뺌(사용자 "안되는것들은 빼 실전키 안할거니까"). `SRV-REQ-042` · 루트 슬라이스 done 으로. 슬라이스 4 체크리스트의 "휴장일 TR 권한(실전 키)" 행도 정정(이미 KRX 공시 표로 닫힘) |
+| 2026-11-02 | **돈 관리 앱 F0 — `FE-REQ-052` done(FE).** zone 앱 5(도메인 4 빈 골격) · 레지스트리 `registry.json` · `hostedIn` · 셸 rewrites 생성(`fallback`) · lint/훅 도메인 축 · `web-tax` 삭제(`ADR-002` §5 닫음). 기존 REQ: `FE-REQ-007`(본문 세금 zone 행 그 자리 정정) · `008` · `009`(도메인 축) · `035` · `044`(파일만 걸침) · `053` · `056`(`hostedIn` 전환 몫 추가). §2 지도 · §4-1 3a · §7 상태표 · 슬라이스 단락. 규칙 `microfrontend.md` §0 · `layered-architecture.md` §1 · §3 · §4(도메인 패키지 열) · §8 · `fsd-pages.md` · `performance-frontend.md` · 스킬 2 · 루트 · 영역 `CLAUDE.md` |
