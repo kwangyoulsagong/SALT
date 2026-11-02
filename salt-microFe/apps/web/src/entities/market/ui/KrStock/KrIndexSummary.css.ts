@@ -10,6 +10,8 @@ export const strip = style({
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
   gap: vars.space.sm,
+  // 앱 본문 글꼴 — 지정하지 않으면 띠 자리가 상속 없이 시스템 명조로 떨어졌다(2026-11-02 실화면, 아래 일정 줄과 같은 결함)
+  fontFamily: vars.fontFamily.base,
 });
 
 export const card = style({
