@@ -47,18 +47,14 @@ export class PrismaMonthlyReviewStore implements MonthlyReviewStore {
     assetType: OutcomeAssetType = "crypto"
   ): Promise<StoredMonthlyReview> {
     const payload = JSON.parse(JSON.stringify(review)) as Prisma.InputJsonValue;
-    try {
-      const row = await prisma.monthlyReview.create({
-        data: { userId, assetType, month: review.month, payload, generatedAt },
-        select: SELECT,
-      });
-      return toStored(row);
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        const existing = await this.find(userId, review.month, assetType);
-        if (existing) return existing;
-      }
-      throw error;
-    }
+    // 이미 있으면 아무것도 하지 않는 삽입(ON CONFLICT DO NOTHING) 뒤 읽는다 — 동시에 같은 달을 만들어도 먼저 쓴 것 하나가
+    // 남고 둘 다 그것을 돌려받는다. 오류 코드(P2002)를 잡아 되살리던 꼴을 걷었다(2026-11-02, 코치 프로필과 같은 처리)
+    await prisma.monthlyReview.createMany({
+      data: [{ userId, assetType, month: review.month, payload, generatedAt }],
+      skipDuplicates: true,
+    });
+    const stored = await this.find(userId, review.month, assetType);
+    if (!stored) throw new Error(`monthly review missing after insert: ${review.month}`);
+    return stored;
   }
 }
