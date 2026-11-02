@@ -40,4 +40,6 @@ export const EXPLAIN_MESSAGES = {
   /** 템플릿이 최종 — AI 가 실패했거나 꺼져 있다 */
   templateNote: "근거 데이터로 만든 문장이에요. AI 다듬기는 이번에 쓰지 못했어요.",
   citationsLabel: "출처",
+  /** 출처 칩 링크 — 스크린리더가 매체 이름만 읽으면 어느 기사인지 모른다 */
+  citationLinkLabel: (source: string, title: string) => `${source} 원문 새 탭에서 열기: ${title}`,
 } as const;

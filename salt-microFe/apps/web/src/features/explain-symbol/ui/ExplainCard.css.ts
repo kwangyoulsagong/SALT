@@ -188,4 +188,15 @@ export const chip = style({
   animation: `${fadeUp} ${vars.motion.duration.base} ease both`,
 });
 
+/** 출처 칩 안의 원문 링크 — 칩 색을 그대로 쓰고 밑줄은 가리킬 때만 */
+export const chipLink = style({
+  color: "inherit",
+  textDecoration: "none",
+  selectors: {
+    "&:hover": { textDecoration: "underline" },
+    // 다른 폼 · 링크와 같은 초점 표시(`RiskBudgetForm` · `Preflight`) — 보라 초점색을 새로 들이지 않는다
+    "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px", borderRadius: vars.radius.full },
+  },
+});
+
 export const flash = style([note, { ...still, animation: `${fadeUp} 300ms ease both` }]);
