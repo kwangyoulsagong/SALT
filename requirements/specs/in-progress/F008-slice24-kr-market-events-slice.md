@@ -15,7 +15,7 @@ status: in-progress (1단계 구현 2026-11-02)
 
 | 단계 | 내용 | 시작 조건 |
 |---|---|---|
-| 1 | 금통위 · 국내 물가 · 수출입 · 선물옵션 동시만기 — 일정 · 국내 종목 반응 · 국내 상세 카드 · 국내 탭 일정 띠 | 없음 |
+| 1 | 금통위 · 국내 물가 · 수출입 · 선물옵션 동시만기 — 일정 · 국내 종목 반응 · 국내 상세 카드 · ~~국내 탭 일정 띠~~ **정정 2026-11-02: 국내 탭 일정 줄은 국내 요약 띠의 오늘의 시장 상자로 옮겼다**(`FE-REQ-050` FR-4 · FR-8) | 없음 |
 | 2 | 종목 실적 공시(잠정실적 · IR 일정) · 과거 공시일 기준 예상 창 | DART 공시 수집 허용(`FC-REQ-021` Q1) |
 
 | 영역 | REQ | 몫 |
@@ -24,7 +24,7 @@ status: in-progress (1단계 구현 2026-11-02)
 | DB | `salt-server/requirements/specs/in-progress/DB-REQ-034-F008-KR-MARKET-EVENTS.md` | 종류 확장 · `symbol` 열 · PK 교체 · 예상 창 테이블 |
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-041-F008-KR-MARKET-EVENTS.md` | 국내 종목 읽기 · 범위/지역 · 다가오는 일정 경로 |
 | BFF | `bff/requirements/specs/in-progress/BFF-REQ-043-F008-KR-MARKET-EVENTS.md` | 중계 |
-| 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-046-F008-KR-MARKET-EVENTS.md` | 국내 상세 카드 · 국내 탭 일정 띠 |
+| 프론트 | `salt-microFe/requirements/specs/in-progress/FE-REQ-046-F008-KR-MARKET-EVENTS.md` | 국내 상세 카드 · ~~국내 탭 일정 띠~~ **정정 2026-11-02: 국내 탭 일정 줄은 국내 요약 띠의 오늘의 시장 상자로 옮겼다**(`FE-REQ-050` FR-4 · FR-8) |
 | 주인 REQ(구현 때 Changelog) | `FC-REQ-005` · `DB-REQ-029` · `SRV-REQ-037` · `BFF-REQ-037` · `FE-REQ-038` · `FE-REQ-041` · `FEATURE-006` FR-65 | 같은 함수 · 테이블 · 카드를 넓힌다 |
 
 ## 판단 — 리뷰가 볼 곳
@@ -51,4 +51,4 @@ status: in-progress (1단계 구현 2026-11-02)
 7. **시장 대용 = 동일가중**(`KR-EW`) — 지수 일봉 이력이 없다(Q3). 시점 고정 구성
 8. **기본 반응 종목 = 보유 · 관심 국내 ∪ 거래대금 상위 30** — 예측은 소유자를 모른다(FR-6 정정)
 9. **다가오는 일정 경로는 `market` 컨텍스트** · 새 뷰 `v_upcoming_event`(`DB-REQ-034` FR-7) — 통계와 조인한 뷰로는 막 쌓인 일정이 안 보인다
-10. **화면상 일정 줄은 소유자만** — 국내 탭 자체가 소유자에게만 보인다. 계약은 공개(`FE-REQ-046` FR-5)
+10. **화면상 일정 ~~줄~~은 소유자만** — 국내 탭 자체가 소유자에게만 보인다. 계약은 공개(`FE-REQ-046` FR-5). **정정 2026-11-02: 국내 탭 일정 줄은 국내 요약 띠의 오늘의 시장 상자로 옮겼다**(`FE-REQ-050` FR-4 · FR-8)

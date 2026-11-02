@@ -17,7 +17,7 @@ F011 에서 남은 슬라이스는 6(부가 정보, 전부 Should) 하나였다.
 | 서버 | `salt-server/requirements/specs/in-progress/SRV-REQ-040-F011-KR-STOCK.md` FR-49 · 50 | 조회 TR 2 · 수집(지수 매분 · 투자자 18:40) · 읽기 경로 2(소유자 404) · 부가 작업 한도 양보 |
 | DB | `salt-server/requirements/specs/done/DB-REQ-033-F011-KR-STOCK.md` FR-7 · 8 | `kr_index_quotes` · `kr_stock_investor_flows` |
 | BFF | `bff/requirements/specs/done/BFF-REQ-040-F011-KR-STOCK.md` FR-27 · 28 | 경로 · 뷰모델 |
-| 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-041-F011-KR-STOCK.md` FR-31 · 32 | 국내 탭 지수 띠 · 상세 투자자 표 |
+| 프론트 | `salt-microFe/requirements/specs/done/FE-REQ-041-F011-KR-STOCK.md` FR-31 · 32 | 국내 탭 지수 띠(**2026-11-02 요약 띠로 대체 — `FE-REQ-050`**) · 상세 투자자 표 |
 | 주인 REQ(Changelog) | `SRV-REQ-008` · `SRV-REQ-024` · `SRV-REQ-036` · `FE-REQ-010` · `FE-REQ-012` · `FE-REQ-013` · `FE-REQ-037` · `FC-REQ-020` | 조립 · 설정 · 요약 정책 · 엔드포인트 · 성능 · 요약 띠 자리 · 예측(피처 아님) |
 | 짝(변경 없음) | 예측 — 투자자 기록을 읽지 않는다 | — |
 

@@ -291,3 +291,9 @@
 - `ExplainCard.tsx`(이 REQ 가 머리 주석 주인) 출처 칩이 원문 링크 + 게시 시각(주인 FR 은 `FE-REQ-038` FR-7). 이 REQ 화면 구조 무변경. `pnpm check-types` · `lint` · `web build` 통과
 
 미검증: 없음(화면 확인은 `FE-REQ-038` 표).
+
+## 국내 탭 요약 띠 (F011, 2026-11-02)
+
+- 변경: 파일만 걸침 — `pages/investments/ui/InvestmentsBoard.tsx` — 머리 띠를 `renderLead(assetClass)` 로 주입(자산군 탭마다)
+- 검증: `check-types` · `lint` · `test`(core 55 · ui 43) · `test:layer-check` · 훅 사후 실행 exit 0 · `web`(154 · 137 kB) · `web-tax` 빌드 · 실화면 3000 국내 · 코인 탭
+- 미검증 · 범위 밖: 없음

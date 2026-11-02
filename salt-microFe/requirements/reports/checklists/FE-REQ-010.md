@@ -243,3 +243,9 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 - 변경: 시장 엔드포인트 · 쿼리 키에 국내 일정 · 시장 보드 레이아웃 css 에 일정 자리(44) — 같은 파일
 - 검증: check-types · lint · build
 - 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
+
+## 국내 탭 요약 띠 (F011, 2026-11-02)
+
+- 변경: 파일만 걸침 — `entities/market/api/endpoints.ts` · `queryKeys.ts`(국내 요약 · 지수/일정 삭제) · `model/messages.ts`(요약 문구 기준별) · `widgets/market-board/ui/MarketBoardLayout.css.ts`(옛 지수 · 일정 자리 스타일 삭제)
+- 검증: `check-types` · `lint` · `test`(core 55 · ui 43) · `test:layer-check` · 훅 사후 실행 exit 0 · `web`(154 · 137 kB) · `web-tax` 빌드 · 실화면 3000 국내 · 코인 탭
+- 미검증 · 범위 밖: 없음

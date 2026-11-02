@@ -61,3 +61,9 @@
 
 - 파일만 걸침 — 웹 `entities/market/model/messages.ts` 에 차트 기간 이름 `1w`. 시장 요약 문구 무변경
 - 미검증 · 범위 밖: 없음
+
+## 국내 탭 요약 띠 (F011, 2026-11-02)
+
+- 변경: 칸 · 상자 컴포넌트 선택 prop 과 null 허용, 띠의 자산군 선택
+- 검증: `check-types` · `lint` · `test`(core 55 · ui 43) · `test:layer-check` · 훅 사후 실행 exit 0 · `web`(154 · 137 kB) · `web-tax` 빌드 · 실화면 3000 국내 · 코인 탭 — 코인 띠 실화면 무변경
+- 미검증 · 범위 밖: 없음

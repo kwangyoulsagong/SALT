@@ -327,3 +327,9 @@ FR-11("인증 토큰을 클라이언트로 내리지 않는다 — 쿠키에서 
 - 변경: `MarketBoard.tsx` 에 지연 로드 잎 하나(`KrScheduleStrip`, `ssr: false` · 높이 고정 자리) — 스트리밍 경계 무변경
 - 검증: `/investments` 첫 로드 154 kB 그대로
 - 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
+
+## 국내 탭 요약 띠 (F011, 2026-11-02)
+
+- 변경: 파일만 걸침 — `widgets/market-board/ui/MarketBoard.tsx` — 지연 잎 `KrIndexStrip` · `KrScheduleStrip` 삭제, `MarketSummaryStrip`(`ssr: false` · 자리 고정) 두 탭 공용. 스트리밍 경계 무변경
+- 검증: `check-types` · `lint` · `test`(core 55 · ui 43) · `test:layer-check` · 훅 사후 실행 exit 0 · `web`(154 · 137 kB) · `web-tax` 빌드 · 실화면 3000 국내 · 코인 탭
+- 미검증 · 범위 밖: 없음

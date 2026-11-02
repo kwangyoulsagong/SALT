@@ -103,3 +103,9 @@
 - 변경: `market/domain/ports.ts` 에 `MarketScheduleReader`(`forecast.v_upcoming_event`, `DB-REQ-034` FR-7) — 같은 파일, 이 REQ 의 표는 무변경
 - 검증: 변경 없음 — 같은 파일 다른 포트
 - 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
+
+## 국내 탭 요약 띠 (F011, 2026-11-02)
+
+- 변경: 지수 행 열 3 · 저장소 메서드 4
+- 검증: `build` · `lint` · `test` 936 / 0 · `test:layer-check` · Swagger 생성 · 실서버 4000 소유자 200 · `EXPLAIN` 0.18 / 1.2ms
+- 미검증 · 범위 밖: 없음

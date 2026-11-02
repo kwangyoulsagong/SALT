@@ -43,3 +43,4 @@ MSA(`ADR-006`)의 전제는 **테이블 하나에 주인 하나**다. 물리 DB 
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): FR-2 주인 표 대상 모델 42 → **43** — `KrIndexTick`(`kr_index_ticks`, 주인 `market`). `KrIndexQuote` 열 3 추가(주인 그대로) |

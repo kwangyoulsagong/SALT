@@ -255,6 +255,7 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-09-23 | 홈 보유 목록에 종목 아이콘(BFF `logoUrl`), 지출 막대 삭제(목 제거), 목표 D-Day · 달성률은 서버에 없어 "—" |
 | 2026-10-08 | F011 슬라이스 3b — 홈 보유 목록에 국내 주식 행(배지 "국내주식"). 아이콘 이니셜을 숫자 코드 대신 이름으로("00" → "삼"). 거래 기록 뒤 요약 무효화(`record-transaction`). 근거 `FE-REQ-041` FR-18 |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 시장 엔드포인트 · 쿼리 키에 국내 일정 · 시장 보드 레이아웃 css 에 일정 자리(44) — 같은 파일 |
+| 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — `entities/market/api/endpoints.ts` · `queryKeys.ts`(국내 요약 · 지수/일정 삭제) · `model/messages.ts`(요약 문구 기준별) · `widgets/market-board/ui/MarketBoardLayout.css.ts`(옛 지수 · 일정 자리 스타일 삭제) |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

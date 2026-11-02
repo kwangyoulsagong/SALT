@@ -224,6 +224,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 | 2026-10-28 | **알림 1종 · 코드만 · 금액 없음을 닫았다**(FR-20~22 · 24 · 25, 루트 `F000-notification-kind-gate`, `feat/f000-notification-kind-gate` `3320883`). 새 `notification` 컨텍스트(레지스트리 기존 행) — 만드는 길은 공개 API `NotificationApi.publish` 하나이고 관문 셋(`policy/kindGate` · `messageGuard` 코드 형식 · 금액 인자)이 거기 있다. 코치 판단 변화는 `decision_change` + 완성 문장 → `signal_update` + `coach.decision_changed` + 코드 인자. 마이그레이션 `20261028100000_notification_message_code`(`messageCode` 추가 · `title`/`message` nullable). `modules/investment-notification` 삭제(경로 같음). FR-23 은 손대지 않음(조회 경로 그대로) |
 | 2026-10-08 | F011 슬라이스 3b — `UpdateHoldingPrices`(BFF 내부 시세 반영)가 `crypto` 보유만 갱신(`findBySymbols(symbols, assetType)`). 국내 주식 보유는 서버가 저장 시세로 평가(`RevalueKrStockHoldings`, `SRV-REQ-040` FR-34). 보유 요약 · 통계는 자산군을 섞어 그대로 합산(원화끼리) |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `composition.ts` 에 `PrismaMarketScheduleReader` 조립 · 예측이 보유 · 관심 국내 종목(`symbol` 만)을 읽는 근거로 FR-87(국내 추가 = 소유자만)을 인용 |
+| 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — `prisma/schema.prisma`(`KrIndexTick` 모델 · `KrIndexQuote` 열 3) · `src/composition.ts`(국내 요약 정책 · 수집 지수 합집합) |
 
 ## 구현이 REQ와 다른 지점 (2026-10-28)
 

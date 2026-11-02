@@ -182,3 +182,4 @@ created: 2026-09-09
 | 2026-10-30 | F004 슬라이스 20 — `/coach/report` 1.65 → 1.66 kB · 첫 로드 130 kB 그대로(리스크 종목별 칩). 루트 `requirements/specs/done/F004-risk-asset-filter-slice.md` |
 | 2026-11-02 | F008 해설 근거 — `/investments/[symbol]` 3.06 kB · 첫 로드 137 kB 그대로(해설 출처 칩 링크 · 시각). 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 번들 — `/investments` 154 kB · `/investments/[symbol]` 137 kB, 직전 기록과 같음(새 코드는 지연 조각) · 새 의존 0 |
+| 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 번들 — `/investments` 7.42 kB · 첫 로드 154 kB · `/investments/[symbol]` 137 kB, 직전 기록과 같음(띠는 지연 조각, 옛 지수 · 일정 잎 삭제) · 새 의존 0 |

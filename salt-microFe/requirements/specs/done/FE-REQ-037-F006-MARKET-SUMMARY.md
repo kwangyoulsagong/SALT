@@ -68,3 +68,4 @@ created: 2026-09-22
 - 2026-09-22 개정 — 사용자 피드백 "너무 텅 비었다 · 우측에 설명 같은 걸": 항목 3열(서버 기본 9개), 대표 칸 아래 고가 · 저가 · 거래대금, 오른쪽 "오늘의 시장" 상자(FR-10). 상자 첫 안(두 줄 문장 + 굵은 막대)은 "구리다"로 수 세 칸 + 얇은 막대로. 스켈레톤을 실제 배치 · 폭과 같게. 항목 열 260 → 280(ETH 변동률 잘림)
 - 2026-10-30: 파일만 걸침 — `useMarketQueries.ts` 에 `useAssetSearch` 추가. 시장 요약 훅 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: 파일만 걸침 — 웹 `entities/market/model/messages.ts` 에 차트 기간 이름 `1w`. 시장 요약 문구 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
+- 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 칸 컴포넌트(`MarketSummaryFeatured` · `MarketSummaryItemLink`) · 오늘의 시장 상자가 국내 칸도 받는다 — `href?`(없으면 링크 아닌 `span`, 호버 면 없음) · `changeBasis` · `windowLabel` prop, `logoUrl` · 고가 · 저가 · 거래대금 null 허용, 상자에 `schedule` 행. `MarketSummaryStrip` 이 `assetClass` 로 조회를 고른다 · `useMarketSummary(enabled)`. 코인 화면 무변경(실화면 대조)

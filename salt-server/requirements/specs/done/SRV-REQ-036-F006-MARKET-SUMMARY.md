@@ -46,3 +46,4 @@ created: 2026-09-22
 - 2026-09-22 개정 — FR-7 · FR-8(분위기 · 뉴스 · 고가/저가/거래대금), 기본 종목 10개. 화면이 비어 보인다는 피드백
 - 2026-10-30: 파일만 걸침 — `investment.controller.ts` 에 `searchAssets` 핸들러 추가. 시장 요약 경로 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: 파일만 걸침 — 서버 `investment.controller.ts` 차트 주석의 REQ 인용 정정(`FE-REQ-010` → `SRV-REQ-008` FR-51, `36b09989`). 시장 요약 경로 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
+- 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): **변경 없음**(코인 경로) — 국내 요약(`SRV-REQ-042`)이 같은 응답 열 · 같은 태그 함수 `summaryTagsOf` · 분위기 모양 `MarketBreadth` 를 쓴다

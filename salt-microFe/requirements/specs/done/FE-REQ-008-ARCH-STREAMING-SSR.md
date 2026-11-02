@@ -207,3 +207,4 @@ RSC에서는 그 근거가 달라진다. 서버 컴포넌트가 BFF를 여러 �
 
 - 2026-10-30: 파일만 걸침 — `MarketBoard.tsx` 머리에 "종목 검색 ›" 링크(코치 리포트 링크 옆). 스트리밍 경계 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-11-02: F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `MarketBoard.tsx` 에 지연 로드 잎 하나(`KrScheduleStrip`, `ssr: false` · 높이 고정 자리) — 스트리밍 경계 무변경
+- 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — `widgets/market-board/ui/MarketBoard.tsx` — 지연 잎 `KrIndexStrip` · `KrScheduleStrip` 삭제, `MarketSummaryStrip`(`ssr: false` · 자리 고정) 두 탭 공용. 스트리밍 경계 무변경

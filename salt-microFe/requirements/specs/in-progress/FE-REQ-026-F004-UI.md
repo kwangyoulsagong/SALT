@@ -410,3 +410,4 @@ PC                                                   모바일(세로 스택)
 | 2026-10-30 | F004 슬라이스 19 차트 1주 탭 — **FR-132 기간 탭 6개 완료**(`52d6c1ee`): 1주 = 서버 `week` 주봉 200개(약 4년) · 실시간 아님 표시. 선 · 띠 · `예측 아님` 은 기간과 무관하게 그대로. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
 | 2026-10-30 | F004 슬라이스 20 — **FR-166 신설 · 완료**(`13900cd8`): 리포트 "주의할 점" 종목별 칩(`FEATURE-004` FR-3 의 "자산별 필터"를 이 REQ 에 FR 로 내림 — 그전엔 화면 구조 트리에 정렬만 있었다). `Chip` 은 종목 검색 필터와 같은 모양. 루트 `requirements/specs/done/F004-risk-asset-filter-slice.md` |
 | 2026-11-02 | 파일만 걸침 — `ExplainCard.tsx`(이 REQ 가 머리 주석 주인) 출처 칩이 원문 링크 + 게시 시각(주인 FR 은 `FE-REQ-038` FR-7). 이 REQ 화면 구조 무변경. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
+| 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — `pages/investments/ui/InvestmentsBoard.tsx` — 머리 띠를 `renderLead(assetClass)` 로 주입(자산군 탭마다) |
