@@ -22,6 +22,16 @@
  * - **레이어 축** — FSD 6레이어 · 슬라이스 (아래 대부분)
  * - **도메인 축** — `domain-*` 끼리 금지 · 셸 → `domain-*` 금지 · zone 앱은 자기 도메인 패키지만 ·
  *   zone 앱 `src/{entities,features,widgets}` 금지. 도메인 목록은 zone 레지스트리(`registry.json`)에서 온다
+ *
+ * ## 레이어가 앱 밖 패키지에도 있다 (`FE-REQ-053`)
+ *
+ * | 위치 | 레이어 | 단위 |
+ * |---|---|---|
+ * | `apps/<app>/src/<layer>/<slice>` | 6레이어 | 슬라이스 |
+ * | `packages/domain-<x>/src/<layer>/<slice>` | `entities` · `features` · `widgets` · `pages` | 슬라이스 |
+ * | `packages/web-shared/src/<segment>` | `shared` 하나(+ `layout` — 공용 레이아웃) | 패키지 전체 |
+ *
+ * `@repo/web-shared/<segment>` 는 `@/shared/<segment>` 와 같은 판정을 탄다 — 세그먼트 내부 경로 금지(`*.css` 예외).
  */
 
 const zones = require("../core/src/zones/registry.cjs");
@@ -56,6 +66,8 @@ const REGISTRY = {
     "news",
     "notification",
     "device",
+    // 셸 홈 요약 카드 조회 · 표시 — 도메인을 모르는 카드 계약(`FE-REQ-055`)
+    "home",
   ],
   features: [
     "ask-coach",
@@ -68,7 +80,7 @@ const REGISTRY = {
     "accept-invite",
     "arrange-panels",
     "sign-in",
-    "sign-out",
+    // "sign-out" — 헤더 프로필 메뉴는 zone 이 같이 쓴다 → `@repo/web-shared/layout` (FE-REQ-053)
     "search-asset",
     "toggle-news-bookmark",
     "switch-coach-mode",
@@ -114,10 +126,21 @@ const REGISTRY = {
     "onboarding",
     "login",
     "streaming-probe",
-    // 404 — `app/not-found.tsx` 가 re-export (FE-REQ-044 P-15)
-    "not-found",
+    // "not-found" — 404 는 zone 이 같이 쓴다 → `@repo/web-shared/layout` (FE-REQ-044 P-15 → FE-REQ-053)
   ],
 };
+
+/** 웹 shared 레이어 패키지 (`FE-REQ-053`). 셸과 도메인 zone 이 같이 쓴다 */
+const WEB_SHARED_PACKAGE = "@repo/web-shared";
+
+/**
+ * `@repo/web-shared` 의 공개 단위 — shared 세그먼트 + `layout`(zone 루트 레이아웃이 같이 쓰는 것: 프로바이더 · 프레임 · 프로필 메뉴 · 404 · 글꼴).
+ * `layout` 은 `FE-REQ-054` 가 `@repo/ui` `AppChrome` 으로 옮길 때까지의 자리다.
+ */
+const WEB_SHARED_ENTRIES = [...SHARED_SEGMENTS, "layout"];
+
+/** 도메인 패키지 안에 둘 수 있는 레이어. shared 는 `@repo/web-shared`, app 은 zone 앱이 갖는다 */
+const DOMAIN_PACKAGE_LAYERS = ["entities", "features", "widgets", "pages"];
 
 /** 루트 라우팅 파일이 import 해도 되는 것. 그 외는 전부 막는다 (FR-25). */
 const ROUTING_ALLOWED_ALIAS = ["@/pages", "@/app"];
@@ -148,39 +171,66 @@ const resolveRelative = (filePath, source) => {
 };
 
 /**
- * 상대 경로로 벗어날 수 없는 단위.
+ * 상대 경로로 벗어날 수 없는 단위 — `locate` 가 `root`(src 까지의 경로)를 준다.
  *
  * - `app` 레이어는 슬라이스가 없다 → `src/app` 전체가 한 단위
  * - `shared` 는 flat 세그먼트 → `src/shared/<segment>`
+ * - `@repo/web-shared` 는 패키지 전체가 shared 한 단위 — 세그먼트끼리 상대 경로로 잇는다(alias 가 없다)
  * - 나머지는 슬라이스 → `src/<layer>/<slice>`
  */
 const unitOf = (location) => {
   if (!location || location.area !== "src" || !location.layer) return null;
-  if (location.layer === "app") return "src/app";
+  if (location.webShared) return location.root;
+  if (location.layer === "app") return `${location.root}/app`;
   if (!location.slice) return null;
-  return `src/${location.layer}/${location.slice}`;
+  return `${location.root}/${location.layer}/${location.slice}`;
 };
 
 /** `apps/web/src/entities/market/ui/PriceCell.tsx` → 앱·영역·레이어·슬라이스 */
 const locate = (filePath) => {
   const normalized = filePath.split("\\").join("/");
+
+  // FE-REQ-053 — 웹 shared 레이어 패키지. 패키지 전체가 shared 한 레이어다
+  const sharedMatch = normalized.match(/(?:^|\/)packages\/web-shared\/(.+)$/);
+  if (sharedMatch) {
+    const parts = sharedMatch[1].split("/");
+    if (parts[0] !== "src") return { app: null, area: "other", webShared: true };
+    return {
+      app: null,
+      area: "src",
+      layer: "shared",
+      slice: parts[1] || null,
+      webShared: true,
+      root: "packages/web-shared/src",
+    };
+  }
+
   const domainMatch = normalized.match(/(?:^|\/)packages\/(domain-[^/]+)\/(.+)$/);
   if (domainMatch) {
-    return { app: null, domainPackage: `@repo/${domainMatch[1]}`, area: "domain-package" };
+    const domainPackage = `@repo/${domainMatch[1]}`;
+    const parts = domainMatch[2].split("/");
+    if (parts[0] !== "src") return { app: null, domainPackage, area: "other" };
+    const root = `packages/${domainMatch[1]}/src`;
+    // FE-REQ-053 — 패키지 안도 FSD. shared · app 은 패키지 밖(`@repo/web-shared` · zone 앱)에 있다
+    if (!DOMAIN_PACKAGE_LAYERS.includes(parts[1])) {
+      return { app: null, domainPackage, area: "src", layer: null, slice: null, unknownLayer: parts[1], root };
+    }
+    return { app: null, domainPackage, area: "src", layer: parts[1], slice: parts[2] || null, root };
   }
+
   const match = normalized.match(/(?:^|\/)apps\/([^/]+)\/(.+)$/);
   if (!match) return null;
 
   const [, app, rest] = match;
   const parts = rest.split("/");
+  const root = `apps/${app}/src`;
 
   if (parts[0] === "src") {
     const layer = parts[1];
     if (!LAYERS.includes(layer)) {
-      return { app, area: "src", layer: null, slice: null, unknownLayer: parts[1] };
+      return { app, area: "src", layer: null, slice: null, unknownLayer: parts[1], root };
     }
-    const slice = layer === "shared" ? parts[2] : parts[2];
-    return { app, area: "src", layer, slice: slice || null };
+    return { app, area: "src", layer, slice: parts[2] || null, root };
   }
 
   if (parts[0] === "app" || parts[0] === "pages") {
@@ -215,7 +265,13 @@ const checkDomainImport = (here, source, resolved) => {
   const target = domainPackageOf(source) || domainPackageOfPath(resolved);
   if (!target) return null;
 
-  if (here.area === "domain-package") {
+  if (here.webShared) {
+    return {
+      rule: "shared-domain",
+      message: `'${source}' — \`${WEB_SHARED_PACKAGE}\` 는 shared 레이어다. 도메인 화면 코드를 import 하지 않는다 (\`fsd-shared.md\`, FE-REQ-053).`,
+    };
+  }
+  if (here.domainPackage) {
     if (target === here.domainPackage) return null;
     return {
       rule: "cross-domain",
@@ -239,8 +295,19 @@ const checkDomainImport = (here, source, resolved) => {
   return null;
 };
 
+/**
+ * `@repo/web-shared/<segment>` 를 `@/shared/<segment>` 꼴로 읽는다 — 같은 shared 판정을 태운다 (FE-REQ-053).
+ * `layout` 은 shared 세그먼트가 아니라 공용 레이아웃 자리다(`WEB_SHARED_ENTRIES`).
+ */
+const asLayerAlias = (source) => {
+  if (source === WEB_SHARED_PACKAGE) return "@/shared";
+  if (source.startsWith(`${WEB_SHARED_PACKAGE}/`)) return `@/shared/${source.slice(WEB_SHARED_PACKAGE.length + 1)}`;
+  return source;
+};
+
 /** `@/entities/market/model/types` → { layer, slice, deeper } */
-const parseAliasImport = (source) => {
+const parseAliasImport = (rawSource) => {
+  const source = asLayerAlias(rawSource);
   if (!source.startsWith("@/")) return null;
   const parts = source.slice(2).split("/");
   const layer = parts[0];
@@ -298,10 +365,19 @@ const checkImport = (filePath, source) => {
 
   if (here.area !== "src" || !here.layer) return null;
 
+  // FE-REQ-053 — shared 패키지 안에는 레이어 alias 가 없다. `@/…` 는 전부 위 레이어다
+  if (here.webShared && source.startsWith("@/")) {
+    return {
+      rule: "upper-layer",
+      message: `'${source}' — \`${WEB_SHARED_PACKAGE}\` 는 shared(0) 레이어다. 앱 alias(\`@/…\`)를 import 하지 않는다. 세그먼트끼리는 상대 경로로 잇는다 (FE-REQ-053).`,
+    };
+  }
+
   // FR-22 — 다른 레이어·슬라이스는 반드시 alias 로 참조한다
   if (isRelative) {
     const unit = unitOf(here);
-    if (unit && !resolved.includes(`/${unit}/`) && !resolved.endsWith(`/${unit}`)) {
+    const padded = `/${resolved}/`;
+    if (unit && !padded.includes(`/${unit}/`)) {
       return {
         rule: "relative-escape",
         message: `'${source}' — 상대 경로가 \`${unit}\` 를 벗어난다. 다른 레이어·슬라이스는 alias(\`@/<layer>/<slice>\`)로 참조한다 (FR-22).`,
@@ -326,10 +402,12 @@ const checkImport = (filePath, source) => {
 
   if (target.layer === "shared") {
     // shared 는 flat 세그먼트다. 공개 단위는 `@/shared/<segment>`.
-    if (target.slice && !SHARED_SEGMENTS.includes(target.slice)) {
+    const fromWebShared = source.startsWith(`${WEB_SHARED_PACKAGE}/`);
+    const entries = fromWebShared ? WEB_SHARED_ENTRIES : SHARED_SEGMENTS;
+    if (target.slice && !entries.includes(target.slice)) {
       return {
         rule: "shared-segment",
-        message: `'${source}' — \`shared\` 의 세그먼트는 ${SHARED_SEGMENTS.join(" · ")} 뿐이다 (\`fsd-shared.md\`).`,
+        message: `'${source}' — \`shared\` 의 세그먼트는 ${entries.join(" · ")} 뿐이다 (\`fsd-shared.md\`).`,
       };
     }
     // 예외: vanilla-extract 토큰. barrel 로 가져오면 `.css.ts` 빌드 그래프에 React 가 들어온다.
@@ -337,7 +415,7 @@ const checkImport = (filePath, source) => {
     if (target.deeper.length > 0 && !isStyleModule) {
       return {
         rule: "segment-internal",
-        message: `'${source}' — 세그먼트 내부 경로를 직접 찌르지 않는다. \`@/shared/${target.slice}\` 로 들어온다 (FR-4). 예외는 \`*.css\` 토큰 모듈뿐이다.`,
+        message: `'${source}' — 세그먼트 내부 경로를 직접 찌르지 않는다. \`${fromWebShared ? WEB_SHARED_PACKAGE : "@/shared"}/${target.slice}\` 로 들어온다 (FR-4). 예외는 \`*.css\` 토큰 모듈뿐이다.`,
       };
     }
     return null;
@@ -392,12 +470,16 @@ const checkLocation = (filePath) => {
   }
 
   if (here.unknownLayer) {
+    const allowedLayers = here.domainPackage ? DOMAIN_PACKAGE_LAYERS : LAYERS;
     return {
       rule: "unknown-layer",
-      message: `\`src/${here.unknownLayer}\` — \`src\` 의 최상위는 6레이어(${LAYERS.join(" · ")})뿐이다 (FR-1).`,
+      message: here.domainPackage
+        ? `\`${here.root}/${here.unknownLayer}\` — 도메인 패키지의 레이어는 ${allowedLayers.join(" · ")} 뿐이다. shared 는 \`${WEB_SHARED_PACKAGE}\`, app 은 zone 앱이 갖는다 (FE-REQ-053).`
+        : `\`src/${here.unknownLayer}\` — \`src\` 의 최상위는 6레이어(${LAYERS.join(" · ")})뿐이다 (FR-1).`,
     };
   }
   if (!here.layer || here.layer === "shared" || !here.slice) return null;
+  if (here.layer === "app") return null;
 
   const allowed = REGISTRY[here.layer];
   if (allowed && !allowed.includes(here.slice)) {
@@ -427,7 +509,10 @@ const extractImportSources = (code) => {
 };
 
 module.exports = {
+  DOMAIN_PACKAGE_LAYERS,
   THIN_ZONE_FORBIDDEN_LAYERS,
+  WEB_SHARED_ENTRIES,
+  WEB_SHARED_PACKAGE,
   checkDomainImport,
   LAYERS,
   REGISTRY,

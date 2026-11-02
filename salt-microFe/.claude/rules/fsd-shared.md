@@ -1,8 +1,12 @@
 ---
-globs: apps/*/src/shared/**
+globs: packages/web-shared/src/**
 ---
 
 # shared 레이어 (Layer 0 — 최하위)
+
+> **2026-11-02 — 패키지가 됐다(`FE-REQ-053`).** 셸과 도메인 zone 이 같이 쓰므로 `apps/web/src/shared` → `packages/web-shared/src`.
+> import 는 `@repo/web-shared/<세그먼트>`(`@/shared/…` 는 없다). 판정은 전과 같다 — 세그먼트 내부 경로 금지, `*.css` 토큰 모듈만 예외.
+> 패키지 안 세그먼트끼리는 상대 경로. 같은 패키지의 `layout` 은 shared 세그먼트가 아니라 zone 루트 레이아웃이 쓰는 자리다.
 
 ## 허용 Import
 
@@ -22,8 +26,8 @@ shared/
 └── index.ts
 ```
 
-공개 단위는 **세그먼트**다: `@/shared/api` · `@/shared/config` · … . 그 안쪽 경로
-(`@/shared/lib/formatPrice`)를 직접 찌르지 않는다. 예외는 `*.css` 토큰 모듈 하나다
+공개 단위는 **세그먼트**다: `@repo/web-shared/api` · `@repo/web-shared/config` · … . 그 안쪽 경로
+(`@repo/web-shared/lib/formatPrice`)를 직접 찌르지 않는다. 예외는 `*.css` 토큰 모듈 하나다
 (`layered-architecture.md` §3).
 
 ## 원칙

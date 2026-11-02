@@ -48,3 +48,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-02 | `FE-REQ-052` done — `apps/web-savings` 빈 골격 · 레지스트리 `savings`(`/goals`). 저축 화면(`/goals/addgoals`)을 옮기는 커밋에서 `registry.json` `savings.hostedIn` 을 `"web"` → `"web-savings"` 로 |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 셸 홈 → 도메인 요약 카드(투자 블록 · 매입가 숨김 잎 삭제)(`417076d8`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |

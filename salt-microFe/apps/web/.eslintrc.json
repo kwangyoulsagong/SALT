@@ -16,7 +16,7 @@
         "paths": [
           {
             "name": "axios",
-            "message": "`@/shared/api` 의 `apiFetch` 를 쓴다. axios 는 GET 하나에 라이브러리 전체를 번들에 넣어 회귀를 세 번 냈다 (FE-REQ-035)."
+            "message": "`@repo/web-shared/api` 의 `apiFetch` 를 쓴다. axios 는 GET 하나에 라이브러리 전체를 번들에 넣어 회귀를 세 번 냈다 (FE-REQ-035)."
           },
           {
             "name": "motion/react",

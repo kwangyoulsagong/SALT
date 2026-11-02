@@ -3,7 +3,7 @@ import { Text } from "@repo/ui/text";
 import Link from "next/link";
 
 import { RedirectSignedIn, SignInForm, SIGN_IN_MESSAGES } from "@/features/sign-in";
-import { ROUTES } from "@/shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 
 import { brandMark, card, inviteRow, screen, title } from "./LoginPage.css";
 

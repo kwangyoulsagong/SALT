@@ -68,3 +68,10 @@ FR-80~93 · 95 는 `FE-REQ-026` 체크리스트 §2 · §5 가 근거다. FR-95(
 | FR-82 | 모드 스위치 코드 무변경(`history.replaceState` 만) |
 
 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 1 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+- 2026-11-02 MONEY-F1 후속 — `c5ec66ed` — 코치 리포트 맨 위 "내 보유" 패널(`HoldingsPanel` — 보유 요약 + 매입가 숨김, 사용자 결정). 리포트가 unavailable 이어도 보인다(카드 단위 격리 그대로). 실화면 숨김 끔 손익률 · 켬 숨김 + 물음 줄 · 넘침 0

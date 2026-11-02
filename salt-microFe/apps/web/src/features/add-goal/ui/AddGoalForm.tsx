@@ -11,7 +11,7 @@ import { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 
 import { useGoalDraft } from "@/entities/goal";
-import { ROUTES } from "@/shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 
 import { useAddGoal } from "../api";
 import { toCreateGoalRequest } from "../lib";

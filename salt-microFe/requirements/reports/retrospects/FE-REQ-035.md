@@ -40,3 +40,7 @@ axios 직접 호출 둘을 `apiFetch` 로 옮기고 import 를 lint 로 막았�
 ## 2026-11-02 — zone = 도메인 F0 (`FE-REQ-052`)
 
 - 파일만 걸침 — 판단 무변경. Action: 없음
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
+
+- 파일만 걸침(경로 · import) — Action 없음

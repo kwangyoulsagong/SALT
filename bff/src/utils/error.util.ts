@@ -1,3 +1,5 @@
+import axios, { AxiosError } from "axios";
+
 /**
  * `code` 는 화면이 문구를 고르는 키다(서버 `DomainError` 코드와 같은 자리). 있으면 응답 본문에 싣고, 없으면 본문 모양 그대로다
  * — 웹은 `code` 없는 실패를 `code: null` 로 받는다(`FE-REQ-012` FR-41, 2026-10-28).
@@ -108,3 +110,14 @@ export const toUpstreamClientError = (
     ...(nonNegativeInteger(trackedLimit) ? { trackedLimit } : {}),
   };
 };
+
+/**
+ * 서버를 기다리다 **우리 예산(timeout)이 끝난 것** — 서버가 틀린 것도 BFF 가 깨진 것도 아니다(2026-11-02).
+ * 전에는 모르는 예외로 500 이 나갔다(종목 코치 상세 300ms 예산을 서버 재기동 직후 첫 계산이 넘을 때 —
+ * 화면은 5xx 를 다시 불러 회복했지만 로그 · 상태가 "BFF 내부 오류"였다). 응답 없는 시간 초과만 — 연결 실패(502 후보)는 그대로 둔다.
+ * axios 이름 상수로 가른다(문자열 비교 아님).
+ */
+export const isUpstreamTimeout = (error: unknown): boolean =>
+  axios.isAxiosError(error) &&
+  !error.response &&
+  (error.code === AxiosError.ECONNABORTED || error.code === AxiosError.ETIMEDOUT);

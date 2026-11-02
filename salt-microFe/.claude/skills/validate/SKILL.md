@@ -14,8 +14,8 @@ cd salt-microFe
 pnpm lint
 pnpm build
 pnpm --filter web build
-pnpm --filter "./apps/web-*" build   # 도메인 zone 4개 — 단독 빌드가 성공해야 한다
-pnpm test:layer-check                 # 레이어 8 + 도메인 4 위반 케이스
+pnpm --filter "./apps/web-*" build   # 도메인 zone 4개 — 단독 빌드가 성공해야 한다(투자 zone 은 투자 화면 전부)
+pnpm test:layer-check                 # 레이어 8 + 도메인 4 + 패키지 안 4 위반 케이스
 pnpm check-types
 pnpm --filter @repo/ui lint
 pnpm --filter @repo/ui check-types
@@ -24,7 +24,8 @@ pnpm --filter @repo/ui check-types
 ## 정적 규칙 점검
 
 - zone(`apps/*/src`) 간 직접 import가 없는지 확인. 공유는 workspace 패키지로만 한다.
-- `window/document/localStorage`가 render 또는 top-level에서 쓰이지 않는지 확인.
+- `window/document/localStorage`가 render 또는 top-level에서 쓰이지 않는지 확인. 로그인 여부는 `useHasAccessToken`(렌더 중 `readAccessToken()` 금지 — `ssr.md`).
+- Bash · 스크립트로 쓴 파일은 쓰기 시점 훅을 거치지 않는다 — `layer-check.mjs` 를 사후 실행한다(`packages/web-shared` · `domain-*` 포함).
 - `packages/ui`가 `apps/*`를 import하지 않는지 확인.
 - API service가 store를 직접 import하지 않는지 확인.
 - `next/dynamic` import에는 SSR 의도와 loading fallback이 있는지 확인.

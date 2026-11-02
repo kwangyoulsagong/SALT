@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { AppError, loggableUrl, toUpstreamClientError } from "../../utils/error.util";
+import { AppError, isUpstreamTimeout, loggableUrl, toUpstreamClientError } from "../../utils/error.util";
 import { logger } from "../../config/logger";
 
 /**
@@ -62,6 +62,12 @@ export const errorMiddleware = (
       ...(upstream.trackedCount !== undefined ? { trackedCount: upstream.trackedCount } : {}),
       ...(upstream.trackedLimit !== undefined ? { trackedLimit: upstream.trackedLimit } : {}),
     });
+  }
+
+  // 서버를 기다리다 예산이 끝났다 — 504 + 코드(화면은 5xx 를 다시 불러도 되는 것으로 본다 · `FE-REQ-012` retriable)
+  if (isUpstreamTimeout(err)) {
+    logFailure(504, "UPSTREAM_TIMEOUT", err, req);
+    return res.status(504).json({ success: false, code: "UPSTREAM_TIMEOUT", message: "Upstream timeout" });
   }
 
   logFailure(500, err.name, err, req);

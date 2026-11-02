@@ -209,3 +209,8 @@ RSC에서는 그 근거가 달라진다. 서버 컴포넌트가 BFF를 여러 �
 - 2026-11-02: F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `MarketBoard.tsx` 에 지연 로드 잎 하나(`KrScheduleStrip`, `ssr: false` · 높이 고정 자리) — 스트리밍 경계 무변경
 - 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — `widgets/market-board/ui/MarketBoard.tsx` — 지연 잎 `KrIndexStrip` · `KrScheduleStrip` 삭제, `MarketSummaryStrip`(`ssr: false` · 자리 고정) 두 탭 공용. 스트리밍 경계 무변경
 - 2026-11-02: zone = 도메인 F0(`FE-REQ-052`, 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md`): `apps/web-tax/app/layout.tsx`(이 REQ FR-5 가 머리 주석 주인) 를 zone 과 함께 삭제. 도메인 zone 4 의 루트 레이아웃은 빈 골격(서버 컴포넌트 · 프로바이더 없음). 셸 스트리밍 경계 무변경
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 웹 글꼴 404 → `next/font` 같은 origin · body 기본 글꼴(`9725dd20`) · 로그인 표지 쿠키 + 셸 미들웨어(로그인 상태 `/` → 서버에서 `/home`)(`562adfad`). 파일 8개(경로 이동 내용 무변경 1 · 수정 6 · 추가 1 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 후속 — `562adfad` — 세션 저장 · 비우기(`@repo/web-shared/api` `authToken`)에 로그인 표지 쿠키 · 프로바이더(`ZoneProviders`) 마운트 때 표지를 토큰에 맞춤. 셸 미들웨어가 로그인 상태 `/` 를 서버에서 `/home` 으로(로그인 화면 깜빡임 수정). 실화면: 로그인 307 → `/home` · 로그아웃 · 만료 토큰은 로그인 그대로 |

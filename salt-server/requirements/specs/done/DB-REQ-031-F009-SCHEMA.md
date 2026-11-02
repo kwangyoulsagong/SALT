@@ -57,3 +57,4 @@ FEATURE-009 의 "계획 · 사이즈 · 행동 미러"가 쓸 저장소. 슬라�
 | 2026-09-29 | F010 슬라이스 5 FR-9 — `investable_capital`(`20260929120000_profile_investable_capital`, 추가만 · CHECK > 0). 로컬 `migrate deploy` 적용 |
 | 2026-10-26 | F011 슬라이스 7d 후속(`SRV-REQ-040` FR-47) — **DDL 없음.** `decision_outcomes` 를 자산군으로 가를 때 열을 더하지 않고 청산 거래(`closing_transaction_id` → `portfolio_transactions.asset_type`)로 거른다 — 거래가 이미 자산군을 갖는다. 행 ≤ 5,000/사용자라 조인 비용은 작다(인덱스 `(user_id, closed_at DESC)` 그대로) |
 | 2026-10-26 | F011 7f FR-11 개정 — `monthly_reviews.asset_type`(기본 `crypto` — 기존 행 의미 그대로) · 유니크 교체(`20261026120000_monthly_review_asset_type`, 롤백 SQL 은 마이그레이션 머리). 로컬 `migrate deploy` 뒤 이 테이블 diff 0 |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 월간 복기 저장 — 오류 코드(P2002) 잡기 대신 ON CONFLICT 뒤 읽기(`07aa8f07`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |

@@ -114,3 +114,10 @@ BFF 경유 실측(로컬 테스트 계정 로그인 → 실제 토큰):
 
 - 변경 없음 — 프론트가 받은 목록을 종목으로 거를 뿐이다. `/api/app/coach/report` `risks[]` 통과 그대로
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 1개(경로 이동 내용 무변경 1 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+- 2026-11-02 MONEY-F1 후속 — `c5ec66ed` — 이 REQ 를 머리에 적은 `coach-console` 위젯 model 에 문구 파일 하나(`COACH_CONSOLE_MESSAGES` "내 보유"). BFF 계약 무변경

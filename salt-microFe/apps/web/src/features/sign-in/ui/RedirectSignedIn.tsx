@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { useIsAuthenticated } from "@/entities/auth";
-import { ROUTES } from "@/shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 
 /**
  * 이미 로그인한 사람을 홈으로 보낸다. 그 외에는 **아무것도 하지 않는다.**

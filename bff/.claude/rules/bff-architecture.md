@@ -80,6 +80,8 @@ export const getHome = async (t: string) => {
 - 조합 응답은 **`Promise.allSettled`** 를 쓴다. `Promise.all`은 하나가 실패하면 전부 버린다
 - 블록별 `status: 'ok' | 'unavailable'`과 `degradedBlocks[]`를 준다
 - **금액 블록이 실패하면 0을 내려보내지 않는다.** `null` + `status: 'unavailable'`이다. 0은 "잔액이 0원"으로 읽힌다
+- **인증 거절(401)은 부분 실패로 삼키지 않는다.** 블록 하나라도 401 이면 집계 전체를 401 로 올린다 — 덮으면 프론트가 토큰 갱신 · 로그인 이동을 못 한다(2026-11-02 홈 카드 `BFF-REQ-046`)
+- **셸 홈은 도메인 요약 카드다**(`/api/app/home` → `{ cards: HomeSummaryCard[], order, hidden }`, `BFF-REQ-046`). 정의는 `services/home-card.viewmodel.ts` `CONTRACT` 블록 = `@repo/core/home` — 테스트가 글자 대조한다
 - 서버가 `degraded: true`를 주면 **그것을 지우지 않고 전달**한다. 잔차·결측을 숨기지 않는다
 
 ## 6. 인증

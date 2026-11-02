@@ -85,7 +85,7 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 모든 REQ ~~| 문서만 — 코드 착수 전~~ | **정정 2026-11-02** — `FE-REQ-052`(F0) done, 나머지는 문서만 | 각 REQ 착수 시 |
+| 모든 REQ ~~| 문서만 — 코드 착수 전~~ | **정정 2026-11-02** — `FE-REQ-052`(F0) · `FE-REQ-053`(F1) done, `FE-REQ-055` · `BFF-REQ-046` in-progress(S3 몫 남음), 나머지는 문서만 | 각 REQ 착수 시 |
 | 기준선 통계 · 공제율 · 제도 파라미터 원문 대조 | 보도 기준 숫자 | `FEATURE-012` FR-1 · `SRV-REQ-047` 착수 전 |
 | Spring Boot 4 · Kotlin 2.2 실제 호환 조합 | 설계는 공개 발표 기준 | `SRV-REQ-043` S0 |
 
@@ -98,3 +98,4 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 | 2026-10-30 | 금융 팁 공개 전 법무 확인 결정 반영 |
 | 2026-10-30 | DART 사용 · 배포 베스트케이스(ADR-008 · OPS-001) 결정 반영 |
 | 2026-11-02 | `FE-REQ-052`(F0) done — 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md`. 다음 칸 `FE-REQ-053` + `055` + `BFF-REQ-046`(F1, 한 PR) |
+| 2026-11-02 | F1 — `FE-REQ-053` done(투자 zone 서비스) · `FE-REQ-055` · `BFF-REQ-046` in-progress(홈 카드 · 편집 · 온보딩은 S3). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md`. 다음 칸 `FE-REQ-054`(F2) 또는 서버 S0 |

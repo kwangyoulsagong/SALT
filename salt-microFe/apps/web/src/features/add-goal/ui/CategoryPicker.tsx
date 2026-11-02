@@ -6,7 +6,7 @@ import { Icon } from "@repo/ui/icon";
 import { useState } from "react";
 
 import { GOAL_CATEGORIES, setCategory } from "@/entities/goal";
-import { useAppDispatch } from "@/shared/lib";
+import { useAppDispatch } from "@repo/web-shared/lib";
 
 import { ADD_GOAL_MESSAGES } from "../model/messages";
 import { CategoryCell } from "./CategoryCell";

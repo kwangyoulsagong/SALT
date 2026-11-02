@@ -1,52 +1,131 @@
 import { logger } from "../config/logger";
-import { appPortfolioService, type PortfolioSummaryVM } from "./app-portfolio.service";
+import { appAICoachService } from "./app-ai-coach.service";
+import { appPortfolioService } from "./app-portfolio.service";
 import { backendApi } from "./backend-api.service";
+import {
+  DEFAULT_HOME_ORDER,
+  HOME_CARD_TEXT,
+  HOME_CARD_TIMEOUT_MS,
+  degradedCard,
+  toInvestCard,
+  toSavingsCard,
+  type AppHomeVM,
+  type HomeDomain,
+  type HomeSummaryCard,
+  type ServerGoalStatistics,
+} from "./home-card.viewmodel";
 
-/** 시장 개요 블록 크기 — 실시간 테이블 첫 페이지와 같다. */
-const MARKET_OVERVIEW_LIMIT = 20;
+export type { AppHomeVM, HomeSummaryCard } from "./home-card.viewmodel";
 
-export type HomeBlock = "portfolio" | "unreadNotifications" | "marketOverview";
+/** 정해진 시간 안에 오지 않으면 실패로 본다 — 그 카드만 `degraded` (`BFF-REQ-046` FR-3) */
+const withinBudget = <T>(work: Promise<T>, ms: number): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`home card timeout ${ms}ms`)), ms);
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 
-export interface AppHomeVM {
-  portfolio: PortfolioSummaryVM | null;
-  unreadNotifications: number | null;
-  marketOverview: unknown;
-  /** 실패해 `null` 로 내려간 블록. 빈 배열이면 전부 받았다 */
-  degradedBlocks: HomeBlock[];
+/**
+ * 손익률을 보여도 되는 경우만 숫자를 준다 — 매입가 숨김을 **확인하고 꺼져 있을 때**(F009 FR-27).
+ * 설정을 못 받았으면 보이지 않는 쪽으로(숨김을 켠 사람에게 한 번 보였다 사라지면 숨김이 아니다).
+ */
+const visibleProfitRate = (
+  profile: PromiseSettledResult<{ hidePurchasePrice: boolean }>,
+  stats: PromiseSettledResult<{ data?: { data?: { profitRate?: unknown } } }>,
+): number | null => {
+  if (profile.status !== "fulfilled" || profile.value.hidePurchasePrice) return null;
+  if (stats.status !== "fulfilled") return null;
+  const rate = stats.value.data?.data?.profitRate;
+  return typeof rate === "number" && Number.isFinite(rate) ? rate : null;
+};
+
+/**
+ * 인증이 거절됐는지 — 카드 하나의 실패가 아니라 **사용자 전체의 상태**다. 그대로 올려 홈이 401 이 되게 한다
+ * (오류 미들웨어가 서버 4xx 를 그대로 옮긴다). 카드 `degraded` 로 덮으면 프론트가 토큰 갱신 · 로그인 이동을 못 한다
+ * — 만료 토큰으로 홈이 "불러오지 못했어요" 두 장으로 남았다(2026-11-02 실측).
+ */
+const isUnauthenticated = (reason: unknown): boolean =>
+  (reason as { response?: { status?: number } } | undefined)?.response?.status === 401;
+
+interface CardSource {
+  domain: HomeDomain;
+  title: string;
+  href: string;
+  load: (token: string, now: string) => Promise<HomeSummaryCard>;
 }
 
 /**
- * F000 최소 홈 (`BFF-REQ-007` B절 FR-10~15).
+ * 카드를 내는 도메인. **서비스가 없는 도메인(가계부 · 팁)은 카드를 내지 않는다** — 빈 카드나 `degraded` 로
+ * "있는데 실패한 것"처럼 보이지 않게. 서버 서비스가 생기면(`SRV-REQ-046` · `047`) 여기 한 줄씩 붙는다.
+ */
+const CARD_SOURCES: CardSource[] = [
+  {
+    domain: "savings",
+    title: HOME_CARD_TEXT.savings.title,
+    href: "/goals/addgoals",
+    load: async (token, now) => {
+      const response = await backendApi.proxyAuthRequest("GET", "/goals/statistics", token, undefined, {
+        timeout: HOME_CARD_TIMEOUT_MS,
+      });
+      return toSavingsCard((response.data?.data ?? {}) as ServerGoalStatistics, now);
+    },
+  },
+  {
+    domain: "invest",
+    title: HOME_CARD_TEXT.invest.title,
+    href: "/investments",
+    load: async (token, now) => {
+      // 셋을 같이 부른다. 보유 요약이 실패하면 카드가 degraded, 설정 · 통계가 실패하면 손익률만 뺀다
+      const [summary, profile, stats] = await Promise.allSettled([
+        appPortfolioService.getSummary(token),
+        appAICoachService.getProfile(token),
+        backendApi.proxyAuthRequest("GET", "/portfolio/stats", token, undefined, { timeout: HOME_CARD_TIMEOUT_MS }),
+      ]);
+      if (summary.status === "rejected") throw summary.reason;
+      const hidden = profile.status === "fulfilled" && profile.value.hidePurchasePrice;
+      return toInvestCard(summary.value, now, visibleProfitRate(profile, stats), hidden);
+    },
+  },
+];
+
+/**
+ * 셸 홈 — 도메인 요약 카드 (`BFF-REQ-046` FR-1~4, `FEATURE-015` FR-2).
  *
- * 서버 `/dashboard` · `/investment-insight/top` 은 동면(410)이라 부르지 않는다 —
- * 부르면 `Promise.all` 하나가 홈 전체를 500 으로 만든다. 블록마다 따로 받아
- * (`allSettled`) 실패한 블록만 `null` + `degradedBlocks` 로 알린다.
- * 최종 형태는 F006 3블록(`BFF-REQ-027`)이다.
+ * 전에는 coach · portfolio 블록을 직접 조립했다(`BFF-REQ-007` B절). 셸이 도메인을 모르게(`ADR-005` §2)
+ * **도메인마다 카드 한 장**으로 바꿨다 — 계약 변경(`FE-REQ-055` 와 같은 PR). 도메인을 `allSettled` 로 병렬로
+ * 부르고, 실패하거나 800ms 를 넘긴 카드만 `degraded` 다. 홈은 언제나 200 이다.
+ *
+ * 순서 · 숨김은 아직 저장하지 않는다(`PUT /api/app/home/layout` 은 서버 identity 뒤, FR-5) — 기본 순서 · 숨김 없음.
  */
 class AppHomeService {
   async getHome(token: string): Promise<AppHomeVM> {
-    const [portfolio, unread, market] = await Promise.allSettled([
-      appPortfolioService.getSummary(token),
-      backendApi.proxyAuthRequest("GET", "/investment-notifications/unread-count", token),
-      backendApi.getMarketOverview({ page: 1, limit: MARKET_OVERVIEW_LIMIT }),
-    ]);
+    const now = new Date().toISOString();
+    const settled = await Promise.allSettled(
+      CARD_SOURCES.map((source) => withinBudget(source.load(token, now), HOME_CARD_TIMEOUT_MS)),
+    );
 
-    const degradedBlocks: HomeBlock[] = [];
-    const settle = <T>(block: HomeBlock, result: PromiseSettledResult<T>): T | null => {
+    const unauthenticated = settled.find(
+      (result): result is PromiseRejectedResult => result.status === "rejected" && isUnauthenticated(result.reason),
+    );
+    if (unauthenticated) throw unauthenticated.reason;
+
+    const cards = settled.map((result, index) => {
+      const source = CARD_SOURCES[index];
       if (result.status === "fulfilled") return result.value;
-      degradedBlocks.push(block);
-      logger.warn("홈 블록을 받지 못했다", { block, reason: result.reason?.message });
-      return null;
-    };
+      logger.warn("홈 카드를 받지 못했다", { domain: source.domain, reason: result.reason?.message });
+      return degradedCard(source.domain, source.title, source.href, now);
+    });
 
-    const unreadCount = settle("unreadNotifications", unread)?.data?.data?.unreadCount;
-
-    return {
-      portfolio: settle("portfolio", portfolio),
-      unreadNotifications: typeof unreadCount === "number" ? unreadCount : null,
-      marketOverview: settle("marketOverview", market),
-      degradedBlocks,
-    };
+    const order = DEFAULT_HOME_ORDER.filter((domain) => cards.some((card) => card.domain === domain));
+    return { cards, order, hidden: [] };
   }
 }
 

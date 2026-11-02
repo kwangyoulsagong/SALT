@@ -74,3 +74,4 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-10-29 | 전수 조사 — FR-2 "게이지 3" 정정 |
 | 2026-10-29 | F009 슬라이스 10(FR-27 매입가 숨김 화면) — **변경 없음.** 프로필 `hidePurchasePrice` 통과(S3)를 웹이 처음 읽는다(`GET · PATCH /api/app/ai-coach/profile`) |
 | 2026-10-30 | F004 슬라이스 18 — **변경 없음.** `@repo/core` `CoachProfileSettings` 에 `defaultMode` · `panicSellWindowHours` 를 더했다(BFF 가 이미 주던 필드). `CoachProfileUpdate` 신설 |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

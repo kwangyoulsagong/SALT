@@ -30,3 +30,7 @@
 없음.
 
 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
+
+- 파일만 걸침(경로 · import) — Action 없음

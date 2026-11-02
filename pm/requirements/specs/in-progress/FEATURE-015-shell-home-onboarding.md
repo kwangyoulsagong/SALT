@@ -29,7 +29,7 @@
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
 | FR-1 | 온보딩: 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 입력 하나 → 끝(3단계 이내) | Must | Draft |
-| FR-2 | 홈 = `HomeSummaryCard[]`, 순서 · 숨김 사용자 설정 | Must | Draft |
+| FR-2 | 홈 = `HomeSummaryCard[]`, 순서 · 숨김 사용자 설정 | Must | 부분(2026-11-02) — 카드 계약 · 셸 홈 카드 · 기본 순서(`FE-REQ-055` · `BFF-REQ-046`). 순서 · 숨김 편집은 identity(S3) |
 | FR-3 | 내 데이터 내보내기(CSV · JSON) · 계정 삭제 시 전부 삭제 + 범위 표시 | Must | Draft |
 | FR-4 | 알림 도메인별 설정, 기본 꺼짐(F000 FR-50 게이트 확장) | Must | Draft |
 | FR-5 | 개인정보 범위: 결제 문자 원문 미보관 · 민감 정보 분류 · LLM 전송 필드 공개 | Must | Draft |
@@ -96,7 +96,7 @@ flowchart LR
 | 요구사항 | 화면/컴포넌트 | BFF/API | 서버/API | DB/Worker | 검증 |
 |---|---|---|---|---|---|
 | FR-1 | onboarding-flow 있음(투자 3스텝) | `/api/app/onboarding` 있음 | onboarding 컨텍스트 | — | Gap: 도메인 선택으로 재작성 |
-| FR-2 | home-briefing 있음(coach · portfolio 직접 읽음) | `/api/app/home` 있음 | — | — | Gap: 카드 계약으로 교체 |
+| FR-2 | ~~home-briefing 있음(coach · portfolio 직접 읽음)~~ **`entities/home` 카드(2026-11-02)** | `/api/app/home` ~~있음~~ **카드 계약** | — | — | ~~Gap: 카드 계약으로 교체~~ **교체함 — 편집만 남음(S3)** |
 | 그 외 | 없음 | 없음 | 없음 | 없음 | Gap: 신규 |
 
 ## 수용 기준
@@ -120,3 +120,4 @@ flowchart LR
 | 2026-10-30 | 초안 |
 | 2026-10-30 | 영역 REQ 작성 · 링크(위 머리 블록) |
 | 2026-11-02 | 아키텍처 바탕 F0 `FE-REQ-052` done — 셸 `apps/web` + 도메인 zone 4 빈 골격 · 레지스트리 `registry.json` · lint 도메인 축 · `web-tax` 삭제. 셸 책임(인증 · 온보딩 · 홈 · 설정)이 레지스트리 경로로 고정(`/` `/home` `/login` `/onboarding` `/settings`). 화면 기능 변경 0. 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md` |
+| 2026-11-02 | F1 — 홈 = 도메인 요약 카드(FR-2 부분: 카드 · 기본 순서, 편집은 S3) · 셸 `/settings` = 도메인별 설정 링크 목록(FR-3 · 4 자리) · 로그인 상태 `/` → 서버에서 `/home`. 투자 화면은 투자 zone 으로(`FE-REQ-053` done). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |

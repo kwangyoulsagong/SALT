@@ -10,7 +10,7 @@
       "assetPrefix": null,
       "hostedIn": "web",
       "hostedUntil": null,
-      "reason": "셸 — 인증 · 온보딩 · 홈 · 설정 · 공용 크롬. domain-* 를 import 하지 않는다"
+      "reason": "셸 — 인증 · 온보딩 · 홈 · 설정 · 공용 레이아웃. domain-* 를 import 하지 않는다"
     },
     "invest": {
       "app": "web-investment",
@@ -19,8 +19,8 @@
       "devPort": 3002,
       "pathPrefixes": ["/investments", "/coach", "/search"],
       "assetPrefix": "/investment-static",
-      "hostedIn": "web",
-      "hostedUntil": "FE-REQ-053",
+      "hostedIn": "web-investment",
+      "hostedUntil": null,
       "reason": "투자 — 시세 · 상세 · 코치 · 검색. 동결(기획된 것까지)"
     },
     "savings": {

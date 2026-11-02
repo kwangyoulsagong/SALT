@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { AppProviders, AppShell, EMBED_SCRIPT } from "@/app";
-import "@/app/styles/globals.css";
+import { AppProviders, AppShell, EMBED_SCRIPT, FONT_VARIABLES } from "@/app";
+import "@repo/web-shared/layout/globals.css";
 
 /**
  * default zone 의 루트 레이아웃 (FE-REQ-008 FR-1 · FR-2).
@@ -17,7 +17,7 @@ export { rootMetadata as metadata } from "@/app/seo";
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     // 앱 웹뷰 판단 스크립트가 <html> 속성을 단다 — 그 한 곳의 불일치만 허용(`src/app/embed.ts`)
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko" className={FONT_VARIABLES} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: EMBED_SCRIPT }} />
       </head>

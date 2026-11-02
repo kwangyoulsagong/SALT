@@ -38,7 +38,7 @@ flowchart LR
 | 목표 계좌 선택 이벤트 | Frontend Only | goals add form, `@repo/message-event-bus`, `ACCOUNT_SELECTED` | 없음 | 없음 | 없음 | MFE 간 계좌 선택 연동 의도. 은행/계좌 API는 확인 필요 |
 | 데일리 미션 | Backend Only | README/제품 설명에는 존재 | proxy `/api/missions*` | `/api/missions*` | `DailyMission`, `UserMissionProgress`, points | 프론트 노출 화면 추가 필요 |
 | 투자 시장 목록 | Implemented | investments `/investment`, MarketPreview/RealtimeInvestment/hooks | proxy `/api/investment/market/overview` | `GET /api/investment/market/overview` | `MarketAsset`, BFF price cache | FE API constants가 BFF 4001을 직접 사용 |
-| 투자 시장 요약 띠 | Implemented | `apps/web` `widgets/market-board` `MarketSummaryStrip` (2026-09-22, `FE-REQ-037`) | `GET /api/app/market/summary` · WS `price_update.change24hAmount` | `GET /api/investment/market/summary` (설정 `MARKET_SUMMARY_*`) | `MarketAsset` 저장 시세 · 거래소 5분봉(1분 캐시) | 종목 · 태그 · 등락 금액은 서버가 정한다. 사유 태그 · 지수 · 일정 없음 |
+| 투자 시장 요약 띠 | Implemented | ~~`apps/web`~~ `packages/domain-invest`(2026-11-02 투자 zone) `widgets/market-board` `MarketSummaryStrip` (2026-09-22, `FE-REQ-037`) | `GET /api/app/market/summary` · WS `price_update.change24hAmount` | `GET /api/investment/market/summary` (설정 `MARKET_SUMMARY_*`) | `MarketAsset` 저장 시세 · 거래소 5분봉(1분 캐시) | 종목 · 태그 · 등락 금액은 서버가 정한다. 사유 태그 · 지수 · 일정 없음 |
 | 실시간 투자 가격 | Partial | investments WebSocket client/hooks | WS `ws://localhost:4002`, subscribe/unsubscribe | price update internal API | BFF Upbit WS(관심 목록 · 보유 가격), 서버 `market-price-update` 잡(`market_assets`), 캔들 수집 | 두 경로가 쓰는 테이블이 다르다 — 중복 아님(2026-10-30 `F000-legacy-cleanup`) |
 | 투자 차트 | Partial | TradingViewChart, chart preview hooks | proxy `/api/investment/crypto/:symbol/chart` | chart endpoint, price history | `PriceHistory`, `TechnicalIndicator` | period 오타(`miniute`) 등 계약 정리 필요 |
 | 관심 종목 | Backend Only | investments API 일부 가능성 | proxy `/api/investment/watchlist` | watchlist CRUD | `InvestmentWatchlist` | 프론트에서 명시 UI 확인 필요 |
@@ -138,7 +138,7 @@ flowchart LR
 
 | 서피스 | 현재 | 전환 목표 | 근거 |
 |---|---|---|---|
-| 웹 | `@module-federation/nextjs-mf` 3앱(shell/goals/investments), Pages Router | **Multi-Zones — zone = 도메인**(`apps/web` 셸 + 도메인 zone 4 골격, `web-tax` 삭제 2026-11-02 `ADR-005` · `FE-REQ-052`) · App Router **스트리밍 SSR** · **FSD** | `ADR-001` · `FE-REQ-007`~`009` |
+| 웹 | `@module-federation/nextjs-mf` 3앱(shell/goals/investments), Pages Router | **Multi-Zones — zone = 도메인**(`apps/web` 셸 + 도메인 zone 4 — 투자 zone 이 투자 화면 서비스(`FE-REQ-053`) · 저축 · 가계부 · 팁 골격, `web-tax` 삭제 2026-11-02 `ADR-005` · `FE-REQ-052`) · App Router **스트리밍 SSR** · **FSD** | `ADR-001` · `FE-REQ-007`~`009` |
 | 모바일 | 없음 | **`apps/mobile` 신설** (React Native, iOS+Android, FSD) | `RN-REQ-001`~`003` |
 | BFF | 레이어 경계 혼재 | 레이어드 + **SSE 스트리밍** | `BFF-REQ-006` |
 | 서버 | `src/modules/*` | **DDD 컨텍스트 우선** `{context}/{domain,application,infrastructure,presentation}` | `SRV-REQ-006` |
@@ -204,7 +204,7 @@ flowchart LR
 | 저축 목표 고도화 (FEATURE-012) | Planned | `entities/goal` · `features/add-goal` 만 있음 | 기존 goals 프록시 | `src/modules/goals` (구식 4파일) | `Goal` · `SavingTransaction` | 템플릿 · 계산기 · 도달 구간 · 목표 저울 · 재미(모이는 장면 · 실물 환산) |
 | 가계부 (FEATURE-013) | Planned | 없음 | 없음 | 없음 | 없음 | 도메인 이름 `household` (ADR-002 `ledger` 와 다름) |
 | 금융 팁 (FEATURE-014) | Planned | 없음 | 없음 | 없음 | 없음 | 공개 zone · 유효기한 · 제도 파라미터 주인 · 법무 확인 전 공개 금지 |
-| 셸 · 홈 · 온보딩 · 내 데이터 (FEATURE-015) | Planned | `home-briefing` · `onboarding-flow` 투자 중심 | `/api/app/home` · `/api/app/onboarding` | `onboarding` 컨텍스트 | — | 4탭 홈 · 저축 · 가계부 · 투자, `HomeSummaryCard` |
+| 셸 · 홈 · 온보딩 · 내 데이터 (FEATURE-015) | Partially Implemented(2026-11-02) | 홈 = `entities/home` 도메인 요약 카드(저축 · 투자) · 셸 `/settings` 링크 목록 · 로그인 상태 `/` → `/home`. `onboarding-flow` 는 아직 투자 3스텝(편집 · 온보딩 · 내 데이터 · 알림은 S3) | `/api/app/home` · `/api/app/onboarding` | `onboarding` 컨텍스트 | — | 4탭 홈 · 저축 · 가계부 · 투자, `HomeSummaryCard` |
 
 ### 관련 문서 (2026-10-30)
 

@@ -1,0 +1,237 @@
+"use client";
+
+import type { CoachReportViewModel } from "@repo/core/coach";
+import { Badge } from "@repo/ui/badge";
+import { EmptyState } from "@repo/ui/emptyState";
+import { Illustration } from "@repo/ui/illustration";
+import { StatusLine } from "@repo/ui/statusLine";
+import Link from "next/link";
+import type { ReactNode } from "react";
+
+import {
+  COACH_MESSAGES,
+  CoachBlockSkeleton,
+  ExitPlanList,
+  formatGeneratedAt,
+  RecommendationCard,
+  ReportRiskList,
+  useCoachReport,
+} from "@/entities/coach";
+import { AssetIdentity } from "@/entities/market";
+import { RegenerateCoachButton } from "@/features/regenerate-coach";
+import { ROUTES } from "@repo/web-shared/config";
+import {
+  backLink,
+  panel,
+  panelDescription,
+  panelHead,
+  panelTitle,
+} from "@repo/web-shared/ui/surface.css";
+
+import { REPORT_BLOCK_FIELDS } from "../model";
+import {
+  disclaimerBar,
+  disclaimerLabel,
+  footnote,
+  header,
+  layout,
+  meta,
+  title,
+  titleBlock,
+} from "./CoachReport.css";
+import { HoldingsPanel } from "./HoldingsPanel";
+import { KrMirrorPanel } from "./KrMirrorPanel";
+import { MirrorPanel } from "./MirrorPanel";
+import { MonthlyReviewPanel } from "./MonthlyReviewPanel";
+import { RiskBudgetPanel } from "./RiskBudgetPanel";
+import { ScoreboardPanel } from "./ScoreboardPanel";
+import { TargetWeightPanel } from "./TargetWeightPanel";
+
+const renderIdentity = (symbol: string, size: "sm" | "md") => (
+  <AssetIdentity symbol={symbol} size={size} />
+);
+
+const { report: REPORT } = COACH_MESSAGES;
+
+/** 섹션 하나 — 제목 · 한 줄 설명 · 내용. `degradedFields` 면 그 섹션만 "불러올 수 없음"(`FE-REQ-027` FR-70) */
+const ReportPanel = ({
+  heading,
+  description,
+  badge,
+  degraded,
+  children,
+}: {
+  heading: string;
+  description?: string;
+  badge?: ReactNode;
+  degraded: boolean;
+  children: ReactNode;
+}) => (
+  <section className={panel}>
+    <div className={panelHead}>
+      <h2 className={panelTitle}>
+        {heading}
+        {badge}
+      </h2>
+    </div>
+    {description && <p className={panelDescription}>{description}</p>}
+    {degraded ? <StatusLine kind="error">{REPORT.blockUnavailable}</StatusLine> : children}
+  </section>
+);
+
+const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
+  const degraded = (field: string) => report.degradedFields.includes(field);
+  const generatedAt = report.generatedAt ? formatGeneratedAt(report.generatedAt) : null;
+  const { recommendation } = report;
+  const metaLine = [
+    generatedAt ? REPORT.generatedAt(generatedAt) : REPORT.notGenerated,
+    report.staleHours !== null && report.staleHours > 0 ? REPORT.stale(report.staleHours) : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const excluded = report.excluded.flatMap((item) => {
+    const line = REPORT.excluded[`${item.assetType}:${item.reasonCode}`];
+    if (!line) return [];
+    // 국내 주식 판단 표본 진행(F011 FR-62) — 수와 기준은 서버 값
+    return [
+      item.progress
+        ? `${line} (${REPORT.excludedProgress(item.progress.largestGroupSample, item.progress.requiredSample)})`
+        : line,
+    ];
+  });
+
+  return (
+    <>
+      <div className={layout}>
+        <Link href={ROUTES.investments} className={backLink}>
+          {`\u2039 ${REPORT.back}`}
+        </Link>
+
+        <section className={panel}>
+          <div className={header}>
+            <div className={titleBlock}>
+              <h1 className={title}>{REPORT.pageTitle}</h1>
+              <p className={meta}>{metaLine}</p>
+            </div>
+            <RegenerateCoachButton />
+          </div>
+        </section>
+
+        {/* 내 보유 — 홈에서 옮겼다(2026-11-02, 홈은 도메인 카드만). 따로 부르고 따로 실패한다 */}
+        <HoldingsPanel />
+
+        {/* F010 — 투자 화면 요약 띠의 본문 셋(목표 비중 → 위험 · 내 기준 → 판정 성적표). 각자 부르고 각자 실패한다 */}
+        <TargetWeightPanel />
+
+        {/* F009 — 내 기준과 나란히 보는 게이지. 리포트와 따로 부르고 따로 실패한다 */}
+        <RiskBudgetPanel />
+
+        <ScoreboardPanel />
+
+        {/* FR-143 — 막힌 추천은 초기의 정상 상태다. 정책을 섹션 설명으로 늘 말하고, 막힘은 회색 상자 하나 */}
+        <ReportPanel
+          heading={REPORT.recommendationHeading}
+          description={REPORT.recommendationPolicy}
+          degraded={degraded(REPORT_BLOCK_FIELDS.recommendation)}
+        >
+          {recommendation ? (
+            <RecommendationCard recommendation={recommendation} />
+          ) : (
+            <StatusLine kind="empty">{REPORT.noRecommendation}</StatusLine>
+          )}
+        </ReportPanel>
+
+        <ReportPanel heading={REPORT.risksHeading} degraded={degraded(REPORT_BLOCK_FIELDS.risks)}>
+          <ReportRiskList risks={report.risks} renderIdentity={renderIdentity} />
+        </ReportPanel>
+
+        <ReportPanel
+          heading={REPORT.exitPlanHeading}
+          description={REPORT.exitPlanDescription}
+          badge={
+            <Badge size="sm" tone="neutral">
+              {COACH_MESSAGES.notPrediction}
+            </Badge>
+          }
+          degraded={degraded(REPORT_BLOCK_FIELDS.exitPlans)}
+        >
+          <ExitPlanList plans={report.exitPlans} renderIdentity={renderIdentity} />
+        </ReportPanel>
+
+        {/* F009 FR-21 — 행동 알림은 알림이 아니라 미러의 "최근 행동" 줄이다. 리포트가 행동을 못 읽었으면 그 줄만 빠진다 */}
+        <MirrorPanel
+          behaviorFacts={degraded(REPORT_BLOCK_FIELDS.behaviorFacts) ? null : report.behaviorFacts}
+        />
+        <KrMirrorPanel />
+
+        {/* F009 시나리오 6 — 월초에 만든 지난달 복기. 미러 바로 아래(지금 숫자 → 지난달에 굳힌 숫자) */}
+        <MonthlyReviewPanel />
+        <MonthlyReviewPanel assetType="kr_stock" />
+
+        {excluded.map((line) => (
+          <p key={line} className={footnote}>
+            {line}
+          </p>
+        ))}
+      </div>
+
+      <div className={disclaimerBar} role="note">
+        <span className={disclaimerLabel}>{REPORT.disclaimerLabel}</span>
+        <span>{report.disclaimer}</span>
+      </div>
+    </>
+  );
+};
+
+/**
+ * 코치 리포트 `/coach/report` (`FE-REQ-026` M · FR-140 · FR-143).
+ *
+ * ## 면책이 없으면 그리지 않는다 (FR-90 · `FE-REQ-027` FR-6)
+ *
+ * BFF 는 면책이 없는 리포트를 `unavailable` 로 준다 — `ok` 분기에는 면책이 타입상 늘 있다.
+ * `unavailable` 은 오류 화면이 아니라 한 줄 안내다. 옛 리포트를 캐시에서 꺼내 보여주지 않는다.
+ *
+ * ## 그리지 않는 것 — 후보 목록
+ *
+ * `@repo/core/coach` `coachReport.ts` 머리말. 3종 세트가 없는 추천을 그릴 수 없다.
+ *
+ * 조회가 클라이언트인 이유는 `useCoachReport` 에 있다. 블록마다 따로 부르지 않는다 —
+ * 서버 한 번 · BFF 한 번에 전부 온다(`FE-REQ-028` FR-4).
+ */
+export const CoachReport = () => {
+  const report = useCoachReport();
+
+  const notice = (content: ReactNode, extra?: ReactNode) => (
+    <div className={layout}>
+      <section className={panel}>
+        <h1 className={title}>{REPORT.pageTitle}</h1>
+        {content}
+      </section>
+      {extra}
+    </div>
+  );
+
+  if (report.isSignedOut) return notice(<StatusLine kind="blocked">{REPORT.signedOut}</StatusLine>);
+  if (report.isPending) return notice(<CoachBlockSkeleton block="judgment" />);
+  if (report.isError || report.data.status === "unavailable") {
+    // 게이지 · 미러는 리포트와 따로 실패한다 — 리포트가 없어도 내 기준 · 게이지 · 미러는 보인다(F009 카드 단위 격리)
+    // 리포트가 없는 것은 오류 화면이 아니라 한 장면 + 한 줄 (FE-REQ-044 P-13)
+    return notice(
+      <EmptyState iconFrame="none" icon={<Illustration scene="coachBubble" size="sm" />} title={REPORT.unavailable} />,
+      <>
+        <HoldingsPanel />
+        <TargetWeightPanel />
+        <RiskBudgetPanel />
+        <ScoreboardPanel />
+        <MirrorPanel behaviorFacts={null} />
+        <KrMirrorPanel />
+        <MonthlyReviewPanel />
+        <MonthlyReviewPanel assetType="kr_stock" />
+      </>,
+    );
+  }
+
+  return <ReportBody report={report.data} />;
+};
+
+export default CoachReport;

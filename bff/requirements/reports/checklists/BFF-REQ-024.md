@@ -82,3 +82,8 @@
 
 - F004 슬라이스 18 — **변경 없음.** `GET/PATCH /api/app/ai-coach/profile` 이 6필드 + 숨김을 이미 그대로 넘긴다. 웹 설정 화면이 그중 `defaultMode` · `panicSellWindowHours` 를 새로 읽는다
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 1 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2

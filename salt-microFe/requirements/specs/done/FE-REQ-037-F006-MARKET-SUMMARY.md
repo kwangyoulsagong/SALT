@@ -70,3 +70,7 @@ created: 2026-09-22
 - 2026-10-30: 파일만 걸침 — 웹 `entities/market/model/messages.ts` 에 차트 기간 이름 `1w`. 시장 요약 문구 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
 - 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 칸 컴포넌트(`MarketSummaryFeatured` · `MarketSummaryItemLink`) · 오늘의 시장 상자가 국내 칸도 받는다 — `href?`(없으면 링크 아닌 `span`, 호버 면 없음) · `changeBasis` · `windowLabel` prop, `logoUrl` · 고가 · 저가 · 거래대금 null 허용, 상자에 `schedule` 행. `MarketSummaryStrip` 이 `assetClass` 로 조회를 고른다 · `useMarketSummary(enabled)`. 코인 화면 무변경(실화면 대조)
 - 2026-11-02: `d57f10fb` fix(fe): FR-7 정정 — 1379px 이하 항목 열 가로 밀기 · 상자 유지(1024 폭 페이지 가로 넘침 145px 기존 결함, 코인 탭도 같았다)
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 조회 훅 렌더 중 `localStorage` 토큰 읽기 → `useHasAccessToken`(`/search` 수화 불일치 수정)(`b4a59677`). 파일 3개(경로 이동 내용 무변경 0 · 수정 3 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |

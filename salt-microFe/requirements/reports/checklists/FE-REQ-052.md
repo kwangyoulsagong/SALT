@@ -54,3 +54,8 @@
 ## 후속 (2026-11-02, PR 본문 작성 중 발견)
 
 - `.github/pull_request_template.md` 의 `web-tax` · `/tax` 확인 · "§2 세 조건" 줄을 도메인 zone 기준으로 고침. 세금 화면 면책 줄은 `ADR-002` 로 마스터 인덱스 §6 에서 이미 빠져 템플릿에서도 지움. 대조 검색 범위에 `.github/` 를 넣지 않아 놓쳤다
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 웹 글꼴 404 → `next/font` 같은 origin · body 기본 글꼴(`9725dd20`). 파일 4개(경로 이동 내용 무변경 0 · 수정 4 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2

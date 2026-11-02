@@ -16,3 +16,7 @@
 - 복기 `payload` 를 JSON 으로 둔 것은 허용 목록 조건(조회 조건이 아님)을 지킨다. 조회는 `(user_id, month)` 유니크 하나뿐이다
 
 - 2026-10-26 F011 7f: payload 에 두 자산군을 넣으면 저장된 코인 복기를 고쳐야 했다(W06 위반) — 키 열 하나 · 기본값으로 기존 행 의미를 그대로 두는 쪽을 골랐다. Action: 없음
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
+
+- 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`

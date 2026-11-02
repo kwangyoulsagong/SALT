@@ -3,7 +3,7 @@ import { Illustration } from "@repo/ui/illustration";
 import { ServiceWrapper } from "@repo/ui/servicewrapper";
 
 import { AddGoalForm } from "@/features/add-goal";
-import { BlockBoundary } from "@/shared/ui";
+import { BlockBoundary } from "@repo/web-shared/ui";
 
 import {
   ADD_GOAL_BLOCK_MIN_HEIGHT,

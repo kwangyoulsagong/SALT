@@ -1,0 +1,49 @@
+{
+  "name": "@repo/domain-invest",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "**/*.css.ts"
+  ],
+  "exports": {
+    "./pages/*": "./src/pages/*/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/core": "workspace:*",
+    "@repo/tokens": "workspace:*",
+    "@repo/ui": "workspace:*",
+    "@repo/web-shared": "workspace:*",
+    "lucide-react": "^0.475.0"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.64.1",
+    "@vanilla-extract/css": "^1.14.0",
+    "next": "^15.5.25",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@reduxjs/toolkit": "^2.5.0",
+    "@repo/eslint-plugin-fsd": "workspace:*",
+    "@repo/eslint-plugin-zone": "workspace:*",
+    "@tanstack/react-query": "^5.64.1",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@vanilla-extract/css": "^1.14.0",
+    "eslint": "^8",
+    "eslint-config-next": "^15.5.25",
+    "framer-motion": "^12",
+    "next": "^15.5.25",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-redux": "^9.2.0",
+    "typescript": "^5",
+    "zustand": "^5.0.3"
+  }
+}

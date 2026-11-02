@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { readAccessToken } from "@/shared/api";
+import { useHasAccessToken } from "@repo/web-shared/api";
 
 import { goalApi } from "./goalApi";
 import { goalQueryKeys } from "./queryKeys";
@@ -15,7 +15,7 @@ export const useGoalSummary = () =>
   useQuery({
     queryKey: [goalQueryKeys.mySummary],
     queryFn: goalApi.mySummary,
-    enabled: Boolean(readAccessToken()),
+    enabled: useHasAccessToken() === true,
     staleTime: GOAL_STALE_TIME_MS,
   });
 
@@ -23,6 +23,6 @@ export const useGoalProgressList = () =>
   useQuery({
     queryKey: [goalQueryKeys.progressList],
     queryFn: goalApi.progressList,
-    enabled: Boolean(readAccessToken()),
+    enabled: useHasAccessToken() === true,
     staleTime: GOAL_STALE_TIME_MS,
   });

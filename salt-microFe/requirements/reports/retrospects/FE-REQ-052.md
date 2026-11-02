@@ -19,3 +19,7 @@
 - 화면을 옮기는 REQ(`FE-REQ-053` · `056`)는 **셸 라우트 삭제 + 레지스트리 `hostedIn` 을 자기 앱으로**를 한 커밋에 — 하나만 하면 셸 링크가 lint 를 통과한 채 hard navigation 이 되거나 셸이 계속 받는다. 두 스펙 Changelog 에 적었다
 - 레지스트리 값을 바꾸면 `grep -rn "<옛 값>" salt-microFe/apps/*/next.config.js salt-microFe/apps/*/README.md` 로 주석까지 고친다
 - `domain-*` 패키지가 처음 생길 때 `.eslintrc`(`@repo/fsd/layers`)를 같이 넣고 `cross-domain` 변이를 ESLint 로 다시 돌린다(`FE-REQ-053` FR-1)
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
+
+- 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`

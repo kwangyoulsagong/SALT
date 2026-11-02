@@ -103,3 +103,10 @@
 ## 요약 띠 좁은 폭 고침 (2026-11-02)
 
 - 번들 `/investments` 154 kB 그대로 · CSS 만
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 코치 설정 `/settings` → `/coach/settings`(셸 `/settings` 는 링크 목록)(`08a3aabf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 3개(경로 이동 내용 무변경 1 · 수정 2 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+- 2026-11-02 MONEY-F1 최종 HEAD 번들(위 스펙 Changelog 행) — main 워크트리 빌드 대조

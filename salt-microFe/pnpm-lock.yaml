@@ -13,7 +13,7 @@ importers:
         version: 1.17.4
       next:
         specifier: ^15.5.25
-        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18
         version: 18.2.0
@@ -63,6 +63,9 @@ importers:
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@repo/web-shared':
+        specifier: workspace:*
+        version: link:../../packages/web-shared
       '@sentry/nextjs':
         specifier: ^8.50.0
         version: 8.52.1(@opentelemetry/core@1.30.1)(@opentelemetry/instrumentation@0.56.0)(@opentelemetry/sdk-trace-base@1.30.1)(next@15.5.25)(react@18.2.0)(webpack@5.97.1)
@@ -156,7 +159,7 @@ importers:
         version: link:../../packages/core
       next:
         specifier: ^15.5.25
-        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18
         version: 18.2.0
@@ -194,6 +197,33 @@ importers:
       '@repo/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@repo/domain-invest':
+        specifier: workspace:*
+        version: link:../../packages/domain-invest
+      '@repo/tokens':
+        specifier: workspace:*
+        version: link:../../packages/tokens
+      '@repo/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@repo/web-shared':
+        specifier: workspace:*
+        version: link:../../packages/web-shared
+      '@tanstack/react-query':
+        specifier: ^5.64.1
+        version: 5.65.1(react@18.2.0)
+      '@vanilla-extract/css':
+        specifier: ^1.14.0
+        version: 1.17.4
+      '@vanilla-extract/next-plugin':
+        specifier: ^2.4.8
+        version: 2.4.9(next@15.5.25)(webpack@5.97.1)
+      framer-motion:
+        specifier: ^12
+        version: 12.43.0(react-dom@18.2.0)(react@18.2.0)
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
       next:
         specifier: ^15.5.25
         version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
@@ -236,7 +266,7 @@ importers:
         version: link:../../packages/core
       next:
         specifier: ^15.5.25
-        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18
         version: 18.2.0
@@ -276,7 +306,7 @@ importers:
         version: link:../../packages/core
       next:
         specifier: ^15.5.25
-        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18
         version: 18.2.0
@@ -329,6 +359,76 @@ importers:
       vitest:
         specifier: ^4.0.9
         version: 4.0.9(@types/node@20.17.16)(@vitest/browser-playwright@4.0.9)
+
+  packages/domain-invest:
+    dependencies:
+      '@repo/core':
+        specifier: workspace:*
+        version: link:../core
+      '@repo/tokens':
+        specifier: workspace:*
+        version: link:../tokens
+      '@repo/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@repo/web-shared':
+        specifier: workspace:*
+        version: link:../web-shared
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
+    devDependencies:
+      '@reduxjs/toolkit':
+        specifier: ^2.5.0
+        version: 2.5.1(react-redux@9.2.0)(react@18.2.0)
+      '@repo/eslint-plugin-fsd':
+        specifier: workspace:*
+        version: link:../eslint-plugin-fsd
+      '@repo/eslint-plugin-zone':
+        specifier: workspace:*
+        version: link:../eslint-plugin-zone
+      '@tanstack/react-query':
+        specifier: ^5.64.1
+        version: 5.65.1(react@18.2.0)
+      '@types/node':
+        specifier: ^20
+        version: 20.17.16
+      '@types/react':
+        specifier: ^18
+        version: 18.3.18
+      '@types/react-dom':
+        specifier: ^18
+        version: 18.3.5(@types/react@18.3.18)
+      '@vanilla-extract/css':
+        specifier: ^1.14.0
+        version: 1.17.4
+      eslint:
+        specifier: ^8
+        version: 8.57.1
+      eslint-config-next:
+        specifier: ^15.5.25
+        version: 15.5.25(eslint@8.57.1)(typescript@5.7.3)
+      framer-motion:
+        specifier: ^12
+        version: 12.43.0(react-dom@18.2.0)(react@18.2.0)
+      next:
+        specifier: ^15.5.25
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18
+        version: 18.2.0
+      react-dom:
+        specifier: ^18
+        version: 18.2.0(react@18.2.0)
+      react-redux:
+        specifier: ^9.2.0
+        version: 9.2.0(@types/react@18.3.18)(react@18.2.0)(redux@5.0.1)
+      typescript:
+        specifier: ^5
+        version: 5.7.3
+      zustand:
+        specifier: ^5.0.3
+        version: 5.0.3(@types/react@18.3.18)(react@18.2.0)
 
   packages/eslint-config:
     devDependencies:
@@ -522,6 +622,73 @@ importers:
       vitest:
         specifier: ^4.0.9
         version: 4.0.9(@types/node@20.17.16)(@vitest/browser-playwright@4.0.9)
+
+  packages/web-shared:
+    dependencies:
+      '@repo/core':
+        specifier: workspace:*
+        version: link:../core
+      '@repo/tokens':
+        specifier: workspace:*
+        version: link:../tokens
+      '@repo/ui':
+        specifier: workspace:*
+        version: link:../ui
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@18.2.0)
+    devDependencies:
+      '@reduxjs/toolkit':
+        specifier: ^2.5.0
+        version: 2.5.1(react-redux@9.2.0)(react@18.2.0)
+      '@repo/eslint-plugin-fsd':
+        specifier: workspace:*
+        version: link:../eslint-plugin-fsd
+      '@repo/eslint-plugin-zone':
+        specifier: workspace:*
+        version: link:../eslint-plugin-zone
+      '@tanstack/react-query':
+        specifier: ^5.64.1
+        version: 5.65.1(react@18.2.0)
+      '@types/node':
+        specifier: ^20
+        version: 20.17.16
+      '@types/react':
+        specifier: ^18
+        version: 18.3.18
+      '@types/react-dom':
+        specifier: ^18
+        version: 18.3.5(@types/react@18.3.18)
+      '@vanilla-extract/css':
+        specifier: ^1.14.0
+        version: 1.17.4
+      eslint:
+        specifier: ^8
+        version: 8.57.1
+      eslint-config-next:
+        specifier: ^15.5.25
+        version: 15.5.25(eslint@8.57.1)(typescript@5.7.3)
+      framer-motion:
+        specifier: ^12
+        version: 12.43.0(react-dom@18.2.0)(react@18.2.0)
+      next:
+        specifier: ^15.5.25
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18
+        version: 18.2.0
+      react-dom:
+        specifier: ^18
+        version: 18.2.0(react@18.2.0)
+      react-redux:
+        specifier: ^9.2.0
+        version: 9.2.0(@types/react@18.3.18)(react@18.2.0)(redux@5.0.1)
+      typescript:
+        specifier: ^5
+        version: 5.7.3
+      zustand:
+        specifier: ^5.0.3
+        version: 5.0.3(@types/react@18.3.18)(react@18.2.0)
 
 packages:
 
@@ -3467,7 +3634,7 @@ packages:
       '@opentelemetry/instrumentation': 0.56.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.28.0
       forwarded-parse: 2.1.2
-      semver: 7.7.0
+      semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -3675,7 +3842,7 @@ packages:
       '@types/shimmer': 1.2.0
       import-in-the-middle: 1.12.0
       require-in-the-middle: 7.5.0
-      semver: 7.7.0
+      semver: 7.8.5
       shimmer: 1.2.1
     transitivePeerDependencies:
       - supports-color
@@ -3692,7 +3859,7 @@ packages:
       '@types/shimmer': 1.2.0
       import-in-the-middle: 1.12.0
       require-in-the-middle: 7.5.0
-      semver: 7.7.0
+      semver: 7.8.5
       shimmer: 1.2.1
     transitivePeerDependencies:
       - supports-color
@@ -3835,7 +4002,6 @@ packages:
       redux: 5.0.1
       redux-thunk: 3.1.0(redux@5.0.1)
       reselect: 5.1.1
-    dev: false
 
   /@rollup/plugin-commonjs@28.0.1(rollup@3.29.5):
     resolution: {integrity: sha512-+tNWdlWKbpB3WgBN7ijjYkq9X5uhjmcvyjEght4NmH5fAU++zfQzAJ6wumLS+dNcvwEZhKx2Z+skY8m7v0wGSA==}
@@ -5484,7 +5650,6 @@ packages:
 
   /@types/use-sync-external-store@0.0.6:
     resolution: {integrity: sha512-zFDAD+tlpf2r4asuHEj0XH6pY6i0g5NeAHPn+15wk3BV6JA69eERFXC1gyGThDkVa1zCyKr5jox1+2LbV/AMLg==}
-    dev: false
 
   /@types/yargs-parser@21.0.3:
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
@@ -8907,7 +9072,6 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       tslib: 2.8.1
-    dev: false
 
   /fs-extra@10.1.0:
     resolution: {integrity: sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ==}
@@ -9397,7 +9561,6 @@ packages:
 
   /immer@10.1.1:
     resolution: {integrity: sha512-s2MPrmjovJcoMaHtx6K11Ra7oD05NT97w1IC5zpMkT6Atjr7H8LjaDd81iIxUYpMKSRRNMJE703M1Fhr/TctHw==}
-    dev: false
 
   /import-fresh@3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
@@ -10699,7 +10862,7 @@ packages:
     resolution: {integrity: sha512-hXdUTZYIVOt1Ex//jAQi+wTZZpUpwBj/0QsOzqegb3rGMMeJiSEu5xLHnYfBrRV4RH2+OCSOO95Is/7x1WJ4bw==}
     engines: {node: '>=10'}
     dependencies:
-      semver: 7.7.0
+      semver: 7.8.5
     dev: true
 
   /make-error@1.3.6:
@@ -10880,11 +11043,9 @@ packages:
     resolution: {integrity: sha512-azKON4d9S65PEoFUiQTMTgPheEmzf2QngdRc50AKfJp9Q9mmcBVw22c8eMq9k8kxOFHdL7+WZY7N/5F/lwiDag==}
     dependencies:
       motion-utils: 12.39.0
-    dev: false
 
   /motion-utils@12.39.0:
     resolution: {integrity: sha512-8nadJAJjTtqRkmRF36FoJTrywK9nnFmnPwnSMyxaOCU7GDjN9RTMJIxx9De8ErM+vpPhMccr/6fo5WciyQLnMQ==}
-    dev: false
 
   /mrmime@2.0.1:
     resolution: {integrity: sha512-Y3wQdFg2Va6etvQ5I82yUhGdsKrcYox6p7FfL1LbK2J4V01F9TGlepTIhnK24t7koZibmg82KGglhA1XK5IsLQ==}
@@ -11471,9 +11632,6 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /pathe@2.0.2:
-    resolution: {integrity: sha512-15Ztpk+nov8DR524R4BF7uEuzESgzUEAV4Ah7CUMNGXdE5ELuvxElxGXndBl32vMSsWa1jpNf22Z+Er3sKwq+w==}
-
   /pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
 
@@ -11561,7 +11719,7 @@ packages:
     dependencies:
       confbox: 0.1.8
       mlly: 1.7.4
-      pathe: 2.0.2
+      pathe: 2.0.3
 
   /playwright-core@1.50.0:
     resolution: {integrity: sha512-CXkSSlr4JaZs2tZHI40DsZUN/NIwgaUPsyLuOAaIZp2CyF2sN5MM5NJsyB188lFSSozFxQ5fPT4qM+f0tH/6wQ==}
@@ -11978,7 +12136,6 @@ packages:
       react: 18.2.0
       redux: 5.0.1
       use-sync-external-store: 1.4.0(react@18.2.0)
-    dev: false
 
   /react-refresh@0.14.2:
     resolution: {integrity: sha512-jCvmsr+1IUSMUyzOkRcvnVbX3ZYC6g9TDrDbFuFmRDq7PD4yaGbLKNQL6k2jnArV8hjYxh7hVhAZB6s9HDGpZA==}
@@ -12054,11 +12211,9 @@ packages:
       redux: ^5.0.0
     dependencies:
       redux: 5.0.1
-    dev: false
 
   /redux@5.0.1:
     resolution: {integrity: sha512-M9/ELqF6fy8FwmkpnF0S3YKOqMyoWJ4+CS5Efg2ct3oY9daQvd/Pc71FpGZsVsbl3Cpb+IIcjBDUnnyBdQbq4w==}
-    dev: false
 
   /reflect.getprototypeof@1.0.10:
     resolution: {integrity: sha512-00o4I+DVrefhv+nX0ulyi3biSHCPDe+yLv5o/p6d/UVlirijB8E16FtfwSAi4g3tcqrQ4lRAqQSoFEZJehYEcw==}
@@ -12187,7 +12342,6 @@ packages:
 
   /reselect@5.1.1:
     resolution: {integrity: sha512-K/BG6eIky/SBpzfHZv/dd+9JBFiS4SWV7FIujVyJRux6e45+73RaUHXLmIR1f7WOMaQ0U1km6qwklRQxpJJY0w==}
-    dev: false
 
   /resolve-cwd@3.0.0:
     resolution: {integrity: sha512-OrZaX2Mb+rJCpH/6CpSqt9xFVpN++x01XnN2ie9g6P5/3xelLAkXWVADpdz1IHD/KFfEXyE6V0U01OQ3UO2rEg==}
@@ -12454,6 +12608,7 @@ packages:
     resolution: {integrity: sha512-DrfFnPzblFmNrIZzg5RzHegbiRWg7KMR7btwi2yjHwx06zsUbO5g613sVwEV7FTwmzJu+Io0lJe2GJ3LxqpvBQ==}
     engines: {node: '>=10'}
     hasBin: true
+    dev: true
 
   /semver@7.8.5:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
@@ -13699,7 +13854,6 @@ packages:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     dependencies:
       react: 18.2.0
-    dev: false
 
   /util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
@@ -14301,4 +14455,3 @@ packages:
     dependencies:
       '@types/react': 18.3.18
       react: 18.2.0
-    dev: false

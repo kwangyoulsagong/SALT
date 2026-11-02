@@ -48,7 +48,7 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | FR-2 | **하드코딩 시각** | `RealtimeInvestment.tsx:103` `"실시간 오늘 19:30 기준"` | **WebSocket 마지막 수신 시각**으로 | Must |
 | FR-3 | **뉴스 프리뷰** | `MarketIntelligenceNewsPreview.tsx:27`에 테스트 문자열 `faskdljfaksjf…`. 제목·요약·이미지·출처·조회수가 전부 상수 | `/api/app/news` 실데이터. **블록을 없애지 않는다** | Must |
 | FR-4 | **오타** | `MyInvestments.tsx:36` `{difference}% 덜 썻어요` | `덜 썼어요` | Must |
-| FR-5 | **빈 "주식" 섹션** | `<Heading>주식</Heading>`만 있고 자식이 없다 | `portfolio/summary`로 보유 요약(종목·평가금액·손익률·자산군 배지) | Must |
+| FR-5 | **빈 "주식" 섹션** | `<Heading>주식</Heading>`만 있고 자식이 없다 | ~~`portfolio/summary`로 보유 요약(종목·평가금액·손익률·자산군 배지)~~ **정정 2026-11-02** — 셸 홈은 도메인 요약 카드만 그린다(`ADR-005` §2). 투자 카드 = 보유 평가 + 손익률(매입가 숨김이면 종목 수 + "오늘 처음 본다면")(`FE-REQ-055` · `BFF-REQ-046`). 종목별 목록(평가금액 · 손익률 · 합계 · 매입가 숨김)은 **코치 리포트 맨 위 "내 보유"**(`coach-console` `HoldingsPanel`, 사용자 결정 2026-11-02 `c5ec66ed`) | Must |
 | FR-6 | **터치 선택** | 행 선택이 `onMouseEnter`만이라 **터치 기기에서 우측 상세가 안 바뀐다** | `onClick`을 **추가**한다(hover 유지) | Must |
 | FR-7 | **반응형** | 표가 가로로 잘리고 `maxHeight="800px"` 고정 | ① 표에 자체 `overflow-x` 컨테이너 ② 모바일에서 `MarketPreview`를 아래로 접기 ③ `maxHeight`를 뷰포트 기준으로. **레이아웃을 바꾸지 않는다** | Must |
 | FR-8 | **차트 period** | `constants/api.ts:28` `period=miniute` | `period=minute`. **프론트가 먼저 배포**된다 | Must |
@@ -256,6 +256,7 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-10-08 | F011 슬라이스 3b — 홈 보유 목록에 국내 주식 행(배지 "국내주식"). 아이콘 이니셜을 숫자 코드 대신 이름으로("00" → "삼"). 거래 기록 뒤 요약 무효화(`record-transaction`). 근거 `FE-REQ-041` FR-18 |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 시장 엔드포인트 · 쿼리 키에 국내 일정 · 시장 보드 레이아웃 css 에 일정 자리(44) — 같은 파일 |
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — `entities/market/api/endpoints.ts` · `queryKeys.ts`(국내 요약 · 지수/일정 삭제) · `model/messages.ts`(요약 문구 기준별) · `widgets/market-board/ui/MarketBoardLayout.css.ts`(옛 지수 · 일정 자리 스타일 삭제) |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 코치 설정 `/settings` → `/coach/settings`(셸 `/settings` 는 링크 목록)(`08a3aabf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 24개(경로 이동 내용 무변경 12 · 수정 12 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

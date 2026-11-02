@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { BlockBoundary } from "@/shared/ui";
+import { BlockBoundary } from "@repo/web-shared/ui";
 
 /**
  * 스트리밍 측정 프로브 (FE-REQ-008 FR-30~32) — **기본값 404**.

@@ -1,9 +1,10 @@
 # `apps/web` — 셸 zone
 
-SALT 웹의 **셸**(default zone)이다 — 인증 · 온보딩 · 홈 · 설정(`ADR-005`). 투자 · 저축 화면은 옮기기 전까지 여기 있다(레지스트리 `hostedIn`, 옮기는 REQ `FE-REQ-053` · `FE-REQ-056`).
+SALT 웹의 **셸**(default zone)이다 — 인증 · 온보딩 · 홈 · 설정(`ADR-005`). 투자 화면은 투자 zone(`apps/web-investment`)이 서비스한다(2026-11-02 `FE-REQ-053`). 저축 화면은 옮기기 전까지 여기 있다(레지스트리 `hostedIn`, `FE-REQ-056`). 홈은 BFF 도메인 요약 카드만 그린다.
 
 - `assetPrefix`가 **없다.** default zone이기 때문이다.
-- 도메인 zone 4개로 프록시한다 (`next.config.js`의 `rewrites` = `@repo/core/zones/node` 의 `zoneRewrites`). 경로는 `fallback` — 셸에 화면이 있으면 셸이 받는다.
+- 도메인 zone 4개로 프록시한다 (`next.config.js`의 `rewrites` = `@repo/core/zones/node` 의 `zoneRewrites`). 경로는 `fallback` — 셸에 화면이 있으면 셸이 받는다. 로컬에서 투자 화면을 보려면 3002(`web-investment`)도 떠 있어야 한다(`ops/salt.sh up`).
+- `middleware.ts` — 로그인 표지 쿠키가 있으면 `/` 에서 서버가 바로 `/home`(토큰은 그대로 `localStorage`, `FE-REQ-013` 전).
 - zone 내부 이동은 soft navigation이다. **zone을 넘는 링크는 `CrossZoneLink`(=`<a>`)를 쓴다.**
   `next/link`의 `<Link>`로 zone을 넘으면 `@repo/zone/no-cross-zone-link`가 lint에서 막는다.
 
@@ -14,14 +15,15 @@ app/                Next 라우팅. @/pages/* 를 re-export 만 한다
 ├── layout.tsx      <html>·<body> 껍데기 + AppProviders  (서버 컴포넌트)
 ├── page.tsx        → @/pages/login
 ├── home/           → @/pages/home
-├── investments/    → @/pages/investments
+├── settings/       → @/pages/settings   (도메인별 설정 링크 — 투자 코치 설정은 투자 zone /coach/settings)
 ├── goals/addgoals/ → @/pages/goals/addgoals
+├── not-found.tsx   → @repo/web-shared/layout 의 NotFoundPage(@/app 이 다시 연다)
 └── streaming-probe/  측정 전용. 기본 404, STREAMING_PROBE=1 일 때만 열린다
 pages/              **빈 폴더.** Next 가 src/pages 를 Pages Router 로 집지 않게 하는 장치
 src/
-├── app/providers/  전역 프로바이더 ("use client")
-├── pages/          화면 슬라이스 (FSD pages 레이어 — 세그먼트 분할은 FE-REQ-009)
-└── components/Block/BlockBoundary.tsx   Suspense + error boundary
+├── app/providers/  셸 프로바이더 ("use client") — React Query · 모션은 @repo/web-shared/layout ZoneProviders, 셸은 Redux · 세션 복원을 얹는다
+├── pages/          화면 슬라이스 (FSD pages 레이어)
+└── …               shared 레이어는 packages/web-shared(@repo/web-shared/<세그먼트>), BlockBoundary 도 거기
 ```
 
 **기본은 서버 컴포넌트다.** `"use client"`는 상호작용·브라우저 API가 필요한 잎에만 붙인다.

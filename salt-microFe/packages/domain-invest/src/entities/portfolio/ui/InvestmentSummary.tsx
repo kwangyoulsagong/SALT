@@ -1,0 +1,108 @@
+"use client";
+
+// 클라이언트 잎: React Query 로 조회한다.
+import type { ReactNode } from "react";
+
+import { useRolledNumber } from "@repo/ui/motion";
+import { StatusLine } from "@repo/ui/statusLine";
+import { Container } from "@repo/ui/container";
+import { FlexBox } from "@repo/ui/flexBox";
+import { Padding } from "@repo/ui/padding";
+import { Text } from "@repo/ui/text";
+
+import { formatPrice } from "@repo/web-shared/lib";
+
+import { usePortfolioSummary } from "../api";
+import { PORTFOLIO_MESSAGES } from "../model/messages";
+import { HoldingSummaryList } from "./HoldingSummaryList";
+
+/**
+ * 보유 요약 본문 — 종목별 평가금액 · 손익률 · 합계 (`FE-REQ-010` FR-5). 표시 전용 (`fsd-entities.md`).
+ *
+ * 2026-11-02 — 홈이 도메인 요약 카드가 되면서(`ADR-005` §2) 홈 블록에서 코치 리포트 맨 위 "내 보유" 패널로 옮겼다
+ * (사용자 결정). 홈 전용 머리("투자 분석" · "주식")를 걷고 본문만 둔다 — 제목은 놓는 쪽 패널이 단다.
+ *
+ * 2026-09-23 — 위에 있던 "지난주 대비 N% 덜 썼어요" 막대를 지웠다. MSW 목이 지어낸 지출 숫자였고
+ * 서버에 지출 데이터가 없다. 그 조회가 실패하면 **아래 실제 보유 목록까지** 가려지는 구조였다.
+ */
+interface InvestmentSummaryProps {
+  /** 머리 줄 오른쪽 — 블록이 다른 화면으로 가면 조합하는 쪽이 셰브론을 넣는다(표시 전용이라 이동은 모른다) */
+  trailing?: ReactNode;
+  /**
+   * 매입가 숨김(F009 FR-27). 서버 설정이라 조합하는 쪽이 읽어 넘긴다.
+   * `"unknown"` 은 설정이 아직 안 왔다 — 손익률을 그리지 않는다(켠 사람에게 한 번 보였다 사라지면 숨김이 아니다).
+   * 한 줄 물음은 `"hidden"` 일 때만
+   */
+  purchasePrice?: "shown" | "hidden" | "unknown";
+}
+
+export const InvestmentSummary = ({ trailing, purchasePrice = "shown" }: InvestmentSummaryProps) => {
+  const holdings = usePortfolioSummary();
+
+  return (
+    <Container size="full">
+      <Padding paddingY="md">
+        <FlexBox direction="column" gap="md">
+          {trailing ? (
+            <FlexBox justify="end" align="center" fullWidth>
+              {trailing}
+            </FlexBox>
+          ) : null}
+          <Container size="full" padding="none">
+            <Padding paddingY="sm">
+              <FlexBox direction="column" gap="md" fullWidth>
+                {/*
+                이 아래가 **비어 있었다** (`FE-REQ-010` FR-5). 보유 요약은 BFF 가
+                합쳐 주고 화면은 표시만 한다.
+
+                로그인하지 않았거나 못 불러온 것은 **보유가 없는 것과 다르다** —
+                셋을 같은 문구로 뭉뚱그리면 "자산이 없다"는 거짓이 된다.
+              */}
+                {holdings.isSignedOut ? (
+                  <StatusLine kind="blocked">
+                    {PORTFOLIO_MESSAGES.holdingsSignInRequired}
+                  </StatusLine>
+                ) : holdings.isPending ? (
+                  <Text color="tertiary">{PORTFOLIO_MESSAGES.loading}</Text>
+                ) : holdings.isError ? (
+                  <StatusLine kind="error">
+                    {PORTFOLIO_MESSAGES.holdingsLoadFailed}
+                  </StatusLine>
+                ) : (
+                  <>
+                    <HoldingSummaryList
+                      items={holdings.data.items}
+                      showProfitRate={purchasePrice === "shown"}
+                    />
+                    {holdings.data.items.length > 0 ? (
+                      <FlexBox justify="between" align="center" fullWidth>
+                        <Text color="tertiary">
+                          {PORTFOLIO_MESSAGES.totalLabel}
+                        </Text>
+                        <RolledTotal totalKrw={holdings.data.totalKrw} />
+                      </FlexBox>
+                    ) : null}
+                    {purchasePrice === "hidden" && holdings.data.items.length > 0 ? (
+                      <Text color="tertiary">{PORTFOLIO_MESSAGES.firstLookQuestion}</Text>
+                    ) : null}
+                  </>
+                )}
+              </FlexBox>
+            </Padding>
+          </Container>
+        </FlexBox>
+      </Padding>
+    </Container>
+  );
+};
+
+export default InvestmentSummary;
+
+/**
+ * 보유 합계 — 값이 바뀌면 이전 합계에서 굴러간다 (`FE-REQ-044` P-36).
+ * 도착값은 서버 합계 그대로다. 첫 렌더는 굴리지 않는다(서버 HTML 과 같다).
+ */
+const RolledTotal = ({ totalKrw }: { totalKrw: number }) => {
+  const shown = useRolledNumber(totalKrw);
+  return <Text variant="bodyLarge">{PORTFOLIO_MESSAGES.amount(formatPrice(shown))}</Text>;
+};

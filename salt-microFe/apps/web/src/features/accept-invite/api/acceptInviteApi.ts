@@ -1,6 +1,6 @@
 import { ONBOARDING_ENDPOINTS } from "@/entities/auth";
-import { apiFetch } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { apiFetch } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import type {
   AcceptInviteRequest,

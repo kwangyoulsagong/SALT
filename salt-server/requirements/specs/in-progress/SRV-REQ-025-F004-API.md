@@ -327,3 +327,4 @@ type ExplainResult =
 | 2026-11-02 | 파일만 걸침 — 프롬프트 사실 부분 공용(`factsBlock`, Gemini 프롬프트 글자 그대로) · 줄 형식 프롬프트 · RSI 소수 1자리(사실 지문이 바뀐다 — 5분 캐시만 영향) · Gemini 시도에 `provider`·id. 근거 `SRV-REQ-050`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | 파일만 걸침 — `aiCoach.routes.ts` Swagger: `/explain` · `/explain/stream` 에 `X-Salt-Client` 헤더 · `provider` · 흘림 방식 서술(`failOnErrors` 생성 확인). 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `/api/coach/events` Swagger — 국내 종목 · `scope` · `region` · 응답 스키마(`SRV-REQ-041` FR-7) |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 2 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

@@ -168,7 +168,7 @@ created: 2026-09-09
 |---|---|---|
 | FR-80 | ~~`riskTolerance` · `maxSingleAssetWeight` · `rebalanceBand` · `panicSellWindowHours` · `defaultMode` · `notificationLevel`~~ **개정 2026-10-30 (사용자 결정)**: **바꾸면 무언가 달라지는 설정만 칸으로 둔다.** `defaultMode`(종목 판단 첫 모드) · `panicSellWindowHours`(리포트 "최근 행동" 매도 기간) — 설정 화면 `/settings`. `maxSingleAssetWeight` 는 코치 리포트 내 기준(`set-risk-budget`)에 이미 있어 링크한다. `riskTolerance` · `rebalanceBand` · `notificationLevel` 은 서버가 저장만 하고 읽는 곳이 0건(2026-10-30 grep)이라 칸을 두지 않는다 — 서버 소비처가 생길 때 연다. **완료(웹)** | Must |
 | FR-81 | **2026-10-30**: `defaultMode` 노출 완료 · `notificationLevel` 은 FR-80 개정대로 보류(알림 발송 코드가 이 값을 보지 않는다). 원문: `defaultMode`·`notificationLevel`이 **영속화되므로 UI에 노출**한다(`unsupportedPersistedFields` 제거 후). **2026-09-21 확정 (B16)**: `FEATURE-004` FR-12 의 "UI 숨김"과의 충돌을 **노출**로 닫는다. `defaultMode` 는 모드 스위치(FR-111)의 초기값, `notificationLevel` 은 알림 1종(D5)의 빈도 | Must |
-| FR-82 | 저장 후 추천을 재조회한다. 성향이 점수에 영향한다. **2026-10-30 완료**: 저장 응답을 설정 캐시에 넣고 종목 판단 전체 · 코치 리포트를 무효화한다(두 칸이 바꾸는 것이 그 둘). 점수에 들어가는 한 종목 상한은 내 기준 저장(`set-risk-budget`)이 이미 무효화한다 | Must |
+| FR-82 | 저장 후 추천을 재조회한다. 성향이 점수에 영향한다. **2026-10-30 완료**: 저장 응답을 설정 캐시에 넣고 종목 판단 전체 · 코치 리포트를 무효화한다(두 칸이 바꾸는 것이 그 둘). 점수에 들어가는 한 종목 상한은 내 기준 저장(`set-risk-budget`)이 이미 무효화한다. **정정 2026-11-02** — I절 화면 경로 ~~`/settings`~~ → `/coach/settings`(투자 zone, `FE-REQ-053`). 셸 `/settings` 는 "투자 코치 설정" 링크 목록 | Must |
 
 ### J. 면책과 제외
 
@@ -411,3 +411,4 @@ PC                                                   모바일(세로 스택)
 | 2026-10-30 | F004 슬라이스 20 — **FR-166 신설 · 완료**(`13900cd8`): 리포트 "주의할 점" 종목별 칩(`FEATURE-004` FR-3 의 "자산별 필터"를 이 REQ 에 FR 로 내림 — 그전엔 화면 구조 트리에 정렬만 있었다). `Chip` 은 종목 검색 필터와 같은 모양. 루트 `requirements/specs/done/F004-risk-asset-filter-slice.md` |
 | 2026-11-02 | 파일만 걸침 — `ExplainCard.tsx`(이 REQ 가 머리 주석 주인) 출처 칩이 원문 링크 + 게시 시각(주인 FR 은 `FE-REQ-038` FR-7). 이 REQ 화면 구조 무변경. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — `pages/investments/ui/InvestmentsBoard.tsx` — 머리 띠를 `renderLead(assetClass)` 로 주입(자산군 탭마다) |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 코치 설정 `/settings` → `/coach/settings`(셸 `/settings` 는 링크 목록)(`08a3aabf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 51개(경로 이동 내용 무변경 31 · 수정 19 · 추가 1 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |

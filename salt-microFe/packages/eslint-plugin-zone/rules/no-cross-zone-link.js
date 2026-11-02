@@ -15,9 +15,20 @@
 const registry = require("../../core/src/zones/registry.cjs");
 
 /** `apps/<app>/...` 의 앱 이름. 앱 밖이면 셸로 본다. */
+/**
+ * 파일이 놓인 앱. `packages/domain-<x>` 는 그 도메인 zone 앱의 코드다 — 화면이 패키지로 옮겨 가도(`FE-REQ-053`)
+ * 같은 판정을 받는다. 그 밖(`web-shared` 등 공용)은 셸 기준.
+ */
 const appOf = (filename) => {
-  const match = (filename || "").split("\\").join("/").match(/(?:^|\/)apps\/([^/]+)\//);
-  return match ? match[1] : registry.SHELL_APP;
+  const normalized = (filename || "").split("\\").join("/");
+  const app = normalized.match(/(?:^|\/)apps\/([^/]+)\//);
+  if (app) return app[1];
+  const domain = normalized.match(/(?:^|\/)packages\/(domain-[^/]+)\//);
+  if (domain) {
+    const owner = registry.ZONE_IDS.find((id) => registry.ZONES[id].domainPackage === `@repo/${domain[1]}`);
+    if (owner) return registry.ZONES[owner].app;
+  }
+  return registry.SHELL_APP;
 };
 
 /** 셸의 `/` 는 루트 하나만 — 나머지 경로를 전부 삼키지 않는다. */

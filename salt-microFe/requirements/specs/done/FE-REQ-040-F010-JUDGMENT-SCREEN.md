@@ -64,3 +64,7 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9 · �
 - 2026-10-30: FR-6 성적표 그룹마다 판정 근거 상세 링크(F004 슬라이스 17 · `FE-REQ-026` FR-141) — "분포 · 맞았던 때 · 틀렸던 때 ›"(`NavChevron`). 그룹 이름 함수는 상세와 한 벌(`signalTypeLabel`). 성적표 표시 자체 무변경
 - 2026-10-30: 파일만 걸침 — `fsd-widgets.md` 위젯 표에 `asset-search` 행 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 머리 띠(`judgment-overview`)가 `assetClass` 를 받는다 — 국내 탭 성적표는 `kr_stock` 그룹만, 위험 칸은 보유 전체 그대로(BTC 동조 줄만 뺌), 목표 비중 칸 없음(`FE-REQ-050` FR-5)
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 9개(경로 이동 내용 무변경 5 · 수정 4 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

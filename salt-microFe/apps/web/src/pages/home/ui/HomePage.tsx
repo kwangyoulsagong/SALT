@@ -1,4 +1,4 @@
-import { ProfileMenu } from "@/features/sign-out";
+import { ProfileMenu } from "@repo/web-shared/layout";
 import { HomeBriefing } from "@/widgets/home-briefing";
 import { OnboardingCard } from "@/widgets/onboarding-flow";
 

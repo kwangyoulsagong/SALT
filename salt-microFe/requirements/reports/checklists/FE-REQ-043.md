@@ -46,3 +46,8 @@
 |---|---|---|
 | 실제 RN 웹뷰(`react-native-webview`)에서 UA 붙이기 | 앱이 없다 | `RN-REQ-001` (계약을 적어 뒀다) |
 | 앱 웹뷰로 띄울 화면의 휴대폰 폭 레이아웃 | 어느 화면을 웹뷰로 쓸지 미정 | 화면이 정해지면 그 화면 REQ |
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`). 파일 5개(경로 이동 내용 무변경 3 · 수정 2 · 추가 0 · 삭제 0). 계약 · 동작 무변경
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2

@@ -1,0 +1,52 @@
+/**
+ * 레이어를 가로지르는 사용자 노출 문구.
+ *
+ * ## 여기 있는 것과 없는 것
+ *
+ * 여기 있는 것은 **도메인과 무관한 문구**다 — HTTP 에러, 공통 실패/로딩 상태.
+ * 슬라이스 문구(목표·시세·포트폴리오)는 그 슬라이스의 `model/messages.ts` 에 있다.
+ *
+ * 도메인 문구를 여기로 올리면 `shared` 가 도메인을 알게 되고(`fsd-shared.md` — 도메인
+ * 무관한 코드만), 슬라이스를 지울 때 문구만 남는다. **문구 검수(`i18n-policy.md`)는
+ * "한 파일"이 아니라 "컴포넌트 밖"이면 가능하다.**
+ */
+import { withObjectParticle } from "../lib";
+
+export {
+  HTTP_ERROR_MESSAGE,
+  TOAST_MESSAGES,
+  ERROR_MESSAGE,
+} from "@repo/core/http";
+
+/**
+ * 블록 경계(`shared/ui`)가 쓰는 공통 상태 문구.
+ *
+ * 블록 이름이 런타임에 들어오므로 조사를 문구에 박아둘 수 없다 — `koreanParticle` 이 고른다.
+ */
+export const BOUNDARY_MESSAGES = {
+  loading: (name: string) => `${name} 불러오는 중`,
+  failedTitle: (name: string) =>
+    `${withObjectParticle(name)} 불러오지 못했습니다.`,
+  failedDescription: "잠시 후 다시 시도해주세요.",
+} as const;
+
+/**
+ * 좁은 화면 안내(`FE-REQ-043`) — 웹은 PC 화면이다. 휴대폰 화면은 앱(`RN-REQ-001`)이 맡는다.
+ * 주문을 실행하는 서비스가 아니라 "거래"라고 쓰지 않는다(공통 수용 기준 2).
+ */
+export const NARROW_SCREEN_MESSAGES = {
+  heading: ["더 큰 화면으로,", "더 자세하게 분석해요"],
+  screenAlt: "PC 화면의 투자 분석 — 시세 표와 코치 판단 패널",
+  cardTitle: ["차트 · 판단 · 성적을", "한 화면에서"],
+  cardBody: "넓은 화면에서 차트와 코치 판단, 과거 성적을 나란히 볼 수 있어요",
+  cardAlt: "PC 화면의 종목 상세 — 코치 판단과 과거 성적",
+  prompt: "PC로 접속해 주세요",
+  copy: "PC 링크 복사하기",
+  copied: "링크를 복사했어요",
+  copyFailed: "복사하지 못했어요 · 주소창의 링크를 복사해 주세요",
+} as const;
+
+/** zone 을 넘는 이동은 hard navigation 이라 체감 지연이 있다. */
+export const NAVIGATION_MESSAGES = {
+  crossZonePending: "이동 중…",
+} as const;

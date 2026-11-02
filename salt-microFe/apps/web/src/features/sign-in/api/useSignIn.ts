@@ -4,9 +4,9 @@ import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/r
 import { useRouter } from "next/navigation";
 
 import { setUser } from "@/entities/auth";
-import { type ApiError, writeSession } from "@/shared/api";
-import { ROUTES, USER_KEY } from "@/shared/config";
-import { useAppDispatch } from "@/shared/lib";
+import { type ApiError, writeSession } from "@repo/web-shared/api";
+import { ROUTES, USER_KEY } from "@repo/web-shared/config";
+import { useAppDispatch } from "@repo/web-shared/lib";
 
 import type { SignInRequest, SignInResponse } from "../model/types";
 import { signInApi } from "./signInApi";

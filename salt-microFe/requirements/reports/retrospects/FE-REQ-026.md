@@ -106,3 +106,7 @@
 ## 국내 탭 요약 띠 (F011, 2026-11-02)
 
 - 파일만 걸쳤다 — 판단은 `SRV-REQ-042` · `FE-REQ-050` 회고에 있다.
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
+
+- 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`

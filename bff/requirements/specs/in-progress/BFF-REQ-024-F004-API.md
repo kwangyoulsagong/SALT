@@ -235,3 +235,4 @@ type SymbolCoachViewModel = {
 | 2026-10-29 | `trade-preflight` 응답 `calculation` 에 서버 `targetGainAmount` · `targetGainRate`(`SRV-REQ-025` FR-65)가 그대로 지나간다 — 서비스가 `calculation` 을 통째로 넘겨 **BFF 코드 변경 없음**. 실 BFF 응답에서 두 필드 확인 |
 | 2026-10-29 | `app-trade-preflight.service` 에 `assetType` 한 줄 — 서비스가 필드를 골라 담아 서버 FR-66 `assetType` 이 빠졌다(`calculation` 은 통째라 FR-65 는 지나갔다). 앞 행의 "BFF 코드 변경 없음"은 FR-65 에만 참 |
 | 2026-10-30 | F004 슬라이스 18 — **변경 없음.** `GET/PATCH /api/app/ai-coach/profile` 이 6필드 + 숨김을 이미 그대로 넘긴다. 웹 설정 화면이 그중 `defaultMode` · `panicSellWindowHours` 를 새로 읽는다 |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 1 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |

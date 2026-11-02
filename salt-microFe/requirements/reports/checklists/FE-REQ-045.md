@@ -24,3 +24,8 @@
 | 기존 대비 위반(사건 카드 면책 3.03 · 상승/하락 색 등) | 이번 변경 밖 — 브랜드 색 결정 대기 | 대비 정리 REQ |
 | 웹폰트 404 | 기존 주소 문제, 이번 변경 밖 | 별도 |
 | 요약 칸 `judgment-overview` · 미러 · 복기 · 보유 | 사용자 결정 · 설계상 제외 | 범위 밖 |
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 2 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2

@@ -47,12 +47,6 @@
       "@/entities/*": [
         "./src/entities/*"
       ],
-      "@/shared": [
-        "./src/shared"
-      ],
-      "@/shared/*": [
-        "./src/shared/*"
-      ],
       "@/*": [
         "./src/*"
       ]

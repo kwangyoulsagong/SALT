@@ -211,3 +211,5 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | 2026-10-29 | **변경 없음.** 프론트 `entities/coach/api/endpoints.ts` 의 다른 줄(리스크 예산 경로 주석 "게이지 3" → "게이지 · 측정")만 바뀌었다 — 이 REQ 를 가리키는 경로 상수 · 주석 무변경(F009 슬라이스 9) |
 | 2026-10-29 | 전수 조사 — generate 경로 · 고쳐진 "지금" 문장 표시 |
 | 2026-10-30 | 파일만 걸침 — `error.util.ts` 에 `trackedCount` · `trackedLimit` 옮김 추가(`retryAfterSeconds` 옆). 쿨다운 전달 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 1개(경로 이동 내용 무변경 1 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 후속 — `c5ec66ed` — 이 REQ 를 머리에 적은 `coach-console` 위젯 model 에 문구 파일 하나(`COACH_CONSOLE_MESSAGES` "내 보유"). BFF 계약 무변경 |

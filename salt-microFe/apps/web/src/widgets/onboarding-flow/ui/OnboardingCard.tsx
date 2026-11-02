@@ -9,8 +9,8 @@ import { Text } from "@repo/ui/text";
 import Link from "next/link";
 
 import { useOnboardingStatus } from "@/entities/auth";
-import { ROUTES } from "@/shared/config";
-import { NavChevron } from "@/shared/ui";
+import { ROUTES } from "@repo/web-shared/config";
+import { NavChevron } from "@repo/web-shared/ui";
 
 import {
   ONBOARDING_CARD_MESSAGES,

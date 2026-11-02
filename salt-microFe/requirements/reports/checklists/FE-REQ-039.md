@@ -208,3 +208,10 @@ FR 전부 완료. 남은 것은 `QA-001`(소유자 실계정 · 200% 확대 · �
 | 리포트 자리 | 코드 무변경(`RiskBudgetPanel`) |
 
 미검증 · 범위 밖: 없음
+
+## 2026-11-02 — MONEY-F1(`FE-REQ-053`) 투자 zone 분리 · 홈 카드
+
+- MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 셸 홈 → 도메인 요약 카드(투자 블록 · 매입가 숨김 잎 삭제)(`417076d8`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 조회 훅 렌더 중 `localStorage` 토큰 읽기 → `useHasAccessToken`(`/search` 수화 불일치 수정)(`b4a59677`). 파일 28개(경로 이동 내용 무변경 12 · 수정 15 · 추가 0 · 삭제 1). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+- 2026-11-02 MONEY-F1 후속 — `c5ec66ed` — 매입가 숨김 토글 설명: 숨는 자리 둘(홈 투자 카드 · 코치 리포트 "내 보유"). FR-13 본문도 그 자리 정정. 실화면 켬/끔 확인

@@ -34,3 +34,7 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md FR-
 ## Changelog
 
 - 2026-10-07: 초판 · FR-1~6 코드 완료(`2501453`). 추천 카드 실데이터 · 게이지 줄 자른 화면이 남아 in-progress
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 2 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
