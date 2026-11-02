@@ -1,5 +1,5 @@
 #!/bin/zsh
-# SALT 로컬 전체 기동 · 상태 · 중지 — 명령 하나로. 배포 환경이 없어서 이 맥이 서버다(`OPS-001` 전까지).
+# SALT 로컬 전체 기동 · 상태 · 중지 — 명령 하나로(`OPS-002`). 배포 환경이 없어서 이 맥이 서버다(`OPS-001` 전까지).
 #
 #   ops/salt.sh up              전부 켠다(상시 프로세스는 launchd 에 등록 — 재부팅해도 다시 뜬다) + 웹 dev
 #   ops/salt.sh up --replace    포트를 잡고 있는 수동 SALT 프로세스(예: `npm run dev` 로 띄운 BFF)를 내리고 launchd 로 바꾼다

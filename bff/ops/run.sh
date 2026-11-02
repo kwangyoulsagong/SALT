@@ -1,5 +1,5 @@
 #!/bin/zsh
-# BFF 상시 실행 — launchd `com.salt.bff-<rest|ws|worker>` 가 부른다(`ops/salt.sh up` 이 plist 를 만든다).
+# BFF 상시 실행(`OPS-002` · 시세 워커 `BFF-REQ-009` FR-33) — launchd `com.salt.bff-<rest|ws|worker>` 가 부른다(`ops/salt.sh up` 이 plist 를 만든다).
 #
 # 왜 상시인가: 시세 워커(price-updater)가 업비트 WebSocket 으로 DB 시세를 갱신한다. 꺼지면 코인 시세가 멈춘다 —
 # 2026-11-02 꺼진 채 발견(사람이 `npm run dev` 를 기억해서 띄우는 구조였다).

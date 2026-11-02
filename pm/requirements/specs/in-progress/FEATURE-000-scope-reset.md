@@ -415,3 +415,4 @@ flowchart TB
 | 2026-10-30 | F004 슬라이스 19(차트 1주 탭) — 차트 주기 계약에 `week`(`SRV-REQ-008` FR-50 · `SRV-REQ-009` · `BFF-REQ-007` FR-52 · `BFF-REQ-008` FR-12 · `FE-REQ-012` FR-2 개정 3종). `month` 는 여전히 422. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
 | 2026-10-30 | **FR-1 완료 · FR-2 정정.** 레거시 `AIAnalysis*` drop(행 0 · 스냅샷 복원 1회). FR-2 "중복 worker" 는 중복이 아니었다 — 서버 잡은 `market_assets`(코치 판정 가격), BFF 워커는 관심 목록 · 보유 가격. 서버 잡 유지. 루트 `F000-legacy-cleanup` |
 | 2026-11-02 | 루트 `F000-asset-search-slice.md` done — #123 머지, 남은 것은 `QA-001` · 다음 관심 종목 탭 작업(조건부)뿐 |
+| 2026-11-02 | **운영 — 뉴스 워커 · BFF 시세 워커 상시화**(`OPS-002`, `ops/salt.sh`). 뉴스 수집이 09-29 부터 한 달 멈춰 있었다(사람이 띄우는 별도 프로세스). `SRV-REQ-010` · `BFF-REQ-009` 기록. 코드 무변경 |

@@ -153,3 +153,4 @@ FEATURE-000 FR-35: *"`external/kis/` 조회 전용 클라이언트 스켈레톤.
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 추가: FR-7(`HoldingProbeAdapter` — 추적 판정 · 수량 목표가 보유를 ACL 로 읽는다, D8 · B5). 개정: FR-3 · 4 `ledger` ACL → `portfolio`(B12) · KIS 절 전체 **보류(Q2)**, `ledger/KisClient` 만들지 않음 · 알림 2종 → 1종 · `price-history.worker` 유지 근거 F001 → F004 · 삭제된 SRV-REQ-012 후속 제거. 정리 항목(레거시 모델 · 중복 worker · 동면 410 · `AssetType`)은 **본문 그대로** — FEATURE-000 이 이 REQ 를 가리킨다. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | **FR-30 · 34 정정 → 닫힘** — 이중 갱신이 아니었다(서버 잡 `market_assets` · BFF 워커 관심 목록 · 보유). `market_assets` 단일 경로는 서버 잡. FR-33 측정 대상 없음(지운 워커 0). 코드 무변경. 루트 `F000-legacy-cleanup` |
+| 2026-11-02 | `news-crawler.worker`(유지 판정 그대로)를 launchd 상시로(`com.salt.news`, `ops/run-news.sh`) — 09-29 09:01 UTC 뒤 한 달 멈춘 채 발견. 코드 무변경. 루트 `requirements/specs/done/OPS-002-local-process-supervisor.md` |

@@ -14,3 +14,10 @@
 ## 2026-10-30 — F000 레거시 모델 drop · 중복 워커 정정 (루트 `F000-legacy-cleanup`)
 
 - FR-33 정정 — 같은 전제. BFF 코드 무변경
+
+## 2026-11-02 — 시세 워커 상시화 (`OPS-002`)
+
+- `bff/ops/run.sh worker` 25초 실행: 업비트 연결 · 299종목 구독. 10:07 launchd 등록 뒤 `ops/salt.sh status` 코인 시세 ok 0분 전
+- REST 4001 · WS 4002 도 launchd(수동 tsx watch 6473 · 6474 교체) · 헬스 200
+
+미검증: 재부팅 뒤 자동 기동.
