@@ -30,7 +30,12 @@ export type LanguageViolation =
   | "unsupported_causal"
   | "judgment_polarity"
   | "performance_wording"
-  | "advice_wording";
+  | "advice_wording"
+  /** 프롬프트 안쪽 이름(줄 라벨 "뉴스1" · 칸 이름)을 문장이 가리킨다 — 화면엔 그런 이름이 없다(SRV-REQ-050 FR-11 3회차) */
+  | "prompt_label";
+
+// "뉴스1과 연속 일수도 다르게 적혀" — 줄 라벨 · JSON 칸 이름. "뉴스 1건" · "기사 2개" 처럼 세는 말은 통과
+const PROMPT_LABEL = /(뉴스\s?\d+(?!\s?(건|개|줄|곳|번째|가지|일|시간|%))|newsSummary|keyDrivers|modeReasoning|근거\s?데이터\s?\d)/;
 
 // "보장하지 않습니다"는 면책이다 — 부정형은 통과시킨다
 const CERTAINTY = /(확실|무조건|보장(?!\s*(하지|되지|할\s*수\s*없))|100\s*%|틀림없|반드시\s*(오|내|상승|하락))/;
@@ -70,6 +75,7 @@ export const languageViolations = (sentence: string): LanguageViolation[] => {
   if (TARGET_PRICE.test(sentence) || TARGET_PRICE_EN.test(sentence)) out.push("target_price");
   if (PERFORMANCE_WORDING.test(sentence) || PERFORMANCE_WORDING_EN.test(sentence)) out.push("performance_wording");
   if (ADVICE_WORDING.test(sentence)) out.push("advice_wording");
+  if (PROMPT_LABEL.test(sentence)) out.push("prompt_label");
   return out;
 };
 

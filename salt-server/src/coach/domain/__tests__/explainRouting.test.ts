@@ -137,3 +137,11 @@ describe("완곡 권유 — 지켜보라는 말 (2026-11-02 로컬 Claude 블라
     assert.equal(guardExplanationLine("risks", "판단에 필요한 근거가 부족해요.", input).ok, true);
   });
 });
+
+describe("프롬프트 라벨 누출 (블라인드 3회차)", () => {
+  it("문장 안의 '뉴스1' · 칸 이름은 걸리고, '뉴스 1건' 처럼 세는 말은 통과", () => {
+    assert.equal(guardExplanationLine("newsSummary", "출처가 없고 뉴스1과 연속 일수도 다르게 적혀 있어요.", input).ok, false);
+    assert.equal(guardExplanationLine("keyDrivers", "keyDrivers 에 적힌 근거예요.", input).ok, false);
+    assert.equal(guardExplanationLine("newsSummary", "관련 뉴스 1건이 들어왔어요.", input).ok, true);
+  });
+});
