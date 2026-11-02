@@ -14,7 +14,8 @@
     "./marketKr": "./src/market/krStock.ts",
     "./sse": "./src/sse/parser.ts",
     "./embed": "./src/embed/index.ts",
-    "./home": "./src/home/homeSummaryCard.ts"
+    "./home": "./src/home/homeSummaryCard.ts",
+    "./navigation": "./src/navigation/index.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
