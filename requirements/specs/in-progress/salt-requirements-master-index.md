@@ -363,10 +363,14 @@ BFF `alerts.viewmodel` 이 한 번 더 거른다 — 실경로에서 서버가 �
 BFF `AppError` 선택 `code`(차트 주기 422 `MARKET_CHART_PERIOD_UNSUPPORTED`, `BFF-REQ-025` · `007`) · `ApiError` 를 `@repo/core/http` 로 옮겨 단위 17건 ·
 운영 빌드 재시도(404 요청 1) · 로그인 · 거래 기록 오류 문구 실화면 — 미검증 0.
 
+**로컬 전체 기동 · 상태 `OPS-002` (2026-11-02, 같은 브랜치 `feat/f008-explain-citations` — 사용자 "한 브랜치로 다해")** — 사용자 "전체 서버 다 키는 명령어가 필요" · "계속 머 까먹어서".
+`ops/salt.sh up | status | down | restart | logs | plist`. 뉴스 워커 · BFF REST · WS · 시세 워커를 서버 · 예측처럼 launchd 상시로. `status` 가 마지막 뉴스 · 시세 시각으로 "떠 있는데 안 모으는" 것을 잡는다.
+뉴스 302건 수집 확인(09-29 뒤 처음). launchd 등록은 사용자가 `up --replace` 1회(자동 권한 검사가 막음).
+
 **F008 해설 근거 슬라이스 (서버 · FE, 2026-11-02, `feat/f008-explain-citations`)** — 사용자 "새 브랜치 파고 다음꺼 진행"(§4-1 순위 2 F008 줄).
 범위 `F008-explain-citations-slice.md`, 검증 `checklists/F008-explain-citations.md`. FR-44 인용 칩이 원문 링크 + 게시 시각(서버는 주소 · 시각을 갖고 있었고 ACL 이 버렸다) ·
 FR-48 조사(`es-hangul` + 영문 · 숫자 래퍼, "SOL는" → "SOL은") · FR-49 픽스처 50건 자동 지표 + 블라인드 A/B 평가지(사람 평가 남음). 측정이 검증기 빈틈(부정 명령 · `-세요`)을 찾아
-명령형 규칙 문장 6개를 고침 — `SRV-REQ-024` FR-108 "행동 서술이라 유지" 정정. BFF 무변경. 발견: 뉴스 수집 09-29 부터 멈춤(별도 프로세스) → 전체 기동 명령(다음 브랜치).
+명령형 규칙 문장 6개를 고침 — `SRV-REQ-024` FR-108 "행동 서술이라 유지" 정정. BFF 무변경. 발견: 뉴스 수집 09-29 부터 멈춤(별도 프로세스) → 바로 위 `OPS-002`(같은 브랜치).
 
 **F011 5분봉 보정 창 슬라이스 (서버, 2026-11-02, `fix/f011-kr-minute-bar-window-edge`)** — 사용자 "새 브랜치 파고 다음꺼 진행"(§4-1 순위 2 F011 줄 마지막).
 범위 `F011-minute-bar-window-slice.md`, 검증 `checklists/F011-minute-bar-window.md`. 10-30 결함 기록("창 끝 날 실패가 영영 남는다")은 **진단 오류** — 09-29 0봉은 30일 정리가
@@ -831,3 +835,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-02 | **F011 5분봉 보정 창 정정(서버).** `SRV-REQ-040` FR-21 — 10-30 결함 기록(창 끝 날 실패)은 진단 오류(30일 정리가 전 종목에서 지움), 대신 창이 이미 지워진 `오늘 − 30` 을 넣어 회차 호출 절반을 버리던 것을 고침(창 29일 · 로그 "남은" 실패 포함). 변경 없음 `BFF-REQ-040` · `FE-REQ-041`. §4-1 순위 2 F011 줄 닫음. 루트 `F011-minute-bar-window-slice.md` |
 | 2026-11-02 | **후속 · done 대조.** `SRV-REQ-040` FR-21 종가 재시도 최근 개장일 5일. 미검증 둘 시각 주입 dry-run · KIS 직접 조회로 닫음. 짝 변경 없음 기록 `BFF-REQ-040` · `FE-REQ-041` · 파일만 `FC-REQ-020`. 루트 슬라이스 done 셋: `F011-minute-bar-window` · `F011-fr14-future-holidays`(#129 · 남은 것 2027 공시 연례 작업) · `F000-asset-search`(#123 · 남은 것 `QA-001` · 조건부). 영역 in-progress 40 대조 — 라이브 날짜 · 표본 대기(FC-011 · 013 · 014~016 · 006 · FE-045 · SRV-040 보류 FR)라 유지, 중복 스펙 · 체크리스트 · 회고 누락 · 인덱스 상태 불일치 0 |
 | 2026-11-02 | **F008 해설 근거(서버 · FE).** `SRV-REQ-037` FR-12(인용 주소 · 시각) · FR-13(검증기 부정 명령 · `-세요`) · FR-14(조사) · FR-15(품질 픽스처 50 · A/B 평가지) · `SRV-REQ-024` FR-108 정정 · `SRV-REQ-025` · `FE-REQ-038` FR-7. 짝 변경 없음 `BFF-REQ-037`. 파일만 걸침 `SRV-REQ-006` · `008` · `DB-REQ-017` · `FE-REQ-026` · `044` · `029`. `FEATURE-008` FR-44 · 48 완료 · FR-49 부분 · FR-43 보강 · `FEATURE-004` 이력. §4-1 순위 2 F008 줄(사람 평가 남음). 루트 3종 `F008-explain-citations` |
+| 2026-11-02 | **`OPS-002` 로컬 전체 기동 · 상태(루트 `ops/salt.sh`).** 뉴스 워커(`salt-server/ops/run-news.sh`) · BFF(`bff/ops/run.sh`) 상시화 · 상태표에 데이터 신선도. 같은 브랜치(사용자 "한 브랜치로 다해"). 루트 CLAUDE.md 표에 한 줄. 미검증: launchd 등록(사용자 `up --replace`) |
