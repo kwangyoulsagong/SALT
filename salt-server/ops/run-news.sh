@@ -9,4 +9,6 @@
 set -u
 setopt pipefail
 cd "$(dirname "$0")/.." || exit 1
-./node_modules/.bin/tsx src/workers/news-crawler.worker.ts 2>&1 | /usr/sbin/rotatelogs -n 5 "$HOME/Library/Logs/salt-news.log" 20M
+source ../ops/lib-run.sh
+stop_stale "src/workers/news-crawler.worker.ts"
+run_supervised salt-news ./node_modules/.bin/tsx src/workers/news-crawler.worker.ts

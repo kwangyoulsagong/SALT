@@ -203,7 +203,17 @@ case "${1:-status}" in
   restart)
     valid "${2:-}"
     if [[ $2 == web ]]; then down_one web; sleep 1; start_web
-    elif loaded "$2"; then launchctl kickstart -k "gui/$UID_NUM/${LABEL[$2]}" && say "  ↻ $2"
+    elif loaded "$2"; then
+      # kickstart -k 를 쓰지 않는다 — 옛 node 가 종료(DB 연결 닫기) 중일 때 새 프로세스가 떠 EADDRINUSE 로 죽고,
+      # launchd 가 재시도를 미뤄 1~2분 꺼져 있었다(2026-11-02 실측). 내리고 · 비기를 확인하고 · 올린다
+      down_one "$2" >/dev/null
+      for _ in {1..40}; do
+        [[ -z "$(manual_pid "$2")" ]] && break
+        sleep 0.5
+      done
+      [[ -n "$(manual_pid "$2")" ]] && say "  ! $2 — 20초 뒤에도 옛 프로세스가 남아 있다(PID $(manual_pid "$2")). 시작 스크립트가 정리한다"
+      # 교체 모드(1) — 옛 프로세스가 남았으면 내리고 올린다. 0 이면 "수동으로 떠 있다"로 보고 등록을 건너뛰어 launchd 에서 빠졌다(2026-11-02)
+      start_service "$2" 1 >/dev/null && say "  ↻ $2"
     else say "  $2 — launchd 에 없다. 'ops/salt.sh up' 먼저"; fi ;;
   logs)
     valid "${2:-}"; tail -n 50 -f "${LOG[$2]}" ;;

@@ -16,4 +16,8 @@ set -u
 setopt pipefail
 cd "$(dirname "$0")/.." || exit 1
 export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
-./node_modules/.bin/tsx src/server.ts 2>&1 | /usr/sbin/rotatelogs -n 5 "$HOME/Library/Logs/salt-server.log" 20M
+# 고아 정리 · 그룹 종료(2026-11-02, `OPS-002` — `ops/lib-run.sh` 머리 주석)
+source ../ops/lib-run.sh
+stop_stale "src/server.ts"
+wait_port_free 4000
+run_supervised salt-server ./node_modules/.bin/tsx src/server.ts

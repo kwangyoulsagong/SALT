@@ -18,4 +18,7 @@ case "${1:-}" in
   *) echo "사용: run.sh rest|ws|worker" >&2; exit 2 ;;
 esac
 
-./node_modules/.bin/tsx "$entry" 2>&1 | /usr/sbin/rotatelogs -n 5 "$HOME/Library/Logs/salt-bff-$1.log" 20M
+source ../ops/lib-run.sh
+stop_stale "$entry"
+case "$1" in rest) wait_port_free 4001 ;; ws) wait_port_free 4002 ;; esac
+run_supervised "salt-bff-$1" ./node_modules/.bin/tsx "$entry"
