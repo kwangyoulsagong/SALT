@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
 import type {
@@ -130,18 +130,26 @@ export class PrismaWatchlistRepository implements WatchlistRepository {
       priceChange24h: number;
     }>
   ) {
-    await Promise.all(
-      prices.map((price) =>
-        prisma.investmentWatchlist.updateMany({
-          where: { symbol: price.symbol.toUpperCase(), assetType: "crypto" },
-          data: {
-            currentPrice: price.currentPrice,
-            priceChange24h: price.priceChange24h,
-            lastUpdated: new Date(),
-          },
-        })
+    if (prices.length === 0) return 0;
+
+    // **한 문장으로** 갱신한다. 전에는 종목마다 updateMany 를 Promise.all 로 동시에 던져(시세 워커가 5초마다 100여 종목)
+    // 갱신 한 번이 DB 연결 풀을 다 잡았다 — 그동안 다른 요청이 연결을 기다렸다. 재기동 직후 첫 대량 갱신에 1~2초
+    // (최대 13.7초)가 걸렸고 BFF 위험 예산 조회(800ms 예산)가 그 줄에 서서 "불러올 수 없어요"가 됐다(2026-11-02 실측).
+    // 시각은 Prisma 관례대로 UTC(시간대 없는 timestamp) — `PrismaSymbolJudgmentStore` 와 같은 꼴
+    const values = Prisma.join(
+      prices.map(
+        (price) =>
+          Prisma.sql`(${price.symbol.toUpperCase()}, ${new Prisma.Decimal(price.currentPrice)}::numeric, ${new Prisma.Decimal(price.priceChange24h)}::numeric)`
       )
     );
+    await prisma.$executeRaw`
+      UPDATE investment_watchlist AS w
+      SET current_price = v.current_price,
+          price_change_24h = v.price_change_24h,
+          last_updated = (now() AT TIME ZONE 'UTC')
+      FROM (VALUES ${values}) AS v(symbol, current_price, price_change_24h)
+      WHERE w.symbol = v.symbol AND w.asset_type = 'crypto'
+    `;
 
     return prices.length;
   }
