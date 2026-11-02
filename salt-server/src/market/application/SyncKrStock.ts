@@ -561,6 +561,12 @@ const MINUTE_CALLS_PER_RUN = 1_200;
 const MINUTE_PAGES_PER_DAY = 4;
 /** 이만큼 있고 종가 봉(15:25)이 있으면 그날은 채워진 것으로 본다 — 체결 없는 5분이 드물게 있다 */
 const MINUTE_DAY_COMPLETE = KR_FIVE_MINUTE_BUCKETS_PER_DAY - 8;
+/**
+ * 종가 봉(15:25)이 없는 날을 다시 받는 기간 — 최근 개장일 이만큼. 15:40 회차엔 15:30 종가 1분봉이 아직 없는 날이 있어
+ * 다음 회차가 채운다(10-30 실측). 그런데 KIS 에 종가 1분봉이 아예 없는 날도 있다(10-08 8종목 — 2026-11-02 KIS 직접 조회).
+ * 그런 날을 30일 내내 회차마다 다시 받지 않게, 지난 날은 봉 수만 본다. 5 = 서버가 며칠 꺼져 있어도 종가를 놓치지 않는 여유
+ */
+const MINUTE_CLOSE_RETRY_OPEN_DAYS = 5;
 
 /**
  * 5분봉 장 마감 보정 · 백필(FR-21). 평일 15:40 KST.
@@ -594,10 +600,12 @@ export class SyncKrMinuteBars {
     const coverage = await this.store.minuteBarCoverage(codes, from);
 
     const work: Array<{ code: string; date: string }> = [];
+    const closeRetryFrom = openDays[Math.min(MINUTE_CLOSE_RETRY_OPEN_DAYS, openDays.length) - 1] ?? today;
     for (const date of openDays) {
       for (const code of codes) {
         const c = coverage.get(code)?.get(date);
-        if (date === today || !c || !c.hasClose || c.count < MINUTE_DAY_COMPLETE) work.push({ code, date });
+        const missingClose = !c?.hasClose && date >= closeRetryFrom;
+        if (date === today || !c || c.count < MINUTE_DAY_COMPLETE || missingClose) work.push({ code, date });
       }
     }
 
