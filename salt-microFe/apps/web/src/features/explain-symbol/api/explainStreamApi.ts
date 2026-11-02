@@ -1,7 +1,7 @@
 import { EXPLAIN_STREAM_EVENT_NAMES, type ExplainStreamEvent } from "@repo/core/coach";
 
-import { authHeader, streamSse } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { authHeader, streamSse } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import type { ExplainSymbolRequest } from "../model";
 

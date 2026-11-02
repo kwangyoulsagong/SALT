@@ -2,8 +2,8 @@
 
 // 클라이언트 잎: 클릭 시 대기 상태를 갖는다.
 import { useState, type AnchorHTMLAttributes, type ReactNode } from "react";
-import { isCrossZonePath } from "@/shared/config";
-import { NAVIGATION_MESSAGES } from "@/shared/i18n";
+import { isCrossZonePath } from "../../config";
+import { NAVIGATION_MESSAGES } from "../../i18n";
 
 type CrossZoneLinkProps = Omit<
   AnchorHTMLAttributes<HTMLAnchorElement>,

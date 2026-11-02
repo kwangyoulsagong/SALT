@@ -4,7 +4,7 @@ import type { KrMarketSummary, KrOverview, KrQuote, KrResult, KrStockDetail, KrS
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
-import { type PriceUpdate, wsClient } from "@/shared/api";
+import { type PriceUpdate, wsClient } from "@repo/web-shared/api";
 
 import type { KrOverviewQuery } from "../api/endpoints";
 import { marketQueryKeys } from "../api/queryKeys";

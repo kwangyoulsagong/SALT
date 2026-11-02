@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import type { JudgmentScoreboardView, ScoreboardCase, ScoreboardGroup } from "@repo/core/coach";
 import { Badge } from "@repo/ui/badge";
 
-import { ROUTES } from "@/shared/config";
-import { NavChevron } from "@/shared/ui";
+import { ROUTES } from "@repo/web-shared/config";
+import { NavChevron } from "@repo/web-shared/ui";
 
 import { formatRatio, formatShortDate, formatSignedPoints, formatSignedRate } from "../lib";
 import { SCOREBOARD_MESSAGES, SIGNAL_EVIDENCE_MESSAGES } from "../model";

@@ -10,7 +10,7 @@ import { StatusToast } from "@repo/ui/statusToast";
 import { Text } from "@repo/ui/text";
 
 import { JudgmentCases, selectModeView, TrackRecordStats } from "@/entities/coach";
-import { formatClockTime, formatRelativeTime } from "@/shared/lib";
+import { formatClockTime, formatRelativeTime } from "@repo/web-shared/lib";
 
 import { useExplainStream } from "../api";
 import { buildExplainRequest, EXPLAIN_MESSAGES, type ExplainStreamState } from "../model";

@@ -11,8 +11,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import React, { type ReactNode, Suspense, useState } from "react";
 
-import { ROUTES } from "@/shared/config";
-import { NavChevron } from "@/shared/ui";
+import { ROUTES } from "@repo/web-shared/config";
+import { NavChevron } from "@repo/web-shared/ui";
 
 import {
   ASSET_CLASS_TABS,

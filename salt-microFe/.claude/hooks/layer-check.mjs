@@ -38,12 +38,15 @@ const readStdin = async () => {
   return Buffer.concat(chunks).toString("utf8");
 };
 
-/** 검사 대상은 zone 앱(`apps/*`)과 도메인 패키지(`packages/domain-*`)의 TS/TSX 다 (`FE-REQ-052` FR-4). */
+/**
+ * 검사 대상은 zone 앱(`apps/*`) · 도메인 패키지(`packages/domain-*`, `FE-REQ-052` FR-4) ·
+ * 웹 shared 패키지(`packages/web-shared`, `FE-REQ-053`)의 TS/TSX 다.
+ */
 const isTarget = (filePath) => {
   const normalized = filePath.split("\\").join("/");
   return (
     /(^|\/)salt-microFe\/apps\/[^/]+\/(src|app|pages)\/.+\.(ts|tsx)$/.test(normalized) ||
-    /(^|\/)salt-microFe\/packages\/domain-[^/]+\/src\/.+\.(ts|tsx)$/.test(normalized)
+    /(^|\/)salt-microFe\/packages\/(domain-[^/]+|web-shared)\/src\/.+\.(ts|tsx)$/.test(normalized)
   );
 };
 

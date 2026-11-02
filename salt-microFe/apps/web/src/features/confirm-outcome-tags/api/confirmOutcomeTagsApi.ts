@@ -1,8 +1,8 @@
 import type { ConfirmOutcomeTagsRequest, DecisionOutcomeView } from "@repo/core/coach";
 
 import { COACH_ENDPOINTS } from "@/entities/coach";
-import { apiFetch, authHeader, readApiError } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 interface Envelope<T> {
   success: boolean;

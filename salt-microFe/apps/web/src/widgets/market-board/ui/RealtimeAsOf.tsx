@@ -4,8 +4,8 @@ import { FlexBox } from "@repo/ui/flexBox";
 import { Text } from "@repo/ui/text";
 
 import { MARKET_MESSAGES } from "@/entities/market";
-import { ConnectionStatus, useRealtimeConnection } from "@/shared/api";
-import { formatClockTime } from "@/shared/lib";
+import { ConnectionStatus, useRealtimeConnection } from "@repo/web-shared/api";
+import { formatClockTime } from "@repo/web-shared/lib";
 
 import { liveDot } from "./RealtimeAsOf.css";
 

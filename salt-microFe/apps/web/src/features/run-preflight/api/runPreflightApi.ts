@@ -1,7 +1,7 @@
 import type { TradePreflightRequest, TradePreflightView } from "@repo/core/coach";
 
-import { apiFetch, authHeader, readApiError } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 /** F004 BFF 경로(`BFF-REQ-024`) */
 const ENDPOINT = "/api/app/trade-preflight";

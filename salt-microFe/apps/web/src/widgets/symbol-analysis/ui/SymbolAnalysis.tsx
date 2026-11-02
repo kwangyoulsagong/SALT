@@ -33,7 +33,7 @@ import {
   CoachModeSwitch,
   useCoachModeParam,
 } from "@/features/switch-coach-mode";
-import { useLivePrice } from "@/shared/api";
+import { useLivePrice } from "@repo/web-shared/api";
 
 import { SYMBOL_ANALYSIS_MESSAGES } from "../model";
 import {

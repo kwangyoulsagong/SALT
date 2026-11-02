@@ -1,7 +1,7 @@
 import { keyframes, style, styleVariants } from "@vanilla-extract/css";
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@/shared/ui/surface.css";
+import { SURFACE } from "@repo/web-shared/ui/surface.css";
 
 /**
  * 상세 분석 머리 — 뒤로 · 로고 · 이름 · 가격 · 요약 지표. **서버에서도 렌더된다**(SEO — 종목 이름 ·

@@ -1,6 +1,6 @@
 import type { TradeBehaviorPreviewResult, TradeSide } from "@repo/core/coach";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { formatSignedDecimal, formatSignedRate, tagName } from "../lib";
 import { MIRROR_MESSAGES } from "../model";

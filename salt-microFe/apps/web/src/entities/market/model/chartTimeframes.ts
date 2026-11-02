@@ -6,7 +6,7 @@
  *
  * `value` 는 `PreviewChart` 의 `timeframe` 이기도 하다(축 라벨이 일봉이면 날짜).
  */
-import { Timeframe } from "@/shared/api";
+import { Timeframe } from "@repo/web-shared/api";
 
 import { ChartPeriod } from "./types";
 

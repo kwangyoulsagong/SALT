@@ -11,7 +11,7 @@ import { Skeleton } from "@repo/ui/skeleton";
 import { Text } from "@repo/ui/text";
 import React from "react";
 
-import { formatRelativeTime } from "@/shared/lib";
+import { formatRelativeTime } from "@repo/web-shared/lib";
 
 import { useSymbolNews } from "../../api";
 import { MARKET_MESSAGES } from "../../model";

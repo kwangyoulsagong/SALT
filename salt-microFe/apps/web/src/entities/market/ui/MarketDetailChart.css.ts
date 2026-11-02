@@ -1,6 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
-import { vars } from "@/shared/ui/tokens.css";
+import { vars } from "@repo/web-shared/ui/tokens.css";
 
 /** 차트 높이(범례 제외). 자리표시자도 같은 높이다 — CLS 0 (`FE-REQ-034` 성능 예산) */
 export const DETAIL_CHART_HEIGHT = 420;

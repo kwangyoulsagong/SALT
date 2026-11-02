@@ -7,7 +7,7 @@ import { Sparkline } from "@repo/ui/sparkline";
 import Link from "next/link";
 import React from "react";
 
-import { formatKrwCompact, formatPrice, useElementWidth } from "@/shared/lib";
+import { formatKrwCompact, formatPrice, useElementWidth } from "@repo/web-shared/lib";
 
 import { MARKET_SUMMARY_MESSAGES } from "../../model/messages";
 import { type MarketSummaryItem, MarketSummaryTag, SummaryChangeBasis } from "../../model/types";

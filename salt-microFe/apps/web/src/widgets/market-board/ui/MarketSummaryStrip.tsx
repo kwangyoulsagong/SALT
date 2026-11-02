@@ -23,7 +23,7 @@ import {
   useMarketSummary,
   useMarketSummaryRealtime,
 } from "@/entities/market";
-import { ROUTES } from "@/shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 
 import { featuredCell, itemGrid, panelCell, strip } from "./MarketSummaryStrip.css";
 

@@ -8,7 +8,7 @@ import { FlexBox } from "@repo/ui/flexBox";
 import { Text } from "@repo/ui/text";
 import React from "react";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import {
   PORTFOLIO_ASSET_LABELS,

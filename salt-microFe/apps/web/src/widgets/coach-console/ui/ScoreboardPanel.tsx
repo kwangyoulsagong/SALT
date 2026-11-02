@@ -10,8 +10,8 @@ import {
   useJudgmentScoreboard,
 } from "@/entities/coach";
 import { AssetIdentity } from "@/entities/market";
-import { COACH_REPORT_SECTIONS } from "@/shared/config";
-import { panel, panelDescription, panelHead, panelTitle } from "@/shared/ui/surface.css";
+import { COACH_REPORT_SECTIONS } from "@repo/web-shared/config";
+import { panel, panelDescription, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { anchorTarget, panelFootnote } from "./CoachReport.css";
 

@@ -17,7 +17,7 @@
  * 서버(SSR)에서는 `null` 이다. `typeof window` 는 **함수 안에서만** 읽는다 —
  * 모듈 최상단 분기는 서버 컴파일에서도 평가된다 (`ssr.md`).
  */
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from "@/shared/config";
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from "../config";
 
 export const readAccessToken = (): string | null => {
   if (typeof window === "undefined") return null;

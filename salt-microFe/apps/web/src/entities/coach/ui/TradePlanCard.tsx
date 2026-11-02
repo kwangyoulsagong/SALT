@@ -3,7 +3,7 @@
 import type { TradePlanListResult } from "@repo/core/coach";
 import { useId } from "react";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 import { StatusLine } from "@repo/ui/statusLine";
 
 import { daysSince, formatGeneratedAt } from "../lib";

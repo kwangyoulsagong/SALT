@@ -2,7 +2,7 @@ import type { TargetWeightLive, TargetWeightMonth, TargetWeightRow, TargetWeight
 import { Badge } from "@repo/ui/badge";
 import type { ReactNode } from "react";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { formatFineRate, formatQuantity, formatShortDate, formatSignedKrw, formatSignedRate } from "../lib";
 import { TARGET_WEIGHT_MESSAGES } from "../model";

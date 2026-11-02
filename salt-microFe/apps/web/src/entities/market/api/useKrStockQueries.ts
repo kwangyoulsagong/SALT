@@ -3,7 +3,7 @@
 import type { KrChartPeriod } from "@repo/core/marketKr";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import { isClientApiError, retryWhileRetriable, useHasAccessToken } from "@/shared/api";
+import { isClientApiError, retryWhileRetriable, useHasAccessToken } from "@repo/web-shared/api";
 
 import type { KrOverviewQuery } from "./endpoints";
 import { krStockApi } from "./krStockApi";

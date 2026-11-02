@@ -19,14 +19,14 @@ import {
 } from "@/entities/coach";
 import { AssetIdentity } from "@/entities/market";
 import { RegenerateCoachButton } from "@/features/regenerate-coach";
-import { ROUTES } from "@/shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 import {
   backLink,
   panel,
   panelDescription,
   panelHead,
   panelTitle,
-} from "@/shared/ui/surface.css";
+} from "@repo/web-shared/ui/surface.css";
 
 import { REPORT_BLOCK_FIELDS } from "../model";
 import {

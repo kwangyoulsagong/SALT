@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { ROUTES } from "@/shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 
 /** 공개 시세 목록 — 검색에 싣는다 */
 export const metadata: Metadata = {

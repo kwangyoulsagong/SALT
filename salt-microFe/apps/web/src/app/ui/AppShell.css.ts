@@ -1,4 +1,4 @@
-import { vars } from "@/shared/ui/tokens.css";
+import { vars } from "@repo/web-shared/ui/tokens.css";
 import { style } from "@vanilla-extract/css";
 
 export const Container = style({

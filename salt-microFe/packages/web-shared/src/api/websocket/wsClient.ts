@@ -1,4 +1,4 @@
-import { RECONNECT_TIME_PENDING, WEBSOCKET_URL } from "@/shared/config";
+import { RECONNECT_TIME_PENDING, WEBSOCKET_URL } from "../../config";
 
 import { readAccessToken } from "../authToken";
 

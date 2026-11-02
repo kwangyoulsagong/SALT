@@ -13,7 +13,7 @@ import {
   REVIEW_MESSAGES,
   useMonthlyReview,
 } from "@/entities/coach";
-import { panel, panelDescription, panelHead, panelTitle } from "@/shared/ui/surface.css";
+import { panel, panelDescription, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { monthSelect } from "./CoachReport.css";
 

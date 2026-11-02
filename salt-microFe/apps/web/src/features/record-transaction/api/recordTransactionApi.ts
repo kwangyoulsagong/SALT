@@ -6,8 +6,8 @@ import type {
   TradePlanView,
 } from "@repo/core/coach";
 
-import { apiFetch, authHeader, readApiError } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 /** F009 뷰모델 경로(`BFF-REQ-038`). 조회 경로는 `entities/coach` 가 갖고, 쓰기 · 계산은 이 기능이 갖는다 */
 const ENDPOINTS = {

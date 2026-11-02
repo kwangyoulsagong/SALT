@@ -2,7 +2,7 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@/shared/ui/surface.css";
+import { SURFACE } from "@repo/web-shared/ui/surface.css";
 
 /**
  * 요약 띠 — 흰 패널 하나에 칸 셋(PC 3열 · 1024px 이하 한 줄씩). 칸은 링크 전체다(셰브론 규칙: 폭 100%).

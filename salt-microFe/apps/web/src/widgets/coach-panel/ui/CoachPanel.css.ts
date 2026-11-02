@@ -1,6 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
-import { vars } from "@/shared/ui/tokens.css";
+import { vars } from "@repo/web-shared/ui/tokens.css";
 
 /** 모드 스위치 줄. 데이터 전에도 자리를 지켜 판단이 도착할 때 아래가 밀리지 않는다 */
 const MODE_ROW_HEIGHT = "32px";

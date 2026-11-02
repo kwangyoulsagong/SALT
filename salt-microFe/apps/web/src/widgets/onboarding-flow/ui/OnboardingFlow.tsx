@@ -12,8 +12,8 @@ import { useState } from "react";
 
 import { useOnboardingStatus, type OnboardingStepKey } from "@/entities/auth";
 import { InviteCodeForm } from "@/features/accept-invite";
-import { useHasAccessToken } from "@/shared/api";
-import { ROUTES } from "@/shared/config";
+import { useHasAccessToken } from "@repo/web-shared/api";
+import { ROUTES } from "@repo/web-shared/config";
 
 import {
   ONBOARDING_COMPLETE_HEADLINE,

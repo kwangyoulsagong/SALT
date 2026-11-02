@@ -5,7 +5,7 @@ import type { ErrorInfo, ReactNode } from "react";
 import { Component } from "react";
 import { StatusGraphic } from "@repo/ui/statusGraphic";
 
-import { BOUNDARY_MESSAGES } from "@/shared/i18n";
+import { BOUNDARY_MESSAGES } from "../../i18n";
 
 import { statusBox, statusDescription, statusTitle } from "./SectionBoundary.css";
 

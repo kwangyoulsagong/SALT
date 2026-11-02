@@ -1,7 +1,7 @@
 import Image from "next/image";
 
-import { SITE_NAME } from "@/shared/config";
-import { NARROW_SCREEN_MESSAGES as M } from "@/shared/i18n";
+import { SITE_NAME } from "@repo/web-shared/config";
+import { NARROW_SCREEN_MESSAGES as M } from "@repo/web-shared/i18n";
 
 import { CopyPcLinkButton } from "./CopyPcLinkButton";
 import {

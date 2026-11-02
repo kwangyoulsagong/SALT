@@ -10,7 +10,7 @@
  * 무관한 코드만), 슬라이스를 지울 때 문구만 남는다. **문구 검수(`i18n-policy.md`)는
  * "한 파일"이 아니라 "컴포넌트 밖"이면 가능하다.**
  */
-import { withObjectParticle } from "@/shared/lib";
+import { withObjectParticle } from "../lib";
 
 export {
   HTTP_ERROR_MESSAGE,

@@ -8,9 +8,9 @@ import type { ReactNode } from "react";
 import { CoachBlockSkeleton, useCoachProfile } from "@/entities/coach";
 import { CoachProfileForm } from "@/features/edit-coach-profile";
 import { PurchasePriceToggle } from "@/features/toggle-purchase-price";
-import { COACH_REPORT_SECTIONS, ROUTES } from "@/shared/config";
-import { NavChevron } from "@/shared/ui";
-import { panel, panelDescription, panelHead, panelTitle } from "@/shared/ui/surface.css";
+import { COACH_REPORT_SECTIONS, ROUTES } from "@repo/web-shared/config";
+import { NavChevron } from "@repo/web-shared/ui";
+import { panel, panelDescription, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { SETTINGS_PANEL_MESSAGES as M } from "../model";
 import { layout, navRow } from "./SettingsPanel.css";

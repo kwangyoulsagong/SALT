@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { coachApi, coachQueryKeys } from "@/entities/coach";
-import { readAccessToken } from "@/shared/api";
+import { readAccessToken } from "@repo/web-shared/api";
 
 import { regenerateCoachApi, type RegenerateResult } from "./regenerateCoachApi";
 

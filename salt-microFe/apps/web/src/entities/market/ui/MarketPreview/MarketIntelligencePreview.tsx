@@ -21,7 +21,7 @@ import {
 import { Root } from "@repo/ui/root";
 import { Text } from "@repo/ui/text";
 
-import { vars } from "@/shared/ui/tokens.css";
+import { vars } from "@repo/web-shared/ui/tokens.css";
 
 import { useMarketIntelligencePreview } from "../../api";
 import { MARKET_MESSAGES } from "../../model";

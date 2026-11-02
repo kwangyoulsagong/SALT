@@ -9,8 +9,8 @@ import {
 import { Skeleton } from "@repo/ui/skeleton";
 import React from "react";
 
-import { Timeframe } from "@/shared/api";
-import { useElementWidth } from "@/shared/lib";
+import { Timeframe } from "@repo/web-shared/api";
+import { useElementWidth } from "@repo/web-shared/lib";
 
 import { useKrChart, useMarketChartPreview } from "../../api";
 import { MarketAssetClass, type MarketChartPreviewItem } from "../../model/types";

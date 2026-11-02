@@ -21,8 +21,8 @@ import {
   WatchlistTable,
 } from "@/entities/market";
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
-import { ROUTES } from "@/shared/config";
-import { NavChevron } from "@/shared/ui";
+import { ROUTES } from "@repo/web-shared/config";
+import { NavChevron } from "@repo/web-shared/ui";
 
 import { useDetailLink } from "../lib";
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";

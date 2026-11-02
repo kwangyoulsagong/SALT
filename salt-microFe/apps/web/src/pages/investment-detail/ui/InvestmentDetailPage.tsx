@@ -7,9 +7,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { COACH_MODE_PARAM, ROUTES } from "@/shared/config";
-import { BlockBoundary } from "@/shared/ui";
-import { backLink } from "@/shared/ui/surface.css";
+import { COACH_MODE_PARAM, ROUTES } from "@repo/web-shared/config";
+import { BlockBoundary } from "@repo/web-shared/ui";
+import { backLink } from "@repo/web-shared/ui/surface.css";
 
 import { publicMarketApi } from "../api";
 import {

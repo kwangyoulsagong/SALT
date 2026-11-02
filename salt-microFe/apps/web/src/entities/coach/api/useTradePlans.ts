@@ -3,7 +3,7 @@
 import type { TradePlanListResult } from "@repo/core/coach";
 import { useQuery } from "@tanstack/react-query";
 
-import { readAccessToken, retryWhileRetriable } from "@/shared/api";
+import { readAccessToken, retryWhileRetriable } from "@repo/web-shared/api";
 
 import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";

@@ -10,9 +10,9 @@ import {
   useRiskBudget,
   useTargetWeights,
 } from "@/entities/coach";
-import { useHasAccessToken } from "@/shared/api";
-import { COACH_REPORT_SECTIONS, ROUTES } from "@/shared/config";
-import { NavChevron } from "@/shared/ui";
+import { useHasAccessToken } from "@repo/web-shared/api";
+import { COACH_REPORT_SECTIONS, ROUTES } from "@repo/web-shared/config";
+import { NavChevron } from "@repo/web-shared/ui";
 
 import { JUDGMENT_OVERVIEW_MESSAGES } from "../model";
 import { cell, cellBody, cellLabel, cellNote, cellValue, strip, stripPending, stripTwo } from "./JudgmentOverview.css";

@@ -5,7 +5,7 @@ import { kstClock } from "@repo/core/marketKr";
 import { StatusLine } from "@repo/ui/statusLine";
 
 import { KR_STOCK_MESSAGES, useKrOrderbook } from "@/entities/market";
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import {
   bar,

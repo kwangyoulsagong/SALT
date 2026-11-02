@@ -4,7 +4,7 @@ import type { RiskBudgetResult, RiskBudgetUpdate } from "@repo/core/coach";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { coachQueryKeys } from "@/entities/coach";
-import type { ApiError } from "@/shared/api";
+import type { ApiError } from "@repo/web-shared/api";
 
 import { setRiskBudgetApi } from "./setRiskBudgetApi";
 

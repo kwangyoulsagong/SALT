@@ -4,7 +4,7 @@ import type {
   TradingPriceLine as PriceLine,
 } from "@repo/ui/tradingChart";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { COACH_MESSAGES } from "../model";
 

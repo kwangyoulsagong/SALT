@@ -4,7 +4,7 @@
 import { Text, TextColor } from "@repo/ui/text";
 import React, { useMemo } from "react";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { MARKET_CHANGE_MESSAGES } from "../model/messages";
 

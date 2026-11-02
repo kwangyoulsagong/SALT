@@ -1,6 +1,6 @@
 import { Skeleton } from "@repo/ui/skeleton";
 
-import { BOUNDARY_MESSAGES } from "@/shared/i18n";
+import { BOUNDARY_MESSAGES } from "../../i18n";
 
 export type BlockSkeletonProps = {
   /** 블록 이름. 스크린리더에 "…불러오는 중"으로 읽힌다. */

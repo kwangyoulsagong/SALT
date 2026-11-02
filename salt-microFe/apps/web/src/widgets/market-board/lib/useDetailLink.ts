@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
-import { COACH_MODE_PARAM, ROUTES } from "@/shared/config";
+import { COACH_MODE_PARAM, ROUTES } from "@repo/web-shared/config";
 
 /**
  * 표 행 → 상세 분석 (`FE-REQ-026` FR-119 개정 2026-09-23).

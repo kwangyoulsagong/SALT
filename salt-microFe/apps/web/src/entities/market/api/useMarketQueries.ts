@@ -6,7 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 
-import { readAccessToken } from "@/shared/api";
+import { readAccessToken } from "@repo/web-shared/api";
 
 import {
   type ChartTimeframe,

@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { coachQueryKeys } from "@/entities/coach";
 import { portfolioQueryKeys } from "@/entities/portfolio";
-import type { ApiError } from "@/shared/api";
+import type { ApiError } from "@repo/web-shared/api";
 
 import { recordTransactionApi } from "./recordTransactionApi";
 

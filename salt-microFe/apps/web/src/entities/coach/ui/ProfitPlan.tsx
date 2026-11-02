@@ -3,7 +3,7 @@ import { Heading } from "@repo/ui/heading";
 import { Text } from "@repo/ui/text";
 import { StatusLine } from "@repo/ui/statusLine";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { describePriceGap, formatRatio } from "../lib";
 import { COACH_MESSAGES } from "../model";

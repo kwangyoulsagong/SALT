@@ -5,7 +5,7 @@ import { Chip } from "@repo/ui/chip";
 import { TextField } from "@repo/ui/textField";
 import { useEffect, useId, useMemo, useState } from "react";
 
-import { formatAmountInput, parseAmountInput, useDebouncedValue } from "@/shared/lib";
+import { formatAmountInput, parseAmountInput, useDebouncedValue } from "@repo/web-shared/lib";
 
 import { useTradePreflight } from "../api";
 import { PREFLIGHT_AMOUNT_CHIPS, PREFLIGHT_STOP_CHIPS, RUN_PREFLIGHT_MESSAGES as MSG } from "../model";

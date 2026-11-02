@@ -7,8 +7,8 @@ import {
 } from "@tanstack/react-query";
 
 import { authQueryKeys } from "@/entities/auth";
-import { writeSession } from "@/shared/api";
-import { USER_KEY } from "@/shared/config";
+import { writeSession } from "@repo/web-shared/api";
+import { USER_KEY } from "@repo/web-shared/config";
 
 import type { AcceptInviteRequest, AcceptInviteResponse } from "../model/types";
 import { acceptInviteApi } from "./acceptInviteApi";

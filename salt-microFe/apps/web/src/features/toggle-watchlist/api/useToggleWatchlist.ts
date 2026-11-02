@@ -8,7 +8,7 @@ import {
   WatchlistItem,
 } from "@/entities/market";
 
-import { isApiError } from "@/shared/api";
+import { isApiError } from "@repo/web-shared/api";
 
 import { toggleWatchlistApi } from "./toggleWatchlistApi";
 

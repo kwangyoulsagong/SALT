@@ -1,7 +1,7 @@
 import type { MonthlyReviewBody } from "@repo/core/coach";
 import type { ReactNode } from "react";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { formatRatio, formatSignedKrw, formatSignedRate, formatTimes, tagName } from "../lib";
 import { KR_MIRROR_MESSAGES, KR_REVIEW_MESSAGES, MIRROR_MESSAGES, REVIEW_MESSAGES } from "../model";

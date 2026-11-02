@@ -24,7 +24,7 @@ import {
 } from "@/entities/market";
 import { AssetSearchField, useAssetSearchQuery } from "@/features/search-asset";
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
-import { ROUTES } from "@/shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 
 import { counter, counterFull, field, header, list, section, srOnly } from "./AssetSearch.css";
 

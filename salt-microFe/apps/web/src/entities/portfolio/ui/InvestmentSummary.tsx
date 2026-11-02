@@ -13,7 +13,7 @@ import { Padding } from "@repo/ui/padding";
 import { ServiceIcon } from "@repo/ui/serviceicon";
 import { Text } from "@repo/ui/text";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { usePortfolioSummary } from "../api";
 import { PORTFOLIO_MESSAGES } from "../model/messages";

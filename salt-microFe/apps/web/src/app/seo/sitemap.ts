@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { publicMarketApi } from "@/pages/investment-detail";
-import { ROUTES, SITE_URL } from "@/shared/config";
+import { ROUTES, SITE_URL } from "@repo/web-shared/config";
 
 /** 서버가 주는 시세 목록 전체(2026-09-23 기준 289종목)를 덮는 상한 */
 const SITEMAP_SYMBOL_LIMIT = 500;

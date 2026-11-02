@@ -1,6 +1,6 @@
-import { apiFetch, authHeader, readApiError } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
-import { formatPrice } from "@/shared/lib";
+import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { GoalCategory, type GoalListItem, type GoalSummaryView } from "../model/types";
 

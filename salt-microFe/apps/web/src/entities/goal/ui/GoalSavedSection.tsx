@@ -9,7 +9,7 @@ import { Icon } from "@repo/ui/icon";
 import { Text } from "@repo/ui/text";
 import { useRouter } from "next/navigation";
 
-import { ROUTES } from "@/shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 
 import { GOAL_MESSAGES } from "../model/messages";
 import { GoalSaved } from "../model/types";

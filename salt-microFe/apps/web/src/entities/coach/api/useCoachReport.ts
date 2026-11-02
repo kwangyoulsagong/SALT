@@ -3,7 +3,7 @@
 import type { CoachReportResult } from "@repo/core/coach";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
-import { readAccessToken, retryWhileRetriable } from "@/shared/api";
+import { readAccessToken, retryWhileRetriable } from "@repo/web-shared/api";
 
 import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";

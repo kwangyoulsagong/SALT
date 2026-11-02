@@ -2,7 +2,7 @@ import { style, styleVariants } from "@vanilla-extract/css";
 
 import { vars as ds } from "@repo/ui/tokens";
 
-import { vars } from "@/shared/ui/tokens.css";
+import { vars } from "@repo/web-shared/ui/tokens.css";
 
 /** 막힌 판단 상자 · 판단 자리의 모서리. 이 슬라이스에서만 쓴다 */
 const BLOCK_RADIUS = "12px";

@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 
-import { USER_KEY } from "@/shared/config";
-import { useAppDispatch } from "@/shared/lib";
+import { USER_KEY } from "@repo/web-shared/config";
+import { useAppDispatch } from "@repo/web-shared/lib";
 
 import { setUser } from "../model/authSlice";
 

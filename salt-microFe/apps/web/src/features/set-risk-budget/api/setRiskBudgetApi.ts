@@ -1,7 +1,7 @@
 import type { RiskBudgetResult, RiskBudgetUpdate } from "@repo/core/coach";
 
-import { apiFetch, authHeader, readApiError } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 const ENDPOINT = "/api/app/coach/risk-budget";
 

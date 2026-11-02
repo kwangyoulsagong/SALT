@@ -36,7 +36,7 @@ const nextConfig = {
     ],
   },
   reactStrictMode: true,
-  transpilePackages: ["@repo/ui", "@repo/tokens", "@repo/core"],
+  transpilePackages: ["@repo/ui", "@repo/tokens", "@repo/core", "@repo/web-shared"],
   experimental: {
     serverActions: {
       allowedOrigins: APP_ORIGINS,

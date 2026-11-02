@@ -5,8 +5,8 @@ import { StatusLine } from "@repo/ui/statusLine";
 
 import { CoachBlockSkeleton, TARGET_WEIGHT_MESSAGES, TargetWeightList, useTargetWeights } from "@/entities/coach";
 import { AssetIdentity } from "@/entities/market";
-import { COACH_REPORT_SECTIONS } from "@/shared/config";
-import { panel, panelHead, panelTitle } from "@/shared/ui/surface.css";
+import { COACH_REPORT_SECTIONS } from "@repo/web-shared/config";
+import { panel, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { anchorTarget, inlineLink, noticeDescription } from "./CoachReport.css";
 

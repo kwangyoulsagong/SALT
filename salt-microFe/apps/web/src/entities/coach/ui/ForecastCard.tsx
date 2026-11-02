@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { ForecastHorizonView, SymbolForecastResult } from "@repo/core/coach";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 import { StatusLine } from "@repo/ui/statusLine";
 
 import { formatRatio, formatSignedRate } from "../lib";

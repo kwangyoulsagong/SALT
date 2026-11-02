@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 import type { MarketOverviewItem } from "@/entities/market";
-import { ROUTES, SITE_NAME, SITE_URL } from "@/shared/config";
-import { formatPrice } from "@/shared/lib";
+import { ROUTES, SITE_NAME, SITE_URL } from "@repo/web-shared/config";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { INVESTMENT_DETAIL_PAGE_MESSAGES as MESSAGES } from "../model";
 

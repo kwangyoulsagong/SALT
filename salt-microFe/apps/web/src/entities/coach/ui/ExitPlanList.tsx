@@ -2,7 +2,7 @@ import type { ReportExitPlan } from "@repo/core/coach";
 import { StatusLine } from "@repo/ui/statusLine";
 import type { ReactNode } from "react";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { describePriceGap } from "../lib";
 import { COACH_MESSAGES } from "../model";

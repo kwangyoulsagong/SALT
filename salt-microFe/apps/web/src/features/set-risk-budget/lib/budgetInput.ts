@@ -1,6 +1,6 @@
 import type { BudgetSetting, BudgetUnit } from "@repo/core/coach";
 
-import { formatAmountInput, formatPrice, parseAmountInput } from "@/shared/lib";
+import { formatAmountInput, formatPrice, parseAmountInput } from "@repo/web-shared/lib";
 
 /**
  * 기준 입력 칸 ↔ 보낼 값 (F009 FR-1~2 · IPS 3문항).

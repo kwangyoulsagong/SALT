@@ -5,8 +5,8 @@ import { BottomSheet } from "@repo/ui/bottomSheet";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { useHasAccessToken } from "@/shared/api";
-import { PREFLIGHT_ANCHOR_ID } from "@/shared/config";
+import { useHasAccessToken } from "@repo/web-shared/api";
+import { PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
 
 import { useNarrowViewport } from "../lib";
 import { RUN_PREFLIGHT_MESSAGES as MSG } from "../model";

@@ -1,7 +1,7 @@
 import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
 
-import { BlockBoundary } from "@/shared/ui";
+import { BlockBoundary } from "@repo/web-shared/ui";
 
 import { HOME_BLOCK_MIN_HEIGHT, HOME_BRIEFING_MESSAGES } from "../model/messages";
 import { GoalsBlock } from "./GoalsBlock";

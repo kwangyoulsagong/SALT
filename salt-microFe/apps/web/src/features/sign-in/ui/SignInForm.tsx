@@ -5,7 +5,7 @@ import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 import { useState, type FormEvent } from "react";
 
-import { isApiError } from "@/shared/api";
+import { isApiError } from "@repo/web-shared/api";
 
 import { useSignIn } from "../api/useSignIn";
 import { SIGN_IN_ERROR_MESSAGES, SIGN_IN_MESSAGES } from "../model/messages";

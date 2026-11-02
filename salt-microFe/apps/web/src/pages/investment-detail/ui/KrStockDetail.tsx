@@ -23,9 +23,9 @@ import { KrEvents } from "./KrEvents";
 import { KrForecast } from "./KrForecast";
 import { KrInvestorFlows } from "./KrInvestorFlows";
 import { KrOrderbook } from "./KrOrderbook";
-import { hasApiStatus, useHasAccessToken } from "@/shared/api";
-import { HTTP_STATUS_CODE, PREFLIGHT_ANCHOR_ID } from "@/shared/config";
-import { formatKrwCompact, formatPrice } from "@/shared/lib";
+import { hasApiStatus, useHasAccessToken } from "@repo/web-shared/api";
+import { HTTP_STATUS_CODE, PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
+import { formatKrwCompact, formatPrice } from "@repo/web-shared/lib";
 
 import { INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT, INVESTMENT_DETAIL_PAGE_MESSAGES } from "../model";
 import {

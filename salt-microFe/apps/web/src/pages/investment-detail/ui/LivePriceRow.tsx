@@ -2,8 +2,8 @@
 
 import { useRef } from "react";
 
-import { useLivePrice } from "@/shared/api";
-import { formatPrice } from "@/shared/lib";
+import { useLivePrice } from "@repo/web-shared/api";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { change as changeStyle, price as priceStyle, priceRow, tick } from "./SymbolHeader.css";
 

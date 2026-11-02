@@ -6,7 +6,7 @@ import type { KrScheduleItem } from "@repo/core/marketKr";
 import { Skeleton } from "@repo/ui/skeleton";
 import React from "react";
 
-import { formatRelativeTime } from "@/shared/lib";
+import { formatRelativeTime } from "@repo/web-shared/lib";
 
 import { formatKrScheduleDate } from "../../lib/krScheduleDate";
 import { KR_STOCK_MESSAGES } from "../../model/krStockMessages";

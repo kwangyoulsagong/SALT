@@ -1,7 +1,7 @@
 import { Illustration } from "@repo/ui/illustration";
 import Link from "next/link";
 
-import { ROUTES } from "@/shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 
 import { NOT_FOUND_MESSAGES } from "../model/messages";
 

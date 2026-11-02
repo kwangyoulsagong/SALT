@@ -24,7 +24,7 @@ import {
   INVESTMENTS_BASE_URL,
   PUBLIC_PATHS,
   ROUTES,
-} from "@/shared/config";
+} from "../config";
 
 import { clearSession, readRefreshToken, writeSession } from "./authToken";
 

@@ -3,7 +3,7 @@ import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
 import Link from "next/link";
 
-import { ROUTES } from "@/shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 
 import { HOME_BRIEFING_MESSAGES } from "../model/messages";
 import { investmentsLink } from "./InvestmentsBlock.css";

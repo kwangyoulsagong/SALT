@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { readAccessToken } from "@/shared/api";
+import { readAccessToken } from "@repo/web-shared/api";
 
 import { goalApi } from "./goalApi";
 import { goalQueryKeys } from "./queryKeys";

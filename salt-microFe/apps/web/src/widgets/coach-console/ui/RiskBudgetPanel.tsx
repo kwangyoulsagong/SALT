@@ -14,8 +14,8 @@ import {
 } from "@/entities/coach";
 import { RiskBudgetForm } from "@/features/set-risk-budget";
 import { PurchasePriceToggle } from "@/features/toggle-purchase-price";
-import { COACH_REPORT_SECTIONS } from "@/shared/config";
-import { panel, panelDescription, panelHead, panelTitle } from "@/shared/ui/surface.css";
+import { COACH_REPORT_SECTIONS } from "@repo/web-shared/config";
+import { panel, panelDescription, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { anchorTarget, subHeading } from "./CoachReport.css";
 

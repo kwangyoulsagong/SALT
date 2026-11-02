@@ -4,7 +4,7 @@ import { Heading } from "@repo/ui/heading";
 import { KeyValueList, type KeyValueItem } from "@repo/ui/keyValueList";
 import { StatusLine } from "@repo/ui/statusLine";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { describePriceGap } from "../lib";
 import { COACH_MESSAGES } from "../model";

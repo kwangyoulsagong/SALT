@@ -2,7 +2,7 @@ import { style } from "@vanilla-extract/css";
 
 import { vars } from "@repo/ui/tokens";
 
-import { SURFACE } from "@/shared/ui/surface.css";
+import { SURFACE } from "@repo/web-shared/ui/surface.css";
 
 import { gaugeValue, gaugeValueMuted } from "./TradeRisk.css";
 

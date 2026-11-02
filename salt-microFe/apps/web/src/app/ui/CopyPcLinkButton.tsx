@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@repo/ui/button";
 
-import { NARROW_SCREEN_MESSAGES as M } from "@/shared/i18n";
+import { NARROW_SCREEN_MESSAGES as M } from "@repo/web-shared/i18n";
 
 import { copyStatus } from "./NarrowScreenNotice.css";
 

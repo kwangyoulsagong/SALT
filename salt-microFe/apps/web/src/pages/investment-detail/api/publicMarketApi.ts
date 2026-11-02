@@ -1,5 +1,5 @@
 import type { MarketOverviewItem, MarketOverviewResponse } from "@/entities/market";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 /**
  * **서버 컴포넌트 · 메타데이터 · sitemap 전용** 시세 조회 — 공개 시세라 토큰이 필요 없다.

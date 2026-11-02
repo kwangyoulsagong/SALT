@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
 import { isCoachMode } from "@/entities/coach";
-import { COACH_MODE_PARAM } from "@/shared/config";
+import { COACH_MODE_PARAM } from "@repo/web-shared/config";
 
 /** 패널과 상세 분석 페이지가 공유하는 URL 키 — 원본은 `shared/config` (서버 컴포넌트도 쓴다) */
 export { COACH_MODE_PARAM };

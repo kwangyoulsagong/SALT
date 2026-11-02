@@ -4,7 +4,7 @@ import { mergeRealtimeCandle } from "@repo/core/market";
 import { type QueryKey, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-import { type CandleEvent, type Timeframe, wsClient } from "@/shared/api";
+import { type CandleEvent, type Timeframe, wsClient } from "@repo/web-shared/api";
 
 import { marketQueryKeys } from "../api/queryKeys";
 import type { MarketChartPreviewResponse } from "../model/types";

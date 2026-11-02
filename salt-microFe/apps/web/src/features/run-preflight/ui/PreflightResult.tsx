@@ -3,7 +3,7 @@ import { Badge } from "@repo/ui/badge";
 import { StatusLine } from "@repo/ui/statusLine";
 
 import { formatFineRate, formatSignedRate } from "@/entities/coach";
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { formatRiskReward, formatSignedKrw } from "../lib";
 import { RUN_PREFLIGHT_MESSAGES as MSG } from "../model";

@@ -4,7 +4,7 @@ import { type CSSProperties, useRef } from "react";
 
 import type { ForecastHistoryPoint, ForecastHorizonView } from "@repo/core/coach";
 
-import { useElementWidth } from "@/shared/lib";
+import { useElementWidth } from "@repo/web-shared/lib";
 
 import { FORECAST_MESSAGES as M } from "../model";
 import * as s from "./ForecastFanChart.css";

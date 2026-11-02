@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-import { wsClient } from "@/shared/api";
+import { wsClient } from "@repo/web-shared/api";
 
 import { marketQueryKeys } from "../api/queryKeys";
 import {

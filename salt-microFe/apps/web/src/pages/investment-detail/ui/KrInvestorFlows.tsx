@@ -5,7 +5,7 @@ import { kstClock, kstMonthDay } from "@repo/core/marketKr";
 import { StatusLine } from "@repo/ui/statusLine";
 
 import { KR_STOCK_MESSAGES, useKrInvestors } from "@/entities/market";
-import { formatKrwCompact } from "@/shared/lib";
+import { formatKrwCompact } from "@repo/web-shared/lib";
 
 import { caption, heading, net, scroller, table, td, th, totalRow } from "./KrInvestorFlows.css";
 import { krSideCard } from "./SymbolHeader.css";

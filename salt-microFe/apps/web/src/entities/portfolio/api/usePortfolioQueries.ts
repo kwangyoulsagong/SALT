@@ -2,7 +2,7 @@
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
-import { useHasAccessToken } from "@/shared/api";
+import { useHasAccessToken } from "@repo/web-shared/api";
 
 import { PortfolioSummary } from "../model/types";
 import { portfolioApi } from "./portfolioApi";

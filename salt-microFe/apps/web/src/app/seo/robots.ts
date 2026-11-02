@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { SITE_URL } from "@/shared/config";
+import { SITE_URL } from "@repo/web-shared/config";
 
 /**
  * 검색 로봇 규칙 — **공개 시세만 연다.**

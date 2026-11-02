@@ -1,5 +1,5 @@
-import { apiFetch, authHeader } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { apiFetch, authHeader } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import { ADD_GOAL_MESSAGES } from "../model/messages";
 import { CreateGoalRequest } from "../model/types";

@@ -1,7 +1,7 @@
 import type { GaugeStatus, RiskBudgetView, RiskContributionView } from "@repo/core/coach";
 import { ProgressBar } from "@repo/ui/progressBar";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import { formatCoveredRatio, formatRatio, formatScore, formatSignedRate, formatTimes } from "../lib";
 import { RISK_MESSAGES } from "../model";

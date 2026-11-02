@@ -10,8 +10,8 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useState, type FormEvent } from "react";
 
 import { CoachDisclosure, SizeCheckLines, TradeBehaviorLines } from "@/entities/coach";
-import { useHasAccessToken } from "@/shared/api";
-import { formatAmountInput, formatPrice, parseAmountInput, todayInKorea, toTransactionDate, useDebouncedValue } from "@/shared/lib";
+import { useHasAccessToken } from "@repo/web-shared/api";
+import { formatAmountInput, formatPrice, parseAmountInput, todayInKorea, toTransactionDate, useDebouncedValue } from "@repo/web-shared/lib";
 
 import { useRecordTrade, useSizeCheck } from "../api";
 import { RECORD_TRANSACTION_MESSAGES as MSG } from "../model";

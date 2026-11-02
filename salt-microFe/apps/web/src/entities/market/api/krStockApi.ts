@@ -10,8 +10,8 @@ import type {
   KrStockDetail,
 } from "@repo/core/marketKr";
 
-import { apiFetch, authHeader, readApiError } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import { type KrOverviewQuery, MARKET_ENDPOINTS } from "./endpoints";
 

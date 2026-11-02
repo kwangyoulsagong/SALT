@@ -8,8 +8,8 @@ import type {
 } from "@repo/core/coach";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import { hasApiStatus, readAccessToken, retryWhileRetriable } from "@/shared/api";
-import { HTTP_STATUS_CODE } from "@/shared/config";
+import { hasApiStatus, readAccessToken, retryWhileRetriable } from "@repo/web-shared/api";
+import { HTTP_STATUS_CODE } from "@repo/web-shared/config";
 
 import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";

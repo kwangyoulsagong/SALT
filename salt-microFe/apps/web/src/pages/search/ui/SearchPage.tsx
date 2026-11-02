@@ -5,7 +5,7 @@ import { Root } from "@repo/ui/root";
 import { Section } from "@repo/ui/section";
 
 import { AssetSearch } from "@/widgets/asset-search";
-import { BlockBoundary } from "@/shared/ui";
+import { BlockBoundary } from "@repo/web-shared/ui";
 
 import { SEARCH_PAGE } from "../model";
 

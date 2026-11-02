@@ -3,9 +3,9 @@ import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 import type { MarketOverviewItem } from "@/entities/market";
-import { COACH_MODE_PARAM, PREFLIGHT_ANCHOR_ID, ROUTES } from "@/shared/config";
-import { formatKrwCompact, formatPrice, formatSeoulClockTime } from "@/shared/lib";
-import { backLink } from "@/shared/ui/surface.css";
+import { COACH_MODE_PARAM, PREFLIGHT_ANCHOR_ID, ROUTES } from "@repo/web-shared/config";
+import { formatKrwCompact, formatPrice, formatSeoulClockTime } from "@repo/web-shared/lib";
+import { backLink } from "@repo/web-shared/ui/surface.css";
 
 import { INVESTMENT_DETAIL_PAGE_MESSAGES as MESSAGES } from "../model";
 import { HeaderWatchlistStar } from "./HeaderWatchlistStar";

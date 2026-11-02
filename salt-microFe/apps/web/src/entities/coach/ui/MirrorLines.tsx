@@ -13,7 +13,7 @@ import type {
 import { Badge } from "@repo/ui/badge";
 import type { ReactNode } from "react";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 
 import {
   describeBehaviorFact,

@@ -1,6 +1,6 @@
 import type { SizeCheckResult, SizingUnavailableReason } from "@repo/core/coach";
 
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@repo/web-shared/lib";
 import { StatusLine } from "@repo/ui/statusLine";
 
 import { formatFineRate, formatQuantity, formatRatio, formatSignedRate } from "../lib";

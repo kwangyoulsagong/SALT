@@ -2,8 +2,8 @@ import {
   AddWatchlistRequest,
   MARKET_ENDPOINTS,
 } from "@/entities/market";
-import { apiFetch, authHeader, readApiError } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 const send = async (
   endpoint: string,

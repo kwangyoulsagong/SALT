@@ -4,7 +4,7 @@ import { Menu } from "@repo/ui/menu";
 import { useRouter } from "next/navigation";
 
 import { ProfileImage, ProfileSection, useAuthState } from "@/entities/auth";
-import { ROUTES } from "@/shared/config";
+import { ROUTES } from "@repo/web-shared/config";
 
 import { useSignOut } from "../api";
 import { PROFILE_MENU_ITEM, SIGN_OUT_MESSAGES as MESSAGES } from "../model";

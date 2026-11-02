@@ -7,7 +7,7 @@ import { TextField } from "@repo/ui/textField";
 import { useId, useState, type FormEvent } from "react";
 
 import { formatRatio } from "@/entities/coach";
-import { formatAmountInput } from "@/shared/lib";
+import { formatAmountInput } from "@repo/web-shared/lib";
 
 import { useSetRiskBudget } from "../api";
 import {

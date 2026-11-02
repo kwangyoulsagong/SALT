@@ -1,0 +1,11 @@
+{
+  "root": true,
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "plugins": ["@repo/zone", "@repo/fsd"],
+  "settings": { "next": { "rootDir": "../../apps/web" } },
+  "rules": {
+    "@repo/zone/no-cross-zone-link": "error",
+    "@repo/fsd/layers": "error",
+    "@next/next/no-html-link-for-pages": "off"
+  }
+}

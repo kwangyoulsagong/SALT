@@ -16,8 +16,8 @@ import type {
   TradePlanListResult,
 } from "@repo/core/coach";
 
-import { apiFetch, authHeader, readApiError } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import { toCoachProfileSettings } from "../lib/profileSettings";
 import { COACH_ENDPOINTS } from "./endpoints";

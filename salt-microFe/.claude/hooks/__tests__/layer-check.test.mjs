@@ -2,6 +2,7 @@
 /**
  * `layer-check` 훅의 위반 케이스 (`FE-REQ-009` 수용 기준 — 위반 8개로 테스트).
  * 도메인 축 4개(`FE-REQ-052` FR-4 — 도메인 간 · 셸 → 도메인 · 남의 도메인 · zone 앱 안 features)를 더했다.
+ * 패키지 안 레이어 4개(`FE-REQ-053` — domain-* 안 cross-slice · web-shared 세그먼트 내부 · web-shared → 앱 alias · domain-* 안 shared)를 더했다.
  *
  * 훅을 **실제로 실행**한다. 판정 함수를 부르는 것으로는 훅이 stdin 을 못 읽거나
  * exit code 를 잘못 내는 것을 못 잡는다.
@@ -104,6 +105,31 @@ const BLOCKED = [
     code: `export const Form = () => null;`,
     rule: "thin-zone",
   },
+  // FE-REQ-053 — 레이어가 패키지(`domain-*` · `web-shared`) 안에도 있다
+  {
+    name: "13. 도메인 패키지 안 cross-slice (domain-invest entities/coach → entities/market)",
+    file: "/repo/salt-microFe/packages/domain-invest/src/entities/coach/ui/CoachCard.tsx",
+    code: `import { PriceCell } from "@/entities/market";`,
+    rule: "cross-slice",
+  },
+  {
+    name: "14. @repo/web-shared 세그먼트 내부 경로",
+    file: "/repo/salt-microFe/packages/domain-invest/src/entities/market/ui/PriceCell.tsx",
+    code: `import { formatPrice } from "@repo/web-shared/lib/formatPrice";`,
+    rule: "segment-internal",
+  },
+  {
+    name: "15. web-shared 가 앱 alias(위 레이어) import",
+    file: "/repo/salt-microFe/packages/web-shared/src/ui/NavChevron/NavChevron.tsx",
+    code: `import { useAuthState } from "@/entities/auth";`,
+    rule: "upper-layer",
+  },
+  {
+    name: "16. 도메인 패키지 안 shared 레이어 — shared 는 @repo/web-shared",
+    file: "/repo/salt-microFe/packages/domain-invest/src/shared/lib/format.ts",
+    code: `export const x = 1;`,
+    rule: "unknown-layer",
+  },
 ];
 
 /** 통과해야 하는 것 — 규칙이 과하게 막지 않는지 본다. */
@@ -137,6 +163,21 @@ const ALLOWED = [
     name: "도메인 패키지가 공용 패키지 import",
     file: "/repo/salt-microFe/packages/domain-invest/src/entities/market/ui/PriceCell.tsx",
     code: `import { Button } from "@repo/ui/button";\nimport { ZONES } from "@repo/core/zones";`,
+  },
+  {
+    name: "도메인 패키지 pages → widgets barrel",
+    file: "/repo/salt-microFe/packages/domain-invest/src/pages/investments/ui/InvestmentsPage.tsx",
+    code: `import { MarketBoard } from "@/widgets/market-board";\nimport { CrossZoneLink } from "@repo/web-shared/ui";`,
+  },
+  {
+    name: "web-shared 토큰 모듈은 세그먼트 내부여도 허용",
+    file: "/repo/salt-microFe/packages/domain-invest/src/entities/market/ui/PriceCell.css.ts",
+    code: `import { vars } from "@repo/web-shared/ui/tokens.css";`,
+  },
+  {
+    name: "web-shared 세그먼트끼리 상대 경로",
+    file: "/repo/salt-microFe/packages/web-shared/src/ui/CrossZoneLink/CrossZoneLink.tsx",
+    code: `import { isCrossZonePath } from "../../config";`,
   },
   {
     name: "검사 대상이 아닌 파일",

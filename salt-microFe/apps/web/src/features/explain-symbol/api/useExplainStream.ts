@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
 
-import { hasApiStatus } from "@/shared/api";
-import { HTTP_STATUS_CODE } from "@/shared/config";
+import { hasApiStatus } from "@repo/web-shared/api";
+import { HTTP_STATUS_CODE } from "@repo/web-shared/config";
 
 import {
   explainStreamReducer,

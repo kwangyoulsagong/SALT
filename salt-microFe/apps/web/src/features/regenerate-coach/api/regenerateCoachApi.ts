@@ -1,7 +1,7 @@
 import type { CoachGenerationAccepted } from "@repo/core/coach";
 
-import { ApiError, apiFetch, authHeader, readApiError } from "@/shared/api";
-import { HTTP_STATUS_CODE, INVESTMENTS_BASE_URL } from "@/shared/config";
+import { ApiError, apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { HTTP_STATUS_CODE, INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 /** 서버 경로를 그대로 옮기는 BFF 프록시(`/api/*`)다. 뷰모델 경로(`/api/app/*`)가 아니다 */
 const GENERATE_ENDPOINT = "/api/ai-coach/generate";

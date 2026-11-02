@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 import { logout } from "@/entities/auth";
-import { clearSession } from "@/shared/api";
-import { ROUTES } from "@/shared/config";
-import { useAppDispatch } from "@/shared/lib";
+import { clearSession } from "@repo/web-shared/api";
+import { ROUTES } from "@repo/web-shared/config";
+import { useAppDispatch } from "@repo/web-shared/lib";
 
 /**
  * 로그아웃 — 세션을 비우고 로그인 화면으로 보낸다.

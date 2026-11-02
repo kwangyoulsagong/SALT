@@ -1,5 +1,5 @@
-import { ApiError, apiFetch } from "@/shared/api";
-import { INVESTMENTS_BASE_URL } from "@/shared/config";
+import { ApiError, apiFetch } from "@repo/web-shared/api";
+import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import type { SignInRequest, SignInResponse } from "../model/types";
 

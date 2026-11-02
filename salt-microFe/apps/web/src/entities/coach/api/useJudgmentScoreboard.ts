@@ -3,7 +3,7 @@
 import type { JudgmentScoreboardResult } from "@repo/core/coach";
 import { useQuery } from "@tanstack/react-query";
 
-import { retryWhileRetriable, useHasAccessToken } from "@/shared/api";
+import { retryWhileRetriable, useHasAccessToken } from "@repo/web-shared/api";
 
 import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";

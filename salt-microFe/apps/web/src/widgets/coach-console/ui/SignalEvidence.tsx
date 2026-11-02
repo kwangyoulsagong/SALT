@@ -15,8 +15,8 @@ import {
   useJudgmentScoreboard,
 } from "@/entities/coach";
 import { AssetIdentity } from "@/entities/market";
-import { COACH_REPORT_SECTIONS, ROUTES } from "@/shared/config";
-import { backLink, panel, panelHead, panelTitle } from "@/shared/ui/surface.css";
+import { COACH_REPORT_SECTIONS, ROUTES } from "@repo/web-shared/config";
+import { backLink, panel, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 // 새 화면의 설명 · 자산군 줄은 AA 를 넘는 보조 글(neutral 700)이다 — 패널 설명(500, 3.03:1)은 쓰지 않는다(axe 2026-10-30)
 import { layout, panelFootnote, title, titleBlock } from "./CoachReport.css";
