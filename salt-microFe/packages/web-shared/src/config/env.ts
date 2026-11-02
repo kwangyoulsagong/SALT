@@ -22,3 +22,10 @@ export const WEBSOCKET_URL =
  * 배포 도메인이 정해지면 `NEXT_PUBLIC_SITE_URL` 로 준다.
  */
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+/**
+ * 이 코드를 서비스하는 zone 앱 이름(`registry.json` 의 `app`) — 각 zone 의 `next.config.js` 가 `env` 로 넣는다(`FE-REQ-053`).
+ * 같은 패키지 코드가 셸과 투자 zone 양쪽에 들어가므로 "여기서 이 경로가 다른 zone 인가"는 실행 중인 앱이 정한다.
+ * 없으면 셸.
+ */
+export const ZONE_APP = process.env.NEXT_PUBLIC_ZONE_APP || "web";

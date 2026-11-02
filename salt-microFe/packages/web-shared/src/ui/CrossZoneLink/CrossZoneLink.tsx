@@ -2,7 +2,7 @@
 
 // 클라이언트 잎: 클릭 시 대기 상태를 갖는다.
 import { useState, type AnchorHTMLAttributes, type ReactNode } from "react";
-import { isCrossZonePath } from "../../config";
+import { isCrossZonePath, ZONE_APP } from "../../config";
 import { NAVIGATION_MESSAGES } from "../../i18n";
 
 type CrossZoneLinkProps = Omit<
@@ -34,7 +34,7 @@ export const CrossZoneLink = ({
 }: CrossZoneLinkProps) => {
   const [isPending, setIsPending] = useState(false);
 
-  if (process.env.NODE_ENV !== "production" && !isCrossZonePath(href)) {
+  if (process.env.NODE_ENV !== "production" && !isCrossZonePath(href, ZONE_APP)) {
     console.warn(
       `CrossZoneLink 에 같은 zone 경로('${href}')가 들어왔다. 같은 zone 이면 next/link 의 <Link> 를 써야 soft navigation 이 된다.`
     );

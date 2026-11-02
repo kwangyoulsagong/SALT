@@ -4,3 +4,4 @@ export type { BlockSkeletonProps } from "./BlockBoundary/BlockSkeleton";
 export { CrossZoneLink } from "./CrossZoneLink/CrossZoneLink";
 export { SectionBoundary, SectionStatus } from "./SectionBoundary/SectionBoundary";
 export { NavChevron } from "./NavChevron/NavChevron";
+export { ZoneLink } from "./ZoneLink/ZoneLink";

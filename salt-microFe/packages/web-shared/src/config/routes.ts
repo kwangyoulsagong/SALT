@@ -33,6 +33,8 @@ export const ROUTES = {
   signalEvidence: (signalType: string) => `/coach/signals/${encodeURIComponent(signalType)}`,
   onboarding: "/onboarding",
   addGoal: "/goals/addgoals",
+  /** 투자 코치 설정 — 셸 설정(`/settings`)이 여기로 보낸다(`FE-REQ-053`, 2026-11-02 셸 설정에서 분리) */
+  coachSettings: "/coach/settings",
 } as const;
 
 export {

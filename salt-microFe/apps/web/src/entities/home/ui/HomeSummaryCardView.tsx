@@ -1,10 +1,8 @@
 import { Card } from "@repo/ui/card";
 import { Heading } from "@repo/ui/heading";
 import { Text } from "@repo/ui/text";
-import Link from "next/link";
 
-import { isCrossZonePath } from "@repo/web-shared/config";
-import { CrossZoneLink, NavChevron } from "@repo/web-shared/ui";
+import { NavChevron, ZoneLink } from "@repo/web-shared/ui";
 
 import { HOME_CARD_MESSAGES } from "../model/messages";
 import type { HomeCardValue, HomeSummaryCard } from "../model/types";
@@ -19,7 +17,7 @@ interface HomeSummaryCardViewProps {
  *
  * 링크 이름은 카드 내용(제목 · 값)이다 — `aria-label` 로 덮으면 값을 읽지 못한다.
  * 카드 전체가 그 도메인 zone 진입 링크다. 도메인이 아직 셸에 있으면(`hostedIn`) `<Link>`, 다른 zone 이면
- * `CrossZoneLink` — 판정은 레지스트리 하나(`isCrossZonePath`). `degraded` 는 값 자리에 한 줄만 둔다.
+ * `CrossZoneLink` — `ZoneLink` 가 레지스트리로 고른다. `degraded` 는 값 자리에 한 줄만 둔다.
  */
 export const HomeSummaryCardView = ({ card }: HomeSummaryCardViewProps) => {
   const body = (
@@ -39,14 +37,10 @@ export const HomeSummaryCardView = ({ card }: HomeSummaryCardViewProps) => {
     </Card>
   );
 
-  return isCrossZonePath(card.href) ? (
-    <CrossZoneLink href={card.href} className={cardLink}>
+  return (
+    <ZoneLink href={card.href} className={cardLink}>
       {body}
-    </CrossZoneLink>
-  ) : (
-    <Link href={card.href} className={cardLink}>
-      {body}
-    </Link>
+    </ZoneLink>
   );
 };
 
