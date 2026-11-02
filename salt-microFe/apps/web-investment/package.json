@@ -10,6 +10,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/config-next": "workspace:*",
     "@repo/core": "workspace:*",
     "@repo/domain-invest": "workspace:*",
     "@repo/tokens": "workspace:*",
