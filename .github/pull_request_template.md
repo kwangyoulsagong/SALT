@@ -16,7 +16,7 @@ PR 본문은 diff를 다시 쓰는 곳이 아니다. diff는 코드가 이미 �
 <!-- 건드린 영역에만 체크. 여러 영역이면 왜 한 PR로 묶었는지 한 줄. -->
 
 - [ ] `pm/` 기획
-- [ ] `salt-microFe/` 프론트 (zone: `web` / `web-tax`)
+- [ ] `salt-microFe/` 프론트 (zone: `web` 셸 / `web-investment` · `web-savings` · `web-household` · `web-tips`)
 - [ ] `bff/`
 - [ ] `salt-server/` (서버 / `prisma/`)
 - [ ] 루트 `requirements/` · `.claude/`
@@ -42,10 +42,11 @@ PR 본문은 diff를 다시 쓰는 곳이 아니다. diff는 코드가 이미 �
 <!-- 실제로 돌린 것만 체크한다. 해당 없는 줄은 지운다. -->
 
 **프론트 (`salt-microFe/`)**
-- [ ] `pnpm build` — zone 2개
+- [ ] `pnpm build` — zone 5개(셸 + 도메인 4)
 - [ ] `pnpm lint`
 - [ ] `pnpm check-types`
-- [ ] `pnpm dev` 후 zone 경로 실제 응답 확인 (`/`, `/tax`, `/tax-static/...`)
+- [ ] `pnpm test:layer-check` (레이어 · 도메인 축)
+- [ ] `pnpm dev` 후 zone 경로 실제 응답 확인 (셸 경로 · 도메인 경로 → 각 zone · `/<domain>-static/...`)
 - [ ] 화면: Empty / Loading / Error 상태 · 키보드만으로 주 동선 완주
 
 **BFF (`bff/`)**
@@ -67,7 +68,6 @@ PR 본문은 diff를 다시 쓰는 곳이 아니다. diff는 코드가 이미 �
 - [ ] 추천을 렌더하는 화면에 **근거 · 과거 적중률 · 실패사례** 3종이 전부 있다. 하나라도 없으면 렌더하지 않는다
 - [ ] **주문을 실행하는 코드 경로가 없다**
 - [ ] 금액 계산은 **서버에서** 한다. 프론트는 표시만, LLM은 문장만
-- [ ] 세금 화면에 면책 문구 + 세율·공제·시행일·기준일·환율 소스가 화면에 노출된다
 - [ ] 확신 표현("확실"·"무조건"·"보장"·"100%")과 목표주가·수익률 예측이 0건이다
 - [ ] 2인칭 인격 평가가 0건이다
 - [ ] 초대 코드 없이 계정이 생성되지 않는다
@@ -97,7 +97,7 @@ PR 본문은 diff를 다시 쓰는 곳이 아니다. diff는 코드가 이미 �
 - [ ] BFF ↔ 프론트 응답 계약 변경 → 소비처 영향 확인
 - [ ] 서버 ↔ BFF API 계약 변경 → 소비처 영향 확인
 - [ ] Prisma 스키마 / 마이그레이션 추가 → 롤백 가능한가
-- [ ] zone 추가·경계 변경 → `microfrontend.md` §2 세 조건을 **모두** 만족하는가
+- [ ] zone 추가·경계 변경 → 새 도메인인가(`ADR-005` 표 개정이 먼저) · 레지스트리(`registry.json`) `hostedIn` 을 같은 커밋에서 바꿨는가
 
 ## REQ 상태 이동
 

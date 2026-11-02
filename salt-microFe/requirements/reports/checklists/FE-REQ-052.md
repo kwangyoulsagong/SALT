@@ -50,3 +50,7 @@
 | prerender · 문서 간 전환 · `AppChrome` | 이 REQ 범위 밖 | `FE-REQ-054` · `FE-REQ-055` |
 | 운영 경로 라우팅(한 origin L7) | 배포 환경 미착수 | `OPS-001` |
 | zone 앱 `next.config.js` 머리 주석의 경로 · assetPrefix 값 | 주석이라 레지스트리를 바꾸면 갈라질 수 있다(설정 값 자체는 레지스트리에서 읽는다) | 레지스트리를 바꾸는 REQ 가 같이 고친다 — 회고 Action |
+
+## 후속 (2026-11-02, PR 본문 작성 중 발견)
+
+- `.github/pull_request_template.md` 의 `web-tax` · `/tax` 확인 · "§2 세 조건" 줄을 도메인 zone 기준으로 고침. 세금 화면 면책 줄은 `ADR-002` 로 마스터 인덱스 §6 에서 이미 빠져 템플릿에서도 지움. 대조 검색 범위에 `.github/` 를 넣지 않아 놓쳤다
