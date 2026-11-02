@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import type { SymbolEventsResult } from "@repo/core/coach";
+import type { EventScope, SymbolEventsResult } from "@repo/core/coach";
 
 import { EVENT_MESSAGES as M } from "../model";
 import { StatusLine } from "@repo/ui/statusLine";
@@ -10,6 +10,8 @@ import * as s from "./EventsCard.css";
 import { ReactionDetail } from "./ReactionDetail";
 
 const KST = "Asia/Seoul";
+/** 이 종목 일정(2단계 실적 공시) → 시장 일정(`FE-REQ-046` FR-2) */
+const SCOPE_ORDER: readonly EventScope[] = ["symbol", "market"];
 const whenFormat = new Intl.DateTimeFormat("ko-KR", {
   timeZone: KST,
   month: "numeric",
@@ -30,7 +32,8 @@ const daysUntil = (iso: string, now: Date) =>
 /**
  * 주요 사건 카드 — 표시 전용 (`fsd-entities.md`, F008 `FE-REQ-038` FR-13 · FEATURE-008 FR-29~31).
  *
- * 다가오는 거시 일정마다 과거 같은 일정 뒤의 수익률 분포를 **평소 날과 같은 축에** 둔다. "호재 · 악재"는
+ * 다가오는 일정마다 과거 같은 일정 뒤의 수익률 분포를 **평소 날과 같은 축에** 둔다. 코인 상세엔 미국 거시만,
+ * 국내 상세엔 국내 시장 일정 + 미국 거시(지역 표시, `FE-REQ-046` FR-1 · 2). "호재 · 악재"는
  * 판정하지 않는다. 숫자는 전부 서버 값 — 여기서 하는 계산은 그리기 좌표와 D-day 뿐이다.
  * 한 번에 한 일정만 펼친다(첫 일정이 펼쳐져 있다).
  */
@@ -51,6 +54,13 @@ export const EventsCard = ({
     );
   }
   const now = new Date();
+  // 서버가 이미 종목 사건 → 시장 일정, 시각 순으로 준다. 펼침 번호는 묶음을 넘어 하나로 센다
+  const indexed = result.events.map((event, index) => ({ event, index }));
+  const groups = SCOPE_ORDER.map((scope) => ({
+    scope,
+    events: indexed.filter(({ event }) => event.scope === scope),
+  })).filter((group) => group.events.length > 0);
+  const mixedRegions = new Set(result.events.map((e) => e.region)).size > 1;
 
   return (
     <section
@@ -63,60 +73,70 @@ export const EventsCard = ({
         </h2>
         <span className={s.badge}>{M.badge}</span>
       </div>
-      <p className={s.lead}>{M.lead}</p>
+      <p className={s.lead}>{mixedRegions ? M.leadKr : M.lead}</p>
 
       {result.events.length === 0 ? (
         <StatusLine kind="empty">{M.empty}</StatusLine>
       ) : (
-        <ul className={s.list}>
-          {result.events.map((event, i) => {
-            const expanded = i === open;
-            const id = `event-${event.kind}-${i}`;
-            return (
-              <li
-                key={`${event.kind}-${event.eventAt}`}
-                className={s.item}
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                <button
-                  type="button"
-                  className={s.rowButton}
-                  aria-expanded={expanded}
-                  aria-controls={id}
-                  onClick={() => setOpen(expanded ? -1 : i)}
-                >
-                  <span className={s.dday}>
-                    {M.dday(daysUntil(event.eventAt, now))}
-                  </span>
-                  <span className={s.eventName}>{M.kind[event.kind]}</span>
-                  <span className={s.when}>
-                    {whenFormat.format(new Date(event.eventAt))}
-                  </span>
-                  <span
-                    className={
-                      expanded ? `${s.chevron} ${s.chevronOpen}` : s.chevron
-                    }
-                    aria-hidden="true"
+        groups.map((group) => (
+          <div key={group.scope}>
+            {groups.length > 1 && <h3 className={s.groupTitle}>{M.scope[group.scope]}</h3>}
+            <ul className={s.list}>
+              {group.events.map(({ event, index: i }) => {
+                const expanded = i === open;
+                const id = `event-${event.kind}-${i}`;
+                return (
+                  <li
+                    key={`${event.kind}-${event.eventAt}`}
+                    className={s.item}
+                    style={{ animationDelay: `${i * 80}ms` }}
                   >
-                    ›
-                  </span>
-                </button>
-                {expanded && (
-                  <div id={id}>
-                    <ReactionDetail
-                      horizons={event.horizons}
-                      labels={{
-                        kind: M.kind[event.kind],
-                        row: M.rowEvent,
-                        pre: M.preReturn,
-                      }}
-                    />
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+                    <button
+                      type="button"
+                      className={s.rowButton}
+                      aria-expanded={expanded}
+                      aria-controls={id}
+                      onClick={() => setOpen(expanded ? -1 : i)}
+                    >
+                      <span className={s.dday}>
+                        {M.dday(daysUntil(event.eventAt, now))}
+                      </span>
+                      <span className={s.eventName}>
+                        {mixedRegions && (
+                          <span className={s.regionTag}>{M.region[event.region]}</span>
+                        )}
+                        {mixedRegions ? M.kindShort[event.kind] : M.kind[event.kind]}
+                      </span>
+                      <span className={s.when}>
+                        {whenFormat.format(new Date(event.eventAt))}
+                      </span>
+                      <span
+                        className={
+                          expanded ? `${s.chevron} ${s.chevronOpen}` : s.chevron
+                        }
+                        aria-hidden="true"
+                      >
+                        ›
+                      </span>
+                    </button>
+                    {expanded && (
+                      <div id={id}>
+                        <ReactionDetail
+                          horizons={event.horizons}
+                          labels={{
+                            kind: M.kind[event.kind],
+                            row: M.rowEvent,
+                            pre: M.preReturn,
+                          }}
+                        />
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))
       )}
       <p className={s.disclaimer}>{result.disclaimer}</p>
     </section>

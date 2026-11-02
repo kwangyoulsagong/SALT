@@ -6,6 +6,12 @@ import type { KrFeed, KrMarket, KrSession, KrStatusBadge } from "@repo/core/mark
  */
 export const KR_STOCK_MESSAGES = {
   tabLabel: "국내 주식",
+  /** 다가오는 국내 시장 일정 줄(F008 슬라이스 24, `FE-REQ-046` FR-5) — 일정만, 분포 · 판정 없음 */
+  schedule: {
+    label: "다가오는 일정",
+    regionLabel: "다가오는 국내 시장 일정",
+    dday: (days: number) => (days <= 0 ? "오늘" : `D-${days}`),
+  },
   regionLabel: "국내 주식 시세",
   loading: "국내 주식 시세를 불러오는 중입니다.",
   loadFailed: "국내 주식 시세를 불러오지 못했습니다.",

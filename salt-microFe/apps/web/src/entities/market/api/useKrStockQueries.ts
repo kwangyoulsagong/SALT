@@ -131,3 +131,21 @@ export const useKrOrderbook = (code: string, live: boolean) => {
     retry: retryUnlessClientError,
   });
 };
+
+/**
+ * 다가오는 국내 시장 일정(F008 슬라이스 24, `FE-REQ-046` FR-5). 일정은 예측 배치가 하루 1회 넣는다 — 화면 안에서
+ * 다시 부르지 않는다. 기간은 서버 기본값과 같은 14일을 묻고, 몇 건을 보일지만 화면이 정한다
+ */
+const KR_SCHEDULE_STALE_MS = 30 * 60_000;
+export const KR_SCHEDULE_DAYS = 14;
+
+export const useKrSchedule = (enabled = true) => {
+  const signedIn = useHasAccessToken() === true;
+  return useQuery({
+    queryKey: marketQueryKeys.krSchedule(KR_SCHEDULE_DAYS),
+    queryFn: ({ signal }) => krStockApi.schedule(KR_SCHEDULE_DAYS, signal),
+    enabled: signedIn && enabled,
+    staleTime: KR_SCHEDULE_STALE_MS,
+    retry: retryUnlessClientError,
+  });
+};

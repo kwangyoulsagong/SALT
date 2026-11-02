@@ -1,3 +1,5 @@
+import { EVENT_KIND_LABELS, EVENT_KIND_SHORT_LABELS } from "@repo/core/coach";
+
 /**
  * 주요 사건 카드 문구 (F008 `FE-REQ-038` FR-13 · FEATURE-008 FR-31).
  *
@@ -8,7 +10,13 @@ export const EVENT_MESSAGES = {
   heading: "주요 사건",
   badge: "호재 · 악재 판정 아님",
   lead: "앞으로 5주 안의 미국 거시 일정이에요. 과거 같은 일정 뒤 움직인 폭을 평소와 비교해요.",
-  kind: { fomc: "FOMC 금리 결정", cpi: "미국 소비자물가(CPI)", jobs: "미국 고용보고서" } as const,
+  /** 국내 종목 — 국내 시장 일정 + 미국 거시(국내 거래일로 잰다, `FE-REQ-046`) */
+  leadKr: "앞으로 5주 안의 국내 · 미국 주요 일정이에요. 과거 같은 일정 뒤 이 종목이 움직인 폭을 평소 거래일과 비교해요.",
+  kind: EVENT_KIND_LABELS,
+  /** 지역 표시와 같이 쓸 때 */
+  kindShort: EVENT_KIND_SHORT_LABELS,
+  region: { kr: "국내", us: "미국" } as const,
+  scope: { symbol: "이 종목 일정", market: "시장 일정" } as const,
   dday: (days: number) => (days <= 0 ? "오늘" : `D-${days}`),
   horizon: (days: number) => (days === 1 ? "하루" : `${days}일`),
   horizonPicker: "반응 기간 고르기",

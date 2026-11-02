@@ -204,6 +204,12 @@ export const krIndexPlaceholder = style({
   height: "74px",
 });
 
+/** 다가오는 일정 줄 자리 — `KrScheduleLine` 높이(44)와 같다(F008 슬라이스 24) */
+export const krSchedulePlaceholder = style({
+  height: "44px",
+  marginTop: vars.space.md,
+});
+
 /** 관심 종목 표 위 추적 카운터 `추적 n / 상한`(`FE-REQ-010` FR-37) — 라벨 단, 고정폭 숫자 */
 export const trackedCounter = style({
   margin: `0 0 ${vars.space.sm}`,

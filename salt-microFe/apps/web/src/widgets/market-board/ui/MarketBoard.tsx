@@ -23,7 +23,7 @@ import {
   WATCH_LIST_TAB,
   type PreviewRenderer,
 } from "../model";
-import { headingRow, krIndexPlaceholder, reportLink } from "./MarketBoardLayout.css";
+import { headingRow, krIndexPlaceholder, krSchedulePlaceholder, reportLink } from "./MarketBoardLayout.css";
 import { placeholder as summaryPlaceholder } from "./MarketSummaryStrip.css";
 
 const RealtimeMarketTable = dynamic(
@@ -67,6 +67,12 @@ const MarketSummaryStrip = dynamic(
 const KrIndexStrip = dynamic(() => import("./KrIndexStrip").then((mod) => mod.KrIndexStrip), {
   ssr: false,
   loading: () => <div className={krIndexPlaceholder} aria-hidden="true" />,
+});
+
+/** 다가오는 국내 시장 일정 한 줄(F008 슬라이스 24) — 지수 띠와 같은 이유로 늦게 온다 */
+const KrScheduleStrip = dynamic(() => import("./KrScheduleStrip").then((mod) => mod.KrScheduleStrip), {
+  ssr: false,
+  loading: () => <div className={krSchedulePlaceholder} aria-hidden="true" />,
 });
 
 /** 국내 주식(F011) 자산군 탭을 보일지 정하는 잎 — 엔티티 barrel 을 쓰므로 늦게 온다 */
@@ -138,9 +144,13 @@ export const MarketBoard = ({ renderPreview, lead }: MarketBoardProps) => {
           </Margin>
         )}
         {!isCrypto && (
-          <Margin top="xl">
-            <KrIndexStrip />
-          </Margin>
+          <>
+            <Margin top="xl">
+              <KrIndexStrip />
+            </Margin>
+            {/* 간격은 줄이 가진다 — 0건이면 줄을 숨겨 여백도 남지 않는다 */}
+            <KrScheduleStrip />
+          </>
         )}
         <Margin top="xl">
           <Tabs

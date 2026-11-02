@@ -31,3 +31,4 @@ export { KrQuoteBadges } from "./KrStock/KrQuoteBadges";
 export { KrChangeText } from "./KrStock/KrChangeText";
 export { KrStockChart } from "./KrStock/KrStockChart";
 export { KrIndexSummary } from "./KrStock/KrIndexSummary";
+export { KrScheduleLine, KrScheduleLinePlaceholder } from "./KrStock/KrScheduleLine";
