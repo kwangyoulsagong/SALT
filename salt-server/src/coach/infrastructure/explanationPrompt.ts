@@ -110,7 +110,7 @@ export const EXPLANATION_SYSTEM_INSTRUCTION = `당신은 SALT 투자 코치입�
 8. 판단 근거의 방향(후보 · 관망 · 피하기)을 뒤집는 해설을 쓰지 마세요.`;
 
 /** 프롬프트의 사실 부분 — Gemini(JSON) · 로컬 CLI(줄 형식)가 **같은 사실**을 본다. 형식 지시만 다르다 */
-const factsBlock = (input: CoachExplanationInput): string[] => {
+export const factsBlock = (input: CoachExplanationInput): string[] => {
   const newsText = (input.news ?? [])
     .slice(0, 5)
     .map(
@@ -193,15 +193,25 @@ export const LOCAL_SYSTEM_INSTRUCTION = `${EXPLANATION_SYSTEM_INSTRUCTION.replac
   .replace("관찰 기간(timeframe)만", "관찰 기간만")}
 9. 숫자는 근거 데이터 · 현재가 · 변동률 · 거래대금에 있는 값만, 주어진 표기 그대로 씁니다. 계산해서 새 숫자를 만들지 마세요.
 10. "~를 고려해볼 만합니다", "~하는 것이 좋습니다", "~하세요" 같은 권유 · 지시를 쓰지 마세요. 관찰 · 해석만 씁니다.
-11. 과거 적중률 · 수익률 같은 성적 숫자를 쓰지 마세요(화면이 따로 보여 줍니다).`;
+11. 과거 적중률 · 수익률 같은 성적 숫자를 쓰지 마세요(화면이 따로 보여 줍니다).
+12. "~보는 게 중요해요", "~필요가 있어요" 처럼 지켜보라고 권하는 말도 쓰지 마세요.
+13. 근거 항목이 몇 개인지 · 판단이 어느 근거에 더 무게를 뒀는지 추측하지 마세요. 근거 문장은 적힌 뜻 그대로 읽고 다른 뜻으로 바꾸지 마세요.`;
+
+/**
+ * 로컬 CLI 가 받는 사실 전부 — 평가지(`scripts/explain-ab-sheet.ts`)도 이것을 그대로 보여 준다. 평가지가 따로 적으면
+ * 갈라진다(2026-11-02 두 번: 거래대금 · 기사 요약 누락, 관찰 기간 누락 — 둘 다 평가 결과를 뒤집었다)
+ */
+export const lineFactsText = (input: CoachExplanationInput): string[] => [
+  ...factsBlock(input),
+  "",
+  `관찰 기간: ${COACH_HORIZON[input.mode].phrase}`,
+];
 
 export const buildLineExplanationPrompt = (input: CoachExplanationInput): string => {
   const newsCount = Math.min(NEWS_SUMMARY_MAX, (input.news ?? []).length);
   const modeLabel = input.mode === "scalp" ? "단타" : "장기";
   return [
-    ...factsBlock(input),
-    "",
-    `관찰 기간: ${COACH_HORIZON[input.mode].phrase}`,
+    ...lineFactsText(input),
     "",
     "분석해서 아래 줄 형식으로만 답하세요. 한 줄에 한 문장, 줄 앞에 라벨과 콜론.",
     `판단: (2~3줄) 근거 데이터 중 이 판단을 가장 크게 받치는 두세 가지가 ${modeLabel} 관점에서 서로 같은 방향인지 엇갈리는지, 그래서 판단이 어떻게 나왔는지`,

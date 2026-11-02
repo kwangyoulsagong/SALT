@@ -125,3 +125,15 @@ describe("assembleExplanationFacts — RSI 반올림 (2026-11-02 실측)", () =>
     assert.ok(!JSON.stringify(facts).includes("28.421"));
   });
 });
+
+describe("완곡 권유 — 지켜보라는 말 (2026-11-02 로컬 Claude 블라인드 평가)", () => {
+  it("'보는 게 중요해요' · '필요가 있어요/생겨요' · '열어 둘 필요' 는 걸리고, '필요한 근거' 는 통과", () => {
+    for (const s of [
+      "판단 뒤 30일 동안 거래 흐름을 함께 보는 게 해석에 중요해요.",
+      "이 항목의 변화를 함께 보는 게 의미가 있어요.",
+      "반대 가능성도 열어 둘 필요가 있어요.",
+      "따로 살펴볼 필요가 생겨요.",
+    ]) assert.equal(guardExplanationLine("risks", s, input).ok, false, s);
+    assert.equal(guardExplanationLine("risks", "판단에 필요한 근거가 부족해요.", input).ok, true);
+  });
+});

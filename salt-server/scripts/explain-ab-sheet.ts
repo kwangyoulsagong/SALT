@@ -25,11 +25,12 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import type { CoachExplanation, CoachExplanationInput } from "../src/coach/domain";
+import { COACH_HORIZON, type CoachExplanation, type CoachExplanationInput } from "../src/coach/domain";
 import { templateExplanation, verifyExplanation } from "../src/coach/domain/policy/explanationTemplate";
 import { explanationFixtures } from "../src/coach/domain/__tests__/fixtures/explanationFixtures";
 import { GeminiCoachExplainer } from "../src/coach/infrastructure/GeminiCoachExplainer";
 import { detectLocalCli, LocalCliCoachExplainer } from "../src/coach/infrastructure/LocalCliCoachExplainer";
+import { lineFactsText } from "../src/coach/infrastructure/explanationPrompt";
 
 type Provider = "gemini" | "local_claude" | "local_codex";
 
@@ -75,11 +76,16 @@ const block = (label: string, e: Pick<CoachExplanation, "modeReasoning" | "keyDr
   ].join("\n");
 
 /**
- * 평가자가 보는 입력 사실 — **해설이 받은 것 전부**. 2026-11-02 첫 평가지는 거래대금 · 기사 요약을 빠뜨려 평가자가
+ * 평가자가 보는 입력 사실 — **해설이 받은 것 전부**. 관찰 기간(`COACH_HORIZON`)도 — 템플릿 · LLM 둘 다 받고 쓰는데 빠져 있어
+ * 2026-11-02 로컬 Claude 평가지에서 평가자 셋이 "판단 뒤 24시간"을 근거 없는 숫자로 판정했다(두 번째 같은 종류의 결함). 2026-11-02 첫 평가지는 거래대금 · 기사 요약을 빠뜨려 평가자가
  * 템플릿의 "거래대금 약 3,100억 원"과 LLM 의 "거래량 10% 증가"(기사 요약의 숫자)를 지어낸 것으로 판정했다
  */
-const facts = (input: CoachExplanationInput) =>
-  [
+const facts = (input: CoachExplanationInput, provider: Provider) =>
+  provider !== "gemini"
+    ? // 로컬 CLI 는 모델이 받은 사실 블록 그대로(`lineFactsText`) — 평가지가 따로 적지 않는다
+      lineFactsText(input).filter((l) => l !== "").join("\n")
+    : [
+    `- 관찰 기간: ${COACH_HORIZON[input.mode].phrase}`,
     `- 종목 ${input.koreanName}(${input.symbol}) · ${input.mode === "scalp" ? "단타" : "장기"} · 현재가 ${input.currentPrice.toLocaleString("ko-KR")}원 · 24시간 변동 ${input.change24h}% · 24시간 거래대금 ${input.tradeValue24h.toLocaleString("ko-KR")}원`,
     ...input.evidence.map((e) => `- ${e.label}: ${e.value}`),
     ...(input.news ?? []).map(
@@ -154,7 +160,7 @@ const generate = async (reuseFrom?: string, provider: Provider = "gemini") => {
         "",
         "<details><summary>입력 사실</summary>",
         "",
-        facts(input),
+        facts(input, provider),
         "",
         "</details>",
         "",
@@ -179,8 +185,9 @@ const generate = async (reuseFrom?: string, provider: Provider = "gemini") => {
 
   mkdirSync(OUT_DIR, { recursive: true });
   // 같은 날 두 번째부터는 `-2` · `-3` — 앞 평가지(평가가 끝났을 수 있다)를 덮지 않는다
-  let base = provider === "gemini" ? `explain-ab-${today}` : `explain-ab-${today}-${provider}`;
-  for (let n = 2; existsSync(join(OUT_DIR, `${base}.md`)); n += 1) base = `explain-ab-${today}-${n}`;
+  const prefix = provider === "gemini" ? `explain-ab-${today}` : `explain-ab-${today}-${provider}`;
+  let base = prefix;
+  for (let n = 2; existsSync(join(OUT_DIR, `${base}.md`)); n += 1) base = `${prefix}-${n}`;
   const sheetPath = join(OUT_DIR, `${base}.md`);
   writeFileSync(sheetPath, sheet.join("\n"));
   writeFileSync(join(OUT_DIR, `${base}.key.json`), JSON.stringify(key, null, 2) + "\n");
