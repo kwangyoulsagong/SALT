@@ -12,16 +12,26 @@ export class PrismaLlmUsageStore implements LlmUsageStore {
     await prisma.llmCallLog.create({ data: entry });
   }
 
+  async markDropped(callId: string, droppedSentences: number): Promise<void> {
+    await prisma.llmCallLog.update({ where: { id: callId }, data: { droppedSentences } });
+  }
+
+  /**
+   * 시도 수는 공급자 전부, 토큰은 `gemini` 만(`SRV-REQ-050` FR-9) — 로컬 CLI 는 구독이라 토큰 비용이 없다.
+   * 집계 넷이지만 창 안 행이 수백 개라 인덱스(`requested_at`) 범위 스캔 하나씩이다
+   */
   async usageSince(since: Date, userId: string): Promise<{ user: LlmUsage; total: LlmUsage }> {
     const window = { requestedAt: { gte: since } };
-    const [total, user] = await Promise.all([
-      prisma.llmCallLog.aggregate({ where: window, _count: { _all: true }, _sum: { totalTokens: true } }),
-      prisma.llmCallLog.aggregate({ where: { ...window, userId }, _count: { _all: true }, _sum: { totalTokens: true } }),
+    const gemini = { provider: "gemini" };
+    const [total, user, totalTokens, userTokens] = await Promise.all([
+      prisma.llmCallLog.count({ where: window }),
+      prisma.llmCallLog.count({ where: { ...window, userId } }),
+      prisma.llmCallLog.aggregate({ where: { ...window, ...gemini }, _sum: { totalTokens: true } }),
+      prisma.llmCallLog.aggregate({ where: { ...window, ...gemini, userId }, _sum: { totalTokens: true } }),
     ]);
-    const toUsage = (row: typeof total): LlmUsage => ({
-      calls: row._count._all,
-      tokens: row._sum.totalTokens ?? 0,
-    });
-    return { user: toUsage(user), total: toUsage(total) };
+    return {
+      user: { calls: user, tokens: userTokens._sum.totalTokens ?? 0 },
+      total: { calls: total, tokens: totalTokens._sum.totalTokens ?? 0 },
+    };
   }
 }

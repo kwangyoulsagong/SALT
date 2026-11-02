@@ -1,3 +1,13 @@
+import type { ExplainProvider } from "@repo/core/coach";
+
+/** 다듬은 공급자 이름(`FE-REQ-059` FR-3) — 컴포넌트에 문자열을 두지 않는다. Gemini 는 지금 문구(이름 없이) 그대로 */
+const PROVIDER_NAME: Record<Exclude<ExplainProvider, "gemini">, string> = {
+  local_claude: "Claude",
+  local_codex: "Codex",
+};
+const named = (provider: ExplainProvider | null | undefined) =>
+  provider === "local_claude" || provider === "local_codex" ? PROVIDER_NAME[provider] : null;
+
 /** 해설 기능 문구 (`i18n-policy.md`) */
 export const EXPLAIN_MESSAGES = {
   heading: "AI 해설",
@@ -35,8 +45,17 @@ export const EXPLAIN_MESSAGES = {
   /** 스크린리더용 단계 상태 — 아이콘만으로 말하지 않는다 */
   stepState: { pending: "대기", active: "진행 중", done: "완료", skipped: "건너뜀" },
   /** 검증을 통과한 AI 문장으로 바뀐 순간 한 번 보인다 */
-  replacedNote: "검사를 통과한 AI 문장으로 바꿨어요.",
+  replacedNote: (provider?: ExplainProvider | null) => {
+    const name = named(provider);
+    return name ? `검사를 통과한 ${name} 문장으로 바꿨어요.` : "검사를 통과한 AI 문장으로 바꿨어요.";
+  },
+  /** 문장마다 검사하며 바로 흘렸다(로컬 Claude, `SRV-REQ-050` FR-13) — 바꾼 것이 아니다 */
+  streamedNote: (provider?: ExplainProvider | null) => {
+    const name = named(provider);
+    return name ? `${name} 문장을 한 문장씩 검사해 보여 드렸어요.` : "AI 문장을 한 문장씩 검사해 보여 드렸어요.";
+  },
   droppedNote: (count: number) => `검사에 걸린 문장 ${count}개는 근거 문장으로 대신했어요.`,
+  streamedDroppedNote: (count: number) => `검사에 걸린 문장 ${count}개는 뺐어요.`,
   /** 템플릿이 최종 — AI 가 실패했거나 꺼져 있다 */
   templateNote: "근거 데이터로 만든 문장이에요. AI 다듬기는 이번에 쓰지 못했어요.",
   citationsLabel: "출처",

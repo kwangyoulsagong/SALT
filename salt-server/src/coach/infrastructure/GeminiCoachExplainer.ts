@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import {
   GoogleGenerativeAI,
   type GenerationConfig,
@@ -10,6 +12,7 @@ import type {
   CoachExplainer,
   CoachExplanation,
   CoachExplanationInput,
+  ExplainCaller,
   LlmCallRecord,
   LlmUsageStore,
 } from "../domain";
@@ -130,13 +133,13 @@ export class GeminiCoachExplainer implements CoachExplainer {
   async explain(
     input: CoachExplanationInput,
     signal?: AbortSignal,
-    caller?: { userId: string }
+    caller?: ExplainCaller
   ): Promise<CoachExplanation> {
     const prompt = buildExplanationPrompt(input);
     const key = explanationCacheKey(env.GEMINI_MODEL, prompt);
     const cached = cache.get(key);
     if (cached && cached.expiresAt > Date.now()) {
-      return { ...cached.value, cached: true };
+      return { ...cached.value, cached: true, callId: null };
     }
 
     const model = this.client.getGenerativeModel(
@@ -149,10 +152,14 @@ export class GeminiCoachExplainer implements CoachExplainer {
     );
 
     // 시도 하나 = 원장 한 행. 파싱도 시도 안에서 한다 — 토큰을 쓰고 모양이 틀린 응답도 비용이다
+    let okCallId: string | null = null;
     const attempt = async () => {
       const requestedAt = new Date();
+      const id = randomUUID();
       const base = {
+        id,
         userId: caller?.userId ?? null,
+        provider: "gemini" as const,
         purpose: "coach_explain" as const,
         model: env.GEMINI_MODEL,
         requestedAt,
@@ -173,6 +180,7 @@ export class GeminiCoachExplainer implements CoachExplainer {
           outputTokens: usage?.candidatesTokenCount ?? null,
           totalTokens: usage?.totalTokenCount ?? null,
         });
+        okCallId = id;
         return parsed;
       } catch (error) {
         await this.remember({
@@ -209,9 +217,10 @@ export class GeminiCoachExplainer implements CoachExplainer {
       disclaimer: "",
       generatedAt: new Date().toISOString(),
       cached: false,
+      provider: "gemini",
     };
 
     rememberExplanation(key, result);
-    return result;
+    return { ...result, callId: okCallId };
   }
 }

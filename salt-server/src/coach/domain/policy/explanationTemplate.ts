@@ -91,11 +91,15 @@ export const allowedFacts = (input: CoachExplanationInput, scope: { news: boolea
     COACH_HORIZON[input.mode].phrase,
     ...PROMPT_PHRASES,
   ];
+  // 금액(현재가 · 거래대금)은 크기다 — 방향이 없다. 부호를 박아 두면 "하락 구간에서도 거래대금 4200억원" 처럼
+  // 근처의 방향 말이 금액에 음수를 붙여 맞는 숫자가 걸렸다(2026-11-02 로컬 Claude 실측, `SRV-REQ-050` FR-14).
+  // 방향 대조는 변동률(%)에만 남긴다
+  const magnitude = (value: number): NumericFact => ({ ...fact(value, "krw"), sign: null });
   return [
-    fact(input.currentPrice, "krw"),
+    magnitude(input.currentPrice),
     fact(input.change24h, "percent"),
-    fact(input.tradeValue24h, "krw"),
-    fact(Math.round(input.tradeValue24h / 1e8) * 1e8, "krw"),
+    magnitude(input.tradeValue24h),
+    magnitude(Math.round(input.tradeValue24h / 1e8) * 1e8),
     ...texts.flatMap(numericTokens),
   ];
 };
@@ -109,7 +113,7 @@ export interface VerifiedExplanation {
 /**
  * LLM 해설을 문장 단위로 검사한다. 떨어진 칸은 템플릿으로 채운다.
  *
- * - `modeReasoning` 은 한 덩어리 — 걸리면 통째로 템플릿
+ * - `modeReasoning` 은 문장 단위 — 걸린 문장만 빼고, 다 빠지면 템플릿(`SRV-REQ-050` FR-14, 예전엔 통째)
  * - `timeframe` 은 LLM 이 쓴 것을 버리고 `COACH_HORIZON` 을 주입한다(`SRV-REQ-024` FR-103 · C05) — 기간은 채점 기간 하나다
  * - 목록(근거 · 주의 · 뉴스)은 항목별 — 걸린 항목만 빼고, 다 빠지면 템플릿 목록
  * - 판단 극성(`input.stance`)은 판단 · 근거 칸에만 건다 — 주의 칸은 판단과 반대 방향을 말하는 것이 일이다
@@ -124,11 +128,13 @@ export const verifyExplanation = (
   const template = templateExplanation(input, now);
   const dropped: VerifiedExplanation["dropped"] = [];
 
+  // 문장 단위(`SRV-REQ-050` FR-14) — 예전엔 한 덩어리라 한 문장만 걸려도 판단 문단 전체가 템플릿이 됐다.
+  // 마침표 뒤에 공백 · 끝이 올 때만 문장 끝("+1.23%" 의 점에서 자르지 않는다)
   const single = (field: "modeReasoning"): string => {
-    const r = guardSentences([llm[field]], core, input.stance);
-    if (r.kept.length === 1) return llm[field];
-    dropped.push({ field, reasons: r.dropped[0]?.reasons ?? [] });
-    return template[field];
+    const sentences = (llm[field].match(/.+?[.!?](?=\s|$)|.+$/gs) ?? []).map((t) => t.trim()).filter(Boolean);
+    const r = guardSentences(sentences, core, input.stance);
+    r.dropped.forEach((d) => dropped.push({ field, reasons: d.reasons }));
+    return r.kept.length > 0 ? r.kept.join(" ") : template[field];
   };
   const list = (field: "keyDrivers" | "risks" | "newsSummary"): string[] => {
     const r =
@@ -148,4 +154,53 @@ export const verifyExplanation = (
     newsSummary: list("newsSummary"),
   };
   return { explanation, source: dropped.length > 0 ? "llm_checked" : "llm", dropped };
+};
+
+/** 해설 칸 — 줄 단위 스트림이 어느 칸의 문장인지(`SRV-REQ-050` FR-13) */
+export type ExplanationLineSection = "modeReasoning" | "keyDrivers" | "risks" | "newsSummary";
+
+/**
+ * 한 줄(한 문장) 검사 — 스트림이 문장 완성 즉시 흘릴지 정한다(FR-13). `verifyExplanation` 과 **같은 사실 · 같은 극성 규칙**이다:
+ * 뉴스 칸만 기사 숫자를 쓰고, 극성은 판단 · 근거 칸에만 건다(주의 칸은 반대 방향을 말하는 것이 일이다)
+ */
+export const guardExplanationLine = (
+  section: ExplanationLineSection,
+  text: string,
+  input: CoachExplanationInput
+): { ok: true } | { ok: false; reasons: LanguageViolation[] } => {
+  const facts = allowedFacts(input, { news: section === "newsSummary" });
+  const stance = section === "modeReasoning" || section === "keyDrivers" ? input.stance : undefined;
+  const r = guardSentences([text], facts, stance);
+  return r.kept.length === 1 ? { ok: true } : { ok: false, reasons: r.dropped[0]?.reasons ?? [] };
+};
+
+/**
+ * 줄 단위로 통과한 문장을 해설 한 벌로 묶는다. 빈 칸은 템플릿 — `verifyExplanation` 의 "다 빠지면 템플릿" 과 같다.
+ * `filled` 는 템플릿으로 채운 칸 — 스트림이 마지막에 `replace` 를 보낼지 정한다
+ */
+export const completeExplanation = (
+  kept: Record<ExplanationLineSection, string[]>,
+  input: CoachExplanationInput,
+  now: Date
+): { explanation: CoachExplanation; filled: ExplanationLineSection[] } => {
+  const template = templateExplanation(input, now);
+  const filled: ExplanationLineSection[] = [];
+  const pick = (section: Exclude<ExplanationLineSection, "modeReasoning">): string[] => {
+    if (kept[section].length > 0) return kept[section];
+    // 뉴스가 없으면 뉴스 칸이 비는 것이 맞다 — 채운 것으로 세지 않는다
+    if (template[section].length > 0) filled.push(section);
+    return template[section];
+  };
+  const modeReasoning = kept.modeReasoning.length > 0 ? kept.modeReasoning.join(" ") : template.modeReasoning;
+  if (kept.modeReasoning.length === 0) filled.push("modeReasoning");
+  return {
+    explanation: {
+      ...template,
+      modeReasoning,
+      keyDrivers: pick("keyDrivers"),
+      risks: pick("risks"),
+      newsSummary: pick("newsSummary"),
+    },
+    filled,
+  };
 };

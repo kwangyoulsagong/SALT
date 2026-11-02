@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { appAICoachService } from "../../services/app-ai-coach.service";
+import { explainClientOf } from "../../utils/client-kind.util";
 import { formatSseEvent } from "../../utils/sse.util";
 
 /** 프록시 · 로드밸런서가 유휴 연결을 끊지 않게(`streaming-sse.md` §5) */
@@ -74,6 +75,7 @@ export class AppAICoachController {
         req.token!,
         req.body,
         aborter.signal,
+        explainClientOf(req.get("user-agent")),
       );
       return res.json({ success: true, data });
     } catch (error) {
@@ -96,7 +98,12 @@ export class AppAICoachController {
 
     let opened: Awaited<ReturnType<typeof appAICoachService.openExplainStream>>;
     try {
-      opened = await appAICoachService.openExplainStream(req.token!, req.body, aborter.signal);
+      opened = await appAICoachService.openExplainStream(
+        req.token!,
+        req.body,
+        aborter.signal,
+        explainClientOf(req.get("user-agent")),
+      );
     } catch (error) {
       if (aborter.signal.aborted) return;
       return next(error);

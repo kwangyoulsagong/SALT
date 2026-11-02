@@ -424,3 +424,9 @@
 - 증상 · 원인 · 결과는 루트 `requirements/reports/checklists/OPS-002.md` §재시작 고아. `restart server` 10초 · 7초 · 고아 0 · `npm run build` · `test` 889 · layer-check
 
 미검증: 없음.
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 검증
+
+`tsc` · 기본값으로 기동(auto → claude 감지)
+
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

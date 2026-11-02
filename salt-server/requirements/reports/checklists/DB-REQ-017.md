@@ -152,3 +152,9 @@
 - `news_articles.url` · `published_at` 기존 열을 읽기만. 마이그레이션 0 · `prisma:generate` 불필요
 
 미검증: 없음.
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 검증
+
+`prisma validate` · `migrate deploy`(로컬) · 실스택에서 provider · 실모델 · 버린 문장 수가 남고 임시 행 삭제 뒤 행 수 복원(3 → 3)
+
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

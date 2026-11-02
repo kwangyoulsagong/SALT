@@ -179,3 +179,9 @@
 - `composition.ts`(이 REQ 가 머리 주석 주인)에서 env 를 `llmEnabled` 로. `npm run build` · `test` 889 통과
 
 미검증: 없음.
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 검증
+
+`tsc` · `lint` · `test:layer-check`(차단 10 · 통과 6) · 기동 로그 `해설 로컬 CLI local_claude 2.1.316`
+
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

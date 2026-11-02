@@ -23,9 +23,11 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-050-F008-EXPLAIN-LLM-ROUTIN
 
 ## Acceptance Criteria
 
-- [ ] 앱 UA 요청 → 서버가 받은 헤더 `mobile` · 데스크톱 브라우저 → `web` · 클라이언트가 위조한 헤더는 덮어쓴다
-- [ ] 서버 `provider` 가 화면까지 그대로(중계 테스트)
-- [ ] `npm run build` · `npm test`
+체크리스트: `bff/requirements/reports/checklists/BFF-REQ-050.md`
+
+- [x] 앱 UA 요청 → 서버가 받은 헤더 `mobile` · 데스크톱 브라우저 → `web` · 클라이언트가 위조한 헤더는 덮어쓴다 — BFF 는 들어온 헤더를 넘기지 않고 `explainClientOf(UA)` 값만 싣는다(`client-kind.util`)
+- [x] 서버 `provider` 가 화면까지 그대로(중계 테스트 — `replace` · `done` 데이터 원문 그대로)
+- [x] `npm run build` · `npm test` 302 / 0
 
 ## 계약 영향
 
@@ -36,3 +38,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-050-F008-EXPLAIN-LLM-ROUTIN
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-02 | 작성 — `SRV-REQ-050` 짝 |
+| 2026-11-02 | 완료 — UA 판별은 BFF 유틸(`@repo/core` `isAppWebView` 와 같은 정규식, BFF 는 core 를 import 하지 않는다). FR-3 타입은 `@repo/core/coach` `ExplainProvider` · `message.step.provider`(스트림 시작에 공급자, `SRV-REQ-050` FR-13) |

@@ -44,3 +44,9 @@
 
 - 파일만 걸침 — 웹 `coachApi.ts`(이 REQ 가 머리 주석 주인) 설정 조회가 응답 매퍼(`toCoachProfileSettings`)를 쓴다. BFF 무변경
 - 미검증 · 범위 밖: 없음
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 검증
+
+`npm run build` · `client-kind.util` 테스트
+
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

@@ -85,3 +85,9 @@
 | 미검증 | 사유 | 언제 닫히나 |
 |---|---|---|
 | ~~화면에서 칩 링크~~ **닫음 2026-11-02** — 임시 사용자 토큰 · Playwright `/investments/LINK?mode=scalp`: 칩 5개 `<a target=_blank rel="noopener noreferrer">` · "13시간 전" ~ "33일 전" · 스크린리더 라벨. 새 탭 실제 열림은 헤드리스라 속성으로 확인 | — | — |
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 검증
+
+Playwright route 6종 · 실스택 화면(3100, 임시 사용자) · `pnpm check-types` · `lint` · `--filter web build`(3.06 kB · 137 kB 그대로) · `web-tax build`
+
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

@@ -30,7 +30,12 @@ export type LanguageViolation =
   | "unsupported_causal"
   | "judgment_polarity"
   | "performance_wording"
-  | "advice_wording";
+  | "advice_wording"
+  /** 프롬프트 안쪽 이름(줄 라벨 "뉴스1" · 칸 이름)을 문장이 가리킨다 — 화면엔 그런 이름이 없다(SRV-REQ-050 FR-11 3회차) */
+  | "prompt_label";
+
+// "뉴스1과 연속 일수도 다르게 적혀" — 줄 라벨 · JSON 칸 이름. "뉴스 1건" · "기사 2개" 처럼 세는 말은 통과
+const PROMPT_LABEL = /(뉴스\s?\d+(?!\s?(건|개|줄|곳|번째|가지|일|시간|%))|newsSummary|keyDrivers|modeReasoning|근거\s?데이터\s?\d)/;
 
 // "보장하지 않습니다"는 면책이다 — 부정형은 통과시킨다
 const CERTAINTY = /(확실|무조건|보장(?!\s*(하지|되지|할\s*수\s*없))|100\s*%|틀림없|반드시\s*(오|내|상승|하락))/;
@@ -48,7 +53,9 @@ const TARGET_PRICE = /(목표\s*(주)?가|목표\s*가격|\d[\d,.]*\s*(원|달�
 // 완곡 권유 — 명령형이 아니어도 매매 · 관망을 권하는 말(2026-11-02 블라인드 평가 · 실호출: "분할 매수를 고려해볼 만합니다" ·
 // "관망하는 것이 적절해 보입니다" · "신중하게 접근하는 것이 좋아 보입니다" · "합리적인 전략일 수 있습니다"). 검증기가 몰라 화면에 나갔다
 const ADVICE_WORDING =
-  /(고려해\s*볼\s*(만|수)|고려하는\s*것이|(것|편)이\s*(좋|적절|적합|합리|유리|바람직|낫|나을)[가-힣\s]{0,10}(보입니다|보여요|겠습니다|수\s*있습니다|입니다|합니다|습니다)|전략이\s*유효|접근이\s*필요|적합한\s*(자산|종목|시점)|매수\s*(적기|기회)로\s*볼)/;
+  // 2026-11-02 로컬 Claude 블라인드 평가(SRV-REQ-050 FR-11): "흐름을 함께 보는 게 해석에 중요해요" · "가능성도 열어 둘 필요가 있어요" ·
+  // "따로 살펴볼 필요가 생겨요" — 지켜보라는 권유다
+  /((보는|살펴보는|지켜보는|확인하는|따져보는|비교하는)\s*(게|것이|것은)\s*([가-힣]+\s*)?(중요|의미가?\s*있|필요)|필요가\s*(있|생기|생겨)|열어\s*둘\s*필요|고려해\s*볼\s*(만|수)|고려하는\s*것이|(것|편)이\s*(좋|적절|적합|합리|유리|바람직|낫|나을)[가-힣\s]{0,10}(보입니다|보여요|겠습니다|수\s*있습니다|입니다|합니다|습니다)|전략이\s*유효|접근이\s*필요|적합한\s*(자산|종목|시점)|매수\s*(적기|기회)로\s*볼)/;
 
 // 영어 — 부정형("not guaranteed")은 면책이라 통과시킨다
 const CERTAINTY_EN = /(?<!not\s)\b(guaranteed?|definitely|certainly|risk[- ]free|can(?:no|')t\s+lose|sure\s+thing|100\s*%\s*(sure|certain))\b/i;
@@ -68,6 +75,7 @@ export const languageViolations = (sentence: string): LanguageViolation[] => {
   if (TARGET_PRICE.test(sentence) || TARGET_PRICE_EN.test(sentence)) out.push("target_price");
   if (PERFORMANCE_WORDING.test(sentence) || PERFORMANCE_WORDING_EN.test(sentence)) out.push("performance_wording");
   if (ADVICE_WORDING.test(sentence)) out.push("advice_wording");
+  if (PROMPT_LABEL.test(sentence)) out.push("prompt_label");
   return out;
 };
 

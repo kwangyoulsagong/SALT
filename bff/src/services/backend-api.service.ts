@@ -58,17 +58,19 @@ class BackendApiService {
     url: string,
     token: string,
     data?: any,
-    /** 경로별 예산(`BFF-REQ-025` 호출 맵) · 클라이언트가 끊으면 같이 끊는다 */
-    options: { timeout?: number; signal?: AbortSignal } = {}
+    /** 경로별 예산(`BFF-REQ-025` 호출 맵) · 클라이언트가 끊으면 같이 끊는다 · `headers` 는 BFF 가 정한 것만(`BFF-REQ-050`) */
+    options: { timeout?: number; signal?: AbortSignal; headers?: Record<string, string> } = {}
   ) {
+    const { headers, ...rest } = options;
     return this.client.request({
       method,
       url,
       headers: {
+        ...headers,
         Authorization: `Bearer ${token}`,
       },
       data,
-      ...options,
+      ...rest,
     });
   }
 
@@ -84,13 +86,13 @@ class BackendApiService {
     url: string,
     token: string,
     data: unknown,
-    options: { timeout: number; signal?: AbortSignal; method?: "GET" | "POST" }
+    options: { timeout: number; signal?: AbortSignal; method?: "GET" | "POST"; headers?: Record<string, string> }
   ): Promise<NodeJS.ReadableStream> {
-    const { method = "POST", ...rest } = options;
+    const { method = "POST", headers, ...rest } = options;
     const response = await this.client.request({
       method,
       url,
-      headers: { Authorization: `Bearer ${token}`, Accept: "text/event-stream" },
+      headers: { ...headers, Authorization: `Bearer ${token}`, Accept: "text/event-stream" },
       data,
       responseType: "stream",
       validateStatus: () => true,

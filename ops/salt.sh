@@ -20,7 +20,9 @@ UID_NUM="$(id -u)"
 AGENTS="$HOME/Library/LaunchAgents"
 LOGS="$HOME/Library/Logs"
 NODE_DIR="$(dirname "$(command -v node 2>/dev/null || echo /usr/local/bin/node)")"
-LAUNCH_PATH="$NODE_DIR:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+# ~/.local/bin — Claude Code CLI 설치 위치. 서버가 해설 다듬기 로컬 CLI 를 PATH 에서 찾는다(`SRV-REQ-050` FR-2).
+# 없으면 nvm 경로의 codex 만 잡히거나 전부 Gemini 로 간다
+LAUNCH_PATH="$NODE_DIR:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
 
 # 이름 → launchd 라벨 · 실행 스크립트 · 포트(없으면 -) · 헬스 주소(없으면 -) · 로그
 typeset -A LABEL SCRIPT PORT HEALTH LOG

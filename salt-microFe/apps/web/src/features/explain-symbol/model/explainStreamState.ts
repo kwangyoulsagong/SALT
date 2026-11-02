@@ -1,5 +1,6 @@
 import type {
   ExplainCitation,
+  ExplainProvider,
   ExplainSections,
   ExplainStep,
   ExplainStreamEvent,
@@ -24,6 +25,8 @@ export interface ExplainStreamState {
   droppedSentences: number;
   /** 검사를 통과한 AI 문장으로 바뀌었다 — 화면이 한 번 알려 준다 */
   replaced: boolean;
+  /** 누가 다듬었나(`FE-REQ-059`) — 템플릿 `null` · 옛 서버(칸 없음) `undefined` → 문구는 지금 것 */
+  provider: ExplainProvider | null | undefined;
   citations: ExplainCitation[];
   generatedAt: string | null;
 }
@@ -43,6 +46,7 @@ export const initialExplainStreamState: ExplainStreamState = {
   source: null,
   droppedSentences: 0,
   replaced: false,
+  provider: undefined,
   citations: [],
   generatedAt: null,
 };
@@ -53,10 +57,13 @@ const hasText = (s: ExplainSections) => s.modeReasoning !== "" || s.keyDrivers.l
  * 받은 글자가 있으면 그것이 최종 문장이다(템플릿 — 입력 사실로만 만든 문장). 하나도 없으면 실패.
  * 서버가 `done` 없이 닫았거나 중간 오류(`message.error`)가 온 경우에 쓴다.
  */
-const settle = (state: ExplainStreamState): ExplainStreamState =>
-  hasText(state.sections)
-    ? { ...state, status: "done", source: state.source ?? "template" }
-    : { ...state, status: "failed" };
+const settle = (state: ExplainStreamState): ExplainStreamState => {
+  if (!hasText(state.sections)) return { ...state, status: "failed" };
+  // 토큰 스트림(`provider` 를 미리 받음)이면 흘린 글자는 서버가 한 문장씩 검사한 AI 문장이다 — "규칙 기반"이 아니다.
+  // 끝까지 못 받았으니 `llm_checked`(일부)로 둔다(`FE-REQ-059`, 2026-11-02 실측: 맥 잠자기로 끊긴 스트림)
+  const fallback = state.provider ? "llm_checked" : "template";
+  return { ...state, status: "done", source: state.source ?? fallback };
+};
 
 /** 해설 스트림 상태 — 순수 함수. 이벤트 순서는 서버 계약(`ExplainStreamEvent`)을 따른다 */
 export const explainStreamReducer = (
@@ -77,7 +84,11 @@ export const explainStreamReducer = (
   const { event } = action;
   switch (event.event) {
     case "message.step":
-      return { ...state, steps: { ...state.steps, [event.data.step]: event.data.status } };
+      return {
+        ...state,
+        steps: { ...state.steps, [event.data.step]: event.data.status },
+        ...(event.data.provider ? { provider: event.data.provider } : {}),
+      };
     case "message.blocked":
       return { ...state, status: "blocked" };
     case "message.card":
@@ -92,12 +103,13 @@ export const explainStreamReducer = (
       return { ...state, sections: { ...state.sections, [section]: list } };
     }
     case "message.replace": {
-      const { modeReasoning, keyDrivers, risks, newsSummary, source, droppedSentences } = event.data;
+      const { modeReasoning, keyDrivers, risks, newsSummary, source, droppedSentences, provider } = event.data;
       return {
         ...state,
         sections: { modeReasoning, keyDrivers, risks, newsSummary },
         source,
         droppedSentences,
+        provider,
         replaced: true,
       };
     }
@@ -107,6 +119,7 @@ export const explainStreamReducer = (
         status: "done",
         source: event.data.source,
         droppedSentences: event.data.droppedSentences,
+        provider: event.data.provider,
         generatedAt: event.data.generatedAt,
       };
     case "message.error":

@@ -10,6 +10,8 @@ import { DEFAULT_ROUND_TRIP_COSTS, type RoundTripCosts } from "./coach/domain";
 import { createCoachApplication } from "./coach/application/api";
 import { ArticleTextAdapter } from "./coach/infrastructure/ArticleTextAdapter";
 import { GeminiCoachExplainer } from "./coach/infrastructure/GeminiCoachExplainer";
+import { detectLocalCli, LocalCliCoachExplainer } from "./coach/infrastructure/LocalCliCoachExplainer";
+import { RoutingCoachExplainer } from "./coach/infrastructure/RoutingCoachExplainer";
 import { HoldingTradeAdapter } from "./coach/infrastructure/HoldingTradeAdapter";
 import { MarketSignalAdapter } from "./coach/infrastructure/MarketSignalAdapter";
 import { PrismaCoachGenerationLogStore } from "./coach/infrastructure/PrismaCoachGenerationLogStore";
@@ -72,6 +74,7 @@ import { createMarketIntelligenceRouter } from "./market/presentation/marketInte
 import { createKrStockRouter } from "./market/presentation/krStock.routes";
 import { createPortfolioRouter } from "./portfolio/presentation/portfolio.routes";
 import { env } from "./shared/config/env";
+import { logger } from "./shared/config/logger";
 import prisma from "./shared/infrastructure/prisma";
 
 /**
@@ -207,6 +210,27 @@ const portfolio = createPortfolioApplication({
  * 테이블 여섯 개를 `prisma` 로 직접 뒤졌다 (`SRV-REQ-006` FR-32).
  */
 const llmUsage = new PrismaLlmUsageStore();
+/**
+ * 해설 다듬기 라우터(`SRV-REQ-050`) — 로컬 CLI(허용 사용자 · 웹) / 아니면 Gemini. 감지는 부팅 때 한 번, 끝나면 꽂는다.
+ * 기동 로그 한 줄: 버전 · 경로만(계정 · 토큰 0)
+ */
+const explainer = new RoutingCoachExplainer(null, new GeminiCoachExplainer(llmUsage), {
+  localUsers: env.COACH_LLM_LOCAL_USERS.length > 0 ? env.COACH_LLM_LOCAL_USERS : env.FORECAST_OWNER_EMAILS,
+});
+if (env.COACH_EXPLAIN_LLM === "on") {
+  void detectLocalCli(env.COACH_LLM_LOCAL)
+    .then((found) => {
+      if (!found) {
+        logger.info(`해설 로컬 CLI 없음(${env.COACH_LLM_LOCAL}) — 전부 Gemini`);
+        return;
+      }
+      explainer.useLocal(
+        new LocalCliCoachExplainer(found.provider, found.bin, llmUsage, { model: env.COACH_LLM_LOCAL_MODEL })
+      );
+      logger.info(`해설 로컬 CLI ${found.provider} ${found.version} (${found.bin})`);
+    })
+    .catch((error: unknown) => logger.warn(`해설 로컬 CLI 감지 실패 — 전부 Gemini: ${(error as Error).message}`));
+}
 // 판단 채점 · 기저율 · 사이즈 비용 — 코인은 도메인 상수, 국내 주식은 수수료 설정값 + 매도일 거래세 표(F011 FR-44)
 const roundTripCosts: RoundTripCosts = {
   ...DEFAULT_ROUND_TRIP_COSTS,
@@ -217,7 +241,7 @@ const coach = createCoachApplication({
   profiles: new PrismaCoachProfileStore(),
   insights: new PrismaCoachInsightStore(),
   notifier: new SignalUpdateNotifier(notification.api),
-  explainer: new GeminiCoachExplainer(llmUsage),
+  explainer,
   llmUsage,
   // 기본 켜짐(지금 동작). `COACH_EXPLAIN_LLM=off` 면 템플릿만(`SRV-REQ-037` FR-16)
   llmEnabled: env.COACH_EXPLAIN_LLM === "on",

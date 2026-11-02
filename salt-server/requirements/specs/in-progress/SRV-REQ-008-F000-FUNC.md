@@ -245,3 +245,4 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 - 2026-10-30: 파일만 걸침 — `schema.prisma`(이 REQ 가 머리 주석 주인)에서 레거시 `AIAnalysis*` 모델 drop(`DB-REQ-001` FR-1~3). 이 REQ 내용 무변경. 루트 `F000-legacy-cleanup`
 - 2026-11-02: 파일만 걸침 — `coach/domain/ports.ts`(이 REQ 가 머리 주석 주인) `CoachExplanationInput.news` 에 `url` · `publishedAt`(F008 FR-44). 이 REQ 내용 무변경. 루트 `requirements/specs/done/F008-explain-citations-slice.md`
 - 2026-11-02: 파일만 걸침 — `composition.ts`(이 REQ 가 머리 주석 주인)에서 env 를 `llmEnabled` 로. 루트 `requirements/specs/done/F008-explain-citations-slice.md`
+| 2026-11-02 | 파일만 걸침 — `coach/domain/ports.ts`(`ExplainCaller` · `ExplainHooks` · `LlmUsageStore.markDropped` · `CoachExplanation.provider`) · `composition.ts`(라우터 조립 · 부팅 감지 뒤 꽂기). 근거 `SRV-REQ-050`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |

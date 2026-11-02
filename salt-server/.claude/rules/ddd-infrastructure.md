@@ -110,6 +110,7 @@ class CostBasisAdapter implements CostBasisSource {
 | CAPE | `indicator` | 동일 |
 | Binance | `plan` | 김프 계산용 가격만 |
 | Gemini (LLM) | `coach` | **문장만 생성. 숫자는 주입한다.** 프롬프트·응답을 원문 로깅하지 않는다 |
+| 로컬 CLI (Claude Code · Codex) | `coach` | Gemini 와 같은 규칙 + **격리**: 프롬프트는 stdin(argv 금지) · 도구 0 · 빈 임시 폴더 · env 허용 목록(서버 비밀 0) · 프로세스 그룹째 종료(고아 0) · 45초 · 동시 2. 허용 사용자 · 웹만, 실패하면 Gemini(`SRV-REQ-050`). 검사 전 줄은 흘리지 않는다 |
 | 뉴스 소스 | `news` | 크롤링 주기 준수 |
 
 - **주문·출금 API를 부르는 코드를 어떤 이유로도 만들지 않는다.** 전 영역 공통 수용 기준이다

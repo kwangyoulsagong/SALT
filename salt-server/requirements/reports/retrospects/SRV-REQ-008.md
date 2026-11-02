@@ -103,3 +103,9 @@ Action: 없음(남은 F006 몫은 `SRV-REQ-028` Changelog 에)
 ## 2026-11-02 — 파일만 걸침 (해설 LLM 스위치)
 
 - 기록만 — 이 REQ 판단 무변경
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 회고
+
+비동기 감지를 조립에 넣을 때 조립을 async 로 바꾸지 않고 `useLocal()` 로 나중에 꽂았다 — 감지 전 요청은 Gemini(안전한 쪽).
+
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`

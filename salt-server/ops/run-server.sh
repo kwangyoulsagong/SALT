@@ -15,7 +15,8 @@
 set -u
 setopt pipefail
 cd "$(dirname "$0")/.." || exit 1
-export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+# ~/.local/bin — Claude Code CLI(해설 다듬기 로컬 CLI, `SRV-REQ-050` FR-2). 부팅 때 PATH 에서 claude → codex 순으로 찾는다
+export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
 # 고아 정리 · 그룹 종료(2026-11-02, `OPS-002` — `ops/lib-run.sh` 머리 주석)
 source ../ops/lib-run.sh
 stop_stale "src/server.ts"

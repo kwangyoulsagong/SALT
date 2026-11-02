@@ -401,3 +401,13 @@
 - `explainCoachDecision.test.ts` 27/27 — 끄면 단건 · 스트림 모두 LLM 0회 · 원장 미조회 · `polish skipped` · `replace` 없음 · `source: template`
 
 미검증: 없음.
+
+## F008 해설 공급자 라우팅 · 스트리밍 (2026-11-02) — 검증
+
+Gemini 프롬프트 바이트 동일(같은 줄 배열) · RSI 반올림 테스트 · 기존 해설 테스트 통과
+
+루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
+
+## 후속 — Swagger (2026-11-02, `SRV-REQ-050`)
+
+Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-Client`
