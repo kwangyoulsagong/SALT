@@ -95,3 +95,7 @@ federation 서술이 남아 있었고, 그대로 두면 다음 세션이 없는 
 ## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
 
 - 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`)
+
+- 설정 다섯 벌을 한 벌로 — zone 하나만 다르게 하려면 프리셋을 먼저 고친다(`packages/config-next/README.md`). Action 없음

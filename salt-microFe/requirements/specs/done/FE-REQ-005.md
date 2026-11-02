@@ -383,3 +383,4 @@ numeric: { tabular: "tabular-nums" }
 - **부분 미충족을 안고 done으로 옮긴다.** FR-29 `SegmentedControl` 제외(대체 경로 문서화, 단 `FilterTabs` 접근성 부채 잔존), 320px 브라우저 확인·앱 시각 회귀 미실시, `colors.ai.primary` 잠정값, FR-50/51(3차·선택) 미착수. 후속 항목은 회고의 Action Items에 있다.
 - 본 spec은 `requirements/specs/done/`에 위치한다.
 | 2026-09-21 | **D-1 보강 — 제품 화면 브랜드 `#007AFF`(앱 로컬 토큰).** 디자인 시스템 토큰은 교체하지 않는다(사용자 결정, 감사 문서 D10) |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 파일만 걸침 — `packages/tokens/src/index.ts` 에 도메인 색 `colors.domain` 5개 추가(`1c4c3ee9`). 이 REQ 가 정한 토큰(곡률 · 간격 등) 값 diff 0 |

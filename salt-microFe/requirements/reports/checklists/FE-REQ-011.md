@@ -196,3 +196,8 @@
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 11개(경로 이동 내용 무변경 6 · 수정 5 · 추가 0 · 삭제 0). 계약 · 동작 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`)
+
+- **기존 결함 수정** `f6587a53` — 로그인 화면(`RedirectSignedIn`)이 Redux 사용자(`USER`)로, 셸 미들웨어 표지 쿠키는 토큰으로 판단해 토큰 없이 `USER` 만 남은 브라우저는 들어올 때마다 로그인 화면이 비쳤다가 홈으로 갔다(사용자 보고 "여전히 localhost:3000 들어가면 로그인 창 갔다가 홈으로"). 판단을 토큰(`useHasAccessToken`) 하나로 · 토큰 없는 `USER` 는 복원(`useInitializeAuth`) 때 지운다 — 이 REQ 의 로그인 화면 판단이 바뀌었다(FR-61 "보호는 미들웨어 몫"은 그대로)
+- 재현 · 확인(임시 사용자, 실 BFF · 서버): USER 만 남긴 상태 방문 2회 — 전 로그인 폼 → `/home` 2/2 · 후 로그인 화면 유지 2/2 + USER 지워짐. 토큰 있고 쿠키만 없는 상태 — 첫 방문 1회 비침(쿠키를 이때 단다) · 둘째부터 서버 307. 새 로그인 — 307 → `/home`, 로그인 폼 0

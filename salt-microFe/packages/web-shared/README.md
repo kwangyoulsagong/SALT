@@ -12,4 +12,4 @@
 | `@repo/web-shared/layout/globals.css` | 전역 스타일 |
 
 - 규칙: `.claude/rules/fsd-shared.md`. 이 패키지는 위 레이어(`@/entities` …) · `domain-*` 를 import 하지 않는다(훅 · lint). 세그먼트끼리는 상대 경로
-- `layout` 의 프레임 · 프로필 메뉴는 `FE-REQ-054` `AppChrome`(`@repo/ui`)이 생기면 그쪽으로 옮긴다
+- `layout` 은 zone 루트 레이아웃의 자리다 — 프레임 · 프로필 메뉴 · 앱 내비게이션 연결(`ZoneNavigation` — 표시는 `@repo/ui` `AppNavigation`) · prerender 규칙 · 문서 간 전환 · 이동 계측(`FE-REQ-054`, 2026-11-03)

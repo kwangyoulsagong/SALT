@@ -1,0 +1,40 @@
+---
+id: SLICE-MONEY-F2-APP-NAVIGATION
+title: "돈 관리 앱 F2 — 앱 내비게이션(왼쪽 레일 · 하단 탭 · 머리) · zone 이동 완화"
+priority: high
+labels: [F015, architecture, fe, slice, microfrontend]
+created: 2026-11-03
+status: in-progress
+---
+
+## Summary
+
+사용자 "새브랜치 파고 다음 파이프라인 진행" — 3a 다음 칸 `FE-REQ-054`(F2). 사용자 결정 둘: 이름 `AppChrome` → **`AppNavigation`**(브라우저 이름과 겹치는 은어 금지),
+탭은 **왼쪽 레일 + 면 채운 단색 글리프**(선 아이콘 → 교체, 기준 증권 웹 아이콘 레일 실측값). FE 만 — BFF · 서버 계약 무변경.
+prerender **적중** · 녹화 · 공용 청크 캐시 공유가 남아 in-progress.
+
+## 범위
+
+| REQ | FR | 내용 |
+|---|---|---|
+| `FE-REQ-054` | FR-1~7 | 레일 · 하단 탭 · 머리 · 탭 한 벌 · prerender 규칙 · 문서 간 전환 · 설정 프리셋 · 계측 · 도메인 색. in-progress |
+| `FE-REQ-011` · `013` | — | 기존 결함: 로그인 화면이 비쳤다가 홈으로(로그인 판단을 토큰 하나로, `f6587a53`) |
+| 기존 REQ 23 | — | 파일 걸침 · 정정 · 넘겨줄 몫(루트 체크리스트 §3) |
+
+## 판단 — 리뷰가 볼 곳
+
+1. **표시와 판정을 나눴다** — `@repo/ui` `AppNavigation` 은 라우팅을 모르고, `@repo/web-shared/layout` `ZoneNavigation` 이 레지스트리 · prerender · 계측을 입힌다
+2. **탭 한 벌을 `@repo/core/navigation`** — 앱(RN)이 같은 순서 · 이름 · 아이콘 이름을 읽는다. 첫 화면이 없는 저축 · 가계부는 `readyBy` 로 비활성(404 로 보내지 않는다)
+3. **도메인 내비는 왼쪽 레일** — 기준 화면은 헤더 글자 탭 + 오른쪽 아이콘 레일이다. 위치는 사용자 결정, 칸 값은 기준 레일 실측. `FE-REQ-047` FR-1 · `screen-desktop.md` §1 을 그 자리에서 정정
+4. **prerender 는 로그인 표지 쿠키가 있을 때 · 다른 zone 탭만** — 같은 zone 은 `next/link` 가 이미 prefetch
+5. **공용 청크 "같은 해시"는 됐지만 캐시는 공유되지 않는다** — assetPrefix 가 달라 URL 이 다르다. 숨기지 않고 `OPS-001` 로 넘겼다
+
+## 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| prerender 적중 · 전환 녹화 | 자동화 브라우저는 prerender 를 끈다 · 녹화는 사람 | `QA-001` |
+| 공용 청크 캐시 공유 · 계측 수집처 | 한 origin 라우팅 · 관측성 배포 없음 | `OPS-001` |
+| 로고 · 헤더 검색 상자 · 바탕 · 패널 | 별도 REQ | `FE-REQ-051` · `FE-REQ-047` |
+| 저축 · 가계부 · 팁 zone 의 내비 · 전환 | 화면이 없다 | `FE-REQ-056` · `057` · `058` |
+| 앱(RN) 하단 탭 | 앱 미착수 | `RN-REQ-032` |

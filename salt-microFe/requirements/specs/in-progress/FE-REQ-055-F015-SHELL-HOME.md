@@ -55,3 +55,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-02 | **in-progress** — FR-1 · 8 완료, FR-2 일부(편집 없음). 셸 `/settings` 는 투자 코치 설정 링크 목록이 됐다(FR-5 · 6 이 붙을 자리). 슬라이스 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 후속 — `0f8683f8` — 카드 계약에 값 아래 한 줄 `note` 추가(BFF · `@repo/core/home` 같이). 투자 카드가 매입가 숨김을 켰다고 확인된 사람에게 "오늘 처음 본다면" 줄 — 셸 카드가 값 아래 그린다. 실화면 켬/끔 확인 |
 | 2026-11-02 | 커밋: `20971abf`(shared 패키지 — 카드가 쓰는 `@repo/web-shared`) · `62129b1d`(계약 `@repo/core/home`) · `417076d8`(셸 홈 카드) · `08a3aabf`(`ZoneLink` · 셸 `/settings`) · `0f8683f8`(`note`) · `562adfad`(로그인 상태 `/` → `/home`) |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 셸 홈 머리 — 프로필 메뉴가 화면이 아니라 공용 머리에서 온다(`e0bce695`). 홈 카드 계약 · 순서 무변경 |

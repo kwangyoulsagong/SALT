@@ -346,3 +346,8 @@ FR-11("인증 토큰을 클라이언트로 내리지 않는다 — 쿠키에서 
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
 
 - 2026-11-02 MONEY-F1 후속 — `562adfad` — 세션 저장 · 비우기(`@repo/web-shared/api` `authToken`)에 로그인 표지 쿠키 · 프로바이더(`ZoneProviders`) 마운트 때 표지를 토큰에 맞춤. 셸 미들웨어가 로그인 상태 `/` 를 서버에서 `/home` 으로(로그인 화면 깜빡임 수정). 실화면: 로그인 307 → `/home` · 로그아웃 · 만료 토큰은 로그인 그대로
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 앱 내비게이션
+
+- 셸 루트 `app/layout.tsx` `<head>` 에 문서 간 전환 `<style>` 한 줄(`e0bce695`). 서버 컴포넌트 · 껍데기만 그대로
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2

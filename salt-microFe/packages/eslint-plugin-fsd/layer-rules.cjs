@@ -135,7 +135,7 @@ const WEB_SHARED_PACKAGE = "@repo/web-shared";
 
 /**
  * `@repo/web-shared` 의 공개 단위 — shared 세그먼트 + `layout`(zone 루트 레이아웃이 같이 쓰는 것: 프로바이더 · 프레임 · 프로필 메뉴 · 404 · 글꼴).
- * `layout` 은 `FE-REQ-054` 가 `@repo/ui` `AppChrome` 으로 옮길 때까지의 자리다.
+ * `layout` 은 zone 루트 레이아웃이 같이 쓰는 자리로 남는다 — 탭 · 머리 표시는 `@repo/ui` `AppNavigation`, 판정 · 규칙은 여기(`FE-REQ-054`).
  */
 const WEB_SHARED_ENTRIES = [...SHARED_SEGMENTS, "layout"];
 

@@ -275,3 +275,4 @@ created: 2026-09-09
 | 2026-10-30 | F000 검색 · 추적 상한 10 구현(FR-93 이 기대던 것) — 3탭 IA 에서 관심 종목 세그먼트가 같은 위젯 · 계약을 쓴다. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-10-30 | FR-120 부분 — `/settings` 화면과 ③ 코치 그룹이 F004 슬라이스 18 에서 먼저 생겼다. FR-80 헤더의 "프로필 → `/settings`" 는 지금 홈 · 투자의 `ProfileMenu` 가 한다 |
 | 2026-11-02 | FR-3 · Q1 정정 — `apps/web-tax` zone 은 지웠다(`ADR-005` · `FE-REQ-052`). 링크를 뺀 판단은 그대로. 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md` |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 메모 — 앱 하단 탭이 4개(홈 · 저축 · 가계부 · 투자)가 됐다(`FE-REQ-054`, `FEATURE-015` FR-8). 이 REQ 의 3탭(홈 · 코치 · 자산)은 투자 zone 안 탭으로 다시 쓰는 범위(`FEATURE-015` 범위 밖)다. 코드 무변경 |

@@ -110,3 +110,8 @@
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
 
 - 2026-11-02 MONEY-F1 최종 HEAD 번들(위 스펙 Changelog 행) — main 워크트리 빌드 대조
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 앱 내비게이션
+
+- 번들(PERF) — 투자 zone 화면에 앱 내비게이션. Next 표: `/investments` 159 → 139 · `/investments/[symbol]` 138 · `/coach/report` 135 · `/search` 157(main 대조). **HTML 이 싣는 JS gzip**: `/investments` 193.1 → 196.5(+3.4) · `/coach/report` 189.5 → 192.1(+2.6) · `/search` 205.9 → 209.4(+3.5) KB(최종 HEAD `f6587a53`)(`5a86dafa` · `e0bce695`)
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2

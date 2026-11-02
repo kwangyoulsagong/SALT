@@ -55,6 +55,9 @@ export { CoachPage as default, metadata } from '@/pages/coach';
 
 ## 3탭 IA — 페이지가 탭이다
 
+> **정정 2026-11-03** — 앱 하단 탭은 **4개**(홈 · 저축 · 가계부 · 투자, `FEATURE-015` FR-8 · `FE-REQ-054`). 한 벌은 `@repo/core/navigation` `APP_TABS`.
+> 아래 3탭(홈 · 코치 · 자산)은 F006 당시 투자 IA 다 — 투자 zone 안 탭으로 다시 쓰는 범위(`FEATURE-015` 범위 밖)라 기록으로 둔다.
+
 2026-09-09 결정: 하단 탭 **3개**(`홈` / `코치` / `자산`). 그 외 화면은 탭 내부 이동이다.
 
 | 탭 | 페이지 | 내부 구성 |
@@ -63,7 +66,7 @@ export { CoachPage as default, metadata } from '@/pages/coach';
 | 코치 | `coach` | `coach-console` — 대화가 제품의 핵심 |
 | 자산 | `assets` | `asset-workspace` — 세그먼트 3(포지션/시장/관심 종목). 종목 → `investment-detail` push |
 
-- **탭을 4개로 늘리지 않는다.** 새 기능은 기존 탭 내부로 들어간다.
+- ~~**탭을 4개로 늘리지 않는다.**~~ **정정 2026-11-03: 앱 탭은 도메인 4개다 — 5개로 늘리지 않는다(`@repo/ui` `BottomTabItems` 타입 상한 5).** 새 기능은 기존 탭 내부로 들어간다.
 - 세금 기능은 빠졌다(`ADR-002`). `/tax` zone 은 지웠다(2026-11-02 `FE-REQ-052`) — zone 은 이제 도메인이다(`ADR-005`). zone 을 넘는 링크는 **`CrossZoneLink`(`<a>`)** 다(`microfrontend.md`).
 - PC에서는 탭 대신 `pc-panel-grid`로 여러 패널을 동시에 본다. **같은 페이지 슬라이스가 두 배치를 모두 제공**한다.
 

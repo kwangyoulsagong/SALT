@@ -110,3 +110,8 @@ validated: 2026-09-09
 | 앱 시각 회귀(검증 계획 2) | 중립 스케일 교체 후 375/390/1440 스크린샷 비교 미실시 |
 | 번들 예산 gzip 12KB | FE-REQ-005 범위만으로는 9.08KB로 충족. FE-REQ-006까지 합치면 18.18KB로 초과 → 기준 재정의 필요 |
 | `colors.ai.primary` 확정 | `#20C997` 잠정값 유지 |
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 앱 내비게이션
+
+- 파일만 걸침 — `packages/tokens/src/index.ts` 에 도메인 색 `colors.domain` 5개 추가(`1c4c3ee9`). 이 REQ 가 정한 토큰(곡률 · 간격 등) 값 diff 0
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2

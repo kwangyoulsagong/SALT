@@ -12,7 +12,7 @@
 | 항목 | 규칙(목표) | 지금 코드 | 닫는 곳 |
 |---|---|---|---|
 | 화면 코드 위치 | `packages/domain-*` | 저축 화면이 `apps/web/src/**` — `savings.hostedIn: "web"`. 가계부 · 팁은 빈 zone | `FE-REQ-056`(저축) |
-| 하단 탭 · 헤더 · 완화 장치 | `AppChrome` · §5 | 프레임 · 프로필 메뉴는 `@repo/web-shared/layout` 에 임시로(zone 공용) | `FE-REQ-054` · `FE-REQ-055` |
+| 완화 장치 — 공용 청크 캐시 공유 | §5 넷째 줄 | 프리셋 하나(`@repo/config-next`)로 해시는 같다. URL prefix(`/_next` · `/investment-static/_next`)가 달라 캐시는 따로 | `OPS-001`(한 origin 라우팅) |
 
 **옮기기 전 상태는 레지스트리 `hostedIn` 이 적는다.** cross-zone 판정(lint · `CrossZoneLink`)은 `hostedIn` 기준이라 셸에 남은
 저축 화면 사이는 지금도 `<Link>` 다. 셸 rewrites 는 경로를 `fallback` 으로 걸어 셸에 화면이 있으면 셸이 받는다 — 화면을 옮기는
@@ -40,7 +40,7 @@ REQ 는 셸 라우트를 지우고 `hostedIn` 을 자기 앱으로 바꾸는 것
 3. **`domain-*` 끼리 import 금지.** 도메인 사이는 URL 링크와 BFF 응답으로만 — 저축 화면이 투자 보유를 쓰고 싶으면 BFF 가 서버 값으로 준다
 4. **zone 앱은 얇다** — `app/` 라우트 · 레이아웃 · `next.config.js` 만. `apps/web-*/src/{entities,features,widgets}` 금지(화면은 `domain-*`)
 5. **zone 을 넘는 링크는 `CrossZoneLink`(`<a>`)**, `next/link` 는 같은 zone 안에서만(lint)
-6. **하단 탭 · 헤더는 `@repo/ui` `AppChrome` 하나.** 공용 패키지(`ui` · `core` · `tokens`)를 바꾸면 영향 zone 을 **동시 배포**
+6. **하단 탭 · 머리는 `@repo/ui` `AppNavigation` 하나**(2026-11-03 `FE-REQ-054` — ADR 의 옛 이름 `AppChrome`). zone 은 `@repo/web-shared/layout` `AppShell` 로 붙인다(레지스트리 판정 · prerender · 전환 · 계측이 거기 있다). 공용 패키지(`ui` · `core` · `tokens`)를 바꾸면 영향 zone 을 **동시 배포**
 7. **경로 prefix · assetPrefix 는 zone 간 유일.** 셸 rewrites 는 레지스트리에서 생성 — 손으로 쓰지 않는다
 
 패키지 안 구조는 FSD 그대로(`layered-architecture.md`) — `domain-*` 안에 `entities` · `features` · `widgets` · `pages`.
@@ -82,9 +82,10 @@ zone 을 넘는 이동은 문서 이동이다. 하단 탭이 가장 잦은 zone 
 | Speculation Rules prerender(`eagerness: moderate`, 탭 4개 첫 화면만 · 로그아웃이면 끔) | 누르기 전에 다음 zone 첫 화면을 렌더 | Chromium 계열만 |
 | 문서 간 View Transitions(`@view-transition { navigation: auto; }` · 탭 · 헤더 같은 `view-transition-name`) | 크롬 제자리 · 본문만 전환 | 같은 origin 만 · 줄인 모션이면 끔 |
 | 첫 화면 숫자 서버 렌더 | 캐시가 비어도 숫자가 HTML 에 — 가격 깜빡임 금지 유지 | — |
-| 공용 청크 같은 해시(`packages/config-next` 프리셋 하나) | React · 디자인 시스템 캐시 공유 | zone 별 설정이 같아야 |
+| 공용 청크 같은 해시(`packages/config-next` 프리셋 하나) | React · 디자인 시스템 캐시 공유 | zone 별 설정이 같아야 · **URL 이 같아야 캐시가 겹친다** — 지금은 assetPrefix 가 달라 따로(2026-11-03 실측: 같은 해시 9개) |
 
-- 셸 → 도메인 탭 전환 시간 · prerender 적중률을 브라우저별로 잰다(`FE-REQ-054` FR-6)
+- 셸 → 도메인 탭 전환 시간 · prerender 적중률을 브라우저별로 잰다(`FE-REQ-054` FR-6) — `performance.mark("salt:zone-nav")`. **prerender 는 자동화 브라우저(DevTools 프로토콜이 붙은 Chrome)에서 꺼진다** — 적중은 사람이 평소 Chrome 에서 본다
+- 첫 화면이 없는 도메인 탭은 보이되 눌리지 않는다(`@repo/core/navigation` `readyBy`) — 없는 경로로 보내 404 를 보이지 않는다
 
 ## 6. Server Actions
 

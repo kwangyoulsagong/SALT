@@ -35,3 +35,8 @@
 | 운영 빌드 · 한 origin 라우팅에서 이동 시간 | 배포 환경 없음 — 위 값은 dev 서버 | `OPS-001` · `FE-REQ-054` FR-6 |
 | prerender · 문서 간 전환 | 별도 REQ | `FE-REQ-054` |
 | 해설 화면 버튼으로 시작 | 모든 종목 · 관점의 코치 게이트가 닫혀 있다(표본 부족, 서버 판정) — 스트림 연결은 직접 확인 | 게이트가 열리는 날(서버 채점) |
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 앱 내비게이션
+
+- zone 공용 레이아웃(`@repo/web-shared/layout`)이 앱 내비게이션 · prerender 규칙 · 문서 간 전환 · 이동 계측을 갖는다(`e0bce695`). 프로필 메뉴는 화면별이 아니라 머리 한 자리(`<header>` → `<div>`, 메뉴 정렬 끝). 투자 zone `next.config.js` 는 프리셋(`7b8b1110`). 이 REQ 머리 블록의 "`FE-REQ-054` 전까지 그 레이아웃이 임시로 맡는다"가 닫혔다
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2

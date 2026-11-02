@@ -99,3 +99,4 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 | 2026-10-30 | DART 사용 · 배포 베스트케이스(ADR-008 · OPS-001) 결정 반영 |
 | 2026-11-02 | `FE-REQ-052`(F0) done — 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md`. 다음 칸 `FE-REQ-053` + `055` + `BFF-REQ-046`(F1, 한 PR) |
 | 2026-11-02 | F1 — `FE-REQ-053` done(투자 zone 서비스) · `FE-REQ-055` · `BFF-REQ-046` in-progress(홈 카드 · 편집 · 온보딩은 S3). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md`. 다음 칸 `FE-REQ-054`(F2) 또는 서버 S0 |
+| 2026-11-03 | F2 — `FE-REQ-054` in-progress(앱 내비게이션 `AppNavigation` · prerender · 문서 간 전환 · 설정 프리셋). 루트 `requirements/specs/in-progress/MONEY-F2-app-navigation-slice.md`. 다음 칸 `FE-REQ-056`(F3 저축 — S1 과 같이) 또는 서버 S0 |

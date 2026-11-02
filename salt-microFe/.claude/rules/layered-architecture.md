@@ -104,7 +104,7 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `position-overview` | portfolio (Hero · 평가금 흐름 · 보유 · 리스크 레이더) |
 | `coach-panel` · `symbol-analysis` | market + coach + indicator (투자 우측 패널 · 상세 분석) |
 | `judgment-overview` | coach — 투자 화면 머리 아래 **요약 띠**(목표 비중 · 위험 · 판정 성적표 한 줄씩 → 코치 리포트 섹션). 본문은 `coach-console` (F010, 2026-09-29) |
-| `app-header` · `alert-list` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 거래 목록 |
+| `app-header` · `alert-list` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 거래 목록 — **2026-11-03: 헤더 틀은 위젯이 아니라 zone 공용 레이아웃(`@repo/ui` `AppNavigation` 머리, `FE-REQ-054`). 검색 · 알림 진입이 생기면 그 머리 칸에 넣는다** |
 | `settings-panel` | coach + 코치 설정(`edit-coach-profile`) + 매입가 숨김(`toggle-purchase-price`) — 투자 코치 설정 `/coach/settings` (F004 FR-12 · 2026-11-02 셸 `/settings` 에서 옮김) |
 | `market-list` | 모바일 시장 목록 (웹은 `market-board`) |
 | `market-board` | market + news + indicator — 자산군(코인 · 국내 주식)은 매개변수, 화면은 하나(요약 띠까지 — `FE-REQ-050`) |
@@ -182,7 +182,8 @@ export enum AssetClass {
 | `packages/ui` | 웹 컴포넌트 (vanilla-extract) — 공개 subpath 83 | web · 도메인 zone · `domain-*` |
 | `packages/ui-native` | RN 컴포넌트 | mobile |
 | `packages/core` | 플랫폼 무관 `model`·`api`·`lib` | 전부 |
-| `packages/web-shared` | 웹 shared 레이어(`api` · `config` · `i18n` · `lib` · `model` · `ui`) + zone 공용 레이아웃(`layout`: 프로바이더 · 프레임 · 프로필 메뉴 · 404 · 글꼴) | web · 도메인 zone · `domain-*` |
+| `packages/web-shared` | 웹 shared 레이어(`api` · `config` · `i18n` · `lib` · `model` · `ui`) + zone 공용 레이아웃(`layout`: 프로바이더 · 프레임 · 앱 내비게이션 연결 · 프로필 메뉴 · 404 · 글꼴 · prerender · 문서 간 전환) | web · 도메인 zone · `domain-*` |
+| `packages/config-next` | zone 공용 Next 설정 프리셋 `zoneNextConfig(zoneId)` — zone 몫은 레지스트리 값(`FE-REQ-054` FR-5) | zone 앱 5 `next.config.js` |
 | `packages/domain-*` | 도메인 화면(FSD `entities`~`pages`) — `domain-invest` 만 있다 | 자기 zone 앱만 |
 | `packages/eslint-config` `packages/typescript-config` | 툴링 | 전부 |
 
