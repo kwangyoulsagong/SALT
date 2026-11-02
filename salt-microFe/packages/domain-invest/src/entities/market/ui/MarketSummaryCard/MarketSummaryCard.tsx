@@ -95,9 +95,20 @@ const PriceRow = ({ item, changeBasis }: { item: MarketSummaryItem; changeBasis:
         className={`${styles.change} ${directionClass(item.change24h)}`}
         title={MARKET_SUMMARY_MESSAGES.changeTitle[changeBasis]}
       >
-        {item.change24hAmount === null
-          ? `${signOf(item.change24h)}${rate}%`
-          : `${signOf(item.change24hAmount)}${formatPrice(Math.abs(item.change24hAmount))} (${rate}%)`}
+        {item.change24hAmount === null ? (
+          `${signOf(item.change24h)}${rate}%`
+        ) : (
+          <>
+            {/* 칸이 좁아 말줄임되면 마우스를 올려 전체 금액을 본다 */}
+            <span
+              className={styles.changeAmount}
+              title={`${signOf(item.change24hAmount)}${formatPrice(Math.abs(item.change24hAmount))}`}
+            >
+              {`${signOf(item.change24hAmount)}${formatPrice(Math.abs(item.change24hAmount))}`}
+            </span>
+            <span className={styles.changeRate}>{`(${rate}%)`}</span>
+          </>
+        )}
       </span>
     </span>
   );

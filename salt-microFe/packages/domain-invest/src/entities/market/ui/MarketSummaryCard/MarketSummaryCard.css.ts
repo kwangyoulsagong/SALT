@@ -156,11 +156,25 @@ export const priceRow = style({
   color: vars.colors.text.primary,
 });
 
+/**
+ * 등락 — 칸이 좁으면 **금액만** 말줄임하고 변동률은 늘 다 보인다(2026-11-02). 전에는 줄 전체가 말줄임이라 가장 뜻 있는
+ * 변동률이 먼저 잘렸다("+310,000 (0.3…") — 글꼴을 실어(Inter 숫자가 조금 넓다) 1440 에서 두 칸이 더 잘리면서 드러났다
+ */
 export const change = style({
-  overflow: "hidden",
-  textOverflow: "ellipsis",
+  display: "flex",
+  alignItems: "baseline",
+  gap: "0.25em",
+  minWidth: 0,
   fontWeight: vars.fontWeights.regular,
 });
+
+export const changeAmount = style({
+  minWidth: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+});
+
+export const changeRate = style({ flexShrink: 0 });
 
 export const up = style({ color: vars.colors.special.up });
 export const down = style({ color: vars.colors.special.down });
