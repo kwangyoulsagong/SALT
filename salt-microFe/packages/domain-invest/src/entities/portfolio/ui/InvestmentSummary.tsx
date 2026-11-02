@@ -7,10 +7,7 @@ import { useRolledNumber } from "@repo/ui/motion";
 import { StatusLine } from "@repo/ui/statusLine";
 import { Container } from "@repo/ui/container";
 import { FlexBox } from "@repo/ui/flexBox";
-import { Header } from "@repo/ui/header";
-import { Heading } from "@repo/ui/heading";
 import { Padding } from "@repo/ui/padding";
-import { ServiceIcon } from "@repo/ui/serviceicon";
 import { Text } from "@repo/ui/text";
 
 import { formatPrice } from "@repo/web-shared/lib";
@@ -20,7 +17,10 @@ import { PORTFOLIO_MESSAGES } from "../model/messages";
 import { HoldingSummaryList } from "./HoldingSummaryList";
 
 /**
- * 홈 투자 블록 — 보유 요약 (`FE-REQ-010` FR-5). 표시 전용 (`fsd-entities.md`).
+ * 보유 요약 본문 — 종목별 평가금액 · 손익률 · 합계 (`FE-REQ-010` FR-5). 표시 전용 (`fsd-entities.md`).
+ *
+ * 2026-11-02 — 홈이 도메인 요약 카드가 되면서(`ADR-005` §2) 홈 블록에서 코치 리포트 맨 위 "내 보유" 패널로 옮겼다
+ * (사용자 결정). 홈 전용 머리("투자 분석" · "주식")를 걷고 본문만 둔다 — 제목은 놓는 쪽 패널이 단다.
  *
  * 2026-09-23 — 위에 있던 "지난주 대비 N% 덜 썼어요" 막대를 지웠다. MSW 목이 지어낸 지출 숫자였고
  * 서버에 지출 데이터가 없다. 그 조회가 실패하면 **아래 실제 보유 목록까지** 가려지는 구조였다.
@@ -43,17 +43,14 @@ export const InvestmentSummary = ({ trailing, purchasePrice = "shown" }: Investm
     <Container size="full">
       <Padding paddingY="md">
         <FlexBox direction="column" gap="md">
-          <FlexBox justify="between" align="center" fullWidth>
-            <Header>
-              <ServiceIcon variant="analysis" />
-              <Heading level={2}>{PORTFOLIO_MESSAGES.heading}</Heading>
-            </Header>
-            {trailing}
-          </FlexBox>
+          {trailing ? (
+            <FlexBox justify="end" align="center" fullWidth>
+              {trailing}
+            </FlexBox>
+          ) : null}
           <Container size="full" padding="none">
             <Padding paddingY="sm">
               <FlexBox direction="column" gap="md" fullWidth>
-                <Heading level={2}>{PORTFOLIO_MESSAGES.stockHeading}</Heading>
                 {/*
                 이 아래가 **비어 있었다** (`FE-REQ-010` FR-5). 보유 요약은 BFF 가
                 합쳐 주고 화면은 표시만 한다.

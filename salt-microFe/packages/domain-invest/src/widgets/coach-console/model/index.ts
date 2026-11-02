@@ -5,3 +5,4 @@ export const REPORT_BLOCK_FIELDS = {
   exitPlans: "exitPlans",
   behaviorFacts: "behaviorFacts",
 } as const;
+export * from "./messages";

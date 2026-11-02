@@ -1,7 +1,5 @@
 export const PORTFOLIO_MESSAGES = {
   loading: "Loading...",
-  heading: "투자 분석",
-  stockHeading: "주식",
   /** 보유가 없을 때. 더미를 만들지 않는다 */
   holdingsEmpty: "보유 중인 자산이 없습니다",
   holdingsLoadFailed: "보유 정보를 불러오지 못했습니다.",
