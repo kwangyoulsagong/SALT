@@ -2,8 +2,8 @@
 
 import { QueryClient } from "@tanstack/react-query";
 import { QueryClientProvider as TanStackQueryClientProvider } from "@tanstack/react-query";
-import { retryWhileRetriable } from "@repo/web-shared/api";
-import { NETWORK } from "@repo/web-shared/config";
+import { retryWhileRetriable } from "../api";
+import { NETWORK } from "../config";
 
 const createQueryClient = () =>
   new QueryClient({

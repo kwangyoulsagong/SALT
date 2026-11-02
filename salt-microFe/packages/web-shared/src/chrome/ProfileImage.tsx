@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { AUTH_MESSAGES } from "../model/messages";
+import { PROFILE_MENU_MESSAGES } from "./messages";
 import { fallback, ProfileContainer } from "./ProfileImage.css";
 
 /**
@@ -24,7 +24,7 @@ export const ProfileImage = ({
         src={profile}
         width={48}
         height={48}
-        alt={AUTH_MESSAGES.profileImageAlt}
+        alt={PROFILE_MENU_MESSAGES.profileImageAlt}
       />
     );
   }

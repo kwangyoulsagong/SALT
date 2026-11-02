@@ -78,7 +78,7 @@ const REGISTRY = {
     "accept-invite",
     "arrange-panels",
     "sign-in",
-    "sign-out",
+    // "sign-out" — 헤더 프로필 메뉴는 zone 이 같이 쓴다 → `@repo/web-shared/chrome` (FE-REQ-053)
     "search-asset",
     "toggle-news-bookmark",
     "switch-coach-mode",

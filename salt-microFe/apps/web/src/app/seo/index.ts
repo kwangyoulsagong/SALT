@@ -1,3 +1,3 @@
 export * from "./robots";
 export * from "./sitemap";
-export * from "./rootMetadata";
+export { rootMetadata } from "@repo/web-shared/chrome";

@@ -1,4 +1,4 @@
-import { vars } from "@repo/web-shared/ui/tokens.css";
+import { vars } from "../ui/tokens.css";
 import { style } from "@vanilla-extract/css";
 
 /**

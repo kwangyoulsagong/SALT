@@ -1,5 +1,5 @@
 import { globalStyle } from "@vanilla-extract/css";
-import { vars } from "@repo/web-shared/ui/tokens.css";
+import { vars } from "../ui/tokens.css";
 
 globalStyle("*", {
   margin: 0,

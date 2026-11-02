@@ -14,7 +14,9 @@
     "./model": "./src/model/index.ts",
     "./ui": "./src/ui/index.ts",
     "./ui/tokens.css": "./src/ui/tokens.css.ts",
-    "./ui/surface.css": "./src/ui/surface.css.ts"
+    "./ui/surface.css": "./src/ui/surface.css.ts",
+    "./chrome": "./src/chrome/index.ts",
+    "./chrome/globals.css": "./src/chrome/globals.css.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

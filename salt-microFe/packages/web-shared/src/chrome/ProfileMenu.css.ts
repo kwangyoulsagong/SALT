@@ -1,6 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
-import { vars } from "@repo/web-shared/ui/tokens.css";
+import { vars } from "../ui/tokens.css";
 
 /** 헤더 한 줄 — 전의 `ProfileHeader` 와 같은 자리 · 같은 높이(화면마다 헤더가 흔들리지 않게). */
 export const header = style({

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL } from "@repo/web-shared/config";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL } from "../config";
 
 /**
  * 루트 메타데이터 — 모든 페이지의 기본값.

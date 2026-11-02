@@ -3,7 +3,7 @@ import { Padding } from "@repo/ui/padding";
 import { Root } from "@repo/ui/root";
 import { Section } from "@repo/ui/section";
 
-import { ProfileMenu } from "@/features/sign-out";
+import { ProfileMenu } from "@repo/web-shared/chrome";
 import { BlockBoundary } from "@repo/web-shared/ui";
 
 import {
