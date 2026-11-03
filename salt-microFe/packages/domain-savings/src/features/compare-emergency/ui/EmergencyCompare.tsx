@@ -75,7 +75,7 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
                 <span className={s.label}>{M.loanInterest(formatWon(data.loan.totalInterest))}</span>
               </>
             ) : (
-              <span className={s.value}>{(data.loanReason && M.loanReason[data.loanReason]) ?? M.failed}</span>
+              <span className={s.value}>{(data.loanReason ? M.loanReason[data.loanReason] : undefined) || M.loanUnavailable}</span>
             )}
           </div>
         </div>

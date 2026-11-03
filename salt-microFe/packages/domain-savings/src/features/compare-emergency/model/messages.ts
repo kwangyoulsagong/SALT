@@ -19,6 +19,8 @@ export const EMERGENCY_MESSAGES = {
   loanReason: {
     amount_too_small: "이 금액은 그 달 수로 나눠 갚을 수 없어요",
   } as Readonly<Record<string, string>>,
+  /** 모르는 사유 — 오류처럼 보이지 않게(꺼내기 칸은 정상이다) */
+  loanUnavailable: "빌리는 쪽은 이 조건으로 보여 줄 수 없어요",
   loanInterest: (amount: string) => `이자 합계 ${amount}`,
   assumption: {
     loan_paid_outside_goal: "갚는 돈은 목표 적립과 따로 낸다고 보고 계산했어요",
