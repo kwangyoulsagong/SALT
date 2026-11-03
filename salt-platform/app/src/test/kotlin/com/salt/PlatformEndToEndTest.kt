@@ -57,6 +57,12 @@ class PlatformEndToEndTest {
 
     @Autowired private lateinit var pingOutbox: OutboxWriter
 
+    @Autowired private lateinit var meters: io.micrometer.core.instrument.MeterRegistry
+
+    @Autowired private lateinit var retries: io.github.resilience4j.retry.RetryRegistry
+
+    @Autowired private lateinit var rateLimiters: io.github.resilience4j.ratelimiter.RateLimiterRegistry
+
     @Autowired @Qualifier(PING_TX)
     private lateinit var pingTx: PlatformTransactionManager
 
@@ -92,7 +98,77 @@ class PlatformEndToEndTest {
         call("GET", "/api/platform/ping/x", "abc.def.ghi").let { it.statusCode() shouldBe 401; it.body() shouldBe golden("401-invalid-token") }
         call("GET", "/api/platform/ping/x", token("u", expiresInSeconds = -10)).let { it.statusCode() shouldBe 401; it.body() shouldBe golden("401-expired-token") }
         call("GET", "/api/no-such-route?x=1", token("u")).let { it.statusCode() shouldBe 404; it.body() shouldBe golden("404-no-route") }
+        // 골든은 토큰 없이 녹화했다 — Express 는 없는 경로에 인증을 걸지 않는다
+        call("GET", "/api/no-such-route?x=1", null).let { it.statusCode() shouldBe 404; it.body() shouldBe golden("404-no-route") }
     }
+
+    @Test
+    fun `틀린 메서드는 Express 처럼 404 · 프레임워크 4xx 는 500 으로 올리지 않는다`() {
+        call("DELETE", "/api/platform/ping", token("u")).let {
+            it.statusCode() shouldBe 404
+            it.body() shouldBe """{"success":false,"message":"Route /api/platform/ping not found"}"""
+        }
+        call("DELETE", "/api/platform/ping", null).statusCode() shouldBe 404
+        // 성공 본문을 XML 로 못 쓴다 → 406 이어야 한다(500 이 아니라). 오류 바디는 그래도 JSON
+        val checkId = jsonMapper.readTree(call("POST", "/api/platform/ping", token("u")).body()).path("data").path("checkId").asString()
+        call("GET", "/api/platform/ping/$checkId", token("u"), accept = "application/xml").let {
+            it.statusCode() shouldBe 406
+            it.headers().firstValue("content-type").orElse("") shouldContain "application/json"
+        }
+    }
+
+    @Test
+    fun `다른 서비스 트랜잭션 안에서는 아웃박스를 쓰지 못한다`() {
+        // 같은 DB 의 다른 풀 = 다른 서비스 매니저 흉내(S1 의 savingsTx)
+        val other = org.springframework.jdbc.datasource.DriverManagerDataSource(
+            PlatformContainers.postgres.jdbcUrl, PlatformContainers.postgres.username, PlatformContainers.postgres.password,
+        )
+        shouldThrow<IllegalStateException> {
+            TransactionTemplate(org.springframework.jdbc.datasource.DataSourceTransactionManager(other)).executeWithoutResult {
+                pingOutbox.append("ping.PingRecorded", mapOf("checkId" to UUID.randomUUID().toString(), "checkedAt" to "2026-11-03T00:00:00Z"))
+            }
+        }
+    }
+
+    @Test
+    fun `영원히 실패하는 이벤트는 포기하고 다음 이벤트는 나간다 — 쓴 순서대로`() {
+        val dsl = pingDatabase.dsl
+        // 앞 테스트가 남긴 미발행 이벤트를 상시 릴레이가 다 보낸 뒤에 — 그다음 상시 릴레이가 끼어들지 않게 락을 잡아 둔다(ShedLock 표) — 이 테스트가 relay() 를 직접 돈다
+        eventually { dsl.fetchCount(dsl.selectFrom("outbox").where("published_at is null and dead_at is null")).takeIf { it == 0 } }
+        dsl.execute("insert into shedlock(name, lock_until, locked_at, locked_by) values ('outbox-relay', now() + interval '1 hour', now(), 'test') on conflict (name) do update set lock_until = excluded.lock_until, locked_by = excluded.locked_by")
+        try {
+            val sent = mutableListOf<String>()
+            val failing = object : RabbitTemplate(connectionFactory) {
+                override fun send(exchange: String?, routingKey: String?, message: org.springframework.amqp.core.Message, correlationData: org.springframework.amqp.rabbit.connection.CorrelationData?) {
+                    if (message.messageProperties.messageId == poison.toString()) throw org.springframework.amqp.AmqpException("거부")
+                    sent.add(message.messageProperties.messageId!!)
+                    correlationData!!.future.complete(org.springframework.amqp.rabbit.connection.CorrelationData.Confirm(true, null))
+                }
+            }
+            val source = com.salt.support.messaging.OutboxSource("ping", dsl, pingDatabase.dataSource)
+            val relay = com.salt.support.messaging.OutboxRelay(
+                listOf(source), failing,
+                com.salt.support.messaging.TraceParent(io.micrometer.tracing.Tracer.NOOP, io.micrometer.tracing.propagation.Propagator.NOOP),
+                java.time.Clock.systemUTC(), maxAttempts = 3,
+            )
+            val good = UUID.randomUUID()
+            val sameInstant = java.time.OffsetDateTime.now()
+            // 같은 시각 둘 — 순서는 seq(쓴 순서)가 정한다. 독이 먼저
+            for (id in listOf(poison, good)) {
+                dsl.execute("insert into outbox(event_id, event_type, payload, occurred_at) values (?, 'ping.PingRecorded', '{}'::jsonb, cast(? as timestamptz))", id, sameInstant.toString())
+            }
+            repeat(2) { relay.relay(source) shouldBe 0 }
+            sent shouldBe emptyList()
+            relay.relay(source) shouldBe 1
+            sent shouldBe listOf(good.toString())
+            dsl.fetchValue("select dead_at is not null from outbox where event_id = ?", poison) shouldBe true
+            meters.get(com.salt.support.messaging.EventGauges.OUTBOX_DEAD).tag("service", "ping").gauge().value() shouldBe 1.0
+        } finally {
+            dsl.execute("update shedlock set lock_until = now() where name = 'outbox-relay'")
+        }
+    }
+
+    private val poison: UUID = UUID.randomUUID()
 
     @Test
     fun `트랜잭션이 롤백되면 이벤트도 0`() {
@@ -145,6 +221,14 @@ class PlatformEndToEndTest {
         // 없는 checkId — 되울림 FK 가 실패한다(고쳐질 일이 없는 메시지)
         send(UUID.randomUUID(), """{"checkId":"${UUID.randomUUID()}","checkedAt":"2026-11-03T00:00:00Z"}""")
         eventually { dlqDepth(dlq).takeIf { it == before + 1 } }
+        // 운영 점검 지표가 같은 수를 낸다(FR-8)
+        meters.get(com.salt.support.messaging.EventGauges.DEAD_LETTERS).tag("queue", dlq).gauge().value() shouldBe (before + 1).toDouble()
+    }
+
+    @Test
+    fun `외부 호출 기본값 — 재시도 3회 · KIS 초당 2건`() {
+        retries.retry("any-external").retryConfig.maxAttempts shouldBe 3
+        rateLimiters.rateLimiter("kis").rateLimiterConfig.limitForPeriod shouldBe 2
     }
 
     @Test
@@ -181,11 +265,12 @@ class PlatformEndToEndTest {
     private fun echoRows(checkId: String): Int =
         pingDatabase.dsl.fetchCount(pingDatabase.dsl.selectFrom("ping_echo").where("check_id = ?::uuid", checkId))
 
-    private fun call(method: String, path: String, bearer: String?, traceParent: String? = null): HttpResponse<String> {
+    private fun call(method: String, path: String, bearer: String?, traceParent: String? = null, accept: String? = null): HttpResponse<String> {
         val request = HttpRequest.newBuilder(URI.create("http://localhost:$port$path"))
             .method(method, HttpRequest.BodyPublishers.noBody())
             .apply { bearer?.let { header("Authorization", "Bearer $it") } }
             .apply { traceParent?.let { header("traceparent", it) } }
+            .apply { accept?.let { header("Accept", it) } }
             .build()
         return http.send(request, HttpResponse.BodyHandlers.ofString())
     }

@@ -8,6 +8,7 @@ import tools.jackson.databind.json.JsonMapper
 import java.time.Clock
 import java.time.OffsetDateTime
 import java.util.UUID
+import javax.sql.DataSource
 
 /**
  * 트랜잭셔널 아웃박스 쓰기 — 서비스 하나에 하나. 업무 행과 **같은 트랜잭션**에 `outbox` 행을 쓴다(`SRV-REQ-044` FR-1).
@@ -23,6 +24,8 @@ import java.util.UUID
 class OutboxWriter(
     val service: String,
     private val dsl: DSLContext,
+    /** 이 서비스 트랜잭션 매니저가 묶는 풀 — 열린 트랜잭션이 **이 서비스 것인지** 확인하는 키 */
+    private val dataSource: DataSource,
     private val schemas: EventSchemas,
     private val jsonMapper: JsonMapper,
     private val traceParent: TraceParent,
@@ -31,8 +34,10 @@ class OutboxWriter(
     /** @return 이벤트 ID — 구독자 멱등 키(`processed_event.event_id`)가 된다 */
     fun append(eventType: String, payload: Any): UUID {
         require(eventType.startsWith("$service.")) { "$service 는 자기 이벤트만 발행한다: $eventType" }
-        check(TransactionSynchronizationManager.isActualTransactionActive()) {
-            "아웃박스는 업무 트랜잭션 안에서만 쓴다 — 밖에서 쓰면 업무 행과 이벤트가 따로 남는다"
+        // 아무 트랜잭션이 아니라 **이 서비스 풀의** 트랜잭션이어야 한다 — 남의 매니저(`savingsTx`) 아래에서 쓰면 이 쓰기는
+        // 자동 커밋으로 따로 남고, 업무 트랜잭션이 롤백돼도 이벤트가 나간다
+        check(TransactionSynchronizationManager.isActualTransactionActive() && TransactionSynchronizationManager.hasResource(dataSource)) {
+            "아웃박스는 $service 업무 트랜잭션(${service}Tx) 안에서만 쓴다 — 밖이나 다른 서비스 트랜잭션에서 쓰면 업무 행과 이벤트가 따로 남는다"
         }
         val body = jsonMapper.valueToTree<tools.jackson.databind.JsonNode>(payload)
         schemas.validate(eventType, body)

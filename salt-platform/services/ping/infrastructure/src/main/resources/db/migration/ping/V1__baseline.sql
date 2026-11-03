@@ -3,16 +3,20 @@
 
 -- 아웃박스(`SRV-REQ-044` FR-1). 업무 행과 같은 트랜잭션에 쓰고 릴레이가 보낸 뒤 published_at 을 채운다
 CREATE TABLE outbox (
+    -- 쓴 순서. 릴레이가 이 순서로 보낸다(occurred_at 은 한 트랜잭션 안에서 같을 수 있다)
+    seq          bigint      GENERATED ALWAYS AS IDENTITY UNIQUE,
     event_id     uuid        PRIMARY KEY,
     event_type   text        NOT NULL,
     payload      jsonb       NOT NULL,
     trace_parent text,
     occurred_at  timestamptz NOT NULL,
     published_at timestamptz,
-    attempts     integer     NOT NULL DEFAULT 0
+    attempts     integer     NOT NULL DEFAULT 0,
+    -- 릴레이가 maxAttempts 번 실패하고 포기한 시각 — 운영 점검 대상(지표 salt.outbox.dead)
+    dead_at      timestamptz
 );
 -- [jooq ignore start] 코드 생성(H2 흉내)이 text 열 인덱스 · 부분 인덱스를 못 읽는다 — 인덱스는 생성 코드에 필요 없다
-CREATE INDEX outbox_pending_idx ON outbox (occurred_at) WHERE published_at IS NULL;
+CREATE INDEX outbox_pending_idx ON outbox (seq) WHERE published_at IS NULL AND dead_at IS NULL;
 -- [jooq ignore stop]
 
 -- 구독자 멱등(FR-2)

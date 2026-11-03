@@ -14,7 +14,10 @@ object PlatformContainers {
     const val PING_PASSWORD = "ping-test-password"
     const val JWT_SECRET = "test-secret-at-least-32-bytes-long-0123456789"
 
-    val postgres: PostgreSQLContainer = PostgreSQLContainer("postgres:14-alpine").apply {
+    /** 기본 14 = 로컬 운영 DB 와 같은 판. 관리형 DB 후보 판은 `-Dsalt.test.postgres=postgres:17-alpine` 로 같은 테스트를 돌린다 */
+    private val postgresImage = System.getProperty("salt.test.postgres") ?: "postgres:14-alpine"
+
+    val postgres: PostgreSQLContainer = PostgreSQLContainer(postgresImage).apply {
         withCopyFileToContainer(MountableFile.forHostPath("../db/roles.sql"), "/salt/roles.sql")
         start()
         val result = execInContainer(

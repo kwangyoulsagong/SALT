@@ -1,5 +1,6 @@
 package com.salt.app
 
+import com.salt.support.messaging.EventGauges
 import com.salt.support.messaging.EventSchemas
 import com.salt.support.messaging.EventTopology
 import com.salt.support.messaging.OutboxRelay
@@ -9,7 +10,11 @@ import com.salt.support.persistence.ServiceDbConnection
 import io.micrometer.tracing.Tracer
 import io.micrometer.tracing.propagation.Propagator
 import jakarta.validation.constraints.NotBlank
+import io.micrometer.core.instrument.MeterRegistry
+import org.springframework.amqp.core.AmqpAdmin
 import org.springframework.amqp.core.Declarables
+import org.springframework.amqp.core.Queue
+import org.springframework.beans.factory.InitializingBean
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -51,6 +56,13 @@ class PlatformWiring {
 
     @Bean
     fun eventExchanges(): Declarables = EventTopology.exchanges()
+
+    /** 데드레터 · 포기한 아웃박스 지표 — 큐 이름은 서비스가 선언한 구독(`EventTopology.subscription`)에서 모은다 */
+    @Bean
+    fun eventGauges(registry: MeterRegistry, admin: AmqpAdmin, declarables: List<Declarables>, sources: List<OutboxSource>) = InitializingBean {
+        val deadLetterQueues = declarables.flatMap { it.getDeclarablesByType(Queue::class.java) }.map { it.name }.filter { it.endsWith(".dlq") }
+        EventGauges.register(registry, admin, deadLetterQueues, sources)
+    }
 
     @Bean
     fun outboxRelay(sources: List<OutboxSource>, rabbit: RabbitTemplate, traceParent: TraceParent, clock: Clock): OutboxRelay =

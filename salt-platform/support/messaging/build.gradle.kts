@@ -8,6 +8,7 @@ dependencies {
     api(project(":support:persistence"))
     api("org.springframework.boot:spring-boot-starter-amqp")
     api("io.micrometer:micrometer-tracing")
+    api("io.micrometer:micrometer-core")
     api(libs.shedlock.spring)
     implementation(libs.shedlock.jdbc)
     implementation("org.springframework.boot:spring-boot-starter-json")

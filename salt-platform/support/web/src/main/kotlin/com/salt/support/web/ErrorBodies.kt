@@ -31,6 +31,10 @@ object ErrorBodies {
     /** 이관 전 Express 오류(`AppError`)와 같은 모양 — 코드 없이 문구만. 인증 실패 · 경로 없음이 이 모양이다. */
     fun plain(message: String): Map<String, Any?> = linkedMapOf("success" to false, "message" to message)
 
+    /** Express 404 handler: `Route ${req.originalUrl} not found` — 원래 주소 = 경로 + 쿼리. */
+    fun noRoute(request: jakarta.servlet.http.HttpServletRequest): Map<String, Any?> =
+        plain("Route ${request.requestURI}${request.queryString?.let { "?$it" } ?: ""} not found")
+
     data class FieldIssue(val field: String, val message: String)
 
     fun validation(issues: List<FieldIssue>): Map<String, Any?> =

@@ -39,7 +39,7 @@ class PingComposition {
 
     @Bean
     fun pingOutbox(database: ServiceDatabase, schemas: EventSchemas, jsonMapper: JsonMapper, traceParent: TraceParent, clock: Clock): OutboxWriter =
-        OutboxWriter(SCHEMA, database.dsl, schemas, jsonMapper, traceParent, clock)
+        OutboxWriter(SCHEMA, database.dsl, database.dataSource, schemas, jsonMapper, traceParent, clock)
 
     @Bean
     fun recordPing(database: ServiceDatabase, pingOutbox: OutboxWriter, clock: Clock): RecordPing =

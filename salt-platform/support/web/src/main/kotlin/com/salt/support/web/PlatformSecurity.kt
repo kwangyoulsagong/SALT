@@ -1,5 +1,6 @@
 package com.salt.support.web
 
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -25,6 +26,7 @@ import org.springframework.web.context.request.NativeWebRequest
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.method.support.ModelAndViewContainer
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
 import tools.jackson.databind.json.JsonMapper
 import java.time.Duration
 import javax.crypto.spec.SecretKeySpec
@@ -35,6 +37,8 @@ import javax.crypto.spec.SecretKeySpec
  * - 공개 경로 밖은 전부 인증 필요(Express 는 경로마다 붙였다 — 여기서는 기본이 닫힘)
  * - 시계 오차 허용 0 — `jsonwebtoken` 기본과 같다. Nimbus 기본 60초를 쓰면 Express 가 거부한 만료 토큰을 1분 더 받는다
  * - 401 바디 문구 셋은 Express 와 같다: `No token provided` · `Invalid token` · `Token expired`
+ * - **없는 경로는 토큰이 없어도 404** — Express 는 인증을 경로마다 붙여서 없는 경로가 401 이 아니라 404 다.
+ *   보안 필터는 라우팅보다 먼저 돌므로, 인증 실패를 쓰기 전에 그 요청을 받을 컨트롤러가 있는지 본다
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AuthProperties::class)
@@ -48,8 +52,12 @@ class PlatformSecurity(private val properties: AuthProperties) : WebMvcConfigure
     }
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity, jsonMapper: JsonMapper): SecurityFilterChain {
-        val entryPoint = ExpressStyleEntryPoint(jsonMapper)
+    fun securityFilterChain(
+        http: HttpSecurity,
+        jsonMapper: JsonMapper,
+        handlerMappings: ObjectProvider<RequestMappingHandlerMapping>,
+    ): SecurityFilterChain {
+        val entryPoint = ExpressStyleEntryPoint(jsonMapper, handlerMappings)
         http
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
@@ -66,22 +74,34 @@ class PlatformSecurity(private val properties: AuthProperties) : WebMvcConfigure
         resolvers.add(AuthenticatedUserResolver)
     }
 
-    private class ExpressStyleEntryPoint(private val jsonMapper: JsonMapper) : AuthenticationEntryPoint {
+    private class ExpressStyleEntryPoint(
+        private val jsonMapper: JsonMapper,
+        private val handlerMappings: ObjectProvider<RequestMappingHandlerMapping>,
+    ) : AuthenticationEntryPoint {
         override fun commence(
             request: jakarta.servlet.http.HttpServletRequest,
             response: jakarta.servlet.http.HttpServletResponse,
             authException: AuthenticationException,
         ) {
+            response.contentType = MediaType.APPLICATION_JSON_VALUE
+            response.characterEncoding = Charsets.UTF_8.name()
+            if (!routeExists(request)) {
+                response.status = HttpStatus.NOT_FOUND.value()
+                jsonMapper.writeValue(response.outputStream, ErrorBodies.noRoute(request))
+                return
+            }
             val message = when {
                 authException !is InvalidBearerTokenException -> "No token provided"
                 authException.message.orEmpty().contains("expired", ignoreCase = true) -> "Token expired"
                 else -> "Invalid token"
             }
             response.status = HttpStatus.UNAUTHORIZED.value()
-            response.contentType = MediaType.APPLICATION_JSON_VALUE
-            response.characterEncoding = Charsets.UTF_8.name()
             jsonMapper.writeValue(response.outputStream, ErrorBodies.plain(message))
         }
+
+        /** 경로 + 메서드가 맞는 컨트롤러가 있는가. 메서드만 틀린 것(던짐)도 없는 것 — Express 와 같이 404 */
+        private fun routeExists(request: jakarta.servlet.http.HttpServletRequest): Boolean =
+            handlerMappings.orderedStream().anyMatch { mapping -> runCatching { mapping.getHandler(request) != null }.getOrDefault(false) }
     }
 
     private object AuthenticatedUserResolver : HandlerMethodArgumentResolver {

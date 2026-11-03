@@ -32,3 +32,8 @@ dependencies {
 tasks.bootJar {
     archiveFileName = "salt-platform.jar"
 }
+
+tasks.test {
+    // Postgres 판 바꿔 돌리기: ./gradlew :app:test -Psalt.test.postgres=postgres:17-alpine
+    providers.gradleProperty("salt.test.postgres").orNull?.let { systemProperty("salt.test.postgres", it) }
+}

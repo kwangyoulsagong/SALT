@@ -39,11 +39,35 @@ salt:
         username: svc_ping
         password: ${PING_DB_PASSWORD}
 
+# 외부 호출 기본값(`SRV-REQ-043` FR-8 · `kotlin-platform.md` §3) — 인스턴스는 첫 외부 호출(S5 market)이 이 기본값을 이어받는다.
+# 재시도는 조회(GET)에만 붙인다(쓰기 재시도는 중복 쓰기). KIS 는 약 2건/초(메모 kis-mock-key)
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 200ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+  ratelimiter:
+    instances:
+      kis:
+        limit-for-period: 2
+        limit-refresh-period: 1s
+        timeout-duration: 5s
+
 management:
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health, info, metrics
   tracing:
     sampling:
       probability: 1.0
