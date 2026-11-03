@@ -133,8 +133,18 @@ class SavingsFunSpec : StringSpec({
         tiny.loan shouldBe null
         tiny.loanReason shouldBe EmergencyComparison.LOAN_TOO_SMALL
         tiny.assumptions shouldBe emptyList()
-        // 원 단위가 아닌 금액은 입구에서 거절(리뷰 4차)
-        shouldThrow<InvalidGoal> { EmergencyComparison.of(g, krw(100_000), Money.krw("1000.5"), BigDecimal.ZERO, 3, today) }.code shouldBe "EMERGENCY_AMOUNT_INVALID"
+        // 원 단위가 아닌 금액은 입구에서 거절 — 0원 이하와 다른 코드(리뷰 4 · 5차). 꼬리 0 은 원 단위다(Jackson 1000.0 → scale 1)
+        shouldThrow<InvalidGoal> { EmergencyComparison.of(g, krw(100_000), Money.krw("1000.5"), BigDecimal.ZERO, 3, today) }.code shouldBe "EMERGENCY_AMOUNT_NOT_WHOLE"
+        EmergencyComparison.of(g, krw(100_000), Money.krw("1000.00"), BigDecimal.ZERO, 3, today).loan!!.firstPayment shouldBe krw(334)
+        EmergencyComparison.of(g, krw(100_000), Money.krw("1E+3"), BigDecimal.ZERO, 3, today).loan!!.restPayment shouldBe krw(333)
+        // 큰 금액 · 긴 기간에도 X.5 경계가 맞다 — 1조 원 · 3% · 1달 이자 25억 원 정확(꼬리 정리가 60자리 정밀도 아래)
+        EmergencyComparison.of(g, krw(2_000_000_000_000), krw(1_000_000_000_000), BigDecimal("3"), 1, today).loan!!.totalInterest shouldBe krw(2_500_000_000)
+        EmergencyComparison.of(g, krw(100_000), krw(1_001), BigDecimal("3"), 1, today).loan!!.totalInterest shouldBe krw(3)
+        // 꺼내면 100년 안에 못 닿는 경우는 "건너뛴 달" 이유가 아니다
+        val far = Goal(GoalId.new(), "u", "목표", GoalTemplate.OTHER, krw(2_000_000_000), null, krw(1_000), null, GoalStatus.ACTIVE, created, null)
+        val farCmp = EmergencyComparison.of(far, krw(500_000), krw(400_000), BigDecimal("5"), 12, today)
+        farCmp.withdraw.reason shouldBe ProjectionReason.NOT_REACHABLE
+        farCmp.withdraw.delayMonths shouldBe null
         // 정확히 X.5원 이자는 올린다 — 꼬리 오차(2.4999…985)로 1원 모자라던 경계(3% · 1,000원 · 1달 = 2.5 → 3, 0.3% · 2,000원 · 1달 = 0.5 → 1)
         EmergencyComparison.of(g, krw(100_000), krw(1_000), BigDecimal("3"), 1, today).loan!!.totalInterest shouldBe krw(3)
         EmergencyComparison.of(g, krw(100_000), krw(2_000), BigDecimal("0.3"), 1, today).loan!!.totalInterest shouldBe krw(1)

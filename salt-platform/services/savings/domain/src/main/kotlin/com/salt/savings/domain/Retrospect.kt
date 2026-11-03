@@ -58,7 +58,7 @@ data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shi
  *   총액이 달 수 이상이면 늘 나뉜다. 총액이 달 수보다 작으면 대출 칸만 `loan = null` + 이유(꺼내기 칸은 남는다). 상환은 목표 밖에서 낸다고 가정(가정 키).
  *   ~~이자 = 올린 상환 × n − 원금~~ → ~~마지막 달이 올림 차액~~ **정정 2026-11-03 두 번**(0% 이자 8원 · 나머지에 따라 거절되는 금액 · 1개월 두 금액 — 셸 실측 · 리뷰)
  */
-data class EmergencyComparison(
+class EmergencyComparison private constructor(
     val amount: Money,
     val withdraw: Withdraw,
     /** 나눌 수 없으면 null — 이유는 [loanReason] */
@@ -67,13 +67,19 @@ data class EmergencyComparison(
     val loanReason: String?,
 ) {
     init {
-        require((loan == null) == (loanReason != null)) { "loan and loanReason must be exclusive" }
+        // 생성자는 private — [of] 만 만든다. 그래서 이 검사는 사용자 입력이 아니라 코드 결함만 잡는다(리뷰 5차: 500 이 될 수 있는 외부 경로 없음)
+        check((loan == null) == (loanReason != null)) { "loan and loanReason must be exclusive" }
     }
 
     /** 계산 가정 키 — 대출 칸이 있을 때만 대출 가정이 뜻을 갖는다(컨트롤러가 아니라 여기서 정한다, 리뷰) */
     val assumptions: List<String> get() = if (loan != null) listOf(LOAN_PAID_OUTSIDE_GOAL) else emptyList()
 
-    data class Withdraw(val planMonthBefore: YearMonth?, val planMonthAfter: YearMonth?, val delayMonths: Int?, val reason: String?)
+    /** 이동 달 수가 없으면 이유가 있다 — 대출 칸과 같은 규칙(리뷰 5차). 어기는 값은 만들 수 없다 */
+    data class Withdraw(val planMonthBefore: YearMonth?, val planMonthAfter: YearMonth?, val delayMonths: Int?, val reason: String?) {
+        init {
+            check((delayMonths == null) == (reason != null)) { "withdraw delayMonths and reason must be exclusive" }
+        }
+    }
 
     /**
      * 갚을 총액 = 원금 + [totalInterest] = [firstPayment] × [firstMonths] + [restPayment] × [restMonths].
@@ -97,7 +103,11 @@ data class EmergencyComparison(
 
         /** 상환은 목표 적립과 따로 낸다고 본다 */
         const val LOAN_PAID_OUTSIDE_GOAL = "loan_paid_outside_goal"
-        private val MC = MathContext.DECIMAL128
+        /** 대출 계산 정밀도 — DECIMAL128(34자리)이면 원금 · 기간이 클 때 꼬리 오차가 정리 자리까지 올라온다(리뷰 5차). 60자리 */
+        private val MC = MathContext(60, RoundingMode.HALF_EVEN)
+
+        /** 꼬리 오차 정리 자리 — 정밀도(60) 한참 아래이고 원 단위 한참 위. 금액 반올림이 아니라 계산 오차 제거다(`kotlin-platform.md` §3) */
+        private const val NOISE_SCALE = 30
         private val TWELVE = BigDecimal(12)
         private val HUNDRED = BigDecimal(100)
 
@@ -107,7 +117,7 @@ data class EmergencyComparison(
             if (loanRatePercent.signum() < 0 || loanRatePercent > BigDecimal(30)) throw InvalidGoal("EMERGENCY_RATE_INVALID", "loanRate must be 0..30")
             if (loanMonths !in 1..LOAN_MONTHS_MAX) throw InvalidGoal("EMERGENCY_MONTHS_INVALID", "loanMonths must be 1..$LOAN_MONTHS_MAX")
             // 원화는 원 단위 — 소수 원금을 계산 안에서 따로 다루지 않게 입구에서 거절(리뷰 4차)
-            if (amount.toDecimal().stripTrailingZeros().scale() > 0) throw InvalidGoal("EMERGENCY_AMOUNT_INVALID", "amount must be whole won")
+            if (amount.toDecimal().stripTrailingZeros().scale() > 0) throw InvalidGoal("EMERGENCY_AMOUNT_NOT_WHOLE", "amount must be whole won")
             val loan = loan(amount, loanRatePercent, loanMonths)
             return EmergencyComparison(amount, withdraw(goal, saved, amount, today), loan, if (loan == null) LOAN_TOO_SMALL else null)
         }
@@ -122,7 +132,8 @@ data class EmergencyComparison(
                 before?.let { thisMonth.plusMonths(it.toLong()) },
                 after?.let { thisMonth.plusMonths(it.toLong()) },
                 if (before != null && after != null) after - before else null,
-                if (after == null) ProjectionReason.SLOW_SIDE_OPEN else null,
+                // 꺼내면 100년 안에 닿지 않는다 — "건너뛴 달" 이유(slow_side_open)가 아니다(리뷰 5차)
+                if (after == null || before == null) ProjectionReason.NOT_REACHABLE else null,
             )
         }
 
@@ -137,9 +148,9 @@ data class EmergencyComparison(
             }
             // 원 단위로 정하는 것은 중간 반올림이 아니다 — 나눠 내는 계획 금액이 최종값이다(`kotlin-platform.md` §3 예외, 월 적립 올림과 같다).
             // 반올림은 총액 하나에 한 번: 총액 = 원금 + 정확한 이자를 원 단위로, 이자 = 총액 − 원금(리뷰 4차 — 이자 · 총액을 따로 반올림하면 두 번).
-            // 그 전에 DECIMAL128 꼬리 오차만 소수 20자리에서 정리한다 — 정확히 X.5원인 이자가 2.4999…985 로 계산돼 1원 모자랐다(3% · 1,000원 · 1달, 리뷰 4차 jshell 재현).
-            // 실제 금액이 .5 에 1e-20 안으로 붙을 일은 없어 이 정리가 값을 바꾸는 경우는 꼬리 오차뿐이다
-            val exactInterest = (exactPayment.multiply(n, MC) - principal.toDecimal()).max(BigDecimal.ZERO).setScale(20, RoundingMode.HALF_UP)
+            // 그 전에 꼬리 오차만 소수 30자리([NOISE_SCALE])에서 정리한다 — 정확히 X.5원인 이자가 2.4999…985 로 계산돼 1원 모자랐다(3% · 1,000원 · 1달, 리뷰 4차 jshell 재현).
+            // 60자리 정밀도의 오차는 원금 1조 · 120달에도 1e-40 아래, 실제 금액이 .5 에 1e-30 안으로 붙을 일은 없다 — 이 정리가 바꾸는 건 꼬리 오차뿐(금액 반올림으로 세지 않는다)
+            val exactInterest = (exactPayment.multiply(n, MC) - principal.toDecimal()).max(BigDecimal.ZERO).setScale(NOISE_SCALE, RoundingMode.HALF_UP)
             val total = (principal.toDecimal() + exactInterest).setScale(0, RoundingMode.HALF_UP)
             val interest = total - principal.toDecimal()
             if (total < n) return null

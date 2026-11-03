@@ -33,6 +33,9 @@ object ProjectionReason {
     /** 하위 10% 달의 적립이 0 — 늦은 쪽 끝을 정할 수 없다 */
     const val SLOW_SIDE_OPEN = "slow_side_open"
 
+    /** 이 계획으로는 100년 안에 닿지 않는다(비상시 꺼내기 뒤 등) */
+    const val NOT_REACHABLE = "not_reachable"
+
     /** 계획 월 적립액이 없다(만들 때 기한만 주고 계산도 못 한 경우) */
     const val NO_PLAN = "no_plan"
 
