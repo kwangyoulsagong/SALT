@@ -35,7 +35,7 @@
 | FR-5 | 개인정보 범위: 결제 문자 원문 미보관 · 민감 정보 분류 · LLM 전송 필드 공개 | Must | Draft |
 | FR-6 | 도메인 사용 계측(주간 활성 · 재개율 · 카드 클릭, 금액 제외) | Should | Draft |
 | FR-7 | 도메인 색 토큰 추가(기존 색 변경 없음) | Should | Draft |
-| FR-8 | 하단 탭 · 헤더 ~~`AppChrome`~~ **`AppNavigation`**(이름 정정 2026-11-03) 공용 컴포넌트 + zone 간 미리 렌더 · 문서 간 전환 | Must | **In progress** 2026-11-03 — 레일 · 하단 탭 · 머리 · prerender 규칙 · 전환 · 계측(`FE-REQ-054`). ~~prerender 적중 사람 확인~~ **2026-11-03 확인 — 운영 빌드 prerender 적중 10/10 · 이동 중앙 0~1ms(미적중 101 · 145ms) · 녹화 깜빡임 0** · ~~공용 청크 캐시 공유(`OPS-001`)~~ 캐시 공유 닫음(운영 공용 `/_next`, `ADR-005` 규칙 7 개정) · 계측 수집처 · 배포 정적 저장소(`OPS-001` FR-12) 남음 |
+| FR-8 | 하단 탭 · 헤더 ~~`AppChrome`~~ **`AppNavigation`**(이름 정정 2026-11-03) 공용 컴포넌트 + zone 간 미리 렌더 · 문서 간 전환 | Must | **Done** 2026-11-03(`FE-REQ-054` done) — 레일 · 하단 탭 · 머리 · prerender 규칙 · 전환 · 계측(`FE-REQ-054`). ~~prerender 적중 사람 확인~~ **2026-11-03 확인 — 운영 빌드 prerender 적중 10/10 · 이동 중앙 0~1ms(미적중 101 · 145ms) · 녹화 깜빡임 0** · ~~공용 청크 캐시 공유(`OPS-001`)~~ 캐시 공유 닫음(운영 공용 `/_next`, `ADR-005` 규칙 7 개정) · 계측 수집처 · 배포 정적 저장소(`OPS-001` FR-12) 남음 |
 
 ## 비기능 요구사항
 
@@ -121,5 +121,6 @@ flowchart LR
 | 2026-10-30 | 영역 REQ 작성 · 링크(위 머리 블록) |
 | 2026-11-02 | 아키텍처 바탕 F0 `FE-REQ-052` done — 셸 `apps/web` + 도메인 zone 4 빈 골격 · 레지스트리 `registry.json` · lint 도메인 축 · `web-tax` 삭제. 셸 책임(인증 · 온보딩 · 홈 · 설정)이 레지스트리 경로로 고정(`/` `/home` `/login` `/onboarding` `/settings`). 화면 기능 변경 0. 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md` |
 | 2026-11-02 | F1 — 홈 = 도메인 요약 카드(FR-2 부분: 카드 · 기본 순서, 편집은 S3) · 셸 `/settings` = 도메인별 설정 링크 목록(FR-3 · 4 자리) · 로그인 상태 `/` → 서버에서 `/home`. 투자 화면은 투자 zone 으로(`FE-REQ-053` done). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |
-| 2026-11-03 | F2 — FR-8 In progress(`FE-REQ-054`, 루트 `requirements/specs/in-progress/MONEY-F2-app-navigation-slice.md`). 이름 `AppNavigation`(사용자 결정). FR-7 도메인 색 토큰 추가(기존 값 diff 0). 저축 · 가계부 탭은 첫 화면이 생길 때까지 "준비 중"(`FE-REQ-056` · `057`) |
+| 2026-11-03 | F2 — FR-8 In progress(`FE-REQ-054`, 루트 `requirements/specs/done/MONEY-F2-app-navigation-slice.md`). 이름 `AppNavigation`(사용자 결정). FR-7 도메인 색 토큰 추가(기존 값 diff 0). 저축 · 가계부 탭은 첫 화면이 생길 때까지 "준비 중"(`FE-REQ-056` · `057`) |
 | 2026-11-03 | F2 미검증 닫기 — prerender 적중 10/10 · 녹화 깜빡임 0 · 공용 청크 캐시 공유(운영 빌드 공용 `/_next` · `ADR-005` 규칙 7 개정) · 저축 아이콘 동전(W). 결함 1(prerender 도착 계측) 수정 |
+| 2026-11-03 | FR-8 Done — `FE-REQ-054` done. 루트 `requirements/specs/done/MONEY-F2-app-navigation-slice.md` |

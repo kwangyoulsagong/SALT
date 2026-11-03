@@ -15,6 +15,8 @@
 #
 # 이름: server · news · bff-rest · bff-ws · bff-worker · forecast · web · web-investment
 # 웹 dev 는 zone 마다 하나(셸 web 3000 · 투자 web-investment 3002 — `FE-REQ-053`). 셸이 투자 경로를 3002 로 프록시한다
+# 웹은 dev 로만 띄운다 — dev 정적 경로는 zone 별(`/investment-static`). 운영 빌드(`next start`)를 여기에 넣으려면 빌드 뒤
+# `pnpm static:merge` 가 먼저다(운영 빌드는 모든 zone 이 공용 `/_next` — `ADR-005` 규칙 7 개정 · `FE-REQ-054`, 2026-11-03)
 set -u
 ROOT="${0:A:h:h}"
 UID_NUM="$(id -u)"

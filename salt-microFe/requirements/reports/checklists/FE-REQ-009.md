@@ -224,3 +224,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 ## 2026-11-03 — MONEY-F2(`FE-REQ-054`)
 
 - 파일만 걸침 — `packages/eslint-plugin-fsd/layer-rules.cjs` 주석 한 줄(`layout` 은 zone 루트 레이아웃 자리로 남는다 — 탭 · 머리 표시는 `@repo/ui` `AppNavigation`). 규칙 · 판정 무변경(`pnpm test:layer-check` 차단 16 · 통과 10)
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 커밋 대조
+
+- 커밋 대조 — `layer-rules.cjs` 주석 한 줄은 `d5000140`

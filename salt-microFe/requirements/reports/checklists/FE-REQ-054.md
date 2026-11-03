@@ -1,7 +1,7 @@
 # FE-REQ-054 — F2 앱 내비게이션(AppNavigation) · zone 이동 완화 — 체크리스트
 
-스펙: `salt-microFe/requirements/specs/in-progress/FE-REQ-054-F015-APP-NAVIGATION.md` · 2026-11-03
-브랜치: `feat/fe-req-054-app-navigation` (base `main` `b822df43`) · 루트 슬라이스 `requirements/specs/in-progress/MONEY-F2-app-navigation-slice.md`
+스펙: `salt-microFe/requirements/specs/done/FE-REQ-054-F015-APP-NAVIGATION.md` · 2026-11-03
+브랜치: `feat/fe-req-054-app-navigation` (base `main` `b822df43`) · 루트 슬라이스 `requirements/specs/done/MONEY-F2-app-navigation-slice.md`
 커밋: `1c4c3ee9` · `5a86dafa` · `e0bce695` · `7b8b1110` · `4c234835` · `f6587a53`(기존 결함) · `423e3e9e`(저축 아이콘 동전) · `168b0c65`(계측 결함)
 
 ## 1. FR ↔ 구현
@@ -27,7 +27,7 @@
 | zone 5 빌드 | 5/5. 빈 zone 86 kB 그대로 |
 | `build-storybook` | 성공(`AppNavigation` 5 스토리 — 경고는 기존 `"use client"` 지시어) |
 | 번들 — Next 표(main 워크트리 대조) | 셸 공용 103 · 투자 공용 104 그대로 · `/home` 169 → 158 · `/investments` 159 → 139 · 나머지 같음 |
-| 번들 — **HTML 이 싣는 JS gzip**(main 대조) | `/home` +9.2 · `/settings` +2.6 · `/onboarding` +2.6 · `/investments` +3.4 · `/coach/report` +2.6 · `/search` +3.5 KB — 예산 40 안. Next 표가 준 것은 레이아웃 몫을 화면 표에서 빼고 세서다 |
+| 번들 — **HTML 이 싣는 JS gzip**(main 대조) | `/home` +9.2 · `/settings` +2.6 · `/onboarding` +2.5 · `/investments` +3.4 · `/coach/report` +2.5 · `/search` +3.5 KB — 예산 40 안. Next 표가 준 것은 레이아웃 몫을 화면 표에서 빼고 세서다 |
 | 공용 청크 | 셸 · 투자가 같은 해시 청크 9개(gzip 196 KB). URL 은 `/_next/…` · `/investment-static/_next/…` 로 다르다 |
 | 실화면 배치(Chromium, 5화면 × 800 · 1024 · 1280 · 1440 · 1600) | 넘침 0/25 · 레일 72 / 하단 탭 / 머리 52 전환 · 지금 탭(홈 · 투자 · 설정 = 없음) · 프로필 머리 한 자리 |
 | 앱 웹뷰(390, UA `SALTApp/`) | 레일 · 하단 탭 · 머리 모두 숨김 · 넘침 0 |
@@ -51,3 +51,8 @@
 | 배포 정적 저장소 | 로컬은 합치기로 닫았다. 배포 저장소 · CI `--check` 는 배포 환경이 없다 | `OPS-001` FR-12 |
 | 계측 수집처 | 관측성 배포가 없다 | 배포 환경 확정 시(`OPS-001`) |
 | 빈 zone 3 의 내비 · 전환 | 화면이 없다(탭 비활성) | `FE-REQ-056` · `057` · `058` |
+
+## 4. done 판정 (2026-11-03)
+
+- FR-1~7 ✅ · 수용 기준 5/5 · 최종 HEAD 전 영역 재검증(타입 10 · lint 10 · 테스트 124 · 훅 16/10 · 훅 사후 39 · zone 5 빌드 · `static:merge` 충돌 0 · Storybook)
+- 넘긴 것: 계측 수집처(`OPS-001` FR-9) · 배포 정적 저장소(`OPS-001` FR-12)

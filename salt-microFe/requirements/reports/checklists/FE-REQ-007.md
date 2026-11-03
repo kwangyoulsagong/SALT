@@ -228,3 +228,7 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 
 - FR-3 의 zone 별 assetPrefix 가 운영 빌드에서는 공용 `/_next` 로(`5c7218e9`, `ADR-005` 규칙 7 개정). dev · 셸 rewrites 무변경
 - 확인: 운영 빌드 5 zone 합치기 충돌 0 · 오류 0 · 404 0(Chromium · WebKit) · dev 는 zone 별 prefix 그대로 — `FE-REQ-054` 체크리스트 §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 커밋 대조
+
+- 커밋 대조 — 이 REQ 가 주인인 파일 둘이 더 걸렸다: `packages/tokens/src/index.ts` 도메인 색 추가(`1c4c3ee9`, 추가만) · `packages/core/src/zones/registry.ts` `assetPrefix` 설명(`28d51ed3`, 주석 — dev 만 쓴다)

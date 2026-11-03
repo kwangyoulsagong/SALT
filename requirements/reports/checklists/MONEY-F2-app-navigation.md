@@ -1,6 +1,6 @@
 # 돈 관리 앱 F2 — 앱 내비게이션 — 체크리스트 (루트)
 
-슬라이스 `requirements/specs/in-progress/MONEY-F2-app-navigation-slice.md` · 2026-11-03 · `feat/fe-req-054-app-navigation`(base `b822df43`)
+슬라이스 `requirements/specs/done/MONEY-F2-app-navigation-slice.md` · 2026-11-03 · `feat/fe-req-054-app-navigation`(base `b822df43`)
 
 ## 1. 커밋
 
@@ -22,7 +22,7 @@
 | 모노레포 check-types · lint · test · layer-check | 10/10 · 10/10 · core 81 · ui 43 · 차단 16 통과 10 |
 | 훅 사후 실행 | 코드 파일 37 전부 통과 |
 | zone 5 빌드 · Storybook | 5/5 · 성공 |
-| 번들(main 워크트리 대조, HTML 스크립트 gzip) | +2.6~+9.2 KB(`/home` 최대) — 예산 40 안 |
+| 번들(main 워크트리 대조, HTML 스크립트 gzip) | +2.5~+9.2 KB(`/home` 최대) — 예산 40 안 |
 | 실화면 | 5화면 × 5폭 넘침 0 · 앱 웹뷰 내비 0 · 전환 3/3 · 줄인 모션 0/3 · WebKit 일반 이동 오류 0 |
 | prerender(운영 빌드) | 적중 10/10 · 누름 → 보임 중앙 0~1ms(미적중 101 · 145ms) · 계측 `prerendered: true` 10 — DevTools 세션을 끊고 잼 |
 | 전환 녹화 | 3경로 354프레임 — 레일 · 머리 빈 프레임 0 · 흰 번쩍임 0 |

@@ -64,7 +64,7 @@
 
 ## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 앱 내비게이션
 
-- 번들(PERF) — `FE-REQ-054` 앱 내비게이션이 모든 화면 레이아웃에 들어왔다. Next 표: 셸 공용 103 · `/home` 169 → 158 · `/settings` 132 · `/onboarding` 149(main 워크트리 빌드 대조). **HTML 이 실제로 싣는 JS gzip**: `/home` 215.0 → 224.2(+9.2) · `/settings` 218.2 → 220.8(+2.6) · `/onboarding` 221.2 → 223.8(+2.6) KB(최종 HEAD `f6587a53`) — 예산 40 KB 안. Next 표가 줄어든 것은 레이아웃 몫을 화면 표에서 빼고 세기 때문(`5a86dafa` · `e0bce695`)
+- 번들(PERF) — `FE-REQ-054` 앱 내비게이션이 모든 화면 레이아웃에 들어왔다. Next 표: 셸 공용 103 · `/home` 169 → 158 · `/settings` 132 · `/onboarding` 149(main 워크트리 빌드 대조). **HTML 이 실제로 싣는 JS gzip**: `/home` 215.0 → 224.2(+9.2) · `/settings` 218.2 → 220.8(+2.6) · `/onboarding` 221.2 → 223.7(+2.5) KB(최종 HEAD `5c7218e9`) — 예산 40 KB 안. Next 표가 줄어든 것은 레이아웃 몫을 화면 표에서 빼고 세기 때문(`5a86dafa` · `e0bce695`)
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
 
 ## 2026-11-03 — MONEY-F2(`FE-REQ-054`)

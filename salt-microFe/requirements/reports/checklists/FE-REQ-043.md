@@ -56,3 +56,7 @@
 
 - `AppShell` 이 본문을 앱 내비게이션으로 감싼다(`e0bce695`). 768 미만 안내 · main 랜드마크 하나 · 앱 웹뷰 안내 끔은 그대로 — 실측: 앱 웹뷰 390 에서 레일 · 하단 탭 · 머리 모두 숨김, 넘침 0
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 커밋 대조
+
+- 커밋 대조 — `@repo/ui` `AppNavigation` 스타일이 이 REQ 의 768 경계를 같이 쓴다(768 미만에는 레일 · 하단 탭 · 머리 없음, `5a86dafa` · `4c234835`). 안내 화면 무변경

@@ -69,3 +69,7 @@
 
 - 레지스트리 `assetPrefix` 뜻이 "dev 정적 경로"로 좁아졌다(`5c7218e9` · 주석) — 이 REQ 가 만든 규칙 7 의 운영 몫을 `ADR-005` 개정으로 바꿨다. 레지스트리 값 · lint · rewrites 무변경(dev 그대로)
 - 확인: 운영 빌드 5 zone 합치기 충돌 0 · 오류 0 · 404 0(Chromium · WebKit) · dev 는 zone 별 prefix 그대로 — `FE-REQ-054` 체크리스트 §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 커밋 대조
+
+- 커밋 대조 — 투자 zone `app/layout.tsx` 전환 `<style>`(`e0bce695`) · 빈 zone `app/layout.tsx` 3 안내 주석(`d5000140`) · `registry.json` `$comment` 에 assetPrefix 뜻(`28d51ed3`). 값 · lint 무변경

@@ -9,7 +9,7 @@ created: 2026-10-30
 source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 ---
 
-> **2026-11-03 구현 · in-progress** (`feat/fe-req-054-app-navigation`, 루트 `requirements/specs/in-progress/MONEY-F2-app-navigation-slice.md`).
+> **2026-11-03 done** — ~~구현 · in-progress~~ (`feat/fe-req-054-app-navigation`, 루트 `requirements/specs/done/MONEY-F2-app-navigation-slice.md`).
 > **이름 정정 2026-11-03** — ~~`AppChrome`~~ → **`AppNavigation`**(사용자 결정 — "chrome" 은 브라우저 이름과 겹친다). 파일 이름도 `-APP-NAVIGATION`.
 > ~~남은 것: 수용 기준 1(Chromium prerender **적중**)은 사람이 Chrome 에서 본다~~ **정정 2026-11-03 — 확인했다**: DevTools 세션이 붙어 있는 동안 시작된 prerender 만 꺼진다. 포인터를 올린 뒤 세션을 끊고 재면 운영 빌드 적중 10/10.
 > ~~남은 것: 공용 청크 캐시 공유(아래 FR-5) · 계측 수집처.~~ **2026-11-03 캐시 공유도 닫음**(운영 빌드 공용 `/_next` · `ADR-005` 규칙 7 개정). 남은 것: 계측 수집처 · 배포 정적 저장소(`OPS-001` FR-12).
@@ -44,8 +44,10 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
-| 2026-11-03 | 구현 · in-progress — 이름 `AppNavigation`(사용자 결정). FR-1~4 · 6 · 7 ✅ · FR-5 🟡(해시 같음 · URL 달라 캐시 공유 없음). 공용 레이아웃이 머리 프로필을 놓고 화면별 `ProfileMenu`(홈 · 투자) 삭제. zone 설정 5개를 프리셋으로. 실화면 5화면 × 800 · 1024 · 1280 · 1440 · 1600 넘침 0 · 앱 웹뷰 390 내비 0. 번들 실측(HTML 이 싣는 JS gzip) +2.6~+9.2 KB(최종 HEAD) |
+| 2026-11-03 | 구현 · in-progress — 이름 `AppNavigation`(사용자 결정). FR-1~4 · 6 · 7 ✅ · FR-5 🟡(해시 같음 · URL 달라 캐시 공유 없음). 공용 레이아웃이 머리 프로필을 놓고 화면별 `ProfileMenu`(홈 · 투자) 삭제. zone 설정 5개를 프리셋으로. 실화면 5화면 × 800 · 1024 · 1280 · 1440 · 1600 넘침 0 · 앱 웹뷰 390 내비 0. 번들 실측(HTML 이 싣는 JS gzip) +2.5~+9.2 KB(최종 HEAD) |
 | 2026-11-03 | 커밋: `1c4c3ee9`(탭 한 벌 · 계측 계산 · 도메인 색) · `5a86dafa`(`AppNavigation`) · `e0bce695`(zone 레이아웃 연결) · `7b8b1110`(설정 프리셋) · `4c234835`(면 글리프 · 레일 실측값) · `f6587a53`(기존 결함: 로그인 화면 비침). 사용자 결정 둘 — 이름 `AppNavigation` · 탭은 왼쪽 레일 + 면 글리프 |
 | 2026-11-03 | 저축 탭 아이콘 돼지 저금통 → **동전(W)**(`coin`, 사용자 "돈 아이콘으로 바꿔 돼지 에바야"). `@repo/core/navigation` 아이콘 이름 · 스토리 · 디자인 시스템 인덱스 같이 |
 | 2026-11-03 | 미검증 닫기 — prerender 적중 10/10 · 녹화 깜빡임 0 · 운영 빌드 이동 시간 · 공용 청크 재다운로드 실측(5개 · 117 KB). 결함 1(prerender 도착 계측 누락) 수정 `168b0c65`. 수용 기준 5/5 |
 | 2026-11-03 | FR-5 닫음 — 운영 빌드는 모든 zone 공용 `/_next`(dev 는 zone 별), 합치기 `scripts/merge-zone-static.mjs`(5 zone · 324 파일 · 같은 내용 159 · 충돌 0). 실측: 같은 청크 5개 캐시 · 네트워크 0(전 117 KB) · Chromium · WebKit 오류 0 · 404 0 · 수화 정상 · prerender 6/6. `ADR-005` 규칙 7 · `OPS-001` FR-12 · `microfrontend.md` §0 · §2-7 · §3 · §5 |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — 저축 아이콘 동전(W)은 `423e3e9e` |
+| 2026-11-03 | **done** — FR-1~7 · 수용 기준 5/5. 남은 둘(계측 수집처 · 배포 정적 저장소)은 배포 환경 몫 — `OPS-001` FR-9 · FR-12 로 넘겼다(이 REQ 의 수용 기준이 아니다). 루트 `requirements/specs/done/MONEY-F2-app-navigation-slice.md` |
