@@ -34,4 +34,25 @@ describe("AppSavingsService", () => {
       ["POST", "/savings/goals", { title: "x" }],
     ]);
   });
+
+  it("S1b — 저울 · 확정 · 비상시 · 단위: 경로 · 메서드 · 본문 그대로, 경로의 id 는 인코딩", async () => {
+    const seen: Array<[string, string, unknown]> = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string, _t: string, body: unknown) => {
+      seen.push([m, url, body]);
+      return { data: { data: { ok: true } } } as never;
+    });
+    const changes = { changes: [{ goalId: "g", monthly: 200000 }] };
+    assert.deepEqual(await appSavingsService.simulate("t", changes), { ok: true });
+    await appSavingsService.updatePlans("t", changes);
+    await appSavingsService.emergency("t", "a/b", { amount: 1, loanRate: 6, loanMonths: 12 });
+    await appSavingsService.addUnit("t", "g", { name: "제주 왕복", unitPrice: 120000 });
+    await appSavingsService.deleteUnit("t", "g", "u/1");
+    assert.deepEqual(seen, [
+      ["POST", "/savings/simulate", changes],
+      ["PUT", "/savings/goals/plans", changes],
+      ["POST", "/savings/goals/a%2Fb/emergency-compare", { amount: 1, loanRate: 6, loanMonths: 12 }],
+      ["POST", "/savings/goals/g/units", { name: "제주 왕복", unitPrice: 120000 }],
+      ["DELETE", "/savings/goals/g/units/u%2F1", undefined],
+    ]);
+  });
 });

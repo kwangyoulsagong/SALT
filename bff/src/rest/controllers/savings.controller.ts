@@ -27,4 +27,9 @@ export const appSavingsController = {
   create: wrap(201, (req) => appSavingsService.create(req.token!, req.body ?? {})),
   deposit: wrap(201, (req) => appSavingsService.deposit(req.token!, id(req), req.body ?? {})),
   split: wrap(201, (req) => appSavingsService.split(req.token!, req.body ?? {})),
+  simulate: wrap(200, (req) => appSavingsService.simulate(req.token!, req.body ?? {})),
+  updatePlans: wrap(200, (req) => appSavingsService.updatePlans(req.token!, req.body ?? {})),
+  emergency: wrap(200, (req) => appSavingsService.emergency(req.token!, id(req), req.body ?? {})),
+  addUnit: wrap(201, (req) => appSavingsService.addUnit(req.token!, id(req), req.body ?? {})),
+  deleteUnit: wrap(200, (req) => appSavingsService.deleteUnit(req.token!, id(req), String(req.params.unitId))),
 };
