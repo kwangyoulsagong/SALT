@@ -138,3 +138,21 @@ class ProjectionSpec : StringSpec({
         progressOf(krw(40_000_000), krw(30_000_000)) shouldBe BigDecimal.ONE
     }
 })
+
+class DegradedProjectionSpec : StringSpec({
+    val today = LocalDate.of(2026, 11, 3)
+    val now = Instant.parse("2026-11-03T00:00:00Z")
+    val goal = Goal.create("u", "여행", GoalTemplate.TRAVEL, Money.krw(1_200_000), null, Money.krw(100_000), null, today, now)
+
+    "구간 계산이 실패하면 500 이 아니라 degraded + 계획대로면 X월(BFF-REQ-047 수용 기준 2)" {
+        val p = ProjectionEngine.safely(goal, Money.krw(0), today) { error("구간 결함") }
+        p.reason shouldBe ProjectionReason.DEGRADED
+        p.method shouldBe ProjectionMethod.PLAN_ONLY
+        p.plan shouldBe YearMonth.of(2027, 11)
+        p.early shouldBe null
+    }
+
+    "실패가 없으면 계산 결과 그대로" {
+        ProjectionEngine.safely(goal, Money.krw(0), today) { ProjectionEngine.project(goal, Money.krw(0), emptyList(), today) }.reason shouldBe ProjectionReason.HISTORY_SHORT
+    }
+})

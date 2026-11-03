@@ -53,6 +53,7 @@ export const GOAL_MESSAGES = {
     reached: "이미 목표 금액에 닿았어요",
     slow_side_open: "적립하지 않은 달이 있어 늦은 쪽 끝을 정할 수 없어요",
     no_plan: "월 계획이 없어 계산할 수 없어요",
+    degraded: "지금은 구간을 계산하지 못해 계획값만 보여 줘요. 기록은 그대로예요",
   } satisfies Record<ProjectionReason, string>,
   calculationState: {
     ok: "",

@@ -66,6 +66,8 @@ class SavingsEndToEndTest {
         // FR-6: 적중 이력이 없으면 이유가 늘 있다
         goal.path("projection").path("trackReason").asString() shouldBe "history_short"
         goal.path("milestone").path("state").asString() shouldBe "under_plan"
+        goal.path("degraded").asBoolean() shouldBe false
+        goal.path("degradedReasons").size() shouldBe 0
 
         val id = goal.path("id").asString()
         events(id).toSet() shouldBe setOf("savings.GoalCreated", "savings.ProjectionIssued")

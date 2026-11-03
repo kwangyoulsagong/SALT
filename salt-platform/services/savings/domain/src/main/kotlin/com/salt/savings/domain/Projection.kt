@@ -35,6 +35,9 @@ object ProjectionReason {
 
     /** 계획 월 적립액이 없다(만들 때 기한만 주고 계산도 못 한 경우) */
     const val NO_PLAN = "no_plan"
+
+    /** 구간 계산이 실패했다 — 계획값만 준다(`BFF-REQ-047` 수용 기준 2). 발행 기록으로 남기지 않는다 */
+    const val DEGRADED = "degraded"
 }
 
 /**
@@ -97,6 +100,26 @@ object ProjectionEngine {
             if (late == null) ProjectionReason.SLOW_SIDE_OPEN else null,
             samples.size,
         )
+    }
+
+    /**
+     * 구간 계산을 감싼다 — 실패하면 500 이 아니라 그 칸만 `degraded` + 계획대로면 X월(`msa-services.md` §10 · `ddd-presentation.md` §5).
+     * 계산은 순수 함수라 실패는 결함뿐이지만, 목표 화면 전체를 그 결함 하나로 잃지 않는다. [compute] 는 테스트가 실패를 주입하는 자리
+     */
+    fun safely(goal: Goal, saved: Money, today: LocalDate, compute: () -> Projection): Projection =
+        try {
+            compute()
+        } catch (e: RuntimeException) {
+            degraded(goal, saved, today)
+        }
+
+    fun degraded(goal: Goal, saved: Money, today: LocalDate): Projection {
+        val plan = runCatching {
+            goal.monthlyPlan
+                ?.let { SavingsMath.monthsToReach(goal.targetAmount - saved, it, SavingsMath.netRate(goal.interest)) }
+                ?.let { YearMonth.from(today).plusMonths(it.toLong()) }
+        }.getOrNull()
+        return Projection(ProjectionMethod.PLAN_ONLY, null, null, plan, ProjectionReason.DEGRADED, 0)
     }
 
     /** 첫 적립 달부터 지난달까지 — 빈 달은 0 으로 채운다(건너뛴 달도 기록이다) */

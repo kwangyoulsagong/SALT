@@ -149,6 +149,9 @@ class SavingsController(
         val completedAt: String?,
         val milestone: MilestoneView,
         val projection: ProjectionView,
+        /** 구간 계산 실패 — projection 은 계획값만(`BFF-REQ-047` 수용 기준 2). 서버 응답 규약(`ddd-presentation.md` §5) */
+        val degraded: Boolean,
+        val degradedReasons: List<String>,
     )
 
     data class DepositView(val id: String, val amount: Long, val depositedOn: String, val note: String?, val splitGroupId: String?, val source: String)
@@ -312,6 +315,8 @@ class SavingsController(
                 track = null,
                 trackReason = ProjectionReason.HISTORY_SHORT,
             ),
+            degraded = s.degraded,
+            degradedReasons = if (s.degraded) listOf("projection") else emptyList(),
         )
     }
 

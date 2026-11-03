@@ -37,7 +37,7 @@ export interface SavingsMilestone {
   state: MilestoneState;
 }
 
-export type ProjectionReason = "history_short" | "reached" | "slow_side_open" | "no_plan";
+export type ProjectionReason = "history_short" | "reached" | "slow_side_open" | "no_plan" | "degraded";
 
 export interface SavingsProjection {
   method: "empirical_quantile" | "plan_only";
@@ -76,6 +76,9 @@ export interface SavingsGoal {
   completedAt: string | null;
   milestone: SavingsMilestone;
   projection: SavingsProjection;
+  /** 서버가 구간을 못 계산했다 — 계획값만 있다(`BFF-REQ-047` 수용 기준 2) */
+  degraded: boolean;
+  degradedReasons: string[];
 }
 
 export interface SavingsDeposit {

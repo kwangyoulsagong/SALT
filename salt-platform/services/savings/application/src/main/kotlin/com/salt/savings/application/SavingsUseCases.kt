@@ -53,7 +53,10 @@ data class GoalSummary(
     val projection: Projection,
     /** 발행 기록 시각 — 아직 발행이 없으면(가져온 목표) null 이고 [projection] 은 지금 계산한 값 */
     val projectionIssuedAt: Instant?,
-)
+) {
+    /** 구간 계산이 실패해 계획값만 있다 — 응답 `degraded` · `degradedReasons` */
+    val degraded: Boolean get() = projection.reason == com.salt.savings.domain.ProjectionReason.DEGRADED
+}
 
 data class GoalDetail(
     val summary: GoalSummary,
@@ -125,7 +128,8 @@ open class GoalReader(
         val saved = totals?.saved ?: zero
         val remainingRaw = goal.targetAmount - saved
         val progress = progressOf(saved, goal.targetAmount)
-        val projection = issued?.projection ?: ProjectionEngine.project(goal, saved, monthly ?: emptyList(), today)
+        val projection = issued?.projection
+            ?: ProjectionEngine.safely(goal, saved, today) { ProjectionEngine.project(goal, saved, monthly ?: emptyList(), today) }
         return GoalSummary(
             goal = goal,
             saved = saved,
@@ -162,8 +166,12 @@ class ProjectionIssuer(
     private val events: SavingsEvents,
     private val clock: Clock,
 ) {
-    fun issue(goal: Goal, saved: Money): IssuedProjection {
-        val projection = ProjectionEngine.project(goal, saved, deposits.monthly(goal.id), clock.todayKst())
+    /** @return 발행 기록. 구간 계산이 실패하면(degraded) 발행하지 않고 null — 채점 근거에 실패한 구간을 남기지 않는다 */
+    fun issue(goal: Goal, saved: Money): IssuedProjection? {
+        val history = deposits.monthly(goal.id)
+        val today = clock.todayKst()
+        val projection = ProjectionEngine.safely(goal, saved, today) { ProjectionEngine.project(goal, saved, history, today) }
+        if (projection.reason == com.salt.savings.domain.ProjectionReason.DEGRADED) return null
         val issued = IssuedProjection(UUID.randomUUID(), goal.id, clock.instant(), projection)
         projections.issue(issued)
         events.projectionIssued(issued)

@@ -44,7 +44,7 @@ export interface SavingsProjectionVM {
   earlyMonth: string | null;
   lateMonth: string | null;
   planMonth: string | null;
-  /** history_short · reached · slow_side_open · no_plan */
+  /** history_short · reached · slow_side_open · no_plan · degraded */
   reason: string | null;
   monthsOfHistory: number;
   issuedAt: string | null;
@@ -76,6 +76,9 @@ export interface SavingsGoalVM {
   completedAt: string | null;
   milestone: SavingsMilestoneVM;
   projection: SavingsProjectionVM;
+  /** 서버가 구간을 못 계산했다 — projection 은 계획값만. BFF 는 지우지 않고 전달한다(`bff-architecture.md` §5) */
+  degraded: boolean;
+  degradedReasons: string[];
 }
 
 export interface SavingsDepositVM {
