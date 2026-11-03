@@ -42,8 +42,8 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
     <div className={s.form} aria-label={M.title} role="group">
       <span className={s.label}>{M.description}</span>
       <div className={s.inputs}>
-        {/* 원 단위만 — 소수점 뒤는 버린다(점만 지우면 1000.5 가 10,005 가 된다). 서버도 원 단위 아니면 EMERGENCY_AMOUNT_NOT_WHOLE */}
-        <TextField label={M.amount} value={amount} onChange={(v) => setAmount(formatAmountInput(v.split(".")[0] ?? ""))} inputMode="numeric" />
+        {/* 원 단위만 — 점이 든 입력은 받지 않고 이전 값을 둔다. 점 지우기는 1000.5 → 10,005, 점 뒤 버리기는 12.,345 → 12(조용한 금액 손실) — 둘 다 실측 · 리뷰로 잡혔다 */}
+        <TextField label={M.amount} value={amount} onChange={(v) => { if (!v.includes(".")) setAmount(formatAmountInput(v)); }} inputMode="numeric" />
         <TextField label={M.rate} value={rate} onChange={(v) => setRate(formatAmountInput(v))} inputMode="decimal" />
         <TextField label={M.months} value={months} onChange={(v) => setMonths(v.replace(/[^0-9]/g, ""))} inputMode="numeric" />
       </div>

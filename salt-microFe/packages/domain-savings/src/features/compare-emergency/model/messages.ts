@@ -39,4 +39,5 @@ export const EMERGENCY_MESSAGES = {
  * 키로 문구를 고르고 없거나 비면 대체 문구 — 이 화면의 세 자리(오류 코드 · 꺼내기 사유 · 대출 사유)가 같은 규칙을 쓴다(리뷰 5차)
  */
 export const labelOr = (map: Readonly<Record<string, string>>, key: string | null | undefined, fallback: string): string =>
-  (key ? map[key] : undefined) || fallback;
+  // 자기 키만 — "constructor" 같은 상속 키가 함수를 돌려주지 않게(리뷰 6차)
+  (key && Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined) || fallback;
