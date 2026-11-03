@@ -37,6 +37,8 @@ export const frame = style({
   display: "flex",
   width: "100%",
   minHeight: "100vh",
+  // 768 미만은 본문 · 내비가 다 숨고 앱이 안내 한 장을 그린다 — 틀이 화면 높이를 잡으면 안내가 빈 화면 아래로 밀린다(2026-11-03 실측 390: 안내 top 844)
+  "@media": { [NARROW]: { minHeight: 0 } },
 });
 
 export const column = style({

@@ -114,7 +114,7 @@ export const AppNavigation = ({
         <NavItem key={item.id} item={item} placement="rail" renderLink={renderLink} />
       ))}
     </nav>
-    <div className={column}>
+    <div className={column} data-app-navigation-column="">
       <header className={header} data-app-navigation="header">
         {brand}
         <span className={headerSpacer} />
