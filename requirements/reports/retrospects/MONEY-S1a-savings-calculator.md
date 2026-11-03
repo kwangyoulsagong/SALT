@@ -19,7 +19,7 @@
 
 ## Action
 
-- [ ] 2026-11-10 `RETIRED_PATHS` 로그 0건 → 옛 Express goals · Prisma 모델 · BFF 목록 삭제(`msa-services.md` §7 ⑦)
+- [x] ~~2026-11-10~~ **2026-11-03 `d69c310e`** 남은 호출 0 확인 → 옛 Express goals · Prisma 모델 삭제(BFF 410 은 남김)(`msa-services.md` §7 ⑦)
 - [ ] S1b 착수 때 채점 사본(`FC-REQ-024`) 설계 — ~~BFF `degraded` 같이~~ **닫힘 2026-11-03 `2c998117`**
 - [ ] 사용자: `ops/salt.sh up` 으로 platform launchd 등록
 

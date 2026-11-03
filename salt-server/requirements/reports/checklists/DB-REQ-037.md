@@ -25,3 +25,8 @@
 
 - `b1c8ad67` — 종단 테스트가 이 REQ 를 머리에 적는다: `progressRatio` 단언 추가(저장 모양 무변경)
 - 확인: 해당 영역 전체 테스트 · 빌드(루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`)
+
+## 2026-11-03 — 사용자 "그것도 다 니가해": launchd 상시 · 옛 Express goals 삭제
+
+- `d69c310e` — FR-11: public `goals` · `saving_transactions` drop 마이그레이션(DDL 주인이 Flyway 하나로). 덤프 `~/salt-backups/2026-11-03-public-goals-before-drop.dump` 복원 시험 통과. 로컬 적용은 사용자 실행
+- 확인: 서버 build · lint · test 936 · test:layer-check · 재시작 health 200 · Express `/api/goals` 404 · BFF 410 · 온보딩 `set_plan` done · `ops/salt.sh status` 전부 ok

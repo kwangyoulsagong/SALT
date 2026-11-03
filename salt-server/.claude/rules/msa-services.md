@@ -26,7 +26,7 @@ globs: salt-server/**, salt-platform/**
 
 | 서비스 | 지금 코드(Express 컨텍스트 · 모듈) | 스키마 | 단계 | 이전 REQ |
 |---|---|---|---|---|
-| `savings` | ~~`modules/goals` (`goal`)~~ Kotlin `services/savings`(2026-11-03 S1a — 옛 Express 는 1주 관찰 뒤 삭제) | `savings` | S1 | `SRV-REQ-045` |
+| `savings` | ~~`modules/goals` (`goal`)~~ Kotlin `services/savings`(2026-11-03 S1a — 옛 Express 삭제 `d69c310e`) | `savings` | S1 | `SRV-REQ-045` |
 | `household` | 없음 — 새로 | `household` | S1 | `SRV-REQ-046` |
 | `content` | 없음 — 새로(금융 팁 · 제도 파라미터) | `content` | S2 | `SRV-REQ-047` |
 | `notification` | `notification` | `notification` | S2 | `SRV-REQ-048` |

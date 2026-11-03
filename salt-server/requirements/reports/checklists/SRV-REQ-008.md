@@ -212,3 +212,8 @@
 
 - `c82be47c` — 온보딩 `set_plan` 프로브가 `GET /api/savings/goals/exists` 를 부른다(홈 카드 조립을 빌리지 않음). 실측 done true/false
 - 검증: Kotlin 종단 10(대소문자 중복 400 · 목록 = 상세 구간 · exists) · 도메인 19 · 경계 8 · 플랫폼 14 · 서버 936 · BFF 351 · 모노레포 check-types · lint · test · web-savings 빌드 · 훅 사후 · 실스택(프로브 done true/false)
+
+## 2026-11-03 — 사용자 "그것도 다 니가해": launchd 상시 · 옛 Express goals 삭제
+
+- `d69c310e` — `schema.prisma` 에서 `Goal` · `SavingTransaction` · enum 2 · User 관계 삭제(이 REQ 가 파일 머리 주인). 동면 대시보드 목표 요약 3쿼리 삭제
+- 확인: 서버 build · lint · test 936 · test:layer-check · 재시작 health 200 · Express `/api/goals` 404 · BFF 410 · 온보딩 `set_plan` done · `ops/salt.sh status` 전부 ok
