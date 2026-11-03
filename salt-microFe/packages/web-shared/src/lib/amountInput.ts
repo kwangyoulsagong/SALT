@@ -14,6 +14,18 @@ export const formatAmountInput = (raw: string): string => {
   return cleaned.includes(".") ? `${groupedInteger || "0"}.${fraction}` : groupedInteger;
 };
 
+/**
+ * 금액 · 비율 입력을 **받을지** 정하고 받으면 표시 형식으로 — 못 받으면 `null`(부르는 쪽이 이전 값을 두고 안내한다).
+ *
+ * `formatAmountInput` 은 숫자 · 점 말고는 **지우고 이어 붙인다** — 전각 마침표(1000．5) · 가운뎃점(1000·5) · 공백이 든 입력이 10,005 가 됐다(저축 리뷰 8차).
+ * 여기서는 전각 숫자 · 기호를 반각으로 바꾼 뒤(NFKC) 허용 목록 — 숫자 · 쉼표 · 공백, `decimal` 이면 점 하나와 그 뒤 숫자 — 만 받는다.
+ */
+export const readAmountInput = (raw: string, options: { decimal?: boolean } = {}): string | null => {
+  const text = raw.normalize("NFKC");
+  const allowed = options.decimal ? /^[0-9,\s]*(\.[0-9]*)?$/ : /^[0-9,\s]*$/;
+  return allowed.test(text) ? formatAmountInput(text) : null;
+};
+
 /** 입력 글자 → 양수. 비었거나 0 이하 · 숫자 아님이면 `null` */
 export const parseAmountInput = (text: string): number | null => {
   const cleaned = text.replace(/,/g, "").trim();
