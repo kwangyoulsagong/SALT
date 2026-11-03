@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
 import { isApiError } from "@repo/web-shared/api";
-import { parseAmountInput, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
+import { parseAmountInput, labelOr, useNumberFields } from "@repo/web-shared/lib";
 
 import { type SavingsItemUnit } from "@/entities/goal";
 
@@ -19,23 +19,18 @@ export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units
   const add = useAddItemUnit(goalId);
   const remove = useDeleteItemUnit(goalId);
   const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const guard = useAmountInputGuard();
+  // 값과 안내를 한 덩어리로 — 추가 성공 때 같이 비운다(상한에 닿아 칸이 사라져도 남은 안내가 없다)
+  const nums = useNumberFields({ price: "won" });
+  const price = nums.value("price");
   const unitPrice = parseAmountInput(price);
   // 상한은 서버 값(`unitLimit`) — 넘치면 서버가 409 로도 막는다
   const full = units.length >= limit;
-  // 상한에 닿으면 칸이 사라진다 — 남은 거절 안내도 지운다(지우고 다시 열릴 때 안 쓴 안내가 뜨지 않게)
-  useEffect(() => {
-    if (full) guard.clear();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [full]);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
-    guard.clear();
     if (unitPrice === null || name.trim() === "") return;
     remove.reset();
-    add.mutate({ name: name.trim(), unitPrice }, { onSuccess: () => { setName(""); setPrice(""); } });
+    add.mutate({ name: name.trim(), unitPrice }, { onSuccess: () => { setName(""); nums.reset(["price"]); } });
   };
 
   // 마지막으로 누른 쪽 오류만 — 다른 쪽을 누르면 그 전 오류는 지운다(코드 리뷰 2026-11-03)
@@ -52,7 +47,7 @@ export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units
           {units.map((u) => (
             <li key={u.id} className={s.row}>
               <span className={s.value}>{M.line(u.name, u.count)}</span>
-              <Button type="button" size="sm" variant="ghost" onClick={() => { add.reset(); remove.mutate(u.id); }} disabled={remove.isPending} aria-label={M.remove(u.name)}>
+              <Button type="button" size="sm" variant="ghost" onClick={() => { add.reset(); remove.mutate(u.id, { onSuccess: () => nums.dismiss("price") }); }} disabled={remove.isPending} aria-label={M.remove(u.name)}>
                 {M.removeMark}
               </Button>
             </li>
@@ -62,11 +57,11 @@ export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units
       {full ? null : (
         <>
           <TextField label={M.name} value={name} onChange={setName} maxLength={30} placeholder={M.namePlaceholder} />
-          <TextField label={M.price} value={price} onChange={(v) => guard.take(v, setPrice)} inputMode="numeric" />
+          <TextField label={M.price} value={price} onChange={(v) => nums.change("price", v)} inputMode="numeric" error={nums.message("price")} />
         </>
       )}
       <span className={s.label} role="status">
-        {(!full && guard.message) || (error ? labelOr(M.errorCode, code, M.failed) : "")}
+        {error ? labelOr(M.errorCode, code, M.failed) : ""}
       </span>
       {full ? null : (
         <Button type="submit" disabled={unitPrice === null || name.trim() === "" || add.isPending} loading={add.isPending}>

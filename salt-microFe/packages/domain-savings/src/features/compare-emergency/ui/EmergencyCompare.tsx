@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { TextField } from "@repo/ui/textField";
 
 import { isApiError } from "@repo/web-shared/api";
-import { parseAmountInput, useDebouncedValue, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
+import { parseAmountInput, useDebouncedValue, labelOr, useNumberFields } from "@repo/web-shared/lib";
 
 import { GOAL_MESSAGES, formatMonth, formatWon, useEmergencyComparison, type EmergencyRequest } from "@/entities/goal";
 
@@ -23,13 +23,11 @@ const parseRate = (text: string): number | null => (text.trim() === "0" ? 0 : pa
  * 금액 계산을 하지 않는 feature 다(`fsd-features.md`) — 입력을 보내고 두 줄을 같은 무게로 보여 줄 뿐
  */
 export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
-  const [amount, setAmount] = useState("");
-  // 금액은 원 단위(점 없음) · 금리는 소수 하나 — 받을 수 없는 글자는 값을 바꾸지 않고 안내(허용 목록 `@repo/core/input` `readNumberText`)
-  const amountGuard = useAmountInputGuard();
-  const rateGuard = useAmountInputGuard();
-  const monthsGuard = useAmountInputGuard();
-  const [rate, setRate] = useState("");
-  const [months, setMonths] = useState(DEFAULT_MONTHS);
+  // 금액 원 단위 · 금리 소수 하나 · 개월 숫자만 — 값과 안내를 한 덩어리로, 안내는 그 칸 아래(`useNumberFields` · `@repo/core/input`)
+  const nums = useNumberFields({ amount: "won", rate: "decimal", months: "count" }, { months: DEFAULT_MONTHS });
+  const amount = nums.value("amount");
+  const rate = nums.value("rate");
+  const months = nums.value("months");
 
   const request = useMemo<EmergencyRequest | null>(() => {
     const value = parseAmountInput(amount);
@@ -46,21 +44,10 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
     <div className={s.form} aria-label={M.title} role="group">
       <span className={s.label}>{M.description}</span>
       <div className={s.inputs}>
-        {/* 원 단위만 — 점이 든 입력은 받지 않고 이전 값을 둔다. 점 지우기는 1000.5 → 10,005, 점 뒤 버리기는 12.,345 → 12(조용한 금액 손실) — 둘 다 실측 · 리뷰로 잡혔다 */}
-        <TextField
-          label={M.amount}
-          value={amount}
-          onChange={(v) => amountGuard.take(v, setAmount)}
-          inputMode="numeric"
-        />
-        <TextField label={M.rate} value={rate} onChange={(v) => rateGuard.take(v, setRate, "decimal")} inputMode="decimal" />
-        <TextField label={M.months} value={months} onChange={(v) => monthsGuard.take(v, setMonths, "count")} inputMode="numeric" />
+        <TextField label={M.amount} value={amount} onChange={(v) => nums.change("amount", v)} inputMode="numeric" error={nums.message("amount")} />
+        <TextField label={M.rate} value={rate} onChange={(v) => nums.change("rate", v)} inputMode="decimal" error={nums.message("rate")} />
+        <TextField label={M.months} value={months} onChange={(v) => nums.change("months", v)} inputMode="numeric" error={nums.message("months")} />
       </div>
-      {amountGuard.message || rateGuard.message || monthsGuard.message ? (
-        <span className={s.label} role="status">
-          {amountGuard.message ?? rateGuard.message ?? monthsGuard.message}
-        </span>
-      ) : null}
       {compare.isError && settled ? (
         <span className={s.label} role="status">
           {labelOr(M.errorCode, code, M.failed)}

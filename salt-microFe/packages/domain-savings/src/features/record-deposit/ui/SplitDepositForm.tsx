@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { type FormEvent } from "react";
 
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
 import { isApiError } from "@repo/web-shared/api";
-import { parseAmountInput, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
+import { parseAmountInput, labelOr, useNumberFields } from "@repo/web-shared/lib";
 
 import { type SavingsGoal } from "@/entities/goal";
 
@@ -24,39 +24,39 @@ export interface SplitDepositFormProps {
  */
 export const SplitDepositForm = ({ goals }: SplitDepositFormProps) => {
   const split = useSplitDeposit();
-  const [total, setTotal] = useState("");
-  const guard = useAmountInputGuard();
-  const [parts, setParts] = useState<Record<string, string>>({});
+  // 합계 · 목표마다 칸 — 모두 원 단위(없는 키는 기본 won). 값과 안내를 한 덩어리로(`useNumberFields`)
+  const nums = useNumberFields({ total: "won" });
+  const total = nums.value("total");
 
   const filled = goals
-    .map((g) => ({ goalId: g.id, amount: parseAmountInput(parts[g.id] ?? "") }))
+    .map((g) => ({ goalId: g.id, amount: parseAmountInput(nums.value(g.id)) }))
     .filter((p): p is { goalId: string; amount: number } => p.amount !== null);
   const totalValue = parseAmountInput(total);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
-    guard.clear();
     if (totalValue === null || filled.length < 2) return;
-    split.mutate({ total: totalValue, parts: filled }, { onSuccess: () => { setTotal(""); setParts({}); } });
+    split.mutate({ total: totalValue, parts: filled }, { onSuccess: () => nums.reset() });
   };
 
   const errorCode = isApiError(split.error) ? split.error.code : null;
 
   return (
     <form className={s.form} onSubmit={onSubmit} aria-label={M.split.title}>
-      <TextField label={M.split.total} value={total} onChange={(v) => guard.take(v, setTotal, "won", "total")} inputMode="numeric" />
+      <TextField label={M.split.total} value={total} onChange={(v) => nums.change("total", v)} inputMode="numeric" error={nums.message("total")} />
       {goals.map((g) => (
         <TextField
           key={g.id}
           label={M.split.part(g.title)}
-          value={parts[g.id] ?? ""}
-          onChange={(v) => guard.take(v, (value) => setParts((prev) => ({ ...prev, [g.id]: value })), "won", g.id)}
+          value={nums.value(g.id)}
+          onChange={(v) => nums.change(g.id, v)}
           inputMode="numeric"
+          error={nums.message(g.id)}
         />
       ))}
       <span className={s.hint}>{M.split.hint}</span>
       <span className={s.hint} role="status">
-        {guard.message ?? (split.isError ? labelOr(M.errorCode, errorCode, M.failed) : split.isSuccess ? M.recorded : filled.length === 1 ? M.split.tooFew : "")}
+        {split.isError ? labelOr(M.errorCode, errorCode, M.failed) : split.isSuccess ? M.recorded : filled.length === 1 ? M.split.tooFew : ""}
       </span>
       <Button type="submit" disabled={totalValue === null || filled.length < 2 || split.isPending} loading={split.isPending}>
         {M.split.submit}

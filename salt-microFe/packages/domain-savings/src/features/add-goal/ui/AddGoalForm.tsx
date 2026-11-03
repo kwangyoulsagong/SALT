@@ -10,7 +10,7 @@ import { TextField } from "@repo/ui/textField";
 import { Toggle } from "@repo/ui/toggle";
 
 import { ROUTES } from "@repo/web-shared/config";
-import { parseAmountInput, useAmountInputGuard, labelOr } from "@repo/web-shared/lib";
+import { parseAmountInput, useNumberFields, labelOr } from "@repo/web-shared/lib";
 
 import {
   GOAL_MESSAGES,
@@ -44,13 +44,14 @@ export const AddGoalForm = () => {
 
   const [template, setTemplate] = useState<GoalTemplateKey>("travel");
   const [title, setTitle] = useState("");
-  const [amount, setAmount] = useState("");
   const [mode, setMode] = useState<PlanMode>("deadline");
   const [deadline, setDeadline] = useState("");
-  const [monthly, setMonthly] = useState("");
   const [includeInterest, setIncludeInterest] = useState(false);
-  const [rate, setRate] = useState("");
-  const guard = useAmountInputGuard();
+  // 금액 · 월 적립 원 단위 · 이율 소수 — 값과 안내를 한 덩어리로, 안내는 그 칸 아래. 칸이 숨으면(기한 모드 · 이자 끔) 그 칸 안내를 지운다
+  const nums = useNumberFields({ amount: "won", monthly: "won", rate: "decimal" });
+  const amount = nums.value("amount");
+  const monthly = nums.value("monthly");
+  const rate = nums.value("rate");
 
   const request = useMemo<CalculationRequest | null>(() => {
     const targetAmount = parseAmountInput(amount);
@@ -74,7 +75,6 @@ export const AddGoalForm = () => {
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
-    guard.clear();
     if (!request || title.trim() === "") return;
     add.mutate(
       {
@@ -110,15 +110,19 @@ export const AddGoalForm = () => {
       <TextField
         label={M.amount}
         value={amount}
-        onChange={(v) => guard.take(v, setAmount, "won", "amount")}
+        onChange={(v) => nums.change("amount", v)}
         placeholder={M.amountPlaceholder}
         inputMode="numeric"
+        error={nums.message("amount")}
       />
 
       <SegmentedControl
         label={M.modeLabel}
         value={mode}
-        onChange={setMode}
+        onChange={(next) => {
+          if (next === "deadline") nums.dismiss("monthly");
+          setMode(next);
+        }}
         options={[
           { label: M.modeDeadline, value: "deadline" },
           { label: M.modeMonthly, value: "monthly" },
@@ -127,17 +131,21 @@ export const AddGoalForm = () => {
       {mode === "deadline" ? (
         <TextField label={M.deadline} type="date" value={deadline} onChange={setDeadline} />
       ) : (
-        <TextField label={M.monthly} value={monthly} onChange={(v) => guard.take(v, setMonthly, "won", "monthly")} inputMode="numeric" />
+        <TextField label={M.monthly} value={monthly} onChange={(v) => nums.change("monthly", v)} inputMode="numeric" error={nums.message("monthly")} />
       )}
 
-      <Toggle checked={includeInterest} onChange={setIncludeInterest} label={M.interest} />
-      {includeInterest ? <TextField label={M.rate} value={rate} onChange={(v) => guard.take(v, setRate, "decimal", "rate")} inputMode="decimal" /> : null}
-
-      {guard.message ? (
-        <span className={s.hint} role="status">
-          {guard.message}
-        </span>
+      <Toggle
+        checked={includeInterest}
+        onChange={(on) => {
+          if (!on) nums.dismiss("rate");
+          setIncludeInterest(on);
+        }}
+        label={M.interest}
+      />
+      {includeInterest ? (
+        <TextField label={M.rate} value={rate} onChange={(v) => nums.change("rate", v)} inputMode="decimal" error={nums.message("rate")} />
       ) : null}
+
       <section className={s.result} aria-live="polite" aria-busy={calc.isFetching}>
         {calc.isError ? <span className={s.hint}>{M.calcFailed}</span> : null}
         {result && result.state !== "ok" ? <span className={s.hint}>{labelOr(GOAL_MESSAGES.calculationState, result.state, "")}</span> : null}
