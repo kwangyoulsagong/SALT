@@ -12,9 +12,13 @@ export const EMERGENCY_MESSAGES = {
   withdrawDelay: (months: number) => (months === 0 ? "계획대로면 도달 월은 그대로예요" : `계획대로면 도달이 ${months}개월 늦어져요`),
   withdrawMonths: (before: string, after: string) => `${before} → ${after}`,
   loanTitle: "빌리면",
-  loanMonthly: (amount: string, months: number) => `매달 ${amount}씩 ${months}개월`,
-  /** 올림 차액을 끝 달이 덜 낸다 — 같으면 붙이지 않는다 */
-  loanLast: (amount: string) => `마지막 달은 ${amount}`,
+  loanMonthly: (amount: string, months: number) => (months === 1 ? `한 번에 ${amount}` : `매달 ${amount}씩 ${months}개월`),
+  /** 원 단위로 나눈 나머지 — 앞 달이 1원 더 낸다. 숫자가 그대로 더해진다 */
+  loanSplit: (first: string, firstMonths: number, rest: string, restMonths: number) =>
+    `처음 ${firstMonths}개월 ${first} · 나머지 ${restMonths}개월 ${rest}`,
+  loanReason: {
+    amount_too_small: "이 금액은 그 달 수로 나눠 갚을 수 없어요",
+  } as Readonly<Record<string, string>>,
   loanInterest: (amount: string) => `이자 합계 ${amount}`,
   assumption: {
     loan_paid_outside_goal: "갚는 돈은 목표 적립과 따로 낸다고 보고 계산했어요",
@@ -24,6 +28,5 @@ export const EMERGENCY_MESSAGES = {
     EMERGENCY_AMOUNT_OVER_SAVED: "모은 돈보다 많이 꺼낼 수는 없어요",
     EMERGENCY_MONTHS_INVALID: "갚는 달 수는 1~120개월이에요",
     EMERGENCY_RATE_INVALID: "금리는 0~30% 사이로 적어 주세요",
-    EMERGENCY_AMOUNT_TOO_SMALL: "이 금액은 그 달 수로 나눠 갚을 수 없어요",
   } as Readonly<Record<string, string>>,
 } as const;

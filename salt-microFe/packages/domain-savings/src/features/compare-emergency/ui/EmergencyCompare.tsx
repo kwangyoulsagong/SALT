@@ -65,9 +65,18 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
           </div>
           <div className={s.side}>
             <span className={s.label}>{M.loanTitle}</span>
-            <span className={s.value}>{M.loanMonthly(formatWon(data.loan.monthlyPayment), data.loan.months)}</span>
-            {data.loan.lastPayment !== data.loan.monthlyPayment ? <span className={s.label}>{M.loanLast(formatWon(data.loan.lastPayment))}</span> : null}
-            <span className={s.label}>{M.loanInterest(formatWon(data.loan.totalInterest))}</span>
+            {data.loan ? (
+              <>
+                <span className={s.value}>
+                  {data.loan.restMonths === 0
+                    ? M.loanMonthly(formatWon(data.loan.firstPayment), data.loan.months)
+                    : M.loanSplit(formatWon(data.loan.firstPayment), data.loan.firstMonths, formatWon(data.loan.restPayment), data.loan.restMonths)}
+                </span>
+                <span className={s.label}>{M.loanInterest(formatWon(data.loan.totalInterest))}</span>
+              </>
+            ) : (
+              <span className={s.value}>{(data.loanReason && M.loanReason[data.loanReason]) ?? M.failed}</span>
+            )}
           </div>
         </div>
       ) : null}
