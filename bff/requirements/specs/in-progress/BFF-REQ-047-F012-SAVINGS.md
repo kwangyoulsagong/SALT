@@ -46,3 +46,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-045-F012-SAVINGS.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-03 | **in-progress** — S1a `3e5e0d42`(BREAKING `/api/goals*` 410) · `b1c8ad67`(`progressRatio`). FR-1 · 2 · 5 · 7 · 8 done, FR-3 부분. 수용 기준 1/2 |
 | 2026-11-03 | 수용 기준 2 닫음(`2c998117` — 구간 실패 → `degraded` + 계획값). 2/2 |
+| 2026-11-03 | `c82be47c` — 계약: `projection.issuedAt` 제거 · 이정표 상태 `reached` 추가(BFF 타입). 전달만 |

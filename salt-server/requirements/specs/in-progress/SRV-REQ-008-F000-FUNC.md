@@ -250,3 +250,4 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 - 2026-11-02: 파일만 걸침 — `composition.ts`(이 REQ 가 머리 주석 주인)에서 env 를 `llmEnabled` 로. 루트 `requirements/specs/done/F008-explain-citations-slice.md`
 | 2026-11-02 | 파일만 걸침 — `coach/domain/ports.ts`(`ExplainCaller` · `ExplainHooks` · `LlmUsageStore.markDropped` · `CoachExplanation.provider`) · `composition.ts`(라우터 조립 · 부팅 감지 뒤 꽂기). 근거 `SRV-REQ-050`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`1ec3b0c6`): `composition.ts` 온보딩 `set_plan` 프로브 — `prisma.goal.count` → Kotlin 저축 `home-card` 내부 REST(800ms · 실패 false). env `PLATFORM_API_URL`. 실측 done true / false |
+| 2026-11-03 | `c82be47c` — 온보딩 `set_plan` 프로브가 `GET /api/savings/goals/exists` 를 부른다(홈 카드 조립을 빌리지 않음). 실측 done true/false |

@@ -65,3 +65,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 이 REQ 에 걸린 몫(`FE-REQ-054`) — 저축 탭은 `@repo/core/navigation` `APP_TABS` 에서 `readyBy: "FE-REQ-056"`(비활성 "준비 중"). 저축 첫 화면(`/goals`)이 생기면 `readyBy: null` 로 · zone 레이아웃에 `AppShell` + `VIEW_TRANSITION_CSS`(투자 zone 레이아웃과 같은 꼴) · `next.config.js` 를 vanilla-extract 로 감싼다 |
 | 2026-11-03 | **in-progress** — F3a `c60f5bfb`(BREAKING `ROUTES.addGoal` → `/goals/new` · 셸 목표 코드 삭제) · `b1c8ad67`. FR-1 · 3 done, FR-2 · 4 · 5 · 7 부분, FR-13 미충족(`FE-REQ-013`). 수용 기준 4/4. `registry.json` hostedIn · `APP_TABS` readyBy 넘겨받은 몫(052 · 054) 닫음 |
 | 2026-11-03 | 미검증 닫기 — 셸 경유(3010 → rewrites → 3003) 만들기 · 홈 카드 → `/goals` · 저축 탭 `aria-current` · 옛 `/goals/addgoals` → `/goals/new` · 앱 웹뷰 390(안내 꺼짐 · 넘침 0) · 일반 390(안내 켜짐). 결함 1 `b0768194`('새 목표' 기본 밑줄 링크) · `degraded` 문장(`2c998117`) |
+| 2026-11-03 | `c82be47c` — ⑦ `reached` 문장 · ⑩ `formatWon` 한 곳 · `issuedAt` 타입 제거 |

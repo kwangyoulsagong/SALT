@@ -25,3 +25,8 @@
 
 - FR-5 `degraded`(`2c998117`): `DegradedProjectionSpec` 2(실패 주입 → plan 2027-11 · reason degraded / 실패 없으면 그대로) · 종단 `degraded:false` · 쓰기 경로는 실패 구간 발행 0
 - platform launchd 상시: `ops/salt.sh up` 재시도도 권한(영속 프로세스 등록)에서 막힘 — 사용자 실행
+
+## 2026-11-03 — 코드 리뷰(high) 10건 `c82be47c`
+
+- 코드 리뷰 10건 중 9건(①~⑨) `c82be47c`. FR-5 정정: ~~발행 기록을 화면이 읽는다~~ 조회는 늘 지금 기준 재계산 · 응답 `projection.issuedAt` 제거. 경로 하나 추가 `GET /api/savings/goals/exists`
+- 검증: Kotlin 종단 10(대소문자 중복 400 · 목록 = 상세 구간 · exists) · 도메인 19 · 경계 8 · 플랫폼 14 · 서버 936 · BFF 351 · 모노레포 check-types · lint · test · web-savings 빌드 · 훅 사후 · 실스택(프로브 done true/false)

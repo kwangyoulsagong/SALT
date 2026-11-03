@@ -15,3 +15,8 @@
 ## 2026-11-03 — 미검증 닫기(사용자 "확인하지 못한 것은 베스트케이스")
 
 - 수용 기준 2 `degraded`: `2c998117` — 서버 `ProjectionEngine.safely`(실패 주입 테스트 2) · 응답 `degraded` · `degradedReasons` · BFF 타입 전달 · 화면 이유 문장. 종단 10 · BFF 351 통과
+
+## 2026-11-03 — 코드 리뷰(high) 10건 `c82be47c`
+
+- `c82be47c` — 계약: `projection.issuedAt` 제거 · 이정표 상태 `reached` 추가(BFF 타입). 전달만
+- 검증: Kotlin 종단 10(대소문자 중복 400 · 목록 = 상세 구간 · exists) · 도메인 19 · 경계 8 · 플랫폼 14 · 서버 936 · BFF 351 · 모노레포 check-types · lint · test · web-savings 빌드 · 훅 사후 · 실스택(프로브 done true/false)
