@@ -159,14 +159,11 @@ export class UserService {
   }
 
   /**
-   * 대시보드 요약 정보
+   * 대시보드 요약 정보 — 동면(BFF 410). 목표 요약은 2026-11-03 뺐다: 목표는 Kotlin `savings` 가 주인이고 옛 `goals` 표를 지웠다(`SRV-REQ-045` · msa §7 ⑦)
    */
   async getDashboardSummary(userId: string) {
     const [
       user,
-      activeGoals,
-      completedGoals,
-      totalSaved,
       watchlistCount,
       todayMissions,
       completedMissions,
@@ -179,16 +176,6 @@ export class UserService {
           totalPoints: true,
           userLevel: true,
         },
-      }),
-      prisma.goal.count({
-        where: { userId, status: 'active' },
-      }),
-      prisma.goal.count({
-        where: { userId, status: 'completed' },
-      }),
-      prisma.savingTransaction.aggregate({
-        where: { userId },
-        _sum: { amount: true },
       }),
       prisma.investmentWatchlist.count({
         where: { userId },
@@ -218,11 +205,6 @@ export class UserService {
         nickname: user?.nickname,
         totalPoints: user?.totalPoints || 0,
         level: user?.userLevel || 1,
-      },
-      goals: {
-        active: activeGoals,
-        completed: completedGoals,
-        totalSaved: Number(totalSaved._sum.amount || 0),
       },
       investment: {
         watchlistCount,
