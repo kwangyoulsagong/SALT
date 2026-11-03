@@ -29,7 +29,14 @@ export const EMERGENCY_MESSAGES = {
   failed: "지금은 계산하지 못했어요",
   errorCode: {
     EMERGENCY_AMOUNT_OVER_SAVED: "모은 돈보다 많이 꺼낼 수는 없어요",
+    EMERGENCY_AMOUNT_NOT_WHOLE: "필요한 돈은 원 단위로 적어 주세요",
     EMERGENCY_MONTHS_INVALID: "갚는 달 수는 1~120개월이에요",
     EMERGENCY_RATE_INVALID: "금리는 0~30% 사이로 적어 주세요",
   } as Readonly<Record<string, string>>,
 } as const;
+
+/**
+ * 키로 문구를 고르고 없거나 비면 대체 문구 — 이 화면의 세 자리(오류 코드 · 꺼내기 사유 · 대출 사유)가 같은 규칙을 쓴다(리뷰 5차)
+ */
+export const labelOr = (map: Readonly<Record<string, string>>, key: string | null | undefined, fallback: string): string =>
+  (key ? map[key] : undefined) || fallback;

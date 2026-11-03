@@ -60,6 +60,7 @@ export const GOAL_MESSAGES = {
     slow_side_open: "적립하지 않은 달이 있어 늦은 쪽 끝을 정할 수 없어요",
     no_plan: "월 계획이 없어 계산할 수 없어요",
     degraded: "지금은 구간을 계산하지 못해 계획값만 보여 줘요. 기록은 그대로예요",
+    not_reachable: "이 월 계획으로는 100년 안에 닿지 않아요",
   } satisfies Record<ProjectionReason, string>,
   scene: {
     /** 장면 옆 글 — 그래픽은 aria-hidden 이라 진척을 글로도(FEATURE-012 접근성) */

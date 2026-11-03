@@ -9,7 +9,7 @@ import { formatAmountInput, parseAmountInput, useDebouncedValue } from "@repo/we
 
 import { GOAL_MESSAGES, formatMonth, formatWon, useEmergencyComparison, type EmergencyRequest } from "@/entities/goal";
 
-import { EMERGENCY_MESSAGES as M } from "../model";
+import { EMERGENCY_MESSAGES as M, labelOr } from "../model";
 import * as s from "./emergency.css";
 
 const COMPARE_DEBOUNCE_MS = 300;
@@ -42,13 +42,14 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
     <div className={s.form} aria-label={M.title} role="group">
       <span className={s.label}>{M.description}</span>
       <div className={s.inputs}>
-        <TextField label={M.amount} value={amount} onChange={(v) => setAmount(formatAmountInput(v))} inputMode="numeric" />
+        {/* 원 단위만 — 소수점 뒤는 버린다(점만 지우면 1000.5 가 10,005 가 된다). 서버도 원 단위 아니면 EMERGENCY_AMOUNT_NOT_WHOLE */}
+        <TextField label={M.amount} value={amount} onChange={(v) => setAmount(formatAmountInput(v.split(".")[0] ?? ""))} inputMode="numeric" />
         <TextField label={M.rate} value={rate} onChange={(v) => setRate(formatAmountInput(v))} inputMode="decimal" />
         <TextField label={M.months} value={months} onChange={(v) => setMonths(v.replace(/[^0-9]/g, ""))} inputMode="numeric" />
       </div>
       {compare.isError && settled ? (
         <span className={s.label} role="status">
-          {(code ? M.errorCode[code] : undefined) || M.failed}
+          {labelOr(M.errorCode, code, M.failed)}
         </span>
       ) : data ? (
         <div className={s.compare} aria-live="polite">
@@ -57,7 +58,7 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
             {data.withdraw.delayMonths !== null ? (
               <span className={s.value}>{M.withdrawDelay(data.withdraw.delayMonths)}</span>
             ) : (
-              <span className={s.value}>{(data.withdraw.reason ? GOAL_MESSAGES.projectionReason[data.withdraw.reason] : undefined) || M.withdrawUnavailable}</span>
+              <span className={s.value}>{labelOr(GOAL_MESSAGES.projectionReason, data.withdraw.reason, M.withdrawUnavailable)}</span>
             )}
             {data.withdraw.planMonthBefore && data.withdraw.planMonthAfter ? (
               <span className={s.label}>{M.withdrawMonths(formatMonth(data.withdraw.planMonthBefore), formatMonth(data.withdraw.planMonthAfter))}</span>
@@ -75,7 +76,7 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
                 <span className={s.label}>{M.loanInterest(formatWon(data.loan.totalInterest))}</span>
               </>
             ) : (
-              <span className={s.value}>{(data.loanReason ? M.loanReason[data.loanReason] : undefined) || M.loanUnavailable}</span>
+              <span className={s.value}>{labelOr(M.loanReason, data.loanReason, M.loanUnavailable)}</span>
             )}
           </div>
         </div>

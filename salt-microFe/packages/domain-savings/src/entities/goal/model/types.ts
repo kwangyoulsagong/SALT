@@ -37,7 +37,7 @@ export interface SavingsMilestone {
   state: MilestoneState;
 }
 
-export type ProjectionReason = "history_short" | "reached" | "slow_side_open" | "no_plan" | "degraded";
+export type ProjectionReason = "history_short" | "reached" | "slow_side_open" | "no_plan" | "degraded" | "not_reachable";
 
 export interface SavingsProjection {
   method: "empirical_quantile" | "plan_only";
