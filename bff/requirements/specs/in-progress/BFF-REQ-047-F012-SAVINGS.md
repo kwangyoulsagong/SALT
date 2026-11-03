@@ -60,3 +60,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-045-F012-SAVINGS.md
 | 2026-11-03 | MONEY-S1a — `c60f5bfb` — 웹 `domain-savings` 의 조회 · 타입 파일이 이 계약(`/api/app/savings/*` 뷰모델)을 소비한다. BFF 무변경 |
 | 2026-11-03 | MONEY-S1b — `f4deeee6` FR-3 · 4 done(경로 5 중계 · 테스트 +1) · `ca1fcb11` 기한 판정 · 단위 상한 칸 타입. FR-3 `sceneStepBefore/After` 정정(만들지 않음) |
 | 2026-11-03 | MONEY-S1b 셸 경유 실측 — `73973f79` 비상시 `loan.lastPayment` 타입. 전달만 |
+| 2026-11-03 | MONEY-S1b 리뷰 — `96378139` 대출 칸 모양 first/rest · `loan` null + `loanReason`(옛 `lastPayment` 대체 — 같은 브랜치 안이라 소비처는 웹 하나). 전달만 |

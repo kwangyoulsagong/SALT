@@ -74,3 +74,5 @@ DDL 주인은 Flyway(`services/savings/infrastructure/src/main/resources/db/migr
 | 2026-11-03 | 로컬 DB 에 `20261103120000_drop_legacy_goals` 적용(사용자 허용) — `public.goals` · `saving_transactions` 없음, `savings.goal` 그대로 |
 | 2026-11-03 | MONEY-S1b — `9a435627` FR-5 V2 `item_unit`(로컬 운영 DB 적용) · FR-6 · 7 정정(표 없음 — 적립 · 목표에서 계산). `34815177` 단위 조회 셋에 `user_id` 조건(인덱스 앞 열) |
 | 2026-11-03 | MONEY-S1b — `item_unit` 실행 계획 확인(1만 8천 행 · 세 조회 모두 인덱스 · 롤백). 저장 모양 무변경 |
+| 2026-11-03 | MONEY-S1b — `4fda31db` 이 이 REQ 에 걸렸다(종단 테스트 파일 머리): 비상시 `lastPayment` 단언 · 이자 기대값. 저장 모양 무변경 |
+| 2026-11-03 | MONEY-S1b — `af797be0` 도 이 REQ 머리의 종단 테스트를 바꿨다(대출 칸 단언). 저장 모양 무변경 |
