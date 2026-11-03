@@ -1,2 +1,5 @@
 # macOS
 .DS_Store
+
+# Claude Code 개인 설정(권한 등) — 커밋하지 않는다
+.claude/settings.local.json
