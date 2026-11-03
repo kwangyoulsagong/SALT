@@ -80,3 +80,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | 코드 리뷰 10건 중 9건(①~⑨) `c82be47c`. FR-5 정정: ~~발행 기록을 화면이 읽는다~~ 조회는 늘 지금 기준 재계산 · 응답 `projection.issuedAt` 제거. 경로 하나 추가 `GET /api/savings/goals/exists` |
 | 2026-11-03 | MONEY-S1a — `c60f5bfb` — 웹 만들기 · 적립 요청 타입이 서버 DTO 이름을 따른다. 서버 무변경 |
 | 2026-11-03 | `d69c310e` — FR-1 ⑦: 옛 Express goals 모듈 · Prisma 모델 삭제 + 표 drop 마이그레이션(덤프 · 복원 시험). 남은 호출 0 을 직접 확인(코드 grep · BFF 410 로그)해 1주 관찰을 당겼다. **로컬 DB 적용(`prisma migrate deploy`)은 권한에서 막혀 사용자 실행** |
+| 2026-11-03 | 로컬 DB 에 `20261103120000_drop_legacy_goals` 적용(사용자 허용) — `public.goals` · `saving_transactions` 없음, `savings.goal` 그대로 |

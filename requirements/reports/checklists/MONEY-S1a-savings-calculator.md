@@ -41,7 +41,7 @@
 | ~~`BFF-REQ-047` `degraded`~~ | **닫힘 2026-11-03** `2c998117` | — |
 | `FE-REQ-056` FR-13 서버 렌더 | 토큰이 브라우저 저장소 | `FE-REQ-013` |
 | ~~옛 Express goals · Prisma 모델 삭제~~ | **닫힘 2026-11-03** `d69c310e` — 남은 호출 0 직접 확인 · 덤프 · 복원 시험. BFF 410 은 남김 | — |
-| 로컬 DB 에 표 drop 적용 | `prisma migrate deploy` 가 권한에서 막힘(대량 삭제) — 쓰는 코드는 0 | 사용자 `cd salt-server && npx prisma migrate deploy` |
+| ~~로컬 DB 에 표 drop 적용~~ | **닫힘 2026-11-03** — 사용자가 이 명령 하나만 허용(`.claude/settings.local.json`, 커밋 안 함) → `prisma migrate deploy` 적용 · `public.goals` 없음 · `savings.goal` 1 그대로 · 서버 · 온보딩 정상 | — |
 | ~~독립 코드 리뷰(high)~~ | **닫힘 2026-11-03** — 10건 모두 사실 · 전부 수정 `c82be47c` | — |
 
 ## 2026-11-03 — 코드 리뷰(high) 10건 `c82be47c`

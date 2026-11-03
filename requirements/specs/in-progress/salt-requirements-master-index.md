@@ -912,3 +912,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-03 | S1a 미검증 닫기(사용자 "베스트케이스") — `BFF-REQ-047` 수용 기준 2/2(`2c998117` 구간 실패 → `degraded`) · 셸 3010 경유 · 웹뷰 390 실측(결함 1 `b0768194`) · 코드 리뷰(high). 남은 것: platform launchd(사용자) · `FE-REQ-056` FR-13(`FE-REQ-013`) |
 | 2026-11-03 | S1a 코드 리뷰(high) 10건 전부 수정 `c82be47c` — 구간은 늘 지금 기준 재계산(발행은 채점 보관용) 외 9. 남은 것: platform launchd(사용자) · `FE-REQ-056` FR-13(`FE-REQ-013`) |
 | 2026-11-03 | S1a 남은 것 닫기(사용자 "그것도 다 니가해") — platform launchd 상시(`9265c0b4`, 데스크탑 폴더 멈춤 해결) · 옛 Express goals 삭제(`d69c310e`, 남은 호출 0 확인 · 덤프). 남은 것: 로컬 DB drop 적용(사용자 `npx prisma migrate deploy` — 권한) · `FE-REQ-056` FR-13(`FE-REQ-013` FR-80 쿠키 세션) |
+| 2026-11-03 | 로컬 DB 옛 goals 표 drop 적용(사용자 허용). S1a 남은 것: `FE-REQ-056` FR-13(`FE-REQ-013` FR-80 쿠키 세션) |

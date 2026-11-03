@@ -63,3 +63,4 @@ DDL 주인은 Flyway(`services/savings/infrastructure/src/main/resources/db/migr
 | 2026-11-03 | `c82be47c` — `projection_issued` 를 화면이 읽지 않는다(채점 보관용만). 표 · 열 변경 0 |
 | 2026-11-03 | MONEY-S1a — `b1c8ad67` — 종단 테스트가 이 REQ 를 머리에 적는다: `progressRatio` 단언 추가(저장 모양 무변경) |
 | 2026-11-03 | `d69c310e` — FR-11: public `goals` · `saving_transactions` drop 마이그레이션(DDL 주인이 Flyway 하나로). 덤프 `~/salt-backups/2026-11-03-public-goals-before-drop.dump` 복원 시험 통과. 로컬 적용은 사용자 실행 |
+| 2026-11-03 | 로컬 DB 에 `20261103120000_drop_legacy_goals` 적용(사용자 허용) — `public.goals` · `saving_transactions` 없음, `savings.goal` 그대로 |
