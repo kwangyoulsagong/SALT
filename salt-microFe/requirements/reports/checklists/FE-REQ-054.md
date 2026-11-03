@@ -12,7 +12,7 @@
 | FR-2 링크 · 판정 | `ZoneNavigation` — `activeAppTab`(레지스트리 zone) · `isCrossZonePath(href, ZONE_APP)` → `<a>` / `next/link` | ✅ |
 | FR-3 prerender | `prerenderRules.ts` 문서 규칙(`[data-prerender-tab]:not([aria-current])`, `moderate`) · `SpeculationRules` 마운트 뒤 · 표지 쿠키 있을 때만 · 미지원이면 아무것도 안 함 | ✅ 적중 10/10 |
 | FR-4 문서 간 전환 | `VIEW_TRANSITION_CSS`(`@view-transition` + 줄인 모션 끔) — 셸 · 투자 zone `<head>`. 레일 · 하단 탭 · 머리 `view-transition-name` | ✅ |
-| FR-5 공용 프리셋 | `packages/config-next` `zoneNextConfig` — zone 5 `next.config.js` | 🟡 해시 같음 · 캐시 공유 없음 |
+| FR-5 공용 프리셋 · 같은 URL | `packages/config-next` `zoneNextConfig` — zone 5 `next.config.js` · 운영 빌드 공용 `/_next` · `scripts/merge-zone-static.mjs`(`pnpm static:merge`) | ✅ 캐시 공유 |
 | FR-6 계측 | `@repo/core/navigation` `buildZoneNavigationMetric`(테스트) · `zoneNavigationMetrics.ts` `performance.mark("salt:zone-nav")` — prerender 도착은 활성화 뒤 읽기(`168b0c65`) | ✅ (수집처 없음) |
 | FR-7 도메인 색 | `tokens.colors.domain` 5 — 추가 11 · 삭제 0. 탭에는 쓰지 않는다(정정) | ✅ |
 
@@ -36,7 +36,8 @@
 | prerender 적중(운영 빌드 `next start` 두 zone) | 셸 → 투자 5/5 · 투자 → 셸 5/5. 누름 → 보임 중앙 0 · 1 ms. 미적중(바로 누름) 0/10 · 중앙 101 · 145 ms. 계측 10/10 `prerendered: true` |
 | **결함(이번 변경)** | 수정 전 적중 4/4 인데 계측 0/4 — prerender 문서가 누르기 전에 마운트돼 표지가 없었다. `168b0c65` 뒤 10/10 |
 | 전환 녹화(screencast, 1440) | prerender · 일반 · 되돌아가기 3경로 354프레임 — 레일 진한 픽셀 359~443(빈 프레임 0) · 머리 1079 이상 · 화면 밝기 245~250.6(흰 번쩍임 0) |
-| 공용 청크 재다운로드(캐시 비운 뒤 셸 → 투자) | 같은 이름 청크 5개 · 117 KB 를 `/investment-static/…` 에서 다시 받음 — 해시는 같지만 캐시 공유 없음 |
+| 공용 청크 재다운로드(캐시 비운 뒤 셸 → 투자) | 전: 같은 이름 청크 5개 · 117 KB 를 `/investment-static/…` 에서 다시 받음 → **후(`5c7218e9`): 같은 5개가 `/_next/static/…` 캐시 · 네트워크 0 · 0 B** |
+| 공용 정적 경로 회귀(운영 빌드 · 합친 뒤) | 투자 화면 청크 13개 200 · Chromium · WebKit 페이지 오류 0 · `/_next` 404 0 · 탭 눌러 바뀜(수화) · prerender 6/6 · 합치기 5 zone 324 파일 · 같은 내용 159 · 충돌 0 · dev 는 `/investment-static` 그대로 |
 | WebKit(Safari 엔진, 800 · 1280 왕복 4) | 일반 이동 · 페이지 오류 0 · 넘침 0 · 규칙 안 붙음 · 계측 `browser: "safari"` |
 | 이동 계측(dev, 임시 사용자) | Chromium 185~945 ms · WebKit 111~385 ms(dev 서버 · 한 번씩 — 판정용 아님) |
 | 기준 레일 실측(1440, 계산 스타일) | 칸 42×58 · 판 32 · 모서리 8 · 아이콘 16 · 미선택 `#B0B8C1` · 선택 판 `rgba(7,25,76,.04)` + 0.75px 안쪽 선 · 라벨 12/500 `rgba(18,31,51,.47)` → 레일에 반영(`4c234835`) |
@@ -47,6 +48,6 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 공용 청크 캐시 공유 | 해시는 같지만 assetPrefix 가 달라 URL 이 다르다(5개 · 117 KB 재다운로드). `ADR-005` 규칙 7 개정 + 배포 정적 저장소 통합이 필요 — 사용자 결정 대기 | `ADR-005` 개정 · `OPS-001` |
+| 배포 정적 저장소 | 로컬은 합치기로 닫았다. 배포 저장소 · CI `--check` 는 배포 환경이 없다 | `OPS-001` FR-12 |
 | 계측 수집처 | 관측성 배포가 없다 | 배포 환경 확정 시(`OPS-001`) |
 | 빈 zone 3 의 내비 · 전환 | 화면이 없다(탭 비활성) | `FE-REQ-056` · `057` · `058` |

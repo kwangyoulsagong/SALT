@@ -28,7 +28,11 @@ export interface ZoneDescriptor {
    * 판정은 `정확히 일치` 또는 `prefix + "/"` 로 시작 — 그래서 `/tips`는 `/tipsy`를 잡지 않는다.
    */
   readonly pathPrefixes: readonly string[];
-  /** 정적 자산 prefix. 셸은 `assetPrefix`를 갖지 않는다. */
+  /**
+   * 정적 자산 prefix — **dev 만** 쓴다. 셸은 `assetPrefix`를 갖지 않는다.
+   * 운영 빌드는 모든 zone 이 공용 `/_next`(해시 이름이라 합쳐도 안전 — `@repo/config-next` · `scripts/merge-zone-static.mjs`,
+   * `ADR-005` 규칙 7 개정 2026-11-03). dev 청크는 해시가 없어 zone 별로 둔다.
+   */
   readonly assetPrefix: string | null;
   /**
    * 이 도메인 화면을 **지금 실제로** 서비스하는 앱. 옮기기 전에는 셸(`web`)이다.

@@ -25,6 +25,7 @@ source: requirements/decisions/ADR-008-deployment-environment.md
 | FR-8 | 비밀 — KIS · DART · LLM · JWKS. 로그 마스킹 규칙 유지 | — |
 | FR-9 | 관측 · 경보 — 5xx · 수집 멈춤(마지막 봉 시각) · 데드레터 · 백업 실패 · 비용 상한 | — |
 | FR-10 | 백업 복구 리허설 — 분기 1회 PITR 복원 시간 기록 | — |
+| FR-12 | **zone 정적 파일 한 저장소**(2026-11-03 `ADR-005` 규칙 7 개정) — 운영 빌드는 모든 zone 이 공용 `/_next/static`. 배포가 zone 5 의 `.next/static` 을 한 CDN 경로에 합친다 — 같은 이름 · 다른 내용이면 배포 실패(`salt-microFe/scripts/merge-zone-static.mjs` 와 같은 규칙, CI 에서 그 스크립트를 `--check` 로). 이전 버전 파일은 한동안 남긴다(열린 탭이 옛 청크를 부른다). L7 은 `/_next/static/*` 를 이 저장소로, 페이지 경로는 zone 으로 | F2 캐시 공유 |
 | FR-11 | 이전 기간 — S7 전까지 맥 launchd 서버는 BFF 스위치 `legacy` 대상으로 남는다(관리형 환경에서 맥으로 사설 연결 또는 스테이징 한정). 방식은 FR-3 뒤 확정 | S1~S6 |
 
 ## Acceptance Criteria
@@ -43,5 +44,6 @@ source: requirements/decisions/ADR-008-deployment-environment.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-03 | FR-12 추가 — zone 정적 파일 한 저장소(`FE-REQ-054` FR-5, `ADR-005` 규칙 7 개정) |
 
 - 2026-11-02: 배포 전 로컬 감독은 `OPS-002`(`ops/salt.sh`, launchd). 배포 때 프로세스 목록(서버 · 뉴스 워커 · BFF REST · WS · 시세 워커 · 예측 배치)은 그 이름 표를 옮긴다

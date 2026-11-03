@@ -99,3 +99,7 @@ federation 서술이 남아 있었고, 그대로 두면 다음 세션이 없는 
 ## 2026-11-03 — MONEY-F2(`FE-REQ-054`)
 
 - 설정 다섯 벌을 한 벌로 — zone 하나만 다르게 하려면 프리셋을 먼저 고친다(`packages/config-next/README.md`). Action 없음
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 정적 경로
+
+- 규칙 7 의 "assetPrefix 유일"은 dev 청크 충돌을 막는 데는 맞고, 운영에서는 캐시 공유를 막았다. 규칙을 dev · 운영으로 나눴다. Action 없음

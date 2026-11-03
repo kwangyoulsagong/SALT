@@ -183,7 +183,7 @@ export enum AssetClass {
 | `packages/ui-native` | RN 컴포넌트 | mobile |
 | `packages/core` | 플랫폼 무관 `model`·`api`·`lib` | 전부 |
 | `packages/web-shared` | 웹 shared 레이어(`api` · `config` · `i18n` · `lib` · `model` · `ui`) + zone 공용 레이아웃(`layout`: 프로바이더 · 프레임 · 앱 내비게이션 연결 · 프로필 메뉴 · 404 · 글꼴 · prerender · 문서 간 전환) | web · 도메인 zone · `domain-*` |
-| `packages/config-next` | zone 공용 Next 설정 프리셋 `zoneNextConfig(zoneId)` — zone 몫은 레지스트리 값(`FE-REQ-054` FR-5) | zone 앱 5 `next.config.js` |
+| `packages/config-next` | zone 공용 Next 설정 프리셋 `zoneNextConfig(zoneId)` — zone 몫은 레지스트리 값(`FE-REQ-054` FR-5). 운영 빌드는 공용 `/_next`(정적 파일 합치기 `pnpm static:merge`) | zone 앱 5 `next.config.js` |
 | `packages/domain-*` | 도메인 화면(FSD `entities`~`pages`) — `domain-invest` 만 있다 | 자기 zone 앱만 |
 | `packages/eslint-config` `packages/typescript-config` | 툴링 | 전부 |
 

@@ -64,3 +64,8 @@
 
 - 빈 zone 3(저축 · 가계부 · 팁) `next.config.js` 를 프리셋으로(`7b8b1110`) — assetPrefix 는 여전히 레지스트리 값, 이미지 허용 · `NEXT_PUBLIC_ZONE_APP` 이 더해졌다(빌드 86 kB 그대로). 레지스트리 · lint 무변경. 빈 zone 레이아웃의 내비 · 전환은 화면 REQ(056~058) 몫 — 빈 zone `app/layout.tsx` 3개는 그 안내 주석만 바꿨다(`AppChrome` → `AppShell` · 전환 `<style>`)
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 정적 경로
+
+- 레지스트리 `assetPrefix` 뜻이 "dev 정적 경로"로 좁아졌다(`5c7218e9` · 주석) — 이 REQ 가 만든 규칙 7 의 운영 몫을 `ADR-005` 개정으로 바꿨다. 레지스트리 값 · lint · rewrites 무변경(dev 그대로)
+- 확인: 운영 빌드 5 zone 합치기 충돌 0 · 오류 0 · 404 0(Chromium · WebKit) · dev 는 zone 별 prefix 그대로 — `FE-REQ-054` 체크리스트 §2

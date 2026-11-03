@@ -223,3 +223,8 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 
 - 셸 `next.config.js` 를 zone 공용 프리셋 `@repo/config-next` 로(`7b8b1110`). assetPrefix 없음 · rewrites 레지스트리 생성 · Server Actions origin · 이미지 허용 값 무변경(프리셋이 같은 값을 낸다 — 앱 디렉터리에서 설정을 불러 대조)
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 정적 경로
+
+- FR-3 의 zone 별 assetPrefix 가 운영 빌드에서는 공용 `/_next` 로(`5c7218e9`, `ADR-005` 규칙 7 개정). dev · 셸 rewrites 무변경
+- 확인: 운영 빌드 5 zone 합치기 충돌 0 · 오류 0 · 404 0(Chromium · WebKit) · dev 는 zone 별 prefix 그대로 — `FE-REQ-054` 체크리스트 §2

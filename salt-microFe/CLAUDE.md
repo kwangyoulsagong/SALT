@@ -40,6 +40,7 @@ pnpm --filter @repo/ui check-types
 pnpm --filter @repo/ui test
 pnpm --filter @repo/core test
 pnpm --filter @repo/ui storybook
+pnpm static:merge               # 운영 빌드 뒤 zone 정적 파일을 셸 .next/static 에 합친다(같은 이름 · 다른 내용이면 실패, FE-REQ-054 · ADR-005 규칙 7) — 운영 빌드로 zone 을 띄우기 전에 필수
 pnpm test:layer-check           # layer-check 훅 위반 케이스 16(레이어 8 + 도메인 4 + 패키지 안 4) + 통과 케이스 10
 ```
 
