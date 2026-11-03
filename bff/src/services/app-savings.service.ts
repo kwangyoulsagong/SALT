@@ -150,8 +150,10 @@ export interface SavingsSimulationVM {
 export interface SavingsEmergencyVM {
   amount: number;
   withdraw: { planMonthBefore: string | null; planMonthAfter: string | null; delayMonths: number | null; reason: string | null };
-  /** 매달 × (months−1) + lastPayment = 원금 + totalInterest — 셋 다 서버 값 */
-  loan: { months: number; annualRate: string; monthlyPayment: number; lastPayment: number; totalInterest: number };
+  /** firstPayment × firstMonths + restPayment × restMonths = 원금 + totalInterest — 서버 값. 나누어떨어지면 restMonths 0 */
+  loan: { months: number; annualRate: string; firstPayment: number; firstMonths: number; restPayment: number; restMonths: number; totalInterest: number } | null;
+  /** 나눌 수 없으면(`amount_too_small`) — 꺼내기 칸은 그대로 */
+  loanReason: string | null;
   /** 가정 키 — 문장은 프론트(`loan_paid_outside_goal`) */
   assumptions: string[];
 }
