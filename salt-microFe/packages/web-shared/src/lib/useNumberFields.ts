@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { numberToInputText, readNumberText, type NumberTextKind } from "@repo/core/input";
+import { numberTextRejection, numberToInputText, readNumberText, type NumberTextKind } from "@repo/core/input";
 
 import { AMOUNT_INPUT_MESSAGES } from "../i18n";
 
@@ -52,7 +52,11 @@ export const useNumberFields = (
   const change = useCallback(
     (key: string, raw: string) => {
       const next = readNumberText(raw, kindOf(key));
-      if (next === null) setMessages((prev) => ({ ...prev, [key]: AMOUNT_INPUT_MESSAGES[kindOf(key)] }));
+      if (next === null) {
+        // 숫자만 쳤는데 자릿수 상한이면 그 말을 — "숫자만 적어 주세요"는 틀린 안내다(리뷰 12차)
+        const message = numberTextRejection(raw, kindOf(key)) === "length" ? AMOUNT_INPUT_MESSAGES.tooLong : AMOUNT_INPUT_MESSAGES[kindOf(key)];
+        setMessages((prev) => ({ ...prev, [key]: message }));
+      }
       else write(key, next);
     },
     [kindOf, write],

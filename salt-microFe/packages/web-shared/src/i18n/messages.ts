@@ -57,4 +57,5 @@ export const AMOUNT_INPUT_MESSAGES = {
   price: "숫자와 소수점 하나만 적어 주세요",
   decimal: "숫자와 소수점 하나만 적어 주세요",
   count: "숫자만 적어 주세요",
+  tooLong: "숫자는 15자리까지 적을 수 있어요(소수는 8자리까지)",
 } as const;
