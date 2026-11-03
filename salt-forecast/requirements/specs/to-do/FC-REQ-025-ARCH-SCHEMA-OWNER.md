@@ -35,4 +35,5 @@ source: requirements/decisions/ADR-007-forecast-ontology-schema-owner.md
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-10-30 | FR-2 의 문장 갱신을 미리 — 루트 `CLAUDE.md` · `salt-forecast/CLAUDE.md` · `db-contract.md` §2 에 "S5 전까지 Prisma, S5 에 `salt-forecast/migrations/`" 로. 이전 자체는 그대로 to-do |
-| 2026-11-03 | 서버 S0 주인 표 대조(`DB-REQ-036` 부록 B) — public 직접 읽기 ~~4곳~~ 6개 표 7곳으로 정정: 추적 종목 코드 읽기(보유 ∪ 관심)에 export 뷰가 없었다 → FR-3 에 `market.v_tracked_symbols_export`. 제목 정정. 루트 `requirements/specs/in-progress/MONEY-S0-platform-slice.md` |
+| 2026-11-03 | 서버 S0 주인 표 대조(`DB-REQ-036` 부록 B) — public 직접 읽기 ~~4곳~~ 6개 표 7곳으로 정정: 추적 종목 코드 읽기(보유 ∪ 관심)에 export 뷰가 없었다 → FR-3 에 `market.v_tracked_symbols_export`. 제목 정정. 루트 `requirements/specs/done/MONEY-S0-platform-slice.md` |
+| 2026-11-03 | 커밋 대조 — `b308718e`(FR-3 정정 · 뷰 하나). 예측 코드 변경 0 |

@@ -85,7 +85,7 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 모든 REQ ~~| 문서만 — 코드 착수 전~~ | **정정 2026-11-02** — `FE-REQ-052`(F0) · `FE-REQ-053`(F1) done, `FE-REQ-055` · `BFF-REQ-046` in-progress(S3 몫 남음) · **S0 넷(`SRV-REQ-043` · `044` · `DB-REQ-036` · `BFF-REQ-045`) in-progress 2026-11-03**, 나머지는 문서만 | 각 REQ 착수 시 |
+| 모든 REQ ~~| 문서만 — 코드 착수 전~~ | **정정 2026-11-02** — `FE-REQ-052`(F0) · `FE-REQ-053`(F1) done, `FE-REQ-055` · `BFF-REQ-046` in-progress(S3 몫 남음) · **S0(2026-11-03): `SRV-REQ-043` done · `044` · `DB-REQ-036` · `BFF-REQ-045` in-progress(다음 단계 FR)**, 나머지는 문서만 | 각 REQ 착수 시 |
 | 기준선 통계 · 공제율 · 제도 파라미터 원문 대조 | 보도 기준 숫자 | `FEATURE-012` FR-1 · `SRV-REQ-047` 착수 전 |
 | ~~Spring Boot 4 · Kotlin 2.2 실제 호환 조합~~ **닫힘 2026-11-03** — Boot 4.1.2 · Kotlin 2.3.21(Boot BOM) · Modulith 2.1.2 · JDK 21 | ~~설계는 공개 발표 기준~~ Maven Central 확인 · `./gradlew check` · Compose 실측 | `SRV-REQ-043` S0 |
 
@@ -101,4 +101,5 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 | 2026-11-02 | F1 — `FE-REQ-053` done(투자 zone 서비스) · `FE-REQ-055` · `BFF-REQ-046` in-progress(홈 카드 · 편집 · 온보딩은 S3). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md`. 다음 칸 `FE-REQ-054`(F2) 또는 서버 S0 |
 | 2026-11-03 | F2 — `FE-REQ-054` in-progress(앱 내비게이션 `AppNavigation` · prerender · 문서 간 전환 · 설정 프리셋). 루트 `requirements/specs/done/MONEY-F2-app-navigation-slice.md`. 다음 칸 `FE-REQ-056`(F3 저축 — S1 과 같이) 또는 서버 S0 |
 | 2026-11-03 | F2 done — `FE-REQ-054`(넘긴 것 `OPS-001` FR-9 · FR-12). 다음 칸 `FE-REQ-056`(F3 저축 — S1 과 같이) 또는 서버 S0 |
-| 2026-11-03 | S0 — `SRV-REQ-043` · `044` · `DB-REQ-036` · `BFF-REQ-045` in-progress. 루트 `requirements/specs/in-progress/MONEY-S0-platform-slice.md`. 열린 질문 "Boot 4 · Kotlin 2.2 호환 조합" 닫음(Boot 4.1.2 · Kotlin 2.3.21 · Modulith 2.1.2). 다음 칸 S1 + F3(`DB-REQ-037` · `SRV-REQ-045` · `FE-REQ-056`) |
+| 2026-11-03 | S0 — `SRV-REQ-043` · `044` · `DB-REQ-036` · `BFF-REQ-045` in-progress. 루트 `requirements/specs/done/MONEY-S0-platform-slice.md`. 열린 질문 "Boot 4 · Kotlin 2.2 호환 조합" 닫음(Boot 4.1.2 · Kotlin 2.3.21 · Modulith 2.1.2). 다음 칸 S1 + F3(`DB-REQ-037` · `SRV-REQ-045` · `FE-REQ-056`) |
+| 2026-11-03 | S0 done — `SRV-REQ-043` done · 루트 슬라이스 done. 다음 칸 S1 + F3 |

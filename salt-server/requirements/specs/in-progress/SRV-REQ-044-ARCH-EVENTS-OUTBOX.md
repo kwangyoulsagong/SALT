@@ -43,3 +43,4 @@ source: requirements/decisions/ADR-006-server-msa-kotlin.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-03 | **S0 구현**(`feat/srv-req-043-s0-platform`) — to-do → in-progress. `support/messaging`: `OutboxWriter` · `OutboxRelay` · `EventSchemas` · `EventTopology`(교환기 `salt.events` topic · 데드레터 `salt.events.dlx` · 큐 `<subscriber>.<eventType>`) · `ProcessedEvents` · `TraceParent`(아웃박스 행에 traceparent 를 저장해 릴레이가 그 추적 아래 발행 — 요청 → 구독 한 추적 ID). FR-1 정정(위). 수용 기준 3 + 재시도 3회 → 데드레터 실측. Kafka 대신 RabbitMQ 유지 확인(사용자 질문 2026-11-03 — FR-9 조건 그대로) |
 | 2026-11-03 | **코드 리뷰 뒤** `405e5683` — 릴레이: 영원히 실패하는 이벤트 하나가 그 서비스 뒤 이벤트를 전부 막던 것 → 10회 뒤 `dead_at` 으로 건너뜀 · 순서 `seq`(같은 트랜잭션의 같은 시각 둘). 쓰기: 다른 서비스 트랜잭션 아래 쓰기 거부. FR-8 지표 둘 |
+| 2026-11-03 | 커밋 대조 — `fafb6a0d`(아웃박스 · 릴레이 · 스키마 · 멱등) · `405e5683`(포기 · 순서 · 트랜잭션 확인 · 지표) · `b308718e`(문서). S0 수용 기준 3/3, FR-4 · 6 · 7 · 경보는 다음 단계라 in-progress |

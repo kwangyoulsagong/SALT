@@ -4,10 +4,12 @@ title: "돈 관리 앱 S0 — Kotlin 플랫폼(salt-platform) · 서비스별 �
 priority: high
 labels: [F012, F013, architecture, server, bff, db, slice, msa]
 created: 2026-11-03
-status: in-progress
+status: done
 ---
 
 ## Summary
+
+> **done 2026-11-03** — S0 몫 전부(수용 기준 `SRV-REQ-043` 4/4 · `SRV-REQ-044` 3/3 · `BFF-REQ-045` 3/3 · `DB-REQ-036` S0 둘 2/4 — 나머지 둘은 표를 옮기는 S1~). `SRV-REQ-043` done, 나머지 셋은 다음 단계 FR 이 남아 in-progress. 커밋 `fafb6a0d` · `4bc746f1` · `405e5683` · `cc184c3a` · `b308718e` · `5281928e`.
 
 사용자 "새브랜치 파고 다음 파이프라인 진행" — 마스터 인덱스 §4-1 3a 다음 칸 **서버 S0**(F3 저축이 S1 을, S1 이 S0 을 기다린다 — `MONEY-domains-global-plan.md` 순서).
 기능 0. 새 도메인(저축 · 가계부)이 **처음부터 Kotlin 서비스로 태어날 자리**를 만들고, 빈 서비스 `ping` 이 실제 서비스와 같은 길
@@ -18,7 +20,7 @@ status: in-progress
 
 | REQ | 이번 몫 | 남는 몫(단계) |
 |---|---|---|
-| `SRV-REQ-043` | FR-1~13 — `salt-platform/` 전체(FR-8 은 기본값까지) | FR-8 인스턴스 연결(S5 첫 외부 호출) |
+| `SRV-REQ-043` | FR-1~13 — `salt-platform/` 전체(FR-8 은 기본값까지) — **done 2026-11-03** | FR-8 인스턴스 연결 → `SRV-REQ-049`(S5 첫 외부 호출)로 넘김 |
 | `SRV-REQ-044` | FR-1~3 · 5 · 8 — 아웃박스 · 릴레이(포기 · 순서) · 스키마 검증 · 멱등 · 데드레터 · 지표 | FR-4 13종(발행 서비스 단계마다) · FR-6 · 7(S4~S6) · 경보(`OPS-001`) |
 | `DB-REQ-036` | FR-1(스크립트 · 되돌리기 · 왕복 · Compose · 테스트) · FR-2 부록 A · FR-3 부록 B · FR-5 형태 | ~~FR-1 운영 DB 적용~~(**적용 2026-11-03**) · FR-4 · 6~9(S1~S6) |
 | `BFF-REQ-045` | FR-1~4 · 6 · 7 + BFF 이미지 | FR-5(S3) · FR-8(S7) |

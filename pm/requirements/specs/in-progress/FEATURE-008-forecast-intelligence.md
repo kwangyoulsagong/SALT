@@ -320,4 +320,4 @@
 | 2026-11-02 | **슬라이스 24 1단계 구현 — FR-69 · FR-71 완료.** 일정 4종을 수동 입력 없이(한국은행 회의 페이지 · 국가데이터처 보도계획 + 게시판 · 수출입 · 동시만기 규칙). 코인용 반응 함수 · 카드를 그대로 국내에(16:00 KST 마감 · 원천 끊김 제외). 루트 `requirements/specs/in-progress/F008-slice24-kr-market-events-slice.md`. FR-70(실적 · 예상 창)은 `FC-REQ-026` 뒤 |
 | 2026-11-02 | 슬라이스 24 `FE-REQ-046` FR-5 정정 — 국내 탭 "다가오는 일정" 줄은 지우고 같은 3건을 국내 요약 띠의 오늘의 시장 상자로(F011 `FE-REQ-050` FR-4 · FR-8 · FR-9). 계약(`/api/market/kr/schedule` · `v_upcoming_event`) 그대로 |
 | 2026-11-02 | 전망 · 사건 · 해설 화면이 투자 zone 으로(내용 무변경). 해설 SSE 를 투자 zone 페이지에서 확인. 조회 훅 수화 안전화(`/search` 불일치 원인). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |
-| 2026-11-03 | 서버 S0 주인 표 대조 — 예측의 `public` 직접 읽기가 ~~4곳~~ 6개 표 7곳(추적 종목 코드 = 보유 ∪ 관심이 빠져 있었다). `FC-REQ-025` FR-3 · `DB-REQ-036` FR-7 에 `market.v_tracked_symbols_export`. 예측 코드 변경 0. 루트 `requirements/specs/in-progress/MONEY-S0-platform-slice.md` |
+| 2026-11-03 | 서버 S0 주인 표 대조 — 예측의 `public` 직접 읽기가 ~~4곳~~ 6개 표 7곳(추적 종목 코드 = 보유 ∪ 관심이 빠져 있었다). `FC-REQ-025` FR-3 · `DB-REQ-036` FR-7 에 `market.v_tracked_symbols_export`. 예측 코드 변경 0. 루트 `requirements/specs/done/MONEY-S0-platform-slice.md` |

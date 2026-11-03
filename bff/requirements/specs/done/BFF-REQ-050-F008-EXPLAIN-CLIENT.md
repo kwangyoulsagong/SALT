@@ -40,3 +40,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-050-F008-EXPLAIN-LLM-ROUTIN
 | 2026-11-02 | 작성 — `SRV-REQ-050` 짝 |
 | 2026-11-02 | 완료 — UA 판별은 BFF 유틸(`@repo/core` `isAppWebView` 와 같은 정규식, BFF 는 core 를 import 하지 않는다). FR-3 타입은 `@repo/core/coach` `ExplainProvider` · `message.step.provider`(스트림 시작에 공급자, `SRV-REQ-050` FR-13) |
 | 2026-11-03 | S0(`feat/srv-req-043-s0-platform`, 루트 `MONEY-S0-platform-slice.md`) — `proxyAuthRequest` 의 `headers`(BFF 가 정한 것만)에 BFF 가 만든 `traceparent` 가 하나 더 실린다(`BFF-REQ-045` FR-7). 해설 공급자 헤더 동작 무변경 |
+| 2026-11-03 | 커밋 대조 — 걸친 파일 `backend-api.service.ts`: `4bc746f1`(인터셉터) · `cc184c3a`(녹화 주소 · 그림자 상한) |

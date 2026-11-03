@@ -136,4 +136,5 @@ flowchart LR
 |---|---|
 | 2026-10-30 | 초안 — 딥리서치(가계부 · 행동경제학 · 한국 맥락) · 재미 바탕 |
 | 2026-10-30 | 영역 REQ 작성 · 링크(위 머리 블록) |
-| 2026-11-03 | 서버 S0 — 가계부 서비스가 처음부터 Kotlin 으로 태어날 자리(`salt-platform/`) · `household` 스키마 · 계정 준비(NOLOGIN). 가계부 기능 변경 0. 다음 S1(`SRV-REQ-046` · `DB-REQ-038`). 루트 `requirements/specs/in-progress/MONEY-S0-platform-slice.md` |
+| 2026-11-03 | 서버 S0 — 가계부 서비스가 처음부터 Kotlin 으로 태어날 자리(`salt-platform/`) · `household` 스키마 · 계정 준비(NOLOGIN). 가계부 기능 변경 0. 다음 S1(`SRV-REQ-046` · `DB-REQ-038`). 루트 `requirements/specs/done/MONEY-S0-platform-slice.md` |
+| 2026-11-03 | 서버 S0 done(`SRV-REQ-043`) — 다음 S1 |

@@ -1,6 +1,6 @@
 # 돈 관리 앱 S0 — Kotlin 플랫폼 — 체크리스트 (루트)
 
-슬라이스 `requirements/specs/in-progress/MONEY-S0-platform-slice.md` · 2026-11-03 · `feat/srv-req-043-s0-platform`(base `0b2e4469`)
+슬라이스 `requirements/specs/done/MONEY-S0-platform-slice.md` · 2026-11-03 · `feat/srv-req-043-s0-platform`(base `0b2e4469`)
 
 ## 1. 커밋
 
@@ -8,7 +8,9 @@
 - `4bc746f1` feat(bff) — 라우팅 스위치 · 그림자 · 골든 · traceparent. 서버 호출 한 곳(인터셉터)이라 되돌리기 = 이 커밋 + `cc184c3a`
 - `405e5683` fix(platform) — 코드 리뷰 4건 · FR-8 기본값 · 지표 · Compose BFF · Jaeger · 계정 되돌리기
 - `cc184c3a` fix(bff) — 코드 리뷰 6건 · BFF 이미지 · 기존 결함(빌드가 전역 tsc 에 기댐)
-- 문서 커밋(REQ 4 · 걸린 REQ · 규칙 3 · ADR 2 · 루트 3종)
+- `b308718e` docs — REQ 4 · 걸린 REQ · 규칙 3 · ADR 2 · 루트 3종
+- `5281928e` docs — 로컬 운영 DB 적용 기록
+- 문서 커밋 — done 처리(`SRV-REQ-043` · 루트 슬라이스) · REQ × 커밋 대조 · 상태표 행
 
 ## 2. 검증 (최종 HEAD)
 
