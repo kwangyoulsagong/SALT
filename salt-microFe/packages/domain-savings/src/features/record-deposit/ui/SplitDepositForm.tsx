@@ -8,7 +8,7 @@ import { TextField } from "@repo/ui/textField";
 import { isApiError } from "@repo/web-shared/api";
 import { formatAmountInput, parseAmountInput } from "@repo/web-shared/lib";
 
-import type { SavingsGoal } from "@/entities/goal";
+import { labelOr, type SavingsGoal } from "@/entities/goal";
 
 import { useSplitDeposit } from "../api";
 import { RECORD_DEPOSIT_MESSAGES as M } from "../model";
@@ -54,7 +54,7 @@ export const SplitDepositForm = ({ goals }: SplitDepositFormProps) => {
       ))}
       <span className={s.hint}>{M.split.hint}</span>
       <span className={s.hint} role="status">
-        {split.isError ? ((errorCode && M.errorCode[errorCode]) ?? M.failed) : split.isSuccess ? M.recorded : filled.length === 1 ? M.split.tooFew : ""}
+        {split.isError ? labelOr(M.errorCode, errorCode, M.failed) : split.isSuccess ? M.recorded : filled.length === 1 ? M.split.tooFew : ""}
       </span>
       <Button type="submit" disabled={totalValue === null || filled.length < 2 || split.isPending} loading={split.isPending}>
         {M.split.submit}

@@ -1,4 +1,4 @@
-import { GOAL_MESSAGES } from "../model/messages";
+import { GOAL_MESSAGES, labelOr } from "../model/messages";
 import type { SavingsProjection } from "../model/types";
 import * as s from "./goal.css";
 
@@ -25,7 +25,7 @@ export const ProjectionLine = ({ projection: p }: ProjectionLineProps) => {
       <span className={s.value}>{main}</span>
       {p.method === "empirical_quantile" ? <span className={s.label}>{GOAL_MESSAGES.projection.basis(p.monthsOfHistory)}</span> : null}
       {p.method === "empirical_quantile" && p.planMonth ? <span className={s.label}>{GOAL_MESSAGES.projection.plan(p.planMonth)}</span> : null}
-      {p.reason ? <span className={s.label}>{GOAL_MESSAGES.projectionReason[p.reason]}</span> : null}
+      {p.reason ? <span className={s.label}>{labelOr(GOAL_MESSAGES.projectionReason, p.reason, "")}</span> : null}
       {p.track === null ? <span className={s.label}>{GOAL_MESSAGES.projection.trackPending}</span> : null}
     </section>
   );

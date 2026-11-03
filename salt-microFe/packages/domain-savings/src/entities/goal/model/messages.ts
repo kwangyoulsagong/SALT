@@ -60,7 +60,8 @@ export const GOAL_MESSAGES = {
     slow_side_open: "적립하지 않은 달이 있어 늦은 쪽 끝을 정할 수 없어요",
     no_plan: "월 계획이 없어 계산할 수 없어요",
     degraded: "지금은 구간을 계산하지 못해 계획값만 보여 줘요. 기록은 그대로예요",
-    not_reachable: "이 월 계획으로는 100년 안에 닿지 않아요",
+    // 구간(적게 넣은 달 속도) · 꺼내기 · 놓친 달 세 자리가 같이 쓴다 — 어느 맥락에도 맞게 "속도"로(리뷰 7차: "이 월 계획으로는"이 구간의 계획 줄과 모순)
+    not_reachable: "100년 안에 닿지 않는 속도라 시점을 정할 수 없어요",
   } satisfies Record<ProjectionReason, string>,
   scene: {
     /** 장면 옆 글 — 그래픽은 aria-hidden 이라 진척을 글로도(FEATURE-012 접근성) */
@@ -85,6 +86,7 @@ export const GOAL_MESSAGES = {
     none: (observed: number) => (observed === 0 ? "아직 다 지난 달이 없어요" : `지난 ${observed}개월 동안 매달 넣었어요`),
     skipped: (skipped: number, observed: number) => `지난 ${observed}개월 중 ${skipped}개월은 넣지 않았어요`,
     shift: (months: number) => (months === 0 ? "계획대로면 도달 월은 그대로예요" : `그 달들에 계획만큼 넣었다면 ${months}개월 빨랐어요`),
+    degraded: "지금은 넣지 않은 달을 세지 못했어요. 기록은 그대로예요",
   },
   calculationState: {
     ok: "",
@@ -93,3 +95,9 @@ export const GOAL_MESSAGES = {
     not_reachable: "이 월 적립으로는 100년 안에 닿지 않아요",
   } satisfies Record<CalculationState, string>,
 } as const;
+
+/**
+ * 서버 키 → 문구. 자기 키만 보고(상속 키 "constructor" 가 함수를 돌려주지 않게) 없거나 비면 대체 문구 — 저축 화면의 모든 키 조회가 이것 하나(리뷰 6 · 7차)
+ */
+export const labelOr = (map: Readonly<Record<string, string>>, key: string | null | undefined, fallback: string): string =>
+  (key && Object.hasOwn(map, key) ? map[key] : undefined) || fallback;

@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useState, type FormEvent } from "react";
 
 import { Button } from "@repo/ui/button";
@@ -7,6 +8,8 @@ import { TextField } from "@repo/ui/textField";
 
 import { isApiError } from "@repo/web-shared/api";
 import { formatAmountInput, parseAmountInput } from "@repo/web-shared/lib";
+
+import { labelOr } from "@/entities/goal";
 
 import { useRecordDeposit } from "../api";
 import { RECORD_DEPOSIT_MESSAGES as M } from "../model";
@@ -41,7 +44,7 @@ export const DepositForm = ({ goalId }: DepositFormProps) => {
       <TextField label={M.date} type="date" value={date} onChange={setDate} />
       <TextField label={M.note} value={note} onChange={setNote} maxLength={200} />
       <span className={s.hint} role="status">
-        {record.isError ? ((errorCode && M.errorCode[errorCode]) ?? M.failed) : record.isSuccess ? M.recorded : ""}
+        {record.isError ? labelOr(M.errorCode, errorCode, M.failed) : record.isSuccess ? M.recorded : ""}
       </span>
       <Button type="submit" disabled={value === null || record.isPending} loading={record.isPending}>
         {M.submit}

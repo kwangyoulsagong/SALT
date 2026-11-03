@@ -8,7 +8,7 @@ import { TextField } from "@repo/ui/textField";
 import { isApiError } from "@repo/web-shared/api";
 import { formatAmountInput, parseAmountInput } from "@repo/web-shared/lib";
 
-import type { SavingsItemUnit } from "@/entities/goal";
+import { labelOr, type SavingsItemUnit } from "@/entities/goal";
 
 import { useAddItemUnit, useDeleteItemUnit } from "../api";
 import { ITEM_UNIT_MESSAGES as M } from "../model";
@@ -59,7 +59,7 @@ export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units
         </>
       )}
       <span className={s.label} role="status">
-        {error ? ((code && M.errorCode[code]) ?? M.failed) : ""}
+        {error ? labelOr(M.errorCode, code, M.failed) : ""}
       </span>
       {full ? null : (
         <Button type="submit" disabled={unitPrice === null || name.trim() === "" || add.isPending} loading={add.isPending}>

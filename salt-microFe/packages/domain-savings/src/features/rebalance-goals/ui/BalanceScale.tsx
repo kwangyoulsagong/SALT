@@ -7,7 +7,7 @@ import { TextField } from "@repo/ui/textField";
 
 import { formatAmountInput, parseAmountInput, useDebouncedValue } from "@repo/web-shared/lib";
 
-import { GOAL_MESSAGES, formatMonth, formatWon, useSavingsSimulation, type PlanChangesRequest, type SavingsGoal, type SavingsSimProjection } from "@/entities/goal";
+import { GOAL_MESSAGES, formatMonth, formatWon, labelOr, useSavingsSimulation, type PlanChangesRequest, type SavingsGoal, type SavingsSimProjection } from "@/entities/goal";
 
 import { useUpdatePlans } from "../api";
 import { REBALANCE_MESSAGES as M } from "../model";
@@ -23,7 +23,7 @@ const projectionText = (p: SavingsSimProjection): string => {
   if (p.earlyMonth && p.lateMonth) return GOAL_MESSAGES.projection.range(p.earlyMonth, p.lateMonth);
   if (p.earlyMonth) return GOAL_MESSAGES.projection.openLate(p.earlyMonth);
   if (p.planMonth) return GOAL_MESSAGES.projection.plan(p.planMonth);
-  return p.reason ? GOAL_MESSAGES.projectionReason[p.reason] : "—";
+  return labelOr(GOAL_MESSAGES.projectionReason, p.reason, "—");
 };
 
 /**

@@ -1,4 +1,4 @@
-import { GOAL_MESSAGES } from "../model/messages";
+import { GOAL_MESSAGES, labelOr } from "../model/messages";
 import type { SavingsMissedMonths } from "../model/types";
 import * as s from "./goal.css";
 
@@ -9,10 +9,14 @@ export const MissedMonthsBox = ({ missed }: { missed: SavingsMissedMonths }) => 
     <div className={s.box} aria-label={M.title}>
       <span className={s.label}>{M.title}</span>
       <span className={s.value}>
-        {missed.skippedMonths === 0 ? M.none(missed.observedMonths) : M.skipped(missed.skippedMonths, missed.observedMonths)}
+        {missed.reason === "degraded"
+          ? GOAL_MESSAGES.missed.degraded
+          : missed.skippedMonths === 0
+            ? M.none(missed.observedMonths)
+            : M.skipped(missed.skippedMonths, missed.observedMonths)}
       </span>
       {missed.skippedMonths > 0 && missed.shiftMonths !== null ? <span className={s.label}>{M.shift(missed.shiftMonths)}</span> : null}
-      {missed.skippedMonths > 0 && missed.reason ? <span className={s.label}>{GOAL_MESSAGES.projectionReason[missed.reason]}</span> : null}
+      {missed.skippedMonths > 0 && missed.reason ? <span className={s.label}>{labelOr(GOAL_MESSAGES.projectionReason, missed.reason, "")}</span> : null}
     </div>
   );
 };

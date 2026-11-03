@@ -27,6 +27,8 @@ export const EMERGENCY_MESSAGES = {
     loan_paid_outside_goal: "갚는 돈은 목표 적립과 따로 낸다고 보고 계산했어요",
   } as Readonly<Record<string, string>>,
   failed: "지금은 계산하지 못했어요",
+  /** 점(소수)을 넣으면 받지 않고 이 안내 — 조용히 무시하지 않는다(리뷰 7차) */
+  wholeWonOnly: "필요한 돈은 원 단위로 적어 주세요",
   errorCode: {
     EMERGENCY_AMOUNT_OVER_SAVED: "모은 돈보다 많이 꺼낼 수는 없어요",
     EMERGENCY_AMOUNT_NOT_WHOLE: "필요한 돈은 원 단위로 적어 주세요",
@@ -35,9 +37,3 @@ export const EMERGENCY_MESSAGES = {
   } as Readonly<Record<string, string>>,
 } as const;
 
-/**
- * 키로 문구를 고르고 없거나 비면 대체 문구 — 이 화면의 세 자리(오류 코드 · 꺼내기 사유 · 대출 사유)가 같은 규칙을 쓴다(리뷰 5차)
- */
-export const labelOr = (map: Readonly<Record<string, string>>, key: string | null | undefined, fallback: string): string =>
-  // 자기 키만 — "constructor" 같은 상속 키가 함수를 돌려주지 않게(리뷰 6차)
-  (key && Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined) || fallback;
