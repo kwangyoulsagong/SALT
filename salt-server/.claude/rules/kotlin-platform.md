@@ -60,7 +60,7 @@ salt-platform/
 
 | 뜻 (Express 규칙) | Kotlin 에서 |
 |---|---|
-| 금액은 `Money` VO, 중간 반올림 금지 · 응답 직전 1회(`ddd-shared.md` §3) | `Money`(불변 클래스 — value class 는 값 하나만 들어서. `BigDecimal` + 통화, 같음 = `compareTo`). `Double` 금액 0 · `toKrwInteger()` 는 `api` 층에서만(ArchUnit). **예외 하나 — 사람이 원 단위로 내는 계획 금액**(월 적립 올림 · 대출 분할 상환)은 도메인이 최종값으로 정한다: 중간값이 아니라 결과다. 반올림은 그 값 하나에 한 번, 합 불변식(나눈 합 = 총액)을 테스트로(저축 `SavingsMath` · `EmergencyComparison`, 2026-11-03) |
+| 금액은 `Money` VO, 중간 반올림 금지 · 응답 직전 1회(`ddd-shared.md` §3) | `Money`(불변 클래스 — value class 는 값 하나만 들어서. `BigDecimal` + 통화, 같음 = `compareTo`). `Double` 금액 0 · `toKrwInteger()` 는 `api` 층에서만(ArchUnit). **예외 하나 — 사람이 원 단위로 내는 계획 금액**(월 적립 올림 · 대출 분할 상환)은 도메인이 최종값으로 정한다: 중간값이 아니라 결과다. 반올림은 그 값 하나에 한 번, 합 불변식(나눈 합 = 총액)을 테스트로(저축 `SavingsMath` · `EmergencyComparison`, 2026-11-03). 계산 정밀도 한참 아래 자리에서 꼬리 오차를 지우는 정리(`EmergencyComparison` 60자리 계산 · 30자리 정리)는 금액 반올림으로 세지 않는다 — 정확히 X.5원이 X.4999… 로 내려가는 것을 막는 자리다 |
 | `DomainError` + `ErrorKind` 7값, 매핑은 미들웨어 한 곳(`ddd-shared.md` §2) | `abstract class DomainError(code, kind, message, details)`(sealed 는 다른 모듈이 상속 못 한다) + `support/web` `ErrorBodyAdvice` 하나. 값 · HTTP 매핑 · 바디 순서가 Express 와 같다(골든) |
 | 응답 envelope · 에러 바디(`api-contract.md`) | 같은 모양 · **늘 JSON**. 없는 경로 · 틀린 메서드는 토큰이 없어도 404(Express 는 인증이 경로마다라서). 골든 JSON 이 비교한다(`msa-services.md` §6) |
 | 유스케이스 = 동사 클래스 하나(`ddd-application.md` §1) | 같다. `class RecordExpense(…) { fun execute(cmd): … }` |
