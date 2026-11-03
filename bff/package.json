@@ -12,7 +12,9 @@
     "test": "node --import tsx --test \"src/**/__tests__/*.test.ts\"",
     "start:rest": "node dist/rest/server.js",
     "start:ws": "node dist/websocket/server.js",
-    "start:worker": "node dist/workers/price-updater.worker.js"
+    "start:worker": "node dist/workers/price-updater.worker.js",
+    "shadow:report": "tsx src/services/server-routing/cli.ts shadow-report",
+    "golden:replay": "tsx src/services/server-routing/cli.ts golden-replay"
   },
   "keywords": [],
   "author": "",

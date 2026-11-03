@@ -3,3 +3,6 @@ dist
 # Keep environment variables out of version control
 .env
 
+
+# 그림자 비교 기록 · 골든 녹화(BFF-REQ-045) — 로컬 산출물
+var/

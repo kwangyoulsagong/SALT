@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 import { env } from "../config/env";
 import { logger } from "../config/logger";
+import { afterServerResponse, beforeServerRequest } from "./server-routing";
 
 class BackendApiService {
   private client: AxiosInstance;
@@ -11,9 +12,10 @@ class BackendApiService {
       timeout: 10000,
     });
 
-    // 요청 인터셉터
+    // 요청 인터셉터 — 서버 주소는 라우팅 표가 정한다(legacy | platform | shadow, `BFF-REQ-045`) · 추적 ID 를 싣는다
     this.client.interceptors.request.use(
       (config) => {
+        beforeServerRequest(config);
         logger.debug(
           `Backend API Request: ${config.method?.toUpperCase()} ${config.url}`
         );
@@ -28,9 +30,11 @@ class BackendApiService {
     // 응답 인터셉터
     this.client.interceptors.response.use(
       (response) => {
+        afterServerResponse(response.config, response);
         return response;
       },
       (error) => {
+        afterServerResponse(error.config, error.response);
         // 서버 4xx 는 요청이 틀린 것이라 warn, 5xx · 응답 없음(연결 · 타임아웃)만 error.
         // 두 번째 인자는 객체여야 한다 — 문자열을 주면 winston 이 원인을 버린다(2026-10-28)
         const status: number | undefined = error.response?.status;
