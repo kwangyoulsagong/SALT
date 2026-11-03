@@ -20,3 +20,8 @@
 
 - `c82be47c` — `projection_issued` 를 화면이 읽지 않는다(채점 보관용만). 표 · 열 변경 0
 - 검증: Kotlin 종단 10(대소문자 중복 400 · 목록 = 상세 구간 · exists) · 도메인 19 · 경계 8 · 플랫폼 14 · 서버 936 · BFF 351 · 모노레포 check-types · lint · test · web-savings 빌드 · 훅 사후 · 실스택(프로브 done true/false)
+
+## 2026-11-03 — MONEY-S1a 대조 빈칸(파일에 함께 적힌 REQ)
+
+- `b1c8ad67` — 종단 테스트가 이 REQ 를 머리에 적는다: `progressRatio` 단언 추가(저장 모양 무변경)
+- 확인: 해당 영역 전체 테스트 · 빌드(루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`)

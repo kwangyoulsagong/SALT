@@ -30,3 +30,8 @@
 
 - 코드 리뷰 10건 중 9건(①~⑨) `c82be47c`. FR-5 정정: ~~발행 기록을 화면이 읽는다~~ 조회는 늘 지금 기준 재계산 · 응답 `projection.issuedAt` 제거. 경로 하나 추가 `GET /api/savings/goals/exists`
 - 검증: Kotlin 종단 10(대소문자 중복 400 · 목록 = 상세 구간 · exists) · 도메인 19 · 경계 8 · 플랫폼 14 · 서버 936 · BFF 351 · 모노레포 check-types · lint · test · web-savings 빌드 · 훅 사후 · 실스택(프로브 done true/false)
+
+## 2026-11-03 — MONEY-S1a 대조 빈칸(파일에 함께 적힌 REQ)
+
+- `c60f5bfb` — 웹 만들기 · 적립 요청 타입이 서버 DTO 이름을 따른다. 서버 무변경
+- 확인: 해당 영역 전체 테스트 · 빌드(루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`)

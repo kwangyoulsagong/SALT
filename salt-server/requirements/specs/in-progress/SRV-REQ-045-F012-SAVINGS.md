@@ -78,3 +78,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | **in-progress** — S1a(`e83f7f80` Kotlin `savings` 첫 판 · `1ec3b0c6` 온보딩 프로브 · `b1c8ad67` `progressRatio` · `8d05a006` 상시 실행). FR-1 정정(은퇴 + 가져오기) · FR-3 · 4 · 5 · 8 · 9 · 15 · 19 done, FR-2 · 6 · 18 부분. 수용 기준 4/4 |
 | 2026-11-03 | FR-5 보강 `2c998117` — 구간 계산 실패는 그 칸만 `degraded` + 계획대로면 X월(발행하지 않음). 도메인 테스트 +2 |
 | 2026-11-03 | 코드 리뷰 10건 중 9건(①~⑨) `c82be47c`. FR-5 정정: ~~발행 기록을 화면이 읽는다~~ 조회는 늘 지금 기준 재계산 · 응답 `projection.issuedAt` 제거. 경로 하나 추가 `GET /api/savings/goals/exists` |
+| 2026-11-03 | MONEY-S1a — `c60f5bfb` — 웹 만들기 · 적립 요청 타입이 서버 DTO 이름을 따른다. 서버 무변경 |

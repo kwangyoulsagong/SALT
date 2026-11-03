@@ -61,3 +61,4 @@ DDL 주인은 Flyway(`services/savings/infrastructure/src/main/resources/db/migr
 | 2026-11-03 | **in-progress** — S1a `e83f7f80`: Flyway V1 savings(FR-1 · 2 · 3 · 10) · 가져오기/되돌리기 SQL(FR-11) · 로컬 운영 DB 적용. 수용 기준 3/3. 열 2개 추가(`annual_rate` · `imported_balance` source) |
 | 2026-11-03 | `2c998117` 이 이 REQ 에 걸렸다(구간 파일 머리) — 저장 모양 변경 0: 실패한 구간은 `projection_issued` 에 쓰지 않는다 |
 | 2026-11-03 | `c82be47c` — `projection_issued` 를 화면이 읽지 않는다(채점 보관용만). 표 · 열 변경 0 |
+| 2026-11-03 | MONEY-S1a — `b1c8ad67` — 종단 테스트가 이 REQ 를 머리에 적는다: `progressRatio` 단언 추가(저장 모양 무변경) |

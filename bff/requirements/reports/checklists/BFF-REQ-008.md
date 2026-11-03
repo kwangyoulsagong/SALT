@@ -110,3 +110,8 @@
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+## 2026-11-03 — MONEY-S1a 대조 빈칸(파일에 함께 적힌 REQ)
+
+- `3e5e0d42` — `gone.middleware.ts`(동면 410, 이 REQ FR-11)에 은퇴 목록 `RETIRED_PATHS` 를 더했다. 동면 경로 동작 · 테스트 무변경
+- 확인: 해당 영역 전체 테스트 · 빌드(루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`)

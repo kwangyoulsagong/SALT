@@ -47,3 +47,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-045-F012-SAVINGS.md
 | 2026-11-03 | **in-progress** — S1a `3e5e0d42`(BREAKING `/api/goals*` 410) · `b1c8ad67`(`progressRatio`). FR-1 · 2 · 5 · 7 · 8 done, FR-3 부분. 수용 기준 1/2 |
 | 2026-11-03 | 수용 기준 2 닫음(`2c998117` — 구간 실패 → `degraded` + 계획값). 2/2 |
 | 2026-11-03 | `c82be47c` — 계약: `projection.issuedAt` 제거 · 이정표 상태 `reached` 추가(BFF 타입). 전달만 |
+| 2026-11-03 | MONEY-S1a — `c60f5bfb` — 웹 `domain-savings` 의 조회 · 타입 파일이 이 계약(`/api/app/savings/*` 뷰모델)을 소비한다. BFF 무변경 |

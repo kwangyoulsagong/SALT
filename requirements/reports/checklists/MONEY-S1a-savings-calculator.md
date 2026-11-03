@@ -47,3 +47,10 @@
 
 - ① `monthsToReach` Int 넘침(30억/월 1원 → 1달) ② · ③ · ④ 화면이 발행 기록을 읽어 `degraded` 가 가려지고 · 지난 달이 도달 시점으로 남고 · 목록과 상세가 갈림 → 조회는 늘 지금 기준 재계산(발행은 채점 보관용) ⑤ 월 적립 + 지난 기한 저장 ⑥ 나눠 넣기 대소문자 중복 · 문자열 잠금 순서 ⑦ 다 찬 목표에 '적게 넣었어요' → `reached` ⑧ 상세가 사용자 전체를 훑음 → `totalsFor` ⑨ 온보딩 프로브가 홈 카드 조립을 빌림 → `GET /goals/exists` ⑩ '원' 4곳 → `formatWon`
 - 검증: Kotlin 종단 10(대소문자 중복 400 · 목록 = 상세 구간 · exists) · 도메인 19 · 경계 8 · 플랫폼 14 · 서버 936 · BFF 351 · 모노레포 check-types · lint · test · web-savings 빌드 · 훅 사후 · 실스택(프로브 done true/false)
+
+## 2026-11-03 — 최종 HEAD 대조(사용자 "다한거지 파이프라인 다하고 버그 없고 검증 다하고")
+
+- (A) 커밋 × REQ(주인 + 함께 적힌 REQ) 대조 — 빈칸 5쌍 발견 · 채움(`FE-REQ-054` · `DB-REQ-037` · `BFF-REQ-047` · `SRV-REQ-045` · `BFF-REQ-008`). 재대조 0
+- (B) 상태 = 폴더: 4 REQ in-progress · 마스터 인덱스 상태표 일치
+- (C) 낡은 문장: `SRV-REQ-008` 스펙 · 체크리스트의 "프로브 → `home-card`" 를 그 자리에서 정정(`goals/exists`)
+- Kotlin `./gradlew check` 60 통과(최종 HEAD) · 실화면 재측정(만들기 → 상세 → 적립 · 4폭 넘침 0 · 오류 0) · 다 찬 목표 실스택 `completed 100 · reached · difference null` · 임시 데이터 삭제 · 트리거 다시 켬
