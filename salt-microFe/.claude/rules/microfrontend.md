@@ -84,7 +84,7 @@ zone 을 넘는 이동은 문서 이동이다. 하단 탭이 가장 잦은 zone 
 | 첫 화면 숫자 서버 렌더 | 캐시가 비어도 숫자가 HTML 에 — 가격 깜빡임 금지 유지 | — |
 | 공용 청크 같은 해시(`packages/config-next` 프리셋 하나) | React · 디자인 시스템 캐시 공유 | zone 별 설정이 같아야 · **URL 이 같아야 캐시가 겹친다** — 지금은 assetPrefix 가 달라 따로(2026-11-03 실측: 같은 해시 9개) |
 
-- 셸 → 도메인 탭 전환 시간 · prerender 적중률을 브라우저별로 잰다(`FE-REQ-054` FR-6) — `performance.mark("salt:zone-nav")`. **prerender 는 자동화 브라우저(DevTools 프로토콜이 붙은 Chrome)에서 꺼진다** — 적중은 사람이 평소 Chrome 에서 본다
+- 셸 → 도메인 탭 전환 시간 · prerender 적중률을 브라우저별로 잰다(`FE-REQ-054` FR-6) — `performance.mark("salt:zone-nav")`. **DevTools 세션이 붙어 있는 동안 시작되는 prerender 는 꺼진다**(`PrerenderingDisabledByDevTools` — Playwright 도 마찬가지). 재는 법: 순수 CDP 로 포인터를 올린 뒤 세션을 끊고 기다렸다 다시 붙어 누른다(`FE-REQ-054` 체크리스트 §2). 2026-11-03 운영 빌드 적중 10/10
 - 첫 화면이 없는 도메인 탭은 보이되 눌리지 않는다(`@repo/core/navigation` `readyBy`) — 없는 경로로 보내 404 를 보이지 않는다
 
 ## 6. Server Actions

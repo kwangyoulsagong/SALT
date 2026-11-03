@@ -2,7 +2,7 @@
 
 스펙: `salt-microFe/requirements/specs/in-progress/FE-REQ-054-F015-APP-NAVIGATION.md` · 2026-11-03
 브랜치: `feat/fe-req-054-app-navigation` (base `main` `b822df43`) · 루트 슬라이스 `requirements/specs/in-progress/MONEY-F2-app-navigation-slice.md`
-커밋: `1c4c3ee9` · `5a86dafa` · `e0bce695` · `7b8b1110` · `4c234835` · `f6587a53`(기존 결함)
+커밋: `1c4c3ee9` · `5a86dafa` · `e0bce695` · `7b8b1110` · `4c234835` · `f6587a53`(기존 결함) · `423e3e9e`(저축 아이콘 동전) · `168b0c65`(계측 결함)
 
 ## 1. FR ↔ 구현
 
@@ -10,10 +10,10 @@
 |---|---|---|
 | FR-1 탭 4 · 레일 | `@repo/ui/app-navigation` `AppNavigation`(레일 72 · 1024+ / 하단 탭 56 · 768~1023 / 머리 52) · `AppNavigationIcon`(면 채운 단색 글리프 4) · 탭 한 벌 `@repo/core/navigation` `APP_TABS`(순서 · 이름 · 아이콘 이름 · zone · 첫 화면 · `readyBy`). 저축 · 가계부 비활성(`FE-REQ-056` · `057`) | ✅ |
 | FR-2 링크 · 판정 | `ZoneNavigation` — `activeAppTab`(레지스트리 zone) · `isCrossZonePath(href, ZONE_APP)` → `<a>` / `next/link` | ✅ |
-| FR-3 prerender | `prerenderRules.ts` 문서 규칙(`[data-prerender-tab]:not([aria-current])`, `moderate`) · `SpeculationRules` 마운트 뒤 · 표지 쿠키 있을 때만 · 미지원이면 아무것도 안 함 | ✅ 규칙 · 🟡 적중 미검증 |
+| FR-3 prerender | `prerenderRules.ts` 문서 규칙(`[data-prerender-tab]:not([aria-current])`, `moderate`) · `SpeculationRules` 마운트 뒤 · 표지 쿠키 있을 때만 · 미지원이면 아무것도 안 함 | ✅ 적중 10/10 |
 | FR-4 문서 간 전환 | `VIEW_TRANSITION_CSS`(`@view-transition` + 줄인 모션 끔) — 셸 · 투자 zone `<head>`. 레일 · 하단 탭 · 머리 `view-transition-name` | ✅ |
 | FR-5 공용 프리셋 | `packages/config-next` `zoneNextConfig` — zone 5 `next.config.js` | 🟡 해시 같음 · 캐시 공유 없음 |
-| FR-6 계측 | `@repo/core/navigation` `buildZoneNavigationMetric`(테스트) · `zoneNavigationMetrics.ts` `performance.mark("salt:zone-nav")` | ✅ (수집처 없음) |
+| FR-6 계측 | `@repo/core/navigation` `buildZoneNavigationMetric`(테스트) · `zoneNavigationMetrics.ts` `performance.mark("salt:zone-nav")` — prerender 도착은 활성화 뒤 읽기(`168b0c65`) | ✅ (수집처 없음) |
 | FR-7 도메인 색 | `tokens.colors.domain` 5 — 추가 11 · 삭제 0. 탭에는 쓰지 않는다(정정) | ✅ |
 
 ## 2. 검증 (실행한 것만, 최종 HEAD `f6587a53`)
@@ -32,7 +32,11 @@
 | 실화면 배치(Chromium, 5화면 × 800 · 1024 · 1280 · 1440 · 1600) | 넘침 0/25 · 레일 72 / 하단 탭 / 머리 52 전환 · 지금 탭(홈 · 투자 · 설정 = 없음) · 프로필 머리 한 자리 |
 | 앱 웹뷰(390, UA `SALTApp/`) | 레일 · 하단 탭 · 머리 모두 숨김 · 넘침 0 |
 | 문서 간 전환 | `pagereveal.viewTransition` 있음 3/3 · 줄인 모션 0/3 |
-| prerender | 규칙 붙음(셸 · 투자) · Chrome 이 시도(CDP `Preload`) — **적중은 `PrerenderingDisabledByDevTools`** 로 자동화에서 막힘(헤드리스 셸 · 풀 Chromium · 직접 띄운 Chromium + CDP 셋 다) |
+| prerender 원인 가르기 | Playwright · CDP 세션이 붙은 채 시작된 prerender 는 `PrerenderingDisabledByDevTools`. 대조 정적 페이지: 붙기 전 시작한 즉시 규칙은 적중 · 붙은 뒤 moderate 는 0 → **우리 코드 문제 아님**. 재는 법: 순수 CDP 로 포인터 올림 → 세션 끊기 → 3초 → 다시 붙어 누름 |
+| prerender 적중(운영 빌드 `next start` 두 zone) | 셸 → 투자 5/5 · 투자 → 셸 5/5. 누름 → 보임 중앙 0 · 1 ms. 미적중(바로 누름) 0/10 · 중앙 101 · 145 ms. 계측 10/10 `prerendered: true` |
+| **결함(이번 변경)** | 수정 전 적중 4/4 인데 계측 0/4 — prerender 문서가 누르기 전에 마운트돼 표지가 없었다. `168b0c65` 뒤 10/10 |
+| 전환 녹화(screencast, 1440) | prerender · 일반 · 되돌아가기 3경로 354프레임 — 레일 진한 픽셀 359~443(빈 프레임 0) · 머리 1079 이상 · 화면 밝기 245~250.6(흰 번쩍임 0) |
+| 공용 청크 재다운로드(캐시 비운 뒤 셸 → 투자) | 같은 이름 청크 5개 · 117 KB 를 `/investment-static/…` 에서 다시 받음 — 해시는 같지만 캐시 공유 없음 |
 | WebKit(Safari 엔진, 800 · 1280 왕복 4) | 일반 이동 · 페이지 오류 0 · 넘침 0 · 규칙 안 붙음 · 계측 `browser: "safari"` |
 | 이동 계측(dev, 임시 사용자) | Chromium 185~945 ms · WebKit 111~385 ms(dev 서버 · 한 번씩 — 판정용 아님) |
 | 기준 레일 실측(1440, 계산 스타일) | 칸 42×58 · 판 32 · 모서리 8 · 아이콘 16 · 미선택 `#B0B8C1` · 선택 판 `rgba(7,25,76,.04)` + 0.75px 안쪽 선 · 라벨 12/500 `rgba(18,31,51,.47)` → 레일에 반영(`4c234835`) |
@@ -43,9 +47,6 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| Chromium prerender **적중**(수용 기준 1) | DevTools 프로토콜이 붙은 브라우저는 prerender 를 끈다 — 자동화로 볼 수 없다 | 사람이 평소 Chrome 에서 DevTools → Application → Speculative loads 로 확인(`QA-001`) |
-| 전환 중 탭 · 머리 깜빡임 녹화(수용 기준 3) | 녹화는 사람 확인 | `QA-001` |
-| 공용 청크 캐시 공유 | 해시는 같지만 assetPrefix 가 달라 URL 이 다르다 | 한 origin 라우팅이 공용 청크를 한 경로로(`OPS-001` · `ADR-008`) |
+| 공용 청크 캐시 공유 | 해시는 같지만 assetPrefix 가 달라 URL 이 다르다(5개 · 117 KB 재다운로드). `ADR-005` 규칙 7 개정 + 배포 정적 저장소 통합이 필요 — 사용자 결정 대기 | `ADR-005` 개정 · `OPS-001` |
 | 계측 수집처 | 관측성 배포가 없다 | 배포 환경 확정 시(`OPS-001`) |
 | 빈 zone 3 의 내비 · 전환 | 화면이 없다(탭 비활성) | `FE-REQ-056` · `057` · `058` |
-| 운영 빌드 이동 시간 | dev 수치만 | 배포 환경 확정 시 |

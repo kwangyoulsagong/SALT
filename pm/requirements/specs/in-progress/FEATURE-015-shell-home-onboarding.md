@@ -35,7 +35,7 @@
 | FR-5 | 개인정보 범위: 결제 문자 원문 미보관 · 민감 정보 분류 · LLM 전송 필드 공개 | Must | Draft |
 | FR-6 | 도메인 사용 계측(주간 활성 · 재개율 · 카드 클릭, 금액 제외) | Should | Draft |
 | FR-7 | 도메인 색 토큰 추가(기존 색 변경 없음) | Should | Draft |
-| FR-8 | 하단 탭 · 헤더 ~~`AppChrome`~~ **`AppNavigation`**(이름 정정 2026-11-03) 공용 컴포넌트 + zone 간 미리 렌더 · 문서 간 전환 | Must | **In progress** 2026-11-03 — 레일 · 하단 탭 · 머리 · prerender 규칙 · 전환 · 계측(`FE-REQ-054`). prerender 적중 사람 확인 · 공용 청크 캐시 공유(`OPS-001`) 남음 |
+| FR-8 | 하단 탭 · 헤더 ~~`AppChrome`~~ **`AppNavigation`**(이름 정정 2026-11-03) 공용 컴포넌트 + zone 간 미리 렌더 · 문서 간 전환 | Must | **In progress** 2026-11-03 — 레일 · 하단 탭 · 머리 · prerender 규칙 · 전환 · 계측(`FE-REQ-054`). ~~prerender 적중 사람 확인~~ **2026-11-03 확인 — 운영 빌드 prerender 적중 10/10 · 이동 중앙 0~1ms(미적중 101 · 145ms) · 녹화 깜빡임 0** · 공용 청크 캐시 공유(`OPS-001`) · 계측 수집처 남음 |
 
 ## 비기능 요구사항
 
