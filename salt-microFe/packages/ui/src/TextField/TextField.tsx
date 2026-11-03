@@ -81,7 +81,8 @@ export const TextField = ({
       </div>
 
       {message ? (
-        <p id={messageId} className={messageStyles({ tone: error ? "error" : "help" })}>
+        // 오류는 바뀔 때 읽어 준다 — 숫자 칸이 거절 안내를 칸 아래로 옮기며 낭독기가 못 듣게 됐다(저축 리뷰 12차)
+        <p id={messageId} className={messageStyles({ tone: error ? "error" : "help" })} aria-live={error ? "polite" : undefined}>
           {message}
         </p>
       ) : null}
