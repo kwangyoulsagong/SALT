@@ -73,3 +73,4 @@ DDL 주인은 Flyway(`services/savings/infrastructure/src/main/resources/db/migr
 | 2026-11-03 | `d69c310e` — FR-11: public `goals` · `saving_transactions` drop 마이그레이션(DDL 주인이 Flyway 하나로). 덤프 `~/salt-backups/2026-11-03-public-goals-before-drop.dump` 복원 시험 통과. 로컬 적용은 사용자 실행 |
 | 2026-11-03 | 로컬 DB 에 `20261103120000_drop_legacy_goals` 적용(사용자 허용) — `public.goals` · `saving_transactions` 없음, `savings.goal` 그대로 |
 | 2026-11-03 | MONEY-S1b — `9a435627` FR-5 V2 `item_unit`(로컬 운영 DB 적용) · FR-6 · 7 정정(표 없음 — 적립 · 목표에서 계산). `34815177` 단위 조회 셋에 `user_id` 조건(인덱스 앞 열) |
+| 2026-11-03 | MONEY-S1b — `item_unit` 실행 계획 확인(1만 8천 행 · 세 조회 모두 인덱스 · 롤백). 저장 모양 무변경 |

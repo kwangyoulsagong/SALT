@@ -67,7 +67,7 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 |---|---|---|
 | FR-7 | done — `POST /api/savings/simulate`(저장 없음 · 진행 중 목표만 · 바꾸지 않은 목표도 행으로 · 합계 전후) + 확정 `PUT /api/savings/goals/plans`(스펙 API 목록 밖 — "확정할 때만 저장" 자리, 잠금 UUID 순 · 바뀐 목표마다 구간 재발행). 모형: 표본마다 Δ(판단 1). 기한 목표는 막지 않고 `afterMeetsDeadline` · `planMeetsDeadline` 사실(리뷰) | `Simulation` · `SimulateBalance` · `UpdateMonthlyPlans` |
 | FR-11 | done — 건너뛴 달 수 · 계획 도달 이동 **달**(~~일수~~ **정정 2026-11-03**: 구간이 달 단위). 만든 달은 넣었을 때만 센다(리뷰). 멈춘 기간은 이력이 없어 못 뺀다 — 멈춤 경로가 아직 없다 | `MissedMonths` |
-| FR-12 | done — `POST /api/savings/goals/:id/emergency-compare`: 꺼내기(계획 도달 이동 달 · 모은 돈 이하) vs 원리금 균등(상환 원 단위 올림 · 이자 = 올린 상환 × n − 원금) + 가정 키 `loan_paid_outside_goal`. 범위는 도메인 사유 코드(`EMERGENCY_*`) | `EmergencyComparison` · `CompareEmergency` |
+| FR-12 | done — `POST /api/savings/goals/:id/emergency-compare`: 꺼내기(계획 도달 이동 달 · 모은 돈 이하) vs 원리금 균등(상환 원 단위 올림 · ~~이자 = 올린 상환 × n − 원금~~ **정정 `4fda31db`: 이자 = 정확값 · `lastPayment` 가 차액, 작은 금액은 `EMERGENCY_AMOUNT_TOO_SMALL`**) + 가정 키 `loan_paid_outside_goal`. 범위는 도메인 사유 코드(`EMERGENCY_*`) | `EmergencyComparison` · `CompareEmergency` |
 | FR-16 | 부분 — 장면 단계(템플릿 5종 · 10칸 내림) · 실물 환산(사용자 단위 · 목표당 3 · 내림, `POST/DELETE /goals/:id/units`) · 도장(1 + 직접 넣은 적립) · 엽서(걸린 일수 · 적립 횟수). **템플릿 단위 · 엽서 사진은 뒤** | `Fun.kt` · `AddItemUnit` · `DeleteItemUnit` |
 | FR-19 | done(유지) — 목록 쿼리 **3회**(목표 · 집계+월별 한 문장 · 단위). 단위를 붙이며 4회가 됐다가 `overviewByGoal` 로 되돌림 · 홈 카드는 단위를 읽지 않는다(2회 + 목표) | `SavingsEndToEndTest` |
 | FR-10 · 13 · 14 · 17 · FR-6 채점 | 범위 밖 — 물가 원천 · `content` S2 · identity S3 · 가계부 S1 · `FC-REQ-024` | 루트 슬라이스 범위 밖 |
@@ -95,3 +95,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | `d69c310e` — FR-1 ⑦: 옛 Express goals 모듈 · Prisma 모델 삭제 + 표 drop 마이그레이션(덤프 · 복원 시험). 남은 호출 0 을 직접 확인(코드 grep · BFF 410 로그)해 1주 관찰을 당겼다. **로컬 DB 적용(`prisma migrate deploy`)은 권한에서 막혀 사용자 실행** |
 | 2026-11-03 | 로컬 DB 에 `20261103120000_drop_legacy_goals` 적용(사용자 허용) — `public.goals` · `saving_transactions` 없음, `savings.goal` 그대로 |
 | 2026-11-03 | MONEY-S1b — `9a435627` FR-7 · 11 · 12 done · FR-16 부분 · 경로 4(확정 · 비상시 · 단위 둘) · Flyway V2. `34815177` 리뷰(high) 서버 몫 8건: 기한 판정 · 비상시 사유 코드 · 상환 이자 일치 · 만든 달 · 잠근 뒤 읽기 · 단위 쿼리 user_id · 홈 카드 단위 안 읽음 · 집계 세 벌 → 두 벌. FR-11 "일수" → 달 정정. FR-19 3회 유지 |
+| 2026-11-03 | MONEY-S1b 셸 경유 실측 — `4fda31db` FR-12: 금리 0% 에 이자 8원(리뷰 수정의 부작용) → 이자 정확값 · `lastPayment` · 작은 금액 사유 코드. 도메인 테스트 +3 단언 · 종단 `lastPayment` |
