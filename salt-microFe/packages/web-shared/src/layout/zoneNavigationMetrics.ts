@@ -27,8 +27,22 @@ const report = (metric: ZoneNavigationMetric): void => {
   if (process.env.NODE_ENV !== "production") console.info(ZONE_NAV_MARK, metric);
 };
 
-/** 도착한 문서가 마운트 뒤 한 번 — 표지를 읽고 지운다 */
+/**
+ * 도착한 문서가 마운트 뒤 한 번 — 표지를 읽고 지운다.
+ *
+ * **prerender 된 문서는 탭을 누르기 전에 마운트된다**(2026-11-03 실측 — 4/4 적중인데 계측이 전부 비었다). 그때는 아직 누른 시각이
+ * 없으므로 활성화(`prerenderingchange`)까지 기다렸다 읽는다. 활성화 뒤의 `sessionStorage` 는 탭의 것이다.
+ */
 export const readZoneNavigationMetric = (currentZone: string): void => {
+  const doc = document as Document & { prerendering?: boolean };
+  if (doc.prerendering) {
+    doc.addEventListener("prerenderingchange", () => readNow(currentZone), { once: true });
+    return;
+  }
+  readNow(currentZone);
+};
+
+const readNow = (currentZone: string): void => {
   let raw: string | null = null;
   try {
     raw = sessionStorage.getItem(ZONE_NAV_STORAGE_KEY);
