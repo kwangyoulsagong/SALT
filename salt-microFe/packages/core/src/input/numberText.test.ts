@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { groupDigits, numberToInputText, readNumberText } from "./numberText";
+import { groupDigits, numberTextRejection, numberToInputText, readNumberText } from "./numberText";
 
 /**
  * 금액 · 비율 · 개수 입력 허용표(저축 리뷰 3~9차에서 나온 경계 전부). **조용히 지우고 이어 붙이는 경로가 0** 이어야 한다 —
@@ -78,11 +78,12 @@ describe("readNumberText — price(소수 있는 금액 · 수량 — 코인 가
     ["12.", "12."],
     ["１２．５", "12.5"],
     ["  99.9  ", "99.9"],
+    ["1234567.12345678", "1,234,567.12345678"], // 유효 숫자 15자리 — Number 가 정확히 든다
   ])("받는다 %j → %j", (raw, shown) => {
     expect(readNumberText(raw, "price")).toBe(shown);
   });
 
-  it.each(["1000·5", "1000 5", "1.2.3", "1000²", "abc", "-1", "1,000.5원", "1.123456789", "1234567890123456.5"])("거절한다 %j", (raw) => {
+  it.each(["1000·5", "1000 5", "1.2.3", "1000²", "abc", "-1", "1,000.5원", "1.123456789", "1234567890123456.5", "123456789012345.12345678", "12345678.12345678"])("거절한다 %j", (raw) => {
     expect(readNumberText(raw, "price")).toBeNull();
   });
 });
@@ -127,5 +128,24 @@ describe("numberToInputText — 코드가 넣는 숫자(현재가 · 칩)를 입
 
   it("규칙 밖이면 빈칸 — 소수 금액을 원 칸에", () => {
     expect(numberToInputText(1.5, "won")).toBe("");
+  });
+
+  it("8자리 아래로 반올림해 0 이 되는 양수는 빈칸 — 0 을 넣지 않는다(현재가 3e-9)", () => {
+    expect(numberToInputText(3e-9, "price")).toBe("");
+    expect(numberToInputText(0, "price")).toBe("0");
+  });
+});
+
+describe("numberTextRejection — 왜 못 받았나(안내 문구를 고른다)", () => {
+  it.each([
+    ["50000", "won", null],
+    ["1000·5", "won", "chars"],
+    ["1000000000000000", "won", "length"], // 숫자만 쳤는데 16자리 — "숫자만 적어 주세요"는 틀린 안내
+    ["1.123456789", "price", "length"],
+    ["123456789012345.1", "price", "length"],
+    ["3,5", "decimal", "chars"],
+    ["1234", "count", null],
+  ] as const)("%j (%s) → %j", (raw, kind, reason) => {
+    expect(numberTextRejection(raw, kind)).toBe(reason);
   });
 });
