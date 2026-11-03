@@ -66,6 +66,7 @@
         "reached",
         "slow_side_open",
         "no_plan",
+        "not_reachable",
         null
       ]
     },

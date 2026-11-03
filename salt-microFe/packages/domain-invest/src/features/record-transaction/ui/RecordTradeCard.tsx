@@ -11,7 +11,7 @@ import { useEffect, useId, useMemo, useState, type FormEvent } from "react";
 
 import { CoachDisclosure, SizeCheckLines, TradeBehaviorLines } from "@/entities/coach";
 import { useHasAccessToken } from "@repo/web-shared/api";
-import { formatAmountInput, formatPrice, parseAmountInput, todayInKorea, toTransactionDate, useDebouncedValue } from "@repo/web-shared/lib";
+import { formatPrice, parseAmountInput, useNumberFields, todayInKorea, toTransactionDate, useDebouncedValue } from "@repo/web-shared/lib";
 
 import { useRecordTrade, useSizeCheck } from "../api";
 import { RECORD_TRANSACTION_MESSAGES as MSG } from "../model";
@@ -88,12 +88,15 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
   const ids = { quantity: useId(), price: useId(), date: useId(), stop: useId(), thesis: useId(), plan: useId() };
 
   const [side, setSide] = useState<TradeSide>("buy");
-  const [quantity, setQuantity] = useState("");
-  const [price, setPrice] = useState("");
   const [today, setToday] = useState("");
   const [date, setDate] = useState("");
   const [planOpen, setPlanOpen] = useState(false);
-  const [stopPrice, setStopPrice] = useState("");
+  // 수량 · 가격 · 손절 — 값과 안내를 한 덩어리로(`useNumberFields`). 현재가 버튼 · 기록 뒤 비우기도 같은 규칙을 지나 안내가 남지 않는다.
+  // 받을 수 없는 글자(전각 점 · 가운뎃점 · 공백)는 값을 두고 칸 아래 안내. 1.2e-7 같은 현재가가 "1.27" 로 바뀌지 않는다(리뷰 11차)
+  const nums = useNumberFields({ quantity: "price", price: "price", stop: "price" });
+  const quantity = nums.value("quantity");
+  const price = nums.value("price");
+  const stopPrice = nums.value("stop");
   const [thesis, setThesis] = useState("");
   // 진입 전 체크(FR-30) — 매수 · 계획 안에서만. 펼쳤을 때 보인 질문과 체크를 계획에 기록한다
   const [checklistOpen, setChecklistOpen] = useState(false);
@@ -147,8 +150,7 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
     };
   };
   const resetPlan = () => {
-    setQuantity("");
-    setStopPrice("");
+    nums.reset(["quantity", "stop"]);
     setThesis("");
     setPremortem("");
     setCheckedTags([]);
@@ -169,6 +171,8 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
     event.preventDefault();
     setTouched(true);
     setNotice(null);
+    // 접힌 계획 안 손절가가 막으면 펼쳐서 그 칸 안내를 보인다 — 말없이 막히지 않게
+    if (stopInvalid) setPlanOpen(true);
     if (parsed.quantity === null || parsed.price === null || stopInvalid) return;
 
     const trimmedThesis = thesis.trim();
@@ -282,9 +286,9 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
             inputMode="decimal"
             autoComplete="off"
             value={quantity}
-            onChange={(value) => setQuantity(formatAmountInput(value))}
+            onChange={(value) => nums.change("quantity", value)}
             trailing={<span className={unit}>{assetType === "kr_stock" ? MSG.krStock.quantityUnit : MSG.quantityUnit}</span>}
-            error={amountInvalid && parsed.quantity === null ? MSG.errors.invalidAmount : undefined}
+            error={nums.message("quantity") ?? (amountInvalid && parsed.quantity === null ? MSG.errors.invalidAmount : undefined)}
           />
 
           <label className={label} htmlFor={ids.price}>
@@ -297,16 +301,16 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
               inputMode="decimal"
               autoComplete="off"
               value={price}
-              onChange={(value) => setPrice(formatAmountInput(value))}
+              onChange={(value) => nums.change("price", value)}
               trailing={<span className={unit}>{MSG.priceUnit}</span>}
-              error={amountInvalid && parsed.price === null ? MSG.errors.invalidAmount : undefined}
+              error={nums.message("price") ?? (amountInvalid && parsed.price === null ? MSG.errors.invalidAmount : undefined)}
             />
             <button
               type="button"
               className={weakButton}
               aria-label={MSG.useLivePriceLabel}
               disabled={livePrice === null}
-              onClick={() => livePrice !== null && setPrice(formatAmountInput(String(livePrice)))}
+              onClick={() => livePrice !== null && nums.setNumber("price", livePrice)}
             >
               {MSG.useLivePrice}
             </button>
@@ -333,7 +337,11 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
               className={planToggle}
               aria-expanded={planOpen}
               aria-controls={ids.plan}
-              onClick={() => setPlanOpen((open) => !open)}
+              onClick={() => {
+                // 접으면 손절 칸이 숨는다 — 그 칸 안내도 지운다
+                if (planOpen) nums.dismiss("stop");
+                setPlanOpen((open) => !open);
+              }}
             >
               {MSG.planToggle}
               <ChevronDown size={16} className={planOpen ? chevronOpen : chevron} aria-hidden="true" />
@@ -352,9 +360,9 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
                   inputMode="decimal"
                   autoComplete="off"
                   value={stopPrice}
-                  onChange={(value) => setStopPrice(formatAmountInput(value))}
+                  onChange={(value) => nums.change("stop", value)}
                   trailing={<span className={unit}>{MSG.priceUnit}</span>}
-                  error={stopInvalid ? MSG.errors.invalidStop : undefined}
+                  error={nums.message("stop") ?? (stopInvalid ? MSG.errors.invalidStop : undefined)}
                 />
                 <label className={label} htmlFor={ids.thesis}>
                   {MSG.thesis}

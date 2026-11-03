@@ -121,6 +121,7 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 | P-21 | 로그인(`pages/login`) 브랜드 아래 | `coinPouch` | A ✅ |
 | P-22 | 홈 온보딩 카드(`OnboardingCard`) | 다음 단계 장면 sm | B ✅ |
 | P-23 | 목표 추가 머리(`pages/add-goal`) | `target` | B ✅ |
+| P-24 | 저축 목표 진척 — 목록 카드 sm · 상세 머리 md(`entities/goal` `GoalScene`, 2026-11-03 S1b `FE-REQ-056` FR-8) | `@repo/ui` `ProgressScene` — 템플릿별 그림(여행 비행기 · 첫 차 · 비상금 우산 · 주거 집 · 나머지 병)이 10칸 길을 한 칸씩. **칸은 서버 `scene.step`**, 적립으로 칸이 바뀔 때만 한 칸 움직이고 멈춘다(`initial={false}` — 서버 HTML 은 지금 칸) · 진척은 "10칸 중 N칸" 글로도 | S1b ✅ |
 
 #### 마이크로 인터랙션
 
@@ -176,3 +177,4 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 |---|---|
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 9개(경로 이동 내용 무변경 3 · 수정 4 · 추가 1 · 삭제 1). 계약 · 동작 무변경 |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 공용 레이아웃 문구 파일에 `NAVIGATION_FRAME_MESSAGES`(내비 이름) 한 줄(`e0bce695`). 404 문구 무변경 |
+| 2026-11-03 | MONEY-S1b — 배치표 P-24(저축 목표 진척 장면) 추가 · `@repo/ui/progressScene` `ProgressScene` 새 컴포넌트 + Storybook(`84871e70`). 진척 칸이 서버 값이라 `Illustration` 의 한 번 재생 장면과 따로 둔다(`motion.md` §1 "새 장면은 scene 추가" 의 예외 — 상태가 칸으로 바뀌는 그래픽). 이동은 transform 만(채운 길 scaleX · 그림 x) |

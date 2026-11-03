@@ -44,7 +44,7 @@ export interface SavingsProjectionVM {
   earlyMonth: string | null;
   lateMonth: string | null;
   planMonth: string | null;
-  /** history_short · reached · slow_side_open · no_plan · degraded */
+  /** history_short · reached · slow_side_open · no_plan · degraded · not_reachable(100년 안에 못 닿음 — 2026-11-03) */
   reason: string | null;
   monthsOfHistory: number;
   /** 적중 이력(채점 `FC-REQ-024` 뒤). 없으면 null 이고 trackReason 이 이유 */
@@ -78,6 +78,84 @@ export interface SavingsGoalVM {
   /** 서버가 구간을 못 계산했다 — projection 은 계획값만. BFF 는 지우지 않고 전달한다(`bff-architecture.md` §5) */
   degraded: boolean;
   degradedReasons: string[];
+  /** 모이는 장면(S1b) — kind 로 그림, step/steps 로 칸. 서버가 정한다 */
+  scene: SavingsSceneVM;
+  /** 도장 수 — 첫 도장 + 직접 넣은 적립 */
+  stampCount: number;
+  /** 다 찬 목표만 */
+  postcard: SavingsPostcardVM | null;
+  /** 첫 실물 단위의 환산 한 줄. 없으면 null */
+  unitLine: SavingsUnitVM | null;
+  /** 기한 모드: 지금 월 계획대로면 기한 안에 닿나. 기한 없으면 null */
+  planMeetsDeadline: boolean | null;
+}
+
+export interface SavingsSceneVM {
+  /** trip · car · umbrella · house · jar */
+  kind: string;
+  step: number;
+  steps: number;
+}
+
+export interface SavingsUnitVM {
+  id: string;
+  name: string;
+  unitPrice: number;
+  /** 모은 돈으로 몇 개(서버 내림) */
+  count: number;
+}
+
+export interface SavingsPostcardVM {
+  startedOn: string;
+  reachedOn: string;
+  daysTaken: number;
+  depositCount: number;
+}
+
+export interface SavingsMissedMonthsVM {
+  observedMonths: number;
+  skippedMonths: number;
+  /** 건너뛴 달을 계획만큼 넣었다면 계획 도달이 몇 달 빨랐을지. 없으면 null + reason */
+  shiftMonths: number | null;
+  reason: string | null;
+}
+
+export interface SavingsSimProjectionVM {
+  method: string;
+  earlyMonth: string | null;
+  lateMonth: string | null;
+  planMonth: string | null;
+  reason: string | null;
+}
+
+export interface SavingsSimulationVM {
+  totalMonthlyBefore: number;
+  totalMonthlyAfter: number;
+  rows: Array<{
+    goalId: string;
+    title: string;
+    template: string;
+    monthlyBefore: number | null;
+    monthlyAfter: number | null;
+    before: SavingsSimProjectionVM;
+    after: SavingsSimProjectionVM;
+    /** + 늦어짐 · − 빨라짐 */
+    planShiftMonths: number | null;
+    /** "2027-12"(기한 모드만) · 바꾼 계획대로면 기한 안에 닿나 */
+    deadlineMonth: string | null;
+    afterMeetsDeadline: boolean | null;
+  }>;
+}
+
+export interface SavingsEmergencyVM {
+  amount: number;
+  withdraw: { planMonthBefore: string | null; planMonthAfter: string | null; delayMonths: number | null; reason: string | null };
+  /** firstPayment × firstMonths + restPayment × restMonths = 원금 + totalInterest — 서버 값. 나누어떨어지면 restMonths 0 */
+  loan: { months: number; annualRate: string; firstPayment: number; firstMonths: number; restPayment: number; restMonths: number; totalInterest: number } | null;
+  /** 나눌 수 없으면(`amount_too_small`) — 꺼내기 칸은 그대로 */
+  loanReason: string | null;
+  /** 가정 키 — 문장은 프론트(`loan_paid_outside_goal`) */
+  assumptions: string[];
 }
 
 export interface SavingsDepositVM {
@@ -91,8 +169,17 @@ export interface SavingsDepositVM {
 
 export interface SavingsGoalDetailVM {
   goal: SavingsGoalVM;
+  /** 이 응답 어디든 계산이 불완전하면 true — goal.degraded(구간) + 상세 칸(놓친 달 `missed_months`) */
+  degraded: boolean;
+  degradedReasons: string[];
   plan: SavingsCalculationVM;
   deposits: SavingsDepositVM[];
+  /** 놓친 달 회고(S1b) */
+  missedMonths: SavingsMissedMonthsVM;
+  /** 이 목표의 실물 단위 전부 */
+  units: SavingsUnitVM[];
+  /** 목표 하나에 둘 수 있는 단위 수(서버 상한) */
+  unitLimit: number;
 }
 
 export interface SavingsSplitVM {
@@ -143,6 +230,38 @@ class AppSavingsService {
 
   async split(token: string, body: unknown): Promise<SavingsSplitVM> {
     return data(await backendApi.proxyAuthRequest("POST", "/savings/deposits/split", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  /** 저울 — 저장하지 않는 계산(조회 예산). 서버 예산 300ms */
+  async simulate(token: string, body: unknown): Promise<SavingsSimulationVM> {
+    return data(await backendApi.proxyAuthRequest("POST", "/savings/simulate", token, body, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  /** 저울 확정 — 쓰기(재시도 없음). 응답은 목록 전체 */
+  async updatePlans(token: string, body: unknown): Promise<SavingsGoalVM[]> {
+    return data(await backendApi.proxyAuthRequest("PUT", "/savings/goals/plans", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async emergency(token: string, id: string, body: unknown): Promise<SavingsEmergencyVM> {
+    return data(
+      await backendApi.proxyAuthRequest("POST", `/savings/goals/${encodeURIComponent(id)}/emergency-compare`, token, body, { timeout: READ_TIMEOUT_MS }),
+    );
+  }
+
+  async addUnit(token: string, id: string, body: unknown): Promise<SavingsGoalDetailVM> {
+    return data(await backendApi.proxyAuthRequest("POST", `/savings/goals/${encodeURIComponent(id)}/units`, token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async deleteUnit(token: string, id: string, unitId: string): Promise<SavingsGoalDetailVM> {
+    return data(
+      await backendApi.proxyAuthRequest(
+        "DELETE",
+        `/savings/goals/${encodeURIComponent(id)}/units/${encodeURIComponent(unitId)}`,
+        token,
+        undefined,
+        { timeout: WRITE_TIMEOUT_MS },
+      ),
+    );
   }
 
   async homeCard(token: string, timeout: number): Promise<SavingsHomeCardSource> {

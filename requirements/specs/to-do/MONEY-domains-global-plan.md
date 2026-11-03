@@ -104,3 +104,4 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 | 2026-11-03 | S0 — `SRV-REQ-043` · `044` · `DB-REQ-036` · `BFF-REQ-045` in-progress. 루트 `requirements/specs/done/MONEY-S0-platform-slice.md`. 열린 질문 "Boot 4 · Kotlin 2.2 호환 조합" 닫음(Boot 4.1.2 · Kotlin 2.3.21 · Modulith 2.1.2). 다음 칸 S1 + F3(`DB-REQ-037` · `SRV-REQ-045` · `FE-REQ-056`) |
 | 2026-11-03 | S0 done — `SRV-REQ-043` done · 루트 슬라이스 done. 다음 칸 S1 + F3 |
 | 2026-11-03 | S1a + F3a — `SRV-REQ-045` · `DB-REQ-037` · `BFF-REQ-047` · `FE-REQ-056` in-progress. 루트 `requirements/specs/done/MONEY-S1a-savings-calculator-slice.md`. 다음 칸 S1b(저축 나머지) 또는 가계부 S1 · F4 |
+| 2026-11-03 | S1b + F3b — 저울 · 비상시 · 놓친 달 · 장면 · 실물 · 도장 · 엽서(루트 `requirements/specs/done/MONEY-S1b-savings-fun-slice.md`). 저축 남은 것: 오늘 돈(물가 원천) · 제도(S2) · 공동(S3) · 가계부 구독(가계부 S1). 다음 칸 가계부 S1 · F4 |

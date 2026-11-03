@@ -39,6 +39,9 @@ features/{slice}/
 | `edit-plan-settings` | 월 적립액 편집 (밴드 임계값은 읽기 전용 — 감사 문서 D9) | F003 |
 | `add-goal` | 목표 저축 추가 — 2026-11-03 저축 zone(`domain-savings`)에서 계산기(서버 계산 · 디바운스)와 함께 | F000 · F012 |
 | `record-deposit` | 저축 적립 단건 · 여러 목표 나눠 넣기(합계는 서버가 검증) | F012 (2026-11-03) |
+| `rebalance-goals` | 목표 저울 — 월 적립을 옮겨 보며 서버가 계산한 구간 변화를 보고 [확정]만 저장 | F012 (2026-11-03 S1b) |
+| `add-item-unit` | 실물 단위 만들기 · 지우기(목표당 3개, 환산 개수는 서버) | F012 (2026-11-03 S1b) |
+| `compare-emergency` | 비상시 비교 — 꺼내기 vs 사용자 금리 대출, 숫자는 서버 계산 · 저장 없음 · 상품 0 | F012 (2026-11-03 S1b) |
 | `toggle-watchlist` | 관심 종목 추가·제거 | F000 |
 | `accept-invite` | 초대 코드 입력·검증 | F000 |
 | `arrange-panels` | PC 이진분할 격자 배치 변경 | F006 |

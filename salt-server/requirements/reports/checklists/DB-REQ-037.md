@@ -30,3 +30,16 @@
 
 - `d69c310e` — FR-11: public `goals` · `saving_transactions` drop 마이그레이션(DDL 주인이 Flyway 하나로). 덤프 `~/salt-backups/2026-11-03-public-goals-before-drop.dump` 복원 시험 통과. 로컬 적용은 사용자 실행
 - 확인: 서버 build · lint · test 936 · test:layer-check · 재시작 health 200 · Express `/api/goals` 404 · BFF 410 · 온보딩 `set_plan` done · `ops/salt.sh status` 전부 ok
+
+## 2026-11-03 — MONEY-S1b
+
+- FR-5: V2 `item_unit` — Testcontainers 종단(만들기 · 상한 409 · 남의 것 404 · 지우기) · 로컬 운영 DB Flyway "Successfully applied 1 migration"(v2). 되돌리기: `DROP TABLE item_unit`(다른 표 참조 없음, 사용자 단위만 들어 있다)
+- FR-6 · 7: 표 없음 — 도장 수 · 엽서 값이 적립 · 목표에서 나오는지 종단(도장 1 → 2 · 다 차면 엽서 적립 2 · 0일)
+- 쿼리: 상세 `forGoal` · 상한 `countFor` 가 `user_id = ? AND goal_id = ?` — 인덱스 `(user_id, goal_id, created_at)` 앞 두 열. ~~`EXPLAIN` 은 표가 비어 Seq Scan(행 0 · 의미 없음) — 행이 쌓이면 다시 본다~~ **닫힘 2026-11-03**: 1만 8천 행을 트랜잭션에 넣고 `ANALYZE` → 상세 Index Scan 0.036ms · 상한 Index Only Scan 0.017ms · 목록 Bitmap Index Scan 0.019ms(전부 `item_unit_user_goal_idx`) → 롤백
+- 2026-11-03 `4fda31db` — 종단 테스트(이 REQ 머리) 비상시 단언만 바뀜. 표 · 열 무변경. `./gradlew check` 통과
+- 2026-11-03 `af797be0` — 종단 테스트 대출 단언만. 표 무변경 · `check` 통과
+- 2026-11-03 `531fdf35` · `fba0e7c9` — `projection_issued.reason` text(CHECK 없음) — `not_reachable` 저장 확인(종단 · 실 스택 적립 201)
+- 2026-11-03 `5640ae7f` — 테스트 카운터만. 표 무변경
+- 2026-11-03 `b10c9a74` — 테스트만
+- 2026-11-03 `38823672` — 테스트만
+- 2026-11-03 `97c839f3` — 테스트만

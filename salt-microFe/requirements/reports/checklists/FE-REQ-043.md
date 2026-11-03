@@ -73,3 +73,5 @@
 ## 2026-11-03 — MONEY-F2 커밋 대조(d80a7ac8)
 
 - `d80a7ac8` 레일 라벨 색만 — 768 경계 · 안내 무변경
+
+- 2026-11-03 MONEY-S1b `cdeb5f7c` — 공용 문구 파일(머리에 이 REQ)에 `AMOUNT_INPUT_MESSAGES` 추가. web-shared check-types · zone 5 빌드 · 모노레포 lint

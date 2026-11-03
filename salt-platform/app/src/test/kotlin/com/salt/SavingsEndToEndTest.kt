@@ -159,7 +159,7 @@ class SavingsEndToEndTest {
     }
 
     @Test
-    fun `목록 · 홈 카드 — 목록은 쿼리 3회, 홈 카드는 진척이 가장 큰 진행 중 목표`() {
+    fun `목록 · 홈 카드 — 목록은 쿼리 3회(실물 단위 포함), 홈 카드는 진척이 가장 큰 진행 중 목표`() {
         val user = "list-${UUID.randomUUID()}"
         val small = create(user, 10_000_000)
         val near = create(user, 1_000_000)
@@ -187,9 +187,149 @@ class SavingsEndToEndTest {
         data(call("GET", "/api/savings/goals/exists", user, null)).path("exists").asBoolean() shouldBe true
         data(call("GET", "/api/savings/goals/exists", "nobody-${UUID.randomUUID()}", null)).path("exists").asBoolean() shouldBe false
 
+        // 한 문장 집계(overviewByGoal, 목록 · 저울)가 목표 하나 집계(상세 · 쓰기)와 같은 값 — FR-19 를 지키려 합친 것, 값이 갈라지면 안 된다
+        val deposits = com.salt.savings.infrastructure.JooqDeposits(savingsDatabase.dsl)
+        val month = java.time.YearMonth.now(java.time.ZoneId.of("Asia/Seoul"))
+        val overview = deposits.overviewByGoal(user, month)
+        listOf(small, near).forEach { raw ->
+            val id = com.salt.savings.domain.GoalId.parse(raw)!!
+            overview.totals[id] shouldBe deposits.totalsFor(id, month)
+            overview.monthly[id] shouldBe deposits.monthly(id)
+        }
+
         val before = statements()
-        call("GET", "/api/savings/goals", user, null).statusCode() shouldBe 200
+        call("GET", "/api/savings/goals", user, null, countQueries = true).statusCode() shouldBe 200
         (statements() - before) shouldBe 3L
+    }
+
+    @Test
+    fun `재미 — 첫 도장 · 장면 단계 · 실물 환산 한 줄 · 다 차면 엽서`() {
+        val user = "fun-${UUID.randomUUID()}"
+        val id = data(call("POST", "/api/savings/goals", user, """{"title":"제주","template":"travel","targetAmount":1000000,"monthlyPlan":100000}"""))
+            .path("goal").path("id").asString()
+        val fresh = data(call("GET", "/api/savings/goals/$id", user, null))
+        fresh.path("goal").path("stampCount").asInt() shouldBe 1
+        fresh.path("goal").path("scene").path("kind").asString() shouldBe "trip"
+        fresh.path("goal").path("scene").path("step").asInt() shouldBe 0
+        fresh.path("goal").path("scene").path("steps").asInt() shouldBe 10
+        fresh.path("goal").path("postcard").isNull shouldBe true
+        fresh.path("goal").path("unitLine").isNull shouldBe true
+        fresh.path("missedMonths").path("skippedMonths").asInt() shouldBe 0
+        fresh.path("degraded").asBoolean() shouldBe false
+        fresh.path("degradedReasons").size() shouldBe 0
+
+        call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":350000}""").statusCode() shouldBe 201
+        val unit = call("POST", "/api/savings/goals/$id/units", user, """{"name":"제주 왕복","unitPrice":120000}""")
+        unit.statusCode() shouldBe 201
+        val withUnit = data(unit)
+        withUnit.path("units").size() shouldBe 1
+        withUnit.path("unitLimit").asInt() shouldBe 3
+        withUnit.path("units").get(0).path("count").asLong() shouldBe 2
+        withUnit.path("goal").path("unitLine").path("name").asString() shouldBe "제주 왕복"
+        withUnit.path("goal").path("stampCount").asInt() shouldBe 2
+        withUnit.path("goal").path("scene").path("step").asInt() shouldBe 3
+
+        // 단위는 목표 하나에 3개까지 — 넷째는 409
+        repeat(2) { call("POST", "/api/savings/goals/$id/units", user, """{"name":"단위$it","unitPrice":1000}""").statusCode() shouldBe 201 }
+        val over = call("POST", "/api/savings/goals/$id/units", user, """{"name":"넷째","unitPrice":1000}""")
+        over.statusCode() shouldBe 409
+        over.body() shouldContain "UNIT_LIMIT"
+        val unitId = withUnit.path("units").get(0).path("id").asString()
+        // 남의 단위는 지울 수 없다
+        call("DELETE", "/api/savings/goals/$id/units/$unitId", "other-${UUID.randomUUID()}", null).statusCode() shouldBe 404
+        data(call("DELETE", "/api/savings/goals/$id/units/$unitId", user, null)).path("units").size() shouldBe 2
+
+        val done = data(call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":650000}""")).path("goal")
+        done.path("status").asString() shouldBe "completed"
+        done.path("scene").path("step").asInt() shouldBe 10
+        done.path("postcard").path("depositCount").asInt() shouldBe 2
+        done.path("postcard").path("daysTaken").asLong() shouldBe 0
+    }
+
+    @Test
+    fun `저울 — 저장하지 않고 목표마다 구간 변화, 확정하면 진행 중 목표 계획만 바꾸고 구간을 다시 발행한다`() {
+        val user = "scale-${UUID.randomUUID()}"
+        val a = create(user, 2_000_000)
+        val b = create(user, 1_200_000)
+        val sim = data(call("POST", "/api/savings/simulate", user, """{"changes":[{"goalId":"$a","monthly":200000},{"goalId":"$b","monthly":50000}]}"""))
+        sim.path("totalMonthlyBefore").asLong() shouldBe 200_000
+        sim.path("totalMonthlyAfter").asLong() shouldBe 250_000
+        val rowA = items(sim.path("rows")).first { it.path("goalId").asString() == a }
+        // 남은 200만 — 월 10만 20달 → 월 20만 10달: 10달 당겨짐
+        rowA.path("planShiftMonths").asLong() shouldBe -10
+        val rowB = items(sim.path("rows")).first { it.path("goalId").asString() == b }
+        rowB.path("planShiftMonths").asLong() shouldBe 12
+        // 저장하지 않았다
+        data(call("GET", "/api/savings/goals/$a", user, null)).path("goal").path("monthlyPlan").asLong() shouldBe 100_000
+
+        val issuedBefore = events(a).count { it == "savings.ProjectionIssued" }
+        val updated = data(call("PUT", "/api/savings/goals/plans", user, """{"changes":[{"goalId":"$a","monthly":200000}]}"""))
+        items(updated).first { it.path("id").asString() == a }.path("monthlyPlan").asLong() shouldBe 200_000
+        items(updated).first { it.path("id").asString() == b }.path("monthlyPlan").asLong() shouldBe 100_000
+        events(a).count { it == "savings.ProjectionIssued" } shouldBe issuedBefore + 1
+
+        // 기한 목표 — 저울은 막지 않고 기한을 맞추는지 사실로. 확정하면 목표 응답에도 같은 사실
+        val due = data(call("POST", "/api/savings/goals", user, """{"title":"기한","template":"other","targetAmount":1200000,"targetDate":"2099-01-01"}""")).path("goal")
+        due.path("planMeetsDeadline").asBoolean() shouldBe true
+        val dueId = due.path("id").asString()
+        val dueRow = items(data(call("POST", "/api/savings/simulate", user, """{"changes":[{"goalId":"$dueId","monthly":1}]}""")).path("rows"))
+            .first { it.path("goalId").asString() == dueId }
+        dueRow.path("deadlineMonth").asString() shouldBe "2099-01"
+        dueRow.path("afterMeetsDeadline").asBoolean() shouldBe false
+        items(data(call("PUT", "/api/savings/goals/plans", user, """{"changes":[{"goalId":"$dueId","monthly":1}]}""")))
+            .first { it.path("id").asString() == dueId }.path("planMeetsDeadline").asBoolean() shouldBe false
+
+        // 남의 목표 · 없는 목표는 404, 같은 목표 두 번은 400
+        call("POST", "/api/savings/simulate", "other-${UUID.randomUUID()}", """{"changes":[{"goalId":"$a","monthly":1000}]}""").statusCode() shouldBe 404
+        call("PUT", "/api/savings/goals/plans", "other-${UUID.randomUUID()}", """{"changes":[{"goalId":"$a","monthly":1000}]}""").statusCode() shouldBe 404
+        call("POST", "/api/savings/simulate", user, """{"changes":[{"goalId":"$a","monthly":1000},{"goalId":"$a","monthly":2000}]}""").statusCode() shouldBe 400
+    }
+
+    @Test
+    fun `비상시 비교 — 저장하지 않는다 · 꺼내기 이동 달 · 대출 상환은 올림 · 모은 돈보다 많이 꺼낼 수 없다`() {
+        val user = "emergency-${UUID.randomUUID()}"
+        val id = create(user, 3_000_000)
+        call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":1000000}""")
+        val c = data(call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1000000,"loanRate":6,"loanMonths":12}"""))
+        c.path("withdraw").path("delayMonths").asInt() shouldBe 10
+        c.path("loan").path("firstPayment").asLong() shouldBe 86_067
+        c.path("loan").path("firstMonths").asInt() shouldBe 5
+        c.path("loan").path("restPayment").asLong() shouldBe 86_066
+        c.path("loan").path("restMonths").asInt() shouldBe 7
+        c.path("loan").path("totalInterest").asLong() shouldBe 32_797
+        // 나눌 수 없는 작은 금액 — 요청은 성공, 대출 칸만 비고 꺼내기 칸은 남는다(리뷰)
+        val tiny = data(call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1,"loanRate":0,"loanMonths":120}"""))
+        tiny.path("loan").isNull shouldBe true
+        tiny.path("loanReason").asString() shouldBe "amount_too_small"
+        tiny.path("withdraw").path("delayMonths").isNumber shouldBe true
+        tiny.path("assumptions").size() shouldBe 0
+        c.path("loan").path("annualRate").asString() shouldBe "6"
+        items(c.path("assumptions")).map { it.asString() } shouldBe listOf("loan_paid_outside_goal")
+        data(call("GET", "/api/savings/goals/$id", user, null)).path("goal").path("saved").asLong() shouldBe 1_000_000
+
+        val over = call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1000001,"loanRate":6,"loanMonths":12}""")
+        over.statusCode() shouldBe 400
+        over.body() shouldContain "EMERGENCY_AMOUNT_OVER_SAVED"
+        // 범위는 도메인이 사유 코드로 — 일반 VALIDATION 이 아니다(화면이 사유 문장을 고른다)
+        call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1000,"loanRate":35,"loanMonths":12}""").body() shouldContain "EMERGENCY_RATE_INVALID"
+        call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1000,"loanRate":5,"loanMonths":121}""").body() shouldContain "EMERGENCY_MONTHS_INVALID"
+        call("POST", "/api/savings/goals/$id/emergency-compare", "other-${UUID.randomUUID()}", """{"amount":1,"loanRate":6,"loanMonths":12}""")
+            .statusCode() shouldBe 404
+    }
+
+    @Test
+    fun `100년 못 닿는 구간(not_reachable)도 발행 이벤트 계약을 통과한다 — 적립이 롤백되지 않는다`() {
+        val user = "far-${UUID.randomUUID()}"
+        val id = data(call("POST", "/api/savings/goals", user, """{"title":"먼 목표","template":"other","targetAmount":2000000000,"monthlyPlan":1000}""")).path("goal").path("id").asString()
+        val thisMonth = java.time.YearMonth.now(java.time.ZoneId.of("Asia/Seoul"))
+        (1..3).forEach { back ->
+            val day = thisMonth.minusMonths(back.toLong()).atDay(1)
+            call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":1000,"depositedOn":"$day"}""").statusCode() shouldBe 201
+        }
+        val res = call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":1000}""")
+        res.statusCode() shouldBe 201
+        data(res).path("goal").path("projection").path("reason").asString() shouldBe "not_reachable"
+        events(id).last() shouldBe "savings.ProjectionIssued"
     }
 
     @Test
@@ -248,8 +388,13 @@ class SavingsEndToEndTest {
             installed = true
         }
 
+        /** 세는 요청을 처리하는 스레드에서만 켜진다(테스트 필터 [CountingFilter]) */
+        val active: ThreadLocal<Boolean> = ThreadLocal.withInitial { false }
+
         override fun executeStart(ctx: ExecuteContext) {
-            count.incrementAndGet()
+            // 헤더를 붙인 그 요청의 문장만 — 아웃박스 릴레이 · ShedLock 은 다른 스레드라 켜지지 않는다. 문장 내용(리뷰 9차) · 스레드 이름(리뷰 10차)에 기대지 않는다:
+            // 요청 경로의 아웃박스 INSERT 는 세지고(N+1 을 잡는다), 가상 스레드 설정이 바뀌어도 그대로다
+            if (active.get()) count.incrementAndGet()
         }
     }
 
@@ -261,10 +406,11 @@ class SavingsEndToEndTest {
         return jsonMapper.readTree(res.body()).path("data")
     }
 
-    private fun call(method: String, path: String, user: String, body: String?): HttpResponse<String> {
+    private fun call(method: String, path: String, user: String, body: String?, countQueries: Boolean = false): HttpResponse<String> {
         val request = HttpRequest.newBuilder(URI.create("http://localhost:$port$path"))
             .method(method, body?.let { HttpRequest.BodyPublishers.ofString(it) } ?: HttpRequest.BodyPublishers.noBody())
             .header("Authorization", "Bearer ${token(user)}")
+            .apply { if (countQueries) header(CountingFilter.HEADER, "1") }
             .apply { if (body != null) header("Content-Type", "application/json") }
             .build()
         return http.send(request, HttpResponse.BodyHandlers.ofString())
@@ -283,4 +429,28 @@ class SavingsEndToEndTest {
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) = PlatformContainers.register(registry)
     }
+
+    /** 테스트 전용 — [CountingFilter.HEADER] 가 붙은 요청을 처리하는 동안만 [QueryCounter.active] 를 켠다 */
+    @org.springframework.boot.test.context.TestConfiguration
+    class CountingFilter {
+        /** 가장 앞에 — 인증 · 다른 필터의 쿼리도 그 요청 몫으로 센다(리뷰 11차). 중첩 @TestConfiguration 이라 이 테스트 클래스에만 자동으로 붙는다(@Import 를 같이 쓰면 두 번) */
+        @org.springframework.context.annotation.Bean
+        fun queryCountingFilter(): org.springframework.boot.web.servlet.FilterRegistrationBean<jakarta.servlet.Filter> =
+            org.springframework.boot.web.servlet.FilterRegistrationBean<jakarta.servlet.Filter>(
+                jakarta.servlet.Filter { request, response, chain ->
+                    val counted = (request as jakarta.servlet.http.HttpServletRequest).getHeader(HEADER) != null
+                    if (counted) QueryCounter.active.set(true)
+                    try {
+                        chain.doFilter(request, response)
+                    } finally {
+                        if (counted) QueryCounter.active.remove()
+                    }
+                },
+            ).apply { order = org.springframework.core.Ordered.HIGHEST_PRECEDENCE }
+
+        companion object {
+            const val HEADER = "X-Test-Count-Queries"
+        }
+    }
+
 }

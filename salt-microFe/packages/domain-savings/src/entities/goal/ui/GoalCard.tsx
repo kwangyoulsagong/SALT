@@ -2,8 +2,11 @@ import Link from "next/link";
 
 import { ProgressBar } from "@repo/ui/progressBar";
 
+import { labelOr } from "@repo/web-shared/lib";
+
 import { formatWon, GOAL_MESSAGES, TEMPLATE_LABEL } from "../model/messages";
 import type { SavingsGoal } from "../model/types";
+import { GoalScene } from "./GoalScene";
 import * as s from "./goal.css";
 
 
@@ -14,7 +17,7 @@ export interface GoalCardProps {
 }
 
 /**
- * 목록 한 칸 — 진척 · 프레임 · 이번 달 이정표 한 줄. 프레임(모은 돈 ↔ 남은 돈)은 서버가 정한 값으로 앞자리를 바꾼다(FR-9).
+ * 목록 한 칸 — 장면 · 진척 · 프레임 · 이번 달 이정표 · 실물 환산 한 줄(S1b). 프레임(모은 돈 ↔ 남은 돈)은 서버가 정한 값으로 앞자리를 바꾼다(FR-9).
  * 진척 막대는 서버 `progressPercent` 를 그대로 — 비율을 다시 계산하지 않는다. 스크린리더는 막대 라벨로 진척을 읽는다.
  */
 export const GoalCard = ({ goal, href }: GoalCardProps) => {
@@ -32,6 +35,7 @@ export const GoalCard = ({ goal, href }: GoalCardProps) => {
         <span className={s.label}>{lead.label}</span>
         <span className={s.bigValue}>{lead.value}</span>
       </div>
+      <GoalScene scene={goal.scene} size="sm" />
       <ProgressBar value={goal.progressRatio} label={`${goal.title} ${goal.progressPercent}%`} />
       <div className={s.row}>
         <span className={s.label}>
@@ -39,7 +43,8 @@ export const GoalCard = ({ goal, href }: GoalCardProps) => {
         </span>
         <span className={s.label}>{goal.status === "completed" ? GOAL_MESSAGES.completed : `${goal.progressPercent}%`}</span>
       </div>
-      <span className={s.label}>{GOAL_MESSAGES.milestoneState[goal.milestone.state]}</span>
+      <span className={s.label}>{labelOr(GOAL_MESSAGES.milestoneState, goal.milestone.state, "")}</span>
+      {goal.unitLine ? <span className={s.value}>{GOAL_MESSAGES.unitLine(goal.unitLine.name, goal.unitLine.count)}</span> : null}
     </Link>
   );
 };

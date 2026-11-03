@@ -1,6 +1,7 @@
 import type { BudgetSetting, BudgetUnit } from "@repo/core/coach";
 
-import { formatAmountInput, formatPrice, parseAmountInput } from "@repo/web-shared/lib";
+import { numberToInputText } from "@repo/core/input";
+import { parseAmountInput } from "@repo/web-shared/lib";
 
 /**
  * 기준 입력 칸 ↔ 보낼 값 (F009 FR-1~2 · IPS 3문항).
@@ -29,7 +30,7 @@ export const toBudgetInput = (setting: BudgetSetting | null): BudgetInput =>
   setting === null
     ? { text: "", unit: "krw" }
     : setting.unit === "krw"
-      ? { text: formatAmountInput(formatPrice(setting.amount)), unit: "krw" }
+      ? { text: numberToInputText(setting.amount, "price"), unit: "krw" }
       : { text: ratioToPercentText(setting.amount), unit: "percent" };
 
 /** 칸 → 보낼 값. 비었으면 지운다(`null`), 숫자가 아니거나 범위 밖이면 `undefined`(오류) */
@@ -71,13 +72,5 @@ export const toInvestableCapital = (text: string): number | null | undefined => 
   return value;
 };
 
-/** 저장된 투자금 → 칸 글자 */
-export const capitalToInputText = (krw: number | null): string =>
-  krw === null ? "" : formatAmountInput(formatPrice(krw));
-
-/** % 칸은 콤마를 넣지 않는다(최대 100). 숫자 · 점만 남긴다 */
-export const formatPercentInput = (raw: string): string => {
-  const cleaned = raw.replace(/[^0-9.]/g, "");
-  const [integer = "", ...rest] = cleaned.split(".");
-  return cleaned.includes(".") ? `${integer || "0"}.${rest.join("")}` : integer;
-};
+/** 저장된 투자금 → 칸 글자 — 입력과 같은 규칙(`numberToInputText` price)이라 소수 금액도 편집할 수 있다(리뷰 11차: 원 칸 규칙이 저장된 소수를 막았다) */
+export const capitalToInputText = (krw: number | null): string => (krw === null ? "" : numberToInputText(krw, "price"));

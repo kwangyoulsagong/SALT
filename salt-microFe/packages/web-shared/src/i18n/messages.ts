@@ -50,3 +50,12 @@ export const NARROW_SCREEN_MESSAGES = {
 export const NAVIGATION_MESSAGES = {
   crossZonePending: "이동 중…",
 } as const;
+
+/** 숫자 칸에 받을 수 없는 글자를 넣었을 때(`useNumberFields`) — 칸 종류(`@repo/core/input` `NumberTextKind`)별. 도메인 무관 */
+export const AMOUNT_INPUT_MESSAGES = {
+  won: "원 단위 숫자만 적어 주세요",
+  price: "숫자와 소수점 하나만 적어 주세요",
+  decimal: "숫자와 소수점 하나만 적어 주세요",
+  count: "숫자만 적어 주세요",
+  tooLong: "숫자는 15자리까지 적을 수 있어요(소수는 8자리까지)",
+} as const;

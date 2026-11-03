@@ -6,7 +6,7 @@ import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
 import { isApiError } from "@repo/web-shared/api";
-import { formatAmountInput, parseAmountInput } from "@repo/web-shared/lib";
+import { parseAmountInput, labelOr, useNumberFields } from "@repo/web-shared/lib";
 
 import { useRecordDeposit } from "../api";
 import { RECORD_DEPOSIT_MESSAGES as M } from "../model";
@@ -16,10 +16,12 @@ export interface DepositFormProps {
   goalId: string;
 }
 
-/** 적립 한 건(`FE-REQ-056` FR-4). 저장 뒤 진척 · 이정표 · 구간은 서버 응답으로 바뀐다. 장면 한 칸 이동 모션은 S1b(FR-8) */
+/** 적립 한 건(`FE-REQ-056` FR-4). 저장 뒤 진척 · 이정표 · 구간은 서버 응답으로 바뀐다. 장면 한 칸 이동은 응답의 `scene.step` 으로 `GoalScene` 이 그린다(S1b FR-8) */
 export const DepositForm = ({ goalId }: DepositFormProps) => {
   const record = useRecordDeposit(goalId);
-  const [amount, setAmount] = useState("");
+  // 값과 안내를 한 덩어리로 — 입력 · 초기화가 같은 규칙을 지나고 안내는 그 칸 아래(`useNumberFields`)
+  const nums = useNumberFields({ amount: "won" });
+  const amount = nums.value("amount");
   const [date, setDate] = useState("");
   const [note, setNote] = useState("");
   const value = parseAmountInput(amount);
@@ -29,7 +31,7 @@ export const DepositForm = ({ goalId }: DepositFormProps) => {
     if (value === null) return;
     record.mutate(
       { amount: value, ...(date ? { depositedOn: date } : {}), ...(note.trim() ? { note: note.trim() } : {}) },
-      { onSuccess: () => { setAmount(""); setNote(""); } },
+      { onSuccess: () => { nums.reset(["amount"]); setNote(""); } },
     );
   };
 
@@ -37,11 +39,11 @@ export const DepositForm = ({ goalId }: DepositFormProps) => {
 
   return (
     <form className={s.form} onSubmit={onSubmit} aria-label={M.title}>
-      <TextField label={M.amount} value={amount} onChange={(v) => setAmount(formatAmountInput(v))} inputMode="numeric" />
+      <TextField label={M.amount} value={amount} onChange={(v) => nums.change("amount", v)} inputMode="numeric" error={nums.message("amount")} />
       <TextField label={M.date} type="date" value={date} onChange={setDate} />
       <TextField label={M.note} value={note} onChange={setNote} maxLength={200} />
       <span className={s.hint} role="status">
-        {record.isError ? ((errorCode && M.errorCode[errorCode]) ?? M.failed) : record.isSuccess ? M.recorded : ""}
+        {record.isError ? labelOr(M.errorCode, errorCode, M.failed) : record.isSuccess ? M.recorded : ""}
       </span>
       <Button type="submit" disabled={value === null || record.isPending} loading={record.isPending}>
         {M.submit}

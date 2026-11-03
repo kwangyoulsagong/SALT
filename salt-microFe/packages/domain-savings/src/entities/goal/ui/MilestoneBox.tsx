@@ -1,3 +1,5 @@
+import { labelOr } from "@repo/web-shared/lib";
+
 import { formatWon, GOAL_MESSAGES } from "../model/messages";
 import type { SavingsMilestone } from "../model/types";
 import * as s from "./goal.css";
@@ -27,6 +29,6 @@ export const MilestoneBox = ({ milestone }: MilestoneBoxProps) => (
         <span className={s.value}>{milestone.difference === null ? "—" : signed(milestone.difference)}</span>
       </div>
     </div>
-    <span className={s.label}>{GOAL_MESSAGES.milestoneState[milestone.state]}</span>
+    <span className={s.label}>{labelOr(GOAL_MESSAGES.milestoneState, milestone.state, "")}</span>
   </section>
 );

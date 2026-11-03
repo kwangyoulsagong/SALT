@@ -1,7 +1,12 @@
 package com.salt.savings
 
 import com.salt.app.SaltDbProperties
+import com.salt.savings.application.AddItemUnit
 import com.salt.savings.application.Calculate
+import com.salt.savings.application.CompareEmergency
+import com.salt.savings.application.DeleteItemUnit
+import com.salt.savings.application.SimulateBalance
+import com.salt.savings.application.UpdateMonthlyPlans
 import com.salt.savings.application.CreateGoal
 import com.salt.savings.application.GetGoal
 import com.salt.savings.application.GoalReader
@@ -14,6 +19,7 @@ import com.salt.savings.application.RecordDeposits
 import com.salt.savings.application.SAVINGS_TX
 import com.salt.savings.infrastructure.JooqDeposits
 import com.salt.savings.infrastructure.JooqGoals
+import com.salt.savings.infrastructure.JooqItemUnits
 import com.salt.savings.infrastructure.JooqProjections
 import com.salt.savings.infrastructure.OutboxSavingsEvents
 import com.salt.support.messaging.EventSchemas
@@ -54,7 +60,7 @@ class SavingsComposition {
 
     @Bean
     fun savingsGoalReader(@Qualifier("savingsDatabase") database: ServiceDatabase, clock: Clock): GoalReader =
-        GoalReader(JooqGoals(database.dsl), JooqDeposits(database.dsl), clock)
+        GoalReader(JooqGoals(database.dsl), JooqDeposits(database.dsl), JooqItemUnits(database.dsl), clock)
 
     @Bean
     fun savingsProjectionIssuer(
@@ -98,6 +104,29 @@ class SavingsComposition {
 
     @Bean
     fun hasGoals(@Qualifier("savingsDatabase") database: ServiceDatabase): HasGoals = HasGoals(JooqGoals(database.dsl))
+
+    @Bean
+    fun simulateBalance(reader: GoalReader, clock: Clock): SimulateBalance = SimulateBalance(reader, clock)
+
+    @Bean
+    fun updateMonthlyPlans(
+        @Qualifier("savingsDatabase") database: ServiceDatabase,
+        issuer: ProjectionIssuer,
+        reader: GoalReader,
+        clock: Clock,
+    ): UpdateMonthlyPlans = UpdateMonthlyPlans(JooqGoals(database.dsl), issuer, JooqDeposits(database.dsl), reader, clock)
+
+    @Bean
+    fun compareEmergency(@Qualifier("savingsDatabase") database: ServiceDatabase, clock: Clock): CompareEmergency =
+        CompareEmergency(JooqGoals(database.dsl), JooqDeposits(database.dsl), clock)
+
+    @Bean
+    fun addItemUnit(@Qualifier("savingsDatabase") database: ServiceDatabase, reader: GoalReader, clock: Clock): AddItemUnit =
+        AddItemUnit(JooqGoals(database.dsl), JooqItemUnits(database.dsl), reader, clock)
+
+    @Bean
+    fun deleteItemUnit(@Qualifier("savingsDatabase") database: ServiceDatabase, reader: GoalReader): DeleteItemUnit =
+        DeleteItemUnit(JooqItemUnits(database.dsl), reader)
 
     companion object {
         const val SCHEMA = "savings"

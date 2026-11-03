@@ -5,7 +5,7 @@ import { Chip } from "@repo/ui/chip";
 import { TextField } from "@repo/ui/textField";
 import { useEffect, useId, useMemo, useState } from "react";
 
-import { formatAmountInput, parseAmountInput, useDebouncedValue } from "@repo/web-shared/lib";
+import { parseAmountInput, useDebouncedValue, useNumberFields } from "@repo/web-shared/lib";
 
 import { useTradePreflight } from "../api";
 import { PREFLIGHT_AMOUNT_CHIPS, PREFLIGHT_STOP_CHIPS, RUN_PREFLIGHT_MESSAGES as MSG } from "../model";
@@ -38,17 +38,21 @@ interface PreflightFormProps {
  */
 export const PreflightForm = ({ symbol, mode, livePrice }: PreflightFormProps) => {
   const ids = { amount: useId(), entry: useId(), target: useId() };
-  const [amount, setAmount] = useState("");
-  const [entry, setEntry] = useState("");
   const [entryTouched, setEntryTouched] = useState(false);
   const [stopRate, setStopRate] = useState<number | null>(null);
-  const [target, setTarget] = useState("");
+  // 금액 · 진입 · 목표 — 값과 안내를 한 덩어리로(`useNumberFields`). 칩 · 현재가 버튼도 같은 규칙을 지나 1.2e-7 같은 가격이 "1.27" 로
+  // 바뀌지 않는다(옛 정리 함수, 리뷰 11차). 받을 수 없는 글자는 값을 두고 칸 아래 안내. 소수 금액 칸(price) — 원래 점을 받던 칸이다
+  const nums = useNumberFields({ amount: "price", entry: "price", target: "price" });
+  const amount = nums.value("amount");
+  const entry = nums.value("entry");
+  const target = nums.value("target");
+  const { fillIfEmpty } = nums;
 
   // 진입가 기본 = 현재가(FR-151). 사용자가 손대기 전, 첫 시세가 왔을 때 한 번만
   useEffect(() => {
     if (entryTouched || livePrice === null) return;
-    setEntry((current) => current || formatAmountInput(String(livePrice)));
-  }, [livePrice, entryTouched]);
+    fillIfEmpty("entry", livePrice);
+  }, [livePrice, entryTouched, fillIfEmpty]);
 
   const parsed = {
     amount: parseAmountInput(amount),
@@ -83,7 +87,7 @@ export const PreflightForm = ({ symbol, mode, livePrice }: PreflightFormProps) =
               key={chip.value}
               size="sm"
               selected={parsed.amount === chip.value}
-              onPress={() => setAmount(formatAmountInput(String(chip.value)))}
+              onPress={() => nums.setNumber("amount", chip.value)}
             >
               {chip.label}
             </Chip>
@@ -97,9 +101,9 @@ export const PreflightForm = ({ symbol, mode, livePrice }: PreflightFormProps) =
           autoComplete="off"
           aria-label={MSG.amountCustomLabel}
           value={amount}
-          onChange={(value) => setAmount(formatAmountInput(value))}
+          onChange={(value) => nums.change("amount", value)}
           trailing={<span className={unit}>{MSG.amountUnit}</span>}
-          error={amountInvalid ? MSG.invalidAmount : undefined}
+          error={nums.message("amount") ?? (amountInvalid ? MSG.invalidAmount : undefined)}
         />
 
         <label className={label} htmlFor={ids.entry}>
@@ -114,16 +118,17 @@ export const PreflightForm = ({ symbol, mode, livePrice }: PreflightFormProps) =
             value={entry}
             onChange={(value) => {
               setEntryTouched(true);
-              setEntry(formatAmountInput(value));
+              nums.change("entry", value);
             }}
             trailing={<span className={unit}>{MSG.amountUnit}</span>}
+            error={nums.message("entry")}
           />
           <button
             type="button"
             className={weakButton}
             aria-label={MSG.useLivePriceLabel}
             disabled={livePrice === null}
-            onClick={() => livePrice !== null && setEntry(formatAmountInput(String(livePrice)))}
+            onClick={() => livePrice !== null && nums.setNumber("entry", livePrice)}
           >
             {MSG.useLivePrice}
           </button>
@@ -154,9 +159,9 @@ export const PreflightForm = ({ symbol, mode, livePrice }: PreflightFormProps) =
           autoComplete="off"
           placeholder={MSG.targetPlaceholder}
           value={target}
-          onChange={(value) => setTarget(formatAmountInput(value))}
+          onChange={(value) => nums.change("target", value)}
           trailing={<span className={unit}>{MSG.amountUnit}</span>}
-          error={targetInvalid ? MSG.invalidAmount : undefined}
+          error={nums.message("target") ?? (targetInvalid ? MSG.invalidAmount : undefined)}
         />
       </div>
 

@@ -7,11 +7,10 @@ import { TextField } from "@repo/ui/textField";
 import { useId, useState, type FormEvent } from "react";
 
 import { formatRatio } from "@/entities/coach";
-import { formatAmountInput } from "@repo/web-shared/lib";
+import { useNumberFields } from "@repo/web-shared/lib";
 
 import { useSetRiskBudget } from "../api";
 import {
-  formatPercentInput,
   ratioToPercentText,
   toBudgetInput,
   toBudgetSetting,
@@ -46,14 +45,16 @@ const BudgetRow = ({
   id,
   name,
   value,
-  onChange,
-  invalid,
+  onTextChange,
+  onUnitChange,
+  error,
 }: {
   id: string;
   name: string;
   value: BudgetInput;
-  onChange: (value: BudgetInput) => void;
-  invalid: boolean;
+  onTextChange: (raw: string) => void;
+  onUnitChange: (unit: BudgetUnit) => void;
+  error: string | undefined;
 }) => (
   <>
     <label className={label} htmlFor={id}>
@@ -68,33 +69,19 @@ const BudgetRow = ({
           autoComplete="off"
           placeholder={MSG.placeholder}
           value={value.text}
-          onChange={(text) =>
-            onChange({
-              ...value,
-              text:
-                value.unit === "krw"
-                  ? formatAmountInput(text)
-                  : formatPercentInput(text),
-            })
-          }
+          onChange={onTextChange}
           trailing={
             <span className={unitStyle}>
               {value.unit === "krw" ? MSG.unitKrw : MSG.unitPercent}
             </span>
           }
-          error={
-            invalid
-              ? value.unit === "krw"
-                ? MSG.invalid
-                : MSG.invalidPercent
-              : undefined
-          }
+          error={error}
         />
       </div>
       <SegmentedControl
         options={UNIT_OPTIONS}
         value={value.unit}
-        onChange={(unit) => onChange({ text: "", unit })}
+        onChange={onUnitChange}
         label={MSG.unitLabel(name)}
       />
     </div>
@@ -116,25 +103,34 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
   const noBudget =
     settings.monthlyLossBudget === null && settings.perTradeMaxLoss === null;
   const [open, setOpen] = useState(noBudget);
-  const [monthly, setMonthly] = useState(() =>
-    toBudgetInput(settings.monthlyLossBudget),
-  );
-  const [perTrade, setPerTrade] = useState(() =>
-    toBudgetInput(settings.perTradeMaxLoss),
-  );
+  const initialMonthly = toBudgetInput(settings.monthlyLossBudget);
+  const initialPerTrade = toBudgetInput(settings.perTradeMaxLoss);
+  const [monthlyUnit, setMonthlyUnit] = useState(initialMonthly.unit);
+  const [perTradeUnit, setPerTradeUnit] = useState(initialPerTrade.unit);
   const initialCap =
     settings.maxSingleAssetWeight === null
       ? ""
       : ratioToPercentText(settings.maxSingleAssetWeight);
-  const [cap, setCap] = useState(initialCap);
   // 목표 변동성은 기본값이면 칸을 비운 채로 둔다 — 기본값을 저장하면 기본이 바뀔 때 따라가지 않는다
   const initialVol =
     settings.targetVolatility === null || settings.targetVolatilityIsDefault
       ? ""
       : ratioToPercentText(settings.targetVolatility);
-  const [targetVol, setTargetVol] = useState(initialVol);
   const initialCapital = capitalToInputText(settings.investableCapitalKrw);
-  const [capital, setCapital] = useState(initialCapital);
+  // 숫자 칸 다섯의 값과 안내를 한 덩어리로(`useNumberFields`) — 원 칸은 소수 금액(price), % 칸은 소수(decimal).
+  // 단위를 바꾸면 그 칸을 비우고 안내도 지운다. 받을 수 없는 글자는 값을 두고 칸 아래 안내(전각 점 · 가운뎃점이 숫자를 이어 붙이던 결함, 2026-11-03)
+  const kindOf = (unit: BudgetUnit) => (unit === "krw" ? "price" : "decimal");
+  const nums = useNumberFields(
+    { monthly: kindOf(monthlyUnit), perTrade: kindOf(perTradeUnit), cap: "decimal", targetVol: "decimal", capital: "price" },
+    { monthly: initialMonthly.text, perTrade: initialPerTrade.text, cap: initialCap, targetVol: initialVol, capital: initialCapital },
+  );
+  const monthly: BudgetInput = { text: nums.value("monthly"), unit: monthlyUnit };
+  const perTrade: BudgetInput = { text: nums.value("perTrade"), unit: perTradeUnit };
+  const cap = nums.value("cap");
+  const targetVol = nums.value("targetVol");
+  const capital = nums.value("capital");
+  const budgetError = (key: "monthly" | "perTrade", input: BudgetInput, invalid: boolean) =>
+    nums.message(key) ?? (invalid ? (input.unit === "krw" ? MSG.invalid : MSG.invalidPercent) : undefined);
   const save = useSetRiskBudget();
   const ids = {
     monthly: useId(),
@@ -162,8 +158,10 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
     )
       return;
     save.mutate({
-      monthlyLossBudget: monthlySetting,
-      perTradeMaxLoss: perTradeSetting,
+      // 고치지 않은 예산은 보내지 않는다 — 저장된 값이 칸 규칙(자릿수 상한 · 소수 8자리) 밖이면 빈칸 · 반올림으로 열리는데,
+      // 그대로 보내면 사용자가 손대지 않은 예산이 지워지거나 바뀐다(리뷰 12차 — 상한을 넣은 11차의 퇴행)
+      ...(monthly.text !== initialMonthly.text || monthly.unit !== initialMonthly.unit ? { monthlyLossBudget: monthlySetting } : {}),
+      ...(perTrade.text !== initialPerTrade.text || perTrade.unit !== initialPerTrade.unit ? { perTradeMaxLoss: perTradeSetting } : {}),
       // 고치지 않은 상한은 보내지 않는다 — 다른 칸만 저장했는데 상한이 기본값으로 돌아가지 않게
       ...(cap !== initialCap ? { maxSingleAssetWeight: capRatio } : {}),
       ...(targetVol !== initialVol ? { targetVolatility: volRatio } : {}),
@@ -199,15 +197,23 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
           id={ids.monthly}
           name={MSG.monthly}
           value={monthly}
-          onChange={setMonthly}
-          invalid={monthlySetting === undefined}
+          onTextChange={(raw) => nums.change("monthly", raw)}
+          onUnitChange={(unit) => {
+            nums.reset(["monthly"]);
+            setMonthlyUnit(unit);
+          }}
+          error={budgetError("monthly", monthly, monthlySetting === undefined)}
         />
         <BudgetRow
           id={ids.perTrade}
           name={MSG.perTrade}
           value={perTrade}
-          onChange={setPerTrade}
-          invalid={perTradeSetting === undefined}
+          onTextChange={(raw) => nums.change("perTrade", raw)}
+          onUnitChange={(unit) => {
+            nums.reset(["perTrade"]);
+            setPerTradeUnit(unit);
+          }}
+          error={budgetError("perTrade", perTrade, perTradeSetting === undefined)}
         />
         <label className={label} htmlFor={ids.cap}>
           {MSG.cap}
@@ -219,9 +225,9 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
           autoComplete="off"
           placeholder={MSG.capPlaceholder}
           value={cap}
-          onChange={(text) => setCap(formatPercentInput(text))}
+          onChange={(text) => nums.change("cap", text)}
           trailing={<span className={unitStyle}>{MSG.unitPercent}</span>}
-          error={capRatio === undefined ? MSG.invalidCap : undefined}
+          error={nums.message("cap") ?? (capRatio === undefined ? MSG.invalidCap : undefined)}
         />
         <label className={label} htmlFor={ids.capital}>
           {MSG.capital}
@@ -233,9 +239,9 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
           autoComplete="off"
           placeholder={MSG.capitalPlaceholder}
           value={capital}
-          onChange={(text) => setCapital(formatAmountInput(text))}
+          onChange={(text) => nums.change("capital", text)}
           trailing={<span className={unitStyle}>{MSG.unitKrw}</span>}
-          error={capitalKrw === undefined ? MSG.invalidCapital : undefined}
+          error={nums.message("capital") ?? (capitalKrw === undefined ? MSG.invalidCapital : undefined)}
         />
         <label className={label} htmlFor={ids.targetVol}>
           {MSG.targetVolatility}
@@ -247,9 +253,9 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
           autoComplete="off"
           placeholder={MSG.targetVolatilityPlaceholder}
           value={targetVol}
-          onChange={(text) => setTargetVol(formatPercentInput(text))}
+          onChange={(text) => nums.change("targetVol", text)}
           trailing={<span className={unitStyle}>{MSG.unitPercent}</span>}
-          error={volRatio === undefined ? MSG.invalidTargetVolatility : undefined}
+          error={nums.message("targetVol") ?? (volRatio === undefined ? MSG.invalidTargetVolatility : undefined)}
         />
       </div>
       <p className={hint}>

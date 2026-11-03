@@ -17,6 +17,7 @@ globs: apps/web/src/**, packages/ui/src/**, packages/tokens/src/**
 
 - 결과 화면은 `EmptyState` + `icon={<StatusGraphic kind="success" />}`. **새 결과 컴포넌트를 만들지 않는다.**
 - 새 장면이 필요하면 `Illustration` 에 `scene` 을 추가한다(Storybook 포함). 앱에 SVG 를 흩지 않는다.
+- **칸으로 진척을 보이는 장면은 `ProgressScene`**(`@repo/ui/progressScene`, 2026-11-03 저축 S1b) — 한 번 재생하고 멈추는 `Illustration` 과 달리 서버가 준 칸(`step`/`steps`)이 바뀔 때만 한 칸 움직인다. 새 그림 종류는 그 컴포넌트의 `kind` 에 더한다.
 - 배치는 `FE-REQ-044` 배치표가 기준이다. 표에 없는 자리에 넣을 때는 표에 행부터 추가한다.
 
 ## 2. 라이브러리

@@ -37,7 +37,7 @@ export interface SavingsMilestone {
   state: MilestoneState;
 }
 
-export type ProjectionReason = "history_short" | "reached" | "slow_side_open" | "no_plan" | "degraded";
+export type ProjectionReason = "history_short" | "reached" | "slow_side_open" | "no_plan" | "degraded" | "not_reachable";
 
 export interface SavingsProjection {
   method: "empirical_quantile" | "plan_only";
@@ -78,6 +78,100 @@ export interface SavingsGoal {
   /** 서버가 구간을 못 계산했다 — 계획값만 있다(`BFF-REQ-047` 수용 기준 2) */
   degraded: boolean;
   degradedReasons: string[];
+  /** 모이는 장면(S1b, FR-8) — 칸은 서버가 정한다 */
+  scene: SavingsScene;
+  /** 도장 수 — 첫 도장 + 직접 넣은 적립(FR-10) */
+  stampCount: number;
+  /** 다 찬 목표의 엽서(FR-10). 진행 중이면 null */
+  postcard: SavingsPostcard | null;
+  /** 첫 실물 단위의 환산 한 줄(FR-9). 단위가 없으면 null */
+  unitLine: SavingsItemUnit | null;
+  /** 기한 모드: 지금 월 계획대로면 기한 안에 닿나(서버 판정). 기한 없으면 null */
+  planMeetsDeadline: boolean | null;
+}
+
+export type SceneKind = "trip" | "car" | "umbrella" | "house" | "jar";
+
+export interface SavingsScene {
+  kind: SceneKind;
+  step: number;
+  steps: number;
+}
+
+export interface SavingsItemUnit {
+  id: string;
+  name: string;
+  unitPrice: number;
+  /** 모은 돈으로 몇 개 — 서버 내림 */
+  count: number;
+}
+
+export interface SavingsPostcard {
+  startedOn: string;
+  reachedOn: string;
+  daysTaken: number;
+  depositCount: number;
+}
+
+export interface SavingsMissedMonths {
+  observedMonths: number;
+  skippedMonths: number;
+  /** 건너뛴 달마다 계획만큼 넣었다면 계획 도달이 몇 달 빨랐을지 — 없으면 null + reason */
+  shiftMonths: number | null;
+  reason: ProjectionReason | null;
+}
+
+export interface SavingsSimProjection {
+  method: "empirical_quantile" | "plan_only";
+  earlyMonth: string | null;
+  lateMonth: string | null;
+  planMonth: string | null;
+  reason: ProjectionReason | null;
+}
+
+export interface SavingsSimulationRow {
+  goalId: string;
+  title: string;
+  template: GoalTemplateKey;
+  monthlyBefore: number | null;
+  monthlyAfter: number | null;
+  before: SavingsSimProjection;
+  after: SavingsSimProjection;
+  /** + 늦어짐 · − 빨라짐(서버가 센 달 수) */
+  planShiftMonths: number | null;
+  /** "2027-12"(기한 모드만) */
+  deadlineMonth: string | null;
+  /** 바꾼 계획대로면 기한 안에 닿나 — 기한 없으면 null */
+  afterMeetsDeadline: boolean | null;
+}
+
+export interface SavingsSimulation {
+  totalMonthlyBefore: number;
+  totalMonthlyAfter: number;
+  rows: SavingsSimulationRow[];
+}
+
+/** 저울 · 확정 요청 — 바꾼 목표만 */
+export interface PlanChangesRequest {
+  changes: { goalId: string; monthly: number }[];
+}
+
+export interface EmergencyRequest {
+  amount: number;
+  /** 사용자가 넣은 연 금리(%) — 상품을 고르지 않는다 */
+  loanRate: number;
+  loanMonths: number;
+}
+
+export interface SavingsEmergency {
+  amount: number;
+  withdraw: { planMonthBefore: string | null; planMonthAfter: string | null; delayMonths: number | null; reason: ProjectionReason | null };
+  /** firstPayment × firstMonths + restPayment × restMonths = 원금 + totalInterest — 서버 값. 나누어떨어지면 restMonths 0 */
+  loan: { months: number; annualRate: string; firstPayment: number; firstMonths: number; restPayment: number; restMonths: number; totalInterest: number } | null;
+  /** 나눌 수 없으면(`amount_too_small`) — 꺼내기 칸은 그대로 */
+  loanReason: string | null;
+  /** 가정 키 — `loan_paid_outside_goal` */
+  assumptions: string[];
 }
 
 export interface SavingsDeposit {
@@ -91,8 +185,17 @@ export interface SavingsDeposit {
 
 export interface SavingsGoalDetail {
   goal: SavingsGoal;
+  /** 응답 어디든 계산이 불완전하면 true — goal.degraded(구간) + 상세 칸(놓친 달) */
+  degraded: boolean;
+  degradedReasons: string[];
   plan: SavingsCalculation;
   deposits: SavingsDeposit[];
+  /** 놓친 달 회고(FR-7) */
+  missedMonths: SavingsMissedMonths;
+  /** 이 목표의 실물 단위 */
+  units: SavingsItemUnit[];
+  /** 목표 하나에 둘 수 있는 단위 수 — 서버 상한(화면이 상수를 복사하지 않는다) */
+  unitLimit: number;
 }
 
 /** 계산 요청 — 금액 + (기한 | 월 적립). 서버가 계산한다 */

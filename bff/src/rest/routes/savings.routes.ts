@@ -15,5 +15,11 @@ router.post("/goals", authMiddleware, appSavingsController.create);
 router.get("/goals/:id", authMiddleware, appSavingsController.goal);
 router.post("/goals/:id/deposits", authMiddleware, appSavingsController.deposit);
 router.post("/deposits/split", authMiddleware, appSavingsController.split);
+// S1b — 저울(저장 안 함) · 확정 · 비상시 비교(저장 안 함) · 실물 단위
+router.post("/simulate", authMiddleware, appSavingsController.simulate);
+router.put("/goals/plans", authMiddleware, appSavingsController.updatePlans);
+router.post("/goals/:id/emergency-compare", authMiddleware, appSavingsController.emergency);
+router.post("/goals/:id/units", authMiddleware, appSavingsController.addUnit);
+router.delete("/goals/:id/units/:unitId", authMiddleware, appSavingsController.deleteUnit);
 
 export default router;

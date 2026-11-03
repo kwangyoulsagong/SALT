@@ -1,9 +1,4 @@
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
-import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
-
-import type { SavingsGoalDetail } from "@/entities/goal";
-
-const SAVINGS = `${INVESTMENTS_BASE_URL}/api/app/savings`;
+import { savingsRequest, type SavingsGoalDetail } from "@/entities/goal";
 
 export interface DepositRequest {
   amount: number;
@@ -23,19 +18,9 @@ export interface SplitResult {
   goals: SavingsGoalDetail[];
 }
 
-const post = async <T>(url: string, body: unknown, name: string): Promise<T> => {
-  const response = await apiFetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeader() },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) throw await readApiError(response, name);
-  return (await response.json()) as T;
-};
-
 /** 적립 — 응답은 서버가 다시 계산한 상세(진척 · 이정표 · 새 구간). 합계 검증도 서버(`SRV-REQ-045` FR-4) */
 export const recordDepositApi = {
   single: (goalId: string, body: DepositRequest) =>
-    post<SavingsGoalDetail>(`${SAVINGS}/goals/${encodeURIComponent(goalId)}/deposits`, body, "savings-deposit"),
-  split: (body: SplitRequest) => post<SplitResult>(`${SAVINGS}/deposits/split`, body, "savings-split"),
+    savingsRequest<SavingsGoalDetail>("POST", `/goals/${encodeURIComponent(goalId)}/deposits`, body, "savings-deposit"),
+  split: (body: SplitRequest) => savingsRequest<SplitResult>("POST", "/deposits/split", body, "savings-split"),
 };

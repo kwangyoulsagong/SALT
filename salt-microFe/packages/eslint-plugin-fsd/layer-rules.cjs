@@ -89,6 +89,10 @@ const REGISTRY = {
     "record-transaction",
     // 저축 적립 — 단건 · 여러 목표 나눠 넣기(`FE-REQ-056` FR-4, 2026-11-03)
     "record-deposit",
+    // 저축 S1b(`FE-REQ-056` FR-6 · 7 · 9, 2026-11-03) — 목표 저울 확정 · 실물 단위 만들기/지우기 · 비상시 비교(저장 없는 서버 계산)
+    "rebalance-goals",
+    "add-item-unit",
+    "compare-emergency",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",

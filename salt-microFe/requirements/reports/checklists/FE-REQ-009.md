@@ -233,3 +233,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 
 - 이 REQ 에 걸린 몫(`c60f5bfb`): 레지스트리 코드(`layer-rules.cjs`)에 `record-deposit`(features) · `goal-detail`(pages) 추가 · `fsd-features.md` 표. 새 이름(`savings-goal` · `create-goal`)은 훅이 막아 레지스트리 이름(`goal` · `add-goal`)으로
 - 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`
+
+## 2026-11-03 — MONEY-S1b
+
+- MONEY-S1b — 이 REQ 에 걸린 몫(`6ad345fc`): 레지스트리 코드(`layer-rules.cjs`) features 에 `rebalance-goals` · `add-item-unit` · `compare-emergency` 추가 · `fsd-features.md` 표 3행. test:layer-check 26 · 훅 사후 실행(바뀐 TS 전부) 통과
