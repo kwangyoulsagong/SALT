@@ -52,15 +52,7 @@ router.post("/auth/login", proxyHandler);
 router.post("/auth/refresh", proxyHandler);
 router.get("/auth/me", authMiddleware, proxyHandler);
 
-// Goals 관련
-router.post("/goals", authMiddleware, proxyHandler);
-router.get("/goals", authMiddleware, proxyHandler);
-router.get("/goals/statistics", authMiddleware, proxyHandler);
-router.get("/goals/:id", authMiddleware, proxyHandler);
-router.patch("/goals/:id", authMiddleware, proxyHandler);
-router.delete("/goals/:id", authMiddleware, proxyHandler);
-router.post("/goals/:id/savings", authMiddleware, proxyHandler);
-router.get("/goals/:id/progress", authMiddleware, proxyHandler);
+// Goals — 은퇴(2026-11-03). 저축은 Kotlin savings 서비스 `/api/app/savings/*`(`BFF-REQ-047`). 옛 경로는 410 `ENDPOINT_RETIRED`(`gone.middleware.ts`)
 
 // Investment 관련
 router.post("/investment/watchlist", authMiddleware, proxyHandler);

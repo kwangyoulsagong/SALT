@@ -14,7 +14,7 @@ const portfolio = (items: unknown[], totalKrw: number) =>
 
 const goalStats = (data: Record<string, number>) => ({ data: { success: true, data } }) as never;
 
-/** 서버 경로별 응답 — `/goals/statistics` 와 `/portfolio/stats` 를 같은 목으로 받는다 */
+/** 서버 경로별 응답 — `/savings/home-card`(Kotlin savings) 와 `/portfolio/stats` 를 같은 목으로 받는다 */
 const byPath =
   (goals: Record<string, number>, profitRate: number | null = 12.34) =>
   async (_method: string, url: string) => {
@@ -29,6 +29,22 @@ const profile = (hidePurchasePrice: boolean) => async () => ({ hidePurchasePrice
 
 describe("AppHomeService.getHome", () => {
   afterEach(() => mock.restoreAll());
+
+  it("저축 카드는 Kotlin savings 의 home-card 를 부르고, 진척이 가장 큰 목표를 한 줄로 싣는다(서버 퍼센트 그대로)", async () => {
+    mock.method(appAICoachService, "getProfile", profile(true));
+    const calls: string[] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, url: string) => {
+      calls.push(url);
+      return goalStats({ totalGoals: 2, activeGoals: 2, totalSaved: 600000, nearest: { title: "제주 여행", progressPercent: 50 } } as never);
+    });
+    mock.method(appPortfolioService, "getSummary", async () => portfolio([], 0));
+    const vm = await appHomeService.getHome("t");
+    const savings = vm.cards.find((c) => c.domain === "savings")!;
+    assert.ok(calls.includes("/savings/home-card"));
+    assert.ok(!calls.some((u) => u.startsWith("/goals")));
+    assert.equal(savings.note, "제주 여행 50.0%");
+    assert.equal(savings.href, "/goals");
+  });
   // 기본: 매입가 숨김 켬 — 손익률 칸이 없는 쪽. 손익률 케이스는 아래에서 따로 바꾼다
   const hideByDefault = () => mock.method(appAICoachService, "getProfile", profile(true));
 
@@ -80,7 +96,7 @@ describe("AppHomeService.getHome", () => {
     const savings = vm.cards.find((c) => c.domain === "savings")!;
     assert.equal(savings.state, "degraded");
     assert.equal(savings.primary, null);
-    assert.equal(savings.href, "/goals/addgoals");
+    assert.equal(savings.href, "/goals");
     assert.equal(vm.cards.find((c) => c.domain === "invest")!.state, "ok");
   });
 

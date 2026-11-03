@@ -2,6 +2,7 @@
   "$comment": "서버 경로 prefix → legacy(Express :4000) | platform(Kotlin) | shadow(legacy 응답 + platform 비교, 읽기만). BFF-REQ-045 FR-1. 저장하면 재시작 없이 1초 안에 반영된다. 되돌리기 = 값 하나",
   "default": "legacy",
   "routes": {
-    "/platform": "platform"
+    "/platform": "platform",
+    "/savings": "platform"
   }
 }

@@ -60,6 +60,8 @@ export const HOME_CARD_TEXT = {
     active: "진행 중인 목표",
     emptyLabel: "목표",
     emptyValue: "아직 없어요",
+    /** 진척이 가장 큰 진행 중 목표 — 사실만(칭찬 · 재촉 0). 퍼센트는 서버 값(소수 한 자리 내림) 그대로 */
+    nearest: (title: string, percent: number) => `${title} ${percent.toFixed(1)}%`,
   },
   invest: {
     title: "투자",
@@ -74,12 +76,12 @@ export const HOME_CARD_TEXT = {
   count: (n: number) => `${n}개`,
 } as const;
 
-/** 서버 `GET /goals/statistics` (`salt-server` goal) */
-export interface ServerGoalStatistics {
+/** 서버 `GET /savings/home-card`(Kotlin `savings`, `SRV-REQ-045` FR-15) 중 카드가 쓰는 것 — 숫자만, 문장은 여기서 */
+export interface SavingsCardSource {
   totalGoals?: number;
   activeGoals?: number;
-  completedGoals?: number;
-  totalSaved?: number;
+  totalSaved?: number | null;
+  nearest?: { title: string; progressPercent: number } | null;
 }
 
 /** 서버 `GET /portfolio/summary` 를 BFF 가 옮긴 것 중 카드가 쓰는 것 */
@@ -89,14 +91,17 @@ export interface PortfolioCardSource {
 }
 
 /**
- * 저축 카드. 진입은 아직 셸 `/goals/addgoals` 하나다 — `/goals` 목록 화면은 저축 zone 이 생길 때(`FE-REQ-056`).
+ * 저축 카드 — 모은 돈 · 진행 중 목표 수 + 진척이 가장 큰 진행 중 목표 한 줄(FEATURE-012 FR-14). 진입은 저축 zone `/goals`(`FE-REQ-056`).
  */
-export const toSavingsCard = (stats: ServerGoalStatistics, now: string): HomeSummaryCard => {
-  const total = stats.totalGoals ?? 0;
-  const base = { domain: "savings" as const, title: HOME_CARD_TEXT.savings.title, href: "/goals/addgoals", updatedAt: now, note: null };
+export const SAVINGS_HREF = "/goals";
+
+export const toSavingsCard = (src: SavingsCardSource, now: string): HomeSummaryCard => {
+  const total = src.totalGoals ?? 0;
+  const base = { domain: "savings" as const, title: HOME_CARD_TEXT.savings.title, href: SAVINGS_HREF, updatedAt: now };
   if (total === 0) {
     return {
       ...base,
+      note: null,
       primary: { label: HOME_CARD_TEXT.savings.emptyLabel, value: HOME_CARD_TEXT.savings.emptyValue },
       secondary: null,
       state: "empty",
@@ -104,8 +109,9 @@ export const toSavingsCard = (stats: ServerGoalStatistics, now: string): HomeSum
   }
   return {
     ...base,
-    primary: { label: HOME_CARD_TEXT.savings.saved, value: formatKrw(stats.totalSaved ?? 0) },
-    secondary: { label: HOME_CARD_TEXT.savings.active, value: HOME_CARD_TEXT.count(stats.activeGoals ?? 0) },
+    note: src.nearest ? HOME_CARD_TEXT.savings.nearest(src.nearest.title, src.nearest.progressPercent) : null,
+    primary: { label: HOME_CARD_TEXT.savings.saved, value: formatKrw(src.totalSaved ?? 0) },
+    secondary: { label: HOME_CARD_TEXT.savings.active, value: HOME_CARD_TEXT.count(src.activeGoals ?? 0) },
     state: "ok",
   };
 };
