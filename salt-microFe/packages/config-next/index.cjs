@@ -9,12 +9,24 @@ const { ZONES, zoneRewrites } = require("@repo/core/zones/node");
  * 바뀌는 것은 zone 몫뿐이다 — `assetPrefix` · `NEXT_PUBLIC_ZONE_APP`(레지스트리 값) · 셸만 rewrites · 앱이 더하는 변환 패키지.
  *
  * vanilla-extract 플러그인은 화면이 있는 zone 만 감싼다(빈 골격은 의존이 없다) — 앱 `next.config.js` 가 고른다.
- * 실제로 해시가 같아지는지는 빌드 산출물로 잰다(`checklists/FE-REQ-054.md`).
+ *
+ * ## 정적 파일 경로 — dev 는 zone 별, 운영 빌드는 공용 `/_next` (`ADR-005` 규칙 7 개정 2026-11-03)
+ *
+ * 운영 청크는 이름에 내용 해시가 들어 있다 — 이름이 같으면 내용도 같다. 그래서 zone 마다 다른 assetPrefix 를 두면 같은 청크가
+ * 다른 URL 이 되어 캐시를 못 나눴다(실측: 셸 → 투자 같은 청크 5개 · 117 KB 재다운로드). 운영 빌드는 assetPrefix 를 두지 않고,
+ * 배포가 zone 의 `.next/static` 을 한 저장소에 합친다(같은 이름 · 다른 내용이면 실패 — `scripts/merge-zone-static.mjs`).
+ * dev 청크는 해시가 없어(`app/layout.js`) 합치면 서로 덮으므로 dev 만 레지스트리 assetPrefix 를 쓴다.
+ * `ZONE_STATIC=per-zone` 이면 운영 빌드도 zone 별(합치기 없이 zone 하나만 띄울 때).
  *
  * @param {"shell" | "invest" | "savings" | "household" | "tips"} zoneId 레지스트리 zone id
  * @param {{ transpilePackages?: string[] }} [options]
  * @returns {import('next').NextConfig}
  */
+/** 운영 빌드이고 zone 별을 고르지 않았으면 공용 `/_next` */
+function usesSharedStatic(env = process.env) {
+  return env.NODE_ENV === "production" && env.ZONE_STATIC !== "per-zone";
+}
+
 function zoneNextConfig(zoneId, options = {}) {
   const zone = ZONES[zoneId];
   if (!zone) throw new Error(`레지스트리에 없는 zone: ${zoneId}`);
@@ -46,10 +58,10 @@ function zoneNextConfig(zoneId, options = {}) {
   // 셸은 assetPrefix 를 갖지 않고(default zone) 도메인 zone 으로 가는 요청을 프록시한다 — 규칙은 레지스트리에서 생성
   if (isShell) {
     config.rewrites = async () => zoneRewrites(process.env);
-  } else {
+  } else if (!usesSharedStatic()) {
     config.assetPrefix = zone.assetPrefix;
   }
   return config;
 }
 
-module.exports = { zoneNextConfig };
+module.exports = { zoneNextConfig, usesSharedStatic };
