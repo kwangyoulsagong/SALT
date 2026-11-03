@@ -86,6 +86,8 @@ export interface SavingsGoalVM {
   postcard: SavingsPostcardVM | null;
   /** 첫 실물 단위의 환산 한 줄. 없으면 null */
   unitLine: SavingsUnitVM | null;
+  /** 기한 모드: 지금 월 계획대로면 기한 안에 닿나. 기한 없으면 null */
+  planMeetsDeadline: boolean | null;
 }
 
 export interface SavingsSceneVM {
@@ -139,6 +141,9 @@ export interface SavingsSimulationVM {
     after: SavingsSimProjectionVM;
     /** + 늦어짐 · − 빨라짐 */
     planShiftMonths: number | null;
+    /** "2027-12"(기한 모드만) · 바꾼 계획대로면 기한 안에 닿나 */
+    deadlineMonth: string | null;
+    afterMeetsDeadline: boolean | null;
   }>;
 }
 
@@ -165,8 +170,10 @@ export interface SavingsGoalDetailVM {
   deposits: SavingsDepositVM[];
   /** 놓친 달 회고(S1b) */
   missedMonths: SavingsMissedMonthsVM;
-  /** 이 목표의 실물 단위 전부(최대 3) */
+  /** 이 목표의 실물 단위 전부 */
   units: SavingsUnitVM[];
+  /** 목표 하나에 둘 수 있는 단위 수(서버 상한) */
+  unitLimit: number;
 }
 
 export interface SavingsSplitVM {
