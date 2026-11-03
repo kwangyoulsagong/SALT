@@ -75,3 +75,5 @@
 - 2026-11-03 `bd571eae` · `d21bd5c1` · `c786ab91` — core 테스트 147(입력 64) · 모노레포 · zone 5 빌드(`/goals/new` 128 kB) · 훅
 - 2026-11-03 `5afe2476` · `5fd864d1` · `e8fe98fe` — 화면: 적립 거절 → 칸 오류 · 제출 뒤 칸 비고 오류 없음 · 저울 처음 값(계획) · A 거절 + B 정상 → A 오류 유지 · B 결과 · 되돌리기 → 값 · 오류 지움 · 이율 거절 뒤 이자 끄고 켬 → 오류 없음. core 테스트 158 · 모노레포 · zone 5 빌드 · 훅
 - 2026-11-03 옛 `formatAmountInput` 삭제 — 모노레포 check-types · lint · zone 5 빌드 · core 테스트
+
+- 리뷰 12차(2026-11-03): 퇴행 3건 고침 `ccb5ebb7` · `4830cfcf` · `98573b1b` — `pnpm check-types` · `lint` 11/11 · core 169 · ui 43 · layer-check 16/10 · zone 빌드 · storybook 통과. 고치지 않은 정리 5건은 루트 회고 `MONEY-S1b-savings-fun.md` §12차. 리뷰 종료
