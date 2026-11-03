@@ -67,6 +67,8 @@ class JooqGoals(private val dsl: DSLContext) : Goals {
             .orderBy(DSL.case_(GOAL.STATUS).`when`("active", 0).`when`("paused", 1).else_(2), GOAL.CREATED_AT.asc())
             .fetch(::toGoal)
 
+    override fun existsFor(userId: String): Boolean = dsl.fetchExists(GOAL, GOAL.USER_ID.eq(userId))
+
     override fun markCompleted(id: GoalId, at: Instant) {
         dsl.update(GOAL)
             .set(GOAL.STATUS, GoalStatus.COMPLETED.key)
@@ -125,6 +127,28 @@ class JooqDeposits(private val dsl: DSLContext) : Deposits {
             }
     }
 
+    override fun totalsFor(goalId: GoalId, thisMonth: YearMonth): DepositTotals? {
+        val monthStart = thisMonth.atDay(1)
+        val thisMonthSum = DSL.sum(DSL.`when`(DEPOSIT.DEPOSITED_ON.ge(monthStart), DEPOSIT.AMOUNT).else_(BigDecimal.ZERO))
+        return dsl.select(DSL.sum(DEPOSIT.AMOUNT), DSL.count(), DSL.max(DEPOSIT.DEPOSITED_ON), thisMonthSum)
+            .from(DEPOSIT)
+            .where(DEPOSIT.GOAL_ID.eq(goalId.value))
+            .fetchOne()
+            ?.takeIf { it.value2() > 0 }
+            ?.let { DepositTotals(money(it.value1()), it.value2(), it.value3(), money(it.value4() ?: BigDecimal.ZERO)) }
+    }
+
+    override fun monthlyByGoal(userId: String): Map<GoalId, List<MonthlyDeposit>> {
+        val month = DSL.field("date_trunc('month', {0})::date", LocalDate::class.java, DEPOSIT.DEPOSITED_ON)
+        return dsl.select(DEPOSIT.GOAL_ID, month, DSL.sum(DEPOSIT.AMOUNT))
+            .from(DEPOSIT)
+            .where(DEPOSIT.USER_ID.eq(userId).and(DEPOSIT.SOURCE.ne(DepositSource.IMPORTED_BALANCE.key)))
+            .groupBy(DEPOSIT.GOAL_ID, month)
+            .orderBy(DEPOSIT.GOAL_ID, month)
+            .fetch()
+            .groupBy({ GoalId(it.value1()) }, { MonthlyDeposit(YearMonth.from(it.value2()), money(it.value3())) })
+    }
+
     override fun monthly(goalId: GoalId): List<MonthlyDeposit> {
         val month = DSL.field("date_trunc('month', {0})::date", LocalDate::class.java, DEPOSIT.DEPOSITED_ON)
         return dsl.select(month, DSL.sum(DEPOSIT.AMOUNT))
@@ -164,29 +188,4 @@ class JooqProjections(private val dsl: DSLContext) : Projections {
             .set(PROJECTION_ISSUED.MONTHS_OF_HISTORY, p.monthsOfHistory)
             .execute()
     }
-
-    /** 목표마다 최근 하나 — DISTINCT ON(인덱스 goal_id, issued_at desc 를 탄다). 남의 목표는 goal 조인의 user_id 조건이 거른다 */
-    override fun latestByGoal(userId: String): Map<GoalId, IssuedProjection> =
-        dsl.select(PROJECTION_ISSUED.asterisk())
-            .distinctOn(PROJECTION_ISSUED.GOAL_ID)
-            .from(PROJECTION_ISSUED)
-            .join(GOAL).on(GOAL.ID.eq(PROJECTION_ISSUED.GOAL_ID))
-            .where(GOAL.USER_ID.eq(userId))
-            .orderBy(PROJECTION_ISSUED.GOAL_ID, PROJECTION_ISSUED.ISSUED_AT.desc())
-            .fetchInto(PROJECTION_ISSUED)
-            .associate { r ->
-                GoalId(r.goalId) to IssuedProjection(
-                    r.id,
-                    GoalId(r.goalId),
-                    r.issuedAt.toInstant(),
-                    Projection(
-                        ProjectionMethod.fromKey(r.method),
-                        r.pLowDate?.let(YearMonth::from),
-                        r.pHighDate?.let(YearMonth::from),
-                        r.planDate?.let(YearMonth::from),
-                        r.reason,
-                        r.monthsOfHistory,
-                    ),
-                )
-            }
 }

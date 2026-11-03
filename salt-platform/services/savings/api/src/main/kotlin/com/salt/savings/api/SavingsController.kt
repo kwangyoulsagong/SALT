@@ -6,6 +6,7 @@ import com.salt.savings.application.CreateGoal
 import com.salt.savings.application.GetGoal
 import com.salt.savings.application.GoalDetail
 import com.salt.savings.application.GoalSummary
+import com.salt.savings.application.HasGoals
 import com.salt.savings.application.HomeCard
 import com.salt.savings.application.ListGoals
 import com.salt.savings.application.ListTemplates
@@ -54,6 +55,7 @@ class SavingsController(
     private val createGoal: CreateGoal,
     private val recordDeposits: RecordDeposits,
     private val homeCard: HomeCard,
+    private val hasGoals: HasGoals,
 ) {
     // ---------- 요청 ----------
 
@@ -120,7 +122,6 @@ class SavingsController(
         val planMonth: String?,
         val reason: String?,
         val monthsOfHistory: Int,
-        val issuedAt: String?,
         /** 적중 이력 — 채점(FC-REQ-024)이 생기기 전엔 null 이고 [trackReason] 이 이유(FR-6: 둘 중 하나는 늘 있다) */
         val track: Any?,
         val trackReason: String?,
@@ -212,6 +213,13 @@ class SavingsController(
         )
         return ApiResponse.created(detailView(detail), "Goal created successfully")
     }
+
+    data class ExistsView(val exists: Boolean)
+
+    /** 경로 순서: 이 고정 경로가 `/goals/{id}` 보다 먼저 맞는다(Spring 은 고정 경로를 우선한다) */
+    @Operation(summary = "목표가 있나", description = "온보딩 set_plan 프로브(Express)용 — 쿼리 1")
+    @GetMapping("/goals/exists")
+    fun exists(user: AuthenticatedUser): ResponseEntity<ApiResponse<ExistsView>> = ApiResponse.ok(ExistsView(hasGoals.execute(user.userId)))
 
     @Operation(summary = "목표 상세", description = "도달 구간 · 적중 이력(또는 이유) · 최근 적립 20건 · 지금 기준 계획 재계산")
     @GetMapping("/goals/{id}")
@@ -311,7 +319,6 @@ class SavingsController(
                 planMonth = p.plan?.toString(),
                 reason = p.reason,
                 monthsOfHistory = p.monthsOfHistory,
-                issuedAt = s.projectionIssuedAt?.toString(),
                 track = null,
                 trackReason = ProjectionReason.HISTORY_SHORT,
             ),

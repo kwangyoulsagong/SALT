@@ -27,7 +27,7 @@ export interface SavingsCalculation {
   assumptions: { interestTaxRatePercent: string; interestOnSavedIncluded: boolean };
 }
 
-export type MilestoneState = "no_plan" | "under_plan" | "plan_met";
+export type MilestoneState = "no_plan" | "under_plan" | "plan_met" | "reached";
 
 export interface SavingsMilestone {
   month: string;
@@ -46,7 +46,6 @@ export interface SavingsProjection {
   planMonth: string | null;
   reason: ProjectionReason | null;
   monthsOfHistory: number;
-  issuedAt: string | null;
   /** 적중 이력 — 채점(`FC-REQ-024`)이 생기기 전엔 null 이고 `trackReason` 이 이유 */
   track: unknown;
   trackReason: string | null;

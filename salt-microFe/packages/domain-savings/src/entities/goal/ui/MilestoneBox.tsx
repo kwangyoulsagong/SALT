@@ -1,12 +1,9 @@
-import { formatPrice } from "@repo/web-shared/lib";
-
-import { GOAL_MESSAGES } from "../model/messages";
+import { formatWon, GOAL_MESSAGES } from "../model/messages";
 import type { SavingsMilestone } from "../model/types";
 import * as s from "./goal.css";
 
-const won = (value: number) => `${formatPrice(value)}원`;
 /** 차이는 부호를 글자로(색만으로 방향을 전하지 않는다) — 값은 서버 계산 그대로, 음수 부호는 포맷이 붙인다 */
-const signed = (value: number) => `${value > 0 ? "+" : ""}${won(value)}`;
+const signed = (value: number) => `${value > 0 ? "+" : ""}${formatWon(value)}`;
 
 export interface MilestoneBoxProps {
   milestone: SavingsMilestone;
@@ -19,11 +16,11 @@ export const MilestoneBox = ({ milestone }: MilestoneBoxProps) => (
     <div className={s.grid}>
       <div className={s.cell}>
         <span className={s.label}>{GOAL_MESSAGES.milestone.deposited}</span>
-        <span className={s.value}>{won(milestone.deposited)}</span>
+        <span className={s.value}>{formatWon(milestone.deposited)}</span>
       </div>
       <div className={s.cell}>
         <span className={s.label}>{GOAL_MESSAGES.milestone.plan}</span>
-        <span className={s.value}>{milestone.plan === null ? "—" : won(milestone.plan)}</span>
+        <span className={s.value}>{milestone.plan === null ? "—" : formatWon(milestone.plan)}</span>
       </div>
       <div className={s.cell}>
         <span className={s.label}>{GOAL_MESSAGES.milestone.difference}</span>

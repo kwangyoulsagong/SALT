@@ -10,12 +10,13 @@ import { TextField } from "@repo/ui/textField";
 import { Toggle } from "@repo/ui/toggle";
 
 import { ROUTES } from "@repo/web-shared/config";
-import { formatAmountInput, formatPrice, parseAmountInput } from "@repo/web-shared/lib";
+import { formatAmountInput, parseAmountInput } from "@repo/web-shared/lib";
 
 import {
   GOAL_MESSAGES,
   TEMPLATE_LABEL,
   formatMonth,
+  formatWon,
   useSavingsCalculation,
   useSavingsTemplates,
   type CalculationRequest,
@@ -30,7 +31,6 @@ import * as s from "./addGoal.css";
 const CALC_DEBOUNCE_MS = 300;
 const TEMPLATE_KEYS = Object.keys(TEMPLATE_LABEL) as GoalTemplateKey[];
 
-const won = (value: number) => `${formatPrice(value)}원`;
 
 /**
  * 목표 만들기 + 계산기(`FE-REQ-056` FR-2 · 3). **결과 숫자는 전부 서버 응답** — 입력을 읽어 보내고 응답을 보여 줄 뿐이다.
@@ -140,7 +140,7 @@ export const AddGoalForm = () => {
               <strong className={s.resultValue}>
                 {mode === "deadline"
                   ? result.monthly !== null
-                    ? won(result.monthly)
+                    ? formatWon(result.monthly)
                     : "—"
                   : result.reachMonth
                     ? GOAL_MESSAGES.projection.plan(result.reachMonth)
@@ -156,7 +156,7 @@ export const AddGoalForm = () => {
             {includeInterest ? (
               <>
                 <span className={s.hint}>
-                  {M.resultInterest} {won(result.expectedInterest)}
+                  {M.resultInterest} {formatWon(result.expectedInterest)}
                 </span>
                 <span className={s.hint}>{M.assumption(result.assumptions.interestTaxRatePercent)}</span>
               </>

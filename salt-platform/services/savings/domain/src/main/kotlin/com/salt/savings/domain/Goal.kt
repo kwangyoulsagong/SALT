@@ -107,6 +107,10 @@ class Goal(
             if (monthlyPlan != null && (monthlyPlan.isNegative() || monthlyPlan.isZero())) {
                 throw InvalidGoal("GOAL_MONTHLY_INVALID", "monthlyPlan must be positive")
             }
+            // 기한을 주면 월 적립을 같이 줘도 기한이 이번 달 뒤여야 한다 — 계획과 기한이 엇갈린 목표를 저장하지 않는다(코드 리뷰 2026-11-03)
+            if (targetDate != null && SavingsMath.monthsUntil(today, targetDate) <= 0) {
+                throw InvalidGoal("GOAL_DEADLINE_TOO_CLOSE", "targetDate must be in a later month than today")
+            }
             val plan = when {
                 monthlyPlan != null -> monthlyPlan
                 else -> {

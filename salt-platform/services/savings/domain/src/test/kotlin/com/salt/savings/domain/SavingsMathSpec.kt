@@ -63,6 +63,11 @@ class SavingsMathSpec : StringSpec({
         (withRate < plain) shouldBe true
     }
 
+    "몫이 Int 를 넘어도 1달로 접히지 않는다 — 30억을 월 1원이면 not_reachable(코드 리뷰)" {
+        SavingsMath.byMonthly(krw(3_000_000_000), zero, krw(1), null, today).state shouldBe CalculationState.NOT_REACHABLE
+        SavingsMath.byMonthly(krw(3_000_000_000), zero, krw(1), InterestPlan(BigDecimal("30")), today).state shouldBe CalculationState.NOT_REACHABLE
+    }
+
     "100년 안에 못 닿으면 not_reachable" {
         SavingsMath.byMonthly(krw(10_000_000_000), zero, krw(1_000), null, today).state shouldBe CalculationState.NOT_REACHABLE
     }
@@ -73,6 +78,8 @@ class SavingsMathSpec : StringSpec({
         shouldThrow<InvalidGoal> { Goal.create("u", "  ", GoalTemplate.TRAVEL, krw(1), LocalDate.of(2027, 5, 1), null, null, today, now) }.code shouldBe "GOAL_TITLE_INVALID"
         shouldThrow<InvalidGoal> { Goal.create("u", "여행", GoalTemplate.TRAVEL, krw(1), null, null, null, today, now) }.code shouldBe "GOAL_PLAN_REQUIRED"
         shouldThrow<InvalidGoal> { Goal.create("u", "여행", GoalTemplate.TRAVEL, krw(1), LocalDate.of(2026, 11, 28), null, null, today, now) }.code shouldBe "GOAL_DEADLINE_TOO_CLOSE"
+        // 월 적립을 같이 줘도 지난 기한은 거부(코드 리뷰)
+        shouldThrow<InvalidGoal> { Goal.create("u", "여행", GoalTemplate.TRAVEL, krw(1), LocalDate.of(2020, 1, 1), krw(100), null, today, now) }.code shouldBe "GOAL_DEADLINE_TOO_CLOSE"
         Goal.create("u", "여행", GoalTemplate.TRAVEL, krw(1_200_000), LocalDate.of(2027, 11, 1), null, null, today, now).monthlyPlan shouldBe krw(100_000)
     }
 
@@ -130,12 +137,18 @@ class ProjectionSpec : StringSpec({
     }
 
     "이정표 · 프레임 — 사실만" {
-        val m = Milestone.of(goal, krw(400_000), today)
+        val m = Milestone.of(goal, krw(400_000), today, krw(0))
         m.state shouldBe MilestoneState.UNDER_PLAN
         m.difference shouldBe krw(-600_000)
         Frame.of(progressOf(krw(14_999_999), krw(30_000_000))) shouldBe Frame.SAVED
         Frame.of(progressOf(krw(15_000_000), krw(30_000_000))) shouldBe Frame.REMAINING
         progressOf(krw(40_000_000), krw(30_000_000)) shouldBe BigDecimal.ONE
+    }
+
+    "다 찬 목표는 계획 비교 없이 reached — 다 찬 목표에 '적게 넣었어요'를 띄우지 않는다(코드 리뷰)" {
+        val m = Milestone.of(goal, krw(0), today, krw(30_000_000))
+        m.state shouldBe MilestoneState.REACHED
+        m.difference shouldBe null
     }
 })
 

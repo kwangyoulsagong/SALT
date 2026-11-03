@@ -105,10 +105,12 @@ object SavingsMath {
         val need = remaining.toDecimal()
         val m = monthly.toDecimal()
         // 이자 없는 상한부터 — 이자가 있으면 그보다 빠르다. 그 아래를 이분 탐색한다(달 수에 대해 단조 증가)
-        val upper = need.divide(m, 0, RoundingMode.CEILING).toInt().coerceAtLeast(1)
-        if (upper > MAX_MONTHS && m.multiply(growthFactor(MAX_MONTHS, netRate), MC) < need) return null
+        // 상한을 BigDecimal 로 비교한다 — Int 로 먼저 바꾸면 21억을 넘는 몫이 음수로 접혀 "1달"이 된다(코드 리뷰 2026-11-03)
+        val upper = need.divide(m, 0, RoundingMode.CEILING).max(BigDecimal.ONE)
+        val cap = BigDecimal(MAX_MONTHS)
+        if (upper > cap && m.multiply(growthFactor(MAX_MONTHS, netRate), MC) < need) return null
         var lo = 1
-        var hi = upper.coerceAtMost(MAX_MONTHS)
+        var hi = upper.min(cap).toInt()
         while (lo < hi) {
             val mid = (lo + hi) / 2
             if (m.multiply(growthFactor(mid, netRate), MC) >= need) hi = mid else lo = mid + 1

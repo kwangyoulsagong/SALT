@@ -154,6 +154,9 @@ enum class MilestoneState(val key: String) {
 
     /** 계획 이상 */
     PLAN_MET("plan_met"),
+
+    /** 이미 목표 금액에 닿았다 — 계획 비교를 하지 않는다(다 찬 목표에 "적게 넣었어요"를 띄우지 않는다, 코드 리뷰 2026-11-03) */
+    REACHED("reached"),
 }
 
 /** 이번 달 이정표(`SRV-REQ-045` FR-8) — 넣은 돈 · 계획 · 차이만 */
@@ -166,9 +169,12 @@ data class Milestone(
     val state: MilestoneState,
 ) {
     companion object {
-        fun of(goal: Goal, thisMonthDeposited: Money, today: LocalDate): Milestone {
+        fun of(goal: Goal, thisMonthDeposited: Money, today: LocalDate, saved: Money): Milestone {
             val plan = goal.monthlyPlan
             val month = YearMonth.from(today)
+            if (goal.status == GoalStatus.COMPLETED || saved >= goal.targetAmount) {
+                return Milestone(month, thisMonthDeposited, plan, null, MilestoneState.REACHED)
+            }
             if (plan == null) return Milestone(month, thisMonthDeposited, null, null, MilestoneState.NO_PLAN)
             val diff = thisMonthDeposited - plan
             return Milestone(month, thisMonthDeposited, plan, diff, if (diff.isNegative()) MilestoneState.UNDER_PLAN else MilestoneState.PLAN_MET)

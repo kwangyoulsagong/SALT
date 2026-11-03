@@ -135,6 +135,11 @@ class SavingsEndToEndTest {
             it.statusCode() shouldBe 400
             it.body() shouldContain "SPLIT_SUM_MISMATCH"
         }
+        // 대소문자만 다른 같은 목표 — 파싱한 id 로 비교해 거부(코드 리뷰)
+        call("POST", "/api/savings/deposits/split", user, """{"total":2,"parts":[{"goalId":"$a","amount":1},{"goalId":"${a.uppercase()}","amount":1}]}""").let {
+            it.statusCode() shouldBe 400
+            it.body() shouldContain "SPLIT_DUPLICATE_GOAL"
+        }
         val ok = data(call("POST", "/api/savings/deposits/split", user, """{"total":100000,"parts":[{"goalId":"$a","amount":60000},{"goalId":"$b","amount":40000}]}"""))
         val group = ok.path("splitGroupId").asString()
         items(ok.path("goals")).map { it.path("goal").path("saved").asLong() } shouldBe listOf(60_000L, 40_000L)
@@ -171,6 +176,16 @@ class SavingsEndToEndTest {
         card.path("nearest").path("progressPercent").asDouble() shouldBe 50.0
 
         data(call("GET", "/api/savings/home-card", "nobody-${UUID.randomUUID()}", null)).path("totalSaved").isNull shouldBe true
+
+        // 목록과 상세가 같은 구간을 보인다 — 둘 다 지금 기준으로 다시 계산(코드 리뷰: 목록은 빈 기록, 상세는 실제 기록이었다)
+        val listed = items(list).first { it.path("id").asString() == near }.path("projection")
+        val detailed = data(call("GET", "/api/savings/goals/$near", user, null)).path("goal").path("projection")
+        listed shouldBe detailed
+        listed.has("issuedAt") shouldBe false
+
+        // 온보딩 프로브용 존재 확인
+        data(call("GET", "/api/savings/goals/exists", user, null)).path("exists").asBoolean() shouldBe true
+        data(call("GET", "/api/savings/goals/exists", "nobody-${UUID.randomUUID()}", null)).path("exists").asBoolean() shouldBe false
 
         val before = statements()
         call("GET", "/api/savings/goals", user, null).statusCode() shouldBe 200

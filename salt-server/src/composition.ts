@@ -311,10 +311,10 @@ const onboarding = createOnboardingApplication({
   ledgerLinked: async (userId) =>
     (await portfolio.api.countTransactions(userId)) > 0,
   planConfigured: async (userId) => {
-    const response = await platformClient.get("/savings/home-card", {
+    const response = await platformClient.get("/savings/goals/exists", {
       headers: { Authorization: `Bearer ${JwtUtil.generateAccessToken(userId, "")}` },
     });
-    return (response.data?.data?.totalGoals ?? 0) > 0;
+    return response.data?.data?.exists === true;
   },
 });
 

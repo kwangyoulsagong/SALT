@@ -34,7 +34,7 @@ export interface SavingsMilestoneVM {
   deposited: number;
   plan: number | null;
   difference: number | null;
-  /** no_plan · under_plan · plan_met */
+  /** no_plan · under_plan · plan_met · reached */
   state: string;
 }
 
@@ -47,7 +47,6 @@ export interface SavingsProjectionVM {
   /** history_short · reached · slow_side_open · no_plan · degraded */
   reason: string | null;
   monthsOfHistory: number;
-  issuedAt: string | null;
   /** 적중 이력(채점 `FC-REQ-024` 뒤). 없으면 null 이고 trackReason 이 이유 */
   track: unknown;
   trackReason: string | null;

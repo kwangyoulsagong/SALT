@@ -5,16 +5,14 @@ import { ProgressBar } from "@repo/ui/progressBar";
 import { Skeleton } from "@repo/ui/skeleton";
 
 import { hasApiStatus } from "@repo/web-shared/api";
-import { formatPrice } from "@repo/web-shared/lib";
 import { panel, panelTitle } from "@repo/web-shared/ui/surface.css";
 
-import { GOAL_MESSAGES, MilestoneBox, ProjectionLine, TEMPLATE_LABEL, useSavingsGoal } from "@/entities/goal";
+import { formatWon, GOAL_MESSAGES, MilestoneBox, ProjectionLine, TEMPLATE_LABEL, useSavingsGoal } from "@/entities/goal";
 import { DepositForm } from "@/features/record-deposit";
 
 import { GOAL_DETAIL_PAGE as M } from "../model";
 import * as s from "./goalDetail.css";
 
-const won = (value: number) => `${formatPrice(value)}원`;
 
 /**
  * 목표 상세(`FE-REQ-056` FR-4 · 5 · 7) — 진척 · 지금 기준 계획 · 이번 달 이정표 · 도달 시점 · 적립. 숫자는 전부 서버 응답.
@@ -29,8 +27,8 @@ export const GoalDetailView = ({ goalId }: { goalId: string }) => {
   const { goal, plan, deposits } = query.data;
   const lead =
     goal.frame === "saved"
-      ? { label: GOAL_MESSAGES.saved, value: won(goal.saved), sub: `${GOAL_MESSAGES.remaining} ${won(goal.remaining)}` }
-      : { label: GOAL_MESSAGES.remaining, value: won(goal.remaining), sub: `${GOAL_MESSAGES.saved} ${won(goal.saved)}` };
+      ? { label: GOAL_MESSAGES.saved, value: formatWon(goal.saved), sub: `${GOAL_MESSAGES.remaining} ${formatWon(goal.remaining)}` }
+      : { label: GOAL_MESSAGES.remaining, value: formatWon(goal.remaining), sub: `${GOAL_MESSAGES.saved} ${formatWon(goal.saved)}` };
 
   return (
     <div className={s.columns}>
@@ -44,7 +42,7 @@ export const GoalDetailView = ({ goalId }: { goalId: string }) => {
           <ProgressBar value={goal.progressRatio} label={`${goal.title} ${goal.progressPercent}%`} />
           <span className={s.muted}>
             {goal.status === "completed" ? GOAL_MESSAGES.completed : `${goal.progressPercent}% · ${lead.sub}`} · {GOAL_MESSAGES.target}{" "}
-            {won(goal.targetAmount)} · {GOAL_MESSAGES.depositCount(goal.depositCount)}
+            {formatWon(goal.targetAmount)} · {GOAL_MESSAGES.depositCount(goal.depositCount)}
           </span>
         </section>
 
@@ -56,7 +54,7 @@ export const GoalDetailView = ({ goalId }: { goalId: string }) => {
               <span>
                 {goal.targetDate
                   ? plan.monthly !== null
-                    ? won(plan.monthly)
+                    ? formatWon(plan.monthly)
                     : "—"
                   : plan.reachMonth
                     ? GOAL_MESSAGES.projection.plan(plan.reachMonth)
@@ -87,7 +85,7 @@ export const GoalDetailView = ({ goalId }: { goalId: string }) => {
                     {d.depositedOn}
                     {d.source === "imported_balance" ? ` · ${M.importedBalance}` : d.note ? ` · ${d.note}` : ""}
                   </span>
-                  <span>{won(d.amount)}</span>
+                  <span>{formatWon(d.amount)}</span>
                 </li>
               ))}
             </ul>

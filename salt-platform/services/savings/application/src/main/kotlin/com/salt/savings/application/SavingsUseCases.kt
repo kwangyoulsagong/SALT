@@ -51,8 +51,6 @@ data class GoalSummary(
     val lastDepositedOn: LocalDate?,
     val milestone: Milestone,
     val projection: Projection,
-    /** 발행 기록 시각 — 아직 발행이 없으면(가져온 목표) null 이고 [projection] 은 지금 계산한 값 */
-    val projectionIssuedAt: Instant?,
 ) {
     /** 구간 계산이 실패해 계획값만 있다 — 응답 `degraded` · `degradedReasons` */
     val degraded: Boolean get() = projection.reason == com.salt.savings.domain.ProjectionReason.DEGRADED
@@ -92,11 +90,14 @@ class Calculate(private val clock: Clock) {
     }
 }
 
-/** 목록 · 상세 · 쓰기 응답이 같은 모양을 쓰게 하는 조립 — 쿼리는 목록 기준 3회(목표 · 적립 집계 · 최근 발행) */
+/**
+ * 목록 · 상세 · 쓰기 응답이 같은 모양을 쓰게 하는 조립. **구간은 늘 지금 기준으로 다시 계산한다** — 발행 기록(`projection_issued`)은 채점 보관용이고
+ * 화면이 읽으면 시간이 지나 낡고 · 목록과 상세가 갈리고 · 실패(`degraded`)가 가려진다(코드 리뷰 2026-11-03).
+ * 쿼리: 목록 3회(목표 · 적립 집계 · 월별 적립) · 상세 4회(목표 · 그 목표 집계 · 월별 · 최근 적립)
+ */
 open class GoalReader(
     private val goals: Goals,
     private val deposits: Deposits,
-    private val projections: Projections,
     private val clock: Clock,
 ) {
     fun summaries(userId: String): List<GoalSummary> {
@@ -104,17 +105,16 @@ open class GoalReader(
         val list = goals.listOwned(userId)
         if (list.isEmpty()) return emptyList()
         val totals = deposits.totalsByGoal(userId, YearMonth.from(today))
-        val issued = projections.latestByGoal(userId)
-        return list.map { goal -> summarize(goal, totals[goal.id], issued[goal.id], null, today) }
+        val monthly = deposits.monthlyByGoal(userId)
+        return list.map { goal -> summarize(goal, totals[goal.id], monthly[goal.id].orEmpty(), today) }
     }
 
     fun detail(userId: String, rawId: String): GoalDetail {
         val id = GoalId.parse(rawId) ?: throw GoalNotFound(rawId)
         val goal = goals.findOwned(id, userId) ?: throw GoalNotFound(rawId)
         val today = clock.todayKst()
-        val totals = deposits.totalsByGoal(userId, YearMonth.from(today))[goal.id]
-        val issued = projections.latestByGoal(userId)[goal.id]
-        val summary = summarize(goal, totals, issued, deposits.monthly(goal.id), today)
+        val totals = deposits.totalsFor(goal.id, YearMonth.from(today))
+        val summary = summarize(goal, totals, deposits.monthly(goal.id), today)
         val plan = when {
             goal.targetDate != null -> SavingsMath.byDeadline(goal.targetAmount, summary.saved, goal.targetDate!!, goal.interest, today)
             else -> SavingsMath.byMonthly(goal.targetAmount, summary.saved, goal.monthlyPlan!!, goal.interest, today)
@@ -122,14 +122,12 @@ open class GoalReader(
         return GoalDetail(summary, deposits.recent(goal.id, RECENT_LIMIT), plan)
     }
 
-    /** 발행 기록이 있으면 그것을, 없으면(가져온 목표 · 목록) 지금 계산 — 목록에서 월별 기록을 목표마다 읽지 않으려 발행 기록을 쓴다 */
-    private fun summarize(goal: Goal, totals: DepositTotals?, issued: IssuedProjection?, monthly: List<com.salt.savings.domain.MonthlyDeposit>?, today: LocalDate): GoalSummary {
+    private fun summarize(goal: Goal, totals: DepositTotals?, monthly: List<com.salt.savings.domain.MonthlyDeposit>, today: LocalDate): GoalSummary {
         val zero = Money.zero(goal.targetAmount.currency)
         val saved = totals?.saved ?: zero
         val remainingRaw = goal.targetAmount - saved
         val progress = progressOf(saved, goal.targetAmount)
-        val projection = issued?.projection
-            ?: ProjectionEngine.safely(goal, saved, today) { ProjectionEngine.project(goal, saved, monthly ?: emptyList(), today) }
+        val projection = ProjectionEngine.safely(goal, saved, today) { ProjectionEngine.project(goal, saved, monthly, today) }
         return GoalSummary(
             goal = goal,
             saved = saved,
@@ -138,9 +136,8 @@ open class GoalReader(
             frame = Frame.of(progress),
             depositCount = totals?.count ?: 0,
             lastDepositedOn = totals?.lastDepositedOn,
-            milestone = Milestone.of(goal, totals?.thisMonth ?: zero, today),
+            milestone = Milestone.of(goal, totals?.thisMonth ?: zero, today, saved),
             projection = projection,
-            projectionIssuedAt = issued?.issuedAt,
         )
     }
 
@@ -231,7 +228,9 @@ open class RecordDeposits(
     @Transactional(transactionManager = SAVINGS_TX)
     open fun split(userId: String, total: Money, parts: List<Part>, depositedOn: LocalDate?, note: String?): Result {
         if (parts.size < 2) throw InvalidGoal("SPLIT_TOO_FEW", "split needs at least 2 parts")
-        if (parts.map { it.goalId }.toSet().size != parts.size) throw InvalidGoal("SPLIT_DUPLICATE_GOAL", "each goal may appear once")
+        // 파싱한 id 로 비교한다 — 문자열로 보면 대소문자만 다른 같은 목표가 두 번 들어가 달성이 두 번 난다(코드 리뷰 2026-11-03)
+        val ids = parts.map { GoalId.parse(it.goalId) ?: throw GoalNotFound(it.goalId) }
+        if (ids.toSet().size != ids.size) throw InvalidGoal("SPLIT_DUPLICATE_GOAL", "each goal may appear once")
         val sum = parts.map { it.amount }.reduce(Money::plus)
         if (sum != total) throw InvalidGoal("SPLIT_SUM_MISMATCH", "parts must add up to total")
         return record(userId, parts, depositedOn, note, UUID.randomUUID())
@@ -241,10 +240,9 @@ open class RecordDeposits(
         val today = clock.todayKst()
         val now = clock.instant()
         val day = depositedOn ?: today
-        // 잠금 순서를 id 순으로 — 두 나눠 넣기가 같은 목표 둘을 반대 순서로 잡아 교착하지 않게
-        val ordered = parts.sortedBy { it.goalId }
-        val locked = ordered.map { part ->
-            val id = GoalId.parse(part.goalId) ?: throw GoalNotFound(part.goalId)
+        // 잠금 순서를 UUID 순으로 — 두 나눠 넣기가 같은 목표 둘을 반대 순서로 잡아 교착하지 않게(문자열 순은 대소문자에 따라 달라진다)
+        val parsed = parts.map { part -> (GoalId.parse(part.goalId) ?: throw GoalNotFound(part.goalId)) to part }
+        val locked = parsed.sortedBy { it.first.value }.map { (id, part) ->
             val goal = goals.lockOwned(id, userId) ?: throw GoalNotFound(part.goalId)
             goal to part
         }
@@ -262,9 +260,15 @@ open class RecordDeposits(
             }
             issuer.issue(current, saved)
         }
-        val details = parts.map { reader.detail(userId, it.goalId) }
+        val details = parsed.map { (id, _) -> reader.detail(userId, id.toString()) }
         return Result(details, splitGroupId)
     }
+}
+
+/** 목표가 있나 — 온보딩 `set_plan` 프로브(Express)가 부른다. 홈 카드 전체 조립을 빌리지 않는다(코드 리뷰 2026-11-03) */
+open class HasGoals(private val goals: Goals) {
+    @Transactional(transactionManager = SAVINGS_TX, readOnly = true)
+    open fun execute(userId: String): Boolean = goals.existsFor(userId)
 }
 
 /** 홈 저축 카드(`SRV-REQ-045` FR-15 · `BFF-REQ-046`) — 숫자만. 문장 · 포맷은 BFF 카드 계약이 한다 */

@@ -1,3 +1,5 @@
+import { formatPrice } from "@repo/web-shared/lib";
+
 import type { CalculationState, GoalTemplateKey, MilestoneState, ProjectionReason } from "./types";
 
 /**
@@ -13,6 +15,9 @@ export const TEMPLATE_LABEL: Readonly<Record<GoalTemplateKey, string>> = {
   childbirth: "출산",
   other: "기타",
 };
+
+/** 원 단위 표시 — 서버 금액의 포맷만(계산 0). 저축 화면의 금액 표기는 이 한 곳(코드 리뷰 2026-11-03: 4파일에 '원' 이 흩어져 있었다) */
+export const formatWon = (value: number): string => `${formatPrice(value)}원`;
 
 /** "2027-11" → "2027년 11월" — 글자만 바꾼다(날짜 계산 0) */
 export const formatMonth = (yearMonth: string): string => {
@@ -39,6 +44,7 @@ export const GOAL_MESSAGES = {
     no_plan: "월 계획이 없어 비교하지 않아요",
     under_plan: "계획보다 적게 넣었어요",
     plan_met: "계획만큼 넣었어요",
+    reached: "목표 금액에 닿아 계획과 비교하지 않아요",
   } satisfies Record<MilestoneState, string>,
   projection: {
     title: "도달 시점",

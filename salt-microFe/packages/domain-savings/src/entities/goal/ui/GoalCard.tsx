@@ -2,13 +2,10 @@ import Link from "next/link";
 
 import { ProgressBar } from "@repo/ui/progressBar";
 
-import { formatPrice } from "@repo/web-shared/lib";
-
-import { GOAL_MESSAGES, TEMPLATE_LABEL } from "../model/messages";
+import { formatWon, GOAL_MESSAGES, TEMPLATE_LABEL } from "../model/messages";
 import type { SavingsGoal } from "../model/types";
 import * as s from "./goal.css";
 
-const won = (value: number) => `${formatPrice(value)}원`;
 
 export interface GoalCardProps {
   goal: SavingsGoal;
@@ -23,8 +20,8 @@ export interface GoalCardProps {
 export const GoalCard = ({ goal, href }: GoalCardProps) => {
   const lead =
     goal.frame === "saved"
-      ? { label: GOAL_MESSAGES.saved, value: won(goal.saved) }
-      : { label: GOAL_MESSAGES.remaining, value: won(goal.remaining) };
+      ? { label: GOAL_MESSAGES.saved, value: formatWon(goal.saved) }
+      : { label: GOAL_MESSAGES.remaining, value: formatWon(goal.remaining) };
   return (
     <Link href={href} className={s.card}>
       <div className={s.row}>
@@ -38,7 +35,7 @@ export const GoalCard = ({ goal, href }: GoalCardProps) => {
       <ProgressBar value={goal.progressRatio} label={`${goal.title} ${goal.progressPercent}%`} />
       <div className={s.row}>
         <span className={s.label}>
-          {GOAL_MESSAGES.target} {won(goal.targetAmount)}
+          {GOAL_MESSAGES.target} {formatWon(goal.targetAmount)}
         </span>
         <span className={s.label}>{goal.status === "completed" ? GOAL_MESSAGES.completed : `${goal.progressPercent}%`}</span>
       </div>

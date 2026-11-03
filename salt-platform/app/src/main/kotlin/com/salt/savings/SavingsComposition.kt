@@ -5,6 +5,7 @@ import com.salt.savings.application.Calculate
 import com.salt.savings.application.CreateGoal
 import com.salt.savings.application.GetGoal
 import com.salt.savings.application.GoalReader
+import com.salt.savings.application.HasGoals
 import com.salt.savings.application.HomeCard
 import com.salt.savings.application.ListGoals
 import com.salt.savings.application.ListTemplates
@@ -53,7 +54,7 @@ class SavingsComposition {
 
     @Bean
     fun savingsGoalReader(@Qualifier("savingsDatabase") database: ServiceDatabase, clock: Clock): GoalReader =
-        GoalReader(JooqGoals(database.dsl), JooqDeposits(database.dsl), JooqProjections(database.dsl), clock)
+        GoalReader(JooqGoals(database.dsl), JooqDeposits(database.dsl), clock)
 
     @Bean
     fun savingsProjectionIssuer(
@@ -94,6 +95,9 @@ class SavingsComposition {
 
     @Bean
     fun savingsHomeCard(reader: GoalReader): HomeCard = HomeCard(reader)
+
+    @Bean
+    fun hasGoals(@Qualifier("savingsDatabase") database: ServiceDatabase): HasGoals = HasGoals(JooqGoals(database.dsl))
 
     companion object {
         const val SCHEMA = "savings"
