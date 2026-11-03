@@ -232,3 +232,7 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 ## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 커밋 대조
 
 - 커밋 대조 — 이 REQ 가 주인인 파일 둘이 더 걸렸다: `packages/tokens/src/index.ts` 도메인 색 추가(`1c4c3ee9`, 추가만) · `packages/core/src/zones/registry.ts` `assetPrefix` 설명(`28d51ed3`, 주석 — dev 만 쓴다)
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) CrossZoneLink
+
+- `CrossZoneLink` 에 `showPending`(대기 문구만 끄기) · `opensElsewhere`(새 탭 · 수정키 · 가운데 클릭 판정, 대기 상태와 계측이 같이 쓴다)를 더했다 — 앱 탭이 이 컴포넌트를 다시 쓴다(`378d8a1c`). 기존 호출부 동작 무변경(기본 `showPending: true`). 토큰 파일 주석 위치(`378d8a1c`)

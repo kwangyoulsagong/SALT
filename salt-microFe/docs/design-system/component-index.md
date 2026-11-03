@@ -92,7 +92,7 @@ import { vars } from "@repo/ui/tokens";
 | 공개 경로 | 컴포넌트 | 주요 props | 소스 |
 | --- | --- | --- | --- |
 | `@repo/ui/appBar` | `AppBar` | `title`, `leading`, `onBack`, `logo`, `actions`, `sticky`, `bordered` | `packages/ui/src/AppBar/AppBar.tsx` |
-| `@repo/ui/app-navigation` | `AppNavigation` | `items`(`href` · `active` · `icon` = `AppNavigationIcon` · `disabledReason`), `renderLink`, `brand`, `headerEnd`, `label`, `children` — 왼쪽 레일 1024+ · 하단 탭 768~1023 · 머리 52, `data-app-navigation` 표지 · 아이콘 `AppNavigationIcon`(면 채운 단색 글리프 4 — `home` · `coin`(저축 — 동전에 W) · `wallet` · `chart`)(`FE-REQ-054`) | `packages/ui/src/AppNavigation/AppNavigation.tsx` |
+| `@repo/ui/app-navigation` | `AppNavigation` | `items`(`href` · `active` · `icon` = `AppNavigationIcon` · `disabledReason`), `renderLink`, `brand`, `headerEnd`, `label`(필수 — 문구는 부르는 쪽), `bare`(내비 없이 틀만 — 공개 화면), `children` — 왼쪽 레일 1024+ · 하단 탭 768~1023 · 머리 52, `data-app-navigation` 표지 · 아이콘 `AppNavigationIcon`(면 채운 단색 글리프 4 — `home` · `coin`(저축 — 동전에 W) · `wallet` · `chart`)(`FE-REQ-054`) | `packages/ui/src/AppNavigation/AppNavigation.tsx` |
 | `@repo/ui/bottomTabBar` | `BottomTabBar` | `items`(최대 5개), `value`, `onChange`, `fixed`, `label` | `packages/ui/src/BottomTabBar/BottomTabBar.tsx` |
 | `@repo/ui/bottomCTA` | `BottomCTA` | `layout('single'\|'double')`, `fixed`, `leading`, `children` | `packages/ui/src/BottomCTA/BottomCTA.tsx` |
 | `@repo/ui/header` | `Header` | `route`, `children` | `packages/ui/src/Header/Header.tsx` |

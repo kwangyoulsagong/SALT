@@ -40,3 +40,7 @@
 
 - zone 공용 레이아웃(`@repo/web-shared/layout`)이 앱 내비게이션 · prerender 규칙 · 문서 간 전환 · 이동 계측을 갖는다(`e0bce695`). 프로필 메뉴는 화면별이 아니라 머리 한 자리(`<header>` → `<div>`, 메뉴 정렬 끝). 투자 zone `next.config.js` 는 프리셋(`7b8b1110`). 이 REQ 머리 블록의 "`FE-REQ-054` 전까지 그 레이아웃이 임시로 맡는다"가 닫혔다
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 커밋 대조
+
+- 커밋 대조 — `ops/salt.sh` 머리 주석(이 REQ 의 zone 별 dev 서버 줄 아래 운영 빌드 주의 두 줄, `9ef6dc92`). 주인은 `OPS-002`, 동작 무변경

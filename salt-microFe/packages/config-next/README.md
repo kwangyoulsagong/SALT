@@ -17,3 +17,5 @@ module.exports = withVanillaExtract(zoneNextConfig("invest", { transpilePackages
 - 그래서 운영 빌드는 **정적 파일을 합쳐야** 뜬다: `pnpm --filter "./apps/web*" build && pnpm static:merge`(셸 `.next/static` 에 합침, 같은 이름 · 다른 내용이면 실패). 배포는 `OPS-001` FR-12
 - zone 하나만 운영 빌드로 따로 띄울 때: `ZONE_STATIC=per-zone pnpm --filter web-investment build`
 - dev 는 청크 이름에 해시가 없어(`main-app.js`) 레지스트리 assetPrefix 그대로
+- **순서: 빌드 → `pnpm static:merge` → `next start`** — 셸이 뜬 뒤 합치면 그 사이 청크가 404
+- `ZONE_STATIC` 은 빌드와 기동에서 같은 값 — `next start` 도 설정을 다시 읽어 assetPrefix 를 정한다

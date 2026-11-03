@@ -58,7 +58,7 @@ async rewrites() { return zoneRewrites(process.env); }   // ZONE_<ID>_ORIGIN · 
 ```
 
 - 셸은 `assetPrefix` 를 갖지 않는다. Next 15+ 에서 정적 자산용 추가 rewrite 는 불필요 — 그 우회를 남기지 않는다
-- **운영 빌드 정적 파일은 합친다** — 운영 청크는 이름에 내용 해시가 있어 같은 이름 = 같은 내용. `pnpm static:merge`(`scripts/merge-zone-static.mjs`)가 zone `.next/static` 을 셸 쪽에 합치고 같은 이름 · 다른 내용이면 실패한다. 배포도 같은 규칙(`OPS-001` FR-12). dev 청크는 해시가 없어(`main-app.js`) 합치면 서로 덮는다 — dev 만 zone 별. zone 하나만 운영 빌드로 따로 띄울 때는 `ZONE_STATIC=per-zone`
+- **운영 빌드 정적 파일은 합친다** — 운영 청크는 이름에 내용 해시가 있어 같은 이름 = 같은 내용. `pnpm static:merge`(`scripts/merge-zone-static.mjs`)가 zone `.next/static` 을 셸 쪽에 합치고 같은 이름 · 다른 내용이면 실패한다. 배포도 같은 규칙(`OPS-001` FR-12). dev 청크는 해시가 없어(`main-app.js`) 합치면 서로 덮는다 — dev 만 zone 별. zone 하나만 운영 빌드로 따로 띄울 때는 `ZONE_STATIC=per-zone`(빌드 · 기동 둘 다). 순서는 빌드 → 합치기 → `next start`
 - 운영 진입은 CDN + L7 한 origin 경로 라우팅이 zone 에 직접 보낸다(`ADR-008`). 셸 rewrites 는 로컬 · 폴백
 - **같은 origin 이 전제다** — §5 의 prerender · 문서 간 전환이 같은 origin 에서만 동작한다
 

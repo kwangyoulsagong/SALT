@@ -245,3 +245,4 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 셸 `next.config.js` 를 zone 공용 프리셋 `@repo/config-next` 로(`7b8b1110`). assetPrefix 없음 · rewrites 레지스트리 생성 · Server Actions origin · 이미지 허용 값 무변경(프리셋이 같은 값을 낸다 — 앱 디렉터리에서 설정을 불러 대조) |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — FR-3 의 zone 별 assetPrefix 가 운영 빌드에서는 공용 `/_next` 로(`5c7218e9`, `ADR-005` 규칙 7 개정). dev · 셸 rewrites 무변경 |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — 이 REQ 가 주인인 파일 둘이 더 걸렸다: `packages/tokens/src/index.ts` 도메인 색 추가(`1c4c3ee9`, 추가만) · `packages/core/src/zones/registry.ts` `assetPrefix` 설명(`28d51ed3`, 주석 — dev 만 쓴다) |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — `CrossZoneLink` 에 `showPending`(대기 문구만 끄기) · `opensElsewhere`(새 탭 · 수정키 · 가운데 클릭 판정, 대기 상태와 계측이 같이 쓴다)를 더했다 — 앱 탭이 이 컴포넌트를 다시 쓴다(`378d8a1c`). 기존 호출부 동작 무변경(기본 `showPending: true`). 토큰 파일 주석 위치(`378d8a1c`) |
