@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { ProgressBar } from "@repo/ui/progressBar";
 
+import { labelOr } from "@repo/web-shared/lib";
+
 import { formatWon, GOAL_MESSAGES, TEMPLATE_LABEL } from "../model/messages";
 import type { SavingsGoal } from "../model/types";
 import { GoalScene } from "./GoalScene";
@@ -41,7 +43,7 @@ export const GoalCard = ({ goal, href }: GoalCardProps) => {
         </span>
         <span className={s.label}>{goal.status === "completed" ? GOAL_MESSAGES.completed : `${goal.progressPercent}%`}</span>
       </div>
-      <span className={s.label}>{GOAL_MESSAGES.milestoneState[goal.milestone.state]}</span>
+      <span className={s.label}>{labelOr(GOAL_MESSAGES.milestoneState, goal.milestone.state, "")}</span>
       {goal.unitLine ? <span className={s.value}>{GOAL_MESSAGES.unitLine(goal.unitLine.name, goal.unitLine.count)}</span> : null}
     </Link>
   );

@@ -5,10 +5,11 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
+import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { isApiError } from "@repo/web-shared/api";
-import { formatAmountInput, parseAmountInput } from "@repo/web-shared/lib";
+import { parseAmountInput, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
 
-import { labelOr, type SavingsItemUnit } from "@/entities/goal";
+import { type SavingsItemUnit } from "@/entities/goal";
 
 import { useAddItemUnit, useDeleteItemUnit } from "../api";
 import { ITEM_UNIT_MESSAGES as M } from "../model";
@@ -20,6 +21,7 @@ export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units
   const remove = useDeleteItemUnit(goalId);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
+  const guard = useAmountInputGuard();
   const unitPrice = parseAmountInput(price);
   // 상한은 서버 값(`unitLimit`) — 넘치면 서버가 409 로도 막는다
   const full = units.length >= limit;
@@ -55,11 +57,11 @@ export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units
       {full ? null : (
         <>
           <TextField label={M.name} value={name} onChange={setName} maxLength={30} placeholder={M.namePlaceholder} />
-          <TextField label={M.price} value={price} onChange={(v) => setPrice(formatAmountInput(v))} inputMode="numeric" />
+          <TextField label={M.price} value={price} onChange={(v) => guard.take(v, setPrice)} inputMode="numeric" />
         </>
       )}
       <span className={s.label} role="status">
-        {error ? labelOr(M.errorCode, code, M.failed) : ""}
+        {guard.rejected ? AMOUNT_INPUT_MESSAGES.numbersOnly : error ? labelOr(M.errorCode, code, M.failed) : ""}
       </span>
       {full ? null : (
         <Button type="submit" disabled={unitPrice === null || name.trim() === "" || add.isPending} loading={add.isPending}>

@@ -4,18 +4,17 @@ import { useMemo, useState } from "react";
 
 import { TextField } from "@repo/ui/textField";
 
+import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { isApiError } from "@repo/web-shared/api";
-import { formatAmountInput, parseAmountInput, useDebouncedValue } from "@repo/web-shared/lib";
+import { parseAmountInput, useDebouncedValue, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
 
-import { GOAL_MESSAGES, formatMonth, formatWon, labelOr, useEmergencyComparison, type EmergencyRequest } from "@/entities/goal";
+import { GOAL_MESSAGES, formatMonth, formatWon, useEmergencyComparison, type EmergencyRequest } from "@/entities/goal";
 
 import { EMERGENCY_MESSAGES as M } from "../model";
 import * as s from "./emergency.css";
 
 const COMPARE_DEBOUNCE_MS = 300;
 const DEFAULT_MONTHS = "12";
-/** 소수점으로 읽힐 수 있는 글자 — 반각 · 전각 · 마침표. formatAmountInput 이 반각 말고는 지워 숫자가 이어 붙던 경로(1000．5 → 10,005) */
-const DECIMAL_MARK = /[.．。｡]/;
 
 /** 금리는 0 도 뜻이 있다(가족에게 빌림) — `parseAmountInput` 은 0 을 비움으로 읽어 따로 받는다 */
 const parseRate = (text: string): number | null => (text.trim() === "0" ? 0 : parseAmountInput(text));
@@ -26,7 +25,9 @@ const parseRate = (text: string): number | null => (text.trim() === "0" ? 0 : pa
  */
 export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
   const [amount, setAmount] = useState("");
-  const [amountRejected, setAmountRejected] = useState(false);
+  // 금액은 원 단위(점 없음) · 금리는 소수 하나 — 받을 수 없는 글자는 값을 바꾸지 않고 안내(허용 목록 `readAmountInput`, 리뷰 8차)
+  const amountGuard = useAmountInputGuard();
+  const rateGuard = useAmountInputGuard();
   const [rate, setRate] = useState("");
   const [months, setMonths] = useState(DEFAULT_MONTHS);
 
@@ -49,19 +50,15 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
         <TextField
           label={M.amount}
           value={amount}
-          onChange={(v) => {
-            const rejected = DECIMAL_MARK.test(v);
-            setAmountRejected(rejected);
-            if (!rejected) setAmount(formatAmountInput(v));
-          }}
+          onChange={(v) => amountGuard.take(v, setAmount)}
           inputMode="numeric"
         />
-        <TextField label={M.rate} value={rate} onChange={(v) => setRate(formatAmountInput(v))} inputMode="decimal" />
+        <TextField label={M.rate} value={rate} onChange={(v) => rateGuard.take(v, setRate, { decimal: true })} inputMode="decimal" />
         <TextField label={M.months} value={months} onChange={(v) => setMonths(v.replace(/[^0-9]/g, ""))} inputMode="numeric" />
       </div>
-      {amountRejected ? (
+      {amountGuard.rejected || rateGuard.rejected ? (
         <span className={s.label} role="status">
-          {M.wholeWonOnly}
+          {amountGuard.rejected ? M.wholeWonOnly : AMOUNT_INPUT_MESSAGES.numbersOrDecimal}
         </span>
       ) : null}
       {compare.isError && settled ? (
@@ -99,13 +96,14 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
         </div>
       ) : null}
       {data
-        ? data.assumptions.map((key) =>
-            labelOr(M.assumption, key, "") ? (
+        ? data.assumptions.map((key) => {
+            const text = labelOr(M.assumption, key, "");
+            return text ? (
               <span key={key} className={s.label}>
-                {labelOr(M.assumption, key, "")}
+                {text}
               </span>
-            ) : null,
-          )
+            ) : null;
+          })
         : null}
     </div>
   );

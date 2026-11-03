@@ -1,13 +1,14 @@
 "use client";
 
+import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { useMemo, useState, type FormEvent } from "react";
 
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
-import { formatAmountInput, parseAmountInput, useDebouncedValue } from "@repo/web-shared/lib";
+import { formatAmountInput, parseAmountInput, useDebouncedValue, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
 
-import { GOAL_MESSAGES, formatMonth, formatWon, labelOr, useSavingsSimulation, type PlanChangesRequest, type SavingsGoal, type SavingsSimProjection } from "@/entities/goal";
+import { GOAL_MESSAGES, formatMonth, formatWon, useSavingsSimulation, type PlanChangesRequest, type SavingsGoal, type SavingsSimProjection } from "@/entities/goal";
 
 import { useUpdatePlans } from "../api";
 import { REBALANCE_MESSAGES as M } from "../model";
@@ -33,6 +34,7 @@ const projectionText = (p: SavingsSimProjection): string => {
 export const BalanceScale = ({ goals }: { goals: SavingsGoal[] }) => {
   const [drafts, setDrafts] = useState<Record<string, string>>(() => draftOf(goals));
   const update = useUpdatePlans();
+  const guard = useAmountInputGuard();
 
   const request = useMemo<PlanChangesRequest | null>(() => {
     const changes = goals.flatMap((g) => {
@@ -62,7 +64,7 @@ export const BalanceScale = ({ goals }: { goals: SavingsGoal[] }) => {
               <TextField
                 label={M.monthly(g.title)}
                 value={drafts[g.id] ?? ""}
-                onChange={(v) => setDrafts((d) => ({ ...d, [g.id]: formatAmountInput(v) }))}
+                onChange={(v) => guard.take(v, (value) => setDrafts((d) => ({ ...d, [g.id]: value })))}
                 inputMode="numeric"
               />
               <div className={s.result} aria-live="polite">
@@ -89,7 +91,7 @@ export const BalanceScale = ({ goals }: { goals: SavingsGoal[] }) => {
         </span>
       ) : null}
       <span className={s.label} role="status">
-        {sim.isError ? M.calcFailed : update.isError ? M.failed : update.isSuccess && !request ? M.saved : ""}
+        {guard.rejected ? AMOUNT_INPUT_MESSAGES.numbersOnly : sim.isError ? M.calcFailed : update.isError ? M.failed : update.isSuccess && !request ? M.saved : ""}
       </span>
       <div className={s.actions}>
         <Button type="submit" disabled={!request || update.isPending} loading={update.isPending}>

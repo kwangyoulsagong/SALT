@@ -1,4 +1,6 @@
-import { GOAL_MESSAGES, labelOr } from "../model/messages";
+import { labelOr } from "@repo/web-shared/lib";
+
+import { GOAL_MESSAGES } from "../model/messages";
 import type { SavingsProjection } from "../model/types";
 import * as s from "./goal.css";
 

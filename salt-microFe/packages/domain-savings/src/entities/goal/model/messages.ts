@@ -96,8 +96,3 @@ export const GOAL_MESSAGES = {
   } satisfies Record<CalculationState, string>,
 } as const;
 
-/**
- * 서버 키 → 문구. 자기 키만 보고(상속 키 "constructor" 가 함수를 돌려주지 않게) 없거나 비면 대체 문구 — 저축 화면의 모든 키 조회가 이것 하나(리뷰 6 · 7차)
- */
-export const labelOr = (map: Readonly<Record<string, string>>, key: string | null | undefined, fallback: string): string =>
-  (key && Object.hasOwn(map, key) ? map[key] : undefined) || fallback;

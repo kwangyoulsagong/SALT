@@ -1,15 +1,13 @@
 "use client";
 
-
 import { useState, type FormEvent } from "react";
 
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
+import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { isApiError } from "@repo/web-shared/api";
-import { formatAmountInput, parseAmountInput } from "@repo/web-shared/lib";
-
-import { labelOr } from "@/entities/goal";
+import { parseAmountInput, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
 
 import { useRecordDeposit } from "../api";
 import { RECORD_DEPOSIT_MESSAGES as M } from "../model";
@@ -23,6 +21,7 @@ export interface DepositFormProps {
 export const DepositForm = ({ goalId }: DepositFormProps) => {
   const record = useRecordDeposit(goalId);
   const [amount, setAmount] = useState("");
+  const guard = useAmountInputGuard();
   const [date, setDate] = useState("");
   const [note, setNote] = useState("");
   const value = parseAmountInput(amount);
@@ -40,11 +39,11 @@ export const DepositForm = ({ goalId }: DepositFormProps) => {
 
   return (
     <form className={s.form} onSubmit={onSubmit} aria-label={M.title}>
-      <TextField label={M.amount} value={amount} onChange={(v) => setAmount(formatAmountInput(v))} inputMode="numeric" />
+      <TextField label={M.amount} value={amount} onChange={(v) => guard.take(v, setAmount)} inputMode="numeric" />
       <TextField label={M.date} type="date" value={date} onChange={setDate} />
       <TextField label={M.note} value={note} onChange={setNote} maxLength={200} />
       <span className={s.hint} role="status">
-        {record.isError ? labelOr(M.errorCode, errorCode, M.failed) : record.isSuccess ? M.recorded : ""}
+        {guard.rejected ? AMOUNT_INPUT_MESSAGES.numbersOnly : record.isError ? labelOr(M.errorCode, errorCode, M.failed) : record.isSuccess ? M.recorded : ""}
       </span>
       <Button type="submit" disabled={value === null || record.isPending} loading={record.isPending}>
         {M.submit}

@@ -5,6 +5,7 @@ import { ProgressBar } from "@repo/ui/progressBar";
 import { Skeleton } from "@repo/ui/skeleton";
 
 import { hasApiStatus } from "@repo/web-shared/api";
+import { labelOr } from "@repo/web-shared/lib";
 import { panel, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import {
@@ -77,7 +78,7 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
               </span>
             </span>
           ) : (
-            <span className={s.muted}>{GOAL_MESSAGES.calculationState[plan.state]}</span>
+            <span className={s.muted}>{labelOr(GOAL_MESSAGES.calculationState, plan.state, "")}</span>
           )}
           {goal.planMeetsDeadline === false && goal.targetDate ? (
             <span className={s.muted}>{GOAL_MESSAGES.deadlineMissed(goal.targetDate.slice(0, 7))}</span>

@@ -1,5 +1,6 @@
 "use client";
 
+import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
@@ -10,7 +11,7 @@ import { TextField } from "@repo/ui/textField";
 import { Toggle } from "@repo/ui/toggle";
 
 import { ROUTES } from "@repo/web-shared/config";
-import { formatAmountInput, parseAmountInput } from "@repo/web-shared/lib";
+import { parseAmountInput, useAmountInputGuard, labelOr } from "@repo/web-shared/lib";
 
 import {
   GOAL_MESSAGES,
@@ -50,6 +51,7 @@ export const AddGoalForm = () => {
   const [monthly, setMonthly] = useState("");
   const [includeInterest, setIncludeInterest] = useState(false);
   const [rate, setRate] = useState("");
+  const guard = useAmountInputGuard();
 
   const request = useMemo<CalculationRequest | null>(() => {
     const targetAmount = parseAmountInput(amount);
@@ -108,7 +110,7 @@ export const AddGoalForm = () => {
       <TextField
         label={M.amount}
         value={amount}
-        onChange={(v) => setAmount(formatAmountInput(v))}
+        onChange={(v) => guard.take(v, setAmount)}
         placeholder={M.amountPlaceholder}
         inputMode="numeric"
       />
@@ -125,15 +127,20 @@ export const AddGoalForm = () => {
       {mode === "deadline" ? (
         <TextField label={M.deadline} type="date" value={deadline} onChange={setDeadline} />
       ) : (
-        <TextField label={M.monthly} value={monthly} onChange={(v) => setMonthly(formatAmountInput(v))} inputMode="numeric" />
+        <TextField label={M.monthly} value={monthly} onChange={(v) => guard.take(v, setMonthly)} inputMode="numeric" />
       )}
 
       <Toggle checked={includeInterest} onChange={setIncludeInterest} label={M.interest} />
-      {includeInterest ? <TextField label={M.rate} value={rate} onChange={setRate} inputMode="decimal" /> : null}
+      {includeInterest ? <TextField label={M.rate} value={rate} onChange={(v) => guard.take(v, setRate, { decimal: true })} inputMode="decimal" /> : null}
 
+      {guard.rejected ? (
+        <span className={s.hint} role="status">
+          {AMOUNT_INPUT_MESSAGES.numbersOnly}
+        </span>
+      ) : null}
       <section className={s.result} aria-live="polite" aria-busy={calc.isFetching}>
         {calc.isError ? <span className={s.hint}>{M.calcFailed}</span> : null}
-        {result && result.state !== "ok" ? <span className={s.hint}>{GOAL_MESSAGES.calculationState[result.state]}</span> : null}
+        {result && result.state !== "ok" ? <span className={s.hint}>{labelOr(GOAL_MESSAGES.calculationState, result.state, "")}</span> : null}
         {result && result.state === "ok" ? (
           <>
             <div className={s.resultRow}>

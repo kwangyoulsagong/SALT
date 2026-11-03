@@ -5,10 +5,11 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
+import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { isApiError } from "@repo/web-shared/api";
-import { formatAmountInput, parseAmountInput } from "@repo/web-shared/lib";
+import { parseAmountInput, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
 
-import { labelOr, type SavingsGoal } from "@/entities/goal";
+import { type SavingsGoal } from "@/entities/goal";
 
 import { useSplitDeposit } from "../api";
 import { RECORD_DEPOSIT_MESSAGES as M } from "../model";
@@ -25,6 +26,7 @@ export interface SplitDepositFormProps {
 export const SplitDepositForm = ({ goals }: SplitDepositFormProps) => {
   const split = useSplitDeposit();
   const [total, setTotal] = useState("");
+  const guard = useAmountInputGuard();
   const [parts, setParts] = useState<Record<string, string>>({});
 
   const filled = goals
@@ -42,19 +44,19 @@ export const SplitDepositForm = ({ goals }: SplitDepositFormProps) => {
 
   return (
     <form className={s.form} onSubmit={onSubmit} aria-label={M.split.title}>
-      <TextField label={M.split.total} value={total} onChange={(v) => setTotal(formatAmountInput(v))} inputMode="numeric" />
+      <TextField label={M.split.total} value={total} onChange={(v) => guard.take(v, setTotal)} inputMode="numeric" />
       {goals.map((g) => (
         <TextField
           key={g.id}
           label={M.split.part(g.title)}
           value={parts[g.id] ?? ""}
-          onChange={(v) => setParts((prev) => ({ ...prev, [g.id]: formatAmountInput(v) }))}
+          onChange={(v) => guard.take(v, (value) => setParts((prev) => ({ ...prev, [g.id]: value })))}
           inputMode="numeric"
         />
       ))}
       <span className={s.hint}>{M.split.hint}</span>
       <span className={s.hint} role="status">
-        {split.isError ? labelOr(M.errorCode, errorCode, M.failed) : split.isSuccess ? M.recorded : filled.length === 1 ? M.split.tooFew : ""}
+        {guard.rejected ? AMOUNT_INPUT_MESSAGES.numbersOnly : split.isError ? labelOr(M.errorCode, errorCode, M.failed) : split.isSuccess ? M.recorded : filled.length === 1 ? M.split.tooFew : ""}
       </span>
       <Button type="submit" disabled={totalValue === null || filled.length < 2 || split.isPending} loading={split.isPending}>
         {M.split.submit}
