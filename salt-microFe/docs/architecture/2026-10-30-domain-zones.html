@@ -102,7 +102,7 @@ a{color:var(--accent)}
       <div class="n led"><div class="t">가계부 <span class="pill led">:3004</span></div><div class="s">apps/web-household<br>/household<br>pkg domain-household<br>/household-static</div></div>
       <div class="n tip"><div class="t">금융 팁 <span class="pill tip">:3005</span></div><div class="s">apps/web-tips<br>/tips (공개 · ISR)<br>pkg domain-tips<br>/tips-static</div></div>
       <div class="lane">↓ 공용 패키지 — 도메인끼리는 서로 모른다</div>
-      <div class="n base"><div class="t">packages/ui · tokens · core</div><div class="s">디자인 시스템 · 토큰 · ApiError · 인증 클라이언트 · <b>AppChrome</b>(하단 탭 · 헤더) · zone 레지스트리 · <b>HomeSummaryCard</b> 계약</div></div>
+      <div class="n base"><div class="t">packages/ui · tokens · core</div><div class="s">디자인 시스템 · 토큰 · ApiError · 인증 클라이언트 · <b>AppNavigation</b>(하단 탭 · 헤더) · zone 레지스트리 · <b>HomeSummaryCard</b> 계약</div></div>
     </div>
   </div>
   <p class="muted" style="font-size:14px">점선 = 별도 zone. 모바일(RN)은 같은 도메인 이름으로 서비스 번들을 나눈다(ADR-001 §4). 서버 서비스도 같은 이름이다(서버 설계 문서).</p>
@@ -139,7 +139,7 @@ a{color:var(--accent)}
     ├── domain-household/  src/{entities,features,widgets,pages}  신규
     ├── domain-tips/       src/{entities,widgets,pages}           신규 (서버 컴포넌트 위주)
     ├── core/   ApiError · auth · zones 레지스트리 · HomeSummaryCard
-    ├── ui/     AppChrome(하단 탭 · 헤더) 포함 · tokens/
+    ├── ui/     AppNavigation(하단 탭 · 헤더) 포함 · tokens/
     └── eslint-plugin-fsd/ · eslint-plugin-zone/</pre></div>
   <p>zone 앱에 화면 코드를 두지 않는 이유: 각 zone은 따로 배포되지만 같은 디자인 시스템과 크롬을 써야 한 앱처럼 보인다. 화면 코드가 패키지에 있으면 Storybook · 테스트 · 모바일 웹뷰가 같은 코드를 쓰고, zone을 합치거나 다시 나누는 일이 설정 수준으로 끝난다.</p>
 </section>
@@ -152,7 +152,7 @@ a{color:var(--accent)}
   <div class="rule"><div class="no">§3 도메인 격리</div><p><code>domain-*</code> 패키지끼리 import 금지. 도메인 사이의 연결은 URL 링크와 BFF 응답(서버가 계산한 값)으로만 한다. 예: 가계부의 "이 지출이 목표를 며칠 늦추나"는 household 응답에 서버가 넣는다.</p></div>
   <div class="rule"><div class="no">§4 zone 앱은 얇다</div><p><code>apps/web-*</code>는 <code>app/</code> 라우트 · 레이아웃 · <code>next.config.js</code>만 갖는다. <code>src/</code>에 entities · features · widgets를 만들지 않는다.</p></div>
   <div class="rule"><div class="no">§5 zone 간 링크</div><p>다른 zone 경로는 <code>CrossZoneLink</code>(<code>&lt;a&gt;</code> + 로딩 상태 + 미리 렌더 힌트). <code>next/link</code>는 같은 zone 안에서만. lint가 레지스트리를 읽어 강제한다.</p></div>
-  <div class="rule"><div class="no">§6 공용 크롬 · 버전</div><p>하단 탭 · 헤더는 <code>@repo/ui</code>의 <code>AppChrome</code> 하나. 공용 패키지가 바뀌면 영향받는 zone을 같이 배포한다(turbo 영향 그래프로 판정). zone을 넘는 기능은 기능 플래그로 동시에 켠다.</p></div>
+  <div class="rule"><div class="no">§6 공용 크롬 · 버전</div><p>하단 탭 · 헤더는 <code>@repo/ui</code>의 <code>AppNavigation</code> 하나. 공용 패키지가 바뀌면 영향받는 zone을 같이 배포한다(turbo 영향 그래프로 판정). zone을 넘는 기능은 기능 플래그로 동시에 켠다.</p></div>
   <div class="rule"><div class="no">§7 경로 · 자산</div><p>경로 prefix와 <code>assetPrefix</code>(<code>/{zone}-static</code>)는 zone 간 유일하다. 셸 rewrites는 레지스트리에서 생성한다(손으로 쓰지 않는다).</p></div>
   <table style="min-width:0;margin-top:4px"><thead><tr><th>강제 위치</th><th>무엇을</th></tr></thead><tbody>
     <tr><td><code>packages/eslint-plugin-fsd/layer-rules.cjs</code></td><td>§2 · §3 · §4 — 도메인 축(<code>domain-*</code> ↔ <code>domain-*</code>, 셸 → <code>domain-*</code>) 추가. 쓰기 시점 훅도 같은 표를 읽는다</td></tr>
@@ -167,7 +167,7 @@ a{color:var(--accent)}
   <div class="tablebox"><table>
     <thead><tr><th style="width:24%">장치</th><th>무엇을 하나</th><th style="width:22%">한계</th></tr></thead>
     <tbody>
-      <tr><td>Speculation Rules (prerender)</td><td><code>AppChrome</code>이 하단 탭 링크에 <code>&lt;script type="speculationrules"&gt;</code>를 건다. 마우스를 올리거나 누르기 시작할 때(<code>eagerness: moderate</code>) 해당 zone 첫 화면을 미리 렌더해서 누르면 바로 바뀐다</td><td>Chromium 계열. Safari는 일반 이동</td></tr>
+      <tr><td>Speculation Rules (prerender)</td><td><code>AppNavigation</code>이 하단 탭 링크에 <code>&lt;script type="speculationrules"&gt;</code>를 건다. 마우스를 올리거나 누르기 시작할 때(<code>eagerness: moderate</code>) 해당 zone 첫 화면을 미리 렌더해서 누르면 바로 바뀐다</td><td>Chromium 계열. Safari는 일반 이동</td></tr>
       <tr><td>문서 간 View Transitions</td><td>모든 zone CSS에 <code>@view-transition { navigation: auto; }</code>. 하단 탭 · 헤더에 같은 <code>view-transition-name</code>을 줘서 크롬은 제자리, 본문만 바뀐다</td><td>같은 origin만(조건 충족)</td></tr>
       <tr><td>서버 렌더 첫 화면</td><td>각 zone 첫 화면의 핵심 숫자(시세 · 목표 진척 · 이번 달 지출)를 RSC 스트리밍으로 HTML에 넣는다. 클라이언트 캐시가 비어 있어도 숫자가 바로 보여 "가격 깜빡임 금지"를 지킨다</td><td>—</td></tr>
       <tr><td>공용 정적 자산 캐시</td><td>React · 디자인 시스템 청크를 zone끼리 같은 해시로 내보내면 브라우저 캐시를 같이 쓴다(공용 패키지를 같은 버전으로 묶는 이유)</td><td>zone별 번들러 설정이 같아야 한다</td></tr>
@@ -227,7 +227,7 @@ a{color:var(--accent)}
   <div class="phases">
     <div class="ph"><div class="k">F0</div><div><h3>규칙 · 레지스트리 · ADR-005</h3><p><code>microfrontend.md</code> 개정, 레지스트리 5 zone, lint 도메인 축, web-tax 제거. 아키텍처 변경이라 단일 커밋으로 둔다.</p></div></div>
     <div class="ph"><div class="k">F1</div><div><h3>투자 zone — apps/web-investment</h3><p>투자 화면을 <code>domain-invest</code>로 기계적 이동(커밋 1) → 새 앱이 조립 · 셸 rewrites · 홈을 <code>HomeSummaryCard</code>로(커밋 2, BFF 홈 계약 변경과 같은 PR). 가장 큰 이동이라 먼저 해서 규칙을 증명한다.</p></div></div>
-    <div class="ph"><div class="k">F2</div><div><h3>AppChrome · 이동 완화</h3><p>하단 탭 · 헤더를 공용 컴포넌트로, Speculation Rules · View Transitions. 셸 ↔ 투자에서 실측(전환 시간 · 깜빡임)한 뒤 다른 zone에 붙인다.</p></div></div>
+    <div class="ph"><div class="k">F2</div><div><h3>AppNavigation · 이동 완화</h3><p>하단 탭 · 헤더를 공용 컴포넌트로, Speculation Rules · View Transitions. 셸 ↔ 투자에서 실측(전환 시간 · 깜빡임)한 뒤 다른 zone에 붙인다.</p></div></div>
     <div class="ph"><div class="k">F3</div><div><h3>저축 zone — apps/web-savings</h3><p>기존 goal 이전 + 목표 고도화(FEATURE-012).</p></div></div>
     <div class="ph"><div class="k">F4</div><div><h3>가계부 zone — apps/web-household</h3><p>신규(FEATURE-013).</p></div></div>
     <div class="ph"><div class="k">F5</div><div><h3>금융 팁 zone — apps/web-tips</h3><p>공개 · ISR · robots 허용(FEATURE-014).</p></div></div>

@@ -3,7 +3,6 @@ import { Padding } from "@repo/ui/padding";
 import { Root } from "@repo/ui/root";
 import { Section } from "@repo/ui/section";
 
-import { ProfileMenu } from "@repo/web-shared/layout";
 import { BlockBoundary } from "@repo/web-shared/ui";
 
 import {
@@ -24,13 +23,14 @@ import { InvestmentsBoard } from "./InvestmentsBoard";
  *
  * FR-4 의 `/assets` 리다이렉트는 여기서 하지 않는다 — `/assets` 가 아직 없다.
  * 3탭 IA 와 함께 F006(`FE-REQ-030`)에서 붙인다.
+ *
+ * 머리 프로필은 zone 공용 `AppShell` 머리에 있다(`FE-REQ-054`, 2026-11-03) — 페이지가 놓지 않는다.
  */
 export const InvestmentsPage = () => {
   return (
     <Root background="white">
       <Section containerSize="full" padding="sm">
         <Container size="2xl" padding="none">
-          <ProfileMenu />
           <Padding paddingX="xl">
             <BlockBoundary
               name={INVESTMENTS_PAGE_MESSAGES.blockName}

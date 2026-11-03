@@ -38,6 +38,6 @@ status: done
 |---|---|---|
 | 투자 · 저축 화면을 zone 으로 | 이 슬라이스는 규칙 · 골격 | `FE-REQ-053` · `FE-REQ-056` |
 | `domain-*` 안 FSD 레이어 축 · ESLint 설정 | 패키지가 없다 | `FE-REQ-053` FR-1 |
-| `AppChrome` · prerender · 문서 간 전환 | 별도 REQ | `FE-REQ-054` · `FE-REQ-055` |
+| ~~`AppChrome`~~ `AppNavigation` · prerender · 문서 간 전환 | 별도 REQ | `FE-REQ-054` · `FE-REQ-055` — **2026-11-03 구현(MONEY-F2)** |
 | `ops/salt.sh` zone 앱 기동 | 빈 골격 | `FE-REQ-053` |
 | 운영 한 origin 경로 라우팅 | 배포 환경 미착수 | `OPS-001` |

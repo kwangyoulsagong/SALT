@@ -161,6 +161,17 @@ export const tokens = {
       coin: "#BFD5FF",
     },
 
+    // 도메인 색 (FE-REQ-054 FR-7 · FEATURE-015 FR-7) — 탭 · 홈 카드에서 "어느 도메인인가"를 알리는 작은 표지(아이콘 · 점)에만.
+    // 기존 색은 바꾸지 않는다(새 요소만 새 토큰). 넓은 면 · 글자색에 쓰지 않는다 — 대비는 흰 바탕 · 회색 바탕(`background.primary`) 위 아이콘 3:1 이상(3.25~4.98).
+    // 투자는 브랜드 보라와 겹치지 않게 남색 — 보라는 주 버튼 · 선택 표시의 것이다.
+    domain: {
+      home: "#3182F6",
+      savings: "#099268",
+      household: "#E8590C",
+      invest: "#4263EB",
+      tips: "#C46A00",
+    },
+
     // 테두리 색상
     border: {
       light: "#E5E8EB",

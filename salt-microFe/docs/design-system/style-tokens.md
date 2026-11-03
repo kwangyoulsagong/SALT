@@ -67,6 +67,16 @@ AI/LLM 생성물은 브랜드 보라와 구분되는 별도 액센트를 쓴다.
 | `vars.colors.ai.light` | `#63E6BE` | 약한 강조 |
 | `vars.colors.ai.lighter` | `#E6FCF5` | 배지·카드 배경 |
 
+도메인 색(`FE-REQ-054` FR-7, 2026-11-03) — 탭 · 홈 카드에서 "어느 도메인인가"를 알리는 **작은 표지(아이콘 · 점)에만**. 넓은 면 · 글자색 금지. 흰 바탕 · `background.primary` 위 3:1 이상.
+
+| 토큰 | 값 |
+| --- | --- |
+| `vars.colors.domain.home` | `#3182F6` |
+| `vars.colors.domain.savings` | `#099268` |
+| `vars.colors.domain.household` | `#E8590C` |
+| `vars.colors.domain.invest` | `#4263EB` |
+| `vars.colors.domain.tips` | `#C46A00` |
+
 ### 중립
 
 | 토큰 | 값 | 용도 |

@@ -175,3 +175,8 @@
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 9개(경로 이동 내용 무변경 3 · 수정 4 · 추가 1 · 삭제 1). 계약 · 동작 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 앱 내비게이션
+
+- 공용 레이아웃 문구 파일에 `NAVIGATION_FRAME_MESSAGES`(내비 이름) 한 줄(`e0bce695`). 404 문구 무변경
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { AppProviders, AppShell, EMBED_SCRIPT, FONT_VARIABLES } from "@/app";
+import { AppProviders, AppShell, EMBED_SCRIPT, FONT_VARIABLES, VIEW_TRANSITION_CSS } from "@/app";
 import "@repo/web-shared/layout/globals.css";
 
 /**
@@ -20,6 +20,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="ko" className={FONT_VARIABLES} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: EMBED_SCRIPT }} />
+        {/* zone 간 문서 이동을 전환으로 잇는다 — 탭 · 머리는 제자리(FE-REQ-054 FR-4) */}
+        <style dangerouslySetInnerHTML={{ __html: VIEW_TRANSITION_CSS }} />
       </head>
       <body>
         <AppProviders>

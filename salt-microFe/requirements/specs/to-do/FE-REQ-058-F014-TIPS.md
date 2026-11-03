@@ -42,3 +42,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 이 REQ 에 걸린 몫(`FE-REQ-054`) — 금융 팁은 탭이 아니다. 화면이 생기면 zone 레이아웃에 `AppShell` + `VIEW_TRANSITION_CSS`(공개 화면이라 로그아웃이면 내비 · prerender 판단을 다시 본다 — 지금 공개 경로 목록은 `/` · `/login` · `/onboarding`) |

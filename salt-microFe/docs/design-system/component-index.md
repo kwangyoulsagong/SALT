@@ -92,6 +92,7 @@ import { vars } from "@repo/ui/tokens";
 | 공개 경로 | 컴포넌트 | 주요 props | 소스 |
 | --- | --- | --- | --- |
 | `@repo/ui/appBar` | `AppBar` | `title`, `leading`, `onBack`, `logo`, `actions`, `sticky`, `bordered` | `packages/ui/src/AppBar/AppBar.tsx` |
+| `@repo/ui/app-navigation` | `AppNavigation` | `items`(`href` · `active` · `icon` = `AppNavigationIcon` · `disabledReason`), `renderLink`, `brand`, `headerEnd`, `label`(필수 — 문구는 부르는 쪽), `bare`(내비 없이 틀만 — 공개 화면), `children` — 왼쪽 레일 1024+ · 하단 탭 768~1023 · 머리 52, `data-app-navigation` 표지 · 아이콘 `AppNavigationIcon`(면 채운 단색 글리프 4 — `home` · `coin`(저축 — 동전에 W) · `wallet` · `chart`)(`FE-REQ-054`) | `packages/ui/src/AppNavigation/AppNavigation.tsx` |
 | `@repo/ui/bottomTabBar` | `BottomTabBar` | `items`(최대 5개), `value`, `onChange`, `fixed`, `label` | `packages/ui/src/BottomTabBar/BottomTabBar.tsx` |
 | `@repo/ui/bottomCTA` | `BottomCTA` | `layout('single'\|'double')`, `fixed`, `leading`, `children` | `packages/ui/src/BottomCTA/BottomCTA.tsx` |
 | `@repo/ui/header` | `Header` | `route`, `children` | `packages/ui/src/Header/Header.tsx` |
@@ -172,6 +173,7 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 | 일반 폼 입력 | `TextField` | `InputField`는 react-hook-form `register`에 묶여 있고 placeholder가 고정 5종뿐이다 |
 | 검색창 | `SearchField` (`role="search"`, 지우기 버튼) | `TextField`는 검색 전용 처리가 없다 |
 | 아이콘만 있는 버튼 | `IconButton` (`label` 필수) | 앱마다 `<button>`에 아이콘을 직접 넣지 않는다 |
+| 웹 앱 전체 탭 · 머리(zone 공용) | `AppNavigation` | 화면이 직접 쓰지 않는다 — `@repo/web-shared/layout` `AppShell` 이 놓는다. `BottomTabBar` 는 화면 안 버튼 탭(상태로 바꾸는 것) |
 | 화면 하단 주요 행동 | `BottomCTA` | `BottomTabBar`는 화면 이동용이다. 둘을 같이 쓰면 CTA를 탭바 위에 올린다 |
 | 확인 한 번 받기 | `Dialog` / `useDialog` | 여러 항목을 담아야 하면 `Modal`이나 `BottomSheet` |
 | 가운데 뜨는 오버레이 | `Modal` | 모바일에서 아래에서 올라오는 게 맞으면 `BottomSheet` |
@@ -201,7 +203,7 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 
 ## Storybook 커버리지
 
-대부분의 재사용 UI에는 Storybook story가 있다: `Agreement`, `AppBar`, `AssetIcon`, `Badge`, `Banner`, `BarChart`, `BoardRow`, `BottomCTA`, `BottomInfo`, `BottomSheet`, `BottomTabBar`, `Button`, `Card`, `ChatBubble`, `Checkbox`, `Chip`, `Container`, `Dialog`, `Divider`, `DisclosureSlot`, `EmptyState`, `FilterTabs`, `SegmentedControl`, `FlexBox`, `Grid`, `Heading`, `Highlight`, `IconButton`, `Image`, `Keypad`, `KeyValueList`, `ListFooter`, `ListGroup`, `ListRow`, `Margin`, `Menu`, `Modal`, `MovableGrid`, `NumberText`, `Padding`, `PreviewChart`, `ProgressBar`, `ProgressStepper`, `Rating`, `Root`, `ScrollContainer`, `SearchField`, `Section`, `SectionBand`, `Skeleton`, `Slider`, `Sparkline`, `Spinner`, `Stepper`, `Table`, `Tabs`, `Text`, `TextArea`, `TextButton`, `TextField`, `Toast`, `Toggle`, `Tooltip`.
+대부분의 재사용 UI에는 Storybook story가 있다: `Agreement`, `AppBar`, `AppNavigation`, `AssetIcon`, `Badge`, `Banner`, `BarChart`, `BoardRow`, `BottomCTA`, `BottomInfo`, `BottomSheet`, `BottomTabBar`, `Button`, `Card`, `ChatBubble`, `Checkbox`, `Chip`, `Container`, `Dialog`, `Divider`, `DisclosureSlot`, `EmptyState`, `FilterTabs`, `SegmentedControl`, `FlexBox`, `Grid`, `Heading`, `Highlight`, `IconButton`, `Image`, `Keypad`, `KeyValueList`, `ListFooter`, `ListGroup`, `ListRow`, `Margin`, `Menu`, `Modal`, `MovableGrid`, `NumberText`, `Padding`, `PreviewChart`, `ProgressBar`, `ProgressStepper`, `Rating`, `Root`, `ScrollContainer`, `SearchField`, `Section`, `SectionBand`, `Skeleton`, `Slider`, `Sparkline`, `Spinner`, `Stepper`, `Table`, `Tabs`, `Text`, `TextArea`, `TextButton`, `TextField`, `Toast`, `Toggle`, `Tooltip`.
 
 story가 없는 것: `Header`, `Icon`, `InputField`, `RadioButton`, `ServiceIcon`, `ServiceWrapper`, `StarIcon`, `Wrapper`. 이 중 `Header`·`InputField`·`RadioButton`은 각각 `AppBar`·`TextField`·`Checkbox`/`Toggle`로 대체 가능하다.
 

@@ -60,7 +60,7 @@ zone 관련 작업이면 아래 항목을 계획에 반드시 포함한다.
 - 새 zone이 필요한가. `microfrontend.md` §2의 세 조건(릴리스 주기 · 이동 빈도 · 코드 무게)을 **모두** 만족하는가.
   하나라도 불확실하면 같은 zone의 FSD 슬라이스로 만든다.
 - 경로가 zone 간 유일한가. `@repo/core/zones` 레지스트리에 먼저 등록한다.
-- default zone `rewrites`와 대상 zone `assetPrefix`가 짝을 이루는가.
+- default zone `rewrites`와 대상 zone `assetPrefix`가 짝을 이루는가(dev). 운영 빌드는 공용 `/_next` — 정적 파일 합치기(`pnpm static:merge`)가 충돌 0 인가(`ADR-005` 규칙 7 개정 2026-11-03).
 - zone을 넘는 링크는 `CrossZoneLink`(=`<a>`)로 계획한다. `<Link>`는 lint에서 막힌다.
 - 공유가 필요한 코드는 workspace 패키지로 올린다. **zone이 다른 zone의 `src/**`를 직접 import하지 않는다.**
 - `transpilePackages`에 존재하지 않는 workspace package가 있는지 확인한다.

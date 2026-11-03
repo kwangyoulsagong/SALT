@@ -1,6 +1,6 @@
 # web-investment — 투자 zone
 
-투자 화면을 서비스한다(2026-11-02 `FE-REQ-053` — 전에는 셸 `apps/web` 이 서비스). 경로 `/investments` · `/coach`(`/report` · `/signals/[signalType]` · `/settings`) · `/search` · 포트 3002 · assetPrefix `/investment-static` — 값은 `@repo/core/zones`(`registry.json`, `invest.hostedIn = "web-investment"`).
+투자 화면을 서비스한다(2026-11-02 `FE-REQ-053` — 전에는 셸 `apps/web` 이 서비스). 경로 `/investments` · `/coach`(`/report` · `/signals/[signalType]` · `/settings`) · `/search` · 포트 3002 · assetPrefix `/investment-static`(dev 만 — 운영 빌드는 공용 `/_next` + `pnpm static:merge`) — 값은 `@repo/core/zones`(`registry.json`, `invest.hostedIn = "web-investment"`).
 
 - zone 앱은 얇다 — `app/` 라우트 · 레이아웃 · `next.config.js` 만. 화면은 `@repo/domain-invest`(`microfrontend.md` §2-4), 레이아웃 공용 부분은 `@repo/web-shared/layout`
 - `tsconfig.json` `paths` 가 패키지 안 레이어 alias(`@/entities` …)를 `packages/domain-invest/src` 로 푼다

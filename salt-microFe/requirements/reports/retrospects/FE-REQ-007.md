@@ -95,3 +95,19 @@ federation 서술이 남아 있었고, 그대로 두면 다음 세션이 없는 
 ## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
 
 - 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`)
+
+- 설정 다섯 벌을 한 벌로 — zone 하나만 다르게 하려면 프리셋을 먼저 고친다(`packages/config-next/README.md`). Action 없음
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 정적 경로
+
+- 규칙 7 의 "assetPrefix 유일"은 dev 청크 충돌을 막는 데는 맞고, 운영에서는 캐시 공유를 막았다. 규칙을 dev · 운영으로 나눴다. Action 없음
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 커밋 대조
+
+- 파일만 걸침 — Action 없음
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) CrossZoneLink
+
+- "Vercel 로 옮길 때 바꾸는 곳은 이 파일 하나" 약속을 앱 탭이 깰 뻔했다(리뷰). 새 링크 자리는 이 컴포넌트를 먼저 본다. Action 없음

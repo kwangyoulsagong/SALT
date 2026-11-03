@@ -22,6 +22,7 @@
     "./text": "./src/Typo/Text/Text.tsx",
     "./serviceicon": "./src/ServiceIcon/ServiceIcon.tsx",
     "./wrapper": "./src/Wrapper/Wrapper.tsx",
+    "./app-navigation": "./src/AppNavigation/AppNavigation.tsx",
     "./header": "./src/Header/Header.tsx",
     "./flexBox": "./src/FlexBox/FlexBox.tsx",
     "./padding": "./src/Padding/Padding.tsx",

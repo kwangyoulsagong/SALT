@@ -34,3 +34,8 @@
 | 카드 서버 렌더 · 카드별 스트리밍 | 토큰이 `localStorage` | `FE-REQ-013` |
 
 - 2026-11-02 MONEY-F1 후속 — `0f8683f8` — 카드 계약에 값 아래 한 줄 `note` 추가(BFF · `@repo/core/home` 같이). 투자 카드가 매입가 숨김을 켰다고 확인된 사람에게 "오늘 처음 본다면" 줄 — 셸 카드가 값 아래 그린다. 실화면 켬/끔 확인
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 앱 내비게이션
+
+- 셸 홈 머리 — 프로필 메뉴가 화면이 아니라 공용 머리에서 온다(`e0bce695`). 홈 카드 계약 · 순서 무변경
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2

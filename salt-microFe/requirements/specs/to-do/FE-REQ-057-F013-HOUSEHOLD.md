@@ -44,3 +44,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 이 REQ 에 걸린 몫(`FE-REQ-054`) — 가계부 탭은 `APP_TABS` `readyBy: "FE-REQ-057"`(비활성). 첫 화면이 생기면 `readyBy: null` · zone 레이아웃에 `AppShell` + `VIEW_TRANSITION_CSS` · 설정을 vanilla-extract 로 |

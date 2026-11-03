@@ -54,6 +54,9 @@ importers:
       '@reduxjs/toolkit':
         specifier: ^2.5.0
         version: 2.5.1(react-redux@9.2.0)(react@18.2.0)
+      '@repo/config-next':
+        specifier: workspace:*
+        version: link:../../packages/config-next
       '@repo/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -154,6 +157,9 @@ importers:
 
   apps/web-household:
     dependencies:
+      '@repo/config-next':
+        specifier: workspace:*
+        version: link:../../packages/config-next
       '@repo/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -194,6 +200,9 @@ importers:
 
   apps/web-investment:
     dependencies:
+      '@repo/config-next':
+        specifier: workspace:*
+        version: link:../../packages/config-next
       '@repo/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -261,6 +270,9 @@ importers:
 
   apps/web-savings:
     dependencies:
+      '@repo/config-next':
+        specifier: workspace:*
+        version: link:../../packages/config-next
       '@repo/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -301,6 +313,9 @@ importers:
 
   apps/web-tips:
     dependencies:
+      '@repo/config-next':
+        specifier: workspace:*
+        version: link:../../packages/config-next
       '@repo/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -338,6 +353,12 @@ importers:
       typescript:
         specifier: ^5
         version: 5.7.3
+
+  packages/config-next:
+    dependencies:
+      '@repo/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/core:
     devDependencies:

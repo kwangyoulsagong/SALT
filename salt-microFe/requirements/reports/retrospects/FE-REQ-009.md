@@ -129,3 +129,11 @@ re-export 껍데기가 필요하고(FR-38), 껍데기가 남으면 done이 아�
 ## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
 
 - 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`)
+
+- 파일만 걸침 — Action 없음
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 커밋 대조
+
+- 파일만 걸침 — Action 없음

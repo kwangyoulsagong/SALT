@@ -28,7 +28,7 @@ RN 앱은 코드가 없다(`apps/mobile` 없음, RN-REQ-001~031 전부 to-do). �
 | FR | 내용 |
 |---|---|
 | FR-1 | 서비스 번들 이름 = 도메인 이름(`ADR-005`). Phase 2 첫 분리 후보는 조건(RN-REQ-002 FR-20) 충족 시 정하고, `tax` 를 후보에서 지운다 |
-| FR-2 | 하단 탭 4개 — 웹 `AppChrome` 과 같은 순서 · 이름 · 아이콘 토큰 |
+| FR-2 | 하단 탭 4개 — 웹 ~~`AppChrome`~~ **`AppNavigation`**(정정 2026-11-03) 과 같은 순서 · 이름 · 아이콘 토큰 — 한 벌은 `@repo/core/navigation` `APP_TABS` |
 | FR-3 | 경계 — **네이티브**: 홈 · 저축(목표 · 적립 · 장면) · 가계부 입력. **웹뷰**: 금융 팁 · 투자 상세 · 코치 리포트. 근거: 입력 속도 · 위젯 · 공유 시트는 네이티브가 필요하고, 정보 화면은 웹과 한 코드 |
 | FR-4 | 웹뷰로 쓰는 zone(`web-investment` 일부 · `web-tips`)은 휴대폰 폭 레이아웃 REQ 가 필요하다 — UA `SALTApp/` 일 때 768 미만 안내 끔(기존 규칙) + 레이아웃 실측 |
 | FR-5 | 알림 — 도메인별 채널(Android) · 카테고리(iOS), 설정은 서버 `notification_pref` 와 동기 |
@@ -48,3 +48,6 @@ RN 앱은 코드가 없다(`apps/mobile` 없음, RN-REQ-001~031 전부 to-do). �
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — FR-2 — 웹 컴포넌트 이름 ~~`AppChrome`~~ **`AppNavigation`**(2026-11-03 사용자 결정). 순서 · 이름 · 아이콘 이름 한 벌은 `@repo/core/navigation` `APP_TABS` — 앱도 이것을 읽는다(아이콘 그림만 플랫폼 몫) |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — 웹은 앱 웹뷰(`data-embed=app`)에서 레일 · 하단 탭 · 머리를 숨긴다(`e0bce695` `AppShell.css.ts`) — 앱의 네이티브 탭과 겹치지 않게. 아이콘 이름 한 벌은 `home` · `coin` · `wallet` · `chart` |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — `6ddcb284` 앱 웹뷰 태블릿에서 숨은 하단 탭 여백 56 → 0(`AppShell.css.ts`) |

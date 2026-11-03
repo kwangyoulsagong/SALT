@@ -302,3 +302,8 @@
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 코치 설정 `/settings` → `/coach/settings`(셸 `/settings` 는 링크 목록)(`08a3aabf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 51개(경로 이동 내용 무변경 31 · 수정 19 · 추가 1 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 앱 내비게이션
+
+- 투자 화면이 놓던 `ProfileMenu` 를 지웠다 — 머리 프로필은 zone 공용 `AppShell` 머리(`e0bce695`). 시세 보드 · 코치 패널 무변경
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2

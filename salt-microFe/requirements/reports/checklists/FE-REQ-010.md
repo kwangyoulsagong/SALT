@@ -257,3 +257,8 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 
 
 - 2026-11-02 후속(`c5ec66ed`): 홈에서 빠진 보유 목록을 코치 리포트 맨 위 "내 보유"로(사용자 결정) — 실화면 숨김 끔 손익률 · 켬 숨김 + 물음 줄 · 넘침 0
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 앱 내비게이션
+
+- 홈 페이지가 놓던 `ProfileMenu` 를 지웠다 — 머리 프로필은 zone 공용 `AppShell` 머리 한 자리(`e0bce695`). 홈 화면 내용 무변경
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2

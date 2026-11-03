@@ -47,7 +47,7 @@
 |---|---|---|
 | `domain-*` 패키지 안 FSD 레이어 축 · ESLint 설정 | 패키지가 아직 없다 — 도메인 축만 검사 | `FE-REQ-053` FR-1 |
 | `ops/salt.sh` 에 zone 앱 기동 | 빈 골격이라 띄울 이유가 없다 | `FE-REQ-053`(투자 화면 이동) |
-| prerender · 문서 간 전환 · `AppChrome` | 이 REQ 범위 밖 | `FE-REQ-054` · `FE-REQ-055` |
+| prerender · 문서 간 전환 · ~~`AppChrome`~~ `AppNavigation` | 이 REQ 범위 밖 | `FE-REQ-054` · `FE-REQ-055` — **2026-11-03 구현(MONEY-F2)** |
 | 운영 경로 라우팅(한 origin L7) | 배포 환경 미착수 | `OPS-001` |
 | zone 앱 `next.config.js` 머리 주석의 경로 · assetPrefix 값 | 주석이라 레지스트리를 바꾸면 갈라질 수 있다(설정 값 자체는 레지스트리에서 읽는다) | 레지스트리를 바꾸는 REQ 가 같이 고친다 — 회고 Action |
 
@@ -59,3 +59,17 @@
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 웹 글꼴 404 → `next/font` 같은 origin · body 기본 글꼴(`9725dd20`). 파일 4개(경로 이동 내용 무변경 0 · 수정 4 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 앱 내비게이션
+
+- 빈 zone 3(저축 · 가계부 · 팁) `next.config.js` 를 프리셋으로(`7b8b1110`) — assetPrefix 는 여전히 레지스트리 값, 이미지 허용 · `NEXT_PUBLIC_ZONE_APP` 이 더해졌다(빌드 86 kB 그대로). 레지스트리 · lint 무변경. 빈 zone 레이아웃의 내비 · 전환은 화면 REQ(056~058) 몫 — 빈 zone `app/layout.tsx` 3개는 그 안내 주석만 바꿨다(`AppChrome` → `AppShell` · 전환 `<style>`)
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 정적 경로
+
+- 레지스트리 `assetPrefix` 뜻이 "dev 정적 경로"로 좁아졌다(`5c7218e9` · 주석) — 이 REQ 가 만든 규칙 7 의 운영 몫을 `ADR-005` 개정으로 바꿨다. 레지스트리 값 · lint · rewrites 무변경(dev 그대로)
+- 확인: 운영 빌드 5 zone 합치기 충돌 0 · 오류 0 · 404 0(Chromium · WebKit) · dev 는 zone 별 prefix 그대로 — `FE-REQ-054` 체크리스트 §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 커밋 대조
+
+- 커밋 대조 — 투자 zone `app/layout.tsx` 전환 `<style>`(`e0bce695`) · 빈 zone `app/layout.tsx` 3 안내 주석(`d5000140`) · `registry.json` `$comment` 에 assetPrefix 뜻(`28d51ed3`). 값 · lint 무변경

@@ -10,10 +10,11 @@
 - Framework: Next.js 15, React 18, TypeScript strict / React Native
 - 아키텍처: **FSD**(6레이어) · **Next.js Multi-Zones**(마이크로프론트엔드) · **스트리밍 SSR**(RSC + Suspense)
 - Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`(웹) / `StyleSheet` + `@repo/ui-native`(모바일)
-- Shared packages: `packages/tokens`(플랫폼 중립 토큰), `packages/core`(플랫폼 무관 모델·상수·zone 레지스트리), `packages/ui`(웹 전용), `packages/web-shared`(웹 shared 레이어 + zone 공용 레이아웃 `layout`, 2026-11-02), `packages/domain-invest`(투자 화면, 2026-11-02), `packages/eslint-config`, `packages/eslint-plugin-zone`, `packages/eslint-plugin-fsd`, `packages/typescript-config`
+- Shared packages: `packages/tokens`(플랫폼 중립 토큰), `packages/core`(플랫폼 무관 모델·상수·zone 레지스트리), `packages/ui`(웹 전용), `packages/web-shared`(웹 shared 레이어 + zone 공용 레이아웃 `layout` — 앱 내비게이션 연결 · prerender · 문서 간 전환, 2026-11-02 · 11-03), `packages/config-next`(zone 공용 Next 설정 프리셋, 2026-11-03 `FE-REQ-054`), `packages/domain-invest`(투자 화면, 2026-11-02), `packages/eslint-config`, `packages/eslint-plugin-zone`, `packages/eslint-plugin-fsd`, `packages/typescript-config`
 
 > **아키텍처 전환 3개가 끝났다.** `FE-REQ-007`(Multi-Zones) · `FE-REQ-008`(App Router +
 > 스트리밍 SSR) · `FE-REQ-009`(FSD 6레이어). 다음은 기능 REQ(F000~)다.
+> **2026-11-03 `FE-REQ-054`: 앱 내비게이션 — `@repo/ui/app-navigation` `AppNavigation`(왼쪽 레일 1024+ · 하단 탭 768~1023 · 머리 52) + 탭 한 벌 `@repo/core/navigation` `APP_TABS`. 화면이 머리 · 프로필을 놓지 않는다(공용 `AppShell`).**
 > **2026-11-02 `FE-REQ-053`: 투자 슬라이스(`market` · `portfolio` · `coach` 와 그 위 features · widgets · pages)는 `packages/domain-invest/src` 에 있다. 셸에 `entities/home` 이 생겼고 `sign-out` 은 `@repo/web-shared/layout` `ProfileMenu` 로 대체됐다. `settings-panel` 은 `/coach/settings`.**
 > 현재 실재하는 슬라이스는 `auth`·`goal`·`home`·`market`·`portfolio`·`coach`(entities),
 > `sign-in`·`add-goal`·`accept-invite`·`toggle-watchlist`·`switch-coach-mode`·`explain-symbol`·`regenerate-coach`·`record-transaction`·`set-risk-budget`·`confirm-outcome-tags`·`toggle-purchase-price`·`run-preflight`·`search-asset`·`edit-coach-profile`(features, `toggle-purchase-price` 까지 뒤 넷은 F009 2026-09-24 · 09-27 · 10-29, 그다음 둘은 F004 2026-10-29 · F000 2026-10-30, 마지막은 F004 2026-10-30),
@@ -39,6 +40,7 @@ pnpm --filter @repo/ui check-types
 pnpm --filter @repo/ui test
 pnpm --filter @repo/core test
 pnpm --filter @repo/ui storybook
+pnpm static:merge               # 운영 빌드 뒤 zone 정적 파일을 셸 .next/static 에 합친다(같은 이름 · 다른 내용이면 실패, FE-REQ-054 · ADR-005 규칙 7) — 운영 빌드로 zone 을 띄우기 전에 필수
 pnpm test:layer-check           # layer-check 훅 위반 케이스 16(레이어 8 + 도메인 4 + 패키지 안 4) + 통과 케이스 10
 ```
 

@@ -13,7 +13,18 @@ type CrossZoneLinkProps = Omit<
   children: ReactNode;
   /** 이동 중에 보여줄 문구. hard navigation 이라 체감 지연이 있다. */
   pendingLabel?: string;
+  /** 대기 문구를 링크 안에 그릴까 — 칸 크기가 고정된 자리(앱 탭)는 끈다(`aria-busy` 는 그대로) */
+  showPending?: boolean;
 };
+
+/**
+ * 이 클릭이 지금 문서를 떠나지 않는가 — 새 탭 · 수정키 · 가운데 · 오른쪽 클릭. 그때는 대기 상태 · 계측을 켜지 않는다.
+ */
+export const opensElsewhere = (
+  event: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean; altKey: boolean; button: number },
+  target?: string,
+): boolean =>
+  event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0 || target === "_blank";
 
 /**
  * zone 을 넘는 링크 (FE-REQ-007 FR-5 · FR-21).
@@ -29,6 +40,7 @@ export const CrossZoneLink = ({
   href,
   children,
   pendingLabel = NAVIGATION_MESSAGES.crossZonePending,
+  showPending = true,
   onClick,
   ...rest
 }: CrossZoneLinkProps) => {
@@ -49,20 +61,12 @@ export const CrossZoneLink = ({
         onClick?.(event);
         if (event.defaultPrevented) return;
         // 새 탭·수정키 클릭은 현재 문서가 그대로 남으므로 대기 상태를 켜지 않는다.
-        if (
-          event.metaKey ||
-          event.ctrlKey ||
-          event.shiftKey ||
-          event.altKey ||
-          rest.target === "_blank"
-        ) {
-          return;
-        }
+        if (opensElsewhere(event, rest.target)) return;
         setIsPending(true);
       }}
     >
       {children}
-      {isPending ? (
+      {isPending && showPending ? (
         <span role="status" style={{ marginLeft: 8, fontSize: 12 }}>
           {pendingLabel}
         </span>

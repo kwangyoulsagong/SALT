@@ -43,3 +43,11 @@
 - 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`
 
 - 2026-11-02 MONEY-F1 번들 기록 — 처음엔 일반 줄만 적고 수치를 빠뜨렸다(파이프라인 확인 때 채움). 화면이 zone 을 옮기면 PERF REQ 에 옮긴 뒤 수치
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`)
+
+- 번들 비교는 Next 표만 보지 않는다 — 레이아웃에 넣은 코드는 화면 표에 안 잡혔다(HTML 스크립트 gzip 합으로 잼). Action: PERF 기록은 두 수치를 같이
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`)
+
+- 쿠키 세션 이관(이 REQ) 때 `USER` 저장값도 같이 정리한다 — 토큰과 따로 남을 수 있는 사용자 정보가 반쪽 세션을 만든다

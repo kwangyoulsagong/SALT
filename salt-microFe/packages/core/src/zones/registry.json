@@ -1,5 +1,5 @@
 {
-  "$comment": "zone 레지스트리 — 단일 소스(ADR-005 · FE-REQ-052 FR-2). TS(registry.ts)와 CommonJS(registry.cjs: next.config · eslint · 훅)가 이 파일 하나를 읽는다. hostedIn = 그 도메인 화면을 지금 실제로 서비스하는 앱. 화면을 자기 zone 으로 옮기는 REQ(hostedUntil)가 닫히면 자기 app 으로 바꾼다.",
+  "$comment": "zone 레지스트리 — 단일 소스(ADR-005 · FE-REQ-052 FR-2). TS(registry.ts)와 CommonJS(registry.cjs: next.config · eslint · 훅)가 이 파일 하나를 읽는다. hostedIn = 그 도메인 화면을 지금 실제로 서비스하는 앱. assetPrefix = dev 정적 경로(운영 빌드는 공용 /_next — ADR-005 규칙 7 개정 2026-11-03). 화면을 자기 zone 으로 옮기는 REQ(hostedUntil)가 닫히면 자기 app 으로 바꾼다.",
   "zones": {
     "shell": {
       "app": "web",

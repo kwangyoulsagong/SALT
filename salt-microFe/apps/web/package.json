@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",
+    "@repo/config-next": "workspace:*",
     "@repo/core": "workspace:*",
     "@repo/tokens": "workspace:*",
     "@repo/ui": "workspace:*",

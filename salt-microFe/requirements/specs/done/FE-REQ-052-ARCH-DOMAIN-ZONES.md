@@ -16,7 +16,7 @@ source: requirements/decisions/ADR-005-domain-zones.md
 
 | FR | 내용 |
 |---|---|
-| FR-1 | `.claude/rules/microfrontend.md` 개정 — §1 zone = 도메인 · §2 셸 책임 · §3 도메인 격리 · §4 zone 앱은 얇다 · §5 `CrossZoneLink` · §6 `AppChrome` · 동시 배포 · §7 prefix · assetPrefix 유일(`ADR-005` §2). "세 조건" · "탭으로 자르지 않는다" 문장은 지우고 ADR-005 링크. 200줄 이하 |
+| FR-1 | `.claude/rules/microfrontend.md` 개정 — §1 zone = 도메인 · §2 셸 책임 · §3 도메인 격리 · §4 zone 앱은 얇다 · §5 `CrossZoneLink` · §6 `AppChrome`(2026-11-03 이름 `AppNavigation`) · 동시 배포 · §7 prefix · assetPrefix 유일(`ADR-005` §2). "세 조건" · "탭으로 자르지 않는다" 문장은 지우고 ADR-005 링크. 200줄 이하 |
 | FR-2 | `packages/core/src/zones/registry.ts` — zone 5개(`web` · `web-investment` · `web-savings` · `web-household` · `web-tips`) · 포트 3000/3002~3005 · 경로 prefix · assetPrefix. 지금 빠진 셸 경로(`/search` → 투자, `/onboarding` · `/login` → 셸)를 바로잡는다 |
 | FR-3 | 셸 `next.config.js` rewrites 를 레지스트리에서 생성(손으로 쓴 `TAX_ZONE_ORIGIN` 제거). 각 zone origin 은 env `ZONE_<NAME>_ORIGIN` |
 | FR-4 | `packages/eslint-plugin-fsd/layer-rules.cjs` 에 도메인 축 — `domain-*` ↔ `domain-*` import 금지 · `apps/web` → `domain-*` 금지 · `apps/web-*/src/{entities,features,widgets}` 금지. 쓰기 훅(`layer-check.mjs`)도 같은 표 |
@@ -45,3 +45,6 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-02 | **done** — FR-2~8 구현(브랜치 `feat/fe-req-052-domain-zones`). 설계 판단 둘: ① 레지스트리 데이터를 `registry.json` 하나로 두고 TS(`registry.ts`) · CommonJS(`registry.cjs`)가 같이 읽는다 — FR-5 의 "JSON 생성본" 대신 생성 단계 없이 계산 대조 테스트로 갈라짐을 막는다 ② **`hostedIn`** 칸 — 화면은 아직 셸에 있으므로 cross-zone 판정은 "그 화면을 지금 서비스하는 앱" 기준, 셸 rewrites 경로는 `fallback`(셸 라우트가 이긴다 — `afterFiles` 면 동적 라우트 `/investments/[symbol]` 을 가로챈다). 옮기는 REQ(`FE-REQ-053` · `056`)가 `hostedIn` 을 자기 앱으로 바꾼다. zone id 는 `default`/`tax` → `shell` · `invest` · `savings` · `household` · `tips`. 셸 공용 청크 105 → 105 kB |
 | 2026-10-30 | **FR-1 먼저 완료** — 사용자 "새로 생긴 아키텍처 규칙 다 싱크": `microfrontend.md` 를 ADR-005 로 개정(세 조건 · 탭 문장 삭제). 코드가 아직 2 zone 이라 §0 "지금 코드 상태" 표를 두고 FR-2~7 이 닫힐 때 행을 지운다. FR-8 일부(`salt-microFe/CLAUDE.md` · 루트 서피스 표 · `layered-architecture.md` 세금 행 · `fsd-pages.md` · `rn-microfrontend.md` 경계 기준). 되돌리기 지점(코드 단일 커밋)은 그대로 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 웹 글꼴 404 → `next/font` 같은 origin · body 기본 글꼴(`9725dd20`). 파일 4개(경로 이동 내용 무변경 0 · 수정 4 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 빈 zone 3(저축 · 가계부 · 팁) `next.config.js` 를 프리셋으로(`7b8b1110`) — assetPrefix 는 여전히 레지스트리 값, 이미지 허용 · `NEXT_PUBLIC_ZONE_APP` 이 더해졌다(빌드 86 kB 그대로). 레지스트리 · lint 무변경. 빈 zone 레이아웃의 내비 · 전환은 화면 REQ(056~058) 몫 — 빈 zone `app/layout.tsx` 3개는 그 안내 주석만 바꿨다(`AppChrome` → `AppShell` · 전환 `<style>`) |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 레지스트리 `assetPrefix` 뜻이 "dev 정적 경로"로 좁아졌다(`5c7218e9` · 주석) — 이 REQ 가 만든 규칙 7 의 운영 몫을 `ADR-005` 개정으로 바꿨다. 레지스트리 값 · lint · rewrites 무변경(dev 그대로) |
+| 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — 투자 zone `app/layout.tsx` 전환 `<style>`(`e0bce695`) · 빈 zone `app/layout.tsx` 3 안내 주석(`d5000140`) · `registry.json` `$comment` 에 assetPrefix 뜻(`28d51ed3`). 값 · lint 무변경 |

@@ -36,6 +36,6 @@ status: done
 |---|---|---|
 | 카드 순서 · 숨김 편집 · 온보딩 · 내 데이터 · 알림 · 개인정보 | 서버 identity 없음 | S3 `SRV-REQ-048` |
 | 가계부 · 팁 카드 | 서비스 없음 | `SRV-REQ-046` · `047` |
-| 하단 탭 · 헤더 `AppChrome` · prerender · 문서 간 전환 | 별도 REQ | `FE-REQ-054` |
+| 하단 탭 · 헤더 ~~`AppChrome`~~ `AppNavigation` · prerender · 문서 간 전환 | 별도 REQ | `FE-REQ-054` — **2026-11-03 구현(MONEY-F2)** |
 | 저축 zone · 홈 목표 목록 제거 | 별도 REQ | `FE-REQ-056` |
 | 운영 빌드 이동 시간 · 한 origin 라우팅 | 배포 환경 없음 | `OPS-001` |

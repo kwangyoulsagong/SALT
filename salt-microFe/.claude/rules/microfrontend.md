@@ -12,7 +12,7 @@
 | 항목 | 규칙(목표) | 지금 코드 | 닫는 곳 |
 |---|---|---|---|
 | 화면 코드 위치 | `packages/domain-*` | 저축 화면이 `apps/web/src/**` — `savings.hostedIn: "web"`. 가계부 · 팁은 빈 zone | `FE-REQ-056`(저축) |
-| 하단 탭 · 헤더 · 완화 장치 | `AppChrome` · §5 | 프레임 · 프로필 메뉴는 `@repo/web-shared/layout` 에 임시로(zone 공용) | `FE-REQ-054` · `FE-REQ-055` |
+| 운영 정적 파일 한 저장소 | 운영 빌드는 공용 `/_next` — zone 정적 파일을 합쳐 서비스(§3) | 로컬은 `pnpm static:merge` 가 셸 `.next/static` 에 합친다. 배포 저장소는 아직 없다 | `OPS-001` FR-12 |
 
 **옮기기 전 상태는 레지스트리 `hostedIn` 이 적는다.** cross-zone 판정(lint · `CrossZoneLink`)은 `hostedIn` 기준이라 셸에 남은
 저축 화면 사이는 지금도 `<Link>` 다. 셸 rewrites 는 경로를 `fallback` 으로 걸어 셸에 화면이 있으면 셸이 받는다 — 화면을 옮기는
@@ -40,17 +40,17 @@ REQ 는 셸 라우트를 지우고 `hostedIn` 을 자기 앱으로 바꾸는 것
 3. **`domain-*` 끼리 import 금지.** 도메인 사이는 URL 링크와 BFF 응답으로만 — 저축 화면이 투자 보유를 쓰고 싶으면 BFF 가 서버 값으로 준다
 4. **zone 앱은 얇다** — `app/` 라우트 · 레이아웃 · `next.config.js` 만. `apps/web-*/src/{entities,features,widgets}` 금지(화면은 `domain-*`)
 5. **zone 을 넘는 링크는 `CrossZoneLink`(`<a>`)**, `next/link` 는 같은 zone 안에서만(lint)
-6. **하단 탭 · 헤더는 `@repo/ui` `AppChrome` 하나.** 공용 패키지(`ui` · `core` · `tokens`)를 바꾸면 영향 zone 을 **동시 배포**
-7. **경로 prefix · assetPrefix 는 zone 간 유일.** 셸 rewrites 는 레지스트리에서 생성 — 손으로 쓰지 않는다
+6. **하단 탭 · 머리는 `@repo/ui` `AppNavigation` 하나**(2026-11-03 `FE-REQ-054` — ADR 의 옛 이름 `AppChrome`). zone 은 `@repo/web-shared/layout` `AppShell` 로 붙인다(레지스트리 판정 · prerender · 전환 · 계측이 거기 있다). 공용 패키지(`ui` · `core` · `tokens`)를 바꾸면 영향 zone 을 **동시 배포**
+7. **경로 prefix 는 zone 간 유일. assetPrefix 는 dev 만 zone 간 유일 — 운영 빌드는 공용 `/_next`**(2026-11-03 `ADR-005` 개정, §3). 셸 rewrites 는 레지스트리에서 생성 — 손으로 쓰지 않는다
 
 패키지 안 구조는 FSD 그대로(`layered-architecture.md`) — `domain-*` 안에 `entities` · `features` · `widgets` · `pages`.
 
 ## 3. 설정
 
 ```js
-// apps/web-<domain>/next.config.js — basePath 없음, assetPrefix 는 레지스트리 값
-const { ZONES } = require("@repo/core/zones/node");
-const nextConfig = { assetPrefix: ZONES.<id>.assetPrefix };
+// apps/web-<domain>/next.config.js — 프리셋 하나(@repo/config-next). basePath 없음
+const { zoneNextConfig } = require("@repo/config-next");
+module.exports = zoneNextConfig("<id>");   // dev: assetPrefix = 레지스트리 값 · 운영 빌드: 없음(공용 /_next)
 
 // apps/web/next.config.js — 셸이 로컬 · 폴백 프록시. 규칙은 레지스트리에서 생성
 const { zoneRewrites } = require("@repo/core/zones/node");
@@ -58,6 +58,7 @@ async rewrites() { return zoneRewrites(process.env); }   // ZONE_<ID>_ORIGIN · 
 ```
 
 - 셸은 `assetPrefix` 를 갖지 않는다. Next 15+ 에서 정적 자산용 추가 rewrite 는 불필요 — 그 우회를 남기지 않는다
+- **운영 빌드 정적 파일은 합친다** — 운영 청크는 이름에 내용 해시가 있어 같은 이름 = 같은 내용. `pnpm static:merge`(`scripts/merge-zone-static.mjs`)가 zone `.next/static` 을 셸 쪽에 합치고 같은 이름 · 다른 내용이면 실패한다. 배포도 같은 규칙(`OPS-001` FR-12). dev 청크는 해시가 없어(`main-app.js`) 합치면 서로 덮는다 — dev 만 zone 별. zone 하나만 운영 빌드로 따로 띄울 때는 `ZONE_STATIC=per-zone`(빌드 · 기동 둘 다). 순서는 빌드 → 합치기 → `next start`
 - 운영 진입은 CDN + L7 한 origin 경로 라우팅이 zone 에 직접 보낸다(`ADR-008`). 셸 rewrites 는 로컬 · 폴백
 - **같은 origin 이 전제다** — §5 의 prerender · 문서 간 전환이 같은 origin 에서만 동작한다
 
@@ -82,9 +83,10 @@ zone 을 넘는 이동은 문서 이동이다. 하단 탭이 가장 잦은 zone 
 | Speculation Rules prerender(`eagerness: moderate`, 탭 4개 첫 화면만 · 로그아웃이면 끔) | 누르기 전에 다음 zone 첫 화면을 렌더 | Chromium 계열만 |
 | 문서 간 View Transitions(`@view-transition { navigation: auto; }` · 탭 · 헤더 같은 `view-transition-name`) | 크롬 제자리 · 본문만 전환 | 같은 origin 만 · 줄인 모션이면 끔 |
 | 첫 화면 숫자 서버 렌더 | 캐시가 비어도 숫자가 HTML 에 — 가격 깜빡임 금지 유지 | — |
-| 공용 청크 같은 해시(`packages/config-next` 프리셋 하나) | React · 디자인 시스템 캐시 공유 | zone 별 설정이 같아야 |
+| 공용 청크 같은 해시 · 같은 URL(`packages/config-next` 프리셋 하나 · 운영 공용 `/_next`) | React · 디자인 시스템 캐시 공유 — 실측 셸 → 투자 같은 청크 5개 캐시 · 네트워크 0(전 117 KB) | zone 별 설정이 같아야 · 배포가 정적 파일을 합쳐야 |
 
-- 셸 → 도메인 탭 전환 시간 · prerender 적중률을 브라우저별로 잰다(`FE-REQ-054` FR-6)
+- 셸 → 도메인 탭 전환 시간 · prerender 적중률을 브라우저별로 잰다(`FE-REQ-054` FR-6) — `performance.mark("salt:zone-nav")`. **DevTools 세션이 붙어 있는 동안 시작되는 prerender 는 꺼진다**(`PrerenderingDisabledByDevTools` — Playwright 도 마찬가지). 재는 법: 순수 CDP 로 포인터를 올린 뒤 세션을 끊고 기다렸다 다시 붙어 누른다(`FE-REQ-054` 체크리스트 §2). 2026-11-03 운영 빌드 적중 10/10
+- 첫 화면이 없는 도메인 탭은 보이되 눌리지 않는다(`@repo/core/navigation` `readyBy`) — 없는 경로로 보내 404 를 보이지 않는다
 
 ## 6. Server Actions
 

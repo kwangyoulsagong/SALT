@@ -61,3 +61,17 @@
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
 
 - 2026-11-02 MONEY-F1 최종 HEAD 번들(위 스펙 Changelog 행) — main 워크트리 빌드 대조
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 앱 내비게이션
+
+- 번들(PERF) — `FE-REQ-054` 앱 내비게이션이 모든 화면 레이아웃에 들어왔다. Next 표: 셸 공용 103 · `/home` 169 → 158 · `/settings` 132 · `/onboarding` 149(main 워크트리 빌드 대조). **HTML 이 실제로 싣는 JS gzip**: `/home` 215.0 → 224.2(+9.2) · `/settings` 218.2 → 220.8(+2.6) · `/onboarding` 221.2 → 223.7(+2.5) KB(최종 HEAD `5c7218e9`) — 예산 40 KB 안. Next 표가 줄어든 것은 레이아웃 몫을 화면 표에서 빼고 세기 때문(`5a86dafa` · `e0bce695`)
+- 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+## 2026-11-03 — MONEY-F2(`FE-REQ-054`)
+
+- **기존 결함 수정** `f6587a53` — 로그인 화면(`RedirectSignedIn`)이 Redux 사용자(`USER`)로, 셸 미들웨어 표지 쿠키는 토큰으로 판단해 토큰 없이 `USER` 만 남은 브라우저는 들어올 때마다 로그인 화면이 비쳤다가 홈으로 갔다(사용자 보고 "여전히 localhost:3000 들어가면 로그인 창 갔다가 홈으로"). 판단을 토큰(`useHasAccessToken`) 하나로 · 토큰 없는 `USER` 는 복원(`useInitializeAuth`) 때 지운다 — 표지 쿠키(이 REQ 쿠키 세션 이관 전 임시)와 화면 판단이 같은 기준이 됐다
+- 재현 · 확인(임시 사용자, 실 BFF · 서버): USER 만 남긴 상태 방문 2회 — 전 로그인 폼 → `/home` 2/2 · 후 로그인 화면 유지 2/2 + USER 지워짐. 토큰 있고 쿠키만 없는 상태 — 첫 방문 1회 비침(쿠키를 이때 단다) · 둘째부터 서버 307. 새 로그인 — 307 → `/home`, 로그인 폼 0
+
+## 2026-11-03 — 번들 최종
+
+- 위 Changelog 줄과 같다(HTML 스크립트 gzip, main 워크트리 대조)
