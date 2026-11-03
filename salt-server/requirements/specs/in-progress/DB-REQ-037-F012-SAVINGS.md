@@ -30,7 +30,7 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | FR-10 | 인덱스 — `deposit(goal_id, deposited_on)` · `projection_issued(goal_id, issued_at desc)` · 사용자별 목표 목록 `goal(user_id, archived_at)` | 성능 |
 | FR-11 | 마이그레이션 — 테이블 이동 + 열 추가 + 매핑. 되돌리기는 열 삭제 · 역이동, 금액 열은 손대지 않는다 | — |
 
-## 진행 — S1a (2026-11-03, 슬라이스 `requirements/specs/in-progress/MONEY-S1a-savings-calculator-slice.md`)
+## 진행 — S1a (2026-11-03, 슬라이스 `requirements/specs/done/MONEY-S1a-savings-calculator-slice.md`)
 
 DDL 주인은 Flyway(`services/savings/infrastructure/src/main/resources/db/migration/savings/V1__baseline.sql`) — Prisma `Goal` · `SavingTransaction` 은 옛 Express 삭제 때 같이 지운다(1주 관찰 뒤).
 

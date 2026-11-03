@@ -1,6 +1,6 @@
 # MONEY-S1a — 저축 서비스 첫 판 · 저축 zone 첫 화면 — 체크리스트
 
-슬라이스 `requirements/specs/in-progress/MONEY-S1a-savings-calculator-slice.md` · 커밋 `e83f7f80` · `1ec3b0c6` · `3e5e0d42` · `c60f5bfb` · `8d05a006` · `b1c8ad67`
+슬라이스 `requirements/specs/done/MONEY-S1a-savings-calculator-slice.md` · 커밋 `e83f7f80` · `1ec3b0c6` · `3e5e0d42` · `c60f5bfb` · `8d05a006` · `b1c8ad67`
 
 ## 1. 수용 기준
 

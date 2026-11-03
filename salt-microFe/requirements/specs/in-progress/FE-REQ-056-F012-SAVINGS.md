@@ -31,7 +31,7 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | FR-12 | 때맞춘 팁 카드 자리(`@repo/ui` 공용 카드, `for-me?context=savings`) | F014 FR-4 |
 | FR-13 | 첫 숫자 서버 렌더(RSC) — 스켈레톤 없이 진척 · 이정표 | NFR |
 
-## 진행 — F3a (2026-11-03, 슬라이스 `requirements/specs/in-progress/MONEY-S1a-savings-calculator-slice.md`)
+## 진행 — F3a (2026-11-03, 슬라이스 `requirements/specs/done/MONEY-S1a-savings-calculator-slice.md`)
 
 | FR | 상태 |
 |---|---|

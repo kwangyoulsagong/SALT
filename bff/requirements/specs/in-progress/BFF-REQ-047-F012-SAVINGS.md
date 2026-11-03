@@ -22,7 +22,7 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-045-F012-SAVINGS.md
 | FR-7 | 기존 `/api/app/goals*` 는 FE 전환까지 유지, 그 뒤 삭제 |
 | FR-8 | 문구 키만 중계 — BFF 에서 문장을 만들지 않는다 |
 
-## 진행 — S1a (2026-11-03, 슬라이스 `requirements/specs/in-progress/MONEY-S1a-savings-calculator-slice.md`)
+## 진행 — S1a (2026-11-03, 슬라이스 `requirements/specs/done/MONEY-S1a-savings-calculator-slice.md`)
 
 | FR | 상태 |
 |---|---|

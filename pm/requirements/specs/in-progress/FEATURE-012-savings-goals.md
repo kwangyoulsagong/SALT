@@ -142,4 +142,4 @@ flowchart LR
 | 2026-11-02 | FR-14 부분 — 셸 홈 저축 카드(모은 돈 · 진행 중 목표 수, 지금 Express goals). 홈 목표 목록은 `/goals` 가 생길 때까지 남김(`FE-REQ-056`). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |
 | 2026-11-03 | 서버 S0 — 저축 서비스가 태어날 자리(`salt-platform/`, Kotlin) · 서비스별 스키마 계정(`savings` 계정 · 스키마는 NOLOGIN 으로 준비) · 이벤트 아웃박스 · BFF 라우팅 스위치. 저축 기능 변경 0. 다음 S1(`SRV-REQ-045` · `DB-REQ-037`) + F3(`FE-REQ-056`). 루트 `requirements/specs/done/MONEY-S0-platform-slice.md` |
 | 2026-11-03 | 서버 S0 done(`SRV-REQ-043`) — 다음 S1 |
-| 2026-11-03 | S1a + F3a — FR-2 · 3 · 4 · 7 · 8 Done, FR-1 · 5 · 14 진행(루트 `requirements/specs/in-progress/MONEY-S1a-savings-calculator-slice.md`). 저축이 Kotlin `savings` 에서 태어나고 저축 zone 첫 화면 · 옛 `/api/goals` 은퇴. 다음 S1b(FR-6 · 9~13 · 15~19) |
+| 2026-11-03 | S1a + F3a — FR-2 · 3 · 4 · 7 · 8 Done, FR-1 · 5 · 14 진행(루트 `requirements/specs/done/MONEY-S1a-savings-calculator-slice.md`). 저축이 Kotlin `savings` 에서 태어나고 저축 zone 첫 화면 · 옛 `/api/goals` 은퇴. 다음 S1b(FR-6 · 9~13 · 15~19) |

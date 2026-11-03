@@ -4,7 +4,7 @@ title: "돈 관리 앱 S1a + F3a — 저축 서비스 첫 판(Kotlin savings) ·
 priority: high
 labels: [F012, server, bff, db, frontend, slice, msa]
 created: 2026-11-03
-status: in-progress
+status: done
 ---
 
 ## Summary
@@ -14,6 +14,7 @@ status: in-progress
 (`msa-services.md` §3 "새 도메인은 처음부터 Kotlin"), 목표 만들기 · 적립 · 도달 구간 · 이정표를 서버가 계산하고, 저축 zone 이 첫 화면을 서비스한다.
 재미(장면 · 실물 · 도장 · 엽서)와 저울은 S1b — 계산 계약이 먼저 서야 재미가 그 숫자 위에 얹힌다.
 
+> **done 2026-11-03** — S1a 범위(이번 몫 · 미검증 · 리뷰 10건 · launchd · Express 삭제 · DB drop · FR-13) 전부 닫힘. 남은 줄은 다른 슬라이스 몫(S1b · 가계부 S1 · `FE-REQ-013` FR-80 2단계).
 > **구현 2026-11-03** — 커밋 `e83f7f80` · `1ec3b0c6` · `3e5e0d42` · `c60f5bfb` · `8d05a006` · `b1c8ad67`. 4 REQ in-progress(남은 FR 은 S1b). 검증 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`.
 > 수용 기준: `SRV-REQ-045` 4/4 · `DB-REQ-037` 3/3 · `BFF-REQ-047` ~~1/2~~ 2/2(`2c998117`) · `FE-REQ-056` 4/4.
 
