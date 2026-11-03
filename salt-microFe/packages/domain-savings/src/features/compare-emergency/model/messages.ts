@@ -13,6 +13,8 @@ export const EMERGENCY_MESSAGES = {
   withdrawMonths: (before: string, after: string) => `${before} → ${after}`,
   loanTitle: "빌리면",
   loanMonthly: (amount: string, months: number) => `매달 ${amount}씩 ${months}개월`,
+  /** 올림 차액을 끝 달이 덜 낸다 — 같으면 붙이지 않는다 */
+  loanLast: (amount: string) => `마지막 달은 ${amount}`,
   loanInterest: (amount: string) => `이자 합계 ${amount}`,
   assumption: {
     loan_paid_outside_goal: "갚는 돈은 목표 적립과 따로 낸다고 보고 계산했어요",
@@ -22,5 +24,6 @@ export const EMERGENCY_MESSAGES = {
     EMERGENCY_AMOUNT_OVER_SAVED: "모은 돈보다 많이 꺼낼 수는 없어요",
     EMERGENCY_MONTHS_INVALID: "갚는 달 수는 1~120개월이에요",
     EMERGENCY_RATE_INVALID: "금리는 0~30% 사이로 적어 주세요",
+    EMERGENCY_AMOUNT_TOO_SMALL: "이 금액은 그 달 수로 나눠 갚을 수 없어요",
   } as Readonly<Record<string, string>>,
 } as const;

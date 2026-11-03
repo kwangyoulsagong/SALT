@@ -66,6 +66,7 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
           <div className={s.side}>
             <span className={s.label}>{M.loanTitle}</span>
             <span className={s.value}>{M.loanMonthly(formatWon(data.loan.monthlyPayment), data.loan.months)}</span>
+            {data.loan.lastPayment !== data.loan.monthlyPayment ? <span className={s.label}>{M.loanLast(formatWon(data.loan.lastPayment))}</span> : null}
             <span className={s.label}>{M.loanInterest(formatWon(data.loan.totalInterest))}</span>
           </div>
         </div>

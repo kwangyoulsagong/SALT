@@ -166,7 +166,8 @@ export interface EmergencyRequest {
 export interface SavingsEmergency {
   amount: number;
   withdraw: { planMonthBefore: string | null; planMonthAfter: string | null; delayMonths: number | null; reason: ProjectionReason | null };
-  loan: { months: number; annualRate: string; monthlyPayment: number; totalInterest: number };
+  /** 매달 × (months−1) + lastPayment = 원금 + totalInterest — 셋 다 서버 값 */
+  loan: { months: number; annualRate: string; monthlyPayment: number; lastPayment: number; totalInterest: number };
   /** 가정 키 — `loan_paid_outside_goal` */
   assumptions: string[];
 }
