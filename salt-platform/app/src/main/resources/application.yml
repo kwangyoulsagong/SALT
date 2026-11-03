@@ -1,0 +1,69 @@
+# 비밀은 환경 변수로만 — 이 파일에 비밀 0 · 비밀에 기본값 0(`kotlin-platform.md` §6). 빠지면 기동 실패.
+server:
+  port: ${PORT:4010}
+  shutdown: graceful
+
+spring:
+  application:
+    name: salt-platform
+  threads:
+    virtual:
+      enabled: true
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    # 릴레이가 확인(ack)을 받은 뒤에만 published_at 을 채운다(`OutboxRelay`)
+    publisher-confirm-type: correlated
+    template:
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
+        # 재시도 3회 뒤 거부 → 데드레터(`SRV-REQ-044` FR-8). 다시 큐에 넣지 않는다
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 200ms
+          multiplier: 2
+
+salt:
+  auth:
+    jwt-secret: ${JWT_SECRET}
+  db:
+    url: ${SALT_DB_URL}
+    accounts:
+      ping:
+        username: svc_ping
+        password: ${PING_DB_PASSWORD}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  tracing:
+    sampling:
+      probability: 1.0
+  # 수집처(OTLP)는 배포 환경이 정한다(`OPS-001`). 정해지기 전엔 내보내지 않는다 — 추적 ID 는 로그 · 응답 · 이벤트로 이어진다
+  otlp:
+    metrics:
+      export:
+        enabled: ${OTEL_EXPORT_ENABLED:false}
+  # 추적 내보내기는 주소가 있을 때만 켜진다 — MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT. 빈 값을 여기 두면 오히려 켜져 기동이 깨진다
+
+# JSON 로그(`SRV-REQ-043` FR-9). 추적 ID · span ID 가 줄마다 실린다. 본문 · 토큰 · 금액은 로그에 쓰지 않는다
+logging:
+  structured:
+    format:
+      console: ${LOG_FORMAT:ecs}
+
+# API 문서 — 로컬은 켜고 운영은 끈다(배포 환경 값, `OPS-001`)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: ${API_DOCS_ENABLED:true}
+  swagger-ui:
+    enabled: ${API_DOCS_ENABLED:true}

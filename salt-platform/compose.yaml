@@ -1,0 +1,51 @@
+# 로컬 실행(`SRV-REQ-043` FR-10) — Postgres · RabbitMQ · platform. 비밀은 .env(커밋하지 않는다 — .env.example 을 복사).
+#   ./gradlew :app:bootJar && docker compose up -d --build
+# launchd `com.salt.server`(Express :4000) · 로컬 Postgres(:5432)와 포트가 겹치지 않게 55432 · 55672 · 4010.
+# BFF 는 아직 호스트에서 돈다(:4001, 라우팅 표가 platform 을 localhost:4010 으로) — BFF 이미지는 OPS-001.
+name: salt-platform
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: salt_platform
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      PING_DB_PASSWORD: ${PING_DB_PASSWORD:?}
+    ports: ["127.0.0.1:55432:5432"]
+    volumes:
+      - ./db/roles.sql:/salt/roles.sql:ro
+      - ./db/init.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d salt_platform"]
+      interval: 2s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?}
+    ports: ["127.0.0.1:55672:5672", "127.0.0.1:15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 3s
+      retries: 30
+
+  platform:
+    build: .
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    environment:
+      SALT_DB_URL: jdbc:postgresql://postgres:5432/salt_platform
+      PING_DB_PASSWORD: ${PING_DB_PASSWORD:?}
+      JWT_SECRET: ${JWT_SECRET:?}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:?}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?}
+    ports: ["127.0.0.1:4010:4010"]
+
+volumes:
+  pgdata:
