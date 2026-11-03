@@ -36,9 +36,11 @@
 | `OPS-001` · `OPS-002` | 넘긴 몫(CI · 레지스트리 · 수집처 · 경보) / `ops/salt.sh` 변경 없음(platform 은 상시가 아니다) | 이 줄 |
 | `FEATURE-012` · `013` · `008` | 기획서 이력 | 이력 |
 
-## 4. 사용자 실행 — 로컬 운영 DB 에 서비스 계정 · 스키마
+## 4. 로컬 운영 DB 에 서비스 계정 · 스키마
 
-권한 확인(공유 DB 변경)에서 막혀 실행하지 않았다. 사전 확인은 끝(접속 = `postgres` 슈퍼유저 · `public` · `forecast` 주인 postgres · `public` CREATE 는 이미 PUBLIC 에 없음 → 서버 · 예측에 영향 없음).
+**적용 2026-11-03**(사용자 "너가 다해줘") — 롤 덤프 백업 뒤 `roles.sql`: 서비스 스키마 9 + `ping` · 계정 10(`svc_ping` 만 로그인) · `forecast` 주인 postgres 그대로 · `public` 42 표 그대로 · `svc_ping` 의 `public.users` 읽기 권한 오류 · 서버 · BFF 200 · Prisma 상태 일치. 되돌리기는 아래 주석의 `roles-rollback.sql`.
+
+~~권한 확인(공유 DB 변경)에서 막혀 실행하지 않았다.~~ 사전 확인은 끝(접속 = `postgres` 슈퍼유저 · `public` · `forecast` 주인 postgres · `public` CREATE 는 이미 PUBLIC 에 없음 → 서버 · 예측에 영향 없음).
 
 ```bash
 cd salt-platform
@@ -52,7 +54,7 @@ psql "$U" -v ON_ERROR_STOP=1 -v ping_password="$PW" -f db/roles.sql     # 되돌
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 로컬 운영 DB 적용 | 위 §4 — 권한 확인에서 막힘 | 사용자 실행 |
+| ~~로컬 운영 DB 적용~~ | **적용 2026-11-03**(§4) | 닫힘 |
 | 이벤트 13종 스키마 | 발행 서비스가 없다 — 본문은 그 서비스 REQ | S1~S6 |
 | Resilience4j 인스턴스 연결 | 외부 호출 없음(기본값 · 테스트는 끝) | S5 |
 | 이중 토큰 · 410 이전 | 그 단계 | S3 · S7 |
