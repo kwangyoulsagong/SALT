@@ -1,26 +1,19 @@
-import { readNumberText, type NumberTextKind } from "@repo/core/input";
+import { groupDigits } from "@repo/core/input";
 
 /**
  * 금액 · 수량 **입력 표시** — 계산이 아니다. 사용자가 친 글자를 콤마 붙여 보여 주고, 보낼 때 숫자로 읽는다.
  * 금액을 만드는 연산(곱 · 비율)은 여기 없다 — 전부 서버(`fsd-shared.md` "포맷은 여기, 계산은 없다").
  */
 
-const groupFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
-
 /** `1234567.5` → `1,234,567.5`. 숫자 · 점 말고는 버리고, 점은 첫 하나만 둔다 */
 export const formatAmountInput = (raw: string): string => {
   const cleaned = raw.replace(/[^0-9.]/g, "");
   const [integer = "", ...rest] = cleaned.split(".");
   const fraction = rest.join("");
-  const groupedInteger = integer === "" ? "" : groupFormatter.format(Number(integer));
+  // 묶음은 core 한 곳(`groupDigits`) — Number 로 바꾸지 않아 큰 수도 끝자리가 그대로다
+  const groupedInteger = groupDigits(integer);
   return cleaned.includes(".") ? `${groupedInteger || "0"}.${fraction}` : groupedInteger;
 };
-
-/**
- * 입력을 **받을지** 정하고 받으면 표시 글자로 — 못 받으면 `null`(부르는 쪽이 이전 값을 두고 안내한다).
- * 규칙 · 허용표는 `@repo/core/input` `readNumberText`(테스트 40). `formatAmountInput` 은 글자를 지우고 이어 붙여 금액을 바꿀 수 있다 — 새 칸은 이것을 쓴다
- */
-export const readAmountInput = (raw: string, kind: NumberTextKind = "won"): string | null => readNumberText(raw, kind);
 
 /** 입력 글자 → 양수. 비었거나 0 이하 · 숫자 아님이면 `null` */
 export const parseAmountInput = (text: string): number | null => {
