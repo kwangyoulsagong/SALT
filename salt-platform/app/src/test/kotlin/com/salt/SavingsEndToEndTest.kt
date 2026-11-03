@@ -39,7 +39,6 @@ import java.util.concurrent.atomic.AtomicLong
  * 계산 경계는 도메인 단위 테스트(`SavingsMathSpec`)가, 여기는 경로 · 저장 · 이벤트 · 권한 · 쿼리 수를 본다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@org.springframework.context.annotation.Import(SavingsEndToEndTest.CountingFilter::class)
 class SavingsEndToEndTest {
     @LocalServerPort
     private var port: Int = 0
@@ -434,16 +433,20 @@ class SavingsEndToEndTest {
     /** 테스트 전용 — [CountingFilter.HEADER] 가 붙은 요청을 처리하는 동안만 [QueryCounter.active] 를 켠다 */
     @org.springframework.boot.test.context.TestConfiguration
     class CountingFilter {
+        /** 가장 앞에 — 인증 · 다른 필터의 쿼리도 그 요청 몫으로 센다(리뷰 11차). 중첩 @TestConfiguration 이라 이 테스트 클래스에만 자동으로 붙는다(@Import 를 같이 쓰면 두 번) */
         @org.springframework.context.annotation.Bean
-        fun queryCountingFilter(): jakarta.servlet.Filter = jakarta.servlet.Filter { request, response, chain ->
-            val counted = (request as jakarta.servlet.http.HttpServletRequest).getHeader(HEADER) != null
-            if (counted) QueryCounter.active.set(true)
-            try {
-                chain.doFilter(request, response)
-            } finally {
-                if (counted) QueryCounter.active.remove()
-            }
-        }
+        fun queryCountingFilter(): org.springframework.boot.web.servlet.FilterRegistrationBean<jakarta.servlet.Filter> =
+            org.springframework.boot.web.servlet.FilterRegistrationBean<jakarta.servlet.Filter>(
+                jakarta.servlet.Filter { request, response, chain ->
+                    val counted = (request as jakarta.servlet.http.HttpServletRequest).getHeader(HEADER) != null
+                    if (counted) QueryCounter.active.set(true)
+                    try {
+                        chain.doFilter(request, response)
+                    } finally {
+                        if (counted) QueryCounter.active.remove()
+                    }
+                },
+            ).apply { order = org.springframework.core.Ordered.HIGHEST_PRECEDENCE }
 
         companion object {
             const val HEADER = "X-Test-Count-Queries"

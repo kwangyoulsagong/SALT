@@ -31,6 +31,7 @@ import com.salt.savings.domain.IssuedProjection
 import com.salt.savings.domain.Milestone
 import com.salt.savings.domain.Projection
 import com.salt.savings.domain.ProjectionEngine
+import com.salt.savings.domain.ProjectionReason
 import com.salt.savings.domain.Projections
 import com.salt.savings.domain.SavingsEvents
 import com.salt.savings.domain.SavingsMath
@@ -43,6 +44,10 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.util.UUID
+
+/** 응답 `degradedReasons` 값 — 구간 · 놓친 달. 문장은 프론트 */
+const val DEGRADED_PROJECTION = "projection"
+const val DEGRADED_MISSED_MONTHS = "missed_months"
 
 /** savings 서비스의 트랜잭션 매니저 이름 — 서비스마다 DB 계정이 달라 매니저도 따로다(`ServiceDatabase`). */
 const val SAVINGS_TX = "savingsTx"
@@ -74,7 +79,10 @@ data class GoalSummary(
     val units: List<ItemUnit>,
 ) {
     /** 구간 계산이 실패해 계획값만 있다 — 응답 `degraded` · `degradedReasons` */
-    val degraded: Boolean get() = projection.reason == com.salt.savings.domain.ProjectionReason.DEGRADED
+    val degraded: Boolean get() = projection.reason == ProjectionReason.DEGRADED
+
+    /** 이 목표 칸의 불완전 이유 — 목록 · 상세 · 쓰기 응답이 같은 값을 쓴다(규칙 한 곳, 리뷰 11차) */
+    val degradedReasons: List<String> get() = if (degraded) listOf(DEGRADED_PROJECTION) else emptyList()
 }
 
 data class GoalDetail(
@@ -90,10 +98,7 @@ data class GoalDetail(
      * goal 칸(`GoalSummary.degraded`)은 목록 · 쓰기와 같은 모양으로 두고, 상세에만 있는 칸은 여기서 더한다
      */
     val degradedReasons: List<String>
-        get() = listOfNotNull(
-            "projection".takeIf { summary.degraded },
-            "missed_months".takeIf { missedMonths.reason == com.salt.savings.domain.ProjectionReason.DEGRADED },
-        )
+        get() = summary.degradedReasons + if (missedMonths.reason == ProjectionReason.DEGRADED) listOf(DEGRADED_MISSED_MONTHS) else emptyList()
 }
 
 /** 놓친 달 계산 자리 — 기본은 [MissedMonths.of]. 테스트가 실패를 주입하는 자리(구간 `ProjectionEngine.safely` 의 compute 와 같은 구실) */
@@ -240,7 +245,7 @@ class ProjectionIssuer(
         val history = deposits.monthly(goal.id)
         val today = clock.todayKst()
         val projection = ProjectionEngine.safely(goal, saved, today) { ProjectionEngine.project(goal, saved, history, today) }
-        if (projection.reason == com.salt.savings.domain.ProjectionReason.DEGRADED) return null
+        if (projection.reason == ProjectionReason.DEGRADED) return null
         val issued = IssuedProjection(UUID.randomUUID(), goal.id, clock.instant(), projection)
         projections.issue(issued)
         events.projectionIssued(issued)

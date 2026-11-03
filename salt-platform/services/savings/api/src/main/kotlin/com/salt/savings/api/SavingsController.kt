@@ -503,7 +503,7 @@ class SavingsController(
                 trackReason = ProjectionReason.HISTORY_SHORT,
             ),
             degraded = s.degraded,
-            degradedReasons = if (s.degraded) listOf("projection") else emptyList(),
+            degradedReasons = s.degradedReasons,
             scene = SceneView(s.scene.kind.key, s.scene.step, Scene.STEPS),
             stampCount = s.stamps,
             postcard = s.postcard?.let { PostcardView(it.startedOn.toString(), it.reachedOn.toString(), it.daysTaken, it.depositActions) },
