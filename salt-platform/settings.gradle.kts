@@ -30,5 +30,9 @@ include(
     "services:ping:application",
     "services:ping:infrastructure",
     "services:ping:api",
+    "services:savings:domain",
+    "services:savings:application",
+    "services:savings:infrastructure",
+    "services:savings:api",
     "app",
 )

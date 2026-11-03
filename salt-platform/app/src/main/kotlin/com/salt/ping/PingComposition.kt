@@ -16,6 +16,7 @@ import com.salt.support.messaging.OutboxWriter
 import com.salt.support.messaging.TraceParent
 import com.salt.support.persistence.ServiceDatabase
 import org.springframework.amqp.core.Declarables
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.transaction.PlatformTransactionManager
@@ -32,24 +33,24 @@ class PingComposition {
     fun pingDatabase(db: SaltDbProperties): ServiceDatabase = ServiceDatabase.open(SCHEMA, db.connection(SCHEMA))
 
     @Bean(PING_TX)
-    fun pingTx(database: ServiceDatabase): PlatformTransactionManager = database.transactionManager
+    fun pingTx(@Qualifier("pingDatabase") database: ServiceDatabase): PlatformTransactionManager = database.transactionManager
 
     @Bean
-    fun pingOutboxSource(database: ServiceDatabase): OutboxSource = OutboxSource(SCHEMA, database.dsl, database.dataSource)
+    fun pingOutboxSource(@Qualifier("pingDatabase") database: ServiceDatabase): OutboxSource = OutboxSource(SCHEMA, database.dsl, database.dataSource)
 
     @Bean
-    fun pingOutbox(database: ServiceDatabase, schemas: EventSchemas, jsonMapper: JsonMapper, traceParent: TraceParent, clock: Clock): OutboxWriter =
+    fun pingOutbox(@Qualifier("pingDatabase") database: ServiceDatabase, schemas: EventSchemas, jsonMapper: JsonMapper, traceParent: TraceParent, clock: Clock): OutboxWriter =
         OutboxWriter(SCHEMA, database.dsl, database.dataSource, schemas, jsonMapper, traceParent, clock)
 
     @Bean
-    fun recordPing(database: ServiceDatabase, pingOutbox: OutboxWriter, clock: Clock): RecordPing =
+    fun recordPing(@Qualifier("pingDatabase") database: ServiceDatabase, pingOutbox: OutboxWriter, clock: Clock): RecordPing =
         RecordPing(JooqPingChecks(database.dsl), OutboxPingEvents(pingOutbox), clock)
 
     @Bean
-    fun getPing(database: ServiceDatabase): GetPing = GetPing(JooqPingChecks(database.dsl), JooqPingEchoes(database.dsl))
+    fun getPing(@Qualifier("pingDatabase") database: ServiceDatabase): GetPing = GetPing(JooqPingChecks(database.dsl), JooqPingEchoes(database.dsl))
 
     @Bean
-    fun echoPingRecorded(database: ServiceDatabase, clock: Clock): EchoPingRecorded = EchoPingRecorded(JooqPingEchoes(database.dsl), clock)
+    fun echoPingRecorded(@Qualifier("pingDatabase") database: ServiceDatabase, clock: Clock): EchoPingRecorded = EchoPingRecorded(JooqPingEchoes(database.dsl), clock)
 
     @Bean
     fun pingSubscriptions(): Declarables = EventTopology.subscription(PingRecordedListener.SUBSCRIBER, PingRecordedListener.EVENT_TYPE)
