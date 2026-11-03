@@ -202,3 +202,8 @@
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 관심 종목 시세 갱신을 한 문장 UPDATE 로(연결 풀 점유 → 위험 예산 조회 타임아웃 해소)(`e74fbbec`). 파일 2개(경로 이동 내용 무변경 0 · 수정 1 · 추가 1 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 이 REQ 에 걸린 몫(`1ec3b0c6`): `composition.ts` 온보딩 `set_plan` 프로브 — `prisma.goal.count` → Kotlin 저축 `home-card` 내부 REST(800ms · 실패 false). env `PLATFORM_API_URL`. 실측 done true / false
+- 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`

@@ -26,7 +26,7 @@ globs: salt-server/**, salt-platform/**
 
 | 서비스 | 지금 코드(Express 컨텍스트 · 모듈) | 스키마 | 단계 | 이전 REQ |
 |---|---|---|---|---|
-| `savings` | `modules/goals` (`goal`) | `savings` | S1 | `SRV-REQ-045` |
+| `savings` | ~~`modules/goals` (`goal`)~~ Kotlin `services/savings`(2026-11-03 S1a — 옛 Express 는 1주 관찰 뒤 삭제) | `savings` | S1 | `SRV-REQ-045` |
 | `household` | 없음 — 새로 | `household` | S1 | `SRV-REQ-046` |
 | `content` | 없음 — 새로(금융 팁 · 제도 파라미터) | `content` | S2 | `SRV-REQ-047` |
 | `notification` | `notification` | `notification` | S2 | `SRV-REQ-048` |
@@ -103,6 +103,7 @@ salt-platform/
 ```
 
 - 되돌리기 = BFF 라우팅 값 하나. ⑦ 전까지는 비용 없음
+- **은퇴(①~③ 생략)** — 옛 경로의 소비처가 **같은 PR 에서 전부** 새 계약으로 옮겨 가면 옛 경로를 Kotlin 으로 다시 만들지 않는다: 관리자 가져오기 SQL(대조 · 되돌리기) → 소비처 전환 → BFF 410 → ⑦. 쓰기 경로가 둘인 기간이 0 이어야 한다(저축 S1a, 2026-11-03)
 - **⑦ 을 미루지 않는다** — 이중 언어 기간이 길수록 규칙 · 테스트가 두 벌로 갈라진다. 단계 체크리스트에 "삭제한 줄 수"
 - 계산 경로(평가금 · 평단 · 판정 엔진)는 그림자 비교를 소수점까지 · 판정 엔진은 백테스트 전수 동일(`SRV-REQ-049` FR-1 · 4)
 

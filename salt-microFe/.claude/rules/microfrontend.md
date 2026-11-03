@@ -11,11 +11,11 @@
 
 | 항목 | 규칙(목표) | 지금 코드 | 닫는 곳 |
 |---|---|---|---|
-| 화면 코드 위치 | `packages/domain-*` | 저축 화면이 `apps/web/src/**` — `savings.hostedIn: "web"`. 가계부 · 팁은 빈 zone | `FE-REQ-056`(저축) |
+| 화면 코드 위치 | `packages/domain-*` | ~~저축 화면이 `apps/web/src/**` — `savings.hostedIn: "web"`~~ **닫힘 2026-11-03**(`FE-REQ-056` — `domain-savings` · `hostedIn: "web-savings"`). 가계부 · 팁은 빈 zone | 가계부 `FE-REQ-057` · 팁 `FE-REQ-058` |
 | 운영 정적 파일 한 저장소 | 운영 빌드는 공용 `/_next` — zone 정적 파일을 합쳐 서비스(§3) | 로컬은 `pnpm static:merge` 가 셸 `.next/static` 에 합친다. 배포 저장소는 아직 없다 | `OPS-001` FR-12 |
 
 **옮기기 전 상태는 레지스트리 `hostedIn` 이 적는다.** cross-zone 판정(lint · `CrossZoneLink`)은 `hostedIn` 기준이라 셸에 남은
-저축 화면 사이는 지금도 `<Link>` 다. 셸 rewrites 는 경로를 `fallback` 으로 걸어 셸에 화면이 있으면 셸이 받는다 — 화면을 옮기는
+도메인 화면 사이는 `<Link>` 다(지금은 없다 — 투자 · 저축 둘 다 옮겼다). 셸 rewrites 는 경로를 `fallback` 으로 걸어 셸에 화면이 있으면 셸이 받는다 — 화면을 옮기는
 REQ 는 셸 라우트를 지우고 `hostedIn` 을 자기 앱으로 바꾸는 것까지 한 커밋으로. 행이 닫히면 이 절에서 지운다.
 
 ## 1. zone = 도메인 (`ADR-005` §1)

@@ -5,12 +5,12 @@
 ## 프로젝트 개요
 
 - Monorepo: `pnpm` workspace + Turborepo
-- Apps: `apps/web`(셸 zone, 3000) · `apps/web-investment`(3002) · `apps/web-savings`(3003) · `apps/web-household`(3004) · `apps/web-tips`(3005) — 투자 zone 은 투자 화면을 서비스(2026-11-02 `FE-REQ-053`), 저축 · 가계부 · 팁은 빈 골격, `apps/mobile`(React Native, iOS+Android — 미착수)
-- **zone = 도메인(2026-10-30 `ADR-005`)**: 셸 `web` + `web-investment` · `web-savings` · `web-household` · `web-tips`, `web-tax` 삭제됨. 규칙 · 레지스트리(`registry.json`) · lint 도메인 축은 `FE-REQ-052`(2026-11-02)로 코드가 됐다. **투자 화면은 `packages/domain-invest` → `apps/web-investment`(2026-11-02 `FE-REQ-053`), 저축 화면은 아직 셸** — 레지스트리 `hostedIn` 이 옮기기 전 상태를 적고, 남은 차이는 `microfrontend.md` §0
+- Apps: `apps/web`(셸 zone, 3000) · `apps/web-investment`(3002) · `apps/web-savings`(3003) · `apps/web-household`(3004) · `apps/web-tips`(3005) — 투자 zone 은 투자 화면을 서비스(2026-11-02 `FE-REQ-053`), 저축 zone 은 저축 화면을 서비스(2026-11-03 `FE-REQ-056`), 가계부 · 팁은 빈 골격, `apps/mobile`(React Native, iOS+Android — 미착수)
+- **zone = 도메인(2026-10-30 `ADR-005`)**: 셸 `web` + `web-investment` · `web-savings` · `web-household` · `web-tips`, `web-tax` 삭제됨. 규칙 · 레지스트리(`registry.json`) · lint 도메인 축은 `FE-REQ-052`(2026-11-02)로 코드가 됐다. **투자 화면은 `packages/domain-invest` → `apps/web-investment`(2026-11-02 `FE-REQ-053`), 저축 화면은 `packages/domain-savings` → `apps/web-savings`(2026-11-03 `FE-REQ-056`)** — 레지스트리 `hostedIn` 이 옮기기 전 상태를 적고, 남은 차이는 `microfrontend.md` §0
 - Framework: Next.js 15, React 18, TypeScript strict / React Native
 - 아키텍처: **FSD**(6레이어) · **Next.js Multi-Zones**(마이크로프론트엔드) · **스트리밍 SSR**(RSC + Suspense)
 - Style: Vanilla Extract(`*.css.ts`) + `@repo/ui`(웹) / `StyleSheet` + `@repo/ui-native`(모바일)
-- Shared packages: `packages/tokens`(플랫폼 중립 토큰), `packages/core`(플랫폼 무관 모델·상수·zone 레지스트리), `packages/ui`(웹 전용), `packages/web-shared`(웹 shared 레이어 + zone 공용 레이아웃 `layout` — 앱 내비게이션 연결 · prerender · 문서 간 전환, 2026-11-02 · 11-03), `packages/config-next`(zone 공용 Next 설정 프리셋, 2026-11-03 `FE-REQ-054`), `packages/domain-invest`(투자 화면, 2026-11-02), `packages/eslint-config`, `packages/eslint-plugin-zone`, `packages/eslint-plugin-fsd`, `packages/typescript-config`
+- Shared packages: `packages/tokens`(플랫폼 중립 토큰), `packages/core`(플랫폼 무관 모델·상수·zone 레지스트리), `packages/ui`(웹 전용), `packages/web-shared`(웹 shared 레이어 + zone 공용 레이아웃 `layout` — 앱 내비게이션 연결 · prerender · 문서 간 전환, 2026-11-02 · 11-03), `packages/config-next`(zone 공용 Next 설정 프리셋, 2026-11-03 `FE-REQ-054`), `packages/domain-invest`(투자 화면, 2026-11-02), `packages/domain-savings`(저축 화면, 2026-11-03), `packages/eslint-config`, `packages/eslint-plugin-zone`, `packages/eslint-plugin-fsd`, `packages/typescript-config`
 
 > **아키텍처 전환 3개가 끝났다.** `FE-REQ-007`(Multi-Zones) · `FE-REQ-008`(App Router +
 > 스트리밍 SSR) · `FE-REQ-009`(FSD 6레이어). 다음은 기능 REQ(F000~)다.

@@ -46,3 +46,4 @@ source: 사용자 "전체 서버 다 키는 명령어가 필요하네 이거 보
 | 2026-11-02 | FR-7 PATH(`~/.local/bin`) — `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — `ops/salt.sh` 머리 주석 두 줄: 웹은 dev 로만 띄운다 · 운영 빌드(`next start`)를 넣으려면 `pnpm static:merge` 먼저(운영은 zone 공용 `/_next`, `ADR-005` 규칙 7 개정). 동작 무변경(`bash -n` 통과 · `ops/salt.sh up` · `status` 정상) |
+| 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`8d05a006`): `ops/salt.sh` 이름 표에 `platform`(launchd · :4010 · 헬스 `/actuator/health`) · `web-savings`(dev 3003). 실행 스크립트 `salt-platform/ops/run-platform.sh`. **launchd 등록은 이 세션 권한에서 막혀 사용자 실행 대기**(`ops/salt.sh up`) — 그 전까지 platform 은 수동 기동 |

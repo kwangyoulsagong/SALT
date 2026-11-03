@@ -9,3 +9,7 @@
 
 - 첫 실제 이벤트(S1 `savings.GoalCreated` 등)에서 데드레터 → 운영 점검(FR-8 남은 줄)
 - BFF · Python 이 계약 파일을 읽는 첫 구독자가 될 때 같은 파일에서 검증(FR-3 남은 줄)
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 걸린 몫은 위 체크리스트 한 줄. 근거 · 판단은 루트 회고 `requirements/reports/retrospects/MONEY-S1a-savings-calculator.md`. Action 없음

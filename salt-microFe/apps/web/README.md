@@ -16,7 +16,6 @@ app/                Next 라우팅. @/pages/* 를 re-export 만 한다
 ├── page.tsx        → @/pages/login
 ├── home/           → @/pages/home
 ├── settings/       → @/pages/settings   (도메인별 설정 링크 — 투자 코치 설정은 투자 zone /coach/settings)
-├── goals/addgoals/ → @/pages/goals/addgoals
 ├── not-found.tsx   → @repo/web-shared/layout 의 NotFoundPage(@/app 이 다시 연다)
 └── streaming-probe/  측정 전용. 기본 404, STREAMING_PROBE=1 일 때만 열린다
 pages/              **빈 폴더.** Next 가 src/pages 를 Pages Router 로 집지 않게 하는 장치

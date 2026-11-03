@@ -39,3 +39,7 @@
 ## 2026-11-03 — 접근성
 
 - 기준 화면 실측값을 대비 확인 없이 옮겼다. Action: 실측 색을 글자에 쓸 때는 바탕 위 대비(본문 4.5 · 큰 글자 3)를 같이 잰다 — 실측보다 접근성이 우선
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 걸린 몫은 위 체크리스트 한 줄. 근거 · 판단은 루트 회고 `requirements/reports/retrospects/MONEY-S1a-savings-calculator.md`. Action 없음

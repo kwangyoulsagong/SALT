@@ -67,3 +67,4 @@ created: 2026-09-22
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 3개(경로 이동 내용 무변경 0 · 수정 2 · 추가 1 · 삭제 0). 계약 · 동작 무변경 |
+| 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): `domain-savings` lint 설정에도 `axios` · `motion/react` 금지 그대로(투자 패키지 설정 복사) |

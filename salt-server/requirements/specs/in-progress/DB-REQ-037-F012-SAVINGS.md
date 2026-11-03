@@ -30,11 +30,24 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | FR-10 | 인덱스 — `deposit(goal_id, deposited_on)` · `projection_issued(goal_id, issued_at desc)` · 사용자별 목표 목록 `goal(user_id, archived_at)` | 성능 |
 | FR-11 | 마이그레이션 — 테이블 이동 + 열 추가 + 매핑. 되돌리기는 열 삭제 · 역이동, 금액 열은 손대지 않는다 | — |
 
+## 진행 — S1a (2026-11-03, 슬라이스 `requirements/specs/in-progress/MONEY-S1a-savings-calculator-slice.md`)
+
+DDL 주인은 Flyway(`services/savings/infrastructure/src/main/resources/db/migration/savings/V1__baseline.sql`) — Prisma `Goal` · `SavingTransaction` 은 옛 Express 삭제 때 같이 지운다(1주 관찰 뒤).
+
+| FR | 상태 |
+|---|---|
+| FR-1 | done — `goal` + `template` · `legacy_category` · `monthly_plan` · `include_interest` · `annual_rate`(추가 — 사용자 연 이율, 스펙 표에 없던 열) · `scene_kind`(비어 있음) · `archived_at` · `theme_color`(옛 값 보존) |
+| FR-2 | done — `deposit`(`source` 에 `imported_balance` 추가 — 옛 `current_amount` 중 거래 없는 몫 한 줄) |
+| FR-3 | done — `projection_issued` + UPDATE/DELETE 차단 트리거(정리는 관리자가 트리거를 끄고만) |
+| FR-10 | done — `goal(user_id, archived_at)` · `deposit(goal_id, deposited_on)` · `projection_issued(goal_id, issued_at desc)` |
+| FR-11 | done — 관리자 SQL `salt-platform/db/savings-import.sql`(INSERT 만 · 재실행 같음 · 행 수 · 적립 합 대조) + `savings-import-rollback.sql`(새 서비스 기록이 생기면 멈춤). 일회용 DB 왕복 + 로컬 운영 DB 적용 2026-11-03(목표 1 · 적립 0) |
+| FR-4 · 5 · 6 · 7 · 8 · 9 | S1b 뒤 |
+
 ## Acceptance Criteria
 
-- [ ] 기존 목표 · 적립 행 수가 이동 전후 같다
-- [ ] `projection_issued` UPDATE · DELETE 가 트리거로 실패
-- [ ] `legacy_category` 로 원래 값 복원 가능
+- [x] 기존 목표 · 적립 행 수가 이동 전후 같다 — 가져오기 끝의 대조 블록(어긋나면 예외 → 롤백). 로컬 운영 DB 1 → 1
+- [x] `projection_issued` UPDATE · DELETE 가 트리거로 실패 — `SavingsEndToEndTest`
+- [x] `legacy_category` 로 원래 값 복원 가능 — 일회용 DB 왕복(startup → other + legacy startup)
 
 ## 계약 영향
 
@@ -45,3 +58,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-03 | **in-progress** — S1a `e83f7f80`: Flyway V1 savings(FR-1 · 2 · 3 · 10) · 가져오기/되돌리기 SQL(FR-11) · 로컬 운영 DB 적용. 수용 기준 3/3. 열 2개 추가(`annual_rate` · `imported_balance` source) |

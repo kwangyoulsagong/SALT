@@ -22,3 +22,8 @@
 | FR-8 410 이전 | Express 종료 단계 | S7 |
 | 실경로 1주 그림자 리포트 | 옮긴 경로가 아직 없다 | S1 첫 경로(저축) |
 | OpenTelemetry SDK span 내보내기(BFF 쪽) | 수집처 없음 — 지금은 traceparent 전달만 | `OPS-001` |
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 이 REQ 에 걸린 몫(`3e5e0d42`): 라우팅 표에 첫 화면 경로 `/savings` → platform. 그림자 단계는 건너뜀 — 옛 경로를 Kotlin 으로 다시 만들지 않아 비교할 짝이 없다(`SRV-REQ-045` FR-1 정정). 되돌리기 = 표 한 줄은 그대로지만 데이터는 이미 savings 가 주인
+- 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`

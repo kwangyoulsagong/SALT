@@ -28,14 +28,14 @@ pages/{page-name}/
 
 **목표:** `home`(`/`) · `coach`(`/coach`) · `assets`(`/assets`) · `goals` · `onboarding` · `login`
 
-**2026-11-02 현재(셸):** `login`(`/`) · `home`(`/home`) · `add-goal`(`/goals/addgoals`) · `onboarding` · `settings`(`/settings` — 도메인별 설정 링크 목록, 2026-11-02) · `streaming-probe`(측정 전용, 기본 404).
+**2026-11-02 현재(셸):** `login`(`/`) · `home`(`/home`) · ~~`add-goal`(`/goals/addgoals`)~~(**2026-11-03 저축 zone 으로** — `FE-REQ-056`) · `onboarding` · `settings`(`/settings` — 도메인별 설정 링크 목록, 2026-11-02) · `streaming-probe`(측정 전용, 기본 404).
 404 는 zone 이 같이 쓴다 — `@repo/web-shared/layout` `NotFoundPage`(`FE-REQ-044` → `FE-REQ-053`).
 투자 페이지(`investments` · `investment-detail` · `coach`(`/coach/report` · `/coach/signals/[signalType]` · `/coach/settings`) · `search`)는 `packages/domain-invest/src/pages` 로 옮겼다(2026-11-02 `FE-REQ-053`).
 `investments`는 F006에서 `assets`로 바뀐다(`FE-REQ-030`). 코치 탭 `/coach`(대화)는 그때 생긴다.
 
 ### 도메인 zone 4개(`apps/web-investment` · `web-savings` · `web-household` · `web-tips`)
 
-zone 앱은 `src/pages` 를 갖지 않는다 — 루트 `app/` 이 `@repo/domain-<x>/pages/<slice>` 를 re-export 한다(`microfrontend.md` §2-4). 투자 zone 이 첫 실례다(2026-11-02 `FE-REQ-053`). 저축 · 가계부 · 팁은 빈 골격. `apps/web-tax` 는 지웠다(`FE-REQ-052` FR-6).
+zone 앱은 `src/pages` 를 갖지 않는다 — 루트 `app/` 이 `@repo/domain-<x>/pages/<slice>` 를 re-export 한다(`microfrontend.md` §2-4). 투자 zone 이 첫 실례다(2026-11-02 `FE-REQ-053`), 저축이 둘째(2026-11-03 `FE-REQ-056` — `goals` · `add-goal` · `goal-detail`). 가계부 · 팁은 빈 골격. **페이지 최상위는 `<div>`** — zone 레이아웃 `AppShell` 이 이미 `<main>` 이다(저축 실측에서 main 3개). `apps/web-tax` 는 지웠다(`FE-REQ-052` FR-6).
 
 ### `apps/mobile`
 

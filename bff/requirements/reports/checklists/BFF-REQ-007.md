@@ -187,3 +187,8 @@ BFF 295 pass · build. 실검증은 새 코드 BFF 4011(기존 4001 은 watch �
 ## 2026-11-03 — S0 서버 스위치(`BFF-REQ-045`)
 
 - 410 · 404 순서 그대로 — 기존 gone 테스트 통과
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 이 REQ 에 걸린 몫(`3e5e0d42`): 동면 목록 파일(`gone.middleware.ts`)에 **은퇴** 목록 `RETIRED_PATHS` 를 더했다 — 동면(되살릴 수 있음 · `revivable: true`)과 은퇴(새 계약으로 대체 · `replacement`)를 섞지 않는다. 기존 동면 경로 410 무변경(테스트 그대로 통과)
+- 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`

@@ -51,3 +51,7 @@
 ## 2026-11-03 — MONEY-F2(`FE-REQ-054`)
 
 - 쿠키 세션 이관(이 REQ) 때 `USER` 저장값도 같이 정리한다 — 토큰과 따로 남을 수 있는 사용자 정보가 반쪽 세션을 만든다
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 걸린 몫은 위 체크리스트 한 줄. 근거 · 판단은 루트 회고 `requirements/reports/retrospects/MONEY-S1a-savings-calculator.md`. Action 없음

@@ -42,12 +42,29 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 `GET /api/savings/goals` · `POST /api/savings/goals` · `GET /api/savings/goals/:id` · `POST /api/savings/goals/:id/deposits` · `POST /api/savings/deposits/split` ·
 `POST /api/savings/simulate` · `GET /api/savings/goals/:id/delay?amount=` · `GET /api/savings/home-card` · `POST /api/savings/goals/:id/members`
 
+## 진행 — S1a (2026-11-03, 슬라이스 `requirements/specs/in-progress/MONEY-S1a-savings-calculator-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-1 | **정정 2026-11-03** — ~~골든 녹화 → Kotlin 구현 → 그림자 → 스위치~~ 옛 `/api/goals*` 는 다시 만들지 않고 **은퇴**(BFF 410). 데이터는 관리자 SQL 로 가져오기(`salt-platform/db/savings-import.sql`), 소비처 셋(셸 화면 · 홈 카드 · 온보딩 프로브)을 같은 슬라이스에서 옮겼다 — 쓰기 경로가 둘인 기간 0. 옛 Express 코드 삭제는 1주 관찰 뒤 | `e83f7f80` · `1ec3b0c6` · `3e5e0d42` |
+| FR-2 | 부분 — 템플릿 7종. 기준선은 원문 대조 전이라 **금액을 내리지 않는다**(`baseline: null` + `baselineReason: unverified_source`) | `ListTemplates` |
+| FR-3 | done — 기한 → 월 적립(원 단위 올림) · 월 적립 → 도달 월 · 세후 단리(15.4% 상수, FR-13 사본 전) · 경계(기한 이번 달 · 지남 · 0 · 달성 · 100년) + 저장 없는 `POST /api/savings/calculate`(스펙 API 목록 밖 — 만들기 화면 디바운스 자리) | `SavingsMath` · `Calculate` |
+| FR-4 | done — 단건 · 나눠 넣기(합계 = 나눈 합, 같은 목표 두 번 거부, 2개 이상) · 목표 행 잠금(id 순) | `RecordDeposits` |
+| FR-5 | done — 다 찬 달 3개월 이상: 월 적립 10 · 90% 분위 → 늦은 · 빠른 끝(빈 달 0 · 이번 달 제외 · 가져온 잔액 제외), 미만 `plan_only` + 이유. 만들기 · 적립 때만 `projection_issued` + `savings.ProjectionIssued` | `ProjectionEngine` · `ProjectionIssuer` |
+| FR-6 | 부분 — 채점 사본 없음 → `track: null` + `trackReason: history_short` 늘 | `FC-REQ-024` 뒤 |
+| FR-8 | done — 이번 달 넣은 돈 · 계획 · 차이 · 상태 키(`no_plan` · `under_plan` · `plan_met`). 서버 문장 0(키만) | `Milestone` |
+| FR-9 | done — `frame` saved/remaining(50%) | `Frame` |
+| FR-15 | done — `GET /api/savings/home-card` 숫자(목표 수 · 진행 중 · 모은 돈 · 진척 최대 진행 중 목표). 포맷은 BFF 카드 계약 | `HomeCard` |
+| FR-18 | 부분 — `GoalCreated` · `GoalReached`(목표마다 한 번) · `ProjectionIssued` 계약 3 + 발행. 구독자 없음(S2 · `FC-REQ-024`) | `contracts/events/savings.*` |
+| FR-19 | done — 목록 쿼리 3회(테스트가 jOOQ 리스너로 센다) | `SavingsEndToEndTest` |
+| FR-7 · 10~14 · 16 · 17 | S1b · 뒤 — 저울 · 오늘 돈 · 놓친 달 · 비상시 · 제도 파라미터 · 공동 목표 · 재미 상태 · 가계부 구독 | 루트 슬라이스 범위 밖 |
+
 ## Acceptance Criteria
 
-- [ ] 기존 goals 경로 골든 JSON 그림자 비교 차이 0 → 스위치
-- [ ] 계산 경계 테스트(기한 지남 · 0 · 달성 · 이자 포함/제외)
-- [ ] 구간 응답에 적중 이력 또는 `reason` 항상 존재
-- [ ] 금지어 검증기 통과(칭찬 · 재촉 · 명령형 0)
+- [x] ~~기존 goals 경로 골든 JSON 그림자 비교 차이 0 → 스위치~~ **정정 2026-11-03**: 옛 경로 은퇴 + 가져오기 대조(행 수 · 적립 합) — FR-1 행
+- [x] 계산 경계 테스트(기한 지남 · 0 · 달성 · 이자 포함/제외) — `SavingsMathSpec` 10
+- [x] 구간 응답에 적중 이력 또는 `reason` 항상 존재 — `trackReason`
+- [x] 금지어 검증기 통과(칭찬 · 재촉 · 명령형 0) — 서버는 문장 0(상태 키만). 화면 문구 금지어 grep 0(`FE-REQ-056`)
 
 ## 계약 영향
 
@@ -58,3 +75,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-03 | **in-progress** — S1a(`e83f7f80` Kotlin `savings` 첫 판 · `1ec3b0c6` 온보딩 프로브 · `b1c8ad67` `progressRatio` · `8d05a006` 상시 실행). FR-1 정정(은퇴 + 가져오기) · FR-3 · 4 · 5 · 8 · 9 · 15 · 19 done, FR-2 · 6 · 18 부분. 수용 기준 4/4 |

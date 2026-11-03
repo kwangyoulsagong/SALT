@@ -21,3 +21,8 @@
 | FR-3 BFF · Python 쪽 검증 | 첫 구독자가 아직 없다 | `FC-REQ-024` · `025` |
 | FR-6 프로젝션 · FR-7 내부 REST | 서비스가 하나뿐 | S4~S6 |
 | 데드레터 경보 | 수집처가 없다(지표는 있음) | `OPS-001` |
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 이 REQ 에 걸린 몫(`e83f7f80`): FR-4 첫 이벤트 13종 중 3 — `savings.GoalCreated` · `GoalReached` · `ProjectionIssued` 계약 + 발행(쓰기 시점 검증). 로컬 운영 실측 릴레이가 브로커로 보냄(published_at)
+- 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`
