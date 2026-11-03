@@ -13,7 +13,9 @@ export const GoalsPage = () => (
   <div className={s.page}>
     <div className={s.head}>
       <h1 className={panelTitle}>{GOALS_PAGE.title}</h1>
-      <Link href={ROUTES.addGoal}>{GOALS_PAGE.add}</Link>
+      <Link href={ROUTES.addGoal} className={s.addLink}>
+        {GOALS_PAGE.add}
+      </Link>
     </div>
     <p className={panelDescription}>{GOALS_PAGE.description}</p>
     <BlockBoundary name={GOALS_PAGE.blockName} minHeight={160}>
