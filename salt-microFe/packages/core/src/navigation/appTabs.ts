@@ -31,7 +31,7 @@ export interface AppTab {
 export const APP_TABS: readonly AppTab[] = [
   { id: "home", label: "홈", icon: "home", zone: "shell", href: "/home", readyBy: null },
   // 저축 목표 목록 화면이 아직 없다 — 셸에는 `/goals/addgoals`(추가 폼)만 있다
-  { id: "savings", label: "저축", icon: "coin", zone: "savings", href: "/goals", readyBy: "FE-REQ-056" },
+  { id: "savings", label: "저축", icon: "coin", zone: "savings", href: "/goals", readyBy: null },
   // 가계부 zone 은 빈 골격이다(`FE-REQ-052` FR-7)
   { id: "household", label: "가계부", icon: "wallet", zone: "household", href: "/household", readyBy: "FE-REQ-057" },
   { id: "invest", label: "투자", icon: "chart", zone: "invest", href: "/investments", readyBy: null },

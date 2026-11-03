@@ -61,10 +61,11 @@ describe("zone 레지스트리 (ADR-005)", () => {
     }
   });
 
-  it("투자는 자기 zone(FE-REQ-053) · 옮기기 전 저축은 셸 안 이동 · 가계부 · 팁은 zone 을 넘는다", () => {
+  it("투자(FE-REQ-053) · 저축(FE-REQ-056)은 자기 zone · 가계부 · 팁도 zone 을 넘는다", () => {
     expect(isCrossZonePath("/investments/BTC")).toBe(true);
     expect(isCrossZonePath("/coach/settings")).toBe(true);
-    expect(isCrossZonePath("/goals/addgoals")).toBe(false);
+    expect(isCrossZonePath("/goals/addgoals")).toBe(true);
+    expect(isCrossZonePath("/goals/new")).toBe(true);
     expect(isCrossZonePath("/household")).toBe(true);
     expect(isCrossZonePath("/tips/abc#top")).toBe(true);
     expect(isCrossZonePath("/investment-static/_next/a.js")).toBe(true);

@@ -25,7 +25,6 @@ describe("앱 탭 (FE-REQ-054 FR-1 · FR-2)", () => {
   it("첫 화면이 없는 탭은 그 화면을 만드는 REQ 를 적는다", () => {
     const notReady = APP_TABS.filter((tab) => tab.readyBy !== null).map((tab) => [tab.id, tab.readyBy]);
     expect(notReady).toEqual([
-      ["savings", "FE-REQ-056"],
       ["household", "FE-REQ-057"],
     ]);
   });
@@ -38,6 +37,8 @@ describe("앱 탭 (FE-REQ-054 FR-1 · FR-2)", () => {
     ["/coach/report", "invest"],
     ["/search", "invest"],
     ["/goals/addgoals", "savings"],
+    ["/goals/new", "savings"],
+    ["/goals/3f2b", "savings"],
     ["/household", "household"],
     ["/settings", null],
     ["/onboarding", null],
