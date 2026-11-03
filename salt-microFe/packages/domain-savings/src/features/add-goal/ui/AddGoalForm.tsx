@@ -14,6 +14,7 @@ import { formatAmountInput, parseAmountInput } from "@repo/web-shared/lib";
 
 import {
   GOAL_MESSAGES,
+  StampBoard,
   TEMPLATE_LABEL,
   formatMonth,
   formatWon,
@@ -164,6 +165,10 @@ export const AddGoalForm = () => {
           </>
         ) : null}
       </section>
+
+      {/* 첫 도장 미리보기(FR-2 · FEATURE-012 FR-17) — 만들면 도장 하나가 찍혀 있다. 숫자는 서버 규칙(1 + 적립)과 같은 "만든 날 하나" */}
+      <span className={s.hint}>{M.firstStampPreview}</span>
+      <StampBoard count={1} />
 
       {add.isError ? <span className={s.hint}>{M.submitFailed}</span> : null}
       <Button type="submit" disabled={!canSubmit} loading={add.isPending} fullWidth>

@@ -1,6 +1,7 @@
 /** 목표 만들기 문구 — 사실만. 칭찬 · 재촉 0(`FE-REQ-056` 수용 기준 2) */
 export const ADD_GOAL_MESSAGES = {
   template: "어떤 목표인가요",
+  firstStampPreview: "목표를 만들면 도장판에 첫 도장이 찍혀요",
   title: "이름",
   titlePlaceholder: "예: 제주 여행",
   amount: "목표 금액",
