@@ -7,7 +7,8 @@ import { logger } from "../../config/logger";
  *
  * - 표는 **설정 파일 하나**(`config/server-routes.json`). 코드에 경로 · 주소를 박지 않는다
  * - **재시작 없이 재로딩** — 요청마다 파일 수정 시각을 보되 1초에 한 번만(`stat` 한 번 = 수 µs)
- * - 파일이 깨지면 **직전 표를 계속 쓴다** — 오타 하나로 전 경로가 다른 서버로 가지 않게
+ * - 파일이 깨지거나 **잠깐 사라져도**(편집기의 임시 파일 → 이름 바꾸기 저장) **직전 표를 계속 쓴다** — 오타 하나로 전 경로가 다른 서버로 가지 않게.
+ *   처음부터 없으면 전부 legacy
  * - 가장 긴 prefix 가 이긴다. prefix 는 경로 조각 경계에서만 맞는다(`/goal` 이 `/goals` 를 잡지 않는다)
  */
 export type RouteMode = "legacy" | "platform" | "shadow";
@@ -71,9 +72,8 @@ export class RoutingTableFile {
     try {
       mtime = fs.statSync(this.file).mtimeMs;
     } catch {
-      if (this.loadedMtime !== -2) logger.warn("Server routing table missing — all legacy", { file: this.file });
+      if (this.loadedMtime !== -2) logger.warn("Server routing table missing — keeping previous", { file: this.file, routes: this.table.routes });
       this.loadedMtime = -2;
-      this.table = { default: "legacy", routes: {} };
       return;
     }
     if (mtime === this.loadedMtime) return;

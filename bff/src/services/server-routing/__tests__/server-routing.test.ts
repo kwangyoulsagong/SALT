@@ -4,10 +4,10 @@ import os from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
 
-import { compareGolden, readGoldens, recordGolden } from "../golden";
+import { compareGolden, goldenFileName, readGoldens, recordGolden } from "../golden";
 import { firstDifference, normalize } from "../normalize";
 import { parseRoutingTable, resolveMode, RoutingTableFile } from "../routing-table";
-import { compareResponses, isShadowable, summarize } from "../shadow";
+import { compareResponses, isShadowable, ShadowGate, ShadowLog, summarize } from "../shadow";
 import { outgoingTraceparent, runInTrace, traceIdFrom } from "../trace";
 
 /** 스트랭글러 장치 — 라우팅 스위치 · 그림자 · 골든 · 추적 ID (`BFF-REQ-045`) */
@@ -51,12 +51,19 @@ describe("라우팅 표 (FR-1)", () => {
     assert.equal(routes.modeFor("/goals"), "platform", "깨진 파일은 직전 표 유지");
   });
 
-  it("파일이 없으면 전부 legacy", () => {
+  it("처음부터 없으면 전부 legacy · 읽은 뒤 잠깐 사라지면 직전 표 유지", () => {
     assert.equal(new RoutingTableFile(path.join(tmp(), "none.json")).modeFor("/platform/ping"), "legacy");
+    const file = path.join(tmp(), "routes.json");
+    let now = 0;
+    fs.writeFileSync(file, JSON.stringify({ routes: { "/platform": "platform" } }));
+    const routes = new RoutingTableFile(file, () => now, 1_000);
+    fs.rmSync(file); // 편집기의 이름 바꾸기 저장 틈
+    now = 2_000;
+    assert.equal(routes.modeFor("/platform/ping"), "platform");
   });
 
-  it("저장소의 표가 읽힌다", () => {
-    const routes = new RoutingTableFile(path.resolve("src/config/server-routes.json"));
+  it("저장소의 표가 읽힌다(src 밖 — dist 실행 · 이미지와 같은 자리)", () => {
+    const routes = new RoutingTableFile(path.resolve("config/server-routes.json"));
     assert.equal(routes.modeFor("/platform/ping"), "platform");
     assert.equal(routes.modeFor("/goals"), "legacy");
   });
@@ -77,6 +84,27 @@ describe("그림자 (FR-3 · 4)", () => {
     assert.deepEqual(compareResponses(legacy, same), { match: true, firstDiff: null });
     assert.deepEqual(compareResponses(legacy, differs), { match: false, firstDiff: "$.data.total" });
     assert.deepEqual(compareResponses(legacy, { status: 500, data: {} }), { match: false, firstDiff: "$status" });
+  });
+
+  it("그림자 동시 상한 · 표본 비율 — 넘치면 건너뛰고 센다", () => {
+    const gate = new ShadowGate(2, 1);
+    assert.equal(gate.tryEnter(), true);
+    assert.equal(gate.tryEnter(), true);
+    assert.equal(gate.tryEnter(), false);
+    gate.leave();
+    assert.equal(gate.tryEnter(), true);
+    assert.equal(gate.skipped, 1);
+    const sampled = new ShadowGate(10, 0.25, () => 0.5);
+    assert.equal(sampled.tryEnter(), false);
+  });
+
+  it("기록은 비동기로 순서대로 이어 쓴다", async () => {
+    const dir = tmp();
+    const log = new ShadowLog(dir);
+    const base = { method: "GET", legacyStatus: 200, platformStatus: 200, match: true, firstDiff: null, platformMs: 1 };
+    await Promise.all([1, 2, 3].map((i) => log.append({ ...base, at: "2026-11-03T00:00:00Z", path: `/p${i}` })));
+    const lines = fs.readFileSync(path.join(dir, "shadow-2026-11-03.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l).path);
+    assert.deepEqual(lines, ["/p1", "/p2", "/p3"]);
   });
 
   it("경로별 일치율 — ID 조각은 묶는다", () => {
@@ -102,6 +130,23 @@ describe("골든 JSON (FR-2)", () => {
     assert.equal(compareGolden(golden, 200, { success: true, data: [{ id: "c" + "z".repeat(24), createdAt: "2026-11-03T00:00:00Z", saved: 5000 }] }), null);
     assert.equal(compareGolden(golden, 200, { success: true, data: [{ id: "c" + "z".repeat(24), createdAt: "2026-11-03T00:00:00Z", saved: 5001 }] }), "$.data[0].saved");
     assert.equal(compareGolden(golden, 404, {}), "$status");
+  });
+
+  it("토큰을 녹화하지 않는다 — 인증 경로는 통째로, 다른 경로는 비밀 키 값만 가린다", () => {
+    const dir = tmp();
+    assert.equal(recordGolden(dir, "post", "/auth/login", 200, { data: { accessToken: "eyJ.a.b", refreshToken: "eyJ.c.d" } }), null);
+    assert.equal(recordGolden(dir, "post", "/auth?x=1", 200, {}), null);
+    recordGolden(dir, "get", "/users/profile", 200, { data: { name: "n", apiToken: "s3cr3t", password: null } });
+    const raw = fs.readdirSync(dir).map((f) => fs.readFileSync(path.join(dir, f), "utf8")).join("");
+    assert.equal(raw.includes("eyJ"), false);
+    assert.equal(raw.includes("s3cr3t"), false);
+    assert.equal(readGoldens(dir).length, 1);
+  });
+
+  it("파일 이름 — 긴 주소도 .json 으로 끝나고, 비슷한 주소가 겹치지 않는다", () => {
+    const long = goldenFileName("get", `/x?symbols=${"A,".repeat(300)}`);
+    assert.ok(long.endsWith(".json") && long.length < 160);
+    assert.notEqual(goldenFileName("get", "/goals?a=b"), goldenFileName("get", "/goals/a=b"));
   });
 
   it("정규화 규칙 — 시각 · UUID · cuid · 추적 키만 바꾸고 나머지는 그대로", () => {

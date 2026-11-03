@@ -22,6 +22,10 @@ const shadowReport = (dir = "var/shadow"): number => {
         fs.readFileSync(path.join(dir, f), "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as ShadowRecord),
       )
     : [];
+  if (records.length === 0) {
+    console.error(`그림자 기록 0건 — ${dir}. 비교한 것이 없으면 통과가 아니다`);
+    return 1;
+  }
   const rows = summarize(records);
   console.table(rows.map((r) => ({ ...r, matchRate: `${(r.matchRate * 100).toFixed(1)}%`, firstDiffs: JSON.stringify(r.firstDiffs) })));
   return rows.some((r) => r.matchRate < 1) ? 1 : 0;
@@ -30,7 +34,12 @@ const shadowReport = (dir = "var/shadow"): number => {
 const goldenReplay = async (dir: string, baseURL: string): Promise<number> => {
   const token = process.env.GOLDEN_TOKEN;
   let failed = 0;
-  for (const golden of readGoldens(dir).filter((g) => g.method === "GET")) {
+  const gets = readGoldens(dir).filter((g) => g.method === "GET");
+  if (gets.length === 0) {
+    console.error(`GET 골든 0건 — ${dir}. 비교한 것이 없으면 통과가 아니다`);
+    return 1;
+  }
+  for (const golden of gets) {
     const response = await axios.get(golden.url, {
       baseURL,
       validateStatus: () => true,

@@ -7,7 +7,7 @@ import { logger } from "../../config/logger";
 import { loggableUrl } from "../../utils/error.util";
 import { recordGolden } from "./golden";
 import { RouteMode, RoutingTableFile } from "./routing-table";
-import { compareResponses, isShadowable, ShadowLog } from "./shadow";
+import { compareResponses, isShadowable, ShadowGate, ShadowLog } from "./shadow";
 import { outgoingTraceparent } from "./trace";
 
 /**
@@ -26,6 +26,7 @@ const baseUrlFor = (mode: RouteMode): string => (mode === "platform" ? env.PLATF
 /** 그림자 요청용 — 인터셉터 없는 별도 클라이언트(되돌아 들어와 다시 그림자를 만들지 않게). */
 const shadowClient = axios.create({ timeout: 10_000, validateStatus: () => true });
 const shadowLog = new ShadowLog(path.resolve(env.SHADOW_REPORT_DIR));
+const shadowGate = new ShadowGate(env.SHADOW_MAX_IN_FLIGHT, env.SHADOW_SAMPLE_RATE);
 
 export const beforeServerRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
   const routed = config as RoutedConfig;
@@ -44,14 +45,14 @@ export const afterServerResponse = (config: InternalAxiosRequestConfig | undefin
 
   if (env.GOLDEN_RECORD_DIR) {
     try {
-      recordGolden(env.GOLDEN_RECORD_DIR, method, withQuery(url, config.params), response.status, response.data);
+      recordGolden(env.GOLDEN_RECORD_DIR, method, withQuery(config), response.status, response.data);
     } catch (error) {
       logger.warn("Golden record failed", { reason: (error as Error).message });
     }
   }
 
-  if (routed.saltRoute === "shadow" && isShadowable(method, config.responseType)) {
-    void runShadow(routed, method, url, response);
+  if (routed.saltRoute === "shadow" && isShadowable(method, config.responseType) && shadowGate.tryEnter()) {
+    void runShadow(routed, method, url, response).finally(() => shadowGate.leave());
   }
 };
 
@@ -68,18 +69,18 @@ const runShadow = async (config: RoutedConfig, method: string, url: string, lega
       headers: pick(config.headers, ["Authorization", "traceparent", "x-salt-client"]),
     });
     const { match, firstDiff } = compareResponses(legacy, platform);
-    shadowLog.append({ at, method, path: pathOnly, legacyStatus: legacy.status, platformStatus: platform.status, match, firstDiff, platformMs: Date.now() - started });
+    await shadowLog.append({ at, method, path: pathOnly, legacyStatus: legacy.status, platformStatus: platform.status, match, firstDiff, platformMs: Date.now() - started });
     if (!match) logger.info("Shadow mismatch", { method, path: pathOnly, firstDiff });
   } catch (error) {
-    shadowLog.append({ at, method, path: pathOnly, legacyStatus: legacy.status, platformStatus: null, match: false, firstDiff: null, platformMs: Date.now() - started, error: (error as Error).message });
+    await shadowLog
+      .append({ at, method, path: pathOnly, legacyStatus: legacy.status, platformStatus: null, match: false, firstDiff: null, platformMs: Date.now() - started, error: (error as Error).message })
+      .catch((e) => logger.warn("Shadow log write failed", { reason: (e as Error).message }));
   }
 };
 
 const pick = (headers: InternalAxiosRequestConfig["headers"], names: string[]): Record<string, string> =>
   Object.fromEntries(names.flatMap((n) => (headers.get(n) ? [[n, String(headers.get(n))]] : [])));
 
-const withQuery = (url: string, params: unknown): string => {
-  if (!params || typeof params !== "object") return url;
-  const query = new URLSearchParams(Object.entries(params as Record<string, unknown>).map(([k, v]): [string, string] => [k, String(v)])).toString();
-  return query ? `${url}${url.includes("?") ? "&" : "?"}${query}` : url;
-};
+/** 실제로 보낸 주소 — axios 자신의 직렬화(`getUri`)로. 손으로 만들면 undefined · 배열이 실제 요청과 달라진다 */
+const withQuery = (config: InternalAxiosRequestConfig): string =>
+  shadowClient.getUri({ url: config.url, params: config.params, paramsSerializer: config.paramsSerializer });

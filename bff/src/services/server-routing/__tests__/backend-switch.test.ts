@@ -38,6 +38,7 @@ before(async () => {
   process.env.PLATFORM_API_URL = `http://127.0.0.1:${pp}/api`;
   process.env.SERVER_ROUTES_FILE = routesFile;
   process.env.SHADOW_REPORT_DIR = path.join(dir, "shadow");
+  process.env.GOLDEN_RECORD_DIR = path.join(dir, "golden");
   ({ backendApi } = await import("../../backend-api.service"));
   ({ runInTrace } = await import("../trace"));
 });
@@ -82,6 +83,19 @@ describe("서버 스위치 — backendApi", () => {
     await settle();
     assert.equal(hits.legacy.length, 4);
     assert.equal(hits.platform.length, 0);
+  });
+
+  it("골든에 녹화한 주소 = 실제로 보낸 주소(axios 직렬화 그대로)", async () => {
+    reset();
+    const { readGoldens } = await import("../golden");
+    await backendApi.proxyAuthRequest("GET", "/investment/market/overview", "t", undefined, {});
+    await (backendApi as unknown as { client: { get: (u: string, c: object) => Promise<unknown> } }).client.get("/investment/market/overview", {
+      params: { q: undefined, symbols: ["BTC", "ETH"], page: 2 },
+    });
+    const sent = hits.legacy.at(-1)?.url.replace(/^\/api/, "");
+    const recorded = readGoldens(path.join(dir, "golden")).map((g) => g.url);
+    assert.ok(sent && recorded.includes(sent), `${sent} ∉ ${recorded.join(" | ")}`);
+    assert.equal(sent?.includes("undefined"), false);
   });
 
   it("값 하나로 되돌린다 — 재시작 없이", async () => {

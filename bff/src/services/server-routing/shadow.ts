@@ -34,12 +34,47 @@ export const compareResponses = (
   return { match: firstDiff === null, firstDiff };
 };
 
+/** 기록 쓰기는 비동기 · 순서대로(한 줄씩 이어 쓴다) — 이벤트 루프에서 동기 디스크 I/O 를 하지 않는다 */
 export class ShadowLog {
+  private ready: Promise<unknown> | null = null;
+  private tail: Promise<unknown> = Promise.resolve();
+
   constructor(private readonly dir: string) {}
 
-  append(record: ShadowRecord): void {
-    fs.mkdirSync(this.dir, { recursive: true });
-    fs.appendFileSync(path.join(this.dir, `shadow-${record.at.slice(0, 10)}.jsonl`), `${JSON.stringify(record)}\n`);
+  append(record: ShadowRecord): Promise<void> {
+    this.ready ??= fs.promises.mkdir(this.dir, { recursive: true });
+    const file = path.join(this.dir, `shadow-${record.at.slice(0, 10)}.jsonl`);
+    const next = this.tail.then(() => this.ready).then(() => fs.promises.appendFile(file, `${JSON.stringify(record)}\n`));
+    this.tail = next.catch(() => undefined);
+    return next;
+  }
+}
+
+/**
+ * 그림자 요청 허용 판단 — 동시 상한 · 표본 비율. 넘치면 비교를 건너뛴다(센다). 자주 폴링하는 경로를 shadow 로 돌려도
+ * 서버 호출이 두 배로 무한히 쌓이지 않게.
+ */
+export class ShadowGate {
+  private inFlight = 0;
+  skipped = 0;
+
+  constructor(
+    private readonly maxInFlight: number,
+    private readonly sampleRate: number,
+    private readonly random: () => number = Math.random,
+  ) {}
+
+  tryEnter(): boolean {
+    if (this.inFlight >= this.maxInFlight || this.random() >= this.sampleRate) {
+      this.skipped += 1;
+      return false;
+    }
+    this.inFlight += 1;
+    return true;
+  }
+
+  leave(): void {
+    this.inFlight = Math.max(0, this.inFlight - 1);
   }
 }
 

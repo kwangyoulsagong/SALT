@@ -21,7 +21,8 @@
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^9.2.1",
-    "tsx": "^4.20.6"
+    "tsx": "^4.20.6",
+    "typescript": "5.8.2"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
