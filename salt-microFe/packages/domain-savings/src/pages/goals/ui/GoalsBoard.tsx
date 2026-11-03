@@ -5,7 +5,7 @@ import { Skeleton } from "@repo/ui/skeleton";
 
 import { ROUTES } from "@repo/web-shared/config";
 
-import { GOAL_MESSAGES, GoalCard, useSavingsGoals } from "@/entities/goal";
+import { GOAL_MESSAGES, GoalCard, useSavingsGoals, type SavingsGoal } from "@/entities/goal";
 import { SplitDepositForm } from "@/features/record-deposit";
 
 import { GOALS_PAGE } from "../model";
@@ -15,10 +15,10 @@ import * as s from "./goals.css";
 const SPLIT_MIN_GOALS = 2;
 
 /**
- * 목표 목록 + 나눠 넣기. 토큰이 브라우저 저장소에 있어 서버가 볼 수 없다 — 첫 숫자 서버 렌더(FR-13)는 `FE-REQ-013`(쿠키) 뒤.
+ * 목표 목록 + 나눠 넣기. 첫 숫자는 서버가 쿠키로 받아 넘긴다(`initialGoals`, FR-13) — 없으면 브라우저가 부른다.
  */
-export const GoalsBoard = () => {
-  const goals = useSavingsGoals();
+export const GoalsBoard = ({ initialGoals }: { initialGoals: SavingsGoal[] | null }) => {
+  const goals = useSavingsGoals(initialGoals);
   if (goals.isSignedOut) return <EmptyState title={GOALS_PAGE.signedOut} />;
   if (goals.isError) return <EmptyState title={GOAL_MESSAGES.loadFailed} tone="error" />;
   if (!goals.data) return <Skeleton height={160} />;

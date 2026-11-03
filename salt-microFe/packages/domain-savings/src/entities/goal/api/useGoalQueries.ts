@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useHasAccessToken } from "@repo/web-shared/api";
 
-import type { CalculationRequest, SavingsCalculation } from "../model/types";
+import type { CalculationRequest, SavingsCalculation, SavingsGoal, SavingsGoalDetail } from "../model/types";
 import { goalApi } from "./goalApi";
 import { goalQueryKeys } from "./queryKeys";
 
@@ -15,26 +15,32 @@ import { goalQueryKeys } from "./queryKeys";
 const GOALS_STALE_MS = 30_000;
 const TEMPLATES_STALE_MS = 10 * 60_000;
 
-export const useSavingsGoals = () => {
+/**
+ * @param initial 서버 컴포넌트가 쿠키로 미리 받은 값(`FE-REQ-056` FR-13) — 있으면 첫 렌더(서버 HTML 포함)부터 숫자가 있다.
+ * 없으면(쿠키 없음 · 서버 조회 실패) 지금처럼 브라우저가 부른다
+ */
+export const useSavingsGoals = (initial?: SavingsGoal[] | null) => {
   const signedIn = useHasAccessToken();
   const query = useQuery({
     queryKey: goalQueryKeys.list(),
     queryFn: ({ signal }) => goalApi.list(signal),
     enabled: signedIn === true,
     staleTime: GOALS_STALE_MS,
+    ...(initial ? { initialData: initial } : {}),
   });
-  return { ...query, isSignedOut: signedIn === false };
+  return { ...query, isSignedOut: signedIn === false && !initial };
 };
 
-export const useSavingsGoal = (id: string) => {
+export const useSavingsGoal = (id: string, initial?: SavingsGoalDetail | null) => {
   const signedIn = useHasAccessToken();
   const query = useQuery({
     queryKey: goalQueryKeys.detail(id),
     queryFn: ({ signal }) => goalApi.detail(id, signal),
     enabled: signedIn === true,
     staleTime: GOALS_STALE_MS,
+    ...(initial ? { initialData: initial } : {}),
   });
-  return { ...query, isSignedOut: signedIn === false };
+  return { ...query, isSignedOut: signedIn === false && !initial };
 };
 
 export const useSavingsTemplates = () => {

@@ -22,6 +22,7 @@ import {
   REFRESH_TOKEN_KEY,
   SESSION_HINT_COOKIE,
   SESSION_HINT_MAX_AGE_SECONDS,
+  SESSION_ROUTE,
   USER_KEY,
 } from "../config";
 
@@ -41,7 +42,52 @@ const writeSessionHint = (signedIn: boolean): void => {
  * 에게서 뗀다. 프로바이더가 마운트 때 부른다.
  */
 export const syncSessionHint = (): void => {
-  writeSessionHint(readAccessToken() !== null);
+  const token = readAccessToken();
+  writeSessionHint(token !== null);
+  // 쿠키 세션이 생기기 전에 로그인한 사람 — 탭마다 한 번 httpOnly 쿠키를 채운다(서버 렌더가 첫 숫자를 그리게)
+  if (token !== null && !sessionCookieSyncedThisTab()) writeSessionCookie(token);
+};
+
+const COOKIE_SYNC_FLAG = "salt_session_cookie_synced";
+
+const sessionCookieSyncedThisTab = (): boolean => {
+  try {
+    return window.sessionStorage.getItem(COOKIE_SYNC_FLAG) === "1";
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * 액세스 토큰을 httpOnly 쿠키로도 둔다(`FE-REQ-013` FR-80 1단계) — 같은 origin Route Handler 가 쓴다. 실패해도 막지 않는다:
+ * 쿠키가 없으면 서버 렌더가 비고 브라우저가 지금처럼 부른다. 2단계에서 브라우저 저장소 토큰을 없앤다.
+ */
+const writeSessionCookie = (accessToken: string): void => {
+  void fetch(SESSION_ROUTE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken }),
+    credentials: "same-origin",
+  })
+    .then((res) => {
+      if (res.ok) {
+        try {
+          window.sessionStorage.setItem(COOKIE_SYNC_FLAG, "1");
+        } catch {
+          // 프라이빗 모드 — 다음 탭에서 다시 쓴다
+        }
+      }
+    })
+    .catch(() => undefined);
+};
+
+const clearSessionCookie = (): void => {
+  try {
+    window.sessionStorage.removeItem(COOKIE_SYNC_FLAG);
+  } catch {
+    // 무시
+  }
+  void fetch(SESSION_ROUTE, { method: "DELETE", credentials: "same-origin" }).catch(() => undefined);
 };
 
 export const readAccessToken = (): string | null => {
@@ -86,6 +132,7 @@ export const clearSession = (): void => {
   }
   // 저장소가 막혀(프라이빗 모드) 위에서 던져도 표지는 지운다 — 남으면 미들웨어가 계속 홈으로 보낸다
   writeSessionHint(false);
+  clearSessionCookie();
 };
 
 /**
@@ -113,6 +160,7 @@ export const writeSession = (session: {
     if (session.accessToken) {
       window.localStorage.setItem(ACCESS_TOKEN_KEY, session.accessToken);
       writeSessionHint(true);
+      writeSessionCookie(session.accessToken);
     }
     if (session.refreshToken) {
       window.localStorage.setItem(REFRESH_TOKEN_KEY, session.refreshToken);

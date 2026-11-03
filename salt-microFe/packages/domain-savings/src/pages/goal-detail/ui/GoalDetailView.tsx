@@ -7,7 +7,7 @@ import { Skeleton } from "@repo/ui/skeleton";
 import { hasApiStatus } from "@repo/web-shared/api";
 import { panel, panelTitle } from "@repo/web-shared/ui/surface.css";
 
-import { formatWon, GOAL_MESSAGES, MilestoneBox, ProjectionLine, TEMPLATE_LABEL, useSavingsGoal } from "@/entities/goal";
+import { formatWon, GOAL_MESSAGES, MilestoneBox, ProjectionLine, TEMPLATE_LABEL, useSavingsGoal, type SavingsGoalDetail } from "@/entities/goal";
 import { DepositForm } from "@/features/record-deposit";
 
 import { GOAL_DETAIL_PAGE as M } from "../model";
@@ -18,8 +18,8 @@ import * as s from "./goalDetail.css";
  * 목표 상세(`FE-REQ-056` FR-4 · 5 · 7) — 진척 · 지금 기준 계획 · 이번 달 이정표 · 도달 시점 · 적립. 숫자는 전부 서버 응답.
  * 프레임(모은 돈 ↔ 남은 돈)은 서버 `frame` 이 정한다(FR-9).
  */
-export const GoalDetailView = ({ goalId }: { goalId: string }) => {
-  const query = useSavingsGoal(goalId);
+export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: SavingsGoalDetail | null }) => {
+  const query = useSavingsGoal(goalId, initial);
   if (query.isSignedOut) return <EmptyState title={M.signedOut} />;
   if (query.isError) return <EmptyState title={hasApiStatus(query.error, 404) ? M.notFound : GOAL_MESSAGES.loadFailed} tone="error" />;
   if (!query.data) return <Skeleton height={320} />;

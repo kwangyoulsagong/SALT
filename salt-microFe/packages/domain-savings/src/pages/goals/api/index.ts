@@ -1,0 +1,1 @@
+export { serverGoals } from "./serverGoals";
