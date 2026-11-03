@@ -150,7 +150,8 @@ export interface SavingsSimulationVM {
 export interface SavingsEmergencyVM {
   amount: number;
   withdraw: { planMonthBefore: string | null; planMonthAfter: string | null; delayMonths: number | null; reason: string | null };
-  loan: { months: number; annualRate: string; monthlyPayment: number; totalInterest: number };
+  /** 매달 × (months−1) + lastPayment = 원금 + totalInterest — 셋 다 서버 값 */
+  loan: { months: number; annualRate: string; monthlyPayment: number; lastPayment: number; totalInterest: number };
   /** 가정 키 — 문장은 프론트(`loan_paid_outside_goal`) */
   assumptions: string[];
 }
