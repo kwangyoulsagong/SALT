@@ -5,7 +5,7 @@ import { AppNavigationIcon } from "./AppNavigationIcon";
 
 const items: AppNavigationItem[] = [
   { id: "home", label: "홈", href: "#home", icon: <AppNavigationIcon name="home" />, active: true },
-  { id: "savings", label: "저축", href: "#savings", icon: <AppNavigationIcon name="piggy-bank" /> },
+  { id: "savings", label: "저축", href: "#savings", icon: <AppNavigationIcon name="coin" /> },
   { id: "household", label: "가계부", href: "#household", icon: <AppNavigationIcon name="wallet" />, disabledReason: "준비 중" },
   { id: "invest", label: "투자", href: "#invest", icon: <AppNavigationIcon name="chart" /> },
 ];
@@ -58,7 +58,7 @@ export const LongLabel: Story = {
 export const Icons: Story = {
   render: () => (
     <div style={{ display: "flex", gap: 24, padding: 24 }}>
-      {(["home", "piggy-bank", "wallet", "chart"] as const).map((name) => (
+      {(["home", "coin", "wallet", "chart"] as const).map((name) => (
         <AppNavigationIcon key={name} name={name} size={32} />
       ))}
     </div>

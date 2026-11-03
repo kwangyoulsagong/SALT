@@ -13,8 +13,8 @@ import { zoneOfPath, type ZoneId } from "../zones/registry";
 export const APP_TAB_IDS = ["home", "savings", "household", "invest"] as const;
 export type AppTabId = (typeof APP_TAB_IDS)[number];
 
-/** 아이콘 이름 — 웹은 lucide, 앱은 같은 이름의 네이티브 아이콘으로 바꾼다(그림은 플랫폼 몫, 이름은 한 벌) */
-export type AppTabIcon = "home" | "piggy-bank" | "wallet" | "chart";
+/** 아이콘 이름 — 웹은 `@repo/ui` `AppNavigationIcon`(면 채운 단색 글리프), 앱은 같은 이름의 네이티브 그림(그림은 플랫폼 몫, 이름은 한 벌). 저축 = 동전(`coin`) */
+export type AppTabIcon = "home" | "coin" | "wallet" | "chart";
 
 export interface AppTab {
   readonly id: AppTabId;
@@ -31,7 +31,7 @@ export interface AppTab {
 export const APP_TABS: readonly AppTab[] = [
   { id: "home", label: "홈", icon: "home", zone: "shell", href: "/home", readyBy: null },
   // 저축 목표 목록 화면이 아직 없다 — 셸에는 `/goals/addgoals`(추가 폼)만 있다
-  { id: "savings", label: "저축", icon: "piggy-bank", zone: "savings", href: "/goals", readyBy: "FE-REQ-056" },
+  { id: "savings", label: "저축", icon: "coin", zone: "savings", href: "/goals", readyBy: "FE-REQ-056" },
   // 가계부 zone 은 빈 골격이다(`FE-REQ-052` FR-7)
   { id: "household", label: "가계부", icon: "wallet", zone: "household", href: "/household", readyBy: "FE-REQ-057" },
   { id: "invest", label: "투자", icon: "chart", zone: "invest", href: "/investments", readyBy: null },
