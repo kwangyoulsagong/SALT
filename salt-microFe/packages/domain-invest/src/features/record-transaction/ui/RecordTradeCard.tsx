@@ -171,6 +171,8 @@ export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null,
     event.preventDefault();
     setTouched(true);
     setNotice(null);
+    // 접힌 계획 안 손절가가 막으면 펼쳐서 그 칸 안내를 보인다 — 말없이 막히지 않게
+    if (stopInvalid) setPlanOpen(true);
     if (parsed.quantity === null || parsed.price === null || stopInvalid) return;
 
     const trimmedThesis = thesis.trim();

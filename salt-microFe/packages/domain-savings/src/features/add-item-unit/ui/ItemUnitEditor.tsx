@@ -47,7 +47,7 @@ export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units
           {units.map((u) => (
             <li key={u.id} className={s.row}>
               <span className={s.value}>{M.line(u.name, u.count)}</span>
-              <Button type="button" size="sm" variant="ghost" onClick={() => { add.reset(); remove.mutate(u.id, { onSuccess: () => nums.dismiss("price") }); }} disabled={remove.isPending} aria-label={M.remove(u.name)}>
+              <Button type="button" size="sm" variant="ghost" onClick={() => { add.reset(); remove.mutate(u.id); }} disabled={remove.isPending} aria-label={M.remove(u.name)}>
                 {M.removeMark}
               </Button>
             </li>
