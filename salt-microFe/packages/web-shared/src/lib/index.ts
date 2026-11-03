@@ -7,6 +7,6 @@ export * from "./redux";
 export * from "./useElementWidth";
 export * from "./amountInput";
 export * from "./useDebouncedValue";
-export * from "./useAmountInputGuard";
+export * from "./useNumberFields";
 export * from "./labelOr";
 export * from "./useZoneNavigate";
