@@ -15,7 +15,7 @@ const RAIL_WIDTH = "72px";
 
 /**
  * 레일 칸 값 — 기준 증권 웹의 아이콘 레일 실측(2026-11-03, 1440 폭 계산 스타일). 출처 이름은 적지 않는다(`screen-desktop.md`).
- * 칸 42×58 · 아이콘 판 32 · 모서리 8 · 아이콘 16 · 라벨 12/500 3단 색. 미선택 아이콘 = `text.disabled`(#B0B8C1, 같은 값),
+ * 칸 42×58 · 아이콘 판 32 · 모서리 8 · 아이콘 16 · 라벨 12/500(색은 대비 때문에 실측 3단 대신 회색 700 — 아래). 미선택 아이콘 = `text.disabled`(#B0B8C1, 같은 값),
  * 선택 = 옅은 판 + 0.75px 안쪽 선 + 진한 아이콘. 글자색 3단 토큰은 `FE-REQ-047` FR-3 이 `@repo/tokens` 로 올린다 — 그때 바꾼다.
  */
 const RAIL_ITEM = { width: "56px", height: "58px" } as const;
@@ -23,7 +23,11 @@ const TILE_SIZE = "32px";
 const TILE_ACTIVE_BG = "rgba(7, 25, 76, 0.04)";
 const TILE_ACTIVE_RING = "inset 0 0 0 0.75px rgba(13, 25, 74, 0.02)";
 const ICON_ACTIVE = "rgba(24, 31, 43, 0.77)";
-const LABEL_COLOR = "rgba(18, 31, 51, 0.47)";
+/**
+ * 라벨 색 — 기준 화면 실측값(`rgba(18,31,51,.47)`)은 회색 바탕(`background.primary`) 위 12px 글자 대비 2.92:1 로 AA(4.5) 미달이었다
+ * (2026-11-03 axe). 접근성이 우선이라 회색 700(`neutral.700`, 6.45:1)으로 — 선택 표시는 판 · 아이콘 색이 맡는다.
+ */
+const LABEL_COLOR = vars.colors.neutral[700];
 const BOTTOM_TAB_HEIGHT = "56px";
 
 /** 문서 간 전환에서 제자리에 남는 조각 — 같은 이름이 zone 마다 같아야 크롬이 움직이지 않는다(`FE-REQ-054` FR-4) */
