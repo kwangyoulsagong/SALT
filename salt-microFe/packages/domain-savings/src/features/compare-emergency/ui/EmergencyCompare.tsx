@@ -48,7 +48,7 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
       </div>
       {compare.isError && settled ? (
         <span className={s.label} role="status">
-          {(code && M.errorCode[code]) ?? M.failed}
+          {(code ? M.errorCode[code] : undefined) || M.failed}
         </span>
       ) : data ? (
         <div className={s.compare} aria-live="polite">
@@ -57,7 +57,7 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
             {data.withdraw.delayMonths !== null ? (
               <span className={s.value}>{M.withdrawDelay(data.withdraw.delayMonths)}</span>
             ) : (
-              <span className={s.value}>{data.withdraw.reason ? GOAL_MESSAGES.projectionReason[data.withdraw.reason] : "—"}</span>
+              <span className={s.value}>{(data.withdraw.reason ? GOAL_MESSAGES.projectionReason[data.withdraw.reason] : undefined) || M.withdrawUnavailable}</span>
             )}
             {data.withdraw.planMonthBefore && data.withdraw.planMonthAfter ? (
               <span className={s.label}>{M.withdrawMonths(formatMonth(data.withdraw.planMonthBefore), formatMonth(data.withdraw.planMonthAfter))}</span>
