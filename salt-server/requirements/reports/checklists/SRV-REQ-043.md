@@ -27,3 +27,8 @@
 ## done 2026-11-03
 
 - 수용 기준 4/4 · FR-1~13. FR-8 인스턴스 연결은 `SRV-REQ-049`(S5) 로 넘김(그 스펙 이력에 기록). 최종 HEAD 재검증 아래 루트 체크리스트 §2
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 이 REQ 에 걸린 몫(`e83f7f80`): 서비스가 둘이 되며 `ServiceDatabase` · `OutboxWriter` 빈이 타입마다 둘 — `PingComposition` 에 `@Qualifier`. 테스트 컨테이너가 savings 비밀번호를 받는다
+- 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`

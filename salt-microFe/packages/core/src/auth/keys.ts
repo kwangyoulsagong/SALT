@@ -19,6 +19,15 @@ export const USER_KEY = "USER";
  * 쿠키 세션 전체 이관은 `FE-REQ-013`.
  */
 export const SESSION_HINT_COOKIE = "salt_signed_in";
+/**
+ * 액세스 토큰 **httpOnly 쿠키**(`FE-REQ-013` FR-80 1단계, 2026-11-03). 서버 컴포넌트가 BFF 를 부를 때 읽는다 — 첫 숫자를 HTML 에.
+ * 쓰고 지우는 곳은 셸 Route Handler `/api/session` 하나(같은 origin — zone 이 같이 받는다). 자바스크립트는 읽지 못한다.
+ * 브라우저 저장소 토큰은 2단계(BFF 가 쿠키 → Authorization)까지 남는다.
+ */
+export const ACCESS_COOKIE = "salt_at";
+/** 세션 쿠키를 쓰고 지우는 같은 origin 경로 */
+export const SESSION_ROUTE = "/api/session";
+
 /** 표지 쿠키 수명 — 비우는 쪽(로그아웃 · 갱신 실패)이 따로 있어 길게 둔다 */
 export const SESSION_HINT_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 

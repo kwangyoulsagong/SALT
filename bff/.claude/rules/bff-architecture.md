@@ -94,6 +94,7 @@ export const getHome = async (t: string) => {
 
 등록 해제된 경로는 404가 아니라 **410 Gone + 1회 로그**로 1주 유지해 프론트 잔여 호출을 탐지한다. 대상: `/api/app/feed` · `/api/missions*` · `/api/users/points/*` · `/api/users/achievements` · `/api/dashboard` · `/api/users/dashboard`.
 목록은 `src/rest/middleware/gone.middleware.ts` 의 `DORMANT_PATHS` 한 곳이다(2026-09-22 등록 → 2026-09-29 잔여 0건이면 삭제).
+**은퇴**(새 계약으로 대체 — 되살리지 않는다)는 같은 파일 `RETIRED_PATHS`: 410 `ENDPOINT_RETIRED` + `replacement`. `/api/goals` → `/api/app/savings`(2026-11-03 `BFF-REQ-047` FR-7, 1주 뒤 삭제).
 
 ## 8. WebSocket
 

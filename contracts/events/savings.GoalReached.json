@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salt.local/contracts/events/savings.GoalReached.json",
+  "title": "savings.GoalReached",
+  "description": "저축 목표의 적립 합이 목표 금액에 닿았다(SRV-REQ-045 FR-18). 목표마다 한 번",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "goalId",
+    "userId",
+    "template",
+    "reachedAt"
+  ],
+  "properties": {
+    "goalId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "userId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "template": {
+      "enum": [
+        "wedding",
+        "housing",
+        "first_car",
+        "travel",
+        "emergency",
+        "childbirth",
+        "other"
+      ]
+    },
+    "reachedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    }
+  }
+}

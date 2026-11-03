@@ -79,7 +79,7 @@ salt-platform/
 - 아웃박스는 **그 서비스 매니저 트랜잭션 안에서만**(`OutboxWriter` 가 풀로 확인). 릴레이는 `seq` 순서 · 10회 실패면 `dead_at` 로 건너뜀 — 지표 `salt.outbox.dead`
 - 서비스마다 계정 · 풀 · Flyway · jOOQ 가 따로(`support/persistence` `ServiceDatabase`). `search_path` = 서비스 스키마라 SQL 에 스키마를 적지 않는다
 - Flyway 위치 `services/<name>/infrastructure/src/main/resources/db/migration/<schema>`. 첫 파일은 `V1__baseline.sql`(`DB-REQ-036` FR-5) — `outbox` · `processed_event` · `shedlock` 세 표는 모든 서비스가 같은 모양(`services/ping` 그대로)
-- jOOQ 코드는 Flyway SQL 에서 생성(DB 접속 없음). 생성기가 못 읽는 문장(text 열 인덱스 · 부분 인덱스)은 `-- [jooq ignore start/stop]` 으로 감싼다
+- jOOQ 코드는 Flyway SQL 에서 생성(DB 접속 없음). 생성기가 못 읽는 문장(text 열 인덱스 · 부분 인덱스)은 `-- [jooq ignore start/stop]` 으로 감싼다. 정밀도 없는 `numeric` 은 생성기가 `BigInteger` 로 만든다 — `forcedType` `DECIMAL` 필수(`services/savings/infrastructure/build.gradle.kts`, 안 하면 금액이 정수로 잘린다)
 - 한 테이블이 Prisma 와 Flyway 양쪽 마이그레이션에 동시에 있지 않다 — 경로 이전 PR 에서 주인을 옮긴다
 - 금액 열 NUMERIC 정밀도 그대로(`performance-database.md` §1 표). 컬럼 삭제 · 이름 변경 2단계 · drop 전 덤프는 그대로
 - N+1 · 페이징 · 인덱스 · `EXPLAIN` 의무는 `performance-database.md` 그대로

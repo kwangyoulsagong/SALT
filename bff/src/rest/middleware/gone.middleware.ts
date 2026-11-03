@@ -22,7 +22,7 @@ export const DORMANT_PATHS = [
   "/api/users/achievements",
   "/api/dashboard",
   // 스펙 목록(`/api/dashboard*`) 밖이지만 같은 게이미피케이션 요약이다 — 8값 중 미션 · 포인트가 3,
-  // 목표는 `/api/goals` 가 따로 준다. 프론트 호출 0건 (2026-09-22 추가)
+  // 목표는 `/api/goals` 가 따로 줬다(2026-11-03 은퇴 — 아래 RETIRED_PATHS). 프론트 호출 0건 (2026-09-22 추가)
   "/api/users/dashboard",
 ] as const;
 
@@ -43,5 +43,32 @@ export const goneMiddleware = (req: Request, res: Response) => {
     code: "ENDPOINT_DORMANT",
     revivable: true,
     message: "This endpoint is dormant",
+  });
+};
+
+/**
+ * 은퇴 경로 — **동면과 다르다**: 되살리지 않고 새 계약으로 대체됐다(`revivable: false` + `replacement`).
+ * 404 대신 410 + 1회 로그로 1주 잔여 호출을 본 뒤 목록째 지운다. 서버 쪽 옛 코드 삭제(`msa-services.md` §7 ⑦)와 같은 날.
+ *
+ * - `/api/goals` — 저축이 Kotlin `savings` 서비스로 태어났다(`SRV-REQ-045` · `BFF-REQ-047` FR-7, 2026-11-03). 데이터는 `savings-import.sql` 로 옮겼다
+ */
+export const RETIRED_PATHS: Readonly<Record<string, string>> = {
+  "/api/goals": "/api/app/savings",
+};
+
+const retiredLogged = new Set<string>();
+
+export const retiredMiddleware = (req: Request, res: Response) => {
+  const key = req.baseUrl;
+  if (!retiredLogged.has(key)) {
+    retiredLogged.add(key);
+    logger.warn("은퇴 경로 호출 — 프론트 잔여 호출", { path: key, method: req.method });
+  }
+  res.status(410).json({
+    success: false,
+    code: "ENDPOINT_RETIRED",
+    revivable: false,
+    replacement: RETIRED_PATHS[key] ?? null,
+    message: "This endpoint was replaced",
   });
 };

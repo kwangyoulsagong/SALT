@@ -9,5 +9,7 @@ export {
   USER_KEY,
   SESSION_HINT_COOKIE,
   SESSION_HINT_MAX_AGE_SECONDS,
+  ACCESS_COOKIE,
+  SESSION_ROUTE,
   PUBLIC_PATHS,
 } from "@repo/core/auth";

@@ -178,3 +178,4 @@ created: 2026-09-09
 - 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
 - 2026-10-30: F000 종목 검색 계약 구현 — `GET /api/investment/search` · FR-32 409 두 수 · FR-33 `tracked` · 행 `isHeld`. **FR-30 개정** — `q` ≤ 30 · `limit` ≤ 30 · 형식 위반 400(서버 DTO 전부 Zod 400) · `changeRate` · `logoUrl` · `name`. Swagger 생성 확인. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: F004 슬라이스 19 차트 1주 탭(`143904c3`) — 차트 경로 `period=week`(주봉) 계약 추가 · Swagger `enum: [day, minute, week]`. 응답 모양은 일봉과 같다(`date`). `month` 422 그대로. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
+| 2026-11-03 | `d69c310e` — `app.ts` 에서 `/api/goals` 등록 삭제(Express 404 · BFF 410) |

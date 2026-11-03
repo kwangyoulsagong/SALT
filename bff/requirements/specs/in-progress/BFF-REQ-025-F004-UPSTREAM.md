@@ -163,3 +163,4 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | 2026-11-02 | 파일만 걸침 — `backendApi.proxyAuthRequest` · `openAuthStream` 에 `headers`(BFF 가 정한 것만, Authorization 은 덮지 못한다) · 해설 단건 · 스트림이 `X-Salt-Client` 를 싣는다. 근거 `BFF-REQ-050`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-03 | S0(`feat/srv-req-043-s0-platform`, 루트 `MONEY-S0-platform-slice.md`) — 서버 호출 클라이언트(`backend-api.service.ts`) 인터셉터에 스트랭글러 장치(`BFF-REQ-045`) — 경로별 주소(legacy | platform | shadow) · traceparent. 경로별 타임아웃 · 신호(호출 맵)는 그대로, 기본 표에서 모든 F004 경로 legacy |
 | 2026-11-03 | 커밋 대조 — 걸친 파일 `backend-api.service.ts`: `4bc746f1`(인터셉터) · `cc184c3a`(녹화 주소 · 그림자 상한) |
+| 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`3e5e0d42`): `proxy.routes.ts` 의 `/goals*` 프록시 8줄 삭제 — 저축은 `/api/app/savings/*`(`BFF-REQ-047`), 옛 경로는 410 |

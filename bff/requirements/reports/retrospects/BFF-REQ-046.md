@@ -16,3 +16,7 @@
 
 - 집계 서비스는 401 · 403 을 부분 실패로 삼키지 않는다 — `bff-architecture.md` §5 에 한 줄
 - 카드가 설정(숨김 등)에 따라 달라지면 켬 · 끔 · 설정 실패 세 경우를 테스트로
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 걸린 몫은 위 체크리스트 한 줄. 근거 · 판단은 루트 회고 `requirements/reports/retrospects/MONEY-S1a-savings-calculator.md`. Action 없음

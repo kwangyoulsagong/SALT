@@ -2,7 +2,7 @@ import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { errorMiddleware } from "./middleware/error.middleware";
-import { DORMANT_PATHS, goneMiddleware } from "./middleware/gone.middleware";
+import { DORMANT_PATHS, RETIRED_PATHS, goneMiddleware, retiredMiddleware } from "./middleware/gone.middleware";
 import { logger } from "../config/logger";
 import { loggableUrl } from "../utils/error.util";
 import { runInTrace } from "../services/server-routing/trace";
@@ -18,6 +18,7 @@ import watchlistRoutes from "./routes/watchlist.routes";
 import searchRoutes from "./routes/search.routes";
 import newsRoutes from "./routes/news.routes";
 import onboardingRoutes from "./routes/onboarding.routes";
+import savingsRoutes from "./routes/savings.routes";
 import aiCoachRoutes from "./routes/ai-coach.routes";
 import coachRoutes from "./routes/coach.routes";
 import tradePreflightRoutes from "./routes/trade-preflight.routes";
@@ -61,6 +62,7 @@ app.use("/api/app/watchlist", watchlistRoutes);
 app.use("/api/app/search", searchRoutes);
 app.use("/api/app/news", newsRoutes);
 app.use("/api/app/onboarding", onboardingRoutes);
+app.use("/api/app/savings", savingsRoutes);
 app.use("/api/app/ai-coach", aiCoachRoutes);
 app.use("/api/app/coach", coachRoutes);
 app.use("/api/app/trade-preflight", tradePreflightRoutes);
@@ -70,6 +72,8 @@ app.use("/api/app/signal-performance", signalPerformanceRoutes);
 
 // 동면 경로 — 404 가 아니라 410 (`BFF-REQ-007` A절). `feed.routes` 는 파일만 남아 있다
 app.use([...DORMANT_PATHS], goneMiddleware);
+// 은퇴 경로 — 새 계약으로 대체됐다. 1주 410 + 1회 로그로 잔여 호출을 본 뒤 지운다(`BFF-REQ-047` FR-7)
+app.use(Object.keys(RETIRED_PATHS), retiredMiddleware);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

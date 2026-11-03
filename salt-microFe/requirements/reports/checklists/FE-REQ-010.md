@@ -262,3 +262,8 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 
 - 홈 페이지가 놓던 `ProfileMenu` 를 지웠다 — 머리 프로필은 zone 공용 `AppShell` 머리 한 자리(`e0bce695`). 홈 화면 내용 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 이 REQ 에 걸린 몫(`c60f5bfb`): 셸 `store.ts` 에서 `goal` 가지 삭제 · 셸 목표 엔티티 · 기능 · 페이지 삭제(`domain-savings` 로)
+- 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`

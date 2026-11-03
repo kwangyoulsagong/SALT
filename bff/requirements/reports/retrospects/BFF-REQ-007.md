@@ -110,3 +110,7 @@ A절(동면 410) · B절(홈 조립) · C절(알림)은 손대지 않았다.
 ## 2026-11-03 — S0
 
 - 서버 호출이 한 클라이언트에 모여 있어 스위치가 이 REQ 코드를 건드리지 않고 붙었다. 새 서버 호출을 따로 만들지 않는다(`backend-integration.md`)
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 걸린 몫은 위 체크리스트 한 줄. 근거 · 판단은 루트 회고 `requirements/reports/retrospects/MONEY-S1a-savings-calculator.md`. Action 없음

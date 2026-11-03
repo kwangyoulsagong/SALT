@@ -1,6 +1,7 @@
 import { logger } from "../config/logger";
 import { appAICoachService } from "./app-ai-coach.service";
 import { appPortfolioService } from "./app-portfolio.service";
+import { appSavingsService } from "./app-savings.service";
 import { backendApi } from "./backend-api.service";
 import {
   DEFAULT_HOME_ORDER,
@@ -9,10 +10,10 @@ import {
   degradedCard,
   toInvestCard,
   toSavingsCard,
+  SAVINGS_HREF,
   type AppHomeVM,
   type HomeDomain,
   type HomeSummaryCard,
-  type ServerGoalStatistics,
 } from "./home-card.viewmodel";
 
 export type { AppHomeVM, HomeSummaryCard } from "./home-card.viewmodel";
@@ -70,13 +71,9 @@ const CARD_SOURCES: CardSource[] = [
   {
     domain: "savings",
     title: HOME_CARD_TEXT.savings.title,
-    href: "/goals/addgoals",
-    load: async (token, now) => {
-      const response = await backendApi.proxyAuthRequest("GET", "/goals/statistics", token, undefined, {
-        timeout: HOME_CARD_TIMEOUT_MS,
-      });
-      return toSavingsCard((response.data?.data ?? {}) as ServerGoalStatistics, now);
-    },
+    href: SAVINGS_HREF,
+    // Kotlin savings 서비스(라우팅 표 `/savings` → platform). 옛 `/goals/statistics` 는 은퇴(BFF-REQ-047 FR-7)
+    load: async (token, now) => toSavingsCard(await appSavingsService.homeCard(token, HOME_CARD_TIMEOUT_MS), now),
   },
   {
     domain: "invest",

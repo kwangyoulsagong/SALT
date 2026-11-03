@@ -56,3 +56,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 후속 — `0f8683f8` — 카드 계약에 값 아래 한 줄 `note` 추가(BFF · `@repo/core/home` 같이). 투자 카드가 매입가 숨김을 켰다고 확인된 사람에게 "오늘 처음 본다면" 줄 — 셸 카드가 값 아래 그린다. 실화면 켬/끔 확인 |
 | 2026-11-02 | 커밋: `20971abf`(shared 패키지 — 카드가 쓰는 `@repo/web-shared`) · `62129b1d`(계약 `@repo/core/home`) · `417076d8`(셸 홈 카드) · `08a3aabf`(`ZoneLink` · 셸 `/settings`) · `0f8683f8`(`note`) · `562adfad`(로그인 상태 `/` → `/home`) |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 셸 홈 머리 — 프로필 메뉴가 화면이 아니라 공용 머리에서 온다(`e0bce695`). 홈 카드 계약 · 순서 무변경 |
+| 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 홈 임시 목표 목록(`GoalsBlock`) 삭제 — `/goals` 가 생겼다. 홈 경계 2 → 1 |

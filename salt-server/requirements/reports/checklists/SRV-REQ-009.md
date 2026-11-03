@@ -135,3 +135,8 @@ Swagger(`failOnErrors`) 생성 · 실검증 · 실화면 상세는 루트 `requi
 - 차트 경로 `period=week` — 실서버 200 · 주봉, BFF 경유(`localhost:4001`) 같은 응답. `period=month` 422(서버 · BFF 둘 다 `MARKET_CHART_PERIOD_UNSUPPORTED`)
 - Swagger enum 3종(`swagger-jsdoc` `failOnErrors`)
 - 미검증 · 범위 밖: `month`(소비 화면이 생길 때, `SRV-REQ-008` FR-50)
+
+## 2026-11-03 — 사용자 "그것도 다 니가해": launchd 상시 · 옛 Express goals 삭제
+
+- `d69c310e` — `app.ts` 에서 `/api/goals` 등록 삭제(Express 404 · BFF 410)
+- 확인: 서버 build · lint · test 936 · test:layer-check · 재시작 health 200 · Express `/api/goals` 404 · BFF 410 · 온보딩 `set_plan` done · `ops/salt.sh status` 전부 ok

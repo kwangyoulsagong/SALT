@@ -208,3 +208,4 @@ type AlertVM = {
 - 2026-10-29: 전수 조사 — FR-12 기간 2종 · 수용 기준 구현분 표시
 - 2026-10-30: 화면 계약 구현 — `GET /api/app/search` 뷰모델 `{ items: [{ assetType, symbol, name, logoUrl, currentPrice, changeRate, isTracked, isHeld }], tracked }`(`AssetSearchResultVM` 이름 대신 `AssetSearchVM`) · FR-19 409 `TRACKED_ASSET_LIMIT` + 두 수 · 관심 목록 `tracked` · 행 `isHeld` — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: F004 슬라이스 19 차트 1주 탭 — FR-12 개정 3종(`week`, `a6accc80`). 응답은 서버 차트 그대로 전달. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
+| 2026-11-03 | MONEY-S1a — `3e5e0d42` — `gone.middleware.ts`(동면 410, 이 REQ FR-11)에 은퇴 목록 `RETIRED_PATHS` 를 더했다. 동면 경로 동작 · 테스트 무변경 |

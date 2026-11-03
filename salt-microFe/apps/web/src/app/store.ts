@@ -1,7 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 
 import { authReducer } from "@/entities/auth";
-import { goalReducer } from "@/entities/goal";
 
 /**
  * zone 하나에 store 하나 (FE-REQ-007).
@@ -13,7 +12,6 @@ import { goalReducer } from "@/entities/goal";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    goal: goalReducer,
   },
 });
 

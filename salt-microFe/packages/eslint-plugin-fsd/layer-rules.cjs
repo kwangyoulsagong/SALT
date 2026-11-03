@@ -87,6 +87,8 @@ const REGISTRY = {
     "explain-symbol",
     "regenerate-coach",
     "record-transaction",
+    // 저축 적립 — 단건 · 여러 목표 나눠 넣기(`FE-REQ-056` FR-4, 2026-11-03)
+    "record-deposit",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",
@@ -119,6 +121,8 @@ const REGISTRY = {
     "assets",
     "goals",
     "add-goal",
+    // 저축 목표 상세 `/goals/[id]`(`FE-REQ-056`, 2026-11-03)
+    "goal-detail",
     "investments",
     "investment-detail",
     "search",

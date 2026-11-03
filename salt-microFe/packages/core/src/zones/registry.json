@@ -30,8 +30,8 @@
       "devPort": 3003,
       "pathPrefixes": ["/goals"],
       "assetPrefix": "/savings-static",
-      "hostedIn": "web",
-      "hostedUntil": "FE-REQ-056",
+      "hostedIn": "web-savings",
+      "hostedUntil": null,
       "reason": "저축 목표 — 모으는 데 얼마나 걸리나"
     },
     "household": {

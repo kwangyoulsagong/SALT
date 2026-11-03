@@ -198,3 +198,4 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 - 2026-10-30: F004 슬라이스 19 차트 1주 탭(`a6accc80`) — **FR-52 개정 3종**: `CHART_PERIODS` 에 `week`(서버와 같은 목록). `assertChartPeriod` 테스트 신설(세 주기 · 값 없음 통과, `month` · `miniute` 422). 기존 `error.middleware` 테스트가 `week` 를 "모르는 주기" 예시로 쓰던 것을 `month` 로. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
 - 2026-11-03: S0(`feat/srv-req-043-s0-platform`, 루트 `MONEY-S0-platform-slice.md`) — `app.ts` 에 추적 미들웨어 한 줄(보안 헤더 · CORS 다음, body parser 앞 — `BFF-REQ-045` FR-7). 동면 410 순서 · 404 handler 무변경
 - 2026-11-03: 커밋 대조 — 걸친 파일 `app.ts`: `4bc746f1`(추적 미들웨어 한 줄)
+| 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`3e5e0d42`): 동면 목록 파일(`gone.middleware.ts`)에 **은퇴** 목록 `RETIRED_PATHS` 를 더했다 — 동면(되살릴 수 있음 · `revivable: true`)과 은퇴(새 계약으로 대체 · `replacement`)를 섞지 않는다. 기존 동면 경로 410 무변경(테스트 그대로 통과) |

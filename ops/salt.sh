@@ -13,8 +13,9 @@
 # 나머지는 사람이 기억해서 띄웠다. 2026-11-02 뉴스 워커가 09-29 부터 · BFF 시세 워커도 꺼진 채 발견 — 사용자 "계속 머 까먹어서".
 # 데이터를 모으는 프로세스(뉴스 · 시세)는 전부 상시로 둔다. 웹 dev 만 상시가 아니다(빌드 · 재시작이 잦다).
 #
-# 이름: server · news · bff-rest · bff-ws · bff-worker · forecast · web · web-investment
-# 웹 dev 는 zone 마다 하나(셸 web 3000 · 투자 web-investment 3002 — `FE-REQ-053`). 셸이 투자 경로를 3002 로 프록시한다
+# 이름: server · platform · news · bff-rest · bff-ws · bff-worker · forecast · web · web-investment · web-savings
+# platform = Kotlin(`salt-platform`, :4010) — S1 저축부터 화면 경로가 있다(`SRV-REQ-045`). RabbitMQ 는 그 스크립트가 Compose 로 띄운다
+# 웹 dev 는 zone 마다 하나(셸 web 3000 · 투자 web-investment 3002 — `FE-REQ-053` · 저축 web-savings 3003 — `FE-REQ-056`). 셸이 도메인 경로를 각 zone 으로 프록시한다
 # 웹은 dev 로만 띄운다 — dev 정적 경로는 zone 별(`/investment-static`). 운영 빌드(`next start`)를 여기에 넣으려면 빌드 뒤
 # `pnpm static:merge` 가 먼저다(운영 빌드는 모든 zone 이 공용 `/_next` — `ADR-005` 규칙 7 개정 · `FE-REQ-054`, 2026-11-03)
 set -u
@@ -29,23 +30,23 @@ LAUNCH_PATH="$NODE_DIR:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bi
 
 # 이름 → launchd 라벨 · 실행 스크립트 · 포트(없으면 -) · 헬스 주소(없으면 -) · 로그
 typeset -A LABEL SCRIPT PORT HEALTH LOG
-LABEL=(server com.salt.server news com.salt.news bff-rest com.salt.bff-rest bff-ws com.salt.bff-ws bff-worker com.salt.bff-worker forecast com.salt.forecast-daily)
-SCRIPT=(server "$ROOT/salt-server/ops/run-server.sh" news "$ROOT/salt-server/ops/run-news.sh"
+LABEL=(server com.salt.server platform com.salt.platform news com.salt.news bff-rest com.salt.bff-rest bff-ws com.salt.bff-ws bff-worker com.salt.bff-worker forecast com.salt.forecast-daily)
+SCRIPT=(server "$ROOT/salt-server/ops/run-server.sh" platform "$ROOT/salt-platform/ops/run-platform.sh" news "$ROOT/salt-server/ops/run-news.sh"
         bff-rest "$ROOT/bff/ops/run.sh rest" bff-ws "$ROOT/bff/ops/run.sh ws" bff-worker "$ROOT/bff/ops/run.sh worker"
         forecast "$ROOT/salt-forecast/ops/daily.sh")
-PORT=(server 4000 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - web 3000 web-investment 3002)
-HEALTH=(server http://localhost:4000/health bff-rest http://localhost:4001/health)
-LOG=(server "$LOGS/salt-server.log" news "$LOGS/salt-news.log" bff-rest "$LOGS/salt-bff-rest.log" bff-ws "$LOGS/salt-bff-ws.log"
+PORT=(server 4000 platform 4010 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - web 3000 web-investment 3002 web-savings 3003)
+HEALTH=(server http://localhost:4000/health platform http://localhost:4010/actuator/health bff-rest http://localhost:4001/health)
+LOG=(server "$LOGS/salt-server.log" platform "$LOGS/salt-platform.log" news "$LOGS/salt-news.log" bff-rest "$LOGS/salt-bff-rest.log" bff-ws "$LOGS/salt-bff-ws.log"
      bff-worker "$LOGS/salt-bff-worker.log" forecast "$LOGS/salt-forecast-daily.log" web "$LOGS/salt-web.log"
-     web-investment "$LOGS/salt-web-investment.log")
+     web-investment "$LOGS/salt-web-investment.log" web-savings "$LOGS/salt-web-savings.log")
 # 포트 없는 상시 프로세스를 수동으로 띄웠는지 알아보는 명령줄 조각
 typeset -A PATTERN
 PATTERN=(news "workers/news-crawler.worker" bff-worker "workers/price-updater.worker")
-ORDER=(server news bff-rest bff-ws bff-worker forecast web web-investment)
+ORDER=(server platform news bff-rest bff-ws bff-worker forecast web web-investment web-savings)
 # launchd 가 아니라 pnpm dev 로 띄우는 zone 앱(이름 = pnpm 필터)
-DEV_APPS=(web web-investment)
+DEV_APPS=(web web-investment web-savings)
 is_dev() { (( ${DEV_APPS[(Ie)$1]} )); }
-SERVICES=(server news bff-rest bff-ws bff-worker forecast)
+SERVICES=(server platform news bff-rest bff-ws bff-worker forecast)
 
 say() { print -r -- "$*"; }
 

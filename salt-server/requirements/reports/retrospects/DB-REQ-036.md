@@ -9,3 +9,7 @@
 
 - S1 착수 때 B1 · B3 · B4 줄부터 닫는다(savings FK · 프로필 통계 · 온보딩 목표 수)
 - B9 뷰는 S5 `FC-REQ-025` 에 행으로 넘긴다
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 걸린 몫은 위 체크리스트 한 줄. 근거 · 판단은 루트 회고 `requirements/reports/retrospects/MONEY-S1a-savings-calculator.md`. Action 없음

@@ -86,9 +86,9 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `notification` | 알림 1종 (지표/추천 갱신) · 읽음 | `notification` | 셸 |
 | `device` | 디바이스 등록 · 푸시 토큰 · 앱 버전 게이트 (모바일만) | `device` | 셸(모바일) |
 
-도메인 패키지 열은 있는 곳이다 — `invest` = `packages/domain-invest`(2026-11-02 `FE-REQ-053`), 셸 = `apps/web`. `savings` 는 아직 `apps/web/src`(`FE-REQ-056` 이 `domain-savings` 로). shared 레이어는 `packages/web-shared`(`@repo/web-shared/<세그먼트>`).
+도메인 패키지 열은 있는 곳이다 — `invest` = `packages/domain-invest`(2026-11-02 `FE-REQ-053`), 셸 = `apps/web`. `savings` = `packages/domain-savings`(2026-11-03 `FE-REQ-056`). shared 레이어는 `packages/web-shared`(`@repo/web-shared/<세그먼트>`).
 
-**실재하는 엔티티는 6개다** — `auth` · `goal` · `home`(셸, 2026-11-02) · `market` · `portfolio` · `coach`(뒤 셋은 `domain-invest`).
+**실재하는 엔티티는 6개다** — `auth` · `goal` · `home`(셸, 2026-11-02) · `market` · `portfolio` · `coach`(뒤 셋은 `domain-invest`, `goal` 은 2026-11-03 부터 `domain-savings`).
 나머지는 해당 기능 REQ에서 생긴다. 표에 있다고 폴더가 있는 것은 아니다.
 
 > store 조립은 `app` 레이어가 한다. 슬라이스는 `RootState`를 보지 않고 **자기 가지만 타이핑한
@@ -184,7 +184,7 @@ export enum AssetClass {
 | `packages/core` | 플랫폼 무관 `model`·`api`·`lib` | 전부 |
 | `packages/web-shared` | 웹 shared 레이어(`api` · `config` · `i18n` · `lib` · `model` · `ui`) + zone 공용 레이아웃(`layout`: 프로바이더 · 프레임 · 앱 내비게이션 연결 · 프로필 메뉴 · 404 · 글꼴 · prerender · 문서 간 전환) | web · 도메인 zone · `domain-*` |
 | `packages/config-next` | zone 공용 Next 설정 프리셋 `zoneNextConfig(zoneId)` — zone 몫은 레지스트리 값(`FE-REQ-054` FR-5). 운영 빌드는 공용 `/_next`(정적 파일 합치기 `pnpm static:merge`) | zone 앱 5 `next.config.js` |
-| `packages/domain-*` | 도메인 화면(FSD `entities`~`pages`) — `domain-invest` 만 있다 | 자기 zone 앱만 |
+| `packages/domain-*` | 도메인 화면(FSD `entities`~`pages`) — `domain-invest` · `domain-savings`(2026-11-03) | 자기 zone 앱만 |
 | `packages/eslint-config` `packages/typescript-config` | 툴링 | 전부 |
 
 ## 9. 레이어별 규칙 문서

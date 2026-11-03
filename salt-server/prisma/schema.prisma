@@ -26,8 +26,6 @@ model User {
   updatedAt       DateTime  @updatedAt @map("updated_at")
   lastLoginAt     DateTime? @map("last_login_at")
 
-  goals                   Goal[]
-  savingTransactions      SavingTransaction[]
   watchlist               InvestmentWatchlist[]
   missionProgress         UserMissionProgress[]
   achievements            UserAchievement[]
@@ -91,62 +89,6 @@ model InviteCodeAttempt {
 
   @@index([createdAt])
   @@map("invite_code_attempts")
-}
-
-// ==================== Goal ====================
-model Goal {
-  id            String       @id @default(uuid())
-  userId        String       @map("user_id")
-  title         String
-  category      GoalCategory
-  targetAmount  Decimal
-  currentAmount Decimal      @default(0) @map("current_amount")
-  startDate     DateTime     @map("start_date")
-  targetDate    DateTime     @map("target_date")
-  status        GoalStatus   @default(active)
-  themeColor    String       @default("#4A90E2") @map("theme_color")
-  createdAt     DateTime     @default(now()) @map("created_at")
-  updatedAt     DateTime     @updatedAt @map("updated_at")
-  completedAt   DateTime?    @map("completed_at")
-
-  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions SavingTransaction[]
-
-  @@index([userId, status])
-  @@map("goals")
-}
-
-enum GoalCategory {
-  travel
-  first_car
-  startup
-  wedding
-  creative
-  other
-}
-
-enum GoalStatus {
-  active
-  completed
-  paused
-}
-
-// ==================== Saving Transaction ====================
-model SavingTransaction {
-  id              String   @id @default(uuid())
-  goalId          String   @map("goal_id")
-  userId          String   @map("user_id")
-  amount          Decimal
-  note            String?
-  transactionDate DateTime @map("transaction_date")
-  createdAt       DateTime @default(now()) @map("created_at")
-
-  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([goalId, transactionDate])
-  @@index([userId, transactionDate])
-  @@map("saving_transactions")
 }
 
 // ==================== Investment Watchlist ====================

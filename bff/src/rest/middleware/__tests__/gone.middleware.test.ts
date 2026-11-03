@@ -45,3 +45,20 @@ describe("동면 경로", () => {
     assert.ok(!DORMANT_PATHS.some((p) => "/api/users/profile".startsWith(`${p}/`)));
   });
 });
+
+describe("은퇴 경로 (BFF-REQ-047 FR-7)", () => {
+  it("옛 /api/goals* 는 인증 전에 410 ENDPOINT_RETIRED + 대체 경로 — 하위 경로 · 메서드 무관", async () => {
+    for (const [method, path] of [
+      ["GET", "/api/goals"],
+      ["GET", "/api/goals/statistics"],
+      ["POST", "/api/goals/abc/savings"],
+      ["PATCH", "/api/goals/abc"],
+    ]) {
+      const { status, body } = await call(method, path);
+      assert.equal(status, 410, `${method} ${path}`);
+      assert.equal(body.code, "ENDPOINT_RETIRED");
+      assert.equal(body.revivable, false);
+      assert.equal(body.replacement, "/api/app/savings");
+    }
+  });
+});

@@ -32,20 +32,20 @@
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-1 | 생애 이벤트 템플릿(결혼 · 주거 · 첫 차 · 여행 · 비상금 · 출산 · 기타) + 기준선 출처 · 연도. 사용자가 금액을 고친다 | Must | Draft |
-| FR-2 | 양방향 계산기(금액+기한 → 월 적립액 / 금액+월 적립액 → 도달 시점). 세후 이자(15.4%) 선택 · 기준일 표시 | Must | Draft |
-| FR-3 | 적립 수동 기록, 여러 목표로 나눠 넣기 | Must | Draft — 단건 기록은 `POST /api/goals/:id/savings` 있음 |
-| FR-4 | 도달 구간: 기록 3개월 이상이면 경험 분위수 구간, 미만이면 "계획대로면 X월" + 이유 | Must | Draft |
-| FR-5 | 구간 채점: 3 · 6개월 전 구간의 적중 여부를 목표 화면에 쌓는다(forecast 채점) | Must | Draft |
+| FR-1 | 생애 이벤트 템플릿(결혼 · 주거 · 첫 차 · 여행 · 비상금 · 출산 · 기타) + 기준선 출처 · 연도. 사용자가 금액을 고친다 | Must | ~~Draft~~ In progress(2026-11-03 — 템플릿 7 · 금액 수정. 기준선은 원문 대조 전이라 비움) |
+| FR-2 | 양방향 계산기(금액+기한 → 월 적립액 / 금액+월 적립액 → 도달 시점). 세후 이자(15.4%) 선택 · 기준일 표시 | Must | ~~Draft~~ Done(2026-11-03 S1a — 양방향 · 세후 15.4% · 화면 디바운스) |
+| FR-3 | 적립 수동 기록, 여러 목표로 나눠 넣기 | Must | ~~Draft — 단건 기록은 `POST /api/goals/:id/savings` 있음~~ Done(2026-11-03 S1a — 단건 · 나눠 넣기, 합계는 서버 검증) |
+| FR-4 | 도달 구간: 기록 3개월 이상이면 경험 분위수 구간, 미만이면 "계획대로면 X월" + 이유 | Must | ~~Draft~~ Done(2026-11-03 S1a — 10/90% 분위 · 3개월 미만 계획 + 이유. 팬 차트는 S1b) |
+| FR-5 | 구간 채점: 3 · 6개월 전 구간의 적중 여부를 목표 화면에 쌓는다(forecast 채점) | Must | ~~Draft~~ In progress(2026-11-03 — 발행 기록 · 이벤트까지. 채점은 `FC-REQ-024`) |
 | FR-6 | 목표 저울: 목표 사이 월 적립액 이동 시 도달 구간 변화. 확정할 때만 저장 | Must | Draft |
-| FR-7 | 이번 달 이정표: 넣은 돈과 계획의 차이만. 경고 · 알림 강제 없음 | Must | Draft |
-| FR-8 | 프레임 전환: 50% 전후 "모은 돈" ↔ "남은 돈". 중립 문구 | Should | Draft |
+| FR-7 | 이번 달 이정표: 넣은 돈과 계획의 차이만. 경고 · 알림 강제 없음 | Must | ~~Draft~~ Done(2026-11-03 S1a) |
+| FR-8 | 프레임 전환: 50% 전후 "모은 돈" ↔ "남은 돈". 중립 문구 | Should | ~~Draft~~ Done(2026-11-03 S1a) |
 | FR-9 | 오늘 돈으로 다시 보기(물가지수) | Should | Draft |
 | FR-10 | 놓친 달 회고: 건너뛴 달이 구간을 얼마나 옮겼나 | Should | Draft |
 | FR-11 | 비상시 비교 카드: 목표에서 꺼내기 vs 사용자 입력 금리 대출 | Should | Draft |
 | FR-12 | 제도 파라미터 반영(청약 인정액 · 청년 적금 기여금). 상품 안내 · 링크 없음 | Could | Draft |
 | FR-13 | 공동 목표: 합의 비율 대비 실제 기여 비율 차이 | Could | Draft |
-| FR-14 | 홈 요약 카드(`HomeSummaryCard`) | Must | 부분(2026-11-02) — 카드 틀 · 모은 돈 · 진행 중 목표 수(지금 Express goals). 가장 가까운 목표 진척 · 이달 이정표 차이는 저축 서비스(S1 `SRV-REQ-045`) 뒤 |
+| FR-14 | 홈 요약 카드(`HomeSummaryCard`) | Must | 부분(2026-11-02) — 카드 틀 · 모은 돈 · 진행 중 목표 수(지금 Express goals). 가장 가까운 목표 진척 · 이달 이정표 차이는 저축 서비스(S1 `SRV-REQ-045`) 뒤 · **2026-11-03 S1a: 원천이 Kotlin 저축 서비스 · 진척 최대 목표 한 줄** |
 | FR-15 | 재미 — 모이는 장면 + 적립 모션(reduced-motion이면 정지) | Must | Draft |
 | FR-16 | 재미 — 실물로 바꿔 보기(템플릿 단위 + 사용자 단위, 서버 환산) | Must | Draft |
 | FR-17 | 재미 — 도장판(목표 생성 시 첫 도장) | Should | Draft |
@@ -142,3 +142,4 @@ flowchart LR
 | 2026-11-02 | FR-14 부분 — 셸 홈 저축 카드(모은 돈 · 진행 중 목표 수, 지금 Express goals). 홈 목표 목록은 `/goals` 가 생길 때까지 남김(`FE-REQ-056`). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |
 | 2026-11-03 | 서버 S0 — 저축 서비스가 태어날 자리(`salt-platform/`, Kotlin) · 서비스별 스키마 계정(`savings` 계정 · 스키마는 NOLOGIN 으로 준비) · 이벤트 아웃박스 · BFF 라우팅 스위치. 저축 기능 변경 0. 다음 S1(`SRV-REQ-045` · `DB-REQ-037`) + F3(`FE-REQ-056`). 루트 `requirements/specs/done/MONEY-S0-platform-slice.md` |
 | 2026-11-03 | 서버 S0 done(`SRV-REQ-043`) — 다음 S1 |
+| 2026-11-03 | S1a + F3a — FR-2 · 3 · 4 · 7 · 8 Done, FR-1 · 5 · 14 진행(루트 `requirements/specs/done/MONEY-S1a-savings-calculator-slice.md`). 저축이 Kotlin `savings` 에서 태어나고 저축 zone 첫 화면 · 옛 `/api/goals` 은퇴. 다음 S1b(FR-6 · 9~13 · 15~19) |

@@ -12,6 +12,10 @@ dependencies {
     implementation(project(":services:ping:application"))
     implementation(project(":services:ping:infrastructure"))
     implementation(project(":services:ping:api"))
+    implementation(project(":services:savings:domain"))
+    implementation(project(":services:savings:application"))
+    implementation(project(":services:savings:infrastructure"))
+    implementation(project(":services:savings:api"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-opentelemetry")

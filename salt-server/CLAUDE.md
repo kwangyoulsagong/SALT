@@ -35,7 +35,7 @@ cp .env.example .env                              # 비밀 채우기 — JWT_SEC
 ./gradlew :app:bootJar && docker compose up -d --build   # Postgres 55432 · RabbitMQ 55672 · platform 4010
 ```
 
-launchd 상시가 아니다 — 아직 화면 경로가 없다(BFF 표 `/platform` 만). S1 에서 첫 도메인 서비스가 들어올 때 `ops/salt.sh` 에 넣는다.
+~~launchd 상시가 아니다 — 아직 화면 경로가 없다~~ **정정 2026-11-03(S1 `SRV-REQ-045`)**: 저축 화면 경로(`/api/savings/*`)가 여기 있다 — `ops/salt.sh` 이름 `platform`(:4010, `salt-platform/ops/run-platform.sh` — 로컬 운영 DB 에 서비스 계정 · RabbitMQ 는 Compose 하나). 코드를 바꾸면 `./gradlew :app:bootJar` 뒤 `ops/salt.sh restart platform`.
 
 ## 구조 원칙
 

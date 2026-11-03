@@ -235,7 +235,7 @@ class PlatformEndToEndTest {
     fun `서비스 계정은 남의 스키마를 읽지 못한다`() {
         val error = shouldThrow<SQLException> {
             DriverManager.getConnection(PlatformContainers.postgres.jdbcUrl, "svc_ping", PlatformContainers.PING_PASSWORD).use {
-                it.createStatement().executeQuery("SELECT * FROM savings.probe")
+                it.createStatement().executeQuery("SELECT * FROM household.probe")
             }
         }
         error.sqlState shouldBe "42501"

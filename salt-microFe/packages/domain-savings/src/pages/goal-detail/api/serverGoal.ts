@@ -1,0 +1,28 @@
+import { cookies } from "next/headers";
+
+import { ACCESS_COOKIE, INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
+
+import type { SavingsGoalDetail } from "@/entities/goal";
+
+/** 서버 조회 상한 — 넘으면 비우고 브라우저가 부른다(첫 화면을 붙잡지 않는다) */
+const SERVER_FETCH_TIMEOUT_MS = 1_500;
+
+/**
+ * 목표 상세 서버 조회(`FE-REQ-056` FR-13 · `FE-REQ-013` FR-80 1단계) — httpOnly 쿠키의 토큰으로 BFF 를 부른다. 첫 숫자가 HTML 에 실린다.
+ * 쿠키가 없거나 실패 · 시간 초과면 null — 화면은 지금처럼 브라우저 조회로 그린다(실패를 화면 오류로 올리지 않는다).
+ * 서버 조회는 부르는 페이지 슬라이스에 둔다(`performance-frontend.md` §7 — 엔티티 배럴은 클라이언트가 같이 쓴다).
+ */
+export const serverGoal = async (id: string): Promise<SavingsGoalDetail | null> => {
+  const token = (await cookies()).get(ACCESS_COOKIE)?.value;
+  if (!token) return null;
+  try {
+    const response = await fetch(`${INVESTMENTS_BASE_URL}/api/app/savings/goals/${encodeURIComponent(id)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(SERVER_FETCH_TIMEOUT_MS),
+    });
+    return response.ok ? ((await response.json()) as SavingsGoalDetail) : null;
+  } catch {
+    return null;
+  }
+};

@@ -106,3 +106,8 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
 ## 2026-11-03 — S0 서버 스위치(`BFF-REQ-045`)
 
 - 호출 맵 경로 전부 legacy 그대로(`npm test` 347 · 상시 BFF :4001 200) — 인터셉터가 주소 · traceparent 만 바꾼다
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 이 REQ 에 걸린 몫(`3e5e0d42`): `proxy.routes.ts` 의 `/goals*` 프록시 8줄 삭제 — 저축은 `/api/app/savings/*`(`BFF-REQ-047`), 옛 경로는 410
+- 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`

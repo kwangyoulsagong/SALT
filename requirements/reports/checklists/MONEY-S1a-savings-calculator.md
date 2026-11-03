@@ -1,0 +1,62 @@
+# MONEY-S1a — 저축 서비스 첫 판 · 저축 zone 첫 화면 — 체크리스트
+
+슬라이스 `requirements/specs/done/MONEY-S1a-savings-calculator-slice.md` · 커밋 `e83f7f80` · `1ec3b0c6` · `3e5e0d42` · `c60f5bfb` · `8d05a006` · `b1c8ad67`
+
+## 1. 수용 기준
+
+| REQ | 결과 | 근거 |
+|---|---|---|
+| `SRV-REQ-045` | 4/4 | 계산 경계 10 · `trackReason` · 서버 문장 0 · 옛 경로 은퇴(정정) |
+| `DB-REQ-037` | 3/3 | 가져오기 대조 · 불변 트리거 테스트 · `legacy_category` 왕복 |
+| `BFF-REQ-047` | ~~1/2~~ **2/2**(2026-11-03 `2c998117`) | 가공 0 테스트 · 구간 실패 → `degraded` + 계획값 |
+| `FE-REQ-056` | 4/4 | 계산 0 grep(`b1c8ad67`) · 금지어 0 · 모션 0 · 회귀 0(계좌 칸은 정책상 뺌) |
+
+## 2. 검증 — 실행한 것
+
+| 무엇 | 결과 |
+|---|---|
+| Kotlin `./gradlew check` | 통과 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) — 쿼리 3회 · 동시 적립 달성 1회 · 권한 42501 양방향 포함 |
+| 실행 jar | `bootJar` → 로컬 운영 DB(svc_savings) Flyway v1 · `/actuator/health` UP · 아웃박스 → RabbitMQ published |
+| 가져오기 | 일회용 Postgres 14 왕복(재실행 같음 · KST 날짜 · 잔액 행 · 되돌리기) · 로컬 운영 DB 목표 1 · 적립 0 |
+| 서버 Express | build · lint · test 936 · test:layer-check 16 |
+| BFF | build · test 351(+3) |
+| 프론트 | check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · test:layer-check 26 · 훅 사후 실행(Bash 로 쓴 파일 전부) |
+| 실스택 | BFF 4011 → 라우팅 표 → Kotlin 4010 → 로컬 DB: 템플릿 · 계산(3% 세후 986,439원) · 만들기 · 적립 · 목록 · 나눠 넣기 400 · 옛 `/api/goals` 410 · 홈 카드 "제주 여행 25.0%". BFF 4001 재시작 뒤 200 |
+| 온보딩 프로브 | Express 재시작 뒤 가져온 목표 주인 `set_plan` done true · 목표 없는 사용자 false |
+| 실화면(임시 사용자, 뒤에 삭제) | 3003 `/goals` · `/goals/new` · 상세 — 만들기 → 상세 → 적립 · 1024 · 1280 · 1440 · 1600 가로 넘침 0 · 콘솔 오류 0 · `<main>` 중첩 발견 → 고침 |
+| 금지어 · 계산 grep | 0 · 0 |
+| 임시 데이터 | 목표 · 적립 · 발행(트리거 잠시 끔) · 아웃박스 삭제 → 가져온 1건만 남음 · 트리거 다시 켬 |
+
+## 3. 걸린 기존 REQ(주인 집계)
+
+`BFF-REQ-007` · `025` · `045` · `046` · `DB-REQ-036` · `FE-REQ-007` · `009` · `010` · `013` · `035` · `052` · `054` · `055` · `OPS-002` · `SRV-REQ-008` · `043` · `044` — 각 스펙 Changelog · 체크리스트 · 회고에 한 줄.
+짝 영역 변경 없음: 예측(`FC-REQ-024` — 채점은 S1b 뒤, 이벤트 계약만 생김) · RN(`RN-REQ-033`).
+
+## 4. 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| ~~platform launchd 상시~~ | **닫힘 2026-11-03** `9265c0b4` — 등록 · 데스크탑 폴더 멈춤 해결 · 상태 ok | — |
+| ~~앱 웹뷰 390 · 셸 3000 경유~~ | **닫힘 2026-11-03** — 셸을 3010 에 띄워 경유 · 웹뷰 390 · 일반 390 실측(`FE-REQ-056` 체크리스트) · 결함 1 `b0768194` | — |
+| ~~`BFF-REQ-047` `degraded`~~ | **닫힘 2026-11-03** `2c998117` | — |
+| ~~`FE-REQ-056` FR-13 서버 렌더~~ | **닫힘 2026-11-03** `0ef25f6b` — 쿠키 세션 1단계(`FE-REQ-013` FR-80) | — |
+| `FE-REQ-013` FR-80 2단계 | 브라우저 저장소 토큰 제거 · BFF 쿠키 → Authorization · WS · SSE — 모든 zone 호출이 바뀌는 별 슬라이스 | `FE-REQ-013` 2단계 |
+| ~~옛 Express goals · Prisma 모델 삭제~~ | **닫힘 2026-11-03** `d69c310e` — 남은 호출 0 직접 확인 · 덤프 · 복원 시험. BFF 410 은 남김 | — |
+| ~~로컬 DB 에 표 drop 적용~~ | **닫힘 2026-11-03** — 사용자가 이 명령 하나만 허용(`.claude/settings.local.json`, 커밋 안 함) → `prisma migrate deploy` 적용 · `public.goals` 없음 · `savings.goal` 1 그대로 · 서버 · 온보딩 정상 | — |
+| ~~독립 코드 리뷰(high)~~ | **닫힘 2026-11-03** — 10건 모두 사실 · 전부 수정 `c82be47c` | — |
+
+## 2026-11-03 — 코드 리뷰(high) 10건 `c82be47c`
+
+- ① `monthsToReach` Int 넘침(30억/월 1원 → 1달) ② · ③ · ④ 화면이 발행 기록을 읽어 `degraded` 가 가려지고 · 지난 달이 도달 시점으로 남고 · 목록과 상세가 갈림 → 조회는 늘 지금 기준 재계산(발행은 채점 보관용) ⑤ 월 적립 + 지난 기한 저장 ⑥ 나눠 넣기 대소문자 중복 · 문자열 잠금 순서 ⑦ 다 찬 목표에 '적게 넣었어요' → `reached` ⑧ 상세가 사용자 전체를 훑음 → `totalsFor` ⑨ 온보딩 프로브가 홈 카드 조립을 빌림 → `GET /goals/exists` ⑩ '원' 4곳 → `formatWon`
+- 검증: Kotlin 종단 10(대소문자 중복 400 · 목록 = 상세 구간 · exists) · 도메인 19 · 경계 8 · 플랫폼 14 · 서버 936 · BFF 351 · 모노레포 check-types · lint · test · web-savings 빌드 · 훅 사후 · 실스택(프로브 done true/false)
+
+## 2026-11-03 — 최종 HEAD 대조(사용자 "다한거지 파이프라인 다하고 버그 없고 검증 다하고")
+
+- (A) 커밋 × REQ(주인 + 함께 적힌 REQ) 대조 — 빈칸 5쌍 발견 · 채움(`FE-REQ-054` · `DB-REQ-037` · `BFF-REQ-047` · `SRV-REQ-045` · `BFF-REQ-008`). 재대조 0
+- (B) 상태 = 폴더: 4 REQ in-progress · 마스터 인덱스 상태표 일치
+- (C) 낡은 문장: `SRV-REQ-008` 스펙 · 체크리스트의 "프로브 → `home-card`" 를 그 자리에서 정정(`goals/exists`)
+- Kotlin `./gradlew check` 60 통과(최종 HEAD) · 실화면 재측정(만들기 → 상세 → 적립 · 4폭 넘침 0 · 오류 0) · 다 찬 목표 실스택 `completed 100 · reached · difference null` · 임시 데이터 삭제 · 트리거 다시 켬
+
+## 2026-11-03 — 쿠키 세션 1단계 `0ef25f6b`
+
+- 실측: `/api/session` POST 204 + HttpOnly · 다른 사이트 403 · 모양 틀림 400 · DELETE 지움 · 셸 경유 `/goals` · `/goals/[id]` HTML 에 목표 이름 · 금액(쿠키 없으면 없음) · 브라우저 첫 진입에 쿠키 채움 · `document.cookie` 에 안 보임 · 수화 오류 0. 모노레포 check-types · lint · test · web · web-savings 빌드 · 훅

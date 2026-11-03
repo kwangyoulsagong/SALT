@@ -1,0 +1,23 @@
+/** 목표 만들기 문구 — 사실만. 칭찬 · 재촉 0(`FE-REQ-056` 수용 기준 2) */
+export const ADD_GOAL_MESSAGES = {
+  template: "어떤 목표인가요",
+  title: "이름",
+  titlePlaceholder: "예: 제주 여행",
+  amount: "목표 금액",
+  amountPlaceholder: "원",
+  modeLabel: "계산 방식",
+  modeDeadline: "기한으로",
+  modeMonthly: "월 적립으로",
+  deadline: "기한",
+  monthly: "월 적립",
+  interest: "이자 포함(세후)",
+  rate: "연 이율(%, 세전)",
+  resultMonthly: "매달 넣을 돈",
+  resultReach: "도달 시점",
+  resultMonths: (n: number) => `${n}개월`,
+  resultInterest: "예상 이자(세후)",
+  assumption: (tax: string) => `이자소득세 ${tax}% 뒤 · 단리 · 매달 초 납입 기준이에요. 지금 모은 돈의 이자는 넣지 않았어요`,
+  submit: "목표 만들기",
+  submitFailed: "목표를 만들지 못했어요. 다시 시도해 주세요",
+  calcFailed: "계산을 못 했어요 — 입력은 그대로예요",
+} as const;

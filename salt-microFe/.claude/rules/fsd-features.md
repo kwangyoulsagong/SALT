@@ -37,7 +37,8 @@ features/{slice}/
 | `run-preflight` | 주문 전 계산 (게이트 없음) | F004 |
 | `complete-weekly-plan` | 이번 주 적립 완료 체크 | F003 |
 | `edit-plan-settings` | 월 적립액 편집 (밴드 임계값은 읽기 전용 — 감사 문서 D9) | F003 |
-| `add-goal` | 목표 저축 추가 | F000 |
+| `add-goal` | 목표 저축 추가 — 2026-11-03 저축 zone(`domain-savings`)에서 계산기(서버 계산 · 디바운스)와 함께 | F000 · F012 |
+| `record-deposit` | 저축 적립 단건 · 여러 목표 나눠 넣기(합계는 서버가 검증) | F012 (2026-11-03) |
 | `toggle-watchlist` | 관심 종목 추가·제거 | F000 |
 | `accept-invite` | 초대 코드 입력·검증 | F000 |
 | `arrange-panels` | PC 이진분할 격자 배치 변경 | F006 |

@@ -75,3 +75,14 @@
 ## 2026-11-03 — 번들 최종
 
 - 위 Changelog 줄과 같다(HTML 스크립트 gzip, main 워크트리 대조)
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 이 REQ 에 걸린 몫(`c60f5bfb`): 저축 첫 숫자 서버 렌더(`FE-REQ-056` FR-13)가 이 REQ(토큰 → 쿠키)를 기다린다 — 저축 조회 훅이 같은 이유로 클라이언트
+- 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`
+- 번들(Next 표 First Load, 운영 빌드): 저축 zone 새 화면 `/goals` 146 · `/goals/[id]` 146 · `/goals/new` 125 kB(공용 102) · 셸 `/home` 158 → 154 kB(F2 기록 대비 — 임시 목표 목록 · `goal` store 삭제) · 투자 zone 무변경
+
+## 2026-11-03 — 쿠키 세션 1단계 `0ef25f6b`
+
+- FR-80 **1단계 done** — 셸 Route Handler `/api/session`(같은 origin 만 · JWT 모양 · 수명 = exp, 최대 하루)이 httpOnly `salt_at` 을 쓰고 지운다. 로그인 · 갱신 · 로그아웃 · 탭 첫 진입이 같이 부른다. 서버 컴포넌트가 이 쿠키로 BFF 를 부른다(첫 소비처: 저축). **2단계 남음**: 브라우저 저장소 토큰 제거 · BFF 쿠키 → Authorization · WS · SSE
+- 실측: `/api/session` POST 204 + HttpOnly · 다른 사이트 403 · 모양 틀림 400 · DELETE 지움 · 셸 경유 `/goals` · `/goals/[id]` HTML 에 목표 이름 · 금액(쿠키 없으면 없음) · 브라우저 첫 진입에 쿠키 채움 · `document.cookie` 에 안 보임 · 수화 오류 0. 모노레포 check-types · lint · test · web · web-savings 빌드 · 훅

@@ -32,7 +32,10 @@ export const ROUTES = {
   /** 판정 근거 상세 — 성적표 그룹 하나(`[kr_stock.]<mode>.<action>`). 성적표 그룹이 여기로 온다(F004 FR-33) */
   signalEvidence: (signalType: string) => `/coach/signals/${encodeURIComponent(signalType)}`,
   onboarding: "/onboarding",
-  addGoal: "/goals/addgoals",
+  /** 저축 목표 — 저축 zone(`web-savings`, `FE-REQ-056` 2026-11-03). 옛 `/goals/addgoals` 는 새 만들기로 넘긴다 */
+  goals: "/goals",
+  addGoal: "/goals/new",
+  goal: (id: string) => `/goals/${encodeURIComponent(id)}`,
   /** 투자 코치 설정 — 셸 설정(`/settings`)이 여기로 보낸다(`FE-REQ-053`, 2026-11-02 셸 설정에서 분리) */
   coachSettings: "/coach/settings",
 } as const;

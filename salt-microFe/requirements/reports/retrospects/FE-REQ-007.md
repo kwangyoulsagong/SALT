@@ -111,3 +111,11 @@ federation 서술이 남아 있었고, 그대로 두면 다음 세션이 없는 
 ## 2026-11-03 — MONEY-F2(`FE-REQ-054`) CrossZoneLink
 
 - "Vercel 로 옮길 때 바꾸는 곳은 이 파일 하나" 약속을 앱 탭이 깰 뻔했다(리뷰). 새 링크 자리는 이 컴포넌트를 먼저 본다. Action 없음
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 걸린 몫은 위 체크리스트 한 줄. 근거 · 판단은 루트 회고 `requirements/reports/retrospects/MONEY-S1a-savings-calculator.md`. Action 없음
+
+## 2026-11-03 — 쿠키 세션 1단계 `0ef25f6b`
+
+- Action 없음

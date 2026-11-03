@@ -17,3 +17,8 @@
 | FR-4 · 6 · 8 · 9 스키마 이동 · 판정 원장 트리거 · 왕복 테스트(실 표) | 옮기는 표가 아직 없다 | S1(`savings`)부터 |
 | FR-7 export 뷰 | 예측이 아직 public 을 읽는다 | S5 · `FC-REQ-025` |
 | drop 후보 셋 | 덤프 · 원장 대조 절차로 따로 | S2 전 |
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 이 REQ 에 걸린 몫(`e83f7f80`): S1 첫 표 이동 — `roles.sql` `svc_savings` 로그인(로컬 운영 DB 적용, 비밀 `LOCAL_DB_SAVINGS_PASSWORD`) · Flyway V1 savings(업무 3 + 공용 3) · 권한 테스트 표 `savings.probe` → `household.probe` · 옛 `public.goals` · `saving_transactions` 가져오기 SQL. public 원본 · Prisma 모델 삭제는 옛 Express 삭제와 같이
+- 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`

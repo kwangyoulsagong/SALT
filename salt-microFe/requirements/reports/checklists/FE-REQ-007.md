@@ -236,3 +236,13 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 ## 2026-11-03 — MONEY-F2(`FE-REQ-054`) CrossZoneLink
 
 - `CrossZoneLink` 에 `showPending`(대기 문구만 끄기) · `opensElsewhere`(새 탭 · 수정키 · 가운데 클릭 판정, 대기 상태와 계측이 같이 쓴다)를 더했다 — 앱 탭이 이 컴포넌트를 다시 쓴다(`378d8a1c`). 기존 호출부 동작 무변경(기본 `showPending: true`). 토큰 파일 주석 위치(`378d8a1c`)
+
+## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
+
+- 이 REQ 에 걸린 몫(`c60f5bfb`): 저축 zone 이 실제 화면을 서비스 — zone 앱은 얇다(`app/` re-export · 레이아웃 · `next.config.js` 만). `/goals/addgoals` 는 저축 zone 의 리다이렉트
+- 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`
+
+## 2026-11-03 — 쿠키 세션 1단계 `0ef25f6b`
+
+- `@repo/core/auth` 에 `ACCESS_COOKIE` · `SESSION_ROUTE` — zone 은 셸과 같은 origin 이라 쿠키를 같이 받는다(이 REQ 의 "localStorage 라 zone 간 공유 안 됨" 주의의 첫 해소)
+- 실측: `/api/session` POST 204 + HttpOnly · 다른 사이트 403 · 모양 틀림 400 · DELETE 지움 · 셸 경유 `/goals` · `/goals/[id]` HTML 에 목표 이름 · 금액(쿠키 없으면 없음) · 브라우저 첫 진입에 쿠키 채움 · `document.cookie` 에 안 보임 · 수화 오류 0. 모노레포 check-types · lint · test · web · web-savings 빌드 · 훅

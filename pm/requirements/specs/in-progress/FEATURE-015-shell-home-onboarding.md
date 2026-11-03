@@ -124,3 +124,4 @@ flowchart LR
 | 2026-11-03 | F2 — FR-8 In progress(`FE-REQ-054`, 루트 `requirements/specs/done/MONEY-F2-app-navigation-slice.md`). 이름 `AppNavigation`(사용자 결정). FR-7 도메인 색 토큰 추가(기존 값 diff 0). 저축 · 가계부 탭은 첫 화면이 생길 때까지 "준비 중"(`FE-REQ-056` · `057`) |
 | 2026-11-03 | F2 미검증 닫기 — prerender 적중 10/10 · 녹화 깜빡임 0 · 공용 청크 캐시 공유(운영 빌드 공용 `/_next` · `ADR-005` 규칙 7 개정) · 저축 아이콘 동전(W). 결함 1(prerender 도착 계측) 수정 |
 | 2026-11-03 | FR-8 Done — `FE-REQ-054` done. 루트 `requirements/specs/done/MONEY-F2-app-navigation-slice.md` |
+| 2026-11-03 | S1a — 저축 탭 활성(`APP_TABS` readyBy null) · 홈 저축 카드 원천 Kotlin 저축 서비스 + 진척 최대 목표 한 줄 · 홈 임시 목표 목록 삭제 · 온보딩 `set_plan` 이 저축 서비스에 묻는다. 루트 `MONEY-S1a-savings-calculator-slice.md` |

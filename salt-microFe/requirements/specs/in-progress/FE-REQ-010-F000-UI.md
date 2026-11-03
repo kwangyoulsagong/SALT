@@ -274,3 +274,4 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 - 2026-10-30: 파일만 걸침 — `shared/config/routes.ts` 에 `settings: "/settings"`(F004 슬라이스 18). 검색 경로 옆 한 줄
 - 2026-10-30: 파일만 걸침 — `entities/market/model/messages.ts` 차트 기간 이름 `1w: "1주"`. 서버 코드 주석이 이 REQ 의 FR-50 · 51(레이아웃 · 표 넘침)을 차트 주기 근거로 잘못 인용하던 4곳을 `SRV-REQ-008` 로 정정(`36b09989`). 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
 - 2026-11-03: MONEY-F2(`FE-REQ-054`) — 홈 페이지가 놓던 `ProfileMenu` 를 지웠다 — 머리 프로필은 zone 공용 `AppShell` 머리 한 자리(`e0bce695`). 홈 화면 내용 무변경
+| 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 셸 `store.ts` 에서 `goal` 가지 삭제 · 셸 목표 엔티티 · 기능 · 페이지 삭제(`domain-savings` 로) |
