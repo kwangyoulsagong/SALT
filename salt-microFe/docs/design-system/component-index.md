@@ -107,6 +107,7 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/statusLine` | `StatusLine` | `kind`, `children`, `live` | `packages/ui/src/StatusLine/StatusLine.tsx` |
 | `@repo/ui/statusToast` | `StatusToast` | `trigger`, `children`, `kind`, `duration` — 패널 위에 잠깐 떴다 사라지는 완료 알림(부모 `position: relative`) | `packages/ui/src/StatusToast/StatusToast.tsx` |
 | `@repo/ui/illustration` | `Illustration` | `scene`(`coinPouch` · `candles` · `scale` · `coachBubble` · `target` · `ledger`), `size`(`sm` · `md` · `lg`) | `packages/ui/src/Illustration/Illustration.tsx` |
+| `@repo/ui/progressScene` | `ProgressScene` | `kind`(`trip` · `car` · `umbrella` · `house` · `jar`), `step` · `steps`(서버 값), `size`(`sm` · `md`) — 저축 목표 진척 장면(2026-11-03 `FE-REQ-056` FR-8) | `packages/ui/src/ProgressScene/ProgressScene.tsx` |
 | `@repo/ui/motion` | `MotionProvider`, `usePlayAfterMount`, `useSlidingIndicator`, `useRolledNumber`, `useChangedAfterMount`, `usePresence`, `ease`, `springs`, `durations`, `motionTokens` | 앱 루트에 한 번(`LazyMotion` 동적 · 줄인 모션 존중) | `packages/ui/src/Motion/index.ts` |
 | `@repo/ui/skeleton` | `Skeleton` | `width`, `height`, `radius`, `lines` | `packages/ui/src/Skeleton/Skeleton.tsx` |
 | `@repo/ui/modal` | `Modal` | `open`, `onClose`, `title`, `footer`, `size`, `hideCloseButton`, `disableBackdropClose` | `packages/ui/src/Modal/Modal.tsx` |
