@@ -74,10 +74,3 @@ export const toInvestableCapital = (text: string): number | null | undefined => 
 /** 저장된 투자금 → 칸 글자 */
 export const capitalToInputText = (krw: number | null): string =>
   krw === null ? "" : formatAmountInput(formatPrice(krw));
-
-/** % 칸은 콤마를 넣지 않는다(최대 100). 숫자 · 점만 남긴다 */
-export const formatPercentInput = (raw: string): string => {
-  const cleaned = raw.replace(/[^0-9.]/g, "");
-  const [integer = "", ...rest] = cleaned.split(".");
-  return cleaned.includes(".") ? `${integer || "0"}.${rest.join("")}` : integer;
-};

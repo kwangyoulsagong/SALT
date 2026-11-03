@@ -7,11 +7,10 @@ import { TextField } from "@repo/ui/textField";
 import { useId, useState, type FormEvent } from "react";
 
 import { formatRatio } from "@/entities/coach";
-import { formatAmountInput } from "@repo/web-shared/lib";
+import { useAmountInputGuard } from "@repo/web-shared/lib";
 
 import { useSetRiskBudget } from "../api";
 import {
-  formatPercentInput,
   ratioToPercentText,
   toBudgetInput,
   toBudgetSetting,
@@ -54,7 +53,10 @@ const BudgetRow = ({
   value: BudgetInput;
   onChange: (value: BudgetInput) => void;
   invalid: boolean;
-}) => (
+}) => {
+  // 받을 수 없는 글자(전각 점 · 가운뎃점 · 공백)는 값을 바꾸지 않고 안내 — 지우고 이어 붙이면 금액이 바뀌었다(저축 리뷰 8 · 9차와 같은 원인, 2026-11-03)
+  const guard = useAmountInputGuard();
+  return (
   <>
     <label className={label} htmlFor={id}>
       {name}
@@ -68,38 +70,35 @@ const BudgetRow = ({
           autoComplete="off"
           placeholder={MSG.placeholder}
           value={value.text}
-          onChange={(text) =>
-            onChange({
-              ...value,
-              text:
-                value.unit === "krw"
-                  ? formatAmountInput(text)
-                  : formatPercentInput(text),
-            })
-          }
+          onChange={(text) => guard.take(text, (next) => onChange({ ...value, text: next }), value.unit === "krw" ? "won" : "decimal", "budget")}
           trailing={
             <span className={unitStyle}>
               {value.unit === "krw" ? MSG.unitKrw : MSG.unitPercent}
             </span>
           }
           error={
-            invalid
+            guard.messageFor("budget") ??
+            (invalid
               ? value.unit === "krw"
                 ? MSG.invalid
                 : MSG.invalidPercent
-              : undefined
+              : undefined)
           }
         />
       </div>
       <SegmentedControl
         options={UNIT_OPTIONS}
         value={value.unit}
-        onChange={(unit) => onChange({ text: "", unit })}
+        onChange={(unit) => {
+          guard.clear();
+          onChange({ text: "", unit });
+        }}
         label={MSG.unitLabel(name)}
       />
     </div>
   </>
-);
+  );
+};
 
 /**
  * 내 기준 — IPS 3문항 (F009 FR-1~2 · 시나리오 7 · `FE-REQ-039` FR-9 · FR-22). 게이지 카드 안에 접혀 있다 — 새 화면이 아니다.
@@ -135,6 +134,7 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
   const [targetVol, setTargetVol] = useState(initialVol);
   const initialCapital = capitalToInputText(settings.investableCapitalKrw);
   const [capital, setCapital] = useState(initialCapital);
+  const guard = useAmountInputGuard();
   const save = useSetRiskBudget();
   const ids = {
     monthly: useId(),
@@ -219,9 +219,9 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
           autoComplete="off"
           placeholder={MSG.capPlaceholder}
           value={cap}
-          onChange={(text) => setCap(formatPercentInput(text))}
+          onChange={(text) => guard.take(text, setCap, "decimal", "cap")}
           trailing={<span className={unitStyle}>{MSG.unitPercent}</span>}
-          error={capRatio === undefined ? MSG.invalidCap : undefined}
+          error={guard.messageFor("cap") ?? (capRatio === undefined ? MSG.invalidCap : undefined)}
         />
         <label className={label} htmlFor={ids.capital}>
           {MSG.capital}
@@ -233,9 +233,9 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
           autoComplete="off"
           placeholder={MSG.capitalPlaceholder}
           value={capital}
-          onChange={(text) => setCapital(formatAmountInput(text))}
+          onChange={(text) => guard.take(text, setCapital, "won", "capital")}
           trailing={<span className={unitStyle}>{MSG.unitKrw}</span>}
-          error={capitalKrw === undefined ? MSG.invalidCapital : undefined}
+          error={guard.messageFor("capital") ?? (capitalKrw === undefined ? MSG.invalidCapital : undefined)}
         />
         <label className={label} htmlFor={ids.targetVol}>
           {MSG.targetVolatility}
@@ -247,9 +247,9 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
           autoComplete="off"
           placeholder={MSG.targetVolatilityPlaceholder}
           value={targetVol}
-          onChange={(text) => setTargetVol(formatPercentInput(text))}
+          onChange={(text) => guard.take(text, setTargetVol, "decimal", "targetVol")}
           trailing={<span className={unitStyle}>{MSG.unitPercent}</span>}
-          error={volRatio === undefined ? MSG.invalidTargetVolatility : undefined}
+          error={guard.messageFor("targetVol") ?? (volRatio === undefined ? MSG.invalidTargetVolatility : undefined)}
         />
       </div>
       <p className={hint}>

@@ -5,7 +5,7 @@ import { Chip } from "@repo/ui/chip";
 import { TextField } from "@repo/ui/textField";
 import { useEffect, useId, useMemo, useState } from "react";
 
-import { formatAmountInput, parseAmountInput, useDebouncedValue } from "@repo/web-shared/lib";
+import { formatAmountInput, parseAmountInput, useAmountInputGuard, useDebouncedValue } from "@repo/web-shared/lib";
 
 import { useTradePreflight } from "../api";
 import { PREFLIGHT_AMOUNT_CHIPS, PREFLIGHT_STOP_CHIPS, RUN_PREFLIGHT_MESSAGES as MSG } from "../model";
@@ -43,6 +43,8 @@ export const PreflightForm = ({ symbol, mode, livePrice }: PreflightFormProps) =
   const [entryTouched, setEntryTouched] = useState(false);
   const [stopRate, setStopRate] = useState<number | null>(null);
   const [target, setTarget] = useState("");
+  // 받을 수 없는 글자는 값을 바꾸지 않고 칸 아래 안내(저축 리뷰 8 · 9차와 같은 원인 — 지우고 이어 붙이면 금액이 바뀌었다, 2026-11-03)
+  const guard = useAmountInputGuard();
 
   // 진입가 기본 = 현재가(FR-151). 사용자가 손대기 전, 첫 시세가 왔을 때 한 번만
   useEffect(() => {
@@ -97,9 +99,9 @@ export const PreflightForm = ({ symbol, mode, livePrice }: PreflightFormProps) =
           autoComplete="off"
           aria-label={MSG.amountCustomLabel}
           value={amount}
-          onChange={(value) => setAmount(formatAmountInput(value))}
+          onChange={(value) => guard.take(value, setAmount, "won", "amount")}
           trailing={<span className={unit}>{MSG.amountUnit}</span>}
-          error={amountInvalid ? MSG.invalidAmount : undefined}
+          error={guard.messageFor("amount") ?? (amountInvalid ? MSG.invalidAmount : undefined)}
         />
 
         <label className={label} htmlFor={ids.entry}>
@@ -114,9 +116,10 @@ export const PreflightForm = ({ symbol, mode, livePrice }: PreflightFormProps) =
             value={entry}
             onChange={(value) => {
               setEntryTouched(true);
-              setEntry(formatAmountInput(value));
+              guard.take(value, setEntry, "price", "entry");
             }}
             trailing={<span className={unit}>{MSG.amountUnit}</span>}
+            error={guard.messageFor("entry")}
           />
           <button
             type="button"
@@ -154,9 +157,9 @@ export const PreflightForm = ({ symbol, mode, livePrice }: PreflightFormProps) =
           autoComplete="off"
           placeholder={MSG.targetPlaceholder}
           value={target}
-          onChange={(value) => setTarget(formatAmountInput(value))}
+          onChange={(value) => guard.take(value, setTarget, "price", "target")}
           trailing={<span className={unit}>{MSG.amountUnit}</span>}
-          error={targetInvalid ? MSG.invalidAmount : undefined}
+          error={guard.messageFor("target") ?? (targetInvalid ? MSG.invalidAmount : undefined)}
         />
       </div>
 
