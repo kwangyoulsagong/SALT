@@ -11,7 +11,7 @@ import java.time.YearMonth
 
 /**
  * S1b 계산 경계(`SRV-REQ-045` FR-7 · 11 · 12 · 16 · 17 · 18) — 장면 단계 · 도장 · 엽서 · 실물 환산 · 놓친 달 · 비상시 · 저울.
- * 기대값은 손계산이 아니라 계산기(python Decimal)로 뽑았다 — 대출 상환액 86,066.4297… → 올림 86,067 · 이자 합 32,797.156… → 32,797 · 마지막 달 1,032,797 − 86,067 × 11 = 86,060
+ * 기대값은 손계산이 아니라 계산기(python Decimal)로 뽑았다 — 대출 이자 32,797.156… → 32,797 · 총액 1,032,797 ÷ 12 = 86,066 나머지 5
  */
 class SavingsFunSpec : StringSpec({
     val today = LocalDate.of(2026, 11, 3)
@@ -92,38 +92,47 @@ class SavingsFunSpec : StringSpec({
         done.reason shouldBe ProjectionReason.REACHED
     }
 
-    "비상시 — 꺼내면 계획 도달이 밀린 달 수, 빌리면 원리금 균등 상환액 · 이자 합" {
+    "비상시 — 꺼내면 계획 도달이 밀린 달 수, 빌리면 총액(원금 + 정확한 이자)을 n 달에 원 단위로 나눈다" {
         val c = EmergencyComparison.of(goal(3_000_000, 100_000), krw(300_000), krw(200_000), BigDecimal("6"), 12, today)
         c.withdraw.planMonthBefore shouldBe YearMonth.of(2029, 2)
         c.withdraw.planMonthAfter shouldBe YearMonth.of(2029, 4)
         c.withdraw.delayMonths shouldBe 2
 
-        val loan = EmergencyComparison.of(goal(3_000_000, 100_000), krw(1_000_000), krw(1_000_000), BigDecimal("6"), 12, today).loan
-        // 상환액은 원 단위 올림 · 이자는 정확한 값 · 마지막 달이 차액을 맞춘다 — 매달 × 11 + 마지막 = 원금 + 이자
-        loan.monthlyPayment shouldBe krw(86_067)
+        // 이자 32,797.156… → 32,797 · 총액 1,032,797 = 86,067 × 5 + 86,066 × 7
+        val loan = EmergencyComparison.of(goal(3_000_000, 100_000), krw(1_000_000), krw(1_000_000), BigDecimal("6"), 12, today).loan!!
         loan.totalInterest shouldBe krw(32_797)
-        loan.lastPayment shouldBe krw(86_060)
-        (loan.monthlyPayment.scale(BigDecimal(11)) + loan.lastPayment) shouldBe krw(1_000_000) + loan.totalInterest
+        loan.firstPayment shouldBe krw(86_067)
+        loan.firstMonths shouldBe 5
+        loan.restPayment shouldBe krw(86_066)
+        loan.restMonths shouldBe 7
+        (loan.firstPayment.scale(BigDecimal(loan.firstMonths)) + loan.restPayment.scale(BigDecimal(loan.restMonths))) shouldBe krw(1_000_000) + loan.totalInterest
     }
 
-    "비상시 — 금리 0 이면 원금 ÷ 달 수 · 모은 돈보다 많이 꺼낼 수 없다 · 계획이 없으면 꺼내기 이동을 말하지 않는다" {
-        val zeroRate = EmergencyComparison.of(goal(3_000_000, 100_000), krw(600_000), krw(600_000), BigDecimal.ZERO, 6, today).loan
-        zeroRate.monthlyPayment shouldBe krw(100_000)
-        zeroRate.totalInterest.isZero() shouldBe true
-        // 나누어떨어지지 않아도 금리 0 이면 이자 0 — 올림 차액은 마지막 달이 덜 낸다(셸 경유 실측: "이자 8원" 결함)
-        val uneven = EmergencyComparison.of(goal(3_000_000, 100_000), krw(100_000), krw(100_000), BigDecimal.ZERO, 12, today).loan
-        uneven.monthlyPayment shouldBe krw(8_334)
-        uneven.lastPayment shouldBe krw(8_326)
+    "비상시 — 금리 0 이면 이자 0 · 1개월이면 금액 하나 · 나머지에 따라 거절되지 않는다 · 총액 < 달 수면 대출 칸만 비고 꺼내기는 남는다" {
+        val g = goal(3_000_000, 100_000)
+        val even = EmergencyComparison.of(g, krw(600_000), krw(600_000), BigDecimal.ZERO, 6, today).loan!!
+        even.firstPayment shouldBe krw(100_000)
+        even.restMonths shouldBe 0
+        even.totalInterest.isZero() shouldBe true
+        // 0% · 10만 · 12달 = 8,334 × 4 + 8,333 × 8 (셸 실측 "이자 8원" 결함)
+        val uneven = EmergencyComparison.of(g, krw(100_000), krw(100_000), BigDecimal.ZERO, 12, today).loan!!
+        listOf(uneven.firstPayment, uneven.firstMonths, uneven.restPayment, uneven.restMonths) shouldBe listOf(krw(8_334), 4, krw(8_333), 8)
         uneven.totalInterest.isZero() shouldBe true
-        shouldThrow<InvalidGoal> {
-            EmergencyComparison.of(goal(3_000_000, 100_000), krw(100_000), krw(1), BigDecimal.ZERO, 120, today)
-        }.code shouldBe "EMERGENCY_AMOUNT_TOO_SMALL"
-        shouldThrow<InvalidGoal> {
-            EmergencyComparison.of(goal(3_000_000, 100_000), krw(100_000), krw(100_001), BigDecimal("5"), 12, today)
-        }.code shouldBe "EMERGENCY_AMOUNT_OVER_SAVED"
-        shouldThrow<InvalidGoal> {
-            EmergencyComparison.of(goal(3_000_000, 100_000), krw(100_000), krw(1_000), BigDecimal("5"), 121, today)
-        }.code shouldBe "EMERGENCY_MONTHS_INVALID"
+        // 1개월 — 6% · 100,010원: 이자 500.05 → 500, 한 번에 100,510(두 금액이 아니다 — 리뷰)
+        val single = EmergencyComparison.of(g, krw(200_000), krw(100_010), BigDecimal("6"), 1, today).loan!!
+        listOf(single.firstPayment, single.firstMonths, single.restMonths) shouldBe listOf(krw(100_510), 1, 0)
+        // 나머지에 따라 거절되지 않는다 — 7,200 · 7,201 · 10,001원 / 120달 모두 나뉜다(리뷰: 7,201 만 거절됐었다)
+        listOf(7_200L, 7_201L, 10_001L).forEach { amt ->
+            val l = EmergencyComparison.of(g, krw(20_000), krw(amt), BigDecimal.ZERO, 120, today).loan!!
+            (l.firstPayment.scale(BigDecimal(l.firstMonths)) + l.restPayment.scale(BigDecimal(l.restMonths))) shouldBe krw(amt)
+        }
+        val tiny = EmergencyComparison.of(g, krw(100_000), krw(1), BigDecimal.ZERO, 120, today)
+        tiny.loan shouldBe null
+        tiny.loanReason shouldBe EmergencyComparison.LOAN_TOO_SMALL
+        // 꺼내기 칸은 그대로 계산된다(남은 290만 → 290만 1원: 29 → 30달)
+        tiny.withdraw.delayMonths shouldBe 1
+        shouldThrow<InvalidGoal> { EmergencyComparison.of(g, krw(100_000), krw(100_001), BigDecimal("5"), 12, today) }.code shouldBe "EMERGENCY_AMOUNT_OVER_SAVED"
+        shouldThrow<InvalidGoal> { EmergencyComparison.of(g, krw(100_000), krw(1_000), BigDecimal("5"), 121, today) }.code shouldBe "EMERGENCY_MONTHS_INVALID"
         val noPlan = Goal(GoalId.new(), "u", "목표", GoalTemplate.OTHER, krw(3_000_000), LocalDate.of(2099, 1, 1), null, null, GoalStatus.ACTIVE, created, null)
         EmergencyComparison.of(noPlan, krw(500_000), krw(100_000), BigDecimal("5"), 12, today).withdraw.reason shouldBe ProjectionReason.NO_PLAN
     }

@@ -238,12 +238,23 @@ class SavingsController(
 
     data class WithdrawView(val planMonthBefore: String?, val planMonthAfter: String?, val delayMonths: Int?, val reason: String?)
 
-    data class LoanView(val months: Int, val annualRate: String, val monthlyPayment: Long, val lastPayment: Long, val totalInterest: Long)
+    /** firstPayment × firstMonths + restPayment × restMonths = 원금 + totalInterest. 나누어떨어지면 restMonths = 0 */
+    data class LoanView(
+        val months: Int,
+        val annualRate: String,
+        val firstPayment: Long,
+        val firstMonths: Int,
+        val restPayment: Long,
+        val restMonths: Int,
+        val totalInterest: Long,
+    )
 
     data class EmergencyView(
         val amount: Long,
         val withdraw: WithdrawView,
-        val loan: LoanView,
+        /** 총액이 달 수보다 작아 나눌 수 없으면 null + loanReason(`amount_too_small`) — 꺼내기 칸은 그대로 */
+        val loan: LoanView?,
+        val loanReason: String?,
         /** 계산 가정 키 — 문장은 프론트. loan_paid_outside_goal: 상환은 목표 적립과 따로 낸다고 본다 */
         val assumptions: List<String>,
     )
@@ -414,15 +425,21 @@ class SavingsController(
     private fun emergencyView(c: EmergencyComparison) = EmergencyView(
         amount = c.amount.toKrwInteger(),
         withdraw = WithdrawView(c.withdraw.planMonthBefore?.toString(), c.withdraw.planMonthAfter?.toString(), c.withdraw.delayMonths, c.withdraw.reason),
-        loan = LoanView(
-            months = c.loan.months,
-            annualRate = c.loan.annualRatePercent.stripTrailingZeros().toPlainString(),
-            // 셋 다 도메인이 원 단위로 정한 값 — 매달 × (n−1) + 마지막 = 원금 + 이자
-            monthlyPayment = c.loan.monthlyPayment.toKrwInteger(RoundingMode.CEILING),
-            lastPayment = c.loan.lastPayment.toKrwInteger(),
-            totalInterest = c.loan.totalInterest.toKrwInteger(),
-        ),
-        assumptions = listOf("loan_paid_outside_goal"),
+        // 도메인이 원 단위 정수로 정한 값 — 변환은 한 방식으로(반올림 모드를 섞지 않는다, 리뷰)
+        loan = c.loan?.let {
+            LoanView(
+                months = it.months,
+                annualRate = it.annualRatePercent.stripTrailingZeros().toPlainString(),
+                firstPayment = it.firstPayment.toKrwInteger(),
+                firstMonths = it.firstMonths,
+                restPayment = it.restPayment.toKrwInteger(),
+                restMonths = it.restMonths,
+                totalInterest = it.totalInterest.toKrwInteger(),
+            )
+        },
+        loanReason = c.loanReason,
+        // 대출 칸이 비면 대출 가정도 뜻이 없다
+        assumptions = if (c.loan != null) listOf("loan_paid_outside_goal") else emptyList(),
     )
 
     private fun interestOf(include: Boolean, rate: BigDecimal?): InterestPlan? {

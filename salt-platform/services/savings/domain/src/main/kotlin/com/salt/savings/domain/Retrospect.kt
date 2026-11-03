@@ -3,6 +3,7 @@ package com.salt.savings.domain
 import com.salt.kernel.Money
 import java.math.BigDecimal
 import java.math.MathContext
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -52,27 +53,39 @@ data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shi
  * **상품 · 링크 0** — 금리는 사용자가 넣은 숫자다. 어느 쪽이 낫다고 말하지 않는다: 두 줄의 숫자만.
  *
  * ① 꺼내기: 남은 돈이 [amount] 만큼 늘어 "계획대로면" 도달 월이 몇 달 밀리는지. 모은 돈보다 많이 꺼낼 수 없다
- * ② 빌리기: 원리금 균등 상환 — 월 상환액 = P·r / (1 − (1+r)^−n), r = 연 금리/12 를 **원 단위 올림**(덜 내면 못 갚는다 — 월 적립과 같은 계획 금액, 최종값).
- *   이자 합 = 정확한 원리금 균등 이자(원 단위), 마지막 달 = 원금 + 이자 − 올린 상환 × (n−1). 실제 상환처럼 끝 달이 차액을 맞춘다.
- *   ~~이자 합 = 올린 월 상환 × n − P~~ **정정 2026-11-03(셸 경유 실측)**: 그러면 금리 0% 에도 "이자 8원"이 나왔다 — 올림 차액은 이자가 아니다.
- *   상환은 목표 밖에서 낸다고 가정(가정 키)
+ * ② 빌리기: 원리금 균등 — 정확한 월 상환 P·r / (1 − (1+r)^−n)(r = 연 금리/12)로 이자 합을 원 단위로 정하고(금리 0 이면 0),
+ *   **갚을 총액(원금 + 이자)을 n 달에 원 단위로 나눈다** — 나머지만큼의 앞 달이 1원 더(`처음 k개월 X원 · 나머지 Y원`). 숫자가 그대로 더해지고,
+ *   총액이 달 수 이상이면 늘 나뉜다. 총액이 달 수보다 작으면 대출 칸만 `loan = null` + 이유(꺼내기 칸은 남는다). 상환은 목표 밖에서 낸다고 가정(가정 키).
+ *   ~~이자 = 올린 상환 × n − 원금~~ → ~~마지막 달이 올림 차액~~ **정정 2026-11-03 두 번**(0% 이자 8원 · 나머지에 따라 거절되는 금액 · 1개월 두 금액 — 셸 실측 · 리뷰)
  */
 data class EmergencyComparison(
     val amount: Money,
     val withdraw: Withdraw,
-    val loan: Loan,
+    /** 나눌 수 없으면(총액 < 달 수) null — [loanReason] */
+    val loan: Loan?,
+    val loanReason: String?,
 ) {
     data class Withdraw(val planMonthBefore: YearMonth?, val planMonthAfter: YearMonth?, val delayMonths: Int?, val reason: String?)
 
     /**
-     * @param monthlyPayment 매달 내는 돈 — 원 단위 올림(덜 내면 못 갚는다)
-     * @param lastPayment 마지막 달 — 올림으로 더 낸 몫을 빼고 남은 돈. 매달 × (n−1) + 마지막 = 원금 + 이자 합(화면 숫자가 서로 맞는다)
-     * @param totalInterest 이자 합 — 원리금 균등의 정확한 값을 원 단위로 한 번(금리 0 이면 0). 올림 차액은 이자가 아니다
+     * 갚을 총액 = 원금 + [totalInterest] = [firstPayment] × [firstMonths] + [restPayment] × [restMonths].
+     * 나누어떨어지면 [restMonths] = 0(매달 같은 금액). 1개월이면 금액 하나
      */
-    data class Loan(val months: Int, val annualRatePercent: BigDecimal, val monthlyPayment: Money, val lastPayment: Money, val totalInterest: Money)
+    data class Loan(
+        val months: Int,
+        val annualRatePercent: BigDecimal,
+        val firstPayment: Money,
+        val firstMonths: Int,
+        val restPayment: Money,
+        val restMonths: Int,
+        val totalInterest: Money,
+    )
 
     companion object {
         const val LOAN_MONTHS_MAX = 120
+
+        /** 갚을 총액이 달 수보다 작아 원 단위로 나눌 수 없다(예: 1원 · 120달) */
+        const val LOAN_TOO_SMALL = "amount_too_small"
         private val MC = MathContext.DECIMAL128
         private val TWELVE = BigDecimal(12)
         private val HUNDRED = BigDecimal(100)
@@ -82,7 +95,8 @@ data class EmergencyComparison(
             if (amount > saved) throw InvalidGoal("EMERGENCY_AMOUNT_OVER_SAVED", "amount must not exceed saved")
             if (loanRatePercent.signum() < 0 || loanRatePercent > BigDecimal(30)) throw InvalidGoal("EMERGENCY_RATE_INVALID", "loanRate must be 0..30")
             if (loanMonths !in 1..LOAN_MONTHS_MAX) throw InvalidGoal("EMERGENCY_MONTHS_INVALID", "loanMonths must be 1..$LOAN_MONTHS_MAX")
-            return EmergencyComparison(amount, withdraw(goal, saved, amount, today), loan(amount, loanRatePercent, loanMonths))
+            val loan = loan(amount, loanRatePercent, loanMonths)
+            return EmergencyComparison(amount, withdraw(goal, saved, amount, today), loan, if (loan == null) LOAN_TOO_SMALL else null)
         }
 
         private fun withdraw(goal: Goal, saved: Money, amount: Money, today: LocalDate): Withdraw {
@@ -99,21 +113,28 @@ data class EmergencyComparison(
             )
         }
 
-        private fun loan(principal: Money, annualRatePercent: BigDecimal, months: Int): Loan {
+        private fun loan(principal: Money, annualRatePercent: BigDecimal, months: Int): Loan? {
             val r = annualRatePercent.divide(HUNDRED, MC).divide(TWELVE, MC)
             val n = BigDecimal(months)
-            val payment = if (r.signum() == 0) {
+            val exactPayment = if (r.signum() == 0) {
                 principal.toDecimal().divide(n, MC)
             } else {
                 val discount = BigDecimal.ONE - BigDecimal.ONE.divide((BigDecimal.ONE + r).pow(months, MC), MC)
                 principal.toDecimal().multiply(r, MC).divide(discount, MC)
             }
-            val monthly = Money.of(payment.setScale(0, java.math.RoundingMode.CEILING), principal.currency)
-            val interest = Money.of((payment.multiply(n, MC) - principal.toDecimal()).setScale(0, java.math.RoundingMode.HALF_UP).max(BigDecimal.ZERO), principal.currency)
-            val last = principal + interest - monthly.scale(BigDecimal(months - 1))
-            // 아주 작은 돈을 긴 달로 나누면 올림만으로 원금을 넘는다(1원 · 120달) — 나눌 수 없다고 답한다
-            if (last.isNegative() || last.isZero()) throw InvalidGoal("EMERGENCY_AMOUNT_TOO_SMALL", "amount is too small to split into loanMonths payments")
-            return Loan(months, annualRatePercent, monthly, last, interest)
+            // 계산 꼬리 오차(…0001)가 원 단위 결과를 흔들지 않게 소수 10자리에서 한 번 정리
+            val interest = (exactPayment.multiply(n, MC) - principal.toDecimal()).setScale(10, RoundingMode.HALF_UP)
+                .setScale(0, RoundingMode.HALF_UP).max(BigDecimal.ZERO)
+            val total = (principal.toDecimal() + interest).setScale(0, RoundingMode.HALF_UP)
+            if (total < n) return null
+            val base = total.divide(n, 0, RoundingMode.FLOOR)
+            val extra = (total - base.multiply(n)).toInt()
+            val currency = principal.currency
+            return if (extra == 0) {
+                Loan(months, annualRatePercent, Money.of(base, currency), months, Money.of(base, currency), 0, Money.of(interest, currency))
+            } else {
+                Loan(months, annualRatePercent, Money.of(base + BigDecimal.ONE, currency), extra, Money.of(base, currency), months - extra, Money.of(interest, currency))
+            }
         }
     }
 }

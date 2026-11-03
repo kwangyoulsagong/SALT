@@ -290,9 +290,17 @@ class SavingsEndToEndTest {
         call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":1000000}""")
         val c = data(call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1000000,"loanRate":6,"loanMonths":12}"""))
         c.path("withdraw").path("delayMonths").asInt() shouldBe 10
-        c.path("loan").path("monthlyPayment").asLong() shouldBe 86_067
+        c.path("loan").path("firstPayment").asLong() shouldBe 86_067
+        c.path("loan").path("firstMonths").asInt() shouldBe 5
+        c.path("loan").path("restPayment").asLong() shouldBe 86_066
+        c.path("loan").path("restMonths").asInt() shouldBe 7
         c.path("loan").path("totalInterest").asLong() shouldBe 32_797
-        c.path("loan").path("lastPayment").asLong() shouldBe 86_060
+        // 나눌 수 없는 작은 금액 — 요청은 성공, 대출 칸만 비고 꺼내기 칸은 남는다(리뷰)
+        val tiny = data(call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1,"loanRate":0,"loanMonths":120}"""))
+        tiny.path("loan").isNull shouldBe true
+        tiny.path("loanReason").asString() shouldBe "amount_too_small"
+        tiny.path("withdraw").path("delayMonths").isNumber shouldBe true
+        tiny.path("assumptions").size() shouldBe 0
         c.path("loan").path("annualRate").asString() shouldBe "6"
         items(c.path("assumptions")).map { it.asString() } shouldBe listOf("loan_paid_outside_goal")
         data(call("GET", "/api/savings/goals/$id", user, null)).path("goal").path("saved").asLong() shouldBe 1_000_000
