@@ -11,3 +11,7 @@
 미충족: FR-4~9(S1b · 뒤). Prisma 모델 삭제는 옛 Express 삭제와 같이.
 
 - 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`
+
+## 2026-11-03 — 미검증 닫기(사용자 "확인하지 못한 것은 베스트케이스")
+
+- `2c998117`: 표 · 열 변경 0. `degraded` 구간은 행 · 이벤트 0(종단 발행 횟수 그대로 4)

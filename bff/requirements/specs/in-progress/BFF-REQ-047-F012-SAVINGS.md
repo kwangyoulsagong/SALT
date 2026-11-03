@@ -37,7 +37,7 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-045-F012-SAVINGS.md
 ## Acceptance Criteria
 
 - [x] 모든 숫자 필드가 서버 응답 그대로(가공 0) — `app-savings.test.ts`
-- [ ] 서버 구간 실패 시 `degraded` + 계획값 — **미충족 2026-11-03**: 구간은 서버 안 계산(외부 호출 없음)이라 따로 실패하지 않는다. 서버 전체가 죽으면 화면 오류(4xx/5xx 중계). 채점 사본(`FC-REQ-024`)이 붙을 때 그 칸만 `degraded` 로 — S1b
+- [x] 서버 구간 실패 시 `degraded` + 계획값 — **닫힘 2026-11-03(`2c998117`)**: 서버가 구간 계산을 감싸 실패하면 `degraded: true` · `degradedReasons: ["projection"]` · 계획대로면 X월만, BFF 는 지우지 않고 전달. ~~미충족 2026-11-03: 구간은 서버 안 계산(외부 호출 없음)이라 따로 실패하지 않는다. 서버 전체가 죽으면 화면 오류(4xx/5xx 중계). 채점 사본(`FC-REQ-024`)이 붙을 때 그 칸만 `degraded` 로 — S1b~~
 
 ## Changelog
 
@@ -45,3 +45,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-045-F012-SAVINGS.md
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-03 | **in-progress** — S1a `3e5e0d42`(BREAKING `/api/goals*` 410) · `b1c8ad67`(`progressRatio`). FR-1 · 2 · 5 · 7 · 8 done, FR-3 부분. 수용 기준 1/2 |
+| 2026-11-03 | 수용 기준 2 닫음(`2c998117` — 구간 실패 → `degraded` + 계획값). 2/2 |

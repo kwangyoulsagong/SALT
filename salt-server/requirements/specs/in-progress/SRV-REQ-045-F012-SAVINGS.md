@@ -76,3 +76,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-03 | **in-progress** — S1a(`e83f7f80` Kotlin `savings` 첫 판 · `1ec3b0c6` 온보딩 프로브 · `b1c8ad67` `progressRatio` · `8d05a006` 상시 실행). FR-1 정정(은퇴 + 가져오기) · FR-3 · 4 · 5 · 8 · 9 · 15 · 19 done, FR-2 · 6 · 18 부분. 수용 기준 4/4 |
+| 2026-11-03 | FR-5 보강 `2c998117` — 구간 계산 실패는 그 칸만 `degraded` + 계획대로면 X월(발행하지 않음). 도메인 테스트 +2 |

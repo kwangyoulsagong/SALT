@@ -11,3 +11,7 @@
 미충족: 수용 기준 2 `degraded`(스펙 정정 줄) · FR-4 · 6(S1b).
 
 - 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`
+
+## 2026-11-03 — 미검증 닫기(사용자 "확인하지 못한 것은 베스트케이스")
+
+- 수용 기준 2 `degraded`: `2c998117` — 서버 `ProjectionEngine.safely`(실패 주입 테스트 2) · 응답 `degraded` · `degradedReasons` · BFF 타입 전달 · 화면 이유 문장. 종단 10 · BFF 351 통과

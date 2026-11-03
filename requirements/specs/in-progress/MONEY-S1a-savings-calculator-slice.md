@@ -15,7 +15,7 @@ status: in-progress
 재미(장면 · 실물 · 도장 · 엽서)와 저울은 S1b — 계산 계약이 먼저 서야 재미가 그 숫자 위에 얹힌다.
 
 > **구현 2026-11-03** — 커밋 `e83f7f80` · `1ec3b0c6` · `3e5e0d42` · `c60f5bfb` · `8d05a006` · `b1c8ad67`. 4 REQ in-progress(남은 FR 은 S1b). 검증 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`.
-> 수용 기준: `SRV-REQ-045` 4/4 · `DB-REQ-037` 3/3 · `BFF-REQ-047` 1/2(`degraded` — S1b) · `FE-REQ-056` 4/4.
+> 수용 기준: `SRV-REQ-045` 4/4 · `DB-REQ-037` 3/3 · `BFF-REQ-047` ~~1/2~~ 2/2(`2c998117`) · `FE-REQ-056` 4/4.
 
 ## 범위
 
@@ -44,5 +44,5 @@ status: in-progress
 | 가계부 구독(`ExpenseRecorded` · `MonthClosed`) | 가계부 서비스가 없다 | S1 가계부(`SRV-REQ-046`) |
 | 옛 Express goals 코드 · Prisma 모델 삭제 | `msa-services.md` §7 ⑦ — 전환 뒤 1주 관찰 | 2026-11-10 이후 |
 | platform launchd 상시 등록 | 이 세션 권한에서 막힘(백그라운드 에이전트 등록) — 스크립트 · 이름 표는 준비됨 | 사용자 `ops/salt.sh up` |
-| 앱 웹뷰 390 · 셸(3000) 경유 실화면 | 3000 을 다른 프로젝트가 쓰고 있었다 — zone 3003 직접 확인 | S1b 실측 때 |
+| ~~앱 웹뷰 390 · 셸(3000) 경유 실화면~~ | **닫힘 2026-11-03** — 셸 3010 경유 · 웹뷰 390 · 일반 390 | — |
 | 독립 코드 리뷰(high) | 슬라이스가 done 이 아니다(S1b 남음) — done 전 규칙(메모) | S1b 끝에 브랜치 전체 |

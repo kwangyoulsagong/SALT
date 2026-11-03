@@ -20,3 +20,8 @@
 미충족 · 범위 밖은 스펙 진행 표 — S1b(FR-7 · 10~14 · 16 · 17) · `FC-REQ-024`(FR-6 사본) · 옛 Express goals 삭제(1주 관찰 뒤).
 
 - 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`
+
+## 2026-11-03 — 미검증 닫기
+
+- FR-5 `degraded`(`2c998117`): `DegradedProjectionSpec` 2(실패 주입 → plan 2027-11 · reason degraded / 실패 없으면 그대로) · 종단 `degraded:false` · 쓰기 경로는 실패 구간 발행 0
+- platform launchd 상시: `ops/salt.sh up` 재시도도 권한(영속 프로세스 등록)에서 막힘 — 사용자 실행

@@ -26,3 +26,14 @@
 
 - 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`
 - 번들(Next 표 First Load, 운영 빌드): 저축 zone 새 화면 `/goals` 146 · `/goals/[id]` 146 · `/goals/new` 125 kB(공용 102) · 셸 `/home` 158 → 154 kB(F2 기록 대비 — 임시 목표 목록 · `goal` store 삭제) · 투자 zone 무변경
+
+## 2026-11-03 — 미검증 닫기(사용자 "확인하지 못한 것은 베스트케이스")
+
+| 항목 | 결과 |
+|---|---|
+| 셸 경유 | 우리 셸을 3010 에 띄워(3000 은 다른 프로젝트) rewrites → 저축 zone: `/goals/new` 만들기 → 상세(`data-zone=savings`) · 홈 저축 카드 `/goals` "셸 경유 여행 0.0%" → 클릭 → `/goals` · 저축 탭 `aria-current=page`(눌림 막힘 없음) · `/goals/addgoals` → `/goals/new` |
+| 앱 웹뷰 390(UA `SALTApp/1.0.0`) | 안내 꺼짐 · 카드 2 · 가로 넘침 0 |
+| 일반 브라우저 390 | 768 미만 안내 켜짐(`FE-REQ-043` 그대로) · 넘침 0 |
+| 결함 | '새 목표' 가 브라우저 기본 파란 밑줄 링크 → 작은 링크 버튼(`b0768194`) |
+| 콘솔 · 페이지 오류 | 0 |
+| 남은 미충족 | FR-13 서버 렌더 — 토큰 쿠키 이전(`FE-REQ-013`)이 먼저. 이 슬라이스에서 닫을 수 없다 |
