@@ -21,6 +21,7 @@ import com.salt.savings.domain.EmergencyComparison
 import com.salt.savings.domain.ItemUnit
 import com.salt.savings.domain.Projection
 import com.salt.savings.domain.Scene
+import com.salt.savings.domain.meetsDeadline
 import com.salt.savings.domain.GoalTemplate
 import com.salt.savings.domain.InterestPlan
 import com.salt.savings.domain.InvalidGoal
@@ -33,8 +34,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
-import jakarta.validation.constraints.Max
-import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
@@ -115,10 +114,11 @@ class SavingsController(
 
     data class PlanChangesRequest(@field:NotEmpty @field:Size(max = 20) @field:Valid val changes: List<PlanChange>?)
 
+    /** 범위(금리 0~30 · 달 1~120 · 모은 돈 이하)는 도메인이 코드로 답한다 — 여기서 막으면 일반 VALIDATION 으로 바뀌어 화면이 사유를 못 고른다(코드 리뷰 2026-11-03) */
     data class EmergencyRequest(
-        @field:NotNull @field:Positive val amount: BigDecimal?,
-        @field:NotNull @field:DecimalMin("0") @field:DecimalMax("30") val loanRate: BigDecimal?,
-        @field:NotNull @field:Min(1) @field:Max(120) val loanMonths: Int?,
+        @field:NotNull val amount: BigDecimal?,
+        @field:NotNull val loanRate: BigDecimal?,
+        @field:NotNull val loanMonths: Int?,
     )
 
     data class ItemUnitRequest(@field:NotBlank @field:Size(max = 30) val name: String?, @field:NotNull @field:Positive val unitPrice: BigDecimal?)
@@ -200,6 +200,8 @@ class SavingsController(
         val postcard: PostcardView?,
         /** 첫 실물 단위의 환산 — 목록 한 줄. 단위가 없으면 null */
         val unitLine: UnitView?,
+        /** 기한 모드 목표: 지금 월 계획대로면 기한의 달 안에 닿나(기한 없으면 null). 저울 확정으로 계획이 기한과 엇갈릴 수 있어 사실로 내린다 */
+        val planMeetsDeadline: Boolean?,
     )
 
     data class DepositView(val id: String, val amount: Long, val depositedOn: String, val note: String?, val splitGroupId: String?, val source: String)
@@ -209,8 +211,10 @@ class SavingsController(
         val plan: CalculationView,
         val deposits: List<DepositView>,
         val missedMonths: MissedMonthsView,
-        /** 이 목표의 실물 단위 전부(최대 3) */
+        /** 이 목표의 실물 단위 전부 */
         val units: List<UnitView>,
+        /** 목표 하나에 둘 수 있는 단위 수 — 화면이 상수를 복사하지 않게 */
+        val unitLimit: Int,
     )
 
     data class SimProjectionView(val method: String, val earlyMonth: String?, val lateMonth: String?, val planMonth: String?, val reason: String?)
@@ -225,6 +229,9 @@ class SavingsController(
         val after: SimProjectionView,
         /** 계획 도달 월이 몇 달 옮겨졌나(+ 늦어짐 · − 빨라짐). 어느 한쪽이 없으면 null */
         val planShiftMonths: Long?,
+        /** 기한 "2027-12"(기한 모드만) · 바꾼 계획대로면 기한 안에 닿나(기한 없으면 null) */
+        val deadlineMonth: String?,
+        val afterMeetsDeadline: Boolean?,
     )
 
     data class SimulationView(val totalMonthlyBefore: Long, val totalMonthlyAfter: Long, val rows: List<SimRowView>)
@@ -366,6 +373,8 @@ class SavingsController(
                         } else {
                             null
                         },
+                        deadlineMonth = row.goal.targetDate?.let { java.time.YearMonth.from(it).toString() },
+                        afterMeetsDeadline = row.afterMeetsDeadline,
                     )
                 },
             ),
@@ -408,7 +417,7 @@ class SavingsController(
         loan = LoanView(
             months = c.loan.months,
             annualRate = c.loan.annualRatePercent.stripTrailingZeros().toPlainString(),
-            // 상환액은 올림(덜 내면 못 갚는다) · 이자 합은 상환 올림값 기준이 아니라 계산값 그대로 반올림
+            // 상환액은 도메인이 이미 원 단위로 올렸다 · 이자 합은 그 상환액 기준이라 두 숫자가 맞는다
             monthlyPayment = c.loan.monthlyPayment.toKrwInteger(RoundingMode.CEILING),
             totalInterest = c.loan.totalInterest.toKrwInteger(),
         ),
@@ -479,6 +488,7 @@ class SavingsController(
             stampCount = s.stamps,
             postcard = s.postcard?.let { PostcardView(it.startedOn.toString(), it.reachedOn.toString(), it.daysTaken, it.depositActions) },
             unitLine = s.units.firstOrNull()?.let { unitView(it, s.saved) },
+            planMeetsDeadline = meetsDeadline(g, p),
         )
     }
 
@@ -490,5 +500,6 @@ class SavingsController(
         },
         missedMonths = d.missedMonths.let { MissedMonthsView(it.observedMonths, it.skippedMonths, it.shiftMonths, it.reason) },
         units = d.summary.units.map { unitView(it, d.summary.saved) },
+        unitLimit = ItemUnit.PER_GOAL_MAX,
     )
 }

@@ -5,14 +5,13 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 
 /**
  * S1b 계산 경계(`SRV-REQ-045` FR-7 · 11 · 12 · 16 · 17 · 18) — 장면 단계 · 도장 · 엽서 · 실물 환산 · 놓친 달 · 비상시 · 저울.
- * 기대값은 손계산이 아니라 계산기(python Decimal)로 뽑았다 — 대출 상환액 86,066.4297… · 이자 합 32,797.1564…
+ * 기대값은 손계산이 아니라 계산기(python Decimal)로 뽑았다 — 대출 상환액 86,066.4297… → 올림 86,067 · 이자 합 86,067 × 12 − 100만 = 32,804
  */
 class SavingsFunSpec : StringSpec({
     val today = LocalDate.of(2026, 11, 3)
@@ -63,12 +62,27 @@ class SavingsFunSpec : StringSpec({
         m.reason shouldBe null
     }
 
+    "놓친 달 — 만든 달은 넣었을 때만 센다(31일에 만들고 다음 달에 넣은 목표는 건너뛴 달 0)" {
+        val history = listOf(month(2026, 11, 100_000))
+        val m = MissedMonths.of(goal(3_000_000, 100_000), krw(100_000), history, YearMonth.of(2026, 10), LocalDate.of(2026, 12, 3), null)
+        m.observedMonths shouldBe 1
+        m.skippedMonths shouldBe 0
+    }
+
+    "기한 — 바꾼 계획대로면 기한 안에 닿나(기한 없는 목표는 null)" {
+        val deadline = Goal(GoalId.new(), "u", "목표", GoalTemplate.OTHER, krw(1_200_000), LocalDate.of(2027, 11, 1), krw(100_000), null, GoalStatus.ACTIVE, created, null)
+        Simulation.row(deadline, krw(100_000), krw(0), emptyList(), today).afterMeetsDeadline shouldBe true
+        Simulation.row(deadline, krw(50_000), krw(0), emptyList(), today).afterMeetsDeadline shouldBe false
+        Simulation.row(goal(1_200_000, 100_000), krw(50_000), krw(0), emptyList(), today).afterMeetsDeadline shouldBe null
+    }
+
     "놓친 달 — 계획이 없으면 이동을 말하지 않고, 다 찬 목표는 다 찬 달 전까지만 센다" {
         val noPlan = MissedMonths.of(
             Goal(GoalId.new(), "u", "목표", GoalTemplate.OTHER, krw(3_000_000), LocalDate.of(2099, 1, 1), null, null, GoalStatus.ACTIVE, created, null),
             krw(0), emptyList(), YearMonth.of(2026, 6), today, null,
         )
-        noPlan.skippedMonths shouldBe 5
+        // 6월에 만들고 한 번도 안 넣음 — 만든 달(6월)은 빼고 7 ~ 10월 넷
+        noPlan.skippedMonths shouldBe 4
         noPlan.shiftMonths shouldBe null
         noPlan.reason shouldBe ProjectionReason.NO_PLAN
 
@@ -85,8 +99,9 @@ class SavingsFunSpec : StringSpec({
         c.withdraw.delayMonths shouldBe 2
 
         val loan = EmergencyComparison.of(goal(3_000_000, 100_000), krw(1_000_000), krw(1_000_000), BigDecimal("6"), 12, today).loan
-        loan.monthlyPayment.toDecimal().setScale(4, RoundingMode.HALF_UP) shouldBe BigDecimal("86066.4297")
-        loan.totalInterest.toDecimal().setScale(4, RoundingMode.HALF_UP) shouldBe BigDecimal("32797.1565")
+        // 상환액은 원 단위 올림 · 이자 합은 그 상환액 기준 — 화면의 두 숫자가 서로 맞는다(코드 리뷰 2026-11-03)
+        loan.monthlyPayment shouldBe krw(86_067)
+        loan.totalInterest shouldBe krw(32_804)
     }
 
     "비상시 — 금리 0 이면 원금 ÷ 달 수 · 모은 돈보다 많이 꺼낼 수 없다 · 계획이 없으면 꺼내기 이동을 말하지 않는다" {

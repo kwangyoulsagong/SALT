@@ -116,7 +116,7 @@ class Calculate(private val clock: Clock) {
 /**
  * 목록 · 상세 · 쓰기 응답이 같은 모양을 쓰게 하는 조립. **구간은 늘 지금 기준으로 다시 계산한다** — 발행 기록(`projection_issued`)은 채점 보관용이고
  * 화면이 읽으면 시간이 지나 낡고 · 목록과 상세가 갈리고 · 실패(`degraded`)가 가려진다(코드 리뷰 2026-11-03).
- * 쿼리: 목록 4회(목표 · 적립 집계 · 월별 적립 · 실물 단위) · 상세 5회(목표 · 그 목표 집계 · 월별 · 최근 적립 · 단위)
+ * 쿼리: 목록 3회(목표 · 적립 집계+월별 한 문장 · 실물 단위) · 상세 5회(목표 · 그 목표 집계 · 월별 · 최근 적립 · 단위)
  */
 open class GoalReader(
     private val goals: Goals,
@@ -124,14 +124,14 @@ open class GoalReader(
     private val units: ItemUnits,
     private val clock: Clock,
 ) {
-    fun summaries(userId: String): List<GoalSummary> {
+    /** @param withUnits 실물 단위까지 — 홈 카드는 쓰지 않아 쿼리 하나를 아낀다(코드 리뷰 2026-11-03) */
+    fun summaries(userId: String, withUnits: Boolean = true): List<GoalSummary> {
         val today = clock.todayKst()
         val list = goals.listOwned(userId)
         if (list.isEmpty()) return emptyList()
-        val totals = deposits.totalsByGoal(userId, YearMonth.from(today))
-        val monthly = deposits.monthlyByGoal(userId)
-        val unitsByGoal = units.byGoal(userId)
-        return list.map { goal -> summarize(goal, totals[goal.id], monthly[goal.id].orEmpty(), unitsByGoal[goal.id].orEmpty(), today) }
+        val overview = deposits.overviewByGoal(userId, YearMonth.from(today))
+        val unitsByGoal = if (withUnits) units.byGoal(userId) else emptyMap()
+        return list.map { goal -> summarize(goal, overview.totals[goal.id], overview.monthly[goal.id].orEmpty(), unitsByGoal[goal.id].orEmpty(), today) }
     }
 
     fun detail(userId: String, rawId: String): GoalDetail {
@@ -140,7 +140,7 @@ open class GoalReader(
         val today = clock.todayKst()
         val totals = deposits.totalsFor(goal.id, YearMonth.from(today))
         val history = deposits.monthly(goal.id)
-        val summary = summarize(goal, totals, history, units.forGoal(goal.id), today)
+        val summary = summarize(goal, totals, history, units.forGoal(goal.id, userId), today)
         val plan = when {
             goal.targetDate != null -> SavingsMath.byDeadline(goal.targetAmount, summary.saved, goal.targetDate!!, goal.interest, today)
             else -> SavingsMath.byMonthly(goal.targetAmount, summary.saved, goal.monthlyPlan!!, goal.interest, today)
@@ -154,12 +154,13 @@ open class GoalReader(
         return GoalDetail(summary, deposits.recent(goal.id, RECENT_LIMIT), plan, missed)
     }
 
-    /** 저울용 — 사용자 목표 전부와 월별 적립을 한 번에(쿼리 3) */
+    /** 저울용 — 사용자 목표 전부와 집계 · 월별 적립(쿼리 2) */
     fun simulationInputs(userId: String): Triple<List<Goal>, Map<GoalId, DepositTotals>, Map<GoalId, List<MonthlyDeposit>>> {
         val today = clock.todayKst()
         val list = goals.listOwned(userId)
         if (list.isEmpty()) return Triple(emptyList(), emptyMap(), emptyMap())
-        return Triple(list, deposits.totalsByGoal(userId, YearMonth.from(today)), deposits.monthlyByGoal(userId))
+        val overview = deposits.overviewByGoal(userId, YearMonth.from(today))
+        return Triple(list, overview.totals, overview.monthly)
     }
 
     private fun summarize(goal: Goal, totals: DepositTotals?, monthly: List<MonthlyDeposit>, goalUnits: List<ItemUnit>, today: LocalDate): GoalSummary {
@@ -294,9 +295,9 @@ open class RecordDeposits(
         }
         locked.forEach { (goal, part) -> deposits.add(Deposit.manual(goal, part.amount, day, note, splitGroupId, today, now)) }
 
-        val totals = deposits.totalsByGoal(userId, YearMonth.from(today))
         locked.forEach { (goal, _) ->
-            val saved = totals[goal.id]?.saved ?: Money.zero(goal.targetAmount.currency)
+            // 잠근 목표만 — 사용자 전체를 훑지 않는다
+            val saved = deposits.totalsFor(goal.id, YearMonth.from(today))?.saved ?: Money.zero(goal.targetAmount.currency)
             val current = if (goal.status != GoalStatus.COMPLETED && saved >= goal.targetAmount) {
                 goals.markCompleted(goal.id, now)
                 events.goalReached(goal, now)
@@ -329,7 +330,7 @@ open class HomeCard(private val reader: GoalReader) {
 
     @Transactional(transactionManager = SAVINGS_TX, readOnly = true)
     open fun execute(userId: String): View {
-        val all = reader.summaries(userId)
+        val all = reader.summaries(userId, withUnits = false)
         val active = all.filter { it.goal.status == GoalStatus.ACTIVE }
         return View(
             totalGoals = all.size,
@@ -342,7 +343,7 @@ open class HomeCard(private val reader: GoalReader) {
 
 /**
  * 목표 저울 — 저장하지 않는다(`SRV-REQ-045` FR-7). 바꾸지 않은 목표도 같이 돌려준다: 화면이 옮긴 돈의 합(전 · 후)을 한눈에 보게.
- * 다 찬 · 멈춘 목표는 옮길 대상이 아니다(진행 중만). 쿼리 3회 · 계산은 메모리 — 예산 300ms(FEATURE-012 비기능)
+ * 다 찬 · 멈춘 목표는 옮길 대상이 아니다(진행 중만). 쿼리 2회 · 계산은 메모리 — 예산 300ms(FEATURE-012 비기능)
  */
 open class SimulateBalance(private val reader: GoalReader, private val clock: Clock) {
     data class Change(val goalId: String, val monthly: Money)
@@ -391,13 +392,14 @@ open class UpdateMonthlyPlans(
         val parsed = changes.map { (GoalId.parse(it.goalId) ?: throw GoalNotFound(it.goalId)) to it.monthly }
         if (parsed.map { it.first }.toSet().size != parsed.size) throw InvalidGoal("SIMULATE_DUPLICATE_GOAL", "each goal may appear once")
         val now = clock.instant()
-        val totals = deposits.totalsByGoal(userId, YearMonth.from(clock.todayKst()))
+        val thisMonth = YearMonth.from(clock.todayKst())
         parsed.sortedBy { it.first.value }.forEach { (id, monthly) ->
             val goal = goals.lockOwned(id, userId) ?: throw GoalNotFound(id.toString())
             if (goal.status != GoalStatus.ACTIVE) throw InvalidGoal("GOAL_NOT_ACTIVE", "only active goals can change plan")
             val updated = goal.withMonthlyPlan(monthly)
             goals.updateMonthlyPlan(id, monthly, now)
-            issuer.issue(updated, totals[id]?.saved ?: Money.zero(goal.targetAmount.currency))
+            // 잠근 뒤에 읽는다 — 그 사이 들어온 적립이 발행 기록(채점 근거)에서 빠지지 않게(코드 리뷰 2026-11-03)
+            issuer.issue(updated, deposits.totalsFor(id, thisMonth)?.saved ?: Money.zero(goal.targetAmount.currency))
         }
         return reader.summaries(userId)
     }
@@ -423,7 +425,7 @@ open class AddItemUnit(private val goals: Goals, private val units: ItemUnits, p
     open fun execute(userId: String, goalId: String, name: String, unitPrice: Money): GoalDetail {
         val id = GoalId.parse(goalId) ?: throw GoalNotFound(goalId)
         val goal = goals.lockOwned(id, userId) ?: throw GoalNotFound(goalId)
-        if (units.countFor(id) >= ItemUnit.PER_GOAL_MAX) throw ItemUnitLimit()
+        if (units.countFor(id, userId) >= ItemUnit.PER_GOAL_MAX) throw ItemUnitLimit()
         units.add(ItemUnit.create(goal, name, unitPrice, clock.instant()))
         return reader.detail(userId, goalId)
     }

@@ -29,14 +29,14 @@ interface Goals {
 interface Deposits {
     fun add(deposit: Deposit)
 
-    /** 목표마다 집계 — 쿼리 한 번(`SRV-REQ-045` FR-19). 기록 없는 목표는 결과에 없다 */
-    fun totalsByGoal(userId: String, thisMonth: YearMonth): Map<GoalId, DepositTotals>
-
     /** 목표 하나의 집계 — 상세 · 쓰기 응답이 사용자 전체를 훑지 않게(코드 리뷰 2026-11-03) */
     fun totalsFor(goalId: GoalId, thisMonth: YearMonth): DepositTotals?
 
-    /** 사용자 목표 전부의 월별 적립 — 목록이 구간을 지금 기준으로 계산하는 데 쓴다(쿼리 1) */
-    fun monthlyByGoal(userId: String): Map<GoalId, List<MonthlyDeposit>>
+    /**
+     * 사용자 목표 전부의 집계 + 월별 적립을 **한 문장**으로(`SRV-REQ-045` FR-19 목록 쿼리 3회: 목표 · 이것 · 실물 단위).
+     * 목표 하나 몫은 [totalsFor] · [monthly] 와 같은 값이다(종단 테스트가 대조). 사용자 단위 집계는 이것 하나 — 규칙(가져온 잔액 · 이번 달)이 세 벌로 갈라지지 않게(코드 리뷰 2026-11-03)
+     */
+    fun overviewByGoal(userId: String, thisMonth: YearMonth): DepositOverview
 
     /** 월별 적립 합 — 구간 표본. 가져온 잔액(`IMPORTED_BALANCE`)은 빼고 */
     fun monthly(goalId: GoalId): List<MonthlyDeposit>
@@ -52,14 +52,17 @@ interface ItemUnits {
     /** 본인 단위를 지운다 — 지운 행 수(남의 것 · 없는 것은 0) */
     fun delete(id: java.util.UUID, goalId: GoalId, userId: String): Int
 
-    fun countFor(goalId: GoalId): Int
+    /** 사용자 조건을 같이 건다 — 인덱스 `(user_id, goal_id, created_at)` 앞 열이 맞게(코드 리뷰 2026-11-03) · 남의 것은 0 */
+    fun countFor(goalId: GoalId, userId: String): Int
 
     /** 목표 하나의 단위 — 만든 순서 */
-    fun forGoal(goalId: GoalId): List<ItemUnit>
+    fun forGoal(goalId: GoalId, userId: String): List<ItemUnit>
 
     /** 사용자 목표 전부의 단위 — 목록이 한 줄 환산을 쓴다(쿼리 1) */
     fun byGoal(userId: String): Map<GoalId, List<ItemUnit>>
 }
+
+data class DepositOverview(val totals: Map<GoalId, DepositTotals>, val monthly: Map<GoalId, List<MonthlyDeposit>>)
 
 interface Projections {
     /** 발행 기록은 채점(`FC-REQ-024`) 보관용 — 화면은 읽지 않고 늘 지금 기준으로 다시 계산한다(코드 리뷰 2026-11-03: 발행본은 시간이 지나면 낡는다) */

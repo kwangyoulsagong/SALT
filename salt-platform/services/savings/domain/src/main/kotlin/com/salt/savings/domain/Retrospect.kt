@@ -10,7 +10,8 @@ import java.time.YearMonth
  * 놓친 달 회고(`SRV-REQ-045` FR-11 · FEATURE-012 FR-10) — 건너뛴 달 수와 그 달들이 "계획대로면" 도달 월을 몇 달 옮겼는지. 사실만 —
  * 재촉 · 벌칙 상태가 없다. 구간이 달 단위라 이동도 **달**로 센다(스펙 "일수" 정정 — 일 단위로 말하면 없는 정밀도를 말한다).
  *
- * @param observedMonths 살펴본 다 찬 달 수(만든 달 ~ 지난달, 다 찬 목표는 다 찬 달 전까지)
+ * @param observedMonths 살펴본 다 찬 달 수(만든 다음 달 ~ 지난달 + 만든 달에 넣었으면 그 달, 다 찬 목표는 다 찬 달 전까지).
+ *   멈춘 기간은 빼지 못한다 — 멈춤 이력이 없다(멈춤을 바꾸는 경로가 아직 없어 `paused` 목표가 생기지 않는다. 멈춤이 생기면 이력과 같이)
  * @param skippedMonths 그중 넣지 않은 달
  * @param shiftMonths 건너뛴 달마다 계획만큼 넣었다면 도달 월이 몇 달 빨랐을지. 계획이 없거나 다 찬 목표면 null([reason])
  */
@@ -21,7 +22,11 @@ data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shi
             // 다 찬 목표는 다 찬 달 전까지만 본다 — 그 뒤엔 넣을 이유가 없다
             val stop = listOfNotNull(thisMonth, endMonth).min()
             val deposited = history.filter { !it.amount.isZero() }.map { it.month }.toSet()
-            val months = generateSequence(startMonth) { it.plusMonths(1) }.takeWhile { it < stop }.toList()
+            // 만든 달은 넣었을 때만 센다 — 31일에 만들고 다음 달 1일에 넣은 목표를 "한 달 건너뜀"이라 하지 않는다(코드 리뷰 2026-11-03)
+            val months = generateSequence(startMonth) { it.plusMonths(1) }
+                .takeWhile { it < stop }
+                .filter { it != startMonth || it in deposited }
+                .toList()
             val skipped = months.count { it !in deposited }
             val remaining = goal.targetAmount - saved
             val plan = goal.monthlyPlan
@@ -47,7 +52,8 @@ data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shi
  * **상품 · 링크 0** — 금리는 사용자가 넣은 숫자다. 어느 쪽이 낫다고 말하지 않는다: 두 줄의 숫자만.
  *
  * ① 꺼내기: 남은 돈이 [amount] 만큼 늘어 "계획대로면" 도달 월이 몇 달 밀리는지. 모은 돈보다 많이 꺼낼 수 없다
- * ② 빌리기: 원리금 균등 상환 — 월 상환액 = P·r / (1 − (1+r)^−n), r = 연 금리/12. 이자 합 = 월 상환 × n − P. 상환은 목표 밖에서 낸다고 가정(가정 키)
+ * ② 빌리기: 원리금 균등 상환 — 월 상환액 = P·r / (1 − (1+r)^−n), r = 연 금리/12 를 **원 단위 올림**(덜 내면 못 갚는다 — 월 적립과 같은 계획 금액, 최종값).
+ *   이자 합 = 올린 월 상환 × n − P — 화면의 두 숫자가 서로 맞게(코드 리뷰 2026-11-03: 올리기 전 값으로 이자를 내면 7원 어긋났다). 상환은 목표 밖에서 낸다고 가정(가정 키)
  */
 data class EmergencyComparison(
     val amount: Money,
@@ -95,7 +101,7 @@ data class EmergencyComparison(
                 val discount = BigDecimal.ONE - BigDecimal.ONE.divide((BigDecimal.ONE + r).pow(months, MC), MC)
                 principal.toDecimal().multiply(r, MC).divide(discount, MC)
             }
-            val monthly = Money.of(payment, principal.currency)
+            val monthly = Money.of(payment.setScale(0, java.math.RoundingMode.CEILING), principal.currency)
             return Loan(months, annualRatePercent, monthly, monthly.scale(n) - principal)
         }
     }

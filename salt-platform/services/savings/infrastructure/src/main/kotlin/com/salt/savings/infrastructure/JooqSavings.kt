@@ -3,6 +3,7 @@ package com.salt.savings.infrastructure
 import com.salt.kernel.Currency
 import com.salt.kernel.Money
 import com.salt.savings.domain.Deposit
+import com.salt.savings.domain.DepositOverview
 import com.salt.savings.domain.DepositSource
 import com.salt.savings.domain.DepositTotals
 import com.salt.savings.domain.Deposits
@@ -120,26 +121,6 @@ class JooqDeposits(private val dsl: DSLContext) : Deposits {
             .execute()
     }
 
-    /** 목표마다 합계 · 건수 · 마지막 날 · 이번 달 합 — 한 문장(GROUP BY) */
-    override fun totalsByGoal(userId: String, thisMonth: YearMonth): Map<GoalId, DepositTotals> {
-        val monthStart = thisMonth.atDay(1)
-        val thisMonthSum = DSL.sum(DSL.`when`(DEPOSIT.DEPOSITED_ON.ge(monthStart), DEPOSIT.AMOUNT).else_(BigDecimal.ZERO))
-        return dsl.select(DEPOSIT.GOAL_ID, DSL.sum(DEPOSIT.AMOUNT), DSL.count(), DSL.max(DEPOSIT.DEPOSITED_ON), thisMonthSum, actionCount())
-            .from(DEPOSIT)
-            .where(DEPOSIT.USER_ID.eq(userId))
-            .groupBy(DEPOSIT.GOAL_ID)
-            .fetch()
-            .associate { r ->
-                GoalId(r.value1()) to DepositTotals(
-                    saved = money(r.value2()),
-                    count = r.value3(),
-                    lastDepositedOn = r.value4(),
-                    thisMonth = money(r.value5() ?: BigDecimal.ZERO),
-                    actions = r.value6(),
-                )
-            }
-    }
-
     override fun totalsFor(goalId: GoalId, thisMonth: YearMonth): DepositTotals? {
         val monthStart = thisMonth.atDay(1)
         val thisMonthSum = DSL.sum(DSL.`when`(DEPOSIT.DEPOSITED_ON.ge(monthStart), DEPOSIT.AMOUNT).else_(BigDecimal.ZERO))
@@ -154,15 +135,37 @@ class JooqDeposits(private val dsl: DSLContext) : Deposits {
     /** 직접 넣은 적립 건수 — 가져온 잔액 한 줄은 도장이 아니다 */
     private fun actionCount() = DSL.count().filterWhere(DEPOSIT.SOURCE.ne(DepositSource.IMPORTED_BALANCE.key))
 
-    override fun monthlyByGoal(userId: String): Map<GoalId, List<MonthlyDeposit>> {
+    /**
+     * (목표, 달, 가져온 잔액인가) 로 묶은 한 문장 → 메모리에서 두 모양으로. 행 수 = 목표 × 적립한 달(사용자 하나 몫)이라 작다.
+     * 이번 달 합에는 가져온 잔액도 들어간다(`totalsFor` 와 같은 뜻), 월별 표본 · 도장 건수에는 빠진다(`monthly` 와 같은 뜻)
+     */
+    override fun overviewByGoal(userId: String, thisMonth: YearMonth): DepositOverview {
         val month = DSL.field("date_trunc('month', {0})::date", LocalDate::class.java, DEPOSIT.DEPOSITED_ON)
-        return dsl.select(DEPOSIT.GOAL_ID, month, DSL.sum(DEPOSIT.AMOUNT))
+        // 값을 인라인으로 — 바인드(?)면 SELECT 와 GROUP BY 의 식이 서로 다른 매개변수라 Postgres 가 같은 식으로 보지 않는다
+        val imported = DSL.field(DEPOSIT.SOURCE.eq(DSL.inline(DepositSource.IMPORTED_BALANCE.key)))
+        val rows = dsl.select(DEPOSIT.GOAL_ID, month, imported, DSL.sum(DEPOSIT.AMOUNT), DSL.count(), DSL.max(DEPOSIT.DEPOSITED_ON))
             .from(DEPOSIT)
-            .where(DEPOSIT.USER_ID.eq(userId).and(DEPOSIT.SOURCE.ne(DepositSource.IMPORTED_BALANCE.key)))
-            .groupBy(DEPOSIT.GOAL_ID, month)
-            .orderBy(DEPOSIT.GOAL_ID, month)
+            .where(DEPOSIT.USER_ID.eq(userId))
+            .groupBy(DEPOSIT.GOAL_ID, month, imported)
             .fetch()
-            .groupBy({ GoalId(it.value1()) }, { MonthlyDeposit(YearMonth.from(it.value2()), money(it.value3())) })
+        val byGoal = rows.groupBy { GoalId(it.value1()) }
+        val zero = money(BigDecimal.ZERO)
+        val totals = byGoal.mapValues { (_, rs) ->
+            DepositTotals(
+                saved = rs.map { money(it.value4()) }.fold(zero, Money::plus),
+                count = rs.sumOf { it.value5() },
+                lastDepositedOn = rs.mapNotNull { it.value6() }.maxOrNull(),
+                thisMonth = rs.filter { YearMonth.from(it.value2()) == thisMonth }.map { money(it.value4()) }.fold(zero, Money::plus),
+                actions = rs.filter { it.value3() != true }.sumOf { it.value5() },
+            )
+        }
+        val monthly = byGoal.mapValues { (_, rs) ->
+            rs.filter { it.value3() != true }
+                .groupBy { YearMonth.from(it.value2()) }
+                .map { (m, ms) -> MonthlyDeposit(m, ms.map { money(it.value4()) }.fold(zero, Money::plus)) }
+                .sortedBy { it.month }
+        }.filterValues { it.isNotEmpty() }
+        return DepositOverview(totals, monthly)
     }
 
     override fun monthly(goalId: GoalId): List<MonthlyDeposit> {
@@ -223,10 +226,11 @@ class JooqItemUnits(private val dsl: DSLContext) : ItemUnits {
             .where(ITEM_UNIT.ID.eq(id).and(ITEM_UNIT.GOAL_ID.eq(goalId.value)).and(ITEM_UNIT.USER_ID.eq(userId)))
             .execute()
 
-    override fun countFor(goalId: GoalId): Int = dsl.fetchCount(ITEM_UNIT, ITEM_UNIT.GOAL_ID.eq(goalId.value))
+    override fun countFor(goalId: GoalId, userId: String): Int =
+        dsl.fetchCount(ITEM_UNIT, ITEM_UNIT.USER_ID.eq(userId).and(ITEM_UNIT.GOAL_ID.eq(goalId.value)))
 
-    override fun forGoal(goalId: GoalId): List<ItemUnit> =
-        dsl.selectFrom(ITEM_UNIT).where(ITEM_UNIT.GOAL_ID.eq(goalId.value)).orderBy(ITEM_UNIT.CREATED_AT.asc(), ITEM_UNIT.ID.asc()).fetch(::toUnit)
+    override fun forGoal(goalId: GoalId, userId: String): List<ItemUnit> =
+        dsl.selectFrom(ITEM_UNIT).where(ITEM_UNIT.USER_ID.eq(userId).and(ITEM_UNIT.GOAL_ID.eq(goalId.value))).orderBy(ITEM_UNIT.CREATED_AT.asc(), ITEM_UNIT.ID.asc()).fetch(::toUnit)
 
     override fun byGoal(userId: String): Map<GoalId, List<ItemUnit>> =
         dsl.selectFrom(ITEM_UNIT)

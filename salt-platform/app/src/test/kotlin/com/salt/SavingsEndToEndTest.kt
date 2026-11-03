@@ -159,7 +159,7 @@ class SavingsEndToEndTest {
     }
 
     @Test
-    fun `목록 · 홈 카드 — 목록은 쿼리 4회(실물 단위 포함), 홈 카드는 진척이 가장 큰 진행 중 목표`() {
+    fun `목록 · 홈 카드 — 목록은 쿼리 3회(실물 단위 포함), 홈 카드는 진척이 가장 큰 진행 중 목표`() {
         val user = "list-${UUID.randomUUID()}"
         val small = create(user, 10_000_000)
         val near = create(user, 1_000_000)
@@ -187,9 +187,19 @@ class SavingsEndToEndTest {
         data(call("GET", "/api/savings/goals/exists", user, null)).path("exists").asBoolean() shouldBe true
         data(call("GET", "/api/savings/goals/exists", "nobody-${UUID.randomUUID()}", null)).path("exists").asBoolean() shouldBe false
 
+        // 한 문장 집계(overviewByGoal, 목록 · 저울)가 목표 하나 집계(상세 · 쓰기)와 같은 값 — FR-19 를 지키려 합친 것, 값이 갈라지면 안 된다
+        val deposits = com.salt.savings.infrastructure.JooqDeposits(savingsDatabase.dsl)
+        val month = java.time.YearMonth.now(java.time.ZoneId.of("Asia/Seoul"))
+        val overview = deposits.overviewByGoal(user, month)
+        listOf(small, near).forEach { raw ->
+            val id = com.salt.savings.domain.GoalId.parse(raw)!!
+            overview.totals[id] shouldBe deposits.totalsFor(id, month)
+            overview.monthly[id] shouldBe deposits.monthly(id)
+        }
+
         val before = statements()
         call("GET", "/api/savings/goals", user, null).statusCode() shouldBe 200
-        (statements() - before) shouldBe 4L
+        (statements() - before) shouldBe 3L
     }
 
     @Test
@@ -211,6 +221,7 @@ class SavingsEndToEndTest {
         unit.statusCode() shouldBe 201
         val withUnit = data(unit)
         withUnit.path("units").size() shouldBe 1
+        withUnit.path("unitLimit").asInt() shouldBe 3
         withUnit.path("units").get(0).path("count").asLong() shouldBe 2
         withUnit.path("goal").path("unitLine").path("name").asString() shouldBe "제주 왕복"
         withUnit.path("goal").path("stampCount").asInt() shouldBe 2
@@ -255,6 +266,17 @@ class SavingsEndToEndTest {
         items(updated).first { it.path("id").asString() == b }.path("monthlyPlan").asLong() shouldBe 100_000
         events(a).count { it == "savings.ProjectionIssued" } shouldBe issuedBefore + 1
 
+        // 기한 목표 — 저울은 막지 않고 기한을 맞추는지 사실로. 확정하면 목표 응답에도 같은 사실
+        val due = data(call("POST", "/api/savings/goals", user, """{"title":"기한","template":"other","targetAmount":1200000,"targetDate":"2099-01-01"}""")).path("goal")
+        due.path("planMeetsDeadline").asBoolean() shouldBe true
+        val dueId = due.path("id").asString()
+        val dueRow = items(data(call("POST", "/api/savings/simulate", user, """{"changes":[{"goalId":"$dueId","monthly":1}]}""")).path("rows"))
+            .first { it.path("goalId").asString() == dueId }
+        dueRow.path("deadlineMonth").asString() shouldBe "2099-01"
+        dueRow.path("afterMeetsDeadline").asBoolean() shouldBe false
+        items(data(call("PUT", "/api/savings/goals/plans", user, """{"changes":[{"goalId":"$dueId","monthly":1}]}""")))
+            .first { it.path("id").asString() == dueId }.path("planMeetsDeadline").asBoolean() shouldBe false
+
         // 남의 목표 · 없는 목표는 404, 같은 목표 두 번은 400
         call("POST", "/api/savings/simulate", "other-${UUID.randomUUID()}", """{"changes":[{"goalId":"$a","monthly":1000}]}""").statusCode() shouldBe 404
         call("PUT", "/api/savings/goals/plans", "other-${UUID.randomUUID()}", """{"changes":[{"goalId":"$a","monthly":1000}]}""").statusCode() shouldBe 404
@@ -269,7 +291,7 @@ class SavingsEndToEndTest {
         val c = data(call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1000000,"loanRate":6,"loanMonths":12}"""))
         c.path("withdraw").path("delayMonths").asInt() shouldBe 10
         c.path("loan").path("monthlyPayment").asLong() shouldBe 86_067
-        c.path("loan").path("totalInterest").asLong() shouldBe 32_797
+        c.path("loan").path("totalInterest").asLong() shouldBe 32_804
         c.path("loan").path("annualRate").asString() shouldBe "6"
         items(c.path("assumptions")).map { it.asString() } shouldBe listOf("loan_paid_outside_goal")
         data(call("GET", "/api/savings/goals/$id", user, null)).path("goal").path("saved").asLong() shouldBe 1_000_000
@@ -277,6 +299,9 @@ class SavingsEndToEndTest {
         val over = call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1000001,"loanRate":6,"loanMonths":12}""")
         over.statusCode() shouldBe 400
         over.body() shouldContain "EMERGENCY_AMOUNT_OVER_SAVED"
+        // 범위는 도메인이 사유 코드로 — 일반 VALIDATION 이 아니다(화면이 사유 문장을 고른다)
+        call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1000,"loanRate":35,"loanMonths":12}""").body() shouldContain "EMERGENCY_RATE_INVALID"
+        call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1000,"loanRate":5,"loanMonths":121}""").body() shouldContain "EMERGENCY_MONTHS_INVALID"
         call("POST", "/api/savings/goals/$id/emergency-compare", "other-${UUID.randomUUID()}", """{"amount":1,"loanRate":6,"loanMonths":12}""")
             .statusCode() shouldBe 404
     }
