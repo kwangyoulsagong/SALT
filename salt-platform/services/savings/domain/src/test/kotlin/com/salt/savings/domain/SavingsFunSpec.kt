@@ -62,6 +62,17 @@ class SavingsFunSpec : StringSpec({
         m.reason shouldBe null
     }
 
+    "놓친 달 · 구간 — 100년 안에 못 닿으면 '건너뛴 달'이 아니라 not_reachable" {
+        val slowGoal = goal(2_000_000_000, 1_000)
+        val history = listOf(month(2026, 6, 1_000), month(2026, 8, 1_000), month(2026, 9, 1_000), month(2026, 10, 1_000))
+        val m = MissedMonths.of(slowGoal, krw(4_000), history, YearMonth.of(2026, 6), today, null)
+        m.skippedMonths shouldBe 1
+        m.shiftMonths shouldBe null
+        m.reason shouldBe ProjectionReason.NOT_REACHABLE
+        // 하위 10% 가 0 이 아닌데 늦은 쪽이 없다 → not_reachable · 0 이면 slow_side_open(그대로)
+        ProjectionEngine.project(slowGoal, krw(4_000), (7..10).map { month(2026, it, 1_000) }, today).reason shouldBe ProjectionReason.NOT_REACHABLE
+    }
+
     "놓친 달 — 만든 달은 넣었을 때만 센다(31일에 만들고 다음 달에 넣은 목표는 건너뛴 달 0)" {
         val history = listOf(month(2026, 11, 100_000))
         val m = MissedMonths.of(goal(3_000_000, 100_000), krw(100_000), history, YearMonth.of(2026, 10), LocalDate.of(2026, 12, 3), null)
@@ -145,6 +156,10 @@ class SavingsFunSpec : StringSpec({
         val farCmp = EmergencyComparison.of(far, krw(500_000), krw(400_000), BigDecimal("5"), 12, today)
         farCmp.withdraw.reason shouldBe ProjectionReason.NOT_REACHABLE
         farCmp.withdraw.delayMonths shouldBe null
+        // 꺼낸 뒤에도 다 차 있으면 이동 0(다 찬 목표에 "1개월 늦어져요"가 나오던 결함)
+        val full = EmergencyComparison.of(goal(3_000_000, 100_000), krw(3_500_000), krw(200_000), BigDecimal("5"), 12, today)
+        full.withdraw.delayMonths shouldBe 0
+        full.withdraw.reason shouldBe null
         // 정확히 X.5원 이자는 올린다 — 꼬리 오차(2.4999…985)로 1원 모자라던 경계(3% · 1,000원 · 1달 = 2.5 → 3, 0.3% · 2,000원 · 1달 = 0.5 → 1)
         EmergencyComparison.of(g, krw(100_000), krw(1_000), BigDecimal("3"), 1, today).loan!!.totalInterest shouldBe krw(3)
         EmergencyComparison.of(g, krw(100_000), krw(2_000), BigDecimal("0.3"), 1, today).loan!!.totalInterest shouldBe krw(1)

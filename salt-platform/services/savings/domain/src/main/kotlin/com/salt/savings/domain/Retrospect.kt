@@ -17,6 +17,11 @@ import java.time.YearMonth
  * @param shiftMonths 건너뛴 달마다 계획만큼 넣었다면 도달 월이 몇 달 빨랐을지. 계획이 없거나 다 찬 목표면 null([reason])
  */
 data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shiftMonths: Int?, val reason: String?) {
+    init {
+        // 이동 달 수가 없으면 이유가 있다 — 비상시 칸들과 같은 규칙(리뷰 6차)
+        require((shiftMonths == null) == (reason != null)) { "missed shiftMonths and reason must be exclusive" }
+    }
+
     companion object {
         fun of(goal: Goal, saved: Money, history: List<MonthlyDeposit>, startMonth: YearMonth, today: LocalDate, endMonth: YearMonth?): MissedMonths {
             val thisMonth = YearMonth.from(today)
@@ -41,7 +46,12 @@ data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shi
                     val now = SavingsMath.monthsToReach(remaining, plan, rate)
                     val filled = remaining - plan.scale(BigDecimal(skipped))
                     val ifFilled = if (filled.isNegative() || filled.isZero()) 0 else SavingsMath.monthsToReach(filled, plan, rate)
-                    MissedMonths(months.size, skipped, if (now != null && ifFilled != null) now - ifFilled else null, null)
+                    // 지금 계획으로 100년 안에 못 닿으면 이동을 말할 수 없다 — 이유를 붙인다(채운 쪽은 남은 돈이 더 적어 now 가 있으면 늘 있다)
+                    if (now == null || ifFilled == null) {
+                        MissedMonths(months.size, skipped, null, ProjectionReason.NOT_REACHABLE)
+                    } else {
+                        MissedMonths(months.size, skipped, now - ifFilled, null)
+                    }
                 }
             }
         }
@@ -58,7 +68,9 @@ data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shi
  *   총액이 달 수 이상이면 늘 나뉜다. 총액이 달 수보다 작으면 대출 칸만 `loan = null` + 이유(꺼내기 칸은 남는다). 상환은 목표 밖에서 낸다고 가정(가정 키).
  *   ~~이자 = 올린 상환 × n − 원금~~ → ~~마지막 달이 올림 차액~~ **정정 2026-11-03 두 번**(0% 이자 8원 · 나머지에 따라 거절되는 금액 · 1개월 두 금액 — 셸 실측 · 리뷰)
  */
-class EmergencyComparison private constructor(
+/** 생성자 · copy 모두 private(`of` 만 만든다) — data class 로 두어 값 비교 · 출력은 유지(리뷰 6차) */
+@ConsistentCopyVisibility
+data class EmergencyComparison private constructor(
     val amount: Money,
     val withdraw: Withdraw,
     /** 나눌 수 없으면 null — 이유는 [loanReason] */
@@ -74,10 +86,10 @@ class EmergencyComparison private constructor(
     /** 계산 가정 키 — 대출 칸이 있을 때만 대출 가정이 뜻을 갖는다(컨트롤러가 아니라 여기서 정한다, 리뷰) */
     val assumptions: List<String> get() = if (loan != null) listOf(LOAN_PAID_OUTSIDE_GOAL) else emptyList()
 
-    /** 이동 달 수가 없으면 이유가 있다 — 대출 칸과 같은 규칙(리뷰 5차). 어기는 값은 만들 수 없다 */
+    /** 이동 달 수가 없으면 이유가 있다 — 대출 칸과 같은 규칙(리뷰 5차). 만드는 곳은 [of] 하나 — 인자 검사라 require */
     data class Withdraw(val planMonthBefore: YearMonth?, val planMonthAfter: YearMonth?, val delayMonths: Int?, val reason: String?) {
         init {
-            check((delayMonths == null) == (reason != null)) { "withdraw delayMonths and reason must be exclusive" }
+            require((delayMonths == null) == (reason != null)) { "withdraw delayMonths and reason must be exclusive" }
         }
     }
 
@@ -127,7 +139,8 @@ class EmergencyComparison private constructor(
             val rate = SavingsMath.netRate(goal.interest)
             val thisMonth = YearMonth.from(today)
             val before = (goal.targetAmount - saved).let { if (it.isNegative() || it.isZero()) 0 else SavingsMath.monthsToReach(it, plan, rate) }
-            val after = SavingsMath.monthsToReach(goal.targetAmount - saved + amount, plan, rate)
+            // 꺼낸 뒤에도 다 차 있으면 0 — before 와 같은 규칙(리뷰 6차: 다 찬 목표에 "1개월 늦어져요"가 나왔다)
+            val after = (goal.targetAmount - saved + amount).let { if (it.isNegative() || it.isZero()) 0 else SavingsMath.monthsToReach(it, plan, rate) }
             return Withdraw(
                 before?.let { thisMonth.plusMonths(it.toLong()) },
                 after?.let { thisMonth.plusMonths(it.toLong()) },
@@ -149,7 +162,8 @@ class EmergencyComparison private constructor(
             // 원 단위로 정하는 것은 중간 반올림이 아니다 — 나눠 내는 계획 금액이 최종값이다(`kotlin-platform.md` §3 예외, 월 적립 올림과 같다).
             // 반올림은 총액 하나에 한 번: 총액 = 원금 + 정확한 이자를 원 단위로, 이자 = 총액 − 원금(리뷰 4차 — 이자 · 총액을 따로 반올림하면 두 번).
             // 그 전에 꼬리 오차만 소수 30자리([NOISE_SCALE])에서 정리한다 — 정확히 X.5원인 이자가 2.4999…985 로 계산돼 1원 모자랐다(3% · 1,000원 · 1달, 리뷰 4차 jshell 재현).
-            // 60자리 정밀도의 오차는 원금 1조 · 120달에도 1e-40 아래, 실제 금액이 .5 에 1e-30 안으로 붙을 일은 없다 — 이 정리가 바꾸는 건 꼬리 오차뿐(금액 반올림으로 세지 않는다)
+            // 60자리 정밀도의 오차는 원금 1조 · 120달에도 1e-40 아래. 정리는 ".5 에서 1e-30 안의 값은 .5 로 본다"는 뜻 — 유한 정밀도로는 정확한 X.5 와
+            // 그보다 1e-30 작은 값을 가를 수 없어 어느 쪽이든 하나는 남는다(리뷰 6차). 정확한 X.5(흔하다)를 맞히는 쪽을 택했다 — 반대쪽은 실제 금액에서 생길 일이 없다
             val exactInterest = (exactPayment.multiply(n, MC) - principal.toDecimal()).max(BigDecimal.ZERO).setScale(NOISE_SCALE, RoundingMode.HALF_UP)
             val total = (principal.toDecimal() + exactInterest).setScale(0, RoundingMode.HALF_UP)
             val interest = total - principal.toDecimal()

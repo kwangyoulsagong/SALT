@@ -103,7 +103,12 @@ object ProjectionEngine {
             early,
             late,
             plan,
-            if (late == null) ProjectionReason.SLOW_SIDE_OPEN else null,
+            // 늦은 쪽이 없는 이유는 둘 — 하위 10% 달이 0(건너뛴 달)이거나, 0 은 아니지만 100년 안에 닿지 않거나(리뷰 6차: 둘을 같은 문구로 보였다)
+            when {
+                late != null -> null
+                slow.isZero() || slow.isNegative() -> ProjectionReason.SLOW_SIDE_OPEN
+                else -> ProjectionReason.NOT_REACHABLE
+            },
             samples.size,
         )
     }
