@@ -71,6 +71,8 @@ export const GOAL_MESSAGES = {
     first: "첫 도장 — 목표를 만든 날",
   },
   unitLine: (name: string, count: number) => `모은 돈 = ${name} ${count}개`,
+  /** 기한과 계획이 엇갈릴 때 — 사실만(막지 않는다) */
+  deadlineMissed: (deadline: string) => `지금 월 계획대로면 기한(${formatMonth(deadline)})보다 늦어요`,
   postcard: {
     title: "엽서 보관함",
     line: (days: number, deposits: number) => `${days}일 · 적립 ${deposits}번`,

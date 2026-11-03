@@ -38,7 +38,7 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
   if (query.isError) return <EmptyState title={hasApiStatus(query.error, 404) ? M.notFound : GOAL_MESSAGES.loadFailed} tone="error" />;
   if (!query.data) return <Skeleton height={320} />;
 
-  const { goal, plan, deposits, missedMonths, units } = query.data;
+  const { goal, plan, deposits, missedMonths, units, unitLimit } = query.data;
   const lead =
     goal.frame === "saved"
       ? { label: GOAL_MESSAGES.saved, value: formatWon(goal.saved), sub: `${GOAL_MESSAGES.remaining} ${formatWon(goal.remaining)}` }
@@ -79,6 +79,9 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
           ) : (
             <span className={s.muted}>{GOAL_MESSAGES.calculationState[plan.state]}</span>
           )}
+          {goal.planMeetsDeadline === false && goal.targetDate ? (
+            <span className={s.muted}>{GOAL_MESSAGES.deadlineMissed(goal.targetDate.slice(0, 7))}</span>
+          ) : null}
           <MilestoneBox milestone={goal.milestone} />
           <ProjectionLine projection={goal.projection} />
           <MissedMonthsBox missed={missedMonths} />
@@ -86,7 +89,7 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
 
         <section className={panel} aria-label={ITEM_UNIT_MESSAGES.title}>
           <span className={s.muted}>{ITEM_UNIT_MESSAGES.title}</span>
-          <ItemUnitEditor goalId={goal.id} units={units} />
+          <ItemUnitEditor goalId={goal.id} units={units} limit={unitLimit} />
         </section>
 
         {goal.saved > 0 ? (

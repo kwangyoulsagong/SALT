@@ -86,6 +86,8 @@ export interface SavingsGoal {
   postcard: SavingsPostcard | null;
   /** 첫 실물 단위의 환산 한 줄(FR-9). 단위가 없으면 null */
   unitLine: SavingsItemUnit | null;
+  /** 기한 모드: 지금 월 계획대로면 기한 안에 닿나(서버 판정). 기한 없으면 null */
+  planMeetsDeadline: boolean | null;
 }
 
 export type SceneKind = "trip" | "car" | "umbrella" | "house" | "jar";
@@ -137,6 +139,10 @@ export interface SavingsSimulationRow {
   after: SavingsSimProjection;
   /** + 늦어짐 · − 빨라짐(서버가 센 달 수) */
   planShiftMonths: number | null;
+  /** "2027-12"(기한 모드만) */
+  deadlineMonth: string | null;
+  /** 바꾼 계획대로면 기한 안에 닿나 — 기한 없으면 null */
+  afterMeetsDeadline: boolean | null;
 }
 
 export interface SavingsSimulation {
@@ -180,8 +186,10 @@ export interface SavingsGoalDetail {
   deposits: SavingsDeposit[];
   /** 놓친 달 회고(FR-7) */
   missedMonths: SavingsMissedMonths;
-  /** 이 목표의 실물 단위(최대 3) */
+  /** 이 목표의 실물 단위 */
   units: SavingsItemUnit[];
+  /** 목표 하나에 둘 수 있는 단위 수 — 서버 상한(화면이 상수를 복사하지 않는다) */
+  unitLimit: number;
 }
 
 /** 계산 요청 — 금액 + (기한 | 월 적립). 서버가 계산한다 */

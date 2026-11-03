@@ -7,7 +7,7 @@ import { TextField } from "@repo/ui/textField";
 
 import { formatAmountInput, parseAmountInput, useDebouncedValue } from "@repo/web-shared/lib";
 
-import { GOAL_MESSAGES, formatWon, useSavingsSimulation, type PlanChangesRequest, type SavingsGoal, type SavingsSimProjection } from "@/entities/goal";
+import { GOAL_MESSAGES, formatMonth, formatWon, useSavingsSimulation, type PlanChangesRequest, type SavingsGoal, type SavingsSimProjection } from "@/entities/goal";
 
 import { useUpdatePlans } from "../api";
 import { REBALANCE_MESSAGES as M } from "../model";
@@ -71,6 +71,9 @@ export const BalanceScale = ({ goals }: { goals: SavingsGoal[] }) => {
                   <>
                     <span className={s.value}>{projectionText(row.after)}</span>
                     {row.planShiftMonths !== null ? <span className={s.label}>{M.shift(row.planShiftMonths)}</span> : null}
+                    {row.afterMeetsDeadline === false && row.deadlineMonth ? (
+                      <span className={s.label}>{M.deadlineMissed(formatMonth(row.deadlineMonth))}</span>
+                    ) : null}
                   </>
                 ) : (
                   <span className={s.label}>{M.unchanged}</span>

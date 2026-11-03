@@ -8,6 +8,7 @@ export const REBALANCE_MESSAGES = {
   shift: (months: number) => (months === 0 ? "도달 월 그대로" : months > 0 ? `${months}개월 늦어져요` : `${-months}개월 빨라져요`),
   unchanged: "바꾸지 않음",
   noPlan: "계획 없음",
+  deadlineMissed: (deadline: string) => `기한(${deadline})보다 늦어요`,
   confirm: "확정하기",
   reset: "되돌리기",
   saved: "월 계획을 바꿨어요",
