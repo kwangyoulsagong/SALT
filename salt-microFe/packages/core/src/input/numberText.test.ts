@@ -101,7 +101,7 @@ describe("readNumberText — count(개월 수)", () => {
   });
 });
 
-describe("groupDigits — 묶음 규칙 한 곳(formatAmountInput 도 쓴다)", () => {
+describe("groupDigits — 묶음 규칙 한 곳", () => {
   it.each([
     ["", ""],
     ["0", "0"],

@@ -20,7 +20,7 @@ const toAsciiDigits = (text: string): string =>
 
 /**
  * 숫자 글자를 그대로 세 자리씩 — Number 로 바꾸지 않는다(2^53 을 넘으면 끝자리가 바뀐다, 리뷰 10차). 앞 0 은 하나만 남긴다.
- * 묶음 규칙은 여기 한 곳 — web-shared `formatAmountInput` 도 이것을 쓴다
+ * 묶음 규칙은 여기 한 곳(옛 web-shared `formatAmountInput` 은 삭제 — 2026-11-03)
  */
 export const groupDigits = (digits: string): string => {
   const trimmed = digits.replace(/^0+(?=\d)/, "");

@@ -1,19 +1,12 @@
-import { groupDigits } from "@repo/core/input";
-
 /**
  * 금액 · 수량 **입력 표시** — 계산이 아니다. 사용자가 친 글자를 콤마 붙여 보여 주고, 보낼 때 숫자로 읽는다.
  * 금액을 만드는 연산(곱 · 비율)은 여기 없다 — 전부 서버(`fsd-shared.md` "포맷은 여기, 계산은 없다").
  */
 
-/** `1234567.5` → `1,234,567.5`. 숫자 · 점 말고는 버리고, 점은 첫 하나만 둔다 */
-export const formatAmountInput = (raw: string): string => {
-  const cleaned = raw.replace(/[^0-9.]/g, "");
-  const [integer = "", ...rest] = cleaned.split(".");
-  const fraction = rest.join("");
-  // 묶음은 core 한 곳(`groupDigits`) — Number 로 바꾸지 않아 큰 수도 끝자리가 그대로다
-  const groupedInteger = groupDigits(integer);
-  return cleaned.includes(".") ? `${groupedInteger || "0"}.${fraction}` : groupedInteger;
-};
+/**
+ * ~~`formatAmountInput`~~ 삭제(2026-11-03) — 숫자 · 점 말고는 지우고 이어 붙여 금액을 바꿀 수 있었다(1000．5 → 10,005). 입력은 `useNumberFields`,
+ * 규칙은 `@repo/core/input`(`readNumberText` · `numberToInputText`)
+ */
 
 /** 입력 글자 → 양수. 비었거나 0 이하 · 숫자 아님이면 `null` */
 export const parseAmountInput = (text: string): number | null => {
