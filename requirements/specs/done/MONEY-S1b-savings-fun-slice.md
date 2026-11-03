@@ -4,7 +4,7 @@ title: "돈 관리 앱 S1b + F3b — 목표 저울 · 비상시 비교 · 놓친
 priority: high
 labels: [F012, server, bff, db, frontend, ui, slice, msa]
 created: 2026-11-03
-status: in-progress
+status: done
 ---
 
 ## Summary
@@ -51,3 +51,7 @@ S1a 가 "목표가 계산기가 된다"였다면 S1b 는 **"목표 사이를 비
 | 팬 차트(구간 그림) | 월별 분위 경로가 응답에 없다 — 지금 구간은 끝점 둘 | 채점 사본과 같이 |
 | 때맞춘 팁 카드 — FE FR-12 | 금융 팁(F014) 이 없다 | F014 |
 | ~~투자 zone 금액 칸 4곳(`set-risk-budget` · `record-transaction` · `run-preflight`)의 같은 입력 결함(전각 · 가운뎃점이 숫자를 이어 붙임)~~ **닫힘 2026-11-03 `7d22f6a1`(사용자 "같이 고침")** | 원인 함수 `formatAmountInput` 은 그대로 두고 저축 칸만 `readAmountInput` 으로 옮겼다 — 투자는 동결(`ADR-005` §5, 사용자 결정 2026-10-30)이라 이 슬라이스에서 화면을 바꾸지 않았다 | 사용자가 투자 칸도 옮기라고 하면 같은 방식으로 바로(칸당 한 줄 + 안내) |
+
+## Changelog
+
+- 2026-11-03 — **done**. 수용 기준 · 체크리스트(`checklists/MONEY-S1b-savings-fun.md`, 미검증 0) · 회고 · 검증 명령(zone 5 빌드 · lint · 타입 · 테스트 · `./gradlew check` · 실화면) 충족. 영역 REQ 넷은 S1b 밖 FR(제도 · 공동 · 오늘 돈 · 채점)이 남아 in-progress
