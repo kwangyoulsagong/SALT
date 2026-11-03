@@ -25,3 +25,11 @@
 
 - `c60f5bfb` — 웹 `domain-savings` 의 조회 · 타입 파일이 이 계약(`/api/app/savings/*` 뷰모델)을 소비한다. BFF 무변경
 - 확인: 해당 영역 전체 테스트 · 빌드(루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`)
+
+## 2026-11-03 — MONEY-S1b
+
+| 항목 | 검증 |
+|---|---|
+| 경로 5(저울 · 확정 · 비상시 · 단위 둘) | `app-savings.test.ts` — 메서드 · 경로 · 본문 그대로 · id 인코딩(`a/b` → `a%2Fb`) |
+| 실스택 | BFF 4001 재시작 → platform 4010: 만들기 · 적립 · 단위 · 저울 · 비상시 200, 확정 200 · 기한 판정 칸 전달 |
+| 빌드 · 테스트 | `npm run build` · `npm test` 352 통과 |

@@ -47,3 +47,20 @@
 
 - FR-13 **done** — 저축 목록 · 상세가 서버에서 쿠키로 BFF 를 불러(1.5초 상한 · 실패면 null) `initialData` 로 — 첫 숫자가 HTML 에. `/goals` 는 이제 동적 렌더(ƒ)
 - 실측: `/api/session` POST 204 + HttpOnly · 다른 사이트 403 · 모양 틀림 400 · DELETE 지움 · 셸 경유 `/goals` · `/goals/[id]` HTML 에 목표 이름 · 금액(쿠키 없으면 없음) · 브라우저 첫 진입에 쿠키 채움 · `document.cookie` 에 안 보임 · 수화 오류 0. 모노레포 check-types · lint · test · web · web-savings 빌드 · 훅
+
+## 2026-11-03 — MONEY-S1b(F3b) 저울 · 재미 · 비상시
+
+| FR | 구현 | 확인 |
+|---|---|---|
+| FR-2 | `AddGoalForm` 첫 도장 미리보기 | `/goals/new` 서버 HTML 에 "도장 1개" · 안내 문장 |
+| FR-4 · 8 | `GoalScene` · `@repo/ui` `ProgressScene` | 적립 뒤 "10칸 중 5칸 → 6칸" · 기본 설정 10프레임 이동 · 줄인 모션 중간 프레임 0(2값) |
+| FR-6 | `features/rebalance-goals` | 첫 차 월 적립 바꿈 → "N개월 빨라져요" · 합계 전후 · [확정] → "월 계획을 바꿨어요" · 입력 칸이 새 계획 |
+| FR-7 | `MissedMonthsBox` · `features/compare-emergency` | 상세 "아직 다 지난 달이 없어요" · 10만 원 · 5% · 12달 → "매달 8,561원씩" · "이자 합계 2,732원"(= 8,561 × 12 − 10만) · "도달이 1개월 늦어져요" |
+| FR-9 | `features/add-item-unit` · 목록 `unitLine` | 단위 추가 · 상한(3)에서 입력 칸 숨김(서버 `unitLimit`) · 목록 "모은 돈 = 제주 왕복 N개" |
+| FR-10 | `StampBoard` · `PostcardList` | 도장 2 → 3 → 4 · 다 찬 비상금 엽서 "0일 · 적립 1번"(서버 HTML 에도) |
+
+- 실화면(3003, 임시 사용자 · 셸 미경유): `/goals` · 상세 — 가로 넘침 0 at 768 · 900 · 1024 · 1280 · 1440 · 1600 · 앱 웹뷰 390 · 768. 콘솔 오류는 `/api/session` 404 하나 — zone 에 직접 붙어서 생기는 셸 경로(쿠키 세션 1단계부터 있던 것, 셸 경유에선 없다)
+- 결함 1(실측이 잡음): 저울 `key` 에 계획 금액 → 확정 응답에 다시 마운트돼 성공 문구가 사라짐 → 목표 id 만(`6ad345fc` 전에 고침)
+- 모노레포: check-types · lint · test(core 83 · ui 43) · test:layer-check 26 · 훅 사후 실행(바뀐 TS 전부) · zone 5 운영 빌드 · Storybook 빌드
+- 번들(First Load): `/goals` 146 → 149 · `/goals/[id]` 146 → 150 · `/goals/new` 125 → 126 kB(공용 102) — 증가 +3 · +4 kB(예산 40)
+- 미검증: 셸(3000 → rewrites) 경유 실화면 — 3000 은 이날도 다른 프로젝트. S1a 에서 셸 3010 경유를 쟀고 이번 변경은 zone 안 화면뿐이라 경로 · 셸이 무변경

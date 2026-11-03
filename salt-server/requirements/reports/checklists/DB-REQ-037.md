@@ -30,3 +30,9 @@
 
 - `d69c310e` — FR-11: public `goals` · `saving_transactions` drop 마이그레이션(DDL 주인이 Flyway 하나로). 덤프 `~/salt-backups/2026-11-03-public-goals-before-drop.dump` 복원 시험 통과. 로컬 적용은 사용자 실행
 - 확인: 서버 build · lint · test 936 · test:layer-check · 재시작 health 200 · Express `/api/goals` 404 · BFF 410 · 온보딩 `set_plan` done · `ops/salt.sh status` 전부 ok
+
+## 2026-11-03 — MONEY-S1b
+
+- FR-5: V2 `item_unit` — Testcontainers 종단(만들기 · 상한 409 · 남의 것 404 · 지우기) · 로컬 운영 DB Flyway "Successfully applied 1 migration"(v2). 되돌리기: `DROP TABLE item_unit`(다른 표 참조 없음, 사용자 단위만 들어 있다)
+- FR-6 · 7: 표 없음 — 도장 수 · 엽서 값이 적립 · 목표에서 나오는지 종단(도장 1 → 2 · 다 차면 엽서 적립 2 · 0일)
+- 쿼리: 상세 `forGoal` · 상한 `countFor` 가 `user_id = ? AND goal_id = ?` — 인덱스 `(user_id, goal_id, created_at)` 앞 두 열. `EXPLAIN` 은 표가 비어 Seq Scan(행 0 · 의미 없음) — 행이 쌓이면 다시 본다

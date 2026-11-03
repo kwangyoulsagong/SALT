@@ -17,7 +17,7 @@
 | 남의 목표 | 404(읽기 · 적립 · 나눠 넣기) | 종단 |
 | 권한 | svc_savings ↔ svc_ping 서로 42501 | 종단 |
 
-미충족 · 범위 밖은 스펙 진행 표 — S1b(FR-7 · 10~14 · 16 · 17) · `FC-REQ-024`(FR-6 사본) · 옛 Express goals 삭제(1주 관찰 뒤).
+미충족 · 범위 밖은 스펙 진행 표 — ~~S1b(FR-7 · 10~14 · 16 · 17)~~ **정정 2026-11-03: S1b 가 FR-7 · 11 · 12 · 16 을 닫음, 남은 FR-10 · 13 · 14 · 17 은 `MONEY-S1b` 범위 밖 표** · `FC-REQ-024`(FR-6 사본) · 옛 Express goals 삭제(1주 관찰 뒤).
 
 - 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`
 
@@ -40,3 +40,17 @@
 
 - `d69c310e` — FR-1 ⑦: 옛 Express goals 모듈 · Prisma 모델 삭제 + 표 drop 마이그레이션(덤프 · 복원 시험). 남은 호출 0 을 직접 확인(코드 grep · BFF 410 로그)해 1주 관찰을 당겼다. **로컬 DB 적용(`prisma migrate deploy`)은 권한에서 막혀 사용자 실행**
 - 확인: 서버 build · lint · test 936 · test:layer-check · 재시작 health 200 · Express `/api/goals` 404 · BFF 410 · 온보딩 `set_plan` done · `ops/salt.sh status` 전부 ok
+
+## 2026-11-03 — MONEY-S1b 저울 · 비상시 · 놓친 달 · 재미
+
+| FR | 구현 | 검증 |
+|---|---|---|
+| FR-7 | `Simulation` · `SimulateBalance` · `UpdateMonthlyPlans` · `PUT /goals/plans` | 도메인: 올리면 당겨짐 · 내리면 늦은 쪽 열림 · 안 바꾼 목표 그대로 · 기한 판정. 종단: 저장 안 함 · 합계 · 이동 −10/+12 · 확정 뒤 구간 발행 +1 · 남의 목표 404 · 중복 400 · 기한 목표 `afterMeetsDeadline` / `planMeetsDeadline` false |
+| FR-11 | `MissedMonths` | 2달 건너뜀 → 2달 · 계획 없음 · 다 찬 목표 · 만든 달 규칙 |
+| FR-12 | `EmergencyComparison` · `CompareEmergency` | 상환 86,067 · 이자 32,804(계산기 값) · 금리 0 · 모은 돈 초과 · 달 121 · 사유 코드가 VALIDATION 에 가리지 않음(종단) |
+| FR-16 | `Fun.kt` · `AddItemUnit` · `DeleteItemUnit` · V2 | 장면 칸 0/3/9/10 · 도장 1 → 2 · 단위 2개 · 상한 409 · 남의 단위 404 · 엽서 일수 · 적립 수 |
+| FR-19 | `overviewByGoal` | 목록 3회(jOOQ 리스너) · 목표 단위 집계와 값 대조 |
+
+- `./gradlew check` 통과 — 저축 종단 13 · 도메인 31(Math 11 · Fun 12 · Projection 6 · Degraded 2) · 플랫폼 14 · ArchUnit 8. 실행 jar 로컬 운영 DB Flyway v2 적용 · health UP
+- 실스택: BFF 4001 → platform 4010 → 로컬 DB(임시 사용자) — 경로 5 · 화면 3003 저울 확정 · 비상시 · 단위 · 적립 → 장면 한 칸
+- 미충족: FR-10 · 13 · 14 · 17 · FR-6 채점 · FR-16 템플릿 단위 · 엽서 사진 — 루트 슬라이스 범위 밖 표

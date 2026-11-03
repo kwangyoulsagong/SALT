@@ -180,3 +180,8 @@
 
 - 공용 레이아웃 문구 파일에 `NAVIGATION_FRAME_MESSAGES`(내비 이름) 한 줄(`e0bce695`). 404 문구 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+## 2026-11-03 — MONEY-S1b P-24 저축 목표 진척 장면
+
+- `@repo/ui/progressScene` `ProgressScene`(`84871e70`) — 종류 5 · 칸 = 서버 값 · 이동은 transform 만(채운 길 scaleX · 그림 x) · `initial={false}`(서버 HTML 은 지금 칸)
+- 확인: `@repo/ui` check-types · test 43 · Storybook 빌드(`Components/ProgressScene` 3 이야기) · 실측 기본 설정 10프레임 이동 · 줄인 모션 중간 프레임 0 · `aria-hidden` + 쓰는 쪽 글

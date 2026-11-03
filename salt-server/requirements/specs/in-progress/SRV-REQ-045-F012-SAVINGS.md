@@ -42,6 +42,8 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 `GET /api/savings/goals` · `POST /api/savings/goals` · `GET /api/savings/goals/:id` · `POST /api/savings/goals/:id/deposits` · `POST /api/savings/deposits/split` ·
 `POST /api/savings/simulate` · `GET /api/savings/goals/:id/delay?amount=` · `GET /api/savings/home-card` · `POST /api/savings/goals/:id/members`
 
+**2026-11-03 S1b 로 생긴 것**: `PUT /api/savings/goals/plans`(저울 확정) · `POST /api/savings/goals/:id/emergency-compare` · `POST /api/savings/goals/:id/units` · `DELETE /api/savings/goals/:id/units/:unitId`. 목록 · 상세 응답 칸 `scene` · `stampCount` · `postcard` · `unitLine` · `planMeetsDeadline` · 상세 `missedMonths` · `units` · `unitLimit`. 아직 없음: `delay`(가계부 S1) · `members`(공동)
+
 ## 진행 — S1a (2026-11-03, 슬라이스 `requirements/specs/done/MONEY-S1a-savings-calculator-slice.md`)
 
 | FR | 상태 | 어디 |
@@ -57,12 +59,23 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | FR-15 | done — `GET /api/savings/home-card` 숫자(목표 수 · 진행 중 · 모은 돈 · 진척 최대 진행 중 목표). 포맷은 BFF 카드 계약 | `HomeCard` |
 | FR-18 | 부분 — `GoalCreated` · `GoalReached`(목표마다 한 번) · `ProjectionIssued` 계약 3 + 발행. 구독자 없음(S2 · `FC-REQ-024`) | `contracts/events/savings.*` |
 | FR-19 | done — 목록 쿼리 3회(테스트가 jOOQ 리스너로 센다) | `SavingsEndToEndTest` |
-| FR-7 · 10~14 · 16 · 17 | S1b · 뒤 — 저울 · 오늘 돈 · 놓친 달 · 비상시 · 제도 파라미터 · 공동 목표 · 재미 상태 · 가계부 구독 | 루트 슬라이스 범위 밖 |
+| FR-7 · 10~14 · 16 · 17 | S1b · 뒤 — 저울 · 오늘 돈 · 놓친 달 · 비상시 · 제도 파라미터 · 공동 목표 · 재미 상태 · 가계부 구독 — **2026-11-03 S1b 가 FR-7 · 11 · 12 · 16 을 가져감(아래 표)** | 루트 슬라이스 범위 밖 |
+
+## 진행 — S1b (2026-11-03, 슬라이스 `requirements/specs/in-progress/MONEY-S1b-savings-fun-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-7 | done — `POST /api/savings/simulate`(저장 없음 · 진행 중 목표만 · 바꾸지 않은 목표도 행으로 · 합계 전후) + 확정 `PUT /api/savings/goals/plans`(스펙 API 목록 밖 — "확정할 때만 저장" 자리, 잠금 UUID 순 · 바뀐 목표마다 구간 재발행). 모형: 표본마다 Δ(판단 1). 기한 목표는 막지 않고 `afterMeetsDeadline` · `planMeetsDeadline` 사실(리뷰) | `Simulation` · `SimulateBalance` · `UpdateMonthlyPlans` |
+| FR-11 | done — 건너뛴 달 수 · 계획 도달 이동 **달**(~~일수~~ **정정 2026-11-03**: 구간이 달 단위). 만든 달은 넣었을 때만 센다(리뷰). 멈춘 기간은 이력이 없어 못 뺀다 — 멈춤 경로가 아직 없다 | `MissedMonths` |
+| FR-12 | done — `POST /api/savings/goals/:id/emergency-compare`: 꺼내기(계획 도달 이동 달 · 모은 돈 이하) vs 원리금 균등(상환 원 단위 올림 · 이자 = 올린 상환 × n − 원금) + 가정 키 `loan_paid_outside_goal`. 범위는 도메인 사유 코드(`EMERGENCY_*`) | `EmergencyComparison` · `CompareEmergency` |
+| FR-16 | 부분 — 장면 단계(템플릿 5종 · 10칸 내림) · 실물 환산(사용자 단위 · 목표당 3 · 내림, `POST/DELETE /goals/:id/units`) · 도장(1 + 직접 넣은 적립) · 엽서(걸린 일수 · 적립 횟수). **템플릿 단위 · 엽서 사진은 뒤** | `Fun.kt` · `AddItemUnit` · `DeleteItemUnit` |
+| FR-19 | done(유지) — 목록 쿼리 **3회**(목표 · 집계+월별 한 문장 · 단위). 단위를 붙이며 4회가 됐다가 `overviewByGoal` 로 되돌림 · 홈 카드는 단위를 읽지 않는다(2회 + 목표) | `SavingsEndToEndTest` |
+| FR-10 · 13 · 14 · 17 · FR-6 채점 | 범위 밖 — 물가 원천 · `content` S2 · identity S3 · 가계부 S1 · `FC-REQ-024` | 루트 슬라이스 범위 밖 |
 
 ## Acceptance Criteria
 
 - [x] ~~기존 goals 경로 골든 JSON 그림자 비교 차이 0 → 스위치~~ **정정 2026-11-03**: 옛 경로 은퇴 + 가져오기 대조(행 수 · 적립 합) — FR-1 행
-- [x] 계산 경계 테스트(기한 지남 · 0 · 달성 · 이자 포함/제외) — `SavingsMathSpec` 10
+- [x] 계산 경계 테스트(기한 지남 · 0 · 달성 · 이자 포함/제외) — `SavingsMathSpec` 10 · S1b 경계 `SavingsFunSpec` 12(장면 · 도장 · 엽서 · 단위 · 놓친 달 · 비상시 · 저울 · 기한)
 - [x] 구간 응답에 적중 이력 또는 `reason` 항상 존재 — `trackReason`
 - [x] 금지어 검증기 통과(칭찬 · 재촉 · 명령형 0) — 서버는 문장 0(상태 키만). 화면 문구 금지어 grep 0(`FE-REQ-056`)
 
@@ -81,3 +94,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | MONEY-S1a — `c60f5bfb` — 웹 만들기 · 적립 요청 타입이 서버 DTO 이름을 따른다. 서버 무변경 |
 | 2026-11-03 | `d69c310e` — FR-1 ⑦: 옛 Express goals 모듈 · Prisma 모델 삭제 + 표 drop 마이그레이션(덤프 · 복원 시험). 남은 호출 0 을 직접 확인(코드 grep · BFF 410 로그)해 1주 관찰을 당겼다. **로컬 DB 적용(`prisma migrate deploy`)은 권한에서 막혀 사용자 실행** |
 | 2026-11-03 | 로컬 DB 에 `20261103120000_drop_legacy_goals` 적용(사용자 허용) — `public.goals` · `saving_transactions` 없음, `savings.goal` 그대로 |
+| 2026-11-03 | MONEY-S1b — `9a435627` FR-7 · 11 · 12 done · FR-16 부분 · 경로 4(확정 · 비상시 · 단위 둘) · Flyway V2. `34815177` 리뷰(high) 서버 몫 8건: 기한 판정 · 비상시 사유 코드 · 상환 이자 일치 · 만든 달 · 잠근 뒤 읽기 · 단위 쿼리 user_id · 홈 카드 단위 안 읽음 · 집계 세 벌 → 두 벌. FR-11 "일수" → 달 정정. FR-19 3회 유지 |

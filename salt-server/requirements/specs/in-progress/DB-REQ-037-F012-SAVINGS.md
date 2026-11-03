@@ -23,8 +23,8 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | FR-3 | `projection_issued` — `goal_id` · `issued_at` · `p_low_date` · `p_high_date` · `plan_date` · `method`(`empirical_quantile` · `plan_only`) · `reason`(기록 부족 등). 불변(INSERT 만) — 채점 근거 | FR-4 · 5 |
 | FR-4 | `projection_score_cache` — forecast 가 돌려준 커버리지 집계(기간 · 구간 수 · 적중 수) 사본 | FR-5 |
 | FR-5 | `item_unit` — 실물 환산 단위(`template` 또는 `user_id`) · 이름 · 단가 NUMERIC · 출처 · 기준일. 사용자 단위는 본인만 | FR-16 |
-| FR-6 | `stamp` — `goal_id` · `deposit_id`(null = 목표 생성 첫 도장) · `created_at` | FR-17 |
-| FR-7 | `postcard` — 달성 목표 보관(`goal_id` · 사진 키 · 걸린 일수 · 적립 횟수). 사진은 파일 저장소 키만 | FR-18 |
+| FR-6 | ~~`stamp` — `goal_id` · `deposit_id`(null = 목표 생성 첫 도장) · `created_at`~~ **정정 2026-11-03(S1b)**: 표를 만들지 않는다 — 도장 = 1 + 직접 넣은 적립 건수(`deposit` 에서 센다). 표가 있으면 적립과 도장이 갈라질 자리가 생긴다 | FR-17 |
+| FR-7 | `postcard` — 달성 목표 보관(`goal_id` · 사진 키 · 걸린 일수 · 적립 횟수). 사진은 파일 저장소 키만 — **정정 2026-11-03(S1b)**: 사진 열이 생길 때까지 표를 만들지 않는다. 걸린 일수 · 적립 횟수는 `goal` · `deposit` 에서 계산 | FR-18 |
 | FR-8 | `shared_goal_member` — 공동 목표 두 사람 · 합의 비율 · 초대 상태. `reaction`(deposit_id · user_id · emoji) | FR-13 · 19 |
 | FR-9 | `policy_param_copy` — content 의 `PolicyParamChanged` 사본(키 · 값 · 유효 구간) | FR-12 |
 | FR-10 | 인덱스 — `deposit(goal_id, deposited_on)` · `projection_issued(goal_id, issued_at desc)` · 사용자별 목표 목록 `goal(user_id, archived_at)` | 성능 |
@@ -41,7 +41,15 @@ DDL 주인은 Flyway(`services/savings/infrastructure/src/main/resources/db/migr
 | FR-3 | done — `projection_issued` + UPDATE/DELETE 차단 트리거(정리는 관리자가 트리거를 끄고만) |
 | FR-10 | done — `goal(user_id, archived_at)` · `deposit(goal_id, deposited_on)` · `projection_issued(goal_id, issued_at desc)` |
 | FR-11 | done — 관리자 SQL `salt-platform/db/savings-import.sql`(INSERT 만 · 재실행 같음 · 행 수 · 적립 합 대조) + `savings-import-rollback.sql`(새 서비스 기록이 생기면 멈춤). 일회용 DB 왕복 + 로컬 운영 DB 적용 2026-11-03(목표 1 · 적립 0) |
-| FR-4 · 5 · 6 · 7 · 8 · 9 | S1b 뒤 |
+| FR-4 · 5 · 6 · 7 · 8 · 9 | S1b 뒤 — **2026-11-03 S1b 가 FR-5 · 6 · 7 을 가져감(아래 표)** |
+
+## 진행 — S1b (2026-11-03, 슬라이스 `requirements/specs/in-progress/MONEY-S1b-savings-fun-slice.md`)
+
+| FR | 상태 |
+|---|---|
+| FR-5 | done(사용자 단위) — Flyway `V2__item_unit.sql`: `user_id` + `goal_id`(사용자 단위) 또는 `template` + `source` + `as_of`(템플릿 단위) 둘 중 하나를 CHECK 로. 단가 `numeric`(정밀도 그대로 · jOOQ DECIMAL). 인덱스 `(user_id, goal_id, created_at)` — 조회 셋이 다 `user_id` 를 건다(리뷰 `34815177`). 템플릿 단위 행은 0(출처 대조 전). 로컬 운영 DB 적용 |
+| FR-6 · 7 | done — **표 없이**(위 FR 칸 정정). 엽서 사진 열이 필요해지면 그때 `postcard` |
+| FR-4 · 8 · 9 | 범위 밖 — 채점 사본(`FC-REQ-024`) · 공동 · 제도 사본(S2) |
 
 ## Acceptance Criteria
 
@@ -64,3 +72,4 @@ DDL 주인은 Flyway(`services/savings/infrastructure/src/main/resources/db/migr
 | 2026-11-03 | MONEY-S1a — `b1c8ad67` — 종단 테스트가 이 REQ 를 머리에 적는다: `progressRatio` 단언 추가(저장 모양 무변경) |
 | 2026-11-03 | `d69c310e` — FR-11: public `goals` · `saving_transactions` drop 마이그레이션(DDL 주인이 Flyway 하나로). 덤프 `~/salt-backups/2026-11-03-public-goals-before-drop.dump` 복원 시험 통과. 로컬 적용은 사용자 실행 |
 | 2026-11-03 | 로컬 DB 에 `20261103120000_drop_legacy_goals` 적용(사용자 허용) — `public.goals` · `saving_transactions` 없음, `savings.goal` 그대로 |
+| 2026-11-03 | MONEY-S1b — `9a435627` FR-5 V2 `item_unit`(로컬 운영 DB 적용) · FR-6 · 7 정정(표 없음 — 적립 · 목표에서 계산). `34815177` 단위 조회 셋에 `user_id` 조건(인덱스 앞 열) |
