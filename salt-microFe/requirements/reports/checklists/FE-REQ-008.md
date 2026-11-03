@@ -351,3 +351,8 @@ FR-11("인증 토큰을 클라이언트로 내리지 않는다 — 쿠키에서 
 
 - 셸 루트 `app/layout.tsx` `<head>` 에 문서 간 전환 `<style>` 한 줄(`e0bce695`). 서버 컴포넌트 · 껍데기만 그대로
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+## 2026-11-03 — 쿠키 세션 1단계 `0ef25f6b`
+
+- 서버 컴포넌트가 처음으로 사용자 데이터를 서버에서 조회한다(쿠키 → BFF) — 저축 두 화면. 스트리밍 경계 · 블록 수 무변경
+- 실측: `/api/session` POST 204 + HttpOnly · 다른 사이트 403 · 모양 틀림 400 · DELETE 지움 · 셸 경유 `/goals` · `/goals/[id]` HTML 에 목표 이름 · 금액(쿠키 없으면 없음) · 브라우저 첫 진입에 쿠키 채움 · `document.cookie` 에 안 보임 · 수화 오류 0. 모노레포 check-types · lint · test · web · web-savings 빌드 · 훅

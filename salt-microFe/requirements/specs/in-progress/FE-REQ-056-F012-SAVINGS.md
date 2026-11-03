@@ -41,7 +41,7 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | FR-4 | 부분 — 단건 · 나눠 넣기(합계는 서버가 검증, 화면은 더하지 않음). 장면 한 칸 모션은 S1b |
 | FR-5 | 부분 — 구간 문장(A ~ B · 열림 · "계획대로면") + 이유 + 채점 대기 문장. **팬 차트는 S1b**(구간이 쌓이는 3개월 뒤라야 그림이 뜻을 갖는다) |
 | FR-7 | 부분 — 이정표 · 프레임. 오늘 돈 · 놓친 달 · 비상시는 S1b |
-| FR-13 | **미충족** — 토큰이 브라우저 저장소라 서버가 볼 수 없다. `FE-REQ-013`(쿠키) 뒤 서버 렌더 |
+| FR-13 | ~~**미충족** — 토큰이 브라우저 저장소라 서버가 볼 수 없다~~ **done 2026-11-03** `0ef25f6b` — 쿠키 세션 1단계로 서버 렌더 |
 | FR-6 · 8~12 | S1b — 저울 · 장면 · 실물 · 도장 · 엽서 · 공동 · 팁 카드 |
 
 ## Acceptance Criteria
@@ -66,3 +66,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | **in-progress** — F3a `c60f5bfb`(BREAKING `ROUTES.addGoal` → `/goals/new` · 셸 목표 코드 삭제) · `b1c8ad67`. FR-1 · 3 done, FR-2 · 4 · 5 · 7 부분, FR-13 미충족(`FE-REQ-013`). 수용 기준 4/4. `registry.json` hostedIn · `APP_TABS` readyBy 넘겨받은 몫(052 · 054) 닫음 |
 | 2026-11-03 | 미검증 닫기 — 셸 경유(3010 → rewrites → 3003) 만들기 · 홈 카드 → `/goals` · 저축 탭 `aria-current` · 옛 `/goals/addgoals` → `/goals/new` · 앱 웹뷰 390(안내 꺼짐 · 넘침 0) · 일반 390(안내 켜짐). 결함 1 `b0768194`('새 목표' 기본 밑줄 링크) · `degraded` 문장(`2c998117`) |
 | 2026-11-03 | `c82be47c` — ⑦ `reached` 문장 · ⑩ `formatWon` 한 곳 · `issuedAt` 타입 제거 |
+| 2026-11-03 | FR-13 **done** — 저축 목록 · 상세가 서버에서 쿠키로 BFF 를 불러(1.5초 상한 · 실패면 null) `initialData` 로 — 첫 숫자가 HTML 에. `/goals` 는 이제 동적 렌더(ƒ)(`0ef25f6b`) |

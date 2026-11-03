@@ -39,7 +39,8 @@
 | ~~platform launchd 상시~~ | **닫힘 2026-11-03** `9265c0b4` — 등록 · 데스크탑 폴더 멈춤 해결 · 상태 ok | — |
 | ~~앱 웹뷰 390 · 셸 3000 경유~~ | **닫힘 2026-11-03** — 셸을 3010 에 띄워 경유 · 웹뷰 390 · 일반 390 실측(`FE-REQ-056` 체크리스트) · 결함 1 `b0768194` | — |
 | ~~`BFF-REQ-047` `degraded`~~ | **닫힘 2026-11-03** `2c998117` | — |
-| `FE-REQ-056` FR-13 서버 렌더 | 토큰이 브라우저 저장소 | `FE-REQ-013` |
+| ~~`FE-REQ-056` FR-13 서버 렌더~~ | **닫힘 2026-11-03** `0ef25f6b` — 쿠키 세션 1단계(`FE-REQ-013` FR-80) | — |
+| `FE-REQ-013` FR-80 2단계 | 브라우저 저장소 토큰 제거 · BFF 쿠키 → Authorization · WS · SSE — 모든 zone 호출이 바뀌는 별 슬라이스 | `FE-REQ-013` 2단계 |
 | ~~옛 Express goals · Prisma 모델 삭제~~ | **닫힘 2026-11-03** `d69c310e` — 남은 호출 0 직접 확인 · 덤프 · 복원 시험. BFF 410 은 남김 | — |
 | ~~로컬 DB 에 표 drop 적용~~ | **닫힘 2026-11-03** — 사용자가 이 명령 하나만 허용(`.claude/settings.local.json`, 커밋 안 함) → `prisma migrate deploy` 적용 · `public.goals` 없음 · `savings.goal` 1 그대로 · 서버 · 온보딩 정상 | — |
 | ~~독립 코드 리뷰(high)~~ | **닫힘 2026-11-03** — 10건 모두 사실 · 전부 수정 `c82be47c` | — |
@@ -55,3 +56,7 @@
 - (B) 상태 = 폴더: 4 REQ in-progress · 마스터 인덱스 상태표 일치
 - (C) 낡은 문장: `SRV-REQ-008` 스펙 · 체크리스트의 "프로브 → `home-card`" 를 그 자리에서 정정(`goals/exists`)
 - Kotlin `./gradlew check` 60 통과(최종 HEAD) · 실화면 재측정(만들기 → 상세 → 적립 · 4폭 넘침 0 · 오류 0) · 다 찬 목표 실스택 `completed 100 · reached · difference null` · 임시 데이터 삭제 · 트리거 다시 켬
+
+## 2026-11-03 — 쿠키 세션 1단계 `0ef25f6b`
+
+- 실측: `/api/session` POST 204 + HttpOnly · 다른 사이트 403 · 모양 틀림 400 · DELETE 지움 · 셸 경유 `/goals` · `/goals/[id]` HTML 에 목표 이름 · 금액(쿠키 없으면 없음) · 브라우저 첫 진입에 쿠키 채움 · `document.cookie` 에 안 보임 · 수화 오류 0. 모노레포 check-types · lint · test · web · web-savings 빌드 · 훅

@@ -42,3 +42,8 @@
 
 - `c82be47c` — ⑦ `reached` 문장 · ⑩ `formatWon` 한 곳 · `issuedAt` 타입 제거
 - 검증: Kotlin 종단 10(대소문자 중복 400 · 목록 = 상세 구간 · exists) · 도메인 19 · 경계 8 · 플랫폼 14 · 서버 936 · BFF 351 · 모노레포 check-types · lint · test · web-savings 빌드 · 훅 사후 · 실스택(프로브 done true/false)
+
+## 2026-11-03 — 쿠키 세션 1단계 `0ef25f6b`
+
+- FR-13 **done** — 저축 목록 · 상세가 서버에서 쿠키로 BFF 를 불러(1.5초 상한 · 실패면 null) `initialData` 로 — 첫 숫자가 HTML 에. `/goals` 는 이제 동적 렌더(ƒ)
+- 실측: `/api/session` POST 204 + HttpOnly · 다른 사이트 403 · 모양 틀림 400 · DELETE 지움 · 셸 경유 `/goals` · `/goals/[id]` HTML 에 목표 이름 · 금액(쿠키 없으면 없음) · 브라우저 첫 진입에 쿠키 채움 · `document.cookie` 에 안 보임 · 수화 오류 0. 모노레포 check-types · lint · test · web · web-savings 빌드 · 훅
