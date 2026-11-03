@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { numberTextRejection, numberToInputText, readNumberText, type NumberTextKind } from "@repo/core/input";
 
@@ -11,12 +11,12 @@ import { AMOUNT_INPUT_MESSAGES } from "../i18n";
  * 그때 그 칸의 안내도 같이 바뀐다. 안내만 따로 들고 있으면 버튼 · 칩 · 칸 숨김마다 손으로 지워야 했고 매번 한 곳씩 빠졌다(저축 리뷰 10 · 11차).
  *
  * - `change(key, raw)` 사용자 입력 — 받을 수 없으면 값을 두고 그 칸에 안내
- * - `set(key, text)` · `setNumber(key, n)` 코드가 넣는 값 — 같은 규칙으로 정리하고 안내를 지운다
+ * - `setNumber(key, n)` 코드가 넣는 값 — 같은 규칙으로 정리하고 안내를 지운다
  * - `fillIfEmpty(key, n)` 비어 있을 때만 코드가 채운다(진입가 기본 = 현재가)
  * - `reset(keys?)` 비우기(제출 성공 · 단위 전환) · `dismiss(key)` 그 칸 안내만 지우기(칸이 숨을 때)
  * - 안내는 `message(key)` — 그 칸 아래(`TextField error`)에 둔다. 칸이 숨으면 안내도 같이 숨는다
  *
- * 바꾸는 함수들은 렌더마다 같은 참조다(effect 의존성에 넣어도 다시 돌지 않는다). 칸 규칙(`kinds`)은 렌더마다 최신 값을 읽는다(단위 전환)
+ * 바꾸는 함수들은 렌더마다 같은 참조다(effect 의존성에 넣어도 다시 돌지 않는다). 칸 규칙(`kinds`)은 커밋마다 최신 값으로 맞춘다(단위 전환)
  *
  * @param fallbackKind 없는 키(목표마다 칸 — 나눠 넣기 · 저울)의 규칙
  */
@@ -28,7 +28,10 @@ export const useNumberFields = (
   const [values, setValues] = useState<Record<string, string>>(() => ({ ...initial }));
   const [messages, setMessages] = useState<Record<string, string>>({});
   const kindsRef = useRef({ kinds, fallbackKind });
-  kindsRef.current = { kinds, fallbackKind };
+  // 렌더 중에 ref 를 쓰지 않는다 — 커밋 뒤 맞춘다. 칸 규칙을 읽는 건 이벤트 · effect 라 늘 커밋 뒤다
+  useEffect(() => {
+    kindsRef.current = { kinds, fallbackKind };
+  });
   const kindOf = useCallback((key: string): NumberTextKind => kindsRef.current.kinds[key] ?? kindsRef.current.fallbackKind, []);
 
   const dropMessages = useCallback((keys: readonly string[] | null) => {
@@ -61,7 +64,6 @@ export const useNumberFields = (
     },
     [kindOf, write],
   );
-  const set = useCallback((key: string, text: string) => write(key, readNumberText(text, kindOf(key)) ?? ""), [kindOf, write]);
   const setNumber = useCallback(
     (key: string, n: number | null) => write(key, n === null ? "" : numberToInputText(n, kindOf(key))),
     [kindOf, write],
@@ -91,7 +93,6 @@ export const useNumberFields = (
     value: (key: string): string => values[key] ?? "",
     message: (key: string): string | undefined => messages[key],
     change,
-    set,
     setNumber,
     fillIfEmpty,
     reset,
