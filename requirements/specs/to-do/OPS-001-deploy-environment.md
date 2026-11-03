@@ -47,3 +47,4 @@ source: requirements/decisions/ADR-008-deployment-environment.md
 | 2026-11-03 | FR-12 추가 — zone 정적 파일 한 저장소(`FE-REQ-054` FR-5, `ADR-005` 규칙 7 개정) |
 
 - 2026-11-02: 배포 전 로컬 감독은 `OPS-002`(`ops/salt.sh`, launchd). 배포 때 프로세스 목록(서버 · 뉴스 워커 · BFF REST · WS · 시세 워커 · 예측 배치)은 그 이름 표를 옮긴다
+| 2026-11-03 | MONEY-S1a — `8d05a006` — `ops/salt.sh` 머리가 이 REQ(배포)를 가리킨다: 로컬 상시 목록에 `platform` · `web-savings` 추가. 배포 쪽 변경 0 — Kotlin 이미지는 S0 `Dockerfile` 그대로 |
