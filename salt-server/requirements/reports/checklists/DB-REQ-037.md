@@ -38,3 +38,5 @@
 - 쿼리: 상세 `forGoal` · 상한 `countFor` 가 `user_id = ? AND goal_id = ?` — 인덱스 `(user_id, goal_id, created_at)` 앞 두 열. ~~`EXPLAIN` 은 표가 비어 Seq Scan(행 0 · 의미 없음) — 행이 쌓이면 다시 본다~~ **닫힘 2026-11-03**: 1만 8천 행을 트랜잭션에 넣고 `ANALYZE` → 상세 Index Scan 0.036ms · 상한 Index Only Scan 0.017ms · 목록 Bitmap Index Scan 0.019ms(전부 `item_unit_user_goal_idx`) → 롤백
 - 2026-11-03 `4fda31db` — 종단 테스트(이 REQ 머리) 비상시 단언만 바뀜. 표 · 열 무변경. `./gradlew check` 통과
 - 2026-11-03 `af797be0` — 종단 테스트 대출 단언만. 표 무변경 · `check` 통과
+- 2026-11-03 `531fdf35` · `fba0e7c9` — `projection_issued.reason` text(CHECK 없음) — `not_reachable` 저장 확인(종단 · 실 스택 적립 201)
+- 2026-11-03 `5640ae7f` — 테스트 카운터만. 표 무변경

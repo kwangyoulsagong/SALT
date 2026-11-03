@@ -58,3 +58,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-02 | **done** — 위 "구현" 표. 슬라이스 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md`. 같이 고친 기존 결함 7(실화면 확인 중 발견): `/search` 수화 불일치(조회 훅 14곳) · 코치 프로필 첫 저장 경합 500 · 관심 종목 시세 갱신이 연결 풀 점유 · 웹 글꼴 404 · 시세 타일 변동률 잘림 · 로그인 상태에서 `/` 로그인 화면 깜빡임 · 서버 시간 초과 500 → 504(`0440a654`) — 각 주인 REQ 에 기록 |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — zone 공용 레이아웃(`@repo/web-shared/layout`)이 앱 내비게이션 · prerender 규칙 · 문서 간 전환 · 이동 계측을 갖는다(`e0bce695`). 프로필 메뉴는 화면별이 아니라 머리 한 자리(`<header>` → `<div>`, 메뉴 정렬 끝). 투자 zone `next.config.js` 는 프리셋(`7b8b1110`). 이 REQ 머리 블록의 "`FE-REQ-054` 전까지 그 레이아웃이 임시로 맡는다"가 닫혔다 |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — `ops/salt.sh` 머리 주석(이 REQ 의 zone 별 dev 서버 줄 아래 운영 빌드 주의 두 줄, `9ef6dc92`). 주인은 `OPS-002`, 동작 무변경 |
+| 2026-11-03 | MONEY-S1b — `cdeb5f7c` web-shared 패키지(이 REQ 가 만든)의 lib 에 `readAmountInput` · `useAmountInputGuard` · `labelOr` 추가. 기존 export 무변경 |

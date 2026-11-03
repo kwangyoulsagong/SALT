@@ -61,3 +61,5 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-045-F012-SAVINGS.md
 | 2026-11-03 | MONEY-S1b — `f4deeee6` FR-3 · 4 done(경로 5 중계 · 테스트 +1) · `ca1fcb11` 기한 판정 · 단위 상한 칸 타입. FR-3 `sceneStepBefore/After` 정정(만들지 않음) |
 | 2026-11-03 | MONEY-S1b 셸 경유 실측 — `73973f79` 비상시 `loan.lastPayment` 타입. 전달만 |
 | 2026-11-03 | MONEY-S1b 리뷰 — `96378139` 대출 칸 모양 first/rest · `loan` null + `loanReason`(옛 `lastPayment` 대체 — 같은 브랜치 안이라 소비처는 웹 하나). 전달만 |
+| 2026-11-03 | MONEY-S1b 리뷰 3차 — `520b4d8f` 대출 칸 빈 응답(`loan: null`) 전달 테스트. 테스트 353 |
+| 2026-11-03 | MONEY-S1b 리뷰 6차 — `6395cf82` 이유 값 주석에 `not_reachable`. 전달만 |

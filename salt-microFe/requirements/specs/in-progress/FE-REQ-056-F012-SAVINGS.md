@@ -84,3 +84,9 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | MONEY-S1b(F3b) — `84871e70` `ProgressScene` · `6ad345fc` 저울 · 장면 · 실물 · 비상시 · 놓친 달 · 도장 · 엽서 · `5171d03d` 리뷰 반영(기한 문구 · 상한 서버 값 · 오류 문구 · 요청 함수 한 곳) · `88ede7aa` 첫 도장 미리보기. FR-4 · 6 · 8 · 9 · 10 done, FR-2 · 7 부분. FR-6 슬라이더 → 입력칸 정정. 번들 `/goals` 146 → 149 · `/goals/[id]` 146 → 150 kB |
 | 2026-11-03 | MONEY-S1b 미검증 닫기(사용자 "확인 못한거 다 확인") — 셸 3010 경유 13단계 실측 · `/api/session` 404 없음 · 결함 1(0% 이자 8원) 서버 `4fda31db` + 화면 `cd3bc574`(마지막 달 한 줄 · 작은 금액 사유) |
 | 2026-11-03 | MONEY-S1b 리뷰(high) — `9f74c874` 대출 줄 "처음 k개월 · 나머지" · 1달 "한 번에" · 나눌 수 없으면 대출 칸만 사유(꺼내기 칸 유지) · 필드 없을 때 NaN 경로 제거. 번들 `/goals/[id]` 150 kB 그대로 |
+| 2026-11-03 | MONEY-S1b 리뷰 3차 — `6f90828c` 대출 칸 대체 문구(빈 · 모르는 사유 → 중립 문구, 오류처럼 보이지 않게) |
+| 2026-11-03 | MONEY-S1b 리뷰 4차 — `d4f948a4` 꺼내기 쪽 모르는 사유 · 빈 오류 코드 대체 문구 |
+| 2026-11-03 | MONEY-S1b 리뷰 5차 — `0e8c0f05` 원 단위 입력(점 뒤 버림) · `not_reachable` 이유 문구(`ProjectionReason` 에 추가) · `EMERGENCY_AMOUNT_NOT_WHOLE` 문구 · `labelOr` 헬퍼. 번들 `/goals/[id]` 150 → 151 kB |
+| 2026-11-03 | MONEY-S1b 리뷰 6차 — `e0a0961b` 금액 칸은 점이 든 입력을 받지 않는다(이전 값 유지) · `labelOr` 자기 키만 |
+| 2026-11-03 | MONEY-S1b 리뷰 7차 — `68f6ac41` 키 조회 헬퍼 `labelOr`(entities, 전 조회처 — 적립 폼 둘 포함) · `not_reachable` 중립 문구 · 전각 소수점 거절 + 안내 · 놓친 달 degraded 문구 |
+| 2026-11-03 | MONEY-S1b 리뷰 8차 — `cdeb5f7c` · `ac23eaaf` 금액 입력 허용 목록 + 안내(전 칸) · `labelOr` shared. 번들 `/goals/new` 126 → 127 kB |

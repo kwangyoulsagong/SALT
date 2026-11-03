@@ -42,3 +42,4 @@ source: requirements/decisions/ADR-007-forecast-ontology-schema-owner.md
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-03 | MONEY-S1a — `e83f7f80` — 이벤트 계약 `savings.ProjectionIssued` 가 이 REQ(채점)를 구독 예정으로 적는다. 예측 쪽 변경 0 — 채점은 S1b 이후(발행 3개월 뒤부터 의미) |
+| 2026-11-03 | MONEY-S1b — `531fdf35` 이벤트 계약 `savings.ProjectionIssued` reason 에 `not_reachable`(100년 안에 못 닿음) 추가. 예측 쪽 변경 0(아직 구독 전) — 구현할 때 이 값은 "구간 없음"으로 채점에서 뺀다 |

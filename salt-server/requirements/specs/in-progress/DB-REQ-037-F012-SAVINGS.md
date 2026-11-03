@@ -76,3 +76,5 @@ DDL 주인은 Flyway(`services/savings/infrastructure/src/main/resources/db/migr
 | 2026-11-03 | MONEY-S1b — `item_unit` 실행 계획 확인(1만 8천 행 · 세 조회 모두 인덱스 · 롤백). 저장 모양 무변경 |
 | 2026-11-03 | MONEY-S1b — `4fda31db` 이 이 REQ 에 걸렸다(종단 테스트 파일 머리): 비상시 `lastPayment` 단언 · 이자 기대값. 저장 모양 무변경 |
 | 2026-11-03 | MONEY-S1b — `af797be0` 도 이 REQ 머리의 종단 테스트를 바꿨다(대출 칸 단언). 저장 모양 무변경 |
+| 2026-11-03 | MONEY-S1b — `531fdf35` 계약 파일(머리에 이 REQ) · `fba0e7c9` 종단 테스트(머리) — 발행 기록 표 `projection_issued.reason` 은 text 라 값 추가에 DDL 무변경 |
+| 2026-11-03 | MONEY-S1b — `5640ae7f` 종단 테스트(머리) 쿼리 카운터 정리. 저장 모양 무변경 |

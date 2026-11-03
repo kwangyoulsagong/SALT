@@ -44,3 +44,5 @@
 ## 2026-11-03 — MONEY-F2(`FE-REQ-054`) 커밋 대조
 
 - 커밋 대조 — `ops/salt.sh` 머리 주석(이 REQ 의 zone 별 dev 서버 줄 아래 운영 빌드 주의 두 줄, `9ef6dc92`). 주인은 `OPS-002`, 동작 무변경
+
+- 2026-11-03 MONEY-S1b `cdeb5f7c` — web-shared 패키지(이 REQ 가 만든)의 lib 에 `readAmountInput` · `useAmountInputGuard` · `labelOr` 추가. web-shared check-types · zone 5 빌드 · 모노레포 lint
