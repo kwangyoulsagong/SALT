@@ -16,7 +16,7 @@
 3. **예측 규율을 투자 밖으로** — 저축 도달 구간 · 월말 지출 착지도 구간 + 채점 이력. 계산은 도메인 서비스가 요청 시,
    채점은 forecast 가 `savings.ProjectionIssued` 이벤트로 받아 사용자 해시로만(`FC-REQ-024`).
 4. **스키마 주인 이전** — 서버가 Flyway 로 가는 시점(서버 S5)에 forecast DDL 을 `salt-forecast` 안(plain SQL + 버전 표)으로.
-   `public` 직접 읽기 4곳(`price_history` · `market_holidays` · `kr_stock_master` · `judgment_ledger`)은 export 뷰로(`FC-REQ-025`).
+   `public` 직접 읽기 ~~4곳~~ **6개 표 7곳 — 정정 2026-11-03**(보유 ∪ 관심 종목 코드 읽기가 빠져 있었다, `DB-REQ-036` 부록 B9)(`price_history` · `market_holidays` · `kr_stock_master` · `judgment_ledger` · `portfolio_holdings` · `investment_watchlist`)은 export 뷰로(`FC-REQ-025`).
 
 ## 2. 왜
 

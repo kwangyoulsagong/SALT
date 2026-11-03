@@ -55,12 +55,13 @@ globs: salt-server/**, salt-platform/**
 
 ```
 salt-platform/
-├── shared-kernel/                Money(BigDecimal + 통화) · ErrorKind · Clock — 이것뿐
+├── shared-kernel/                Money(BigDecimal + 통화) · ErrorKind · DomainError — 이것뿐 (Clock = java.time.Clock)
+├── support/                      기술 부품(HTTP · 서비스별 DB · 아웃박스) — 도메인 개념 0, 서비스가 import 해도 되는 유일한 공용
 └── services/<name>/
     ├── domain/                   Spring · jOOQ 의존 0 (Gradle 의존으로 강제)
     ├── application/              유스케이스 하나 = 클래스 하나. 공개는 application.api 패키지만
-    ├── infrastructure/           jOOQ · 외부 클라이언트 · 아웃박스 릴레이
-    └── api/                      Spring MVC 컨트롤러 · springdoc
+    ├── infrastructure/           jOOQ · 외부 클라이언트 · 아웃박스 쓰기(릴레이는 support)
+    └── api/                      Spring MVC 컨트롤러 · 이벤트 리스너 · springdoc
 ```
 
 - 층 의미는 Express DDD 4층과 1:1 — `domain` · `application` · `infrastructure` · `presentation`(→ `api`). 규칙은 `ddd-*.md` 그대로 읽는다

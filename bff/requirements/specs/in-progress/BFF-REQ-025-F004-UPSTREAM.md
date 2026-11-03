@@ -161,3 +161,4 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | 2026-10-29 | 전수 조사 — FR-42 현재형 문장 정정 |
 | 2026-10-30 | error middleware 가 409 `trackedCount` · `trackedLimit` 을 옮긴다 · 로그 주소 `originalUrl` + `q=*`. 4xx 보존 규칙 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-11-02 | 파일만 걸침 — `backendApi.proxyAuthRequest` · `openAuthStream` 에 `headers`(BFF 가 정한 것만, Authorization 은 덮지 못한다) · 해설 단건 · 스트림이 `X-Salt-Client` 를 싣는다. 근거 `BFF-REQ-050`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
+| 2026-11-03 | S0(`feat/srv-req-043-s0-platform`, 루트 `MONEY-S0-platform-slice.md`) — 서버 호출 클라이언트(`backend-api.service.ts`) 인터셉터에 스트랭글러 장치(`BFF-REQ-045`) — 경로별 주소(legacy | platform | shadow) · traceparent. 경로별 타임아웃 · 신호(호출 맵)는 그대로, 기본 표에서 모든 F004 경로 legacy |

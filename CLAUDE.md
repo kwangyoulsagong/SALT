@@ -44,7 +44,7 @@ BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관�
 | 모바일 `salt-microFe/apps/mobile` | **FSD** + React Native (iOS+Android) | `RN-REQ-001`~`003` |
 | BFF `bff` | 레이어드 + SSE | `BFF-REQ-006` |
 | 서버 `salt-server` (Express) | **DDD (컨텍스트 우선)** — S7 까지 공존 | `SRV-REQ-006` |
-| 서버 `salt-platform` (Kotlin · S0 에서 생김) | **MSA — 서비스 = 도메인** · Gradle 멀티모듈 · Spring Modulith · 스트랭글러 | `ADR-006`, `SRV-REQ-043`~`049` · 규칙 `salt-server/.claude/rules/msa-services.md` · `kotlin-platform.md` |
+| 서버 `salt-platform` (Kotlin · S0 2026-11-03) | **MSA — 서비스 = 도메인** · Gradle 멀티모듈 · Spring Modulith · 스트랭글러 | `ADR-006`, `SRV-REQ-043`~`049` · 규칙 `salt-server/.claude/rules/msa-services.md` · `kotlin-platform.md` |
 | 예측 `salt-forecast` | Python 배치 · 층(`import-linter`) · DB 스키마가 계약 · 온톨로지(bitemporal) | `ADR-004`, `ADR-007`, `FC-REQ-001`~ |
 | 배포 | 같은 OCI 이미지 · 관리형 컨테이너 · 한 origin 경로 라우팅 · 관리형 Postgres · RabbitMQ | `ADR-008`, `OPS-001` |
 

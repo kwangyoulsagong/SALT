@@ -32,7 +32,8 @@
 ## 서버 MSA 이전 — BFF 가 스위치다 (2026-10-30, `ADR-006` · `BFF-REQ-045`)
 
 서버가 Express → Kotlin 도메인 서비스로 옮겨 가는 동안(S0~S7) **BFF 는 Node 그대로, 프론트 계약 무변경**이 합격 기준이다.
-지금 코드는 `BACKEND_API_URL` 하나 — 아래는 `BFF-REQ-045` 착수 기준이다.
+장치는 `services/server-routing/`(S0, 2026-11-03) — 서버 호출 한 곳 `backendApi` 의 인터셉터에 붙는다. **서버를 부르는 새 axios 클라이언트를 만들지 않는다**(만들면 스위치 · 추적을 우회한다).
+표 `config/server-routes.json`(src 밖 — dist · 이미지 같은 자리) · 주소 `BACKEND_API_URL`(legacy) · `PLATFORM_API_URL` · 그림자 `npm run shadow:report` · 골든 `GOLDEN_RECORD_DIR` + `npm run golden:replay`(인증 경로 녹화 0 · 비밀 키 가림). 그림자는 읽기만 · 동시 상한 · 비교 0건이면 게이트 실패.
 
 - 서버 경로 prefix → `legacy`(Express) | `platform`(Kotlin) | `shadow` 를 **설정 파일 하나**에서 정한다. 재시작 없이 재로딩, 되돌리기 = 값 하나. 서비스 주소를 코드에 박지 않는다
 - `shadow` 는 legacy 응답을 돌려주고 같은 요청을 platform 에 비동기로 보내 차이만 기록한다. **쓰기 경로는 그림자 금지**(읽기만)

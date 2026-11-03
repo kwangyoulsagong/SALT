@@ -102,3 +102,7 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` · 영역 `SRV-REQ-050` · `BFF-REQ-050` · `FE-REQ-059`
 
 - 2026-11-02 MONEY-F1 전수 점검 — `0440a654` — 서버 시간 초과(호출 맵 예산 초과)를 500 → **504 `UPSTREAM_TIMEOUT`**. 종목 코치 상세 300ms 예산을 서버 재기동 직후 첫 계산이 넘을 때 500 이 나가던 기존 결함(F1 전수 점검). 예산은 그대로(서버 측 p95 267 · p99 326ms, 178건). 테스트 +2 · 변이 실패 1 · 전체 326
+
+## 2026-11-03 — S0 서버 스위치(`BFF-REQ-045`)
+
+- 호출 맵 경로 전부 legacy 그대로(`npm test` 347 · 상시 BFF :4001 200) — 인터셉터가 주소 · traceparent 만 바꾼다

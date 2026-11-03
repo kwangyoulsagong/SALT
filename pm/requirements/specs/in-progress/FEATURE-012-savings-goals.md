@@ -140,3 +140,4 @@ flowchart LR
 | 2026-10-30 | 초안 — 딥리서치(저축 · 행동경제학 · 제도) · 재미 바탕 |
 | 2026-10-30 | 영역 REQ 작성 · 링크(위 머리 블록) |
 | 2026-11-02 | FR-14 부분 — 셸 홈 저축 카드(모은 돈 · 진행 중 목표 수, 지금 Express goals). 홈 목표 목록은 `/goals` 가 생길 때까지 남김(`FE-REQ-056`). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |
+| 2026-11-03 | 서버 S0 — 저축 서비스가 태어날 자리(`salt-platform/`, Kotlin) · 서비스별 스키마 계정(`savings` 계정 · 스키마는 NOLOGIN 으로 준비) · 이벤트 아웃박스 · BFF 라우팅 스위치. 저축 기능 변경 0. 다음 S1(`SRV-REQ-045` · `DB-REQ-037`) + F3(`FE-REQ-056`). 루트 `requirements/specs/in-progress/MONEY-S0-platform-slice.md` |

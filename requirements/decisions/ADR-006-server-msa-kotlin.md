@@ -39,7 +39,7 @@ JUnit 5 · Kotest · Testcontainers · Micrometer + OpenTelemetry · Docker Comp
 
 - 테이블 하나에 주인 하나. 서비스마다 스키마 + DB 계정. 다른 스키마 권한 없음(`DB-REQ-036`).
 - 경로를 Kotlin 으로 넘길 때 그 테이블의 DDL 주인도 Prisma → Flyway 로 넘긴다.
-- forecast 의 `public` 직접 읽기 4곳은 market · coach 의 export 뷰로(`ADR-007`).
+- forecast 의 `public` 직접 읽기 ~~4곳~~ **6개 표 7곳 — 정정 2026-11-03**(보유 ∪ 관심 종목 코드 읽기가 빠져 있었다, `DB-REQ-036` 부록 B9)은 market · coach 의 export 뷰로(`ADR-007`).
 - 금액은 `BigDecimal`(NUMERIC 정밀도 유지). 판정 원장 불변 트리거는 DB 에 있어 언어와 무관하게 유지.
 
 ## 4. 선택하지 않은 것
