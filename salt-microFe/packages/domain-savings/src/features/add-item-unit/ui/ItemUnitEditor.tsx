@@ -5,7 +5,6 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
-import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { isApiError } from "@repo/web-shared/api";
 import { parseAmountInput, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
 
@@ -28,6 +27,7 @@ export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
+    guard.clear();
     if (unitPrice === null || name.trim() === "") return;
     remove.reset();
     add.mutate({ name: name.trim(), unitPrice }, { onSuccess: () => { setName(""); setPrice(""); } });
@@ -61,7 +61,7 @@ export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units
         </>
       )}
       <span className={s.label} role="status">
-        {guard.rejected ? AMOUNT_INPUT_MESSAGES.numbersOnly : error ? labelOr(M.errorCode, code, M.failed) : ""}
+        {(!full && guard.message) || (error ? labelOr(M.errorCode, code, M.failed) : "")}
       </span>
       {full ? null : (
         <Button type="submit" disabled={unitPrice === null || name.trim() === "" || add.isPending} loading={add.isPending}>

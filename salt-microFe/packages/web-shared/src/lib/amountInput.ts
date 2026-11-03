@@ -1,3 +1,5 @@
+import { readNumberText, type NumberTextKind } from "@repo/core/input";
+
 /**
  * 금액 · 수량 **입력 표시** — 계산이 아니다. 사용자가 친 글자를 콤마 붙여 보여 주고, 보낼 때 숫자로 읽는다.
  * 금액을 만드는 연산(곱 · 비율)은 여기 없다 — 전부 서버(`fsd-shared.md` "포맷은 여기, 계산은 없다").
@@ -15,16 +17,10 @@ export const formatAmountInput = (raw: string): string => {
 };
 
 /**
- * 금액 · 비율 입력을 **받을지** 정하고 받으면 표시 형식으로 — 못 받으면 `null`(부르는 쪽이 이전 값을 두고 안내한다).
- *
- * `formatAmountInput` 은 숫자 · 점 말고는 **지우고 이어 붙인다** — 전각 마침표(1000．5) · 가운뎃점(1000·5) · 공백이 든 입력이 10,005 가 됐다(저축 리뷰 8차).
- * 여기서는 전각 숫자 · 기호를 반각으로 바꾼 뒤(NFKC) 허용 목록 — 숫자 · 쉼표 · 공백, `decimal` 이면 점 하나와 그 뒤 숫자 — 만 받는다.
+ * 입력을 **받을지** 정하고 받으면 표시 글자로 — 못 받으면 `null`(부르는 쪽이 이전 값을 두고 안내한다).
+ * 규칙 · 허용표는 `@repo/core/input` `readNumberText`(테스트 40). `formatAmountInput` 은 글자를 지우고 이어 붙여 금액을 바꿀 수 있다 — 새 칸은 이것을 쓴다
  */
-export const readAmountInput = (raw: string, options: { decimal?: boolean } = {}): string | null => {
-  const text = raw.normalize("NFKC");
-  const allowed = options.decimal ? /^[0-9,\s]*(\.[0-9]*)?$/ : /^[0-9,\s]*$/;
-  return allowed.test(text) ? formatAmountInput(text) : null;
-};
+export const readAmountInput = (raw: string, kind: NumberTextKind = "won"): string | null => readNumberText(raw, kind);
 
 /** 입력 글자 → 양수. 비었거나 0 이하 · 숫자 아님이면 `null` */
 export const parseAmountInput = (text: string): number | null => {

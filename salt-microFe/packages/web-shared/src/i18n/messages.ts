@@ -51,8 +51,9 @@ export const NAVIGATION_MESSAGES = {
   crossZonePending: "이동 중…",
 } as const;
 
-/** 금액 · 비율 칸에 받을 수 없는 글자를 넣었을 때(`useAmountInputGuard`) — 도메인 무관 */
+/** 숫자 칸에 받을 수 없는 글자를 넣었을 때(`useAmountInputGuard`) — 칸 종류(`@repo/core/input` `NumberTextKind`)별. 도메인 무관 */
 export const AMOUNT_INPUT_MESSAGES = {
-  numbersOnly: "숫자만 적어 주세요. 소수점이 있으면 원 단위로 적어 주세요",
-  numbersOrDecimal: "숫자와 소수점 하나만 적어 주세요",
+  won: "원 단위 숫자만 적어 주세요",
+  decimal: "숫자와 소수점 하나만 적어 주세요",
+  count: "숫자만 적어 주세요",
 } as const;

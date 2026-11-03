@@ -5,7 +5,6 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
-import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { isApiError } from "@repo/web-shared/api";
 import { parseAmountInput, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
 
@@ -28,6 +27,7 @@ export const DepositForm = ({ goalId }: DepositFormProps) => {
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
+    guard.clear();
     if (value === null) return;
     record.mutate(
       { amount: value, ...(date ? { depositedOn: date } : {}), ...(note.trim() ? { note: note.trim() } : {}) },
@@ -43,7 +43,7 @@ export const DepositForm = ({ goalId }: DepositFormProps) => {
       <TextField label={M.date} type="date" value={date} onChange={setDate} />
       <TextField label={M.note} value={note} onChange={setNote} maxLength={200} />
       <span className={s.hint} role="status">
-        {guard.rejected ? AMOUNT_INPUT_MESSAGES.numbersOnly : record.isError ? labelOr(M.errorCode, errorCode, M.failed) : record.isSuccess ? M.recorded : ""}
+        {guard.message ?? (record.isError ? labelOr(M.errorCode, errorCode, M.failed) : record.isSuccess ? M.recorded : "")}
       </span>
       <Button type="submit" disabled={value === null || record.isPending} loading={record.isPending}>
         {M.submit}

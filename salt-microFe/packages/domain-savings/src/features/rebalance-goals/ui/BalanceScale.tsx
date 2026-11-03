@@ -1,6 +1,5 @@
 "use client";
 
-import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { useMemo, useState, type FormEvent } from "react";
 
 import { Button } from "@repo/ui/button";
@@ -49,6 +48,7 @@ export const BalanceScale = ({ goals }: { goals: SavingsGoal[] }) => {
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
+    guard.clear();
     if (!request) return;
     update.mutate(request, { onSuccess: (next) => setDrafts(draftOf(next.filter((g) => g.status === "active"))) });
   };
@@ -91,7 +91,7 @@ export const BalanceScale = ({ goals }: { goals: SavingsGoal[] }) => {
         </span>
       ) : null}
       <span className={s.label} role="status">
-        {guard.rejected ? AMOUNT_INPUT_MESSAGES.numbersOnly : sim.isError ? M.calcFailed : update.isError ? M.failed : update.isSuccess && !request ? M.saved : ""}
+        {guard.message ?? (sim.isError ? M.calcFailed : update.isError ? M.failed : update.isSuccess && !request ? M.saved : "")}
       </span>
       <div className={s.actions}>
         <Button type="submit" disabled={!request || update.isPending} loading={update.isPending}>

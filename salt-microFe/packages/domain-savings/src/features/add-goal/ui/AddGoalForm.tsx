@@ -1,6 +1,5 @@
 "use client";
 
-import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
@@ -75,6 +74,7 @@ export const AddGoalForm = () => {
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
+    guard.clear();
     if (!request || title.trim() === "") return;
     add.mutate(
       {
@@ -131,11 +131,11 @@ export const AddGoalForm = () => {
       )}
 
       <Toggle checked={includeInterest} onChange={setIncludeInterest} label={M.interest} />
-      {includeInterest ? <TextField label={M.rate} value={rate} onChange={(v) => guard.take(v, setRate, { decimal: true })} inputMode="decimal" /> : null}
+      {includeInterest ? <TextField label={M.rate} value={rate} onChange={(v) => guard.take(v, setRate, "decimal")} inputMode="decimal" /> : null}
 
-      {guard.rejected ? (
+      {guard.message ? (
         <span className={s.hint} role="status">
-          {AMOUNT_INPUT_MESSAGES.numbersOnly}
+          {guard.message}
         </span>
       ) : null}
       <section className={s.result} aria-live="polite" aria-busy={calc.isFetching}>

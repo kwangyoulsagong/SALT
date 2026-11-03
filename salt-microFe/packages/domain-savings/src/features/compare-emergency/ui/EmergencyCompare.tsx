@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 
 import { TextField } from "@repo/ui/textField";
 
-import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { isApiError } from "@repo/web-shared/api";
 import { parseAmountInput, useDebouncedValue, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
 
@@ -28,6 +27,7 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
   // 금액은 원 단위(점 없음) · 금리는 소수 하나 — 받을 수 없는 글자는 값을 바꾸지 않고 안내(허용 목록 `readAmountInput`, 리뷰 8차)
   const amountGuard = useAmountInputGuard();
   const rateGuard = useAmountInputGuard();
+  const monthsGuard = useAmountInputGuard();
   const [rate, setRate] = useState("");
   const [months, setMonths] = useState(DEFAULT_MONTHS);
 
@@ -53,12 +53,12 @@ export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
           onChange={(v) => amountGuard.take(v, setAmount)}
           inputMode="numeric"
         />
-        <TextField label={M.rate} value={rate} onChange={(v) => rateGuard.take(v, setRate, { decimal: true })} inputMode="decimal" />
-        <TextField label={M.months} value={months} onChange={(v) => setMonths(v.replace(/[^0-9]/g, ""))} inputMode="numeric" />
+        <TextField label={M.rate} value={rate} onChange={(v) => rateGuard.take(v, setRate, "decimal")} inputMode="decimal" />
+        <TextField label={M.months} value={months} onChange={(v) => monthsGuard.take(v, setMonths, "count")} inputMode="numeric" />
       </div>
-      {amountGuard.rejected || rateGuard.rejected ? (
+      {amountGuard.message || rateGuard.message || monthsGuard.message ? (
         <span className={s.label} role="status">
-          {amountGuard.rejected ? M.wholeWonOnly : AMOUNT_INPUT_MESSAGES.numbersOrDecimal}
+          {amountGuard.message ?? rateGuard.message ?? monthsGuard.message}
         </span>
       ) : null}
       {compare.isError && settled ? (

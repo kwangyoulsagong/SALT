@@ -185,6 +185,9 @@ export interface SavingsDeposit {
 
 export interface SavingsGoalDetail {
   goal: SavingsGoal;
+  /** 응답 어디든 계산이 불완전하면 true — goal.degraded(구간) + 상세 칸(놓친 달) */
+  degraded: boolean;
+  degradedReasons: string[];
   plan: SavingsCalculation;
   deposits: SavingsDeposit[];
   /** 놓친 달 회고(FR-7) */

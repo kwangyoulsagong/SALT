@@ -5,7 +5,6 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
-import { AMOUNT_INPUT_MESSAGES } from "@repo/web-shared/i18n";
 import { isApiError } from "@repo/web-shared/api";
 import { parseAmountInput, labelOr, useAmountInputGuard } from "@repo/web-shared/lib";
 
@@ -36,6 +35,7 @@ export const SplitDepositForm = ({ goals }: SplitDepositFormProps) => {
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
+    guard.clear();
     if (totalValue === null || filled.length < 2) return;
     split.mutate({ total: totalValue, parts: filled }, { onSuccess: () => { setTotal(""); setParts({}); } });
   };
@@ -56,7 +56,7 @@ export const SplitDepositForm = ({ goals }: SplitDepositFormProps) => {
       ))}
       <span className={s.hint}>{M.split.hint}</span>
       <span className={s.hint} role="status">
-        {guard.rejected ? AMOUNT_INPUT_MESSAGES.numbersOnly : split.isError ? labelOr(M.errorCode, errorCode, M.failed) : split.isSuccess ? M.recorded : filled.length === 1 ? M.split.tooFew : ""}
+        {guard.message ?? (split.isError ? labelOr(M.errorCode, errorCode, M.failed) : split.isSuccess ? M.recorded : filled.length === 1 ? M.split.tooFew : "")}
       </span>
       <Button type="submit" disabled={totalValue === null || filled.length < 2 || split.isPending} loading={split.isPending}>
         {M.split.submit}
