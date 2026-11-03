@@ -61,11 +61,14 @@ data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shi
 data class EmergencyComparison(
     val amount: Money,
     val withdraw: Withdraw,
-    /** 나눌 수 없으면(총액 < 달 수) null — 이유는 [loanReason](이 값에서 파생 — 모순된 상태를 만들 수 없다, 리뷰) */
+    /** 나눌 수 없으면 null — 이유는 [loanReason] */
     val loan: Loan?,
+    /** 대출 칸이 빈 이유. "대출 없음 ⇔ 이유 있음"을 생성 때 검사한다 — 이유가 늘어도 모순된 상태를 만들 수 없다(리뷰 3 · 4차) */
+    val loanReason: String?,
 ) {
-    /** 대출 칸이 빈 이유 — 지금은 하나뿐([LOAN_TOO_SMALL]) */
-    val loanReason: String? get() = if (loan == null) LOAN_TOO_SMALL else null
+    init {
+        require((loan == null) == (loanReason != null)) { "loan and loanReason must be exclusive" }
+    }
 
     /** 계산 가정 키 — 대출 칸이 있을 때만 대출 가정이 뜻을 갖는다(컨트롤러가 아니라 여기서 정한다, 리뷰) */
     val assumptions: List<String> get() = if (loan != null) listOf(LOAN_PAID_OUTSIDE_GOAL) else emptyList()
@@ -103,8 +106,10 @@ data class EmergencyComparison(
             if (amount > saved) throw InvalidGoal("EMERGENCY_AMOUNT_OVER_SAVED", "amount must not exceed saved")
             if (loanRatePercent.signum() < 0 || loanRatePercent > BigDecimal(30)) throw InvalidGoal("EMERGENCY_RATE_INVALID", "loanRate must be 0..30")
             if (loanMonths !in 1..LOAN_MONTHS_MAX) throw InvalidGoal("EMERGENCY_MONTHS_INVALID", "loanMonths must be 1..$LOAN_MONTHS_MAX")
+            // 원화는 원 단위 — 소수 원금을 계산 안에서 따로 다루지 않게 입구에서 거절(리뷰 4차)
+            if (amount.toDecimal().stripTrailingZeros().scale() > 0) throw InvalidGoal("EMERGENCY_AMOUNT_INVALID", "amount must be whole won")
             val loan = loan(amount, loanRatePercent, loanMonths)
-            return EmergencyComparison(amount, withdraw(goal, saved, amount, today), loan)
+            return EmergencyComparison(amount, withdraw(goal, saved, amount, today), loan, if (loan == null) LOAN_TOO_SMALL else null)
         }
 
         private fun withdraw(goal: Goal, saved: Money, amount: Money, today: LocalDate): Withdraw {
@@ -131,22 +136,25 @@ data class EmergencyComparison(
                 principal.toDecimal().multiply(r, MC).divide(discount, MC)
             }
             // 원 단위로 정하는 것은 중간 반올림이 아니다 — 나눠 내는 계획 금액이 최종값이다(`kotlin-platform.md` §3 예외, 월 적립 올림과 같다).
-            // 반올림은 한 번만(소수 10자리 정리 뒤 다시 반올림하면 X.4999… 가 X+1 이 된다 — 리뷰). DECIMAL128 꼬리 오차는 1e-20 수준이라 한 번으로 충분
-            val interest = (exactPayment.multiply(n, MC) - principal.toDecimal()).setScale(0, RoundingMode.HALF_UP).max(BigDecimal.ZERO)
-            // 원금이 원 단위가 아닐 수 있다(API 는 BigDecimal 을 받는다 — 1000.5원) — 총액을 원 단위로 정해야 나눈 합이 총액과 같다
-            val total = (principal.toDecimal() + interest).setScale(0, RoundingMode.HALF_UP)
+            // 반올림은 총액 하나에 한 번: 총액 = 원금 + 정확한 이자를 원 단위로, 이자 = 총액 − 원금(리뷰 4차 — 이자 · 총액을 따로 반올림하면 두 번).
+            // 그 전에 DECIMAL128 꼬리 오차만 소수 20자리에서 정리한다 — 정확히 X.5원인 이자가 2.4999…985 로 계산돼 1원 모자랐다(3% · 1,000원 · 1달, 리뷰 4차 jshell 재현).
+            // 실제 금액이 .5 에 1e-20 안으로 붙을 일은 없어 이 정리가 값을 바꾸는 경우는 꼬리 오차뿐이다
+            val exactInterest = (exactPayment.multiply(n, MC) - principal.toDecimal()).max(BigDecimal.ZERO).setScale(20, RoundingMode.HALF_UP)
+            val total = (principal.toDecimal() + exactInterest).setScale(0, RoundingMode.HALF_UP)
+            val interest = total - principal.toDecimal()
             if (total < n) return null
             val base = total.divide(n, 0, RoundingMode.FLOOR)
             val extra = (total - base.multiply(n)).toInt()
+            // 나머지 extra 달이 1원 더 — 결정은 한 곳에서. 나누어떨어지면 매달 같은 금액 · restMonths 0
+            val (firstPayment, firstMonths) = if (extra == 0) base to months else (base + BigDecimal.ONE) to extra
             val currency = principal.currency
-            // 나머지 extra 달이 1원 더. 나누어떨어지면(extra 0) 매달 같은 금액 · restMonths 0
             return Loan(
                 months = months,
                 annualRatePercent = annualRatePercent,
-                firstPayment = Money.of(if (extra == 0) base else base + BigDecimal.ONE, currency),
-                firstMonths = if (extra == 0) months else extra,
+                firstPayment = Money.of(firstPayment, currency),
+                firstMonths = firstMonths,
                 restPayment = Money.of(base, currency),
-                restMonths = if (extra == 0) 0 else months - extra,
+                restMonths = months - firstMonths,
                 totalInterest = Money.of(interest, currency),
             )
         }

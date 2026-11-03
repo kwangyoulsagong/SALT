@@ -133,9 +133,14 @@ class SavingsFunSpec : StringSpec({
         tiny.loan shouldBe null
         tiny.loanReason shouldBe EmergencyComparison.LOAN_TOO_SMALL
         tiny.assumptions shouldBe emptyList()
-        // 원금이 원 단위가 아니어도 나눈 합 = 원 단위 총액(1000.5원 · 0% · 3달 → 총액 1,001 = 334 × 2 + 333)
-        val frac = EmergencyComparison.of(g, krw(100_000), Money.krw("1000.5"), BigDecimal.ZERO, 3, today).loan!!
-        listOf(frac.firstPayment, frac.firstMonths, frac.restPayment, frac.restMonths) shouldBe listOf(krw(334), 2, krw(333), 1)
+        // 원 단위가 아닌 금액은 입구에서 거절(리뷰 4차)
+        shouldThrow<InvalidGoal> { EmergencyComparison.of(g, krw(100_000), Money.krw("1000.5"), BigDecimal.ZERO, 3, today) }.code shouldBe "EMERGENCY_AMOUNT_INVALID"
+        // 정확히 X.5원 이자는 올린다 — 꼬리 오차(2.4999…985)로 1원 모자라던 경계(3% · 1,000원 · 1달 = 2.5 → 3, 0.3% · 2,000원 · 1달 = 0.5 → 1)
+        EmergencyComparison.of(g, krw(100_000), krw(1_000), BigDecimal("3"), 1, today).loan!!.totalInterest shouldBe krw(3)
+        EmergencyComparison.of(g, krw(100_000), krw(2_000), BigDecimal("0.3"), 1, today).loan!!.totalInterest shouldBe krw(1)
+        listOf(3_000L, 5_000L, 7_000L, 9_000L).forEach { amt ->
+            EmergencyComparison.of(g, krw(100_000), krw(amt), BigDecimal("3"), 1, today).loan!!.totalInterest shouldBe krw(amt / 400 + 1)
+        }
         // 꺼내기 칸은 그대로 계산된다(남은 290만 → 290만 1원: 29 → 30달)
         tiny.withdraw.delayMonths shouldBe 1
         shouldThrow<InvalidGoal> { EmergencyComparison.of(g, krw(100_000), krw(100_001), BigDecimal("5"), 12, today) }.code shouldBe "EMERGENCY_AMOUNT_OVER_SAVED"
