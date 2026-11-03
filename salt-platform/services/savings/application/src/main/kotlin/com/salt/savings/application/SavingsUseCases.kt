@@ -1,5 +1,6 @@
 package com.salt.savings.application
 
+import com.salt.kernel.Currency
 import com.salt.kernel.Money
 import com.salt.savings.domain.Calculation
 import com.salt.savings.domain.Deposit
@@ -14,6 +15,18 @@ import com.salt.savings.domain.GoalTemplate
 import com.salt.savings.domain.Goals
 import com.salt.savings.domain.InterestPlan
 import com.salt.savings.domain.InvalidGoal
+import com.salt.savings.domain.ItemUnit
+import com.salt.savings.domain.ItemUnits
+import com.salt.savings.domain.MissedMonths
+import com.salt.savings.domain.MonthlyDeposit
+import com.salt.savings.domain.Postcard
+import com.salt.savings.domain.EmergencyComparison
+import com.salt.savings.domain.ItemUnitLimit
+import com.salt.savings.domain.ItemUnitNotFound
+import com.salt.savings.domain.Scene
+import com.salt.savings.domain.Simulation
+import com.salt.savings.domain.SimulationRow
+import com.salt.savings.domain.stampCount
 import com.salt.savings.domain.IssuedProjection
 import com.salt.savings.domain.Milestone
 import com.salt.savings.domain.Projection
@@ -51,6 +64,14 @@ data class GoalSummary(
     val lastDepositedOn: LocalDate?,
     val milestone: Milestone,
     val projection: Projection,
+    /** 모이는 장면 단계(FR-16) */
+    val scene: Scene,
+    /** 도장 수 — 첫 도장 + 직접 넣은 적립(FR-17) */
+    val stamps: Int,
+    /** 다 찬 목표의 엽서(FR-18). 진행 중이면 null */
+    val postcard: Postcard?,
+    /** 이 목표의 실물 단위(FR-16) — 만든 순서. 목록은 첫 단위로 한 줄 환산 */
+    val units: List<ItemUnit>,
 ) {
     /** 구간 계산이 실패해 계획값만 있다 — 응답 `degraded` · `degradedReasons` */
     val degraded: Boolean get() = projection.reason == com.salt.savings.domain.ProjectionReason.DEGRADED
@@ -61,6 +82,8 @@ data class GoalDetail(
     val recentDeposits: List<Deposit>,
     /** 지금 상태로 다시 계산한 기한 · 월 적립(만들기 화면과 같은 계산) */
     val plan: Calculation,
+    /** 놓친 달 회고(FR-11) */
+    val missedMonths: MissedMonths,
 )
 
 /** 템플릿 기준선 — 원문 대조 전이라 금액을 내리지 않는다(슬라이스 판단 3). 열린 질문이 닫히면 값 + 출처 + 기준 연도 */
@@ -93,11 +116,12 @@ class Calculate(private val clock: Clock) {
 /**
  * 목록 · 상세 · 쓰기 응답이 같은 모양을 쓰게 하는 조립. **구간은 늘 지금 기준으로 다시 계산한다** — 발행 기록(`projection_issued`)은 채점 보관용이고
  * 화면이 읽으면 시간이 지나 낡고 · 목록과 상세가 갈리고 · 실패(`degraded`)가 가려진다(코드 리뷰 2026-11-03).
- * 쿼리: 목록 3회(목표 · 적립 집계 · 월별 적립) · 상세 4회(목표 · 그 목표 집계 · 월별 · 최근 적립)
+ * 쿼리: 목록 4회(목표 · 적립 집계 · 월별 적립 · 실물 단위) · 상세 5회(목표 · 그 목표 집계 · 월별 · 최근 적립 · 단위)
  */
 open class GoalReader(
     private val goals: Goals,
     private val deposits: Deposits,
+    private val units: ItemUnits,
     private val clock: Clock,
 ) {
     fun summaries(userId: String): List<GoalSummary> {
@@ -106,7 +130,8 @@ open class GoalReader(
         if (list.isEmpty()) return emptyList()
         val totals = deposits.totalsByGoal(userId, YearMonth.from(today))
         val monthly = deposits.monthlyByGoal(userId)
-        return list.map { goal -> summarize(goal, totals[goal.id], monthly[goal.id].orEmpty(), today) }
+        val unitsByGoal = units.byGoal(userId)
+        return list.map { goal -> summarize(goal, totals[goal.id], monthly[goal.id].orEmpty(), unitsByGoal[goal.id].orEmpty(), today) }
     }
 
     fun detail(userId: String, rawId: String): GoalDetail {
@@ -114,15 +139,30 @@ open class GoalReader(
         val goal = goals.findOwned(id, userId) ?: throw GoalNotFound(rawId)
         val today = clock.todayKst()
         val totals = deposits.totalsFor(goal.id, YearMonth.from(today))
-        val summary = summarize(goal, totals, deposits.monthly(goal.id), today)
+        val history = deposits.monthly(goal.id)
+        val summary = summarize(goal, totals, history, units.forGoal(goal.id), today)
         val plan = when {
             goal.targetDate != null -> SavingsMath.byDeadline(goal.targetAmount, summary.saved, goal.targetDate!!, goal.interest, today)
             else -> SavingsMath.byMonthly(goal.targetAmount, summary.saved, goal.monthlyPlan!!, goal.interest, today)
         }
-        return GoalDetail(summary, deposits.recent(goal.id, RECENT_LIMIT), plan)
+        val missed = MissedMonths.of(
+            goal, summary.saved, history,
+            startMonth = YearMonth.from(goal.createdAt.atZone(KST)),
+            today = today,
+            endMonth = goal.completedAt?.let { YearMonth.from(it.atZone(KST)) },
+        )
+        return GoalDetail(summary, deposits.recent(goal.id, RECENT_LIMIT), plan, missed)
     }
 
-    private fun summarize(goal: Goal, totals: DepositTotals?, monthly: List<com.salt.savings.domain.MonthlyDeposit>, today: LocalDate): GoalSummary {
+    /** 저울용 — 사용자 목표 전부와 월별 적립을 한 번에(쿼리 3) */
+    fun simulationInputs(userId: String): Triple<List<Goal>, Map<GoalId, DepositTotals>, Map<GoalId, List<MonthlyDeposit>>> {
+        val today = clock.todayKst()
+        val list = goals.listOwned(userId)
+        if (list.isEmpty()) return Triple(emptyList(), emptyMap(), emptyMap())
+        return Triple(list, deposits.totalsByGoal(userId, YearMonth.from(today)), deposits.monthlyByGoal(userId))
+    }
+
+    private fun summarize(goal: Goal, totals: DepositTotals?, monthly: List<MonthlyDeposit>, goalUnits: List<ItemUnit>, today: LocalDate): GoalSummary {
         val zero = Money.zero(goal.targetAmount.currency)
         val saved = totals?.saved ?: zero
         val remainingRaw = goal.targetAmount - saved
@@ -138,6 +178,12 @@ open class GoalReader(
             lastDepositedOn = totals?.lastDepositedOn,
             milestone = Milestone.of(goal, totals?.thisMonth ?: zero, today, saved),
             projection = projection,
+            scene = Scene.of(goal.template, progress),
+            stamps = stampCount(totals?.actions ?: 0),
+            postcard = goal.completedAt?.takeIf { goal.status == GoalStatus.COMPLETED }?.let {
+                Postcard.of(LocalDate.ofInstant(goal.createdAt, KST), LocalDate.ofInstant(it, KST), totals?.actions ?: 0)
+            },
+            units = goalUnits,
         )
     }
 
@@ -291,5 +337,104 @@ open class HomeCard(private val reader: GoalReader) {
             totalSaved = all.map { it.saved }.reduceOrNull(Money::plus),
             nearest = active.maxByOrNull { it.progress },
         )
+    }
+}
+
+/**
+ * 목표 저울 — 저장하지 않는다(`SRV-REQ-045` FR-7). 바꾸지 않은 목표도 같이 돌려준다: 화면이 옮긴 돈의 합(전 · 후)을 한눈에 보게.
+ * 다 찬 · 멈춘 목표는 옮길 대상이 아니다(진행 중만). 쿼리 3회 · 계산은 메모리 — 예산 300ms(FEATURE-012 비기능)
+ */
+open class SimulateBalance(private val reader: GoalReader, private val clock: Clock) {
+    data class Change(val goalId: String, val monthly: Money)
+
+    data class Result(val rows: List<SimulationRow>, val totalBefore: Money, val totalAfter: Money)
+
+    @Transactional(transactionManager = SAVINGS_TX, readOnly = true)
+    open fun execute(userId: String, changes: List<Change>): Result {
+        if (changes.size > Simulation.MAX_GOALS) throw InvalidGoal("SIMULATE_TOO_MANY", "at most ${Simulation.MAX_GOALS} goals")
+        val parsed = changes.associate { (GoalId.parse(it.goalId) ?: throw GoalNotFound(it.goalId)) to it.monthly }
+        if (parsed.size != changes.size) throw InvalidGoal("SIMULATE_DUPLICATE_GOAL", "each goal may appear once")
+        val today = clock.todayKst()
+        val (goals, totals, monthly) = reader.simulationInputs(userId)
+        val active = goals.filter { it.status == GoalStatus.ACTIVE }
+        parsed.keys.firstOrNull { id -> active.none { it.id == id } }?.let { throw GoalNotFound(it.toString()) }
+        val rows = active.map { goal ->
+            val saved = totals[goal.id]?.saved ?: Money.zero(goal.targetAmount.currency)
+            Simulation.row(goal, parsed[goal.id], saved, monthly[goal.id].orEmpty(), today)
+        }
+        val zero = Money.zero(Currency.KRW)
+        return Result(
+            rows,
+            rows.mapNotNull { it.monthlyBefore }.fold(zero, Money::plus),
+            rows.mapNotNull { it.monthlyAfter }.fold(zero, Money::plus),
+        )
+    }
+}
+
+/**
+ * 저울 확정 — [확정]을 누른 목표만 계획 월 적립을 바꾼다(FEATURE-012 FR-6 "확정할 때만 저장"). 잠금은 UUID 순(교착 방지 — 나눠 넣기와 같은 규칙),
+ * 상태가 바뀌었으니 구간을 다시 발행한다(슬라이스 S1a 판단 5)
+ */
+open class UpdateMonthlyPlans(
+    private val goals: Goals,
+    private val issuer: ProjectionIssuer,
+    private val deposits: Deposits,
+    private val reader: GoalReader,
+    private val clock: Clock,
+) {
+    data class Change(val goalId: String, val monthly: Money)
+
+    @Transactional(transactionManager = SAVINGS_TX)
+    open fun execute(userId: String, changes: List<Change>): List<GoalSummary> {
+        if (changes.isEmpty()) throw InvalidGoal("PLAN_CHANGES_EMPTY", "at least one change")
+        if (changes.size > Simulation.MAX_GOALS) throw InvalidGoal("SIMULATE_TOO_MANY", "at most ${Simulation.MAX_GOALS} goals")
+        val parsed = changes.map { (GoalId.parse(it.goalId) ?: throw GoalNotFound(it.goalId)) to it.monthly }
+        if (parsed.map { it.first }.toSet().size != parsed.size) throw InvalidGoal("SIMULATE_DUPLICATE_GOAL", "each goal may appear once")
+        val now = clock.instant()
+        val totals = deposits.totalsByGoal(userId, YearMonth.from(clock.todayKst()))
+        parsed.sortedBy { it.first.value }.forEach { (id, monthly) ->
+            val goal = goals.lockOwned(id, userId) ?: throw GoalNotFound(id.toString())
+            if (goal.status != GoalStatus.ACTIVE) throw InvalidGoal("GOAL_NOT_ACTIVE", "only active goals can change plan")
+            val updated = goal.withMonthlyPlan(monthly)
+            goals.updateMonthlyPlan(id, monthly, now)
+            issuer.issue(updated, totals[id]?.saved ?: Money.zero(goal.targetAmount.currency))
+        }
+        return reader.summaries(userId)
+    }
+}
+
+/** 비상시 비교 — 저장하지 않는다(`SRV-REQ-045` FR-12). 금리는 사용자가 넣은 숫자, 상품 · 링크 0 */
+open class CompareEmergency(private val goals: Goals, private val deposits: Deposits, private val clock: Clock) {
+    data class Command(val userId: String, val goalId: String, val amount: Money, val loanRatePercent: BigDecimal, val loanMonths: Int)
+
+    @Transactional(transactionManager = SAVINGS_TX, readOnly = true)
+    open fun execute(cmd: Command): EmergencyComparison {
+        val id = GoalId.parse(cmd.goalId) ?: throw GoalNotFound(cmd.goalId)
+        val goal = goals.findOwned(id, cmd.userId) ?: throw GoalNotFound(cmd.goalId)
+        val today = clock.todayKst()
+        val saved = deposits.totalsFor(id, YearMonth.from(today))?.saved ?: Money.zero(goal.targetAmount.currency)
+        return EmergencyComparison.of(goal, saved, cmd.amount, cmd.loanRatePercent, cmd.loanMonths, today)
+    }
+}
+
+/** 실물 단위 만들기 — 목표 하나에 [ItemUnit.PER_GOAL_MAX] 개까지. 목표 행을 잠가 동시 두 요청이 상한을 넘지 않게 */
+open class AddItemUnit(private val goals: Goals, private val units: ItemUnits, private val reader: GoalReader, private val clock: Clock) {
+    @Transactional(transactionManager = SAVINGS_TX)
+    open fun execute(userId: String, goalId: String, name: String, unitPrice: Money): GoalDetail {
+        val id = GoalId.parse(goalId) ?: throw GoalNotFound(goalId)
+        val goal = goals.lockOwned(id, userId) ?: throw GoalNotFound(goalId)
+        if (units.countFor(id) >= ItemUnit.PER_GOAL_MAX) throw ItemUnitLimit()
+        units.add(ItemUnit.create(goal, name, unitPrice, clock.instant()))
+        return reader.detail(userId, goalId)
+    }
+}
+
+open class DeleteItemUnit(private val units: ItemUnits, private val reader: GoalReader) {
+    @Transactional(transactionManager = SAVINGS_TX)
+    open fun execute(userId: String, goalId: String, unitId: String): GoalDetail {
+        val id = GoalId.parse(goalId) ?: throw GoalNotFound(goalId)
+        val unit = runCatching { UUID.fromString(unitId) }.getOrNull() ?: throw ItemUnitNotFound(unitId)
+        if (units.delete(unit, id, userId) == 0) throw ItemUnitNotFound(unitId)
+        return reader.detail(userId, goalId)
     }
 }

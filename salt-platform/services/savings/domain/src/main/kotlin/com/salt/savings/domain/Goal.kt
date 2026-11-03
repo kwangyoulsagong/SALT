@@ -125,6 +125,12 @@ class Goal(
         }
     }
 
+    /** 저울 확정 · 시뮬레이션 — 계획 월 적립만 바뀐다. 기한(있으면)은 그대로: 기한 모드 목표의 "필요 월 적립"은 상세가 따로 다시 계산한다 */
+    fun withMonthlyPlan(plan: Money): Goal {
+        if (plan.isNegative() || plan.isZero()) throw InvalidGoal("GOAL_MONTHLY_INVALID", "monthlyPlan must be positive")
+        return Goal(id, userId, title, template, targetAmount, targetDate, plan, interest, status, createdAt, completedAt)
+    }
+
     fun withCompleted(at: Instant): Goal =
         Goal(id, userId, title, template, targetAmount, targetDate, monthlyPlan, interest, GoalStatus.COMPLETED, createdAt, at)
 }
@@ -178,4 +184,6 @@ data class DepositTotals(
     val lastDepositedOn: LocalDate?,
     /** 이번 달(KST) 넣은 돈 — 이정표용 */
     val thisMonth: Money,
+    /** 직접 넣은 적립 건수 — 가져온 잔액 한 줄은 빼고. 도장 · 엽서가 센다 */
+    val actions: Int,
 )

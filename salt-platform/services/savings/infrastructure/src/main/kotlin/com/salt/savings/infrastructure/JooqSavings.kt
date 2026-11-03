@@ -12,6 +12,8 @@ import com.salt.savings.domain.GoalStatus
 import com.salt.savings.domain.GoalTemplate
 import com.salt.savings.domain.Goals
 import com.salt.savings.domain.InterestPlan
+import com.salt.savings.domain.ItemUnit
+import com.salt.savings.domain.ItemUnits
 import com.salt.savings.domain.IssuedProjection
 import com.salt.savings.domain.MonthlyDeposit
 import com.salt.savings.domain.Projection
@@ -19,6 +21,7 @@ import com.salt.savings.domain.ProjectionMethod
 import com.salt.savings.domain.Projections
 import com.salt.savings.infrastructure.jooq.Tables.DEPOSIT
 import com.salt.savings.infrastructure.jooq.Tables.GOAL
+import com.salt.savings.infrastructure.jooq.Tables.ITEM_UNIT
 import com.salt.savings.infrastructure.jooq.Tables.PROJECTION_ISSUED
 import com.salt.savings.infrastructure.jooq.tables.records.GoalRecord
 import org.jooq.DSLContext
@@ -28,6 +31,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneOffset
+import java.util.UUID
 
 /** 저축은 원화만 — 통화 열이 없다(옛 goals 도 없었다). 외화 목표가 생기면 열을 더하고 이 상수를 지운다 */
 private val CURRENCY = Currency.KRW
@@ -78,6 +82,14 @@ class JooqGoals(private val dsl: DSLContext) : Goals {
             .execute()
     }
 
+    override fun updateMonthlyPlan(id: GoalId, plan: Money, at: Instant) {
+        dsl.update(GOAL)
+            .set(GOAL.MONTHLY_PLAN, plan.toDecimal())
+            .set(GOAL.UPDATED_AT, at.utc())
+            .where(GOAL.ID.eq(id.value))
+            .execute()
+    }
+
     private fun toGoal(r: GoalRecord): Goal = Goal(
         id = GoalId(r.id),
         userId = r.userId,
@@ -112,7 +124,7 @@ class JooqDeposits(private val dsl: DSLContext) : Deposits {
     override fun totalsByGoal(userId: String, thisMonth: YearMonth): Map<GoalId, DepositTotals> {
         val monthStart = thisMonth.atDay(1)
         val thisMonthSum = DSL.sum(DSL.`when`(DEPOSIT.DEPOSITED_ON.ge(monthStart), DEPOSIT.AMOUNT).else_(BigDecimal.ZERO))
-        return dsl.select(DEPOSIT.GOAL_ID, DSL.sum(DEPOSIT.AMOUNT), DSL.count(), DSL.max(DEPOSIT.DEPOSITED_ON), thisMonthSum)
+        return dsl.select(DEPOSIT.GOAL_ID, DSL.sum(DEPOSIT.AMOUNT), DSL.count(), DSL.max(DEPOSIT.DEPOSITED_ON), thisMonthSum, actionCount())
             .from(DEPOSIT)
             .where(DEPOSIT.USER_ID.eq(userId))
             .groupBy(DEPOSIT.GOAL_ID)
@@ -123,6 +135,7 @@ class JooqDeposits(private val dsl: DSLContext) : Deposits {
                     count = r.value3(),
                     lastDepositedOn = r.value4(),
                     thisMonth = money(r.value5() ?: BigDecimal.ZERO),
+                    actions = r.value6(),
                 )
             }
     }
@@ -130,13 +143,16 @@ class JooqDeposits(private val dsl: DSLContext) : Deposits {
     override fun totalsFor(goalId: GoalId, thisMonth: YearMonth): DepositTotals? {
         val monthStart = thisMonth.atDay(1)
         val thisMonthSum = DSL.sum(DSL.`when`(DEPOSIT.DEPOSITED_ON.ge(monthStart), DEPOSIT.AMOUNT).else_(BigDecimal.ZERO))
-        return dsl.select(DSL.sum(DEPOSIT.AMOUNT), DSL.count(), DSL.max(DEPOSIT.DEPOSITED_ON), thisMonthSum)
+        return dsl.select(DSL.sum(DEPOSIT.AMOUNT), DSL.count(), DSL.max(DEPOSIT.DEPOSITED_ON), thisMonthSum, actionCount())
             .from(DEPOSIT)
             .where(DEPOSIT.GOAL_ID.eq(goalId.value))
             .fetchOne()
             ?.takeIf { it.value2() > 0 }
-            ?.let { DepositTotals(money(it.value1()), it.value2(), it.value3(), money(it.value4() ?: BigDecimal.ZERO)) }
+            ?.let { DepositTotals(money(it.value1()), it.value2(), it.value3(), money(it.value4() ?: BigDecimal.ZERO), it.value5()) }
     }
+
+    /** 직접 넣은 적립 건수 — 가져온 잔액 한 줄은 도장이 아니다 */
+    private fun actionCount() = DSL.count().filterWhere(DEPOSIT.SOURCE.ne(DepositSource.IMPORTED_BALANCE.key))
 
     override fun monthlyByGoal(userId: String): Map<GoalId, List<MonthlyDeposit>> {
         val month = DSL.field("date_trunc('month', {0})::date", LocalDate::class.java, DEPOSIT.DEPOSITED_ON)
@@ -188,4 +204,37 @@ class JooqProjections(private val dsl: DSLContext) : Projections {
             .set(PROJECTION_ISSUED.MONTHS_OF_HISTORY, p.monthsOfHistory)
             .execute()
     }
+}
+
+class JooqItemUnits(private val dsl: DSLContext) : ItemUnits {
+    override fun add(unit: ItemUnit) {
+        dsl.insertInto(ITEM_UNIT)
+            .set(ITEM_UNIT.ID, unit.id)
+            .set(ITEM_UNIT.USER_ID, unit.userId)
+            .set(ITEM_UNIT.GOAL_ID, unit.goalId.value)
+            .set(ITEM_UNIT.NAME, unit.name)
+            .set(ITEM_UNIT.UNIT_PRICE, unit.unitPrice.toDecimal())
+            .set(ITEM_UNIT.CREATED_AT, unit.createdAt.utc())
+            .execute()
+    }
+
+    override fun delete(id: UUID, goalId: GoalId, userId: String): Int =
+        dsl.deleteFrom(ITEM_UNIT)
+            .where(ITEM_UNIT.ID.eq(id).and(ITEM_UNIT.GOAL_ID.eq(goalId.value)).and(ITEM_UNIT.USER_ID.eq(userId)))
+            .execute()
+
+    override fun countFor(goalId: GoalId): Int = dsl.fetchCount(ITEM_UNIT, ITEM_UNIT.GOAL_ID.eq(goalId.value))
+
+    override fun forGoal(goalId: GoalId): List<ItemUnit> =
+        dsl.selectFrom(ITEM_UNIT).where(ITEM_UNIT.GOAL_ID.eq(goalId.value)).orderBy(ITEM_UNIT.CREATED_AT.asc(), ITEM_UNIT.ID.asc()).fetch(::toUnit)
+
+    override fun byGoal(userId: String): Map<GoalId, List<ItemUnit>> =
+        dsl.selectFrom(ITEM_UNIT)
+            .where(ITEM_UNIT.USER_ID.eq(userId))
+            .orderBy(ITEM_UNIT.CREATED_AT.asc(), ITEM_UNIT.ID.asc())
+            .fetch(::toUnit)
+            .groupBy { it.goalId }
+
+    private fun toUnit(r: com.salt.savings.infrastructure.jooq.tables.records.ItemUnitRecord): ItemUnit =
+        ItemUnit(r.id, GoalId(r.goalId), r.userId, r.name, money(r.unitPrice), r.createdAt.toInstant())
 }

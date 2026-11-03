@@ -19,6 +19,9 @@ interface Goals {
 
     fun markCompleted(id: GoalId, at: Instant)
 
+    /** 저울 확정 — 계획 월 적립만 바꾼다(잠근 뒤 쓰기 트랜잭션에서) */
+    fun updateMonthlyPlan(id: GoalId, plan: com.salt.kernel.Money, at: Instant)
+
     /** 목표가 하나라도 있나 — 온보딩 `set_plan` 프로브용(보관한 것 포함, 쿼리 1) */
     fun existsFor(userId: String): Boolean
 }
@@ -42,6 +45,22 @@ interface Deposits {
     fun recent(goalId: GoalId, limit: Int): List<Deposit>
 }
 
+/** 실물 단위(`DB-REQ-037` FR-5) — 사용자 단위는 본인 것만 */
+interface ItemUnits {
+    fun add(unit: ItemUnit)
+
+    /** 본인 단위를 지운다 — 지운 행 수(남의 것 · 없는 것은 0) */
+    fun delete(id: java.util.UUID, goalId: GoalId, userId: String): Int
+
+    fun countFor(goalId: GoalId): Int
+
+    /** 목표 하나의 단위 — 만든 순서 */
+    fun forGoal(goalId: GoalId): List<ItemUnit>
+
+    /** 사용자 목표 전부의 단위 — 목록이 한 줄 환산을 쓴다(쿼리 1) */
+    fun byGoal(userId: String): Map<GoalId, List<ItemUnit>>
+}
+
 interface Projections {
     /** 발행 기록은 채점(`FC-REQ-024`) 보관용 — 화면은 읽지 않고 늘 지금 기준으로 다시 계산한다(코드 리뷰 2026-11-03: 발행본은 시간이 지나면 낡는다) */
     fun issue(issued: IssuedProjection)
@@ -57,5 +76,9 @@ interface SavingsEvents {
 }
 
 class GoalNotFound(id: String) : DomainError("GOAL_NOT_FOUND", ErrorKind.NOT_FOUND, "Goal not found", mapOf("goalId" to id))
+
+class ItemUnitNotFound(id: String) : DomainError("UNIT_NOT_FOUND", ErrorKind.NOT_FOUND, "Item unit not found", mapOf("unitId" to id))
+
+class ItemUnitLimit : DomainError("UNIT_LIMIT", ErrorKind.CONFLICT, "Too many item units for this goal", mapOf("limit" to ItemUnit.PER_GOAL_MAX))
 
 class InvalidGoal(code: String, message: String) : DomainError(code, ErrorKind.INVALID, message)

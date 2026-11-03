@@ -73,8 +73,9 @@ object ProjectionEngine {
 
     /**
      * @param history 월별 적립 합계(희소 — 넣지 않은 달은 없다). 이번 달은 아직 안 끝나 표본에서 뺀다
+     * @param sampleShift 표본마다 더할 금액 — 저울만 쓴다
      */
-    fun project(goal: Goal, saved: Money, history: List<MonthlyDeposit>, today: LocalDate): Projection {
+    fun project(goal: Goal, saved: Money, history: List<MonthlyDeposit>, today: LocalDate, sampleShift: Money? = null): Projection {
         val remaining = goal.targetAmount - saved
         val thisMonth = YearMonth.from(today)
         if (remaining.isNegative() || remaining.isZero()) {
@@ -83,7 +84,9 @@ object ProjectionEngine {
         val rate = SavingsMath.netRate(goal.interest)
         val plan = goal.monthlyPlan?.let { SavingsMath.monthsToReach(remaining, it, rate) }?.let { thisMonth.plusMonths(it.toLong()) }
 
-        val samples = fullMonths(history, thisMonth, goal.targetAmount)
+        // 저울(`Simulation`)이 계획을 Δ 옮겨 볼 때 — 다 찬 달 표본마다 Δ 를 더한다(0 아래는 0)
+        val zero = Money.zero(goal.targetAmount.currency)
+        val samples = fullMonths(history, thisMonth, goal.targetAmount).map { m -> sampleShift?.let { (m + it).let { v -> if (v.isNegative()) zero else v } } ?: m }
         if (samples.size < MIN_HISTORY_MONTHS) {
             return Projection(ProjectionMethod.PLAN_ONLY, null, null, plan, if (goal.monthlyPlan == null) ProjectionReason.NO_PLAN else ProjectionReason.HISTORY_SHORT, samples.size)
         }
