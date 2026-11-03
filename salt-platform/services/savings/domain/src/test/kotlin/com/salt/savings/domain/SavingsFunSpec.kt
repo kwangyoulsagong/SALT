@@ -110,7 +110,10 @@ class SavingsFunSpec : StringSpec({
 
     "비상시 — 금리 0 이면 이자 0 · 1개월이면 금액 하나 · 나머지에 따라 거절되지 않는다 · 총액 < 달 수면 대출 칸만 비고 꺼내기는 남는다" {
         val g = goal(3_000_000, 100_000)
-        val even = EmergencyComparison.of(g, krw(600_000), krw(600_000), BigDecimal.ZERO, 6, today).loan!!
+        val evenCmp = EmergencyComparison.of(g, krw(600_000), krw(600_000), BigDecimal.ZERO, 6, today)
+        evenCmp.loanReason shouldBe null
+        evenCmp.assumptions shouldBe listOf(EmergencyComparison.LOAN_PAID_OUTSIDE_GOAL)
+        val even = evenCmp.loan!!
         even.firstPayment shouldBe krw(100_000)
         even.restMonths shouldBe 0
         even.totalInterest.isZero() shouldBe true
@@ -129,6 +132,10 @@ class SavingsFunSpec : StringSpec({
         val tiny = EmergencyComparison.of(g, krw(100_000), krw(1), BigDecimal.ZERO, 120, today)
         tiny.loan shouldBe null
         tiny.loanReason shouldBe EmergencyComparison.LOAN_TOO_SMALL
+        tiny.assumptions shouldBe emptyList()
+        // 원금이 원 단위가 아니어도 나눈 합 = 원 단위 총액(1000.5원 · 0% · 3달 → 총액 1,001 = 334 × 2 + 333)
+        val frac = EmergencyComparison.of(g, krw(100_000), Money.krw("1000.5"), BigDecimal.ZERO, 3, today).loan!!
+        listOf(frac.firstPayment, frac.firstMonths, frac.restPayment, frac.restMonths) shouldBe listOf(krw(334), 2, krw(333), 1)
         // 꺼내기 칸은 그대로 계산된다(남은 290만 → 290만 1원: 29 → 30달)
         tiny.withdraw.delayMonths shouldBe 1
         shouldThrow<InvalidGoal> { EmergencyComparison.of(g, krw(100_000), krw(100_001), BigDecimal("5"), 12, today) }.code shouldBe "EMERGENCY_AMOUNT_OVER_SAVED"

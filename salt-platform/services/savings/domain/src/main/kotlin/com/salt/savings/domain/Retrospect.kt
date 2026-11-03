@@ -61,10 +61,15 @@ data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shi
 data class EmergencyComparison(
     val amount: Money,
     val withdraw: Withdraw,
-    /** 나눌 수 없으면(총액 < 달 수) null — [loanReason] */
+    /** 나눌 수 없으면(총액 < 달 수) null — 이유는 [loanReason](이 값에서 파생 — 모순된 상태를 만들 수 없다, 리뷰) */
     val loan: Loan?,
-    val loanReason: String?,
 ) {
+    /** 대출 칸이 빈 이유 — 지금은 하나뿐([LOAN_TOO_SMALL]) */
+    val loanReason: String? get() = if (loan == null) LOAN_TOO_SMALL else null
+
+    /** 계산 가정 키 — 대출 칸이 있을 때만 대출 가정이 뜻을 갖는다(컨트롤러가 아니라 여기서 정한다, 리뷰) */
+    val assumptions: List<String> get() = if (loan != null) listOf(LOAN_PAID_OUTSIDE_GOAL) else emptyList()
+
     data class Withdraw(val planMonthBefore: YearMonth?, val planMonthAfter: YearMonth?, val delayMonths: Int?, val reason: String?)
 
     /**
@@ -86,6 +91,9 @@ data class EmergencyComparison(
 
         /** 갚을 총액이 달 수보다 작아 원 단위로 나눌 수 없다(예: 1원 · 120달) */
         const val LOAN_TOO_SMALL = "amount_too_small"
+
+        /** 상환은 목표 적립과 따로 낸다고 본다 */
+        const val LOAN_PAID_OUTSIDE_GOAL = "loan_paid_outside_goal"
         private val MC = MathContext.DECIMAL128
         private val TWELVE = BigDecimal(12)
         private val HUNDRED = BigDecimal(100)
@@ -96,7 +104,7 @@ data class EmergencyComparison(
             if (loanRatePercent.signum() < 0 || loanRatePercent > BigDecimal(30)) throw InvalidGoal("EMERGENCY_RATE_INVALID", "loanRate must be 0..30")
             if (loanMonths !in 1..LOAN_MONTHS_MAX) throw InvalidGoal("EMERGENCY_MONTHS_INVALID", "loanMonths must be 1..$LOAN_MONTHS_MAX")
             val loan = loan(amount, loanRatePercent, loanMonths)
-            return EmergencyComparison(amount, withdraw(goal, saved, amount, today), loan, if (loan == null) LOAN_TOO_SMALL else null)
+            return EmergencyComparison(amount, withdraw(goal, saved, amount, today), loan)
         }
 
         private fun withdraw(goal: Goal, saved: Money, amount: Money, today: LocalDate): Withdraw {
@@ -122,19 +130,25 @@ data class EmergencyComparison(
                 val discount = BigDecimal.ONE - BigDecimal.ONE.divide((BigDecimal.ONE + r).pow(months, MC), MC)
                 principal.toDecimal().multiply(r, MC).divide(discount, MC)
             }
-            // 계산 꼬리 오차(…0001)가 원 단위 결과를 흔들지 않게 소수 10자리에서 한 번 정리
-            val interest = (exactPayment.multiply(n, MC) - principal.toDecimal()).setScale(10, RoundingMode.HALF_UP)
-                .setScale(0, RoundingMode.HALF_UP).max(BigDecimal.ZERO)
+            // 원 단위로 정하는 것은 중간 반올림이 아니다 — 나눠 내는 계획 금액이 최종값이다(`kotlin-platform.md` §3 예외, 월 적립 올림과 같다).
+            // 반올림은 한 번만(소수 10자리 정리 뒤 다시 반올림하면 X.4999… 가 X+1 이 된다 — 리뷰). DECIMAL128 꼬리 오차는 1e-20 수준이라 한 번으로 충분
+            val interest = (exactPayment.multiply(n, MC) - principal.toDecimal()).setScale(0, RoundingMode.HALF_UP).max(BigDecimal.ZERO)
+            // 원금이 원 단위가 아닐 수 있다(API 는 BigDecimal 을 받는다 — 1000.5원) — 총액을 원 단위로 정해야 나눈 합이 총액과 같다
             val total = (principal.toDecimal() + interest).setScale(0, RoundingMode.HALF_UP)
             if (total < n) return null
             val base = total.divide(n, 0, RoundingMode.FLOOR)
             val extra = (total - base.multiply(n)).toInt()
             val currency = principal.currency
-            return if (extra == 0) {
-                Loan(months, annualRatePercent, Money.of(base, currency), months, Money.of(base, currency), 0, Money.of(interest, currency))
-            } else {
-                Loan(months, annualRatePercent, Money.of(base + BigDecimal.ONE, currency), extra, Money.of(base, currency), months - extra, Money.of(interest, currency))
-            }
+            // 나머지 extra 달이 1원 더. 나누어떨어지면(extra 0) 매달 같은 금액 · restMonths 0
+            return Loan(
+                months = months,
+                annualRatePercent = annualRatePercent,
+                firstPayment = Money.of(if (extra == 0) base else base + BigDecimal.ONE, currency),
+                firstMonths = if (extra == 0) months else extra,
+                restPayment = Money.of(base, currency),
+                restMonths = if (extra == 0) 0 else months - extra,
+                totalInterest = Money.of(interest, currency),
+            )
         }
     }
 }

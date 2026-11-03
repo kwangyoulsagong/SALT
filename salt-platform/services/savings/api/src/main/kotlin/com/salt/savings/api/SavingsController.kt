@@ -438,8 +438,7 @@ class SavingsController(
             )
         },
         loanReason = c.loanReason,
-        // 대출 칸이 비면 대출 가정도 뜻이 없다
-        assumptions = if (c.loan != null) listOf("loan_paid_outside_goal") else emptyList(),
+        assumptions = c.assumptions,
     )
 
     private fun interestOf(include: Boolean, rate: BigDecimal?): InterestPlan? {
