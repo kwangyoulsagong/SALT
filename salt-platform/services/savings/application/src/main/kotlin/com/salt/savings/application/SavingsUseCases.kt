@@ -145,12 +145,17 @@ open class GoalReader(
             goal.targetDate != null -> SavingsMath.byDeadline(goal.targetAmount, summary.saved, goal.targetDate!!, goal.interest, today)
             else -> SavingsMath.byMonthly(goal.targetAmount, summary.saved, goal.monthlyPlan!!, goal.interest, today)
         }
-        val missed = MissedMonths.of(
-            goal, summary.saved, history,
-            startMonth = YearMonth.from(goal.createdAt.atZone(KST)),
-            today = today,
-            endMonth = goal.completedAt?.let { YearMonth.from(it.atZone(KST)) },
-        )
+        // 놓친 달 계산이 실패해도 상세 전체를 잃지 않는다 — 그 칸만 degraded(구간 `ProjectionEngine.safely` 와 같은 원칙, 리뷰 7차)
+        val missed = try {
+            MissedMonths.of(
+                goal, summary.saved, history,
+                startMonth = YearMonth.from(goal.createdAt.atZone(KST)),
+                today = today,
+                endMonth = goal.completedAt?.let { YearMonth.from(it.atZone(KST)) },
+            )
+        } catch (e: RuntimeException) {
+            MissedMonths.degraded()
+        }
         return GoalDetail(summary, deposits.recent(goal.id, RECENT_LIMIT), plan, missed)
     }
 

@@ -19,10 +19,13 @@ import java.time.YearMonth
 data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shiftMonths: Int?, val reason: String?) {
     init {
         // 이동 달 수가 없으면 이유가 있다 — 비상시 칸들과 같은 규칙(리뷰 6차)
-        require((shiftMonths == null) == (reason != null)) { "missed shiftMonths and reason must be exclusive" }
+        check((shiftMonths == null) == (reason != null)) { "missed shiftMonths and reason must be exclusive" }
     }
 
     companion object {
+        /** 계산 실패 — 그 칸만(상세 전체를 500 으로 만들지 않는다) */
+        fun degraded(): MissedMonths = MissedMonths(0, 0, null, ProjectionReason.DEGRADED)
+
         fun of(goal: Goal, saved: Money, history: List<MonthlyDeposit>, startMonth: YearMonth, today: LocalDate, endMonth: YearMonth?): MissedMonths {
             val thisMonth = YearMonth.from(today)
             // 다 찬 목표는 다 찬 달 전까지만 본다 — 그 뒤엔 넣을 이유가 없다
@@ -45,8 +48,9 @@ data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shi
                     val rate = SavingsMath.netRate(goal.interest)
                     val now = SavingsMath.monthsToReach(remaining, plan, rate)
                     val filled = remaining - plan.scale(BigDecimal(skipped))
-                    val ifFilled = if (filled.isNegative() || filled.isZero()) 0 else SavingsMath.monthsToReach(filled, plan, rate)
-                    // 지금 계획으로 100년 안에 못 닿으면 이동을 말할 수 없다 — 이유를 붙인다(채운 쪽은 남은 돈이 더 적어 now 가 있으면 늘 있다)
+                    // 채운 쪽은 남은 돈이 더 적다 — now 가 있으면 늘 있다(monthsToReach 는 남은 돈에 단조)
+                    val ifFilled = if (now == null) null else if (filled.isNegative() || filled.isZero()) 0 else SavingsMath.monthsToReach(filled, plan, rate)
+                    // 지금 계획으로 100년 안에 못 닿으면 이동을 말할 수 없다 — 이유를 붙인다
                     if (now == null || ifFilled == null) {
                         MissedMonths(months.size, skipped, null, ProjectionReason.NOT_REACHABLE)
                     } else {
@@ -67,8 +71,9 @@ data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shi
  *   **갚을 총액(원금 + 이자)을 n 달에 원 단위로 나눈다** — 나머지만큼의 앞 달이 1원 더(`처음 k개월 X원 · 나머지 Y원`). 숫자가 그대로 더해지고,
  *   총액이 달 수 이상이면 늘 나뉜다. 총액이 달 수보다 작으면 대출 칸만 `loan = null` + 이유(꺼내기 칸은 남는다). 상환은 목표 밖에서 낸다고 가정(가정 키).
  *   ~~이자 = 올린 상환 × n − 원금~~ → ~~마지막 달이 올림 차액~~ **정정 2026-11-03 두 번**(0% 이자 8원 · 나머지에 따라 거절되는 금액 · 1개월 두 금액 — 셸 실측 · 리뷰)
+ *
+ * 생성자 · copy 모두 private(`of` 만 만든다) — data class 로 두어 값 비교 · 출력은 유지(리뷰 6차)
  */
-/** 생성자 · copy 모두 private(`of` 만 만든다) — data class 로 두어 값 비교 · 출력은 유지(리뷰 6차) */
 @ConsistentCopyVisibility
 data class EmergencyComparison private constructor(
     val amount: Money,
@@ -86,10 +91,10 @@ data class EmergencyComparison private constructor(
     /** 계산 가정 키 — 대출 칸이 있을 때만 대출 가정이 뜻을 갖는다(컨트롤러가 아니라 여기서 정한다, 리뷰) */
     val assumptions: List<String> get() = if (loan != null) listOf(LOAN_PAID_OUTSIDE_GOAL) else emptyList()
 
-    /** 이동 달 수가 없으면 이유가 있다 — 대출 칸과 같은 규칙(리뷰 5차). 만드는 곳은 [of] 하나 — 인자 검사라 require */
+    /** 이동 달 수가 없으면 이유가 있다 — 대출 칸과 같은 규칙(리뷰 5차). 어기면 코드 결함이라 check(IllegalStateException — 500, 사용자 오류로 바뀌지 않게) */
     data class Withdraw(val planMonthBefore: YearMonth?, val planMonthAfter: YearMonth?, val delayMonths: Int?, val reason: String?) {
         init {
-            require((delayMonths == null) == (reason != null)) { "withdraw delayMonths and reason must be exclusive" }
+            check((delayMonths == null) == (reason != null)) { "withdraw delayMonths and reason must be exclusive" }
         }
     }
 

@@ -316,6 +316,21 @@ class SavingsEndToEndTest {
     }
 
     @Test
+    fun `100년 못 닿는 구간(not_reachable)도 발행 이벤트 계약을 통과한다 — 적립이 롤백되지 않는다`() {
+        val user = "far-${UUID.randomUUID()}"
+        val id = data(call("POST", "/api/savings/goals", user, """{"title":"먼 목표","template":"other","targetAmount":2000000000,"monthlyPlan":1000}""")).path("goal").path("id").asString()
+        val thisMonth = java.time.YearMonth.now(java.time.ZoneId.of("Asia/Seoul"))
+        (1..3).forEach { back ->
+            val day = thisMonth.minusMonths(back.toLong()).atDay(1)
+            call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":1000,"depositedOn":"$day"}""").statusCode() shouldBe 201
+        }
+        val res = call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":1000}""")
+        res.statusCode() shouldBe 201
+        data(res).path("goal").path("projection").path("reason").asString() shouldBe "not_reachable"
+        events(id).last() shouldBe "savings.ProjectionIssued"
+    }
+
+    @Test
     fun `템플릿 7종 — 기준선은 원문 대조 전이라 금액 없이 이유만`() {
         val templates = data(call("GET", "/api/savings/templates", "t", null))
         items(templates).map { it.path("key").asString() } shouldBe listOf("wedding", "housing", "first_car", "travel", "emergency", "childbirth", "other")
