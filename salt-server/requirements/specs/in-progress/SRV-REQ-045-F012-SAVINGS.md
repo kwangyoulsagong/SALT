@@ -61,7 +61,7 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | FR-19 | done — 목록 쿼리 3회(테스트가 jOOQ 리스너로 센다) | `SavingsEndToEndTest` |
 | FR-7 · 10~14 · 16 · 17 | S1b · 뒤 — 저울 · 오늘 돈 · 놓친 달 · 비상시 · 제도 파라미터 · 공동 목표 · 재미 상태 · 가계부 구독 — **2026-11-03 S1b 가 FR-7 · 11 · 12 · 16 을 가져감(아래 표)** | 루트 슬라이스 범위 밖 |
 
-## 진행 — S1b (2026-11-03, 슬라이스 `requirements/specs/in-progress/MONEY-S1b-savings-fun-slice.md`)
+## 진행 — S1b (2026-11-03, 슬라이스 `requirements/specs/done/MONEY-S1b-savings-fun-slice.md`)
 
 | FR | 상태 | 어디 |
 |---|---|---|

@@ -44,7 +44,7 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | FR-13 | ~~**미충족** — 토큰이 브라우저 저장소라 서버가 볼 수 없다~~ **done 2026-11-03** `0ef25f6b` — 쿠키 세션 1단계로 서버 렌더 |
 | FR-6 · 8~12 | S1b — 저울 · 장면 · 실물 · 도장 · 엽서 · 공동 · 팁 카드 — **2026-11-03 S1b 가 FR-6 · 8 · 9 · 10 을 가져감(아래 표)** |
 
-## 진행 — F3b (2026-11-03, 슬라이스 `requirements/specs/in-progress/MONEY-S1b-savings-fun-slice.md`)
+## 진행 — F3b (2026-11-03, 슬라이스 `requirements/specs/done/MONEY-S1b-savings-fun-slice.md`)
 
 | FR | 상태 |
 |---|---|

@@ -1,6 +1,6 @@
 # MONEY-S1b — 목표 저울 · 비상시 · 놓친 달 · 모으는 재미 — 체크리스트
 
-슬라이스 `requirements/specs/in-progress/MONEY-S1b-savings-fun-slice.md` · 커밋 `9a435627` · `f4deeee6` · `84871e70` · `6ad345fc` · `34815177` · `ca1fcb11` · `5171d03d` · `88ede7aa` · 셸 경유 실측 결함 `4fda31db` · `73973f79` · `cd3bc574` · 리뷰(high) 8건 `af797be0` · `96378139` · `9f74c874`
+슬라이스 `requirements/specs/done/MONEY-S1b-savings-fun-slice.md` · 커밋 `9a435627` · `f4deeee6` · `84871e70` · `6ad345fc` · `34815177` · `ca1fcb11` · `5171d03d` · `88ede7aa` · 셸 경유 실측 결함 `4fda31db` · `73973f79` · `cd3bc574` · 리뷰(high) 8건 `af797be0` · `96378139` · `9f74c874`
 
 ## 1. 수용 기준
 

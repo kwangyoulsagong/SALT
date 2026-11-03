@@ -34,7 +34,7 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-045-F012-SAVINGS.md
 | + | 홈 저축 카드 원천 `/goals/statistics` → `/savings/home-card`(`BFF-REQ-046`) · 계산 `POST /api/app/savings/calculate`(스펙 표 밖 — 서버 판단 4) · 라우팅 표 `/savings` → platform |
 | FR-4 · 6 | S1b — 저울 · 공동 목표 |
 
-## 진행 — S1b (2026-11-03, 슬라이스 `requirements/specs/in-progress/MONEY-S1b-savings-fun-slice.md`)
+## 진행 — S1b (2026-11-03, 슬라이스 `requirements/specs/done/MONEY-S1b-savings-fun-slice.md`)
 
 | FR | 상태 |
 |---|---|

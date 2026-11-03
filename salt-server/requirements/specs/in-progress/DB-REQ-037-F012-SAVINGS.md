@@ -43,7 +43,7 @@ DDL 주인은 Flyway(`services/savings/infrastructure/src/main/resources/db/migr
 | FR-11 | done — 관리자 SQL `salt-platform/db/savings-import.sql`(INSERT 만 · 재실행 같음 · 행 수 · 적립 합 대조) + `savings-import-rollback.sql`(새 서비스 기록이 생기면 멈춤). 일회용 DB 왕복 + 로컬 운영 DB 적용 2026-11-03(목표 1 · 적립 0) |
 | FR-4 · 5 · 6 · 7 · 8 · 9 | S1b 뒤 — **2026-11-03 S1b 가 FR-5 · 6 · 7 을 가져감(아래 표)** |
 
-## 진행 — S1b (2026-11-03, 슬라이스 `requirements/specs/in-progress/MONEY-S1b-savings-fun-slice.md`)
+## 진행 — S1b (2026-11-03, 슬라이스 `requirements/specs/done/MONEY-S1b-savings-fun-slice.md`)
 
 | FR | 상태 |
 |---|---|
