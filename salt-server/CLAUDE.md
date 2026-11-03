@@ -26,6 +26,17 @@ npm run prisma:studio
 > **상시 프로세스는 launchd 다(`OPS-002`).** 서버 4000(`com.salt.server`)과 뉴스 워커(`com.salt.news`)는 `ops/salt.sh` 가 감독한다 —
 > 코드를 바꾸면 `ops/salt.sh restart server`(또는 `news`). 상태 · 마지막 수집 시각은 `ops/salt.sh status`.
 
+### Kotlin 쪽 `salt-platform/` (S0 부터, `SRV-REQ-043`)
+
+```bash
+cd ../salt-platform
+./gradlew check                                   # 컴파일 · 테스트 · Modulith · ArchUnit · Testcontainers(Docker 필요)
+cp .env.example .env                              # 비밀 채우기 — JWT_SECRET 은 이 폴더 .env 와 같은 값
+./gradlew :app:bootJar && docker compose up -d --build   # Postgres 55432 · RabbitMQ 55672 · platform 4010
+```
+
+launchd 상시가 아니다 — 아직 화면 경로가 없다(BFF 표 `/platform` 만). S1 에서 첫 도메인 서비스가 들어올 때 `ops/salt.sh` 에 넣는다.
+
 ## 구조 원칙
 
 - 서버 작업은 `salt-server/**` 범위에서 수행한다.

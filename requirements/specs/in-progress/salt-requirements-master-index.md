@@ -82,11 +82,11 @@ Status: In Progress
 | `FE-REQ-053` | 투자 zone 분리 | `domain-invest` + `apps/web-investment`, 동작 변경 0 |
 | `FE-REQ-054` | 앱 내비게이션(F2) | `AppNavigation`(왼쪽 레일 · 하단 탭 · 머리) · prerender · 문서 간 전환 · 설정 프리셋 — **done 2026-11-03** |
 | `RN-REQ-032` | 모바일 도메인 정렬 | 번들 이름 · 4탭 · 네이티브/웹뷰 경계 · 기존 RN REQ 대체 블록 |
-| `SRV-REQ-043` | Kotlin 플랫폼 S0 (`ADR-006`) | Gradle 멀티모듈 · Spring Modulith · Compose · 규칙 Kotlin 판 |
-| `SRV-REQ-044` | 도메인 이벤트 | 아웃박스 · RabbitMQ · `contracts/events` · 멱등 구독 |
+| `SRV-REQ-043` | Kotlin 플랫폼 S0 (`ADR-006`) | Gradle 멀티모듈 · Spring Modulith · Compose · 규칙 Kotlin 판 — ~~**in-progress 2026-11-03**~~ **done 2026-11-03**(수용 기준 4/4 · FR-8 인스턴스 연결은 `SRV-REQ-049` S5 로) |
+| `SRV-REQ-044` | 도메인 이벤트 | 아웃박스 · RabbitMQ · `contracts/events` · 멱등 구독 — **in-progress 2026-11-03**(서비스 스키마별 아웃박스 · 수용 기준 3/3, 13종은 단계마다) |
 | `SRV-REQ-049` | 투자 서비스 이전 S4~S7 | portfolio · market(+수집 프로세스) · coach · Express 종료 |
-| `DB-REQ-036` | 서비스별 스키마 | 스키마 9 · 계정 · Flyway 주인 이전 · export 뷰 |
-| `BFF-REQ-045` | 스트랭글러 장치 | 라우팅 스위치 · 골든 JSON · 그림자 실행 · 이중 토큰 |
+| `DB-REQ-036` | 서비스별 스키마 | 스키마 9 · 계정 · Flyway 주인 이전 · export 뷰 — **in-progress 2026-11-03**(계정 스크립트 · 주인 표 41 · 경계 참조 10, 이동은 S1~S6) |
+| `BFF-REQ-045` | 스트랭글러 장치 | 라우팅 스위치 · 골든 JSON · 그림자 실행 · 이중 토큰 — **in-progress 2026-11-03**(수용 기준 3/3, 이중 토큰 S3 · 410 이전 S7) |
 | `FC-REQ-025` | forecast 스키마 주인 (`ADR-007`) | DDL → `salt-forecast` · public 읽기 → export 뷰 |
 
 ### 기능 × 영역 × 종류
@@ -202,7 +202,7 @@ flowchart TB
 | 3 | 추가된 기능 | ~~F008 FR-73 **해설 다듬기 공급자 라우팅** — 로컬 CLI(Claude Code · Codex) / 없거나 모바일이면 Gemini(`SRV-REQ-050` → `BFF-REQ-050` → `FE-REQ-059`)~~ **구현 2026-11-02** + 진짜 스트리밍 · 깊은 분석(`feat/f008-explain-llm-routing`, `F008-explain-llm-routing-slice.md`) | 2026-11-02 사용자 결정. 근거: 블라인드 A/B 템플릿 20/20 · Gemini 할당량 소진 |
 | 3 | 추가된 기능 | ~~국내 탭 요약을 코인과 같은 정보로(`DB-REQ-035` → `SRV-REQ-042` → `BFF-REQ-044` → `FE-REQ-050`)~~ **구현 2026-11-02**(`feat/kr-market-summary`, `F011-kr-market-summary-slice.md` — 원/달러 칸은 범위에서 뺌: 실전 키 안 씀) | 새 서버 계약(지수 분 기록 · 국내 요약 경로) — 데이터가 먼저라 기능 쪽에 둔다. 띠의 "다가오는 일정" 칸은 바로 위 슬라이스 24 를 쓴다 |
 | 3 | 추가된 기능 | F008 슬라이스 24 **2단계** — 종목 실적 공시 · 예상 창 | DART 사용 결정(2026-10-30) — 공시 수집 `FC-REQ-026`(온톨로지 `FC-REQ-022` 뒤) 다음 |
-| **3a** | 돈 관리 앱 재정의(2026-10-30) | 아키텍처 바탕 — ~~`FE-REQ-052`(F0)~~ **done 2026-11-02**(`feat/fe-req-052-domain-zones`, `MONEY-F0-domain-zones-slice.md`) → ~~`FE-REQ-053` + `FE-REQ-055` + `BFF-REQ-046`(F1, 한 PR)~~ **F1 done 2026-11-02**(`feat/fe-req-053-invest-zone-home-cards`, `MONEY-F1-invest-zone-home-cards-slice.md` — 053 done · 055 · 046 은 S3 몫 남음) → ~~`FE-REQ-054`(F2 AppChrome)~~ **F2 done 2026-11-03**(`feat/fe-req-054-app-navigation`, `MONEY-F2-app-navigation-slice.md` — 이름 `AppNavigation` · ~~prerender 적중 사람 확인~~ 적중 10/10 확인 · ~~공용 청크 캐시 공유 `OPS-001` 남음~~ 캐시 공유 닫음(운영 공용 `/_next`) · 계측 수집처 · 배포 정적 저장소 `OPS-001` FR-12 남음) → 서버 S0(`SRV-REQ-043` · `044` · `DB-REQ-036` · `BFF-REQ-045`) | `ADR-005` · `ADR-006`. 계획 `MONEY-domains-global-plan.md` |
+| **3a** | 돈 관리 앱 재정의(2026-10-30) | 아키텍처 바탕 — ~~`FE-REQ-052`(F0)~~ **done 2026-11-02**(`feat/fe-req-052-domain-zones`, `MONEY-F0-domain-zones-slice.md`) → ~~`FE-REQ-053` + `FE-REQ-055` + `BFF-REQ-046`(F1, 한 PR)~~ **F1 done 2026-11-02**(`feat/fe-req-053-invest-zone-home-cards`, `MONEY-F1-invest-zone-home-cards-slice.md` — 053 done · 055 · 046 은 S3 몫 남음) → ~~`FE-REQ-054`(F2 AppChrome)~~ **F2 done 2026-11-03**(`feat/fe-req-054-app-navigation`, `MONEY-F2-app-navigation-slice.md` — 이름 `AppNavigation` · ~~prerender 적중 사람 확인~~ 적중 10/10 확인 · ~~공용 청크 캐시 공유 `OPS-001` 남음~~ 캐시 공유 닫음(운영 공용 `/_next`) · 계측 수집처 · 배포 정적 저장소 `OPS-001` FR-12 남음) → ~~서버 S0(`SRV-REQ-043` · `044` · `DB-REQ-036` · `BFF-REQ-045`)~~ **S0 done 2026-11-03**(`feat/srv-req-043-s0-platform`, `MONEY-S0-platform-slice.md` — 빈 서비스 `ping` 종단 · `SRV-REQ-043` done · 044 · `DB-REQ-036` · `BFF-REQ-045` in-progress: 나머지 FR 은 S1~S7 몫) → 다음 S1 + F3(`DB-REQ-037` · `SRV-REQ-045` · `FE-REQ-056`) | `ADR-005` · `ADR-006`. 계획 `MONEY-domains-global-plan.md` |
 | 3a | 돈 관리 앱 재정의 | F012 저축(S1 · F3) → F013 가계부(S1 · F4) → F014 금융 팁(S2 · F5, 법무 확인 뒤 공개) → F015 나머지(S3) | 투자 남은 작업과 **번갈아** — 투자만 연속으로 잡지 않는다 |
 | 3a | 예측 바탕 | `FC-REQ-022` 온톨로지(O1 · O2) → `FC-REQ-023` 에이전트(O3) · `FC-REQ-024` 개인 재무 채점(S1 과 같이) | `ADR-007`. F008 FR-25 · FR-41 |
 | **4** | 착수 전 기능 | F006 코치 대화 + 3탭 IA(`FE-REQ-030`~`033` · `BFF-REQ-027`~`030`) · F003 적립(`FEATURE-003`, to-do) | 범위가 커서 3 다음. 시작 전에 기획서 재확인 |
@@ -250,6 +250,10 @@ flowchart TB
 | `FE-REQ-053` 투자 zone 분리(F1) | **done** 2026-11-02 | 투자 슬라이스 25 → `packages/domain-invest`(369 R100) · `apps/web-investment` 서비스 · `invest.hostedIn = web-investment` · shared → `packages/web-shared` · zone 공용 레이아웃(`@repo/web-shared/layout`) · `/coach/settings` · 이동 실측 Chromium 455 · WebKit 447ms(dev). 같이 고친 기존 결함 7 |
 | `FE-REQ-054` 앱 내비게이션(F2) | **done** 2026-11-03 | 이름 `AppNavigation`(사용자 결정) · 왼쪽 레일 72 / 하단 탭 / 머리 52 · 면 글리프(기준 레일 실측) · 탭 한 벌 `@repo/core/navigation` · prerender 규칙(로그인 · 다른 zone 탭) · 문서 간 전환 · `@repo/config-next` · 계측. 남은 것: ~~prerender 적중 · 녹화(`QA-001`)~~(2026-11-03 확인 — 적중 10/10 · 깜빡임 0) · ~~공용 청크 캐시 공유(`OPS-001` — 같은 청크 5개 · 117 KB 다시 받음)~~(같은 날 닫음 — `ADR-005` 규칙 7 개정) · 계측 수집처 · 배포 정적 저장소(`OPS-001` FR-12). `MONEY-F2-app-navigation-slice.md` |
 | `FE-REQ-055` 셸 홈 카드 · `BFF-REQ-046` 홈 계약 | **in-progress** 2026-11-02 | `HomeSummaryCard[]`(BFF 조립 · 글자 대조 테스트 · 카드당 800ms · 401 은 홈 401) · 저축 · 투자 카드(숨김 끔 손익률 / 켬 종목 수 + "오늘 처음 본다면"). 남은 것: 순서 · 숨김 편집 · 온보딩 · 내 데이터 · 알림(S3) |
+| `SRV-REQ-043` Kotlin 플랫폼(S0) | **done** 2026-11-03 | `salt-platform/`(Boot 4.1.2 · Kotlin 2.3.21 · Modulith 2.1.2 · JDK 21) · 빈 서비스 `ping` 종단 · 경계 Modulith + ArchUnit(변이 5) · Express 골든 4 · Compose(BFF · Jaeger). FR-8 인스턴스 연결은 `SRV-REQ-049` |
+| `SRV-REQ-044` 이벤트 · 아웃박스 | **in-progress** 2026-11-03 | 서비스 스키마별 아웃박스 · 릴레이(포기 · 순서) · 계약 검증 · 멱등 · 데드레터 · 지표. 남은 것: 13종(단계마다) · 프로젝션 · 내부 REST · 경보 |
+| `DB-REQ-036` 서비스별 스키마 | **in-progress** 2026-11-03 | 계정 스크립트(로컬 운영 DB 적용) · 되돌리기 · 주인 표 41 · 경계 참조 10. 남은 것: 표 이동 · Flyway 주인 이전 · export 뷰(S1~S6) |
+| `BFF-REQ-045` 스트랭글러 장치 | **in-progress** 2026-11-03 | 라우팅 표 · 그림자(읽기만) · 골든 · traceparent · BFF 이미지. 남은 것: 이중 토큰(S3) · 410 이전(S7) |
 | `SRV-REQ-006` DDD 전환 | **done** (4/4단계) | `shared` Kernel + `layer-check` 훅·ESLint(1) · `coach/domain/policy` 추출 + 특성화 테스트 23건(2) · `news`·`market`·`portfolio` 이관(3, FR-32a) · **`coach` 통합(4, FR-32)**. 컨텍스트 **4개** · 동사형 유스케이스 **49개** · 공개 API **17개**. `modules` 15 → 12 → **8개**(원문 29파일 3,538줄 삭제). 테스트 18 → 85 → **137건**. 4단계에서 **같은 이름의 값이 경로마다 다르게 정의돼 있던 것**(기술 지표 주기 `m5` vs 무관)이 드러나 통일했다. 그 뒤 **미충족 8건을 닫았다**(§12) — **수익률 예측(`expectedReturn`) 제거**, 외부 호출 타임아웃·지수 백오프(캔들 수집 실패 **다수 → 0건**), `external/` 삭제, 한글 뉴스 언어 필터 복구, 공개 LLM 경로 요청 제한. 테스트 **153건**. 남은 12건은 전부 `ledger`(F001)·`DB-REQ-*`·**FR-33(`SRV-REQ-007`)**·프론트 계약을 기다린다. 상세는 `checklists/SRV-REQ-006.md` §10~§13 |
 | `FE-REQ-010` F000 UI | **in-progress** (2026-10-30 FR-33 · 37 · 70~78 · 103 `/search` · 카운터) | 수리 9건(FR-1~9)·표시·접근성·반응형에 이어 **초대 코드·온보딩 3스텝(FR-20~26·64)이 닫혔다**. 슬라이스 셋이 생겼다 — `features/accept-invite` · `widgets/onboarding-flow` · `pages/onboarding`. **회원가입 화면은 구현된 적이 없었다**(경로만 `PUBLIC_PATHS` 에 있었다). 남은 것은 FR-63 과 **브라우저 화면 실측**이다. FR-63 은 `role="tablist"` 대신 `role="group"`+`aria-pressed` 로 갔다(탭이 아니다 — tabpanel 이 없다). `checklists/FE-REQ-010.md` · **홈 보유 아이콘 · 지출 막대 삭제**(2026-09-23, 목 제거) |
 | `BFF-REQ-007` F000 FUNC | **in-progress** (2026-10-30 H절 FR-70~75 검색 · 409 전달 · 로그 가림) | D·E·F절(뉴스·관심 종목·`period`)에 이어 **G절(온보딩 3라우트·`register` 제거·rate limit)** · **A절 FR-1~5(동면 410, 2026-09-22)** 완료. **B절(홈 조립 — 동면 소스 제거 · `allSettled` · 뷰모델, 2026-10-27)** 완료. **C절(알림 1종 뷰모델 — 1종 필터 · 금액 제거 · 코드만, 2026-10-28)** 완료. A절 FR-6(1주 로그, 2026-09-29) 남음. **테스트 러너가 이 작업에서 처음 생겼다**(23건) |
@@ -377,6 +381,11 @@ BFF `AppError` 선택 `code`(차트 주기 422 `MARKET_CHART_PERIOD_UNSUPPORTED`
 범위 `MONEY-F0-domain-zones-slice.md`, 검증 `checklists/MONEY-F0-domain-zones.md`. `ADR-005` 를 실행되는 코드로: 레지스트리 `registry.json` 한 곳(TS · CommonJS 가 읽고 대조 테스트) ·
 셸 rewrites 생성(`ZONE_<ID>_ORIGIN`, 경로 `fallback` — 셸에 남은 화면이 이긴다) · zone lint 가 레지스트리 전체 · 훅/lint 도메인 축 4(도메인 간 · 셸 → 도메인 · 남의 도메인 · 얇은 zone) ·
 빈 zone 앱 4 · `apps/web-tax` 삭제. 화면은 옮기지 않았다 — 레지스트리 `hostedIn` 이 "지금 서비스하는 앱"을 적어 셸 안 투자 링크는 그대로 `<Link>`. 화면 이전은 `FE-REQ-053`(투자) · `056`(저축).
+
+**돈 관리 앱 S0 — Kotlin 플랫폼 (서버 · BFF · DB, 2026-11-03, `feat/srv-req-043-s0-platform`) — done** — 사용자 "새브랜치 파고 다음 파이프라인 진행". 3a 다음 칸 서버 S0(F3 저축이 S1 을, S1 이 S0 을 기다린다).
+범위 `MONEY-S0-platform-slice.md`, 검증 `checklists/MONEY-S0-platform.md`. 새 디렉터리 `salt-platform/`(Boot 4.1.2 · Kotlin 2.3.21 · Modulith 2.1.2 · JDK 21) — 빈 서비스 `ping` 이 서비스 계정 DB → 아웃박스 →
+RabbitMQ → 멱등 구독 → 같은 추적 ID 를 Testcontainers · Compose 둘 다에서 통과. 아웃박스는 Modulith 발행 기록 대신 서비스 스키마마다(`SRV-REQ-044` FR-1 정정). 오류 바디 = Express 골든 4 바이트 일치.
+BFF 는 서버 호출 한 곳에 라우팅 표 · 그림자(읽기만) · 골든 · traceparent — 기본 표는 `/platform` 만, 화면 경로 무변경. 사용자 질문(Kafka?)에 RabbitMQ 유지. Compose 실측이 실행 jar 결함(`kotlin-reflect` 누락)을 찾았다.
 
 **돈 관리 앱 F2 — 앱 내비게이션 (FE, 2026-11-03, `feat/fe-req-054-app-navigation`) — done** — 사용자 "새브랜치 파고 다음 파이프라인 진행". 3a 다음 칸 `FE-REQ-054`.
 범위 `MONEY-F2-app-navigation-slice.md`, 검증 `checklists/MONEY-F2-app-navigation.md`. 사용자 결정 2: 이름 `AppNavigation` · 탭은 왼쪽 레일 + 면 채운 단색 글리프(기준 증권 웹 아이콘 레일 실측).
@@ -889,3 +898,6 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-03 | **F2 퇴행 수정** — **퇴행 수정** `6ddcb284` — 내비 틀이 768 미만에서도 화면 높이를 잡아 일반 브라우저 390 에서 좁은 화면 안내가 844px 아래(빈 한 화면 뒤)에서 시작했다 → 0. 앱 웹뷰 태블릿(820)의 숨은 하단 탭 여백 56px → 0(일반 820 은 56 유지) |
 | 2026-11-03 | **F2 코드 리뷰** — 9건 수정(`378d8a1c`) · 1건 해당 없음(리프레시 토큰 비회전). 퇴행 1(`6ddcb284`). 번들 최종 +2.7~+9.3 KB |
 | 2026-11-03 | **F2 브라우저 · 접근성 마감** — 운영 빌드 3 브라우저 · 키보드 · axe. 레일 라벨 대비 2.92 → 6.45(`d80a7ac8`). 기존 결함 1(프로필 이메일 2.18:1) → `FE-REQ-047` |
+| 2026-11-03 | **돈 관리 앱 S0 — `SRV-REQ-043` · `SRV-REQ-044` · `DB-REQ-036` · `BFF-REQ-045` in-progress**(서버 · BFF · DB). `salt-platform/` 첫 판 · 빈 서비스 `ping` 종단 · 서비스별 계정 스크립트 · 주인 표 41(42 정정) · 경계 참조 10(예측 추적 종목 읽기에 export 뷰가 없던 빈칸 B9) · BFF 라우팅 스위치. 규칙 `kotlin-platform.md` · `msa-services.md` · `backend-integration.md` 를 실제 구조로. 다음 S1 + F3 |
+| 2026-11-03 | **S0 코드 리뷰 · 미검증 닫기**(사용자 "안한거 다해") — 리뷰 10건 수정(`405e5683` · `cc184c3a`) · Resilience4j 기본값 · 데드레터 · 포기 이벤트 지표 · Postgres 17 · Compose BFF · Jaeger(한 추적 span 9) · 계정 되돌리기 왕복 · 기존 결함(BFF 빌드가 전역 tsc). ~~로컬 운영 DB 적용만 사용자 실행(권한 확인)~~ **같은 날 적용**(사용자 "너가 다해줘") |
+| 2026-11-03 | **S0 done** — `SRV-REQ-043` done · 루트 슬라이스 done 으로(`requirements/specs/done/MONEY-S0-platform-slice.md`). 044 · `DB-REQ-036` · `BFF-REQ-045` 는 다음 단계 FR 로 in-progress. 상태표 행 4 · REQ × 커밋 대조 |

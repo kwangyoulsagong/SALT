@@ -1,0 +1,70 @@
+# 로컬 실행(`SRV-REQ-043` FR-10) — Postgres · RabbitMQ · platform · bff · jaeger(추적 수집). 비밀은 .env(커밋 금지 — .env.example 복사).
+#   ./gradlew :app:bootJar && docker compose up -d --build
+# launchd 상시(Express :4000 · BFF :4001 · 로컬 Postgres :5432)와 겹치지 않게 55432 · 55672 · 4010 · 4101 · 16686.
+# 컨테이너 BFF 는 legacy 로 호스트 Express(:4000)를, platform 으로 이 Compose 의 platform 을 부른다.
+name: salt-platform
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: salt_platform
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      PING_DB_PASSWORD: ${PING_DB_PASSWORD:?}
+    ports: ["127.0.0.1:55432:5432"]
+    volumes:
+      - ./db/roles.sql:/salt/roles.sql:ro
+      - ./db/init.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d salt_platform"]
+      interval: 2s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?}
+    ports: ["127.0.0.1:55672:5672", "127.0.0.1:15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 3s
+      retries: 30
+
+  platform:
+    build: .
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      jaeger: { condition: service_started }
+    environment:
+      SALT_DB_URL: jdbc:postgresql://postgres:5432/salt_platform
+      # 추적 내보내기(`SRV-REQ-043` FR-9) — 주소가 있을 때만 켜진다. 배포의 수집처는 OPS-001
+      MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+      PING_DB_PASSWORD: ${PING_DB_PASSWORD:?}
+      JWT_SECRET: ${JWT_SECRET:?}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:?}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?}
+    ports: ["127.0.0.1:4010:4010"]
+
+  bff:
+    build: ../bff
+    depends_on:
+      platform: { condition: service_started }
+    environment:
+      BACKEND_API_URL: http://host.docker.internal:4000/api
+      PLATFORM_API_URL: http://platform:4010/api
+      REST_PORT: "4001"
+    ports: ["127.0.0.1:4101:4001"]
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports: ["127.0.0.1:16686:16686"]
+
+volumes:
+  pgdata:

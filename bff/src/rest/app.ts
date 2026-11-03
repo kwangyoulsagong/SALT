@@ -5,6 +5,7 @@ import { errorMiddleware } from "./middleware/error.middleware";
 import { DORMANT_PATHS, goneMiddleware } from "./middleware/gone.middleware";
 import { logger } from "../config/logger";
 import { loggableUrl } from "../utils/error.util";
+import { runInTrace } from "../services/server-routing/trace";
 
 // Routes
 import healthRoutes from "./routes/health.routes";
@@ -29,6 +30,9 @@ const app: Application = express();
 // Security
 app.use(helmet());
 app.use(cors());
+
+// 추적 ID — 요청마다 하나(들어온 traceparent 가 있으면 잇는다). 서버 호출에 그대로 실린다(`BFF-REQ-045` FR-7)
+app.use((req: Request, _res: Response, next: NextFunction) => runInTrace(req.header("traceparent"), next));
 
 // Body parser
 app.use(express.json());

@@ -12,7 +12,7 @@
 
 ## 2. DDL 은 한 곳에서
 
-> **주인 이전 예정(`ADR-007` §1-4 · `FC-REQ-025`).** 서버 S5(Flyway 전환)에 `forecast` DDL 은 `salt-forecast/migrations/`(plain SQL + `forecast.schema_version`)로, `public` 직접 읽기 4곳은 export 뷰(`market.v_*_export` · `coach.v_judgment_ledger_export`)로 옮긴다. **그 전까지는 아래 그대로** — 한 시점에 DDL 위치는 하나다.
+> **주인 이전 예정(`ADR-007` §1-4 · `FC-REQ-025`).** 서버 S5(Flyway 전환)에 `forecast` DDL 은 `salt-forecast/migrations/`(plain SQL + `forecast.schema_version`)로, `public` 직접 읽기 ~~4곳~~ **6개 표 7곳 — 정정 2026-11-03**(보유 ∪ 관심 종목 코드 읽기가 빠져 있었다, `DB-REQ-036` 부록 B9)은 export 뷰(`market.v_*_export` · `coach.v_judgment_ledger_export`)로 옮긴다. **그 전까지는 아래 그대로** — 한 시점에 DDL 위치는 하나다.
 
 - **`forecast` 스키마 DDL 도 `salt-server/prisma/migrations` 로 만든다** — `prisma migrate dev --create-only` 로 빈
   마이그레이션을 만들고 SQL 을 손으로 쓴다. Prisma 모델은 만들지 않는다(`multiSchema` 는 기존 모델 전부에

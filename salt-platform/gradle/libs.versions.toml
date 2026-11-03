@@ -1,0 +1,34 @@
+# 버전은 여기 한 곳(`kotlin-platform.md` §1). Spring Boot BOM 이 관리하는 것(jOOQ · Flyway · Testcontainers · Micrometer ·
+# Jackson · Postgres 드라이버 · Spring AMQP)은 버전을 적지 않는다 — Boot 와 어긋난 조합을 만들지 않으려고.
+# 확정 조합(S0, 2026-11-03 Maven Central): Boot 4.1.2 · Kotlin 2.3.21(Boot 4.1.2 BOM 의 kotlin.version) · Modulith 2.1.2 · JDK 21 ·
+# springdoc 3.2.0(부모 Boot 4.1.2) · json-schema-validator 3.0.6(Jackson 3.1.4 ≤ Boot 3.1.7 — 3.0.7+ 는 Jackson 3.2 를 끌어와 Boot 버전을 덮는다)
+[versions]
+kotlin = "2.3.21"
+spring-boot = "4.1.2"
+spring-modulith = "2.1.2"
+archunit = "1.5.1"
+springdoc = "3.2.0"
+shedlock = "7.10.1"
+resilience4j = "2.4.0"
+kotest = "6.2.6"
+json-schema-validator = "3.0.6"
+jooq = "3.21.9"
+
+[libraries]
+spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-bom", version.ref = "spring-modulith" }
+archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
+springdoc-webmvc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+shedlock-spring = { module = "net.javacrumbs.shedlock:shedlock-spring", version.ref = "shedlock" }
+shedlock-jdbc = { module = "net.javacrumbs.shedlock:shedlock-provider-jdbc-template", version.ref = "shedlock" }
+resilience4j-boot = { module = "io.github.resilience4j:resilience4j-spring-boot4", version.ref = "resilience4j" }
+kotest-runner = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
+kotest-assertions = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
+json-schema-validator = { module = "com.networknt:json-schema-validator", version.ref = "json-schema-validator" }
+jooq-meta-extensions = { module = "org.jooq:jooq-meta-extensions", version.ref = "jooq" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+jooq-codegen = { id = "org.jooq.jooq-codegen-gradle", version.ref = "jooq" }

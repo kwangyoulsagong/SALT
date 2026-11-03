@@ -40,3 +40,4 @@ source: requirements/decisions/ADR-006-server-msa-kotlin.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-03 | `SRV-REQ-043`(S0, done)에서 넘겨받음 — **S5 첫 외부 호출(KIS · 거래소)에 Resilience4j 인스턴스를 건다.** 기본값은 이미 있다(`application.yml` 재시도 3 · 서킷 · `kis` 2건/초, 테스트 `외부 호출 기본값`). 재시도는 조회(GET)에만 |
