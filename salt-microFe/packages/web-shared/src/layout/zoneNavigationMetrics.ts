@@ -14,9 +14,9 @@ import {
 export const ZONE_NAV_MARK = "salt:zone-nav";
 
 /** 탭을 누른 순간(클릭 핸들러 안 — 렌더 중이 아니다) */
-export const recordZoneNavigationStart = (fromZone: string, toZone: string): void => {
+export const recordZoneNavigationStart = (fromApp: string, toApp: string): void => {
   try {
-    sessionStorage.setItem(ZONE_NAV_STORAGE_KEY, JSON.stringify({ fromZone, toZone, at: Date.now() }));
+    sessionStorage.setItem(ZONE_NAV_STORAGE_KEY, JSON.stringify({ fromApp, toApp, at: Date.now() }));
   } catch {
     // 저장소가 막힌 브라우저(사생활 모드 등) — 계측만 빠진다
   }
@@ -33,16 +33,16 @@ const report = (metric: ZoneNavigationMetric): void => {
  * **prerender 된 문서는 탭을 누르기 전에 마운트된다**(2026-11-03 실측 — 4/4 적중인데 계측이 전부 비었다). 그때는 아직 누른 시각이
  * 없으므로 활성화(`prerenderingchange`)까지 기다렸다 읽는다. 활성화 뒤의 `sessionStorage` 는 탭의 것이다.
  */
-export const readZoneNavigationMetric = (currentZone: string): void => {
+export const readZoneNavigationMetric = (currentApp: string): void => {
   const doc = document as Document & { prerendering?: boolean };
   if (doc.prerendering) {
-    doc.addEventListener("prerenderingchange", () => readNow(currentZone), { once: true });
+    doc.addEventListener("prerenderingchange", () => readNow(currentApp), { once: true });
     return;
   }
-  readNow(currentZone);
+  readNow(currentApp);
 };
 
-const readNow = (currentZone: string): void => {
+const readNow = (currentApp: string): void => {
   let raw: string | null = null;
   try {
     raw = sessionStorage.getItem(ZONE_NAV_STORAGE_KEY);
@@ -59,7 +59,7 @@ const readNow = (currentZone: string): void => {
   const visibleAt = activationStart > 0 ? activationStart : (firstPaint ?? performance.now());
   const metric = buildZoneNavigationMetric({
     start: parseZoneNavigationStart(raw),
-    currentZone,
+    currentApp,
     arrivedAt: performance.timeOrigin + visibleAt,
     activationStart,
     userAgent: navigator.userAgent,

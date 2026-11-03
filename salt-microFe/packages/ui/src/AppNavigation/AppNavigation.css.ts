@@ -52,6 +52,14 @@ export const column = style({
   },
 });
 
+/** 내비 없는 화면(로그인 · 온보딩) — 하단 탭이 없으니 그 자리 여백도 없다 */
+export const columnBare = style({
+  display: "flex",
+  flexDirection: "column",
+  flex: 1,
+  minWidth: 0,
+});
+
 export const rail = style({
   display: "none",
   "@media": {

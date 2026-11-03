@@ -10,11 +10,14 @@
  *   pnpm --filter "./apps/web*" build && node scripts/merge-zone-static.mjs   # 기본: apps/web/.next/static 로
  *   node scripts/merge-zone-static.mjs --check                                # 충돌만 본다(쓰지 않음)
  *   node scripts/merge-zone-static.mjs --out <dir>                            # 다른 곳으로(배포 산출물)
+ *
+ * **순서: 빌드 → 합치기 → `next start`.** 셸이 뜬 뒤에 합치면 그 사이 투자 화면 청크가 404 다.
+ * `ZONE_STATIC=per-zone` 은 빌드와 기동 **둘 다** 같은 값으로 — `next start` 도 `next.config.js` 를 다시 읽어 assetPrefix 를 정한다.
  */
 import { createHash } from "node:crypto";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -25,7 +28,12 @@ const args = process.argv.slice(2);
 const checkOnly = args.includes("--check");
 const outIndex = args.indexOf("--out");
 const shellStatic = join(root, "apps", ZONES.shell.app, ".next", "static");
-const out = outIndex >= 0 ? args[outIndex + 1] : shellStatic;
+if (outIndex >= 0 && (!args[outIndex + 1] || args[outIndex + 1].startsWith("--"))) {
+  console.error("--out 뒤에 경로가 없다");
+  process.exit(1);
+}
+// 상대 경로도 절대 경로로 — 셸 자신의 static 을 가리키면 그 zone 은 건너뛴다(같은 폴더 복사 금지)
+const out = outIndex >= 0 ? resolve(process.cwd(), args[outIndex + 1]) : shellStatic;
 
 const walk = (dir) =>
   readdirSync(dir).flatMap((name) => {
@@ -44,6 +52,11 @@ for (const id of ZONE_IDS) {
   const dir = join(root, "apps", ZONES[id].app, ".next", "static");
   if (!existsSync(dir)) {
     console.error(`빌드가 없다: ${relative(root, dir)} — 먼저 pnpm --filter "./apps/web*" build`);
+    process.exit(1);
+  }
+  // dev 산출물은 해시 없는 이름이라 합칠 수 없다(`development/` 폴더가 표지) — 운영 빌드가 아니면 멈춘다
+  if (existsSync(join(dir, "development"))) {
+    console.error(`운영 빌드가 아니다(dev 산출물): ${relative(root, dir)} — dev 서버를 내리고 pnpm --filter "./apps/web*" build`);
     process.exit(1);
   }
   sources.push({ id, dir });
@@ -66,7 +79,7 @@ if (checkOnly) process.exit(0);
 
 mkdirSync(out, { recursive: true });
 for (const { dir } of sources) {
-  if (dir === out) continue;
+  if (resolve(dir) === out) continue;
   // 같은 이름은 내용이 같다(위에서 확인) — 덮어도 결과가 같다
   cpSync(dir, out, { recursive: true, force: false, errorOnExist: false });
 }

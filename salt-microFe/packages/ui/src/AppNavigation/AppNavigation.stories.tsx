@@ -25,6 +25,7 @@ const meta = {
     label: { control: "text", description: "스크린 리더가 읽을 내비게이션 이름" },
   },
   args: {
+    label: "주요 메뉴",
     items,
     children: <Body />,
     headerEnd: <span style={{ fontSize: 14 }}>계정</span>,
@@ -45,6 +46,11 @@ export const Tablet: Story = {
 /** 지금 탭이 없는 화면(설정 등) — 모든 탭이 3단 색 */
 export const NoActiveTab: Story = {
   args: { items: items.map((item) => ({ ...item, active: false })) },
+};
+
+/** 내비 없는 화면(로그인 · 온보딩) — 틀만 */
+export const Bare: Story = {
+  args: { bare: true },
 };
 
 /** 긴 이름 — 레일 56 폭에서 말줄임 */

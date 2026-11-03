@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import {
   bottom,
   column,
+  columnBare,
   content,
   frame,
   header,
@@ -50,8 +51,13 @@ export interface AppNavigationProps {
   brand?: ReactNode;
   /** 머리 오른쪽(계정 메뉴) */
   headerEnd?: ReactNode;
-  /** 내비게이션 이름(화면 리더) */
-  label?: string;
+  /** 내비게이션 이름(화면 리더) — 문구는 부르는 쪽 몫(`i18n-policy.md`) */
+  label: string;
+  /**
+   * 내비 없이 틀만 — 로그인 · 온보딩처럼 탭이 없는 화면. 틀(div 층)은 그대로 두고 조각만 비워,
+   * 내비 있는 화면과 오갈 때 본문 트리가 다시 만들어지지 않게 한다(2026-11-03 리뷰)
+   */
+  bare?: boolean;
   children: ReactNode;
 }
 
@@ -105,28 +111,36 @@ export const AppNavigation = ({
   renderLink = defaultRenderLink,
   brand,
   headerEnd,
-  label = "주요 메뉴",
+  label,
+  bare = false,
   children,
 }: AppNavigationProps) => (
+  // 자리(null 포함)는 bare 여부와 상관없이 같다 — 본문(`content`)이 늘 같은 위치라 다시 마운트되지 않는다
   <div className={frame}>
-    <nav aria-label={label} className={rail} data-app-navigation="rail">
-      {items.map((item) => (
-        <NavItem key={item.id} item={item} placement="rail" renderLink={renderLink} />
-      ))}
-    </nav>
-    <div className={column} data-app-navigation-column="">
-      <header className={header} data-app-navigation="header">
-        {brand}
-        <span className={headerSpacer} />
-        {headerEnd}
-      </header>
+    {bare ? null : (
+      <nav aria-label={label} className={rail} data-app-navigation="rail">
+        {items.map((item) => (
+          <NavItem key={item.id} item={item} placement="rail" renderLink={renderLink} />
+        ))}
+      </nav>
+    )}
+    <div className={bare ? columnBare : column} data-app-navigation-column="">
+      {bare ? null : (
+        <header className={header} data-app-navigation="header">
+          {brand}
+          <span className={headerSpacer} />
+          {headerEnd}
+        </header>
+      )}
       <div className={content}>{children}</div>
     </div>
-    <nav aria-label={label} className={bottom} data-app-navigation="bottom">
-      {items.map((item) => (
-        <NavItem key={item.id} item={item} placement="bottom" renderLink={renderLink} />
-      ))}
-    </nav>
+    {bare ? null : (
+      <nav aria-label={label} className={bottom} data-app-navigation="bottom">
+        {items.map((item) => (
+          <NavItem key={item.id} item={item} placement="bottom" renderLink={renderLink} />
+        ))}
+      </nav>
+    )}
   </div>
 );
 

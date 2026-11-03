@@ -53,7 +53,7 @@ describe("zone 간 이동 계측 (FE-REQ-054 FR-6)", () => {
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
   const safariUa =
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15";
-  const start = { fromZone: "shell", toZone: "invest", at: 1_000 };
+  const start = { fromApp: "web", toApp: "web-investment", at: 1_000 };
 
   it("브라우저 계열", () => {
     expect(browserFamily(chromeUa)).toBe("chromium");
@@ -65,15 +65,15 @@ describe("zone 간 이동 계측 (FE-REQ-054 FR-6)", () => {
   it("표지 읽기 — 깨진 값은 버린다", () => {
     expect(parseZoneNavigationStart(JSON.stringify(start))).toEqual(start);
     expect(parseZoneNavigationStart("{")).toBeNull();
-    expect(parseZoneNavigationStart(JSON.stringify({ fromZone: "shell" }))).toBeNull();
+    expect(parseZoneNavigationStart(JSON.stringify({ fromApp: "web" }))).toBeNull();
     expect(parseZoneNavigationStart(null)).toBeNull();
   });
 
   it("prerender 적중 = activationStart > 0", () => {
-    const base = { start, currentZone: "invest", arrivedAt: 1_180, userAgent: chromeUa };
+    const base = { start, currentApp: "web-investment", arrivedAt: 1_180, userAgent: chromeUa };
     expect(buildZoneNavigationMetric({ ...base, activationStart: 42 })).toEqual({
-      fromZone: "shell",
-      toZone: "invest",
+      fromApp: "web",
+      toApp: "web-investment",
       durationMs: 180,
       prerendered: true,
       browser: "chromium",
@@ -81,11 +81,11 @@ describe("zone 간 이동 계측 (FE-REQ-054 FR-6)", () => {
     expect(buildZoneNavigationMetric({ ...base, activationStart: 0 })?.prerendered).toBe(false);
   });
 
-  it("다른 zone 에 도착했거나 · 오래됐거나 · 시계가 거꾸로면 세지 않는다", () => {
+  it("다른 앱에 도착했거나 · 오래됐거나 · 시계가 거꾸로면 세지 않는다", () => {
     const base = { start, activationStart: 0, userAgent: safariUa };
-    expect(buildZoneNavigationMetric({ ...base, currentZone: "shell", arrivedAt: 1_100 })).toBeNull();
-    expect(buildZoneNavigationMetric({ ...base, currentZone: "invest", arrivedAt: 40_000 })).toBeNull();
-    expect(buildZoneNavigationMetric({ ...base, currentZone: "invest", arrivedAt: 900 })).toBeNull();
-    expect(buildZoneNavigationMetric({ ...base, start: null, currentZone: "invest", arrivedAt: 1_100 })).toBeNull();
+    expect(buildZoneNavigationMetric({ ...base, currentApp: "web", arrivedAt: 1_100 })).toBeNull();
+    expect(buildZoneNavigationMetric({ ...base, currentApp: "web-investment", arrivedAt: 40_000 })).toBeNull();
+    expect(buildZoneNavigationMetric({ ...base, currentApp: "web-investment", arrivedAt: 900 })).toBeNull();
+    expect(buildZoneNavigationMetric({ ...base, start: null, currentApp: "web-investment", arrivedAt: 1_100 })).toBeNull();
   });
 });
