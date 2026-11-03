@@ -35,6 +35,12 @@ describe("AppSavingsService", () => {
     ]);
   });
 
+  it("비상시 — 대출 칸이 빈 응답(loan null)도 가공 없이 그대로 돌려준다", async () => {
+    const body = { amount: 1, withdraw: { delayMonths: 1 }, loan: null, loanReason: "amount_too_small", assumptions: [] };
+    mock.method(backendApi, "proxyAuthRequest", async () => ({ data: { success: true, data: body } }) as never);
+    assert.deepEqual(await appSavingsService.emergency("t", "g", { amount: 1, loanRate: 0, loanMonths: 120 }), body);
+  });
+
   it("S1b — 저울 · 확정 · 비상시 · 단위: 경로 · 메서드 · 본문 그대로, 경로의 id 는 인코딩", async () => {
     const seen: Array<[string, string, unknown]> = [];
     mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string, _t: string, body: unknown) => {
