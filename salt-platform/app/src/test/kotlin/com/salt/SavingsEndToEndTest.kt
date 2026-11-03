@@ -387,6 +387,9 @@ class SavingsEndToEndTest {
         }
 
         override fun executeStart(ctx: ExecuteContext) {
+            // 아웃박스 릴레이 · ShedLock 이 같은 DSL 로 주기 조회한다 — 그 문장은 화면 쿼리가 아니다(세면 타이밍에 따라 3 → 6, 2026-11-03 실측)
+            val sql = ctx.sql()?.lowercase().orEmpty()
+            if ("outbox" in sql || "shedlock" in sql) return
             count.incrementAndGet()
         }
     }

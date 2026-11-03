@@ -509,8 +509,14 @@ class SavingsController(
         )
     }
 
+    /** 놓친 달이 degraded 면 응답의 degraded 플래그에도 — 구간만 보던 플래그가 일부 실패를 감추지 않게(리뷰 8차) */
+    private fun detailGoalView(d: GoalDetail): GoalView {
+        val g = goalView(d.summary)
+        return if (d.missedMonths.reason == ProjectionReason.DEGRADED) g.copy(degraded = true, degradedReasons = g.degradedReasons + "missed_months") else g
+    }
+
     private fun detailView(d: GoalDetail) = GoalDetailView(
-        goal = goalView(d.summary),
+        goal = detailGoalView(d),
         plan = calculationView(d.plan),
         deposits = d.recentDeposits.map {
             DepositView(it.id.toString(), it.amount.toKrwInteger(), it.depositedOn.toString(), it.note, it.splitGroupId?.toString(), it.source.key)

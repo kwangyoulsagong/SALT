@@ -154,6 +154,8 @@ open class GoalReader(
                 endMonth = goal.completedAt?.let { YearMonth.from(it.atZone(KST)) },
             )
         } catch (e: RuntimeException) {
+            // 삼키지 않는다 — 결함이 영구 degraded 로 숨지 않게 남긴다(목표 id · 예외만, 금액 0 — `kotlin-platform.md` §6, 리뷰 8차)
+            log.log(System.Logger.Level.ERROR, "missed months failed goal=${goal.id}", e)
             MissedMonths.degraded()
         }
         return GoalDetail(summary, deposits.recent(goal.id, RECENT_LIMIT), plan, missed)
@@ -195,6 +197,8 @@ open class GoalReader(
 
     companion object {
         const val RECENT_LIMIT = 20
+        /** JDK 내장 로거 — application 모듈에 로깅 라이브러리를 더하지 않는다(`kotlin-platform.md` §1 표 밖). Spring Boot 가 JUL 을 같은 로그로 잇는다 */
+        private val log: System.Logger = System.getLogger(GoalReader::class.java.name)
     }
 }
 
