@@ -44,13 +44,13 @@ export const SplitDepositForm = ({ goals }: SplitDepositFormProps) => {
 
   return (
     <form className={s.form} onSubmit={onSubmit} aria-label={M.split.title}>
-      <TextField label={M.split.total} value={total} onChange={(v) => guard.take(v, setTotal)} inputMode="numeric" />
+      <TextField label={M.split.total} value={total} onChange={(v) => guard.take(v, setTotal, "won", "total")} inputMode="numeric" />
       {goals.map((g) => (
         <TextField
           key={g.id}
           label={M.split.part(g.title)}
           value={parts[g.id] ?? ""}
-          onChange={(v) => guard.take(v, (value) => setParts((prev) => ({ ...prev, [g.id]: value })))}
+          onChange={(v) => guard.take(v, (value) => setParts((prev) => ({ ...prev, [g.id]: value })), "won", g.id)}
           inputMode="numeric"
         />
       ))}

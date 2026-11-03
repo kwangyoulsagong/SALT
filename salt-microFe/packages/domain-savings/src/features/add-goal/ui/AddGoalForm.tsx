@@ -110,7 +110,7 @@ export const AddGoalForm = () => {
       <TextField
         label={M.amount}
         value={amount}
-        onChange={(v) => guard.take(v, setAmount)}
+        onChange={(v) => guard.take(v, setAmount, "won", "amount")}
         placeholder={M.amountPlaceholder}
         inputMode="numeric"
       />
@@ -127,11 +127,11 @@ export const AddGoalForm = () => {
       {mode === "deadline" ? (
         <TextField label={M.deadline} type="date" value={deadline} onChange={setDeadline} />
       ) : (
-        <TextField label={M.monthly} value={monthly} onChange={(v) => guard.take(v, setMonthly)} inputMode="numeric" />
+        <TextField label={M.monthly} value={monthly} onChange={(v) => guard.take(v, setMonthly, "won", "monthly")} inputMode="numeric" />
       )}
 
       <Toggle checked={includeInterest} onChange={setIncludeInterest} label={M.interest} />
-      {includeInterest ? <TextField label={M.rate} value={rate} onChange={(v) => guard.take(v, setRate, "decimal")} inputMode="decimal" /> : null}
+      {includeInterest ? <TextField label={M.rate} value={rate} onChange={(v) => guard.take(v, setRate, "decimal", "rate")} inputMode="decimal" /> : null}
 
       {guard.message ? (
         <span className={s.hint} role="status">

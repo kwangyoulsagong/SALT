@@ -64,7 +64,7 @@ export const BalanceScale = ({ goals }: { goals: SavingsGoal[] }) => {
               <TextField
                 label={M.monthly(g.title)}
                 value={drafts[g.id] ?? ""}
-                onChange={(v) => guard.take(v, (value) => setDrafts((d) => ({ ...d, [g.id]: value })))}
+                onChange={(v) => guard.take(v, (value) => setDrafts((d) => ({ ...d, [g.id]: value })), "won", g.id)}
                 inputMode="numeric"
               />
               <div className={s.result} aria-live="polite">

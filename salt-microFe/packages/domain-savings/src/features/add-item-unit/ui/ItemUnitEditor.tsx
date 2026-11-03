@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
@@ -24,6 +24,11 @@ export const ItemUnitEditor = ({ goalId, units, limit }: { goalId: string; units
   const unitPrice = parseAmountInput(price);
   // 상한은 서버 값(`unitLimit`) — 넘치면 서버가 409 로도 막는다
   const full = units.length >= limit;
+  // 상한에 닿으면 칸이 사라진다 — 남은 거절 안내도 지운다(지우고 다시 열릴 때 안 쓴 안내가 뜨지 않게)
+  useEffect(() => {
+    if (full) guard.clear();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [full]);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();

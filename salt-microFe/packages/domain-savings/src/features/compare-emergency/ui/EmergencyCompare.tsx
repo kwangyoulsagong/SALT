@@ -24,7 +24,7 @@ const parseRate = (text: string): number | null => (text.trim() === "0" ? 0 : pa
  */
 export const EmergencyCompare = ({ goalId }: { goalId: string }) => {
   const [amount, setAmount] = useState("");
-  // 금액은 원 단위(점 없음) · 금리는 소수 하나 — 받을 수 없는 글자는 값을 바꾸지 않고 안내(허용 목록 `readAmountInput`, 리뷰 8차)
+  // 금액은 원 단위(점 없음) · 금리는 소수 하나 — 받을 수 없는 글자는 값을 바꾸지 않고 안내(허용 목록 `@repo/core/input` `readNumberText`)
   const amountGuard = useAmountInputGuard();
   const rateGuard = useAmountInputGuard();
   const monthsGuard = useAmountInputGuard();
