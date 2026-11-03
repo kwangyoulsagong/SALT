@@ -84,7 +84,22 @@ data class GoalDetail(
     val plan: Calculation,
     /** 놓친 달 회고(FR-11) */
     val missedMonths: MissedMonths,
-)
+) {
+    /**
+     * 이 상세 어디든 계산이 불완전하면 그 칸 이름 — 구간(`projection`) · 놓친 달(`missed_months`). 응답 최상위 `degraded` 의 근거(리뷰 9 · 10차).
+     * goal 칸(`GoalSummary.degraded`)은 목록 · 쓰기와 같은 모양으로 두고, 상세에만 있는 칸은 여기서 더한다
+     */
+    val degradedReasons: List<String>
+        get() = listOfNotNull(
+            "projection".takeIf { summary.degraded },
+            "missed_months".takeIf { missedMonths.reason == com.salt.savings.domain.ProjectionReason.DEGRADED },
+        )
+}
+
+/** 놓친 달 계산 자리 — 기본은 [MissedMonths.of]. 테스트가 실패를 주입하는 자리(구간 `ProjectionEngine.safely` 의 compute 와 같은 구실) */
+fun interface MissedMonthsCalculator {
+    fun calculate(goal: Goal, saved: Money, history: List<MonthlyDeposit>, startMonth: YearMonth, today: LocalDate, endMonth: YearMonth?): MissedMonths
+}
 
 /** 템플릿 기준선 — 원문 대조 전이라 금액을 내리지 않는다(슬라이스 판단 3). 열린 질문이 닫히면 값 + 출처 + 기준 연도 */
 data class TemplateInfo(val template: GoalTemplate, val baseline: Baseline?, val baselineReason: String?) {
@@ -123,6 +138,7 @@ open class GoalReader(
     private val deposits: Deposits,
     private val units: ItemUnits,
     private val clock: Clock,
+    private val missedMonthsOf: MissedMonthsCalculator = MissedMonthsCalculator(MissedMonths::of),
 ) {
     /** @param withUnits 실물 단위까지 — 홈 카드는 쓰지 않아 쿼리 하나를 아낀다(코드 리뷰 2026-11-03) */
     fun summaries(userId: String, withUnits: Boolean = true): List<GoalSummary> {
@@ -147,11 +163,11 @@ open class GoalReader(
         }
         // 놓친 달 계산이 실패해도 상세 전체를 잃지 않는다 — 그 칸만 degraded(구간 `ProjectionEngine.safely` 와 같은 원칙, 리뷰 7차)
         val missed = try {
-            MissedMonths.of(
+            missedMonthsOf.calculate(
                 goal, summary.saved, history,
-                startMonth = YearMonth.from(goal.createdAt.atZone(KST)),
-                today = today,
-                endMonth = goal.completedAt?.let { YearMonth.from(it.atZone(KST)) },
+                YearMonth.from(goal.createdAt.atZone(KST)),
+                today,
+                goal.completedAt?.let { YearMonth.from(it.atZone(KST)) },
             )
         } catch (e: RuntimeException) {
             // 삼키지 않는다 — 결함이 영구 degraded 로 숨지 않게 남긴다(목표 id · 예외만, 금액 0 — `kotlin-platform.md` §6, 리뷰 8차)

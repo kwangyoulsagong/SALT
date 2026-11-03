@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicLong
  * 계산 경계는 도메인 단위 테스트(`SavingsMathSpec`)가, 여기는 경로 · 저장 · 이벤트 · 권한 · 쿼리 수를 본다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@org.springframework.context.annotation.Import(SavingsEndToEndTest.CountingFilter::class)
 class SavingsEndToEndTest {
     @LocalServerPort
     private var port: Int = 0
@@ -198,7 +199,7 @@ class SavingsEndToEndTest {
         }
 
         val before = statements()
-        call("GET", "/api/savings/goals", user, null).statusCode() shouldBe 200
+        call("GET", "/api/savings/goals", user, null, countQueries = true).statusCode() shouldBe 200
         (statements() - before) shouldBe 3L
     }
 
@@ -388,11 +389,13 @@ class SavingsEndToEndTest {
             installed = true
         }
 
+        /** 세는 요청을 처리하는 스레드에서만 켜진다(테스트 필터 [CountingFilter]) */
+        val active: ThreadLocal<Boolean> = ThreadLocal.withInitial { false }
+
         override fun executeStart(ctx: ExecuteContext) {
-            // 요청 스레드(Tomcat)만 센다 — 아웃박스 릴레이 · ShedLock 이 같은 DSL 로 다른 스레드에서 주기 조회한다(세면 타이밍에 따라 3 → 6).
-            // 문장 내용으로 거르면 요청 경로의 아웃박스 INSERT 까지 빠져 N+1 을 못 잡는다(리뷰 9차)
-            if (!Thread.currentThread().name.startsWith("tomcat-handler")) return
-            count.incrementAndGet()
+            // 헤더를 붙인 그 요청의 문장만 — 아웃박스 릴레이 · ShedLock 은 다른 스레드라 켜지지 않는다. 문장 내용(리뷰 9차) · 스레드 이름(리뷰 10차)에 기대지 않는다:
+            // 요청 경로의 아웃박스 INSERT 는 세지고(N+1 을 잡는다), 가상 스레드 설정이 바뀌어도 그대로다
+            if (active.get()) count.incrementAndGet()
         }
     }
 
@@ -404,10 +407,11 @@ class SavingsEndToEndTest {
         return jsonMapper.readTree(res.body()).path("data")
     }
 
-    private fun call(method: String, path: String, user: String, body: String?): HttpResponse<String> {
+    private fun call(method: String, path: String, user: String, body: String?, countQueries: Boolean = false): HttpResponse<String> {
         val request = HttpRequest.newBuilder(URI.create("http://localhost:$port$path"))
             .method(method, body?.let { HttpRequest.BodyPublishers.ofString(it) } ?: HttpRequest.BodyPublishers.noBody())
             .header("Authorization", "Bearer ${token(user)}")
+            .apply { if (countQueries) header(CountingFilter.HEADER, "1") }
             .apply { if (body != null) header("Content-Type", "application/json") }
             .build()
         return http.send(request, HttpResponse.BodyHandlers.ofString())
@@ -426,4 +430,24 @@ class SavingsEndToEndTest {
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) = PlatformContainers.register(registry)
     }
+
+    /** 테스트 전용 — [CountingFilter.HEADER] 가 붙은 요청을 처리하는 동안만 [QueryCounter.active] 를 켠다 */
+    @org.springframework.boot.test.context.TestConfiguration
+    class CountingFilter {
+        @org.springframework.context.annotation.Bean
+        fun queryCountingFilter(): jakarta.servlet.Filter = jakarta.servlet.Filter { request, response, chain ->
+            val counted = (request as jakarta.servlet.http.HttpServletRequest).getHeader(HEADER) != null
+            if (counted) QueryCounter.active.set(true)
+            try {
+                chain.doFilter(request, response)
+            } finally {
+                if (counted) QueryCounter.active.remove()
+            }
+        }
+
+        companion object {
+            const val HEADER = "X-Test-Count-Queries"
+        }
+    }
+
 }

@@ -513,13 +513,11 @@ class SavingsController(
     }
 
     private fun detailView(d: GoalDetail): GoalDetailView {
-        val goal = goalView(d.summary)
-        // 상세에만 있는 칸(놓친 달)의 실패는 응답 최상위에 — goal 칸은 목록 · 상세 · 쓰기에서 같은 모양으로 둔다(리뷰 9차: goal 에 섞으면 목록과 갈렸다)
-        val missedDegraded = d.missedMonths.reason == ProjectionReason.DEGRADED
+        // 상세에만 있는 칸(놓친 달)의 실패는 응답 최상위에 — goal 칸은 목록 · 상세 · 쓰기에서 같은 모양(리뷰 9차). 규칙은 `GoalDetail.degradedReasons` 한 곳
         return GoalDetailView(
-            goal = goal,
-            degraded = goal.degraded || missedDegraded,
-            degradedReasons = goal.degradedReasons + if (missedDegraded) listOf("missed_months") else emptyList(),
+            goal = goalView(d.summary),
+            degraded = d.degradedReasons.isNotEmpty(),
+            degradedReasons = d.degradedReasons,
             plan = calculationView(d.plan),
             deposits = d.recentDeposits.map {
                 DepositView(it.id.toString(), it.amount.toKrwInteger(), it.depositedOn.toString(), it.note, it.splitGroupId?.toString(), it.source.key)
