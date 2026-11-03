@@ -215,6 +215,8 @@ class SavingsEndToEndTest {
         fresh.path("goal").path("postcard").isNull shouldBe true
         fresh.path("goal").path("unitLine").isNull shouldBe true
         fresh.path("missedMonths").path("skippedMonths").asInt() shouldBe 0
+        fresh.path("degraded").asBoolean() shouldBe false
+        fresh.path("degradedReasons").size() shouldBe 0
 
         call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":350000}""").statusCode() shouldBe 201
         val unit = call("POST", "/api/savings/goals/$id/units", user, """{"name":"제주 왕복","unitPrice":120000}""")
@@ -387,9 +389,9 @@ class SavingsEndToEndTest {
         }
 
         override fun executeStart(ctx: ExecuteContext) {
-            // 아웃박스 릴레이 · ShedLock 이 같은 DSL 로 주기 조회한다 — 그 문장은 화면 쿼리가 아니다(세면 타이밍에 따라 3 → 6, 2026-11-03 실측)
-            val sql = ctx.sql()?.lowercase().orEmpty()
-            if ("outbox" in sql || "shedlock" in sql) return
+            // 요청 스레드(Tomcat)만 센다 — 아웃박스 릴레이 · ShedLock 이 같은 DSL 로 다른 스레드에서 주기 조회한다(세면 타이밍에 따라 3 → 6).
+            // 문장 내용으로 거르면 요청 경로의 아웃박스 INSERT 까지 빠져 N+1 을 못 잡는다(리뷰 9차)
+            if (!Thread.currentThread().name.startsWith("tomcat-handler")) return
             count.incrementAndGet()
         }
     }

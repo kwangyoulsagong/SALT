@@ -208,6 +208,9 @@ class SavingsController(
 
     data class GoalDetailView(
         val goal: GoalView,
+        /** 이 응답 어디든 계산이 불완전하면 true — goal.degraded(구간) + 상세 칸(놓친 달 `missed_months`) */
+        val degraded: Boolean,
+        val degradedReasons: List<String>,
         val plan: CalculationView,
         val deposits: List<DepositView>,
         val missedMonths: MissedMonthsView,
@@ -509,20 +512,21 @@ class SavingsController(
         )
     }
 
-    /** 놓친 달이 degraded 면 응답의 degraded 플래그에도 — 구간만 보던 플래그가 일부 실패를 감추지 않게(리뷰 8차) */
-    private fun detailGoalView(d: GoalDetail): GoalView {
-        val g = goalView(d.summary)
-        return if (d.missedMonths.reason == ProjectionReason.DEGRADED) g.copy(degraded = true, degradedReasons = g.degradedReasons + "missed_months") else g
+    private fun detailView(d: GoalDetail): GoalDetailView {
+        val goal = goalView(d.summary)
+        // 상세에만 있는 칸(놓친 달)의 실패는 응답 최상위에 — goal 칸은 목록 · 상세 · 쓰기에서 같은 모양으로 둔다(리뷰 9차: goal 에 섞으면 목록과 갈렸다)
+        val missedDegraded = d.missedMonths.reason == ProjectionReason.DEGRADED
+        return GoalDetailView(
+            goal = goal,
+            degraded = goal.degraded || missedDegraded,
+            degradedReasons = goal.degradedReasons + if (missedDegraded) listOf("missed_months") else emptyList(),
+            plan = calculationView(d.plan),
+            deposits = d.recentDeposits.map {
+                DepositView(it.id.toString(), it.amount.toKrwInteger(), it.depositedOn.toString(), it.note, it.splitGroupId?.toString(), it.source.key)
+            },
+            missedMonths = d.missedMonths.let { MissedMonthsView(it.observedMonths, it.skippedMonths, it.shiftMonths, it.reason) },
+            units = d.summary.units.map { unitView(it, d.summary.saved) },
+            unitLimit = ItemUnit.PER_GOAL_MAX,
+        )
     }
-
-    private fun detailView(d: GoalDetail) = GoalDetailView(
-        goal = detailGoalView(d),
-        plan = calculationView(d.plan),
-        deposits = d.recentDeposits.map {
-            DepositView(it.id.toString(), it.amount.toKrwInteger(), it.depositedOn.toString(), it.note, it.splitGroupId?.toString(), it.source.key)
-        },
-        missedMonths = d.missedMonths.let { MissedMonthsView(it.observedMonths, it.skippedMonths, it.shiftMonths, it.reason) },
-        units = d.summary.units.map { unitView(it, d.summary.saved) },
-        unitLimit = ItemUnit.PER_GOAL_MAX,
-    )
 }

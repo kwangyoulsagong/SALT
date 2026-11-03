@@ -169,6 +169,9 @@ export interface SavingsDepositVM {
 
 export interface SavingsGoalDetailVM {
   goal: SavingsGoalVM;
+  /** 이 응답 어디든 계산이 불완전하면 true — goal.degraded(구간) + 상세 칸(놓친 달 `missed_months`) */
+  degraded: boolean;
+  degradedReasons: string[];
   plan: SavingsCalculationVM;
   deposits: SavingsDepositVM[];
   /** 놓친 달 회고(S1b) */
