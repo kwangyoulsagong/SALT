@@ -53,7 +53,9 @@ data class MissedMonths(val observedMonths: Int, val skippedMonths: Int, val shi
  *
  * ① 꺼내기: 남은 돈이 [amount] 만큼 늘어 "계획대로면" 도달 월이 몇 달 밀리는지. 모은 돈보다 많이 꺼낼 수 없다
  * ② 빌리기: 원리금 균등 상환 — 월 상환액 = P·r / (1 − (1+r)^−n), r = 연 금리/12 를 **원 단위 올림**(덜 내면 못 갚는다 — 월 적립과 같은 계획 금액, 최종값).
- *   이자 합 = 올린 월 상환 × n − P — 화면의 두 숫자가 서로 맞게(코드 리뷰 2026-11-03: 올리기 전 값으로 이자를 내면 7원 어긋났다). 상환은 목표 밖에서 낸다고 가정(가정 키)
+ *   이자 합 = 정확한 원리금 균등 이자(원 단위), 마지막 달 = 원금 + 이자 − 올린 상환 × (n−1). 실제 상환처럼 끝 달이 차액을 맞춘다.
+ *   ~~이자 합 = 올린 월 상환 × n − P~~ **정정 2026-11-03(셸 경유 실측)**: 그러면 금리 0% 에도 "이자 8원"이 나왔다 — 올림 차액은 이자가 아니다.
+ *   상환은 목표 밖에서 낸다고 가정(가정 키)
  */
 data class EmergencyComparison(
     val amount: Money,
@@ -62,7 +64,12 @@ data class EmergencyComparison(
 ) {
     data class Withdraw(val planMonthBefore: YearMonth?, val planMonthAfter: YearMonth?, val delayMonths: Int?, val reason: String?)
 
-    data class Loan(val months: Int, val annualRatePercent: BigDecimal, val monthlyPayment: Money, val totalInterest: Money)
+    /**
+     * @param monthlyPayment 매달 내는 돈 — 원 단위 올림(덜 내면 못 갚는다)
+     * @param lastPayment 마지막 달 — 올림으로 더 낸 몫을 빼고 남은 돈. 매달 × (n−1) + 마지막 = 원금 + 이자 합(화면 숫자가 서로 맞는다)
+     * @param totalInterest 이자 합 — 원리금 균등의 정확한 값을 원 단위로 한 번(금리 0 이면 0). 올림 차액은 이자가 아니다
+     */
+    data class Loan(val months: Int, val annualRatePercent: BigDecimal, val monthlyPayment: Money, val lastPayment: Money, val totalInterest: Money)
 
     companion object {
         const val LOAN_MONTHS_MAX = 120
@@ -102,7 +109,11 @@ data class EmergencyComparison(
                 principal.toDecimal().multiply(r, MC).divide(discount, MC)
             }
             val monthly = Money.of(payment.setScale(0, java.math.RoundingMode.CEILING), principal.currency)
-            return Loan(months, annualRatePercent, monthly, monthly.scale(n) - principal)
+            val interest = Money.of((payment.multiply(n, MC) - principal.toDecimal()).setScale(0, java.math.RoundingMode.HALF_UP).max(BigDecimal.ZERO), principal.currency)
+            val last = principal + interest - monthly.scale(BigDecimal(months - 1))
+            // 아주 작은 돈을 긴 달로 나누면 올림만으로 원금을 넘는다(1원 · 120달) — 나눌 수 없다고 답한다
+            if (last.isNegative() || last.isZero()) throw InvalidGoal("EMERGENCY_AMOUNT_TOO_SMALL", "amount is too small to split into loanMonths payments")
+            return Loan(months, annualRatePercent, monthly, last, interest)
         }
     }
 }

@@ -238,7 +238,7 @@ class SavingsController(
 
     data class WithdrawView(val planMonthBefore: String?, val planMonthAfter: String?, val delayMonths: Int?, val reason: String?)
 
-    data class LoanView(val months: Int, val annualRate: String, val monthlyPayment: Long, val totalInterest: Long)
+    data class LoanView(val months: Int, val annualRate: String, val monthlyPayment: Long, val lastPayment: Long, val totalInterest: Long)
 
     data class EmergencyView(
         val amount: Long,
@@ -417,8 +417,9 @@ class SavingsController(
         loan = LoanView(
             months = c.loan.months,
             annualRate = c.loan.annualRatePercent.stripTrailingZeros().toPlainString(),
-            // 상환액은 도메인이 이미 원 단위로 올렸다 · 이자 합은 그 상환액 기준이라 두 숫자가 맞는다
+            // 셋 다 도메인이 원 단위로 정한 값 — 매달 × (n−1) + 마지막 = 원금 + 이자
             monthlyPayment = c.loan.monthlyPayment.toKrwInteger(RoundingMode.CEILING),
+            lastPayment = c.loan.lastPayment.toKrwInteger(),
             totalInterest = c.loan.totalInterest.toKrwInteger(),
         ),
         assumptions = listOf("loan_paid_outside_goal"),

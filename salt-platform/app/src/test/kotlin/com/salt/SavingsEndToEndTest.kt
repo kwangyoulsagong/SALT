@@ -291,7 +291,8 @@ class SavingsEndToEndTest {
         val c = data(call("POST", "/api/savings/goals/$id/emergency-compare", user, """{"amount":1000000,"loanRate":6,"loanMonths":12}"""))
         c.path("withdraw").path("delayMonths").asInt() shouldBe 10
         c.path("loan").path("monthlyPayment").asLong() shouldBe 86_067
-        c.path("loan").path("totalInterest").asLong() shouldBe 32_804
+        c.path("loan").path("totalInterest").asLong() shouldBe 32_797
+        c.path("loan").path("lastPayment").asLong() shouldBe 86_060
         c.path("loan").path("annualRate").asString() shouldBe "6"
         items(c.path("assumptions")).map { it.asString() } shouldBe listOf("loan_paid_outside_goal")
         data(call("GET", "/api/savings/goals/$id", user, null)).path("goal").path("saved").asLong() shouldBe 1_000_000
