@@ -61,6 +61,28 @@ export const GOAL_MESSAGES = {
     no_plan: "월 계획이 없어 계산할 수 없어요",
     degraded: "지금은 구간을 계산하지 못해 계획값만 보여 줘요. 기록은 그대로예요",
   } satisfies Record<ProjectionReason, string>,
+  scene: {
+    /** 장면 옆 글 — 그래픽은 aria-hidden 이라 진척을 글로도(FEATURE-012 접근성) */
+    progress: (step: number, steps: number) => `${steps}칸 중 ${step}칸`,
+  },
+  stamps: {
+    title: "도장판",
+    count: (n: number) => `도장 ${n}개`,
+    first: "첫 도장 — 목표를 만든 날",
+  },
+  unitLine: (name: string, count: number) => `모은 돈 = ${name} ${count}개`,
+  postcard: {
+    title: "엽서 보관함",
+    line: (days: number, deposits: number) => `${days}일 · 적립 ${deposits}번`,
+    period: (from: string, to: string) => `${from} → ${to}`,
+    empty: "목표 금액에 닿은 목표가 생기면 여기에 엽서가 남아요",
+  },
+  missed: {
+    title: "넣지 않은 달",
+    none: (observed: number) => (observed === 0 ? "아직 다 지난 달이 없어요" : `지난 ${observed}개월 동안 매달 넣었어요`),
+    skipped: (skipped: number, observed: number) => `지난 ${observed}개월 중 ${skipped}개월은 넣지 않았어요`,
+    shift: (months: number) => (months === 0 ? "계획대로면 도달 월은 그대로예요" : `그 달들에 계획만큼 넣었다면 ${months}개월 빨랐어요`),
+  },
   calculationState: {
     ok: "",
     reached: "이미 목표 금액에 닿았어요",

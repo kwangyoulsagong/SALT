@@ -16,7 +16,7 @@ export interface DepositFormProps {
   goalId: string;
 }
 
-/** 적립 한 건(`FE-REQ-056` FR-4). 저장 뒤 진척 · 이정표 · 구간은 서버 응답으로 바뀐다. 장면 한 칸 이동 모션은 S1b(FR-8) */
+/** 적립 한 건(`FE-REQ-056` FR-4). 저장 뒤 진척 · 이정표 · 구간은 서버 응답으로 바뀐다. 장면 한 칸 이동은 응답의 `scene.step` 으로 `GoalScene` 이 그린다(S1b FR-8) */
 export const DepositForm = ({ goalId }: DepositFormProps) => {
   const record = useRecordDeposit(goalId);
   const [amount, setAmount] = useState("");

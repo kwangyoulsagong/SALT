@@ -41,3 +41,28 @@ export const box = style({ display: "flex", flexDirection: "column", gap: "6px",
 export const grid = style({ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" });
 
 export const cell = style({ display: "flex", flexDirection: "column", gap: "2px" });
+
+/** 장면 + 진척 글 — 그래픽은 aria-hidden, 글이 주인공(`motion.md` §4-6) */
+export const scene = style({ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" });
+
+/** 도장판 — 칸 10개씩 줄. 도장 하나 = 작은 원 24(면 채운 도메인 색 아님 — 그래픽 토큰) */
+export const stamps = style({ display: "grid", gridTemplateColumns: "repeat(10, 24px)", gap: "6px", margin: 0, padding: 0, listStyle: "none" });
+
+export const stamp = style({
+  width: "24px",
+  height: "24px",
+  borderRadius: "999px",
+  background: vars.colors.graphic.primary,
+  boxShadow: `inset 0 0 0 3px ${vars.colors.graphic.highlight}`,
+});
+
+export const postcards = style({
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+  gap: "12px",
+  margin: 0,
+  padding: 0,
+  listStyle: "none",
+});
+
+export const postcard = style([box, { background: vars.colors.background.white, boxShadow: SURFACE.hairline }]);

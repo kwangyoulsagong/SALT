@@ -4,7 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useHasAccessToken } from "@repo/web-shared/api";
 
-import type { CalculationRequest, SavingsCalculation, SavingsGoal, SavingsGoalDetail } from "../model/types";
+import type {
+  CalculationRequest,
+  EmergencyRequest,
+  PlanChangesRequest,
+  SavingsCalculation,
+  SavingsEmergency,
+  SavingsGoal,
+  SavingsGoalDetail,
+  SavingsSimulation,
+} from "../model/types";
 import { goalApi } from "./goalApi";
 import { goalQueryKeys } from "./queryKeys";
 
@@ -58,6 +67,28 @@ export const useSavingsCalculation = (request: CalculationRequest | null) =>
   useQuery<SavingsCalculation>({
     queryKey: [...goalQueryKeys.all, "calculate", request] as const,
     queryFn: ({ signal }) => (request ? goalApi.calculate(request, signal) : Promise.reject(new Error("no request"))),
+    enabled: request !== null,
+    placeholderData: (previous) => previous,
+    staleTime: Infinity,
+    retry: false,
+  });
+
+/** 저울 계산 — 바꾼 목표가 없으면(null) 부르지 않는다. 디바운스는 부르는 쪽. 이전 결과를 보이며 다음 결과를 기다린다 */
+export const useSavingsSimulation = (request: PlanChangesRequest | null) =>
+  useQuery<SavingsSimulation>({
+    queryKey: goalQueryKeys.simulation(request),
+    queryFn: ({ signal }) => (request ? goalApi.simulate(request, signal) : Promise.reject(new Error("no request"))),
+    enabled: request !== null,
+    placeholderData: (previous) => previous,
+    staleTime: Infinity,
+    retry: false,
+  });
+
+/** 비상시 비교 — 입력이 비면(null) 부르지 않는다 */
+export const useEmergencyComparison = (goalId: string, request: EmergencyRequest | null) =>
+  useQuery<SavingsEmergency>({
+    queryKey: goalQueryKeys.emergency(goalId, request),
+    queryFn: ({ signal }) => (request ? goalApi.emergency(goalId, request, signal) : Promise.reject(new Error("no request"))),
     enabled: request !== null,
     placeholderData: (previous) => previous,
     staleTime: Infinity,

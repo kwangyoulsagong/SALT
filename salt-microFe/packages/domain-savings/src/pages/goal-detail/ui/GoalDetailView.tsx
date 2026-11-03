@@ -7,7 +7,20 @@ import { Skeleton } from "@repo/ui/skeleton";
 import { hasApiStatus } from "@repo/web-shared/api";
 import { panel, panelTitle } from "@repo/web-shared/ui/surface.css";
 
-import { formatWon, GOAL_MESSAGES, MilestoneBox, ProjectionLine, TEMPLATE_LABEL, useSavingsGoal, type SavingsGoalDetail } from "@/entities/goal";
+import {
+  formatWon,
+  GOAL_MESSAGES,
+  GoalScene,
+  MilestoneBox,
+  MissedMonthsBox,
+  ProjectionLine,
+  StampBoard,
+  TEMPLATE_LABEL,
+  useSavingsGoal,
+  type SavingsGoalDetail,
+} from "@/entities/goal";
+import { ItemUnitEditor, ITEM_UNIT_MESSAGES } from "@/features/add-item-unit";
+import { EmergencyCompare, EMERGENCY_MESSAGES } from "@/features/compare-emergency";
 import { DepositForm } from "@/features/record-deposit";
 
 import { GOAL_DETAIL_PAGE as M } from "../model";
@@ -15,7 +28,8 @@ import * as s from "./goalDetail.css";
 
 
 /**
- * 목표 상세(`FE-REQ-056` FR-4 · 5 · 7) — 진척 · 지금 기준 계획 · 이번 달 이정표 · 도달 시점 · 적립. 숫자는 전부 서버 응답.
+ * 목표 상세(`FE-REQ-056` FR-4 · 5 · 7 · 8 · 9 · 10) — 장면 · 진척 · 지금 기준 계획 · 이정표 · 도달 시점 · 놓친 달 · 실물 단위 · 비상시 비교 · 도장 · 적립.
+ * 숫자는 전부 서버 응답.
  * 프레임(모은 돈 ↔ 남은 돈)은 서버 `frame` 이 정한다(FR-9).
  */
 export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: SavingsGoalDetail | null }) => {
@@ -24,7 +38,7 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
   if (query.isError) return <EmptyState title={hasApiStatus(query.error, 404) ? M.notFound : GOAL_MESSAGES.loadFailed} tone="error" />;
   if (!query.data) return <Skeleton height={320} />;
 
-  const { goal, plan, deposits } = query.data;
+  const { goal, plan, deposits, missedMonths, units } = query.data;
   const lead =
     goal.frame === "saved"
       ? { label: GOAL_MESSAGES.saved, value: formatWon(goal.saved), sub: `${GOAL_MESSAGES.remaining} ${formatWon(goal.remaining)}` }
@@ -39,6 +53,7 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
           </h1>
           <span className={s.muted}>{lead.label}</span>
           <strong className={panelTitle}>{lead.value}</strong>
+          <GoalScene scene={goal.scene} />
           <ProgressBar value={goal.progressRatio} label={`${goal.title} ${goal.progressPercent}%`} />
           <span className={s.muted}>
             {goal.status === "completed" ? GOAL_MESSAGES.completed : `${goal.progressPercent}% · ${lead.sub}`} · {GOAL_MESSAGES.target}{" "}
@@ -66,12 +81,28 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
           )}
           <MilestoneBox milestone={goal.milestone} />
           <ProjectionLine projection={goal.projection} />
+          <MissedMonthsBox missed={missedMonths} />
         </section>
+
+        <section className={panel} aria-label={ITEM_UNIT_MESSAGES.title}>
+          <span className={s.muted}>{ITEM_UNIT_MESSAGES.title}</span>
+          <ItemUnitEditor goalId={goal.id} units={units} />
+        </section>
+
+        {goal.saved > 0 ? (
+          <section className={panel} aria-label={EMERGENCY_MESSAGES.title}>
+            <span className={s.muted}>{EMERGENCY_MESSAGES.title}</span>
+            <EmergencyCompare goalId={goal.id} />
+          </section>
+        ) : null}
       </div>
 
       <div className={s.stack}>
         <section className={panel}>
           <DepositForm goalId={goal.id} />
+        </section>
+        <section className={panel}>
+          <StampBoard count={goal.stampCount} />
         </section>
         <section className={panel} aria-label={M.deposits}>
           <span className={s.muted}>{M.deposits}</span>
