@@ -307,3 +307,6 @@
 
 - 투자 화면이 놓던 `ProfileMenu` 를 지웠다 — 머리 프로필은 zone 공용 `AppShell` 머리(`e0bce695`). 시세 보드 · 코치 패널 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+- 2026-11-03 MONEY-S1b `7d22f6a1` — 주문 전 체크 칸(금액 원 · 진입 · 목표 가격). 화면(3002 `/investments/BTC`): "1,234.5" 받음 · "1000·5" · "1000 5" 거절 + 칸 오류 · "１２．５" → 12.5 · 원 칸은 소수 거절 · 페이지 오류 0. 모노레포 · zone 5 빌드(`/investments/[symbol]` 139 kB · `/coach/settings` 135 kB)
+- 2026-11-03 `2bcea756` — 화면(3002 `/investments/BTC`): 칸 5개 거절 → 칸 오류 · 정상 → 받음 · 칩 → 100,000 · 오류 지움 · 현재가 버튼 2개 → 값 · 오류 지움 · 페이지 오류 0. zone 빌드(`/investments/[symbol]` 140 kB)

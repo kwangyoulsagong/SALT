@@ -90,3 +90,6 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | MONEY-S1b 리뷰 6차 — `e0a0961b` 금액 칸은 점이 든 입력을 받지 않는다(이전 값 유지) · `labelOr` 자기 키만 |
 | 2026-11-03 | MONEY-S1b 리뷰 7차 — `68f6ac41` 키 조회 헬퍼 `labelOr`(entities, 전 조회처 — 적립 폼 둘 포함) · `not_reachable` 중립 문구 · 전각 소수점 거절 + 안내 · 놓친 달 degraded 문구 |
 | 2026-11-03 | MONEY-S1b 리뷰 8차 — `cdeb5f7c` · `ac23eaaf` 금액 입력 허용 목록 + 안내(전 칸) · `labelOr` shared. 번들 `/goals/new` 126 → 127 kB |
+| 2026-11-03 | MONEY-S1b 리뷰 9차 — `641a11db` core 숫자 입력 규칙 + 허용표 40 · `92b0e947` 칸 종류별 안내 · 초기화 · 개월 칸 · 상세 degraded 타입 |
+| 2026-11-03 | MONEY-S1b 리뷰 10차 — `bd571eae` · `d21bd5c1` · `c786ab91` 입력 규칙 price · 칸별 안내 · 묶음 한 곳(core 테스트 64) |
+| 2026-11-03 | MONEY-S1b 리뷰 11차 — `5afe2476` · `5fd864d1` · `e8fe98fe` 숫자 칸을 `useNumberFields`(값 + 안내 한 덩어리)로 · 안내는 칸 아래 · 길이 상한. 번들 `/goals/[id]` 152 kB |

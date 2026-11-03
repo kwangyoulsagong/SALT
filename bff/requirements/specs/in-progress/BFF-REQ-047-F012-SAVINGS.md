@@ -47,7 +47,7 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-045-F012-SAVINGS.md
 ## Acceptance Criteria
 
 - [x] 모든 숫자 필드가 서버 응답 그대로(가공 0) — `app-savings.test.ts`
-- [x] 서버 구간 실패 시 `degraded` + 계획값 — **닫힘 2026-11-03(`2c998117`)**: 서버가 구간 계산을 감싸 실패하면 `degraded: true` · `degradedReasons: ["projection"]` · 계획대로면 X월만, BFF 는 지우지 않고 전달. ~~미충족 2026-11-03: 구간은 서버 안 계산(외부 호출 없음)이라 따로 실패하지 않는다. 서버 전체가 죽으면 화면 오류(4xx/5xx 중계). 채점 사본(`FC-REQ-024`)이 붙을 때 그 칸만 `degraded` 로 — S1b~~
+- [x] 서버 구간 실패 시 `degraded` + 계획값(2026-11-03 S1b: 상세는 응답 최상위 `degraded` 가 놓친 달 실패까지 — `b10c9a74`) — **닫힘 2026-11-03(`2c998117`)**: 서버가 구간 계산을 감싸 실패하면 `degraded: true` · `degradedReasons: ["projection"]` · 계획대로면 X월만, BFF 는 지우지 않고 전달. ~~미충족 2026-11-03: 구간은 서버 안 계산(외부 호출 없음)이라 따로 실패하지 않는다. 서버 전체가 죽으면 화면 오류(4xx/5xx 중계). 채점 사본(`FC-REQ-024`)이 붙을 때 그 칸만 `degraded` 로 — S1b~~
 
 ## Changelog
 
@@ -63,3 +63,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-045-F012-SAVINGS.md
 | 2026-11-03 | MONEY-S1b 리뷰 — `96378139` 대출 칸 모양 first/rest · `loan` null + `loanReason`(옛 `lastPayment` 대체 — 같은 브랜치 안이라 소비처는 웹 하나). 전달만 |
 | 2026-11-03 | MONEY-S1b 리뷰 3차 — `520b4d8f` 대출 칸 빈 응답(`loan: null`) 전달 테스트. 테스트 353 |
 | 2026-11-03 | MONEY-S1b 리뷰 6차 — `6395cf82` 이유 값 주석에 `not_reachable`. 전달만 |
+| 2026-11-03 | MONEY-S1b 리뷰 9차 — `b10c9a74` 상세 응답 최상위 `degraded` · `degradedReasons`(구간 + 놓친 달) 타입. 전달만 |

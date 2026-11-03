@@ -62,3 +62,6 @@
 - 2026-11-03 `2207c02b` — 도메인 +1 테스트(놓친 달 · 구간 not_reachable) + 다 찬 목표 꺼내기 0. `./gradlew check` 통과(도메인 Fun 13) · 재배포 · API 다 찬 목표 delayMonths 0
 - 2026-11-03 `531fdf35` · `fba0e7c9` — 종단 +1(먼 목표 · 지난 3달 적립 → 적립 201 · reason not_reachable · ProjectionIssued 발행) · **변이: 계약에서 값을 빼면 그 테스트만 실패** · `./gradlew check` 통과(종단 14) · 재배포 · 실 스택 적립 201
 - 2026-11-03 `5640ae7f` — `./gradlew check` 통과 · 종단 3회 연속 통과(카운터 정리 뒤) · 재배포
+- 2026-11-03 `b10c9a74` — 상세 최상위 degraded false(정상) 실측 · 종단 14 · 강제 재실행 2회 통과 · 재배포
+- 2026-11-03 `38823672` — application `GoalReaderSpec` 2(놓친 달 실패 주입 → 그 칸만 degraded · 이유 missed_months / 정상 → 이유 없음) · 종단 3회 연속(헤더 요청만 셈, 정확히 3)
+- 2026-11-03 `97c839f3` — `./gradlew check` 통과(종단 14 · application 2) · 재배포

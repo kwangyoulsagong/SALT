@@ -94,3 +94,6 @@
 - 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`
 
 - 2026-11-02 MONEY-F1 후속 — 화면을 지우는 변경은 그 화면이 보여 주던 설정 · 소비처를 grep(루트 회고 Action)
+
+- 2026-11-03 MONEY-S1b `7d22f6a1` — 입력 정리 함수가 글자를 지우고 이어 붙여 금액을 바꿀 수 있었다(저축 리뷰에서 발견). 이제 core 허용표가 정한다. Action 없음
+- 2026-11-03 `2bcea756` — 코드가 넣는 값도 입력과 같은 규칙을 지나야 한다(현재가 지수 표기). Action 없음
