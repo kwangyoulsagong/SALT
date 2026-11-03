@@ -18,7 +18,14 @@ export PING_DB_PASSWORD="$LOCAL_DB_PING_PASSWORD"
 export SAVINGS_DB_PASSWORD="$LOCAL_DB_SAVINGS_PASSWORD"
 export RABBITMQ_HOST=localhost RABBITMQ_PORT=55672 PORT=4010
 
-docker compose up -d rabbitmq >/dev/null 2>&1 || echo "rabbitmq 컨테이너를 못 띄웠다(Docker 꺼짐?) — 30초 뒤 launchd 가 다시 부른다" >&2
+# 이미 떠 있으면 compose 를 부르지 않는다 — launchd 아래 compose 는 데스크탑의 compose.yaml 을 읽다 개인정보 보호 창을 기다리며 멈출 수 있다(2026-11-03).
+# 컨테이너는 restart 정책 없이도 Docker 가 살아 있는 동안 남는다. 없을 때만 띄우고, 20초 넘게 걸리면 끊는다(launchd 가 30초 뒤 다시 부른다)
+if ! nc -z localhost 55672 2>/dev/null; then
+  docker compose up -d rabbitmq >/dev/null 2>&1 &
+  compose_pid=$!
+  for _ in {1..20}; do kill -0 $compose_pid 2>/dev/null || break; sleep 1; done
+  kill $compose_pid 2>/dev/null && echo "rabbitmq 를 20초 안에 못 띄웠다(Docker 꺼짐 · 권한 창?) — 다시 시도한다" >&2
+fi
 for _ in {1..30}; do nc -z localhost 55672 2>/dev/null && break; sleep 1; done
 
 # JDK 21 — Gradle 툴체인이 받은 것(~/.gradle/jdks). `java_home -v 21` 은 21 이 없으면 17 을 돌려줘 쓰지 않는다
@@ -28,4 +35,10 @@ JAVA="$(print -l ~/.gradle/jdks/*21*/*/Contents/Home/bin/java(N) | head -1)"
 source ../ops/lib-run.sh
 stop_stale "salt-platform.jar"
 wait_port_free 4010
-run_supervised salt-platform "$JAVA" -jar app/build/libs/salt-platform.jar
+# launchd 아래 java 는 데스크탑 폴더(macOS 개인정보 보호)의 jar 를 열지 못하고 open() 에서 멈춘다(2026-11-03 실측 — 허용 창을 기다림).
+# 보호 폴더 밖으로 복사해 띄운다. 읽는 쪽(zsh)은 이미 허용돼 있다. 비밀(.env)은 위에서 zsh 가 읽어 환경 변수로 넘긴다
+RUN_DIR="$HOME/Library/Application Support/SALT"
+mkdir -p "$RUN_DIR"
+cp -f app/build/libs/salt-platform.jar "$RUN_DIR/salt-platform.jar"
+cd "$RUN_DIR" || exit 1
+run_supervised salt-platform "$JAVA" -jar "$RUN_DIR/salt-platform.jar"
