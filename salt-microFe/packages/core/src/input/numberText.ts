@@ -27,6 +27,13 @@ export const groupDigits = (digits: string): string => {
   return trimmed.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
+/** 정수부 · 소수부 자릿수 상한 — 보내는 값은 JS Number 라 15자리를 넘으면 화면 값과 갈라진다(리뷰 11차). 소수 8자리 = 코인 최소 단위 */
+const MAX_INTEGER_DIGITS = 15;
+const MAX_FRACTION_DIGITS = 8;
+
+const withinDigits = (integerDigits: string, fractionDigits = ""): boolean =>
+  integerDigits.replace(/^0+(?=\d)/, "").length <= MAX_INTEGER_DIGITS && fractionDigits.length <= MAX_FRACTION_DIGITS;
+
 /** @returns 표시할 글자(금액은 쉼표 묶음) · 받을 수 없으면 null */
 export const readNumberText = (raw: string, kind: NumberTextKind): string | null => {
   let text = toAsciiDigits(raw.trim());
@@ -35,18 +42,31 @@ export const readNumberText = (raw: string, kind: NumberTextKind): string | null
     text = text.replace(/^[₩￦]\s*/, "").replace(/\s*원$/, "").replace(/，/g, ",");
     // 쉼표 위치는 보지 않는다 — 화면이 입력마다 쉼표를 다시 붙여 지우기 중에 "1,00" 같은 위치가 정상적으로 생긴다. 원화엔 소수가 없어 쉼표 소수 혼동이 없다
     if (!/^[0-9,]*$/.test(text)) return null;
-    return groupDigits(text.replace(/,/g, ""));
+    const digits = text.replace(/,/g, "");
+    return withinDigits(digits) ? groupDigits(digits) : null;
   }
   if (kind === "price") {
     text = text.replace(/．/g, ".").replace(/，/g, ",");
     const m = /^([0-9,]*)(?:\.([0-9]*))?$/.exec(text);
     if (!m) return null;
-    const integer = groupDigits((m[1] ?? "").replace(/,/g, ""));
+    const integerDigits = (m[1] ?? "").replace(/,/g, "");
+    if (!withinDigits(integerDigits, m[2] ?? "")) return null;
+    const integer = groupDigits(integerDigits);
     return text.includes(".") ? `${integer || "0"}.${m[2] ?? ""}` : integer;
   }
   if (kind === "decimal") {
     text = text.replace(/\s*[%％]$/, "").replace(/．/g, ".");
-    return /^[0-9]*(\.[0-9]*)?$/.test(text) ? text : null;
+    const m = /^([0-9]*)(?:\.([0-9]*))?$/.exec(text);
+    return m && withinDigits(m[1] ?? "", m[2] ?? "") ? text : null;
   }
-  return /^[0-9]*$/.test(text) ? text : null;
+  return /^[0-9]*$/.test(text) && withinDigits(text) ? text : null;
 };
+
+/** 소수 8자리까지(입력 상한과 같다) — 저장된 값이 그보다 길어도 칸이 비지 않게 여기서 자른다 */
+const plainFormatter = new Intl.NumberFormat("en-US", { useGrouping: false, maximumFractionDigits: 8 });
+
+/**
+ * 코드가 넣는 숫자(현재가 · 칩 · 저장된 값)를 그 칸의 입력 글자로 — 같은 규칙(`readNumberText`)을 지난다. `String(n)` 은 1.2e-7 같은
+ * 지수 표기를 내고 옛 정리 함수가 그걸 "1.27" 로 바꿨다(리뷰 11차). 규칙 밖이면 빈칸
+ */
+export const numberToInputText = (n: number, kind: NumberTextKind): string => readNumberText(plainFormatter.format(n), kind) ?? "";

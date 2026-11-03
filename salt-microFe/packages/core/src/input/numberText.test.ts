@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { groupDigits, readNumberText } from "./numberText";
+import { groupDigits, numberToInputText, readNumberText } from "./numberText";
 
 /**
  * 금액 · 비율 · 개수 입력 허용표(저축 리뷰 3~9차에서 나온 경계 전부). **조용히 지우고 이어 붙이는 경로가 0** 이어야 한다 —
@@ -17,7 +17,7 @@ describe("readNumberText — won(원 단위 금액)", () => {
     ["₩50,000", "50,000"],
     ["￦ 50,000 ", "50,000"],
     ["  7000  ", "7,000"],
-    ["9007199254740993", "9,007,199,254,740,993"], // 2^53 넘어도 끝자리 그대로
+    ["999999999999999", "999,999,999,999,999"], // 15자리(999조)까지 — 보내는 숫자(Number)가 정확한 범위
     ["007", "7"],
   ])("받는다 %j → %j", (raw, shown) => {
     expect(readNumberText(raw, "won")).toBe(shown);
@@ -35,6 +35,8 @@ describe("readNumberText — won(원 단위 금액)", () => {
     "50000a",
     "-5000",
     "5e3",
+    "1000000000000000", // 16자리 — 보이는 값과 보내는 값(Number)이 갈라진다(리뷰 11차)
+    "9007199254740993",
   ])("거절한다 %j", (raw) => {
     expect(readNumberText(raw, "won")).toBeNull();
   });
@@ -80,7 +82,7 @@ describe("readNumberText — price(소수 있는 금액 · 수량 — 코인 가
     expect(readNumberText(raw, "price")).toBe(shown);
   });
 
-  it.each(["1000·5", "1000 5", "1.2.3", "1000²", "abc", "-1", "1,000.5원"])("거절한다 %j", (raw) => {
+  it.each(["1000·5", "1000 5", "1.2.3", "1000²", "abc", "-1", "1,000.5원", "1.123456789", "1234567890123456.5"])("거절한다 %j", (raw) => {
     expect(readNumberText(raw, "price")).toBeNull();
   });
 });
@@ -108,5 +110,22 @@ describe("groupDigits — 묶음 규칙 한 곳(formatAmountInput 도 쓴다)", 
     ["12345678901234567890", "12,345,678,901,234,567,890"],
   ])("%j → %j", (digits, shown) => {
     expect(groupDigits(digits)).toBe(shown);
+  });
+});
+
+describe("numberToInputText — 코드가 넣는 숫자(현재가 · 칩)를 입력 글자로(지수 표기 없이)", () => {
+  it.each([
+    [1.2e-7, "price", "0.00000012"], // String(1.2e-7) = "1.2e-7" → 옛 정리 함수는 "1.27"
+    [12345.5, "price", "12,345.5"],
+    [100000, "won", "100,000"],
+    [0, "won", "0"],
+    [3.5, "decimal", "3.5"],
+    [1234.123456789, "price", "1,234.12345679"], // 저장된 값이 8자리를 넘어도 칸이 비지 않는다
+  ] as const)("%j (%s) → %j", (n, kind, shown) => {
+    expect(numberToInputText(n, kind)).toBe(shown);
+  });
+
+  it("규칙 밖이면 빈칸 — 소수 금액을 원 칸에", () => {
+    expect(numberToInputText(1.5, "won")).toBe("");
   });
 });
