@@ -158,8 +158,10 @@ export const RiskBudgetForm = ({ view }: { view: RiskBudgetView }) => {
     )
       return;
     save.mutate({
-      monthlyLossBudget: monthlySetting,
-      perTradeMaxLoss: perTradeSetting,
+      // 고치지 않은 예산은 보내지 않는다 — 저장된 값이 칸 규칙(자릿수 상한 · 소수 8자리) 밖이면 빈칸 · 반올림으로 열리는데,
+      // 그대로 보내면 사용자가 손대지 않은 예산이 지워지거나 바뀐다(리뷰 12차 — 상한을 넣은 11차의 퇴행)
+      ...(monthly.text !== initialMonthly.text || monthly.unit !== initialMonthly.unit ? { monthlyLossBudget: monthlySetting } : {}),
+      ...(perTrade.text !== initialPerTrade.text || perTrade.unit !== initialPerTrade.unit ? { perTradeMaxLoss: perTradeSetting } : {}),
       // 고치지 않은 상한은 보내지 않는다 — 다른 칸만 저장했는데 상한이 기본값으로 돌아가지 않게
       ...(cap !== initialCap ? { maxSingleAssetWeight: capRatio } : {}),
       ...(targetVol !== initialVol ? { targetVolatility: volRatio } : {}),
