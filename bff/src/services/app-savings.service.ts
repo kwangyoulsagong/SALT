@@ -62,6 +62,8 @@ export interface SavingsGoalVM {
   saved: number;
   remaining: number;
   progressPercent: number;
+  /** 0~1 — 진척 막대용(서버가 준다, 화면이 나누지 않는다) */
+  progressRatio: number;
   /** saved · remaining — 진척 50% 기준(FR-9) */
   frame: string;
   targetDate: string | null;

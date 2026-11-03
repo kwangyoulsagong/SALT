@@ -62,6 +62,8 @@ export interface SavingsGoal {
   remaining: number;
   /** 0.0~100.0 — 서버가 소수 한 자리 내림으로 준다 */
   progressPercent: number;
+  /** 0~1 — 진척 막대용(서버가 준다, 화면이 퍼센트를 나누지 않는다) */
+  progressRatio: number;
   /** 진척 50% 전엔 모은 돈, 뒤엔 남은 돈을 앞에(서버가 정한다 — FR-9) */
   frame: "saved" | "remaining";
   targetDate: string | null;

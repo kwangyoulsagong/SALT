@@ -96,6 +96,7 @@ class SavingsEndToEndTest {
         val first = data(call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":100000}""")).path("goal")
         first.path("saved").asLong() shouldBe 100_000
         first.path("progressPercent").asDouble() shouldBe 33.3
+        first.path("progressRatio").asDouble() shouldBe 0.3333
         first.path("milestone").path("deposited").asLong() shouldBe 100_000
 
         val done = data(call("POST", "/api/savings/goals/$id/deposits", user, """{"amount":250000,"note":"보너스"}"""))

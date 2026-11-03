@@ -5,8 +5,8 @@ import type { SavingsMilestone } from "../model/types";
 import * as s from "./goal.css";
 
 const won = (value: number) => `${formatPrice(value)}원`;
-/** 차이는 부호를 글자로(색만으로 방향을 전하지 않는다) — 값은 서버 계산 그대로 */
-const signed = (value: number) => `${value > 0 ? "+" : value < 0 ? "−" : ""}${won(Math.abs(value))}`;
+/** 차이는 부호를 글자로(색만으로 방향을 전하지 않는다) — 값은 서버 계산 그대로, 음수 부호는 포맷이 붙인다 */
+const signed = (value: number) => `${value > 0 ? "+" : ""}${won(value)}`;
 
 export interface MilestoneBoxProps {
   milestone: SavingsMilestone;

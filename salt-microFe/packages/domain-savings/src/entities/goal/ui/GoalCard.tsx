@@ -35,7 +35,7 @@ export const GoalCard = ({ goal, href }: GoalCardProps) => {
         <span className={s.label}>{lead.label}</span>
         <span className={s.bigValue}>{lead.value}</span>
       </div>
-      <ProgressBar value={goal.progressPercent / 100} label={`${goal.title} ${goal.progressPercent}%`} />
+      <ProgressBar value={goal.progressRatio} label={`${goal.title} ${goal.progressPercent}%`} />
       <div className={s.row}>
         <span className={s.label}>
           {GOAL_MESSAGES.target} {won(goal.targetAmount)}

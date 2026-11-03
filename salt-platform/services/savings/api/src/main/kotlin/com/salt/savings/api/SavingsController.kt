@@ -136,6 +136,8 @@ class SavingsController(
         val remaining: Long,
         /** 0.0~100.0, 소수 한 자리 내림(99.96% 를 100.0 으로 보이지 않게) */
         val progressPercent: BigDecimal,
+        /** 0~1, 소수 넷째 자리 내림 — 진척 막대용. 화면이 퍼센트를 나누지 않게(FE 계산 0) */
+        val progressRatio: BigDecimal,
         val frame: String,
         val targetDate: String?,
         val monthlyPlan: Long?,
@@ -288,6 +290,7 @@ class SavingsController(
             saved = s.saved.toKrwInteger(),
             remaining = s.remaining.toKrwInteger(),
             progressPercent = percent(s.progress),
+            progressRatio = s.progress.setScale(4, RoundingMode.FLOOR),
             frame = s.frame.key,
             targetDate = g.targetDate?.toString(),
             monthlyPlan = g.monthlyPlan?.toKrwInteger(RoundingMode.CEILING),

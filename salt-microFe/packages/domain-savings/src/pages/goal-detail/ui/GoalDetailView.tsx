@@ -41,7 +41,7 @@ export const GoalDetailView = ({ goalId }: { goalId: string }) => {
           </h1>
           <span className={s.muted}>{lead.label}</span>
           <strong className={panelTitle}>{lead.value}</strong>
-          <ProgressBar value={goal.progressPercent / 100} label={`${goal.title} ${goal.progressPercent}%`} />
+          <ProgressBar value={goal.progressRatio} label={`${goal.title} ${goal.progressPercent}%`} />
           <span className={s.muted}>
             {goal.status === "completed" ? GOAL_MESSAGES.completed : `${goal.progressPercent}% · ${lead.sub}`} · {GOAL_MESSAGES.target}{" "}
             {won(goal.targetAmount)} · {GOAL_MESSAGES.depositCount(goal.depositCount)}
