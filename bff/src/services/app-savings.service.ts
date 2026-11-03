@@ -44,7 +44,7 @@ export interface SavingsProjectionVM {
   earlyMonth: string | null;
   lateMonth: string | null;
   planMonth: string | null;
-  /** history_short · reached · slow_side_open · no_plan · degraded */
+  /** history_short · reached · slow_side_open · no_plan · degraded · not_reachable(100년 안에 못 닿음 — 2026-11-03) */
   reason: string | null;
   monthsOfHistory: number;
   /** 적중 이력(채점 `FC-REQ-024` 뒤). 없으면 null 이고 trackReason 이 이유 */
