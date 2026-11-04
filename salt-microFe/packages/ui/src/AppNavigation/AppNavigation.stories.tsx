@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { AppNavigation } from "./AppNavigation";
 import type { AppNavigationItem } from "./AppNavigation";
 import { AppNavigationIcon } from "./AppNavigationIcon";
+import { Logo } from "../Logo/Logo";
 
 const items: AppNavigationItem[] = [
   { id: "home", label: "홈", href: "#home", icon: <AppNavigationIcon name="home" />, active: true },
@@ -28,6 +29,7 @@ const meta = {
     label: "주요 메뉴",
     items,
     children: <Body />,
+    brand: <Logo decorative />,
     headerEnd: <span style={{ fontSize: 14 }}>계정</span>,
   },
 } satisfies Meta<typeof AppNavigation>;

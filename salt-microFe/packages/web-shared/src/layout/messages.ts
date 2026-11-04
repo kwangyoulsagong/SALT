@@ -11,6 +11,8 @@ export const PROFILE_MENU_MESSAGES = {
 export const NAVIGATION_FRAME_MESSAGES = {
   /** 레일 · 하단 탭의 화면 리더 이름 */
   navLabel: "주요 메뉴",
+  /** 머리 로고 링크 이름(`FE-REQ-051` FR-1) */
+  brandHomeLabel: "SALT 홈",
 } as const;
 
 export const PROFILE_MENU_ITEM = {

@@ -11,6 +11,7 @@
     "prepare": "husky install",
     "test:layer-check": "node .claude/hooks/__tests__/layer-check.test.mjs",
     "static:merge": "node scripts/merge-zone-static.mjs",
+    "brand:icons": "node scripts/generate-brand-icons.mjs",
     "test": "turbo test"
   },
   "dependencies": {

@@ -1,14 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 32" width="110" height="32" role="img" aria-label="SALT">
-  <g stroke-linejoin="round" stroke-width="2.4">
-    <path d="M16 3.2 L27.1 9.6 L16 16 L4.9 9.6 Z" fill="#C9B8FF" stroke="#C9B8FF"/>
-    <path d="M4.9 9.6 L16 16 L16 28.8 L4.9 22.4 Z" fill="#7949FF" stroke="#7949FF"/>
-    <path d="M16 16 L27.1 9.6 L27.1 22.4 L16 28.8 Z" fill="#5A2FE0" stroke="#5A2FE0"/>
-    <path d="M10.2 9.6 L16 6.4" stroke="#FFFFFF" stroke-opacity=".9" stroke-width="2" stroke-linecap="round" fill="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 81 32" width="81" height="32" role="img" aria-label="SALT">
+  <svg x="0" y="3" width="16" height="24" viewBox="54 10 92 142">
+  <defs>
+    <linearGradient id="l" x1="54" x2="102" y1="0" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#CBCFD6"/><stop offset="1" stop-color="#E6E8ED"/></linearGradient>
+    <linearGradient id="r" x1="98" x2="146" y1="0" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#969AA3"/><stop offset="1" stop-color="#CBCFD6"/></linearGradient>
+    <linearGradient id="w" x1="0" x2="0" y1="164" y2="188" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#E6E8ED"/><stop offset="1" stop-color="#ABAFB8"/></linearGradient>
+    <filter id="b" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="12"/></filter>
+    <filter id="s" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2"/></filter>
+    <filter id="g" x="-50%" y="-200%" width="200%" height="500%"><feGaussianBlur stdDeviation="4"/></filter>
+    <clipPath id="c"><path d="M100 10 C102.4 10 104.2 12 106 15 C118 36 146 68 146 104 C146 132 126 152 100 152 C74 152 54 132 54 104 C54 68 82 36 94 15 C95.8 12 97.6 10 100 10Z"/></clipPath>
+    <clipPath id="cl"><path d="M100 11 C104 50 104 104 90 151 L-100 151 L-100 -50 L100 -50Z"/></clipPath>
+    <clipPath id="cr"><path d="M100 11 C104 50 104 104 90 151 L300 151 L300 -50 L100 -50Z"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <path d="M100 11 C104 50 104 104 90 151 L-100 151 L-100 -50 L100 -50Z" fill="url(#l)"/>
+    <path d="M100 11 C104 50 104 104 90 151 L300 151 L300 -50 L100 -50Z" fill="url(#r)"/>
+    <g clip-path="url(#cl)"><ellipse cx="88" cy="78" rx="20" ry="46" fill="#F7F9FC" opacity="0.85" filter="url(#b)"/></g>
+    <g clip-path="url(#cr)"><ellipse cx="114" cy="104" rx="20" ry="40" fill="#969AA3" opacity="0.7" filter="url(#b)"/></g>
+    <path d="M100 11 C104 50 104 104 90 151" fill="none" stroke="#F7F9FC" stroke-width="2.2" opacity="0.55" filter="url(#s)"/>
   </g>
-  <g transform="translate(42 6)" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M13 5 C12.2 2.9 10.2 2 7.8 2 C4.6 2 2.6 3.6 2.6 6 C2.6 11.4 13.4 8.8 13.4 14.4 C13.4 16.9 11.2 18.4 7.8 18.4 C5.1 18.4 3 17.4 2.2 15.2"/>
-    <path d="M19.5 18.4 L25.6 2.4 L31.7 18.4 M21.9 12.6 H29.3"/>
-    <path d="M37.6 2.4 V18.4 H46.4"/>
-    <path d="M51 2.4 H63.4 M57.2 2.4 V18.4"/>
+  </svg>
+  <g transform="translate(20 0)" fill="#FFFFFF">
+    <path d="M1.05 19.43H7.32Q7.41 20.54 7.98 21.05Q8.55 21.56 9.45 21.56Q10.26 21.56 10.79 21.16Q11.31 20.75 11.31 20.03Q11.31 19.1 10.44 18.59Q9.57 18.08 7.62 17.45Q5.55 16.76 4.28 16.11Q3 15.47 2.05 14.23Q1.11 12.98 1.11 10.97Q1.11 8.93 2.13 7.47Q3.15 6.02 4.95 5.27Q6.75 4.52 9.03 4.52Q12.72 4.52 14.92 6.25Q17.13 7.97 17.28 11.09H10.89Q10.86 10.13 10.3 9.65Q9.75 9.17 8.88 9.17Q8.22 9.17 7.8 9.56Q7.38 9.95 7.38 10.67Q7.38 11.27 7.85 11.71Q8.31 12.14 9 12.46Q9.69 12.77 11.04 13.25Q13.05 13.94 14.36 14.62Q15.66 15.29 16.61 16.5Q17.55 17.72 17.55 19.58Q17.55 21.47 16.61 22.97Q15.66 24.47 13.88 25.34Q12.09 26.21 9.66 26.21Q5.97 26.21 3.6 24.45Q1.23 22.7 1.05 19.43Z"/>
+    <path d="M25.89 8.96Q27.63 8.96 28.89 9.65Q30.15 10.34 30.84 11.51V9.17H36.72V26H30.84V23.66Q30.15 24.83 28.87 25.52Q27.6 26.21 25.89 26.21Q23.88 26.21 22.24 25.16Q20.61 24.11 19.66 22.14Q18.72 20.18 18.72 17.57Q18.72 14.96 19.66 13.01Q20.61 11.06 22.24 10.01Q23.88 8.96 25.89 8.96ZM27.78 14.09Q26.46 14.09 25.59 15Q24.72 15.92 24.72 17.57Q24.72 19.19 25.59 20.13Q26.46 21.08 27.78 21.08Q29.07 21.08 29.95 20.15Q30.84 19.22 30.84 17.57Q30.84 15.95 29.95 15.02Q29.07 14.09 27.78 14.09Z"/>
+    <path d="M45.36 3.8V26H39.48V3.8Z"/>
+    <path d="M58.05 20.99V26H55.5Q49.05 26 49.05 19.61V14.06H46.98V9.17H49.05V5.09H54.96V9.17H58.02V14.06H54.96V19.7Q54.96 20.39 55.27 20.69Q55.59 20.99 56.34 20.99Z"/>
   </g>
 </svg>

@@ -17,6 +17,7 @@ import { AppNavigation, AppNavigationIcon, type AppNavigationItem } from "@repo/
 
 import { isCrossZonePath, ZONE_APP } from "../config";
 import { CrossZoneLink, opensElsewhere } from "../ui";
+import { HeaderBrand } from "./HeaderBrand";
 import { NAVIGATION_FRAME_MESSAGES } from "./messages";
 import { PRERENDER_TAB_ATTRIBUTE } from "./prerenderRules";
 import { readZoneNavigationMetric, recordZoneNavigationStart } from "./zoneNavigationMetrics";
@@ -46,6 +47,7 @@ const toItem = (tab: AppTab, active: boolean): AppNavigationItem => ({
  *   (`prerenderRules.ts`). 대기 문구는 끈다 — 탭 칸이 흔들린다. 판정은 실행 중인 앱 기준(`ZONE_APP`)
  * - 누르는 순간 계측 표지를 남기고(새 탭 · 수정키 클릭은 빼고), 도착한 문서가 마운트 뒤 한 건으로 읽는다(`zoneNavigationMetrics.ts`).
  *   단위는 앱 — 떠나는 앱 `ZONE_APP`, 가는 앱 = 탭 zone 의 `hostedIn`
+ * - 머리 첫 칸은 로고(`HeaderBrand` → 홈, `FE-REQ-051` FR-2)
  * - 공개 화면은 `bare` — 틀은 같고 조각만 없다(로그인 → 홈에서 본문 트리가 다시 만들어지지 않게)
  */
 export const ZoneNavigation = ({ headerEnd, children }: { headerEnd?: ReactNode; children: ReactNode }) => {
@@ -66,6 +68,7 @@ export const ZoneNavigation = ({ headerEnd, children }: { headerEnd?: ReactNode;
       bare={bare}
       items={items}
       label={NAVIGATION_FRAME_MESSAGES.navLabel}
+      brand={<HeaderBrand />}
       headerEnd={headerEnd}
       renderLink={(item, { children: body, ...props }) => {
         const tab = APP_TABS.find((candidate) => candidate.id === item.id);

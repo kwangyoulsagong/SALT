@@ -45,6 +45,17 @@ export const tokens = {
       active: "#5329CC",
       light: "#9B7FFF",
       lighter: "#E5DBFF",
+      // 로고 심볼(소금 물방울) 은회색 — 흰 소금 결정 (FE-REQ-051 FR-4, 2026-11-04 사용자 선택). 회색이라 색상 대신 밝기로 입체를 낸다 —
+      // 빛(hi) → 그늘(shadow), 아주 살짝 푸른 기(hue 220~224). `flat` 은 입체가 뭉개지는 16px 단색 자리 — 은회색 면(mid)은 흰 바탕 위
+      // 1.56:1 이라 같은 계열을 진하게(3.64:1, 비글자 3:1 이상). 로고 · 파비콘 밖에 쓰지 않는다
+      mark: {
+        hi: "#F7F9FC",
+        light: "#E6E8ED",
+        mid: "#CBCFD6",
+        deep: "#ABAFB8",
+        shadow: "#969AA3",
+        flat: "#83868F",
+      },
     },
 
     // AI/LLM 생성물 전용 액센트 (FE-REQ-005 FR-9)
@@ -370,3 +381,5 @@ export const tokens = {
 };
 
 export type Tokens = typeof tokens;
+
+export { BRAND_MARK, type BrandMark } from "./brandMark";
