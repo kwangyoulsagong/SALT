@@ -28,6 +28,7 @@
 | EXPLAIN | 표본(부분 인덱스 `expense_user_merchant_day_idx`) 0.055ms · 기준(`expense_user_day_idx`) 0.037ms — 행 2만 넣고 롤백 |
 | 번들 | `/household` 161 → 162 kB · 공용 103 kB |
 | `node scripts/check-done.mjs` | 통과(deliver 뒤) |
+| 확인 단계(사용자 "버그 검증 다하고 done 누락 없지?") | 주석 정정 뒤 `./gradlew check` 다시 149 통과 · Swagger 새 경로 둘(`/fixed-costs/hide` · `/show`) · `FixedCostView` · `typicalAmount` · 임시 사용자 다시 만들어: 접근성 트리(제목 · 목록 · 버튼 이름 "… 매달 적기로 옮기기" · "… — 매달 나가는 돈 아니에요" · status) · 서버 HTML 에 카드 · "평소보다 큼"(첫 화면 서버 렌더) · 1024 버튼 넘침 0 · 템플릿 상한 400 `TEMPLATE_TOO_MANY` → "매달 적기는 더 넣을 수 없어요" · 둘 다 숨김 → 0행 + 결과 줄 → 새로고침하면 카드 없음 · 페이지 오류 0 · 삭제 뒤 남은 행 0 |
 
 ## 3. 확인 단계에서 고친 것
 

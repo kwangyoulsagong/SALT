@@ -84,6 +84,7 @@
 - [x] FR-21 `FixedCostIncreased` — 세 번째에 한 번 · 지우고 다시 적어도 1 · 본문 가맹점 0(종단) · 발행 시점 스키마 검증 통과
 - [x] `./gradlew check` 통과(149) · 종단 26(+2) · 도메인 +9 · 쿼리 수 월 21 · 저장 11/10 · 홈 6 · `bootJar` → Flyway V5 · health UP
 - [x] 실스택(임시 사용자 — 뒤에 삭제 · 트리거 다시 켬 · 남은 행 0) · 아웃박스 발행 확인 · EXPLAIN 둘(행 2만 넣고 롤백)
+- [x] 확인 단계 — 주석 정정(S1e → S1f, `98895870` 안) 뒤 `./gradlew check` 다시 149 통과 · Swagger 새 경로 2 · `FixedCostView` · `typicalAmount`
 
 ### 미검증 · 범위 밖
 | 항목 | 사유 | 언제 닫히나 |
