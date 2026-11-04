@@ -710,3 +710,7 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 - `shared/lib/josa.ts` — 훅 사후 실행 exit 0(`shared` → 컨텍스트 import 0) · `coach/domain` → `shared/lib/josa` 직접 import(배럴은 `jwt` 를 끌고 와 피함) · `npm run lint` 통과
 
 미검증: 없음.
+
+## 2026-11-04 — lint 오류 코드 분기 금지(`DEV-001` FR-3)
+
+- [x] `eslint.config.mjs` `no-restricted-syntax` 3꼴 — 변이 3건 error · 도메인 사유 코드(`KR_STOCK_DISABLED`) 통과 · 전체 `npx eslint .` 0건
