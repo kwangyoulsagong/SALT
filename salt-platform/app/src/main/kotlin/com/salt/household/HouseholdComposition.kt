@@ -1,7 +1,17 @@
 package com.salt.household
 
 import com.salt.app.SaltDbProperties
+import com.salt.household.api.RecurringWorker
+import com.salt.household.application.CloseMonth
+import com.salt.household.application.ConfirmOccurrence
+import com.salt.household.application.CreateTemplate
 import com.salt.household.application.DeleteExpense
+import com.salt.household.application.EditTemplate
+import com.salt.household.application.EndTemplate
+import com.salt.household.application.ExpenseWriter
+import com.salt.household.application.ListTemplates
+import com.salt.household.application.RunRecurring
+import com.salt.household.application.SkipOccurrence
 import com.salt.household.application.GetBudget
 import com.salt.household.application.GetMonth
 import com.salt.household.application.HOUSEHOLD_TX
@@ -14,10 +24,14 @@ import com.salt.household.application.Suggestions
 import com.salt.household.infrastructure.JooqBudgets
 import com.salt.household.infrastructure.JooqExpenses
 import com.salt.household.infrastructure.JooqLandings
+import com.salt.household.infrastructure.JooqMonthCloses
+import com.salt.household.infrastructure.JooqRecurringOccurrences
+import com.salt.household.infrastructure.JooqRecurringTemplates
 import com.salt.household.infrastructure.OutboxHouseholdEvents
 import com.salt.support.messaging.EventSchemas
 import com.salt.support.messaging.OutboxSource
 import com.salt.support.messaging.OutboxWriter
+import com.salt.support.messaging.ServiceLock
 import com.salt.support.messaging.TraceParent
 import com.salt.support.persistence.ServiceDatabase
 import org.springframework.beans.factory.annotation.Qualifier
@@ -53,20 +67,25 @@ class HouseholdComposition {
 
     @Bean
     fun householdLandingReader(@Qualifier("householdDatabase") database: ServiceDatabase): LandingReader =
-        LandingReader(JooqExpenses(database.dsl), JooqLandings(database.dsl))
+        LandingReader(JooqExpenses(database.dsl), JooqLandings(database.dsl), JooqRecurringOccurrences(database.dsl))
 
     @Bean
-    fun householdRecordExpenses(
+    fun householdExpenseWriter(
         @Qualifier("householdDatabase") database: ServiceDatabase,
         @Qualifier("householdOutbox") outbox: OutboxWriter,
         landingReader: LandingReader,
         clock: Clock,
-    ): RecordExpenses = RecordExpenses(
+    ): ExpenseWriter = ExpenseWriter(
         JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqLandings(database.dsl), landingReader, OutboxHouseholdEvents(outbox), clock,
     )
 
     @Bean
-    fun householdDeleteExpense(@Qualifier("householdDatabase") database: ServiceDatabase): DeleteExpense = DeleteExpense(JooqExpenses(database.dsl))
+    fun householdRecordExpenses(@Qualifier("householdDatabase") database: ServiceDatabase, writer: ExpenseWriter, clock: Clock): RecordExpenses =
+        RecordExpenses(JooqExpenses(database.dsl), writer, clock)
+
+    @Bean
+    fun householdDeleteExpense(@Qualifier("householdDatabase") database: ServiceDatabase): DeleteExpense =
+        DeleteExpense(JooqExpenses(database.dsl), JooqRecurringOccurrences(database.dsl))
 
     @Bean
     fun householdParseInput(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): ParseInput = ParseInput(JooqExpenses(database.dsl), clock)
@@ -82,7 +101,51 @@ class HouseholdComposition {
 
     @Bean
     fun householdGetMonth(@Qualifier("householdDatabase") database: ServiceDatabase, landingReader: LandingReader, clock: Clock): GetMonth =
-        GetMonth(JooqExpenses(database.dsl), JooqBudgets(database.dsl), landingReader, clock)
+        GetMonth(JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqRecurringOccurrences(database.dsl), JooqMonthCloses(database.dsl), landingReader, clock)
+
+    // ---------- 반복 · 마감(가계부 S1b) ----------
+
+    @Bean
+    fun householdListTemplates(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): ListTemplates =
+        ListTemplates(JooqRecurringTemplates(database.dsl), clock)
+
+    @Bean
+    fun householdCreateTemplate(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): CreateTemplate =
+        CreateTemplate(JooqRecurringTemplates(database.dsl), JooqRecurringOccurrences(database.dsl), clock)
+
+    @Bean
+    fun householdEditTemplate(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): EditTemplate =
+        EditTemplate(JooqRecurringTemplates(database.dsl), JooqRecurringOccurrences(database.dsl), clock)
+
+    @Bean
+    fun householdEndTemplate(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): EndTemplate =
+        EndTemplate(JooqRecurringTemplates(database.dsl), JooqRecurringOccurrences(database.dsl), clock)
+
+    @Bean
+    fun householdConfirmOccurrence(@Qualifier("householdDatabase") database: ServiceDatabase, writer: ExpenseWriter, clock: Clock): ConfirmOccurrence =
+        ConfirmOccurrence(JooqRecurringTemplates(database.dsl), JooqRecurringOccurrences(database.dsl), JooqExpenses(database.dsl), writer, clock)
+
+    @Bean
+    fun householdSkipOccurrence(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): SkipOccurrence =
+        SkipOccurrence(JooqRecurringOccurrences(database.dsl), clock)
+
+    @Bean
+    fun householdRunRecurring(
+        @Qualifier("householdDatabase") database: ServiceDatabase,
+        @Qualifier("householdOutbox") outbox: OutboxWriter,
+        clock: Clock,
+    ): RunRecurring = RunRecurring(JooqRecurringOccurrences(database.dsl), JooqExpenses(database.dsl), OutboxHouseholdEvents(outbox), clock)
+
+    @Bean
+    fun householdRecurringWorker(@Qualifier("householdDatabase") database: ServiceDatabase, runRecurring: RunRecurring, clock: Clock): RecurringWorker =
+        RecurringWorker(runRecurring, ServiceLock.executor(database.dataSource), clock)
+
+    @Bean
+    fun householdCloseMonth(
+        @Qualifier("householdDatabase") database: ServiceDatabase,
+        @Qualifier("householdOutbox") outbox: OutboxWriter,
+        clock: Clock,
+    ): CloseMonth = CloseMonth(JooqMonthCloses(database.dsl), JooqBudgets(database.dsl), JooqExpenses(database.dsl), OutboxHouseholdEvents(outbox), clock)
 
     @Bean
     fun householdHomeCard(@Qualifier("householdDatabase") database: ServiceDatabase, landingReader: LandingReader, clock: Clock): HomeCard =

@@ -3,6 +3,8 @@ package com.salt.household.infrastructure
 import com.salt.household.domain.Expense
 import com.salt.household.domain.HouseholdEvents
 import com.salt.household.domain.IssuedLanding
+import com.salt.household.domain.MonthClose
+import com.salt.household.domain.MonthTotals
 import com.salt.support.messaging.OutboxWriter
 
 /**
@@ -40,8 +42,27 @@ class OutboxHouseholdEvents(private val outbox: OutboxWriter) : HouseholdEvents 
                 "low" to l.low?.toStorageString(),
                 "high" to l.high?.toStorageString(),
                 "spentSoFar" to l.spentSoFar.toStorageString(),
+                "scheduled" to l.scheduled.toStorageString(),
                 "reason" to l.reason,
                 "daysOfHistory" to l.daysOfHistory,
+            ),
+        )
+    }
+
+    /** 답 글은 싣지 않는다(가계부 S1b 판단 7) — 숫자 · 달만 */
+    override fun monthClosed(close: MonthClose, totals: MonthTotals) {
+        outbox.append(
+            MONTH_CLOSED,
+            mapOf(
+                "closeId" to close.id.toString(),
+                "userId" to close.userId,
+                "month" to close.month.toString(),
+                "total" to totals.total.toStorageString(),
+                "exact" to totals.exact.toStorageString(),
+                "approx" to totals.approx.toStorageString(),
+                "count" to totals.count,
+                "budgetTotal" to close.budget?.total?.toStorageString(),
+                "closedAt" to close.closedAt.toString(),
             ),
         )
     }
@@ -49,5 +70,6 @@ class OutboxHouseholdEvents(private val outbox: OutboxWriter) : HouseholdEvents 
     companion object {
         const val EXPENSE_RECORDED = "household.ExpenseRecorded"
         const val LANDING_ISSUED = "household.LandingIssued"
+        const val MONTH_CLOSED = "household.MonthClosed"
     }
 }

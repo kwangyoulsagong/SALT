@@ -4,6 +4,7 @@ import com.salt.household.domain.Budget
 import com.salt.household.domain.BudgetMethod
 import com.salt.household.domain.Budgets
 import com.salt.household.domain.Category
+import com.salt.household.domain.DayTotal
 import com.salt.household.domain.Expense
 import com.salt.household.domain.ExpenseId
 import com.salt.household.domain.Expenses
@@ -39,9 +40,9 @@ private val CURRENCY = Currency.KRW
 /** 첫 기록 날짜는 사용자의 달력(KST)으로 */
 private val KST = java.time.ZoneId.of("Asia/Seoul")
 
-private fun money(value: BigDecimal): Money = Money.of(value, CURRENCY)
+internal fun money(value: BigDecimal): Money = Money.of(value, CURRENCY)
 
-private fun Instant.utc() = atOffset(ZoneOffset.UTC)
+internal fun Instant.utc() = atOffset(ZoneOffset.UTC)
 
 class JooqExpenses(private val dsl: DSLContext) : Expenses {
     override fun add(expenses: List<Expense>) {
@@ -93,13 +94,22 @@ class JooqExpenses(private val dsl: DSLContext) : Expenses {
         return MonthSummary(MonthTotals(exact, approx, count), byCategory)
     }
 
-    override fun dailyTotals(userId: String, from: LocalDate, to: LocalDate): Map<LocalDate, Money> =
-        dsl.select(EXPENSE.SPENT_ON, DSL.sum(EXPENSE.AMOUNT))
+    /** 전체 · 변동(템플릿 지출 뺌 — S1b 판단 4)을 한 문장으로(`FILTER`) */
+    override fun dailyTotals(userId: String, from: LocalDate, to: LocalDate): Map<LocalDate, DayTotal> {
+        val variable = DSL.coalesce(DSL.sum(EXPENSE.AMOUNT).filterWhere(EXPENSE.INPUT_KIND.ne(InputKind.TEMPLATE.key)), BigDecimal.ZERO)
+        return dsl.select(EXPENSE.SPENT_ON, DSL.sum(EXPENSE.AMOUNT), variable)
             .from(EXPENSE)
             .where(EXPENSE.USER_ID.eq(userId).and(EXPENSE.SPENT_ON.between(from, to)))
             .groupBy(EXPENSE.SPENT_ON)
             .fetch()
-            .associate { it.value1() to money(it.value2()) }
+            .associate { it.value1() to DayTotal(money(it.value2()), money(it.value3())) }
+    }
+
+    override fun installments(userId: String, from: LocalDate, to: LocalDate): List<Expense> =
+        dsl.selectFrom(EXPENSE)
+            .where(EXPENSE.USER_ID.eq(userId).and(EXPENSE.INSTALLMENT_MONTHS.isNotNull).and(EXPENSE.SPENT_ON.between(from, to)))
+            .orderBy(EXPENSE.SPENT_ON.desc(), EXPENSE.CREATED_AT.desc())
+            .fetch(::toExpense)
 
     override fun firstRecordedOn(userId: String): LocalDate? =
         dsl.select(DSL.min(EXPENSE.CREATED_AT)).from(EXPENSE).where(EXPENSE.USER_ID.eq(userId)).fetchOne()?.value1()
@@ -194,6 +204,7 @@ class JooqLandings(private val dsl: DSLContext) : Landings {
             .set(LANDING_ISSUED.P_LOW, l.low?.toDecimal())
             .set(LANDING_ISSUED.P_HIGH, l.high?.toDecimal())
             .set(LANDING_ISSUED.SPENT_SO_FAR, l.spentSoFar.toDecimal())
+            .set(LANDING_ISSUED.SCHEDULED, l.scheduled.toDecimal())
             .set(LANDING_ISSUED.REASON, l.reason)
             .set(LANDING_ISSUED.DAYS_OF_HISTORY, l.daysOfHistory)
             .onConflictDoNothing()
@@ -216,6 +227,7 @@ class JooqLandings(private val dsl: DSLContext) : Landings {
             month = YearMonth.from(r.month),
             method = LandingMethod.entries.firstOrNull { it.key == r.method } ?: LandingMethod.EMPIRICAL_WINDOW,
             spentSoFar = money(r.spentSoFar),
+            scheduled = money(r.scheduled),
             low = r.pLow?.let(::money),
             high = r.pHigh?.let(::money),
             reason = r.reason,

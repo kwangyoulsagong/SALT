@@ -37,6 +37,8 @@ data class Landing(
     val month: YearMonth,
     val method: LandingMethod,
     val spentSoFar: Money,
+    /** 아직 확인 안 한 반복 예정 합(가계부 S1b 판단 4) — 구간 양 끝에 이미 들어 있다 */
+    val scheduled: Money,
     val low: Money?,
     val high: Money?,
     val reason: String?,
@@ -56,7 +58,8 @@ data class LandingTrack(val month: YearMonth, val issuedOn: LocalDate?, val low:
  *
  * 남은 날 R 일의 합 분포: R ≤ 7 이면 연속 창 합의 10 · 90% 분위, 더 길면 7일 창 합 퍼짐의 정규 근사([longSpan]).
  * 무작위 재표집(부트스트랩)을 쓰지 않는 이유: 같은 입력이면 같은 구간이어야 발행 기록 · 적중 판정이 재현된다.
- * 고정비(월세처럼 한 달 한 번 큰 지출)는 아직 변동 분포에 섞인다 — 반복 템플릿(S1b FR-5 · FR-12)이 "예정"으로 따로 더하게 되면 뺀다.
+ * 반복 템플릿(가계부 S1b FR-5)은 변동 분포에서 뺀다 — 확인한 템플릿 지출은 [dailyHistory] 에 넣지 않고(부르는 쪽), 확인 안 한 예정은 [scheduled] 로 양 끝에 더한다.
+ * 템플릿에 없는 고정비(감지 FR-12 는 S1c)는 아직 변동 분포에 섞인다.
  * 대략 합계(밀린 날 한꺼번에)는 그날 하루에 몰려 꼬리를 키운다 — 구간이 넓어지는 쪽이라 감추지 않고 그대로 둔다.
  */
 object LandingEngine {
@@ -97,22 +100,30 @@ object LandingEngine {
 
     /**
      * @param spentBeforeToday 이 달 1일~어제 합
-     * @param dailyHistory 날짜 → 그날 합. 어제까지만 쓴다(그 뒤 날짜는 무시)
+     * @param dailyHistory 날짜 → 그날 **변동** 합(템플릿 지출 뺌). 어제까지만 쓴다(그 뒤 날짜는 무시)
      * @param firstRecordedOn 사용자가 처음 기록한 날(저장 날짜) — 표본 시작. 없으면 표본 0
+     * @param scheduled 아직 확인 안 한 이 달 반복 예정 합
      */
-    fun project(month: YearMonth, today: LocalDate, spentBeforeToday: Money, dailyHistory: Map<LocalDate, Money>, firstRecordedOn: LocalDate?): Landing {
+    fun project(
+        month: YearMonth,
+        today: LocalDate,
+        spentBeforeToday: Money,
+        dailyHistory: Map<LocalDate, Money>,
+        firstRecordedOn: LocalDate?,
+        scheduled: Money = Money.krw(0),
+    ): Landing {
         val spentSoFar = spentBeforeToday
         // 오늘 포함 — 늘 1 이상
         val remainingDays = month.lengthOfMonth() - today.dayOfMonth + 1
         val start = firstRecordedOn?.takeIf { !it.isAfter(today.minusDays(1)) }
         val samples = if (start == null) emptyList() else sampleDays(start, today.minusDays(1), dailyHistory)
         if (samples.size < MIN_HISTORY_DAYS) {
-            return Landing(month, LandingMethod.EMPIRICAL_WINDOW, spentSoFar, null, null, LandingReason.HISTORY_SHORT, samples.size)
+            return Landing(month, LandingMethod.EMPIRICAL_WINDOW, spentSoFar, scheduled, null, null, LandingReason.HISTORY_SHORT, samples.size)
         }
         val (lowAdd, highAdd) = if (remainingDays <= WEEK) shortSpan(samples, remainingDays) else longSpan(samples, start!!, today, remainingDays)
-        val low = spentSoFar + Money.krw(lowAdd)
-        val high = spentSoFar + Money.krw(highAdd)
-        return Landing(month, LandingMethod.EMPIRICAL_WINDOW, spentSoFar, low, high, null, samples.size)
+        val low = spentSoFar + scheduled + Money.krw(lowAdd)
+        val high = spentSoFar + scheduled + Money.krw(highAdd)
+        return Landing(month, LandingMethod.EMPIRICAL_WINDOW, spentSoFar, scheduled, low, high, null, samples.size)
     }
 
     /** 지난달 같은 날짜(말일이 짧으면 그 달 말일)까지 낸 마지막 구간 vs 지난달 실제 합 */

@@ -49,6 +49,8 @@ class HouseholdEndToEndTest {
     @Autowired @Qualifier("householdDatabase")
     private lateinit var householdDatabase: ServiceDatabase
 
+    @Autowired private lateinit var runRecurring: com.salt.household.application.RunRecurring
+
     private val http = HttpClient.newHttpClient()
     private val today: LocalDate get() = LocalDate.now(ZoneId.of("Asia/Seoul"))
 
@@ -258,7 +260,7 @@ class HouseholdEndToEndTest {
     }
 
     @Test
-    fun `쿼리 수 — 월 화면 8 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 5`() {
+    fun `쿼리 수 — 월 화면 11 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
         val user = "q-${UUID.randomUUID()}"
         call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"food":300000}}""").statusCode() shouldBe 200
         var before = statements()
@@ -275,13 +277,182 @@ class HouseholdEndToEndTest {
         val home = statements() - before
         println("[household-queries] firstSave=$firstSave secondSave=$secondSave month=$month home=$home")
         // 월: 목록 · 월 합 · 예산 2 · 착지 2(첫 기록 · 날별) · 적중 2(지난달 발행 · 지난달 합)
-        month shouldBe 8L
+        // + S1b: 마감 1(안 닫은 달 — 닫았으면 사본 봉투 1 더하고 예산 2 빠짐) · 예정 행 1(착지와 나눠 씀) · 할부 1 = 11
+        month shouldBe 11L
         // 저장: 행 · 아웃박스 · 월 합 · 착지 2 · 발행 · 아웃박스(그날 처음) · 예산 2 = 9. 두 번째는 발행이 ON CONFLICT 로 빈 문장이 되고 그 아웃박스가 빠져 8
         // (그날 이미 냈어도 착지를 다시 계산하는 3문장은 리뷰가 짚은 낭비 — 쓰기 응답 몫이라 남김, 루트 체크리스트 §4)
-        firstSave shouldBe 9L
-        secondSave shouldBe 8L
-        // 홈: 월 합 · 예산 2 · 착지 2
-        home shouldBe 5L
+        // + S1b: 착지 예정 행 1
+        firstSave shouldBe 10L
+        secondSave shouldBe 9L
+        // 홈: 월 합 · 예산 2 · 착지 2 · 예정 행 1
+        home shouldBe 6L
+    }
+
+    // ---------- 가계부 S1b — 반복 · 마감 · 할부 ----------
+
+    @Test
+    fun `반복 — 만들면 이번 달 예정 · 착지에 예정으로 · 나갔어요는 지출 · 다시 확인 409 · 지우면 예정으로 돌아감 · 안 나가요`() {
+        val user = "rec-t-${UUID.randomUUID()}"
+        val day = today.dayOfMonth
+        val created = call("POST", "/api/household/templates", user, """{"name":"월세","amount":500000,"category":"housing","paymentMethod":"transfer","dayOfMonth":$day}""")
+        created.statusCode() shouldBe 201
+        val t = data(created)
+        t.path("confirmRequired").asBoolean() shouldBe true
+        t.path("startsMonth").asString() shouldBe YearMonth.from(today).toString()
+        val occ = t.path("thisMonth")
+        occ.path("stage").asString() shouldBe "ask"
+        occ.path("dueOn").asString() shouldBe today.toString()
+        val occId = occ.path("id").asString()
+
+        val month = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null))
+        month.path("recurring").path("scheduledTotal").asLong() shouldBe 500_000
+        month.path("recurring").path("items").get(0).path("stage").asString() shouldBe "ask"
+        month.path("landing").path("scheduled").asLong() shouldBe 500_000
+        data(call("GET", "/api/household/home-card", user, null)).path("landing").path("scheduled").asLong() shouldBe 500_000
+
+        // 금액을 고쳐 확인 — 지출 · 이벤트 · 예정 0
+        val confirmed = call("POST", "/api/household/occurrences/$occId/confirm", user, """{"amount":510000}""")
+        confirmed.statusCode() shouldBe 201
+        val record = data(confirmed).path("record")
+        record.path("savedTotal").asLong() shouldBe 510_000
+        val expense = record.path("expenses").get(0)
+        expense.path("inputKind").asString() shouldBe "template"
+        expense.path("merchant").asString() shouldBe "월세"
+        expense.path("spentOn").asString() shouldBe today.toString()
+        eventTypes(user).count { it == "household.ExpenseRecorded" } shouldBe 1
+        val after = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null))
+        after.path("recurring").path("scheduledTotal").asLong() shouldBe 0
+        after.path("recurring").path("items").get(0).path("stage").asString() shouldBe "confirmed"
+        after.path("totals").path("total").asLong() shouldBe 510_000
+
+        call("POST", "/api/household/occurrences/$occId/confirm", user, null).let {
+            it.statusCode() shouldBe 409
+            it.body() shouldContain "OCCURRENCE_ALREADY_DECIDED"
+        }
+        // 남의 예정 행은 404
+        call("POST", "/api/household/occurrences/$occId/skip", "other-${UUID.randomUUID()}", null).statusCode() shouldBe 404
+
+        // 확인한 지출을 지우면 예정으로 돌아간다(판단 5)
+        call("DELETE", "/api/household/expenses/${expense.path("id").asString()}", user, null).statusCode() shouldBe 200
+        val reopened = data(call("GET", "/api/household/templates", user, null)).path("templates").get(0).path("thisMonth")
+        reopened.path("stage").asString() shouldBe "ask"
+        reopened.path("expenseId").isNull shouldBe true
+
+        // 안 나가요 — 예정에서 빠지고 다시 정하면 409
+        call("POST", "/api/household/occurrences/$occId/skip", user, null).statusCode() shouldBe 200
+        data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("recurring").path("scheduledTotal").asLong() shouldBe 0
+        call("POST", "/api/household/occurrences/$occId/skip", user, null).statusCode() shouldBe 409
+    }
+
+    @Test
+    fun `반복 템플릿 — 지난 예정일이면 다음 달부터 · 고치면 이번 달 예정도 · 끝내면 예정 행 지움 · 거절 표`() {
+        val user = "rec-e-${UUID.randomUUID()}"
+        if (today.dayOfMonth > 1) {
+            val past = data(call("POST", "/api/household/templates", user, """{"name":"통신","amount":55000,"category":"telecom","dayOfMonth":${today.dayOfMonth - 1}}"""))
+            past.path("startsMonth").asString() shouldBe YearMonth.from(today).plusMonths(1).toString()
+            past.path("thisMonth").isNull shouldBe true
+            call("DELETE", "/api/household/templates/${past.path("id").asString()}", user, null).statusCode() shouldBe 200
+        }
+        val t = data(call("POST", "/api/household/templates", user, """{"name":"구독","amount":13900,"category":"culture","dayOfMonth":31}"""))
+        val id = t.path("id").asString()
+        val edited = call("PUT", "/api/household/templates/$id", user, """{"name":"영상 구독","amount":17000,"category":"culture","dayOfMonth":31,"confirmRequired":true}""")
+        edited.statusCode() shouldBe 200
+        data(edited).path("thisMonth").path("amount").asLong() shouldBe 17_000
+        data(edited).path("thisMonth").path("name").asString() shouldBe "영상 구독"
+
+        call("DELETE", "/api/household/templates/$id", user, null).statusCode() shouldBe 200
+        data(call("GET", "/api/household/templates", user, null)).path("templates").size() shouldBe 0
+        householdDatabase.dsl.fetchCount(householdDatabase.dsl.selectFrom("recurring_occurrence").where("user_id = ?", user)) shouldBe 0
+        call("DELETE", "/api/household/templates/$id", user, null).statusCode() shouldBe 404
+
+        call("POST", "/api/household/templates", user, """{"name":"a","amount":1,"category":"nope","dayOfMonth":1}""").body() shouldContain "TEMPLATE_CATEGORY_UNKNOWN"
+        call("POST", "/api/household/templates", user, """{"name":"a","amount":1,"category":"food","dayOfMonth":32}""").statusCode() shouldBe 400
+        call("POST", "/api/household/templates", user, """{"name":"${"가".repeat(41)}","amount":1,"category":"food","dayOfMonth":1}""").body() shouldContain "TEMPLATE_NAME_INVALID"
+    }
+
+    @Test
+    fun `워커 — 확인 필요 없는 템플릿은 예정일에 지출로 · 빠진 예정 행을 다시 만든다 · 두 번 돌아도 같다`() {
+        val user = "rec-w-${UUID.randomUUID()}"
+        val t = data(call("POST", "/api/household/templates", user, """{"name":"보험","amount":42000,"category":"health","dayOfMonth":${today.dayOfMonth},"confirmRequired":false}"""))
+        // 예정 행을 지워 워커가 다시 만드는지 본다(놓친 회차)
+        householdDatabase.dsl.execute("DELETE FROM recurring_occurrence WHERE user_id = ?", user)
+        runRecurring.execute()
+        runRecurring.execute()
+        val rows = householdDatabase.dsl.fetch("SELECT status, expense_id FROM recurring_occurrence WHERE user_id = ?", user)
+        rows.size shouldBe 1
+        rows[0].get("status", String::class.java) shouldBe "confirmed"
+        val expenses = householdDatabase.dsl.fetch("SELECT input_kind, amount, spent_on FROM expense WHERE user_id = ?", user)
+        expenses.size shouldBe 1
+        expenses[0].get("input_kind", String::class.java) shouldBe "template"
+        expenses[0].get("spent_on", LocalDate::class.java) shouldBe today
+        eventTypes(user).count { it == "household.ExpenseRecorded" } shouldBe 1
+        data(call("GET", "/api/household/templates", user, null)).path("templates").get(0).path("thisMonth").path("stage").asString() shouldBe "confirmed"
+        t.path("id").asString().isNotEmpty() shouldBe true
+    }
+
+    @Test
+    fun `월 마감 — 지난 달 닫으면 그때 예산을 붙잡는다 · MonthClosed 한 번 · 다시 내면 답만 · 닫을 수 없는 달 거절`() {
+        val user = "close-${UUID.randomUUID()}"
+        val last = YearMonth.from(today).minusMonths(1)
+        call("POST", "/api/household/expenses", user, """{"amount":30000,"category":"food","spentOn":"${last.atDay(10)}"}""").statusCode() shouldBe 201
+        call("PUT", "/api/household/budget", user, """{"method":"50_30_20","income":3000000}""").statusCode() shouldBe 200
+
+        val open = data(call("GET", "/api/household/month/$last", user, null))
+        open.path("closable").asBoolean() shouldBe true
+        open.path("close").isNull shouldBe true
+        open.path("reviewQuestions").items { it.asString() } shouldBe listOf("satisfied", "try_next", "known_next")
+
+        val closed = call("POST", "/api/household/month/$last/close", user, """{"satisfied":" 집밥 ","tryNext":"","knownNext":null}""")
+        closed.statusCode() shouldBe 200
+        data(closed).path("answers").path("satisfied").asString() shouldBe "집밥"
+        data(closed).path("answers").path("tryNext").isNull shouldBe true
+
+        // 예산을 바꿔도 닫은 달은 그때 예산(판단 6)
+        call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"cafe":100000}}""").statusCode() shouldBe 200
+        val view = data(call("GET", "/api/household/month/$last", user, null))
+        view.path("budget").path("method").asString() shouldBe "50_30_20"
+        view.path("envelopes").first { it.path("key").asString() == "needs" }.path("spent").asLong() shouldBe 30_000
+        view.path("close").path("answers").path("satisfied").asString() shouldBe "집밥"
+
+        // 다시 내면 답만 — 이벤트 · 닫은 시각 그대로
+        val closedAt = view.path("close").path("closedAt").asString()
+        data(call("POST", "/api/household/month/$last/close", user, """{"satisfied":"집밥","tryNext":"커피 줄이기"}""")).let {
+            it.path("answers").path("tryNext").asString() shouldBe "커피 줄이기"
+            it.path("closedAt").asString() shouldBe closedAt
+        }
+        eventTypes(user).count { it == "household.MonthClosed" } shouldBe 1
+        val payload = householdDatabase.dsl.fetchOne("SELECT payload::text FROM outbox WHERE event_type = 'household.MonthClosed' AND payload->>'userId' = ?", user)!!.get(0, String::class.java)
+        val event = jsonMapper.readTree(payload)
+        event.path("total").asString() shouldBe "30000"
+        event.path("count").asInt() shouldBe 1
+        java.math.BigDecimal(event.path("budgetTotal").asString()).compareTo(java.math.BigDecimal(2_400_000)) shouldBe 0
+        payload shouldNotContain "집밥"
+
+        call("POST", "/api/household/month/${YearMonth.from(today).plusMonths(1)}/close", user, "{}").body() shouldContain "MONTH_NOT_CLOSABLE"
+        if (YearMonth.from(today).lengthOfMonth() - today.dayOfMonth + 1 > 3) {
+            call("POST", "/api/household/month/${YearMonth.from(today)}/close", user, "{}").body() shouldContain "MONTH_NOT_CLOSABLE"
+        }
+        call("POST", "/api/household/month/$last/close", user, """{"satisfied":"${"가".repeat(301)}"}""").body() shouldContain "CLOSE_ANSWER_TOO_LONG"
+    }
+
+    @Test
+    fun `할부 띠 — 지난달 산 3개월이 이번 달 1회차 · 나머지는 첫 달 · 앞으로 6개월 합 · 달 합계는 산 달에`() {
+        val user = "inst-${UUID.randomUUID()}"
+        val last = YearMonth.from(today).minusMonths(1)
+        call("POST", "/api/household/expenses", user, """{"amount":100000,"category":"shopping","merchant":"가전","installmentMonths":3,"spentOn":"${last.atDay(1)}"}""").statusCode() shouldBe 201
+        val band = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("installments")
+        band.path("monthCharge").asLong() shouldBe 33_334
+        val line = band.path("lines").get(0)
+        line.path("index").asInt() shouldBe 1
+        line.path("charge").asLong() shouldBe 33_334
+        line.path("remainingAfter").asLong() shouldBe 66_666
+        line.path("lastMonth").asString() shouldBe YearMonth.from(today).plusMonths(2).toString()
+        band.path("upcoming").items { it.path("amount").asLong() } shouldBe listOf(33_334L, 33_333L, 33_333L, 0L, 0L, 0L)
+        // 산 달 화면엔 청구가 없다(첫 청구는 다음 달) — 원거래는 그 달 합에
+        val bought = data(call("GET", "/api/household/month/$last", user, null))
+        bought.path("totals").path("total").asLong() shouldBe 100_000
+        bought.path("installments").path("lines").size() shouldBe 0
+        bought.path("installments").path("upcoming").get(1).path("amount").asLong() shouldBe 33_334
     }
 
     // ---------- 도움 ----------
