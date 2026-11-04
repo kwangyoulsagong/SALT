@@ -58,7 +58,10 @@ export const BudgetEditor = ({ budget }: { budget: HouseholdBudget | null }) => 
           ))}
         </div>
       )}
-      {save.data?.savingsShare != null ? <p className={s.note}>{M.savingsShare(formatWon(save.data.savingsShare))}</p> : null}
+      {/* 저장한 예산(방금 · 전에) 의 모으기 몫 — 서버 값. 방식을 봉투로 바꾸는 중이면 숨긴다 */}
+      {method === "50_30_20" && (save.data ?? budget)?.savingsShare != null ? (
+        <p className={s.note}>{M.savingsShare(formatWon((save.data ?? budget)!.savingsShare!))}</p>
+      ) : null}
       <span className={s.note} role="status">
         {save.isError ? M.failed : save.isSuccess ? M.saved : method === "envelope" && !ready ? M.needOne : ""}
       </span>
