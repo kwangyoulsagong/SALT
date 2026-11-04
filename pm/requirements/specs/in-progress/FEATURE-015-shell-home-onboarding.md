@@ -126,3 +126,4 @@ flowchart LR
 | 2026-11-03 | FR-8 Done — `FE-REQ-054` done. 루트 `requirements/specs/done/MONEY-F2-app-navigation-slice.md` |
 | 2026-11-03 | S1a — 저축 탭 활성(`APP_TABS` readyBy null) · 홈 저축 카드 원천 Kotlin 저축 서비스 + 진척 최대 목표 한 줄 · 홈 임시 목표 목록 삭제 · 온보딩 `set_plan` 이 저축 서비스에 묻는다. 루트 `MONEY-S1a-savings-calculator-slice.md` |
 | 2026-11-04 | 가계부 S1a — 홈에 가계부 카드(이번 달 지출 + 예산 남은 금액 | 월말 예상 구간, `BFF-REQ-046`) · 가계부 탭이 눌린다(`FE-REQ-054`) |
+| 2026-11-04 | 홈 디자인 `FE-REQ-048` 정정(카드 2×2 데스크톱 · 목록 행 모바일) · 좁은 화면 안내 `FE-REQ-061` · 움직임 `FE-REQ-062`(to-do) |
