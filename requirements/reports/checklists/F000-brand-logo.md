@@ -16,3 +16,4 @@
 | 실기기 홈 화면 아이콘 | 파일 점검(180 불투명 · iOS 마스크 미리보기)은 끝, 휴대폰 추가는 안 했다 | `QA-001` |
 
 - 2026-11-04 번들 main 대조 닫음 — 공용 First Load 다섯 zone 그대로, 머리 있는 페이지 +1~3 kB(상세는 `salt-microFe/requirements/reports/checklists/FE-REQ-051.md`)
+- 2026-11-04 결함 3건 수정(`2e20e95e`) — 로고 링크를 홈 탭과 한 벌(`AppTabLink`) · 탭 아이콘 단색 · 숨김 순서 무관. 상세는 `salt-microFe/requirements/reports/checklists/FE-REQ-051.md`
