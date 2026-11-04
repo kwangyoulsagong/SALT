@@ -32,26 +32,61 @@ enum class Bucket(val key: String) {
 }
 
 /**
- * 기본 분류 12개(슬라이스 판단 6 — 사용자 분류 표는 ~~S1b~~ ~~S1c~~ ~~S1d~~ ~~S1e~~ S1f(정정 2026-11-04 — S1e 는 고정비 · 이상치만) — 2026-11-04 정정 세 번, S1d 는 챌린지만). [key] 가 저장 · 응답 값, 이름(문구)은 프론트가 키로 고른다.
- * 묶음은 흔한 50/30/20 배정을 따른다 — 사용자가 바꾸는 자리는 사용자 분류와 같이 연다.
+ * 분류 — 저장 · 응답 값은 [key] 하나다. 기본 분류 12개([entries])와 사용자 분류(`u_` + 12자리, 가계부 S1f)가 같은 `expense.category` 열을 쓴다.
+ * 기본 분류의 이름(문구)은 프론트가 키로 고르고, 사용자 분류의 이름 · 묶음은 [CustomCategory] 가 든다. 묶음은 [CategoryBook.bucketOf] 한 곳에서 낸다.
+ * 저장된 키를 읽을 때는 [parse] — 기본 키만 고르는 [fromKey] 와 다르다(지운 사용자 분류의 지난 지출도 그 키 그대로 보인다).
  */
-enum class Category(val key: String, val bucket: Bucket) {
-    FOOD("food", Bucket.NEEDS),
-    CAFE("cafe", Bucket.WANTS),
-    TRANSPORT("transport", Bucket.NEEDS),
-    HOUSING("housing", Bucket.NEEDS),
-    TELECOM("telecom", Bucket.NEEDS),
-    LIVING("living", Bucket.NEEDS),
-    HEALTH("health", Bucket.NEEDS),
-    EDUCATION("education", Bucket.NEEDS),
-    SHOPPING("shopping", Bucket.WANTS),
-    CULTURE("culture", Bucket.WANTS),
-    GIFT("gift", Bucket.WANTS),
-    OTHER("other", Bucket.WANTS),
-    ;
+@JvmInline
+value class Category private constructor(val key: String) {
+    val isCustom: Boolean get() = key.startsWith(CUSTOM_PREFIX)
+
+    override fun toString(): String = key
 
     companion object {
+        const val CUSTOM_PREFIX = "u_"
+        private val CUSTOM_KEY = Regex("^u_[0-9a-f]{12}$")
+
+        val FOOD = Category("food")
+        val CAFE = Category("cafe")
+        val TRANSPORT = Category("transport")
+        val HOUSING = Category("housing")
+        val TELECOM = Category("telecom")
+        val LIVING = Category("living")
+        val HEALTH = Category("health")
+        val EDUCATION = Category("education")
+        val SHOPPING = Category("shopping")
+        val CULTURE = Category("culture")
+        val GIFT = Category("gift")
+        val OTHER = Category("other")
+
+        /** 기본 분류 — 이 순서가 화면 · 봉투 순서다. 묶음은 흔한 50/30/20 배정 */
+        private val DEFAULTS: Map<Category, Bucket> = linkedMapOf(
+            FOOD to Bucket.NEEDS,
+            CAFE to Bucket.WANTS,
+            TRANSPORT to Bucket.NEEDS,
+            HOUSING to Bucket.NEEDS,
+            TELECOM to Bucket.NEEDS,
+            LIVING to Bucket.NEEDS,
+            HEALTH to Bucket.NEEDS,
+            EDUCATION to Bucket.NEEDS,
+            SHOPPING to Bucket.WANTS,
+            CULTURE to Bucket.WANTS,
+            GIFT to Bucket.WANTS,
+            OTHER to Bucket.WANTS,
+        )
+
+        val entries: List<Category> = DEFAULTS.keys.toList()
+
+        /** 기본 분류만 — 사용자 분류 키는 null(고를 수 있는지는 [CategoryBook.selectable]) */
         fun fromKey(key: String): Category? = entries.firstOrNull { it.key == key }
+
+        /** 저장된 키 — 기본이거나 사용자 분류 꼴이면 그대로. 모르는 꼴이면 null(읽는 쪽이 기타로) */
+        fun parse(key: String): Category? = fromKey(key) ?: key.takeIf(CUSTOM_KEY::matches)?.let(::Category)
+
+        /** 새 사용자 분류 키 — 이름이 아니라 난수라 이름을 바꿔도 지난 지출이 따라온다 */
+        fun newCustom(): Category = Category(CUSTOM_PREFIX + UUID.randomUUID().toString().replace("-", "").take(12))
+
+        fun defaultBucket(category: Category): Bucket? = DEFAULTS[category]
     }
 }
 

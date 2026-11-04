@@ -2,7 +2,11 @@ package com.salt.household
 
 import com.salt.app.SaltDbProperties
 import com.salt.household.api.RecurringWorker
+import com.salt.household.application.AddCategory
+import com.salt.household.application.ArchiveCategory
 import com.salt.household.application.CloseMonth
+import com.salt.household.application.EditCategory
+import com.salt.household.application.ListCategories
 import com.salt.household.application.ConfirmOccurrence
 import com.salt.household.application.CreateTemplate
 import com.salt.household.application.DeleteExpense
@@ -43,6 +47,7 @@ import com.salt.household.application.HideFixedCost
 import com.salt.household.application.ShowFixedCost
 import com.salt.household.infrastructure.JooqSpendingPatterns
 import com.salt.household.infrastructure.JooqBudgets
+import com.salt.household.infrastructure.JooqCustomCategories
 import com.salt.household.infrastructure.JooqChallengeSavings
 import com.salt.household.infrastructure.JooqChallenges
 import com.salt.household.infrastructure.JooqFeelings
@@ -104,36 +109,39 @@ class HouseholdComposition {
     ): ExpenseWriter = OutboxHouseholdEvents(outbox).let { events ->
         ExpenseWriter(
             JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqLandings(database.dsl), landingReader, events,
-            JooqSettings(database.dsl), FixedCostWatcher(fixedCostReader(database), JooqSpendingPatterns(database.dsl), events), clock,
+            JooqSettings(database.dsl), FixedCostWatcher(fixedCostReader(database), JooqSpendingPatterns(database.dsl), events), JooqCustomCategories(database.dsl), clock,
         )
     }
 
     @Bean
     fun householdRecordExpenses(@Qualifier("householdDatabase") database: ServiceDatabase, writer: ExpenseWriter, clock: Clock): RecordExpenses =
-        RecordExpenses(JooqExpenses(database.dsl), JooqFeelings(database.dsl), writer, clock)
+        RecordExpenses(JooqExpenses(database.dsl), JooqFeelings(database.dsl), writer, JooqCustomCategories(database.dsl), clock)
 
     @Bean
     fun householdDeleteExpense(@Qualifier("householdDatabase") database: ServiceDatabase): DeleteExpense =
         DeleteExpense(JooqExpenses(database.dsl), JooqRecurringOccurrences(database.dsl))
 
     @Bean
-    fun householdParseInput(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): ParseInput = ParseInput(JooqExpenses(database.dsl), clock)
+    fun householdParseInput(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): ParseInput =
+        ParseInput(JooqExpenses(database.dsl), JooqCustomCategories(database.dsl), clock)
 
     @Bean
-    fun householdSuggestions(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): Suggestions = Suggestions(JooqExpenses(database.dsl), clock)
+    fun householdSuggestions(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): Suggestions =
+        Suggestions(JooqExpenses(database.dsl), JooqCustomCategories(database.dsl), clock)
 
     @Bean
     fun householdGetBudget(@Qualifier("householdDatabase") database: ServiceDatabase): GetBudget = GetBudget(JooqBudgets(database.dsl))
 
     @Bean
-    fun householdSetBudget(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): SetBudget = SetBudget(JooqBudgets(database.dsl), clock)
+    fun householdSetBudget(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): SetBudget =
+        SetBudget(JooqBudgets(database.dsl), JooqCustomCategories(database.dsl), clock)
 
     @Bean
     fun householdGetMonth(@Qualifier("householdDatabase") database: ServiceDatabase, landingReader: LandingReader, clock: Clock): GetMonth =
         GetMonth(
             JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqRecurringOccurrences(database.dsl), JooqMonthCloses(database.dsl), landingReader,
             JooqFeelings(database.dsl), JooqStickers(database.dsl), JooqSettings(database.dsl), JooqChallenges(database.dsl),
-            fixedCostReader(database), JooqSpendingPatterns(database.dsl), clock,
+            fixedCostReader(database), JooqSpendingPatterns(database.dsl), JooqCustomCategories(database.dsl), clock,
         )
 
     // ---------- 반복 · 마감(가계부 S1b) ----------
@@ -144,11 +152,11 @@ class HouseholdComposition {
 
     @Bean
     fun householdCreateTemplate(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): CreateTemplate =
-        CreateTemplate(JooqRecurringTemplates(database.dsl), JooqRecurringOccurrences(database.dsl), clock)
+        CreateTemplate(JooqRecurringTemplates(database.dsl), JooqRecurringOccurrences(database.dsl), JooqCustomCategories(database.dsl), clock)
 
     @Bean
     fun householdEditTemplate(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): EditTemplate =
-        EditTemplate(JooqRecurringTemplates(database.dsl), JooqRecurringOccurrences(database.dsl), clock)
+        EditTemplate(JooqRecurringTemplates(database.dsl), JooqRecurringOccurrences(database.dsl), JooqCustomCategories(database.dsl), clock)
 
     @Bean
     fun householdEndTemplate(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): EndTemplate =
@@ -182,7 +190,21 @@ class HouseholdComposition {
 
     @Bean
     fun householdHomeCard(@Qualifier("householdDatabase") database: ServiceDatabase, landingReader: LandingReader, clock: Clock): HomeCard =
-        HomeCard(JooqExpenses(database.dsl), JooqBudgets(database.dsl), landingReader, clock)
+        HomeCard(JooqExpenses(database.dsl), JooqBudgets(database.dsl), landingReader, JooqCustomCategories(database.dsl), clock)
+
+    // ---------- 사용자 분류(가계부 S1f) ----------
+
+    @Bean
+    fun householdListCategories(@Qualifier("householdDatabase") database: ServiceDatabase): ListCategories = ListCategories(JooqCustomCategories(database.dsl))
+
+    @Bean
+    fun householdAddCategory(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): AddCategory = AddCategory(JooqCustomCategories(database.dsl), clock)
+
+    @Bean
+    fun householdEditCategory(@Qualifier("householdDatabase") database: ServiceDatabase): EditCategory = EditCategory(JooqCustomCategories(database.dsl))
+
+    @Bean
+    fun householdArchiveCategory(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): ArchiveCategory = ArchiveCategory(JooqCustomCategories(database.dsl), clock)
 
     // ---------- 거울 셋(가계부 S1c) — 감정 태그 · 노동시간 · 무지출 달력 ----------
 

@@ -38,7 +38,7 @@ internal fun toTemplate(r: RecurringTemplateRecord): RecurringTemplate = Recurri
     userId = r.userId,
     name = r.name,
     amount = money(r.amount),
-    category = Category.fromKey(r.category) ?: Category.OTHER,
+    category = Category.parse(r.category) ?: Category.OTHER,
     paymentMethod = PaymentMethod.fromKey(r.paymentMethod) ?: PaymentMethod.OTHER,
     dayOfMonth = r.dayOfMonth.toInt(),
     confirmRequired = r.confirmRequired,
@@ -55,7 +55,7 @@ internal fun toOccurrence(r: RecurringOccurrenceRecord): RecurringOccurrence = R
     dueOn = r.dueOn,
     name = r.name,
     amount = money(r.amount),
-    category = Category.fromKey(r.category) ?: Category.OTHER,
+    category = Category.parse(r.category) ?: Category.OTHER,
     status = OccurrenceStatus.fromKey(r.status) ?: OccurrenceStatus.SCHEDULED,
     expenseId = r.expenseId?.let(::ExpenseId),
     decidedAt = r.decidedAt?.toInstant(),
@@ -218,12 +218,11 @@ class JooqMonthCloses(private val dsl: DSLContext) : MonthCloses {
         val head = dsl.selectFrom(C).where(C.USER_ID.eq(userId).and(C.MONTH.eq(month.atDay(1)))).fetchOne() ?: return null
         val budget = head.budgetMethod?.let { method ->
             val rows = dsl.select(E.ENVELOPE_KEY, E.AMOUNT).from(E).where(E.CLOSE_ID.eq(head.id)).fetch().associate { it.value1() to money(it.value2()) }
-            val order = listOf("needs", "wants") + Category.entries.map { it.key }
             Budget(
                 userId = userId,
                 method = BudgetMethod.fromKey(method) ?: BudgetMethod.ENVELOPE,
                 income = head.budgetIncome?.let(::money),
-                envelopes = order.mapNotNull { k -> rows[k]?.let { k to it } }.toMap(LinkedHashMap()),
+                envelopes = Budget.ordered(rows),
                 updatedAt = head.closedAt.toInstant(),
             )
         }

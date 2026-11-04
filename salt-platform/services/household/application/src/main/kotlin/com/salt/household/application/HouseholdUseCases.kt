@@ -1,10 +1,13 @@
 package com.salt.household.application
 
+import com.salt.household.domain.Accounts
 import com.salt.household.domain.Budget
 import com.salt.household.domain.BudgetMath
 import com.salt.household.domain.BudgetMethod
 import com.salt.household.domain.Budgets
 import com.salt.household.domain.Category
+import com.salt.household.domain.CategoryBook
+import com.salt.household.domain.CustomCategories
 import com.salt.household.domain.EnvelopeStatus
 import com.salt.household.domain.Expense
 import com.salt.household.domain.ExpenseId
@@ -149,9 +152,11 @@ class ExpenseWriter(
     private val events: HouseholdEvents,
     private val settings: Settings,
     private val fixedCosts: FixedCostWatcher,
+    private val categories: CustomCategories,
     private val clock: Clock,
 ) {
-    fun afterInsert(userId: String, saved: List<Expense>, today: LocalDate): RecordResult {
+    /** [book] — 부르는 쪽이 이미 읽은 분류 표(내 분류를 적을 때). null 이면 묶음으로 가르는 50/30/20 일 때만 여기서 한 번 읽는다 */
+    fun afterInsert(userId: String, saved: List<Expense>, today: LocalDate, book: CategoryBook? = null): RecordResult {
         saved.forEach(events::expenseRecorded)
         val summary = expenses.monthSummary(userId, YearMonth.from(today))
         issueLanding(userId, today, summary)
@@ -159,8 +164,11 @@ class ExpenseWriter(
         fixedCosts.afterInsert(userId, saved, today, clock.instant())
         val budget = budgets.find(userId)
         val envelope = budget?.let { b ->
-            val key = b.envelopeOf(saved.first().category) ?: return@let null
-            BudgetMath.envelopes(b, summary.byCategory).firstOrNull { it.key == key }
+            // 봉투 · 통장 쪼개기는 묶음을 안 쓴다 — 기본 분류만 적는 흔한 길에 쿼리를 더하지 않는다
+            val categoryBook = book ?: if (b.method == BudgetMethod.FIFTY_THIRTY_TWENTY) CategoryBook(categories.list(userId)) else CategoryBook.DEFAULTS_ONLY
+            val first = saved.first()
+            val key = b.envelopeOf(first.category, first.inputKind, categoryBook) ?: return@let null
+            BudgetMath.envelopes(b, summary, categoryBook).firstOrNull { it.key == key }
         }
         return RecordResult(saved, envelope, summary.totals.total, settings.workHours(userId))
     }
@@ -181,6 +189,7 @@ open class RecordExpenses(
     private val expenses: Expenses,
     private val feelings: Feelings,
     private val writer: ExpenseWriter,
+    private val categories: CustomCategories,
     private val clock: Clock,
 ) {
     @Transactional(transactionManager = HOUSEHOLD_TX)
@@ -189,12 +198,15 @@ open class RecordExpenses(
         if (inputs.size > InputParser.CANDIDATES_MAX) throw InvalidExpense("EXPENSE_TOO_MANY", "too many expenses at once")
         val today = clock.todayKst()
         val now = clock.instant()
-        val saved = inputs.map { toExpense(userId, it, today, now) }
+        // 분류 표(가계부 S1f) — 내 분류 꼴의 키가 있을 때만 읽는다. 내 분류 키 검사 · 봉투 계산이 같은 표를 쓴다
+        val book = if (inputs.any { Category.parse(it.category)?.isCustom == true }) CategoryBook(categories.list(userId)) else null
+        val pickFrom = book ?: CategoryBook.DEFAULTS_ONLY
+        val saved = inputs.map { toExpense(userId, it, pickFrom, today, now) }
         // 태그 검사는 행을 넣기 전에 — 틀린 감정 키가 지출만 남기지 않게(한 트랜잭션이라 롤백되지만 문장을 아낀다)
         val tags = saved.zip(inputs).mapNotNull { (e, input) -> feelingFor(userId, e, input, today) }
         expenses.add(saved)
         tags.forEach { feelings.tag(it, now) }
-        return writer.afterInsert(userId, saved, today).copy(feelings = tags.associateBy { it.expenseId })
+        return writer.afterInsert(userId, saved, today, book).copy(feelings = tags.associateBy { it.expenseId })
     }
 
     private fun feelingFor(userId: String, expense: Expense, input: ExpenseInput, today: LocalDate): ExpenseFeeling? {
@@ -205,8 +217,9 @@ open class RecordExpenses(
         return feelingOf(userId, expense.id, input.emotion, input.feltNow, today)
     }
 
-    private fun toExpense(userId: String, input: ExpenseInput, today: LocalDate, now: Instant): Expense {
-        val category = Category.fromKey(input.category) ?: throw InvalidExpense("EXPENSE_CATEGORY_UNKNOWN", "unknown category")
+    private fun toExpense(userId: String, input: ExpenseInput, book: CategoryBook, today: LocalDate, now: Instant): Expense {
+        // 기본 분류 · 보관하지 않은 내 분류만 — 보관한 분류 · 남의 분류 키는 모르는 분류와 같다
+        val category = book.pick(input.category) ?: throw InvalidExpense("EXPENSE_CATEGORY_UNKNOWN", "unknown category")
         val method = PaymentMethod.fromKey(input.paymentMethod) ?: throw InvalidExpense("EXPENSE_PAYMENT_UNKNOWN", "unknown payment method")
         val precision = Precision.fromKey(input.precision) ?: throw InvalidExpense("EXPENSE_PRECISION_INVALID", "unknown precision")
         val kind = InputKind.fromKey(input.inputKind)?.takeIf { it != InputKind.TEMPLATE }
@@ -232,7 +245,7 @@ open class DeleteExpense(private val expenses: Expenses, private val occurrences
  * 입력 파싱(FR-3 · FR-4) — **저장하지 않는다.** 원문은 인자로만 지나간다(로그 0 · 예외 메시지 0).
  * 분류: 최근 같은 가맹점에 사용자가 고른 분류 → 낱말 표 → 없음(화면이 고르게). 출처를 같이 돌려준다
  */
-open class ParseInput(private val expenses: Expenses, private val clock: Clock) {
+open class ParseInput(private val expenses: Expenses, private val categories: CustomCategories, private val clock: Clock) {
     enum class Mode(val key: String) {
         LINE("line"),
         MESSAGES("messages"),
@@ -257,7 +270,10 @@ open class ParseInput(private val expenses: Expenses, private val clock: Clock) 
             Mode.MESSAGES -> InputParser.messages(text, today)
         }
         val history = if (parsed.candidates.any { it.merchant != null }) {
-            expenses.recentMerchants(userId, today.minusDays(LANDING_LOOKBACK_DAYS), 200).associateBy { it.merchant }
+            val recent = expenses.recentMerchants(userId, today.minusDays(LANDING_LOOKBACK_DAYS), 200)
+            // 지난 분류가 보관한 내 분류면 제안하지 않는다(가계부 S1f) — 낱말 표로 넘어간다. 내 분류를 쓴 적이 없으면 표를 읽지 않는다
+            val book = if (recent.any { it.category.isCustom }) CategoryBook(categories.list(userId)) else CategoryBook.DEFAULTS_ONLY
+            recent.filter { book.selectable(it.category) }.associateBy { it.merchant }
         } else {
             emptyMap()
         }
@@ -275,10 +291,16 @@ open class ParseInput(private val expenses: Expenses, private val clock: Clock) 
     }
 }
 
-open class Suggestions(private val expenses: Expenses, private val clock: Clock) {
+/** 최근 가맹점 + 분류 표(가계부 S1f — 칩이 내 분류를 같이 그린다). 보관한 분류로 적은 가맹점은 그 분류를 제안하지 않는다 */
+open class Suggestions(private val expenses: Expenses, private val categories: CustomCategories, private val clock: Clock) {
+    data class Result(val merchants: List<RecentMerchant>, val book: CategoryBook)
+
     @Transactional(transactionManager = HOUSEHOLD_TX, readOnly = true)
-    open fun execute(userId: String): List<RecentMerchant> =
-        expenses.recentMerchants(userId, clock.todayKst().minusDays(SUGGEST_DAYS), SUGGEST_LIMIT)
+    open fun execute(userId: String): Result {
+        val book = CategoryBook(categories.list(userId))
+        val merchants = expenses.recentMerchants(userId, clock.todayKst().minusDays(SUGGEST_DAYS), SUGGEST_LIMIT)
+        return Result(merchants.filter { book.selectable(it.category) }, book)
+    }
 }
 
 open class GetBudget(private val budgets: Budgets) {
@@ -286,14 +308,24 @@ open class GetBudget(private val budgets: Budgets) {
     open fun execute(userId: String): Budget? = budgets.find(userId)
 }
 
-open class SetBudget(private val budgets: Budgets, private val clock: Clock) {
+/**
+ * 예산 정하기 — [envelopes] 는 방식마다 뜻이 다르다: 봉투면 분류 키 → 금액, 통장 쪼개기면 통장 키(spending · saving · emergency) → 금액(가계부 S1f).
+ * 50/30/20 은 소득만 쓴다
+ */
+open class SetBudget(private val budgets: Budgets, private val categories: CustomCategories, private val clock: Clock) {
     @Transactional(transactionManager = HOUSEHOLD_TX)
     open fun execute(userId: String, method: String, income: Money?, envelopes: Map<String, Money>): Budget {
         val now = clock.instant()
+        fun requireIncome() = income ?: throw InvalidBudget("BUDGET_INCOME_REQUIRED", "income is required")
         val budget = when (BudgetMethod.fromKey(method)) {
-            BudgetMethod.FIFTY_THIRTY_TWENTY ->
-                Budget.fiftyThirtyTwenty(userId, income ?: throw InvalidBudget("BUDGET_INCOME_REQUIRED", "income is required"), now)
-            BudgetMethod.ENVELOPE -> Budget.envelopes(userId, envelopes, now)
+            BudgetMethod.FIFTY_THIRTY_TWENTY -> Budget.fiftyThirtyTwenty(userId, requireIncome(), now)
+            BudgetMethod.ENVELOPE -> Budget.envelopes(userId, envelopes, CategoryBook(categories.list(userId)), now)
+            BudgetMethod.ACCOUNT_SPLIT -> {
+                val unknown = envelopes.keys - Accounts.STORED.toSet()
+                if (unknown.isNotEmpty()) throw InvalidBudget("BUDGET_ACCOUNT_UNKNOWN", "unknown account")
+                val spending = envelopes[Accounts.SPENDING] ?: throw InvalidBudget("BUDGET_SPENDING_REQUIRED", "spending account is required")
+                Budget.accountSplit(userId, requireIncome(), spending, envelopes[Accounts.SAVING], envelopes[Accounts.EMERGENCY], now)
+            }
             null -> throw InvalidBudget("BUDGET_METHOD_INVALID", "unknown budget method")
         }
         budgets.replace(budget)
@@ -335,12 +367,14 @@ data class MonthView(
     val fixedCosts: List<FixedCostCandidate>,
     /** 평소보다 큰 지출 → 그 분류 중앙값(S1e FR-12). 없으면 빠진다 */
     val unusual: Map<ExpenseId, Money>,
+    /** 분류 표(가계부 S1f) — 분류별 합의 묶음 · 내 분류 이름 */
+    val categories: CategoryBook,
 )
 
 /**
  * 쿼리: 지출 목록 · 월 합 · 마감(2 — 닫은 달이면 예산 대신 사본) · 예산(2, 안 닫은 달) · 예정 행 · 할부 + 이번 달이면 착지 2 · 적중 2
  * + S1c: 태그(목록 · 거울 한 문장) · 날별 합(달력) · 스티커 · 설정 + 이번 달이면 다음 날 묻기 1
- * + S1d: 챌린지 한 날 1 + S1e: 고정비 표본 · 숨긴 키 · 템플릿 이름 · 분류 기준 4.
+ * + S1d: 챌린지 한 날 1 + S1e: 고정비 표본 · 숨긴 키 · 템플릿 이름 · 분류 기준 4 + S1f: 분류 표 1.
  * 닫은 달은 그때 붙잡은 예산으로 본다(S1b 판단 6).
  */
 open class GetMonth(
@@ -355,6 +389,7 @@ open class GetMonth(
     private val challenges: com.salt.household.domain.Challenges,
     private val fixedCostReader: FixedCostReader,
     private val patterns: SpendingPatterns,
+    private val categories: CustomCategories,
     private val clock: Clock,
 ) {
     @Transactional(transactionManager = HOUSEHOLD_TX, readOnly = true)
@@ -367,7 +402,8 @@ open class GetMonth(
         val monthOccurrences = occurrences.inMonth(userId, month)
         val plans = expenses.installments(userId, month.minusMonths(InstallmentMath.MAX_MONTHS.toLong()).atDay(1), month.atEndOfMonth())
             .mapNotNull(InstallmentPlan::of)
-        val envelopes = budget?.let { BudgetMath.envelopes(it, summary.byCategory) }.orEmpty()
+        val book = CategoryBook(categories.list(userId))
+        val envelopes = budget?.let { BudgetMath.envelopes(it, summary, book) }.orEmpty()
         val remaining = envelopes.takeIf { it.isNotEmpty() }?.map { it.remaining }?.reduce(Money::plus)
         val daysLeft = BudgetMath.daysLeftIncludingToday(month, today)
         val current = month == YearMonth.from(today)
@@ -387,7 +423,7 @@ open class GetMonth(
             summary = summary,
             budget = budget,
             envelopes = envelopes,
-            unbudgeted = budget?.let { BudgetMath.unbudgeted(it, summary.byCategory) },
+            unbudgeted = budget?.let { BudgetMath.unbudgeted(it, summary, book) },
             remaining = remaining,
             dailyAvailable = remaining?.let { BudgetMath.dailyAvailable(it, daysLeft) },
             daysLeft = daysLeft,
@@ -407,12 +443,19 @@ open class GetMonth(
             workHours = settings.workHours(userId),
             fixedCosts = if (current) scan.candidates else emptyList(),
             unusual = unusual,
+            categories = book,
         )
     }
 }
 
 /** 홈 요약 카드(FR-18) — 이번 달 지출 · 착지 · 예산 남은 금액. 적중 판정은 싣지 않는다(쿼리를 아낀다) */
-open class HomeCard(private val expenses: Expenses, private val budgets: Budgets, private val landingReader: LandingReader, private val clock: Clock) {
+open class HomeCard(
+    private val expenses: Expenses,
+    private val budgets: Budgets,
+    private val landingReader: LandingReader,
+    private val categories: CustomCategories,
+    private val clock: Clock,
+) {
     data class View(val month: YearMonth, val spent: Money, val count: Int, val remaining: Money?, val landing: Landing)
 
     @Transactional(transactionManager = HOUSEHOLD_TX, readOnly = true)
@@ -420,7 +463,11 @@ open class HomeCard(private val expenses: Expenses, private val budgets: Budgets
         val today = clock.todayKst()
         val month = YearMonth.from(today)
         val summary = expenses.monthSummary(userId, month)
-        val remaining = budgets.find(userId)?.let { b -> BudgetMath.envelopes(b, summary.byCategory).map { it.remaining }.reduceOrNull(Money::plus) }
+        // 분류 표는 묶음으로 가르는 50/30/20 에서만 읽는다(봉투 · 통장 쪼개기는 묶음을 안 쓴다)
+        val remaining = budgets.find(userId)?.let { b ->
+            val book = if (b.method == BudgetMethod.FIFTY_THIRTY_TWENTY) CategoryBook(categories.list(userId)) else CategoryBook.DEFAULTS_ONLY
+            BudgetMath.envelopes(b, summary, book).map { it.remaining }.reduceOrNull(Money::plus)
+        }
         return View(month, summary.totals.total, summary.totals.count, remaining, landingReader.landing(userId, today, summary.totals.total))
     }
 }

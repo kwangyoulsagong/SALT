@@ -8,6 +8,7 @@ import com.nimbusds.jwt.SignedJWT
 import com.salt.support.persistence.ServiceDatabase
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import org.junit.jupiter.api.Test
@@ -263,7 +264,7 @@ class HouseholdEndToEndTest {
     }
 
     @Test
-    fun `쿼리 수 — 월 화면 21 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
+    fun `쿼리 수 — 월 화면 22 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
         val user = "q-${UUID.randomUUID()}"
         call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"food":300000}}""").statusCode() shouldBe 200
         var before = statements()
@@ -284,13 +285,15 @@ class HouseholdEndToEndTest {
         // + S1c: 태그(목록 · 거울 한 문장) · 달력 날별 합 · 스티커 · 설정 · 다음 날 묻기(이번 달만) = 16
         // + S1d: 챌린지 한 날(달력) = 17
         // + S1e: 고정비 표본 · 숨긴 키 · 템플릿 이름 · 분류 기준(이상치) = 21
-        month shouldBe 21L
+        // + S1f: 분류 표(내 분류 이름 · 묶음) = 22
+        month shouldBe 22L
         // 저장: 행 · 아웃박스 · 월 합 · 착지 2 · 발행 · 아웃박스(그날 처음) · 예산 2 = 9. 두 번째는 발행이 ON CONFLICT 로 빈 문장이 되고 그 아웃박스가 빠져 8
         // (그날 이미 냈어도 착지를 다시 계산하는 3문장은 리뷰가 짚은 낭비 — 쓰기 응답 몫이라 남김, 루트 체크리스트 §4)
         // + S1b: 착지 예정 행 1 · + S1c: 설정(노동시간) 1 — 감정 태그를 달면 태그 1 더
+        // S1f: 기본 분류 · 봉투 방식이면 분류 표를 읽지 않는다(내 분류를 적거나 50/30/20 일 때만 +1)
         firstSave shouldBe 11L
         secondSave shouldBe 10L
-        // 홈: 월 합 · 예산 2 · 착지 2 · 예정 행 1
+        // 홈: 월 합 · 예산 2 · 착지 2 · 예정 행 1(분류 표는 50/30/20 일 때만)
         home shouldBe 6L
     }
 
@@ -834,6 +837,107 @@ class HouseholdEndToEndTest {
         save(29_999, 0).path("expenses").get(0).path("typicalAmount").isNull shouldBe true
         data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("expenses")
             .first { it.path("amount").asLong() == 29_999L }.path("typicalAmount").isNull shouldBe true
+    }
+
+    // ---------- 가계부 S1f — 내 분류 · 통장 쪼개기 ----------
+
+    @Test
+    fun `내 분류 — 만들어 적기 · 묶음대로 50 30 20 · 이름 바꾸면 지난 지출도 · 같은 이름 409 · 보관하면 새로 못 적고 지난 것은 이름 그대로`() {
+        val user = "cat-${UUID.randomUUID()}"
+        val created = call("POST", "/api/household/categories", user, """{"name":"  강아지  ","bucket":"needs"}""")
+        created.statusCode() shouldBe 201
+        val pet = data(created)
+        pet.path("name").asString() shouldBe "강아지"
+        pet.path("custom").asBoolean() shouldBe true
+        val key = pet.path("key").asString()
+        key.matches(Regex("^u_[0-9a-f]{12}$")) shouldBe true
+
+        // 같은 이름(대소문자 · 공백 무시 전 정리) · 기본 묶음 밖 · 너무 긴 이름
+        call("POST", "/api/household/categories", user, """{"name":"강아지","bucket":"wants"}""").let { it.statusCode() shouldBe 409; it.body() shouldContain "CATEGORY_NAME_TAKEN" }
+        call("POST", "/api/household/categories", user, """{"name":"OTT","bucket":"savings"}""").body() shouldContain "CATEGORY_BUCKET_INVALID"
+        call("POST", "/api/household/categories", user, """{"name":"${"가".repeat(13)}","bucket":"wants"}""").body() shouldContain "CATEGORY_NAME_TOO_LONG"
+
+        call("PUT", "/api/household/budget", user, """{"method":"50_30_20","income":3000000}""").statusCode() shouldBe 200
+        val saved = data(call("POST", "/api/household/expenses", user, """{"amount":40000,"category":"$key","merchant":"사료몰"}"""))
+        saved.path("expenses").get(0).path("category").asString() shouldBe key
+        saved.path("envelope").path("key").asString() shouldBe "needs"
+        // 이벤트 본문은 키만 — 이름 0
+        householdDatabase.dsl.fetchValue("SELECT payload->>'category' FROM outbox WHERE event_type = 'household.ExpenseRecorded' AND payload->>'userId' = ?", user) shouldBe key
+        householdDatabase.dsl.fetchValue("SELECT count(*) FROM outbox WHERE payload::text LIKE '%강아지%' AND payload->>'userId' = ?", user).toString() shouldBe "0"
+
+        // 묶음을 바꾸면 이번 달 봉투도 따라간다(키가 같다)
+        call("PUT", "/api/household/categories/$key", user, """{"name":"반려견","bucket":"wants"}""").statusCode() shouldBe 200
+        val month = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null))
+        month.path("categories").first { it.path("key").asString() == key }.path("name").asString() shouldBe "반려견"
+        month.path("byCategory").first { it.path("key").asString() == key }.path("bucket").asString() shouldBe "wants"
+        month.path("envelopes").first { it.path("key").asString() == "wants" }.path("spent").asLong() shouldBe 40_000
+        data(call("GET", "/api/household/suggestions", user, null)).path("categories").size() shouldBe 13
+
+        // 보관 — 새로 적기 · 새 봉투는 400, 지난 지출 · 분류 표(보관 표시)는 남는다 · 다시 보관 404
+        call("DELETE", "/api/household/categories/$key", user, null).statusCode() shouldBe 200
+        call("DELETE", "/api/household/categories/$key", user, null).statusCode() shouldBe 404
+        call("POST", "/api/household/expenses", user, """{"amount":1000,"category":"$key"}""").body() shouldContain "EXPENSE_CATEGORY_UNKNOWN"
+        call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"$key":1000}}""").body() shouldContain "BUDGET_CATEGORY_UNKNOWN"
+        val after = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null))
+        after.path("expenses").get(0).path("category").asString() shouldBe key
+        after.path("categories").first { it.path("key").asString() == key }.path("archived").asBoolean() shouldBe true
+        data(call("GET", "/api/household/suggestions", user, null)).path("categories").size() shouldBe 12
+        // 보관한 이름은 다시 만들 수 있다(새 키)
+        data(call("POST", "/api/household/categories", user, """{"name":"반려견","bucket":"needs"}""")).path("key").asString() shouldNotBe key
+
+        // 남의 분류 · 기본 분류 · 모르는 꼴은 404 — 남의 키로 적기는 400
+        val other = "cat-o-${UUID.randomUUID()}"
+        call("PUT", "/api/household/categories/$key", other, """{"name":"x","bucket":"wants"}""").statusCode() shouldBe 404
+        call("DELETE", "/api/household/categories/food", user, null).statusCode() shouldBe 404
+        call("POST", "/api/household/expenses", other, """{"amount":1000,"category":"${data(call("GET", "/api/household/categories", user, null)).path("categories").items { it.path("key").asString() }.last()}"}""")
+            .body() shouldContain "EXPENSE_CATEGORY_UNKNOWN"
+    }
+
+    @Test
+    fun `내 분류 상한 — 보관 안 한 것 20개 · 넘으면 409 · 보관하면 다시 자리`() {
+        val user = "cat-max-${UUID.randomUUID()}"
+        val keys = (1..20).map { i -> data(call("POST", "/api/household/categories", user, """{"name":"분류$i","bucket":"wants"}""")).path("key").asString() }
+        call("POST", "/api/household/categories", user, """{"name":"스물하나","bucket":"wants"}""").let { it.statusCode() shouldBe 409; it.body() shouldContain "CATEGORY_TOO_MANY" }
+        call("DELETE", "/api/household/categories/${keys.first()}", user, null).statusCode() shouldBe 200
+        call("POST", "/api/household/categories", user, """{"name":"스물하나","bucket":"wants"}""").statusCode() shouldBe 201
+        data(call("GET", "/api/household/categories", user, null)).let { it.path("limit").asInt() shouldBe 20; it.path("categories").size() shouldBe 12 + 21 }
+    }
+
+    @Test
+    fun `통장 쪼개기 — 급여 통장 몫은 서버 · 템플릿 지출은 급여 통장 · 나머지는 생활비 통장 · 봉투 밖 0 · 합이 소득을 넘으면 거절 · 닫은 달 사본`() {
+        val user = "acct-${UUID.randomUUID()}"
+        call("PUT", "/api/household/budget", user, """{"method":"account_split","income":3000000,"envelopes":{"spending":800000,"saving":1000000,"emergency":2000000}}""")
+            .body() shouldContain "BUDGET_SPLIT_OVER_INCOME"
+        call("PUT", "/api/household/budget", user, """{"method":"account_split","income":3000000,"envelopes":{"food":1}}""").body() shouldContain "BUDGET_ACCOUNT_UNKNOWN"
+        call("PUT", "/api/household/budget", user, """{"method":"account_split","envelopes":{"spending":1}}""").body() shouldContain "BUDGET_INCOME_REQUIRED"
+        val set = data(call("PUT", "/api/household/budget", user, """{"method":"account_split","income":3000000,"envelopes":{"spending":800000,"saving":1000000,"emergency":0}}"""))
+        set.path("salaryShare").asLong() shouldBe 1_200_000
+        set.path("savingsShare").isNull shouldBe true
+        set.path("envelopes").items { it.path("key").asString() } shouldBe listOf("spending", "saving")
+        set.path("total").asLong() shouldBe 2_000_000
+
+        val t = data(call("POST", "/api/household/templates", user, """{"name":"월세","amount":700000,"category":"housing","paymentMethod":"transfer","dayOfMonth":${today.dayOfMonth}}"""))
+        val confirmed = data(call("POST", "/api/household/occurrences/${t.path("thisMonth").path("id").asString()}/confirm", user, null)).path("record")
+        confirmed.path("envelope").path("key").asString() shouldBe "salary"
+        confirmed.path("envelope").path("remaining").asLong() shouldBe 500_000
+        val direct = data(call("POST", "/api/household/expenses", user, """{"amount":900000,"category":"housing"}"""))
+        direct.path("envelope").path("key").asString() shouldBe "spending"
+        direct.path("envelope").path("remaining").asLong() shouldBe -100_000
+
+        val month = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null))
+        month.path("envelopes").items { it.path("key").asString() } shouldBe listOf("salary", "spending")
+        month.path("unbudgeted").asLong() shouldBe 0
+        month.path("remaining").asLong() shouldBe 400_000
+        month.toString() shouldNotContain "warning"
+
+        // 지난 달을 닫으면 통장 쪼개기 사본이 남는다(V6 — 마감 표 CHECK)
+        val last = YearMonth.from(today).minusMonths(1)
+        call("POST", "/api/household/month/$last/close", user, """{}""").statusCode() shouldBe 200
+        call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"cafe":100000}}""").statusCode() shouldBe 200
+        data(call("GET", "/api/household/month/$last", user, null)).path("budget").let {
+            it.path("method").asString() shouldBe "account_split"
+            it.path("salaryShare").asLong() shouldBe 1_200_000
+        }
     }
 
     @org.springframework.boot.test.context.TestConfiguration

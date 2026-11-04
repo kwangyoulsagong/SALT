@@ -34,7 +34,7 @@ class JooqSpendingPatterns(private val dsl: DSLContext) : SpendingPatterns {
                 MerchantCharge(
                     ExpenseId(it.value1()),
                     it.value2(),
-                    Category.fromKey(it.value3()) ?: Category.OTHER,
+                    Category.parse(it.value3()) ?: Category.OTHER,
                     PaymentMethod.fromKey(it.value4()) ?: PaymentMethod.OTHER,
                     money(it.value5()),
                     it.value6(),
@@ -56,7 +56,7 @@ class JooqSpendingPatterns(private val dsl: DSLContext) : SpendingPatterns {
             .groupBy(EXPENSE.CATEGORY)
             .fetch()
             .mapNotNull { r ->
-                val category = Category.fromKey(r.value1()) ?: return@mapNotNull null
+                val category = Category.parse(r.value1()) ?: return@mapNotNull null
                 val value = r.value2() ?: return@mapNotNull null
                 category to CategoryBaseline(money(BigDecimal(value.toString())), r.value3())
             }

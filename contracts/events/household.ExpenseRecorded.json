@@ -33,19 +33,28 @@
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
     },
     "category": {
-      "enum": [
-        "food",
-        "cafe",
-        "transport",
-        "housing",
-        "telecom",
-        "living",
-        "health",
-        "education",
-        "shopping",
-        "culture",
-        "gift",
-        "other"
+      "description": "기본 분류 키 12개 또는 사용자 분류 키(`u_` + 12자리, 가계부 S1f — SRV-REQ-046 FR-22). 사용자 분류의 이름은 싣지 않는다",
+      "anyOf": [
+        {
+          "enum": [
+            "food",
+            "cafe",
+            "transport",
+            "housing",
+            "telecom",
+            "living",
+            "health",
+            "education",
+            "shopping",
+            "culture",
+            "gift",
+            "other"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^u_[0-9a-f]{12}$"
+        }
       ]
     },
     "precision": {

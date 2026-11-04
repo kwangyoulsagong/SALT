@@ -1,6 +1,8 @@
 package com.salt.household.application
 
 import com.salt.household.domain.Category
+import com.salt.household.domain.CategoryBook
+import com.salt.household.domain.CustomCategories
 import com.salt.household.domain.Expense
 import com.salt.household.domain.Expenses
 import com.salt.household.domain.HouseholdEvents
@@ -37,7 +39,9 @@ data class TemplateInput(
 
 private fun parseId(raw: String): UUID? = runCatching { UUID.fromString(raw) }.getOrNull()
 
-private fun category(key: String): Category = Category.fromKey(key) ?: throw InvalidRecurring("TEMPLATE_CATEGORY_UNKNOWN", "unknown category")
+/** 기본 분류 · 보관하지 않은 내 분류(가계부 S1f). [keep] 은 고치는 템플릿이 이미 든 분류 — 그 분류를 보관했어도 그대로 두면 받는다 */
+private fun category(book: CategoryBook, key: String, keep: Category? = null): Category =
+    book.pick(key) ?: keep?.takeIf { it.key == key } ?: throw InvalidRecurring("TEMPLATE_CATEGORY_UNKNOWN", "unknown category")
 
 private fun payment(key: String): PaymentMethod = PaymentMethod.fromKey(key) ?: throw InvalidRecurring("TEMPLATE_PAYMENT_UNKNOWN", "unknown payment method")
 
@@ -48,14 +52,20 @@ open class ListTemplates(private val templates: RecurringTemplates, private val 
 }
 
 /** 만들기 — 이번 달 예정일이 오늘 이후면 이번 달 예정 행을 바로 만든다(슬라이스 판단 2 — 워커를 기다리지 않는다) */
-open class CreateTemplate(private val templates: RecurringTemplates, private val occurrences: RecurringOccurrences, private val clock: Clock) {
+open class CreateTemplate(
+    private val templates: RecurringTemplates,
+    private val occurrences: RecurringOccurrences,
+    private val categories: CustomCategories,
+    private val clock: Clock,
+) {
     @Transactional(transactionManager = HOUSEHOLD_TX)
     open fun execute(userId: String, input: TemplateInput): TemplateWithOccurrence {
         if (templates.countActive(userId) >= RecurringRules.TEMPLATE_MAX) throw InvalidRecurring("TEMPLATE_TOO_MANY", "too many templates")
         val today = clock.todayKst()
         val now = clock.instant()
         val template = RecurringTemplate.create(
-            userId, input.name, input.amount, category(input.category), payment(input.paymentMethod), input.dayOfMonth, input.confirmRequired, today, now,
+            userId, input.name, input.amount, category(CategoryBook(categories.list(userId)), input.category), payment(input.paymentMethod),
+            input.dayOfMonth, input.confirmRequired, today, now,
         )
         templates.add(template)
         val month = YearMonth.from(today)
@@ -65,13 +75,19 @@ open class CreateTemplate(private val templates: RecurringTemplates, private val
 }
 
 /** 고치기 — 이번 달 예정 행이 아직 예정이면 새 값으로(확인 · 건너뛴 달은 그대로) */
-open class EditTemplate(private val templates: RecurringTemplates, private val occurrences: RecurringOccurrences, private val clock: Clock) {
+open class EditTemplate(
+    private val templates: RecurringTemplates,
+    private val occurrences: RecurringOccurrences,
+    private val categories: CustomCategories,
+    private val clock: Clock,
+) {
     @Transactional(transactionManager = HOUSEHOLD_TX)
     open fun execute(userId: String, rawId: String, input: TemplateInput): TemplateWithOccurrence {
         val id = parseId(rawId) ?: throw TemplateNotFound(rawId)
         val current = templates.find(id, userId) ?: throw TemplateNotFound(rawId)
         val now = clock.instant()
-        val edited = current.edited(input.name, input.amount, category(input.category), payment(input.paymentMethod), input.dayOfMonth, input.confirmRequired, now)
+        val picked = category(CategoryBook(categories.list(userId)), input.category, keep = current.category)
+        val edited = current.edited(input.name, input.amount, picked, payment(input.paymentMethod), input.dayOfMonth, input.confirmRequired, now)
         if (templates.update(edited) == 0) throw TemplateNotFound(rawId)
         val month = YearMonth.from(clock.todayKst())
         occurrences.refreshScheduled(edited, month)
