@@ -12,6 +12,14 @@
   "dependencies": {
     "@repo/config-next": "workspace:*",
     "@repo/core": "workspace:*",
+    "@repo/domain-household": "workspace:*",
+    "@repo/tokens": "workspace:*",
+    "@repo/ui": "workspace:*",
+    "@repo/web-shared": "workspace:*",
+    "@tanstack/react-query": "^5.64.1",
+    "@vanilla-extract/css": "^1.14.0",
+    "@vanilla-extract/next-plugin": "^2.4.8",
+    "framer-motion": "^12",
     "next": "^15.5.25",
     "react": "^18",
     "react-dom": "^18"
@@ -25,5 +33,9 @@
     "eslint": "^8",
     "eslint-config-next": "^15.5.25",
     "typescript": "^5"
-  }
+  },
+  "sideEffects": [
+    "**/*.css.ts",
+    "**/*.css"
+  ]
 }

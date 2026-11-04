@@ -163,9 +163,33 @@ importers:
       '@repo/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@repo/domain-household':
+        specifier: workspace:*
+        version: link:../../packages/domain-household
+      '@repo/tokens':
+        specifier: workspace:*
+        version: link:../../packages/tokens
+      '@repo/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@repo/web-shared':
+        specifier: workspace:*
+        version: link:../../packages/web-shared
+      '@tanstack/react-query':
+        specifier: ^5.64.1
+        version: 5.65.1(react@18.2.0)
+      '@vanilla-extract/css':
+        specifier: ^1.14.0
+        version: 1.17.4
+      '@vanilla-extract/next-plugin':
+        specifier: ^2.4.8
+        version: 2.4.9(next@15.5.25)(webpack@5.97.1)
+      framer-motion:
+        specifier: ^12
+        version: 12.43.0(react-dom@18.2.0)(react@18.2.0)
       next:
         specifier: ^15.5.25
-        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+        version: 15.5.25(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.63.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18
         version: 18.2.0
@@ -404,6 +428,61 @@ importers:
       vitest:
         specifier: ^4.0.9
         version: 4.0.9(@types/node@20.17.16)(@vitest/browser-playwright@4.0.9)
+
+  packages/domain-household:
+    dependencies:
+      '@repo/core':
+        specifier: workspace:*
+        version: link:../core
+      '@repo/tokens':
+        specifier: workspace:*
+        version: link:../tokens
+      '@repo/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@repo/web-shared':
+        specifier: workspace:*
+        version: link:../web-shared
+    devDependencies:
+      '@repo/eslint-plugin-fsd':
+        specifier: workspace:*
+        version: link:../eslint-plugin-fsd
+      '@repo/eslint-plugin-zone':
+        specifier: workspace:*
+        version: link:../eslint-plugin-zone
+      '@tanstack/react-query':
+        specifier: ^5.64.1
+        version: 5.65.1(react@18.2.0)
+      '@types/node':
+        specifier: ^20
+        version: 20.17.16
+      '@types/react':
+        specifier: ^18
+        version: 18.3.18
+      '@types/react-dom':
+        specifier: ^18
+        version: 18.3.5(@types/react@18.3.18)
+      '@vanilla-extract/css':
+        specifier: ^1.14.0
+        version: 1.17.4
+      eslint:
+        specifier: ^8
+        version: 8.57.1
+      eslint-config-next:
+        specifier: ^15.5.25
+        version: 15.5.25(eslint@8.57.1)(typescript@5.7.3)
+      next:
+        specifier: ^15.5.25
+        version: 15.5.25(@babel/core@7.28.5)(@playwright/test@1.50.0)(@types/node@20.17.16)(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18
+        version: 18.2.0
+      react-dom:
+        specifier: ^18
+        version: 18.2.0(react@18.2.0)
+      typescript:
+        specifier: ^5
+        version: 5.7.3
 
   packages/domain-invest:
     dependencies:

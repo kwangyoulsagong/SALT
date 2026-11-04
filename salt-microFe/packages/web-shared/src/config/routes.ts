@@ -36,6 +36,11 @@ export const ROUTES = {
   goals: "/goals",
   addGoal: "/goals/new",
   goal: (id: string) => `/goals/${encodeURIComponent(id)}`,
+  /** 가계부 — 가계부 zone(`web-household`, `FE-REQ-057` 2026-11-04) */
+  household: "/household",
+  newExpense: "/household/new",
+  householdBudget: "/household/budget",
+  householdMonth: (yearMonth: string) => `/household/month/${encodeURIComponent(yearMonth)}`,
   /** 투자 코치 설정 — 셸 설정(`/settings`)이 여기로 보낸다(`FE-REQ-053`, 2026-11-02 셸 설정에서 분리) */
   coachSettings: "/coach/settings",
 } as const;

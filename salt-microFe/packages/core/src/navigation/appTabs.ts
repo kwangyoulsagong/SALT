@@ -33,7 +33,7 @@ export const APP_TABS: readonly AppTab[] = [
   // 저축 zone 첫 화면 `/goals`(2026-11-03 `FE-REQ-056`)
   { id: "savings", label: "저축", icon: "coin", zone: "savings", href: "/goals", readyBy: null },
   // 가계부 zone 은 빈 골격이다(`FE-REQ-052` FR-7)
-  { id: "household", label: "가계부", icon: "wallet", zone: "household", href: "/household", readyBy: "FE-REQ-057" },
+  { id: "household", label: "가계부", icon: "wallet", zone: "household", href: "/household", readyBy: null },
   { id: "invest", label: "투자", icon: "chart", zone: "invest", href: "/investments", readyBy: null },
 ];
 
