@@ -35,6 +35,17 @@ export const useHouseholdSuggestions = () => {
   });
 };
 
+export const useRecurringTemplates = () => {
+  const signedIn = useHasAccessToken();
+  const query = useQuery({
+    queryKey: householdQueryKeys.templates(),
+    queryFn: ({ signal }) => householdApi.templates(signal),
+    enabled: signedIn === true,
+    staleTime: MONTH_STALE_MS,
+  });
+  return { ...query, isSignedOut: signedIn === false };
+};
+
 export const useHouseholdBudget = () => {
   const signedIn = useHasAccessToken();
   const query = useQuery({

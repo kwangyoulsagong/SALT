@@ -72,6 +72,7 @@ export const LANDING_MESSAGES = {
   note: "어제까지 쓴 돈 + 지난 날들의 쓰는 속도로 본 오늘부터 말일까지의 10 · 90% 구간이에요. 한 점으로 단정하지 않아요",
   historyShort: (days: number) => `기록한 날이 14일이 되면 구간을 보여 드려요(지금 ${days}일)`,
   monthOver: "오늘이 이 달 마지막 날이에요",
+  scheduled: (amount: string) => `아직 확인 안 한 매달 나가는 돈 ${amount} 이 들어 있어요`,
   notCurrent: "지난 달은 실제로 쓴 돈만 보여요",
   trackTitle: "지난달 같은 날 본 구간",
   trackHit: (low: string, high: string, actual: string) => `${low} ~ ${high} 였고, 실제로 ${actual} — 구간 안이었어요`,
@@ -80,6 +81,18 @@ export const LANDING_MESSAGES = {
     not_issued: "지난달 이맘때 낸 구간이 없어요",
     history_short: "지난달 이맘때는 기록이 짧아 구간을 내지 않았어요",
   } as Readonly<Record<string, string>>,
+} as const;
+
+/** 할부 띠(가계부 S1b FR-10) — 원거래는 산 달 합에 이미 들어 있다는 것을 같이 말한다 */
+export const INSTALLMENT_MESSAGES = {
+  title: "할부",
+  empty: "이 달에 나가는 할부가 없어요",
+  monthCharge: (amount: string) => `이 달 할부 청구 ${amount}`,
+  line: (index: number, months: number) => `${months}개월 중 ${index}회차`,
+  remaining: (amount: string, last: string) => `남은 청구 ${amount} · ${last}까지`,
+  original: (amount: string) => `원래 ${amount}`,
+  upcoming: "앞으로 6개월 청구",
+  note: "산 달 지출에 이미 들어 있어요. 첫 청구는 산 다음 달로 보고, 원 단위로 나누고 남는 돈은 첫 달에 넣었어요 — 카드사 결제일은 몰라요",
 } as const;
 
 export const trackLine = (t: HouseholdTrack): string => {

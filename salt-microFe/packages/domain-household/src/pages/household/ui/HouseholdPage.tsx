@@ -20,6 +20,9 @@ const MonthView = async ({ ym }: { ym: string }) => {
       <div className={s.head}>
         <h1 className={panelTitle}>{M.title}</h1>
         <div className={s.actions}>
+          <Link href={ROUTES.householdRecurring} className={s.link}>
+            {M.recurring}
+          </Link>
           <Link href={ROUTES.householdBudget} className={s.link}>
             {M.budget}
           </Link>

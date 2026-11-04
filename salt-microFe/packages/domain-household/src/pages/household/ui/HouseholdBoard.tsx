@@ -5,14 +5,17 @@ import { Skeleton } from "@repo/ui/skeleton";
 
 import { panel, panelDescription, panelTitle } from "@repo/web-shared/ui/surface.css";
 
-import { EXPENSE_MESSAGES as E, EnvelopeList, ExpenseList, LandingBox, MonthTotals, useHouseholdMonth, type HouseholdMonth } from "@/entities/household";
+import { EXPENSE_MESSAGES as E, EnvelopeList, ExpenseList, InstallmentBand, LandingBox, MonthTotals, useHouseholdMonth, type HouseholdMonth } from "@/entities/household";
+import { MonthReview } from "@/features/close-month";
+import { RecurringAskCard } from "@/features/manage-recurring";
 import { DeleteExpenseButton } from "@/features/record-expense";
 
 import { HOUSEHOLD_PAGE as M } from "../model";
 import * as s from "./household.css";
 
 /**
- * 한 달 화면 잎(`FE-REQ-057` FR-1 · FR-6 · FR-7) — 쓴 돈 · 봉투 · 착지 구간 · 쓴 내역. 숫자는 전부 서버 값. 첫 숫자는 서버가 쿠키로 받아 넘긴다.
+ * 한 달 화면 잎(`FE-REQ-057` FR-1 · FR-4 · FR-6 · FR-7) — 쓴 돈 · 반복 확인 · 착지 구간 · 봉투 · 할부 · 돌아보기 · 쓴 내역.
+ * 숫자 · 보여 줄 단계(반복 `stage` · 닫을 수 있나 `closable`)는 전부 서버 값. 첫 숫자는 서버가 쿠키로 받아 넘긴다.
  */
 export const HouseholdBoard = ({ ym, initial }: { ym: string; initial: HouseholdMonth | null }) => {
   const month = useHouseholdMonth(ym, initial);
@@ -24,11 +27,14 @@ export const HouseholdBoard = ({ ym, initial }: { ym: string; initial: Household
     <div className={s.grid}>
       <div className={s.column}>
         <MonthTotals month={m} />
+        {m.current ? <RecurringAskCard items={m.recurring.items} /> : null}
         {m.current ? <LandingBox month={m} /> : null}
         <section className={panel} aria-label={E.envelopes}>
           <h2 className={panelTitle}>{E.envelopes}</h2>
           {m.budget ? <EnvelopeList envelopes={m.envelopes} unbudgeted={m.unbudgeted} /> : <p className={panelDescription}>{E.noBudget}</p>}
         </section>
+        <InstallmentBand installments={m.installments} />
+        <MonthReview key={`${m.month}-${m.close?.closedAt ?? "open"}`} month={m} />
       </div>
       <section className={panel} aria-label={E.list}>
         <h2 className={panelTitle}>{E.list}</h2>
