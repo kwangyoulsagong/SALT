@@ -18,10 +18,10 @@
 | FR-4 | 셀 수 없는 것은 짧은 체크리스트 — 구현 전 · done 전, 항목마다 언제 터졌나 | `.claude/rules/done-checklist.md`(200줄 이내) |
 | FR-5 | 영역 파이프라인이 done 전에 이 검사를 부른다 · 코드 리뷰 스킬은 쓰지 않는다 | 루트 `CLAUDE.md` 표 · 영역 deliver(웹 · BFF · 서버) · 예측 pipeline 스킬 |
 | FR-6 | 렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기를 웹 lint 가 막는다 | `@repo/fsd/no-render-read` — zone 앱 · 도메인 패키지 9곳. 기존 걸린 3곳: 1곳 고침(`useRegenerateCoach`), 2곳은 브라우저에서만 그려져 이유 적은 예외(`EventsCard` · `ForecastFanChart`) |
-| FR-7 | PR 마다 같은 검사가 자동으로 돈다 | `.github/workflows/checks.yml` — done 전 검사 · 웹 타입 · lint · 테스트 · 레이어 · 서버 lint |
 
 원본 → 생성물 갈라짐(아이콘)은 로고 브랜치의 `brandIcons.test.ts`(`FE-REQ-051`)가 막는다 — 그 브랜치가 머지되면 체크리스트 1절 표가 맞아진다.
 
 ## 범위 밖
 
 - "프론트 판단 상수" lint — 이름으로 찾은 상수 25개가 전부 입력 길이 · 목록 개수 · 칸 높이였다(위반 0). 이름으로는 판단 상수와 갈리지 않아 체크리스트 2절(사람)로 둔다
+- CI — 만들었다가 뺐다(사용자 2026-11-04 "빼"). 검사는 영역 deliver 단계에서 부른다

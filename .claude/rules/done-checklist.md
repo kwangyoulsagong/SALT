@@ -15,12 +15,12 @@
 | 루트 슬라이스 3종 · 마스터 인덱스 누락 | 같은 스크립트 3 · 4번 | done 전 |
 | `.claude/rules/**` 200줄 초과 | 같은 스크립트 5번 | done 전 |
 | 참고한 외부 서비스 이름이 문서 · 커밋에 | 같은 스크립트 6번(목록은 `.git/info/reference-brands`, 레포에 없다) | done 전 |
-| DB 오류 코드(`P2002`)로 흐름 가르기 | `salt-server` lint `no-restricted-syntax` | 저장 · CI |
-| 렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기(수화 갈림) | 웹 lint `@repo/fsd/no-render-read` — 브라우저에서만 그려지는 자리는 이유를 적은 예외 주석 | 저장 · CI |
+| DB 오류 코드(`P2002`)로 흐름 가르기 | `salt-server` lint `no-restricted-syntax` | 저장 · `pnpm lint` |
+| 렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기(수화 갈림) | 웹 lint `@repo/fsd/no-render-read` — 브라우저에서만 그려지는 자리는 이유를 적은 예외 주석 | 저장 · `pnpm lint` |
 | 원본(토큰)과 생성물(아이콘)이 갈라짐 | `@repo/ui` `brandIcons.test.ts` | `pnpm test` |
 | FSD 레이어 · 도메인 경계 · zone 을 넘는 `<Link>` · `axios` · `motion` import | 레이어 훅 · lint(기존) | 쓰기 시점 |
 
-**PR 마다 `.github/workflows/checks.yml` 이 같은 명령을 돈다**(done 전 검사 · 웹 타입 · lint · 테스트 · 레이어 · 서버 lint).
+CI 는 두지 않는다(사용자 2026-11-04) — 영역 deliver 단계가 이 명령들을 부른다.
 **스크립트가 실패하면 고치고 다시 돌린다. 통과해도 아래 2 · 3절은 사람 몫이다.**
 
 ## 2. 구현 전 — 사람이 본다
