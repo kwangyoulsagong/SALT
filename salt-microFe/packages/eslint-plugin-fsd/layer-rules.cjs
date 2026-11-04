@@ -68,6 +68,8 @@ const REGISTRY = {
     "device",
     // 셸 홈 요약 카드 조회 · 표시 — 도메인을 모르는 카드 계약(`FE-REQ-055`)
     "home",
+    // 가계부 — 지출 · 봉투 · 착지 구간(`FE-REQ-057`, 2026-11-04). 서버 컨텍스트와 같은 이름(루트 CLAUDE.md)
+    "household",
   ],
   features: [
     "ask-coach",
@@ -93,6 +95,9 @@ const REGISTRY = {
     "rebalance-goals",
     "add-item-unit",
     "compare-emergency",
+    // 가계부(`FE-REQ-057`, 2026-11-04) — 지출 적기(바로 · 한 줄 · 결제 문자 붙여넣기 · 지우기) · 예산 정하기
+    "record-expense",
+    "edit-budget",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",
@@ -127,6 +132,10 @@ const REGISTRY = {
     "add-goal",
     // 저축 목표 상세 `/goals/[id]`(`FE-REQ-056`, 2026-11-03)
     "goal-detail",
+    // 가계부 `/household` · `/household/month/[ym]` · `/household/new` · `/household/budget`(`FE-REQ-057`, 2026-11-04)
+    "household",
+    "new-expense",
+    "budget",
     "investments",
     "investment-detail",
     "search",

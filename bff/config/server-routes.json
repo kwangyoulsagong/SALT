@@ -3,6 +3,7 @@
   "default": "legacy",
   "routes": {
     "/platform": "platform",
-    "/savings": "platform"
+    "/savings": "platform",
+    "/household": "platform"
   }
 }

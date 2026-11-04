@@ -48,18 +48,25 @@ describe("AppHomeService.getHome", () => {
   // 기본: 매입가 숨김 켬 — 손익률 칸이 없는 쪽. 손익률 케이스는 아래에서 따로 바꾼다
   const hideByDefault = () => mock.method(appAICoachService, "getProfile", profile(true));
 
-  it("저축 · 투자 카드를 서버 숫자의 표시 문자열로 낸다 — 기본 순서 저축 → 투자", async () => {
+  it("저축 · 가계부 · 투자 카드를 서버 숫자의 표시 문자열로 낸다 — 기본 순서 저축 → 가계부 → 투자", async () => {
     hideByDefault();
-    mock.method(backendApi, "proxyAuthRequest", async () =>
-      goalStats({ totalGoals: 3, activeGoals: 2, completedGoals: 1, totalSaved: 1234567 }),
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, url: string) =>
+      url === "/household/home-card"
+        ? goalStats({ spent: 432100, count: 12, remaining: -3000, landing: { low: 800000, high: 950000 } } as never)
+        : goalStats({ totalGoals: 3, activeGoals: 2, completedGoals: 1, totalSaved: 1234567 }),
     );
     mock.method(appPortfolioService, "getSummary", async () => portfolio([{}, {}], 9876543.4));
 
     const vm = await appHomeService.getHome("t");
 
-    assert.deepEqual(vm.order, ["savings", "invest"]);
+    assert.deepEqual(vm.order, ["savings", "household", "invest"]);
     assert.deepEqual(vm.hidden, []);
-    const [savings, invest] = vm.cards;
+    const [savings, household, invest] = vm.cards;
+    // 넘친 예산도 숫자만(음수) — 경고 문구 · 상태 0(FEATURE-013 정책)
+    assert.equal(household.state, "ok");
+    assert.equal(household.href, "/household");
+    assert.deepEqual(household.primary, { label: "이번 달 지출", value: "432,100원" });
+    assert.deepEqual(household.secondary, { label: "예산 남은 금액", value: "-3,000원" });
     assert.equal(savings.state, "ok");
     assert.deepEqual(savings.primary, { label: "모은 돈", value: "1,234,567원" });
     assert.deepEqual(savings.secondary, { label: "진행 중인 목표", value: "2개" });
@@ -70,7 +77,11 @@ describe("AppHomeService.getHome", () => {
 
   it("목표 · 보유가 없으면 empty — 0원을 그리지 않는다", async () => {
     hideByDefault();
-    mock.method(backendApi, "proxyAuthRequest", async () => goalStats({ totalGoals: 0, totalSaved: 0 }));
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, url: string) =>
+      url === "/household/home-card"
+        ? goalStats({ spent: 0, count: 0, remaining: null, landing: { low: null, high: null } } as never)
+        : goalStats({ totalGoals: 0, totalSaved: 0 }),
+    );
     mock.method(appPortfolioService, "getSummary", async () => portfolio([], 0));
 
     const vm = await appHomeService.getHome("t");
@@ -79,9 +90,23 @@ describe("AppHomeService.getHome", () => {
       vm.cards.map((c) => [c.domain, c.state, c.primary?.value]),
       [
         ["savings", "empty", "아직 없어요"],
+        ["household", "empty", "기록이 없어요"],
         ["invest", "empty", "기록이 없어요"],
       ],
     );
+  });
+
+  it("가계부 — 예산이 없으면 둘째 칸이 월말 예상 구간, 구간도 없으면(기록 14일 전) 비운다", async () => {
+    hideByDefault();
+    let landing: { low: number | null; high: number | null } = { low: 800000, high: 950000 };
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, url: string) =>
+      url === "/household/home-card" ? goalStats({ spent: 1000, count: 1, remaining: null, landing } as never) : goalStats({ totalGoals: 0 }),
+    );
+    mock.method(appPortfolioService, "getSummary", async () => portfolio([], 0));
+    const card = async () => (await appHomeService.getHome("t")).cards.find((c) => c.domain === "household")!;
+    assert.deepEqual((await card()).secondary, { label: "월말 예상", value: "800,000원 ~ 950,000원" });
+    landing = { low: null, high: null };
+    assert.equal((await card()).secondary, null);
   });
 
   it("한 도메인이 실패해도 홈은 뜨고 그 카드만 degraded(값 null)", async () => {

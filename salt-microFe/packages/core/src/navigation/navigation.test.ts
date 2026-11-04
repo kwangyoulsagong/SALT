@@ -24,9 +24,8 @@ describe("앱 탭 (FE-REQ-054 FR-1 · FR-2)", () => {
 
   it("첫 화면이 없는 탭은 그 화면을 만드는 REQ 를 적는다", () => {
     const notReady = APP_TABS.filter((tab) => tab.readyBy !== null).map((tab) => [tab.id, tab.readyBy]);
-    expect(notReady).toEqual([
-      ["household", "FE-REQ-057"],
-    ]);
+    // 가계부가 첫 화면을 얻었다(FE-REQ-057, 2026-11-04) — 지금 탭은 전부 눌린다
+    expect(notReady).toEqual([]);
   });
 
   it.each([

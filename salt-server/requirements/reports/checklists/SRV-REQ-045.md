@@ -65,3 +65,9 @@
 - 2026-11-03 `b10c9a74` — 상세 최상위 degraded false(정상) 실측 · 종단 14 · 강제 재실행 2회 통과 · 재배포
 - 2026-11-03 `38823672` — application `GoalReaderSpec` 2(놓친 달 실패 주입 → 그 칸만 degraded · 이유 missed_months / 정상 → 이유 없음) · 종단 3회 연속(헤더 요청만 셈, 정확히 3)
 - 2026-11-03 `97c839f3` — `./gradlew check` 통과(종단 14 · application 2) · 재배포
+
+## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
+
+- [x] goal-clock 종단 테스트(목표 없음 `no_active_goal` · 30,000원 × 30.4375 ÷ 304,375 = 3일 · 금액 0 → 400) — `HouseholdEndToEndTest`
+- [x] 실스택: 월 50만 원 계획 목표에 4,500원 → "하루도 안 늦어져요"(0.27일 반올림 0)
+- [ ] 구독 2종 — 가계부 S1b

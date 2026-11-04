@@ -9,6 +9,7 @@ import com.salt.savings.application.SimulateBalance
 import com.salt.savings.application.UpdateMonthlyPlans
 import com.salt.savings.application.CreateGoal
 import com.salt.savings.application.GetGoal
+import com.salt.savings.application.GoalClockQuery
 import com.salt.savings.application.GoalReader
 import com.salt.savings.application.HasGoals
 import com.salt.savings.application.HomeCard
@@ -127,6 +128,9 @@ class SavingsComposition {
     @Bean
     fun deleteItemUnit(@Qualifier("savingsDatabase") database: ServiceDatabase, reader: GoalReader): DeleteItemUnit =
         DeleteItemUnit(JooqItemUnits(database.dsl), reader)
+
+    @Bean
+    fun goalClockQuery(reader: GoalReader, clock: Clock): GoalClockQuery = GoalClockQuery(reader, clock)
 
     companion object {
         const val SCHEMA = "savings"

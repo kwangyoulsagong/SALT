@@ -36,6 +36,13 @@ export const errorMiddleware = (
   res: Response,
   _next: NextFunction
 ) => {
+  // 본문 JSON 이 깨졌다 — 파서 메시지는 본문 조각을 싣는다(Node `JSON.parse` "… is not valid JSON").
+  // 붙여넣은 결제 문자(`/household/parse`)가 로그 · 응답으로 새지 않게 메시지를 버리고 코드만(`BFF-REQ-048` FR-2)
+  if ((err as { type?: string }).type === "entity.parse.failed") {
+    logFailure(400, "INVALID_JSON", new Error("malformed JSON body"), req);
+    return res.status(400).json({ success: false, code: "INVALID_JSON", message: "Malformed JSON body" });
+  }
+
   if (err instanceof AppError) {
     logFailure(err.statusCode, err.code ?? err.constructor.name, err, req);
     return res.status(err.statusCode).json({

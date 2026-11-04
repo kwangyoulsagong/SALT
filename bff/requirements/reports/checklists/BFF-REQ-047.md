@@ -38,3 +38,7 @@
 - 2026-11-03 `520b4d8f` — `npm test` 353(+1) · build
 - 2026-11-03 `6395cf82` — 주석만 · build · test 353
 - 2026-11-03 `b10c9a74` — 타입만 · build · test 353
+
+## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
+
+- [x] `app-household.test.ts` — 경로 `/savings/goal-clock?amount=30000`

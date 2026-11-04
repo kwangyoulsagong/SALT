@@ -3,5 +3,7 @@
 set -eu
 : "${PING_DB_PASSWORD:?PING_DB_PASSWORD 가 없다 (.env)}"
 : "${SAVINGS_DB_PASSWORD:?SAVINGS_DB_PASSWORD 가 없다 (.env)}"
+: "${HOUSEHOLD_DB_PASSWORD:?HOUSEHOLD_DB_PASSWORD 가 없다 (.env)}"
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
-  -v ping_password="$PING_DB_PASSWORD" -v savings_password="$SAVINGS_DB_PASSWORD" -f /salt/roles.sql
+  -v ping_password="$PING_DB_PASSWORD" -v savings_password="$SAVINGS_DB_PASSWORD" \
+  -v household_password="$HOUSEHOLD_DB_PASSWORD" -f /salt/roles.sql

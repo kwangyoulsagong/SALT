@@ -63,6 +63,16 @@ export const HOME_CARD_TEXT = {
     /** 진척이 가장 큰 진행 중 목표 — 사실만(칭찬 · 재촉 0). 퍼센트는 서버 값(소수 한 자리 내림) 그대로 */
     nearest: (title: string, percent: number) => `${title} ${percent.toFixed(1)}%`,
   },
+  household: {
+    title: "가계부",
+    spent: "이번 달 지출",
+    remaining: "예산 남은 금액",
+    landing: "월말 예상",
+    emptyLabel: "이번 달",
+    emptyValue: "기록이 없어요",
+    /** 착지 구간 — 한 점이 아니라 범위(서버 10 · 90% 구간 그대로) */
+    range: (low: string, high: string) => `${low} ~ ${high}`,
+  },
   invest: {
     title: "투자",
     total: "보유 평가",
@@ -114,6 +124,38 @@ export const toSavingsCard = (src: SavingsCardSource, now: string): HomeSummaryC
     secondary: { label: HOME_CARD_TEXT.savings.active, value: HOME_CARD_TEXT.count(src.activeGoals ?? 0) },
     state: "ok",
   };
+};
+
+/** 서버 `GET /household/home-card`(Kotlin `household`, `SRV-REQ-046` FR-18) 중 카드가 쓰는 것 — 숫자만, 문장은 여기서 */
+export interface HouseholdCardSource {
+  spent: number;
+  count: number;
+  remaining: number | null;
+  landing: { low: number | null; high: number | null } | null;
+}
+
+/** 가계부 카드 진입 — 가계부 zone `/household`(`FE-REQ-057`) */
+export const HOUSEHOLD_HREF = "/household";
+
+/**
+ * 가계부 카드 — 이번 달 지출 + (예산 남은 금액 | 월말 예상 구간). 남은 금액이 음수여도 숫자만(경고 · 색 0 — FEATURE-013 정책).
+ * 예산이 없고 착지 구간도 없으면(기록 14일 전) 두 번째 칸을 비운다.
+ */
+export const toHouseholdCard = (src: HouseholdCardSource, now: string): HomeSummaryCard => {
+  const t = HOME_CARD_TEXT.household;
+  const base = { domain: "household" as const, title: t.title, href: HOUSEHOLD_HREF, updatedAt: now, note: null };
+  if (src.count === 0) {
+    return { ...base, primary: { label: t.emptyLabel, value: t.emptyValue }, secondary: null, state: "empty" };
+  }
+  const low = src.landing?.low ?? null;
+  const high = src.landing?.high ?? null;
+  const secondary =
+    src.remaining !== null
+      ? { label: t.remaining, value: formatKrw(src.remaining) }
+      : low !== null && high !== null
+        ? { label: t.landing, value: t.range(formatKrw(low), formatKrw(high)) }
+        : null;
+  return { ...base, primary: { label: t.spent, value: formatKrw(src.spent) }, secondary, state: "ok" };
 };
 
 /**

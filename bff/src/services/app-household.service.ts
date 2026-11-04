@@ -1,0 +1,230 @@
+import { logger } from "../config/logger";
+import { appSavingsService } from "./app-savings.service";
+import { backendApi } from "./backend-api.service";
+
+/**
+ * 가계부 화면 계약 (`BFF-REQ-048`, 서버 `SRV-REQ-046` — Kotlin `household` 서비스, 라우팅 표 `/household` → platform).
+ *
+ * **숫자는 서버 응답 그대로**다 — 금액 · 봉투 잔액 · 착지 구간을 서버가 정하고 BFF 는 화면 필드만 고른다. 더하거나 나누지 않는다.
+ * 하나 조립하는 것: 저장 응답에 **목표 시계**(저축 서비스 `goal-clock`)를 나란히 붙인다 — 서비스끼리 부르지 않게 BFF 가 모은다
+ * (가계부 슬라이스 판단 1). 저축이 예산 안에 답하지 못하면 `pending` 이고 저장은 기다리지 않는다(수용 기준 2).
+ *
+ * **붙여넣은 결제 문자(원문)는 이 파일 어디서도 로그에 남기지 않는다**(FR-2). 원문은 `parse` 의 인자로 서버까지만 지나간다.
+ */
+
+// ---------- 화면 계약 — 웹 `@repo/domain-household` entities/expense/model/types.ts 와 같은 모양 ----------
+
+export interface HouseholdExpenseVM {
+  id: string;
+  amount: number;
+  spentOn: string;
+  /** 분류 키 — 이름은 프론트가 키로 고른다 */
+  category: string;
+  /** card · cash · transfer · other */
+  paymentMethod: string;
+  merchant: string | null;
+  /** exact · approx */
+  precision: string;
+  /** quick · line · paste · approx */
+  inputKind: string;
+  installmentMonths: number | null;
+  memo: string | null;
+  createdAt: string;
+}
+
+/** 봉투 — `remaining` 은 음수 가능. 상태 · 경고 칸이 없다(수용 기준) */
+export interface HouseholdEnvelopeVM {
+  key: string;
+  budget: number;
+  spent: number;
+  remaining: number;
+}
+
+/**
+ * 목표 시계 — `ok`(지연 일수) · `none`(진행 중 목표 없음 · 계획 없음, reason) · `pending`(저축이 예산 안에 답하지 못함 — 화면이 "계산 중" 뒤 다시 묻는다)
+ */
+export type HouseholdGoalClockVM =
+  | { state: "ok"; goalId: string; title: string; template: string; delayDays: number }
+  | { state: "none"; reason: string }
+  | { state: "pending" };
+
+export interface HouseholdRecordVM {
+  expenses: HouseholdExpenseVM[];
+  savedTotal: number;
+  envelope: HouseholdEnvelopeVM | null;
+  monthTotal: number;
+  goalClock: HouseholdGoalClockVM;
+}
+
+export interface HouseholdCandidateVM {
+  amount: number;
+  merchant: string | null;
+  spentOn: string;
+  installmentMonths: number | null;
+  paymentMethod: string;
+  category: string | null;
+  /** history · rule · null */
+  categorySource: string | null;
+}
+
+export interface HouseholdParseVM {
+  candidates: HouseholdCandidateVM[];
+  /** 버린 조각의 이유 키 — cancelled · no_amount */
+  skipped: string[];
+}
+
+export interface HouseholdSuggestionsVM {
+  merchants: Array<{ merchant: string; category: string; lastAmount: number; count: number }>;
+  categories: Array<{ key: string; bucket: string }>;
+}
+
+export interface HouseholdBudgetVM {
+  /** 50_30_20 · envelope */
+  method: string;
+  income: number | null;
+  savingsShare: number | null;
+  envelopes: Array<{ key: string; amount: number }>;
+  total: number | null;
+  updatedAt: string;
+}
+
+export interface HouseholdLandingVM {
+  /** empirical_window · month_over */
+  method: string;
+  spentSoFar: number;
+  low: number | null;
+  high: number | null;
+  /** history_short · null */
+  reason: string | null;
+  daysOfHistory: number;
+}
+
+export interface HouseholdTrackVM {
+  month: string;
+  issuedOn: string | null;
+  low: number | null;
+  high: number | null;
+  actual: number | null;
+  hit: boolean | null;
+  /** not_issued · history_short · null */
+  reason: string | null;
+}
+
+export interface HouseholdMonthVM {
+  month: string;
+  current: boolean;
+  totals: { total: number; exact: number; approx: number; count: number };
+  byCategory: Array<{ key: string; bucket: string; spent: number }>;
+  budget: HouseholdBudgetVM | null;
+  envelopes: HouseholdEnvelopeVM[];
+  unbudgeted: number | null;
+  remaining: number | null;
+  dailyAvailable: number | null;
+  daysLeft: number | null;
+  landing: HouseholdLandingVM | null;
+  /** not_current_month · null */
+  landingReason: string | null;
+  track: HouseholdTrackVM | null;
+  expenses: HouseholdExpenseVM[];
+}
+
+/** 홈 카드가 쓰는 서버 숫자(`GET /household/home-card`) */
+export interface HouseholdHomeCardSource {
+  month: string;
+  spent: number;
+  count: number;
+  remaining: number | null;
+  landing: HouseholdLandingVM;
+}
+
+/** 쓰기는 재시도하지 않는다(중복 지출). 조회 예산 — 월 화면 쿼리 8회 + 여유 */
+const READ_TIMEOUT_MS = 2_000;
+const WRITE_TIMEOUT_MS = 5_000;
+/** 저장 응답에 붙이는 목표 시계의 상한 — 넘으면 `pending`(FEATURE-013 비기능 "저장 → 목표 시계 1초 이내") */
+export const GOAL_CLOCK_BUDGET_MS = 300;
+
+const data = <T>(response: { data?: { data?: unknown } }): T => response.data?.data as T;
+
+/** 정해진 시간 안에 오지 않으면 실패로 본다 */
+const within = <T>(work: Promise<T>, ms: number): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`goal clock timeout ${ms}ms`)), ms);
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+
+const toGoalClock = (source: { goalId: string | null; title: string | null; template: string | null; delayDays: number | null; reason: string | null }): HouseholdGoalClockVM =>
+  source.delayDays !== null && source.goalId && source.title && source.template
+    ? { state: "ok", goalId: source.goalId, title: source.title, template: source.template, delayDays: source.delayDays }
+    : { state: "none", reason: source.reason ?? "no_active_goal" };
+
+class AppHouseholdService {
+  async record(token: string, body: unknown): Promise<HouseholdRecordVM> {
+    const saved = data<Omit<HouseholdRecordVM, "goalClock">>(
+      await backendApi.proxyAuthRequest("POST", "/household/expenses", token, body, { timeout: WRITE_TIMEOUT_MS }),
+    );
+    return { ...saved, goalClock: await this.clockAfterSave(token, saved.savedTotal) };
+  }
+
+  async recordBatch(token: string, body: unknown): Promise<HouseholdRecordVM> {
+    const saved = data<Omit<HouseholdRecordVM, "goalClock">>(
+      await backendApi.proxyAuthRequest("POST", "/household/expenses/batch", token, body, { timeout: WRITE_TIMEOUT_MS }),
+    );
+    return { ...saved, goalClock: await this.clockAfterSave(token, saved.savedTotal) };
+  }
+
+  /** `pending` 뒤 화면이 다시 묻는 자리 — 조회 예산 */
+  async goalClock(token: string, amount: string): Promise<HouseholdGoalClockVM> {
+    return toGoalClock(await appSavingsService.goalClock(token, amount, READ_TIMEOUT_MS));
+  }
+
+  async deleteExpense(token: string, id: string): Promise<{ id: string }> {
+    return data(await backendApi.proxyAuthRequest("DELETE", `/household/expenses/${encodeURIComponent(id)}`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  /** 원문은 본문 그대로 서버로 — 여기서 읽거나 남기지 않는다 */
+  async parse(token: string, body: unknown): Promise<HouseholdParseVM> {
+    return data(await backendApi.proxyAuthRequest("POST", "/household/parse", token, body, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  async suggestions(token: string): Promise<HouseholdSuggestionsVM> {
+    return data(await backendApi.proxyAuthRequest("GET", "/household/suggestions", token, undefined, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  async budget(token: string): Promise<HouseholdBudgetVM | null> {
+    return data(await backendApi.proxyAuthRequest("GET", "/household/budget", token, undefined, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  async setBudget(token: string, body: unknown): Promise<HouseholdBudgetVM> {
+    return data(await backendApi.proxyAuthRequest("PUT", "/household/budget", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async month(token: string, ym: string): Promise<HouseholdMonthVM> {
+    return data(await backendApi.proxyAuthRequest("GET", `/household/month/${encodeURIComponent(ym)}`, token, undefined, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  async homeCard(token: string, timeout: number): Promise<HouseholdHomeCardSource> {
+    return data(await backendApi.proxyAuthRequest("GET", "/household/home-card", token, undefined, { timeout }));
+  }
+
+  /** 저장은 이미 끝났다 — 목표 시계가 늦거나 실패해도 저장 응답을 깨지 않는다(`pending`) */
+  private async clockAfterSave(token: string, amount: number): Promise<HouseholdGoalClockVM> {
+    try {
+      return toGoalClock(await within(appSavingsService.goalClock(token, String(amount), GOAL_CLOCK_BUDGET_MS), GOAL_CLOCK_BUDGET_MS));
+    } catch (error) {
+      // 금액 · 본문 없이 사유만(`msa-services.md` §5)
+      logger.warn("목표 시계를 예산 안에 받지 못했다", { reason: (error as Error | undefined)?.message });
+      return { state: "pending" };
+    }
+  }
+}
+
+export const appHouseholdService = new AppHouseholdService();

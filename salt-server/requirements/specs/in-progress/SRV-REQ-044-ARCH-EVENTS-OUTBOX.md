@@ -45,3 +45,4 @@ source: requirements/decisions/ADR-006-server-msa-kotlin.md
 | 2026-11-03 | **코드 리뷰 뒤** `405e5683` — 릴레이: 영원히 실패하는 이벤트 하나가 그 서비스 뒤 이벤트를 전부 막던 것 → 10회 뒤 `dead_at` 으로 건너뜀 · 순서 `seq`(같은 트랜잭션의 같은 시각 둘). 쓰기: 다른 서비스 트랜잭션 아래 쓰기 거부. FR-8 지표 둘 |
 | 2026-11-03 | 커밋 대조 — `fafb6a0d`(아웃박스 · 릴레이 · 스키마 · 멱등) · `405e5683`(포기 · 순서 · 트랜잭션 확인 · 지표) · `b308718e`(문서). S0 수용 기준 3/3, FR-4 · 6 · 7 · 경보는 다음 단계라 in-progress |
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`e83f7f80`): FR-4 첫 이벤트 13종 중 3 — `savings.GoalCreated` · `GoalReached` · `ProjectionIssued` 계약 + 발행(쓰기 시점 검증). 로컬 운영 실측 릴레이가 브로커로 보냄(published_at) |
+| 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 이벤트 2종 계약 `household.ExpenseRecorded` · `household.LandingIssued`(`contracts/events`) · 쓰기 시점 스키마 검증 · 종단 테스트가 아웃박스 행으로 발행 확인(`63146ddf`). FR-4 13종 중 가계부 몫 2(`MonthClosed` · `FixedCostIncreased` 는 S1b) |

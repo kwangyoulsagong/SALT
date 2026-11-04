@@ -22,3 +22,8 @@
 
 - 이 REQ 에 걸린 몫(`e83f7f80`): S1 첫 표 이동 — `roles.sql` `svc_savings` 로그인(로컬 운영 DB 적용, 비밀 `LOCAL_DB_SAVINGS_PASSWORD`) · Flyway V1 savings(업무 3 + 공용 3) · 권한 테스트 표 `savings.probe` → `household.probe` · 옛 `public.goals` · `saving_transactions` 가져오기 SQL. public 원본 · Prisma 모델 삭제는 옛 Express 삭제와 같이
 - 확인: Kotlin `./gradlew check` 56(저축 종단 10 · 경계 8 · 플랫폼 14 · 도메인 15 · 커널 9) · bootJar 로컬 운영 DB 기동 · 서버 build · lint · test 936 · test:layer-check · BFF build · test 351 · 모노레포 check-types · lint · test(core 83 · ui 43) · zone 5 운영 빌드 · 훅 사후 실행 · 실스택(BFF 4001 → Kotlin 4010 → 로컬 DB) · 실화면 3화면 × 4폭(1024 · 1280 · 1440 · 1600) 넘침 0 · 콘솔 오류 0 — 루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`
+
+## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
+
+- [x] `svc_household` 로 `savings.goal` SELECT → 42501(종단 테스트)
+- [x] 로컬 운영 DB: `rolcanlogin t` · household 표 `expense · budget · budget_envelope · landing_issued`

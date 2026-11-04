@@ -164,3 +164,30 @@ describe("errorMiddleware — 서버 시간 초과", () => {
     assert.equal(out.status, 500);
   });
 });
+
+describe("errorMiddleware — 깨진 JSON 본문", () => {
+  it("파서 메시지(본문 조각)를 로그 · 응답에 싣지 않는다 — 400 INVALID_JSON(BFF-REQ-048 FR-2)", () => {
+    const marker = "신한카드(9876)승인 홍*동";
+    let parseError: Error;
+    try {
+      JSON.parse(`{"text":"${marker}`);
+      throw new Error("unreachable");
+    } catch (e) {
+      parseError = Object.assign(e as Error, { type: "entity.parse.failed", status: 400 });
+    }
+    const logged: string[] = [];
+    const original = { warn: logger.warn, error: logger.error };
+    logger.warn = ((...args: unknown[]) => (logged.push(JSON.stringify(args)), logger)) as typeof logger.warn;
+    logger.error = ((...args: unknown[]) => (logged.push(JSON.stringify(args)), logger)) as typeof logger.error;
+    const { res, out } = fakeRes();
+    try {
+      errorMiddleware(parseError, { url: "/api/app/household/parse", method: "POST" } as Request, res, next);
+    } finally {
+      logger.warn = original.warn;
+      logger.error = original.error;
+    }
+    assert.equal(out.status, 400);
+    assert.deepEqual(out.body, { success: false, code: "INVALID_JSON", message: "Malformed JSON body" });
+    assert.ok(!logged.some((l) => l.includes("9876")));
+  });
+});

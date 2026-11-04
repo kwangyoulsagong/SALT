@@ -1,6 +1,7 @@
 import { logger } from "../config/logger";
 import { appAICoachService } from "./app-ai-coach.service";
 import { appPortfolioService } from "./app-portfolio.service";
+import { appHouseholdService } from "./app-household.service";
 import { appSavingsService } from "./app-savings.service";
 import { backendApi } from "./backend-api.service";
 import {
@@ -10,6 +11,8 @@ import {
   degradedCard,
   toInvestCard,
   toSavingsCard,
+  toHouseholdCard,
+  HOUSEHOLD_HREF,
   SAVINGS_HREF,
   type AppHomeVM,
   type HomeDomain,
@@ -64,7 +67,7 @@ interface CardSource {
 }
 
 /**
- * 카드를 내는 도메인. **서비스가 없는 도메인(가계부 · 팁)은 카드를 내지 않는다** — 빈 카드나 `degraded` 로
+ * 카드를 내는 도메인. **서비스가 없는 도메인(팁)은 카드를 내지 않는다** — 빈 카드나 `degraded` 로
  * "있는데 실패한 것"처럼 보이지 않게. 서버 서비스가 생기면(`SRV-REQ-046` · `047`) 여기 한 줄씩 붙는다.
  */
 const CARD_SOURCES: CardSource[] = [
@@ -74,6 +77,13 @@ const CARD_SOURCES: CardSource[] = [
     href: SAVINGS_HREF,
     // Kotlin savings 서비스(라우팅 표 `/savings` → platform). 옛 `/goals/statistics` 는 은퇴(BFF-REQ-047 FR-7)
     load: async (token, now) => toSavingsCard(await appSavingsService.homeCard(token, HOME_CARD_TIMEOUT_MS), now),
+  },
+  {
+    domain: "household",
+    title: HOME_CARD_TEXT.household.title,
+    href: HOUSEHOLD_HREF,
+    // Kotlin household 서비스(라우팅 표 `/household` → platform, `SRV-REQ-046` FR-18)
+    load: async (token, now) => toHouseholdCard(await appHouseholdService.homeCard(token, HOME_CARD_TIMEOUT_MS), now),
   },
   {
     domain: "invest",

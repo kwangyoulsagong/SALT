@@ -33,16 +33,34 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 
 ## Acceptance Criteria
 
-- [ ] 결제 문자 원문 열 0(스키마 테스트)
+- [x] 결제 문자 원문 열 0(스키마 테스트)
 - [ ] `challenge` 상태 값에 실패 없음
-- [ ] `landing_issued` UPDATE · DELETE 실패
+- [x] `landing_issued` UPDATE · DELETE 실패
 
 ## 계약 영향
 
 - 서버 `SRV-REQ-046` · 예측 `FC-REQ-024`
+
+## 구현 현황 — 가계부 S1a (2026-11-04, `requirements/specs/done/MONEY-S1-household-entry-slice.md`)
+
+Flyway `services/household/infrastructure/src/main/resources/db/migration/household/V1__baseline.sql`(로컬 운영 DB 적용 2026-11-04 — `svc_household` 로그인).
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-1 | done — `expense`. 날짜는 `spent_on date`(KST 달력 — 저축 `deposited_on` 과 같은 뜻, 스펙의 `spent_at` 대신). `installment_id` 대신 `installment_months`(판단 4) | 분류 키에 CHECK 없음(판단 6) |
+| FR-3 | done — `budget`(사용자당 "지금 예산" 하나, 판단 3) + `budget_envelope`. 초과 상태 열 0 | 스펙의 "월" 열 대신 지금 예산 — 달별 이력은 S1b 월 마감과 같이 |
+| FR-8 | done — `landing_issued` 불변 트리거 · `(user_id, month, issued_on)` 유일(하루 한 번) | |
+| FR-12 | done — `expense(user_id, spent_on)` · `(user_id, category, spent_on)` · 가맹점 부분 인덱스. `recurring_occurrence` 는 S1b | |
+| FR-13 | done — 원문 열 0(종단 테스트가 `information_schema` 로 열 이름 검사) | |
+| FR-2 · 4 · 5 · 6 · 7 · 9 · 10 · 11 | S1b | 슬라이스 범위 밖 |
+
+생성기(H2 흉내)가 text 열의 키 · 유일 제약을 못 읽어 `ALTER TABLE` 로 빼고 `[jooq ignore]` 로 감쌌다(`kotlin-platform.md` §4 와 같은 처리).
 
 ## Changelog
 
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-04 | 가계부 S1a — in-progress. V1(`63146ddf`) · FR-1 · 3 · 8 · 12 · 13. 수용 기준 1 · 3 충족(2 `challenge` 는 S1b) |
+| 2026-11-04 | 리뷰 반영 `85512af5` — 스키마 변경 0(착지 계산 · 원 단위 검사는 서비스). `landing_issued.spent_so_far` 의 뜻이 "그날 시작 시점 합"으로 |
+| 2026-11-04 | EXPLAIN 확인(행 2만 넣고 롤백 — 다섯 쿼리 인덱스 · 1ms 미만) |

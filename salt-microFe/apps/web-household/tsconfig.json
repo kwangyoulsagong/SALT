@@ -21,7 +21,33 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "paths": {
+      "@/pages": [
+        "../../packages/domain-household/src/pages"
+      ],
+      "@/pages/*": [
+        "../../packages/domain-household/src/pages/*"
+      ],
+      "@/widgets": [
+        "../../packages/domain-household/src/widgets"
+      ],
+      "@/widgets/*": [
+        "../../packages/domain-household/src/widgets/*"
+      ],
+      "@/features": [
+        "../../packages/domain-household/src/features"
+      ],
+      "@/features/*": [
+        "../../packages/domain-household/src/features/*"
+      ],
+      "@/entities": [
+        "../../packages/domain-household/src/entities"
+      ],
+      "@/entities/*": [
+        "../../packages/domain-household/src/entities/*"
+      ]
+    }
   },
   "include": [
     "**/*.ts",

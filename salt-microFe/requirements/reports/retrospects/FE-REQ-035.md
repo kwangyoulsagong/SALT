@@ -48,3 +48,7 @@ axios 직접 호출 둘을 `apiFetch` 로 옮기고 import 를 lint 로 막았�
 ## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
 
 - 걸린 몫은 위 체크리스트 한 줄. 근거 · 판단은 루트 회고 `requirements/reports/retrospects/MONEY-S1a-savings-calculator.md`. Action 없음
+
+## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
+
+- 없음.

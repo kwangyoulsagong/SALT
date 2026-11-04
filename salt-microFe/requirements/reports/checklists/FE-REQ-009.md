@@ -237,3 +237,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 ## 2026-11-03 — MONEY-S1b
 
 - MONEY-S1b — 이 REQ 에 걸린 몫(`6ad345fc`): 레지스트리 코드(`layer-rules.cjs`) features 에 `rebalance-goals` · `add-item-unit` · `compare-emergency` 추가 · `fsd-features.md` 표 3행. test:layer-check 26 · 훅 사후 실행(바뀐 TS 전부) 통과
+
+## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
+
+- [x] lint 0 · `test:layer-check` 26 · 훅 사후 실행(Bash 로 쓴 파일 전부) 차단 0
