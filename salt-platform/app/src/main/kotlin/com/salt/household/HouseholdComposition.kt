@@ -21,7 +21,17 @@ import com.salt.household.application.ParseInput
 import com.salt.household.application.RecordExpenses
 import com.salt.household.application.SetBudget
 import com.salt.household.application.Suggestions
+import com.salt.household.application.AnswerNextDay
+import com.salt.household.application.GetWorkHours
+import com.salt.household.application.MarkNoSpend
+import com.salt.household.application.SetWorkHours
+import com.salt.household.application.TagFeeling
+import com.salt.household.application.UnmarkNoSpend
+import com.salt.household.application.UntagFeeling
 import com.salt.household.infrastructure.JooqBudgets
+import com.salt.household.infrastructure.JooqFeelings
+import com.salt.household.infrastructure.JooqSettings
+import com.salt.household.infrastructure.JooqStickers
 import com.salt.household.infrastructure.JooqExpenses
 import com.salt.household.infrastructure.JooqLandings
 import com.salt.household.infrastructure.JooqMonthCloses
@@ -76,12 +86,13 @@ class HouseholdComposition {
         landingReader: LandingReader,
         clock: Clock,
     ): ExpenseWriter = ExpenseWriter(
-        JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqLandings(database.dsl), landingReader, OutboxHouseholdEvents(outbox), clock,
+        JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqLandings(database.dsl), landingReader, OutboxHouseholdEvents(outbox),
+        JooqSettings(database.dsl), clock,
     )
 
     @Bean
     fun householdRecordExpenses(@Qualifier("householdDatabase") database: ServiceDatabase, writer: ExpenseWriter, clock: Clock): RecordExpenses =
-        RecordExpenses(JooqExpenses(database.dsl), writer, clock)
+        RecordExpenses(JooqExpenses(database.dsl), JooqFeelings(database.dsl), writer, clock)
 
     @Bean
     fun householdDeleteExpense(@Qualifier("householdDatabase") database: ServiceDatabase): DeleteExpense =
@@ -101,7 +112,10 @@ class HouseholdComposition {
 
     @Bean
     fun householdGetMonth(@Qualifier("householdDatabase") database: ServiceDatabase, landingReader: LandingReader, clock: Clock): GetMonth =
-        GetMonth(JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqRecurringOccurrences(database.dsl), JooqMonthCloses(database.dsl), landingReader, clock)
+        GetMonth(
+            JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqRecurringOccurrences(database.dsl), JooqMonthCloses(database.dsl), landingReader,
+            JooqFeelings(database.dsl), JooqStickers(database.dsl), JooqSettings(database.dsl), clock,
+        )
 
     // ---------- 반복 · 마감(가계부 S1b) ----------
 
@@ -150,6 +164,30 @@ class HouseholdComposition {
     @Bean
     fun householdHomeCard(@Qualifier("householdDatabase") database: ServiceDatabase, landingReader: LandingReader, clock: Clock): HomeCard =
         HomeCard(JooqExpenses(database.dsl), JooqBudgets(database.dsl), landingReader, clock)
+
+    // ---------- 거울 셋(가계부 S1c) — 감정 태그 · 노동시간 · 무지출 달력 ----------
+
+    @Bean
+    fun householdTagFeeling(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): TagFeeling = TagFeeling(JooqFeelings(database.dsl), clock)
+
+    @Bean
+    fun householdUntagFeeling(@Qualifier("householdDatabase") database: ServiceDatabase): UntagFeeling = UntagFeeling(JooqFeelings(database.dsl))
+
+    @Bean
+    fun householdAnswerNextDay(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): AnswerNextDay = AnswerNextDay(JooqFeelings(database.dsl), clock)
+
+    @Bean
+    fun householdGetWorkHours(@Qualifier("householdDatabase") database: ServiceDatabase): GetWorkHours = GetWorkHours(JooqSettings(database.dsl))
+
+    @Bean
+    fun householdSetWorkHours(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): SetWorkHours = SetWorkHours(JooqSettings(database.dsl), clock)
+
+    @Bean
+    fun householdMarkNoSpend(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): MarkNoSpend =
+        MarkNoSpend(JooqStickers(database.dsl), JooqExpenses(database.dsl), clock)
+
+    @Bean
+    fun householdUnmarkNoSpend(@Qualifier("householdDatabase") database: ServiceDatabase): UnmarkNoSpend = UnmarkNoSpend(JooqStickers(database.dsl))
 
     companion object {
         const val SCHEMA = "household"

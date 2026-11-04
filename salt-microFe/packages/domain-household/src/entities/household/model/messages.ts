@@ -1,6 +1,6 @@
 import { formatPrice } from "@repo/web-shared/lib";
 
-import type { CategoryKey, GoalClock, HouseholdTrack } from "./types";
+import type { CalendarDayState, CategoryKey, EmotionKey, GoalClock, HouseholdTrack } from "./types";
 
 /**
  * 가계부 문구 — **사실만 말한다.** 칭찬 · 재촉 · 경고 · 명령형 0(`FE-REQ-057` 수용 기준 · FEATURE-013 정책 "차단 · 경고 팝업 없음").
@@ -113,3 +113,66 @@ export const goalClockLine = (clock: GoalClock): string | null => {
       return null;
   }
 };
+
+/**
+ * 감정 태그 · 거울(가계부 S1c FR-13) — **측정만.** 감정으로 사람을 평가하는 문구 · 칭찬 · 재촉 0(FEATURE-013 정책).
+ * 만족 1~5 는 숫자 그대로 — "좋아요/나빠요" 같은 낱말을 붙이지 않는다.
+ */
+export const EMOTION_LABEL: Readonly<Record<EmotionKey, string>> = {
+  stress: "스트레스",
+  reward: "보상",
+  boredom: "지루함",
+};
+
+export const FEELING_MESSAGES = {
+  tag: "그때 기분(선택)",
+  feltNow: "지금 만족은?(선택)",
+  feltScale: (v: number) => `${v}점`,
+  askTitle: "어제 단 기분, 지금은 어때요?",
+  askLine: (emotion: string, what: string, amount: string) => `${emotion} · ${what} ${amount}`,
+  askFeltNow: (v: number) => `산 직후 ${v}점`,
+  pass: "넘기기",
+  answered: "적어 뒀어요",
+  decided: "이미 답한 항목이에요",
+  failed: "저장 못 했어요",
+  mirrorTitle: "기분별 만족",
+  mirrorNote: "기분을 단 지출의 산 직후 · 다음 날 만족을 점수별 건수로 보여 줘요. 평가하지 않아요",
+  mirrorEmpty: "이 달엔 기분을 단 지출이 없어요",
+  mirrorCount: (n: number) => `${n}건`,
+  mirrorNow: "산 직후",
+  mirrorNext: "다음 날",
+  mirrorBar: (when: string, score: number, n: number) => `${when} ${score}점 ${n}건`,
+} as const;
+
+/** 무지출 달력(가계부 S1c FR-16) — 연속 일수 · "기록" 같은 압박 낱말 0. 기록 없는 날은 비워 둔다 */
+export const CALENDAR_MESSAGES = {
+  title: "안 쓴 날",
+  note: "안 쓴 날에 표시하면 스티커가 붙어요. 적지 않은 날은 비워 둬요",
+  count: (n: number) => `이 달 안 쓴 날 ${n}일`,
+  weekdays: ["일", "월", "화", "수", "목", "금", "토"] as const,
+  state: {
+    future: "",
+    spent: "쓴 날",
+    no_spend: "안 쓴 날",
+    blank: "기록 없음",
+  } as Readonly<Record<CalendarDayState, string>>,
+  dayLabel: (date: string, state: string, spent: string | null) => `${formatDay(date)} ${state}${spent ? ` ${spent}` : ""}`,
+  mark: "안 쓴 날로 표시",
+  unmark: "표시 지우기",
+  failed: "표시하지 못했어요",
+  hasExpense: "그날 적은 지출이 있어요",
+} as const;
+
+/** 노동시간 환산(가계부 S1c FR-15) — 분 → "2시간 18분". 계산은 서버, 여기는 글자만 */
+export const formatWorkMinutes = (minutes: number): string => {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}분`;
+  return m === 0 ? `${h}시간` : `${h}시간 ${m}분`;
+};
+
+export const WORK_MESSAGES = {
+  line: (work: string) => `근무 ${work}`,
+  total: (work: string) => `이 달 쓴 돈 = 근무 ${work}`,
+  hourly: (amount: string) => `1시간 ${amount} 기준`,
+} as const;

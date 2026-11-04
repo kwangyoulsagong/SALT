@@ -250,3 +250,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 ## 2026-11-04 — 가계부 S1b 레지스트리
 
 - [x] `layer-rules.cjs` features `manage-recurring` · `close-month` · pages `recurring` — `test:layer-check` 26 · lint 12/12
+
+## 2026-11-04 — 가계부 S1c 레지스트리
+
+- [x] `layer-rules.cjs` features `answer-feeling` · `mark-no-spend` · `set-work-hours` — `test:layer-check` 26 · lint 12/12 · 훅 사후 실행 차단 0

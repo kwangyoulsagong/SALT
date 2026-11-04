@@ -260,7 +260,7 @@ class HouseholdEndToEndTest {
     }
 
     @Test
-    fun `쿼리 수 — 월 화면 11 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
+    fun `쿼리 수 — 월 화면 16 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
         val user = "q-${UUID.randomUUID()}"
         call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"food":300000}}""").statusCode() shouldBe 200
         var before = statements()
@@ -278,12 +278,13 @@ class HouseholdEndToEndTest {
         println("[household-queries] firstSave=$firstSave secondSave=$secondSave month=$month home=$home")
         // 월: 목록 · 월 합 · 예산 2 · 착지 2(첫 기록 · 날별) · 적중 2(지난달 발행 · 지난달 합)
         // + S1b: 마감 1(안 닫은 달 — 닫았으면 사본 봉투 1 더하고 예산 2 빠짐) · 예정 행 1(착지와 나눠 씀) · 할부 1 = 11
-        month shouldBe 11L
+        // + S1c: 태그(목록 · 거울 한 문장) · 달력 날별 합 · 스티커 · 설정 · 다음 날 묻기(이번 달만) = 16
+        month shouldBe 16L
         // 저장: 행 · 아웃박스 · 월 합 · 착지 2 · 발행 · 아웃박스(그날 처음) · 예산 2 = 9. 두 번째는 발행이 ON CONFLICT 로 빈 문장이 되고 그 아웃박스가 빠져 8
         // (그날 이미 냈어도 착지를 다시 계산하는 3문장은 리뷰가 짚은 낭비 — 쓰기 응답 몫이라 남김, 루트 체크리스트 §4)
-        // + S1b: 착지 예정 행 1
-        firstSave shouldBe 10L
-        secondSave shouldBe 9L
+        // + S1b: 착지 예정 행 1 · + S1c: 설정(노동시간) 1 — 감정 태그를 달면 태그 1 더
+        firstSave shouldBe 11L
+        secondSave shouldBe 10L
         // 홈: 월 합 · 예산 2 · 착지 2 · 예정 행 1
         home shouldBe 6L
     }
@@ -453,6 +454,151 @@ class HouseholdEndToEndTest {
         bought.path("totals").path("total").asLong() shouldBe 100_000
         bought.path("installments").path("lines").size() shouldBe 0
         bought.path("installments").path("upcoming").get(1).path("amount").asLong() shouldBe 33_334
+    }
+
+    // ---------- 가계부 S1c — 감정 태그 · 노동시간 · 무지출 달력 ----------
+
+    @Test
+    fun `감정 태그 — 저장 때 붙임 · 당일엔 다음 날 답 거절 · 다음 날 묻기 · 한 번만 · 거울은 건수만 · 이벤트에 감정 0 · 남의 지출 404`() {
+        val user = "feel-${UUID.randomUUID()}"
+        val saved = data(call("POST", "/api/household/expenses", user, """{"amount":30000,"category":"shopping","emotion":"reward","feltNow":5}"""))
+        val id = saved.path("expenses").get(0).path("id").asString()
+        saved.path("expenses").get(0).path("feeling").path("emotion").asString() shouldBe "reward"
+        saved.path("expenses").get(0).path("feeling").path("feltNow").asInt() shouldBe 5
+        call("POST", "/api/household/expenses", user, """{"amount":1000,"category":"food","feltNow":3}""").body() shouldContain "FEELING_EMOTION_REQUIRED"
+        call("POST", "/api/household/expenses", user, """{"amount":1000,"category":"food","emotion":"joy"}""").body() shouldContain "FEELING_EMOTION_UNKNOWN"
+        // 틀린 감정이면 지출도 남지 않는다(한 트랜잭션)
+        householdDatabase.dsl.fetchCount(householdDatabase.dsl.selectFrom("expense").where("user_id = ?", user)) shouldBe 1
+
+        // 당일 — 묻지 않고, 답도 받지 않는다
+        val month = YearMonth.from(today)
+        data(call("GET", "/api/household/month/$month", user, null)).path("feelings").path("asks").size() shouldBe 0
+        call("POST", "/api/household/expenses/$id/feeling/next", user, """{"felt":2}""").body() shouldContain "FEELING_NEXT_TOO_EARLY"
+
+        // 태그 날짜를 어제로 — 다음 날이 된 것과 같다
+        householdDatabase.dsl.execute("UPDATE expense_tag SET tagged_on = ? WHERE expense_id = ?::uuid", today.minusDays(1), id)
+        val asks = data(call("GET", "/api/household/month/$month", user, null)).path("feelings").path("asks")
+        asks.size() shouldBe 1
+        asks.get(0).path("expenseId").asString() shouldBe id
+        asks.get(0).path("amount").asLong() shouldBe 30_000
+        call("POST", "/api/household/expenses/$id/feeling/next", user, """{"felt":7}""").body() shouldContain "FEELING_FELT_INVALID"
+        data(call("POST", "/api/household/expenses/$id/feeling/next", user, """{"felt":2}""")).path("feltNext").asInt() shouldBe 2
+        call("POST", "/api/household/expenses/$id/feeling/next", user, """{"felt":3}""").statusCode() shouldBe 409
+
+        // 바꾸기 — 감정 · 산 직후만, 다음 날 답 · 태그 날짜는 그대로
+        val changed = data(call("PUT", "/api/household/expenses/$id/feeling", user, """{"emotion":"stress","feltNow":4}"""))
+        changed.path("emotion").asString() shouldBe "stress"
+        changed.path("feltNext").asInt() shouldBe 2
+        changed.path("taggedOn").asString() shouldBe today.minusDays(1).toString()
+
+        val page = data(call("GET", "/api/household/month/$month", user, null))
+        page.path("feelings").path("asks").size() shouldBe 0
+        val mirror = page.path("feelings").path("mirror")
+        mirror.size() shouldBe 1
+        mirror.get(0).path("emotion").asString() shouldBe "stress"
+        mirror.get(0).path("feltNow").items { it.asInt() } shouldBe listOf(0, 0, 0, 1, 0)
+        mirror.get(0).path("feltNext").items { it.asInt() } shouldBe listOf(0, 1, 0, 0, 0)
+        page.path("feelings").path("emotions").items { it.asString() } shouldBe listOf("stress", "reward", "boredom")
+        page.path("expenses").get(0).path("feeling").path("emotion").asString() shouldBe "stress"
+        listOf("average", "score", "grade").forEach { page.toString() shouldNotContain it }
+
+        // 민감 정보 — 지출 이벤트 본문에 감정 · 만족이 없다
+        householdDatabase.dsl.fetch("SELECT payload::text FROM outbox WHERE payload->>'userId' = ?", user)
+            .map { it.get(0, String::class.java) }.forEach { it shouldNotContain "reward"; it shouldNotContain "felt" }
+
+        // 남의 지출 — 붙이기 · 지우기 · 답 모두 404
+        val other = "feel-o-${UUID.randomUUID()}"
+        call("PUT", "/api/household/expenses/$id/feeling", other, """{"emotion":"stress"}""").statusCode() shouldBe 404
+        call("DELETE", "/api/household/expenses/$id/feeling", other, null).statusCode() shouldBe 404
+        call("POST", "/api/household/expenses/$id/feeling/next", other, """{"felt":1}""").statusCode() shouldBe 404
+
+        // 지출을 지우면 태그도 지워진다
+        call("DELETE", "/api/household/expenses/$id", user, null).statusCode() shouldBe 200
+        householdDatabase.dsl.fetchCount(householdDatabase.dsl.selectFrom("expense_tag").where("user_id = ?", user)) shouldBe 0
+    }
+
+    @Test
+    fun `다음 날 넘김 — 다시 묻지 않는다 · 8일 지난 태그는 묻지 않는다 · 태그 지우기`() {
+        val user = "feel-skip-${UUID.randomUUID()}"
+        val month = YearMonth.from(today)
+        val ids = (1..2).map {
+            data(call("POST", "/api/household/expenses", user, """{"amount":5000,"category":"cafe","emotion":"boredom"}""")).path("expenses").get(0).path("id").asString()
+        }
+        householdDatabase.dsl.execute("UPDATE expense_tag SET tagged_on = ? WHERE expense_id = ?::uuid", today.minusDays(1), ids[0])
+        householdDatabase.dsl.execute("UPDATE expense_tag SET tagged_on = ? WHERE expense_id = ?::uuid", today.minusDays(8), ids[1])
+        data(call("GET", "/api/household/month/$month", user, null)).path("feelings").path("asks").items { it.path("expenseId").asString() } shouldBe listOf(ids[0])
+        val passed = data(call("POST", "/api/household/expenses/${ids[0]}/feeling/next", user, null))
+        passed.path("nextDecided").asBoolean() shouldBe true
+        passed.path("feltNext").isNull shouldBe true
+        data(call("GET", "/api/household/month/$month", user, null)).path("feelings").path("asks").size() shouldBe 0
+        call("DELETE", "/api/household/expenses/${ids[1]}/feeling", user, null).statusCode() shouldBe 200
+        call("DELETE", "/api/household/expenses/${ids[1]}/feeling", user, null).statusCode() shouldBe 404
+    }
+
+    @Test
+    fun `노동시간 — 기본 꺼짐 · 켜면 저장 응답 · 월 화면에 분 · 끄면 분 0 · 급여는 남는다 · 거절 표`() {
+        val user = "work-${UUID.randomUUID()}"
+        val month = YearMonth.from(today)
+        data(call("GET", "/api/household/settings/work-hours", user, null)).path("on").asBoolean() shouldBe false
+        data(call("POST", "/api/household/expenses", user, """{"amount":12000,"category":"food"}""")).path("savedWorkMinutes").isNull shouldBe true
+
+        val on = data(call("PUT", "/api/household/settings/work-hours", user, """{"on":true,"basis":"monthly","amount":2090000}"""))
+        on.path("hourly").asLong() shouldBe 10_000
+        on.path("defaultMonthlyHours").asInt() shouldBe 209
+        val saved = data(call("POST", "/api/household/expenses", user, """{"amount":25000,"category":"shopping"}"""))
+        saved.path("savedWorkMinutes").asLong() shouldBe 150
+        saved.path("expenses").get(0).path("workMinutes").asLong() shouldBe 150
+        val page = data(call("GET", "/api/household/month/$month", user, null))
+        page.path("workHours").path("hourly").asLong() shouldBe 10_000
+        page.path("workHours").path("totalMinutes").asLong() shouldBe 222 // 37,000원 ÷ 1만 원 × 60
+        page.path("expenses").items { it.path("workMinutes").asLong() }.sorted() shouldBe listOf(72L, 150L)
+
+        val off = data(call("PUT", "/api/household/settings/work-hours", user, """{"on":false,"basis":"monthly","amount":2090000}"""))
+        off.path("amount").asLong() shouldBe 2_090_000
+        off.path("hourly").isNull shouldBe true
+        val offPage = data(call("GET", "/api/household/month/$month", user, null))
+        offPage.path("workHours").isNull shouldBe true
+        offPage.path("expenses").get(0).path("workMinutes").isNull shouldBe true
+
+        call("PUT", "/api/household/settings/work-hours", user, """{"on":true}""").body() shouldContain "WAGE_REQUIRED"
+        call("PUT", "/api/household/settings/work-hours", user, """{"on":true,"basis":"weekly","amount":1000}""").body() shouldContain "WAGE_BASIS_INVALID"
+        call("PUT", "/api/household/settings/work-hours", user, """{"on":true,"basis":"hourly","amount":10000,"monthlyHours":160}""").body() shouldContain "MONTHLY_HOURS_INVALID"
+        // 급여는 이벤트 · 응답 밖으로 새지 않는다 — 아웃박스에 설정 이벤트가 없다
+        eventTypes(user).none { "Setting" in it || "Wage" in it } shouldBe true
+    }
+
+    @Test
+    fun `무지출 달력 — 안 쓴 날 표시 · 쓴 날은 거절 · 표시 뒤 지출이면 spent · 지우면 다시 · 미래 거절 · 연속 일수 칸 0`() {
+        val user = "nospend-${UUID.randomUUID()}"
+        val month = YearMonth.from(today)
+        // 오늘 표시는 오늘이 몇 일이든 된다. 지출을 적은 날(오늘)은 거절
+        call("PUT", "/api/household/no-spend/$today", user, null).statusCode() shouldBe 200
+        call("PUT", "/api/household/no-spend/$today", user, null).statusCode() shouldBe 200
+        var cal = data(call("GET", "/api/household/month/$month", user, null)).path("calendar")
+        cal.path("days").size() shouldBe month.lengthOfMonth()
+        val todayCell = { c: JsonNode -> c.path("days").get(today.dayOfMonth - 1) }
+        todayCell(cal).path("state").asString() shouldBe "no_spend"
+        cal.path("noSpendDays").asInt() shouldBe 1
+        todayCell(cal).path("weekday").asInt() shouldBe today.dayOfWeek.value
+
+        val id = data(call("POST", "/api/household/expenses", user, """{"amount":3000,"category":"cafe"}""")).path("expenses").get(0).path("id").asString()
+        cal = data(call("GET", "/api/household/month/$month", user, null)).path("calendar")
+        todayCell(cal).path("state").asString() shouldBe "spent"
+        todayCell(cal).path("spent").asLong() shouldBe 3_000
+        cal.path("noSpendDays").asInt() shouldBe 0
+        call("PUT", "/api/household/no-spend/$today", user, null).body() shouldContain "STICKER_DAY_HAS_EXPENSE"
+
+        call("DELETE", "/api/household/expenses/$id", user, null).statusCode() shouldBe 200
+        todayCell(data(call("GET", "/api/household/month/$month", user, null)).path("calendar")).path("state").asString() shouldBe "no_spend"
+        call("DELETE", "/api/household/no-spend/$today", user, null).statusCode() shouldBe 200
+        val blank = todayCell(data(call("GET", "/api/household/month/$month", user, null)).path("calendar"))
+        blank.path("state").asString() shouldBe "blank"
+        blank.path("markable").asBoolean() shouldBe true
+
+        call("PUT", "/api/household/no-spend/${today.plusDays(1)}", user, null).body() shouldContain "STICKER_DATE_FUTURE"
+        call("PUT", "/api/household/no-spend/2026-13-01", user, null).body() shouldContain "DATE_INVALID"
+        val raw = call("GET", "/api/household/month/$month", user, null).body()
+        listOf("streak", "consecutive").forEach { raw shouldNotContain it }
     }
 
     // ---------- 도움 ----------

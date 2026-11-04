@@ -33,6 +33,22 @@ export interface HouseholdExpense {
   installmentMonths: number | null;
   memo: string | null;
   createdAt: string;
+  /** 감정 태그(가계부 S1c) — 없으면 null */
+  feeling: ExpenseFeeling | null;
+  /** 근무 분 — 노동시간 환산을 켰을 때만(서버 계산) */
+  workMinutes: number | null;
+}
+
+/** 감정 태그 키 — 서버가 목록을 준다(`emotions`). 문구는 프론트 */
+export type EmotionKey = "stress" | "reward" | "boredom";
+
+/** nextDecided 인데 feltNext 가 null 이면 넘김 */
+export interface ExpenseFeeling {
+  emotion: EmotionKey;
+  feltNow: number | null;
+  feltNext: number | null;
+  nextDecided: boolean;
+  taggedOn: string;
 }
 
 /** 봉투 — remaining 은 음수 가능(넘침). 상태 · 경고 칸이 없다 */
@@ -54,6 +70,8 @@ export interface RecordResult {
   savedTotal: number;
   envelope: HouseholdEnvelope | null;
   monthTotal: number;
+  /** 이번에 적은 합의 근무 분 — 노동시간을 켰을 때만 */
+  savedWorkMinutes: number | null;
   goalClock: GoalClock;
 }
 
@@ -67,6 +85,9 @@ export interface ExpenseRequest {
   inputKind?: InputKindKey;
   installmentMonths?: number;
   memo?: string;
+  /** 감정 태그(가계부 S1c) — 산 직후 만족(1~5)은 태그가 있을 때만 */
+  emotion?: EmotionKey;
+  feltNow?: number;
 }
 
 export interface ParseCandidate {
@@ -88,6 +109,7 @@ export interface ParseResult {
 export interface HouseholdSuggestions {
   merchants: Array<{ merchant: string; category: CategoryKey; lastAmount: number; count: number }>;
   categories: Array<{ key: CategoryKey; bucket: "needs" | "wants" }>;
+  emotions: EmotionKey[];
 }
 
 export type BudgetMethodKey = "50_30_20" | "envelope";
@@ -210,6 +232,58 @@ export interface MonthClose {
   answers: ReviewAnswers;
 }
 
+/** 다음 날 묻기 한 줄 — 서버가 고른 것(태그 다음 날 ~ 7일, 아직 안 정함) */
+export interface FeelingAsk {
+  expenseId: string;
+  emotion: EmotionKey;
+  feltNow: number | null;
+  taggedOn: string;
+  amount: number;
+  spentOn: string;
+  category: CategoryKey;
+  merchant: string | null;
+}
+
+/** 감정 하나의 분포 — 1~5점 건수(인덱스 0 = 1점). 평균 · 점수 칸 없음 */
+export interface EmotionMirror {
+  emotion: EmotionKey;
+  count: number;
+  feltNow: number[];
+  feltNext: number[];
+}
+
+/** 달력 칸 상태 — 서버가 정한다. blank = 기록 없음(안 쓴 날로 세지 않는다) */
+export type CalendarDayState = "future" | "spent" | "no_spend" | "blank";
+
+export interface CalendarDay {
+  date: string;
+  /** ISO 요일(월 1 ~ 일 7) — 서버가 준다. 칸 자리만 */
+  weekday: number;
+  state: CalendarDayState;
+  spent: number;
+  /** 지금 "안 쓴 날"로 표시할 수 있나 */
+  markable: boolean;
+}
+
+export type WageBasisKey = "hourly" | "monthly";
+
+export interface WorkHoursSetting {
+  on: boolean;
+  basis: WageBasisKey | null;
+  amount: number | null;
+  monthlyHours: number | null;
+  defaultMonthlyHours: number;
+  /** 켰을 때 1시간 값(원) */
+  hourly: number | null;
+}
+
+export interface WorkHoursRequest {
+  on: boolean;
+  basis?: WageBasisKey;
+  amount?: number;
+  monthlyHours?: number;
+}
+
 export interface HouseholdMonth {
   month: string;
   current: boolean;
@@ -232,4 +306,10 @@ export interface HouseholdMonth {
   /** 지금 닫을 수 있나 — 서버가 정한다 */
   closable: boolean;
   reviewQuestions: ReviewQuestionKey[];
+  /** 감정 태그 — 다음 날 묻기(이번 달만) · 거울(가계부 S1c) */
+  feelings: { asks: FeelingAsk[]; mirror: EmotionMirror[]; emotions: EmotionKey[] };
+  /** 무지출 달력 — 1일~말일, 연속 일수 칸 없음 */
+  calendar: { days: CalendarDay[]; noSpendDays: number };
+  /** 노동시간 — 켰을 때만 */
+  workHours: { hourly: number; totalMinutes: number } | null;
 }

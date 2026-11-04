@@ -35,4 +35,11 @@ export const appHouseholdController = {
   confirmOccurrence: wrap(201, (req) => appHouseholdService.confirmOccurrence(req.token!, String(req.params.id), req.body ?? {})),
   skipOccurrence: wrap(200, (req) => appHouseholdService.skipOccurrence(req.token!, String(req.params.id))),
   closeMonth: wrap(200, (req) => appHouseholdService.closeMonth(req.token!, String(req.params.ym), req.body ?? {})),
+  tagFeeling: wrap(200, (req) => appHouseholdService.tagFeeling(req.token!, String(req.params.id), req.body ?? {})),
+  untagFeeling: wrap(200, (req) => appHouseholdService.untagFeeling(req.token!, String(req.params.id))),
+  answerNextDay: wrap(200, (req) => appHouseholdService.answerNextDay(req.token!, String(req.params.id), req.body ?? {})),
+  workHours: wrap(200, (req) => appHouseholdService.workHours(req.token!)),
+  setWorkHours: wrap(200, (req) => appHouseholdService.setWorkHours(req.token!, req.body ?? {})),
+  markNoSpend: wrap(200, (req) => appHouseholdService.markNoSpend(req.token!, String(req.params.date))),
+  unmarkNoSpend: wrap(200, (req) => appHouseholdService.unmarkNoSpend(req.token!, String(req.params.date))),
 };

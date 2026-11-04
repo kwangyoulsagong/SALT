@@ -108,3 +108,4 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 | 2026-11-04 | 가계부 S1a + F4a — `SRV-REQ-046` · `DB-REQ-038` · `BFF-REQ-048` · `FE-REQ-057` in-progress. 루트 `requirements/specs/done/MONEY-S1-household-entry-slice.md`. 다음 칸 가계부 S1b(반복 · 마감 · 할부 · 재미) 또는 `FE-REQ-013` FR-80 2단계 |
 | 2026-11-04 | **가계부 S1a 슬라이스 done** — `MONEY-S1-household-entry-slice.md` → `done/`. 영역 REQ(`SRV-REQ-046` · `DB-REQ-038` · `BFF-REQ-048` · `FE-REQ-057`)는 남은 FR(S1b) 때문에 in-progress. 다음 칸 가계부 S1b 또는 `FE-REQ-013` FR-80 2단계 |
 | 2026-11-04 | **가계부 S1b + F4b done** — 반복 템플릿 · 예정 워커 · 월 마감 리뷰 · 할부 띠(`MONEY-S1b-household-month-slice.md`). 이벤트 `household.MonthClosed` 추가 · 저축 구독은 저축 S2 로. 다음 칸 가계부 S1c 또는 `FE-REQ-013` FR-80 2단계 |
+| 2026-11-04 | 가계부 S1c + F4c done — 감정 태그 · 다음 날 만족 거울 · 노동시간 · 무지출 달력(루트 `requirements/specs/done/MONEY-S1c-household-mirror-slice.md`). 남은 가계부: 사람 장부 · 챌린지 · 이야기 카드 · 고정비 · 리볼빙 · 통장 쪼개기(S1d) · 공제(S2 뒤). 다음 칸 가계부 S1d 또는 `FE-REQ-013` FR-80 2단계 |

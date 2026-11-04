@@ -36,6 +36,18 @@ import com.salt.household.domain.MonthCloses
 import com.salt.household.domain.RecurringOccurrence
 import com.salt.household.domain.RecurringOccurrences
 import com.salt.household.domain.RecurringRules
+import com.salt.household.domain.CalendarRules
+import com.salt.household.domain.EmotionMirror
+import com.salt.household.domain.ExpenseFeeling
+import com.salt.household.domain.FeelingAsk
+import com.salt.household.domain.FeelingMirror
+import com.salt.household.domain.FeelingRules
+import com.salt.household.domain.Feelings
+import com.salt.household.domain.MonthCalendar
+import com.salt.household.domain.Settings
+import com.salt.household.domain.StickerKind
+import com.salt.household.domain.Stickers
+import com.salt.household.domain.WorkHoursSetting
 import com.salt.kernel.Money
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -102,10 +114,22 @@ data class ExpenseInput(
     val inputKind: String,
     val installmentMonths: Int?,
     val memo: String?,
+    /** 감정 태그(가계부 S1c FR-13) — 비우면 태그 없음. 산 직후 만족은 태그가 있을 때만 */
+    val emotion: String? = null,
+    val feltNow: Int? = null,
 )
 
-/** 저장 응답 — 저장한 행 · 첫 행 분류의 봉투 · 이번 달 합 */
-data class RecordResult(val saved: List<Expense>, val envelope: EnvelopeStatus?, val monthTotal: Money) {
+/**
+ * 저장 응답 — 저장한 행 · 첫 행 분류의 봉투 · 이번 달 합. [workHours] 는 노동시간 환산 설정(꺼졌으면 OFF — 응답이 분을 싣지 않는다, S1c FR-15).
+ * [feelings] 는 이번에 붙인 감정 태그(지출 id → 태그)
+ */
+data class RecordResult(
+    val saved: List<Expense>,
+    val envelope: EnvelopeStatus?,
+    val monthTotal: Money,
+    val workHours: WorkHoursSetting = WorkHoursSetting.OFF,
+    val feelings: Map<ExpenseId, ExpenseFeeling> = emptyMap(),
+) {
     /** 이번에 적은 합 — BFF 가 목표 시계에 그대로 넘긴다(BFF 는 더하지 않는다) */
     val savedTotal: Money get() = saved.map { it.amount }.reduce(Money::plus)
 }
@@ -120,6 +144,7 @@ class ExpenseWriter(
     private val landings: Landings,
     private val landingReader: LandingReader,
     private val events: HouseholdEvents,
+    private val settings: Settings,
     private val clock: Clock,
 ) {
     fun afterInsert(userId: String, saved: List<Expense>, today: LocalDate): RecordResult {
@@ -131,7 +156,7 @@ class ExpenseWriter(
             val key = b.envelopeOf(saved.first().category) ?: return@let null
             BudgetMath.envelopes(b, summary.byCategory).firstOrNull { it.key == key }
         }
-        return RecordResult(saved, envelope, summary.totals.total)
+        return RecordResult(saved, envelope, summary.totals.total, settings.workHours(userId))
     }
 
     /** 그날 처음 적은 지출이면 이번 달 착지를 발행한다(S1a 슬라이스 판단 2). 이미 냈으면 아무것도 쓰지 않는다 */
@@ -148,6 +173,7 @@ class ExpenseWriter(
  */
 open class RecordExpenses(
     private val expenses: Expenses,
+    private val feelings: Feelings,
     private val writer: ExpenseWriter,
     private val clock: Clock,
 ) {
@@ -158,8 +184,19 @@ open class RecordExpenses(
         val today = clock.todayKst()
         val now = clock.instant()
         val saved = inputs.map { toExpense(userId, it, today, now) }
+        // 태그 검사는 행을 넣기 전에 — 틀린 감정 키가 지출만 남기지 않게(한 트랜잭션이라 롤백되지만 문장을 아낀다)
+        val tags = saved.zip(inputs).mapNotNull { (e, input) -> feelingFor(userId, e, input, today) }
         expenses.add(saved)
-        return writer.afterInsert(userId, saved, today)
+        tags.forEach { feelings.tag(it, now) }
+        return writer.afterInsert(userId, saved, today).copy(feelings = tags.associateBy { it.expenseId })
+    }
+
+    private fun feelingFor(userId: String, expense: Expense, input: ExpenseInput, today: LocalDate): ExpenseFeeling? {
+        if (input.emotion == null) {
+            if (input.feltNow != null) throw InvalidExpense("FEELING_EMOTION_REQUIRED", "feltNow goes with an emotion")
+            return null
+        }
+        return feelingOf(userId, expense.id, input.emotion, input.feltNow, today)
     }
 
     private fun toExpense(userId: String, input: ExpenseInput, today: LocalDate, now: Instant): Expense {
@@ -280,10 +317,19 @@ data class MonthView(
     val close: MonthClose?,
     val closable: Boolean,
     val installments: InstallmentBand,
+    /** 그 달 지출의 감정 태그(지출 id → 태그) — 목록 표시(S1c FR-13) */
+    val feelings: Map<ExpenseId, ExpenseFeeling>,
+    /** 그 달 태그별 분포 — 건수만, 평가 0 */
+    val mirror: List<EmotionMirror>,
+    /** 오늘 물을 다음 날 만족 — 이번 달 화면에만(다른 달이면 빈 목록) */
+    val feelingAsks: List<FeelingAsk>,
+    val calendar: MonthCalendar,
+    val workHours: WorkHoursSetting,
 )
 
 /**
- * 쿼리: 지출 목록 · 월 합 · 마감(2 — 닫은 달이면 예산 대신 사본) · 예산(2, 안 닫은 달) · 예정 행 · 할부 + 이번 달이면 착지 2 · 적중 2.
+ * 쿼리: 지출 목록 · 월 합 · 마감(2 — 닫은 달이면 예산 대신 사본) · 예산(2, 안 닫은 달) · 예정 행 · 할부 + 이번 달이면 착지 2 · 적중 2
+ * + S1c: 태그(목록 · 거울 한 문장) · 날별 합(달력) · 스티커 · 설정 + 이번 달이면 다음 날 묻기 1.
  * 닫은 달은 그때 붙잡은 예산으로 본다(S1b 판단 6).
  */
 open class GetMonth(
@@ -292,6 +338,9 @@ open class GetMonth(
     private val occurrences: RecurringOccurrences,
     private val closes: MonthCloses,
     private val landingReader: LandingReader,
+    private val feelings: Feelings,
+    private val stickers: Stickers,
+    private val settings: Settings,
     private val clock: Clock,
 ) {
     @Transactional(transactionManager = HOUSEHOLD_TX, readOnly = true)
@@ -308,6 +357,11 @@ open class GetMonth(
         val remaining = envelopes.takeIf { it.isNotEmpty() }?.map { it.remaining }?.reduce(Money::plus)
         val daysLeft = BudgetMath.daysLeftIncludingToday(month, today)
         val current = month == YearMonth.from(today)
+        val monthFeelings = feelings.inMonth(userId, month)
+        val lastDay = if (current) today else month.atEndOfMonth()
+        val daily = expenses.dailyTotals(userId, month.atDay(1), lastDay).mapValues { it.value.all }
+        val calendar = CalendarRules.month(month, today, daily, stickers.inMonth(userId, month, StickerKind.NO_SPEND))
+        val asks = if (current) FeelingRules.askWindow(today).let { (from, to) -> feelings.pendingAsks(userId, from, to) } else emptyList()
         return MonthView(
             month = month,
             summary = summary,
@@ -326,6 +380,11 @@ open class GetMonth(
             close = close,
             closable = MonthCloseRules.closable(month, today),
             installments = InstallmentMath.band(month, plans),
+            feelings = monthFeelings.associateBy { it.expenseId },
+            mirror = FeelingMirror.of(monthFeelings),
+            feelingAsks = asks,
+            calendar = calendar,
+            workHours = settings.workHours(userId),
         )
     }
 }

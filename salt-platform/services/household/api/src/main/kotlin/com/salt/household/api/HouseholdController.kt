@@ -1,6 +1,19 @@
 package com.salt.household.api
 
+import com.salt.household.application.AnswerNextDay
 import com.salt.household.application.CloseMonth
+import com.salt.household.application.GetWorkHours
+import com.salt.household.application.MarkNoSpend
+import com.salt.household.application.SetWorkHours
+import com.salt.household.application.TagFeeling
+import com.salt.household.application.UnmarkNoSpend
+import com.salt.household.application.UntagFeeling
+import com.salt.household.domain.CalendarDay
+import com.salt.household.domain.Emotion
+import com.salt.household.domain.EmotionMirror
+import com.salt.household.domain.ExpenseFeeling
+import com.salt.household.domain.FeelingAsk
+import com.salt.household.domain.WorkHoursSetting
 import com.salt.household.application.ConfirmOccurrence
 import com.salt.household.application.CreateTemplate
 import com.salt.household.application.DeleteExpense
@@ -88,6 +101,13 @@ class HouseholdController(
     private val confirmOccurrence: ConfirmOccurrence,
     private val skipOccurrence: SkipOccurrence,
     private val closeMonth: CloseMonth,
+    private val tagFeeling: TagFeeling,
+    private val untagFeeling: UntagFeeling,
+    private val answerNextDay: AnswerNextDay,
+    private val getWorkHours: GetWorkHours,
+    private val setWorkHours: SetWorkHours,
+    private val markNoSpend: MarkNoSpend,
+    private val unmarkNoSpend: UnmarkNoSpend,
     private val clock: Clock,
 ) {
     // ---------- 요청 ----------
@@ -102,6 +122,9 @@ class HouseholdController(
         val inputKind: String? = "quick",
         @field:Min(2) @field:Max(36) val installmentMonths: Int?,
         @field:Size(max = 400) val memo: String?,
+        /** 감정 태그 키(S1c) — 비우면 없음. 값 검사는 도메인이 코드로 답한다 */
+        @field:Size(max = 20) val emotion: String? = null,
+        val feltNow: Int? = null,
     )
 
     data class BatchRequest(@field:NotEmpty @field:Size(max = InputParser.CANDIDATES_MAX) @field:Valid val expenses: List<ExpenseRequest>?)
@@ -130,6 +153,27 @@ class HouseholdController(
     /** 리뷰 3문항 — 다 비워도 닫힌다. 길이 상한은 도메인이 코드로 답한다 */
     data class CloseRequest(@field:Size(max = 1000) val satisfied: String?, @field:Size(max = 1000) val tryNext: String?, @field:Size(max = 1000) val knownNext: String?)
 
+    /** 감정 태그(S1c FR-13) — 붙이기 · 바꾸기 */
+    data class FeelingRequest(@field:NotBlank @field:Size(max = 20) val emotion: String?, val feltNow: Int?) {
+        /** 민감 정보 — 이 객체가 문자열이 되어도 값이 새지 않게 */
+        override fun toString(): String = "FeelingRequest(<redacted>)"
+    }
+
+    /** 다음 날 만족 — 1~5, 비우면 넘김 */
+    data class NextDayRequest(val felt: Int?) {
+        override fun toString(): String = "NextDayRequest(<redacted>)"
+    }
+
+    /** 노동시간 환산(S1c FR-15) — basis hourly | monthly, 끄면서 급여는 남겨도 된다 */
+    data class WorkHoursRequest(
+        @field:NotNull val on: Boolean?,
+        val basis: String?,
+        @field:Positive val amount: BigDecimal?,
+        val monthlyHours: Int?,
+    ) {
+        override fun toString(): String = "WorkHoursRequest(on=$on, <wage redacted>)"
+    }
+
     data class BudgetRequest(
         @field:NotBlank val method: String?,
         @field:Positive val income: BigDecimal?,
@@ -150,13 +194,27 @@ class HouseholdController(
         val installmentMonths: Int?,
         val memo: String?,
         val createdAt: String,
+        /** 감정 태그(S1c) — 없으면 null */
+        val feeling: FeelingView?,
+        /** 근무 분(노동시간 환산을 켰을 때만, S1c FR-15) */
+        val workMinutes: Long?,
     )
+
+    /** [emotion] 키 · 산 직후 · 다음 날(1~5). [nextDecided] 가 true 인데 [feltNext] 가 null 이면 넘김 */
+    data class FeelingView(val emotion: String, val feltNow: Int?, val feltNext: Int?, val nextDecided: Boolean, val taggedOn: String)
 
     /** 봉투 — `remaining` 은 음수 가능. 상태 · 경고 칸이 없다 */
     data class EnvelopeView(val key: String, val budget: Long, val spent: Long, val remaining: Long)
 
     /** [savedTotal] — 이번에 적은 합. BFF 가 목표 시계(저축 `goal-clock`)에 그대로 넘긴다 */
-    data class RecordView(val expenses: List<ExpenseView>, val savedTotal: Long, val envelope: EnvelopeView?, val monthTotal: Long)
+    data class RecordView(
+        val expenses: List<ExpenseView>,
+        val savedTotal: Long,
+        val envelope: EnvelopeView?,
+        val monthTotal: Long,
+        /** 이번에 적은 합의 근무 분 — 노동시간을 켰을 때만 */
+        val savedWorkMinutes: Long?,
+    )
 
     data class CandidateView(
         val amount: Long,
@@ -176,7 +234,8 @@ class HouseholdController(
 
     data class CategoryView(val key: String, val bucket: String)
 
-    data class SuggestionsView(val merchants: List<MerchantView>, val categories: List<CategoryView>)
+    /** [emotions] — 감정 태그 키(문구는 프론트, S1c) */
+    data class SuggestionsView(val merchants: List<MerchantView>, val categories: List<CategoryView>, val emotions: List<String>)
 
     data class BudgetView(val method: String, val income: Long?, val savingsShare: Long?, val envelopes: List<BudgetEnvelopeView>, val total: Long?, val updatedAt: String)
 
@@ -228,7 +287,39 @@ class HouseholdController(
         val closable: Boolean,
         /** 리뷰 문항 키(문장은 프론트) */
         val reviewQuestions: List<String>,
+        /** 감정 태그 — 다음 날 묻기 · 거울(S1c FR-13) */
+        val feelings: FeelingsMonthView,
+        /** 무지출 달력(S1c FR-16) — 칸 상태 · 표시 가능 여부는 서버가 정한다. 연속 일수 칸 없음 */
+        val calendar: CalendarView,
+        /** 노동시간 환산 — 켰을 때만(S1c FR-15) */
+        val workHours: WorkHoursMonthView?,
     )
+
+    data class FeelingAskView(
+        val expenseId: String,
+        val emotion: String,
+        val feltNow: Int?,
+        val taggedOn: String,
+        val amount: Long,
+        val spentOn: String,
+        val category: String,
+        val merchant: String?,
+    )
+
+    /** 감정 하나 — 1~5점 건수(인덱스 0 = 1점). 평균 · 점수 칸 없음 */
+    data class MirrorView(val emotion: String, val count: Int, val feltNow: List<Int>, val feltNext: List<Int>)
+
+    data class FeelingsMonthView(val asks: List<FeelingAskView>, val mirror: List<MirrorView>, val emotions: List<String>)
+
+    /** [state] future · spent · no_spend · blank. [weekday] ISO(월 1 ~ 일 7) — 화면이 칸을 놓는 자리(날짜 계산을 프론트에 두지 않게) */
+    data class CalendarDayView(val date: String, val weekday: Int, val state: String, val spent: Long, val markable: Boolean)
+
+    data class CalendarView(val days: List<CalendarDayView>, val noSpendDays: Int)
+
+    data class WorkHoursMonthView(val hourly: Long, val totalMinutes: Long)
+
+    /** 설정 화면 — [hourly] 는 켰을 때 1시간 값(원, 내림) */
+    data class WorkHoursView(val on: Boolean, val basis: String?, val amount: Long?, val monthlyHours: Int?, val defaultMonthlyHours: Int, val hourly: Long?)
 
     /** 예정 행 — [stage] ask · upcoming · confirmed · skipped(보여 줄 단계는 서버가 정한다) */
     data class OccurrenceView(
@@ -331,6 +422,7 @@ class HouseholdController(
             SuggestionsView(
                 suggestions.execute(user.userId).map { MerchantView(it.merchant, it.category.key, it.lastAmount.toKrwInteger(), it.count) },
                 Category.entries.map { CategoryView(it.key, it.bucket.key) },
+                Emotion.entries.map { it.key },
             ),
         )
 
@@ -400,7 +492,82 @@ class HouseholdController(
     fun close(user: AuthenticatedUser, @PathVariable ym: String, @Valid @RequestBody body: CloseRequest): ResponseEntity<ApiResponse<CloseView>> =
         ApiResponse.ok(closeView(closeMonth.execute(user.userId, parseMonth(ym), ReviewAnswers.of(body.satisfied, body.tryNext, body.knownNext))))
 
+    // ---------- 거울 셋(가계부 S1c) ----------
+
+    @Operation(summary = "감정 태그 붙이기 · 바꾸기", description = "stress · reward · boredom + 산 직후 만족(1~5, 선택). 본인 지출만. 민감 정보 — 이벤트 0")
+    @PutMapping("/expenses/{id}/feeling")
+    fun tag(user: AuthenticatedUser, @PathVariable id: String, @Valid @RequestBody body: FeelingRequest): ResponseEntity<ApiResponse<FeelingView>> =
+        ApiResponse.ok(feelingView(tagFeeling.execute(user.userId, id, body.emotion!!, body.feltNow)))
+
+    @Operation(summary = "감정 태그 지우기", description = "본인 것만")
+    @DeleteMapping("/expenses/{id}/feeling")
+    fun untag(user: AuthenticatedUser, @PathVariable id: String): ResponseEntity<ApiResponse<Map<String, String>>> {
+        untagFeeling.execute(user.userId, id)
+        return ApiResponse.ok(mapOf("id" to id))
+    }
+
+    @Operation(summary = "다음 날 만족", description = "태그 단 다음 날부터. 1~5 또는 비우면 넘김. 한 번만 — 두 번째는 409")
+    @PostMapping("/expenses/{id}/feeling/next")
+    fun answerNext(user: AuthenticatedUser, @PathVariable id: String, @RequestBody(required = false) body: NextDayRequest?): ResponseEntity<ApiResponse<FeelingView>> =
+        ApiResponse.ok(feelingView(answerNextDay.execute(user.userId, id, body?.felt)))
+
+    @Operation(summary = "노동시간 환산 설정", description = "꺼져 있으면 on=false")
+    @GetMapping("/settings/work-hours")
+    fun workHours(user: AuthenticatedUser): ResponseEntity<ApiResponse<WorkHoursView>> = ApiResponse.ok(workHoursView(getWorkHours.execute(user.userId)))
+
+    @Operation(summary = "노동시간 환산 설정 바꾸기", description = "basis=hourly|monthly · amount(원) · monthlyHours(월급일 때, 기본 209). 통째로 바꾼다")
+    @PutMapping("/settings/work-hours")
+    fun setWorkHours(user: AuthenticatedUser, @Valid @RequestBody body: WorkHoursRequest): ResponseEntity<ApiResponse<WorkHoursView>> =
+        ApiResponse.ok(workHoursView(setWorkHours.execute(user.userId, body.on!!, body.basis, body.amount?.let(Money::krw), body.monthlyHours)))
+
+    @Operation(summary = "안 쓴 날 표시", description = "오늘 · 지난날. 그날 지출이 있으면 400. 다시 눌러도 같다. 연속 일수는 세지 않는다")
+    @PutMapping("/no-spend/{date}")
+    fun markNoSpend(user: AuthenticatedUser, @PathVariable date: String): ResponseEntity<ApiResponse<Map<String, String>>> {
+        markNoSpend.execute(user.userId, parseDay(date))
+        return ApiResponse.ok(mapOf("date" to date))
+    }
+
+    @Operation(summary = "안 쓴 날 표시 지우기", description = "없어도 성공")
+    @DeleteMapping("/no-spend/{date}")
+    fun unmarkNoSpend(user: AuthenticatedUser, @PathVariable date: String): ResponseEntity<ApiResponse<Map<String, String>>> {
+        unmarkNoSpend.execute(user.userId, parseDay(date))
+        return ApiResponse.ok(mapOf("date" to date))
+    }
+
     // ---------- 변환 — 반올림은 여기서 한 번 ----------
+
+    private fun parseDay(raw: String): LocalDate = try {
+        LocalDate.parse(raw)
+    } catch (e: DateTimeParseException) {
+        throw InvalidExpense("DATE_INVALID", "date must be YYYY-MM-DD")
+    }
+
+    private fun feelingView(f: ExpenseFeeling) = FeelingView(f.emotion.key, f.feltNow, f.feltNext, f.nextDecided, f.taggedOn.toString())
+
+    private fun workHoursView(w: WorkHoursSetting) = WorkHoursView(
+        on = w.on,
+        basis = w.basis?.key,
+        amount = w.amount?.toKrwInteger(),
+        monthlyHours = w.monthlyHours,
+        defaultMonthlyHours = WorkHoursSetting.DEFAULT_MONTHLY_HOURS,
+        // 1시간 값은 내림 — 화면에 "시급 약 N원 기준"으로만 쓴다(분 계산은 반올림 전 값으로 이미 끝났다)
+        hourly = w.hourly?.toKrwInteger(RoundingMode.FLOOR),
+    )
+
+    private fun calendarDayView(d: CalendarDay) = CalendarDayView(d.date.toString(), d.date.dayOfWeek.value, d.state.key, d.spent.toKrwInteger(), d.markable)
+
+    private fun askView(a: FeelingAsk) = FeelingAskView(
+        expenseId = a.feeling.expenseId.toString(),
+        emotion = a.feeling.emotion.key,
+        feltNow = a.feeling.feltNow,
+        taggedOn = a.feeling.taggedOn.toString(),
+        amount = a.amount.toKrwInteger(),
+        spentOn = a.spentOn.toString(),
+        category = a.category.key,
+        merchant = a.merchant,
+    )
+
+    private fun mirrorView(m: EmotionMirror) = MirrorView(m.emotion.key, m.count, m.feltNow, m.feltNext)
 
     private fun parseMonth(raw: String): YearMonth = try {
         YearMonth.parse(raw)
@@ -418,6 +585,8 @@ class HouseholdController(
         inputKind = r.inputKind ?: "quick",
         installmentMonths = r.installmentMonths,
         memo = r.memo,
+        emotion = r.emotion?.ifBlank { null },
+        feltNow = r.feltNow,
     )
 
     private fun templateInput(r: TemplateRequest) = TemplateInput(
@@ -477,7 +646,7 @@ class HouseholdController(
         upcoming = b.upcoming.map { MonthChargeView(it.month.toString(), it.amount.toKrwInteger()) },
     )
 
-    private fun expenseView(e: Expense) = ExpenseView(
+    private fun expenseView(e: Expense, feeling: ExpenseFeeling? = null, workHours: WorkHoursSetting = WorkHoursSetting.OFF) = ExpenseView(
         id = e.id.toString(),
         amount = e.amount.toKrwInteger(),
         spentOn = e.spentOn.toString(),
@@ -489,11 +658,19 @@ class HouseholdController(
         installmentMonths = e.installmentMonths,
         memo = e.memo,
         createdAt = e.createdAt.toString(),
+        feeling = feeling?.let(::feelingView),
+        workMinutes = workHours.minutesFor(e.amount),
     )
 
     private fun envelopeView(e: EnvelopeStatus) = EnvelopeView(e.key, e.budget.toKrwInteger(), e.spent.toKrwInteger(), e.remaining.toKrwInteger())
 
-    private fun recordView(r: RecordResult) = RecordView(r.saved.map(::expenseView), r.savedTotal.toKrwInteger(), r.envelope?.let(::envelopeView), r.monthTotal.toKrwInteger())
+    private fun recordView(r: RecordResult) = RecordView(
+        expenses = r.saved.map { expenseView(it, r.feelings[it.id], r.workHours) },
+        savedTotal = r.savedTotal.toKrwInteger(),
+        envelope = r.envelope?.let(::envelopeView),
+        monthTotal = r.monthTotal.toKrwInteger(),
+        savedWorkMinutes = r.workHours.minutesFor(r.savedTotal),
+    )
 
     private fun budgetView(b: Budget) = BudgetView(
         method = b.method.key,
@@ -542,11 +719,14 @@ class HouseholdController(
         landing = m.landing?.let(::landingView),
         landingReason = m.landingReason,
         track = m.track?.let(::trackView),
-        expenses = m.expenses.map(::expenseView),
+        expenses = m.expenses.map { expenseView(it, m.feelings[it.id], m.workHours) },
         recurring = clock.todayKst().let { today -> RecurringMonthView(m.occurrences.map { occurrenceView(it, today) }, m.scheduledTotal.toKrwInteger()) },
         installments = installmentView(m.installments),
         close = m.close?.let(::closeView),
         closable = m.closable,
         reviewQuestions = ReviewAnswers.QUESTION_KEYS,
+        feelings = FeelingsMonthView(m.feelingAsks.map(::askView), m.mirror.map(::mirrorView), Emotion.entries.map { it.key }),
+        calendar = CalendarView(m.calendar.days.map(::calendarDayView), m.calendar.noSpendDays),
+        workHours = m.workHours.hourly?.let { h -> WorkHoursMonthView(h.toKrwInteger(RoundingMode.FLOOR), m.workHours.minutesFor(m.summary.totals.total)!!) },
     )
 }

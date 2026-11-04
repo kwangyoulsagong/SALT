@@ -96,3 +96,7 @@
 
 - [x] web-household 운영 빌드 표
 - [ ] FR-80 2단계 — 변함없이 별 슬라이스
+
+## 2026-11-04 — 가계부 S1c 번들
+
+- [x] `/household` 158 → 160 kB · `/household/new` 131 → 133 kB · `/household/budget` 131 kB · 공용 102 kB(가계부 zone 운영 빌드, 최종 HEAD)

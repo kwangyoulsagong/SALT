@@ -30,6 +30,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | FR-11 | `calendar_sticker` — 날짜 · 종류(무지출 · 챌린지). 연속 일수 열 없음 | FR-16 · 20 |
 | FR-12 | 인덱스 — `expense(user_id, spent_at)` · `expense(user_id, category_id, spent_at)` · `recurring_occurrence(due_on)` | 성능 |
 | FR-13 | 원문 금지 검사 — 스키마 테스트가 `raw` · `sms` · `message_text` 같은 열 이름 0 을 확인 | FR-3 |
+| FR-14 | `household_setting` — 노동시간 환산(켬 · 시급/월급 · 금액 · 월 근로시간). **민감 정보**(급여). 끄면 값은 남김 — **신설 2026-11-04 S1c** | FR-15 |
 
 ## Acceptance Criteria
 
@@ -66,7 +67,18 @@ Flyway `V2__recurring_close.sql`(로컬 운영 DB 적용 2026-11-04).
 | FR-7 | done — `month_close`(답 3열 300자 · 평가 점수 열 없음 · `(user, month)` 유일) + `month_close_envelope`(닫을 때 예산 사본) | S1a 판단 3 의 달별 이력 |
 | FR-8 | `landing_issued.scheduled`(기본 0 — 예정 개념 전 발행은 0) | 불변 트리거 그대로 |
 | FR-12 | done — `recurring_occurrence (user_id, month)` · 예정 부분 인덱스 `(due_on) WHERE status='scheduled'` · `expense (user_id, spent_on) WHERE installment_months IS NOT NULL` | 스펙의 `recurring_occurrence(due_on)` 대신 사용자 · 달 |
-| FR-2 · 5 · 6 · 9 · 10 · 11 | S1c · 뒤 | 리볼빙 표(FR-5)는 S1c |
+| FR-2 · 5 · 6 · 9 · 10 · 11 | S1c · 뒤 — **정정 2026-11-04** FR-6 · 11(무지출)은 S1c 닫힘, 나머지 S1d | 리볼빙 표(FR-5)는 ~~S1c~~ S1d |
+
+## 구현 현황 — 가계부 S1c (2026-11-04, `requirements/specs/done/MONEY-S1c-household-mirror-slice.md`)
+
+Flyway `V3__feelings_calendar.sql`(로컬 운영 DB 적용 2026-11-04 — `household` 2 → 3).
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-6 | done — `expense_tag`(PK `expense_id` · FK 지출 `ON DELETE CASCADE` · 감정 CHECK 셋 · `felt_now` · `felt_next` 1~5 · `tagged_on` · `next_decided_at` — 넘김 = 시각만) · 표 주석 `sensitive` · 묻기 부분 인덱스 `(user_id, tagged_on) WHERE next_decided_at IS NULL` | 스펙의 "태그"는 감정 하나 — 표 이름은 스펙 그대로 |
+| FR-11 | done(`no_spend`) — `calendar_sticker`(PK `(user_id, sticker_on, kind)` · 연속 일수 열 없음). `day` 대신 `sticker_on`(생성기 낱말 충돌 피함) | 챌린지 `kind` 는 S1d |
+| FR-14 | done — `household_setting`(PK `user_id` · CHECK 셋: 방식 ⇔ 금액 · 켜려면 금액 · 월 시간은 월급에만) · 표 주석 `sensitive` | 신설 |
+| FR-2 · 5 · 9 · 10 | S1d | 슬라이스 범위 밖 |
 
 ## Changelog
 
@@ -77,3 +89,4 @@ Flyway `V2__recurring_close.sql`(로컬 운영 DB 적용 2026-11-04).
 | 2026-11-04 | 리뷰 반영 `85512af5` — 스키마 변경 0(착지 계산 · 원 단위 검사는 서비스). `landing_issued.spent_so_far` 의 뜻이 "그날 시작 시점 합"으로 |
 | 2026-11-04 | EXPLAIN 확인(행 2만 넣고 롤백 — 다섯 쿼리 인덱스 · 1ms 미만) |
 | 2026-11-04 | 가계부 S1b — V2(`a32d349e`) · FR-4 · 7 · 12 done · `landing_issued.scheduled`. EXPLAIN 확인(행 넣고 롤백) |
+| 2026-11-04 | 가계부 S1c — V3(`dd330297`) · FR-6 · 11(무지출) · FR-14 신설(설정) done. EXPLAIN(행 2만 넣고 롤백 — 네 쿼리 인덱스 · 0.08ms 아래) |

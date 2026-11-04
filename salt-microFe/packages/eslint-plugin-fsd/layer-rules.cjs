@@ -101,6 +101,10 @@ const REGISTRY = {
     // 가계부 S1b(2026-11-04) — 반복 템플릿 · 예정 확인 / 월 마감 리뷰
     "manage-recurring",
     "close-month",
+    // 가계부 S1c(2026-11-04) — 다음 날 만족 답하기 · 안 쓴 날 표시 · 노동시간 설정
+    "answer-feeling",
+    "mark-no-spend",
+    "set-work-hours",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",
