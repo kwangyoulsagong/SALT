@@ -303,3 +303,4 @@ export { importLedger as POST } from '@/app/api-routes';
 | 2026-11-03 | MONEY-S1b — 이 REQ 에 걸린 몫(`6ad345fc`): 레지스트리 코드(`layer-rules.cjs`) features 에 `rebalance-goals` · `add-item-unit` · `compare-emergency` 추가 · `fsd-features.md` 표 3행. test:layer-check 26 · 훅 사후 실행(바뀐 TS 전부) 통과 |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 레지스트리 코드(`layer-rules.cjs`)에 `household`(엔티티 — 서버 컨텍스트와 같은 이름) · `record-expense` · `edit-budget` · `household` · `new-expense` · `budget` + 규칙 문서 §4 행(`df45ae7d`) |
 | 2026-11-04 | 가계부 S1a 리뷰 반영 `b147221e` — 레지스트리 엔티티 `expense` → `household`(슬라이스 = 서버 컨텍스트 이름) |
+| 2026-11-04 | lint 플러그인 `@repo/fsd` 에 `no-render-read`(렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기 금지)를 더했다 — 레이어 규칙은 아니지만 zone 앱 · 도메인 패키지 9곳 lint 가 모두 이 플러그인을 싣는다(`DEV-001`). 레이어 규칙 표는 그대로 |

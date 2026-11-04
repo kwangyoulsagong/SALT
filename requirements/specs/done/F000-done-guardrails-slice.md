@@ -17,10 +17,11 @@
 | FR-3 | DB 오류 코드로 흐름을 가르는 코드를 lint 가 막는다 | `salt-server/eslint.config.mjs` `no-restricted-syntax` 3꼴(비교 · `switch` · `[…].includes`) |
 | FR-4 | 셀 수 없는 것은 짧은 체크리스트 — 구현 전 · done 전, 항목마다 언제 터졌나 | `.claude/rules/done-checklist.md`(200줄 이내) |
 | FR-5 | 영역 파이프라인이 done 전에 이 검사를 부른다 · 코드 리뷰 스킬은 쓰지 않는다 | 루트 `CLAUDE.md` 표 · 영역 deliver(웹 · BFF · 서버) · 예측 pipeline 스킬 |
+| FR-6 | 렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기를 웹 lint 가 막는다 | `@repo/fsd/no-render-read` — zone 앱 · 도메인 패키지 9곳. 기존 걸린 3곳: 1곳 고침(`useRegenerateCoach`), 2곳은 브라우저에서만 그려져 이유 적은 예외(`EventsCard` · `ForecastFanChart`) |
+| FR-7 | PR 마다 같은 검사가 자동으로 돈다 | `.github/workflows/checks.yml` — done 전 검사 · 웹 타입 · lint · 테스트 · 레이어 · 서버 lint |
 
 원본 → 생성물 갈라짐(아이콘)은 로고 브랜치의 `brandIcons.test.ts`(`FE-REQ-051`)가 막는다 — 그 브랜치가 머지되면 체크리스트 1절 표가 맞아진다.
 
 ## 범위 밖
 
-- 프론트 lint 로 "렌더 중 토큰 · 시각 읽기" · "프론트 금액 · 임계 상수"를 막는 것 — 서버 · 클라이언트 컴포넌트 판정과 "판단 상수" 판정을 정적으로 할 수 없다. 체크리스트 2절로 둔다
-- CI — 이 레포에 CI 가 없다. 검사는 deliver 단계에서 사람이 · Claude 가 부른다(`OPS-001` 배포 환경이 생기면 거기 건다)
+- "프론트 판단 상수" lint — 이름으로 찾은 상수 25개가 전부 입력 길이 · 목록 개수 · 칸 높이였다(위반 0). 이름으로는 판단 상수와 갈리지 않아 체크리스트 2절(사람)로 둔다
