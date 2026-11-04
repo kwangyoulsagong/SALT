@@ -36,6 +36,11 @@ router.delete("/no-spend/:date", authMiddleware, appHouseholdController.unmarkNo
 // 고정비 찾기(가계부 S1e) — 후보 목록은 월 화면 fixedCosts
 router.post("/fixed-costs/hide", authMiddleware, appHouseholdController.hideFixedCost);
 router.post("/fixed-costs/show", authMiddleware, appHouseholdController.showFixedCost);
+// 내 분류(가계부 S1f) — 지우기는 보관(지난 지출 이름은 남는다)
+router.get("/categories", authMiddleware, appHouseholdController.categories);
+router.post("/categories", authMiddleware, appHouseholdController.addCategory);
+router.put("/categories/:key", authMiddleware, appHouseholdController.editCategory);
+router.delete("/categories/:key", authMiddleware, appHouseholdController.archiveCategory);
 // 내가 고르는 챌린지(가계부 S1d) — 보태기는 가계부 · 저축 두 서비스(순서는 서비스 주석)
 router.get("/challenges", authMiddleware, appHouseholdController.challenges);
 router.post("/challenges", authMiddleware, appHouseholdController.startChallenge);
