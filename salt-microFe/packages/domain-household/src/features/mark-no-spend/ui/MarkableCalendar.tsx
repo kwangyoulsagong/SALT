@@ -20,6 +20,7 @@ export const MarkableCalendar = ({ month }: { month: HouseholdMonth }) => {
       <NoSpendCalendar
         days={month.calendar.days}
         noSpendDays={month.calendar.noSpendDays}
+        challengeDays={month.calendar.challengeDays}
         action={(day, label) => {
           const on = day.state !== "no_spend";
           return (

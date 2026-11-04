@@ -1,6 +1,6 @@
 import { formatPrice } from "@repo/web-shared/lib";
 
-import type { CalendarDayState, CategoryKey, EmotionKey, GoalClock, HouseholdTrack } from "./types";
+import type { CalendarDayState, CategoryKey, ChallengePhase, ChallengePresetKey, EmotionKey, GoalClock, HouseholdTrack } from "./types";
 
 /**
  * 가계부 문구 — **사실만 말한다.** 칭찬 · 재촉 · 경고 · 명령형 0(`FE-REQ-057` 수용 기준 · FEATURE-013 정책 "차단 · 경고 팝업 없음").
@@ -147,8 +147,11 @@ export const FEELING_MESSAGES = {
 /** 무지출 달력(가계부 S1c FR-16) — 연속 일수 · "기록" 같은 압박 낱말 0. 기록 없는 날은 비워 둔다 */
 export const CALENDAR_MESSAGES = {
   title: "안 쓴 날",
-  note: "안 쓴 날에 표시하면 스티커가 붙어요. 적지 않은 날은 비워 둬요",
+  note: "안 쓴 날에 표시하면 스티커가 붙어요. 적지 않은 날은 비워 둬요. 테두리 동그라미는 챌린지를 한 날이에요",
   count: (n: number) => `이 달 안 쓴 날 ${n}일`,
+  /** 챌린지 한 날(가계부 S1d) — 개수만, 연속 0 */
+  challengeCount: (n: number) => `챌린지 한 날 ${n}일`,
+  challengeDay: "챌린지 한 날",
   weekdays: ["일", "월", "화", "수", "목", "금", "토"] as const,
   state: {
     future: "",
@@ -175,4 +178,23 @@ export const WORK_MESSAGES = {
   line: (work: string) => `근무 ${work}`,
   total: (work: string) => `이 달 쓴 돈 = 근무 ${work}`,
   hourly: (amount: string) => `1시간 ${amount} 기준`,
+} as const;
+
+/**
+ * 챌린지(가계부 S1d) — 사실만. **실패 · 재촉 · 칭찬 · 연속 0**. 끝난 챌린지는 기간이 지났든 그만뒀든 같은 "끝"(서버 단계 그대로).
+ * 예시 이름은 키에 대한 글자일 뿐 — 사용자가 고쳐 저장한다.
+ */
+export const CHALLENGE_MESSAGES = {
+  phase: { upcoming: "시작 전", running: "하는 중", ended: "끝" } as Readonly<Record<ChallengePhase, string>>,
+  presets: {
+    no_spend_weekend: "무지출 주말",
+    skip_coffee: "커피 한 잔 아끼기",
+    no_delivery: "배달 쉬기",
+    no_taxi: "택시 대신 걷기",
+  } as Readonly<Record<ChallengePresetKey, string>>,
+  period: (startsOn: string, endsOn: string) => `${formatDay(startsOn)} ~ ${formatDay(endsOn)}`,
+  endedOn: (date: string) => `${formatDay(date)}에 그만둠`,
+  days: (n: number) => `한 날 ${n}일`,
+  saved: (amount: string) => `아낀 돈 ${amount}`,
+  contributed: (amount: string) => `목표에 보탠 돈 ${amount}`,
 } as const;

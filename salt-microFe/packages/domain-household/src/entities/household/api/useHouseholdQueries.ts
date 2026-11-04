@@ -46,6 +46,18 @@ export const useRecurringTemplates = () => {
   return { ...query, isSignedOut: signedIn === false };
 };
 
+/** 챌린지 목록(가계부 S1d) */
+export const useChallenges = () => {
+  const signedIn = useHasAccessToken();
+  const query = useQuery({
+    queryKey: householdQueryKeys.challenges(),
+    queryFn: ({ signal }) => householdApi.challenges(signal),
+    enabled: signedIn === true,
+    staleTime: MONTH_STALE_MS,
+  });
+  return { ...query, isSignedOut: signedIn === false };
+};
+
 export const useHouseholdBudget = () => {
   const signedIn = useHasAccessToken();
   const query = useQuery({

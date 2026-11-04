@@ -54,6 +54,19 @@ export const dayNumber = style({ pointerEvents: "none" });
 
 export const sticker = style({ position: "absolute", top: "4px", right: "4px", width: "6px", height: "6px", borderRadius: "50%", background: vars.colors.neutral[600] });
 
+/** 챌린지 한 날(가계부 S1d) — 같은 회색의 테두리 동그라미(왼쪽 위). 무지출 점과 모양으로만 가른다 — 색으로 칭찬하지 않는다 */
+export const challengeSticker = style({
+  position: "absolute",
+  top: "4px",
+  left: "4px",
+  width: "6px",
+  height: "6px",
+  borderRadius: "50%",
+  border: `1.5px solid ${vars.colors.neutral[600]}`,
+  boxSizing: "border-box",
+  pointerEvents: "none",
+});
+
 /** 칸 전체가 눌리는 버튼 — 부르는 쪽(feature)이 쓴다 */
 export const dayButton = style({
   width: "100%",
