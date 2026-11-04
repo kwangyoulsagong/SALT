@@ -72,6 +72,20 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 
 API 실제 목록: `POST /expenses` · `POST /expenses/batch` · `DELETE /expenses/:id` · `POST /parse` · `GET /suggestions` · `GET/PUT /budget` · `GET /month/:ym` · `GET /home-card`. 스펙의 `GET /expenses?month=` 는 월 화면 응답 `expenses` 로 들어갔다(목록 300건 · 합계는 전부). 템플릿 · 마감 · 챌린지 경로는 S1b.
 
+## 구현 현황 — 가계부 S1b (2026-11-04, `requirements/specs/done/MONEY-S1b-household-month-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-5 | **done** — 템플릿(매달 하나 · `day_of_month` 짧은 달은 말일 · 상한 30) · 예정 행 달마다 하나 · 워커 매시 5분(ShedLock, `INSERT … SELECT … ON CONFLICT` 한 문장 — "일 1회" 대신 놓친 회차를 다음 시간이 메움) · 확인 필요 없는 템플릿만 예정일에 지출로 · 확인 전엔 착지에 "예정"만 | `RecurringTemplate` · `RunRecurring` · `RecurringWorker` · `GET/POST/PUT/DELETE /templates` · `POST /occurrences/:id/confirm\|skip` |
+| FR-8 | 개정 — 착지 = 어제까지 + **아직 확인 안 한 예정** + 변동 분포. 변동 표본에서 템플릿 지출을 뺀다(날별 합 `FILTER` 한 문장). 발행 기록 · 이벤트에 `scheduled` | `LandingEngine.project(scheduled)` · `LandingReader` |
+| FR-9 | **done** — 리뷰 3문항(키 `satisfied` · `try_next` · `known_next`, 300자, 비워도 닫힘, 점수 0) · 닫을 수 있는 달 = 지난 달 + 이번 달 마지막 3일 · 처음 닫을 때 그달 예산 사본 · 다시 내면 답만 · `MonthClosed` 처음 한 번 | `CloseMonth` · `POST /month/:ym/close` · 월 화면 `close` · `closable` |
+| FR-10 | **done(할부)** — 첫 청구는 산 다음 달 · 원 단위 나머지는 첫 달 · 회차 합 = 원거래(테스트) · 앞으로 6개월은 그 달 끝까지 산 할부만. 리볼빙은 S1c | `InstallmentPlan` · `InstallmentMath.band` · 월 화면 `installments` |
+| FR-21 | `MonthClosed` 추가(답 글 0). `FixedCostIncreased` 는 S1c | `OutboxHouseholdEvents` |
+| FR-1 | 확인한 지출도 같은 길(`ExpenseWriter` — 이벤트 · 착지 발행 · 봉투). 지출을 지우면 이어진 예정 행을 먼저 "예정"으로 되돌린다 | `DeleteExpense` |
+| FR-7 `account_split` · 11~16 · 19 · 20 · FR-21 `FixedCostIncreased` | S1c · 뒤 | 슬라이스 범위 밖 |
+
+쿼리(종단 테스트 고정): 월 화면 11(+ 마감 1 · 예정 1 · 할부 1) · 저장 10/9 · 홈 카드 6. EXPLAIN — 사용자별 셋 0.05ms 아래, 워커 쿼리 템플릿 2만에서 4ms(로컬 운영 DB, 행 넣고 롤백).
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -80,3 +94,5 @@ API 실제 목록: `POST /expenses` · `POST /expenses/batch` · `DELETE /expens
 | 2026-11-04 | 가계부 S1a — in-progress. Kotlin `services/household` 첫 판(`63146ddf`) · FR-1~4 · 6~8 · 18 · 21 일부. 목표 시계는 BFF 조립(`b162ac6f`) + 저축 조회(`a16356f6`). 수용 기준 3/4(백테스트는 3개월 표본 뒤) |
 | 2026-11-04 | 리뷰(high) 1회 반영 `85512af5` — 착지 "오늘 시작 기준"(어제까지 + 오늘 포함 남은 날 — 그날 첫 저장 발행이 그날 나머지를 놓치던 것 · 말일 한 점) · 표본 시작 = 첫 저장일 · `1만2000` · `1,200만` · 소수 원 거절. 재리뷰 없음(규칙: 리뷰는 슬라이스당 1회) |
 | 2026-11-04 | `5e5894dd` — 백테스트에서 구간이 이름표보다 좁았다(36개월 67.9%) → 긴 남은 기간 정규 근사로 82.1%. 수용 기준 4/4 · 쿼리 수 종단 테스트(월 8 · 저장 9/8 · 홈 5) |
+| 2026-11-04 | 가계부 S1b — FR-5 · 9 · 10(할부) done · FR-8 개정(예정 더함 · 템플릿 표본 제외) · FR-21 `MonthClosed`(`a32d349e`). 도메인 테스트 +10 · 종단 테스트 +5(17) |
+| 2026-11-04 | `922cd25a` — 주석 · 이벤트 설명의 낡은 "S1b"(사용자 분류 · 통장 쪼개기 → S1c, 저축 구독 → 저축 S2). 적용된 V1 · V2 주석은 체크섬 때문에 그대로 |

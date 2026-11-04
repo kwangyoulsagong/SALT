@@ -53,3 +53,4 @@ S0~S2 동안은 한 프로세스(모듈러 모놀리스)로 띄운다. 이 단�
 | 2026-11-03 | **done** — 수용 기준 4/4 · FR-1~13(FR-8 인스턴스 연결은 첫 외부 호출이 있는 `SRV-REQ-049` S5 로 넘김). 커밋 `fafb6a0d`(플랫폼) · `405e5683`(리뷰 4건 · FR-8 · 9 · 10) · `b308718e`(문서) |
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`e83f7f80`): 서비스가 둘이 되며 `ServiceDatabase` · `OutboxWriter` 빈이 타입마다 둘 — `PingComposition` 에 `@Qualifier`. 테스트 컨테이너가 savings 비밀번호를 받는다 |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 이 REQ 에 걸린 몫(`63146ddf`): 플랫폼에 세 번째 도메인 서비스 `household` 조립(`HouseholdComposition` — 빈 이름에 서비스 접두) · `application.yml` 계정 · 테스트 권한 검사 표를 `household.probe` → `content.probe`(household 가 Flyway 스키마가 됨) |
+| 2026-11-04 | 가계부 S1b — 이 REQ 에 걸린 몫(`a32d349e`): `support/messaging` `ServiceLock.executor` — 서비스 스키마 `shedlock` 표 락(릴레이와 같은 공급자)을 스케줄 작업이 쓴다. 첫 소비처 가계부 반복 워커(FR-8) |

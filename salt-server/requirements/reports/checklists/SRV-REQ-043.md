@@ -37,3 +37,7 @@
 
 - [x] `./gradlew check` 통과(가계부 종단 11 · 도메인 19 포함, 총 109+) · Modulith · ArchUnit 위반 0
 - [x] `bootJar` → 로컬 운영 DB Flyway household V1 · health UP
+
+## 2026-11-04 — 가계부 S1b `ServiceLock`
+
+- [x] `ServiceLock.executor`(JDBC 공급자는 messaging 모듈 안) · 반복 워커가 household `shedlock` 표로 잠금 · `./gradlew check`(Modulith · ArchUnit) 통과

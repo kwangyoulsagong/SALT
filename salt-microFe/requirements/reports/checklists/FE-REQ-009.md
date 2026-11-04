@@ -246,3 +246,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 
 - lint 플러그인 `@repo/fsd` 에 `no-render-read`(렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기 금지)를 더했다 — 레이어 규칙은 아니지만 zone 앱 · 도메인 패키지 9곳 lint 가 모두 이 플러그인을 싣는다(`DEV-001`). 레이어 규칙 표는 그대로
 - 검증: 프론트 전체 `pnpm lint` 12/12 · 규칙 변이(나쁜 6줄 다 걸림 · 처리기 · 효과 · 일반 함수 통과)
+
+## 2026-11-04 — 가계부 S1b 레지스트리
+
+- [x] `layer-rules.cjs` features `manage-recurring` · `close-month` · pages `recurring` — `test:layer-check` 26 · lint 12/12

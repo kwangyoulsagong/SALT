@@ -276,3 +276,4 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 - 2026-11-03: MONEY-F2(`FE-REQ-054`) — 홈 페이지가 놓던 `ProfileMenu` 를 지웠다 — 머리 프로필은 zone 공용 `AppShell` 머리 한 자리(`e0bce695`). 홈 화면 내용 무변경
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 셸 `store.ts` 에서 `goal` 가지 삭제 · 셸 목표 엔티티 · 기능 · 페이지 삭제(`domain-savings` 로) |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — `ROUTES` 에 가계부 경로 4(`household` · `newExpense` · `householdBudget` · `householdMonth`)(`df45ae7d`) |
+| 2026-11-04 | 가계부 S1b — `ROUTES.householdRecurring`(`/household/templates`)(`d31bff89`) |

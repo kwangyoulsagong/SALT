@@ -57,6 +57,16 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 
 탭 `APP_TABS` 가계부 `readyBy: null`(`FE-REQ-054`). 번들(Next 표, First Load JS): `/household` ~~148~~ 149(리뷰 반영 뒤) · `/household/new` 131 · `/household/budget` 127 kB · 공용 102 kB.
 
+## 구현 현황 — F4b (2026-11-04, `requirements/specs/done/MONEY-S1b-household-month-slice.md`)
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-4 | 반복 템플릿 확인 카드 done — "이번 달에도 나갔나요?"(서버 `stage=ask` 만 · 금액 고쳐 확인 · 이번 달은 안 나가요) + 예정 한 줄 · `/household/templates`(만들기 · 고치기 · 그만 적기 · 상한은 서버 `limit`) | `features/manage-recurring` · `pages/recurring` |
+| FR-7 | 월 마감 리뷰 3문항 · 할부 띠 done(공제는 S2 content 뒤) — 닫을 수 있나 · 문항은 서버 값, 닫은 달은 같은 칸으로 답 고치기 | `features/close-month` · `entities/household` `InstallmentBand` |
+| FR-8 · 9 | S1c | |
+
+분류 칩은 `entities/household` 로 내렸다(`a4b3936b`) — 지출 적기와 템플릿이 같은 칩. 번들(Next 표, First Load JS): `/household` ~~149~~ 157 · `/household/templates` 131 kB(새) · 공용 103 kB.
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -66,3 +76,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-11-04 | F4a — in-progress(`df45ae7d`). FR-1~3 · 5 · 6 · 10 done · 4 · 7 일부. 수용 기준 4/4 |
 | 2026-11-04 | 리뷰 반영 `b147221e` — 목표 시계 다시 묻기 실패 시 "계산 중" 멈춤 → 줄 지움(Playwright route 로 성공 · 실패 둘 다 실측) · 엔티티 슬라이스 `expense` → `household`(서버 컨텍스트와 같은 이름) · 번들 `/household` 149 kB |
 | 2026-11-04 | `acbdf825` — 예산 화면이 저장해 둔 50/30/20 의 모으기 몫을 다시 열면 안 보이던 결함. 소유자 QA 행 닫음(소유자 전용 칸 없음 · 임시 사용자 실화면) |
+| 2026-11-04 | F4b — FR-4 · FR-7(리뷰 · 할부) done(`a4b3936b` · `d31bff89`). 실화면(임시 사용자) 확인 카드 · 금액 고친 확인 · 템플릿 셋 · 지난 달 닫기 · 4폭 × 3화면 넘침 0 · 콘솔 0 |

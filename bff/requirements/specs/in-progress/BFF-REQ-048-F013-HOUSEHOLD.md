@@ -36,6 +36,13 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 
 홈 카드: 가계부 카드가 `CARD_SOURCES` 에 붙었다(`BFF-REQ-046`) — 이번 달 지출 + (예산 남은 금액 | 월말 예상 구간 | 비움).
 
+## 구현 현황 — 가계부 S1b (2026-11-04, `requirements/specs/done/MONEY-S1b-household-month-slice.md`)
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-3 | 리뷰(마감) · 예정 · 할부 칸 done — `recurring` · `installments` · `close` · `closable` · `reviewQuestions`. 스티커는 S1c | 서버 값 그대로 |
+| FR-4 | 템플릿 · 예정 확인 · 건너뛰기 · 마감 중계 done(경로 7). 챌린지 · 이야기 카드는 S1c | 확인 응답에도 목표 시계(저장과 같은 300ms · `pending`) |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -44,3 +51,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | 2026-11-04 | 가계부 S1a — in-progress(`b162ac6f`). FR-1 · 2 · 5 done · 3 · 4 일부. 수용 기준 2/2 |
 | 2026-11-04 | 리뷰 반영 — BFF 변경 0. 남긴 것: `within` 시간 상한이 홈 서비스와 두 벌 · axios 타임아웃과 이중(회고) |
 | 2026-11-04 | 가계부 S1a — 이 REQ 계약을 화면 쪽에서 읽는 파일(`householdApi.ts` · `types.ts`)이 엔티티 이름 변경으로 옮겨졌다(`b147221e`, 계약 변경 0) |
+| 2026-11-04 | 가계부 S1b — 템플릿 · 예정 확인 · 마감 경로 · 월 화면 새 칸(`c3b799fd`). 테스트 +2(서비스 7) |
