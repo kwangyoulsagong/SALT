@@ -1,6 +1,6 @@
 # F000 슬라이스 — done 전 검사 (`DEV-001`)
 
-> 상태: **done** (2026-11-04) · 브랜치 `chore/review-guardrails` · 영역: 루트 하네스 + `salt-server` lint 설정 한 줄 · 화면 · API 계약 변경 없음
+> 상태: **done** (2026-11-04) · 브랜치 ~~`chore/review-guardrails`~~ `feat/fe-req-051-047-d1-logo-shell`(사용자 "하나의 브랜치로" — 로고와 합침, 2026-11-04) · 영역: 루트 하네스 + `salt-server` lint 설정 한 줄 · 화면 · API 계약 변경 없음
 
 ## 왜
 
@@ -19,7 +19,7 @@
 | FR-5 | 영역 파이프라인이 done 전에 이 검사를 부른다 · 코드 리뷰 스킬은 쓰지 않는다 | 루트 `CLAUDE.md` 표 · 영역 deliver(웹 · BFF · 서버) · 예측 pipeline 스킬 |
 | FR-6 | 렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기를 웹 lint 가 막는다 | `@repo/fsd/no-render-read` — zone 앱 · 도메인 패키지 9곳. 기존 걸린 3곳: 1곳 고침(`useRegenerateCoach`), 2곳은 브라우저에서만 그려져 이유 적은 예외(`EventsCard` · `ForecastFanChart`) |
 
-원본 → 생성물 갈라짐(아이콘)은 로고 브랜치의 `brandIcons.test.ts`(`FE-REQ-051`)가 막는다 — 그 브랜치가 머지되면 체크리스트 1절 표가 맞아진다.
+원본 → 생성물 갈라짐(아이콘)은 같은 브랜치의 `brandIcons.test.ts`(`FE-REQ-051`)가 막는다.
 
 ## 범위 밖
 
