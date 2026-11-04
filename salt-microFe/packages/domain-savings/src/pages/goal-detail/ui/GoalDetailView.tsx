@@ -118,7 +118,13 @@ export const GoalDetailView = ({ goalId, initial }: { goalId: string; initial: S
                 <li key={d.id} className={s.depositRow}>
                   <span>
                     {d.depositedOn}
-                    {d.source === "imported_balance" ? ` · ${M.importedBalance}` : d.note ? ` · ${d.note}` : ""}
+                    {d.source === "imported_balance"
+                      ? ` · ${M.importedBalance}`
+                      : d.source === "saved_by_challenge"
+                        ? ` · ${M.savedByChallenge}`
+                        : d.note
+                          ? ` · ${d.note}`
+                          : ""}
                   </span>
                   <span>{formatWon(d.amount)}</span>
                 </li>

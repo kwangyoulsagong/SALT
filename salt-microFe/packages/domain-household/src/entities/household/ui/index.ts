@@ -8,4 +8,5 @@ export * from "./CategoryChips";
 export * from "./EmotionChips";
 export * from "./FeelingMirror";
 export * from "./NoSpendCalendar";
+export * from "./ChallengeHead";
 export { dayButton as calendarDayButton } from "./calendar.css";

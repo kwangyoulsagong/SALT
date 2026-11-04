@@ -33,5 +33,14 @@ router.get("/settings/work-hours", authMiddleware, appHouseholdController.workHo
 router.put("/settings/work-hours", authMiddleware, appHouseholdController.setWorkHours);
 router.put("/no-spend/:date", authMiddleware, appHouseholdController.markNoSpend);
 router.delete("/no-spend/:date", authMiddleware, appHouseholdController.unmarkNoSpend);
+// 내가 고르는 챌린지(가계부 S1d) — 보태기는 가계부 · 저축 두 서비스(순서는 서비스 주석)
+router.get("/challenges", authMiddleware, appHouseholdController.challenges);
+router.post("/challenges", authMiddleware, appHouseholdController.startChallenge);
+router.post("/challenges/:id/end", authMiddleware, appHouseholdController.endChallenge);
+router.put("/challenges/:id/days/:date", authMiddleware, appHouseholdController.markChallengeDay);
+router.delete("/challenges/:id/days/:date", authMiddleware, appHouseholdController.unmarkChallengeDay);
+router.post("/challenges/:id/savings", authMiddleware, appHouseholdController.recordChallengeSaving);
+router.delete("/challenge-savings/:id", authMiddleware, appHouseholdController.deleteChallengeSaving);
+router.post("/challenge-savings/:id/contribute", authMiddleware, appHouseholdController.contributeSaving);
 
 export default router;

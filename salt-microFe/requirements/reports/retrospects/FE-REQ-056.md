@@ -51,3 +51,8 @@
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - 저축 슬라이스가 README 를 빠뜨렸다 — zone 을 채울 때 README 첫 줄도 대조한다.
+
+## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
+
+- **판단**: 도장 · 장면은 아낀 돈도 같이 센다(적립 횟수 · 합) — 따로 보기는 저축 S2.
+- **Action**: 없음.

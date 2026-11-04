@@ -105,6 +105,9 @@ const REGISTRY = {
     "answer-feeling",
     "mark-no-spend",
     "set-work-hours",
+    // 가계부 S1d(2026-11-04) — 챌린지 고르기 / 한 날 · 아낀 돈 · 목표에 보태기 · 그만두기
+    "start-challenge",
+    "track-challenge",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",
@@ -145,6 +148,8 @@ const REGISTRY = {
     "budget",
     // 가계부 S1b — `/household/templates`(2026-11-04)
     "recurring",
+    // 가계부 S1d — `/household/challenges`(2026-11-04)
+    "challenges",
     "investments",
     "investment-detail",
     "search",

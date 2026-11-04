@@ -42,6 +42,8 @@ export const ROUTES = {
   householdBudget: "/household/budget",
   /** 매달 나가는 돈(반복 템플릿, 가계부 S1b 2026-11-04) */
   householdRecurring: "/household/templates",
+  /** 내가 고르는 챌린지(가계부 S1d 2026-11-04) */
+  householdChallenges: "/household/challenges",
   householdMonth: (yearMonth: string) => `/household/month/${encodeURIComponent(yearMonth)}`,
   /** 투자 코치 설정 — 셸 설정(`/settings`)이 여기로 보낸다(`FE-REQ-053`, 2026-11-02 셸 설정에서 분리) */
   coachSettings: "/coach/settings",

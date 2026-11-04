@@ -341,6 +341,7 @@ open class GetMonth(
     private val feelings: Feelings,
     private val stickers: Stickers,
     private val settings: Settings,
+    private val challenges: com.salt.household.domain.Challenges,
     private val clock: Clock,
 ) {
     @Transactional(transactionManager = HOUSEHOLD_TX, readOnly = true)
@@ -360,7 +361,8 @@ open class GetMonth(
         val monthFeelings = feelings.inMonth(userId, month)
         val lastDay = if (current) today else month.atEndOfMonth()
         val daily = expenses.dailyTotals(userId, month.atDay(1), lastDay).mapValues { it.value.all }
-        val calendar = CalendarRules.month(month, today, daily, stickers.inMonth(userId, month, StickerKind.NO_SPEND))
+        // 챌린지 "한 날"(가계부 S1d) — 칸 상태와 따로 붙는다
+        val calendar = CalendarRules.month(month, today, daily, stickers.inMonth(userId, month, StickerKind.NO_SPEND), challenges.markedInMonth(userId, month))
         val asks = if (current) FeelingRules.askWindow(today).let { (from, to) -> feelings.pendingAsks(userId, from, to) } else emptyList()
         return MonthView(
             month = month,

@@ -254,3 +254,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 ## 2026-11-04 — 가계부 S1c 레지스트리
 
 - [x] `layer-rules.cjs` features `answer-feeling` · `mark-no-spend` · `set-work-hours` — `test:layer-check` 26 · lint 12/12 · 훅 사후 실행 차단 0
+
+## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
+
+- [x] 레지스트리 코드에 features `start-challenge` · `track-challenge` · pages `challenges` — 첫 lint 가 "레지스트리에 없는 슬라이스" 24건으로 막았고 등록 뒤 0

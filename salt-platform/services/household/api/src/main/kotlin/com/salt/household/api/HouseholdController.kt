@@ -311,10 +311,14 @@ class HouseholdController(
 
     data class FeelingsMonthView(val asks: List<FeelingAskView>, val mirror: List<MirrorView>, val emotions: List<String>)
 
-    /** [state] future · spent · no_spend · blank. [weekday] ISO(월 1 ~ 일 7) — 화면이 칸을 놓는 자리(날짜 계산을 프론트에 두지 않게) */
-    data class CalendarDayView(val date: String, val weekday: Int, val state: String, val spent: Long, val markable: Boolean)
+    /**
+     * [state] future · spent · no_spend · blank. [weekday] ISO(월 1 ~ 일 7) — 화면이 칸을 놓는 자리(날짜 계산을 프론트에 두지 않게).
+     * [challenge] 챌린지 "한 날" 스티커(가계부 S1d) — 칸 상태와 따로
+     */
+    data class CalendarDayView(val date: String, val weekday: Int, val state: String, val spent: Long, val markable: Boolean, val challenge: Boolean)
 
-    data class CalendarView(val days: List<CalendarDayView>, val noSpendDays: Int)
+    /** 개수만 — 연속 일수 칸 없음 */
+    data class CalendarView(val days: List<CalendarDayView>, val noSpendDays: Int, val challengeDays: Int)
 
     data class WorkHoursMonthView(val hourly: Long, val totalMinutes: Long)
 
@@ -554,7 +558,8 @@ class HouseholdController(
         hourly = w.hourly?.toKrwInteger(RoundingMode.FLOOR),
     )
 
-    private fun calendarDayView(d: CalendarDay) = CalendarDayView(d.date.toString(), d.date.dayOfWeek.value, d.state.key, d.spent.toKrwInteger(), d.markable)
+    private fun calendarDayView(d: CalendarDay) =
+        CalendarDayView(d.date.toString(), d.date.dayOfWeek.value, d.state.key, d.spent.toKrwInteger(), d.markable, d.challenge)
 
     private fun askView(a: FeelingAsk) = FeelingAskView(
         expenseId = a.feeling.expenseId.toString(),
@@ -726,7 +731,7 @@ class HouseholdController(
         closable = m.closable,
         reviewQuestions = ReviewAnswers.QUESTION_KEYS,
         feelings = FeelingsMonthView(m.feelingAsks.map(::askView), m.mirror.map(::mirrorView), Emotion.entries.map { it.key }),
-        calendar = CalendarView(m.calendar.days.map(::calendarDayView), m.calendar.noSpendDays),
+        calendar = CalendarView(m.calendar.days.map(::calendarDayView), m.calendar.noSpendDays, m.calendar.challengeDays),
         workHours = m.workHours.hourly?.let { h -> WorkHoursMonthView(h.toKrwInteger(RoundingMode.FLOOR), m.workHours.minutesFor(m.summary.totals.total)!!) },
     )
 }

@@ -138,7 +138,7 @@ class Goal(
 enum class DepositSource(val key: String) {
     MANUAL("manual"),
 
-    /** 가계부 챌린지로 "아낀 돈" — 실제 적립과 구분한다(F013 FR-19). 이번 슬라이스는 쓰지 않는다 */
+    /** 가계부 챌린지로 "아낀 돈" — 실제 적립과 구분한다(F013 FR-19). ~~이번 슬라이스는 쓰지 않는다~~ 가계부 S1d(2026-11-04)부터 — 출처 [Deposit.sourceRef] 하나에 한 번 */
     SAVED_BY_CHALLENGE("saved_by_challenge"),
 
     /** 옛 `goals.current_amount` 중 거래 기록이 없는 몫 — 가져오기에서 한 번(`savings-import.sql`) */
@@ -161,15 +161,30 @@ class Deposit(
     val splitGroupId: UUID?,
     val source: DepositSource,
     val createdAt: Instant,
+    /** 다른 서비스의 원천 기록 id — 챌린지 아낀 돈이면 그 id(가계부 S1d). 같은 출처는 한 번만 적립된다(유일) */
+    val sourceRef: UUID? = null,
 ) {
     companion object {
         const val NOTE_MAX = 200
 
         fun manual(goal: Goal, amount: Money, depositedOn: LocalDate, note: String?, splitGroupId: UUID?, today: LocalDate, now: Instant): Deposit {
-            if (amount.isNegative() || amount.isZero()) throw InvalidGoal("DEPOSIT_AMOUNT_INVALID", "amount must be positive")
-            if (depositedOn.isAfter(today)) throw InvalidGoal("DEPOSIT_DATE_FUTURE", "depositedOn must not be in the future")
+            check(amount, depositedOn, today)
             if (note != null && note.length > NOTE_MAX) throw InvalidGoal("DEPOSIT_NOTE_TOO_LONG", "note must be at most $NOTE_MAX characters")
             return Deposit(UUID.randomUUID(), goal.id, goal.userId, amount, depositedOn, note?.trim()?.ifEmpty { null }, splitGroupId, DepositSource.MANUAL, now)
+        }
+
+        /**
+         * 가계부 챌린지의 아낀 돈을 목표에 보탠다(F013 FR-19 · 가계부 S1d 판단 4). 금액 · 날짜는 가계부 기록 그대로 — 화면이 고칠 수 없다(BFF 가 가계부에서 읽어 보낸다).
+         * 메모 없음 — 화면은 출처(`saved_by_challenge`)로 "아낀 돈"이라고 따로 보인다.
+         */
+        fun fromChallenge(goal: Goal, amount: Money, depositedOn: LocalDate, savingId: UUID, today: LocalDate, now: Instant): Deposit {
+            check(amount, depositedOn, today)
+            return Deposit(UUID.randomUUID(), goal.id, goal.userId, amount, depositedOn, null, null, DepositSource.SAVED_BY_CHALLENGE, now, savingId)
+        }
+
+        private fun check(amount: Money, depositedOn: LocalDate, today: LocalDate) {
+            if (amount.isNegative() || amount.isZero()) throw InvalidGoal("DEPOSIT_AMOUNT_INVALID", "amount must be positive")
+            if (depositedOn.isAfter(today)) throw InvalidGoal("DEPOSIT_DATE_FUTURE", "depositedOn must not be in the future")
         }
     }
 }

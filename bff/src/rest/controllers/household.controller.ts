@@ -42,4 +42,12 @@ export const appHouseholdController = {
   setWorkHours: wrap(200, (req) => appHouseholdService.setWorkHours(req.token!, req.body ?? {})),
   markNoSpend: wrap(200, (req) => appHouseholdService.markNoSpend(req.token!, String(req.params.date))),
   unmarkNoSpend: wrap(200, (req) => appHouseholdService.unmarkNoSpend(req.token!, String(req.params.date))),
+  challenges: wrap(200, (req) => appHouseholdService.challenges(req.token!)),
+  startChallenge: wrap(201, (req) => appHouseholdService.startChallenge(req.token!, req.body ?? {})),
+  endChallenge: wrap(200, (req) => appHouseholdService.endChallenge(req.token!, String(req.params.id))),
+  markChallengeDay: wrap(200, (req) => appHouseholdService.markChallengeDay(req.token!, String(req.params.id), String(req.params.date))),
+  unmarkChallengeDay: wrap(200, (req) => appHouseholdService.unmarkChallengeDay(req.token!, String(req.params.id), String(req.params.date))),
+  recordChallengeSaving: wrap(201, (req) => appHouseholdService.recordChallengeSaving(req.token!, String(req.params.id), req.body ?? {})),
+  deleteChallengeSaving: wrap(200, (req) => appHouseholdService.deleteChallengeSaving(req.token!, String(req.params.id))),
+  contributeSaving: wrap(200, (req) => appHouseholdService.contributeSaving(req.token!, String(req.params.id), req.body ?? {})),
 };

@@ -28,7 +28,18 @@ import com.salt.household.application.SetWorkHours
 import com.salt.household.application.TagFeeling
 import com.salt.household.application.UnmarkNoSpend
 import com.salt.household.application.UntagFeeling
+import com.salt.household.application.DeleteChallengeSaving
+import com.salt.household.application.EndChallenge
+import com.salt.household.application.GetChallengeSaving
+import com.salt.household.application.ListChallenges
+import com.salt.household.application.MarkChallengeDay
+import com.salt.household.application.MarkSavingContributed
+import com.salt.household.application.RecordChallengeSaving
+import com.salt.household.application.StartChallenge
+import com.salt.household.application.UnmarkChallengeDay
 import com.salt.household.infrastructure.JooqBudgets
+import com.salt.household.infrastructure.JooqChallengeSavings
+import com.salt.household.infrastructure.JooqChallenges
 import com.salt.household.infrastructure.JooqFeelings
 import com.salt.household.infrastructure.JooqSettings
 import com.salt.household.infrastructure.JooqStickers
@@ -114,7 +125,7 @@ class HouseholdComposition {
     fun householdGetMonth(@Qualifier("householdDatabase") database: ServiceDatabase, landingReader: LandingReader, clock: Clock): GetMonth =
         GetMonth(
             JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqRecurringOccurrences(database.dsl), JooqMonthCloses(database.dsl), landingReader,
-            JooqFeelings(database.dsl), JooqStickers(database.dsl), JooqSettings(database.dsl), clock,
+            JooqFeelings(database.dsl), JooqStickers(database.dsl), JooqSettings(database.dsl), JooqChallenges(database.dsl), clock,
         )
 
     // ---------- 반복 · 마감(가계부 S1b) ----------
@@ -188,6 +199,44 @@ class HouseholdComposition {
 
     @Bean
     fun householdUnmarkNoSpend(@Qualifier("householdDatabase") database: ServiceDatabase): UnmarkNoSpend = UnmarkNoSpend(JooqStickers(database.dsl))
+
+    // ---------- 내가 고르는 챌린지(가계부 S1d) ----------
+
+    @Bean
+    fun householdListChallenges(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): ListChallenges =
+        ListChallenges(JooqChallenges(database.dsl), JooqChallengeSavings(database.dsl), clock)
+
+    @Bean
+    fun householdStartChallenge(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): StartChallenge =
+        StartChallenge(JooqChallenges(database.dsl), clock)
+
+    @Bean
+    fun householdEndChallenge(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): EndChallenge =
+        EndChallenge(JooqChallenges(database.dsl), JooqChallengeSavings(database.dsl), clock)
+
+    @Bean
+    fun householdMarkChallengeDay(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): MarkChallengeDay =
+        MarkChallengeDay(JooqChallenges(database.dsl), JooqChallengeSavings(database.dsl), clock)
+
+    @Bean
+    fun householdUnmarkChallengeDay(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): UnmarkChallengeDay =
+        UnmarkChallengeDay(JooqChallenges(database.dsl), JooqChallengeSavings(database.dsl), clock)
+
+    @Bean
+    fun householdRecordChallengeSaving(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): RecordChallengeSaving =
+        RecordChallengeSaving(JooqChallenges(database.dsl), JooqChallengeSavings(database.dsl), clock)
+
+    @Bean
+    fun householdDeleteChallengeSaving(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): DeleteChallengeSaving =
+        DeleteChallengeSaving(JooqChallenges(database.dsl), JooqChallengeSavings(database.dsl), clock)
+
+    @Bean
+    fun householdGetChallengeSaving(@Qualifier("householdDatabase") database: ServiceDatabase): GetChallengeSaving =
+        GetChallengeSaving(JooqChallengeSavings(database.dsl))
+
+    @Bean
+    fun householdMarkSavingContributed(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): MarkSavingContributed =
+        MarkSavingContributed(JooqChallenges(database.dsl), JooqChallengeSavings(database.dsl), clock)
 
     companion object {
         const val SCHEMA = "household"

@@ -100,3 +100,7 @@
 ## 2026-11-04 — 가계부 S1c 번들
 
 - [x] `/household` 158 → 160 kB · `/household/new` 131 → 133 kB · `/household/budget` 131 kB · 공용 102 kB(가계부 zone 운영 빌드, 최종 HEAD)
+
+## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
+
+- [x] 번들 `/household/challenges` 153 kB(새) · `/household` 161 · `/goals/[id]` 154 · 공용 102 kB(Next 표)

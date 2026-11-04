@@ -27,7 +27,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | FR-8 | `landing_issued` — 월 · 발행일 · `p_low` · `p_high` · 방법. 불변 — 다음 달 같은 날짜 적중 판정 근거 | FR-7 |
 | FR-9 | `person_ledger` — 상대 이름(사용자 입력) · 주고받음 · 금액 · 행사 · 날짜. 민감 정보 분류 | FR-14 |
 | FR-10 | `challenge` — 사용자가 고른 이름 · 기간 · 상태(`active` · `ended`) — **실패 상태 없음**. `challenge_saving` — 아낀 돈 기록(목표에 보탤 때 savings `deposit.source=saved_by_challenge`) | FR-19 |
-| FR-11 | `calendar_sticker` — 날짜 · 종류(무지출 · 챌린지). 연속 일수 열 없음 | FR-16 · 20 |
+| FR-11 | `calendar_sticker` — 날짜 · 종류(무지출 · ~~챌린지~~). 연속 일수 열 없음. **정정 2026-11-04** 챌린지 스티커는 `challenge_day`(어느 챌린지 날인지 — S1d 판단 3) | FR-16 · 20 |
 | FR-12 | 인덱스 — `expense(user_id, spent_at)` · `expense(user_id, category_id, spent_at)` · `recurring_occurrence(due_on)` | 성능 |
 | FR-13 | 원문 금지 검사 — 스키마 테스트가 `raw` · `sms` · `message_text` 같은 열 이름 0 을 확인 | FR-3 |
 | FR-14 | `household_setting` — 노동시간 환산(켬 · 시급/월급 · 금액 · 월 근로시간). **민감 정보**(급여). 끄면 값은 남김 — **신설 2026-11-04 S1c** | FR-15 |
@@ -35,7 +35,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 ## Acceptance Criteria
 
 - [x] 결제 문자 원문 열 0(스키마 테스트)
-- [ ] `challenge` 상태 값에 실패 없음
+- [x] `challenge` 상태 값에 실패 없음(2026-11-04 S1d — CHECK `active` · `ended` · 종단 테스트가 제약 정의 · `failed` INSERT 거절을 본다)
 - [x] `landing_issued` UPDATE · DELETE 실패
 
 ## 계약 영향
@@ -67,7 +67,7 @@ Flyway `V2__recurring_close.sql`(로컬 운영 DB 적용 2026-11-04).
 | FR-7 | done — `month_close`(답 3열 300자 · 평가 점수 열 없음 · `(user, month)` 유일) + `month_close_envelope`(닫을 때 예산 사본) | S1a 판단 3 의 달별 이력 |
 | FR-8 | `landing_issued.scheduled`(기본 0 — 예정 개념 전 발행은 0) | 불변 트리거 그대로 |
 | FR-12 | done — `recurring_occurrence (user_id, month)` · 예정 부분 인덱스 `(due_on) WHERE status='scheduled'` · `expense (user_id, spent_on) WHERE installment_months IS NOT NULL` | 스펙의 `recurring_occurrence(due_on)` 대신 사용자 · 달 |
-| FR-2 · 5 · 6 · 9 · 10 · 11 | S1c · 뒤 — **정정 2026-11-04** FR-6 · 11(무지출)은 S1c 닫힘, 나머지 S1d | 리볼빙 표(FR-5)는 ~~S1c~~ S1d |
+| FR-2 · 5 · 6 · 9 · 10 · 11 | S1c · 뒤 — **정정 2026-11-04** FR-6 · 11(무지출)은 S1c 닫힘, FR-10 · 11(챌린지)은 S1d 닫힘, 나머지 ~~S1d~~ S1e | 리볼빙 표(FR-5)는 ~~S1c~~ ~~S1d~~ S1e |
 
 ## 구현 현황 — 가계부 S1c (2026-11-04, `requirements/specs/done/MONEY-S1c-household-mirror-slice.md`)
 
@@ -76,9 +76,20 @@ Flyway `V3__feelings_calendar.sql`(로컬 운영 DB 적용 2026-11-04 — `house
 | FR | 상태 | 비고 |
 |---|---|---|
 | FR-6 | done — `expense_tag`(PK `expense_id` · FK 지출 `ON DELETE CASCADE` · 감정 CHECK 셋 · `felt_now` · `felt_next` 1~5 · `tagged_on` · `next_decided_at` — 넘김 = 시각만) · 표 주석 `sensitive` · 묻기 부분 인덱스 `(user_id, tagged_on) WHERE next_decided_at IS NULL` | 스펙의 "태그"는 감정 하나 — 표 이름은 스펙 그대로 |
-| FR-11 | done(`no_spend`) — `calendar_sticker`(PK `(user_id, sticker_on, kind)` · 연속 일수 열 없음). `day` 대신 `sticker_on`(생성기 낱말 충돌 피함) | 챌린지 `kind` 는 S1d |
+| FR-11 | done(`no_spend`) — `calendar_sticker`(PK `(user_id, sticker_on, kind)` · 연속 일수 열 없음). `day` 대신 `sticker_on`(생성기 낱말 충돌 피함) | ~~챌린지 `kind` 는 S1d~~ **정정 2026-11-04** 챌린지 스티커는 `kind` 대신 `challenge_day`(S1d) |
 | FR-14 | done — `household_setting`(PK `user_id` · CHECK 셋: 방식 ⇔ 금액 · 켜려면 금액 · 월 시간은 월급에만) · 표 주석 `sensitive` | 신설 |
-| FR-2 · 5 · 9 · 10 | S1d | 슬라이스 범위 밖 |
+| FR-2 · 5 · 9 · 10 | ~~S1d~~ **정정 2026-11-04** FR-10 은 S1d 닫힘, FR-2 · 5 · 9 는 S1e | 슬라이스 범위 밖 |
+
+## 구현 현황 — 가계부 S1d (2026-11-04, `requirements/specs/done/MONEY-S1d-household-challenge-slice.md`)
+
+Flyway `V4__challenges.sql`(로컬 운영 DB 적용 2026-11-04 — `household` 3 → 4).
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-10 | done — `challenge`(이름 1~40 · 기간 CHECK · 상태 `active` · `ended` — **실패 없음** · 상태 ⇔ `ended_on` 짝) · `challenge_saving`(금액 > 0 · 메모 100자 · 보탠 목표 `goal_id` ⇔ `contributed_at` 짝 · 저축 스키마 FK 없음) | 수용 기준 2 충족 |
+| FR-11 챌린지 | done — `challenge_day`(PK `(challenge_id, marked_on)` · 연속 일수 열 없음). 스펙의 `calendar_sticker` kind 대신(판단 3) | 달력은 `(user_id, marked_on)` 인덱스 |
+| FR-12 | `challenge (user_id, created_at DESC)` · `challenge_day (user_id, marked_on)` · `challenge_saving (challenge_id)` | EXPLAIN 0.2ms 아래 |
+| FR-2 · 5 · 9 | S1e | 슬라이스 범위 밖 |
 
 ## Changelog
 
@@ -90,3 +101,4 @@ Flyway `V3__feelings_calendar.sql`(로컬 운영 DB 적용 2026-11-04 — `house
 | 2026-11-04 | EXPLAIN 확인(행 2만 넣고 롤백 — 다섯 쿼리 인덱스 · 1ms 미만) |
 | 2026-11-04 | 가계부 S1b — V2(`a32d349e`) · FR-4 · 7 · 12 done · `landing_issued.scheduled`. EXPLAIN 확인(행 넣고 롤백) |
 | 2026-11-04 | 가계부 S1c — V3(`dd330297`) · FR-6 · 11(무지출) · FR-14 신설(설정) done. EXPLAIN(행 2만 넣고 롤백 — 네 쿼리 인덱스 · 0.08ms 아래) |
+| 2026-11-04 | 가계부 S1d — V4(`8d0e2723`) · FR-10 · FR-11(챌린지 — `challenge_day`) done · 수용 기준 2 충족. EXPLAIN(행 2만 넣고 롤백 — 다섯 쿼리 인덱스 · 0.2ms 아래) |

@@ -52,6 +52,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
+import java.util.UUID
 
 /**
  * 저축 서비스 HTTP(`SRV-REQ-045` · 슬라이스 S1a · S1b). **모든 금액 · 날짜 · 구간을 여기 응답이 준다** — BFF 는 중계, 프론트는 표시만.
@@ -101,6 +102,13 @@ class SavingsController(
         @field:NotNull @field:Positive val amount: BigDecimal?,
         val depositedOn: LocalDate?,
         @field:Size(max = 200) val note: String?,
+    )
+
+    /** 가계부 챌린지 아낀 돈 보태기(가계부 S1d) — BFF 가 가계부 기록의 금액 · 날짜로 채운다. [savingId] 하나에 적립 하나 */
+    data class ChallengeDepositRequest(
+        @field:NotNull @field:Positive val amount: BigDecimal?,
+        @field:NotNull val depositedOn: LocalDate?,
+        @field:NotBlank val savingId: String?,
     )
 
     data class SplitPart(@field:NotBlank val goalId: String?, @field:NotNull @field:Positive val amount: BigDecimal?)
@@ -335,6 +343,17 @@ class SavingsController(
     @PostMapping("/goals/{id}/deposits")
     fun deposit(user: AuthenticatedUser, @PathVariable id: String, @Valid @RequestBody body: DepositRequest): ResponseEntity<ApiResponse<GoalDetailView>> {
         val detail = recordDeposits.single(user.userId, id, Money.krw(body.amount!!), body.depositedOn, body.note)
+        return ApiResponse.created(detailView(detail), "Saving added successfully")
+    }
+
+    @Operation(
+        summary = "챌린지 아낀 돈 보태기(BFF 용)",
+        description = "출처 saved_by_challenge — 실제 적립과 구분. 같은 savingId 는 한 번만(같은 목표 재시도는 그대로 · 다른 목표면 409 DEPOSIT_SOURCE_USED)",
+    )
+    @PostMapping("/goals/{id}/challenge-deposits")
+    fun challengeDeposit(user: AuthenticatedUser, @PathVariable id: String, @Valid @RequestBody body: ChallengeDepositRequest): ResponseEntity<ApiResponse<GoalDetailView>> {
+        val savingId = runCatching { UUID.fromString(body.savingId) }.getOrElse { throw InvalidGoal("SAVING_ID_INVALID", "savingId must be a UUID") }
+        val detail = recordDeposits.fromChallenge(user.userId, id, Money.krw(body.amount!!), body.depositedOn!!, savingId)
         return ApiResponse.created(detailView(detail), "Saving added successfully")
     }
 

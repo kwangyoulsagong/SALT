@@ -263,6 +263,8 @@ export interface CalendarDay {
   spent: number;
   /** 지금 "안 쓴 날"로 표시할 수 있나 */
   markable: boolean;
+  /** 챌린지 "한 날" 스티커(가계부 S1d) — 칸 상태와 따로 */
+  challenge: boolean;
 }
 
 export type WageBasisKey = "hourly" | "monthly";
@@ -309,7 +311,70 @@ export interface HouseholdMonth {
   /** 감정 태그 — 다음 날 묻기(이번 달만) · 거울(가계부 S1c) */
   feelings: { asks: FeelingAsk[]; mirror: EmotionMirror[]; emotions: EmotionKey[] };
   /** 무지출 달력 — 1일~말일, 연속 일수 칸 없음 */
-  calendar: { days: CalendarDay[]; noSpendDays: number };
+  calendar: { days: CalendarDay[]; noSpendDays: number; challengeDays: number };
   /** 노동시간 — 켰을 때만 */
   workHours: { hourly: number; totalMinutes: number } | null;
+}
+
+// ---------- 내가 고르는 챌린지(가계부 S1d · `FE-REQ-057` FR-9) — 실패 · 연속 일수 칸 없음 ----------
+
+/** 서버가 정한다 — 시작 전 · 하는 중 · 끝(기간이 지났든 그만뒀든 같은 끝) */
+export type ChallengePhase = "upcoming" | "running" | "ended";
+
+export type ChallengePresetKey = "no_spend_weekend" | "skip_coffee" | "no_delivery" | "no_taxi";
+
+/** 아낀 돈 한 줄 — 실제 적립이 아니다. goalId 는 보탠 목표(없으면 null) */
+export interface ChallengeSaving {
+  id: string;
+  amount: number;
+  savedOn: string;
+  note: string | null;
+  goalId: string | null;
+  contributedAt: string | null;
+}
+
+export interface Challenge {
+  id: string;
+  title: string;
+  startsOn: string;
+  endsOn: string;
+  endedOn: string | null;
+  phase: ChallengePhase;
+  /** 표시한 날(날짜 순) — 개수만 보인다 */
+  days: string[];
+  /** 오늘을 "한 날"로 표시할 수 있나 — 서버가 정한다 */
+  todayMarkable: boolean;
+  savedTotal: number;
+  contributedTotal: number;
+  savings: ChallengeSaving[];
+}
+
+/** 보탤 수 있는 저축 목표(진행 중) */
+export interface GoalOption {
+  id: string;
+  title: string;
+  template: string;
+}
+
+export interface ChallengeList {
+  items: Challenge[];
+  presets: ChallengePresetKey[];
+  limit: number;
+  openCount: number;
+  /** 상한에 닿았나 — 서버가 정한다 */
+  canStart: boolean;
+  /** 기간 상한(일) — 안내 글자. 넘으면 서버가 거절한다 */
+  periodDaysMax: number;
+  /** 서버 오늘(KST) — 시작 칸 min · 기본값 */
+  today: string;
+  /** 시작 칸 max — 서버가 더한 날짜(화면은 날짜를 더하지 않는다) */
+  startMax: string;
+  /** null 이면 저축 서비스가 답하지 못했다 — 보태기 칸만 숨긴다 */
+  goals: GoalOption[] | null;
+}
+
+export interface StartChallengeRequest {
+  title: string;
+  startsOn?: string;
+  endsOn: string;
 }

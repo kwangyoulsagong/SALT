@@ -107,7 +107,7 @@ class JooqGoals(private val dsl: DSLContext) : Goals {
 }
 
 class JooqDeposits(private val dsl: DSLContext) : Deposits {
-    override fun add(deposit: Deposit) {
+    override fun add(deposit: Deposit): Boolean =
         dsl.insertInto(DEPOSIT)
             .set(DEPOSIT.ID, deposit.id)
             .set(DEPOSIT.GOAL_ID, deposit.goalId.value)
@@ -118,8 +118,16 @@ class JooqDeposits(private val dsl: DSLContext) : Deposits {
             .set(DEPOSIT.SPLIT_GROUP_ID, deposit.splitGroupId)
             .set(DEPOSIT.SOURCE, deposit.source.key)
             .set(DEPOSIT.CREATED_AT, deposit.createdAt.utc())
-            .execute()
-    }
+            .set(DEPOSIT.SOURCE_REF, deposit.sourceRef)
+            // 출처가 있는 적립은 한 번만(V3 유일 인덱스). 출처 없는 행은 NULL 이라 서로 부딪히지 않는다
+            .onConflictDoNothing()
+            .execute() == 1
+
+    override fun goalOfSourceRef(userId: String, sourceRef: UUID): GoalId? =
+        dsl.select(DEPOSIT.GOAL_ID).from(DEPOSIT)
+            .where(DEPOSIT.SOURCE_REF.eq(sourceRef).and(DEPOSIT.USER_ID.eq(userId)))
+            .fetchOne(DEPOSIT.GOAL_ID)
+            ?.let(::GoalId)
 
     override fun totalsFor(goalId: GoalId, thisMonth: YearMonth): DepositTotals? {
         val monthStart = thisMonth.atDay(1)
@@ -187,7 +195,7 @@ class JooqDeposits(private val dsl: DSLContext) : Deposits {
             .fetch {
                 Deposit(
                     it.id, GoalId(it.goalId), it.userId, money(it.amount), it.depositedOn, it.note, it.splitGroupId,
-                    DepositSource.fromKey(it.source), it.createdAt.toInstant(),
+                    DepositSource.fromKey(it.source), it.createdAt.toInstant(), it.sourceRef,
                 )
             }
 }

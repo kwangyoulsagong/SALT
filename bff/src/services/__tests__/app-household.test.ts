@@ -154,4 +154,59 @@ describe("AppHouseholdService", () => {
     assert.deepEqual(seen[0][2], { emotion: "reward", feltNow: 5 });
     assert.ok(!lines.some((l) => l.includes("reward") || l.includes("987654")));
   });
+  it("챌린지 목록(S1d) — 가계부 목록 + 진행 중 목표만 · 저축이 실패하면 goals null 이고 목록은 그대로", async () => {
+    const list = { items: [{ id: "c", phase: "running" }], presets: ["skip_coffee"], limit: 5, openCount: 1, canStart: true };
+    const goals = [
+      { id: "g1", title: "여행", template: "travel", status: "active" },
+      { id: "g2", title: "차", template: "first_car", status: "completed" },
+    ];
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, url: string) =>
+      url === "/savings/goals" ? ({ data: { data: goals } } as never) : ({ data: { data: list } } as never),
+    );
+    const vm = await appHouseholdService.challenges("t");
+    assert.deepEqual(vm.goals, [{ id: "g1", title: "여행", template: "travel" }]);
+    assert.equal(vm.items[0]?.id, "c");
+
+    mock.restoreAll();
+    mock.method(logger, "warn", () => logger);
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, url: string) => {
+      if (url === "/savings/goals") throw new Error("down");
+      return { data: { data: list } } as never;
+    });
+    const degraded = await appHouseholdService.challenges("t");
+    assert.equal(degraded.goals, null);
+    assert.equal(degraded.canStart, true);
+  });
+
+  it("아낀 돈 보태기(S1d) — 가계부에서 금액을 읽고(본문 금액 무시) → 저축 적립 → 가계부에 보탰다. 저축이 거절하면 가계부에 적지 않는다", async () => {
+    const seen: Array<{ m: string; url: string; body: unknown }> = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string, _t: string, body: unknown) => {
+      seen.push({ m, url, body });
+      if (url === "/household/challenge-savings/s%2F1") return { data: { data: { id: "s/1", amount: 15000, savedOn: "2026-11-04", goalId: null } } } as never;
+      return { data: { data: { id: "c", contributedTotal: 15000 } } } as never;
+    });
+    const vm = await appHouseholdService.contributeSaving("t", "s/1", { goalId: "g1", amount: 99999999 } as never);
+    assert.equal(vm.contributedTotal, 15000);
+    assert.deepEqual(
+      seen.map((c) => `${c.m} ${c.url}`),
+      ["GET /household/challenge-savings/s%2F1", "POST /savings/goals/g1/challenge-deposits", "PUT /household/challenge-savings/s%2F1/contribution"],
+    );
+    assert.deepEqual(seen[1]?.body, { amount: 15000, depositedOn: "2026-11-04", savingId: "s/1" });
+    assert.deepEqual(seen[2]?.body, { goalId: "g1" });
+
+    mock.restoreAll();
+    const calls: string[] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string) => {
+      calls.push(`${m} ${url}`);
+      if (url.startsWith("/savings")) throw Object.assign(new Error("409"), { response: { status: 409 } });
+      return { data: { data: { id: "s", amount: 1000, savedOn: "2026-11-04", goalId: null } } } as never;
+    });
+    await assert.rejects(appHouseholdService.contributeSaving("t", "s", { goalId: "g2" }));
+    assert.deepEqual(calls, ["GET /household/challenge-savings/s", "POST /savings/goals/g2/challenge-deposits"]);
+
+    // 목표가 비면 어느 서비스도 부르지 않고 400
+    calls.length = 0;
+    await assert.rejects(appHouseholdService.contributeSaving("t", "s", { goalId: " " }), (e: { statusCode?: number }) => e.statusCode === 400);
+    assert.deepEqual(calls, []);
+  });
 });

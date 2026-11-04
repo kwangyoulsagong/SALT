@@ -306,3 +306,4 @@ export { importLedger as POST } from '@/app/api-routes';
 | 2026-11-04 | lint 플러그인 `@repo/fsd` 에 `no-render-read`(렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기 금지)를 더했다 — 레이어 규칙은 아니지만 zone 앱 · 도메인 패키지 9곳 lint 가 모두 이 플러그인을 싣는다(`DEV-001`). 레이어 규칙 표는 그대로 |
 | 2026-11-04 | 가계부 S1b — 레지스트리 코드(`layer-rules.cjs`)에 features `manage-recurring` · `close-month` · pages `recurring` + `fsd-features.md` · `fsd-pages.md` 표(`d31bff89`) |
 | 2026-11-04 | 가계부 S1c — 레지스트리 코드(`layer-rules.cjs`)에 features `answer-feeling` · `mark-no-spend` · `set-work-hours` + `fsd-features.md` 표(`f0c8793d`) |
+| 2026-11-04 | 가계부 S1d — 레지스트리 코드(`layer-rules.cjs`)에 features `start-challenge` · `track-challenge` · pages `challenges` + `fsd-features.md` · `fsd-pages.md` 표(`23d44bb6`) |

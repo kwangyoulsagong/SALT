@@ -4,6 +4,7 @@ import com.salt.kernel.Currency
 import com.salt.kernel.Money
 import com.salt.savings.domain.Calculation
 import com.salt.savings.domain.Deposit
+import com.salt.savings.domain.DepositSourceUsed
 import com.salt.savings.domain.DepositTotals
 import com.salt.savings.domain.Deposits
 import com.salt.savings.domain.Frame
@@ -298,7 +299,9 @@ open class RecordDeposits(
 
     @Transactional(transactionManager = SAVINGS_TX)
     open fun single(userId: String, goalId: String, amount: Money, depositedOn: LocalDate?, note: String?): GoalDetail =
-        record(userId, listOf(Part(goalId, amount)), depositedOn, note, null).goals.single()
+        record(userId, listOf(Part(goalId, amount)), null) { goal, part, today, now ->
+            Deposit.manual(goal, part.amount, depositedOn ?: today, note, null, today, now)
+        }.goals.single()
 
     /**
      * 여러 목표에 나눠 넣기(`SRV-REQ-045` FR-4) — [total] 과 나눈 합이 같아야 한다. 같은 목표가 두 번 나오면 거부(합칠지 나눌지 모른다)
@@ -311,22 +314,43 @@ open class RecordDeposits(
         if (ids.toSet().size != ids.size) throw InvalidGoal("SPLIT_DUPLICATE_GOAL", "each goal may appear once")
         val sum = parts.map { it.amount }.reduce(Money::plus)
         if (sum != total) throw InvalidGoal("SPLIT_SUM_MISMATCH", "parts must add up to total")
-        return record(userId, parts, depositedOn, note, UUID.randomUUID())
+        val splitGroupId = UUID.randomUUID()
+        return record(userId, parts, splitGroupId) { goal, part, today, now ->
+            Deposit.manual(goal, part.amount, depositedOn ?: today, note, splitGroupId, today, now)
+        }
     }
 
-    private fun record(userId: String, parts: List<Part>, depositedOn: LocalDate?, note: String?, splitGroupId: UUID?): Result {
+    /**
+     * 가계부 챌린지의 아낀 돈을 목표에 보탠다(`SRV-REQ-045` FR-17 · 가계부 S1d 판단 4) — BFF 가 가계부 기록의 금액 · 날짜로 부른다.
+     * **같은 아낀 돈은 한 번만**: 이미 같은 목표에 넣었으면 아무것도 새로 쓰지 않고(달성 · 발행 0) 지금 상세를 돌려준다(재시도 안전).
+     * 다른 목표에 넣었으면 409 `DEPOSIT_SOURCE_USED`.
+     */
+    @Transactional(transactionManager = SAVINGS_TX)
+    open fun fromChallenge(userId: String, goalId: String, amount: Money, depositedOn: LocalDate, savingId: UUID): GoalDetail =
+        record(userId, listOf(Part(goalId, amount)), null) { goal, part, today, now ->
+            Deposit.fromChallenge(goal, part.amount, depositedOn, savingId, today, now)
+        }.goals.single()
+
+    private fun record(userId: String, parts: List<Part>, splitGroupId: UUID?, make: (Goal, Part, LocalDate, java.time.Instant) -> Deposit): Result {
         val today = clock.todayKst()
         val now = clock.instant()
-        val day = depositedOn ?: today
         // 잠금 순서를 UUID 순으로 — 두 나눠 넣기가 같은 목표 둘을 반대 순서로 잡아 교착하지 않게(문자열 순은 대소문자에 따라 달라진다)
         val parsed = parts.map { part -> (GoalId.parse(part.goalId) ?: throw GoalNotFound(part.goalId)) to part }
         val locked = parsed.sortedBy { it.first.value }.map { (id, part) ->
             val goal = goals.lockOwned(id, userId) ?: throw GoalNotFound(part.goalId)
             goal to part
         }
-        locked.forEach { (goal, part) -> deposits.add(Deposit.manual(goal, part.amount, day, note, splitGroupId, today, now)) }
+        val written = locked.filter { (goal, part) ->
+            val deposit = make(goal, part, today, now)
+            deposits.add(deposit) || run {
+                // 같은 출처가 이미 있다 — 같은 목표면 이미 끝난 일(재시도), 다른 목표면 거절
+                val ref = deposit.sourceRef ?: error("a deposit without source never conflicts")
+                if (deposits.goalOfSourceRef(userId, ref) != goal.id) throw DepositSourceUsed(ref.toString())
+                false
+            }
+        }
 
-        locked.forEach { (goal, _) ->
+        written.forEach { (goal, _) ->
             // 잠근 목표만 — 사용자 전체를 훑지 않는다
             val saved = deposits.totalsFor(goal.id, YearMonth.from(today))?.saved ?: Money.zero(goal.targetAmount.currency)
             val current = if (goal.status != GoalStatus.COMPLETED && saved >= goal.targetAmount) {
