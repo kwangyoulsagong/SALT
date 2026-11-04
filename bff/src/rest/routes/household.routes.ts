@@ -25,5 +25,13 @@ router.put("/templates/:id", authMiddleware, appHouseholdController.editTemplate
 router.delete("/templates/:id", authMiddleware, appHouseholdController.endTemplate);
 router.post("/occurrences/:id/confirm", authMiddleware, appHouseholdController.confirmOccurrence);
 router.post("/occurrences/:id/skip", authMiddleware, appHouseholdController.skipOccurrence);
+// 거울 셋(가계부 S1c) — 감정 태그 · 다음 날 만족 · 노동시간 · 무지출 달력
+router.put("/expenses/:id/feeling", authMiddleware, appHouseholdController.tagFeeling);
+router.delete("/expenses/:id/feeling", authMiddleware, appHouseholdController.untagFeeling);
+router.post("/expenses/:id/feeling/next", authMiddleware, appHouseholdController.answerNextDay);
+router.get("/settings/work-hours", authMiddleware, appHouseholdController.workHours);
+router.put("/settings/work-hours", authMiddleware, appHouseholdController.setWorkHours);
+router.put("/no-spend/:date", authMiddleware, appHouseholdController.markNoSpend);
+router.delete("/no-spend/:date", authMiddleware, appHouseholdController.unmarkNoSpend);
 
 export default router;

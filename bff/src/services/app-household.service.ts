@@ -30,6 +30,20 @@ export interface HouseholdExpenseVM {
   installmentMonths: number | null;
   memo: string | null;
   createdAt: string;
+  /** 감정 태그(가계부 S1c) — 없으면 null. 민감 정보: BFF 는 로그에 남기지 않는다 */
+  feeling: HouseholdFeelingVM | null;
+  /** 근무 분 — 노동시간 환산을 켰을 때만(서버 계산) */
+  workMinutes: number | null;
+}
+
+/** 감정 태그 — emotion 키 · 산 직후 · 다음 날(1~5). nextDecided 인데 feltNext 가 null 이면 넘김 */
+export interface HouseholdFeelingVM {
+  /** stress · reward · boredom */
+  emotion: string;
+  feltNow: number | null;
+  feltNext: number | null;
+  nextDecided: boolean;
+  taggedOn: string;
 }
 
 /** 봉투 — `remaining` 은 음수 가능. 상태 · 경고 칸이 없다(수용 기준) */
@@ -53,6 +67,8 @@ export interface HouseholdRecordVM {
   savedTotal: number;
   envelope: HouseholdEnvelopeVM | null;
   monthTotal: number;
+  /** 이번에 적은 합의 근무 분 — 노동시간을 켰을 때만 */
+  savedWorkMinutes: number | null;
   goalClock: HouseholdGoalClockVM;
 }
 
@@ -76,6 +92,8 @@ export interface HouseholdParseVM {
 export interface HouseholdSuggestionsVM {
   merchants: Array<{ merchant: string; category: string; lastAmount: number; count: number }>;
   categories: Array<{ key: string; bucket: string }>;
+  /** 감정 태그 키(가계부 S1c) */
+  emotions: string[];
 }
 
 export interface HouseholdBudgetVM {
@@ -170,6 +188,47 @@ export interface HouseholdCloseVM {
   answers: { satisfied: string | null; tryNext: string | null; knownNext: string | null };
 }
 
+/** 다음 날 묻기 한 줄 — 서버가 고른 것(태그 다음 날 ~ 7일, 아직 안 정함) */
+export interface HouseholdFeelingAskVM {
+  expenseId: string;
+  emotion: string;
+  feltNow: number | null;
+  taggedOn: string;
+  amount: number;
+  spentOn: string;
+  category: string;
+  merchant: string | null;
+}
+
+/** 감정 하나의 분포 — 1~5점 건수(인덱스 0 = 1점). 평균 · 점수 칸 없음 */
+export interface HouseholdMirrorVM {
+  emotion: string;
+  count: number;
+  feltNow: number[];
+  feltNext: number[];
+}
+
+/** 달력 칸 — state 는 서버가 정한다: future · spent · no_spend · blank. 연속 일수 칸 없음 */
+export interface HouseholdCalendarDayVM {
+  date: string;
+  /** ISO 요일(월 1 ~ 일 7) — 칸 자리 */
+  weekday: number;
+  state: string;
+  spent: number;
+  markable: boolean;
+}
+
+/** 노동시간 설정 — hourly 는 켰을 때 1시간 값(원) */
+export interface HouseholdWorkHoursVM {
+  on: boolean;
+  /** hourly · monthly · null */
+  basis: string | null;
+  amount: number | null;
+  monthlyHours: number | null;
+  defaultMonthlyHours: number;
+  hourly: number | null;
+}
+
 /** 반복 확인 응답 — 저장 응답과 같은 모양 + 목표 시계 */
 export interface HouseholdConfirmVM {
   occurrenceId: string;
@@ -199,6 +258,12 @@ export interface HouseholdMonthVM {
   closable: boolean;
   /** 리뷰 문항 키(문장은 프론트) */
   reviewQuestions: string[];
+  /** 감정 태그 — 다음 날 묻기(이번 달만) · 거울 · 키 목록(가계부 S1c) */
+  feelings: { asks: HouseholdFeelingAskVM[]; mirror: HouseholdMirrorVM[]; emotions: string[] };
+  /** 무지출 달력 — 1일~말일 */
+  calendar: { days: HouseholdCalendarDayVM[]; noSpendDays: number };
+  /** 노동시간 — 켰을 때만 */
+  workHours: { hourly: number; totalMinutes: number } | null;
 }
 
 /** 홈 카드가 쓰는 서버 숫자(`GET /household/home-card`) */
@@ -210,7 +275,7 @@ export interface HouseholdHomeCardSource {
   landing: HouseholdLandingVM;
 }
 
-/** 쓰기는 재시도하지 않는다(중복 지출). 조회 예산 — 월 화면 쿼리 11회(S1b) + 여유 */
+/** 쓰기는 재시도하지 않는다(중복 지출). 조회 예산 — 월 화면 쿼리 16회(S1c) + 여유 */
 const READ_TIMEOUT_MS = 2_000;
 const WRITE_TIMEOUT_MS = 5_000;
 /** 저장 응답에 붙이는 목표 시계의 상한 — 넘으면 `pending`(FEATURE-013 비기능 "저장 → 목표 시계 1초 이내") */
@@ -316,6 +381,36 @@ class AppHouseholdService {
 
   async closeMonth(token: string, ym: string, body: unknown): Promise<HouseholdCloseVM> {
     return data(await backendApi.proxyAuthRequest("POST", `/household/month/${encodeURIComponent(ym)}/close`, token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  // ---------- 거울 셋(가계부 S1c) — 중계만. 감정 · 만족 · 급여는 민감 정보: 본문을 로그에 남기지 않는다 ----------
+
+  async tagFeeling(token: string, id: string, body: unknown): Promise<HouseholdFeelingVM> {
+    return data(await backendApi.proxyAuthRequest("PUT", `/household/expenses/${encodeURIComponent(id)}/feeling`, token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async untagFeeling(token: string, id: string): Promise<{ id: string }> {
+    return data(await backendApi.proxyAuthRequest("DELETE", `/household/expenses/${encodeURIComponent(id)}/feeling`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async answerNextDay(token: string, id: string, body: unknown): Promise<HouseholdFeelingVM> {
+    return data(await backendApi.proxyAuthRequest("POST", `/household/expenses/${encodeURIComponent(id)}/feeling/next`, token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async workHours(token: string): Promise<HouseholdWorkHoursVM> {
+    return data(await backendApi.proxyAuthRequest("GET", "/household/settings/work-hours", token, undefined, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  async setWorkHours(token: string, body: unknown): Promise<HouseholdWorkHoursVM> {
+    return data(await backendApi.proxyAuthRequest("PUT", "/household/settings/work-hours", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async markNoSpend(token: string, date: string): Promise<{ date: string }> {
+    return data(await backendApi.proxyAuthRequest("PUT", `/household/no-spend/${encodeURIComponent(date)}`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async unmarkNoSpend(token: string, date: string): Promise<{ date: string }> {
+    return data(await backendApi.proxyAuthRequest("DELETE", `/household/no-spend/${encodeURIComponent(date)}`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
   }
 
   async homeCard(token: string, timeout: number): Promise<HouseholdHomeCardSource> {

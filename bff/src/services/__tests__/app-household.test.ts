@@ -118,4 +118,40 @@ describe("AppHouseholdService", () => {
     );
     assert.deepEqual(seen[5][2], { satisfied: "집밥" });
   });
+
+  it("거울 셋(S1c) — 감정 · 노동시간 · 무지출은 중계만 · 감정 · 급여 본문이 로그에 0", async () => {
+    const lines: string[] = [];
+    for (const level of ["info", "warn", "error", "debug"] as const) {
+      mock.method(logger, level, (...args: unknown[]) => {
+        lines.push(JSON.stringify(args));
+        return logger;
+      });
+    }
+    const seen: Array<[string, string, unknown]> = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string, _t: string, body: unknown) => {
+      seen.push([m, url, body]);
+      return { data: { data: { ok: true } } } as never;
+    });
+    await appHouseholdService.tagFeeling("t", "e 1", { emotion: "reward", feltNow: 5 });
+    await appHouseholdService.untagFeeling("t", "e 1");
+    await appHouseholdService.answerNextDay("t", "e 1", { felt: 2 });
+    await appHouseholdService.workHours("t");
+    await appHouseholdService.setWorkHours("t", { on: true, basis: "hourly", amount: 987654 });
+    await appHouseholdService.markNoSpend("t", "2026-11-04");
+    await appHouseholdService.unmarkNoSpend("t", "2026-11-04");
+    assert.deepEqual(
+      seen.map(([m, u]) => `${m} ${u}`),
+      [
+        "PUT /household/expenses/e%201/feeling",
+        "DELETE /household/expenses/e%201/feeling",
+        "POST /household/expenses/e%201/feeling/next",
+        "GET /household/settings/work-hours",
+        "PUT /household/settings/work-hours",
+        "PUT /household/no-spend/2026-11-04",
+        "DELETE /household/no-spend/2026-11-04",
+      ],
+    );
+    assert.deepEqual(seen[0][2], { emotion: "reward", feltNow: 5 });
+    assert.ok(!lines.some((l) => l.includes("reward") || l.includes("987654")));
+  });
 });
