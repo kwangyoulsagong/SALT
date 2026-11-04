@@ -8,6 +8,7 @@ import java.time.YearMonth
 
 /**
  * 무지출일 달력 + 스티커(`SRV-REQ-046` FR-16 · `DB-REQ-038` FR-11 · FEATURE-013 FR-20, 가계부 S1c 판단 6).
+ * 챌린지 "한 날" 스티커(가계부 S1d)는 칸 상태와 따로 붙는다 — 표는 `challenge_day`(어느 챌린지 날인지 남기려고).
  * **기록 없는 날 ≠ 안 쓴 날** — 스티커는 사용자가 "안 쓴 날"이라고 표시해야 붙는다(적지 않은 날을 무지출로 세지 않는다).
  * **연속 일수를 세지 않는다** — 끊겨도 잃는 게 없게. 이 파일에 연속 · 기록 갱신 개념이 없다.
  */
@@ -34,9 +35,11 @@ data class CalendarDay(
     val spent: Money,
     /** 지금 "안 쓴 날"로 표시할 수 있나 — blank 이고 표시 가능한 날짜 */
     val markable: Boolean,
+    /** 챌린지 "한 날" 스티커(가계부 S1d) — 칸 상태와 따로다: 커피를 아낀 날에도 다른 지출은 있을 수 있다 */
+    val challenge: Boolean = false,
 )
 
-data class MonthCalendar(val days: List<CalendarDay>, val noSpendDays: Int)
+data class MonthCalendar(val days: List<CalendarDay>, val noSpendDays: Int, val challengeDays: Int = 0)
 
 object CalendarRules {
     /** 표시할 수 있는 가장 먼 과거 — 지출 날짜 규칙과 같다(밀린 날 메우기) */
@@ -50,7 +53,13 @@ object CalendarRules {
     /**
      * 그 달 칸 전부(1일 ~ 말일). 쓴 날이면 스티커가 있어도 spent — 표시 뒤 그날 지출을 적었으면 숨긴다(행은 남는다: 지출을 지우면 다시 보인다).
      */
-    fun month(month: YearMonth, today: LocalDate, daily: Map<LocalDate, Money>, stickers: Set<LocalDate>): MonthCalendar {
+    fun month(
+        month: YearMonth,
+        today: LocalDate,
+        daily: Map<LocalDate, Money>,
+        stickers: Set<LocalDate>,
+        challengeDays: Set<LocalDate> = emptySet(),
+    ): MonthCalendar {
         val oldest = today.minusDays(PAST_DAYS_MAX)
         val days = (1..month.lengthOfMonth()).map { d ->
             val date = month.atDay(d)
@@ -61,9 +70,9 @@ object CalendarRules {
                 date in stickers -> DayState.NO_SPEND
                 else -> DayState.BLANK
             }
-            CalendarDay(date, state, spent, state == DayState.BLANK && !date.isBefore(oldest))
+            CalendarDay(date, state, spent, state == DayState.BLANK && !date.isBefore(oldest), date in challengeDays && !date.isAfter(today))
         }
-        return MonthCalendar(days, days.count { it.state == DayState.NO_SPEND })
+        return MonthCalendar(days, days.count { it.state == DayState.NO_SPEND }, days.count { it.challenge })
     }
 }
 

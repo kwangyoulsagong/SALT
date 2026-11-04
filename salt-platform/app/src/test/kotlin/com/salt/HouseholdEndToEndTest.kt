@@ -51,6 +51,9 @@ class HouseholdEndToEndTest {
 
     @Autowired private lateinit var runRecurring: com.salt.household.application.RunRecurring
 
+    @Autowired @Qualifier("savingsDatabase")
+    private lateinit var savingsDatabase: ServiceDatabase
+
     private val http = HttpClient.newHttpClient()
     private val today: LocalDate get() = LocalDate.now(ZoneId.of("Asia/Seoul"))
 
@@ -260,7 +263,7 @@ class HouseholdEndToEndTest {
     }
 
     @Test
-    fun `쿼리 수 — 월 화면 16 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
+    fun `쿼리 수 — 월 화면 17 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
         val user = "q-${UUID.randomUUID()}"
         call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"food":300000}}""").statusCode() shouldBe 200
         var before = statements()
@@ -279,7 +282,8 @@ class HouseholdEndToEndTest {
         // 월: 목록 · 월 합 · 예산 2 · 착지 2(첫 기록 · 날별) · 적중 2(지난달 발행 · 지난달 합)
         // + S1b: 마감 1(안 닫은 달 — 닫았으면 사본 봉투 1 더하고 예산 2 빠짐) · 예정 행 1(착지와 나눠 씀) · 할부 1 = 11
         // + S1c: 태그(목록 · 거울 한 문장) · 달력 날별 합 · 스티커 · 설정 · 다음 날 묻기(이번 달만) = 16
-        month shouldBe 16L
+        // + S1d: 챌린지 한 날(달력) = 17
+        month shouldBe 17L
         // 저장: 행 · 아웃박스 · 월 합 · 착지 2 · 발행 · 아웃박스(그날 처음) · 예산 2 = 9. 두 번째는 발행이 ON CONFLICT 로 빈 문장이 되고 그 아웃박스가 빠져 8
         // (그날 이미 냈어도 착지를 다시 계산하는 3문장은 리뷰가 짚은 낭비 — 쓰기 응답 몫이라 남김, 루트 체크리스트 §4)
         // + S1b: 착지 예정 행 1 · + S1c: 설정(노동시간) 1 — 감정 태그를 달면 태그 1 더
@@ -599,6 +603,142 @@ class HouseholdEndToEndTest {
         call("PUT", "/api/household/no-spend/2026-13-01", user, null).body() shouldContain "DATE_INVALID"
         val raw = call("GET", "/api/household/month/$month", user, null).body()
         listOf("streak", "consecutive").forEach { raw shouldNotContain it }
+    }
+
+    // ---------- 가계부 S1d — 내가 고르는 챌린지 ----------
+
+    @Test
+    fun `챌린지 — 고르기 · 한 날 · 아낀 돈 · 그만두기(실패 0) · 달력 스티커 · 상한 · 거절 표 · 남의 것 404`() {
+        val user = "chal-${UUID.randomUUID()}"
+        val other = "chal-other-${UUID.randomUUID()}"
+        var list = data(call("GET", "/api/household/challenges", user, null))
+        list.path("items").size() shouldBe 0
+        list.path("canStart").asBoolean() shouldBe true
+        list.path("presets").items { it.asString() } shouldBe listOf("no_spend_weekend", "skip_coffee", "no_delivery", "no_taxi")
+
+        val created = call("POST", "/api/household/challenges", user, """{"title":"커피 한 잔 아끼기","endsOn":"${today.plusDays(6)}"}""")
+        created.statusCode() shouldBe 201
+        val c = data(created)
+        val id = c.path("id").asString()
+        c.path("phase").asString() shouldBe "running"
+        c.path("startsOn").asString() shouldBe today.toString()
+        c.path("todayMarkable").asBoolean() shouldBe true
+
+        // 한 날 — 두 번 눌러도 하나 · 미래 · 기간 밖 거절
+        call("PUT", "/api/household/challenges/$id/days/$today", user, null).statusCode() shouldBe 200
+        data(call("PUT", "/api/household/challenges/$id/days/$today", user, null)).path("days").items { it.asString() } shouldBe listOf(today.toString())
+        call("PUT", "/api/household/challenges/$id/days/${today.plusDays(1)}", user, null).body() shouldContain "CHALLENGE_DATE_FUTURE"
+        call("PUT", "/api/household/challenges/$id/days/${today.minusDays(1)}", user, null).body() shouldContain "CHALLENGE_DATE_OUTSIDE"
+
+        // 아낀 돈 — 합은 서버
+        call("POST", "/api/household/challenges/$id/savings", user, """{"amount":4500,"note":"아메리카노"}""").statusCode() shouldBe 201
+        val withSaving = data(call("POST", "/api/household/challenges/$id/savings", user, """{"amount":3000}"""))
+        withSaving.path("savedTotal").asLong() shouldBe 7_500
+        withSaving.path("contributedTotal").asLong() shouldBe 0
+        call("POST", "/api/household/challenges/$id/savings", user, """{"amount":0.5}""").body() shouldContain "CHALLENGE_SAVING_AMOUNT_INVALID"
+
+        // 달력 — 쓴 날에도 붙는다 · 개수만
+        call("POST", "/api/household/expenses", user, """{"amount":12000,"category":"food"}""").statusCode() shouldBe 201
+        val cal = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("calendar")
+        cal.path("days").get(today.dayOfMonth - 1).path("challenge").asBoolean() shouldBe true
+        cal.path("days").get(today.dayOfMonth - 1).path("state").asString() shouldBe "spent"
+        cal.path("challengeDays").asInt() shouldBe 1
+
+        // 남의 것은 없는 것
+        call("PUT", "/api/household/challenges/$id/days/$today", other, null).statusCode() shouldBe 404
+        call("POST", "/api/household/challenges/$id/end", other, null).statusCode() shouldBe 404
+        call("POST", "/api/household/challenges/not-a-uuid/end", user, null).statusCode() shouldBe 404
+
+        // 그만두기 — 끝(실패 아님) · 두 번 눌러도 같은 날
+        val ended = data(call("POST", "/api/household/challenges/$id/end", user, null))
+        ended.path("phase").asString() shouldBe "ended"
+        ended.path("endedOn").asString() shouldBe today.toString()
+        data(call("POST", "/api/household/challenges/$id/end", user, null)).path("endedOn").asString() shouldBe today.toString()
+        householdDatabase.dsl.fetchValue("SELECT status FROM challenge WHERE id = ?::uuid", id) shouldBe "ended"
+
+        // 거절 표 — 이름 · 기간
+        listOf(
+            // 빈 이름은 요청 형식 검사가 먼저 막는다(400 · 필드 title) — 공백만인 이름은 도메인이 같은 뜻으로 막는다(ChallengeSpec)
+            """{"title":" ","endsOn":"$today"}""" to "\"field\":\"title\"",
+            """{"title":"x","startsOn":"${today.minusDays(1)}","endsOn":"$today"}""" to "CHALLENGE_START_PAST",
+            """{"title":"x","endsOn":"${today.plusDays(92)}"}""" to "CHALLENGE_PERIOD_TOO_LONG",
+            """{"title":"x","endsOn":"${today.minusDays(1)}"}""" to "CHALLENGE_PERIOD_INVALID",
+        ).forEach { (body, code) -> call("POST", "/api/household/challenges", user, body).body() shouldContain code }
+
+        // 상한 — 진행 · 예정 5개(끝난 것은 세지 않는다)
+        repeat(5) { i -> call("POST", "/api/household/challenges", user, """{"title":"c$i","endsOn":"${today.plusDays(1)}"}""").statusCode() shouldBe 201 }
+        call("POST", "/api/household/challenges", user, """{"title":"c6","endsOn":"${today.plusDays(1)}"}""").body() shouldContain "CHALLENGE_LIMIT_REACHED"
+        list = data(call("GET", "/api/household/challenges", user, null))
+        list.path("canStart").asBoolean() shouldBe false
+        list.path("openCount").asInt() shouldBe 5
+        // 끝난 것이 뒤
+        list.path("items").get(5).path("id").asString() shouldBe id
+
+        // 응답 data 에 실패 · 성공률 · 연속 칸이 없다(봉투의 message "success" 는 응답 틀이라 뺀다)
+        val raw = data(call("GET", "/api/household/challenges", user, null)).toString()
+        listOf("fail", "success", "streak", "consecutive", "rate").forEach { raw shouldNotContain it }
+    }
+
+    @Test
+    fun `아낀 돈 보태기 — 저축 적립 출처 saved_by_challenge · 같은 아낀 돈 두 번이면 하나 · 다른 목표면 409 · 보탠 것은 못 지움`() {
+        val user = "contrib-${UUID.randomUUID()}"
+        val goalA = data(call("POST", "/api/savings/goals", user, """{"title":"여행","template":"travel","targetAmount":1000000,"monthlyPlan":100000}""")).path("goal").path("id").asString()
+        val goalB = data(call("POST", "/api/savings/goals", user, """{"title":"비상금","template":"emergency","targetAmount":1000000,"monthlyPlan":100000}""")).path("goal").path("id").asString()
+        val id = data(call("POST", "/api/household/challenges", user, """{"title":"배달 쉬기","endsOn":"${today.plusDays(3)}"}""")).path("id").asString()
+        val savingId = data(call("POST", "/api/household/challenges/$id/savings", user, """{"amount":15000}""")).path("savings").get(0).path("id").asString()
+
+        // BFF 순서: 가계부에서 금액 읽기 → 저축 적립 → 가계부에 보탰다고
+        val source = data(call("GET", "/api/household/challenge-savings/$savingId", user, null))
+        source.path("amount").asLong() shouldBe 15_000
+        source.path("goalId").isNull shouldBe true
+        val body = """{"amount":${source.path("amount").asLong()},"depositedOn":"${source.path("savedOn").asString()}","savingId":"$savingId"}"""
+        val deposited = call("POST", "/api/savings/goals/$goalA/challenge-deposits", user, body)
+        deposited.statusCode() shouldBe 201
+        data(deposited).path("deposits").get(0).path("source").asString() shouldBe "saved_by_challenge"
+        // 재시도 — 적립은 하나
+        call("POST", "/api/savings/goals/$goalA/challenge-deposits", user, body).statusCode() shouldBe 201
+        call("POST", "/api/savings/goals/$goalB/challenge-deposits", user, body).body() shouldContain "DEPOSIT_SOURCE_USED"
+        savingsDatabase.dsl.fetchCount(savingsDatabase.dsl.selectFrom("deposit").where("source_ref = ?::uuid", savingId)) shouldBe 1
+        // 다른 사용자가 같은 아낀 돈 id 를 대면 409(남의 출처)
+        val stranger = "contrib-x-${UUID.randomUUID()}"
+        val strangerGoal = data(call("POST", "/api/savings/goals", stranger, """{"title":"x","template":"other","targetAmount":1000000,"monthlyPlan":100000}""")).path("goal").path("id").asString()
+        call("POST", "/api/savings/goals/$strangerGoal/challenge-deposits", stranger, body).body() shouldContain "DEPOSIT_SOURCE_USED"
+
+        val marked = data(call("PUT", "/api/household/challenge-savings/$savingId/contribution", user, """{"goalId":"$goalA"}"""))
+        marked.path("contributedTotal").asLong() shouldBe 15_000
+        marked.path("savings").get(0).path("goalId").asString() shouldBe goalA
+        call("PUT", "/api/household/challenge-savings/$savingId/contribution", user, """{"goalId":"$goalA"}""").statusCode() shouldBe 200
+        call("PUT", "/api/household/challenge-savings/$savingId/contribution", user, """{"goalId":"$goalB"}""").body() shouldContain "CHALLENGE_SAVING_CONTRIBUTED"
+        call("DELETE", "/api/household/challenge-savings/$savingId", user, null).body() shouldContain "CHALLENGE_SAVING_CONTRIBUTED"
+
+        // 보태지 않은 것은 지운다
+        val second = data(call("POST", "/api/household/challenges/$id/savings", user, """{"amount":2000}""")).path("savings")
+        val loose = second.items { it }.first { it.path("goalId").isNull }.path("id").asString()
+        data(call("DELETE", "/api/household/challenge-savings/$loose", user, null)).path("savedTotal").asLong() shouldBe 15_000
+        call("GET", "/api/household/challenge-savings/$loose", user, null).statusCode() shouldBe 404
+    }
+
+    @Test
+    fun `챌린지 원장 — 상태 값에 실패 없음(DB CHECK) · 상태와 그만둔 날이 짝`() {
+        val check = householdDatabase.dsl.fetchValue(
+            "SELECT string_agg(pg_get_constraintdef(oid), ' ') FROM pg_constraint WHERE conrelid = 'challenge'::regclass AND contype = 'c'",
+        ) as String
+        check shouldContain "'active'"
+        check shouldContain "'ended'"
+        listOf("fail", "missed", "broken").forEach { check shouldNotContain it }
+        val user = "chk-${UUID.randomUUID()}"
+        shouldThrow<org.jooq.exception.DataAccessException> {
+            householdDatabase.dsl.execute(
+                "INSERT INTO challenge (id, user_id, title, starts_on, ends_on, status, created_at) VALUES (gen_random_uuid(), ?, 'x', current_date, current_date, 'failed', now())",
+                user,
+            )
+        }
+        shouldThrow<org.jooq.exception.DataAccessException> {
+            householdDatabase.dsl.execute(
+                "INSERT INTO challenge (id, user_id, title, starts_on, ends_on, status, created_at) VALUES (gen_random_uuid(), ?, 'x', current_date, current_date, 'ended', now())",
+                user,
+            )
+        }
     }
 
     // ---------- 도움 ----------

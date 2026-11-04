@@ -27,7 +27,11 @@ interface Goals {
 }
 
 interface Deposits {
-    fun add(deposit: Deposit)
+    /** 넣었으면 true. 같은 출처([Deposit.sourceRef])가 이미 있으면 아무것도 쓰지 않고 false(`ON CONFLICT DO NOTHING` — 오류 코드 분기 0) */
+    fun add(deposit: Deposit): Boolean
+
+    /** 그 출처로 이미 넣은 적립의 목표 — 본인 것만 */
+    fun goalOfSourceRef(userId: String, sourceRef: java.util.UUID): GoalId?
 
     /** 목표 하나의 집계 — 상세 · 쓰기 응답이 사용자 전체를 훑지 않게(코드 리뷰 2026-11-03) */
     fun totalsFor(goalId: GoalId, thisMonth: YearMonth): DepositTotals?
@@ -85,3 +89,7 @@ class ItemUnitNotFound(id: String) : DomainError("UNIT_NOT_FOUND", ErrorKind.NOT
 class ItemUnitLimit : DomainError("UNIT_LIMIT", ErrorKind.CONFLICT, "Too many item units for this goal", mapOf("limit" to ItemUnit.PER_GOAL_MAX))
 
 class InvalidGoal(code: String, message: String) : DomainError(code, ErrorKind.INVALID, message)
+
+/** 같은 아낀 돈을 다른 목표에 또 보태려 했다(가계부 S1d) — 한 출처는 한 번만 */
+class DepositSourceUsed(sourceRef: String) :
+    DomainError("DEPOSIT_SOURCE_USED", ErrorKind.CONFLICT, "This source is already deposited to another goal", mapOf("sourceRef" to sourceRef))

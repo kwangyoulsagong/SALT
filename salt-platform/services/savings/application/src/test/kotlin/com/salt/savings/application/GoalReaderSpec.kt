@@ -39,7 +39,8 @@ class GoalReaderSpec : StringSpec({
         override fun existsFor(userId: String) = true
     }
     val deposits = object : Deposits {
-        override fun add(deposit: Deposit) = Unit
+        override fun add(deposit: Deposit) = true
+        override fun goalOfSourceRef(userId: String, sourceRef: UUID): GoalId? = null
         override fun totalsFor(goalId: GoalId, thisMonth: YearMonth): DepositTotals? = null
         override fun overviewByGoal(userId: String, thisMonth: YearMonth) = DepositOverview(emptyMap(), emptyMap())
         override fun monthly(goalId: GoalId): List<MonthlyDeposit> = emptyList()
