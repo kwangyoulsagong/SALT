@@ -38,3 +38,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 변경 없음 기록 — 웹 계약(`BFF-REQ-048`)이 먼저 섰다. RN 빠른 입력 · 공유 시트는 이 계약을 쓴다 |
 | 2026-11-04 | 가계부 S1c(`MONEY-S1c-household-mirror`) — 변경 없음 기록. 웹 계약(감정 태그 · 다음 날 만족 · 노동시간 · 안 쓴 날)이 먼저 섰다(`BFF-REQ-048`). RN 기분 칩 · 달력 · "어제 단 기분" 알림은 이 계약을 쓴다 |
+| 2026-11-04 | 가계부 S1d(`MONEY-S1d-household-challenge`) — 변경 없음 기록. 웹 계약(챌린지 · 한 날 · 아낀 돈 · 보태기 — `BFF-REQ-048`)이 먼저 섰다. RN 챌린지 화면은 이 계약을 쓴다 |

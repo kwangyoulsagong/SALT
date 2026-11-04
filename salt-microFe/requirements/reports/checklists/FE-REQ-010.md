@@ -275,3 +275,7 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 ## 2026-11-04 — 가계부 S1b
 
 - [x] `ROUTES.householdRecurring` — zone 5 빌드(공용 `web-shared` 를 모두 소비) 통과
+
+## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
+
+- [x] `ROUTES.householdChallenges` — 가계부 첫 화면 머리 링크 · 챌린지 화면 뒤로 링크가 같은 값

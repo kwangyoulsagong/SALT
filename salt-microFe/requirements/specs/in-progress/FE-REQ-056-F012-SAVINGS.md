@@ -95,3 +95,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | MONEY-S1b 리뷰 11차 — `5afe2476` · `5fd864d1` · `e8fe98fe` 숫자 칸을 `useNumberFields`(값 + 안내 한 덩어리)로 · 안내는 칸 아래 · 길이 상한. 번들 `/goals/[id]` 152 kB |
 | 2026-11-03 | MONEY-S1b — 옛 `formatAmountInput` 삭제(소비처 0 — 남겨 두면 같은 결함이 돌아온다) |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — `web-savings` README 낡은 문장("빈 골격 · 서비스 앱 web") 정정(`df45ae7d`) |
+| 2026-11-04 | 가계부 S1d(`MONEY-S1d-household-challenge`) — 목표 상세 적립 줄에 출처 `saved_by_challenge` 면 "챌린지로 아낀 돈"(실제 적립과 구분 — F013 FR-19)(`23d44bb6`). 번들 `/goals/[id]` 154 kB. 장면 · 도장은 같이 센다(저축 S2 에서 따로 보기) |

@@ -33,7 +33,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 - [x] 한 건 입력 3탭 이내(실측 기록)
 - [x] 예산 초과 화면에 경고 색 · 팝업 0
 - [x] 붙여넣기 원문이 localStorage · 로그 · 에러 리포트 0
-- [x] 연속 일수 표시 0 · 챌린지 실패 표시 0(~~두 화면은 S1b — 지금 화면에 해당 표시 0~~ **정정 2026-11-04** 달력은 S1c — 연속 일수 칸 · 문구 0 을 서버 · 실화면으로 확인, 챌린지는 S1d)
+- [x] 연속 일수 표시 0 · 챌린지 실패 표시 0(~~두 화면은 S1b — 지금 화면에 해당 표시 0~~ **정정 2026-11-04** 달력은 S1c — 연속 일수 칸 · 문구 0 을 서버 · 실화면으로 확인, 챌린지는 S1d — **2026-11-04 S1d** 챌린지 카드에 실패 · 성공률 · 연속 칸 0(응답 낱말 테스트) · 끝난 카드도 같은 색 · 실화면 확인)
 
 ## 계약 영향
 
@@ -63,7 +63,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 |---|---|---|
 | FR-4 | 반복 템플릿 확인 카드 done — "이번 달에도 나갔나요?"(서버 `stage=ask` 만 · 금액 고쳐 확인 · 이번 달은 안 나가요) + 예정 한 줄 · `/household/templates`(만들기 · 고치기 · 그만 적기 · 상한은 서버 `limit`) | `features/manage-recurring` · `pages/recurring` |
 | FR-7 | 월 마감 리뷰 3문항 · 할부 띠 done(공제는 S2 content 뒤) — 닫을 수 있나 · 문항은 서버 값, 닫은 달은 같은 칸으로 답 고치기 | `features/close-month` · `entities/household` `InstallmentBand` |
-| FR-8 · 9 | S1c — **정정 2026-11-04** 감정 · 거울 · 노동시간 · 무지출 달력은 F4c 닫힘, 사람 장부 · 챌린지 · 이야기 카드는 S1d | |
+| FR-8 · 9 | S1c — **정정 2026-11-04** 감정 · 거울 · 노동시간 · 무지출 달력은 F4c 닫힘, 챌린지는 S1d(F4d) 닫힘, 사람 장부 · 이야기 카드는 ~~S1d~~ S1e | |
 
 분류 칩은 `entities/household` 로 내렸다(`a4b3936b`) — 지출 적기와 템플릿이 같은 칩. 번들(Next 표, First Load JS): `/household` ~~149~~ ~~157~~ 158(수정 `d91cb8db` 뒤) · `/household/templates` 131 kB(새) · 공용 103 kB.
 
@@ -74,8 +74,18 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | FR-8 감정 · 만족도 거울 | **done** — 바로 적기에 "그때 기분(선택)" 칩(키는 서버 `emotions`) + 산 직후 만족 1~5 · "어제 단 기분, 지금은 어때요?" 카드(물을 항목은 서버) · 기분별 만족 거울(점수별 건수 막대 — 색 하나 · 평균 0) · 내역 줄 기분 낱말 | entities `EmotionChips` · `FeltScale` · `FeelingMirror` · features `answer-feeling` |
 | FR-8 노동시간 | **done** — 예산 화면 "근무 시간으로 보기"(시급 · 월급 · 월 근무 시간, 끄고 켬) · 저장 결과 "이번 지출 = 근무 N분" · 달 합 · 내역 줄. 계산은 서버, 화면은 분 → "N시간 M분" 글자만 | features `set-work-hours` · `formatWorkMinutes` |
 | FR-9 달력 스티커 | **done(무지출)** — 안 쓴 날 달력(칸 상태 · 표시 가능 · 요일 자리는 서버) · 누르면 표시 · 지우기 · 연속 일수 0 | entities `NoSpendCalendar` · features `mark-no-spend` |
-| FR-8 사람 장부 · FR-9 챌린지 · 이야기 카드 | S1d | 슬라이스 범위 밖 |
+| FR-8 사람 장부 · FR-9 챌린지 · 이야기 카드 | ~~S1d~~ **정정 2026-11-04** 챌린지는 S1d(F4d) 닫힘, 사람 장부 · 이야기 카드는 S1e | 슬라이스 범위 밖 |
 | 지난 지출에 기분 붙이기 · 바꾸기 화면 | API 만 — 내역 줄 디자인과 겹친다 | `FE-REQ-060` |
+
+## 구현 현황 — F4d (2026-11-04, `requirements/specs/done/MONEY-S1d-household-challenge-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-9 챌린지 | **done** — `/household/challenges`: 고르기(예시 = 서버 키 · 이름 칸 · 날짜 칸 둘 — min · max 는 서버 `today` · `startMax`, 상한은 서버 `canStart`) · 카드(단계 배지 · 기간 · 한 날 수 · 아낀 돈 합 · 보탠 합 — 서버 숫자) · 오늘 했어요(서버 `todayMarkable` · `today`) · 아낀 돈 적기 · 지우기 · 목표에 보태기(목표만 고름 — 금액은 안 보냄, 목표 목록 null 이면 그 칸만 안내) · 그만두기(확인 창 0). **실패 · 성공률 · 연속 0**, 끝난 카드도 같은 색 · 아래 묶음으로만 | entities `ChallengeHead` · features `start-challenge` · `track-challenge` · pages `challenges` |
+| FR-9 챌린지 스티커 | **done** — 달력 칸에 같은 회색 테두리 동그라미(무지출 점과 모양으로만 가름) · 머리에 "챌린지 한 날 N일" · 칸 이름에 "챌린지 한 날" | entities `NoSpendCalendar` |
+| FR-8 사람 장부 · FR-9 이야기 카드 | S1e | 슬라이스 범위 밖 |
+
+번들(Next 표, First Load JS): `/household/challenges` 153 kB(새) · `/household` 160 → 161 kB · 공용 102 kB. 가계부 첫 화면 머리에 "챌린지" 링크(다른 머리 링크와 같은 글자 링크).
 
 ## Changelog
 
@@ -90,3 +100,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-11-04 | `d91cb8db` — 화면을 연 채 다시 받아온 새 확인 항목의 금액 칸이 비어 "나갔어요"가 눌리지 않던 결함(Playwright 재현) → 보이는 항목마다 서버 금액으로 채우는 한 길(`fillIfEmpty`) · 처음 값도 같은 서식. 번들 `/household` 158 kB |
 | 2026-11-04 | F4c — FR-8(감정 · 거울 · 노동시간) · FR-9(무지출 달력) done(`f0c8793d`). 실화면(임시 사용자) 묻기 → 답 · 안 쓴 날 표시 · 기분 칩 저장 → 근무 30분 · 4폭 × 3화면 넘침 0 · 웹뷰 390 · 콘솔 0 · route 로 로딩 · 실패 |
 | 2026-11-04 | `841e1b65` — 안 쓴 날 달력 · 기분별 만족이 화면 읽기에 안 읽히던 결함(grid 에 row 없음 · `aria-label` 만) → 목록 항목 + 숨긴 글자. 접근성 트리로 확인 |
+| 2026-11-04 | F4d — FR-9 챌린지 · 챌린지 스티커 done(`23d44bb6`). 실화면(임시 사용자 둘) 고르기 → 오늘 했어요 → 아낀 돈 → 보태기 → 그만두기 · 달력 동그라미 · 4폭 × 2화면 넘침 0 · 웹뷰 390 · 접근성 트리 · route 로 로딩 · 실패 5가지 |

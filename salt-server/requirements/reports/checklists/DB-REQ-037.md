@@ -43,3 +43,8 @@
 - 2026-11-03 `b10c9a74` — 테스트만
 - 2026-11-03 `38823672` — 테스트만
 - 2026-11-03 `97c839f3` — 테스트만
+
+## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
+
+- [x] V3 — `deposit.source_ref` · CHECK(출처 있으면 `saved_by_challenge`) · 유일 인덱스(NULL 은 안 부딪힘) · 가계부 FK 없음
+- [x] 로컬 운영 DB 적용(`savings` 2 → 3) · 출처 조회 EXPLAIN(인덱스)

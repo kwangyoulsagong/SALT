@@ -82,3 +82,7 @@
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - [x] 문서만
+
+## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
+
+- [x] 목표 상세 적립 줄 "챌린지로 아낀 돈" — 실화면(임시 사용자) 확인 · 저축 zone 운영 빌드(`/goals/[id]` 154 kB) · 넘침 확인은 가계부 쪽 폭 표와 같은 실행

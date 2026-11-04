@@ -71,3 +71,8 @@
 - [x] goal-clock 종단 테스트(목표 없음 `no_active_goal` · 30,000원 × 30.4375 ÷ 304,375 = 3일 · 금액 0 → 400) — `HouseholdEndToEndTest`
 - [x] 실스택: 월 50만 원 계획 목표에 4,500원 → "하루도 안 늦어져요"(0.27일 반올림 0)
 - [ ] 구독 2종 — 가계부 S1b
+
+## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
+
+- [x] `POST /goals/:id/challenge-deposits` — 출처 `saved_by_challenge` · 같은 아낀 돈 두 번 → 적립 1행 · 다른 목표 · 다른 사용자 409 `DEPOSIT_SOURCE_USED` · 손 적립 · 나눠 넣기와 같은 길(종단 — 가계부 테스트에서)
+- [x] `GoalReaderSpec` 가짜 포트 갱신 · `./gradlew check` 통과 · Swagger 경로 확인
