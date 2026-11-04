@@ -25,6 +25,7 @@ globs: apps/web/src/**, packages/ui/src/**, packages/tokens/src/**
 - 웹은 `framer-motion` v12. **`m` 과 named import 만** 쓴다 — `motion` 컴포넌트 · `motion/react` 는 ESLint 가 막는다(둘 다 드래그 · 레이아웃까지 실어 첫 로드 JS 가 45 kB 늘었다).
 - 기능 묶음(`domAnimation`)은 앱 루트 `MotionProvider` 의 `LazyMotion` 이 **동적 import** 로 싣는다. 컴포넌트는 `m` 으로만 쓴다.
 - Lottie · GIF · 동영상 · 외부 그래픽 파일 금지. 인라인 SVG 만 — 색 토큰을 따라야 하고 요청이 늘면 안 된다.
+  **예외 하나(2026-11-04 `FE-REQ-061`)** — 768 미만 안내의 PC 화면은 **우리 데스크톱 화면 녹화 영상 한 편**(webm + mp4 · 400KB 이하 · 3~5s — §4-1 "1초 안에"도 이 자리만 예외 · 한 번 재생 · 끝 프레임 = 정지 그림 · 넓은 화면에서 요청 0 · 줄인 모션이면 정지 그림만). 다른 자리로 넓히지 않는다
 - RN 은 `react-native-reanimated` 로 **같은 토큰**을 읽는다.
 
 ## 3. 값은 토큰에서
@@ -48,6 +49,7 @@ const { duration, easing, spring } = tokens.motion;
 | `duration.base` | 0.24s | 등장 · 퇴장 · 탭 밑줄 · 숫자 |
 | `duration.slow` | 0.4s | 카드 · 패널 진입 |
 | `duration.scene` | 0.9s | 일러스트 한 장면 |
+| `duration.hover` | 0.2s | 호버 · 포커스 면(배경) — **신설 예정**(`FE-REQ-062` FR-1, 2026-11-04 결정 · 기준 화면 220곳 통일 값). 토큰을 더할 때 이 행의 "예정"을 지운다 |
 | `spring.snappy` | 튀지 않음 | 누름 복귀 · 칩 |
 | `spring.bouncy` | 한 번 출렁 | 착지 · 체크 · 배지 |
 | `spring.gentle` | 느긋 | 시트 · 큰 면 |
