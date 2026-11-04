@@ -36,3 +36,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 변경 없음 기록 — 웹 계약(`BFF-REQ-048`)이 먼저 섰다. RN 빠른 입력 · 공유 시트는 이 계약을 쓴다 |

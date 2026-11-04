@@ -91,3 +91,8 @@
 
 - MONEY-S1b — 파일만 걸침(`6ad345fc` · `5171d03d`): 저축 조회 훅 파일(`useGoalQueries.ts`, 머리 주석에 이 REQ)에 저울 · 비상시 계산 훅 둘 추가 · 쓰기 요청을 `goalApi.ts` `savingsRequest` 한 곳으로. 토큰 경로(`authHeader` · 쿠키 서버 렌더)는 그대로 — FR-80 2단계 무관
 - 확인: 저축 목록 · 상세 서버 HTML 에 장면 글 · 엽서(쿠키로 서버 조회) — 첫 숫자 서버 렌더 유지
+
+## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
+
+- [x] web-household 운영 빌드 표
+- [ ] FR-80 2단계 — 변함없이 별 슬라이스

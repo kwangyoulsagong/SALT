@@ -82,3 +82,8 @@
 
 - `11224e9a` — `APP_TABS` 저축 줄 주석을 "화면이 아직 없다" → "저축 zone 첫 화면 `/goals`"로(동작 무변경)
 - 확인: 해당 영역 전체 테스트 · 빌드(루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`)
+
+## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
+
+- [x] 실화면: 탭 `/household` · `aria-current=page`
+- [x] core test 169

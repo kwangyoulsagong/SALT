@@ -52,3 +52,4 @@ S0~S2 동안은 한 프로세스(모듈러 모놀리스)로 띄운다. 이 단�
 | 2026-11-03 | **코드 리뷰(high) 뒤** `405e5683` — 토큰 없는 없는 경로 401 → 404(Express 와 같게, 골든 그대로 통과) · 틀린 메서드 404 · Spring 4xx 가 500 으로 가던 것 · 오류 바디 늘 JSON · 아웃박스 트랜잭션 확인을 "이 서비스 풀"로 · 릴레이 포기(10회 → `dead_at`) · 순서 `seq`. FR-8 · FR-9 · FR-10 같은 날 닫음(위 줄 정정). Postgres 17 로 같은 테스트 통과(jOOQ "older than dialect" 경고는 17 도 같다 — 판과 무관). 테스트 31 |
 | 2026-11-03 | **done** — 수용 기준 4/4 · FR-1~13(FR-8 인스턴스 연결은 첫 외부 호출이 있는 `SRV-REQ-049` S5 로 넘김). 커밋 `fafb6a0d`(플랫폼) · `405e5683`(리뷰 4건 · FR-8 · 9 · 10) · `b308718e`(문서) |
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`e83f7f80`): 서비스가 둘이 되며 `ServiceDatabase` · `OutboxWriter` 빈이 타입마다 둘 — `PingComposition` 에 `@Qualifier`. 테스트 컨테이너가 savings 비밀번호를 받는다 |
+| 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 이 REQ 에 걸린 몫(`63146ddf`): 플랫폼에 세 번째 도메인 서비스 `household` 조립(`HouseholdComposition` — 빈 이름에 서비스 접두) · `application.yml` 계정 · 테스트 권한 검사 표를 `household.probe` → `content.probe`(household 가 Flyway 스키마가 됨) |

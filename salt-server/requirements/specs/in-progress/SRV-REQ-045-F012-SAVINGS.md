@@ -42,7 +42,7 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 `GET /api/savings/goals` · `POST /api/savings/goals` · `GET /api/savings/goals/:id` · `POST /api/savings/goals/:id/deposits` · `POST /api/savings/deposits/split` ·
 `POST /api/savings/simulate` · `GET /api/savings/goals/:id/delay?amount=` · `GET /api/savings/home-card` · `POST /api/savings/goals/:id/members`
 
-**2026-11-03 S1b 로 생긴 것**: `PUT /api/savings/goals/plans`(저울 확정) · `POST /api/savings/goals/:id/emergency-compare` · `POST /api/savings/goals/:id/units` · `DELETE /api/savings/goals/:id/units/:unitId`. 목록 · 상세 응답 칸 `scene` · `stampCount` · `postcard` · `unitLine` · `planMeetsDeadline` · 상세 `missedMonths` · `units` · `unitLimit`. 아직 없음: `delay`(가계부 S1) · `members`(공동)
+**2026-11-03 S1b 로 생긴 것**: `PUT /api/savings/goals/plans`(저울 확정) · `POST /api/savings/goals/:id/emergency-compare` · `POST /api/savings/goals/:id/units` · `DELETE /api/savings/goals/:id/units/:unitId`. 목록 · 상세 응답 칸 `scene` · `stampCount` · `postcard` · `unitLine` · `planMeetsDeadline` · 상세 `missedMonths` · `units` · `unitLimit`. 아직 없음: ~~`delay`(가계부 S1)~~ **정정 2026-11-04** — 목록 칸이 아니라 따로 `GET /api/savings/goal-clock?amount=`(가계부 S1a `a16356f6`) · `members`(공동)
 
 ## 진행 — S1a (2026-11-03, 슬라이스 `requirements/specs/done/MONEY-S1a-savings-calculator-slice.md`)
 
@@ -106,3 +106,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | MONEY-S1b 리뷰(high, 9차 `68f6ac41..5640ae7f`) 10건 — 표 먼저: `641a11db` core `readNumberText`(원 · 소수 · 개수) 허용표 테스트 40(공백 · 위첨자 · 원문자 · 쉼표 소수 · 개월 1.5 · ₩/원 붙여넣기) · `92b0e947` 칸 종류별 안내 · 제출 때 안내 초기화 · 개월 칸 · `b10c9a74` 상세 degraded 는 응답 최상위(goal 칸은 목록과 같은 모양) · 카운터는 요청 스레드만. 투자 칸 1건은 범위 밖(동결) |
 | 2026-11-03 | MONEY-S1b 리뷰(high, 10차 `5640ae7f..b10c9a74`) 9건 + 사용자 "고칠 거면 제대로" — `bd571eae` core `price` 규칙 · `groupDigits` 한 곳(2^53 넘어도 끝자리 그대로) · 끝 % 공백/전각 · `d21bd5c1` 가드 칸별 안내 · `c786ab91` 저축 칸 이름 · 상한 때 안내 지움 · **`7d22f6a1` 투자 금액 칸 4곳도 같은 규칙(사용자 결정 2026-11-03)** · `38823672` 상세 부분 실패 단위 테스트(application 첫 테스트) · 카운터는 헤더 요청만. 쉼표 위치 1건은 지우기 중 정상적으로 생겨 받는다(주석) |
 | 2026-11-03 | MONEY-S1b 리뷰(high, 11차 `b10c9a74..38823672`) 10건 — 원인: 안내만 쥐던 가드라 값을 바꾸는 길(칩 · 현재가 · 숨김 · 비우기)마다 손으로 지워야 했다. `5afe2476` core 길이 상한(정수 15 · 소수 8 — 보이는 값 = 보내는 값) · `numberToInputText`(1.2e-7 → "1.27" 경로 닫음, 테스트 75) · `5fd864d1` **`useNumberFields`(값과 안내 한 덩어리, BREAKING: 가드 제거)** · `e8fe98fe` 저축 6폼 · `2bcea756` 투자 3폼(칩 · 현재가 · 저장된 소수 예산) · `97c839f3` degraded 이유 한 곳 · 테스트 필터 순서. 화면에서 리뷰 사례 전부 재현 확인 |
+| 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — FR-17 일부 — 가계부 응답용 조회 `GET /api/savings/goal-clock?amount=`(가장 가까운 목표 · 계획 월 적립 또는 기한 기준 재계산 월 적립 · 지연 일 = 금액 × 30.4375 ÷ 월 적립, 반올림 1회)(`a16356f6`). 구독(`ExpenseRecorded` 재계산 · `MonthClosed` 속도)은 가계부 S1b |

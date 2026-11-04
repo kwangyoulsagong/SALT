@@ -78,3 +78,7 @@
 
 - 리뷰 12차(2026-11-03): 퇴행 3건 고침 `ccb5ebb7` · `4830cfcf` · `98573b1b` — `pnpm check-types` · `lint` 11/11 · core 169 · ui 43 · layer-check 16/10 · zone 빌드 · storybook 통과. 고치지 않은 정리 5건은 루트 회고 `MONEY-S1b-savings-fun.md` §12차. 리뷰 종료
 - 2026-11-03 `e62e659f` · `02f79f59` 뒤: zone 5 빌드 5/5(`/goals/[id]` 152 kB) · storybook · 실화면(실물 단위 지운 뒤 가격 안내 유지 · 거래 기록 접힌 손절가 → 펼침)
+
+## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
+
+- [x] 문서만

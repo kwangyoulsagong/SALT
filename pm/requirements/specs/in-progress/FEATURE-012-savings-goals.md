@@ -145,3 +145,4 @@ flowchart LR
 | 2026-11-03 | S1a + F3a — FR-2 · 3 · 4 · 7 · 8 Done, FR-1 · 5 · 14 진행(루트 `requirements/specs/done/MONEY-S1a-savings-calculator-slice.md`). 저축이 Kotlin `savings` 에서 태어나고 저축 zone 첫 화면 · 옛 `/api/goals` 은퇴. 다음 S1b(FR-6 · 9~13 · 15~19) |
 | 2026-11-03 | S1b + F3b — FR-6 · 10 · 11 · 15 · 17 Done, FR-16 · 18 부분, FR-9 범위 밖(물가 원천)(루트 `requirements/specs/done/MONEY-S1b-savings-fun-slice.md`). 도장 · 엽서는 표 없이 적립 · 목표에서 센다 · 실물은 사용자 단위만(템플릿 단위는 출처 대조 뒤). 남은 것 FR-9 · 12 · 13 · 19 |
 | 2026-11-03 | S1b FR-11 비상시 대출 표시를 "처음 k개월 · 나머지" 원 단위 분할로(리뷰 2~4차 · 셸 경유 실측 결함). 숫자가 그대로 더해지고 금리 0% 면 이자 0원 |
+| 2026-11-04 | 가계부 S1a — 목표 시계 조회(`SRV-REQ-045` FR-17 일부, `a16356f6`): 지출만큼 가장 가까운 목표가 며칠 늦어지나. 구독은 가계부 S1b |

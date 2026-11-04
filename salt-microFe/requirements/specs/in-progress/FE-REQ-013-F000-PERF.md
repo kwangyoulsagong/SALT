@@ -190,3 +190,4 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 저축 첫 숫자 서버 렌더(`FE-REQ-056` FR-13)가 이 REQ(토큰 → 쿠키)를 기다린다 — 저축 조회 훅이 같은 이유로 클라이언트 |
 | 2026-11-03 | FR-80 **1단계 done** — 셸 Route Handler `/api/session`(같은 origin 만 · JWT 모양 · 수명 = exp, 최대 하루)이 httpOnly `salt_at` 을 쓰고 지운다. 로그인 · 갱신 · 로그아웃 · 탭 첫 진입이 같이 부른다. 서버 컴포넌트가 이 쿠키로 BFF 를 부른다(첫 소비처: 저축). **2단계 남음**: 브라우저 저장소 토큰 제거 · BFF 쿠키 → Authorization · WS · SSE(`0ef25f6b`) |
 | 2026-11-03 | MONEY-S1b — 파일만 걸침(`6ad345fc` · `5171d03d`): 저축 조회 훅 파일(`useGoalQueries.ts`, 머리 주석에 이 REQ)에 저울 · 비상시 계산 훅 둘 추가 · 쓰기 요청을 `goalApi.ts` `savingsRequest` 한 곳으로. 토큰 경로(`authHeader` · 쿠키 서버 렌더)는 그대로 — FR-80 2단계 무관 |
+| 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 가계부 번들(Next 표 First Load JS): `/household` 148 · `/household/month/[ym]` 148 · `/household/new` 131 · `/household/budget` 127 kB · 공용 102 kB. 쿠키 서버 조회 소비처 둘째(가계부 월 화면 `serverMonth`)(`df45ae7d`) |

@@ -55,8 +55,27 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 
 - DB `DB-REQ-038` · BFF `BFF-REQ-048` · 프론트 `FE-REQ-057` · RN `RN-REQ-034` · savings `SRV-REQ-045` FR-17
 
+## 구현 현황 — 가계부 S1a (2026-11-04, `requirements/specs/in-progress/MONEY-S1-household-entry-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-1 | **done** — 저장(한 건 · 여러 건 한 트랜잭션) · 응답에 그 분류의 봉투 · 이번 달 합 · `savedTotal`. **목표 시계는 서버가 아니라 BFF 가 붙인다**(슬라이스 판단 1 — 서비스 간 동기 호출 0). 50ms 대신 BFF 300ms 예산 → `pending` | `RecordExpenses` · `POST /expenses` · `/expenses/batch` |
+| FR-2 | done — 최근 30일 가맹점 횟수 순 8개 + 마지막 분류 · 금액(창 함수 한 문장) | `GET /suggestions` |
+| FR-3 | done(규칙만) — 금액 정규식(만 · 천 · 쉼표 · 영문 뒤 숫자 제외) · 분류 = 최근 같은 가맹점 → 낱말 표. **LLM 0**(판단 5) | `POST /parse` mode=line |
+| FR-4 | done — 카드번호 · 이름 · 누적 금액을 파싱 전에 지움 · 원문은 인자로만(저장 · 로그 · 예외 메시지 0, 테스트로 확인) · 취소 문자 버림 · 할부 개월 · 연도 넘김 | `InputParser.messages` · mode=messages |
+| FR-6 | done — `precision approx` 는 `inputKind approx` 에서만(DB CHECK 와 같은 뜻) · 월 합에서 정확/대략 분리 | `Expense.create` · `monthSummary` |
+| FR-7 | done(`50_30_20` · `envelope`) — 남은 금액 음수 그대로 · 하루 가용(내림, 0 이하면 0). 경고 · 차단 필드 0. `account_split` 은 S1b | `BudgetMath` · `GET/PUT /budget` |
+| FR-8 | done — **오늘 시작 기준**: 어제까지 합 + 첫 저장일~어제 날별 합의 연속 창 합 10 · 90% 분위 × 오늘 포함 남은 날(무작위 0) · 14일 미만이면 `history_short` · ~~말일 `month_over`~~ **정정 2026-11-04** 말일에도 구간(`month_over` 는 계약 값만) · 지난달 같은 날짜 발행 vs 실제 합 적중 | `LandingEngine` · `GET /month/:ym` |
+| FR-18 | done — 이번 달 지출 · 건수 · 예산 남은 금액 · 착지 | `GET /home-card` |
+| FR-21 | 일부 — `ExpenseRecorded` · `LandingIssued`. `MonthClosed` · `FixedCostIncreased` 는 S1b | `OutboxHouseholdEvents` |
+| FR-5 · 9~17 · 19 · 20 | S1b · 뒤 | 슬라이스 범위 밖 |
+
+API 실제 목록: `POST /expenses` · `POST /expenses/batch` · `DELETE /expenses/:id` · `POST /parse` · `GET /suggestions` · `GET/PUT /budget` · `GET /month/:ym` · `GET /home-card`. 스펙의 `GET /expenses?month=` 는 월 화면 응답 `expenses` 로 들어갔다(목록 300건 · 합계는 전부). 템플릿 · 마감 · 챌린지 경로는 S1b.
+
 ## Changelog
 
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-04 | 가계부 S1a — in-progress. Kotlin `services/household` 첫 판(`63146ddf`) · FR-1~4 · 6~8 · 18 · 21 일부. 목표 시계는 BFF 조립(`b162ac6f`) + 저축 조회(`a16356f6`). 수용 기준 3/4(백테스트는 3개월 표본 뒤) |
+| 2026-11-04 | 리뷰(high) 1회 반영 `2177074c` — 착지 "오늘 시작 기준"(어제까지 + 오늘 포함 남은 날 — 그날 첫 저장 발행이 그날 나머지를 놓치던 것 · 말일 한 점) · 표본 시작 = 첫 저장일 · `1만2000` · `1,200만` · 소수 원 거절. 재리뷰 없음(규칙: 리뷰는 슬라이스당 1회) |

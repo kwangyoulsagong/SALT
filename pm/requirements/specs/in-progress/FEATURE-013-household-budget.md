@@ -138,3 +138,4 @@ flowchart LR
 | 2026-10-30 | 영역 REQ 작성 · 링크(위 머리 블록) |
 | 2026-11-03 | 서버 S0 — 가계부 서비스가 처음부터 Kotlin 으로 태어날 자리(`salt-platform/`) · `household` 스키마 · 계정 준비(NOLOGIN). 가계부 기능 변경 0. 다음 S1(`SRV-REQ-046` · `DB-REQ-038`). 루트 `requirements/specs/done/MONEY-S0-platform-slice.md` |
 | 2026-11-03 | 서버 S0 done(`SRV-REQ-043`) — 다음 S1 |
+| 2026-11-04 | 가계부 S1a + F4a — FR-1 · 2(규칙만) · 3 · 5 · 6(50/30/20 · 봉투) · 7 · 8 · 18 구현. 루트 `requirements/specs/in-progress/MONEY-S1-household-entry-slice.md`. 남은 것 FR-4 · 9~17 · 19~21 · 통장 쪼개기 · LLM 분류(S1b) |

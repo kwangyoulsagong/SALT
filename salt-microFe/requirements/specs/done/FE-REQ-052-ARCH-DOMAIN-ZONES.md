@@ -49,3 +49,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 레지스트리 `assetPrefix` 뜻이 "dev 정적 경로"로 좁아졌다(`5c7218e9` · 주석) — 이 REQ 가 만든 규칙 7 의 운영 몫을 `ADR-005` 개정으로 바꿨다. 레지스트리 값 · lint · rewrites 무변경(dev 그대로) |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — 투자 zone `app/layout.tsx` 전환 `<style>`(`e0bce695`) · 빈 zone `app/layout.tsx` 3 안내 주석(`d5000140`) · `registry.json` `$comment` 에 assetPrefix 뜻(`28d51ed3`). 값 · lint 무변경 |
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 레지스트리 `savings.hostedIn` `web` → `web-savings` · `hostedUntil` null · 레지스트리 테스트(`/goals/*` 셸 기준 cross-zone) · `microfrontend.md` §0 저축 행 닫힘 |
+| 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 가계부 zone 이 골격 → 화면 서비스(`web-household` 레이아웃 `AppShell` · vanilla-extract · `domain-household` 경로 · README 정정)(`df45ae7d`). 레지스트리 값은 그대로 |

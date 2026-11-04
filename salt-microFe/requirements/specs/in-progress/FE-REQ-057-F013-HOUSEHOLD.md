@@ -39,9 +39,29 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 
 - BFF `BFF-REQ-048`
 
+## 구현 현황 — F4a (2026-11-04, `requirements/specs/in-progress/MONEY-S1-household-entry-slice.md`)
+
+`packages/domain-household`(entities `household` · features `record-expense` · `edit-budget` · pages `household` · `new-expense` · `budget`) · `apps/web-household` 는 re-export 만.
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-1 | done — `/household` 이번 달(쓴 돈 · 정확/대략 · 남은 돈 · 하루 가용 · 착지 · 봉투 · 쓴 내역 · 지우기) | 첫 숫자 서버 렌더(쿠키 — `FE-REQ-013` FR-80 1단계) |
+| FR-2 | done — 금액 먼저(자동 포커스 · `inputMode numeric`) · 최근 쓴 곳 칩(가맹점 + 분류) · 분류 칩 12 · 한 줄 입력(서버 읽기 → 확인) | 3탭 실측: 금액 → 칩 → 저장 |
+| FR-3 | done — 붙여넣기 → 후보(체크 · 분류 고치기) → 한 번에 저장. 원문은 상태에만 · 읽기 누르면 즉시 비움 · 파싱 결과 캐시 0(`gcTime 0`) | 실측: 저장소에 원문 조각 0 |
+| FR-4 | 대략 합계 done("대략" 표지) — 반복 템플릿 확인 카드는 S1b | |
+| FR-5 | done — "결혼 목표가 N일 늦어져요" / "하루도 안 늦어져요" / `pending` 이면 "계산 중" 뒤 한 번 다시 묻는다 | |
+| FR-6 | done — 50/30/20(소득만 보냄) · 봉투. 넘친 봉투는 같은 색 · −글자만 | |
+| FR-7 | 착지 + 지난달 적중 done · 지난 달 `/household/month/[ym]` — 리뷰 3문항 · 할부 띠 · 공제는 S1b | |
+| FR-10 | done — 실패 시 입력값 그대로 · 문구 "저장 못 했어요" | |
+| FR-8 · 9 | S1b | |
+
+탭 `APP_TABS` 가계부 `readyBy: null`(`FE-REQ-054`). 번들(Next 표, First Load JS): `/household` ~~148~~ 149(리뷰 반영 뒤) · `/household/new` 131 · `/household/budget` 127 kB · 공용 102 kB.
+
 ## Changelog
 
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 이 REQ 에 걸린 몫(`FE-REQ-054`) — 가계부 탭은 `APP_TABS` `readyBy: "FE-REQ-057"`(비활성). 첫 화면이 생기면 `readyBy: null` · zone 레이아웃에 `AppShell` + `VIEW_TRANSITION_CSS` · 설정을 vanilla-extract 로 |
+| 2026-11-04 | F4a — in-progress(`df45ae7d`). FR-1~3 · 5 · 6 · 10 done · 4 · 7 일부. 수용 기준 4/4 |
+| 2026-11-04 | 리뷰 반영 `bfb337b7` — 목표 시계 다시 묻기 실패 시 "계산 중" 멈춤 → 줄 지움(Playwright route 로 성공 · 실패 둘 다 실측) · 엔티티 슬라이스 `expense` → `household`(서버 컨텍스트와 같은 이름) · 번들 `/household` 149 kB |

@@ -56,3 +56,4 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 | 2026-11-03 | 브라우저 · 접근성 마감 `d80a7ac8` — 운영 빌드 Chromium · WebKit · Firefox: 로그인 → 탭 왕복 · 지금 탭 · 넘침 0 · 오류 0. 키보드: 홈 → 투자 → 계정 메뉴 → 본문, 포커스 테두리 2px, '준비 중' 탭 포커스 안 됨. **axe**: 레일 미선택 라벨 2.92:1(실측값 그대로 옮긴 것 — AA 미달) → 회색 700 6.45:1 로 고침. 남은 1건은 기존 `ProfileSection` 이메일 글자 2.18:1(main 에서도 같은 색 — 기존 색 일괄 변경 금지 규칙으로 이번엔 두고 `FE-REQ-047` 머리 재설계 몫). Firefox 는 macOS 기본 설정에서 Tab 이 링크로 가지 않는다(`accessibility.tabfocus=7` 로 확인) · dev 에서는 Next 개발 도구가 포커스를 잡아 운영 빌드로 쟀다 |
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 넘겨받은 몫 셋 닫음 — `APP_TABS` 저축 `readyBy: null` · 저축 zone 레이아웃 `AppShell` + `VIEW_TRANSITION_CSS` · `next.config.js` vanilla-extract. 탭 테스트 갱신 |
 | 2026-11-03 | MONEY-S1a — `11224e9a` — `APP_TABS` 저축 줄 주석을 "화면이 아직 없다" → "저축 zone 첫 화면 `/goals`"로(동작 무변경) |
+| 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 가계부 탭 `readyBy: null`(눌린다) · 탭 테스트("첫 화면 없는 탭" 목록 빈 배열) · zone 레이아웃 `AppShell` + `VIEW_TRANSITION_CSS`(`df45ae7d`) |
