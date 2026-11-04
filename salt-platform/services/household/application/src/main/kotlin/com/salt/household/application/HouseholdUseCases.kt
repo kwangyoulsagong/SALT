@@ -48,6 +48,9 @@ import com.salt.household.domain.Settings
 import com.salt.household.domain.StickerKind
 import com.salt.household.domain.Stickers
 import com.salt.household.domain.WorkHoursSetting
+import com.salt.household.domain.FixedCostCandidate
+import com.salt.household.domain.SpendingPatterns
+import com.salt.household.domain.UnusualRules
 import com.salt.kernel.Money
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -135,7 +138,7 @@ data class RecordResult(
 }
 
 /**
- * 행을 넣은 **뒤** 할 일 한 곳 — `ExpenseRecorded` · (그날 처음이면) 착지 발행 · 봉투. 직접 적기와 반복 확인(S1b)이 같은 길을 지난다
+ * 행을 넣은 **뒤** 할 일 한 곳 — `ExpenseRecorded` · (그날 처음이면) 착지 발행 · (고정비가 올랐으면) `FixedCostIncreased` · 봉투. 직접 적기와 반복 확인(S1b)이 같은 길을 지난다
  * (규칙이 입력 경로마다 갈라지지 않게). 트랜잭션은 부르는 유스케이스의 것이다.
  */
 class ExpenseWriter(
@@ -145,12 +148,15 @@ class ExpenseWriter(
     private val landingReader: LandingReader,
     private val events: HouseholdEvents,
     private val settings: Settings,
+    private val fixedCosts: FixedCostWatcher,
     private val clock: Clock,
 ) {
     fun afterInsert(userId: String, saved: List<Expense>, today: LocalDate): RecordResult {
         saved.forEach(events::expenseRecorded)
         val summary = expenses.monthSummary(userId, YearMonth.from(today))
         issueLanding(userId, today, summary)
+        // 고정비가 올랐으면 가맹점 · 달마다 한 번(S1e) — 가맹점 있는 정확한 직접 입력이 없으면 쿼리 0
+        fixedCosts.afterInsert(userId, saved, today, clock.instant())
         val budget = budgets.find(userId)
         val envelope = budget?.let { b ->
             val key = b.envelopeOf(saved.first().category) ?: return@let null
@@ -325,11 +331,16 @@ data class MonthView(
     val feelingAsks: List<FeelingAsk>,
     val calendar: MonthCalendar,
     val workHours: WorkHoursSetting,
+    /** 고정비 후보 — 이번 달 화면에만(다른 달이면 빈 목록, S1e FR-12) */
+    val fixedCosts: List<FixedCostCandidate>,
+    /** 평소보다 큰 지출 → 그 분류 중앙값(S1e FR-12). 없으면 빠진다 */
+    val unusual: Map<ExpenseId, Money>,
 )
 
 /**
  * 쿼리: 지출 목록 · 월 합 · 마감(2 — 닫은 달이면 예산 대신 사본) · 예산(2, 안 닫은 달) · 예정 행 · 할부 + 이번 달이면 착지 2 · 적중 2
- * + S1c: 태그(목록 · 거울 한 문장) · 날별 합(달력) · 스티커 · 설정 + 이번 달이면 다음 날 묻기 1.
+ * + S1c: 태그(목록 · 거울 한 문장) · 날별 합(달력) · 스티커 · 설정 + 이번 달이면 다음 날 묻기 1
+ * + S1d: 챌린지 한 날 1 + S1e: 고정비 표본 · 숨긴 키 · 템플릿 이름 · 분류 기준 4.
  * 닫은 달은 그때 붙잡은 예산으로 본다(S1b 판단 6).
  */
 open class GetMonth(
@@ -342,6 +353,8 @@ open class GetMonth(
     private val stickers: Stickers,
     private val settings: Settings,
     private val challenges: com.salt.household.domain.Challenges,
+    private val fixedCostReader: FixedCostReader,
+    private val patterns: SpendingPatterns,
     private val clock: Clock,
 ) {
     @Transactional(transactionManager = HOUSEHOLD_TX, readOnly = true)
@@ -364,6 +377,11 @@ open class GetMonth(
         // 챌린지 "한 날"(가계부 S1d) — 칸 상태와 따로 붙는다
         val calendar = CalendarRules.month(month, today, daily, stickers.inMonth(userId, month, StickerKind.NO_SPEND), challenges.markedInMonth(userId, month))
         val asks = if (current) FeelingRules.askWindow(today).let { (from, to) -> feelings.pendingAsks(userId, from, to) } else emptyList()
+        val list = expenses.inMonth(userId, month, MONTH_LIST_LIMIT)
+        // 고정비는 "지금" 기준 — 지난 달 화면에도 이상치 판정의 제외 키로는 쓴다
+        val scan = fixedCostReader.scan(userId, today)
+        val baselines = UnusualRules.window(month).let { (from, to) -> patterns.baselines(userId, from, to) }
+        val unusual = list.mapNotNull { e -> UnusualRules.typicalIfUnusual(e, baselines, scan.fixedKeys)?.let { e.id to it } }.toMap()
         return MonthView(
             month = month,
             summary = summary,
@@ -376,7 +394,7 @@ open class GetMonth(
             landing = if (current) landingReader.landing(userId, today, summary.totals.total, monthOccurrences) else null,
             landingReason = if (current) null else LandingReason.NOT_CURRENT_MONTH,
             track = if (current) landingReader.track(userId, today) else null,
-            expenses = expenses.inMonth(userId, month, MONTH_LIST_LIMIT),
+            expenses = list,
             occurrences = monthOccurrences,
             scheduledTotal = RecurringRules.scheduledTotal(monthOccurrences),
             close = close,
@@ -387,6 +405,8 @@ open class GetMonth(
             feelingAsks = asks,
             calendar = calendar,
             workHours = settings.workHours(userId),
+            fixedCosts = if (current) scan.candidates else emptyList(),
+            unusual = unusual,
         )
     }
 }

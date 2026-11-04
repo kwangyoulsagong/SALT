@@ -198,6 +198,8 @@ class HouseholdController(
         val feeling: FeelingView?,
         /** 근무 분(노동시간 환산을 켰을 때만, S1c FR-15) */
         val workMinutes: Long?,
+        /** 평소보다 큰 지출이면 그 분류의 앞 90일 중앙값(S1e FR-12) — 아니면 null. 평가 문구 · 배수 칸 없음 */
+        val typicalAmount: Long? = null,
     )
 
     /** [emotion] 키 · 산 직후 · 다음 날(1~5). [nextDecided] 가 true 인데 [feltNext] 가 null 이면 넘김 */
@@ -293,6 +295,26 @@ class HouseholdController(
         val calendar: CalendarView,
         /** 노동시간 환산 — 켰을 때만(S1c FR-15) */
         val workHours: WorkHoursMonthView?,
+        /** 고정비 후보(S1e FR-12) — 이번 달 화면에만, 다음 예정일 순 */
+        val fixedCosts: List<FixedCostView>,
+    )
+
+    /**
+     * 고정비 후보 — [key] 는 숨기기 · 되돌리기에 그대로 보낸다. [increase] 는 앞 회차보다 5% 이상 올랐을 때만(아니면 null).
+     * [dayOfMonth] · [paymentMethod] · [category] · [lastAmount] 는 반복 템플릿 만들기 칸에 그대로 쓴다
+     */
+    data class FixedCostView(
+        val key: String,
+        val merchant: String,
+        val category: String,
+        val paymentMethod: String,
+        val lastAmount: Long,
+        val previousAmount: Long,
+        val increase: Long?,
+        val lastOn: String,
+        val nextOn: String,
+        val dayOfMonth: Int,
+        val count: Int,
     )
 
     data class FeelingAskView(
@@ -441,7 +463,7 @@ class HouseholdController(
             budgetView(setBudget.execute(user.userId, body.method!!, body.income?.let(Money::krw), body.envelopes.orEmpty().mapValues { Money.krw(it.value) })),
         )
 
-    @Operation(summary = "한 달 화면", description = "합(정확/대략) · 분류별 · 봉투 · 하루 가용 · 착지 구간 · 지난달 같은 날짜 적중 · 지출 목록")
+    @Operation(summary = "한 달 화면", description = "합(정확/대략) · 분류별 · 봉투 · 하루 가용 · 착지 구간 · 지난달 같은 날짜 적중 · 지출 목록(평소보다 크면 typicalAmount) · 고정비 후보(이번 달)")
     @GetMapping("/month/{ym}")
     fun month(user: AuthenticatedUser, @PathVariable ym: String): ResponseEntity<ApiResponse<MonthPageView>> =
         ApiResponse.ok(monthView(getMonth.execute(user.userId, parseMonth(ym))))
@@ -724,7 +746,7 @@ class HouseholdController(
         landing = m.landing?.let(::landingView),
         landingReason = m.landingReason,
         track = m.track?.let(::trackView),
-        expenses = m.expenses.map { expenseView(it, m.feelings[it.id], m.workHours) },
+        expenses = m.expenses.map { expenseView(it, m.feelings[it.id], m.workHours).copy(typicalAmount = m.unusual[it.id]?.toKrwInteger()) },
         recurring = clock.todayKst().let { today -> RecurringMonthView(m.occurrences.map { occurrenceView(it, today) }, m.scheduledTotal.toKrwInteger()) },
         installments = installmentView(m.installments),
         close = m.close?.let(::closeView),
@@ -733,5 +755,20 @@ class HouseholdController(
         feelings = FeelingsMonthView(m.feelingAsks.map(::askView), m.mirror.map(::mirrorView), Emotion.entries.map { it.key }),
         calendar = CalendarView(m.calendar.days.map(::calendarDayView), m.calendar.noSpendDays, m.calendar.challengeDays),
         workHours = m.workHours.hourly?.let { h -> WorkHoursMonthView(h.toKrwInteger(RoundingMode.FLOOR), m.workHours.minutesFor(m.summary.totals.total)!!) },
+        fixedCosts = m.fixedCosts.map { c ->
+            FixedCostView(
+                key = c.key,
+                merchant = c.merchant,
+                category = c.category.key,
+                paymentMethod = c.paymentMethod.key,
+                lastAmount = c.lastAmount.toKrwInteger(),
+                previousAmount = c.previousAmount.toKrwInteger(),
+                increase = c.increase?.toKrwInteger(),
+                lastOn = c.lastOn.toString(),
+                nextOn = c.nextOn.toString(),
+                dayOfMonth = c.dayOfMonth,
+                count = c.count,
+            )
+        },
     )
 }

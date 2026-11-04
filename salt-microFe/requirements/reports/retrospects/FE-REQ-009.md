@@ -165,3 +165,7 @@ re-export 껍데기가 필요하고(FR-38), 껍데기가 남으면 done이 아�
 ## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
 
 - **Action**: 없음 — 레지스트리가 코드라 새 슬라이스를 빠뜨리면 lint 가 먼저 막는다.
+
+## 2026-11-04 — 가계부 S1e(`MONEY-S1e-household-fixed-cost`)
+
+- **Action**: 없음 — 슬라이스를 표에 먼저 넣고 시작했다.

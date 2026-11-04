@@ -37,6 +37,11 @@ import com.salt.household.application.MarkSavingContributed
 import com.salt.household.application.RecordChallengeSaving
 import com.salt.household.application.StartChallenge
 import com.salt.household.application.UnmarkChallengeDay
+import com.salt.household.application.FixedCostReader
+import com.salt.household.application.FixedCostWatcher
+import com.salt.household.application.HideFixedCost
+import com.salt.household.application.ShowFixedCost
+import com.salt.household.infrastructure.JooqSpendingPatterns
 import com.salt.household.infrastructure.JooqBudgets
 import com.salt.household.infrastructure.JooqChallengeSavings
 import com.salt.household.infrastructure.JooqChallenges
@@ -96,10 +101,12 @@ class HouseholdComposition {
         @Qualifier("householdOutbox") outbox: OutboxWriter,
         landingReader: LandingReader,
         clock: Clock,
-    ): ExpenseWriter = ExpenseWriter(
-        JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqLandings(database.dsl), landingReader, OutboxHouseholdEvents(outbox),
-        JooqSettings(database.dsl), clock,
-    )
+    ): ExpenseWriter = OutboxHouseholdEvents(outbox).let { events ->
+        ExpenseWriter(
+            JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqLandings(database.dsl), landingReader, events,
+            JooqSettings(database.dsl), FixedCostWatcher(fixedCostReader(database), JooqSpendingPatterns(database.dsl), events), clock,
+        )
+    }
 
     @Bean
     fun householdRecordExpenses(@Qualifier("householdDatabase") database: ServiceDatabase, writer: ExpenseWriter, clock: Clock): RecordExpenses =
@@ -125,7 +132,8 @@ class HouseholdComposition {
     fun householdGetMonth(@Qualifier("householdDatabase") database: ServiceDatabase, landingReader: LandingReader, clock: Clock): GetMonth =
         GetMonth(
             JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqRecurringOccurrences(database.dsl), JooqMonthCloses(database.dsl), landingReader,
-            JooqFeelings(database.dsl), JooqStickers(database.dsl), JooqSettings(database.dsl), JooqChallenges(database.dsl), clock,
+            JooqFeelings(database.dsl), JooqStickers(database.dsl), JooqSettings(database.dsl), JooqChallenges(database.dsl),
+            fixedCostReader(database), JooqSpendingPatterns(database.dsl), clock,
         )
 
     // ---------- 반복 · 마감(가계부 S1b) ----------
@@ -237,6 +245,18 @@ class HouseholdComposition {
     @Bean
     fun householdMarkSavingContributed(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): MarkSavingContributed =
         MarkSavingContributed(JooqChallenges(database.dsl), JooqChallengeSavings(database.dsl), clock)
+
+    // ---------- 고정비 찾기(가계부 S1e) ----------
+
+    @Bean
+    fun householdHideFixedCost(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): HideFixedCost =
+        HideFixedCost(JooqSpendingPatterns(database.dsl), clock)
+
+    @Bean
+    fun householdShowFixedCost(@Qualifier("householdDatabase") database: ServiceDatabase): ShowFixedCost = ShowFixedCost(JooqSpendingPatterns(database.dsl))
+
+    /** 월 화면과 쓰기가 같은 계산 — 빈이 아니라 조립 함수(상태 없음) */
+    private fun fixedCostReader(database: ServiceDatabase) = FixedCostReader(JooqSpendingPatterns(database.dsl), JooqRecurringTemplates(database.dsl))
 
     companion object {
         const val SCHEMA = "household"

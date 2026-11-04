@@ -7,7 +7,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 
-/** 예산 방식(FR-6). 통장 쪼개기 라벨(`account_split`)은 ~~S1b~~ ~~S1c~~ ~~S1d~~ S1e(2026-11-04 정정 세 번 — S1d 는 챌린지만) */
+/** 예산 방식(FR-6). 통장 쪼개기 라벨(`account_split`)은 ~~S1b~~ ~~S1c~~ ~~S1d~~ ~~S1e~~ S1f(정정 2026-11-04 — S1e 는 고정비 · 이상치만)(2026-11-04 정정 세 번 — S1d 는 챌린지만) */
 enum class BudgetMethod(val key: String) {
     FIFTY_THIRTY_TWENTY("50_30_20"),
     ENVELOPE("envelope"),

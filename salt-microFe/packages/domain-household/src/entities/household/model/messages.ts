@@ -41,6 +41,17 @@ export const formatDay = (date: string): string => {
   return `${Number(month)}월 ${Number(day)}일`;
 };
 
+/** 고정비 찾기(가계부 S1e) — 사실만: 몇 번 · 얼마 · 다음 날짜 · 올랐으면 얼마. "아끼세요" · 경고 0 */
+export const FIXED_COST_MESSAGES = {
+  title: "매달 나가는 돈 같아요",
+  description: "같은 곳에 비슷한 금액이 한 달 간격으로 세 번 이상 나갔어요",
+  line: (count: number, amount: string, next: string) => `${count}번 · 지난번 ${amount} · 다음은 ${next}쯤`,
+  increased: (previous: string, increase: string) => `앞 달 ${previous}보다 ${increase} 올랐어요`,
+  /** 평소보다 큰 지출 — 내역 줄의 한 낱말(평가 0, 비교 숫자만) */
+  typical: (amount: string) => `이 분류 보통 ${amount}`,
+  unusualBadge: "평소보다 큼",
+};
+
 export const EXPENSE_MESSAGES = {
   loadFailed: "가계부를 불러오지 못했어요",
   signedOut: "로그인하면 가계부를 볼 수 있어요",

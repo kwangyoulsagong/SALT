@@ -154,6 +154,19 @@ describe("AppHouseholdService", () => {
     assert.deepEqual(seen[0][2], { emotion: "reward", feltNow: 5 });
     assert.ok(!lines.some((l) => l.includes("reward") || l.includes("987654")));
   });
+  it("고정비(S1e) — 숨기기 · 되돌리기는 키를 본문으로 그대로 · 경로에 키를 싣지 않는다", async () => {
+    const seen: Array<[string, string, unknown]> = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string, _t: string, body: unknown) => {
+      seen.push([m, url, body]);
+      return { data: { data: { key: "통신사" } } } as never;
+    });
+    assert.deepEqual(await appHouseholdService.hideFixedCost("t", { key: "통신사" }), { key: "통신사" });
+    await appHouseholdService.showFixedCost("t", { key: "통신사" });
+    assert.deepEqual(seen, [
+      ["POST", "/household/fixed-costs/hide", { key: "통신사" }],
+      ["POST", "/household/fixed-costs/show", { key: "통신사" }],
+    ]);
+  });
   it("챌린지 목록(S1d) — 가계부 목록 + 진행 중 목표만 · 저축이 실패하면 goals null 이고 목록은 그대로", async () => {
     const list = { items: [{ id: "c", phase: "running" }], presets: ["skip_coffee"], limit: 5, openCount: 1, canStart: true };
     const goals = [

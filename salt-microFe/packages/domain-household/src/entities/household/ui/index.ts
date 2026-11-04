@@ -9,4 +9,5 @@ export * from "./EmotionChips";
 export * from "./FeelingMirror";
 export * from "./NoSpendCalendar";
 export * from "./ChallengeHead";
+export * from "./FixedCostHead";
 export { dayButton as calendarDayButton } from "./calendar.css";

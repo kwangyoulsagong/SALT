@@ -102,6 +102,9 @@ class JooqRecurringTemplates(private val dsl: DSLContext) : RecurringTemplates {
 
     override fun countActive(userId: String): Int = dsl.fetchCount(T, T.USER_ID.eq(userId).and(T.ENDED_AT.isNull))
 
+    override fun activeNames(userId: String): List<String> =
+        dsl.select(T.NAME).from(T).where(T.USER_ID.eq(userId).and(T.ENDED_AT.isNull)).fetch(T.NAME)
+
     /** 한 문장 — 템플릿 left join 그 달 예정 행. 예정일 순 */
     override fun activeWithOccurrence(userId: String, month: YearMonth): List<TemplateWithOccurrence> =
         dsl.select(T.asterisk(), O.asterisk())

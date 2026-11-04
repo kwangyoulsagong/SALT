@@ -307,3 +307,4 @@ export { importLedger as POST } from '@/app/api-routes';
 | 2026-11-04 | 가계부 S1b — 레지스트리 코드(`layer-rules.cjs`)에 features `manage-recurring` · `close-month` · pages `recurring` + `fsd-features.md` · `fsd-pages.md` 표(`d31bff89`) |
 | 2026-11-04 | 가계부 S1c — 레지스트리 코드(`layer-rules.cjs`)에 features `answer-feeling` · `mark-no-spend` · `set-work-hours` + `fsd-features.md` 표(`f0c8793d`) |
 | 2026-11-04 | 가계부 S1d — 레지스트리 코드(`layer-rules.cjs`)에 features `start-challenge` · `track-challenge` · pages `challenges` + `fsd-features.md` · `fsd-pages.md` 표(`23d44bb6`) |
+| 2026-11-04 | 가계부 S1e — 레지스트리 코드(`layer-rules.cjs`)에 features `find-fixed-cost` + `fsd-features.md` 표(`b1d14ed6`) |
