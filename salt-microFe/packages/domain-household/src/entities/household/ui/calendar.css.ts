@@ -13,7 +13,20 @@ export const title = style({ margin: 0, fontSize: "14px", lineHeight: "20px", fo
 
 export const count = style({ fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
 
-export const grid = style({ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "4px" });
+export const grid = style({ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "4px", margin: 0, padding: 0, listStyle: "none" });
+
+/** 화면 읽기 프로그램에만 — 칸 상태 · 금액을 글자로(색 · 점만으로 전하지 않는다) */
+export const srOnly = style({
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  padding: 0,
+  margin: "-1px",
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  border: 0,
+});
 
 export const weekday = style({ textAlign: "center", fontSize: "11px", lineHeight: "16px", color: vars.colors.neutral[600] });
 

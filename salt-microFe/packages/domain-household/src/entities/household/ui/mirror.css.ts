@@ -19,10 +19,23 @@ export const bars = style({ display: "grid", gridTemplateColumns: "48px repeat(5
 
 export const when = style({ alignSelf: "center", fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
 
-export const barCell = style({ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: "2px", height: "40px" });
+export const barCell = style({ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: "2px", height: "40px" });
 
 export const bar = style({ width: "100%", minHeight: "2px", borderRadius: "3px 3px 0 0", background: vars.colors.neutral[600] });
 
 export const score = style({ fontSize: "11px", lineHeight: "12px", color: vars.colors.neutral[600] });
+
+/** 화면 읽기 프로그램에만 — 막대 길이를 "산 직후 3점 2건" 글자로 */
+export const srOnly = style({
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  padding: 0,
+  margin: "-1px",
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  border: 0,
+});
 
 export const note = style({ margin: 0, fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });

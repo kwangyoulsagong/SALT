@@ -7,11 +7,16 @@ const Bars = ({ when, counts }: { when: string; counts: number[] }) => {
   const top = Math.max(1, ...counts);
   return (
     <div className={s.bars}>
-      <span className={s.when}>{when}</span>
+      <span className={s.when} aria-hidden>
+        {when}
+      </span>
       {counts.map((n, i) => (
-        <span key={i} className={s.barCell} title={F.mirrorBar(when, i + 1, n)} aria-label={F.mirrorBar(when, i + 1, n)}>
-          <span className={s.bar} style={{ height: `${Math.round((n / top) * 100)}%` }} />
-          <span className={s.score}>{i + 1}</span>
+        <span key={i} className={s.barCell} title={F.mirrorBar(when, i + 1, n)}>
+          <span className={s.bar} style={{ height: `${Math.round((n / top) * 100)}%` }} aria-hidden />
+          <span className={s.score} aria-hidden>
+            {i + 1}
+          </span>
+          <span className={s.srOnly}>{F.mirrorBar(when, i + 1, n)}</span>
         </span>
       ))}
     </div>
