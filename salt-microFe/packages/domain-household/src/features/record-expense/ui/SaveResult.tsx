@@ -1,6 +1,6 @@
 "use client";
 
-import { GoalClockLine, envelopeLabel, formatWon, useGoalClockRetry, type RecordResult } from "@/entities/household";
+import { GoalClockLine, envelopeLabel, formatWon, formatWorkMinutes, useGoalClockRetry, type RecordResult } from "@/entities/household";
 
 import { RECORD_MESSAGES as M } from "../model";
 import * as s from "./record.css";
@@ -17,6 +17,7 @@ export const SaveResult = ({ result }: { result: RecordResult }) => {
     <div className={s.result} role="status">
       <span className={s.value}>{M.saved}</span>
       {result.envelope ? <span className={s.hint}>{M.envelopeAfter(envelopeLabel(result.envelope.key), formatWon(result.envelope.remaining))}</span> : null}
+      {result.savedWorkMinutes !== null ? <span className={s.hint}>{M.workAfter(formatWorkMinutes(result.savedWorkMinutes))}</span> : null}
       {clock ? <GoalClockLine clock={clock} /> : null}
     </div>
   );

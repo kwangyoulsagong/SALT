@@ -1,4 +1,4 @@
-import { EXPENSE_MESSAGES as M, formatWon } from "../model/messages";
+import { EXPENSE_MESSAGES as M, WORK_MESSAGES as W, formatWon, formatWorkMinutes } from "../model/messages";
 import type { HouseholdMonth } from "../model/types";
 import * as s from "./expense.css";
 
@@ -11,6 +11,11 @@ export const MonthTotals = ({ month }: { month: HouseholdMonth }) => (
       {M.count(month.totals.count)}
       {month.totals.approx > 0 ? ` · ${M.exact} ${formatWon(month.totals.exact)} · ${M.approx} ${formatWon(month.totals.approx)}` : ""}
     </span>
+    {month.workHours ? (
+      <span className={s.note}>
+        {W.total(formatWorkMinutes(month.workHours.totalMinutes))} · {W.hourly(formatWon(month.workHours.hourly))}
+      </span>
+    ) : null}
     {month.remaining !== null ? (
       <div className={s.row}>
         <span className={s.label}>{M.remaining}</span>

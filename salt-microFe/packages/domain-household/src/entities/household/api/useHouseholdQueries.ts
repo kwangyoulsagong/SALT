@@ -56,6 +56,16 @@ export const useHouseholdBudget = () => {
   return { ...query, isSignedOut: signedIn === false };
 };
 
+export const useWorkHours = () => {
+  const signedIn = useHasAccessToken();
+  const query = useQuery({
+    queryKey: householdQueryKeys.workHours(),
+    queryFn: ({ signal }) => householdApi.workHours(signal),
+    enabled: signedIn === true,
+  });
+  return { ...query, isSignedOut: signedIn === false };
+};
+
 /** 목표 시계 다시 묻기 — 저장 응답이 `pending` 일 때만(amount 가 null 이면 부르지 않는다) */
 export const useGoalClockRetry = (amount: number | null) =>
   useQuery({

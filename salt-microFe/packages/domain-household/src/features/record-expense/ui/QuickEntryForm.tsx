@@ -11,7 +11,17 @@ import { TextField } from "@repo/ui/textField";
 import { isApiError } from "@repo/web-shared/api";
 import { labelOr, parseAmountInput, todayInKorea, useNumberFields } from "@repo/web-shared/lib";
 
-import { CategoryChips, formatWon, useHouseholdSuggestions, type CategoryKey, type PaymentMethodKey } from "@/entities/household";
+import {
+  CategoryChips,
+  EmotionChips,
+  FEELING_MESSAGES as F,
+  FeltScale,
+  formatWon,
+  useHouseholdSuggestions,
+  type CategoryKey,
+  type EmotionKey,
+  type PaymentMethodKey,
+} from "@/entities/household";
 
 import { useRecordExpense } from "../api";
 import { RECORD_MESSAGES as M } from "../model";
@@ -35,6 +45,9 @@ export const QuickEntryForm = () => {
   const [date, setDate] = useState(() => todayInKorea());
   const [payment, setPayment] = useState<PaymentMethodKey>("card");
   const [approx, setApprox] = useState(false);
+  // 기분 태그(가계부 S1c FR-13) — 선택. 산 직후 만족은 기분을 골랐을 때만 보낸다
+  const [emotion, setEmotion] = useState<EmotionKey | null>(null);
+  const [feltNow, setFeltNow] = useState<number | null>(null);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -47,6 +60,7 @@ export const QuickEntryForm = () => {
         paymentMethod: payment,
         ...(merchant.trim() ? { merchant: merchant.trim() } : {}),
         ...(approx ? { precision: "approx", inputKind: "approx" } : { precision: "exact", inputKind: "quick" }),
+        ...(emotion ? { emotion, ...(feltNow !== null ? { feltNow } : {}) } : {}),
       },
       {
         onSuccess: () => {
@@ -54,6 +68,8 @@ export const QuickEntryForm = () => {
           setMerchant("");
           setCategory(null);
           setApprox(false);
+          setEmotion(null);
+          setFeltNow(null);
         },
       },
     );
@@ -104,6 +120,25 @@ export const QuickEntryForm = () => {
         onChange={setPayment}
         options={PAYMENTS.map((p) => ({ value: p, label: M.payments[p] }))}
       />
+      {suggestions.data && suggestions.data.emotions.length > 0 ? (
+        <div>
+          <span className={s.label}>{F.tag}</span>
+          <EmotionChips
+            emotions={suggestions.data.emotions}
+            value={emotion}
+            onChange={(next) => {
+              setEmotion(next);
+              if (next === null) setFeltNow(null);
+            }}
+          />
+        </div>
+      ) : null}
+      {emotion ? (
+        <div>
+          <span className={s.label}>{F.feltNow}</span>
+          <FeltScale label={F.feltNow} value={feltNow} onChange={setFeltNow} />
+        </div>
+      ) : null}
       <Checkbox checked={approx} onChange={setApprox} label={M.approx} />
       {approx ? <span className={s.hint}>{M.approxHint}</span> : null}
       <span className={s.hint} role="status">

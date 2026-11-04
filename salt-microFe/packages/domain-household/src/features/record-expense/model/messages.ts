@@ -41,4 +41,5 @@ export const RECORD_MESSAGES = {
     EXPENSE_TOO_MANY: "한 번에 30건까지 저장할 수 있어요",
   } as Readonly<Record<string, string>>,
   deleteLabel: (name: string) => `${name} 지우기`,
+  workAfter: (work: string) => `이번 지출 = 근무 ${work}`,
 } as const;

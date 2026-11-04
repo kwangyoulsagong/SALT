@@ -1,7 +1,7 @@
 import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
-import type { GoalClock, HouseholdBudget, HouseholdMonth, HouseholdSuggestions, ParseResult, RecurringTemplateList } from "../model/types";
+import type { GoalClock, HouseholdBudget, HouseholdMonth, HouseholdSuggestions, ParseResult, RecurringTemplateList, WorkHoursSetting } from "../model/types";
 
 /**
  * 가계부 조회 — BFF `/api/app/household/*`(`BFF-REQ-048`). 조회만(`fsd-entities.md`). 쓰기는 `features/record-expense` · `edit-budget`.
@@ -36,6 +36,10 @@ export const householdApi = {
   /** 반복 템플릿 + 이번 달 예정 행(가계부 S1b) */
   templates: async (signal?: AbortSignal): Promise<RecurringTemplateList> =>
     read(await apiFetch(`${HOUSEHOLD_API}/templates`, { headers: authHeader(), signal }), "household-templates"),
+
+  /** 노동시간 환산 설정(가계부 S1c) */
+  workHours: async (signal?: AbortSignal): Promise<WorkHoursSetting> =>
+    read(await apiFetch(`${HOUSEHOLD_API}/settings/work-hours`, { headers: authHeader(), signal }), "household-work-hours"),
 
   budget: async (signal?: AbortSignal): Promise<HouseholdBudget | null> =>
     read(await apiFetch(`${HOUSEHOLD_API}/budget`, { headers: authHeader(), signal }), "household-budget"),

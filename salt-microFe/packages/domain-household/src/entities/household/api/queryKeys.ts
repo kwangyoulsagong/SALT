@@ -4,5 +4,6 @@ export const householdQueryKeys = {
   suggestions: () => [...householdQueryKeys.all, "suggestions"] as const,
   budget: () => [...householdQueryKeys.all, "budget"] as const,
   templates: () => [...householdQueryKeys.all, "templates"] as const,
+  workHours: () => [...householdQueryKeys.all, "work-hours"] as const,
   goalClock: (amount: number) => [...householdQueryKeys.all, "goal-clock", amount] as const,
 } as const;
