@@ -53,6 +53,8 @@ export const EventsCard = ({
       </section>
     );
   }
+  // 사건은 소유자 전용 조회라 마운트 뒤 브라우저에서만 온다(`useSymbolEvents`) — 서버 렌더에 이 카드가 없어 수화가 갈리지 않는다
+  // eslint-disable-next-line @repo/fsd/no-render-read
   const now = new Date();
   // 서버가 이미 종목 사건 → 시장 일정, 시각 순으로 준다. 펼침 번호는 묶음을 넘어 하나로 센다
   const indexed = result.events.map((event, index) => ({ event, index }));

@@ -1,6 +1,7 @@
 "use strict";
 
 const layers = require("./rules/layers");
+const noRenderRead = require("./rules/no-render-read");
 
 /**
  * FSD 레이어 경계를 강제하는 ESLint 플러그인 (`FE-REQ-009` FR-21).
@@ -14,5 +15,7 @@ const layers = require("./rules/layers");
 module.exports = {
   rules: {
     layers,
+    // 렌더 중 토큰 · 시각 · 난수 · 저장소 읽기 금지 — 레이어 규칙은 아니지만 zone 앱 · 도메인 패키지 lint 가 모두 이 플러그인을 싣는다(`DEV-001`)
+    "no-render-read": noRenderRead,
   },
 };
