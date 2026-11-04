@@ -185,3 +185,7 @@
 
 - `@repo/ui/progressScene` `ProgressScene`(`84871e70`) — 종류 5 · 칸 = 서버 값 · 이동은 transform 만(채운 길 scaleX · 그림 x) · `initial={false}`(서버 HTML 은 지금 칸)
 - 확인: `@repo/ui` check-types · test 43 · Storybook 빌드(`Components/ProgressScene` 3 이야기) · 실측 기본 설정 10프레임 이동 · 줄인 모션 중간 프레임 0 · `aria-hidden` + 쓰는 쪽 글
+
+## 2026-11-04 — 로고(`FE-REQ-051`) · `25f182f6`
+
+- 파일만 걸침 — 이 REQ 의 동작 · 값 diff 0. 모노레포 check-types · lint · test · zone 5 빌드 · 훅 통과(`checklists/FE-REQ-051.md`)

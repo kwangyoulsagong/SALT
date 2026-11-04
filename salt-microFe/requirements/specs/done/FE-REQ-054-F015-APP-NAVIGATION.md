@@ -57,3 +57,4 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 넘겨받은 몫 셋 닫음 — `APP_TABS` 저축 `readyBy: null` · 저축 zone 레이아웃 `AppShell` + `VIEW_TRANSITION_CSS` · `next.config.js` vanilla-extract. 탭 테스트 갱신 |
 | 2026-11-03 | MONEY-S1a — `11224e9a` — `APP_TABS` 저축 줄 주석을 "화면이 아직 없다" → "저축 zone 첫 화면 `/goals`"로(동작 무변경) |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 가계부 탭 `readyBy: null`(눌린다) · 탭 테스트("첫 화면 없는 탭" 목록 빈 배열) · zone 레이아웃 `AppShell` + `VIEW_TRANSITION_CSS`(`df45ae7d`) |
+| 2026-11-04 | 로고(`FE-REQ-051`) — 파일만 걸침(`25f182f6`): `ZoneNavigation` 이 `AppNavigation` `brand` 칸에 `HeaderBrand`(로고 → `/home`)를 넣는다 · `NAVIGATION_FRAME_MESSAGES.brandHomeLabel` 추가. 내비 동작 diff 0 |

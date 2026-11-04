@@ -384,3 +384,4 @@ numeric: { tabular: "tabular-nums" }
 - 본 spec은 `requirements/specs/done/`에 위치한다.
 | 2026-09-21 | **D-1 보강 — 제품 화면 브랜드 `#007AFF`(앱 로컬 토큰).** 디자인 시스템 토큰은 교체하지 않는다(사용자 결정, 감사 문서 D10) |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 파일만 걸침 — `packages/tokens/src/index.ts` 에 도메인 색 `colors.domain` 5개 추가(`1c4c3ee9`). 이 REQ 가 정한 토큰(곡률 · 간격 등) 값 diff 0 |
+| 2026-11-04 | 로고(`FE-REQ-051`) — 파일만 걸침(`25f182f6`): `packages/tokens/src/index.ts` 에 `colors.brand.mark` 6색 추가(로고 · 파비콘 전용). 이 REQ 가 정한 토큰 값 diff 0 |
