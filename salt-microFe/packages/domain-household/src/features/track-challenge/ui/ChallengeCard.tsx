@@ -30,7 +30,10 @@ export const ChallengeCard = ({ challenge, today, goals }: { challenge: Challeng
   const todayDone = challenge.days.includes(today);
   const canRecord = challenge.todayMarkable;
   const codeOf = (e: unknown) => (isApiError(e) ? e.code : null);
-  const failure = [mark, record, remove, end].find((m) => m.isError);
+  // 실패 한 줄은 마지막 동작의 것만 — 새 동작을 시작하면 다른 동작의 지난 실패를 지운다(지난 실패가 성공 뒤에도 남지 않게)
+  const actions = [mark, record, remove, end];
+  const fresh = () => actions.forEach((m) => m.reset());
+  const failure = actions.find((m) => m.isError);
   const failureCode = failure ? codeOf(failure.error) : null;
   const failureLine =
     failureCode === "CHALLENGE_DATE_OUTSIDE" ? M.outside : failureCode === "CHALLENGE_SAVING_CONTRIBUTED" ? M.contributed : failure ? M.failed : "";
@@ -38,6 +41,7 @@ export const ChallengeCard = ({ challenge, today, goals }: { challenge: Challeng
   const onRecord = (event: FormEvent) => {
     event.preventDefault();
     if (amount === null) return;
+    fresh();
     record.mutate(
       { id: challenge.id, amount, note: note.trim() || null },
       {
@@ -59,7 +63,10 @@ export const ChallengeCard = ({ challenge, today, goals }: { challenge: Challeng
             variant={todayDone ? "primary" : "weak"}
             aria-pressed={todayDone}
             disabled={mark.isPending || (!todayDone && !canRecord)}
-            onClick={() => mark.mutate({ id: challenge.id, date: today, on: !todayDone })}
+            onClick={() => {
+              fresh();
+              mark.mutate({ id: challenge.id, date: today, on: !todayDone });
+            }}
           >
             {M.today}
           </Button>
@@ -98,7 +105,15 @@ export const ChallengeCard = ({ challenge, today, goals }: { challenge: Challeng
                   {saving.goalId ? null : (
                     <span className={s.actions}>
                       <ContributeControl saving={saving} goals={goals} />
-                      <Button size="xs" variant="weak" disabled={remove.isPending} onClick={() => remove.mutate(saving.id)}>
+                      <Button
+                        size="xs"
+                        variant="weak"
+                        disabled={remove.isPending}
+                        onClick={() => {
+                          fresh();
+                          remove.mutate(saving.id);
+                        }}
+                      >
                         {M.remove}
                       </Button>
                     </span>
@@ -111,7 +126,15 @@ export const ChallengeCard = ({ challenge, today, goals }: { challenge: Challeng
       ) : null}
       {challenge.phase === "ended" ? null : (
         <div className={s.actions}>
-          <Button size="xs" variant="weak" disabled={end.isPending} onClick={() => end.mutate(challenge.id)}>
+          <Button
+            size="xs"
+            variant="weak"
+            disabled={end.isPending}
+            onClick={() => {
+              fresh();
+              end.mutate(challenge.id);
+            }}
+          >
             {M.end}
           </Button>
         </div>
