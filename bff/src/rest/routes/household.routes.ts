@@ -17,5 +17,13 @@ router.get("/suggestions", authMiddleware, appHouseholdController.suggestions);
 router.get("/budget", authMiddleware, appHouseholdController.budget);
 router.put("/budget", authMiddleware, appHouseholdController.setBudget);
 router.get("/month/:ym", authMiddleware, appHouseholdController.month);
+router.post("/month/:ym/close", authMiddleware, appHouseholdController.closeMonth);
+// 반복 템플릿 · 예정 행(가계부 S1b)
+router.get("/templates", authMiddleware, appHouseholdController.templates);
+router.post("/templates", authMiddleware, appHouseholdController.createTemplate);
+router.put("/templates/:id", authMiddleware, appHouseholdController.editTemplate);
+router.delete("/templates/:id", authMiddleware, appHouseholdController.endTemplate);
+router.post("/occurrences/:id/confirm", authMiddleware, appHouseholdController.confirmOccurrence);
+router.post("/occurrences/:id/skip", authMiddleware, appHouseholdController.skipOccurrence);
 
 export default router;

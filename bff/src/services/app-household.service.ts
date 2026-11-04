@@ -92,6 +92,8 @@ export interface HouseholdLandingVM {
   /** empirical_window · month_over */
   method: string;
   spentSoFar: number;
+  /** 아직 확인 안 한 반복 예정 합 — low · high 에 이미 들어 있다(가계부 S1b) */
+  scheduled: number;
   low: number | null;
   high: number | null;
   /** history_short · null */
@@ -110,6 +112,70 @@ export interface HouseholdTrackVM {
   reason: string | null;
 }
 
+/** 예정 행 — stage 는 서버가 정한다: ask("이번 달에도 나갔나요?") · upcoming · confirmed · skipped */
+export interface HouseholdOccurrenceVM {
+  id: string;
+  templateId: string;
+  name: string;
+  amount: number;
+  category: string;
+  dueOn: string;
+  stage: string;
+  expenseId: string | null;
+}
+
+export interface HouseholdTemplateVM {
+  id: string;
+  name: string;
+  amount: number;
+  category: string;
+  paymentMethod: string;
+  dayOfMonth: number;
+  confirmRequired: boolean;
+  startsMonth: string;
+  /** 이번 달 예정 행 — 시작 달 전이면 null */
+  thisMonth: HouseholdOccurrenceVM | null;
+}
+
+export interface HouseholdTemplateListVM {
+  templates: HouseholdTemplateVM[];
+  /** 템플릿 상한(서버) */
+  limit: number;
+}
+
+/** 할부 띠 한 줄 — 원거래 `amount` 는 산 달 합에 이미 들어 있다 */
+export interface HouseholdInstallmentLineVM {
+  expenseId: string;
+  merchant: string | null;
+  category: string;
+  amount: number;
+  months: number;
+  index: number;
+  charge: number;
+  remainingAfter: number;
+  firstMonth: string;
+  lastMonth: string;
+}
+
+export interface HouseholdInstallmentsVM {
+  lines: HouseholdInstallmentLineVM[];
+  monthCharge: number;
+  /** 이 달부터 6개월 — 그 달 끝까지 산 할부의 청구 합 */
+  upcoming: Array<{ month: string; amount: number }>;
+}
+
+export interface HouseholdCloseVM {
+  month: string;
+  closedAt: string;
+  answers: { satisfied: string | null; tryNext: string | null; knownNext: string | null };
+}
+
+/** 반복 확인 응답 — 저장 응답과 같은 모양 + 목표 시계 */
+export interface HouseholdConfirmVM {
+  occurrenceId: string;
+  record: HouseholdRecordVM;
+}
+
 export interface HouseholdMonthVM {
   month: string;
   current: boolean;
@@ -126,6 +192,13 @@ export interface HouseholdMonthVM {
   landingReason: string | null;
   track: HouseholdTrackVM | null;
   expenses: HouseholdExpenseVM[];
+  recurring: { items: HouseholdOccurrenceVM[]; scheduledTotal: number };
+  installments: HouseholdInstallmentsVM;
+  close: HouseholdCloseVM | null;
+  /** 지금 닫을 수 있나 — 서버가 정한다 */
+  closable: boolean;
+  /** 리뷰 문항 키(문장은 프론트) */
+  reviewQuestions: string[];
 }
 
 /** 홈 카드가 쓰는 서버 숫자(`GET /household/home-card`) */
@@ -137,7 +210,7 @@ export interface HouseholdHomeCardSource {
   landing: HouseholdLandingVM;
 }
 
-/** 쓰기는 재시도하지 않는다(중복 지출). 조회 예산 — 월 화면 쿼리 8회 + 여유 */
+/** 쓰기는 재시도하지 않는다(중복 지출). 조회 예산 — 월 화면 쿼리 11회(S1b) + 여유 */
 const READ_TIMEOUT_MS = 2_000;
 const WRITE_TIMEOUT_MS = 5_000;
 /** 저장 응답에 붙이는 목표 시계의 상한 — 넘으면 `pending`(FEATURE-013 비기능 "저장 → 목표 시계 1초 이내") */
@@ -209,6 +282,40 @@ class AppHouseholdService {
 
   async month(token: string, ym: string): Promise<HouseholdMonthVM> {
     return data(await backendApi.proxyAuthRequest("GET", `/household/month/${encodeURIComponent(ym)}`, token, undefined, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  // ---------- 반복 · 마감(가계부 S1b) — 중계만 ----------
+
+  async templates(token: string): Promise<HouseholdTemplateListVM> {
+    return data(await backendApi.proxyAuthRequest("GET", "/household/templates", token, undefined, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  async createTemplate(token: string, body: unknown): Promise<HouseholdTemplateVM> {
+    return data(await backendApi.proxyAuthRequest("POST", "/household/templates", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async editTemplate(token: string, id: string, body: unknown): Promise<HouseholdTemplateVM> {
+    return data(await backendApi.proxyAuthRequest("PUT", `/household/templates/${encodeURIComponent(id)}`, token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async endTemplate(token: string, id: string): Promise<{ id: string }> {
+    return data(await backendApi.proxyAuthRequest("DELETE", `/household/templates/${encodeURIComponent(id)}`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  /** "나갔어요" — 지출이 생기므로 저장과 같이 목표 시계를 붙인다 */
+  async confirmOccurrence(token: string, id: string, body: unknown): Promise<HouseholdConfirmVM> {
+    const confirmed = data<{ occurrenceId: string; record: Omit<HouseholdRecordVM, "goalClock"> }>(
+      await backendApi.proxyAuthRequest("POST", `/household/occurrences/${encodeURIComponent(id)}/confirm`, token, body, { timeout: WRITE_TIMEOUT_MS }),
+    );
+    return { occurrenceId: confirmed.occurrenceId, record: { ...confirmed.record, goalClock: await this.clockAfterSave(token, confirmed.record.savedTotal) } };
+  }
+
+  async skipOccurrence(token: string, id: string): Promise<{ id: string }> {
+    return data(await backendApi.proxyAuthRequest("POST", `/household/occurrences/${encodeURIComponent(id)}/skip`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async closeMonth(token: string, ym: string, body: unknown): Promise<HouseholdCloseVM> {
+    return data(await backendApi.proxyAuthRequest("POST", `/household/month/${encodeURIComponent(ym)}/close`, token, body, { timeout: WRITE_TIMEOUT_MS }));
   }
 
   async homeCard(token: string, timeout: number): Promise<HouseholdHomeCardSource> {
