@@ -31,7 +31,7 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | FR-1 | done — 저장 + 목표 시계(저축 `GET /savings/goal-clock?amount=savedTotal`, 300ms 예산 → `pending`) + 봉투. 여러 건 `POST /expenses/batch` · 다시 묻기 `GET /goal-clock?amount=` | 금액은 서버 `savedTotal` 그대로 — BFF 는 더하지 않는다 |
 | FR-2 | done — 원문을 로그 · 오류에 남기는 길 0. **깨진 JSON 본문**은 파서 메시지(본문 조각)를 버리고 400 `INVALID_JSON`(error middleware — 모든 경로) | 로그 캡처 테스트 2 |
 | FR-3 | done(봉투 · 착지 · 지난달 적중 · 지출 목록) — 리뷰 · 스티커 칸은 S1b | `GET /month/:ym` |
-| FR-4 | 예산 · 제안 · 지우기 done — 템플릿 · 챌린지 · 이야기 카드는 S1b | |
+| FR-4 | 예산 · 제안 · 지우기 done — 템플릿 · 챌린지 · 이야기 카드는 S1b(**정정 2026-11-04** 템플릿 S1b · 챌린지 S1d 닫힘, 이야기 카드는 S1e) | |
 | FR-5 | done — 저장 실패는 서버 4xx 를 그대로(입력 보존은 화면 상태) | |
 
 홈 카드: 가계부 카드가 `CARD_SOURCES` 에 붙었다(`BFF-REQ-046`) — 이번 달 지출 + (예산 남은 금액 | 월말 예상 구간 | 비움).
