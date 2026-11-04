@@ -195,6 +195,16 @@ export interface SavingsHomeCardSource {
   nearest: { goalId: string; title: string; template: string; progressPercent: number; milestone: SavingsMilestoneVM } | null;
 }
 
+/** 목표 시계 서버 숫자(`GET /savings/goal-clock`) — 목표가 없거나 계획이 없으면 delayDays null + reason */
+export interface SavingsGoalClockSource {
+  goalId: string | null;
+  title: string | null;
+  template: string | null;
+  delayDays: number | null;
+  /** no_active_goal · no_plan · null */
+  reason: string | null;
+}
+
 /** 쓰기는 재시도하지 않는다(중복 적립). 조회 예산 — 목록 300ms 서버 예산 + 여유 */
 const READ_TIMEOUT_MS = 2_000;
 const WRITE_TIMEOUT_MS = 5_000;
@@ -261,6 +271,16 @@ class AppSavingsService {
         undefined,
         { timeout: WRITE_TIMEOUT_MS },
       ),
+    );
+  }
+
+  /**
+   * 목표 시계(`SRV-REQ-045` FR-17) — 지출 금액만큼 덜 모으면 가장 가까운 목표가 며칠 늦어지나. 가계부 저장 응답이 붙인다(`app-household.service.ts`).
+   * 금액은 서버 숫자(가계부 `savedTotal`) 그대로 문자열로 넘긴다
+   */
+  async goalClock(token: string, amount: string, timeout: number): Promise<SavingsGoalClockSource> {
+    return data(
+      await backendApi.proxyAuthRequest("GET", `/savings/goal-clock?amount=${encodeURIComponent(amount)}`, token, undefined, { timeout }),
     );
   }
 
