@@ -31,3 +31,8 @@ argument-hint: <변경 요약 또는 PR 메모>
 - 검증하지 않은 내용을 완료로 쓰지 않는다.
 - API 계약이 바뀌었으면 프론트 영향 파일이나 문서 갱신 필요 여부를 명시한다.
 - migration이 있으면 적용 순서와 rollback 주의점을 적는다.
+
+## done 전 검사 (`DEV-001`)
+
+- 커밋 · PR 본문 전에 루트에서 `node scripts/check-done.mjs` — 실패가 0 이 될 때까지 고친다(주인 REQ 문서 · 루트 슬라이스 · 마스터 인덱스 · 규칙 200줄 · 외부 서비스 이름).
+- 통과해도 루트 `.claude/rules/done-checklist.md` 2 · 3절(구현 전 · done 전 사람 몫)을 한 줄씩 본다. 코드 리뷰 스킬은 돌리지 않는다.

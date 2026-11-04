@@ -41,3 +41,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | 해설 카드 끝 문구 — 흘린 문장("Claude 문장을 한 문장씩 검사해 보여 드렸어요") · 공급자별 교체 알림. 근거 `FE-REQ-059`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `EventsCard` 가 국내 · 미국 섞임을 그린다 — 지역 표시 · 짧은 이름 · 범위 묶음 · 국내 안내 문구(`FE-REQ-046` FR-1 · 2). 종류 이름은 `@repo/core/coach` 한 벌 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 조회 훅 렌더 중 `localStorage` 토큰 읽기 → `useHasAccessToken`(`/search` 수화 불일치 수정)(`b4a59677`). 파일 11개(경로 이동 내용 무변경 4 · 수정 7 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |
+| 2026-11-04 | `ForecastFanChart` 의 렌더 중 `Date.now()` 두 줄에 `no-render-read` 예외 주석 — 전망은 소유자 전용 조회라 마운트 뒤 브라우저에서만 그려진다(서버 렌더에 없음, `DEV-001`) |

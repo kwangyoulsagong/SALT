@@ -202,3 +202,4 @@ created: 2026-09-09
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | F004 슬라이스 18 — F절 성향 설정 완료: FR-50(PATCH · 재시도 0) · FR-51(다르게 — 쿼리 무효화) · FR-52(개정 — `notificationLevel` 제외). `queryKeys.ts` 에 `symbolAll` 추가. 응답 매퍼 `toCoachProfileSettings` 를 조회 · 저장 셋(`coachApi` · `edit-coach-profile` · `toggle-purchase-price`)이 같이 쓴다 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 조회 훅 렌더 중 `localStorage` 토큰 읽기 → `useHasAccessToken`(`/search` 수화 불일치 수정)(`b4a59677`). 파일 6개(경로 이동 내용 무변경 2 · 수정 4 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |
+| 2026-11-04 | `useRegenerateCoach` 의 `now` 초기값을 렌더 중 `Date.now()` 대신 0 으로 — 쿨다운을 받은 뒤에만 쓰는 값이라 화면은 같다(`DEV-001` `no-render-read`) |

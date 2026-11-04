@@ -12,3 +12,7 @@
 ## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
 
 - 파일만 걸침(경로 · import) — Action 없음
+
+## 2026-11-04 — `DEV-001` 렌더 중 읽기 lint
+
+- `EventsCard` 의 렌더 중 `new Date()` 에 `no-render-read` 예외 주석 — 사건은 소유자 전용 조회라 마운트 뒤 브라우저에서만 온다(서버 렌더에 없음, `DEV-001`)

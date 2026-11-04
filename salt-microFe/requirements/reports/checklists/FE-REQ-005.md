@@ -115,3 +115,7 @@ validated: 2026-09-09
 
 - 파일만 걸침 — `packages/tokens/src/index.ts` 에 도메인 색 `colors.domain` 5개 추가(`1c4c3ee9`). 이 REQ 가 정한 토큰(곡률 · 간격 등) 값 diff 0
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행 · Storybook · 실화면(5화면 × 5폭 · 앱 웹뷰 · WebKit) — `salt-microFe/requirements/reports/checklists/FE-REQ-054.md` §2
+
+## 2026-11-04 — 로고(`FE-REQ-051`) · `25f182f6`
+
+- 파일만 걸침 — 이 REQ 의 동작 · 값 diff 0. 모노레포 check-types · lint · test · zone 5 빌드 · 훅 통과(`checklists/FE-REQ-051.md`)

@@ -248,3 +248,4 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — `CrossZoneLink` 에 `showPending`(대기 문구만 끄기) · `opensElsewhere`(새 탭 · 수정키 · 가운데 클릭 판정, 대기 상태와 계측이 같이 쓴다)를 더했다 — 앱 탭이 이 컴포넌트를 다시 쓴다(`378d8a1c`). 기존 호출부 동작 무변경(기본 `showPending: true`). 토큰 파일 주석 위치(`378d8a1c`) |
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 저축 zone 이 실제 화면을 서비스 — zone 앱은 얇다(`app/` re-export · 레이아웃 · `next.config.js` 만). `/goals/addgoals` 는 저축 zone 의 리다이렉트 |
 | 2026-11-03 | `@repo/core/auth` 에 `ACCESS_COOKIE` · `SESSION_ROUTE` — zone 은 셸과 같은 origin 이라 쿠키를 같이 받는다(이 REQ 의 "localStorage 라 zone 간 공유 안 됨" 주의의 첫 해소)(`0ef25f6b`) |
+| 2026-11-04 | 로고(`FE-REQ-051`) — 파일만 걸침(`25f182f6`): `@repo/tokens` 에 `colors.brand.mark`(로고 은회색) · `BRAND_MARK`(로고 경로 — 토큰 객체 밖 export, 웹 테마 변수 대상 아님) 추가. 기존 토큰 값 diff 0 |

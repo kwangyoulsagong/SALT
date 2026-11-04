@@ -214,3 +214,5 @@ bare RN은 Re.Pack + Module Federation 2를 쓸 수 있어 **Phase 2의 길이 �
 (`react-native-webview` `applicationNameForUserAgent`, 값은 `@repo/core/embed` `APP_WEBVIEW_UA_TOKEN`). 빠뜨리면 웹이 768px 미만에서
 "PC로 접속해 주세요" 안내로 화면을 덮는다(`FE-REQ-043` FR-6). 웹뷰로 띄울 화면이 정해지면 그 화면의 휴대폰 폭 레이아웃 REQ 를 따로 만든다.
 - 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
+
+- 2026-11-04: 로고 — `@repo/ui-native` 를 만들 때 `Logo` 를 같이(`FE-REQ-051` FR-6). 경로 · 색은 `@repo/tokens` `BRAND_MARK` · `colors.brand.mark` 에 이미 있다(`25f182f6`) — `react-native-svg` 로 같은 데이터를 그린다. 입체(블러)는 RN 에서 그대로 안 되면 단색 + 앱 아이콘 PNG(`pnpm brand:icons`)

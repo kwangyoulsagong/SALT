@@ -87,3 +87,7 @@
 
 - [x] 실화면: 탭 `/household` · `aria-current=page`
 - [x] core test 169
+
+## 2026-11-04 — 로고(`FE-REQ-051`) · `25f182f6`
+
+- 파일만 걸침 — 이 REQ 의 동작 · 값 diff 0. 모노레포 check-types · lint · test · zone 5 빌드 · 훅 통과(`checklists/FE-REQ-051.md`)

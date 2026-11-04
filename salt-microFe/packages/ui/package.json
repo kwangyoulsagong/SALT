@@ -23,6 +23,7 @@
     "./serviceicon": "./src/ServiceIcon/ServiceIcon.tsx",
     "./wrapper": "./src/Wrapper/Wrapper.tsx",
     "./app-navigation": "./src/AppNavigation/AppNavigation.tsx",
+    "./logo": "./src/Logo/Logo.tsx",
     "./header": "./src/Header/Header.tsx",
     "./flexBox": "./src/FlexBox/FlexBox.tsx",
     "./padding": "./src/Padding/Padding.tsx",

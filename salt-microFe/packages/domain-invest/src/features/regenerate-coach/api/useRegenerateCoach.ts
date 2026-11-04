@@ -48,7 +48,8 @@ export const useRegenerateCoach = () => {
   const [notice, setNotice] = useState<RegenerateNotice>(null);
   /** 쿨다운이 끝나는 시각(ms). 서버가 준 남은 초를 받은 순간 기준이다 */
   const [cooldownEndsAt, setCooldownEndsAt] = useState<number | null>(null);
-  const [now, setNow] = useState(() => Date.now());
+  // 지금 시각은 쿨다운을 받은 뒤에만 쓴다(그때 setNow) — 렌더 중에 시계를 읽지 않는다(DEV-001)
+  const [now, setNow] = useState(0);
   const attemptsRef = useRef(0);
   const inFlightRef = useRef(false);
 

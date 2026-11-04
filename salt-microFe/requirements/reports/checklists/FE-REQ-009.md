@@ -241,3 +241,8 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - [x] lint 0 · `test:layer-check` 26 · 훅 사후 실행(Bash 로 쓴 파일 전부) 차단 0
+
+## 2026-11-04 — `DEV-001` 렌더 중 읽기 lint
+
+- lint 플러그인 `@repo/fsd` 에 `no-render-read`(렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기 금지)를 더했다 — 레이어 규칙은 아니지만 zone 앱 · 도메인 패키지 9곳 lint 가 모두 이 플러그인을 싣는다(`DEV-001`). 레이어 규칙 표는 그대로
+- 검증: 프론트 전체 `pnpm lint` 12/12 · 규칙 변이(나쁜 6줄 다 걸림 · 처리기 · 효과 · 일반 함수 통과)

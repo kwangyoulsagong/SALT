@@ -42,6 +42,8 @@ interface ForecastFanChartProps {
 export const ForecastFanChart = ({ history, shown, livePrice, active }: ForecastFanChartProps) => {
   const [ref, width] = useElementWidth<HTMLDivElement>(320);
   const mountedAt = useRef<number | null>(null);
+  // 전망은 소유자 전용 조회라 마운트 뒤 브라우저에서만 그려진다(`ForecastCard` ← 조회 훅) — 서버 렌더에 이 그림이 없다
+  // eslint-disable-next-line @repo/fsd/no-render-read
   if (mountedAt.current === null) mountedAt.current = Date.now();
   const base = shown[0];
   if (!base) return <div ref={ref} />;
@@ -102,6 +104,7 @@ export const ForecastFanChart = ({ history, shown, livePrice, active }: Forecast
   const toDay = hx(current);
   const chipW = 52;
   const chipX = Math.min(Math.max(x(toDay) - chipW / 2, PAD.left), width - PAD.right - chipW);
+  // eslint-disable-next-line @repo/fsd/no-render-read -- 위와 같다(브라우저에서만 그려진다)
   const introLeft = Math.max(0, INTRO_MS - (Date.now() - (mountedAt.current ?? 0)));
 
   return (

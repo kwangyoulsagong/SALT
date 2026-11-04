@@ -9,7 +9,8 @@
   ],
   "rules": {
     "@repo/zone/no-cross-zone-link": "error",
-    "@repo/fsd/layers": "error"
+    "@repo/fsd/layers": "error",
+    "@repo/fsd/no-render-read": "error"
   },
   "ignorePatterns": [
     "next-env.d.ts",

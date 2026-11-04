@@ -42,3 +42,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | 1단계 구현 · in-progress. 국내 상세 `KrEvents`(판단 카드 아래, 404 · 로그인 전 숨김, 줄 다섯 칸 스켈레톤) · 국내 탭 `KrScheduleStrip`(높이 44 고정 자리). 실화면 3000: 일정 줄 글꼴이 명조로 떨어진 것을 고침(본문 글꼴 지정) — 위 지수 타일의 같은 증상은 ~~기존 화면이라 손대지 않았다~~ 사용자 "남은것 ㄱㄱ" 뒤 같은 날 고침(`KrIndexSummary` 글꼴) |
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): FR-5 일정 줄(`KrScheduleStrip` · `KrScheduleLine` · `useKrSchedule`) 삭제 — 요약 띠 상자로 옮김. 날짜 모양은 `entities/market/lib/krScheduleDate.ts` `formatKrScheduleDate` 로 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 2 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
+| 2026-11-04 | `EventsCard` 의 렌더 중 `new Date()` 에 `no-render-read` 예외 주석 — 사건은 소유자 전용 조회라 마운트 뒤 브라우저에서만 온다(서버 렌더에 없음, `DEV-001`) |

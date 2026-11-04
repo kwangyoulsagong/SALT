@@ -31,7 +31,8 @@
           }
         ]
       }
-    ]
+    ],
+    "@repo/fsd/no-render-read": "error"
   },
   "ignorePatterns": [
     "next-env.d.ts",

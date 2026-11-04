@@ -78,6 +78,7 @@ Status: In Progress
 | `RN-REQ-001` | RN 앱 신설 | `apps/mobile`, Expo prebuild, iOS+Android, FSD, `packages/ui-native` |
 | `RN-REQ-002` | RN 마이크로프론트엔드 | Shared/Service 번들, ESBuild, CDN, 카나리 |
 | `RN-REQ-003` | 릴리스·스토어 | 코드 서명, TestFlight/Play 내부 테스트, OTA 정책, 버전 게이트 |
+| `FE-REQ-051` | 로고 | 소금 물방울(은회색 · 입체 + 단색) · "Salt" · 머리 로고 · zone 5 파비콘 — **done 2026-11-04** |
 | `FE-REQ-052` | 도메인 zone (2026-10-30, `ADR-005`) | 규칙 개정 · 레지스트리 5 zone · lint 도메인 축 · `web-tax` 삭제 — **done 2026-11-02** |
 | `FE-REQ-053` | 투자 zone 분리 | `domain-invest` + `apps/web-investment`, 동작 변경 0 |
 | `FE-REQ-054` | 앱 내비게이션(F2) | `AppNavigation`(왼쪽 레일 · 하단 탭 · 머리) · prerender · 문서 간 전환 · 설정 프리셋 — **done 2026-11-03** |
@@ -206,7 +207,7 @@ flowchart TB
 | 3a | 돈 관리 앱 재정의 | F012 저축(S1 · F3) → F013 가계부(S1 · F4) → F014 금융 팁(S2 · F5, 법무 확인 뒤 공개) → F015 나머지(S3) | 투자 남은 작업과 **번갈아** — 투자만 연속으로 잡지 않는다 |
 | 3a | 예측 바탕 | `FC-REQ-022` 온톨로지(O1 · O2) → `FC-REQ-023` 에이전트(O3) · `FC-REQ-024` 개인 재무 채점(S1 과 같이) | `ADR-007`. F008 FR-25 · FR-41 |
 | **4** | 착수 전 기능 | F006 코치 대화 + 3탭 IA(`FE-REQ-030`~`033` · `BFF-REQ-027`~`030`) · F003 적립(`FEATURE-003`, to-do) | 범위가 커서 3 다음. 시작 전에 기획서 재확인 |
-| **5** | 디자인 | `FE-REQ-051` 로고 → `FE-REQ-047` 틀(헤더 · 뒤로 · 탭 주소 · **2026-11-04 개정**: 도메인 사이드 · 글자색 대비 · 글꼴 · 모바일 분리) → `FE-REQ-049` 상세 재설계(국내 깨짐 B1~B11 · 탭 제목 실시간 가격) → **`FE-REQ-060` 돈 관리 화면(저축 · 가계부 · 팁, 데스크톱 + 모바일 따로 — 2026-11-04)** → `FE-REQ-048` 홈(카드 홈 데스크톱/모바일로 정정) · 함께 **`FE-REQ-061` 좁은 화면 안내 · `FE-REQ-062` 화면 움직임** — REQ 2026-11-04. **당김 2026-11-04**(사용자 "베스트 케이스"): 다음 칸 = 디자인 D1 — D1 `FE-REQ-051` 로고 + `FE-REQ-047` 틀 → D2 `FE-REQ-049` 상세 → D3 `FE-REQ-060` 돈 관리 화면 → D4 `FE-REQ-048` 홈 + `FE-REQ-061` 좁은 화면 안내. `FE-REQ-062` 움직임은 단계마다 그 화면에 같이 | 기능이 화면 칸을 정한 뒤에 틀을 입힌다. 규칙 `salt-microFe/.claude/rules/screen-desktop.md` · 지도 `requirements/specs/to-do/DESIGN-desktop-redesign-plan.md` |
+| **5** | 디자인 | `FE-REQ-051` 로고 → `FE-REQ-047` 틀(헤더 · 뒤로 · 탭 주소 · **2026-11-04 개정**: 도메인 사이드 · 글자색 대비 · 글꼴 · 모바일 분리) → `FE-REQ-049` 상세 재설계(국내 깨짐 B1~B11 · 탭 제목 실시간 가격) → **`FE-REQ-060` 돈 관리 화면(저축 · 가계부 · 팁, 데스크톱 + 모바일 따로 — 2026-11-04)** → `FE-REQ-048` 홈(카드 홈 데스크톱/모바일로 정정) · 함께 **`FE-REQ-061` 좁은 화면 안내 · `FE-REQ-062` 화면 움직임** — REQ 2026-11-04. ~~**당김 2026-11-04**(사용자 "베스트 케이스"): 다음 칸 = 디자인 D1 — D1 `FE-REQ-051` 로고 + `FE-REQ-047` 틀 → D2 `FE-REQ-049` 상세 → D3 `FE-REQ-060` 돈 관리 화면 → D4 `FE-REQ-048` 홈 + `FE-REQ-061` 좁은 화면 안내. `FE-REQ-062` 움직임은 단계마다 그 화면에 같이~~ **정정 2026-11-04: 당김 취소**(사용자 "기능부터 만들어야지") — 디자인은 다시 기능 뒤. ~~`FE-REQ-051` 로고~~ **done 2026-11-04**(사용자 "로고는 필요하니까", `F000-brand-logo-slice.md`) | 기능이 화면 칸을 정한 뒤에 틀을 입힌다. 규칙 `salt-microFe/.claude/rules/screen-desktop.md` · 지도 `requirements/specs/to-do/DESIGN-desktop-redesign-plan.md` |
 | **6** | 모바일 | F007 RN(`RN-REQ-001`~) · `screen-mobile.md` 규칙 | 웹 계약 확정 뒤(P4 원칙 그대로) |
 
 **정해진 날짜(작업 아님 · 확인만)**: 2026-11-03 410 로그 · 11-23 규칙 IC 라이브 · 11-25 시장 경고 라이브 통계 · 2027-02-08 뉴스 감성 라이브 통계 · 2027-05-17 도미넌스 라이브 통계.
@@ -249,6 +250,7 @@ flowchart TB
 | `FE-REQ-052` zone = 도메인(F0) | **done** 2026-11-02 | zone 앱 5(도메인 4 ~~빈 골격~~ — **정정 2026-11-02 F1: 투자 zone 이 투자 화면 서비스(`FE-REQ-053`), 셋은 골격**) · 레지스트리 `registry.json`(TS · CommonJS + 대조 테스트) · `hostedIn`(~~화면은 아직 셸~~ 저축만 셸 — 정정 2026-11-02) · 셸 rewrites 생성(경로 `fallback`) · lint/훅 도메인 축 4 · `web-tax` 삭제. 셸 공용 청크 105 → 105 kB. 남은 것은 `checklists/FE-REQ-052.md` §4 — 화면 이전 `FE-REQ-053` · `056` |
 | `FE-REQ-053` 투자 zone 분리(F1) | **done** 2026-11-02 | 투자 슬라이스 25 → `packages/domain-invest`(369 R100) · `apps/web-investment` 서비스 · `invest.hostedIn = web-investment` · shared → `packages/web-shared` · zone 공용 레이아웃(`@repo/web-shared/layout`) · `/coach/settings` · 이동 실측 Chromium 455 · WebKit 447ms(dev). 같이 고친 기존 결함 7 |
 | `FE-REQ-054` 앱 내비게이션(F2) | **done** 2026-11-03 | 이름 `AppNavigation`(사용자 결정) · 왼쪽 레일 72 / 하단 탭 / 머리 52 · 면 글리프(기준 레일 실측) · 탭 한 벌 `@repo/core/navigation` · prerender 규칙(로그인 · 다른 zone 탭) · 문서 간 전환 · `@repo/config-next` · 계측. 남은 것: ~~prerender 적중 · 녹화(`QA-001`)~~(2026-11-03 확인 — 적중 10/10 · 깜빡임 0) · ~~공용 청크 캐시 공유(`OPS-001` — 같은 청크 5개 · 117 KB 다시 받음)~~(같은 날 닫음 — `ADR-005` 규칙 7 개정) · 계측 수집처 · 배포 정적 저장소(`OPS-001` FR-12). `MONEY-F2-app-navigation-slice.md` |
+| `FE-REQ-051` 로고 | **done** 2026-11-04 | 소금 물방울(물결) · 은회색 입체 + 단색 두 벌(기준 원본 실측) · "Salt"(Poppins ExtraBold 경로) · `@repo/ui/logo` · 머리 첫 칸 24 · zone 5 `icon.svg` · `apple-icon.png` · `favicon.ico`(`pnpm brand:icons`). 남은 것: `ui-native` 로고(`RN-REQ-001`) · 상표 검색(사용자) · 실기기 홈 아이콘(`QA-001`) |
 | `FE-REQ-055` 셸 홈 카드 · `BFF-REQ-046` 홈 계약 | **in-progress** 2026-11-02 | `HomeSummaryCard[]`(BFF 조립 · 글자 대조 테스트 · 카드당 800ms · 401 은 홈 401) · 저축 · 투자 카드(숨김 끔 손익률 / 켬 종목 수 + "오늘 처음 본다면"). 남은 것: 순서 · 숨김 편집 · 온보딩 · 내 데이터 · 알림(S3) |
 | `SRV-REQ-043` Kotlin 플랫폼(S0) | **done** 2026-11-03 | `salt-platform/`(Boot 4.1.2 · Kotlin 2.3.21 · Modulith 2.1.2 · JDK 21) · 빈 서비스 `ping` 종단 · 경계 Modulith + ArchUnit(변이 5) · Express 골든 4 · Compose(BFF · Jaeger). FR-8 인스턴스 연결은 `SRV-REQ-049` |
 | `SRV-REQ-044` 이벤트 · 아웃박스 | **in-progress** 2026-11-03 | 서비스 스키마별 아웃박스 · 릴레이(포기 · 순서) · 계약 검증 · 멱등 · 데드레터 · 지표. 남은 것: 13종(단계마다) · 프로젝션 · 내부 REST · 경보 |
@@ -381,6 +383,8 @@ BFF `AppError` 선택 `code`(차트 주기 422 `MARKET_CHART_PERIOD_UNSUPPORTED`
 **로컬 전체 기동 · 상태 `OPS-002` (2026-11-02, 같은 브랜치 `feat/f008-explain-citations` — 사용자 "한 브랜치로 다해")** — 사용자 "전체 서버 다 키는 명령어가 필요" · "계속 머 까먹어서".
 `ops/salt.sh up | status | down | restart | logs | plist`. 뉴스 워커 · BFF REST · WS · 시세 워커를 서버 · 예측처럼 launchd 상시로. `status` 가 마지막 뉴스 · 시세 시각으로 "떠 있는데 안 모으는" 것을 잡는다.
 뉴스 302건 수집 확인(09-29 뒤 처음). launchd 등록 2026-11-02 10:07(사용자 "등록 니가 해줘") — 전부 상시 · 뉴스 · 시세 ok.
+
+**F000 로고 (FE, 2026-11-04, `feat/fe-req-051-brand-logo`) — done** — 사용자 "새브랜치 파고 다음 파이프라인 진행" → 디자인 D1 착수 중 "기능부터 만들어야지" · "로고는 필요하니까 진행". 틀(`FE-REQ-047`)은 빼고 로고만. 큐브 · 알갱이 셋 · 평면 시안이 거절된 뒤 실제 로고 SVG 19개(그라데이션 0 · 색 1~2 · 덩어리 하나)와 사용자가 준 기준 심볼 원본(.ai = 렌더 이미지 · 색상만 옮기는 입체 · 입체 + 단색 두 벌)을 재고 다섯째 후보 페이지에서 골랐다 — 소금 물방울 · 은회색 · "Salt". 모양 `@repo/tokens` `BRAND_MARK` · 색 `colors.brand.mark` 한 곳, 정적 아이콘은 토큰에서 생성(`pnpm brand:icons --check`). `25f182f6`. 루트 `requirements/specs/done/F000-brand-logo-slice.md` · 체크리스트 · 회고.
 
 **돈 관리 앱 F0 — zone = 도메인 (FE, 2026-11-02, `feat/fe-req-052-domain-zones`)** — 사용자 "새 브랜치 파고 다음꺼 파이프라인 진행". §4-1 순위 3 넷째 줄(슬라이스 24 2단계)은 공시 수집 `FC-REQ-026` 뒤라 막혀 3a 첫 줄 `FE-REQ-052`.
 범위 `MONEY-F0-domain-zones-slice.md`, 검증 `checklists/MONEY-F0-domain-zones.md`. `ADR-005` 를 실행되는 코드로: 레지스트리 `registry.json` 한 곳(TS · CommonJS 가 읽고 대조 테스트) ·
@@ -939,3 +943,5 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-04 | **가계부 S1a 슬라이스 done** — `MONEY-S1-household-entry-slice.md` → `done/`. 영역 REQ(`SRV-REQ-046` · `DB-REQ-038` · `BFF-REQ-048` · `FE-REQ-057`)는 남은 FR(S1b) 때문에 in-progress. 다음 칸 가계부 S1b 또는 `FE-REQ-013` FR-80 2단계 |
 | 2026-11-04 | 디자인 REQ 갱신(사용자 "REQ만 먼저") — `FE-REQ-047` 개정 · `048` 정정 · `049` 재확인 · 새 `FE-REQ-060`(돈 관리 화면, 데스크톱/모바일 별도) · `061`(좁은 화면 안내) · `062`(화면 움직임). 근거: 기준 공개 화면 재측정 · 공개 디자인 시스템 문서 · 우리 1440 실화면 · 대비 계산(실측 2단 .61 도 4.5 미달 → .64) |
 | 2026-11-04 | 디자인 결정(사용자 "베스트 케이스") — 다음 칸을 디자인으로 당김(D1 로고 + 틀 → D2 상세 → D3 돈 관리 → D4 홈 + 좁은 화면 안내, 움직임은 단계마다) · 좁은 화면 PC 그림 = 우리 화면 녹화 영상(`motion.md` 예외) · 호버 토큰 0.2s 신설 |
+| 2026-11-04 | **`FE-REQ-051` 로고 done** — 소금 물방울 · 은회색(입체 + 단색) · "Salt" · 머리 로고 · zone 5 파비콘(`25f182f6`). 같은 날 디자인 당김(D1~D4) 취소(사용자 "기능부터") — §4-1 순위 5 · `DESIGN-desktop-redesign-plan.md` 정정. 파일만 걸친 `FE-REQ-054` · `007` · `005` · `044` · `RN-REQ-001` 기록. 루트 `F000-brand-logo-slice.md` |
+| 2026-11-04 | **done 전 검사(`DEV-001`) — `F000-done-guardrails-slice.md` done.** 되풀이된 누락을 기계가 센다(`scripts/check-done.mjs` — 주인 REQ 문서 · 루트 슬라이스 · 마스터 인덱스 · 규칙 200줄 · 외부 서비스 이름) · 서버 lint 가 DB 오류 코드 분기를 막는다 · 사람 몫은 `.claude/rules/done-checklist.md`. **코드 리뷰 스킬은 쓰지 않는다**(사용자 결정) |

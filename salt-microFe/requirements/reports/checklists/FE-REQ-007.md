@@ -246,3 +246,7 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 
 - `@repo/core/auth` 에 `ACCESS_COOKIE` · `SESSION_ROUTE` — zone 은 셸과 같은 origin 이라 쿠키를 같이 받는다(이 REQ 의 "localStorage 라 zone 간 공유 안 됨" 주의의 첫 해소)
 - 실측: `/api/session` POST 204 + HttpOnly · 다른 사이트 403 · 모양 틀림 400 · DELETE 지움 · 셸 경유 `/goals` · `/goals/[id]` HTML 에 목표 이름 · 금액(쿠키 없으면 없음) · 브라우저 첫 진입에 쿠키 채움 · `document.cookie` 에 안 보임 · 수화 오류 0. 모노레포 check-types · lint · test · web · web-savings 빌드 · 훅
+
+## 2026-11-04 — 로고(`FE-REQ-051`) · `25f182f6`
+
+- 파일만 걸침 — 이 REQ 의 동작 · 값 diff 0. 모노레포 check-types · lint · test · zone 5 빌드 · 훅 통과(`checklists/FE-REQ-051.md`)

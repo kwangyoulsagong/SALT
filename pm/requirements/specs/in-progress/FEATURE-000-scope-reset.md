@@ -418,3 +418,4 @@ flowchart TB
 | 2026-11-02 | **운영 — 뉴스 워커 · BFF 시세 워커 상시화**(`OPS-002`, `ops/salt.sh`). 뉴스 수집이 09-29 부터 한 달 멈춰 있었다(사람이 띄우는 별도 프로세스). `SRV-REQ-010` · `BFF-REQ-009` 기록. 코드 무변경 |
 | 2026-11-02 | Q1(`apps/web-tax` 존폐) 닫음 — zone = 도메인(`ADR-005`), `web-tax` 삭제(`FE-REQ-052`). 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md` |
 | 2026-11-02 | `/search` 수화 불일치 수정(FR-40) · 관심 종목 시세 갱신 한 문장 UPDATE(연결 풀 점유 해소) · 웹 글꼴 404 수정 · 로그인 상태 `/` → 서버에서 `/home`. 투자 화면 투자 zone 으로. 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |
+| 2026-11-04 | 로고 `FE-REQ-051` done — 소금 물방울(은회색 입체 + 단색) · "Salt" · 머리 첫 칸 · zone 5 파비콘 · 앱 아이콘(`25f182f6`). 루트 `requirements/specs/done/F000-brand-logo-slice.md` |
