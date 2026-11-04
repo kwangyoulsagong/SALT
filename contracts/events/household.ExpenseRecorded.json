@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://salt.local/contracts/events/household.ExpenseRecorded.json",
   "title": "household.ExpenseRecorded",
-  "description": "지출을 적었다(SRV-REQ-046 FR-1 · FR-21). 가맹점 · 메모 · 결제 문자는 싣지 않는다. 구독 예정: savings 목표 지연 재계산(SRV-REQ-045 FR-17, 가계부 S1b)",
+  "description": "지출을 적었다(SRV-REQ-046 FR-1 · FR-21). 가맹점 · 메모 · 결제 문자는 싣지 않는다. 구독 예정: savings 목표 지연 재계산(SRV-REQ-045 FR-17 — ~~가계부 S1b~~ 저축 S2, 2026-11-04 정정: 목표 시계는 조회 API 로 충분)",
   "type": "object",
   "additionalProperties": false,
   "required": [
