@@ -1,6 +1,6 @@
 "use client";
 
-import { CATEGORY_LABEL, type HouseholdExpense } from "@/entities/expense";
+import { CATEGORY_LABEL, type HouseholdExpense } from "@/entities/household";
 
 import { useDeleteExpense } from "../api";
 import { RECORD_MESSAGES as M } from "../model";

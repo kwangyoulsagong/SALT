@@ -3,7 +3,7 @@
 import { EmptyState } from "@repo/ui/emptyState";
 import { Skeleton } from "@repo/ui/skeleton";
 
-import { EXPENSE_MESSAGES as E, useHouseholdBudget } from "@/entities/expense";
+import { EXPENSE_MESSAGES as E, useHouseholdBudget } from "@/entities/household";
 import { BudgetEditor } from "@/features/edit-budget";
 
 /** 지금 예산을 받아 편집기에 넣는다 — 받은 뒤에 그려야 입력 칸 초기값이 맞다 */

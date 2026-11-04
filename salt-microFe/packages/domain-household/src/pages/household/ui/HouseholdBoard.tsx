@@ -5,7 +5,7 @@ import { Skeleton } from "@repo/ui/skeleton";
 
 import { panel, panelDescription, panelTitle } from "@repo/web-shared/ui/surface.css";
 
-import { EXPENSE_MESSAGES as E, EnvelopeList, ExpenseList, LandingBox, MonthTotals, useHouseholdMonth, type HouseholdMonth } from "@/entities/expense";
+import { EXPENSE_MESSAGES as E, EnvelopeList, ExpenseList, LandingBox, MonthTotals, useHouseholdMonth, type HouseholdMonth } from "@/entities/household";
 import { DeleteExpenseButton } from "@/features/record-expense";
 
 import { HOUSEHOLD_PAGE as M } from "../model";

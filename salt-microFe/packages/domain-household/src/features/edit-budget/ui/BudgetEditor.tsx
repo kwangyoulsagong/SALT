@@ -8,7 +8,7 @@ import { TextField } from "@repo/ui/textField";
 
 import { parseAmountInput, useNumberFields } from "@repo/web-shared/lib";
 
-import { CATEGORY_LABEL, formatWon, type BudgetMethodKey, type CategoryKey, type HouseholdBudget } from "@/entities/expense";
+import { CATEGORY_LABEL, formatWon, type BudgetMethodKey, type CategoryKey, type HouseholdBudget } from "@/entities/household";
 
 import { useSetBudget } from "../api";
 import { BUDGET_MESSAGES as M } from "../model";

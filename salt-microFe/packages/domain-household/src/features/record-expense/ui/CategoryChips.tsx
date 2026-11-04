@@ -2,7 +2,7 @@
 
 import { Chip } from "@repo/ui/chip";
 
-import { CATEGORY_LABEL, type CategoryKey } from "@/entities/expense";
+import { CATEGORY_LABEL, type CategoryKey } from "@/entities/household";
 
 import { RECORD_MESSAGES as M } from "../model";
 import * as s from "./record.css";

@@ -68,8 +68,8 @@ const REGISTRY = {
     "device",
     // 셸 홈 요약 카드 조회 · 표시 — 도메인을 모르는 카드 계약(`FE-REQ-055`)
     "home",
-    // 가계부 지출 · 봉투 · 착지 구간(`FE-REQ-057`, 2026-11-04 — 서버 `household`)
-    "expense",
+    // 가계부 — 지출 · 봉투 · 착지 구간(`FE-REQ-057`, 2026-11-04). 서버 컨텍스트와 같은 이름(루트 CLAUDE.md)
+    "household",
   ],
   features: [
     "ask-coach",

@@ -68,7 +68,7 @@ export const EXPENSE_MESSAGES = {
 export const LANDING_MESSAGES = {
   title: "이번 달 끝에는",
   range: (low: string, high: string) => `${low} ~ ${high} 사이로 보여요`,
-  note: "지금까지 쓴 돈 + 지난 날들의 쓰는 속도로 본 10 · 90% 구간이에요. 한 점으로 단정하지 않아요",
+  note: "어제까지 쓴 돈 + 지난 날들의 쓰는 속도로 본 오늘부터 말일까지의 10 · 90% 구간이에요. 한 점으로 단정하지 않아요",
   historyShort: (days: number) => `기록한 날이 14일이 되면 구간을 보여 드려요(지금 ${days}일)`,
   monthOver: "오늘이 이 달 마지막 날이에요",
   notCurrent: "지난 달은 실제로 쓴 돈만 보여요",

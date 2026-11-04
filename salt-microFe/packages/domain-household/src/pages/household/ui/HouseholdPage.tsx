@@ -5,7 +5,7 @@ import { ROUTES } from "@repo/web-shared/config";
 import { BlockBoundary } from "@repo/web-shared/ui";
 import { panelDescription, panelTitle } from "@repo/web-shared/ui/surface.css";
 
-import { formatMonth } from "@/entities/expense";
+import { formatMonth } from "@/entities/household";
 
 import { serverMonth } from "../api";
 import { HOUSEHOLD_PAGE as M, currentMonth, isMonth, shiftMonth } from "../model";

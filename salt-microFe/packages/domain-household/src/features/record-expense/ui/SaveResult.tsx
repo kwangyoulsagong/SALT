@@ -1,6 +1,6 @@
 "use client";
 
-import { GoalClockLine, envelopeLabel, formatWon, useGoalClockRetry, type RecordResult } from "@/entities/expense";
+import { GoalClockLine, envelopeLabel, formatWon, useGoalClockRetry, type RecordResult } from "@/entities/household";
 
 import { RECORD_MESSAGES as M } from "../model";
 import * as s from "./record.css";
@@ -11,12 +11,13 @@ import * as s from "./record.css";
  */
 export const SaveResult = ({ result }: { result: RecordResult }) => {
   const retry = useGoalClockRetry(result.goalClock.state === "pending" ? result.savedTotal : null);
-  const clock = result.goalClock.state === "pending" && retry.data ? retry.data : result.goalClock;
+  // 다시 물어도 못 받으면 "계산 중"에 멈추지 않고 줄을 지운다(리뷰 2026-11-04) — 저장은 이미 끝났다
+  const clock = result.goalClock.state !== "pending" ? result.goalClock : retry.data ?? (retry.isError ? null : result.goalClock);
   return (
     <div className={s.result} role="status">
       <span className={s.value}>{M.saved}</span>
       {result.envelope ? <span className={s.hint}>{M.envelopeAfter(envelopeLabel(result.envelope.key), formatWon(result.envelope.remaining))}</span> : null}
-      <GoalClockLine clock={clock} />
+      {clock ? <GoalClockLine clock={clock} /> : null}
     </div>
   );
 };

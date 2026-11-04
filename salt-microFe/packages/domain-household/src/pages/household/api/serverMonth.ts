@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 
 import { ACCESS_COOKIE, INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
-import type { HouseholdMonth } from "@/entities/expense";
+import type { HouseholdMonth } from "@/entities/household";
 
 /** 서버 조회 상한 — 넘으면 비우고 브라우저가 부른다(첫 화면을 붙잡지 않는다) */
 const SERVER_FETCH_TIMEOUT_MS = 1_500;

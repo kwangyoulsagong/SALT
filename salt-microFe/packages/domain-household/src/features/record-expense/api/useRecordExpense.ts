@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { householdApi, householdQueryKeys, householdRequest, type ExpenseRequest, type ParseResult, type RecordResult } from "@/entities/expense";
+import { householdApi, householdQueryKeys, householdRequest, type ExpenseRequest, type ParseResult, type RecordResult } from "@/entities/household";
 
 /** 쓰기는 재시도하지 않는다(중복 지출). 성공하면 가계부 조회(월 · 제안)를 다시 받는다 */
 export const useRecordExpense = () => {

@@ -8,7 +8,7 @@ import { TextField } from "@repo/ui/textField";
 import { isApiError } from "@repo/web-shared/api";
 import { labelOr } from "@repo/web-shared/lib";
 
-import { formatWon, type CategoryKey } from "@/entities/expense";
+import { formatWon, type CategoryKey } from "@/entities/household";
 
 import { useParseInput, useRecordExpense } from "../api";
 import { RECORD_MESSAGES as M } from "../model";

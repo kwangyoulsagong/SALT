@@ -11,7 +11,7 @@ import { TextField } from "@repo/ui/textField";
 import { isApiError } from "@repo/web-shared/api";
 import { labelOr, parseAmountInput, todayInKorea, useNumberFields } from "@repo/web-shared/lib";
 
-import { formatWon, useHouseholdSuggestions, type CategoryKey, type PaymentMethodKey } from "@/entities/expense";
+import { formatWon, useHouseholdSuggestions, type CategoryKey, type PaymentMethodKey } from "@/entities/household";
 
 import { useRecordExpense } from "../api";
 import { RECORD_MESSAGES as M } from "../model";
