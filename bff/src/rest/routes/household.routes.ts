@@ -33,6 +33,9 @@ router.get("/settings/work-hours", authMiddleware, appHouseholdController.workHo
 router.put("/settings/work-hours", authMiddleware, appHouseholdController.setWorkHours);
 router.put("/no-spend/:date", authMiddleware, appHouseholdController.markNoSpend);
 router.delete("/no-spend/:date", authMiddleware, appHouseholdController.unmarkNoSpend);
+// 고정비 찾기(가계부 S1e) — 후보 목록은 월 화면 fixedCosts
+router.post("/fixed-costs/hide", authMiddleware, appHouseholdController.hideFixedCost);
+router.post("/fixed-costs/show", authMiddleware, appHouseholdController.showFixedCost);
 // 내가 고르는 챌린지(가계부 S1d) — 보태기는 가계부 · 저축 두 서비스(순서는 서비스 주석)
 router.get("/challenges", authMiddleware, appHouseholdController.challenges);
 router.post("/challenges", authMiddleware, appHouseholdController.startChallenge);

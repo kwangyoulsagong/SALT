@@ -35,6 +35,26 @@ export interface HouseholdExpenseVM {
   feeling: HouseholdFeelingVM | null;
   /** 근무 분 — 노동시간 환산을 켰을 때만(서버 계산) */
   workMinutes: number | null;
+  /** 평소보다 큰 지출이면 그 분류의 앞 90일 중앙값(가계부 S1e — 월 화면에만, 서버 판정). 아니면 null · 저장 응답엔 null */
+  typicalAmount?: number | null;
+}
+
+/**
+ * 고정비 후보(가계부 S1e) — 서버가 찾은 것 그대로. key 는 숨기기 · 되돌리기에 그대로 보낸다.
+ * increase 는 앞 회차보다 5% 이상 올랐을 때만(문턱은 서버). 나머지 칸은 반복 템플릿 만들기에 그대로 쓴다
+ */
+export interface HouseholdFixedCostVM {
+  key: string;
+  merchant: string;
+  category: string;
+  paymentMethod: string;
+  lastAmount: number;
+  previousAmount: number;
+  increase: number | null;
+  lastOn: string;
+  nextOn: string;
+  dayOfMonth: number;
+  count: number;
 }
 
 /** 감정 태그 — emotion 키 · 산 직후 · 다음 날(1~5). nextDecided 인데 feltNext 가 null 이면 넘김 */
@@ -317,6 +337,8 @@ export interface HouseholdMonthVM {
   calendar: { days: HouseholdCalendarDayVM[]; noSpendDays: number; challengeDays: number };
   /** 노동시간 — 켰을 때만 */
   workHours: { hourly: number; totalMinutes: number } | null;
+  /** 고정비 후보 — 이번 달 화면에만(가계부 S1e). 다음 예정일 순 */
+  fixedCosts: HouseholdFixedCostVM[];
 }
 
 /** 홈 카드가 쓰는 서버 숫자(`GET /household/home-card`) */
@@ -464,6 +486,17 @@ class AppHouseholdService {
 
   async unmarkNoSpend(token: string, date: string): Promise<{ date: string }> {
     return data(await backendApi.proxyAuthRequest("DELETE", `/household/no-spend/${encodeURIComponent(date)}`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  // ---------- 고정비 찾기(가계부 S1e) ----------
+
+  /** "고정비 아니에요" — 키는 본문으로(경로 조각에 한글 · 기호를 싣지 않는다). 키 검사는 서버(400) */
+  async hideFixedCost(token: string, body: unknown): Promise<{ key: string }> {
+    return data(await backendApi.proxyAuthRequest("POST", "/household/fixed-costs/hide", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async showFixedCost(token: string, body: unknown): Promise<{ key: string }> {
+    return data(await backendApi.proxyAuthRequest("POST", "/household/fixed-costs/show", token, body, { timeout: WRITE_TIMEOUT_MS }));
   }
 
   // ---------- 내가 고르는 챌린지(가계부 S1d) ----------
