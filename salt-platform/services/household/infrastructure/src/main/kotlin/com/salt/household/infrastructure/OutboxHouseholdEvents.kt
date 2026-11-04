@@ -1,6 +1,7 @@
 package com.salt.household.infrastructure
 
 import com.salt.household.domain.Expense
+import com.salt.household.domain.FixedCostIncrease
 import com.salt.household.domain.HouseholdEvents
 import com.salt.household.domain.IssuedLanding
 import com.salt.household.domain.MonthClose
@@ -67,9 +68,26 @@ class OutboxHouseholdEvents(private val outbox: OutboxWriter) : HouseholdEvents 
         )
     }
 
+    /** 가맹점 · 메모 0 — 분류 · 금액 · 달만(가계부 S1e 판단 5). 구독 예정: content 때맞춘 팁(S2) */
+    override fun fixedCostIncreased(increase: FixedCostIncrease) {
+        outbox.append(
+            FIXED_COST_INCREASED,
+            mapOf(
+                "increaseId" to increase.id.toString(),
+                "userId" to increase.userId,
+                "month" to increase.month.toString(),
+                "category" to increase.category.key,
+                "previous" to increase.previous.toStorageString(),
+                "current" to increase.current.toStorageString(),
+                "detectedAt" to increase.detectedAt.toString(),
+            ),
+        )
+    }
+
     companion object {
         const val EXPENSE_RECORDED = "household.ExpenseRecorded"
         const val LANDING_ISSUED = "household.LandingIssued"
         const val MONTH_CLOSED = "household.MonthClosed"
+        const val FIXED_COST_INCREASED = "household.FixedCostIncreased"
     }
 }

@@ -150,6 +150,9 @@ interface RecurringTemplates {
 
     fun countActive(userId: String): Int
 
+    /** 살아 있는 템플릿 이름 — 고정비 후보에서 이미 옮긴 것을 뺀다(가계부 S1e) */
+    fun activeNames(userId: String): List<String>
+
     /** 살아 있는 템플릿 + [month] 예정 행 — 한 문장(left join) */
     fun activeWithOccurrence(userId: String, month: YearMonth): List<TemplateWithOccurrence>
 }

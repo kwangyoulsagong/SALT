@@ -61,6 +61,9 @@ interface HouseholdEvents {
 
     /** 처음 닫을 때 한 번(S1b FR-9). 답 글은 싣지 않는다(판단 7) */
     fun monthClosed(close: MonthClose, totals: MonthTotals)
+
+    /** 고정비가 앞 회차보다 올랐다 — 가맹점 · 달마다 한 번(S1e FR-21). 가맹점은 싣지 않는다 */
+    fun fixedCostIncreased(increase: FixedCostIncrease)
 }
 
 class ExpenseNotFound(id: String) : DomainError("EXPENSE_NOT_FOUND", ErrorKind.NOT_FOUND, "Expense not found", mapOf("expenseId" to id))

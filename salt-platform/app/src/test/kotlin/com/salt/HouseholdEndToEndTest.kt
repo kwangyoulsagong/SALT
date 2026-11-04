@@ -263,7 +263,7 @@ class HouseholdEndToEndTest {
     }
 
     @Test
-    fun `쿼리 수 — 월 화면 17 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
+    fun `쿼리 수 — 월 화면 21 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
         val user = "q-${UUID.randomUUID()}"
         call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"food":300000}}""").statusCode() shouldBe 200
         var before = statements()
@@ -283,7 +283,8 @@ class HouseholdEndToEndTest {
         // + S1b: 마감 1(안 닫은 달 — 닫았으면 사본 봉투 1 더하고 예산 2 빠짐) · 예정 행 1(착지와 나눠 씀) · 할부 1 = 11
         // + S1c: 태그(목록 · 거울 한 문장) · 달력 날별 합 · 스티커 · 설정 · 다음 날 묻기(이번 달만) = 16
         // + S1d: 챌린지 한 날(달력) = 17
-        month shouldBe 17L
+        // + S1e: 고정비 표본 · 숨긴 키 · 템플릿 이름 · 분류 기준(이상치) = 21
+        month shouldBe 21L
         // 저장: 행 · 아웃박스 · 월 합 · 착지 2 · 발행 · 아웃박스(그날 처음) · 예산 2 = 9. 두 번째는 발행이 ON CONFLICT 로 빈 문장이 되고 그 아웃박스가 빠져 8
         // (그날 이미 냈어도 착지를 다시 계산하는 3문장은 리뷰가 짚은 낭비 — 쓰기 응답 몫이라 남김, 루트 체크리스트 §4)
         // + S1b: 착지 예정 행 1 · + S1c: 설정(노동시간) 1 — 감정 태그를 달면 태그 1 더
@@ -766,6 +767,73 @@ class HouseholdEndToEndTest {
         override fun executeStart(ctx: org.jooq.ExecuteContext) {
             if (active.get()) count.incrementAndGet()
         }
+    }
+
+    @Test
+    fun `고정비 — 세 번 · 한 달 간격이면 후보 · 5퍼센트 넘게 오르면 FixedCostIncreased 가맹점 · 달마다 한 번 · 숨기기 · 템플릿이면 빠짐`() {
+        val user = "fc-${UUID.randomUUID()}"
+        fun save(amount: Long, back: Long, merchant: String = "통신 사") =
+            data(call("POST", "/api/household/expenses", user, """{"amount":$amount,"category":"telecom","merchant":"$merchant","spentOn":"${today.minusDays(back)}"}"""))
+        save(50_000, 62)
+        save(50_000, 32)
+        eventTypes(user).count { it == "household.FixedCostIncreased" } shouldBe 0
+        val third = save(55_000, 2).path("expenses").get(0).path("id").asString()
+        eventTypes(user).count { it == "household.FixedCostIncreased" } shouldBe 1
+        val payload = householdDatabase.dsl.fetchOne(
+            "SELECT payload::text FROM outbox WHERE event_type = 'household.FixedCostIncreased' AND payload->>'userId' = ?", user,
+        )!!.get(0, String::class.java)
+        payload shouldContain "\"previous\": \"50000\""
+        payload shouldContain "\"category\": \"telecom\""
+        // 가맹점은 싣지 않는다(판단 5)
+        payload shouldNotContain "통신"
+
+        val month = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null))
+        val fc = month.path("fixedCosts").get(0)
+        fc.path("key").asString() shouldBe "통신사"
+        fc.path("lastAmount").asLong() shouldBe 55_000
+        fc.path("increase").asLong() shouldBe 5_000
+        fc.path("count").asInt() shouldBe 3
+        fc.path("nextOn").asString() shouldBe today.minusDays(2).plusMonths(1).toString()
+
+        // 지우고 다시 적어도 같은 달이면 다시 나가지 않는다
+        call("DELETE", "/api/household/expenses/$third", user, null).statusCode() shouldBe 200
+        save(55_000, 2)
+        eventTypes(user).count { it == "household.FixedCostIncreased" } shouldBe 1
+
+        // 숨기기 · 되돌리기 — 키는 서버가 준 그대로만
+        call("POST", "/api/household/fixed-costs/hide", user, """{"key":"통신 사"}""").statusCode() shouldBe 400
+        call("POST", "/api/household/fixed-costs/hide", user, """{"key":"통신사"}""").statusCode() shouldBe 200
+        call("POST", "/api/household/fixed-costs/hide", user, """{"key":"통신사"}""").statusCode() shouldBe 200
+        data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("fixedCosts").size() shouldBe 0
+        call("POST", "/api/household/fixed-costs/show", user, """{"key":"통신사"}""").statusCode() shouldBe 200
+        data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("fixedCosts").size() shouldBe 1
+
+        // 반복 템플릿으로 옮기면(이름 = 가맹점) 후보에서 빠진다
+        call(
+            "POST", "/api/household/templates", user,
+            """{"name":"${fc.path("merchant").asString()}","amount":55000,"category":"telecom","dayOfMonth":${fc.path("dayOfMonth").asInt()}}""",
+        ).statusCode() shouldBe 201
+        data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("fixedCosts").size() shouldBe 0
+        // 지난 달 화면엔 후보 칸이 비어 있다(지금 기준)
+        data(call("GET", "/api/household/month/${YearMonth.from(today).minusMonths(1)}", user, null)).path("fixedCosts").size() shouldBe 0
+    }
+
+    @Test
+    fun `평소보다 큰 지출 — 그달 앞 90일 분류 중앙값의 3배 이상이면 typicalAmount · 표본 5개 미만이면 없음`() {
+        val user = "un-${UUID.randomUUID()}"
+        fun save(amount: Long, back: Long) =
+            data(call("POST", "/api/household/expenses", user, """{"amount":$amount,"category":"food","spentOn":"${today.minusDays(back)}"}"""))
+        // 그달 1일 전(지난 달 이전)에 표본 넷 — 아직 부족
+        listOf(9_000L, 10_000L, 10_000L, 12_000L).forEachIndexed { i, a -> save(a, 40L + i) }
+        save(30_000, 0)
+        fun big() = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("expenses").first { it.path("amount").asLong() == 30_000L }
+        big().path("typicalAmount").isNull shouldBe true
+        save(11_000, 45)
+        big().path("typicalAmount").asLong() shouldBe 10_000
+        // 저장 응답에는 싣지 않는다(월 화면 몫)
+        save(29_999, 0).path("expenses").get(0).path("typicalAmount").isNull shouldBe true
+        data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("expenses")
+            .first { it.path("amount").asLong() == 29_999L }.path("typicalAmount").isNull shouldBe true
     }
 
     @org.springframework.boot.test.context.TestConfiguration
