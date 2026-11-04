@@ -71,8 +71,7 @@ const depthDrop = ({ ripples = true } = {}) => {
 
 const svgDoc = (viewBox, width, height, body) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${width}" height="${height}" role="img" aria-label="SALT">\n${body}\n</svg>\n`;
-/** 단색 물방울(16px 파비콘) — 입체가 뭉개지는 크기 */
-/** 입체 물방울(icon.svg · 32px) — 물결 없음 */
+/** 입체 물방울(icon.svg · ICO 16 · 32) — 물결 없음 */
 const depthDropSvg = () => svgDoc(M.symbolViewBox.dropOnly, 32, 32, depthDrop({ ripples: false }));
 /** 입체 + 물결(앱 아이콘 · 문서 사본) */
 const depthSvg = () => svgDoc(M.symbolViewBox.withRipples, 200, 200, depthDrop());
@@ -101,7 +100,7 @@ const appleIcon = async () => {
     .toBuffer();
 };
 
-/** ICO — PNG 를 그대로 담는 항목 둘(16 단색 · 32 입체) */
+/** ICO — PNG 를 그대로 담는 항목 둘(16 · 32 — 둘 다 입체) */
 const ico = (entries) => {
   const header = Buffer.alloc(6);
   header.writeUInt16LE(0, 0);

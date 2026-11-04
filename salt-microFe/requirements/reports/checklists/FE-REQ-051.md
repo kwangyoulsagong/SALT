@@ -7,7 +7,7 @@
 - [x] FR-2 머리 첫 칸 `HeaderBrand` → `/home`(링크 이름 "SALT 홈", 그림 `aria-hidden`). 실화면(dev 3000): 1440 글자 로고 61×24 보임 · 심볼 숨김 / 900 글자 로고 숨김 · 심볼 24×24 보임. 셸 · 투자 · 저축 · 가계부 · 404 서버 HTML 에 `data-logo` 둘
 - [x] FR-3 zone 5 `icon.svg` · `apple-icon.png`(180) · `favicon.ico`(16 · 32 PNG 항목) — 서버 HTML `<link rel="icon" href="/icon.svg?2ad3dc145762f316">` 가 zone 다섯 곳 같은 해시 · `apple-touch-icon` 180
 - [x] FR-4 hex 는 `@repo/tokens` 한 곳 — `Logo.tsx` · `Logo.css.ts` · `generate-brand-icons.mjs` 에 색 리터럴 0. `pnpm brand:icons --check` "18개 — 토큰과 같다"
-- [x] FR-5 16(단색) · 20 · 24 · 32 · 128 렌더 대조(sharp) — 16 은 블러가 뭉개져 단색, 물결은 큰 자리만
+- [x] FR-5 16(단색) · 20 · 24 · 32 · 128 렌더 대조(sharp) — 16 은 블러가 뭉개져 단색, 물결은 큰 자리만(**정정 2026-11-04: 파비콘은 사용자 결정으로 16 도 입체 — 아래 절**)
 - [ ] FR-6 `ui-native` 컴포넌트 — 범위 밖(아래 표)
 
 ### 검증

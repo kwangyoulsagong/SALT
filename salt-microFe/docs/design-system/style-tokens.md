@@ -56,7 +56,7 @@ import { vars } from "@repo/ui/tokens";
 | `vars.colors.brand.light` | `#9B7FFF` |
 | `vars.colors.brand.lighter` | `#E5DBFF` |
 | `vars.colors.brand.mark.{hi,light,mid,deep,shadow}` | `#F7F9FC` · `#E6E8ED` · `#CBCFD6` · `#ABAFB8` · `#969AA3` — 로고 은회색 입체(`FE-REQ-051`). 로고 · 파비콘 밖 금지 |
-| `vars.colors.brand.mark.flat` | `#83868F` — 로고 단색(16px · 흰 바탕 3.64:1) |
+| `vars.colors.brand.mark.flat` | `#83868F` — 로고 단색(한 색 자리 · 흰 바탕 3.64:1 — 파비콘은 입체) |
 | `vars.colors.action.primary` | `#687AD7` |
 | `vars.colors.action.hover` | `#5A6BC4` |
 | `vars.colors.action.active` | `#4C5CB1` |

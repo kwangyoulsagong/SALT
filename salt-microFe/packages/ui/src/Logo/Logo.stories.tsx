@@ -10,7 +10,7 @@ const meta = {
     variant: { control: "inline-radio", options: ["full", "symbol"], description: "글자 로고 · 심볼만" },
     size: { control: "inline-radio", options: ["xs", "sm", "md", "lg"], description: "높이 16 · 20 · 24 · 32" },
     theme: { control: "inline-radio", options: ["light", "dark"], description: "바탕 — 글자색만 바뀐다" },
-    depth: { control: "boolean", description: "입체(기본) — 끄면 단색(16px · 한 색 자리)" },
+    depth: { control: "boolean", description: "입체(기본) — 끄면 단색(한 색 자리)" },
     ripples: { control: "boolean", description: "심볼 아래 물결(심볼만 · 큰 자리)" },
     decorative: { control: "boolean", description: "이름이 붙은 링크 안이면 화면 리더에서 뺀다" },
   },
@@ -26,7 +26,7 @@ export const Default: Story = {};
 /** 심볼만 — 1024 미만 머리 */
 export const Symbol: Story = { args: { variant: "symbol", size: "md" } };
 
-/** 단색 — 16px 파비콘 · 한 색 자리 */
+/** 단색 — 한 색 자리(파비콘은 입체) */
 export const Flat: Story = { args: { variant: "symbol", size: "xs", depth: false } };
 
 /** 입체 + 물결 — 앱 아이콘 · 큰 자리. 크기는 CSS 로 키운다(height 토큰은 32 까지) */
