@@ -35,6 +35,18 @@ export const useHouseholdSuggestions = () => {
   });
 };
 
+/** 분류 표(가계부 S1f) — 칩 · 내 분류 이름. [enabled] false 면 부르지 않는다(월 화면처럼 이미 받은 표가 있을 때) */
+export const useHouseholdCategories = (enabled = true) => {
+  const signedIn = useHasAccessToken();
+  const query = useQuery({
+    queryKey: householdQueryKeys.categories(),
+    queryFn: ({ signal }) => householdApi.categories(signal),
+    enabled: enabled && signedIn === true,
+    staleTime: SUGGEST_STALE_MS,
+  });
+  return { ...query, isSignedOut: signedIn === false };
+};
+
 export const useRecurringTemplates = () => {
   const signedIn = useHasAccessToken();
   const query = useQuery({

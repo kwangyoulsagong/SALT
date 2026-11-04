@@ -2,7 +2,8 @@
  * 가계부 화면 계약 — BFF `bff/src/services/app-household.service.ts` 와 같은 모양(`BFF-REQ-048`).
  * **숫자는 전부 서버 값**이다(금액 · 봉투 잔액 · 하루 가용 · 착지 구간). 화면은 표시만 — 더하거나 나누지 않는다.
  */
-export type CategoryKey =
+/** 기본 분류 12개 — 이름은 `CATEGORY_LABEL`(프론트) */
+export type DefaultCategoryKey =
   | "food"
   | "cafe"
   | "transport"
@@ -15,6 +16,31 @@ export type CategoryKey =
   | "culture"
   | "gift"
   | "other";
+
+/** 분류 키 — 기본 12 또는 내 분류(서버가 짓는 `u_` + 12자리, 가계부 S1f). 내 분류 이름은 서버 값 */
+export type CategoryKey = DefaultCategoryKey | `u_${string}`;
+
+export type BucketKey = "needs" | "wants";
+
+/** 분류 표 한 칸 — 기본 분류는 name null. archived 는 보관한 내 분류(고르는 칸엔 없고 지난 지출 이름에만) */
+export interface HouseholdCategory {
+  key: CategoryKey;
+  bucket: BucketKey;
+  name: string | null;
+  custom: boolean;
+  archived: boolean;
+}
+
+export interface HouseholdCategories {
+  categories: HouseholdCategory[];
+  /** 보관하지 않은 내 분류 상한(서버 값) */
+  limit: number;
+}
+
+export interface CategoryRequest {
+  name: string;
+  bucket: BucketKey;
+}
 
 export type PaymentMethodKey = "card" | "cash" | "transfer" | "other";
 export type PrecisionKey = "exact" | "approx";
@@ -128,16 +154,23 @@ export interface ParseResult {
 
 export interface HouseholdSuggestions {
   merchants: Array<{ merchant: string; category: CategoryKey; lastAmount: number; count: number }>;
-  categories: Array<{ key: CategoryKey; bucket: "needs" | "wants" }>;
+  /** 고를 수 있는 분류 — 기본 12 + 보관 안 한 내 분류 */
+  categories: HouseholdCategory[];
   emotions: EmotionKey[];
 }
 
-export type BudgetMethodKey = "50_30_20" | "envelope";
+export type BudgetMethodKey = "50_30_20" | "envelope" | "account_split";
+
+/** 통장 쪼개기의 통장 키(가계부 S1f) — salary 는 서버 계산(소득 − 셋), 나머지 셋은 사용자가 넣는다 */
+export type AccountKey = "salary" | "spending" | "saving" | "emergency";
 
 export interface HouseholdBudget {
   method: BudgetMethodKey;
   income: number | null;
   savingsShare: number | null;
+  /** 통장 쪼개기의 급여 통장 몫(서버 계산). 다른 방식이면 null */
+  salaryShare: number | null;
+  /** 저장한 값 — 통장 쪼개기면 spending · saving · emergency */
   envelopes: Array<{ key: string; amount: number }>;
   total: number | null;
   updatedAt: string;
@@ -146,7 +179,8 @@ export interface HouseholdBudget {
 export interface BudgetRequest {
   method: BudgetMethodKey;
   income?: number;
-  envelopes?: Partial<Record<CategoryKey, number>>;
+  /** 봉투면 분류 키 → 금액, 통장 쪼개기면 spending · saving · emergency → 금액 */
+  envelopes?: Record<string, number>;
 }
 
 export interface HouseholdLanding {
@@ -311,6 +345,8 @@ export interface HouseholdMonth {
   current: boolean;
   totals: { total: number; exact: number; approx: number; count: number };
   byCategory: Array<{ key: CategoryKey; bucket: string; spent: number }>;
+  /** 분류 표 — 보관 포함(가계부 S1f). 내 분류 이름은 여기서 */
+  categories: HouseholdCategory[];
   budget: HouseholdBudget | null;
   envelopes: HouseholdEnvelope[];
   unbudgeted: number | null;

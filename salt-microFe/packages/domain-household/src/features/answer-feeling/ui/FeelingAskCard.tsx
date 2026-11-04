@@ -6,7 +6,7 @@ import { Button } from "@repo/ui/button";
 
 import { hasApiStatus } from "@repo/web-shared/api";
 
-import { CATEGORY_LABEL, EMOTION_LABEL, FeltScale, formatWon, type FeelingAsk } from "@/entities/household";
+import { EMOTION_LABEL, FeltScale, formatWon, useCategoryLabel, type FeelingAsk } from "@/entities/household";
 
 import { useAnswerFeeling } from "../api";
 import { ANSWER_MESSAGES as M } from "../model";
@@ -18,6 +18,7 @@ import * as s from "./answer.css";
  */
 export const FeelingAskCard = ({ ym, asks }: { ym: string; asks: FeelingAsk[] }) => {
   const answer = useAnswerFeeling(ym);
+  const categories = useCategoryLabel();
   const [last, setLast] = useState<"answered" | null>(null);
   if (asks.length === 0 && !last && !answer.isError) return null;
 
@@ -28,7 +29,7 @@ export const FeelingAskCard = ({ ym, asks }: { ym: string; asks: FeelingAsk[] })
           <h2 className={s.title}>{M.askTitle}</h2>
           <ul className={s.list}>
             {asks.map((a) => {
-              const what = a.merchant ?? CATEGORY_LABEL[a.category];
+              const what = a.merchant ?? categories.category(a.category);
               const label = M.askLine(EMOTION_LABEL[a.emotion], what, formatWon(a.amount));
               const busy = answer.isPending && answer.variables?.expenseId === a.expenseId;
               return (

@@ -110,6 +110,8 @@ const REGISTRY = {
     "track-challenge",
     // 가계부 S1e(2026-11-04) — 고정비 찾기: 반복으로 옮기기 · 아니에요 숨기기 · 되돌리기
     "find-fixed-cost",
+    // 가계부 S1f(2026-11-05) — 내 분류 만들기 · 고치기 · 지우기(보관)
+    "manage-categories",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",

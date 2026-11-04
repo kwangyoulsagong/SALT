@@ -6,6 +6,7 @@ import { Skeleton } from "@repo/ui/skeleton";
 import { panel, panelDescription, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import {
+  CategoryNamesProvider,
   EXPENSE_MESSAGES as E,
   EnvelopeList,
   ExpenseList,
@@ -37,31 +38,34 @@ export const HouseholdBoard = ({ ym, initial }: { ym: string; initial: Household
   if (month.isError) return <EmptyState title={E.loadFailed} tone="error" />;
   if (!month.data) return <Skeleton height={240} />;
   const m = month.data;
+  // 내 분류 이름은 월 화면이 이미 받은 표로(가계부 S1f) — 서버 HTML 부터 이름이 맞고 분류 표를 따로 부르지 않는다
   return (
-    <div className={s.grid}>
-      <div className={s.column}>
-        <MonthTotals month={m} />
-        {m.current ? <RecurringAskCard items={m.recurring.items} /> : null}
-        {m.current ? <FeelingAskCard ym={m.month} asks={m.feelings.asks} /> : null}
-        {m.current ? <LandingBox month={m} /> : null}
-        {m.current ? <FixedCostCard costs={m.fixedCosts} /> : null}
-        <section className={panel} aria-label={E.envelopes}>
-          <h2 className={panelTitle}>{E.envelopes}</h2>
-          {m.budget ? <EnvelopeList envelopes={m.envelopes} unbudgeted={m.unbudgeted} /> : <p className={panelDescription}>{E.noBudget}</p>}
+    <CategoryNamesProvider categories={m.categories}>
+      <div className={s.grid}>
+        <div className={s.column}>
+          <MonthTotals month={m} />
+          {m.current ? <RecurringAskCard items={m.recurring.items} /> : null}
+          {m.current ? <FeelingAskCard ym={m.month} asks={m.feelings.asks} /> : null}
+          {m.current ? <LandingBox month={m} /> : null}
+          {m.current ? <FixedCostCard costs={m.fixedCosts} /> : null}
+          <section className={panel} aria-label={E.envelopes}>
+            <h2 className={panelTitle}>{E.envelopes}</h2>
+            {m.budget ? <EnvelopeList envelopes={m.envelopes} unbudgeted={m.unbudgeted} /> : <p className={panelDescription}>{E.noBudget}</p>}
+          </section>
+          <InstallmentBand installments={m.installments} />
+          <MonthReview key={`${m.month}-${m.close?.closedAt ?? "open"}`} month={m} />
+          <MarkableCalendar month={m} />
+          <FeelingMirror mirror={m.feelings.mirror} />
+        </div>
+        <section className={panel} aria-label={E.list}>
+          <h2 className={panelTitle}>{E.list}</h2>
+          {m.expenses.length === 0 ? (
+            <EmptyState title={M.emptyTitle} description={M.emptyDescription} />
+          ) : (
+            <ExpenseList expenses={m.expenses} action={(expense) => <DeleteExpenseButton expense={expense} />} />
+          )}
         </section>
-        <InstallmentBand installments={m.installments} />
-        <MonthReview key={`${m.month}-${m.close?.closedAt ?? "open"}`} month={m} />
-        <MarkableCalendar month={m} />
-        <FeelingMirror mirror={m.feelings.mirror} />
       </div>
-      <section className={panel} aria-label={E.list}>
-        <h2 className={panelTitle}>{E.list}</h2>
-        {m.expenses.length === 0 ? (
-          <EmptyState title={M.emptyTitle} description={M.emptyDescription} />
-        ) : (
-          <ExpenseList expenses={m.expenses} action={(expense) => <DeleteExpenseButton expense={expense} />} />
-        )}
-      </section>
-    </div>
+    </CategoryNamesProvider>
   );
 };
