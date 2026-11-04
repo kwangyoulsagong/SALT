@@ -87,7 +87,7 @@ class JooqExpenses(private val dsl: DSLContext) : Expenses {
             val sum = money(r.value3())
             count += r.value4()
             if (r.value2() == Precision.APPROX.key) approx += sum else exact += sum
-            // 모르는 분류 키(사용자 분류 — 가계부 S1c — 가 생기기 전엔 없다)는 기타로 — 합계에서 빠지지 않게
+            // 모르는 분류 키(사용자 분류 — 가계부 ~~S1c~~ S1d(2026-11-04 정정) — 가 생기기 전엔 없다)는 기타로 — 합계에서 빠지지 않게
             val category = Category.fromKey(r.value1()) ?: Category.OTHER
             byCategory[category] = (byCategory[category] ?: Money.zero(CURRENCY)) + sum
         }
