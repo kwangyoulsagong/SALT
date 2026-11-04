@@ -16,5 +16,9 @@ export const link = style({
   },
 });
 
-export const full = style({ display: "none", "@media": { [DESKTOP]: { display: "block" } } });
-export const symbol = style({ "@media": { [DESKTOP]: { display: "none" } } });
+// 링크 안으로 한 단 좁혀 Logo 의 `display: block` 보다 우선한다 — 같은 단이면 CSS 청크 순서가 이긴다(둘 다 보일 수 있다)
+export const full = style({
+  selectors: { [`${link} &`]: { display: "none" } },
+  "@media": { [DESKTOP]: { selectors: { [`${link} &`]: { display: "block" } } } },
+});
+export const symbol = style({ "@media": { [DESKTOP]: { selectors: { [`${link} &`]: { display: "none" } } } } });
