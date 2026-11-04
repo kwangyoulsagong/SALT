@@ -9,6 +9,7 @@ import com.salt.savings.application.SimulateBalance
 import com.salt.savings.application.UpdateMonthlyPlans
 import com.salt.savings.application.CreateGoal
 import com.salt.savings.application.GetGoal
+import com.salt.savings.application.GoalClockQuery
 import com.salt.savings.application.GoalDetail
 import com.salt.savings.application.GoalSummary
 import com.salt.savings.application.HasGoals
@@ -73,6 +74,7 @@ class SavingsController(
     private val compareEmergency: CompareEmergency,
     private val addItemUnit: AddItemUnit,
     private val deleteItemUnit: DeleteItemUnit,
+    private val goalClockQuery: GoalClockQuery,
 ) {
     // ---------- 요청 ----------
 
@@ -401,6 +403,18 @@ class SavingsController(
         ApiResponse.ok(
             updateMonthlyPlans.execute(user.userId, body.changes!!.map { UpdateMonthlyPlans.Change(it.goalId!!, Money.krw(it.monthly!!)) }).map(::goalView),
         )
+
+    data class GoalClockView(val goalId: String?, val title: String?, val template: String?, val delayDays: Long?, val reason: String?)
+
+    @Operation(
+        summary = "목표 시계(저장 안 함)",
+        description = "지출 amount 만큼 덜 모으면 가장 가까운 목표가 며칠 늦어지나(SRV-REQ-045 FR-17). 가계부 저장 때 BFF 가 부른다. 목표 없음 · 계획 없음이면 delayDays=null + reason",
+    )
+    @GetMapping("/goal-clock")
+    fun goalClock(user: AuthenticatedUser, @org.springframework.web.bind.annotation.RequestParam amount: BigDecimal): ResponseEntity<ApiResponse<GoalClockView>> {
+        val v = goalClockQuery.execute(user.userId, Money.krw(amount))
+        return ApiResponse.ok(GoalClockView(v.goal?.id?.toString(), v.goal?.title, v.goal?.template?.key, v.delayDays, v.reason))
+    }
 
     @Operation(summary = "비상시 비교(저장 안 함)", description = "목표에서 꺼내기 vs 사용자가 넣은 금리로 빌리기(원리금 균등). 상품 · 링크 없음")
     @PostMapping("/goals/{id}/emergency-compare")
