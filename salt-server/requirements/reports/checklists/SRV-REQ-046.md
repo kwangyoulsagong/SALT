@@ -57,7 +57,7 @@
 ### 미검증 · 범위 밖
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| FR-7 `account_split` · 12 · 14 · 19 · 20 · `FixedCostIncreased` · 리볼빙 | 슬라이스 범위 밖 | 가계부 S1d(공제는 S2 content 뒤) — **정정 2026-11-04** FR-19 · 챌린지 스티커는 S1d 닫힘, 나머지 S1e |
+| FR-7 `account_split` · 12 · 14 · 19 · 20 · `FixedCostIncreased` · 리볼빙 | 슬라이스 범위 밖 | 가계부 S1d(공제는 S2 content 뒤) — **정정 2026-11-04** FR-19 · 챌린지 스티커는 S1d 닫힘, 나머지 S1e — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f |
 | 저축 구독(`MonthClosed` → 속도) | 저축 쪽 쓸 자리가 아직 없다 | 저축 S2 |
 - [x] `672f892d` 주석 정정(S1c → S1d) 뒤 도메인 · 인프라 컴파일 통과
 
@@ -74,5 +74,19 @@
 ### 미검증 · 범위 밖
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| FR-7 `account_split` · 12 · 14 · 20 · `FixedCostIncreased` · 리볼빙 · 사용자 분류 | 슬라이스 범위 밖(판단 1) | 가계부 S1e(공제는 S2 content 뒤) |
+| FR-7 `account_split` · 12 · 14 · 20 · `FixedCostIncreased` · 리볼빙 · 사용자 분류 | 슬라이스 범위 밖(판단 1) | 가계부 S1e(공제는 S2 content 뒤) — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f |
 | 상한 5 동시 요청 경합 | 화면 편의 상한이라 잠그지 않는다(판단 6) | 필요해지면 advisory lock |
+
+## 2026-11-04 — 가계부 S1e(`MONEY-S1e-household-fixed-cost`)
+
+- [x] FR-12 고정비 — 경계 표(간격 24 · 25 · 35 · 36 · 금액 30% · 30% + 1원 · 두 번 · 40 · 41일 · 매주 카페 · 구독 가게 물건 · 키 · 숨김 · 짧은 달) 도메인 7 · 종단(후보 · 숨기기 · 되돌리기 · 템플릿 뒤 0 · 지난 달 0 · 공백 키 400)
+- [x] FR-12 이상치 — 3배 · 표본 5 · 대략 · 템플릿 · 고정비 키 · 창 날짜(도메인 2) · 종단(넷 → 없음 · 다섯 → 10,000 · 29,999 없음 · 저장 응답 없음)
+- [x] FR-21 `FixedCostIncreased` — 세 번째에 한 번 · 지우고 다시 적어도 1 · 본문 가맹점 0(종단) · 발행 시점 스키마 검증 통과
+- [x] `./gradlew check` 통과(149) · 종단 26(+2) · 도메인 +9 · 쿼리 수 월 21 · 저장 11/10 · 홈 6 · `bootJar` → Flyway V5 · health UP
+- [x] 실스택(임시 사용자 — 뒤에 삭제 · 트리거 다시 켬 · 남은 행 0) · 아웃박스 발행 확인 · EXPLAIN 둘(행 2만 넣고 롤백)
+
+### 미검증 · 범위 밖
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| FR-7 `account_split` · FR-10 리볼빙 · 14 · 20 · 사용자 분류 | 슬라이스 범위 밖(판단 1) | 가계부 S1f(공제는 S2 content 뒤) |
+| `FixedCostIncreased` 구독 | 구독자(content) 없음 | S2 content |

@@ -194,3 +194,4 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 | 2026-11-04 | 가계부 S1a 리뷰 반영 `b147221e` — `serverMonth` import 경로만(엔티티 이름 변경). 번들 `/household` 148 → 149 kB(최종 HEAD) |
 | 2026-11-04 | 가계부 S1c(`MONEY-S1c-household-mirror`, `f0c8793d`) — 번들(Next 표 First Load JS): `/household` 158 → 160 · `/household/month/[ym]` 160 · `/household/new` 131 → 133 · `/household/budget` 131 · `/household/templates` 132 kB · 공용 102 kB. 새 쿼리 훅 하나(`useWorkHours` — 예산 화면만) |
 | 2026-11-04 | 가계부 S1d(`MONEY-S1d-household-challenge`, `23d44bb6`) — 번들(Next 표 First Load JS): `/household/challenges` 153 kB(새 — 첫 숫자는 클라이언트 조회, 서버 렌더 대상 아님: 쓰기 화면) · `/household` 160 → 161 · `/goals/[id]` 154 kB · 공용 102 kB. 새 쿼리 훅 하나(`useChallenges` — 챌린지 화면만) |
+| 2026-11-04 | 가계부 S1e(`MONEY-S1e-household-fixed-cost`, `b1d14ed6`) — 번들(Next 표 First Load JS): `/household` 161 → 162 kB · 공용 103 kB. 새 조회 0(고정비 후보 · 보통 금액은 월 화면 응답 안 — 요청 수 그대로 하나) |

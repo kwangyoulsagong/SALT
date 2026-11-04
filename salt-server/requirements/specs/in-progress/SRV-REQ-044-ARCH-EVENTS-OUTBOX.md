@@ -47,3 +47,4 @@ source: requirements/decisions/ADR-006-server-msa-kotlin.md
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`e83f7f80`): FR-4 첫 이벤트 13종 중 3 — `savings.GoalCreated` · `GoalReached` · `ProjectionIssued` 계약 + 발행(쓰기 시점 검증). 로컬 운영 실측 릴레이가 브로커로 보냄(published_at) |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 이벤트 2종 계약 `household.ExpenseRecorded` · `household.LandingIssued`(`contracts/events`) · 쓰기 시점 스키마 검증 · 종단 테스트가 아웃박스 행으로 발행 확인(`63146ddf`). FR-4 13종 중 가계부 몫 2(`MonthClosed` · `FixedCostIncreased` 는 S1b) |
 | 2026-11-04 | 가계부 S1b — 이벤트 `household.MonthClosed`(새 계약 · 답 글 0) · `household.LandingIssued` 에 `scheduled` 필수 필드(`a32d349e`). 발행 시점 스키마 검증 그대로 |
+| 2026-11-04 | 가계부 S1e — FR-4 첫 이벤트 13종 중 `household.FixedCostIncreased`(새 계약 · 가맹점 0 · 가맹점 · 달마다 한 번)(`98895870`). 발행 시점 스키마 검증 그대로 |

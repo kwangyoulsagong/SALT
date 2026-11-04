@@ -104,3 +104,7 @@
 ## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
 
 - [x] 번들 `/household/challenges` 153 kB(새) · `/household` 161 · `/goals/[id]` 154 · 공용 102 kB(Next 표)
+
+## 2026-11-04 — 가계부 S1e(`MONEY-S1e-household-fixed-cost`)
+
+- [x] 번들 `/household` 161 → 162 kB · 공용 103 kB(가계부 zone 운영 빌드) · 월 화면 요청 수 하나 그대로

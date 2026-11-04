@@ -7,3 +7,7 @@
 ## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
 
 - 없음.
+
+## 2026-11-04 — 가계부 S1e(`MONEY-S1e-household-fixed-cost`)
+
+- 없음.

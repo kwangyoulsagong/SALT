@@ -35,3 +35,7 @@
 ## 2026-11-04 — 가계부 S1b 이벤트
 
 - [x] `household.MonthClosed` 계약 · 발행(종단 테스트 — 처음 닫을 때 한 번, 답 글 0) · `LandingIssued.scheduled` 스키마 검증 통과
+
+## 2026-11-04 — 가계부 S1e 이벤트
+
+- [x] `household.FixedCostIncreased` 계약 · 발행(종단 테스트 — 오른 회차에 한 번 · 지우고 다시 적어도 1 · 본문 가맹점 0) · 로컬 실스택 아웃박스 발행(`published_at`) 확인

@@ -7,3 +7,7 @@
 ## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
 
 - [ ] RN 챌린지 화면 — 웹 계약 확정 뒤(변경 없음 기록)
+
+## 2026-11-04 — 가계부 S1e(`MONEY-S1e-household-fixed-cost`)
+
+- [ ] RN 고정비 카드 — 웹 계약 확정 뒤(변경 없음 기록)
