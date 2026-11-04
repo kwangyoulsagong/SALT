@@ -108,6 +108,8 @@ const REGISTRY = {
     // 가계부 S1d(2026-11-04) — 챌린지 고르기 / 한 날 · 아낀 돈 · 목표에 보태기 · 그만두기
     "start-challenge",
     "track-challenge",
+    // 가계부 S1e(2026-11-04) — 고정비 찾기: 반복으로 옮기기 · 아니에요 숨기기 · 되돌리기
+    "find-fixed-cost",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",

@@ -37,6 +37,26 @@ export interface HouseholdExpense {
   feeling: ExpenseFeeling | null;
   /** 근무 분 — 노동시간 환산을 켰을 때만(서버 계산) */
   workMinutes: number | null;
+  /** 평소보다 큰 지출이면 그 분류의 보통 금액(서버 판정 — 가계부 S1e). 월 화면에만 · 저장 응답엔 없음 */
+  typicalAmount?: number | null;
+}
+
+/**
+ * 고정비 후보(가계부 S1e · `SRV-REQ-046` FR-12) — 서버가 찾은 것 그대로. key 는 숨기기 · 되돌리기에 그대로 보낸다.
+ * increase 는 앞 회차보다 올랐을 때만(문턱은 서버). 나머지 칸은 반복 템플릿 만들기에 그대로 쓴다
+ */
+export interface HouseholdFixedCost {
+  key: string;
+  merchant: string;
+  category: CategoryKey;
+  paymentMethod: PaymentMethodKey;
+  lastAmount: number;
+  previousAmount: number;
+  increase: number | null;
+  lastOn: string;
+  nextOn: string;
+  dayOfMonth: number;
+  count: number;
 }
 
 /** 감정 태그 키 — 서버가 목록을 준다(`emotions`). 문구는 프론트 */
@@ -314,6 +334,8 @@ export interface HouseholdMonth {
   calendar: { days: CalendarDay[]; noSpendDays: number; challengeDays: number };
   /** 노동시간 — 켰을 때만 */
   workHours: { hourly: number; totalMinutes: number } | null;
+  /** 고정비 후보 — 이번 달 화면에만(가계부 S1e), 다음 예정일 순 */
+  fixedCosts: HouseholdFixedCost[];
 }
 
 // ---------- 내가 고르는 챌린지(가계부 S1d · `FE-REQ-057` FR-9) — 실패 · 연속 일수 칸 없음 ----------
