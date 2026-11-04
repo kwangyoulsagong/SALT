@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { numberToInputText } from "@repo/core/input";
 import { Button } from "@repo/ui/button";
 import { TextField } from "@repo/ui/textField";
 
@@ -36,7 +37,15 @@ export const RecurringAskCard = ({ items }: { items: HouseholdOccurrence[] }) =>
   const upcoming = items.filter((o) => o.stage === "upcoming");
   const confirm = useConfirmOccurrence();
   const skip = useSkipOccurrence();
-  const nums = useNumberFields({}, Object.fromEntries(asks.map((o) => [o.id, String(o.amount)])), "won");
+  const nums = useNumberFields({}, Object.fromEntries(asks.map((o) => [o.id, numberToInputText(o.amount, "won")])), "won");
+  // 불변식: 보이는 확인 항목마다, 사용자가 손대기 전까지 금액 칸 = 서버 금액. 첫 값만 넣으면 화면을 연 채 다시 받아온 새 항목은
+  // 칸이 비어 "나갔어요"가 눌리지 않았다(2026-11-04 재현 — 다른 항목을 건너뛴 뒤 새 템플릿). 새로 생긴 항목도 같은 길로 채운다
+  const askKey = asks.map((o) => `${o.id}:${o.amount}`).join(",");
+  useEffect(() => {
+    asks.forEach((o) => nums.fillIfEmpty(o.id, o.amount));
+    // askKey 가 항목 · 금액을 대표한다 — asks 배열은 렌더마다 새로 만들어진다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [askKey, nums.fillIfEmpty]);
   const [last, setLast] = useState<"skipped" | null>(null);
 
   if (asks.length === 0 && upcoming.length === 0 && !confirm.data && !last) return null;
