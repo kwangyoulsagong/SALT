@@ -302,3 +302,4 @@ export { importLedger as POST } from '@/app/api-routes';
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 레지스트리 코드(`layer-rules.cjs`)에 `record-deposit`(features) · `goal-detail`(pages) 추가 · `fsd-features.md` 표. 새 이름(`savings-goal` · `create-goal`)은 훅이 막아 레지스트리 이름(`goal` · `add-goal`)으로 |
 | 2026-11-03 | MONEY-S1b — 이 REQ 에 걸린 몫(`6ad345fc`): 레지스트리 코드(`layer-rules.cjs`) features 에 `rebalance-goals` · `add-item-unit` · `compare-emergency` 추가 · `fsd-features.md` 표 3행. test:layer-check 26 · 훅 사후 실행(바뀐 TS 전부) 통과 |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 레지스트리 코드(`layer-rules.cjs`)에 `household`(엔티티 — 서버 컨텍스트와 같은 이름) · `record-expense` · `edit-budget` · `household` · `new-expense` · `budget` + 규칙 문서 §4 행(`df45ae7d`) |
+| 2026-11-04 | 가계부 S1a 리뷰 반영 `b147221e` — 레지스트리 엔티티 `expense` → `household`(슬라이스 = 서버 컨텍스트 이름) |

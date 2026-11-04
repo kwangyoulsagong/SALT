@@ -41,7 +41,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 
 - 서버 `SRV-REQ-046` · 예측 `FC-REQ-024`
 
-## 구현 현황 — 가계부 S1a (2026-11-04, `requirements/specs/in-progress/MONEY-S1-household-entry-slice.md`)
+## 구현 현황 — 가계부 S1a (2026-11-04, `requirements/specs/done/MONEY-S1-household-entry-slice.md`)
 
 Flyway `services/household/infrastructure/src/main/resources/db/migration/household/V1__baseline.sql`(로컬 운영 DB 적용 2026-11-04 — `svc_household` 로그인).
 
@@ -62,5 +62,5 @@ Flyway `services/household/infrastructure/src/main/resources/db/migration/househ
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-04 | 가계부 S1a — in-progress. V1(`63146ddf`) · FR-1 · 3 · 8 · 12 · 13. 수용 기준 1 · 3 충족(2 `challenge` 는 S1b) |
-| 2026-11-04 | 리뷰 반영 `2177074c` — 스키마 변경 0(착지 계산 · 원 단위 검사는 서비스). `landing_issued.spent_so_far` 의 뜻이 "그날 시작 시점 합"으로 |
+| 2026-11-04 | 리뷰 반영 `85512af5` — 스키마 변경 0(착지 계산 · 원 단위 검사는 서비스). `landing_issued.spent_so_far` 의 뜻이 "그날 시작 시점 합"으로 |
 | 2026-11-04 | EXPLAIN 확인(행 2만 넣고 롤백 — 다섯 쿼리 인덱스 · 1ms 미만) |

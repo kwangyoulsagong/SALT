@@ -39,7 +39,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 
 - BFF `BFF-REQ-048`
 
-## 구현 현황 — F4a (2026-11-04, `requirements/specs/in-progress/MONEY-S1-household-entry-slice.md`)
+## 구현 현황 — F4a (2026-11-04, `requirements/specs/done/MONEY-S1-household-entry-slice.md`)
 
 `packages/domain-household`(entities `household` · features `record-expense` · `edit-budget` · pages `household` · `new-expense` · `budget`) · `apps/web-household` 는 re-export 만.
 
@@ -64,5 +64,5 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 이 REQ 에 걸린 몫(`FE-REQ-054`) — 가계부 탭은 `APP_TABS` `readyBy: "FE-REQ-057"`(비활성). 첫 화면이 생기면 `readyBy: null` · zone 레이아웃에 `AppShell` + `VIEW_TRANSITION_CSS` · 설정을 vanilla-extract 로 |
 | 2026-11-04 | F4a — in-progress(`df45ae7d`). FR-1~3 · 5 · 6 · 10 done · 4 · 7 일부. 수용 기준 4/4 |
-| 2026-11-04 | 리뷰 반영 `bfb337b7` — 목표 시계 다시 묻기 실패 시 "계산 중" 멈춤 → 줄 지움(Playwright route 로 성공 · 실패 둘 다 실측) · 엔티티 슬라이스 `expense` → `household`(서버 컨텍스트와 같은 이름) · 번들 `/household` 149 kB |
-| 2026-11-04 | `ed013626` — 예산 화면이 저장해 둔 50/30/20 의 모으기 몫을 다시 열면 안 보이던 결함. 소유자 QA 행 닫음(소유자 전용 칸 없음 · 임시 사용자 실화면) |
+| 2026-11-04 | 리뷰 반영 `b147221e` — 목표 시계 다시 묻기 실패 시 "계산 중" 멈춤 → 줄 지움(Playwright route 로 성공 · 실패 둘 다 실측) · 엔티티 슬라이스 `expense` → `household`(서버 컨텍스트와 같은 이름) · 번들 `/household` 149 kB |
+| 2026-11-04 | `acbdf825` — 예산 화면이 저장해 둔 50/30/20 의 모으기 몫을 다시 열면 안 보이던 결함. 소유자 QA 행 닫음(소유자 전용 칸 없음 · 임시 사용자 실화면) |

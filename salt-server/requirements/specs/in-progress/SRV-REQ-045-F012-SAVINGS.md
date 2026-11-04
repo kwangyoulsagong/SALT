@@ -70,7 +70,7 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | FR-12 | done — `POST /api/savings/goals/:id/emergency-compare`: 꺼내기(계획 도달 이동 달 · 모은 돈 이하) vs 원리금 균등(~~상환 원 단위 올림~~ · ~~이자 = 올린 상환 × n − 원금~~ ~~**정정 `4fda31db`: 이자 = 정확값 · `lastPayment` 가 차액, 작은 금액은 `EMERGENCY_AMOUNT_TOO_SMALL`**~~ **재정정 2026-11-03: 총액(원금 + 정확 이자)을 n 달에 원 단위로 나눔 — 처음 k개월 +1원, 총액 < 달 수면 대출 칸만 null(`af797be0`) · 반올림은 총액 하나에 한 번 · 소수 원금 거절(`4a70e515`)**) + 가정 키 `loan_paid_outside_goal`. 범위는 도메인 사유 코드(`EMERGENCY_*`) | `EmergencyComparison` · `CompareEmergency` |
 | FR-16 | 부분 — 장면 단계(템플릿 5종 · 10칸 내림) · 실물 환산(사용자 단위 · 목표당 3 · 내림, `POST/DELETE /goals/:id/units`) · 도장(1 + 직접 넣은 적립) · 엽서(걸린 일수 · 적립 횟수). **템플릿 단위 · 엽서 사진은 뒤** | `Fun.kt` · `AddItemUnit` · `DeleteItemUnit` |
 | FR-19 | done(유지) — 목록 쿼리 **3회**(목표 · 집계+월별 한 문장 · 단위). 단위를 붙이며 4회가 됐다가 `overviewByGoal` 로 되돌림 · 홈 카드는 단위를 읽지 않는다(2회 + 목표) | `SavingsEndToEndTest` |
-| FR-10 · 13 · 14 · 17 · FR-6 채점 | 범위 밖 — 물가 원천 · `content` S2 · identity S3 · 가계부 S1 · `FC-REQ-024` | 루트 슬라이스 범위 밖 |
+| FR-10 · 13 · 14 · 17 · FR-6 채점 | 범위 밖 — 물가 원천 · `content` S2 · identity S3 · ~~가계부 S1~~ **정정 2026-11-04** FR-17 은 조회만 닫힘(`a16356f6`), 구독은 가계부 S1b · `FC-REQ-024` | 루트 슬라이스 범위 밖 |
 
 ## Acceptance Criteria
 
@@ -107,3 +107,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | MONEY-S1b 리뷰(high, 10차 `5640ae7f..b10c9a74`) 9건 + 사용자 "고칠 거면 제대로" — `bd571eae` core `price` 규칙 · `groupDigits` 한 곳(2^53 넘어도 끝자리 그대로) · 끝 % 공백/전각 · `d21bd5c1` 가드 칸별 안내 · `c786ab91` 저축 칸 이름 · 상한 때 안내 지움 · **`7d22f6a1` 투자 금액 칸 4곳도 같은 규칙(사용자 결정 2026-11-03)** · `38823672` 상세 부분 실패 단위 테스트(application 첫 테스트) · 카운터는 헤더 요청만. 쉼표 위치 1건은 지우기 중 정상적으로 생겨 받는다(주석) |
 | 2026-11-03 | MONEY-S1b 리뷰(high, 11차 `b10c9a74..38823672`) 10건 — 원인: 안내만 쥐던 가드라 값을 바꾸는 길(칩 · 현재가 · 숨김 · 비우기)마다 손으로 지워야 했다. `5afe2476` core 길이 상한(정수 15 · 소수 8 — 보이는 값 = 보내는 값) · `numberToInputText`(1.2e-7 → "1.27" 경로 닫음, 테스트 75) · `5fd864d1` **`useNumberFields`(값과 안내 한 덩어리, BREAKING: 가드 제거)** · `e8fe98fe` 저축 6폼 · `2bcea756` 투자 3폼(칩 · 현재가 · 저장된 소수 예산) · `97c839f3` degraded 이유 한 곳 · 테스트 필터 순서. 화면에서 리뷰 사례 전부 재현 확인 |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — FR-17 일부 — 가계부 응답용 조회 `GET /api/savings/goal-clock?amount=`(가장 가까운 목표 · 계획 월 적립 또는 기한 기준 재계산 월 적립 · 지연 일 = 금액 × 30.4375 ÷ 월 적립, 반올림 1회)(`a16356f6`). 구독(`ExpenseRecorded` 재계산 · `MonthClosed` 속도)은 가계부 S1b |
+| 2026-11-04 | 가계부 S1a 리뷰 반영 `85512af5` — goal-clock 금액 상한 10억(넘치면 400 `CLOCK_AMOUNT_INVALID` — 전엔 Long 넘침 500) |

@@ -49,3 +49,4 @@ source: 사용자 "전체 서버 다 키는 명령어가 필요하네 이거 보
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`8d05a006`): `ops/salt.sh` 이름 표에 `platform`(launchd · :4010 · 헬스 `/actuator/health`) · `web-savings`(dev 3003). 실행 스크립트 `salt-platform/ops/run-platform.sh`. **launchd 등록은 이 세션 권한에서 막혀 사용자 실행 대기**(`ops/salt.sh up`) — 그 전까지 platform 은 수동 기동 |
 | 2026-11-03 | `9265c0b4` — platform launchd 등록 완료. launchd 아래 java 가 데스크탑 폴더의 jar 를 여는 `open()` 에서, docker compose 가 compose.yaml 읽기에서 멈췄다(macOS 개인정보 보호, `sample` 로 확인) → jar 를 `~/Library/Application Support/SALT` 에서 · RabbitMQ 가 떠 있으면 compose 생략 · 20초 상한. 상태 ok |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — `ops/salt.sh` 이름 표에 `web-household`(dev 3004 · 로그)(`2d4db66c`) |
+| 2026-11-04 | 가계부 S1a — `salt-platform/ops/run-platform.sh` 에 `HOUSEHOLD_DB_PASSWORD`(`63146ddf`) |

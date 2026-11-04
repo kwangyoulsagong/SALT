@@ -24,7 +24,7 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 - [x] parse 요청 본문이 BFF 로그 0(로그 캡처 테스트)
 - [x] 목표 시계 지연 시 저장 응답 지연 0(`pending`)
 
-## 구현 현황 — 가계부 S1a (2026-11-04, `requirements/specs/in-progress/MONEY-S1-household-entry-slice.md`)
+## 구현 현황 — 가계부 S1a (2026-11-04, `requirements/specs/done/MONEY-S1-household-entry-slice.md`)
 
 | FR | 상태 | 비고 |
 |---|---|---|
@@ -43,3 +43,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-04 | 가계부 S1a — in-progress(`b162ac6f`). FR-1 · 2 · 5 done · 3 · 4 일부. 수용 기준 2/2 |
 | 2026-11-04 | 리뷰 반영 — BFF 변경 0. 남긴 것: `within` 시간 상한이 홈 서비스와 두 벌 · axios 타임아웃과 이중(회고) |
+| 2026-11-04 | 가계부 S1a — 이 REQ 계약을 화면 쪽에서 읽는 파일(`householdApi.ts` · `types.ts`)이 엔티티 이름 변경으로 옮겨졌다(`b147221e`, 계약 변경 0) |
