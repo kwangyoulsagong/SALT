@@ -6,7 +6,7 @@
  * 옮기지 않고 이 스크립트가 만든다 — 토큰을 바꾸면 다시 돌린다. `--check` 는 디스크와 다르면 실패한다(검증용).
  *
  * 만드는 것
- * - zone 앱 5개 `app/icon.svg`(단색 물방울 — 브라우저 탭은 SVG 를 먼저 고르고 16 에서 블러가 뭉개진다) · `app/apple-icon.png`(180, 흰 바탕 · 입체 물방울 + 물결 · 여백 20%) · `app/favicon.ico`(16 단색 + 32 입체)
+ * - zone 앱 5개 `app/icon.svg`(입체 물방울 — 로고와 같은 아이콘) · `app/apple-icon.png`(180, 흰 바탕 · 입체 물방울 + 물결 · 여백 20%) · `app/favicon.ico`(16 · 32 입체)
  *   — Next 파일 규칙이라 `<link rel="icon">` 은 Next 가 단다. 내용이 같아 zone 마다 주소 해시도 같다
  * - `docs/design-system/brand/` 의 SVG 3종(입체 심볼 · 글자 로고 · 어두운 바탕용) — 사람이 보는 사본
  *
@@ -43,7 +43,6 @@ const INK = tokens.colors.text.primary;
 const WHITE = tokens.colors.background.white;
 
 // 정적 파일은 문서 하나에 심볼 하나라 고정 id 로 충분하다(컴포넌트는 인스턴스마다 useId)
-const flatDrop = (fill) => `  <path d="${M.drop}" fill="${fill}"/>`;
 const depthDrop = ({ ripples = true } = {}) => {
   const [l0, l1] = M.faceLeftX, [r0, r1] = M.faceRightX, g = M.glow, sh = M.shade, fl = M.foldLine;
   return [
@@ -73,7 +72,6 @@ const depthDrop = ({ ripples = true } = {}) => {
 const svgDoc = (viewBox, width, height, body) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${width}" height="${height}" role="img" aria-label="SALT">\n${body}\n</svg>\n`;
 /** 단색 물방울(16px 파비콘) — 입체가 뭉개지는 크기 */
-const symbolSvg = (fill = C.flat) => svgDoc(M.symbolViewBox.dropOnly, 32, 32, flatDrop(fill));
 /** 입체 물방울(icon.svg · 32px) — 물결 없음 */
 const depthDropSvg = () => svgDoc(M.symbolViewBox.dropOnly, 32, 32, depthDrop({ ripples: false }));
 /** 입체 + 물결(앱 아이콘 · 문서 사본) */
@@ -129,12 +127,12 @@ const { ZONES, ZONE_IDS } = createRequire(import.meta.url)("../packages/core/src
 const ZONE_APPS = ZONE_IDS.map((id) => ZONES[id].app);
 
 const files = new Map();
-// 브라우저 탭(16 · 32)은 SVG 를 ICO 보다 먼저 고른다 — 블러가 뭉개지는 크기라 icon.svg 는 단색(FR-5). 입체는 앱 아이콘(180)과 ICO 32
-const iconSvg = symbolSvg();
+// 브라우저 탭 아이콘도 로고와 같은 입체 물방울이다(사용자 2026-11-04 "파비콘도 똑같은 아이콘으로") — SVG · ICO 16 · 32 전부
+const iconSvg = depthDropSvg();
 const apple = await appleIcon();
 const favicon = ico([
-  { size: 16, data: await png(symbolSvg(), 16) },
-  { size: 32, data: await png(depthDropSvg(), 32) },
+  { size: 16, data: await png(iconSvg, 16) },
+  { size: 32, data: await png(iconSvg, 32) },
 ]);
 for (const app of ZONE_APPS) {
   files.set(`apps/${app}/app/icon.svg`, Buffer.from(iconSvg));
