@@ -16,8 +16,8 @@ status: in-progress
 가계부가 Kotlin 에서 태어나고(`msa-services.md` §3), 입력 셋(빠른 입력 · 한 줄 · 결제 문자 붙여넣기)과 대략 합계 · 봉투 예산 · 월말 착지 구간 · 목표 시계 · 홈 카드를 닫는다.
 반복 템플릿 · 월 마감 · 할부 띠 · 공제 · 고정비 감지 · 감정 태그 · 사람 장부 · 재미는 S1b — 입력과 월 숫자가 먼저 서야 그 위에 얹힌다.
 
-> **구현 2026-11-04** — 커밋 `a16356f6` · `63146ddf` · `b162ac6f` · `df45ae7d` · `2d4db66c` · 리뷰 반영 `2177074c` · `bfb337b7`. 4 REQ in-progress(남은 FR 은 S1b). 검증 `requirements/reports/checklists/MONEY-S1-household-entry.md`.
-> 수용 기준: `SRV-REQ-046` 3/4(백테스트는 3개월 표본 뒤) · `DB-REQ-038` 2/3(`challenge` 는 S1b) · `BFF-REQ-048` 2/2 · `FE-REQ-057` 4/4.
+> **구현 2026-11-04** — 커밋 `a16356f6` · `63146ddf` · `b162ac6f` · `df45ae7d` · `2d4db66c` · 리뷰 반영 `2177074c` · `bfb337b7` · 확인 단계 결함 `ea59a64f` · `ed013626`. 4 REQ in-progress(남은 FR 은 S1b). 검증 `requirements/reports/checklists/MONEY-S1-household-entry.md`.
+> 수용 기준: `SRV-REQ-046` ~~3/4~~ **4/4**(백테스트 2026-11-04 `ea59a64f`) · `DB-REQ-038` 2/3(`challenge` 는 S1b) · `BFF-REQ-048` 2/2 · `FE-REQ-057` 4/4.
 
 ## 범위
 

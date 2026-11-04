@@ -30,10 +30,10 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 
 ## Acceptance Criteria
 
-- [ ] 한 건 입력 3탭 이내(실측 기록)
-- [ ] 예산 초과 화면에 경고 색 · 팝업 0
-- [ ] 붙여넣기 원문이 localStorage · 로그 · 에러 리포트 0
-- [ ] 연속 일수 표시 0 · 챌린지 실패 표시 0
+- [x] 한 건 입력 3탭 이내(실측 기록)
+- [x] 예산 초과 화면에 경고 색 · 팝업 0
+- [x] 붙여넣기 원문이 localStorage · 로그 · 에러 리포트 0
+- [x] 연속 일수 표시 0 · 챌린지 실패 표시 0(두 화면은 S1b — 지금 화면에 해당 표시 0)
 
 ## 계약 영향
 
@@ -65,3 +65,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 이 REQ 에 걸린 몫(`FE-REQ-054`) — 가계부 탭은 `APP_TABS` `readyBy: "FE-REQ-057"`(비활성). 첫 화면이 생기면 `readyBy: null` · zone 레이아웃에 `AppShell` + `VIEW_TRANSITION_CSS` · 설정을 vanilla-extract 로 |
 | 2026-11-04 | F4a — in-progress(`df45ae7d`). FR-1~3 · 5 · 6 · 10 done · 4 · 7 일부. 수용 기준 4/4 |
 | 2026-11-04 | 리뷰 반영 `bfb337b7` — 목표 시계 다시 묻기 실패 시 "계산 중" 멈춤 → 줄 지움(Playwright route 로 성공 · 실패 둘 다 실측) · 엔티티 슬라이스 `expense` → `household`(서버 컨텍스트와 같은 이름) · 번들 `/household` 149 kB |
+| 2026-11-04 | `ed013626` — 예산 화면이 저장해 둔 50/30/20 의 모으기 몫을 다시 열면 안 보이던 결함. 소유자 QA 행 닫음(소유자 전용 칸 없음 · 임시 사용자 실화면) |

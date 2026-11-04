@@ -21,8 +21,8 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 
 ## Acceptance Criteria
 
-- [ ] parse 요청 본문이 BFF 로그 0(로그 캡처 테스트)
-- [ ] 목표 시계 지연 시 저장 응답 지연 0(`pending`)
+- [x] parse 요청 본문이 BFF 로그 0(로그 캡처 테스트)
+- [x] 목표 시계 지연 시 저장 응답 지연 0(`pending`)
 
 ## 구현 현황 — 가계부 S1a (2026-11-04, `requirements/specs/in-progress/MONEY-S1-household-entry-slice.md`)
 
