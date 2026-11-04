@@ -56,6 +56,7 @@ export const EXPENSE_MESSAGES = {
   unbudgeted: "봉투 밖 지출",
   noBudget: "예산을 정하면 봉투별 남은 돈이 보여요",
   envelopes: "봉투",
+  category: "분류",
   envelopeSpent: (spent: string, budget: string) => `${spent} / ${budget}`,
   byCategory: "분류별",
   list: "쓴 내역",
