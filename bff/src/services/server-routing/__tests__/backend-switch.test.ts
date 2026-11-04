@@ -39,8 +39,10 @@ before(async () => {
   process.env.SERVER_ROUTES_FILE = routesFile;
   process.env.SHADOW_REPORT_DIR = path.join(dir, "shadow");
   process.env.GOLDEN_RECORD_DIR = path.join(dir, "golden");
-  ({ backendApi } = await import("../../backend-api.service"));
-  ({ runInTrace } = await import("../trace"));
+  // 앱 코드와 같은 로더(require)로 불러온다 — `await import()` 로 부르면 tsx 가 같은 파일을 CJS · ESM 두 벌로 만들어
+  // 테스트의 `runInTrace`(AsyncLocalStorage)와 인터셉터가 읽는 `trace` 가 서로 다른 인스턴스가 된다(2026-11-04 — 추적 ID 테스트가 늘 실패하던 원인)
+  ({ backendApi } = require("../../backend-api.service") as typeof import("../../backend-api.service"));
+  ({ runInTrace } = require("../trace") as typeof import("../trace"));
 });
 
 after(() => {
@@ -87,7 +89,7 @@ describe("서버 스위치 — backendApi", () => {
 
   it("골든에 녹화한 주소 = 실제로 보낸 주소(axios 직렬화 그대로)", async () => {
     reset();
-    const { readGoldens } = await import("../golden");
+    const { readGoldens } = require("../golden") as typeof import("../golden");
     await backendApi.proxyAuthRequest("GET", "/investment/market/overview", "t", undefined, {});
     await (backendApi as unknown as { client: { get: (u: string, c: object) => Promise<unknown> } }).client.get("/investment/market/overview", {
       params: { q: undefined, symbols: ["BTC", "ETH"], page: 2 },
