@@ -65,7 +65,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | FR-7 | 월 마감 리뷰 3문항 · 할부 띠 done(공제는 S2 content 뒤) — 닫을 수 있나 · 문항은 서버 값, 닫은 달은 같은 칸으로 답 고치기 | `features/close-month` · `entities/household` `InstallmentBand` |
 | FR-8 · 9 | S1c | |
 
-분류 칩은 `entities/household` 로 내렸다(`a4b3936b`) — 지출 적기와 템플릿이 같은 칩. 번들(Next 표, First Load JS): `/household` ~~149~~ 157 · `/household/templates` 131 kB(새) · 공용 103 kB.
+분류 칩은 `entities/household` 로 내렸다(`a4b3936b`) — 지출 적기와 템플릿이 같은 칩. 번들(Next 표, First Load JS): `/household` ~~149~~ ~~157~~ 158(수정 `d91cb8db` 뒤) · `/household/templates` 131 kB(새) · 공용 103 kB.
 
 ## Changelog
 
@@ -77,3 +77,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-11-04 | 리뷰 반영 `b147221e` — 목표 시계 다시 묻기 실패 시 "계산 중" 멈춤 → 줄 지움(Playwright route 로 성공 · 실패 둘 다 실측) · 엔티티 슬라이스 `expense` → `household`(서버 컨텍스트와 같은 이름) · 번들 `/household` 149 kB |
 | 2026-11-04 | `acbdf825` — 예산 화면이 저장해 둔 50/30/20 의 모으기 몫을 다시 열면 안 보이던 결함. 소유자 QA 행 닫음(소유자 전용 칸 없음 · 임시 사용자 실화면) |
 | 2026-11-04 | F4b — FR-4 · FR-7(리뷰 · 할부) done(`a4b3936b` · `d31bff89`). 실화면(임시 사용자) 확인 카드 · 금액 고친 확인 · 템플릿 셋 · 지난 달 닫기 · 4폭 × 3화면 넘침 0 · 콘솔 0 |
+| 2026-11-04 | `d91cb8db` — 화면을 연 채 다시 받아온 새 확인 항목의 금액 칸이 비어 "나갔어요"가 눌리지 않던 결함(Playwright 재현) → 보이는 항목마다 서버 금액으로 채우는 한 길(`fillIfEmpty`) · 처음 값도 같은 서식. 번들 `/household` 158 kB |

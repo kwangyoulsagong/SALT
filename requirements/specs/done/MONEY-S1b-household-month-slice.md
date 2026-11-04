@@ -13,7 +13,7 @@ status: done
 S1a(`requirements/specs/done/MONEY-S1-household-entry-slice.md`)가 남긴 FR 이 열 개를 넘어 다시 나눈다. 이번 S1b 한 줄:
 **"매달 나가는 돈은 한 번만 적고, 달을 닫으며 돌아본다."** — 월 숫자의 뼈대 셋(반복 · 마감 · 할부)을 닫는다. 그 위에 얹는 재미 · 거울 기능은 S1c.
 
-> **done 2026-11-04** — 이번 몫 전부 닫힘. 커밋 `a4b3936b`(구조 — 분류 칩 내림) · `a32d349e`(서버 · DB) · `c3b799fd`(BFF) · `d31bff89`(FE) · `922cd25a`(낡은 주석 정정). 검증 `requirements/reports/checklists/MONEY-S1b-household-month.md`.
+> **done 2026-11-04** — 이번 몫 전부 닫힘. 커밋 `a4b3936b`(구조 — 분류 칩 내림) · `a32d349e`(서버 · DB) · `c3b799fd`(BFF) · `d31bff89`(FE) · `922cd25a`(낡은 주석 정정) · 확인 단계 `d91cb8db`(확인 카드 결함) · `15177092`(BFF 기존 테스트 실패). 검증 `requirements/reports/checklists/MONEY-S1b-household-month.md`.
 > 영역 REQ 넷(`SRV-REQ-046` · `DB-REQ-038` · `BFF-REQ-048` · `FE-REQ-057`)은 남은 FR(S1c · 공제 S2) 때문에 in-progress.
 
 ## 범위

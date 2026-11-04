@@ -143,3 +143,4 @@ flowchart LR
 | 2026-11-04 | **가계부 S1a 슬라이스 done** — `MONEY-S1-household-entry-slice.md` → `done/`. 영역 REQ(`SRV-REQ-046` · `DB-REQ-038` · `BFF-REQ-048` · `FE-REQ-057`)는 남은 FR(S1b) 때문에 in-progress. 다음 칸 가계부 S1b 또는 `FE-REQ-013` FR-80 2단계 |
 | 2026-11-04 | 화면 디자인 REQ `FE-REQ-060`(to-do) — 요약 띠 · 날짜 묶음 내역 · 사이드 빠른 입력 · 모바일 하단 고정 버튼 + 바텀 시트 |
 | 2026-11-04 | 가계부 S1b — FR-4 반복 템플릿(확인 카드 · 매시 워커) · FR-9 월 마감 리뷰 · FR-10 할부 띠(리볼빙 빼고) done. 루트 `MONEY-S1b-household-month-slice.md`. 남은 것 FR-11(공제 — S2 content 뒤) · 12 · 13 · 14 · 15 · 16 · 19~21 |
+| 2026-11-04 | 가계부 S1b 확인 단계 — FR-4 확인 카드: 화면을 연 채 생긴 새 항목의 금액 칸이 비던 결함 고침(`d91cb8db`) |
