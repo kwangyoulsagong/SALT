@@ -97,6 +97,7 @@ class HouseholdEndToEndTest {
         call("POST", "/api/household/expenses", user, """{"amount":10000,"category":"food"}""").statusCode() shouldBe 201
         call("POST", "/api/household/expenses", user, """{"amount":40000,"category":"other","precision":"approx","inputKind":"approx"}""").statusCode() shouldBe 201
         call("POST", "/api/household/expenses", user, """{"amount":1,"category":"other","precision":"approx","inputKind":"quick"}""").body() shouldContain "EXPENSE_PRECISION_INVALID"
+        call("POST", "/api/household/expenses", user, """{"amount":0.4,"category":"food"}""").body() shouldContain "EXPENSE_AMOUNT_INVALID"
         val totals = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("totals")
         totals.path("total").asLong() shouldBe 50_000
         totals.path("exact").asLong() shouldBe 10_000
@@ -188,10 +189,13 @@ class HouseholdEndToEndTest {
         val m = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null))
         m.path("expenses").size() shouldBe 1
         m.path("byCategory").get(0).path("key").asString() shouldBe "food"
-        if (today.dayOfMonth != today.lengthOfMonth()) {
-            m.path("landing").path("reason").asString() shouldBe "history_short"
-            m.path("landing").path("low").isNull shouldBe true
-        }
+        m.path("landing").path("reason").asString() shouldBe "history_short"
+        m.path("landing").path("low").isNull shouldBe true
+        // 오늘 시작 기준 — 오늘 적은 2만 원은 "어제까지"에 들지 않는다
+        m.path("landing").path("spentSoFar").asLong() shouldBe 0
+        // 지난날로 적은 대략 합계가 표본을 늘리지 않는다(첫 기록 = 저장한 날, 리뷰 2026-11-04)
+        call("POST", "/api/household/expenses", user, """{"amount":40000,"category":"other","precision":"approx","inputKind":"approx","spentOn":"${today.minusDays(60)}"}""").statusCode() shouldBe 201
+        data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("landing").path("daysOfHistory").asInt() shouldBe 0
         m.path("track").path("reason").asString() shouldBe "not_issued"
 
         val past = data(call("GET", "/api/household/month/${YearMonth.from(today).minusMonths(1)}", user, null))
@@ -249,6 +253,8 @@ class HouseholdEndToEndTest {
         clock.path("delayDays").asLong() shouldBe 3
         clock.path("reason").isNull shouldBe true
         call("GET", "/api/savings/goal-clock?amount=0", user, null).statusCode() shouldBe 400
+        // 상한 — 넘치는 금액은 500 이 아니라 400(리뷰 2026-11-04)
+        call("GET", "/api/savings/goal-clock?amount=1e30", user, null).statusCode() shouldBe 400
     }
 
     // ---------- 도움 ----------

@@ -108,6 +108,8 @@ data class Expense(
     val createdAt: Instant,
 ) {
     companion object {
+        fun isWholeWon(amount: Money): Boolean = amount.toDecimal().stripTrailingZeros().scale() <= 0
+
         /** 한 건 상한 — 오타(0 하나 더)로 달 통계가 무너지지 않게. 10억 원 */
         val MAX_AMOUNT: Money = Money.krw(1_000_000_000L)
         const val MERCHANT_MAX = 40
@@ -139,6 +141,8 @@ data class Expense(
         ): Expense {
             if (amount.isNegative() || amount.isZero()) throw InvalidExpense("EXPENSE_AMOUNT_INVALID", "amount must be positive")
             if (amount > MAX_AMOUNT) throw InvalidExpense("EXPENSE_AMOUNT_TOO_LARGE", "amount is too large")
+            // 원 단위만 — 소수 원은 저장하면 응답 반올림과 합이 어긋난다(2026-11-04 리뷰: 0.4원이 0원으로 보이고 목표 시계가 400)
+            if (!isWholeWon(amount)) throw InvalidExpense("EXPENSE_AMOUNT_INVALID", "amount must be whole won")
             if (spentOn.isAfter(today.plusDays(FUTURE_DAYS_MAX))) throw InvalidExpense("EXPENSE_DATE_FUTURE", "spentOn is in the future")
             if (spentOn.isBefore(today.minusDays(PAST_DAYS_MAX))) throw InvalidExpense("EXPENSE_DATE_TOO_OLD", "spentOn is too old")
             if (installmentMonths != null && installmentMonths !in 2..36) {

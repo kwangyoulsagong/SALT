@@ -59,11 +59,14 @@ const val MONTH_LIST_LIMIT = 300
  * 쿼리: 착지 2회(첫 기록 · 날별 합) · 적중 2회(지난달 합 · 지난달 발행)
  */
 class LandingReader(private val expenses: Expenses, private val landings: Landings) {
-    fun landing(userId: String, today: LocalDate, spentSoFar: Money): Landing {
-        val first = expenses.firstSpentOn(userId)
+    /** @param monthTotal 이 달 오늘까지 합 — 오늘 몫을 빼 "오늘 시작 기준"으로 넘긴다 */
+    fun landing(userId: String, today: LocalDate, monthTotal: Money): Landing {
+        val first = expenses.firstRecordedOn(userId)
         val from = first?.let { maxOf(it, today.minusDays(LANDING_LOOKBACK_DAYS)) }
-        val daily = if (from == null || !from.isBefore(today)) emptyMap() else expenses.dailyTotals(userId, from, today.minusDays(1))
-        return LandingEngine.project(YearMonth.from(today), today, spentSoFar, daily, from)
+        // 오늘까지 받아 오늘 몫을 뺀다(같은 문장 하나). 표본은 엔진이 어제까지만 쓴다
+        val daily = if (from == null || from.isAfter(today)) emptyMap() else expenses.dailyTotals(userId, from, today)
+        val beforeToday = monthTotal - (daily[today] ?: Money.krw(0))
+        return LandingEngine.project(YearMonth.from(today), today, beforeToday, daily, from)
     }
 
     fun track(userId: String, today: LocalDate): LandingTrack {

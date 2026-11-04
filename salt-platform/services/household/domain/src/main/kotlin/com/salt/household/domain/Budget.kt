@@ -48,6 +48,7 @@ data class Budget(
         fun fiftyThirtyTwenty(userId: String, income: Money, now: Instant): Budget {
             if (income.isNegative() || income.isZero()) throw InvalidBudget("BUDGET_INCOME_INVALID", "income must be positive")
             if (income > Expense.MAX_AMOUNT) throw InvalidBudget("BUDGET_AMOUNT_TOO_LARGE", "income is too large")
+            if (!Expense.isWholeWon(income)) throw InvalidBudget("BUDGET_INCOME_INVALID", "income must be whole won")
             return Budget(
                 userId,
                 BudgetMethod.FIFTY_THIRTY_TWENTY,
@@ -64,6 +65,7 @@ data class Budget(
                 if (Category.fromKey(key) == null) throw InvalidBudget("BUDGET_CATEGORY_UNKNOWN", "unknown category")
                 if (amount.isNegative() || amount.isZero()) throw InvalidBudget("BUDGET_AMOUNT_INVALID", "envelope amount must be positive")
                 if (amount > Expense.MAX_AMOUNT) throw InvalidBudget("BUDGET_AMOUNT_TOO_LARGE", "envelope amount is too large")
+                if (!Expense.isWholeWon(amount)) throw InvalidBudget("BUDGET_AMOUNT_INVALID", "envelope amount must be whole won")
             }
             // 분류 표 순서로 — 화면 순서가 입력 순서에 흔들리지 않게
             val ordered = Category.entries.mapNotNull { c -> amounts[c.key]?.let { c.key to it } }.toMap(LinkedHashMap())

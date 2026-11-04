@@ -36,6 +36,9 @@ import java.time.ZoneOffset
 /** 가계부는 원화만 — 통화 열이 없다. 외화 지출이 생기면 열을 더하고 이 상수를 지운다 */
 private val CURRENCY = Currency.KRW
 
+/** 첫 기록 날짜는 사용자의 달력(KST)으로 */
+private val KST = java.time.ZoneId.of("Asia/Seoul")
+
 private fun money(value: BigDecimal): Money = Money.of(value, CURRENCY)
 
 private fun Instant.utc() = atOffset(ZoneOffset.UTC)
@@ -98,8 +101,9 @@ class JooqExpenses(private val dsl: DSLContext) : Expenses {
             .fetch()
             .associate { it.value1() to money(it.value2()) }
 
-    override fun firstSpentOn(userId: String): LocalDate? =
-        dsl.select(DSL.min(EXPENSE.SPENT_ON)).from(EXPENSE).where(EXPENSE.USER_ID.eq(userId)).fetchOne()?.value1()
+    override fun firstRecordedOn(userId: String): LocalDate? =
+        dsl.select(DSL.min(EXPENSE.CREATED_AT)).from(EXPENSE).where(EXPENSE.USER_ID.eq(userId)).fetchOne()?.value1()
+            ?.toInstant()?.atZone(KST)?.toLocalDate()
 
     /**
      * 가맹점별 횟수 + 가장 최근 행의 분류 · 금액을 한 문장으로 — 창 함수(`row_number`)로 가맹점마다 최신 행 하나, `count` 를 같은 창에서.

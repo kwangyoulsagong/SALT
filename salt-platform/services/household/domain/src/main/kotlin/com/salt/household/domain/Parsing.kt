@@ -61,7 +61,8 @@ object InputParser {
 
     // 영문 · 숫자에 붙은 숫자는 금액이 아니다("GS25" 의 25). 한글 뒤는 허용("점심12000")
     private const val NOT_AFTER = """(?<![A-Za-z\d.,])"""
-    private val MAN = Regex(NOT_AFTER + """(\d+(?:\.\d+)?)\s*만(?:\s*(\d+)\s*천)?\s*원?""")
+    // "1만2000" · "3만5천" · "1,200만" · "1.2만" — 만 앞은 쉼표 숫자도, 뒤는 천 단위 또는 그냥 숫자(4자리까지)(2026-11-04 리뷰)
+    private val MAN = Regex(NOT_AFTER + """(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*만(?:\s*(\d+)\s*천|\s*(\d{1,4})(?![\d,.]))?\s*원?""")
     private val CHEON = Regex(NOT_AFTER + """(\d+(?:\.\d+)?)\s*천\s*원?""")
     private val PLAIN = Regex(NOT_AFTER + """(\d{1,3}(?:,\d{3})+|\d+)(?![A-Za-z\d])\s*원?""")
 
@@ -76,9 +77,10 @@ object InputParser {
 
     private fun amountIn(t: String): Pair<BigDecimal, IntRange>? {
         MAN.find(t)?.let { m ->
-            val man = BigDecimal(m.groupValues[1]).multiply(BigDecimal(10_000))
+            val man = BigDecimal(m.groupValues[1].replace(",", "")).multiply(BigDecimal(10_000))
             val cheon = m.groupValues[2].takeIf { it.isNotEmpty() }?.let { BigDecimal(it).multiply(BigDecimal(1_000)) } ?: BigDecimal.ZERO
-            return positive(man + cheon)?.let { it to m.range }
+            val rest = m.groupValues[3].takeIf { it.isNotEmpty() }?.let(::BigDecimal) ?: BigDecimal.ZERO
+            return positive(man + cheon + rest)?.let { it to m.range }
         }
         CHEON.find(t)?.let { m -> return positive(BigDecimal(m.groupValues[1]).multiply(BigDecimal(1_000)))?.let { it to m.range } }
         PLAIN.find(t)?.let { m -> return positive(BigDecimal(m.groupValues[1].replace(",", "")))?.let { it to m.range } }

@@ -53,6 +53,10 @@ class HouseholdMathSpec : StringSpec({
         shouldThrow<InvalidExpense> { ok(krw(5_000), today.plusDays(1), Precision.EXACT, InputKind.QUICK, null) }.code shouldBe "EXPENSE_DATE_FUTURE"
         shouldThrow<InvalidExpense> { ok(krw(1_000_000_001), today, Precision.EXACT, InputKind.QUICK, null) }.code shouldBe "EXPENSE_AMOUNT_TOO_LARGE"
         shouldThrow<InvalidExpense> { ok(krw(5_000), today, Precision.EXACT, InputKind.QUICK, 1) }.code shouldBe "EXPENSE_INSTALLMENT_INVALID"
+        // 원 단위만(리뷰 2026-11-04 — 0.4원이 0원으로 보였다)
+        shouldThrow<InvalidExpense> { ok(Money.krw("0.4"), today, Precision.EXACT, InputKind.QUICK, null) }.code shouldBe "EXPENSE_AMOUNT_INVALID"
+        ok(Money.krw("5000.00"), today, Precision.EXACT, InputKind.QUICK, null).amount shouldBe krw(5_000)
+        shouldThrow<InvalidBudget> { Budget.fiftyThirtyTwenty("u", Money.krw("100.5"), now) }.code shouldBe "BUDGET_INCOME_INVALID"
     }
 
     "착지 — 기록 14일 미만이면 구간 없음 + history_short" {
@@ -64,12 +68,12 @@ class HouseholdMathSpec : StringSpec({
         l.daysOfHistory shouldBe 10
     }
 
-    "착지 — 매일 같은 금액이면 구간 = 지금까지 + 일평균 × 남은 날(폭 0)" {
+    "착지 — 매일 같은 금액이면 구간 = 어제까지 + 일평균 × 오늘 포함 남은 날(폭 0)" {
         val daily = (1..60).associate { today.minusDays(it.toLong()) to krw(10_000) }
         val l = LandingEngine.project(YearMonth.from(today), today, krw(40_000), daily, today.minusDays(60))
-        // 11월 4일 → 남은 날 26
-        l.low shouldBe krw(40_000 + 260_000)
-        l.high shouldBe krw(40_000 + 260_000)
+        // 11월 4일 → 오늘 포함 남은 날 27
+        l.low shouldBe krw(40_000 + 270_000)
+        l.high shouldBe krw(40_000 + 270_000)
         l.method shouldBe LandingMethod.EMPIRICAL_WINDOW
     }
 
@@ -82,12 +86,13 @@ class HouseholdMathSpec : StringSpec({
         (a.low >= krw(40_000)) shouldBe true
     }
 
-    "착지 — 말일이면 지금까지가 곧 착지(month_over)" {
+    "착지 — 말일에도 한 점이 아니라 오늘 하루 분포를 더한 구간(리뷰 2026-11-04: 말일 발행이 한 점이라 적중이 늘 빗나갔다)" {
         val last = LocalDate.of(2026, 11, 30)
-        val l = LandingEngine.project(YearMonth.from(last), last, krw(900_000), emptyMap(), null)
-        l.method shouldBe LandingMethod.MONTH_OVER
-        l.low shouldBe krw(900_000)
-        l.high shouldBe krw(900_000)
+        val daily = (1..60).associate { last.minusDays(it.toLong()) to krw(if (it % 3 == 0) 30_000 else 5_000) }
+        val l = LandingEngine.project(YearMonth.from(last), last, krw(900_000), daily, last.minusDays(60))
+        l.method shouldBe LandingMethod.EMPIRICAL_WINDOW
+        l.low shouldBe krw(905_000)
+        (l.high!! > l.low!!) shouldBe true
     }
 
     "분위 — 선형 보간" {

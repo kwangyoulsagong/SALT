@@ -13,7 +13,7 @@ enum class LandingMethod(val key: String) {
     /** 지난 날들의 연속 창 합 분포(10 · 90% 분위) × 남은 날 */
     EMPIRICAL_WINDOW("empirical_window"),
 
-    /** 달이 끝났다(오늘이 말일) — 지금까지가 곧 착지 */
+    /** 쓰지 않는다(계약 · DB 값만 남김) — 2026-11-04 리뷰: 말일 발행이 한 점이 돼 적중이 늘 빗나갔다. 착지는 "오늘 시작 기준"이라 남은 날이 늘 1 이상이다 */
     MONTH_OVER("month_over"),
 }
 
@@ -50,7 +50,9 @@ data class IssuedLanding(val id: UUID, val userId: String, val issuedOn: LocalDa
 data class LandingTrack(val month: YearMonth, val issuedOn: LocalDate?, val low: Money?, val high: Money?, val actual: Money?, val hit: Boolean?, val reason: String?)
 
 /**
- * 착지 계산 — 표본은 **사용자가 기록을 시작한 날부터 어제까지**의 날별 합(기록 없는 날 = 0원). 오늘은 반쪽이라 표본에서 뺀다.
+ * 착지 계산 — **오늘 시작 기준**: 어제까지 쓴 돈 + 오늘 포함 남은 날의 분포. 같은 날이면 몇 시에 계산해도 같은 구간이다
+ * (그날 첫 저장에 발행해도 그날 나머지 지출이 구간 밖으로 새지 않는다 — 2026-11-04 리뷰). 화면의 "이번 달 쓴 돈"은 따로 오늘까지 합이다.
+ * 표본은 **사용자가 기록을 시작한 날**(첫 저장 날짜 — 지출 날짜가 아니다: 지난날로 적은 대략 합계가 표본을 0원 날로 늘리지 않게)부터 어제까지.
  *
  * 남은 날 R 일의 합 분포를 연속 창 합으로 잰다: 창 길이 L = min(R, N − 6)(창이 7개 이상 나오게), 창 합 × R/L 의 10 · 90% 분위.
  * 무작위 재표집(부트스트랩)을 쓰지 않는 이유: 같은 입력이면 같은 구간이어야 발행 기록 · 적중 판정이 재현된다.
@@ -63,14 +65,16 @@ object LandingEngine {
     private val HIGH_Q = BigDecimal("0.90")
 
     /**
+     * @param spentBeforeToday 이 달 1일~어제 합
      * @param dailyHistory 날짜 → 그날 합. 어제까지만 쓴다(그 뒤 날짜는 무시)
-     * @param firstRecordedOn 사용자의 첫 기록 날짜 — 표본 시작. 없으면 표본 0
+     * @param firstRecordedOn 사용자가 처음 기록한 날(저장 날짜) — 표본 시작. 없으면 표본 0
      */
-    fun project(month: YearMonth, today: LocalDate, spentSoFar: Money, dailyHistory: Map<LocalDate, Money>, firstRecordedOn: LocalDate?): Landing {
-        val remainingDays = month.lengthOfMonth() - today.dayOfMonth
+    fun project(month: YearMonth, today: LocalDate, spentBeforeToday: Money, dailyHistory: Map<LocalDate, Money>, firstRecordedOn: LocalDate?): Landing {
+        val spentSoFar = spentBeforeToday
+        // 오늘 포함 — 늘 1 이상
+        val remainingDays = month.lengthOfMonth() - today.dayOfMonth + 1
         val start = firstRecordedOn?.takeIf { !it.isAfter(today.minusDays(1)) }
         val samples = if (start == null) emptyList() else sampleDays(start, today.minusDays(1), dailyHistory)
-        if (remainingDays == 0) return Landing(month, LandingMethod.MONTH_OVER, spentSoFar, spentSoFar, spentSoFar, null, samples.size)
         if (samples.size < MIN_HISTORY_DAYS) {
             return Landing(month, LandingMethod.EMPIRICAL_WINDOW, spentSoFar, null, null, LandingReason.HISTORY_SHORT, samples.size)
         }

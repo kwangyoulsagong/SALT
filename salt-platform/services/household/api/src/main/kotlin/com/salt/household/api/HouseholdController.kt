@@ -146,8 +146,9 @@ class HouseholdController(
     data class CategorySpentView(val key: String, val bucket: String, val spent: Long)
 
     data class LandingView(
-        /** empirical_window · month_over */
+        /** empirical_window(month_over 는 쓰지 않음 — 계약 값만) */
         val method: String,
+        /** 어제까지 이 달 합 — 착지는 "오늘 시작 기준"(오늘 몫은 구간에 든다) */
         val spentSoFar: Long,
         val low: Long?,
         val high: Long?,

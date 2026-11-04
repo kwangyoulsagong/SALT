@@ -376,12 +376,15 @@ open class HomeCard(private val reader: GoalReader) {
  * 목표 시계 조회(`SRV-REQ-045` FR-17 "가계부 응답용 조회 API") — 홈 카드와 같은 "가장 가까운 목표"(진척이 가장 큰 진행 중 목표)를 고른다.
  * 저장하지 않는다. 쿼리 3회(목록 읽기와 같다 — 실물 단위 제외)
  */
+private val CLOCK_AMOUNT_MAX: Money = Money.krw(1_000_000_000L)
+
 open class GoalClockQuery(private val reader: GoalReader, private val clock: Clock) {
     data class View(val goal: Goal?, val delayDays: Long?, val reason: String?)
 
     @Transactional(transactionManager = SAVINGS_TX, readOnly = true)
     open fun execute(userId: String, amount: Money): View {
-        if (amount.isNegative() || amount.isZero()) throw InvalidGoal("CLOCK_AMOUNT_INVALID", "amount must be positive")
+        // 상한 — 지연 일수가 Long 을 넘으면 500 이 났다(리뷰 2026-11-04). 가계부 한 건 상한(10억)과 같은 값
+        if (amount.isNegative() || amount.isZero() || amount > CLOCK_AMOUNT_MAX) throw InvalidGoal("CLOCK_AMOUNT_INVALID", "amount must be positive and at most 1,000,000,000")
         val nearest = reader.summaries(userId, withUnits = false).filter { it.goal.status == GoalStatus.ACTIVE }.maxByOrNull { it.progress }
             ?: return View(null, null, GoalClock.NO_ACTIVE_GOAL)
         val goal = nearest.goal

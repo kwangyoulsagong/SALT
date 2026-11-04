@@ -33,6 +33,13 @@ class ParsingSpec : StringSpec({
         }
         InputParser.line("커피 4500원", today).candidates.single().amount shouldBe krw(4_500)
         InputParser.line("점심12000", today).candidates.single().amount shouldBe krw(12_000)
+        // 리뷰 2026-11-04 — 만 뒤 그냥 숫자 · 만 앞 쉼표 숫자
+        InputParser.line("택시 1만2000", today).candidates.single().let {
+            it.amount shouldBe krw(12_000)
+            it.merchant shouldBe "택시"
+        }
+        InputParser.line("월세 1,200만", today).candidates.single().amount shouldBe krw(12_000_000)
+        InputParser.line("2만 저녁", today).candidates.single().amount shouldBe krw(20_000)
     }
 
     "한 줄 — 가맹점 이름 속 숫자는 금액이 아니다(GS25)" {

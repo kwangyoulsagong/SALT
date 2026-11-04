@@ -21,8 +21,8 @@ interface Expenses {
     /** 날짜별 합 `[from, to]` — 착지 표본. 기록 없는 날은 빠진다(엔진이 0 으로 채운다) */
     fun dailyTotals(userId: String, from: LocalDate, to: LocalDate): Map<LocalDate, Money>
 
-    /** 첫 기록 날짜 — 착지 표본 시작 */
-    fun firstSpentOn(userId: String): LocalDate?
+    /** 처음 기록한 날(저장 시각의 KST 날짜) — 착지 표본 시작. 지출 날짜의 최솟값이 아니다(지난날 대략 합계가 표본을 늘리지 않게) */
+    fun firstRecordedOn(userId: String): LocalDate?
 
     /** 최근 [days] 일 가맹점 — 횟수 많은 순, 같은 가맹점은 마지막 분류 · 금액 */
     fun recentMerchants(userId: String, since: LocalDate, limit: Int): List<RecentMerchant>
