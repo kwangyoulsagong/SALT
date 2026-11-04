@@ -257,7 +257,80 @@ class HouseholdEndToEndTest {
         call("GET", "/api/savings/goal-clock?amount=1e30", user, null).statusCode() shouldBe 400
     }
 
+    @Test
+    fun `쿼리 수 — 월 화면 8 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 5`() {
+        val user = "q-${UUID.randomUUID()}"
+        call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"food":300000}}""").statusCode() shouldBe 200
+        var before = statements()
+        call("POST", "/api/household/expenses", user, """{"amount":1000,"category":"food"}""", countQueries = true).statusCode() shouldBe 201
+        val firstSave = statements() - before
+        before = statements()
+        call("POST", "/api/household/expenses", user, """{"amount":1000,"category":"food"}""", countQueries = true).statusCode() shouldBe 201
+        val secondSave = statements() - before
+        before = statements()
+        call("GET", "/api/household/month/${YearMonth.from(today)}", user, null, countQueries = true).statusCode() shouldBe 200
+        val month = statements() - before
+        before = statements()
+        call("GET", "/api/household/home-card", user, null, countQueries = true).statusCode() shouldBe 200
+        val home = statements() - before
+        println("[household-queries] firstSave=$firstSave secondSave=$secondSave month=$month home=$home")
+        // 월: 목록 · 월 합 · 예산 2 · 착지 2(첫 기록 · 날별) · 적중 2(지난달 발행 · 지난달 합)
+        month shouldBe 8L
+        // 저장: 행 · 아웃박스 · 월 합 · 착지 2 · 발행 · 아웃박스(그날 처음) · 예산 2 = 9. 두 번째는 발행이 ON CONFLICT 로 빈 문장이 되고 그 아웃박스가 빠져 8
+        // (그날 이미 냈어도 착지를 다시 계산하는 3문장은 리뷰가 짚은 낭비 — 쓰기 응답 몫이라 남김, 루트 체크리스트 §4)
+        firstSave shouldBe 9L
+        secondSave shouldBe 8L
+        // 홈: 월 합 · 예산 2 · 착지 2
+        home shouldBe 5L
+    }
+
     // ---------- 도움 ----------
+
+    /** household DSL 이 실행한 SQL 문장 수(저축 종단 테스트와 같은 장치 — BEGIN/COMMIT 은 세지 않는다) */
+    private fun statements(): Long {
+        QueryCounter.install(householdDatabase.dsl)
+        return QueryCounter.count.get()
+    }
+
+    private object QueryCounter : org.jooq.ExecuteListener {
+        val count = java.util.concurrent.atomic.AtomicLong()
+        private var installed = false
+
+        @Synchronized
+        fun install(dsl: org.jooq.DSLContext) {
+            if (installed) return
+            val configuration = dsl.configuration()
+            configuration.set(*(configuration.executeListenerProviders() + org.jooq.impl.DefaultExecuteListenerProvider(this)))
+            installed = true
+        }
+
+        val active: ThreadLocal<Boolean> = ThreadLocal.withInitial { false }
+
+        override fun executeStart(ctx: org.jooq.ExecuteContext) {
+            if (active.get()) count.incrementAndGet()
+        }
+    }
+
+    @org.springframework.boot.test.context.TestConfiguration
+    class CountingFilter {
+        @org.springframework.context.annotation.Bean
+        fun householdQueryCountingFilter(): org.springframework.boot.web.servlet.FilterRegistrationBean<jakarta.servlet.Filter> =
+            org.springframework.boot.web.servlet.FilterRegistrationBean<jakarta.servlet.Filter>(
+                jakarta.servlet.Filter { request, response, chain ->
+                    val counted = (request as jakarta.servlet.http.HttpServletRequest).getHeader(HEADER) != null
+                    if (counted) QueryCounter.active.set(true)
+                    try {
+                        chain.doFilter(request, response)
+                    } finally {
+                        if (counted) QueryCounter.active.remove()
+                    }
+                },
+            ).apply { order = org.springframework.core.Ordered.HIGHEST_PRECEDENCE }
+
+        companion object {
+            const val HEADER = "X-Test-Count-Queries"
+        }
+    }
 
     private fun eventTypes(user: String): List<String> =
         householdDatabase.dsl.fetch("SELECT event_type FROM outbox WHERE payload->>'userId' = ? ORDER BY seq", user).map { it.get(0, String::class.java) }
@@ -272,10 +345,11 @@ class HouseholdEndToEndTest {
     /** Jackson 3 JsonNode 의 map 은 컬렉션 map 이 아니다 — 배열을 리스트로 */
     private fun <T> JsonNode.items(f: (JsonNode) -> T): List<T> = (0 until size()).map { f(get(it)) }
 
-    private fun call(method: String, path: String, user: String, body: String?): HttpResponse<String> {
+    private fun call(method: String, path: String, user: String, body: String?, countQueries: Boolean = false): HttpResponse<String> {
         val request = HttpRequest.newBuilder(URI.create("http://localhost:$port$path"))
             .method(method, body?.let { HttpRequest.BodyPublishers.ofString(it) } ?: HttpRequest.BodyPublishers.noBody())
             .header("Authorization", "Bearer ${token(user)}")
+            .apply { if (countQueries) header(CountingFilter.HEADER, "1") }
             .apply { if (body != null) header("Content-Type", "application/json") }
             .build()
         return http.send(request, HttpResponse.BodyHandlers.ofString())

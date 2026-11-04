@@ -78,7 +78,7 @@ class HouseholdMathSpec : StringSpec({
     }
 
     "착지 — 들쭉날쭉하면 low < high · 같은 입력이면 같은 구간(재현)" {
-        val daily = (1..60).associate { today.minusDays(it.toLong()) to krw(if (it % 7 == 0) 120_000 else 8_000) }
+        val daily = (1..60).associate { today.minusDays(it.toLong()) to krw(if (it % 7 == 0 || it % 11 == 0) 120_000 else 8_000L + (it % 5) * 3_000) }
         val a = LandingEngine.project(YearMonth.from(today), today, krw(40_000), daily, today.minusDays(60))
         val b = LandingEngine.project(YearMonth.from(today), today, krw(40_000), daily, today.minusDays(60))
         (a.low!! < a.high!!) shouldBe true

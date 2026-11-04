@@ -54,15 +54,46 @@ data class LandingTrack(val month: YearMonth, val issuedOn: LocalDate?, val low:
  * (그날 첫 저장에 발행해도 그날 나머지 지출이 구간 밖으로 새지 않는다 — 2026-11-04 리뷰). 화면의 "이번 달 쓴 돈"은 따로 오늘까지 합이다.
  * 표본은 **사용자가 기록을 시작한 날**(첫 저장 날짜 — 지출 날짜가 아니다: 지난날로 적은 대략 합계가 표본을 0원 날로 늘리지 않게)부터 어제까지.
  *
- * 남은 날 R 일의 합 분포를 연속 창 합으로 잰다: 창 길이 L = min(R, N − 6)(창이 7개 이상 나오게), 창 합 × R/L 의 10 · 90% 분위.
+ * 남은 날 R 일의 합 분포: R ≤ 7 이면 연속 창 합의 10 · 90% 분위, 더 길면 7일 창 합 퍼짐의 정규 근사([longSpan]).
  * 무작위 재표집(부트스트랩)을 쓰지 않는 이유: 같은 입력이면 같은 구간이어야 발행 기록 · 적중 판정이 재현된다.
+ * 고정비(월세처럼 한 달 한 번 큰 지출)는 아직 변동 분포에 섞인다 — 반복 템플릿(S1b FR-5 · FR-12)이 "예정"으로 따로 더하게 되면 뺀다.
  * 대략 합계(밀린 날 한꺼번에)는 그날 하루에 몰려 꼬리를 키운다 — 구간이 넓어지는 쪽이라 감추지 않고 그대로 둔다.
  */
 object LandingEngine {
     const val MIN_HISTORY_DAYS = 14
-    private const val MIN_WINDOWS = 7
+    private const val WEEK = 7
     private val LOW_Q = BigDecimal("0.10")
     private val HIGH_Q = BigDecimal("0.90")
+
+    /** 표준 정규 90% 분위 — 10 · 90% 구간의 반폭 배수 */
+    private val Z90 = BigDecimal("1.2815515655")
+    private val MC = java.math.MathContext(34)
+
+    /**
+     * 남은 날이 한 주 이하 — 길이 R 연속 창 합의 10 · 90% 분위(표본 14일이면 창이 8개 이상, 겹침이 적다).
+     */
+    private fun shortSpan(samples: List<BigDecimal>, r: Int): Pair<BigDecimal, BigDecimal> {
+        val sums = windowSums(samples, r).sorted()
+        return quantile(sums, LOW_Q) to quantile(sums, HIGH_Q)
+    }
+
+    /**
+     * 남은 날이 한 주보다 길다 — 긴 창은 90일 안에서 서로 거의 겹쳐 독립 표본이 몇 개 안 되고, 분위가 퍼짐을 줄여 잡는다
+     * (백테스트 2026-11-04: 1~10일 적중 52%). 그래서 **7일 창 합의 퍼짐**(요일 꼴을 담는다)을 √(R/7) 로 늘린 정규 근사:
+     * 가운데 = 남은 날마다 **그 요일의 평균**을 더한 값(남은 날에 주말이 몇 번 드는지는 이미 안다 — 일평균 × R 은 주말형에서 적중 67%),
+     * 반폭 = 1.2816 × sd(7일 합) × √(R/7). 아래 끝은 0 아래로 내리지 않는다. 무작위 0 — 같은 입력이면 같은 구간.
+     */
+    private fun longSpan(samples: List<BigDecimal>, start: LocalDate, today: LocalDate, r: Int): Pair<BigDecimal, BigDecimal> {
+        val byDow = samples.indices.groupBy({ start.plusDays(it.toLong()).dayOfWeek }, { samples[it] })
+            .mapValues { (_, v) -> v.fold(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal(v.size), MC) }
+        // 표본 14일 이상이라 요일마다 2일 이상 있다
+        val center = (0 until r).fold(BigDecimal.ZERO) { acc, i -> acc + byDow.getValue(today.plusDays(i.toLong()).dayOfWeek) }
+        val weekly = windowSums(samples, WEEK)
+        val mean = weekly.fold(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal(weekly.size), MC)
+        val variance = weekly.fold(BigDecimal.ZERO) { acc, x -> acc + (x - mean).pow(2) }.divide(BigDecimal(weekly.size - 1), MC)
+        val half = Z90.multiply(variance.sqrt(MC)).multiply(BigDecimal(r).divide(BigDecimal(WEEK), MC).sqrt(MC))
+        return (center - half).max(BigDecimal.ZERO) to center + half
+    }
 
     /**
      * @param spentBeforeToday 이 달 1일~어제 합
@@ -78,11 +109,9 @@ object LandingEngine {
         if (samples.size < MIN_HISTORY_DAYS) {
             return Landing(month, LandingMethod.EMPIRICAL_WINDOW, spentSoFar, null, null, LandingReason.HISTORY_SHORT, samples.size)
         }
-        val window = minOf(remainingDays, samples.size - (MIN_WINDOWS - 1))
-        val scale = BigDecimal(remainingDays).divide(BigDecimal(window), 20, RoundingMode.HALF_EVEN)
-        val sums = windowSums(samples, window).map { it.multiply(scale) }.sorted()
-        val low = spentSoFar + Money.krw(quantile(sums, LOW_Q))
-        val high = spentSoFar + Money.krw(quantile(sums, HIGH_Q))
+        val (lowAdd, highAdd) = if (remainingDays <= WEEK) shortSpan(samples, remainingDays) else longSpan(samples, start!!, today, remainingDays)
+        val low = spentSoFar + Money.krw(lowAdd)
+        val high = spentSoFar + Money.krw(highAdd)
         return Landing(month, LandingMethod.EMPIRICAL_WINDOW, spentSoFar, low, high, null, samples.size)
     }
 
