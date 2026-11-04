@@ -57,7 +57,7 @@ object MonthCloseRules {
 }
 
 /**
- * 할부 띠(`SRV-REQ-046` FR-10 — 리볼빙은 ~~S1c~~ S1d, 2026-11-04 정정). 원거래 = 지출 한 행(S1a 판단 4), 월 청구는 계산값(`DB-REQ-038` FR-5 "저장 안 함").
+ * 할부 띠(`SRV-REQ-046` FR-10 — 리볼빙은 ~~S1c~~ ~~S1d~~ S1e, 2026-11-04 정정 — S1d 는 챌린지만). 원거래 = 지출 한 행(S1a 판단 4), 월 청구는 계산값(`DB-REQ-038` FR-5 "저장 안 함").
  * 첫 청구는 산 다음 달, 원 단위로 나눈 나머지는 첫 달에(판단 8 — 결제일 · 카드사를 모른다). 원거래는 산 달 지출 합에 그대로 든다.
  */
 data class InstallmentPlan(val expense: Expense, val months: Int) {
