@@ -1,4 +1,5 @@
 import { logger } from "../config/logger";
+import { AppError } from "../utils/error.util";
 import { appSavingsService } from "./app-savings.service";
 import { backendApi } from "./backend-api.service";
 
@@ -216,6 +217,58 @@ export interface HouseholdCalendarDayVM {
   state: string;
   spent: number;
   markable: boolean;
+  /** 챌린지 "한 날" 스티커(가계부 S1d) — 칸 상태와 따로 */
+  challenge: boolean;
+}
+
+/** 아낀 돈 한 줄 — goalId 는 보탠 목표(없으면 null). 목표 이름은 목록 응답 `goals` 에서 id 로 찾는다 */
+export interface HouseholdChallengeSavingVM {
+  id: string;
+  amount: number;
+  savedOn: string;
+  note: string | null;
+  goalId: string | null;
+  contributedAt: string | null;
+}
+
+/** 챌린지 카드 — phase 는 서버가 정한다: upcoming · running · ended. 실패 · 연속 일수 칸 없음 */
+export interface HouseholdChallengeVM {
+  id: string;
+  title: string;
+  startsOn: string;
+  endsOn: string;
+  endedOn: string | null;
+  phase: string;
+  /** 표시한 날(날짜 순) */
+  days: string[];
+  todayMarkable: boolean;
+  savedTotal: number;
+  contributedTotal: number;
+  savings: HouseholdChallengeSavingVM[];
+}
+
+/** 보탤 수 있는 저축 목표 — 진행 중만. 저축 서비스가 답하지 못하면 목록 응답의 goals 가 null(그 칸만 비운다) */
+export interface HouseholdGoalOptionVM {
+  id: string;
+  title: string;
+  template: string;
+}
+
+export interface HouseholdChallengeListVM {
+  items: HouseholdChallengeVM[];
+  /** 고르기 예시 키 — 이름은 프론트 */
+  presets: string[];
+  limit: number;
+  openCount: number;
+  /** 상한에 닿았나 — 서버가 정한다 */
+  canStart: boolean;
+  /** 기간 상한(일) — 안내 글자 */
+  periodDaysMax: number;
+  /** 오늘(KST) = 시작 칸 min · 기본값, startMax = 시작 칸 max(서버가 더한 날짜) */
+  today: string;
+  startMax: string;
+  /** null 이면 저축 서비스가 답하지 못했다 — 보태기 칸만 숨긴다 */
+  goals: HouseholdGoalOptionVM[] | null;
 }
 
 /** 노동시간 설정 — hourly 는 켰을 때 1시간 값(원) */
@@ -260,8 +313,8 @@ export interface HouseholdMonthVM {
   reviewQuestions: string[];
   /** 감정 태그 — 다음 날 묻기(이번 달만) · 거울 · 키 목록(가계부 S1c) */
   feelings: { asks: HouseholdFeelingAskVM[]; mirror: HouseholdMirrorVM[]; emotions: string[] };
-  /** 무지출 달력 — 1일~말일 */
-  calendar: { days: HouseholdCalendarDayVM[]; noSpendDays: number };
+  /** 무지출 달력 — 1일~말일. challengeDays 는 챌린지 한 날 수(가계부 S1d) */
+  calendar: { days: HouseholdCalendarDayVM[]; noSpendDays: number; challengeDays: number };
   /** 노동시간 — 켰을 때만 */
   workHours: { hourly: number; totalMinutes: number } | null;
 }
@@ -411,6 +464,80 @@ class AppHouseholdService {
 
   async unmarkNoSpend(token: string, date: string): Promise<{ date: string }> {
     return data(await backendApi.proxyAuthRequest("DELETE", `/household/no-spend/${encodeURIComponent(date)}`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  // ---------- 내가 고르는 챌린지(가계부 S1d) ----------
+
+  /** 목록 + 보탤 수 있는 목표 — 두 서비스를 나란히. 저축이 실패해도 목록은 나온다(goals null) */
+  async challenges(token: string): Promise<HouseholdChallengeListVM> {
+    const [list, goals] = await Promise.all([
+      backendApi.proxyAuthRequest("GET", "/household/challenges", token, undefined, { timeout: READ_TIMEOUT_MS }),
+      appSavingsService.goals(token).then(
+        (all) => all.filter((g) => g.status === "active").map((g) => ({ id: g.id, title: g.title, template: g.template })),
+        (error: unknown) => {
+          logger.warn("챌린지 화면 — 저축 목표를 받지 못했다", { reason: (error as Error | undefined)?.message });
+          return null;
+        },
+      ),
+    ]);
+    return { ...data<Omit<HouseholdChallengeListVM, "goals">>(list), goals };
+  }
+
+  async startChallenge(token: string, body: unknown): Promise<HouseholdChallengeVM> {
+    return data(await backendApi.proxyAuthRequest("POST", "/household/challenges", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async endChallenge(token: string, id: string): Promise<HouseholdChallengeVM> {
+    return data(await backendApi.proxyAuthRequest("POST", `/household/challenges/${encodeURIComponent(id)}/end`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async markChallengeDay(token: string, id: string, date: string): Promise<HouseholdChallengeVM> {
+    return data(
+      await backendApi.proxyAuthRequest("PUT", `/household/challenges/${encodeURIComponent(id)}/days/${encodeURIComponent(date)}`, token, undefined, {
+        timeout: WRITE_TIMEOUT_MS,
+      }),
+    );
+  }
+
+  async unmarkChallengeDay(token: string, id: string, date: string): Promise<HouseholdChallengeVM> {
+    return data(
+      await backendApi.proxyAuthRequest("DELETE", `/household/challenges/${encodeURIComponent(id)}/days/${encodeURIComponent(date)}`, token, undefined, {
+        timeout: WRITE_TIMEOUT_MS,
+      }),
+    );
+  }
+
+  async recordChallengeSaving(token: string, id: string, body: unknown): Promise<HouseholdChallengeVM> {
+    return data(await backendApi.proxyAuthRequest("POST", `/household/challenges/${encodeURIComponent(id)}/savings`, token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async deleteChallengeSaving(token: string, savingId: string): Promise<HouseholdChallengeVM> {
+    return data(await backendApi.proxyAuthRequest("DELETE", `/household/challenge-savings/${encodeURIComponent(savingId)}`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  /**
+   * 아낀 돈을 목표에 보태기(가계부 S1d 판단 4) — 두 서비스에 걸친 쓰기라 BFF 가 순서를 정한다:
+   * ① 가계부에서 그 아낀 돈의 금액 · 날짜를 읽는다(금액은 화면 본문이 아니라 기록에서)
+   * ② 저축에 `saved_by_challenge` 적립 — 출처 id 하나에 한 번(재시도해도 하나, 다른 목표면 409)
+   * ③ 가계부에 "보탰다" — 같은 목표면 그대로
+   * ② 뒤 ③ 이 실패하면 화면은 다시 "보태기"를 보이고, 다시 누르면 ② 는 아무것도 새로 쓰지 않고 ③ 만 된다. 돈이 두 번 들어가는 길이 없다.
+   */
+  async contributeSaving(token: string, savingId: string, body: { goalId?: unknown }): Promise<HouseholdChallengeVM> {
+    const goalId = typeof body.goalId === "string" ? body.goalId.trim() : "";
+    // 빈 목표는 경로가 `//` 가 되어 플랫폼이 401 로 답한다 — 화면이 로그아웃으로 읽지 않게 여기서 400
+    if (!goalId) throw new AppError("goalId is required", 400, true, "GOAL_ID_REQUIRED");
+    const id = encodeURIComponent(savingId);
+    const source = data<{ id: string; amount: number; savedOn: string; goalId: string | null }>(
+      await backendApi.proxyAuthRequest("GET", `/household/challenge-savings/${id}`, token, undefined, { timeout: READ_TIMEOUT_MS }),
+    );
+    await backendApi.proxyAuthRequest(
+      "POST",
+      `/savings/goals/${encodeURIComponent(goalId)}/challenge-deposits`,
+      token,
+      { amount: source.amount, depositedOn: source.savedOn, savingId: source.id },
+      { timeout: WRITE_TIMEOUT_MS },
+    );
+    return data(await backendApi.proxyAuthRequest("PUT", `/household/challenge-savings/${id}/contribution`, token, { goalId }, { timeout: WRITE_TIMEOUT_MS }));
   }
 
   async homeCard(token: string, timeout: number): Promise<HouseholdHomeCardSource> {
