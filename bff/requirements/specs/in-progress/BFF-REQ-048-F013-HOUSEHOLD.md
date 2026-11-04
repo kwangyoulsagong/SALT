@@ -40,8 +40,15 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 
 | FR | 상태 | 비고 |
 |---|---|---|
-| FR-3 | 리뷰(마감) · 예정 · 할부 칸 done — `recurring` · `installments` · `close` · `closable` · `reviewQuestions`. 스티커는 S1c | 서버 값 그대로 |
-| FR-4 | 템플릿 · 예정 확인 · 건너뛰기 · 마감 중계 done(경로 7). 챌린지 · 이야기 카드는 S1c | 확인 응답에도 목표 시계(저장과 같은 300ms · `pending`) |
+| FR-3 | 리뷰(마감) · 예정 · 할부 칸 done — `recurring` · `installments` · `close` · `closable` · `reviewQuestions`. 스티커는 S1c(닫힘 2026-11-04 — 아래 S1c 표) | 서버 값 그대로 |
+| FR-4 | 템플릿 · 예정 확인 · 건너뛰기 · 마감 중계 done(경로 7). 챌린지 · 이야기 카드는 ~~S1c~~ S1d(정정 2026-11-04) | 확인 응답에도 목표 시계(저장과 같은 300ms · `pending`) |
+
+## 구현 현황 — 가계부 S1c (2026-11-04, `requirements/specs/done/MONEY-S1c-household-mirror-slice.md`)
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-3 | 스티커(달력 `calendar` — 칸 상태 · `markable` · `weekday`) · 감정(`feelings` — 묻기 · 거울 · 키) · 근무(`workHours` · 지출 `workMinutes`) 칸 — 서버 값 그대로 | 저장 응답 `savedWorkMinutes` · 제안 `emotions` |
+| FR-4 | 중계 — `PUT/DELETE /expenses/:id/feeling` · `POST /expenses/:id/feeling/next` · `GET/PUT /settings/work-hours` · `PUT/DELETE /no-spend/:date`. 감정 · 급여 본문 로그 0(로그 캡처 테스트) | 챌린지 · 이야기 카드는 S1d |
 
 ## Changelog
 
@@ -52,3 +59,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | 2026-11-04 | 리뷰 반영 — BFF 변경 0. 남긴 것: `within` 시간 상한이 홈 서비스와 두 벌 · axios 타임아웃과 이중(회고) |
 | 2026-11-04 | 가계부 S1a — 이 REQ 계약을 화면 쪽에서 읽는 파일(`householdApi.ts` · `types.ts`)이 엔티티 이름 변경으로 옮겨졌다(`b147221e`, 계약 변경 0) |
 | 2026-11-04 | 가계부 S1b — 템플릿 · 예정 확인 · 마감 경로 · 월 화면 새 칸(`c3b799fd`). 테스트 +2(서비스 7) |
+| 2026-11-04 | 가계부 S1c — 감정 · 노동시간 · 안 쓴 날 경로 · 월 화면 새 칸(`53d91b5c`). 테스트 +1(전체 363) · 조회 예산 주석 "월 화면 16회" |
