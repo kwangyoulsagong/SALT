@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salt.local/contracts/events/household.LandingIssued.json",
+  "title": "household.LandingIssued",
+  "description": "월말 착지 구간을 발행했다(SRV-REQ-046 FR-8, DB-REQ-038 FR-8 landing_issued 행과 같은 값). 지출을 적은 날 하루 한 번. 구독 예정: forecast 채점(FC-REQ-024)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "landingId",
+    "userId",
+    "month",
+    "issuedOn",
+    "method",
+    "low",
+    "high",
+    "spentSoFar",
+    "reason",
+    "daysOfHistory"
+  ],
+  "properties": {
+    "landingId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "userId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "month": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}$"
+    },
+    "issuedOn": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "method": {
+      "enum": [
+        "empirical_window",
+        "month_over"
+      ]
+    },
+    "low": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^\\d+(\\.\\d+)?$"
+    },
+    "high": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^\\d+(\\.\\d+)?$"
+    },
+    "spentSoFar": {
+      "type": "string",
+      "pattern": "^\\d+(\\.\\d+)?$"
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "history_short",
+        null
+      ]
+    },
+    "daysOfHistory": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

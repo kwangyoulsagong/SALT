@@ -1,6 +1,7 @@
 -- 서비스별 스키마 · DB 계정(`DB-REQ-036` FR-1). **관리자(DB 소유자)가 돌린다.** 다시 돌려도 같은 결과다.
 --
---   psql -v ON_ERROR_STOP=1 -v ping_password="$PING_DB_PASSWORD" -v savings_password="$SAVINGS_DB_PASSWORD" -f db/roles.sql
+--   psql -v ON_ERROR_STOP=1 -v ping_password="$PING_DB_PASSWORD" -v savings_password="$SAVINGS_DB_PASSWORD" \
+--        -v household_password="$HOUSEHOLD_DB_PASSWORD" -f db/roles.sql
 --
 -- - 스키마 주인 = 서비스 계정 → 자기 스키마에만 DDL(Flyway) · DML. 남의 스키마는 USAGE 가 없어 SELECT 도 권한 오류
 -- - 아직 플랫폼에서 돌지 않는 서비스는 NOLOGIN — 그 서비스가 옮겨 오는 단계에 `ALTER ROLE … LOGIN PASSWORD` 한 줄
@@ -25,3 +26,6 @@ SELECT format('REVOKE ALL ON SCHEMA %I FROM PUBLIC', s)
 
 -- S1(`SRV-REQ-045`, 2026-11-03) — savings 가 플랫폼으로 옮겨 와 로그인을 연다. 스키마 · 계정은 위 도메인 줄이 이미 만들었다
 ALTER ROLE svc_savings LOGIN PASSWORD :'savings_password';
+
+-- 가계부 S1a(`SRV-REQ-046`, 2026-11-04) — household 가 플랫폼에서 태어나 로그인을 연다. 스키마 · 계정은 위 도메인 줄이 이미 만들었다
+ALTER ROLE svc_household LOGIN PASSWORD :'household_password';
