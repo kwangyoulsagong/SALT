@@ -98,6 +98,9 @@ const REGISTRY = {
     // 가계부(`FE-REQ-057`, 2026-11-04) — 지출 적기(바로 · 한 줄 · 결제 문자 붙여넣기 · 지우기) · 예산 정하기
     "record-expense",
     "edit-budget",
+    // 가계부 S1b(2026-11-04) — 반복 템플릿 · 예정 확인 / 월 마감 리뷰
+    "manage-recurring",
+    "close-month",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",
@@ -136,6 +139,8 @@ const REGISTRY = {
     "household",
     "new-expense",
     "budget",
+    // 가계부 S1b — `/household/templates`(2026-11-04)
+    "recurring",
     "investments",
     "investment-detail",
     "search",

@@ -271,3 +271,7 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - [x] zone 5 운영 빌드
+
+## 2026-11-04 — 가계부 S1b
+
+- [x] `ROUTES.householdRecurring` — zone 5 빌드(공용 `web-shared` 를 모두 소비) 통과

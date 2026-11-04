@@ -28,4 +28,11 @@ export const appHouseholdController = {
   budget: wrap(200, (req) => appHouseholdService.budget(req.token!)),
   setBudget: wrap(200, (req) => appHouseholdService.setBudget(req.token!, req.body ?? {})),
   month: wrap(200, (req) => appHouseholdService.month(req.token!, String(req.params.ym))),
+  templates: wrap(200, (req) => appHouseholdService.templates(req.token!)),
+  createTemplate: wrap(201, (req) => appHouseholdService.createTemplate(req.token!, req.body ?? {})),
+  editTemplate: wrap(200, (req) => appHouseholdService.editTemplate(req.token!, String(req.params.id), req.body ?? {})),
+  endTemplate: wrap(200, (req) => appHouseholdService.endTemplate(req.token!, String(req.params.id))),
+  confirmOccurrence: wrap(201, (req) => appHouseholdService.confirmOccurrence(req.token!, String(req.params.id), req.body ?? {})),
+  skipOccurrence: wrap(200, (req) => appHouseholdService.skipOccurrence(req.token!, String(req.params.id))),
+  closeMonth: wrap(200, (req) => appHouseholdService.closeMonth(req.token!, String(req.params.ym), req.body ?? {})),
 };

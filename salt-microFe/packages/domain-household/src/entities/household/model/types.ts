@@ -18,7 +18,8 @@ export type CategoryKey =
 
 export type PaymentMethodKey = "card" | "cash" | "transfer" | "other";
 export type PrecisionKey = "exact" | "approx";
-export type InputKindKey = "quick" | "line" | "paste" | "approx";
+/** template = 반복 템플릿 확인으로 생긴 지출(가계부 S1b) — 화면이 직접 보내지 않는다 */
+export type InputKindKey = "quick" | "line" | "paste" | "approx" | "template";
 
 export interface HouseholdExpense {
   id: string;
@@ -109,6 +110,8 @@ export interface BudgetRequest {
 export interface HouseholdLanding {
   method: "empirical_window" | "month_over";
   spentSoFar: number;
+  /** 아직 확인 안 한 반복 예정 합 — low · high 에 이미 들어 있다(가계부 S1b) */
+  scheduled: number;
   low: number | null;
   high: number | null;
   reason: "history_short" | null;
@@ -123,6 +126,88 @@ export interface HouseholdTrack {
   actual: number | null;
   hit: boolean | null;
   reason: string | null;
+}
+
+/** 예정 행 단계 — 서버가 정한다. ask = "이번 달에도 나갔나요?" */
+export type OccurrenceStage = "ask" | "upcoming" | "confirmed" | "skipped";
+
+export interface HouseholdOccurrence {
+  id: string;
+  templateId: string;
+  name: string;
+  amount: number;
+  category: CategoryKey;
+  dueOn: string;
+  stage: OccurrenceStage;
+  expenseId: string | null;
+}
+
+export interface RecurringTemplate {
+  id: string;
+  name: string;
+  amount: number;
+  category: CategoryKey;
+  paymentMethod: PaymentMethodKey;
+  dayOfMonth: number;
+  confirmRequired: boolean;
+  startsMonth: string;
+  /** 이번 달 예정 행 — 시작 달 전이면 null */
+  thisMonth: HouseholdOccurrence | null;
+}
+
+export interface RecurringTemplateList {
+  templates: RecurringTemplate[];
+  /** 템플릿 상한(서버) */
+  limit: number;
+}
+
+export interface TemplateRequest {
+  name: string;
+  amount: number;
+  category: CategoryKey;
+  paymentMethod: PaymentMethodKey;
+  dayOfMonth: number;
+  confirmRequired: boolean;
+}
+
+export interface ConfirmResult {
+  occurrenceId: string;
+  record: RecordResult;
+}
+
+/** 할부 띠 한 줄 — 원거래 amount 는 산 달 합에 이미 들어 있다 */
+export interface InstallmentLine {
+  expenseId: string;
+  merchant: string | null;
+  category: CategoryKey;
+  amount: number;
+  months: number;
+  index: number;
+  charge: number;
+  remainingAfter: number;
+  firstMonth: string;
+  lastMonth: string;
+}
+
+export interface HouseholdInstallments {
+  lines: InstallmentLine[];
+  monthCharge: number;
+  /** 이 달부터 6개월 — 그 달 끝까지 산 할부의 청구 합 */
+  upcoming: Array<{ month: string; amount: number }>;
+}
+
+export type ReviewQuestionKey = "satisfied" | "try_next" | "known_next";
+
+export interface ReviewAnswers {
+  satisfied: string | null;
+  tryNext: string | null;
+  knownNext: string | null;
+}
+
+export interface MonthClose {
+  month: string;
+  closedAt: string;
+  answers: ReviewAnswers;
 }
 
 export interface HouseholdMonth {
@@ -140,4 +225,11 @@ export interface HouseholdMonth {
   landingReason: string | null;
   track: HouseholdTrack | null;
   expenses: HouseholdExpense[];
+  recurring: { items: HouseholdOccurrence[]; scheduledTotal: number };
+  installments: HouseholdInstallments;
+  /** 닫았으면 그 기록 — 이 달 예산 칸은 닫을 때 붙잡은 값 */
+  close: MonthClose | null;
+  /** 지금 닫을 수 있나 — 서버가 정한다 */
+  closable: boolean;
+  reviewQuestions: ReviewQuestionKey[];
 }

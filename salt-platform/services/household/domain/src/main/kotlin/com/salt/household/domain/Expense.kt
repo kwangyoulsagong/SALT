@@ -32,7 +32,7 @@ enum class Bucket(val key: String) {
 }
 
 /**
- * 기본 분류 12개(슬라이스 판단 6 — 사용자 분류 표는 S1b). [key] 가 저장 · 응답 값, 이름(문구)은 프론트가 키로 고른다.
+ * 기본 분류 12개(슬라이스 판단 6 — 사용자 분류 표는 ~~S1b~~ S1c — 2026-11-04 정정). [key] 가 저장 · 응답 값, 이름(문구)은 프론트가 키로 고른다.
  * 묶음은 흔한 50/30/20 배정을 따른다 — 사용자가 바꾸는 자리는 사용자 분류와 같이 연다.
  */
 enum class Category(val key: String, val bucket: Bucket) {
@@ -78,7 +78,7 @@ enum class Precision(val key: String) {
     }
 }
 
-/** 어떻게 적었나 — 관측성(입력 방식별 사용, FEATURE-013 비기능). `TEMPLATE` 은 S1b 반복 템플릿 */
+/** 어떻게 적었나 — 관측성(입력 방식별 사용, FEATURE-013 비기능). `TEMPLATE` 은 반복 템플릿 확인(가계부 S1b — 화면이 직접 보내지 않는다) */
 enum class InputKind(val key: String) {
     QUICK("quick"),
     LINE("line"),
@@ -115,7 +115,7 @@ data class Expense(
         const val MERCHANT_MAX = 40
         const val MEMO_MAX = 200
 
-        /** 사용자가 고른 날짜가 미래로 이만큼 넘으면 거절 — 예정 지출은 S1b 반복 템플릿 몫 */
+        /** 사용자가 고른 날짜가 미래로 이만큼 넘으면 거절 — 예정 지출은 반복 템플릿 몫(가계부 S1b — 확인하면 예정일 또는 오늘) */
         const val FUTURE_DAYS_MAX = 0L
 
         /** 과거로는 이만큼까지 — 밀린 날 메우기(FR-5)에 충분하고 오타 연도(2015)는 막는다 */

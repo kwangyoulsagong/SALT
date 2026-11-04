@@ -11,3 +11,15 @@
 |---|---|---|
 | FR-2 · 4 · 5 · 6 · 7 · 9 · 10 · 11 | 범위 밖 | 가계부 S1b |
 | ~~`EXPLAIN`~~ | **닫힘 2026-11-04** — 로컬 운영 DB 트랜잭션에 행 2만(사용자 50)을 넣고 `ANALYZE` 뒤 다섯 쿼리 모두 인덱스 · 1ms 미만 · 롤백(행 0 확인) | — |
+
+## 2026-11-04 — 가계부 S1b
+
+- [x] V2 Flyway — 테스트 컨테이너 · 로컬 운영 DB(`svc_household`) 적용 · jOOQ 생성(`[jooq ignore]` 로 text 유일 · 부분 인덱스)
+- [x] CHECK — 확인 ⇔ 지출 있음 · 예정 ⇔ 정한 시각 없음 · 답 300자 · 예산 사본 소득은 50/30/20 에서만
+- [x] 원문 열 0(종단 테스트 그대로 통과) · `landing_issued` 불변(새 열 기본값으로만)
+- [x] EXPLAIN — `recurring_occurrence_user_month_idx` · `expense_user_installment_idx` · `recurring_occurrence_due_idx`
+
+### 미검증 · 범위 밖
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| FR-2 · 5(리볼빙) · 6 · 9 · 10 · 11 | 범위 밖 | 가계부 S1c |

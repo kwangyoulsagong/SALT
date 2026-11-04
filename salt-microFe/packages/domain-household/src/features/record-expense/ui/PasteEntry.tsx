@@ -9,11 +9,10 @@ import { TextArea } from "@repo/ui/textArea";
 import { isApiError } from "@repo/web-shared/api";
 import { labelOr } from "@repo/web-shared/lib";
 
-import { formatDay, formatWon, type CategoryKey, type ExpenseRequest, type ParseCandidate } from "@/entities/household";
+import { CategoryChips, formatDay, formatWon, type CategoryKey, type ExpenseRequest, type ParseCandidate } from "@/entities/household";
 
 import { useParseInput, useRecordExpenses } from "../api";
 import { RECORD_MESSAGES as M } from "../model";
-import { CategoryChips } from "./CategoryChips";
 import * as s from "./record.css";
 import { SaveResult } from "./SaveResult";
 

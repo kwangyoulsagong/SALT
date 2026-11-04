@@ -77,4 +77,45 @@ describe("AppHouseholdService", () => {
     await appHouseholdService.deleteExpense("t", "a/b");
     assert.deepEqual(seen, ["GET /household/month/2026-11", "DELETE /household/expenses/a%2Fb"]);
   });
+  it("반복 확인 — 서버 응답 그대로 + 목표 시계는 record.savedTotal 로(S1b)", async () => {
+    const seen: string[] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string) => {
+      seen.push(`${m} ${url}`);
+      if (url.startsWith("/savings/goal-clock")) {
+        return { data: { data: { goalId: "g", title: "집", template: "house", delayDays: 12, reason: null } } } as never;
+      }
+      return { data: { data: { occurrenceId: "o/1", record: { ...saved, savedTotal: 510000 } } } } as never;
+    });
+    const vm = await appHouseholdService.confirmOccurrence("t", "o/1", { amount: 510000 });
+    assert.deepEqual(seen, ["POST /household/occurrences/o%2F1/confirm", "GET /savings/goal-clock?amount=510000"]);
+    assert.equal(vm.occurrenceId, "o/1");
+    assert.equal(vm.record.savedTotal, 510000);
+    assert.deepEqual(vm.record.goalClock, { state: "ok", goalId: "g", title: "집", template: "house", delayDays: 12 });
+  });
+
+  it("템플릿 · 건너뛰기 · 마감 — 중계만(경로 값 인코딩 · 본문 그대로)", async () => {
+    const seen: Array<[string, string, unknown]> = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string, _t: string, body: unknown) => {
+      seen.push([m, url, body]);
+      return { data: { data: { ok: true } } } as never;
+    });
+    await appHouseholdService.templates("t");
+    await appHouseholdService.createTemplate("t", { name: "월세" });
+    await appHouseholdService.editTemplate("t", "a b", { name: "월세" });
+    await appHouseholdService.endTemplate("t", "a b");
+    await appHouseholdService.skipOccurrence("t", "x");
+    await appHouseholdService.closeMonth("t", "2026-10", { satisfied: "집밥" });
+    assert.deepEqual(
+      seen.map(([m, u]) => `${m} ${u}`),
+      [
+        "GET /household/templates",
+        "POST /household/templates",
+        "PUT /household/templates/a%20b",
+        "DELETE /household/templates/a%20b",
+        "POST /household/occurrences/x/skip",
+        "POST /household/month/2026-10/close",
+      ],
+    );
+    assert.deepEqual(seen[5][2], { satisfied: "집밥" });
+  });
 });

@@ -18,8 +18,11 @@ interface Expenses {
     /** 한 달 합 — 정확/대략 · 분류별을 **한 문장**으로 */
     fun monthSummary(userId: String, month: YearMonth): MonthSummary
 
-    /** 날짜별 합 `[from, to]` — 착지 표본. 기록 없는 날은 빠진다(엔진이 0 으로 채운다) */
-    fun dailyTotals(userId: String, from: LocalDate, to: LocalDate): Map<LocalDate, Money>
+    /** 날짜별 합 `[from, to]` — 전체 · 변동(템플릿 지출 뺌)을 한 문장으로. 기록 없는 날은 빠진다(엔진이 0 으로 채운다) */
+    fun dailyTotals(userId: String, from: LocalDate, to: LocalDate): Map<LocalDate, DayTotal>
+
+    /** 할부 행 — [from] ~ [to] 에 산 것(할부 띠, S1b FR-10). 부분 인덱스 */
+    fun installments(userId: String, from: LocalDate, to: LocalDate): List<Expense>
 
     /** 처음 기록한 날(저장 시각의 KST 날짜) — 착지 표본 시작. 지출 날짜의 최솟값이 아니다(지난날 대략 합계가 표본을 늘리지 않게) */
     fun firstRecordedOn(userId: String): LocalDate?
@@ -27,6 +30,9 @@ interface Expenses {
     /** 최근 [days] 일 가맹점 — 횟수 많은 순, 같은 가맹점은 마지막 분류 · 금액 */
     fun recentMerchants(userId: String, since: LocalDate, limit: Int): List<RecentMerchant>
 }
+
+/** 하루 합 — [variable] 은 반복 템플릿으로 적은 지출을 뺀 값(착지 표본) */
+data class DayTotal(val all: Money, val variable: Money)
 
 data class MonthSummary(val totals: MonthTotals, val byCategory: Map<Category, Money>)
 
@@ -52,6 +58,9 @@ interface HouseholdEvents {
     fun expenseRecorded(expense: Expense)
 
     fun landingIssued(issued: IssuedLanding)
+
+    /** 처음 닫을 때 한 번(S1b FR-9). 답 글은 싣지 않는다(판단 7) */
+    fun monthClosed(close: MonthClose, totals: MonthTotals)
 }
 
 class ExpenseNotFound(id: String) : DomainError("EXPENSE_NOT_FOUND", ErrorKind.NOT_FOUND, "Expense not found", mapOf("expenseId" to id))

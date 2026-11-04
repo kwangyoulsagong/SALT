@@ -18,8 +18,9 @@
 | `savings.GoalCreated` | `savings` | (S2 `content` 때맞춘 팁) | S1 |
 | `savings.GoalReached` | `savings` | — | S1 |
 | `savings.ProjectionIssued` | `savings` | (`FC-REQ-024` 채점) | S1 |
-| `household.ExpenseRecorded` | `household` | (savings 지연 재계산 — 가계부 S1b) | S1 |
+| `household.ExpenseRecorded` | `household` | (savings 지연 재계산 — ~~가계부 S1b~~ **정정 2026-11-04** 저축 S2: 목표 시계는 조회 API 로 충분) | S1 |
 | `household.LandingIssued` | `household` | (`FC-REQ-024` 채점) | S1 |
+| `household.MonthClosed` | `household` | (savings 속도 — 저축 S2) | 가계부 S1b |
 
 `SRV-REQ-044` FR-4 의 첫 이벤트 13종은 **발행하는 서비스가 생기는 단계에** 이 표에 행과 파일을 더한다(S1 savings · household …).
 본문 필드는 그 서비스 REQ 가 정한다 — 서비스보다 먼저 쓰면 짐작이다.

@@ -31,3 +31,10 @@
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - [x] 실스택: BFF 4001 → 라우팅 표 → Kotlin 4010 (`PUT /budget` · `POST /expenses` · `POST /parse` · 홈)
+
+## 2026-11-04 — 추적 ID 테스트 실패 고침(`15177092`)
+
+- [x] 원인 실측: 테스트 한 번에 `trace.ts` 로드 2회(같은 파일 · 다른 인스턴스) → 인터셉터 시점 저장소 비어 새 추적 ID
+- [x] 고침 뒤 스위치 테스트 5/5 · BFF 전체 362/362 · `npm run build`
+- [x] 변이(`outgoingTraceparent` 가 들어온 ID 무시) → 이 테스트 실패 1 · 되돌림 diff 0
+- [x] 실행 중 스택: `traceparent` 를 실어 BFF 4001 → Kotlin 로그 `traceId` 같은 값

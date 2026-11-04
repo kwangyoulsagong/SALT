@@ -56,6 +56,18 @@ Flyway `services/household/infrastructure/src/main/resources/db/migration/househ
 
 생성기(H2 흉내)가 text 열의 키 · 유일 제약을 못 읽어 `ALTER TABLE` 로 빼고 `[jooq ignore]` 로 감쌌다(`kotlin-platform.md` §4 와 같은 처리).
 
+## 구현 현황 — 가계부 S1b (2026-11-04, `requirements/specs/done/MONEY-S1b-household-month-slice.md`)
+
+Flyway `V2__recurring_close.sql`(로컬 운영 DB 적용 2026-11-04).
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-4 | done — `recurring_template`(주기 열 없이 매달 · `starts_month` · 끝내도 행은 남김 `ended_at`) · `recurring_occurrence`(`(template_id, month)` 유일 · 확인하면 `expense_id` · CHECK 둘: 확인 ⇔ 지출 있음, 예정 ⇔ 정한 시각 없음). 스펙의 "다음 예정일" 열 대신 날짜 규칙으로 계산 | FK `expense_id` 는 막음 — 지우기 유스케이스가 먼저 되돌린다 |
+| FR-7 | done — `month_close`(답 3열 300자 · 평가 점수 열 없음 · `(user, month)` 유일) + `month_close_envelope`(닫을 때 예산 사본) | S1a 판단 3 의 달별 이력 |
+| FR-8 | `landing_issued.scheduled`(기본 0 — 예정 개념 전 발행은 0) | 불변 트리거 그대로 |
+| FR-12 | done — `recurring_occurrence (user_id, month)` · 예정 부분 인덱스 `(due_on) WHERE status='scheduled'` · `expense (user_id, spent_on) WHERE installment_months IS NOT NULL` | 스펙의 `recurring_occurrence(due_on)` 대신 사용자 · 달 |
+| FR-2 · 5 · 6 · 9 · 10 · 11 | S1c · 뒤 | 리볼빙 표(FR-5)는 S1c |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -64,3 +76,4 @@ Flyway `services/household/infrastructure/src/main/resources/db/migration/househ
 | 2026-11-04 | 가계부 S1a — in-progress. V1(`63146ddf`) · FR-1 · 3 · 8 · 12 · 13. 수용 기준 1 · 3 충족(2 `challenge` 는 S1b) |
 | 2026-11-04 | 리뷰 반영 `85512af5` — 스키마 변경 0(착지 계산 · 원 단위 검사는 서비스). `landing_issued.spent_so_far` 의 뜻이 "그날 시작 시점 합"으로 |
 | 2026-11-04 | EXPLAIN 확인(행 2만 넣고 롤백 — 다섯 쿼리 인덱스 · 1ms 미만) |
+| 2026-11-04 | 가계부 S1b — V2(`a32d349e`) · FR-4 · 7 · 12 done · `landing_issued.scheduled`. EXPLAIN 확인(행 넣고 롤백) |

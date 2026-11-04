@@ -106,7 +106,7 @@ class HouseholdMathSpec : StringSpec({
         val issued = { low: Long?, high: Long?, reason: String? ->
             IssuedLanding(
                 UUID.randomUUID(), "u", LocalDate.of(2026, 10, 4), now,
-                Landing(lastMonth, LandingMethod.EMPIRICAL_WINDOW, krw(50_000), low?.let(krw), high?.let(krw), reason, 30),
+                Landing(lastMonth, LandingMethod.EMPIRICAL_WINDOW, krw(50_000), krw(0), low?.let(krw), high?.let(krw), reason, 30),
             )
         }
         LandingEngine.track(lastMonth, today, issued(800_000, 1_000_000, null), krw(950_000)).hit shouldBe true

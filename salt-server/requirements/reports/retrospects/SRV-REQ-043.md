@@ -28,3 +28,7 @@
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - 같은 클래스 이름(`HomeCard`)이 서비스마다 있어 빈 이름 충돌 위험 — 서비스 접두(`householdHomeCard`)로 피했다. 셋째 서비스부터는 접두가 규칙이다.
+
+## 2026-11-04 — 가계부 S1b `ServiceLock`
+
+- 스케줄 작업이 처음 생겨 JDBC 락 공급자를 조립(app)에서 쓰려 했는데 messaging 모듈의 `implementation` 의존이었다 — 공급자를 밖에 노출하지 않고 `ServiceLock.executor` 한 함수로 열었다.

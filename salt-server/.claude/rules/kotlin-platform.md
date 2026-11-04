@@ -68,7 +68,7 @@ salt-platform/
 | 입력 검증은 presentation 에서 형식만(`ddd-presentation.md` §3) | `api` 층 요청 DTO 에서 형식 검증. 도메인 규칙은 도메인 · 유스케이스 |
 | 도메인은 프레임워크를 모른다(`ddd-domain.md` §1) | `domain` 모듈에 어노테이션 0(`@Component` · `@Entity` 포함) |
 | 조회는 Projection(`ddd-infrastructure.md` §3) | jOOQ 로 화면 모양 쿼리. 엔티티 전체를 읽어 합계 내지 않는다 |
-| 워커는 스케줄 · 락만(`server-architecture.md` §7) | `@Scheduled` + `@SchedulerLock` 메서드는 유스케이스 한 번 호출만 |
+| 워커는 스케줄 · 락만(`server-architecture.md` §7) | `@Scheduled` + 락 메서드는 유스케이스 한 번 호출만. 락은 `support/messaging` `ServiceLock.executor(서비스 DataSource)` — 그 서비스 `shedlock` 표(첫 예: 가계부 `RecurringWorker`, 2026-11-04). 멱등이면 일 1회보다 짧게 돌려 놓친 회차를 메운다 |
 | 외부 타임아웃 · 재시도 3회(`workers-external.md`) | Resilience4j 설정으로. 재시도는 조회(GET)에만 · KIS 는 레이트 리미터(약 2건/초) |
 | 주문 · 출금 코드 0 · KIS 조회 TR 만 | 같다. "주문 클라이언트 0" 테스트를 Kotlin 쪽에도 둔다(`SRV-REQ-049` FR-2) |
 | 410 동면 | Kotlin 으로 옮기지 않는다 — BFF 로(`BFF-REQ-045` FR-8) |

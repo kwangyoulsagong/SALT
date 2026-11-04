@@ -18,6 +18,7 @@ export const LandingBox = ({ month }: { month: HouseholdMonth }) => {
         <>
           <span className={s.value}>{L.range(formatWon(l.low), formatWon(l.high))}</span>
           <p className={s.note}>{L.note}</p>
+          {l.scheduled > 0 ? <p className={s.note}>{L.scheduled(formatWon(l.scheduled))}</p> : null}
         </>
       ) : (
         <p className={s.note}>{L.historyShort(l.daysOfHistory)}</p>

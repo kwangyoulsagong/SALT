@@ -45,4 +45,6 @@ export const badge = style({ padding: "0 6px", borderRadius: "4px", background: 
 export const bar = style({ height: "6px", borderRadius: "3px", background: "rgba(7, 25, 76, 0.08)", overflow: "hidden" });
 
 export const barFill = style({ height: "100%", background: vars.colors.neutral[600] });
+export const chips = style({ display: "flex", flexWrap: "wrap", gap: "6px" });
+
 export const stack = style({ display: "flex", flexDirection: "column", gap: "8px", margin: 0, padding: 0, listStyle: "none" });

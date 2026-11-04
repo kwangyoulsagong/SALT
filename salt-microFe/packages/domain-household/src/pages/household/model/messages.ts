@@ -6,6 +6,7 @@ export const HOUSEHOLD_PAGE = {
   description: "적은 지출로 이번 달이 어디쯤 닿을지 서버가 계산해요. 예산은 막지 않아요",
   add: "지출 적기",
   budget: "예산",
+  recurring: "매달 나가는 돈",
   blockName: "가계부",
   emptyTitle: "이 달에 적은 지출이 없어요",
   emptyDescription: "금액부터 적으면 돼요. 결제 문자를 붙여넣어도 돼요",

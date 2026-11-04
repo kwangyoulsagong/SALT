@@ -27,6 +27,15 @@ import com.salt.household.domain.ParsedCandidate
 import com.salt.household.domain.PaymentMethod
 import com.salt.household.domain.Precision
 import com.salt.household.domain.RecentMerchant
+import com.salt.household.domain.InstallmentBand
+import com.salt.household.domain.InstallmentMath
+import com.salt.household.domain.InstallmentPlan
+import com.salt.household.domain.MonthClose
+import com.salt.household.domain.MonthCloseRules
+import com.salt.household.domain.MonthCloses
+import com.salt.household.domain.RecurringOccurrence
+import com.salt.household.domain.RecurringOccurrences
+import com.salt.household.domain.RecurringRules
 import com.salt.kernel.Money
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -58,15 +67,20 @@ const val MONTH_LIST_LIMIT = 300
  * 착지 · 적중 계산 자리 — 쓰기(발행)와 읽기(화면)가 같은 계산을 쓴다(규칙 한 곳).
  * 쿼리: 착지 2회(첫 기록 · 날별 합) · 적중 2회(지난달 합 · 지난달 발행)
  */
-class LandingReader(private val expenses: Expenses, private val landings: Landings) {
-    /** @param monthTotal 이 달 오늘까지 합 — 오늘 몫을 빼 "오늘 시작 기준"으로 넘긴다 */
-    fun landing(userId: String, today: LocalDate, monthTotal: Money): Landing {
+class LandingReader(private val expenses: Expenses, private val landings: Landings, private val occurrences: RecurringOccurrences) {
+    /**
+     * @param monthTotal 이 달 오늘까지 합 — 오늘 몫을 빼 "오늘 시작 기준"으로 넘긴다
+     * @param monthOccurrences 이 달 예정 행 — 부르는 쪽이 이미 읽었으면 넘긴다(월 화면). null 이면 여기서 한 번 읽는다
+     */
+    fun landing(userId: String, today: LocalDate, monthTotal: Money, monthOccurrences: List<RecurringOccurrence>? = null): Landing {
         val first = expenses.firstRecordedOn(userId)
         val from = first?.let { maxOf(it, today.minusDays(LANDING_LOOKBACK_DAYS)) }
-        // 오늘까지 받아 오늘 몫을 뺀다(같은 문장 하나). 표본은 엔진이 어제까지만 쓴다
+        // 오늘까지 받아 오늘 몫을 뺀다(같은 문장 하나). 표본은 엔진이 어제까지만 쓴다 — 변동 합만(템플릿 지출 뺌, S1b 판단 4)
         val daily = if (from == null || from.isAfter(today)) emptyMap() else expenses.dailyTotals(userId, from, today)
-        val beforeToday = monthTotal - (daily[today] ?: Money.krw(0))
-        return LandingEngine.project(YearMonth.from(today), today, beforeToday, daily, from)
+        val beforeToday = monthTotal - (daily[today]?.all ?: Money.krw(0))
+        val month = YearMonth.from(today)
+        val scheduled = RecurringRules.scheduledTotal(monthOccurrences ?: occurrences.inMonth(userId, month))
+        return LandingEngine.project(month, today, beforeToday, daily.mapValues { it.value.variable }, from, scheduled)
     }
 
     fun track(userId: String, today: LocalDate): LandingTrack {
@@ -90,11 +104,17 @@ data class ExpenseInput(
     val memo: String?,
 )
 
+/** 저장 응답 — 저장한 행 · 첫 행 분류의 봉투 · 이번 달 합 */
+data class RecordResult(val saved: List<Expense>, val envelope: EnvelopeStatus?, val monthTotal: Money) {
+    /** 이번에 적은 합 — BFF 가 목표 시계에 그대로 넘긴다(BFF 는 더하지 않는다) */
+    val savedTotal: Money get() = saved.map { it.amount }.reduce(Money::plus)
+}
+
 /**
- * 지출 저장(FR-1 · FR-6) — 한 건 · 여러 건(붙여넣기 확인 목록)이 같은 유스케이스다. 한 트랜잭션: 행 + `ExpenseRecorded` + (그날 처음이면) 착지 발행.
- * 응답은 저장한 행과 **첫 행 분류의 봉투** — 화면이 "봉투 잔액 갱신"을 한 줄로 보인다(FEATURE-013 UX Success). 목표 시계는 BFF 가 조립한다(슬라이스 판단 1).
+ * 행을 넣은 **뒤** 할 일 한 곳 — `ExpenseRecorded` · (그날 처음이면) 착지 발행 · 봉투. 직접 적기와 반복 확인(S1b)이 같은 길을 지난다
+ * (규칙이 입력 경로마다 갈라지지 않게). 트랜잭션은 부르는 유스케이스의 것이다.
  */
-open class RecordExpenses(
+class ExpenseWriter(
     private val expenses: Expenses,
     private val budgets: Budgets,
     private val landings: Landings,
@@ -102,38 +122,44 @@ open class RecordExpenses(
     private val events: HouseholdEvents,
     private val clock: Clock,
 ) {
-    data class Result(val saved: List<Expense>, val envelope: EnvelopeStatus?, val monthTotal: Money) {
-        /** 이번에 적은 합 — BFF 가 목표 시계에 그대로 넘긴다(BFF 는 더하지 않는다) */
-        val savedTotal: Money get() = saved.map { it.amount }.reduce(Money::plus)
+    fun afterInsert(userId: String, saved: List<Expense>, today: LocalDate): RecordResult {
+        saved.forEach(events::expenseRecorded)
+        val summary = expenses.monthSummary(userId, YearMonth.from(today))
+        issueLanding(userId, today, summary)
+        val budget = budgets.find(userId)
+        val envelope = budget?.let { b ->
+            val key = b.envelopeOf(saved.first().category) ?: return@let null
+            BudgetMath.envelopes(b, summary.byCategory).firstOrNull { it.key == key }
+        }
+        return RecordResult(saved, envelope, summary.totals.total)
     }
 
+    /** 그날 처음 적은 지출이면 이번 달 착지를 발행한다(S1a 슬라이스 판단 2). 이미 냈으면 아무것도 쓰지 않는다 */
+    private fun issueLanding(userId: String, today: LocalDate, summary: MonthSummary) {
+        val landing = landingReader.landing(userId, today, summary.totals.total)
+        val issued = IssuedLanding(UUID.randomUUID(), userId, today, clock.instant(), landing)
+        if (landings.issueOncePerDay(issued)) events.landingIssued(issued)
+    }
+}
+
+/**
+ * 지출 저장(FR-1 · FR-6) — 한 건 · 여러 건(붙여넣기 확인 목록)이 같은 유스케이스다. 한 트랜잭션: 행 + `ExpenseRecorded` + (그날 처음이면) 착지 발행.
+ * 응답은 저장한 행과 **첫 행 분류의 봉투** — 화면이 "봉투 잔액 갱신"을 한 줄로 보인다(FEATURE-013 UX Success). 목표 시계는 BFF 가 조립한다(슬라이스 판단 1).
+ */
+open class RecordExpenses(
+    private val expenses: Expenses,
+    private val writer: ExpenseWriter,
+    private val clock: Clock,
+) {
     @Transactional(transactionManager = HOUSEHOLD_TX)
-    open fun execute(userId: String, inputs: List<ExpenseInput>): Result {
+    open fun execute(userId: String, inputs: List<ExpenseInput>): RecordResult {
         if (inputs.isEmpty()) throw InvalidExpense("EXPENSE_REQUIRED", "at least one expense is required")
         if (inputs.size > InputParser.CANDIDATES_MAX) throw InvalidExpense("EXPENSE_TOO_MANY", "too many expenses at once")
         val today = clock.todayKst()
         val now = clock.instant()
         val saved = inputs.map { toExpense(userId, it, today, now) }
         expenses.add(saved)
-        saved.forEach(events::expenseRecorded)
-
-        val month = YearMonth.from(today)
-        val summary = expenses.monthSummary(userId, month)
-        issueLanding(userId, today, summary)
-
-        val budget = budgets.find(userId)
-        val envelope = budget?.let { b ->
-            val key = b.envelopeOf(saved.first().category) ?: return@let null
-            BudgetMath.envelopes(b, summary.byCategory).firstOrNull { it.key == key }
-        }
-        return Result(saved, envelope, summary.totals.total)
-    }
-
-    /** 그날 처음 적은 지출이면 이번 달 착지를 발행한다(슬라이스 판단 2). 이미 냈으면 아무것도 쓰지 않는다 */
-    private fun issueLanding(userId: String, today: LocalDate, summary: MonthSummary) {
-        val landing = landingReader.landing(userId, today, summary.totals.total)
-        val issued = IssuedLanding(UUID.randomUUID(), userId, today, clock.instant(), landing)
-        if (landings.issueOncePerDay(issued)) events.landingIssued(issued)
+        return writer.afterInsert(userId, saved, today)
     }
 
     private fun toExpense(userId: String, input: ExpenseInput, today: LocalDate, now: Instant): Expense {
@@ -149,10 +175,12 @@ open class RecordExpenses(
     }
 }
 
-open class DeleteExpense(private val expenses: Expenses) {
+/** 지우기 — 반복 확인으로 생긴 지출이면 그 예정 행을 먼저 "예정"으로 되돌린다(S1b 판단 5 — 착지에서 빠지지 않게). 한 트랜잭션 */
+open class DeleteExpense(private val expenses: Expenses, private val occurrences: RecurringOccurrences) {
     @Transactional(transactionManager = HOUSEHOLD_TX)
     open fun execute(userId: String, rawId: String) {
         val id = ExpenseId.parse(rawId) ?: throw ExpenseNotFound(rawId)
+        occurrences.reopenFor(id, userId)
         if (expenses.delete(id, userId) == 0) throw ExpenseNotFound(rawId)
     }
 }
@@ -230,7 +258,7 @@ open class SetBudget(private val budgets: Budgets, private val clock: Clock) {
     }
 }
 
-/** 한 달 화면(FR-6 · FR-7). 숫자는 전부 여기서 — 프론트 계산 0 */
+/** 한 달 화면(FR-6 · FR-7 · S1b FR-5 · 9 · 10). 숫자는 전부 여기서 — 프론트 계산 0 */
 data class MonthView(
     val month: YearMonth,
     val summary: MonthSummary,
@@ -246,16 +274,36 @@ data class MonthView(
     val landingReason: String?,
     val track: LandingTrack?,
     val expenses: List<Expense>,
+    /** 이 달 반복 예정 행(상태 무관) — 화면이 확인 카드 · 지난 달 기록을 그린다 */
+    val occurrences: List<RecurringOccurrence>,
+    val scheduledTotal: Money,
+    val close: MonthClose?,
+    val closable: Boolean,
+    val installments: InstallmentBand,
 )
 
-/** 쿼리: 지출 목록 · 월 합 · 예산(2 — 예산 · 봉투) + 이번 달이면 착지 2 · 적중 2 */
-open class GetMonth(private val expenses: Expenses, private val budgets: Budgets, private val landingReader: LandingReader, private val clock: Clock) {
+/**
+ * 쿼리: 지출 목록 · 월 합 · 마감(2 — 닫은 달이면 예산 대신 사본) · 예산(2, 안 닫은 달) · 예정 행 · 할부 + 이번 달이면 착지 2 · 적중 2.
+ * 닫은 달은 그때 붙잡은 예산으로 본다(S1b 판단 6).
+ */
+open class GetMonth(
+    private val expenses: Expenses,
+    private val budgets: Budgets,
+    private val occurrences: RecurringOccurrences,
+    private val closes: MonthCloses,
+    private val landingReader: LandingReader,
+    private val clock: Clock,
+) {
     @Transactional(transactionManager = HOUSEHOLD_TX, readOnly = true)
     open fun execute(userId: String, month: YearMonth): MonthView {
         val today = clock.todayKst()
         if (month.isAfter(YearMonth.from(today))) throw InvalidExpense("MONTH_IN_FUTURE", "month is in the future")
         val summary = expenses.monthSummary(userId, month)
-        val budget = budgets.find(userId)
+        val close = closes.find(userId, month)
+        val budget = if (close != null) close.budget else budgets.find(userId)
+        val monthOccurrences = occurrences.inMonth(userId, month)
+        val plans = expenses.installments(userId, month.minusMonths(InstallmentMath.MAX_MONTHS.toLong()).atDay(1), month.atEndOfMonth())
+            .mapNotNull(InstallmentPlan::of)
         val envelopes = budget?.let { BudgetMath.envelopes(it, summary.byCategory) }.orEmpty()
         val remaining = envelopes.takeIf { it.isNotEmpty() }?.map { it.remaining }?.reduce(Money::plus)
         val daysLeft = BudgetMath.daysLeftIncludingToday(month, today)
@@ -269,10 +317,15 @@ open class GetMonth(private val expenses: Expenses, private val budgets: Budgets
             remaining = remaining,
             dailyAvailable = remaining?.let { BudgetMath.dailyAvailable(it, daysLeft) },
             daysLeft = daysLeft,
-            landing = if (current) landingReader.landing(userId, today, summary.totals.total) else null,
+            landing = if (current) landingReader.landing(userId, today, summary.totals.total, monthOccurrences) else null,
             landingReason = if (current) null else LandingReason.NOT_CURRENT_MONTH,
             track = if (current) landingReader.track(userId, today) else null,
             expenses = expenses.inMonth(userId, month, MONTH_LIST_LIMIT),
+            occurrences = monthOccurrences,
+            scheduledTotal = RecurringRules.scheduledTotal(monthOccurrences),
+            close = close,
+            closable = MonthCloseRules.closable(month, today),
+            installments = InstallmentMath.band(month, plans),
         )
     }
 }

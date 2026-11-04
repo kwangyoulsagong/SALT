@@ -31,3 +31,7 @@
 
 - [x] 지출 2건 → `ExpenseRecorded` 2 · `LandingIssued` 1(그날 처음만)
 - [x] 계약 README 표에 두 행
+
+## 2026-11-04 — 가계부 S1b 이벤트
+
+- [x] `household.MonthClosed` 계약 · 발행(종단 테스트 — 처음 닫을 때 한 번, 답 글 0) · `LandingIssued.scheduled` 스키마 검증 통과
