@@ -122,6 +122,8 @@ const REGISTRY = {
     "set-occasion-envelope",
     // 금융 팁 S2b(2026-11-05) — 읽기 전에 맞혀 보기(채점은 서버 · 로그인이면 카드로)
     "answer-quiz",
+    // 금융 팁 S2d(2026-11-05) — 내 숫자로 다시 읽기(계산은 서버 · 로그인일 때만)
+    "read-my-numbers",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",

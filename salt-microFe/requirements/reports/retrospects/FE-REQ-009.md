@@ -191,3 +191,8 @@ re-export 껍데기가 필요하고(FR-38), 껍데기가 남으면 done이 아�
 
 - 몫: 레이어 표에 features `answer-quiz` · pages `quiz-cards` + `fsd-features.md` · `fsd-pages.md` 표
 - **Action**: 없음 — 기존 결정 위에 한 줄
+
+## 2026-11-05 — 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`)
+
+- 몫: 레이어 표에 features `read-my-numbers` 한 줄
+- **Action**: 없음 — 기존 결정 위에 한 줄

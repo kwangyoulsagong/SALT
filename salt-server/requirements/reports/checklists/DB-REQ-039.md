@@ -22,3 +22,9 @@
 - 몫: FR-6 `quiz_answer`(V2) · `tip_revision.body_lines`
 - 검증: 종단 테스트(실 Postgres · 서비스 계정 · Flyway V1→V2) — 같은 사람 · 글 네 번 풀이 = 한 행 `attempts=4` · 카드 시각 유지. 로컬 운영 DB 에 V2 적용(기동 로그) · 확인용 임시 행(이력 1 · 풀이 2)은 확인 뒤 삭제(`quiz_answer` 0 행)
 - 미검증: `EXPLAIN` — 사용자 ≤10 · 표가 비어 있어 의미 있는 계획이 안 나온다. 조회는 (user_id, correct_at DESC) 부분 인덱스 하나 · 행이 쌓이는 공개 뒤 잰다(공개 직전, `FE-REQ-058` LCP 와 같은 때)
+
+## 2026-11-05 — 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`)
+
+- 몫: 스키마 변경 없음 — `trigger_rule.kind` · `user_signal.kind` 에 새 값 `fixed_cost_increased:housing`(text 열). 내 숫자 사실은 저장 0
+- 검증: 종단 — 고정비 증가 구독 뒤 `user_signal` 주거 1 · 통신 0 · 내 숫자 호출 뒤 개인 표(`user_signal` · `tip_dismissal` · `quiz_answer`) 0 · outbox 늘지 않음. 로컬 운영 DB: 기동 동기화로 이력 · 파라미터 다섯 줄 · 규칙 하나 더(마이그레이션 없음)
+- 미검증: 없음

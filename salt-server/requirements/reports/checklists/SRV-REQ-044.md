@@ -55,3 +55,9 @@
 - 몫: 플랫폼 공개 경로 표에 `/api/content/tips/*/quiz` — 이벤트 · 아웃박스 무변경
 - 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2b-tips-quiz-diff.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-05 — 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`)
+
+- 몫: 구독 하나 더(`content.household.FixedCostIncreased` — 구독자가 큐 선언, `EventTopology.subscription`)
+- 검증: 종단 고정비 증가 구독(주거 신호 1 · 통신 0 · `processed_event` 둘) · `./gradlew check`
+- 미검증: 없음(이 몫 안)

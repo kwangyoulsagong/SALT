@@ -30,6 +30,8 @@ export const tipsController = {
   /** 세션은 있으면 쓴다(쿠키 → 헤더는 `cookieSessionMiddleware`) — 로그인 없이도 풀 수 있는 공개 글이라 `authMiddleware` 를 걸지 않는다 */
   answerQuiz: wrap("no-store", (req) => appTipsService.answerQuiz(bearer(req), String(req.params.slug), Number(req.body?.choice))),
   quizCards: wrap("no-store", (req) => appTipsService.quizCards(req.token!)),
+  /** 내 숫자로 다시 읽기(FR-7) — 개인 · 급여가 든 응답이라 `no-store` */
+  myNumbers: wrap("no-store", (req) => appTipsService.myNumbers(req.token!, String(req.params.slug ?? ""))),
 };
 
 const bearer = (req: Request): string | undefined => {

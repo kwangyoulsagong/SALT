@@ -154,3 +154,4 @@ flowchart LR
 | 2026-11-05 | 가계부 S1h — FR-10 리볼빙 · FR-14 사람 장부 · 해 경조사 봉투 done. 루트 `MONEY-S1h-household-revolving-people-slice.md`. 리볼빙 규정 Open Question 닫음 — 남은 것 FR-11(공제 — S2 content 뒤) · 17(영수증 — 실측 뒤) |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — 가계부 화면에 때맞춘 팁 칸(5월 종합소득세 · 11~12월 연말정산 미리보기 — `FE-REQ-058` FR-6) |
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — `FixedCostIncreased` 의 content 구독 예정이 ~~금융 팁 S2b~~ S2d 로(계약 설명 · 어댑터 주석, `a1938bb2`) |
+| 2026-11-05 | 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`) — `FixedCostIncreased` 를 content 가 구독(주거 분류만 → 월세 세액공제 글). 가계부 노동시간 설정의 급여(켜 둔 것만)를 금융 팁 내 숫자가 읽는다(BFF 경유 · 저장 0) |

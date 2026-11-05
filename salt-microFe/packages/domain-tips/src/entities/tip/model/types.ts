@@ -62,6 +62,47 @@ export interface TipDetail extends TipSummary {
   body: TipBlock[];
   revisions: TipRevision[];
   quiz: TipQuiz | null;
+  /** 내 숫자로 다시 읽기 칸이 있는 글인가(FR-3, S2d) — 서버 원문 `my_numbers` */
+  myNumbers: boolean;
+}
+
+/** 숫자 한 칸 — 금액(원) 또는 비율("0.40") 하나. 라벨 · 값은 서버(화면 계산 0) */
+export interface MyFigure {
+  key: string;
+  label: string;
+  amount: number | null;
+  ratio: string | null;
+}
+
+export enum MyCheckState {
+  Met = "met",
+  NotMet = "not_met",
+  Unknown = "unknown",
+}
+
+/** 요건 한 줄 — 앱이 모르는 요건 · 못 읽은 원천은 unknown */
+export interface MyCheck {
+  key: string;
+  label: string;
+  state: MyCheckState;
+  note: string;
+}
+
+export interface MyReading {
+  kind: string;
+  figures: MyFigure[];
+  checks: MyCheck[];
+  /** 숫자를 낼 재료가 없다 — 글의 예시 그대로 두고 이 한 줄만 */
+  emptyReason: string | null;
+  /** 가계부 급여로 어림했다 */
+  estimated: boolean;
+}
+
+/** 내 숫자로 다시 읽기(`BFF-REQ-049` FR-7) — reading 이 null 이면 서버가 실패: 글의 예시 그대로 */
+export interface MyNumbers {
+  reading: MyReading | null;
+  degraded: boolean;
+  degradedSources: string[];
 }
 
 export interface QuizResult {

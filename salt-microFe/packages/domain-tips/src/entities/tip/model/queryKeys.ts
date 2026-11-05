@@ -5,4 +5,5 @@
  */
 export const tipQueryKeys = {
   quizCards: ["tips", "quiz-cards"] as const,
+  myNumbers: (slug: string) => ["tips", "my-numbers", slug] as const,
 };

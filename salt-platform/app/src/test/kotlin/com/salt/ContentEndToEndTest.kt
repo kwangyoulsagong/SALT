@@ -137,13 +137,13 @@ class ContentEndToEndTest : ContentHttp() {
         val dsl = contentDatabase.dsl
         val revisions = dsl.fetchCount(dsl.selectFrom("tip_revision"))
         val events = dsl.fetchCount(dsl.selectFrom("outbox").where("event_type = 'content.PolicyParamChanged'"))
-        events shouldBe 6
+        events shouldBe 11 // 원문 표 줄 수(S2d 에 월세 세액공제 다섯 줄)
         val again = syncCatalog.execute()
         again.revised shouldBe 0
         again.paramsChanged shouldBe 0
         dsl.fetchCount(dsl.selectFrom("tip_revision")) shouldBe revisions
         dsl.fetchCount(dsl.selectFrom("outbox").where("event_type = 'content.PolicyParamChanged'")) shouldBe events
-        dsl.fetchCount(dsl.selectFrom("trigger_rule").where("active")) shouldBe 8
+        dsl.fetchCount(dsl.selectFrom("trigger_rule").where("active")) shouldBe 9
     }
 
     @Test
@@ -197,7 +197,7 @@ class ContentEndToEndTest : ContentHttp() {
         data(call("POST", "/api/content/me/quiz/marriage-tax-credit", user, """{"choice":2}""")).path("correct").asBoolean() shouldBe false
 
         val cards = data(call("GET", "/api/content/me/quiz-cards", user))
-        cards.path("available").asInt() shouldBe 5
+        cards.path("available").asInt() shouldBe 6
         val card = items(cards.path("cards")).single()
         card.path("slug").asString() shouldBe "marriage-tax-credit"
         card.path("answer").asString() shouldBe "혼인신고일"
@@ -230,6 +230,71 @@ class ContentEndToEndTest : ContentHttp() {
         revisions[0].path("changes").size() shouldBe 0
         items(revisions[1].path("changes")).map { it.path("op").asString() to it.path("text").asString() } shouldBe
             listOf("removed" to "유효기한: 2026-12-31", "added" to "유효기한: 2027-12-31")
+    }
+
+    @Test
+    fun `내 숫자로 다시 읽기 — 비로그인 401 · 칸 없는 글 404 · 사실로 계산 · 원천 못 읽음은 이유 한 줄 · 사실은 저장 0`() {
+        val facts = """{"goals":[{"template":"housing","status":"active","saved":"1200000","monthlyPlan":"200000","targetDate":null}],"wage":{"state":"set","basis":"monthly","amount":"4000000"}}"""
+        call("POST", "/api/content/me/tips/housing-subscription-deduction/my-numbers", null, facts).statusCode() shouldBe 401
+        val user = "mn-${UUID.randomUUID()}"
+        val noKind = call("POST", "/api/content/me/tips/income-tax-may/my-numbers", user, facts)
+        noKind.statusCode() shouldBe 404
+        jsonMapper.readTree(noKind.body()).path("code").asString() shouldBe "TIP_MY_NUMBERS_NOT_FOUND"
+        call("POST", "/api/content/me/tips/no-such-tip/my-numbers", user, facts).statusCode() shouldBe 404
+        // set 인데 금액이 없다 · 금액이 숫자가 아니다
+        call("POST", "/api/content/me/tips/housing-subscription-deduction/my-numbers", user, """{"goals":[],"wage":{"state":"set","basis":"monthly"}}""").statusCode() shouldBe 400
+        call("POST", "/api/content/me/tips/housing-subscription-deduction/my-numbers", user, """{"goals":[],"wage":{"state":"set","basis":"monthly","amount":"-1"}}""").statusCode() shouldBe 400
+        // 모양은 맞는데 없는 날짜 — 500 이 아니라 400(S2d 확인 결함)
+        val badDate = call("POST", "/api/content/me/tips/housing-subscription-deduction/my-numbers", user, """{"goals":[{"template":"wedding","status":"active","saved":"0","targetDate":"2026-13-45"}],"wage":{"state":"not_set"}}""")
+        badDate.statusCode() shouldBe 400
+        jsonMapper.readTree(badDate.body()).path("code").asString() shouldBe "INVALID_GOAL_FACT"
+
+        // 글 응답이 칸 여부를 알린다
+        data(call("GET", "/api/content/tips/housing-subscription-deduction", null)).path("myNumbers").asBoolean() shouldBe true
+        data(call("GET", "/api/content/tips/income-tax-may", null)).path("myNumbers").asBoolean() shouldBe false
+
+        val outboxBefore = contentDatabase.dsl.fetchCount(contentDatabase.dsl.selectFrom("outbox"))
+        val r = data(call("POST", "/api/content/me/tips/housing-subscription-deduction/my-numbers", user, facts))
+        r.path("kind").asString() shouldBe "housing_subscription"
+        items(r.path("figures")).associate { it.path("key").asString() to (it.path("amount").takeIf { a -> !a.isNull }?.asLong() ?: it.path("ratio").asString()) } shouldBe
+            mapOf("annual_payment" to 2_400_000L, "counted" to 2_400_000L, "deduction" to 960_000L, "rate" to "0.40")
+        items(r.path("checks")).associate { it.path("key").asString() to it.path("state").asString() } shouldBe mapOf("salary_cap" to "met", "homeless_head" to "unknown")
+        r.path("estimated").asBoolean() shouldBe true
+        r.path("emptyReason").isNull shouldBe true
+
+        // 저축 원천을 못 읽었다(goals = null) — 숫자 0 · 이유
+        val unread = data(call("POST", "/api/content/me/tips/deposit-protection-limit/my-numbers", user, """{"goals":null,"wage":{"state":"unread"}}"""))
+        unread.path("figures").size() shouldBe 0
+        unread.path("emptyReason").asString() shouldContain "읽지 못해"
+
+        // 계산만 — 사실(급여 · 목표)은 어디에도 남지 않는다
+        contentDatabase.dsl.fetchCount(contentDatabase.dsl.selectFrom("outbox")) shouldBe outboxBefore
+        listOf("user_signal", "tip_dismissal", "quiz_answer").forEach { contentDatabase.dsl.fetchCount(contentDatabase.dsl.selectFrom(it).where("user_id = ?", user)) shouldBe 0 }
+    }
+
+    @Test
+    fun `고정비 증가 구독 — 주거가 오르면 월세 글이 가계부에 · 통신이 오르면 신호 0(처리 기록만)`() {
+        val today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"))
+        fun save(user: String, category: String, amount: Long, back: Long) =
+            data(call("POST", "/api/household/expenses", user, """{"amount":$amount,"category":"$category","merchant":"월세 집","spentOn":"${today.minusDays(back)}"}"""))
+
+        val rent = "fr-${UUID.randomUUID()}"
+        save(rent, "housing", 500_000, 62)
+        save(rent, "housing", 500_000, 32)
+        save(rent, "housing", 550_000, 2)
+        val picked = waitFor { data(call("GET", "/api/content/me/tip?context=household", rent)).path("tip").takeIf { !it.isNull && it.path("slug").asString() == "monthly-rent-credit" } }
+        picked.path("trigger").asString() shouldBe "fixed_cost_increased:housing"
+        // 저축 맥락엔 그 글이 없다
+        data(call("GET", "/api/content/me/tip?context=savings", rent)).path("tip").let { if (!it.isNull) it.path("slug").asString() shouldNotBe "monthly-rent-credit" }
+
+        val phone = "fp-${UUID.randomUUID()}"
+        save(phone, "telecom", 50_000, 62)
+        save(phone, "telecom", 50_000, 32)
+        save(phone, "telecom", 55_000, 2)
+        val dsl = contentDatabase.dsl
+        waitFor { dsl.fetchCount(dsl.selectFrom("processed_event").where("event_type = 'household.FixedCostIncreased'")).takeIf { it >= 2 } }
+        dsl.fetchCount(dsl.selectFrom("user_signal").where("user_id = ?", phone)) shouldBe 0
+        dsl.fetchCount(dsl.selectFrom("user_signal").where("user_id = ?", rent)) shouldBe 1
     }
 
     private fun <T : Any> waitFor(block: () -> T?): T {

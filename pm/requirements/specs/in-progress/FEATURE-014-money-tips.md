@@ -32,9 +32,9 @@
 | FR-1 | 공개 글: 출처 · 작성일 · 검수일 · 기준 연도 · 유효기한 필수, 하나라도 없으면 발행 불가 | Must | **Done(S2a 2026-11-05)** — 빌드 + 기동 검사 |
 | FR-2 | 유효기한 경과 → "확인 필요" · noindex · 때맞춘 팁 제외 · 변경 이력 공개 | Must | **Done(S2a)** — 당일까지 유효 |
 | FR-3 | 제도 파라미터 표(유효 구간)의 주인, 변경 시 `content.PolicyParamChanged` | Must | **Done(S2a)** — 구독자는 법무 확인 뒤 |
-| FR-4 | 때맞춘 팁: 도메인 이벤트 트리거(결혼 · 주거 목표, 11~12월, 5월, 고정비 증가, 신규 정기결제, 월초, 기한 없는 목표, 물가 발표, 만 34세 근접, 목표 달성). 한 번 닫으면 다시 안 띄움 | Must | **In progress(S2a)** — 결혼 · 주거 · 목표 달성 · 5월 · 11~12월 · 닫기. 나머지 트리거는 붙일 공적 제도 글이 생길 때(~~S2b~~ S2d) |
+| FR-4 | 때맞춘 팁: 도메인 이벤트 트리거(결혼 · 주거 목표, 11~12월, 5월, 고정비 증가, 신규 정기결제, 월초, 기한 없는 목표, 물가 발표, 만 34세 근접, 목표 달성). 한 번 닫으면 다시 안 띄움 | Must | **In progress(S2a · S2d)** — 결혼 · 주거 · 목표 달성 · 5월 · 11~12월 · 닫기 · **고정비 증가(주거) → 월세 세액공제(S2d)**. 나머지(신규 정기결제 · 월초 · 기한 없는 목표 · 물가 · 만 34세)는 원천 이벤트 · 붙일 글이 생길 때 |
 | FR-5 | 법적 선 검사기: 상품명 · 금리 비교 · 가입 링크 · 명령형 · 종목 · 매매 시점 → 발행 실패(기존 금지 표현 검증기 재사용) | Must | **Done(S2a)** — 코치 검증기 꼴을 옮겨 적음, 한 모듈은 S6 |
-| FR-6 | 내 숫자로 다시 읽기(로그인 시 서버 계산) | Should | Draft — S2d(저축 · 가계부 값, 서비스를 넘는다) |
+| FR-6 | 내 숫자로 다시 읽기(로그인 시 서버 계산) | Should | **Done(S2d 2026-11-05)** — 주택청약 · 결혼 · 예금보호 · 월세 넷. 저축 목표 · 가계부 급여를 BFF 가 읽어 content 가 계산 · 요건 맞아요 · 아니에요 · 모름(앱이 모르는 요건은 늘 모름) |
 | FR-7 | 제도 변경 diff 뷰 | Should | **Done(S2b 2026-11-05)** — 이력 목록(S2a) + 줄 diff(바뀐 줄만 · 모르는 판은 요약만) |
 | FR-8 | 재미 — 30초 먼저 맞혀 보기 · 맞힌 문제 카드 모음 | Should | **Done(S2b 2026-11-05)** — 정답은 서버 · 로그인이면 처음 맞힌 때 카드 · 시간 제한 0("30초"는 문제 길이 목표) |
 | FR-9 | 놓친 경우 모음(실패 사례) | Could | Draft |
@@ -68,6 +68,7 @@
 |---|---|---|
 | `apps/web-tips`(신규 zone) | `/tips` · `/tips/[slug]` | 공개 · ISR · ~~robots 허용~~ robots 는 서버 공개 플래그(법무 확인 전 noindex) — S2a |
 | `apps/web-tips` | 글 위 "읽기 전에 맞혀 보기" · `/tips/cards` 맞힌 카드 모음(개인 · noindex) · 목록에서 모음으로 가는 줄 | S2b |
+| `apps/web-tips` | 글 본문 아래 "내 숫자로 다시 읽기" — 로그인한 사람에게만 부르는 잎(글 HTML 은 사람마다 같다) | S2d |
 | 각 도메인 zone | 때맞춘 팁 카드 | `@repo/ui` 공용 카드 — 저축 · 가계부(S2a), 홈은 S3 |
 
 ## BFF/API 영향
@@ -79,6 +80,7 @@
 | POST | `/api/app/tips/:slug/dismiss` | user | — | 닫힘 | Done(S2a) |
 | POST | `/api/app/tips/:slug/quiz` | 있으면 씀 | `{ choice }` | 맞음 · 정답 · 풀이 · 카드가 됐나 | Done(S2b) |
 | GET | `/api/app/tips/quiz-cards` | user | — | 맞힌 카드 · 문제 수 | Done(S2b) |
+| GET | `/api/app/tips/:slug/my-numbers` | user | — | 숫자(금액 · 비율) · 요건(met · not_met · unknown) · 못 읽은 원천 | Done(S2d) |
 
 ## 서버/DB/Worker 영향
 
@@ -93,7 +95,7 @@
 ```mermaid
 flowchart LR
   SV[savings.GoalCreated] --> CT[content 트리거]
-  HH[household 고정비 증가 — 구독은 S2d] -.-> CT
+  HH[household.FixedCostIncreased 주거 — S2d] --> CT
   CT --> P[content.PolicyParamChanged] --> SV2[savings · household]
 ```
 
@@ -105,8 +107,8 @@ flowchart LR
 | FR-1 · 5 | — | — | `PublishCheck` · `LegalLine` | 원문 파일 · `tip` NOT NULL | `ContentSpec` · `CatalogSpec` · 종단 |
 | FR-2 | 확인 필요 띠 · noindex | `noindex` | `RunValidityCheck` | `ContentWorker` | `ContentSpec` 경계 |
 | FR-3 | — | — | `GET /api/content/policy-params/{key}` · `PolicyParamChanged` | `policy_param` 트리거 | 종단(23P01) |
-| FR-4 | `TimelyTip` | `for-me` · `dismiss` | `TimelyTipPicker` · 저축 이벤트 구독 | `user_signal` · `tip_dismissal` | 종단(실 RabbitMQ) · 실화면 |
-| FR-6 | — | — | — | — | Gap: S2d |
+| FR-4 | `TimelyTip` | `for-me` · `dismiss` | `TimelyTipPicker` · 저축 이벤트 구독 · 가계부 고정비 증가 구독(S2d) | `user_signal` · `tip_dismissal` | 종단(실 RabbitMQ) · 실화면 |
+| FR-6 | `MyNumbersPanel`(`read-my-numbers`) | `my-numbers`(저축 · 가계부 → content) | `MyNumbers` · `ReadMyNumbers` | 저장 0 · 파라미터 표 | `MyNumbersSpec` · 종단 · 실화면 |
 | FR-7 | `RevisionList` | `revisions[].changes` | `LineDiff` | `tip_revision.body_lines` | `QuizDiffSpec` · 종단 · 실화면 |
 | FR-8 | `AnswerQuiz` · `/tips/cards` | `quiz` · `quiz-cards` | `GradeQuiz` · `AnswerQuiz` · `ListQuizCards` | `quiz_answer` | `QuizDiffSpec` · 종단 · 실화면 |
 | FR-9 | — | — | — | — | Gap: 범위 밖(Could) |
@@ -136,3 +138,4 @@ flowchart LR
 | 2026-11-05 | 금융 팁 S2a + F5a(`MONEY-S2a-tips-content`) — FR-1 · 2 · 3 · 5 done · FR-4 · 7 진행 · 원문 위치 열린 질문 닫음 · 공개는 법무 확인 전 꺼짐 |
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — FR-7 · 8 done · FR-6 · 4 나머지는 S2d |
 | 2026-11-05 | 금융 팁 S2b 확인 3회차 — 본문 표(화면 · BFF · 서버/DB · Trace Matrix · 수용 기준)가 착수 전 모양 그대로였다 → 구현 현황으로 정정 · 수용 기준 셋 체크(S2a 에 이미 참) |
+| 2026-11-05 | 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`) — FR-6 done(BFF 가 원천을 읽고 content 가 계산 · 넷) · FR-4 고정비 증가(주거) + 월세 세액공제 글. 나머지 트리거는 원천 · 글이 생길 때 |

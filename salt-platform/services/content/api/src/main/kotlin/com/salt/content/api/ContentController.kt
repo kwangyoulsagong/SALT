@@ -7,10 +7,16 @@ import com.salt.content.application.GetTip
 import com.salt.content.application.GradeQuiz
 import com.salt.content.application.ListQuizCards
 import com.salt.content.application.ListTips
+import com.salt.content.application.ReadMyNumbers
 import com.salt.content.application.TipForMe
+import com.salt.content.domain.GoalFact
+import com.salt.content.domain.MyFacts
+import com.salt.content.domain.MyReading
 import com.salt.content.domain.Tip
 import com.salt.content.domain.TipBlock
 import com.salt.content.domain.TipStatus
+import com.salt.content.domain.Wage
+import com.salt.kernel.Money
 import com.salt.kernel.DomainError
 import com.salt.kernel.ErrorKind
 import com.salt.support.web.ApiResponse
@@ -20,6 +26,8 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
+import jakarta.validation.constraints.Size
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -49,6 +57,7 @@ class ContentController(
     private val gradeQuiz: GradeQuiz,
     private val answerQuiz: AnswerQuiz,
     private val listQuizCards: ListQuizCards,
+    private val readMyNumbers: ReadMyNumbers,
 ) {
     data class Meta(
         val sourceUrl: String,
@@ -84,7 +93,36 @@ class ContentController(
         val body: List<Block>,
         val revisions: List<Revision>,
         val quiz: Quiz?,
+        /** 내 숫자로 다시 읽기가 있는 글인가(FR-6) — 화면이 로그인한 사람에게만 그 칸을 부른다 */
+        val myNumbers: Boolean,
     )
+
+    /** 저축 목표 하나 — BFF 가 저축 응답에서 고른 칸(금액은 원 단위 정수 문자열) */
+    data class GoalFactBody(
+        @field:NotNull @field:Size(max = 32) val template: String?,
+        @field:NotNull @field:Size(max = 16) val status: String?,
+        @field:NotNull @field:Pattern(regexp = AMOUNT) val saved: String?,
+        @field:Pattern(regexp = AMOUNT) val monthlyPlan: String?,
+        @field:Pattern(regexp = DATE) val targetDate: String?,
+    )
+
+    /** 가계부 급여 칸 — state = set · not_set · unread. set 이면 basis(hourly · monthly) · amount 필수 */
+    data class WageBody(
+        @field:NotNull @field:Pattern(regexp = "set|not_set|unread") val state: String?,
+        @field:Pattern(regexp = "hourly|monthly") val basis: String?,
+        @field:Pattern(regexp = AMOUNT) val amount: String?,
+        @field:Min(1) @field:Max(400) val monthlyHours: Int?,
+    )
+
+    /** [goals] 가 null 이면 저축 원천을 못 읽었다(빈 목록 = 목표 없음) */
+    data class MyNumbersBody(@field:Valid @field:Size(max = 200) val goals: List<GoalFactBody>?, @field:Valid @field:NotNull val wage: WageBody?)
+
+    /** 금액 칸은 원 단위 정수 · 비율 칸은 문자열(0.40 그대로) — 둘 중 하나 */
+    data class FigureView(val key: String, val label: String, val amount: Long?, val ratio: String?)
+
+    data class CheckView(val key: String, val label: String, val state: String, val note: String)
+
+    data class MyNumbersView(val slug: String, val kind: String, val figures: List<FigureView>, val checks: List<CheckView>, val emptyReason: String?, val estimated: Boolean)
 
     data class Timely(val slug: String, val title: String, val summary: String, val trigger: String, val sourceUrl: String, val sourceName: String, val validUntil: String)
 
@@ -141,6 +179,7 @@ class ContentController(
                 body = v.tip.body.map(::block),
                 revisions = v.revisions.map { r -> Revision(r.revision.at.toString(), r.revision.summary, r.changes?.map { Change(it.op.key, it.text) }) },
                 quiz = v.tip.quiz?.let { Quiz(it.question, it.choices) },
+                myNumbers = v.tip.myNumbers != null,
             ),
         )
     }
@@ -172,6 +211,17 @@ class ContentController(
                 },
             ),
         )
+    }
+
+    @Operation(
+        summary = "내 숫자로 다시 읽기",
+        description = "BFF 가 저축 목표 · 가계부 급여를 읽어 넘긴다 — content 는 저장 · 로그 0, 오늘 유효한 제도 파라미터로 계산 + 요건(met · not_met · unknown). " +
+            "숫자 칸이 없는 글 404 TIP_MY_NUMBERS_NOT_FOUND · 공개 전 404",
+    )
+    @PostMapping("/me/tips/{slug}/my-numbers")
+    fun myNumbers(@Suppress("UNUSED_PARAMETER") user: AuthenticatedUser, @PathVariable slug: String, @Valid @RequestBody body: MyNumbersBody): ResponseEntity<ApiResponse<MyNumbersView>> {
+        val r = readMyNumbers.execute(slug, facts(body))
+        return ApiResponse.ok(view(slug, r))
     }
 
     @Operation(summary = "때맞춘 팁 0~1건", description = "context = home · savings · household. 닫은 글 · 확인 필요 글 제외. 공개 플래그가 꺼져 있으면 tip=null")
@@ -215,15 +265,52 @@ class ContentController(
         )
     }
 
+    private fun facts(body: MyNumbersBody): MyFacts {
+        val goals = body.goals?.map { g ->
+            GoalFact(g.template!!, g.status!!, Money.krw(g.saved!!), g.monthlyPlan?.let(Money::krw), g.targetDate?.let(::factDate))
+        }
+        val w = body.wage!!
+        val wage = when (w.state) {
+            "unread" -> Wage.Unread
+            "set" -> {
+                if (w.basis == null || w.amount == null) throw InvalidWage()
+                val amount = Money.krw(w.amount)
+                if (amount.isZero()) throw InvalidWage()
+                Wage.Set(hourly = w.basis == "hourly", amount = amount, monthlyHours = w.monthlyHours)
+            }
+            else -> Wage.NotSet
+        }
+        return MyFacts(goals, wage)
+    }
+
+    /** 정규식은 모양만 본다 — 2026-13-45 같은 없는 날짜는 여기서 400(파싱 예외가 500 으로 새던 결함, S2d 확인) */
+    private fun factDate(raw: String): LocalDate = runCatching { LocalDate.parse(raw) }.getOrNull() ?: throw InvalidGoalFact(raw)
+
+    private fun view(slug: String, r: MyReading): MyNumbersView = MyNumbersView(
+        slug = slug,
+        kind = r.kind.key,
+        // 원 단위 반올림은 응답 직전 한 번(`ddd-presentation.md`)
+        figures = r.figures.map { FigureView(it.key, it.label, it.amount?.toKrwInteger(), it.ratio?.toPlainString()) },
+        checks = r.checks.map { CheckView(it.key, it.label, it.state.key, it.note) },
+        emptyReason = r.emptyReason,
+        estimated = r.estimated,
+    )
+
     private fun block(b: TipBlock): Block = when (b) {
         is TipBlock.Heading -> Block("heading", b.text, null)
         is TipBlock.Paragraph -> Block("paragraph", b.text, null)
         is TipBlock.Bullets -> Block("bullets", null, b.items)
     }
 
+    private class InvalidGoalFact(raw: String) : DomainError("INVALID_GOAL_FACT", ErrorKind.INVALID, "targetDate must be a real YYYY-MM-DD date", mapOf("targetDate" to raw))
+
+    private class InvalidWage : DomainError("INVALID_WAGE_FACT", ErrorKind.INVALID, "wage set needs basis and positive amount")
+
     private class InvalidDay(raw: String) : DomainError("INVALID_DATE", ErrorKind.INVALID, "on must be YYYY-MM-DD", mapOf("on" to raw))
 
     private companion object {
         val KST: java.time.ZoneId = java.time.ZoneId.of("Asia/Seoul")
+        const val AMOUNT = "^\\d{1,15}$"
+        const val DATE = "^\\d{4}-\\d{2}-\\d{2}$"
     }
 }

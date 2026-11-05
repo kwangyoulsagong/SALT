@@ -98,3 +98,9 @@
 - 몫: `household.FixedCostIncreased` 계약 설명의 구독 예정 칸 ~~금융 팁 S2b~~ → 금융 팁 S2d. 필드 · 스키마 무변경
 - 검증: `./gradlew check`(계약 스키마 발행 테스트 포함) — 슬라이스 체크리스트
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-05 — 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`)
+
+- 몫: `household.FixedCostIncreased` 계약 설명 · README 구독자 칸 — "구독 예정" → 구독(content, 주거만). 필드 · 스키마 무변경
+- 검증: `./gradlew check`(계약 스키마 발행 테스트 포함) · 종단 고정비 증가 구독(실 RabbitMQ) — 슬라이스 체크리스트
+- 미검증: 없음(이 몫 안)

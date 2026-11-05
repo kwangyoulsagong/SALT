@@ -13,6 +13,7 @@ import java.time.LocalDate
  * written_on: 2026-11-05   reviewed_on: 2026-11-05   base_year: 2026   valid_until: 2026-12-31
  * triggers: goal_created:wedding, month:12     contexts: savings, home     change: (바뀐 판만)
  * quiz_question: …   quiz_choices: 보기1 | 보기2 | 보기3   quiz_answer: 2(1부터)   quiz_explain: …   (넷 다 있거나 다 없거나, FR-8)
+ * my_numbers: housing_subscription   (내 숫자로 다시 읽기 0~1개, FR-6 — [MyNumbersKind])
  * ---
  * ## 제목줄
  * 문단(빈 줄로 나눈다)
@@ -62,6 +63,9 @@ object PublishCheck {
         val body = blocks(bodyText)
         if (body.none { it is TipBlock.Paragraph }) problems += "본문: 문단이 없다"
         val quiz = quiz(front, problems)
+        val myNumbers = front["my_numbers"]?.takeIf { it.isNotBlank() }?.let { key ->
+            MyNumbersKind.parse(key) ?: null.also { problems += "my_numbers: 모르는 계산 $key" }
+        }
 
         // 법적 선 — 제목 · 요약 · 본문 · 변경 요약 · 퀴즈 전부. 문장마다 어느 규칙인지 적는다(검수자가 고칠 자리를 안다)
         (listOf(title, summary) + listOfNotNull(front["change"]) + body.flatMap { it.texts() } + quiz?.texts().orEmpty()).forEach { text ->
@@ -79,6 +83,7 @@ object PublishCheck {
                 change = front["change"]?.takeIf { it.isNotBlank() },
                 contentHash = ContentHash.of(raw),
                 quiz = quiz,
+                myNumbers = myNumbers,
             ),
         )
     }

@@ -56,3 +56,8 @@
 
 - 몫: `savings.GoalCreated` · `GoalReached` 의 첫 구독자 content(금융 팁 S2a) — 저축 코드 · 계약 무변경
 - **Action**: 없음 — 기존 결정 위에 한 줄
+
+## 2026-11-05 — 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`)
+
+- 몫: 새 소비자 기록만. 계약 무변경
+- **Action**: 없음

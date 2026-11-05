@@ -19,6 +19,7 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-047-F014-CONTENT.md
 | FR-4 | 개인화 실패 시 일반 예시로 폴백 |
 | FR-5 | 공개 경로 레이트 리밋(검색 유입 대비) |
 | FR-6 | 퀴즈 풀이 · 맞힌 카드 모음 · 글 응답의 바뀐 줄(S2b 신설 — `SRV-REQ-047` FR-7 · 8) |
+| FR-7 | 내 숫자로 다시 읽기 `GET /api/app/tips/:slug/my-numbers`(S2d 신설 — `SRV-REQ-047` FR-6). 저축 목표 · 가계부 급여를 나란히 읽어 content 에 사실로 넘긴다(서비스끼리 부르지 않게 BFF 가 순서). 원천 하나 실패 = 그 원천만 못 읽음 · content 실패 = `reading: null`(글의 예시 그대로) · 401 · 404 그대로 · 끈 급여 칸은 쓰지 않음 · 금액 계산 0 |
 
 ## Acceptance Criteria
 
@@ -51,3 +52,5 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-047-F014-CONTENT.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-05 | 금융 팁 S2a — to-do → in-progress. FR-1~5 done · 라우팅 표 `/content` → platform. 커밋 `36d1f7b9` |
 | 2026-11-05 | 금융 팁 S2b — FR-6 신설 · done(퀴즈 풀이 · 카드 모음) · 글 응답에 `quiz` · `changes`. 커밋 `4b5a294b` |
+| 2026-11-05 | 금융 팁 S2d — FR-7 신설 · done(내 숫자 — 원천 둘 → content). 글 응답 `myNumbers`. 커밋 `633057ad` |
+| 2026-11-05 | 금융 팁 S2d 확인 2회차 — FR-7 의 순서(원천 `allSettled` → 칸만 고름 · 원천 401 이면 계산 안 부름)를 규칙으로(`bff-architecture.md` §5 한 줄) |

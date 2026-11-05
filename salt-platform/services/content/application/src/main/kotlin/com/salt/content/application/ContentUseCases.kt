@@ -5,6 +5,10 @@ import com.salt.content.domain.ContentEvents
 import com.salt.content.domain.Dismissals
 import com.salt.content.domain.InvalidContext
 import com.salt.content.domain.LineDiff
+import com.salt.content.domain.MyFacts
+import com.salt.content.domain.MyNumbers
+import com.salt.content.domain.MyNumbersNotFound
+import com.salt.content.domain.MyReading
 import com.salt.content.domain.PolicyParam
 import com.salt.content.domain.PolicyParamNotFound
 import com.salt.content.domain.PolicyParamSet
@@ -286,6 +290,21 @@ open class DismissTip(private val library: TipLibrary, private val dismissals: D
     }
 }
 
+/**
+ * 내 숫자로 다시 읽기(FR-6, 금융 팁 S2d) — 사실([MyFacts])은 BFF 가 저축 · 가계부에서 읽어 넘긴다(서비스끼리 부르지 않는다).
+ * 숫자는 오늘(KST) 유효한 제도 파라미터로. 사실은 저장하지 않는다 — 계산만(급여는 민감 정보). 공개 전이면 글과 같이 404.
+ */
+open class ReadMyNumbers(private val library: TipLibrary, private val params: PolicyParams, private val settings: ContentSettings, private val clock: Clock) {
+    @Transactional(transactionManager = CONTENT_TX, readOnly = true)
+    open fun execute(slug: String, facts: MyFacts): MyReading {
+        if (!settings.publicEnabled) throw TipNotFound(slug)
+        val tip = library.all()[slug] ?: throw TipNotFound(slug)
+        val kind = tip.myNumbers ?: throw MyNumbersNotFound(slug)
+        val today = clock.kstToday()
+        return MyNumbers.read(kind, facts) { key -> params.valueAt(key, today) }
+    }
+}
+
 /** 제도 파라미터 조회(FR-3) — 키 · 기준일 → 그날 유효한 줄. */
 open class GetPolicyParam(private val params: PolicyParams) {
     @Transactional(transactionManager = CONTENT_TX, readOnly = true)
@@ -293,8 +312,8 @@ open class GetPolicyParam(private val params: PolicyParams) {
 }
 
 /**
- * 구독 — `savings.GoalCreated`(결혼 · 주거) · `savings.GoalReached` 를 신호로 남긴다. 같은 이벤트 두 번 = 한 번분.
- * 트리거가 붙지 않는 템플릿(여행 · 차 …)은 아무것도 남기지 않는다 — 처리 기록만(다시 와도 다시 보지 않게).
+ * 구독 — `savings.GoalCreated`(결혼 · 주거) · `savings.GoalReached` · `household.FixedCostIncreased`(주거, S2d) 를 신호로 남긴다. 같은 이벤트 두 번 = 한 번분.
+ * 트리거가 붙지 않는 템플릿(여행 · 차 …) · 분류(식비 …)는 아무것도 남기지 않는다 — 처리 기록만(다시 와도 다시 보지 않게).
  */
 open class RecordSignal(private val signals: UserSignals) {
     @Transactional(transactionManager = CONTENT_TX)

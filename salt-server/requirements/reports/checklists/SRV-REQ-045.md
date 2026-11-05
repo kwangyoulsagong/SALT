@@ -82,3 +82,9 @@
 - 몫: `savings.GoalCreated` · `GoalReached` 의 첫 구독자 content(금융 팁 S2a) — 저축 코드 · 계약 무변경
 - 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-05 — 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`)
+
+- 몫: 계약 무변경 · 새 소비자(BFF 금융 팁 내 숫자가 `GET /api/savings/goals` 를 읽는다). 저축 코드 변경 0
+- 검증: 실화면 — 임시 사용자 주거 목표 월 20만 → 내 숫자 2,400,000원 · 적립 120만 → 예금보호 1,200,000원(슬라이스 체크리스트)
+- 미검증: 없음(이 몫 안)

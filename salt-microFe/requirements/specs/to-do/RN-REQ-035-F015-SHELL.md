@@ -32,3 +32,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — **RN 변경 없음.** 웹 팁 zone `/tips` 가 생겼다(공개 · 휴대폰 폭). FR-5 웹뷰 연결은 이 REQ 착수 때 |
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — **RN 변경 없음.** 웹 팁 zone 에 퀴즈 칸 · `/tips/cards` 가 생겼다(휴대폰 폭 · 앱 웹뷰 390 확인). FR-5 웹뷰 연결은 이 REQ 착수 때 |
+| 2026-11-05 | 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`) — **RN 변경 없음.** 웹 팁 글에 내 숫자 칸(로그인일 때만 · 앱 웹뷰 390 UA 확인). 웹뷰가 세션 쿠키를 싣는지는 FR-5 웹뷰 연결 때 |
