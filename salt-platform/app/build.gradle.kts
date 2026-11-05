@@ -20,6 +20,10 @@ dependencies {
     implementation(project(":services:household:application"))
     implementation(project(":services:household:infrastructure"))
     implementation(project(":services:household:api"))
+    implementation(project(":services:content:domain"))
+    implementation(project(":services:content:application"))
+    implementation(project(":services:content:infrastructure"))
+    implementation(project(":services:content:api"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-opentelemetry")

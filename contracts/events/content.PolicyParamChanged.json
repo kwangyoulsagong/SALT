@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salt.local/contracts/events/content.PolicyParamChanged.json",
+  "title": "content.PolicyParamChanged",
+  "description": "제도 파라미터 한 줄(키 · 시작일)이 새로 생기거나 값 · 끝 · 출처가 바뀌었다(SRV-REQ-047 FR-3 · DB-REQ-039 FR-7). 원문 표(content/policy-params.json)를 동기화할 때 줄마다 한 번. value 는 금액 · 비율(NUMERIC 문자열), text 는 말 — 둘 중 하나. validTo 는 마지막 유효일(포함), null 이면 끝 미정. 구독 예정: 저축 제도 계산(F012 FR-12) · 가계부 공제 계기판(F013 FR-11) — 둘 다 법무 확인 뒤",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["key", "validFrom", "validTo", "value", "text", "unit", "change", "asOf"],
+  "properties": {
+    "key": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "validFrom": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "validTo": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "value": { "type": ["string", "null"], "pattern": "^-?\\d+(\\.\\d+)?$" },
+    "text": { "type": ["string", "null"], "minLength": 1 },
+    "unit": { "type": "string", "minLength": 1 },
+    "change": { "enum": ["added", "updated"] },
+    "asOf": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
+  }
+}

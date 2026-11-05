@@ -32,6 +32,17 @@ spring:
 salt:
   auth:
     jwt-secret: ${JWT_SECRET}
+    # 인증 없는 경로 — 점검 · 문서 + 금융 팁 공개 글 · 제도 파라미터(`SRV-REQ-047`). 개인 경로는 /api/content/me/** 라 여기 걸리지 않는다
+    public-paths:
+      - /actuator/health/**
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /api/content/tips
+      - /api/content/tips/*
+      - /api/content/policy-params/*
+  # 금융 팁 공개 플래그 — 법무 확인 기록 전엔 꺼짐(`SRV-REQ-047` 수용 기준 3). 기본값을 켜지 않는다
+  content:
+    public-enabled: ${CONTENT_PUBLIC:false}
   db:
     url: ${SALT_DB_URL}
     accounts:
@@ -44,6 +55,9 @@ salt:
       household:
         username: svc_household
         password: ${HOUSEHOLD_DB_PASSWORD}
+      content:
+        username: svc_content
+        password: ${CONTENT_DB_PASSWORD}
 
 # 외부 호출 기본값(`SRV-REQ-043` FR-8 · `kotlin-platform.md` §3) — 인스턴스는 첫 외부 호출(S5 market)이 이 기본값을 이어받는다.
 # 재시도는 조회(GET)에만 붙인다(쓰기 재시도는 중복 쓰기). KIS 는 약 2건/초(메모 kis-mock-key)
