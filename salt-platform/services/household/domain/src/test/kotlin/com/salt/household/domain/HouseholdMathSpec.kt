@@ -15,27 +15,31 @@ class HouseholdMathSpec : StringSpec({
     val krw = { v: Long -> Money.krw(v) }
     val now = Instant.parse("2026-11-04T03:00:00Z")
     val today = LocalDate.of(2026, 11, 4)
+    val book = CategoryBook.DEFAULTS_ONLY
+    val q = InputKind.QUICK
+    fun summary(byCategory: Map<Category, Money>, template: Money = krw(0)) =
+        MonthSummary(MonthTotals(byCategory.values.fold(krw(0), Money::plus), krw(0), byCategory.size), byCategory, template)
 
     "50/30/20 — 봉투 둘(needs 50 · wants 30) · 저축 몫 20 은 봉투가 아니다" {
         val b = Budget.fiftyThirtyTwenty("u", krw(3_000_000), now)
         b.envelopes shouldBe mapOf("needs" to krw(1_500_000), "wants" to krw(900_000))
         b.savingsShare shouldBe krw(600_000)
-        b.envelopeOf(Category.FOOD) shouldBe "needs"
-        b.envelopeOf(Category.CAFE) shouldBe "wants"
+        b.envelopeOf(Category.FOOD, q, book) shouldBe "needs"
+        b.envelopeOf(Category.CAFE, q, book) shouldBe "wants"
     }
 
     "봉투 방식 — 봉투 없는 분류는 예산 밖 · 모르는 분류 키는 거절" {
-        val b = Budget.envelopes("u", mapOf("cafe" to krw(100_000), "food" to krw(400_000)), now)
+        val b = Budget.envelopes("u", mapOf("cafe" to krw(100_000), "food" to krw(400_000)), book, now)
         b.envelopes.keys.toList() shouldBe listOf("food", "cafe")
-        b.envelopeOf(Category.SHOPPING) shouldBe null
-        BudgetMath.unbudgeted(b, mapOf(Category.SHOPPING to krw(30_000), Category.FOOD to krw(1))) shouldBe krw(30_000)
-        shouldThrow<InvalidBudget> { Budget.envelopes("u", mapOf("nope" to krw(1)), now) }.code shouldBe "BUDGET_CATEGORY_UNKNOWN"
-        shouldThrow<InvalidBudget> { Budget.envelopes("u", emptyMap(), now) }.code shouldBe "BUDGET_ENVELOPES_REQUIRED"
+        b.envelopeOf(Category.SHOPPING, q, book) shouldBe null
+        BudgetMath.unbudgeted(b, summary(mapOf(Category.SHOPPING to krw(30_000), Category.FOOD to krw(1))), book) shouldBe krw(30_000)
+        shouldThrow<InvalidBudget> { Budget.envelopes("u", mapOf("nope" to krw(1)), book, now) }.code shouldBe "BUDGET_CATEGORY_UNKNOWN"
+        shouldThrow<InvalidBudget> { Budget.envelopes("u", emptyMap(), book, now) }.code shouldBe "BUDGET_ENVELOPES_REQUIRED"
     }
 
     "넘친 봉투는 음수 숫자일 뿐 — 하루 가용은 0, 이번 달이 아니면 null" {
-        val b = Budget.envelopes("u", mapOf("cafe" to krw(100_000)), now)
-        val e = BudgetMath.envelopes(b, mapOf(Category.CAFE to krw(130_000))).single()
+        val b = Budget.envelopes("u", mapOf("cafe" to krw(100_000)), book, now)
+        val e = BudgetMath.envelopes(b, summary(mapOf(Category.CAFE to krw(130_000))), book).single()
         e.remaining shouldBe krw(-30_000)
         BudgetMath.dailyAvailable(e.remaining, 27) shouldBe krw(0)
         BudgetMath.dailyAvailable(krw(270_000), 27) shouldBe krw(10_000)

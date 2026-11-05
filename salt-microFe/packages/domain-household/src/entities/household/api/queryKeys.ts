@@ -2,6 +2,7 @@ export const householdQueryKeys = {
   all: ["Household"] as const,
   month: (ym: string) => [...householdQueryKeys.all, "month", ym] as const,
   suggestions: () => [...householdQueryKeys.all, "suggestions"] as const,
+  categories: () => [...householdQueryKeys.all, "categories"] as const,
   budget: () => [...householdQueryKeys.all, "budget"] as const,
   templates: () => [...householdQueryKeys.all, "templates"] as const,
   workHours: () => [...householdQueryKeys.all, "work-hours"] as const,

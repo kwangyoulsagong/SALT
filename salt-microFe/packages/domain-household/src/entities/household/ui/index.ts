@@ -11,3 +11,4 @@ export * from "./NoSpendCalendar";
 export * from "./ChallengeHead";
 export * from "./FixedCostHead";
 export { dayButton as calendarDayButton } from "./calendar.css";
+export * from "./CategoryNames";

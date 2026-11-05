@@ -7,7 +7,7 @@ import { Button } from "@repo/ui/button";
 import { EmptyState } from "@repo/ui/emptyState";
 import { Skeleton } from "@repo/ui/skeleton";
 
-import { CATEGORY_LABEL, formatMonth, formatWon, useRecurringTemplates, type RecurringTemplate } from "@/entities/household";
+import { formatMonth, formatWon, useCategoryLabel, useRecurringTemplates, type RecurringTemplate } from "@/entities/household";
 
 import { useEndTemplate } from "../api";
 import { RECURRING_MESSAGES as M } from "../model";
@@ -18,6 +18,7 @@ import * as s from "./recurring.css";
 export const TemplateList = () => {
   const list = useRecurringTemplates();
   const end = useEndTemplate();
+  const label = useCategoryLabel();
   const [editing, setEditing] = useState<RecurringTemplate | "new" | null>(null);
 
   if (list.isSignedOut) return <EmptyState title={M.signedOut} />;
@@ -48,7 +49,7 @@ export const TemplateList = () => {
                   {t.name} · {formatWon(t.amount)}
                 </span>
                 <span className={s.label}>
-                  {M.dayOf(t.dayOfMonth)} · {CATEGORY_LABEL[t.category]}
+                  {M.dayOf(t.dayOfMonth)} · {label.category(t.category)}
                   {t.thisMonth ? ` · ${M.stage[t.thisMonth.stage]}` : ` · ${M.startsNext(formatMonth(t.startsMonth))}`}
                 </span>
               </span>

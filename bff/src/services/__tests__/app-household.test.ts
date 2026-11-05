@@ -167,6 +167,23 @@ describe("AppHouseholdService", () => {
       ["POST", "/household/fixed-costs/show", { key: "통신사" }],
     ]);
   });
+  it("내 분류(S1f) — 목록 · 만들기 · 고치기 · 보관을 그대로 중계 · 키는 경로 조각으로 인코딩", async () => {
+    const seen: Array<[string, string, unknown]> = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string, _t: string, body: unknown) => {
+      seen.push([m, url, body]);
+      return { data: { data: { key: "u_0123456789ab" } } } as never;
+    });
+    await appHouseholdService.categories("t");
+    await appHouseholdService.addCategory("t", { name: "강아지", bucket: "needs" });
+    await appHouseholdService.editCategory("t", "u_0123456789ab", { name: "반려견", bucket: "wants" });
+    assert.deepEqual(await appHouseholdService.archiveCategory("t", "../x"), { key: "u_0123456789ab" });
+    assert.deepEqual(seen, [
+      ["GET", "/household/categories", undefined],
+      ["POST", "/household/categories", { name: "강아지", bucket: "needs" }],
+      ["PUT", "/household/categories/u_0123456789ab", { name: "반려견", bucket: "wants" }],
+      ["DELETE", "/household/categories/..%2Fx", undefined],
+    ]);
+  });
   it("챌린지 목록(S1d) — 가계부 목록 + 진행 중 목표만 · 저축이 실패하면 goals null 이고 목록은 그대로", async () => {
     const list = { items: [{ id: "c", phase: "running" }], presets: ["skip_coffee"], limit: 5, openCount: 1, canStart: true };
     const goals = [

@@ -33,7 +33,7 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 사람 장부 · 챌린지 · 이야기 카드 · 고정비 · 리볼빙 · 통장 쪼개기 · 사용자 분류 | 범위 밖(판단 1) | 가계부 S1d — **정정 2026-11-04** 챌린지는 S1d 닫힘(`MONEY-S1d-household-challenge`), 나머지 S1e — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f |
+| 사람 장부 · 챌린지 · 이야기 카드 · 고정비 · 리볼빙 · 통장 쪼개기 · 사용자 분류 | 범위 밖(판단 1) | 가계부 S1d — **정정 2026-11-04** 챌린지는 S1d 닫힘(`MONEY-S1d-household-challenge`), 나머지 S1e — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g |
 | 지난 지출에 기분 붙이기 · 바꾸기 화면 | API 만 — 내역 줄 디자인과 겹친다 | `FE-REQ-060` |
 | 공제 계기판 | content 파라미터 | S2 content 뒤 |
 | RN 기분 · 달력 · "어제 단 기분" 알림 | 웹 계약 확정 뒤 | `RN-REQ-034` · notification S2 |

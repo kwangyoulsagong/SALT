@@ -1,12 +1,12 @@
 import { formatPrice } from "@repo/web-shared/lib";
 
-import type { CalendarDayState, CategoryKey, ChallengePhase, ChallengePresetKey, EmotionKey, GoalClock, HouseholdTrack } from "./types";
+import type { AccountKey, BucketKey, CalendarDayState, ChallengePhase, DefaultCategoryKey, ChallengePresetKey, EmotionKey, GoalClock, HouseholdTrack } from "./types";
 
 /**
  * 가계부 문구 — **사실만 말한다.** 칭찬 · 재촉 · 경고 · 명령형 0(`FE-REQ-057` 수용 기준 · FEATURE-013 정책 "차단 · 경고 팝업 없음").
  * 넘친 봉투는 "남은 돈 −3,000원" 숫자일 뿐 — 빨강 · 경고 아이콘 · "초과" 낱말을 쓰지 않는다. 상태 키 → 문장은 여기 한 곳.
  */
-export const CATEGORY_LABEL: Readonly<Record<CategoryKey, string>> = {
+export const CATEGORY_LABEL: Readonly<Record<DefaultCategoryKey, string>> = {
   food: "식비",
   cafe: "카페 · 간식",
   transport: "교통",
@@ -24,7 +24,29 @@ export const CATEGORY_LABEL: Readonly<Record<CategoryKey, string>> = {
 /** 50/30/20 봉투 이름 */
 export const BUCKET_LABEL: Readonly<Record<string, string>> = { needs: "꼭 필요한 데(50%)", wants: "하고 싶은 데(30%)" };
 
-export const envelopeLabel = (key: string): string => BUCKET_LABEL[key] ?? CATEGORY_LABEL[key as CategoryKey] ?? key;
+/** 묶음 이름만(내 분류 만들기 · 고치기 칸) */
+export const BUCKET_SHORT_LABEL: Readonly<Record<BucketKey, string>> = { needs: "꼭 필요한 데", wants: "하고 싶은 데" };
+
+/** 통장 쪼개기 이름표(가계부 S1f) — 통장과 잇지 않는다. 이름만 */
+export const ACCOUNT_LABEL: Readonly<Record<AccountKey, string>> = {
+  salary: "급여 통장(고정비)",
+  spending: "생활비 통장",
+  saving: "저축 통장",
+  emergency: "비상금 통장",
+};
+
+/** 내 분류 이름을 아직 못 받았거나 모르는 키일 때 */
+export const CUSTOM_CATEGORY_FALLBACK = "내 분류";
+
+export const isDefaultCategory = (key: string): key is DefaultCategoryKey => Object.hasOwn(CATEGORY_LABEL, key);
+
+/** 분류 키 → 이름. 기본 분류는 프론트 문구, 내 분류는 서버가 준 이름(names) */
+export const categoryLabel = (key: string, names?: ReadonlyMap<string, string>): string =>
+  isDefaultCategory(key) ? CATEGORY_LABEL[key] : (names?.get(key) ?? CUSTOM_CATEGORY_FALLBACK);
+
+/** 봉투 키 → 이름 — 묶음 · 통장 · 분류(내 분류 포함) */
+export const envelopeLabel = (key: string, names?: ReadonlyMap<string, string>): string =>
+  BUCKET_LABEL[key] ?? (Object.hasOwn(ACCOUNT_LABEL, key) ? ACCOUNT_LABEL[key as AccountKey] : categoryLabel(key, names));
 
 /** 원 단위 표시 — 서버 금액의 포맷만(계산 0). 음수는 부호를 글자로 */
 export const formatWon = (value: number): string => (value < 0 ? `−${formatPrice(-value)}원` : `${formatPrice(value)}원`);

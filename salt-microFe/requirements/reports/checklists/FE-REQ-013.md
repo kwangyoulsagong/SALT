@@ -108,3 +108,7 @@
 ## 2026-11-04 — 가계부 S1e(`MONEY-S1e-household-fixed-cost`)
 
 - [x] 번들 `/household` 161 → 162 kB · 공용 103 kB(가계부 zone 운영 빌드) · 월 화면 요청 수 하나 그대로
+
+## 2026-11-05 — 가계부 S1f(`MONEY-S1f-household-categories-accounts`)
+
+- [x] 번들 `/household` 163 kB(+1) · `/household/budget` 134 kB · 월 화면 요청 수 그대로(분류 표는 월 응답 안)

@@ -87,7 +87,7 @@ class JooqFeelings(private val dsl: DSLContext) : Feelings {
                     feeling = toFeeling(r.into(EXPENSE_TAG)),
                     amount = money(r.get(EXPENSE.AMOUNT)),
                     spentOn = r.get(EXPENSE.SPENT_ON),
-                    category = Category.fromKey(r.get(EXPENSE.CATEGORY)) ?: Category.OTHER,
+                    category = Category.parse(r.get(EXPENSE.CATEGORY)) ?: Category.OTHER,
                     merchant = r.get(EXPENSE.MERCHANT),
                 )
             }

@@ -15,7 +15,7 @@ interface Expenses {
     /** 한 달 지출 — 날짜 최신순, [limit] 건까지(화면 목록) */
     fun inMonth(userId: String, month: YearMonth, limit: Int): List<Expense>
 
-    /** 한 달 합 — 정확/대략 · 분류별을 **한 문장**으로 */
+    /** 한 달 합 — 정확/대략 · 분류별 · 템플릿 지출(통장 쪼개기의 급여 통장, S1f)을 **한 문장**으로 */
     fun monthSummary(userId: String, month: YearMonth): MonthSummary
 
     /** 날짜별 합 `[from, to]` — 전체 · 변동(템플릿 지출 뺌)을 한 문장으로. 기록 없는 날은 빠진다(엔진이 0 으로 채운다) */
@@ -34,7 +34,8 @@ interface Expenses {
 /** 하루 합 — [variable] 은 반복 템플릿으로 적은 지출을 뺀 값(착지 표본) */
 data class DayTotal(val all: Money, val variable: Money)
 
-data class MonthSummary(val totals: MonthTotals, val byCategory: Map<Category, Money>)
+/** [templateSpent] — 반복 템플릿 확인으로 적은 지출의 합(가계부 S1f — 통장 쪼개기의 급여 통장이 쓴다) */
+data class MonthSummary(val totals: MonthTotals, val byCategory: Map<Category, Money>, val templateSpent: Money)
 
 data class RecentMerchant(val merchant: String, val category: Category, val lastAmount: Money, val count: Int)
 

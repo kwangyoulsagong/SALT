@@ -31,7 +31,7 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | FR-1 | done — 저장 + 목표 시계(저축 `GET /savings/goal-clock?amount=savedTotal`, 300ms 예산 → `pending`) + 봉투. 여러 건 `POST /expenses/batch` · 다시 묻기 `GET /goal-clock?amount=` | 금액은 서버 `savedTotal` 그대로 — BFF 는 더하지 않는다 |
 | FR-2 | done — 원문을 로그 · 오류에 남기는 길 0. **깨진 JSON 본문**은 파서 메시지(본문 조각)를 버리고 400 `INVALID_JSON`(error middleware — 모든 경로) | 로그 캡처 테스트 2 |
 | FR-3 | done(봉투 · 착지 · 지난달 적중 · 지출 목록) — 리뷰 · 스티커 칸은 S1b | `GET /month/:ym` |
-| FR-4 | 예산 · 제안 · 지우기 done — 템플릿 · 챌린지 · 이야기 카드는 S1b(**정정 2026-11-04** 템플릿 S1b · 챌린지 S1d 닫힘, 이야기 카드는 ~~S1e~~ S1f(정정 2026-11-04 — S1e 는 고정비 · 이상치만)) | |
+| FR-4 | 예산 · 제안 · 지우기 done — 템플릿 · 챌린지 · 이야기 카드는 S1b(**정정 2026-11-04** 템플릿 S1b · 챌린지 S1d 닫힘, 이야기 카드는 ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만)) | |
 | FR-5 | done — 저장 실패는 서버 4xx 를 그대로(입력 보존은 화면 상태) | |
 
 홈 카드: 가계부 카드가 `CARD_SOURCES` 에 붙었다(`BFF-REQ-046`) — 이번 달 지출 + (예산 남은 금액 | 월말 예상 구간 | 비움).
@@ -41,14 +41,14 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | FR | 상태 | 비고 |
 |---|---|---|
 | FR-3 | 리뷰(마감) · 예정 · 할부 칸 done — `recurring` · `installments` · `close` · `closable` · `reviewQuestions`. 스티커는 S1c(닫힘 2026-11-04 — 아래 S1c 표) | 서버 값 그대로 |
-| FR-4 | 템플릿 · 예정 확인 · 건너뛰기 · 마감 중계 done(경로 7). 챌린지 · 이야기 카드는 ~~S1c~~ S1d(정정 2026-11-04) — **정정 2026-11-04** 챌린지는 S1d 닫힘, 이야기 카드는 ~~S1d~~ ~~S1e~~ S1f(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | 확인 응답에도 목표 시계(저장과 같은 300ms · `pending`) |
+| FR-4 | 템플릿 · 예정 확인 · 건너뛰기 · 마감 중계 done(경로 7). 챌린지 · 이야기 카드는 ~~S1c~~ S1d(정정 2026-11-04) — **정정 2026-11-04** 챌린지는 S1d 닫힘, 이야기 카드는 ~~S1d~~ ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | 확인 응답에도 목표 시계(저장과 같은 300ms · `pending`) |
 
 ## 구현 현황 — 가계부 S1c (2026-11-04, `requirements/specs/done/MONEY-S1c-household-mirror-slice.md`)
 
 | FR | 상태 | 비고 |
 |---|---|---|
 | FR-3 | 스티커(달력 `calendar` — 칸 상태 · `markable` · `weekday`) · 감정(`feelings` — 묻기 · 거울 · 키) · 근무(`workHours` · 지출 `workMinutes`) 칸 — 서버 값 그대로 | 저장 응답 `savedWorkMinutes` · 제안 `emotions` |
-| FR-4 | 중계 — `PUT/DELETE /expenses/:id/feeling` · `POST /expenses/:id/feeling/next` · `GET/PUT /settings/work-hours` · `PUT/DELETE /no-spend/:date`. 감정 · 급여 본문 로그 0(로그 캡처 테스트) | 챌린지는 S1d(닫힘 — 아래 표), 이야기 카드는 ~~S1d~~ ~~S1e~~ S1f(정정 2026-11-04 — S1e 는 고정비 · 이상치만)(정정 2026-11-04) |
+| FR-4 | 중계 — `PUT/DELETE /expenses/:id/feeling` · `POST /expenses/:id/feeling/next` · `GET/PUT /settings/work-hours` · `PUT/DELETE /no-spend/:date`. 감정 · 급여 본문 로그 0(로그 캡처 테스트) | 챌린지는 S1d(닫힘 — 아래 표), 이야기 카드는 ~~S1d~~ ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만)(정정 2026-11-04) |
 
 ## 구현 현황 — 가계부 S1d (2026-11-04, `requirements/specs/done/MONEY-S1d-household-challenge-slice.md`)
 
@@ -57,7 +57,7 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | FR-3 | 달력 한 날 칸(`calendar.days[].challenge` · `challengeDays`) — 서버 값 그대로 | |
 | FR-4 | 챌린지 중계 — `GET/POST /challenges`(목록에 저축 진행 중 목표 `goals` — 저축 실패면 null, 목록은 그대로) · `POST /challenges/:id/end` · `PUT/DELETE /challenges/:id/days/:date` · `POST /challenges/:id/savings` · `DELETE /challenge-savings/:id` | 경로 23 → 31 |
 | FR-4 보태기 | `POST /challenge-savings/:id/contribute` — **두 서비스 쓰기의 순서**: 가계부에서 금액 · 날짜 읽기(본문 금액 무시) → 저축 `challenge-deposits`(출처 하나에 한 번) → 가계부 "보탰다". 저축 거절이면 가계부를 부르지 않는다 · 빈 목표 400(서비스 호출 0) | 슬라이스 판단 4 · `bff-architecture.md` §5 |
-| FR-4 이야기 카드 | ~~S1e~~ S1f(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | |
+| FR-4 이야기 카드 | ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | |
 
 ## 구현 현황 — 가계부 S1e (2026-11-04, `requirements/specs/done/MONEY-S1e-household-fixed-cost-slice.md`)
 
@@ -65,7 +65,15 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 |---|---|---|
 | FR-3 | 월 화면 `fixedCosts`(고정비 후보 — 이번 달만) · 지출 `typicalAmount`(평소보다 큰 지출의 보통 금액) — 서버 값 그대로 | 판정 · 문턱은 서버 |
 | FR-4 | 고정비 중계 — `POST /fixed-costs/hide` · `/fixed-costs/show`(키는 본문 — 한글 · 기호 가맹점 키를 경로 조각에 싣지 않는다) | 경로 31 → 33 |
-| FR-4 이야기 카드 | S1f | |
+| FR-4 이야기 카드 | ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기) | |
+
+## 구현 현황 — 가계부 S1f (2026-11-05, `requirements/specs/done/MONEY-S1f-household-categories-accounts-slice.md`)
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-3 | 월 화면 `categories`(보관 포함 — 내 분류 이름) · 예산 `salaryShare` · 제안 `categories` 가 `{key, bucket, name, custom, archived}` — 서버 값 그대로 | 계산 0 |
+| FR-4 | 내 분류 중계 — `GET/POST /categories` · `PUT/DELETE /categories/:key`(키는 서버가 짓는 ASCII · 경로 조각 인코딩) · 예산 `account_split` 은 기존 `PUT /budget` 그대로 | 경로 33 → 37 |
+| FR-4 이야기 카드 | S1g | |
 
 ## Changelog
 
@@ -79,3 +87,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | 2026-11-04 | 가계부 S1c — 감정 · 노동시간 · 안 쓴 날 경로 · 월 화면 새 칸(`53d91b5c`). 테스트 +1(전체 363) · 조회 예산 주석 "월 화면 16회" |
 | 2026-11-04 | 가계부 S1d — 챌린지 경로 8 · 보태기 순서 · 달력 한 날 칸(`22b71577`). 테스트 +2(전체 365) |
 | 2026-11-04 | 가계부 S1e — 고정비 숨기기 · 되돌리기 경로 2 · 월 화면 `fixedCosts` · `typicalAmount` 계약(`0ce2a356`). 테스트 +1(전체 366) |
+| 2026-11-05 | 가계부 S1f — 내 분류 경로 4 · 월 화면 `categories` · 예산 `salaryShare` 계약(`d6085b85`). 테스트 +1(전체 367) |

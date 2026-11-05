@@ -110,18 +110,41 @@ export interface HouseholdParseVM {
   skipped: string[];
 }
 
+/**
+ * 분류 한 칸(가계부 S1f). 기본 분류는 name null(문구는 프론트가 키로), 내 분류는 사용자가 지은 이름.
+ * archived 는 보관한 내 분류 — 고르는 칸엔 없고 지난 지출 이름에만
+ */
+export interface HouseholdCategoryVM {
+  key: string;
+  /** needs · wants */
+  bucket: string;
+  name: string | null;
+  custom: boolean;
+  archived: boolean;
+}
+
+export interface HouseholdCategoriesVM {
+  categories: HouseholdCategoryVM[];
+  /** 보관하지 않은 내 분류 상한(서버 값) */
+  limit: number;
+}
+
 export interface HouseholdSuggestionsVM {
   merchants: Array<{ merchant: string; category: string; lastAmount: number; count: number }>;
-  categories: Array<{ key: string; bucket: string }>;
+  /** 고를 수 있는 분류 — 기본 12 + 보관 안 한 내 분류(가계부 S1f) */
+  categories: HouseholdCategoryVM[];
   /** 감정 태그 키(가계부 S1c) */
   emotions: string[];
 }
 
 export interface HouseholdBudgetVM {
-  /** 50_30_20 · envelope */
+  /** 50_30_20 · envelope · account_split(가계부 S1f) */
   method: string;
   income: number | null;
   savingsShare: number | null;
+  /** 통장 쪼개기의 급여 통장 몫 = 소득 − 생활비 · 저축 · 비상금(서버 계산). 다른 방식이면 null */
+  salaryShare: number | null;
+  /** 저장한 값 그대로 — 통장 쪼개기면 spending · saving · emergency */
   envelopes: Array<{ key: string; amount: number }>;
   total: number | null;
   updatedAt: string;
@@ -313,6 +336,8 @@ export interface HouseholdMonthVM {
   current: boolean;
   totals: { total: number; exact: number; approx: number; count: number };
   byCategory: Array<{ key: string; bucket: string; spent: number }>;
+  /** 분류 표 — 보관 포함(지난 지출 이름, 가계부 S1f) */
+  categories: HouseholdCategoryVM[];
   budget: HouseholdBudgetVM | null;
   envelopes: HouseholdEnvelopeVM[];
   unbudgeted: number | null;
@@ -497,6 +522,25 @@ class AppHouseholdService {
 
   async showFixedCost(token: string, body: unknown): Promise<{ key: string }> {
     return data(await backendApi.proxyAuthRequest("POST", "/household/fixed-costs/show", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  // ---------- 내 분류(가계부 S1f) ----------
+
+  /** 키는 서버가 짓는다(`u_` + 12자리 ASCII) — 경로 조각에 그대로 싣는다. 이름 · 묶음 검사는 서버(400 · 409) */
+  async categories(token: string): Promise<HouseholdCategoriesVM> {
+    return data(await backendApi.proxyAuthRequest("GET", "/household/categories", token, undefined, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  async addCategory(token: string, body: unknown): Promise<HouseholdCategoryVM> {
+    return data(await backendApi.proxyAuthRequest("POST", "/household/categories", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async editCategory(token: string, key: string, body: unknown): Promise<HouseholdCategoryVM> {
+    return data(await backendApi.proxyAuthRequest("PUT", `/household/categories/${encodeURIComponent(key)}`, token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async archiveCategory(token: string, key: string): Promise<{ key: string }> {
+    return data(await backendApi.proxyAuthRequest("DELETE", `/household/categories/${encodeURIComponent(key)}`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
   }
 
   // ---------- 내가 고르는 챌린지(가계부 S1d) ----------

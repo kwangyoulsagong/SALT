@@ -18,3 +18,6 @@ export const item = style({ display: "flex", alignItems: "center", justifyConten
 export const actions = style({ display: "flex", alignItems: "center", gap: "8px" });
 
 export const note = style({ display: "flex", alignItems: "center", gap: "8px", margin: 0, minHeight: "16px", fontSize: "12px", lineHeight: "16px", color: vars.colors.neutral[600] });
+
+/** 지운 분류 후보의 분류 고르기 — 줄 전체 폭(가계부 S1f) */
+export const pick = style({ display: "flex", flexDirection: "column", gap: "6px", flexBasis: "100%" });

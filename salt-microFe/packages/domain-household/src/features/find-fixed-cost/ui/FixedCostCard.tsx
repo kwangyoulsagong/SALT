@@ -7,7 +7,7 @@ import { Button } from "@repo/ui/button";
 
 import { isApiError } from "@repo/web-shared/api";
 
-import { FIXED_COST_MESSAGES as M, FixedCostHead, type HouseholdFixedCost } from "@/entities/household";
+import { CategoryChips, FIXED_COST_MESSAGES as M, FixedCostHead, useCategoryTable, type CategoryKey, type HouseholdFixedCost } from "@/entities/household";
 
 import { useHideFixedCost, useTemplateFromFixedCost } from "../api";
 import { FIND_FIXED_COST_MESSAGES as A } from "../model";
@@ -24,6 +24,10 @@ export const FixedCostCard = ({ costs }: { costs: HouseholdFixedCost[] }) => {
   const hide = useHideFixedCost();
   const template = useTemplateFromFixedCost();
   const [done, setDone] = useState<Done | null>(null);
+  // 후보의 분류가 지운 내 분류면 새 템플릿에 그 분류를 쓰지 않는다(서버도 거절) — 그 줄에서 고르게 한다(가계부 S1f)
+  const table = useCategoryTable();
+  const [picked, setPicked] = useState<Record<string, CategoryKey>>({});
+  const archivedKeys = new Set((table ?? []).filter((t) => t.custom && t.archived).map((t) => t.key));
   if (costs.length === 0 && !done) return null;
   const busy = hide.isPending || template.isPending;
   const failed = hide.error ?? template.error;
@@ -41,16 +45,24 @@ export const FixedCostCard = ({ costs }: { costs: HouseholdFixedCost[] }) => {
         {costs.map((c) => (
           <li key={c.key} className={s.item}>
             <FixedCostHead cost={c} />
+            {archivedKeys.has(c.category) ? (
+              <div className={s.pick}>
+                <span className={s.description}>{A.pickCategory}</span>
+                <CategoryChips label={A.pickCategoryLabel(c.merchant)} value={picked[c.key] ?? null} onChange={(category) => setPicked((prev) => ({ ...prev, [c.key]: category }))} />
+              </div>
+            ) : null}
             <div className={s.actions}>
               <Button
                 size="sm"
                 variant="weak"
                 aria-label={A.toTemplateLabel(c.merchant)}
-                disabled={busy}
+                disabled={busy || (archivedKeys.has(c.category) && !picked[c.key])}
                 loading={template.isPending && template.variables?.key === c.key}
                 onClick={() => {
                   start();
-                  template.mutate(c, { onSuccess: () => setDone({ kind: "templated", cost: c }) });
+                  const category = archivedKeys.has(c.category) ? picked[c.key] : c.category;
+                  if (!category) return;
+                  template.mutate({ ...c, category }, { onSuccess: () => setDone({ kind: "templated", cost: c }) });
                 }}
               >
                 {A.toTemplate}

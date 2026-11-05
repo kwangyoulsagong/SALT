@@ -5,6 +5,7 @@ import type {
   ChallengeList,
   GoalClock,
   HouseholdBudget,
+  HouseholdCategories,
   HouseholdMonth,
   HouseholdSuggestions,
   ParseResult,
@@ -54,6 +55,9 @@ export const householdApi = {
   challenges: async (signal?: AbortSignal): Promise<ChallengeList> =>
     read(await apiFetch(`${HOUSEHOLD_API}/challenges`, { headers: authHeader(), signal }), "household-challenges"),
 
+  /** 분류 표 — 기본 12 + 내 분류(보관 포함, 가계부 S1f) */
+  categories: async (signal?: AbortSignal): Promise<HouseholdCategories> =>
+    read(await apiFetch(`${HOUSEHOLD_API}/categories`, { headers: authHeader(), signal }), "household-categories"),
   budget: async (signal?: AbortSignal): Promise<HouseholdBudget | null> =>
     read(await apiFetch(`${HOUSEHOLD_API}/budget`, { headers: authHeader(), signal }), "household-budget"),
 

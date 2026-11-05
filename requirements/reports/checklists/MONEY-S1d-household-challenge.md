@@ -35,7 +35,7 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 사람 장부 · 이야기 카드 · 고정비 · 리볼빙 · 통장 쪼개기 · 사용자 분류 | 범위 밖(판단 1) | 가계부 S1e — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f |
+| 사람 장부 · 이야기 카드 · 고정비 · 리볼빙 · 통장 쪼개기 · 사용자 분류 | 범위 밖(판단 1) | 가계부 S1e — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g |
 | 공제 계기판 | content 파라미터 | S2 content 뒤 |
 | 저축 장면 · 도장에서 아낀 돈 따로 보기 | 지금은 적립 줄 표시만 | 저축 S2 |
 | RN 챌린지 화면 | 웹 계약 확정 뒤 | `RN-REQ-034` |

@@ -43,6 +43,7 @@ import com.salt.household.application.SetBudget
 import com.salt.household.application.Suggestions
 import com.salt.household.domain.Budget
 import com.salt.household.domain.Category
+import com.salt.household.domain.CategoryBook
 import com.salt.household.domain.EnvelopeStatus
 import com.salt.household.domain.Expense
 import com.salt.household.domain.InputParser
@@ -234,12 +235,28 @@ class HouseholdController(
 
     data class MerchantView(val merchant: String, val category: String, val lastAmount: Long, val count: Int)
 
-    data class CategoryView(val key: String, val bucket: String)
+    /**
+     * 분류 한 칸(가계부 S1f). 기본 분류는 [name] 이 null — 이름은 프론트가 키로 고른다. 내 분류는 사용자가 지은 이름 그대로.
+     * [archived] 는 보관한 내 분류 — 고르는 칸엔 없고 지난 지출 이름에만 쓴다
+     */
+    data class CategoryView(val key: String, val bucket: String, val name: String?, val custom: Boolean, val archived: Boolean)
 
     /** [emotions] — 감정 태그 키(문구는 프론트, S1c) */
     data class SuggestionsView(val merchants: List<MerchantView>, val categories: List<CategoryView>, val emotions: List<String>)
 
-    data class BudgetView(val method: String, val income: Long?, val savingsShare: Long?, val envelopes: List<BudgetEnvelopeView>, val total: Long?, val updatedAt: String)
+    /**
+     * [envelopes] 는 저장한 값 그대로(통장 쪼개기면 spending · saving · emergency). [salaryShare] 는 통장 쪼개기의 급여 통장 몫(소득 − 셋, S1f),
+     * [total] 은 지출이 드는 봉투 합
+     */
+    data class BudgetView(
+        val method: String,
+        val income: Long?,
+        val savingsShare: Long?,
+        val salaryShare: Long?,
+        val envelopes: List<BudgetEnvelopeView>,
+        val total: Long?,
+        val updatedAt: String,
+    )
 
     data class BudgetEnvelopeView(val key: String, val amount: Long)
 
@@ -268,6 +285,8 @@ class HouseholdController(
         val current: Boolean,
         val totals: TotalsView,
         val byCategory: List<CategorySpentView>,
+        /** 분류 표(S1f) — 보관 포함. 화면이 내 분류 이름 · 지난 지출 이름을 그린다 */
+        val categories: List<CategoryView>,
         val budget: BudgetView?,
         val envelopes: List<EnvelopeView>,
         /** 봉투에 들지 않은 지출(봉투 방식). 예산이 없으면 null */
@@ -443,20 +462,25 @@ class HouseholdController(
 
     @Operation(summary = "빠른 입력 제안", description = "최근 30일 가맹점(횟수 순) · 분류 목록")
     @GetMapping("/suggestions")
-    fun suggestions(user: AuthenticatedUser): ResponseEntity<ApiResponse<SuggestionsView>> =
-        ApiResponse.ok(
+    fun suggestions(user: AuthenticatedUser): ResponseEntity<ApiResponse<SuggestionsView>> {
+        val result = suggestions.execute(user.userId)
+        return ApiResponse.ok(
             SuggestionsView(
-                suggestions.execute(user.userId).map { MerchantView(it.merchant, it.category.key, it.lastAmount.toKrwInteger(), it.count) },
-                Category.entries.map { CategoryView(it.key, it.bucket.key) },
+                result.merchants.map { MerchantView(it.merchant, it.category.key, it.lastAmount.toKrwInteger(), it.count) },
+                result.book.let { book -> categoryViews(book).filterNot { it.archived } },
                 Emotion.entries.map { it.key },
             ),
         )
+    }
 
     @Operation(summary = "지금 예산", description = "없으면 data=null")
     @GetMapping("/budget")
     fun budget(user: AuthenticatedUser): ResponseEntity<ApiResponse<BudgetView?>> = ApiResponse.ok(getBudget.execute(user.userId)?.let(::budgetView))
 
-    @Operation(summary = "예산 정하기", description = "method=50_30_20(income) | envelope(분류 키 → 금액). 통째로 바꾼다")
+    @Operation(
+        summary = "예산 정하기",
+        description = "method=50_30_20(income) | envelope(분류 키 → 금액 — 내 분류 키 포함) | account_split(income + envelopes spending · saving · emergency). 통째로 바꾼다",
+    )
     @PutMapping("/budget")
     fun setBudget(user: AuthenticatedUser, @Valid @RequestBody body: BudgetRequest): ResponseEntity<ApiResponse<BudgetView>> =
         ApiResponse.ok(
@@ -703,6 +727,7 @@ class HouseholdController(
         method = b.method.key,
         income = b.income?.toKrwInteger(),
         savingsShare = b.savingsShare?.toKrwInteger(),
+        salaryShare = b.salaryShare?.toKrwInteger(),
         envelopes = b.envelopes.map { (k, v) -> BudgetEnvelopeView(k, v.toKrwInteger()) },
         total = b.total?.toKrwInteger(),
         updatedAt = b.updatedAt.toString(),
@@ -735,7 +760,8 @@ class HouseholdController(
         totals = m.summary.totals.let { TotalsView(it.total.toKrwInteger(), it.exact.toKrwInteger(), it.approx.toKrwInteger(), it.count) },
         byCategory = m.summary.byCategory.entries
             .sortedByDescending { it.value }
-            .map { CategorySpentView(it.key.key, it.key.bucket.key, it.value.toKrwInteger()) },
+            .map { CategorySpentView(it.key.key, m.categories.bucketOf(it.key).key, it.value.toKrwInteger()) },
+        categories = categoryViews(m.categories),
         budget = m.budget?.let(::budgetView),
         envelopes = m.envelopes.map(::envelopeView),
         unbudgeted = m.unbudgeted?.toKrwInteger(),
@@ -771,4 +797,10 @@ class HouseholdController(
             )
         },
     )
+
 }
+
+/** 분류 표 → 응답 — 기본 12(이름 null) 다음 내 분류(만든 순서). 월 화면 · 제안 · 분류 목록이 같은 모양을 쓴다 */
+internal fun categoryViews(book: CategoryBook): List<HouseholdController.CategoryView> =
+    Category.entries.map { HouseholdController.CategoryView(it.key, book.bucketOf(it).key, null, custom = false, archived = false) } +
+        book.custom.map { HouseholdController.CategoryView(it.category.key, it.bucket.key, it.name, custom = true, archived = it.archived) }

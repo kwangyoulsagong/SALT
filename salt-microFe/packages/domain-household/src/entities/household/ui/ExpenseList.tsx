@@ -1,7 +1,10 @@
+"use client";
+
 import type { ReactNode } from "react";
 
-import { CATEGORY_LABEL, EMOTION_LABEL, EXPENSE_MESSAGES as M, FIXED_COST_MESSAGES as F, WORK_MESSAGES as W, formatDay, formatWon, formatWorkMinutes } from "../model/messages";
+import { EMOTION_LABEL, EXPENSE_MESSAGES as M, FIXED_COST_MESSAGES as F, WORK_MESSAGES as W, formatDay, formatWon, formatWorkMinutes } from "../model/messages";
 import type { HouseholdExpense } from "../model/types";
+import { useCategoryLabel } from "./CategoryNames";
 import * as s from "./expense.css";
 
 /**
@@ -9,15 +12,16 @@ import * as s from "./expense.css";
  * 감정 태그 · 근무 시간(가계부 S1c) · 평소보다 큰 지출의 보통 금액(S1e)은 서버가 준 값이 있을 때만 한 낱말씩
  */
 export const ExpenseList = ({ expenses, action }: { expenses: HouseholdExpense[]; action?: (expense: HouseholdExpense) => ReactNode }) => {
+  const label = useCategoryLabel();
   if (expenses.length === 0) return <p className={s.note}>{M.listEmpty}</p>;
   return (
     <ul className={s.list} aria-label={M.list}>
       {expenses.map((e) => (
         <li key={e.id} className={s.item}>
           <div className={s.itemMain}>
-            <span className={s.itemTitle}>{e.merchant ?? CATEGORY_LABEL[e.category]}</span>
+            <span className={s.itemTitle}>{e.merchant ?? label.category(e.category)}</span>
             <span className={s.note}>
-              {formatDay(e.spentOn)} · {CATEGORY_LABEL[e.category]}
+              {formatDay(e.spentOn)} · {label.category(e.category)}
               {e.installmentMonths ? ` · ${M.installment(e.installmentMonths)}` : ""}
               {e.workMinutes !== null ? ` · ${W.line(formatWorkMinutes(e.workMinutes))}` : ""}
               {e.typicalAmount != null ? ` · ${F.typical(formatWon(e.typicalAmount))}` : ""}

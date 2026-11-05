@@ -72,26 +72,30 @@ class JooqExpenses(private val dsl: DSLContext) : Expenses {
             .limit(limit)
             .fetch(::toExpense)
 
-    /** (분류, 정밀도) 로 묶은 한 문장 → 메모리에서 정확/대략 합 · 분류별 합. 행 수 ≤ 분류 × 2 */
+    /** (분류, 정밀도, 템플릿인가) 로 묶은 한 문장 → 메모리에서 정확/대략 합 · 분류별 합 · 템플릿 합(S1f). 행 수 ≤ 분류 × 4 */
     override fun monthSummary(userId: String, month: YearMonth): MonthSummary {
-        val rows = dsl.select(EXPENSE.CATEGORY, EXPENSE.PRECISION, DSL.sum(EXPENSE.AMOUNT), DSL.count())
+        // 상수는 inline — 바인드 변수면 SELECT 와 GROUP BY 의 식이 서로 다른 것으로 읽혀 Postgres 가 거절한다
+        val template = DSL.field(EXPENSE.INPUT_KIND.eq(DSL.inline(InputKind.TEMPLATE.key)))
+        val rows = dsl.select(EXPENSE.CATEGORY, EXPENSE.PRECISION, template, DSL.sum(EXPENSE.AMOUNT), DSL.count())
             .from(EXPENSE)
             .where(EXPENSE.USER_ID.eq(userId).and(EXPENSE.SPENT_ON.between(month.atDay(1), month.atEndOfMonth())))
-            .groupBy(EXPENSE.CATEGORY, EXPENSE.PRECISION)
+            .groupBy(EXPENSE.CATEGORY, EXPENSE.PRECISION, template)
             .fetch()
         var exact = Money.zero(CURRENCY)
         var approx = Money.zero(CURRENCY)
+        var templateSpent = Money.zero(CURRENCY)
         var count = 0
         val byCategory = LinkedHashMap<Category, Money>()
         rows.forEach { r ->
-            val sum = money(r.value3())
-            count += r.value4()
+            val sum = money(r.value4())
+            count += r.value5()
             if (r.value2() == Precision.APPROX.key) approx += sum else exact += sum
-            // 모르는 분류 키(사용자 분류 — 가계부 ~~S1c~~ ~~S1d~~ ~~S1e~~ S1f(정정 2026-11-04 — S1e 는 고정비 · 이상치만)(2026-11-04 정정 — S1d 는 챌린지만) — 가 생기기 전엔 없다)는 기타로 — 합계에서 빠지지 않게
-            val category = Category.fromKey(r.value1()) ?: Category.OTHER
+            if (r.value3() == true) templateSpent += sum
+            // 모르는 꼴의 키는 기타로 — 합계에서 빠지지 않게. 사용자 분류 키(`u_…`)는 그대로 둔다(가계부 S1f)
+            val category = Category.parse(r.value1()) ?: Category.OTHER
             byCategory[category] = (byCategory[category] ?: Money.zero(CURRENCY)) + sum
         }
-        return MonthSummary(MonthTotals(exact, approx, count), byCategory)
+        return MonthSummary(MonthTotals(exact, approx, count), byCategory, templateSpent)
     }
 
     /** 전체 · 변동(템플릿 지출 뺌 — S1b 판단 4)을 한 문장으로(`FILTER`) */
@@ -136,7 +140,7 @@ class JooqExpenses(private val dsl: DSLContext) : Expenses {
             .orderBy(count.desc(), createdAt.desc())
             .limit(limit)
             .fetch()
-            .map { RecentMerchant(it.value1(), Category.fromKey(it.value2()) ?: Category.OTHER, money(it.value3()), it.value4()) }
+            .map { RecentMerchant(it.value1(), Category.parse(it.value2()) ?: Category.OTHER, money(it.value3()), it.value4()) }
     }
 
     private fun toExpense(r: ExpenseRecord): Expense = Expense(
@@ -144,7 +148,7 @@ class JooqExpenses(private val dsl: DSLContext) : Expenses {
         userId = r.userId,
         amount = money(r.amount),
         spentOn = r.spentOn,
-        category = Category.fromKey(r.category) ?: Category.OTHER,
+        category = Category.parse(r.category) ?: Category.OTHER,
         paymentMethod = PaymentMethod.fromKey(r.paymentMethod) ?: PaymentMethod.OTHER,
         merchant = r.merchant,
         precision = Precision.fromKey(r.precision) ?: Precision.EXACT,
@@ -156,13 +160,12 @@ class JooqExpenses(private val dsl: DSLContext) : Expenses {
 }
 
 class JooqBudgets(private val dsl: DSLContext) : Budgets {
-    /** 예산 · 봉투 두 문장 — 봉투는 분류 표 순서로 다시 세운다(도메인 [Budget.envelopes] 와 같은 순서) */
+    /** 예산 · 봉투 두 문장 — 봉투는 [Budget.ordered] 순서로 다시 세운다(내 분류는 키 순 — 화면이 분류 표 순서로 다시 그린다) */
     override fun find(userId: String): Budget? {
         val head = dsl.selectFrom(BUDGET).where(BUDGET.USER_ID.eq(userId)).fetchOne() ?: return null
         val rows = dsl.select(BUDGET_ENVELOPE.ENVELOPE_KEY, BUDGET_ENVELOPE.AMOUNT).from(BUDGET_ENVELOPE)
             .where(BUDGET_ENVELOPE.USER_ID.eq(userId)).fetch().associate { it.value1() to money(it.value2()) }
-        val order = listOf("needs", "wants") + Category.entries.map { it.key }
-        val envelopes = order.mapNotNull { k -> rows[k]?.let { k to it } }.toMap(LinkedHashMap())
+        val envelopes = Budget.ordered(rows)
         return Budget(
             userId = userId,
             method = BudgetMethod.fromKey(head.method) ?: BudgetMethod.ENVELOPE,
