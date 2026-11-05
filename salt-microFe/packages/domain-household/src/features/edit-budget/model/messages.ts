@@ -15,6 +15,10 @@ export const BUDGET_MESSAGES = {
   submit: "저장",
   saved: "예산을 저장했어요",
   failed: "저장 못 했어요. 입력한 값은 그대로 있어요",
+  /** 서버 거절 코드 → 까닭 한 줄(가계부 S1f). 모르는 코드는 failed */
+  errors: {
+    BUDGET_SPLIT_OVER_INCOME: "생활비 · 저축 · 비상금 통장의 합이 월 소득보다 커요. 입력한 값은 그대로 있어요",
+  } as Readonly<Record<string, string>>,
   needOne: {
     "50_30_20": "월 소득을 넣어 주세요",
     envelope: "봉투를 하나 이상 채워 주세요",

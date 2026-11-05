@@ -98,7 +98,8 @@ export const CategoryManager = () => {
   };
 
   return (
-    <section className={s.form} aria-label={M.title}>
+    // 제목 · 영역 이름은 놓는 쪽(예산 화면 패널)이 단다 — 여기서 또 달면 같은 이름 영역이 겹친다
+    <div className={s.form}>
       <p className={s.note}>{M.description}</p>
       {mine.length === 0 ? (
         <p className={s.note}>{M.empty}</p>
@@ -165,8 +166,8 @@ export const CategoryManager = () => {
         </div>
       </form>
       <p className={s.note} role="status">
-        {errorText(add.error ?? archive.error) ?? (done ? M[done.kind](done.name) : "")}
+        {errorText(add.error) ?? (archive.isError ? M.archiveFailed : null) ?? (done ? M[done.kind](done.name) : "")}
       </p>
-    </section>
+    </div>
   );
 };

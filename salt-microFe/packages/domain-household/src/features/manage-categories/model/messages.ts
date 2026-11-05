@@ -18,6 +18,7 @@ export const CATEGORY_MANAGER_MESSAGES = {
   saved: (name: string) => `${name} 분류를 고쳤어요`,
   archived: (name: string) => `${name} 분류를 지웠어요`,
   failed: "저장 못 했어요. 입력한 값은 그대로 있어요",
+  archiveFailed: "지우지 못했어요. 다시 눌러 주세요",
   errors: {
     CATEGORY_NAME_TAKEN: "같은 이름의 분류가 있어요",
     CATEGORY_TOO_MANY: "분류를 더 만들 수 없어요. 안 쓰는 분류를 지우면 자리가 생겨요",

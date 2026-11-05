@@ -6,6 +6,7 @@ import { Button } from "@repo/ui/button";
 import { SegmentedControl } from "@repo/ui/segmentedControl";
 import { TextField } from "@repo/ui/textField";
 
+import { isApiError } from "@repo/web-shared/api";
 import { parseAmountInput, useNumberFields } from "@repo/web-shared/lib";
 
 import {
@@ -99,7 +100,7 @@ export const BudgetEditor = ({ budget }: { budget: HouseholdBudget | null }) => 
       {shown?.savingsShare != null ? <p className={s.note}>{M.savingsShare(formatWon(shown.savingsShare))}</p> : null}
       {shown?.salaryShare != null ? <p className={s.note}>{M.salaryShare(formatWon(shown.salaryShare))}</p> : null}
       <span className={s.note} role="status">
-        {save.isError ? M.failed : save.isSuccess ? M.saved : !ready ? M.needOne[method] : ""}
+        {save.isError ? (isApiError(save.error) && save.error.code ? M.errors[save.error.code] : undefined) ?? M.failed : save.isSuccess ? M.saved : !ready ? M.needOne[method] : ""}
       </span>
       <Button type="submit" disabled={!ready || save.isPending} loading={save.isPending}>
         {M.submit}
