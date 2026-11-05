@@ -50,3 +50,8 @@
 ## 2026-11-05 — FE-REQ-013 FR-80 2단계
 
 - 파일만 걸침(토큰 운반이 쿠키로) — Action 없음
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: **제외 하나** — 공개 zone(`web-tips`)은 `PublicShell` 이라 768 미만 안내를 띄우지 않는다(`FE-REQ-058` FR-7). 문구 파일(머리 주인)에 `TIMELY_TIP_MESSAGES` 추가 — 기존 export 무변경
+- **Action**: 없음 — 기존 결정 위에 한 줄

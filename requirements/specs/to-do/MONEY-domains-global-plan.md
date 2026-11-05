@@ -86,7 +86,7 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 모든 REQ ~~| 문서만 — 코드 착수 전~~ | **정정 2026-11-02** — `FE-REQ-052`(F0) · `FE-REQ-053`(F1) done, `FE-REQ-055` · `BFF-REQ-046` in-progress(S3 몫 남음) · **S0(2026-11-03): `SRV-REQ-043` done · `044` · `DB-REQ-036` · `BFF-REQ-045` in-progress(다음 단계 FR)**, 나머지는 문서만 | 각 REQ 착수 시 |
-| 기준선 통계 · 공제율 · 제도 파라미터 원문 대조 | 보도 기준 숫자 | `FEATURE-012` FR-1 · `SRV-REQ-047` 착수 전 |
+| 기준선 통계 · 공제율 · 제도 파라미터 원문 대조 | 보도 기준 숫자 — **2026-11-05** S2a 원문 6줄(결혼세액공제 · 주택청약 셋 · 예금보호 둘)은 보도 · 2차 자료로 대조, 출처 칸은 공식 페이지 · 법령 원문 대조는 법무 확인과 같이(공개 플래그 꺼짐) | `FEATURE-012` FR-1 · ~~`SRV-REQ-047` 착수 전~~ 법무 확인 시 |
 | ~~Spring Boot 4 · Kotlin 2.2 실제 호환 조합~~ **닫힘 2026-11-03** — Boot 4.1.2 · Kotlin 2.3.21(Boot BOM) · Modulith 2.1.2 · JDK 21 | ~~설계는 공개 발표 기준~~ Maven Central 확인 · `./gradlew check` · Compose 실측 | `SRV-REQ-043` S0 |
 
 ## Changelog
@@ -115,3 +115,4 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 | 2026-11-05 | 가계부 S1g + F4g done — 이야기 카드(루트 `requirements/specs/done/MONEY-S1g-household-story-slice.md`). 남은 가계부: 사람 장부 · 리볼빙(S1h) · 공제(S2 뒤). 다음 칸 가계부 S1h 또는 `FE-REQ-013` FR-80 2단계 |
 | 2026-11-05 | 가계부 S1h + F4h done — 리볼빙 명세서 6개월 추정 · 사람 장부 · 해 경조사 봉투(루트 `requirements/specs/done/MONEY-S1h-household-revolving-people-slice.md`). 남은 가계부: 공제(S2 content 뒤) · 영수증 인식(Could — 실측 뒤). 가계부 S1 갈래 끝. 다음 칸 `FE-REQ-013` FR-80 2단계 또는 서버 S2(`DB-039` · `SRV-047` · notification) |
 | 2026-11-05 | `FE-REQ-013` FR-80 2단계(쿠키 세션) done — 3a 같은 칸의 앞쪽(루트 `requirements/specs/done/F000-cookie-session-slice.md`). 토큰 httpOnly 쿠키뿐 · 같은 origin BFF · `BFF-REQ-009` FR-54 · `OPS-001` FR-13. 다음 칸 서버 S2(`DB-039` · `SRV-047` · notification) |
+| 2026-11-05 | S2a + F5a done — content 서비스 첫 판 · 금융 팁 공개 zone(공개 플래그 꺼짐) · 때맞춘 팁 칸(루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`). S2 를 서비스로 나눔: S2a content · S2b 금융 팁 나머지 · S2c notification. 다음 칸 S2b 또는 S2c |

@@ -50,3 +50,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — 투자 zone `app/layout.tsx` 전환 `<style>`(`e0bce695`) · 빈 zone `app/layout.tsx` 3 안내 주석(`d5000140`) · `registry.json` `$comment` 에 assetPrefix 뜻(`28d51ed3`). 값 · lint 무변경 |
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 레지스트리 `savings.hostedIn` `web` → `web-savings` · `hostedUntil` null · 레지스트리 테스트(`/goals/*` 셸 기준 cross-zone) · `microfrontend.md` §0 저축 행 닫힘 |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 가계부 zone 이 골격 → 화면 서비스(`web-household` 레이아웃 `AppShell` · vanilla-extract · `domain-household` 경로 · README 정정)(`df45ae7d`). 레지스트리 값은 그대로 |
+| 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 빈 골격 `web-tips` 가 첫 화면을 서비스(`FE-REQ-058`) — 레이아웃 `PublicShell` · `app/tips/**` · `@repo/domain-tips` · tsconfig paths · vanilla-extract. 레지스트리 무변경(`hostedIn: web-tips` 그대로) |

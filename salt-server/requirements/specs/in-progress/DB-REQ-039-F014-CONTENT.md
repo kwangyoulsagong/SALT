@@ -27,15 +27,29 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 
 ## Acceptance Criteria
 
-- [ ] 메타 하나 빠진 `tip` INSERT 실패
-- [ ] 같은 키 유효 구간 겹침 INSERT 실패
+- [x] 메타 하나 빠진 `tip` INSERT 실패 — 종단 테스트 SQLSTATE 23502(`ContentEndToEndTest`)
+- [x] 같은 키 유효 구간 겹침 INSERT 실패 — 종단 테스트 SQLSTATE 23P01(트리거)
 
 ## 계약 영향
 
 - 서버 `SRV-REQ-047`
+
+## 구현 현황 — 금융 팁 S2a(2026-11-05, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-1 `tip` | **done** — 필수 열 NOT NULL · 날짜 순서 CHECK · slug 형식 · 해시 64자. 본문 열 없음(원문은 레포 파일) | `V1__baseline.sql` |
+| FR-2 `tip_revision` | **done** — 쌓기만 · 최근 먼저 조회 | 같은 파일 |
+| FR-3 `policy_param` | **done(정정)** — ~~exclusion constraint~~ 같은 뜻의 **트리거**(`btree_gist` 확장을 서비스 계정이 못 만든다) · 키 advisory lock · 트리거가 걸린 스키마로 표를 찾는다(관리자 psql 에서도 같은 검사). 열 이름 `param_key` · `num_value` · `text_value` | 같은 파일 |
+| FR-4 `trigger_rule` | **done** — 원문에서 빠진 규칙은 `active=false` | 같은 파일 |
+| FR-5 `tip_dismissal` | **done** — (사용자, 글) 키 · 두 번 닫아도 한 행 | 같은 파일 |
+| FR-6 `quiz_answer` | 범위 밖 — 퀴즈는 S2b | S2b |
+| FR-7 outbox | **done** — 공통 세 표(outbox · processed_event · shedlock) | 같은 파일 |
+| **FR-8(신설)** `user_signal` | **done** — 다른 서비스 이벤트에서 온 트리거 사실만(이벤트 ID 키 · 금액 · 목표 이름 0) | 같은 파일 |
 
 ## Changelog
 
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-05 | 금융 팁 S2a — to-do → in-progress. FR-1~5 · 7 done, FR-3 은 트리거로 정정(확장 권한), **FR-8 `user_signal` 신설**, FR-6 퀴즈는 S2b. 커밋 `38e2d16d` · 로컬 운영 DB `svc_content` 로그인 · Flyway V1 적용 |

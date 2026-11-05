@@ -32,3 +32,8 @@
 ## 2026-11-05 — FE-REQ-013 FR-80 2단계
 
 - 파일만 걸침(토큰 운반이 쿠키로) — Action 없음
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: 라우팅 표에 `/content` → platform 한 줄(금융 팁 `/api/app/tips`). 스위치 · 그림자 동작 무변경
+- **Action**: 없음 — 기존 결정 위에 한 줄

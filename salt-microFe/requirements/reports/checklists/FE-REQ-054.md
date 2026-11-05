@@ -96,3 +96,9 @@
 
 - 결함 수정 `99efcd15` — 머리 계정 메뉴가 본문에 깔림 → 머리 `zIndex` · 테스트(변이: 빼면 실패) · done-checklist 1절 행. 실화면: 홈에서 메뉴 열고 로그아웃 → 쿠키 셋 지움 · 로그인 화면
 - `config-next` `shellRewrites`(afterFiles — Route Handler 먼저) · `ProfileMenu` 로그아웃 await(`721063fc`) — zone 4 빌드 · 앱 경로 표에 `/api/session` · `/api/session/refresh`
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: 팁 zone `next.config.js` 를 가계부와 같은 프리셋 꼴로(vanilla-extract). 금융 팁은 탭이 아니라 `AppShell` 을 쓰지 않는다(이 REQ 의 2026-11-03 메모 — 공개 화면 내비 · prerender 판단: 둘 다 없음)
+- 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
+- 미검증: 없음(이 몫 안)

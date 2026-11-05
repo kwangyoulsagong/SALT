@@ -32,3 +32,8 @@
 ## 2026-11-04 — 가계부 S1b `ServiceLock`
 
 - 스케줄 작업이 처음 생겨 JDBC 락 공급자를 조립(app)에서 쓰려 했는데 messaging 모듈의 `implementation` 의존이었다 — 공급자를 밖에 노출하지 않고 `ServiceLock.executor` 한 함수로 열었다.
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: 조립 `ContentComposition`(네 층 · 트랜잭션 매니저 `contentTx`) · 공개 경로 `salt.auth.public-paths` 에 `/api/content/tips` · `/api/content/tips/*` · `/api/content/policy-params/*`(개인은 `/api/content/me/…`). `PlatformEndToEndTest` 권한 표본 이동. 실행 jar 로컬 운영 기동 확인
+- **Action**: 없음 — 기존 결정 위에 한 줄
