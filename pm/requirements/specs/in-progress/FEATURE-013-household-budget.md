@@ -40,11 +40,11 @@
 | FR-7 | 월말 착지 구간 + 지난달 같은 날짜 구간 적중 | Must | Draft |
 | FR-8 | 목표 시계: 지출 저장 시 저축 목표 지연 일수(household → savings 이벤트) | Must | Draft |
 | FR-9 | 월 마감 리뷰 3문항(저장만, 평가 없음) | Must | ~~Draft~~ **Done 2026-11-04**(가계부 S1b) |
-| FR-10 | 할부 · 리볼빙 띠(원거래 + 월 청구 N건, 6개월 고정 청구) | Should | ~~Draft~~ **할부 Done 2026-11-04**(가계부 S1b — 리볼빙은 ~~S1c~~ ~~S1d~~ ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만), 정정 2026-11-04) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h |
+| FR-10 | 할부 · 리볼빙 띠(원거래 + 월 청구 N건, 6개월 고정 청구) | Should | ~~Draft~~ **할부 Done 2026-11-04**(가계부 S1b — 리볼빙은 ~~S1c~~ ~~S1d~~ ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만), 정정 2026-11-04) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h — **리볼빙 Done 2026-11-05**(가계부 S1h — 명세서 한 장으로 6개월 추정 · 지시 0) |
 | FR-11 | 공제 계기판(총급여 25% 문턱 · 결제수단별 추정, "추정" · 기준 연도) | Should | Draft |
 | FR-12 | 고정비 · 이상치 감지(약 30일 주기 · 분류 중앙값 배수) | Should | ~~Draft~~ **Done 2026-11-04**(가계부 S1e — 세 번 · 25~35일 · 이웃 금액 30% 안 · 오르면 `FixedCostIncreased` 한 번 · 평소보다 큼 = 앞 90일 중앙값 3배) |
 | FR-13 | 감정 태그 + 다음 날 만족도 거울 | Should | ~~Draft~~ **Done 2026-11-04**(가계부 S1c) |
-| FR-14 | 사람 장부(경조사 주고받기) · 비정기 경조사 봉투 | Could | Draft |
+| FR-14 | 사람 장부(경조사 주고받기) · 비정기 경조사 봉투 | Could | ~~Draft~~ **Done 2026-11-05**(가계부 S1h — 사람별 합 · 차액 0 · 해 경조사 봉투) |
 | FR-15 | 노동시간 환산(끄고 켬) | Could | ~~Draft~~ **Done 2026-11-04**(가계부 S1c — 시급 · 월급) |
 | FR-16 | 무지출일 달력(연속 일수 없음) | Could | ~~Draft~~ **Done 2026-11-04**(가계부 S1c — 사용자가 표시한 날만) |
 | FR-17 | 영수증 사진 인식(확인 단계 필수, 한국어 정확도 실측 후) | Could | Draft |
@@ -90,6 +90,8 @@
 | POST | `/api/app/household/expenses` | user | 금액 · 분류 · 결제수단 · 태그 | 거래 + 목표 시계 | Draft |
 | POST | `/api/app/household/parse` | user | 붙여넣은 문자 / 한 줄 | 후보 목록(저장 전) | Draft |
 | GET | `/api/app/household/month/:ym` | user | — | 봉투 · 착지 구간 · 리뷰 | Draft |
+| GET · POST · PUT | `/api/app/household/revolving` · `/revolving/:id` · `/revolving/:id/end` | user | 이월 잔액 · 약정결제비율 · 연 수수료율 · 명세서 달 | 명세서 + 6개월 추정 | Implemented(S1h) |
+| GET · POST · PUT · DELETE | `/api/app/household/people` · `/people/entries/:id` · `/people/envelope/:year` | user | 이름 · 준/받은 · 금액 · 어떤 일 · 날 | 사람별 합 · 줄 · 해 봉투 | Implemented(S1h) |
 
 ## 서버/DB/Worker 영향
 
@@ -127,7 +129,7 @@ flowchart LR
 
 ## Open Questions
 
-- 공제율 · 한도 국세청 원문 대조 · 리볼빙 2025년 이후 규정
+- 공제율 · 한도 국세청 원문 대조 · ~~리볼빙 2025년 이후 규정~~(**닫힘 2026-11-05** S1h — 카드사 약관 안내 · 감독 당국 개선안 대조: 비율 10~100 · 연 20% · 일할 ÷ 365/366 · 이름 규칙. 결제일 · 카드사별 최소결제금액은 몰라 달 단위 근사로 둔다)
 - 한국어 영수증 인식 정확도
 
 ## 변경 이력
@@ -149,3 +151,4 @@ flowchart LR
 | 2026-11-04 | 가계부 S1e — FR-12 고정비 · 이상치 done(오르면 `household.FixedCostIncreased` 가맹점 · 달마다 한 번). 루트 `MONEY-S1e-household-fixed-cost-slice.md`. S1e 를 고정비 하나로 좁혔다 — 남은 것 FR-11(공제 — S2 content 뒤) · 14 · 17 · 21 · 리볼빙 · 통장 쪼개기 · 사용자 분류(S1f) |
 | 2026-11-05 | 가계부 S1f — FR-6 통장 쪼개기 · 내 분류(사용자 분류 — 이름 · 묶음 · 보관) done. 루트 `MONEY-S1f-household-categories-accounts-slice.md`. 남은 것 FR-11(공제 — S2 content 뒤) · 14 · 17 · 21 · 리볼빙(S1g) |
 | 2026-11-05 | 가계부 S1g — FR-21 이야기 카드 done(달 · 해 · 공유 이미지 금액 가림 기본). 루트 `MONEY-S1g-household-story-slice.md`. S1g 를 이야기 카드 하나로 좁혔다 — 남은 것 FR-11(공제 — S2 content 뒤) · 14 · 17 · 리볼빙(S1h) |
+| 2026-11-05 | 가계부 S1h — FR-10 리볼빙 · FR-14 사람 장부 · 해 경조사 봉투 done. 루트 `MONEY-S1h-household-revolving-people-slice.md`. 리볼빙 규정 Open Question 닫음 — 남은 것 FR-11(공제 — S2 content 뒤) · 17(영수증 — 실측 뒤) |

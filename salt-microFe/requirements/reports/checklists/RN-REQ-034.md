@@ -19,3 +19,7 @@
 ## 2026-11-05 — 가계부 S1g(`MONEY-S1g-household-story`)
 
 - 변경 없음 — RN 은 미착수. 쓸 계약: `GET /story/:period` · 금액 가림은 화면 몫(기본 가림)
+
+## 2026-11-05 — 가계부 S1h(`MONEY-S1h-household-revolving-people`)
+
+- 변경 없음 — RN 은 미착수. 쓸 계약: `GET /revolving` · 월 `revolving` · `GET /people`(`?year=` · `?person=`) · `HouseholdPeopleVM`

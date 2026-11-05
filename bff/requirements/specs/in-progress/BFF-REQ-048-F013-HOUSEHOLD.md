@@ -81,6 +81,13 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 |---|---|---|
 | FR-4 이야기 카드 | **done** — `GET /story/:period` 중계(기간은 경로 조각 인코딩만 — 형식 · 미래 거절 · 줄 · 금액은 서버) · `HouseholdStoryVM` · `HouseholdStoryLineVM` 계약 | 경로 37 → 38 · ~~FR-4 전부 닫힘~~ **정정 2026-11-05** 사람 장부 경로가 S1h 에 남는다 |
 
+## 구현 현황 — 가계부 S1h (2026-11-05, `requirements/specs/done/MONEY-S1h-household-revolving-people-slice.md`)
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-3 리볼빙 띠 칸 | **done** — 월 응답 `revolving`(`HouseholdRevolvingBandVM` — 줄 · 이 달 합 · 6개월 · `stale` · `assumption`) 계약 | 중계 그대로(모양 추가만) |
+| FR-4 리볼빙 · 사람 장부 경로 | **done** — 리볼빙 4(목록 · 적기 · 고치기 · 끝내기) · 사람 장부 6(조회 · 적기 · 고치기 · 지우기 · 봉투 정하기 · 지우기). id · 해는 경로 조각 인코딩, `year` · `person` 은 문자열일 때만 질의로 — 범위 · 이름 정리 · 추정 · 합은 서버 · `HouseholdRevolving*VM` · `HouseholdPeopleVM` 계약 | 경로 38 → 48 · **FR-3 · 4 전부 닫힘**(서버 FR-10 · 14 짝 확인 — 서버 남은 FR-11 공제는 BFF 몫 없음) |
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -96,3 +103,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | 2026-11-05 | 가계부 S1f — 내 분류 경로 4 · 월 화면 `categories` · 예산 `salaryShare` 계약(`d6085b85`). 테스트 +1(전체 367) |
 | 2026-11-05 | 가계부 S1g — 이야기 카드 경로 · `HouseholdStoryVM` 계약(`05c5d19c`). 테스트 +1(전체 368) · FR-4 전부 닫힘 |
 | 2026-11-05 | 정정 — 앞 줄 "FR-4 전부 닫힘"은 틀렸다: 사람 장부 경로(FR-4) · 리볼빙 띠 칸(FR-3)이 S1h 에 남는다(서버 FR-14 · FR-10, FE FR-8 의 짝). FR 표 두 줄에 적음 |
+| 2026-11-05 | 가계부 S1h — 리볼빙 경로 4 · 사람 장부 경로 6 · 월 `revolving` 칸 계약(`c7843c5a`). 테스트 +1(전체 369) · FR-3 · 4 닫힘 |

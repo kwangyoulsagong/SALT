@@ -270,3 +270,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 ## 2026-11-05 — 가계부 S1g(`MONEY-S1g-household-story`)
 
 - [x] 레지스트리 코드에 pages `story` · features `share-story` · 규칙 표 둘 · lint 12/12 · `test:layer-check`(차단 16 · 통과 10) · 훅 사후 실행 차단 0
+
+## 2026-11-05 — 가계부 S1h(`MONEY-S1h-household-revolving-people`)
+
+- [x] 레지스트리 코드에 features `manage-revolving` · `record-gift` · `set-occasion-envelope` · pages `revolving` · `people` — 등록 먼저 · 규칙 표 둘 · lint · `test:layer-check` · 훅 사후 실행 차단 0

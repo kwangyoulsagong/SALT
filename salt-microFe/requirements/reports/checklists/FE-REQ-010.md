@@ -283,3 +283,7 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 ## 2026-11-05 — 가계부 S1g(`MONEY-S1g-household-story`)
 
 - [x] `ROUTES.householdStory` — 가계부 머리 링크 · 카드 아래 "올해 이야기 보기"가 같은 값(경로 조각 인코딩)
+
+## 2026-11-05 — 가계부 S1h(`MONEY-S1h-household-revolving-people`)
+
+- [x] `ROUTES.householdRevolving`(`/household/revolving`) · `ROUTES.householdPeople`(`/household/people`) — 가계부 머리 · 월 띠 · 뒤로 링크가 이것만 쓴다

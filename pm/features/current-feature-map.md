@@ -202,7 +202,7 @@ flowchart LR
 | 기능 | 상태 | 프론트 | BFF | 서버 | 데이터/Worker | 메모 |
 |---|---|---|---|---|---|---|
 | 저축 목표 고도화 (FEATURE-012) | Planned | `entities/goal` · `features/add-goal` 만 있음 | 기존 goals 프록시 | `src/modules/goals` (구식 4파일) | `Goal` · `SavingTransaction` | 템플릿 · 계산기 · 도달 구간 · 목표 저울 · 재미(모이는 장면 · 실물 환산) |
-| 가계부 (FEATURE-013) | Planned | 없음 | 없음 | 없음 | 없음 | 도메인 이름 `household` (ADR-002 `ledger` 와 다름) |
+| 가계부 (FEATURE-013) | Partially Implemented(2026-11-05 — ~~Planned~~ 정정: S1a~S1h) | zone `web-household` — `/household` · `/new` · `/budget` · `/month/[ym]` · `/templates` · `/challenges` · `/story/[period]` · `/revolving` · `/people` | `/api/app/household/*` 48 경로(`BFF-REQ-048`) | Kotlin `household` 서비스(`SRV-REQ-046`) | `household` 스키마 V1~V8 · 반복 예정 워커(매시 · ShedLock) | 도메인 이름 `household` (ADR-002 `ledger` 와 다름). 남은 것 공제(S2 content 뒤) · 영수증 인식(Could) |
 | 금융 팁 (FEATURE-014) | Planned | 없음 | 없음 | 없음 | 없음 | 공개 zone · 유효기한 · 제도 파라미터 주인 · 법무 확인 전 공개 금지 |
 | 셸 · 홈 · 온보딩 · 내 데이터 (FEATURE-015) | Partially Implemented(2026-11-02) | 홈 = `entities/home` 도메인 요약 카드(저축 · 투자) · 셸 `/settings` 링크 목록 · 로그인 상태 `/` → `/home`. `onboarding-flow` 는 아직 투자 3스텝(편집 · 온보딩 · 내 데이터 · 알림은 S3) | `/api/app/home` · `/api/app/onboarding` | `onboarding` 컨텍스트 | — | 4탭 홈 · 저축 · 가계부 · 투자, `HomeSummaryCard` |
 

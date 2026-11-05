@@ -122,6 +122,18 @@ Flyway `V6__custom_categories_account_split.sql`(로컬 운영 DB 적용 2026-11
 | FR-18 | done — V7 `challenge_saving_user_day_idx (user_id, saved_on)` 하나 · 새 표 · 열 0 | 다른 재료는 기존 인덱스(`expense_user_day_idx` · `challenge_day_user_idx` · `calendar_sticker` PK) |
 | FR-5 · 9 | S1h | 슬라이스 범위 밖 |
 
+## 구현 현황 — 가계부 S1h (2026-11-05, `requirements/specs/done/MONEY-S1h-household-revolving-people-slice.md`)
+
+Flyway `V8__revolving_people.sql`(로컬 운영 DB 적용 2026-11-05 — `household` 7 → 8).
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-5 | done — **정정**: 리볼빙은 `installment` 표의 "리볼빙 여부"가 아니라 `revolving_plan` 표(할부는 S1a 부터 지출 열 `installment_months`). 이월 잔액 > 0 · 결제비율 CHECK 10~100 · 수수료율 `numeric(4,2)` 0 초과 20 이하 · 명세서 달 = 달 첫날 CHECK · `ended_on` · 월 청구는 계산(저장 0) | 인덱스 `(user_id, statement_month)` |
+| FR-9 | done — `person_entry`(이름 1~20 · 방향 · 어떤 일 CHECK · 금액 > 0 · 메모 100) · 표 주석 `sensitive` | 인덱스 `(user_id, happened_on)` · `(user_id, person)` |
+| FR-19(신설) | done — `occasion_envelope`(PK `(user_id, for_year)` · 해 CHECK 2000~2100 · 금액 > 0) — 한 해 경조사 봉투, 남은 금액은 계산 | 열 이름 `year` 대신 `for_year`(코드 생성기 H2 예약어) |
+
+EXPLAIN(사람 장부 2만 행 · 명세서 2천 행 넣고 롤백): 사람별 합 `person_entry_user_person_idx` 0.100ms · 해 줄 `person_entry_user_day_idx` 0.009ms · 한 사람 0.044ms · 월 띠 `revolving_plan_user_idx` 0.022ms.
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -136,3 +148,4 @@ Flyway `V6__custom_categories_account_split.sql`(로컬 운영 DB 적용 2026-11
 | 2026-11-04 | 가계부 S1e — FR-15 · 16 신설 · FR-12 부분 인덱스(V5 `98895870`). 로컬 운영 DB 적용(household 4 → 5) |
 | 2026-11-05 | 가계부 S1f — FR-17 신설 · FR-2 정정 · FR-3 `account_split`(V6 `96c7c5b4`). 로컬 운영 DB 적용(household 5 → 6 — 슬라이스 경로 주석을 고치느라 push 전 한 번 되돌려 다시 적용) |
 | 2026-11-05 | 가계부 S1g — FR-18 신설 · done(V7 `2c31ce55`). 로컬 운영 DB 적용(household 6 → 7 — 주석 경로를 고치느라 push 전 한 번 되돌려 다시 적용). EXPLAIN(행 2만 넣고 롤백 — 아낀 돈 0.124ms) |
+| 2026-11-05 | 가계부 S1h — FR-5 정정 · done(`revolving_plan`) · FR-9 done · FR-19 신설 · done(V8 `f998f36d`). 로컬 운영 DB 적용(household 7 → 8 — 한 번에, 주석 경로는 루트 슬라이스 이름 그대로). EXPLAIN 넷 0.1ms 아래 |
