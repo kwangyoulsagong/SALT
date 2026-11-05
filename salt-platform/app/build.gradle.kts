@@ -24,6 +24,11 @@ dependencies {
     implementation(project(":services:content:application"))
     implementation(project(":services:content:infrastructure"))
     implementation(project(":services:content:api"))
+    implementation(project(":services:notification:domain"))
+    implementation(project(":services:notification:application"))
+    implementation(project(":services:notification:infrastructure"))
+    implementation(project(":services:notification:api"))
+    implementation(project(":services:coach:infrastructure"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-opentelemetry")

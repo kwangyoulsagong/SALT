@@ -5,7 +5,7 @@
 # 이 프로세스에 있다 — BFF 라우팅 표가 `/savings` · `/household` 를 platform 으로 보낸다.
 # 꺼지면 저축 · 가계부 화면과 홈 카드 둘이 degraded 가 된다.
 #
-# - 로컬 운영 DB(salt_db :5432)에 **서비스 계정**으로 붙는다(svc_ping · svc_savings · svc_household · svc_content — `db/roles.sql`). 비밀은 salt-platform/.env 의 LOCAL_DB_*_PASSWORD
+# - 로컬 운영 DB(salt_db :5432)에 **서비스 계정**으로 붙는다(svc_ping · svc_savings · svc_household · svc_content · svc_notification · svc_coach(아웃박스만) — `db/roles.sql`). 비밀은 salt-platform/.env 의 LOCAL_DB_*_PASSWORD
 # - RabbitMQ 는 Compose 의 것 하나만(55672) — 없으면 여기서 띄운다. Postgres · platform 컨테이너는 띄우지 않는다(호스트 DB 를 쓴다)
 # - 실행 산출물은 `./gradlew :app:bootJar` 의 jar — 코드를 바꾸면 bootJar 뒤 `ops/salt.sh restart platform`
 set -u
@@ -19,6 +19,8 @@ export PING_DB_PASSWORD="$LOCAL_DB_PING_PASSWORD"
 export SAVINGS_DB_PASSWORD="$LOCAL_DB_SAVINGS_PASSWORD"
 export HOUSEHOLD_DB_PASSWORD="$LOCAL_DB_HOUSEHOLD_PASSWORD"
 export CONTENT_DB_PASSWORD="$LOCAL_DB_CONTENT_PASSWORD"
+export NOTIFICATION_DB_PASSWORD="$LOCAL_DB_NOTIFICATION_PASSWORD"
+export COACH_DB_PASSWORD="$LOCAL_DB_COACH_PASSWORD"
 export RABBITMQ_HOST=localhost RABBITMQ_PORT=55672 PORT=4010
 
 # 이미 떠 있으면 compose 를 부르지 않는다 — launchd 아래 compose 는 데스크탑의 compose.yaml 을 읽다 개인정보 보호 창을 기다리며 멈출 수 있다(2026-11-03).

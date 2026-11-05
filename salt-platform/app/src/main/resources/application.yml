@@ -59,6 +59,13 @@ salt:
       content:
         username: svc_content
         password: ${CONTENT_DB_PASSWORD}
+      notification:
+        username: svc_notification
+        password: ${NOTIFICATION_DB_PASSWORD}
+      # coach 는 S6 까지 Express — 플랫폼은 아웃박스 릴레이만(SRV-REQ-048 FR-5, 서버 S2c)
+      coach:
+        username: svc_coach
+        password: ${COACH_DB_PASSWORD}
 
 # 외부 호출 기본값(`SRV-REQ-043` FR-8 · `kotlin-platform.md` §3) — 인스턴스는 첫 외부 호출(S5 market)이 이 기본값을 이어받는다.
 # 재시도는 조회(GET)에만 붙인다(쓰기 재시도는 중복 쓰기). KIS 는 약 2건/초(메모 kis-mock-key)
