@@ -24,6 +24,7 @@ const shouldRetry = retryWhileRetriable(COACH_REPORT_RETRY_COUNT);
  *
  * FR-1 은 서버 컴포넌트 조회를 적었다. 토큰이 `localStorage` 에 있어 서버가 볼 수 없다
  * (`FE-REQ-013` 전) — 상세 분석 페이지와 같은 사정이다(`useSymbolCoach`).
+ * (2026-11-05 정정: 토큰은 이제 httpOnly 쿠키라 서버도 읽는다 — `FE-REQ-013` FR-80 2단계. 이 자리가 클라이언트에 남은 것은 아직 서버 조회로 옮기지 않아서다 — 목록은 `FE-REQ-013` FR-81)
  *
  * 토큰이 없으면 부르지 않는다 — 로그인하지 않은 것은 실패가 아니라 상태다.
  */
