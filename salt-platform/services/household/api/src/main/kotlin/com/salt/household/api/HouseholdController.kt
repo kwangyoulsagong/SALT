@@ -302,6 +302,8 @@ class HouseholdController(
         val expenses: List<ExpenseView>,
         val recurring: RecurringMonthView,
         val installments: InstallmentBandView,
+        /** 리볼빙 띠(가계부 S1h) — 사용자가 적은 명세서로 추정 · 지출 합에 더하지 않는다 */
+        val revolving: RevolvingBandView,
         /** 닫았으면 그 기록, 아니면 null */
         val close: CloseView?,
         /** 지금 닫을 수 있나(지난 달 · 이번 달 마지막 3일) — 서버가 정한다 */
@@ -775,6 +777,7 @@ class HouseholdController(
         expenses = m.expenses.map { expenseView(it, m.feelings[it.id], m.workHours).copy(typicalAmount = m.unusual[it.id]?.toKrwInteger()) },
         recurring = clock.todayKst().let { today -> RecurringMonthView(m.occurrences.map { occurrenceView(it, today) }, m.scheduledTotal.toKrwInteger()) },
         installments = installmentView(m.installments),
+        revolving = revolvingBandView(m.revolving),
         close = m.close?.let(::closeView),
         closable = m.closable,
         reviewQuestions = ReviewAnswers.QUESTION_KEYS,
