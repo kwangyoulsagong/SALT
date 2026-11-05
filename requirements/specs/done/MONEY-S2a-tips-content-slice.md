@@ -22,9 +22,9 @@ S2 는 서비스 둘(content · notification)이라 나눈다(`msa-services.md` 
 | REQ | 이번 몫(S2a) | 남는 몫 |
 |---|---|---|
 | `DB-REQ-039` | FR-1~5 · 7 · **FR-8 `user_signal` 신설** · FR-3 트리거로 정정 | ~~FR-6 퀴즈(S2b)~~ **정정 2026-11-05(S2b)** FR-6 done(S2b) |
-| `SRV-REQ-047` | FR-1 · 2 · 3 · 5 · FR-4(저축 두 이벤트 · 달 셋) · FR-7 첫 판(이력) · 공개 플래그 | ~~FR-4 나머지 트리거 · 6 · 8 · 9(S2b)~~ **정정 2026-11-05(S2b)** FR-8 done(S2b) · FR-4 나머지 · 6 → S2d · 9 → S3 |
+| `SRV-REQ-047` | FR-1 · 2 · 3 · 5 · FR-4(저축 두 이벤트 · 달 셋) · FR-7 첫 판(이력) · 공개 플래그 | ~~FR-4 나머지 트리거 · 6 · 8 · 9(S2b)~~ **정정 2026-11-05(S2b)** FR-8 done(S2b) · FR-4 나머지 · 6 → S2d · 9 → S3 **정정 2026-11-05(S2d)** 내 숫자 · 고정비 증가(주거) 닫힘(`MONEY-S2d-tips-my-numbers`) — 나머지 트리거는 원천 · 글이 생길 때 |
 | `BFF-REQ-049` | FR-1~5 · 라우팅 표 `/content` | — |
-| `FE-REQ-058` | FR-1 · 2 · 6 · 7 · 8 · FR-4 첫 판 · 색인 | ~~FR-3 · 5 · LCP(S2b · 공개 직전)~~ **정정 2026-11-05(S2b)** FR-5 done(S2b) · FR-3 → S2d · LCP 공개 직전 |
+| `FE-REQ-058` | FR-1 · 2 · 6 · 7 · 8 · FR-4 첫 판 · 색인 | ~~FR-3 · 5 · LCP(S2b · 공개 직전)~~ **정정 2026-11-05(S2b)** FR-5 done(S2b) · FR-3 → S2d · LCP 공개 직전 **정정 2026-11-05(S2d)** 내 숫자 · 고정비 증가(주거) 닫힘(`MONEY-S2d-tips-my-numbers`) — 나머지 트리거는 원천 · 글이 생길 때 |
 | 짝 | `SRV-REQ-044` 첫 서비스 간 구독 · `DB-REQ-036` `svc_content` 로그인 · `FE-REQ-043` 공개 zone 제외 · lint `no-client-enum-export`(`DEV-001`) | notification 이전(S2c, `SRV-REQ-048`) |
 
 ## 판단 — 리뷰가 볼 곳
@@ -41,6 +41,6 @@ S2 는 서비스 둘(content · notification)이라 나눈다(`msa-services.md` 
 |---|---|---|
 | 공개 · 법무 확인 | 사용자 결정 — 확인 기록 전 공개 금지 | 확인 기록 시 `CONTENT_PUBLIC=true` |
 | notification 서비스 이전 | S2 의 다른 서비스(`SRV-REQ-048`) | 서버 S2c |
-| 내 숫자로 · 퀴즈 · 줄 diff · 홈 카드 · 나머지 트리거 | 첫 판 위에 얹는 기능 | ~~금융 팁 S2b~~ **정정 2026-11-05(S2b)** 퀴즈 · 줄 diff 닫힘(`MONEY-S2b-tips-quiz-diff`) · 내 숫자 · 나머지 트리거 S2d · 홈 카드 S3 |
+| 내 숫자로 · 퀴즈 · 줄 diff · 홈 카드 · 나머지 트리거 | 첫 판 위에 얹는 기능 | ~~금융 팁 S2b~~ **정정 2026-11-05(S2b)** 퀴즈 · 줄 diff 닫힘(`MONEY-S2b-tips-quiz-diff`) · 내 숫자 · 나머지 트리거 S2d · 홈 카드 S3 **정정 2026-11-05(S2d)** 내 숫자 · 고정비 증가(주거) 닫힘(`MONEY-S2d-tips-my-numbers`) — 나머지 트리거는 원천 · 글이 생길 때 |
 | LCP 2.5s | 운영 빌드 휴대폰 폭 측정 전 | 공개 직전 |
 | 코치 검증기와 한 모듈 | 언어가 다르다 | S6(`SRV-REQ-049` FR-4) |

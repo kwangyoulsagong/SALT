@@ -174,3 +174,4 @@ API 실제 목록: `POST /expenses` · `POST /expenses/batch` · `DELETE /expens
 | 2026-11-05 | 가계부 S1h — FR-10 리볼빙 · FR-14 사람 장부 done(`f998f36d`) — 남은 것 FR-11 공제(S2 content 뒤). 도메인 테스트 +7(76) · 종단 +2(33) · 쿼리 월 23. 파싱 로그 검사 우연 실패 고침(`d782ecdf` — 카드 번호를 괄호까지) · 주석 `MonthClose.kt` 의 낡은 S1h 포인터 |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — 가계부 이벤트 어댑터 주석 한 줄 — `FixedCostIncreased` 구독은 금융 팁 S2b(S2a 는 저축 두 이벤트만). 코드 · 계약 무변경 |
 | 2026-11-05 | 금융 팁 S2b(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: 가계부 이벤트 어댑터 주석 한 줄 — `FixedCostIncreased` 구독은 ~~금융 팁 S2b~~ 금융 팁 S2d(S2b 는 퀴즈 · 줄 diff 로 좁혔다). 코드 · 계약 무변경 (`a1938bb2`) |
+| 2026-11-05 | 금융 팁 S2d(루트 `requirements/specs/done/MONEY-S2d-tips-my-numbers-slice.md`) — 이 REQ 에 걸린 몫: 가계부 이벤트 어댑터 주석 — `FixedCostIncreased` 의 "구독 예정" → **구독**(content — 주거 분류만 신호, 분류 · 시각만 읽는다). 코드 · 계약 필드 무변경 (`1a85dd2b`) |

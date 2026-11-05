@@ -117,3 +117,4 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 | 2026-11-05 | `FE-REQ-013` FR-80 2단계(쿠키 세션) done — 3a 같은 칸의 앞쪽(루트 `requirements/specs/done/F000-cookie-session-slice.md`). 토큰 httpOnly 쿠키뿐 · 같은 origin BFF · `BFF-REQ-009` FR-54 · `OPS-001` FR-13. 다음 칸 서버 S2(`DB-039` · `SRV-047` · notification) |
 | 2026-11-05 | S2a + F5a done — content 서비스 첫 판 · 금융 팁 공개 zone(공개 플래그 꺼짐) · 때맞춘 팁 칸(루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`). S2 를 서비스로 나눔: S2a content · S2b 금융 팁 나머지 · S2c notification. 다음 칸 S2b 또는 S2c |
 | 2026-11-05 | S2b done — 금융 팁 읽기 전에 맞혀 보기 · 맞힌 카드 · 제도 변경 줄 diff(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`). S2b 남은 셋 중 내 숫자 · 나머지 트리거는 S2d, 홈 카드는 S3. 다음 칸 S2c(notification) 또는 S2d |
+| 2026-11-05 | S2d done — 금융 팁 내 숫자로 다시 읽기(BFF 가 저축 · 가계부를 읽어 content 가 계산) · 고정비 증가(주거) → 월세 세액공제(루트 `requirements/specs/done/MONEY-S2d-tips-my-numbers-slice.md`). 다음 칸 S2c(notification) |

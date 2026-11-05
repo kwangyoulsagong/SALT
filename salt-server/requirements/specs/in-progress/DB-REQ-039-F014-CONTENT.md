@@ -55,3 +55,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-05 | 금융 팁 S2a — to-do → in-progress. FR-1~5 · 7 done, FR-3 은 트리거로 정정(확장 권한), **FR-8 `user_signal` 신설**, FR-6 퀴즈는 S2b. 커밋 `38e2d16d` · 로컬 운영 DB `svc_content` 로그인 · Flyway V1 적용 |
 | 2026-11-05 | 금융 팁 S2b — FR-6 `quiz_answer` done · `tip_revision.body_lines` 추가(V2 — 더하기만, drop · 이름 변경 0). 로컬 운영 DB 적용(Flyway 기동). 커밋 `d2d662d4` |
+| 2026-11-05 | 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`) — **스키마 변경 없음**. FR-4 트리거 종류에 값 `fixed_cost_increased:housing` 하나 더(열이 text — 마이그레이션 0). 내 숫자(서비스 간 사실)는 저장하지 않는다 |

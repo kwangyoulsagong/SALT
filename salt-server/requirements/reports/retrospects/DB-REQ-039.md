@@ -12,3 +12,8 @@
 - **판단**: 마이그레이션 둘(표 · 열)을 한 파일에 — 둘 다 더하기만이라 되돌리기가 drop 두 줄. 목적 하나 원칙의 예외를 파일 머리에 적었다.
 - **판단**: 경합은 한 문장 UPSERT(`attempts + 1` · `coalesce(correct_at, excluded)`) — 오류 코드를 잡지 않는다.
 - **Action**: 없음
+
+## 2026-11-05 — 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`)
+
+- 몫: 스키마 변경 없음(트리거 종류는 text).
+- **Action**: 없음
