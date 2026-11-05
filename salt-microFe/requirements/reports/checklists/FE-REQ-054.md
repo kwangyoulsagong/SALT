@@ -102,3 +102,9 @@
 - 몫: 팁 zone `next.config.js` 를 가계부와 같은 프리셋 꼴로(vanilla-extract). 금융 팁은 탭이 아니라 `AppShell` 을 쓰지 않는다(이 REQ 의 2026-11-03 메모 — 공개 화면 내비 · prerender 판단: 둘 다 없음)
 - 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) 확인 2회차
+
+- 몫: `ZoneNavigation` 의 공개 경로 판정을 `@repo/core/auth` `isPublicPath` 로(같은 규칙 — 동작 무변경, `/home` · `/goals` 탭 4 · `/login` 0 실화면) (`cf93acb1`)
+- 검증: `@repo/core` 경계표 13(변이 — 정확히 같음 비교로 바꾸면 2 실패) · 모노레포 `check-types` · `lint` · `test`(core 184 · ui 46) · `test:layer-check` · zone 빌드 5(별도 worktree, main 과 나란히 — `/goals` 152 → 153 은 공용 청크 반올림 경계 · 페이지 3.35 kB 같음, 나머지 zone 무변화) · 실화면(만료 세션 → 제자리 · 실패 문구 → 다시 누르면 익명 채점 / 로그인 `/home` · `/goals` 탭 4 · `/login` 0)
+- 미검증: 없음(이 몫 안)

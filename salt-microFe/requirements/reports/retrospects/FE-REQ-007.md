@@ -128,3 +128,8 @@ federation 서술이 남아 있었고, 그대로 두면 다음 세션이 없는 
 ## 2026-11-05 — FE-REQ-013 FR-80 2단계
 
 - 파일만 걸침(토큰 운반이 쿠키로) — Action 없음
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) 확인 2회차
+
+- 몫: `@repo/core/auth` 에 `isPublicPath` · `PUBLIC_PATHS` 에 `/tips`(공개 zone)
+- **Action**: 같은 판정을 두 자리에서 하면 하나로 모은다 — 새 공개 zone 은 `PUBLIC_PATHS` 한 줄

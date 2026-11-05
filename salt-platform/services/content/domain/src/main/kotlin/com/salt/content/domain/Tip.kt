@@ -21,9 +21,20 @@ data class Tip(
     val change: String?,
     /** 원문 전체의 SHA-256 — 바뀌었는지 보는 키(`tip.content_hash`) */
     val contentHash: String,
+    /** 읽기 전에 맞혀 보기 0~1개(FR-8) */
+    val quiz: TipQuiz? = null,
 ) {
     /** 유효기한이 지났는가 — 그날(KST)까지는 유효, 다음 날부터 확인 필요(FR-2 경계) */
     fun statusOn(today: LocalDate): TipStatus = TipStatus.on(meta.validUntil, today)
+
+    /**
+     * 줄 diff(FR-7)의 재료 — 사람이 읽는 문장만 줄로 편다: 제목 · 요약 · 기준 연도 · 유효기한 · 본문 문장(제목줄 · 문단 · 목록 한 줄씩).
+     * 출처 · 작성일 · 검수일 · 퀴즈는 넣지 않는다 — "제도가 무엇이 바뀌었나"를 보려는 목록이라 검수일만 바뀐 판이 줄을 내지 않게.
+     * 마크다운 표지(`## ` · `- `)는 빼고 문장만 — 화면이 문자열 그대로 보여 준다.
+     */
+    fun revisionLines(): List<String> =
+        listOf("제목: ${meta.title}", "요약: ${meta.summary}", "기준 연도: ${meta.baseYear}년", "유효기한: ${meta.validUntil}") +
+            body.flatMap { it.texts() }
 }
 
 /** 발행에 필요한 메타 — 하나라도 없으면 [Tip] 이 되지 못한다(FR-1). DB 열도 전부 NOT NULL(`DB-REQ-039` FR-1). */

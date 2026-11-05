@@ -50,3 +50,4 @@ source: requirements/decisions/ADR-006-server-msa-kotlin.md
 | 2026-11-04 | 가계부 S1e — FR-4 첫 이벤트 13종 중 `household.FixedCostIncreased`(새 계약 · 가맹점 0 · 가맹점 · 달마다 한 번)(`98895870`). 발행 시점 스키마 검증 그대로 |
 | 2026-11-05 | 가계부 S1f — `household.ExpenseRecorded` 계약 `category` 에 사용자 분류 꼴(`^u_[0-9a-f]{12}$`) 추가(`96c7c5b4`). 이름은 싣지 않는다 · 구독자 0 이라 깨지는 소비처 없음 · 발행 시점 스키마 검증 그대로 |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 새 계약 `content.PolicyParamChanged`(원문 동기화 때 줄마다) · **첫 서비스 간 구독** — content 가 `savings.GoalCreated` · `GoalReached` 를 받는다(큐 `content.<event>` · 데드레터 · `processed_event` 멱등). 종단 테스트가 저축 쓰기 → 릴레이 → 구독 → 신호를 실 RabbitMQ 로 확인 |
+| 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`, 루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: 플랫폼 공개 경로 표(`application.yml` `salt.auth.public-paths`)에 `/api/content/tips/*/quiz`(로그인 없는 채점). 이벤트 · 아웃박스 무변경(`d2d662d4`) |

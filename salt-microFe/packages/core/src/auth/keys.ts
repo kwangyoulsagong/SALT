@@ -48,4 +48,16 @@ export const SESSION_HINT_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
  * `/signup` 은 **없어졌다** — 회원가입 경로를 초대 코드로 대체했고 서버·BFF 에서 404 다
  * (`SRV-REQ-009` 제거 목록). 목록에 남겨 두면 없는 화면이 공개로 선언된 채 남는다.
  */
-export const PUBLIC_PATHS = ["/login", "/onboarding", "/"];
+export const PUBLIC_PATHS = ["/login", "/onboarding", "/", "/tips"];
+
+/**
+ * 이 경로가 로그인 없이 보는 화면인가 — `/` 는 그 자리만, 나머지는 그 아래까지(`/tips/<slug>`).
+ *
+ * 판정은 여기 하나다. 앱 내비(탭을 숨기나)와 세션 갱신(죽은 세션이면 로그인으로 보내나)이 같은 답을 내야 한다 —
+ * 둘이 따로 비교하던 때(내비는 접두, 갱신은 정확히 같음) 금융 팁 글(`/tips/<slug>`)에서 만료된 세션으로 퀴즈를 풀면
+ * 공개 글을 읽던 사람을 로그인 화면으로 보냈다(2026-11-05 금융 팁 S2b 확인 2회차).
+ *
+ * `/tips` 는 공개 zone(`ADR-005` · `FE-REQ-058`) — 검색으로 들어온 사람이 읽는다. 개인 칸(맞힌 카드)은 그 화면이 로그아웃 안내를 그린다.
+ */
+export const isPublicPath = (pathname: string): boolean =>
+  PUBLIC_PATHS.some((path) => (path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`)));

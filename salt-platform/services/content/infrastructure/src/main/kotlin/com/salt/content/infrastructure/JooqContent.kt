@@ -4,6 +4,8 @@ import com.salt.content.domain.ContentEvents
 import com.salt.content.domain.Dismissals
 import com.salt.content.domain.PolicyParam
 import com.salt.content.domain.PolicyParams
+import com.salt.content.domain.QuizAnswers
+import com.salt.content.domain.QuizRecord
 import com.salt.content.domain.Tip
 import com.salt.content.domain.TipContext
 import com.salt.content.domain.TipStatus
@@ -14,6 +16,7 @@ import com.salt.content.domain.TriggerRules
 import com.salt.content.domain.UserSignal
 import com.salt.content.domain.UserSignals
 import com.salt.content.infrastructure.jooq.Tables.POLICY_PARAM
+import com.salt.content.infrastructure.jooq.Tables.QUIZ_ANSWER
 import com.salt.content.infrastructure.jooq.Tables.TIP
 import com.salt.content.infrastructure.jooq.Tables.TIP_DISMISSAL
 import com.salt.content.infrastructure.jooq.Tables.TIP_REVISION
@@ -23,6 +26,7 @@ import com.salt.content.infrastructure.jooq.tables.records.PolicyParamRecord
 import com.salt.support.messaging.OutboxWriter
 import com.salt.support.messaging.ProcessedEvents
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -80,6 +84,7 @@ class JooqTips(private val dsl: DSLContext) : Tips {
             .set(TIP_REVISION.REVISED_AT, revision.at.utc())
             .set(TIP_REVISION.SUMMARY, revision.summary)
             .set(TIP_REVISION.PREVIOUS_HASH, revision.previousHash)
+            .set(TIP_REVISION.BODY_LINES, revision.lines?.joinToString(LINE_BREAK))
             .execute()
     }
 
@@ -88,7 +93,12 @@ class JooqTips(private val dsl: DSLContext) : Tips {
         dsl.selectFrom(TIP_REVISION)
             .where(TIP_REVISION.TIP_SLUG.eq(slug))
             .orderBy(TIP_REVISION.REVISED_AT.desc(), TIP_REVISION.ID.desc())
-            .fetch { Tips.Revision(it.tipSlug, it.revisedAt.toInstant(), it.summary, it.previousHash) }
+            .fetch { Tips.Revision(it.tipSlug, it.revisedAt.toInstant(), it.summary, it.previousHash, it.bodyLines?.split(LINE_BREAK)) }
+
+    private companion object {
+        /** 줄 안엔 개행이 없다 — 문단은 한 줄로 편다(`PublishCheck.blocks`) */
+        const val LINE_BREAK = "\n"
+    }
 }
 
 class JooqTriggerRules(private val dsl: DSLContext) : TriggerRules {
@@ -191,6 +201,36 @@ class JooqDismissals(private val dsl: DSLContext) : Dismissals {
 
     override fun dismissed(userId: String): Set<String> =
         dsl.select(TIP_DISMISSAL.TIP_SLUG).from(TIP_DISMISSAL).where(TIP_DISMISSAL.USER_ID.eq(userId)).fetchSet(TIP_DISMISSAL.TIP_SLUG)
+}
+
+class JooqQuizAnswers(private val dsl: DSLContext) : QuizAnswers {
+    /**
+     * 한 문장 UPSERT — 동시에 두 번 풀어도 오류 없이 한 행(`prisma-database.md` 경합 규칙의 뜻). 카드 시각은 비어 있을 때만 채운다:
+     * 처음 맞힌 시각이 남고, 그 뒤 틀려도 지우지 않는다.
+     */
+    override fun record(userId: String, slug: String, correct: Boolean, at: Instant): QuizRecord {
+        val now = at.utc()
+        val correctAt = if (correct) now else null
+        return dsl.insertInto(QUIZ_ANSWER)
+            .set(QUIZ_ANSWER.USER_ID, userId)
+            .set(QUIZ_ANSWER.TIP_SLUG, slug)
+            .set(QUIZ_ANSWER.ATTEMPTS, 1)
+            .set(QUIZ_ANSWER.FIRST_ANSWERED_AT, now)
+            .set(QUIZ_ANSWER.LAST_ANSWERED_AT, now)
+            .set(QUIZ_ANSWER.CORRECT_AT, correctAt)
+            .onConflict(QUIZ_ANSWER.USER_ID, QUIZ_ANSWER.TIP_SLUG).doUpdate()
+            .set(QUIZ_ANSWER.ATTEMPTS, QUIZ_ANSWER.ATTEMPTS.plus(1))
+            .set(QUIZ_ANSWER.LAST_ANSWERED_AT, DSL.greatest(QUIZ_ANSWER.LAST_ANSWERED_AT, DSL.excluded(QUIZ_ANSWER.LAST_ANSWERED_AT)))
+            .set(QUIZ_ANSWER.CORRECT_AT, DSL.coalesce(QUIZ_ANSWER.CORRECT_AT, DSL.excluded(QUIZ_ANSWER.CORRECT_AT)))
+            .returning()
+            .fetchOne { QuizRecord(it.userId, it.tipSlug, it.attempts, it.correctAt?.toInstant()) }!!
+    }
+
+    override fun collected(userId: String): List<QuizRecord> =
+        dsl.selectFrom(QUIZ_ANSWER)
+            .where(QUIZ_ANSWER.USER_ID.eq(userId).and(QUIZ_ANSWER.CORRECT_AT.isNotNull))
+            .orderBy(QUIZ_ANSWER.CORRECT_AT.desc(), QUIZ_ANSWER.TIP_SLUG)
+            .fetch { QuizRecord(it.userId, it.tipSlug, it.attempts, it.correctAt?.toInstant()) }
 }
 
 /**

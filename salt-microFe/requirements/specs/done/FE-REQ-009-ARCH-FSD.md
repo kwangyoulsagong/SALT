@@ -312,3 +312,4 @@ export { importLedger as POST } from '@/app/api-routes';
 | 2026-11-05 | 가계부 S1g — 레지스트리 코드(`layer-rules.cjs`)에 pages `story` · features `share-story` + `fsd-features.md` · `fsd-pages.md` 표 · `canvas.md` 화면 밖 내보내기 한 줄(`1c46db88`) |
 | 2026-11-05 | 가계부 S1h — 레지스트리 코드(`layer-rules.cjs`)에 features `manage-revolving` · `record-gift` · `set-occasion-envelope` · pages `revolving` · `people` + `fsd-features.md` · `fsd-pages.md` 표(`38ed6518`) |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: FSD lint 플러그인에 규칙 하나 `@repo/fsd/no-client-enum-export`("use client" 파일의 enum 금지 — 서버에서 undefined) · 레이어 표에 엔티티 `tip` · 페이지 `tips` · `tip-detail` |
+| 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`, 루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: 레이어 표에 features `answer-quiz` · pages `quiz-cards` + `fsd-features.md` · `fsd-pages.md` 표(`d59efa9c`) |

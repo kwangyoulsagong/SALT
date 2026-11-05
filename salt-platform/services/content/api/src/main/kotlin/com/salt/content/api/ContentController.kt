@@ -1,8 +1,11 @@
 package com.salt.content.api
 
+import com.salt.content.application.AnswerQuiz
 import com.salt.content.application.DismissTip
 import com.salt.content.application.GetPolicyParam
 import com.salt.content.application.GetTip
+import com.salt.content.application.GradeQuiz
+import com.salt.content.application.ListQuizCards
 import com.salt.content.application.ListTips
 import com.salt.content.application.TipForMe
 import com.salt.content.domain.Tip
@@ -13,11 +16,16 @@ import com.salt.kernel.ErrorKind
 import com.salt.support.web.ApiResponse
 import com.salt.support.web.AuthenticatedUser
 import io.swagger.v3.oas.annotations.Operation
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -38,6 +46,9 @@ class ContentController(
     private val tipForMe: TipForMe,
     private val dismissTip: DismissTip,
     private val getPolicyParam: GetPolicyParam,
+    private val gradeQuiz: GradeQuiz,
+    private val answerQuiz: AnswerQuiz,
+    private val listQuizCards: ListQuizCards,
 ) {
     data class Meta(
         val sourceUrl: String,
@@ -54,7 +65,14 @@ class ContentController(
 
     data class Block(val type: String, val text: String?, val items: List<String>?)
 
-    data class Revision(val revisedAt: String, val summary: String)
+    /** 바뀐 줄(FR-7) — op = removed · added. 줄은 문장 그대로 */
+    data class Change(val op: String, val text: String)
+
+    /** [changes] — 앞 판과 바뀐 줄. 첫 판 · S2b 전 이력이면 null(요약만), 상태만 바뀐 판이면 [] */
+    data class Revision(val revisedAt: String, val summary: String, val changes: List<Change>?)
+
+    /** 읽기 전에 맞혀 보기(FR-8) — **정답 · 풀이 없음**(고른 뒤 채점 응답에만) */
+    data class Quiz(val question: String, val choices: List<String>)
 
     data class Detail(
         val slug: String,
@@ -65,6 +83,7 @@ class ContentController(
         val meta: Meta,
         val body: List<Block>,
         val revisions: List<Revision>,
+        val quiz: Quiz?,
     )
 
     data class Timely(val slug: String, val title: String, val summary: String, val trigger: String, val sourceUrl: String, val sourceName: String, val validUntil: String)
@@ -72,6 +91,20 @@ class ContentController(
     data class ForMe(val tip: Timely?)
 
     data class Dismissed(val slug: String, val dismissed: Boolean)
+
+    /** 보기 번호 — 0부터 */
+    data class QuizChoice(@field:NotNull @field:Min(0) @field:Max(9) val choice: Int?)
+
+    data class Graded(val correct: Boolean, val answer: Int, val explanation: String)
+
+    /** [collected] — 이번 풀이로 처음 카드가 됐다(화면이 한 번만 말한다) */
+    data class Answered(val correct: Boolean, val answer: Int, val explanation: String, val collected: Boolean)
+
+    /** 맞힌 카드 한 장 — 문제 · 정답 보기 · 풀이(배운 것 한 줄) */
+    data class Card(val slug: String, val title: String, val question: String, val answer: String, val explanation: String, val collectedAt: String)
+
+    /** [available] — 지금 풀 수 있는 문제 수(모음의 분모) */
+    data class Cards(val available: Int, val cards: List<Card>)
 
     data class Param(
         val key: String,
@@ -106,7 +139,37 @@ class ContentController(
                 noindex = s.noindex,
                 meta = s.meta,
                 body = v.tip.body.map(::block),
-                revisions = v.revisions.map { Revision(it.at.toString(), it.summary) },
+                revisions = v.revisions.map { r -> Revision(r.revision.at.toString(), r.revision.summary, r.changes?.map { Change(it.op.key, it.text) }) },
+                quiz = v.tip.quiz?.let { Quiz(it.question, it.choices) },
+            ),
+        )
+    }
+
+    @Operation(summary = "퀴즈 채점(로그인 없이)", description = "기록 0. 정답 번호(0부터) · 풀이는 이 응답에만. 퀴즈 없는 글 404 TIP_QUIZ_NOT_FOUND · 보기 밖 400")
+    @PostMapping("/tips/{slug}/quiz")
+    fun grade(@PathVariable slug: String, @Valid @RequestBody body: QuizChoice): ResponseEntity<ApiResponse<Graded>> {
+        val g = gradeQuiz.execute(slug, body.choice!!)
+        return ApiResponse.ok(Graded(g.correct, g.answerIndex, g.explanation))
+    }
+
+    @Operation(summary = "퀴즈 풀이(로그인)", description = "채점 + 기록. 한 번이라도 맞히면 카드 — collected 는 이번에 처음 카드가 됐을 때만 true")
+    @PostMapping("/me/quiz/{slug}")
+    fun answer(user: AuthenticatedUser, @PathVariable slug: String, @Valid @RequestBody body: QuizChoice): ResponseEntity<ApiResponse<Answered>> {
+        val r = answerQuiz.execute(user.userId, slug, body.choice!!)
+        return ApiResponse.ok(Answered(r.graded.correct, r.graded.answerIndex, r.graded.explanation, r.collected))
+    }
+
+    @Operation(summary = "맞힌 카드 모음", description = "최근 것 먼저. 원문에서 빠진 글의 카드는 숨긴다. 공개 전이면 available=0 · cards=[]")
+    @GetMapping("/me/quiz-cards")
+    fun cards(user: AuthenticatedUser): ResponseEntity<ApiResponse<Cards>> {
+        val v = listQuizCards.execute(user.userId)
+        return ApiResponse.ok(
+            Cards(
+                v.available,
+                v.cards.map { c ->
+                    val q = c.tip.quiz!!
+                    Card(c.tip.slug, c.tip.meta.title, q.question, q.choices[q.answerIndex], q.explanation, c.collectedAt.toString())
+                },
             ),
         )
     }

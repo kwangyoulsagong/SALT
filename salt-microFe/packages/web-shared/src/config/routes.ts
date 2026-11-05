@@ -53,6 +53,8 @@ export const ROUTES = {
   /** 금융 팁 — 공개 zone(`web-tips`, `FE-REQ-058` 2026-11-05) */
   tips: "/tips",
   tip: (slug: string) => `/tips/${encodeURIComponent(slug)}`,
+  /** 맞힌 카드 모음(금융 팁 S2b) — 개인 화면이라 색인 0. `cards` 는 글 slug 로 못 쓴다(서버 발행 검사) */
+  tipCards: "/tips/cards",
   /** 투자 코치 설정 — 셸 설정(`/settings`)이 여기로 보낸다(`FE-REQ-053`, 2026-11-02 셸 설정에서 분리) */
   coachSettings: "/coach/settings",
 } as const;

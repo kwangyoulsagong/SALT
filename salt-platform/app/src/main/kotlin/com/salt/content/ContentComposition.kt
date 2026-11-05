@@ -3,11 +3,14 @@ package com.salt.content
 import com.salt.app.SaltDbProperties
 import com.salt.content.api.ContentWorker
 import com.salt.content.api.SavingsEventsListener
+import com.salt.content.application.AnswerQuiz
 import com.salt.content.application.CONTENT_TX
 import com.salt.content.application.ContentSettings
 import com.salt.content.application.DismissTip
 import com.salt.content.application.GetPolicyParam
 import com.salt.content.application.GetTip
+import com.salt.content.application.GradeQuiz
+import com.salt.content.application.ListQuizCards
 import com.salt.content.application.ListTips
 import com.salt.content.application.RecordSignal
 import com.salt.content.application.RunValidityCheck
@@ -17,6 +20,7 @@ import com.salt.content.application.TipLibrary
 import com.salt.content.infrastructure.ClasspathCatalog
 import com.salt.content.infrastructure.JooqDismissals
 import com.salt.content.infrastructure.JooqPolicyParams
+import com.salt.content.infrastructure.JooqQuizAnswers
 import com.salt.content.infrastructure.JooqTips
 import com.salt.content.infrastructure.JooqTriggerRules
 import com.salt.content.infrastructure.JooqUserSignals
@@ -87,7 +91,8 @@ class ContentComposition {
     )
 
     @Bean
-    fun contentRunValidityCheck(@Qualifier("contentDatabase") database: ServiceDatabase, clock: Clock): RunValidityCheck = RunValidityCheck(JooqTips(database.dsl), clock)
+    fun contentRunValidityCheck(@Qualifier("contentDatabase") database: ServiceDatabase, library: TipLibrary, clock: Clock): RunValidityCheck =
+        RunValidityCheck(JooqTips(database.dsl), library, clock)
 
     @Bean
     fun contentWorker(@Qualifier("contentDatabase") database: ServiceDatabase, sync: SyncCatalog, validity: RunValidityCheck, clock: Clock): ContentWorker =
@@ -110,6 +115,17 @@ class ContentComposition {
 
     @Bean
     fun contentGetPolicyParam(@Qualifier("contentDatabase") database: ServiceDatabase): GetPolicyParam = GetPolicyParam(JooqPolicyParams(database.dsl))
+
+    @Bean
+    fun contentGradeQuiz(library: TipLibrary, settings: ContentSettings): GradeQuiz = GradeQuiz(library, settings)
+
+    @Bean
+    fun contentAnswerQuiz(@Qualifier("contentDatabase") database: ServiceDatabase, library: TipLibrary, settings: ContentSettings, clock: Clock): AnswerQuiz =
+        AnswerQuiz(library, JooqQuizAnswers(database.dsl), settings, clock)
+
+    @Bean
+    fun contentListQuizCards(@Qualifier("contentDatabase") database: ServiceDatabase, library: TipLibrary, settings: ContentSettings): ListQuizCards =
+        ListQuizCards(library, JooqQuizAnswers(database.dsl), settings)
 
     @Bean
     fun contentRecordSignal(@Qualifier("contentDatabase") database: ServiceDatabase): RecordSignal = RecordSignal(JooqUserSignals(database.dsl))

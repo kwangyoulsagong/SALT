@@ -151,3 +151,9 @@
 - [x] 390 앱 웹뷰 UA(`SALTApp/`) — `/home` · `/goals` · `/household` · `/household/people` · `/coach/report` 통과. `/investments` 에서 `/api/app/ai-coach/detail` 504 1건 — BFF 서버 예산 초과(기존, 11-04 로그에도), 직접 · 프록시 다시 재면 둘 다 200 → 범위 밖 표
 - [x] 정리 — 사용자 5 → 5 · 모든 스키마 `user_id` 고아 0 · 초대 코드 0 · 3001 끔
 - 환경 주의: 확인 중 운영 빌드(`turbo build`)가 떠 있던 zone dev 서버의 `.next` 를 덮어 500(`__webpack_modules__`) — dev 서버 재기동 뒤 통과. 코드 결함 아님
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) 확인 2회차
+
+- 몫: FR-80 쿠키 세션의 갱신 실패 처리 — 공개 경로 판정을 `isPublicPath` 하나로(공개 금융 팁 글 제자리) (`cf93acb1`)
+- 검증: `@repo/core` 경계표 13(변이 — 정확히 같음 비교로 바꾸면 2 실패) · 모노레포 `check-types` · `lint` · `test`(core 184 · ui 46) · `test:layer-check` · zone 빌드 5(별도 worktree, main 과 나란히 — `/goals` 152 → 153 은 공용 청크 반올림 경계 · 페이지 3.35 kB 같음, 나머지 zone 무변화) · 실화면(만료 세션 → 제자리 · 실패 문구 → 다시 누르면 익명 채점 / 로그인 `/home` · `/goals` 탭 4 · `/login` 0)
+- 미검증: 없음(이 몫 안)

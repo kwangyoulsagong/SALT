@@ -32,11 +32,11 @@
 | FR-1 | 공개 글: 출처 · 작성일 · 검수일 · 기준 연도 · 유효기한 필수, 하나라도 없으면 발행 불가 | Must | **Done(S2a 2026-11-05)** — 빌드 + 기동 검사 |
 | FR-2 | 유효기한 경과 → "확인 필요" · noindex · 때맞춘 팁 제외 · 변경 이력 공개 | Must | **Done(S2a)** — 당일까지 유효 |
 | FR-3 | 제도 파라미터 표(유효 구간)의 주인, 변경 시 `content.PolicyParamChanged` | Must | **Done(S2a)** — 구독자는 법무 확인 뒤 |
-| FR-4 | 때맞춘 팁: 도메인 이벤트 트리거(결혼 · 주거 목표, 11~12월, 5월, 고정비 증가, 신규 정기결제, 월초, 기한 없는 목표, 물가 발표, 만 34세 근접, 목표 달성). 한 번 닫으면 다시 안 띄움 | Must | **In progress(S2a)** — 결혼 · 주거 · 목표 달성 · 5월 · 11~12월 · 닫기. 나머지 트리거는 붙일 공적 제도 글이 생길 때(S2b) |
+| FR-4 | 때맞춘 팁: 도메인 이벤트 트리거(결혼 · 주거 목표, 11~12월, 5월, 고정비 증가, 신규 정기결제, 월초, 기한 없는 목표, 물가 발표, 만 34세 근접, 목표 달성). 한 번 닫으면 다시 안 띄움 | Must | **In progress(S2a)** — 결혼 · 주거 · 목표 달성 · 5월 · 11~12월 · 닫기. 나머지 트리거는 붙일 공적 제도 글이 생길 때(~~S2b~~ S2d) |
 | FR-5 | 법적 선 검사기: 상품명 · 금리 비교 · 가입 링크 · 명령형 · 종목 · 매매 시점 → 발행 실패(기존 금지 표현 검증기 재사용) | Must | **Done(S2a)** — 코치 검증기 꼴을 옮겨 적음, 한 모듈은 S6 |
-| FR-6 | 내 숫자로 다시 읽기(로그인 시 서버 계산) | Should | Draft |
-| FR-7 | 제도 변경 diff 뷰 | Should | In progress — 이력 목록(S2a), 줄 diff S2b |
-| FR-8 | 재미 — 30초 먼저 맞혀 보기 · 맞힌 문제 카드 모음 | Should | Draft |
+| FR-6 | 내 숫자로 다시 읽기(로그인 시 서버 계산) | Should | Draft — S2d(저축 · 가계부 값, 서비스를 넘는다) |
+| FR-7 | 제도 변경 diff 뷰 | Should | **Done(S2b 2026-11-05)** — 이력 목록(S2a) + 줄 diff(바뀐 줄만 · 모르는 판은 요약만) |
+| FR-8 | 재미 — 30초 먼저 맞혀 보기 · 맞힌 문제 카드 모음 | Should | **Done(S2b 2026-11-05)** — 정답은 서버 · 로그인이면 처음 맞힌 때 카드 · 시간 제한 0("30초"는 문제 길이 목표) |
 | FR-9 | 놓친 경우 모음(실패 사례) | Could | Draft |
 
 ## 비기능 요구사항
@@ -66,30 +66,34 @@
 
 | App | Route/Component | 변경 내용 |
 |---|---|---|
-| `apps/web-tips`(신규 zone) | `/tips` · `/tips/[slug]` | 공개 · ISR · robots 허용 |
-| 각 도메인 zone | 때맞춘 팁 카드 | `@repo/ui` 공용 카드 |
+| `apps/web-tips`(신규 zone) | `/tips` · `/tips/[slug]` | 공개 · ISR · ~~robots 허용~~ robots 는 서버 공개 플래그(법무 확인 전 noindex) — S2a |
+| `apps/web-tips` | 글 위 "읽기 전에 맞혀 보기" · `/tips/cards` 맞힌 카드 모음(개인 · noindex) · 목록에서 모음으로 가는 줄 | S2b |
+| 각 도메인 zone | 때맞춘 팁 카드 | `@repo/ui` 공용 카드 — 저축 · 가계부(S2a), 홈은 S3 |
 
 ## BFF/API 영향
 
 | Method | Path | Auth | Request | Response | Status |
 |---|---|---|---|---|---|
-| GET | `/api/app/tips` · `/api/app/tips/:slug` | 없음 | — | 글 · 메타 | Draft |
-| GET | `/api/app/tips/for-me?context=` | user | 화면 맥락 | 때맞춘 팁 0~1건 | Draft |
+| GET | `/api/app/tips` · `/api/app/tips/:slug` | 없음 | — | 글 · 메타 · 이력(바뀐 줄) · 퀴즈(정답 없음) | Done(S2a · S2b) |
+| GET | `/api/app/tips/for-me?context=` | user | 화면 맥락 | 때맞춘 팁 0~1건 | Done(S2a) |
+| POST | `/api/app/tips/:slug/dismiss` | user | — | 닫힘 | Done(S2a) |
+| POST | `/api/app/tips/:slug/quiz` | 있으면 씀 | `{ choice }` | 맞음 · 정답 · 풀이 · 카드가 됐나 | Done(S2b) |
+| GET | `/api/app/tips/quiz-cards` | user | — | 맞힌 카드 · 문제 수 | Done(S2b) |
 
 ## 서버/DB/Worker 영향
 
 | Layer | 위치 | 영향 |
 |---|---|---|
 | Server | content 서비스(Kotlin, S2) | 신규 |
-| DB | `content` 스키마 | 글 메타 · 제도 파라미터(유효 구간) · 트리거 · 닫기 기록 |
-| Worker | 유효기한 점검(일 1회) | 신규 |
+| DB | `content` 스키마 | 글 메타 · 변경 이력(+ 그 판의 줄, S2b) · 제도 파라미터(유효 구간) · 트리거 · 닫기 기록 · 사용자 신호 · 퀴즈 기록(S2b) |
+| Worker | 유효기한 점검 | ~~일 1회~~ 매시 15분(멱등 — 놓친 날을 메운다, S2a) |
 
 ## 이벤트/상태 흐름
 
 ```mermaid
 flowchart LR
   SV[savings.GoalCreated] --> CT[content 트리거]
-  HH[household 고정비 증가] --> CT
+  HH[household 고정비 증가 — 구독은 S2d] -.-> CT
   CT --> P[content.PolicyParamChanged] --> SV2[savings · household]
 ```
 
@@ -97,13 +101,21 @@ flowchart LR
 
 | 요구사항 | 화면/컴포넌트 | BFF/API | 서버/API | DB/Worker | 검증 |
 |---|---|---|---|---|---|
-| 전부 | 없음 | 없음 | 없음 | 없음 | Gap: 전부 신규 |
+| ~~전부~~ | ~~없음~~ | ~~없음~~ | ~~없음~~ | ~~없음~~ | ~~Gap: 전부 신규~~ **정정 2026-11-05(S2b 확인 3회차)** — 본문 표가 착수 전 모양 그대로였다(S2a · S2b 가 상태 칸만 고침). |
+| FR-1 · 5 | — | — | `PublishCheck` · `LegalLine` | 원문 파일 · `tip` NOT NULL | `ContentSpec` · `CatalogSpec` · 종단 |
+| FR-2 | 확인 필요 띠 · noindex | `noindex` | `RunValidityCheck` | `ContentWorker` | `ContentSpec` 경계 |
+| FR-3 | — | — | `GET /api/content/policy-params/{key}` · `PolicyParamChanged` | `policy_param` 트리거 | 종단(23P01) |
+| FR-4 | `TimelyTip` | `for-me` · `dismiss` | `TimelyTipPicker` · 저축 이벤트 구독 | `user_signal` · `tip_dismissal` | 종단(실 RabbitMQ) · 실화면 |
+| FR-6 | — | — | — | — | Gap: S2d |
+| FR-7 | `RevisionList` | `revisions[].changes` | `LineDiff` | `tip_revision.body_lines` | `QuizDiffSpec` · 종단 · 실화면 |
+| FR-8 | `AnswerQuiz` · `/tips/cards` | `quiz` · `quiz-cards` | `GradeQuiz` · `AnswerQuiz` · `ListQuizCards` | `quiz_answer` | `QuizDiffSpec` · 종단 · 실화면 |
+| FR-9 | — | — | — | — | Gap: 범위 밖(Could) |
 
 ## 수용 기준
 
-- [ ] 메타 하나라도 없는 글은 발행 실패
-- [ ] 유효기한 지난 글은 noindex · 트리거 제외
-- [ ] 상품명 · 가입 링크 · 명령형 0건(검사기)
+- [x] 메타 하나라도 없는 글은 발행 실패 — `ContentSpec` 여덟 칸 · `CatalogSpec`(S2a)
+- [x] 유효기한 지난 글은 noindex · 트리거 제외 — 당일 유효 · 다음 날 확인 필요(S2a)
+- [x] 상품명 · 가입 링크 · 명령형 0건(검사기) — 변이 12 + 오탐 경계 9, S2b 부터 퀴즈 문장까지(S2b)
 
 ## 검증 계획
 
@@ -122,3 +134,5 @@ flowchart LR
 | 2026-10-30 | 영역 REQ 작성 · 링크(위 머리 블록) |
 | 2026-10-30 | 공개 전 법무 확인 받기로 결정(사용자) |
 | 2026-11-05 | 금융 팁 S2a + F5a(`MONEY-S2a-tips-content`) — FR-1 · 2 · 3 · 5 done · FR-4 · 7 진행 · 원문 위치 열린 질문 닫음 · 공개는 법무 확인 전 꺼짐 |
+| 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — FR-7 · 8 done · FR-6 · 4 나머지는 S2d |
+| 2026-11-05 | 금융 팁 S2b 확인 3회차 — 본문 표(화면 · BFF · 서버/DB · Trace Matrix · 수용 기준)가 착수 전 모양 그대로였다 → 구현 현황으로 정정 · 수용 기준 셋 체크(S2a 에 이미 참) |

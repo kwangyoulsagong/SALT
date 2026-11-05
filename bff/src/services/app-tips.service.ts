@@ -34,10 +34,56 @@ export interface TipSummaryVM {
 
 export type TipBlockVM = { type: "heading" | "paragraph"; text: string } | { type: "bullets"; items: string[] };
 
+/** 바뀐 줄 — 앞 판과 견줘 빠진 줄 · 들어온 줄(FR-7 줄 diff, 서버 `LineDiff`) */
+export interface TipChangeVM {
+  op: "removed" | "added";
+  text: string;
+}
+
+export interface TipRevisionVM {
+  revisedAt: string;
+  summary: string;
+  /** 첫 판 · 줄을 모르는 이력이면 null(요약만), 상태만 바뀐 판이면 [] */
+  changes: TipChangeVM[] | null;
+}
+
+/** 읽기 전에 맞혀 보기 — **정답 없음**(고른 뒤 채점 응답에만, 서버가 채점한다) */
+export interface TipQuizVM {
+  question: string;
+  choices: string[];
+}
+
 export interface TipDetailVM extends TipSummaryVM {
   body: TipBlockVM[];
   /** 최근 것 먼저 — 변경 이력 공개(FR-2) */
-  revisions: { revisedAt: string; summary: string }[];
+  revisions: TipRevisionVM[];
+  quiz: TipQuizVM | null;
+}
+
+export interface QuizResultVM {
+  correct: boolean;
+  /** 정답 보기 번호(0부터) */
+  answer: number;
+  explanation: string;
+  /** 로그인한 풀이였나 — false 면 기록 0(화면이 "로그인하면 카드로 모아요") */
+  signedIn: boolean;
+  /** 이번 풀이로 처음 카드가 됐다 — 로그인 풀이에서만 true 일 수 있다 */
+  collected: boolean;
+}
+
+export interface QuizCardVM {
+  slug: string;
+  title: string;
+  question: string;
+  answer: string;
+  explanation: string;
+  collectedAt: string;
+}
+
+export interface QuizCardsVM {
+  /** 지금 풀 수 있는 문제 수 — 모음의 분모 */
+  available: number;
+  cards: QuizCardVM[];
 }
 
 export interface TipListVM {
@@ -91,6 +137,10 @@ const block = (b: Record<string, unknown>): TipBlockVM =>
     ? { type: "bullets", items: ((b.items as unknown[]) ?? []).map(String) }
     : { type: b.type === "heading" ? "heading" : "paragraph", text: String(b.text ?? "") };
 
+const change = (c: Record<string, unknown>): TipChangeVM => ({ op: c.op === "removed" ? "removed" : "added", text: String(c.text ?? "") });
+
+const quiz = (q: Record<string, unknown>): TipQuizVM => ({ question: String(q.question), choices: ((q.choices as unknown[]) ?? []).map(String) });
+
 class AppTipsService {
   async list(): Promise<TipListVM> {
     const { data } = await backendApi.proxyRequest("GET", "/content/tips");
@@ -104,7 +154,48 @@ class AppTipsService {
     return {
       ...summary(d),
       body: ((d.body as Record<string, unknown>[]) ?? []).map(block),
-      revisions: ((d.revisions as Record<string, unknown>[]) ?? []).map((r) => ({ revisedAt: String(r.revisedAt), summary: String(r.summary) })),
+      revisions: ((d.revisions as Record<string, unknown>[]) ?? []).map((r) => ({
+        revisedAt: String(r.revisedAt),
+        summary: String(r.summary),
+        changes: Array.isArray(r.changes) ? (r.changes as Record<string, unknown>[]).map(change) : null,
+      })),
+      quiz: d.quiz ? quiz(d.quiz as Record<string, unknown>) : null,
+    };
+  }
+
+  /**
+   * 퀴즈 풀이(FR-8) — 세션이 있으면 서버가 채점 + 기록(카드), 없으면 채점만(기록 0). 정답 판정은 늘 서버다.
+   * 세션이 있는데 서버가 401 이면 그대로 올린다 — 화면이 세션을 갱신하고 다시 부른다(익명 채점으로 몰래 바꾸지 않는다: 카드를 잃는다).
+   */
+  async answerQuiz(token: string | undefined, slug: string, choice: number): Promise<QuizResultVM> {
+    if (!Number.isInteger(choice) || choice < 0) throw new AppError("choice must be a non-negative integer", 400, true, "INVALID_QUIZ_CHOICE");
+    const path = encodeURIComponent(slug);
+    const { data } = token
+      ? await backendApi.proxyAuthRequest("POST", `/content/me/quiz/${path}`, token, { choice })
+      : await backendApi.proxyRequest("POST", `/content/tips/${path}/quiz`, { choice });
+    const d = data.data as Record<string, unknown>;
+    return {
+      correct: Boolean(d.correct),
+      answer: Number(d.answer),
+      explanation: String(d.explanation),
+      signedIn: Boolean(token),
+      collected: Boolean(token) && Boolean(d.collected),
+    };
+  }
+
+  async quizCards(token: string): Promise<QuizCardsVM> {
+    const { data } = await backendApi.proxyAuthRequest("GET", "/content/me/quiz-cards", token);
+    const d = data.data as { available: number; cards: Record<string, unknown>[] };
+    return {
+      available: Number(d.available),
+      cards: (d.cards ?? []).map((c) => ({
+        slug: String(c.slug),
+        title: String(c.title),
+        question: String(c.question),
+        answer: String(c.answer),
+        explanation: String(c.explanation),
+        collectedAt: String(c.collectedAt),
+      })),
     };
   }
 

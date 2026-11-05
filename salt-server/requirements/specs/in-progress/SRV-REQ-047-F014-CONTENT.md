@@ -48,11 +48,21 @@ Kotlin `services/content`(네 층) · 조립 `app/.../content/ContentComposition
 | FR-3 제도 파라미터 | **done** — 조회 `GET /api/content/policy-params/{key}?on=`(인증 없음) · 원문 동기화 때 줄마다 `content.PolicyParamChanged`(새 계약). 구독자는 법무 확인 뒤(저축 FR-12 · 가계부 FR-11) | `GetPolicyParam` · `OutboxContentEvents` |
 | FR-4 때맞춘 팁 | **done(부분)** — 구독 `savings.GoalCreated`(결혼 · 주거) · `savings.GoalReached` → 사용자 신호. 달 트리거 5 · 11 · 12월. `GET /api/content/me/tip?context=` 0~1건(이벤트 먼저 · 최근 신호 · 원문 순서) · 닫기 `POST /api/content/me/tips/{slug}/dismiss`. **`FixedCostIncreased` 구독 · 월초 · 물가 · 만 34세 등은 붙일 공적 제도 글이 생길 때** | `TimelyTipPicker` · `SavingsEventsListener` |
 | FR-5 법적 선 검사기 | **done** — 상품명(업권 꼬리 · 이름 + 은행/카드) · 금리 비교 · 가입 링크(본문 URL 0) · 명령형 · 완곡 권유 · 종목(6자리) · 매매 시점 · 확신. 변이 표 12 + 오탐 경계 9. **코치 검증기와 한 모듈은 S6**(언어가 다르다 — `SRV-REQ-049` FR-4) | `LegalLine` |
-| FR-6 내 숫자로 다시 읽기 | 범위 밖 | S2b |
-| FR-7 변경 diff | **done(첫 판)** — 글 응답에 이력(최근 먼저). 줄 단위 diff 뷰는 S2b | `GetTip` |
-| FR-8 퀴즈 | 범위 밖 | S2b |
-| FR-9 홈 요약 카드 | 범위 밖 — 홈 카드 묶음(`BFF-REQ-046`) | S2b 또는 S3 |
+| FR-6 내 숫자로 다시 읽기 | 범위 밖 — ~~S2b~~ **S2d**(저축 · 가계부 값을 읽어 서비스를 넘는다 — 2026-11-05 S2b 에서 나눔) | S2d |
+| FR-7 변경 diff | **done** — 글 응답에 이력(최근 먼저) + ~~줄 단위 diff 뷰는 S2b~~ **줄 diff(S2b, 아래 표)** | `GetTip` · `LineDiff` |
+| FR-8 퀴즈 | ~~범위 밖~~ **done(S2b, 아래 표)** | `TipQuiz` · `AnswerQuiz` |
+| FR-9 홈 요약 카드 | 범위 밖 — 홈 카드 묶음(`BFF-REQ-046`) | ~~S2b 또는~~ S3 |
 | 공개 플래그 | **done** — `CONTENT_PUBLIC`(기본 꺼짐). 꺼지면 목록 0 · 글 404 · 때맞춘 팁 0, 파라미터는 그대로 | `ContentSettings` |
+
+## 구현 현황 — 금융 팁 S2b(2026-11-05, 루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-7 줄 diff | **done** — 변경 이력마다 그 판의 줄(`tip_revision.body_lines` — 제목 · 요약 · 기준 연도 · 유효기한 · 본문 문장). 앞 판과 LCS 로 바뀐 줄만(`removed` · `added`). 첫 판 · S2b 전 이력은 `changes: null`(모른다 ≠ 안 바뀜), 상태만 바뀐 판은 `[]`. 출처 · 날짜 메타 · 퀴즈는 줄에 넣지 않는다(검수일만 바뀐 판이 줄을 내지 않게) | `LineDiff` · `Tip.revisionLines` · `GetTip` |
+| FR-8 퀴즈 | **done** — 원문 머리 블록 네 칸(다 있거나 다 없거나 · 보기 2~4 · 정답 1부터 · 길이 상한 · 법적 선 검사까지). 공개 글 응답엔 질문 · 보기만(정답 0). 채점: `POST /api/content/tips/{slug}/quiz`(공개 · 기록 0) · `POST /api/content/me/quiz/{slug}`(기록 — 처음 맞힌 때 한 번 `collected`) · 모음 `GET /api/content/me/quiz-cards`(최근 먼저 · 원문에서 빠진 글 숨김 · `available` 분모). 원문 글 다섯 전부에 퀴즈(본문에 이미 있는 사실로만) | `TipQuiz` · `PublishCheck` · `GradeQuiz` · `AnswerQuiz` · `ListQuizCards` · `JooqQuizAnswers` |
+| 첫 판 이력 | **정정** — 처음 기록하는 글은 늘 "첫 판"(S2a 는 `change:` 가 있으면 그 문장 — 앞 판이 없는 새 DB 에서 거짓) | `SyncCatalog` |
+| 예약 slug | **신설** — `cards` 는 글 slug 로 못 쓴다(팁 zone `/tips/cards` 가 가린다) | `PublishCheck.RESERVED_SLUGS` |
+| FR-4 나머지 트리거 · FR-6 · FR-9 | 범위 밖 — 붙일 공적 제도 글(트리거) · 서비스 간 값(FR-6) · 홈 카드 묶음(FR-9) | S2d · S3 |
 
 ## Changelog
 
@@ -60,3 +70,4 @@ Kotlin `services/content`(네 층) · 조립 `app/.../content/ContentComposition
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-05 | 금융 팁 S2a — to-do → in-progress. FR-1 · 2 · 3 · 5 done, FR-4 부분(저축 두 이벤트 + 달 셋), FR-7 첫 판(이력), FR-6 · 8 · 9 S2b. 커밋 `38e2d16d` · `dd7f536a`(회사 이름 목록 → 업권 꼬리) |
+| 2026-11-05 | 금융 팁 S2b — FR-7 줄 diff done · FR-8 퀴즈 done · 첫 판 이력 정정 · 예약 slug. FR-6 · 4 나머지는 S2d 로, FR-9 는 S3. 커밋 `d2d662d4` |

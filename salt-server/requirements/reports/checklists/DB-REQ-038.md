@@ -92,3 +92,9 @@
 - 몫: `household.FixedCostIncreased` 계약 설명의 "구독 예정" 정정(금융 팁 S2b — S2a 는 저축 두 이벤트만). 필드 · 스키마 무변경
 - 검증: `pnpm lint` 13/13 · 슬라이스 검증
 - 미검증: 없음
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) 확인 2회차
+
+- 몫: `household.FixedCostIncreased` 계약 설명의 구독 예정 칸 ~~금융 팁 S2b~~ → 금융 팁 S2d. 필드 · 스키마 무변경
+- 검증: `./gradlew check`(계약 스키마 발행 테스트 포함) — 슬라이스 체크리스트
+- 미검증: 없음(이 몫 안)

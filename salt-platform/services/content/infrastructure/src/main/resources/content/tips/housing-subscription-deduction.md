@@ -9,6 +9,11 @@ base_year: 2026
 valid_until: 2027-03-31
 triggers: goal_created:housing
 contexts: savings, home
+quiz_question: 주택청약종합저축 공제로 한 해 소득에서 빠지는 돈은 많아야 얼마일까요?
+quiz_choices: 120만 원 | 300만 원 | 40만 원
+quiz_answer: 1
+quiz_explain: 한 해 300만 원까지 넣은 몫의 40%라 많아야 120만 원이에요. 세금이 아니라 소득에서 빼요.
+change: 읽기 전에 맞혀 보기 문제 추가
 ---
 ## 무엇인가
 

@@ -41,3 +41,20 @@ export const itemSummary = style({ fontSize: "13px", lineHeight: "20px", fontWei
 export const itemMeta = style({ fontSize: "12px", lineHeight: "16px", fontWeight: 500, color: "rgba(22, 31, 46, 0.64)" });
 
 export const badge = style({ marginRight: "8px", fontWeight: 600, color: vars.colors.status.warningDark });
+
+/** 맞힌 카드 모음으로 가는 줄 — 다른 페이지로 가는 링크라 오른쪽 셰브론 · 폭 100%(눌림 칸 44) */
+export const cardsLink = style({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%",
+  minHeight: "44px",
+  padding: "0 16px",
+  borderRadius: "12px",
+  background: SURFACE.weakFill,
+  boxSizing: "border-box",
+  color: vars.colors.text.primary,
+  fontSize: "14px",
+  fontWeight: 600,
+  textDecoration: "none",
+});

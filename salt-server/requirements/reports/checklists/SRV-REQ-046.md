@@ -142,3 +142,9 @@
 - 몫: 가계부 이벤트 어댑터 주석 한 줄 — `FixedCostIncreased` 구독은 금융 팁 S2b(S2a 는 저축 두 이벤트만). 코드 · 계약 무변경
 - 검증: `./gradlew check` 최종 HEAD
 - 미검증: 없음
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) 확인 2회차
+
+- 몫: 가계부 이벤트 어댑터 주석 한 줄 — `FixedCostIncreased` 구독은 ~~금융 팁 S2b~~ 금융 팁 S2d(S2b 는 퀴즈 · 줄 diff 로 좁혔다). 코드 · 계약 무변경
+- 검증: `./gradlew check`(계약 스키마 발행 테스트 포함) — 슬라이스 체크리스트
+- 미검증: 없음(이 몫 안)

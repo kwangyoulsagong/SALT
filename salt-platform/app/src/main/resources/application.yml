@@ -39,6 +39,7 @@ salt:
       - /swagger-ui/**
       - /api/content/tips
       - /api/content/tips/*
+      - /api/content/tips/*/quiz
       - /api/content/policy-params/*
   # 금융 팁 공개 플래그 — 법무 확인 기록 전엔 꺼짐(`SRV-REQ-047` 수용 기준 3). 기본값을 켜지 않는다
   content:

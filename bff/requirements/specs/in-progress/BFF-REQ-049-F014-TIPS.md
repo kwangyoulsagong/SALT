@@ -18,6 +18,7 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-047-F014-CONTENT.md
 | FR-3 | `GET /api/app/tips/for-me?context=` — 로그인 필요, 0~1건, 닫기 `POST .../:id/dismiss` |
 | FR-4 | 개인화 실패 시 일반 예시로 폴백 |
 | FR-5 | 공개 경로 레이트 리밋(검색 유입 대비) |
+| FR-6 | 퀴즈 풀이 · 맞힌 카드 모음 · 글 응답의 바뀐 줄(S2b 신설 — `SRV-REQ-047` FR-7 · 8) |
 
 ## Acceptance Criteria
 
@@ -35,9 +36,18 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-047-F014-CONTENT.md
 | FR-5 레이트 리밋 | **done** — 공개 두 경로 IP 분당 120 | `PUBLIC_TIPS_RATE_LIMIT` |
 | 라우팅 표 | `/content` → platform | `config/server-routes.json` |
 
+## 구현 현황 — 금융 팁 S2b(2026-11-05, 루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-6 퀴즈 풀이 | **done** — `POST /api/app/tips/:slug/quiz` `{ choice }`: 세션(쿠키 → 헤더)이 있으면 서버 기록 경로, 없으면 공개 채점. 세션이 있는데 서버가 401 이면 그대로 올린다(익명 채점으로 바꾸면 카드를 잃는다 — 화면이 갱신 뒤 다시 부른다). 보기 번호가 0 이상 정수가 아니면 서버 앞에서 400 `INVALID_QUIZ_CHOICE`. 공개 경로와 같은 IP 제한 · `no-store` | `app-tips.service.ts` `answerQuiz` · `tips.routes.ts` |
+| FR-6 카드 모음 | **done** — `GET /api/app/tips/quiz-cards`(로그인) — `/:slug` 앞 | `quizCards` |
+| FR-1 보강 | **done** — 글 응답 `quiz`(질문 · 보기만 — 서버가 정답을 실어도 버린다) · `revisions[].changes` | `detail` |
+
 ## Changelog
 
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-05 | 금융 팁 S2a — to-do → in-progress. FR-1~5 done · 라우팅 표 `/content` → platform. 커밋 `36d1f7b9` |
+| 2026-11-05 | 금융 팁 S2b — FR-6 신설 · done(퀴즈 풀이 · 카드 모음) · 글 응답에 `quiz` · `changes`. 커밋 `4b5a294b` |

@@ -48,3 +48,8 @@
 
 - 몫: `household.FixedCostIncreased` 계약 설명의 "구독 예정" 정정(금융 팁 S2b — S2a 는 저축 두 이벤트만). 필드 · 스키마 무변경
 - **Action**: 없음
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) 확인 2회차
+
+- 몫: `household.FixedCostIncreased` 계약 설명의 구독 예정 칸 ~~금융 팁 S2b~~ → 금융 팁 S2d. 필드 · 스키마 무변경
+- **Action**: 없음 — 미룬 칸 이름이 바뀌면 그 이름을 적은 주석 · 계약 설명까지 grep(이번엔 2회차에 찾았다)
