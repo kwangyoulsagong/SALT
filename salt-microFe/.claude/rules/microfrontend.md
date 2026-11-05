@@ -11,7 +11,7 @@
 
 | 항목 | 규칙(목표) | 지금 코드 | 닫는 곳 |
 |---|---|---|---|
-| 화면 코드 위치 | `packages/domain-*` | ~~저축 화면이 `apps/web/src/**` — `savings.hostedIn: "web"`~~ **닫힘 2026-11-03**(`FE-REQ-056` — `domain-savings` · `hostedIn: "web-savings"`). 가계부 · 팁은 빈 zone | 가계부 `FE-REQ-057` · 팁 `FE-REQ-058` |
+| 화면 코드 위치 | `packages/domain-*` | ~~저축 화면이 `apps/web/src/**` — `savings.hostedIn: "web"`~~ **닫힘 2026-11-03**(`FE-REQ-056` — `domain-savings` · `hostedIn: "web-savings"`). ~~가계부 · 팁은 빈 zone~~ **닫힘** 가계부 2026-11-04(`FE-REQ-057`) · 팁 2026-11-05(`FE-REQ-058`) | — |
 | 운영 정적 파일 한 저장소 | 운영 빌드는 공용 `/_next` — zone 정적 파일을 합쳐 서비스(§3) | 로컬은 `pnpm static:merge` 가 셸 `.next/static` 에 합친다. 배포 저장소는 아직 없다 | `OPS-001` FR-12 |
 
 **옮기기 전 상태는 레지스트리 `hostedIn` 이 적는다.** cross-zone 판정(lint · `CrossZoneLink`)은 `hostedIn` 기준이라 셸에 남은

@@ -41,7 +41,7 @@ BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관�
 
 | 서피스 | 방법론 | 전환 근거 |
 |---|---|---|
-| 웹 `salt-microFe/apps/web` + 도메인 zone 4(`web-investment` · `web-savings` · `web-household` · `web-tips`) | **FSD** + Next.js **Multi-Zones(zone = 도메인)** + App Router **스트리밍 SSR** | `ADR-001`, `ADR-005`(2026-10-30 — 규칙 · 레지스트리 · 빈 zone 4 · `web-tax` 삭제는 `FE-REQ-052` 2026-11-02, 투자 화면 이전 `FE-REQ-053` 2026-11-02 · 저축은 `FE-REQ-056`~), `FE-REQ-007`~`009` |
+| 웹 `salt-microFe/apps/web` + 도메인 zone 4(`web-investment` · `web-savings` · `web-household` · `web-tips`) | **FSD** + Next.js **Multi-Zones(zone = 도메인)** + App Router **스트리밍 SSR** | `ADR-001`, `ADR-005`(2026-10-30 — 규칙 · 레지스트리 · 빈 zone 4 · `web-tax` 삭제는 `FE-REQ-052` 2026-11-02, 투자 화면 이전 `FE-REQ-053` 2026-11-02 · 저축은 `FE-REQ-056`~ · 가계부 `FE-REQ-057` · 공개 금융 팁 `FE-REQ-058` 2026-11-05), `FE-REQ-007`~`009` |
 | 모바일 `salt-microFe/apps/mobile` | **FSD** + React Native (iOS+Android) | `RN-REQ-001`~`003` |
 | BFF `bff` | 레이어드 + SSE | `BFF-REQ-006` |
 | 서버 `salt-server` (Express) | **DDD (컨텍스트 우선)** — S7 까지 공존 | `SRV-REQ-006` |
