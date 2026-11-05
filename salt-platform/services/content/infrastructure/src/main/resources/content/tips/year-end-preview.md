@@ -9,6 +9,11 @@ base_year: 2026
 valid_until: 2026-12-31
 triggers: month:11, month:12
 contexts: household, home
+quiz_question: 카드 소득공제는 어디부터 계산될까요?
+quiz_choices: 처음 쓴 돈부터 | 총급여의 25%를 넘게 쓴 몫부터 | 총급여의 50%를 넘게 쓴 몫부터
+quiz_answer: 2
+quiz_explain: 총급여의 25%를 넘게 쓴 몫부터 계산돼요. 체크카드 · 현금영수증의 공제율이 신용카드보다 높아요.
+change: 읽기 전에 맞혀 보기 문제 추가
 ---
 ## 무엇인가
 

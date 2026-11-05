@@ -9,6 +9,11 @@ base_year: 2026
 valid_until: 2026-12-31
 triggers: goal_created:wedding, month:11, month:12
 contexts: savings, home
+quiz_question: 결혼세액공제는 어느 날을 기준으로 할까요?
+quiz_choices: 예식일 | 혼인신고일 | 청첩장을 보낸 날
+quiz_answer: 2
+quiz_explain: 예식일이 아니라 혼인신고일이 기준이에요. 2024~2026년에 신고한 혼인이 대상이에요.
+change: 읽기 전에 맞혀 보기 문제 추가
 ---
 ## 무엇인가
 

@@ -169,6 +169,69 @@ class ContentEndToEndTest : ContentHttp() {
         }
     }
 
+    @Test
+    fun `퀴즈 — 공개 글엔 정답 0 · 로그인 없이 채점만 · 로그인하면 처음 맞힌 때 한 번 카드 · 틀려도 카드는 남는다`() {
+        val detail = call("GET", "/api/content/tips/marriage-tax-credit", null)
+        val quiz = data(detail).path("quiz")
+        quiz.path("question").asString() shouldContain "기준"
+        quiz.path("choices").size() shouldBe 3
+        quiz.has("answer") shouldBe false
+        detail.body().contains("quiz_answer") shouldBe false
+
+        // 로그인 없이 — 채점만, 기록 0
+        val graded = data(call("POST", "/api/content/tips/marriage-tax-credit/quiz", null, """{"choice":1}"""))
+        graded.path("correct").asBoolean() shouldBe true
+        graded.path("answer").asInt() shouldBe 1
+        data(call("POST", "/api/content/tips/marriage-tax-credit/quiz", null, """{"choice":0}""")).path("correct").asBoolean() shouldBe false
+        call("POST", "/api/content/tips/marriage-tax-credit/quiz", null, """{"choice":3}""").statusCode() shouldBe 400
+        call("POST", "/api/content/tips/marriage-tax-credit/quiz", null, """{}""").statusCode() shouldBe 400
+        call("POST", "/api/content/tips/no-such-tip/quiz", null, """{"choice":0}""").statusCode() shouldBe 404
+
+        // 로그인 — 틀림(카드 아님) → 맞힘(처음 카드) → 다시 맞힘(이미 카드) → 틀림(카드 남음)
+        val user = "quiz-${UUID.randomUUID()}"
+        call("GET", "/api/content/me/quiz-cards", null).statusCode() shouldBe 401
+        data(call("GET", "/api/content/me/quiz-cards", user)).path("cards").size() shouldBe 0
+        data(call("POST", "/api/content/me/quiz/marriage-tax-credit", user, """{"choice":0}""")).path("collected").asBoolean() shouldBe false
+        data(call("POST", "/api/content/me/quiz/marriage-tax-credit", user, """{"choice":1}""")).path("collected").asBoolean() shouldBe true
+        data(call("POST", "/api/content/me/quiz/marriage-tax-credit", user, """{"choice":1}""")).path("collected").asBoolean() shouldBe false
+        data(call("POST", "/api/content/me/quiz/marriage-tax-credit", user, """{"choice":2}""")).path("correct").asBoolean() shouldBe false
+
+        val cards = data(call("GET", "/api/content/me/quiz-cards", user))
+        cards.path("available").asInt() shouldBe 5
+        val card = items(cards.path("cards")).single()
+        card.path("slug").asString() shouldBe "marriage-tax-credit"
+        card.path("answer").asString() shouldBe "혼인신고일"
+        // 남의 카드는 안 보인다 · 행 하나에 시도 넷
+        data(call("GET", "/api/content/me/quiz-cards", "other-${UUID.randomUUID()}")).path("cards").size() shouldBe 0
+        val dsl = contentDatabase.dsl
+        dsl.fetchValue("SELECT attempts FROM quiz_answer WHERE user_id = ?", user) shouldBe 4
+    }
+
+    @Test
+    fun `변경 이력 줄 diff — 첫 판은 null · 유효기한을 늘린 판은 그 줄만 · 검수일만 바뀐 판은 빈 목록`() {
+        val first = items(data(call("GET", "/api/content/tips/year-end-preview", null)).path("revisions")).last()
+        first.path("summary").asString() shouldBe "첫 판"
+        first.path("changes").isNull shouldBe true
+
+        // 원문을 바꾼 판을 직접 기록한다(레포 원문은 그대로) — 동기화가 쓰는 포트와 같은 열
+        val dsl = contentDatabase.dsl
+        val lines = dsl.fetchValue("SELECT body_lines FROM tip_revision WHERE tip_slug = 'year-end-preview' ORDER BY id LIMIT 1") as String
+        val extended = lines.replace("유효기한: 2026-12-31", "유효기한: 2027-12-31")
+        dsl.execute(
+            "INSERT INTO tip_revision (tip_slug, revised_at, summary, previous_hash, body_lines) VALUES ('year-end-preview', now() + interval '1 minute', '유효기한 연장', 'h', ?)",
+            extended,
+        )
+        dsl.execute(
+            "INSERT INTO tip_revision (tip_slug, revised_at, summary, previous_hash, body_lines) VALUES ('year-end-preview', now() + interval '2 minute', '검수일만', 'h', ?)",
+            extended,
+        )
+        val revisions = items(data(call("GET", "/api/content/tips/year-end-preview", null)).path("revisions"))
+        revisions[0].path("summary").asString() shouldBe "검수일만"
+        revisions[0].path("changes").size() shouldBe 0
+        items(revisions[1].path("changes")).map { it.path("op").asString() to it.path("text").asString() } shouldBe
+            listOf("removed" to "유효기한: 2026-12-31", "added" to "유효기한: 2027-12-31")
+    }
+
     private fun <T : Any> waitFor(block: () -> T?): T {
         repeat(60) {
             block()?.let { return it }

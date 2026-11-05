@@ -9,6 +9,11 @@ base_year: 2026
 valid_until: 2027-05-31
 triggers: month:5
 contexts: household, home
+quiz_question: 종합소득세 신고 기간은 언제일까요?
+quiz_choices: 1월 한 달 | 5월 1일부터 31일까지 | 12월 한 달
+quiz_answer: 2
+quiz_explain: 지난해 소득을 해마다 5월 1일부터 31일까지 신고해요. 성실신고확인 대상 사업자는 6월 30일까지예요.
+change: 읽기 전에 맞혀 보기 문제 추가
 ---
 ## 무엇인가
 

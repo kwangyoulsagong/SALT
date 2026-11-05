@@ -16,7 +16,11 @@ interface ContentCatalog {
 interface Tips {
     data class Stored(val slug: String, val contentHash: String, val status: TipStatus, val validUntil: LocalDate)
 
-    data class Revision(val slug: String, val at: Instant, val summary: String, val previousHash: String?)
+    /**
+     * 변경 이력 한 줄. [lines] 는 그 판의 글을 줄로 편 것([Tip.revisionLines]) — 줄 diff(FR-7)의 재료. S2b 전에 쌓인 이력 ·
+     * 원문에서 빠진 판은 null(그 판과의 diff 는 모른다).
+     */
+    data class Revision(val slug: String, val at: Instant, val summary: String, val previousHash: String?, val lines: List<String>? = null)
 
     fun all(): List<Stored>
 
@@ -62,6 +66,15 @@ interface Dismissals {
     fun dismiss(userId: String, slug: String, at: Instant)
 
     fun dismissed(userId: String): Set<String>
+}
+
+/** 퀴즈 풀이 기록(`quiz_answer`) — [QuizRecord] */
+interface QuizAnswers {
+    /** 풀이 한 번 — 시도 수 +1, 맞혔고 아직 카드가 없으면 [at] 을 카드 시각으로. 같은 행 하나(사용자 · 글) */
+    fun record(userId: String, slug: String, correct: Boolean, at: Instant): QuizRecord
+
+    /** 맞힌 카드 — 최근 것 먼저 */
+    fun collected(userId: String): List<QuizRecord>
 }
 
 /** 발행 포트 — `content.PolicyParamChanged`. 유스케이스와 같은 트랜잭션(아웃박스). */

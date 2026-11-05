@@ -4,15 +4,19 @@ import com.salt.content.domain.ContentCatalog
 import com.salt.content.domain.ContentEvents
 import com.salt.content.domain.Dismissals
 import com.salt.content.domain.InvalidContext
+import com.salt.content.domain.LineDiff
 import com.salt.content.domain.PolicyParam
 import com.salt.content.domain.PolicyParamNotFound
 import com.salt.content.domain.PolicyParamSet
 import com.salt.content.domain.PolicyParams
 import com.salt.content.domain.PublishCheck
+import com.salt.content.domain.QuizAnswers
+import com.salt.content.domain.QuizNotFound
 import com.salt.content.domain.TimelyTipPicker
 import com.salt.content.domain.Tip
 import com.salt.content.domain.TipContext
 import com.salt.content.domain.TipNotFound
+import com.salt.content.domain.TipQuiz
 import com.salt.content.domain.TipStatus
 import com.salt.content.domain.Tips
 import com.salt.content.domain.TriggerKind
@@ -25,6 +29,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 /** content 서비스의 트랜잭션 매니저 이름(`ServiceDatabase` — 서비스마다 따로). */
@@ -99,17 +104,18 @@ open class SyncCatalog(
             when {
                 before == null -> {
                     tips.save(tip, status, now)
-                    tips.addRevision(Tips.Revision(tip.slug, now, tip.change ?: "첫 판", null))
+                    // 처음 기록하는 글은 늘 "첫 판" — `change:` 는 앞 판과 견준 말이라 앞 판이 없는 DB(새 환경)에선 거짓이 된다
+                    tips.addRevision(Tips.Revision(tip.slug, now, FIRST_EDITION, null, tip.revisionLines()))
                     revised++
                 }
                 before.contentHash != tip.contentHash -> {
                     tips.save(tip, status, now)
-                    tips.addRevision(Tips.Revision(tip.slug, now, tip.change ?: "본문 수정", before.contentHash))
+                    tips.addRevision(Tips.Revision(tip.slug, now, tip.change ?: "본문 수정", before.contentHash, tip.revisionLines()))
                     revised++
                 }
                 before.status != status -> {
                     tips.setStatus(tip.slug, status, now)
-                    tips.addRevision(Tips.Revision(tip.slug, now, statusChange(status), before.contentHash))
+                    tips.addRevision(Tips.Revision(tip.slug, now, statusChange(status), before.contentHash, tip.revisionLines()))
                     revised++
                 }
             }
@@ -141,6 +147,8 @@ open class SyncCatalog(
     }
 }
 
+internal const val FIRST_EDITION = "첫 판"
+
 internal fun statusChange(status: TipStatus): String = when (status) {
     TipStatus.NEEDS_CHECK -> "유효기한 지남 — 확인 필요"
     TipStatus.PUBLISHED -> "유효기한 안 — 다시 공개"
@@ -150,7 +158,7 @@ internal fun statusChange(status: TipStatus): String = when (status) {
  * 유효기한 점검(FR-2) — 워커가 매시 부른다(멱등 — 놓친 날을 다음 회차가 메운다). 기한 다음 날(KST)이 되면 확인 필요 · 변경 이력 한 줄.
  * 화면 상태는 늘 지금 날짜로 다시 계산한다([Tip.statusOn]) — 이 점검은 DB 기록(noindex 신호 · 이력)을 맞추는 몫이다.
  */
-open class RunValidityCheck(private val tips: Tips, private val clock: Clock) {
+open class RunValidityCheck(private val tips: Tips, private val library: TipLibrary, private val clock: Clock) {
     @Transactional(transactionManager = CONTENT_TX)
     open fun execute(): Int {
         val today = clock.kstToday()
@@ -159,7 +167,9 @@ open class RunValidityCheck(private val tips: Tips, private val clock: Clock) {
             .filter { it.status == TipStatus.PUBLISHED && TipStatus.on(it.validUntil, today) == TipStatus.NEEDS_CHECK }
             .onEach {
                 tips.setStatus(it.slug, TipStatus.NEEDS_CHECK, now)
-                tips.addRevision(Tips.Revision(it.slug, now, statusChange(TipStatus.NEEDS_CHECK), it.contentHash))
+                // 줄은 이 프로세스가 실은 원문에서 — 해시가 같을 때만(다른 판의 줄을 이 판으로 적지 않는다)
+                val lines = library.all()[it.slug]?.takeIf { tip -> tip.contentHash == it.contentHash }?.revisionLines()
+                tips.addRevision(Tips.Revision(it.slug, now, statusChange(TipStatus.NEEDS_CHECK), it.contentHash, lines))
             }
             .size
     }
@@ -179,13 +189,65 @@ open class ListTips(private val library: TipLibrary, private val settings: Conte
 }
 
 open class GetTip(private val library: TipLibrary, private val tips: Tips, private val settings: ContentSettings, private val clock: Clock) {
-    data class View(val tip: Tip, val status: TipStatus, val revisions: List<Tips.Revision>)
+    /** [changes] — 앞 판과 바뀐 줄(FR-7). 첫 판 · 줄을 모르는 판이면 null */
+    data class RevisionView(val revision: Tips.Revision, val changes: List<LineDiff.Change>?)
+
+    data class View(val tip: Tip, val status: TipStatus, val revisions: List<RevisionView>)
 
     @Transactional(transactionManager = CONTENT_TX, readOnly = true)
     open fun execute(slug: String): View {
         if (!settings.publicEnabled) throw TipNotFound(slug)
         val tip = library.all()[slug] ?: throw TipNotFound(slug)
-        return View(tip, tip.statusOn(clock.kstToday()), tips.revisions(slug))
+        val revisions = tips.revisions(slug)
+        return View(tip, tip.statusOn(clock.kstToday()), revisions.zip(LineDiff.forRevisions(revisions), ::RevisionView))
+    }
+}
+
+/** 퀴즈가 있는 공개 글 — 공개 플래그 · 원문 · 퀴즈 셋을 한 자리에서 본다(채점 둘이 같은 문으로 들어오게) */
+private fun quizOf(library: TipLibrary, settings: ContentSettings, slug: String): Tip {
+    if (!settings.publicEnabled) throw TipNotFound(slug)
+    val tip = library.all()[slug] ?: throw TipNotFound(slug)
+    if (tip.quiz == null) throw QuizNotFound(slug)
+    return tip
+}
+
+/** 로그인 없이 맞혀 보기(FR-8) — 채점만, 기록 0. 정답 · 풀이는 고른 뒤에만 나간다 */
+open class GradeQuiz(private val library: TipLibrary, private val settings: ContentSettings) {
+    fun execute(slug: String, choice: Int): TipQuiz.Graded = quizOf(library, settings, slug).quiz!!.grade(choice)
+}
+
+/**
+ * 로그인한 사람의 풀이(FR-8) — 채점 + 기록. 한 번이라도 맞히면 카드([QuizRecord.correctAt]).
+ * [Result.collected] 는 **이번 풀이로 처음** 카드가 됐을 때만 true — 화면이 "모음에 담았어요"를 한 번만 말한다.
+ */
+open class AnswerQuiz(private val library: TipLibrary, private val answers: QuizAnswers, private val settings: ContentSettings, private val clock: Clock) {
+    data class Result(val graded: TipQuiz.Graded, val collected: Boolean)
+
+    @Transactional(transactionManager = CONTENT_TX)
+    open fun execute(userId: String, slug: String, choice: Int): Result {
+        val graded = quizOf(library, settings, slug).quiz!!.grade(choice)
+        // DB 시각은 마이크로초 — 돌려받은 카드 시각과 같은지로 "이번에 처음"을 가른다
+        val at = clock.instant().truncatedTo(ChronoUnit.MICROS)
+        val record = answers.record(userId, slug, graded.correct, at)
+        return Result(graded, graded.correct && record.correctAt == at)
+    }
+}
+
+/**
+ * 맞힌 카드 모음(FR-8) — 최근 것 먼저. 원문에서 빠진 글 · 퀴즈가 없어진 글의 카드는 보이지 않는다(기록은 남는다 — 다시 생기면 돌아온다).
+ * [View.available] = 지금 풀 수 있는 문제 수(모음의 분모). 공개 전이면 둘 다 0.
+ */
+open class ListQuizCards(private val library: TipLibrary, private val answers: QuizAnswers, private val settings: ContentSettings) {
+    data class Card(val tip: Tip, val collectedAt: Instant)
+
+    data class View(val cards: List<Card>, val available: Int)
+
+    @Transactional(transactionManager = CONTENT_TX, readOnly = true)
+    open fun execute(userId: String): View {
+        if (!settings.publicEnabled) return View(emptyList(), 0)
+        val quizzes = library.all().filterValues { it.quiz != null }
+        val cards = answers.collected(userId).mapNotNull { r -> quizzes[r.slug]?.let { tip -> r.correctAt?.let { Card(tip, it) } } }
+        return View(cards, quizzes.size)
     }
 }
 
