@@ -14,6 +14,7 @@
 - Express `npm run build` · `lint` · `npm test` 929/929(새 `decisionChangedPayload` 2 — 계약 파일과 칸 · 패턴) · `test:layer-check` 10/6 · `prisma migrate deploy`(drop) · `/api/investment-notifications` 404
 - BFF `npm run build` · `npm test` 404/404(새 `app-alerts` 3 · 뷰모델 종류 셋)
 - FE `pnpm check-types` · `lint`(web) · 레이어 훅 사후(Bash 로 쓴 새 파일 16 + 바꾼 2 — 막힘 0)
+- 셸 web 운영 빌드(별도 worktree — 상시 dev `.next` 무관): main `/settings` 146 → **148 kB**(+2) · 공용 103 그대로
 - 데이터 이전: 덤프 · 복원 시험(1행) → `notification-import.sql` 대조 통과 1행 · 다시 돌려도 1행(멱등) → drop
 - 실스택(임시 사용자 · BFF 4001 → platform 4010 · Express 4000): 설정 셋 false → 저축 켬 · 없는 도메인 400 `NOTIFICATION_DOMAIN_UNKNOWN` / 저축 목표 도달 → `goal_reached` / **Express `OutboxDecisionChangeNotifier` 실행 → coach.outbox `published_at` → `signal_update`** → BFF `/api/app/alerts` 2건 · 안 읽은 수 2
 - 실화면(셸 3001 · 앱 웹뷰 UA 390 · 사용자 넷): 데이터 있음(1280 — 켬/끔 저장 · 새로 고침 뒤 유지 · 키보드 Space) · 빈(390 — 셋 다 꺼짐 · 넘침 0) · 로그아웃(패널 없음 · 설정 요청 0) · 실패(`route` — 조회 500 → 안내 한 줄 · 토글 0 / 저장 500 → 되돌림 + 안내) · 자리 칸 → 값 높이 차이 0(1280 · 390) · 콘솔 오류 0

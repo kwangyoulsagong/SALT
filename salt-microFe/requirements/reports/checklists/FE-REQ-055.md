@@ -58,5 +58,5 @@
 ## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
 
 - 몫: FR-6 — 패널 · 낙관적 저장(실패면 되돌림) · 자리 칸 줄 셋 높이 · 조회 재시도 1
-- 검증: check-types · lint · 레이어 훅 사후 · 실화면 사용자 넷(루트 체크리스트)
+- 검증: check-types · lint · 레이어 훅 사후 · 실화면 사용자 넷(루트 체크리스트) · 셸 운영 빌드 `/settings` 146 → 148 kB(worktree, main 과 나란히)
 - 미검증: 없음(이 몫 안)
