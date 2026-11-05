@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useHasAccessToken } from "@repo/web-shared/api";
 
-import type { HouseholdMonth } from "../model/types";
+import type { HouseholdMonth, HouseholdStory } from "../model/types";
 import { householdApi } from "./householdApi";
 import { householdQueryKeys } from "./queryKeys";
 
@@ -99,3 +99,16 @@ export const useGoalClockRetry = (amount: number | null) =>
     staleTime: Infinity,
     retry: 1,
   });
+
+/** 이야기 카드(가계부 S1g). @param initial 서버 컴포넌트가 쿠키로 미리 받은 값 — 첫 HTML 부터 카드가 있다 */
+export const useHouseholdStory = (period: string, initial?: HouseholdStory | null) => {
+  const signedIn = useHasAccessToken();
+  const query = useQuery({
+    queryKey: householdQueryKeys.story(period),
+    queryFn: ({ signal }) => householdApi.story(period, signal),
+    enabled: signedIn === true,
+    staleTime: MONTH_STALE_MS,
+    ...(initial ? { initialData: initial } : {}),
+  });
+  return { ...query, isSignedOut: signedIn === false && !initial };
+};

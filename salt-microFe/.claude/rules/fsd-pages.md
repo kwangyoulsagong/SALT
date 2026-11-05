@@ -35,7 +35,7 @@ pages/{page-name}/
 
 ### 도메인 zone 4개(`apps/web-investment` · `web-savings` · `web-household` · `web-tips`)
 
-zone 앱은 `src/pages` 를 갖지 않는다 — 루트 `app/` 이 `@repo/domain-<x>/pages/<slice>` 를 re-export 한다(`microfrontend.md` §2-4). 투자 zone 이 첫 실례다(2026-11-02 `FE-REQ-053`), 저축이 둘째(2026-11-03 `FE-REQ-056` — `goals` · `add-goal` · `goal-detail`), 가계부가 셋째(2026-11-04 `FE-REQ-057` — `household` · `new-expense` · `budget`, S1b `recurring` `/household/templates`, S1d `challenges` `/household/challenges`). 팁은 빈 골격. **페이지 최상위는 `<div>`** — zone 레이아웃 `AppShell` 이 이미 `<main>` 이다(저축 실측에서 main 3개). `apps/web-tax` 는 지웠다(`FE-REQ-052` FR-6).
+zone 앱은 `src/pages` 를 갖지 않는다 — 루트 `app/` 이 `@repo/domain-<x>/pages/<slice>` 를 re-export 한다(`microfrontend.md` §2-4). 투자 zone 이 첫 실례다(2026-11-02 `FE-REQ-053`), 저축이 둘째(2026-11-03 `FE-REQ-056` — `goals` · `add-goal` · `goal-detail`), 가계부가 셋째(2026-11-04 `FE-REQ-057` — `household` · `new-expense` · `budget`, S1b `recurring` `/household/templates`, S1d `challenges` `/household/challenges`, S1g `story` `/household/story/[period]`). 팁은 빈 골격. **페이지 최상위는 `<div>`** — zone 레이아웃 `AppShell` 이 이미 `<main>` 이다(저축 실측에서 main 3개). `apps/web-tax` 는 지웠다(`FE-REQ-052` FR-6).
 
 ### `apps/mobile`
 
