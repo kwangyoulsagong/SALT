@@ -68,7 +68,7 @@ class OutboxHouseholdEvents(private val outbox: OutboxWriter) : HouseholdEvents 
         )
     }
 
-    /** 가맹점 · 메모 0 — 분류 · 금액 · 달만(가계부 S1e 판단 5). 구독 예정: content 때맞춘 팁(금융 팁 S2b — S2a 는 저축 두 이벤트만 구독) */
+    /** 가맹점 · 메모 0 — 분류 · 금액 · 달만(가계부 S1e 판단 5). 구독 예정: content 때맞춘 팁(금융 팁 S2d — S2a 는 저축 두 이벤트만 구독, S2b 는 퀴즈 · 줄 diff) */
     override fun fixedCostIncreased(increase: FixedCostIncrease) {
         outbox.append(
             FIXED_COST_INCREASED,
