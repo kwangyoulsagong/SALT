@@ -45,7 +45,8 @@ const fail = (msg) => fails.push(msg);
 // ── 1. 주인 REQ ────────────────────────────────────────────────
 const REQ = /\b(FE|BFF|SRV|DB|FC|RN)-REQ-\d{3}\b/g;
 const AREA = { FE: "salt-microFe", RN: "salt-microFe", BFF: "bff", SRV: "salt-server", DB: "salt-server", FC: "salt-forecast" };
-const CODE = /\.(ts|tsx|mts|cts|js|mjs|cjs|py|kt|kts|sql|prisma)$/;
+// 설정 · 운영 · 계약 파일(sh · json · yml)도 센다 — 머리에 REQ 가 있는 것만 걸린다. 코드만 세던 때 eslintrc · run-platform.sh 주인을 두 번 놓쳤다(2026-11-02 · 11-05)
+const CODE = /\.(ts|tsx|mts|cts|js|mjs|cjs|py|kt|kts|sql|prisma|sh|json|ya?ml)$/;
 const isCode = (p) => CODE.test(p) && !/(^|\/)(requirements|docs|node_modules|dist|\.next)\//.test(p);
 
 const addedLines = (p) => {
