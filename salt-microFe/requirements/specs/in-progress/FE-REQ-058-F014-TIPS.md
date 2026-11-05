@@ -43,13 +43,23 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 |---|---|---|
 | FR-1 목록 · 글 | **done** — 서버 컴포넌트 · ISR 60초 · 메타 다섯 칸 항상(출처 · 기준 연도 · 작성일 · 검수일 · 유효기한) | `packages/domain-tips`(`entities/tip` · `pages/tips` · `pages/tip-detail`) · `apps/web-tips/app/tips/**` |
 | FR-2 확인 필요 | **done** — 띠(경고 + 제목 글자) · 글 `noindex` · 목록 배지 | `NeedsCheckBand` · `tipMetadata` |
-| FR-3 내 숫자로 | 범위 밖 | S2b |
-| FR-4 변경 diff | **done(첫 판)** — "바뀐 것" 이력 목록. 줄 diff 는 S2b | `RevisionList` |
-| FR-5 퀴즈 | 범위 밖 | S2b |
+| FR-3 내 숫자로 | 범위 밖 | ~~S2b~~ **S2d**(서버 FR-6 — 서비스를 넘는다) |
+| FR-4 변경 diff | **done** — "바뀐 것" 이력 목록 + ~~줄 diff 는 S2b~~ **줄 diff(S2b, 아래 표)** | `RevisionList` |
+| FR-5 퀴즈 | ~~범위 밖~~ **done(S2b, 아래 표)** | `features/answer-quiz` · `pages/quiz-cards` |
 | FR-6 때맞춘 팁 카드 | **done** — `@repo/ui/timely-tip-card` + 칸 연결 `@repo/web-shared/ui` `TimelyTip`(조회 · 닫기 · 그리기) · 저축 `/goals` · 가계부 `/household`. 홈은 홈 카드 묶음 때 | `TimelyTipCard` · `TimelyTip` |
 | FR-7 휴대폰 폭 | **done** — 공개 zone 껍데기 `PublicShell`(앱 내비 · 768 미만 안내 · prerender 없음). 360 · 390(웹뷰) · 1280 가로 넘침 0. LCP 는 미측정 | `@repo/web-shared/layout` |
 | FR-8 원문 위치 | **done** — 1안(레포 파일, 서버가 주인). 렌더 소스 = BFF 구조 응답(HTML 0) | `SRV-REQ-047` FR-1 |
 | 색인 | **done** — 레이아웃 기본 noindex, 페이지가 서버 공개 플래그로 켠다(프론트 상수 0). 글은 목록이 공개 · slug 있을 때만 부른다(Next 데이터 캐시가 404 로 앞선 200 을 안 덮는다 — 실화면) | `publicTipsApi` · `tipsMetadata` |
+
+## 구현 현황 — 금융 팁 S2b(2026-11-05, 루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-4 줄 diff | **done** — 이력 줄 아래 바뀐 줄: `<del>`(취소선 · 2단 회색) / `<ins>`(옅은 면) + 앞 글자 − · + + 읽기 프로그램 문구. 빨강 · 초록 0(오름 · 내림 뜻). 비교는 서버 | `RevisionList` · `tip.css.ts` |
+| FR-5 맞히기 | **done** — 글 위(메타 아래 · 본문 위) "읽기 전에 맞혀 보기": 보기 버튼(44 높이) → 서버 채점 → 맞음/정답 · 풀이 · 로그인이면 "카드에 담았어요"(처음 한 번) / "이미 모은 카드예요", 아니면 "로그인하면 … 모을 수 있어요". 다시 풀기. 시간 제한 · 점수 · 연속 0(FEATURE-014 "30초"는 문제 길이 목표 — 재촉하지 않는다). 결과 `role=status` · 정답 · 고른 보기는 글자 표지까지 | `features/answer-quiz` |
+| FR-5 카드 모음 | **done** — `/tips/cards`(개인 · 늘 noindex) "N문제 중 M장" · 카드(글 제목 · 문제 · 정답 · 풀이 · 모은 날 · 글 보기 셰브론). 로그아웃 · 실패 · 늦음 · 공개 전 각각 한 줄 | `pages/quiz-cards` · `ROUTES.tipCards` |
+| 날짜 | **정정** — 시각(이력 · 모은 날)은 한국 날짜로(UTC 앞 열 글자라 0~9시가 하루 앞) | `formatTipDate` |
+| 번들 | 브라우저 요청은 엔티티 배럴 밖(feature · page `api/`) — 배럴에 두니 공개 서버 페이지 `/tips` 가 143 → 147 kB. 옮긴 뒤 144 | `entities/tip/model/queryKeys.ts` |
 
 ## Changelog
 
@@ -58,3 +68,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 이 REQ 에 걸린 몫(`FE-REQ-054`) — 금융 팁은 탭이 아니다. 화면이 생기면 zone 레이아웃에 `AppShell` + `VIEW_TRANSITION_CSS`(공개 화면이라 로그아웃이면 내비 · prerender 판단을 다시 본다 — 지금 공개 경로 목록은 `/` · `/login` · `/onboarding`) |
 | 2026-11-05 | 금융 팁 S2a — to-do → in-progress. FR-1 · 2 · 6 · 7 · 8 done, FR-4 첫 판, FR-3 · 5 S2b, LCP 미측정. 커밋 `5cc3b415` · `6f9cab4b` · `9e6973ae` · `5915638f` · 슬라이스 `tip` · 페이지 `tips` · `tip-detail` 레지스트리 |
+| 2026-11-05 | 금융 팁 S2b — FR-4 줄 diff done · FR-5 맞히기 · 카드 모음 done · 날짜 한국 날짜 정정. FR-3 은 S2d, LCP 는 공개 직전. 커밋 `d59efa9c` · 레지스트리 features `answer-quiz` · pages `quiz-cards` |

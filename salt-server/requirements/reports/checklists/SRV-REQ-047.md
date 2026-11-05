@@ -21,3 +21,10 @@
 | FR-4 나머지 트리거 · FR-6 · 8 · 9 | 슬라이스 범위 밖 | 금융 팁 S2b |
 | notification 서비스 이전(S2 의 다른 몫) | 서비스가 다르다(`SRV-REQ-048`) | 서버 S2c |
 | 코치 검증기와 한 모듈 | 언어가 다르다(Express TS) | S6(`SRV-REQ-049` FR-4) |
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) · `d2d662d4`
+
+- 몫: FR-7 줄 diff(`LineDiff` · `body_lines`) · FR-8 퀴즈(원문 네 칸 · 공개 채점 · 기록 채점 · 카드 모음) · 첫 판 이력 정정 · 예약 slug `cards`
+- 검증: `./gradlew check` 통과(content 종단 7 — 새 2: 퀴즈 공개 글 정답 0 · 익명 채점 기록 0 · 처음 맞힘 한 번 카드 · 틀려도 카드 남음 · 남의 카드 0 · 시도 4 한 행 / 줄 diff 첫 판 null · 유효기한 연장 그 줄만 · 상태만 바뀐 판 []) · 도메인 `QuizDiffSpec` 11(네 칸 각각 · 경계표 15행 · 법적 선 변이 3 · 채점 경계 · LCS · 큰 판 null · 이력 diff · 검수일만 같은 줄 · 예약 slug) · `CatalogSpec` 원문 다섯 퀴즈 통과 · `bootJar` 실행 jar 기동(로컬 운영 DB Flyway V2 적용)
+- 실화면: 슬라이스 체크리스트
+- 미검증: 없음(이 몫 안). FR-6 · FR-4 나머지 · FR-9 는 범위 밖(S2d · S3)

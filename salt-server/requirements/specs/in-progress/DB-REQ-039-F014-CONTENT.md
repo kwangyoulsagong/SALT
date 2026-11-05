@@ -43,7 +43,8 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | FR-3 `policy_param` | **done(정정)** — ~~exclusion constraint~~ 같은 뜻의 **트리거**(`btree_gist` 확장을 서비스 계정이 못 만든다) · 키 advisory lock · 트리거가 걸린 스키마로 표를 찾는다(관리자 psql 에서도 같은 검사). 열 이름 `param_key` · `num_value` · `text_value` | 같은 파일 |
 | FR-4 `trigger_rule` | **done** — 원문에서 빠진 규칙은 `active=false` | 같은 파일 |
 | FR-5 `tip_dismissal` | **done** — (사용자, 글) 키 · 두 번 닫아도 한 행 | 같은 파일 |
-| FR-6 `quiz_answer` | 범위 밖 — 퀴즈는 S2b | S2b |
+| FR-6 `quiz_answer` | ~~범위 밖 — 퀴즈는 S2b~~ **done(S2b)** — `V2__quiz_and_revision_lines.sql`: (사용자, 글) 키 · 시도 수 · 처음/마지막 풀이 · 처음 맞힌 시각(카드 — 한 번 생기면 지우지 않음) · 시각 순서 CHECK · 맞힌 것만 부분 인덱스 | `V2__quiz_and_revision_lines.sql` |
+| FR-2 보강(S2b) | **done** — `tip_revision.body_lines`(그 판의 줄, 개행 이음) — 줄 diff 재료. S2b 전 행은 NULL | 같은 파일 |
 | FR-7 outbox | **done** — 공통 세 표(outbox · processed_event · shedlock) | 같은 파일 |
 | **FR-8(신설)** `user_signal` | **done** — 다른 서비스 이벤트에서 온 트리거 사실만(이벤트 ID 키 · 금액 · 목표 이름 0) | 같은 파일 |
 
@@ -53,3 +54,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-05 | 금융 팁 S2a — to-do → in-progress. FR-1~5 · 7 done, FR-3 은 트리거로 정정(확장 권한), **FR-8 `user_signal` 신설**, FR-6 퀴즈는 S2b. 커밋 `38e2d16d` · 로컬 운영 DB `svc_content` 로그인 · Flyway V1 적용 |
+| 2026-11-05 | 금융 팁 S2b — FR-6 `quiz_answer` done · `tip_revision.body_lines` 추가(V2 — 더하기만, drop · 이름 변경 0). 로컬 운영 DB 적용(Flyway 기동). 커밋 `d2d662d4` |

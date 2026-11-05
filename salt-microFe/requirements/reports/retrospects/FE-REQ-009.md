@@ -186,3 +186,8 @@ re-export 껍데기가 필요하고(FR-38), 껍데기가 남으면 done이 아�
 
 - 몫: FSD lint 플러그인에 규칙 하나 `@repo/fsd/no-client-enum-export`("use client" 파일의 enum 금지 — 서버에서 undefined) · 레이어 표에 엔티티 `tip` · 페이지 `tips` · `tip-detail`
 - **Action**: 없음 — 기존 결정 위에 한 줄
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`)
+
+- 몫: 레이어 표에 features `answer-quiz` · pages `quiz-cards` + `fsd-features.md` · `fsd-pages.md` 표
+- **Action**: 없음 — 기존 결정 위에 한 줄

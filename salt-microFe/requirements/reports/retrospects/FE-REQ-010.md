@@ -166,3 +166,8 @@ watchlist 슬라이스 회고가 적은 실수를 초대 슬라이스가 되풀�
 
 - 몫: `ROUTES.tips` · `ROUTES.tip(slug)` — 금융 팁 zone 경로. 기존 경로 무변경
 - **Action**: 없음 — 기존 결정 위에 한 줄
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`)
+
+- 몫: `ROUTES.tipCards`(`/tips/cards`) — 기존 경로 무변경
+- **Action**: 없음 — 기존 결정 위에 한 줄

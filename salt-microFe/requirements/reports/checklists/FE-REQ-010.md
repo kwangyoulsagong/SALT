@@ -305,3 +305,9 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 - 몫: `ROUTES.tips` · `ROUTES.tip(slug)` — 금융 팁 zone 경로. 기존 경로 무변경
 - 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`)
+
+- 몫: `ROUTES.tipCards`(`/tips/cards`) — 기존 경로 무변경
+- 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2b-tips-quiz-diff.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
+- 미검증: 없음(이 몫 안)
