@@ -31,6 +31,6 @@ export const paragraph = style({ margin: 0, fontSize: "15px", lineHeight: "24px"
 
 export const bullets = style({ margin: 0, paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "6px", fontSize: "15px", lineHeight: "24px", color: vars.colors.text.primary, wordBreak: "keep-all" });
 
-export const revisions = style({ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", lineHeight: "16px" });
+export const revisions = style({ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", lineHeight: "16px", color: vars.colors.text.primary });
 
 export const revisionDate = style({ color: "rgba(22, 31, 46, 0.64)", marginRight: "8px", fontVariantNumeric: "tabular-nums" });

@@ -25,7 +25,7 @@ export const eyebrowStyles = style({
   margin: 0,
   fontSize: vars.typography.t7.fontSize,
   lineHeight: vars.typography.t7.lineHeight,
-  color: vars.colors.neutral[600],
+  color: vars.colors.neutral[700],
 });
 
 export const titleStyles = style({
@@ -72,7 +72,7 @@ globalStyle(`${readMoreStyles} a`, {
 });
 
 export const sourceStyles = style({
-  color: vars.colors.neutral[600],
+  color: vars.colors.neutral[700],
 });
 
 /** 닫기 — 44px 누름 칸(`a11y-policy.md`), 그림은 작게 */
