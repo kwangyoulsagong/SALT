@@ -14,7 +14,7 @@ S1g 가 넘긴 두 갈래를 **둘 다** 닫는다. 한 줄:
 **"명세서 한 장이면 앞으로 6개월 청구 · 수수료를 서버가 추정하고(지시 0), 주고받은 돈은 사람별로 서버가 더한다(차액 0) — 둘 다 이벤트 · 로그 0."**
 이로써 FEATURE-013 에서 남는 것은 FR-11 공제(S2 content 뒤) · FR-17 영수증 인식(Could — 한국어 정확도 실측 뒤)뿐이다.
 
-> **done 2026-11-05** — 커밋 `d782ecdf`(파싱 로그 검사 우연 실패) · `f998f36d`(서버 · DB V8) · `c7843c5a`(BFF) · `38ed6518`(FE · 규칙 둘). 검증 `requirements/reports/checklists/MONEY-S1h-household-revolving-people.md`.
+> **done 2026-11-05** — 커밋 `d782ecdf`(파싱 로그 검사 우연 실패) · `f998f36d`(서버 · DB V8) · `c7843c5a`(BFF) · `38ed6518`(FE · 규칙 둘) · `57121a0c`(확인 단계 — 사람 장부 줄 버튼 이름). 검증 `requirements/reports/checklists/MONEY-S1h-household-revolving-people.md`.
 > 영역 REQ 넷(`SRV-REQ-046` · `DB-REQ-038` · `BFF-REQ-048` · `FE-REQ-057`)은 남은 FR(공제 S2) 때문에 in-progress — BFF-048 은 FR 전부 닫힘.
 
 ## 범위

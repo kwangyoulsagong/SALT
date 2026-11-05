@@ -386,7 +386,7 @@ BFF `AppError` 선택 `code`(차트 주기 422 `MARKET_CHART_PERIOD_UNSUPPORTED`
 
 **돈 관리 앱 가계부 S1h + F4h — 리볼빙 명세서 6개월 추정 · 사람 장부 · 해 경조사 봉투 (서버 · DB · BFF · FE, 2026-11-05, `feat/srv-req-046-household-s1h`) — done** — 사용자 "새브랜치 파고 다음 파이프라인 진행". 3a 다음 칸(같은 칸 `FE-REQ-013` 2단계 대신 — "기능부터").
 범위 `MONEY-S1h-household-revolving-people-slice.md`, 검증 `checklists/MONEY-S1h-household-revolving-people.md`. S1g 가 넘긴 두 갈래를 둘 다: 리볼빙은 규정 대조 먼저(비율 10~100 · 연 20% · 일할 ÷ 365/366 · 이름 "리볼빙(일부결제금액이월약정)") — 명세서 한 장으로 6개월 추정 · 가정 문장 늘 · "언제 다 갚나" · 지시 0 · 지출 합 밖.
-사람 장부는 사람별 준 · 받은 합(차액 0 · 이름 민감 — 이벤트 · 로그 0) · 해 경조사 봉투(넘어도 같은 색). V8 표 셋 · 월 쿼리 23. 커밋 `d782ecdf` · `f998f36d` · `c7843c5a` · `38ed6518`. 가계부 S1 갈래 끝 — 남은 것 공제(S2) · 영수증(Could).
+사람 장부는 사람별 준 · 받은 합(차액 0 · 이름 민감 — 이벤트 · 로그 0) · 해 경조사 봉투(넘어도 같은 색). V8 표 셋 · 월 쿼리 23. 커밋 `d782ecdf` · `f998f36d` · `c7843c5a` · `38ed6518` · `57121a0c`(확인 단계 — 사람 장부 줄 버튼 이름). 가계부 S1 갈래 끝 — 남은 것 공제(S2) · 영수증(Could).
 
 **돈 관리 앱 가계부 S1g + F4g — 이야기 카드(달 · 해) (서버 · DB · BFF · FE, 2026-11-05, `feat/srv-req-046-household-s1g`) — done** — 사용자 "새브랜치 파고 다음 파이프라인 진행". 3a 다음 칸(같은 칸 `FE-REQ-013` 2단계 대신 — "기능부터").
 범위 `MONEY-S1g-household-story-slice.md`, 검증 `checklists/MONEY-S1g-household-story.md`. 셋(사람 장부 · 이야기 카드 · 리볼빙) 중 Should 인 이야기 카드만: 줄은 사실만(쓴 돈 · 가장 많이 쓴 분류 몫 · 가장 많이 쓴 달 · 안 쓴 날 · 챌린지 한 날 · 아낀 돈 · 기분 남긴 수 — 점수 · 비교 0) · 값이 없으면 빠짐 ·
@@ -984,3 +984,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-05 | **가계부 S1g + F4g done** — `SRV-REQ-046` FR-20 · `DB-REQ-038` FR-18 신설 · `BFF-REQ-048` FR-4(~~전부 닫힘~~ **정정 2026-11-05** 사람 장부 경로는 S1h) · `FE-REQ-057` FR-9 이야기 카드 · `FE-REQ-009` 레지스트리 · `FE-REQ-010` 경로 · `FE-REQ-013` 번들 · `RN-REQ-034` 변경 없음. 루트 `MONEY-S1g-household-story-slice.md`. 낡은 "S1g" 포인터(사람 장부 · 리볼빙) → S1h 정정 · 규칙 `canvas.md` 내보내기 한 줄 |
 | 2026-11-05 | 가계부 S1g 확인 단계 — 공유 시트 거절 · 실패 → 저장(`eb9dc877`) · 저장 주소 다음 틱 · `BFF-REQ-048` "FR-4 전부 닫힘" 정정(사람 장부 경로 · 리볼빙 칸 S1h) · 실화면 · 프론트 전체 재검증 |
 | 2026-11-05 | **가계부 S1h + F4h done** — `SRV-REQ-046` FR-10 · 14 · `DB-REQ-038` FR-5 정정 · 9 · FR-19 신설 · `BFF-REQ-048` FR-3 · 4(전부 닫힘) · `FE-REQ-057` FR-7 리볼빙 · FR-8 사람 장부 · `FE-REQ-009` 레지스트리 · `FE-REQ-010` 경로 · `FE-REQ-013` 번들 · `RN-REQ-034` 변경 없음 · FEATURE-013 FR-10 · 14 · 기능 맵 가계부 행. 루트 `MONEY-S1h-household-revolving-people-slice.md` |
+| 2026-11-05 | 가계부 S1h 확인 단계 — 사람 장부 줄 버튼 이름에 대상(`57121a0c`) · UI 고치기 · 지우기 · 새 명세서 · 서버 HTML · 접근성 트리 · Swagger 실화면 |
