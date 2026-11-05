@@ -48,3 +48,4 @@ source: requirements/decisions/ADR-006-server-msa-kotlin.md
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 이벤트 2종 계약 `household.ExpenseRecorded` · `household.LandingIssued`(`contracts/events`) · 쓰기 시점 스키마 검증 · 종단 테스트가 아웃박스 행으로 발행 확인(`63146ddf`). FR-4 13종 중 가계부 몫 2(`MonthClosed` · `FixedCostIncreased` 는 S1b) |
 | 2026-11-04 | 가계부 S1b — 이벤트 `household.MonthClosed`(새 계약 · 답 글 0) · `household.LandingIssued` 에 `scheduled` 필수 필드(`a32d349e`). 발행 시점 스키마 검증 그대로 |
 | 2026-11-04 | 가계부 S1e — FR-4 첫 이벤트 13종 중 `household.FixedCostIncreased`(새 계약 · 가맹점 0 · 가맹점 · 달마다 한 번)(`98895870`). 발행 시점 스키마 검증 그대로 |
+| 2026-11-05 | 가계부 S1f — `household.ExpenseRecorded` 계약 `category` 에 사용자 분류 꼴(`^u_[0-9a-f]{12}$`) 추가(`96c7c5b4`). 이름은 싣지 않는다 · 구독자 0 이라 깨지는 소비처 없음 · 발행 시점 스키마 검증 그대로 |

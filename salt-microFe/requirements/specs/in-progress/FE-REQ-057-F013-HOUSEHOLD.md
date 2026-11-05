@@ -22,11 +22,12 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | FR-3 | 붙여넣기 — 여러 문자 → 후보 목록(체크 · 수정) → 한 번에 저장. 원문은 컴포넌트 상태에서만, 저장 뒤 비움 · 로컬 저장 0 | FR-3 |
 | FR-4 | 반복 템플릿 확인 카드 · 대략 합계 입력("대략" 라벨) | FR-4 · 5 |
 | FR-5 | 저장 후 목표 시계 한 줄("결혼 목표 3일 늦어짐", `pending` 이면 "계산 중") | FR-8 |
-| FR-6 | 예산 방식 고르기 · 봉투 편집. 초과는 회색 음수 — 빨강 · 경고 아이콘 · 팝업 0 | FR-6 |
+| FR-6 | 예산 방식 고르기 · 봉투 편집. 초과는 회색 음수 — 빨강 · 경고 아이콘 · 팝업 0. 통장 쪼개기(소득 · 생활비 · 저축 · 비상금 칸 + 서버가 준 급여 통장 몫 한 줄) — **2026-11-05 S1f** | FR-6 |
 | FR-7 | `/household/month/[ym]` — 착지 구간 + 지난달 적중 · 월 마감 리뷰 3문항 · 할부 띠 · 공제 계기판("추정" · 기준 연도) | FR-7 · 9 · 10 · 11 |
 | FR-8 | 감정 태그 · 만족도 거울 · 사람 장부 · 노동시간 환산(끄고 켬) | FR-13~15 |
 | FR-9 | 재미 — 챌린지(내가 고름 · 언제든 종료 · 실패 표시 0) · 달력 스티커(연속 일수 0) · 이야기 카드(공유 시 금액 가림 기본) | FR-16 · 19~21 |
 | FR-10 | 저장 실패 시 입력값 보존 | UX |
+| FR-12 | 내 분류 — 예산 화면에서 만들기(이름 · 묶음) · 고치기 · 지우기(보관 — 지난 지출 이름은 남는다는 문장). 칩 · 봉투 칸에 보관 안 한 내 분류, 지출 · 할부 · 고정비 · 다음 날 묻기 · 템플릿 줄에 그 이름(월 화면은 서버 HTML 부터). 상한 · 이름 규칙은 서버 — **신설 2026-11-05 S1f** | FR-6 |
 | FR-11 | 고정비 후보 카드("매달 나가는 돈 같아요" — 매달 적기로 · 아니에요 · 되돌리기, 무엇이 후보인지 · 올랐는지는 서버) · 내역 줄 "평소보다 큼 · 이 분류 보통 N원"(서버 판정) — **신설 2026-11-04 S1e** | FR-12 |
 
 ## Acceptance Criteria
@@ -64,7 +65,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 |---|---|---|
 | FR-4 | 반복 템플릿 확인 카드 done — "이번 달에도 나갔나요?"(서버 `stage=ask` 만 · 금액 고쳐 확인 · 이번 달은 안 나가요) + 예정 한 줄 · `/household/templates`(만들기 · 고치기 · 그만 적기 · 상한은 서버 `limit`) | `features/manage-recurring` · `pages/recurring` |
 | FR-7 | 월 마감 리뷰 3문항 · 할부 띠 done(공제는 S2 content 뒤) — 닫을 수 있나 · 문항은 서버 값, 닫은 달은 같은 칸으로 답 고치기 | `features/close-month` · `entities/household` `InstallmentBand` |
-| FR-8 · 9 | S1c — **정정 2026-11-04** 감정 · 거울 · 노동시간 · 무지출 달력은 F4c 닫힘, 챌린지는 S1d(F4d) 닫힘, 사람 장부 · 이야기 카드는 ~~S1d~~ ~~S1e~~ S1f(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | |
+| FR-8 · 9 | S1c — **정정 2026-11-04** 감정 · 거울 · 노동시간 · 무지출 달력은 F4c 닫힘, 챌린지는 S1d(F4d) 닫힘, 사람 장부 · 이야기 카드는 ~~S1d~~ ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | |
 
 분류 칩은 `entities/household` 로 내렸다(`a4b3936b`) — 지출 적기와 템플릿이 같은 칩. 번들(Next 표, First Load JS): `/household` ~~149~~ ~~157~~ 158(수정 `d91cb8db` 뒤) · `/household/templates` 131 kB(새) · 공용 103 kB.
 
@@ -75,7 +76,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | FR-8 감정 · 만족도 거울 | **done** — 바로 적기에 "그때 기분(선택)" 칩(키는 서버 `emotions`) + 산 직후 만족 1~5 · "어제 단 기분, 지금은 어때요?" 카드(물을 항목은 서버) · 기분별 만족 거울(점수별 건수 막대 — 색 하나 · 평균 0) · 내역 줄 기분 낱말 | entities `EmotionChips` · `FeltScale` · `FeelingMirror` · features `answer-feeling` |
 | FR-8 노동시간 | **done** — 예산 화면 "근무 시간으로 보기"(시급 · 월급 · 월 근무 시간, 끄고 켬) · 저장 결과 "이번 지출 = 근무 N분" · 달 합 · 내역 줄. 계산은 서버, 화면은 분 → "N시간 M분" 글자만 | features `set-work-hours` · `formatWorkMinutes` |
 | FR-9 달력 스티커 | **done(무지출)** — 안 쓴 날 달력(칸 상태 · 표시 가능 · 요일 자리는 서버) · 누르면 표시 · 지우기 · 연속 일수 0 | entities `NoSpendCalendar` · features `mark-no-spend` |
-| FR-8 사람 장부 · FR-9 챌린지 · 이야기 카드 | ~~S1d~~ **정정 2026-11-04** 챌린지는 S1d(F4d) 닫힘, 사람 장부 · 이야기 카드는 ~~S1e~~ S1f(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | 슬라이스 범위 밖 |
+| FR-8 사람 장부 · FR-9 챌린지 · 이야기 카드 | ~~S1d~~ **정정 2026-11-04** 챌린지는 S1d(F4d) 닫힘, 사람 장부 · 이야기 카드는 ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | 슬라이스 범위 밖 |
 | 지난 지출에 기분 붙이기 · 바꾸기 화면 | API 만 — 내역 줄 디자인과 겹친다 | `FE-REQ-060` |
 
 ## 구현 현황 — F4d (2026-11-04, `requirements/specs/done/MONEY-S1d-household-challenge-slice.md`)
@@ -84,7 +85,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 |---|---|---|
 | FR-9 챌린지 | **done** — `/household/challenges`: 고르기(예시 = 서버 키 · 이름 칸 · 날짜 칸 둘 — min · max 는 서버 `today` · `startMax`, 상한은 서버 `canStart`) · 카드(단계 배지 · 기간 · 한 날 수 · 아낀 돈 합 · 보탠 합 — 서버 숫자) · 오늘 했어요(서버 `todayMarkable` · `today`) · 아낀 돈 적기 · 지우기 · 목표에 보태기(목표만 고름 — 금액은 안 보냄, 목표 목록 null 이면 그 칸만 안내) · 그만두기(확인 창 0). **실패 · 성공률 · 연속 0**, 끝난 카드도 같은 색 · 아래 묶음으로만 | entities `ChallengeHead` · features `start-challenge` · `track-challenge` · pages `challenges` |
 | FR-9 챌린지 스티커 | **done** — 달력 칸에 같은 회색 테두리 동그라미(무지출 점과 모양으로만 가름) · 머리에 "챌린지 한 날 N일" · 칸 이름에 "챌린지 한 날" | entities `NoSpendCalendar` |
-| FR-8 사람 장부 · FR-9 이야기 카드 | ~~S1e~~ S1f(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | 슬라이스 범위 밖 |
+| FR-8 사람 장부 · FR-9 이야기 카드 | ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | 슬라이스 범위 밖 |
 
 번들(Next 표, First Load JS): `/household/challenges` 153 kB(새) · `/household` 160 → 161 kB · 공용 102 kB. 가계부 첫 화면 머리에 "챌린지" 링크(다른 머리 링크와 같은 글자 링크).
 
@@ -94,9 +95,19 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 |---|---|---|
 | FR-11 고정비 카드 | **done** — 이번 달 화면 착지 아래. 줄마다 가맹점 · 분류 · "N번 · 지난번 금액 · 다음은 날짜쯤" · 올랐으면 "앞 달 X원보다 Y원 올랐어요"(같은 색 · 경고 0) · 매달 적기로(서버 칸 그대로 템플릿 — 확인하고 적기) · 아니에요(숨김 → 한 줄 + 되돌리기). 새 동작이 지난 결과 · 실패 줄을 지운다. 가맹점 이름에 조사 0 | entities `FixedCostHead` · features `find-fixed-cost` · pages `household` |
 | FR-11 평소보다 큼 | **done** — 내역 줄 배지 "평소보다 큼" + "이 분류 보통 N원"(서버 `typicalAmount` 가 있을 때만) | entities `ExpenseList` |
-| FR-8 사람 장부 · FR-9 이야기 카드 | S1f | 슬라이스 범위 밖 |
+| FR-8 사람 장부 · FR-9 이야기 카드 | ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기) | 슬라이스 범위 밖 |
 
 번들(Next 표, First Load JS): `/household` 161 → 162 kB · 공용 103 kB.
+
+## 구현 현황 — F4f (2026-11-05, `requirements/specs/done/MONEY-S1f-household-categories-accounts-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-12 | **done** — 예산 화면 "내 분류" 패널(목록 · 고치기 · 지우기 · 만들기 · `n / 상한`) · 409 · 400 코드 → 문장 · 결과 줄은 줄이 사라져도 남음 · 이름은 `useCategoryLabel` 한 곳(월 화면은 `CategoryNamesProvider` 에 `month.categories`, 다른 화면은 분류 표 조회 하나) · 칩은 기본 12 를 바로 그리고 내 분류를 뒤에 · 고치는 템플릿의 보관한 분류는 칩 하나로 남김 | features `manage-categories` · entities `CategoryNames` · `CategoryChips` · pages `budget` · `household` |
+| FR-6 통장 쪼개기 | **done** — 방식 셋 · 소득 + 통장 셋 칸 · 저장한 예산이 같은 방식이면 서버 `salaryShare` 한 줄 · 봉투 이름 "급여 통장(고정비)" · "생활비 통장" | features `edit-budget` · entities `EnvelopeList`(`ACCOUNT_LABEL`) |
+| FR-8 사람 장부 · FR-9 이야기 카드 | S1g | 슬라이스 범위 밖 |
+
+번들(Next 표, First Load JS): `/household` 162 → 163 kB · `/household/budget` 134 kB · 공용 103 kB.
 
 ## Changelog
 
@@ -114,3 +125,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-11-04 | F4d — FR-9 챌린지 · 챌린지 스티커 done(`23d44bb6`). 실화면(임시 사용자 둘) 고르기 → 오늘 했어요 → 아낀 돈 → 보태기 → 그만두기 · 달력 동그라미 · 4폭 × 2화면 넘침 0 · 웹뷰 390 · 접근성 트리 · route 로 로딩 · 실패 5가지 |
 | 2026-11-04 | `dc476f8d` — 챌린지 카드 실패 줄이 다음 동작이 성공해도 남던 결함(실패 상태인 동작 아무거나를 골랐다) → 새 동작 시작 때 다른 동작 실패를 지움. route 로 고치기 전 · 뒤 둘 다 확인 |
 | 2026-11-04 | F4e — FR-11 신설 · done(`b1d14ed6`). 실화면(임시 사용자) 후보 2 · 숨기기 · 되돌리기 · 매달 적기로 → 템플릿 화면 · 평소보다 큼 줄 · 4폭 넘침 0 · 웹뷰 390 · route 로 실패 → 다른 성공에 지워짐 |
+| 2026-11-05 | F4f — FR-12 신설 · done · FR-6 통장 쪼개기(`3269eef3`). 실화면(임시 사용자) SSR 이름 · 칩 · 봉투 · 같은 이름 409 문장 · 만들기 · 고치기 · 지우기 · 급여 몫 갱신 · 4폭 × 3화면 넘침 0 · 웹뷰 390. 내 분류 패널 폭을 편집기와 같은 640 으로 |

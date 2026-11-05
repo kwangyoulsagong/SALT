@@ -11,3 +11,7 @@
 ## 2026-11-04 — 가계부 S1e(`MONEY-S1e-household-fixed-cost`)
 
 - 없음.
+
+## 2026-11-05 — 가계부 S1f(`MONEY-S1f-household-categories-accounts`)
+
+- 없음.

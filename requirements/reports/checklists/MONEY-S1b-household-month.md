@@ -32,7 +32,7 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 감정 태그 · 거울 · 사람 장부 · 노동시간 · 달력 · 스티커 · 챌린지 · 이야기 카드 · 고정비 · 리볼빙 · 통장 쪼개기 | 범위 밖 | 가계부 S1c — **정정 2026-11-04** 감정 · 거울 · 노동시간 · 무지출 달력은 S1c 닫힘(`MONEY-S1c-household-mirror`), 챌린지 · 스티커는 S1d 닫힘(`MONEY-S1d-household-challenge`), 나머지 ~~S1d~~ S1e — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f |
+| 감정 태그 · 거울 · 사람 장부 · 노동시간 · 달력 · 스티커 · 챌린지 · 이야기 카드 · 고정비 · 리볼빙 · 통장 쪼개기 | 범위 밖 | 가계부 S1c — **정정 2026-11-04** 감정 · 거울 · 노동시간 · 무지출 달력은 S1c 닫힘(`MONEY-S1c-household-mirror`), 챌린지 · 스티커는 S1d 닫힘(`MONEY-S1d-household-challenge`), 나머지 ~~S1d~~ S1e — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g |
 | 공제 계기판 | content 파라미터 | S2 content 뒤 |
 | 저축 구독(`MonthClosed`) | 저축 쪽 쓸 자리 없음 | 저축 S2 |
 | ~~BFF `backend-switch` 추적 ID 테스트(기존 실패)~~ | **닫힘 2026-11-04** `15177092`(사용자 "저 실패는 고쳐봐") | — |

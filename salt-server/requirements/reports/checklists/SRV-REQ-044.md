@@ -39,3 +39,7 @@
 ## 2026-11-04 — 가계부 S1e 이벤트
 
 - [x] `household.FixedCostIncreased` 계약 · 발행(종단 테스트 — 오른 회차에 한 번 · 지우고 다시 적어도 1 · 본문 가맹점 0) · 로컬 실스택 아웃박스 발행(`published_at`) 확인
+
+## 2026-11-05 — 가계부 S1f 이벤트
+
+- [x] `household.ExpenseRecorded` — 내 분류로 적은 지출이 발행 시점 스키마 검증을 지난다(종단 — 아웃박스 `category` = 키 · 본문에 이름 0)

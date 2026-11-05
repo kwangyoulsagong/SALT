@@ -262,3 +262,7 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 ## 2026-11-04 — 가계부 S1e(`MONEY-S1e-household-fixed-cost`)
 
 - [x] 레지스트리 코드에 features `find-fixed-cost` — 등록 먼저 · lint 12/12 · `test:layer-check` 26 · 훅 사후 실행 차단 0
+
+## 2026-11-05 — 가계부 S1f(`MONEY-S1f-household-categories-accounts`)
+
+- [x] 레지스트리 코드에 features `manage-categories` — 등록 먼저(훅이 막음) · lint 12/12 · `test:layer-check` 26 · 훅 사후 실행 차단 0

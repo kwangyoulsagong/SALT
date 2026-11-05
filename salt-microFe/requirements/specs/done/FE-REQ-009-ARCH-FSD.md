@@ -308,3 +308,4 @@ export { importLedger as POST } from '@/app/api-routes';
 | 2026-11-04 | 가계부 S1c — 레지스트리 코드(`layer-rules.cjs`)에 features `answer-feeling` · `mark-no-spend` · `set-work-hours` + `fsd-features.md` 표(`f0c8793d`) |
 | 2026-11-04 | 가계부 S1d — 레지스트리 코드(`layer-rules.cjs`)에 features `start-challenge` · `track-challenge` · pages `challenges` + `fsd-features.md` · `fsd-pages.md` 표(`23d44bb6`) |
 | 2026-11-04 | 가계부 S1e — 레지스트리 코드(`layer-rules.cjs`)에 features `find-fixed-cost` + `fsd-features.md` 표(`b1d14ed6`) |
+| 2026-11-05 | 가계부 S1f — 레지스트리 코드(`layer-rules.cjs`)에 features `manage-categories` + `fsd-features.md` 표(`3269eef3`) — 훅이 등록 전 쓰기를 막아 표부터 고쳤다 |

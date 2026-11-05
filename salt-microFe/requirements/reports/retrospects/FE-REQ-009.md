@@ -169,3 +169,7 @@ re-export 껍데기가 필요하고(FR-38), 껍데기가 남으면 done이 아�
 ## 2026-11-04 — 가계부 S1e(`MONEY-S1e-household-fixed-cost`)
 
 - **Action**: 없음 — 슬라이스를 표에 먼저 넣고 시작했다.
+
+## 2026-11-05 — 가계부 S1f(`MONEY-S1f-household-categories-accounts`)
+
+- 새 슬라이스를 쓰기 전에 훅이 막았다 — 레지스트리를 먼저 고치는 순서가 기계로 지켜졌다. Action 없음.

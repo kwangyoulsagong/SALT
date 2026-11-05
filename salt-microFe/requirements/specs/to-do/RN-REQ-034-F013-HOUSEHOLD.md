@@ -40,3 +40,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-11-04 | 가계부 S1c(`MONEY-S1c-household-mirror`) — 변경 없음 기록. 웹 계약(감정 태그 · 다음 날 만족 · 노동시간 · 안 쓴 날)이 먼저 섰다(`BFF-REQ-048`). RN 기분 칩 · 달력 · "어제 단 기분" 알림은 이 계약을 쓴다 |
 | 2026-11-04 | 가계부 S1d(`MONEY-S1d-household-challenge`) — 변경 없음 기록. 웹 계약(챌린지 · 한 날 · 아낀 돈 · 보태기 — `BFF-REQ-048`)이 먼저 섰다. RN 챌린지 화면은 이 계약을 쓴다 |
 | 2026-11-04 | 가계부 S1e(`MONEY-S1e-household-fixed-cost`) — 변경 없음 기록. 웹 계약(월 화면 `fixedCosts` · `typicalAmount` · 숨기기 · 되돌리기 — `BFF-REQ-048`)이 먼저 섰다. RN 고정비 카드는 이 계약을 쓴다 |
+| 2026-11-05 | 가계부 S1f(`MONEY-S1f-household-categories-accounts`) — 변경 없음 기록. 웹 계약(분류 표 · 내 분류 경로 4 · `account_split` · `salaryShare` — `BFF-REQ-048`)이 먼저 섰다. RN 칩 · 예산 화면은 이 계약을 쓴다 |
