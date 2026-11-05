@@ -80,6 +80,7 @@ class ContentSpec : StringSpec({
     "법적 선 변이 — 금지 문장 하나를 본문에 끼우면 실패, 고친 문장은 통과" {
         val table = listOf(
             "국민은행 적금이 이 제도와 같이 쓰기 좋아요." to "product_name",
+            "아무개증권 계좌로 받는 사람도 있어요." to "product_name",
             "적금 추천 순위를 같이 봐요." to "product_name",
             "금리 비교를 해 보면 차이가 커요." to "rate_comparison",
             "연 4.5% 금리 상품도 있어요." to "rate_comparison",
@@ -104,11 +105,13 @@ class ContentSpec : StringSpec({
             "납입액의 40%를 소득에서 빼요.",
             "하나의 조건만 맞아도 대상이 될 수 있어요.",
             "우리는 공식 출처만 적어요.",
+            "신용카드보다 체크카드 · 현금영수증의 공제율이 높아요.",
+            "주택청약종합저축에 넣은 돈의 40%예요.",
             "신고 기간은 5월 1일부터 5월 31일까지예요.",
         ).forEach { LegalLine.violations(it).shouldBeEmpty() }
         // 제목 · 요약 · 변경 요약도 같은 검사를 지난다
         rejected(source(front = mapOf("title" to "결혼하면 꼭 신청하세요"))).any { it.startsWith("법적 선 imperative") } shouldBe true
-        rejected(source(front = mapOf("change" to "토스뱅크 사례 추가"))).any { it.startsWith("법적 선 product_name") } shouldBe true
+        rejected(source(front = mapOf("change" to "어느뱅크 사례 추가"))).any { it.startsWith("법적 선 product_name") } shouldBe true
     }
 
     "유효기한 경계 — 당일 유효 · 다음 날 확인 필요" {
