@@ -120,3 +120,8 @@ hover 색이 터치 기기에서 sticky 가 됐다(FR-23). `(hover: hover)` 안�
 ## 2026-11-05 — FE-REQ-013 FR-80 2단계
 
 - 파일만 걸침(토큰 운반이 쿠키로) — Action 없음
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) 확인 2회차
+
+- 몫: 세션 갱신 실패 뒤 로그인 이동(FR-62 후반)의 공개 경로 예외가 `isPublicPath`(접두) — 공개 금융 팁 글에서는 세션만 비우고 제자리
+- **Action**: 같은 판정을 두 자리에서 하면 하나로 모은다 — 새 공개 zone 은 `PUBLIC_PATHS` 한 줄

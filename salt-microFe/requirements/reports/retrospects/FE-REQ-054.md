@@ -64,3 +64,8 @@
 
 - 몫: 팁 zone `next.config.js` 를 가계부와 같은 프리셋 꼴로(vanilla-extract). 금융 팁은 탭이 아니라 `AppShell` 을 쓰지 않는다(이 REQ 의 2026-11-03 메모 — 공개 화면 내비 · prerender 판단: 둘 다 없음)
 - **Action**: 없음 — 기존 결정 위에 한 줄
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) 확인 2회차
+
+- 몫: `ZoneNavigation` 의 공개 경로 판정을 `@repo/core/auth` `isPublicPath` 로(같은 규칙 — 동작 무변경, `/home` · `/goals` 탭 4 · `/login` 0 실화면)
+- **Action**: 같은 판정을 두 자리에서 하면 하나로 모은다 — 새 공개 zone 은 `PUBLIC_PATHS` 한 줄

@@ -207,3 +207,9 @@
 
 - FR-53 저장 위치가 **쿠키**가 됐다(머리 정정의 "아직 `localStorage`" 닫힘) · 갱신(FR-62)은 셸 Route Handler 로 · `RedirectSignedIn` 은 `useHasSession`(`721063fc`)
 - 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) 확인 2회차
+
+- 몫: 세션 갱신 실패 뒤 로그인 이동(FR-62 후반)의 공개 경로 예외가 `isPublicPath`(접두) — 공개 금융 팁 글에서는 세션만 비우고 제자리 (`cf93acb1`)
+- 검증: `@repo/core` 경계표 13(변이 — 정확히 같음 비교로 바꾸면 2 실패) · 모노레포 `check-types` · `lint` · `test`(core 184 · ui 46) · `test:layer-check` · zone 빌드 5(별도 worktree, main 과 나란히 — `/goals` 152 → 153 은 공용 청크 반올림 경계 · 페이지 3.35 kB 같음, 나머지 zone 무변화) · 실화면(만료 세션 → 제자리 · 실패 문구 → 다시 누르면 익명 채점 / 로그인 `/home` · `/goals` 탭 4 · `/login` 0)
+- 미검증: 없음(이 몫 안)

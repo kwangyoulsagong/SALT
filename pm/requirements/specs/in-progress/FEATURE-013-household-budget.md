@@ -153,3 +153,4 @@ flowchart LR
 | 2026-11-05 | 가계부 S1g — FR-21 이야기 카드 done(달 · 해 · 공유 이미지 금액 가림 기본). 루트 `MONEY-S1g-household-story-slice.md`. S1g 를 이야기 카드 하나로 좁혔다 — 남은 것 FR-11(공제 — S2 content 뒤) · 14 · 17 · 리볼빙(S1h) |
 | 2026-11-05 | 가계부 S1h — FR-10 리볼빙 · FR-14 사람 장부 · 해 경조사 봉투 done. 루트 `MONEY-S1h-household-revolving-people-slice.md`. 리볼빙 규정 Open Question 닫음 — 남은 것 FR-11(공제 — S2 content 뒤) · 17(영수증 — 실측 뒤) |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — 가계부 화면에 때맞춘 팁 칸(5월 종합소득세 · 11~12월 연말정산 미리보기 — `FE-REQ-058` FR-6) |
+| 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — `FixedCostIncreased` 의 content 구독 예정이 ~~금융 팁 S2b~~ S2d 로(계약 설명 · 어댑터 주석, `a1938bb2`) |

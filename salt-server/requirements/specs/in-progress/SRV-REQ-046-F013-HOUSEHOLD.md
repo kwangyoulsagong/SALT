@@ -173,3 +173,4 @@ API 실제 목록: `POST /expenses` · `POST /expenses/batch` · `DELETE /expens
 | 2026-11-05 | 가계부 S1g — FR-20 이야기 카드 done(`2c31ce55`). 도메인 테스트 +8(69) · 종단 +1(31) · 쿼리 6. 범위를 다시 나눴다 — 사람 장부 · 리볼빙은 S1h · 옛 "S1g" 포인터 정정 · 주석 `MonthClose.kt`(`ef543fd4`) |
 | 2026-11-05 | 가계부 S1h — FR-10 리볼빙 · FR-14 사람 장부 done(`f998f36d`) — 남은 것 FR-11 공제(S2 content 뒤). 도메인 테스트 +7(76) · 종단 +2(33) · 쿼리 월 23. 파싱 로그 검사 우연 실패 고침(`d782ecdf` — 카드 번호를 괄호까지) · 주석 `MonthClose.kt` 의 낡은 S1h 포인터 |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — 가계부 이벤트 어댑터 주석 한 줄 — `FixedCostIncreased` 구독은 금융 팁 S2b(S2a 는 저축 두 이벤트만). 코드 · 계약 무변경 |
+| 2026-11-05 | 금융 팁 S2b(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: 가계부 이벤트 어댑터 주석 한 줄 — `FixedCostIncreased` 구독은 ~~금융 팁 S2b~~ 금융 팁 S2d(S2b 는 퀴즈 · 줄 diff 로 좁혔다). 코드 · 계약 무변경 (`a1938bb2`) |

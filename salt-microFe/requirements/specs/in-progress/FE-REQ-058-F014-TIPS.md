@@ -69,3 +69,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 이 REQ 에 걸린 몫(`FE-REQ-054`) — 금융 팁은 탭이 아니다. 화면이 생기면 zone 레이아웃에 `AppShell` + `VIEW_TRANSITION_CSS`(공개 화면이라 로그아웃이면 내비 · prerender 판단을 다시 본다 — 지금 공개 경로 목록은 `/` · `/login` · `/onboarding`) |
 | 2026-11-05 | 금융 팁 S2a — to-do → in-progress. FR-1 · 2 · 6 · 7 · 8 done, FR-4 첫 판, FR-3 · 5 S2b, LCP 미측정. 커밋 `5cc3b415` · `6f9cab4b` · `9e6973ae` · `5915638f` · 슬라이스 `tip` · 페이지 `tips` · `tip-detail` 레지스트리 |
 | 2026-11-05 | 금융 팁 S2b — FR-4 줄 diff done · FR-5 맞히기 · 카드 모음 done · 날짜 한국 날짜 정정. FR-3 은 S2d, LCP 는 공개 직전. 커밋 `d59efa9c` · 레지스트리 features `answer-quiz` · pages `quiz-cards` |
+| 2026-11-05 | 금융 팁 S2b 확인 2회차 — 결함: 공개 글에서 만료된 세션으로 퀴즈를 풀면 로그인으로 보냈다 → 공개 경로 판정 하나(`isPublicPath`, `/tips` 공개 · `cf93acb1`). 키보드(Tab · Enter · 2px 테두리) · Swagger 경로 8 확인 |

@@ -14,8 +14,8 @@
 ### 미검증 · 범위 밖
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| FR-6 `quiz_answer` | 퀴즈 화면 · API 가 S2b | 금융 팁 S2b |
-| EXPLAIN | 행이 수십 개(글 5 · 사용자 신호) — 인덱스(`user_signal_user_idx` · `tip_revision_slug_idx`)만 두고 재지 않았다 | 사용자 신호가 천 행을 넘을 때(S2b 계측) |
+| FR-6 `quiz_answer` | 퀴즈 화면 · API 가 S2b | ~~금융 팁 S2b~~ **정정 2026-11-05(S2b)** 닫힘 |
+| EXPLAIN | 행이 수십 개(글 5 · 사용자 신호) — 인덱스(`user_signal_user_idx` · `tip_revision_slug_idx`)만 두고 재지 않았다 | 사용자 신호가 천 행을 넘을 때(~~S2b 계측~~ **정정 2026-11-05(S2b)** S2b 는 재지 않았다 — 표가 비어 있다. 공개 뒤 행이 쌓일 때 `quiz_answer` 와 같이) |
 
 ## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) · `d2d662d4`
 

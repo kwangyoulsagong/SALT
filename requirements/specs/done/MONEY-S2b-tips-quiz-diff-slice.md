@@ -14,7 +14,7 @@ S2a 가 남긴 S2b 다섯(내 숫자 · 퀴즈 · 줄 diff · 홈 카드 · 나�
 "글을 읽기 전에 한 문제를 맞혀 보고(정답은 서버만 안다), 로그인했으면 맞힌 문제가 카드로 모이고, 제도가 바뀐 판은 바뀐 줄이 보인다".
 **공개는 꺼진 채 그대로**(법무 확인 전 — 사용자 결정 2026-10-30). 실화면은 확인 동안만 켰다.
 
-> **done 2026-11-05** — 커밋 `d2d662d4`(서버 content) · `4b5a294b`(BFF) · `d59efa9c`(FE). 4 REQ in-progress 유지(남은 FR 은 S2d · S3). 검증 `requirements/reports/checklists/MONEY-S2b-tips-quiz-diff.md`.
+> **done 2026-11-05** — 커밋 `d2d662d4`(서버 content) · `4b5a294b`(BFF) · `d59efa9c`(FE) · 확인 2회차 `cf93acb1`(공개 경로 판정 하나 — 만료 세션이 공개 글에서 로그인으로 보내던 결함) · `a1938bb2`(S2b → S2d 주석 정정). 4 REQ in-progress 유지(남은 FR 은 S2d · S3). 검증 `requirements/reports/checklists/MONEY-S2b-tips-quiz-diff.md`.
 
 ## 범위
 
@@ -50,3 +50,4 @@ S2a 가 남긴 S2b 다섯(내 숫자 · 퀴즈 · 줄 diff · 홈 카드 · 나�
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-05 | 신규 · done — 퀴즈 · 카드 모음 · 줄 diff. S2b 남은 셋은 S2d 로 |
+| 2026-11-05 | 확인 2회차 — 결함 하나 고침(`cf93acb1`) · 낡은 "S2b" 정정(`a1938bb2`) · §8 · RN · FEATURE 이력 채움 |

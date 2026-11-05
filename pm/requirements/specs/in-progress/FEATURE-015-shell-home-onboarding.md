@@ -130,3 +130,4 @@ flowchart LR
 | 2026-11-04 | 가계부 S1c — FR-5 민감 정보 분류에 두 표가 더해졌다: 감정 태그 · 만족(`household.expense_tag`) · 급여(`household.household_setting`) — 표 주석 `sensitive` · 이벤트 · 로그 0. 루트 `MONEY-S1c-household-mirror-slice.md` |
 | 2026-11-05 | 앱 머리 계정 메뉴가 홈 카드에 깔려 로그아웃을 누를 수 없던 결함 수정(`99efcd15`, `FE-REQ-054`) · 로그인 · 초대 수락 · 로그아웃이 쿠키 세션으로(`FE-REQ-013` FR-80 2단계). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — `FE-REQ-054` — 금융 팁은 탭이 아니라 `AppShell` 대신 `PublicShell`(앱 내비 · prerender 없음). 홈 때맞춘 팁 카드(`SRV-REQ-047` FR-9 · 홈 카드 묶음)는 아직 — S2b 또는 S3 |
+| 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — `FE-REQ-054` 앱 내비 공개 경로 판정을 `@repo/core/auth` `isPublicPath` 로(동작 무변경, `cf93acb1`). 홈 금융 팁 카드(`SRV-REQ-047` FR-9)는 ~~S2b 또는 S3~~ S3 |
