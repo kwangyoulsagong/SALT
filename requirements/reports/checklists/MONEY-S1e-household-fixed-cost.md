@@ -39,6 +39,6 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 사람 장부 · 이야기 카드 · 리볼빙 · 통장 쪼개기 · 사용자 분류 | 범위 밖(판단 1) | 가계부 S1f — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g |
+| 사람 장부 · 이야기 카드 · 리볼빙 · 통장 쪼개기 · 사용자 분류 | 범위 밖(판단 1) | 가계부 S1f — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h |
 | `FixedCostIncreased` 구독 | 구독자 없음 | S2 content |
 | RN 고정비 카드 | 웹 계약 확정 뒤 | `RN-REQ-034` |

@@ -65,7 +65,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 |---|---|---|
 | FR-4 | 반복 템플릿 확인 카드 done — "이번 달에도 나갔나요?"(서버 `stage=ask` 만 · 금액 고쳐 확인 · 이번 달은 안 나가요) + 예정 한 줄 · `/household/templates`(만들기 · 고치기 · 그만 적기 · 상한은 서버 `limit`) | `features/manage-recurring` · `pages/recurring` |
 | FR-7 | 월 마감 리뷰 3문항 · 할부 띠 done(공제는 S2 content 뒤) — 닫을 수 있나 · 문항은 서버 값, 닫은 달은 같은 칸으로 답 고치기 | `features/close-month` · `entities/household` `InstallmentBand` |
-| FR-8 · 9 | S1c — **정정 2026-11-04** 감정 · 거울 · 노동시간 · 무지출 달력은 F4c 닫힘, 챌린지는 S1d(F4d) 닫힘, 사람 장부 · 이야기 카드는 ~~S1d~~ ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | |
+| FR-8 · 9 | S1c — **정정 2026-11-04** 감정 · 거울 · 노동시간 · 무지출 달력은 F4c 닫힘, 챌린지는 S1d(F4d) 닫힘, 사람 장부 · 이야기 카드는 ~~S1d~~ ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h | |
 
 분류 칩은 `entities/household` 로 내렸다(`a4b3936b`) — 지출 적기와 템플릿이 같은 칩. 번들(Next 표, First Load JS): `/household` ~~149~~ ~~157~~ 158(수정 `d91cb8db` 뒤) · `/household/templates` 131 kB(새) · 공용 103 kB.
 
@@ -76,7 +76,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | FR-8 감정 · 만족도 거울 | **done** — 바로 적기에 "그때 기분(선택)" 칩(키는 서버 `emotions`) + 산 직후 만족 1~5 · "어제 단 기분, 지금은 어때요?" 카드(물을 항목은 서버) · 기분별 만족 거울(점수별 건수 막대 — 색 하나 · 평균 0) · 내역 줄 기분 낱말 | entities `EmotionChips` · `FeltScale` · `FeelingMirror` · features `answer-feeling` |
 | FR-8 노동시간 | **done** — 예산 화면 "근무 시간으로 보기"(시급 · 월급 · 월 근무 시간, 끄고 켬) · 저장 결과 "이번 지출 = 근무 N분" · 달 합 · 내역 줄. 계산은 서버, 화면은 분 → "N시간 M분" 글자만 | features `set-work-hours` · `formatWorkMinutes` |
 | FR-9 달력 스티커 | **done(무지출)** — 안 쓴 날 달력(칸 상태 · 표시 가능 · 요일 자리는 서버) · 누르면 표시 · 지우기 · 연속 일수 0 | entities `NoSpendCalendar` · features `mark-no-spend` |
-| FR-8 사람 장부 · FR-9 챌린지 · 이야기 카드 | ~~S1d~~ **정정 2026-11-04** 챌린지는 S1d(F4d) 닫힘, 사람 장부 · 이야기 카드는 ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | 슬라이스 범위 밖 |
+| FR-8 사람 장부 · FR-9 챌린지 · 이야기 카드 | ~~S1d~~ **정정 2026-11-04** 챌린지는 S1d(F4d) 닫힘, 사람 장부 · 이야기 카드는 ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h | 슬라이스 범위 밖 |
 | 지난 지출에 기분 붙이기 · 바꾸기 화면 | API 만 — 내역 줄 디자인과 겹친다 | `FE-REQ-060` |
 
 ## 구현 현황 — F4d (2026-11-04, `requirements/specs/done/MONEY-S1d-household-challenge-slice.md`)
@@ -85,7 +85,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 |---|---|---|
 | FR-9 챌린지 | **done** — `/household/challenges`: 고르기(예시 = 서버 키 · 이름 칸 · 날짜 칸 둘 — min · max 는 서버 `today` · `startMax`, 상한은 서버 `canStart`) · 카드(단계 배지 · 기간 · 한 날 수 · 아낀 돈 합 · 보탠 합 — 서버 숫자) · 오늘 했어요(서버 `todayMarkable` · `today`) · 아낀 돈 적기 · 지우기 · 목표에 보태기(목표만 고름 — 금액은 안 보냄, 목표 목록 null 이면 그 칸만 안내) · 그만두기(확인 창 0). **실패 · 성공률 · 연속 0**, 끝난 카드도 같은 색 · 아래 묶음으로만 | entities `ChallengeHead` · features `start-challenge` · `track-challenge` · pages `challenges` |
 | FR-9 챌린지 스티커 | **done** — 달력 칸에 같은 회색 테두리 동그라미(무지출 점과 모양으로만 가름) · 머리에 "챌린지 한 날 N일" · 칸 이름에 "챌린지 한 날" | entities `NoSpendCalendar` |
-| FR-8 사람 장부 · FR-9 이야기 카드 | ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | 슬라이스 범위 밖 |
+| FR-8 사람 장부 · FR-9 이야기 카드 | ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h | 슬라이스 범위 밖 |
 
 번들(Next 표, First Load JS): `/household/challenges` 153 kB(새) · `/household` 160 → 161 kB · 공용 102 kB. 가계부 첫 화면 머리에 "챌린지" 링크(다른 머리 링크와 같은 글자 링크).
 
@@ -95,7 +95,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 |---|---|---|
 | FR-11 고정비 카드 | **done** — 이번 달 화면 착지 아래. 줄마다 가맹점 · 분류 · "N번 · 지난번 금액 · 다음은 날짜쯤" · 올랐으면 "앞 달 X원보다 Y원 올랐어요"(같은 색 · 경고 0) · 매달 적기로(서버 칸 그대로 템플릿 — 확인하고 적기) · 아니에요(숨김 → 한 줄 + 되돌리기). 새 동작이 지난 결과 · 실패 줄을 지운다. 가맹점 이름에 조사 0 | entities `FixedCostHead` · features `find-fixed-cost` · pages `household` |
 | FR-11 평소보다 큼 | **done** — 내역 줄 배지 "평소보다 큼" + "이 분류 보통 N원"(서버 `typicalAmount` 가 있을 때만) | entities `ExpenseList` |
-| FR-8 사람 장부 · FR-9 이야기 카드 | ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기) | 슬라이스 범위 밖 |
+| FR-8 사람 장부 · FR-9 이야기 카드 | ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h | 슬라이스 범위 밖 |
 
 번들(Next 표, First Load JS): `/household` 161 → 162 kB · 공용 103 kB.
 
@@ -105,9 +105,16 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 |---|---|---|
 | FR-12 | **done** — 예산 화면 "내 분류" 패널(목록 · 고치기 · 지우기 · 만들기 · `n / 상한`) · 409 · 400 코드 → 문장 · 결과 줄은 줄이 사라져도 남음 · 이름은 `useCategoryLabel` 한 곳(월 화면은 `CategoryNamesProvider` 에 `month.categories`, 다른 화면은 분류 표 조회 하나) · 칩은 기본 12 를 바로 그리고 내 분류를 뒤에 · 고치는 템플릿의 보관한 분류는 칩 하나로 남김 | features `manage-categories` · entities `CategoryNames` · `CategoryChips` · pages `budget` · `household` |
 | FR-6 통장 쪼개기 | **done** — 방식 셋 · 소득 + 통장 셋 칸 · 저장한 예산이 같은 방식이면 서버 `salaryShare` 한 줄 · 봉투 이름 "급여 통장(고정비)" · "생활비 통장" | features `edit-budget` · entities `EnvelopeList`(`ACCOUNT_LABEL`) |
-| FR-8 사람 장부 · FR-9 이야기 카드 | S1g | 슬라이스 범위 밖 |
+| FR-8 사람 장부 · FR-9 이야기 카드 | S1g — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h | 슬라이스 범위 밖 |
 
 번들(Next 표, First Load JS): `/household` 162 → 163 kB · `/household/budget` 134 kB · 공용 103 kB.
+
+## 구현 현황 — F4g (2026-11-05, `requirements/specs/done/MONEY-S1g-household-story-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-9 이야기 카드 | **done** — `/household/story/[period]`(달 · 해 — 형식 · 미래면 404) · 첫 카드는 서버가 쿠키로(내 분류 이름은 받은 표로) · 문장은 `storyText` 한 곳(화면 카드 = 공유 이미지) · "금액 보이기" 꺼진 채 시작 · 가린 금액은 "가린 금액"으로 읽힘 · 이미지로 공유(파일 공유가 되면 공유 시트, 아니면 저장 · 시트를 닫으면 문구 0) · 빈 기간은 카드만 · 볼 수 있는 날은 서버 `readyOn` · 가계부 머리 "이야기 카드" 링크 · 카드 아래 "이 달 가계부" · "올해 이야기 보기" | entities `StoryCard` · `storyText` · `useHouseholdStory` · features `share-story` · pages `story` |
+| FR-8 사람 장부 · FR-7 공제 | S1h · S2 content 뒤 | 슬라이스 범위 밖 |
 
 ## Changelog
 
@@ -128,3 +135,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-11-05 | F4f — FR-12 신설 · done · FR-6 통장 쪼개기(`3269eef3`). 실화면(임시 사용자) SSR 이름 · 칩 · 봉투 · 같은 이름 409 문장 · 만들기 · 고치기 · 지우기 · 급여 몫 갱신 · 4폭 × 3화면 넘침 0 · 웹뷰 390. 내 분류 패널 폭을 편집기와 같은 640 으로 |
 | 2026-11-05 | `6b1aa765` — F4f 확인 단계: 소득 초과 거절이 까닭 없이 "저장 못 했어요"(코드 읽기로 발견) → 까닭 문장 · 지우기 실패 문장 · "내 분류" 영역 이름 이중(접근성 트리). route 로 로딩 · 실패 다섯 가지 · 보관한 분류 템플릿 고치기 실화면 |
 | 2026-11-05 | `65cc66ad` — 지운 분류 봉투 칸 "(지운 분류)" 유지(비우면 빠짐) · 지운 분류 고정비 후보는 그 줄에서 분류를 골라 매달 적기로(고르기 전 버튼 꺼짐). 사용자 "베스트케이스로" — 실화면 확인 |
+| 2026-11-05 | F4g — FR-9 이야기 카드 done(`1c46db88`). 실화면(임시 사용자) 서버 HTML 카드 · 가림 기본 · 켜면 금액 · 이미지 저장 둘 · 공유 시트 셋(흉내) · 4폭 × 4화면 넘침 0 · 웹뷰 390 · route 로딩 · 500 · 빈 기간. 확인 중 결함 4 고침(같은 이름 영역 · 이번 달 링크 · 빈 기간 버튼 · 공유 실패 문장) |

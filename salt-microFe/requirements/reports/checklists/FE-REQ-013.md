@@ -112,3 +112,7 @@
 ## 2026-11-05 — 가계부 S1f(`MONEY-S1f-household-categories-accounts`)
 
 - [x] 번들 `/household` 163 kB(+1) · `/household/budget` 134 kB · 월 화면 요청 수 그대로(분류 표는 월 응답 안)
+
+## 2026-11-05 — 가계부 S1g(`MONEY-S1g-household-story`)
+
+- [x] 번들 `/household/story/[period]` 151 kB(새) · `/household` 164 kB 그대로 · 서버 HTML 에 카드(쿠키 조회 1.5초 상한)

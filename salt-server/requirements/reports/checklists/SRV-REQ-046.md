@@ -57,7 +57,7 @@
 ### 미검증 · 범위 밖
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| FR-7 `account_split` · 12 · 14 · 19 · 20 · `FixedCostIncreased` · 리볼빙 | 슬라이스 범위 밖 | 가계부 S1d(공제는 S2 content 뒤) — **정정 2026-11-04** FR-19 · 챌린지 스티커는 S1d 닫힘, 나머지 S1e — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g |
+| FR-7 `account_split` · 12 · 14 · 19 · 20 · `FixedCostIncreased` · 리볼빙 | 슬라이스 범위 밖 | 가계부 S1d(공제는 S2 content 뒤) — **정정 2026-11-04** FR-19 · 챌린지 스티커는 S1d 닫힘, 나머지 S1e — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h |
 | 저축 구독(`MonthClosed` → 속도) | 저축 쪽 쓸 자리가 아직 없다 | 저축 S2 |
 - [x] `672f892d` 주석 정정(S1c → S1d) 뒤 도메인 · 인프라 컴파일 통과
 
@@ -74,7 +74,7 @@
 ### 미검증 · 범위 밖
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| FR-7 `account_split` · 12 · 14 · 20 · `FixedCostIncreased` · 리볼빙 · 사용자 분류 | 슬라이스 범위 밖(판단 1) | 가계부 S1e(공제는 S2 content 뒤) — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g |
+| FR-7 `account_split` · 12 · 14 · 20 · `FixedCostIncreased` · 리볼빙 · 사용자 분류 | 슬라이스 범위 밖(판단 1) | 가계부 S1e(공제는 S2 content 뒤) — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h |
 | 상한 5 동시 요청 경합 | 화면 편의 상한이라 잠그지 않는다(판단 6) | 필요해지면 advisory lock |
 
 ## 2026-11-04 — 가계부 S1e(`MONEY-S1e-household-fixed-cost`)
@@ -84,12 +84,12 @@
 - [x] FR-21 `FixedCostIncreased` — 세 번째에 한 번 · 지우고 다시 적어도 1 · 본문 가맹점 0(종단) · 발행 시점 스키마 검증 통과
 - [x] `./gradlew check` 통과(149) · 종단 26(+2) · 도메인 +9 · 쿼리 수 월 21 · 저장 11/10 · 홈 6 · `bootJar` → Flyway V5 · health UP
 - [x] 실스택(임시 사용자 — 뒤에 삭제 · 트리거 다시 켬 · 남은 행 0) · 아웃박스 발행 확인 · EXPLAIN 둘(행 2만 넣고 롤백)
-- [x] 확인 단계 — 주석 정정(S1e → ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기), `98895870` 안) 뒤 `./gradlew check` 다시 149 통과 · Swagger 새 경로 2 · `FixedCostView` · `typicalAmount`
+- [x] 확인 단계 — 주석 정정(S1e → ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기), `98895870` 안) 뒤 `./gradlew check` 다시 149 통과 · Swagger 새 경로 2 · `FixedCostView` · `typicalAmount` **정정 2026-11-05** S1g 는 이야기 카드만 닫았고 사람 장부 · 리볼빙은 S1h(`MONEY-S1g-household-story-slice.md`).
 
 ### 미검증 · 범위 밖
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| FR-7 `account_split` · FR-10 리볼빙 · 14 · 20 · 사용자 분류 | 슬라이스 범위 밖(판단 1) | 가계부 S1f(공제는 S2 content 뒤) — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g |
+| FR-7 `account_split` · FR-10 리볼빙 · 14 · 20 · 사용자 분류 | 슬라이스 범위 밖(판단 1) | 가계부 S1f(공제는 S2 content 뒤) — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h |
 | `FixedCostIncreased` 구독 | 구독자(content) 없음 | S2 content |
 
 ## 2026-11-05 — 가계부 S1f(`MONEY-S1f-household-categories-accounts`)
@@ -102,7 +102,7 @@
 ### 미검증 · 범위 밖
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| FR-10 리볼빙 · 14 사람 장부 · 20 이야기 카드 | 슬라이스 범위 밖(판단 1) | 가계부 S1g(공제는 S2 content 뒤) |
+| FR-10 리볼빙 · 14 사람 장부 · 20 이야기 카드 | 슬라이스 범위 밖(판단 1) | 가계부 S1g(공제는 S2 content 뒤) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h |
 | 상한 20 의 동시 요청 | 느슨한 상한(판단 4) | 바꿀 일 없음 |
 
 ## 2026-11-05 — 가계부 S1f 확인 단계
@@ -110,3 +110,14 @@
 - [x] 최종 HEAD `./gradlew check` 통과 · 실스택 — 보관한 분류 템플릿 고치기 200(`keep`) · 같은 분류로 새 템플릿 400 `TEMPLATE_CATEGORY_UNKNOWN` · 종단 테스트 +1(30 — 다른 분류로 바꾼 뒤 되돌리기 400 포함)
 - ~~한계(범위 밖 표): 보관한 분류의 고정비 후보를 "매달 적기로" 하면 400~~ **닫힘 2026-11-05** — 화면이 그 줄에서 분류를 고르게 한다(`65cc66ad`, 서버 규칙 그대로)
 - [x] `a45d4cd5` 보관한 분류 봉투 다시 저장(`keep`) — 도메인(순서) · 종단(보관 뒤 저장 200 · 순서) · 최종 `./gradlew check` 통과
+
+## 2026-11-05 — 가계부 S1g(`MONEY-S1g-household-story`)
+
+- [x] FR-20 이야기 카드 — 기간 읽기 경계 9 · 볼 수 있는 날(마감 규칙과 같은 답) · 빈 재료 줄 0 · 달 카드 여섯 줄 · 동률 순서 · 몫 반올림 경계 · 해 카드 달 줄(도메인 8). 종단 — 쿼리 6 · 줄 순서 · 값 · 해 카드 가장 많이 쓴 달 · 남의 카드 빈 줄 · 올해 `readyOn` · 거절 표 · 평가 · 감정 칸 0
+- [x] `./gradlew check` 통과 · 종단 31(+1) · `bootJar` → Flyway V7 · health UP · Swagger `/story/{period}` · `StoryView`
+- [x] 실스택(임시 사용자 — 뒤에 삭제 · 남은 행 0) — 카드 값 독립 재계산 일치 · EXPLAIN 다섯(행 넣고 롤백)
+
+### 미검증 · 범위 밖
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| FR-10 리볼빙 · 14 사람 장부 | 슬라이스 범위 밖(판단 1) | 가계부 S1h(공제는 S2 content 뒤) |

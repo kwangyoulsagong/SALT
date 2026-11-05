@@ -83,3 +83,7 @@
 ## 2026-11-05 — 가계부 S1f(`MONEY-S1f-household-categories-accounts`)
 
 - 없음.
+
+## 2026-11-05 — 가계부 S1g(`MONEY-S1g-household-story`)
+
+- **Action**: 없음.

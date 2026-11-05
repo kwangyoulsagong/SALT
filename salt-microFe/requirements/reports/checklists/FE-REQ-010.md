@@ -279,3 +279,7 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 ## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
 
 - [x] `ROUTES.householdChallenges` — 가계부 첫 화면 머리 링크 · 챌린지 화면 뒤로 링크가 같은 값
+
+## 2026-11-05 — 가계부 S1g(`MONEY-S1g-household-story`)
+
+- [x] `ROUTES.householdStory` — 가계부 머리 링크 · 카드 아래 "올해 이야기 보기"가 같은 값(경로 조각 인코딩)
