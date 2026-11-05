@@ -60,3 +60,10 @@
 - Swagger(`/v3/api-docs`) content 경로 8(새 3)
 - 모노레포 최종(별도 worktree, HEAD `cf93acb1` 이후): `check-types` · `lint` 13/13 · `test`(core 184 · ui 46) · `test:layer-check` 16/10 · zone 빌드 5 — main 과 나란히 `/tips` 143 → 144 · `/goals` 152 → 153(공용 청크 반올림 경계 · 페이지 같음) · 나머지 무변화
 - 정리: 임시 행 0 · 공개 플래그 · `WEB_ORIGINS` 해제(`public:false`) · dev 3001 · 3005 · worktree 내림
+
+## 2026-11-05 — 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) 확인 3회차 · `fd88af11`
+
+- 찾은 것(고침): ① 만료된 세션으로 `/tips/cards` → 갱신 실패 401 을 "카드를 불러오지 못했어요"로 그림(서버 고장으로 읽힌다) → 401 은 로그아웃 안내 ② 맞힌 카드 모음으로 가는 길이 퀴즈 결과 링크뿐 → `/tips` 에 "맞힌 카드 모음" 줄(셰브론 · 폭 100% · 높이 44, 공개 목록일 때만)
+- 실화면: `/tips` 360 · 390(웹뷰) · 1280 줄 하나 · 높이 44 · 넘침 0 · axe 위반 0 · 누르면 `/tips/cards`(로그아웃 안내) / 만료 세션 `/tips/cards` → 로그아웃 안내 · "불러오지 못했어요" 없음 · 콘솔 오류 0
+- 모노레포 `check-types` · `lint` 13/13 · `test`(core 184 · ui 46) · `test:layer-check` 16/10 · 훅 사후 4파일 0 · `web-tips` 빌드 `/tips` 143(main) → 145 kB · 글 115 · 모음 146
+- 정리: 임시 행 0 · 플래그 · origin 해제(`public:false`) · dev 내림

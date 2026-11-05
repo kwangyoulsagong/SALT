@@ -70,3 +70,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | 2026-11-05 | 금융 팁 S2a — to-do → in-progress. FR-1 · 2 · 6 · 7 · 8 done, FR-4 첫 판, FR-3 · 5 S2b, LCP 미측정. 커밋 `5cc3b415` · `6f9cab4b` · `9e6973ae` · `5915638f` · 슬라이스 `tip` · 페이지 `tips` · `tip-detail` 레지스트리 |
 | 2026-11-05 | 금융 팁 S2b — FR-4 줄 diff done · FR-5 맞히기 · 카드 모음 done · 날짜 한국 날짜 정정. FR-3 은 S2d, LCP 는 공개 직전. 커밋 `d59efa9c` · 레지스트리 features `answer-quiz` · pages `quiz-cards` |
 | 2026-11-05 | 금융 팁 S2b 확인 2회차 — 결함: 공개 글에서 만료된 세션으로 퀴즈를 풀면 로그인으로 보냈다 → 공개 경로 판정 하나(`isPublicPath`, `/tips` 공개 · `cf93acb1`). 키보드(Tab · Enter · 2px 테두리) · Swagger 경로 8 확인 |
+| 2026-11-05 | 금융 팁 S2b 확인 3회차 — 만료 세션 `/tips/cards` 는 로그아웃 안내("불러오지 못했어요" 아님) · `/tips` 에 "맞힌 카드 모음" 줄(모음으로 가는 길이 퀴즈 결과뿐이었다). `fd88af11` |

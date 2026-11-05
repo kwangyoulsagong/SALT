@@ -31,3 +31,10 @@
 - **빠졌던 기록(채움)**: 마스터 인덱스 §8 행 · RN 변경 없음(`RN-REQ-035`) · FEATURE-000 · 013 · 015 이력 · 고친 파일 주인 `FE-REQ-007` · `011` · `013` · `054`
 - 키보드(Tab · Enter · 테두리 2px) · Swagger content 경로 8(새 3) · 서버 `./gradlew check` 다시(앱 79) · 모노레포 전체 + zone 빌드 5(worktree, main 과 나란히 `/tips` +1 · `/goals` +1 반올림, 나머지 무변화)
 - 정리: 임시 행 0 · 플래그 · origin 해제 · dev · worktree 내림
+
+## 2026-11-05 — 확인 3회차(같은 질문)
+
+- 고침(`fd88af11`): 만료 세션 `/tips/cards` 로그아웃 안내 · `/tips` 에서 모음으로 가는 줄
+- 정정: FEATURE-014 본문 표(화면 · BFF · 서버/DB · 워커 주기 · Trace Matrix)가 착수 전 모양 · 수용 기준 셋 빈칸(S2a 부터 참) → 구현 현황 · 체크
+- 확인: 실화면 360 · 390 웹뷰 · 1280 · axe · 콘솔 0 · 모노레포 전체 · `web-tips` 빌드(`/tips` 145) · `check-done`
+- 정리: 임시 행 0 · 플래그 · origin 해제 · dev 내림

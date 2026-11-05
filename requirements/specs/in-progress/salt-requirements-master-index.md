@@ -1004,3 +1004,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-05 | 금융 팁 S2a 확인 2회차 — 새 요소 대비 3곳 고침 · 콘솔 0 · `check-done.mjs` 가 sh · json · yml 주인도 센다(`DEV-001`) · lint 패키지 README · 비코드 주인(FE-035 · OPS-002 · DB-038 · FE-044) · FEATURE-000 · 007 · 015 이력 |
 | 2026-11-05 | **금융 팁 S2b done** — `SRV-REQ-047` FR-7 줄 diff · FR-8 퀴즈 · `DB-REQ-039` FR-6 `quiz_answer` · `body_lines` · `BFF-REQ-049` FR-6 신설 · `FE-REQ-058` FR-4 · 5. S2b 남은 셋 중 내 숫자 · 나머지 트리거 **S2d 신설**, 홈 카드 S3. 확인 2회차: S2a 문서 · 계약 설명 · 가계부 어댑터 주석의 "S2b" 정정(`SRV-REQ-046` · `DB-REQ-038` 주인) · §8 이 행 · RN 변경 없음 |
 | 2026-11-05 | 금융 팁 S2b 확인 2회차 — 결함 하나: 공개 글에서 만료된 세션이 로그인으로 보냈다 → `@repo/core/auth` `isPublicPath` 하나(`cf93acb1`, 주인 `FE-REQ-007` · `011` · `013` · `054`). 낡은 "S2b" 정정(`a1938bb2`) |
+| 2026-11-05 | 금융 팁 S2b 확인 3회차 — 모음 화면 만료 세션 → 로그아웃 안내 · `/tips` 에 모음 진입점(`fd88af11`) · FEATURE-014 본문 표(Trace Matrix · 영향 · 수용 기준) 정정 |
