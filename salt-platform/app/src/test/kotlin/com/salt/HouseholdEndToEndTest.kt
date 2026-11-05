@@ -878,6 +878,11 @@ class HouseholdEndToEndTest {
         call("DELETE", "/api/household/categories/$key", user, null).statusCode() shouldBe 404
         call("POST", "/api/household/expenses", user, """{"amount":1000,"category":"$key"}""").body() shouldContain "EXPENSE_CATEGORY_UNKNOWN"
         call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"$key":1000}}""").body() shouldContain "BUDGET_CATEGORY_UNKNOWN"
+        // 지금 예산에 이미 있던 봉투는 보관해도 다시 저장된다(조용히 빠지지 않게)
+        val keep = data(call("POST", "/api/household/categories", user, """{"name":"간식비","bucket":"wants"}""")).path("key").asString()
+        call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"$keep":50000,"food":1000}}""").statusCode() shouldBe 200
+        call("DELETE", "/api/household/categories/$keep", user, null).statusCode() shouldBe 200
+        data(call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"$keep":60000,"food":1000}}""")).path("envelopes").items { it.path("key").asString() } shouldBe listOf("food", keep)
         val after = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null))
         after.path("expenses").get(0).path("category").asString() shouldBe key
         after.path("categories").first { it.path("key").asString() == key }.path("archived").asBoolean() shouldBe true

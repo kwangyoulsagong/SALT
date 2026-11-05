@@ -106,12 +106,15 @@ data class Budget(
             )
         }
 
-        /** 봉투 방식 — 키는 기본 분류 · 보관하지 않은 내 분류(가계부 S1f). 순서는 분류 표 순서 */
-        fun envelopes(userId: String, amounts: Map<String, Money>, book: CategoryBook, now: Instant): Budget {
+        /**
+         * 봉투 방식 — 키는 기본 분류 · 보관하지 않은 내 분류(가계부 S1f). 순서는 분류 표 순서.
+         * [keep] 은 지금 예산에 이미 있는 봉투 키 — 그 분류를 보관했어도 다시 저장하면 받는다(조용히 빠지지 않게). 새 봉투로는 거절
+         */
+        fun envelopes(userId: String, amounts: Map<String, Money>, book: CategoryBook, now: Instant, keep: Set<String> = emptySet()): Budget {
             if (amounts.isEmpty()) throw InvalidBudget("BUDGET_ENVELOPES_REQUIRED", "at least one envelope is required")
             if (amounts.size > ENVELOPE_MAX) throw InvalidBudget("BUDGET_ENVELOPES_TOO_MANY", "too many envelopes")
             amounts.forEach { (key, amount) ->
-                if (book.pick(key) == null) throw InvalidBudget("BUDGET_CATEGORY_UNKNOWN", "unknown category")
+                if (book.pick(key) == null && key !in keep) throw InvalidBudget("BUDGET_CATEGORY_UNKNOWN", "unknown category")
                 checkAmount(amount, "BUDGET_AMOUNT_INVALID", "envelope amount")
             }
             // 분류 표 순서로 — 화면 순서가 입력 순서에 흔들리지 않게

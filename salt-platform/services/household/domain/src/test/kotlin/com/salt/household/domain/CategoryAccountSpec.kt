@@ -79,6 +79,9 @@ class CategoryAccountSpec : StringSpec({
         val b = Budget.envelopes("u", mapOf(pet.category.key to krw(100_000), "food" to krw(300_000)), book, now)
         b.envelopes.keys.toList() shouldBe listOf("food", pet.category.key)
         shouldThrow<InvalidBudget> { Budget.envelopes("u", mapOf(old.category.key to krw(1)), book, now) }.code shouldBe "BUDGET_CATEGORY_UNKNOWN"
+        // 지금 예산에 이미 있던 봉투(keep)면 보관한 분류여도 다시 받는다 — 순서는 분류 표(보관 포함) 그대로
+        Budget.envelopes("u", mapOf(old.category.key to krw(5_000), "food" to krw(1)), book, now, keep = setOf(old.category.key)).envelopes.keys.toList() shouldBe
+            listOf("food", old.category.key)
     }
 
     "통장 쪼개기 — 급여 통장 몫 = 소득 − 셋 · 저축 · 비상금 0 이면 빈 칸 · 합이 소득을 넘으면 거절" {

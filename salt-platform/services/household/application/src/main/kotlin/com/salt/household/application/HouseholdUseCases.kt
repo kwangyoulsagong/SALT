@@ -319,7 +319,12 @@ open class SetBudget(private val budgets: Budgets, private val categories: Custo
         fun requireIncome() = income ?: throw InvalidBudget("BUDGET_INCOME_REQUIRED", "income is required")
         val budget = when (BudgetMethod.fromKey(method)) {
             BudgetMethod.FIFTY_THIRTY_TWENTY -> Budget.fiftyThirtyTwenty(userId, requireIncome(), now)
-            BudgetMethod.ENVELOPE -> Budget.envelopes(userId, envelopes, CategoryBook(categories.list(userId)), now)
+            BudgetMethod.ENVELOPE -> {
+                // 지금 봉투 키는 그 분류를 보관했어도 다시 받는다 — 보관한 분류 키가 들어왔을 때만 지금 예산을 읽는다
+                val book = CategoryBook(categories.list(userId))
+                val keep = if (envelopes.keys.any { book.pick(it) == null }) budgets.find(userId)?.takeIf { it.method == BudgetMethod.ENVELOPE }?.envelopes?.keys.orEmpty() else emptySet()
+                Budget.envelopes(userId, envelopes, book, now, keep)
+            }
             BudgetMethod.ACCOUNT_SPLIT -> {
                 val unknown = envelopes.keys - Accounts.STORED.toSet()
                 if (unknown.isNotEmpty()) throw InvalidBudget("BUDGET_ACCOUNT_UNKNOWN", "unknown account")
