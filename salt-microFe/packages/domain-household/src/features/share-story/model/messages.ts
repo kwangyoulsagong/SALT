@@ -6,6 +6,5 @@ export const SHARE_STORY_MESSAGES = {
   saved: "이미지를 저장했어요",
   shared: "공유했어요",
   failed: "이미지를 만들지 못했어요. 다시 눌러 주세요",
-  shareFailed: "공유하지 못했어요. 다시 눌러 주세요",
   fileName: (period: string) => `salt-story-${period}.png`,
 } as const;
