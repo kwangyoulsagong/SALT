@@ -113,3 +113,9 @@
 - [x] 접근성 트리 — "내 분류" 영역 하나 · 버튼 이름 · radiogroup · status
 - [x] 보관한 분류 템플릿 — 줄 이름 "보험" · 고칠 때 칩 선택 유지
 - [x] `check-types` · `lint` 12/12 · `test` · `test:layer-check` 26 · zone 빌드 `/household` 163 · `/household/budget` 134 kB · 훅 사후 실행 4파일 차단 0
+
+## 2026-11-05 — F4f 한계 둘 닫기(`65cc66ad`)
+
+- [x] 편집기 "헬스장(지운 분류)" 칸 — 값 유지 · 고쳐 저장 · 비우면 사라짐
+- [x] 고정비 카드 — "지운 분류예요. 매달 적을 분류를 골라 주세요" + 칩 · 고르기 전 버튼 꺼짐 · 고른 분류로 템플릿 · 1280 · 1024 · 웹뷰 390 넘침 0 · 페이지 오류 0
+- [x] `check-types` · `lint` 12/12 · `test` · `test:layer-check` 26 · zone 빌드(`/household` 163 · `/household/budget` 134 kB) · 훅 사후 실행 5파일

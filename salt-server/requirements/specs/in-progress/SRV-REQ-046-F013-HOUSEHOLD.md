@@ -124,7 +124,7 @@ API 실제 목록: `POST /expenses` · `POST /expenses/batch` · `DELETE /expens
 
 | FR | 상태 | 어디 |
 |---|---|---|
-| FR-22 사용자 분류 | **done** — 키는 기본 12 + `u_` 난수 12자리(같은 `expense.category` 열) · 묶음 · 고를 수 있나 · 순서는 `CategoryBook` 한 곳 · 넣기 한 문장(상한 · 같은 이름은 문장 안 — 못 넣었으면 그 뒤 읽어 409 두 코드) · 이름 · 묶음 고치기(다른 보관 안 한 분류와 같은 이름이면 409) · 보관(다시 404) · 보관한 분류로 새 지출 · 새 봉투 · 새 템플릿 400(고치는 템플릿이 이미 든 분류는 그대로 받음) · 제안은 보관한 분류를 내지 않음 | `Categories.kt` · `CategoryUseCases.kt` · `CategoryController`(`/categories`) · `JooqCustomCategories` |
+| FR-22 사용자 분류 | **done** — 키는 기본 12 + `u_` 난수 12자리(같은 `expense.category` 열) · 묶음 · 고를 수 있나 · 순서는 `CategoryBook` 한 곳 · 넣기 한 문장(상한 · 같은 이름은 문장 안 — 못 넣었으면 그 뒤 읽어 409 두 코드) · 이름 · 묶음 고치기(다른 보관 안 한 분류와 같은 이름이면 409) · 보관(다시 404) · 보관한 분류로 새 지출 · 새 봉투 · 새 템플릿 400(고치는 템플릿이 이미 든 분류 · 지금 예산에 이미 있던 봉투는 그대로 받음 — 봉투는 `a45d4cd5`) · 제안은 보관한 분류를 내지 않음 | `Categories.kt` · `CategoryUseCases.kt` · `CategoryController`(`/categories`) · `JooqCustomCategories` |
 | FR-7 `account_split` | **done** — 소득 + 생활비 · 저축 · 비상금 통장(0 이면 빈 칸) · 셋의 합 > 소득이면 400 `BUDGET_SPLIT_OVER_INCOME` · 급여 통장 몫 = 소득 − 셋(`salaryShare` — 저장 안 함) · 반복 템플릿 지출 = 급여 통장, 나머지 = 생활비 통장(봉투 밖 0) · 저축 · 비상금은 지출이 들지 않는 칸 · 월 마감 사본도 이 방식 | `Budget.kt` `Accounts` · `BudgetMath.envelopes(budget, summary, book)` · 월 합 `templateSpent` |
 | 이벤트 | `ExpenseRecorded.category` 에 사용자 분류 키(이름 0) — 계약에 꼴 추가(`SRV-REQ-044`) | `contracts/events/household.ExpenseRecorded.json` |
 | FR-10 리볼빙 · 14 · 20 | S1g(공제 FR-11 은 S2 content 뒤) | 슬라이스 범위 밖 |
@@ -148,3 +148,4 @@ API 실제 목록: `POST /expenses` · `POST /expenses/batch` · `DELETE /expens
 | 2026-11-04 | 가계부 S1e — FR-12 고정비 · 이상치 · FR-21 `FixedCostIncreased` done(`98895870`, FR-21 전부 닫힘). 도메인 테스트 +9 · 종단 +2(26) · 쿼리 수 월 21. 범위를 다시 나눴다 — 사람 장부 · 이야기 카드 · 리볼빙 · 통장 쪼개기 · 사용자 분류는 S1f · 같은 커밋에서 주석의 낡은 "S1e" → S1f |
 | 2026-11-05 | 가계부 S1f — FR-22 사용자 분류 신설 · done · FR-7 `account_split` done(`96c7c5b4`). 도메인 테스트 +8 · 종단 +3(29) · 쿼리 수 월 22. 범위를 다시 나눴다 — 사람 장부 · 이야기 카드 · 리볼빙은 S1g · 옛 "S1f" 포인터 정정(주석 `MonthClose.kt` 도 같은 커밋) |
 | 2026-11-05 | 가계부 S1f 확인 단계 — 서버 코드 변경 0 · 종단 테스트 +1(30 — 보관한 분류 템플릿, `7961a322`). 최종 HEAD `./gradlew check` 다시 통과 · 보관한 분류가 든 템플릿 고치기 200 · 새 템플릿 400(실스택) · 한계 기록: 보관한 분류의 고정비 후보 "매달 적기로" 400 |
+| 2026-11-05 | `a45d4cd5` — 지금 예산에 있던 봉투는 그 분류를 보관해도 다시 저장된다(`Budget.envelopes(keep)` · 보관 키가 들어왔을 때만 지금 예산을 읽음). 사용자 "베스트케이스로" — 한계 기록을 닫음. 도메인 · 종단 테스트 한 줄씩 |
