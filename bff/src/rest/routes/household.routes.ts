@@ -38,6 +38,18 @@ router.post("/fixed-costs/hide", authMiddleware, appHouseholdController.hideFixe
 router.post("/fixed-costs/show", authMiddleware, appHouseholdController.showFixedCost);
 // 이야기 카드(가계부 S1g) — period = YYYY-MM | YYYY. 줄 · 금액 · 몫은 서버
 router.get("/story/:period", authMiddleware, appHouseholdController.story);
+// 리볼빙 명세서(가계부 S1h) — 추정 · 경계는 서버. 월 띠는 month 응답 revolving
+router.get("/revolving", authMiddleware, appHouseholdController.revolving);
+router.post("/revolving", authMiddleware, appHouseholdController.addRevolving);
+router.put("/revolving/:id", authMiddleware, appHouseholdController.editRevolving);
+router.post("/revolving/:id/end", authMiddleware, appHouseholdController.endRevolving);
+// 사람 장부 · 해 경조사 봉투(가계부 S1h) — 상대 이름은 민감 정보
+router.get("/people", authMiddleware, appHouseholdController.people);
+router.post("/people/entries", authMiddleware, appHouseholdController.addPersonEntry);
+router.put("/people/entries/:id", authMiddleware, appHouseholdController.editPersonEntry);
+router.delete("/people/entries/:id", authMiddleware, appHouseholdController.deletePersonEntry);
+router.put("/people/envelope/:year", authMiddleware, appHouseholdController.putOccasionEnvelope);
+router.delete("/people/envelope/:year", authMiddleware, appHouseholdController.deleteOccasionEnvelope);
 // 내 분류(가계부 S1f) — 지우기는 보관(지난 지출 이름은 남는다)
 router.get("/categories", authMiddleware, appHouseholdController.categories);
 router.post("/categories", authMiddleware, appHouseholdController.addCategory);
