@@ -15,14 +15,16 @@ const item = (overrides: Partial<ServerNotificationItem> = {}): ServerNotificati
 });
 
 describe("toAlertViewModels (BFF-REQ-007 C절)", () => {
-  it("signal_update 만 남기고 다른 종류는 오류 없이 버린다 (FR-20 · 21)", () => {
+  it("도메인 종류 셋만 남기고 다른 종류는 오류 없이 버린다 (FR-20 · 21 · BFF-REQ-046 FR-8)", () => {
     const vms = toAlertViewModels([
       item(),
+      item({ id: "g", kind: "goal_reached", symbol: null, messageCode: "savings.goal_reached", params: { template: "housing" } }),
+      item({ id: "f", kind: "fixed_cost_increased", symbol: null, messageCode: "household.fixed_cost_increased", params: { category: "housing" } }),
       item({ id: "old", kind: "decision_change" }),
       item({ id: "tax", kind: "tax_deadline" }),
       item({ id: "nokind", kind: undefined }),
     ]);
-    assert.deepEqual(vms.map((vm) => vm.id), ["n1"]);
+    assert.deepEqual(vms.map((vm) => vm.id).sort(), ["f", "g", "n1"]);
   });
 
   it("금액 키 · 숫자 값 · 문자열이 아닌 인자를 지운다 (FR-22)", () => {
