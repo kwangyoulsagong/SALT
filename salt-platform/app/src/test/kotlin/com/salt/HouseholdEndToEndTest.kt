@@ -163,7 +163,8 @@ class HouseholdEndToEndTest {
         // 저장 0 · 로그 0
         householdDatabase.dsl.fetchCount(householdDatabase.dsl.selectFrom("expense").where("user_id = ?", user)) shouldBe 0
         output.all shouldNotContain marker
-        output.all shouldNotContain "9876"
+        // 카드 번호는 괄호까지 — 숫자 넷만 보면 로그 시각(…59876Z) · 추적 id 에 우연히 걸린다(2026-11-05 S1h 확인 중 한 번 실패)
+        output.all shouldNotContain "(9876)"
     }
 
     @Test
