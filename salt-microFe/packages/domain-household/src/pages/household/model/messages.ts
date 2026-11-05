@@ -9,6 +9,7 @@ export const HOUSEHOLD_PAGE = {
   recurring: "매달 나가는 돈",
   challenges: "챌린지",
   story: "이야기 카드",
+  people: "사람 장부",
   blockName: "가계부",
   emptyTitle: "이 달에 적은 지출이 없어요",
   emptyDescription: "금액부터 적으면 돼요. 결제 문자를 붙여넣어도 돼요",

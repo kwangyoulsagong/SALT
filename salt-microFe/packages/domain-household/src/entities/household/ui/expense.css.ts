@@ -48,3 +48,17 @@ export const barFill = style({ height: "100%", background: vars.colors.neutral[6
 export const chips = style({ display: "flex", flexWrap: "wrap", gap: "6px" });
 
 export const stack = style({ display: "flex", flexDirection: "column", gap: "8px", margin: 0, padding: 0, listStyle: "none" });
+
+/** 다른 화면으로 가는 한 줄 — 폭 100% · 오른쪽 셰브론(리볼빙 명세서 적기, 가계부 S1h) */
+export const navLink = style({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%",
+  minHeight: "32px",
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: 600,
+  color: vars.colors.text.primary,
+  textDecoration: "none",
+});

@@ -46,6 +46,9 @@ export const ROUTES = {
   householdChallenges: "/household/challenges",
   /** 이야기 카드 — 달(YYYY-MM) · 해(YYYY)(가계부 S1g) */
   householdStory: (period: string) => `/household/story/${encodeURIComponent(period)}`,
+  /** 리볼빙 명세서 · 사람 장부(가계부 S1h) */
+  householdRevolving: "/household/revolving",
+  householdPeople: "/household/people",
   householdMonth: (yearMonth: string) => `/household/month/${encodeURIComponent(yearMonth)}`,
   /** 투자 코치 설정 — 셸 설정(`/settings`)이 여기로 보낸다(`FE-REQ-053`, 2026-11-02 셸 설정에서 분리) */
   coachSettings: "/coach/settings",

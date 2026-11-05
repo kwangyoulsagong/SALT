@@ -13,3 +13,4 @@ export * from "./FixedCostHead";
 export { dayButton as calendarDayButton } from "./calendar.css";
 export * from "./CategoryNames";
 export * from "./StoryCard";
+export * from "./RevolvingBand";
