@@ -52,3 +52,8 @@ axios 직접 호출 둘을 `apiFetch` 로 옮기고 import 를 lint 로 막았�
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - 없음.
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계
+
+- 파일만 걸침(토큰 운반이 쿠키로) — Action 없음

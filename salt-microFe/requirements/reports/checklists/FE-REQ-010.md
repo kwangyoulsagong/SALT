@@ -287,3 +287,15 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 ## 2026-11-05 — 가계부 S1h(`MONEY-S1h-household-revolving-people`)
 
 - [x] `ROUTES.householdRevolving`(`/household/revolving`) · `ROUTES.householdPeople`(`/household/people`) — 가계부 머리 · 월 띠 · 뒤로 링크가 이것만 쓴다
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- 파일만 걸침 — `apps/web/src/widgets/onboarding-flow/ui/OnboardingFlow.tsx` `packages/domain-invest/src/entities/market/api/marketApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 확인 단계(주석 정정)
+
+- FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md`
+- 확인: lint · check-types(web · domain-invest) · 훅 사후 실행 · 실화면(해당 화면 200 · 401 미해결 0 · 수화 오류 0)

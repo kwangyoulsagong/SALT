@@ -86,3 +86,15 @@
 ## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
 
 - [x] 목표 상세 적립 줄 "챌린지로 아낀 돈" — 실화면(임시 사용자) 확인 · 저축 zone 운영 빌드(`/goals/[id]` 154 kB) · 넘침 확인은 가계부 쪽 폭 표와 같은 실행
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- FR-13 서버 조회 둘이 절대 주소 `BFF_SERVER_URL`(브라우저 `INVESTMENTS_BASE_URL` 은 같은 origin 빈 문자열)(`721063fc`)
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 확인 단계(주석 정정)
+
+- FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md`
+- 확인: lint · check-types(web · domain-invest) · 훅 사후 실행 · 실화면(해당 화면 200 · 401 미해결 0 · 수화 오류 0)

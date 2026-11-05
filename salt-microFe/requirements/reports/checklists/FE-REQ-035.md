@@ -84,3 +84,9 @@ First Load 가 그대로인 이유: axios 는 처음부터 지연 청크(`next/d
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - [x] lint 0
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- 파일만 걸침 — `packages/web-shared/src/api/index.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

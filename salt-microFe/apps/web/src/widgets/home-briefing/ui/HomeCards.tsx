@@ -1,6 +1,7 @@
 "use client";
 
 // 클라이언트 잎: 토큰이 localStorage 에 있어(`FE-REQ-013` 전) 서버에서 BFF 를 부를 수 없다.
+// (2026-11-05 정정: 토큰은 이제 httpOnly 쿠키라 서버도 읽는다 — `FE-REQ-013` FR-80 2단계. 이 자리가 클라이언트에 남은 것은 아직 서버 조회로 옮기지 않아서다 — 목록은 `FE-REQ-013` FR-81)
 import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
 

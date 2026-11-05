@@ -1,6 +1,6 @@
 import type { TradePreflightRequest, TradePreflightView } from "@repo/core/coach";
 
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 /** F004 BFF 경로(`BFF-REQ-024`) */
@@ -21,7 +21,7 @@ export const runPreflightApi = {
   check: async (body: TradePreflightRequest, signal?: AbortSignal): Promise<TradePreflightView> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${ENDPOINT}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeader() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
       signal,
     });

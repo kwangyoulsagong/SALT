@@ -10,7 +10,7 @@ import {
   useRiskBudget,
   useTargetWeights,
 } from "@/entities/coach";
-import { useHasAccessToken } from "@repo/web-shared/api";
+import { useHasSession } from "@repo/web-shared/api";
 import { COACH_REPORT_SECTIONS, ROUTES } from "@repo/web-shared/config";
 import { NavChevron } from "@repo/web-shared/ui";
 
@@ -132,7 +132,7 @@ const ScoreboardCell = ({ assetClass }: { assetClass: string }) => {
  * 국내 탭(`FE-REQ-050` FR-5): 목표 비중 칸 없음 · 위험은 보유 전체(BTC 동조 줄 뺌) · 성적표는 `kr_stock` 그룹만.
  */
 export const JudgmentOverview = ({ assetClass = "crypto" }: { assetClass?: string }) => {
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   if (signedIn === null) return <div className={stripPending} aria-hidden="true" />;
   if (!signedIn) return null;
   const isKr = assetClass === KR_STOCK;

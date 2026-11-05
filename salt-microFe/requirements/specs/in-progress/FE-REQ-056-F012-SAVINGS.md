@@ -96,3 +96,5 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-03 | MONEY-S1b — 옛 `formatAmountInput` 삭제(소비처 0 — 남겨 두면 같은 결함이 돌아온다) |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — `web-savings` README 낡은 문장("빈 골격 · 서비스 앱 web") 정정(`df45ae7d`) |
 | 2026-11-04 | 가계부 S1d(`MONEY-S1d-household-challenge`) — 목표 상세 적립 줄에 출처 `saved_by_challenge` 면 "챌린지로 아낀 돈"(실제 적립과 구분 — F013 FR-19)(`23d44bb6`). 번들 `/goals/[id]` 154 kB. 장면 · 도장은 같이 센다(저축 S2 에서 따로 보기) |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): FR-13 서버 조회 둘이 절대 주소 `BFF_SERVER_URL`(브라우저 `INVESTMENTS_BASE_URL` 은 같은 origin 빈 문자열)(`721063fc`) |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |

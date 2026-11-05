@@ -16,7 +16,7 @@ import type {
   TradePlanListResult,
 } from "@repo/core/coach";
 
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import { toCoachProfileSettings } from "../lib/profileSettings";
@@ -47,7 +47,7 @@ export const coachApi = {
   ): Promise<SymbolCoachViewModel> => {
     const response = await apiFetch(
       `${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.symbolDetail(symbol)}`,
-      { headers: authHeader(), signal },
+      { signal },
     );
     if (!response.ok) throw await readApiError(response, "coach");
 
@@ -63,7 +63,6 @@ export const coachApi = {
    */
   report: async (signal?: AbortSignal): Promise<CoachReportResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.report}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -76,7 +75,7 @@ export const coachApi = {
   generationStatus: async (signal?: AbortSignal): Promise<CoachGenerationStatus> => {
     const response = await apiFetch(
       `${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.generationStatus}`,
-      { headers: authHeader(), signal },
+      { signal },
     );
     if (!response.ok) throw await readApiError(response, "coach");
 
@@ -90,7 +89,6 @@ export const coachApi = {
    */
   forecast: async (symbol: string, signal?: AbortSignal): Promise<SymbolForecastResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.forecast(symbol)}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -102,7 +100,6 @@ export const coachApi = {
   /** 주요 사건 (`GET /api/app/coach/events`). 소유자만 — 아니면 404. 서버 장애는 200 `unavailable` */
   events: async (symbol: string, signal?: AbortSignal): Promise<SymbolEventsResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.events(symbol)}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -114,7 +111,6 @@ export const coachApi = {
   /** 쏠림 신호 (`GET /api/app/coach/positioning`). 소유자만 — 아니면 404. 서버 장애는 200 `unavailable` */
   positioning: async (symbol: string, signal?: AbortSignal): Promise<SymbolPositioningResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.positioning(symbol)}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -129,7 +125,6 @@ export const coachApi = {
    */
   riskBudget: async (signal?: AbortSignal): Promise<RiskBudgetResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.riskBudget}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -141,7 +136,6 @@ export const coachApi = {
   /** 코치 설정 (`GET /api/app/ai-coach/profile`). 없으면 서버가 만든다 — 빈 상태가 없다 */
   profile: async (signal?: AbortSignal): Promise<CoachProfileSettings> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.profile}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -153,7 +147,6 @@ export const coachApi = {
   /** 종목별 거래 계획 (`GET /api/app/coach/plans`, F009). 최근 순 */
   plans: async (symbol: string, signal?: AbortSignal): Promise<TradePlanListResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.plans(symbol)}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -165,7 +158,6 @@ export const coachApi = {
   /** 내 거래 미러 (`GET /api/app/coach/mirror`, F009 슬라이스 5). 서버 장애는 BFF 가 200 `unavailable` */
   mirror: async (signal?: AbortSignal): Promise<BehaviorMirrorResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.mirror}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -180,7 +172,6 @@ export const coachApi = {
    */
   krMirror: async (signal?: AbortSignal): Promise<KrBehaviorMirrorResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.krMirror}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -192,7 +183,6 @@ export const coachApi = {
   /** 판정 성적표 (`GET /api/app/coach/scoreboard`, F010 슬라이스 3). 신호 유형별 · 사용자별 아님. 서버 장애는 BFF 가 200 `unavailable` */
   scoreboard: async (signal?: AbortSignal): Promise<JudgmentScoreboardResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.scoreboard}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -204,7 +194,6 @@ export const coachApi = {
   /** 목표 비중 안내 (`GET /api/app/coach/target-weights`, F010 슬라이스 5). 서버 장애는 BFF 가 200 `unavailable` */
   targetWeights: async (signal?: AbortSignal): Promise<TargetWeightResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.targetWeights}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -225,7 +214,6 @@ export const coachApi = {
     const path =
       assetType === "kr_stock" ? COACH_ENDPOINTS.krMonthlyReview(month) : COACH_ENDPOINTS.monthlyReview(month);
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${path}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");
@@ -241,7 +229,6 @@ export const coachApi = {
     assetType?: "crypto" | "kr_stock",
   ): Promise<DecisionOutcomeListResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.outcomes(limit, assetType)}`, {
-      headers: authHeader(),
       signal,
     });
     if (!response.ok) throw await readApiError(response, "coach");

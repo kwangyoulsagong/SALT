@@ -10,7 +10,7 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useState, type FormEvent } from "react";
 
 import { CoachDisclosure, SizeCheckLines, TradeBehaviorLines } from "@/entities/coach";
-import { useHasAccessToken } from "@repo/web-shared/api";
+import { useHasSession } from "@repo/web-shared/api";
 import { formatPrice, parseAmountInput, useNumberFields, todayInKorea, toTransactionDate, useDebouncedValue } from "@repo/web-shared/lib";
 
 import { useRecordTrade, useSizeCheck } from "../api";
@@ -84,7 +84,7 @@ interface RecordTradeCardProps {
  * 계산 결과는 `aria-live` 로 읽힌다. 모달 · 확인 단계가 없다.
  */
 export const RecordTradeCard = ({ symbol, assetType = "crypto", tickSize = null, livePrice, className }: RecordTradeCardProps) => {
-  const hasToken = useHasAccessToken();
+  const hasToken = useHasSession();
   const ids = { quantity: useId(), price: useId(), date: useId(), stop: useId(), thesis: useId(), plan: useId() };
 
   const [side, setSide] = useState<TradeSide>("buy");

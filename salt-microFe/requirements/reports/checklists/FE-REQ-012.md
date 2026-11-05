@@ -188,3 +188,8 @@
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
 
 - 2026-11-02 MONEY-F1 전수 점검 — `0440a654` — BFF 가 시간 초과를 504 `UPSTREAM_TIMEOUT` 으로 준다(전 500). `ApiError` retriable(5xx) 판정 그대로 — 화면 재시도 동작 무변경. 프론트에 500 숫자 의존 0. 테스트 +2 · 변이 실패 1 · 전체 326
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- 파일만 걸침 — `web-shared/src/api/index.ts` 머리 주석(`721063fc`). `ApiError` 무변경 · test 통과

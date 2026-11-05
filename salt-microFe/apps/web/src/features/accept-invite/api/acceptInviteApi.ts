@@ -15,8 +15,8 @@ import type {
  * **mutation 은 feature 가 갖는다** — `entities/auth/api` 는 조회만 둔다
  * (`fsd-entities.md`). 경로는 엔티티가 소유한 `ONBOARDING_ENDPOINTS` 를 쓴다.
  *
- * 둘 다 **토큰을 붙이지 않는다.** 계정이 생기기 전에 부르는 경로이고, `authHeader()` 를
- * 붙이면 이전 세션의 토큰이 남아 있을 때 엉뚱한 사용자로 요청이 나간다.
+ * 둘 다 **세션을 싣지 않는다**(`credentials: "omit"`). 계정이 생기기 전에 부르는 경로이고, 같은 origin 이라 쿠키가 저절로
+ * 실리면(`FE-REQ-013` FR-80 2단계) 이전 세션이 남아 있을 때 엉뚱한 사용자로 요청이 나간다.
  *
  * `axios` 를 쓰지 않는 이유는 `entities/auth/api/onboardingApi.ts` 주석과 같다.
  */
@@ -24,6 +24,7 @@ export const acceptInviteApi = {
   check: async (code: string): Promise<InviteCheckResponse> => {
     const response = await apiFetch(
       `${INVESTMENTS_BASE_URL}${ONBOARDING_ENDPOINTS.inviteCheck(code)}`,
+      { credentials: "omit" },
     );
 
     if (!response.ok) {
@@ -45,6 +46,7 @@ export const acceptInviteApi = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
+        credentials: "omit",
       },
     );
 

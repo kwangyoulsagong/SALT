@@ -11,7 +11,7 @@ created: 2026-09-09
 
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - "현재 `constants/api.ts` 에 문구 · `period=miniute`"는 지난 일 — 문구 `@repo/core/http`, 기간 `ChartPeriod` enum
-> - FR-53 토큰은 쿠키가 아니라 아직 `localStorage`(`shared/api/authToken.ts` "그게 지금의 미달이다") — 쿠키 이전 주인은 `FE-REQ-013` FR-80(2026-10-29 명시)
+> - ~~FR-53 토큰은 쿠키가 아니라 아직 `localStorage`~~ **2026-11-05 닫힘** — httpOnly 쿠키(`FE-REQ-013` FR-80 2단계 `721063fc`)
 > - FR-30 모바일 접기는 768 미만 안내(FE-REQ-043)로 웹에선 해당 없음
 
 
@@ -195,3 +195,4 @@ created: 2026-09-09
 | 2026-10-30 | 파일만 걸침 — 웹 `messages.ts` · `types.ts` · 서버 `ports.ts`(파일이 이 REQ 를 언급) — 차트 주기 `week` 추가. 검색 · 관심 동작 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 11개(경로 이동 내용 무변경 6 · 수정 5 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — **기존 결함 수정** `f6587a53` — 로그인 화면(`RedirectSignedIn`)이 Redux 사용자(`USER`)로, 셸 미들웨어 표지 쿠키는 토큰으로 판단해 토큰 없이 `USER` 만 남은 브라우저는 들어올 때마다 로그인 화면이 비쳤다가 홈으로 갔다(사용자 보고 "여전히 localhost:3000 들어가면 로그인 창 갔다가 홈으로"). 판단을 토큰(`useHasAccessToken`) 하나로 · 토큰 없는 `USER` 는 복원(`useInitializeAuth`) 때 지운다 — 이 REQ 의 로그인 화면 판단이 바뀌었다(FR-61 "보호는 미들웨어 몫"은 그대로) |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): FR-53 저장 위치가 **쿠키**가 됐다(머리 정정의 "아직 `localStorage`" 닫힘) · 갱신(FR-62)은 셸 Route Handler 로 · `RedirectSignedIn` 은 `useHasSession`(`721063fc`) |

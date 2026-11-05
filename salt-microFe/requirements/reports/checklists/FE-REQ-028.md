@@ -118,3 +118,15 @@
 
 - `useRegenerateCoach` 의 `now` 초기값을 렌더 중 `Date.now()` 대신 0 으로 — 쿨다운을 받은 뒤에만 쓰는 값이라 화면은 같다(`DEV-001` `no-render-read`)
 - 검증: 프론트 전체 `pnpm lint` 12/12 · 규칙 변이(나쁜 6줄 다 걸림 · 처리기 · 효과 · 일반 함수 통과)
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- FR-80 "토큰을 클라이언트 번들 · `localStorage` 에 두지 않는다" 충족(머리 정정 닫힘) — 조회 훅은 `useHasSession` · API 는 헤더 없이(`721063fc`)
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 확인 단계(주석 정정)
+
+- FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md`
+- 확인: lint · check-types(web · domain-invest) · 훅 사후 실행 · 실화면(해당 화면 200 · 401 미해결 0 · 수화 오류 0)

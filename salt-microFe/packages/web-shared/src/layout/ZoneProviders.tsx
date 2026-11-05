@@ -3,7 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { MotionProvider } from "@repo/ui/motion";
 
-import { syncSessionHint } from "../api";
+import { migrateLegacySession } from "../api";
 
 import QueryClientProvider from "./QueryClientProvider";
 
@@ -16,8 +16,8 @@ import QueryClientProvider from "./QueryClientProvider";
  * `MotionProvider` — 줄인 모션 존중 · `@repo/ui` 그래픽의 모션 기능 묶음을 여기서 한 번 싣는다(FE-REQ-044 FR-3).
  */
 export const ZoneProviders = ({ children }: { children: ReactNode }) => {
-  // 로그인 표지 쿠키가 생기기 전에 로그인한 사람에게 표지를 단다 — 다음부터 `/` 에서 바로 홈(`SESSION_HINT_COOKIE`)
-  useEffect(syncSessionHint, []);
+  // 쿠키 세션 2단계 전에 로그인한 브라우저 — `localStorage` 토큰을 쿠키로 한 번 옮기고 지운다(`FE-REQ-013` FR-80)
+  useEffect(migrateLegacySession, []);
   return (
     <QueryClientProvider>
       <MotionProvider>{children}</MotionProvider>

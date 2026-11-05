@@ -2,7 +2,7 @@ import {
   AddWatchlistRequest,
   MARKET_ENDPOINTS,
 } from "@/entities/market";
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 const send = async (
@@ -12,7 +12,7 @@ const send = async (
 ): Promise<void> => {
   const response = await apiFetch(`${INVESTMENTS_BASE_URL}${path}`, {
     ...init,
-    headers: { ...authHeader(), ...init.headers },
+    headers: { ...init.headers },
   });
   if (!response.ok) throw await readApiError(response, `market ${endpoint}`);
 };

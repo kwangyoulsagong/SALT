@@ -1,4 +1,4 @@
-import { apiFetch, authHeader } from "@repo/web-shared/api";
+import { apiFetch } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import { PORTFOLIO_MESSAGES } from "../model/messages";
@@ -15,7 +15,7 @@ export const portfolioApi = {
   summary: async (signal?: AbortSignal): Promise<PortfolioSummary> => {
     const response = await apiFetch(
       `${INVESTMENTS_BASE_URL}/api/app/portfolio/summary`,
-      { headers: authHeader(), signal },
+      { signal },
     );
     if (!response.ok) {
       throw new Error(PORTFOLIO_MESSAGES.holdingsLoadFailed);

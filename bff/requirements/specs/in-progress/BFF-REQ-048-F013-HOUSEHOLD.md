@@ -104,3 +104,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | 2026-11-05 | 가계부 S1g — 이야기 카드 경로 · `HouseholdStoryVM` 계약(`05c5d19c`). 테스트 +1(전체 368) · FR-4 전부 닫힘 |
 | 2026-11-05 | 정정 — 앞 줄 "FR-4 전부 닫힘"은 틀렸다: 사람 장부 경로(FR-4) · 리볼빙 띠 칸(FR-3)이 S1h 에 남는다(서버 FR-14 · FR-10, FE FR-8 의 짝). FR 표 두 줄에 적음 |
 | 2026-11-05 | 가계부 S1h — 리볼빙 경로 4 · 사람 장부 경로 6 · 월 `revolving` 칸 계약(`c7843c5a`). 테스트 +1(전체 369) · FR-3 · 4 닫힘 |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-household/src/entities/household/api/householdApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |

@@ -3,7 +3,7 @@
 import type { JudgmentScoreboardResult } from "@repo/core/coach";
 import { useQuery } from "@tanstack/react-query";
 
-import { retryWhileRetriable, useHasAccessToken } from "@repo/web-shared/api";
+import { retryWhileRetriable, useHasSession } from "@repo/web-shared/api";
 
 import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";
@@ -15,10 +15,10 @@ const retryServerErrorOnce = retryWhileRetriable(1);
 
 /**
  * 판정 성적표 (F010 슬라이스 3 `FE-REQ-040` FR-6). `/investments` 카드 하나라 따로 부르고 따로 실패한다.
- * 토큰은 수화에 안전하게 읽는다(`useHasAccessToken`) — 모르는 동안(`null`)은 부르지도, "로그아웃"이라 하지도 않는다.
+ * 토큰은 수화에 안전하게 읽는다(`useHasSession`) — 모르는 동안(`null`)은 부르지도, "로그아웃"이라 하지도 않는다.
  */
 export const useJudgmentScoreboard = () => {
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   const query = useQuery<JudgmentScoreboardResult, Error>({
     queryKey: coachQueryKeys.scoreboard(),
     queryFn: ({ signal }) => coachApi.scoreboard(signal),

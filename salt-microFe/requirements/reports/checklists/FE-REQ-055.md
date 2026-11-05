@@ -48,3 +48,9 @@
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - [x] 실스택 홈 카드 셋(저축 · 가계부 · 투자)
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 확인 단계(주석 정정)
+
+- FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md`
+- 확인: lint · check-types(web · domain-invest) · 훅 사후 실행 · 실화면(해당 화면 200 · 401 미해결 0 · 수화 오류 0)

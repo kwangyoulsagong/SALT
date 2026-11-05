@@ -105,8 +105,15 @@ export const bottom = style({
   },
 });
 
-/** 머리 52 — 투명(바탕 위), 왼쪽 로고 자리 · 오른쪽 계정(`screen-desktop.md` §1 실측) */
+/**
+ * 머리 52 — 투명(바탕 위), 왼쪽 로고 자리 · 오른쪽 계정(`screen-desktop.md` §1 실측).
+ *
+ * `viewTransitionName` 은 쌓임 맥락을 만든다 — 그 안의 계정 메뉴(`zIndex: dropdown`)가 머리 밖으로 못 나가 아래 본문 카드에
+ * 깔렸다(로그아웃을 누를 수 없었다, 2026-11-05 `FE-REQ-013` 확인 중 발견). 그래서 머리 자체를 본문 위에 둔다 — 레일 · 하단 탭과 같은 규칙
+ */
 export const header = style({
+  position: "relative",
+  zIndex: vars.zIndices.sticky,
   display: "flex",
   alignItems: "center",
   gap: vars.space.sm,

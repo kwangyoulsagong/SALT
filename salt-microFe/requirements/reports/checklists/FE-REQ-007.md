@@ -250,3 +250,9 @@ Vercel로 갈 때 이 파일의 내부 구현만 `@vercel/microfrontends`의 확
 ## 2026-11-04 — 로고(`FE-REQ-051`) · `25f182f6`
 
 - 파일만 걸침 — 이 REQ 의 동작 · 값 diff 0. 모노레포 check-types · lint · test · zone 5 빌드 · 훅 통과(`checklists/FE-REQ-051.md`)
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- 인증 키(FR-32) — 토큰 키를 `LEGACY_*`(이관용)로 · `REFRESH_COOKIE` · `SESSION_REFRESH_ROUTE` 추가(`721063fc`)
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

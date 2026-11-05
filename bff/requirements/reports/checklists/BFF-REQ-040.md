@@ -240,3 +240,9 @@
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`). 파일 1개(경로 이동 내용 무변경 1 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- 국내 중계 서버 401 → `KR_STOCK_AUTH_REQUIRED` 한 코드(웹이 세션 갱신 뒤 다시 연결) · 구독 메시지 토큰 없이 연결 쿠키로(`fb9c85b3` · `721063fc`)
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

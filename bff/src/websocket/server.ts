@@ -8,6 +8,9 @@ import { krStockHandler } from "./handlers/kr-stock.handler";
 import { krStreamManager } from "./managers/kr-stream.manager";
 import { env } from "../config/env";
 import { logger } from "../config/logger";
+import { ACCESS_COOKIE, isAllowedSocketOrigin, readCookie, webOrigins } from "../utils/session-cookie.util";
+
+const SOCKET_ORIGINS = webOrigins();
 
 const PORT = env.WS_PORT;
 
@@ -27,7 +30,10 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
   const { query } = parse(req.url || "", true);
 
   ws.connectionId = randomUUID();
-  const connectionToken = typeof query.token === "string" && query.token.length > 0 ? query.token : undefined;
+  // 앱은 URL `?token=`(기존 계약), 웹은 연결 요청의 세션 쿠키(`BFF-REQ-009` FR-54) — 허용 origin 에서 온 연결만(웹소켓 가로채기)
+  const queryToken = typeof query.token === "string" && query.token.length > 0 ? query.token : undefined;
+  const cookieToken = isAllowedSocketOrigin(req.headers, SOCKET_ORIGINS) ? readCookie(req.headers.cookie, ACCESS_COOKIE) : undefined;
+  const connectionToken = queryToken ?? cookieToken;
   ws.authenticated = connectionToken !== undefined;
   ws.isAlive = true;
   ws.subscribedSymbols = new Set();

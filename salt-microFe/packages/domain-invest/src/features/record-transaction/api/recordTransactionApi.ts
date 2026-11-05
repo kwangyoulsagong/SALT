@@ -6,7 +6,7 @@ import type {
   TradePlanView,
 } from "@repo/core/coach";
 
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 /** F009 뷰모델 경로(`BFF-REQ-038`). 조회 경로는 `entities/coach` 가 갖고, 쓰기 · 계산은 이 기능이 갖는다 */
@@ -24,7 +24,7 @@ interface Envelope<T> {
 const postJson = async <T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> => {
   const response = await apiFetch(`${INVESTMENTS_BASE_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeader() },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
     signal,
   });

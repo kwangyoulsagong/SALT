@@ -1,4 +1,4 @@
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import type {
@@ -32,7 +32,7 @@ export const savingsRequest = async <T>(method: "POST" | "PUT" | "DELETE", path:
   read<T>(
     await apiFetch(`${SAVINGS}${path}`, {
       method,
-      headers: body === undefined ? authHeader() : { "Content-Type": "application/json", ...authHeader() },
+      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),
     name,
@@ -40,13 +40,13 @@ export const savingsRequest = async <T>(method: "POST" | "PUT" | "DELETE", path:
 
 export const goalApi = {
   list: async (signal?: AbortSignal): Promise<SavingsGoal[]> =>
-    read(await apiFetch(`${SAVINGS}/goals`, { headers: authHeader(), signal }), "savings-goals"),
+    read(await apiFetch(`${SAVINGS}/goals`, { signal }), "savings-goals"),
 
   detail: async (id: string, signal?: AbortSignal): Promise<SavingsGoalDetail> =>
-    read(await apiFetch(`${SAVINGS}/goals/${encodeURIComponent(id)}`, { headers: authHeader(), signal }), "savings-goal"),
+    read(await apiFetch(`${SAVINGS}/goals/${encodeURIComponent(id)}`, { signal }), "savings-goal"),
 
   templates: async (signal?: AbortSignal): Promise<SavingsTemplate[]> =>
-    read(await apiFetch(`${SAVINGS}/templates`, { headers: authHeader(), signal }), "savings-templates"),
+    read(await apiFetch(`${SAVINGS}/templates`, { signal }), "savings-templates"),
 
   calculate: async (body: CalculationRequest, signal?: AbortSignal): Promise<SavingsCalculation> =>
     read(await postJson(`${SAVINGS}/calculate`, body, signal), "savings-calculate"),
@@ -61,5 +61,5 @@ export const goalApi = {
 };
 
 function postJson(url: string, body: unknown, signal?: AbortSignal): Promise<Response> {
-  return apiFetch(url, { method: "POST", headers: { "Content-Type": "application/json", ...authHeader() }, body: JSON.stringify(body), signal });
+  return apiFetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal });
 }

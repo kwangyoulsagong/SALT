@@ -46,3 +46,4 @@ source: 사용자 결정 2026-09-30 — 휴대폰 화면은 RN 앱(`RN-REQ-001`)
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — `d80a7ac8` 은 레일 라벨 색만(대비 6.45) · 이 REQ 의 768 경계 무변경 |
 | 2026-11-03 | MONEY-S1b — `cdeb5f7c` 공용 문구 파일(머리에 이 REQ)에 `AMOUNT_INPUT_MESSAGES` 추가. 기존 export 무변경 |
 | 2026-11-04 | 재설계는 `FE-REQ-061`(to-do) — 위아래(안내 높이 1,007~1,033 > 화면 600~900 · 버튼이 첫 화면 밖) · 옛 투자 화면 그림 · 투자 문구만. 이 REQ 의 결정(CSS 로만 · 웹뷰 끔 · "거래" 금지 · 보라 버튼)은 그대로 이어받는다 |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 앱 머리(이 REQ 가 `AppNavigation.css.ts` 머리 주석 주인) — 계정 메뉴가 본문에 깔리던 것 `zIndex` 로 고침(`99efcd15`, `FE-REQ-054` 결함) |

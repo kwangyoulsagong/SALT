@@ -1,6 +1,6 @@
 import { EXPLAIN_STREAM_EVENT_NAMES, type ExplainStreamEvent } from "@repo/core/coach";
 
-import { authHeader, streamSse } from "@repo/web-shared/api";
+import { streamSse } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import type { ExplainSymbolRequest } from "../model";
@@ -17,7 +17,7 @@ export const explainStreamApi = {
   open: (body: ExplainSymbolRequest, signal: AbortSignal, onEvent: (event: ExplainStreamEvent) => void) =>
     streamSse(
       `${INVESTMENTS_BASE_URL}${EXPLAIN_STREAM_ENDPOINT}`,
-      { body, headers: authHeader(), signal },
+      { body, signal },
       ({ event, data }) => {
         if (!EXPLAIN_STREAM_EVENT_NAMES.has(event as ExplainStreamEvent["event"])) return;
         try {

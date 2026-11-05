@@ -7,8 +7,8 @@
  * 화면은 로그인 15분 뒤 "데이터 없음"으로 보인다 — 2026-09-23 에 코치 패널 · 관심 목록 ·
  * 포트폴리오가 동시에 그렇게 죽어 있었다. **여기 두면 아무도 잊을 수 없다.**
  *
- * 규칙(1회 재시도 · `Authorization` 을 실어 보낸 요청만 · 동시 401 은 갱신 1회)은
- * `@repo/core/auth` 에 있고 테스트가 붙어 있다.
+ * 규칙(1회 재시도 · 로그인 상태로 보낸 요청만 · 동시 401 은 갱신 1회)은 `@repo/core/auth` 에 있고 테스트가 붙어 있다.
+ * 토큰은 httpOnly 쿠키라 여기서 헤더를 만들지 않는다 — 같은 origin 요청에 브라우저가 싣는다(`FE-REQ-013` FR-80 2단계).
  *
  * 2026-09-23 — MSW 목과 목 기동을 기다리던 게이트(`mockGate`)를 지웠다. 모든 호출이 실제 BFF 다.
  *
@@ -17,9 +17,10 @@
  * 410 = 동면(ADR-002)으로 닫힌 경로다. 화면은 그것을 그냥 실패로 그리므로, 남은 호출을 개발 중에 찾으려면
  * 여기서 경로를 찍어야 한다. 운영 빌드에서는 찍지 않는다.
  */
-import { withAuthRefresh } from "@repo/core/auth";
+import { withSessionRefresh } from "@repo/core/auth";
 
-import { refreshAccessToken } from "./refreshSession";
+import { refreshSession } from "./refreshSession";
+import { hasSession } from "./session";
 
 const GONE = 410;
 
@@ -31,7 +32,8 @@ const warnIfGone = (input: RequestInfo | URL, response: Response): Response => {
   return response;
 };
 
-export const apiFetch: typeof fetch = withAuthRefresh({
-  fetchImpl: async (input, init) => warnIfGone(input, await fetch(input, init)),
-  refreshAccessToken,
+export const apiFetch: typeof fetch = withSessionRefresh({
+  fetchImpl: async (input, init) => warnIfGone(input, await fetch(input, { credentials: "same-origin", ...init })),
+  hasSession,
+  refreshSession,
 });

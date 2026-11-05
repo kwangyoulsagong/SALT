@@ -1,4 +1,4 @@
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import type {
@@ -32,7 +32,7 @@ export const householdRequest = async <T>(method: "POST" | "PUT" | "DELETE", pat
   read<T>(
     await apiFetch(`${HOUSEHOLD_API}${path}`, {
       method,
-      headers: body === undefined ? authHeader() : { "Content-Type": "application/json", ...authHeader() },
+      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),
     name,
@@ -40,32 +40,32 @@ export const householdRequest = async <T>(method: "POST" | "PUT" | "DELETE", pat
 
 export const householdApi = {
   month: async (ym: string, signal?: AbortSignal): Promise<HouseholdMonth> =>
-    read(await apiFetch(`${HOUSEHOLD_API}/month/${encodeURIComponent(ym)}`, { headers: authHeader(), signal }), "household-month"),
+    read(await apiFetch(`${HOUSEHOLD_API}/month/${encodeURIComponent(ym)}`, { signal }), "household-month"),
 
   suggestions: async (signal?: AbortSignal): Promise<HouseholdSuggestions> =>
-    read(await apiFetch(`${HOUSEHOLD_API}/suggestions`, { headers: authHeader(), signal }), "household-suggestions"),
+    read(await apiFetch(`${HOUSEHOLD_API}/suggestions`, { signal }), "household-suggestions"),
 
   /** 반복 템플릿 + 이번 달 예정 행(가계부 S1b) */
   templates: async (signal?: AbortSignal): Promise<RecurringTemplateList> =>
-    read(await apiFetch(`${HOUSEHOLD_API}/templates`, { headers: authHeader(), signal }), "household-templates"),
+    read(await apiFetch(`${HOUSEHOLD_API}/templates`, { signal }), "household-templates"),
 
   /** 노동시간 환산 설정(가계부 S1c) */
   workHours: async (signal?: AbortSignal): Promise<WorkHoursSetting> =>
-    read(await apiFetch(`${HOUSEHOLD_API}/settings/work-hours`, { headers: authHeader(), signal }), "household-work-hours"),
+    read(await apiFetch(`${HOUSEHOLD_API}/settings/work-hours`, { signal }), "household-work-hours"),
 
   /** 챌린지 목록 + 보탤 수 있는 목표(가계부 S1d) */
   challenges: async (signal?: AbortSignal): Promise<ChallengeList> =>
-    read(await apiFetch(`${HOUSEHOLD_API}/challenges`, { headers: authHeader(), signal }), "household-challenges"),
+    read(await apiFetch(`${HOUSEHOLD_API}/challenges`, { signal }), "household-challenges"),
 
   /** 분류 표 — 기본 12 + 내 분류(보관 포함, 가계부 S1f) */
   categories: async (signal?: AbortSignal): Promise<HouseholdCategories> =>
-    read(await apiFetch(`${HOUSEHOLD_API}/categories`, { headers: authHeader(), signal }), "household-categories"),
+    read(await apiFetch(`${HOUSEHOLD_API}/categories`, { signal }), "household-categories"),
   /** 이야기 카드(가계부 S1g) — period = YYYY-MM | YYYY. 줄 · 금액 · 몫은 서버 */
   story: async (period: string, signal?: AbortSignal): Promise<HouseholdStory> =>
-    read(await apiFetch(`${HOUSEHOLD_API}/story/${encodeURIComponent(period)}`, { headers: authHeader(), signal }), "household-story"),
+    read(await apiFetch(`${HOUSEHOLD_API}/story/${encodeURIComponent(period)}`, { signal }), "household-story"),
   /** 리볼빙 명세서 + 6개월 추정(가계부 S1h) */
   revolving: async (signal?: AbortSignal): Promise<RevolvingList> =>
-    read(await apiFetch(`${HOUSEHOLD_API}/revolving`, { headers: authHeader(), signal }), "household-revolving"),
+    read(await apiFetch(`${HOUSEHOLD_API}/revolving`, { signal }), "household-revolving"),
 
   /** 사람 장부(가계부 S1h) — year 없으면 올해 · person 이 있으면 그 사람의 모든 해 */
   people: async (year: number | null, person: string | null, signal?: AbortSignal): Promise<HouseholdPeople> => {
@@ -73,21 +73,21 @@ export const householdApi = {
     if (year !== null) params.set("year", String(year));
     if (person) params.set("person", person);
     const qs = params.toString();
-    return read(await apiFetch(`${HOUSEHOLD_API}/people${qs ? `?${qs}` : ""}`, { headers: authHeader(), signal }), "household-people");
+    return read(await apiFetch(`${HOUSEHOLD_API}/people${qs ? `?${qs}` : ""}`, { signal }), "household-people");
   },
   budget: async (signal?: AbortSignal): Promise<HouseholdBudget | null> =>
-    read(await apiFetch(`${HOUSEHOLD_API}/budget`, { headers: authHeader(), signal }), "household-budget"),
+    read(await apiFetch(`${HOUSEHOLD_API}/budget`, { signal }), "household-budget"),
 
   /** 저장 응답이 `pending` 이었을 때 다시 묻는다 — 금액은 서버가 준 `savedTotal` 그대로 */
   goalClock: async (amount: number, signal?: AbortSignal): Promise<GoalClock> =>
-    read(await apiFetch(`${HOUSEHOLD_API}/goal-clock?amount=${amount}`, { headers: authHeader(), signal }), "household-goal-clock"),
+    read(await apiFetch(`${HOUSEHOLD_API}/goal-clock?amount=${amount}`, { signal }), "household-goal-clock"),
 
   /** 저장하지 않는 파싱 — 원문은 본문으로만 */
   parse: async (mode: "line" | "messages", text: string, signal?: AbortSignal): Promise<ParseResult> =>
     read(
       await apiFetch(`${HOUSEHOLD_API}/parse`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeader() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode, text }),
         signal,
       }),

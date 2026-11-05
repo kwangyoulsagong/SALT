@@ -1,110 +1,78 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { singleFlight, withAuthRefresh } from "./authRefresh";
+import { singleFlight, withSessionRefresh } from "./authRefresh";
 
 /**
- * 401 → 갱신 → 1회 재시도 (`FE-REQ-013`).
+ * 401 → 갱신 → 1회 재시도 (`FE-REQ-013` FR-80 2단계 — 토큰은 httpOnly 쿠키).
  *
- * 가짜 `fetch` 는 호출마다 미리 정한 status 를 돌려준다. 확인하는 것은 **몇 번 보냈는가**와
- * **두 번째 요청이 새 토큰을 들고 갔는가**다.
+ * 가짜 `fetch` 는 호출마다 미리 정한 status 를 돌려준다. 확인하는 것은 **몇 번 보냈는가 · 갱신을 몇 번 불렀나**다.
+ * 경계는 표 하나다 — (보낼 때 세션 · 첫 응답 · 갱신 결과 · 재시도 응답) → (보낸 수 · 갱신 수 · 최종 status).
  */
 
-const respond = (status: number) => new Response(null, { status });
-
-interface Call {
-  input: RequestInfo | URL;
-  authorization: string | null;
-}
-
 const recordingFetch = (statuses: number[]) => {
-  const calls: Call[] = [];
-  const fetchImpl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    calls.push({
-      input,
-      authorization: new Headers(init?.headers).get("Authorization"),
-    });
-    return respond(statuses[calls.length - 1] ?? 200);
+  const seen: RequestInit[] = [];
+  const fetchImpl = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+    seen.push(init ?? {});
+    return new Response(null, { status: statuses[seen.length - 1] ?? 200 });
   }) as unknown as typeof fetch;
-
-  return { calls, fetchImpl };
+  return { seen, fetchImpl };
 };
 
-describe("withAuthRefresh", () => {
-  it("200 이면 갱신하지 않는다", async () => {
-    const { fetchImpl, calls } = recordingFetch([200]);
-    const refreshAccessToken = vi.fn(async () => "new-token");
+interface Row {
+  name: string;
+  signedIn: boolean;
+  statuses: number[];
+  refreshed: boolean;
+  sends: number;
+  refreshes: number;
+  final: number;
+}
 
-    const response = await withAuthRefresh({ fetchImpl, refreshAccessToken })("/api/app/x", {
-      headers: { Authorization: "Bearer old" },
+const ROWS: Row[] = [
+  { name: "200 이면 갱신하지 않는다", signedIn: true, statuses: [200], refreshed: true, sends: 1, refreshes: 0, final: 200 },
+  { name: "401 이면 갱신하고 한 번 다시 보낸다", signedIn: true, statuses: [401, 200], refreshed: true, sends: 2, refreshes: 1, final: 200 },
+  { name: "재시도도 401 이면 그대로 — 무한 재시도 없음", signedIn: true, statuses: [401, 401], refreshed: true, sends: 2, refreshes: 1, final: 401 },
+  { name: "갱신 실패면 401 그대로 — 다시 보내지 않는다", signedIn: true, statuses: [401], refreshed: false, sends: 1, refreshes: 1, final: 401 },
+  { name: "세션 없이 보낸 401 은 갱신 대상이 아니다", signedIn: false, statuses: [401], refreshed: true, sends: 1, refreshes: 0, final: 401 },
+  { name: "403 은 갱신 대상이 아니다", signedIn: true, statuses: [403], refreshed: true, sends: 1, refreshes: 0, final: 403 },
+];
+
+describe("withSessionRefresh", () => {
+  it.each(ROWS)("$name", async (row) => {
+    const { fetchImpl, seen } = recordingFetch(row.statuses);
+    const refreshSession = vi.fn(async () => row.refreshed);
+
+    const response = await withSessionRefresh({ fetchImpl, hasSession: () => row.signedIn, refreshSession })("/api/app/x");
+
+    expect(seen).toHaveLength(row.sends);
+    expect(refreshSession).toHaveBeenCalledTimes(row.refreshes);
+    expect(response.status).toBe(row.final);
+  });
+
+  it("세션은 **보내기 전에** 읽는다 — 응답 중에 지워져도(다른 탭 로그아웃) 그 요청은 세션 요청이다", async () => {
+    let signedIn = true;
+    const { fetchImpl, seen } = recordingFetch([401, 200]);
+    const wrapped = withSessionRefresh({
+      fetchImpl: (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const res = await fetchImpl(input, init);
+        signedIn = false;
+        return res;
+      }) as typeof fetch,
+      hasSession: () => signedIn,
+      refreshSession: async () => true,
     });
 
-    expect(response.status).toBe(200);
-    expect(refreshAccessToken).not.toHaveBeenCalled();
-    expect(calls).toHaveLength(1);
+    expect((await wrapped("/api/app/x")).status).toBe(200);
+    expect(seen).toHaveLength(2);
   });
 
-  it("401 이면 갱신하고 새 토큰으로 한 번 다시 보낸다", async () => {
-    const { fetchImpl, calls } = recordingFetch([401, 200]);
-    const refreshAccessToken = vi.fn(async () => "new-token");
+  it("재시도는 같은 `init` 이다 — 새 토큰은 쿠키가 싣는다", async () => {
+    const { fetchImpl, seen } = recordingFetch([401, 200]);
 
-    const response = await withAuthRefresh({ fetchImpl, refreshAccessToken })("/api/app/x", {
-      headers: { Authorization: "Bearer old" },
+    await withSessionRefresh({ fetchImpl, hasSession: () => true, refreshSession: async () => true })("/api/app/x", {
+      method: "POST",
+      body: '{"a":1}',
     });
-
-    expect(response.status).toBe(200);
-    expect(calls.map((call) => call.authorization)).toEqual([
-      "Bearer old",
-      "Bearer new-token",
-    ]);
-  });
-
-  it("재시도도 401 이면 그대로 올린다 — 무한 재시도가 없다", async () => {
-    const { fetchImpl, calls } = recordingFetch([401, 401]);
-    const refreshAccessToken = vi.fn(async () => "new-token");
-
-    const response = await withAuthRefresh({ fetchImpl, refreshAccessToken })("/api/app/x", {
-      headers: { Authorization: "Bearer old" },
-    });
-
-    expect(response.status).toBe(401);
-    expect(calls).toHaveLength(2);
-    expect(refreshAccessToken).toHaveBeenCalledTimes(1);
-  });
-
-  it("`Authorization` 없이 보낸 401 은 갱신 대상이 아니다", async () => {
-    const { fetchImpl, calls } = recordingFetch([401]);
-    const refreshAccessToken = vi.fn(async () => "new-token");
-
-    const response = await withAuthRefresh({ fetchImpl, refreshAccessToken })("/api/public");
-
-    expect(response.status).toBe(401);
-    expect(refreshAccessToken).not.toHaveBeenCalled();
-    expect(calls).toHaveLength(1);
-  });
-
-  it("갱신이 실패하면 401 을 그대로 올린다 — 던지지 않는다", async () => {
-    const { fetchImpl, calls } = recordingFetch([401]);
-    const refreshAccessToken = vi.fn(async () => null);
-
-    const response = await withAuthRefresh({ fetchImpl, refreshAccessToken })("/api/app/x", {
-      headers: { Authorization: "Bearer old" },
-    });
-
-    expect(response.status).toBe(401);
-    expect(calls).toHaveLength(1);
-  });
-
-  it("헤더 외의 `init` 은 그대로 다시 보낸다", async () => {
-    const seen: RequestInit[] = [];
-    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
-      seen.push(init ?? {});
-      return respond(seen.length === 1 ? 401 : 200);
-    }) as unknown as typeof fetch;
-
-    await withAuthRefresh({ fetchImpl, refreshAccessToken: async () => "new-token" })(
-      "/api/app/x",
-      { method: "POST", body: '{"a":1}', headers: { Authorization: "Bearer old" } }
-    );
 
     expect(seen[1]?.method).toBe("POST");
     expect(seen[1]?.body).toBe('{"a":1}');

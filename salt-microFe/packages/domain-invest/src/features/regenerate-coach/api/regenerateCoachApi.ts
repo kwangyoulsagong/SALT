@@ -1,6 +1,6 @@
 import type { CoachGenerationAccepted } from "@repo/core/coach";
 
-import { ApiError, apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { ApiError, apiFetch, readApiError } from "@repo/web-shared/api";
 import { HTTP_STATUS_CODE, INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 /** 서버 경로를 그대로 옮기는 BFF 프록시(`/api/*`)다. 뷰모델 경로(`/api/app/*`)가 아니다 */
@@ -26,7 +26,7 @@ export const regenerateCoachApi = {
   generate: async (): Promise<RegenerateResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${GENERATE_ENDPOINT}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeader() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
 

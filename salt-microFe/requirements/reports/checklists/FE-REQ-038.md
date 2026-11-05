@@ -107,3 +107,9 @@ Playwright route 6종 · 실스택 화면(3100, 임시 사용자) · `pnpm check
 
 - `ForecastFanChart` 의 렌더 중 `Date.now()` 두 줄에 `no-render-read` 예외 주석 — 전망은 소유자 전용 조회라 마운트 뒤 브라우저에서만 그려진다(서버 렌더에 없음, `DEV-001`)
 - 검증: 프론트 전체 `pnpm lint` 12/12 · 규칙 변이(나쁜 6줄 다 걸림 · 처리기 · 효과 · 일반 함수 통과)
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- 파일만 걸침 — `packages/domain-invest/src/entities/coach/api/useSymbolEvents.ts` `packages/domain-invest/src/entities/coach/api/useSymbolForecast.ts` `packages/domain-invest/src/entities/coach/api/useSymbolPositioning.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

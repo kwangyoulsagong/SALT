@@ -24,7 +24,7 @@ pnpm --filter @repo/ui check-types
 ## 정적 규칙 점검
 
 - zone(`apps/*/src`) 간 직접 import가 없는지 확인. 공유는 workspace 패키지로만 한다.
-- `window/document/localStorage`가 render 또는 top-level에서 쓰이지 않는지 확인. 로그인 여부는 `useHasAccessToken`(렌더 중 `readAccessToken()` 금지 — `ssr.md`).
+- `window/document/localStorage`가 render 또는 top-level에서 쓰이지 않는지 확인. 로그인 여부는 `useHasSession`(렌더 중 `hasSession()` 금지 — `ssr.md`).
 - Bash · 스크립트로 쓴 파일은 쓰기 시점 훅을 거치지 않는다 — `layer-check.mjs` 를 사후 실행한다(`packages/web-shared` · `domain-*` 포함).
 - `packages/ui`가 `apps/*`를 import하지 않는지 확인.
 - API service가 store를 직접 import하지 않는지 확인.

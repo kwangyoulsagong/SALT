@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 /**
  * 판정 근거 본문. **`ssr:false` 다** — 성적표 조회에 토큰이 필요하고 토큰은 브라우저 `localStorage` 에만 있다
  * (`CoachReportBody` 와 같은 이유 · 같은 위젯 청크).
+ * (2026-11-05 정정: 토큰은 이제 httpOnly 쿠키라 서버도 읽는다 — `FE-REQ-013` FR-80 2단계. 이 자리가 클라이언트에 남은 것은 아직 서버 조회로 옮기지 않아서다 — 목록은 `FE-REQ-013` FR-81)
  */
 const SignalEvidence = dynamic(
   () => import("@/widgets/coach-console").then((mod) => mod.SignalEvidence),

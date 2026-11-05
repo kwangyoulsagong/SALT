@@ -5,7 +5,7 @@ import { BottomSheet } from "@repo/ui/bottomSheet";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { useHasAccessToken } from "@repo/web-shared/api";
+import { useHasSession } from "@repo/web-shared/api";
 import { PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
 
 import { useNarrowViewport } from "../lib";
@@ -33,7 +33,7 @@ interface PreflightCardProps {
  * 이동을 막고 시트를 연다. `hashchange` 가 아니라 누름을 듣는 이유 — 같은 링크를 두 번 누르면 해시가 안 바뀐다.
  */
 export const PreflightCard = ({ symbol, mode, livePrice, className }: PreflightCardProps) => {
-  const hasToken = useHasAccessToken();
+  const hasToken = useHasSession();
   const narrow = useNarrowViewport();
   const [sheetOpen, setSheetOpen] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);

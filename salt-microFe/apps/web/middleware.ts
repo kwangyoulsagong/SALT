@@ -11,6 +11,7 @@ import { SESSION_HINT_COOKIE } from "@repo/core/auth";
  * 표지는 "보낼지"만 정한다 — 인증이 아니다. 토큰이 죽었으면 홈의 첫 호출이 401 → 갱신 실패 → 세션과 표지를
  * 같이 비우고 로그인으로 온다. 그때는 표지가 없어 여기를 그냥 지나간다(되돌이 없음).
  * 비공개 경로 보호는 이 미들웨어의 일이 아니다 — 토큰이 쿠키로 간 뒤(`FE-REQ-013`).
+ * (2026-11-05 정정: 토큰이 쿠키로 갔다 — `FE-REQ-013` FR-80 2단계. 비공개 경로 서버 보호는 `FE-REQ-013` FR-82 — zone 5 · 운영 라우팅에 같이 걸려 별 칸)
  */
 export function middleware(request: NextRequest) {
   if (request.cookies.get(SESSION_HINT_COOKIE)?.value === "1") {

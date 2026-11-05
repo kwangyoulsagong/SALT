@@ -45,7 +45,7 @@
 - React Query provider는 `src/app/providers`에서 한 번만 mount한다.
 - SSR prefetch를 추가할 때는 dehydrate/hydrate 전략을 같이 정의한다.
 - 비공개 browser token이 필요한 요청은 SSR에서 직접 호출하지 않는다.
-- **렌더 중에 토큰을 읽지 않는다** — `readAccessToken()` 을 훅 본문에서 부르면 서버는 "로그아웃", 브라우저는 "로그인"을 그려 수화가 갈린다(2026-11-02 `/search`). 로그인 여부는 `useHasAccessToken()`(서버 · 첫 렌더 `null` = 모름) — `enabled: signedIn === true` · `isSignedOut: signedIn === false`
+- **렌더 중에 세션을 읽지 않는다** — `hasSession()`(표지 쿠키) 을 훅 본문에서 부르면 서버는 "로그아웃", 브라우저는 "로그인"을 그려 수화가 갈린다(2026-11-02 `/search`). 로그인 여부는 `useHasSession()`(서버 · 첫 렌더 `null` = 모름) — `enabled: signedIn === true` · `isSignedOut: signedIn === false`
 - server props와 client store 초기값이 다르면 hydration mismatch로 본다.
 
 ## Multi-Zones SSR

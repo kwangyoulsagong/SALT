@@ -59,3 +59,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — zone 공용 레이아웃(`@repo/web-shared/layout`)이 앱 내비게이션 · prerender 규칙 · 문서 간 전환 · 이동 계측을 갖는다(`e0bce695`). 프로필 메뉴는 화면별이 아니라 머리 한 자리(`<header>` → `<div>`, 메뉴 정렬 끝). 투자 zone `next.config.js` 는 프리셋(`7b8b1110`). 이 REQ 머리 블록의 "`FE-REQ-054` 전까지 그 레이아웃이 임시로 맡는다"가 닫혔다 |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — `ops/salt.sh` 머리 주석(이 REQ 의 zone 별 dev 서버 줄 아래 운영 빌드 주의 두 줄, `9ef6dc92`). 주인은 `OPS-002`, 동작 무변경 |
 | 2026-11-03 | MONEY-S1b — `cdeb5f7c` web-shared 패키지(이 REQ 가 만든)의 lib 에 `readAmountInput` · `useAmountInputGuard` · `labelOr` 추가. 기존 export 무변경 |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |

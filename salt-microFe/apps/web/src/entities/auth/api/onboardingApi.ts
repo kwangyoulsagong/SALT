@@ -1,4 +1,4 @@
-import { apiFetch, authHeader } from "@repo/web-shared/api";
+import { apiFetch } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import type { OnboardingStatus } from "../model/types";
@@ -20,7 +20,7 @@ export const onboardingApi = {
   status: async (): Promise<OnboardingStatus> => {
     const response = await apiFetch(
       `${INVESTMENTS_BASE_URL}${ONBOARDING_ENDPOINTS.status()}`,
-      { headers: authHeader() },
+      undefined,
     );
 
     if (!response.ok) {

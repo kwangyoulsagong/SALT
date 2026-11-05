@@ -1,5 +1,5 @@
 import type { MarketOverviewItem, MarketOverviewResponse } from "@/entities/market";
-import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
+import { BFF_SERVER_URL } from "@repo/web-shared/config";
 
 /**
  * **서버 컴포넌트 · 메타데이터 · sitemap 전용** 시세 조회 — 공개 시세라 토큰이 필요 없다.
@@ -31,7 +31,7 @@ const fetchOverview = async (
   revalidate: number,
 ): Promise<MarketOverviewItem[]> => {
   try {
-    const response = await fetch(`${INVESTMENTS_BASE_URL}${overviewPath(params)}`, {
+    const response = await fetch(`${BFF_SERVER_URL}${overviewPath(params)}`, {
       next: { revalidate },
     });
     if (!response.ok) return [];

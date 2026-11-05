@@ -1,4 +1,4 @@
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import type { ChartTimeframeSpec } from "../model/chartTimeframes";
@@ -110,14 +110,12 @@ export const marketApi = {
     signal?: AbortSignal,
   ): Promise<AssetSearchResponse> => {
     const body = await getJson<{ data: AssetSearchResponse }>("search", MARKET_ENDPOINTS.search(q, limit, assetType), {
-      headers: authHeader(),
       signal,
     });
     return body.data;
   },
   watchlist: async (signal?: AbortSignal): Promise<WatchlistResponse> => {
     return getJson("watchlist", MARKET_ENDPOINTS.watchlist(), {
-      headers: authHeader(),
       signal,
     });
   },

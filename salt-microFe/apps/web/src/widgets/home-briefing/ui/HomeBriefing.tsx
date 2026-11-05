@@ -17,6 +17,7 @@ import { SavingTipBlock } from "./SavingTipBlock";
  *
  * 카드가 클라이언트에서 React Query 로 BFF 를 부른다(토큰이 `localStorage` 에 있다 — `FE-REQ-013` 전). 경계는
  * **부분 실패 격리**만 한다. 카드 하나의 실패는 BFF 가 카드 단위로 격리해 `degraded` 로 준다.
+ * (2026-11-05 정정: 토큰은 이제 httpOnly 쿠키라 서버도 읽는다 — `FE-REQ-013` FR-80 2단계. 이 자리가 클라이언트에 남은 것은 아직 서버 조회로 옮기지 않아서다 — 목록은 `FE-REQ-013` FR-81)
  *
  * 경계 수는 화면당 5개 이하다 (FE-REQ-008 FR-26). 현재 1개.
  */
