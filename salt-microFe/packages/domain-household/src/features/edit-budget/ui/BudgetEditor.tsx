@@ -50,7 +50,10 @@ export const BudgetEditor = ({ budget }: { budget: HouseholdBudget | null }) => 
   const [method, setMethod] = useState<BudgetMethodKey>(budget?.method ?? "envelope");
   const nums = useNumberFields({ income: "won" }, initialTexts(budget), "won");
 
-  const categories: CategoryKey[] = [...DEFAULTS, ...(table ?? []).filter((c) => c.custom && !c.archived).map((c) => c.key)];
+  // 봉투 칸 — 기본 12 + 보관 안 한 내 분류 + 지금 예산에 봉투가 있는 지운 분류(서버가 다시 받는다 — 조용히 빠지지 않게. 비우면 빠진다)
+  const kept = new Set(budget?.method === "envelope" ? budget.envelopes.map((e) => e.key) : []);
+  const archived = new Set((table ?? []).filter((c) => c.custom && c.archived && kept.has(c.key)).map((c) => c.key));
+  const categories: CategoryKey[] = [...DEFAULTS, ...(table ?? []).filter((c) => c.custom && (!c.archived || archived.has(c.key))).map((c) => c.key)];
   const filled = (keys: readonly string[]) =>
     Object.fromEntries(keys.map((key) => [key, parseAmountInput(nums.value(key))] as const).filter((entry): entry is readonly [string, number] => entry[1] !== null && entry[1] > 0));
   const income = parseAmountInput(nums.value("income"));
@@ -86,7 +89,7 @@ export const BudgetEditor = ({ budget }: { budget: HouseholdBudget | null }) => 
       {method === "envelope" ? (
         <div className={s.grid}>
           {categories.map((key) => (
-            <TextField key={key} label={label.category(key)} value={nums.value(key)} onChange={(v) => nums.change(key, v)} inputMode="numeric" error={nums.message(key)} />
+            <TextField key={key} label={archived.has(key) ? M.archivedEnvelope(label.category(key)) : label.category(key)} value={nums.value(key)} onChange={(v) => nums.change(key, v)} inputMode="numeric" error={nums.message(key)} />
           ))}
         </div>
       ) : null}

@@ -12,6 +12,8 @@ export const BUDGET_MESSAGES = {
   income: "월 소득",
   savingsShare: (won: string) => `모으기 몫 ${won} — 저축 목표 쪽에서 넣어요`,
   salaryShare: (won: string) => `급여 통장에 남는 몫 ${won} — 반복 지출이 여기서 나가요`,
+  /** 지운 내 분류인데 지금 예산에 봉투가 있는 칸 — 비우면 다음 저장에서 빠진다 */
+  archivedEnvelope: (name: string) => `${name}(지운 분류)`,
   submit: "저장",
   saved: "예산을 저장했어요",
   failed: "저장 못 했어요. 입력한 값은 그대로 있어요",

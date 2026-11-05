@@ -10,4 +10,7 @@ export const FIND_FIXED_COST_MESSAGES = {
   templates: "매달 나가는 돈 보기",
   templateLimit: "매달 적기는 더 넣을 수 없어요",
   failed: "저장하지 못했어요",
+  /** 후보의 분류가 지운 내 분류일 때(가계부 S1f) — 지운 분류로 새로 적지 않는다 */
+  pickCategory: "지운 분류예요. 매달 적을 분류를 골라 주세요",
+  pickCategoryLabel: (merchant: string) => `${merchant} 매달 적을 분류`,
 };
