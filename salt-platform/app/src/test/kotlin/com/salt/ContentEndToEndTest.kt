@@ -244,6 +244,10 @@ class ContentEndToEndTest : ContentHttp() {
         // set 인데 금액이 없다 · 금액이 숫자가 아니다
         call("POST", "/api/content/me/tips/housing-subscription-deduction/my-numbers", user, """{"goals":[],"wage":{"state":"set","basis":"monthly"}}""").statusCode() shouldBe 400
         call("POST", "/api/content/me/tips/housing-subscription-deduction/my-numbers", user, """{"goals":[],"wage":{"state":"set","basis":"monthly","amount":"-1"}}""").statusCode() shouldBe 400
+        // 모양은 맞는데 없는 날짜 — 500 이 아니라 400(S2d 확인 결함)
+        val badDate = call("POST", "/api/content/me/tips/housing-subscription-deduction/my-numbers", user, """{"goals":[{"template":"wedding","status":"active","saved":"0","targetDate":"2026-13-45"}],"wage":{"state":"not_set"}}""")
+        badDate.statusCode() shouldBe 400
+        jsonMapper.readTree(badDate.body()).path("code").asString() shouldBe "INVALID_GOAL_FACT"
 
         // 글 응답이 칸 여부를 알린다
         data(call("GET", "/api/content/tips/housing-subscription-deduction", null)).path("myNumbers").asBoolean() shouldBe true

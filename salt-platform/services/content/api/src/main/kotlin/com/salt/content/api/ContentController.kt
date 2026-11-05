@@ -267,7 +267,7 @@ class ContentController(
 
     private fun facts(body: MyNumbersBody): MyFacts {
         val goals = body.goals?.map { g ->
-            GoalFact(g.template!!, g.status!!, Money.krw(g.saved!!), g.monthlyPlan?.let(Money::krw), g.targetDate?.let(LocalDate::parse))
+            GoalFact(g.template!!, g.status!!, Money.krw(g.saved!!), g.monthlyPlan?.let(Money::krw), g.targetDate?.let(::factDate))
         }
         val w = body.wage!!
         val wage = when (w.state) {
@@ -282,6 +282,9 @@ class ContentController(
         }
         return MyFacts(goals, wage)
     }
+
+    /** 정규식은 모양만 본다 — 2026-13-45 같은 없는 날짜는 여기서 400(파싱 예외가 500 으로 새던 결함, S2d 확인) */
+    private fun factDate(raw: String): LocalDate = runCatching { LocalDate.parse(raw) }.getOrNull() ?: throw InvalidGoalFact(raw)
 
     private fun view(slug: String, r: MyReading): MyNumbersView = MyNumbersView(
         slug = slug,
@@ -298,6 +301,8 @@ class ContentController(
         is TipBlock.Paragraph -> Block("paragraph", b.text, null)
         is TipBlock.Bullets -> Block("bullets", null, b.items)
     }
+
+    private class InvalidGoalFact(raw: String) : DomainError("INVALID_GOAL_FACT", ErrorKind.INVALID, "targetDate must be a real YYYY-MM-DD date", mapOf("targetDate" to raw))
 
     private class InvalidWage : DomainError("INVALID_WAGE_FACT", ErrorKind.INVALID, "wage set needs basis and positive amount")
 
