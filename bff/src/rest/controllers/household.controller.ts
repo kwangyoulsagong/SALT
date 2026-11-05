@@ -44,6 +44,7 @@ export const appHouseholdController = {
   unmarkNoSpend: wrap(200, (req) => appHouseholdService.unmarkNoSpend(req.token!, String(req.params.date))),
   hideFixedCost: wrap(200, (req) => appHouseholdService.hideFixedCost(req.token!, req.body ?? {})),
   showFixedCost: wrap(200, (req) => appHouseholdService.showFixedCost(req.token!, req.body ?? {})),
+  story: wrap(200, (req) => appHouseholdService.story(req.token!, String(req.params.period))),
   categories: wrap(200, (req) => appHouseholdService.categories(req.token!)),
   addCategory: wrap(201, (req) => appHouseholdService.addCategory(req.token!, req.body ?? {})),
   editCategory: wrap(200, (req) => appHouseholdService.editCategory(req.token!, String(req.params.key), req.body ?? {})),
