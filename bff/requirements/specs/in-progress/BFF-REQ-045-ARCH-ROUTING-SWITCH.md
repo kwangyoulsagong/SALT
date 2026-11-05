@@ -47,3 +47,4 @@ BFF 는 Node 로 남고(`ADR-006`), 서버 이전의 **안전장치**가 된다.
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`3e5e0d42`): 라우팅 표에 첫 화면 경로 `/savings` → platform. 그림자 단계는 건너뜀 — 옛 경로를 Kotlin 으로 다시 만들지 않아 비교할 짝이 없다(`SRV-REQ-045` FR-1 정정). 되돌리기 = 표 한 줄은 그대로지만 데이터는 이미 savings 가 주인 |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 라우팅 표 `/household` → platform(`b162ac6f`) |
 | 2026-11-04 | `15177092` — 스위치 테스트의 추적 ID 케이스가 늘 실패하던 원인: 테스트가 `await import()` 로 불러 tsx 가 `trace.ts` 를 두 벌 만들었다(AsyncLocalStorage 둘). 앱과 같은 `require` 로. 운영은 한 벌이라 정상(실행 중 BFF → Kotlin traceId 일치 확인). FR-7 동작 변경 0 |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): `app.ts`(이 REQ 가 머리 주석 주인)에 쿠키 → Authorization 미들웨어 한 줄(`fb9c85b3`, `BFF-REQ-009` FR-54) |

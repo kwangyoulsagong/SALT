@@ -310,3 +310,9 @@
 
 - 2026-11-03 MONEY-S1b `7d22f6a1` — 주문 전 체크 칸(금액 원 · 진입 · 목표 가격). 화면(3002 `/investments/BTC`): "1,234.5" 받음 · "1000·5" · "1000 5" 거절 + 칸 오류 · "１２．５" → 12.5 · 원 칸은 소수 거절 · 페이지 오류 0. 모노레포 · zone 5 빌드(`/investments/[symbol]` 139 kB · `/coach/settings` 135 kB)
 - 2026-11-03 `2bcea756` — 화면(3002 `/investments/BTC`): 칸 5개 거절 → 칸 오류 · 정상 → 받음 · 칩 → 100,000 · 오류 지움 · 현재가 버튼 2개 → 값 · 오류 지움 · 페이지 오류 0. zone 빌드(`/investments/[symbol]` 140 kB)
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- 파일만 걸침 — `packages/domain-invest/src/features/run-preflight/ui/PreflightCard.tsx`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

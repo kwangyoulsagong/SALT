@@ -151,3 +151,8 @@ watchlist 슬라이스 회고가 적은 실수를 초대 슬라이스가 되풀�
 ## 2026-11-05 — 가계부 S1h(`MONEY-S1h-household-revolving-people`)
 
 - **Action**: 없음.
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계
+
+- 파일만 걸침(토큰 운반이 쿠키로) — Action 없음

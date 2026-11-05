@@ -65,3 +65,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-045-F012-SAVINGS.md
 | 2026-11-03 | MONEY-S1b 리뷰 6차 — `6395cf82` 이유 값 주석에 `not_reachable`. 전달만 |
 | 2026-11-03 | MONEY-S1b 리뷰 9차 — `b10c9a74` 상세 응답 최상위 `degraded` · `degradedReasons`(구간 + 놓친 달) 타입. 전달만 |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — `appSavingsService.goalClock`(가계부 저장 응답이 부른다 — 금액은 가계부 `savedTotal` 문자열 그대로)(`b162ac6f`) |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-savings/src/entities/goal/api/goalApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |

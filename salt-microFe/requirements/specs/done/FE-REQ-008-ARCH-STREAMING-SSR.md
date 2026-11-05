@@ -216,3 +216,4 @@ RSC에서는 그 근거가 달라진다. 서버 컴포넌트가 BFF를 여러 �
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 후속 — `562adfad` — 세션 저장 · 비우기(`@repo/web-shared/api` `authToken`)에 로그인 표지 쿠키 · 프로바이더(`ZoneProviders`) 마운트 때 표지를 토큰에 맞춤. 셸 미들웨어가 로그인 상태 `/` 를 서버에서 `/home` 으로(로그인 화면 깜빡임 수정). 실화면: 로그인 307 → `/home` · 로그아웃 · 만료 토큰은 로그인 그대로 |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 셸 루트 `app/layout.tsx` `<head>` 에 문서 간 전환 `<style>` 한 줄(`e0bce695`). 서버 컴포넌트 · 껍데기만 그대로 |
 | 2026-11-03 | 서버 컴포넌트가 처음으로 사용자 데이터를 서버에서 조회한다(쿠키 → BFF) — 저축 두 화면. 스트리밍 경계 · 블록 수 무변경(`0ef25f6b`) |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): §6-4 미달(인증 토큰이 `localStorage`) **닫힘** — httpOnly 쿠키. `ZoneProviders` 가 옛 저장소 세션을 쿠키로 옮긴다(`721063fc`) |

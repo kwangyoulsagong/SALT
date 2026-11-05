@@ -220,3 +220,9 @@ FR 전부 완료. 남은 것은 `QA-001`(소유자 실계정 · 200% 확대 · �
 - 2026-11-03 `2bcea756` — 화면(3002 `/investments/BTC`): 칸 5개 거절 → 칸 오류 · 정상 → 받음 · 칩 → 100,000 · 오류 지움 · 현재가 버튼 2개 → 값 · 오류 지움 · 페이지 오류 0. zone 빌드(`/investments/[symbol]` 140 kB)
 
 - 리뷰 12차(2026-11-03): 내 기준 폼이 안 바꾼 예산까지 보내 지우던 퇴행(11차 `2bcea756` 이 만든 것) → 바꾼 칸만 보냄 `e20d752f`
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- 파일만 걸침 — `packages/domain-invest/src/entities/coach/api/useBehaviorMirror.ts` `packages/domain-invest/src/entities/coach/api/useCoachProfile.ts` `packages/domain-invest/src/entities/coach/api/useRiskBudget.ts` `packages/domain-invest/src/entities/coach/api/useTradePlans.ts` `packages/domain-invest/src/features/record-transaction/ui/RecordTradeCard.tsx`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

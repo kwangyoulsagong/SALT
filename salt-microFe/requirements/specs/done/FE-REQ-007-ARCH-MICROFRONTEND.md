@@ -249,3 +249,4 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 저축 zone 이 실제 화면을 서비스 — zone 앱은 얇다(`app/` re-export · 레이아웃 · `next.config.js` 만). `/goals/addgoals` 는 저축 zone 의 리다이렉트 |
 | 2026-11-03 | `@repo/core/auth` 에 `ACCESS_COOKIE` · `SESSION_ROUTE` — zone 은 셸과 같은 origin 이라 쿠키를 같이 받는다(이 REQ 의 "localStorage 라 zone 간 공유 안 됨" 주의의 첫 해소)(`0ef25f6b`) |
 | 2026-11-04 | 로고(`FE-REQ-051`) — 파일만 걸침(`25f182f6`): `@repo/tokens` 에 `colors.brand.mark`(로고 은회색) · `BRAND_MARK`(로고 경로 — 토큰 객체 밖 export, 웹 테마 변수 대상 아님) 추가. 기존 토큰 값 diff 0 |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 인증 키(FR-32) — 토큰 키를 `LEGACY_*`(이관용)로 · `REFRESH_COOKIE` · `SESSION_REFRESH_ROUTE` 추가(`721063fc`) |

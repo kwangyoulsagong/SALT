@@ -11,7 +11,7 @@ created: 2026-09-09
 
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - FR-11 의 `event-bus` · `remove()` 는 구독 · 리스너 해제로(PreviewChart 는 SVG) · FR-20~21 모바일 기준은 FE-REQ-043 안내로 웹 해당 없음
-> - **FR-80 추가** — 쿠키 세션(서버 조회) 이전: 마스터 인덱스가 이 REQ 에 남겨 둔 일인데 FR 이 없었다. 지금 토큰은 `localStorage`(`shared/api/authToken.ts`)
+> - **FR-80 추가** — 쿠키 세션(서버 조회) 이전: 마스터 인덱스가 이 REQ 에 남겨 둔 일인데 FR 이 없었다. ~~지금 토큰은 `localStorage`(`shared/api/authToken.ts`)~~ **2026-11-05 2단계 done** — 토큰은 httpOnly 쿠키뿐(`web-shared/src/api/session.ts`)
 
 
 ## Summary
@@ -121,7 +121,7 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 
 | ID | 요구사항 | 우선 |
 |---|---|---|
-| FR-80 | 액세스 토큰을 `localStorage` 에서 httpOnly 쿠키 세션(서버 컴포넌트 조회)으로 옮긴다 — 마스터 인덱스가 이 REQ 에 남긴 일("쿠키 세션은 남음"). 지금 `shared/api/authToken.ts` 가 미달을 적고 있다. `FE-REQ-011` FR-53 · `FE-REQ-028` FR-80 이 이것을 기다린다 | Must |
+| FR-80 | 액세스 토큰을 `localStorage` 에서 httpOnly 쿠키 세션(서버 컴포넌트 조회)으로 옮긴다 — 마스터 인덱스가 이 REQ 에 남긴 일("쿠키 세션은 남음"). 지금 `shared/api/authToken.ts` 가 미달을 적고 있다. `FE-REQ-011` FR-53 · `FE-REQ-028` FR-80 이 이것을 기다린다. **done 2026-11-05**(1단계 `0ef25f6b` · 2단계 `721063fc`) | Must |
 
 ## Acceptance Criteria
 
@@ -198,3 +198,4 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 | 2026-11-05 | 가계부 S1f(`MONEY-S1f-household-categories-accounts`, `3269eef3`) — 번들(Next 표 First Load JS): `/household` 162 → 163 kB · `/household/budget` 134 kB · 공용 103 kB. 월 화면 새 조회 0(분류 표는 월 응답 안), 예산 · 적기 화면은 분류 표 조회 하나(5분 stale) |
 | 2026-11-05 | 가계부 S1g(`MONEY-S1g-household-story`, `1c46db88`) — 번들(Next 표 First Load JS): `/household/story/[period]` 151 kB(새 — 첫 카드는 서버가 쿠키로 받아 HTML 에, 1.5초 넘으면 브라우저 조회) · `/household` 164 kB 그대로 · 공용 103 kB. 공유 이미지는 누를 때만 그린다(상시 캔버스 0) |
 | 2026-11-05 | 가계부 S1h(`MONEY-S1h-household-revolving-people`, `38ed6518`) — 번들(Next 표 First Load JS): `/household` 164 → 165 kB · `/household/revolving` 154 kB · `/household/people` 156 kB(새) · 공용 103 kB |
+| 2026-11-05 | FR-80 **2단계 done** — 토큰을 브라우저 저장소에서 뺐다. 액세스 · 리프레시 둘 다 httpOnly 쿠키(리프레시 경로 `/api/session` 으로 좁힘) · 표지 쿠키는 같은 응답에서. 셸 Route Handler 셋(`POST`·`DELETE /api/session` · `POST /api/session/refresh` — 리프레시 쿠키로 BFF 갱신, 401·403 이면 셋 다 지움 · 5xx 는 그대로). 브라우저는 BFF 를 같은 origin `/api/*` 로(셸 rewrites afterFiles · 운영 ADR-008) · 서버 코드는 `BFF_SERVER_URL`. 갱신 규칙 `withSessionRefresh`(보낼 때 표지 있었나 — 경계 표 테스트 9). 웹소켓은 연결 쿠키 · 인증 거부면 갱신 뒤 한 번 다시 연결(1분에 한 번). 옛 `localStorage` 세션 첫 진입 이관. `authHeader` 호출 50곳 제거(`721063fc`) · BFF `fb9c85b3`. 번들(Next 표 First Load JS): 셸 `/` 149 · `/home` 158 · `/onboarding` 152 · `/settings` 135 · `/goals` 152 · `/household` 165 kB — **main(`9214c271`) 워크트리 같은 빌드 대조: `/home` 159 → 158 · `/goals` 153 → 152 · 나머지 같음(증가 0)** — 헤더 만들기 50곳이 빠졌다. 루트 `requirements/specs/done/F000-cookie-session-slice.md` |

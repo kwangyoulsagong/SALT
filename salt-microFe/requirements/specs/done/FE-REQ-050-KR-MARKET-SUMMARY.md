@@ -40,3 +40,4 @@ source: 사용자 스크린샷(국내 탭 코스피 · 코스닥 큰 상자 두 
 | 2026-11-02 | `d57f10fb` fix(fe): FR-9 추가 — 1379px 이하 상자 유지 · 항목 열 가로 밀기(일정 줄 제거로 1280 폭에서 일정이 사라진 것 · 기존 페이지 넘침) |
 | 2026-11-02 | FR-2 의 "환율 칸"은 없다 — 원/달러를 범위에서 뺌(`SRV-REQ-042` FR-3, 실전 키 안 씀) |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 시세 타일 등락 — 금액만 말줄임, 변동률은 늘 보임(`a55d8ca4`). 파일 9개(경로 이동 내용 무변경 4 · 수정 5 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-invest/src/widgets/judgment-overview/ui/JudgmentOverview.tsx`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |

@@ -107,3 +107,4 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`). 파일 1개(경로 이동 내용 무변경 1 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
+| 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 국내 중계 서버 401 → `KR_STOCK_AUTH_REQUIRED` 한 코드(웹이 세션 갱신 뒤 다시 연결) · 구독 메시지 토큰 없이 연결 쿠키로(`fb9c85b3` · `721063fc`) |

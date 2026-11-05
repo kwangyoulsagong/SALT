@@ -75,3 +75,9 @@
 - `d80a7ac8` 레일 라벨 색만 — 768 경계 · 안내 무변경
 
 - 2026-11-03 MONEY-S1b `cdeb5f7c` — 공용 문구 파일(머리에 이 REQ)에 `AMOUNT_INPUT_MESSAGES` 추가. web-shared check-types · zone 5 빌드 · 모노레포 lint
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- 앱 머리(이 REQ 가 `AppNavigation.css.ts` 머리 주석 주인) — 계정 메뉴가 본문에 깔리던 것 `zIndex` 로 고침(`99efcd15`, `FE-REQ-054` 결함)
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

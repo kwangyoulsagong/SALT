@@ -287,3 +287,9 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 ## 2026-11-05 — 가계부 S1h(`MONEY-S1h-household-revolving-people`)
 
 - [x] `ROUTES.householdRevolving`(`/household/revolving`) · `ROUTES.householdPeople`(`/household/people`) — 가계부 머리 · 월 띠 · 뒤로 링크가 이것만 쓴다
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- 파일만 걸침 — `apps/web/src/widgets/onboarding-flow/ui/OnboardingFlow.tsx` `packages/domain-invest/src/entities/market/api/marketApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

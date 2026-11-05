@@ -201,3 +201,9 @@
 
 - **기존 결함 수정** `f6587a53` — 로그인 화면(`RedirectSignedIn`)이 Redux 사용자(`USER`)로, 셸 미들웨어 표지 쿠키는 토큰으로 판단해 토큰 없이 `USER` 만 남은 브라우저는 들어올 때마다 로그인 화면이 비쳤다가 홈으로 갔다(사용자 보고 "여전히 localhost:3000 들어가면 로그인 창 갔다가 홈으로"). 판단을 토큰(`useHasAccessToken`) 하나로 · 토큰 없는 `USER` 는 복원(`useInitializeAuth`) 때 지운다 — 이 REQ 의 로그인 화면 판단이 바뀌었다(FR-61 "보호는 미들웨어 몫"은 그대로)
 - 재현 · 확인(임시 사용자, 실 BFF · 서버): USER 만 남긴 상태 방문 2회 — 전 로그인 폼 → `/home` 2/2 · 후 로그인 화면 유지 2/2 + USER 지워짐. 토큰 있고 쿠키만 없는 상태 — 첫 방문 1회 비침(쿠키를 이때 단다) · 둘째부터 서버 307. 새 로그인 — 307 → `/home`, 로그인 폼 0
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- FR-53 저장 위치가 **쿠키**가 됐다(머리 정정의 "아직 `localStorage`" 닫힘) · 갱신(FR-62)은 셸 Route Handler 로 · `RedirectSignedIn` 은 `useHasSession`(`721063fc`)
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

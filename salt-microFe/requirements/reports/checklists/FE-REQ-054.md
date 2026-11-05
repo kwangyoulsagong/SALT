@@ -91,3 +91,8 @@
 ## 2026-11-04 — 로고(`FE-REQ-051`) · `25f182f6`
 
 - 파일만 걸침 — 이 REQ 의 동작 · 값 diff 0. 모노레포 check-types · lint · test · zone 5 빌드 · 훅 통과(`checklists/FE-REQ-051.md`)
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계에서 걸림
+
+- 결함 수정 `99efcd15` — 머리 계정 메뉴가 본문에 깔림 → 머리 `zIndex` · 테스트(변이: 빼면 실패) · done-checklist 1절 행. 실화면: 홈에서 메뉴 열고 로그아웃 → 쿠키 셋 지움 · 로그인 화면
+- `config-next` `shellRewrites`(afterFiles — Route Handler 먼저) · `ProfileMenu` 로그아웃 await(`721063fc`) — zone 4 빌드 · 앱 경로 표에 `/api/session` · `/api/session/refresh`

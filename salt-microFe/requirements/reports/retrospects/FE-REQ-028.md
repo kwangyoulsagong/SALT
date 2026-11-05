@@ -66,3 +66,8 @@
 ## 2026-11-04 — `DEV-001` 렌더 중 읽기 lint
 
 - `useRegenerateCoach` 의 `now` 초기값을 렌더 중 `Date.now()` 대신 0 으로 — 쿨다운을 받은 뒤에만 쓰는 값이라 화면은 같다(`DEV-001` `no-render-read`)
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계
+
+- 파일만 걸침(토큰 운반이 쿠키로) — Action 없음

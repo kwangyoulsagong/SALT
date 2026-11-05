@@ -86,3 +86,9 @@
 ## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
 
 - [x] 목표 상세 적립 줄 "챌린지로 아낀 돈" — 실화면(임시 사용자) 확인 · 저축 zone 운영 빌드(`/goals/[id]` 154 kB) · 넘침 확인은 가계부 쪽 폭 표와 같은 실행
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- FR-13 서버 조회 둘이 절대 주소 `BFF_SERVER_URL`(브라우저 `INVESTMENTS_BASE_URL` 은 같은 origin 빈 문자열)(`721063fc`)
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

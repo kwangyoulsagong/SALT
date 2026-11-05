@@ -58,3 +58,4 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 | 2026-11-03 | MONEY-S1a — `11224e9a` — `APP_TABS` 저축 줄 주석을 "화면이 아직 없다" → "저축 zone 첫 화면 `/goals`"로(동작 무변경) |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 가계부 탭 `readyBy: null`(눌린다) · 탭 테스트("첫 화면 없는 탭" 목록 빈 배열) · zone 레이아웃 `AppShell` + `VIEW_TRANSITION_CSS`(`df45ae7d`) |
 | 2026-11-04 | 로고(`FE-REQ-051`) — 파일만 걸침(`25f182f6`): `ZoneNavigation` 이 `AppNavigation` `brand` 칸에 `HeaderBrand`(로고 → `/home`)를 넣는다 · `NAVIGATION_FRAME_MESSAGES.brandHomeLabel` 추가. 내비 동작 diff 0 |
+| 2026-11-05 | **기존 결함 수정** `99efcd15` — 앱 머리(`viewTransitionName` → 쌓임 맥락)에 z-index 가 없어 계정 메뉴가 홈 카드에 깔렸다(로그아웃 불가, `5a86dafa` 부터). 머리에 `zIndex: sticky`(레일 · 하단 탭과 같은 규칙) · `@repo/ui` `viewTransitionStacking.test.ts` 가 모든 `.css.ts` 를 센다. 같은 브랜치에 셸 rewrites `/api/*` → BFF(`config-next` `shellRewrites`) · 로그아웃이 쿠키 지움을 기다린다(`ProfileMenu`)(`721063fc`). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |

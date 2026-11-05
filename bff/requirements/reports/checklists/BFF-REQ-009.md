@@ -31,3 +31,9 @@
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+## 2026-11-05 — FR-54 쿠키 → Authorization(`feat/fe-req-013-fr80-cookie-session`)
+
+- [x] FR-54 — `cookieSession.middleware` · `session-cookie.util` · 웹소켓 연결 쿠키 · 국내 401 한 코드(`fb9c85b3`)
+- 검증: 테스트 383(새 경계 표 — 쿠키 읽기 8 · 같은 origin 7 · 소켓 origin 3 · 미들웨어 4 · 국내 401 행 둘) · tsc · build · 실스택: 같은 origin 쿠키 200 · 다른 사이트 쿠키 401 · 웹소켓 네 경우(허용 origin 쿠키 → 서버 판정 · 다른 origin · 쿠키 없음 · 깨진 토큰 → `KR_STOCK_AUTH_REQUIRED`) — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+- 미검증: 운영 `WEB_ORIGINS` 값 — 배포 도메인 미정(`OPS-001`)

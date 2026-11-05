@@ -38,3 +38,9 @@
 - [x] 고침 뒤 스위치 테스트 5/5 · BFF 전체 362/362 · `npm run build`
 - [x] 변이(`outgoingTraceparent` 가 들어온 ID 무시) → 이 테스트 실패 1 · 되돌림 diff 0
 - [x] 실행 중 스택: `traceparent` 를 실어 BFF 4001 → Kotlin 로그 `traceId` 같은 값
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- `app.ts`(이 REQ 가 머리 주석 주인)에 쿠키 → Authorization 미들웨어 한 줄(`fb9c85b3`, `BFF-REQ-009` FR-54)
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

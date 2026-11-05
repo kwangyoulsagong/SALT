@@ -24,7 +24,7 @@
 | 홈에서 총자산 블록이 청구서 블록보다 먼저 페인트된다 | **대체 확인** | 홈 5블록이 아직 없다. 같은 지연 프로파일의 프로브로 측정: 첫 블록 **31.9ms** vs 청구서 **1537ms** (§3). 홈 실측은 F006. §6-2 |
 | 청구서 소스를 강제 실패시키면 그 블록만 에러다 | pass | `?fail=청구서 한 줄` → 4블록 정상 렌더, 실패 블록만 문구. §4-3 |
 | 세금 콕핏에서 D-Day 칩이 자산군 카드보다 먼저 보인다 | **미검증** | 세금 콕핏 화면이 없다(F002). §6-3 |
-| 인증 토큰이 클라이언트 JS 번들과 `localStorage`에 없다 | **미충족** | 여전히 `localStorage`다. 쿠키 이관은 `FE-REQ-013`. §6-4 |
+| 인증 토큰이 클라이언트 JS 번들과 `localStorage`에 없다 | ~~**미충족**~~ **pass 2026-11-05** | ~~여전히 `localStorage`다.~~ httpOnly 쿠키뿐 — `FE-REQ-013` FR-80 2단계(`721063fc`). §6-4 |
 | `grep -rn "use client" apps/web/src`가 `src/app` 프로바이더와 잎으로 한정된다 | pass | 14개 파일. §2-1 |
 | 서버 컴포넌트에서 `window\|localStorage\|navigator` 참조 0건 | pass | §2-2 |
 | 클라이언트 JS gzip 증가분 40KB 이하 | pass | 최대 **+16.2 kB**(`/tax`). §5 |
@@ -356,3 +356,9 @@ FR-11("인증 토큰을 클라이언트로 내리지 않는다 — 쿠키에서 
 
 - 서버 컴포넌트가 처음으로 사용자 데이터를 서버에서 조회한다(쿠키 → BFF) — 저축 두 화면. 스트리밍 경계 · 블록 수 무변경
 - 실측: `/api/session` POST 204 + HttpOnly · 다른 사이트 403 · 모양 틀림 400 · DELETE 지움 · 셸 경유 `/goals` · `/goals/[id]` HTML 에 목표 이름 · 금액(쿠키 없으면 없음) · 브라우저 첫 진입에 쿠키 채움 · `document.cookie` 에 안 보임 · 수화 오류 0. 모노레포 check-types · lint · test · web · web-savings 빌드 · 훅
+
+
+## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
+
+- §6-4 미달(인증 토큰이 `localStorage`) **닫힘** — httpOnly 쿠키. `ZoneProviders` 가 옛 저장소 세션을 쿠키로 옮긴다(`721063fc`)
+- 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05

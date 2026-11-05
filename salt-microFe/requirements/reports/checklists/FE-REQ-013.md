@@ -95,7 +95,7 @@
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - [x] web-household 운영 빌드 표
-- [ ] FR-80 2단계 — 변함없이 별 슬라이스
+- [x] FR-80 2단계 — 2026-11-05 done(`721063fc` · `fb9c85b3`, 아래 절)
 
 ## 2026-11-04 — 가계부 S1c 번들
 
@@ -120,3 +120,20 @@
 ## 2026-11-05 — 가계부 S1h(`MONEY-S1h-household-revolving-people`)
 
 - [x] 번들(Next 표 First Load JS) — `/household` 164 → 165 kB(리볼빙 띠) · `/household/revolving` 154 kB · `/household/people` 156 kB(새) · 공용 103 kB 그대로. 새 라이브러리 0
+
+## 2026-11-05 — FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`)
+
+- [x] FR-80 2단계 — 브라우저 저장소 토큰 0 · BFF 쿠키 → Authorization(`BFF-REQ-009` FR-54) · 웹소켓 · SSE(`721063fc` · `fb9c85b3`)
+- 검증: check-types 12/12 · lint 12/12 · test(core 171 · ui 44 · BFF 383) · zone 4 빌드 · `@repo/ui` build-storybook · BFF build · 훅 사후 실행(바뀐 TS 전부) · `withSessionRefresh` 경계 표 9 · 변이(머리 zIndex 빼면 실패)
+- 실스택(셸 3001 — 3000 은 사용자 회사 작업 · 임시 사용자 셋 · 지움, 사용자 5 → 8 → 5 · 모든 스키마 `user_id` 0건): 초대 수락 → 쿠키 셋(httpOnly · 리프레시 경로 · 표지 읽힘) · 저장소 토큰 0 · 온보딩 상태 200 / `/household` · `/goals` · `/home` 200, 브라우저 BFF 호출 같은 origin · `Authorization` 0 · 4xx 0 · 가계부 서버 HTML(쿠키 서버 조회) / 액세스 쿠키 지움 → 401 → `/api/session/refresh` 204 1회 → 재시도 200 / BFF 같은 origin 쿠키 200 · 다른 사이트 쿠키 401 · 갱신 Route Handler 다른 사이트 403 / 로그아웃(프로필 메뉴) 쿠키 셋 지움 · 로그인 화면 / 로그인 → 홈 · 쿠키 셋 / 옛 `localStorage` 토큰 → 쿠키 이관 · 저장소 비움 / 리프레시 죽음 → 401 · DELETE 204 · 로그인 화면 / 브라우저 예외 0
+- 웹소켓: BFF 직접(쿠키 + 허용 origin → 서버 판정 `KR_STOCK_NOT_AVAILABLE` · 다른 origin · 쿠키 없음 → `KR_STOCK_AUTH_REQUIRED` · 깨진 토큰 → 서버 401 → `KR_STOCK_AUTH_REQUIRED`) · 브라우저(국내 조회만 route 로 소유자처럼 · `routeWebSocket`): 인증 거부 → 갱신 204 1회 → 새 연결 · 다시 구독 · 메시지에 토큰 0 / 계속 거부 → 연결 2번에서 멈춤
+- SSE: 해설 스트림이 쿠키만으로 셸 rewrites 를 지나 이벤트 순서대로 200
+- 번들(PERF) main(`9214c271`) 워크트리 대조: `/` 149 · `/home` 159 → 158 · `/onboarding` 152 · `/settings` 135 · `/goals` 153 → 152 · `/household` 165 kB — 증가 0
+- 확인 중 결함 1(기존): 앱 머리 계정 메뉴가 홈 카드에 깔려 로그아웃 불가 → `99efcd15`(`FE-REQ-054`)
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 긴 SSE 가 rewrites 를 지나며 쪼개져 오는 간격 | 확인한 종목이 판정 "표본 부족"으로 바로 막혀 이벤트 5개뿐 | 표본 있는 종목 해설을 여는 다음 실화면(투자 화면 작업) |
+| 운영 경로 라우팅 `/api/session*` → 셸 · `/api/*` → BFF | 배포 환경이 없다 | `OPS-001` FR(이번에 추가) |
