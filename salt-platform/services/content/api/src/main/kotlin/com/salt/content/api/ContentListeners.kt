@@ -54,6 +54,28 @@ class SavingsEventsListener(private val record: RecordSignal, private val jsonMa
 }
 
 /**
+ * 가계부 이벤트 구독(`SRV-REQ-047` FR-4, 금융 팁 S2d) — `household.FixedCostIncreased` 중 주거 분류 → 사용자 신호(월세 세액공제 글).
+ * 금액 · 가맹점은 읽지 않는다 — 분류 · 시각만. 다른 분류는 처리 기록만 남긴다(다시 와도 다시 보지 않게).
+ */
+class HouseholdEventsListener(private val record: RecordSignal, private val jsonMapper: JsonMapper) {
+    @RabbitListener(queues = [FIXED_COST_INCREASED_QUEUE])
+    fun onFixedCostIncreased(message: Message) {
+        val event = IncomingEvent.from(message, jsonMapper)
+        val p = event.payload
+        val userId = p.path("userId").asString(null)?.takeIf { it.isNotEmpty() } ?: throw AmqpRejectAndDontRequeueException("userId 없음 ${event.eventId}")
+        val category = p.path("category").asString(null)?.takeIf { it.isNotEmpty() } ?: throw AmqpRejectAndDontRequeueException("category 없음 ${event.eventId}")
+        val at = p.path("detectedAt").asString(null)?.let { runCatching { Instant.parse(it) }.getOrNull() }
+            ?: throw AmqpRejectAndDontRequeueException("detectedAt 없음 ${event.eventId}")
+        record.execute(event.eventId, event.eventType, userId, TriggerKind.forFixedCostCategory(category), at)
+    }
+
+    companion object {
+        const val FIXED_COST_INCREASED = "household.FixedCostIncreased"
+        const val FIXED_COST_INCREASED_QUEUE = "${SavingsEventsListener.SUBSCRIBER}.$FIXED_COST_INCREASED"
+    }
+}
+
+/**
  * 원문 동기화(기동 때 한 번) + 유효기한 점검 워커(`SRV-REQ-047` FR-1 · FR-2). 원문이 발행 검사를 못 넘으면 동기화가 던져 기동이 멈춘다 —
  * 틀린 글이 공개되느니 서버가 안 뜨는 편이 낫다(검사는 `./gradlew check` 가 먼저 한다).
  * 점검은 매시 15분(KST) · 멱등 · 락은 content 스키마 `shedlock`. 로그엔 건수만.

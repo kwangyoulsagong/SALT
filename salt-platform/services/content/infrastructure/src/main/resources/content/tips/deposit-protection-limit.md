@@ -13,7 +13,8 @@ quiz_question: 2025년 9월부터 한 금융회사에서 보호되는 예금은 
 quiz_choices: 5천만 원 | 1억 원 | 2억 원
 quiz_answer: 2
 quiz_explain: 원금과 이자를 합쳐 1억 원까지예요. 한도는 금융회사마다 따로 세요.
-change: 읽기 전에 맞혀 보기 문제 추가
+my_numbers: deposit_protection
+change: 내 숫자로 다시 읽기 칸 추가
 ---
 ## 무엇인가
 

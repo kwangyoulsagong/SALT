@@ -23,6 +23,8 @@ data class Tip(
     val contentHash: String,
     /** 읽기 전에 맞혀 보기 0~1개(FR-8) */
     val quiz: TipQuiz? = null,
+    /** 내 숫자로 다시 읽기 0~1개(FR-6, S2d) — 원문 머리 `my_numbers:` */
+    val myNumbers: MyNumbersKind? = null,
 ) {
     /** 유효기한이 지났는가 — 그날(KST)까지는 유효, 다음 날부터 확인 필요(FR-2 경계) */
     fun statusOn(today: LocalDate): TipStatus = TipStatus.on(meta.validUntil, today)
@@ -91,7 +93,8 @@ enum class TipContext(val key: String) {
 
 /**
  * 트리거 종류(`DB-REQ-039` FR-4 `trigger_rule.kind`). 이벤트 트리거는 사용자 신호([UserSignal])가 있어야, 달 트리거는 그달이어야 맞는다.
- * FEATURE-014 FR-4 의 나머지(고정비 증가 · 신규 정기결제 · 기한 없는 목표 · 물가 발표 · 만 34세 근접 · 월초)는 붙일 글이 생길 때 여기에 더한다.
+ * FEATURE-014 FR-4 의 나머지(신규 정기결제 · 기한 없는 목표 · 물가 발표 · 만 34세 근접 · 월초)는 붙일 글이 생길 때 여기에 더한다.
+ * 고정비 증가는 S2d 에 분류 하나(주거)만 — 제도가 붙는 분류만 신호를 남긴다.
  */
 enum class TriggerKind(val key: String, val month: Int? = null) {
     GOAL_CREATED_WEDDING("goal_created:wedding"),
@@ -100,6 +103,9 @@ enum class TriggerKind(val key: String, val month: Int? = null) {
     MONTH_5("month:5", 5),
     MONTH_11("month:11", 11),
     MONTH_12("month:12", 12),
+
+    /** 가계부 고정비 증가(`household.FixedCostIncreased`) 중 주거 분류 — 월세 세액공제 글(S2d) */
+    FIXED_COST_INCREASED_HOUSING("fixed_cost_increased:housing"),
     ;
 
     val isEvent: Boolean get() = month == null
@@ -111,6 +117,12 @@ enum class TriggerKind(val key: String, val month: Int? = null) {
         fun forGoalTemplate(template: String): TriggerKind? = when (template) {
             "wedding" -> GOAL_CREATED_WEDDING
             "housing" -> GOAL_CREATED_HOUSING
+            else -> null
+        }
+
+        /** 고정비 증가 분류 → 트리거. 주거만 제도(월세 세액공제)가 붙는다 — 나머지 분류는 신호를 남기지 않는다 */
+        fun forFixedCostCategory(category: String): TriggerKind? = when (category) {
+            "housing" -> FIXED_COST_INCREASED_HOUSING
             else -> null
         }
     }

@@ -2,6 +2,7 @@ package com.salt.content
 
 import com.salt.app.SaltDbProperties
 import com.salt.content.api.ContentWorker
+import com.salt.content.api.HouseholdEventsListener
 import com.salt.content.api.SavingsEventsListener
 import com.salt.content.application.AnswerQuiz
 import com.salt.content.application.CONTENT_TX
@@ -12,6 +13,7 @@ import com.salt.content.application.GetTip
 import com.salt.content.application.GradeQuiz
 import com.salt.content.application.ListQuizCards
 import com.salt.content.application.ListTips
+import com.salt.content.application.ReadMyNumbers
 import com.salt.content.application.RecordSignal
 import com.salt.content.application.RunValidityCheck
 import com.salt.content.application.SyncCatalog
@@ -128,6 +130,10 @@ class ContentComposition {
         ListQuizCards(library, JooqQuizAnswers(database.dsl), settings)
 
     @Bean
+    fun contentReadMyNumbers(@Qualifier("contentDatabase") database: ServiceDatabase, library: TipLibrary, settings: ContentSettings, clock: Clock): ReadMyNumbers =
+        ReadMyNumbers(library, JooqPolicyParams(database.dsl), settings, clock)
+
+    @Bean
     fun contentRecordSignal(@Qualifier("contentDatabase") database: ServiceDatabase): RecordSignal = RecordSignal(JooqUserSignals(database.dsl))
 
     // 구독 큐는 구독하는 서비스가 선언한다(`EventTopology`)
@@ -136,6 +142,13 @@ class ContentComposition {
 
     @Bean
     fun contentGoalReachedSubscription(): Declarables = EventTopology.subscription(SavingsEventsListener.SUBSCRIBER, SavingsEventsListener.GOAL_REACHED)
+
+    @Bean
+    fun contentFixedCostIncreasedSubscription(): Declarables =
+        EventTopology.subscription(SavingsEventsListener.SUBSCRIBER, HouseholdEventsListener.FIXED_COST_INCREASED)
+
+    @Bean
+    fun contentHouseholdEventsListener(record: RecordSignal, jsonMapper: JsonMapper): HouseholdEventsListener = HouseholdEventsListener(record, jsonMapper)
 
     @Bean
     fun contentSavingsEventsListener(record: RecordSignal, jsonMapper: JsonMapper): SavingsEventsListener = SavingsEventsListener(record, jsonMapper)
