@@ -5,3 +5,9 @@
 - 몫: 금융 팁 S2a 가 남긴 몫: content 법적 선 검사기(`LegalLine`, Kotlin)와 코치 말투 검증기(Express `languageGuard.ts`)를 **S6 코치 이전 때 한 모듈로**(FR-4 와 같이). 지금은 꼴을 옮겨 적은 두 벌
 - 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 모듈 · Flyway V1 · `CoachComposition`(릴레이 원천만)
+- 검증: `./gradlew check` · 로컬 운영 DB coach 스키마 표 넷
+- 미검증: 없음(이 몫 안)

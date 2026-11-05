@@ -24,7 +24,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-5 | `PUT /api/app/home/layout` — 순서 · 숨김 |
 | FR-6 | `POST /api/app/onboarding` — 도메인 선택 · 첫 입력. 기존 3스텝 계약은 FE 전환 PR 까지 유지 후 삭제 |
 | FR-7 | `POST /api/app/me/export` · `GET /api/app/me/export/:id` · `DELETE /api/app/me`(재인증) |
-| FR-8 | `GET/PUT /api/app/me/notifications` — 도메인별 |
+| FR-8 | `GET/PUT /api/app/me/notifications` — 도메인별. ✅ 2026-11-06 S2c(`PUT /:domain` · 값 검사는 서버) |
 | FR-9 | 기존 홈 블록 경로(`/api/app/home/*`)는 FE 전환 뒤 삭제 — 그 전까지 병존 |
 
 ## 구현 현황 (2026-11-02 — 슬라이스 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md`)
@@ -59,3 +59,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`3e5e0d42` · `b1c8ad67`): 저축 카드 원천 `/goals/statistics` → `/savings/home-card` · `href` `/goals/addgoals` → `/goals` · `note` = 진척이 가장 큰 진행 중 목표 한 줄(서버 퍼센트 그대로). 테스트 1 추가 |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 가계부 카드가 `CARD_SOURCES` 에 붙었다 — 이번 달 지출 + (예산 남은 금액 | 월말 예상 구간 | 비움). 기본 순서 저축 → 가계부 → 투자(`b162ac6f`). "서비스 없는 도메인은 카드 없음" 주석을 팁만으로 정정 |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `apps/web/src/entities/home/api/homeApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
+| 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): FR-8 done — `GET/PUT /api/app/me/notifications`(도메인 순서 · 목록은 서버 것) · `/api/app/alerts` 는 Kotlin `/notifications`(종류 셋) |

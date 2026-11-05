@@ -22,7 +22,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-3 | `FE-REQ-048`(홈 데스크톱) 배치를 카드 계약 위로 다시 읽는다 — 요약 타일 값은 카드 `primary/secondary` 에서 | FR-2 |
 | FR-4 | 온보딩 — 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 입력 하나 → 끝. 첫 입력 폼은 해당 zone 화면으로 이동(`CrossZoneLink` + 돌아오기). 투자 미선택이면 투자 질문 0 | FR-1 |
 | FR-5 | 내 데이터 — 내보내기 요청 · 상태 · 받기, 계정 삭제(재인증 · 삭제 범위 표시) | FR-3 |
-| FR-6 | 알림 설정 — 도메인별 켬/끔, 기본 꺼짐 | FR-4 |
+| FR-6 | 알림 설정 — 도메인별 켬/끔, 기본 꺼짐. ✅ 2026-11-06 S2c(셸 `/settings` — 로그아웃이면 패널 없음) | FR-4 |
 | FR-7 | 개인정보 — LLM 에 보내는 필드 목록 화면(서버 API) | FR-5 |
 | FR-8 | 문구 — "연결 · 연동" 0, 칭찬 · 재촉 0 | 정책 |
 
@@ -59,3 +59,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`c60f5bfb`): 홈 임시 목표 목록(`GoalsBlock`) 삭제 — `/goals` 가 생겼다. 홈 경계 2 → 1 |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 변경 없음 기록 — 셸 홈 카드 계약(`HomeDomain` 에 이미 `household`)은 그대로, BFF 가 가계부 카드를 내기 시작했다(`b162ac6f`) |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
+| 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): FR-6 done — 셸 `/settings` 알림 패널(`entities/notification` · `features/toggle-alerts`) · 실화면 결함 셋 고침 |

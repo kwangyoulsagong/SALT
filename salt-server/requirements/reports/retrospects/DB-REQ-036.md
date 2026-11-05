@@ -22,3 +22,7 @@
 
 - 몫: content 스키마가 플랫폼에서 태어나 `svc_content` 로그인을 연다(`roles.sql` · `init.sh` · Compose · 로컬 운영 DB 관리자 적용). 권한 검사 표본을 `content.probe` → `identity.probe`(content 는 Flyway 가 쓴다). Flyway V1 = 공통 세 표 + 글 · 파라미터 · 트리거 · 닫기 · 신호
 - **Action**: 없음 — 기존 결정 위에 한 줄
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 서비스 풀이 늘면 테스트 연결 상한을 같이 본다(Action — 루트 회고)

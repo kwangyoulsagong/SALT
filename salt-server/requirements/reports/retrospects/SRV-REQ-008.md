@@ -133,3 +133,8 @@ Action: 없음(남은 F006 몫은 `SRV-REQ-028` Changelog 에)
 ## 2026-11-03 — 사용자 "그것도 다 니가해": launchd 상시 · 옛 Express goals 삭제
 
 - launchd 아래 데스크탑 폴더 접근이 막히는 것은 새 실행 파일(java)마다 다시 생긴다 — 상시 프로세스가 읽는 산출물은 보호 폴더 밖에 둔다. Action 없음
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 파일만 걸침 — 이 REQ 를 머리 주석에 둔 파일을 S2c 가 고쳤다. 판단 · 실수는 루트 회고 `MONEY-S2c-notification`
+- **Action**: 없음(이 몫 안)

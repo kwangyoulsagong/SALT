@@ -21,7 +21,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-2 | 홈 카드 순서 · 숨김 저장 · 조회 | FR-2 |
 | FR-3 | 내 데이터 내보내기 — 각 서비스 `export` 내부 API 를 모아 CSV · JSON(zip). 본인만 · 24시간 만료 | FR-3 |
 | FR-4 | 계정 삭제 — 재인증 뒤 `UserDeletionRequested` → 각 서비스 삭제 · 결과 행 수 보고. 판정 원장(불변)은 사용자 식별자 가명화 처리 방식을 ADR-003 범위 안에서 정한다(Open Question) | FR-3 |
-| FR-5 | 알림 — 도메인별 설정 기본 꺼짐. notification 은 이벤트(`GoalReached` · `MonthClosed` · `JudgmentPublished`)를 구독만, 설정 꺼진 도메인 0건 | FR-4 |
+| FR-5 | 알림 — 도메인별 설정 기본 꺼짐. notification 은 이벤트(~~`GoalReached` · `MonthClosed` · `JudgmentPublished`~~ **정정 2026-11-06(S2c)** `savings.GoalReached` · `household.FixedCostIncreased` · `coach.DecisionChanged` — MonthClosed 는 사용자가 한 일이라 빼고 · 코치는 판단 변화)를 구독만, 설정 꺼진 도메인 0건. ✅ **done 2026-11-06**(Kotlin `services/notification` · 설정 주인 notification · Express 은퇴) | FR-4 |
 | FR-6 | 민감 정보 분류 공개 — `data_classification` 을 읽어 "LLM 에 보내는 필드" 목록 API | FR-5 |
 | FR-7 | 도메인 사용 계측 — 주간 활성 · 재개율 · 카드 클릭(금액 0, 사용자 해시) | FR-6 |
 | FR-8 | JWKS — identity 가 RS256 발급 · `/.well-known/jwks.json`. 이중 검증 기간(옛 HS + 새 RS) 2주, 끝나면 HS 제거. 초대 코드 시도 제한 · 감사 로그 그대로 | S3 |
@@ -32,7 +32,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 - [ ] 투자 미선택 사용자 온보딩에 투자 질문 0(E2E)
 - [ ] 내보내기 zip 에 모든 도메인 기록 존재(임시 사용자 실스택)
 - [ ] 이중 검증 기간 옛 · 새 토큰 모두 통과, 종료 후 옛 토큰 401
-- [ ] 알림 설정 없는 사용자 발송 0
+- [x] 알림 설정 없는 사용자 발송 0 — 2026-11-06 S2c(종단 테스트 · 실스택)
 
 ## 계약 영향
 
@@ -43,3 +43,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): to-do → in-progress. FR-5 done — Kotlin notification(설정 기본 꺼짐 · 구독 셋 · 2시간 억제 · 만료 정리) · coach 발행 창구(`coach.outbox`) · Express notification 은퇴 · 옛 표 drop. 수용 기준 4 충족. 나머지 FR 은 identity(S3) |

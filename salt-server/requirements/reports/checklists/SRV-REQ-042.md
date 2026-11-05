@@ -27,3 +27,9 @@
 | 대표 선 · degraded | 14:35 대표 선 7점(5분 칸) · 선 없는 칸 0 · `degraded: false` |
 | 지난 거래일 라벨 | `sessionWindow` 같은 날 "오늘 장중" · 10-31 "10/31 장중" |
 | 실시간 | 장중 25초 종목 칸 8 중 5 갱신 |
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 조립 두 줄 · import 셋 삭제
+- 검증: Express build · test
+- 미검증: 없음(이 몫 안)

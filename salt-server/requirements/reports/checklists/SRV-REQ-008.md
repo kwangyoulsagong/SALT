@@ -217,3 +217,9 @@
 
 - `d69c310e` — `schema.prisma` 에서 `Goal` · `SavingTransaction` · enum 2 · User 관계 삭제(이 REQ 가 파일 머리 주인). 동면 대시보드 목표 요약 3쿼리 삭제
 - 확인: 서버 build · lint · test 936 · test:layer-check · 재시작 health 200 · Express `/api/goals` 404 · BFF 410 · 온보딩 `set_plan` done · `ops/salt.sh status` 전부 ok
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- Express 쪽 규칙 코드 삭제 · 같은 관문이 `MessageGuard`(Kotlin) · BFF 뷰모델에 있음
+- 검증: Express build · test 929 · Kotlin `NotificationSpec`
+- 미검증: 없음(이 몫 안)

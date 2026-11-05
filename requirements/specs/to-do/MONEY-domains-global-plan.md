@@ -118,3 +118,4 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 | 2026-11-05 | S2a + F5a done — content 서비스 첫 판 · 금융 팁 공개 zone(공개 플래그 꺼짐) · 때맞춘 팁 칸(루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`). S2 를 서비스로 나눔: S2a content · S2b 금융 팁 나머지 · S2c notification. 다음 칸 S2b 또는 S2c |
 | 2026-11-05 | S2b done — 금융 팁 읽기 전에 맞혀 보기 · 맞힌 카드 · 제도 변경 줄 diff(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`). S2b 남은 셋 중 내 숫자 · 나머지 트리거는 S2d, 홈 카드는 S3. 다음 칸 S2c(notification) 또는 S2d |
 | 2026-11-05 | S2d done — 금융 팁 내 숫자로 다시 읽기(BFF 가 저축 · 가계부를 읽어 content 가 계산) · 고정비 증가(주거) → 월세 세액공제(루트 `requirements/specs/done/MONEY-S2d-tips-my-numbers-slice.md`). 다음 칸 S2c(notification) |
+| 2026-11-06 | S2c done — notification 서비스 이전 · 도메인별 알림 설정 기본 꺼짐 · 구독 셋 · coach 발행 창구 · 셸 알림 패널(루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`). S2 세 갈래(content · 금융 팁 · notification) 끝. 다음 칸 S3(identity — `DB-REQ-040` · `SRV-REQ-048` 나머지) |

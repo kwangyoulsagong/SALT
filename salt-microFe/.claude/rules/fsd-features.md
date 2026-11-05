@@ -75,7 +75,7 @@ features/{slice}/
 | `toggle-purchase-price` | 매입가 숨김 켜기/끄기(서버 설정). 숨는 곳은 홈 보유 요약 손익률 | F009 |
 | `edit-coach-profile` | 코치 설정(기본 모드 · 매도 돌아보는 기간) 저장. 서버가 읽지 않는 설정은 칸을 두지 않는다 | F004 (2026-10-30) |
 | `mark-alert-read` | 알림 읽음 · 모두 읽음 | F006 |
-| `toggle-alerts` | 알림 켜기/끄기 | F006 |
+| `toggle-alerts` | 도메인별 알림 켜기/끄기(셸 `/settings` — 낙관적 · 실패면 되돌림, 목록 · 순서는 서버) | F015 (2026-11-06 S2c) |
 | `skip-onboarding-step` | 온보딩 2단계 건너뛰기 | F006 |
 
 > **2026-09-21** — F001·F002 가 빠지면서(`ADR-002`) `import-ledger` · `register-exchange-key` ·

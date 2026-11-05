@@ -45,3 +45,7 @@
 
 - 몫: 서비스 간 구독 둘째(가계부 → content). 틀 그대로 — 큐 선언 · 리스너 · 유스케이스 한 번.
 - **Action**: 없음
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 발행이 Kotlin 밖에서 시작되는 첫 경우 — 검증 자리를 계약 파일 테스트로 옮겼다. 루트 회고 `MONEY-S2c-notification`

@@ -88,3 +88,9 @@
 - 몫: 계약 무변경 · 새 소비자(BFF 금융 팁 내 숫자가 `GET /api/savings/goals` 를 읽는다). 저축 코드 변경 0
 - 검증: 실화면 — 임시 사용자 주거 목표 월 20만 → 내 숫자 2,400,000원 · 적립 120만 → 예금보호 1,200,000원(슬라이스 체크리스트)
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 실행 스크립트 환경 변수 둘
+- 검증: `ops/salt.sh restart platform` → health UP
+- 미검증: 없음(이 몫 안)

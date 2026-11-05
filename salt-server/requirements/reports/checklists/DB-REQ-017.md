@@ -163,3 +163,9 @@
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 코치 프로필 첫 저장 경합 500 → 행 보장(ON CONFLICT DO NOTHING) 뒤 update(`b9a06a08`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- `CoachNotifier` 포트 메서드 하나로 · 억제 상수 삭제
+- 검증: Express build · test · 실스택(Express 코드 직접 실행 → coach.outbox → 알림)
+- 미검증: 없음(이 몫 안)

@@ -183,6 +183,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 | 2026-09-22 | **A절을 구현했다**(`BFF-REQ-036` FR-4). 닫힌 것: FR-1~5(feed 등록 해제 · 파일 유지 · proxy 동면 경로 제거 · `410 { code: 'ENDPOINT_DORMANT', revivable: true }` · `DORMANT_PATHS` 상수 · 마운트 지점당 1회 로그). **남은 것**: FR-6(1주 로그 확인, 2026-09-29) · B절 · C절. 근거: `requirements/reports/checklists/BFF-REQ-007.md` §9 |
 | 2026-10-27 | **B절을 구현했다**(FR-10~15, `chore/adr-002-remnants` `545270b`, 루트 `F000-dormant-410`). 서버 동면 410(`SRV-REQ-009` FR-7 · 8)과 같은 PR — 서버만 바꾸면 `Promise.all` 이 홈 전체를 실패시킨다. 블록 셋(보유 요약 = `appPortfolioService.getSummary` 재사용 · 안 읽은 알림 수 · 시장 개요)을 `allSettled` 로 받고 실패 블록만 `null` + `degradedBlocks`. FR-10 의 "블록 함수 구조"는 F006(`BFF-REQ-027`)으로 둔다 — 지금 소비처 0건. 덧: main 에서도 서버 `/dashboard` · `/investment-insight/top` 이 언제나 500 이라 이 경로는 이미 실패하고 있었다. **남은 것**: C절 · FR-6 1주 로그. 근거: `requirements/reports/checklists/BFF-REQ-007.md` §10 |
 | 2026-10-28 | **C절을 구현했다**(FR-20~24, `ed1615f`, 루트 `F000-notification-kind-gate`). `alerts.viewmodel.ts`(순수 함수) — 1종 필터 · 금액 제거 · 코드만 · `createdAt` 내림차순 · 20건. `/api/app/alerts` 반환이 서버 envelope 두 개에서 `{ alerts, unreadCount }` 로 — 프론트 소비처 0건이라 영향 없음(F006 `FE-REQ-030` 알림 화면이 첫 소비처). 서버 경로 변경과 같은 PR(`SRV-REQ-009` FR-12 · 13) |
+| 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 알림 뷰모델 — 종류 `signal_update` 하나 → 도메인 종류 셋(goal_reached · fixed_cost_increased). 금액 거르기 그대로 |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

@@ -165,6 +165,7 @@ created: 2026-09-09
 | 2026-10-27 | **동면 경로 410 을 열었다**(FR-7 · 8, `chore/adr-002-remnants` `d344a50`). `shared/presentation/goneMiddleware` `DORMANT_PATHS` 8경로(표의 5종 + `/api/users/dashboard` · 스펙 `/investment-insight/ranking*` 의 실제 경로 `/top`)를 **살아 있는 라우터보다 먼저** 마운트 — `/api/users/profile` · `/investment-insight/insights` 는 그대로. `mission` · `dashboard` · `feed` 라우터 등록 해제, 코드 · 모델 유지. **남은 것**: 1주 로그(2026-11-03) · FR-12 · 13 · FR-23. 근거: `requirements/reports/checklists/SRV-REQ-009.md` §9 · 루트 `F000-dormant-410` |
 | 2026-10-28 | **알림 경로를 1종으로 좁혔다**(FR-12 · 13, `3320883`). `/api/investment-notifications*` 네 경로가 `notification` 컨텍스트로 옮겨 갔고 경로는 같다. 목록 항목이 문장(`title` · `message` · `payload` 원문) 대신 `messageCode` + `params` — **BREAKING**, 소비처는 BFF `/api/app/alerts` 뿐(`BFF-REQ-007` C절 같은 PR). `size` 상한 50(Zod 400). Swagger 경로가 `/investment-notifications`(접두 누락)였던 것을 `/api/...` 로 바로잡았다 |
 | 2026-10-28 | **모르는 종목 404**(`ffc0732`). `/api/investment/crypto/:symbol/price` · `/api/market-intelligence/:symbol/sentiment` 이 Upbit 이 모르는 심볼에 500(`Failed to fetch price from Upbit`) → 404 `MARKET_SYMBOL_NOT_FOUND`. BFF 는 4xx 를 그대로 전달(`BFF-REQ-025` FR-6). 프론트 소비처 grep 0건 |
+| 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): `/api/investment-notifications` 삭제(소비처 BFF 하나 — 같은 PR 에서 `/api/notifications` 로) · 정리 워커 등록 삭제 |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 
