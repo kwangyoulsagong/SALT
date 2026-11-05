@@ -32,7 +32,8 @@
         ]
       }
     ],
-    "@repo/fsd/no-render-read": "error"
+    "@repo/fsd/no-render-read": "error",
+    "@repo/fsd/no-client-enum-export": "error"
   },
   "ignorePatterns": [
     "next-env.d.ts",
