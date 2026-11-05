@@ -894,6 +894,20 @@ class HouseholdEndToEndTest {
     }
 
     @Test
+    fun `보관한 내 분류 — 그 분류가 든 템플릿은 그대로 고칠 수 있고 새 템플릿 · 다른 분류로 바꾼 뒤 되돌리기는 거절`() {
+        val user = "cat-tpl-${UUID.randomUUID()}"
+        val key = data(call("POST", "/api/household/categories", user, """{"name":"보험","bucket":"needs"}""")).path("key").asString()
+        val id = data(call("POST", "/api/household/templates", user, """{"name":"실손","amount":30000,"category":"$key","dayOfMonth":28}""")).path("id").asString()
+        call("DELETE", "/api/household/categories/$key", user, null).statusCode() shouldBe 200
+        // 그대로 두면 받는다(keep) — 금액만 고침
+        data(call("PUT", "/api/household/templates/$id", user, """{"name":"실손","amount":31000,"category":"$key","dayOfMonth":28}""")).path("category").asString() shouldBe key
+        call("POST", "/api/household/templates", user, """{"name":"새","amount":1000,"category":"$key","dayOfMonth":28}""").body() shouldContain "TEMPLATE_CATEGORY_UNKNOWN"
+        // 다른 분류로 바꾸면 그다음엔 보관한 분류로 되돌릴 수 없다
+        call("PUT", "/api/household/templates/$id", user, """{"name":"실손","amount":31000,"category":"health","dayOfMonth":28}""").statusCode() shouldBe 200
+        call("PUT", "/api/household/templates/$id", user, """{"name":"실손","amount":31000,"category":"$key","dayOfMonth":28}""").body() shouldContain "TEMPLATE_CATEGORY_UNKNOWN"
+    }
+
+    @Test
     fun `내 분류 상한 — 보관 안 한 것 20개 · 넘으면 409 · 보관하면 다시 자리`() {
         val user = "cat-max-${UUID.randomUUID()}"
         val keys = (1..20).map { i -> data(call("POST", "/api/household/categories", user, """{"name":"분류$i","bucket":"wants"}""")).path("key").asString() }
