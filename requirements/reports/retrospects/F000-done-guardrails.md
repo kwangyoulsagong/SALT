@@ -10,3 +10,8 @@
 ## Action
 - 새 결함이 나면 `done-checklist.md` 4절대로 — 먼저 셀 수 있는지 보고 스크립트 · lint 로. 사람 칸은 셀 수 없을 때만
 - 코드 리뷰 스킬은 쓰지 않는다(사용자 2026-11-04). 메모리 `feedback-code-review-once` 를 그 결정으로 바꿨다
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- `check-done.mjs` 1번(주인 REQ)이 `.sh` · `.json` · `.yml` 도 센다 — 코드만 세던 때 eslintrc · `run-platform.sh` 주인을 놓쳤다(2026-11-02 · 11-05). 바꾼 즉시 2건(DB-REQ-038 · FE-REQ-044)을 더 찾았다. 웹 lint 규칙 `@repo/fsd/no-client-enum-export` 신설(1절 표 행)
+- **Action**: 사람이 또 놓친 종류는 다음에도 스크립트부터 늘린다(이번 확인 2회차가 그랬다)

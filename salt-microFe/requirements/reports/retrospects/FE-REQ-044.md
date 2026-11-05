@@ -67,3 +67,8 @@
 ## 2026-11-04 — 로고(`FE-REQ-051`)
 
 - 없음 — 파일만 걸침
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: 새 패키지 `@repo/domain-tips` `.eslintrc.json` 에 같은 `motion/react` · `motion` 금지 줄(복사). 금융 팁 화면에 움직임 0
+- **Action**: 없음

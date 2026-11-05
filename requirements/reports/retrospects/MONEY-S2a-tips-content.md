@@ -8,3 +8,9 @@
 - **실수**: 할 일 없는 미추적 리포트를 비키려고 글롭으로 옮기다 추적 파일 하나까지 옮겼다 — 바로 되돌림(내용 같음).
 - **실수**: 통합 테스트 컨텍스트를 둘 더 띄워 Postgres 연결 상한(53300)으로 다른 테스트가 깨졌다.
 - **Action**: `git` 은 루트에서만 · 파일을 비킬 땐 `git ls-files --others` 목록으로만 · 새 SpringBootTest 설정 전에 기존 컨텍스트를 쓸 수 있나 본다.
+
+## 2026-11-05 — 확인 2회차
+
+- **실수**: `check-done.mjs` 통과를 "다 됐다"로 읽었다 — 스크립트가 안 세는 비코드 파일 주인(eslintrc · sh) · 건드린 REQ 가 속한 FEATURE · 패키지 README · axe 를 다시 놓쳤다(메모 pipeline-completeness 열여덟 · 스물셋 번째와 같은 종류).
+- **Action**: 보고 전에 `git diff main --name-only` 의 **비코드 파일**도 머리 주인을 세고, 건드린 REQ 마다 `feature:` 줄로 FEATURE 이력을 대조하고, 새 화면엔 axe 를 돌린다.
+

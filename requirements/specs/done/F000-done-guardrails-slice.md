@@ -25,3 +25,6 @@
 
 - "프론트 판단 상수" lint — 이름으로 찾은 상수 25개가 전부 입력 길이 · 목록 개수 · 칸 높이였다(위반 0). 이름으로는 판단 상수와 갈리지 않아 체크리스트 2절(사람)로 둔다
 - CI — 만들었다가 뺐다(사용자 2026-11-04 "빼"). 검사는 영역 deliver 단계에서 부른다
+
+> **2026-11-05 개정(금융 팁 S2a `MONEY-S2a-tips-content`)** — `check-done.mjs` 1번(주인 REQ)이 `.sh` · `.json` · `.yml` 도 센다 — 코드만 세던 때 eslintrc · `run-platform.sh` 주인을 놓쳤다(2026-11-02 · 11-05). 바꾼 즉시 2건(DB-REQ-038 · FE-REQ-044)을 더 찾았다. 웹 lint 규칙 `@repo/fsd/no-client-enum-export` 신설(1절 표 행).
+

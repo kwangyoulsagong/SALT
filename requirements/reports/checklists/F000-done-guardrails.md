@@ -17,3 +17,8 @@
 - [x] FR-6 `no-render-read` — 프론트 700파일에 돌려 4곳(1곳은 무관한 설정 메시지) → `useRegenerateCoach` 고침 · `EventsCard` · `ForecastFanChart` 는 데이터가 마운트 뒤 브라우저에서만 와서(소유자 전용 조회) 이유 적은 예외. 변이: 나쁜 6줄(토큰 · `useMemo` · `useState` 초기값 · 저장소 · `new Date()` · 훅) 다 걸림, 처리기 · 효과 · 일반 함수 통과. `pnpm lint` 12/12
 - [x] CI(`checks.yml`) — 만들어 같은 조건(새 작업 트리)에서 명령을 다 돌려 봤지만 사용자 결정으로 뺐다. 그 과정에서 `check-done` 이 이 브랜치의 주인 REQ 4개(009 · 028 · 038 · 046) 문서 누락을 잡아 채웠다
 - [x] 판단 상수 lint — 이름 패턴 조사 25개 전부 정상 값(입력 길이 · 목록 개수 · 칸 높이) → lint 하지 않기로, 사람 칸에 근거와 함께
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- `check-done.mjs` 1번(주인 REQ)이 `.sh` · `.json` · `.yml` 도 센다 — 코드만 세던 때 eslintrc · `run-platform.sh` 주인을 놓쳤다(2026-11-02 · 11-05). 바꾼 즉시 2건(DB-REQ-038 · FE-REQ-044)을 더 찾았다. 웹 lint 규칙 `@repo/fsd/no-client-enum-export` 신설(1절 표 행)
+- 검증: `node scripts/check-done.mjs` — 늘린 뒤 실패 2 → 기록 뒤 통과 · lint 규칙 변이 파일로 검출 확인

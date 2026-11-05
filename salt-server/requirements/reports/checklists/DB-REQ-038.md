@@ -86,3 +86,9 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 공제 표 | content 파라미터 | S2 content 뒤 |
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: `household.FixedCostIncreased` 계약 설명의 "구독 예정" 정정(금융 팁 S2b — S2a 는 저축 두 이벤트만). 필드 · 스키마 무변경
+- 검증: `pnpm lint` 13/13 · 슬라이스 검증
+- 미검증: 없음
