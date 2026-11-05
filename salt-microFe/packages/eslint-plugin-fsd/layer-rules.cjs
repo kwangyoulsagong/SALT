@@ -120,6 +120,8 @@ const REGISTRY = {
     "manage-revolving",
     "record-gift",
     "set-occasion-envelope",
+    // 금융 팁 S2b(2026-11-05) — 읽기 전에 맞혀 보기(채점은 서버 · 로그인이면 카드로)
+    "answer-quiz",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",
@@ -170,6 +172,8 @@ const REGISTRY = {
     // 금융 팁 `/tips` · `/tips/[slug]`(`FE-REQ-058`, 2026-11-05)
     "tips",
     "tip-detail",
+    // 금융 팁 S2b — `/tips/cards` 맞힌 카드 모음(2026-11-05)
+    "quiz-cards",
     "investments",
     "investment-detail",
     "search",

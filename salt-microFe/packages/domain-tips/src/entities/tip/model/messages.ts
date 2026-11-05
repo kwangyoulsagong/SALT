@@ -9,6 +9,9 @@ export const TIP_MESSAGES = {
   needsCheckTitle: "확인 필요",
   needsCheck: "유효기한이 지나 제도가 바뀌었을 수 있어요. 공식 안내로 지금 내용을 확인할 수 있어요",
   revisions: "바뀐 것",
+  changesLabel: "앞 판과 달라진 줄",
+  changeRemoved: "빠진 줄:",
+  changeAdded: "들어온 줄:",
   disclaimer: "공적 제도를 설명하는 글이에요. 상품을 권하거나 가입을 돕지 않아요. 내 경우에 맞는지는 공식 안내로 확인할 수 있어요",
   baseYearValue: (year: number) => `${year}년`,
 } as const;

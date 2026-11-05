@@ -34,14 +34,60 @@ export enum TipBlockType {
 
 export type TipBlock = { type: TipBlockType.Heading | TipBlockType.Paragraph; text: string } | { type: TipBlockType.Bullets; items: string[] };
 
+export enum TipChangeOp {
+  Removed = "removed",
+  Added = "added",
+}
+
+/** 앞 판과 견줘 바뀐 줄(FR-7 줄 diff) — 서버가 비교한다 */
+export interface TipChange {
+  op: TipChangeOp;
+  text: string;
+}
+
 export interface TipRevision {
   revisedAt: string;
   summary: string;
+  /** 첫 판 · 줄을 모르는 이력이면 null(요약만), 상태만 바뀐 판이면 [] */
+  changes: TipChange[] | null;
+}
+
+/** 읽기 전에 맞혀 보기(FR-8) — 정답 없음. 채점은 서버 */
+export interface TipQuiz {
+  question: string;
+  choices: string[];
 }
 
 export interface TipDetail extends TipSummary {
   body: TipBlock[];
   revisions: TipRevision[];
+  quiz: TipQuiz | null;
+}
+
+export interface QuizResult {
+  correct: boolean;
+  /** 정답 보기 번호(0부터) */
+  answer: number;
+  explanation: string;
+  /** 로그인한 풀이였나 — false 면 기록 0 */
+  signedIn: boolean;
+  /** 이번 풀이로 처음 카드가 됐다 */
+  collected: boolean;
+}
+
+export interface QuizCard {
+  slug: string;
+  title: string;
+  question: string;
+  answer: string;
+  explanation: string;
+  collectedAt: string;
+}
+
+export interface QuizCards {
+  /** 지금 풀 수 있는 문제 수 — 모음의 분모 */
+  available: number;
+  cards: QuizCard[];
 }
 
 export interface TipList {
