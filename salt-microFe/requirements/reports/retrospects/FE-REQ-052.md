@@ -43,3 +43,8 @@
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - 골격이 레지스트리 · 프리셋 · 포트를 미리 갖고 있어 zone 앱 쪽 일이 re-export 넷으로 끝났다.
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: 빈 골격 `web-tips` 가 첫 화면을 서비스(`FE-REQ-058`) — 레이아웃 `PublicShell` · `app/tips/**` · `@repo/domain-tips` · tsconfig paths · vanilla-extract. 레지스트리 무변경(`hostedIn: web-tips` 그대로)
+- **Action**: 없음 — 기존 결정 위에 한 줄

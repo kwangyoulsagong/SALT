@@ -17,6 +17,7 @@
     "@repo/zone/no-cross-zone-link": "error",
     "@repo/fsd/layers": "error",
     "@next/next/no-html-link-for-pages": "off",
-    "@repo/fsd/no-render-read": "error"
+    "@repo/fsd/no-render-read": "error",
+    "@repo/fsd/no-client-enum-export": "error"
   }
 }

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://salt.local/contracts/events/household.FixedCostIncreased.json",
   "title": "household.FixedCostIncreased",
-  "description": "고정비 후보(같은 가맹점 · 비슷한 금액 · 약 30일 간격 세 번 이상)의 이번 회차가 앞 회차보다 5% 이상 올랐다(SRV-REQ-046 FR-12 · FR-21, DB-REQ-038 FR-16 fixed_cost_increase). 가맹점 · 달마다 한 번 — 지출을 지우고 다시 적어도 다시 나가지 않는다. 가맹점 이름 · 메모는 싣지 않는다(가계부 S1e 판단 5). month = 오른 회차의 달. 구독 예정: content 때맞춘 팁(S2)",
+  "description": "고정비 후보(같은 가맹점 · 비슷한 금액 · 약 30일 간격 세 번 이상)의 이번 회차가 앞 회차보다 5% 이상 올랐다(SRV-REQ-046 FR-12 · FR-21, DB-REQ-038 FR-16 fixed_cost_increase). 가맹점 · 달마다 한 번 — 지출을 지우고 다시 적어도 다시 나가지 않는다. 가맹점 이름 · 메모는 싣지 않는다(가계부 S1e 판단 5). month = 오른 회차의 달. 구독 예정: content 때맞춘 팁(붙일 공적 제도 글이 생길 때 — 금융 팁 S2b, S2a 범위 밖)",
   "type": "object",
   "additionalProperties": false,
   "required": [

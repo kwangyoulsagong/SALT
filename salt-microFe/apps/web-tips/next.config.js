@@ -1,13 +1,17 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
+const { createVanillaExtractPlugin } = require("@vanilla-extract/next-plugin");
 const { zoneNextConfig } = require("@repo/config-next");
 
+const withVanillaExtract = createVanillaExtractPlugin();
+
 /**
- * 금융 팁 zone — `web-tips` (FE-REQ-052 FR-7 → FE-REQ-054 FR-5, ADR-005).
+ * 금융 팁 zone — `web-tips` (FE-REQ-052 FR-7 → FE-REQ-054 FR-5 → FE-REQ-058, ADR-005).
  *
- * 지금은 **빈 골격**이다 — 화면은 없고, 셸 rewrites(`fallback`)가 가리킬 수 있게만 서 있다.
- * 화면은 `@repo/domain-tips` 에 생기고 여기 `app/` 은 re-export 만 한다(화면 REQ: FE-REQ-058). 그때 vanilla-extract 로 감싼다.
- *
- * 설정은 zone 공용 프리셋(`@repo/config-next`) — `basePath` 없음(경로 prefix `/tips` 는 라우트 폴더 이름),
- * `assetPrefix` 는 레지스트리 값.
+ * 화면은 `@repo/domain-tips` 에 있고 여기 `app/` 은 re-export 만 한다. 설정은 zone 공용 프리셋(`@repo/config-next`) — 가계부 zone 과 같은 꼴.
+ * 패키지 코드의 레이어 alias(`@/entities` …)는 `tsconfig.json` `paths` 가 `packages/domain-tips/src` 로 푼다.
  */
-module.exports = zoneNextConfig("tips");
+module.exports = withVanillaExtract(
+  zoneNextConfig("tips", {
+    transpilePackages: ["@repo/ui", "@repo/tokens", "@repo/web-shared", "@repo/domain-tips"],
+  })
+);

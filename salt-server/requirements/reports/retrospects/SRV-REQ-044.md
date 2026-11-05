@@ -30,3 +30,8 @@
 
 - 계약을 넓힐 때(enum → enum + 꼴) 구독자 목록부터 봤다(0). 구독자가 생긴 뒤 같은 변경이면 새 버전 계약이 필요하다.
 - Action 없음.
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: 새 계약 `content.PolicyParamChanged`(원문 동기화 때 줄마다) · **첫 서비스 간 구독** — content 가 `savings.GoalCreated` · `GoalReached` 를 받는다(큐 `content.<event>` · 데드레터 · `processed_event` 멱등). 종단 테스트가 저축 쓰기 → 릴레이 → 구독 → 신호를 실 RabbitMQ 로 확인
+- **Action**: 없음 — 기존 결정 위에 한 줄

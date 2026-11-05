@@ -41,3 +41,9 @@
 ## 2026-11-04 — 가계부 S1b `ServiceLock`
 
 - [x] `ServiceLock.executor`(JDBC 공급자는 messaging 모듈 안) · 반복 워커가 household `shedlock` 표로 잠금 · `./gradlew check`(Modulith · ArchUnit) 통과
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: 조립 `ContentComposition`(네 층 · 트랜잭션 매니저 `contentTx`) · 공개 경로 `salt.auth.public-paths` 에 `/api/content/tips` · `/api/content/tips/*` · `/api/content/policy-params/*`(개인은 `/api/content/me/…`). `PlatformEndToEndTest` 권한 표본 이동. 실행 jar 로컬 운영 기동 확인
+- 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
+- 미검증: 없음(이 몫 안)

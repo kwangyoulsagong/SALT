@@ -189,3 +189,9 @@
 ## 2026-11-04 — 로고(`FE-REQ-051`) · `25f182f6`
 
 - 파일만 걸침 — 이 REQ 의 동작 · 값 diff 0. 모노레포 check-types · lint · test · zone 5 빌드 · 훅 통과(`checklists/FE-REQ-051.md`)
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: 새 패키지 `@repo/domain-tips` `.eslintrc.json` 에 같은 `motion/react` · `motion` 금지 줄(복사). 금융 팁 화면에 움직임 0
+- 검증: `pnpm lint` 13/13 · 슬라이스 검증
+- 미검증: 없음

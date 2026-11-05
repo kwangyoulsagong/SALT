@@ -19,6 +19,7 @@
 | 렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기(수화 갈림) | 웹 lint `@repo/fsd/no-render-read` — 브라우저에서만 그려지는 자리는 이유를 적은 예외 주석 | 저장 · `pnpm lint` |
 | 원본(토큰)과 생성물(아이콘)이 갈라짐 | `@repo/ui` `brandIcons.test.ts` | `pnpm test` |
 | `viewTransitionName` 쌓임 맥락에 떠 있는 메뉴가 갇힘(머리 메뉴가 본문에 깔림) | `@repo/ui` `viewTransitionStacking.test.ts` — 그 블록에 `zIndex` | `pnpm test` |
+| `"use client"` 파일의 enum 을 서버 컴포넌트가 읽어 `undefined`(때맞춘 팁 400, 2026-11-05) | 웹 lint `@repo/fsd/no-client-enum-export` | 저장 · `pnpm lint` |
 | FSD 레이어 · 도메인 경계 · zone 을 넘는 `<Link>` · `axios` · `motion` import | 레이어 훅 · lint(기존) | 쓰기 시점 |
 
 CI 는 두지 않는다(사용자 2026-11-04) — 영역 deliver 단계가 이 명령들을 부른다.

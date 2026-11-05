@@ -50,6 +50,7 @@
     "./chip": "./src/Chip/Chip.tsx",
     "./progressBar": "./src/ProgressBar/ProgressBar.tsx",
     "./banner": "./src/Banner/Banner.tsx",
+    "./timely-tip-card": "./src/TimelyTipCard/TimelyTipCard.tsx",
     "./keyValueList": "./src/KeyValueList/KeyValueList.tsx",
     "./appBar": "./src/AppBar/AppBar.tsx",
     "./assetIcon": "./src/AssetIcon/AssetIcon.tsx",

@@ -420,3 +420,4 @@ flowchart TB
 | 2026-11-02 | `/search` 수화 불일치 수정(FR-40) · 관심 종목 시세 갱신 한 문장 UPDATE(연결 풀 점유 해소) · 웹 글꼴 404 수정 · 로그인 상태 `/` → 서버에서 `/home`. 투자 화면 투자 zone 으로. 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |
 | 2026-11-04 | 로고 `FE-REQ-051` done — 소금 물방울(은회색 입체 + 단색) · "Salt" · 머리 첫 칸 · zone 5 파비콘 · 앱 아이콘(`25f182f6`). 루트 `requirements/specs/done/F000-brand-logo-slice.md` |
 | 2026-11-05 | 쿠키 세션 2단계 `FE-REQ-013` FR-80 done — 토큰은 httpOnly 쿠키뿐 · 브라우저는 BFF 를 같은 origin 으로 · BFF 가 쿠키를 헤더로(`BFF-REQ-009` FR-54) · 웹소켓 · SSE 같은 규칙. 남은 것 FR-81(서버 조회 이관) · FR-82(비공개 경로 보호) · `OPS-001` FR-13. 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
+| 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — `FE-REQ-010` 공용 경로에 `ROUTES.tips` · `ROUTES.tip(slug)` — 기존 경로 무변경 |

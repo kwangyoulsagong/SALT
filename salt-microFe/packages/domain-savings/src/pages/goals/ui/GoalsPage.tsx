@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { ROUTES } from "@repo/web-shared/config";
-import { BlockBoundary } from "@repo/web-shared/ui";
+import { BlockBoundary, TimelyTip, TimelyTipContext } from "@repo/web-shared/ui";
 import { panelDescription, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { serverGoals } from "../api";
@@ -21,6 +21,8 @@ export const GoalsPage = async () => {
         </Link>
       </div>
       <p className={panelDescription}>{GOALS_PAGE.description}</p>
+      {/* 때맞춘 팁 0~1장 — 결혼 · 주거 목표를 만들면 붙는 제도 한 줄(FE-REQ-058 FR-6). 무엇을 띄울지는 서버 */}
+      <TimelyTip context={TimelyTipContext.Savings} />
       <BlockBoundary name={GOALS_PAGE.blockName} minHeight={160}>
         <GoalsBoard initialGoals={initialGoals} />
       </BlockBoundary>

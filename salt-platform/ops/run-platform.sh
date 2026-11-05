@@ -1,11 +1,11 @@
 #!/bin/zsh
 # salt-platform(Kotlin) 상시 실행 — launchd `com.salt.platform`(`ops/salt.sh up` 이 plist 를 만든다, `OPS-002`).
 #
-# 왜 상시인가: S1(`SRV-REQ-045`, 2026-11-03)부터 저축 화면 경로(`/api/savings/*`), 가계부 S1a(`SRV-REQ-046`, 2026-11-04)부터 가계부(`/api/household/*`)가
+# 왜 상시인가: S1(`SRV-REQ-045`, 2026-11-03)부터 저축 화면 경로(`/api/savings/*`), 가계부 S1a(`SRV-REQ-046`, 2026-11-04)부터 가계부(`/api/household/*`)가, 금융 팁 S2a(`SRV-REQ-047`, 2026-11-05)부터 금융 팁(`/api/content/*`)이
 # 이 프로세스에 있다 — BFF 라우팅 표가 `/savings` · `/household` 를 platform 으로 보낸다.
 # 꺼지면 저축 · 가계부 화면과 홈 카드 둘이 degraded 가 된다.
 #
-# - 로컬 운영 DB(salt_db :5432)에 **서비스 계정**으로 붙는다(svc_ping · svc_savings · svc_household — `db/roles.sql`). 비밀은 salt-platform/.env 의 LOCAL_DB_*_PASSWORD
+# - 로컬 운영 DB(salt_db :5432)에 **서비스 계정**으로 붙는다(svc_ping · svc_savings · svc_household · svc_content — `db/roles.sql`). 비밀은 salt-platform/.env 의 LOCAL_DB_*_PASSWORD
 # - RabbitMQ 는 Compose 의 것 하나만(55672) — 없으면 여기서 띄운다. Postgres · platform 컨테이너는 띄우지 않는다(호스트 DB 를 쓴다)
 # - 실행 산출물은 `./gradlew :app:bootJar` 의 jar — 코드를 바꾸면 bootJar 뒤 `ops/salt.sh restart platform`
 set -u
@@ -18,6 +18,7 @@ export SALT_DB_URL="jdbc:postgresql://localhost:5432/salt_db"
 export PING_DB_PASSWORD="$LOCAL_DB_PING_PASSWORD"
 export SAVINGS_DB_PASSWORD="$LOCAL_DB_SAVINGS_PASSWORD"
 export HOUSEHOLD_DB_PASSWORD="$LOCAL_DB_HOUSEHOLD_PASSWORD"
+export CONTENT_DB_PASSWORD="$LOCAL_DB_CONTENT_PASSWORD"
 export RABBITMQ_HOST=localhost RABBITMQ_PORT=55672 PORT=4010
 
 # 이미 떠 있으면 compose 를 부르지 않는다 — launchd 아래 compose 는 데스크탑의 compose.yaml 을 읽다 개인정보 보호 창을 기다리며 멈출 수 있다(2026-11-03).

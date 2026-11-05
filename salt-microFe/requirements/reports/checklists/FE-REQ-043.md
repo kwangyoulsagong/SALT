@@ -81,3 +81,9 @@
 
 - 앱 머리(이 REQ 가 `AppNavigation.css.ts` 머리 주석 주인) — 계정 메뉴가 본문에 깔리던 것 `zIndex` 로 고침(`99efcd15`, `FE-REQ-054` 결함)
 - 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: **제외 하나** — 공개 zone(`web-tips`)은 `PublicShell` 이라 768 미만 안내를 띄우지 않는다(`FE-REQ-058` FR-7). 문구 파일(머리 주인)에 `TIMELY_TIP_MESSAGES` 추가 — 기존 export 무변경
+- 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
+- 미검증: 없음(이 몫 안)

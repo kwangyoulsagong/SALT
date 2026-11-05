@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ROUTES } from "@repo/web-shared/config";
-import { BlockBoundary } from "@repo/web-shared/ui";
+import { BlockBoundary, TimelyTip, TimelyTipContext } from "@repo/web-shared/ui";
 import { panelDescription, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { formatMonth } from "@/entities/household";
@@ -41,6 +41,8 @@ const MonthView = async ({ ym }: { ym: string }) => {
         </div>
       </div>
       <p className={panelDescription}>{M.description}</p>
+      {/* 때맞춘 팁 0~1장 — 5월 종합소득세 · 11~12월 연말정산 같은 달 트리거(FE-REQ-058 FR-6). 무엇을 띄울지는 서버 */}
+      <TimelyTip context={TimelyTipContext.Household} />
       <nav className={s.monthNav} aria-label={M.current}>
         <Link href={ROUTES.householdMonth(shiftMonth(ym, -1))} className={s.link}>
           {M.prev}

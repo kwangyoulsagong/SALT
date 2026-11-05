@@ -82,3 +82,9 @@
 ## 2026-11-04 — 가계부 S1a(`MONEY-S1-household-entry`)
 
 - [x] 셸 3000 경유 `/household` → `data-zone=household` · 폭 1024/1280/1440/1600 + 웹뷰 390 넘침 0
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: 빈 골격 `web-tips` 가 첫 화면을 서비스(`FE-REQ-058`) — 레이아웃 `PublicShell` · `app/tips/**` · `@repo/domain-tips` · tsconfig paths · vanilla-extract. 레지스트리 무변경(`hostedIn: web-tips` 그대로)
+- 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
+- 미검증: 없음(이 몫 안)

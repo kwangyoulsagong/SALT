@@ -76,3 +76,9 @@
 
 - [x] `POST /goals/:id/challenge-deposits` — 출처 `saved_by_challenge` · 같은 아낀 돈 두 번 → 적립 1행 · 다른 목표 · 다른 사용자 409 `DEPOSIT_SOURCE_USED` · 손 적립 · 나눠 넣기와 같은 길(종단 — 가계부 테스트에서)
 - [x] `GoalReaderSpec` 가짜 포트 갱신 · `./gradlew check` 통과 · Swagger 경로 확인
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: `savings.GoalCreated` · `GoalReached` 의 첫 구독자 content(금융 팁 S2a) — 저축 코드 · 계약 무변경
+- 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
+- 미검증: 없음(이 몫 안)

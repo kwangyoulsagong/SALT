@@ -4,6 +4,7 @@
   "routes": {
     "/platform": "platform",
     "/savings": "platform",
-    "/household": "platform"
+    "/household": "platform",
+    "/content": "platform"
   }
 }

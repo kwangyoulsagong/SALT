@@ -2,6 +2,7 @@
 
 const layers = require("./rules/layers");
 const noRenderRead = require("./rules/no-render-read");
+const noClientEnumExport = require("./rules/no-client-enum-export");
 
 /**
  * FSD 레이어 경계를 강제하는 ESLint 플러그인 (`FE-REQ-009` FR-21).
@@ -17,5 +18,7 @@ module.exports = {
     layers,
     // 렌더 중 토큰 · 시각 · 난수 · 저장소 읽기 금지 — 레이어 규칙은 아니지만 zone 앱 · 도메인 패키지 lint 가 모두 이 플러그인을 싣는다(`DEV-001`)
     "no-render-read": noRenderRead,
+    // "use client" 파일의 enum 은 서버 컴포넌트에서 undefined — 실화면에서만 보였다(`FE-REQ-058`, 2026-11-05)
+    "no-client-enum-export": noClientEnumExport,
   },
 };

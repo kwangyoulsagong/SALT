@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://salt.local/contracts/events/savings.GoalCreated.json",
   "title": "savings.GoalCreated",
-  "description": "저축 목표를 만들었다(SRV-REQ-045 FR-18). 구독 예정: content 때맞춘 팁(S2). 금액은 브로커 안에서만 — 로그 · 추적 속성 0",
+  "description": "저축 목표를 만들었다(SRV-REQ-045 FR-18). 구독: content 때맞춘 팁(금융 팁 S2a 2026-11-05 — 결혼 · 주거 템플릿만 신호). 금액은 브로커 안에서만 — 로그 · 추적 속성 0",
   "type": "object",
   "additionalProperties": false,
   "required": [

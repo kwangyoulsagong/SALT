@@ -50,3 +50,4 @@ source: 사용자 "전체 서버 다 키는 명령어가 필요하네 이거 보
 | 2026-11-03 | `9265c0b4` — platform launchd 등록 완료. launchd 아래 java 가 데스크탑 폴더의 jar 를 여는 `open()` 에서, docker compose 가 compose.yaml 읽기에서 멈췄다(macOS 개인정보 보호, `sample` 로 확인) → jar 를 `~/Library/Application Support/SALT` 에서 · RabbitMQ 가 떠 있으면 compose 생략 · 20초 상한. 상태 ok |
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — `ops/salt.sh` 이름 표에 `web-household`(dev 3004 · 로그)(`2d4db66c`) |
 | 2026-11-04 | 가계부 S1a — `salt-platform/ops/run-platform.sh` 에 `HOUSEHOLD_DB_PASSWORD`(`63146ddf`) |
+| 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: `salt-platform/ops/run-platform.sh` 에 `CONTENT_DB_PASSWORD`(← `.env` `LOCAL_DB_CONTENT_PASSWORD`) · 머리 주석에 `svc_content` · 금융 팁 경로. 공개 플래그 `CONTENT_PUBLIC` 은 넣지 않는다(기본 꺼짐 — 로컬 확인은 `launchctl setenv` 뒤 재시작, 끝나면 unsetenv) |

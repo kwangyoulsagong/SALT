@@ -41,3 +41,4 @@ source: requirements/decisions/ADR-006-server-msa-kotlin.md
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-03 | `SRV-REQ-043`(S0, done)에서 넘겨받음 — **S5 첫 외부 호출(KIS · 거래소)에 Resilience4j 인스턴스를 건다.** 기본값은 이미 있다(`application.yml` 재시도 3 · 서킷 · `kis` 2건/초, 테스트 `외부 호출 기본값`). 재시도는 조회(GET)에만 |
+| 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 금융 팁 S2a 가 남긴 몫: content 법적 선 검사기(`LegalLine`, Kotlin)와 코치 말투 검증기(Express `languageGuard.ts`)를 **S6 코치 이전 때 한 모듈로**(FR-4 와 같이). 지금은 꼴을 옮겨 적은 두 벌 |

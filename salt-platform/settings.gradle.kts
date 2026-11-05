@@ -38,5 +38,9 @@ include(
     "services:household:application",
     "services:household:infrastructure",
     "services:household:api",
+    "services:content:domain",
+    "services:content:application",
+    "services:content:infrastructure",
+    "services:content:api",
     "app",
 )

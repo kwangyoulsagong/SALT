@@ -30,3 +30,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-10-30 | 신규(to-do) |
+| 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — **RN 변경 없음.** 웹 팁 zone `/tips` 가 생겼다(공개 · 휴대폰 폭). FR-5 웹뷰 연결은 이 REQ 착수 때 |

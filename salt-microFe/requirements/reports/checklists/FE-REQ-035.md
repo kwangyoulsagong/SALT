@@ -90,3 +90,9 @@ First Load 가 그대로인 이유: axios 는 처음부터 지연 청크(`next/d
 
 - 파일만 걸침 — `packages/web-shared/src/api/index.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
 - 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: zone · 도메인 `.eslintrc.json` 10곳(머리 주인 — `no-restricted-imports`)에 규칙 한 줄 `@repo/fsd/no-client-enum-export`. axios · motion 금지 무변경
+- 검증: 슬라이스 검증(`requirements/reports/checklists/MONEY-S2a-tips-content.md`)
+- 미검증: 없음(이 몫 안)

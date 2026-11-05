@@ -43,3 +43,9 @@
 ## 2026-11-05 — 가계부 S1f 이벤트
 
 - [x] `household.ExpenseRecorded` — 내 분류로 적은 지출이 발행 시점 스키마 검증을 지난다(종단 — 아웃박스 `category` = 키 · 본문에 이름 0)
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: 새 계약 `content.PolicyParamChanged`(원문 동기화 때 줄마다) · **첫 서비스 간 구독** — content 가 `savings.GoalCreated` · `GoalReached` 를 받는다(큐 `content.<event>` · 데드레터 · `processed_event` 멱등). 종단 테스트가 저축 쓰기 → 릴레이 → 구독 → 신호를 실 RabbitMQ 로 확인
+- 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
+- 미검증: 없음(이 몫 안)

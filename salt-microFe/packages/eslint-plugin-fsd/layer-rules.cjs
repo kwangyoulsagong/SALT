@@ -70,6 +70,8 @@ const REGISTRY = {
     "home",
     // 가계부 — 지출 · 봉투 · 착지 구간(`FE-REQ-057`, 2026-11-04). 서버 컨텍스트와 같은 이름(루트 CLAUDE.md)
     "household",
+    // 금융 팁 — 공개 글 · 메타 · 확인 필요(`FE-REQ-058`, 2026-11-05 금융 팁 S2a). 서버는 `content` 서비스(글 하나 = tip)
+    "tip",
   ],
   features: [
     "ask-coach",
@@ -165,6 +167,9 @@ const REGISTRY = {
     // 가계부 S1h — /household/revolving · /household/people
     "revolving",
     "people",
+    // 금융 팁 `/tips` · `/tips/[slug]`(`FE-REQ-058`, 2026-11-05)
+    "tips",
+    "tip-detail",
     "investments",
     "investment-detail",
     "search",

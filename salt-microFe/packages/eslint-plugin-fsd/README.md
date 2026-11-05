@@ -50,3 +50,12 @@ CommonJS 인 이유: 앱이 eslintrc 모드를 쓰고, eslintrc 는 ESM 플러�
 `@repo/web-shared/ui/tokens.css`(전 `@/shared/ui/tokens.css`) 는 세그먼트 내부 경로지만 허용한다.
 `.css.ts` 는 **빌드 타임에 node 에서 평가**되므로 barrel 로 가져오면 React 컴포넌트가
 vanilla-extract 그래프에 들어와 빌드가 깨진다.
+
+## 레이어 밖 규칙 둘 — zone 앱 · 도메인 패키지 lint 가 같이 싣는다
+
+| 규칙 | 막는 것 | 근거 |
+|---|---|---|
+| `@repo/fsd/no-render-read` | 렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기(서버와 브라우저 값이 갈려 수화가 깨진다) | `DEV-001`(2026-11-04) |
+| `@repo/fsd/no-client-enum-export` | `"use client"` 파일의 `export enum` — 서버 컴포넌트에서 클라이언트 참조라 `undefined`(때맞춘 팁 `context=undefined` 400) | `FE-REQ-058` · `DEV-001`(2026-11-05) |
+
+켜는 곳: 각 `.eslintrc.json` `rules` 에 `"error"`. 둘 다 위반 0 에서 시작했다 — 새 위반은 저장 · `pnpm lint` 에서 보인다.

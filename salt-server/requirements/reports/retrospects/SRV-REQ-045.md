@@ -51,3 +51,8 @@
 
 - **판단**: 새 경로를 따로 두고 손 적립 경로(출처 `manual` 고정)는 그대로 — 화면이 출처를 고를 수 없다. 같은 출처 재시도는 달성 · 발행 0.
 - **Action**: 없음.
+
+## 2026-11-05 — 금융 팁 S2a(`MONEY-S2a-tips-content`)
+
+- 몫: `savings.GoalCreated` · `GoalReached` 의 첫 구독자 content(금융 팁 S2a) — 저축 코드 · 계약 무변경
+- **Action**: 없음 — 기존 결정 위에 한 줄

@@ -180,3 +180,4 @@ source: 사용자 결정 2026-09-30 — 참고한 국내 금융 앱들처럼 그
 | 2026-11-03 | MONEY-S1b — 배치표 P-24(저축 목표 진척 장면) 추가 · `@repo/ui/progressScene` `ProgressScene` 새 컴포넌트 + Storybook(`84871e70`). 진척 칸이 서버 값이라 `Illustration` 의 한 번 재생 장면과 따로 둔다(`motion.md` §1 "새 장면은 scene 추가" 의 예외 — 상태가 칸으로 바뀌는 그래픽). 이동은 transform 만(채운 길 scaleX · 그림 x) |
 | 2026-11-04 | 화면 전반 움직임(호버 · 눌림 · 등장 · 스켈레톤 · 막대 `scaleX` · 차트 선 그리기)은 `FE-REQ-062`(to-do) — 측정: 가계부 전환 1/25 · 저축 진척 막대 `width` 애니메이션 · 투자 `transition: all` 230곳 |
 | 2026-11-04 | 로고(`FE-REQ-051`) — 같은 토큰 파일만 걸침(`25f182f6`). 로고는 움직임 0(`motion.md` — 반복 모션은 진행 중에만). 모션 토큰 diff 0 |
+| 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — 이 REQ 에 걸린 몫: 새 패키지 `@repo/domain-tips` `.eslintrc.json` 에 같은 `motion/react` · `motion` 금지 줄(복사). 금융 팁 화면에 움직임 0 |

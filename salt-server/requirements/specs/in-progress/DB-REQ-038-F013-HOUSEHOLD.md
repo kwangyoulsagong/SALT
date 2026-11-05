@@ -149,3 +149,4 @@ EXPLAIN(사람 장부 2만 행 · 명세서 2천 행 넣고 롤백): 사람별 �
 | 2026-11-05 | 가계부 S1f — FR-17 신설 · FR-2 정정 · FR-3 `account_split`(V6 `96c7c5b4`). 로컬 운영 DB 적용(household 5 → 6 — 슬라이스 경로 주석을 고치느라 push 전 한 번 되돌려 다시 적용) |
 | 2026-11-05 | 가계부 S1g — FR-18 신설 · done(V7 `2c31ce55`). 로컬 운영 DB 적용(household 6 → 7 — 주석 경로를 고치느라 push 전 한 번 되돌려 다시 적용). EXPLAIN(행 2만 넣고 롤백 — 아낀 돈 0.124ms) |
 | 2026-11-05 | 가계부 S1h — FR-5 정정 · done(`revolving_plan`) · FR-9 done · FR-19 신설 · done(V8 `f998f36d`). 로컬 운영 DB 적용(household 7 → 8 — 한 번에, 주석 경로는 루트 슬라이스 이름 그대로). EXPLAIN 넷 0.1ms 아래 |
+| 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — 이 REQ 에 걸린 몫: `household.FixedCostIncreased` 계약 설명의 "구독 예정" 정정(금융 팁 S2b — S2a 는 저축 두 이벤트만). 필드 · 스키마 무변경 |
