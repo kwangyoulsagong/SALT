@@ -20,6 +20,13 @@ export const TipsPage = async () => {
     <div className={s.page}>
       <h1 className={panelTitle}>{M.title}</h1>
       <p className={panelDescription}>{M.description}</p>
+      {/* 맞힌 카드 모음 진입점 — 퀴즈 결과 말고는 길이 없었다(S2b 확인 3회차). 로그인 여부는 그 화면이 본다(이 목록은 공개 ISR) */}
+      {list?.public ? (
+        <Link href={ROUTES.tipCards} className={s.cardsLink}>
+          {M.quizCards}
+          <NavChevron />
+        </Link>
+      ) : null}
       {!list?.public ? (
         <EmptyState title={M.notPublicTitle} description={M.notPublicDescription} />
       ) : list.tips.length === 0 ? (

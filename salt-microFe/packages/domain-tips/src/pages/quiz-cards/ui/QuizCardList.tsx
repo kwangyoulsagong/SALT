@@ -5,6 +5,7 @@ import Link from "next/link";
 import { EmptyState } from "@repo/ui/emptyState";
 import { Skeleton } from "@repo/ui/skeleton";
 
+import { hasApiStatus } from "@repo/web-shared/api";
 import { ROUTES } from "@repo/web-shared/config";
 import { NavChevron } from "@repo/web-shared/ui";
 
@@ -17,7 +18,8 @@ import * as s from "./quizCards.css";
 /** 맞힌 카드 잎 — 세션이 있어야 그린다. 수 · 순서 · 숨길 카드는 서버 값(원문에서 빠진 글의 카드는 서버가 뺀다) */
 export const QuizCardList = () => {
   const view = useQuizCards();
-  if (view.isSignedOut) return <EmptyState title={M.signedOut} />;
+  // 세션이 만료돼 갱신까지 실패한 401 도 로그아웃이다 — "불러오지 못했어요"는 서버 고장으로 읽힌다(공개 zone 은 로그인으로 보내지 않는다)
+  if (view.isSignedOut || (view.isError && hasApiStatus(view.error, 401))) return <EmptyState title={M.signedOut} />;
   if (view.isError) return <EmptyState title={M.loadFailed} tone="error" />;
   if (!view.data) return <Skeleton height={240} />;
   const { available, cards } = view.data;
