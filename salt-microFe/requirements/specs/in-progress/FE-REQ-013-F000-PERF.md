@@ -122,6 +122,8 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 | ID | 요구사항 | 우선 |
 |---|---|---|
 | FR-80 | 액세스 토큰을 `localStorage` 에서 httpOnly 쿠키 세션(서버 컴포넌트 조회)으로 옮긴다 — 마스터 인덱스가 이 REQ 에 남긴 일("쿠키 세션은 남음"). 지금 `shared/api/authToken.ts` 가 미달을 적고 있다. `FE-REQ-011` FR-53 · `FE-REQ-028` FR-80 이 이것을 기다린다. **done 2026-11-05**(1단계 `0ef25f6b` · 2단계 `721063fc`) | Must |
+| FR-81 | **서버 조회로 옮길 클라이언트 화면**(2026-11-05 — FR-80 2단계로 서버가 쿠키를 읽는다. 지금까지 "토큰이 `localStorage`"가 이유였던 자리): 셸 홈 카드(`HomeCards` · `HomeBriefing`) · 온보딩 상태 · 투자 코치 리포트 · 판정 근거 · 코치 설정 · 상세 분석 본문 · 관심 목록 탭. 국내 주식 상세 · 시세는 **대상 아님**(약관상 서버 HTML 금지). 화면마다 첫 숫자 HTML · 번들 · 수화를 재고 옮긴다 — 투자 쪽은 동결(2026-10-30) 해제 또는 그 화면을 다시 만질 때 | Should |
+| FR-82 | **비공개 경로 서버 보호**(2026-11-05) — 로그인 표지 · 세션 쿠키가 없으면 미들웨어가 로그인으로 보낸다. 셸 미들웨어 주석이 "쿠키로 간 뒤"로 미뤄 둔 일. zone 5 미들웨어 · 운영 경로 라우팅(`OPS-001` FR-13)과 같이 정한다 | Should |
 
 ## Acceptance Criteria
 
@@ -199,3 +201,5 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 | 2026-11-05 | 가계부 S1g(`MONEY-S1g-household-story`, `1c46db88`) — 번들(Next 표 First Load JS): `/household/story/[period]` 151 kB(새 — 첫 카드는 서버가 쿠키로 받아 HTML 에, 1.5초 넘으면 브라우저 조회) · `/household` 164 kB 그대로 · 공용 103 kB. 공유 이미지는 누를 때만 그린다(상시 캔버스 0) |
 | 2026-11-05 | 가계부 S1h(`MONEY-S1h-household-revolving-people`, `38ed6518`) — 번들(Next 표 First Load JS): `/household` 164 → 165 kB · `/household/revolving` 154 kB · `/household/people` 156 kB(새) · 공용 103 kB |
 | 2026-11-05 | FR-80 **2단계 done** — 토큰을 브라우저 저장소에서 뺐다. 액세스 · 리프레시 둘 다 httpOnly 쿠키(리프레시 경로 `/api/session` 으로 좁힘) · 표지 쿠키는 같은 응답에서. 셸 Route Handler 셋(`POST`·`DELETE /api/session` · `POST /api/session/refresh` — 리프레시 쿠키로 BFF 갱신, 401·403 이면 셋 다 지움 · 5xx 는 그대로). 브라우저는 BFF 를 같은 origin `/api/*` 로(셸 rewrites afterFiles · 운영 ADR-008) · 서버 코드는 `BFF_SERVER_URL`. 갱신 규칙 `withSessionRefresh`(보낼 때 표지 있었나 — 경계 표 테스트 9). 웹소켓은 연결 쿠키 · 인증 거부면 갱신 뒤 한 번 다시 연결(1분에 한 번). 옛 `localStorage` 세션 첫 진입 이관. `authHeader` 호출 50곳 제거(`721063fc`) · BFF `fb9c85b3`. 번들(Next 표 First Load JS): 셸 `/` 149 · `/home` 158 · `/onboarding` 152 · `/settings` 135 · `/goals` 152 · `/household` 165 kB — **main(`9214c271`) 워크트리 같은 빌드 대조: `/home` 159 → 158 · `/goals` 153 → 152 · 나머지 같음(증가 0)** — 헤더 만들기 50곳이 빠졌다. 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
+| 2026-11-05 | FR-81 · FR-82 추가 — FR-80 2단계로 가능해진 후속 둘(서버 조회 이관 목록 · 비공개 경로 보호)을 FR 로. 코드의 낡은 이유 주석 13곳("토큰이 `localStorage`")에 정정 문장(국내 주식 둘은 "약관상 클라이언트에 남는다") · 셸 미들웨어 주석 |
+| 2026-11-05 | 확인 단계 2회차 — 투자 zone · 웹뷰 · 쓰기 실화면 통과 · 낡은 주석 정정(`95829941`). 체크리스트 §4 |

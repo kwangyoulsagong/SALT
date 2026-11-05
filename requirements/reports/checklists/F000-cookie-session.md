@@ -33,3 +33,17 @@
 |---|---|---|
 | 긴 SSE 가 rewrites 를 지나며 쪼개져 오는 간격 | 확인한 종목이 "표본 부족"으로 바로 막혀 이벤트 5개 | 표본 있는 종목 해설을 여는 다음 투자 화면 실화면 |
 | 운영 경로 라우팅 · `WEB_ORIGINS` 값 | 배포 환경 없음 | `OPS-001` FR-13 |
+
+## 4. 확인 단계 2회차 (2026-11-05 — 사용자 "파이프라인 다하고 검증 다하고 버그 검증 다하고 done 누락 없지")
+
+첫 보고 뒤 기준표(`pipeline-completeness`)를 한 줄씩 대조해 빠진 것을 닫았다.
+
+- [x] 낡은 문장 — "토큰이 `localStorage` 라 클라이언트" 이유 주석 13곳 정정(`95829941`) · 셸 미들웨어 "쿠키로 간 뒤" → `FE-REQ-013` FR-82. 국내 주식 둘은 "약관상 클라이언트에 남는다"
+- [x] 미뤄 둔 후속을 FR 로 — `FE-REQ-013` FR-81(서버 조회 이관 목록) · FR-82(비공개 경로 보호)
+- [x] FEATURE 이력 — `FEATURE-000`(슬라이스 기능) · `FEATURE-015`(머리 메뉴) · 마스터 인덱스 §8
+- [x] 주석이 걸친 주인 REQ 8(053 · 055 · 008 · 010 · 026 · 028 · 041 · 056) Changelog · 체크리스트 · 회고
+- [x] 실화면 1440(임시 사용자 둘 · 지움): `/home` · `/goals` · `/goals/new` · `/household` · `/household/budget` · `/people` · `/revolving` · `/challenges` · `/templates` · `/investments` · `/search` · `/coach/report` · `/coach/settings` · `/coach/signals/long_term.buy` · `/settings` · `/onboarding` · `/investments/XRP` — 문서 200 · 로그인으로 안 감 · 401 미해결 0 · 5xx 0 · 수화 · 예외 0
+- [x] 쓰기 — 관심 종목 추가 201 · 목록에 있음 · 삭제 204(같은 origin POST · DELETE 쿠키)
+- [x] 390 앱 웹뷰 UA(`SALTApp/`) — `/home` · `/goals` · `/household` · `/household/people` · `/coach/report` 통과. `/investments` 에서 `/api/app/ai-coach/detail` 504 1건 — BFF 서버 예산 초과(기존, 11-04 로그에도), 직접 · 프록시 다시 재면 둘 다 200 → 범위 밖 표
+- [x] 정리 — 사용자 5 → 5 · 모든 스키마 `user_id` 고아 0 · 초대 코드 0 · 3001 끔
+- 환경 주의: 확인 중 운영 빌드(`turbo build`)가 떠 있던 zone dev 서버의 `.next` 를 덮어 500(`__webpack_modules__`) — dev 서버 재기동 뒤 통과. 코드 결함 아님

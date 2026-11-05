@@ -128,3 +128,4 @@ flowchart LR
 | 2026-11-04 | 가계부 S1a — 홈에 가계부 카드(이번 달 지출 + 예산 남은 금액 | 월말 예상 구간, `BFF-REQ-046`) · 가계부 탭이 눌린다(`FE-REQ-054`) |
 | 2026-11-04 | 홈 디자인 `FE-REQ-048` 정정(카드 2×2 데스크톱 · 목록 행 모바일) · 좁은 화면 안내 `FE-REQ-061` · 움직임 `FE-REQ-062`(to-do) |
 | 2026-11-04 | 가계부 S1c — FR-5 민감 정보 분류에 두 표가 더해졌다: 감정 태그 · 만족(`household.expense_tag`) · 급여(`household.household_setting`) — 표 주석 `sensitive` · 이벤트 · 로그 0. 루트 `MONEY-S1c-household-mirror-slice.md` |
+| 2026-11-05 | 앱 머리 계정 메뉴가 홈 카드에 깔려 로그아웃을 누를 수 없던 결함 수정(`99efcd15`, `FE-REQ-054`) · 로그인 · 초대 수락 · 로그아웃이 쿠키 세션으로(`FE-REQ-013` FR-80 2단계). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
