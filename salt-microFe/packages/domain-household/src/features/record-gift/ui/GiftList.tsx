@@ -41,10 +41,16 @@ export const GiftList = ({ entries, occasions, today }: { entries: PersonEntry[]
                   <span className={s.label}>{P.direction[e.direction]}</span>
                   <span className={s.value}>{formatWon(e.amount)}</span>
                 </span>
-                <Button size="sm" variant="weak" onClick={() => setEditing(e.id)}>
+                <Button size="sm" variant="weak" onClick={() => setEditing(e.id)} aria-label={M.editLabel(e.person, occasionLabel(e.occasion), formatFullDay(e.happenedOn))}>
                   {M.edit}
                 </Button>
-                <Button size="sm" variant="weak" onClick={() => remove.mutate(e.id)} disabled={remove.isPending}>
+                <Button
+                  size="sm"
+                  variant="weak"
+                  onClick={() => remove.mutate(e.id)}
+                  disabled={remove.isPending}
+                  aria-label={M.deleteLabel(e.person, occasionLabel(e.occasion), formatFullDay(e.happenedOn))}
+                >
                   {M.delete}
                 </Button>
               </span>

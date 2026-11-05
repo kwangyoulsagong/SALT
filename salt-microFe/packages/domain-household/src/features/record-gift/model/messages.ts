@@ -27,4 +27,7 @@ export const RECORD_GIFT_MESSAGES = {
   delete: "지우기",
   deleteFailed: "지우지 못했어요. 다시 눌러 주세요",
   line: (occasion: string, date: string) => `${occasion} · ${date}`,
+  // 줄마다 같은 "고치기" · "지우기"면 화면 읽기가 어느 줄인지 모른다(확인 단계 — 대상 이름을 붙인다)
+  editLabel: (person: string, occasion: string, date: string) => `${person} · ${occasion} · ${date} 고치기`,
+  deleteLabel: (person: string, occasion: string, date: string) => `${person} · ${occasion} · ${date} 지우기`,
 } as const;
