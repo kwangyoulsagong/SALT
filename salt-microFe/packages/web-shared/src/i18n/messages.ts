@@ -59,3 +59,13 @@ export const AMOUNT_INPUT_MESSAGES = {
   count: "숫자만 적어 주세요",
   tooLong: "숫자는 15자리까지 적을 수 있어요(소수는 8자리까지)",
 } as const;
+
+/**
+ * 때맞춘 팁 카드(`FE-REQ-058` FR-6) — 도메인 zone 이 같이 쓰는 칸의 틀 문구. 글 문장은 서버 원문(금융 팁 `content`)이라 여기 없다
+ */
+export const TIMELY_TIP_MESSAGES = {
+  eyebrow: "이번에 해당될 수 있는 제도",
+  readMore: "자세히",
+  official: "공식 안내 보기",
+  dismiss: "이 팁 닫기",
+} as const;
