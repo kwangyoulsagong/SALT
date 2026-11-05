@@ -58,6 +58,42 @@ export interface TipDetailVM extends TipSummaryVM {
   /** 최근 것 먼저 — 변경 이력 공개(FR-2) */
   revisions: TipRevisionVM[];
   quiz: TipQuizVM | null;
+  /** 내 숫자로 다시 읽기 칸이 있는 글인가(FR-7) — 화면이 이게 true 일 때만 `/my-numbers` 를 부른다 */
+  myNumbers: boolean;
+}
+
+/** 숫자 한 칸 — 금액(원 정수) 또는 비율(문자열 "0.40") 하나. 라벨은 서버 문장 그대로 */
+export interface MyFigureVM {
+  key: string;
+  label: string;
+  amount: number | null;
+  ratio: string | null;
+}
+
+/** 요건 한 줄 — met · not_met · unknown(앱이 모르거나 원천을 못 읽음) */
+export interface MyCheckVM {
+  key: string;
+  label: string;
+  state: "met" | "not_met" | "unknown";
+  note: string;
+}
+
+export interface MyReadingVM {
+  kind: string;
+  figures: MyFigureVM[];
+  checks: MyCheckVM[];
+  /** 숫자를 낼 재료가 없다(목표 없음 · 원천 못 읽음) — 화면은 글의 예시 그대로 두고 이 한 줄만 */
+  emptyReason: string | null;
+  /** 가계부 급여로 어림했다 */
+  estimated: boolean;
+}
+
+/** 내 숫자로 다시 읽기(FR-7). content 가 실패하면 reading=null · degraded — 화면은 글의 예시 그대로(FEATURE-014 "개인화 실패 시 일반 예시로") */
+export interface MyNumbersVM {
+  reading: MyReadingVM | null;
+  degraded: boolean;
+  /** 못 읽은 원천 — savings · household · content */
+  degradedSources: string[];
 }
 
 export interface QuizResultVM {
@@ -109,6 +145,9 @@ export interface TipForMeVM {
   degraded: boolean;
 }
 
+/** 내 숫자 — 원천(저축 · 가계부) 각각과 content 계산의 예산. 원천이 늦으면 그 원천만 "못 읽음"으로 넘긴다 */
+export const MY_NUMBERS_BUDGET_MS = 1500;
+
 /** 때맞춘 팁 예산 — 화면의 곁 칸이라 짧게. 넘기면 카드 없이(`performance-bff.md` §3) */
 export const TIP_FOR_ME_BUDGET_MS = 1500;
 
@@ -141,6 +180,35 @@ const change = (c: Record<string, unknown>): TipChangeVM => ({ op: c.op === "rem
 
 const quiz = (q: Record<string, unknown>): TipQuizVM => ({ question: String(q.question), choices: ((q.choices as unknown[]) ?? []).map(String) });
 
+const statusOf = (error: unknown): number | undefined => (error as { response?: { status?: number } }).response?.status;
+
+/** 원 단위 정수 문자열 — 서버 응답은 이미 정수(Long). 아니면 던진다(그 원천만 "못 읽음") — BFF 가 반올림 · 자르기를 하지 않는다 */
+const wholeWon = (v: unknown): string => {
+  const n = Number(v);
+  if (!Number.isSafeInteger(n) || n < 0) throw new Error("source amount is not whole won");
+  return String(n);
+};
+
+const STATES = new Set(["met", "not_met", "unknown"]);
+
+const reading = (d: Record<string, unknown>): MyReadingVM => ({
+  kind: String(d.kind),
+  figures: ((d.figures as Record<string, unknown>[]) ?? []).map((f) => ({
+    key: String(f.key),
+    label: String(f.label),
+    amount: f.amount == null ? null : Number(f.amount),
+    ratio: f.ratio == null ? null : String(f.ratio),
+  })),
+  checks: ((d.checks as Record<string, unknown>[]) ?? []).map((c) => ({
+    key: String(c.key),
+    label: String(c.label),
+    state: (STATES.has(String(c.state)) ? String(c.state) : "unknown") as MyCheckVM["state"],
+    note: String(c.note),
+  })),
+  emptyReason: d.emptyReason == null ? null : String(d.emptyReason),
+  estimated: Boolean(d.estimated),
+});
+
 class AppTipsService {
   async list(): Promise<TipListVM> {
     const { data } = await backendApi.proxyRequest("GET", "/content/tips");
@@ -160,6 +228,7 @@ class AppTipsService {
         changes: Array.isArray(r.changes) ? (r.changes as Record<string, unknown>[]).map(change) : null,
       })),
       quiz: d.quiz ? quiz(d.quiz as Record<string, unknown>) : null,
+      myNumbers: Boolean(d.myNumbers),
     };
   }
 
@@ -197,6 +266,62 @@ class AppTipsService {
         collectedAt: String(c.collectedAt),
       })),
     };
+  }
+
+  /**
+   * 내 숫자로 다시 읽기(FR-7, 금융 팁 S2d) — **BFF 가 순서를 정한다**(`msa-services.md` §5): 원천 둘(저축 목표 · 가계부 급여)을
+   * 나란히 읽고 → content 에 사실로 넘겨 계산. 서비스끼리 부르지 않는다. BFF 는 칸을 고를 뿐 금액을 계산하지 않는다.
+   * 원천 하나가 늦거나 실패하면 그 원천만 "못 읽음"(goals=null · wage unread) — content 가 그 요건을 unknown 으로 답한다.
+   * 401 은 어디서 나든 그대로 올린다(`bff-architecture.md` §5). 급여는 로그 0.
+   */
+  async myNumbers(token: string, slug: string): Promise<MyNumbersVM> {
+    if (!slug) throw new AppError("slug is required", 400, true, "INVALID_TIP_SLUG");
+    const opts = { timeout: MY_NUMBERS_BUDGET_MS };
+    const [goalsRes, wageRes] = await Promise.allSettled([
+      backendApi.proxyAuthRequest("GET", "/savings/goals", token, undefined, opts),
+      backendApi.proxyAuthRequest("GET", "/household/settings/work-hours", token, undefined, opts),
+    ]);
+    const degradedSources: string[] = [];
+    for (const r of [goalsRes, wageRes]) if (r.status === "rejected" && statusOf(r.reason) === 401) throw r.reason;
+
+    // 원천 응답 모양이 틀려도(금액이 정수가 아님) 그 원천만 "못 읽음" — 틀린 숫자로 계산하지 않는다
+    let goals: Record<string, unknown>[] | null = null;
+    try {
+      if (goalsRes.status !== "fulfilled") throw goalsRes.reason;
+      goals = ((goalsRes.value.data.data as Record<string, unknown>[]) ?? []).map((g) => ({
+        template: String(g.template),
+        status: String(g.status),
+        saved: wholeWon(g.saved),
+        monthlyPlan: g.monthlyPlan == null ? null : wholeWon(g.monthlyPlan),
+        targetDate: g.targetDate == null ? null : String(g.targetDate),
+      }));
+    } catch {
+      degradedSources.push("savings");
+    }
+
+    let wage: Record<string, unknown> = { state: "unread" };
+    try {
+      if (wageRes.status !== "fulfilled") throw wageRes.reason;
+      const w = wageRes.value.data.data as Record<string, unknown>;
+      // 끈 칸은 쓰지 않는다 — 사용자가 끈 급여를 다른 화면이 몰래 쓰지 않게
+      wage = w.on && w.basis && w.amount != null
+        ? { state: "set", basis: String(w.basis), amount: wholeWon(w.amount), monthlyHours: w.monthlyHours == null ? null : Number(w.monthlyHours) }
+        : { state: "not_set" };
+    } catch {
+      degradedSources.push("household");
+    }
+
+    try {
+      const { data } = await backendApi.proxyAuthRequest("POST", `/content/me/tips/${encodeURIComponent(slug)}/my-numbers`, token, { goals, wage }, opts);
+      const d = data.data as Record<string, unknown>;
+      return { reading: reading(d), degraded: degradedSources.length > 0, degradedSources };
+    } catch (error) {
+      const status = statusOf(error);
+      // 401 · 404(칸 없는 글 · 공개 전) · 400 은 화면이 알아야 한다 — 숨기지 않는다
+      if (status !== undefined && status < 500) throw error;
+      logger.warn("tips my-numbers degraded", { status: status ?? "timeout", sources: degradedSources.join(",") });
+      return { reading: null, degraded: true, degradedSources: [...degradedSources, "content"] };
+    }
   }
 
   /** 맥락은 서버와 같은 세 값 — 틀리면 서버까지 가지 않고 400(서버 코드와 같은 `INVALID_TIP_CONTEXT`). 실패는 카드 없이 */

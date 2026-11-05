@@ -17,6 +17,8 @@ router.get("/for-me", authMiddleware, tipsController.forMe);
 // 맞힌 카드 모음(FR-8) — 개인. `/:slug` 앞
 router.get("/quiz-cards", authMiddleware, tipsController.quizCards);
 router.post("/:slug/dismiss", authMiddleware, tipsController.dismiss);
+// 내 숫자로 다시 읽기(FR-7) — 로그인만. 저축 · 가계부를 읽고 content 가 계산
+router.get("/:slug/my-numbers", authMiddleware, tipsController.myNumbers);
 // 퀴즈 풀이 — 로그인 없이도(채점만) · 있으면 기록. 공개 경로라 같은 IP 제한
 router.post("/:slug/quiz", publicLimit, tipsController.answerQuiz);
 router.get("/:slug", publicLimit, tipsController.detail);
