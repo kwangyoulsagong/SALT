@@ -980,6 +980,80 @@ class HouseholdEndToEndTest {
         }
     }
 
+    // ---------- 가계부 S1g — 이야기 카드 ----------
+
+    @Test
+    fun `이야기 카드 — 지난 달 · 지난 해는 바로 · 값 없는 줄은 빠진다 · 스티커 뒤 지출이면 무지출에서 빠진다 · 이번 해는 마지막 3일부터 · 미래 거절 · 쿼리 6 · 평가 칸 0`() {
+        val user = "story-${UUID.randomUUID()}"
+        val other = "story-other-${UUID.randomUUID()}"
+        val year = today.year - 1
+        val mar = YearMonth.of(year, 3)
+        val dsl = householdDatabase.dsl
+        fun spend(day: LocalDate, category: String, amount: Long, approx: Boolean = false) = dsl.execute(
+            "INSERT INTO expense (id, user_id, amount, spent_on, category, payment_method, precision, input_kind, created_at) " +
+                "VALUES (gen_random_uuid(), ?, ?, ?, ?, 'card', ?, ?, now())",
+            user, amount.toBigDecimal(), day, category, if (approx) "approx" else "exact", if (approx) "approx" else "quick",
+        )
+        spend(mar.atDay(1), "food", 30_000)
+        spend(mar.atDay(1), "cafe", 10_000)
+        spend(mar.atDay(2), "food", 20_000)
+        spend(mar.atDay(5), "housing", 40_000, approx = true)
+        spend(LocalDate.of(year, 7, 1), "food", 5_000)
+        // 3 · 4일 안 쓴 날 + 5일은 표시 뒤 지출을 적었다(달력처럼 빠진다)
+        listOf(3, 4, 5).forEach { d ->
+            dsl.execute("INSERT INTO calendar_sticker (user_id, sticker_on, kind, created_at) VALUES (?, ?, 'no_spend', now())", user, mar.atDay(d))
+        }
+        val ch = UUID.randomUUID()
+        dsl.execute("INSERT INTO challenge (id, user_id, title, starts_on, ends_on, status, created_at) VALUES (?, ?, 'x', ?, ?, 'active', now())", ch, user, mar.atDay(1), mar.atDay(10))
+        dsl.execute("INSERT INTO challenge_day (challenge_id, user_id, marked_on, created_at) VALUES (?, ?, ?, now())", ch, user, mar.atDay(3))
+        dsl.execute("INSERT INTO challenge_saving (id, challenge_id, user_id, amount, saved_on, created_at) VALUES (gen_random_uuid(), ?, ?, 4500, ?, now())", ch, user, mar.atDay(3))
+        val tagged = dsl.fetchValue("SELECT id FROM expense WHERE user_id = ? AND category = 'cafe'", user)
+        dsl.execute("INSERT INTO expense_tag (expense_id, user_id, emotion, tagged_on, created_at, updated_at) VALUES (?, ?, 'reward', ?, now(), now())", tagged, user, mar.atDay(1))
+
+        val before = statements()
+        val month = data(call("GET", "/api/household/story/$mar", user, null, countQueries = true))
+        // 재료 5(지출 묶음 · 스티커 · 챌린지 날 · 아낀 돈 · 기분 수) + 분류 표 1
+        (statements() - before) shouldBe 6L
+        month.path("scope").asString() shouldBe "month"
+        month.path("ready").asBoolean() shouldBe true
+        month.path("lines").items { it.path("kind").asString() } shouldBe
+            listOf("spent", "top_category", "no_spend_days", "challenge_days", "challenge_saved", "feelings_tagged")
+        val lines = month.path("lines")
+        lines.get(0).path("amount").asLong() shouldBe 100_000
+        lines.get(0).path("count").asInt() shouldBe 4
+        lines.get(0).path("days").asInt() shouldBe 3
+        lines.get(0).path("approx").asBoolean() shouldBe true
+        lines.get(1).path("category").asString() shouldBe "food"
+        lines.get(1).path("sharePercent").asInt() shouldBe 50
+        lines.get(2).path("days").asInt() shouldBe 2
+        lines.get(4).path("amount").asLong() shouldBe 4_500
+        lines.get(5).path("count").asInt() shouldBe 1
+
+        // 해 — 달이 둘이면 가장 많이 쓴 달
+        val yearStory = data(call("GET", "/api/household/story/$year", user, null))
+        yearStory.path("scope").asString() shouldBe "year"
+        yearStory.path("lines").first { it.path("kind").asString() == "top_month" }.path("month").asString() shouldBe mar.toString()
+        yearStory.path("lines").get(0).path("amount").asLong() shouldBe 105_000
+
+        // 남의 카드는 빈 이야기(같은 기간 · 다른 사용자 기록 0)
+        data(call("GET", "/api/household/story/$mar", other, null)).path("lines").size() shouldBe 0
+
+        // 이번 해 — 마지막 3일 전이면 readyOn 만(쿼리 0)
+        val thisYear = data(call("GET", "/api/household/story/${today.year}", user, null))
+        val lastThree = !today.isBefore(LocalDate.of(today.year, 12, 29))
+        thisYear.path("ready").asBoolean() shouldBe lastThree
+        if (!lastThree) thisYear.path("readyOn").asString() shouldBe "${today.year}-12-29"
+
+        // 거절 표
+        call("GET", "/api/household/story/${today.year + 1}", user, null).body() shouldContain "STORY_PERIOD_FUTURE"
+        call("GET", "/api/household/story/${YearMonth.from(today).plusMonths(1)}", user, null).body() shouldContain "STORY_PERIOD_FUTURE"
+        listOf("2026-13", "26", "2026-10-01", "abc").forEach { call("GET", "/api/household/story/$it", user, null).body() shouldContain "STORY_PERIOD_INVALID" }
+
+        // 평가 · 비교 · 감정 내용 칸 0
+        val raw = month.toString()
+        listOf("score", "rank", "streak", "previous", "change", "emotion", "reward", "felt").forEach { raw shouldNotContain it }
+    }
+
     private fun eventTypes(user: String): List<String> =
         householdDatabase.dsl.fetch("SELECT event_type FROM outbox WHERE payload->>'userId' = ? ORDER BY seq", user).map { it.get(0, String::class.java) }
 
