@@ -27,4 +27,12 @@ export const tipsController = {
   detail: wrap(PUBLIC_TIPS_CACHE, (req) => appTipsService.detail(String(req.params.slug))),
   forMe: wrap("no-store", (req) => appTipsService.forMe(req.token!, String(req.query.context ?? ""))),
   dismiss: wrap("no-store", (req) => appTipsService.dismiss(req.token!, String(req.params.slug))),
+  /** 세션은 있으면 쓴다(쿠키 → 헤더는 `cookieSessionMiddleware`) — 로그인 없이도 풀 수 있는 공개 글이라 `authMiddleware` 를 걸지 않는다 */
+  answerQuiz: wrap("no-store", (req) => appTipsService.answerQuiz(bearer(req), String(req.params.slug), Number(req.body?.choice))),
+  quizCards: wrap("no-store", (req) => appTipsService.quizCards(req.token!)),
+};
+
+const bearer = (req: Request): string | undefined => {
+  const header = req.headers.authorization;
+  return header?.startsWith("Bearer ") ? header.slice("Bearer ".length) : undefined;
 };
