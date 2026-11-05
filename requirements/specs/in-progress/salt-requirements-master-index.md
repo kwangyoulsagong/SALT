@@ -1010,3 +1010,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-05 | 금융 팁 S2b 확인 2회차 — 결함 하나: 공개 글에서 만료된 세션이 로그인으로 보냈다 → `@repo/core/auth` `isPublicPath` 하나(`cf93acb1`, 주인 `FE-REQ-007` · `011` · `013` · `054`). 낡은 "S2b" 정정(`a1938bb2`) |
 | 2026-11-05 | 금융 팁 S2b 확인 3회차 — 모음 화면 만료 세션 → 로그아웃 안내 · `/tips` 에 모음 진입점(`fd88af11`) · FEATURE-014 본문 표(Trace Matrix · 영향 · 수용 기준) 정정 |
 | 2026-11-05 | **금융 팁 S2d done** — `SRV-REQ-047` FR-6 내 숫자 · FR-4 고정비 증가(주거) · `BFF-REQ-049` FR-7 신설 · `FE-REQ-058` FR-3 · `DB-REQ-039` 변경 없음 · 짝 `SRV-REQ-044` · `046` · `DB-REQ-038` · `FE-REQ-009` · RN 변경 없음(`RN-REQ-035`). 미룬 칸 이름 S2d 레포 전체 정정 |
+| 2026-11-05 | 금융 팁 S2d 확인 2회차 — 결함 둘(없는 날짜 500 · 빈 사용자 머리 문구) · 빠졌던 `test:layer-check` · zone 빌드 · 새 소비자 기록(`SRV-REQ-045` · `046` · FEATURE-012) · 규칙 "남의 값으로 계산하는 읽기 = BFF 순서"(`msa-services.md` · `bff-architecture.md`) · 상시 dev zone `.next` 덮어쓰기 복구 |

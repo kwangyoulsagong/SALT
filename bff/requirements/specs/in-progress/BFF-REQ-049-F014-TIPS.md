@@ -53,3 +53,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-047-F014-CONTENT.md
 | 2026-11-05 | 금융 팁 S2a — to-do → in-progress. FR-1~5 done · 라우팅 표 `/content` → platform. 커밋 `36d1f7b9` |
 | 2026-11-05 | 금융 팁 S2b — FR-6 신설 · done(퀴즈 풀이 · 카드 모음) · 글 응답에 `quiz` · `changes`. 커밋 `4b5a294b` |
 | 2026-11-05 | 금융 팁 S2d — FR-7 신설 · done(내 숫자 — 원천 둘 → content). 글 응답 `myNumbers`. 커밋 `633057ad` |
+| 2026-11-05 | 금융 팁 S2d 확인 2회차 — FR-7 의 순서(원천 `allSettled` → 칸만 고름 · 원천 401 이면 계산 안 부름)를 규칙으로(`bff-architecture.md` §5 한 줄) |

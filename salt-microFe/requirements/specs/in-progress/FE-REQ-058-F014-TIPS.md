@@ -72,3 +72,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | 2026-11-05 | 금융 팁 S2b 확인 2회차 — 결함: 공개 글에서 만료된 세션으로 퀴즈를 풀면 로그인으로 보냈다 → 공개 경로 판정 하나(`isPublicPath`, `/tips` 공개 · `cf93acb1`). 키보드(Tab · Enter · 2px 테두리) · Swagger 경로 8 확인 |
 | 2026-11-05 | 금융 팁 S2b 확인 3회차 — 만료 세션 `/tips/cards` 는 로그아웃 안내("불러오지 못했어요" 아님) · `/tips` 에 "맞힌 카드 모음" 줄(모음으로 가는 길이 퀴즈 결과뿐이었다). `fd88af11` |
 | 2026-11-05 | 금융 팁 S2d — FR-3 done: `features/read-my-numbers`(지연 로딩 잎 — 글 첫 로드 115 → 121 → 117 kB) · 로그아웃 · 만료 세션 안내 한 줄 · 실패 = 글의 예시 그대로 · 서버 HTML 개인 숫자 0. 커밋 `c7508e54` · 레지스트리 features `read-my-numbers` |
+| 2026-11-05 | 금융 팁 S2d 확인 2회차 — 빈 사용자 머리 문구 결함 고침(숫자가 있을 때만) · `test:layer-check` · zone 5 빌드 |

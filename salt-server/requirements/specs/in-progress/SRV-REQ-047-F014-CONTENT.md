@@ -81,3 +81,4 @@ Kotlin `services/content`(네 층) · 조립 `app/.../content/ContentComposition
 | 2026-11-05 | 금융 팁 S2a — to-do → in-progress. FR-1 · 2 · 3 · 5 done, FR-4 부분(저축 두 이벤트 + 달 셋), FR-7 첫 판(이력), FR-6 · 8 · 9 S2b. 커밋 `38e2d16d` · `dd7f536a`(회사 이름 목록 → 업권 꼬리) |
 | 2026-11-05 | 금융 팁 S2b — FR-7 줄 diff done · FR-8 퀴즈 done · 첫 판 이력 정정 · 예약 slug. FR-6 · 4 나머지는 S2d 로, FR-9 는 S3. 커밋 `d2d662d4` |
 | 2026-11-05 | 금융 팁 S2d — FR-6 내 숫자 done(BFF 가 사실을 넘기고 content 가 계산) · FR-4 고정비 증가 구독(주거) + 월세 세액공제 글 · 파라미터 다섯 줄. 나머지 트리거는 원천 · 글이 생길 때, FR-9 S3. 커밋 `1a85dd2b` |
+| 2026-11-05 | 금융 팁 S2d 확인 2회차 — 내 숫자 경로의 없는 날짜 500 → 400 `INVALID_GOAL_FACT`(종단 테스트) |
