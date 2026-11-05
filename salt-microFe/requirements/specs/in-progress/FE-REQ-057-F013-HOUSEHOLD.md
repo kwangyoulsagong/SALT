@@ -116,6 +116,16 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | FR-9 이야기 카드 | **done** — `/household/story/[period]`(달 · 해 — 형식 · 미래면 404) · 첫 카드는 서버가 쿠키로(내 분류 이름은 받은 표로) · 문장은 `storyText` 한 곳(화면 카드 = 공유 이미지) · "금액 보이기" 꺼진 채 시작 · 가린 금액은 "가린 금액"으로 읽힘 · 이미지로 공유(파일 공유가 되면 공유 시트, 아니면 저장 · 시트를 못 열어도 저장 `eb9dc877` · 시트를 닫으면 문구 0) · 빈 기간은 카드만 · 볼 수 있는 날은 서버 `readyOn` · 가계부 머리 "이야기 카드" 링크 · 카드 아래 "이 달 가계부" · "올해 이야기 보기" | entities `StoryCard` · `storyText` · `useHouseholdStory` · features `share-story` · pages `story` |
 | FR-8 사람 장부 · FR-7 공제 | S1h · S2 content 뒤 | 슬라이스 범위 밖 |
 
+## 구현 현황 — F4h (2026-11-05, `requirements/specs/done/MONEY-S1h-household-revolving-people-slice.md`)
+
+| FR | 상태 | 어디 |
+|---|---|---|
+| FR-7 리볼빙 띠 | **done** — 월 화면 할부 띠 아래 리볼빙 띠(이 달 추정 청구 · 원금 몫 · 수수료 · 그 뒤 잔액 · 6개월 · 지난 명세서 한 줄 · 가정 문장 늘) · 명세서가 없으면 "리볼빙 명세서 적기" 한 줄(셰브론) · `/household/revolving` 적기(칸 범위 · 안내는 서버 값 · 거절 코드를 한 줄로 · 입력 남음) · 명세서 카드(6개월 표 · 수수료 합 · 남는 잔액 · 새 명세서 · 다 갚았어요 · 해지했어요) · 끝낸 묶음. 이름 없는 명세서 = "리볼빙 · {달} 명세서 {잔액}"(화면마다 같은 이름) | entities `RevolvingBand` · `ledger.ts` · features `manage-revolving` · pages `revolving` |
+| FR-8 사람 장부 | **done** — `/household/people` 적기(준 돈 · 받은 돈 · 이름 · 금액 · 어떤 일 칩 · 날 · 메모 · 이름은 장부에만 남는다는 한 줄) · 해(`?year=` · 이전 · 다음 해 범위는 서버) · 한 사람(`?person=` · 모든 해) · 줄 고치기 · 지우기(버튼 이름에 대상 — `57121a0c`) · 해 경조사 봉투(준 돈 / 봉투 · 남은 금액 — 넘어도 같은 색) · 사람별 합(셰브론 링크). 차액 · "갚을 돈" 0 · 이름 뒤 조사 0 | features `record-gift` · `set-occasion-envelope` · pages `people` |
+| FR-7 공제 | S2 content 뒤 | 슬라이스 범위 밖 |
+
+번들(Next 표, First Load JS): `/household` 164 → 165 kB · `/household/revolving` 154 kB · `/household/people` 156 kB · 공용 103 kB.
+
 ## Changelog
 
 | 날짜 | 변경 |
@@ -137,3 +147,5 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-11-05 | `65cc66ad` — 지운 분류 봉투 칸 "(지운 분류)" 유지(비우면 빠짐) · 지운 분류 고정비 후보는 그 줄에서 분류를 골라 매달 적기로(고르기 전 버튼 꺼짐). 사용자 "베스트케이스로" — 실화면 확인 |
 | 2026-11-05 | F4g — FR-9 이야기 카드 done(`1c46db88`). 실화면(임시 사용자) 서버 HTML 카드 · 가림 기본 · 켜면 금액 · 이미지 저장 둘 · 공유 시트 셋(흉내) · 4폭 × 4화면 넘침 0 · 웹뷰 390 · route 로딩 · 500 · 빈 기간. 확인 중 결함 4 고침(같은 이름 영역 · 이번 달 링크 · 빈 기간 버튼 · 공유 실패 문장) |
 | 2026-11-05 | `eb9dc877` — F4g 확인 단계: 공유 시트 거절(`NotAllowedError`) · 실패면 저장으로 넘어간다("공유하지 못했어요" 문장 지움) · 저장 주소는 다음 틱에 푼다. 실화면 공유 넷 다시 |
+| 2026-11-05 | F4h — FR-7 리볼빙 띠 · FR-8 사람 장부 done(`38ed6518`). 실화면(임시 사용자) 4폭 × 4화면 넘침 0 · 웹뷰 390 · 페이지 오류 0 · 폼으로 적기 · 끝내기 · 거절 문장 · route 로 느림 · 500 · 저장 실패 입력 남음. 확인 중 결함 2 고침(이름 없는 명세서 순번 이름이 화면마다 갈림 · 이름 뒤 조사) — 남은 FR-7 공제(S2) |
+| 2026-11-05 | `57121a0c` — F4h 확인 단계: 사람 장부 줄 버튼 이름에 대상(접근성 트리로 발견). UI 고치기 · 지우기 · 봉투 지우기 · 새 명세서 · 서버 HTML 띠 · 접근성 트리 실화면 |

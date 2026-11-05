@@ -360,6 +360,8 @@ data class MonthView(
     val close: MonthClose?,
     val closable: Boolean,
     val installments: InstallmentBand,
+    /** 리볼빙 띠(가계부 S1h) — 사용자가 적은 명세서로 추정. 계산만(지출 합에 더하지 않는다) */
+    val revolving: com.salt.household.domain.RevolvingBand,
     /** 그 달 지출의 감정 태그(지출 id → 태그) — 목록 표시(S1c FR-13) */
     val feelings: Map<ExpenseId, ExpenseFeeling>,
     /** 그 달 태그별 분포 — 건수만, 평가 0 */
@@ -379,7 +381,7 @@ data class MonthView(
 /**
  * 쿼리: 지출 목록 · 월 합 · 마감(2 — 닫은 달이면 예산 대신 사본) · 예산(2, 안 닫은 달) · 예정 행 · 할부 + 이번 달이면 착지 2 · 적중 2
  * + S1c: 태그(목록 · 거울 한 문장) · 날별 합(달력) · 스티커 · 설정 + 이번 달이면 다음 날 묻기 1
- * + S1d: 챌린지 한 날 1 + S1e: 고정비 표본 · 숨긴 키 · 템플릿 이름 · 분류 기준 4 + S1f: 분류 표 1.
+ * + S1d: 챌린지 한 날 1 + S1e: 고정비 표본 · 숨긴 키 · 템플릿 이름 · 분류 기준 4 + S1f: 분류 표 1 + S1h: 리볼빙 명세서 1.
  * 닫은 달은 그때 붙잡은 예산으로 본다(S1b 판단 6).
  */
 open class GetMonth(
@@ -395,6 +397,7 @@ open class GetMonth(
     private val fixedCostReader: FixedCostReader,
     private val patterns: SpendingPatterns,
     private val categories: CustomCategories,
+    private val revolvingPlans: com.salt.household.domain.RevolvingPlans,
     private val clock: Clock,
 ) {
     @Transactional(transactionManager = HOUSEHOLD_TX, readOnly = true)
@@ -441,6 +444,7 @@ open class GetMonth(
             close = close,
             closable = MonthCloseRules.closable(month, today),
             installments = InstallmentMath.band(month, plans),
+            revolving = com.salt.household.domain.RevolvingMath.band(month, revolvingPlans.forMonth(userId, month)),
             feelings = monthFeelings.associateBy { it.expenseId },
             mirror = FeelingMirror.of(monthFeelings),
             feelingAsks = asks,

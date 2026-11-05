@@ -75,3 +75,14 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | FR-5 리볼빙 · FR-9 사람 장부 | 슬라이스 범위 밖 | 가계부 S1h |
+
+## 2026-11-05 — 가계부 S1h(`MONEY-S1h-household-revolving-people`)
+
+- [x] V8 — `revolving_plan` · `person_entry` · `occasion_envelope` · 인덱스 셋 · CHECK(결제비율 · 수수료율 · 달 첫날 · 방향 · 어떤 일 · 해) · 표 주석(`sensitive` · `financial`) — 생성기가 못 읽는 키 · 표현식 CHECK · 주석은 `jooq ignore` 안
+- [x] 로컬 운영 DB 적용(household 7 → 8, 한 번에 — 주석의 루트 슬라이스 경로를 문서 이름과 맞춰 둠)
+- [x] EXPLAIN(2만 · 2천 행 넣고 롤백) — 넷 모두 인덱스 · 0.1ms 아래
+
+### 미검증 · 범위 밖
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 공제 표 | content 파라미터 | S2 content 뒤 |

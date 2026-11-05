@@ -197,3 +197,4 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 | 2026-11-04 | 가계부 S1e(`MONEY-S1e-household-fixed-cost`, `b1d14ed6`) — 번들(Next 표 First Load JS): `/household` 161 → 162 kB · 공용 103 kB. 새 조회 0(고정비 후보 · 보통 금액은 월 화면 응답 안 — 요청 수 그대로 하나) |
 | 2026-11-05 | 가계부 S1f(`MONEY-S1f-household-categories-accounts`, `3269eef3`) — 번들(Next 표 First Load JS): `/household` 162 → 163 kB · `/household/budget` 134 kB · 공용 103 kB. 월 화면 새 조회 0(분류 표는 월 응답 안), 예산 · 적기 화면은 분류 표 조회 하나(5분 stale) |
 | 2026-11-05 | 가계부 S1g(`MONEY-S1g-household-story`, `1c46db88`) — 번들(Next 표 First Load JS): `/household/story/[period]` 151 kB(새 — 첫 카드는 서버가 쿠키로 받아 HTML 에, 1.5초 넘으면 브라우저 조회) · `/household` 164 kB 그대로 · 공용 103 kB. 공유 이미지는 누를 때만 그린다(상시 캔버스 0) |
+| 2026-11-05 | 가계부 S1h(`MONEY-S1h-household-revolving-people`, `38ed6518`) — 번들(Next 표 First Load JS): `/household` 164 → 165 kB · `/household/revolving` 154 kB · `/household/people` 156 kB(새) · 공용 103 kB |

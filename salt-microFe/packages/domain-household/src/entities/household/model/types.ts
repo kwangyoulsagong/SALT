@@ -1,3 +1,5 @@
+import type { HouseholdRevolvingBand } from "./ledger";
+
 /**
  * 가계부 화면 계약 — BFF `bff/src/services/app-household.service.ts` 와 같은 모양(`BFF-REQ-048`).
  * **숫자는 전부 서버 값**이다(금액 · 봉투 잔액 · 하루 가용 · 착지 구간). 화면은 표시만 — 더하거나 나누지 않는다.
@@ -359,6 +361,8 @@ export interface HouseholdMonth {
   expenses: HouseholdExpense[];
   recurring: { items: HouseholdOccurrence[]; scheduledTotal: number };
   installments: HouseholdInstallments;
+  /** 리볼빙 띠(가계부 S1h) — 사용자가 적은 명세서로 추정 */
+  revolving: HouseholdRevolvingBand;
   /** 닫았으면 그 기록 — 이 달 예산 칸은 닫을 때 붙잡은 값 */
   close: MonthClose | null;
   /** 지금 닫을 수 있나 — 서버가 정한다 */

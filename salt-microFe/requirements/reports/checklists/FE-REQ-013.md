@@ -116,3 +116,7 @@
 ## 2026-11-05 — 가계부 S1g(`MONEY-S1g-household-story`)
 
 - [x] 번들 `/household/story/[period]` 151 kB(새) · `/household` 164 kB 그대로 · 서버 HTML 에 카드(쿠키 조회 1.5초 상한)
+
+## 2026-11-05 — 가계부 S1h(`MONEY-S1h-household-revolving-people`)
+
+- [x] 번들(Next 표 First Load JS) — `/household` 164 → 165 kB(리볼빙 띠) · `/household/revolving` 154 kB · `/household/people` 156 kB(새) · 공용 103 kB 그대로. 새 라이브러리 0

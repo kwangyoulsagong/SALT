@@ -14,6 +14,7 @@ import {
   InstallmentBand,
   LandingBox,
   MonthTotals,
+  RevolvingBand,
   useHouseholdMonth,
   type HouseholdMonth,
 } from "@/entities/household";
@@ -28,7 +29,7 @@ import { HOUSEHOLD_PAGE as M } from "../model";
 import * as s from "./household.css";
 
 /**
- * 한 달 화면 잎(`FE-REQ-057` FR-1 · FR-4 · FR-6 · FR-7 · FR-8 · FR-9 · FR-11) — 쓴 돈 · 반복 확인 · 다음 날 기분 · 착지 구간 · 매달 나가는 돈(S1e) · 봉투 · 할부 · 돌아보기 ·
+ * 한 달 화면 잎(`FE-REQ-057` FR-1 · FR-4 · FR-6 · FR-7 · FR-8 · FR-9 · FR-11) — 쓴 돈 · 반복 확인 · 다음 날 기분 · 착지 구간 · 매달 나가는 돈(S1e) · 봉투 · 할부 · 리볼빙(S1h) · 돌아보기 ·
  * 안 쓴 날 달력 · 기분별 만족 · 쓴 내역.
  * 숫자 · 보여 줄 단계(반복 `stage` · 닫을 수 있나 `closable`)는 전부 서버 값. 첫 숫자는 서버가 쿠키로 받아 넘긴다.
  */
@@ -53,6 +54,7 @@ export const HouseholdBoard = ({ ym, initial }: { ym: string; initial: Household
             {m.budget ? <EnvelopeList envelopes={m.envelopes} unbudgeted={m.unbudgeted} /> : <p className={panelDescription}>{E.noBudget}</p>}
           </section>
           <InstallmentBand installments={m.installments} />
+          <RevolvingBand revolving={m.revolving} />
           <MonthReview key={`${m.month}-${m.close?.closedAt ?? "open"}`} month={m} />
           <MarkableCalendar month={m} />
           <FeelingMirror mirror={m.feelings.mirror} />

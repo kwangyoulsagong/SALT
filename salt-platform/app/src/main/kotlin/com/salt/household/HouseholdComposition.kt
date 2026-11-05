@@ -46,6 +46,18 @@ import com.salt.household.application.FixedCostWatcher
 import com.salt.household.application.HideFixedCost
 import com.salt.household.application.ShowFixedCost
 import com.salt.household.application.GetStory
+import com.salt.household.application.AddPersonEntry
+import com.salt.household.application.AddRevolving
+import com.salt.household.application.DeletePersonEntry
+import com.salt.household.application.EditPersonEntry
+import com.salt.household.application.EditRevolving
+import com.salt.household.application.EndRevolving
+import com.salt.household.application.GetPeople
+import com.salt.household.application.ListRevolving
+import com.salt.household.application.SetOccasionEnvelope
+import com.salt.household.infrastructure.JooqOccasionEnvelopes
+import com.salt.household.infrastructure.JooqPersonEntries
+import com.salt.household.infrastructure.JooqRevolvingPlans
 import com.salt.household.infrastructure.JooqStories
 import com.salt.household.infrastructure.JooqSpendingPatterns
 import com.salt.household.infrastructure.JooqBudgets
@@ -143,7 +155,7 @@ class HouseholdComposition {
         GetMonth(
             JooqExpenses(database.dsl), JooqBudgets(database.dsl), JooqRecurringOccurrences(database.dsl), JooqMonthCloses(database.dsl), landingReader,
             JooqFeelings(database.dsl), JooqStickers(database.dsl), JooqSettings(database.dsl), JooqChallenges(database.dsl),
-            fixedCostReader(database), JooqSpendingPatterns(database.dsl), JooqCustomCategories(database.dsl), clock,
+            fixedCostReader(database), JooqSpendingPatterns(database.dsl), JooqCustomCategories(database.dsl), JooqRevolvingPlans(database.dsl), clock,
         )
 
     // ---------- 반복 · 마감(가계부 S1b) ----------
@@ -284,6 +296,44 @@ class HouseholdComposition {
     @Bean
     fun householdGetStory(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): GetStory =
         GetStory(JooqStories(database.dsl), JooqCustomCategories(database.dsl), clock)
+
+    // ---------- 리볼빙 · 사람 장부(가계부 S1h) ----------
+
+    @Bean
+    fun householdListRevolving(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): ListRevolving =
+        ListRevolving(JooqRevolvingPlans(database.dsl), clock)
+
+    @Bean
+    fun householdAddRevolving(@Qualifier("householdDatabase") database: ServiceDatabase, list: ListRevolving, clock: Clock): AddRevolving =
+        AddRevolving(JooqRevolvingPlans(database.dsl), list, clock)
+
+    @Bean
+    fun householdEditRevolving(@Qualifier("householdDatabase") database: ServiceDatabase, list: ListRevolving, clock: Clock): EditRevolving =
+        EditRevolving(JooqRevolvingPlans(database.dsl), list, clock)
+
+    @Bean
+    fun householdEndRevolving(@Qualifier("householdDatabase") database: ServiceDatabase, list: ListRevolving, clock: Clock): EndRevolving =
+        EndRevolving(JooqRevolvingPlans(database.dsl), list, clock)
+
+    @Bean
+    fun householdGetPeople(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): GetPeople =
+        GetPeople(JooqPersonEntries(database.dsl), JooqOccasionEnvelopes(database.dsl), clock)
+
+    @Bean
+    fun householdAddPersonEntry(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): AddPersonEntry =
+        AddPersonEntry(JooqPersonEntries(database.dsl), clock)
+
+    @Bean
+    fun householdEditPersonEntry(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): EditPersonEntry =
+        EditPersonEntry(JooqPersonEntries(database.dsl), clock)
+
+    @Bean
+    fun householdDeletePersonEntry(@Qualifier("householdDatabase") database: ServiceDatabase): DeletePersonEntry =
+        DeletePersonEntry(JooqPersonEntries(database.dsl))
+
+    @Bean
+    fun householdSetOccasionEnvelope(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): SetOccasionEnvelope =
+        SetOccasionEnvelope(JooqPersonEntries(database.dsl), JooqOccasionEnvelopes(database.dsl), clock)
 
     /** 월 화면과 쓰기가 같은 계산 — 빈이 아니라 조립 함수(상태 없음) */
     private fun fixedCostReader(database: ServiceDatabase) = FixedCostReader(JooqSpendingPatterns(database.dsl), JooqRecurringTemplates(database.dsl))

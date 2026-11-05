@@ -256,6 +256,95 @@ export interface HouseholdInstallmentsVM {
   upcoming: Array<{ month: string; amount: number }>;
 }
 
+/** 리볼빙 명세서(가계부 S1h) — 사용자가 적은 값 그대로. annualRate 는 소수 둘째 자리 문자열("16.50") */
+export interface HouseholdRevolvingPlanVM {
+  id: string;
+  label: string | null;
+  balance: number;
+  payRatio: number;
+  annualRate: string;
+  statementMonth: string;
+  endedOn: string | null;
+}
+
+/** 한 달 추정 청구 — total = principal + fee(서버 계산) · balanceAfter = 다음 달로 넘어가는 잔액 */
+export interface HouseholdRevolvingChargeVM {
+  month: string;
+  principal: number;
+  fee: number;
+  total: number;
+  balanceAfter: number;
+}
+
+export interface HouseholdRevolvingProjectionVM {
+  plan: HouseholdRevolvingPlanVM;
+  /** 명세서 다음 달부터 최대 6개월 */
+  charges: HouseholdRevolvingChargeVM[];
+  feeTotal: number;
+  balanceAtEnd: number;
+  horizonEnd: string;
+}
+
+export interface HouseholdRevolvingListVM {
+  open: HouseholdRevolvingProjectionVM[];
+  ended: HouseholdRevolvingPlanVM[];
+  limit: number;
+  canAdd: boolean;
+  ratioMin: number;
+  ratioMax: number;
+  rateMax: string;
+  monthMin: string;
+  monthMax: string;
+  horizonMonths: number;
+  /** 추정 가정 키(no_new_use) — 문장은 프론트 */
+  assumption: string;
+}
+
+/** 월 화면 리볼빙 띠 — 지출 합에 더하지 않는다. stale = 추정 기간이 지난 명세서 */
+export interface HouseholdRevolvingBandVM {
+  lines: Array<{ plan: HouseholdRevolvingPlanVM; charge: HouseholdRevolvingChargeVM }>;
+  monthCharge: number;
+  upcoming: Array<{ month: string; amount: number }>;
+  stale: HouseholdRevolvingPlanVM[];
+  assumption: string;
+}
+
+/** 사람 장부 한 줄(가계부 S1h) — 상대 이름은 민감 정보(로그 0) */
+export interface HouseholdPersonEntryVM {
+  id: string;
+  person: string;
+  /** gave · received */
+  direction: string;
+  amount: number;
+  occasion: string;
+  happenedOn: string;
+  memo: string | null;
+}
+
+/** 해 경조사 봉투 — remaining 은 음수 가능(막지 않음) */
+export interface HouseholdOccasionEnvelopeVM {
+  year: number;
+  amount: number;
+  gave: number;
+  remaining: number;
+}
+
+export interface HouseholdPeopleVM {
+  year: number;
+  /** 한 사람만 볼 때 그 이름 */
+  person: string | null;
+  /** 사람별 합(모든 해) — 차액 칸 없음 */
+  people: Array<{ person: string; gave: number; received: number; count: number; lastOn: string }>;
+  entries: HouseholdPersonEntryVM[];
+  envelope: HouseholdOccasionEnvelopeVM | null;
+  gave: number;
+  received: number;
+  occasions: string[];
+  today: string;
+  yearMin: number;
+  yearMax: number;
+}
+
 export interface HouseholdCloseVM {
   month: string;
   closedAt: string;
@@ -381,6 +470,8 @@ export interface HouseholdMonthVM {
   expenses: HouseholdExpenseVM[];
   recurring: { items: HouseholdOccurrenceVM[]; scheduledTotal: number };
   installments: HouseholdInstallmentsVM;
+  /** 리볼빙 띠(가계부 S1h) */
+  revolving: HouseholdRevolvingBandVM;
   close: HouseholdCloseVM | null;
   /** 지금 닫을 수 있나 — 서버가 정한다 */
   closable: boolean;
@@ -559,6 +650,54 @@ class AppHouseholdService {
   /** 기간 형식 · 미래 거절은 서버(400) — 경로 조각으로 인코딩만 */
   async story(token: string, period: string): Promise<HouseholdStoryVM> {
     return data(await backendApi.proxyAuthRequest("GET", `/household/story/${encodeURIComponent(period)}`, token, undefined, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  // ---------- 리볼빙 · 사람 장부(가계부 S1h) — 중계만 ----------
+
+  /** 추정 · 경계 검사는 서버(400 · 409) */
+  async revolving(token: string): Promise<HouseholdRevolvingListVM> {
+    return data(await backendApi.proxyAuthRequest("GET", "/household/revolving", token, undefined, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  async addRevolving(token: string, body: unknown): Promise<HouseholdRevolvingListVM> {
+    return data(await backendApi.proxyAuthRequest("POST", "/household/revolving", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async editRevolving(token: string, id: string, body: unknown): Promise<HouseholdRevolvingListVM> {
+    return data(await backendApi.proxyAuthRequest("PUT", `/household/revolving/${encodeURIComponent(id)}`, token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async endRevolving(token: string, id: string): Promise<HouseholdRevolvingListVM> {
+    return data(await backendApi.proxyAuthRequest("POST", `/household/revolving/${encodeURIComponent(id)}/end`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  /** year · person 은 문자열 그대로 질의에 싣는다 — 범위 · 이름 정리는 서버 */
+  async people(token: string, query: { year?: unknown; person?: unknown }): Promise<HouseholdPeopleVM> {
+    const params = new URLSearchParams();
+    if (typeof query.year === "string" && query.year !== "") params.set("year", query.year);
+    if (typeof query.person === "string" && query.person !== "") params.set("person", query.person);
+    const qs = params.toString();
+    return data(await backendApi.proxyAuthRequest("GET", `/household/people${qs ? `?${qs}` : ""}`, token, undefined, { timeout: READ_TIMEOUT_MS }));
+  }
+
+  async addPersonEntry(token: string, body: unknown): Promise<HouseholdPersonEntryVM> {
+    return data(await backendApi.proxyAuthRequest("POST", "/household/people/entries", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async editPersonEntry(token: string, id: string, body: unknown): Promise<HouseholdPersonEntryVM> {
+    return data(await backendApi.proxyAuthRequest("PUT", `/household/people/entries/${encodeURIComponent(id)}`, token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async deletePersonEntry(token: string, id: string): Promise<{ deleted: boolean }> {
+    return data(await backendApi.proxyAuthRequest("DELETE", `/household/people/entries/${encodeURIComponent(id)}`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async putOccasionEnvelope(token: string, year: string, body: unknown): Promise<HouseholdOccasionEnvelopeVM> {
+    return data(await backendApi.proxyAuthRequest("PUT", `/household/people/envelope/${encodeURIComponent(year)}`, token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  async deleteOccasionEnvelope(token: string, year: string): Promise<{ deleted: boolean }> {
+    return data(await backendApi.proxyAuthRequest("DELETE", `/household/people/envelope/${encodeURIComponent(year)}`, token, undefined, { timeout: WRITE_TIMEOUT_MS }));
   }
 
   // ---------- 내 분류(가계부 S1f) ----------

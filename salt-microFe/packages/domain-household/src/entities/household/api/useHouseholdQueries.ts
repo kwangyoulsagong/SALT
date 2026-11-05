@@ -112,3 +112,28 @@ export const useHouseholdStory = (period: string, initial?: HouseholdStory | nul
   });
   return { ...query, isSignedOut: signedIn === false && !initial };
 };
+
+/** 리볼빙 명세서(가계부 S1h) — 추정은 서버 */
+export const useRevolving = () => {
+  const signedIn = useHasAccessToken();
+  const query = useQuery({
+    queryKey: householdQueryKeys.revolving(),
+    queryFn: ({ signal }) => householdApi.revolving(signal),
+    enabled: signedIn === true,
+    staleTime: MONTH_STALE_MS,
+  });
+  return { ...query, isSignedOut: signedIn === false };
+};
+
+/** 사람 장부(가계부 S1h) — 해를 바꾸는 동안 앞 화면을 둔다(빈 칸 깜빡임 0) */
+export const usePeople = (year: number | null, person: string | null) => {
+  const signedIn = useHasAccessToken();
+  const query = useQuery({
+    queryKey: householdQueryKeys.people(year, person),
+    queryFn: ({ signal }) => householdApi.people(year, person, signal),
+    enabled: signedIn === true,
+    staleTime: MONTH_STALE_MS,
+    placeholderData: (previous) => previous,
+  });
+  return { ...query, isSignedOut: signedIn === false };
+};

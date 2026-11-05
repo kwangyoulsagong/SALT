@@ -184,6 +184,29 @@ describe("AppHouseholdService", () => {
       ["DELETE", "/household/categories/..%2Fx", undefined],
     ]);
   });
+  it("리볼빙 · 사람 장부(S1h) — id · 해는 경로 조각 인코딩 · year · person 은 질의로(문자열만) · 응답 그대로", async () => {
+    const seen: Array<[string, string]> = [];
+    mock.method(backendApi, "proxyAuthRequest", async (m: string, url: string) => {
+      seen.push([m, url]);
+      return { data: { data: { ok: url } } } as never;
+    });
+    assert.deepEqual(await appHouseholdService.revolving("t"), { ok: "/household/revolving" });
+    await appHouseholdService.editRevolving("t", "../x", {});
+    await appHouseholdService.endRevolving("t", "a b");
+    await appHouseholdService.people("t", { year: "2026", person: "김 민수" });
+    await appHouseholdService.people("t", { year: ["2026"], person: "" });
+    await appHouseholdService.deletePersonEntry("t", "../e");
+    await appHouseholdService.putOccasionEnvelope("t", "2026", { amount: 1 });
+    assert.deepEqual(seen, [
+      ["GET", "/household/revolving"],
+      ["PUT", "/household/revolving/..%2Fx"],
+      ["POST", "/household/revolving/a%20b/end"],
+      ["GET", "/household/people?year=2026&person=%EA%B9%80+%EB%AF%BC%EC%88%98"],
+      ["GET", "/household/people"],
+      ["DELETE", "/household/people/entries/..%2Fe"],
+      ["PUT", "/household/people/envelope/2026"],
+    ]);
+  });
   it("이야기 카드(S1g) — 기간을 경로 조각으로 인코딩해 그대로 중계(줄 · 금액은 서버)", async () => {
     const seen: string[] = [];
     const story = { period: "2026-10", scope: "month", ready: true, readyOn: null, lines: [{ kind: "spent", amount: 100000 }], categories: [] };

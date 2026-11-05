@@ -279,3 +279,4 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-11-04 | 가계부 S1b — `ROUTES.householdRecurring`(`/household/templates`)(`d31bff89`) |
 | 2026-11-04 | 가계부 S1d — `ROUTES.householdChallenges`(`/household/challenges`)(`23d44bb6`) |
 | 2026-11-05 | 가계부 S1g — `ROUTES.householdStory(period)`(`/household/story/…`)(`1c46db88`) |
+| 2026-11-05 | 가계부 S1h — `ROUTES.householdRevolving` · `ROUTES.householdPeople`(`38ed6518`) |

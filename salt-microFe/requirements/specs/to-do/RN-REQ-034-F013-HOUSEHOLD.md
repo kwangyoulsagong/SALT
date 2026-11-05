@@ -42,3 +42,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-11-04 | 가계부 S1e(`MONEY-S1e-household-fixed-cost`) — 변경 없음 기록. 웹 계약(월 화면 `fixedCosts` · `typicalAmount` · 숨기기 · 되돌리기 — `BFF-REQ-048`)이 먼저 섰다. RN 고정비 카드는 이 계약을 쓴다 |
 | 2026-11-05 | 가계부 S1f(`MONEY-S1f-household-categories-accounts`) — 변경 없음 기록. 웹 계약(분류 표 · 내 분류 경로 4 · `account_split` · `salaryShare` — `BFF-REQ-048`)이 먼저 섰다. RN 칩 · 예산 화면은 이 계약을 쓴다 |
 | 2026-11-05 | 가계부 S1g(`MONEY-S1g-household-story`) — 변경 없음 기록. 웹 계약(`GET /story/:period` · `HouseholdStoryVM` — `BFF-REQ-048`)이 먼저 섰다. RN 이야기 카드는 이 계약 + 네이티브 공유 시트를 쓴다 |
+| 2026-11-05 | 가계부 S1h(`MONEY-S1h-household-revolving-people`) — 변경 없음 기록. 웹 계약(`GET /revolving` · 월 `revolving` · `GET /people` — `BFF-REQ-048`)이 먼저 섰다 |

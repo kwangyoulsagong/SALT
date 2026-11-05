@@ -13,6 +13,7 @@ import type {
   RecurringTemplateList,
   WorkHoursSetting,
 } from "../model/types";
+import type { HouseholdPeople, RevolvingList } from "../model/ledger";
 
 /**
  * 가계부 조회 — BFF `/api/app/household/*`(`BFF-REQ-048`). 조회만(`fsd-entities.md`). 쓰기는 `features/record-expense` · `edit-budget`.
@@ -62,6 +63,18 @@ export const householdApi = {
   /** 이야기 카드(가계부 S1g) — period = YYYY-MM | YYYY. 줄 · 금액 · 몫은 서버 */
   story: async (period: string, signal?: AbortSignal): Promise<HouseholdStory> =>
     read(await apiFetch(`${HOUSEHOLD_API}/story/${encodeURIComponent(period)}`, { headers: authHeader(), signal }), "household-story"),
+  /** 리볼빙 명세서 + 6개월 추정(가계부 S1h) */
+  revolving: async (signal?: AbortSignal): Promise<RevolvingList> =>
+    read(await apiFetch(`${HOUSEHOLD_API}/revolving`, { headers: authHeader(), signal }), "household-revolving"),
+
+  /** 사람 장부(가계부 S1h) — year 없으면 올해 · person 이 있으면 그 사람의 모든 해 */
+  people: async (year: number | null, person: string | null, signal?: AbortSignal): Promise<HouseholdPeople> => {
+    const params = new URLSearchParams();
+    if (year !== null) params.set("year", String(year));
+    if (person) params.set("person", person);
+    const qs = params.toString();
+    return read(await apiFetch(`${HOUSEHOLD_API}/people${qs ? `?${qs}` : ""}`, { headers: authHeader(), signal }), "household-people");
+  },
   budget: async (signal?: AbortSignal): Promise<HouseholdBudget | null> =>
     read(await apiFetch(`${HOUSEHOLD_API}/budget`, { headers: authHeader(), signal }), "household-budget"),
 

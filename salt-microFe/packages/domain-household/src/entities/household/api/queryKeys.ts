@@ -8,5 +8,7 @@ export const householdQueryKeys = {
   workHours: () => [...householdQueryKeys.all, "work-hours"] as const,
   story: (period: string) => [...householdQueryKeys.all, "story", period] as const,
   challenges: () => [...householdQueryKeys.all, "challenges"] as const,
+  revolving: () => [...householdQueryKeys.all, "revolving"] as const,
+  people: (year: number | null, person: string | null) => [...householdQueryKeys.all, "people", year ?? "now", person ?? ""] as const,
   goalClock: (amount: number) => [...householdQueryKeys.all, "goal-clock", amount] as const,
 } as const;

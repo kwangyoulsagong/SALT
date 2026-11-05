@@ -163,7 +163,8 @@ class HouseholdEndToEndTest {
         // 저장 0 · 로그 0
         householdDatabase.dsl.fetchCount(householdDatabase.dsl.selectFrom("expense").where("user_id = ?", user)) shouldBe 0
         output.all shouldNotContain marker
-        output.all shouldNotContain "9876"
+        // 카드 번호는 괄호까지 — 숫자 넷만 보면 로그 시각(…59876Z) · 추적 id 에 우연히 걸린다(2026-11-05 S1h 확인 중 한 번 실패)
+        output.all shouldNotContain "(9876)"
     }
 
     @Test
@@ -264,7 +265,7 @@ class HouseholdEndToEndTest {
     }
 
     @Test
-    fun `쿼리 수 — 월 화면 22 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
+    fun `쿼리 수 — 월 화면 23 · 저장 한 건(그날 첫 지출) 정해진 수 · 홈 카드 6`() {
         val user = "q-${UUID.randomUUID()}"
         call("PUT", "/api/household/budget", user, """{"method":"envelope","envelopes":{"food":300000}}""").statusCode() shouldBe 200
         var before = statements()
@@ -286,7 +287,8 @@ class HouseholdEndToEndTest {
         // + S1d: 챌린지 한 날(달력) = 17
         // + S1e: 고정비 표본 · 숨긴 키 · 템플릿 이름 · 분류 기준(이상치) = 21
         // + S1f: 분류 표(내 분류 이름 · 묶음) = 22
-        month shouldBe 22L
+        // + S1h: 리볼빙 명세서 = 23
+        month shouldBe 23L
         // 저장: 행 · 아웃박스 · 월 합 · 착지 2 · 발행 · 아웃박스(그날 처음) · 예산 2 = 9. 두 번째는 발행이 ON CONFLICT 로 빈 문장이 되고 그 아웃박스가 빠져 8
         // (그날 이미 냈어도 착지를 다시 계산하는 3문장은 리뷰가 짚은 낭비 — 쓰기 응답 몫이라 남김, 루트 체크리스트 §4)
         // + S1b: 착지 예정 행 1 · + S1c: 설정(노동시간) 1 — 감정 태그를 달면 태그 1 더
@@ -1052,6 +1054,140 @@ class HouseholdEndToEndTest {
         // 평가 · 비교 · 감정 내용 칸 0
         val raw = month.toString()
         listOf("score", "rank", "streak", "previous", "change", "emotion", "reward", "felt").forEach { raw shouldNotContain it }
+    }
+
+    @Test
+    fun `리볼빙 — 적기 · 월 띠 · 6개월 추정 · 상한 5 · 고치기 · 끝내기 · 남의 것 404 · 거절 표 · 지시 칸 0 · 이벤트 0`() {
+        val user = "rev-${UUID.randomUUID()}"
+        val other = "rev-other-${UUID.randomUUID()}"
+        val stmt = YearMonth.from(today).minusMonths(1)
+        val body = """{"label":" 생활비 카드 ","balance":1000000,"payRatio":10,"annualRate":18,"statementMonth":"$stmt"}"""
+        val created = call("POST", "/api/household/revolving", user, body)
+        created.statusCode() shouldBe 201
+        val list = data(created)
+        list.path("open").size() shouldBe 1
+        val first = list.path("open").get(0)
+        first.path("plan").path("label").asString() shouldBe "생활비 카드"
+        first.path("plan").path("annualRate").asString() shouldBe "18.00"
+        first.path("charges").size() shouldBe 6
+        first.path("charges").get(0).path("month").asString() shouldBe YearMonth.from(today).toString()
+        first.path("charges").get(0).path("principal").asLong() shouldBe 100_000
+        list.path("assumption").asString() shouldBe "no_new_use"
+        list.path("ratioMin").asInt() shouldBe 10
+        list.path("rateMax").asString() shouldBe "20.00"
+        val id = first.path("plan").path("id").asString()
+
+        // 월 화면 띠 — 이번 달 청구 줄 하나 · 지출 합에 안 더한다
+        val month = data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null))
+        month.path("revolving").path("lines").size() shouldBe 1
+        month.path("revolving").path("monthCharge").asLong() shouldBe first.path("charges").get(0).path("total").asLong()
+        month.path("revolving").path("upcoming").size() shouldBe 6
+        month.path("totals").path("total").asLong() shouldBe 0
+        // 명세서 달 화면에는 청구 줄이 없다
+        data(call("GET", "/api/household/month/$stmt", user, null)).path("revolving").path("lines").size() shouldBe 0
+
+        // 남의 것
+        data(call("GET", "/api/household/revolving", other, null)).path("open").size() shouldBe 0
+        call("PUT", "/api/household/revolving/$id", other, body).statusCode() shouldBe 404
+        call("POST", "/api/household/revolving/$id/end", other, null).statusCode() shouldBe 404
+
+        // 고치기 — 새 명세서
+        val edited = data(call("PUT", "/api/household/revolving/$id", user, """{"balance":500000,"payRatio":100,"annualRate":"16.5","statementMonth":"${YearMonth.from(today)}"}"""))
+        edited.path("open").get(0).path("charges").size() shouldBe 1
+        edited.path("open").get(0).path("plan").path("label").isNull shouldBe true
+
+        // 상한 5(끝내지 않은 것)
+        repeat(4) { call("POST", "/api/household/revolving", user, body).statusCode() shouldBe 201 }
+        call("POST", "/api/household/revolving", user, body).body() shouldContain "REVOLVING_LIMIT_REACHED"
+
+        // 끝내기 — 다시 눌러도 같다 · 끝낸 것은 고치지 못한다 · 이번 달 띠에서 빠진다
+        call("POST", "/api/household/revolving/$id/end", user, null).statusCode() shouldBe 200
+        val ended = data(call("POST", "/api/household/revolving/$id/end", user, null))
+        ended.path("ended").get(0).path("endedOn").asString() shouldBe today.toString()
+        call("PUT", "/api/household/revolving/$id", user, body).body() shouldContain "REVOLVING_ENDED"
+        data(call("GET", "/api/household/month/${YearMonth.from(today)}", user, null)).path("revolving").path("lines").items { it.path("plan").path("id").asString() }.contains(id) shouldBe false
+
+        // 거절 표
+        listOf(
+            """{"balance":1000,"payRatio":9,"annualRate":10,"statementMonth":"$stmt"}""" to "REVOLVING_RATIO_INVALID",
+            """{"balance":1000,"payRatio":10,"annualRate":20.01,"statementMonth":"$stmt"}""" to "REVOLVING_RATE_INVALID",
+            """{"balance":1000,"payRatio":10,"annualRate":10,"statementMonth":"${YearMonth.from(today).plusMonths(1)}"}""" to "REVOLVING_MONTH_FUTURE",
+            """{"balance":1000,"payRatio":10,"annualRate":10,"statementMonth":"2026-1"}""" to "REVOLVING_MONTH_INVALID",
+        ).forEach { (b, code) -> call("PUT", "/api/household/revolving/${data(call("GET", "/api/household/revolving", user, null)).path("open").get(0).path("plan").path("id").asString()}", user, b).body() shouldContain code }
+
+        // 지시 · 평가 칸 0 · 이벤트 0
+        val raw = data(call("GET", "/api/household/revolving", user, null)).toString()
+        listOf("recommend", "advice", "should", "minimum", "warning").forEach { raw shouldNotContain it }
+        eventTypes(user).size shouldBe 0
+    }
+
+    @Test
+    fun `사람 장부 — 적기 · 사람별 합(모든 해) · 해 목록 · 한 사람 · 해 봉투(음수 가능) · 고치기 · 지우기 · 남의 것 · 거절 표 · 이름이 이벤트 · 로그에 없다`(output: CapturedOutput) {
+        val user = "ppl-${UUID.randomUUID()}"
+        val other = "ppl-other-${UUID.randomUUID()}"
+        val lastYear = today.year - 1
+        fun add(person: String, direction: String, amount: Long, on: LocalDate, occasion: String = "wedding") =
+            call("POST", "/api/household/people/entries", user, """{"person":"$person","direction":"$direction","amount":$amount,"occasion":"$occasion","happenedOn":"$on"}""")
+        add("  김   민수 ", "gave", 100_000, today).statusCode() shouldBe 201
+        add("김 민수", "received", 50_000, LocalDate.of(lastYear, 5, 1), "first_birthday").statusCode() shouldBe 201
+        add("이서연", "gave", 30_000, today, "funeral").statusCode() shouldBe 201
+        // 해 봉투 — 10만 원, 그해 준 합 13만 → 남은 금액 −3만(막지 않음)
+        val env = data(call("PUT", "/api/household/people/envelope/${today.year}", user, """{"amount":100000}"""))
+        env.path("remaining").asLong() shouldBe -30_000
+
+        val before = statements()
+        val view = data(call("GET", "/api/household/people", user, null, countQueries = true))
+        // 사람별 합 · 그해 줄 · 봉투 · 그해 준 합
+        (statements() - before) shouldBe 4L
+        view.path("year").asInt() shouldBe today.year
+        view.path("entries").size() shouldBe 2
+        view.path("gave").asLong() shouldBe 130_000
+        view.path("envelope").path("gave").asLong() shouldBe 130_000
+        val kim = view.path("people").first { it.path("person").asString() == "김 민수" }
+        kim.path("gave").asLong() shouldBe 100_000
+        kim.path("received").asLong() shouldBe 50_000
+        kim.path("count").asInt() shouldBe 2
+
+        // 한 사람 — 모든 해, 봉투 없음
+        val one = data(call("GET", "/api/household/people?person=%EA%B9%80%20%EB%AF%BC%EC%88%98", user, null))
+        one.path("entries").size() shouldBe 2
+        one.path("envelope").isNull shouldBe true
+        one.path("received").asLong() shouldBe 50_000
+        // 지난 해
+        data(call("GET", "/api/household/people?year=$lastYear", user, null)).path("entries").size() shouldBe 1
+
+        // 고치기 · 지우기 · 남의 것
+        val entryId = view.path("entries").first { it.path("person").asString() == "이서연" }.path("id").asString()
+        call("PUT", "/api/household/people/entries/$entryId", other, """{"person":"x","direction":"gave","amount":1,"occasion":"other"}""").statusCode() shouldBe 404
+        data(call("PUT", "/api/household/people/entries/$entryId", user, """{"person":"이서연","direction":"gave","amount":50000,"occasion":"funeral"}""")).path("amount").asLong() shouldBe 50_000
+        data(call("GET", "/api/household/people", user, null)).path("envelope").path("remaining").asLong() shouldBe -50_000
+        call("DELETE", "/api/household/people/entries/$entryId", other, null).statusCode() shouldBe 200
+        data(call("GET", "/api/household/people", user, null)).path("entries").size() shouldBe 2
+        call("DELETE", "/api/household/people/entries/$entryId", user, null).statusCode() shouldBe 200
+        data(call("GET", "/api/household/people", user, null)).path("entries").size() shouldBe 1
+        data(call("GET", "/api/household/people", other, null)).path("people").size() shouldBe 0
+        call("DELETE", "/api/household/people/envelope/${today.year}", user, null).statusCode() shouldBe 200
+        data(call("GET", "/api/household/people", user, null)).path("envelope").isNull shouldBe true
+
+        // 거절 표
+        listOf(
+            """{"person":"","direction":"gave","amount":1,"occasion":"other"}""" to 400,
+            """{"person":"a","direction":"owe","amount":1,"occasion":"other"}""" to "PERSON_DIRECTION_INVALID",
+            """{"person":"a","direction":"gave","amount":1,"occasion":"party"}""" to "PERSON_OCCASION_INVALID",
+            """{"person":"a","direction":"gave","amount":1,"occasion":"other","happenedOn":"${today.plusDays(1)}"}""" to "PERSON_DATE_FUTURE",
+            """{"person":"${"가".repeat(21)}","direction":"gave","amount":1,"occasion":"other"}""" to "PERSON_NAME_TOO_LONG",
+        ).forEach { (b, expected) ->
+            val res = call("POST", "/api/household/people/entries", user, b)
+            if (expected is Int) res.statusCode() shouldBe expected else res.body() shouldContain expected as String
+        }
+        call("GET", "/api/household/people?year=1999", user, null).body() shouldContain "PERSON_YEAR_INVALID"
+
+        // 차액 · 갚을 돈 칸 0 · 이름은 이벤트 · 로그에 없다
+        val raw = view.toString()
+        listOf("balance", "owe", "debt", "net", "difference").forEach { raw shouldNotContain it }
+        eventTypes(user).size shouldBe 0
+        output.out shouldNotContain "민수"
+        output.out shouldNotContain "이서연"
     }
 
     private fun eventTypes(user: String): List<String> =

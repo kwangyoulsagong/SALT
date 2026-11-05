@@ -87,3 +87,7 @@
 ## 2026-11-05 — 가계부 S1g(`MONEY-S1g-household-story`)
 
 - **Action**: 없음.
+
+## 2026-11-05 — 가계부 S1h(`MONEY-S1h-household-revolving-people`)
+
+- **Action**: 없음.
