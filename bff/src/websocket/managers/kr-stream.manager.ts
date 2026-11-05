@@ -50,6 +50,9 @@ const send = (ws: ExtendedWebSocket, message: unknown) => {
   if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(message));
 };
 
+/** 토큰 없음 · 만료(서버 401) — 핸들러의 "토큰 없음"과 같은 코드 */
+const KR_AUTH_REQUIRED = "KR_STOCK_AUTH_REQUIRED";
+
 /** 화면이 받는 오류 — `code` 로 분기한다. 404 = 소유자 아님 · 503 = 꺼짐 · 401 = 토큰 만료(새 토큰으로 다시 구독) */
 const sendError = (ws: ExtendedWebSocket, code: string, message: string) =>
   send(ws, { type: "error", assetType: "kr_stock", code, message });
@@ -195,7 +198,9 @@ export class KrStreamManager {
     const response = (error as { response?: { status?: number; data?: { code?: unknown } } })?.response;
     if (client) {
       logger.warn(`[kr-stream] ${relay.ws.connectionId} 거부 ${client.status} ${client.code ?? ""}`);
-      sendError(relay.ws, client.code ?? `HTTP_${client.status}`, client.message);
+      // 401 은 "유효한 토큰 없음" 한 코드로 — 웹은 이 코드를 보고 세션을 갱신해 다시 연결한다(`BFF-REQ-009` FR-54)
+      const code = client.status === 401 ? KR_AUTH_REQUIRED : (client.code ?? `HTTP_${client.status}`);
+      sendError(relay.ws, code, client.message);
       this.release(relay.ws.connectionId);
       return;
     }

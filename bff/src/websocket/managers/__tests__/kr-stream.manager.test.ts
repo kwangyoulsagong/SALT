@@ -97,10 +97,13 @@ describe("KrStreamManager", () => {
   });
 
   it("404(소유자 아님) · 401 · 503 꺼짐은 다시 열지 않고 화면에 code 로 알린다", async () => {
-    for (const [status, code] of [
-      [404, "KR_STOCK_NOT_AVAILABLE"],
-      [401, undefined],
-      [503, "KR_STOCK_DISABLED"],
+    // 401 은 서버 코드와 무관하게 "토큰 없음" 한 코드 — 웹이 그 코드로 세션을 갱신해 다시 연결한다(`BFF-REQ-009` FR-54)
+    for (const [status, code, expected] of [
+      [404, "KR_STOCK_NOT_AVAILABLE", "KR_STOCK_NOT_AVAILABLE"],
+      [401, undefined, "KR_STOCK_AUTH_REQUIRED"],
+      [401, "AUTH_TOKEN_EXPIRED", "KR_STOCK_AUTH_REQUIRED"],
+      [403, undefined, "HTTP_403"],
+      [503, "KR_STOCK_DISABLED", "KR_STOCK_DISABLED"],
     ] as const) {
       let opened = 0;
       const m = setup(async () => {
@@ -114,7 +117,7 @@ describe("KrStreamManager", () => {
       assert.equal(m.activeCount(), 0);
       assert.deepEqual(
         sent.map((x) => [x.type, x.assetType, x.code]),
-        [["error", "kr_stock", code ?? `HTTP_${status}`]],
+        [["error", "kr_stock", expected]],
       );
     }
   });

@@ -6,6 +6,7 @@ import { DORMANT_PATHS, RETIRED_PATHS, goneMiddleware, retiredMiddleware } from 
 import { logger } from "../config/logger";
 import { loggableUrl } from "../utils/error.util";
 import { runInTrace } from "../services/server-routing/trace";
+import { cookieSessionMiddleware } from "./middleware/cookieSession.middleware";
 
 // Routes
 import healthRoutes from "./routes/health.routes";
@@ -35,6 +36,9 @@ app.use(cors());
 
 // 추적 ID — 요청마다 하나(들어온 traceparent 가 있으면 잇는다). 서버 호출에 그대로 실린다(`BFF-REQ-045` FR-7)
 app.use((req: Request, _res: Response, next: NextFunction) => runInTrace(req.header("traceparent"), next));
+
+// 웹 세션 쿠키 → Authorization — 라우트 전에 한 번(`BFF-REQ-009` FR-54)
+app.use(cookieSessionMiddleware());
 
 // Body parser
 app.use(express.json());
