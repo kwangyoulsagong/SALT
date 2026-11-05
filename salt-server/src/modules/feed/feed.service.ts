@@ -16,24 +16,17 @@ export class InvestmentFeedService {
   async getFeed(userId: string, page = 1, size = 20) {
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    const [insights, notifications] = await Promise.all([
-      prisma.investmentInsight.findMany({
-        where: {
-          AND: [
-            { OR: [{ userId }, { userId: "global" }] },
-            { OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
-          ],
-        },
-        orderBy: { createdAt: "desc" },
-        take: 100,
-      }),
-
-      prisma.investmentNotification.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      }),
-    ]);
+    // 알림은 Kotlin notification 서비스로 옮겼다(SRV-REQ-048, 서버 S2c) — 동면 피드엔 인사이트만 남는다
+    const insights = await prisma.investmentInsight.findMany({
+      where: {
+        AND: [
+          { OR: [{ userId }, { userId: "global" }] },
+          { OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
 
     const feed: FeedItem[] = [];
 
@@ -46,19 +39,6 @@ export class InvestmentFeedService {
         severity: i.severity,
         createdAt: i.createdAt,
         payload: i.payload,
-      });
-    }
-
-    for (const n of notifications) {
-      feed.push({
-        id: n.id,
-        type: "notification",
-        // 동면 경로(410) — 새 알림은 문장이 없다(SRV-REQ-008 FR-25). 되살릴 때 코드로 옮긴다
-        title: n.title ?? n.messageCode ?? "",
-        summary: n.message ?? "",
-        severity: n.severity,
-        createdAt: n.createdAt,
-        payload: n.payload,
       });
     }
 

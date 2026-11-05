@@ -17,7 +17,7 @@ import { MarketSignalAdapter } from "./coach/infrastructure/MarketSignalAdapter"
 import { PrismaCoachGenerationLogStore } from "./coach/infrastructure/PrismaCoachGenerationLogStore";
 import { PrismaLlmUsageStore } from "./coach/infrastructure/PrismaLlmUsageStore";
 import { PrismaCoachInsightStore } from "./coach/infrastructure/PrismaCoachInsightStore";
-import { SignalUpdateNotifier } from "./coach/infrastructure/SignalUpdateNotifier";
+import { OutboxDecisionChangeNotifier } from "./coach/infrastructure/OutboxDecisionChangeNotifier";
 import { PrismaCoachProfileStore } from "./coach/infrastructure/PrismaCoachProfileStore";
 import { PrismaForecastReader } from "./coach/infrastructure/PrismaForecastReader";
 import { PrismaGaugeTrackStore } from "./coach/infrastructure/PrismaGaugeTrackStore";
@@ -67,9 +67,6 @@ import { PrismaArticleRepository } from "./news/infrastructure/PrismaArticleRepo
 import { PrismaBookmarkRepository } from "./news/infrastructure/PrismaBookmarkRepository";
 import { RssNewsFeed } from "./news/infrastructure/RssNewsFeed";
 import { createNewsRouter } from "./news/presentation/news.routes";
-import { createNotificationApplication } from "./notification/application/api";
-import { PrismaNotificationStore } from "./notification/infrastructure/PrismaNotificationStore";
-import { createNotificationRouter } from "./notification/presentation/notification.routes";
 import { createInvestmentRouter } from "./market/presentation/investment.routes";
 import { createMarketIntelligenceRouter } from "./market/presentation/marketIntelligence.routes";
 import { createKrStockRouter } from "./market/presentation/krStock.routes";
@@ -114,14 +111,6 @@ const auth = createAuthApplication({
   tokens: new JwtTokenIssuer(),
   attempts: new PrismaInviteAttemptLog(),
   maxAccounts: env.INVITE_MAX_ACCOUNTS,
-});
-
-/**
- * `notification` 은 아무것도 읽지 않는다 — 다른 컨텍스트가 **만들러 오는** 곳이라 앞에 둔다.
- * 종류 1종 · 코드만 · 금액 없음 관문이 공개 API 하나에 있다(`SRV-REQ-008` FR-20~25).
- */
-const notification = createNotificationApplication({
-  store: new PrismaNotificationStore(),
 });
 
 const news = createNewsApplication({
@@ -251,7 +240,8 @@ const roundTripCosts: RoundTripCosts = {
 const coach = createCoachApplication({
   profiles: new PrismaCoachProfileStore(),
   insights: new PrismaCoachInsightStore(),
-  notifier: new SignalUpdateNotifier(notification.api),
+  // 판단 변화 = 이벤트 `coach.DecisionChanged`(coach.outbox → 플랫폼 릴레이 → notification, `SRV-REQ-048` FR-5)
+  notifier: new OutboxDecisionChangeNotifier(),
   explainer,
   llmUsage,
   // 기본 켜짐(지금 동작). `COACH_EXPLAIN_LLM=off` 면 템플릿만(`SRV-REQ-037` FR-16)
@@ -338,7 +328,6 @@ export const contextUseCases = {
 export const contextRouters = {
   auth: createAuthRouter(auth.useCases),
   onboarding: createOnboardingRouter(onboarding.useCases),
-  notification: createNotificationRouter(notification.useCases),
   news: createNewsRouter(news.useCases),
   investment: createInvestmentRouter(market.useCases),
   marketIntelligence: createMarketIntelligenceRouter(market.useCases),
