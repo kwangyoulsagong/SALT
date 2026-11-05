@@ -50,6 +50,9 @@ export const ROUTES = {
   householdRevolving: "/household/revolving",
   householdPeople: "/household/people",
   householdMonth: (yearMonth: string) => `/household/month/${encodeURIComponent(yearMonth)}`,
+  /** 금융 팁 — 공개 zone(`web-tips`, `FE-REQ-058` 2026-11-05) */
+  tips: "/tips",
+  tip: (slug: string) => `/tips/${encodeURIComponent(slug)}`,
   /** 투자 코치 설정 — 셸 설정(`/settings`)이 여기로 보낸다(`FE-REQ-053`, 2026-11-02 셸 설정에서 분리) */
   coachSettings: "/coach/settings",
 } as const;

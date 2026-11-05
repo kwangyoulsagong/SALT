@@ -83,13 +83,14 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `fx` | 환율 · 김프 (F003 적립) | `fx` | `invest` |
 | `goal` | 목표 저축 (변경 금지 목록) | `goal` | `savings` |
 | `household` | 가계부 지출 · 봉투 · 착지 구간 · 목표 시계 한 줄(`FE-REQ-057`) | `household` | `household` |
+| `tip` | 금융 팁 공개 글 · 메타 다섯 칸 · 확인 필요 · 바뀐 것(`FE-REQ-058`) | `content`(서비스 — 글 하나 = tip) | `tips` |
 | `news` | 뉴스 목록 · 프리뷰 | `news` | `invest` |
 | `notification` | 알림 1종 (지표/추천 갱신) · 읽음 | `notification` | 셸 |
 | `device` | 디바이스 등록 · 푸시 토큰 · 앱 버전 게이트 (모바일만) | `device` | 셸(모바일) |
 
-도메인 패키지 열은 있는 곳이다 — `invest` = `packages/domain-invest`(2026-11-02 `FE-REQ-053`), 셸 = `apps/web`. `savings` = `packages/domain-savings`(2026-11-03 `FE-REQ-056`). `household` = `packages/domain-household`(2026-11-04 `FE-REQ-057`). shared 레이어는 `packages/web-shared`(`@repo/web-shared/<세그먼트>`).
+도메인 패키지 열은 있는 곳이다 — `invest` = `packages/domain-invest`(2026-11-02 `FE-REQ-053`), 셸 = `apps/web`. `savings` = `packages/domain-savings`(2026-11-03 `FE-REQ-056`). `household` = `packages/domain-household`(2026-11-04 `FE-REQ-057`). `tips` = `packages/domain-tips`(2026-11-05 `FE-REQ-058`). shared 레이어는 `packages/web-shared`(`@repo/web-shared/<세그먼트>`).
 
-**실재하는 엔티티는 7개다** — `auth` · `goal` · `home`(셸, 2026-11-02) · `market` · `portfolio` · `coach`(뒤 셋은 `domain-invest`, `goal` 은 2026-11-03 부터 `domain-savings`) · `household`(2026-11-04 `domain-household`).
+**실재하는 엔티티는 8개다** — `auth` · `goal` · `home`(셸, 2026-11-02) · `market` · `portfolio` · `coach`(뒤 셋은 `domain-invest`, `goal` 은 2026-11-03 부터 `domain-savings`) · `household`(2026-11-04 `domain-household`) · `tip`(2026-11-05 `domain-tips`).
 나머지는 해당 기능 REQ에서 생긴다. 표에 있다고 폴더가 있는 것은 아니다.
 
 > store 조립은 `app` 레이어가 한다. 슬라이스는 `RootState`를 보지 않고 **자기 가지만 타이핑한

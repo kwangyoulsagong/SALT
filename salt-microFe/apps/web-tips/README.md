@@ -1,6 +1,6 @@
 # web-tips — 금융 팁 zone
 
-빈 골격(`FE-REQ-052` FR-7). 경로 `/tips` · 포트 3005 · assetPrefix `/tips-static`(dev 만 — 운영 빌드는 공용 `/_next`, `ADR-005` 규칙 7 개정 2026-11-03) — 값은 `@repo/core/zones`(`registry.json`).
+공개 zone — 화면은 `@repo/domain-tips`(`FE-REQ-058`, 2026-11-05 금융 팁 S2a). 빈 골격은 `FE-REQ-052` FR-7. 경로 `/tips` · 포트 3005 · assetPrefix `/tips-static`(dev 만 — 운영 빌드는 공용 `/_next`, `ADR-005` 규칙 7 개정 2026-11-03) — 값은 `@repo/core/zones`(`registry.json`).
 
 - zone 앱은 얇다 — `app/` 라우트 · 레이아웃 · `next.config.js` 만. 화면은 `@repo/domain-tips`(`microfrontend.md` §2-4)
 - 지금 이 도메인 화면을 서비스하는 앱: `web-tips`
