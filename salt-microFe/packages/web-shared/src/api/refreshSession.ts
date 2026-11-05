@@ -12,9 +12,9 @@
  * 리프레시 토큰은 httpOnly 쿠키이고 경로가 `SESSION_ROUTE` 로 좁다. 같은 origin `SESSION_REFRESH_ROUTE` 가 그 쿠키로
  * BFF `POST /api/auth/refresh` 를 부르고 새 액세스 쿠키를 심는다. 이 함수는 성공 여부만 안다.
  */
-import { singleFlight } from "@repo/core/auth";
+import { isPublicPath, singleFlight } from "@repo/core/auth";
 
-import { PUBLIC_PATHS, ROUTES, SESSION_REFRESH_ROUTE } from "../config";
+import { ROUTES, SESSION_REFRESH_ROUTE } from "../config";
 
 import { clearSession } from "./session";
 
@@ -29,11 +29,12 @@ import { clearSession } from "./session";
  *
  * `window.location.replace` 다(`router` 는 이 레이어에 없다). 히스토리를 남기지 않는 이유는
  * 뒤로 가기가 이미 죽은 화면으로 돌아가기 때문이다. **공개 경로에서는 아무것도 하지 않는다** —
- * 로그인 화면에서 로그인 화면으로 보내는 일이 없게(`PUBLIC_PATHS` 의 첫 소비처다).
+ * 로그인 화면에서 로그인 화면으로 보내는 일이 없게, 공개 글을 읽던 사람을 로그인으로 보내지 않게(`isPublicPath` — 앱 내비와 같은 판정).
  */
 const leaveForLogin = () => {
   if (typeof window === "undefined") return;
-  if (PUBLIC_PATHS.includes(window.location.pathname)) return;
+  // 공개 화면(로그인 · 공개 금융 팁 글)에서는 세션만 비우고 제자리 — 읽던 사람을 로그인으로 보내지 않는다
+  if (isPublicPath(window.location.pathname)) return;
 
   window.location.replace(ROUTES.login);
 };

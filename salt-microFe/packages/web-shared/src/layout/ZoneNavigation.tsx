@@ -4,7 +4,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
-import { PUBLIC_PATHS } from "@repo/core/auth";
+import { isPublicPath } from "@repo/core/auth";
 import {
   APP_TABS,
   APP_TAB_NOT_READY_LABEL,
@@ -19,9 +19,6 @@ import { HeaderBrand } from "./HeaderBrand";
 import { NAVIGATION_FRAME_MESSAGES } from "./messages";
 import { readZoneNavigationMetric } from "./zoneNavigationMetrics";
 
-/** 로그인 · 온보딩 같은 공개 화면에는 탭 · 머리가 없다 — 아직 계정이 없거나 들어가는 중이다 */
-const isPublicPath = (pathname: string): boolean =>
-  PUBLIC_PATHS.some((path) => (path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`)));
 
 /**
  * 아이콘은 면을 채운 단색 글리프(`@repo/ui` `AppNavigationIcon`, 이름은 `APP_TABS` 의 것 그대로) — 선 아이콘은 탭 크기에서 흐렸다
@@ -54,6 +51,7 @@ export const ZoneNavigation = ({ headerEnd, children }: { headerEnd?: ReactNode;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 로그인 · 온보딩 같은 공개 화면에는 탭 · 머리가 없다 — 아직 계정이 없거나 들어가는 중이다(판정은 `@repo/core/auth` 하나)
   const bare = isPublicPath(pathname);
   const activeId = bare ? null : activeAppTab(pathname);
   const items = bare ? [] : APP_TABS.map((tab) => toItem(tab, tab.id === activeId));
