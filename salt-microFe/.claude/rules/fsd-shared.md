@@ -36,6 +36,8 @@ shared/
 - 모든 레이어가 의존하므로 export 안정성을 유지한다. breaking change의 영향 범위가 가장 넓다.
 - **`shared/ui`는 최후의 수단이다.** 컴포넌트가 필요하면 먼저 `@repo/ui`(공개 subpath 83개)를 확인하고, 없으면 **디자인 시스템에 추가하는 것을 우선 검토**한다.
 - **`shared/api`가 BFF 호출의 유일한 경로다.** `fetch`를 슬라이스에서 직접 부르지 않는다. 토큰 부착·에러 정규화·타임아웃·재시도가 여기 한 곳에 있어야 한다.
+- **토큰은 httpOnly 쿠키다 — 브라우저 코드가 쥐지 않는다**(`FE-REQ-013` FR-80 2단계). 브라우저는 BFF 를 같은 origin(`INVESTMENTS_BASE_URL` = `""`)으로
+  부르고 헤더를 붙이지 않는다. 서버 컴포넌트 · Route Handler 는 `BFF_SERVER_URL` + 쿠키 `ACCESS_COOKIE` → `Authorization`. 로그인 여부는 `useHasSession`
 - **`shared/config`에 zone 경로 목록을 둔다.** zone을 넘는 링크는 `<a>`여야 하므로(`microfrontend.md`) 어떤 경로가 다른 zone인지 한 곳에서 알아야 한다.
 
 ## 금액 포맷은 여기 있고, 계산은 여기 없다

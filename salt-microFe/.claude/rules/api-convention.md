@@ -18,7 +18,7 @@
 
 ```ts
 export const getPortfolio = async (signal?: AbortSignal): Promise<Portfolio> => {
-  const response = await apiFetch(`${INVESTMENTS_BASE_URL}/api/app/portfolio`, { headers: authHeader(), signal });
+  const response = await apiFetch(`${INVESTMENTS_BASE_URL}/api/app/portfolio`, { signal });
   if (!response.ok) throw await readApiError(response, "portfolio");
   return (await response.json()) as Portfolio;
 };

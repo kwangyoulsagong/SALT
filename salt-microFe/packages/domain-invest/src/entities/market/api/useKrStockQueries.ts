@@ -3,7 +3,7 @@
 import type { KrChartPeriod } from "@repo/core/marketKr";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import { isClientApiError, retryWhileRetriable, useHasAccessToken } from "@repo/web-shared/api";
+import { isClientApiError, retryWhileRetriable, useHasSession } from "@repo/web-shared/api";
 
 import type { KrOverviewQuery } from "./endpoints";
 import { krStockApi } from "./krStockApi";
@@ -12,7 +12,7 @@ import { marketQueryKeys } from "./queryKeys";
 /**
  * 국내 주식 쿼리(F011 `FE-REQ-041`).
  *
- * - **로그인해야 부른다**(`useHasAccessToken`) — 비회원에게 국내 주식 시세 0건(F011 §정책). 서버 렌더에선 `null` 이라 안 부른다
+ * - **로그인해야 부른다**(`useHasSession`) — 비회원에게 국내 주식 시세 0건(F011 §정책). 서버 렌더에선 `null` 이라 안 부른다
  * - **4xx 는 다시 부르지 않는다.** 404 는 소유자가 아니라는 뜻이고 다시 불러도 같다
  * - 저장값 조회는 **1분마다** 다시 받는다 — 실시간 슬롯 밖 종목(`poll_1m`)이 서버에서 1분마다 바뀌고, WS 가 거부 ·
  *   끊겨도 표가 멈추지 않는다. 서버는 KIS 를 부르지 않고 저장값만 읽는다(80ms 예산, F011 비기능)
@@ -31,7 +31,7 @@ const refreshUnlessClientError = (query: { state: { error: unknown } }) =>
   isClientApiError(query.state.error) ? false : KR_REFRESH_MS;
 
 export const useKrMarketStatus = () => {
-  const signedIn = useHasAccessToken() === true;
+  const signedIn = useHasSession() === true;
   return useQuery({
     queryKey: marketQueryKeys.krSession,
     queryFn: ({ signal }) => krStockApi.session(signal),
@@ -47,7 +47,7 @@ export const krOverviewKey = (query: KrOverviewQuery) =>
   [...marketQueryKeys.krOverview, query.limit, query.offset, query.sort ?? "", query.order ?? "", query.period ?? ""] as const;
 
 export const useKrOverview = (query: KrOverviewQuery, enabled = true) => {
-  const signedIn = useHasAccessToken() === true;
+  const signedIn = useHasSession() === true;
   return useQuery({
     queryKey: krOverviewKey(query),
     queryFn: ({ signal }) => krStockApi.overview(query, signal),
@@ -61,7 +61,7 @@ export const useKrOverview = (query: KrOverviewQuery, enabled = true) => {
 };
 
 export const useKrDetail = (code: string) => {
-  const signedIn = useHasAccessToken() === true;
+  const signedIn = useHasSession() === true;
   return useQuery({
     queryKey: [...marketQueryKeys.krDetail, code],
     queryFn: ({ signal }) => krStockApi.detail(code, signal),
@@ -73,7 +73,7 @@ export const useKrDetail = (code: string) => {
 };
 
 export const useKrChart = (code: string, period: KrChartPeriod, count = KR_CHART_CANDLE_COUNT) => {
-  const signedIn = useHasAccessToken() === true;
+  const signedIn = useHasSession() === true;
   return useQuery({
     queryKey: [...marketQueryKeys.krChart, code, period, count],
     queryFn: ({ signal }) => krStockApi.chart(code, period, count, signal),
@@ -90,7 +90,7 @@ export const useKrChart = (code: string, period: KrChartPeriod, count = KR_CHART
  * 고친다(`useKrSummaryRealtime`). 404 · 4xx 면 멈춘다(소유자 아님)
  */
 export const useKrMarketSummary = (enabled = true) => {
-  const signedIn = useHasAccessToken() === true;
+  const signedIn = useHasSession() === true;
   return useQuery({
     queryKey: marketQueryKeys.krSummary,
     queryFn: ({ signal }) => krStockApi.summary(signal),
@@ -107,7 +107,7 @@ export const KR_INVESTOR_DAYS = 10;
 const KR_INVESTOR_STALE_MS = 30 * 60_000;
 
 export const useKrInvestors = (code: string, days = KR_INVESTOR_DAYS) => {
-  const signedIn = useHasAccessToken() === true;
+  const signedIn = useHasSession() === true;
   return useQuery({
     queryKey: [...marketQueryKeys.krInvestors, code, days],
     queryFn: ({ signal }) => krStockApi.investors(code, days, signal),
@@ -124,7 +124,7 @@ export const useKrInvestors = (code: string, days = KR_INVESTOR_DAYS) => {
 const KR_ORDERBOOK_REFRESH_MS = 10_000;
 
 export const useKrOrderbook = (code: string, live: boolean) => {
-  const signedIn = useHasAccessToken() === true;
+  const signedIn = useHasSession() === true;
   return useQuery({
     queryKey: [...marketQueryKeys.krOrderbook, code],
     queryFn: ({ signal }) => krStockApi.orderbook(code, signal),

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { useHasAccessToken } from "@repo/web-shared/api";
+import { useHasSession } from "@repo/web-shared/api";
 import { ROUTES } from "@repo/web-shared/config";
 
 /**
@@ -29,7 +29,7 @@ import { ROUTES } from "@repo/web-shared/config";
  */
 export const RedirectSignedIn = () => {
   // 서버 · 첫 렌더는 `null`(모름) — 마운트 뒤 토큰이 있을 때만 보낸다(`ssr.md`)
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   const router = useRouter();
 
   useEffect(() => {

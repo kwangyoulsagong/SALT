@@ -1,7 +1,7 @@
 import type { CoachProfileSettings } from "@repo/core/coach";
 
 import { COACH_ENDPOINTS, toCoachProfileSettings } from "@/entities/coach";
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 interface Envelope<T> {
@@ -14,7 +14,7 @@ export const togglePurchasePriceApi = {
   save: async (hidePurchasePrice: boolean): Promise<CoachProfileSettings> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.profile}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", ...authHeader() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ hidePurchasePrice }),
     });
     if (!response.ok) throw await readApiError(response, "toggle purchase price");

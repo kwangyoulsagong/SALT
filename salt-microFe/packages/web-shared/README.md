@@ -4,7 +4,7 @@
 
 | 입구 | 내용 |
 |---|---|
-| `@repo/web-shared/api` | `apiFetch` · `ApiError` · 세션(토큰 · 로그인 표지 쿠키) · `useHasAccessToken` · `useSessionUser` · SSE · WebSocket |
+| `@repo/web-shared/api` | `apiFetch` · `ApiError` · 세션(httpOnly 쿠키 쓰기 · 비우기 · 로그인 표지 — `FE-REQ-013` FR-80) · `useHasSession` · `useSessionUser` · SSE · WebSocket |
 | `@repo/web-shared/config` | 라우트 · env(`ZONE_APP` 포함) · 네트워크 · SEO · zone 판정 재수출 |
 | `@repo/web-shared/i18n` · `lib` · `model` · `ui` | 도메인 무관 문구 · 포맷터(`useZoneNavigate` 포함) · 공통 타입 · `BlockBoundary` · `CrossZoneLink` · `ZoneLink` · `NavChevron` |
 | `@repo/web-shared/ui/tokens.css` · `ui/surface.css` | vanilla-extract 토큰(세그먼트 내부 경로 예외) |

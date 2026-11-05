@@ -1,4 +1,4 @@
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import type { SavingsGoalDetail } from "@/entities/goal";
@@ -10,7 +10,7 @@ export const addGoalApi = {
   create: async (body: AddGoalRequest): Promise<SavingsGoalDetail> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}/api/app/savings/goals`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeader() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
     if (!response.ok) throw await readApiError(response, "savings-add-goal");

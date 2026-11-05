@@ -10,7 +10,7 @@ import type {
   KrStockDetail,
 } from "@repo/core/marketKr";
 
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import { type KrOverviewQuery, MARKET_ENDPOINTS } from "./endpoints";
@@ -25,7 +25,7 @@ import { type KrOverviewQuery, MARKET_ENDPOINTS } from "./endpoints";
  *   국내 주식 자리를 **숨긴다**
  */
 const getKr = async <T>(endpoint: string, path: string, signal?: AbortSignal): Promise<T> => {
-  const response = await apiFetch(`${INVESTMENTS_BASE_URL}${path}`, { headers: authHeader(), signal });
+  const response = await apiFetch(`${INVESTMENTS_BASE_URL}${path}`, { signal });
   if (!response.ok) throw await readApiError(response, `market ${endpoint}`);
   const body = (await response.json()) as { data: T };
   return body.data;

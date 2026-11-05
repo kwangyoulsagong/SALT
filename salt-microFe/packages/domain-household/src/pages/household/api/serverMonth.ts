@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-import { ACCESS_COOKIE, INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
+import { ACCESS_COOKIE, BFF_SERVER_URL } from "@repo/web-shared/config";
 
 import type { HouseholdMonth } from "@/entities/household";
 
@@ -15,7 +15,7 @@ export const serverMonth = async (ym: string): Promise<HouseholdMonth | null> =>
   const token = (await cookies()).get(ACCESS_COOKIE)?.value;
   if (!token) return null;
   try {
-    const response = await fetch(`${INVESTMENTS_BASE_URL}/api/app/household/month/${encodeURIComponent(ym)}`, {
+    const response = await fetch(`${BFF_SERVER_URL}/api/app/household/month/${encodeURIComponent(ym)}`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
       signal: AbortSignal.timeout(SERVER_FETCH_TIMEOUT_MS),

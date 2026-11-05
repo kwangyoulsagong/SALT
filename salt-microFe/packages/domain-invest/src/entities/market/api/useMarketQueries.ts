@@ -6,7 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 
-import { useHasAccessToken } from "@repo/web-shared/api";
+import { useHasSession } from "@repo/web-shared/api";
 
 import {
   type ChartTimeframe,
@@ -181,7 +181,7 @@ export const useWatchlist = (): UseQueryResult<WatchlistResponse> & {
   isSignedOut: boolean;
 } => {
   // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
 
   const query = useQuery({
     queryKey: marketQueryKeys.watchlist,
@@ -212,7 +212,7 @@ export const useAssetSearch = (
   assetType?: MarketAssetClass,
 ): UseQueryResult<AssetSearchResponse> & { isSignedOut: boolean } => {
   // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   const query = useQuery({
     queryKey: [...marketQueryKeys.search, q, assetType ?? "all"],
     queryFn: ({ signal }) => marketApi.search(q, ASSET_SEARCH_LIMIT, assetType, signal),

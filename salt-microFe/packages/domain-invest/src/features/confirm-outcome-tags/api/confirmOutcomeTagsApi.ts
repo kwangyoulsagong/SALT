@@ -1,7 +1,7 @@
 import type { ConfirmOutcomeTagsRequest, DecisionOutcomeView } from "@repo/core/coach";
 
 import { COACH_ENDPOINTS } from "@/entities/coach";
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 interface Envelope<T> {
@@ -17,7 +17,7 @@ export const confirmOutcomeTagsApi = {
   confirm: async (id: string, body: ConfirmOutcomeTagsRequest): Promise<DecisionOutcomeView> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.outcomeTags(id)}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", ...authHeader() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
     if (!response.ok) throw await readApiError(response, "confirm outcome tags");

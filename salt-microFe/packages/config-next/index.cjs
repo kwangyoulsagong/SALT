@@ -27,6 +27,19 @@ function usesSharedStatic(env = process.env) {
   return env.NODE_ENV === "production" && env.ZONE_STATIC !== "per-zone";
 }
 
+/**
+ * 셸 rewrites — zone 레지스트리 규칙 + **BFF 같은 origin 경로**(`FE-REQ-013` FR-80 2단계, 2026-11-05).
+ *
+ * 토큰이 httpOnly 쿠키라 브라우저는 BFF 를 같은 origin `/api/*` 로 부른다(쿠키가 자연히 실린다). 운영은 한 origin 경로 라우팅이
+ * BFF 에 직접 보내고(`ADR-008`), 이 규칙은 로컬 · 폴백이다. `afterFiles` 라서 셸 Route Handler(`/api/session` · `/api/session/refresh`)가
+ * 먼저 받는다 — 운영 라우팅도 같은 예외를 둔다(`OPS-001`).
+ */
+function shellRewrites(env = process.env) {
+  const rules = zoneRewrites(env);
+  const bff = env.BFF_INTERNAL_URL || "http://localhost:4001";
+  return { ...rules, afterFiles: [...rules.afterFiles, { source: "/api/:path*", destination: `${bff}/api/:path*` }] };
+}
+
 function zoneNextConfig(zoneId, options = {}) {
   const zone = ZONES[zoneId];
   if (!zone) throw new Error(`레지스트리에 없는 zone: ${zoneId}`);
@@ -57,11 +70,11 @@ function zoneNextConfig(zoneId, options = {}) {
 
   // 셸은 assetPrefix 를 갖지 않고(default zone) 도메인 zone 으로 가는 요청을 프록시한다 — 규칙은 레지스트리에서 생성
   if (isShell) {
-    config.rewrites = async () => zoneRewrites(process.env);
+    config.rewrites = async () => shellRewrites(process.env);
   } else if (!usesSharedStatic()) {
     config.assetPrefix = zone.assetPrefix;
   }
   return config;
 }
 
-module.exports = { zoneNextConfig, usesSharedStatic };
+module.exports = { zoneNextConfig, usesSharedStatic, shellRewrites };

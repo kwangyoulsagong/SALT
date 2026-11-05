@@ -26,6 +26,8 @@ export const signInApi = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      // 남은 세션을 싣지 않는다 — 로그인은 새 사람으로 시작한다(같은 origin 이라 쿠키가 저절로 실린다)
+      credentials: "omit",
     });
 
     const envelope = (await response

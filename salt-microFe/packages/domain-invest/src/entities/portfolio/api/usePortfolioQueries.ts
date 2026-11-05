@@ -2,7 +2,7 @@
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
-import { useHasAccessToken } from "@repo/web-shared/api";
+import { useHasSession } from "@repo/web-shared/api";
 
 import { PortfolioSummary } from "../model/types";
 import { portfolioApi } from "./portfolioApi";
@@ -19,7 +19,7 @@ const SUMMARY_STALE_TIME_MS = 30_000;
 export const usePortfolioSummary = (): UseQueryResult<PortfolioSummary> & {
   isSignedOut: boolean;
 } => {
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
 
   const query = useQuery({
     queryKey: portfolioQueryKeys.summary,

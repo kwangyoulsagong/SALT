@@ -37,8 +37,9 @@ export const useSignIn = (): UseMutationResult<
     mutationFn: signInApi.signIn,
     // 자격 증명이 틀린 것은 다시 보내도 같다. mutation 이라 기본값도 0 이지만 명시한다.
     retry: false,
-    onSuccess: (data) => {
-      writeSession({
+    // 쿠키가 심긴 뒤에 이동한다 — 먼저 가면 홈의 첫 호출이 세션 없이 나가 401 이다(`FE-REQ-013` FR-80 2단계)
+    onSuccess: async (data) => {
+      await writeSession({
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       });

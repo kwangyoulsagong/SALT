@@ -1,6 +1,7 @@
 import { RECONNECT_TIME_PENDING, WEBSOCKET_URL } from "../../config";
 
-import { readAccessToken } from "../authToken";
+import { refreshSession } from "../refreshSession";
+import { hasSession } from "../session";
 
 import { dispatchMessage } from "./handlers";
 import {
@@ -18,6 +19,10 @@ import {
 
 /** 재연결 대기 상한. 첫 대기(`RECONNECT_TIME_PENDING`)에서 두 배씩 늘어 여기서 멈춘다. */
 const RECONNECT_MAX_MS = 30_000;
+/** BFF 가 국내 주식 구독을 "유효한 토큰 없음"으로 거부한 코드 — 서버 401 도 이 코드로 온다(`BFF-REQ-009` FR-54) */
+const KR_AUTH_REQUIRED = "KR_STOCK_AUTH_REQUIRED";
+/** 세션 갱신 → 다시 연결은 이 간격에 한 번 */
+const AUTH_RECONNECT_INTERVAL_MS = 60_000;
 
 type StatusListener = () => void;
 
@@ -63,10 +68,36 @@ class WSClient {
   public readonly krPriceListeners = new Map<string, Set<KrPriceListener>>();
   private readonly krErrorListeners = new Set<KrErrorListener>();
 
-  /** `dispatchMessage` 가 부른다 — BFF 가 국내 주식 구독을 거부했다 */
+  /** 마지막으로 "세션 갱신 → 다시 연결"을 한 시각 — 한 분에 한 번만(갱신이 돼도 서버가 계속 거부하면 되돌이가 된다) */
+  private lastAuthReconnectAt: number | null = null;
+
+  /**
+   * `dispatchMessage` 가 부른다 — BFF 가 국내 주식 구독을 거부했다.
+   *
+   * 토큰은 httpOnly 쿠키라 **연결을 맺을 때만** BFF 에 실린다(`FE-REQ-013` FR-80 2단계). 액세스 토큰(15분)이 만료되면 열린
+   * 연결은 옛 토큰을 쥐고 있다 — 그래서 `KR_STOCK_AUTH_REQUIRED` 면 세션을 갱신하고 연결을 새로 맺는다(새 쿠키 · 다시 구독).
+   * 그래도 거부되거나 갱신이 안 되면 화면에 알린다 — 화면은 저장값 조회로 내려간다.
+   */
   notifyKrError = (code: string) => {
+    if (code === KR_AUTH_REQUIRED && this.reconnectWithFreshSession()) return;
     this.krErrorListeners.forEach((fn) => fn(code));
   };
+
+  private reconnectWithFreshSession(): boolean {
+    const now = Date.now();
+    if (!hasSession()) return false;
+    if (this.lastAuthReconnectAt !== null && now - this.lastAuthReconnectAt < AUTH_RECONNECT_INTERVAL_MS) return false;
+    this.lastAuthReconnectAt = now;
+    void refreshSession().then((ok) => {
+      if (!ok) {
+        this.krErrorListeners.forEach((fn) => fn(KR_AUTH_REQUIRED));
+        return;
+      }
+      // 닫으면 onclose 가 다시 연결하고 onopen 이 전부 다시 구독한다 — 새 연결 요청에 새 쿠키가 실린다
+      this.ws?.close();
+    });
+    return true;
+  }
 
   constructor(url: string) {
     this.url = url;
@@ -231,18 +262,17 @@ class WSClient {
   // ── 국내 주식 체결 구독 ──────────────────────────────────────
 
   /**
-   * 토큰은 **보낼 때마다** 읽는다 — 재연결 시점의 토큰이어야 한다. 만료된 토큰으로 거부되면(`onError`) 화면은 저장값
-   * 조회로 내려가고, 다음 재연결이 `apiFetch` 가 갱신해 둔 토큰으로 다시 붙는다. 토큰이 없으면 보내지 않는다 —
-   * BFF 가 어차피 `KR_STOCK_AUTH_REQUIRED` 로 거부한다
+   * 토큰은 메시지에 없다 — BFF 가 이 연결 요청에 실린 세션 쿠키를 쓴다. 만료로 거부되면 `notifyKrError` 가 세션을 갱신하고
+   * 연결을 새로 맺는다. 로그인 표지가 없으면 보내지 않는다 — BFF 가 어차피 `KR_STOCK_AUTH_REQUIRED` 로 거부한다
    */
   private sendKrSubscribe(codes: string[]) {
     if (codes.length === 0) return;
-    const token = readAccessToken();
-    if (!token) {
-      this.notifyKrError("KR_STOCK_AUTH_REQUIRED");
+    if (!hasSession()) {
+      this.krErrorListeners.forEach((fn) => fn(KR_AUTH_REQUIRED));
       return;
     }
-    this.send({ type: WSMessageType.Subscribe, assetType: WSAssetType.KrStock, symbols: codes, token });
+    // 토큰을 싣지 않는다 — BFF 가 연결 요청의 세션 쿠키를 쓴다(`BFF-REQ-009` FR-54)
+    this.send({ type: WSMessageType.Subscribe, assetType: WSAssetType.KrStock, symbols: codes });
   }
 
   /**

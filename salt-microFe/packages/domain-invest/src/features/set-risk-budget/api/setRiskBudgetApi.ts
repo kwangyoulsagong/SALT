@@ -1,6 +1,6 @@
 import type { RiskBudgetResult, RiskBudgetUpdate } from "@repo/core/coach";
 
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 const ENDPOINT = "/api/app/coach/risk-budget";
@@ -15,7 +15,7 @@ export const setRiskBudgetApi = {
   save: async (body: RiskBudgetUpdate): Promise<RiskBudgetResult> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${ENDPOINT}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", ...authHeader() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
     if (!response.ok) throw await readApiError(response, "set risk budget");

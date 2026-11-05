@@ -23,7 +23,7 @@ import { KrEvents } from "./KrEvents";
 import { KrForecast } from "./KrForecast";
 import { KrInvestorFlows } from "./KrInvestorFlows";
 import { KrOrderbook } from "./KrOrderbook";
-import { hasApiStatus, useHasAccessToken } from "@repo/web-shared/api";
+import { hasApiStatus, useHasSession } from "@repo/web-shared/api";
 import { HTTP_STATUS_CODE, PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
 import { formatKrwCompact, formatPrice } from "@repo/web-shared/lib";
 
@@ -63,7 +63,7 @@ const ratio = (value: number | null, suffix = "") =>
  * (`KrCoachJudgment`, 슬라이스 4). 변동 범위는 오른쪽 열 "자세히"(`KrForecast`, 슬라이스 5d — 소유자만). 해설은 아직 열지 않았다.
  */
 export const KrStockDetail = ({ code }: { code: string }) => {
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   const { data, isPending, error } = useKrDetail(code);
   const ok = data?.status === "ok" ? data : null;
   // 거래정지 종목은 체결이 없다 — 구독하지 않는다

@@ -1,7 +1,7 @@
 import type { CoachProfileSettings, CoachProfileUpdate } from "@repo/core/coach";
 
 import { COACH_ENDPOINTS, toCoachProfileSettings } from "@/entities/coach";
-import { apiFetch, authHeader, readApiError } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 interface Envelope<T> {
@@ -14,7 +14,7 @@ export const editCoachProfileApi = {
   save: async (body: CoachProfileUpdate): Promise<CoachProfileSettings> => {
     const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.profile}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", ...authHeader() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
     if (!response.ok) throw await readApiError(response, "edit coach profile");

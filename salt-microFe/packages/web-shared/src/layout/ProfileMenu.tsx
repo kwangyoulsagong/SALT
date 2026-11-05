@@ -25,15 +25,16 @@ import { ProfileSection } from "./ProfileSection";
  *
  * ## 서버를 부르지 않는다
  *
- * 서버 · BFF 에 로그아웃 경로가 없다. 토큰은 서버에 저장되지 않는 JWT 라서 이 기기에서 지우는 것이
- * 곧 로그아웃이다. 리프레시 토큰을 서버에서 무효화하는 일은 `FE-REQ-013`(쿠키 세션)과 함께 온다.
+ * 서버 · BFF 에 로그아웃 경로가 없다. 토큰은 서버에 저장되지 않는 JWT 라서 이 기기의 쿠키를 지우는 것이
+ * 곧 로그아웃이다(셸 Route Handler — `FE-REQ-013` FR-80 2단계). 리프레시 토큰을 서버에서 무효화하는 일은 서버 몫으로 남았다.
  */
 export const ProfileMenu = () => {
   const user = useSessionUser();
   const queryClient = useQueryClient();
 
-  const signOut = () => {
-    clearSession();
+  const signOut = async () => {
+    // 쿠키는 Route Handler 가 지운다 — 응답을 기다린 뒤 이동해야 로그인 화면 요청에 세션이 실리지 않는다
+    await clearSession();
     // 문서가 바뀌기 전에 다음 사람에게 보일 캐시를 지운다(같은 문서에서 이어 그리는 경우 대비)
     queryClient.clear();
     window.location.assign(ROUTES.login);
@@ -50,7 +51,7 @@ export const ProfileMenu = () => {
         ]}
         onSelect={(id) => {
           if (id === PROFILE_MENU_ITEM.settings) window.location.assign(ROUTES.settings);
-          if (id === PROFILE_MENU_ITEM.signOut) signOut();
+          if (id === PROFILE_MENU_ITEM.signOut) void signOut();
         }}
         trigger={(props) => (
           <button

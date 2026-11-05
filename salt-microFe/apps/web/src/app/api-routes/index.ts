@@ -1,1 +1,1 @@
-export { clearSessionCookie, writeSessionCookie } from "./session";
+export { clearSessionCookie, refreshSessionCookie, writeSessionCookie } from "./session";

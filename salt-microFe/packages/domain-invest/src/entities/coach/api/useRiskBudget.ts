@@ -3,7 +3,7 @@
 import type { RiskBudgetResult } from "@repo/core/coach";
 import { useQuery } from "@tanstack/react-query";
 
-import { useHasAccessToken, retryWhileRetriable } from "@repo/web-shared/api";
+import { useHasSession, retryWhileRetriable } from "@repo/web-shared/api";
 
 import { coachApi } from "./coachApi";
 import { coachQueryKeys } from "./queryKeys";
@@ -17,7 +17,7 @@ const RISK_BUDGET_STALE_TIME_MS = 60_000;
  */
 export const useRiskBudget = () => {
   // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
 
   const query = useQuery<RiskBudgetResult, Error>({
     queryKey: coachQueryKeys.riskBudget(),

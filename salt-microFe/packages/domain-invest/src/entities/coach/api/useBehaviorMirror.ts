@@ -8,7 +8,7 @@ import type {
 } from "@repo/core/coach";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import { hasApiStatus, useHasAccessToken, retryWhileRetriable } from "@repo/web-shared/api";
+import { hasApiStatus, useHasSession, retryWhileRetriable } from "@repo/web-shared/api";
 import { HTTP_STATUS_CODE } from "@repo/web-shared/config";
 
 import { coachApi } from "./coachApi";
@@ -27,7 +27,7 @@ const retryServerErrorOnce = retryWhileRetriable(1);
  */
 export const useBehaviorMirror = () => {
   // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   const query = useQuery<BehaviorMirrorResult, Error>({
     queryKey: coachQueryKeys.mirror(),
     queryFn: ({ signal }) => coachApi.mirror(signal),
@@ -44,7 +44,7 @@ export const useBehaviorMirror = () => {
  */
 export const useKrBehaviorMirror = () => {
   // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   const query = useQuery<KrBehaviorMirrorResult, Error>({
     queryKey: coachQueryKeys.krMirror(),
     queryFn: ({ signal }) => coachApi.krMirror(signal),
@@ -59,7 +59,7 @@ export const useKrBehaviorMirror = () => {
 /** 청산별 결과 · 태그 — 태그 확정 목록. `kr_stock` 이면 국내 청산(국내 미러 섹션, F011 FR-47) */
 export const useDecisionOutcomes = (assetType: "crypto" | "kr_stock" = "crypto") => {
   // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   const isKr = assetType === "kr_stock";
   const query = useQuery<DecisionOutcomeListResult, Error>({
     queryKey: isKr ? coachQueryKeys.krOutcomes() : coachQueryKeys.outcomes(),
@@ -80,7 +80,7 @@ const MONTHLY_REVIEW_STALE_TIME_MS = 60 * 60_000;
  */
 export const useMonthlyReview = (month: string | null, assetType: "crypto" | "kr_stock" = "crypto") => {
   // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   const isKr = assetType === "kr_stock";
   const query = useQuery<MonthlyReviewResult, Error>({
     queryKey: isKr ? coachQueryKeys.krMonthlyReview(month) : coachQueryKeys.monthlyReview(month),

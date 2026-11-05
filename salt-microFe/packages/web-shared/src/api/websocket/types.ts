@@ -81,7 +81,7 @@ export type PriceListener = (data: PriceUpdate) => void;
 export type KrPriceListener = (data: PriceUpdate) => void;
 /**
  * 국내 주식 구독 거부 — BFF `error { assetType: "kr_stock", code }`. 404 = 소유자 아님 · `KR_STOCK_DISABLED` = 꺼짐 ·
- * `KR_STOCK_AUTH_REQUIRED` = 토큰 없음 · 그 밖 서버 4xx 코드. 받은 쪽은 실시간을 포기하고 저장값 조회로 간다
+ * `KR_STOCK_AUTH_REQUIRED` = 유효한 토큰 없음(서버 401 포함 — 클라이언트가 세션 갱신 후 한 번 다시 연결) · 그 밖 서버 4xx 코드. 받은 쪽은 실시간을 포기하고 저장값 조회로 간다
  */
 export type KrErrorListener = (code: string) => void;
 
@@ -98,7 +98,7 @@ export type WSClientSendMessage =
    * 국내 주식은 **토큰을 메시지에 싣는다**(`BFF-REQ-040` 결정 3) — 소유자 전용이라 BFF 가 연결마다 이 토큰으로 서버
    * 스트림을 연다. 브라우저 WebSocket 은 헤더를 못 단다
    */
-  | { type: WSMessageType.Subscribe; assetType: WSAssetType.KrStock; symbols: string[]; token: string }
+  | { type: WSMessageType.Subscribe; assetType: WSAssetType.KrStock; symbols: string[] }
   | { type: WSMessageType.Unsubscribe; assetType: WSAssetType.KrStock; symbols: string[] }
   | { type: WSMessageType.SubscribeCandle; symbol: string; timeframe: Timeframe }
   | {

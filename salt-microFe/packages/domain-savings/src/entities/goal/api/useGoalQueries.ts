@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { useHasAccessToken } from "@repo/web-shared/api";
+import { useHasSession } from "@repo/web-shared/api";
 
 import type {
   CalculationRequest,
@@ -29,7 +29,7 @@ const TEMPLATES_STALE_MS = 10 * 60_000;
  * 없으면(쿠키 없음 · 서버 조회 실패) 지금처럼 브라우저가 부른다
  */
 export const useSavingsGoals = (initial?: SavingsGoal[] | null) => {
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   const query = useQuery({
     queryKey: goalQueryKeys.list(),
     queryFn: ({ signal }) => goalApi.list(signal),
@@ -41,7 +41,7 @@ export const useSavingsGoals = (initial?: SavingsGoal[] | null) => {
 };
 
 export const useSavingsGoal = (id: string, initial?: SavingsGoalDetail | null) => {
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   const query = useQuery({
     queryKey: goalQueryKeys.detail(id),
     queryFn: ({ signal }) => goalApi.detail(id, signal),
@@ -53,7 +53,7 @@ export const useSavingsGoal = (id: string, initial?: SavingsGoalDetail | null) =
 };
 
 export const useSavingsTemplates = () => {
-  const signedIn = useHasAccessToken();
+  const signedIn = useHasSession();
   return useQuery({
     queryKey: goalQueryKeys.templates,
     queryFn: ({ signal }) => goalApi.templates(signal),
