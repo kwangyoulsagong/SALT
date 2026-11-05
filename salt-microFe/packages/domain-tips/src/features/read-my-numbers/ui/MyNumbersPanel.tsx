@@ -79,7 +79,8 @@ export const MyNumbersPanel = ({ slug }: { slug: string }) => {
       <h2 id={titleId} className={s.title}>
         {M.title}
       </h2>
-      {view.data?.reading ? <p className={s.muted}>{M.description}</p> : null}
+      {/* 숫자가 있을 때만 — 목표가 없어 예시 그대로인데 "다시 계산했어요"라고 하면 아래 이유 줄과 어긋난다(S2d 확인) */}
+      {view.data?.reading && view.data.reading.figures.length > 0 ? <p className={s.muted}>{M.description}</p> : null}
       <div className={s.body} role="status" aria-live="polite">
         {body}
       </div>
