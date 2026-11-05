@@ -386,7 +386,7 @@ BFF `AppError` 선택 `code`(차트 주기 422 `MARKET_CHART_PERIOD_UNSUPPORTED`
 
 **돈 관리 앱 가계부 S1g + F4g — 이야기 카드(달 · 해) (서버 · DB · BFF · FE, 2026-11-05, `feat/srv-req-046-household-s1g`) — done** — 사용자 "새브랜치 파고 다음 파이프라인 진행". 3a 다음 칸(같은 칸 `FE-REQ-013` 2단계 대신 — "기능부터").
 범위 `MONEY-S1g-household-story-slice.md`, 검증 `checklists/MONEY-S1g-household-story.md`. 셋(사람 장부 · 이야기 카드 · 리볼빙) 중 Should 인 이야기 카드만: 줄은 사실만(쓴 돈 · 가장 많이 쓴 분류 몫 · 가장 많이 쓴 달 · 안 쓴 날 · 챌린지 한 날 · 아낀 돈 · 기분 남긴 수 — 점수 · 비교 0) · 값이 없으면 빠짐 ·
-볼 수 있는 날 = 월 마감 규칙 · 카드는 저장하지 않는다(쿼리 6 · V7 인덱스 하나). 공유는 "금액 보이기"를 꺼진 채 시작 · 화면 카드와 이미지가 같은 문장(`storyText`) · 이미지는 누를 때 화면 밖 캔버스. 커밋 `2c31ce55` · `05c5d19c` · `1c46db88` · `ef543fd4`. 사람 장부 · 리볼빙은 S1h.
+볼 수 있는 날 = 월 마감 규칙 · 카드는 저장하지 않는다(쿼리 6 · V7 인덱스 하나). 공유는 "금액 보이기"를 꺼진 채 시작 · 화면 카드와 이미지가 같은 문장(`storyText`) · 이미지는 누를 때 화면 밖 캔버스. 커밋 `2c31ce55` · `05c5d19c` · `1c46db88` · `ef543fd4` · `eb9dc877`(확인 단계 — 공유 시트 거절 → 저장). 사람 장부 · 리볼빙은 S1h.
 
 **돈 관리 앱 가계부 S1f + F4f — 내 분류 · 통장 쪼개기 이름표 (서버 · DB · BFF · FE, 2026-11-05, `feat/srv-req-046-household-s1f`) — done** — 사용자 "새브랜치 파고 다음 파이프라인 진행". 3a 다음 칸(같은 칸 `FE-REQ-013` 2단계 대신 — "기능부터").
 범위 `MONEY-S1f-household-categories-accounts-slice.md`, 검증 `checklists/MONEY-S1f-household-categories-accounts.md`. "분류와 예산 칸을 내 방식대로": 내 분류는 기본 12 와 같은 `expense.category` 열에 난수 키(`u_` + 12자리) · 이름 · 묶음은 새 표 · 지우기는 보관(지난 지출 이름 그대로) · 상한 20 · 같은 이름은 넣는 문장 안에서 ·
@@ -977,4 +977,5 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-05 | **가계부 S1f + F4f done** — `SRV-REQ-046` FR-22 신설 · FR-7 `account_split` · `DB-REQ-038` FR-17 신설 · FR-2 정정 · FR-3 · `BFF-REQ-048` FR-3 · 4 · `FE-REQ-057` FR-12 신설 · FR-6 · `SRV-REQ-044`(`ExpenseRecorded.category` 꼴) · `FE-REQ-009` 레지스트리 · `FE-REQ-013` 번들. 루트 `MONEY-S1f-household-categories-accounts-slice.md`. 낡은 "S1f" 포인터(사람 장부 · 이야기 카드 · 리볼빙) → S1g 정정 |
 | 2026-11-05 | 가계부 S1f 확인 단계 — 화면 결함 3 고침(`6b1aa765` — 소득 초과 까닭 문장 · 지우기 실패 문장 · 영역 이름 이중) · 최종 HEAD 서버 · 프론트 전체 재검증 · route 로딩 · 실패 · 접근성 트리 · 한계 2 를 범위 밖에 기록(보관한 분류 봉투 · 고정비 후보) |
 | 2026-11-05 | 가계부 S1f 한계 둘 닫음(사용자 "베스트케이스로") — 지운 분류 봉투는 다시 저장된다(`a45d4cd5`) · 지운 분류 고정비 후보는 분류를 골라 매달 적기로(`65cc66ad`) |
-| 2026-11-05 | **가계부 S1g + F4g done** — `SRV-REQ-046` FR-20 · `DB-REQ-038` FR-18 신설 · `BFF-REQ-048` FR-4(전부 닫힘) · `FE-REQ-057` FR-9 이야기 카드 · `FE-REQ-009` 레지스트리 · `FE-REQ-010` 경로 · `FE-REQ-013` 번들 · `RN-REQ-034` 변경 없음. 루트 `MONEY-S1g-household-story-slice.md`. 낡은 "S1g" 포인터(사람 장부 · 리볼빙) → S1h 정정 · 규칙 `canvas.md` 내보내기 한 줄 |
+| 2026-11-05 | **가계부 S1g + F4g done** — `SRV-REQ-046` FR-20 · `DB-REQ-038` FR-18 신설 · `BFF-REQ-048` FR-4(~~전부 닫힘~~ **정정 2026-11-05** 사람 장부 경로는 S1h) · `FE-REQ-057` FR-9 이야기 카드 · `FE-REQ-009` 레지스트리 · `FE-REQ-010` 경로 · `FE-REQ-013` 번들 · `RN-REQ-034` 변경 없음. 루트 `MONEY-S1g-household-story-slice.md`. 낡은 "S1g" 포인터(사람 장부 · 리볼빙) → S1h 정정 · 규칙 `canvas.md` 내보내기 한 줄 |
+| 2026-11-05 | 가계부 S1g 확인 단계 — 공유 시트 거절 · 실패 → 저장(`eb9dc877`) · 저장 주소 다음 틱 · `BFF-REQ-048` "FR-4 전부 닫힘" 정정(사람 장부 경로 · 리볼빙 칸 S1h) · 실화면 · 프론트 전체 재검증 |

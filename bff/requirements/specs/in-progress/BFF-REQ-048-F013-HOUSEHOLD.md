@@ -15,8 +15,8 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 |---|---|
 | FR-1 | `POST /api/app/household/expenses` — 저장 + 목표 시계 한 줄(`goalClock` · `pending` 허용) + 봉투 잔액 |
 | FR-2 | `POST /api/app/household/parse` — 후보 목록. **요청 본문(문자 원문)을 BFF 로그 · 에러 리포트에 남기지 않는다**(로거에서 경로 단위 본문 제외) |
-| FR-3 | `GET /api/app/household/month/:ym` — 봉투 · 착지 구간 · 지난달 적중 · 리뷰 · 스티커 |
-| FR-4 | 템플릿 · 예산 · 챌린지 · 이야기 카드 경로 중계 |
+| FR-3 | `GET /api/app/household/month/:ym` — 봉투 · 착지 구간 · 지난달 적중 · 리뷰 · 스티커 — **정정 2026-11-05** 리볼빙 띠 칸(S1h — 서버 FR-10 짝) |
+| FR-4 | 템플릿 · 예산 · 챌린지 · 이야기 카드 경로 중계 — **정정 2026-11-05** 사람 장부 경로도(S1h — 서버 FR-14 · FE FR-8 의 짝) |
 | FR-5 | 저장 실패 시 입력값을 응답에 되돌려 화면이 보존(오프라인 큐는 RN) |
 
 ## Acceptance Criteria
@@ -79,7 +79,7 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 
 | FR | 상태 | 비고 |
 |---|---|---|
-| FR-4 이야기 카드 | **done** — `GET /story/:period` 중계(기간은 경로 조각 인코딩만 — 형식 · 미래 거절 · 줄 · 금액은 서버) · `HouseholdStoryVM` · `HouseholdStoryLineVM` 계약 | 경로 37 → 38 · FR-4 전부 닫힘 |
+| FR-4 이야기 카드 | **done** — `GET /story/:period` 중계(기간은 경로 조각 인코딩만 — 형식 · 미래 거절 · 줄 · 금액은 서버) · `HouseholdStoryVM` · `HouseholdStoryLineVM` 계약 | 경로 37 → 38 · ~~FR-4 전부 닫힘~~ **정정 2026-11-05** 사람 장부 경로가 S1h 에 남는다 |
 
 ## Changelog
 
@@ -95,3 +95,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-046-F013-HOUSEHOLD.md
 | 2026-11-04 | 가계부 S1e — 고정비 숨기기 · 되돌리기 경로 2 · 월 화면 `fixedCosts` · `typicalAmount` 계약(`0ce2a356`). 테스트 +1(전체 366) |
 | 2026-11-05 | 가계부 S1f — 내 분류 경로 4 · 월 화면 `categories` · 예산 `salaryShare` 계약(`d6085b85`). 테스트 +1(전체 367) |
 | 2026-11-05 | 가계부 S1g — 이야기 카드 경로 · `HouseholdStoryVM` 계약(`05c5d19c`). 테스트 +1(전체 368) · FR-4 전부 닫힘 |
+| 2026-11-05 | 정정 — 앞 줄 "FR-4 전부 닫힘"은 틀렸다: 사람 장부 경로(FR-4) · 리볼빙 띠 칸(FR-3)이 S1h 에 남는다(서버 FR-14 · FR-10, FE FR-8 의 짝). FR 표 두 줄에 적음 |

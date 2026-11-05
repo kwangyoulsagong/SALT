@@ -113,7 +113,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 
 | FR | 상태 | 어디 |
 |---|---|---|
-| FR-9 이야기 카드 | **done** — `/household/story/[period]`(달 · 해 — 형식 · 미래면 404) · 첫 카드는 서버가 쿠키로(내 분류 이름은 받은 표로) · 문장은 `storyText` 한 곳(화면 카드 = 공유 이미지) · "금액 보이기" 꺼진 채 시작 · 가린 금액은 "가린 금액"으로 읽힘 · 이미지로 공유(파일 공유가 되면 공유 시트, 아니면 저장 · 시트를 닫으면 문구 0) · 빈 기간은 카드만 · 볼 수 있는 날은 서버 `readyOn` · 가계부 머리 "이야기 카드" 링크 · 카드 아래 "이 달 가계부" · "올해 이야기 보기" | entities `StoryCard` · `storyText` · `useHouseholdStory` · features `share-story` · pages `story` |
+| FR-9 이야기 카드 | **done** — `/household/story/[period]`(달 · 해 — 형식 · 미래면 404) · 첫 카드는 서버가 쿠키로(내 분류 이름은 받은 표로) · 문장은 `storyText` 한 곳(화면 카드 = 공유 이미지) · "금액 보이기" 꺼진 채 시작 · 가린 금액은 "가린 금액"으로 읽힘 · 이미지로 공유(파일 공유가 되면 공유 시트, 아니면 저장 · 시트를 못 열어도 저장 `eb9dc877` · 시트를 닫으면 문구 0) · 빈 기간은 카드만 · 볼 수 있는 날은 서버 `readyOn` · 가계부 머리 "이야기 카드" 링크 · 카드 아래 "이 달 가계부" · "올해 이야기 보기" | entities `StoryCard` · `storyText` · `useHouseholdStory` · features `share-story` · pages `story` |
 | FR-8 사람 장부 · FR-7 공제 | S1h · S2 content 뒤 | 슬라이스 범위 밖 |
 
 ## Changelog
@@ -136,3 +136,4 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | 2026-11-05 | `6b1aa765` — F4f 확인 단계: 소득 초과 거절이 까닭 없이 "저장 못 했어요"(코드 읽기로 발견) → 까닭 문장 · 지우기 실패 문장 · "내 분류" 영역 이름 이중(접근성 트리). route 로 로딩 · 실패 다섯 가지 · 보관한 분류 템플릿 고치기 실화면 |
 | 2026-11-05 | `65cc66ad` — 지운 분류 봉투 칸 "(지운 분류)" 유지(비우면 빠짐) · 지운 분류 고정비 후보는 그 줄에서 분류를 골라 매달 적기로(고르기 전 버튼 꺼짐). 사용자 "베스트케이스로" — 실화면 확인 |
 | 2026-11-05 | F4g — FR-9 이야기 카드 done(`1c46db88`). 실화면(임시 사용자) 서버 HTML 카드 · 가림 기본 · 켜면 금액 · 이미지 저장 둘 · 공유 시트 셋(흉내) · 4폭 × 4화면 넘침 0 · 웹뷰 390 · route 로딩 · 500 · 빈 기간. 확인 중 결함 4 고침(같은 이름 영역 · 이번 달 링크 · 빈 기간 버튼 · 공유 실패 문장) |
+| 2026-11-05 | `eb9dc877` — F4g 확인 단계: 공유 시트 거절(`NotAllowedError`) · 실패면 저장으로 넘어간다("공유하지 못했어요" 문장 지움) · 저장 주소는 다음 틱에 푼다. 실화면 공유 넷 다시 |
