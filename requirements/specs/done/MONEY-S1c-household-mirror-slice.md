@@ -12,7 +12,7 @@ status: done
 사용자 "새브랜치 파고 다음 파이프라인 진행" — 마스터 인덱스 다음 칸 **가계부 S1c**(같은 칸 다른 후보 `FE-REQ-013` FR-80 2단계 대신: "기능부터" 결정 2026-11-04).
 S1b 가 남긴 FR 이 열한 개라 다시 나눈다. 이번 S1c 한 줄:
 **"쓴 돈을 숫자 말고 다른 눈으로 비춰 본다 — 그때 기분 · 다음 날 만족 · 근무 시간 · 안 쓴 날."** 전부 측정 · 기록이고 평가 · 재촉 · 연속 일수가 없다.
-사람 장부 · 챌린지(+ 챌린지 스티커) · 이야기 카드 · 고정비/이상치(`FixedCostIncreased`) · 리볼빙 · 통장 쪼개기 · 사용자 분류는 **S1d**. **정정 2026-11-04** — S1d 는 챌린지(+ 스티커)만(`MONEY-S1d-household-challenge-slice.md`), 나머지는 S1e. **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f. **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g.
+사람 장부 · 챌린지(+ 챌린지 스티커) · 이야기 카드 · 고정비/이상치(`FixedCostIncreased`) · 리볼빙 · 통장 쪼개기 · 사용자 분류는 **S1d**. **정정 2026-11-04** — S1d 는 챌린지(+ 스티커)만(`MONEY-S1d-household-challenge-slice.md`), 나머지는 S1e. **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f. **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g. **정정 2026-11-05** S1g 는 이야기 카드만 닫았고 사람 장부 · 리볼빙은 S1h(`MONEY-S1g-household-story-slice.md`).
 
 > **done 2026-11-04** — 커밋 `dd330297`(서버 · DB) · `53d91b5c`(BFF) · `f0c8793d`(FE) · `672f892d`(낡은 주석 "S1c" → S1d) · 확인 단계 `841e1b65`(달력 · 거울 화면 읽기). 검증 `requirements/reports/checklists/MONEY-S1c-household-mirror.md`.
 > 영역 REQ 넷(`SRV-REQ-046` · `DB-REQ-038` · `BFF-REQ-048` · `FE-REQ-057`)은 남은 FR(S1d · 공제 S2) 때문에 in-progress.
@@ -29,7 +29,7 @@ S1b 가 남긴 FR 이 열한 개라 다시 나눈다. 이번 S1c 한 줄:
 
 ## 판단 — 리뷰가 볼 곳
 
-1. **S1c = 비추는 것 셋, S1d = 쌓는 것** — 감정 · 노동시간 · 달력은 "이미 적은 지출을 다른 눈으로" 본다(새 원장 0). 사람 장부 · 챌린지 · 이야기 카드는 새 기록 · 집계 원장이라 S1d 로 묶는다(챌린지 스티커가 달력 `kind` 를 하나 더한다). **정정 2026-11-04** — S1d 는 챌린지만(두 서비스 쓰기를 혼자 두려고), 사람 장부 · 이야기 카드는 ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만). 챌린지 스티커는 `kind` 대신 `challenge_day` 표(`MONEY-S1d-household-challenge-slice.md` 판단 3)
+1. **S1c = 비추는 것 셋, S1d = 쌓는 것** — 감정 · 노동시간 · 달력은 "이미 적은 지출을 다른 눈으로" 본다(새 원장 0). 사람 장부 · 챌린지 · 이야기 카드는 새 기록 · 집계 원장이라 S1d 로 묶는다(챌린지 스티커가 달력 `kind` 를 하나 더한다). **정정 2026-11-04** — S1d 는 챌린지만(두 서비스 쓰기를 혼자 두려고), 사람 장부 · 이야기 카드는 ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만). 챌린지 스티커는 `kind` 대신 `challenge_day` 표(`MONEY-S1d-household-challenge-slice.md` 판단 3) **정정 2026-11-05** S1g 는 이야기 카드만 닫았고 사람 장부 · 리볼빙은 S1h(`MONEY-S1g-household-story-slice.md`).
 2. **감정 태그는 지출당 하나 · 다음 날 한 번** — 키 셋(`stress` · `reward` · `boredom`, 기획 원문). 산 직후 만족(1~5)은 선택. 태그 단 날(KST)의 **다음 날부터 7일** 묻고, 답하거나 넘기면 다시 묻지 않는다. 7일이 지나면 조용히 안 묻는다(재촉 0). 태그 단 날 당일 답은 400 — "다음 날" 비교가 뜻이다. 태그를 바꿔도 태그 날짜 · 다음 날 답은 처음 값
 3. **거울은 그 달 지출의 태그별 1~5점 건수만** — 평균 · 점수 · 좋다/나쁘다 0. 순서는 감정 표 순서(많은 순으로 줄 세우지 않는다). 목록 표시와 같은 한 문장으로 읽는다(쿼리 1)
 4. **민감 정보** — 감정 · 만족 · 급여는 `FEATURE-015` FR-5 민감 정보(표 주석 `sensitive`). 이벤트(`ExpenseRecorded` 포함) · 로그에 싣지 않는다. 요청 DTO 의 `toString` 도 가린다
@@ -42,8 +42,8 @@ S1b 가 남긴 FR 이 열한 개라 다시 나눈다. 이번 S1c 한 줄:
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| 사람 장부 · 경조사 봉투 · 챌린지(+ 챌린지 스티커) · 이야기 카드 | 새 기록 원장(판단 1) | 가계부 S1d — **정정 2026-11-04** 챌린지는 S1d 닫힘, 사람 장부 · 이야기 카드는 ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) |
-| 고정비 · 이상치(`FixedCostIncreased`) · 리볼빙 · 통장 쪼개기 · 사용자 분류 | 같은 묶음 — 반복 템플릿 위의 감지 · 별도 표 | 가계부 ~~S1d~~ S1e(**정정 2026-11-04**) — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g |
+| 사람 장부 · 경조사 봉투 · 챌린지(+ 챌린지 스티커) · 이야기 카드 | 새 기록 원장(판단 1) | 가계부 S1d — **정정 2026-11-04** 챌린지는 S1d 닫힘, 사람 장부 · 이야기 카드는 ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h |
+| 고정비 · 이상치(`FixedCostIncreased`) · 리볼빙 · 통장 쪼개기 · 사용자 분류 | 같은 묶음 — 반복 템플릿 위의 감지 · 별도 표 | 가계부 ~~S1d~~ S1e(**정정 2026-11-04**) — **정정 2026-11-04** 고정비 · 이상치(`FixedCostIncreased`)는 S1e 닫힘(`MONEY-S1e-household-fixed-cost-slice.md`), 나머지는 S1f — **정정 2026-11-05** 통장 쪼개기 · 사용자 분류는 S1f 닫힘(`MONEY-S1f-household-categories-accounts-slice.md`), 나머지(사람 장부 · 이야기 카드 · 리볼빙)는 S1g — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h |
 | 지난 지출에 기분 붙이기 · 바꾸기 화면 | API(`PUT/DELETE /expenses/:id/feeling`)는 있다. 웹 목록 줄에 칸을 더하면 내역 디자인(`FE-REQ-060` 날짜 묶음 내역)과 겹친다 | `FE-REQ-060` 내역 디자인 때 |
 | 공제 계기판 | content 파라미터 | S2 content 뒤 |
 | RN 기분 · 달력 · 알림("어제 단 기분") | 웹 계약 확정 뒤 · 알림은 notification 서비스 | `RN-REQ-034` · notification S2 |

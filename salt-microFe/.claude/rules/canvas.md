@@ -16,6 +16,11 @@ Canvas는 DOM/SVG/React 렌더링이 병목임을 확인한 뒤 도입한다.
 - pagination, virtualization, SVG 최적화, lighter chart로 해결 가능한 경우.
 - 측정 없이 "빠를 것 같아서" 도입하는 경우.
 
+## 화면 밖 내보내기 — 이 규칙의 도입 대상이 아니다
+
+공유 이미지(PNG)처럼 **화면에 붙이지 않고 누를 때 한 번 그려 파일로 내보내는** 캔버스는 렌더링 수단이 아니다 — 화면의 카드 · 글은 DOM 그대로 두고,
+문장 · 색은 화면 것을 읽어 같은 모양으로 그린다(첫 예 가계부 이야기 카드 `features/share-story`, 2026-11-05 `FE-REQ-057`).
+
 ## 구현 패턴
 
 - React는 layout, controls, state owner, accessibility wrapper를 담당한다.

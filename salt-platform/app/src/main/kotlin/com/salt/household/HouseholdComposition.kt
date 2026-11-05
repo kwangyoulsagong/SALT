@@ -45,6 +45,8 @@ import com.salt.household.application.FixedCostReader
 import com.salt.household.application.FixedCostWatcher
 import com.salt.household.application.HideFixedCost
 import com.salt.household.application.ShowFixedCost
+import com.salt.household.application.GetStory
+import com.salt.household.infrastructure.JooqStories
 import com.salt.household.infrastructure.JooqSpendingPatterns
 import com.salt.household.infrastructure.JooqBudgets
 import com.salt.household.infrastructure.JooqCustomCategories
@@ -276,6 +278,12 @@ class HouseholdComposition {
 
     @Bean
     fun householdShowFixedCost(@Qualifier("householdDatabase") database: ServiceDatabase): ShowFixedCost = ShowFixedCost(JooqSpendingPatterns(database.dsl))
+
+    // ---------- 이야기 카드(가계부 S1g) ----------
+
+    @Bean
+    fun householdGetStory(@Qualifier("householdDatabase") database: ServiceDatabase, clock: Clock): GetStory =
+        GetStory(JooqStories(database.dsl), JooqCustomCategories(database.dsl), clock)
 
     /** 월 화면과 쓰기가 같은 계산 — 빈이 아니라 조립 함수(상태 없음) */
     private fun fixedCostReader(database: ServiceDatabase) = FixedCostReader(JooqSpendingPatterns(database.dsl), JooqRecurringTemplates(database.dsl))

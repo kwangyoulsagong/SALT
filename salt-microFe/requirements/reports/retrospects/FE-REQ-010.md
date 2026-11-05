@@ -143,3 +143,7 @@ watchlist 슬라이스 회고가 적은 실수를 초대 슬라이스가 되풀�
 ## 2026-11-04 — 가계부 S1d(`MONEY-S1d-household-challenge`)
 
 - **Action**: 없음.
+
+## 2026-11-05 — 가계부 S1g(`MONEY-S1g-household-story`)
+
+- **Action**: 없음.

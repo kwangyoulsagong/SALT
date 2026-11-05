@@ -7,6 +7,7 @@ import type {
   HouseholdBudget,
   HouseholdCategories,
   HouseholdMonth,
+  HouseholdStory,
   HouseholdSuggestions,
   ParseResult,
   RecurringTemplateList,
@@ -58,6 +59,9 @@ export const householdApi = {
   /** 분류 표 — 기본 12 + 내 분류(보관 포함, 가계부 S1f) */
   categories: async (signal?: AbortSignal): Promise<HouseholdCategories> =>
     read(await apiFetch(`${HOUSEHOLD_API}/categories`, { headers: authHeader(), signal }), "household-categories"),
+  /** 이야기 카드(가계부 S1g) — period = YYYY-MM | YYYY. 줄 · 금액 · 몫은 서버 */
+  story: async (period: string, signal?: AbortSignal): Promise<HouseholdStory> =>
+    read(await apiFetch(`${HOUSEHOLD_API}/story/${encodeURIComponent(period)}`, { headers: authHeader(), signal }), "household-story"),
   budget: async (signal?: AbortSignal): Promise<HouseholdBudget | null> =>
     read(await apiFetch(`${HOUSEHOLD_API}/budget`, { headers: authHeader(), signal }), "household-budget"),
 

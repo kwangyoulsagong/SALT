@@ -184,6 +184,17 @@ describe("AppHouseholdService", () => {
       ["DELETE", "/household/categories/..%2Fx", undefined],
     ]);
   });
+  it("이야기 카드(S1g) — 기간을 경로 조각으로 인코딩해 그대로 중계(줄 · 금액은 서버)", async () => {
+    const seen: string[] = [];
+    const story = { period: "2026-10", scope: "month", ready: true, readyOn: null, lines: [{ kind: "spent", amount: 100000 }], categories: [] };
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, url: string) => {
+      seen.push(url);
+      return { data: { data: story } } as never;
+    });
+    assert.deepEqual(await appHouseholdService.story("t", "2026-10"), story);
+    await appHouseholdService.story("t", "../2026");
+    assert.deepEqual(seen, ["/household/story/2026-10", "/household/story/..%2F2026"]);
+  });
   it("챌린지 목록(S1d) — 가계부 목록 + 진행 중 목표만 · 저축이 실패하면 goals null 이고 목록은 그대로", async () => {
     const list = { items: [{ id: "c", phase: "running" }], presets: ["skip_coffee"], limit: 5, openCount: 1, canStart: true };
     const goals = [

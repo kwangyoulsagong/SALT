@@ -33,6 +33,7 @@ source: pm/requirements/specs/in-progress/FEATURE-013-household-budget.md
 | FR-14 | `household_setting` — 노동시간 환산(켬 · 시급/월급 · 금액 · 월 근로시간). **민감 정보**(급여). 끄면 값은 남김 — **신설 2026-11-04 S1c** | FR-15 |
 | FR-15 | `fixed_cost_hidden` — "고정비 아니에요" 가맹점 키(사용자 · 키 유일). 후보 자체는 저장하지 않는다(지출에서 계산) — **신설 2026-11-04 S1e** | FR-12 |
 | FR-17 | `custom_category` — 사용자 · 키(`u_` + 12자리 · 사용자마다 유일) · 이름(1~12) · 묶음(needs · wants) · 보관 시각(지우기 = 보관 — 행이 남는다). 같은 이름은 보관 안 한 것끼리만 유일(부분 인덱스 `lower(name)`) — **신설 2026-11-05 S1f** | FR-6 |
+| FR-18 | 이야기 카드 읽기 — 새 표 0(카드는 저장하지 않는다). 기간 안 아낀 돈 합을 사용자 · 날짜로 읽는 인덱스 `challenge_saving (user_id, saved_on)` — **신설 2026-11-05 S1g** | FR-21 |
 | FR-16 | `fixed_cost_increase` — 고정비 증가 발행 기록(사용자 · 가맹점 키 · 달 유일 — `ON CONFLICT` 로 한 번만) · 앞 · 이번 금액 · 분류 · 오른 지출. 지출을 지워도 남는다 — **신설 2026-11-04 S1e** | FR-12 · 21 |
 
 ## Acceptance Criteria
@@ -70,7 +71,7 @@ Flyway `V2__recurring_close.sql`(로컬 운영 DB 적용 2026-11-04).
 | FR-7 | done — `month_close`(답 3열 300자 · 평가 점수 열 없음 · `(user, month)` 유일) + `month_close_envelope`(닫을 때 예산 사본) | S1a 판단 3 의 달별 이력 |
 | FR-8 | `landing_issued.scheduled`(기본 0 — 예정 개념 전 발행은 0) | 불변 트리거 그대로 |
 | FR-12 | done — `recurring_occurrence (user_id, month)` · 예정 부분 인덱스 `(due_on) WHERE status='scheduled'` · `expense (user_id, spent_on) WHERE installment_months IS NOT NULL` | 스펙의 `recurring_occurrence(due_on)` 대신 사용자 · 달 |
-| FR-2 · 5 · 6 · 9 · 10 · 11 | S1c · 뒤 — **정정 2026-11-04** FR-6 · 11(무지출)은 S1c 닫힘, FR-10 · 11(챌린지)은 S1d 닫힘, 나머지 ~~S1d~~ S1e | 리볼빙 표(FR-5)는 ~~S1c~~ ~~S1d~~ ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) |
+| FR-2 · 5 · 6 · 9 · 10 · 11 | S1c · 뒤 — **정정 2026-11-04** FR-6 · 11(무지출)은 S1c 닫힘, FR-10 · 11(챌린지)은 S1d 닫힘, 나머지 ~~S1d~~ S1e | 리볼빙 표(FR-5)는 ~~S1c~~ ~~S1d~~ ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h |
 
 ## 구현 현황 — 가계부 S1c (2026-11-04, `requirements/specs/done/MONEY-S1c-household-mirror-slice.md`)
 
@@ -81,7 +82,7 @@ Flyway `V3__feelings_calendar.sql`(로컬 운영 DB 적용 2026-11-04 — `house
 | FR-6 | done — `expense_tag`(PK `expense_id` · FK 지출 `ON DELETE CASCADE` · 감정 CHECK 셋 · `felt_now` · `felt_next` 1~5 · `tagged_on` · `next_decided_at` — 넘김 = 시각만) · 표 주석 `sensitive` · 묻기 부분 인덱스 `(user_id, tagged_on) WHERE next_decided_at IS NULL` | 스펙의 "태그"는 감정 하나 — 표 이름은 스펙 그대로 |
 | FR-11 | done(`no_spend`) — `calendar_sticker`(PK `(user_id, sticker_on, kind)` · 연속 일수 열 없음). `day` 대신 `sticker_on`(생성기 낱말 충돌 피함) | ~~챌린지 `kind` 는 S1d~~ **정정 2026-11-04** 챌린지 스티커는 `kind` 대신 `challenge_day`(S1d) |
 | FR-14 | done — `household_setting`(PK `user_id` · CHECK 셋: 방식 ⇔ 금액 · 켜려면 금액 · 월 시간은 월급에만) · 표 주석 `sensitive` | 신설 |
-| FR-2 · 5 · 9 · 10 | ~~S1d~~ **정정 2026-11-04** FR-10 은 S1d 닫힘, FR-2 · 5 · 9 는 ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | 슬라이스 범위 밖 |
+| FR-2 · 5 · 9 · 10 | ~~S1d~~ **정정 2026-11-04** FR-10 은 S1d 닫힘, FR-2 · 5 · 9 는 ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h | 슬라이스 범위 밖 |
 
 ## 구현 현황 — 가계부 S1d (2026-11-04, `requirements/specs/done/MONEY-S1d-household-challenge-slice.md`)
 
@@ -92,7 +93,7 @@ Flyway `V4__challenges.sql`(로컬 운영 DB 적용 2026-11-04 — `household` 3
 | FR-10 | done — `challenge`(이름 1~40 · 기간 CHECK · 상태 `active` · `ended` — **실패 없음** · 상태 ⇔ `ended_on` 짝) · `challenge_saving`(금액 > 0 · 메모 100자 · 보탠 목표 `goal_id` ⇔ `contributed_at` 짝 · 저축 스키마 FK 없음) | 수용 기준 2 충족 |
 | FR-11 챌린지 | done — `challenge_day`(PK `(challenge_id, marked_on)` · 연속 일수 열 없음). 스펙의 `calendar_sticker` kind 대신(판단 3) | 달력은 `(user_id, marked_on)` 인덱스 |
 | FR-12 | `challenge (user_id, created_at DESC)` · `challenge_day (user_id, marked_on)` · `challenge_saving (challenge_id)` | EXPLAIN 0.2ms 아래 |
-| FR-2 · 5 · 9 | ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) | 슬라이스 범위 밖 |
+| FR-2 · 5 · 9 | ~~S1e~~ ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기)(정정 2026-11-04 — S1e 는 고정비 · 이상치만) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h | 슬라이스 범위 밖 |
 
 ## 구현 현황 — 가계부 S1e (2026-11-04, `requirements/specs/done/MONEY-S1e-household-fixed-cost-slice.md`)
 
@@ -101,7 +102,7 @@ Flyway `V4__challenges.sql`(로컬 운영 DB 적용 2026-11-04 — `household` 3
 | FR-15 | done — `fixed_cost_hidden`(PK `(user_id, merchant_key)` · 키 1~40자) | 숨김은 후보 · 증가 발행 둘 다에서 뺀다 |
 | FR-16 | done — `fixed_cost_increase`(UNIQUE `(user_id, merchant_key, month)` · CHECK `current > previous > 0`) | 이벤트 본문에는 가맹점 키를 싣지 않는다 |
 | FR-12 | `expense (user_id, spent_on) WHERE merchant IS NOT NULL AND precision = 'exact' AND input_kind <> 'template'`(후보 표본) | EXPLAIN 0.055ms(행 2만 넣고 롤백) · 분류 기준은 기존 `(user_id, spent_on)` 0.037ms |
-| FR-2 · 5 · 9 | ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기) | 슬라이스 범위 밖 |
+| FR-2 · 5 · 9 | ~~S1f~~ S1g(정정 2026-11-05 — S1f 는 내 분류 · 통장 쪼개기) — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h | 슬라이스 범위 밖 |
 
 ## 구현 현황 — 가계부 S1f (2026-11-05, `requirements/specs/done/MONEY-S1f-household-categories-accounts-slice.md`)
 
@@ -112,7 +113,14 @@ Flyway `V6__custom_categories_account_split.sql`(로컬 운영 DB 적용 2026-11
 | FR-17 | done — `custom_category`(UNIQUE `(user_id, category)` · 키 꼴 CHECK · 이름 길이 · 묶음 CHECK · 부분 유일 `(user_id, lower(name)) WHERE archived_at IS NULL`) | 지출 원장 열 변경 0(V1 이 `category` 에 CHECK 를 두지 않았다) |
 | FR-3 | done — `budget.method` · `month_close.budget_method` CHECK 에 `account_split` · 소득 있는 방식 둘 | 마감 사본도 같은 방식 |
 | FR-12 | 새 인덱스 0 — 분류 표는 유일 키 인덱스, 월 합은 기존 `(user_id, spent_on)` | EXPLAIN 0.014ms · 0.084ms |
-| FR-5 · 9 | S1g | 슬라이스 범위 밖 |
+| FR-5 · 9 | S1g — **정정 2026-11-05** S1g 는 이야기 카드만 닫았다(`MONEY-S1g-household-story-slice.md`), 사람 장부 · 리볼빙은 S1h | 슬라이스 범위 밖 |
+
+## 구현 현황 — 가계부 S1g (2026-11-05, `requirements/specs/done/MONEY-S1g-household-story-slice.md`)
+
+| FR | 상태 | 비고 |
+|---|---|---|
+| FR-18 | done — V7 `challenge_saving_user_day_idx (user_id, saved_on)` 하나 · 새 표 · 열 0 | 다른 재료는 기존 인덱스(`expense_user_day_idx` · `challenge_day_user_idx` · `calendar_sticker` PK) |
+| FR-5 · 9 | S1h | 슬라이스 범위 밖 |
 
 ## Changelog
 
@@ -127,3 +135,4 @@ Flyway `V6__custom_categories_account_split.sql`(로컬 운영 DB 적용 2026-11
 | 2026-11-04 | 가계부 S1d — V4(`8d0e2723`) · FR-10 · FR-11(챌린지 — `challenge_day`) done · 수용 기준 2 충족. EXPLAIN(행 2만 넣고 롤백 — 다섯 쿼리 인덱스 · 0.2ms 아래) |
 | 2026-11-04 | 가계부 S1e — FR-15 · 16 신설 · FR-12 부분 인덱스(V5 `98895870`). 로컬 운영 DB 적용(household 4 → 5) |
 | 2026-11-05 | 가계부 S1f — FR-17 신설 · FR-2 정정 · FR-3 `account_split`(V6 `96c7c5b4`). 로컬 운영 DB 적용(household 5 → 6 — 슬라이스 경로 주석을 고치느라 push 전 한 번 되돌려 다시 적용) |
+| 2026-11-05 | 가계부 S1g — FR-18 신설 · done(V7 `2c31ce55`). 로컬 운영 DB 적용(household 6 → 7 — 주석 경로를 고치느라 push 전 한 번 되돌려 다시 적용). EXPLAIN(행 2만 넣고 롤백 — 아낀 돈 0.124ms) |

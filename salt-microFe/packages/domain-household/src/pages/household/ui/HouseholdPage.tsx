@@ -26,6 +26,9 @@ const MonthView = async ({ ym }: { ym: string }) => {
           <Link href={ROUTES.householdChallenges} className={s.link}>
             {M.challenges}
           </Link>
+          <Link href={ROUTES.householdStory(ym)} className={s.link}>
+            {M.story}
+          </Link>
           <Link href={ROUTES.householdBudget} className={s.link}>
             {M.budget}
           </Link>

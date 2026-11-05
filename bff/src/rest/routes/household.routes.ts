@@ -36,6 +36,8 @@ router.delete("/no-spend/:date", authMiddleware, appHouseholdController.unmarkNo
 // 고정비 찾기(가계부 S1e) — 후보 목록은 월 화면 fixedCosts
 router.post("/fixed-costs/hide", authMiddleware, appHouseholdController.hideFixedCost);
 router.post("/fixed-costs/show", authMiddleware, appHouseholdController.showFixedCost);
+// 이야기 카드(가계부 S1g) — period = YYYY-MM | YYYY. 줄 · 금액 · 몫은 서버
+router.get("/story/:period", authMiddleware, appHouseholdController.story);
 // 내 분류(가계부 S1f) — 지우기는 보관(지난 지출 이름은 남는다)
 router.get("/categories", authMiddleware, appHouseholdController.categories);
 router.post("/categories", authMiddleware, appHouseholdController.addCategory);

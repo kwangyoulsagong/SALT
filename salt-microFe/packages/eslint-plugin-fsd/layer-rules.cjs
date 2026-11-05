@@ -112,6 +112,8 @@ const REGISTRY = {
     "find-fixed-cost",
     // 가계부 S1f(2026-11-05) — 내 분류 만들기 · 고치기 · 지우기(보관)
     "manage-categories",
+    // 가계부 S1g(2026-11-05) — 이야기 카드 금액 보이기 · 이미지로 공유
+    "share-story",
     "set-risk-budget",
     "confirm-outcome-tags",
     "toggle-purchase-price",
@@ -154,6 +156,8 @@ const REGISTRY = {
     "recurring",
     // 가계부 S1d — `/household/challenges`(2026-11-04)
     "challenges",
+    // 가계부 S1g — `/household/story/[period]`(2026-11-05)
+    "story",
     "investments",
     "investment-detail",
     "search",

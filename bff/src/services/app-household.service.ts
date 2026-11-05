@@ -129,6 +129,36 @@ export interface HouseholdCategoriesVM {
   limit: number;
 }
 
+/**
+ * 이야기 카드 한 줄(가계부 S1g). kind 마다 쓰는 칸만 찬다 — 금액 칸은 amount 하나(공유 이미지 금액 가림은 화면 몫, 기본 가림).
+ * spent: amount · count · days · approx / top_category: category · amount · sharePercent / top_month: month · amount /
+ * no_spend_days · challenge_days: days / challenge_saved: amount / feelings_tagged: count
+ */
+export interface HouseholdStoryLineVM {
+  kind: string;
+  amount: number | null;
+  count: number | null;
+  days: number | null;
+  approx: boolean | null;
+  category: string | null;
+  sharePercent: number | null;
+  month: string | null;
+}
+
+export interface HouseholdStoryVM {
+  /** YYYY-MM | YYYY */
+  period: string;
+  /** month · year */
+  scope: string;
+  ready: boolean;
+  /** 아직이면 볼 수 있는 첫날(lines 빈 목록) */
+  readyOn: string | null;
+  /** 값이 없는 줄은 서버가 뺐다 — 빈 목록이면 적은 게 없는 기간 */
+  lines: HouseholdStoryLineVM[];
+  /** 분류 표 — 내 분류 이름(월 화면과 같은 꼴) */
+  categories: HouseholdCategoryVM[];
+}
+
 export interface HouseholdSuggestionsVM {
   merchants: Array<{ merchant: string; category: string; lastAmount: number; count: number }>;
   /** 고를 수 있는 분류 — 기본 12 + 보관 안 한 내 분류(가계부 S1f) */
@@ -522,6 +552,13 @@ class AppHouseholdService {
 
   async showFixedCost(token: string, body: unknown): Promise<{ key: string }> {
     return data(await backendApi.proxyAuthRequest("POST", "/household/fixed-costs/show", token, body, { timeout: WRITE_TIMEOUT_MS }));
+  }
+
+  // ---------- 이야기 카드(가계부 S1g) — 중계만 ----------
+
+  /** 기간 형식 · 미래 거절은 서버(400) — 경로 조각으로 인코딩만 */
+  async story(token: string, period: string): Promise<HouseholdStoryVM> {
+    return data(await backendApi.proxyAuthRequest("GET", `/household/story/${encodeURIComponent(period)}`, token, undefined, { timeout: READ_TIMEOUT_MS }));
   }
 
   // ---------- 내 분류(가계부 S1f) ----------

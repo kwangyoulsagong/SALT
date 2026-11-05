@@ -173,3 +173,7 @@ re-export 껍데기가 필요하고(FR-38), 껍데기가 남으면 done이 아�
 ## 2026-11-05 — 가계부 S1f(`MONEY-S1f-household-categories-accounts`)
 
 - 새 슬라이스를 쓰기 전에 훅이 막았다 — 레지스트리를 먼저 고치는 순서가 기계로 지켜졌다. Action 없음.
+
+## 2026-11-05 — 가계부 S1g(`MONEY-S1g-household-story`)
+
+- `canvas.md` 의 "카드에 캔버스 금지"가 공유 이미지 내보내기와 부딪혀 보였다 — 규칙의 뜻(렌더링)을 지키고 내보내기 한 줄을 더했다. **Action**: 없음.

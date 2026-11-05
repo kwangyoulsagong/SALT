@@ -436,3 +436,30 @@ export interface StartChallengeRequest {
   startsOn?: string;
   endsOn: string;
 }
+
+/**
+ * 이야기 카드 한 줄(가계부 S1g — `BFF-REQ-048` `HouseholdStoryLineVM`). kind 마다 쓰는 칸만 찬다 — 금액 칸은 amount 하나.
+ * 어떤 줄이 나올지 · 금액 · 몫은 서버. 모르는 kind 는 화면이 건너뛴다
+ */
+export interface HouseholdStoryLine {
+  kind: string;
+  amount: number | null;
+  count: number | null;
+  days: number | null;
+  approx: boolean | null;
+  category: CategoryKey | null;
+  sharePercent: number | null;
+  month: string | null;
+}
+
+export interface HouseholdStory {
+  /** YYYY-MM | YYYY */
+  period: string;
+  scope: "month" | "year";
+  ready: boolean;
+  /** 아직이면 볼 수 있는 첫날 */
+  readyOn: string | null;
+  /** 값이 없는 줄은 서버가 뺐다 — 빈 목록이면 적은 게 없는 기간 */
+  lines: HouseholdStoryLine[];
+  categories: HouseholdCategory[];
+}
