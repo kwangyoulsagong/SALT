@@ -4,7 +4,6 @@ import { describe, it } from "node:test";
 import {
   isKrNewsPollMinute,
   isKrNewsPromo,
-  isKrProgramPollMinute,
   krNewsKindOf,
   krSectorIndexCodeOf,
   type KrMarketCalendarStore,
@@ -87,10 +86,6 @@ describe("원천 판정 — 허용 · 거절 경계", () => {
     for (const [hm, due] of table) assert.equal(isKrNewsPollMinute(kst(hm)), due, hm);
   });
 
-  it("프로그램 회차 — 10분마다", () => {
-    assert.equal(isKrProgramPollMinute(kst("10:30")), true);
-    assert.equal(isKrProgramPollMinute(kst("10:31")), false);
-  });
 });
 
 const title = (serial: string, hm: string, codes: string[] = ["005930"], t = "제목"): KrNewsTitleFact => ({
@@ -198,7 +193,7 @@ describe("PollKrSectorIndices — 유니버스 업종만 · 지수 TR 그대로"
   });
 });
 
-describe("PollKrProgramFlows — 정규장 10분 · 오늘 체결만 · 한도 양보", () => {
+describe("PollKrProgramFlows — 장중만 · 오늘 체결만 · 한도 양보", () => {
   const fact = (code: string, at: Date): KrProgramFlowFact => ({
     code, at, netQuantity: 308365n, netValue: 60_550_831_650, buyValue: 1_058_390_942_900, sellValue: 997_840_111_250,
   });
@@ -233,8 +228,8 @@ describe("PollKrProgramFlows — 정규장 10분 · 오늘 체결만 · 한도 �
     assert.equal(result.skipped === false && result.yielded, true);
   });
 
-  it("10분 회차가 아니거나 장 밖이면 부르지 않는다", async () => {
-    assert.equal((await run(kst("10:31"), { a1: null })).asked.length, 0);
+  it("늦게 시작한 회차(10:31)도 받는다 — 박자는 워커 cron 몫 · 장 밖이면 부르지 않는다", async () => {
+    assert.equal((await run(kst("10:31"), { a1: null })).asked.length, 1);
     assert.equal((await run(kst("08:40"), { a1: null })).asked.length, 0);
   });
 });

@@ -95,8 +95,6 @@ export interface KrProgramFlowFact {
   sellValue: number;
 }
 
-/** 장중 몇 분마다 받나 — 유니버스 종목마다 한 번이라 KIS 한도 맨 뒤(시세 먼저 — FR-91) */
-export const KR_PROGRAM_POLL_MINUTES = 10;
 /** 장중 표 보관 일수(`DB-REQ-041` FR-5) — 하루가 지나면 일별 투자자 표가 정본 */
 export const KR_FLOW_INTRADAY_RETENTION_DAYS = 7;
 /** VI 사건 보관 일수 — 단계 A 가 남긴 정리(시장 전체 하루 수백 행) */
@@ -104,7 +102,6 @@ export const KR_VI_RETENTION_DAYS = 30;
 /** 정리 한 번에 지우는 행 수 — 긴 트랜잭션 · 대량 죽은 튜플을 피한다(`performance-database.md` §8) */
 export const KR_PRUNE_BATCH = 5_000;
 
-export const isKrProgramPollMinute = (now: Date): boolean => kstClock(now).minute % KR_PROGRAM_POLL_MINUTES === 0;
 
 // ==================== Port ====================
 

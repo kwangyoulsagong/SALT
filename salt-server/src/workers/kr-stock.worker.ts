@@ -23,7 +23,8 @@ import { schedule } from "../shared/infrastructure/scheduler";
  * | `kr-realtime` | 매분 | 08:30~16:00 개장일이면 WS 를 붙이고 슬롯을 맞춘다 · 밖이면 끊는다(시간외 단일가는 REST 10분 — 아래) |
  * | `kr-quote-poll` 뒤 지수 | 매분 | 코스피 · 코스닥(FR-49) — 현재가와 같은 박자 · 부를지는 유스케이스가 정한다 |
  * | `kr-quote-poll` 뒤 시장 상태 | 매분 | VI 현황 · 서킷브레이커 추정(F016 단계 A) — 지수 뒤(추정이 방금 쌓은 분 기록을 본다) · 정규장만 · 한도 맨 뒤 |
- * | `kr-quote-poll` 뒤 업종 · 프로그램 | 매분 | 업종 지수(지수와 같은 박자) · 프로그램 매매(정규장 10분마다, F016 단계 B) — 부를지는 유스케이스가 정한다 · 한도 맨 뒤 |
+ * | `kr-sector-indices` | 매분 | 업종 지수(F016 단계 B) — 지수와 같은 박자(부를지는 유스케이스) · 한도 맨 뒤 |
+ * | `kr-program-flows` | 평일 10분마다 | 장중 프로그램 매매(F016 단계 B) — 장 상태는 유스케이스가 본다 · 유니버스 종목마다라 한도 맨 뒤 |
  * | `kr-news-titles` | 매분 | 시황/공시 제목 — 시장 전체 한 번(07~20시 2분 · 그 밖 30분, 유스케이스가 정한다). 시세 회차와 따로 — 장 밖에도 돈다 |
  * | `kr-move-sources-prune` | 평일 15:55 | 제목 30일 · 장중 수급 7일 · VI 30일 나눠 지우기 |
  * | `kr-quote-poll` 뒤 시간외 | 16:11 … 18:01 10분마다 | 시간외 단일가(FR-27) — 체결 1분 뒤 유니버스만, 정규장 칸과 따로. **`KIS_AFTER_HOURS_ENABLED` 일 때만**(기본 끔 — 모의 키는 늘 0) |
@@ -67,9 +68,6 @@ export const startKrStockWorkers = () => {
         // 둘 다 부가라 실패가 뒤 작업(시간외)을 막지 않게 따로 잡는다
         await kr.inferMarketActions.execute().catch((e) => logger.warn(`서킷브레이커 추정 실패 — ${(e as Error).message}`));
         await kr.pollViEvents.execute().catch((e) => logger.warn(`VI 현황 실패 — ${(e as Error).message}`));
-        // 등락 원천(F016 단계 B) — 업종은 지수와 같은 박자 · 프로그램은 10분마다(유니버스 종목마다라 맨 뒤)
-        await kr.pollSectorIndices.execute().catch((e) => logger.warn(`업종 지수 실패 — ${(e as Error).message}`));
-        await kr.pollProgramFlows.execute().catch((e) => logger.warn(`프로그램 매매 실패 — ${(e as Error).message}`));
         // 시간외 단일가 — 16:11 … 18:01 10분마다만(유스케이스가 정한다). 그 시간엔 현재가 회차가 쉰다.
         // 모의 키는 늘 0 이라 기본 끔 — 초당 한도만 차지한다(요금 없음, 2026-10-29)
         if (env.KIS_AFTER_HOURS_ENABLED) await kr.pollAfterHours.execute();
@@ -78,6 +76,10 @@ export const startKrStockWorkers = () => {
     // 21:40 은 이어 받기 — 18:40 이 한도에 양보했거나 놓쳤으면 남은 종목만, 다 받았으면 호출 0(6b)
     { name: "kr-investor-flows", expression: "40 18,21 * * 1-5", run: () => kr.syncInvestorFlows.execute(), catchUp: true },
     { name: "kr-realtime", expression: "* * * * *", run: () => kr.realtime.reconcile() },
+    // 업종 · 프로그램(F016 단계 B)은 시세 사슬에 붙이지 않는다 — 사슬 한 회차가 1분을 넘기면(장중 초과 많을 때, 2026-11-06 12:01
+    // 중복 건너뜀) 사슬 끝의 "10분 정각" 판정이 늦은 시각을 보고 회차를 통째로 놓쳤다. 순서는 페이서 우선순위가 지킨다(시세 먼저)
+    { name: "kr-sector-indices", expression: "* * * * *", run: () => kr.pollSectorIndices.execute() },
+    { name: "kr-program-flows", expression: "*/10 * * * 1-5", run: () => kr.pollProgramFlows.execute() },
     // 시황/공시 제목 — 시장 전체 한 번이라 시세 회차에 묶지 않는다(장 밖 공시도 받는다). 놓친 구간은 쪽 넘김이 메운다
     { name: "kr-news-titles", expression: "* * * * *", run: () => kr.pollNewsTitles.execute() },
     { name: "kr-move-sources-prune", expression: "55 15 * * 1-5", run: () => kr.pruneMoveSources.execute(), catchUp: true },

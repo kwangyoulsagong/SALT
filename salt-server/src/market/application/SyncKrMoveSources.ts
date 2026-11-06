@@ -2,7 +2,6 @@ import { logger } from "../../shared/config/logger";
 import {
   isKrNewsPollMinute,
   isKrNewsPromo,
-  isKrProgramPollMinute,
   isKrQuoteWindow,
   isKrRateLimited,
   krNewsKindOf,
@@ -120,7 +119,8 @@ export class PollKrSectorIndices {
 
 /**
  * 장중 프로그램 매매(FR-5) — 유니버스 종목마다 한 번, 정규장 10분마다(+ 종가 단일가 · 15:40 회차가 그날 마지막 누적). 체결 시각이 같으면
- * 행이 늘지 않는다
+ * 행이 늘지 않는다. **몇 분마다인지는 워커 cron 이 정한다**(`*\/10`) — 여기서 지금 분을 다시 보면 늦게 시작한 회차를 통째로 버린다
+ * (2026-11-06 12:00 회차가 시세 사슬 뒤에서 12:01 에 시작해 0행). 여기선 장 상태만 본다
  */
 export class PollKrProgramFlows {
   constructor(
@@ -136,7 +136,7 @@ export class PollKrProgramFlows {
     const session = await loadKrSession(this.calendar, at);
     const trading =
       session.session === "regular" || session.session === "closing_auction" || session.session === "after_hours_close";
-    if (!trading || !isKrProgramPollMinute(at)) return { skipped: true as const };
+    if (!trading) return { skipped: true as const };
 
     const codes = await this.universe.execute();
     const facts: KrProgramFlowFact[] = [];
