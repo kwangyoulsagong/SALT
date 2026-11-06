@@ -167,6 +167,9 @@ export const toHouseholdCard = (src: HouseholdCardSource, now: string): HomeSumm
  * 코치 한 줄은 싣지 않는다 — 판단은 근거 · 적중률 · 실패사례 3종이 같이 있어야 렌더한다(제품 공통 수용 기준 1).
  * 적립(F003)은 아직 없다.
  */
+/** 투자 카드 · 첫 입력 진입 — 투자 zone 첫 화면(`FE-REQ-053`) */
+export const INVEST_HREF = "/investments";
+
 export const toInvestCard = (
   summary: PortfolioCardSource,
   now: string,
@@ -174,7 +177,7 @@ export const toInvestCard = (
   /** 매입가 숨김을 켰다고 **확인된** 사람 — "오늘 처음 본다면" 줄을 단다 */
   purchasePriceHidden = false,
 ): HomeSummaryCard => {
-  const base = { domain: "invest" as const, title: HOME_CARD_TEXT.invest.title, href: "/investments", updatedAt: now, note: null };
+  const base = { domain: "invest" as const, title: HOME_CARD_TEXT.invest.title, href: INVEST_HREF, updatedAt: now, note: null };
   if (summary.items.length === 0) {
     return {
       ...base,

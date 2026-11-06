@@ -30,7 +30,12 @@ router.post(
   appOnboardingController.acceptInvite
 );
 
-/** 3스텝 진행 상태. 인증이 필요하다. */
-router.get("/status", authMiddleware, appOnboardingController.status);
+/**
+ * 도메인 선택 온보딩(`BFF-REQ-046` FR-6, 서버 S3a 2026-11-06) — 고르기 → 고른 도메인 첫 입력 하나 → 끝.
+ * 옛 3스텝 `GET /status` 는 은퇴(웹 전환과 같은 PR — 소비처 0). 인증이 필요하다.
+ */
+router.get("/", authMiddleware, appOnboardingController.get);
+router.put("/domains", authMiddleware, appOnboardingController.chooseDomains);
+router.post("/finish", authMiddleware, appOnboardingController.finish);
 
 export default router;

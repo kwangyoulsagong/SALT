@@ -53,9 +53,25 @@ class AppOnboardingController {
     }
   };
 
-  status = async (req: Request, res: Response, next: NextFunction) => {
+  get = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      return res.json(await appOnboardingService.status(req.token!));
+      return res.json(await appOnboardingService.get(req.token!));
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  chooseDomains = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      return res.json(await appOnboardingService.chooseDomains(req.token!, req.body?.domains));
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  finish = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      return res.json(await appOnboardingService.finish(req.token!));
     } catch (error) {
       return next(error);
     }

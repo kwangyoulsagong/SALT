@@ -1,13 +1,9 @@
 import { logger } from "../config/logger";
 import { AppError } from "../utils/error.util";
 import { backendApi } from "./backend-api.service";
-import {
-  toOnboardingStatusViewModel,
-  type OnboardingStatusViewModel,
-  type ServerOnboardingStatus,
-} from "./onboarding.viewmodel";
+import { toOnboardingViewModel, type OnboardingViewModel, type ServerShell } from "./onboarding.viewmodel";
 
-export type { OnboardingStatusViewModel };
+export type { OnboardingViewModel };
 
 export interface InviteCheckResult {
   valid: boolean;
@@ -86,15 +82,25 @@ class AppOnboardingService {
     }
   }
 
-  async status(token: string): Promise<OnboardingStatusViewModel> {
-    const response = await backendApi.proxyAuthRequest(
-      "GET",
-      "/onboarding/status",
-      token
-    );
+  /**
+   * 도메인 선택 온보딩(`BFF-REQ-046` FR-6 · 서버 S3a). 서버는 Kotlin identity(라우팅 표 `/identity` → platform).
+   * 옛 3스텝 `/onboarding/status`(Express 조합 컨텍스트)는 은퇴 — 소비처가 이 함수 하나였다.
+   */
+  async get(token: string): Promise<OnboardingViewModel> {
+    const { data } = await backendApi.proxyAuthRequest("GET", "/identity/shell", token);
+    return toOnboardingViewModel(data?.data as ServerShell | undefined);
+  }
 
-    const data: ServerOnboardingStatus | undefined = response.data?.data;
-    return toOnboardingStatusViewModel(data);
+  /** 고르기. 값 검사(빈 목록 · 모르는 키 · 팁)는 서버 한 곳 — BFF 가 미리 거르지 않는다 */
+  async chooseDomains(token: string, domains: unknown): Promise<OnboardingViewModel> {
+    const { data } = await backendApi.proxyAuthRequest("PUT", "/identity/shell/domains", token, { domains });
+    return toOnboardingViewModel(data?.data as ServerShell | undefined);
+  }
+
+  /** 끝 — 첫 입력 화면으로 넘어갈 때 · 나중에 하기. 고르기 전이면 서버 409 그대로 */
+  async finish(token: string): Promise<OnboardingViewModel> {
+    const { data } = await backendApi.proxyAuthRequest("POST", "/identity/shell/onboarding/finish", token);
+    return toOnboardingViewModel(data?.data as ServerShell | undefined);
   }
 }
 

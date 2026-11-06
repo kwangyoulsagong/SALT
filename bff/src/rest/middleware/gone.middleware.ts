@@ -51,9 +51,12 @@ export const goneMiddleware = (req: Request, res: Response) => {
  * 404 대신 410 + 1회 로그로 1주 잔여 호출을 본 뒤 목록째 지운다. 서버 쪽 옛 코드 삭제(`msa-services.md` §7 ⑦)와 같은 날.
  *
  * - `/api/goals` — 저축이 Kotlin `savings` 서비스로 태어났다(`SRV-REQ-045` · `BFF-REQ-047` FR-7, 2026-11-03). 데이터는 `savings-import.sql` 로 옮겼다
+ * - `/api/app/onboarding/status` — 옛 3스텝(초대 · 첫 거래 · 첫 목표)이 도메인 선택 온보딩으로 바뀌었다(`BFF-REQ-046` FR-6 · `SRV-REQ-048` FR-1, 2026-11-06 서버 S3a).
+ *   온보딩 라우터 뒤에 걸려 있어 `/status` 만 여기로 떨어진다
  */
 export const RETIRED_PATHS: Readonly<Record<string, string>> = {
   "/api/goals": "/api/app/savings",
+  "/api/app/onboarding/status": "/api/app/onboarding",
 };
 
 const retiredLogged = new Set<string>();

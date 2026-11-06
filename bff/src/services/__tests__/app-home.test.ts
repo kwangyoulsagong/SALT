@@ -216,4 +216,76 @@ describe("AppHomeService.getHome", () => {
     assert.equal(invest.state, "ok");
     assert.equal(invest.secondary?.label, "보유 종목");
   });
+
+  // 홈 배치 — 서버 identity(`BFF-REQ-046` FR-4 · 5, 서버 S3a 2026-11-06)
+  const shell = (layout: unknown) => ({ data: { success: true, data: { layout } } }) as never;
+  const cardsWithLayout = (layout: unknown | Error) => async (_m: string, url: string) => {
+    if (url === "/identity/shell") {
+      if (layout instanceof Error) throw layout;
+      return shell(layout);
+    }
+    if (url === "/portfolio/stats") return { data: { success: true, data: { profitRate: 1 } } } as never;
+    return goalStats({ totalGoals: 1, activeGoals: 1, totalSaved: 10 });
+  };
+
+  it("배치는 identity 가 정한 순서 · 숨김 — 카드가 없는 도메인(팁)은 빠진다", async () => {
+    hideByDefault();
+    mock.method(backendApi, "proxyAuthRequest", cardsWithLayout({ order: ["tips", "invest", "household", "savings"], hidden: ["invest", "tips"] }));
+    mock.method(appPortfolioService, "getSummary", async () => portfolio([{}], 1));
+    const vm = await appHomeService.getHome("t");
+    assert.deepEqual(vm.order, ["invest", "household", "savings"]);
+    assert.deepEqual(vm.hidden, ["invest"]);
+  });
+
+  it("배치를 못 받으면 기본 순서 · 숨김 0 — 카드는 그대로(배치 실패는 카드 실패가 아니다)", async () => {
+    hideByDefault();
+    mock.method(backendApi, "proxyAuthRequest", cardsWithLayout(new Error("503")));
+    mock.method(appPortfolioService, "getSummary", async () => portfolio([{}], 1));
+    const vm = await appHomeService.getHome("t");
+    assert.deepEqual(vm.order, ["savings", "household", "invest"]);
+    assert.deepEqual(vm.hidden, []);
+    assert.ok(vm.cards.every((c) => c.state === "ok"));
+  });
+
+  it("배치 401 은 홈 전체 401", async () => {
+    hideByDefault();
+    const unauthorized = Object.assign(new Error("401"), { response: { status: 401 } });
+    mock.method(backendApi, "proxyAuthRequest", cardsWithLayout(unauthorized));
+    mock.method(appPortfolioService, "getSummary", async () => portfolio([{}], 1));
+    await assert.rejects(appHomeService.getHome("t"), (error) => error === unauthorized);
+  });
+
+  it("서버 순서에 없는 카드는 기본 순서로 뒤에 · 모르는 키는 버린다", async () => {
+    hideByDefault();
+    mock.method(backendApi, "proxyAuthRequest", cardsWithLayout({ order: ["invest", "coach"], hidden: ["coach"] }));
+    mock.method(appPortfolioService, "getSummary", async () => portfolio([{}], 1));
+    const vm = await appHomeService.getHome("t");
+    assert.deepEqual(vm.order, ["invest", "savings", "household"]);
+    assert.deepEqual(vm.hidden, []);
+  });
+
+  it("배치 저장은 identity 로 그대로 보내고(값 검사는 서버) 서버 답을 배치로 돌려준다", async () => {
+    const calls: Array<{ method: string; url: string; body: unknown }> = [];
+    mock.method(backendApi, "proxyAuthRequest", async (method: string, url: string, _t: string, body: unknown) => {
+      calls.push({ method, url, body });
+      return shell({ order: ["tips", "savings", "household", "invest"], hidden: ["tips"] });
+    });
+    const layout = await appHomeService.arrangeHome("t", ["tips", "savings", "household", "invest"], ["tips"]);
+    assert.deepEqual(calls, [{ method: "PUT", url: "/identity/shell/layout", body: { order: ["tips", "savings", "household", "invest"], hidden: ["tips"] } }]);
+    assert.deepEqual(layout, { order: ["tips", "savings", "household", "invest"], hidden: ["tips"] });
+  });
+
+  it("화면이 보이는 카드 셋의 순서만 보내면 모르는 칸(팁)을 뒤에 붙여 보낸다 · 배열이 아니면 그대로(서버 400)", async () => {
+    const bodies: unknown[] = [];
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, _u: string, _t: string, body: unknown) => {
+      bodies.push(body);
+      return shell({ order: ["invest", "savings", "household", "tips"], hidden: [] });
+    });
+    await appHomeService.arrangeHome("t", ["invest", "savings", "household"], []);
+    await appHomeService.arrangeHome("t", "invest", []);
+    assert.deepEqual(bodies, [
+      { order: ["invest", "savings", "household", "tips"], hidden: [] },
+      { order: "invest", hidden: [] },
+    ]);
+  });
 });
