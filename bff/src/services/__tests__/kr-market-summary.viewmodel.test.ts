@@ -78,3 +78,15 @@ describe("toKrMarketSummaryVM", () => {
     assert.throws(() => toKrMarketSummaryVM(summary({ items: [item({ kind: "etf" })] })), KrContractError);
   });
 });
+
+describe("국내 요약 띠 시장 조치(F016 단계 A · BFF-REQ-051 FR-2)", () => {
+  it("서버 marketActions 를 그대로 · 없는 옛 서버는 빈 배열", () => {
+    const cb = {
+      market: "KOSPI", kind: "circuit_breaker", stage: 1, direction: "down", startedAt: "2026-11-06T00:04:00.000Z",
+      endedAt: "2026-11-06T00:34:00.000Z", resumesAt: "2026-11-06T00:24:00.000Z", source: "inferred", active: false,
+    };
+    const base = toKrMarketSummaryVM(summary());
+    assert.deepEqual(base.marketActions, []);
+    assert.deepEqual(toKrMarketSummaryVM(summary({ marketActions: [cb] })).marketActions, [cb]);
+  });
+});
