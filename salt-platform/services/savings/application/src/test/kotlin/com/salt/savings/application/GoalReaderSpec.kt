@@ -36,7 +36,6 @@ class GoalReaderSpec : StringSpec({
         override fun listOwned(userId: String) = listOf(goal)
         override fun markCompleted(id: GoalId, at: Instant) = Unit
         override fun updateMonthlyPlan(id: GoalId, plan: Money, at: Instant) = Unit
-        override fun existsFor(userId: String) = true
     }
     val deposits = object : Deposits {
         override fun add(deposit: Deposit) = true

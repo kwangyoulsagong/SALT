@@ -367,12 +367,6 @@ open class RecordDeposits(
     }
 }
 
-/** 목표가 있나 — 온보딩 `set_plan` 프로브(Express)가 부른다. 홈 카드 전체 조립을 빌리지 않는다(코드 리뷰 2026-11-03) */
-open class HasGoals(private val goals: Goals) {
-    @Transactional(transactionManager = SAVINGS_TX, readOnly = true)
-    open fun execute(userId: String): Boolean = goals.existsFor(userId)
-}
-
 /** 홈 저축 카드(`SRV-REQ-045` FR-15 · `BFF-REQ-046`) — 숫자만. 문장 · 포맷은 BFF 카드 계약이 한다 */
 open class HomeCard(private val reader: GoalReader) {
     data class View(

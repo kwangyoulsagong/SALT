@@ -21,9 +21,6 @@ interface Goals {
 
     /** 저울 확정 — 계획 월 적립만 바꾼다(잠근 뒤 쓰기 트랜잭션에서) */
     fun updateMonthlyPlan(id: GoalId, plan: com.salt.kernel.Money, at: Instant)
-
-    /** 목표가 하나라도 있나 — 온보딩 `set_plan` 프로브용(보관한 것 포함, 쿼리 1) */
-    fun existsFor(userId: String): Boolean
 }
 
 interface Deposits {

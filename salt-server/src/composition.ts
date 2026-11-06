@@ -56,8 +56,6 @@ import { PrismaWhaleTransactionRepository } from "./market/infrastructure/Prisma
 import { SymbolNewsAdapter } from "./market/infrastructure/SymbolNewsAdapter";
 import { UpbitClient } from "./market/infrastructure/UpbitClient";
 import { createNewsApplication } from "./news/application/api";
-import { createOnboardingApplication } from "./onboarding/application/api";
-import { createOnboardingRouter } from "./onboarding/presentation/onboarding.routes";
 import { createPortfolioApplication } from "./portfolio/application/api";
 import { KrStockQuoteAdapter } from "./portfolio/infrastructure/KrStockQuoteAdapter";
 import { PriceHistoryAdapter } from "./portfolio/infrastructure/PriceHistoryAdapter";
@@ -73,8 +71,6 @@ import { createKrStockRouter } from "./market/presentation/krStock.routes";
 import { createPortfolioRouter } from "./portfolio/presentation/portfolio.routes";
 import { env } from "./shared/config/env";
 import { logger } from "./shared/config/logger";
-import { createHttpClient } from "./shared/infrastructure/httpClient";
-import { JwtUtil } from "./shared/lib/jwt";
 
 /**
  * 조립 지점 — **구현을 아는 유일한 자리**다.
@@ -279,35 +275,6 @@ const coach = createCoachApplication({
   forecastOwnerEmails: env.FORECAST_OWNER_EMAILS,
 });
 
-/**
- * `onboarding` 은 **조합 컨텍스트**다. Aggregate 가 없고 남의 사실을 읽기만 한다.
- *
- * 두 프로브가 이 슬라이스의 임시 배선이다:
- *
- * | 스텝 | REQ 가 말한 소스 | 지금 꽂는 것 | 언제 바뀌나 |
- * |---|---|---|---|
- * | `link_account` | `ledger` 거래 존재 | `portfolio` 공개 API 의 거래 건수 | F001 `ledger` |
- * | `set_plan` | `plan` 설정 존재 | `goal` 행 존재 | F003 `plan` |
- *
- * `set_plan` 은 2026-11-03 부터 **Kotlin `savings` 서비스에 묻는다**(`SRV-REQ-045` FR-1 — 목표가 그쪽에서 생긴다. 옛 `goals`
- * 표는 가져오기 뒤 쓰는 곳이 없어 세면 새 사용자의 스텝이 영원히 미완료다). 서비스 간 "지금 바로 답이 필요한 조회"라
- * 내부 REST(`msa-services.md` §5) — 토큰은 S3 전까지 이 서버(identity 주인)가 그 사용자로 서명한 짧은 접근 토큰,
- * 타임아웃 800ms, 실패하면 프로브가 false(그 스텝만 미완료 — `GetOnboardingStatus` 가 삼킨다). 조립 지점이라 구현을 안다(§5).
- */
-/** Kotlin 플랫폼 내부 조회 클라이언트 — 서비스 주소는 env 한 곳(`PLATFORM_API_URL`) */
-const platformClient = createHttpClient({ baseURL: env.PLATFORM_API_URL, timeoutMs: 800 });
-
-const onboarding = createOnboardingApplication({
-  ledgerLinked: async (userId) =>
-    (await portfolio.api.countTransactions(userId)) > 0,
-  planConfigured: async (userId) => {
-    const response = await platformClient.get("/savings/goals/exists", {
-      headers: { Authorization: `Bearer ${JwtUtil.generateAccessToken(userId, "")}` },
-    });
-    return response.data?.data?.exists === true;
-  },
-});
-
 /** 다른 컨텍스트와 워커가 부르는 공개 API 모음. */
 export const contextApis = {
   news: news.api,
@@ -327,7 +294,6 @@ export const contextUseCases = {
 /** `app.ts` 가 등록하는 라우터. 경로는 `app.ts` 가 정한다. */
 export const contextRouters = {
   auth: createAuthRouter(auth.useCases),
-  onboarding: createOnboardingRouter(onboarding.useCases),
   news: createNewsRouter(news.useCases),
   investment: createInvestmentRouter(market.useCases),
   marketIntelligence: createMarketIntelligenceRouter(market.useCases),
