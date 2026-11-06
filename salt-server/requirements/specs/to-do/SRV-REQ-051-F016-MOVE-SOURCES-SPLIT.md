@@ -36,7 +36,7 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | FR-7 | **등락 분해** `SplitDailyMove` — 국내: 시장 몫 = β_시장 × 지수 등락 · 업종 몫 = β_업종 × (업종 − 지수) · 고유 = 나머지. 코인: BTC 몫 = btc_beta × BTC 등락 · 고유 = 나머지. β 는 forecast export 뷰(`FC-REQ-027`) — 못 읽으면 β=1(시장 조정) + `method=market_adjusted` 라벨. 합 = 등락(반올림 전 정확히). 금액 아님 — %p |
 | FR-8 | **카드 조건** — |등락| ≥ max(최소 %, k × σ60) 또는 오늘 VI · 시장 조치 · 정지 · 경보. k · 최소 % · σ 창은 서버 설정(값은 분포 보고 — `FEATURE-016` Q6) |
 | FR-9 | **같은 날 사실 목록** `ListMoveFacts` — 시각순 · id · kind(news · disclosure · vi · market_action · halt · warn · flow · crypto_news · crypto_warning) · 출처 · 시각 · 제목/값. 원천 하나 실패 = 그 kind 만 `unavailable` |
-| FR-10 | **코인 쪽** — 기존 `NewsArticle`(코인 태그) · 업비트 마켓 상세 유의/주의 플래그(공식 `market/all` 상세 — 수집 워커에 칸 추가) |
+| FR-10 | **코인 쪽** — 기존 `NewsArticle`(코인 태그) · 업비트 마켓 상세 유의/주의 플래그(공식 `market/all` 상세 — 수집 워커에 칸 추가) · ~~거래소 공지(비공식 공지 JSON)~~ **안 쓴다**(사용자 결정(2026-11-06): *"업비트 공지는 안한다"*) |
 | FR-11 | 소유자 판정 — 국내 경로는 기존 `assertViewer`. 코인은 로그인 사용자 |
 | FR-12 | 신선도 — 원천별 마지막 수집 시각을 `ops/salt.sh status` 신선도 쿼리에(`OPS-002` · `workers-external.md`) |
 
@@ -57,3 +57,5 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-06 | 신규(to-do) — 딥리서치 `requirements/reports/research/2026-11-06-why-moved.md` · `ADR-009` |
+| 2026-11-06 | ~~사용자 결정 — 업비트 비공식 공지 사용(저빈도 · 차단 시 중단)~~ 곧이어 정정(아래) |
+| 2026-11-06 | 사용자 결정(2026-11-06): *"업비트 공지는 안한다"* — FR-10 거래소 공지 뺌(공식 마켓 플래그만) |

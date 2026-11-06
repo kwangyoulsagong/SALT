@@ -33,7 +33,7 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 - [ ] 인과어 · 앞날 · 매매 지시 0(가드 테스트 + 표본 grep)
 - [ ] 같은 지문 두 번 요청 → LLM 1회
 - [ ] 끄기 설정 → ③ 0 · ①② 그대로
-- [ ] 평가 표본 충실도 문턱 이상(`FC-REQ-027` · `FEATURE-016` Q2) — 켜기 조건
+- [ ] ~~평가 표본 충실도 문턱 이상 — 켜기 조건~~ **2026-11-06 사용자 결정**: 켜기 조건 아님 — 운영 중 충실도 리포트(`FC-REQ-027`) · 나빠지면 FR-7 끄기
 
 ## 계약 영향
 
@@ -44,3 +44,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-06 | 신규(to-do) — `ADR-009` |
+| 2026-11-06 | 사용자 결정 — ③ 평가 문턱 없이 켬(비상업 · 본인 + 친구용). 게이트 · 가드 · AI 표시 유지 |

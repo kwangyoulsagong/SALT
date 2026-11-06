@@ -22,7 +22,7 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | FR-3 | export 뷰 `forecast.v_move_beta_export`(종목 · 자산군 · 지수 β · 업종 β · as_of · 표본 수) — 사용자 열 0 |
 | FR-4 | 평가 표본 — 지난 1년 큰 등락일(국내 · 코인 각 N, 카드 조건과 같은 규칙) 추출 · 사람 표시 양식(사실 목록 + 문장 → 충실 · 인과 단정 · 지어냄) |
 | FR-5 | 지표 — 인용 충실도 · 인과 단정 0 비율 · "소식 없음" 정직률 · 소식 매칭 비율 · 분해 몫 분포(시장 몫이 지배적인 날 비율). 리포트 `reports/move-explain-*.md` |
-| FR-6 | 사전 등록 — ③ 켜기 문턱을 평가 전에 적는다(`modeling-evaluation` 규칙과 같은 꼴) |
+| FR-6 | ~~사전 등록 — ③ 켜기 문턱을 평가 전에 적는다~~ **2026-11-06 사용자 결정**: 켜기 조건이 아니다 — 운영 중 주간 리포트(충실도 · 정직률)와 "나빠짐" 기준만 적는다(끄기 판단용) |
 
 ## Acceptance Criteria
 
@@ -39,3 +39,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-06 | 신규(to-do) |
+| 2026-11-06 | 사용자 결정 — 평가는 켜기 문턱이 아니라 운영 모니터링 |
