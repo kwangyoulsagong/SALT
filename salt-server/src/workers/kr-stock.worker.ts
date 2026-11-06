@@ -22,6 +22,7 @@ import { schedule } from "../shared/infrastructure/scheduler";
  * | `kr-provider-metrics` | 10분 | TR 별 호출 · 실패 · 초과 · 오늘 토큰 발급 수(FR-94) |
  * | `kr-realtime` | 매분 | 08:30~16:00 개장일이면 WS 를 붙이고 슬롯을 맞춘다 · 밖이면 끊는다(시간외 단일가는 REST 10분 — 아래) |
  * | `kr-quote-poll` 뒤 지수 | 매분 | 코스피 · 코스닥(FR-49) — 현재가와 같은 박자 · 부를지는 유스케이스가 정한다 |
+ * | `kr-quote-poll` 뒤 시장 상태 | 매분 | VI 현황 · 서킷브레이커 추정(F016 단계 A) — 지수 뒤(추정이 방금 쌓은 분 기록을 본다) · 정규장만 · 한도 맨 뒤 |
  * | `kr-quote-poll` 뒤 시간외 | 16:11 … 18:01 10분마다 | 시간외 단일가(FR-27) — 체결 1분 뒤 유니버스만, 정규장 칸과 따로. **`KIS_AFTER_HOURS_ENABLED` 일 때만**(기본 끔 — 모의 키는 늘 0) |
  * | `kr-investor-flows` | 평일 18:40 · 21:40 | 투자자 순매수 30거래일(FR-50) — 당일 값이 18:00 뒤라 그 뒤 · 전 종목 일봉(18:00) 앞쪽이 대개 끝난 뒤. 한도 초과면 회차를 접고 21:40 이 남은 종목을 이어 받는다(FR-91) |
  *
@@ -59,6 +60,10 @@ export const startKrStockWorkers = () => {
         await portfolio.revalueKrStockHoldings.execute();
         // 부가 정보는 맨 뒤 — 지수가 실패해도 보유 평가는 이미 끝났다(FR-91)
         await kr.pollIndices.execute();
+        // 시장 상태(F016 단계 A) — 서킷브레이커 추정은 방금 쌓은 지수 분 기록을 본다. VI 는 시장 전체 한 번(쪽 30건)
+        // 둘 다 부가라 실패가 뒤 작업(시간외)을 막지 않게 따로 잡는다
+        await kr.inferMarketActions.execute().catch((e) => logger.warn(`서킷브레이커 추정 실패 — ${(e as Error).message}`));
+        await kr.pollViEvents.execute().catch((e) => logger.warn(`VI 현황 실패 — ${(e as Error).message}`));
         // 시간외 단일가 — 16:11 … 18:01 10분마다만(유스케이스가 정한다). 그 시간엔 현재가 회차가 쉰다.
         // 모의 키는 늘 0 이라 기본 끔 — 초당 한도만 차지한다(요금 없음, 2026-10-29)
         if (env.KIS_AFTER_HOURS_ENABLED) await kr.pollAfterHours.execute();

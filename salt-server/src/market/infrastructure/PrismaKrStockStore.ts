@@ -101,7 +101,8 @@ export class PrismaKrStockStore implements KrStockStore {
     await prisma.$executeRaw`
       INSERT INTO kr_stock_quotes (code, price, change, change_rate, volume, trade_value, market_cap, base_price,
         upper_limit, lower_limit, status_code, warn_code, is_halted, per, pbr, eps, bps, week52_high, week52_low,
-        foreign_rate, open_price, high_price, low_price, feed, price_updated_at)
+        foreign_rate, open_price, high_price, low_price, vi_code, caution_flag, managed_flag, liquidation_flag,
+        short_overheat_flag, feed, price_updated_at)
       SELECT u.*, ${feed}, (${at}::timestamptz AT TIME ZONE 'UTC') FROM unnest(
         ${col((f) => f.code)}::text[], ${col((f) => f.price)}::numeric[], ${col((f) => f.change)}::numeric[],
         ${col((f) => f.changeRate)}::numeric[], ${col((f) => f.volume)}::bigint[], ${col((f) => f.tradeValue)}::numeric[],
@@ -110,10 +111,12 @@ export class PrismaKrStockStore implements KrStockStore {
         ${col((f) => f.isHalted)}::boolean[], ${col((f) => f.per)}::numeric[], ${col((f) => f.pbr)}::numeric[],
         ${col((f) => f.eps)}::numeric[], ${col((f) => f.bps)}::numeric[], ${col((f) => f.week52High)}::numeric[],
         ${col((f) => f.week52Low)}::numeric[], ${col((f) => f.foreignRate)}::numeric[],
-        ${col((f) => f.openPrice)}::numeric[], ${col((f) => f.highPrice)}::numeric[], ${col((f) => f.lowPrice)}::numeric[]
+        ${col((f) => f.openPrice)}::numeric[], ${col((f) => f.highPrice)}::numeric[], ${col((f) => f.lowPrice)}::numeric[],
+        ${col((f) => f.viCode)}::text[], ${col((f) => f.cautionFlag)}::boolean[], ${col((f) => f.managedFlag)}::boolean[],
+        ${col((f) => f.liquidationFlag)}::boolean[], ${col((f) => f.shortOverheatFlag)}::boolean[]
       ) AS u(code, price, change, change_rate, volume, trade_value, market_cap, base_price, upper_limit, lower_limit,
         status_code, warn_code, is_halted, per, pbr, eps, bps, week52_high, week52_low, foreign_rate,
-        open_price, high_price, low_price)
+        open_price, high_price, low_price, vi_code, caution_flag, managed_flag, liquidation_flag, short_overheat_flag)
       -- 마스터에 없는 코드는 넣지 않는다(FK) — 관심 목록에 남은 상폐 종목 같은 경우
       WHERE EXISTS (SELECT 1 FROM kr_stock_master m WHERE m.code = u.code)
       ON CONFLICT (code) DO UPDATE SET
@@ -125,6 +128,12 @@ export class PrismaKrStockStore implements KrStockStore {
         week52_high = EXCLUDED.week52_high, week52_low = EXCLUDED.week52_low,
         foreign_rate = EXCLUDED.foreign_rate, price_updated_at = EXCLUDED.price_updated_at,
         open_price = EXCLUDED.open_price, high_price = EXCLUDED.high_price, low_price = EXCLUDED.low_price,
+        vi_code = EXCLUDED.vi_code, caution_flag = EXCLUDED.caution_flag, managed_flag = EXCLUDED.managed_flag,
+        liquidation_flag = EXCLUDED.liquidation_flag, short_overheat_flag = EXCLUDED.short_overheat_flag,
+        -- 마지막 체결(F016 단계 A · FR-6) — 현재가 응답엔 체결 시각이 없다. 누적 거래량이 늘었으면 이 회차 시각, 그대로면 앞 값
+        -- (실시간 체결이 쓴 정확한 시각 포함)을 남긴다. 오차는 폴링 간격(1분) 안
+        last_trade_at = CASE WHEN EXCLUDED.volume > kr_stock_quotes.volume THEN EXCLUDED.price_updated_at
+                             ELSE kr_stock_quotes.last_trade_at END,
         -- 실시간이 90초 안에 쓴 종목은 폴링 보충(5분마다)이 출처 표시를 되돌리지 않는다
         feed = CASE WHEN kr_stock_quotes.feed = 'realtime'
                      AND kr_stock_quotes.price_updated_at > EXCLUDED.price_updated_at - interval '90 seconds'
@@ -335,6 +344,8 @@ export class PrismaKrStockStore implements KrStockStore {
       UPDATE kr_stock_quotes q SET
         price = u.price, change = u.change, change_rate = u.change_rate, volume = u.volume, trade_value = u.trade_value,
         is_halted = u.is_halted, feed = 'realtime', price_updated_at = (${at}::timestamptz AT TIME ZONE 'UTC'),
+        -- 체결 프레임의 체결 시각이 마지막 체결이다(F016 단계 A · FR-6)
+        last_trade_at = GREATEST(q.last_trade_at, u.trade_at AT TIME ZONE 'UTC'),
         -- 체결 프레임이 당일 시 · 고 · 저를 준다. 칸이 비면(형식 오류) 폴링 값을 남긴다
         open_price = COALESCE(u.open_price, q.open_price), high_price = COALESCE(u.high_price, q.high_price),
         low_price = COALESCE(u.low_price, q.low_price)
@@ -342,8 +353,8 @@ export class PrismaKrStockStore implements KrStockStore {
         ${col((t) => t.code)}::text[], ${col((t) => t.price)}::numeric[], ${col((t) => t.change)}::numeric[],
         ${col((t) => t.changeRate)}::numeric[], ${col((t) => t.accVolume)}::bigint[], ${col((t) => t.accTradeValue)}::numeric[],
         ${col((t) => t.isHalted)}::boolean[], ${col((t) => t.openPrice)}::numeric[], ${col((t) => t.highPrice)}::numeric[],
-        ${col((t) => t.lowPrice)}::numeric[]
-      ) AS u(code, price, change, change_rate, volume, trade_value, is_halted, open_price, high_price, low_price)
+        ${col((t) => t.lowPrice)}::numeric[], ${col((t) => t.at)}::timestamptz[]
+      ) AS u(code, price, change, change_rate, volume, trade_value, is_halted, open_price, high_price, low_price, trade_at)
       WHERE q.code = u.code`;
   }
 
@@ -488,8 +499,14 @@ const toStoredQuote = (row: QuoteRow): StoredKrStockQuote => ({
   openPrice: toNum(row.openPrice),
   highPrice: toNum(row.highPrice),
   lowPrice: toNum(row.lowPrice),
+  viCode: row.viCode,
+  cautionFlag: row.cautionFlag,
+  managedFlag: row.managedFlag,
+  liquidationFlag: row.liquidationFlag,
+  shortOverheatFlag: row.shortOverheatFlag,
   feed: row.feed as KrQuoteFeed,
   priceUpdatedAt: row.priceUpdatedAt,
+  lastTradeAt: row.lastTradeAt,
   afterHours:
     row.afterHoursPrice !== null && row.afterHoursAt !== null
       ? {

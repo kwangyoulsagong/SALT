@@ -24,6 +24,9 @@ import {
   type KrStockQuoteFact,
   type KrStockQuotePort,
   type KrSupplementPort,
+  type KrMarketStatusPort,
+  type KrViEventFact,
+  krViKindOf,
 } from "../domain";
 
 /**
@@ -63,6 +66,8 @@ export const KIS_QUERY_TR = {
   askingPrice: "FHKST01010200",
   /** 국내주식 시간외현재가 — 시간외 단일가(슬라이스 6b FR-27). 장중엔 전부 0 이다(2026-10-27 10:12 실측) */
   overtimePrice: "FHPST02300000",
+  /** 변동성완화장치(VI) 현황 — 시장 전체 한 번 · 한 쪽 30건 · 발동 시각 내림차순(F016 단계 A · `SRV-REQ-051` FR-2, 2026-11-06 실측) */
+  viStatus: "FHPST01390000",
 } as const;
 
 /**
@@ -170,7 +175,7 @@ export interface KisClientOptions {
   now?: () => Date;
 }
 
-export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProviderHealthPort {
+export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProviderHealthPort, KrMarketStatusPort {
   private readonly http;
   private readonly pacer: RatePacer;
   private readonly now: () => Date;
@@ -251,6 +256,12 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
       warnCode: o.mrkt_warn_cls_code || null,
       // 거래정지 플래그 · 종목상태 58(거래정지) 둘 중 하나 — 필드 의미 근거 등급 [약]
       isHalted: o.temp_stop_yn === "Y" || o.iscd_stat_cls_code === "58",
+      // 상태 칸 넓히기(F016 단계 A · FR-6) — 2026-11-06 실측 필드. 평소 값 `N`
+      viCode: o.vi_cls_code || null,
+      cautionFlag: o.invt_caful_yn === "Y",
+      managedFlag: o.mang_issu_cls_code === "Y",
+      liquidationFlag: o.sltr_yn === "Y",
+      shortOverheatFlag: o.short_over_yn === "Y",
       per: num(o.per),
       pbr: num(o.pbr),
       eps: num(o.eps),
@@ -482,23 +493,86 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
     };
   }
 
+  /**
+   * VI 현황 한 쪽(F016 단계 A · FR-2) — 시장 전체 · 발동 시각 내림차순 **최근 30건**. 해제 전 사건은 `vi_cncl_hour = 000000`.
+   * 시각은 그날(`bsop_date`) KST 벽시계 → UTC. 연속 조회 규약(응답 `tr_cont` F · M → 요청 `N`)을 따르지만 2026-11-06 10:51 실측에선
+   * 이 TR 이 `tr_cont` 를 비워 줬다 — 늘 최근 30건 한 쪽이다(그때 약 9분치)
+   */
+  async viEventsPage(date: string, continued: boolean): Promise<{ events: KrViEventFact[]; hasMore: boolean }> {
+    const { body, trCont } = await this.request(
+      "/uapi/domestic-stock/v1/quotations/inquire-vi-status",
+      KIS_QUERY_TR.viStatus,
+      {
+        FID_DIV_CLS_CODE: "0",
+        FID_COND_SCR_DIV_CODE: "20139",
+        FID_MRKT_CLS_CODE: "0",
+        FID_INPUT_ISCD: "",
+        FID_RANK_SORT_CLS_CODE: "0",
+        FID_INPUT_DATE_1: compactDate(date),
+        FID_TRGT_CLS_CODE: "",
+        FID_TRGT_EXLS_CLS_CODE: "",
+      },
+      KIS_PRIORITY.supplement,
+      continued ? "N" : ""
+    );
+    const rows: any[] = Array.isArray(body.output) ? body.output : [];
+    const at = (day: unknown, hhmmss: unknown): Date | null =>
+      typeof day === "string" && /^\d{8}$/.test(day) && typeof hhmmss === "string" && /^\d{6}$/.test(hhmmss) && hhmmss !== "000000"
+        ? new Date(`${isoDate(day)}T${hhmmss.slice(0, 2)}:${hhmmss.slice(2, 4)}:${hhmmss.slice(4, 6)}+09:00`)
+        : null;
+    const events = rows.flatMap((row): KrViEventFact[] => {
+      const code = typeof row?.mksc_shrn_iscd === "string" ? row.mksc_shrn_iscd.trim() : "";
+      const triggeredAt = at(row?.bsop_date, row?.cntg_vi_hour);
+      if (!code || !triggeredAt) return [];
+      const gap = (v: unknown) => {
+        const n = num(v);
+        return n === null || n === 0 ? null : n;
+      };
+      const count = num(row.vi_count);
+      return [
+        {
+          code,
+          triggeredAt,
+          releasedAt: at(row.bsop_date, row.vi_cncl_hour),
+          kind: krViKindOf(row.vi_kind_code),
+          triggerPrice: positiveOrNull(num(row.vi_prc)),
+          staticGapRate: gap(row.vi_dprt),
+          dynamicGapRate: gap(row.vi_dmc_dprt),
+          count: count === null ? null : Math.trunc(count),
+        },
+      ];
+    });
+    return { events, hasMore: trCont === "F" || trCont === "M" };
+  }
+
   // ==================== 요청 ====================
 
   private async get(path: string, trId: string, params: Record<string, string>, priority: KisPriority): Promise<any> {
+    return (await this.request(path, trId, params, priority, "")).body;
+  }
+
+  /** `get` + 연속 조회 머리(`tr_cont`) — 요청엔 이어 받기 표시, 응답엔 더 있는지 */
+  private async request(
+    path: string,
+    trId: string,
+    params: Record<string, string>,
+    priority: KisPriority,
+    trCont: "" | "N"
+  ): Promise<{ body: any; trCont: string }> {
     assertQueryTr(trId);
     let reissued = false;
 
     const once = async () => {
       const token = await this.accessToken();
       try {
-        return await this.send(path, trId, params, token, priority);
+        return await this.send(path, trId, params, token, priority, trCont);
       } catch (error) {
         // 토큰이 서버에서 먼저 죽었다 — 한 번만 새로 받는다(FR-92)
         if (!reissued && error instanceof KisApiError && TOKEN_INVALID.has(error.msgCode ?? "")) {
           reissued = true;
           this.cached = null;
           await prisma.externalApiToken.deleteMany({ where: { provider: "kis", tokenType: "access" } });
-          return this.send(path, trId, params, await this.accessToken(), priority);
+          return this.send(path, trId, params, await this.accessToken(), priority, trCont);
         }
         throw error;
       }
@@ -512,7 +586,14 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
   }
 
   /** 페이서 안쪽 — 재시도도 KIS 에는 한 건이다 */
-  private send(path: string, trId: string, params: Record<string, string>, token: string, priority: KisPriority) {
+  private send(
+    path: string,
+    trId: string,
+    params: Record<string, string>,
+    token: string,
+    priority: KisPriority,
+    trCont: "" | "N"
+  ): Promise<{ body: any; trCont: string }> {
     return this.pacer.run(async () => {
       const wait = this.cooldownUntil - Date.now();
       if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
@@ -526,7 +607,7 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
             appsecret: this.options.appSecret,
             tr_id: trId,
             custtype: "P",
-            tr_cont: "",
+            tr_cont: trCont,
           },
         });
         const body = response.data ?? {};
@@ -535,7 +616,8 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
         }
         this.cooldownMs = COOLDOWN_BASE_MS;
         this.record(trId, "ok");
-        return body;
+        const next = response.headers?.["tr_cont"];
+        return { body, trCont: typeof next === "string" ? next : "" };
       } catch (error) {
         const sanitized = this.sanitize(trId, error);
         this.record(trId, sanitized.msgCode === RATE_LIMITED ? "rate" : "fail");

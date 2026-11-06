@@ -10,6 +10,8 @@ import type {
   KrStockQuotePort,
   KrSupplementPort,
   KrSupplementStore,
+  KrMarketStatusPort,
+  KrMarketStatusStore,
   KrStockStore,
   KrSummaryPolicy,
 } from "../../domain";
@@ -91,6 +93,7 @@ import {
   SyncKrStockMaster,
 } from "../SyncKrStock";
 import { PollKrAfterHours, PollKrIndices, PruneKrIndexTicks, SyncKrInvestorFlows } from "../SyncKrSupplement";
+import { InferKrMarketActions, PollKrViEvents } from "../SyncKrMarketStatus";
 import { GetKrMarketSummary } from "../GetKrMarketSummary";
 
 /**
@@ -288,6 +291,10 @@ export interface KrStockDependencies {
   summaryIndices: readonly string[];
   /** 국내 요약 띠(`SRV-REQ-042`) — 대표 · 지수 칸 · 태그 임계(`KR_SUMMARY_*`) */
   summaryPolicy: KrSummaryPolicy;
+  /** VI 현황 조회(F016 단계 A) — 같은 `KisClient` 라 한도를 같은 페이서가 지킨다 */
+  statusSource: KrMarketStatusPort;
+  /** VI 사건 · 시장 조치 */
+  status: KrMarketStatusStore;
 }
 
 export interface KrStockUseCases {
@@ -323,6 +330,10 @@ export interface KrStockUseCases {
   getInvestorFlows: GetKrInvestorFlows;
   /** 호가 10단계 — 요청 시점 조회 · 10초 캐시(슬라이스 6b) */
   getOrderbook: GetKrOrderbook;
+  /** VI 현황 — 지수 회차 뒤 매분(정규장만, F016 단계 A) */
+  pollViEvents: PollKrViEvents;
+  /** 서킷브레이커 추정 — 지수 회차 뒤 매분(오늘 분 기록 전체를 다시 본다) */
+  inferMarketActions: InferKrMarketActions;
 }
 
 const createKrStockUseCases = (deps: KrStockDependencies, schedule: MarketScheduleReader): KrStockUseCases => {
@@ -346,6 +357,7 @@ const createKrStockUseCases = (deps: KrStockDependencies, schedule: MarketSchedu
     supplement: deps.supplement,
     summaryIndices: deps.summaryIndices,
     orderbookSource: deps.supplementSource,
+    status: deps.status,
   };
   return {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
@@ -381,12 +393,16 @@ const createKrStockUseCases = (deps: KrStockDependencies, schedule: MarketSchedu
       universe,
       schedule,
       policy: deps.summaryPolicy,
+      status: deps.status,
+      calendar: deps.calendar,
       viewerEmails: deps.viewerEmails,
       logoDevToken: deps.logoDevToken,
     }),
     pruneIndexTicks: new PruneKrIndexTicks(deps.supplement),
     getInvestorFlows: new GetKrInvestorFlows(read),
     getOrderbook: new GetKrOrderbook(read),
+    pollViEvents: new PollKrViEvents(deps.statusSource, deps.status, deps.calendar),
+    inferMarketActions: new InferKrMarketActions(deps.supplement, deps.status, deps.calendar),
   };
 };
 

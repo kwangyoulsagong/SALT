@@ -32,7 +32,18 @@ import {
   type KrStatusBadge,
   type KrStockStore,
   type StoredKrStockQuote,
+  isKrMarketActionActive,
+  isKrViEventActive,
+  kstAt,
+  kstDateOf,
+  krMarketActionResumesAt,
+  krVisibleLastTrade,
+  type KrMarketAction,
+  type KrMarketStatusStore,
+  type KrViEventFact,
+  type KrViKind,
 } from "../domain";
+import { logger } from "../../shared/config/logger";
 import { loadKrSession } from "./SyncKrStock";
 
 /**
@@ -68,6 +79,13 @@ export interface KrStockQuoteView {
   limitState: "upper" | "lower" | null;
   status: KrStatusBadge[];
   isHalted: boolean;
+  /** VI 발동 중일 때만(F016 단계 A) — 종류 · 발동 시각은 VI 현황 사건에서, 못 받았으면 `null`(칩은 현재가 상태 칸으로 선다) */
+  vi: { kind: KrViKind | null; triggeredAt: string | null; count: number | null } | null;
+  /**
+   * 마지막 체결 시각 — **값이 멈춘 이유가 있을 때만**(거래정지 · 임시정지 · VI · 시장 조치) 채운다. 평소 `null`.
+   * 폴링 종목은 오차 1분 안(누적 거래량이 늘어난 회차 시각)
+   */
+  lastTradeAt: string | null;
   feed: KrFeedState;
   priceUpdatedAt: string;
   /**
@@ -107,12 +125,87 @@ const toSessionResponse = (view: KrSessionView, now: Date): KrSessionResponse =>
 const won = (v: number) => Math.round(v);
 const wonOrNull = (v: number | null) => (v === null ? null : Math.round(v));
 
+/** 오늘 시장 조치(F016 단계 A · FR-3) — 서킷브레이커 · 사이드카. `active` · `resumesAt` 도 서버가 정한다 */
+export interface KrMarketActionView {
+  market: KrMarket;
+  kind: KrMarketAction["kind"];
+  stage: number;
+  direction: KrMarketAction["direction"];
+  startedAt: string;
+  endedAt: string | null;
+  resumesAt: string | null;
+  source: KrMarketAction["source"];
+  active: boolean;
+}
+
+/** 시세 응답이 같이 읽는 상태 — 종목별 오늘 마지막 VI 사건 · 오늘 시장 조치 */
+export interface KrStatusContext {
+  vi: Map<string, KrViEventFact>;
+  actions: KrMarketActionView[];
+}
+
+const EMPTY_STATUS: KrStatusContext = { vi: new Map(), actions: [] };
+
+const regularOf = (session: KrSessionView) => session.session === "regular" || session.session === "closing_auction";
+
+export const toMarketActionView = (a: KrMarketAction, now: Date, session: KrSessionView): KrMarketActionView => ({
+  market: a.market,
+  kind: a.kind,
+  stage: a.stage,
+  direction: a.direction,
+  startedAt: a.startedAt.toISOString(),
+  endedAt: a.endedAt?.toISOString() ?? null,
+  resumesAt: krMarketActionResumesAt(a)?.toISOString() ?? null,
+  source: a.source,
+  active: isKrMarketActionActive(a, now, regularOf(session)),
+});
+
+/**
+ * 시장 상태 읽기 — 쿼리 두 번(오늘 VI 사건 종목별 최신 · 오늘 시장 조치). 실패하면 빈 상태로 — 상태 태그는 부가라 시세 본문을
+ * 막지 않는다(현재가 상태 칸만으로도 정지 · VI 칩은 선다)
+ */
+export const loadKrStatusContext = async (
+  store: KrMarketStatusStore,
+  codes: string[],
+  now: Date,
+  session: KrSessionView
+): Promise<KrStatusContext> => {
+  const today = kstDateOf(now);
+  try {
+    const [vi, actions] = await Promise.all([store.latestViEvents(codes, kstAt(today, 0)), store.marketActions(today)]);
+    return { vi, actions: actions.map((a) => toMarketActionView(a, now, session)) };
+  } catch (error) {
+    logger.warn(`국내 시장 상태 읽기 실패: ${(error as Error).message}`);
+    return EMPTY_STATUS;
+  }
+};
+
 const toQuoteView = (
   q: StoredKrStockQuote,
   now: Date,
   session: KrSessionView,
+  logoDevToken: string | undefined,
+  status: KrStatusContext,
+): KrStockQuoteView => {
+  const event = status.vi.get(q.code) ?? null;
+  const badges = krStatusBadges(q, event !== null && isKrViEventActive(event, now));
+  const marketHalted = status.actions.some((a) => a.active && a.market === q.market);
+  return {
+    ...toQuoteBase(q, now, session, logoDevToken),
+    status: badges,
+    vi: badges.includes("vi")
+      ? { kind: event?.kind ?? null, triggeredAt: event?.triggeredAt.toISOString() ?? null, count: event?.count ?? null }
+      : null,
+    lastTradeAt: krVisibleLastTrade(q.lastTradeAt, badges, marketHalted)?.toISOString() ?? null,
+  };
+};
+
+const toQuoteBase = (
+  q: StoredKrStockQuote,
+  now: Date,
+  session: KrSessionView,
   logoDevToken?: string,
-): KrStockQuoteView => ({
+): Omit<KrStockQuoteView, "status" | "vi" | "lastTradeAt"> => ({
   code: q.code,
   name: q.name,
   market: q.market,
@@ -130,7 +223,6 @@ const toQuoteView = (
   highPrice: wonOrNull(q.highPrice),
   lowPrice: wonOrNull(q.lowPrice),
   limitState: krLimitState(q),
-  status: krStatusBadges(q),
   isHalted: q.isHalted,
   feed: krFeedState(q, now, session),
   priceUpdatedAt: q.priceUpdatedAt.toISOString(),
@@ -161,6 +253,8 @@ export interface KrStockReadDependencies {
   supplement: KrSupplementStore;
   /** 요약에 보일 지수 코드(`KIS_SUMMARY_INDICES`, 설정 순서 = 화면 순서) */
   summaryIndices: readonly string[];
+  /** VI 사건 · 시장 조치(F016 단계 A) */
+  status: KrMarketStatusStore;
   /** 호가는 저장하지 않고 요청 시점에 부른다(슬라이스 6b FR-28) */
   orderbookSource: Pick<KrSupplementPort, "orderbook">;
   now?: () => Date;
@@ -225,9 +319,10 @@ export class ListKrStockQuotes extends KrStockRead {
     }));
     const ranked = rankKrQuotes(withPeriod, query.sort, query.order);
     const page = ranked.slice(query.offset, query.offset + limit);
+    const status = await loadKrStatusContext(this.deps.status, page.map((q) => q.code), now, session);
     return {
       session: toSessionResponse(session, now),
-      items: page.map((q) => ({ ...toQuoteView(q, now, session, this.deps.logoDevToken), periodChange: q.periodChange })),
+      items: page.map((q) => ({ ...toQuoteView(q, now, session, this.deps.logoDevToken, status), periodChange: q.periodChange })),
       nextOffset: query.offset + limit < ranked.length ? query.offset + limit : null,
     };
   }
@@ -240,10 +335,13 @@ export class GetKrStockDetail extends KrStockRead {
     const now = this.now();
     const [session, quote] = await Promise.all([loadKrSession(this.deps.calendar, now), this.deps.store.quote(code)]);
     if (!quote) throw new KrStockNotAvailableError();
+    const status = await loadKrStatusContext(this.deps.status, [quote.code], now, session);
 
     return {
       session: toSessionResponse(session, now),
-      quote: toQuoteView(quote, now, session, this.deps.logoDevToken),
+      quote: toQuoteView(quote, now, session, this.deps.logoDevToken, status),
+      /** 이 종목 시장의 오늘 조치 — 상세 머리 띠(FE-REQ-063 FR-2) */
+      marketActions: status.actions.filter((a) => a.market === quote.market),
       detail: {
         per: quote.per,
         pbr: quote.pbr,

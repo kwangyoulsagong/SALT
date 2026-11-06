@@ -13,6 +13,9 @@ import {
   type MarketScheduleReader,
   type StoredKrIndexQuote,
   type StoredKrStockQuote,
+  type KrMarketAction,
+  type KrMarketCalendarStore,
+  type KrMarketStatusStore,
 } from "../../domain";
 import { GetKrMarketSummary } from "../GetKrMarketSummary";
 import type { ResolveKrStockUniverse } from "../SyncKrStock";
@@ -97,7 +100,9 @@ const quote = (code: string, changeRate = 1): StoredKrStockQuote =>
 
 const ticks = [at("2026-11-02T00:00:00Z", 5700), at("2026-11-02T00:05:00Z", 5750), at("2026-11-02T04:55:00Z", 5890)];
 
-const setup = (opts: { ticksFail?: boolean; scheduleFail?: boolean; universe?: string[]; noBars?: string[] } = {}) => {
+const setup = (
+  opts: { ticksFail?: boolean; scheduleFail?: boolean; actionsFail?: boolean; universe?: string[]; noBars?: string[]; actions?: KrMarketAction[] } = {}
+) => {
   const universe = opts.universe ?? ["005930", "000660", "035420"];
   const supplement = {
     indexQuotes: async (codes: string[]) => codes.map((c) => indexRow(c, c === "1001" ? { changeRate: -5.5 } : {})),
@@ -127,6 +132,20 @@ const setup = (opts: { ticksFail?: boolean; scheduleFail?: boolean; universe?: s
     universe: { execute: async () => universe } as unknown as ResolveKrStockUniverse,
     schedule,
     policy: { featured: "0001", indexItems: ["1001"], wideMoveRate: 5 },
+    // F016 단계 A — 시장 조치 · 장 상태(2026-11-02 14:00 KST 개장일)
+    status: {
+      marketActions: async () => {
+        if (opts.actionsFail) throw new Error("db");
+        return opts.actions ?? [];
+      },
+    } as unknown as KrMarketStatusStore,
+    calendar: {
+      upsertDays: async () => {},
+      daysFromDailyCandles: async () => [],
+      days: async (from: string, to: string) =>
+        ["2026-10-30", "2026-11-02", "2026-11-03"].filter((d) => d >= from && d <= to)
+          .map((date) => ({ date, isOpen: true, isTradingDay: true, isBusinessDay: true, isSettlementDay: true })),
+    } as KrMarketCalendarStore,
     viewerEmails: [OWNER],
     now: () => new Date("2026-11-02T05:00:00Z"),
   });
@@ -134,6 +153,22 @@ const setup = (opts: { ticksFail?: boolean; scheduleFail?: boolean; universe?: s
 
 describe("GetKrMarketSummary", () => {
   const viewer = { userId: "u1", email: OWNER };
+
+  it("시장 조치(F016 단계 A) — 끝을 못 본 오늘 조치는 active · 재개 예정은 서버가 · 못 읽으면 빈 배열 + degraded", async () => {
+    const startedAt = new Date("2026-11-02T04:50:00Z"); // 13:50 KST
+    const view = await setup({
+      actions: [{ market: "KOSPI", tradeDate: "2026-11-02", kind: "circuit_breaker", stage: 1, direction: "down", startedAt, endedAt: null, source: "inferred" }],
+    }).execute(viewer);
+    assert.deepEqual(view.marketActions, [
+      {
+        market: "KOSPI", kind: "circuit_breaker", stage: 1, direction: "down", startedAt: startedAt.toISOString(), endedAt: null,
+        resumesAt: "2026-11-02T05:10:00.000Z", source: "inferred", active: true,
+      },
+    ]);
+    const failed = await setup({ actionsFail: true }).execute(viewer);
+    assert.deepEqual(failed.marketActions, []);
+    assert.equal(failed.degraded, true);
+  });
 
   it("소유자가 아니면 404 오류", async () => {
     await assert.rejects(setup().execute({ userId: "u2", email: "x@example.com" }), { code: "KR_STOCK_NOT_AVAILABLE" });

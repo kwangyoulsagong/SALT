@@ -53,6 +53,15 @@ export interface KrStockQuoteFact {
   statusCode: string | null;
   warnCode: string | null;
   isHalted: boolean;
+  /**
+   * 현재가 응답의 상태 칸 넓히기(F016 단계 A · `SRV-REQ-051` FR-6, 2026-11-06 실측 필드). `viCode` 는 `vi_cls_code` 원문(평소 `N`),
+   * 나머지는 Y/N 플래그 — `invt_caful_yn` 투자유의 · `mang_issu_cls_code` 관리종목 · `sltr_yn` 정리매매 · `short_over_yn` 단기과열
+   */
+  viCode: string | null;
+  cautionFlag: boolean;
+  managedFlag: boolean;
+  liquidationFlag: boolean;
+  shortOverheatFlag: boolean;
   per: number | null;
   pbr: number | null;
   eps: number | null;
@@ -76,6 +85,11 @@ export interface StoredKrStockQuote extends KrStockQuoteFact {
   logoSource: KrLogoSource | null;
   feed: KrQuoteFeed;
   priceUpdatedAt: Date;
+  /**
+   * 마지막 체결 시각(FR-6) — 실시간 체결은 그 체결 시각, 1분 폴링은 누적 거래량이 늘어난 회차 시각(오차 1분 안).
+   * 정지 · 단일가 중에 "마지막 체결 HH:MM:SS" 로 보인다. 아직 못 봤으면 `null`
+   */
+  lastTradeAt: Date | null;
   /** 마지막으로 받은 시간외 단일가(FR-27) — 보일지는 `krAfterHoursVisible` 이 정한다 */
   afterHours: KrAfterHoursQuote | null;
 }
@@ -462,22 +476,60 @@ export const isKrStockCode = (value: string): boolean => /^[0-9A-Z]{6}$/.test(va
 
 // ==================== 표시 판정 (FR-43 · 44 · 45) — 프론트는 그리기만 한다 ====================
 
-export type KrStatusBadge = "halted" | "administrative" | "caution" | "warning" | "danger" | "overheat";
+export type KrStatusBadge =
+  | "halted"
+  | "paused"
+  | "vi"
+  | "administrative"
+  | "caution"
+  | "warning"
+  | "danger"
+  | "attention"
+  | "liquidation"
+  | "overheat";
 
 /**
  * 종목 상태 배지. `iscd_stat_cls_code`(51 관리 · 52 투자위험 · 53 투자경고 · 54 투자주의 · 58 거래정지 ·
- * 59 단기과열) 와 `mrkt_warn_cls_code`(01 주의 · 02 경고 · 03 위험) 를 합친다 — 코드 의미 근거 등급 [약]
+ * 59 단기과열) 와 `mrkt_warn_cls_code`(01 주의 · 02 경고 · 03 위험) 를 합친다 — 코드 의미 근거 등급 [약].
+ *
+ * F016 단계 A(2026-11-06)에서 넓혔다: **거래정지(58)와 임시정지(`temp_stop_yn` — 상태 코드는 그대로)를 가른다** · VI 발동 중
+ * (`vi_cls_code` 또는 아직 안 풀린 VI 사건) · 투자유의 · 정리매매 · 관리종목 플래그 · 단기과열 플래그
  */
-export const krStatusBadges = (q: Pick<KrStockQuoteFact, "statusCode" | "warnCode" | "isHalted">): KrStatusBadge[] => {
+export const krStatusBadges = (
+  q: Pick<
+    KrStockQuoteFact,
+    "statusCode" | "warnCode" | "isHalted" | "viCode" | "cautionFlag" | "managedFlag" | "liquidationFlag" | "shortOverheatFlag"
+  >,
+  viActive = false
+): KrStatusBadge[] => {
   const badges = new Set<KrStatusBadge>();
-  if (q.isHalted || q.statusCode === "58") badges.add("halted");
-  if (q.statusCode === "51") badges.add("administrative");
+  if (q.statusCode === "58") badges.add("halted");
+  else if (q.isHalted) badges.add("paused");
+  if (viActive || isKrViCodeActive(q.viCode)) badges.add("vi");
+  if (q.statusCode === "51" || q.managedFlag) badges.add("administrative");
   if (q.statusCode === "52" || q.warnCode === "03") badges.add("danger");
   if (q.statusCode === "53" || q.warnCode === "02") badges.add("warning");
   if (q.statusCode === "54" || q.warnCode === "01") badges.add("caution");
-  if (q.statusCode === "59") badges.add("overheat");
+  if (q.cautionFlag) badges.add("attention");
+  if (q.liquidationFlag) badges.add("liquidation");
+  if (q.statusCode === "59" || q.shortOverheatFlag) badges.add("overheat");
   return [...badges];
 };
+
+/** 현재가 상태 칸 `vi_cls_code` — `N` · 빈 값이 아니면 발동 중(2026-11-06 실측: 평소 `N`, VI 현황의 발동 중 행 `Y`) */
+export const isKrViCodeActive = (code: string | null | undefined): boolean =>
+  code !== null && code !== undefined && code !== "" && code !== "N" && code !== "0";
+
+/**
+ * 마지막 체결 시각을 보일 때 — 값이 멈춰 있는 이유가 있을 때만(정지 · 임시정지 · VI 단일가 · 시장 조치). 평소엔 `null` —
+ * 매 행에 시각을 붙이면 "멈춘 값"이라는 신호가 묻힌다
+ */
+export const krVisibleLastTrade = (
+  lastTradeAt: Date | null,
+  badges: readonly KrStatusBadge[],
+  marketHalted: boolean
+): Date | null =>
+  lastTradeAt && (marketHalted || badges.some((b) => b === "halted" || b === "paused" || b === "vi")) ? lastTradeAt : null;
 
 /** 상한가 · 하한가 도달 — 값이 없으면 판단하지 않는다 */
 export const krLimitState = (

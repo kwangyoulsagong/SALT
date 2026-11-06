@@ -232,3 +232,72 @@ describe("한도 나눠 쓰기 순서 (FR-91 · 슬라이스 6b)", () => {
     assert.ok(KIS_PRIORITY.realtime < KIS_PRIORITY.poll && KIS_PRIORITY.poll < KIS_PRIORITY.candles && KIS_PRIORITY.candles < KIS_PRIORITY.supplement);
   });
 });
+
+describe("시장 상태 응답 해석 (F016 단계 A · SRV-REQ-051 FR-2 · 6)", () => {
+  it("현재가 상태 칸 — 2026-11-06 삼성전자 실측 응답(평소 값 N)과 플래그 Y", async () => {
+    const c = new KisClient({ appKey: "k", appSecret: "s", baseUrl: "http://127.0.0.1:9" });
+    const body = (over: Record<string, string>) => ({
+      output: {
+        stck_prpr: "187300", iscd_stat_cls_code: "55", temp_stop_yn: "N", vi_cls_code: "N", ovtm_vi_cls_code: "N",
+        invt_caful_yn: "N", mrkt_warn_cls_code: "00", short_over_yn: "N", sltr_yn: "N", mang_issu_cls_code: "N", ...over,
+      },
+    });
+    (c as unknown as { get: () => Promise<unknown> }).get = async () => body({});
+    const plain = await c.quote("005930");
+    assert.deepEqual(
+      [plain.viCode, plain.cautionFlag, plain.managedFlag, plain.liquidationFlag, plain.shortOverheatFlag],
+      ["N", false, false, false, false]
+    );
+    (c as unknown as { get: () => Promise<unknown> }).get = async () =>
+      body({ vi_cls_code: "Y", invt_caful_yn: "Y", mang_issu_cls_code: "Y", sltr_yn: "Y", short_over_yn: "Y" });
+    const flagged = await c.quote("005930");
+    assert.deepEqual(
+      [flagged.viCode, flagged.cautionFlag, flagged.managedFlag, flagged.liquidationFlag, flagged.shortOverheatFlag],
+      ["Y", true, true, true, true]
+    );
+  });
+
+  // 2026-11-06 10:35 장중 실측 응답(앞 두 행) + 해제된 행 하나 · 시각 없는 행 하나
+  const VI_ROWS = [
+    { mksc_shrn_iscd: "Q580047", vi_cls_code: "Y", bsop_date: "20261106", cntg_vi_hour: "103436", vi_cncl_hour: "000000", vi_kind_code: "2", vi_prc: "8995", vi_stnd_prc: "0", vi_dprt: "0.00", vi_dmc_stnd_prc: "8455", vi_dmc_dprt: "6.39", vi_count: "3" },
+    { mksc_shrn_iscd: "043610", vi_cls_code: "Y", bsop_date: "20261106", cntg_vi_hour: "103426", vi_cncl_hour: "000000", vi_kind_code: "2", vi_prc: "3800", vi_stnd_prc: "0", vi_dprt: "0.00", vi_dmc_stnd_prc: "4055", vi_dmc_dprt: "-6.29", vi_count: "2" },
+    { mksc_shrn_iscd: "005930", vi_cls_code: "N", bsop_date: "20261106", cntg_vi_hour: "090112", vi_cncl_hour: "090334", vi_kind_code: "1", vi_prc: "182000", vi_stnd_prc: "201500", vi_dprt: "-9.68", vi_dmc_stnd_prc: "0", vi_dmc_dprt: "0.00", vi_count: "1" },
+    { mksc_shrn_iscd: "000660", bsop_date: "20261106", cntg_vi_hour: "", vi_kind_code: "1" },
+  ];
+  const withPage = (trCont: string) => {
+    const c = new KisClient({ appKey: "k", appSecret: "s", baseUrl: "http://127.0.0.1:9" });
+    const calls: unknown[][] = [];
+    (c as unknown as { request: (...a: unknown[]) => Promise<unknown> }).request = async (...a: unknown[]) => {
+      calls.push(a);
+      return { body: { output: VI_ROWS }, trCont };
+    };
+    return { c, calls };
+  };
+
+  it("VI 한 쪽 — 시각은 그날 KST → UTC · 해제 전(000000)은 null · 0 괴리율은 null · 시각 없는 행은 버린다", async () => {
+    const { c, calls } = withPage("F");
+    const page = await c.viEventsPage("2026-11-06", false);
+    assert.equal(page.hasMore, true);
+    assert.equal(page.events.length, 3);
+    const [etn, dyn, stat] = page.events;
+    assert.equal(etn!.code, "Q580047");
+    assert.equal(dyn!.triggeredAt.toISOString(), "2026-11-06T01:34:26.000Z");
+    assert.equal(dyn!.releasedAt, null);
+    assert.deepEqual([dyn!.kind, dyn!.triggerPrice, dyn!.staticGapRate, dyn!.dynamicGapRate, dyn!.count], ["dynamic", 3800, null, -6.29, 2]);
+    assert.equal(stat!.releasedAt?.toISOString(), "2026-11-06T00:03:34.000Z");
+    assert.deepEqual([stat!.kind, stat!.staticGapRate, stat!.dynamicGapRate], ["static", -9.68, null]);
+    // 첫 쪽은 이어 받기 표시 없음 · 날짜는 YYYYMMDD · 한도 맨 뒤 줄 · 허용 목록 TR
+    assert.equal(calls[0]![1], KIS_QUERY_TR.viStatus);
+    assert.equal((calls[0]![2] as Record<string, string>).FID_INPUT_DATE_1, "20261106");
+    assert.equal(calls[0]![3], KIS_PRIORITY.supplement);
+    assert.equal(calls[0]![4], "");
+  });
+
+  it("다음 쪽은 tr_cont N 으로 잇고 · 응답 머리가 D · E · 빈 값이면 끝", async () => {
+    const { c, calls } = withPage("D");
+    assert.equal((await c.viEventsPage("2026-11-06", true)).hasMore, false);
+    assert.equal(calls[0]![4], "N");
+    for (const end of ["E", ""]) assert.equal((await withPage(end).c.viEventsPage("2026-11-06", true)).hasMore, false);
+    assert.equal((await withPage("M").c.viEventsPage("2026-11-06", true)).hasMore, true);
+  });
+});

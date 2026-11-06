@@ -24,7 +24,12 @@ import {
   type MarketSummaryTag,
   type StoredKrIndexQuote,
   type StoredKrStockQuote,
+  kstDateOf,
+  type KrMarketStatusStore,
+  type KrMarketCalendarStore,
 } from "../domain";
+import { toMarketActionView, type KrMarketActionView } from "./ReadKrStock";
+import { loadKrSession } from "./SyncKrStock";
 import type { ResolveKrStockUniverse } from "./SyncKrStock";
 
 /**
@@ -66,6 +71,11 @@ export interface KrMarketSummaryView {
   headlines: [];
   /** 다가오는 국내 일정(그 자리) — 못 읽으면 빈 배열 + `degraded` */
   schedule: KrScheduleItem[];
+  /**
+   * 오늘 시장 조치(F016 단계 A · `SRV-REQ-051` FR-3) — 서킷브레이커 · 사이드카 띠. 끝난 것도 그날은 남긴다(`active` 로 가른다).
+   * 못 읽으면 빈 배열 + `degraded`
+   */
+  marketActions: KrMarketActionView[];
   degraded: boolean;
 }
 
@@ -75,6 +85,9 @@ export interface GetKrMarketSummaryDependencies {
   universe: ResolveKrStockUniverse;
   schedule: MarketScheduleReader;
   policy: KrSummaryPolicy;
+  /** 시장 조치 · 장 상태(F016 단계 A) */
+  status: KrMarketStatusStore;
+  calendar: KrMarketCalendarStore;
   viewerEmails: readonly string[];
   logoDevToken?: string;
   now?: () => Date;
@@ -99,11 +112,18 @@ export class GetKrMarketSummary {
     const { policy } = this.deps;
     const indexCodes = [...new Set([policy.featured, ...policy.indexItems])];
 
-    const [indexRows, indexTicks, universe, schedule] = await Promise.all([
+    const [indexRows, indexTicks, universe, schedule, marketActions] = await Promise.all([
       this.deps.supplement.indexQuotes(indexCodes),
       this.soft("지수 분 기록", () => this.deps.supplement.latestSessionIndexTicks(indexCodes)),
       this.deps.universe.execute(),
       this.soft("일정", async () => toKrSchedule(await this.deps.schedule.upcoming(), now, KR_SUMMARY_SCHEDULE_DAYS)),
+      this.soft("시장 조치", async () => {
+        const [session, actions] = await Promise.all([
+          loadKrSession(this.deps.calendar, now),
+          this.deps.status.marketActions(kstDateOf(now)),
+        ]);
+        return actions.map((a) => toMarketActionView(a, now, session));
+      }),
     ]);
     const indexByCode = new Map(indexRows.map((row) => [row.code, row]));
     const shownIndexItems = policy.indexItems.filter((code) => code !== policy.featured && indexByCode.has(code));
@@ -137,7 +157,8 @@ export class GetKrMarketSummary {
       breadth: krBreadthOf(indexRows),
       headlines: [],
       schedule: schedule?.items.slice(0, KR_SUMMARY_SCHEDULE_COUNT) ?? [],
-      degraded: indexTicks === null || closes === null || schedule === null || sparklineMissing,
+      marketActions: marketActions ?? [],
+      degraded: indexTicks === null || closes === null || schedule === null || marketActions === null || sparklineMissing,
     };
   }
 
