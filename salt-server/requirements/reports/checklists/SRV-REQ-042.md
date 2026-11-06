@@ -43,3 +43,9 @@
 - 변경 · 검증: 요약 응답 `marketActions` · 못 읽으면 빈 배열 + `degraded`(테스트 1). 실서버 요약 200
 - 미검증 · 범위 밖: 없음
 - 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`
+
+## 2026-11-06 — F016 단계 B(파일 걸침)
+
+- `composition.ts`(머리에 이 REQ) 에 등락 원천 저장소 · 광고성 패턴 조립(`SRV-REQ-051`). 요약 띠 무변경
+- 검증: 영역 전체(서버 build · lint · test 981 · BFF test 421 · FE check-types · lint · test) 통과 — 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
+- 미검증 · 범위 밖: 없음(이 REQ 몫 무변경)

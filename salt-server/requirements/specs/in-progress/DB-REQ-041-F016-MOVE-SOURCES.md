@@ -40,6 +40,19 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 - 실행 계획(2026-11-06 `EXPLAIN ANALYZE`): `latestViEvents` 는 지금 76행이라 순차 스캔 0.17ms — 순차 스캔을 끄면 `kr_vi_event_pkey` 비트맵 인덱스 스캔(Index Cond 에 `code = ANY` · `triggered_at >=` 둘 다)이라 표가 커지면 PK 를 탄다. `marketActions` 는 하루 0~6행 표라 순차 스캔 0.12ms. 보존 정리는 아직 없다(시장 전체 하루 수백 행 — 단계 B 정리 워커와 같이, `DB-REQ-041` FR-1 의 나눠 지우기)
 - 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md`
 
+## 진행 — 단계 B done(2026-11-06)
+
+| FR | 상태 | 마이그레이션 |
+|---|---|---|
+| FR-1 `kr_news_title` · `kr_news_title_symbol` | done | `20261106160000_kr_news_title` — 일련번호 PK · 본문 · 링크 열 0 · 연결 표에 게시 시각을 같이 둬 `(code, published_at desc)` 한 인덱스 · FK CASCADE(정리가 제목만 지운다) · 마스터 FK 없음(ETN) |
+| FR-4 `kr_sector_index_quote` · `kr_sector_index_daily` | done | `20261106160100_kr_sector_index` — 최신 한 행 + (코드, 거래일) 한 행(장 끝 값 = 종가) |
+| FR-5 `kr_flow_intraday` | 부분 | `20261106160200_kr_flow_intraday` — 프로그램 순매수 · 매수 · 매도(원) 열만. 외국인 · 기관 · 개인 열은 원천이 생길 때 추가 마이그레이션(모의 키 거부) |
+| 보존 | done | 제목 30일 · 장중 수급 7일 · `kr_vi_event` 30일 — 5,000행씩 나눠 지운다 |
+
+- 로컬 운영 DB 적용(2026-11-06 11:5x). `prisma migrate diff`(DB → 스키마) 남은 차이는 기존 인덱스 이름 둘뿐(이번 변경 밖)
+- EXPLAIN(2026-11-06): 오늘 소식 = `kr_news_title_symbol_code_published_at_idx`(Index Cond code · published_at) → `kr_news_title_pkey` 0.14ms · 장중 수급 = `kr_flow_intraday_pkey` 역방향 0.03ms
+- 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md`
+
 ## Acceptance Criteria
 
 - [ ] 마이그레이션 목적 하나씩(표 추가 · 열 추가 분리) · 롤백 SQL
@@ -55,4 +68,5 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-06 | 신규(to-do) |
+| 2026-11-06 | 단계 B done — FR-1 · 4 · FR-5 부분(프로그램 열만) · 보존 정리 · 로컬 적용 |
 | 2026-11-06 | in-progress — 단계 A(FR-2 · 3 · 6) done · 로컬 적용. FR-2 FK 없음 결정(ETN 코드) |

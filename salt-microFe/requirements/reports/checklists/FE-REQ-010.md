@@ -321,3 +321,9 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 - 다시 돌림(마지막 코드 커밋 `698da12b` 기준): `./gradlew check`(저축 `/goals/exists` 삭제 뒤 처음 — app 91 · 서비스 159, 실패 0) · FE `check-types` · `lint` · `test` · `test:layer-check` · springdoc 에 identity 경로 넷 · 저축 `/goals/exists` 0 · Express 옛 `/api/onboarding/status` 404
 - 실패 · 만료 경로(Playwright `route` · 만료 토큰, 셸 3001 — 3000 은 사용자 회사 작업): 불러오기 500 → 재시도 뒤 "불러오지 못했어요" · 고르기 500 → 문구 · 끝내기 500 → 문구 + 이동 안 함 · 배치 저장 500 → 토글 되돌림 + 문구 · 만료 세션 `/settings` · `/home` → 로그인 · 새 홈 카드 패널 axe 0
 - **결함 1** — 만료 세션으로 `/onboarding`(공개 경로)을 열면 "불러오는 중"에 머물렀다: 조회가 일반 `Error` 를 던져 401 도 재시도 대상. `readApiError` + 401 = 세션 없음 → 초대 단계 `698da12b`. 같은 원인 grep — 초대 확인(`acceptInviteApi.check`)도 일반 `Error` 지만 `retry: false` 라 결함 아님
+
+## 2026-11-06 — F016 단계 B(파일 걸침)
+
+- `entities/market/api/endpoints.ts`(머리에 이 REQ)에 국내 경로 둘(`krNews` · `krIntradayFlows`, `FE-REQ-063`). 기존 경로 무변경
+- 검증: 영역 전체(서버 build · lint · test 981 · BFF test 421 · FE check-types · lint · test) 통과 — 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
+- 미검증 · 범위 밖: 없음(이 REQ 몫 무변경)

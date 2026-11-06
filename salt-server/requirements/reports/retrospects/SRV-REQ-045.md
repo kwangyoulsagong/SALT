@@ -70,3 +70,7 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 서비스 간 조회 경로를 만들 때 소비처 하나를 주석에 적어 둔 덕에 지울 때 grep 한 번이었다
+
+## 2026-11-06 — F016 단계 B(파일 걸침)
+
+- 이 REQ 몫 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md`

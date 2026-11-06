@@ -18,3 +18,23 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | FR-1 · 3 · 4 · 7 | 단계 B~D | 전 영역 계획 |
+
+## 단계 B(2026-11-06) — FR-3 · FR-4
+
+루트 슬라이스 `requirements/specs/done/F016-B-kr-news-flows-slice.md` · 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
+
+| 요구 | 확인 |
+|---|---|
+| `/:code/news` · `/:code/flows/intraday` | 컨트롤러 테스트(라우터 순서 — `/:code` 로 안 샘 · 코드 형식 400) · 실서버 소유자 토큰 200 |
+| 숫자 계산 0 | 뷰모델 테스트(서버 값 그대로) |
+| 원천 실패 → `unavailable` | 기존 `read` 갈래 · 화면 실패 회차 |
+| 모르는 `kind` 버림 · 계약 깨짐 | 뷰모델 테스트 |
+
+- `npm test` 421/0 · `npm run build`
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 외국인 · 기관 장중 칸 | 서버 원천 없음 | 실전 키 전환 시 |
+| FR-1 · 7 | 단계 C | 전 영역 계획 |

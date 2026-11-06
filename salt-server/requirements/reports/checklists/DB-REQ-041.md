@@ -18,3 +18,23 @@
 | `kr_vi_event` 보존 정리 | 하루 시장 전체 수백 행 — 단계 A 에선 쌓기만 | 단계 B 정리 워커(FR-1 나눠 지우기와 같이) |
 | `move_explanation` UPDATE 실패 테스트 | FR-8 — 단계 D | 단계 D |
 | FR-1 · 4 · 5 · 7 · 8 | 단계 B~D | 전 영역 계획 |
+
+## 단계 B(2026-11-06) — FR-1 · 4 · 5(프로그램 열) · 보존
+
+루트 슬라이스 `requirements/specs/done/F016-B-kr-news-flows-slice.md` · 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
+
+| 요구 | 확인 |
+|---|---|
+| 마이그레이션 목적 하나씩 · 롤백 SQL | 셋(제목 · 업종 · 장중 수급) · 각 머리 롤백 · 추가만 |
+| 본문 열 0 | `kr_news_title` 열 grep — body · url · link 0 |
+| 새 쿼리 EXPLAIN | 오늘 소식 `kr_news_title_symbol_code_published_at_idx` → PK 0.14ms · 장중 수급 PK 역방향 0.03ms |
+| 로컬 적용 · 스키마 대조 | `prisma migrate deploy` · `migrate diff` 남은 차이는 기존 인덱스 이름 둘(이번 밖) |
+| 보존 | 제목 30일 · 장중 수급 7일 · VI 30일 — 5,000행씩(테스트: 기한 계산) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 정리 워커 실제 삭제 | 지울 행이 아직 없다(오늘 생긴 표) | 2026-12-06(첫 30일) — 로그 `국내 등락 원천 정리` |
+| 외국인 · 기관 장중 열 | 원천 거부 | 실전 키 전환 시 |
+| FR-7 · 8 | 단계 C · D | 전 영역 계획 |
