@@ -5,7 +5,9 @@ import {
   KrContractError,
   toKrChartVM,
   toKrDetailVM,
+  toKrIntradayFlowsVM,
   toKrMarketActionsVM,
+  toKrNewsVM,
   toKrMarketStatusVM,
   toKrOrderbookVM,
   toKrOverviewVM,
@@ -263,5 +265,31 @@ describe("상태 칩 · VI · 마지막 체결 · 시장 조치 (F016 단계 A �
       detail: { per: null, pbr: null, eps: null, bps: null, week52High: null, week52Low: null, foreignRate: null, tickSize: 500 },
     });
     assert.deepEqual(vm.marketActions, [cb]);
+  });
+});
+
+describe("오늘 소식 · 장중 수급 (F016 단계 B · BFF-REQ-051 FR-3 · 4)", () => {
+  it("소식 — 서버 칸 그대로 · 모르는 kind 는 버린다 · 링크 · 본문 칸 없음", () => {
+    const vm = toKrNewsVM({
+      code: "005930",
+      date: "2026-11-06",
+      collectedAt: "2026-11-06T02:42:00.000Z",
+      items: [
+        { id: "1", kind: "disclosure", provider: "코스닥 공시", title: "실적", publishedAt: "2026-11-06T02:41:55.000Z" },
+        { id: "2", kind: "rumor", provider: "x", title: "y", publishedAt: "2026-11-06T02:40:00.000Z" },
+      ],
+    });
+    assert.equal(vm.items.length, 1);
+    assert.deepEqual(Object.keys(vm.items[0]!).sort(), ["id", "kind", "provider", "publishedAt", "title"]);
+  });
+
+  it("소식 — 모양이 틀린 행은 계약 오류(화면은 unavailable)", () => {
+    assert.throws(() => toKrNewsVM({ code: "005930", date: "2026-11-06", collectedAt: null, items: [{ id: 1 }] }), KrContractError);
+  });
+
+  it("장중 수급 — 금액 · 수량 서버 값 그대로(계산 0) · 오늘 값 없음은 null", () => {
+    const program = { at: "2026-11-06T02:43:51.000Z", netQuantity: "308365", netValue: 60550831650, buyValue: 1058390942900, sellValue: 997840111250, collectedAt: "2026-11-06T02:50:00.000Z" };
+    assert.deepEqual(toKrIntradayFlowsVM({ code: "005930", date: "2026-11-06", program }).program, program);
+    assert.equal(toKrIntradayFlowsVM({ code: "005930", date: "2026-11-06", program: null }).program, null);
   });
 });
