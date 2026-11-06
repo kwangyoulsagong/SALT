@@ -120,3 +120,4 @@ ADR-007 ─ FC-022(O1 · O2) ─ FC-023(O3) · FC-026(O6 DART) ;  FC-024(O4) 는
 | 2026-11-05 | S2d done — 금융 팁 내 숫자로 다시 읽기(BFF 가 저축 · 가계부를 읽어 content 가 계산) · 고정비 증가(주거) → 월세 세액공제(루트 `requirements/specs/done/MONEY-S2d-tips-my-numbers-slice.md`). 다음 칸 S2c(notification) |
 | 2026-11-06 | S2c done — notification 서비스 이전 · 도메인별 알림 설정 기본 꺼짐 · 구독 셋 · coach 발행 창구 · 셸 알림 패널(루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`). S2 세 갈래(content · 금융 팁 · notification) 끝. 다음 칸 S3(identity — `DB-REQ-040` · `SRV-REQ-048` 나머지) |
 | 2026-11-06 | S3a done — identity 서비스 첫 판(셸 설정) · 도메인 선택 온보딩 · 홈 카드 순서 · 숨김 · 옛 3스텝 은퇴(루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`). S3 을 셋으로 — S3b(사용자 · 초대 코드 이동 · JWKS 이중 검증 · `UserRegistered`) · S3c(내보내기 · 삭제 · 분류 · 계측). 다음 칸 S3b 또는 S3c |
+| 2026-11-06 | 투자 동결 위 사용자 요청 — F016 오늘 왜 움직였나(`requirements/specs/to-do/F016-why-moved-global-plan.md` · `ADR-009`). 동결 예외로 기록 · 돈 관리 칸과 번갈아(3b) |
