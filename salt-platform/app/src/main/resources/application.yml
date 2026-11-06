@@ -62,6 +62,10 @@ salt:
       notification:
         username: svc_notification
         password: ${NOTIFICATION_DB_PASSWORD}
+      # identity — S3a(2026-11-06) 셸 설정만. 사용자 · 토큰은 S3b 까지 Express auth(SRV-REQ-048)
+      identity:
+        username: svc_identity
+        password: ${IDENTITY_DB_PASSWORD}
       # coach 는 S6 까지 Express — 플랫폼은 아웃박스 릴레이만(SRV-REQ-048 FR-5, 서버 S2c)
       coach:
         username: svc_coach

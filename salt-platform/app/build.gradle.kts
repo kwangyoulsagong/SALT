@@ -28,6 +28,10 @@ dependencies {
     implementation(project(":services:notification:application"))
     implementation(project(":services:notification:infrastructure"))
     implementation(project(":services:notification:api"))
+    implementation(project(":services:identity:domain"))
+    implementation(project(":services:identity:application"))
+    implementation(project(":services:identity:infrastructure"))
+    implementation(project(":services:identity:api"))
     implementation(project(":services:coach:infrastructure"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")

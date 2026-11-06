@@ -38,3 +38,6 @@ ALTER ROLE svc_content LOGIN PASSWORD :'content_password';
 -- 업무 표는 S6 까지 Express(public). Express 는 DB 소유자 계정으로 coach.outbox 에 행을 쓴다
 ALTER ROLE svc_notification LOGIN PASSWORD :'notification_password';
 ALTER ROLE svc_coach LOGIN PASSWORD :'coach_password';
+
+-- 서버 S3a(`SRV-REQ-048` FR-1 · 2, 2026-11-06) — identity 가 플랫폼에서 셸 설정 표로 태어나 로그인을 연다. 사용자 · 초대 코드 표는 S3b 까지 public(Express auth)
+ALTER ROLE svc_identity LOGIN PASSWORD :'identity_password';
