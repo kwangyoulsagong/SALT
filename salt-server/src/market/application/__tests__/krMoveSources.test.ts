@@ -170,7 +170,7 @@ describe("PollKrSectorIndices — 유니버스 업종만 · 지수 TR 그대로"
       sectorIndexCodes: async () => new Map([["005930", "0027"], ["000660", "0027"], ["105560", "0021"]]),
       upsertSectorIndices: async (facts: unknown[]) => void saved.push(...facts),
     } as unknown as KrMoveSourceStore;
-    await new PollKrSectorIndices(kis, store, calendar(open), universe(["005930", "000660", "105560"]), () => at).execute();
+    await new PollKrSectorIndices(kis, store, calendar(open), universe(["005930", "000660", "105560"]), () => at, async () => {}).execute();
     return { asked, saved };
   };
 
@@ -195,6 +195,7 @@ describe("PollKrSectorIndices — 유니버스 업종만 · 지수 TR 그대로"
 });
 
 describe("PollKrProgramFlows — 장중만 · 오늘 체결만 · 한도 양보", () => {
+  let lastPauses: number[] = [];
   const fact = (code: string, at: Date): KrProgramFlowFact => ({
     code, at, netQuantity: 308365n, netValue: 60_550_831_650, buyValue: 1_058_390_942_900, sellValue: 997_840_111_250,
   });
@@ -210,7 +211,9 @@ describe("PollKrProgramFlows — 장중만 · 오늘 체결만 · 한도 양보"
       },
     } as unknown as KrMoveSourcePort;
     const store = { appendProgramFlows: async (f: KrProgramFlowFact[]) => void saved.push(...f) } as unknown as KrMoveSourceStore;
-    const result = await new PollKrProgramFlows(kis, store, calendar(true), universe(Object.keys(results)), () => at).execute();
+    const pauses: number[] = [];
+    const result = await new PollKrProgramFlows(kis, store, calendar(true), universe(Object.keys(results)), () => at, async (ms) => void pauses.push(ms)).execute();
+    lastPauses = pauses;
     return { asked, saved, result };
   };
 
@@ -228,6 +231,11 @@ describe("PollKrProgramFlows — 장중만 · 오늘 체결만 · 한도 양보"
     assert.deepEqual(asked, ["a1", "b2", "c3"]);
     assert.deepEqual(saved.map((s) => s.code), ["b2", "c3"]);
     assert.equal(result.skipped === false && result.yielded, false);
+  });
+
+  it("종목 사이에 1초 — 부가 호출이 몰려 현재가까지 세우는 감속을 부르지 않게(첫 호출 앞엔 없음)", async () => {
+    await run(kst("10:30"), { a1: null, b2: null, c3: null });
+    assert.deepEqual(lastPauses, [1000, 1000]);
   });
 
   it("연달아 셋이 초과면 남은 종목을 부르지 않고 양보한다 · 사이에 성공이 끼면 다시 센다", async () => {

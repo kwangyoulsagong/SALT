@@ -33,6 +33,13 @@ const CIRCUIT_FAILURES = 5;
  * 초과 한 건은 그 종목만 건너뛰고(재시도 · 감속은 클라이언트가 이미 했다), 연달아 막힐 때만 다음 회차에 양보한다
  */
 const YIELD_AFTER_RATE_LIMITED = 3;
+/**
+ * 종목 · 업종 호출 사이 간격 — 부가 작업이 몰리면 KIS 초과가 나고, 초과는 클라이언트가 **모든 호출**을 잠깐 세운다(현재가 포함).
+ * 2026-11-06 13:40 측정: 프로그램(50건) · 업종(8건) 회차가 시작되는 분에 폴링 종목 현재가가 1분 회차를 한 번 건너뛰어 75~105초 묵었다
+ * (평소 12~45초 · 실시간 종목은 무관). 1초 간격이면 이 작업은 초당 1건을 넘지 않고, 프로그램 한 회차는 약 1분 · 업종은 10초
+ */
+export const KR_SUPPLEMENT_SPACING_MS = 1_000;
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
  * 시황/공시 제목(FR-1) — **시장 전체 한 번 호출**(종목마다가 아니다 — 2026-11-06 실측, 종목 칸을 비우면 시장 전체 40건). 최신 쪽부터
@@ -91,7 +98,8 @@ export class PollKrSectorIndices {
     private readonly store: KrMoveSourceStore,
     private readonly calendar: KrMarketCalendarStore,
     private readonly universe: ResolveKrStockUniverse,
-    private readonly now: () => Date = () => new Date()
+    private readonly now: () => Date = () => new Date(),
+    private readonly pause: (ms: number) => Promise<void> = wait
   ) {}
 
   async execute() {
@@ -102,7 +110,8 @@ export class PollKrSectorIndices {
     const sectors = [...new Set((await this.store.sectorIndexCodes(await this.universe.execute())).values())].sort();
     const facts: KrSectorIndexFact[] = [];
     let failed = 0;
-    for (const code of sectors) {
+    for (const [i, code] of sectors.entries()) {
+      if (i > 0) await this.pause(KR_SUPPLEMENT_SPACING_MS);
       try {
         const q = await this.kis.indexQuote(code);
         facts.push({ code: q.code, value: q.value, change: q.change, changeRate: q.changeRate });
@@ -129,7 +138,8 @@ export class PollKrProgramFlows {
     private readonly store: KrMoveSourceStore,
     private readonly calendar: KrMarketCalendarStore,
     private readonly universe: ResolveKrStockUniverse,
-    private readonly now: () => Date = () => new Date()
+    private readonly now: () => Date = () => new Date(),
+    private readonly pause: (ms: number) => Promise<void> = wait
   ) {}
 
   async execute() {
@@ -145,7 +155,8 @@ export class PollKrProgramFlows {
     let consecutive = 0;
     let rateLimitedInRow = 0;
     let yielded = false;
-    for (const code of codes) {
+    for (const [i, code] of codes.entries()) {
+      if (i > 0) await this.pause(KR_SUPPLEMENT_SPACING_MS);
       try {
         const fact = await this.kis.programFlow(code);
         if (fact && kstDateOf(fact.at) === kstDateOf(at)) facts.push(fact);
