@@ -36,9 +36,10 @@ export const label = style({
   fontWeight: vars.fontWeights.semibold,
 });
 
+/** 줄 설명 — 2단 글자색(`screen-desktop.md` §2). 회색 500(#8B95A1)은 흰 패널 위 3.03:1 로 AA 미달(2026-11-06 axe) — 새 칸이라 여기서만 고친다 */
 export const hint = style({
   margin: 0,
-  color: vars.colors.neutral[500],
+  color: "rgba(22, 31, 46, 0.64)",
   fontSize: "13px",
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,
