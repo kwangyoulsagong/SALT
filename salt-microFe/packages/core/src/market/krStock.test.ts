@@ -4,6 +4,7 @@ import {
   isKrRegularSession,
   isKrStockCode,
   kstClock,
+  kstClockSeconds,
   kstDayDiff,
   kstMonthDay,
   kstWeekday,
@@ -32,6 +33,8 @@ describe("KST 표시", () => {
 
   it("시각 · 요일 · 날짜를 브라우저 시간대와 무관하게 KST 로 읽는다", () => {
     expect(kstClock(close)).toBe("15:30");
+    // 마지막 체결은 초까지(F016 단계 A) — 2026-11-06 삼성전자 서킷브레이커 직전 체결
+    expect(kstClockSeconds("2026-11-06T00:03:32.000Z")).toBe("09:03:32");
     expect(kstWeekday(close)).toBe(4);
     expect(kstMonthDay(close)).toBe("10/8");
   });

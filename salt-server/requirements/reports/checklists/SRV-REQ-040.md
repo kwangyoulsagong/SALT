@@ -446,3 +446,9 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - `env.ts` 의 KIS 항목은 그대로. `PLATFORM_API_URL` 만 지움 — Express 가 플랫폼 주소를 아는 자리가 0 이 됐다
+
+## 2026-11-06 — F016 단계 A(파일 걸침)
+
+- 변경 · 검증: FR-44 배지 넓힘 · 시세 응답 `vi` · `lastTradeAt` · 상세 `marketActions`. `test` 957/0 · `krStockList` 상태 테스트 3 · 실서버 소유자 200
+- 미검증 · 범위 밖: 없음 — 단계 B~D 는 `SRV-REQ-051`
+- 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`

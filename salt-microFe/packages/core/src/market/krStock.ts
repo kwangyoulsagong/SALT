@@ -16,7 +16,46 @@ export type KrSession =
   | "closed"
   | "holiday";
 
-export type KrStatusBadge = "halted" | "administrative" | "caution" | "warning" | "danger" | "overheat";
+/**
+ * 종목 상태 칩 — 서버 `krStatusBadges`. F016 단계 A(2026-11-06)에 `paused`(임시정지) · `vi` · `attention`(투자유의) ·
+ * `liquidation`(정리매매)을 더했다
+ */
+export type KrStatusBadge =
+  | "halted"
+  | "paused"
+  | "vi"
+  | "administrative"
+  | "caution"
+  | "warning"
+  | "danger"
+  | "attention"
+  | "liquidation"
+  | "overheat";
+
+export type KrViKind = "static" | "dynamic" | "both";
+
+/** VI 발동 중일 때만(F016 단계 A) — 종류 · 발동 시각을 못 받았으면 `null`(칩은 선다) */
+export interface KrVi {
+  kind: KrViKind | null;
+  triggeredAt: string | null;
+  count: number | null;
+}
+
+/**
+ * 오늘 시장 조치(F016 단계 A · `BFF-REQ-051` FR-2) — 서킷브레이커 · 사이드카. 띠를 보일지(`active`) · 재개 예정(`resumesAt`)은
+ * 서버 값. `source: "inferred"` 면 "추정"을 붙인다
+ */
+export interface KrMarketAction {
+  market: KrMarket;
+  kind: "circuit_breaker" | "sidecar";
+  stage: number;
+  direction: "up" | "down";
+  startedAt: string;
+  endedAt: string | null;
+  resumesAt: string | null;
+  source: "feed" | "inferred";
+  active: boolean;
+}
 
 /** `realtime` = WS 슬롯 안 · `poll_1m` = 1분 조회 · `stale` = KIS 장애 · 한도로 오래된 값(FR-45) */
 export type KrFeed = "realtime" | "poll_1m" | "stale";
@@ -71,6 +110,9 @@ export interface KrQuote {
   limitState: "upper" | "lower" | null;
   status: KrStatusBadge[];
   isHalted: boolean;
+  vi: KrVi | null;
+  /** 마지막 체결 — 서버가 **값이 멈춘 이유가 있을 때만**(정지 · VI · 서킷브레이커) 채운다. 있으면 그린다 */
+  lastTradeAt: string | null;
   feed: KrFeed;
   priceUpdatedAt: string;
   /** 당일 시가 · 고가 · 저가 — KIS 현재가 응답(`FE-REQ-041` 계약 확장). 아직 받지 못한 행은 `null` */
@@ -121,6 +163,8 @@ export interface KrStockDetail {
   session: KrSessionView;
   quote: KrQuote;
   detail: KrStockDetailInfo;
+  /** 이 종목 시장의 오늘 조치 — 상세 머리 띠 */
+  marketActions: KrMarketAction[];
 }
 
 /** 봉 시각은 ISO(UTC) — `candleTimeMs` 가 그대로 읽는다. 오래된 것이 앞이다 */
@@ -237,6 +281,8 @@ export interface KrMarketSummary {
   /** 국내 뉴스는 모으지 않는다 — 늘 빈 배열. 그 자리는 `schedule` */
   headlines: [];
   schedule: KrScheduleItem[];
+  /** 오늘 시장 조치 — 요약 띠 위 정지 띠 */
+  marketActions: KrMarketAction[];
   degraded: boolean;
 }
 
@@ -281,6 +327,12 @@ const pad = (n: number) => String(n).padStart(2, "0");
 export const kstClock = (iso: string): string => {
   const d = new Date(Date.parse(iso) + KST_OFFSET_MS);
   return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+};
+
+/** ISO → KST `HH:mm:ss` — 마지막 체결 · VI 발동처럼 초가 뜻을 갖는 시각(F016 단계 A) */
+export const kstClockSeconds = (iso: string): string => {
+  const d = new Date(Date.parse(iso) + KST_OFFSET_MS);
+  return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
 };
 
 /** ISO → KST 요일(0 = 일) */

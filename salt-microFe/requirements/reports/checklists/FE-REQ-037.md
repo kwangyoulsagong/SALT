@@ -84,3 +84,9 @@
 
 - 파일만 걸침 — `packages/domain-invest/src/entities/market/api/useMarketQueries.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
 - 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+## 2026-11-06 — F016 단계 A(파일 걸침)
+
+- 변경 · 검증: 요약 띠 위 시장 조치 띠(국내만). 실화면 1280 넘침 0 · axe 새 요소 0
+- 미검증 · 범위 밖: 없음
+- 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`

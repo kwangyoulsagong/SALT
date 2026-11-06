@@ -5,6 +5,7 @@ import {
   KrContractError,
   toKrChartVM,
   toKrDetailVM,
+  toKrMarketActionsVM,
   toKrMarketStatusVM,
   toKrOrderbookVM,
   toKrOverviewVM,
@@ -42,6 +43,8 @@ const quote = (over: Record<string, unknown> = {}) => ({
   limitState: null,
   status: [],
   isHalted: false,
+  vi: null,
+  lastTradeAt: null,
   feed: "realtime",
   priceUpdatedAt: "2026-10-08T06:30:00.000Z",
   afterHours: null,
@@ -216,5 +219,49 @@ describe("toKrPriceUpdate", () => {
   it("모양이 틀린 체결은 null — 던지지 않는다", () => {
     assert.equal(toKrPriceUpdate({ code: "005930", price: "286500" }), null);
     assert.equal(toKrPriceUpdate(null), null);
+  });
+});
+
+describe("상태 칩 · VI · 마지막 체결 · 시장 조치 (F016 단계 A · BFF-REQ-051 FR-2 · 5)", () => {
+  const cb = {
+    market: "KOSPI", kind: "circuit_breaker", stage: 1, direction: "down", startedAt: "2026-11-06T00:04:00.000Z",
+    endedAt: null, resumesAt: "2026-11-06T00:24:00.000Z", source: "inferred", active: true,
+  };
+
+  it("넓힌 칩 · VI · 마지막 체결을 그대로 옮긴다(계산 0)", () => {
+    const vm = toKrOverviewVM({
+      session,
+      items: [quote({ status: ["paused", "vi", "attention", "liquidation"], vi: { kind: "static", triggeredAt: "2026-11-06T00:01:12.000Z", count: 1 }, lastTradeAt: "2026-11-06T00:03:32.000Z" })],
+      nextOffset: null,
+    });
+    const q = vm.items[0]!;
+    assert.deepEqual(q.status, ["paused", "vi", "attention", "liquidation"]);
+    assert.deepEqual(q.vi, { kind: "static", triggeredAt: "2026-11-06T00:01:12.000Z", count: 1 });
+    assert.equal(q.lastTradeAt, "2026-11-06T00:03:32.000Z");
+  });
+
+  it("옛 서버(필드 없음)는 vi · lastTradeAt null · 시장 조치 빈 배열 — 계약 깨짐 아님", () => {
+    const { vi: _v, lastTradeAt: _l, ...old } = quote();
+    const vm = toKrDetailVM({ session, quote: old, detail: { per: null, pbr: null, eps: null, bps: null, week52High: null, week52Low: null, foreignRate: null, tickSize: 500 } });
+    assert.equal(vm.quote.vi, null);
+    assert.equal(vm.quote.lastTradeAt, null);
+    assert.deepEqual(vm.marketActions, []);
+  });
+
+  it("VI 종류를 모르면 계약 깨짐 · 종류 없음(null)은 그대로", () => {
+    assert.throws(() => toKrOverviewVM({ session, items: [quote({ vi: { kind: "x", triggeredAt: null, count: null } })], nextOffset: null }), KrContractError);
+    const vm = toKrOverviewVM({ session, items: [quote({ status: ["vi"], vi: { kind: null, triggeredAt: null, count: null } })], nextOffset: null });
+    assert.deepEqual(vm.items[0]!.vi, { kind: null, triggeredAt: null, count: null });
+  });
+
+  it("시장 조치 — 서버 값 그대로 · 모르는 kind 는 버리고 · 모양이 틀린 행은 던진다(정지 띠를 조용히 지우지 않는다)", () => {
+    assert.deepEqual(toKrMarketActionsVM([cb, { ...cb, kind: "trading_curb" }]), [cb]);
+    assert.throws(() => toKrMarketActionsVM([{ ...cb, active: "yes" }]), KrContractError);
+    assert.throws(() => toKrMarketActionsVM({}), KrContractError);
+    const vm = toKrDetailVM({
+      session, quote: quote(), marketActions: [cb],
+      detail: { per: null, pbr: null, eps: null, bps: null, week52High: null, week52Low: null, foreignRate: null, tickSize: 500 },
+    });
+    assert.deepEqual(vm.marketActions, [cb]);
   });
 });

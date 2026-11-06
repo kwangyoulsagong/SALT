@@ -109,3 +109,9 @@
 - 변경: 지수 행 열 3 · 저장소 메서드 4
 - 검증: `build` · `lint` · `test` 936 / 0 · `test:layer-check` · Swagger 생성 · 실서버 4000 소유자 200 · `EXPLAIN` 0.18 / 1.2ms
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-06 — F016 단계 A(파일 걸침)
+
+- 변경 · 검증: `kr_stock_quotes` 저장 문장 둘에 새 열(DDL 은 `DB-REQ-041`). 폴링 = 거래량이 늘 때만 시각 · 체결 = `GREATEST`. 실서버 56행 중 50행 시각
+- 미검증 · 범위 밖: 없음
+- 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`

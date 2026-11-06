@@ -1,6 +1,6 @@
 "use client";
 
-import { kstClock, kstMonthDay } from "@repo/core/marketKr";
+import { type KrQuote, kstClock, kstClockSeconds, kstMonthDay } from "@repo/core/marketKr";
 import { AssetIcon } from "@repo/ui/assetIcon";
 import { Skeleton } from "@repo/ui/skeleton";
 import { StatusLine } from "@repo/ui/statusLine";
@@ -9,6 +9,7 @@ import { ShieldCheck } from "lucide-react";
 import {
   KR_STOCK_MESSAGES as M,
   KrChangeText,
+  KrMarketActionBanner,
   KrQuoteBadges,
   KrSessionLine,
   KrStockChart,
@@ -52,6 +53,12 @@ import {
 const won = (value: number | null) => (value === null ? M.priceUnknown : `${formatPrice(value)}원`);
 const ratio = (value: number | null, suffix = "") =>
   value === null ? M.priceUnknown : `${value.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}${suffix}`;
+
+/** 정지 줄의 이유 — 서버 칩 순서대로 첫 정지 사유. 칩이 없는데 시각이 왔으면 시장 조치(서버가 그때만 시각을 준다) */
+const stopReasonOf = (quote: Pick<KrQuote, "status">) => {
+  const badge = quote.status.find((s) => s === "halted" || s === "paused" || s === "vi");
+  return badge ? M.detail.stopReasons[badge] : M.detail.stopReasons.market;
+};
 
 /**
  * 국내 주식 상세(F011 `FE-REQ-041` FR-42 · 43 · 44 · 46) — **클라이언트 잎.** 코인 상세와 달리 머리를 서버에서 그리지 않는다:
@@ -116,7 +123,8 @@ export const KrStockDetail = ({ code }: { code: string }) => {
           <div className={priceRow}>
             <span className={priceStyle}>{`${formatPrice(quote.price)}원`}</span>
             <KrChangeText rate={quote.changeRate} amount={quote.change} />
-            <KrQuoteBadges quote={quote} session={session} />
+            {/* 마지막 체결은 아래 정지 줄이 말한다 — 칩에서 두 번 쓰지 않는다 */}
+            <KrQuoteBadges quote={quote} session={session} showLastTrade={false} />
           </div>
           {/* 시간외 단일가(슬라이스 6b) — 정규장 현재가와 섞지 않고 따로 한 줄. 정규장이 열리면 서버가 null 로 준다 */}
           {quote.afterHours && (
@@ -126,7 +134,15 @@ export const KrStockDetail = ({ code }: { code: string }) => {
               {` · ${M.afterHours.asOf(kstClock(quote.afterHours.at))}`}
             </p>
           )}
-          {quote.isHalted && <StatusLine kind="blocked">{M.detail.halted(updated)}</StatusLine>}
+          {/* 시장 조치(서킷브레이커 · 사이드카) 띠 — F016 단계 A · FE-REQ-063 FR-2 */}
+          <KrMarketActionBanner actions={ok.marketActions} />
+          {quote.lastTradeAt ? (
+            <StatusLine kind="blocked">
+              {M.detail.stopped(stopReasonOf(quote), kstClockSeconds(quote.lastTradeAt))}
+            </StatusLine>
+          ) : (
+            quote.isHalted && <StatusLine kind="blocked">{M.detail.haltedNoTrade}</StatusLine>
+          )}
           <KrSessionLine session={session} />
           <p className={statLabel}>{M.detail.tickSize(formatPrice(detail.tickSize))}</p>
         </div>

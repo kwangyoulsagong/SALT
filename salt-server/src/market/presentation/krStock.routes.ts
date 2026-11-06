@@ -123,7 +123,9 @@ export const createKrStockRouter = (
    *       1d 1 · 7d 5 · 1m 21 · 3m 63 · 6m 126 · 1y 250)이 없으면 null. 정렬은 페이지 전에 매기고 값이 없는 종목은 뒤로.
    *       `feed` 는 poll_1m · realtime · stale(시세 받는 시간대에 3분 넘게 갱신 없음).
    *       `logoUrl` 은 종목마다 판정한 logo.dev 로고 주소(도메인 · 티커) — 키가 없거나 선명한 로고가 없으면 null(화면 이니셜).
-   *       `status` 는 halted · administrative · caution · warning · danger · overheat.
+   *       `status` 는 halted(거래정지) · paused(임시정지) · vi · administrative · caution · warning · danger · attention(투자유의) ·
+   *       liquidation(정리매매) · overheat. `vi` 는 VI 발동 중일 때만 `{ kind: static|dynamic|both|null, triggeredAt, count }`.
+   *       `lastTradeAt` 은 값이 멈춘 이유(거래정지 · 임시정지 · VI · 그 시장의 서킷브레이커)가 있을 때만 마지막 체결 시각, 평소 null(F016 단계 A).
    *     tags: [Market - KR Stock]
    *     security: [{ bearerAuth: [] }]
    *     parameters:
@@ -192,7 +194,9 @@ export const createKrStockRouter = (
    *       포인트(소수 둘째 자리). `sparkline` 은 마지막 거래일 장중 5분 간격 종가(지수는 분 기록을 5분으로 줄임) — 없으면 null.
    *       `high24h` · `low24h` · `tradeValue24h` 는 당일 값, 못 받았으면 null. `breadth` 는 코스피 + 코스닥 상승 · 보합 · 하락
    *       종목 수. `headlines` 는 늘 빈 배열(국내 뉴스는 모으지 않는다) — 그 자리는 `schedule`(다가오는 국내 일정 최대 3건).
-   *       분 기록 · 5분봉 · 일정 중 못 읽은 것이 있으면 `degraded: true`(전체를 실패시키지 않는다).
+   *       `marketActions` 는 오늘 시장 조치(서킷브레이커 · 사이드카, F016 단계 A) — `active` · `resumesAt` 은 서버가 정한다.
+   *       `source: inferred` 는 지수 분 기록으로 추정한 것(화면이 "추정"을 붙인다).
+   *       분 기록 · 5분봉 · 일정 · 시장 조치 중 못 읽은 것이 있으면 `degraded: true`(전체를 실패시키지 않는다).
    *     tags: [Market - KR Stock]
    *     security: [{ bearerAuth: [] }]
    *     responses:
@@ -228,6 +232,7 @@ export const createKrStockRouter = (
    *                           kind: { type: string, enum: [kr_bok_rate, kr_cpi, kr_trade, kr_quad_expiry] }
    *                           eventAt: { type: string, format: date-time }
    *                           daysUntil: { type: integer }
+   *                     marketActions: { type: array, items: { $ref: '#/components/schemas/KrMarketAction' } }
    *                     degraded: { type: boolean }
    *       401: { description: 인증 실패 }
    *       404: { description: 소유자가 아님 }
@@ -251,6 +256,18 @@ export const createKrStockRouter = (
    *         low24h: { type: number, nullable: true }
    *         tradeValue24h: { type: integer, nullable: true }
    *         priceUpdatedAt: { type: string, format: date-time }
+   *     KrMarketAction:
+   *       type: object
+   *       properties:
+   *         market: { type: string, enum: [KOSPI, KOSDAQ] }
+   *         kind: { type: string, enum: [circuit_breaker, sidecar] }
+   *         stage: { type: integer, description: "서킷브레이커 1 · 2 · 3단계(사이드카 1)" }
+   *         direction: { type: string, enum: [up, down] }
+   *         startedAt: { type: string, format: date-time }
+   *         endedAt: { type: string, format: date-time, nullable: true }
+   *         resumesAt: { type: string, format: date-time, nullable: true, description: "재개 예정 — 3단계는 null(그날 종료)" }
+   *         source: { type: string, enum: [feed, inferred] }
+   *         active: { type: boolean }
    */
   router.get("/summary", controller.summary);
 
@@ -282,7 +299,7 @@ export const createKrStockRouter = (
    *       - { in: path, name: code, required: true, schema: { type: string, pattern: "^[0-9A-Z]{6}$" } }
    *     responses:
    *       200:
-   *         description: "`{ session, quote: KrStockQuote, detail }`"
+   *         description: "`{ session, quote: KrStockQuote, detail, marketActions: KrMarketAction[] }` — marketActions 는 이 종목 시장의 오늘 조치"
    *       404: { description: 소유자가 아니거나 수집 유니버스 밖 종목 }
    *       503: { description: KIS 키 없음 }
    */

@@ -298,6 +298,7 @@ export const RealtimeMarketTable = ({
                             <KrQuoteBadges
                               quote={item.kr}
                               session={data.krSession}
+                              compact
                             />
                           )}
                         </FlexBox>

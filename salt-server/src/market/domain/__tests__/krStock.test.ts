@@ -149,9 +149,14 @@ describe("krTickSize — 호가 단위(FR-42)", () => {
 
 describe("상태 배지 · 상하한 · 지연 — 서버가 판정한다(FR-43 · 44 · 45)", () => {
   it("종목상태 · 시장경고 코드를 합친다. 55(신용가능)는 배지가 아니다", () => {
-    assert.deepEqual(krStatusBadges({ statusCode: "55", warnCode: "00", isHalted: false }), []);
-    assert.deepEqual(krStatusBadges({ statusCode: "58", warnCode: "00", isHalted: false }), ["halted"]);
-    assert.deepEqual(krStatusBadges({ statusCode: "51", warnCode: "02", isHalted: true }).sort(), ["administrative", "halted", "warning"]);
+    const q = (over: Partial<Parameters<typeof krStatusBadges>[0]>) => ({
+      statusCode: "55", warnCode: "00", isHalted: false, viCode: "N",
+      cautionFlag: false, managedFlag: false, liquidationFlag: false, shortOverheatFlag: false, ...over,
+    });
+    assert.deepEqual(krStatusBadges(q({})), []);
+    assert.deepEqual(krStatusBadges(q({ statusCode: "58" })), ["halted"]);
+    // F016 단계 A(2026-11-06): 상태 코드가 58 이 아닌 정지 플래그는 임시정지로 가른다(앞 판은 둘 다 halted 였다)
+    assert.deepEqual(krStatusBadges(q({ statusCode: "51", warnCode: "02", isHalted: true })).sort(), ["administrative", "paused", "warning"]);
   });
 
   it("상한가 · 하한가 — 값이 없으면 판단하지 않는다", () => {

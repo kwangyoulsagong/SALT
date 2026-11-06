@@ -115,3 +115,7 @@
 ## 국내 탭 요약 띠 (F011, 2026-11-02)
 
 - 파일만 걸쳤다 — 판단은 `SRV-REQ-042` · `FE-REQ-050` 회고에 있다.
+
+## 2026-11-06 — F016 단계 A(파일 걸침)
+
+- 예측 무변경. 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`

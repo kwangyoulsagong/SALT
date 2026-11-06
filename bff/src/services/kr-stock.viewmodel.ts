@@ -24,7 +24,22 @@ export const KR_SESSIONS = [
 ] as const;
 export type KrSession = (typeof KR_SESSIONS)[number];
 
-export const KR_STATUS_BADGES = ["halted", "administrative", "caution", "warning", "danger", "overheat"] as const;
+/**
+ * 종목 상태 칩 — 서버 `krStatusBadges` 와 같은 값. F016 단계 A(2026-11-06)에 임시정지 · VI · 투자유의 · 정리매매를 더했다.
+ * 모르는 값은 버린다(옛 화면이 새 서버를 만나도 깨지지 않게)
+ */
+export const KR_STATUS_BADGES = [
+  "halted",
+  "paused",
+  "vi",
+  "administrative",
+  "caution",
+  "warning",
+  "danger",
+  "attention",
+  "liquidation",
+  "overheat",
+] as const;
 export type KrStatusBadge = (typeof KR_STATUS_BADGES)[number];
 
 export const KR_FEEDS = ["realtime", "poll_1m", "stale"] as const;
@@ -97,6 +112,13 @@ export interface KrQuoteVM {
   limitState: "upper" | "lower" | null;
   status: KrStatusBadge[];
   isHalted: boolean;
+  /** VI 발동 중일 때만(F016 단계 A) — 종류 · 발동 시각은 못 받았으면 `null`. 이 필드가 없는 옛 서버면 `null` */
+  vi: KrViVM | null;
+  /**
+   * 마지막 체결 시각 — 서버가 **값이 멈춘 이유가 있을 때만**(거래정지 · 임시정지 · VI · 그 시장 서킷브레이커) 채운다.
+   * 화면은 있으면 "마지막 체결 HH:MM:SS" 를 그린다(보일지 판단 0)
+   */
+  lastTradeAt: string | null;
   feed: KrFeed;
   priceUpdatedAt: string;
   /**
@@ -109,6 +131,28 @@ export interface KrQuoteVM {
    * 이 필드가 없는 옛 서버면 `null`(계약 깨짐이 아니다 — 로고는 꾸밈이다)
    */
   logoUrl: string | null;
+}
+
+export const KR_VI_KINDS = ["static", "dynamic", "both"] as const;
+export interface KrViVM {
+  kind: (typeof KR_VI_KINDS)[number] | null;
+  triggeredAt: string | null;
+  count: number | null;
+}
+
+/** 오늘 시장 조치(F016 단계 A · `BFF-REQ-051` FR-2) — 서킷브레이커 · 사이드카. `active` · `resumesAt` 은 서버 값 */
+export const KR_MARKET_ACTION_KINDS = ["circuit_breaker", "sidecar"] as const;
+export interface KrMarketActionVM {
+  market: KrMarket;
+  kind: (typeof KR_MARKET_ACTION_KINDS)[number];
+  stage: number;
+  direction: "up" | "down";
+  startedAt: string;
+  endedAt: string | null;
+  resumesAt: string | null;
+  /** `inferred` 면 화면이 "추정"을 붙인다 */
+  source: "feed" | "inferred";
+  active: boolean;
 }
 
 export interface KrAfterHoursVM {
@@ -253,11 +297,49 @@ export const toKrQuoteVM = (raw: unknown): KrQuoteVM => {
     limitState,
     status: arr(r, "status").filter((s): s is KrStatusBadge => (KR_STATUS_BADGES as readonly unknown[]).includes(s)),
     isHalted: bool(r, "isHalted"),
+    vi: toViVM(r.vi),
+    lastTradeAt: strOrNull(r, "lastTradeAt"),
     feed: oneOf(r, "feed", KR_FEEDS),
     priceUpdatedAt: str(r, "priceUpdatedAt"),
     afterHours: toAfterHoursVM(r.afterHours),
     logoUrl: strOrNull(r, "logoUrl"),
   };
+};
+
+const toViVM = (raw: unknown): KrViVM | null => {
+  if (raw === null || raw === undefined) return null;
+  const r = obj(raw, "vi");
+  return {
+    kind: r.kind === null || r.kind === undefined ? null : oneOf(r, "kind", KR_VI_KINDS),
+    triggeredAt: strOrNull(r, "triggeredAt"),
+    count: numOrNull(r, "count"),
+  };
+};
+
+/**
+ * 시장 조치 목록 — 이 필드가 없는 옛 서버면 빈 배열. 모르는 kind 는 버린다(새 조치 종류가 화면을 깨지 않게).
+ * 모양이 틀린 행은 계약 오류다 — 정지 띠를 조용히 지우지 않는다
+ */
+export const toKrMarketActionsVM = (raw: unknown): KrMarketActionVM[] => {
+  if (raw === null || raw === undefined) return [];
+  if (!Array.isArray(raw)) throw new KrContractError("marketActions");
+  return raw.flatMap((item): KrMarketActionVM[] => {
+    const r = obj(item, "marketAction");
+    if (!(KR_MARKET_ACTION_KINDS as readonly unknown[]).includes(r.kind)) return [];
+    return [
+      {
+        market: oneOf(r, "market", KR_MARKETS),
+        kind: r.kind as KrMarketActionVM["kind"],
+        stage: num(r, "stage"),
+        direction: oneOf(r, "direction", ["up", "down"] as const),
+        startedAt: str(r, "startedAt"),
+        endedAt: strOrNull(r, "endedAt"),
+        resumesAt: strOrNull(r, "resumesAt"),
+        source: oneOf(r, "source", ["feed", "inferred"] as const),
+        active: bool(r, "active"),
+      },
+    ];
+  });
 };
 
 const toAfterHoursVM = (raw: unknown): KrAfterHoursVM | null => {
@@ -300,7 +382,8 @@ export const toKrDetailVM = (raw: unknown) => {
     foreignRate: numOrNull(d, "foreignRate"),
     tickSize: num(d, "tickSize"),
   };
-  return { session: toKrSessionVM(r.session), quote: toKrQuoteVM(r.quote), detail };
+  // 이 종목 시장의 오늘 조치 — 상세 머리 띠(FE-REQ-063 FR-2)
+  return { session: toKrSessionVM(r.session), quote: toKrQuoteVM(r.quote), detail, marketActions: toKrMarketActionsVM(r.marketActions) };
 };
 
 /** `GET /api/market/kr/:code/chart` — 봉 + 몇 거래일치인지(5분봉은 쌓이는 중이라 숨기지 않는다, FR-46) */
@@ -549,6 +632,8 @@ export interface KrMarketSummaryVM {
   /** 국내 뉴스는 모으지 않는다 — 늘 빈 배열. 소식 자리는 `schedule` */
   headlines: [];
   schedule: KrScheduleItemVM[];
+  /** 오늘 시장 조치 — 국내 요약 띠의 정지 띠(F016 단계 A · `BFF-REQ-051` FR-2) */
+  marketActions: KrMarketActionVM[];
   degraded: boolean;
 }
 
@@ -597,6 +682,7 @@ export const toKrMarketSummaryVM = (raw: unknown): KrMarketSummaryVM => {
         : null,
     headlines: [],
     schedule: toKrScheduleVM({ days: 0, items: r.schedule ?? [] }).items,
+    marketActions: toKrMarketActionsVM(r.marketActions),
     degraded: bool(r, "degraded"),
   };
 };

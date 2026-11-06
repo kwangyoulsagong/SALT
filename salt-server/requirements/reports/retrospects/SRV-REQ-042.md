@@ -15,3 +15,7 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 없음
+
+## 2026-11-06 — F016 단계 A(파일 걸침)
+
+- 주인은 F016 REQ — 이 문서는 파일이 걸쳐 기록만. 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`

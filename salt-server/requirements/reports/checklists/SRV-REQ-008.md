@@ -227,3 +227,9 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - FR-13 · 14 은퇴 — `src/onboarding/**` 5파일 삭제 · `composition.ts` 조립 · `app.ts` 등록 제거. 검증 Express build · lint · test 925 · `test:layer-check`
+
+## 2026-11-06 — F016 단계 A(파일 걸침)
+
+- 변경 · 검증: `schema.prisma` 머리에 이 REQ — 국내 시장 상태 열 · 표 추가(`DB-REQ-041`). 이 REQ 몫 무변경
+- 미검증 · 범위 밖: 없음
+- 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`

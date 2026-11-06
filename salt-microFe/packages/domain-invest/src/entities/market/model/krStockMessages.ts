@@ -1,4 +1,4 @@
-import type { KrFeed, KrMarket, KrSession, KrStatusBadge } from "@repo/core/marketKr";
+import type { KrFeed, KrMarket, KrSession, KrStatusBadge, KrViKind } from "@repo/core/marketKr";
 
 /**
  * 국내 주식 문구(F011 `FE-REQ-041`). 확신 · 매매 지시 문구 0건 — 시세 사실만 말한다.
@@ -61,12 +61,48 @@ export const KR_STOCK_MESSAGES = {
   /** 종목 상태 배지(FR-44) */
   statusBadges: {
     halted: "거래정지",
+    paused: "임시정지",
+    vi: "VI 발동",
     administrative: "관리종목",
     caution: "투자주의",
     warning: "투자경고",
     danger: "투자위험",
+    attention: "투자유의",
+    liquidation: "정리매매",
     overheat: "단기과열",
   } satisfies Record<KrStatusBadge, string>,
+  /** VI 칩(F016 단계 A · FE-REQ-063 FR-3) — 종류를 알면 괄호로, 약 2분 단일가는 title 로 */
+  vi: {
+    kinds: { static: "정적", dynamic: "동적", both: "정적 · 동적" } satisfies Record<KrViKind, string>,
+    badge: (kind: string | null) => (kind ? `VI 발동(${kind})` : "VI 발동"),
+    title: (since: string | null) =>
+      since ? `${since}부터 변동성완화장치로 약 2분 단일가 매매 중이에요` : "변동성완화장치로 약 2분 단일가 매매 중이에요",
+  },
+  /** 표 행에서 접힌 상태 칩 수(이름은 title · 숨은 글자) */
+  moreStatus: (count: number) => `+${count}`,
+  /** 마지막 체결 — 서버가 값이 멈춘 이유가 있을 때만 시각을 준다 */
+  lastTrade: (when: string) => `마지막 체결 ${when}`,
+  /**
+   * 시장 조치 띠(F016 단계 A · FE-REQ-063 FR-2). 사실만 — 원인 · 앞날 · 매매 지시 0.
+   * `inferred` 는 지수가 멈춘 것을 보고 우리가 추정한 것이라 "추정"을 붙인다
+   */
+  marketAction: {
+    regionLabel: "시장 매매 정지 알림",
+    haltActive: (market: string, stage: number, since: string) =>
+      `${market} 매매 정지 · 서킷브레이커 ${stage}단계 · ${since}부터`,
+    resumes: (at: string) => `재개 예정 ${at}`,
+    dayEnded: (market: string, since: string) => `${market} 오늘 매매 종료 · 서킷브레이커 3단계 · ${since}부터`,
+    haltEnded: (market: string, stage: number, from: string, to: string) =>
+      `오늘 ${market} 서킷브레이커 ${stage}단계 · ${from}~${to} 매매 정지`,
+    haltEndedOpen: (market: string, stage: number, from: string) =>
+      `오늘 ${market} 서킷브레이커 ${stage}단계 · ${from}부터 매매 정지`,
+    sidecarActive: (market: string, direction: string, since: string) =>
+      `${market} 프로그램 매매 5분 정지 · 사이드카(${direction}) · ${since}부터`,
+    sidecarEnded: (market: string, direction: string, at: string) => `오늘 ${market} 사이드카(${direction}) · ${at}`,
+    directions: { up: "매수", down: "매도" },
+    inferred: "추정",
+    inferredTitle: "거래소 알림이 아니라 지수가 멈춘 것을 보고 추정했어요",
+  },
   /** 상하한가(FR-43) — 배지는 한 글자, 스크린리더는 title · 숨은 글자로 전부 읽는다 */
   limit: {
     upper: { badge: "상", label: "상한가" },
@@ -83,7 +119,14 @@ export const KR_STOCK_MESSAGES = {
     blockName: "국내 주식 상세",
     back: "국내 주식으로 돌아가기",
     notFound: "이 종목의 시세를 볼 수 없습니다.",
-    halted: (when: string) => `거래정지 · 마지막 체결 ${when}`,
+    /**
+     * 값이 멈춘 이유 + 마지막 체결(F016 단계 A). ~~`halted(when)` 은 시세 받은 시각을 "마지막 체결"로 썼다~~ — 2026-11-06
+     * 서킷브레이커 날 그 시각이 매분 바뀌어 멈춘 값을 실시간처럼 읽게 했다. 이제 시각은 서버 `lastTradeAt` 이다
+     */
+    stopped: (reason: string, when: string) => `${reason} · 마지막 체결 ${when}`,
+    /** 거래정지인데 체결을 아직 한 번도 못 봤을 때 */
+    haltedNoTrade: "거래정지 중이에요",
+    stopReasons: { halted: "거래정지", paused: "임시정지", vi: "VI 단일가 매매 중", market: "시장 매매 정지" },
     changeVsBase: "전일 대비",
     tickSize: (won: string) => `호가 단위 ${won}원`,
     stats: {

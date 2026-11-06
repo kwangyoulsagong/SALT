@@ -146,3 +146,7 @@
 ## 2026-11-05 — 주석 정정
 
 - 이유를 적은 주석은 이유가 사라지면 낡는다 — Action: 전제(저장 위치 등)를 바꾸면 그 전제를 이유로 적은 주석을 grep 해 정정한다
+
+## 2026-11-06 — F016 단계 A(파일 걸침)
+
+- 주인은 F016 REQ — 이 문서는 파일이 걸쳐 기록만. 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`

@@ -171,3 +171,9 @@
 - 변경: 파일만 걸침 — 서버 KIS 테스트 1건 추가, 예측 무변경
 - 검증: `build` · `lint` · `test` 936 / 0 · `test:layer-check` · Swagger 생성 · 실서버 4000 소유자 200
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-06 — F016 단계 A(파일 걸침)
+
+- 서버 `kisClient.test.ts`(머리에 이 REQ) 에 VI 현황 · 상태 칸 해석 테스트. 예측 코드 무변경 — 검증 없음
+- 미검증 · 범위 밖: 없음
+- 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`

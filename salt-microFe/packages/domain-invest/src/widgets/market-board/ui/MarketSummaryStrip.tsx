@@ -1,9 +1,10 @@
 "use client";
 
-import type { KrScheduleItem } from "@repo/core/marketKr";
+import type { KrMarketAction, KrScheduleItem } from "@repo/core/marketKr";
 import { useMemo } from "react";
 
 import {
+  KrMarketActionBanner,
   MARKET_SUMMARY_MESSAGES,
   MarketAssetClass,
   MarketBriefingPanel,
@@ -40,6 +41,8 @@ interface StripData {
   schedule: KrScheduleItem[];
   changeBasis: SummaryChangeBasis;
   regionLabel: string;
+  /** 오늘 시장 조치(국내만 — F016 단계 A). 코인은 빈 배열 */
+  marketActions: KrMarketAction[];
 }
 
 /** 오늘(KST) — 스파크라인이 그린 날과 견줘 "오늘 장중" 을 고른다. 렌더가 아니라 데이터가 바뀔 때만 센다 */
@@ -65,6 +68,7 @@ const useCryptoStrip = (enabled: boolean): { data: StripData | undefined; isPend
         schedule: [],
         changeBasis: SummaryChangeBasis.Last24h,
         regionLabel: MARKET_SUMMARY_MESSAGES.regionLabel,
+        marketActions: [],
       },
     [data],
   );
@@ -94,6 +98,7 @@ const useKrStrip = (enabled: boolean): { data: StripData | undefined; isPending:
         schedule: ok.schedule,
         changeBasis: SummaryChangeBasis.PrevClose,
         regionLabel: MARKET_SUMMARY_MESSAGES.krRegionLabel,
+        marketActions: ok.marketActions,
       },
     [ok],
   );
@@ -152,38 +157,42 @@ export const MarketSummaryStrip = ({ assetClass = MarketAssetClass.Crypto }: Mar
   }
 
   return (
-    <section className={strip} aria-label={data.regionLabel}>
-      <div className={featuredCell}>
-        {data.featured ? (
-          <MarketSummaryFeatured
-            item={data.featured}
-            windowLabel={data.windowLabel}
-            href={hrefOf(data.featured)}
+    <>
+      {/* 서킷브레이커 · 사이드카 띠 — 띠 위 한 줄(F016 단계 A · FE-REQ-063 FR-2). 없으면 아무것도 그리지 않는다 */}
+      <KrMarketActionBanner actions={data.marketActions} />
+      <section className={strip} aria-label={data.regionLabel}>
+        <div className={featuredCell}>
+          {data.featured ? (
+            <MarketSummaryFeatured
+              item={data.featured}
+              windowLabel={data.windowLabel}
+              href={hrefOf(data.featured)}
+              changeBasis={data.changeBasis}
+            />
+          ) : null}
+        </div>
+        <div className={itemGrid}>
+          {data.items.map((item) => (
+            <MarketSummaryItemLink
+              key={item.symbol}
+              item={item}
+              windowLabel={data.windowLabel}
+              href={hrefOf(item)}
+              changeBasis={data.changeBasis}
+            />
+          ))}
+        </div>
+        <div className={panelCell}>
+          <MarketBriefingPanel
+            breadth={data.breadth}
+            headlines={data.headlines}
+            featuredName={data.featured?.name ?? null}
+            schedule={data.schedule}
             changeBasis={data.changeBasis}
           />
-        ) : null}
-      </div>
-      <div className={itemGrid}>
-        {data.items.map((item) => (
-          <MarketSummaryItemLink
-            key={item.symbol}
-            item={item}
-            windowLabel={data.windowLabel}
-            href={hrefOf(item)}
-            changeBasis={data.changeBasis}
-          />
-        ))}
-      </div>
-      <div className={panelCell}>
-        <MarketBriefingPanel
-          breadth={data.breadth}
-          headlines={data.headlines}
-          featuredName={data.featured?.name ?? null}
-          schedule={data.schedule}
-          changeBasis={data.changeBasis}
-        />
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   );
 };
 

@@ -4,13 +4,15 @@ import { describe, it } from "node:test";
 import {
   KrStockNotAvailableError,
   type KrMarketCalendarStore,
+  type KrMarketAction,
+  type KrMarketStatusStore,
   type KrStockStore,
   type StoredKrStockQuote,
   type WatchlistItem,
   type WatchlistRepository,
 } from "../../domain";
 import { AddToWatchlist, ListWatchlist } from "../ManageWatchlist";
-import { ListKrStockQuotes } from "../ReadKrStock";
+import { GetKrStockDetail, ListKrStockQuotes } from "../ReadKrStock";
 
 /**
  * F011 슬라이스 3 — 국내 주식 표가 코인 표와 같은 필터(정렬 · 순서 · 기간)를 받고, 관심 종목에 국내 주식을 담는다.
@@ -36,6 +38,12 @@ const quote = (code: string, o: Partial<StoredKrStockQuote> = {}): StoredKrStock
   statusCode: null,
   warnCode: null,
   isHalted: false,
+  viCode: "N",
+  cautionFlag: false,
+  managedFlag: false,
+  liquidationFlag: false,
+  shortOverheatFlag: false,
+  lastTradeAt: null,
   per: null,
   pbr: null,
   eps: null,
@@ -72,10 +80,13 @@ const storeWith = (quotes: StoredKrStockQuote[], closes = new Map<string, number
   return { store, calls };
 };
 
-const list = (store: KrStockStore) =>
+const noStatus = { latestViEvents: async () => new Map(), marketActions: async () => [] } as unknown as KrMarketStatusStore;
+
+const list = (store: KrStockStore, status: KrMarketStatusStore = noStatus) =>
   new ListKrStockQuotes({
     store,
     calendar,
+    status,
     viewerEmails: [OWNER],
     provider: () => ({ status: "ok", since: null, lastSuccessAt: null, realtime: { state: "idle", subscribed: 0, lastTickAt: null } }),
     now: () => new Date("2026-10-08T01:00:30Z"),
@@ -227,3 +238,78 @@ describe("ListWatchlist — 국내 주식", () => {
   });
 });
 
+
+describe("ListKrStockQuotes — 상태 칩 · VI · 마지막 체결(F016 단계 A)", () => {
+  // 2026-10-08 10:00:30 KST 는 정규장(달력이 비어 있으면 평일 추정)
+  const now = new Date("2026-10-08T01:00:30Z");
+  const lastTradeAt = new Date("2026-10-08T00:03:32Z");
+  const status = (vi: Array<[string, Date, Date | null]>, actions: KrMarketAction[] = []) =>
+    ({
+      latestViEvents: async () =>
+        new Map(vi.map(([code, triggeredAt, releasedAt]) => [code, { code, triggeredAt, releasedAt, kind: "static", triggerPrice: 1, staticGapRate: -10, dynamicGapRate: null, count: 2 }])),
+      marketActions: async () => actions,
+    }) as unknown as KrMarketStatusStore;
+
+  it("안 풀린 VI 사건 → vi 칩 · 종류 · 마지막 체결 / 풀린 사건 · 평소엔 둘 다 없음", async () => {
+    const { store } = storeWith([quote("000001", { lastTradeAt }), quote("000002", { lastTradeAt }), quote("000003", { lastTradeAt })]);
+    const r = await list(store, status([
+      ["000001", new Date(now.getTime() - 60_000), null],
+      ["000002", new Date(now.getTime() - 300_000), new Date(now.getTime() - 180_000)],
+    ])).execute(viewer, base);
+    const by = Object.fromEntries(r.items.map((i) => [i.code, i]));
+    assert.deepEqual(by["000001"]!.status, ["vi"]);
+    assert.deepEqual(by["000001"]!.vi, { kind: "static", triggeredAt: new Date(now.getTime() - 60_000).toISOString(), count: 2 });
+    assert.equal(by["000001"]!.lastTradeAt, lastTradeAt.toISOString());
+    for (const code of ["000002", "000003"]) {
+      assert.deepEqual(by[code]!.status, []);
+      assert.equal(by[code]!.vi, null);
+      assert.equal(by[code]!.lastTradeAt, null);
+    }
+  });
+
+  it("그 시장에 걸린 서킷브레이커 → 칩 없는 종목도 마지막 체결 · 다른 시장은 아님", async () => {
+    const { store } = storeWith([quote("000001", { lastTradeAt }), quote("000002", { lastTradeAt, market: "KOSDAQ" })]);
+    const cb: KrMarketAction = {
+      market: "KOSPI", tradeDate: "2026-10-08", kind: "circuit_breaker", stage: 1, direction: "down",
+      startedAt: new Date("2026-10-08T00:04:00Z"), endedAt: null, source: "inferred",
+    };
+    const r = await list(store, status([], [cb])).execute(viewer, base);
+    const by = Object.fromEntries(r.items.map((i) => [i.code, i]));
+    assert.equal(by["000001"]!.lastTradeAt, lastTradeAt.toISOString());
+    assert.equal(by["000002"]!.lastTradeAt, null);
+  });
+
+  it("상태 읽기가 실패해도 표는 선다 — 현재가 상태 칸만으로 칩", async () => {
+    const { store } = storeWith([quote("000001", { viCode: "Y", lastTradeAt })]);
+    const broken = { latestViEvents: async () => { throw new Error("db"); }, marketActions: async () => [] } as unknown as KrMarketStatusStore;
+    const r = await list(store, broken).execute(viewer, base);
+    assert.deepEqual(r.items[0]!.status, ["vi"]);
+    assert.deepEqual(r.items[0]!.vi, { kind: null, triggeredAt: null, count: null });
+    assert.equal(r.items[0]!.lastTradeAt, lastTradeAt.toISOString());
+  });
+});
+
+describe("GetKrStockDetail — 그 종목 시장의 오늘 조치만(F016 단계 A)", () => {
+  it("코스닥 종목 상세엔 코스피 서킷브레이커가 실리지 않고 · 마지막 체결도 없다", async () => {
+    const kospiCb: KrMarketAction = {
+      market: "KOSPI", tradeDate: "2026-10-08", kind: "circuit_breaker", stage: 1, direction: "down",
+      startedAt: new Date("2026-10-08T00:04:00Z"), endedAt: null, source: "inferred",
+    };
+    const { store } = storeWith([
+      quote("005930", { lastTradeAt: new Date("2026-10-08T00:03:32Z") }),
+      quote("035720", { market: "KOSDAQ", lastTradeAt: new Date("2026-10-08T00:59:00Z") }),
+    ]);
+    const status = { latestViEvents: async () => new Map(), marketActions: async () => [kospiCb] } as unknown as KrMarketStatusStore;
+    const detail = new GetKrStockDetail({
+      store, calendar, status, viewerEmails: [OWNER],
+      provider: () => ({ status: "ok", since: null, lastSuccessAt: null, realtime: { state: "idle", subscribed: 0, lastTickAt: null } }),
+      now: () => new Date("2026-10-08T01:00:30Z"),
+    } as never);
+    const kospi = await detail.execute(viewer, "005930");
+    assert.deepEqual(kospi.marketActions.map((a) => [a.market, a.active, a.resumesAt]), [["KOSPI", true, "2026-10-08T00:24:00.000Z"]]);
+    assert.equal(kospi.quote.lastTradeAt, "2026-10-08T00:03:32.000Z");
+    const kosdaq = await detail.execute(viewer, "035720");
+    assert.deepEqual(kosdaq.marketActions, []);
+    assert.equal(kosdaq.quote.lastTradeAt, null);
+  });
+});

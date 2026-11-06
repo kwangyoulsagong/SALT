@@ -246,3 +246,9 @@
 
 - 국내 중계 서버 401 → `KR_STOCK_AUTH_REQUIRED` 한 코드(웹이 세션 갱신 뒤 다시 연결) · 구독 메시지 토큰 없이 연결 쿠키로(`fb9c85b3` · `721063fc`)
 - 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+## 2026-11-06 — F016 단계 A(파일 걸침)
+
+- 변경 · 검증: 시세 · 상세 뷰모델 칸(`vi` · `lastTradeAt` · `marketActions`). `npm test` 417/0
+- 미검증 · 범위 밖: 없음
+- 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`

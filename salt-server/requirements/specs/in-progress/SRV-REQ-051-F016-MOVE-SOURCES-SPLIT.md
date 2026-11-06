@@ -40,6 +40,17 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | FR-11 | 소유자 판정 — 국내 경로는 기존 `assertViewer`. 코인은 로그인 사용자 |
 | FR-12 | 신선도 — 원천별 마지막 수집 시각을 `ops/salt.sh status` 신선도 쿼리에(`OPS-002` · `workers-external.md`) |
 
+## 진행 — 단계 A done(2026-11-06)
+
+| FR | 상태 | 구현 |
+|---|---|---|
+| FR-2 VI | done | `KisClient.viEventsPage` · `PollKrViEvents`(정규장 · 종가 단일가 매분, 한도 맨 뒤) · `kr_vi_event`. **실측: KIS 는 최근 30건 한 쪽만 준다**(연속 조회 머리 빈 값) — 1분에 30건 넘게 발동하면 앞쪽 종류 · 시각을 놓친다(칩은 현재가 `vi_cls_code` 로 선다) |
+| FR-3 시장 조치 | 부분 | 서킷브레이커 **추정** done — `detectKrCircuitBreakers`(지수 분 기록이 60초 이상 같은 값 + 전일 대비 -8 · -15 · -20% 이하 · 1 · 2단계는 14:50 뒤 0) · `InferKrMarketActions`. ~~지수 · 대형주 체결 멈춤 1분~~ → 지수 분 기록 멈춤 1분(대형주 체결 칸이 폴링 종목엔 1분 오차라 지수만 — 2026-11-06 재생에서 같은 답). 장운영정보 실시간(feed) · 사이드카는 남음(발동일 실측) |
+| FR-6 상태 칸 | done | 현재가 응답 필드 다섯 · `last_trade_at`(실시간 = 체결 시각 · 폴링 = 누적 거래량이 는 회차). `krStatusBadges` 에 `paused` · `vi` · `attention` · `liquidation`(+ 관리 · 단기과열 플래그). 응답의 `lastTradeAt` 은 값이 멈춘 이유가 있을 때만(`krVisibleLastTrade`) |
+| 그 밖 | 단계 B~D | FR-1 · 4 · 5(B) · FR-7~10(C) · FR-11 기존 판정 그대로 · FR-12 신선도(B 수집 워커와 함께) |
+
+루트 `requirements/specs/done/F016-A-market-status-tags-slice.md`
+
 ## Acceptance Criteria
 
 - [ ] 분해 합 = 등락 — 경계 표 테스트(β 없음 · 업종 없음 · 지수 실패 · 코인)
@@ -59,3 +70,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-06 | 신규(to-do) — 딥리서치 `requirements/reports/research/2026-11-06-why-moved.md` · `ADR-009` |
 | 2026-11-06 | ~~사용자 결정 — 업비트 비공식 공지 사용(저빈도 · 차단 시 중단)~~ 곧이어 정정(아래) |
 | 2026-11-06 | 사용자 결정(2026-11-06): *"업비트 공지는 안한다"* — FR-10 거래소 공지 뺌(공식 마켓 플래그만) |
+| 2026-11-06 | in-progress — 단계 A(FR-2 · FR-3 추정 · FR-6) done. FR-3 추정 근거를 "지수 분 기록 멈춤"으로 정정(진행 표). 허용 목록 TR 하나 더(`FHPST01390000`) |

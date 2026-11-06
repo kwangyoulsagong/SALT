@@ -12,3 +12,9 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 앱(RN) 소비 | 모바일 화면 없음 | F007 |
+
+## 2026-11-06 — F016 단계 A(파일 걸침)
+
+- 변경 · 검증: 요약 뷰모델 `marketActions`. 테스트 1
+- 미검증 · 범위 밖: 없음
+- 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`
