@@ -78,6 +78,8 @@ export const KR_STOCK_MESSAGES = {
     title: (since: string | null) =>
       since ? `${since}부터 변동성완화장치로 약 2분 단일가 매매 중이에요` : "변동성완화장치로 약 2분 단일가 매매 중이에요",
   },
+  /** 표 행에서 접힌 상태 칩 수(이름은 title · 숨은 글자) */
+  moreStatus: (count: number) => `+${count}`,
   /** 마지막 체결 — 서버가 값이 멈춘 이유가 있을 때만 시각을 준다 */
   lastTrade: (when: string) => `마지막 체결 ${when}`,
   /**
