@@ -10,7 +10,7 @@ import { AnimatePresence, m } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useHasSession } from "@repo/web-shared/api";
+import { hasApiStatus, useHasSession } from "@repo/web-shared/api";
 import { ROUTES } from "@repo/web-shared/config";
 import { useZoneNavigate } from "@repo/web-shared/lib";
 
@@ -58,19 +58,22 @@ export const OnboardingFlow = () => {
   const onboarding = useOnboarding();
   const finish = useFinishOnboarding();
   const [inviteAccepted, setInviteAccepted] = useState(false);
+  // 세션이 끝났다(리프레시도 죽음) — `/onboarding` 은 공개 경로라 로그인으로 보내지 않고 세션만 비운다(`refreshSession`).
+  // 표지 쿠키는 다음 포커스에야 다시 읽히니 401 을 "로그인 안 함"으로 읽어 초대 단계로 — "불러오지 못했어요"가 아니다
+  const sessionEnded = hasApiStatus(onboarding.error, 401);
 
   // 세션을 아직 모르면(서버 · 하이드레이션) 단계를 정하지 않는다 — 초대 단계가 번쩍였다가 바뀌지 않게.
   // 초대 수락 직후의 첫 조회는 초대 단계를 그대로 둔다 — 로딩으로 바꾸면 다음 단계가 밀려 들어오지 않는다(P-40, 2026-10-30)
   const screen: OnboardingScreen | null =
     signedIn === null
       ? null
-      : signedIn === false || (inviteAccepted && !onboarding.data)
+      : signedIn === false || sessionEnded || (inviteAccepted && !onboarding.data)
         ? "invite"
         : onboarding.data
           ? (onboarding.data.nextStep ?? "complete")
           : null;
 
-  if (signedIn === true && onboarding.isError && !onboarding.data) {
+  if (signedIn === true && onboarding.isError && !onboarding.data && !sessionEnded) {
     return (
       <div className={s.page}>
         <div className={s.loading}>

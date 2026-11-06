@@ -1,4 +1,4 @@
-import { apiFetch } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
 import type { Onboarding } from "../model/types";
@@ -23,9 +23,8 @@ export const onboardingApi = {
       undefined,
     );
 
-    if (!response.ok) {
-      throw new Error(`onboarding failed: ${response.status}`);
-    }
+    // `ApiError` 로 — 일반 `Error` 면 401 도 "다시 시도할 오류"로 읽혀 만료 세션이 "불러오는 중"에 머물렀다(2026-11-06 확인)
+    if (!response.ok) throw await readApiError(response, "onboarding");
 
     return (await response.json()) as Onboarding;
   },
