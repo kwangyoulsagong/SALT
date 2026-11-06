@@ -48,13 +48,16 @@ const AMOUNT_KEY =
   /price|amount|value|krw|usd|won|balance|pnl|profit|loss|cost|qty|quantity|total/i;
 const NUMERIC = /^[-+]?[\d,]*\.?\d+%?$/;
 
+/** 종목 코드 — 국내 주식은 숫자 여섯 자리라 숫자 검사가 아니라 코드 형식으로 본다(서버 `MessageGuard` 와 같은 규칙, 2026-11-06) */
+const SYMBOL = /^[A-Za-z0-9.-]{1,20}$/;
+
+const isSafeParam = (key: string, value: string): boolean =>
+  key === "symbol" ? SYMBOL.test(value) : !AMOUNT_KEY.test(key) && !NUMERIC.test(value.trim());
+
 const toParams = (params: ServerNotificationItem["params"]): Record<string, string> =>
   Object.fromEntries(
     Object.entries(params ?? {}).filter(
-      (entry): entry is [string, string] =>
-        typeof entry[1] === "string" &&
-        !AMOUNT_KEY.test(entry[0]) &&
-        !NUMERIC.test(entry[1].trim()),
+      (entry): entry is [string, string] => typeof entry[1] === "string" && isSafeParam(entry[0], entry[1]),
     ),
   );
 

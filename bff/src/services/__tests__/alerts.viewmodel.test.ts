@@ -43,6 +43,16 @@ describe("toAlertViewModels (BFF-REQ-007 C절)", () => {
     assert.deepEqual(vm.params, { symbol: "BTC" });
   });
 
+  it("종목 코드 칸 — 국내 숫자 코드는 남고 금액 모양은 지운다 · 다른 칸 숫자는 지운다 (SRV-REQ-048 FR-5)", () => {
+    const keep = (symbol: string, extra: Record<string, unknown> = {}) =>
+      toAlertViewModels([item({ params: { symbol, ...extra } })])[0].params;
+    assert.deepEqual(keep("005930"), { symbol: "005930" });
+    assert.deepEqual(keep("KRW-BTC"), { symbol: "KRW-BTC" });
+    assert.deepEqual(keep("1,000"), {});
+    assert.deepEqual(keep("3.5%"), {});
+    assert.deepEqual(keep("BTC", { template: "005930" }), { symbol: "BTC" });
+  });
+
   it("문장 없이 코드만 나간다 — 코드가 없는 행은 버린다 (FR-23)", () => {
     const vms = toAlertViewModels([
       item({ id: "legacy", messageCode: null }),
