@@ -39,3 +39,8 @@
 
 - 몫: 공용 레이아웃에 `PublicShell`(공개 zone 껍데기 — 로고 머리 + main, 앱 내비 · 안내 · prerender 없음) export 추가
 - **Action**: 없음 — 기존 결정 위에 한 줄
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 파일만 걸침 — 이 REQ 를 머리 주석에 둔 파일을 S2c 가 고쳤다. 판단 · 실수는 루트 회고 `MONEY-S2c-notification`
+- **Action**: 없음(이 몫 안)

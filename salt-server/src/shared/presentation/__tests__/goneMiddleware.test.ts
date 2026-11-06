@@ -40,7 +40,6 @@ describe("동면 경로", () => {
     for (const live of [
       "/api/users/profile",
       "/api/investment-insight/insights",
-      "/api/investment-notifications/unread-count",
       "/api/market-intelligence/BTC/dashboard",
     ]) {
       assert.ok(

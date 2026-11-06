@@ -111,3 +111,12 @@ REQ 쪽이 틀렸다: FR-50~53 은 `InvestmentInsight` 의 소비처를 보지 �
 ## 2026-11-02 — MONEY-F1(`FE-REQ-053`)
 
 - 이 REQ 화면 · 동작에 걸린 수정이 있다 — 근거와 확인은 커밋 설명 · 루트 회고 `requirements/reports/retrospects/MONEY-F1-invest-zone-home-cards.md`
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 파일만 걸침 — 이 REQ 를 머리 주석에 둔 파일을 S2c 가 고쳤다. 판단 · 실수는 루트 회고 `MONEY-S2c-notification`
+- **Action**: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S2c 확인 2회차
+
+- 결함과 Action 은 루트 회고 `MONEY-S2c-notification` 확인 2회차

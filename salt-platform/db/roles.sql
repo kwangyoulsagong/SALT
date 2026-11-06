@@ -1,7 +1,8 @@
 -- 서비스별 스키마 · DB 계정(`DB-REQ-036` FR-1). **관리자(DB 소유자)가 돌린다.** 다시 돌려도 같은 결과다.
 --
 --   psql -v ON_ERROR_STOP=1 -v ping_password="$PING_DB_PASSWORD" -v savings_password="$SAVINGS_DB_PASSWORD" \
---        -v household_password="$HOUSEHOLD_DB_PASSWORD" -v content_password="$CONTENT_DB_PASSWORD" -f db/roles.sql
+--        -v household_password="$HOUSEHOLD_DB_PASSWORD" -v content_password="$CONTENT_DB_PASSWORD" \
+--        -v notification_password="$NOTIFICATION_DB_PASSWORD" -v coach_password="$COACH_DB_PASSWORD" -f db/roles.sql
 --
 -- - 스키마 주인 = 서비스 계정 → 자기 스키마에만 DDL(Flyway) · DML. 남의 스키마는 USAGE 가 없어 SELECT 도 권한 오류
 -- - 아직 플랫폼에서 돌지 않는 서비스는 NOLOGIN — 그 서비스가 옮겨 오는 단계에 `ALTER ROLE … LOGIN PASSWORD` 한 줄
@@ -32,3 +33,8 @@ ALTER ROLE svc_household LOGIN PASSWORD :'household_password';
 
 -- 금융 팁 S2a(`SRV-REQ-047`, 2026-11-05) — content 가 플랫폼에서 태어나 로그인을 연다. 스키마 · 계정은 위 도메인 줄이 이미 만들었다
 ALTER ROLE svc_content LOGIN PASSWORD :'content_password';
+
+-- 서버 S2c(`SRV-REQ-048` FR-5, 2026-11-06) — notification 이 플랫폼으로 옮겨 와 로그인을 연다. coach 는 아웃박스(발행 창구)만 플랫폼이 릴레이한다 —
+-- 업무 표는 S6 까지 Express(public). Express 는 DB 소유자 계정으로 coach.outbox 에 행을 쓴다
+ALTER ROLE svc_notification LOGIN PASSWORD :'notification_password';
+ALTER ROLE svc_coach LOGIN PASSWORD :'coach_password';

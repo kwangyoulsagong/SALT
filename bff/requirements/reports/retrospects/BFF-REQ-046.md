@@ -29,3 +29,8 @@
 ## 2026-11-05 — FE-REQ-013 FR-80 2단계
 
 - 파일만 걸침(토큰 운반이 쿠키로) — Action 없음
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 판단 · 실수는 루트 회고 `MONEY-S2c-notification`
+- **Action**: 없음(이 몫 안)

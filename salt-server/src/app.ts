@@ -8,7 +8,6 @@ import { setupSwagger } from "./shared/config/swagger";
 import { NotFoundError } from "./shared/presentation/httpErrors";
 import { DORMANT_PATHS, goneMiddleware } from "./shared/presentation/goneMiddleware";
 import { InvestmentInsightWorker } from "./workers/investment-insight.worker";
-import { NotificationCleanupWorker } from "./workers/notification-cleanup.worker";
 import { startMarketWorkers } from "./workers/market.worker";
 import { startKrStockWorkers } from "./workers/kr-stock.worker";
 import { ForecastRunnerWorker } from "./workers/forecast-runner.worker";
@@ -30,9 +29,6 @@ startKrStockWorkers();
 
 const insightsWorker = new InvestmentInsightWorker();
 insightsWorker.start();
-
-const notificationCleanupWorker = new NotificationCleanupWorker();
-notificationCleanupWorker.start();
 
 // F008 전망 배치 — 부팅 · 매시 트리거만(판단은 배치가 한다). 개발 환경 기본 켬
 const forecastRunner = new ForecastRunnerWorker();
@@ -71,7 +67,6 @@ app.use("/api/news", contextRouters.news);
 app.use("/api/market-intelligence", contextRouters.marketIntelligence);
 app.use("/api/market/kr", contextRouters.krStock);
 app.use("/api/investment-insight", investmentInsightRoutes);
-app.use("/api/investment-notifications", contextRouters.notification);
 app.use("/api/ai-coach", contextRouters.aiCoach);
 app.use("/api/trade-preflight", contextRouters.tradePreflight);
 app.use("/api/behavior-coach", contextRouters.behaviorCoach);

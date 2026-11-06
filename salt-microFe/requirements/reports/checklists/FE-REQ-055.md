@@ -54,3 +54,13 @@
 
 - FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md`
 - 확인: lint · check-types(web · domain-invest) · 훅 사후 실행 · 실화면(해당 화면 200 · 401 미해결 0 · 수화 오류 0)
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 몫: FR-6 — 패널 · 낙관적 저장(실패면 되돌림) · 자리 칸 줄 셋 높이 · 조회 재시도 1
+- 검증: check-types · lint · 레이어 훅 사후 · 실화면 사용자 넷(루트 체크리스트) · 셸 운영 빌드 `/settings` 146 → 148 kB(worktree, main 과 나란히)
+- 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S2c 확인 2회차
+
+- 확인 2회차(`94bbed43`): axe — 새 줄 설명 대비 3.03 → 2단 글자색(위반 0) · `pnpm test` · `test:layer-check` 16/10 · 실화면 다시

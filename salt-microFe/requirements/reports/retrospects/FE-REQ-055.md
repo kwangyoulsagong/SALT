@@ -34,3 +34,11 @@
 ## 2026-11-05 — 주석 정정
 
 - 이유를 적은 주석은 이유가 사라지면 낡는다 — Action: 전제(저장 위치 등)를 바꾸면 그 전제를 이유로 적은 주석을 grep 해 정정한다
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 실화면 결함 셋(토글 열 · 빈 패널 · 자리 칸 높이). 루트 회고 `MONEY-S2c-notification`
+
+## 2026-11-06 — 서버 S2c 확인 2회차
+
+- 결함과 Action 은 루트 회고 `MONEY-S2c-notification` 확인 2회차

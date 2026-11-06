@@ -44,7 +44,6 @@ model User {
   insights                InvestmentInsight[]
   recommendationSnapshots CoachRecommendationSnapshot[]
   executionLogs           ExecutionLog[]
-  investmentNotifications InvestmentNotification[]
   inviteCode              InviteCode?
 
   @@index([email])
@@ -402,39 +401,6 @@ model SmartMoneyAlert {
   @@unique([userId, symbol])
   @@index([userId])
   @@map("smart_money_alerts")
-}
-
-// 투자 playbook notification
-model InvestmentNotification {
-  id String @id @default(cuid())
-
-  userId String
-  symbol String?
-
-  source String?
-
-  // 종류는 `signal_update` 하나다(SRV-REQ-008 FR-20) — `notification/domain/policy/kindGate` 가 지킨다
-  type        String
-  // 문장은 프론트 i18n 이 만든다(FR-25). 새 행은 `messageCode` 만 쓰고 두 칸은 옛 행을 읽으려고 남긴다
-  messageCode String?
-  title       String?
-  message     String?
-
-  severity Int @default(50)
-
-  isRead Boolean @default(false)
-
-  payload Json?
-
-  expiresAt DateTime?
-
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId, isRead])
-  @@index([symbol])
-  @@index([createdAt])
 }
 
 // 가격 히스토리

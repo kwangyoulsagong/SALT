@@ -268,3 +268,5 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-11-02 | 파일만 걸침 — `coach/domain/model.ts`(이 REQ 가 머리 주석 주인) `CoachSymbolArticle` 에 `url` · `publishedAt`(뉴스 표 기존 열 — DDL 0). 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
 | 2026-11-02 | `llm_call_logs` 에 `provider TEXT NOT NULL DEFAULT 'gemini'` · `dropped_sentences INT NULL`(마이그레이션 `20261102120000_llm_call_provider`, 추가만 · 되돌리기 SQL 은 파일 머리). 기존 행은 전부 Gemini 시도. 근거 `SRV-REQ-050` FR-8 · 9. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 코치 프로필 첫 저장 경합 500 → 행 보장(ON CONFLICT DO NOTHING) 뒤 update(`b9a06a08`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |
+| 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 파일만 걸침 — coach 판단 변화 통보(`GenerateCoachRecommendation`)가 이벤트 하나로 · 2시간 억제는 받는 쪽 |
+| 2026-11-06 | 서버 S2c 확인 2회차 — 판단 변화 이벤트 실패 격리(루트 `requirements/reports/checklists/MONEY-S2c-notification.md`) |

@@ -15,14 +15,16 @@ const item = (overrides: Partial<ServerNotificationItem> = {}): ServerNotificati
 });
 
 describe("toAlertViewModels (BFF-REQ-007 C절)", () => {
-  it("signal_update 만 남기고 다른 종류는 오류 없이 버린다 (FR-20 · 21)", () => {
+  it("도메인 종류 셋만 남기고 다른 종류는 오류 없이 버린다 (FR-20 · 21 · BFF-REQ-046 FR-8)", () => {
     const vms = toAlertViewModels([
       item(),
+      item({ id: "g", kind: "goal_reached", symbol: null, messageCode: "savings.goal_reached", params: { template: "housing" } }),
+      item({ id: "f", kind: "fixed_cost_increased", symbol: null, messageCode: "household.fixed_cost_increased", params: { category: "housing" } }),
       item({ id: "old", kind: "decision_change" }),
       item({ id: "tax", kind: "tax_deadline" }),
       item({ id: "nokind", kind: undefined }),
     ]);
-    assert.deepEqual(vms.map((vm) => vm.id), ["n1"]);
+    assert.deepEqual(vms.map((vm) => vm.id).sort(), ["f", "g", "n1"]);
   });
 
   it("금액 키 · 숫자 값 · 문자열이 아닌 인자를 지운다 (FR-22)", () => {
@@ -39,6 +41,16 @@ describe("toAlertViewModels (BFF-REQ-007 C절)", () => {
       }),
     ]);
     assert.deepEqual(vm.params, { symbol: "BTC" });
+  });
+
+  it("종목 코드 칸 — 국내 숫자 코드는 남고 금액 모양은 지운다 · 다른 칸 숫자는 지운다 (SRV-REQ-048 FR-5)", () => {
+    const keep = (symbol: string, extra: Record<string, unknown> = {}) =>
+      toAlertViewModels([item({ params: { symbol, ...extra } })])[0].params;
+    assert.deepEqual(keep("005930"), { symbol: "005930" });
+    assert.deepEqual(keep("KRW-BTC"), { symbol: "KRW-BTC" });
+    assert.deepEqual(keep("1,000"), {});
+    assert.deepEqual(keep("3.5%"), {});
+    assert.deepEqual(keep("BTC", { template: "005930" }), { symbol: "BTC" });
   });
 
   it("문장 없이 코드만 나간다 — 코드가 없는 행은 버린다 (FR-23)", () => {

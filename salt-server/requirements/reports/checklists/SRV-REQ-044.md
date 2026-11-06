@@ -61,3 +61,9 @@
 - 몫: 구독 하나 더(`content.household.FixedCostIncreased` — 구독자가 큐 선언, `EventTopology.subscription`)
 - 검증: 종단 고정비 증가 구독(주거 신호 1 · 통신 0 · `processed_event` 둘) · `./gradlew check`
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 몫: 계약 `contracts/events/coach.DecisionChanged.json` · `OutboxSource(coach)` · Express 본문 테스트 · 구독 큐 셋(`notification.<event>` + dlq)
+- 검증: 종단 — Express 와 같은 SQL 로 넣은 행이 릴레이 → 구독 · 같은 이벤트 2회 1건(억제 + `processed_event`)
+- 미검증: 없음(이 몫 안)

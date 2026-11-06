@@ -140,3 +140,9 @@ Swagger(`failOnErrors`) 생성 · 실검증 · 실화면 상세는 루트 `requi
 
 - `d69c310e` — `app.ts` 에서 `/api/goals` 등록 삭제(Express 404 · BFF 410)
 - 확인: 서버 build · lint · test 936 · test:layer-check · 재시작 health 200 · Express `/api/goals` 404 · BFF 410 · 온보딩 `set_plan` done · `ops/salt.sh status` 전부 ok
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- `app.ts` 경로 · 워커 삭제 · `goneMiddleware` 테스트의 살아 있는 경로 목록에서 뺌
+- 검증: Express test 929 · 실스택 404
+- 미검증: 없음(이 몫 안)

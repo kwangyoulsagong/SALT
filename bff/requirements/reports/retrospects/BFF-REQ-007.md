@@ -114,3 +114,12 @@ A절(동면 410) · B절(홈 조립) · C절(알림)은 손대지 않았다.
 ## 2026-11-03 — MONEY-S1a 저축 서비스 첫 판 · 저축 zone 첫 화면
 
 - 걸린 몫은 위 체크리스트 한 줄. 근거 · 판단은 루트 회고 `requirements/reports/retrospects/MONEY-S1a-savings-calculator.md`. Action 없음
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 파일만 걸침 — 이 REQ 를 머리 주석에 둔 파일을 S2c 가 고쳤다. 판단 · 실수는 루트 회고 `MONEY-S2c-notification`
+- **Action**: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S2c 확인 2회차
+
+- 결함과 Action 은 루트 회고 `MONEY-S2c-notification` 확인 2회차

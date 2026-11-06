@@ -5,6 +5,7 @@
     "/platform": "platform",
     "/savings": "platform",
     "/household": "platform",
-    "/content": "platform"
+    "/content": "platform",
+    "/notifications": "platform"
   }
 }

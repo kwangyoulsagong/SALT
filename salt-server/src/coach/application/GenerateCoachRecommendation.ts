@@ -29,8 +29,6 @@ import { assembleCoachContext } from "./lib/assembleCoachContext";
 
 /** 판단 1건의 유효 시간. 원문 그대로 2시간이다. */
 const RECOMMENDATION_TTL_MS = 2 * 60 * 60 * 1000;
-/** 같은 통보를 이 시간 안에 두 번 보내지 않는다. */
-const NOTICE_SUPPRESSION_MS = 2 * 60 * 60 * 1000;
 /** 사용자당 하나만 유지하는 판단의 키. */
 const MAIN_COACH_KEY = "main_coach";
 
@@ -249,7 +247,7 @@ export class GenerateCoachRecommendation {
    * 판단이 **바뀐 경우에만** 알린다.
    *
    * 10분마다 도는 워커가 같은 판단을 반복하므로, 값이 같으면 알리지 않는 것이
-   * 알림의 의미를 지킨다. 2시간 억제는 그 위의 이중 안전장치다.
+   * 알림의 의미를 지킨다. 2시간 억제는 그 위의 이중 안전장치다 — 받는 쪽(notification)에 있다.
    */
   private async notifyDecisionChange(input: {
     userId: string;
@@ -262,20 +260,19 @@ export class GenerateCoachRecommendation {
       return;
     }
 
-    const suppressed = await this.notifier.hasRecentDecisionChange(
-      input.userId,
-      input.symbol,
-      new Date(Date.now() - NOTICE_SUPPRESSION_MS)
-    );
-    if (suppressed) return;
-
-    await this.notifier.publishDecisionChange({
-      userId: input.userId,
-      symbol: input.symbol,
-      mode: input.mode,
-      previousAction: input.previousAction,
-      nextAction: input.nextAction,
-    });
+    // 2시간 억제는 받는 쪽(notification)이 건다 — 같은 원인이 2시간 안에 또 오면 버린다(`SRV-REQ-048` FR-5).
+    // 알림은 부수 효과다 — 이벤트 행을 못 써도(표 · 권한) 저장된 추천은 그대로 나간다(스냅샷 기록과 같은 처리, 2026-11-06)
+    try {
+      await this.notifier.publishDecisionChange({
+        userId: input.userId,
+        symbol: input.symbol,
+        mode: input.mode,
+        previousAction: input.previousAction,
+        nextAction: input.nextAction,
+      });
+    } catch (error) {
+      logger.warn("판단 변화 이벤트 기록 실패 — 추천은 그대로 나간다", { code: errorCodeOf(error) });
+    }
   }
 }
 

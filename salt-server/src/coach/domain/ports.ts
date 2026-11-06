@@ -64,8 +64,7 @@ import type {
  * `PortfolioProbe` · `NewsProbe`)로 모였고, 구현은 `infrastructure` 의 ACL 이
  * 남의 **공개 API** 를 우리 말로 옮긴 것이다 (`ddd-infrastructure.md` §5).
  *
- * `InvestmentInsight` · `UserInvestmentProfile` · `InvestmentNotification` 세 테이블만
- * Prisma 로 직접 읽고 쓴다 — 그 셋의 이관 상태는 `infrastructure` 의 각 구현 주석에 있다.
+ * `InvestmentInsight` · `UserInvestmentProfile` 두 테이블만 Prisma 로 직접 읽고 쓴다(알림은 S2c 에 이벤트로 — `CoachNotifier`) — 그 셋의 이관 상태는 `infrastructure` 의 각 구현 주석에 있다.
  */
 
 /** 코치 설정 저장. 원문의 `userInvestmentProfile` 이다. */
@@ -136,19 +135,13 @@ export interface DecisionChangeNotice {
 }
 
 /**
- * 판단 변화 통보.
+ * 판단 변화 통보 — **이벤트 하나**(`coach.DecisionChanged`)를 낸다(`SRV-REQ-048` FR-5, 서버 S2c).
  *
- * 구현(`SignalUpdateNotifier`)은 `notification` 공개 API 로 `signal_update` 알림을 만든다
- * (`SRV-REQ-008` FR-20). 이벤트로 바꾸지 않은 이유: 받는 쪽이 하나이고 관문(종류 · 코드 ·
- * 금액)이 거부하면 **부르는 쪽이 알아야** 한다.
+ * 알림은 Kotlin notification 서비스가 주인이다. 구현(`OutboxDecisionChangeNotifier`)은 `coach.outbox` 에 행을 쓰고
+ * 플랫폼 릴레이가 보낸다. 2시간 억제 · 도메인 설정(기본 꺼짐) · 금액 관문은 **받는 쪽(notification)** 이 건다 —
+ * 그래서 이 포트에 "최근에 보냈나" 조회가 없다(남의 표를 읽지 않는다).
  */
 export interface CoachNotifier {
-  /** `since` 이후 같은 통보가 있었나. 원문의 2시간 중복 억제다. */
-  hasRecentDecisionChange(
-    userId: string,
-    symbol: string,
-    since: Date
-  ): Promise<boolean>;
   publishDecisionChange(notice: DecisionChangeNotice): Promise<void>;
 }
 

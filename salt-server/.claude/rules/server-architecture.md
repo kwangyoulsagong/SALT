@@ -63,7 +63,7 @@ presentation → application → domain ← infrastructure
 | `fx` | 환율 · 김프 | F003 |
 | `goal` | 목표 저축 | F000 |
 | `news` | 뉴스 수집·조회 · 북마크 | F000 |
-| `notification` | 알림 1종 (지표/추천 갱신) · 읽음 | F000 F006 |
+| ~~`notification`~~ | ~~알림 1종 (지표/추천 갱신) · 읽음~~ **2026-11-06 Kotlin 으로 이전(`SRV-REQ-048` S2c)** — coach 는 `coach.outbox` 이벤트로 알린다 | F000 F006 |
 | `device` | 디바이스 등록 · 푸시 발송 · 앱 버전 게이트 | F007 |
 
 ### 조합 컨텍스트

@@ -58,3 +58,9 @@
 - 몫: 공용 레이아웃에 `PublicShell`(공개 zone 껍데기 — 로고 머리 + main, 앱 내비 · 안내 · prerender 없음) export 추가
 - 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 패널 한 줄 · 머리 주석 정정
+- 검증: check-types · lint · 실화면
+- 미검증: 없음(이 몫 안)

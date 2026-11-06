@@ -50,3 +50,9 @@
 - 몫: 라우팅 표에 `/content` → platform 한 줄(금융 팁 `/api/app/tips`). 스위치 · 그림자 동작 무변경
 - 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
+
+- 표 한 줄
+- 검증: 실스택(BFF → 4010)
+- 미검증: 없음(이 몫 안)

@@ -29,11 +29,11 @@ globs: salt-server/**, salt-platform/**
 | `savings` | ~~`modules/goals` (`goal`)~~ Kotlin `services/savings`(2026-11-03 S1a — 옛 Express 삭제 `d69c310e`) | `savings` | S1 | `SRV-REQ-045` |
 | `household` | Kotlin `services/household`(2026-11-04 가계부 S1a — 새로 태어남) | `household` | S1 | `SRV-REQ-046` |
 | `content` | Kotlin `services/content`(2026-11-05 금융 팁 S2a — 새로 태어남 · 첫 서비스 간 구독자) | `content` | S2 | `SRV-REQ-047` |
-| `notification` | `notification` | `notification` | S2 | `SRV-REQ-048` |
+| `notification` | ~~`notification`~~ Kotlin `services/notification`(2026-11-06 S2c — 첫 기존 컨텍스트 이전 · 옛 Express 삭제 `33e949e8`). 설정 주인 · 구독만 | `notification` | S2 | `SRV-REQ-048` |
 | `identity` | `auth` · `modules/user` · `onboarding` | `identity` | S3 | `SRV-REQ-048` |
 | `portfolio` | `portfolio` | `portfolio` | S4 | `SRV-REQ-049` FR-1 |
 | `market` | `market` · `news` + 수집 워커 | `market` | S5 | `SRV-REQ-049` FR-2 · 3 |
-| `coach` | `coach` · `modules/investment-insight` | `coach` | S6 | `SRV-REQ-049` FR-4 · 5 |
+| `coach` | `coach` · `modules/investment-insight` — 발행 창구만 Kotlin(`coach.outbox` Flyway · 행은 Express, 2026-11-06 S2c) | `coach` | S6 | `SRV-REQ-049` FR-4 · 5 |
 | `forecast` | Python `salt-forecast` (이미 분리) | `forecast` | — | `ADR-004` · `ADR-007` |
 | — | `modules/mission` · `dashboard` · `feed` (동면 410) | — | 옮기지 않음 | `SRV-REQ-049` FR-6 |
 
