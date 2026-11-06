@@ -203,8 +203,9 @@ flowchart LR
 |---|---|---|---|---|---|---|
 | 저축 목표 고도화 (FEATURE-012) | Planned | `entities/goal` · `features/add-goal` 만 있음 | 기존 goals 프록시 | `src/modules/goals` (구식 4파일) | `Goal` · `SavingTransaction` | 템플릿 · 계산기 · 도달 구간 · 목표 저울 · 재미(모이는 장면 · 실물 환산) |
 | 가계부 (FEATURE-013) | Partially Implemented(2026-11-05 — ~~Planned~~ 정정: S1a~S1h) | zone `web-household` — `/household` · `/new` · `/budget` · `/month/[ym]` · `/templates` · `/challenges` · `/story/[period]` · `/revolving` · `/people` | `/api/app/household/*` 48 경로(`BFF-REQ-048`) | Kotlin `household` 서비스(`SRV-REQ-046`) | `household` 스키마 V1~V8 · 반복 예정 워커(매시 · ShedLock) | 도메인 이름 `household` (ADR-002 `ledger` 와 다름). 남은 것 공제(S2 content 뒤) · 영수증 인식(Could) |
-| 금융 팁 (FEATURE-014) | Planned | 없음 | 없음 | 없음 | 없음 | 공개 zone · 유효기한 · 제도 파라미터 주인 · 법무 확인 전 공개 금지 |
-| 셸 · 홈 · 온보딩 · 내 데이터 (FEATURE-015) | Partially Implemented(2026-11-02) | 홈 = `entities/home` 도메인 요약 카드(저축 · 투자) · 셸 `/settings` 링크 목록 · 로그인 상태 `/` → `/home`. `onboarding-flow` 는 아직 투자 3스텝(편집 · 온보딩 · 내 데이터 · 알림은 S3) | `/api/app/home` · `/api/app/onboarding` | `onboarding` 컨텍스트 | — | 4탭 홈 · 저축 · 가계부 · 투자, `HomeSummaryCard` |
+| 금융 팁 (FEATURE-014) | ~~Planned~~ Partially Implemented(2026-11-06 정정 — S2a~S2d 2026-11-05) | zone `web-tips` `/tips` · `/tips/[slug]` · `/tips/cards` · 저축 · 가계부 때맞춘 팁 칸 | `/api/app/tips*` | Kotlin `content` | `content` 스키마 · 유효기한 워커 | 공개 플래그 꺼짐(법무 확인 전) · 내 숫자 · 퀴즈 · 줄 diff |
+| 셸 · 홈 · 온보딩 · 내 데이터 (FEATURE-015) | Partially Implemented(2026-11-06 — S2c 알림 설정 · S3a 온보딩 · 홈 배치) | 홈 = `entities/home` 도메인 요약 카드 · `/onboarding` 도메인 선택(`choose-domains`) · `/settings` 홈 카드 순서 · 숨김 · 알림 설정 | `/api/app/home` · `/home/layout` · `/api/app/onboarding*` · `/api/app/me/notifications` | Kotlin `identity`(셸 설정) · `notification` | `identity.user_domain_pref` · `notification.notification_pref` | ~~옛 투자 3스텝~~ 은퇴(2026-11-06). 내보내기 · 삭제 · JWKS 는 S3b · S3c |
+| 오늘 왜 움직였나 (FEATURE-016) | Planned(2026-11-06) | 없음 — 계획: 국내 · 코인 상세 카드 · 시장 상태 띠 · 상태 칩 · 국내 오늘 소식 · 장중 수급 | 없음 — 계획 `BFF-REQ-051` | 없음 — 계획 market `SRV-REQ-051` · coach `SRV-REQ-052` | 계획 `DB-REQ-041` · β `FC-REQ-027` | 투자 동결 위 사용자 요청 · `ADR-009`. 지금 있는 것: 국내 종목 상태 · 경보 칩(`krStatusBadges`) · 일별 투자자 수급 |
 
 ### 관련 문서 (2026-10-30)
 
