@@ -24,7 +24,7 @@ export interface AuthRootState {
 }
 
 /**
- * 온보딩 3스텝 (`BFF-REQ-008` `OnboardingStatusViewModel`).
+ * 온보딩 — 도메인 선택(`BFF-REQ-046` FR-6 `OnboardingViewModel`, 서버 S3a 2026-11-06). 옛 3스텝(초대 · 첫 거래 · 첫 목표)은 은퇴했다.
  *
  * ## 타입을 BFF 와 프론트가 두 벌 갖는 이유
  *
@@ -34,17 +34,17 @@ export interface AuthRootState {
  *
  * **그때까지는 BFF 뷰모델이 진실이고 이 타입이 그것을 따라간다.**
  */
-export type OnboardingStepKey = "invite" | "link_account" | "set_plan";
+export type OnboardingDomain = "savings" | "household" | "invest";
 
-export interface OnboardingStep {
-  key: OnboardingStepKey;
-  done: boolean;
-}
+/** 로그인 뒤 단계. 초대(계정 만들기)는 세션이 없을 때 화면이 그리는 단계라 서버 값이 아니다 */
+export type OnboardingStep = "choose_domains" | "first_input";
 
-export interface OnboardingStatus {
+export interface Onboarding {
+  /** 끝났으면 `null` */
+  nextStep: OnboardingStep | null;
   complete: boolean;
-  /** 첫 미완료 단계. 전부 끝났으면 `null`. */
-  nextStep: OnboardingStepKey | null;
-  /** 항상 세 칸이다. BFF 가 빠진 단계를 미완료로 채워 준다. */
-  steps: OnboardingStep[];
+  /** 고를 수 있는 도메인(서버 순서) · 지금 골라져 있나 */
+  choices: Array<{ domain: OnboardingDomain; selected: boolean }>;
+  /** 첫 입력 — 고른 것 중 서버가 정한 하나와 그 화면. 고르기 전이면 `null` */
+  firstInput: { domain: OnboardingDomain; href: string } | null;
 }

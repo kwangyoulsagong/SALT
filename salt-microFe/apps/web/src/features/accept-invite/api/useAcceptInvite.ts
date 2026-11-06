@@ -43,7 +43,7 @@ export const useAcceptInvite = (): UseMutationResult<
         // 프라이빗 모드. 세션 토큰이 우선이고 프로필은 `/auth/me` 로 다시 받을 수 있다.
       }
       await queryClient.invalidateQueries({
-        queryKey: authQueryKeys.onboardingStatus,
+        queryKey: authQueryKeys.onboarding,
       });
     },
   });

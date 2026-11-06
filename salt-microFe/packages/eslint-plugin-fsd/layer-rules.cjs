@@ -130,7 +130,9 @@ const REGISTRY = {
     "edit-coach-profile",
     "mark-alert-read",
     "toggle-alerts",
-    "skip-onboarding-step",
+    // 셸 S3a(2026-11-06) — 온보딩 도메인 고르기 · 끝내기(옛 3스텝의 "건너뛰기" `skip-onboarding-step` 은 만들지 않고 이 "나중에 하기"로 대체) / 홈 카드 순서 · 숨김
+    "choose-domains",
+    "arrange-home",
   ],
   widgets: [
     "home-briefing",
