@@ -14,6 +14,7 @@ status: done
 
 > **done 2026-11-06** — 커밋 `fc0207cb`(Kotlin identity) · `7f2ba1ed`(옛 3스텝 은퇴 — revert 지점) · `066ba971`(BFF) · `c1baa77a`(FE).
 > 영역 REQ 넷 in-progress(남은 FR 은 S3b · S3c). 검증 `requirements/reports/checklists/MONEY-S3a-identity-shell.md`.
+> **확인 2회차 2026-11-06** — 결함 1(만료 세션 온보딩 멈춤) `698da12b`.
 
 ## 범위
 
@@ -51,3 +52,4 @@ status: done
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-06 | 신규 · done — identity 셸 설정 · 도메인 선택 온보딩 · 홈 카드 배치 · 옛 3스텝 은퇴 |
+| 2026-11-06 | 확인 2회차 — 만료 세션 온보딩 멈춤 고침 · 실패 · 만료 경로 실화면 · Kotlin 재검증 |

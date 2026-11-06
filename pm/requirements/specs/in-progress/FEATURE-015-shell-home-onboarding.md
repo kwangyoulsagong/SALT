@@ -134,3 +134,4 @@ flowchart LR
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — `FE-REQ-054` 앱 내비 공개 경로 판정을 `@repo/core/auth` `isPublicPath` 로(동작 무변경, `cf93acb1`). 홈 금융 팁 카드(`SRV-REQ-047` FR-9)는 ~~S2b 또는 S3~~ S3 |
 | 2026-11-06 | 서버 S2c(`MONEY-S2c-notification`) — FR-4 구현: 도메인별 알림 설정 기본 꺼짐(설정 주인 notification 서비스) · 알림 원인 셋 · 셸 `/settings` 패널. 가계부 월 마감은 알리지 않는다(사용자가 한 일) |
 | 2026-11-06 | 서버 S3a(`MONEY-S3a-identity-shell`, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`) — FR-1 구현(도메인 선택 온보딩 · 옛 3스텝 은퇴) · FR-2 구현(순서 · 숨김 — 설정 패널). 수용 기준 1 · 2 충족. 남은 FR-3 · 5 · 6(S3c) · 토큰 발급 교체(S3b) |
+| 2026-11-06 | 서버 S3a 확인 2회차 — 결함 1(만료 세션 온보딩 멈춤) 고침 · 실패 · 만료 경로 실화면 |

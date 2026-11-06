@@ -37,6 +37,7 @@
 |---|---|---|
 | 설정 패널이 저장 중 누른 것을 버림(토글 직후 "위로" · 알림 둘째 도메인) | `if (!isPending) mutate()` 가드 — 새 패널이 S2c 알림 패널을 본떴다 | 같은 묶음 `scope` 로 차례 저장 · 마지막 저장만 서버 값(`useArrangeHome` · `useToggleAlert`) |
 | 새 패널 설명글 대비 3.03:1 | 공용 `panelDescription` 회색 500 | 새 패널만 2단 글자색(기존 패널은 그대로) |
+| 만료 세션으로 연 `/onboarding` 이 "불러오는 중"에 머묾(2회차) | 조회가 일반 `Error` → 401 도 재시도 · 공개 경로라 로그인으로 안 보냄 | `readApiError` · 401 = 세션 없음 → 초대 단계 `698da12b` |
 
 ## 4. 미검증 · 범위 밖
 
@@ -44,3 +45,9 @@
 |---|---|---|
 | 앱 웹뷰 실기기 | 앱 미착수 — 웹뷰 UA 390 으로 대신 렌더 | `RN-REQ-035` |
 | 사용자 표 이동 · 토큰 · 내보내기 · 삭제 | S3b · S3c 몫 | 슬라이스 범위 밖 표 |
+
+## 2026-11-06 — 서버 S3a 확인 2회차
+
+- 다시 돌림(마지막 코드 커밋 `698da12b` 기준): `./gradlew check`(저축 `/goals/exists` 삭제 뒤 처음 — app 91 · 서비스 159, 실패 0) · FE `check-types` · `lint` · `test` · `test:layer-check` · springdoc 에 identity 경로 넷 · 저축 `/goals/exists` 0 · Express 옛 `/api/onboarding/status` 404
+- 실패 · 만료 경로(Playwright `route` · 만료 토큰, 셸 3001 — 3000 은 사용자 회사 작업): 불러오기 500 → 재시도 뒤 "불러오지 못했어요" · 고르기 500 → 문구 · 끝내기 500 → 문구 + 이동 안 함 · 배치 저장 500 → 토글 되돌림 + 문구 · 만료 세션 `/settings` · `/home` → 로그인 · 새 홈 카드 패널 axe 0
+- **결함 1** — 만료 세션으로 `/onboarding`(공개 경로)을 열면 "불러오는 중"에 머물렀다: 조회가 일반 `Error` 를 던져 401 도 재시도 대상. `readApiError` + 401 = 세션 없음 → 초대 단계 `698da12b`. 같은 원인 grep — 초대 확인(`acceptInviteApi.check`)도 일반 `Error` 지만 `retry: false` 라 결함 아님

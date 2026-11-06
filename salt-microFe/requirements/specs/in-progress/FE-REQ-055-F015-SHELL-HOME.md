@@ -64,3 +64,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): FR-6 done — 셸 `/settings` 알림 패널(`entities/notification` · `features/toggle-alerts`) · 실화면 결함 셋 고침 |
 | 2026-11-06 | 서버 S2c 확인 2회차 — 알림 줄 설명 대비(루트 `requirements/reports/checklists/MONEY-S2c-notification.md`) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-4 · FR-2 편집 done. 고침 — 설정 패널(알림 · 홈 배치)이 저장 중 누른 것을 버리던 것(`scope` 로 차례 저장). 커밋 `c1baa77a` |
+| 2026-11-06 | 서버 S3a 확인 2회차 — 결함: 만료 세션 `/onboarding` 이 "불러오는 중"에 머묾 → 401 = 세션 없음 · 초대 단계 `698da12b`. 실패 경로 넷 · 만료 세션 셋 실화면 |
