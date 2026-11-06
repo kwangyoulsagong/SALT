@@ -25,10 +25,14 @@ import { loadKrSession, type ResolveKrStockUniverse } from "./SyncKrStock";
  */
 
 const DAY_MS = 86_400_000;
-/** 장전 · 장후 시간외 종가엔 5분 간격 — 지수 회차와 같은 박자(장 끝 값을 15:40 회차가 받아 그날 종가가 된다) */
-const SECTOR_OFF_REGULAR_EVERY_MINUTES = 5;
 /** 연속 실패가 이만큼이면 회차를 멈춘다 — 장애 중 유니버스 전체를 두드리지 않게(투자자 동향과 같은 값) */
 const CIRCUIT_FAILURES = 5;
+/**
+ * 연속 **초과**가 이만큼이면 회차를 양보한다. 처음엔 초과 한 번에 접었는데(투자자 동향과 같은 규칙) 장중엔 현재가도 초과율이 40% 를 넘어
+ * (2026-11-06 13:00~13:10 현재가 93/202) 재시도 끝 초과가 첫 종목에서 나 매 회차 0/50 이었다 — 같은 자리에서 접히니 영영 안 쌓인다.
+ * 초과 한 건은 그 종목만 건너뛰고(재시도 · 감속은 클라이언트가 이미 했다), 연달아 막힐 때만 다음 회차에 양보한다
+ */
+const YIELD_AFTER_RATE_LIMITED = 3;
 
 /**
  * 시황/공시 제목(FR-1) — **시장 전체 한 번 호출**(종목마다가 아니다 — 2026-11-06 실측, 종목 칸을 비우면 시장 전체 40건). 최신 쪽부터
@@ -78,8 +82,8 @@ export class PollKrNewsTitles {
 }
 
 /**
- * 업종 지수(FR-4) — 유니버스 종목의 지수업종 대분류만(2026-11-06 표본 대분류 19종 · 유니버스는 그보다 적다). 정규장 매분 ·
- * 장전 · 장후 5분마다 — 지수 3종(`PollKrIndices`)과 같은 박자라 15:40 회차가 장 끝 값을 받는다(그날 종가)
+ * 업종 지수(FR-4) — 유니버스 종목의 지수업종 대분류만(2026-11-06 유니버스 8종). 장 시간 창(08:30~16:00) 5분마다 — 매분이던 첫 판이
+ * 분당 8건을 더해 장중 초과를 키웠다(2026-11-06). 분해(단계 C)는 그날 등락 · 일별 종가만 쓴다 — 5분이면 족하다. 15:40 회차가 그날 종가
  */
 export class PollKrSectorIndices {
   constructor(
@@ -93,11 +97,8 @@ export class PollKrSectorIndices {
   async execute() {
     const at = this.now();
     const session = await loadKrSession(this.calendar, at);
-    const regular = session.session === "regular" || session.session === "closing_auction";
-    const minute = Math.floor(at.getTime() / 60_000);
-    if (!(regular || (isKrQuoteWindow(session) && minute % SECTOR_OFF_REGULAR_EVERY_MINUTES === 0))) {
-      return { skipped: true as const };
-    }
+    // 박자(5분)는 워커 cron — 여기선 장 시간 창만 본다. 15:40 회차가 장 끝 값(그날 종가)을 받는다
+    if (!isKrQuoteWindow(session)) return { skipped: true as const };
     const sectors = [...new Set((await this.store.sectorIndexCodes(await this.universe.execute())).values())].sort();
     const facts: KrSectorIndexFact[] = [];
     let failed = 0;
@@ -142,27 +143,33 @@ export class PollKrProgramFlows {
     const facts: KrProgramFlowFact[] = [];
     let failed = 0;
     let consecutive = 0;
+    let rateLimitedInRow = 0;
     let yielded = false;
     for (const code of codes) {
       try {
         const fact = await this.kis.programFlow(code);
         if (fact && kstDateOf(fact.at) === kstDateOf(at)) facts.push(fact);
         consecutive = 0;
+        rateLimitedInRow = 0;
       } catch (error) {
         failed++;
-        consecutive++;
         if (isKrRateLimited(error)) {
-          yielded = true;
-          break;
+          rateLimitedInRow++;
+          if (rateLimitedInRow >= YIELD_AFTER_RATE_LIMITED) {
+            yielded = true;
+            break;
+          }
+          continue;
         }
+        rateLimitedInRow = 0;
+        consecutive++;
         logger.warn(`국내 프로그램 매매 실패 — ${code}: ${(error as Error).message}`);
         if (consecutive >= CIRCUIT_FAILURES) break;
       }
     }
     await this.store.appendProgramFlows(facts, this.now());
-    if (yielded || failed > 0) {
-      logger.info(`🇰🇷 국내 프로그램 매매: ${facts.length}/${codes.length}종목 · 실패 ${failed}${yielded ? " · 한도 초과로 양보" : ""}`);
-    }
+    // 회차마다 한 줄 — 0행 회차가 조용히 지나가지 않게(2026-11-06 원인을 로그 없이 찾느라 늦었다)
+    logger.info(`🇰🇷 국내 프로그램 매매: ${facts.length}/${codes.length}종목 · 실패 ${failed}${yielded ? " · 한도 초과로 양보" : ""}`);
     return { skipped: false as const, codes: codes.length, saved: facts.length, failed, yielded };
   }
 }

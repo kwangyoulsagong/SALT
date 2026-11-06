@@ -174,15 +174,16 @@ describe("PollKrSectorIndices — 유니버스 업종만 · 지수 TR 그대로"
     return { asked, saved };
   };
 
-  it("정규장 매분 — 업종 중복 없이 한 번씩 · 저장은 값 넷만(종목 수 칸은 안 씀)", async () => {
+  it("장 시간 창 — 업종 중복 없이 한 번씩 · 저장은 값 넷만(종목 수 칸은 안 씀)", async () => {
     const { asked, saved } = await run(kst("10:31"));
     assert.deepEqual(asked, ["0021", "0027"]);
     assert.deepEqual(saved[0], { code: "0021", value: 100, change: -1, changeRate: -1 });
   });
 
-  it("장후 15:40 회차가 장 끝 값을 받는다 · 15:41 은 쉰다 · 휴장은 0", async () => {
+  it("장후 15:40 회차가 장 끝 값을 받는다 · 16:05 · 08:00 · 휴장은 0(박자는 cron)", async () => {
     assert.equal((await run(kst("15:40"))).asked.length, 2);
-    assert.equal((await run(kst("15:41"))).asked.length, 0);
+    assert.equal((await run(kst("16:05"))).asked.length, 0);
+    assert.equal((await run(kst("08:00"))).asked.length, 0);
     assert.equal((await run(kst("10:31"), false)).asked.length, 0);
   });
 
@@ -222,10 +223,19 @@ describe("PollKrProgramFlows — 장중만 · 오늘 체결만 · 한도 양보"
     assert.deepEqual(saved.map((s) => s.code), ["005930"]);
   });
 
-  it("한도 초과를 만나면 남은 종목을 부르지 않는다", async () => {
-    const { asked, result } = await run(kst("10:30"), { a1: fact("a1", kst("10:29")), b2: rateLimited, c3: fact("c3", kst("10:29")) });
-    assert.deepEqual(asked, ["a1", "b2"]);
-    assert.equal(result.skipped === false && result.yielded, true);
+  it("초과 한 건은 그 종목만 건너뛴다 — 장중 초과율이 높아 첫 종목에서 접으면 매 회차 0행이었다(2026-11-06 13:10)", async () => {
+    const { asked, saved, result } = await run(kst("10:30"), { a1: rateLimited, b2: fact("b2", kst("10:29")), c3: fact("c3", kst("10:29")) });
+    assert.deepEqual(asked, ["a1", "b2", "c3"]);
+    assert.deepEqual(saved.map((s) => s.code), ["b2", "c3"]);
+    assert.equal(result.skipped === false && result.yielded, false);
+  });
+
+  it("연달아 셋이 초과면 남은 종목을 부르지 않고 양보한다 · 사이에 성공이 끼면 다시 센다", async () => {
+    const r1 = await run(kst("10:30"), { a1: rateLimited, b2: rateLimited, c3: rateLimited, d4: fact("d4", kst("10:29")) });
+    assert.deepEqual(r1.asked, ["a1", "b2", "c3"]);
+    assert.equal(r1.result.skipped === false && r1.result.yielded, true);
+    const r2 = await run(kst("10:30"), { a1: rateLimited, b2: rateLimited, c3: fact("c3", kst("10:29")), d4: rateLimited, e5: fact("e5", kst("10:29")) });
+    assert.equal(r2.asked.length, 5);
   });
 
   it("늦게 시작한 회차(10:31)도 받는다 — 박자는 워커 cron 몫 · 장 밖이면 부르지 않는다", async () => {
