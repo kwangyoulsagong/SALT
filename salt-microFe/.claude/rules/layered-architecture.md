@@ -111,7 +111,7 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | `market-list` | 모바일 시장 목록 (웹은 `market-board`) |
 | `market-board` | market + news + indicator — 자산군(코인 · 국내 주식)은 매개변수, 화면은 하나(요약 띠까지 — `FE-REQ-050`) |
 | `asset-search` | market + 검색어 상태(`search-asset`) + ★(`toggle-watchlist`) — 종목 검색 화면 `/search` (F000 FR-40 · 41, 2026-10-30) |
-| `onboarding-flow` | auth + portfolio + plan (초대 → 첫 보유 기록 → 적립액) |
+| `onboarding-flow` | auth + `choose-domains` + `accept-invite` — 초대 → 쓸 것 고르기 → 첫 기록(고른 도메인 zone 화면) → 끝(~~초대 → 첫 보유 기록 → 적립액~~ 2026-11-06 S3a `FE-REQ-055` FR-4) |
 | `pc-panel-grid` | `MovableGrid` + 위 widget들 |
 
 ## 5. Next.js 라우팅과 FSD의 관계

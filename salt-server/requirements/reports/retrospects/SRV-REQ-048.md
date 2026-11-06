@@ -7,3 +7,9 @@
 ## 2026-11-06 — 서버 S2c 확인 2회차
 
 - 결함과 Action 은 루트 회고 `MONEY-S2c-notification` 확인 2회차
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 잘된 것: 사용자 표를 옮기기 전에 셸 설정만 먼저 태어나게 잘랐다 — 토큰 발급자 교체(S3b)와 화면 기능(S3a)이 한 PR 에 섞이지 않았다
+- 배운 것: 온보딩 "끝"은 서버가 추측하지 않고 사용자가 첫 기록 화면으로 넘어갈 때(또는 나중에) 기록한다 — 남의 서비스 기록 존재를 묻는 프로브(옛 `set_plan`)가 서비스 간 호출을 만들고 있었다
+- Action: S3b 에서 `user` 이동 시 `user_domain_pref.user_id` 는 그대로 FK 없는 열로 둔다(삭제는 `UserDeletionRequested` 구독)

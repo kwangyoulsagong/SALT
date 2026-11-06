@@ -76,7 +76,9 @@ features/{slice}/
 | `edit-coach-profile` | 코치 설정(기본 모드 · 매도 돌아보는 기간) 저장. 서버가 읽지 않는 설정은 칸을 두지 않는다 | F004 (2026-10-30) |
 | `mark-alert-read` | 알림 읽음 · 모두 읽음 | F006 |
 | `toggle-alerts` | 도메인별 알림 켜기/끄기(셸 `/settings` — 낙관적 · 실패면 되돌림, 목록 · 순서는 서버) | F015 (2026-11-06 S2c) |
-| `skip-onboarding-step` | 온보딩 2단계 건너뛰기 | F006 |
+| ~~`skip-onboarding-step`~~ | ~~온보딩 2단계 건너뛰기~~ **2026-11-06 S3a** 만들지 않음 — `choose-domains` 의 "나중에 하기"가 대신 | F006 |
+| `choose-domains` | 온보딩 — 도메인 고르기 · 끝내기(첫 입력으로 넘어감 · 나중에 하기). 다음 단계는 서버 답 | F015 (2026-11-06 S3a) |
+| `arrange-home` | 홈 카드 순서 · 숨김 편집(저장은 서버 identity — 하나는 보여야 함) | F015 (2026-11-06 S3a) |
 
 > **2026-09-21** — F001·F002 가 빠지면서(`ADR-002`) `import-ledger` · `register-exchange-key` ·
 > `solve-harvest` · `simulate-crypto-scenario` 를 지웠다. 레지스트리 코드도 같이 고쳤다.

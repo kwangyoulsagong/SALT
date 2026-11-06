@@ -223,3 +223,7 @@
 - Express 쪽 규칙 코드 삭제 · 같은 관문이 `MessageGuard`(Kotlin) · BFF 뷰모델에 있음
 - 검증: Express build · test 929 · Kotlin `NotificationSpec`
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- FR-13 · 14 은퇴 — `src/onboarding/**` 5파일 삭제 · `composition.ts` 조립 · `app.ts` 등록 제거. 검증 Express build · lint · test 925 · `test:layer-check`

@@ -19,6 +19,8 @@ source: pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md (C절 FR-20
 > - 온보딩 ③은 "월 적립액"이 아니라 "첫 목표"(`widgets/onboarding-flow/model/messages.ts`, `d6342a1`)
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대 코드·온보딩 둘뿐이고, 나머지는 수리 9건이다. 그리고 **변경 금지 목록을 침범하지 않는 것**이 이 REQ의 가장 중요한 수용 기준이다.
@@ -56,7 +58,7 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 
 ## 신규 화면 2개
 
-### 초대 코드 + 온보딩 3스텝
+### 초대 코드 + 온보딩 3스텝 — **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
@@ -199,7 +201,7 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 - [ ] **`grep -rn "miniute" apps/` = 0**
 - [ ] 목표 저축 submit이 `POST /api/goals`까지 연결된다 (E2E 1건)
 - [ ] 회원가입·비밀번호 변경·계정 삭제 화면이 0건이다
-- [ ] 온보딩 3스텝이 완주되고 `ProgressStepper`가 현재 위치를 표시한다
+- [ ] ~~온보딩 3스텝이 완주되고 `ProgressStepper`가 현재 위치를 표시한다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 - [ ] 코드 입력 중 유효성이 표시되고 **상한 초과가 노출되지 않는다**
 - [ ] 실패 `reasonCode` 3종이 각각 다른 문구다
 - [ ] 온보딩 미완료 시 홈에 카드 1개만 나온다
@@ -284,3 +286,4 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: `ROUTES.tips` · `ROUTES.tip(slug)` — 금융 팁 zone 경로. 기존 경로 무변경 |
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`, 루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: `ROUTES.tipCards`(`/tips/cards`). 기존 경로 무변경(`d59efa9c`) |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 온보딩 화면(FR-21 · 22 · 25) — 3스텝 → 도메인 선택(초대 · 고르기 · 첫 기록 · 끝). 홈 안내 카드는 서버 다음 단계 이름. 본문 그 자리 정정 `c1baa77a` |

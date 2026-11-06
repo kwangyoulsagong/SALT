@@ -15,6 +15,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` · 스토리보드 갭 감사 반영. 홈 **3블록 + 기존 블록 그대로**(D6), 자산 탭 = `포지션` / `시장`(지금 `/investments`) / `관심 종목`(D7), `/tax` 진입 링크 제거(zone은 Q1), 알림 1종 화면(D5), 설정 한 화면(D9), 포지션 · 거래 기록 시트 · `RadarChart`(B13 · B14), 온보딩 2단계 교체(B12)를 추가했다. 근거: 스토리보드 갭 감사 D4~D9 · B6 · B7 · B12~B14 · B16 · B19.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 **IA를 3탭으로 확정하고 대화를 제품의 중심에 놓는다.** PC는 탭이 아니라 `MovableGrid`로 여러 패널을 동시에 본다.
@@ -35,7 +37,7 @@ created: 2026-09-09
 | `features` | `arrange-panels` | 격자 배치 변경·저장 |
 | `features` | `record-transaction` | 거래 기록 시트(추가 · 수정 · 삭제) + 서버 미리보기 *(2026-09-21)* |
 | `features` | `mark-alert-read` · `toggle-alerts` · `edit-plan-settings`(F003 소유 — 2026-09-21 대조로 통일) | 읽음 · 모두 읽음 · 알림 켜기/끄기 · 적립 기본액(F003 쓰기) *(2026-09-21)* |
-| `features` | `skip-onboarding-step` | 온보딩 2단계 건너뛰기 *(2026-09-21)* |
+| `features` | ~~`skip-onboarding-step`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | 온보딩 2단계 건너뛰기 *(2026-09-21)* |
 | `entities` | `coach` | `ChatBubble` 래퍼 · `RecommendationCard`(F004 재사용) · `SuggestedQuestionChips` |
 | `entities` | `portfolio`·`plan` | 각 블록 · 포지션 표시 컴포넌트(`RiskRadar`) *(개정 2026-09-21 — `tax`·`invoice` 삭제, ADR-002)* |
 | `entities` | `notification` | 알림 행 · 벨 배지 *(2026-09-21)* |
@@ -113,11 +115,11 @@ created: 2026-09-09
 | FR-57 | 1280px 미만에서는 격자를 쓰지 않고 3탭으로 동작한다 | Must |
 | FR-58 | 격자 안에 들어가는 것은 **위젯**이다. `pc-panel-grid`가 위젯을 import하면 cross-slice이므로 **`pages`가 children으로 주입**한다 | Must |
 
-## 온보딩 3스텝 (2026-09-21 개정)
+## 온보딩 3스텝 (2026-09-21 개정) — **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-60 | ① 초대 코드 ② **첫 보유 기록 입력**(건너뛰기 가능) ③ 월 적립액. **그 외 질문 없음**(F000 FE-REQ-010과 공유). 2단계는 `record-transaction` 시트를 그대로 쓰고, 3단계는 F003 적립 설정에 **실제로 저장**한다. `OnboardingStepKey`의 `link_account` → `first_holding`(**BREAKING**). **개정 2026-09-21** (ADR-002 · **기본안 — 감사 문서 B12**) | Must |
+| FR-60 | ~~① 초대 코드 ② **첫 보유 기록 입력**(건너뛰기 가능) ③ 월 적립액. **그 외 질문 없음**(F000 FE-REQ-010과 공유). 2단계는 `record-transaction` 시트를 그대로 쓰고, 3단계는 F003 적립 설정에 **실제로 저장**한다. `OnboardingStepKey`의 `link_account` → `first_holding`(**BREAKING**). **개정 2026-09-21** (ADR-002 · **기본안 — 감사 문서 B12**)~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 | FR-61 | 온보딩 미완료면 홈 대신 온보딩 카드 | Must |
 
 ## 공통 헤더 · 진입점 (2026-09-21 추가)

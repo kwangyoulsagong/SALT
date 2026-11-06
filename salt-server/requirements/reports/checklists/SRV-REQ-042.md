@@ -33,3 +33,7 @@
 - 조립 두 줄 · import 셋 삭제
 - 검증: Express build · test
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 국내 요약 조립 줄은 그대로. 온보딩 조립 블록 · `createHttpClient` · `JwtUtil` import 제거(쓰는 곳 0)

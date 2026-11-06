@@ -17,8 +17,8 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 
 | FR | 내용 | FEATURE-015 |
 |---|---|---|
-| FR-1 | 온보딩 — 도메인 선택(savings · household · invest) → 고른 도메인 첫 입력 하나 → 끝. 투자를 안 고르면 투자 질문 0. 기존 3스텝 경로는 BFF 스위치 뒤까지 유지 | FR-1 |
-| FR-2 | 홈 카드 순서 · 숨김 저장 · 조회 | FR-2 |
+| FR-1 | 온보딩 — 도메인 선택(savings · household · invest) → 고른 도메인 첫 입력 하나 → 끝. 투자를 안 고르면 투자 질문 0. ~~기존 3스텝 경로는 BFF 스위치 뒤까지 유지~~ **정정 2026-11-06(S3a)** 옛 3스텝은 은퇴 — 소비처(BFF 하나)가 같은 PR 에서 옮겨 Express `onboarding` · `/api/onboarding/status` 를 지웠다(`msa-services.md` §7 은퇴). ✅ **done 2026-11-06**(Kotlin `services/identity` `ShellPrefs` · `/api/identity/shell` · `/domains` · `/onboarding/finish`) | FR-1 |
+| FR-2 | 홈 카드 순서 · 숨김 저장 · 조회. ✅ **done 2026-11-06**(`/api/identity/shell/layout` — 카드 넷 순열 · 하나는 보임 · 저장 전이면 서버 기본값: 안 고른 도메인 숨김) | FR-2 |
 | FR-3 | 내 데이터 내보내기 — 각 서비스 `export` 내부 API 를 모아 CSV · JSON(zip). 본인만 · 24시간 만료 | FR-3 |
 | FR-4 | 계정 삭제 — 재인증 뒤 `UserDeletionRequested` → 각 서비스 삭제 · 결과 행 수 보고. 판정 원장(불변)은 사용자 식별자 가명화 처리 방식을 ADR-003 범위 안에서 정한다(Open Question) | FR-3 |
 | FR-5 | 알림 — 도메인별 설정 기본 꺼짐. notification 은 이벤트(~~`GoalReached` · `MonthClosed` · `JudgmentPublished`~~ **정정 2026-11-06(S2c)** `savings.GoalReached` · `household.FixedCostIncreased` · `coach.DecisionChanged` — MonthClosed 는 사용자가 한 일이라 빼고 · 코치는 판단 변화)를 구독만, 설정 꺼진 도메인 0건. ✅ **done 2026-11-06**(Kotlin `services/notification` · 설정 주인 notification · Express 은퇴) | FR-4 |
@@ -29,7 +29,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 
 ## Acceptance Criteria
 
-- [ ] 투자 미선택 사용자 온보딩에 투자 질문 0(E2E)
+- [x] 투자 미선택 사용자 온보딩에 투자 질문 0(E2E) — 2026-11-06 S3a(`ShellPrefsSpec` · 종단 테스트 · 실화면 네 길)
 - [ ] 내보내기 zip 에 모든 도메인 기록 존재(임시 사용자 실스택)
 - [ ] 이중 검증 기간 옛 · 새 토큰 모두 통과, 종료 후 옛 토큰 401
 - [x] 알림 설정 없는 사용자 발송 0 — 2026-11-06 S2c(종단 테스트 · 실스택)
@@ -45,3 +45,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): to-do → in-progress. FR-5 done — Kotlin notification(설정 기본 꺼짐 · 구독 셋 · 2시간 억제 · 만료 정리) · coach 발행 창구(`coach.outbox`) · Express notification 은퇴 · 옛 표 drop. 수용 기준 4 충족. 나머지 FR 은 identity(S3) |
 | 2026-11-06 | 서버 S2c 확인 2회차 — 국내 종목 코드 관문 · `enabled` 타입 · 쓰기 실패 격리(루트 `requirements/reports/checklists/MONEY-S2c-notification.md`) |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-1 · FR-2 done — identity 서비스가 셸 설정 표 하나로 플랫폼에서 태어남(사용자 · 토큰은 S3b). 옛 3스텝 · 저축 `/goals/exists` 프로브 은퇴. 수용 기준 1 충족. 커밋 `fc0207cb` · `7f2ba1ed`. 남은 FR-3 · 4 · 6 · 7(S3c) · 8 · 9(S3b) |

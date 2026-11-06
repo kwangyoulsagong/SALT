@@ -15,6 +15,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` — `homebriefing`은 **3블록**(`portfolio` · `plan` · `coach`), 대화 컨텍스트에서 `tax` · `invoice`가 빠졌다. 도메인 작업 4개를 추가했다: ④ `portfolio` 포지션(1년 구간 · MDD · 리스크 레이더 · 거래 미리보기) ⑤ `notification` 1종 생성 · 끄기 ⑥ `onboarding` 2단계 교체 ⑦ 설정 조립. 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14 · B16.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 **대화가 제품의 핵심이 된다.** 서버 도메인 작업은 ① 대화 유스케이스 ② **질문에 맞는 컨텍스트만 프롬프트에 넣는 라우팅** ③ `homebriefing` 조합 컨텍스트 셋이다.
@@ -27,7 +29,7 @@ created: 2026-09-09
 | `homebriefing` | **조합 컨텍스트 신규.** Aggregate 없이 `application`(+`presentation`)만. `BuildHomeBriefing` 유스케이스 |
 | `portfolio` | *(2026-09-21)* `GetPositionOverview` · `GetPerformance`(+`1y` · MDD) · `GetRiskRadar` · `PreviewTransaction` + `policy/riskRadar` |
 | `notification` | *(2026-09-21)* `RecordSignalUpdate` · `ListAlerts` · `MarkRead` · `MarkAllRead` · `CountUnread` · `Get/UpdateAlertPreferences` |
-| `onboarding` | *(2026-09-21)* 2단계 `first_holding` 판정 · `SkipOnboardingStep` |
+| `onboarding` | ~~*(2026-09-21)* 2단계 `first_holding` 판정 · `SkipOnboardingStep`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 
 ## 대화 유스케이스
 
@@ -154,10 +156,10 @@ created: 2026-09-09
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-100 | 단계 키를 `invite` · **`first_holding`** · `set_plan`으로 바꾼다. `link_account`와 `LedgerLinkedProbe`를 지운다 **(기본안 — 감사 문서 B12)** | Must |
-| FR-101 | `first_holding` 완료 = `portfolio.hasTransactions` **또는** `User.firstHoldingSkippedAt` 있음. 조회 실패는 기존 원칙대로 **미완료**로 읽는다 | Must |
-| FR-102 | `SkipOnboardingStep`은 **`first_holding`만** 건너뛸 수 있다. `invite` · `set_plan`은 400 | Must |
-| FR-103 | `set_plan` 완료는 F003 적립 설정 존재다(기존 `PlanConfiguredProbe`). 저장 자체는 F003 API가 한다 | Must |
+| FR-100 | ~~단계 키를 `invite` · **`first_holding`** · `set_plan`으로 바꾼다. `link_account`와 `LedgerLinkedProbe`를 지운다 **(기본안 — 감사 문서 B12)**~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
+| FR-101 | ~~`first_holding` 완료 = `portfolio.hasTransactions` **또는** `User.firstHoldingSkippedAt` 있음. 조회 실패는 기존 원칙대로 **미완료**로 읽는다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
+| FR-102 | ~~`SkipOnboardingStep`은 **`first_holding`만** 건너뛸 수 있다. `invite` · `set_plan`은 400~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
+| FR-103 | ~~`set_plan` 완료는 F003 적립 설정 존재다(기존 `PlanConfiguredProbe`). 저장 자체는 F003 API가 한다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 
 ## 설정 조립 (2026-09-21 추가, D9 · B16)
 
@@ -216,8 +218,8 @@ created: 2026-09-09
 - [ ] 새 알림이 `signal_update`뿐이고 가격 급등락만으로 생성되지 않는다
 - [ ] 알림 끔이면 생성 0건이다
 - [ ] 목록 · 안 읽은 수 · 모두 읽음이 `signal_update`만 다룬다
-- [ ] 온보딩 단계 키가 `invite` · `first_holding` · `set_plan`이다
-- [ ] `first_holding`만 건너뛸 수 있다
+- [ ] ~~온보딩 단계 키가 `invite` · `first_holding` · `set_plan`이다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
+- [ ] ~~`first_holding`만 건너뛸 수 있다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 - [ ] 밴드 임계값 쓰기 경로가 0건이다
 
 ## Dependencies

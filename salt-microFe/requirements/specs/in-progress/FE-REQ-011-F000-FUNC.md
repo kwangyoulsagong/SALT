@@ -15,6 +15,8 @@ created: 2026-09-09
 > - FR-30 모바일 접기는 768 미만 안내(FE-REQ-043)로 웹에선 해당 없음
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 수리 9건의 **동작 규칙**과 초대·온보딩의 상태 관리. 그리고 사용자 노출 문구를 `shared/i18n`으로 모으는 작업(현재 `constants/api.ts`에 섞여 있다).
@@ -103,7 +105,7 @@ created: 2026-09-09
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-50 | 온보딩 단계를 서버 `onboarding/status`가 결정한다. **프론트가 판단하지 않는다** | Must |
+| FR-50 | ~~온보딩 단계를 서버 `onboarding/status`가 결정한다. **프론트가 판단하지 않는다**~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 | FR-51 | 코드 입력 중 `invite/check`를 **디바운스**해서 부른다(300ms). 타이핑마다 부르지 않는다 | Must |
 | FR-52 | `invite/accept`는 mutation. **재시도 0회** — 코드가 소진된다 | Must |
 | FR-53 | 성공 시 토큰을 저장하고 홈으로 이동한다. 저장 위치는 **쿠키**(`FE-REQ-008` 전환 후) | Must |

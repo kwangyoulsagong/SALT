@@ -171,3 +171,7 @@ watchlist 슬라이스 회고가 적은 실수를 초대 슬라이스가 되풀�
 
 - 몫: `ROUTES.tipCards`(`/tips/cards`) — 기존 경로 무변경
 - **Action**: 없음 — 기존 결정 위에 한 줄
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- "그 외 질문을 두지 않는다"(FR-21)는 그대로 — 단계가 바뀌어도 질문 수는 고르기 하나

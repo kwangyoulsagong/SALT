@@ -15,6 +15,8 @@ created: 2026-09-09
 > - 뷰모델 한 벌화(FR-50)는 이 REQ 가 주인 — 다른 문서 · 코드 주석이 `FE-REQ-024` 로 가리키던 것을 2026-10-29 바로잡았다
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 신규 5개 연결 ④ 문구 상수를 i18n으로 분리** 넷이다.
@@ -33,7 +35,7 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | 관심 종목 | `GET /api/app/watchlist` | 서버 컴포넌트 + mutation |
 | 홈 "주식" 섹션 | `GET /api/app/portfolio/summary` | 서버 컴포넌트 |
 | 알림 | `GET /api/app/alerts?limit=20` | 서버 컴포넌트 |
-| 온보딩 상태 | `GET /api/app/onboarding/status` | 서버 컴포넌트 |
+| 온보딩 상태 | ~~`GET /api/app/onboarding/status`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | 서버 컴포넌트 |
 | 초대 확인 | `GET /api/app/onboarding/invite/check?code` | 클라이언트(디바운스) |
 | 초대 수락 | `POST /api/app/onboarding/invite` | mutation |
 | 목표 저장 | `POST /api/goals` | mutation |
@@ -81,7 +83,7 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | FR-30 | 뉴스 조회 훅을 `entities/news/api/`에 둔다. 종목 전환 시 재조회 | Must |
 | FR-31 | 관심 종목 조회는 서버 컴포넌트, 추가/제거는 `features/toggle-watchlist`의 mutation | Must |
 | FR-32 | `portfolio/summary`를 서버 컴포넌트에서 조회한다 | Must |
-| FR-33 | `onboarding/status`를 서버 컴포넌트에서 조회한다. **온보딩 미완료면 홈 대신 온보딩을 렌더** | Must |
+| FR-33 | ~~`onboarding/status`를 서버 컴포넌트에서 조회한다. **온보딩 미완료면 홈 대신 온보딩을 렌더**~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 | FR-34 | `invite/check`는 클라이언트 + **디바운스 300ms** | Must |
 | FR-35 | `invite/accept`는 mutation. **재시도 0회** | Must |
 | FR-36 | 목표 저장(`POST /api/goals`)이 실제로 연결되는지 검증한다. 끊겨 있으면 잇는다 | Should |

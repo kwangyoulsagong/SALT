@@ -422,3 +422,7 @@ LLM 해설이 `expectedReturn.lowPercent/highPercent` 를 만든다. 전 영역 
 ## 2026-11-04 — 오류 코드 분기 금지 lint
 
 - 2026-11-02 코치 프로필 · 월간 돌아보기에서 걷어 낸 꼴(`P2002` catch)을 이제 lint 가 막는다. 문서 · 메모리로만 막던 것을 코드로 옮겼다(`DEV-001`)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 규칙 문서에 줄을 그을 때 훅 표(`layer-rules.cjs`)도 같이 본다 — S2c 때 `notification` 을 빠뜨렸다

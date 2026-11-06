@@ -15,6 +15,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` — `homebriefing` 어댑터는 **3개**, `ContextAssembler`에서 `tax` · `invoice` 삭제, **환율 워커 확장(FR-60~63)은 보류**. `portfolio` · `notification` · `onboarding` 인프라 연동을 추가했다(§2026-09-21). 근거: 스토리보드 갭 감사 D5 · B12 · B13 · B14.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 `coach`에 대화를 추가하고 `homebriefing` 조합 컨텍스트를 신설한다. 인프라 작업의 핵심은 **LLM 스트리밍 클라이언트**와 **취소 전파**다.
@@ -134,7 +136,7 @@ src/panel/                                   (또는 coach 안에)
 | FR-83 | 미리보기는 `PrismaTransactionRepository`에서 해당 종목 거래만 읽고 `HoldingRecalculation`을 메모리에서 돌린다. 쓰기 0건 **(기본안 — 감사 문서 B14)** | Must |
 | FR-84 | `coach`가 새 insight를 저장한 **뒤**(트랜잭션 밖) `notification.recordSignalUpdate`를 부른다. 알림 실패가 추천 저장을 되돌리지 않는다 (D5) | Must |
 | FR-85 | F003 주간 밴드 변경도 같은 공개 API로 알림을 만든다. 워커 신규 없음 | Must |
-| FR-86 | `onboarding`의 `LedgerLinkedProbe`를 `HoldingRecordedProbe`(`portfolio.hasTransactions` + `User.firstHoldingSkippedAt`)로 바꾼다 **(기본안 — 감사 문서 B12)** | Must |
+| FR-86 | ~~`onboarding`의 `LedgerLinkedProbe`를 `HoldingRecordedProbe`(`portfolio.hasTransactions` + `User.firstHoldingSkippedAt`)로 바꾼다 **(기본안 — 감사 문서 B12)**~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 | FR-87 | 기존 고래 · 스마트머니 · 센티먼트 알림 생성 워커는 **꺼진 상태를 유지**한다. 켜는 경로를 추가하지 않는다 (B19) | Must |
 
 ## 정리 워커
@@ -183,7 +185,7 @@ src/panel/                                   (또는 coach 안에)
 - [ ] 레이더 설정 형식 오류 시 기동이 실패한다
 - [ ] 미리보기가 쓰기 0건이다
 - [ ] 알림 생성 실패가 추천 저장을 되돌리지 않는다
-- [ ] 온보딩이 `LedgerLinkedProbe`를 쓰지 않는다
+- [ ] ~~온보딩이 `LedgerLinkedProbe`를 쓰지 않는다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 - [ ] 옛 타입 알림 생성 워커가 꺼져 있다
 
 ## Dependencies

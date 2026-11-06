@@ -16,6 +16,8 @@ source: pm/requirements/specs/in-progress/FEATURE-000-scope-reset.md, pm/require
 > - FR-32 `AssetType` 3값: `kr_stock` 은 F011 이 닫음(2026-10-07) · `us_stock` 은 미국 주식 착수 때
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이다. 도메인 로직으로 새로 생기는 것은 **초대 코드 검증**과 **알림 타입 제한** 둘뿐이고, 나머지는 기존 로직을 컨텍스트로 옮기는 작업이다.
@@ -50,7 +52,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 | FR-10 | 유지: `Login` · `RefreshSession` | Must |
 | FR-11 | 제거: `Register` · `ChangePassword` · `DeleteAccount` 유스케이스. **화면도 함께 제거**(FE-REQ-011) | Must |
 | FR-12 | 토큰 만료·재발급 경로는 유지한다. 인증 표면이 줄어도 세션 관리는 필요하다 | Must |
-| FR-13 | **온보딩 상태**를 계산한다: `invite` → `link_account` → `set_plan`. 각 단계 완료 판정을 `policy/onboardingProgress`에 둔다. **개정 2026-09-21** — 2단계 "계좌 연결"이 **"첫 보유 기록 입력"(건너뛰기 가능)** 으로 바뀐다(기본안 — 감사 문서 B12). 단계 키 이름 · 건너뛰기 판정은 `FEATURE-006` 영역 REQ 가 소유한다 | Must |
+| FR-13 | ~~**온보딩 상태**를 계산한다: `invite` → `link_account` → `set_plan`. 각 단계 완료 판정을 `policy/onboardingProgress`에 둔다. **개정 2026-09-21** — 2단계 "계좌 연결"이 **"첫 보유 기록 입력"(건너뛰기 가능)** 으로 바뀐다(기본안 — 감사 문서 B12). 단계 키 이름 · 건너뛰기 판정은 `FEATURE-006` 영역 REQ 가 소유한다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 | FR-14 | 온보딩 완료 판정의 입력은 ~~`ledger`(거래 존재)~~ **`portfolio`(보유 기록 존재)** · `plan`(설정 존재)의 **공개 API**다. Prisma를 직접 읽지 않는다. **개정 2026-09-21** — `ledger` 컨텍스트는 ADR-002 로 생기지 않는다 | Must |
 
 ## 알림 1종 제한 (개정 2026-09-21 — 2종 → 1종)
@@ -253,3 +255,4 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`1ec3b0c6`): `composition.ts` 온보딩 `set_plan` 프로브 — `prisma.goal.count` → Kotlin 저축 ~~`home-card`~~ `goals/exists`(**정정 2026-11-03 `c82be47c`** — 홈 카드 조립을 빌리지 않는다) 내부 REST(800ms · 실패 false). env `PLATFORM_API_URL`. 실측 done true / false |
 | 2026-11-03 | `c82be47c` — 온보딩 `set_plan` 프로브가 `GET /api/savings/goals/exists` 를 부른다(홈 카드 조립을 빌리지 않음). 실측 done true/false |
 | 2026-11-03 | `d69c310e` — `schema.prisma` 에서 `Goal` · `SavingTransaction` · enum 2 · User 관계 삭제(이 REQ 가 파일 머리 주인). 동면 대시보드 목표 요약 3쿼리 삭제 |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-13 · 14(온보딩 3스텝 판정 · 조합 컨텍스트 `onboarding`) **은퇴** — 도메인 선택 온보딩(`SRV-REQ-048` FR-1)으로 대체, Express `src/onboarding` 삭제 `7f2ba1ed`. 본문 그 자리 정정 |

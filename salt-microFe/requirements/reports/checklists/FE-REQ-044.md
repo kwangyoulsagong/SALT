@@ -195,3 +195,7 @@
 - 몫: 새 패키지 `@repo/domain-tips` `.eslintrc.json` 에 같은 `motion/react` · `motion` 금지 줄(복사). 금융 팁 화면에 움직임 0
 - 검증: `pnpm lint` 13/13 · 슬라이스 검증
 - 미검증: 없음
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 기존 `Illustration` scene 셋 재배치 · 줄인 모션 규칙 그대로

@@ -442,3 +442,7 @@
 - 변경: 지수 조회 필드 3 · 분 기록 쓰기 · 정리 작업 · env 3 · 요약 경로
 - 검증: `build` · `lint` · `test` 936 / 0 · `test:layer-check` · Swagger 생성 · 실서버 4000 소유자 200
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- `env.ts` 의 KIS 항목은 그대로. `PLATFORM_API_URL` 만 지움 — Express 가 플랫폼 주소를 아는 자리가 0 이 됐다

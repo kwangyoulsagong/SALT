@@ -34,3 +34,8 @@
 
 - 판단 · 실수는 루트 회고 `MONEY-S2c-notification`
 - **Action**: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 홈 `order` 는 카드가 있는 도메인만 담는데 서버는 넷 전부를 요구한다 — 화면에서 채우게 하지 않고 BFF 가 채웠다(화면은 서버 키 목록을 모른다)
+- Action: 팁 카드가 생기면(`SRV-REQ-047` 홈 카드) `CARD_SOURCES` 한 줄 — 배치 쪽은 바꿀 것 없음

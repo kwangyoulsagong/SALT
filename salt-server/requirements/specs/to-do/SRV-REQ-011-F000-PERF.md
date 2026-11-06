@@ -14,6 +14,8 @@ created: 2026-09-09
 > - FR-20~23 초대 동시성(조건부 UPDATE · 유니크) · `check` rate limit(`auth.routes.ts`)은 `SRV-REQ-008` 이 구현 — 측정 FR 만 남음
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 F000은 신규 계산이 없으므로 성능 요구가 가볍다. 이 REQ의 목적은 **정리의 효과를 측정하는 것**과 **변경 금지 목록(시장 개요)의 성능을 유지하는 것**이다.
@@ -25,7 +27,7 @@ F000은 신규 계산이 없으므로 성능 요구가 가볍다. 이 REQ의 목
 | `POST /api/auth/invite/accept` | 500ms | 비밀번호 해싱 포함 |
 | `GET /api/auth/invite/check` | 50ms | 유니크 인덱스 |
 | `POST /api/auth/login` | 500ms | 해싱 |
-| `GET /api/onboarding/status` | 150ms | ACL 2회 |
+| ~~`GET /api/onboarding/status`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | 150ms | ACL 2회 |
 | `GET /api/investment/market/overview` (`limit=100`) | **300ms** | **변경 금지 — 현재 성능을 유지한다** |
 | `GET /api/investment/watchlist` | 150ms | 현재가 포함 |
 | `GET /api/investment/crypto/:symbol/chart?period=minute` | 200ms | 5분봉 30개 |

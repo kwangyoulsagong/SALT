@@ -66,3 +66,7 @@
 
 - 파일만 걸침 — 이 REQ 를 머리 주석에 둔 파일을 S2c 가 고쳤다. 판단 · 실수는 루트 회고 `MONEY-S2c-notification`
 - **Action**: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 서비스 간 조회 경로를 만들 때 소비처 하나를 주석에 적어 둔 덕에 지울 때 grep 한 번이었다

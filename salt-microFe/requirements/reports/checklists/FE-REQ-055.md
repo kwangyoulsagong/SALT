@@ -64,3 +64,11 @@
 ## 2026-11-06 — 서버 S2c 확인 2회차
 
 - 확인 2회차(`94bbed43`): axe — 새 줄 설명 대비 3.03 → 2단 글자색(위반 0) · `pnpm test` · `test:layer-check` 16/10 · 실화면 다시
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`) · `c1baa77a`
+
+- FR-4: `entities/auth`(계약 `Onboarding` · `useOnboarding`) · `features/choose-domains`(고르기 폼 · 끝내기) · `widgets/onboarding-flow`(초대 · 고르기 · 첫 기록 · 끝 · 홈 안내 카드)
+- FR-2: `features/arrange-home` 패널(위로 · 아래로 · 보이기 토글) — `/settings`
+- 고침(같은 원인 둘): `toggle-alerts` · `arrange-home` 이 `isPending` 동안 누른 것을 버렸다 → `scope` 직렬화 + 마지막 저장만 서버 값. 실화면 연달아 세 번 · 알림 둘 연속 → 다 저장 · 새로고침 유지
+- 검증: `pnpm check-types` · `lint` · `test`(core 184 · ui 46) · `test:layer-check` 16/10 · 실화면 390(웹뷰) · 1024 · 1280 · 1440 · 1600 넘침 0 · axe 새 요소 위반 0(고르기 · 첫 기록 · 설정 패널) · 콘솔 오류 0
+- 남은 것: 공용 `panelDescription`(회색 500, 3.03:1) — 기존 패널 둘은 그대로(기존 결정, 새 패널만 2단 글자색)

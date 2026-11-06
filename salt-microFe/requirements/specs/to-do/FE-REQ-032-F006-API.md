@@ -16,6 +16,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` — 홈 블록 조회 3개(세금 · 청구서 삭제), 홈 알림 목록 조회 삭제(벨 배지는 안 읽은 수). 포지션 · 거래 · 알림 · 설정 · 온보딩 건너뛰기 호출을 추가했다(§G). 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 홈은 **서버 컴포넌트가 블록별로 조회**하고 스트리밍한다. 대화는 **클라이언트가 SSE를 구독**한다. 이 둘의 경계가 이 REQ의 핵심이다.
@@ -34,7 +36,7 @@ created: 2026-09-09
 | 거래 | `GET/POST /api/app/portfolio/transactions` · `POST .../preview` · `PATCH/DELETE .../:id` | 조회 + mutation *(2026-09-21)* | — |
 | 설정 | `GET /api/app/settings` · 그룹별 쓰기 | 서버 컴포넌트 + mutation *(2026-09-21)* | 그룹별 |
 | 온보딩 건너뛰기 | `POST /api/app/onboarding/steps/first-holding/skip` | mutation *(2026-09-21)* | — |
-| 온보딩 상태 | `GET /api/app/onboarding/status` | 서버 컴포넌트 | 밖 |
+| 온보딩 상태 | ~~`GET /api/app/onboarding/status`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | 서버 컴포넌트 | 밖 |
 | 대화 목록 | `GET /api/app/coach/conversations` | 서버 컴포넌트 | 안 |
 | 메시지 목록 | `GET /api/app/coach/conversations/:id/messages` | 서버 컴포넌트 + 클라이언트 페이징 | 안 |
 | **메시지 전송** | `POST /api/app/coach/messages` | **mutation** | — |
@@ -121,7 +123,7 @@ created: 2026-09-09
 | FR-65 | 안 읽은 수는 `useQuery(['alerts','unread'])`, `staleTime: 0`, 폴링 0건. 읽음 mutation 성공 시 무효화 (D5) | Must |
 | FR-66 | 설정은 서버 컴포넌트가 `GET /api/app/settings`로 한 번 받고, 그룹별 쓰기는 **소유자 경로**(F003 적립 · F004 코치 · `/settings/alerts`)로 보낸다 (D9 · B16) | Must |
 | FR-67 | 온보딩 건너뛰기는 mutation, 재시도 0회. 성공 후 온보딩 상태 태그 무효화 **(기본안 — 감사 문서 B12)** | Must |
-| FR-68 | 타입: `PositionViewModel` · `PerformanceViewModel` · `TransactionInput` · `TransactionPreviewViewModel` · `AlertViewModel` · `SettingsViewModel`을 `packages/core`에서 가져온다. `OnboardingStepKey`를 `'invite' \| 'first_holding' \| 'set_plan'`으로 바꾼다 — **BREAKING** | Must |
+| FR-68 | 타입: `PositionViewModel` · `PerformanceViewModel` · `TransactionInput` · `TransactionPreviewViewModel` · `AlertViewModel` · `SettingsViewModel`을 `packages/core`에서 가져온다. `OnboardingStepKey`를 `'invite' \| 'first_holding' \| ~~'set_plan'`으로 바꾼다 — **BREAKING**~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 | FR-69 | `risk.axes`를 **길이 4 튜플 타입**으로 좁힌다. 축 누락이 컴파일에서 드러난다 | Should |
 
 ## Acceptance Criteria
@@ -155,7 +157,7 @@ created: 2026-09-09
 - [ ] 거래 쓰기 재시도 0회 · 성공 후 관련 쿼리 · 태그 무효화
 - [ ] 알림 목록 · 읽음 · 모두 읽음 · 안 읽은 수 호출이 있고 폴링이 0건이다
 - [ ] 설정 쓰기가 소유자 경로로 간다
-- [ ] `OnboardingStepKey`에 `link_account`가 0건이다
+- [ ] ~~`OnboardingStepKey`에 `link_account`가 0건이다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 - [ ] 신규 뷰모델 타입이 `packages/core`에서 온다
 
 ## Dependencies

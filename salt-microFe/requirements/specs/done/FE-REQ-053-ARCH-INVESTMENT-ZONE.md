@@ -62,3 +62,4 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 공용 레이아웃에 `PublicShell`(공개 zone 껍데기 — 로고 머리 + main, 앱 내비 · 안내 · prerender 없음) export 추가 |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 파일만 걸침 — 셸 `/settings`(머리 주석 주인)에 알림 패널 |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음(이 REQ 몫) — BFF `home-card.viewmodel` 에 `INVEST_HREF` 상수(투자 카드 · 첫 입력이 같은 경로를 쓰게) `066ba971` |

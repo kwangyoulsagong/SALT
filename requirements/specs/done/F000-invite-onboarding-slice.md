@@ -6,12 +6,14 @@ labels: [F000, slice, cross-area, contract, auth, invite, onboarding]
 created: 2026-09-18
 ---
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 **초대 코드 없이 계정이 생기지 않게 한다.** 지금은 `POST /api/auth/register` 가 이메일만
 받으면 누구에게나 계정을 준다 — 공통 수용 기준(마스터 인덱스 §6 "초대 코드 없이 계정이
 생성되지 않는다")을 **정면으로 어기는 경로가 열려 있다**. 이 슬라이스는 그 경로를 닫고,
-초대 코드 수락과 온보딩 3스텝을 서버 → BFF → 프론트로 관통시킨다.
+~~초대 코드 수락과 온보딩 3스텝을 서버 → BFF → 프론트로 관통시킨다.~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 
 ## Background
 
@@ -32,11 +34,11 @@ created: 2026-09-18
 | DB | `DB-REQ-001` (부분) | — | `InviteCode` 모델 + 마이그레이션. **`AssetType` 3값 확장은 범위 밖** |
 | 서버 | `SRV-REQ-008` | FR-1~7 | `AcceptInviteCode` 검증 4개 · 도메인 예외 4종 · `UserCountProbe` · 원자적 사용 · 상한 설정값 · 실패 기록 |
 | 서버 | `SRV-REQ-008` | FR-10~14 | 인증 축소(`Login`·`RefreshSession` 유지, `Register`·`ChangePassword`·`DeleteAccount` 제거) · 온보딩 3단계 판정 |
-| 서버 | `SRV-REQ-009` | FR-1~6 | `POST /api/auth/invite/accept` · `GET /api/auth/invite/check` · `GET /api/onboarding/status` · 제거 3경로 404 |
+| 서버 | `SRV-REQ-009` | FR-1~6 | ~~`POST /api/auth/invite/accept` · `GET /api/auth/invite/check` · `GET /api/onboarding/status` · 제거 3경로 404~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 | 서버 | `SRV-REQ-009` | FR-16 (부분) | 제거된 경로의 Swagger 문서 제거 |
 | BFF | `BFF-REQ-007` | FR-60~64 | proxy `register` 제거 · 온보딩 3라우트 · `check` 무인증 + rate limit · `403` + `reasonCode` 전달 |
-| BFF | `BFF-REQ-008` | 신규 표 | `GET /api/app/onboarding/invite/check` · `POST /api/app/onboarding/invite` · `GET /api/app/onboarding/status` |
-| 프론트 | `FE-REQ-010` | FR-20~26 | 온보딩 3스텝 화면 · `ProgressStepper` · 입력 중 검증 · `reasonCode` 3문구 · 홈 온보딩 카드 1개 · 붙여넣기 |
+| BFF | `BFF-REQ-008` | 신규 표 | ~~`GET /api/app/onboarding/invite/check` · `POST /api/app/onboarding/invite` · `GET /api/app/onboarding/status`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
+| 프론트 | `FE-REQ-010` | FR-20~26 | ~~온보딩 3스텝 화면 · `ProgressStepper` · 입력 중 검증 · `reasonCode` 3문구 · 홈 온보딩 카드 1개 · 붙여넣기~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 | 프론트 | `FE-REQ-010` | FR-64 | `ProgressStepper` 에 `aria-current="step"` |
 
 ## 범위 밖 — 같은 REQ 안이지만 이 브랜치가 아니다
@@ -74,14 +76,14 @@ created: 2026-09-18
 **상한 초과(`quota`)를 노출하지 않는다**(`SRV-REQ-009` FR-4). 상한이 찼을 때 `check` 는
 코드 자체가 멀쩡하면 `valid: true` 를 주고, 실제 차단은 `accept` 가 한다.
 
-### 서버 `GET /api/onboarding/status` (신규 · 인증)
+### 서버 `GET /api/onboarding/status` (신규 · 인증) — **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 
 ```jsonc
 { "success": true, "data": {
   "complete": false,
-  "nextStep": "link_account",
-  "steps": [{ "key": "invite", "done": true }, { "key": "link_account", "done": false },
-            { "key": "set_plan", "done": false }]
+  "nextStep": "link_account",  // 정정 2026-11-06(S3a) — 은퇴, `BFF-REQ-046` FR-6
+  "steps": [{ "key": "invite", "done": true }, { "key": "link_account", "done": false },  // 정정 2026-11-06(S3a) — 은퇴, `BFF-REQ-046` FR-6
+            { "key": "set_plan", "done": false }]  // 정정 2026-11-06(S3a) — 은퇴, `BFF-REQ-046` FR-6
 }}
 ```
 
@@ -89,12 +91,12 @@ created: 2026-09-18
 
 `GET /api/app/onboarding/invite/check?code=` → `{ valid, reasonCode? }` (무인증 · rate limit)
 `POST /api/app/onboarding/invite` → `{ accessToken, refreshToken, user }` / `403 { reasonCode }`
-`GET /api/app/onboarding/status` → `OnboardingStatusViewModel` (인증)
+~~`GET /api/app/onboarding/status` → `OnboardingStatusViewModel` (인증)~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 
 **BFF 는 `reasonCode` 를 문장으로 바꾸지 않는다.** 문구는 프론트 `shared/i18n` 이 만든다
 (`BFF-REQ-008` FR-9).
 
-## 판정 대체 — 온보딩 3스텝이 아직 없는 컨텍스트를 본다
+## 판정 대체 — 온보딩 3스텝이 아직 없는 컨텍스트를 본다 — **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 
 `SRV-REQ-008` FR-14 는 `ledger`·`plan` 의 공개 API 를 쓰라고 했다. **둘 다 없다**(F001·F003).
 `onboarding` 조합 컨텍스트는 그 자리를 **주입받는 프로브 두 개**로 두고, 조립 지점에서
@@ -103,8 +105,8 @@ created: 2026-09-18
 | 스텝 | REQ 가 말한 소스 | 지금 꽂는 것 | 언제 바뀌나 |
 |---|---|---|---|
 | `invite` | `auth` | 인증된 요청 = 초대 수락 완료 | — |
-| `link_account` | `ledger` 거래 존재 | `portfolio.countTransactions > 0` | F001 `ledger` |
-| `set_plan` | `plan` 설정 존재 | `goal` 행 존재 | F003 `plan` |
+| ~~`link_account`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | `ledger` 거래 존재 | `portfolio.countTransactions > 0` | F001 `ledger` |
+| ~~`set_plan`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | `plan` 설정 존재 | `goal` 행 존재 | F003 `plan` |
 
 **조합 컨텍스트는 `domain` 을 갖지 않는다**(`server-architecture.md` §2). 프로브는 Port 가
 아니라 `application` 이 받는 함수 타입이고, 구현은 `composition.ts` 에 있다.
@@ -123,7 +125,7 @@ created: 2026-09-18
 - [ ] 온보딩 3단계가 계산되고 `nextStep` 이 첫 미완료 단계를 가리킨다
 - [ ] BFF 온보딩 3라우트가 동작하고 `check` 가 무인증 + rate limit 이다
 - [ ] BFF 가 초대 `403` + `reasonCode` 를 **그대로** 올린다 (문장 생성 0건)
-- [ ] 프론트 온보딩 3스텝이 완주되고 `ProgressStepper` 가 `aria-current="step"` 을 준다
+- [ ] ~~프론트 온보딩 3스텝이 완주되고 `ProgressStepper` 가 `aria-current="step"` 을 준다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 - [ ] 코드 입력 중 유효성이 표시되고 **상한 초과 문구가 0건**이다
 - [ ] 실패 `reasonCode` 3종이 각각 다른 문구다
 - [ ] 코드 입력이 붙여넣기 · 자동 대문자화 · 공백 제거를 처리한다

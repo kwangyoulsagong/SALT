@@ -7,6 +7,8 @@ created: 2026-11-03
 status: done
 ---
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 사용자 "새브랜치 파고 다음 파이프라인 진행" — 마스터 인덱스 §4-1 3a 다음 칸 **S1 + F3**(`DB-REQ-037` · `SRV-REQ-045` · `BFF-REQ-047` · `FE-REQ-056`).
@@ -26,7 +28,7 @@ status: done
 | `SRV-REQ-045` | FR-1(이전 — 아래 판단 1) · FR-2(템플릿 7종, 기준선은 판단 3) · FR-3 · FR-4 · FR-5 · FR-6(`reason` 만) · FR-8 · FR-9 · FR-15 · FR-18 · FR-19 | FR-7 · 10~14 · 16 · 17, FR-6 채점 사본(`FC-REQ-024`) |
 | `BFF-REQ-047` | FR-1 · 2 · 3(장면 칸 제외) · 5 · 7 · 8 + 홈 저축 카드 원천 교체(`BFF-REQ-046`) | FR-4 · 6 |
 | `FE-REQ-056` | FR-1 · 2(기준선 "미확인") · 3 · 4(모션 제외) · 5 · 7(이정표 · 프레임만) + 탭 `readyBy: null` — ~~FR-13~~ **정정 2026-11-03: 토큰이 브라우저 저장소라 이번 몫에서 뺌** | FR-6 · 7 나머지 · 8~12 · ~~FR-13(`FE-REQ-013` 뒤)~~ **FR-13 done 2026-11-03 `0ef25f6b`** |
-| 짝 | 서버 Express 온보딩 `set_plan` 프로브 → 저축 서비스 조회(`SRV-REQ-045` FR-1) · `ops/salt.sh` platform 상시(`OPS-002`) | |
+| 짝 | ~~서버 Express 온보딩 `set_plan` 프로브 → 저축 서비스 조회(`SRV-REQ-045` FR-1) · `ops/salt.sh` platform 상시(`OPS-002`)~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | |
 
 ## 판단 — 리뷰가 볼 곳
 

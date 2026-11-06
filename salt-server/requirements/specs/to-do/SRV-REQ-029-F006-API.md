@@ -11,6 +11,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` — 홈 블록 엔드포인트는 **3개**(`total-asset` · `weekly-plan` · `coach`), `HomeBriefingResult`에서 `taxDeadline` · `invoice` · `holdingsPreview` · `alerts[]`를 뺐다. 포지션 · 거래 미리보기 · 알림 · 온보딩 건너뛰기 · 알림 설정 계약을 추가했다(§2026-09-21 엔드포인트). 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 대화는 **2단계**다: `POST`로 메시지를 만들고 `GET`으로 SSE를 연다. 그래야 재연결이 단순해진다. 홈은 `homebriefing` 조합 컨텍스트가 `GET /api/home`으로 낸다.
@@ -70,7 +72,7 @@ event: ping            data: {}
 ```ts
 type HomeBriefingResult = {
   asOf: string;
-  onboarding: { complete: boolean; nextStep: 'invite' | 'first_holding' | 'set_plan' | null };   // 2026-09-21: link_account → first_holding (B12)
+  onboarding: { complete: boolean; nextStep: 'invite' | 'first_holding' | 'set_plan' | null };   // 2026-09-21: link_account → first_holding (B12)  // 정정 2026-11-06(S3a) — 은퇴, `BFF-REQ-046` FR-6
   degradedBlocks: string[];
 
   totalAsset: {
@@ -174,8 +176,8 @@ type TransactionPreview = {
 
 | Method | Path | 상태 | 비고 |
 |---|---|---|---|
-| GET | `/api/onboarding/status` | 기존 → **개정** | 단계 키 `invite` · `first_holding` · `set_plan` |
-| POST | `/api/onboarding/steps/first_holding/skip` | **신규** | `204`. 멱등. 다른 단계는 400 |
+| GET | `/api/onboarding/status` | 기존 → **개정** | ~~단계 키 `invite` · `first_holding` · `set_plan`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
+| POST | ~~`/api/onboarding/steps/first_holding/skip`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | **신규** | `204`. 멱등. 다른 단계는 400 |
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
@@ -186,7 +188,7 @@ type TransactionPreview = {
 | FR-44 | 금액 필드는 전부 서버 계산 숫자다. 예상 수익 · 목표가 필드 0건 | Must |
 | FR-45 | 알림 목록 항목: `{ id, messageCode, params, target: 'coach' \| 'home.weekly-plan', isRead, createdAt }`. 완성 문장 0건 | Must |
 | FR-46 | 알림 생성 · 조건 알림 생성 경로(POST)를 **열지 않는다** (B19) | Must |
-| FR-47 | 온보딩 `link_account` 키를 **응답에서 없앤다.** 소비처(BFF · FE `OnboardingStepKey`)가 같이 바뀐다 — **BREAKING** | Must |
+| FR-47 | ~~온보딩 `link_account` 키를 **응답에서 없앤다.** 소비처(BFF · FE `OnboardingStepKey`)가 같이 바뀐다 — **BREAKING**~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 | FR-48 | Swagger에 신규 · 확장 경로를 문서화한다 | Must |
 
 ## Acceptance Criteria
@@ -222,7 +224,7 @@ type TransactionPreview = {
 - [ ] 알림 목록 · 안 읽은 수 · 모두 읽음이 `signal_update`만 다룬다
 - [ ] 알림 생성 POST 경로가 0건이다
 - [ ] `preferences` GET/PATCH가 동작한다
-- [ ] 온보딩 단계 키에 `link_account`가 0건이고 `first_holding` 건너뛰기가 멱등이다
+- [ ] ~~온보딩 단계 키에 `link_account`가 0건이고 `first_holding` 건너뛰기가 멱등이다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 
 ## Dependencies
 

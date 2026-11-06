@@ -311,3 +311,7 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 - 몫: `ROUTES.tipCards`(`/tips/cards`) — 기존 경로 무변경
 - 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2b-tips-quiz-diff.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- `widgets/onboarding-flow` 새로 · 실화면 네 길 · 로그아웃 초대 · axe 0 · 넘침 0

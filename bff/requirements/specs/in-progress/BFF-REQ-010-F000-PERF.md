@@ -14,6 +14,8 @@ created: 2026-09-09
 > - 수용 기준이 비어 있지만 FR-1 p95 23.1ms · FR-4 히트율 실측 · FR-53 rate limit · FR-50 `allSettled` 는 Changelog · 코드에 있다 — 진실은 체크리스트
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 F000의 성능 요구는 **① 변경 금지 목록(실시간 테이블·시세 WS)의 성능을 유지하고 ② 정리 효과를 측정하는 것** 둘이다.
@@ -27,7 +29,7 @@ F000의 성능 요구는 **① 변경 금지 목록(실시간 테이블·시세 
 | `GET /api/app/news?limit=5` | 150ms | |
 | `GET /api/app/portfolio/summary` | 250ms | |
 | `GET /api/app/alerts` | 150ms | |
-| `GET /api/app/onboarding/status` | 200ms | |
+| ~~`GET /api/app/onboarding/status`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | 200ms | |
 | `POST /api/app/onboarding/invite` | 2.2s | 서버 해싱 |
 | 차트 프록시 | 250ms | 5분봉 30개 |
 | `market-intelligence` 프록시 | 350ms | |

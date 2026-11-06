@@ -14,6 +14,8 @@ created: 2026-09-09
 > - FR-1~4(제거 호출 0건 · 초대 · mutation)와 FR-30~32(`priceStale`, `watchlist.viewmodel.ts`)는 구현됐다 — 미구현은 search · 북마크(FR-50~52) → to-do → **in-progress** 로 옮김
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 **경로가 그대로인 채 컨텍스트만 바뀌는 호출**을 구분하는 것이 핵심이다.
@@ -26,7 +28,7 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 | `acceptInvite` | `POST /api/auth/invite/accept` | 2s | **0회** |
 | `login` (proxy) | `POST /api/auth/login` | 2s | 0회 |
 | `refresh` (proxy) | `POST /api/auth/refresh` | 1s | 0회 |
-| `onboardingStatus` | `GET /api/onboarding/status` | 400ms | 1회 |
+| `onboardingStatus` | ~~`GET /api/onboarding/status`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | 400ms | 1회 |
 | `newsPreview` | `GET /api/news?symbol&limit` | 400ms | 1회 |
 | `watchlist` | `GET /api/investment/watchlist` | 400ms | 1회 |
 | `addWatchlist` / `removeWatchlist` | `POST/DELETE /api/investment/watchlist` | 600ms | 0회 |
@@ -91,7 +93,7 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 | 서버 필드 | 변경 시 영향 |
 |---|---|
 | `invite/check.valid` · `reasonCode` | 초대 입력 화면 |
-| `onboarding/status.steps[]` · `nextStep` | 온보딩 진행 |
+| ~~`onboarding/status.steps[]` · `nextStep`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | 온보딩 진행 |
 | `news.items[].{title,summary,imageUrl,source,publishedAt}` | 뉴스 프리뷰 |
 | `watchlist.items[].{currentPrice,priceChange24h}` | 관심 종목 목록 |
 | `portfolio/summary.{items,totalKrw,fxRateUsed}` | 홈 "주식" 섹션 |

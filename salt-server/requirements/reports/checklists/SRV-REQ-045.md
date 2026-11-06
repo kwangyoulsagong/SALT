@@ -94,3 +94,7 @@
 - 실행 스크립트 환경 변수 둘
 - 검증: `ops/salt.sh restart platform` → health UP
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 저축 경로 · 테스트 나머지 그대로 · `./gradlew check` 통과

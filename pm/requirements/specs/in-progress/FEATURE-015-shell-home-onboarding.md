@@ -28,8 +28,8 @@
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-1 | 온보딩: 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 입력 하나 → 끝(3단계 이내) | Must | Draft |
-| FR-2 | 홈 = `HomeSummaryCard[]`, 순서 · 숨김 사용자 설정 | Must | 부분(2026-11-02) — 카드 계약 · 셸 홈 카드 · 기본 순서(`FE-REQ-055` · `BFF-REQ-046`). 순서 · 숨김 편집은 identity(S3) |
+| FR-1 | 온보딩: 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 입력 하나 → 끝(3단계 이내) | Must | **구현 2026-11-06**(서버 S3a — 초대 → 고르기 → 첫 기록(고른 것 중 기본 순서 첫째 도메인의 입력 화면) → 끝. 투자를 안 고르면 투자 질문 0 · 옛 3스텝 은퇴. `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
+| FR-2 | 홈 = `HomeSummaryCard[]`, 순서 · 숨김 사용자 설정 | Must | ~~부분(2026-11-02) — 카드 계약 · 셸 홈 카드 · 기본 순서(`FE-REQ-055` · `BFF-REQ-046`). 순서 · 숨김 편집은 identity(S3)~~ **구현 2026-11-06**(서버 S3a) — 순서 · 숨김 저장은 identity · 편집은 셸 `/settings` 패널(홈은 읽기 전용) · 저장 전 기본값은 서버(안 고른 도메인 숨김) |
 | FR-3 | 내 데이터 내보내기(CSV · JSON) · 계정 삭제 시 전부 삭제 + 범위 표시 | Must | Draft |
 | FR-4 | 알림 도메인별 설정, 기본 꺼짐(F000 FR-50 게이트 확장) | Must | **구현 2026-11-06**(서버 S2c — 셸 `/settings` 알림 패널 · 투자 = 코치 판단 변화 · 저축 = 목표 도달 · 가계부 = 고정비 오름. 기존 사용자의 투자 알림도 켜야 온다. 알림 목록 · 벨은 F006 · 푸시는 RN) |
 | FR-5 | 개인정보 범위: 결제 문자 원문 미보관 · 민감 정보 분류 · LLM 전송 필드 공개 | Must | Draft |
@@ -72,7 +72,8 @@
 | Method | Path | Auth | Request | Response | Status |
 |---|---|---|---|---|---|
 | GET | `/api/app/home` | user | — | `HomeSummaryCard[]` (계약 변경) | Draft |
-| POST | `/api/app/onboarding` | user | 도메인 선택 · 첫 입력 | 다음 단계 | Draft — 기존 3스텝 대체 |
+| ~~POST~~ GET · PUT · POST | `/api/app/onboarding` · `/domains` · `/finish` | user | 도메인 선택 · 끝내기 | 다음 단계 · 첫 기록 화면 | **구현 2026-11-06** — 기존 3스텝 `/status` 410 은퇴 |
+| PUT | `/api/app/home/layout` | user | 순서 · 숨김 | 저장된 배치 | **구현 2026-11-06** |
 | POST | `/api/app/me/export` | user | 형식 | 파일 | Draft |
 
 ## 서버/DB/Worker 영향
@@ -95,14 +96,14 @@ flowchart LR
 
 | 요구사항 | 화면/컴포넌트 | BFF/API | 서버/API | DB/Worker | 검증 |
 |---|---|---|---|---|---|
-| FR-1 | onboarding-flow 있음(투자 3스텝) | `/api/app/onboarding` 있음 | onboarding 컨텍스트 | — | Gap: 도메인 선택으로 재작성 |
-| FR-2 | ~~home-briefing 있음(coach · portfolio 직접 읽음)~~ **`entities/home` 카드(2026-11-02)** | `/api/app/home` ~~있음~~ **카드 계약** | — | — | ~~Gap: 카드 계약으로 교체~~ **교체함 — 편집만 남음(S3)** |
+| FR-1 | ~~onboarding-flow 있음(투자 3스텝)~~ **onboarding-flow 도메인 선택 · `choose-domains`(2026-11-06)** | `/api/app/onboarding` ~~있음~~ **새 계약** | ~~onboarding 컨텍스트~~ **Kotlin identity**(Express 조합 컨텍스트 삭제) | `identity.user_domain_pref` | ~~Gap: 도메인 선택으로 재작성~~ **재작성함** — 종단 테스트 · 실화면 네 길 |
+| FR-2 | ~~home-briefing 있음(coach · portfolio 직접 읽음)~~ **`entities/home` 카드(2026-11-02)** | `/api/app/home` ~~있음~~ **카드 계약** · `/home/layout` | identity `/shell/layout` | `user_domain_pref` | ~~Gap: 카드 계약으로 교체~~ **교체함 — ~~편집만 남음(S3)~~ 편집 2026-11-06(설정 패널)** |
 | 그 외 | 없음 | 없음 | 없음 | 없음 | Gap: 신규 |
 
 ## 수용 기준
 
-- [ ] 셸 코드에 `domain-*` import 0(lint)
-- [ ] 투자를 고르지 않은 사용자에게 투자 질문 0
+- [x] 셸 코드에 `domain-*` import 0(lint) — lint · 훅(2026-11-02 부터, 2026-11-06 `pnpm lint` 통과)
+- [x] 투자를 고르지 않은 사용자에게 투자 질문 0 — 2026-11-06 S3a(도메인 테스트 · 종단 테스트 · 실화면)
 - [ ] 내보내기 파일에 모든 도메인 기록이 있다
 
 ## 검증 계획
@@ -132,3 +133,4 @@ flowchart LR
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — `FE-REQ-054` — 금융 팁은 탭이 아니라 `AppShell` 대신 `PublicShell`(앱 내비 · prerender 없음). 홈 때맞춘 팁 카드(`SRV-REQ-047` FR-9 · 홈 카드 묶음)는 아직 — S2b 또는 S3 |
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — `FE-REQ-054` 앱 내비 공개 경로 판정을 `@repo/core/auth` `isPublicPath` 로(동작 무변경, `cf93acb1`). 홈 금융 팁 카드(`SRV-REQ-047` FR-9)는 ~~S2b 또는 S3~~ S3 |
 | 2026-11-06 | 서버 S2c(`MONEY-S2c-notification`) — FR-4 구현: 도메인별 알림 설정 기본 꺼짐(설정 주인 notification 서비스) · 알림 원인 셋 · 셸 `/settings` 패널. 가계부 월 마감은 알리지 않는다(사용자가 한 일) |
+| 2026-11-06 | 서버 S3a(`MONEY-S3a-identity-shell`, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`) — FR-1 구현(도메인 선택 온보딩 · 옛 3스텝 은퇴) · FR-2 구현(순서 · 숨김 — 설정 패널). 수용 기준 1 · 2 충족. 남은 FR-3 · 5 · 6(S3c) · 토큰 발급 교체(S3b) |

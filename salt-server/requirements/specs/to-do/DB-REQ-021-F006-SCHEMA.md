@@ -16,6 +16,8 @@ source: pm/requirements/specs/in-progress/FEATURE-006-coach-conversation-ia.md
 
 > **2026-09-21 개정.** `ADR-002`로 F001 · F002가 빠졌다 — 홈 **3블록**(세금 D-Day · 청구서 소스 `TaxLawConfig` · `SettlementCalendar` · `CounterfactualSnapshot` 삭제), 알림 **1종**, `FxRate`의 출처였던 `DB-REQ-005` 삭제. 포지션 세그먼트 · 알림 설정 · 온보딩 2단계용 컬럼 2개를 추가했다(§포지션 · 알림 설정 · 온보딩). 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 **대화가 제품의 핵심이 된다**(2026-09-09 결정). 그 대화를 저장할 모델이 필요하다. 그리고 PC 이동식 격자의 배치를 사용자별로 저장한다.
@@ -148,7 +150,7 @@ model PanelLayout {
 model User {
   // ... 기존 필드
   alertsEnabled         Boolean   @default(true) @map("alerts_enabled")          // 설정 ④ 알림 켜기/끄기
-  firstHoldingSkippedAt DateTime? @map("first_holding_skipped_at")             // 온보딩 2단계 건너뛰기
+  firstHoldingSkippedAt DateTime? @map("first_holding_skipped_at")             // 온보딩 2단계 건너뛰기  // 정정 2026-11-06(S3a) — 은퇴, `BFF-REQ-046` FR-6
 }
 ```
 
@@ -162,7 +164,7 @@ model User {
 | FR-55 | 리스크 레이더 **축 정의 · 상한은 DB에 두지 않는다** — 서버 설정 파일(환경별)이다. 사용자별 값이 아니다 **(기본안 — 감사 문서 B13)** | Must |
 | FR-56 | 성과 계열 · MDD · 레이더 결과를 **저장하지 않는다.** 조회 시 계산한다. 느리면 `DB-REQ-024` 측정 후 스냅샷을 검토한다 | Must |
 | FR-57 | 설정의 `defaultMode` · `notificationLevel` 컬럼은 **F004 DB REQ가 추가**한다(B16). F006은 컬럼을 만들지 않고 읽기 · 쓰기 경로만 조립한다 | Must |
-| FR-58 | 온보딩 `link_account` 판정에 쓰던 원장 연결 여부(`ledger`)를 **읽지 않는다.** 원장 모델이 없다 | Must |
+| FR-58 | ~~온보딩 `link_account` 판정에 쓰던 원장 연결 여부(`ledger`)를 **읽지 않는다.** 원장 모델이 없다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 
 ## Acceptance Criteria
 

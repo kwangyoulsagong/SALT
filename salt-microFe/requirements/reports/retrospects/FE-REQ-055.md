@@ -42,3 +42,8 @@
 ## 2026-11-06 — 서버 S2c 확인 2회차
 
 - 결함과 Action 은 루트 회고 `MONEY-S2c-notification` 확인 2회차
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 결함 하나 — 저장 중 클릭 버림. S2c 알림 패널에서 만든 가드(`if (!isPending)`)를 새 패널이 그대로 본떠 같은 결함이 둘이 됐다. 규칙으로 고침: 같은 묶음 쓰기는 `scope` 로 차례로
+- Action: 새 설정 패널은 `useArrangeHome` · `useToggleAlert` 꼴(`mutationKey` + `scope` + 마지막 저장만 반영)을 본뜬다

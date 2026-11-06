@@ -14,6 +14,8 @@ created: 2026-09-09
 > - 알림 "생성 거부, 조회 허용" → 지금은 옛 행을 지우지 않지만 **목록 · 안 읽은 수도 1종만** 보인다(`SRV-REQ-008` "다른 지점")
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 인증 표면을 줄이고, 동면 경로를 **410 Gone**으로 바꾸고, 차트 `period` 오타를 정정한다. 신규 엔드포인트는 초대 코드와 온보딩 상태 둘뿐이다.
@@ -24,7 +26,7 @@ created: 2026-09-09
 |---|---|---|---|---|
 | POST | `/api/auth/invite/accept` | N | `{ code, email, nickname, password }` | `{ accessToken, refreshToken, user }` / `403 INVITE_*` |
 | GET | `/api/auth/invite/check` | N | `?code=` | `{ valid: boolean, reasonCode? }` |
-| GET | `/api/onboarding/status` | Y | — | `{ steps: [{ key, done }], nextStep }` |
+| GET | ~~`/api/onboarding/status`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Y | — | `{ steps: [{ key, done }], nextStep }` |
 | GET | `/api/portfolio/summary` | Y | — | `{ items[], totalKrw, fxRateUsed, fxBasisCode }` |
 | GET | `/api/news?symbol=&limit=` | Y | — | `{ items[] }` |
 | GET | `/api/investment/search?q=&assetType=&limit=20` | Y | — | `{ items: [{ symbol, name, assetType, currentPrice, change24h, isTracked, isHeld }], tracked: { count, limit } }` (2026-09-21, D8). **개정 2026-10-30** — `{ items: [{ assetType, symbol, name, logoUrl, currentPrice, changeRate, isTracked, isHeld }], tracked }`(FR-30) |
@@ -180,3 +182,4 @@ created: 2026-09-09
 - 2026-10-30: F000 종목 검색 계약 구현 — `GET /api/investment/search` · FR-32 409 두 수 · FR-33 `tracked` · 행 `isHeld`. **FR-30 개정** — `q` ≤ 30 · `limit` ≤ 30 · 형식 위반 400(서버 DTO 전부 Zod 400) · `changeRate` · `logoUrl` · `name`. Swagger 생성 확인. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: F004 슬라이스 19 차트 1주 탭(`143904c3`) — 차트 경로 `period=week`(주봉) 계약 추가 · Swagger `enum: [day, minute, week]`. 응답 모양은 일봉과 같다(`date`). `month` 422 그대로. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
 | 2026-11-03 | `d69c310e` — `app.ts` 에서 `/api/goals` 등록 삭제(Express 404 · BFF 410) |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): `GET /api/onboarding/status` 경로 삭제(`app.ts`) `7f2ba1ed` |

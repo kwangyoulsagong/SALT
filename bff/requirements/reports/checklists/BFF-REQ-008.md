@@ -115,3 +115,7 @@
 
 - `3e5e0d42` — `gone.middleware.ts`(동면 410, 이 REQ FR-11)에 은퇴 목록 `RETIRED_PATHS` 를 더했다. 동면 경로 동작 · 테스트 무변경
 - 확인: 해당 영역 전체 테스트 · 빌드(루트 `requirements/reports/checklists/MONEY-S1a-savings-calculator.md`)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- `onboarding.controller` `status` → `get` · `chooseDomains` · `finish` · `onboarding.viewmodel` 새 계약 · 테스트 새로(뷰모델 5 · 서비스 1)

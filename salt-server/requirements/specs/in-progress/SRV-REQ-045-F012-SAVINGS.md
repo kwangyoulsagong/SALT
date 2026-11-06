@@ -112,3 +112,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: `savings.GoalCreated` · `GoalReached` 의 첫 구독자 content(금융 팁 S2a) — 저축 코드 · 계약 무변경 |
 | 2026-11-05 | 금융 팁 S2d(루트 `requirements/specs/done/MONEY-S2d-tips-my-numbers-slice.md`) — 이 REQ 에 걸린 몫: **계약 무변경 · 새 소비자** — BFF 금융 팁 내 숫자가 `GET /api/savings/goals` 를 읽는다(template · status · saved · monthlyPlan · targetDate 만, 이름 · id 는 넘기지 않음). 저축 코드 변경 0 |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 파일만 걸침 — `ops/run-platform.sh` 에 계정 둘(LOCAL_DB_NOTIFICATION · COACH) |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): `GET /api/savings/goals/exists`(온보딩 `set_plan` 프로브) 삭제 — 소비처 = 은퇴한 Express 온보딩 하나. `HasGoals` · `Goals.existsFor` · 테스트 두 줄 `7f2ba1ed` |

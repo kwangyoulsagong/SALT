@@ -33,14 +33,16 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-1 | ✅ `HomeSummaryCard` — `@repo/core/home`(BFF 정의와 글자 대조 테스트, 값 아래 한 줄 `note` 를 더했다 — 매입가 숨김 문장) · 셸 `entities/home`(조회 + 카드 하나 표시, 레지스트리 추가). 링크는 `ZoneLink`(레지스트리 판정) |
 | FR-2 | 일부 — 카드 목록(BFF `order` · `hidden` 그대로). **순서 · 숨김 편집 없음**(저장할 곳이 서버 identity, S3). 카드별 Suspense 대신 응답 하나 · 카드별 `degraded`(토큰이 `localStorage` 라 서버 렌더 불가 — `FE-REQ-013`). 목표 목록은 저축 목록 화면(`/goals`)이 생길 때까지 홈에 남김(`FE-REQ-056`) |
 | FR-3 | 미착수 — `FE-REQ-048`(to-do) 착수 때 |
-| FR-4 · 5 · 6 · 7 | 미착수 — 서버 identity(S3, `SRV-REQ-048`) |
+| ~~FR-4 · 5 · 6 · 7~~ | ~~미착수 — 서버 identity(S3, `SRV-REQ-048`)~~ **정정 2026-11-06** FR-6 done(S2c) · FR-4 done(S3a, 아래) · FR-5 · 7 은 S3c |
+| FR-4 | ✅ 2026-11-06 S3a — `widgets/onboarding-flow` 새로 · `features/choose-domains`. 초대 → 고르기 → 첫 기록(먼저 끝내고 그 zone 화면으로) → 끝. 경로 넷 실화면 |
+| FR-2(편집) | ✅ 2026-11-06 S3a — 순서 · 숨김 편집은 셸 `/settings` 패널(`features/arrange-home`) — 홈은 읽기 전용(`fsd-widgets.md`) 그대로 |
 | FR-8 | ✅ 카드 문구는 BFF — 금지어("연동 · 연결 · 칭찬 · 재촉") 0 |
 
 ## Acceptance Criteria
 
 - [x] 셸 코드에 `domain-*` import 0(lint · 훅)
 - [x] 홈 카드 하나 강제 실패 시 나머지 표시 — 실화면(Playwright 로 투자 카드만 degraded): 투자 "지금은 불러오지 못했어요", 0원 표시 없음
-- [ ] 온보딩 경로 3종 E2E — FR-4 미착수(S3)
+- [x] 온보딩 경로 3종 E2E — 2026-11-06 S3a 실화면(모으기 · 쓰는 돈 · 투자 + 둘 고르기 — 각 첫 기록 화면 도착)
 - [x] 금지 문구 grep 0(카드 문구 · `entities/home` 문구)
 
 ## 계약 영향
@@ -61,3 +63,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): FR-6 done — 셸 `/settings` 알림 패널(`entities/notification` · `features/toggle-alerts`) · 실화면 결함 셋 고침 |
 | 2026-11-06 | 서버 S2c 확인 2회차 — 알림 줄 설명 대비(루트 `requirements/reports/checklists/MONEY-S2c-notification.md`) |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-4 · FR-2 편집 done. 고침 — 설정 패널(알림 · 홈 배치)이 저장 중 누른 것을 버리던 것(`scope` 로 차례 저장). 커밋 `c1baa77a` |

@@ -6,6 +6,8 @@
 
 > 이전 제목: 범위 정리 (Scope Reset) — 2026-09-08 방향 전환으로 개정
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## TL;DR
 
 > **개정 2026-09-08 — 방향 전환.** 사용자 결정에 따라 이 스펙은 **"기능 제거"에서 "지금 화면 편집"으로 바뀌었다.**
@@ -187,7 +189,7 @@
 | shell | `components/TipsApp/**` | 유지 | 손대지 않음 (사용자 결정) |
 | shell | `components/Home/WeeklyPlanRow` · `TaxDeadlineRow` | 신규 | FEATURE-003 / FEATURE-002 요약 |
 | shell | `components/Home/TabBar` | 신규 | 모바일 하단 탭바 5개 (FR-36) |
-| web | `pages/onboarding` + `widgets/onboarding-flow` + `features/accept-invite` | **완료** | 초대 코드 + 계좌 연결 + 적립액 3스텝. 뒤 두 단계는 **안내만** 한다 — 연결 화면은 F001, 적립 설정은 F003 |
+| web | `pages/onboarding` + `widgets/onboarding-flow` + `features/accept-invite` | **완료** | ~~초대 코드 + 계좌 연결 + 적립액 3스텝. 뒤 두 단계는 **안내만** 한다 — 연결 화면은 F001, 적립 설정은 F003~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 | web | 회원가입/비밀번호/계정삭제 화면 | **완료** | **셋 다 구현된 적이 없었다.** `/signup` 은 `PUBLIC_PATHS` 에 경로만 있었고 그 자리를 초대 코드 화면이 가져갔다 |
 | goals | `component/GoalsApp/**` | 유지 | 목표 카드 UI 그대로 |
 | goals | `component/AddGoals/**` | 수리 | submit → `POST /api/goals` 연결 확인. `ACCOUNT_SELECTED` 의존 제거 |
@@ -262,7 +264,7 @@
 | Server | `src/news/**` | 수리 | 목록에 `sentiment` · `symbols` 유지 · 인증 시 `isBookmarked`. 북마크 route 는 이미 있다 — FR-42 · 43 |
 | Server | `modules/goals` | 추가 | 수량 목표 생성 · 진행률(보유 수량 ÷ 목표 수량) — FR-44 |
 | Server | `modules/{ai-coach, trade-preflight, behavior-coach, profit-plan, signal-performance, portfolio, technical-indicator}` | 유지 | 그대로 |
-| Server | `src/onboarding/**` | **완료** | 조합 컨텍스트 신설. 3스텝 판정(`GET /api/onboarding/status`) |
+| Server | `src/onboarding/**` | **완료** | ~~조합 컨텍스트 신설. 3스텝 판정(`GET /api/onboarding/status`)~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 | Server | `external/kis/` | **보류 (Q2)** | 조회 전용 클라이언트 스켈레톤 (FR-35). 개정 2026-09-21 |
 | DB | `AIAnalysisSession`, `AIAnalysis` + `AnalysisStatus`, `PredictionType` | 빼기 | drop (grep 0 확인 후) |
 | DB | `AssetType` enum | **보류 (Q2)** | `crypto` / `kr_stock` / `us_stock` (FR-34). 개정 2026-09-21 |
@@ -422,3 +424,4 @@ flowchart TB
 | 2026-11-05 | 쿠키 세션 2단계 `FE-REQ-013` FR-80 done — 토큰은 httpOnly 쿠키뿐 · 브라우저는 BFF 를 같은 origin 으로 · BFF 가 쿠키를 헤더로(`BFF-REQ-009` FR-54) · 웹소켓 · SSE 같은 규칙. 남은 것 FR-81(서버 조회 이관) · FR-82(비공개 경로 보호) · `OPS-001` FR-13. 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — `FE-REQ-010` 공용 경로에 `ROUTES.tips` · `ROUTES.tip(slug)` — 기존 경로 무변경 |
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — `FE-REQ-010` `ROUTES.tipCards` · 확인 2회차 결함: 공개 금융 팁에서 세션이 죽으면 로그인으로 보내던 것 — `FE-REQ-011` · `013` 공개 경로 판정 하나(`isPublicPath`, `cf93acb1`) |
+| 2026-11-06 | 서버 S3a(`MONEY-S3a-identity-shell`) — 온보딩 3스텝(F000 `onboarding` 조합 컨텍스트 · `/api/onboarding/status` · `/api/app/onboarding/status`) 은퇴 → 도메인 선택(`FEATURE-015` FR-1). 초대 코드(`accept-invite`)는 그대로. 본문 그 자리 정정 |

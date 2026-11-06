@@ -98,3 +98,7 @@
 ## 2026-11-03 — MONEY-S1a 대조 빈칸(파일에 함께 적힌 REQ)
 
 - Action 없음
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 없음

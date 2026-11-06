@@ -109,7 +109,7 @@ export type CostBasisView = {
 
 ## 7. 조합 컨텍스트
 
-`homebriefing` · `onboarding`은 Aggregate가 없고 `application`(+`presentation`)만 있다.
+`homebriefing` · ~~`onboarding`~~(2026-11-06 은퇴 — 도메인 선택 온보딩은 Kotlin identity, `SRV-REQ-048` FR-1)은 Aggregate가 없고 `application`(+`presentation`)만 있다.
 
 - **비즈니스 규칙을 담지 않는다.** 순서와 조합만 한다
 - 트랜잭션을 다시 열지 않는 것이 기본이다. 각 유스케이스가 자기 트랜잭션을 갖는다

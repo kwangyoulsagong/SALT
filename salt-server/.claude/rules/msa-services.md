@@ -30,7 +30,7 @@ globs: salt-server/**, salt-platform/**
 | `household` | Kotlin `services/household`(2026-11-04 가계부 S1a — 새로 태어남) | `household` | S1 | `SRV-REQ-046` |
 | `content` | Kotlin `services/content`(2026-11-05 금융 팁 S2a — 새로 태어남 · 첫 서비스 간 구독자) | `content` | S2 | `SRV-REQ-047` |
 | `notification` | ~~`notification`~~ Kotlin `services/notification`(2026-11-06 S2c — 첫 기존 컨텍스트 이전 · 옛 Express 삭제 `33e949e8`). 설정 주인 · 구독만 | `notification` | S2 | `SRV-REQ-048` |
-| `identity` | `auth` · `modules/user` · `onboarding` | `identity` | S3 | `SRV-REQ-048` |
+| `identity` | Kotlin `services/identity`(2026-11-06 S3a — 셸 설정: 도메인 선택 · 온보딩 끝 · 홈 배치. Express `onboarding` 은퇴 `7f2ba1ed`) · `auth` · `modules/user` 는 S3b 까지 Express | `identity` | S3 | `SRV-REQ-048` |
 | `portfolio` | `portfolio` | `portfolio` | S4 | `SRV-REQ-049` FR-1 |
 | `market` | `market` · `news` + 수집 워커 | `market` | S5 | `SRV-REQ-049` FR-2 · 3 |
 | `coach` | `coach` · `modules/investment-insight` — 발행 창구만 Kotlin(`coach.outbox` Flyway · 행은 Express, 2026-11-06 S2c) | `coach` | S6 | `SRV-REQ-049` FR-4 · 5 |
