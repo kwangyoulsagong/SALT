@@ -63,3 +63,10 @@ export const visuallyHidden = style({
   clip: "rect(0 0 0 0)",
   whiteSpace: "nowrap",
 });
+
+/** 시장 조치 띠(F016 단계 A) — 조치마다 한 줄, 걸린 것이 위(서버 순서 = 시작 시각) */
+export const marketActionList = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "2px",
+});
