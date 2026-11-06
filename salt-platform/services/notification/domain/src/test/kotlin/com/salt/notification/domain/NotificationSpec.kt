@@ -47,6 +47,15 @@ class NotificationSpec : StringSpec({
         ).forEach { shouldThrow<NotificationAmountNotAllowed> { MessageGuard.assertNoAmounts(it) } }
     }
 
+    "종목 코드 칸 — 국내 주식 숫자 코드는 지나고 금액 모양은 막힌다 · 다른 칸의 숫자는 그대로 막힌다" {
+        listOf("BTC", "005930", "KRW-BTC", "BRK.B").forEach { MessageGuard.assertNoAmounts(mapOf("symbol" to it)) }
+        listOf("1,000", "3.5%", " 005930", "", "A".repeat(21), "-0.5 ").forEach {
+            shouldThrow<NotificationAmountNotAllowed> { MessageGuard.assertNoAmounts(mapOf("symbol" to it)) }
+        }
+        shouldThrow<NotificationAmountNotAllowed> { MessageGuard.assertNoAmounts(mapOf("template" to "005930")) }
+        Deliveries.decisionChanged("u1", "005930", "long_term", "wait", "review_accumulation", at).symbol shouldBe "005930"
+    }
+
     "이벤트 → 초안 — 코드만 · 만료는 종류의 ttl" {
         val d = Deliveries.decisionChanged("u1", "BTC", "swing", "hold", "buy_watch", at)
         d.kind shouldBe NotificationKind.SIGNAL_UPDATE

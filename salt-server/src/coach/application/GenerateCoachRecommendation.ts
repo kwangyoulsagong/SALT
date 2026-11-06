@@ -260,14 +260,19 @@ export class GenerateCoachRecommendation {
       return;
     }
 
-    // 2시간 억제는 받는 쪽(notification)이 건다 — 같은 원인이 2시간 안에 또 오면 버린다(`SRV-REQ-048` FR-5)
-    await this.notifier.publishDecisionChange({
-      userId: input.userId,
-      symbol: input.symbol,
-      mode: input.mode,
-      previousAction: input.previousAction,
-      nextAction: input.nextAction,
-    });
+    // 2시간 억제는 받는 쪽(notification)이 건다 — 같은 원인이 2시간 안에 또 오면 버린다(`SRV-REQ-048` FR-5).
+    // 알림은 부수 효과다 — 이벤트 행을 못 써도(표 · 권한) 저장된 추천은 그대로 나간다(스냅샷 기록과 같은 처리, 2026-11-06)
+    try {
+      await this.notifier.publishDecisionChange({
+        userId: input.userId,
+        symbol: input.symbol,
+        mode: input.mode,
+        previousAction: input.previousAction,
+        nextAction: input.nextAction,
+      });
+    } catch (error) {
+      logger.warn("판단 변화 이벤트 기록 실패 — 추천은 그대로 나간다", { code: errorCodeOf(error) });
+    }
   }
 }
 

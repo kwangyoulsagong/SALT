@@ -2,6 +2,7 @@ package com.salt.notification.api
 
 import com.salt.notification.application.NotificationSettings
 import com.salt.notification.application.ReadNotifications
+import com.salt.notification.domain.NotificationPrefValueInvalid
 import com.salt.notification.domain.NotificationPrefs
 import com.salt.support.web.ApiResponse
 import com.salt.support.web.AuthenticatedUser
@@ -48,7 +49,8 @@ class NotificationController(private val read: ReadNotifications, private val se
     /** 순서 = 서버가 정한 순서. 화면은 이 순서로 그린다 */
     data class Prefs(val domains: List<DomainPref>)
 
-    data class PrefChange(@field:NotNull val enabled: Boolean?)
+    /** `enabled` 는 JSON 참/거짓만 — `Boolean` 으로 받으면 Jackson 이 `1` · `"true"` 를 참으로 바꿔 읽는다(2026-11-06 확인 2회차) */
+    data class PrefChange(@field:NotNull val enabled: Any?)
 
     @Operation(summary = "알림 목록 — 켠 도메인만 · 최신순(size 기본 20 · 상한 50)")
     @GetMapping
@@ -84,7 +86,7 @@ class NotificationController(private val read: ReadNotifications, private val se
     @Operation(summary = "도메인 하나 켬/끔 — 없는 도메인은 400")
     @PutMapping("/prefs/{domain}")
     fun setPref(user: AuthenticatedUser, @PathVariable domain: String, @Valid @RequestBody body: PrefChange): ResponseEntity<ApiResponse<Prefs>> =
-        ApiResponse.ok(prefs(settings.set(user.userId, domain, body.enabled!!)))
+        ApiResponse.ok(prefs(settings.set(user.userId, domain, body.enabled as? Boolean ?: throw NotificationPrefValueInvalid())))
 
     private fun prefs(p: NotificationPrefs) = Prefs(p.all().map { (d, on) -> DomainPref(d.key, on) })
 }

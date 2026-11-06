@@ -111,8 +111,15 @@ object MessageGuard {
         if (!MESSAGE_CODE.matches(code)) throw NotificationMessageCodeInvalid(code)
     }
 
+    /** 종목 코드 — 국내 주식은 숫자 여섯 자리(`005930`)라 숫자 검사가 아니라 코드 형식으로 본다(이 키 하나만, 2026-11-06 확인 2회차) */
+    private const val SYMBOL_KEY = "symbol"
+    private val SYMBOL = Regex("^[A-Za-z0-9.\\-]{1,20}$")
+
     fun assertNoAmounts(params: Map<String, String>) {
-        params.forEach { (key, value) -> if (AMOUNT_KEY.containsMatchIn(key) || NUMERIC.matches(value.trim())) throw NotificationAmountNotAllowed(key) }
+        params.forEach { (key, value) ->
+            val ok = if (key == SYMBOL_KEY) SYMBOL.matches(value) else !(AMOUNT_KEY.containsMatchIn(key) || NUMERIC.matches(value.trim()))
+            if (!ok) throw NotificationAmountNotAllowed(key)
+        }
     }
 }
 
@@ -121,6 +128,9 @@ class NotificationMessageCodeInvalid(code: String) :
 
 class NotificationAmountNotAllowed(key: String) :
     DomainError("NOTIFICATION_AMOUNT_NOT_ALLOWED", ErrorKind.BLOCKED, "Notification params must not carry amounts: $key")
+
+class NotificationPrefValueInvalid :
+    DomainError("NOTIFICATION_PREF_VALUE_INVALID", ErrorKind.INVALID, "enabled must be a JSON boolean")
 
 class NotificationDomainUnknown(key: String) :
     DomainError("NOTIFICATION_DOMAIN_UNKNOWN", ErrorKind.INVALID, "Unknown notification domain: $key")

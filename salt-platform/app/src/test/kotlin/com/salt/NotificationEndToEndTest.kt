@@ -67,6 +67,11 @@ class NotificationEndToEndTest : ContentHttp() {
         data(call("PUT", "/api/notifications/prefs/invest", user, """{"enabled":true}""")).path("domains").get(0).path("enabled").asBoolean() shouldBe true
         call("PUT", "/api/notifications/prefs/nowhere", user, """{"enabled":true}""").statusCode() shouldBe 400
         call("PUT", "/api/notifications/prefs/invest", user, """{}""").statusCode() shouldBe 400
+        // 참/거짓만 — 숫자 · 문자열 · null 은 400(바꿔 읽지 않는다)
+        listOf("""{"enabled":1}""", """{"enabled":"true"}""", """{"enabled":null}""", "nope").forEach {
+            call("PUT", "/api/notifications/prefs/savings", user, it).statusCode() shouldBe 400
+        }
+        prefs(user)["savings"] shouldBe false
 
         expressDecisionChanged(user)
         val list = waitFor { data(call("GET", "/api/notifications", user)).takeIf { it.path("total").asInt() == 1 } }
