@@ -213,3 +213,4 @@ source: requirements/reports/research/reports/국내 주식 코치 전망 설계
 - 2026-11-02: 파일만 걸침 — 서버 `SyncKrStock.ts`(이 REQ 를 일봉 작업 주석에서 언급) 의 5분봉 보정만 바뀜. 예측은 5분봉을 읽지 않는다 — 무변경. 루트 `F011-minute-bar-window-slice.md`
 - 2026-11-02: F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 끊김 규칙(FR-10)을 사건 반응에도 — 끊김을 걸친 반응 · 평소 창을 뺀다(`FC-REQ-021`). `kr_breaks` 코드 무변경
 - 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — 서버 `kisClient.test.ts`(머리에 이 REQ 언급)에 지수 고가 · 저가 · 거래대금 단위 테스트. 예측 무변경
+- 2026-11-06: 파일만 걸침 — 서버 `kisClient.test.ts`(머리에 이 REQ 언급)에 VI 현황 · 상태 칸 해석 테스트(F016 단계 A). 예측 무변경 · 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md`

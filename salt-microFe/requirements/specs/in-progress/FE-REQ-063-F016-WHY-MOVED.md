@@ -26,6 +26,16 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | FR-7 | 문구 — 인과 단정 · 앞날 · 매매 지시 0(문구 grep) · 해요체. AI 표시 문구는 서버 코드 → `messages.ts` |
 | FR-8 | 상태 — 로딩(①② 먼저 · ③ "정리하는 중") · 실패 줄 · 비소유자 국내 0 · 390 웹뷰 한 열 · 1024~1600 넘침 0 · axe · 줄인 모션(막대 등장만) |
 
+## 진행 — 단계 A done(2026-11-06)
+
+| FR | 상태 | 구현 |
+|---|---|---|
+| FR-2 시장 띠 | done | `entities/market` `KrMarketActionBanner` — 국내 요약 띠 위 · 국내 상세 머리. 걸린 것 = `StatusLine` blocked(읽어 주기) · 오늘 끝난 것 = 장 상태 줄 회색 한 줄 · `inferred` 면 "추정"(title 로 이유) |
+| FR-3 상태 칩 | done | `KrQuoteBadges` 넓힘 — 칩 넷 · VI 종류(정적 · 동적) · 마지막 체결 칩(그때는 "N분 전 시세" 대신). 상세 머리는 정지 줄 "{이유} · 마지막 체결 HH:MM:SS" — 옛 줄이 **시세 받은 시각**을 마지막 체결로 쓰던 것을 서버 `lastTradeAt` 으로 정정 |
+| 그 밖 | 단계 B~D | FR-1 · 4 · 5 · 6 |
+
+루트 `requirements/specs/done/F016-A-market-status-tags-slice.md`
+
 ## Acceptance Criteria
 
 - [ ] 실화면 — 큰 등락 종목(국내 · 코인) 카드 · 정지 띠(재생 데이터 또는 Playwright `route`) · 칩
@@ -42,3 +52,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-06 | 신규(to-do) |
+| 2026-11-06 | in-progress — 단계 A(FR-2 · 3) done. 실화면 · axe(새 요소 0) · 390 웹뷰 · 번들 증가분은 체크리스트 |

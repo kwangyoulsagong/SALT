@@ -37,3 +37,9 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 국내 요약 조립 줄은 그대로. 온보딩 조립 블록 · `createHttpClient` · `JwtUtil` import 제거(쓰는 곳 0)
+
+## 2026-11-06 — F016 단계 A(파일 걸침)
+
+- 변경 · 검증: 요약 응답 `marketActions` · 못 읽으면 빈 배열 + `degraded`(테스트 1). 실서버 요약 200
+- 미검증 · 범위 밖: 없음
+- 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`

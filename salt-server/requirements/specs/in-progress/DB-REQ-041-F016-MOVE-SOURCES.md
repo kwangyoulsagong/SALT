@@ -27,6 +27,19 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | FR-8 | `move_explanation` | coach | 종목 · 자산군 · 거래일 · 사실 지문 · 문장 · 인용 id 배열 · 모델 · 게이트 · 생성 시각. 불변(UPDATE 차단 트리거 — 판정 원장과 같은 방식) · (종목 · 거래일 · 지문) 유일 |
 | FR-9 | 교차 스키마 조인 0 — coach 는 market 공개 API 로만 읽는다(`msa-services.md` §5) | — | — |
 
+## 진행 — 단계 A done(2026-11-06)
+
+| FR | 상태 | 마이그레이션 |
+|---|---|---|
+| FR-2 `kr_vi_event` | done | `20261106140100_kr_vi_event` — PK (code, triggered_at). **FK 없음** — 현황에 ETN(Q 접두) · 마스터 밖 코드가 섞여 온다(실측) |
+| FR-3 `kr_market_action` | done | `20261106140200_kr_market_action` — PK (market, trade_date, kind, stage) · upsert 는 끝 시각만 채우고 `feed` 가 `inferred` 를 이긴다 |
+| FR-6 열 추가 | done | `20261106140000_kr_stock_quote_status_columns` — 열 6, 추가만 |
+| 그 밖 | 단계 B~D | FR-1 · 4 · 5 · 7 · 8 |
+
+- 롤백 SQL 은 각 마이그레이션 머리. 로컬 운영 DB 적용(2026-11-06 10:5x, `prisma migrate deploy`)
+- 실행 계획(2026-11-06 `EXPLAIN ANALYZE`): `latestViEvents` 는 지금 76행이라 순차 스캔 0.17ms — 순차 스캔을 끄면 `kr_vi_event_pkey` 비트맵 인덱스 스캔(Index Cond 에 `code = ANY` · `triggered_at >=` 둘 다)이라 표가 커지면 PK 를 탄다. `marketActions` 는 하루 0~6행 표라 순차 스캔 0.12ms. 보존 정리는 아직 없다(시장 전체 하루 수백 행 — 단계 B 정리 워커와 같이, `DB-REQ-041` FR-1 의 나눠 지우기)
+- 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md`
+
 ## Acceptance Criteria
 
 - [ ] 마이그레이션 목적 하나씩(표 추가 · 열 추가 분리) · 롤백 SQL
@@ -42,3 +55,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-06 | 신규(to-do) |
+| 2026-11-06 | in-progress — 단계 A(FR-2 · 3 · 6) done · 로컬 적용. FR-2 FK 없음 결정(ETN 코드) |

@@ -28,3 +28,4 @@ source: salt-server/requirements/specs/done/SRV-REQ-042-F011-KR-MARKET-SUMMARY.m
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-02 | 구현 · done. FR-1 "같은 타입(packages/core)" 을 "같은 이름 · 뜻 + 국내 계약은 core 한 벌"로 정정. 테스트 6(뷰모델 5 · 서비스 1) |
+| 2026-11-06 | F016 단계 A — 국내 요약 뷰모델에 `marketActions`(모르는 kind 버림 · 모양이 틀린 행은 계약 오류). 주인 `BFF-REQ-051` FR-2 · 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md` |

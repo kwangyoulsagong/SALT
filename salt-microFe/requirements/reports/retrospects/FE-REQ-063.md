@@ -1,0 +1,9 @@
+# FE-REQ-063 — 회고
+
+루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`
+
+## 단계 A(2026-11-06)
+
+- 새 컴포넌트는 띠 하나 — 칩 · 정지 줄은 기존 것을 넓혔다(done 체크리스트 §2-1). 그 과정에서 옛 정지 줄이 시세 받은 시각을 "마지막 체결"로 쓰던 결함을 찾았다
+- 파일 단위 포매터를 레포 설정 없이 돌려 원본 줄까지 바꿨다가 원본에서 다시 시작했다 — FE 도 포매터를 파일에 돌리지 않는다
+- 3001 셸 실화면은 BFF 웹소켓 허용 출처에 3001 을 잠시 넣어야 세션이 유지된다(넣고 되돌림 — 메모리 절차)

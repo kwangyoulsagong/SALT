@@ -229,6 +229,8 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — `prisma/schema.prisma`(`KrIndexTick` 모델 · `KrIndexQuote` 열 3) · `src/composition.ts`(국내 요약 정책 · 수집 지수 합집합) |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`) · 관심 종목 시세 갱신을 한 문장 UPDATE 로(연결 풀 점유 → 위험 예산 조회 타임아웃 해소)(`e74fbbec`). 파일 2개(경로 이동 내용 무변경 0 · 수정 1 · 추가 1 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): FR-20~25 알림 1종 · 코드만 · 금액 관문 — 규칙은 Kotlin notification 으로 옮겼다(종류는 도메인마다 하나로). Express `notification` · Prisma 모델 삭제 |
+| 2026-11-06 | 파일만 걸침(F016 단계 A) — `schema.prisma`(머리에 이 REQ) 에 국내 시장 상태 열 · 표(`DB-REQ-041`). 이 REQ 몫 무변경. 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md` |
+
 
 ## 구현이 REQ와 다른 지점 (2026-10-28)
 

@@ -46,3 +46,4 @@ source: 사용자 "국내주식도 주식 홈에서 코인처럼 주요 그게 �
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 파일만 걸침 — `composition.ts` 에서 notification 조립 삭제 · coach 통보를 `OutboxDecisionChangeNotifier` 로 |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음(이 REQ 몫) — 같은 파일 `composition.ts` 에서 온보딩 조립 · 플랫폼 클라이언트 삭제 `7f2ba1ed` |
 | 2026-11-06 | F016 기획 — 국내 소식 원천(KIS 시황/공시 제목)이 `SRV-REQ-051` FR-1 로 계획됨. FR-5 "국내 뉴스 수집 안 함"에 언제 바뀌나 표기 |
+| 2026-11-06 | F016 단계 A — 요약 응답에 `marketActions`(오늘 시장 조치, 못 읽으면 빈 배열 + `degraded`). 주인은 `SRV-REQ-051` FR-3 · 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md` |
