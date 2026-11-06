@@ -50,3 +50,4 @@ BFF 는 Node 로 남고(`ADR-006`), 서버 이전의 **안전장치**가 된다.
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): `app.ts`(이 REQ 가 머리 주석 주인)에 쿠키 → Authorization 미들웨어 한 줄(`fb9c85b3`, `BFF-REQ-009` FR-54) |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 라우팅 표에 `/content` → platform 한 줄(금융 팁 `/api/app/tips`). 스위치 · 그림자 동작 무변경 |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 라우팅 표 `/notifications` → platform |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 라우팅 표 `/identity` → platform `066ba971` |

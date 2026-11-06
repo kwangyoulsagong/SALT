@@ -16,6 +16,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` — 홈 블록 함수는 **3개**(`totalAsset` · `weeklyPlan` · `coach`). 작업 4개를 추가했다: ③ 포지션 조립 ④ 거래 기록 **쓰기 중계**(서버에 이미 있는 `POST/PATCH/DELETE`를 연다) ⑤ 알림 읽음 · 안 읽은 수 ⑥ 설정 한 화면 조립. 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14 · B16.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈 3블록 조립**(블록 격리, 웹/모바일 이원 계약)에 2026-09-21 **③ 포지션 ④ 거래 쓰기 ⑤ 알림 ⑥ 설정**이 더해졌다.
@@ -115,7 +117,7 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-110 | 온보딩 단계 키 `link_account` → **`first_holding`** 을 그대로 전달한다 — **BREAKING**, FE `OnboardingStepKey`와 같이 바뀐다 | Must |
+| FR-110 | ~~온보딩 단계 키 `link_account` → **`first_holding`** 을 그대로 전달한다 — **BREAKING**, FE `OnboardingStepKey`와 같이 바뀐다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 | FR-111 | `POST /api/app/onboarding/steps/first-holding/skip`을 서버 경로에 1:1로 연다 | Must |
 | FR-112 | 2단계 입력은 거래 기록 `POST`(FR-80)를, 3단계는 F003 적립 설정 쓰기를 **그대로 재사용**한다. 온보딩 전용 쓰기 경로 0건 | Must |
 
@@ -167,7 +169,7 @@ BFF의 F006 작업은 **① SSE 중계**(변형 없이, 취소 전파) **② 홈
 - [ ] 알림 목록 · 읽음 · 모두 읽음 · 안 읽은 수 경로가 있다. 생성 경로가 0건이다
 - [ ] 설정 조립이 그룹별 `allSettled`이고 쓰기가 소유자 경로로 간다
 - [ ] 밴드 임계값 쓰기 경로가 0건이다
-- [ ] 온보딩 단계 키가 `first_holding`이고 건너뛰기 경로가 있다
+- [ ] ~~온보딩 단계 키가 `first_holding`이고 건너뛰기 경로가 있다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 
 ## Dependencies
 

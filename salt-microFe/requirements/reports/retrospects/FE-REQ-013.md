@@ -107,3 +107,7 @@
 
 - 몫: FR-80 쿠키 세션의 갱신 실패 처리 — 공개 경로 판정을 `isPublicPath` 하나로(공개 금융 팁 글 제자리)
 - **Action**: 같은 판정을 두 자리에서 하면 하나로 모은다 — 새 공개 zone 은 `PUBLIC_PATHS` 한 줄
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 없음

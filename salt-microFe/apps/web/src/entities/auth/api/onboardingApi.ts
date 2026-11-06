@@ -1,11 +1,11 @@
-import { apiFetch } from "@repo/web-shared/api";
+import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
 
-import type { OnboardingStatus } from "../model/types";
+import type { Onboarding } from "../model/types";
 import { ONBOARDING_ENDPOINTS } from "./endpoints";
 
 /**
- * 조회만 둔다 — 초대 수락(mutation)은 `features/accept-invite` 의 것이다.
+ * 조회만 둔다 — 초대 수락 · 도메인 고르기 · 끝내기(mutation)는 `features/accept-invite` · `features/choose-domains` 의 것이다.
  *
  * ## `axios` 를 쓰지 않는다
  *
@@ -17,16 +17,15 @@ import { ONBOARDING_ENDPOINTS } from "./endpoints";
  * `apiFetch` 는 `shared/api` 의 fetch 진입점이고 401 이면 토큰을 갱신해 한 번 다시 보낸다.
  */
 export const onboardingApi = {
-  status: async (): Promise<OnboardingStatus> => {
+  get: async (): Promise<Onboarding> => {
     const response = await apiFetch(
-      `${INVESTMENTS_BASE_URL}${ONBOARDING_ENDPOINTS.status()}`,
+      `${INVESTMENTS_BASE_URL}${ONBOARDING_ENDPOINTS.onboarding()}`,
       undefined,
     );
 
-    if (!response.ok) {
-      throw new Error(`onboarding status failed: ${response.status}`);
-    }
+    // `ApiError` 로 — 일반 `Error` 면 401 도 "다시 시도할 오류"로 읽혀 만료 세션이 "불러오는 중"에 머물렀다(2026-11-06 확인)
+    if (!response.ok) throw await readApiError(response, "onboarding");
 
-    return (await response.json()) as OnboardingStatus;
+    return (await response.json()) as Onboarding;
   },
 };

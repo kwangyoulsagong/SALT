@@ -55,3 +55,10 @@
 - 몫: FR-8 · `me.routes` · `app-alerts.service`(설정 GET/PUT · 경로 `/notifications`) · 알림 뷰모델 종류 셋
 - 검증: `npm run build` · `npm test` 404(새 3) · 실스택 curl(없는 도메인 400 그대로 전달)
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`) · `066ba971`
+
+- FR-5: `app-home.service` `arrangeHome`(모르는 칸 뒤에 붙임) · `PUT /api/app/home/layout`
+- FR-6: `onboarding.viewmodel` 새로 · `app-onboarding.service` `get` · `chooseDomains` · `finish` · 라우트 셋 · 옛 `/status` 은퇴(`RETIRED_PATHS`)
+- FR-4: 홈 배치를 identity 에서 — 카드와 나란히 `allSettled`, 배치 실패 = 기본 순서(카드 실패 아님) · 401 = 홈 전체
+- 검증: `npm test` 412 · `npm run build` · 실스택(옛 경로 410 · 배치 저장 PUT 본문 셋 차례로)

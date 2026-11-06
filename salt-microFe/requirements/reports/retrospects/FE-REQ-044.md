@@ -72,3 +72,7 @@
 
 - 몫: 새 패키지 `@repo/domain-tips` `.eslintrc.json` 에 같은 `motion/react` · `motion` 금지 줄(복사). 금융 팁 화면에 움직임 0
 - **Action**: 없음
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 없음

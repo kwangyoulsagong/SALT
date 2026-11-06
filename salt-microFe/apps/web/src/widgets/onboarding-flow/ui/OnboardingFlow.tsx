@@ -10,67 +10,80 @@ import { AnimatePresence, m } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useOnboardingStatus, type OnboardingStepKey } from "@/entities/auth";
-import { InviteCodeForm } from "@/features/accept-invite";
-import { useHasSession } from "@repo/web-shared/api";
+import { hasApiStatus, useHasSession } from "@repo/web-shared/api";
 import { ROUTES } from "@repo/web-shared/config";
 import { useZoneNavigate } from "@repo/web-shared/lib";
 
+import { useOnboarding } from "@/entities/auth";
+import { InviteCodeForm } from "@/features/accept-invite";
+import { DomainChoiceForm, useFinishOnboarding } from "@/features/choose-domains";
+
 import {
+  FIRST_INPUT_ACTION,
   ONBOARDING_COMPLETE_HEADLINE,
   ONBOARDING_MESSAGES,
-  ONBOARDING_STEP_BODY,
-  ONBOARDING_STEP_LABELS,
-  ONBOARDING_STEP_SCENE,
+  ONBOARDING_SCREEN_BODY,
+  ONBOARDING_SCREEN_LABELS,
+  ONBOARDING_SCREEN_ORDER,
+  ONBOARDING_SCREEN_SCENE,
+  type OnboardingScreen,
 } from "../model/messages";
 
 import * as s from "./OnboardingFlow.css";
 
 /**
- * 온보딩 3스텝 (`FE-REQ-010` FR-21·22·25 · `FE-REQ-010` FR-64).
+ * 온보딩 — 도메인 선택(`FE-REQ-055` FR-4 · `FE-REQ-010` FR-21·22·25 · FR-64, 서버 S3a 2026-11-06).
+ * 초대(계정이 없을 때) → 쓸 것 고르기(모으기 · 쓰는 돈 · 투자) → 고른 것 중 하나에 첫 기록 → 끝. 투자를 안 고르면 투자 질문 0.
  *
  * ## 진행 위치를 화면이 계산하지 않는다
  *
- * `nextStep` 은 BFF 가 준다. 화면이 `steps` 를 훑어 스스로 정하면 **판정이 두 곳**이
- * 되고, 서버가 단계를 늘릴 때 화면만 옛 규칙으로 남는다. 여기서 하는 계산은
- * `ProgressStepper` 가 요구하는 **인덱스로의 변환** 하나뿐이다.
+ * 다음 단계 · 첫 기록 도메인 · 그 화면 경로는 서버(identity) → BFF 가 준다. 화면이 고른 것을 훑어 스스로 정하면 판정이
+ * 두 곳이 된다. 화면이 하는 일은 "세션이 없으면 초대"와 "단계 없음 = 끝"을 화면 단계로 옮기는 것뿐이다.
  *
- * ## 아직 계정이 없는 사람도 이 화면에 온다
+ * ## 첫 기록은 다른 zone 화면에서 한다
  *
- * 그때 상태 조회는 비활성이고(`useOnboardingStatus` 가 토큰 없이는 부르지 않는다)
- * 현재 단계는 `invite` 다. 초대 수락이 성공하면 쿼리가 무효화되어 다음 단계로 넘어간다 —
- * 화면이 단계를 직접 밀지 않는다.
+ * 저축 · 가계부 · 투자 입력 화면은 각 zone 에 있다(`ADR-005`). 버튼을 누르면 **먼저 끝내고**(서버에 기록) 그 화면으로 문서 이동 —
+ * 돌아오는 길은 그 화면의 뒤로 · 하단 탭이다. 끝내기가 실패하면 이동하지 않는다(다음에 다시 이 단계가 나온다).
  *
  * ## 그래픽 (`FE-REQ-044` P-3 · P-4 · P-20 · P-40)
  *
- * 단계마다 머리 장면 하나, 단계가 넘어가면 본문이 옆으로 밀린다. 초대를 수락하면 다음 단계 위에
- * "초대를 수락했어요" 한 줄을 체크와 함께 한 번 보인다 — 말없이 넘어가면 무엇이 됐는지 모른다.
- *
- * ## 배치 — 모바일 한 열 (2026-09-30 QA 사용자 지적 "디자인 구리다")
- *
- * 카드 · 좌측 정렬 · 전폭 진행 막대를 버리고 참고 화면 구성으로: 가운데 한 열 · 위에서 옅어지는 배경 ·
- * 두 줄 큰 제목(둘째 줄 강조) · 설명 · 큰 장면 · 점 진행 표시 · 아래 버튼. 이 화면은 앱 웹뷰(모바일)용이다.
+ * 단계마다 머리 장면 하나, 단계가 넘어가면 본문이 옆으로 밀린다. 초대를 수락하면 다음 단계 위에 "초대를 수락했어요" 한 줄.
+ * 배치는 모바일 한 열(2026-09-30 QA) — 가운데 한 열 · 두 줄 큰 제목 · 장면 · 점 진행 · 아래 버튼.
  */
 export const OnboardingFlow = () => {
   const router = useRouter();
-  // 단계 화면이 다른 zone(투자)일 수 있다 — 문서 이동은 이 훅이 고른다(`FE-REQ-053`)
+  // 첫 기록 화면은 다른 zone 이다 — 문서 이동은 이 훅이 고른다(`FE-REQ-053`)
   const navigate = useZoneNavigate();
-  const { data, isLoading: isQuerying } = useOnboardingStatus();
-  // 토큰이 있는지 아직 모르면(서버 · 하이드레이션) 단계를 정하지 않는다 — 초대 단계가 번쩍였다가 바뀌지 않게
-  const tokenKnown = useHasSession() !== null;
+  const signedIn = useHasSession();
+  const onboarding = useOnboarding();
+  const finish = useFinishOnboarding();
   const [inviteAccepted, setInviteAccepted] = useState(false);
-  // 초대 수락 직후의 첫 조회는 로딩 화면으로 바꾸지 않는다 — 바꾸면 단계 영역이 내려갔다 `initial={false}` 로 다시 올라와
-  // 다음 단계가 밀려 들어오지 않는다(P-40, 2026-10-30 프레임 기록). 응답이 올 때까지 초대 단계를 그대로 두고 그때 넘긴다
-  const isLoading = !tokenKnown || (isQuerying && !inviteAccepted);
+  // 세션이 끝났다(리프레시도 죽음) — `/onboarding` 은 공개 경로라 로그인으로 보내지 않고 세션만 비운다(`refreshSession`).
+  // 표지 쿠키는 다음 포커스에야 다시 읽히니 401 을 "로그인 안 함"으로 읽어 초대 단계로 — "불러오지 못했어요"가 아니다
+  const sessionEnded = hasApiStatus(onboarding.error, 401);
 
-  const steps = data?.steps ?? FALLBACK_STEPS;
-  const currentStep: OnboardingStepKey | null = data ? data.nextStep : "invite";
-  const currentIndex =
-    currentStep === null
-      ? steps.length
-      : steps.findIndex((step) => step.key === currentStep);
+  // 세션을 아직 모르면(서버 · 하이드레이션) 단계를 정하지 않는다 — 초대 단계가 번쩍였다가 바뀌지 않게.
+  // 초대 수락 직후의 첫 조회는 초대 단계를 그대로 둔다 — 로딩으로 바꾸면 다음 단계가 밀려 들어오지 않는다(P-40, 2026-10-30)
+  const screen: OnboardingScreen | null =
+    signedIn === null
+      ? null
+      : signedIn === false || sessionEnded || (inviteAccepted && !onboarding.data)
+        ? "invite"
+        : onboarding.data
+          ? (onboarding.data.nextStep ?? "complete")
+          : null;
 
-  if (isLoading) {
+  if (signedIn === true && onboarding.isError && !onboarding.data && !sessionEnded) {
+    return (
+      <div className={s.page}>
+        <div className={s.loading}>
+          <StatusLine kind="error">{ONBOARDING_MESSAGES.loadFailed}</StatusLine>
+        </div>
+      </div>
+    );
+  }
+
+  if (screen === null) {
     return (
       <div className={s.page}>
         <div className={s.loading}>
@@ -81,25 +94,28 @@ export const OnboardingFlow = () => {
     );
   }
 
-  const body = currentStep ? ONBOARDING_STEP_BODY[currentStep] : null;
+  const body = screen === "complete" ? null : ONBOARDING_SCREEN_BODY[screen];
   const headline = body ? body.headline : ONBOARDING_COMPLETE_HEADLINE;
+  const currentIndex = screen === "complete" ? ONBOARDING_SCREEN_ORDER.length : ONBOARDING_SCREEN_ORDER.indexOf(screen);
+  const firstInput = onboarding.data?.firstInput ?? null;
+
+  const finishThen = (go: () => void) => {
+    if (finish.isPending) return;
+    finish.mutate(undefined, { onSuccess: go });
+  };
 
   return (
     <div className={s.page}>
       <ol className={s.dots} aria-label={ONBOARDING_MESSAGES.stepperLabel}>
-        {steps.map((step, index) => (
+        {ONBOARDING_SCREEN_ORDER.map((key, index) => (
           <li
-            key={step.key}
-            className={
-              index === Math.min(currentIndex, steps.length - 1)
-                ? s.dotActive
-                : s.dot
-            }
+            key={key}
+            className={index === Math.min(currentIndex, ONBOARDING_SCREEN_ORDER.length - 1) ? s.dotActive : s.dot}
             aria-current={index === currentIndex ? "step" : undefined}
           >
             <span className={s.srOnly}>
-              {ONBOARDING_STEP_LABELS[step.key]}
-              {step.done ? " ✓" : ""}
+              {ONBOARDING_SCREEN_LABELS[key]}
+              {index < currentIndex ? " ✓" : ""}
             </span>
           </li>
         ))}
@@ -107,21 +123,13 @@ export const OnboardingFlow = () => {
 
       <AnimatePresence mode="wait" initial={false}>
         <m.section
-          key={currentStep ?? "complete"}
+          key={screen}
           className={s.step}
           initial={{ opacity: 0, x: SLIDE_DISTANCE }}
-          animate={{
-            opacity: 1,
-            x: 0,
-            transition: { duration: durations.slow, ease: ease.enter },
-          }}
-          exit={{
-            opacity: 0,
-            x: -SLIDE_DISTANCE,
-            transition: { duration: durations.base, ease: ease.exit },
-          }}
+          animate={{ opacity: 1, x: 0, transition: { duration: durations.slow, ease: ease.enter } }}
+          exit={{ opacity: 0, x: -SLIDE_DISTANCE, transition: { duration: durations.base, ease: ease.exit } }}
         >
-          {inviteAccepted && currentStep !== "invite" ? (
+          {inviteAccepted && screen !== "invite" ? (
             <StatusLine kind="success" live className={s.accepted}>
               {ONBOARDING_MESSAGES.inviteAccepted}
             </StatusLine>
@@ -131,45 +139,52 @@ export const OnboardingFlow = () => {
             <span>{headline[0]}</span>
             <span className={s.accent}>{headline[1]}</span>
           </h1>
-          <p className={s.sub}>
-            {currentStep === null
-              ? ONBOARDING_MESSAGES.completeDescription
-              : body?.description}
-          </p>
+          <p className={s.sub}>{screen === "complete" ? ONBOARDING_MESSAGES.completeDescription : body?.description}</p>
 
-          <div className={s.scene}>
-            {currentStep === null ? (
-              <StatusGraphic kind="success" size="lg" />
-            ) : (
-              <Illustration
-                scene={ONBOARDING_STEP_SCENE[currentStep]}
-                size="lg"
-              />
-            )}
-          </div>
+          {screen === "choose_domains" ? null : (
+            <div className={s.scene}>
+              {screen === "complete" ? (
+                <StatusGraphic kind="success" size="lg" />
+              ) : (
+                <Illustration scene={ONBOARDING_SCREEN_SCENE[screen]} size="lg" />
+              )}
+            </div>
+          )}
 
-          {currentStep === "invite" ? (
+          {screen === "invite" ? (
             <div className={s.form}>
               <InviteCodeForm onAccepted={() => setInviteAccepted(true)} />
             </div>
           ) : null}
+
+          {screen === "choose_domains" && onboarding.data ? <DomainChoiceForm choices={onboarding.data.choices} /> : null}
+
+          {finish.isError ? <StatusLine kind="error">{ONBOARDING_MESSAGES.finishFailed}</StatusLine> : null}
         </m.section>
       </AnimatePresence>
 
-      {/* 초대 단계는 폼 안에 제출 버튼이 있다. 나머지는 그 단계를 끝내는 화면으로 보내고, 아래에 "나중에 할게요" */}
-      {currentStep !== "invite" ? (
+      {/* 초대 · 고르기는 폼 안에 제출 버튼이 있다. 첫 기록은 그 화면으로(먼저 끝내고), 아래에 "나중에 할게요" */}
+      {screen === "first_input" || screen === "complete" ? (
         <BottomCTA fixed className={s.ctaBar}>
           <div className={s.ctaInner}>
-            {currentStep === null ? (
+            {screen === "complete" ? (
               <Button variant="primary" size="lg" fullWidth onClick={() => router.push(ROUTES.home)}>
                 {ONBOARDING_MESSAGES.goHome}
               </Button>
             ) : (
               <>
-                <Button variant="primary" size="lg" fullWidth onClick={() => navigate(STEP_ROUTE[currentStep])}>
-                  {body?.action}
-                </Button>
-                <Button variant="ghost" size="md" fullWidth onClick={() => router.push(ROUTES.home)}>
+                {firstInput ? (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    aria-busy={finish.isPending}
+                    onClick={() => finishThen(() => navigate(firstInput.href))}
+                  >
+                    {FIRST_INPUT_ACTION[firstInput.domain]}
+                  </Button>
+                ) : null}
+                <Button variant="ghost" size="md" fullWidth aria-busy={finish.isPending} onClick={() => finishThen(() => router.push(ROUTES.home))}>
                   {ONBOARDING_MESSAGES.laterToHome}
                 </Button>
               </>
@@ -181,25 +196,7 @@ export const OnboardingFlow = () => {
   );
 };
 
-/** 단계를 끝내는 화면 — 거래를 한 건 기록하면(종목 상세의 거래 기록) · 목표를 추가하면 서버가 완료로 바꾼다 */
-const STEP_ROUTE: Record<Exclude<OnboardingStepKey, "invite">, string> = {
-  link_account: ROUTES.investments,
-  set_plan: ROUTES.addGoal,
-};
-
 /** 단계 본문이 밀리는 거리(px) — 모션 원칙 4 "이동 거리는 작게" */
 const SLIDE_DISTANCE = 24;
-
-/**
- * 상태를 못 받았을 때의 단계 목록.
- *
- * 로그인 전에는 조회가 비활성이라 **정상 경로에서도 쓰인다.** 세 칸을 그려 두어야
- * 사용자가 전체 길이를 알고 시작한다.
- */
-const FALLBACK_STEPS = [
-  { key: "invite" as const, done: false },
-  { key: "link_account" as const, done: false },
-  { key: "set_plan" as const, done: false },
-];
 
 export default OnboardingFlow;

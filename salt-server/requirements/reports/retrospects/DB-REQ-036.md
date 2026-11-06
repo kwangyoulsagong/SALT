@@ -26,3 +26,7 @@
 ## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
 
 - 서비스 풀이 늘면 테스트 연결 상한을 같이 본다(Action — 루트 회고)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 새 서비스가 기존 스키마에 '첫 표'로 들어가는 것이 가능해 사용자 표 이동(S3b)과 분리됐다

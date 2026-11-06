@@ -58,11 +58,8 @@ export const AlertPrefsPanel = () => {
                 <Toggle
                   aria-label={copy.label}
                   checked={enabled}
-                  // 저장 중에는 입력만 무시한다 — `disabled` 로 바꾸면 키보드 포커스가 빠진다
-                  onChange={(next) => {
-                    if (!toggle.isPending)
-                      toggle.mutate({ domain, enabled: next });
-                  }}
+                  // 저장 중에도 받는다 — 차례로 보낸다(`useToggleAlert` scope, 2026-11-06). `disabled` 로 막으면 키보드 포커스가 빠진다
+                  onChange={(next) => toggle.mutate({ domain, enabled: next })}
                   aria-busy={toggle.isPending}
                 />
               </li>

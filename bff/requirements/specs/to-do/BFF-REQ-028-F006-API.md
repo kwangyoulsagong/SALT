@@ -11,6 +11,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` — `HomeViewModel`은 **3블록**(세금 · 청구서 · 보유 미리보기 · 알림 목록 삭제, `unreadAlertCount` 추가). 포지션 · 거래 기록 · 알림 · 설정 · 온보딩 계약을 추가했다(§2026-09-21 계약). 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14 · B16.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 대화 SSE 계약과 홈 3블록 뷰모델(2026-09-21 개정). **웹은 블록별, 모바일은 집계**이고 두 형태가 같은 함수에서 나온다. 여기에 포지션 · 거래 기록 · 알림 · 설정 계약이 더해졌다.
@@ -66,7 +68,7 @@ event: ping            data: {}
 ```ts
 type HomeViewModel = {
   asOf: string;
-  onboarding: { complete: boolean; nextStep: 'invite' | 'first_holding' | 'set_plan' | null };   // 2026-09-21 (B12)
+  onboarding: { complete: boolean; nextStep: 'invite' | 'first_holding' | 'set_plan' | null };   // 2026-09-21 (B12)  // 정정 2026-11-06(S3a) — 은퇴, `BFF-REQ-046` FR-6
   degradedBlocks: string[];
 
   totalAsset: {
@@ -182,7 +184,7 @@ type SettingsViewModel = {
 - [ ] 에러가 코드로만 온다
 - [ ] 알림 읽음 · 모두 읽음 · 안 읽은 수 계약이 있다
 - [ ] 설정에 `bandThresholdsEditable: false`가 있고 계좌 · 세금 · 보류 토글 필드가 0건이다
-- [ ] 온보딩 `nextStep`에 `link_account`가 0건이다
+- [ ] ~~온보딩 `nextStep`에 `link_account`가 0건이다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 
 ## Dependencies
 

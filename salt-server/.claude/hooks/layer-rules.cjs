@@ -32,12 +32,13 @@ const CONTEXTS = [
   "fx",
   "goal",
   "news",
-  "notification",
+  // "notification" — 2026-11-06 Kotlin 으로 이전(S2c) · Express 코드 0. 다시 만들면 레지스트리 밖이라 훅이 막는다
   "device",
 ];
 
 /** 조합 컨텍스트 — Aggregate 없이 `application`(+`presentation`)만 갖는다. */
-const COMPOSITE_CONTEXTS = ["homebriefing", "onboarding"];
+// "onboarding" — 2026-11-06 은퇴(서버 S3a — 도메인 선택 온보딩은 Kotlin identity, `SRV-REQ-048` FR-1)
+const COMPOSITE_CONTEXTS = ["homebriefing"];
 
 const ALL_CONTEXTS = [...CONTEXTS, ...COMPOSITE_CONTEXTS];
 

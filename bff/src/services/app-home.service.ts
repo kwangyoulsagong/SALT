@@ -103,6 +103,29 @@ const CARD_SOURCES: CardSource[] = [
   },
 ];
 
+/** 서버(identity)가 정한 홈 배치 — 저장 전이면 서버 기본값(고르지 않은 도메인 숨김). 모르는 키는 버린다 */
+export interface HomeLayoutVM {
+  order: HomeDomain[];
+  hidden: HomeDomain[];
+}
+
+const isHomeDomain = (v: unknown): v is HomeDomain => typeof v === "string" && (DEFAULT_HOME_ORDER as string[]).includes(v);
+
+export const toHomeLayout = (layout: { order?: unknown; hidden?: unknown } | undefined): HomeLayoutVM | null => {
+  const order = Array.isArray(layout?.order) ? layout.order.filter(isHomeDomain) : [];
+  if (order.length === 0) return null;
+  // 서버가 카드를 늘렸는데 BFF 가 모르면 그 카드는 빠지고, BFF 가 아는데 서버 순서에 없으면 기본 순서로 뒤에 붙인다
+  const full = [...order, ...DEFAULT_HOME_ORDER.filter((d) => !order.includes(d))];
+  const hidden = Array.isArray(layout?.hidden) ? layout.hidden.filter(isHomeDomain) : [];
+  return { order: full, hidden };
+};
+
+/** identity 셸 설정 읽기 — 카드 원천과 같은 예산. 못 받으면 null(기본 순서 · 숨김 0 — 지금까지의 홈) */
+const readLayout = async (token: string): Promise<HomeLayoutVM | null> => {
+  const { data } = await backendApi.proxyAuthRequest("GET", "/identity/shell", token, undefined, { timeout: HOME_CARD_TIMEOUT_MS });
+  return toHomeLayout(data?.data?.layout);
+};
+
 /**
  * 셸 홈 — 도메인 요약 카드 (`BFF-REQ-046` FR-1~4, `FEATURE-015` FR-2).
  *
@@ -110,14 +133,18 @@ const CARD_SOURCES: CardSource[] = [
  * **도메인마다 카드 한 장**으로 바꿨다 — 계약 변경(`FE-REQ-055` 와 같은 PR). 도메인을 `allSettled` 로 병렬로
  * 부르고, 실패하거나 800ms 를 넘긴 카드만 `degraded` 다. 홈은 언제나 200 이다.
  *
- * 순서 · 숨김은 아직 저장하지 않는다(`PUT /api/app/home/layout` 은 서버 identity 뒤, FR-5) — 기본 순서 · 숨김 없음.
+ * 순서 · 숨김은 서버 identity 가 갖는다(FR-5, 서버 S3a 2026-11-06) — 저장 전이면 서버 기본값(고르지 않은 도메인 숨김 — FR-4).
+ * 응답 `order` · `hidden` 은 카드가 있는 도메인만(팁 카드는 아직 없다).
  */
 class AppHomeService {
   async getHome(token: string): Promise<AppHomeVM> {
     const now = new Date().toISOString();
-    const settled = await Promise.allSettled(
-      CARD_SOURCES.map((source) => withinBudget(source.load(token, now), HOME_CARD_TIMEOUT_MS)),
-    );
+    // 배치(identity)와 카드를 나란히 — 배치가 실패해도 카드는 기본 순서로 나온다(배치는 카드 하나의 실패가 아니다)
+    const [layoutResult, ...settled] = await Promise.allSettled([
+      withinBudget(readLayout(token), HOME_CARD_TIMEOUT_MS),
+      ...CARD_SOURCES.map((source) => withinBudget(source.load(token, now), HOME_CARD_TIMEOUT_MS)),
+    ]);
+    if (layoutResult.status === "rejected" && isUnauthenticated(layoutResult.reason)) throw layoutResult.reason;
 
     const unauthenticated = settled.find(
       (result): result is PromiseRejectedResult => result.status === "rejected" && isUnauthenticated(result.reason),
@@ -131,8 +158,22 @@ class AppHomeService {
       return degradedCard(source.domain, source.title, source.href, now);
     });
 
-    const order = DEFAULT_HOME_ORDER.filter((domain) => cards.some((card) => card.domain === domain));
-    return { cards, order, hidden: [] };
+    if (layoutResult.status === "rejected") logger.warn("홈 배치를 받지 못했다 — 기본 순서", { reason: layoutResult.reason?.message });
+    const layout = layoutResult.status === "fulfilled" ? layoutResult.value : null;
+    const has = (domain: HomeDomain) => cards.some((card) => card.domain === domain);
+    const order = (layout?.order ?? DEFAULT_HOME_ORDER).filter(has);
+    return { cards, order, hidden: (layout?.hidden ?? []).filter(has) };
+  }
+
+  /**
+   * 홈 배치 저장(FR-5). 화면은 **보이는 카드의 순서**만 안다(`GET /home` 의 `order` 가 카드 있는 도메인만이라) —
+   * 서버는 카드 넷 전부의 순서를 받는다. 화면이 모르는 칸(카드가 아직 없는 팁)을 기본 순서로 뒤에 붙여 보낸다.
+   * 그 밖의 값 검사(모르는 키 · 중복 · 전부 숨김)는 서버 — 배열이 아니면 그대로 넘겨 서버가 400 을 낸다
+   */
+  async arrangeHome(token: string, order: unknown, hidden: unknown): Promise<HomeLayoutVM> {
+    const full = Array.isArray(order) ? [...order, ...DEFAULT_HOME_ORDER.filter((d) => !order.includes(d))] : order;
+    const { data } = await backendApi.proxyAuthRequest("PUT", "/identity/shell/layout", token, { order: full, hidden });
+    return toHomeLayout(data?.data?.layout) ?? { order: [...DEFAULT_HOME_ORDER], hidden: [] };
   }
 }
 

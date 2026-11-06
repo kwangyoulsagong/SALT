@@ -9,6 +9,8 @@ labels: [rn, api, react-query, websocket, secure-store]
 created: 2026-09-09
 ---
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 모바일 F000의 API 호출. **RSC가 없으므로 전부 React Query**이고, WS는 클라이언트 구독이다. 오프라인 persist와 secure store 분리가 웹과 다른 점이다.
@@ -25,7 +27,7 @@ created: 2026-09-09
 | 관심 종목 | `GET /api/app/watchlist` + mutation | React Query |
 | 보유 요약 | `GET /api/app/portfolio/summary` | React Query, `staleTime: 1m` |
 | 알림 | `GET /api/app/alerts?limit=20` | React Query, `staleTime: 1m` |
-| 온보딩 상태 | `GET /api/app/onboarding/status` | React Query |
+| 온보딩 상태 | ~~`GET /api/app/onboarding/status`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | React Query |
 | 초대 확인 | `GET /api/app/onboarding/invite/check?code` | 디바운스 query |
 | 초대 수락 | `POST /api/app/onboarding/invite` | mutation |
 | 목표 | `GET/POST /api/goals` | query + mutation. 2026-09-21 — 금액 · 수량 택일 본문(B5) |
@@ -78,7 +80,7 @@ created: 2026-09-09
 | FR-30 | `invite/check`는 **디바운스 300ms**. 타이핑마다 부르지 않는다 | Must |
 | FR-31 | `invite/accept` 성공 시 토큰을 **secure store에 저장**하고 쿼리 캐시를 초기화한다 | Must |
 | FR-32 | 실패 `403` + `reasonCode` 3종을 각각 다른 문구로 | Must |
-| FR-33 | `onboarding/status`가 단계를 결정한다. 프론트가 판단하지 않는다 | Must |
+| FR-33 | ~~`onboarding/status`가 단계를 결정한다. 프론트가 판단하지 않는다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 | FR-34 | 온보딩 완료 후 홈 쿼리를 무효화한다 | Must |
 
 ### D-2. 2026-09-21 추가 — 검색 · 북마크 · 뉴스 필드 · 목표 수량

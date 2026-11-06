@@ -17,6 +17,7 @@ object PlatformContainers {
     const val CONTENT_PASSWORD = "content-test-password"
     const val NOTIFICATION_PASSWORD = "notification-test-password"
     const val COACH_PASSWORD = "coach-test-password"
+    const val IDENTITY_PASSWORD = "identity-test-password"
     const val JWT_SECRET = "test-secret-at-least-32-bytes-long-0123456789"
 
     /** 기본 14 = 로컬 운영 DB 와 같은 판. 관리형 DB 후보 판은 `-Dsalt.test.postgres=postgres:17-alpine` 로 같은 테스트를 돌린다 */
@@ -31,12 +32,13 @@ object PlatformContainers {
             "psql", "-v", "ON_ERROR_STOP=1", "-U", username, "-d", databaseName,
             "-v", "ping_password=$PING_PASSWORD", "-v", "savings_password=$SAVINGS_PASSWORD",
             "-v", "household_password=$HOUSEHOLD_PASSWORD", "-v", "content_password=$CONTENT_PASSWORD",
-            "-v", "notification_password=$NOTIFICATION_PASSWORD", "-v", "coach_password=$COACH_PASSWORD", "-f", "/salt/roles.sql",
+            "-v", "notification_password=$NOTIFICATION_PASSWORD", "-v", "coach_password=$COACH_PASSWORD",
+            "-v", "identity_password=$IDENTITY_PASSWORD", "-f", "/salt/roles.sql",
         )
         check(result.exitCode == 0) { "roles.sql 실패: ${result.stderr}" }
-        // 권한 검사용 — 남의 스키마(identity — 아직 플랫폼에 없는 서비스)에 표 하나. savings · household · content 는 Flyway 가 쓰는 스키마라 비워 둔다
-        // (content 는 금융 팁 S2a 2026-11-05 부터 — 그 전엔 여기가 content.probe 였다)
-        DriverManager.getConnection(jdbcUrl, username, password).use { it.createStatement().execute("CREATE TABLE identity.probe (id int)") }
+        // 권한 검사용 — 남의 스키마(portfolio — 아직 플랫폼에 없는 서비스, S4)에 표 하나. 플랫폼 서비스 스키마는 Flyway 가 쓰니 비워 둔다
+        // (content.probe → identity.probe(금융 팁 S2a 2026-11-05) → portfolio.probe(identity S3a 2026-11-06))
+        DriverManager.getConnection(jdbcUrl, username, password).use { it.createStatement().execute("CREATE TABLE portfolio.probe (id int)") }
     }
 
     val rabbit: RabbitMQContainer = RabbitMQContainer("rabbitmq:4-management-alpine").apply { start() }
@@ -49,6 +51,7 @@ object PlatformContainers {
         registry.add("salt.db.accounts.content.password") { CONTENT_PASSWORD }
         registry.add("salt.db.accounts.notification.password") { NOTIFICATION_PASSWORD }
         registry.add("salt.db.accounts.coach.password") { COACH_PASSWORD }
+        registry.add("salt.db.accounts.identity.password") { IDENTITY_PASSWORD }
         registry.add("salt.auth.jwt-secret") { JWT_SECRET }
         // 금융 팁 공개 플래그 — 기본은 꺼짐(법무 확인 전). 통합 테스트는 켠 채로 한 컨텍스트를 같이 쓴다(꺼짐 동작은 `ContentSettingsSpec`)
         registry.add("salt.content.public-enabled") { "true" }

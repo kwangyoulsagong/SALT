@@ -59,7 +59,6 @@ app.use([...DORMANT_PATHS], goneMiddleware);
 
 // API Routes
 app.use("/api/auth", contextRouters.auth);
-app.use("/api/onboarding", contextRouters.onboarding);
 app.use("/api/investment", contextRouters.investment);
 app.use("/api/users", userRoutes);
 app.use("/api/portfolio", contextRouters.portfolio);

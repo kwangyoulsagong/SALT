@@ -204,3 +204,4 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 | 2026-11-05 | FR-81 · FR-82 추가 — FR-80 2단계로 가능해진 후속 둘(서버 조회 이관 목록 · 비공개 경로 보호)을 FR 로. 코드의 낡은 이유 주석 13곳("토큰이 `localStorage`")에 정정 문장(국내 주식 둘은 "약관상 클라이언트에 남는다") · 셸 미들웨어 주석 |
 | 2026-11-05 | 확인 단계 2회차 — 투자 zone · 웹뷰 · 쓰기 실화면 통과 · 낡은 주석 정정(`95829941`). 체크리스트 §4 |
 | 2026-11-05 | 금융 팁 S2b 확인 2회차(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: FR-80 쿠키 세션의 갱신 실패 처리 — 공개 경로 판정을 `isPublicPath` 하나로(공개 금융 팁 글 제자리) (`cf93acb1`) |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음(이 REQ 몫) — `useAcceptInvite` 의 쿼리 키 이름만(`onboardingStatus` → `onboarding`) `c1baa77a` |

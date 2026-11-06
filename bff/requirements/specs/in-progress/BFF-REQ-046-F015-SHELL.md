@@ -22,7 +22,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-3 | 카드 타임아웃 800ms — 넘으면 그 카드만 `degraded` |
 | FR-4 | 투자 카드 — 보유 평가 한 줄 + "이번 주 투자 적립"(F003, 있으면) + 코치 한 줄. 투자를 고르지 않은 사용자는 카드 숨김이 기본 |
 | FR-5 | `PUT /api/app/home/layout` — 순서 · 숨김 |
-| FR-6 | `POST /api/app/onboarding` — 도메인 선택 · 첫 입력. 기존 3스텝 계약은 FE 전환 PR 까지 유지 후 삭제 |
+| FR-6 | ~~`POST /api/app/onboarding` — 도메인 선택 · 첫 입력~~ **정정 2026-11-06(S3a)** `GET /api/app/onboarding` · `PUT /domains` · `POST /finish` — 고르기와 끝내기가 따로(첫 입력은 다른 zone 화면에서 한다). 기존 3스텝 계약은 FE 전환 PR(이 PR)에서 삭제 — 410 |
 | FR-7 | `POST /api/app/me/export` · `GET /api/app/me/export/:id` · `DELETE /api/app/me`(재인증) |
 | FR-8 | `GET/PUT /api/app/me/notifications` — 도메인별. ✅ 2026-11-06 S2c(`PUT /:domain` · 값 검사는 서버) |
 | FR-9 | 기존 홈 블록 경로(`/api/app/home/*`)는 FE 전환 뒤 삭제 — 그 전까지 병존 |
@@ -35,7 +35,10 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | FR-2 | ✅ `home-card.viewmodel.ts` 의 `CONTRACT` 블록 = `@repo/core/home` 글자 대조 테스트(변이로 확인). 값은 서버 숫자의 표시 포맷만 |
 | FR-3 | ✅ 카드당 800ms — 넘으면 그 카드만 degraded |
 | FR-4 | ✅ 보유 평가 + (매입가 숨김 끔 → 서버 총 손익률 · 켬/설정 실패 → 종목 수, F009 FR-27). 숨김을 켰다고 확인된 사람에게는 값 아래 "오늘 처음 본다면" 한 줄(계약 `note`, `0f8683f8`). 코치 한 줄은 싣지 않는다(3종 없는 판단 렌더 금지). 적립(F003) 없음. "투자 미선택이면 숨김"은 도메인 선택(FR-6) 뒤 |
-| FR-5 · 6 · 7 · 8 | 미착수 — 서버 identity(S3) |
+| ~~FR-5 · 6 · 7 · 8~~ | ~~미착수 — 서버 identity(S3)~~ **정정 2026-11-06** FR-8 done(S2c) · FR-5 · 6 done(S3a, 아래 행) · FR-7 은 S3c |
+| FR-5 | ✅ 2026-11-06 S3a — `PUT /api/app/home/layout` → identity. 화면은 보이는 카드 셋의 순서만 알아 모르는 칸(팁)을 BFF 가 뒤에 붙여 보낸다 · 값 검사는 서버 |
+| FR-6 | ✅ 2026-11-06 S3a — `GET /api/app/onboarding` · `PUT /domains` · `POST /finish`(identity). 첫 입력 경로는 카드 href 와 같은 표(저축 `/goals/new` · 가계부 `/household/new` · 투자 `/investments`). 옛 `/status` 410 은퇴 |
+| FR-4(추가) | ✅ 2026-11-06 S3a — "투자 미선택이면 숨김"은 서버 기본값(안 고른 도메인 숨김)으로 — 홈 `order` · `hidden` 을 identity 에서(배치 실패면 기본 순서 · 401 은 홈 전체 401) |
 | FR-9 | ✅ 옛 블록 응답(`portfolio` · `unreadNotifications` · `marketOverview`)을 바로 지웠다 — 소비처 0(웹은 이 경로를 부르지 않았다, 모바일 미착수) |
 | 추가 | 인증 거절(401)은 카드 degraded 로 덮지 않고 홈 401(`5b6d5320`) — 프론트 토큰 갱신 · 로그인 이동 |
 
@@ -60,3 +63,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 가계부 카드가 `CARD_SOURCES` 에 붙었다 — 이번 달 지출 + (예산 남은 금액 | 월말 예상 구간 | 비움). 기본 순서 저축 → 가계부 → 투자(`b162ac6f`). "서비스 없는 도메인은 카드 없음" 주석을 팁만으로 정정 |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `apps/web/src/entities/home/api/homeApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): FR-8 done — `GET/PUT /api/app/me/notifications`(도메인 순서 · 목록은 서버 것) · `/api/app/alerts` 는 Kotlin `/notifications`(종류 셋) |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-5 · FR-6 · FR-4 숨김 기본값 done — 서버 identity(라우팅 `/identity` → platform). 옛 `/api/app/onboarding/status` 410 은퇴. 커밋 `066ba971` |

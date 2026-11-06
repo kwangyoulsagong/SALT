@@ -17,6 +17,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` · 스토리보드 갭 감사 반영. 홈 **3블록 + 기존 블록**(D6), 자산 탭 = `포지션` / `시장` / `관심 종목`(D7), 세금 상세 스택 삭제, 알림 1종 화면(D5), 설정 한 화면(D9), 포지션 · 거래 기록 바텀시트 · `RadarChart`(B13 · B14), 온보딩 2단계 교체(B12). 근거: 감사 D4~D9 · B12~B14 · B16 · B19.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 모바일이 **3탭 IA의 기준**이다(PC 격자는 모바일에 없다). 대화 화면이 제품의 중심이고, 홈은 3블록 + 기존 블록 읽기 전용이다(2026-09-21 개정).
@@ -30,7 +32,7 @@ created: 2026-09-09
 | `features` | `ask-coach` | 메시지 전송 + SSE |
 | `entities` | `coach` | `ChatBubble` · `RecommendationCard`(F004 재사용) · `SuggestedQuestionChips` |
 | `widgets` | `position-overview` · `market-list` · `alert-list` · `settings-panel` · `app-header` | 포지션 · 시장(표 1열) · 알림 · 설정 · 공통 헤더 *(2026-09-21)* |
-| `features` | `record-transaction` · `mark-alert-read` · `toggle-alerts` · `skip-onboarding-step` | 웹과 같은 이름 *(2026-09-21)* |
+| `features` | ~~`record-transaction` · `mark-alert-read` · `toggle-alerts` · `skip-onboarding-step`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | 웹과 같은 이름 *(2026-09-21)* |
 | `@repo/ui-native` | `radarChart` | `react-native-svg` 기반. props는 웹 `RadarChart`와 같다 *(2026-09-21)* |
 | `src/native` | `deepLink` · `keyboard` | 딥링크 · 키보드 회피 |
 
@@ -95,7 +97,7 @@ created: 2026-09-09
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-60 | 3스텝: 초대 코드 → **첫 보유 기록 입력(건너뛰기 가능)** → 월 적립액(F003에 저장). 2단계는 거래 기록 바텀시트를 그대로 쓴다. F000 `RN-REQ-004`와 공유. 온보딩 미완료면 홈 대신 카드. **개정 2026-09-21** (ADR-002 · **기본안 — 감사 문서 B12**) | Must |
+| FR-60 | ~~3스텝: 초대 코드 → **첫 보유 기록 입력(건너뛰기 가능)** → 월 적립액(F003에 저장). 2단계는 거래 기록 바텀시트를 그대로 쓴다. F000 `RN-REQ-004`와 공유. 온보딩 미완료면 홈 대신 카드. **개정 2026-09-21** (ADR-002 · **기본안 — 감사 문서 B12**)~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 
 ## 2026-09-21 추가
 

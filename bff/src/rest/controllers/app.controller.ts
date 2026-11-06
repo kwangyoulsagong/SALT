@@ -9,6 +9,14 @@ export class AppController {
       next(error);
     }
   }
+
+  async arrangeHome(req: Request, res: Response, next: NextFunction) {
+    try {
+      res.json(await appHomeService.arrangeHome(req.token!, req.body?.order, req.body?.hidden));
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const appController = new AppController();

@@ -72,8 +72,6 @@ class JooqGoals(private val dsl: DSLContext) : Goals {
             .orderBy(DSL.case_(GOAL.STATUS).`when`("active", 0).`when`("paused", 1).else_(2), GOAL.CREATED_AT.asc())
             .fetch(::toGoal)
 
-    override fun existsFor(userId: String): Boolean = dsl.fetchExists(GOAL, GOAL.USER_ID.eq(userId))
-
     override fun markCompleted(id: GoalId, at: Instant) {
         dsl.update(GOAL)
             .set(GOAL.STATUS, GoalStatus.COMPLETED.key)

@@ -14,6 +14,8 @@ reference: https://feature-sliced.design/kr/docs/guides/tech/with-nextjs
 > - Open Q `packages/mocks`(MSW) 위치는 닫힘 — MSW 2026-09-23 삭제, `packages/mocks` 없음
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 `apps/web`·`apps/web-tax`·`apps/mobile`의 내부 구조를 **Feature-Sliced Design**으로 바꾼다. 레이어 6개(`shared` → `entities` → `features` → `widgets` → `pages` → `app`)와 **슬라이스 레지스트리**를 도입하고, 레이어 위반을 **쓰기 시점에 차단하는 훅**을 붙인다. Next.js 라우팅은 **공식 가이드대로 프로젝트 루트에 두고 `src/`의 FSD를 re-export**한다. 슬라이스 이름은 서버 DDD 컨텍스트 이름과 **동일하게** 맞춘다.
@@ -177,7 +179,7 @@ export { importLedger as POST } from '@/app/api-routes';
 | `coach-console` | coach + indicator + portfolio | F006 대화 + 추천 카드 |
 | `asset-workspace` | portfolio + invoice + tax | F006 자산 탭 세그먼트 3 |
 | `market-board` | market + news + indicator | F000 실시간 + 프리뷰 |
-| `onboarding-flow` | auth + ledger + plan | F000 초대→계좌→적립 3스텝 |
+| `onboarding-flow` | auth + ledger + plan | ~~F000 초대→계좌→적립 3스텝~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 | `pc-panel-grid` | `MovableGrid` + 위 widget들 | F006 PC 이진분할 배치 |
 
 ## Requirements
@@ -314,3 +316,4 @@ export { importLedger as POST } from '@/app/api-routes';
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: FSD lint 플러그인에 규칙 하나 `@repo/fsd/no-client-enum-export`("use client" 파일의 enum 금지 — 서버에서 undefined) · 레이어 표에 엔티티 `tip` · 페이지 `tips` · `tip-detail` |
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`, 루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: 레이어 표에 features `answer-quiz` · pages `quiz-cards` + `fsd-features.md` · `fsd-pages.md` 표(`d59efa9c`) |
 | 2026-11-05 | 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`, 루트 `requirements/specs/done/MONEY-S2d-tips-my-numbers-slice.md`) — 이 REQ 에 걸린 몫: 레이어 표에 features `read-my-numbers` + `fsd-features.md` 표 · 지연 로딩 잎은 배럴에 올리지 않음(자리 컴포넌트만, `c7508e54`) |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 레지스트리(`layer-rules.cjs`) features 에 `choose-domains` · `arrange-home`, `skip-onboarding-step` 은 만들지 않음 `c1baa77a` |

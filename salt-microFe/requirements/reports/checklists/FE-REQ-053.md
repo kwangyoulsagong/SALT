@@ -64,3 +64,7 @@
 - 패널 한 줄 · 머리 주석 정정
 - 검증: check-types · lint · 실화면
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 투자 카드 href 값 그대로 `/investments`

@@ -53,3 +53,7 @@
 - 설정 다섯 곳에 계정 둘
 - 검증: `./gradlew check` · `bootJar` 실행 jar 기동(Flyway 둘)
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- `./gradlew check` 통과 · `:app:bootJar` 실행 jar 로 기동(launchd platform) · Flyway identity V1 적용 · 권한 검사 테스트 둘(남의 스키마 읽기 · public 에 표 만들기) 그대로 통과

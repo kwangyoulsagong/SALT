@@ -146,3 +146,7 @@ Swagger(`failOnErrors`) 생성 · 실검증 · 실화면 상세는 루트 `requi
 - `app.ts` 경로 · 워커 삭제 · `goneMiddleware` 테스트의 살아 있는 경로 목록에서 뺌
 - 검증: Express test 929 · 실스택 404
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- `app.ts` 에서 `/api/onboarding` 등록 제거 — 소비처 BFF 하나가 같은 PR 에서 identity 로 옮김(BFF 410)

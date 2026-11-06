@@ -56,3 +56,7 @@
 - 표 한 줄
 - 검증: 실스택(BFF → 4010)
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- `config/server-routes.json` 한 줄 · 실스택(BFF → 플랫폼 identity 200)

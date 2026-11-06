@@ -13,6 +13,8 @@ created: 2026-09-09
 > - 수용 기준 체크박스가 비어 있지만 D · E · F · G 절(뉴스 · 관심 종목 · `period` 422 · register 제거 · 온보딩 · rate limit)은 2026-09-18 Changelog 대로 구현됐다(`news.viewmodel.ts` · `onboarding.routes.ts` · `chartPeriod.middleware.ts`). 진실은 `reports/checklists/BFF-REQ-007.md`
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 축소 ③ 뉴스 프리뷰 실데이터 연결 ④ 관심 종목 조립 ⑤ `period` 오타 정정** 다섯이다. 새 계산은 없다.
@@ -90,7 +92,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 |---|---|---|
 | FR-60 | proxy에서 `POST /api/auth/register`를 제거한다 | Must |
 | FR-61 | `POST /api/app/onboarding/invite` → 서버 `/api/auth/invite/accept`를 부른다 | Must |
-| FR-62 | `GET /api/app/onboarding/status` → 서버 `/api/onboarding/status` | Must |
+| FR-62 | ~~`GET /api/app/onboarding/status` → 서버 `/api/onboarding/status`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 | FR-63 | `GET /api/app/onboarding/invite/check` → 서버 `/api/auth/invite/check`. **인증 없이 통과**시키되 rate limit을 둔다 | Must |
 | FR-64 | 초대 실패 `403` + `reasonCode`를 그대로 전달한다 | Must |
 
@@ -201,3 +203,4 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 - 2026-11-03: S0(`feat/srv-req-043-s0-platform`, 루트 `MONEY-S0-platform-slice.md`) — `app.ts` 에 추적 미들웨어 한 줄(보안 헤더 · CORS 다음, body parser 앞 — `BFF-REQ-045` FR-7). 동면 410 순서 · 404 handler 무변경
 - 2026-11-03: 커밋 대조 — 걸친 파일 `app.ts`: `4bc746f1`(추적 미들웨어 한 줄)
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`3e5e0d42`): 동면 목록 파일(`gone.middleware.ts`)에 **은퇴** 목록 `RETIRED_PATHS` 를 더했다 — 동면(되살릴 수 있음 · `revivable: true`)과 은퇴(새 계약으로 대체 · `replacement`)를 섞지 않는다. 기존 동면 경로 410 무변경(테스트 그대로 통과) |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-62(온보딩 상태 중계) 은퇴 — `RETIRED_PATHS` 에 `/api/app/onboarding/status` → `/api/app/onboarding`(410) `066ba971` |

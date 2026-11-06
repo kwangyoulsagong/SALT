@@ -7,7 +7,9 @@ set -eu
 : "${CONTENT_DB_PASSWORD:?CONTENT_DB_PASSWORD 가 없다 (.env)}"
 : "${NOTIFICATION_DB_PASSWORD:?NOTIFICATION_DB_PASSWORD 가 없다 (.env)}"
 : "${COACH_DB_PASSWORD:?COACH_DB_PASSWORD 가 없다 (.env)}"
+: "${IDENTITY_DB_PASSWORD:?IDENTITY_DB_PASSWORD 가 없다 (.env)}"
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
   -v ping_password="$PING_DB_PASSWORD" -v savings_password="$SAVINGS_DB_PASSWORD" \
   -v household_password="$HOUSEHOLD_DB_PASSWORD" -v content_password="$CONTENT_DB_PASSWORD" \
-  -v notification_password="$NOTIFICATION_DB_PASSWORD" -v coach_password="$COACH_DB_PASSWORD" -f /salt/roles.sql
+  -v notification_password="$NOTIFICATION_DB_PASSWORD" -v coach_password="$COACH_DB_PASSWORD" \
+  -v identity_password="$IDENTITY_DB_PASSWORD" -f /salt/roles.sql

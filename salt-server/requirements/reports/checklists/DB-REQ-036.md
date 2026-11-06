@@ -38,3 +38,7 @@
 
 - 몫: notification 이동(덤프 · 복원 시험 → 가져오기 대조 1행 · 멱등 → Prisma drop) · `roles.sql` 로그인 둘 · 서비스 계정으로 남의 스키마 SELECT 권한 오류(종단)
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- `svc_identity` 로그인(로컬 운영 DB — 이전 NOLOGIN → LOGIN) · identity 스키마 주인 = `svc_identity` · 플랫폼 기동 뒤 표 다섯 확인

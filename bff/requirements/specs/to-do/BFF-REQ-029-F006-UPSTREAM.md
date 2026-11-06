@@ -15,6 +15,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` — 홈은 서버 3블록, `fxBasisCode` 누락 규칙(FR-33) 개정. 서버에 **이미 있는** 거래 쓰기 · 알림 읽음 경로와 신규 포지션 · 미리보기 · 온보딩 건너뛰기 · 알림 설정 경로의 호출 계약을 추가했다(§2026-09-21 호출). 근거: 스토리보드 갭 감사 D5 · D9 · B12 · B13 · B14.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 BFF가 서버 SSE를 **프록시**하고 취소를 전파한다. 홈은 서버 `homebriefing`이 조립한 것을 받는다.
@@ -40,7 +42,7 @@ BFF가 서버 SSE를 **프록시**하고 취소를 전파한다. 홈은 서버 `
 | `listTransactions` | `GET /api/portfolio/transactions` | 400ms | 1회 *(2026-09-21)* |
 | `createTransaction` · `updateTransaction` · `deleteTransaction` | `POST` · `PATCH /:id` · `DELETE /:id` `/api/portfolio/transactions` | 600ms | **0회** *(2026-09-21)* |
 | `previewTransaction` | `POST /api/portfolio/transactions/preview` | 400ms | 1회(읽기 전용) *(2026-09-21)* |
-| `skipOnboardingStep` | `POST /api/onboarding/steps/first_holding/skip` | 400ms | 0회 *(2026-09-21)* |
+| `skipOnboardingStep` | ~~`POST /api/onboarding/steps/first_holding/skip`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | 400ms | 0회 *(2026-09-21)* |
 | `panelLayout` GET/PUT | `GET/PUT /api/panel-layout` | 400ms | GET 1회 / PUT 0회 |
 
 ## SSE 프록시 — 취소 전파가 핵심
@@ -82,7 +84,7 @@ BFF가 서버 SSE를 **프록시**하고 취소를 전파한다. 홈은 서버 `
 | `totalAsset.fxBasisCode` | 환율 기준 툴팁 *(개정 2026-09-21 — 세금 비교 삭제)* |
 | `portfolio/risk.axes[]`(4개) | 레이더 *(2026-09-21)* |
 | `transactions/preview.before/after` | 평단 전후 — **BFF가 계산하지 않는 근거** *(2026-09-21)* |
-| `onboarding.steps[].key` | `first_holding` — **BREAKING** *(2026-09-21)* |
+| `onboarding.steps[].key` | ~~`first_holding` — **BREAKING** *(2026-09-21)*~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 | `coach.renderable` | **게이트** |
 | `alerts[].messageCode`·`params` | 알림 문구 |
 | `disclaimer` | 면책 |
@@ -105,7 +107,7 @@ BFF가 서버 SSE를 **프록시**하고 취소를 전파한다. 홈은 서버 `
 | FR-53 | `risk.axes`가 4개가 아니면 레이더 섹션을 `unavailable`로 처리한다 — 축이 빠진 레이더는 거짓 모양이다 | Must |
 | FR-54 | `performance`의 `range` 매핑(`1w→7d` · `1m→30d` · `3m→90d` · `1y→1y`) 외 값은 BFF가 400으로 막는다 | Must |
 | FR-55 | 알림 읽음 · 모두 읽음은 **재시도 0회**(멱등이지만 필요 없다). 서버 404를 그대로 전달한다 | Must |
-| FR-56 | 서버 온보딩 응답에 `link_account`가 오면(구버전 서버) **`first_holding`으로 바꾸지 않고** 계약 스냅샷 테스트를 실패시킨다 — 조용한 번역 금지 | Must |
+| FR-56 | ~~서버 온보딩 응답에 `link_account`가 오면(구버전 서버) **`first_holding`으로 바꾸지 않고** 계약 스냅샷 테스트를 실패시킨다 — 조용한 번역 금지~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 | FR-57 | 계약 스냅샷에 `risk.axes`(4) · 미리보기 `before/after` · 알림 `target` · 온보딩 단계 키를 **추가**한다 | Must |
 
 ## 하지 않는 것

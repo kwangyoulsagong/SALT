@@ -183,10 +183,6 @@ class SavingsEndToEndTest {
         listed shouldBe detailed
         listed.has("issuedAt") shouldBe false
 
-        // 온보딩 프로브용 존재 확인
-        data(call("GET", "/api/savings/goals/exists", user, null)).path("exists").asBoolean() shouldBe true
-        data(call("GET", "/api/savings/goals/exists", "nobody-${UUID.randomUUID()}", null)).path("exists").asBoolean() shouldBe false
-
         // 한 문장 집계(overviewByGoal, 목록 · 저울)가 목표 하나 집계(상세 · 쓰기)와 같은 값 — FR-19 를 지키려 합친 것, 값이 갈라지면 안 된다
         val deposits = com.salt.savings.infrastructure.JooqDeposits(savingsDatabase.dsl)
         val month = java.time.YearMonth.now(java.time.ZoneId.of("Asia/Seoul"))

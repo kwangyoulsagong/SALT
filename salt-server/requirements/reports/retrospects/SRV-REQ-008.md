@@ -138,3 +138,7 @@ Action: 없음(남은 F006 몫은 `SRV-REQ-028` Changelog 에)
 
 - 파일만 걸침 — 이 REQ 를 머리 주석에 둔 파일을 S2c 가 고쳤다. 판단 · 실수는 루트 회고 `MONEY-S2c-notification`
 - **Action**: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 조합 컨텍스트 `onboarding` 은 남의 사실(보유 · 목표)을 읽어 단계를 추측했다 — 사용자가 고른 것과 끝낸 때를 그대로 저장하는 쪽(identity)이 서비스 간 호출을 없앴다

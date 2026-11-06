@@ -15,6 +15,8 @@
 > 아래 내용 중 **홈 5블록 요구사항(FR-2~FR-7)과 `HomeViewModel` 계약은 FEATURE-006으로 흡수**되었다. 나머지는 참조용으로만 남긴다.
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## TL;DR
 
 - 화면 24개 → **탭 5개**. 하단 탭바 기준 **토스 증권 수준의 단순함**을 목표로 한다.
@@ -61,7 +63,7 @@
 | FR-6 | **첫 화면 가시성**: 375×667(iPhone SE) 기준 스크롤 전 ①②③이 보인다 | Must | Draft |
 | FR-7 | **홈은 읽기 전용**: 홈에서 상태를 바꾸는 액션(적립 완료 체크, 피드백 등)을 두지 않는다 | Must | Draft |
 | FR-8 | **알림 축소**: 알림 타입을 **세금 D-Day**와 **지표/추천 갱신** 2종으로 제한. 기존 고래/스마트머니/센티먼트 알림 제거(FEATURE-000 FR-4) | Must | Draft |
-| FR-9 | **온보딩 3스텝**: ① 초대 코드 ② 계좌 연결(업비트 CSV / KIS) ③ 월 적립액. 그 외 질문 없음 | Must | Draft |
+| FR-9 | ~~**온보딩 3스텝**: ① 초대 코드 ② 계좌 연결(업비트 CSV / KIS) ③ 월 적립액. 그 외 질문 없음~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must | Draft |
 | FR-10 | **삭제 실행**: `TipsApp`, `Goals` 위젯, 미션/포인트/랭킹/게임 위젯, `MarketIntelligencePreview`, `InvestmentFilterTabs` 컴포넌트 삭제 | Must | Draft |
 | FR-11 | **디자인 토큰 정리**: `packages/ui`에 토스류 톤(넓은 여백, 큰 숫자, 라운드 16~20px, 단일 파랑 액센트) 토큰 추가. `docs/design-system/style-tokens.md` 갱신 | Should | Draft |
 | FR-12 | **빈 상태 통일**: 계좌 미연결 시 5블록 전부 동일한 온보딩 CTA를 가리키게 한다(중복 안내 금지) | Should | Draft |
@@ -107,7 +109,7 @@
 | shell | `components/Home/TaxDeadlineRow` | 신규 (FEATURE-002) |
 | shell | `components/Home/InvoiceSummaryRow` | 신규 (FEATURE-001) |
 | shell | `components/Home/HoldingsPreview` | 신규. 스크롤 아래 |
-| shell | `components/Onboarding/*` | 신규. 3스텝 |
+| shell | `components/Onboarding/*` | ~~신규. 3스텝~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 | shell | `components/Home/Header/**` | 프로필/포인트 요소 제거, 최소 헤더 |
 | shell | `components/TipsApp/**` | **삭제** |
 | shell | `components/Goals/**` | **삭제** |
@@ -125,12 +127,12 @@
 | GET | `/api/app/home` | Y | — | `HomeViewModel` | **기존 route, 계약 재정의** |
 | GET | `/api/app/alerts` | Y | `?limit` | 2종으로 축소 | 기존 |
 | POST | `/api/app/onboarding/invite` | Y/N | `{ code }` | `{ accepted }` | Draft |
-| GET | `/api/app/onboarding/status` | Y | — | `{ steps: {key, done}[] }` | Draft |
+| GET | ~~`/api/app/onboarding/status`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Y | — | `{ steps: {key, done}[] }` | Draft |
 
 ```ts
 type HomeViewModel = {
   asOf: string;
-  onboarding: { complete: boolean; nextStep: "invite" | "link_account" | "set_plan" | null };
+  onboarding: { complete: boolean; nextStep: "invite" | "link_account" | "set_plan" | null };  // 정정 2026-11-06(S3a) — 은퇴, `BFF-REQ-046` FR-6
 
   totalAsset: {
     totalKrw: number;
@@ -200,6 +202,7 @@ flowchart TB
   P1 & P2 & P3 & P4 & P5 --> H
   H -->|블록 탭| T1[② 코치] & T2[③ 청구서] & T3[④ 세금] & T4[⑤ 포지션]
   U -->|미완료| OB[온보딩 3스텝] --> BFF
+  %% 정정 2026-11-06(S3a) — 위 줄의 3스텝은 은퇴, `BFF-REQ-046` FR-6
 ```
 
 ## Trace Matrix
@@ -214,7 +217,7 @@ flowchart TB
 | FR-6 | — | — | — | — | 375×667 스크린샷 검수 |
 | FR-7 | — | — | — | — | 홈에 mutation 호출 0건 |
 | FR-8 | `alerts` | `/api/app/alerts` | notification 축소 | enum 2종 | 알림 타입 2개 |
-| FR-9 | `Onboarding/*` | `onboarding/*` | `modules/auth` | `InviteCode` | 3스텝 완주 |
+| FR-9 | `Onboarding/*` | `onboarding/*` | `modules/auth` | `InviteCode` | ~~3스텝 완주~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 | FR-10 | 삭제 확인 | — | — | — | 컴포넌트 grep 0건 |
 | FR-11 | `packages/ui` | — | — | — | 토큰 문서 갱신 |
 | FR-12 | 빈 상태 | `onboarding.nextStep` | — | — | CTA 1개 |
@@ -230,7 +233,7 @@ flowchart TB
 - [ ] AI 추천 블록이 FEATURE-004 3종 세트 게이트를 따른다(미충족 시 "표시할 추천이 없습니다").
 - [ ] 홈에서 상태를 변경하는 요청이 발생하지 않는다.
 - [ ] 알림 타입이 2종이다.
-- [ ] 온보딩이 3스텝으로 완료되고, 초대 코드 없이는 진행되지 않는다.
+- [ ] ~~온보딩이 3스텝으로 완료되고, 초대 코드 없이는 진행되지 않는다.~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 - [ ] `TipsApp`, `Goals`, 미션/포인트/랭킹/게임, `MarketIntelligencePreview`, `InvestmentFilterTabs` 컴포넌트가 코드에 없다.
 - [ ] `pnpm build`가 shell + investments 2앱으로 통과한다.
 - [ ] 기능 인벤토리 행 수 ≤ 12 (FEATURE-000과 공동 수용 기준).
@@ -269,3 +272,4 @@ flowchart TB
 | 2026-09-21 | 머리 배너 추가. 흡수됐던 홈 5블록 중 ④ 세금 D-Day · ⑤ 청구서가 `ADR-002`로, 블록 구성 전체가 D6(3블록 + 기존 블록)으로 대체됐다. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |
 | 2026-09-30 | **done/ 으로 보관(REQ 정리).** 2026-09-09 폐기 — `FEATURE-006` 이 대체했다. 완료가 아니라 닫힘 |
 | 2026-11-02 | 머리 블록 4 의 "2 zone(`web` + `web-tax`)" 정정 — 셸 + 도메인 zone 4(`FE-REQ-052`). 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md` |
+| 2026-11-06 | FR-9 온보딩 3스텝 · `/api/app/onboarding/status` 계약 줄 정정 — 은퇴, 도메인 선택(`FEATURE-015` FR-1, 서버 S3a) |

@@ -18,11 +18,6 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default("15m"),
   JWT_REFRESH_SECRET: z.string(),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
-  /**
-   * Kotlin 플랫폼(`salt-platform`, `ADR-006`) 주소 — 서비스 간 내부 조회(`msa-services.md` §5)에만. 화면 경로는 BFF 라우팅 표가 정한다.
-   * 지금 쓰는 곳: 온보딩 `set_plan` 프로브 → 저축 서비스(`SRV-REQ-045` FR-1, 2026-11-03). 비밀이 아니라 로컬 기본값을 둔다
-   */
-  PLATFORM_API_URL: z.string().url().default("http://localhost:4010/api"),
   LOG_LEVEL: z.string().default("info"),
   GEMINI_API_KEY: z.string().min(10),
   GEMINI_MODEL: z.string().default("gemini-2.5-flash-lite"),

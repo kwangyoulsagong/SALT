@@ -714,3 +714,7 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 ## 2026-11-04 — lint 오류 코드 분기 금지(`DEV-001` FR-3)
 
 - [x] `eslint.config.mjs` `no-restricted-syntax` 3꼴 — 변이 3건 error · 도메인 사유 코드(`KR_STOCK_DISABLED`) 통과 · 전체 `npx eslint .` 0건
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 레지스트리 정리 — `CONTEXTS` 에서 `notification` · `COMPOSITE_CONTEXTS` 에서 `onboarding`. `test:layer-check` 차단 10 · 통과 6 · `lint` 통과

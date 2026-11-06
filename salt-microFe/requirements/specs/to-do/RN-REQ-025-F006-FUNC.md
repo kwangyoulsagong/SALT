@@ -13,6 +13,8 @@ created: 2026-09-09
 
 > **2026-09-21 개정.** `ADR-002` — 홈 블록 순서(FR-32)가 3블록으로 바뀌었다. 거래 기록 · 알림 읽음 · 설정 · 온보딩 건너뛰기의 모바일 규칙(오프라인 쓰기 금지 포함)을 추가했다(§2026-09-21). 근거: 스토리보드 갭 감사 D5 · D6 · D9 · B12 · B13 · B14.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 모바일 대화의 핵심 규칙은 **백그라운드 전환 처리**다. 앱이 백그라운드로 가면 스트림이 끊기고, 복귀 시 **중복 생성 없이** 이어야 한다.
@@ -130,7 +132,7 @@ created: 2026-09-09
 | FR-102 | 설정은 그룹별 저장, 서버 응답 후 반영. 밴드 임계값 입력 0건 (D9) | Must |
 | FR-103 | 적립 기본액 저장 후 **서버 주간 환산값**으로 표시 갱신 | Must |
 | FR-104 | 온보딩 [건너뛰기]는 서버 성공 후에만 다음 단계. 3단계는 F003 적립 설정 저장 **(기본안 — 감사 문서 B12)** | Must |
-| FR-105 | 온보딩 단계 키 `first_holding`을 `packages/core`에서 받는다. `link_account` 0건 — **BREAKING** | Must |
+| FR-105 | ~~온보딩 단계 키 `first_holding`을 `packages/core`에서 받는다. `link_account` 0건 — **BREAKING**~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Must |
 
 ## Acceptance Criteria
 

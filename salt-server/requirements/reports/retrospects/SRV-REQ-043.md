@@ -42,3 +42,7 @@
 
 - 파일만 걸침 — 이 REQ 를 머리 주석에 둔 파일을 S2c 가 고쳤다. 판단 · 실수는 루트 회고 `MONEY-S2c-notification`
 - **Action**: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 권한 검사 표본은 늘 '아직 플랫폼에 없는 서비스' 스키마 — 다음 이동(S4 portfolio) 때 또 옮긴다(코드 주석에 이력)

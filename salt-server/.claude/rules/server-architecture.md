@@ -73,7 +73,7 @@ presentation → application → domain ← infrastructure
 | 컨텍스트 | 엮는 것 | 근거 |
 |---|---|---|
 | `homebriefing` | portfolio + plan + coach | F006 홈 3블록 |
-| `onboarding` | auth + portfolio + plan | F000 · F006 3스텝 (초대 → 첫 보유 기록 → 적립액) |
+| ~~`onboarding`~~ | ~~auth + portfolio + plan~~ | ~~F000 · F006 3스텝 (초대 → 첫 보유 기록 → 적립액)~~ **2026-11-06 은퇴** — 도메인 선택 온보딩은 Kotlin identity(`SRV-REQ-048` FR-1) |
 
 **조립이 행을 남기면 그 행의 주인을 먼저 찾는다.** 조합 컨텍스트에 Aggregate를 두려면 `domain`이 필요해지고, 그건 "Aggregate가 없다"는 전제를 되돌리는 것이다.
 

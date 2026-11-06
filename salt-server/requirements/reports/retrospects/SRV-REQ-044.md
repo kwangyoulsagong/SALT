@@ -49,3 +49,7 @@
 ## 2026-11-06 — 서버 S2c notification(`MONEY-S2c-notification`) · `9cee4715` · `33e949e8` · `2fa68f61` · `f1a3c64c`
 
 - 발행이 Kotlin 밖에서 시작되는 첫 경우 — 검증 자리를 계약 파일 테스트로 옮겼다. 루트 회고 `MONEY-S2c-notification`
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- 없음

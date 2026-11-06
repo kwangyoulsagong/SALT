@@ -11,6 +11,8 @@
 > 기본안 B6 · B7 · B12 · B13 · B14 · B16 · B19를 반영했다. 홈은 **3블록**, 자산 탭은 `포지션` / `시장` / `관심 종목`,
 > 알림은 **1종**이다. 청구서 · 세금에 걸린 문장은 전부 지우거나 바꿨다.
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## TL;DR
 
 - **대화가 제품의 핵심이다.** 코치와 자연어로 주고받는 것이 SALT의 중심이 된다. 서버에 `ai-coach`(점수 엔진 + LLM explainer) · `signal-performance` · `profit-plan` · `behavior-coach`가 이미 있고 화면만 없었다.
@@ -166,7 +168,7 @@ FEATURE-005(2026-09-08)는 5탭(`홈`·`코치`·`청구서`·`세금`·`포지�
 
 | ID | 요구사항 | 우선순위 | 상태 |
 |---|---|---|---|
-| FR-40 | **3스텝**: ① 초대 코드 ② **첫 보유 기록 입력**(건너뛰기 가능) ③ 월 적립액. 그 외 질문 없음. **개정 2026-09-21** — "계좌 연결(업비트 CSV / KIS)" 삭제. 계좌 연동은 영구 Non-Goal(ADR-002 · **기본안 — 감사 문서 B12**) | Must | 부분 — 3스텝(초대 · 첫 거래 기록 · 첫 목표, FE-REQ-010 FR-20~26, `bfe19ba` 2026-09-18 · 계좌 문구 제거 `d6342a1`). 3단계가 월 적립액이 아니라 첫 목표 · 건너뛰기 없음 |
+| FR-40 | **3스텝**: ① 초대 코드 ② **첫 보유 기록 입력**(건너뛰기 가능) ③ 월 적립액. 그 외 질문 없음. **개정 2026-09-21** — "계좌 연결(업비트 CSV / KIS)" 삭제. 계좌 연동은 영구 Non-Goal(ADR-002 · **기본안 — 감사 문서 B12**) | Must | 부분 — 3스텝(초대 · 첫 거래 기록 · 첫 목표, FE-REQ-010 FR-20~26, `bfe19ba` 2026-09-18 · 계좌 문구 제거 `d6342a1`). 3단계가 월 적립액이 아니라 첫 목표 · 건너뛰기 없음 (온보딩 부분 **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)) |
 | FR-41 | 온보딩 미완료면 3블록 대신 **온보딩 카드 1개**를 보여준다. 블록마다 중복 안내하지 않는다 | Must | 부분 — 홈 온보딩 카드 1개(`OnboardingCard`, FE-REQ-010 FR-25)는 있다. 3블록이 없어 '대신' 표시가 아니라 기존 블록 위에 붙는다 |
 | FR-43 | 2단계는 **포지션의 [거래 기록 추가] 시트와 같은 컴포넌트**다(FR-73). 저장 1건 이상 또는 **건너뛰기**면 완료다. 건너뛰기는 서버에 기록한다 — 기록하지 않으면 온보딩 카드가 영원히 남는다. **(기본안 — 감사 문서 B12)** | Must | Draft |
 | FR-44 | 3단계 월 적립액은 **실제로 저장**한다 — F003 적립 설정(`PATCH /api/app/plan/settings`). 안내만 하고 넘기지 않는다. 주간 환산은 서버가 한다. **(기본안 — 감사 문서 B12)** | Must | Draft |
@@ -278,7 +280,7 @@ FSD 슬라이스 기준. 상세는 `FE-REQ-030`~`033`(F006 UI/FUNC/API/PERF)과 
 | `widgets` | `market-board`(기존) | 시장 2컬럼 — 우측 패널 내용은 F004 |
 | `widgets` | `alert-list` · `settings-panel` · `app-header` | 알림 목록 · 설정 그룹 · 공통 헤더(검색 · 벨) |
 | `widgets` | `pc-panel-grid` | `MovableGrid` 배치 |
-| `widgets` | `onboarding-flow` | 3스텝(초대 · 첫 보유 기록 · 적립액) |
+| `widgets` | `onboarding-flow` | ~~3스텝(초대 · 첫 보유 기록 · 적립액)~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 | `features` | `ask-coach` | 메시지 전송 + SSE 구독 |
 | `features` | `arrange-panels` | 격자 배치 변경 |
 | `features` | `record-transaction` | 거래 기록 추가 · 수정 · 삭제 + 서버 미리보기 |
@@ -320,7 +322,7 @@ FSD 슬라이스 기준. 상세는 `FE-REQ-030`~`033`(F006 UI/FUNC/API/PERF)과 
 | Server | `homebriefing` 조합 컨텍스트 신규 — 부분 실패 격리 |
 | Server | `notification` 타입 **1종** 제한 · 알림 끄기 반영 |
 | Server | `portfolio` — 성과 `1y` 구간 + MDD · 리스크 레이더 4축 · 거래 미리보기 · 거래일 수정 |
-| Server | `onboarding` — 2단계 `first_holding`(보유 기록 1건 또는 건너뛰기) |
+| Server | ~~`onboarding` — 2단계 `first_holding`(보유 기록 1건 또는 건너뛰기)~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 | DB | `CoachConversation` · `CoachMessage` 신규. `InvestmentInsight.kind` 컬럼 승격 |
 | DB | `User.alertsEnabled` · `User.firstHoldingSkippedAt` 추가. 포지션 · 레이더는 **신규 모델 없음**(`PortfolioTransaction` · `PortfolioHolding` · `PriceHistory` · `NewsArticle` 조회) |
 | DB | `InviteCode` (F000에서 신설) |
@@ -343,7 +345,7 @@ FSD 슬라이스 기준. 상세는 `FE-REQ-030`~`033`(F006 UI/FUNC/API/PERF)과 
 | FR-25 | 카드 게이트 | `renderable` | `renderGate` policy | `IndicatorTrackRecord` | 3종 중 1개 제거 시 미렌더 |
 | FR-26 | 폴백 배지 | `explanation.source` | rule 폴백 | — | LLM 실패 3케이스 |
 | FR-29·31 | — | — | 프롬프트 + 후처리 | — | 문구 전수 검수 |
-| FR-40~44 | `onboarding-flow` | `/onboarding/*` · `/portfolio/transactions` · F003 plan | `onboarding` | `InviteCode` · `User.firstHoldingSkippedAt` | 3스텝 완주 · 2단계 건너뛰기 |
+| FR-40~44 | `onboarding-flow` | `/onboarding/*` · `/portfolio/transactions` · F003 plan | `onboarding` | `InviteCode` · `User.firstHoldingSkippedAt` | ~~3스텝 완주 · 2단계 건너뛰기~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) |
 | FR-50~55 | `alert-list` | `/alerts*` | `notification` | `InvestmentNotification` · `User.alertsEnabled` | 타입 1종 · 읽음 · 모두 읽음 · 안 읽은 수 |
 | FR-60~63 | `market-board` | F000 · F004 | F000 · F004 | — | PC 2컬럼 · 모바일 표 1열 |
 | FR-64~67 | `market-board` 요약 띠 (`FE-REQ-037`) | `GET /api/app/market/summary` · WS `price_update.change24hAmount` (`BFF-REQ-035`) | `GET /api/investment/market/summary` (`SRV-REQ-036`) · 설정 `MARKET_SUMMARY_*` | — (저장 시세 · 거래소 5분봉) | 프론트 종목 상수 0 · 금액 역산 0 · "급등" 0 |
@@ -377,7 +379,7 @@ FSD 슬라이스 기준. 상세는 `FE-REQ-030`~`033`(F006 UI/FUNC/API/PERF)과 
 - [ ] 알림 읽음 · 모두 읽음이 동작하고 벨 배지 수가 서버 안 읽은 수와 같다
 - [ ] 알림 끔이면 새 알림이 생성되지 않는다
 - [ ] 알림 만들기 버튼 · 조건 알림 · 투자 피드가 0건이다
-- [ ] 온보딩이 3스텝으로 완료되고 초대 코드 없이 진행되지 않는다
+- [ ] ~~온보딩이 3스텝으로 완료되고 초대 코드 없이 진행되지 않는다~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4)
 - [ ] 온보딩 2단계를 건너뛰면 다시 로그인해도 온보딩 카드가 나오지 않는다
 - [ ] 온보딩 3단계 적립액이 F003 설정에 저장된다
 - [ ] 자산 탭 세그먼트가 `포지션` / `시장` / `관심 종목`이고, `시장`이 PC에서 지금 2컬럼 그대로다
@@ -446,3 +448,4 @@ FSD 슬라이스 기준. 상세는 `FE-REQ-030`~`033`(F006 UI/FUNC/API/PERF)과 
 | 2026-11-02 | FR-64~67 — 국내 탭에 같은 띠(F011 `FE-REQ-050`): 같은 칸 컴포넌트 · 서버가 칸을 정한다 · 실패면 안 그림 · 종목 칸은 국내 체결로 실시간. 등락 기준은 전일 종가. FR-65 정정(국내 띠의 지수 · 일정 칸). 코인 띠 무변경 |
 | 2026-11-02 | FR-4 · Q1 정정 — `apps/web-tax` zone 삭제(`FE-REQ-052`). 투자 3탭은 `FE-REQ-053` FR-4 에서 투자 zone 안 탭으로 다시 읽는다. 루트 `requirements/specs/done/MONEY-F0-domain-zones-slice.md` |
 | 2026-11-02 | FR-1~6 "3탭"을 zone 안 탭으로 다시 읽는다 — 투자 화면이 투자 zone(`apps/web-investment`)이 되어 홈 ↔ 투자는 문서 이동, 투자 안(목록 → 상세 → 리포트)은 soft. 탭 IA 갱신은 `FE-REQ-054`(AppChrome). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |
+| 2026-11-06 | FR-40~44 온보딩 3스텝(첫 보유 기록 · 건너뛰기 · 적립액) 정정 — 착수 전에 대체됨: 도메인 선택 온보딩(`FEATURE-015` FR-1, 서버 S3a). 투자를 고른 사람의 첫 기록 = 투자 zone 첫 화면 |

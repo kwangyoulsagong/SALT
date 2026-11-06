@@ -67,3 +67,7 @@
 - 몫: 계약 `contracts/events/coach.DecisionChanged.json` · `OutboxSource(coach)` · Express 본문 테스트 · 구독 큐 셋(`notification.<event>` + dlq)
 - 검증: 종단 — Express 와 같은 SQL 로 넣은 행이 릴레이 → 구독 · 같은 이벤트 2회 1건(억제 + `processed_event`)
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
+
+- `application.yml` 은 서비스 계정 줄만 추가 — 메시징 설정 그대로

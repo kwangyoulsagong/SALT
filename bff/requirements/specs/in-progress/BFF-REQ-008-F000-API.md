@@ -13,6 +13,8 @@ created: 2026-09-09
 > - 수용 기준 중 "신규 7개 등록"은 2026-09-18 에 열렸다(`onboarding.routes.ts` · `watchlist.routes.ts` · `portfolio.routes.ts`) — 미구현은 search · 북마크만
 
 
+> **정정 2026-11-06 (서버 S3a, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`)** — 온보딩 3스텝(초대 → 첫 보유 기록/계좌 → 적립·목표)과 그 계약(`/api/onboarding/status` · `/api/app/onboarding/status` · 단계 키 `link_account` · `first_holding` · `set_plan` · 건너뛰기)은 **은퇴**했다. 온보딩은 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 기록 하나 → 끝(`FEATURE-015` FR-1 · `SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4). 아래 본문의 해당 줄은 그 자리에 줄을 그었다.
+
 ## Summary
 
 F000의 프론트 대면 계약. 신규는 **온보딩 3개**와 **뉴스·관심종목** 뿐이고, 나머지는 제거와 정정이다.
@@ -23,7 +25,7 @@ F000의 프론트 대면 계약. 신규는 **온보딩 3개**와 **뉴스·관�
 |---|---|---|---|---|
 | GET | `/api/app/onboarding/invite/check` | N | `?code=` | `{ valid, reasonCode? }` |
 | POST | `/api/app/onboarding/invite` | N | `{ code, email, nickname, password }` | `{ accessToken, refreshToken, user }` / `403` |
-| GET | `/api/app/onboarding/status` | Y | — | `OnboardingStatusViewModel` |
+| GET | ~~`/api/app/onboarding/status`~~ **정정 2026-11-06(서버 S3a)** 옛 3스텝 온보딩 은퇴 — 도메인 선택(`SRV-REQ-048` FR-1 · `BFF-REQ-046` FR-6 · `FE-REQ-055` FR-4) | Y | — | `OnboardingStatusViewModel` |
 | GET | `/api/app/news` | Y | `?symbol=&limit=5` | `{ items: NewsPreviewVM[] }` |
 | GET | `/api/app/watchlist` | Y | — | `{ items: WatchlistItemVM[] }` |
 | POST/DELETE | `/api/app/watchlist` · `/:id` | Y | `{ assetType, symbol }` | `201` / `204` |
@@ -46,13 +48,13 @@ F000의 프론트 대면 계약. 신규는 **온보딩 3개**와 **뉴스·관�
 ## 뷰모델
 
 ```ts
-// 개정 2026-09-21 — 2단계 'link_account'(계좌 연결)는 "첫 보유 기록 입력"으로 바뀐다(감사 문서 B12).
-// 키 이름 변경은 F006 BFF REQ 가 소유한다 — **`link_account` → `first_holding` (BREAKING, `BFF-REQ-028`)**.
+// 개정 2026-09-21 — 2단계 'link_account'(계좌 연결)는 "첫 보유 기록 입력"으로 바뀐다(감사 문서 B12).  // 정정 2026-11-06(S3a) — 은퇴, `BFF-REQ-046` FR-6
+// 키 이름 변경은 F006 BFF REQ 가 소유한다 — **`link_account` → `first_holding` (BREAKING, `BFF-REQ-028`)**.  // 정정 2026-11-06(S3a) — 은퇴, `BFF-REQ-046` FR-6
 // 아래는 지금 코드의 계약이다. F006 이 들어오면 이 타입도 따라 바뀐다.
 type OnboardingStatusViewModel = {
   complete: boolean;
-  nextStep: 'invite' | 'link_account' | 'set_plan' | null;
-  steps: Array<{ key: 'invite' | 'link_account' | 'set_plan'; done: boolean }>;
+  nextStep: 'invite' | 'link_account' | 'set_plan' | null;  // 정정 2026-11-06(S3a) — 은퇴, `BFF-REQ-046` FR-6
+  steps: Array<{ key: 'invite' | 'link_account' | 'set_plan'; done: boolean }>;  // 정정 2026-11-06(S3a) — 은퇴, `BFF-REQ-046` FR-6
 };
 
 type NewsPreviewVM = {
@@ -209,3 +211,4 @@ type AlertVM = {
 - 2026-10-30: 화면 계약 구현 — `GET /api/app/search` 뷰모델 `{ items: [{ assetType, symbol, name, logoUrl, currentPrice, changeRate, isTracked, isHeld }], tracked }`(`AssetSearchResultVM` 이름 대신 `AssetSearchVM`) · FR-19 409 `TRACKED_ASSET_LIMIT` + 두 수 · 관심 목록 `tracked` · 행 `isHeld` — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md`
 - 2026-10-30: F004 슬라이스 19 차트 1주 탭 — FR-12 개정 3종(`week`, `a6accc80`). 응답은 서버 차트 그대로 전달. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md`
 | 2026-11-03 | MONEY-S1a — `3e5e0d42` — `gone.middleware.ts`(동면 410, 이 REQ FR-11)에 은퇴 목록 `RETIRED_PATHS` 를 더했다. 동면 경로 동작 · 테스트 무변경 |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): `GET /api/app/onboarding/status`(`OnboardingStatusViewModel`) 은퇴 → `BFF-REQ-046` FR-6 새 계약. 초대 경로(`/invite/check` · `/invite`)는 그대로 `066ba971` |

@@ -46,6 +46,10 @@ include(
     "services:notification:application",
     "services:notification:infrastructure",
     "services:notification:api",
+    "services:identity:domain",
+    "services:identity:application",
+    "services:identity:infrastructure",
+    "services:identity:api",
     "services:coach:infrastructure",
     "app",
 )

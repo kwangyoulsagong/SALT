@@ -44,3 +44,4 @@ source: 사용자 "국내주식도 주식 홈에서 코인처럼 주요 그게 �
 | 2026-11-02 | 구현 · in-progress. FR-3 원/달러 미구현(모의 키 거부) · FR-4 코드 변경 없음 · FR-5 `schedule` 필드 · FR-8 쿼리 수 정정. 같은 커밋에서 KIS 지수 고가 · 저가 · 거래대금(`KisClient.indexQuote`) · 분 기록 쓰기(`PollKrIndices`) · 정리 작업(`PruneKrIndexTicks`, 워커 15:50) |
 | 2026-11-02 | done. FR-3 원/달러 칸을 범위에서 뺌(사용자 "안되는 것들은 빼 실전키 안할거니까" — 실전 키 미사용은 2026-10-29 결정) |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 파일만 걸침 — `composition.ts` 에서 notification 조립 삭제 · coach 통보를 `OutboxDecisionChangeNotifier` 로 |
+| 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음(이 REQ 몫) — 같은 파일 `composition.ts` 에서 온보딩 조립 · 플랫폼 클라이언트 삭제 `7f2ba1ed` |
