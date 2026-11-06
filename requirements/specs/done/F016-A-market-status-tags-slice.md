@@ -14,6 +14,7 @@ status: done
 
 > **done 2026-11-06** — 커밋 `a4dee640`(DB) · `a277268e`(서버) · `336b8de4`(BFF) · `2bf229c5`(FE). 영역 REQ 넷 in-progress(남은 FR 은 단계 B~D).
 > 검증 `requirements/reports/checklists/F016-A-market-status-tags.md`.
+> **확인 2회차 2026-11-06** — 결함 1(시세 표 행 칩이 가격 열을 밀어냄 → 표 간결 모드).
 
 ## 범위
 
@@ -57,3 +58,4 @@ status: done
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-06 | 신규 · done — 단계 A |
+| 2026-11-06 | 확인 2회차 — 결함 1 고침(표 간결 모드) · 넘침 1024~1600 · 실패 · 권한 경로 |
