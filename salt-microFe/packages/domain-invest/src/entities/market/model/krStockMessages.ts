@@ -183,6 +183,24 @@ export const KR_STOCK_MESSAGES = {
     quantity: (shares: string) => `${shares}주`,
   },
 
+  /** 장중 프로그램 매매(F016 단계 B · FR-5) — 오늘 누적 사실만(매수 − 매도). 해석 · 방향 문구 없음 */
+  programToday: {
+    label: "오늘 프로그램 순매수",
+    asOf: (time: string) => `${time} 기준`,
+    /** 스크린리더 · 마우스 — 매수 · 매도 금액과 수량 */
+    detail: (buy: string, sell: string, shares: string) => `매수 ${buy} · 매도 ${sell} · 순매수 ${shares}주`,
+  },
+
+  /** 상세 오늘 소식(F016 단계 B · FR-4) — 시황 · 공시 **제목만**(원천에 본문 · 링크가 없다). 원인 단정 문구 없음 */
+  news: {
+    heading: "오늘 소식",
+    caption: "시황 · 공시 제목만 모아요. 원문은 제공처에서 볼 수 있어요.",
+    kind: { news: "시황", disclosure: "공시" },
+    empty: "오늘 이 종목에 걸린 소식이 아직 없어요.",
+    unavailable: "오늘 소식을 잠시 볼 수 없습니다.",
+    collectedAt: (when: string) => `${when}까지 받은 소식`,
+  },
+
   /** 상세 호가 10단계(F011 슬라이스 6b · FR-28) — 잔량 사실만. "매수세 우위" 같은 해석 문구 없음 */
   orderbook: {
     heading: "호가",

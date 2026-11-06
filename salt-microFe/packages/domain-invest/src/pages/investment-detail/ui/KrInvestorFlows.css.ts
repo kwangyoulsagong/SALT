@@ -63,3 +63,27 @@ export const net = styleVariants({
   down: { color: vars.colors.special.downDark },
   flat: { color: vars.colors.text.secondary },
 });
+
+/** 오늘 프로그램 순매수 한 줄(F016 단계 B) — 일별 표 위. 라벨 왼쪽 · 값 오른쪽, 좁으면 줄바꿈 */
+export const programRow = style({
+  margin: 0,
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "baseline",
+  justifyContent: "space-between",
+  gap: "4px 12px",
+  padding: "10px 12px",
+  borderRadius: 8,
+  backgroundColor: vars.colors.background.secondary,
+  fontSize: vars.typography.t7.fontSize,
+  lineHeight: vars.typography.t7.lineHeight,
+});
+
+export const programLabel = style({
+  color: vars.colors.text.secondary,
+});
+
+export const programValue = style({
+  fontWeight: vars.fontWeights.semibold,
+  fontVariantNumeric: "tabular-nums",
+});

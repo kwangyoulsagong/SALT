@@ -1,16 +1,17 @@
 "use client";
 
-import type { KrInvestorNet } from "@repo/core/marketKr";
+import type { KrInvestorNet, KrProgramFlow } from "@repo/core/marketKr";
 import { kstClock, kstMonthDay } from "@repo/core/marketKr";
 import { StatusLine } from "@repo/ui/statusLine";
 
-import { KR_STOCK_MESSAGES, useKrInvestors } from "@/entities/market";
+import { KR_STOCK_MESSAGES, useKrInvestors, useKrIntradayFlows } from "@/entities/market";
 import { formatKrwCompact } from "@repo/web-shared/lib";
 
-import { caption, heading, net, scroller, table, td, th, totalRow } from "./KrInvestorFlows.css";
+import { caption, heading, net, programLabel, programRow, programValue, scroller, table, td, th, totalRow } from "./KrInvestorFlows.css";
 import { krSideCard } from "./SymbolHeader.css";
 
 const M = KR_STOCK_MESSAGES.investors;
+const P = KR_STOCK_MESSAGES.programToday;
 const MINUS = "−";
 const GROUPS = ["individual", "foreign", "institution"] as const;
 
@@ -27,6 +28,30 @@ const NetCell = ({ value }: { value: KrInvestorNet }) => {
   );
 };
 
+const toneOf = (value: number) => (value > 0 ? "up" : value < 0 ? "down" : "flat");
+const signed = (value: number) => {
+  const tone = toneOf(value);
+  return `${tone === "up" ? "+" : tone === "down" ? MINUS : ""}${formatKrwCompact(Math.abs(value))}`;
+};
+
+/**
+ * 오늘 프로그램 순매수 한 줄(F016 단계 B · `FE-REQ-063` FR-5) — 일별 표(저녁 6시 뒤 확정) 위에 장중 값. 오늘 값이 없으면(장 전 · 휴장 ·
+ * 실패) 줄 자체가 없다 — 0 으로 그리지 않는다. 매수 · 매도 · 수량은 title(값은 서버 것, 표기만)
+ */
+const ProgramToday = ({ flow }: { flow: KrProgramFlow }) => {
+  const absShares = BigInt(flow.netQuantity.replace(/^-/, "")).toLocaleString("ko-KR");
+  const tone = toneOf(flow.netValue);
+  const shares = `${tone === "up" ? "+" : tone === "down" ? MINUS : ""}${absShares}`;
+  return (
+    <p className={programRow} title={P.detail(formatKrwCompact(flow.buyValue), formatKrwCompact(flow.sellValue), shares)}>
+      <span className={programLabel}>
+        {P.label} · {P.asOf(kstClock(flow.at))}
+      </span>
+      <span className={`${programValue} ${net[tone]}`}>{signed(flow.netValue)}</span>
+    </p>
+  );
+};
+
 /** "10/23" — 거래일 문자열(KST)을 그대로 쓴다. 시각 계산을 하지 않는다 */
 const monthDay = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
 
@@ -39,6 +64,8 @@ const monthDay = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.sl
  */
 export const KrInvestorFlows = ({ code }: { code: string }) => {
   const { data, isError } = useKrInvestors(code);
+  const intraday = useKrIntradayFlows(code).data;
+  const program = intraday?.status === "ok" ? intraday.program : null;
   if (!data && !isError) return null;
   if (isError || data?.status === "disabled") return null;
 
@@ -47,6 +74,7 @@ export const KrInvestorFlows = ({ code }: { code: string }) => {
       <h2 id="kr-investor-flows-heading" className={heading}>
         {M.heading}
       </h2>
+      {program && <ProgramToday flow={program} />}
       {data?.status !== "ok" ? (
         <StatusLine kind="error">{M.unavailable}</StatusLine>
       ) : data.rows.length === 0 || !data.totals ? (
