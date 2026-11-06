@@ -117,6 +117,19 @@ describe("/api/app/market/kr", () => {
     assert.equal(orderbook.mock.callCount(), 1);
   });
 
+  it("오늘 소식 · 장중 수급 — /:code 로 잡히지 않고 · 코드 형식이 틀리면 400(F016 단계 B)", async () => {
+    const news = mock.method(appKrStockService, "getNews", async () => ({ status: "unavailable" }) as never);
+    const flows = mock.method(appKrStockService, "getIntradayFlows", async () => ({ status: "ok", code: "005930", date: "2026-11-06", program: null }) as never);
+    const detail = mock.method(appKrStockService, "getDetail", async () => ({ status: "unavailable" }) as never);
+    assert.deepEqual(await get("/api/app/market/kr/005930/news"), { status: 200, body: { success: true, data: { status: "unavailable" } } });
+    assert.equal((await get("/api/app/market/kr/005930/flows/intraday")).status, 200);
+    assert.equal(news.mock.calls[0]!.arguments[1], "005930");
+    assert.equal(flows.mock.calls[0]!.arguments[1], "005930");
+    assert.equal(detail.mock.callCount(), 0);
+    for (const path of ["/api/app/market/kr/59/news", "/api/app/market/kr/59/flows/intraday"]) assert.equal((await get(path)).status, 400, path);
+    assert.equal(news.mock.callCount() + flows.mock.callCount(), 2);
+  });
+
   it("서비스가 올린 4xx(소유자 아님)는 error middleware 가 그대로", async () => {
     mock.method(appKrStockService, "getSession", async () => {
       throw Object.assign(new Error("404"), { response: { status: 404, data: { code: "KR_STOCK_NOT_AVAILABLE", message: "x" }, headers: {} } });

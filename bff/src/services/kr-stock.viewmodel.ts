@@ -527,6 +527,72 @@ export const toKrInvestorsVM = (raw: unknown) => {
   };
 };
 
+// ==================== 오늘 소식 · 장중 수급 (F016 단계 B · BFF-REQ-051 FR-3 · 4) ====================
+
+export type KrNewsKindVM = "news" | "disclosure";
+
+export interface KrNewsItemVM {
+  id: string;
+  /** 공시 · 시황 칩 — 서버 판정 그대로 */
+  kind: KrNewsKindVM;
+  provider: string;
+  title: string;
+  publishedAt: string;
+}
+
+const KR_NEWS_KINDS: readonly KrNewsKindVM[] = ["news", "disclosure"];
+
+/**
+ * `GET /api/market/kr/:code/news` — 오늘 시황 · 공시 제목(최신이 앞, 광고성 제외는 서버). **링크 · 본문 칸 없음**(원천에 없다).
+ * 모르는 `kind` 는 버린다(새 서버가 종류를 늘려도 화면이 모르는 칩을 그리지 않게). `collectedAt` 은 시장 전체 마지막 수집
+ */
+export const toKrNewsVM = (raw: unknown) => {
+  const r = obj(raw, "data");
+  return {
+    code: str(r, "code"),
+    date: str(r, "date"),
+    collectedAt: strOrNull(r, "collectedAt"),
+    items: arr(r, "items").flatMap((d): KrNewsItemVM[] => {
+      const x = obj(d, "item");
+      const kind = str(x, "kind");
+      if (!(KR_NEWS_KINDS as readonly string[]).includes(kind)) return [];
+      return [
+        { id: str(x, "id"), kind: kind as KrNewsKindVM, provider: str(x, "provider"), title: str(x, "title"), publishedAt: str(x, "publishedAt") },
+      ];
+    }),
+  };
+};
+
+/** 장중 프로그램 매매 누적 — 금액은 원 정수 · 수량은 주(문자열). 서버 값 그대로(합 · 차 계산 0) */
+export interface KrProgramFlowVM {
+  at: string;
+  netQuantity: string;
+  netValue: number;
+  buyValue: number;
+  sellValue: number;
+  collectedAt: string;
+}
+
+/** `GET /api/market/kr/:code/flows/intraday` — 오늘 값이 없으면 `program: null`(장 전 · 휴장 · 유니버스 밖) */
+export const toKrIntradayFlowsVM = (raw: unknown) => {
+  const r = obj(raw, "data");
+  const p = r.program === null || r.program === undefined ? null : obj(r.program, "program");
+  return {
+    code: str(r, "code"),
+    date: str(r, "date"),
+    program: p
+      ? ({
+          at: str(p, "at"),
+          netQuantity: str(p, "netQuantity"),
+          netValue: num(p, "netValue"),
+          buyValue: num(p, "buyValue"),
+          sellValue: num(p, "sellValue"),
+          collectedAt: str(p, "collectedAt"),
+        } satisfies KrProgramFlowVM)
+      : null,
+  };
+};
+
 // ==================== 호가 (F011 슬라이스 6b · FR-28) ====================
 
 /** 호가 한 단계 — 가격은 원 정수, 잔량은 주(서버가 BigInt 를 문자열로) */

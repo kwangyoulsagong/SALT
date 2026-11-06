@@ -27,6 +27,9 @@ import {
   type KrMarketStatusPort,
   type KrViEventFact,
   krViKindOf,
+  type KrMoveSourcePort,
+  type KrNewsTitleFact,
+  type KrProgramFlowFact,
 } from "../domain";
 
 /**
@@ -68,6 +71,10 @@ export const KIS_QUERY_TR = {
   overtimePrice: "FHPST02300000",
   /** 변동성완화장치(VI) 현황 — 시장 전체 한 번 · 한 쪽 30건 · 발동 시각 내림차순(F016 단계 A · `SRV-REQ-051` FR-2, 2026-11-06 실측) */
   viStatus: "FHPST01390000",
+  /** 종합 시황/공시(제목) — 시장 전체 한 쪽 40건 · 게시 시각 내림차순 · 본문 · 링크 없음(F016 단계 B · `SRV-REQ-051` FR-1, 2026-11-06 실측) */
+  newsTitle: "FHKST01011800",
+  /** 종목별 프로그램매매추이(체결) — 장중 누적 · 금액 원 단위(F016 단계 B · FR-5, 2026-11-06 실측) */
+  programTrade: "FHPPG04650101",
 } as const;
 
 /**
@@ -164,6 +171,12 @@ const isoDate = (yyyymmdd: string) =>
   `${yyyymmdd.slice(0, 4)}-${yyyymmdd.slice(4, 6)}-${yyyymmdd.slice(6, 8)}`;
 const compactDate = (iso: string) => iso.replaceAll("-", "");
 
+/** `YYYYMMDD` + `hhmmss`(KST 벽시계) → 실제 시각. 형식이 틀리면 `null` */
+const kstWallClock = (yyyymmdd: unknown, hhmmss: unknown): Date | null =>
+  typeof yyyymmdd === "string" && /^\d{8}$/.test(yyyymmdd) && typeof hhmmss === "string" && /^\d{6}$/.test(hhmmss)
+    ? new Date(`${isoDate(yyyymmdd)}T${hhmmss.slice(0, 2)}:${hhmmss.slice(2, 4)}:${hhmmss.slice(4, 6)}+09:00`)
+    : null;
+
 /** 거래일 00:00 KST(= 전날 15:00 UTC) — `PriceHistory(1d)` 국내 주식 봉 시각(FR-20) */
 const kstMidnight = (yyyymmdd: string) => new Date(Date.parse(`${isoDate(yyyymmdd)}T00:00:00+09:00`));
 
@@ -175,7 +188,9 @@ export interface KisClientOptions {
   now?: () => Date;
 }
 
-export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProviderHealthPort, KrMarketStatusPort {
+export class KisClient
+  implements KrStockQuotePort, KrSupplementPort, KrProviderHealthPort, KrMarketStatusPort, KrMoveSourcePort
+{
   private readonly http;
   private readonly pacer: RatePacer;
   private readonly now: () => Date;
@@ -543,6 +558,78 @@ export class KisClient implements KrStockQuotePort, KrSupplementPort, KrProvider
       ];
     });
     return { events, hasMore: trCont === "F" || trCont === "M" };
+  }
+
+  /**
+   * 시황/공시 제목 한 쪽(F016 단계 B · FR-1) — 종목 칸을 비우면 **시장 전체**(2026-11-06 11:42 실측 40건 ≈ 4분치). `before` 를 주면 그 시각
+   * 이하부터(쪽 넘김 — 같은 날 09:00 을 주면 09:00:00 ~ 08:58:26 40건). 시각은 그날 KST 벽시계 → UTC. 관련 종목은 `iscd1`~`iscd10`
+   */
+  async newsTitlesPage(before: { date: string; hhmmss: string } | null): Promise<KrNewsTitleFact[]> {
+    const body = await this.get(
+      "/uapi/domestic-stock/v1/quotations/news-title",
+      KIS_QUERY_TR.newsTitle,
+      {
+        FID_NEWS_OFER_ENTP_CODE: "",
+        FID_COND_MRKT_CLS_CODE: "",
+        FID_INPUT_ISCD: "",
+        FID_TITL_CNTT: "",
+        FID_INPUT_DATE_1: before ? compactDate(before.date) : "",
+        FID_INPUT_HOUR_1: before ? before.hhmmss : "",
+        FID_RANK_SORT_CLS_CODE: "",
+        FID_INPUT_SRNO: "",
+      },
+      KIS_PRIORITY.supplement
+    );
+    const rows: any[] = Array.isArray(body.output) ? body.output : [];
+    return rows.flatMap((row): KrNewsTitleFact[] => {
+      const serial = typeof row?.cntt_usiq_srno === "string" ? row.cntt_usiq_srno.trim() : "";
+      const title = typeof row?.hts_pbnt_titl_cntt === "string" ? row.hts_pbnt_titl_cntt.trim() : "";
+      const publishedAt = kstWallClock(row?.data_dt, row?.data_tm);
+      if (!serial || !title || !publishedAt) return [];
+      const codes = [...new Set(
+        Array.from({ length: 10 }, (_, i) => row[`iscd${i + 1}`]).flatMap((c) =>
+          typeof c === "string" && /^[0-9A-Z]{6}$/.test(c.trim()) ? [c.trim()] : []
+        )
+      )];
+      const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+      return [
+        {
+          serial,
+          providerCode: text(row.news_ofer_entp_code) ?? "",
+          providerName: text(row.dorg) ?? "",
+          publishedAt,
+          title,
+          categoryCode: text(row.news_lrdv_code),
+          codes,
+        },
+      ];
+    });
+  }
+
+  /**
+   * 종목 프로그램 매매 누적 최신 행(FR-5) — 응답은 체결 시각 내림차순 30행, 맨 앞이 지금까지 누적. 금액 칸은 **원**이다
+   * (2026-11-06 11:43 실측 삼성전자 순매수 `60550831650` ≈ 605억 · 매수 1.06조 · 매도 0.99조). 그날 체결이 없으면 `null`
+   */
+  async programFlow(code: string): Promise<KrProgramFlowFact | null> {
+    const body = await this.get(
+      "/uapi/domestic-stock/v1/quotations/program-trade-by-stock",
+      KIS_QUERY_TR.programTrade,
+      { FID_COND_MRKT_DIV_CODE: "J", FID_INPUT_ISCD: code },
+      KIS_PRIORITY.supplement
+    );
+    const rows: any[] = Array.isArray(body.output) ? body.output : [];
+    const row = rows[0];
+    const hour = typeof row?.bsop_hour === "string" && /^\d{6}$/.test(row.bsop_hour) ? row.bsop_hour : null;
+    const qty = num(row?.whol_smtn_ntby_qty);
+    const net = num(row?.whol_smtn_ntby_tr_pbmn);
+    const buy = num(row?.whol_smtn_shnu_tr_pbmn);
+    const sell = num(row?.whol_smtn_seln_tr_pbmn);
+    if (!hour || qty === null || net === null || buy === null || sell === null) return null;
+    // 날짜는 응답에 없다 — 자정 넘어 본 장 마감 행은 오늘 날짜면 미래가 되니 하루 앞으로(호가와 같은 규칙)
+    const now = this.now();
+    let at = kstWallClock(compactDate(kstDateOf(now)), hour)!;
+    if (at.getTime() > now.getTime() + 60_000) at = new Date(at.getTime() - 86_400_000);
+    return { code, at, netQuantity: BigInt(Math.trunc(qty)), netValue: net, buyValue: buy, sellValue: sell };
   }
 
   // ==================== 요청 ====================

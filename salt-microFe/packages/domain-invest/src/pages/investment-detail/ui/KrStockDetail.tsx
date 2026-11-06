@@ -24,6 +24,7 @@ import { KrEvents } from "./KrEvents";
 import { KrForecast } from "./KrForecast";
 import { KrInvestorFlows } from "./KrInvestorFlows";
 import { KrOrderbook } from "./KrOrderbook";
+import { KrStockNews } from "./KrStockNews";
 import { hasApiStatus, useHasSession } from "@repo/web-shared/api";
 import { HTTP_STATUS_CODE, PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
 import { formatKrwCompact, formatPrice } from "@repo/web-shared/lib";
@@ -194,6 +195,8 @@ export const KrStockDetail = ({ code }: { code: string }) => {
           )}
         </div>
       </div>
+      {/* 오늘 소식(F016 단계 B · `FE-REQ-063` FR-4) — 시세 사실 줄 아래 · 코치 판단 위. 제목만(링크 없음) */}
+      <KrStockNews code={quote.code} />
       <KrCoachJudgment code={quote.code} />
       {/* 주요 사건(F008 슬라이스 24) — 국내 판단 카드 아래(`FE-REQ-046` FR-1). 소유자만 */}
       <KrEvents code={quote.code} />

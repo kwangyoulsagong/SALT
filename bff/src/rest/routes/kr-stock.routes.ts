@@ -24,5 +24,8 @@ router.get("/:code", appKrStockController.detail);
 router.get("/:code/chart", appKrStockController.chart);
 router.get("/:code/investors", appKrStockController.investors);
 router.get("/:code/orderbook", appKrStockController.orderbook);
+// 오늘 소식 · 장중 수급(F016 단계 B · `BFF-REQ-051` FR-3 · 4)
+router.get("/:code/news", appKrStockController.news);
+router.get("/:code/flows/intraday", appKrStockController.intradayFlows);
 
 export default router;

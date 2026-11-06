@@ -118,6 +118,39 @@ export const useKrInvestors = (code: string, days = KR_INVESTOR_DAYS) => {
 };
 
 /**
+ * 오늘 소식 2분 — 서버가 시장 전체 제목을 장중(07~20시) 2분마다 받는다. 4xx 면 멈춘다(비소유자 · 없는 종목)
+ */
+const KR_NEWS_REFRESH_MS = 2 * 60_000;
+/** 장중 수급 5분 — 서버가 프로그램 매매를 10분마다 받는다(반 박자로 받아 지연을 반으로) */
+const KR_INTRADAY_FLOWS_REFRESH_MS = 5 * 60_000;
+const refreshEvery = (ms: number) => (query: { state: { error: unknown } }) =>
+  isClientApiError(query.state.error) ? false : ms;
+
+export const useKrNews = (code: string) => {
+  const signedIn = useHasSession() === true;
+  return useQuery({
+    queryKey: [...marketQueryKeys.krNews, code],
+    queryFn: ({ signal }) => krStockApi.news(code, signal),
+    enabled: signedIn && Boolean(code),
+    staleTime: KR_NEWS_REFRESH_MS / 2,
+    refetchInterval: refreshEvery(KR_NEWS_REFRESH_MS),
+    retry: retryUnlessClientError,
+  });
+};
+
+export const useKrIntradayFlows = (code: string) => {
+  const signedIn = useHasSession() === true;
+  return useQuery({
+    queryKey: [...marketQueryKeys.krIntradayFlows, code],
+    queryFn: ({ signal }) => krStockApi.intradayFlows(code, signal),
+    enabled: signedIn && Boolean(code),
+    staleTime: KR_INTRADAY_FLOWS_REFRESH_MS / 2,
+    refetchInterval: refreshEvery(KR_INTRADAY_FLOWS_REFRESH_MS),
+    retry: retryUnlessClientError,
+  });
+};
+
+/**
  * 호가 10초 — 서버 캐시와 같은 박자라 더 자주 불러도 같은 값이다. 장이 열린 동안만(`live`) 다시 받는다 — 밤 · 휴장엔
  * 호가가 바뀌지 않는다. 화면이 안 보이면 TanStack 이 멈춘다(`refetchIntervalInBackground` 기본 false)
  */

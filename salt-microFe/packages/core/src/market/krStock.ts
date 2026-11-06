@@ -310,6 +310,41 @@ export interface KrInvestors {
   totals: { individual: KrInvestorNet; foreign: KrInvestorNet; institution: KrInvestorNet } | null;
 }
 
+/** 오늘 소식 한 건(`BFF-REQ-051` FR-3 · F016 단계 B) — 시황/공시 제목. **링크 · 본문 없음**(원천에 없다) */
+export interface KrNewsItem {
+  id: string;
+  kind: "news" | "disclosure";
+  provider: string;
+  title: string;
+  publishedAt: string;
+}
+
+/** 종목 오늘 소식 — 최신이 앞 · 광고성 제외는 서버. `collectedAt` 은 시장 전체 마지막 수집(신선도) */
+export interface KrStockNews {
+  code: string;
+  /** 오늘(KST, YYYY-MM-DD) */
+  date: string;
+  collectedAt: string | null;
+  items: KrNewsItem[];
+}
+
+/** 장중 프로그램 매매 누적(체결) — 금액 원 정수 · 수량 주(문자열). 서버 값 그대로 */
+export interface KrProgramFlow {
+  at: string;
+  netQuantity: string;
+  netValue: number;
+  buyValue: number;
+  sellValue: number;
+  collectedAt: string;
+}
+
+/** 종목 장중 수급(`BFF-REQ-051` FR-4) — 오늘 값이 없으면 `program: null`(0 으로 그리지 않는다) */
+export interface KrIntradayFlows {
+  code: string;
+  date: string;
+  program: KrProgramFlow | null;
+}
+
 export const KR_STOCK_CODE_PATTERN = /^[0-9A-Z]{6}$/;
 
 /**

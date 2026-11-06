@@ -1,6 +1,7 @@
 import type {
   KrChart,
   KrChartPeriod,
+  KrIntradayFlows,
   KrInvestors,
   KrMarketSummary,
   KrMarketStatus,
@@ -8,6 +9,7 @@ import type {
   KrOverview,
   KrResult,
   KrStockDetail,
+  KrStockNews,
 } from "@repo/core/marketKr";
 
 import { apiFetch, readApiError } from "@repo/web-shared/api";
@@ -46,4 +48,7 @@ export const krStockApi = {
     getKr<KrResult<KrInvestors>>("krInvestors", MARKET_ENDPOINTS.krInvestors(code, days), signal),
   orderbook: (code: string, signal?: AbortSignal) =>
     getKr<KrResult<KrOrderbook>>("krOrderbook", MARKET_ENDPOINTS.krOrderbook(code), signal),
+  news: (code: string, signal?: AbortSignal) => getKr<KrResult<KrStockNews>>("krNews", MARKET_ENDPOINTS.krNews(code), signal),
+  intradayFlows: (code: string, signal?: AbortSignal) =>
+    getKr<KrResult<KrIntradayFlows>>("krIntradayFlows", MARKET_ENDPOINTS.krIntradayFlows(code), signal),
 };

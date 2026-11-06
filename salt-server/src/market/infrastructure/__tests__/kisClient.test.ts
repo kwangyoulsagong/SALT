@@ -301,3 +301,57 @@ describe("시장 상태 응답 해석 (F016 단계 A · SRV-REQ-051 FR-2 · 6)",
     assert.equal((await withPage("M").c.viEventsPage("2026-11-06", true)).hasMore, true);
   });
 });
+
+describe("등락 원천 파싱 (F016 단계 B · SRV-REQ-051 FR-1 · 5)", () => {
+  const stub = (output: unknown) => {
+    const c = new KisClient({ appKey: "k", appSecret: "s", baseUrl: "http://127.0.0.1:9", now: () => new Date("2026-11-06T02:45:00Z") });
+    const calls: unknown[][] = [];
+    (c as unknown as { request: (...a: unknown[]) => Promise<unknown> }).request = async (...a: unknown[]) => {
+      calls.push(a);
+      return { body: { output }, trCont: "" };
+    };
+    return { c, calls };
+  };
+
+  it("새 TR 둘도 조회 허용 목록 규칙을 통과한다", () => {
+    assert.doesNotThrow(() => assertQueryTr(KIS_QUERY_TR.newsTitle));
+    assert.doesNotThrow(() => assertQueryTr(KIS_QUERY_TR.programTrade));
+  });
+
+  // 2026-11-06 11:42 시장 전체 실측 행(앞 둘) + 일련번호 없는 행 · 6자리 아닌 코드
+  const NEWS_ROWS = [
+    { cntt_usiq_srno: "2026110611394286077", news_ofer_entp_code: "6", data_dt: "20261106", data_tm: "113942", hts_pbnt_titl_cntt: "\"AI붕괴 아니다…수급 불안에 낙폭 확대\"", news_lrdv_code: "03", dorg: "연합뉴스", iscd1: "005930", iscd2: "", iscd3: "005930" },
+    { cntt_usiq_srno: "2026110611415500001", news_ofer_entp_code: "G", data_dt: "20261106", data_tm: "114155", hts_pbnt_titl_cntt: "(주)유티아이 증권 발행결과(자율공시)", news_lrdv_code: "02", dorg: "코스닥 공시", iscd1: "179900", iscd2: "12" },
+    { cntt_usiq_srno: "", data_dt: "20261106", data_tm: "114000", hts_pbnt_titl_cntt: "x" },
+  ];
+
+  it("시황 제목 — 시장 전체(종목 칸 빈 값) · 시각 KST → UTC · 관련 코드는 6자리만 · 중복 없이", async () => {
+    const { c, calls } = stub(NEWS_ROWS);
+    const rows = await c.newsTitlesPage(null);
+    assert.equal(rows.length, 2);
+    assert.equal(rows[0]!.publishedAt.toISOString(), "2026-11-06T02:39:42.000Z");
+    assert.deepEqual(rows[0]!.codes, ["005930"]);
+    assert.deepEqual([rows[1]!.providerName, rows[1]!.codes], ["코스닥 공시", ["179900"]]);
+    // 본문 · 링크 칸은 원천에도 결과에도 없다
+    assert.deepEqual(Object.keys(rows[0]!).sort(), ["categoryCode", "codes", "providerCode", "providerName", "publishedAt", "serial", "title"]);
+    const params = calls[0]![2] as Record<string, string>;
+    assert.equal(calls[0]![1], KIS_QUERY_TR.newsTitle);
+    assert.deepEqual([params.FID_INPUT_ISCD, params.FID_INPUT_DATE_1, params.FID_INPUT_HOUR_1], ["", "", ""]);
+    assert.equal(calls[0]![3], KIS_PRIORITY.supplement);
+    await c.newsTitlesPage({ date: "2026-11-06", hhmmss: "090000" });
+    const next = calls[1]![2] as Record<string, string>;
+    assert.deepEqual([next.FID_INPUT_DATE_1, next.FID_INPUT_HOUR_1], ["20261106", "090000"]);
+  });
+
+  it("프로그램 매매 — 맨 앞 행(누적) · 금액은 원 그대로 · 시각은 오늘 KST · 빈 응답은 null", async () => {
+    const { c, calls } = stub([
+      { bsop_hour: "114351", whol_smtn_ntby_qty: "308365", whol_smtn_ntby_tr_pbmn: "60550831650", whol_smtn_shnu_tr_pbmn: "1058390942900", whol_smtn_seln_tr_pbmn: "997840111250" },
+      { bsop_hour: "114340", whol_smtn_ntby_qty: "314289", whol_smtn_ntby_tr_pbmn: "61699650150", whol_smtn_shnu_tr_pbmn: "1", whol_smtn_seln_tr_pbmn: "1" },
+    ]);
+    const f = await c.programFlow("005930");
+    assert.equal(calls[0]![1], KIS_QUERY_TR.programTrade);
+    assert.equal(f!.at.toISOString(), "2026-11-06T02:43:51.000Z");
+    assert.deepEqual([f!.netQuantity, f!.netValue, f!.buyValue, f!.sellValue], [308365n, 60550831650, 1058390942900, 997840111250]);
+    assert.equal(await stub([]).c.programFlow("005930"), null);
+  });
+});

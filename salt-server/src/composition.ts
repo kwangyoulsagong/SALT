@@ -46,6 +46,7 @@ import { PrismaKrMarketCalendarStore, PrismaKrStockStore } from "./market/infras
 import { parseKrSummaryIndices } from "./market/domain";
 import { PrismaKrSupplementStore } from "./market/infrastructure/PrismaKrSupplementStore";
 import { PrismaKrMarketStatusStore } from "./market/infrastructure/PrismaKrMarketStatusStore";
+import { PrismaKrMoveSourceStore } from "./market/infrastructure/PrismaKrMoveSourceStore";
 import { PrismaMarketScheduleReader } from "./market/infrastructure/PrismaMarketScheduleReader";
 import { PrismaIndicatorRepository } from "./market/infrastructure/PrismaIndicatorRepository";
 import { PrismaMarketAssetRepository } from "./market/infrastructure/PrismaMarketAssetRepository";
@@ -158,6 +159,9 @@ const krStock =
         supplement: new PrismaKrSupplementStore(),
         statusSource: kis,
         status: new PrismaKrMarketStatusStore(),
+        moveSourceSource: kis,
+        moveSources: new PrismaKrMoveSourceStore(),
+        newsPromoPatterns: env.KR_NEWS_PROMO_PATTERNS ? [new RegExp(env.KR_NEWS_PROMO_PATTERNS, "i")] : [],
         // 요약 띠 지수도 수집한다 — 설정에서 빠뜨려도 대표 칸 선이 비지 않게(`SRV-REQ-042`)
         summaryIndices: parseKrSummaryIndices(
           [env.KIS_SUMMARY_INDICES, env.KR_SUMMARY_FEATURED, env.KR_SUMMARY_ITEMS].join(",")

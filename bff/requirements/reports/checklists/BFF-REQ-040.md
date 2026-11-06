@@ -252,3 +252,9 @@
 - 변경 · 검증: 시세 · 상세 뷰모델 칸(`vi` · `lastTradeAt` · `marketActions`). `npm test` 417/0
 - 미검증 · 범위 밖: 없음
 - 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`
+
+## 2026-11-06 — F016 단계 B(파일 걸침)
+
+- `kr-stock` 경로 · 서비스 · 컨트롤러 테스트(머리에 이 REQ)에 F016 경로 둘(`/:code/news` · `/:code/flows/intraday`, `BFF-REQ-051`). 기존 국내 경로 · 응답 무변경
+- 검증: 영역 전체(서버 build · lint · test 981 · BFF test 421 · FE check-types · lint · test) 통과 — 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
+- 미검증 · 범위 밖: 없음(이 REQ 몫 무변경)

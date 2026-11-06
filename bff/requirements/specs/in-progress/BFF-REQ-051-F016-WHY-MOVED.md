@@ -31,9 +31,19 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 |---|---|---|
 | FR-2 시장 조치 | done(정정) | ~~`GET /api/app/market/kr/status`~~ — 경로를 따로 두지 않고 **띠가 있는 두 응답에 싣는다**: 요약 `marketActions` · 상세 `marketActions`(그 종목 시장). 요청 하나가 줄고 쓰지 않는 경로를 두지 않는다. `toKrMarketActionsVM` — 옛 서버 빈 배열 · 모르는 kind 버림 · 모양이 틀린 행 계약 오류 |
 | FR-5 상태 칩 칸 | done | `KR_STATUS_BADGES` 넷 더함 · `vi` · `lastTradeAt`(옛 서버 null). 숫자 계산 0 |
-| 그 밖 | 단계 B~D | FR-1 · 3 · 4 · 7 · FR-6 은 기존 소유자 판정 그대로 |
+| 그 밖 | ~~단계 B~D~~ 단계 C · D | FR-1 · ~~3 · 4~~ · 7 · FR-6 은 기존 소유자 판정 그대로 |
 
 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md`
+
+## 진행 — 단계 B done(2026-11-06)
+
+| FR | 상태 | 구현 |
+|---|---|---|
+| FR-3 오늘 소식 | done | `GET /api/app/market/kr/:code/news` → `{ status, code, date, collectedAt, items: [{ id, kind, provider, title, publishedAt }] }`. 모르는 `kind` 는 버린다 · 링크 칸 없음 |
+| FR-4 장중 수급 | done(정정) | `GET /api/app/market/kr/:code/flows/intraday` → `{ status, code, date, program: { at, netQuantity, netValue, buyValue, sellValue, collectedAt } \| null }`. ~~외국인 · 기관 · 개인~~ — 서버 원천 거부(모의 키)라 칸 없음 |
+| FR-6 권한 | done | 서버 판정 그대로 · 캐시 0 · 코드 형식 400(서비스 안 부름) · 5xx · 계약 깨짐 = `unavailable` |
+
+- 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md`
 
 ## Acceptance Criteria
 
@@ -50,4 +60,5 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-06 | 신규(to-do) |
+| 2026-11-06 | 단계 B done — FR-3 · FR-4(정정: 프로그램만) |
 | 2026-11-06 | in-progress — 단계 A(FR-2 · 5) done. FR-2 를 별도 경로 대신 요약 · 상세 응답 칸으로 정정 |

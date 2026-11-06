@@ -410,3 +410,9 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 - 변경 · 검증: 계약 칸 · `kstClockSeconds`(core 테스트) · 상세 정지 줄 시각 정정. 실화면 상세 · 390 웹뷰
 - 미검증 · 범위 밖: 없음
 - 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`
+
+## 2026-11-06 — F016 단계 B(파일 걸침)
+
+- `@repo/core/marketKr`(머리에 이 REQ) 에 타입 넷(`KrNewsItem` · `KrStockNews` · `KrProgramFlow` · `KrIntradayFlows`) · 국내 상세에 오늘 소식 카드 · 투자자 카드 머리 프로그램 줄(`FE-REQ-063`). 기존 칸 무변경
+- 검증: 영역 전체(서버 build · lint · test 981 · BFF test 421 · FE check-types · lint · test) 통과 — 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
+- 미검증 · 범위 밖: 없음(이 REQ 몫 무변경)

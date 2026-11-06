@@ -98,3 +98,9 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 저축 경로 · 테스트 나머지 그대로 · `./gradlew check` 통과
+
+## 2026-11-06 — F016 단계 B(파일 걸침)
+
+- `ops/salt.sh`(머리에 이 REQ) 신선도 쿼리에 국내 시황 제목 · 프로그램 · 업종 세 줄(`OPS-002`, `SRV-REQ-051` FR-12). 저축 무변경
+- 검증: 영역 전체(서버 build · lint · test 981 · BFF test 421 · FE check-types · lint · test) 통과 — 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
+- 미검증 · 범위 밖: 없음(이 REQ 몫 무변경)

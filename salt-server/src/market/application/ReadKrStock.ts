@@ -42,6 +42,9 @@ import {
   type KrMarketStatusStore,
   type KrViEventFact,
   type KrViKind,
+  KR_NEWS_READ_LIMIT,
+  kstStartOfDay,
+  type KrMoveSourceStore,
 } from "../domain";
 import { logger } from "../../shared/config/logger";
 import { loadKrSession } from "./SyncKrStock";
@@ -257,6 +260,8 @@ export interface KrStockReadDependencies {
   status: KrMarketStatusStore;
   /** 호가는 저장하지 않고 요청 시점에 부른다(슬라이스 6b FR-28) */
   orderbookSource: Pick<KrSupplementPort, "orderbook">;
+  /** 시황/공시 제목 · 장중 프로그램 매매(F016 단계 B) */
+  moveSources: KrMoveSourceStore;
   now?: () => Date;
 }
 
@@ -546,5 +551,64 @@ export class GetKrOrderbook extends KrStockRead {
     const call = this.deps.orderbookSource.orderbook(code).finally(() => this.inflight.delete(code));
     this.inflight.set(code, call);
     return call;
+  }
+}
+
+/**
+ * 국내 종목 오늘 소식(F016 단계 B · `SRV-REQ-051` FR-1) — 저장값만. 그날(KST 00:00 뒤) 그 종목에 걸린 시황/공시 제목, 최신이 앞 ·
+ * 광고성 제외 · 최대 `KR_NEWS_READ_LIMIT`건. 제목 · 제공처 · 시각 · 공시/시황 구분뿐 — 본문 · 링크는 원천에 없다.
+ * `collectedAt` 은 시장 전체 마지막 수집 시각(신선도 — 빈 목록이 "소식 없음"인지 "수집 멈춤"인지 가른다)
+ */
+export class GetKrStockNews extends KrStockRead {
+  async execute(viewer: KrStockViewer, code: string) {
+    this.access.assert(viewer);
+    if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
+    const listing = await this.deps.store.findListing(code);
+    if (!listing) throw new KrStockNotAvailableError();
+    const now = this.now();
+    const [items, collectedAt] = await Promise.all([
+      this.deps.moveSources.newsTitles(code, kstStartOfDay(now), KR_NEWS_READ_LIMIT),
+      this.deps.moveSources.newsCollectedAt(),
+    ]);
+    return {
+      code,
+      date: kstDateOf(now),
+      collectedAt: collectedAt?.toISOString() ?? null,
+      items: items.map((n) => ({
+        id: n.serial,
+        kind: n.kind,
+        provider: n.providerName,
+        title: n.title,
+        publishedAt: n.publishedAt.toISOString(),
+      })),
+    };
+  }
+}
+
+/**
+ * 국내 종목 장중 수급(F016 단계 B · FR-5) — 오늘 프로그램 매매 누적(체결)의 가장 최근 값. 금액은 원 정수 · 수량은 주(문자열).
+ * 오늘 받은 값이 없으면 `program: null`(장 전 · 휴장 · 수집 전 — 0 으로 채우지 않는다). 외국인 · 기관 장중 추정은 원천이 없어
+ * (모의 키 거부, 2026-11-06) 응답에 칸을 두지 않는다 — 일별 투자자 동향(`/investors`)이 그 몫이다
+ */
+export class GetKrIntradayFlows extends KrStockRead {
+  async execute(viewer: KrStockViewer, code: string) {
+    this.access.assert(viewer);
+    if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
+    const listing = await this.deps.store.findListing(code);
+    if (!listing) throw new KrStockNotAvailableError();
+    const now = this.now();
+    const flow = await this.deps.moveSources.latestProgramFlow(code, kstStartOfDay(now));
+    return {
+      code,
+      date: kstDateOf(now),
+      program: flow && {
+        at: flow.at.toISOString(),
+        netQuantity: flow.netQuantity.toString(),
+        netValue: won(flow.netValue),
+        buyValue: won(flow.buyValue),
+        sellValue: won(flow.sellValue),
+        collectedAt: flow.collectedAt.toISOString(),
+      },
+    };
   }
 }

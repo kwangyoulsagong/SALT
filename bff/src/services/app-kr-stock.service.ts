@@ -9,6 +9,8 @@ import {
   toKrIndicesVM,
   toKrMarketSummaryVM,
   toKrInvestorsVM,
+  toKrIntradayFlowsVM,
+  toKrNewsVM,
   toKrOrderbookVM,
   toKrMarketStatusVM,
   toKrOverviewVM,
@@ -173,6 +175,22 @@ export class AppKrStockService {
   /** 상세 투자자 순매수 — 최근 `days` 거래일(최대 30) */
   getInvestors(token: string, code: string, days: number, signal?: AbortSignal) {
     return this.read("investors", `/market/kr/${encodeURIComponent(code)}/investors?days=${days}`, token, toKrInvestorsVM, {
+      timeout: KR_READ_TIMEOUT_MS,
+      signal,
+    });
+  }
+
+  /** 상세 오늘 소식 — 시황 · 공시 제목(F016 단계 B · `BFF-REQ-051` FR-3). 소유자 판정 응답이라 캐시 없음 */
+  getNews(token: string, code: string, signal?: AbortSignal) {
+    return this.read("news", `/market/kr/${encodeURIComponent(code)}/news`, token, toKrNewsVM, {
+      timeout: KR_READ_TIMEOUT_MS,
+      signal,
+    });
+  }
+
+  /** 상세 장중 수급 — 오늘 프로그램 매매 누적(F016 단계 B · FR-4) */
+  getIntradayFlows(token: string, code: string, signal?: AbortSignal) {
+    return this.read("flows-intraday", `/market/kr/${encodeURIComponent(code)}/flows/intraday`, token, toKrIntradayFlowsVM, {
       timeout: KR_READ_TIMEOUT_MS,
       signal,
     });

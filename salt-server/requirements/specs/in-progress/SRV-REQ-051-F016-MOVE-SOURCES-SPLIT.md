@@ -47,9 +47,24 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | FR-2 VI | done | `KisClient.viEventsPage` · `PollKrViEvents`(정규장 · 종가 단일가 매분, 한도 맨 뒤) · `kr_vi_event`. **실측: KIS 는 최근 30건 한 쪽만 준다**(연속 조회 머리 빈 값) — 1분에 30건 넘게 발동하면 앞쪽 종류 · 시각을 놓친다(칩은 현재가 `vi_cls_code` 로 선다) |
 | FR-3 시장 조치 | 부분 | 서킷브레이커 **추정** done — `detectKrCircuitBreakers`(지수 분 기록이 60초 이상 같은 값 + 전일 대비 -8 · -15 · -20% 이하 · 1 · 2단계는 14:50 뒤 0) · `InferKrMarketActions`. ~~지수 · 대형주 체결 멈춤 1분~~ → 지수 분 기록 멈춤 1분(대형주 체결 칸이 폴링 종목엔 1분 오차라 지수만 — 2026-11-06 재생에서 같은 답). 장운영정보 실시간(feed) · 사이드카는 남음(발동일 실측) |
 | FR-6 상태 칸 | done | 현재가 응답 필드 다섯 · `last_trade_at`(실시간 = 체결 시각 · 폴링 = 누적 거래량이 는 회차). `krStatusBadges` 에 `paused` · `vi` · `attention` · `liquidation`(+ 관리 · 단기과열 플래그). 응답의 `lastTradeAt` 은 값이 멈춘 이유가 있을 때만(`krVisibleLastTrade`) |
-| 그 밖 | 단계 B~D | FR-1 · 4 · 5(B) · FR-7~10(C) · FR-11 기존 판정 그대로 · FR-12 신선도(B 수집 워커와 함께) |
+| 그 밖 | ~~단계 B~D~~ 단계 C · D | ~~FR-1 · 4 · 5(B)~~ · FR-7~10(C) · FR-11 기존 판정 그대로 · ~~FR-12 신선도(B 수집 워커와 함께)~~ |
 
 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md`
+
+## 진행 — 단계 B done(2026-11-06)
+
+| FR | 상태 | 구현 |
+|---|---|---|
+| FR-1 시황/공시 제목 | done(정정) | ~~종목마다 장중 5분 · 장외 30분~~ → **시장 전체 한 번**(종목 칸 빈 값 — 실측 40건/쪽) · KST 07~20시 2분 · 그 밖 30분 · 받은 마지막 게시 시각까지 쪽 넘김(5쪽 상한). 관련 종목 없는 제목은 버림 · 공시 = 제공처 이름에 "공시" · 광고성 `KR_NEWS_PROMO_PATTERNS`(표시만 뺌) · 30일 정리. `PollKrNewsTitles` · `GetKrStockNews` |
+| FR-4 업종 지수 | done | 유니버스 종목의 `sector_code`(→ `krSectorIndexCodeOf`, `0000` · `x001` 제외) · 지수 TR 그대로 · ~~정규장 매분~~ ~~5분~~ 장중 :15 · :45 + 15:40 종가(cron — 매분 · 5분 판이 다음 분 현재가 폴링을 건너뛰게 했다, 측정 `c7ba1262`) · 최신 + 일별. `PollKrSectorIndices` |
+| FR-5 장중 수급 | 부분 | **프로그램 매매 누적(체결, `FHPPG04650101`)만** — 유니버스 장중 10분(cron :x3 — 회차가 걸친 분에 실시간 슬롯 밖 폴링 종목 현재가가 한 번 건너뜀은 남음, 체크리스트) · 금액 원(실측) · 초과 한 건은 그 종목만 건너뛰고 연속 셋이면 양보(첫 판의 "초과 = 양보"가 장중 매 회차 0/50 — `13b5784e`). 외국인 · 기관 장중 추정(`FHPTJ04160001`)은 모의 키 거부(`OPSQ2001`) — 실전 키 때. `PollKrProgramFlows` · `GetKrIntradayFlows` |
+| FR-12 신선도 | done | `ops/salt.sh status` 세 줄(시황 제목 6시간 ✗ · 프로그램 · 업종은 시각만) |
+| 보존 | done | `PruneKrMoveSources` 평일 15:55 — 제목 30일 · 장중 수급 7일 · VI 30일(단계 A 가 남긴 것), 5,000행씩 |
+
+- 허용 목록 TR 둘 더(`FHKST01011800` · `FHPPG04650101`). 새 경로 `GET /api/market/kr/:code/news` · `/:code/flows/intraday`(소유자 전용 · 저장값만)
+- 부가 호출 사이 1초(`KR_SUPPLEMENT_SPACING_MS`) — 몰리면 KIS 초과 → 클라이언트 감속이 현재가까지 세운다(13:40 측정 폴링 종목 75~105초, `b36bd57a`)
+- 업종 · 프로그램은 시세 사슬(`kr-quote-poll`)에 붙이지 않는다 — 사슬이 1분을 넘기면 사슬 끝 "10분 정각" 판정이 회차를 버렸다(12:00 0행, `158d5940`)
+- 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md`
 
 ## Acceptance Criteria
 
@@ -70,4 +85,6 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-06 | 신규(to-do) — 딥리서치 `requirements/reports/research/2026-11-06-why-moved.md` · `ADR-009` |
 | 2026-11-06 | ~~사용자 결정 — 업비트 비공식 공지 사용(저빈도 · 차단 시 중단)~~ 곧이어 정정(아래) |
 | 2026-11-06 | 사용자 결정(2026-11-06): *"업비트 공지는 안한다"* — FR-10 거래소 공지 뺌(공식 마켓 플래그만) |
+| 2026-11-06 | 단계 B 확인 2회차 — 레이어 훅 사후 실행을 제대로 다시(첫 보고는 검사 없이 통과) · 단계 A 가 넘긴 VI 30건 초과를 셈(분당 최대 15 · 초과 0) · 로딩 상태 실화면 |
+| 2026-11-06 | 단계 B done — FR-1(정정: 시장 전체 한 번) · FR-4 · FR-5 부분(프로그램만 — 외국인 · 기관 장중 원천 거부) · FR-12 · VI 보존 정리. 허용 목록 TR 둘 |
 | 2026-11-06 | in-progress — 단계 A(FR-2 · FR-3 추정 · FR-6) done. FR-3 추정 근거를 "지수 분 기록 멈춤"으로 정정(진행 표). 허용 목록 TR 하나 더(`FHPST01390000`) |

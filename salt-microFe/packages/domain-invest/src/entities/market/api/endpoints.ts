@@ -89,4 +89,8 @@ export const MARKET_ENDPOINTS = {
   krInvestors: (code: string, days: number) => `/api/app/market/kr/${encodeURIComponent(code)}/investors?days=${days}`,
   /** 상세 호가 10단계(슬라이스 6b) — 서버가 요청 시점에 받는다(10초 캐시) */
   krOrderbook: (code: string) => `/api/app/market/kr/${encodeURIComponent(code)}/orderbook`,
+  /** 상세 오늘 소식 — 시황 · 공시 제목(F016 단계 B) */
+  krNews: (code: string) => `/api/app/market/kr/${encodeURIComponent(code)}/news`,
+  /** 상세 장중 수급 — 오늘 프로그램 매매 누적(F016 단계 B) */
+  krIntradayFlows: (code: string) => `/api/app/market/kr/${encodeURIComponent(code)}/flows/intraday`,
 } as const;

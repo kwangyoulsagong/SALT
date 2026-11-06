@@ -23,6 +23,10 @@ import { schedule } from "../shared/infrastructure/scheduler";
  * | `kr-realtime` | 매분 | 08:30~16:00 개장일이면 WS 를 붙이고 슬롯을 맞춘다 · 밖이면 끊는다(시간외 단일가는 REST 10분 — 아래) |
  * | `kr-quote-poll` 뒤 지수 | 매분 | 코스피 · 코스닥(FR-49) — 현재가와 같은 박자 · 부를지는 유스케이스가 정한다 |
  * | `kr-quote-poll` 뒤 시장 상태 | 매분 | VI 현황 · 서킷브레이커 추정(F016 단계 A) — 지수 뒤(추정이 방금 쌓은 분 기록을 본다) · 정규장만 · 한도 맨 뒤 |
+ * | `kr-sector-indices` | 평일 9~15시 :15 · :45 + 15:40 | 업종 지수(F016 단계 B) — 15:40 이 그날 종가 · 프로그램(:x0)과 다른 분 · 한도 맨 뒤 |
+ * | `kr-program-flows` | 평일 10분마다(:x3) | 장중 프로그램 매매(F016 단계 B) — 장 상태는 유스케이스가 본다 · 유니버스 종목마다라 한도 맨 뒤 |
+ * | `kr-news-titles` | 매분 | 시황/공시 제목 — 시장 전체 한 번(07~20시 2분 · 그 밖 30분, 유스케이스가 정한다). 시세 회차와 따로 — 장 밖에도 돈다 |
+ * | `kr-move-sources-prune` | 평일 15:55 | 제목 30일 · 장중 수급 7일 · VI 30일 나눠 지우기 |
  * | `kr-quote-poll` 뒤 시간외 | 16:11 … 18:01 10분마다 | 시간외 단일가(FR-27) — 체결 1분 뒤 유니버스만, 정규장 칸과 따로. **`KIS_AFTER_HOURS_ENABLED` 일 때만**(기본 끔 — 모의 키는 늘 0) |
  * | `kr-investor-flows` | 평일 18:40 · 21:40 | 투자자 순매수 30거래일(FR-50) — 당일 값이 18:00 뒤라 그 뒤 · 전 종목 일봉(18:00) 앞쪽이 대개 끝난 뒤. 한도 초과면 회차를 접고 21:40 이 남은 종목을 이어 받는다(FR-91) |
  *
@@ -72,6 +76,18 @@ export const startKrStockWorkers = () => {
     // 21:40 은 이어 받기 — 18:40 이 한도에 양보했거나 놓쳤으면 남은 종목만, 다 받았으면 호출 0(6b)
     { name: "kr-investor-flows", expression: "40 18,21 * * 1-5", run: () => kr.syncInvestorFlows.execute(), catchUp: true },
     { name: "kr-realtime", expression: "* * * * *", run: () => kr.realtime.reconcile() },
+    // 업종 · 프로그램(F016 단계 B)은 시세 사슬에 붙이지 않는다 — 사슬 한 회차가 1분을 넘기면(장중 초과 많을 때, 2026-11-06 12:01
+    // 중복 건너뜀) 사슬 끝의 "10분 정각" 판정이 늦은 시각을 보고 회차를 통째로 놓쳤다. 순서는 페이서 우선순위가 지킨다(시세 먼저)
+    // 업종은 30분마다 + 15:40(그날 종가). 5분이던 판에서 그 다음 분마다 시세 회차가 1분을 넘겨 건너뛰었다(2026-11-06 13:51~14:16 매 :x1 · :x6) —
+    // 현재가 폴링이 한도 끝에 걸쳐 있어 같은 분에 8건만 더해도 넘친다. 분해(단계 C)는 그날 등락 · 종가만 쓴다
+    { name: "kr-sector-indices", expression: "15,45 9-15 * * 1-5", run: () => kr.pollSectorIndices.execute() },
+    { name: "kr-sector-indices-close", expression: "40 15 * * 1-5", run: () => kr.pollSectorIndices.execute(), catchUp: true },
+    // :x3 — :x0 엔 KIS 지표 보고 · 시황 제목(짝수 분)이 겹친다. 그래도 한 회차(50건 · 1초 간격 · 약 3분)가 걸친 분에 폴링 종목(실시간 슬롯 밖)
+    // 현재가 회차가 한 번 건너뛴다(2026-11-06 :x0 → 14:31 · 41 · 51, :x3 → 15:06) — 10분에 한 번 약 1분 더 묵는 값. 실시간 종목은 무관(웹소켓)
+    { name: "kr-program-flows", expression: "3-59/10 * * * 1-5", run: () => kr.pollProgramFlows.execute() },
+    // 시황/공시 제목 — 시장 전체 한 번이라 시세 회차에 묶지 않는다(장 밖 공시도 받는다). 놓친 구간은 쪽 넘김이 메운다
+    { name: "kr-news-titles", expression: "* * * * *", run: () => kr.pollNewsTitles.execute() },
+    { name: "kr-move-sources-prune", expression: "55 15 * * 1-5", run: () => kr.pruneMoveSources.execute(), catchUp: true },
     // 지수 분 기록 정리(`DB-REQ-035` FR-2) — 장 마감 뒤 하루 한 번, 10일 앞을 지운다(하루 약 780행)
     { name: "kr-index-ticks-prune", expression: "50 15 * * 1-5", run: () => kr.pruneIndexTicks.execute() },
     // 관측 지표(FR-94) — 로그가 지표다
@@ -99,6 +115,8 @@ export const startKrStockWorkers = () => {
       () => kr.realtime.reconcile(),
       () => kr.syncDailyCandles.execute(),
       () => kr.syncCalendar.execute(),
+      // 오늘 소식 — 기동 뒤 한 번(빈 목록으로 시작하지 않게)
+      () => kr.pollNewsTitles.execute({ force: true }),
       // 로고는 맨 뒤 — 화면은 판정 전에도 티커 로고를 쓴다
       () => kr.resolveLogos.execute(),
     ];

@@ -967,6 +967,76 @@ model KrMarketAction {
   @@map("kr_market_action")
 }
 
+/// 국내 시황/공시 제목(F016 단계 B · DB-REQ-041 FR-1) — KIS 시장 전체 제목. 본문 · 링크 열 없음 · 보관 30일
+model KrNewsTitle {
+  serial       String   @id // 원천 일련번호
+  providerCode String   @map("provider_code")
+  providerName String   @map("provider_name")
+  kind         String // news | disclosure
+  categoryCode String?  @map("category_code")
+  title        String
+  promo        Boolean  @default(false) // 광고성 — 표시에서만 뺀다
+  publishedAt  DateTime @map("published_at")
+  collectedAt  DateTime @map("collected_at")
+
+  symbols KrNewsTitleSymbol[]
+
+  @@index([publishedAt])
+  @@map("kr_news_title")
+}
+
+/// 제목 ↔ 관련 종목(최대 10). 게시 시각을 같이 둬 (code, published_at desc) 인덱스 하나로 한 종목 오늘 제목을 읽는다. 마스터 FK 없음(ETN 코드)
+model KrNewsTitleSymbol {
+  serial      String
+  code        String
+  publishedAt DateTime @map("published_at")
+
+  title KrNewsTitle @relation(fields: [serial], references: [serial], onDelete: Cascade)
+
+  @@id([serial, code])
+  @@index([code, publishedAt(sort: Desc)])
+  @@map("kr_news_title_symbol")
+}
+
+/// 국내 업종 지수 최신 값(F016 단계 B · DB-REQ-041 FR-4) — 유니버스 종목의 지수업종 대분류만 · 장중 1분
+model KrSectorIndexQuote {
+  code       String   @id
+  tradeDate  DateTime @map("trade_date") @db.Date
+  value      Decimal  @db.Decimal(18, 4)
+  change     Decimal  @db.Decimal(18, 4)
+  changeRate Decimal  @map("change_rate") @db.Decimal(18, 8)
+  updatedAt  DateTime @map("updated_at")
+
+  @@map("kr_sector_index_quote")
+}
+
+/// 국내 업종 지수 일별 — 장 끝 값이 그날 종가(단계 C β 재료)
+model KrSectorIndexDaily {
+  code       String
+  tradeDate  DateTime @map("trade_date") @db.Date
+  close      Decimal  @db.Decimal(18, 4)
+  changeRate Decimal  @map("change_rate") @db.Decimal(18, 8)
+  updatedAt  DateTime @map("updated_at")
+
+  @@id([code, tradeDate])
+  @@map("kr_sector_index_daily")
+}
+
+/// 국내 장중 수급 — 종목 프로그램 매매 누적(체결)(F016 단계 B · DB-REQ-041 FR-5). 유니버스 장중 10분 · 금액은 원 · 보관 7일
+model KrFlowIntraday {
+  code               String
+  at                 DateTime // 체결 시각(UTC 벽시계)
+  programNetQuantity BigInt   @map("program_net_quantity")
+  programNetValue    Decimal  @map("program_net_value") @db.Decimal(38, 10)
+  programBuyValue    Decimal  @map("program_buy_value") @db.Decimal(38, 10)
+  programSellValue   Decimal  @map("program_sell_value") @db.Decimal(38, 10)
+  collectedAt        DateTime @map("collected_at")
+
+  @@id([code, at])
+  @@index([at])
+  @@map("kr_flow_intraday")
+}
+
 /// 종목별 투자자 순매수(매수 − 매도) 일별 — 상세 부가 정보(F011 슬라이스 6 FR-29). 같은 (종목, 날짜)는 다음 회차가 덮는다
 model KrStockInvestorFlow {
   code                String

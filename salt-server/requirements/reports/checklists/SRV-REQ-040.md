@@ -452,3 +452,9 @@
 - 변경 · 검증: FR-44 배지 넓힘 · 시세 응답 `vi` · `lastTradeAt` · 상세 `marketActions`. `test` 957/0 · `krStockList` 상태 테스트 3 · 실서버 소유자 200
 - 미검증 · 범위 밖: 없음 — 단계 B~D 는 `SRV-REQ-051`
 - 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`
+
+## 2026-11-06 — F016 단계 B(파일 걸침)
+
+- BFF `app-kr-stock.service.ts`(머리에 이 REQ) 에 F016 읽기 둘 · 서버 국내 읽기(`ReadKrStock`)에 `GetKrStockNews` · `GetKrIntradayFlows`(`SRV-REQ-051`). 기존 국내 경로 · 응답 무변경
+- 검증: 영역 전체(서버 build · lint · test 981 · BFF test 421 · FE check-types · lint · test) 통과 — 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
+- 미검증 · 범위 밖: 없음(이 REQ 몫 무변경)

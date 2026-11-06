@@ -12,6 +12,8 @@ import type {
   KrSupplementStore,
   KrMarketStatusPort,
   KrMarketStatusStore,
+  KrMoveSourcePort,
+  KrMoveSourceStore,
   KrStockStore,
   KrSummaryPolicy,
 } from "../../domain";
@@ -73,8 +75,10 @@ import {
 import { RefreshTechnicalIndicators } from "../RefreshTechnicalIndicators";
 import {
   GetKrMarketSession,
+  GetKrIntradayFlows,
   GetKrStockChart,
   GetKrStockDetail,
+  GetKrStockNews,
   ListKrStockQuotes,
   SearchKrStocks,
   GetKrIndices,
@@ -94,6 +98,7 @@ import {
 } from "../SyncKrStock";
 import { PollKrAfterHours, PollKrIndices, PruneKrIndexTicks, SyncKrInvestorFlows } from "../SyncKrSupplement";
 import { InferKrMarketActions, PollKrViEvents } from "../SyncKrMarketStatus";
+import { PollKrNewsTitles, PollKrProgramFlows, PollKrSectorIndices, PruneKrMoveSources } from "../SyncKrMoveSources";
 import { GetKrMarketSummary } from "../GetKrMarketSummary";
 
 /**
@@ -295,6 +300,11 @@ export interface KrStockDependencies {
   statusSource: KrMarketStatusPort;
   /** VI 사건 · 시장 조치 */
   status: KrMarketStatusStore;
+  /** 시황/공시 제목 · 업종 지수 · 장중 프로그램 매매 조회(F016 단계 B) — 같은 `KisClient` 라 한도를 같은 페이서가 지킨다 */
+  moveSourceSource: KrMoveSourcePort;
+  moveSources: KrMoveSourceStore;
+  /** 광고성 제목 패턴(`KR_NEWS_PROMO_PATTERNS`) — 표시에서 뺀다 */
+  newsPromoPatterns: readonly RegExp[];
 }
 
 export interface KrStockUseCases {
@@ -334,6 +344,16 @@ export interface KrStockUseCases {
   pollViEvents: PollKrViEvents;
   /** 서킷브레이커 추정 — 지수 회차 뒤 매분(오늘 분 기록 전체를 다시 본다) */
   inferMarketActions: InferKrMarketActions;
+  /** 시황/공시 제목 — 시장 전체 한 번(07~20시 2분 · 그 밖 30분, F016 단계 B) */
+  pollNewsTitles: PollKrNewsTitles;
+  /** 업종 지수 — 지수 회차와 같은 박자 */
+  pollSectorIndices: PollKrSectorIndices;
+  /** 장중 프로그램 매매 — 유니버스 10분마다 */
+  pollProgramFlows: PollKrProgramFlows;
+  /** 제목 30일 · 장중 수급 7일 · VI 30일 정리 — 장 마감 뒤 하루 한 번 */
+  pruneMoveSources: PruneKrMoveSources;
+  getNews: GetKrStockNews;
+  getIntradayFlows: GetKrIntradayFlows;
 }
 
 const createKrStockUseCases = (deps: KrStockDependencies, schedule: MarketScheduleReader): KrStockUseCases => {
@@ -358,6 +378,7 @@ const createKrStockUseCases = (deps: KrStockDependencies, schedule: MarketSchedu
     summaryIndices: deps.summaryIndices,
     orderbookSource: deps.supplementSource,
     status: deps.status,
+    moveSources: deps.moveSources,
   };
   return {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
@@ -403,6 +424,12 @@ const createKrStockUseCases = (deps: KrStockDependencies, schedule: MarketSchedu
     getOrderbook: new GetKrOrderbook(read),
     pollViEvents: new PollKrViEvents(deps.statusSource, deps.status, deps.calendar),
     inferMarketActions: new InferKrMarketActions(deps.supplement, deps.status, deps.calendar),
+    pollNewsTitles: new PollKrNewsTitles(deps.moveSourceSource, deps.moveSources, deps.newsPromoPatterns),
+    pollSectorIndices: new PollKrSectorIndices(deps.moveSourceSource, deps.moveSources, deps.calendar, universe),
+    pollProgramFlows: new PollKrProgramFlows(deps.moveSourceSource, deps.moveSources, deps.calendar, universe),
+    pruneMoveSources: new PruneKrMoveSources(deps.moveSources),
+    getNews: new GetKrStockNews(read),
+    getIntradayFlows: new GetKrIntradayFlows(read),
   };
 };
 
