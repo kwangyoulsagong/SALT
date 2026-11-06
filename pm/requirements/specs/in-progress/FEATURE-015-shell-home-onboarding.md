@@ -31,7 +31,7 @@
 | FR-1 | 온보딩: 도메인 선택(모으기 · 쓰는 돈 · 투자) → 고른 도메인 첫 입력 하나 → 끝(3단계 이내) | Must | Draft |
 | FR-2 | 홈 = `HomeSummaryCard[]`, 순서 · 숨김 사용자 설정 | Must | 부분(2026-11-02) — 카드 계약 · 셸 홈 카드 · 기본 순서(`FE-REQ-055` · `BFF-REQ-046`). 순서 · 숨김 편집은 identity(S3) |
 | FR-3 | 내 데이터 내보내기(CSV · JSON) · 계정 삭제 시 전부 삭제 + 범위 표시 | Must | Draft |
-| FR-4 | 알림 도메인별 설정, 기본 꺼짐(F000 FR-50 게이트 확장) | Must | Draft |
+| FR-4 | 알림 도메인별 설정, 기본 꺼짐(F000 FR-50 게이트 확장) | Must | **구현 2026-11-06**(서버 S2c — 셸 `/settings` 알림 패널 · 투자 = 코치 판단 변화 · 저축 = 목표 도달 · 가계부 = 고정비 오름. 기존 사용자의 투자 알림도 켜야 온다. 알림 목록 · 벨은 F006 · 푸시는 RN) |
 | FR-5 | 개인정보 범위: 결제 문자 원문 미보관 · 민감 정보 분류 · LLM 전송 필드 공개 | Must | Draft |
 | FR-6 | 도메인 사용 계측(주간 활성 · 재개율 · 카드 클릭, 금액 제외) | Should | Draft |
 | FR-7 | 도메인 색 토큰 추가(기존 색 변경 없음) | Should | Draft |
@@ -131,3 +131,4 @@ flowchart LR
 | 2026-11-05 | 앱 머리 계정 메뉴가 홈 카드에 깔려 로그아웃을 누를 수 없던 결함 수정(`99efcd15`, `FE-REQ-054`) · 로그인 · 초대 수락 · 로그아웃이 쿠키 세션으로(`FE-REQ-013` FR-80 2단계). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — `FE-REQ-054` — 금융 팁은 탭이 아니라 `AppShell` 대신 `PublicShell`(앱 내비 · prerender 없음). 홈 때맞춘 팁 카드(`SRV-REQ-047` FR-9 · 홈 카드 묶음)는 아직 — S2b 또는 S3 |
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — `FE-REQ-054` 앱 내비 공개 경로 판정을 `@repo/core/auth` `isPublicPath` 로(동작 무변경, `cf93acb1`). 홈 금융 팁 카드(`SRV-REQ-047` FR-9)는 ~~S2b 또는 S3~~ S3 |
+| 2026-11-06 | 서버 S2c(`MONEY-S2c-notification`) — FR-4 구현: 도메인별 알림 설정 기본 꺼짐(설정 주인 notification 서비스) · 알림 원인 셋 · 셸 `/settings` 패널. 가계부 월 마감은 알리지 않는다(사용자가 한 일) |

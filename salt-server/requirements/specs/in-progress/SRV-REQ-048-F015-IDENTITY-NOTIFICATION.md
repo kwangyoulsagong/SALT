@@ -44,3 +44,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): to-do → in-progress. FR-5 done — Kotlin notification(설정 기본 꺼짐 · 구독 셋 · 2시간 억제 · 만료 정리) · coach 발행 창구(`coach.outbox`) · Express notification 은퇴 · 옛 표 drop. 수용 기준 4 충족. 나머지 FR 은 identity(S3) |
+| 2026-11-06 | 서버 S2c 확인 2회차 — 국내 종목 코드 관문 · `enabled` 타입 · 쓰기 실패 격리(루트 `requirements/reports/checklists/MONEY-S2c-notification.md`) |

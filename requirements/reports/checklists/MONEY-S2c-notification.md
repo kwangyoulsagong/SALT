@@ -27,3 +27,20 @@
 | 웹 알림 목록 · 벨에서 알림이 보이는 것 | 화면이 없다 — BFF 응답까지만 확인 | F006(`FE-REQ-030` FR-80 · 81 · 110) |
 | 앱 푸시 | 앱 미착수 | `RN-REQ-035` FR-4 |
 | coach 판단 변화가 실제 워커에서 나는 것 | 판단이 바뀌는 때를 기다려야 한다 — Express 코드(`OutboxDecisionChangeNotifier`)를 직접 불러 같은 길을 확인 | 다음 판단 변화(옛 표 기준 하루 한 번 안팎) — `coach.outbox` 행으로 확인 |
+
+## 2026-11-06 — 확인 2회차(사용자 "파이프라인 다하고 검증 다하고 버그 검증 다하고 done 누락 없지") · `55b4290a` · `c8aba5a2` · `94bbed43`
+
+- **결함 1(고침)**: 국내 종목 코드(`005930` — 숫자)가 금액 관문("숫자처럼 생긴 값")에 걸려 알림이 데드레터로 · BFF 는 인자를 지웠다. 국내 종목 코치(`command.symbol`)에서 실제로 나는 길(옛 Express 는 422 → 코치 생성 실패). 규칙: `symbol` 칸만 코드 형식 검사 — 서버 `MessageGuard` · BFF 뷰모델 같은 규칙 · 경계표 테스트 둘. 실스택: Express 코드 → `005930` → BFF `params.symbol` 그대로
+- **결함 2(고침)**: PUT 설정 `{"enabled":1}` · `"true"` 가 200(Jackson 이 바꿔 읽음) → 400 `NOTIFICATION_PREF_VALUE_INVALID` · 종단 테스트 넷
+- **결함 3(고침)**: Express 의 이벤트 행 쓰기가 실패하면(표 · 권한) 저장된 추천까지 생성 실패로 — 경고만 남기고 추천은 나간다(스냅샷 기록과 같은 처리)
+- **결함 4(고침)**: 새 줄 설명 글자 대비 3.03:1(axe) → 2단 글자색. 공용 패널 설명(3.03)은 이전 결정이라 그대로(규칙: 새 요소만)
+- **내 실수(복구)**: BFF 를 고친 뒤 재기동을 안 해 첫 실스택이 옛 코드로 돌았다(국내 코드 인자 빠짐으로 발견) → `ops/salt.sh restart bff-rest` · `server`
+- 입력 경계(플랫폼 4010): page 0 · -1 · size 0 · 999 → 1 · 20 · 50(상한) / page `abc` · size `1.5` → 400 / enabled 문자열 · null · 숫자 · 깨진 JSON · 빈 본문 · 대문자 도메인 → 400 / 없는 id 읽음 → 200 true(옛 Express 와 같음) / 토큰 없음 401 / Swagger 경로 6
+- 빠졌던 검증(돌림): FE `pnpm test` · `test:layer-check` 16/10 · axe(데이터 · 실패 상태 — 새 칸 위반 0) · RabbitMQ 큐 · 데드레터 0 · `coach.outbox` 미발행 · 포기 0
+- 빠졌던 기록(채움): FEATURE-015 FR-4 상태 · 변경 이력 · `OPS-001` FR-14(관리형 DB 에서 Express 의 `coach.outbox` 쓰기 권한) · `SRV-REQ-043` 플랫폼 전체 관찰(인코딩된 `/` → Tomcat HTML 400)
+- 실화면 다시(새 토큰): 데이터 · 빈 · 로그아웃 · 실패 · 키보드 · 390 넘침 0 · 콘솔 오류 0. Kotlin `./gradlew check` · Express 929 · BFF 405 다시 통과
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 인코딩된 `/` 경로의 HTML 400(플랫폼 전체) | Tomcat 이 Spring 앞에서 막는다 — 이 slice 경로만의 일이 아니고 BFF 가 그런 값을 만들지 않는다 | S3 — identity 가 플랫폼 보안 설정(JWKS)을 바꿀 때 오류 페이지를 같이(`SRV-REQ-043` Changelog) |
+| 관리형 DB 의 Express → `coach.outbox` 권한 | 로컬은 슈퍼유저라 확인 불가 | `OPS-001` FR-14(배포 전) |

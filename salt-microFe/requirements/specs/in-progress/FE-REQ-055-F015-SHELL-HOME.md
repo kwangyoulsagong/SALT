@@ -60,3 +60,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 변경 없음 기록 — 셸 홈 카드 계약(`HomeDomain` 에 이미 `household`)은 그대로, BFF 가 가계부 카드를 내기 시작했다(`b162ac6f`) |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): FR-6 done — 셸 `/settings` 알림 패널(`entities/notification` · `features/toggle-alerts`) · 실화면 결함 셋 고침 |
+| 2026-11-06 | 서버 S2c 확인 2회차 — 알림 줄 설명 대비(루트 `requirements/reports/checklists/MONEY-S2c-notification.md`) |

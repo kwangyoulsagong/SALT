@@ -169,3 +169,7 @@
 - `CoachNotifier` 포트 메서드 하나로 · 억제 상수 삭제
 - 검증: Express build · test · 실스택(Express 코드 직접 실행 → coach.outbox → 알림)
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-06 — 서버 S2c 확인 2회차
+
+- 확인 2회차(`55b4290a`): 판단 변화 이벤트 기록 실패가 추천 생성을 막지 않게(경고만) · Express test 929
