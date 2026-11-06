@@ -161,3 +161,4 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 쿠키 심은 뒤 온보딩 다시 묻기 순서 그대로
+- 셸 web 운영 빌드(worktree 둘 — 상시 dev `.next` 무관, main 과 나란히): `/home` 159 → **160 kB**(+1) · `/onboarding` 151 → **153 kB**(+2) · `/settings` 148 → **150 kB**(+2) · 공용 103 그대로 — 예산(+40) 안

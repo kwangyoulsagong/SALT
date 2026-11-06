@@ -14,6 +14,8 @@
 | 레이어 훅 사후 | Bash 로 쓴 barrel · 설정 페이지 · 엔티티 파일 16 + 고친 패널 4 | 위반 0 |
 | done 검사 | `node scripts/check-done.mjs` | 아래 §4 |
 
+- 셸 web 운영 빌드(worktree 둘 — 상시 dev `.next` 무관, main 과 나란히): `/home` 159 → **160 kB**(+1) · `/onboarding` 151 → **153 kB**(+2) · `/settings` 148 → **150 kB**(+2) · 공용 103 그대로 — 예산(+40) 안
+
 ## 2. 실스택 · 실화면(임시 사용자 — 끝나고 identity · notification 행 삭제, 0행 복귀)
 
 | 확인 | 결과 |

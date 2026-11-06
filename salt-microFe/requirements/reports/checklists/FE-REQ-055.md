@@ -72,3 +72,4 @@
 - 고침(같은 원인 둘): `toggle-alerts` · `arrange-home` 이 `isPending` 동안 누른 것을 버렸다 → `scope` 직렬화 + 마지막 저장만 서버 값. 실화면 연달아 세 번 · 알림 둘 연속 → 다 저장 · 새로고침 유지
 - 검증: `pnpm check-types` · `lint` · `test`(core 184 · ui 46) · `test:layer-check` 16/10 · 실화면 390(웹뷰) · 1024 · 1280 · 1440 · 1600 넘침 0 · axe 새 요소 위반 0(고르기 · 첫 기록 · 설정 패널) · 콘솔 오류 0
 - 남은 것: 공용 `panelDescription`(회색 500, 3.03:1) — 기존 패널 둘은 그대로(기존 결정, 새 패널만 2단 글자색)
+- 셸 web 운영 빌드(worktree 둘 — 상시 dev `.next` 무관, main 과 나란히): `/home` 159 → **160 kB**(+1) · `/onboarding` 151 → **153 kB**(+2) · `/settings` 148 → **150 kB**(+2) · 공용 103 그대로 — 예산(+40) 안
