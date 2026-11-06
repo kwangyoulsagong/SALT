@@ -153,6 +153,21 @@ latest() {
            round(extract(epoch from now() at time zone 'utc' - max(price_updated_at))/60) || '분 전',
            case when max(price_updated_at) < now() at time zone 'utc' - interval '10 minutes' then '✗' else 'ok' end
       from market_assets where asset_type = 'crypto'
+    union all
+    -- 국내 시황/공시 제목(F016 단계 B) — 시장 전체를 07~20시 2분 · 밤 30분. 종목 걸린 제목만 쌓여 밤 · 주말엔 성기다 → 6시간
+    select '국내 시황 제목 마지막 수집', to_char(max(collected_at) + interval '9 hours','MM-DD HH24:MI'),
+           round(extract(epoch from now() at time zone 'utc' - max(collected_at))/3600) || '시간 전',
+           case when max(collected_at) is null or max(collected_at) < now() at time zone 'utc' - interval '6 hours' then '✗' else 'ok' end
+      from kr_news_title
+    union all
+    -- 국내 장중 수급 · 업종 지수 — 장중에만 돈다. 장 밖엔 멈춘 게 정상이라 ✗ 없이 시각만(·)
+    select '국내 프로그램 매매 마지막 수집', to_char(max(collected_at) + interval '9 hours','MM-DD HH24:MI'),
+           round(extract(epoch from now() at time zone 'utc' - max(collected_at))/60) || '분 전', '·'
+      from kr_flow_intraday
+    union all
+    select '국내 업종 지수 마지막 갱신', to_char(max(updated_at) + interval '9 hours','MM-DD HH24:MI'),
+           round(extract(epoch from now() at time zone 'utc' - max(updated_at))/60) || '분 전', '·'
+      from kr_sector_index_quote
   " 2>/dev/null | while IFS='|' read -r label at ago mark; do printf "  %-2s %s %s (%s)\n" "$mark" "$label" "$at" "$ago"; done || say "  (DB 조회 실패)"
 }
 

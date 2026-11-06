@@ -163,6 +163,24 @@ export class KrStockController {
     }
   };
 
+  news = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code } = krCodeParamSchema.parse(req.params);
+      return ResponseUtil.success(res, await this.enabled().getNews.execute(this.viewer(req), code));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  intradayFlows = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code } = krCodeParamSchema.parse(req.params);
+      return ResponseUtil.success(res, await this.enabled().getIntradayFlows.execute(this.viewer(req), code));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   orderbook = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { code } = krCodeParamSchema.parse(req.params);
