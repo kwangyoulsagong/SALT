@@ -12,7 +12,7 @@ import {
   type WatchlistRepository,
 } from "../../domain";
 import { AddToWatchlist, ListWatchlist } from "../ManageWatchlist";
-import { ListKrStockQuotes } from "../ReadKrStock";
+import { GetKrStockDetail, ListKrStockQuotes } from "../ReadKrStock";
 
 /**
  * F011 슬라이스 3 — 국내 주식 표가 코인 표와 같은 필터(정렬 · 순서 · 기간)를 받고, 관심 종목에 국내 주식을 담는다.
@@ -286,5 +286,30 @@ describe("ListKrStockQuotes — 상태 칩 · VI · 마지막 체결(F016 단계
     assert.deepEqual(r.items[0]!.status, ["vi"]);
     assert.deepEqual(r.items[0]!.vi, { kind: null, triggeredAt: null, count: null });
     assert.equal(r.items[0]!.lastTradeAt, lastTradeAt.toISOString());
+  });
+});
+
+describe("GetKrStockDetail — 그 종목 시장의 오늘 조치만(F016 단계 A)", () => {
+  it("코스닥 종목 상세엔 코스피 서킷브레이커가 실리지 않고 · 마지막 체결도 없다", async () => {
+    const kospiCb: KrMarketAction = {
+      market: "KOSPI", tradeDate: "2026-10-08", kind: "circuit_breaker", stage: 1, direction: "down",
+      startedAt: new Date("2026-10-08T00:04:00Z"), endedAt: null, source: "inferred",
+    };
+    const { store } = storeWith([
+      quote("005930", { lastTradeAt: new Date("2026-10-08T00:03:32Z") }),
+      quote("035720", { market: "KOSDAQ", lastTradeAt: new Date("2026-10-08T00:59:00Z") }),
+    ]);
+    const status = { latestViEvents: async () => new Map(), marketActions: async () => [kospiCb] } as unknown as KrMarketStatusStore;
+    const detail = new GetKrStockDetail({
+      store, calendar, status, viewerEmails: [OWNER],
+      provider: () => ({ status: "ok", since: null, lastSuccessAt: null, realtime: { state: "idle", subscribed: 0, lastTickAt: null } }),
+      now: () => new Date("2026-10-08T01:00:30Z"),
+    } as never);
+    const kospi = await detail.execute(viewer, "005930");
+    assert.deepEqual(kospi.marketActions.map((a) => [a.market, a.active, a.resumesAt]), [["KOSPI", true, "2026-10-08T00:24:00.000Z"]]);
+    assert.equal(kospi.quote.lastTradeAt, "2026-10-08T00:03:32.000Z");
+    const kosdaq = await detail.execute(viewer, "035720");
+    assert.deepEqual(kosdaq.marketActions, []);
+    assert.equal(kosdaq.quote.lastTradeAt, null);
   });
 });
