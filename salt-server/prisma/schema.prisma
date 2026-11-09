@@ -835,6 +835,7 @@ model KrStockMaster {
   market            String // KOSPI | KOSDAQ
   groupCode         String    @map("group_code") // ST 주권 · EF ETF · EN ETN · RT 리츠 …
   sectorCode        String?   @map("sector_code") // 지수업종 대분류
+  sectorMidCode     String?   @map("sector_mid_code") // 지수업종 중분류(0000 이면 NULL) — 업종 몫은 이것 먼저(F016 단계 C)
   basePrice         Decimal?  @map("base_price") @db.Decimal(38, 10) // 원
   sharesOutstanding BigInt?   @map("shares_outstanding") // 주
   marketCap         Decimal?  @map("market_cap") @db.Decimal(38, 10) // 원, 전일 기준
@@ -1011,6 +1012,15 @@ model KrSectorIndexQuote {
 }
 
 /// 국내 업종 지수 일별 — 장 끝 값이 그날 종가(단계 C β 재료)
+/// 지수 · 업종 이름 — KIS 기간별 시세 output1(F016 단계 C). 분해 카드 라벨
+model KrIndexName {
+  code      String   @id
+  name      String
+  updatedAt DateTime @map("updated_at")
+
+  @@map("kr_index_name")
+}
+
 model KrSectorIndexDaily {
   code       String
   tradeDate  DateTime @map("trade_date") @db.Date
