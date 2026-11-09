@@ -1,5 +1,6 @@
 "use client";
 
+import { forwardRef } from "react";
 import type { FormEvent, InputHTMLAttributes } from "react";
 import { Search, X } from "lucide-react";
 import { IconButton } from "../IconButton/IconButton";
@@ -30,16 +31,19 @@ export interface SearchFieldProps
  * 검색 전용 입력창.
  * 일반 폼 입력은 `TextField`를 쓴다.
  */
-export const SearchField = ({
-  value,
-  onChange,
-  onClear,
-  onSubmit,
-  label = "검색",
-  placeholder = "검색어를 입력하세요",
-  className,
-  ...rest
-}: SearchFieldProps) => {
+export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function SearchField(
+  {
+    value,
+    onChange,
+    onClear,
+    onSubmit,
+    label = "검색",
+    placeholder = "검색어를 입력하세요",
+    className,
+    ...rest
+  },
+  ref,
+) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onSubmit?.(value);
@@ -65,6 +69,7 @@ export const SearchField = ({
       </span>
 
       <input
+        ref={ref}
         type="search"
         className={inputStyles}
         value={value}
@@ -85,4 +90,4 @@ export const SearchField = ({
       ) : null}
     </form>
   );
-};
+});
