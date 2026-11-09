@@ -22,9 +22,10 @@ rc=0
 # ingest_search(데이터랩)는 search-interest@1 근거 없음으로 껐다(등록 [decision], FC-REQ-017) — 다시 켜려면 새 등록과 함께
 # backfill_whale 은 매일 돌면 증분이다(이미 있는 날은 건너뛴다 — 새 날 하루치 30종목만 받는다)
 # 주요 사건(events)은 kr_daily 뒤 — 국내 일정(금통위 · 물가 · 수출입 · 동시만기) 반응이 옮긴 국내 일봉을 읽는다(FC-REQ-021 FR-10).
+# 등락 분해 β · σ(move_beta, FC-REQ-027)는 volatility 뒤 — 코인 β 가 그 작업의 btc_beta 다. 지수 · 업종 일별은 서버가 16:05 KST 에 채운다.
 # 국내 주식(FC-REQ-009)은 서버가 채운 일봉을 옮기고(ingest_kr_stock) 예측 · 채점 · 게이트(kr_daily) · 실현 변동성(kr_volatility). 서버 KIS 가
 # 꺼져 있으면 0건 — 실패로 남지만 코인 단계는 막지 않는다
-steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily kr_volatility events signals volatility market_regime target_weight_live)
+steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily kr_volatility events signals volatility market_regime move_beta target_weight_live)
 # 규칙 IC 백테스트는 주 1회 — 매일 돌 이유가 없고 48초 걸린다(FC-REQ-008). 요일이 아니라 "마지막 성공 6.5일 전"으로 고른다:
 # 월요일에만 돌게 했더니 2026-10-05 월요일에 배치가 한 번도 돌지 않아 그 주를 통째로 건너뛰었다(FC-REQ-018)
 "$UV" run --frozen python -m salt_forecast.jobs.due --job rule_ic --hours 156 >/dev/null && steps+=(rule_ic)
