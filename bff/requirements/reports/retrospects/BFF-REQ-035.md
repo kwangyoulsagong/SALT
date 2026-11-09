@@ -14,3 +14,8 @@
 ## 2026-10-30 — F004 슬라이스 19 차트 1주 탭
 
 - 변경 없음 · 파일만 걸침. Action: 없음
+
+## 2026-11-09 — F016 단계 C
+
+- 변경 칸 하나 — 소비처 테스트(계약 목록 · 뷰모델)가 같이 고쳐졌다
+- 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`

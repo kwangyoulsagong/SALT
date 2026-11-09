@@ -11,3 +11,8 @@
 
 - 경로 둘 — 기존 `read` 헬퍼(재시도 1 · disabled · unavailable 갈래)를 그대로 써서 실패 처리 코드 0줄. 모르는 소식 `kind` 는 버린다
 - FR-4 를 "외국인 · 기관 · 개인 · 프로그램"에서 프로그램만으로 정정 — 서버 원천이 없다
+
+## 단계 C(2026-11-09)
+
+- 산술 grep 테스트가 처음엔 문자열 속 하이픈(`why-moved`)을 잡았다 — 검사 대상에서 문자열 · 주석을 빼야 규칙이 선다
+- 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`

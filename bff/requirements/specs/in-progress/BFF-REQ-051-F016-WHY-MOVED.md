@@ -45,6 +45,17 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 
 - 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md`
 
+## 진행 — 단계 C done(2026-11-09)
+
+| FR | 상태 | 구현 |
+|---|---|---|
+| FR-1 why-moved | done(부분) | `GET /api/app/market/kr/:code/why-moved` · `GET /api/app/market/:symbol/why-moved` → `{ date, show, reasons[], usualRate, split: { total, market, sector, idio, method, marketIndex, sectorIndex, sectorName } \| null, facts[], unavailable[] }`. **`summary` · `gate` 칸은 단계 D 가 칸과 같이**(쓰지 않는 칸을 두지 않는다). 모르는 kind · 이유는 버리고 모르는 `method` 는 계약 깨짐 |
+| FR-7 예산 | done | 800ms · 5xx 한 번 다시 · 4xx 그대로 |
+| 표 행 칸 | done | 국내 표 뷰모델 `moveCard`(옛 서버 `false`) · 코인 시장 개요는 서버 응답 통과 |
+
+- 산술 0 — 테스트가 뷰모델 파일을 grep(문자열 · 주석 빼고)
+- 루트 `requirements/specs/done/F016-C-move-split-facts-slice.md`
+
 ## Acceptance Criteria
 
 - [ ] 원천 하나 강제 실패 → 그 kind 만 `unavailable`(테스트)
@@ -62,3 +73,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-06 | 신규(to-do) |
 | 2026-11-06 | 단계 B done — FR-3 · FR-4(정정: 프로그램만) |
 | 2026-11-06 | in-progress — 단계 A(FR-2 · 5) done. FR-2 를 별도 경로 대신 요약 · 상세 응답 칸으로 정정 |
+| 2026-11-09 | 단계 C — FR-1(①② · summary 는 D) · FR-7 · 표 행 `moveCard` |

@@ -65,7 +65,7 @@ MSA(`ADR-006`)의 전제는 **테이블 하나에 주인 하나**다. 물리 DB 
 | B5 | 코치 워커 → `user.findMany`(사용자 목록) 3곳 | `workers/investment-insight.worker.ts` | coach 의 사용자 프로젝션(`identity.UserRegistered`) | S6 |
 | B6 | `modules/investment-insight`(coach) → `portfolioHolding` · `marketAsset` · `marketSentiment` · `priceHistory` · `technicalIndicator` | Prisma 호출 셈 | 보유 = 프로젝션, 시장 = market 내부 REST · export 뷰 | S6 |
 | B7 | `notification-cleanup.worker` → `investmentNotification` | `workers/` | notification 서비스 안으로(같은 주인) | S2 |
-| B8 | 예측 → `public.price_history` · `market_holidays`(2) · `kr_stock_master` · `judgment_ledger` | `salt-forecast/src/salt_forecast/store/kr_stock.py` · `ops.py` | FR-7 export 뷰 4 | S5 · S6 |
+| B8 | 예측 → `public.price_history` · `market_holidays`(2) · `kr_stock_master`(+ `sector_mid_code` 2026-11-09) · `judgment_ledger` · **`kr_sector_index_daily`(추가 2026-11-09 — F016 β 재료, `FC-REQ-027`)** | `salt-forecast/src/salt_forecast/store/kr_stock.py` · `ops.py` | FR-7 export 뷰 4 | S5 · S6 |
 | B9 | **예측 → `public.portfolio_holdings` ∪ `investment_watchlist`(국내 추적 종목 코드)** | `store/kr_stock.py:108` | **FR-7 에 뷰가 없다** — `market.v_tracked_symbols_export`(코드만, 사용자 0) 같은 뷰 하나를 S5 에 더한다. 보유 쪽은 portfolio 주인이라 market 이 프로젝션으로 합친다 | S4 · S5 |
 | B10 | 동면 모듈(`dashboard` · `feed` · `mission`) → 보유 · 인사이트 · 알림 · 사용자 | Prisma 호출 셈 | 옮기지 않음 — S7 에 410 을 BFF 로(`BFF-REQ-045` FR-8) 옮기며 코드째 삭제 | S7 |
 
@@ -90,3 +90,4 @@ Express 쪽 raw SQL 로 남의 표를 읽는 곳은 0(같은 grep — `market` �
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: content 스키마가 플랫폼에서 태어나 `svc_content` 로그인을 연다(`roles.sql` · `init.sh` · Compose · 로컬 운영 DB 관리자 적용). 권한 검사 표본을 `content.probe` → `identity.probe`(content 는 Flyway 가 쓴다). Flyway V1 = 공통 세 표 + 글 · 파라미터 · 트리거 · 닫기 · 신호 |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 부록 notification 행 — `InvestmentNotification` → Kotlin `notification.notification`(가져오기 1행 대조 · drop) · B7 정리 워커 notification 안으로 · `svc_notification` · `svc_coach`(아웃박스만) 로그인. 테스트 Postgres 연결 상한 300 |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-1 — identity 가 플랫폼에서 로그인(`svc_identity` · `roles.sql` · Compose · 로컬 운영 DB 관리자 적용 2026-11-06). 권한 검사 표본 `identity.probe` → `portfolio.probe`. identity 스키마 표 = `user_domain_pref`(+ 공통 셋) — 부록 A 의 `users` · `invite_codes` · `invite_code_attempts` 이동은 S3b `fc0207cb` |
+| 2026-11-09 | 부록 B8 에 예측 읽기 하나 더 — `kr_sector_index_daily`(지수 · 업종 일별) · 마스터 중분류 칸(F016 단계 C). S5 export 뷰 목록에 같이 |

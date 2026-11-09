@@ -123,3 +123,8 @@ FR-36 은 Should 였고 "끊겨 있으면 잇는다"였다. 확인해 보니 끊
 ## 2026-11-05 — FE-REQ-013 FR-80 2단계
 
 - 파일만 걸침 — Action 없음
+
+## 2026-11-09 — F016 단계 C
+
+- 변경 칸 하나 — 소비처 테스트(계약 목록 · 뷰모델)가 같이 고쳐졌다
+- 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`

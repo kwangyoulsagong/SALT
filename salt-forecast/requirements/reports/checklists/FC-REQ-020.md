@@ -183,3 +183,11 @@
 - 서버 `kisClient.test.ts`(머리에 이 REQ 언급)에 시황 제목 · 프로그램 매매 해석 테스트(F016 단계 B). 예측 무변경
 - 검증: 영역 전체(서버 build · lint · test 981 · BFF test 421 · FE check-types · lint · test) 통과 — 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
 - 미검증 · 범위 밖: 없음(이 REQ 몫 무변경)
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| KIS 클라이언트 테스트에 기간별 지수 시세 파싱(F016 단계 C) — 국내 정확도 코드 무변경 | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`

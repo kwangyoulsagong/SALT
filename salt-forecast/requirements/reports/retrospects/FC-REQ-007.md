@@ -13,3 +13,8 @@
 ## F008 슬라이스 24 국내 증시 일정 (2026-11-02)
 
 - 파일만 걸쳤다 — 판단은 `FC-REQ-021` · `SRV-REQ-041` · `FE-REQ-046` 회고에 있다.
+
+## 2026-11-09 — F016 단계 C
+
+- 변경 칸 하나 — 소비처 테스트(계약 목록 · 뷰모델)가 같이 고쳐졌다
+- 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`

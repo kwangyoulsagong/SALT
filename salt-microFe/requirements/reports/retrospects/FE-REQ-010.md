@@ -184,3 +184,8 @@ watchlist 슬라이스 회고가 적은 실수를 초대 슬라이스가 되풀�
 ## 2026-11-06 — F016 단계 B(파일 걸침)
 
 - 이 REQ 몫 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md`
+
+## 2026-11-09 — F016 단계 C
+
+- 변경 칸 하나 — 소비처 테스트(계약 목록 · 뷰모델)가 같이 고쳐졌다
+- 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`

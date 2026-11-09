@@ -46,3 +46,11 @@
 - 변경: `domain/events` · `store/events` · `jobs/events` 를 국내로 넓혔다 — 종류 4 · KST 발표 시각 · 규칙 종류 30일 전 · 끊김 `break_cum` · 사건 종목 키(`FC-REQ-021` · `DB-REQ-034`). 코인 묶음 결과 무변화(`ref_bar_open` 식 · `_closed_by` 조건은 업비트 봉에서 전과 같다)
 - 검증: 기존 `test_events` · `test_events_leakage` 그대로 통과 · 실행 뒤 KRW-BTC 통계 렌더 9행 그대로
 - 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| `tables.py` 에 `move_beta` 선언(F016 단계 C `FC-REQ-027`) — 사건 표 무변경 | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`

@@ -49,3 +49,8 @@
 ## 2026-11-06 — F016 단계 A(파일 걸침)
 
 - 주인은 F016 REQ — 이 문서는 파일이 걸쳐 기록만. 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`
+
+## 2026-11-09 — F016 단계 C
+
+- 변경 칸 하나 — 소비처 테스트(계약 목록 · 뷰모델)가 같이 고쳐졌다
+- 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`

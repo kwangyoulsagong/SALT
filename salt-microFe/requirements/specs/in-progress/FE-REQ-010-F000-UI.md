@@ -289,3 +289,4 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 온보딩 화면(FR-21 · 22 · 25) — 3스텝 → 도메인 선택(초대 · 고르기 · 첫 기록 · 끝). 홈 안내 카드는 서버 다음 단계 이름. 본문 그 자리 정정 `c1baa77a` |
 | 2026-11-06 | 서버 S3a 확인 2회차 — 온보딩 조회 `readApiError`(401 재시도 안 함) · 만료 세션이면 초대 단계 `698da12b` |
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `entities/market/api/endpoints.ts`(머리에 이 REQ)에 국내 경로 둘(`krNews` · `krIntradayFlows`, `FE-REQ-063`). 기존 경로 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
+| 2026-11-09 | 시세 엔드포인트 둘(`krWhyMoved` · `cryptoWhyMoved`) · 시장 개요 행 `moveCard` 타입(F016 단계 C) |

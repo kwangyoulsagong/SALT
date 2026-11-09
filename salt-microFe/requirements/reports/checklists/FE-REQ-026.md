@@ -322,3 +322,11 @@
 
 - FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md`
 - 확인: lint · check-types(web · domain-invest) · 훅 사후 실행 · 실화면(해당 화면 200 · 401 미해결 0 · 수화 오류 0)
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| `MarketPreview` 에 "왜 떨어졌을까?" 한 줄 · 국내 오늘 소식(코인 뉴스와 같은 카드) — 코인 블록 무변경(F016 단계 C) | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`

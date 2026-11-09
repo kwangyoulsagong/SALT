@@ -150,3 +150,11 @@ Swagger(`failOnErrors`) 생성 · 실검증 · 실화면 상세는 루트 `requi
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - `app.ts` 에서 `/api/onboarding` 등록 제거 — 소비처 BFF 하나가 같은 PR 에서 identity 로 옮김(BFF 410)
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| 시장 개요 응답에 `moveCard`(추가만 — 계약 테스트 목록에 더함, F016 단계 C) | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`

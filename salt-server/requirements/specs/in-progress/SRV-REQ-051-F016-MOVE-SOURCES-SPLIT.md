@@ -66,6 +66,20 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 - 업종 · 프로그램은 시세 사슬(`kr-quote-poll`)에 붙이지 않는다 — 사슬이 1분을 넘기면 사슬 끝 "10분 정각" 판정이 회차를 버렸다(12:00 0행, `158d5940`)
 - 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md`
 
+## 진행 — 단계 C done(2026-11-09)
+
+| FR | 상태 | 구현 |
+|---|---|---|
+| FR-7 분해 | done | `domain/MoveSplit.ts` `splitDailyMove` — 시장 = β × 지수 · 업종 = β × (업종 − 지수) · 종목 = 등락 − 둘(뺄셈이 정의 · 합 = 등락). β 는 `forecast.v_move_beta_export`(7일 넘으면 없음) — 못 읽으면 β=1 `market_adjusted` · 코인 BTC 는 `benchmark`. 업종은 30분 박자라 장중 40분 안 · 같은 거래일 값만(`isUsableSectorQuote`). 지수가 다른 거래일이면 분해 없음 |
+| FR-8 카드 조건 | done(정정) | `moveCardReasons` — \|등락\| ≥ max(`MOVE_CARD_MIN_RATE` 3, `MOVE_CARD_K` 2.5 × σ) 또는 그날 VI · 시장 조치 · 정지 · 경보. **σ 창은 서버 설정이 아니라 예측 배치 설정**(~~σ 창은 서버 설정~~ 정정 2026-11-09 — 요청 때 일봉을 집계하지 않으려 배치가 σ60 을 미리 낸다). k · 최소 % 는 분포로 정했다(체크리스트 — 종목당 한 달 약 0.7회). 표 행 `moveCard`(국내 표 · 코인 시장 개요)도 같은 판정(`moveCard.ts`) |
+| FR-9 같은 날 사실 | done | `GetKrWhyMoved` — 시황/공시 제목 · VI(최근 하나) · 시장 조치 · 정지/경보 상태 · 프로그램 순매수(원). 원천 하나 실패면 그 kind 만 `unavailable` · 시각순 상한 30 |
+| FR-10 코인 | done(정정) | `GetCryptoWhyMoved` — 그날(09:00 KST 뒤) 기사 제목 · 거래소 유의/주의. ~~업비트 마켓 상세 플래그를 수집 워커에 칸 추가~~ **새 열 대신 매일 스냅샷 `forecast.v_market_warning`**(같은 공식 원천 — 두 곳에 두지 않는다, 2일 넘으면 없음) |
+| 지수 · 업종 일별 | done | KIS `FHKUP03500100`(허용 목록 +1) — 지수 셋 + 유니버스 업종 1년 · 매일 16:05 + 기동 때. 200행 미만이면 다시 거슬러 · 오늘 행은 16:00 뒤만 · 이름은 원천 값(`kr_index_name`). **업종 = 중분류 우선**(대분류 0027 제조업이 반도체 지배 — 동화약품 업종 β −3.5 → 중분류 0009 제약 0.40) |
+| 부가 작업 실패 셈 | done | `SupplementFailures` 한 곳 — 업종 15:40 종가 회차가 초과 하나로 0행이던 것(11-06 서버 로그) · 프로그램 · 지수 일별 같은 규칙 |
+
+- 경로 `GET /api/market/kr/:code/why-moved`(소유자) · `GET /api/investment/crypto/:symbol/why-moved`(로그인) — 저장값만 · Swagger `failOnErrors` 생성 확인
+- 루트 `requirements/specs/done/F016-C-move-split-facts-slice.md`
+
 ## Acceptance Criteria
 
 - [ ] 분해 합 = 등락 — 경계 표 테스트(β 없음 · 업종 없음 · 지수 실패 · 코인)
@@ -88,3 +102,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-06 | 단계 B 확인 2회차 — 레이어 훅 사후 실행을 제대로 다시(첫 보고는 검사 없이 통과) · 단계 A 가 넘긴 VI 30건 초과를 셈(분당 최대 15 · 초과 0) · 로딩 상태 실화면 |
 | 2026-11-06 | 단계 B done — FR-1(정정: 시장 전체 한 번) · FR-4 · FR-5 부분(프로그램만 — 외국인 · 기관 장중 원천 거부) · FR-12 · VI 보존 정리. 허용 목록 TR 둘 |
 | 2026-11-06 | in-progress — 단계 A(FR-2 · FR-3 추정 · FR-6) done. FR-3 추정 근거를 "지수 분 기록 멈춤"으로 정정(진행 표). 허용 목록 TR 하나 더(`FHPST01390000`) |
+| 2026-11-09 | 단계 C done — FR-7~10 · 지수 · 업종 일별 이력(새 TR 하나) · 업종 중분류 · 부가 작업 실패 셈 한 곳. FR-8 σ 창 · FR-10 코인 경보 원천 정정 |

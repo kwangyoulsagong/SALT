@@ -46,3 +46,12 @@
 
 - 파일만 걸침 — `packages/domain-invest/src/widgets/judgment-overview/ui/JudgmentOverview.tsx`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
 - 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| 요약 띠 — 화면 폭(1379) 대신 칸 폭으로 항목 열을 줄인다(레일 72 뒤 1440 에서 끝 열이 상자 밑에 잘림, 사용자 2026-11-09) · 열 200~280 · 틈 8 · 변동률에도 부호(금액 말줄임 때 색만 남던 것) | 반영 · 영역 검증 전체 통과 |
+| 1024 · 1280 · 1440 · 1600 · 1920 × 코인 · 국내 | 페이지 넘침 0 · 항목이 상자와 겹침 0 · 칸 넘침 0 · 1280~1920 세 열 다 보임(1024 는 띠 안 가로 밀기 — 원래 설계) |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`

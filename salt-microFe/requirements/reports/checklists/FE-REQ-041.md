@@ -416,3 +416,11 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 - `@repo/core/marketKr`(머리에 이 REQ) 에 타입 넷(`KrNewsItem` · `KrStockNews` · `KrProgramFlow` · `KrIntradayFlows`) · 국내 상세에 오늘 소식 카드 · 투자자 카드 머리 프로그램 줄(`FE-REQ-063`). 기존 칸 무변경
 - 검증: 영역 전체(서버 build · lint · test 981 · BFF test 421 · FE check-types · lint · test) 통과 — 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
 - 미검증 · 범위 밖: 없음(이 REQ 몫 무변경)
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| `@repo/core/marketKr` `KrQuote.moveCard?` · 국내 상세 머리 아래 "왜 움직였나" 카드 자리(F016 단계 C) | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`

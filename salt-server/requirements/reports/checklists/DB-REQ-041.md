@@ -38,3 +38,16 @@
 | 정리 워커 실제 삭제 | 지울 행이 아직 없다(오늘 생긴 표) | 2026-12-06(첫 30일) — 로그 `국내 등락 원천 정리` |
 | 외국인 · 기관 장중 열 | 원천 거부 | 실전 키 전환 시 |
 | FR-7 · 8 | 단계 C · D | 전 영역 계획 |
+
+## 단계 C(2026-11-09)
+
+| 항목 | 결과 |
+|---|---|
+| 마이그레이션 셋 로컬 적용 | `prisma migrate deploy` 통과 · `prisma generate` |
+| 추가만(표 다시 쓰기 0) | `move_beta` 새 표 · `sector_mid_code` NULL 허용 · `kr_index_name` 새 표 |
+| 예측 계약 대조 | `test_schema_contract.py` 통과(실 DB) |
+| 행 | `move_beta` 2,920(11-09 as_of) · `kr_sector_index_daily` 19코드 × 248 · `kr_index_name` 19 · 마스터 중분류 1,712 |
+
+| 미검증 · 범위 밖 | 사유 | 언제 닫히나 |
+|---|---|---|
+| `move_beta` 보존 | 하루 2,920행 — 1년 약 100만 행. 정리 작업 없음 | 예측 `ops_monitor` 정리에 넣을 때(FC-REQ-027 다음 단계) |

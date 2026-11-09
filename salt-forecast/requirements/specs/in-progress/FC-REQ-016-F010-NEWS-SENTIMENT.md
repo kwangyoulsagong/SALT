@@ -49,3 +49,4 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 
 - 2026-10-06: 초판 · FR-1~6 완료
 - 2026-11-02: F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `ops/daily.sh` 주석 — `events` 가 `kr_daily` 뒤에 도는 이유(국내 일봉을 읽는다, `FC-REQ-021` FR-10). 단계 목록 무변경
+| 2026-11-09 | `daily.sh` 단계에 `move_beta`(volatility 뒤) — 뉴스 단계 무변경(F016 단계 C) |

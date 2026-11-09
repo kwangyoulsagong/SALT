@@ -46,3 +46,11 @@
 - 변경: `config.py` 에 `kr_event_symbols` · `kr_event_top`(`FC-REQ-021` FR-6). 쏠림 신호 설정 무변경
 - 검증: pyright · 전체 pytest 통과
 - 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| `config.py` 에 등락 분해 창 설정 넷(F016 단계 C `FC-REQ-027`) — 쏠림 설정 무변경 | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`

@@ -169,3 +169,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음(이 REQ 몫) — 같은 파일 `env.ts` 에서 `PLATFORM_API_URL` 삭제(쓰는 곳 = 은퇴한 온보딩 프로브) `7f2ba1ed` |
 | 2026-11-06 | F016 단계 A — FR-44 상태 배지를 넓혔다(거래정지 58 · 임시정지 플래그 가름 · VI · 투자유의 · 정리매매 · 관리 · 단기과열 플래그) · 시세 응답에 `vi` · `lastTradeAt`(값이 멈춘 이유가 있을 때만) · 상세 응답에 `marketActions`. 주인은 `SRV-REQ-051` FR-6 · 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md` |
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — BFF `app-kr-stock.service.ts`(머리에 이 REQ) 에 F016 읽기 둘 · 서버 국내 읽기(`ReadKrStock`)에 `GetKrStockNews` · `GetKrIntradayFlows`(`SRV-REQ-051`). 기존 국내 경로 · 응답 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
+| 2026-11-09 | 국내 표 응답에 `moveCard`(추가만) · 국내 상세 why-moved 경로(F016 단계 C `SRV-REQ-051`) |

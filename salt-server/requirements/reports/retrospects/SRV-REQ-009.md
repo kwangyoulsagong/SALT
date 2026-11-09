@@ -105,3 +105,8 @@ PR #43 · #47 에는 이 REQ 몫의 변경이 없다.
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 은퇴 경로는 BFF 410 한 곳에서 잔여 호출을 본다(서버는 404)
+
+## 2026-11-09 — F016 단계 C
+
+- 변경 칸 하나 — 소비처 테스트(계약 목록 · 뷰모델)가 같이 고쳐졌다
+- 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`

@@ -327,3 +327,11 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 - `entities/market/api/endpoints.ts`(머리에 이 REQ)에 국내 경로 둘(`krNews` · `krIntradayFlows`, `FE-REQ-063`). 기존 경로 무변경
 - 검증: 영역 전체(서버 build · lint · test 981 · BFF test 421 · FE check-types · lint · test) 통과 — 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
 - 미검증 · 범위 밖: 없음(이 REQ 몫 무변경)
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| 시세 엔드포인트 둘(`krWhyMoved` · `cryptoWhyMoved`) · 시장 개요 행 `moveCard` 타입(F016 단계 C) | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`

@@ -215,3 +215,4 @@ source: requirements/reports/research/reports/국내 주식 코치 전망 설계
 - 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — 서버 `kisClient.test.ts`(머리에 이 REQ 언급)에 지수 고가 · 저가 · 거래대금 단위 테스트. 예측 무변경
 - 2026-11-06: 파일만 걸침 — 서버 `kisClient.test.ts`(머리에 이 REQ 언급)에 VI 현황 · 상태 칸 해석 테스트(F016 단계 A). 예측 무변경 · 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md`
 - 2026-11-06: 파일만 걸침(F016 단계 B) — 서버 `kisClient.test.ts`(머리에 이 REQ 언급)에 시황 제목 · 프로그램 매매 해석 테스트(F016 단계 B). 예측 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md`
+| 2026-11-09 | KIS 클라이언트 테스트에 기간별 지수 시세 파싱(F016 단계 C) — 국내 정확도 코드 무변경 |
