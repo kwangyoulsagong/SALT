@@ -12,7 +12,7 @@
 | `@repo/domain-invest` check-types · lint | 통과 |
 | `@repo/core` test · check-types | 184/184 |
 | 레이어 훅 사후 실행 | 음성 대조 exit 2 · 바뀐 12 파일 exit 0 |
-| 바뀐 zone 운영 빌드(`web-investment`, worktree) | 아래 표 |
+| 바뀐 zone 운영 빌드(`web-investment`, worktree) | 통과 · `/investments` 첫 로드 152 kB · `/investments/[symbol]` 152 kB(공용 104 kB) — 본문 칸은 모달 안 잎이라 새 청크 0 |
 
 | 미검증 · 범위 밖 | 사유 | 언제 닫히나 |
 |---|---|---|
