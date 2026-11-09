@@ -13,8 +13,8 @@ import {
   type KrProgramFlowFact,
   type KrStockStore,
 } from "../../domain";
-import { KrStockNotAvailableError } from "../../domain";
-import { GetKrIntradayFlows, GetKrStockNews } from "../ReadKrStock";
+import { KrArticleBodyUnavailableError, KrStockNotAvailableError } from "../../domain";
+import { GetKrIntradayFlows, GetKrNewsBody, GetKrStockNews } from "../ReadKrStock";
 import type { ResolveKrStockUniverse } from "../SyncKrStock";
 import {
   BackfillKrIndexDaily,
@@ -417,6 +417,31 @@ describe("읽기 — 오늘 소식 · 장중 수급(소유자 전용 · 저장�
     // 관련 종목 칩(FE-REQ-065) — 이름 · 등락률 서버 값, 시세 없으면 null(0 으로 채우지 않는다)
     assert.deepEqual(r.items[0]!.related, [{ code: "005930", name: "삼성전자", changeRate: -1.2 }, { code: "000660", name: "SK하이닉스", changeRate: null }]);
     assert.equal(r.collectedAt, "2026-11-06T02:42:00.000Z");
+  });
+
+  it("기사 본문(SRV-REQ-054) — 그 종목 시황만 news 로 · 공시는 검색 없이 not_found · 남의 일련번호 · 형식 오류 404 · 원천 없음 503", async () => {
+    const asks: Array<{ key: string; title: string }> = [];
+    const titles: Record<string, { kind: "news" | "disclosure"; title: string; publishedAt: Date }> = {
+      "20261109100000000001": { kind: "news", title: "삼성전자, 신규 라인 가동", publishedAt: kst("10:00") },
+      "20261109100000000002": { kind: "disclosure", title: "주요사항보고서", publishedAt: kst("10:01") },
+    };
+    const base = deps();
+    const withBody = (articleBody?: unknown) => ({
+      ...base,
+      moveSources: { ...base.moveSources, newsTitle: async (serial: string, code: string) => (code === "005930" ? titles[serial] ?? null : null) },
+      articleBody,
+    });
+    const port = { read: async (q: { key: string; title: string }) => (asks.push(q), { status: "ok" as const, paragraphs: ["본문"], originalUrl: "https://press.example/1", fetchedAt: "t" }) };
+    const run = (d: unknown, code: string, serial: string) => new GetKrNewsBody(d as never).execute(OWNER, code, serial);
+
+    assert.deepEqual((await run(withBody(port), "005930", "20261109100000000001")).paragraphs, ["본문"]);
+    assert.deepEqual(asks.map((a) => a.key), ["kr:20261109100000000001"]);
+    assert.equal((await run(withBody(port), "005930", "20261109100000000002")).status, "not_found");
+    assert.equal(asks.length, 1, "공시는 검색하지 않는다");
+    await assert.rejects(run(withBody(port), "000660", "20261109100000000001"), KrStockNotAvailableError);
+    await assert.rejects(run(withBody(port), "005930", "../etc"), KrStockNotAvailableError);
+    await assert.rejects(run(withBody(undefined), "005930", "20261109100000000001"), KrArticleBodyUnavailableError);
+    await assert.rejects(new GetKrNewsBody(withBody(port) as never).execute({ userId: "x", email: "other@x.com" }, "005930", "20261109100000000001"), KrStockNotAvailableError);
   });
 
   it("비소유자 · 마스터에 없는 종목은 같은 404", async () => {

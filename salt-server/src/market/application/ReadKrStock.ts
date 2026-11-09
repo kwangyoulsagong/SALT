@@ -45,6 +45,9 @@ import {
   KR_NEWS_READ_LIMIT,
   kstStartOfDay,
   type KrMoveSourceStore,
+  type KrArticleBodyPort,
+  type KrArticleBodyView,
+  KrArticleBodyUnavailableError,
 } from "../domain";
 import { logger } from "../../shared/config/logger";
 import { krMoveEvents, moveCardFlags, type MoveDependencies } from "./moveCard";
@@ -265,6 +268,8 @@ export interface KrStockReadDependencies {
   moveSources: KrMoveSourceStore;
   /** 표 행 카드 표시 — β · σ 뷰 · 카드 문턱(F016 단계 C). 없으면 표시 없음(테스트 · 옛 조립) */
   move?: Pick<MoveDependencies, "betas" | "policy">;
+  /** 기사 본문(`SRV-REQ-054`) — `news` 공개 API ACL. 없으면 본문 경로가 503(테스트 · 옛 조립) */
+  articleBody?: KrArticleBodyPort;
   now?: () => Date;
 }
 
@@ -601,6 +606,27 @@ export class GetKrStockNews extends KrStockRead {
         related: n.related,
       })),
     };
+  }
+}
+
+/** 시황 일련번호 — 원천 20자리 안팎 숫자. 다른 모양은 검색을 부르지 않는다 */
+const KR_NEWS_SERIAL = /^\d{8,24}$/;
+
+/**
+ * 국내 시황 기사 본문(`SRV-REQ-054` FR-5) — 그 종목에 걸린 제목만(남의 종목 일련번호 · 광고성 → 404). 공시는 기사가 아니라
+ * 포털에 같은 글이 없다 — 검색 없이 `not_found`. 본문 찾기 · 캐시는 `news` 컨텍스트
+ */
+export class GetKrNewsBody extends KrStockRead {
+  async execute(viewer: KrStockViewer, code: string, serial: string): Promise<KrArticleBodyView> {
+    this.access.assert(viewer);
+    if (!isKrStockCode(code) || !KR_NEWS_SERIAL.test(serial)) throw new KrStockNotAvailableError();
+    const title = await this.deps.moveSources.newsTitle(serial, code);
+    if (!title) throw new KrStockNotAvailableError();
+    if (title.kind === "disclosure") {
+      return { status: "not_found", paragraphs: [], originalUrl: null, fetchedAt: this.now().toISOString() };
+    }
+    if (!this.deps.articleBody) throw new KrArticleBodyUnavailableError();
+    return this.deps.articleBody.read({ key: `kr:${serial}`, title: title.title, publishedAt: title.publishedAt });
   }
 }
 

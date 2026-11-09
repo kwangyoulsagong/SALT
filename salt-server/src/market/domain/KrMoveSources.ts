@@ -186,6 +186,8 @@ export interface KrMoveSourceStore {
   latestNewsPublishedAt(): Promise<Date | null>;
   /** 한 종목 `since` 뒤 제목(최신이 앞) · 광고성 제외 · `limit` 건 */
   newsTitles(code: string, since: Date, limit: number): Promise<StoredKrNewsTitle[]>;
+  /** 제목 하나 — 그 종목에 걸린 것만(광고성 제외). 기사 본문 찾기(`SRV-REQ-054`)의 입력. 없으면 `null` */
+  newsTitle(serial: string, code: string): Promise<{ kind: KrNewsKind; title: string; publishedAt: Date } | null>;
   /** 마지막으로 제목을 받은 시각(신선도) */
   newsCollectedAt(): Promise<Date | null>;
   /** 종목 → 업종 지수 코드(분류 없음은 빠진다) */
@@ -220,3 +222,15 @@ const kstClock = (now: Date) => {
 /** KST 그날 00:00 — "오늘 소식"의 시작 */
 export const kstStartOfDay = (now: Date): Date => new Date(`${kstDateOf(now)}T00:00:00+09:00`);
 
+
+/** 기사 본문(`SRV-REQ-054`) — `news` 컨텍스트를 우리 언어로 번역하는 ACL 의 Port. 문단은 글자만 · 키가 없으면 503 이 그대로 오른다 */
+export interface KrArticleBodyPort {
+  read(query: { key: string; title: string; publishedAt: Date }): Promise<KrArticleBodyView>;
+}
+
+export interface KrArticleBodyView {
+  status: "ok" | "not_found" | "failed";
+  paragraphs: string[];
+  originalUrl: string | null;
+  fetchedAt: string;
+}

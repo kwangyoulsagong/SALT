@@ -391,6 +391,27 @@ export const createKrStockRouter = (
 
   /**
    * @swagger
+   * /api/market/kr/{code}/news/{serial}/body:
+   *   get:
+   *     summary: 국내 시황 기사 본문 — 소유자 전용(SRV-REQ-054)
+   *     description: |
+   *       이 종목에 걸린 시황 제목 하나를 포털 뉴스 검색으로 찾아(제목 겹침 0.8 이상 · 게시 2일 안) 본문 문단을 준다. 캐시 —
+   *       찾음은 영구 · 못 찾음은 3시간 · 실패는 30분 뒤 다시 찾는다. 공시는 기사가 아니라 검색 없이 `not_found`. 문단은 글자만.
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - { in: path, name: code, required: true, schema: { type: string, pattern: "^[0-9A-Z]{6}$" } }
+   *       - { in: path, name: serial, required: true, schema: { type: string, pattern: "^\\d{8,24}$" } }
+   *     responses:
+   *       200:
+   *         description: "`{ status: ok | not_found | failed, paragraphs: string[], originalUrl, fetchedAt }`"
+   *       404: { description: 소유자가 아님 · 마스터에 없는 종목 · 그 종목에 걸리지 않은 일련번호 }
+   *       503: { description: KIS 키 없음(KR_STOCK_DISABLED) 또는 포털 검색 키 없음(NEWS_BODY_UNAVAILABLE) }
+   */
+  router.get("/:code/news/:serial/body", controller.newsBody);
+
+  /**
+   * @swagger
    * /api/market/kr/{code}/flows/intraday:
    *   get:
    *     summary: 국내 종목 장중 수급(프로그램 매매 누적) — 소유자 전용

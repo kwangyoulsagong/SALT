@@ -134,6 +134,46 @@ export const createNewsRouter = (useCases: NewsUseCases): Router => {
 
   /**
    * @swagger
+   * /api/news/{id}/body:
+   *   get:
+   *     summary: 기사 본문 — 포털 검색으로 같은 기사를 찾아 뽑은 문단(SRV-REQ-054)
+   *     description: |
+   *       처음 부를 때 제목으로 포털 뉴스를 검색해 같은 기사(제목 겹침 0.8 이상 · 게시 2일 안)를 찾고 본문 문단만 뽑아 캐시한다.
+   *       `status` = `ok`(문단 있음) | `not_found`(같은 기사 없음 — 3시간 뒤 다시) | `failed`(받지 못함 — 30분 뒤 다시). 문단은 글자만.
+   *     tags: [News]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: string, format: uuid }
+   *     responses:
+   *       200:
+   *         description: 본문
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     status: { type: string, enum: [ok, not_found, failed] }
+   *                     paragraphs: { type: array, items: { type: string } }
+   *                     originalUrl: { type: string, nullable: true }
+   *                     fetchedAt: { type: string, format: date-time }
+   *       400: { description: id 형식 오류 }
+   *       401: { description: 로그인 필요 }
+   *       404: { description: 없는 기사 }
+   *       503: { description: 포털 검색 키 없음(NEWS_BODY_UNAVAILABLE) }
+   */
+  router.get("/:id/body", authMiddleware, newsController.getNewsBody);
+
+  /**
+   * @swagger
    * /api/news/bookmark:
    *   post:
    *     summary: 뉴스 북마크 추가

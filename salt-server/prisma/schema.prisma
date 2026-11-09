@@ -1091,3 +1091,18 @@ model MarketHoliday {
   @@id([market, date])
   @@map("market_holidays")
 }
+
+/// 기사 본문 캐시(`SRV-REQ-054`) — 원장 기사(국내 시황 `kr:<일련번호>` · 코인 `coin:<id>`)를 포털 검색으로 찾아 뽑은 문단. 찾음은 영구 ·
+/// 못 찾음 · 실패는 잠시 뒤 다시 찾는다(도메인 `isBodyFresh`). 문단은 글자만(태그 0)
+model NewsArticleBody {
+  key              String   @id
+  status           String // ok | not_found | failed
+  paragraphs       Json     @default("[]")
+  url              String?
+  originalUrl      String?  @map("original_url")
+  fetchedAt        DateTime @map("fetched_at")
+  /// 뽑기 규칙 판(도메인 `BODY_EXTRACTOR_VERSION`) — 판이 바뀌면 "찾음"도 다시 찾는다
+  extractorVersion Int      @map("extractor_version")
+
+  @@map("news_article_body")
+}

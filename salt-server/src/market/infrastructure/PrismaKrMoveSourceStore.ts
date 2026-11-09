@@ -55,6 +55,18 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
     return row._max.collectedAt ?? null;
   }
 
+  async newsTitle(serial: string, code: string) {
+    // 연결 PK(serial, code) 로 그 종목에 걸린 제목인지 확인 → 제목 PK
+    const rows = await prisma.$queryRaw<Array<{ kind: string; title: string; published_at: Date }>>`
+      SELECT t.kind, t.title, t.published_at
+      FROM kr_news_title_symbol s
+      JOIN kr_news_title t ON t.serial = s.serial
+      WHERE s.serial = ${serial} AND s.code = ${code} AND NOT t.promo`;
+    const row = rows[0];
+    if (!row) return null;
+    return { kind: (row.kind === "disclosure" ? "disclosure" : "news") as KrNewsKind, title: row.title, publishedAt: row.published_at };
+  }
+
   async newsTitles(code: string, since: Date, limit: number) {
     // (code, published_at desc) 인덱스로 그 종목 오늘 연결만 → 제목 PK. 광고성은 여기서 뺀다
     const rows = await prisma.$queryRaw<

@@ -1,6 +1,6 @@
 import { KrStockDisabledError, KrStockNotAvailableError, isKrStockCode, isKrStockViewer, krStockLogoUrl } from "../../domain";
 import type { KrCompanyHomepageSource, KrHeldCodesSource, KrLogoImageProbe } from "../../domain";
-import type { MarketScheduleReader } from "../../domain";
+import type { KrArticleBodyPort, MarketScheduleReader } from "../../domain";
 import { GetKrMarketSchedule } from "../GetKrMarketSchedule";
 import type {
   KrProviderHealthPort,
@@ -79,6 +79,7 @@ import {
   GetKrStockChart,
   GetKrStockDetail,
   GetKrStockNews,
+  GetKrNewsBody,
   ListKrStockQuotes,
   SearchKrStocks,
   GetKrIndices,
@@ -315,6 +316,8 @@ export interface KrStockDependencies {
   moveSources: KrMoveSourceStore;
   /** 광고성 제목 패턴(`KR_NEWS_PROMO_PATTERNS`) — 표시에서 뺀다 */
   newsPromoPatterns: readonly RegExp[];
+  /** 기사 본문(`SRV-REQ-054`) — `news` 공개 API ACL */
+  articleBody?: KrArticleBodyPort;
 }
 
 export interface KrStockUseCases {
@@ -365,6 +368,7 @@ export interface KrStockUseCases {
   /** 지수 · 업종 일별 이력(β 재료, F016 단계 C) — 장 마감 뒤 하루 한 번 + 기동 때 */
   backfillIndexDaily: BackfillKrIndexDaily;
   getNews: GetKrStockNews;
+  getNewsBody: GetKrNewsBody;
   getIntradayFlows: GetKrIntradayFlows;
   /** 오늘 왜 움직였나 — ① 분해 · ② 같은 날 사실 · 카드 조건(F016 단계 C) */
   getWhyMoved: GetKrWhyMoved;
@@ -398,6 +402,7 @@ const createKrStockUseCases = (
     status: deps.status,
     moveSources: deps.moveSources,
     move,
+    articleBody: deps.articleBody,
   };
   return {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
@@ -449,6 +454,7 @@ const createKrStockUseCases = (
     pruneMoveSources: new PruneKrMoveSources(deps.moveSources),
     backfillIndexDaily: new BackfillKrIndexDaily(deps.moveSourceSource, deps.moveSources, universe),
     getNews: new GetKrStockNews(read),
+    getNewsBody: new GetKrNewsBody(read),
     getIntradayFlows: new GetKrIntradayFlows(read),
     getWhyMoved: new GetKrWhyMoved(read, move),
   };

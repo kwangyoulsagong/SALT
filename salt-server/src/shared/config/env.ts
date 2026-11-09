@@ -26,6 +26,9 @@ const envSchema = z.object({
    * 키가 없으면 국내 주식 시세는 꺼진다(선택값). 실전 도메인이 기본, 모의는 `KIS_BASE_URL` 로 바꾼다.
    */
   // 빈 값(`KIS_APP_KEY=`)은 "없음" 이다 — `min(1)` 만 두면 빈 줄 하나가 서버 기동을 막는다(F011 FR-6: 꺼진 채 기동)
+  // 포털 뉴스 검색 키(기사 본문 — SRV-REQ-054). 없으면 본문 기능만 꺼진다(503 → 화면은 요약 · 원문 링크)
+  NAVER_CLIENT_ID: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  NAVER_CLIENT_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   KIS_APP_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   KIS_APP_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   KIS_BASE_URL: z.string().url().default("https://openapi.koreainvestment.com:9443"),

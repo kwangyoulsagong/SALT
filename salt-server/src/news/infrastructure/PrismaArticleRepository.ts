@@ -131,6 +131,13 @@ export class PrismaArticleRepository implements ArticleRepository {
     return article;
   }
 
+  async findHead(newsId: string): Promise<{ title: string; publishedAt: Date } | null> {
+    return prisma.newsArticle.findUnique({
+      where: { id: newsId },
+      select: { title: true, publishedAt: true },
+    });
+  }
+
   async exists(newsId: string): Promise<boolean> {
     const found = await prisma.newsArticle.findUnique({
       where: { id: newsId },

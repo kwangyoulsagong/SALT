@@ -263,6 +263,13 @@ export class KrStockNotAvailableError extends DomainError {
   }
 }
 
+/** 기사 본문 원천이 꺼짐(`SRV-REQ-054`) — 503. 화면은 "본문은 제공처에서" 그대로 */
+export class KrArticleBodyUnavailableError extends DomainError {
+  constructor() {
+    super("NEWS_BODY_UNAVAILABLE", ErrorKind.Unavailable, "Article body source is not configured");
+  }
+}
+
 export const isKrStockViewer = (email: string | undefined, owners: readonly string[]): boolean =>
   !!email && owners.some((owner) => owner.trim().toLowerCase() === email.trim().toLowerCase());
 

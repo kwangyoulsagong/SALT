@@ -9,6 +9,7 @@ import {
   krCodeParamSchema,
   krInvestorQuerySchema,
   krListQuerySchema,
+  krNewsBodyParamSchema,
   krScheduleQuerySchema,
   krSearchQuerySchema,
 } from "./dto/krStock.dto";
@@ -167,6 +168,15 @@ export class KrStockController {
     try {
       const { code } = krCodeParamSchema.parse(req.params);
       return ResponseUtil.success(res, await this.enabled().getNews.execute(this.viewer(req), code));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  newsBody = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code, serial } = krNewsBodyParamSchema.parse(req.params);
+      return ResponseUtil.success(res, await this.enabled().getNewsBody.execute(this.viewer(req), code, serial));
     } catch (error) {
       next(error);
     }
