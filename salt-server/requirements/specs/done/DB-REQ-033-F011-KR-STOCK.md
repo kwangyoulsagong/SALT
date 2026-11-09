@@ -57,3 +57,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
 - 2026-11-02: 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): FR-7 `kr_index_quotes` 에 `high` · `low` · `trade_value` nullable 열(마이그레이션 `20261102160100`, `DB-REQ-035` FR-5) · 저장소 `PrismaKrSupplementStore` 분 기록 쓰기 · 읽기 · 정리, `PrismaKrStockStore.latestSessionCloses`(종목별 마지막 거래일 5분봉 한 문장)
 - 2026-11-06: F016 단계 A — `kr_stock_quotes` 저장 문장 둘(폴링 upsert · 실시간 체결 UPDATE)에 상태 열 · `last_trade_at`(폴링은 누적 거래량이 늘 때만 · 체결은 `GREATEST`). DDL 은 `DB-REQ-041` FR-6 · 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md`
 | 2026-11-09 | `kr_stock_master.sector_mid_code`(지수업종 중분류) — 마스터 파싱 · upsert 에 칸 추가(F016 단계 C, `DB-REQ-041`) |
+| 2026-11-09 | 달력 역산(`daysFromDailyCandles`) — 유니버스 종목 일봉만(전 종목 5년 일봉이 같은 표에 들어온 뒤 67만 행 순차 0.74초 → 인덱스 132ms · 2년 결과 같음, `DB-REQ-017` 504 3회차) |

@@ -123,3 +123,7 @@
 | `kr_stock_master.sector_mid_code`(지수업종 중분류) — 마스터 파싱 · upsert 에 칸 추가(F016 단계 C, `DB-REQ-041`) | 반영 · 영역 검증 전체 통과 |
 
 루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`
+
+## 2026-11-09 — 달력 역산 유니버스로
+
+- `PrismaKrMarketCalendarStore.daysFromDailyCandles` — 2024-11-09 ~ 2026-11-08 520 평일 옛 SQL 과 같음 · 개장 484 · 132ms. 시세 행이 없으면(새 환경) 전 종목으로

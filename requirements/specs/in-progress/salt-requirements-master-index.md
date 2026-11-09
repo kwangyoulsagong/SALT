@@ -1053,3 +1053,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-09 | `FE-REQ-049` to-do → in-progress — FR-12 탭 제목 실시간 가격 + 파비콘 = 종목 로고(사용자 요청 · 디자인 묶음에서 먼저) |
 | 2026-11-09 | **NEWS-BODY 뉴스 모달 기사 본문 done** — `SRV-REQ-054` · `DB-REQ-042` · `BFF-REQ-053` · `FE-REQ-068`(신규 · done) · `FE-REQ-065` FR-4 · 5 정정 · `ADR-009` 개정(본문은 사람이 읽는 화면만 · AI 입력 0) · `FEATURE-016` FR-9. 사용자 결정(저작권 — 비상업). 루트 `NEWS-BODY-article-body-slice.md` |
 | 2026-11-09 | NEWS-BODY 확인 2회차 — 결함 일곱(SSRF 리다이렉트 · `javascript:` 원문 · 짧은 문장 손실 · 긴 제목 0건 · 줄인 제목 · 실패 로그 0 · BFF 예산 · 비로그인 요청) · 낡은 문장 여섯 · `DB-REQ-036` 부록 A 표 아홉. **판단 상세 504 고침**(`DB-REQ-017` — 성적 집계 한 쿼리 · 풀 인덱스 · 5분 들고 있기, 6~46ms) |
+| 2026-11-09 | 확인 3회차 — **판단 상세 504 진짜 원인**: API 프로세스 안 지표 갱신이 2분마다 49만 행 Decimal 해석(CPU 320%). `::float8` · `LATERAL … LIMIT` 로 같은 종류 다섯 · 달력 역산 유니버스로 · 기동 연결 채우기 · 워커 listen 뒤 15초 — 결과 대조 전부 같음 · BFF 460회 504 0(`DB-REQ-017` · `DB-REQ-033`, 규칙 `workers-external.md`) |
