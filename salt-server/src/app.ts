@@ -21,20 +21,26 @@ import investmentInsightRoutes from "./modules/investment-insight/investment-ins
 
 const app: Application = express();
 
-// `market` 의 주기 작업 넷을 등록한다. 스케줄과 락은 워커가, 절차는 유스케이스가 갖는다
-// (`server-architecture.md` §7).
-startMarketWorkers();
-// 국내 주식(F011) — 키가 없으면 등록하지 않는다
-startKrStockWorkers();
+/**
+ * 주기 작업 등록 — **HTTP 가 열린 뒤 `server.ts` 가 부른다**. 예전엔 이 파일을 import 하는 순간(DB 연결 · listen 전) 부팅 회차가 한꺼번에
+ * 돌아 첫 요청들이 줄을 섰다(재기동 직후 판단 상세 504, 2026-11-09 `DB-REQ-017`). 스케줄과 락은 워커가, 절차는 유스케이스가 갖는다
+ * (`server-architecture.md` §7)
+ */
+export const startWorkers = () => {
+  // `market` 의 주기 작업 넷
+  startMarketWorkers();
+  // 국내 주식(F011) — 키가 없으면 등록하지 않는다
+  startKrStockWorkers();
 
-const insightsWorker = new InvestmentInsightWorker();
-insightsWorker.start();
+  const insightsWorker = new InvestmentInsightWorker();
+  insightsWorker.start();
 
-// F008 전망 배치 — 부팅 · 매시 트리거만(판단은 배치가 한다). 개발 환경 기본 켬
-const forecastRunner = new ForecastRunnerWorker();
-forecastRunner.start();
-process.once("SIGTERM", () => forecastRunner.stop());
-process.once("SIGINT", () => forecastRunner.stop());
+  // F008 전망 배치 — 부팅 · 매시 트리거만(판단은 배치가 한다). 개발 환경 기본 켬
+  const forecastRunner = new ForecastRunnerWorker();
+  forecastRunner.start();
+  process.once("SIGTERM", () => forecastRunner.stop());
+  process.once("SIGINT", () => forecastRunner.stop());
+};
 
 // Security
 app.use(helmet());

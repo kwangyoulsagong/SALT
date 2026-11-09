@@ -12,9 +12,15 @@ const prisma = new PrismaClient({
       : ["error"],
 });
 
+/** 기동 때 미리 여는 연결 수 — 화면 한 요청이 나란히 쓰는 쿼리 수(판단 상세 약 15) 근처 */
+const WARM_CONNECTIONS = 16;
+
 export async function connectDatabase() {
   try {
     await prisma.$connect();
+    // 연결 풀을 미리 채운다 — 화면 요청 하나가 쿼리 15개를 나란히 날리는데(판단 상세) 첫 요청이 연결을 여는 값을 다 냈다
+    // (재기동 직후 0.3~0.6초 → BFF 300ms 예산에서 504, 2026-11-09 `DB-REQ-017`). 연결 수만큼 가벼운 쿼리를 동시에 한 번
+    await Promise.all(Array.from({ length: WARM_CONNECTIONS }, () => prisma.$queryRaw`SELECT 1`));
     logger.info("✅ Database connected successfully");
   } catch (error) {
     logger.error("❌ Database connection failed:", error);
