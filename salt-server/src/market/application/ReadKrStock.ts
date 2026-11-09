@@ -45,8 +45,12 @@ import {
   KR_NEWS_READ_LIMIT,
   kstStartOfDay,
   type KrMoveSourceStore,
+  type KrArticleBodyPort,
+  type KrArticleBodyView,
+  KrArticleBodyUnavailableError,
 } from "../domain";
 import { logger } from "../../shared/config/logger";
+import { krMoveEvents, moveCardFlags, type MoveDependencies } from "./moveCard";
 import { loadKrSession } from "./SyncKrStock";
 
 /**
@@ -262,10 +266,14 @@ export interface KrStockReadDependencies {
   orderbookSource: Pick<KrSupplementPort, "orderbook">;
   /** 시황/공시 제목 · 장중 프로그램 매매(F016 단계 B) */
   moveSources: KrMoveSourceStore;
+  /** 표 행 카드 표시 — β · σ 뷰 · 카드 문턱(F016 단계 C). 없으면 표시 없음(테스트 · 옛 조립) */
+  move?: Pick<MoveDependencies, "betas" | "policy">;
+  /** 기사 본문(`SRV-REQ-054`) — `news` 공개 API ACL. 없으면 본문 경로가 503(테스트 · 옛 조립) */
+  articleBody?: KrArticleBodyPort;
   now?: () => Date;
 }
 
-abstract class KrStockRead {
+export abstract class KrStockRead {
   protected readonly access: KrStockAccess;
   protected readonly now: () => Date;
 
@@ -325,9 +333,23 @@ export class ListKrStockQuotes extends KrStockRead {
     const ranked = rankKrQuotes(withPeriod, query.sort, query.order);
     const page = ranked.slice(query.offset, query.offset + limit);
     const status = await loadKrStatusContext(this.deps.status, page.map((q) => q.code), now, session);
+    const views = page.map((q) => ({ ...toQuoteView(q, now, session, this.deps.logoDevToken, status), periodChange: q.periodChange }));
+    // 행 카드 표시(FE-REQ-063 FR-6) — 상세 카드와 같은 판정(크기 · 그날 사건). β 뷰 한 번 읽기
+    const flags = this.deps.move
+      ? await moveCardFlags(
+          this.deps.move.betas,
+          this.deps.move.policy,
+          page.map((q, i) => ({
+            key: q.code,
+            changeRate: q.changeRate,
+            events: krMoveEvents(views[i]!.status, status.vi.has(q.code), status.actions, q.market),
+          })),
+          now
+        )
+      : null;
     return {
       session: toSessionResponse(session, now),
-      items: page.map((q) => ({ ...toQuoteView(q, now, session, this.deps.logoDevToken, status), periodChange: q.periodChange })),
+      items: views.map((v) => ({ ...v, moveCard: flags?.get(v.code) ?? false })),
       nextOffset: query.offset + limit < ranked.length ? query.offset + limit : null,
     };
   }
@@ -580,8 +602,31 @@ export class GetKrStockNews extends KrStockRead {
         provider: n.providerName,
         title: n.title,
         publishedAt: n.publishedAt.toISOString(),
+        // 뉴스 모달 칩(FE-REQ-065) — 이름 · 등락률(%, 서버 값). 이 종목 자신도 들어 있다(원천 그대로)
+        related: n.related,
       })),
     };
+  }
+}
+
+/** 시황 일련번호 — 원천 20자리 안팎 숫자. 다른 모양은 검색을 부르지 않는다 */
+const KR_NEWS_SERIAL = /^\d{8,24}$/;
+
+/**
+ * 국내 시황 기사 본문(`SRV-REQ-054` FR-5) — 그 종목에 걸린 제목만(남의 종목 일련번호 · 광고성 → 404). 공시는 기사가 아니라
+ * 포털에 같은 글이 없다 — 검색 없이 `not_found`. 본문 찾기 · 캐시는 `news` 컨텍스트
+ */
+export class GetKrNewsBody extends KrStockRead {
+  async execute(viewer: KrStockViewer, code: string, serial: string): Promise<KrArticleBodyView> {
+    this.access.assert(viewer);
+    if (!isKrStockCode(code) || !KR_NEWS_SERIAL.test(serial)) throw new KrStockNotAvailableError();
+    const title = await this.deps.moveSources.newsTitle(serial, code);
+    if (!title) throw new KrStockNotAvailableError();
+    if (title.kind === "disclosure") {
+      return { status: "not_found", paragraphs: [], originalUrl: null, fetchedAt: this.now().toISOString() };
+    }
+    if (!this.deps.articleBody) throw new KrArticleBodyUnavailableError();
+    return this.deps.articleBody.read({ key: `kr:${serial}`, title: title.title, publishedAt: title.publishedAt });
   }
 }
 

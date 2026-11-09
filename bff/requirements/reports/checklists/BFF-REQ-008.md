@@ -119,3 +119,7 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - `onboarding.controller` `status` → `get` · `chooseDomains` · `finish` · `onboarding.viewmodel` 새 계약 · 테스트 새로(뷰모델 5 · 서비스 1)
+
+## 2026-11-09 — 기사 본문(주인 `SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068`)
+
+- `news.controller` · `news.routes` 에 코인 기사 본문 `/api/app/news/:id/body`(로그인 · uuid 아니면 400) — 검증은 주인 체크리스트(서버 1031 · BFF 430 · 실화면 1440 · 훅 사후 실행)

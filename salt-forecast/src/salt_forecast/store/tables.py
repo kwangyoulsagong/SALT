@@ -433,3 +433,21 @@ ops_check = Table(
     Column("detail", Text),
     Column("checked_at", DateTime(timezone=True), nullable=False),
 )
+
+# 등락 분해 β · 평소 변동 σ — 20261109090000_forecast_move_beta (FC-REQ-027 FR-1~3). 서버는 v_move_beta_export 로 읽는다
+move_beta = Table(
+    "move_beta",
+    metadata,
+    Column("symbol", Text, primary_key=True),
+    Column("as_of", DateTime(timezone=True), primary_key=True),
+    Column("asset_class", Text, nullable=False),
+    Column("market_index", Text),
+    Column("sector_index", Text),
+    Column("beta_market", Float),
+    Column("beta_sector", Float),
+    Column("beta_sample", Integer, nullable=False),
+    Column("sigma_daily", Float),
+    Column("sigma_sample", Integer, nullable=False),
+    Column("last_bar_at", DateTime(timezone=True)),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)

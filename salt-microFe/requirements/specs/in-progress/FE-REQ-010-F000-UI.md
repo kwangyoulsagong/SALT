@@ -259,6 +259,7 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 시장 엔드포인트 · 쿼리 키에 국내 일정 · 시장 보드 레이아웃 css 에 일정 자리(44) — 같은 파일 |
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): 파일만 걸침 — `entities/market/api/endpoints.ts` · `queryKeys.ts`(국내 요약 · 지수/일정 삭제) · `model/messages.ts`(요약 문구 기준별) · `widgets/market-board/ui/MarketBoardLayout.css.ts`(옛 지수 · 일정 자리 스타일 삭제) |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 앱 프레임 · 프로바이더 · 프로필 메뉴를 zone 공용 레이아웃으로(설정 · 로그아웃 이동은 문서 이동)(`d8692621`) · 공용 레이아웃 폴더 이름 `chrome` → `layout`(`7dbb0c56`) · 투자 코치 설정 `/settings` → `/coach/settings`(셸 `/settings` 는 링크 목록)(`08a3aabf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 24개(경로 이동 내용 무변경 12 · 수정 12 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |
+| 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `MARKET_ENDPOINTS` 본문 경로 둘 · `marketQueryKeys.articleBody` |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 
@@ -289,3 +290,4 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 온보딩 화면(FR-21 · 22 · 25) — 3스텝 → 도메인 선택(초대 · 고르기 · 첫 기록 · 끝). 홈 안내 카드는 서버 다음 단계 이름. 본문 그 자리 정정 `c1baa77a` |
 | 2026-11-06 | 서버 S3a 확인 2회차 — 온보딩 조회 `readApiError`(401 재시도 안 함) · 만료 세션이면 초대 단계 `698da12b` |
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `entities/market/api/endpoints.ts`(머리에 이 REQ)에 국내 경로 둘(`krNews` · `krIntradayFlows`, `FE-REQ-063`). 기존 경로 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
+| 2026-11-09 | 시세 엔드포인트 둘(`krWhyMoved` · `cryptoWhyMoved`) · 시장 개요 행 `moveCard` 타입(F016 단계 C) |

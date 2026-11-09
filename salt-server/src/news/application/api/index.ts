@@ -1,5 +1,10 @@
 import type {
+  ArticleBodyQuery,
+  ArticleBodyStore,
+  ArticleBodyView,
+  ArticlePagePort,
   ArticleRepository,
+  ArticleSearchPort,
   ArticleSummary,
   ArticleText,
   BookmarkRepository,
@@ -7,6 +12,7 @@ import type {
   SentimentArticleQuery,
 } from "../../domain";
 import { CrawlKoreanNews, CrawlNews } from "../CrawlNews";
+import { GetArticleBody, ReadArticleBody } from "../ReadArticleBody";
 import {
   FindArticlesBySymbol,
   FindArticlesForSentiment,
@@ -38,14 +44,21 @@ export interface NewsApi {
   findArticlesBySymbol(symbol: string, limit?: number): Promise<ArticleSummary[]>;
   /** 감성 분석용. 본문을 포함하고 검색어를 부르는 쪽이 준다. */
   findArticlesForSentiment(query: SentimentArticleQuery): Promise<ArticleText[]>;
+  /**
+   * 기사 본문(`SRV-REQ-054`) — 제목 · 게시 시각으로 포털에서 같은 기사를 찾아 문단을 준다(캐시). `market` 의 국내 시황 제목이 부른다.
+   * 키가 없으면 `NEWS_BODY_UNAVAILABLE`(503)
+   */
+  readArticleBody(query: ArticleBodyQuery): Promise<ArticleBodyView>;
 }
 
-export type { ArticleSummary, ArticleText, SentimentArticleQuery } from "../../domain";
+export type { ArticleBodyQuery, ArticleBodyView, ArticleSummary, ArticleText, SentimentArticleQuery } from "../../domain";
 
 export interface NewsDependencies {
   articles: ArticleRepository;
   bookmarks: BookmarkRepository;
   feed: NewsFeedPort;
+  /** 기사 본문 — 포털 검색 · 페이지 추출 · 캐시(`SRV-REQ-054`) */
+  body: { search: ArticleSearchPort; pages: ArticlePagePort; bodies: ArticleBodyStore };
 }
 
 export interface NewsUseCases {
@@ -58,6 +71,7 @@ export interface NewsUseCases {
   bookmarkArticle: BookmarkArticle;
   removeBookmark: RemoveBookmark;
   listBookmarks: ListBookmarks;
+  getArticleBody: GetArticleBody;
 }
 
 /**
@@ -73,6 +87,7 @@ export interface NewsUseCases {
 export const createNewsApplication = (deps: NewsDependencies) => {
   const findArticlesBySymbol = new FindArticlesBySymbol(deps.articles);
   const findArticlesForSentiment = new FindArticlesForSentiment(deps.articles);
+  const readArticleBody = new ReadArticleBody(deps.body);
 
   const useCases: NewsUseCases = {
     crawlNews: new CrawlNews(deps.articles, deps.feed),
@@ -84,12 +99,14 @@ export const createNewsApplication = (deps: NewsDependencies) => {
     bookmarkArticle: new BookmarkArticle(deps.articles, deps.bookmarks),
     removeBookmark: new RemoveBookmark(deps.bookmarks),
     listBookmarks: new ListBookmarks(deps.bookmarks),
+    getArticleBody: new GetArticleBody(deps.articles, readArticleBody),
   };
 
   const api: NewsApi = {
     findArticlesBySymbol: (symbol, limit) =>
       findArticlesBySymbol.execute(symbol, limit),
     findArticlesForSentiment: (query) => findArticlesForSentiment.execute(query),
+    readArticleBody: (query) => readArticleBody.execute(query),
   };
 
   return { api, useCases };

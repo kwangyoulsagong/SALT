@@ -87,6 +87,8 @@ export const SymbolHeader = ({ symbol, listing, mode }: SymbolHeaderProps) => {
 
           <LivePriceRow
             symbol={symbol}
+            name={displayName}
+            logoUrl={listing?.logoUrl || null}
             initialPrice={listing?.currentPrice ?? null}
             initialChange24h={listing?.change24h ?? null}
           />

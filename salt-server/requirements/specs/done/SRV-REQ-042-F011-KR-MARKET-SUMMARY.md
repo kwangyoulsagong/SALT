@@ -48,3 +48,5 @@ source: 사용자 "국내주식도 주식 홈에서 코인처럼 주요 그게 �
 | 2026-11-06 | F016 기획 — 국내 소식 원천(KIS 시황/공시 제목)이 `SRV-REQ-051` FR-1 로 계획됨. FR-5 "국내 뉴스 수집 안 함"에 언제 바뀌나 표기 |
 | 2026-11-06 | F016 단계 A — 요약 응답에 `marketActions`(오늘 시장 조치, 못 읽으면 빈 배열 + `degraded`). 주인은 `SRV-REQ-051` FR-3 · 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md` |
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `composition.ts`(머리에 이 REQ) 에 등락 원천 저장소 · 광고성 패턴 조립(`SRV-REQ-051`). 요약 띠 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
+| 2026-11-09 | 조립 지점에 예측 뷰 어댑터 둘 · 카드 문턱 설정(F016 단계 C) — 요약 띠 무변경 |
+| 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `composition.ts` — news 본문 조립(포털 검색 · 페이지 · 캐시) · 국내에 `ArticleBodyAdapter` |

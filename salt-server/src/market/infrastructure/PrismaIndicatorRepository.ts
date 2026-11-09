@@ -1,4 +1,4 @@
-import { Timeframe } from "@prisma/client";
+import { Prisma, Timeframe } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
 import type {
@@ -70,29 +70,48 @@ export class PrismaIndicatorRepository implements IndicatorRepository {
    * `orderBy timestamp desc` 와 함께여야 "최신"이 된다. 원문
    * (`ai-coach-feature.extractor`)이 쓰던 조회이고 `timeframe` 도 그때처럼 넘긴다.
    */
+  /**
+   * 종목마다 최신 한 행 — 종목마다 인덱스 `(symbol, timeframe, timestamp)` 로 한 행만 집는다(`LATERAL … LIMIT 1`).
+   * 예전 Prisma `distinct` 는 **메모리에서** 걸렀다 — 358종목 5분봉이면 35만 행을 Node 로 옮겨 1.9초(이벤트 루프까지 막혀 부팅 때
+   * 판단 상세가 504, 2026-11-09). 지금 h1 4ms · m5 33ms(DB). 시간 단위를 준 결과는 전후 글자 같음(체크리스트)
+   */
   async findLatestMany(
     symbols: string[],
     timeframe?: string
   ): Promise<StoredIndicator[]> {
     if (symbols.length === 0) return [];
+    const frame = timeframe ? Prisma.sql`AND i.timeframe = ${toTimeframe(timeframe)}::"Timeframe"` : Prisma.empty;
 
-    const rows = await prisma.technicalIndicator.findMany({
-      where: {
-        symbol: { in: symbols },
-        ...(timeframe ? { timeframe: toTimeframe(timeframe) } : {}),
-      },
-      orderBy: { timestamp: "desc" },
-      distinct: ["symbol"],
-    });
+    const rows = await prisma.$queryRaw<
+      Array<{
+        symbol: string;
+        timeframe: Timeframe;
+        timestamp: Date;
+        rsi_14: number | null;
+        ma_20: number | null;
+        ma_50: number | null;
+        volume_avg_20: number | null;
+      }>
+    >`
+      SELECT t.symbol, t.timeframe, t.timestamp, t.rsi_14, t.ma_20, t.ma_50, t.volume_avg_20
+      FROM unnest(${[...new Set(symbols)]}::text[]) AS s(symbol)
+      CROSS JOIN LATERAL (
+        SELECT i.symbol, i.timeframe, i.timestamp, i.rsi_14, i.ma_20, i.ma_50, i.volume_avg_20
+        FROM technical_indicators i
+        WHERE i.symbol = s.symbol ${frame}
+        -- 시간 단위를 안 주면 같은 시각의 여러 단위 중 고르는 순서를 정한다(예전 메모리 거르기는 우연에 맡겼다 — 지금 그렇게 부르는 곳은 0)
+        ORDER BY i.timestamp DESC, i.timeframe
+        LIMIT 1
+      ) t`;
 
     return rows.map((row) => ({
       symbol: row.symbol,
       timeframe: row.timeframe,
       timestamp: row.timestamp,
-      rsi14: row.rsi14,
-      ma20: row.ma20,
-      ma50: row.ma50,
-      volumeAvg20: row.volumeAvg20,
+      rsi14: row.rsi_14,
+      ma20: row.ma_20,
+      ma50: row.ma_50,
+      volumeAvg20: row.volume_avg_20,
     }));
   }
 

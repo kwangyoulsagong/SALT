@@ -47,6 +47,7 @@ import { parseKrSummaryIndices } from "./market/domain";
 import { PrismaKrSupplementStore } from "./market/infrastructure/PrismaKrSupplementStore";
 import { PrismaKrMarketStatusStore } from "./market/infrastructure/PrismaKrMarketStatusStore";
 import { PrismaKrMoveSourceStore } from "./market/infrastructure/PrismaKrMoveSourceStore";
+import { PrismaCryptoWarningReader, PrismaMoveBetaReader } from "./market/infrastructure/PrismaForecastMoveReader";
 import { PrismaMarketScheduleReader } from "./market/infrastructure/PrismaMarketScheduleReader";
 import { PrismaIndicatorRepository } from "./market/infrastructure/PrismaIndicatorRepository";
 import { PrismaMarketAssetRepository } from "./market/infrastructure/PrismaMarketAssetRepository";
@@ -56,6 +57,7 @@ import { PrismaWatchlistRepository } from "./market/infrastructure/PrismaWatchli
 import { HeldAssetsAdapter } from "./market/infrastructure/HeldAssetsAdapter";
 import { PrismaWhaleTransactionRepository } from "./market/infrastructure/PrismaWhaleTransactionRepository";
 import { SymbolNewsAdapter } from "./market/infrastructure/SymbolNewsAdapter";
+import { ArticleBodyAdapter } from "./market/infrastructure/ArticleBodyAdapter";
 import { UpbitClient } from "./market/infrastructure/UpbitClient";
 import { createNewsApplication } from "./news/application/api";
 import { createPortfolioApplication } from "./portfolio/application/api";
@@ -63,6 +65,9 @@ import { KrStockQuoteAdapter } from "./portfolio/infrastructure/KrStockQuoteAdap
 import { PriceHistoryAdapter } from "./portfolio/infrastructure/PriceHistoryAdapter";
 import { PrismaHoldingRepository } from "./portfolio/infrastructure/PrismaHoldingRepository";
 import { PrismaTransactionRepository } from "./portfolio/infrastructure/PrismaTransactionRepository";
+import { ArticlePageFetcher } from "./news/infrastructure/ArticlePageFetcher";
+import { NaverNewsSearch } from "./news/infrastructure/NaverNewsSearch";
+import { PrismaArticleBodyStore } from "./news/infrastructure/PrismaArticleBodyStore";
 import { PrismaArticleRepository } from "./news/infrastructure/PrismaArticleRepository";
 import { PrismaBookmarkRepository } from "./news/infrastructure/PrismaBookmarkRepository";
 import { RssNewsFeed } from "./news/infrastructure/RssNewsFeed";
@@ -115,6 +120,11 @@ const news = createNewsApplication({
   articles: new PrismaArticleRepository(),
   bookmarks: new PrismaBookmarkRepository(),
   feed: new RssNewsFeed(),
+  body: {
+    search: new NaverNewsSearch({ id: env.NAVER_CLIENT_ID, secret: env.NAVER_CLIENT_SECRET }),
+    pages: new ArticlePageFetcher(),
+    bodies: new PrismaArticleBodyStore(),
+  },
 });
 
 /**
@@ -162,6 +172,7 @@ const krStock =
         moveSourceSource: kis,
         moveSources: new PrismaKrMoveSourceStore(),
         newsPromoPatterns: env.KR_NEWS_PROMO_PATTERNS ? [new RegExp(env.KR_NEWS_PROMO_PATTERNS, "i")] : [],
+        articleBody: new ArticleBodyAdapter(news.api),
         // 요약 띠 지수도 수집한다 — 설정에서 빠뜨려도 대표 칸 선이 비지 않게(`SRV-REQ-042`)
         summaryIndices: parseKrSummaryIndices(
           [env.KIS_SUMMARY_INDICES, env.KR_SUMMARY_FEATURED, env.KR_SUMMARY_ITEMS].join(",")
@@ -192,6 +203,12 @@ const market = createMarketApplication({
   schedule: new PrismaMarketScheduleReader(),
   // 보유는 `portfolio` 공개 API 로 — `portfolio` 가 아래에서 조립되므로 부를 때 찾는다(`held` 와 같은 이유)
   tracking: { held: new HeldAssetsAdapter(() => portfolio.api), limit: env.TRACKED_ASSET_LIMIT },
+  // 오늘 왜 움직였나(F016 단계 C) — 예측 배치 뷰 둘 · 카드 문턱(설정)
+  move: {
+    betas: new PrismaMoveBetaReader(),
+    warnings: new PrismaCryptoWarningReader(),
+    policy: { k: env.MOVE_CARD_K, minRate: env.MOVE_CARD_MIN_RATE },
+  },
 });
 
 /**

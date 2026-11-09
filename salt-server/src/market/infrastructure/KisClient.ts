@@ -28,6 +28,7 @@ import {
   type KrViEventFact,
   krViKindOf,
   type KrMoveSourcePort,
+  type KrIndexDailyClose,
   type KrNewsTitleFact,
   type KrProgramFlowFact,
 } from "../domain";
@@ -75,6 +76,8 @@ export const KIS_QUERY_TR = {
   newsTitle: "FHKST01011800",
   /** 종목별 프로그램매매추이(체결) — 장중 누적 · 금액 원 단위(F016 단계 B · FR-5, 2026-11-06 실측) */
   programTrade: "FHPPG04650101",
+  /** 국내주식업종기간별시세(일) — 시장 지수 · 업종 일별 종가, 한 번에 50거래일 · 최신이 앞 · 등락률 칸 없음(F016 단계 C β 재료, 2026-11-09 실측) */
+  indexDailyChart: "FHKUP03500100",
 } as const;
 
 /**
@@ -630,6 +633,37 @@ export class KisClient
     let at = kstWallClock(compactDate(kstDateOf(now)), hour)!;
     if (at.getTime() > now.getTime() + 60_000) at = new Date(at.getTime() - 86_400_000);
     return { code, at, netQuantity: BigInt(Math.trunc(qty)), netValue: net, buyValue: buy, sellValue: sell };
+  }
+
+  /**
+   * 지수 · 업종 일별 종가(F016 단계 C) — `to` 부터 거슬러 최대 50거래일. 시장 지수(`0001` · `1001`)와 업종(`0027` …)이 같은 TR 이다
+   * (2026-11-09 08:40 모의 키 실측: `0001` 2026-08-25~11-06 50행 · `1001` 2025년 구간도 받힘). 휴장일은 행이 없다
+   */
+  async indexDailyCloses(code: string, from: string, to: string): Promise<{ name: string | null; closes: KrIndexDailyClose[] }> {
+    const body = await this.get(
+      "/uapi/domestic-stock/v1/quotations/inquire-daily-indexchartprice",
+      KIS_QUERY_TR.indexDailyChart,
+      {
+        FID_COND_MRKT_DIV_CODE: "U",
+        FID_INPUT_ISCD: code,
+        FID_INPUT_DATE_1: compactDate(from),
+        FID_INPUT_DATE_2: compactDate(to),
+        FID_PERIOD_DIV_CODE: "D",
+      },
+      KIS_PRIORITY.supplement
+    );
+    const rows: any[] = Array.isArray(body.output2) ? body.output2 : [];
+    const rawName = body.output1?.hts_kor_isnm;
+    return {
+      // 지수 이름(`코스피` · `전기전자` …) — 화면 라벨. 원천 값 그대로(앞뒤 공백만)
+      name: typeof rawName === "string" && rawName.trim() ? rawName.trim() : null,
+      closes: rows.flatMap((row): KrIndexDailyClose[] => {
+        const d = typeof row?.stck_bsop_date === "string" ? row.stck_bsop_date : "";
+        const close = num(row?.bstp_nmix_prpr);
+        if (!/^\d{8}$/.test(d) || close === null || close <= 0) return [];
+        return [{ tradeDate: `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`, close }];
+      }),
+    };
   }
 
   // ==================== 요청 ====================

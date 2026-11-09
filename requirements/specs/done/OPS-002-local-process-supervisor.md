@@ -52,3 +52,4 @@ source: 사용자 "전체 서버 다 키는 명령어가 필요하네 이거 보
 | 2026-11-04 | 가계부 S1a — `salt-platform/ops/run-platform.sh` 에 `HOUSEHOLD_DB_PASSWORD`(`63146ddf`) |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: `salt-platform/ops/run-platform.sh` 에 `CONTENT_DB_PASSWORD`(← `.env` `LOCAL_DB_CONTENT_PASSWORD`) · 머리 주석에 `svc_content` · 금융 팁 경로. 공개 플래그 `CONTENT_PUBLIC` 은 넣지 않는다(기본 꺼짐 — 로컬 확인은 `launchctl setenv` 뒤 재시작, 끝나면 unsetenv) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): `salt-platform/ops/run-platform.sh` — `IDENTITY_DB_PASSWORD`(← `.env` `LOCAL_DB_IDENTITY_PASSWORD`) `fc0207cb` |
+| 2026-11-09 | `ops/salt.sh status` 신선도 두 줄 — 국내 지수 일별(4일 넘으면 ✗) · 등락 분해 β as_of(3일 넘으면 ✗, 서버가 7일에 버리기 전). F016 단계 C `SRV-REQ-051` FR-12 |

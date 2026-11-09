@@ -76,3 +76,4 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §4 · �
 | 2026-10-29 | F009 슬라이스 9 — **변경 없음.** `salt-server` `ManageRiskBudget` 파일 머리가 국면 라벨 근거로 이 REQ 를 가리킨다. 그 파일에 흔들림 몫 · 국내 이름 조회가 붙었을 뿐 `marketRegime()` 읽기 · `market` 응답 · `forecast.market_regime` 무변경. 예측 코드 · DB 무변경 |
 | 2026-10-29 | 전수 조사 정정 — 삼중 장벽 재설정 닫힘 조건을 `FC-REQ-011` 결정과 맞춤 |
 | 2026-10-29 | 전수 조사 정정 — "`ops/daily.sh` 마지막 단계" → 단계(실제 순서는 `steps`) |
+| 2026-11-09 | `btc_beta` 소비처 하나 더 — 등락 분해 코인 β 로 그대로 옮긴다(F016 단계 C `FC-REQ-027`, 새 계산 0) |

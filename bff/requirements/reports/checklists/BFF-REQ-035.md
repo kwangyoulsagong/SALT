@@ -29,3 +29,11 @@
 
 - 파일만 걸침 — 웹 `entities/market/model/types.ts` 에 `ChartPeriod.Week`
 - 미검증 · 범위 밖: 없음
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| 코인 시장 화면 컨트롤러에 why-moved 경로(F016 단계 C `BFF-REQ-051`) — 시장 요약 띠 경로 무변경 | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`

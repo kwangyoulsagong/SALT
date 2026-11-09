@@ -52,3 +52,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `config.py` 에 `kr_event_symbols` · `kr_event_top`(`FC-REQ-021` FR-6). 쏠림 신호 설정 무변경 |
+| 2026-11-09 | `config.py` 에 등락 분해 창 설정 넷(F016 단계 C `FC-REQ-027`) — 쏠림 설정 무변경 |

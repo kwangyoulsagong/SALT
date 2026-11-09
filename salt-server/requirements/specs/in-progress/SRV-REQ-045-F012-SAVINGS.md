@@ -114,3 +114,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 파일만 걸침 — `ops/run-platform.sh` 에 계정 둘(LOCAL_DB_NOTIFICATION · COACH) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): `GET /api/savings/goals/exists`(온보딩 `set_plan` 프로브) 삭제 — 소비처 = 은퇴한 Express 온보딩 하나. `HasGoals` · `Goals.existsFor` · 테스트 두 줄 `7f2ba1ed` |
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `ops/salt.sh`(머리에 이 REQ) 신선도 쿼리에 국내 시황 제목 · 프로그램 · 업종 세 줄(`OPS-002`, `SRV-REQ-051` FR-12). 저축 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
+| 2026-11-09 | `ops/salt.sh status` 신선도 두 줄 — 국내 지수 일별(4일 넘으면 ✗) · 등락 분해 β as_of(3일 넘으면 ✗, 서버가 7일에 버리기 전). F016 단계 C `SRV-REQ-051` FR-12 |

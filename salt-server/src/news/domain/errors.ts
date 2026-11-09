@@ -25,3 +25,10 @@ export class BookmarkNotFoundError extends DomainError {
     super("NEWS_BOOKMARK_NOT_FOUND", ErrorKind.NotFound, "Bookmark not found");
   }
 }
+
+/** 기사 본문 — 포털 검색 키가 없어 꺼진 채 기동(`SRV-REQ-054`). 503 — 화면은 요약 · 원문 링크로 */
+export class ArticleBodyUnavailableError extends DomainError {
+  constructor() {
+    super("NEWS_BODY_UNAVAILABLE", ErrorKind.Unavailable, "Article body source is not configured");
+  }
+}

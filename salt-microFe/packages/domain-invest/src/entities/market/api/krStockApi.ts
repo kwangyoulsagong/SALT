@@ -11,6 +11,7 @@ import type {
   KrStockDetail,
   KrStockNews,
 } from "@repo/core/marketKr";
+import type { WhyMovedResult } from "@repo/core/whyMoved";
 
 import { apiFetch, readApiError } from "@repo/web-shared/api";
 import { INVESTMENTS_BASE_URL } from "@repo/web-shared/config";
@@ -51,4 +52,10 @@ export const krStockApi = {
   news: (code: string, signal?: AbortSignal) => getKr<KrResult<KrStockNews>>("krNews", MARKET_ENDPOINTS.krNews(code), signal),
   intradayFlows: (code: string, signal?: AbortSignal) =>
     getKr<KrResult<KrIntradayFlows>>("krIntradayFlows", MARKET_ENDPOINTS.krIntradayFlows(code), signal),
+  /** 오늘 왜 움직였나(F016 단계 C) — 국내는 `disabled` 도 온다 */
+  whyMoved: (code: string, signal?: AbortSignal) =>
+    getKr<WhyMovedResult>("krWhyMoved", MARKET_ENDPOINTS.krWhyMoved(code), signal),
+  /** 코인 — 같은 모양 · 로그인 사용자(BFF `/api/app/market/:symbol/why-moved`) */
+  cryptoWhyMoved: (symbol: string, signal?: AbortSignal) =>
+    getKr<WhyMovedResult>("cryptoWhyMoved", MARKET_ENDPOINTS.cryptoWhyMoved(symbol), signal),
 };

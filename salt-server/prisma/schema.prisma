@@ -713,6 +713,9 @@ model SymbolJudgmentSnapshot {
   @@unique([symbol, mode, judgedAt])
   @@index([ruleVersion, signalType, outcome, judgedAt(sort: Desc)])
   @@index([evaluatedAt, judgedAt])
+  /// 성적 기저율 풀(같은 접두 `LIKE 'kr\_stock.long\_term.%'`) — live 풀이 백테스트 5만 행을 훑지 않게(2026-11-09 판단 상세 504).
+  /// 접두 LIKE 가 일반 btree 를 타는 건 DB 정렬이 `C` 라서다(로컬 실측). 운영 DB 정렬이 다르면 `text_pattern_ops` 가 필요하다 — Prisma 가 그 지정을 비교하지 못해 매 마이그레이션에 다시 만들기를 끼우므로 일반으로 둔다
+  @@index([sampleOrigin, signalType], map: "symbol_judgment_snapshots_pool_idx")
   @@map("symbol_judgment_snapshots")
 }
 
@@ -835,6 +838,7 @@ model KrStockMaster {
   market            String // KOSPI | KOSDAQ
   groupCode         String    @map("group_code") // ST 주권 · EF ETF · EN ETN · RT 리츠 …
   sectorCode        String?   @map("sector_code") // 지수업종 대분류
+  sectorMidCode     String?   @map("sector_mid_code") // 지수업종 중분류(0000 이면 NULL) — 업종 몫은 이것 먼저(F016 단계 C)
   basePrice         Decimal?  @map("base_price") @db.Decimal(38, 10) // 원
   sharesOutstanding BigInt?   @map("shares_outstanding") // 주
   marketCap         Decimal?  @map("market_cap") @db.Decimal(38, 10) // 원, 전일 기준
@@ -1011,6 +1015,15 @@ model KrSectorIndexQuote {
 }
 
 /// 국내 업종 지수 일별 — 장 끝 값이 그날 종가(단계 C β 재료)
+/// 지수 · 업종 이름 — KIS 기간별 시세 output1(F016 단계 C). 분해 카드 라벨
+model KrIndexName {
+  code      String   @id
+  name      String
+  updatedAt DateTime @map("updated_at")
+
+  @@map("kr_index_name")
+}
+
 model KrSectorIndexDaily {
   code       String
   tradeDate  DateTime @map("trade_date") @db.Date
@@ -1080,4 +1093,19 @@ model MarketHoliday {
 
   @@id([market, date])
   @@map("market_holidays")
+}
+
+/// 기사 본문 캐시(`SRV-REQ-054`) — 원장 기사(국내 시황 `kr:<일련번호>` · 코인 `coin:<id>`)를 포털 검색으로 찾아 뽑은 문단. 찾음은 영구 ·
+/// 못 찾음 · 실패는 잠시 뒤 다시 찾는다(도메인 `isBodyFresh`). 문단은 글자만(태그 0)
+model NewsArticleBody {
+  key              String   @id
+  status           String // ok | not_found | failed
+  paragraphs       Json     @default("[]")
+  url              String?
+  originalUrl      String?  @map("original_url")
+  fetchedAt        DateTime @map("fetched_at")
+  /// 뽑기 규칙 판(도메인 `BODY_EXTRACTOR_VERSION`) — 판이 바뀌면 "찾음"도 다시 찾는다
+  extractorVersion Int      @map("extractor_version")
+
+  @@map("news_article_body")
 }

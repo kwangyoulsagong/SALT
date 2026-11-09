@@ -417,3 +417,4 @@ PC                                                   모바일(세로 스택)
 | 2026-11-03 | MONEY-S1b — `2bcea756` 숫자 칸을 `useNumberFields` 로: 칩 · 현재가 버튼 · 기록 뒤 비우기도 같은 규칙(안내가 남지 않음) · 1.2e-7 현재가 "1.27" 결함 닫음 · 원래 점을 받던 칸이라 price 규칙 |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-invest/src/features/run-preflight/ui/PreflightCard.tsx`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
+| 2026-11-09 | `MarketPreview` 에 "왜 떨어졌을까?" 한 줄 · 국내 오늘 소식(코인 뉴스와 같은 카드) — 코인 블록 무변경(F016 단계 C) |

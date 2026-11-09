@@ -355,3 +355,42 @@ describe("등락 원천 파싱 (F016 단계 B · SRV-REQ-051 FR-1 · 5)", () => 
     assert.equal(await stub([]).c.programFlow("005930"), null);
   });
 });
+
+describe("지수 · 업종 일별 종가 (F016 단계 C · SRV-REQ-051 FR-7 재료)", () => {
+  it("기간별 시세 — output2 의 거래일 · 종가만 · 날짜 형식 · 0 이하 거름 · 조회 TR · 부가 우선순위", async () => {
+    const c = new KisClient({ appKey: "k", appSecret: "s", baseUrl: "http://127.0.0.1:9" });
+    const calls: unknown[][] = [];
+    (c as unknown as { request: (...a: unknown[]) => Promise<unknown> }).request = async (...a: unknown[]) => {
+      calls.push(a);
+      // 2026-11-09 08:40 모의 키 실측 행(앞 둘) + 깨진 행 둘
+      return {
+        body: {
+          output1: { bstp_nmix_prpr: "5059.69", hts_kor_isnm: " 코스피 " },
+          output2: [
+            { stck_bsop_date: "20261106", bstp_nmix_prpr: "5059.69", bstp_nmix_oprc: "5263.26", mod_yn: "N" },
+            { stck_bsop_date: "20261105", bstp_nmix_prpr: "5532.71" },
+            { stck_bsop_date: "2026110", bstp_nmix_prpr: "1" },
+            { stck_bsop_date: "20261104", bstp_nmix_prpr: "0" },
+          ],
+        },
+        trCont: "",
+      };
+    };
+    assert.doesNotThrow(() => assertQueryTr(KIS_QUERY_TR.indexDailyChart));
+    const rows = await c.indexDailyCloses("0001", "2026-08-01", "2026-11-06");
+    assert.deepEqual(rows, {
+      name: "코스피",
+      closes: [
+        { tradeDate: "2026-11-06", close: 5059.69 },
+        { tradeDate: "2026-11-05", close: 5532.71 },
+      ],
+    });
+    assert.equal(calls[0]![1], KIS_QUERY_TR.indexDailyChart);
+    const params = calls[0]![2] as Record<string, string>;
+    assert.deepEqual(
+      [params.FID_COND_MRKT_DIV_CODE, params.FID_INPUT_ISCD, params.FID_INPUT_DATE_1, params.FID_INPUT_DATE_2, params.FID_PERIOD_DIV_CODE],
+      ["U", "0001", "20260801", "20261106", "D"]
+    );
+    assert.equal(calls[0]![3], KIS_PRIORITY.supplement);
+  });
+});

@@ -26,5 +26,6 @@ export const krQuoteToOverviewItem = (quote: KrQuote): MarketOverviewItem => ({
   logoUrl: quote.logoUrl ?? "",
   priceUpdatedAt: quote.priceUpdatedAt,
   periodChange: quote.periodChange ?? null,
+  moveCard: quote.moveCard ?? false,
   kr: quote,
 });

@@ -1,8 +1,11 @@
 import { NextFunction, Request, Response } from "express";
+import { z } from "zod";
 
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { NewsUseCases } from "../application/api";
 import type { NewsLanguage } from "../domain";
+
+const newsIdParamSchema = z.object({ id: z.string().uuid() });
 
 /**
  * 언어 쿼리를 **유효값으로 좁힌다.**
@@ -42,6 +45,16 @@ export class NewsController {
     try {
       const result = await this.useCases.getArticle.execute(req.params.id);
       return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** 기사 본문(`SRV-REQ-054`) — id 형식은 uuid 만(다른 모양은 400 — 검색을 부르지 않는다) */
+  getNewsBody = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = newsIdParamSchema.parse(req.params);
+      return ResponseUtil.success(res, await this.useCases.getArticleBody.execute(id));
     } catch (error) {
       next(error);
     }

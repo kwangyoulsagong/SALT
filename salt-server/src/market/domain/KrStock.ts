@@ -23,6 +23,8 @@ export interface KrStockListing {
   /** ST 주권 · EF ETF · EN ETN · RT 리츠 … — 유니버스 시총 상위는 ST 만 */
   groupCode: string;
   sectorCode: string | null;
+  /** 지수업종 중분류 — 없으면(0000) `null`. 업종 몫은 이것 먼저(`krSectorIndexCodeOf`) */
+  sectorMidCode: string | null;
   basePrice: number | null;
   sharesOutstanding: bigint | null;
   /** 전일 시가총액(원) */
@@ -258,6 +260,13 @@ export class KrStockDisabledError extends DomainError {
 export class KrStockNotAvailableError extends DomainError {
   constructor() {
     super("KR_STOCK_NOT_AVAILABLE", ErrorKind.NotFound, "Kr stock not available");
+  }
+}
+
+/** 기사 본문 원천이 꺼짐(`SRV-REQ-054`) — 503. 화면은 "본문은 제공처에서" 그대로 */
+export class KrArticleBodyUnavailableError extends DomainError {
+  constructor() {
+    super("NEWS_BODY_UNAVAILABLE", ErrorKind.Unavailable, "Article body source is not configured");
   }
 }
 

@@ -101,6 +101,31 @@ export const AllSizes: Story = {
   },
 };
 
+/** 읽는 모달(`FE-REQ-065` 뉴스 상세) — 폭 680 · 모서리 16 · 제목 18/700/24 · 본문 14/24, 본문만 스크롤한다. */
+export const Article: Story = {
+  args: { open: false, onClose: () => {}, children: null },
+  render: function ArticleStory() {
+    const [open, setOpen] = useState(false);
+    return (
+      <div style={{ padding: 24 }}>
+        <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
+          기사 열기
+        </Button>
+        <Modal
+          open={open}
+          onClose={() => setOpen(false)}
+          size="article"
+          title="제목이 길면 두 줄까지 감싸는 읽는 모달의 머리 — 닫기 단추는 위에 붙는다"
+        >
+          {Array.from({ length: 12 }, (_, i) => (
+            <p key={i}>본문 문단 {i + 1} — 머리는 그대로 두고 본문 칸만 스크롤한다.</p>
+          ))}
+        </Modal>
+      </div>
+    );
+  },
+};
+
 /** 확인을 강제해야 하는 화면 — 닫기 버튼과 배경 클릭을 둘 다 막는다. */
 export const Blocking: Story = {
   args: { open: false, onClose: () => {}, children: null },

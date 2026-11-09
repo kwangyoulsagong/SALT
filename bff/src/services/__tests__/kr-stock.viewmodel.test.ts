@@ -146,7 +146,8 @@ describe("toKrOverviewVM", () => {
       nextOffset: 50,
     });
     assert.equal(vm.items.length, 1);
-    assert.deepEqual(vm.items[0], { ...quote(), periodChange: 3.2 });
+    // moveCard — 서버 판정(F016 단계 C). 옛 서버(칸 없음)면 false
+    assert.deepEqual(vm.items[0], { ...quote(), periodChange: 3.2, moveCard: false });
     assert.equal(vm.nextOffset, 50);
     assert.deepEqual(vm.session, session);
   });
@@ -275,12 +276,17 @@ describe("오늘 소식 · 장중 수급 (F016 단계 B · BFF-REQ-051 FR-3 · 4
       date: "2026-11-06",
       collectedAt: "2026-11-06T02:42:00.000Z",
       items: [
-        { id: "1", kind: "disclosure", provider: "코스닥 공시", title: "실적", publishedAt: "2026-11-06T02:41:55.000Z" },
+        { id: "1", kind: "disclosure", provider: "코스닥 공시", title: "실적", publishedAt: "2026-11-06T02:41:55.000Z", related: [{ code: "005930", name: "삼성전자", changeRate: -1.2, extra: 1 }, { code: "000660", name: "SK하이닉스", changeRate: null }] },
         { id: "2", kind: "rumor", provider: "x", title: "y", publishedAt: "2026-11-06T02:40:00.000Z" },
+        { id: "3", kind: "news", provider: "z", title: "옛 서버", publishedAt: "2026-11-06T02:39:00.000Z" },
       ],
     });
-    assert.equal(vm.items.length, 1);
-    assert.deepEqual(Object.keys(vm.items[0]!).sort(), ["id", "kind", "provider", "publishedAt", "title"]);
+    assert.equal(vm.items.length, 2);
+    assert.deepEqual(Object.keys(vm.items[0]!).sort(), ["id", "kind", "provider", "publishedAt", "related", "title"]);
+    // 관련 종목(FE-REQ-065) — 칸 셋만 · 등락률 null 그대로 · 옛 서버(칸 없음)는 빈 배열
+    assert.deepEqual(vm.items[0]!.related, [{ code: "005930", name: "삼성전자", changeRate: -1.2 }, { code: "000660", name: "SK하이닉스", changeRate: null }]);
+    assert.deepEqual(vm.items[1]!.related, []);
+    assert.throws(() => toKrNewsVM({ code: "005930", date: "2026-11-06", collectedAt: null, items: [{ id: "1", kind: "news", provider: "p", title: "t", publishedAt: "x", related: [{ code: "005930" }] }] }), KrContractError);
   });
 
   it("소식 — 모양이 틀린 행은 계약 오류(화면은 unavailable)", () => {

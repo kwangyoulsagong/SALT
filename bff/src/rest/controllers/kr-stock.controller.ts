@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { appKrStockService, type KrResult } from "../../services/app-kr-stock.service";
+import { appArticleBodyService } from "../../services/app-article-body.service";
 import {
   KR_LIST_ORDERS,
   KR_LIST_PERIODS,
@@ -17,6 +18,8 @@ import {
  * 검증 없이 넘기면 `../` 로 다른 서버 경로를 부를 수 있다(`config-security.md` SSRF). 숫자 범위도 서버와 같다.
  */
 const CODE_PATTERN = /^[0-9A-Z]{6}$/;
+/** 시황 일련번호 — 원천 숫자(서버도 같은 형식만 받는다) */
+const NEWS_SERIAL = /^\d{8,24}$/;
 const CHART_PERIODS: readonly KrChartPeriod[] = ["1d", "5m"];
 
 const badRequest = (res: Response, message: string) => res.status(400).json({ success: false, message });
@@ -39,7 +42,7 @@ const enumQuery = <T extends string>(raw: unknown, values: readonly T[]): T | nu
 const respond = async (
   res: Response,
   next: NextFunction,
-  call: (signal: AbortSignal) => Promise<KrResult<object>>,
+  call: (signal: AbortSignal) => Promise<KrResult<object> | object>,
 ) => {
   const aborter = new AbortController();
   res.on("close", () => {
@@ -121,6 +124,21 @@ export class AppKrStockController {
     const code = String(req.params.code ?? "").toUpperCase();
     if (!CODE_PATTERN.test(code)) return badRequest(res, "종목 코드 형식이 아닙니다");
     return respond(res, next, (signal) => appKrStockService.getNews(req.token!, code, signal));
+  };
+
+  /** 시황 기사 본문(`BFF-REQ-053`) — 코드 + 원천 일련번호(숫자) */
+  newsBody = (req: Request, res: Response, next: NextFunction) => {
+    const code = String(req.params.code ?? "").toUpperCase();
+    const serial = String(req.params.serial ?? "");
+    if (!CODE_PATTERN.test(code) || !NEWS_SERIAL.test(serial)) return badRequest(res, "종목 코드 · 기사 번호 형식이 아닙니다");
+    return respond(res, next, (signal) => appArticleBodyService.kr(req.token!, code, serial, signal));
+  };
+
+  /** 오늘 왜 움직였나(F016 단계 C) — 입력은 코드뿐 */
+  whyMoved = (req: Request, res: Response, next: NextFunction) => {
+    const code = String(req.params.code ?? "").toUpperCase();
+    if (!CODE_PATTERN.test(code)) return badRequest(res, "종목 코드 형식이 아닙니다");
+    return respond(res, next, (signal) => appKrStockService.getWhyMoved(req.token!, code, signal));
   };
 
   /** 장중 수급(F016 단계 B) — 입력은 코드뿐 */

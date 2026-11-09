@@ -26,6 +26,9 @@ const envSchema = z.object({
    * 키가 없으면 국내 주식 시세는 꺼진다(선택값). 실전 도메인이 기본, 모의는 `KIS_BASE_URL` 로 바꾼다.
    */
   // 빈 값(`KIS_APP_KEY=`)은 "없음" 이다 — `min(1)` 만 두면 빈 줄 하나가 서버 기동을 막는다(F011 FR-6: 꺼진 채 기동)
+  // 포털 뉴스 검색 키(기사 본문 — SRV-REQ-054). 없으면 본문 기능만 꺼진다(503 → 화면은 요약 · 원문 링크)
+  NAVER_CLIENT_ID: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  NAVER_CLIENT_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   KIS_APP_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   KIS_APP_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   KIS_BASE_URL: z.string().url().default("https://openapi.koreainvestment.com:9443"),
@@ -61,6 +64,12 @@ const envSchema = z.object({
   KR_SUMMARY_ITEMS: z.string().default("1001"),
   /** 국내 요약 태그 `wide_move` 임계(전일 대비 변동률 %, 절댓값) — 코인 임계와 따로 둔다(시장이 다르다) */
   KR_SUMMARY_WIDE_MOVE_RATE: z.coerce.number().positive().default(5),
+  /**
+   * "왜 움직였나" 카드 조건(F016 단계 C · `SRV-REQ-051` FR-8) — |등락| ≥ max(MOVE_CARD_MIN_RATE %, MOVE_CARD_K × 평소 하루 변동 σ) 또는
+   * 그날 VI · 시장 조치 · 정지 · 경보. 국내 · 코인 같은 값(σ 가 시장 차이를 담는다). 기본값은 분포를 보고 정했다(체크리스트 `F016-C`)
+   */
+  MOVE_CARD_K: z.coerce.number().positive().default(2.5),
+  MOVE_CARD_MIN_RATE: z.coerce.number().positive().default(3),
   /**
    * 국내 시황 제목 광고성 패턴(F016 단계 B · `SRV-REQ-051` FR-1) — 정규식 하나(`|` 로 묶음, 대소문자 무시). 맞으면 행은 남기고 "오늘 소식"에서만
    * 뺀다. 2026-11-06 표본(삼성전자 하루 40건 중 1건 — "시장 역전의 기회, 이 정보 하나로 결정!!")에서 시작한 값이라 1주 표본 뒤 다시 본다.

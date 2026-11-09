@@ -198,6 +198,7 @@ type AlertVM = {
 | 2026-09-23 | 보유 요약 항목에 `logoUrl`(추가 · null 허용) — 홈 보유 목록 종목 아이콘. 주소 규칙은 서버 시세 목록의 것을 그대로 옮긴다 |
 | 2026-10-08 | F011 슬라이스 3b — 보유 요약에 국내 주식 행이 생겼다. 이름 · 로고는 국내 주식 보유가 있을 때만 서버 `/market/kr/assets?codes=` 로 붙이고, 실패 · 404 면 코드 + `namesDegraded`(코인 이름 조회와 같은 규칙). 응답 모양 무변경. 근거 `BFF-REQ-040` FR-16 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
+| 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `news.controller` · `news.routes` 에 코인 기사 본문 `/api/app/news/:id/body`(로그인 · uuid 아니면 400) |
 
 ## 구현이 REQ와 다른 지점 (2026-09-18)
 

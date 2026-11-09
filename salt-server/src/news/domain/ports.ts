@@ -6,6 +6,7 @@ import type {
   Paged,
   SourceCount,
 } from "./Article";
+import type { ArticleCandidate, StoredArticleBody } from "./ArticleBody";
 import type { NewsLanguage } from "./NewsSource";
 
 /**
@@ -42,6 +43,8 @@ export interface ArticleRepository {
   /** 조회수를 올리고 상세를 준다. 없으면 `null`. */
   findByIdAndCountView(newsId: string): Promise<ArticleDetail | null>;
   exists(newsId: string): Promise<boolean>;
+  /** 본문 찾기용 머리(제목 · 게시 시각) — 조회수를 올리지 않는다. 없으면 `null` */
+  findHead(newsId: string): Promise<{ title: string; publishedAt: Date } | null>;
   findBySymbol(symbol: string, limit: number): Promise<ArticleSummary[]>;
   /**
    * 감성 분석용 조회. 종목 태그(`symbols`)나 **검색어**로 찾고 본문까지 준다.
@@ -71,4 +74,27 @@ export interface BookmarkRepository {
 export interface NewsFeedPort {
   fetchEnglish(): Promise<ArticleDraft[]>;
   fetchKorean(): Promise<ArticleDraft[]>;
+}
+
+/**
+ * 포털 뉴스 검색(`SRV-REQ-054`) — 제목으로 찾은 후보 기사. 키가 없으면 `enabled = false`(꺼진 채 기동 — 화면은 요약 · 원문 링크로).
+ * 실패는 던진다(재시도 판단은 부르는 쪽 — 캐시에 "실패"로 남기고 잠시 뒤 다시)
+ */
+export interface ArticleSearchPort {
+  readonly enabled: boolean;
+  search(query: string): Promise<ArticleCandidate[]>;
+}
+
+/**
+ * 기사 페이지에서 본문 문단을 뽑는다 — 포털이 품은 기사는 정해진 본문 칸, 언론사 원문은 읽기 모드 추출.
+ * 본문을 못 찾으면 빈 배열 · 받지 못하면 던진다. 문단은 **글자만**(태그 · 스크립트 0)
+ */
+export interface ArticlePagePort {
+  paragraphs(url: string, portal: boolean): Promise<string[]>;
+}
+
+/** 본문 캐시 — 키 하나에 한 행(다시 찾으면 덮어쓴다) */
+export interface ArticleBodyStore {
+  find(key: string): Promise<StoredArticleBody | null>;
+  save(row: StoredArticleBody): Promise<void>;
 }

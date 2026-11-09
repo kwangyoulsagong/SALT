@@ -29,4 +29,8 @@ export const marketQueryKeys = {
   krOrderbook: ["KrStockOrderbook"] as const,
   krNews: ["KrStockNews"] as const,
   krIntradayFlows: ["KrStockIntradayFlows"] as const,
+  krWhyMoved: ["KrStockWhyMoved"] as const,
+  cryptoWhyMoved: ["CryptoWhyMoved"] as const,
+  /** 기사 본문 — 기사 하나에 한 번(서버가 캐시) */
+  articleBody: ["ArticleBody"] as const,
 } as const;

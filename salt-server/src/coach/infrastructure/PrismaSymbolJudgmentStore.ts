@@ -60,6 +60,35 @@ const toNumberOrNull = (value: Prisma.Decimal | null): number | null =>
 const poolPrefixOf = (signalType: string): string => signalType.slice(0, signalType.lastIndexOf("."));
 
 /**
+ * 풀 접두의 `LIKE` 무늬 — `_` · `%` · `\` 는 글자 그대로(`kr_stock` 의 `_` 가 아무 글자로 읽히지 않게). `starts_with` 와 같은 뜻이고
+ * `(sample_origin, signal_type)` 인덱스를 탄다(DB 정렬 `C`)
+ */
+/** 성적 집계를 들고 있는 시간 — 성적은 채점(하루 한 번) · 백테스트 때만 바뀐다. 5분 늦게 보여도 같은 날 같은 숫자다 */
+export const JUDGMENT_STATS_TTL_MS = 5 * 60_000;
+
+/**
+ * 키별로 결과를 `ttlMs` 동안 들고 있다 — 같은 키를 동시에 부르면 한 번만 계산한다(진행 중인 약속을 나눈다). 실패는 들고 있지 않는다(다음 요청이 다시)
+ */
+export const memoizeFor = <T>(ttlMs: number, now: () => number = Date.now) => {
+  const held = new Map<string, { at: number; value: Promise<T> }>();
+  const memo = (key: string, load: () => Promise<T>): Promise<T> => {
+    const hit = held.get(key);
+    if (hit && now() - hit.at < ttlMs) return hit.value;
+    const value = load();
+    held.set(key, { at: now(), value });
+    value.catch(() => {
+      if (held.get(key)?.value === value) held.delete(key);
+    });
+    return value;
+  };
+  /** 채점 · 스냅샷을 쓴 뒤 — 들고 있던 값을 버린다 */
+  memo.clear = () => held.clear();
+  return memo;
+};
+
+export const poolPatternOf = (signalType: string): string => `${poolPrefixOf(signalType).replace(/[\\%_]/g, (c) => `\\${c}`)}.%`;
+
+/**
  * 종목 판단 스냅샷 (`symbol_judgment_snapshots`).
  *
  * 이 테이블의 주인은 `coach` 하나다. 행 하나가 표본 하나라서(B39 — 관찰 기간당 1건)
@@ -223,49 +252,68 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       FROM (VALUES ${values}) AS v(id, exit_price, return_rate, outcome, evaluated_at)
       WHERE s.id = v.id AND s.evaluated_at IS NULL
     `;
+    // 채점이 성적을 바꿨다 — 쓴 뒤에 버린다(새 스냅샷은 결과가 없어 성적에 안 들어가 버리지 않는다)
+    this.statsMemo.clear();
   }
 
-  async summarize(signalType: string): Promise<JudgmentTrackStats> {
-    const pool = { signalType: { startsWith: `${poolPrefixOf(signalType)}.` }, outcome: { not: null }, ...this.countedWhere };
-    const [all, hits, aboveCost, poolSample, poolAboveCost, months] = await Promise.all([
-      prisma.symbolJudgmentSnapshot.aggregate({
-        where: { signalType, outcome: { not: null }, ...this.countedWhere },
-        _count: { _all: true },
-        _avg: { returnRate: true },
-        _min: { returnRate: true, evaluatedAt: true },
-        _max: { evaluatedAt: true },
-      }),
-      prisma.symbolJudgmentSnapshot.count({
-        where: { signalType, outcome: "hit", ...this.countedWhere },
-      }),
-      // 기저율의 분자 — 비용 경계는 행마다 그 매도일의 왕복 비용(`costSql`, 국내 주식 거래세가 해마다 다르다)
-      prisma.$queryRaw<Array<{ n: number }>>`
-        SELECT COUNT(*)::int AS n FROM symbol_judgment_snapshots
-        WHERE signal_type = ${signalType} AND outcome IS NOT NULL AND return_rate > ${this.costSql} AND ${this.countedSql}`,
-      // 기저율 — 규칙이 고르기 전의 풀(같은 자산군 · 모드, 행동 무관)
-      prisma.symbolJudgmentSnapshot.count({ where: pool }),
-      prisma.$queryRaw<Array<{ n: number }>>`
-        SELECT COUNT(*)::int AS n FROM symbol_judgment_snapshots
-        WHERE starts_with(signal_type, ${`${poolPrefixOf(signalType)}.`}) AND outcome IS NOT NULL
-          AND return_rate > ${this.costSql} AND ${this.countedSql}`,
-      // 판단 달(KST) 수 — 국내 백테스트 표시 조건. `judged_at` 은 UTC 벽시계 TIMESTAMP 라 시간대를 두 번 옮긴다
-      prisma.$queryRaw<Array<{ months: number }>>`
-        SELECT COUNT(DISTINCT date_trunc('month', (judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul'))::int AS months
-        FROM symbol_judgment_snapshots
-        WHERE signal_type = ${signalType} AND outcome IS NOT NULL AND ${this.countedSql}`,
-    ]);
+  /**
+   * 한 신호의 성적 + 같은 풀(자산군 · 모드)의 기저율 — **풀을 한 번만 훑는다**(조건부 집계 `FILTER`). 예전엔 쿼리 여섯을 나란히 날렸고
+   * 종목 판단 한 번이 이것을 세 번 불러 요청당 집계 18개였다 — 연결 풀이 작은 서버에서 부하가 조금만 와도 줄을 서서 BFF 300ms 예산을
+   * 넘겼다(`/api/app/ai-coach/detail` 504, 2026-11-09). 신호 행은 풀의 부분집합(같은 접두)이라 결과는 같다 — 전후 대조는 체크리스트
+   */
+  private readonly statsMemo = memoizeFor<JudgmentTrackStats>(JUDGMENT_STATS_TTL_MS);
+
+  /** 성적 — 종목 판단 한 번이 네 번 부른다(모드 둘 × live · 백테스트). 5분 들고 있다(`JUDGMENT_STATS_TTL_MS`) */
+  summarize(signalType: string): Promise<JudgmentTrackStats> {
+    return this.statsMemo(signalType, () => this.summarizeNow(signalType));
+  }
+
+  private async summarizeNow(signalType: string): Promise<JudgmentTrackStats> {
+    const own = Prisma.sql`signal_type = ${signalType}`;
+    const above = Prisma.sql`return_rate > ${this.costSql}`;
+    const rows = await prisma.$queryRaw<
+      Array<{
+        sample: number;
+        hits: number;
+        above_cost: number;
+        pool_sample: number;
+        pool_above_cost: number;
+        months: number;
+        avg_return: Prisma.Decimal | null;
+        worst_return: Prisma.Decimal | null;
+        first_scored_at: Date | null;
+        last_scored_at: Date | null;
+      }>
+    >`
+      SELECT
+        COUNT(*) FILTER (WHERE ${own})::int AS sample,
+        COUNT(*) FILTER (WHERE ${own} AND outcome = 'hit')::int AS hits,
+        -- 기저율의 분자 — 비용 경계는 행마다 그 매도일의 왕복 비용(\`costSql\`, 국내 주식 거래세가 해마다 다르다)
+        COUNT(*) FILTER (WHERE ${own} AND ${above})::int AS above_cost,
+        -- 기저율 — 규칙이 고르기 전의 풀(같은 자산군 · 모드, 행동 무관)
+        COUNT(*)::int AS pool_sample,
+        COUNT(*) FILTER (WHERE ${above})::int AS pool_above_cost,
+        -- 판단 달(KST) 수 — 국내 백테스트 표시 조건. \`judged_at\` 은 UTC 벽시계 TIMESTAMP 라 시간대를 두 번 옮긴다
+        COUNT(DISTINCT date_trunc('month', (judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul')) FILTER (WHERE ${own})::int AS months,
+        AVG(return_rate) FILTER (WHERE ${own}) AS avg_return,
+        MIN(return_rate) FILTER (WHERE ${own}) AS worst_return,
+        MIN(evaluated_at) FILTER (WHERE ${own}) AS first_scored_at,
+        MAX(evaluated_at) FILTER (WHERE ${own}) AS last_scored_at
+      FROM symbol_judgment_snapshots
+      WHERE signal_type LIKE ${poolPatternOf(signalType)} AND outcome IS NOT NULL AND ${this.countedSql}`;
+    const r = rows[0]!;
 
     return {
-      sample: all._count._all,
-      hits,
-      aboveCost: aboveCost[0]?.n ?? 0,
-      poolSample,
-      poolAboveCost: poolAboveCost[0]?.n ?? 0,
-      judgedMonths: months[0]?.months ?? 0,
-      avgReturn: all._avg.returnRate === null ? null : Number(all._avg.returnRate),
-      worstReturn: all._min.returnRate === null ? null : Number(all._min.returnRate),
-      firstScoredAt: all._min.evaluatedAt,
-      lastScoredAt: all._max.evaluatedAt,
+      sample: r.sample,
+      hits: r.hits,
+      aboveCost: r.above_cost,
+      poolSample: r.pool_sample,
+      poolAboveCost: r.pool_above_cost,
+      judgedMonths: r.months,
+      avgReturn: r.avg_return === null ? null : Number(r.avg_return),
+      worstReturn: r.worst_return === null ? null : Number(r.worst_return),
+      firstScoredAt: r.first_scored_at,
+      lastScoredAt: r.last_scored_at,
     };
   }
 

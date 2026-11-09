@@ -193,3 +193,11 @@
 ## 2026-11-05 — FE-REQ-013 FR-80 2단계 쿠키 세션
 
 - 파일만 걸침 — `web-shared/src/api/index.ts` 머리 주석(`721063fc`). `ApiError` 무변경 · test 통과
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| `MarketOverviewItem.moveCard?` — 서버 판정 칸(F016 단계 C) | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`

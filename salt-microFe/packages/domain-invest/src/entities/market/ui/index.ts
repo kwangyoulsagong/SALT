@@ -29,5 +29,8 @@ export {
 export { KrSessionLine } from "./KrStock/KrSessionLine";
 export { KrQuoteBadges } from "./KrStock/KrQuoteBadges";
 export { KrMarketActionBanner } from "./KrStock/KrMarketActionBanner";
+// 오늘 왜 움직였나(F016 단계 C · FE-REQ-063 FR-1) — 표시 전용
+export { WhyMovedCard, WhyMovedRowChip, WHY_MOVED_ANCHOR_ID } from "./WhyMoved";
 export { KrChangeText } from "./KrStock/KrChangeText";
 export { KrStockChart } from "./KrStock/KrStockChart";
+export { NewsRow, NewsModal } from "./News";

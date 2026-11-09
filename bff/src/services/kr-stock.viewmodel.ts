@@ -67,6 +67,8 @@ export type KrListPeriod = (typeof KR_LIST_PERIODS)[number];
 /** 시세 표 한 줄 — 시세 + 선택한 기간의 변동률(%). 실시간이면 전일 대비와 같고, 기준 일봉이 없으면 `null` */
 export interface KrOverviewItemVM extends KrQuoteVM {
   periodChange: number | null;
+  /** "왜 움직였나" 카드가 서는 날인가(F016 단계 C · 서버 판정 — 상세 카드와 같은 문턱). 옛 서버면 `false` */
+  moveCard: boolean;
 }
 
 export interface KrSessionVM {
@@ -363,6 +365,7 @@ export const toKrOverviewVM = (raw: unknown) => {
     items: arr(r, "items").map((item): KrOverviewItemVM => ({
       ...toKrQuoteVM(item),
       periodChange: numOrNull(obj(item, "quote"), "periodChange"),
+      moveCard: obj(item, "quote").moveCard === true,
     })),
     nextOffset,
   };
@@ -538,6 +541,8 @@ export interface KrNewsItemVM {
   provider: string;
   title: string;
   publishedAt: string;
+  /** 관련 종목 — 뉴스 상세 모달 칩(`FE-REQ-065`). 이름 · 등락률(%) 서버 값 그대로 · 옛 서버면 빈 배열 */
+  related: Array<{ code: string; name: string; changeRate: number | null }>;
 }
 
 const KR_NEWS_KINDS: readonly KrNewsKindVM[] = ["news", "disclosure"];
@@ -557,7 +562,17 @@ export const toKrNewsVM = (raw: unknown) => {
       const kind = str(x, "kind");
       if (!(KR_NEWS_KINDS as readonly string[]).includes(kind)) return [];
       return [
-        { id: str(x, "id"), kind: kind as KrNewsKindVM, provider: str(x, "provider"), title: str(x, "title"), publishedAt: str(x, "publishedAt") },
+        {
+          id: str(x, "id"),
+          kind: kind as KrNewsKindVM,
+          provider: str(x, "provider"),
+          title: str(x, "title"),
+          publishedAt: str(x, "publishedAt"),
+          related: (Array.isArray(x.related) ? x.related : []).map((rel) => {
+            const r = obj(rel, "related");
+            return { code: str(r, "code"), name: str(r, "name"), changeRate: numOrNull(r, "changeRate") };
+          }),
+        },
       ];
     }),
   };

@@ -115,3 +115,15 @@
 - 변경 · 검증: `kr_stock_quotes` 저장 문장 둘에 새 열(DDL 은 `DB-REQ-041`). 폴링 = 거래량이 늘 때만 시각 · 체결 = `GREATEST`. 실서버 56행 중 50행 시각
 - 미검증 · 범위 밖: 없음
 - 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| `kr_stock_master.sector_mid_code`(지수업종 중분류) — 마스터 파싱 · upsert 에 칸 추가(F016 단계 C, `DB-REQ-041`) | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`
+
+## 2026-11-09 — 달력 역산 유니버스로
+
+- `PrismaKrMarketCalendarStore.daysFromDailyCandles` — 2024-11-09 ~ 2026-11-08 520 평일 옛 SQL 과 같음 · 개장 484 · 132ms. 시세 행이 없으면(새 환경) 전 종목으로

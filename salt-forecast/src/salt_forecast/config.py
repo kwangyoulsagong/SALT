@@ -48,6 +48,11 @@ class Settings(BaseSettings):
     # + 시장 대용(KR-EW)
     kr_event_symbols: str = ""
     kr_event_top: int = 30
+    # 등락 분해 β · 평소 변동 σ(F016 단계 C · FC-REQ-027 FR-1) — 창 · 최소 표본(거래일 · 코인은 일)
+    move_beta_window: int = Field(default=120, gt=0)
+    move_beta_min_sample: int = Field(default=60, gt=0)
+    move_sigma_window: int = Field(default=60, gt=0)
+    move_sigma_min_sample: int = Field(default=40, gt=0)
 
     @field_validator("fred_api_key", "naver_client_id", "naver_client_secret", mode="before")
     @classmethod

@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import prisma from "../../shared/infrastructure/prisma";
 import type {
   Candle,
@@ -13,6 +15,12 @@ import type {
 
 /** upsert 배치 크기. 원문 워커 상수다. */
 const UPSERT_BATCH = 100;
+
+/** 봉 시간 단위 전부와 순서(짧은 것부터) — `Record` 라 도메인 `PriceTimeframe` 에 단위가 늘면 여기서 컴파일이 깨진다 */
+const PRICE_TIMEFRAME_ORDER: Record<PriceTimeframe, number> = { "5m": 0, "15m": 1, "1h": 2, "1d": 3 };
+const PRICE_TIMEFRAMES = (Object.keys(PRICE_TIMEFRAME_ORDER) as PriceTimeframe[]).sort(
+  (a, b) => PRICE_TIMEFRAME_ORDER[a] - PRICE_TIMEFRAME_ORDER[b]
+);
 
 export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
   /**
@@ -150,15 +158,25 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
     return new Map(rows.map((row) => [row.symbol, row._count._all]));
   }
 
+  /**
+   * 심볼마다 가장 늦은 봉의 종가(시간 단위 무관). 단위마다 인덱스 `(symbol, timeframe, timestamp)` 로 최신 한 행을 집고 그중 늦은 것 —
+   * 예전 Prisma `distinct` 는 심볼들의 **봉 전체**를 Node 로 옮겨 메모리에서 걸렀다(코인 117종목 1.8초 · 국내 56종목 0.9초 — 부팅 때
+   * 판단 상세 504, 2026-11-09). 같은 시각 여러 단위면 짧은 단위(그 시각 마지막 값)
+   */
   async latestCloses(symbols: string[]): Promise<ClosePoint[]> {
     if (symbols.length === 0) return [];
 
-    const rows = await prisma.priceHistory.findMany({
-      where: { symbol: { in: symbols } },
-      orderBy: { timestamp: "desc" },
-      distinct: ["symbol"],
-      select: { symbol: true, close: true, timestamp: true },
-    });
+    const rows = await prisma.$queryRaw<Array<{ symbol: string; close: Prisma.Decimal; timestamp: Date }>>`
+      SELECT DISTINCT ON (s.symbol) s.symbol, b.close, b.timestamp
+      FROM unnest(${[...new Set(symbols)]}::text[]) AS s(symbol)
+      CROSS JOIN unnest(${[...PRICE_TIMEFRAMES]}::text[]) WITH ORDINALITY AS f(timeframe, ord)
+      CROSS JOIN LATERAL (
+        SELECT p.close, p.timestamp FROM price_history p
+        WHERE p.symbol = s.symbol AND p.timeframe = f.timeframe
+        ORDER BY p.timestamp DESC
+        LIMIT 1
+      ) b
+      ORDER BY s.symbol, b.timestamp DESC, f.ord`;
 
     return rows.map((row) => ({
       symbol: row.symbol,
@@ -346,21 +364,30 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
     }));
   }
 
+  /**
+   * 최근 봉 `take` 개(최신이 앞) — 지표 계산 입력. 값은 DB 가 `float8` 로 내려 준다(`numeric` → 가장 가까운 double — `Number(Decimal)` 과 같은 값,
+   * 전 종목 대조). 예전엔 Prisma 행 전체(Decimal 객체 다섯 · uuid)를 읽어 2분마다 49만 행을 해석했다 — API 프로세스가 몇 초씩 막혀
+   * 판단 상세가 504(2026-11-09 `DB-REQ-017`)
+   */
   async recentCandles(symbol: string, timeframe: string, take: number) {
-    const rows = await prisma.priceHistory.findMany({
-      where: { symbol, timeframe },
-      orderBy: { timestamp: "desc" },
-      take,
-    });
+    const rows = await prisma.$queryRaw<
+      Array<{ open: number; high: number; low: number; close: number; volume: number | null; timestamp: Date; asset_type: string }>
+    >`
+      SELECT open::float8 AS open, high::float8 AS high, low::float8 AS low, close::float8 AS close, volume::float8 AS volume,
+             timestamp, asset_type::text AS asset_type
+      FROM price_history
+      WHERE symbol = ${symbol} AND timeframe = ${timeframe}
+      ORDER BY timestamp DESC
+      LIMIT ${take}`;
 
     return rows.map((row) => ({
-      open: Number(row.open),
-      high: Number(row.high),
-      low: Number(row.low),
-      close: Number(row.close),
-      volume: row.volume === null ? null : Number(row.volume),
+      open: row.open,
+      high: row.high,
+      low: row.low,
+      close: row.close,
+      volume: row.volume,
       timestamp: row.timestamp,
-      assetType: row.assetType as MarketAssetType,
+      assetType: row.asset_type as MarketAssetType,
     }));
   }
 

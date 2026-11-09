@@ -132,7 +132,7 @@ describe("GetMarketOverview", () => {
    * 응답 모양 고정 (`SRV-REQ-009` FR-11 · FR-23). 필드는 **추가만** 허용된다 —
    * 이 목록에서 빠지거나 이름이 바뀌면 프론트가 조용히 깨진다.
    */
-  it("응답 계약: 기본 limit=100 · 기존 필드 12개 유지 + periodChange 추가", async () => {
+  it("응답 계약: 기본 limit=100 · 기존 필드 12개 유지 + periodChange · moveCard(F016 단계 C) 추가", async () => {
     const rows = Array.from({ length: 150 }, (_, i) => asset(`S${i}`));
     const { repo: assets } = stubAssets(rows);
     const { repo: prices } = stubPrices({});
@@ -154,6 +154,7 @@ describe("GetMarketOverview", () => {
       "logoUrl",
       "priceUpdatedAt",
       "periodChange",
+      "moveCard",
     ]);
   });
 });

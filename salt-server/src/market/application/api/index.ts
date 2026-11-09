@@ -1,6 +1,6 @@
 import { KrStockDisabledError, KrStockNotAvailableError, isKrStockCode, isKrStockViewer, krStockLogoUrl } from "../../domain";
 import type { KrCompanyHomepageSource, KrHeldCodesSource, KrLogoImageProbe } from "../../domain";
-import type { MarketScheduleReader } from "../../domain";
+import type { KrArticleBodyPort, MarketScheduleReader } from "../../domain";
 import { GetKrMarketSchedule } from "../GetKrMarketSchedule";
 import type {
   KrProviderHealthPort,
@@ -79,12 +79,15 @@ import {
   GetKrStockChart,
   GetKrStockDetail,
   GetKrStockNews,
+  GetKrNewsBody,
   ListKrStockQuotes,
   SearchKrStocks,
   GetKrIndices,
   GetKrInvestorFlows,
   GetKrOrderbook,
 } from "../ReadKrStock";
+import { GetCryptoWhyMoved, GetKrWhyMoved } from "../GetWhyMoved";
+import type { MoveDependencies } from "../moveCard";
 import { RunKrRealtime } from "../RunKrRealtime";
 import {
   PollKrStockQuotes,
@@ -98,7 +101,13 @@ import {
 } from "../SyncKrStock";
 import { PollKrAfterHours, PollKrIndices, PruneKrIndexTicks, SyncKrInvestorFlows } from "../SyncKrSupplement";
 import { InferKrMarketActions, PollKrViEvents } from "../SyncKrMarketStatus";
-import { PollKrNewsTitles, PollKrProgramFlows, PollKrSectorIndices, PruneKrMoveSources } from "../SyncKrMoveSources";
+import {
+  BackfillKrIndexDaily,
+  PollKrNewsTitles,
+  PollKrProgramFlows,
+  PollKrSectorIndices,
+  PruneKrMoveSources,
+} from "../SyncKrMoveSources";
 import { GetKrMarketSummary } from "../GetKrMarketSummary";
 
 /**
@@ -266,6 +275,8 @@ export interface MarketDependencies {
   schedule: MarketScheduleReader;
   /** 추적 자산 상한(`SRV-REQ-008` FR-80~87) — 보유는 `portfolio` 의 사실이라 조립 지점이 넣는다. 상한은 `TRACKED_ASSET_LIMIT` */
   tracking: { held: HoldingProbe; limit: number };
+  /** 오늘 왜 움직였나(F016 단계 C) — 예측 배치 β · σ 뷰 · 코인 경보 스냅샷 · 카드 문턱(설정) */
+  move: MoveDependencies;
 }
 
 export interface KrStockDependencies {
@@ -305,6 +316,8 @@ export interface KrStockDependencies {
   moveSources: KrMoveSourceStore;
   /** 광고성 제목 패턴(`KR_NEWS_PROMO_PATTERNS`) — 표시에서 뺀다 */
   newsPromoPatterns: readonly RegExp[];
+  /** 기사 본문(`SRV-REQ-054`) — `news` 공개 API ACL */
+  articleBody?: KrArticleBodyPort;
 }
 
 export interface KrStockUseCases {
@@ -352,11 +365,20 @@ export interface KrStockUseCases {
   pollProgramFlows: PollKrProgramFlows;
   /** 제목 30일 · 장중 수급 7일 · VI 30일 정리 — 장 마감 뒤 하루 한 번 */
   pruneMoveSources: PruneKrMoveSources;
+  /** 지수 · 업종 일별 이력(β 재료, F016 단계 C) — 장 마감 뒤 하루 한 번 + 기동 때 */
+  backfillIndexDaily: BackfillKrIndexDaily;
   getNews: GetKrStockNews;
+  getNewsBody: GetKrNewsBody;
   getIntradayFlows: GetKrIntradayFlows;
+  /** 오늘 왜 움직였나 — ① 분해 · ② 같은 날 사실 · 카드 조건(F016 단계 C) */
+  getWhyMoved: GetKrWhyMoved;
 }
 
-const createKrStockUseCases = (deps: KrStockDependencies, schedule: MarketScheduleReader): KrStockUseCases => {
+const createKrStockUseCases = (
+  deps: KrStockDependencies,
+  schedule: MarketScheduleReader,
+  move: MoveDependencies
+): KrStockUseCases => {
   const universe = new ResolveKrStockUniverse(deps.store, deps.held, deps.universeTopN);
   const realtime = new RunKrRealtime(deps.realtime, deps.store, deps.calendar, universe);
   const provider = () => {
@@ -379,6 +401,8 @@ const createKrStockUseCases = (deps: KrStockDependencies, schedule: MarketSchedu
     orderbookSource: deps.supplementSource,
     status: deps.status,
     moveSources: deps.moveSources,
+    move,
+    articleBody: deps.articleBody,
   };
   return {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
@@ -428,8 +452,11 @@ const createKrStockUseCases = (deps: KrStockDependencies, schedule: MarketSchedu
     pollSectorIndices: new PollKrSectorIndices(deps.moveSourceSource, deps.moveSources, deps.calendar, universe),
     pollProgramFlows: new PollKrProgramFlows(deps.moveSourceSource, deps.moveSources, deps.calendar, universe),
     pruneMoveSources: new PruneKrMoveSources(deps.moveSources),
+    backfillIndexDaily: new BackfillKrIndexDaily(deps.moveSourceSource, deps.moveSources, universe),
     getNews: new GetKrStockNews(read),
+    getNewsBody: new GetKrNewsBody(read),
     getIntradayFlows: new GetKrIntradayFlows(read),
+    getWhyMoved: new GetKrWhyMoved(read, move),
   };
 };
 
@@ -448,6 +475,8 @@ export interface MarketUseCases {
   listWatchlistSymbols: ListWatchlistSymbols;
   updateWatchlistPrices: UpdateWatchlistPrices;
   getMarketOverview: GetMarketOverview;
+  /** 코인 오늘 왜 움직였나(F016 단계 C) — 없는 종목이면 404 */
+  getCryptoWhyMoved: GetCryptoWhyMoved;
   getMarketSummary: GetMarketSummary;
   getRealTimePrice: GetRealTimePrice;
   getChartData: GetChartData;
@@ -498,8 +527,11 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     getMarketOverview: new GetMarketOverview(
       deps.assets,
       deps.exchange,
-      deps.prices
+      deps.prices,
+      undefined,
+      deps.move
     ),
+    getCryptoWhyMoved: new GetCryptoWhyMoved(deps.assets, deps.news, deps.move),
     getMarketSummary: new GetMarketSummary(
       deps.assets,
       deps.exchange,
@@ -528,7 +560,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.indicators,
       krUniverse ? () => krUniverse.execute() : null
     ),
-    krStock: deps.krStock ? createKrStockUseCases(deps.krStock, deps.schedule) : null,
+    krStock: deps.krStock ? createKrStockUseCases(deps.krStock, deps.schedule, deps.move) : null,
     getKrMarketSchedule: new GetKrMarketSchedule(deps.schedule),
   };
 

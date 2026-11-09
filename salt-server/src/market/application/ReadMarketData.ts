@@ -1,6 +1,7 @@
 import { logger } from "../../shared/config/logger";
 import {
   ChartPeriod,
+  cryptoMoveKey,
   logoUrlOf,
   MarketOverviewPeriod,
   MarketOverviewSort,
@@ -15,6 +16,7 @@ import {
   type PriceHistoryRepository,
   type PriceTimeframe,
 } from "../domain";
+import { cryptoMoveEvents, freshCryptoWarning, moveCardFlags, type MoveDependencies } from "./moveCard";
 
 /** 배경 갱신을 건너뛰는 신선도. 원문 상수(10분)다. */
 const PRICE_FRESHNESS_MS = 10 * 60 * 1000;
@@ -35,7 +37,9 @@ export class GetMarketOverview {
     private readonly assets: MarketAssetRepository,
     private readonly exchange: ExchangeQuotePort,
     private readonly prices: PriceHistoryRepository,
-    private readonly now: () => Date = () => new Date()
+    private readonly now: () => Date = () => new Date(),
+    /** 행 카드 표시(F016 단계 C · FE-REQ-063 FR-6) — 없으면 표시 없음 */
+    private readonly move: MoveDependencies | null = null
   ) {}
 
   /**
@@ -82,7 +86,7 @@ export class GetMarketOverview {
     void this.refreshStalePrices(items.map((item) => item.symbol));
 
     return {
-      items,
+      items: await this.withMoveCard(items),
       pagination: {
         page: resolved.page,
         limit: resolved.limit,
@@ -90,6 +94,26 @@ export class GetMarketOverview {
         totalPages: Math.ceil(total / resolved.limit),
       },
     };
+  }
+
+  /**
+   * 행 카드 표시 — 상세 카드와 같은 판정(오늘 등락 · 평소 변동 σ · 거래소 유의/주의). 기간 정렬과 무관하게 **오늘(전일 대비)** 값으로 본다.
+   * β 뷰 · 경보 뷰 한 번씩 읽기. 실패하면 표시 없음(표는 그대로 나간다)
+   */
+  private async withMoveCard(items: MarketOverviewItem[]): Promise<Array<MarketOverviewItem & { moveCard: boolean }>> {
+    if (!this.move || items.length === 0) return items.map((item) => ({ ...item, moveCard: false }));
+    const key = (s: string) => cryptoMoveKey(s);
+    const now = this.now();
+    const warnings = await this.move.warnings.latest(items.map((i) => key(i.symbol))).catch(() => new Map());
+    const flags = await moveCardFlags(
+      this.move.betas,
+      this.move.policy,
+      items.map((i) => {
+        return { key: key(i.symbol), changeRate: i.change24h, events: cryptoMoveEvents(freshCryptoWarning(warnings.get(key(i.symbol)), now)) };
+      }),
+      now
+    );
+    return items.map((item) => ({ ...item, moveCard: flags.get(key(item.symbol)) ?? false }));
   }
 
   private async withPeriodChange(

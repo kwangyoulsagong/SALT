@@ -426,3 +426,7 @@ LLM 해설이 `expectedReturn.lowPercent/highPercent` 를 만든다. 전 영역 
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 규칙 문서에 줄을 그을 때 훅 표(`layer-rules.cjs`)도 같이 본다 — S2c 때 `notification` 을 빠뜨렸다
+
+## 2026-11-09 — 기사 본문
+
+- 이 REQ 의 파일은 본문 경로를 잇는 자리만 바뀌었다(`news` 유스케이스 테스트 가짜 저장소에 `findHead` · 조립에 `body` 의존). 판단 · 교훈은 주인 회고(`SRV-REQ-054` — 실측 먼저 · 영구 캐시엔 규칙 판 번호)

@@ -258,3 +258,15 @@
 - `kr-stock` 경로 · 서비스 · 컨트롤러 테스트(머리에 이 REQ)에 F016 경로 둘(`/:code/news` · `/:code/flows/intraday`, `BFF-REQ-051`). 기존 국내 경로 · 응답 무변경
 - 검증: 영역 전체(서버 build · lint · test 981 · BFF test 421 · FE check-types · lint · test) 통과 — 체크리스트 `requirements/reports/checklists/F016-B-kr-news-flows.md`
 - 미검증 · 범위 밖: 없음(이 REQ 몫 무변경)
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| 국내 표 뷰모델 `moveCard` 칸(서버 판정 · 옛 서버 false) · why-moved 경로를 국내 서비스 `read` 규칙 그대로(F016 단계 C) | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`
+
+## 2026-11-09 — 기사 본문(주인 `SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068`)
+
+- `kr-stock.controller` · `kr-stock.routes` 에 국내 시황 본문 `/:code/news/:serial/body`(형식 400 · 소유자 판정은 서버) · `respond` 가 `KrResult` 아닌 뷰모델도 받게 — 검증은 주인 체크리스트(서버 1031 · BFF 430 · 실화면 1440 · 훅 사후 실행)

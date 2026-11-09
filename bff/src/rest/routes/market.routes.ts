@@ -17,6 +17,11 @@ router.get("/summary", (req, res, next) =>
   marketScreenController.getSummary(req, res, next),
 );
 
+// 오늘 왜 움직였나 — 코인(F016 단계 C · `BFF-REQ-051` FR-1). 로그인 사용자(서버 판정)
+router.get("/:symbol/why-moved", authMiddleware, (req, res, next) =>
+  marketScreenController.getWhyMoved(req, res, next),
+);
+
 router.get("/:symbol", authMiddleware, (req, res, next) =>
   marketScreenController.getMarketSymbol(req, res, next),
 );

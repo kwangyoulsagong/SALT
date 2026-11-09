@@ -53,6 +53,19 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 - EXPLAIN(2026-11-06): 오늘 소식 = `kr_news_title_symbol_code_published_at_idx`(Index Cond code · published_at) → `kr_news_title_pkey` 0.14ms · 장중 수급 = `kr_flow_intraday_pkey` 역방향 0.03ms
 - 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md`
 
+## 진행 — 단계 C done(2026-11-09)
+
+| FR | 상태 | 구현 |
+|---|---|---|
+| β · σ 표 · 뷰 | done | `20261109090000_forecast_move_beta` — `forecast.move_beta`(symbol, as_of) · `v_move_beta_export`(종목별 최신). 쓰기 forecast · 읽기 서버 market(export 뷰). 사용자 열 0 |
+| 업종 중분류 | done | `20261109090100_kr_stock_master_sector_mid` — `kr_stock_master.sector_mid_code`(추가만, NULL 허용) |
+| 지수 이름 | done | `20261109090200_kr_index_name` — 원천 이름(`전기·전자`) 한 행씩 |
+| FR-7 코인 마켓 경보 | done(정정) | ~~기존 코인 마켓 표에 유의 · 주의 플래그 열 추가~~ **열을 더하지 않는다** — `forecast.v_market_warning`(F010 매일 스냅샷, 같은 공식 원천)을 서버가 읽는다 |
+| 지수 일별 | done | 기존 `kr_sector_index_daily` 에 시장 지수 셋(`0001` · `1001` · `2001`)도 — KIS 가 같은 업종 코드 체계 |
+
+- 로컬 적용 2026-11-09. 롤백 SQL 은 각 파일 머리. `forecast` 를 `public` 에서 읽는 자리 +1(`kr_sector_index_daily` · `kr_stock_master.sector_mid_code`) — `DB-REQ-036` 부록 B9
+- 루트 `requirements/specs/done/F016-C-move-split-facts-slice.md`
+
 ## Acceptance Criteria
 
 - [ ] 마이그레이션 목적 하나씩(표 추가 · 열 추가 분리) · 롤백 SQL
@@ -70,3 +83,5 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-06 | 신규(to-do) |
 | 2026-11-06 | 단계 B done — FR-1 · 4 · FR-5 부분(프로그램 열만) · 보존 정리 · 로컬 적용 |
 | 2026-11-06 | in-progress — 단계 A(FR-2 · 3 · 6) done · 로컬 적용. FR-2 FK 없음 결정(ETN 코드) |
+| 2026-11-09 | 단계 C done — `move_beta` · `v_move_beta_export` · 업종 중분류 열 · 지수 이름 표. FR-7 정정(새 열 대신 기존 스냅샷 뷰) |
+| 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `PrismaKrMoveSourceStore.newsTitle(serial, code)` — 연결 PK(serial, code) → 제목 PK, 광고성 제외(본문 찾기 입력) |

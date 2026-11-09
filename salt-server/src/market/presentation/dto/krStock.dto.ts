@@ -34,6 +34,17 @@ export const krCodeParamSchema = z.object({
   code: z.string().regex(/^[0-9A-Z]{6}$/),
 });
 
+/** 국내 시황 기사 본문(`SRV-REQ-054`) — 종목 코드 + 원천 일련번호(숫자). 일련번호 판정 자체는 유스케이스가 한 번 더 */
+export const krNewsBodyParamSchema = z.object({
+  code: z.string().regex(/^[0-9A-Z]{6}$/),
+  serial: z.string().regex(/^\d{8,24}$/),
+});
+
+/** 코인 심볼(F016 단계 C `why-moved`) — 업비트 원화 마켓 심볼(`BTC` · `1INCH`). 대소문자는 유스케이스가 맞춘다 */
+export const cryptoSymbolParamSchema = z.object({
+  symbol: z.string().regex(/^[0-9A-Za-z]{1,15}$/),
+});
+
 export const krChartQuerySchema = z.object({
   period: z.enum(["1d", "5m"]).default("1d"),
   count: z.coerce.number().int().min(1).max(500).default(120),

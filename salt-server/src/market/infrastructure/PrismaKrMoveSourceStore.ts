@@ -8,6 +8,8 @@ import {
   type KrNewsTitleFact,
   type KrProgramFlowFact,
   type KrSectorIndexFact,
+  type KrIndexDailyClose,
+  type KrIndexDailyRow,
 } from "../domain";
 
 /**
@@ -53,12 +55,37 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
     return row._max.collectedAt ?? null;
   }
 
+  async newsTitle(serial: string, code: string) {
+    // 연결 PK(serial, code) 로 그 종목에 걸린 제목인지 확인 → 제목 PK
+    const rows = await prisma.$queryRaw<Array<{ kind: string; title: string; published_at: Date }>>`
+      SELECT t.kind, t.title, t.published_at
+      FROM kr_news_title_symbol s
+      JOIN kr_news_title t ON t.serial = s.serial
+      WHERE s.serial = ${serial} AND s.code = ${code} AND NOT t.promo`;
+    const row = rows[0];
+    if (!row) return null;
+    return { kind: (row.kind === "disclosure" ? "disclosure" : "news") as KrNewsKind, title: row.title, publishedAt: row.published_at };
+  }
+
   async newsTitles(code: string, since: Date, limit: number) {
     // (code, published_at desc) 인덱스로 그 종목 오늘 연결만 → 제목 PK. 광고성은 여기서 뺀다
     const rows = await prisma.$queryRaw<
-      Array<{ serial: string; kind: string; provider_name: string; published_at: Date; title: string }>
+      Array<{
+        serial: string;
+        kind: string;
+        provider_name: string;
+        published_at: Date;
+        title: string;
+        related: Array<{ code: string; name: string; change_rate: string | null }> | null;
+      }>
     >`
-      SELECT t.serial, t.kind, t.provider_name, t.published_at, t.title
+      SELECT t.serial, t.kind, t.provider_name, t.published_at, t.title,
+        -- 관련 종목(뉴스 모달 칩, FE-REQ-065) — 같은 market 표(마스터 이름 · 시세 등락률). 마스터에 없는 코드(ETN 등)는 뺀다
+        (SELECT json_agg(json_build_object('code', r.code, 'name', m.name, 'change_rate', q.change_rate::text) ORDER BY r.code)
+           FROM kr_news_title_symbol r
+           JOIN kr_stock_master m ON m.code = r.code
+           LEFT JOIN kr_stock_quotes q ON q.code = r.code
+          WHERE r.serial = t.serial) AS related
       FROM kr_news_title_symbol s
       JOIN kr_news_title t ON t.serial = s.serial
       WHERE s.code = ${code} AND s.published_at >= (${since}::timestamptz AT TIME ZONE 'UTC') AND NOT t.promo
@@ -70,15 +97,23 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
       providerName: r.provider_name,
       publishedAt: r.published_at,
       title: r.title,
+      related: (r.related ?? []).map((x) => ({
+        code: x.code,
+        name: x.name,
+        changeRate: x.change_rate === null ? null : Number(x.change_rate),
+      })),
     }));
   }
 
   async sectorIndexCodes(codes: string[]) {
     const result = new Map<string, string>();
     if (codes.length === 0) return result;
-    const rows = await prisma.krStockMaster.findMany({ where: { code: { in: codes } }, select: { code: true, sectorCode: true } });
+    const rows = await prisma.krStockMaster.findMany({
+      where: { code: { in: codes } },
+      select: { code: true, sectorCode: true, sectorMidCode: true },
+    });
     for (const r of rows) {
-      const sector = krSectorIndexCodeOf(r.sectorCode);
+      const sector = krSectorIndexCodeOf(r.sectorCode, r.sectorMidCode);
       if (sector) result.set(r.code, sector);
     }
     return result;
@@ -104,6 +139,56 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
           AS u(code, value, change_rate)
         ON CONFLICT (code, trade_date) DO UPDATE SET close = EXCLUDED.close, change_rate = EXCLUDED.change_rate,
           updated_at = EXCLUDED.updated_at`;
+  }
+
+  async upsertIndexDaily(code: string, rows: KrIndexDailyRow[], at: Date) {
+    if (rows.length === 0) return;
+    // 기간별 시세(공식 종가)가 장중 마지막 값(15:40 회차)을 덮는다 — 같은 값이면 멱등
+    await prisma.$executeRaw`
+        INSERT INTO kr_sector_index_daily (code, trade_date, close, change_rate, updated_at)
+        SELECT ${code}, u.trade_date, u.close, u.change_rate, (${at}::timestamptz AT TIME ZONE 'UTC')
+        FROM unnest(${rows.map((r) => r.tradeDate)}::date[], ${rows.map((r) => r.close)}::numeric[],
+          ${rows.map((r) => r.changeRate)}::numeric[]) AS u(trade_date, close, change_rate)
+        ON CONFLICT (code, trade_date) DO UPDATE SET close = EXCLUDED.close, change_rate = EXCLUDED.change_rate,
+          updated_at = EXCLUDED.updated_at`;
+  }
+
+  async upsertIndexNames(names: Array<{ code: string; name: string }>, at: Date) {
+    if (names.length === 0) return;
+    await prisma.$executeRaw`
+        INSERT INTO kr_index_name (code, name, updated_at)
+        SELECT u.code, u.name, (${at}::timestamptz AT TIME ZONE 'UTC')
+        FROM unnest(${names.map((n) => n.code)}::text[], ${names.map((n) => n.name)}::text[]) AS u(code, name)
+        ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, updated_at = EXCLUDED.updated_at`;
+  }
+
+  async indexNames(codes: string[]) {
+    if (codes.length === 0) return new Map<string, string>();
+    const rows = await prisma.krIndexName.findMany({ where: { code: { in: codes } }, select: { code: true, name: true } });
+    return new Map(rows.map((r) => [r.code, r.name]));
+  }
+
+  async indexDailyCoverage(codes: string[]) {
+    const result = new Map<string, { count: number; earliest: KrIndexDailyClose; latest: KrIndexDailyClose }>();
+    if (codes.length === 0) return result;
+    // 지수 10여 개 × 하루 한 행 — PK (code, trade_date) 앞부분으로 한 문장
+    const rows = await prisma.$queryRaw<
+      { code: string; count: bigint; earliest_date: Date; earliest_close: string; latest_date: Date; latest_close: string }[]
+    >`
+        SELECT code, count(*) AS count,
+          (array_agg(trade_date ORDER BY trade_date))[1] AS earliest_date,
+          ((array_agg(close ORDER BY trade_date))[1])::text AS earliest_close,
+          (array_agg(trade_date ORDER BY trade_date DESC))[1] AS latest_date,
+          ((array_agg(close ORDER BY trade_date DESC))[1])::text AS latest_close
+        FROM kr_sector_index_daily WHERE code = ANY(${codes}::text[]) GROUP BY code`;
+    for (const r of rows) {
+      result.set(r.code, {
+        count: Number(r.count),
+        earliest: { tradeDate: r.earliest_date.toISOString().slice(0, 10), close: Number(r.earliest_close) },
+        latest: { tradeDate: r.latest_date.toISOString().slice(0, 10), close: Number(r.latest_close) },
+      });
+    }
+    return result;
   }
 
   async sectorIndices(codes: string[]) {

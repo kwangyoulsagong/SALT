@@ -52,3 +52,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `domain/events` · `store/events` · `jobs/events` 를 국내로 넓혔다 — 종류 4 · KST 발표 시각 · 규칙 종류 30일 전 · 끊김 `break_cum` · 사건 종목 키(`FC-REQ-021` · `DB-REQ-034`). 코인 묶음 결과 무변화(`ref_bar_open` 식 · `_closed_by` 조건은 업비트 봉에서 전과 같다) |
+| 2026-11-09 | `tables.py` 에 `move_beta` 선언(F016 단계 C `FC-REQ-027`) — 사건 표 무변경 |

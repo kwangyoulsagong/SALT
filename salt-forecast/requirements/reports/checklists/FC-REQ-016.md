@@ -42,3 +42,11 @@
 - 변경: `ops/daily.sh` 주석 — `events` 가 `kr_daily` 뒤에 도는 이유(국내 일봉을 읽는다, `FC-REQ-021` FR-10). 단계 목록 무변경
 - 검증: 변경 없음 — 주석만
 - 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
+
+## 2026-11-09 — F016 단계 C
+
+| 항목 | 결과 |
+|---|---|
+| `daily.sh` 단계에 `move_beta`(volatility 뒤) — 뉴스 단계 무변경(F016 단계 C) | 반영 · 영역 검증 전체 통과 |
+
+루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`

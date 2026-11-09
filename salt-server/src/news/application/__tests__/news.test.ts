@@ -36,6 +36,7 @@ const fakeArticles = (overrides: Partial<ArticleRepository> = {}) => {
     }),
     findByIdAndCountView: async () => null,
     exists: async () => false,
+    findHead: async () => null,
     findBySymbol: async () => [],
     findTrending: async () => [],
     countBySource: async () => [],
@@ -72,6 +73,11 @@ const build = (deps: {
     articles: deps.articles ?? fakeArticles(),
     bookmarks: deps.bookmarks ?? fakeBookmarks(),
     feed: deps.feed ?? fakeFeed([], []),
+    body: {
+      search: { enabled: false, search: async () => [] },
+      pages: { paragraphs: async () => [] },
+      bodies: { find: async () => null, save: async () => {} },
+    },
   });
 
 describe("CrawlNews", () => {

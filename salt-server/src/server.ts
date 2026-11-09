@@ -1,9 +1,11 @@
-import app from './app';
+import app, { startWorkers } from './app';
 import { env } from './shared/config/env';
 import { logger } from './shared/config/logger';
 import { connectDatabase, disconnectDatabase } from './shared/infrastructure/prisma';
 
 const PORT = env.PORT;
+/** 부팅 회차 미루기 — 재기동 직후 화면이 다시 붙는 몇 초(실측 첫 5초에 판단 상세가 줄을 섰다) */
+const BOOT_WORKER_DELAY_MS = 15_000;
 
 async function startServer() {
   try {
@@ -23,6 +25,8 @@ async function startServer() {
       logger.info(`🔗 API URL: http://localhost:${PORT}`);
       logger.info(`📚 API Docs: http://localhost:${PORT}/api-docs`);
       logger.info(`💾 Database: PostgreSQL`);
+      // 주기 작업은 HTTP 가 열린 뒤 — 부팅 회차가 첫 요청과 겹치지 않게 잠깐 미룬다(`BOOT_WORKER_DELAY_MS`)
+      setTimeout(startWorkers, BOOT_WORKER_DELAY_MS).unref();
     });
   } catch (error) {
     logger.error('❌ Failed to start server:', error);

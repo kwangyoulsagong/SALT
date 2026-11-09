@@ -45,13 +45,13 @@ export class PrismaKrStockStore implements KrStockStore {
       const chunk = listings.slice(i, i + MASTER_CHUNK);
       const col = <T,>(pick: (l: KrStockListing) => T) => chunk.map(pick);
       await prisma.$executeRaw`
-        INSERT INTO kr_stock_master (code, standard_code, name, market, group_code, sector_code, base_price,
+        INSERT INTO kr_stock_master (code, standard_code, name, market, group_code, sector_code, sector_mid_code, base_price,
           shares_outstanding, market_cap, is_halted, is_liquidation, is_administrative, warn_code, overheat_code, is_preferred,
           listed_at, delisted_at, synced_at)
         SELECT u.*, NULL::timestamp, (${syncedAt}::timestamptz AT TIME ZONE 'UTC') FROM unnest(
           ${col((l) => l.code)}::text[], ${col((l) => l.standardCode)}::text[], ${col((l) => l.name)}::text[],
           ${col((l) => l.market)}::text[], ${col((l) => l.groupCode)}::text[], ${col((l) => l.sectorCode)}::text[],
-          ${col((l) => l.basePrice)}::numeric[], ${col((l) => l.sharesOutstanding)}::bigint[],
+          ${col((l) => l.sectorMidCode)}::text[], ${col((l) => l.basePrice)}::numeric[], ${col((l) => l.sharesOutstanding)}::bigint[],
           ${col((l) => l.marketCap)}::numeric[], ${col((l) => l.isHalted)}::boolean[],
           ${col((l) => l.isLiquidation)}::boolean[],
           ${col((l) => l.isAdministrative)}::boolean[], ${col((l) => l.warnCode)}::text[],
@@ -60,7 +60,8 @@ export class PrismaKrStockStore implements KrStockStore {
         ) AS u
         ON CONFLICT (code) DO UPDATE SET
           standard_code = EXCLUDED.standard_code, name = EXCLUDED.name, market = EXCLUDED.market,
-          group_code = EXCLUDED.group_code, sector_code = EXCLUDED.sector_code, base_price = EXCLUDED.base_price,
+          group_code = EXCLUDED.group_code, sector_code = EXCLUDED.sector_code,
+          sector_mid_code = EXCLUDED.sector_mid_code, base_price = EXCLUDED.base_price,
           shares_outstanding = EXCLUDED.shares_outstanding, market_cap = EXCLUDED.market_cap,
           is_halted = EXCLUDED.is_halted, is_liquidation = EXCLUDED.is_liquidation, is_administrative = EXCLUDED.is_administrative,
           warn_code = EXCLUDED.warn_code, overheat_code = EXCLUDED.overheat_code,
@@ -538,16 +539,20 @@ export class PrismaKrMarketCalendarStore implements KrMarketCalendarStore {
   }
 
   /**
-   * 평일 날짜를 펴고 그날 국내 주식 일봉 존재로 개장을 정한다. 봉 시각 = 거래일 00:00 KST 라 KST 날짜로
-   * 바꿔 비교한다. 일봉 인덱스 `(symbol, timeframe, timestamp)` 를 쓰지 않는 집계지만 2년 × 50종목
-   * (≈ 2.5만 행)이고 하루 한 번 도는 작업이다
+   * 평일 날짜를 펴고 그날 국내 주식 일봉 존재로 개장을 정한다. 봉 시각 = 거래일 00:00 KST 라 KST 날짜로 바꿔 비교한다.
+   * **유니버스 종목(시세 행 — 시총 상위 · 관심 · 보유)의 일봉만 본다** — 일봉 인덱스 `(symbol, timeframe, timestamp)` 를 탄다.
+   * ~~2년 × 50종목(≈ 2.5만 행)~~ 정정 2026-11-09: 전 종목 5년 일봉(FR-40)이 같은 표에 들어온 뒤 이 집계가 국내 일봉 67만 행을
+   * 순차로 읽었다(0.74초 · 버퍼 500MB — 부팅마다 판단 상세가 줄을 서 504). 유니버스로 좁혀 27ms · 개장일 485일 같음(대조).
+   * 시세 행이 아직 없으면(새 환경 첫 기동) 전 종목으로
    */
   async daysFromDailyCandles(from: string, to: string) {
+    const universe = (await prisma.krStockQuote.findMany({ select: { code: true } })).map((q) => q.code);
+    const symbols = universe.length > 0 ? Prisma.sql`AND symbol = ANY(${universe})` : Prisma.empty;
     const rows = await prisma.$queryRaw<Array<{ date: Date; is_open: boolean }>>`
       WITH bars AS (
         SELECT DISTINCT (timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')::date AS d
         FROM price_history
-        WHERE asset_type = 'kr_stock' AND timeframe = '1d'
+        WHERE asset_type = 'kr_stock' AND timeframe = '1d' ${symbols}
           AND timestamp >= (${from}::date - interval '1 day') AND timestamp <= (${to}::date + interval '1 day')
       )
       SELECT g::date AS date, EXISTS (SELECT 1 FROM bars WHERE bars.d = g::date) AS is_open
