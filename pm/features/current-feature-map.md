@@ -206,6 +206,7 @@ flowchart LR
 | 금융 팁 (FEATURE-014) | ~~Planned~~ Partially Implemented(2026-11-06 정정 — S2a~S2d 2026-11-05) | zone `web-tips` `/tips` · `/tips/[slug]` · `/tips/cards` · 저축 · 가계부 때맞춘 팁 칸 | `/api/app/tips*` | Kotlin `content` | `content` 스키마 · 유효기한 워커 | 공개 플래그 꺼짐(법무 확인 전) · 내 숫자 · 퀴즈 · 줄 diff |
 | 셸 · 홈 · 온보딩 · 내 데이터 (FEATURE-015) | Partially Implemented(2026-11-06 — S2c 알림 설정 · S3a 온보딩 · 홈 배치) | 홈 = `entities/home` 도메인 요약 카드 · `/onboarding` 도메인 선택(`choose-domains`) · `/settings` 홈 카드 순서 · 숨김 · 알림 설정 | `/api/app/home` · `/home/layout` · `/api/app/onboarding*` · `/api/app/me/notifications` | Kotlin `identity`(셸 설정) · `notification` | `identity.user_domain_pref` · `notification.notification_pref` | ~~옛 투자 3스텝~~ 은퇴(2026-11-06). 내보내기 · 삭제 · JWKS 는 S3b · S3c |
 | 오늘 왜 움직였나 (FEATURE-016) | Planned(2026-11-06) | 없음 — 계획: 국내 · 코인 상세 카드 · 시장 상태 띠 · 상태 칩 · 국내 오늘 소식 · 장중 수급 | 없음 — 계획 `BFF-REQ-051` | 없음 — 계획 market `SRV-REQ-051` · coach `SRV-REQ-052` | 계획 `DB-REQ-041` · β `FC-REQ-027` | 투자 동결 위 사용자 요청 · `ADR-009`. 지금 있는 것: 국내 종목 상태 · 경보 칩(`krStatusBadges`) · 일별 투자자 수급 |
+| AI 코치 베스트 케이스 (FEATURE-017) | Planned(2026-11-09) | 지금: 판단 블록 · AI 해설(판단이 열려야) — 계획: 관망 판단 · 보류 사실 문구 · 펼치기 · 물어보기 `FE-REQ-064` | 지금 `ai-coach/detail` — 계획 `BFF-REQ-052` | 지금 coach 규칙 엔진 · `judgmentGate` · 해설(로컬 LLM 라우팅) — 계획 `SRV-REQ-053` | 계획 해설 스냅샷 표 · 평가 `FC-REQ-028` | 투자 동결 위 사용자 요청 · `ADR-010`(제안). 진단 2026-11-09: 관망 날 근거 0개 → `reasons_missing` 으로 판단 · 해설이 거의 늘 닫힘 |
 
 ### 관련 문서 (2026-10-30)
 
