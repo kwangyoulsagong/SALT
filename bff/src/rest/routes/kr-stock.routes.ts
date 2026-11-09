@@ -26,6 +26,8 @@ router.get("/:code/investors", appKrStockController.investors);
 router.get("/:code/orderbook", appKrStockController.orderbook);
 // 오늘 소식 · 장중 수급(F016 단계 B · `BFF-REQ-051` FR-3 · 4)
 router.get("/:code/news", appKrStockController.news);
+// 시황 기사 본문 — 모달을 열 때 한 번(`BFF-REQ-053`)
+router.get("/:code/news/:serial/body", appKrStockController.newsBody);
 router.get("/:code/flows/intraday", appKrStockController.intradayFlows);
 // 오늘 왜 움직였나 — ① 분해 · ② 같은 날 사실(F016 단계 C · `BFF-REQ-051` FR-1)
 router.get("/:code/why-moved", appKrStockController.whyMoved);
