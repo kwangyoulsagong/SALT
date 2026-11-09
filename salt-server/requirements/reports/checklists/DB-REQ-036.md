@@ -42,3 +42,8 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - `svc_identity` 로그인(로컬 운영 DB — 이전 NOLOGIN → LOGIN) · identity 스키마 주인 = `svc_identity` · 플랫폼 기동 뒤 표 다섯 확인
+
+
+## 2026-11-09 — 부록 A 보강
+
+- `market` 행에 F016 국내 표 여덟 · `news_article_body` — 마이그레이션 `202611*` 의 `CREATE TABLE` 전부와 대조(grep)

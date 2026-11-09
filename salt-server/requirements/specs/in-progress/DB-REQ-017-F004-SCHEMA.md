@@ -270,3 +270,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 코치 프로필 첫 저장 경합 500 → 행 보장(ON CONFLICT DO NOTHING) 뒤 update(`b9a06a08`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 화면 · 동작이 바뀐 몫은 위 커밋 설명대로 |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 파일만 걸침 — coach 판단 변화 통보(`GenerateCoachRecommendation`)가 이벤트 하나로 · 2시간 억제는 받는 쪽 |
 | 2026-11-06 | 서버 S2c 확인 2회차 — 판단 변화 이벤트 실패 격리(루트 `requirements/reports/checklists/MONEY-S2c-notification.md`) |
+| 2026-11-09 | **판단 상세 504 고침**(사용자 "504 고쳐야지") — 성적 집계(`summarize`)가 쿼리 여섯을 나란히 · 요청당 3~4번 = 집계 18~24개, 풀 조건(`starts_with`)이 인덱스를 못 타 백테스트 5만 행을 매번 훑었다. 한 쿼리(`FILTER`) · 풀 인덱스 `symbol_judgment_snapshots_pool_idx(sample_origin, signal_type)` + 접두 `LIKE`(DB 정렬 `C`) · 5분 들고 있기(채점 쓰기 뒤 버림). 결과 18건 글자 대조 같음 |

@@ -6,6 +6,7 @@
 | 쓰기 | 한 문장 `ON CONFLICT DO UPDATE`(오류 코드 분기 0) |
 | 조회 | PK 하나 — EXPLAIN 불필요(PK 단건) |
 | 되돌리기 | 새 표 하나 — drop 만 |
+| 주인 표 | `DB-REQ-036` 부록 A `market` 행(확인 2회차에 더함) · `prisma migrate diff`(DB ↔ 스키마) 이 표 차이 0 |
 
 | 미검증 · 범위 밖 | 사유 | 언제 닫히나 |
 |---|---|---|
