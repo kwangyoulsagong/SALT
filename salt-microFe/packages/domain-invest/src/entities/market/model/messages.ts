@@ -92,9 +92,6 @@ export const SEARCH_MESSAGES = {
   fieldLabel: "종목 검색",
   placeholder: "종목명 · 심볼 · 종목 코드",
   heldBadge: "보유",
-  /** 검색어가 없을 때 보이는 목록 머리 */
-  trackedHeading: "추적 중인 종목",
-  trackedEmpty: "추적 중인 종목이 없어요. 종목을 검색해 ★ 를 눌러 보세요",
   recentHeading: "최근 검색",
   resultHeading: "검색 결과",
   empty: (q: string) => `'${q}' 와 맞는 종목이 없어요`,
@@ -104,7 +101,6 @@ export const SEARCH_MESSAGES = {
   /** `aria-live` 로 한 번 알린다 (FR-78) */
   resultCount: (count: number) => `${count}개 종목`,
   signInRequired: "로그인하면 종목을 검색할 수 있어요.",
-  columns: { asset: "종목", price: "현재가", change: "변동률", assetType: "자산군" },
   /** 자산군 칩 (FR-77) — 결과에 실제로 있는 자산군만 보인다 */
   filterGroupLabel: "자산군",
   filterAll: "전체",

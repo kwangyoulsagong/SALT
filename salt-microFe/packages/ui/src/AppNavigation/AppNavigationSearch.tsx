@@ -38,6 +38,8 @@ export const AppNavigationSearch = forwardRef<HTMLElement, AppNavigationSearchPr
       const onKeyDown = (event: KeyboardEvent) => {
         if (event.key !== APP_NAVIGATION_SEARCH_KEY || event.metaKey || event.ctrlKey || event.altKey) return;
         if (event.defaultPrevented || isTypingTarget(event)) return;
+        // 다른 모달(뉴스 상세 등)이 열려 있으면 그 위에 겹쳐 열지 않는다 — 포커스 가둠 둘이 서로 다툰다
+        if (document.querySelector('[aria-modal="true"]')) return;
         event.preventDefault();
         elementRef.current?.click();
       };

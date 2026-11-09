@@ -3,6 +3,7 @@
 // 클라이언트 잎: 누름을 부르는 쪽에 알린다. barrel 로 노출되므로 경계를 스스로 갖는다.
 import { splitHighlight } from "@repo/core/search";
 import { AssetIcon } from "@repo/ui/assetIcon";
+import { Badge } from "@repo/ui/badge";
 import Link from "next/link";
 import type { MouseEvent, ReactNode } from "react";
 
@@ -32,6 +33,8 @@ export interface SearchOptionProps {
   rank?: number;
   currentPrice?: number | null;
   changeRate: number | null;
+  /** 보유(수량 > 0) — 결과 줄에 `보유` 배지(`FE-REQ-010` FR-72). ★ 해제 금지는 ★ 단추가 안다 */
+  held?: boolean;
   /**
    * ★ 자리. 있으면 행이 **격자 한 줄**(`role="row"` — 고르는 칸 + ★ 칸)이고 목록은 `role="grid"` 여야 한다.
    * 없으면 목록 선택지(`role="option"`) — 선택지 안이나 목록 바로 밑에 단추를 둘 수 없어서다(2026-11-09 axe)
@@ -63,6 +66,7 @@ export const SearchOption = ({
   rank,
   currentPrice,
   changeRate,
+  held = false,
   action,
 }: SearchOptionProps) => {
   const isKr = assetType === MarketAssetClass.KrStock;
@@ -98,6 +102,11 @@ export const SearchOption = ({
           </span>
           {isRank ? null : <span className={styles.code}>{symbol}</span>}
         </span>
+        {held ? (
+          <Badge tone="neutral" size="sm">
+            {SEARCH_MESSAGES.heldBadge}
+          </Badge>
+        ) : null}
         <span className={styles.values}>
           {isRank ? null : (
             <span className={styles.price}>

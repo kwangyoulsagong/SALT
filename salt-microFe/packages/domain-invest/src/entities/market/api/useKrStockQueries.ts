@@ -39,6 +39,9 @@ export const useKrMarketStatus = () => {
     staleTime: KR_STALE_MS,
     refetchInterval: refreshUnlessClientError,
     retry: retryUnlessClientError,
+    // 실패한 상태를 새 소비자가 붙을 때마다 다시 부르지 않는다 — 404(소유자 아님)는 다시 불러도 같다. 검색 모달이 열 때마다
+    // 붙어 비소유자에게 404 를 매번 냈다(2026-11-09). 5xx 는 위 주기(1분)가 다시 부른다
+    retryOnMount: false,
   });
 };
 

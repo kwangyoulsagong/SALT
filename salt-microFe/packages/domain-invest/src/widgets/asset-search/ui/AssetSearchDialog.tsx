@@ -64,27 +64,43 @@ const rankEntries = (group: TopTradeValueGroup | null, prefix: string): OptionEn
  */
 export const AssetSearchDialog = ({ open, onDismiss, onNavigate, syncUrl }: AssetSearchDialogProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  // Esc 두 단계(FR-5)는 포커스가 어디 있든(검색칸 · ★ · 칩) 같다 — 모달의 Esc 한 곳에서 본문이 정한 다음 단계를 부른다
+  const escapeRef = useRef<(() => void) | null>(null);
+  const onEscape = useCallback(() => (escapeRef.current ?? onDismiss)(), [onDismiss]);
   return (
     <Modal
       open={open}
       onClose={onDismiss}
+      onEscape={onEscape}
       size="search"
       hideCloseButton
       label={SEARCH_MESSAGES.dialogLabel}
       initialFocusRef={inputRef}
     >
       {/* 열릴 때마다 새로 — 지난 검색어 · 고른 행이 남지 않는다 */}
-      {open ? <SearchBody inputRef={inputRef} onDismiss={onDismiss} onNavigate={onNavigate} syncUrl={syncUrl} /> : null}
+      {open ? (
+        <SearchBody
+          inputRef={inputRef}
+          escapeRef={escapeRef}
+          onDismiss={onDismiss}
+          onNavigate={onNavigate}
+          syncUrl={syncUrl}
+        />
+      ) : null}
     </Modal>
   );
 };
 
 const SearchBody = ({
   inputRef,
+  escapeRef,
   onDismiss,
   onNavigate,
   syncUrl,
-}: Omit<AssetSearchDialogProps, "open"> & { inputRef: React.RefObject<HTMLInputElement> }) => {
+}: Omit<AssetSearchDialogProps, "open"> & {
+  inputRef: React.RefObject<HTMLInputElement>;
+  escapeRef: React.MutableRefObject<(() => void) | null>;
+}) => {
   const listId = useId();
   const { input, setInput, setInputNow, query, recent, remember, forget } = useAssetSearchQuery({ syncUrl });
   // 자산군 칩(`FE-REQ-010` FR-77) — 검색어가 바뀌면 전체로 돌아간다
@@ -139,18 +155,17 @@ const SearchBody = ({
     onOpen: (index) => openEntry(entries[index]),
   });
 
-  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    // Esc 두 단계(FR-5) — 모달의 Esc 보다 먼저: 글자가 있으면 지우기만
-    if (event.key === "Escape" && !event.nativeEvent.isComposing) {
-      event.preventDefault();
-      event.stopPropagation();
-      event.nativeEvent.stopImmediatePropagation();
-      if (escapeStep(input) === "clear") setInputNow("");
-      else onDismiss();
-      return;
-    }
-    keys.onKeyDown(event);
-  };
+  // Esc 두 단계(FR-5) — 글자가 있으면 지우고 검색칸으로, 비면 닫는다. 모달이 부른다(위)
+  useEffect(() => {
+    escapeRef.current = () => {
+      if (escapeStep(input) === "close") return onDismiss();
+      setInputNow("");
+      inputRef.current?.focus();
+    };
+    return () => {
+      escapeRef.current = null;
+    };
+  }, [escapeRef, input, inputRef, onDismiss, setInputNow]);
 
   const showLimit = useCallback(() => setLimitNotice(true), []);
   const renderAction = (item: AssetSearchItem) => (
@@ -185,7 +200,7 @@ const SearchBody = ({
           value={input}
           onChange={setInput}
           onCommit={setInputNow}
-          onKeyDown={onKeyDown}
+          onKeyDown={keys.onKeyDown}
           listId={listId}
           activeOptionId={keys.activeIndex >= 0 ? optionId(keys.activeIndex) : undefined}
           expanded={entries.length > 0}
@@ -430,6 +445,7 @@ const Results = ({
             highlight={query}
             currentPrice={item.currentPrice}
             changeRate={item.changeRate}
+            held={item.isHeld}
             action={renderAction(item)}
           />
         ))}
