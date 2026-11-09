@@ -58,8 +58,8 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 
 ## Acceptance Criteria
 
-- [ ] 원천 하나 강제 실패 → 그 kind 만 `unavailable`(테스트)
-- [ ] BFF 숫자 계산 0(포맷만 — grep · 테스트)
+- [x] 원천 하나 강제 실패 → 그 kind 만 `unavailable`(테스트 — 서버 판정을 BFF 가 그대로, 2026-11-09)
+- [x] BFF 숫자 계산 0(포맷만 — grep · 테스트, 2026-11-09 `why-moved.test.ts`)
 - [ ] 비소유자 국내 경로 404/403 그대로(서버 값)
 
 ## 계약 영향

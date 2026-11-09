@@ -322,3 +322,4 @@
 | 2026-11-02 | 전망 · 사건 · 해설 화면이 투자 zone 으로(내용 무변경). 해설 SSE 를 투자 zone 페이지에서 확인. 조회 훅 수화 안전화(`/search` 불일치 원인). 루트 `requirements/specs/done/MONEY-F1-invest-zone-home-cards-slice.md` |
 | 2026-11-03 | 서버 S0 주인 표 대조 — 예측의 `public` 직접 읽기가 ~~4곳~~ 6개 표 7곳(추적 종목 코드 = 보유 ∪ 관심이 빠져 있었다). `FC-REQ-025` FR-3 · `DB-REQ-036` FR-7 에 `market.v_tracked_symbols_export`. 예측 코드 변경 0. 루트 `requirements/specs/done/MONEY-S0-platform-slice.md` |
 | 2026-11-06 | F016(`FEATURE-016`) — 10-30 기각한 "종목 변동 원인 요약"을 `ADR-009` 조건(숫자 분해 먼저 · 근거 인용 · 원인 단정 0)으로 연다. 해설 인프라(FR-42~44 · FR-73 라우팅)를 한 줄 요약이 재사용 · FR-72(AI 기본법 표시)는 F016 ③에서 필수 |
+| 2026-11-09 | 예측 배치 하나 더 — `move_beta`(F016 단계 C 등락 분해 β · σ60, `FC-REQ-027`) · 예측이 public 에서 읽는 표 +1(`kr_sector_index_daily`) · 서버 market 이 읽는 뷰 둘(`v_move_beta_export` · `v_market_warning`) |
