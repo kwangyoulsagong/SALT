@@ -1,5 +1,8 @@
 export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   blockName: "상세 분석",
+  /** 브라우저 탭 제목(`FE-REQ-049` FR-12) — `{가격} {등락률} | {이름}` · 장 밖이면 끝에 "장 마감" */
+  tabTitle: (price: string, rate: string, name: string, closed: boolean) =>
+    `${price} ${rate}${closed ? " 장 마감" : ""} | ${name}`,
   back: "투자로 돌아가기",
 
   /** 요약 지표 (`FE-REQ-026` FR-131 헤더). 값은 전부 서버가 준 것이다. */

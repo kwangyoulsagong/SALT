@@ -25,6 +25,7 @@ import { KrForecast } from "./KrForecast";
 import { KrInvestorFlows } from "./KrInvestorFlows";
 import { KrOrderbook } from "./KrOrderbook";
 import { KrStockNews } from "./KrStockNews";
+import { useLiveTabIdentity } from "../lib/useLiveTabIdentity";
 import { KrWhyMoved } from "./KrWhyMoved";
 import { hasApiStatus, useHasSession } from "@repo/web-shared/api";
 import { HTTP_STATUS_CODE, PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
@@ -78,6 +79,14 @@ export const KrStockDetail = ({ code }: { code: string }) => {
   const ok = data?.status === "ok" ? data : null;
   // 거래정지 종목은 체결이 없다 — 구독하지 않는다
   useKrDetailRealtime(code, ok !== null && !ok.quote.isHalted);
+  // 상세에 있는 동안 브라우저 탭 = 이 종목(`FE-REQ-049` FR-12 · 사용자 2026-11-09) — 실시간 구독이 고친 캐시 값 · 장 밖이면 "장 마감"
+  useLiveTabIdentity({
+    name: ok?.quote.name ?? null,
+    price: ok?.quote.price ?? null,
+    changeRate: ok?.quote.changeRate ?? null,
+    logoUrl: ok?.quote.logoUrl ?? null,
+    closed: ok !== null && ok.session.session !== "regular" && ok.session.session !== "closing_auction",
+  });
 
   if (signedIn === false) return <StatusLine kind="blocked">{M.signInRequired}</StatusLine>;
   if (hasApiStatus(error, HTTP_STATUS_CODE.NOT_FOUND)) {
