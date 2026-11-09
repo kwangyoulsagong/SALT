@@ -54,12 +54,28 @@ export const panelStyles = recipe({
       sm: { maxWidth: "320px" },
       md: { maxWidth: "480px" },
       lg: { maxWidth: "720px" },
+      // 읽는 모달 — 참고 화면 실측(폭 680 · 모서리 16 · 위아래 여백 40 → 높이 100vh − 80)
+      article: { maxWidth: "680px", maxHeight: "calc(100vh - 80px)", borderRadius: vars.radius.large },
     },
   },
 
   defaultVariants: {
     size: "md",
   },
+});
+
+/** `article` — 위아래 여백 40(실측) */
+export const articleOverlayStyles = style({ paddingTop: "40px", paddingBottom: "40px" });
+/** `article` 머리 — 24/24/16 · 제목이 길면 두 줄까지 감싼다(닫기 단추는 위에 붙는다) */
+export const articleHeaderStyles = style({ alignItems: "flex-start", padding: `${vars.space.xl} ${vars.space.xl} ${vars.space.lg}` });
+/** `article` 제목 — 데스크톱 제목 단 18/700/24 */
+export const articleTitleStyles = style({ fontSize: vars.fontSizes.xl, lineHeight: "24px", overflowWrap: "anywhere" });
+/** `article` 본문 — 14/24(읽는 글) · 색 1단 */
+export const articleBodyStyles = style({
+  padding: `0 ${vars.space.xl} ${vars.space.xl}`,
+  fontSize: vars.fontSizes.base,
+  lineHeight: "24px",
+  color: vars.colors.text.primary,
 });
 
 export const headerStyles = style({

@@ -10,6 +10,10 @@ import { useFocusTrap } from "../Utils/hooks/useFocusTrap";
 import { usePortal } from "../Utils/hooks/usePortal";
 import { useScrollLock } from "../Utils/hooks/useScrollLock";
 import {
+  articleBodyStyles,
+  articleHeaderStyles,
+  articleOverlayStyles,
+  articleTitleStyles,
   bodyStyles,
   footerStyles,
   headerStyles,
@@ -20,7 +24,11 @@ import {
   titleStyles,
 } from "./styles/modal.css";
 
-export type ModalSize = "sm" | "md" | "lg";
+/**
+ * `article` — 읽는 모달(뉴스 상세, `FE-REQ-065`): 폭 680 · 위아래 여백 40 · 모서리 16 · 제목 18/700/24 · 본문 14/24.
+ * 데스크톱 글자 위계(`screen-desktop.md` §2)를 따른다 — 나머지 크기는 모바일 t 단계 그대로
+ */
+export type ModalSize = "sm" | "md" | "lg" | "article";
 
 export interface ModalProps {
   open: boolean;
@@ -73,7 +81,7 @@ export const Modal = ({
 
   return createPortal(
     <div
-      className={`${overlayStyles} ${closing ? overlayClosingStyles : ""}`}
+      className={`${overlayStyles} ${size === "article" ? articleOverlayStyles : ""} ${closing ? overlayClosingStyles : ""}`}
       onClick={disableBackdropClose ? undefined : onClose}
     >
       <div
@@ -87,9 +95,9 @@ export const Modal = ({
         className={`${panelStyles({ size })} ${closing ? panelClosingStyles : ""} ${className || ""}`}
       >
         {title || !hideCloseButton ? (
-          <div className={headerStyles}>
+          <div className={`${headerStyles} ${size === "article" ? articleHeaderStyles : ""}`}>
             {title ? (
-              <h2 id={titleId} className={titleStyles}>
+              <h2 id={titleId} className={`${titleStyles} ${size === "article" ? articleTitleStyles : ""}`}>
                 {title}
               </h2>
             ) : (
@@ -105,7 +113,7 @@ export const Modal = ({
           </div>
         ) : null}
 
-        <div className={bodyStyles}>{children}</div>
+        <div className={`${bodyStyles} ${size === "article" ? articleBodyStyles : ""}`}>{children}</div>
 
         {footer ? <div className={footerStyles}>{footer}</div> : null}
       </div>
