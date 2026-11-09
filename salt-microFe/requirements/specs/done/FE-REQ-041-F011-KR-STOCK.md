@@ -129,3 +129,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 | 2026-11-06 | F016 단계 A — 계약(`@repo/core/marketKr`) 칩 넷 · `vi` · `lastTradeAt` · `marketActions` · `kstClockSeconds`. 상세의 "거래정지 · 마지막 체결"이 **시세 받은 시각**을 쓰던 것을 서버 체결 시각으로 정정(FR-44). 주인 `FE-REQ-063` FR-3 · 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md` |
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `@repo/core/marketKr`(머리에 이 REQ) 에 타입 넷(`KrNewsItem` · `KrStockNews` · `KrProgramFlow` · `KrIntradayFlows`) · 국내 상세에 오늘 소식 카드 · 투자자 카드 머리 프로그램 줄(`FE-REQ-063`). 기존 칸 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
 | 2026-11-09 | `@repo/core/marketKr` `KrQuote.moveCard?` · 국내 상세 머리 아래 "왜 움직였나" 카드 자리(F016 단계 C) |
+| 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — 국내 오늘 소식 안내 문구 정정 — ~~제목만 모아요 · 원문은 제공처에서~~ 본문을 함께 보여 준다 |

@@ -718,3 +718,7 @@ FK 자체는 고치지 않았다. 선택지가 셋이고 **전부 이 REQ 밖**�
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 레지스트리 정리 — `CONTEXTS` 에서 `notification` · `COMPOSITE_CONTEXTS` 에서 `onboarding`. `test:layer-check` 차단 10 · 통과 6 · `lint` 통과
+
+## 2026-11-09 — 기사 본문(주인 `SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068`)
+
+- `news` 유스케이스 테스트 가짜 저장소에 `findHead` · 조립에 `body` 의존 — 검증은 주인 체크리스트(서버 1031 · BFF 430 · 실화면 1440 · 훅 사후 실행)

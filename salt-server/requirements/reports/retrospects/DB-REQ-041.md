@@ -18,3 +18,7 @@
 - 코인 경보 열을 새로 만들려던 FR-7 을 기존 매일 스냅샷 뷰로 바꿨다 — 같은 공식 원천을 두 곳에 두지 않는다
 - `move_beta` 는 as_of 마다 쌓는다(재현 · 과거 as_of). 보존 정리는 아직 없다 — 미검증 표
 - 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`
+
+## 2026-11-09 — 기사 본문
+
+- 이 REQ 의 파일은 본문 경로를 잇는 자리만 바뀌었다(`PrismaKrMoveSourceStore.newsTitle(serial, code)`). 판단 · 교훈은 주인 회고(`SRV-REQ-054` — 실측 먼저 · 영구 캐시엔 규칙 판 번호)

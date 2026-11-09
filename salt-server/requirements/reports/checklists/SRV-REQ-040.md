@@ -466,3 +466,7 @@
 | 국내 표 응답에 `moveCard`(추가만) · 국내 상세 why-moved 경로(F016 단계 C `SRV-REQ-051`) | 반영 · 영역 검증 전체 통과 |
 
 루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`
+
+## 2026-11-09 — 기사 본문(주인 `SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068`)
+
+- `ReadKrStock` 에 `GetKrNewsBody`(소유자 · 그 종목 제목만 · 공시 검색 0) · 의존 `articleBody`(news ACL) — 검증은 주인 체크리스트(서버 1031 · BFF 430 · 실화면 1440 · 훅 사후 실행)

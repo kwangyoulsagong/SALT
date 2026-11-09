@@ -84,3 +84,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-06 | 단계 B done — FR-1 · 4 · FR-5 부분(프로그램 열만) · 보존 정리 · 로컬 적용 |
 | 2026-11-06 | in-progress — 단계 A(FR-2 · 3 · 6) done · 로컬 적용. FR-2 FK 없음 결정(ETN 코드) |
 | 2026-11-09 | 단계 C done — `move_beta` · `v_move_beta_export` · 업종 중분류 열 · 지수 이름 표. FR-7 정정(새 열 대신 기존 스냅샷 뷰) |
+| 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `PrismaKrMoveSourceStore.newsTitle(serial, code)` — 연결 PK(serial, code) → 제목 PK, 광고성 제외(본문 찾기 입력) |

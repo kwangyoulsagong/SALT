@@ -24,3 +24,7 @@
 - 처음엔 카드가 화면 폭 전체로 늘어 막대와 값이 멀었다 — 720 폭 규칙(`screen-desktop.md` §2)을 실화면에서 다시 봤다
 - 행 클릭이 상세로 가고 프리뷰는 hover 로 바뀐다 — 확인 스크립트가 클릭으로 프리뷰를 찾다 헛돌았다. 상호작용을 먼저 읽는다
 - 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`
+
+## 2026-11-09 — 기사 본문
+
+- 이 REQ 의 파일은 본문 경로를 잇는 자리만 바뀌었다(`KrStockNews` 가 `krNewsToView` 에 종목 코드를 넘긴다(본문 경로 `bodyRef`)). 판단 · 교훈은 주인 회고(`SRV-REQ-054` — 실측 먼저 · 영구 캐시엔 규칙 판 번호)

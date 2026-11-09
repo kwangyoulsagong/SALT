@@ -111,3 +111,4 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 | 2026-11-06 | F016 단계 A — 국내 시세 뷰모델에 넓힌 상태 칩 · `vi` · `lastTradeAt` · 상세에 `marketActions`(옛 서버면 null · 빈 배열). 주인 `BFF-REQ-051` FR-5 · 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md` |
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `kr-stock` 경로 · 서비스 · 컨트롤러 테스트(머리에 이 REQ)에 F016 경로 둘(`/:code/news` · `/:code/flows/intraday`, `BFF-REQ-051`). 기존 국내 경로 · 응답 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
 | 2026-11-09 | 국내 표 뷰모델 `moveCard` 칸(서버 판정 · 옛 서버 false) · why-moved 경로를 국내 서비스 `read` 규칙 그대로(F016 단계 C) |
+| 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `kr-stock.controller` · `kr-stock.routes` 에 국내 시황 본문 `/:code/news/:serial/body`(형식 400 · 소유자 판정은 서버) · `respond` 가 `KrResult` 아닌 뷰모델도 받게 |

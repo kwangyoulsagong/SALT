@@ -24,3 +24,7 @@
 - **결함 3(구현 중)** — 지수 일별 "250행 미만이면 거슬러"가 원천 한 해 끝 248행에서 매일 95회를 불렀다 — 목표와 다시 받는 문턱을 나눈다(200)
 - 15:40 업종 회차의 0행은 단계 B 가 프로그램에만 고친 실패 규칙이 업종에 빠져서였다 — 규칙을 한 곳(`SupplementFailures`)으로 모았다
 - 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`
+
+## 2026-11-09 — 기사 본문
+
+- 이 REQ 의 파일은 본문 경로를 잇는 자리만 바뀌었다(`KrMoveSourceStore.newsTitle` 포트 · `GetKrNewsBody` 테스트(`krMoveSources.test.ts`)). 판단 · 교훈은 주인 회고(`SRV-REQ-054` — 실측 먼저 · 영구 캐시엔 규칙 판 번호)

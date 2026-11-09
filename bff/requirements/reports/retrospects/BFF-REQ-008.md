@@ -102,3 +102,7 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 없음
+
+## 2026-11-09 — 기사 본문
+
+- 이 REQ 의 파일은 본문 경로를 잇는 자리만 바뀌었다(`news.controller` · `news.routes` 에 코인 기사 본문 `/api/app/news/:id/body`(로그인 · uuid 아니면 400)). 판단 · 교훈은 주인 회고(`SRV-REQ-054` — 실측 먼저 · 영구 캐시엔 규칙 판 번호)

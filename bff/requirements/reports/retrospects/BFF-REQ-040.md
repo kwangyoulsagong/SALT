@@ -142,3 +142,7 @@
 
 - 변경 칸 하나 — 소비처 테스트(계약 목록 · 뷰모델)가 같이 고쳐졌다
 - 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`
+
+## 2026-11-09 — 기사 본문
+
+- 이 REQ 의 파일은 본문 경로를 잇는 자리만 바뀌었다(`kr-stock.controller` · `kr-stock.routes` 에 국내 시황 본문 `/:code/news/:serial/body`(형식 400 · 소유자 판정은 서버) · `respond` 가 `KrResult` 아닌 뷰모델도 받게). 판단 · 교훈은 주인 회고(`SRV-REQ-054` — 실측 먼저 · 영구 캐시엔 규칙 판 번호)

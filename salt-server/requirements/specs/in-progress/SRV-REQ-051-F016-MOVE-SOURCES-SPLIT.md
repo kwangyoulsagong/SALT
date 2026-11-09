@@ -105,3 +105,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-09 | 단계 C done — FR-7~10 · 지수 · 업종 일별 이력(새 TR 하나) · 업종 중분류 · 부가 작업 실패 셈 한 곳. FR-8 σ 창 · FR-10 코인 경보 원천 정정 |
 | 2026-11-09 | FR-1 읽기 — 오늘 소식 항목에 관련 종목(이름 · 등락률) — 뉴스 모달 칩(`FE-REQ-065`). 하위 쿼리 한 문장 · 새 경로 0 |
 | 2026-11-09 | 확인 2회차 — 결함 1: 주말 재기동 때 지수 첫 회차가 장 밖에서도 돌아 지수 시각(토)이 종목(금)보다 늦어 "같은 날만" 판정이 주말 내내 분해를 지웠다 → 지수가 **오래될 때만** 막는다(테스트). FR-4 · FR-8 본문 정정 |
+| 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `KrMoveSourceStore.newsTitle` 포트 · `GetKrNewsBody` 테스트(`krMoveSources.test.ts`) |
