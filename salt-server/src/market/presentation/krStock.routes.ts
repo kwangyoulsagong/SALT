@@ -383,7 +383,7 @@ export const createKrStockRouter = (
    *       - { in: path, name: code, required: true, schema: { type: string, pattern: "^[0-9A-Z]{6}$" } }
    *     responses:
    *       200:
-   *         description: "`{ code, date, collectedAt, items: [{ id, kind, provider, title, publishedAt }] }`"
+   *         description: "`{ code, date, collectedAt, items: [{ id, kind, provider, title, publishedAt, related: [{ code, name, changeRate }] }] }` — related 는 관련 종목(마스터에 있는 것만 · 등락률 % 또는 null)"
    *       404: { description: 소유자가 아니거나 마스터에 없는 종목 }
    *       503: { description: KIS 키 없음 }
    */

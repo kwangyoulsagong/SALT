@@ -58,9 +58,22 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
   async newsTitles(code: string, since: Date, limit: number) {
     // (code, published_at desc) 인덱스로 그 종목 오늘 연결만 → 제목 PK. 광고성은 여기서 뺀다
     const rows = await prisma.$queryRaw<
-      Array<{ serial: string; kind: string; provider_name: string; published_at: Date; title: string }>
+      Array<{
+        serial: string;
+        kind: string;
+        provider_name: string;
+        published_at: Date;
+        title: string;
+        related: Array<{ code: string; name: string; change_rate: string | null }> | null;
+      }>
     >`
-      SELECT t.serial, t.kind, t.provider_name, t.published_at, t.title
+      SELECT t.serial, t.kind, t.provider_name, t.published_at, t.title,
+        -- 관련 종목(뉴스 모달 칩, FE-REQ-065) — 같은 market 표(마스터 이름 · 시세 등락률). 마스터에 없는 코드(ETN 등)는 뺀다
+        (SELECT json_agg(json_build_object('code', r.code, 'name', m.name, 'change_rate', q.change_rate::text) ORDER BY r.code)
+           FROM kr_news_title_symbol r
+           JOIN kr_stock_master m ON m.code = r.code
+           LEFT JOIN kr_stock_quotes q ON q.code = r.code
+          WHERE r.serial = t.serial) AS related
       FROM kr_news_title_symbol s
       JOIN kr_news_title t ON t.serial = s.serial
       WHERE s.code = ${code} AND s.published_at >= (${since}::timestamptz AT TIME ZONE 'UTC') AND NOT t.promo
@@ -72,6 +85,11 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
       providerName: r.provider_name,
       publishedAt: r.published_at,
       title: r.title,
+      related: (r.related ?? []).map((x) => ({
+        code: x.code,
+        name: x.name,
+        changeRate: x.change_rate === null ? null : Number(x.change_rate),
+      })),
     }));
   }
 

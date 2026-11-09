@@ -175,6 +175,8 @@ export interface StoredKrNewsTitle {
   providerName: string;
   publishedAt: Date;
   title: string;
+  /** 관련 종목(원천 `iscd1`~`10`) — 이름 · 지금 등락률(%, 시세가 없으면 `null`). 뉴스 상세 모달 칩(`FE-REQ-065`) */
+  related: Array<{ code: string; name: string; changeRate: number | null }>;
 }
 
 export interface KrMoveSourceStore {

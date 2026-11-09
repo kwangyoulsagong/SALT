@@ -597,6 +597,8 @@ export class GetKrStockNews extends KrStockRead {
         provider: n.providerName,
         title: n.title,
         publishedAt: n.publishedAt.toISOString(),
+        // 뉴스 모달 칩(FE-REQ-065) — 이름 · 등락률(%, 서버 값). 이 종목 자신도 들어 있다(원천 그대로)
+        related: n.related,
       })),
     };
   }

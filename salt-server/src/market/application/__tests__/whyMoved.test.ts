@@ -187,7 +187,7 @@ const krDeps = (w: KrWorld): { read: KrStockReadDependencies; move: MoveDependen
         w.sector === null ? [] : [{ code: "0013", value: 1, change: 0, changeRate: w.sector?.changeRate ?? -5, updatedAt: w.sector?.updatedAt ?? new Date("2026-11-09T01:45:00Z"), tradeDate: w.sector?.tradeDate ?? "2026-11-09" }],
       newsTitles: async () => {
         if (w.news) throw w.news;
-        return [{ serial: "s1", kind: "news", providerName: "연합뉴스", publishedAt: new Date("2026-11-09T01:30:00Z"), title: "반도체 약세" }];
+        return [{ serial: "s1", kind: "news", providerName: "연합뉴스", publishedAt: new Date("2026-11-09T01:30:00Z"), title: "반도체 약세", related: [] }];
       },
       indexNames: async (codes: string[]) => new Map([["0001", "코스피"], ["0013", "전기전자"]].filter(([c]) => codes.includes(c!)) as Array<[string, string]>),
       latestProgramFlow: async () => ({ code: "005930", at: new Date("2026-11-09T01:53:00Z"), netQuantity: -1n, netValue: -60_550_831_650.4, buyValue: 1, sellValue: 2, collectedAt: NOW }),
