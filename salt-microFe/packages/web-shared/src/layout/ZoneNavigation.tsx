@@ -22,7 +22,8 @@ import { readZoneNavigationMetric } from "./zoneNavigationMetrics";
 
 /**
  * 아이콘은 면을 채운 단색 글리프(`@repo/ui` `AppNavigationIcon`, 이름은 `APP_TABS` 의 것 그대로) — 선 아이콘은 탭 크기에서 흐렸다
- * (2026-11-03 사용자). 도메인 색은 탭에 쓰지 않는다 — 지금 탭은 진한 아이콘 + 옅은 판으로 가른다(기준 레일 실측).
+ * (2026-11-03 사용자) — 하단 탭(768~1023)만 쓴다. 머리 링크(1024 이상)는 글자만, 진하기로 가른다(`FE-REQ-067`).
+ * 도메인 색은 탭에 쓰지 않는다 — 하단 탭의 지금 탭은 진한 아이콘 + 옅은 판으로 가른다(기준 레일 실측).
  */
 const toItem = (tab: AppTab, active: boolean): AppNavigationItem => ({
   id: tab.id,
@@ -34,7 +35,7 @@ const toItem = (tab: AppTab, active: boolean): AppNavigationItem => ({
 });
 
 /**
- * zone 공용 내비게이션 (`FE-REQ-054`) — `@repo/ui` `AppNavigation` 에 레지스트리 판정을 입힌다.
+ * zone 공용 내비게이션 (`FE-REQ-054` · `FE-REQ-067`) — `@repo/ui` `AppNavigation` 에 레지스트리 판정을 입힌다.
  *
  * - 지금 탭: `activeAppTab`(레지스트리 zone 기준). 설정처럼 어느 탭도 아닌 화면은 선택 없음
  * - 링크: `AppTabLink` 한 벌 — 같은 앱이면 `next/link`, 다른 zone 이면 `CrossZoneLink` + prerender 표지 + 누른 시각 계측 표지,
@@ -42,7 +43,16 @@ const toItem = (tab: AppTab, active: boolean): AppNavigationItem => ({
  * - 머리 첫 칸은 로고(`HeaderBrand` → 홈, `FE-REQ-051` FR-2) — 같은 `AppTabLink` 를 쓴다
  * - 공개 화면은 `bare` — 틀은 같고 조각만 없다(로그인 → 홈에서 본문 트리가 다시 만들어지지 않게)
  */
-export const ZoneNavigation = ({ headerEnd, children }: { headerEnd?: ReactNode; children: ReactNode }) => {
+export const ZoneNavigation = ({
+  headerEnd,
+  headerSearch,
+  children,
+}: {
+  headerEnd?: ReactNode;
+  /** 머리 검색칸(`FE-REQ-067` FR-2) — `AppShell` 이 zone 몫을 넘긴다 */
+  headerSearch?: ReactNode;
+  children: ReactNode;
+}) => {
   const pathname = usePathname() ?? "/";
 
   useEffect(() => {
@@ -63,6 +73,7 @@ export const ZoneNavigation = ({ headerEnd, children }: { headerEnd?: ReactNode;
       label={NAVIGATION_FRAME_MESSAGES.navLabel}
       brand={<HeaderBrand />}
       headerEnd={headerEnd}
+      headerSearch={headerSearch}
       renderLink={(item, { children: body, className, "aria-current": current }) => {
         const tab = APP_TABS.find((candidate) => candidate.id === item.id);
         return tab ? (

@@ -9,8 +9,11 @@ export const PROFILE_MENU_MESSAGES = {
 
 /** 앱 내비게이션(`FE-REQ-054`) — 탭 이름 · 순서는 `@repo/core/navigation` 한 벌(앱과 같다) */
 export const NAVIGATION_FRAME_MESSAGES = {
-  /** 레일 · 하단 탭의 화면 리더 이름 */
+  /** 머리 링크 줄 · 하단 탭의 화면 리더 이름 */
   navLabel: "주요 메뉴",
+  /** 머리 검색칸(`FE-REQ-067` FR-2) — 화면 리더 앞말 · 칸 안 글자(키 `/` 뒤) */
+  searchLabel: "종목 검색",
+  searchHint: " 를 눌러 검색해요",
   /** 머리 로고 링크 이름(`FE-REQ-051` FR-1) */
   brandHomeLabel: "SALT 홈",
 } as const;
