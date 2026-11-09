@@ -375,7 +375,7 @@ export const createKrStockRouter = (
    *     summary: 국내 종목 오늘 소식(시황 · 공시 제목) — 소유자 전용
    *     description: |
    *       저장값만 읽는다(KIS 종합 시황/공시 제목 — 시장 전체를 07~20시 2분마다 수집). 오늘(KST 00:00 뒤) 이 종목에 걸린 제목, 최신이 앞 ·
-   *       최대 30건 · 광고성 제외. **본문 · 원문 링크 없음**(원천에 없다). `kind` 는 `disclosure`(공시) | `news`(시황).
+   *       최대 30건 · 광고성 제외. **본문 · 원문 링크 없음**(원천에 없다 — 시황 본문은 `/{code}/news/{serial}/body`). `kind` 는 `disclosure`(공시) | `news`(시황).
    *       `collectedAt` 은 시장 전체 마지막 수집 시각 — 빈 목록이 "소식 없음"인지 "수집 멈춤"인지 가른다.
    *     tags: [Market - KR Stock]
    *     security: [{ bearerAuth: [] }]

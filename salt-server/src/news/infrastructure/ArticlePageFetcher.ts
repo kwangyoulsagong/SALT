@@ -29,6 +29,23 @@ export const isPrivateAddress = (address: string): boolean => {
   return v6 === "::" || v6 === "::1" || v6.startsWith("fc") || v6.startsWith("fd") || v6.startsWith("fe80");
 };
 
+/**
+ * 연결해도 되는 주소인가 — http(s) 이고, 호스트가 IP 숫자면 공인이어야 한다. **리다이렉트마다 다시 본다** — 숫자 주소는 DNS 조회를 거치지
+ * 않아(`net.connect` 가 건너뜀) 에이전트의 조회 검사만으로는 `302 → http://127.0.0.1` 을 못 막는다(2026-11-09 확인 2회차)
+ */
+export const isAllowedTarget = (protocol: string, hostname: string): boolean => {
+  if (protocol !== "http:" && protocol !== "https:") return false;
+  const host = hostname.replace(/^\[|\]$/g, "");
+  return !(isIP(host) && isPrivateAddress(host));
+};
+
+/** follow-redirects 가 다음 요청 전에 부른다 — 던지면 그 요청을 하지 않는다 */
+export const guardRedirect = (options: Record<string, unknown>) => {
+  if (!isAllowedTarget(String(options.protocol ?? ""), String(options.hostname ?? ""))) {
+    throw Object.assign(new Error("blocked redirect"), { code: "EBLOCKED" });
+  }
+};
+
 /** 공인 주소만 통과시키는 DNS 조회 — 에이전트에 꽂아 모든 연결(리다이렉트 포함)이 지난다 */
 const publicLookup = ((hostname: string, options: object, callback: (...args: unknown[]) => void) => {
   dnsLookup(hostname, { ...options, all: true }, (err, addresses) => {
@@ -95,13 +112,13 @@ export class ArticlePageFetcher implements ArticlePagePort {
 
   async paragraphs(url: string, portal: boolean): Promise<string[]> {
     const parsed = new URL(url);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return [];
-    if (isIP(parsed.hostname) && isPrivateAddress(parsed.hostname)) return [];
+    if (!isAllowedTarget(parsed.protocol, parsed.hostname)) return [];
     const res = await this.http.get<ArrayBuffer>(url, {
       ...this.agents,
       responseType: "arraybuffer",
       maxContentLength: MAX_BYTES,
       maxRedirects: 3,
+      beforeRedirect: guardRedirect,
     });
     return extractParagraphs(decodeHtml(Buffer.from(res.data), res.headers["content-type"] as string | undefined), portal);
   }

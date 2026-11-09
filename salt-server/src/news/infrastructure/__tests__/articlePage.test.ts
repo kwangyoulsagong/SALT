@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { decodeHtml, extractParagraphs, isPrivateAddress } from "../ArticlePageFetcher";
+import { decodeHtml, extractParagraphs, guardRedirect, isAllowedTarget, isPrivateAddress } from "../ArticlePageFetcher";
 
 describe("SSRF — 사설 · 루프백 · 링크 로컬 주소를 막는다", () => {
   it("허용 · 거절 경계", () => {
@@ -12,6 +12,21 @@ describe("SSRF — 사설 · 루프백 · 링크 로컬 주소를 막는다", ()
       ["223.130.195.200", false], ["2404:6800:4004::200e", false],
     ];
     for (const [ip, blocked] of table) assert.equal(isPrivateAddress(ip), blocked, ip);
+  });
+});
+
+describe("SSRF — 리다이렉트마다 다시 본다(숫자 주소는 DNS 조회를 거치지 않는다)", () => {
+  it("허용 · 거절 경계", () => {
+    const table: Array<[string, string, boolean]> = [
+      ["https:", "news.example.co.kr", true], ["http:", "223.130.195.200", true],
+      ["http:", "127.0.0.1", false], ["https:", "10.0.0.5", false], ["http:", "[::1]", false], ["http:", "169.254.169.254", false],
+      ["file:", "", false], ["javascript:", "", false], ["ftp:", "example.com", false],
+    ];
+    for (const [protocol, host, ok] of table) assert.equal(isAllowedTarget(protocol, host), ok, `${protocol}//${host}`);
+  });
+  it("리다이렉트 훅 — 사설 숫자 주소면 던진다(요청 0)", () => {
+    assert.throws(() => guardRedirect({ protocol: "http:", hostname: "127.0.0.1" }), /blocked redirect/);
+    assert.doesNotThrow(() => guardRedirect({ protocol: "https:", hostname: "n.news.naver.com" }));
   });
 });
 

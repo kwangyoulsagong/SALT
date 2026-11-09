@@ -13,8 +13,10 @@ import {
   isBodyFresh,
   pickSameArticle,
   searchTitleOf,
+  shortSearchTitleOf,
   toArticleBodyView,
 } from "../domain";
+import { logger } from "../../shared/config/logger";
 
 /**
  * 기사 본문 읽기(`SRV-REQ-054` FR-1~4) — 캐시 → (없거나 다시 볼 때) 포털 검색 → 같은 기사 판정 → 페이지에서 문단 → 캐시 저장.
@@ -53,14 +55,24 @@ export class ReadArticleBody {
     const base = { key: query.key, fetchedAt: this.now(), version: BODY_EXTRACTOR_VERSION };
     const empty = { paragraphs: [], url: null, originalUrl: null };
     try {
-      const candidates = await this.deps.search.search(searchTitleOf(query.title));
-      const same = pickSameArticle(query, candidates);
+      // 전체 제목으로 못 찾으면 앞 낱말로 한 번 더(못 찾은 기사만 검색 2회)
+      let same = pickSameArticle(query, await this.deps.search.search(searchTitleOf(query.title)));
+      const shorter = same ? null : shortSearchTitleOf(query.title);
+      if (shorter) same = pickSameArticle(query, await this.deps.search.search(shorter));
       if (!same) return { ...base, ...empty, status: "not_found" };
       const url = same.portalUrl ?? same.originalUrl;
       const paragraphs = cleanParagraphs(await this.deps.pages.paragraphs(url, same.portalUrl !== null), query.title);
       if (paragraphs.length === 0) return { ...base, ...empty, status: "not_found" };
       return { ...base, status: "ok", paragraphs, url, originalUrl: same.originalUrl };
-    } catch {
+    } catch (error) {
+      // 실패는 캐시에 남아 30분 뒤 다시 — 왜 실패했는지는 여기서만 안다(키 · 원문 응답 0: 코드 · 상태 · 짧은 메시지만)
+      const e = error as { code?: string; message?: string; response?: { status?: number } };
+      logger.warn("[news] article body failed", {
+        key: query.key,
+        code: e.code ?? null,
+        status: e.response?.status ?? null,
+        message: (e.message ?? "").slice(0, 120),
+      });
       return { ...base, ...empty, status: "failed" };
     }
   }

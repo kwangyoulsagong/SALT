@@ -11,6 +11,7 @@ import {
   isBodyFresh,
   pickSameArticle,
   searchTitleOf,
+  shortSearchTitleOf,
   titleSimilarity,
 } from "../ArticleBody";
 
@@ -38,6 +39,23 @@ describe("같은 기사 판정 — 제목 겹침 0.8 · 게시 2일", () => {
       [[], null, "후보 없음"],
     ];
     for (const [cands, want, why] of table) assert.equal(pickSameArticle(query, cands)?.title ?? null, want, why);
+  });
+
+  it("두 번째 검색어 — 앞 낱말 다섯 · 문장부호 · 머리말 뺌 · 짧으면 null", () => {
+    assert.equal(shortSearchTitleOf("최순실, 이영돈TV와 인터뷰 “태블릿PC 내 소유 아냐...검찰이 실물 보여주지도 않고 기소”"), "최순실 이영돈TV와 인터뷰 태블릿PC 내");
+    assert.equal(shortSearchTitleOf("[단독] 미래에셋證 해킹 의심 정황 금감원 검사 착수 - 예시"), "미래에셋證 해킹 의심 정황 금감원");
+    assert.equal(shortSearchTitleOf("두나무, 상속 제도 제안"), null);
+  });
+
+  it("줄인 제목 — 짧은 쪽 12자 이상이 그대로 들어 있고 30분 안이면 같은 기사(실측 겹침 0.75)", () => {
+    const q = { key: "kr:1", title: "최순실, 이영돈TV와 인터뷰 “태블릿PC 내 소유 아냐...검찰이 실물 보여주지도 않고 기소”", publishedAt: at("2026-11-09T02:08:39Z") };
+    const short = "최순실, 이영돈TV와 인터뷰 “태블릿PC 내 소유 아냐”";
+    const table: Array<[ArticleCandidate[], boolean, string]> = [
+      [[cand(short, "2026-11-09T02:09:00Z")], true, "줄인 제목 · 21초"],
+      [[cand(short, "2026-11-09T03:00:00Z")], false, "줄인 제목이어도 30분 밖(겹침 0.75 < 0.8)"],
+      [[cand("최순실 인터뷰", "2026-11-09T02:09:00Z")], false, "짧은 쪽 12자 미만"],
+    ];
+    for (const [cands, ok, why] of table) assert.equal(pickSameArticle(q, cands) !== null, ok, why);
   });
 
   it("같은 점수면 포털이 품은 기사(본문 칸이 일정)", () => {
@@ -85,6 +103,22 @@ describe("문단 정리", () => {
       "화나요0",
     ]);
     assert.deepEqual(out, ["코스피가 장 초반 하락세를 딛고 상승 전환했다."]);
+  });
+
+  it("화면 단추 · 꼬리와 같은 낱말이 든 짧은 본문 문장은 남긴다(허용 · 거절 경계, 2026-11-09 확인 2회차)", () => {
+    const keep = [
+      "넷플릭스 구독자가 1억 명을 넘었다.",
+      "정치 후원금 논란이 커졌다.",
+      "게시물 좋아요 수가 급증했다.",
+      "링크를 클릭하면 이벤트 페이지로 이동한다.",
+      "관련 기사에 따르면 거래량이 늘었다.",
+      "2026.11.09 발표된 지표가 시장을 흔들었다.",
+    ];
+    const drop = [
+      "구독하기", "좋아요", "공유하기", "다른기사 보기", "Fn투데이는 여러분의 후원금을 귀하게 쓰겠습니다.", "기자 이름을 클릭하면",
+      "2026.11.09 09:49", "2026-11-09", "기사의 본문 내용은 이 글자크기로 변경됩니다.",
+    ];
+    assert.deepEqual(cleanParagraphs([...keep, ...drop]), keep);
   });
 
   it("짧아도 문장으로 끝나면 남긴다", () => {

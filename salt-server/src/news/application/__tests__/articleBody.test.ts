@@ -72,6 +72,24 @@ describe("ReadArticleBody — 캐시 → 검색 → 같은 기사 → 문단", (
     assert.equal(rows.get("coin:a")?.status, "failed");
   });
 
+  it("전체 제목으로 못 찾으면 앞 낱말로 한 번 더 — 찾으면 ok · 그래도 없으면 not_found(검색 2회)", async () => {
+    const asked: string[] = [];
+    const { store } = memoryStore();
+    const read = new ReadArticleBody(
+      {
+        search: { enabled: true, search: async (q) => (asked.push(q), q.split(" ").length <= 5 ? [same] : []) },
+        pages: { paragraphs: async () => ["첫 문단."] },
+        bodies: store,
+      },
+      () => NOW,
+    );
+    assert.equal((await read.execute(query)).status, "ok");
+    assert.deepEqual(asked, ["두나무, 가상자산 상속 보호 제도 개선 제안", "두나무 가상자산 상속 보호 제도"]);
+    const { read: none, calls } = build({ candidates: [] });
+    assert.equal((await none.execute(query)).status, "not_found");
+    assert.equal(calls.search, 2);
+  });
+
   it("동시에 두 번 불러도 검색 1회", async () => {
     const { read, calls } = build();
     await Promise.all([read.execute(query), read.execute(query)]);

@@ -9,9 +9,12 @@
  * - **캐시 수명**: 찾음은 영구 · 못 찾음은 포털 색인이 늦을 수 있어 `BODY_RETRY_NOT_FOUND_MS` 뒤 다시 · 실패(네트워크)는 `BODY_RETRY_FAILED_MS` 뒤
  */
 
-/** 뽑기 규칙 판 — 규칙을 고치면 올린다. 옛 판으로 찾은 행은 "찾음"이어도 다시 찾는다(틀리게 뽑힌 본문이 영구 캐시에 남지 않게) */
-export const BODY_EXTRACTOR_VERSION = 3;
+/** 찾기 · 뽑기 규칙 판 — 규칙을 고치면 올린다(4 짧은 줄 경계 · 5 두 번째 검색어 · 6 줄인 제목 · 7 날짜 줄 · 글자 크기 안내, 2026-11-09 확인 2회차). 옛 판으로 찾은 행은 "찾음"이어도 다시 찾는다(틀리게 뽑힌 본문이 영구 캐시에 남지 않게) */
+export const BODY_EXTRACTOR_VERSION = 7;
 export const BODY_MATCH_MIN = 0.8;
+/** 줄인 제목 — 짧은 쪽(글자 · 숫자만)이 이 길이 이상이고 긴 쪽 안에 그대로 있으며 게시 시각이 이만큼 안이면 같은 기사(언론사가 제목을 줄여 고침) */
+export const BODY_CONTAINED_MIN_CHARS = 12;
+export const BODY_CONTAINED_WINDOW_MS = 30 * 60 * 1000;
 export const BODY_MATCH_WINDOW_MS = 2 * 24 * 60 * 60 * 1000;
 export const BODY_MAX_CHARS = 20_000;
 export const BODY_MAX_PARAGRAPHS = 80;
@@ -61,6 +64,19 @@ export interface ArticleBodyView {
 export const searchTitleOf = (title: string): string =>
   title.replace(/\s+-\s+[^-]+$/, "").replace(/\s+/g, " ").trim();
 
+/**
+ * 두 번째 검색어 — 앞 낱말 다섯(문장부호 · 머리말 뺌). 긴 제목 전체로 찾으면 포털이 0건을 줄 때가 있다(같은 제목이 몇 시간 뒤 0건 —
+ * 2026-11-09 확인 2회차). 같은 기사 판정(겹침 0.8)은 그대로라 넓게 찾아도 남의 기사를 붙이지 않는다. 다섯 낱말보다 짧으면 `null`(같은 검색)
+ */
+export const shortSearchTitleOf = (title: string): string | null => {
+  const words = searchTitleOf(title)
+    .replace(/^(\[[^\]]*\]\s*)+/, "")
+    .replace(/[^\p{L}\p{N}\s]+/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  return words.length > 5 ? words.slice(0, 5).join(" ") : null;
+};
+
 const bare = (title: string) =>
   searchTitleOf(title)
     .replace(/^(\[[^\]]*\]\s*)+/, "")
@@ -83,13 +99,26 @@ export const titleSimilarity = (a: string, b: string): number => {
   return (2 * shared) / (A.size + B.size);
 };
 
-/** 같은 기사 하나 — 문턱을 넘은 것 중 가장 비슷한 것, 같으면 포털이 품은 것(본문 구조가 일정) */
+/** 한 제목이 다른 제목을 줄인 것인가 — 짧은 쪽이 긴 쪽 안에 그대로(머리말 · 문장부호 · 매체 꼬리 뺌) */
+const isShortenedTitle = (a: string, b: string): boolean => {
+  const [x, y] = [bare(a), bare(b)];
+  const [short, long] = x.length <= y.length ? [x, y] : [y, x];
+  return short.length >= BODY_CONTAINED_MIN_CHARS && long.includes(short);
+};
+
+/**
+ * 같은 기사 하나 — 겹침 문턱을 넘거나(2일 안), 줄인 제목이면서 30분 안. 그중 가장 비슷한 것, 같으면 포털이 품은 것(본문 구조가 일정).
+ * 줄인 제목은 겹침이 문턱 아래로 떨어진다(실측 0.75 — 언론사가 인용구 뒤를 잘라 고침)
+ */
 export const pickSameArticle = (query: ArticleBodyQuery, candidates: ArticleCandidate[]): ArticleCandidate | null => {
   let best: { c: ArticleCandidate; score: number } | null = null;
   for (const c of candidates) {
-    if (Math.abs(c.publishedAt.getTime() - query.publishedAt.getTime()) > BODY_MATCH_WINDOW_MS) continue;
-    const score = titleSimilarity(query.title, c.title);
-    if (score < BODY_MATCH_MIN) continue;
+    const gap = Math.abs(c.publishedAt.getTime() - query.publishedAt.getTime());
+    if (gap > BODY_MATCH_WINDOW_MS) continue;
+    const similar = titleSimilarity(query.title, c.title);
+    const shortened = gap <= BODY_CONTAINED_WINDOW_MS && isShortenedTitle(query.title, c.title);
+    if (similar < BODY_MATCH_MIN && !shortened) continue;
+    const score = Math.max(similar, shortened ? BODY_MATCH_MIN : 0);
     if (!best || score > best.score || (score === best.score && c.portalUrl && !best.c.portalUrl)) best = { c, score };
   }
   return best?.c ?? null;
@@ -102,12 +131,14 @@ const NOISE = [
   /^[가-힣]{2,4}\s*(기자|특파원)\s*[\w.+-]+@[\w.-]+$/,
   /[\w.+-]+@[\w-]+\.[\w.-]+/, // 짧은 줄의 메일 — 기자 이름 · 매체 꼬리(긴 본문 문단은 120자 문턱이 지킨다)
   /(입력|수정|승인|기사입력)\s*[:：]?\s*\d{4}[./-]\d{1,2}[./-]\d{1,2}/,
-  /후원/,
+  /여러분의\s*후원|후원하기/, // 매체 후원 권유 꼬리
   /^#\S/, // 해시태그 줄
   /^▲|사진\s*=|사진\s*제공|\(사진/, // 사진 설명
-  /클릭하면|확인할 수 있어요/, // 기사 화면 안내 문구
+  /기자\s*이름을\s*클릭하면|확인할 수 있어요!?$|글자\s*크기로\s*변경/, // 기사 화면 안내 문구
+  /^\d{4}[./-]\s?\d{1,2}[./-]\s?\d{1,2}\.?(\s+\d{1,2}:\d{2}(:\d{2})?)?$/, // 날짜 · 시각만 있는 줄
 
-  /구독|팔로우|좋아요|공유하기|기사\s*제보|많이\s*본\s*기사|다른\s*기사\s*보기|관련\s*기사/,
+  // 화면 단추 · 목록 머리 — 줄 전체가 그 낱말일 때만(본문 문장 "구독자가 늘었다"는 남긴다)
+  /^(구독(하기)?|팔로우|좋아요\d*|공유(하기)?|기사\s*제보|많이\s*본\s*기사|다른\s*기사\s*보기|관련\s*기사|화나요\d*|슬퍼요\d*)$/,
   /투자\s*손실에\s*대해\s*책임을\s*지지\s*않습니다/,
 ];
 

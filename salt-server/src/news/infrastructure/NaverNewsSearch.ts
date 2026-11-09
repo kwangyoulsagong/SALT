@@ -18,8 +18,18 @@ const plain = (s: string) => s.replace(/<[^>]+>/g, "").replace(/&(quot|amp|lt|gt
 /** 포털이 기사를 품은 주소(본문 칸이 일정) — 언론사 원문과 같으면 품지 않은 것 */
 const portalUrlOf = (item: SearchItem): string | null => {
   try {
-    const host = new URL(item.link).hostname;
-    return host === "n.news.naver.com" || host === "news.naver.com" ? item.link : null;
+    const url = new URL(item.link);
+    return url.protocol === "https:" && (url.hostname === "n.news.naver.com" || url.hostname === "news.naver.com") ? item.link : null;
+  } catch {
+    return null;
+  }
+};
+
+/** 원문 주소는 화면 링크가 된다 — http(s) 만(`javascript:` 같은 주소를 넘기지 않는다, 2026-11-09 확인 2회차) */
+const webUrlOf = (raw: string): string | null => {
+  try {
+    const url = new URL(raw);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : null;
   } catch {
     return null;
   }
@@ -33,7 +43,8 @@ export class NaverNewsSearch implements ArticleSearchPort {
   private readonly http;
 
   constructor(private readonly keys: { id?: string; secret?: string }) {
-    this.http = createHttpClient({ timeoutMs: 5_000 });
+    // 4초 — 못 찾으면 한 번 더 검색해 최악 4 + 4 + 페이지 8 = 16초. BFF 예산(20초)이 이보다 길어야 첫 조회가 잘리지 않는다
+    this.http = createHttpClient({ timeoutMs: 4_000 });
   }
 
   get enabled(): boolean {
@@ -47,8 +58,9 @@ export class NaverNewsSearch implements ArticleSearchPort {
     });
     return (data.items ?? []).flatMap((item) => {
       const publishedAt = new Date(item.pubDate);
-      if (Number.isNaN(publishedAt.getTime()) || !item.originallink) return [];
-      return [{ title: plain(item.title), originalUrl: item.originallink, portalUrl: portalUrlOf(item), publishedAt }];
+      const originalUrl = webUrlOf(item.originallink ?? "");
+      if (Number.isNaN(publishedAt.getTime()) || !originalUrl) return [];
+      return [{ title: plain(item.title), originalUrl, portalUrl: portalUrlOf(item), publishedAt }];
     });
   }
 }
