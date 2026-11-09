@@ -106,7 +106,8 @@ const PriceRow = ({ item, changeBasis }: { item: MarketSummaryItem; changeBasis:
             >
               {`${signOf(item.change24hAmount)}${formatPrice(Math.abs(item.change24hAmount))}`}
             </span>
-            <span className={styles.changeRate}>{`(${rate}%)`}</span>
+            {/* 변동률도 부호를 갖는다 — 좁은 칸에서 금액이 부호까지 말줄임되면 방향이 색으로만 남았다(2026-11-09 1280 실측) */}
+            <span className={styles.changeRate}>{`(${signOf(item.change24h)}${rate}%)`}</span>
           </>
         )}
       </span>
