@@ -95,8 +95,8 @@ export class PollKrNewsTitles {
 }
 
 /**
- * 업종 지수(FR-4) — 유니버스 종목의 업종 지수만(~~대분류~~ 2026-11-09 중분류 우선 — `krSectorIndexCodeOf`, 유니버스 약 19종). 박자는 워커 cron(장중 30분 + 15:40) — 매분 · 5분 판이
- * 시세 폴링 회차를 1분 넘게 늘려 다음 분을 건너뛰게 했다(2026-11-06). 분해(단계 C)는 그날 등락 · 일별 종가만 쓴다. 15:40 회차가 그날 종가
+ * 업종 지수(FR-4) — 유니버스 종목의 업종 지수만(~~대분류~~ 2026-11-09 중분류 우선 — `krSectorIndexCodeOf`, 유니버스 약 19종). 박자는 워커 cron(장중 30분 + ~~15:40~~ 15:55 — 분봉 회차와 겹쳐 한도에 밀렸다, 2026-11-09) — 매분 · 5분 판이
+ * 시세 폴링 회차를 1분 넘게 늘려 다음 분을 건너뛰게 했다(2026-11-06). 분해(단계 C)는 그날 등락 · 일별 종가만 쓴다. 15:55 회차가 그날 종가
  */
 export class PollKrSectorIndices {
   constructor(
@@ -111,7 +111,7 @@ export class PollKrSectorIndices {
   async execute() {
     const at = this.now();
     const session = await loadKrSession(this.calendar, at);
-    // 박자(5분)는 워커 cron — 여기선 장 시간 창만 본다. 15:40 회차가 장 끝 값(그날 종가)을 받는다
+    // 박자(5분)는 워커 cron — 여기선 장 시간 창만 본다. 15:55 회차가 장 끝 값(그날 종가)을 받는다(~~15:40~~ 분봉과 겹침)
     if (!isKrQuoteWindow(session)) return { skipped: true as const };
     const sectors = [...new Set((await this.store.sectorIndexCodes(await this.universe.execute())).values())].sort();
     const facts: KrSectorIndexFact[] = [];
