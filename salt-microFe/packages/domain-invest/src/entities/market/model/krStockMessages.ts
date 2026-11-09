@@ -194,7 +194,7 @@ export const KR_STOCK_MESSAGES = {
   /** 상세 오늘 소식(F016 단계 B · FR-4) — 시황 · 공시 **제목만**(원천에 본문 · 링크가 없다). 원인 단정 문구 없음 */
   news: {
     heading: "오늘 소식",
-    caption: "시황 · 공시 제목만 모아요. 원문은 제공처에서 볼 수 있어요.",
+    caption: "시황 · 공시를 모아요. 누르면 찾은 기사 본문을 함께 보여 줘요.",
     kind: { news: "시황", disclosure: "공시" },
     empty: "오늘 이 종목에 걸린 소식이 아직 없어요.",
     unavailable: "오늘 소식을 잠시 볼 수 없습니다.",

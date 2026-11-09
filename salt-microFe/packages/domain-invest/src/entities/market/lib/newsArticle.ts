@@ -1,10 +1,12 @@
 import type { KrNewsItem } from "@repo/core/marketKr";
+import type { ArticleBodyRef } from "@repo/core/newsBody";
 
 import type { NewsPreviewItem } from "../model/types";
 
 /**
  * 뉴스 행 · 모달이 그리는 한 모양(`FE-REQ-065`) — 국내(KIS 제목) · 코인(크롤러 기사)을 같은 칸으로. 없는 칸은 `null`(그리지 않는다).
- * 국내는 요약 · 이미지 · 원문 링크가 원천에 없다(`ADR-009` — 본문 수집 0). 코인 본문(`content`)도 싣지 않는다(사용자 2026-11-09 — 요약 + 원문 링크)
+ * 국내는 요약 · 이미지 · 원문 링크가 원천에 없다. 본문은 모달이 열 때 `bodyRef` 로 따로 받는다(`FE-REQ-068` — 포털 검색으로 같은 기사를 찾아 서버가 뽑은 문단,
+ * ~~`ADR-009` 본문 수집 0~~ 사용자 2026-11-09 정정 · 코인 RSS `content` 는 여전히 싣지 않는다 — 요약 조각이라)
  */
 export interface NewsArticleView {
   id: string;
@@ -19,9 +21,11 @@ export interface NewsArticleView {
   badge: { label: string; tone: "brand" | "neutral" } | null;
   /** 관련 종목 칩 — 이름 · 등락률(%, 모르면 `null`) · 갈 종목 코드/심볼 */
   related: Array<{ symbol: string; name: string; changeRate: number | null }>;
+  /** 본문을 찾을 기사 — 공시는 기사가 아니라 `null`(`FE-REQ-068`) */
+  bodyRef: ArticleBodyRef | null;
 }
 
-export const krNewsToView = (n: KrNewsItem, kindLabel: string): NewsArticleView => ({
+export const krNewsToView = (n: KrNewsItem, kindLabel: string, code: string): NewsArticleView => ({
   id: n.id,
   title: n.title,
   source: n.provider,
@@ -31,6 +35,7 @@ export const krNewsToView = (n: KrNewsItem, kindLabel: string): NewsArticleView 
   url: null,
   badge: { label: kindLabel, tone: n.kind === "disclosure" ? "brand" : "neutral" },
   related: (n.related ?? []).map((r) => ({ symbol: r.code, name: r.name, changeRate: r.changeRate })),
+  bodyRef: n.kind === "news" ? { kind: "kr", code, serial: n.id } : null,
 });
 
 /** 글자 · 숫자만 남긴 비교용 문자열 */
@@ -58,4 +63,5 @@ export const coinNewsToView = (n: NewsPreviewItem, symbol: string, name: string)
   url: n.url,
   badge: null,
   related: [{ symbol, name, changeRate: null }],
+  bodyRef: { kind: "coin", id: n.id },
 });

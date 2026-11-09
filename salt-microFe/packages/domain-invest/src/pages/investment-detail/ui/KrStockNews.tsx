@@ -31,7 +31,7 @@ export const KrStockNews = ({ code }: { code: string }) => {
   const { data, isError } = useKrNews(code);
   const modal = useNewsModal();
   if (!data || isError || data.status === "disabled") return null;
-  const views = data.status === "ok" ? data.items.map((n) => krNewsToView(n, M.kind[n.kind])) : [];
+  const views = data.status === "ok" ? data.items.map((n) => krNewsToView(n, M.kind[n.kind], data.code)) : [];
   const open = views.find((v) => v.id === modal.openId) ?? null;
 
   return (

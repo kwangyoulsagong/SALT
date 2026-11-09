@@ -24,7 +24,7 @@ export const KrNewsPreview = ({ code }: { code: string }) => {
   const modal = useNewsModal();
   // 자리가 없을 때(404 · 꺼짐)는 제목도 없다 — 제목만 남은 빈 블록을 그리지 않는다(2026-11-09 확인 단계)
   if (!isPending && (isError || !data || data.status === "disabled")) return null;
-  const views = data?.status === "ok" ? data.items.map((n) => krNewsToView(n, KR_STOCK_MESSAGES.news.kind[n.kind])) : [];
+  const views = data?.status === "ok" ? data.items.map((n) => krNewsToView(n, KR_STOCK_MESSAGES.news.kind[n.kind], data.code)) : [];
   const first = views[0];
   const open = views.find((v) => v.id === modal.openId) ?? null;
 

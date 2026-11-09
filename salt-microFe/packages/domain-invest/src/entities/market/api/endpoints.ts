@@ -96,4 +96,8 @@ export const MARKET_ENDPOINTS = {
   /** 오늘 왜 움직였나 — ① 분해 · ② 같은 날 사실(F016 단계 C) */
   krWhyMoved: (code: string) => `/api/app/market/kr/${encodeURIComponent(code)}/why-moved`,
   cryptoWhyMoved: (symbol: string) => `/api/app/market/${encodeURIComponent(symbol)}/why-moved`,
+  /** 기사 본문 — 코인 원장 id · 국내 코드 + 일련번호(`BFF-REQ-053`) */
+  coinNewsBody: (id: string) => `/api/app/news/${encodeURIComponent(id)}/body`,
+  krNewsBody: (code: string, serial: string) =>
+    `/api/app/market/kr/${encodeURIComponent(code)}/news/${encodeURIComponent(serial)}/body`,
 } as const;

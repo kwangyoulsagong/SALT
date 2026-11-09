@@ -13,6 +13,7 @@
     "./market": "./src/market/candleTime.ts",
     "./marketKr": "./src/market/krStock.ts",
     "./whyMoved": "./src/market/whyMoved.ts",
+    "./newsBody": "./src/market/newsBody.ts",
     "./sse": "./src/sse/parser.ts",
     "./embed": "./src/embed/index.ts",
     "./home": "./src/home/homeSummaryCard.ts",

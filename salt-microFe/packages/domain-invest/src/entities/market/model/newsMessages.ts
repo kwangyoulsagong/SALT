@@ -6,8 +6,12 @@ export const NEWS_MESSAGES = {
   openLabel: (title: string) => `${title} — 소식 자세히 보기`,
   meta: (source: string, when: string) => `${source} ・ ${when}`,
   relatedHeading: "관련 종목",
-  /** 국내 원천엔 본문 · 링크가 없다(`ADR-009`) — 모달이 그 사실을 한 줄로 */
-  krNoBody: "본문은 제공처에서 볼 수 있어요. 이 화면엔 제목만 모아요.",
+  /** 국내 — 본문을 못 찾았을 때(포털에 같은 기사가 없음 · 공시 · 받지 못함) 한 줄로(`FE-REQ-068`) */
+  krNoBody: "이 소식은 본문을 찾지 못했어요. 본문은 제공처에서 볼 수 있어요.",
+  /** 본문을 받는 동안 — 화면 리더용 */
+  bodyLoading: "본문을 불러오고 있어요",
+  /** 본문 아래 출처 한 줄 */
+  bodySource: (source: string) => `출처 ${source}`,
   openOriginal: "원문 보기",
   openOriginalLabel: (source: string) => `${source} 원문 보기(새 탭)`,
   moreKr: "이 종목 오늘 소식",

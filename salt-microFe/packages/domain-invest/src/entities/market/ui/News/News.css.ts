@@ -114,3 +114,16 @@ export const sectionTitle = style({
   color: vars.colors.text.primary,
 });
 export const list = style({ display: "flex", flexDirection: "column", margin: `0 -${vars.space.md}` });
+
+/** 기사 본문(`FE-REQ-068`) — 모달 본문 단(14/24 · 1단 색) · 문단 사이 12 · 한 줄 최대 폭은 모달(680)이 정한다 */
+export const article = style({ display: "flex", flexDirection: "column", gap: vars.space.md });
+export const paragraph = style({
+  margin: 0,
+  fontSize: vars.fontSizes.base,
+  lineHeight: "24px",
+  color: vars.colors.text.primary,
+  overflowWrap: "anywhere",
+  wordBreak: "keep-all",
+});
+/** 출처 줄 — 본문 끝 · 원문 단추와 한 줄 */
+export const sourceRow = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: vars.space.md, flexWrap: "wrap" });
