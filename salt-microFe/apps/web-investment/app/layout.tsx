@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { AppShell, EMBED_SCRIPT, FONT_VARIABLES, VIEW_TRANSITION_CSS, ZoneProviders } from "@repo/web-shared/layout";
+import { SearchLauncher } from "@repo/domain-invest/pages/search";
 import "@repo/web-shared/layout/globals.css";
 
 /**
@@ -8,7 +9,7 @@ import "@repo/web-shared/layout/globals.css";
  *
  * 셸과 같은 껍데기다 — 프레임 · 768 미만 안내 · 앱 웹뷰 표지 · 전역 스타일은 `@repo/web-shared/layout` 하나에서 온다.
  * 다른 점은 프로바이더: React Query · 모션만 갖고 Redux(셸의 `auth` · `goal`)는 없다 — 투자 화면은 store 를 쓰지 않는다.
- * `data-zone` 은 셸 rewrites 가 이 앱에 닿았는지 확인하는 표지다.
+ * `data-zone` 은 셸 rewrites 가 이 앱에 닿았는지 확인하는 표지다. 머리 검색칸은 이 zone 만 모달을 연다(`FE-REQ-066` — 다른 zone 은 `/search` 링크).
  */
 export { rootMetadata as metadata } from "@repo/web-shared/layout";
 
@@ -23,7 +24,7 @@ export default function InvestZoneLayout({ children }: { children: ReactNode }) 
       </head>
       <body>
         <ZoneProviders>
-          <AppShell>{children}</AppShell>
+          <AppShell headerSearch={<SearchLauncher />}>{children}</AppShell>
         </ZoneProviders>
       </body>
     </html>

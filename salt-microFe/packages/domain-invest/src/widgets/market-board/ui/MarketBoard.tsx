@@ -100,11 +100,7 @@ export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => 
             </Heading>
           </FlexBox>
           <FlexBox direction="row" align="center" gap="lg">
-            {/* 종목 검색 진입(`FE-REQ-010` FR-70) — 추적 종목을 고르는 화면. 전역 헤더 검색(`FE-REQ-047` FR-1)이 생기면 그리로 옮긴다 */}
-            <Link href={ROUTES.search} className={reportLink}>
-              {MARKET_BOARD_MESSAGES.searchLink}
-              <NavChevron />
-            </Link>
+            {/* 종목 검색 진입은 머리 검색칸으로 옮겼다(2026-11-09 `FE-REQ-066` · `067` — 어느 투자 화면에서나 `/` · 머리 칸) */}
             {/* 코치 리포트 진입(`FE-REQ-026` FR-140). 보유 전체의 리포트라 종목 패널이 아니라 화면 머리에 둔다 */}
             <Link href={ROUTES.coachReport} className={reportLink}>
               {MARKET_BOARD_MESSAGES.coachReportLink}

@@ -1,1 +1,1 @@
-export { AssetSearch } from "./AssetSearch";
+export { AssetSearchDialog, type AssetSearchDialogProps } from "./AssetSearchDialog";
