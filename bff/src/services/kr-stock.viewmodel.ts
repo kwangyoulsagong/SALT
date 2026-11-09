@@ -541,6 +541,8 @@ export interface KrNewsItemVM {
   provider: string;
   title: string;
   publishedAt: string;
+  /** 관련 종목 — 뉴스 상세 모달 칩(`FE-REQ-065`). 이름 · 등락률(%) 서버 값 그대로 · 옛 서버면 빈 배열 */
+  related: Array<{ code: string; name: string; changeRate: number | null }>;
 }
 
 const KR_NEWS_KINDS: readonly KrNewsKindVM[] = ["news", "disclosure"];
@@ -560,7 +562,17 @@ export const toKrNewsVM = (raw: unknown) => {
       const kind = str(x, "kind");
       if (!(KR_NEWS_KINDS as readonly string[]).includes(kind)) return [];
       return [
-        { id: str(x, "id"), kind: kind as KrNewsKindVM, provider: str(x, "provider"), title: str(x, "title"), publishedAt: str(x, "publishedAt") },
+        {
+          id: str(x, "id"),
+          kind: kind as KrNewsKindVM,
+          provider: str(x, "provider"),
+          title: str(x, "title"),
+          publishedAt: str(x, "publishedAt"),
+          related: (Array.isArray(x.related) ? x.related : []).map((rel) => {
+            const r = obj(rel, "related");
+            return { code: str(r, "code"), name: str(r, "name"), changeRate: numOrNull(r, "changeRate") };
+          }),
+        },
       ];
     }),
   };
