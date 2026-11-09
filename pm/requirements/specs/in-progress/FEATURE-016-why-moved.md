@@ -172,3 +172,4 @@
 | 2026-11-06 | 단계 B done — FR-9 · FR-10 부분(프로그램만) · 업종 지수 수집(FR-1 ① 재료). 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
 | 2026-11-06 | 단계 A done — FR-7 부분(서킷브레이커 추정 · VI · 칩 · 마지막 체결) · OQ4 부분 답. 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md` |
 | 2026-11-09 | 단계 C done — FR-1 · 2 · FR-3 부분 · FR-8 부분 · 프리뷰 "왜 떨어졌을까?" · 국내 프리뷰 오늘 소식(사용자 2026-11-09). 루트 `requirements/specs/done/F016-C-move-split-facts-slice.md` |
+| 2026-11-09 | FR-9 — 국내 오늘 소식 행 · 상세 모달(관련 종목 칩 · 본문 0) — `FE-REQ-065`(사용자 요청) |

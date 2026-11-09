@@ -199,3 +199,9 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 기존 `Illustration` scene 셋 재배치 · 줄인 모션 규칙 그대로
+
+## 2026-11-09 — Modal `article`
+
+| 항목 | 결과 |
+|---|---|
+| 움직임 변형 0(크기 · 글자만) · 줄인 모션 그대로 · Storybook `Article` 빌드 | 통과 |

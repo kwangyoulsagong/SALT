@@ -74,3 +74,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-06 | 단계 B done — FR-3 · FR-4(정정: 프로그램만) |
 | 2026-11-06 | in-progress — 단계 A(FR-2 · 5) done. FR-2 를 별도 경로 대신 요약 · 상세 응답 칸으로 정정 |
 | 2026-11-09 | 단계 C — FR-1(①② · summary 는 D) · FR-7 · 표 행 `moveCard` |
+| 2026-11-09 | FR-3 — 오늘 소식 `related` 칸(칸 셋 · 옛 서버 빈 배열, `FE-REQ-065`) |

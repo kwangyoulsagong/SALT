@@ -29,6 +29,22 @@ source: salt-microFe/requirements/reports/research/2026-11-09-news-ui-measure.md
 | FR-8 | 390 웹뷰는 같은 내용을 `BottomSheet` 로(`screen-mobile.md`) |
 | FR-9 | 짝: BFF `GET /api/app/market/kr/:code/news/:serial`(관련 종목 이름 · 등락률 붙임 — 서버 market 저장값) · 코인 기사 하나 조회 — `BFF-REQ` · `SRV-REQ` 짝 REQ 를 착수 때 번호 매김 |
 
+## 진행 — 2026-11-09
+
+| FR | 상태 | 구현 |
+|---|---|---|
+| FR-1 뉴스 행 | done | `entities/market/ui/News/NewsRow` — 실측 값 그대로(메타 색만 2단 .64 — 3단 .47 은 글자에 안 쓴다) · 행 전체 단추 · 썸네일 `@repo/ui` `Image` |
+| FR-2 세 자리 교체 | done | 코인 프리뷰 · 국내 프리뷰 · 국내 상세 "오늘 소식" 한 벌. ~~`NewsBadge` 오타 정정~~ 소비처 0 이 돼 파일째 삭제(`77fbd19b`) |
+| FR-3 모달 | done(정정 셋) | `@repo/ui` `Modal` `size="article"`. ~~`features/read-news`~~ **`entities/market/ui/News/NewsModal`** — 미리보기가 entities 층이라 feature 를 부를 수 없다(레이어) · 모달은 표시 + 주소 상태뿐(뮤테이션 0). ~~면 `#FBFCFD`~~ 흰 면(패널 색 토큰은 `FE-REQ-047` FR-14 전) · ~~칩 줄 머리 아래 고정 · 페이드~~ 칩 줄은 본문 첫 줄(가로 밀기) |
+| FR-4 국내 갈래 | done | 머리 · 칩(관련 종목 이름 · 등락률 — 서버 값, 누르면 그 종목 상세) · "본문은 제공처에서" · 이 종목 오늘 소식(누르면 모달 안에서 바뀜) |
+| FR-5 코인 갈래 | done | 머리 · 칩 · 이미지 · 요약 · 원문 보기(새 탭 · noopener) · 주요 뉴스. 본문 0(사용자 2026-11-09). **요약이 제목을 되풀이하면 그리지 않는다**(RSS 요약 = 제목 + 언론사 — 실화면) |
+| FR-6 주소 | done(정정) | `?news=<id>` — ~~`router.replace`~~ 열 때 `push`(뒤로가기 = 닫기) · 모달 안 전환 `replace` · 닫기는 연 것이면 `back`, 주소로 들어왔으면 쿼리만 지움(`useNewsModal`) |
+| FR-7 접근성 | done | 포커스 가둠 · Esc(Modal) · 닫으면 연 행으로 포커스 · 칩은 링크 |
+| FR-8 390 바텀 시트 | 남음 | 지금은 같은 모달이 358 폭으로 선다(넘침 0) — 시트로 바꾸는 것은 다음 |
+| FR-9 짝 | done(정정) | ~~새 경로 `/news/:serial`~~ **새 경로 없음** — 기존 오늘 소식 항목에 `related`(이름 · 등락률)를 실어 모달이 목록 값으로 연다(서버 하위 쿼리 · BFF 칸 셋). 코인은 기존 목록(6건) |
+
+- 커밋 `5924a94f`(조사) · `5d6f18f8`(서버) · `d9726f50`(BFF) · `e8e02b90`(ui) · `c274feaa`(FE) · `77fbd19b`(죽은 파일)
+
 ## Acceptance Criteria
 
 - [ ] 실측 표(리서치 §2 · §3)와 계산 스타일 대조 — 행 · 모달 값 차이 0(색 2단 · 막 색 · 모서리는 우리 규칙 · 토큰 쪽으로 적은 차이만)
@@ -46,3 +62,4 @@ source: salt-microFe/requirements/reports/research/2026-11-09-news-ui-measure.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-09 | 신규(to-do) — 참고 화면 실측 · 데이터 제약 · 설계(`2026-11-09-news-ui-measure.md`) |
+| 2026-11-09 | to-do → in-progress — FR-1~7 · 9 done(FR-3 · 6 · 9 정정). 남은 것 FR-8(390 바텀 시트) |
