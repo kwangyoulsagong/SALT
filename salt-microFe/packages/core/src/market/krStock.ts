@@ -319,6 +319,8 @@ export interface KrNewsItem {
   provider: string;
   title: string;
   publishedAt: string;
+  /** 관련 종목 — 이름 · 지금 등락률(%, 시세 없으면 `null`). 뉴스 상세 모달 칩(`FE-REQ-065`) */
+  related: Array<{ code: string; name: string; changeRate: number | null }>;
 }
 
 /** 종목 오늘 소식 — 최신이 앞 · 광고성 제외는 서버. `collectedAt` 은 시장 전체 마지막 수집(신선도) */

@@ -9,3 +9,5 @@ export * from "./useKrStockRealtime";
 export * from "./krOverviewItem";
 export * from "./krScheduleDate";
 export * from "./krSummaryItem";
+export * from "./newsArticle";
+export * from "./useNewsModal";
