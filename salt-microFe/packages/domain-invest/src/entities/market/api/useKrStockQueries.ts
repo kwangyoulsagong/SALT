@@ -138,6 +138,25 @@ export const useKrNews = (code: string) => {
   });
 };
 
+/**
+ * 오늘 왜 움직였나 2분 — 사실(제목 2분 · 프로그램 10분)과 시세가 계속 바뀐다. 4xx 면 멈춘다(비소유자 · 없는 종목).
+ * 국내 · 코인 같은 훅 — 국내는 소유자 판정, 코인은 로그인만(서버 판정)
+ */
+const WHY_MOVED_REFRESH_MS = 2 * 60_000;
+
+export const useWhyMoved = (target: { kind: "kr"; code: string } | { kind: "crypto"; symbol: string }) => {
+  const signedIn = useHasSession() === true;
+  const id = target.kind === "kr" ? target.code : target.symbol;
+  return useQuery({
+    queryKey: [...(target.kind === "kr" ? marketQueryKeys.krWhyMoved : marketQueryKeys.cryptoWhyMoved), id],
+    queryFn: ({ signal }) => (target.kind === "kr" ? krStockApi.whyMoved(id, signal) : krStockApi.cryptoWhyMoved(id, signal)),
+    enabled: signedIn && Boolean(id),
+    staleTime: WHY_MOVED_REFRESH_MS / 2,
+    refetchInterval: refreshEvery(WHY_MOVED_REFRESH_MS),
+    retry: retryUnlessClientError,
+  });
+};
+
 export const useKrIntradayFlows = (code: string) => {
   const signedIn = useHasSession() === true;
   return useQuery({

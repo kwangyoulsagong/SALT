@@ -77,6 +77,8 @@ export interface MarketOverviewItem {
    * 실시간 WS 는 이 값을 건드리지 않는다. 기간 값은 틱마다 바뀌는 값이 아니다.
    */
   periodChange: number | null;
+  /** "왜 움직였나" 카드가 서는 날 — 서버 판정(F016 단계 C · 상세 카드와 같은 문턱). 옛 응답엔 없다 */
+  moveCard?: boolean;
   /**
    * 국내 주식 행이면 서버 시세 한 줄 — 상하한 · 종목 상태 · 시세 출처 배지가 쓴다(코인 행엔 없다).
    * 행 모양은 코인과 같게 맞추고(`krQuoteToOverviewItem`) 코인에 없는 것만 여기 둔다

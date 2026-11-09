@@ -93,4 +93,7 @@ export const MARKET_ENDPOINTS = {
   krNews: (code: string) => `/api/app/market/kr/${encodeURIComponent(code)}/news`,
   /** 상세 장중 수급 — 오늘 프로그램 매매 누적(F016 단계 B) */
   krIntradayFlows: (code: string) => `/api/app/market/kr/${encodeURIComponent(code)}/flows/intraday`,
+  /** 오늘 왜 움직였나 — ① 분해 · ② 같은 날 사실(F016 단계 C) */
+  krWhyMoved: (code: string) => `/api/app/market/kr/${encodeURIComponent(code)}/why-moved`,
+  cryptoWhyMoved: (symbol: string) => `/api/app/market/${encodeURIComponent(symbol)}/why-moved`,
 } as const;

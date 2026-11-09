@@ -25,6 +25,7 @@ import { KrForecast } from "./KrForecast";
 import { KrInvestorFlows } from "./KrInvestorFlows";
 import { KrOrderbook } from "./KrOrderbook";
 import { KrStockNews } from "./KrStockNews";
+import { KrWhyMoved } from "./KrWhyMoved";
 import { hasApiStatus, useHasSession } from "@repo/web-shared/api";
 import { HTTP_STATUS_CODE, PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
 import { formatKrwCompact, formatPrice } from "@repo/web-shared/lib";
@@ -163,6 +164,8 @@ export const KrStockDetail = ({ code }: { code: string }) => {
           </a>
         </div>
       </header>
+      {/* 오늘 왜 움직였나(F016 단계 C) — 머리(등락 · 상태 칩 · 시장 띠) 바로 아래. 크게 움직인 날만 카드, 아니면 접힌 한 줄 */}
+      <KrWhyMoved code={quote.code} />
       <div className={krBody}>
         <KrStockChart code={quote.code} displayName={quote.name} />
         <div className={krSideColumn}>

@@ -24,6 +24,7 @@ import {
   displayedChange,
   indexWatchlistBySymbol,
   KrQuoteBadges,
+  WhyMovedRowChip,
   KrSessionLine,
   MARKET_CHANGE_MESSAGES,
   MARKET_MESSAGES,
@@ -301,6 +302,8 @@ export const RealtimeMarketTable = ({
                               compact
                             />
                           )}
+                          {/* 카드가 서는 날(서버 `moveCard`) — 상세 "왜 움직였나" 카드로(F016 단계 C · FE-REQ-063 FR-6) */}
+                          {item.moveCard && <WhyMovedRowChip href={detailHref(item.symbol)} name={item.koreanName} />}
                         </FlexBox>
                       </TableCell>
                       <TableCell align="right">

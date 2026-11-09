@@ -29,4 +29,6 @@ export const marketQueryKeys = {
   krOrderbook: ["KrStockOrderbook"] as const,
   krNews: ["KrStockNews"] as const,
   krIntradayFlows: ["KrStockIntradayFlows"] as const,
+  krWhyMoved: ["KrStockWhyMoved"] as const,
+  cryptoWhyMoved: ["CryptoWhyMoved"] as const,
 } as const;

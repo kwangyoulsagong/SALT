@@ -25,7 +25,7 @@ import {
   zoneToPriceBand,
   zoneToPriceLines,
 } from "@/entities/coach";
-import { MarketDetailChart, useMarketListing } from "@/entities/market";
+import { MarketDetailChart, useMarketListing, useWhyMoved, WhyMovedCard } from "@/entities/market";
 import { ExplainCard } from "@/features/explain-symbol";
 import { RecordTradeCard } from "@/features/record-transaction";
 import { PreflightCard } from "@/features/run-preflight";
@@ -74,6 +74,8 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   const coach = useSymbolCoach(symbol);
   // 가격 변동 범위 — 소유자만(F008 `FE-REQ-038`). 404 는 "없는 섹션"이다 — 자리도 문구도 없다
   const forecast = useSymbolForecast(symbol);
+  // 오늘 왜 움직였나(F016 단계 C) — 로그인 사용자. 실패 · 불러오는 중엔 자리가 없다(카드가 숨는다)
+  const whyMoved = useWhyMoved({ kind: "crypto", symbol });
   const showForecast = !forecast.isSignedOut && !forecast.notOwner;
   // 주요 사건(거시 일정) — 전망과 같은 소유자 규칙(F008 슬라이스 22)
   const events = useSymbolEvents(symbol);
@@ -199,6 +201,14 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
 
           {/* 오른쪽 열 — aside 는 main 안에서 최상위 보조 랜드마크가 아니다(axe landmark-complementary-is-top-level) */}
           <div className={column}>
+            {/* 크게 움직인 날 "왜 움직였나" 카드 — 오른쪽 열 맨 위. 아니면 접힌 한 줄. 거래소 주의 이름은 coach 문구(주인)를 넘긴다 */}
+            {!whyMoved.isError && (
+              <WhyMovedCard
+                className={card}
+                result={whyMoved.data}
+                cautionLabel={(code) => (COACH_MESSAGES.exchangeCaution.kinds as Record<string, string>)[code]}
+              />
+            )}
             {ownerCards}
             {/* 해설은 판단 바로 옆 정보다 — 거래 기록 폼(펼치면 길다) 아래로 밀리지 않게 위에 둔다 */}
             {coach.data && mode && (

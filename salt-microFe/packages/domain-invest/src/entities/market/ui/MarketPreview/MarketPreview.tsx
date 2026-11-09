@@ -18,6 +18,8 @@ import {
 import { previewPanel } from "./MarketPreview.css";
 import { type MarketChartOverlay, MarketPreviewChart } from "./MarketPreviewChart";
 import { MarketPreviewHeader } from "./MarketPreviewHeader";
+import { KrNewsPreview } from "./KrNewsPreview";
+import { WhyMovedPreview } from "../WhyMoved";
 
 interface MarketPreviewProps {
   subject: MarketPreviewSubject | undefined;
@@ -72,6 +74,8 @@ export const MarketPreview = ({
               <Padding paddingTop="sm">
                 <MarketPreviewHeader subject={subject} />
               </Padding>
+              {/* 왜 떨어졌을까?(F016 단계 C) — 카드가 서는 날만 머리 바로 아래. 아니면 자리 없음 */}
+              <WhyMovedPreview symbol={subject.symbol} assetType={subject.assetType} name={subject.displayName} />
               {hasChart ? (
                 <>
                   <Heading level={5} color="tertiary">
@@ -90,6 +94,15 @@ export const MarketPreview = ({
                     />
                   ) : (
                     <Text color="tertiary">{MARKET_MESSAGES.intelligenceUnavailable}</Text>
+                  )}
+                  {/* 국내 오늘 소식 — 코인 뉴스 블록과 같은 자리 · 같은 모양(코인은 위 묶음 안에 있다) */}
+                  {subject.assetType === MarketAssetClass.KrStock && (
+                    <FlexBox direction="column" gap="xl">
+                      <Heading level={5} color="tertiary">
+                        {MARKET_MESSAGES.krNewsHeading}
+                      </Heading>
+                      <KrNewsPreview code={subject.symbol} />
+                    </FlexBox>
                   )}
                 </>
               ) : (
