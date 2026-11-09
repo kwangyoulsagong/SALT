@@ -88,6 +88,8 @@ export const startKrStockWorkers = () => {
     // 시황/공시 제목 — 시장 전체 한 번이라 시세 회차에 묶지 않는다(장 밖 공시도 받는다). 놓친 구간은 쪽 넘김이 메운다
     { name: "kr-news-titles", expression: "* * * * *", run: () => kr.pollNewsTitles.execute() },
     { name: "kr-move-sources-prune", expression: "55 15 * * 1-5", run: () => kr.pruneMoveSources.execute(), catchUp: true },
+    // 지수 · 업종 일별(F016 단계 C β 재료) — 장 마감 뒤 공식 종가로. 15:40 업종 회차가 초과로 접혀도 여기서 다시 덮는다
+    { name: "kr-index-daily", expression: "5 16 * * 1-5", run: () => kr.backfillIndexDaily.execute(), catchUp: true },
     // 지수 분 기록 정리(`DB-REQ-035` FR-2) — 장 마감 뒤 하루 한 번, 10일 앞을 지운다(하루 약 780행)
     { name: "kr-index-ticks-prune", expression: "50 15 * * 1-5", run: () => kr.pruneIndexTicks.execute() },
     // 관측 지표(FR-94) — 로그가 지표다
@@ -117,6 +119,8 @@ export const startKrStockWorkers = () => {
       () => kr.syncCalendar.execute(),
       // 오늘 소식 — 기동 뒤 한 번(빈 목록으로 시작하지 않게)
       () => kr.pollNewsTitles.execute({ force: true }),
+      // 지수 · 업종 일별 — 처음이면 1년(약 6쪽 × 지수 열 남짓), 그 뒤엔 지수마다 한 쪽
+      () => kr.backfillIndexDaily.execute(),
       // 로고는 맨 뒤 — 화면은 판정 전에도 티커 로고를 쓴다
       () => kr.resolveLogos.execute(),
     ];

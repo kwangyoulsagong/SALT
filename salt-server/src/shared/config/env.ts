@@ -62,6 +62,12 @@ const envSchema = z.object({
   /** 국내 요약 태그 `wide_move` 임계(전일 대비 변동률 %, 절댓값) — 코인 임계와 따로 둔다(시장이 다르다) */
   KR_SUMMARY_WIDE_MOVE_RATE: z.coerce.number().positive().default(5),
   /**
+   * "왜 움직였나" 카드 조건(F016 단계 C · `SRV-REQ-051` FR-8) — |등락| ≥ max(MOVE_CARD_MIN_RATE %, MOVE_CARD_K × 평소 하루 변동 σ) 또는
+   * 그날 VI · 시장 조치 · 정지 · 경보. 국내 · 코인 같은 값(σ 가 시장 차이를 담는다). 기본값은 분포를 보고 정했다(체크리스트 `F016-C`)
+   */
+  MOVE_CARD_K: z.coerce.number().positive().default(2.5),
+  MOVE_CARD_MIN_RATE: z.coerce.number().positive().default(3),
+  /**
    * 국내 시황 제목 광고성 패턴(F016 단계 B · `SRV-REQ-051` FR-1) — 정규식 하나(`|` 로 묶음, 대소문자 무시). 맞으면 행은 남기고 "오늘 소식"에서만
    * 뺀다. 2026-11-06 표본(삼성전자 하루 40건 중 1건 — "시장 역전의 기회, 이 정보 하나로 결정!!")에서 시작한 값이라 1주 표본 뒤 다시 본다.
    * 빈 값이면 거르지 않는다. 틀린 정규식이면 기동이 멈춘다(조용히 다 통과시키지 않게)

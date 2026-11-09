@@ -57,13 +57,16 @@ export const isKrNewsPollMinute = (now: Date): boolean => {
 // ==================== 업종 지수 (FR-4) ====================
 
 /**
- * 마스터의 지수업종 대분류(`sector_code`) → 업종 지수 코드. KIS 업종 현재지수가 같은 코드를 받는다(2026-11-06 실측 `0027` 제조 ·
- * `1009` · `0021` 금융). `0000` 은 분류 없음 — 업종 몫 없이 시장 → 고유 두 단으로 나뉜다(단계 C)
+ * 마스터의 지수업종 → 업종 지수 코드. **중분류가 있으면 중분류**(0013 전기전자 · 0009 의약품), 없으면 대분류(0021 금융 · 0029 서비스).
+ * 대분류만 쓰던 단계 B 판은 "제조업"(0027 — 코스피 556종목, 반도체가 지배)을 업종으로 삼아 제약사의 업종 몫을 반도체로 냈다(2026-11-09 —
+ * 동화약품 업종 β −3.5). KIS 업종 현재지수 · 기간별 시세가 같은 코드를 받는다(실측). `0000` 은 분류 없음 · `x001` 은 시장 대표 —
+ * 업종 몫 없이 시장 → 종목 두 단. 예측 배치(`kr_sector_index_code`)와 같은 표
  */
-export const krSectorIndexCodeOf = (sectorCode: string | null | undefined): string | null =>
-  typeof sectorCode === "string" && /^\d{4}$/.test(sectorCode) && sectorCode !== "0000" && !sectorCode.endsWith("001")
-    ? sectorCode
-    : null;
+export const krSectorIndexCodeOf = (sectorCode: string | null | undefined, midCode?: string | null): string | null => {
+  const valid = (c: string | null | undefined): c is string =>
+    typeof c === "string" && /^\d{4}$/.test(c) && c !== "0000" && !c.endsWith("001");
+  return valid(midCode) ? midCode : valid(sectorCode) ? sectorCode : null;
+};
 
 /** 업종 지수 한 번 — 값 · 전일 대비(포인트, 부호) · 등락률(%) */
 export interface KrSectorIndexFact {
@@ -77,6 +80,52 @@ export interface StoredKrSectorIndex extends KrSectorIndexFact {
   tradeDate: string;
   updatedAt: Date;
 }
+
+// ==================== 지수 · 업종 일별 이력 (F016 단계 C — β 재료) ====================
+
+/**
+ * 시장 지수 셋 — 일별 이력을 업종과 같은 표(`kr_sector_index_daily`)에 둔다. KIS 가 시장 지수를 업종 코드(`0001` · `1001` · `2001`)로 다룬다
+ * (같은 TR 이 둘 다 받는다 — 2026-11-09 실측)
+ */
+export const KR_MARKET_INDEX_CODES = ["0001", "1001", "2001"] as const;
+/**
+ * 지수마다 갖고 있을 거래일 수 — β 창(120 거래일, 예측 설정) + 여유. 기간별 시세는 한 번에 50거래일(실측)이라 처음 한 번 6쪽,
+ * 그 뒤엔 하루 한 쪽(최근 50일 — 맥 수면으로 며칠 놓쳐도 메운다)
+ */
+export const KR_INDEX_DAILY_SESSIONS = 250;
+/**
+ * 이보다 적으면 다시 거슬러 받는다 — β(120) + σ(60) 창 + 여유. 목표(250)와 같은 값으로 두면 휴장 · 원천 한 해 끝 때문에 248행에 멈춘
+ * 지수를 매일 5쪽씩 다시 받았다(2026-11-09 09:22 — 19지수 95회)
+ */
+export const KR_INDEX_DAILY_REFILL_BELOW = 200;
+/** 기간별 시세 한 쪽 거래일 수(2026-11-09 실측) — 쪽 넘김이 이보다 적게 오면 더 앞이 없다 */
+export const KR_INDEX_DAILY_PAGE = 50;
+
+/** 기간별 시세 한 행 — 거래일(KST) · 종가(포인트). 등락률 칸은 원천에 없다(실측) */
+export interface KrIndexDailyClose {
+  tradeDate: string;
+  close: number;
+}
+
+export interface KrIndexDailyRow extends KrIndexDailyClose {
+  /** 전 거래일 종가 대비(%) — 앞 행이 없으면 행을 만들지 않는다 */
+  changeRate: number;
+}
+
+/**
+ * 종가 목록 → 일별 행. 날짜순으로 놓고 바로 앞 거래일 종가로 등락률을 낸다 — 맨 앞 행은 앞 종가가 없어 버린다(매일 회차의 맨 앞은
+ * 약 70일 전이라 이미 저장돼 있고, 처음 채울 땐 1년 앞 한 행이다). 같은 날 두 행이면 뒤의 것
+ */
+export const krIndexDailyRows = (closes: KrIndexDailyClose[]): KrIndexDailyRow[] => {
+  const byDate = new Map<string, number>();
+  for (const c of closes) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(c.tradeDate) && Number.isFinite(c.close) && c.close > 0) byDate.set(c.tradeDate, c.close);
+  }
+  const ordered = [...byDate.entries()].sort(([a], [b]) => (a < b ? -1 : 1));
+  return ordered.flatMap(([tradeDate, close], i) =>
+    i === 0 ? [] : [{ tradeDate, close, changeRate: (close / ordered[i - 1][1] - 1) * 100 }]
+  );
+};
 
 // ==================== 장중 프로그램 매매 (FR-5) ====================
 
@@ -116,6 +165,8 @@ export interface KrMoveSourcePort {
   indexQuote(code: string): Promise<KrSectorIndexFact>;
   /** 종목 프로그램 매매 누적 최신 행. 그날 체결이 없으면 `null` */
   programFlow(code: string): Promise<KrProgramFlowFact | null>;
+  /** 지수 · 업종 기간별 일별 종가 — `to` 부터 거슬러 최대 50거래일(최신이 앞). 날짜는 KST `YYYY-MM-DD`. 이름은 원천 값(없으면 `null`) */
+  indexDailyCloses(code: string, from: string, to: string): Promise<{ name: string | null; closes: KrIndexDailyClose[] }>;
 }
 
 export interface StoredKrNewsTitle {
@@ -140,6 +191,15 @@ export interface KrMoveSourceStore {
   /** 최신 값(업종마다 한 행) + 그날 일별 행(장 끝 값이 종가) — 한 문장씩 */
   upsertSectorIndices(facts: KrSectorIndexFact[], at: Date): Promise<void>;
   sectorIndices(codes: string[]): Promise<StoredKrSectorIndex[]>;
+  /** 일별 행 덮어쓰기(원천 공식 종가가 장중 마지막 값을 이긴다) — 한 문장 */
+  upsertIndexDaily(code: string, rows: KrIndexDailyRow[], at: Date): Promise<void>;
+  /** 지수 이름(원천 값) — 덮어쓴다 */
+  upsertIndexNames(names: Array<{ code: string; name: string }>, at: Date): Promise<void>;
+  indexNames(codes: string[]): Promise<Map<string, string>>;
+  /** 지수마다 저장된 일별 행 수 · 가장 이른 · 늦은 거래일과 그 종가 */
+  indexDailyCoverage(
+    codes: string[]
+  ): Promise<Map<string, { count: number; earliest: KrIndexDailyClose; latest: KrIndexDailyClose }>>;
   /** (종목 · 체결 시각) 유일 — 같은 회차 다시 받아도 행이 늘지 않는다 */
   appendProgramFlows(facts: KrProgramFlowFact[], at: Date): Promise<void>;
   /** 한 종목 `since` 뒤 가장 최근 프로그램 누적 */

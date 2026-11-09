@@ -45,13 +45,13 @@ export class PrismaKrStockStore implements KrStockStore {
       const chunk = listings.slice(i, i + MASTER_CHUNK);
       const col = <T,>(pick: (l: KrStockListing) => T) => chunk.map(pick);
       await prisma.$executeRaw`
-        INSERT INTO kr_stock_master (code, standard_code, name, market, group_code, sector_code, base_price,
+        INSERT INTO kr_stock_master (code, standard_code, name, market, group_code, sector_code, sector_mid_code, base_price,
           shares_outstanding, market_cap, is_halted, is_liquidation, is_administrative, warn_code, overheat_code, is_preferred,
           listed_at, delisted_at, synced_at)
         SELECT u.*, NULL::timestamp, (${syncedAt}::timestamptz AT TIME ZONE 'UTC') FROM unnest(
           ${col((l) => l.code)}::text[], ${col((l) => l.standardCode)}::text[], ${col((l) => l.name)}::text[],
           ${col((l) => l.market)}::text[], ${col((l) => l.groupCode)}::text[], ${col((l) => l.sectorCode)}::text[],
-          ${col((l) => l.basePrice)}::numeric[], ${col((l) => l.sharesOutstanding)}::bigint[],
+          ${col((l) => l.sectorMidCode)}::text[], ${col((l) => l.basePrice)}::numeric[], ${col((l) => l.sharesOutstanding)}::bigint[],
           ${col((l) => l.marketCap)}::numeric[], ${col((l) => l.isHalted)}::boolean[],
           ${col((l) => l.isLiquidation)}::boolean[],
           ${col((l) => l.isAdministrative)}::boolean[], ${col((l) => l.warnCode)}::text[],
@@ -60,7 +60,8 @@ export class PrismaKrStockStore implements KrStockStore {
         ) AS u
         ON CONFLICT (code) DO UPDATE SET
           standard_code = EXCLUDED.standard_code, name = EXCLUDED.name, market = EXCLUDED.market,
-          group_code = EXCLUDED.group_code, sector_code = EXCLUDED.sector_code, base_price = EXCLUDED.base_price,
+          group_code = EXCLUDED.group_code, sector_code = EXCLUDED.sector_code,
+          sector_mid_code = EXCLUDED.sector_mid_code, base_price = EXCLUDED.base_price,
           shares_outstanding = EXCLUDED.shares_outstanding, market_cap = EXCLUDED.market_cap,
           is_halted = EXCLUDED.is_halted, is_liquidation = EXCLUDED.is_liquidation, is_administrative = EXCLUDED.is_administrative,
           warn_code = EXCLUDED.warn_code, overheat_code = EXCLUDED.overheat_code,

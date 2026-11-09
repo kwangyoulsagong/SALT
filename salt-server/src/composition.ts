@@ -47,6 +47,7 @@ import { parseKrSummaryIndices } from "./market/domain";
 import { PrismaKrSupplementStore } from "./market/infrastructure/PrismaKrSupplementStore";
 import { PrismaKrMarketStatusStore } from "./market/infrastructure/PrismaKrMarketStatusStore";
 import { PrismaKrMoveSourceStore } from "./market/infrastructure/PrismaKrMoveSourceStore";
+import { PrismaCryptoWarningReader, PrismaMoveBetaReader } from "./market/infrastructure/PrismaForecastMoveReader";
 import { PrismaMarketScheduleReader } from "./market/infrastructure/PrismaMarketScheduleReader";
 import { PrismaIndicatorRepository } from "./market/infrastructure/PrismaIndicatorRepository";
 import { PrismaMarketAssetRepository } from "./market/infrastructure/PrismaMarketAssetRepository";
@@ -192,6 +193,12 @@ const market = createMarketApplication({
   schedule: new PrismaMarketScheduleReader(),
   // 보유는 `portfolio` 공개 API 로 — `portfolio` 가 아래에서 조립되므로 부를 때 찾는다(`held` 와 같은 이유)
   tracking: { held: new HeldAssetsAdapter(() => portfolio.api), limit: env.TRACKED_ASSET_LIMIT },
+  // 오늘 왜 움직였나(F016 단계 C) — 예측 배치 뷰 둘 · 카드 문턱(설정)
+  move: {
+    betas: new PrismaMoveBetaReader(),
+    warnings: new PrismaCryptoWarningReader(),
+    policy: { k: env.MOVE_CARD_K, minRate: env.MOVE_CARD_MIN_RATE },
+  },
 });
 
 /**

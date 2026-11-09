@@ -10,6 +10,12 @@ import {
   KR_NEWS_MAX_PAGES,
   KR_NEWS_RETENTION_DAYS,
   KR_VI_RETENTION_DAYS,
+  KR_INDEX_DAILY_PAGE,
+  KR_INDEX_DAILY_REFILL_BELOW,
+  KR_INDEX_DAILY_SESSIONS,
+  KR_MARKET_INDEX_CODES,
+  krIndexDailyRows,
+  type KrIndexDailyClose,
   type KrMarketCalendarStore,
   type KrMoveSourcePort,
   type KrMoveSourceStore,
@@ -109,21 +115,21 @@ export class PollKrSectorIndices {
     if (!isKrQuoteWindow(session)) return { skipped: true as const };
     const sectors = [...new Set((await this.store.sectorIndexCodes(await this.universe.execute())).values())].sort();
     const facts: KrSectorIndexFact[] = [];
-    let failed = 0;
+    // 초과 한 건에 회차를 접지 않는다(프로그램 매매와 같은 규칙) — 2026-11-06 15:40 종가 회차가 첫 업종의 초과 하나로 0행이었다
+    // (그 분 현재가 초과가 몰렸다, 서버 로그). 그날 종가는 기간별 시세(`BackfillKrIndexDaily`)가 16:05 에 다시 덮는다
+    const counter = new SupplementFailures();
     for (const [i, code] of sectors.entries()) {
       if (i > 0) await this.pause(KR_SUPPLEMENT_SPACING_MS);
       try {
         const q = await this.kis.indexQuote(code);
         facts.push({ code: q.code, value: q.value, change: q.change, changeRate: q.changeRate });
+        counter.ok();
       } catch (error) {
-        failed++;
-        if (isKrRateLimited(error)) break;
-        logger.warn(`국내 업종 지수 실패 — ${code}: ${(error as Error).message}`);
-        if (failed >= CIRCUIT_FAILURES) break;
+        if (counter.fail(error, `국내 업종 지수 실패 — ${code}`)) break;
       }
     }
     await this.store.upsertSectorIndices(facts, this.now());
-    return { skipped: false as const, sectors: sectors.length, saved: facts.length, failed };
+    return { skipped: false as const, sectors: sectors.length, saved: facts.length, failed: counter.failed, yielded: counter.yielded };
   }
 }
 
@@ -151,39 +157,131 @@ export class PollKrProgramFlows {
 
     const codes = await this.universe.execute();
     const facts: KrProgramFlowFact[] = [];
-    let failed = 0;
-    let consecutive = 0;
-    let rateLimitedInRow = 0;
-    let yielded = false;
+    const counter = new SupplementFailures();
     for (const [i, code] of codes.entries()) {
       if (i > 0) await this.pause(KR_SUPPLEMENT_SPACING_MS);
       try {
         const fact = await this.kis.programFlow(code);
         if (fact && kstDateOf(fact.at) === kstDateOf(at)) facts.push(fact);
-        consecutive = 0;
-        rateLimitedInRow = 0;
+        counter.ok();
       } catch (error) {
-        failed++;
-        if (isKrRateLimited(error)) {
-          rateLimitedInRow++;
-          if (rateLimitedInRow >= YIELD_AFTER_RATE_LIMITED) {
-            yielded = true;
-            break;
-          }
-          continue;
-        }
-        rateLimitedInRow = 0;
-        consecutive++;
-        logger.warn(`국내 프로그램 매매 실패 — ${code}: ${(error as Error).message}`);
-        if (consecutive >= CIRCUIT_FAILURES) break;
+        if (counter.fail(error, `국내 프로그램 매매 실패 — ${code}`)) break;
       }
     }
     await this.store.appendProgramFlows(facts, this.now());
+    const { failed, yielded } = counter;
     // 회차마다 한 줄 — 0행 회차가 조용히 지나가지 않게(2026-11-06 원인을 로그 없이 찾느라 늦었다)
     logger.info(`🇰🇷 국내 프로그램 매매: ${facts.length}/${codes.length}종목 · 실패 ${failed}${yielded ? " · 한도 초과로 양보" : ""}`);
     return { skipped: false as const, codes: codes.length, saved: facts.length, failed, yielded };
   }
 }
+
+/**
+ * 지수 · 업종 일별 이력(F016 단계 C — β 재료). 시장 지수 셋 + 유니버스 종목의 업종. 저장된 행이 `KR_INDEX_DAILY_SESSIONS` 보다 적으면
+ * 기간별 시세를 거슬러 쪽 넘김(처음 한 번 약 6쪽), 그 뒤엔 최근 한 쪽만(맥 수면으로 며칠 놓쳐도 메운다 · 장중 마지막 값을 공식 종가로 덮는다).
+ * 장 마감 뒤 하루 한 번 + 기동 때. 초과 규칙은 다른 부가 작업과 같다
+ */
+export class BackfillKrIndexDaily {
+  constructor(
+    private readonly kis: KrMoveSourcePort,
+    private readonly store: KrMoveSourceStore,
+    private readonly universe: ResolveKrStockUniverse,
+    private readonly now: () => Date = () => new Date(),
+    private readonly pause: (ms: number) => Promise<void> = wait
+  ) {}
+
+  /** 한 지수에 넘길 최대 쪽 수 — 250 거래일 / 50 + 여유(휴장 많은 구간) */
+  static readonly MAX_PAGES = 8;
+
+  async execute() {
+    const sectors = new Set((await this.store.sectorIndexCodes(await this.universe.execute())).values());
+    const codes = [...KR_MARKET_INDEX_CODES, ...[...sectors].sort()];
+    const coverage = await this.store.indexDailyCoverage(codes);
+    const today = kstDateOf(this.now());
+    const counter = new SupplementFailures();
+    let calls = 0;
+    let saved = 0;
+    const names: Array<{ code: string; name: string }> = [];
+    outer: for (const code of codes) {
+      const have = coverage.get(code);
+      const deep = !have || have.count < KR_INDEX_DAILY_REFILL_BELOW;
+      const closes: KrIndexDailyClose[] = [];
+      let to = today;
+      for (let page = 0; page < (deep ? BackfillKrIndexDaily.MAX_PAGES : 1); page++) {
+        if (calls > 0) await this.pause(KR_SUPPLEMENT_SPACING_MS);
+        calls++;
+        let rows: KrIndexDailyClose[];
+        try {
+          // 달력 100일 ≈ 68 거래일 > 한 쪽(50) — 쪽이 다 차게 넉넉히
+          const page = await this.kis.indexDailyCloses(code, shiftDate(to, -100), to);
+          rows = page.closes;
+          if (page.name && !names.some((n) => n.code === code)) names.push({ code, name: page.name });
+          counter.ok();
+        } catch (error) {
+          if (counter.fail(error, `국내 지수 일별 실패 — ${code}`)) {
+            saved += await this.save(code, closes);
+            break outer;
+          }
+          break;
+        }
+        closes.push(...rows);
+        const oldest = rows.reduce<string | null>((m, r) => (m === null || r.tradeDate < m ? r.tradeDate : m), null);
+        if (rows.length < KR_INDEX_DAILY_PAGE || oldest === null) break;
+        if (new Set(closes.map((c) => c.tradeDate)).size >= KR_INDEX_DAILY_SESSIONS) break;
+        to = shiftDate(oldest, -1);
+      }
+      saved += await this.save(code, closes);
+    }
+    await this.store.upsertIndexNames(names, this.now());
+    logger.info(`🇰🇷 국내 지수 일별: ${codes.length}지수 · 호출 ${calls} · 저장 ${saved}행 · 실패 ${counter.failed}${counter.yielded ? " · 한도 초과로 양보" : ""}`);
+    return { codes: codes.length, calls, saved, failed: counter.failed, yielded: counter.yielded };
+  }
+
+  /**
+   * 받은 종가 → 일별 행(맨 앞 행은 앞 종가가 없어 빠진다 — 이미 있는 행이다). **오늘 행은 장 마감(16:00 KST) 뒤에만** — 장 전 · 장중에도
+   * 원천이 오늘 날짜 행을 준다(2026-11-09 08:43 기동 회차가 11-09 행을 썼다 — 종가가 아니다). 장중 값은 업종 회차가 따로 쓴다
+   */
+  private async save(code: string, closes: KrIndexDailyClose[]) {
+    const now = this.now();
+    const today = kstDateOf(now);
+    const closed = new Date(now.getTime() + 9 * 3_600_000).getUTCHours() >= 16;
+    const rows = krIndexDailyRows(closes.filter((c) => c.tradeDate < today || closed));
+    await this.store.upsertIndexDaily(code, rows, this.now());
+    return rows.length;
+  }
+}
+
+/**
+ * 부가 작업(업종 · 프로그램 · 지수 일별)의 실패 셈 — 초과 한 건은 그 대상만 건너뛰고 연달아 셋이면 양보, 다른 실패는 연달아 다섯이면 멈춘다.
+ * 세 작업이 같은 규칙이어야 한다(2026-11-06 프로그램만 고쳐 업종 15:40 회차가 초과 하나로 0행) — 그래서 한 곳
+ */
+export class SupplementFailures {
+  failed = 0;
+  yielded = false;
+  private consecutive = 0;
+  private rateLimitedInRow = 0;
+
+  ok() {
+    this.consecutive = 0;
+    this.rateLimitedInRow = 0;
+  }
+
+  /** 실패 하나 — 회차를 멈춰야 하면 `true` */
+  fail(error: unknown, label: string): boolean {
+    this.failed++;
+    if (isKrRateLimited(error)) {
+      this.rateLimitedInRow++;
+      if (this.rateLimitedInRow >= YIELD_AFTER_RATE_LIMITED) this.yielded = true;
+      return this.yielded;
+    }
+    this.rateLimitedInRow = 0;
+    this.consecutive++;
+    logger.warn(`${label}: ${(error as Error).message}`);
+    return this.consecutive >= CIRCUIT_FAILURES;
+  }
+}
+
+const shiftDate = (iso: string, days: number) => new Date(Date.parse(`${iso}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);
 
 /** 보관 기한 정리 — 제목 30일 · 장중 수급 7일 · VI 사건 30일(단계 A 가 남긴 것). 장 마감 뒤 하루 한 번 */
 export class PruneKrMoveSources {

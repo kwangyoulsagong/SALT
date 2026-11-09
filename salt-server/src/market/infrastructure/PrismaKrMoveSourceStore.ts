@@ -8,6 +8,8 @@ import {
   type KrNewsTitleFact,
   type KrProgramFlowFact,
   type KrSectorIndexFact,
+  type KrIndexDailyClose,
+  type KrIndexDailyRow,
 } from "../domain";
 
 /**
@@ -76,9 +78,12 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
   async sectorIndexCodes(codes: string[]) {
     const result = new Map<string, string>();
     if (codes.length === 0) return result;
-    const rows = await prisma.krStockMaster.findMany({ where: { code: { in: codes } }, select: { code: true, sectorCode: true } });
+    const rows = await prisma.krStockMaster.findMany({
+      where: { code: { in: codes } },
+      select: { code: true, sectorCode: true, sectorMidCode: true },
+    });
     for (const r of rows) {
-      const sector = krSectorIndexCodeOf(r.sectorCode);
+      const sector = krSectorIndexCodeOf(r.sectorCode, r.sectorMidCode);
       if (sector) result.set(r.code, sector);
     }
     return result;
@@ -104,6 +109,56 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
           AS u(code, value, change_rate)
         ON CONFLICT (code, trade_date) DO UPDATE SET close = EXCLUDED.close, change_rate = EXCLUDED.change_rate,
           updated_at = EXCLUDED.updated_at`;
+  }
+
+  async upsertIndexDaily(code: string, rows: KrIndexDailyRow[], at: Date) {
+    if (rows.length === 0) return;
+    // 기간별 시세(공식 종가)가 장중 마지막 값(15:40 회차)을 덮는다 — 같은 값이면 멱등
+    await prisma.$executeRaw`
+        INSERT INTO kr_sector_index_daily (code, trade_date, close, change_rate, updated_at)
+        SELECT ${code}, u.trade_date, u.close, u.change_rate, (${at}::timestamptz AT TIME ZONE 'UTC')
+        FROM unnest(${rows.map((r) => r.tradeDate)}::date[], ${rows.map((r) => r.close)}::numeric[],
+          ${rows.map((r) => r.changeRate)}::numeric[]) AS u(trade_date, close, change_rate)
+        ON CONFLICT (code, trade_date) DO UPDATE SET close = EXCLUDED.close, change_rate = EXCLUDED.change_rate,
+          updated_at = EXCLUDED.updated_at`;
+  }
+
+  async upsertIndexNames(names: Array<{ code: string; name: string }>, at: Date) {
+    if (names.length === 0) return;
+    await prisma.$executeRaw`
+        INSERT INTO kr_index_name (code, name, updated_at)
+        SELECT u.code, u.name, (${at}::timestamptz AT TIME ZONE 'UTC')
+        FROM unnest(${names.map((n) => n.code)}::text[], ${names.map((n) => n.name)}::text[]) AS u(code, name)
+        ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, updated_at = EXCLUDED.updated_at`;
+  }
+
+  async indexNames(codes: string[]) {
+    if (codes.length === 0) return new Map<string, string>();
+    const rows = await prisma.krIndexName.findMany({ where: { code: { in: codes } }, select: { code: true, name: true } });
+    return new Map(rows.map((r) => [r.code, r.name]));
+  }
+
+  async indexDailyCoverage(codes: string[]) {
+    const result = new Map<string, { count: number; earliest: KrIndexDailyClose; latest: KrIndexDailyClose }>();
+    if (codes.length === 0) return result;
+    // 지수 10여 개 × 하루 한 행 — PK (code, trade_date) 앞부분으로 한 문장
+    const rows = await prisma.$queryRaw<
+      { code: string; count: bigint; earliest_date: Date; earliest_close: string; latest_date: Date; latest_close: string }[]
+    >`
+        SELECT code, count(*) AS count,
+          (array_agg(trade_date ORDER BY trade_date))[1] AS earliest_date,
+          ((array_agg(close ORDER BY trade_date))[1])::text AS earliest_close,
+          (array_agg(trade_date ORDER BY trade_date DESC))[1] AS latest_date,
+          ((array_agg(close ORDER BY trade_date DESC))[1])::text AS latest_close
+        FROM kr_sector_index_daily WHERE code = ANY(${codes}::text[]) GROUP BY code`;
+    for (const r of rows) {
+      result.set(r.code, {
+        count: Number(r.count),
+        earliest: { tradeDate: r.earliest_date.toISOString().slice(0, 10), close: Number(r.earliest_close) },
+        latest: { tradeDate: r.latest_date.toISOString().slice(0, 10), close: Number(r.latest_close) },
+      });
+    }
+    return result;
   }
 
   async sectorIndices(codes: string[]) {

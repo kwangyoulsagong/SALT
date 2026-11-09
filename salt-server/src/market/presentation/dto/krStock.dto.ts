@@ -34,6 +34,11 @@ export const krCodeParamSchema = z.object({
   code: z.string().regex(/^[0-9A-Z]{6}$/),
 });
 
+/** 코인 심볼(F016 단계 C `why-moved`) — 업비트 원화 마켓 심볼(`BTC` · `1INCH`). 대소문자는 유스케이스가 맞춘다 */
+export const cryptoSymbolParamSchema = z.object({
+  symbol: z.string().regex(/^[0-9A-Za-z]{1,15}$/),
+});
+
 export const krChartQuerySchema = z.object({
   period: z.enum(["1d", "5m"]).default("1d"),
   count: z.coerce.number().int().min(1).max(500).default(120),

@@ -17,6 +17,7 @@ import {
   addToWatchlistSchema,
   queryWatchlistSchema,
 } from "./dto/watchlist.dto";
+import { cryptoSymbolParamSchema } from "./dto/krStock.dto";
 import { searchAssetsSchema } from "./dto/search.dto";
 
 /** 분봉에서 거래소가 받는 단위. 그 외 값은 5분으로 떨어뜨린다(원문). */
@@ -83,6 +84,16 @@ export class InvestmentController {
         req.params.id
       );
       return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** 코인 오늘 왜 움직였나(F016 단계 C) — 로그인 사용자 */
+  getCryptoWhyMoved = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { symbol } = cryptoSymbolParamSchema.parse(req.params);
+      return ResponseUtil.success(res, await this.useCases.getCryptoWhyMoved.execute(symbol));
     } catch (error) {
       next(error);
     }

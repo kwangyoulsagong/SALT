@@ -23,6 +23,8 @@ export interface KrStockListing {
   /** ST 주권 · EF ETF · EN ETN · RT 리츠 … — 유니버스 시총 상위는 ST 만 */
   groupCode: string;
   sectorCode: string | null;
+  /** 지수업종 중분류 — 없으면(0000) `null`. 업종 몫은 이것 먼저(`krSectorIndexCodeOf`) */
+  sectorMidCode: string | null;
   basePrice: number | null;
   sharesOutstanding: bigint | null;
   /** 전일 시가총액(원) */

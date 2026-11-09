@@ -146,6 +146,26 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    */
   router.get("/crypto/:symbol/chart", investmentController.getChartData);
 
+  /**
+   * @swagger
+   * /api/investment/crypto/{symbol}/why-moved:
+   *   get:
+   *     summary: 코인 오늘 왜 움직였나 — ① BTC 몫 · 종목 몫 · ② 같은 날 사실 · 카드 조건(로그인 사용자)
+   *     description: |
+   *       저장값만 읽는다(F016 단계 C). 등락은 업비트 전일 대비(KST 09:00 기준). BTC 몫 = β × BTC 등락(β = 예측 배치 `realized_vol.btc_beta`),
+   *       종목 몫 = 나머지. BTC 자신은 `method: benchmark`(시장 몫이 전부). 사실 — 그날(09:00 KST 뒤) 기사 제목 · 거래소 유의/주의(매일 스냅샷, 2일 안).
+   *     tags: [Investment]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - { in: path, name: symbol, required: true, schema: { type: string, pattern: "^[0-9A-Za-z]{1,15}$" }, description: "BTC · ETH" }
+   *     responses:
+   *       200:
+   *         description: "`{ symbol, date, show, reasons[], usualRate, split: { total, market, sector: null, idio, method, marketIndex: KRW-BTC, sectorIndex: null, sectorName: null } | null, facts[], unavailable[] }`"
+   *       401: { description: 로그인 필요 }
+   *       404: { description: 모르는 종목(`MARKET_SYMBOL_NOT_FOUND`) }
+   */
+  router.get("/crypto/:symbol/why-moved", authMiddleware, investmentController.getCryptoWhyMoved);
+
   // ==================== 🔒 PROTECTED ENDPOINTS (인증 필요) ====================
 
   /**

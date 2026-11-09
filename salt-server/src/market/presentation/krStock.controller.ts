@@ -172,6 +172,15 @@ export class KrStockController {
     }
   };
 
+  whyMoved = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code } = krCodeParamSchema.parse(req.params);
+      return ResponseUtil.success(res, await this.enabled().getWhyMoved.execute(this.viewer(req), code));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   intradayFlows = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { code } = krCodeParamSchema.parse(req.params);

@@ -16,7 +16,14 @@ import {
 import { KrStockNotAvailableError } from "../../domain";
 import { GetKrIntradayFlows, GetKrStockNews } from "../ReadKrStock";
 import type { ResolveKrStockUniverse } from "../SyncKrStock";
-import { PollKrNewsTitles, PollKrProgramFlows, PollKrSectorIndices, PruneKrMoveSources } from "../SyncKrMoveSources";
+import {
+  BackfillKrIndexDaily,
+  PollKrNewsTitles,
+  PollKrProgramFlows,
+  PollKrSectorIndices,
+  PruneKrMoveSources,
+  SupplementFailures,
+} from "../SyncKrMoveSources";
 
 /** F016 단계 B — 시황/공시 제목 · 업종 지수 · 장중 프로그램 매매(SRV-REQ-051 FR-1 · 4 · 5) */
 
@@ -69,6 +76,20 @@ describe("원천 판정 — 허용 · 거절 경계", () => {
       [null, null],
     ];
     for (const [input, out] of table) assert.equal(krSectorIndexCodeOf(input), out, String(input));
+  });
+
+  it("중분류가 있으면 중분류 — 대분류 '제조업'(0027)은 반도체가 지배해 제약사 업종 몫이 틀렸다(2026-11-09 동화약품 β −3.5)", () => {
+    const table: Array<[string | null, string | null, string | null]> = [
+      ["0027", "0013", "0013"], // 삼성전자 · SK하이닉스 — 전기전자
+      ["0027", "0009", "0009"], // 동화약품 · 셀트리온 — 의약품
+      ["1009", "1028", "1028"], // 코스닥 중분류
+      ["0021", null, "0021"], // 중분류 없음 → 대분류(금융)
+      ["0027", "0000", "0027"],
+      ["0000", "0013", "0013"],
+      ["0000", null, null],
+      ["0001", "0001", null],
+    ];
+    for (const [big, mid, out] of table) assert.equal(krSectorIndexCodeOf(big, mid), out, `${big}/${mid}`);
   });
 
   it("제목 회차 — KST 07~20시 짝수 분 · 그 밖은 정각 · 30분만", () => {
@@ -187,10 +208,108 @@ describe("PollKrSectorIndices — 유니버스 업종만 · 지수 TR 그대로"
     assert.equal((await run(kst("10:31"), false)).asked.length, 0);
   });
 
-  it("한도 초과면 그 자리에서 접고 받은 값은 저장한다", async () => {
-    const { asked, saved } = await run(kst("10:31"), true, { "0027": rateLimited });
+  it("초과 한 건은 그 업종만 건너뛴다 — 2026-11-06 15:40 종가 회차가 첫 업종 초과 하나로 0행이었다(프로그램과 같은 규칙)", async () => {
+    const { asked, saved } = await run(kst("15:40"), true, { "0021": rateLimited });
     assert.deepEqual(asked, ["0021", "0027"]);
-    assert.equal(saved.length, 1);
+    assert.deepEqual(saved.map((f) => (f as { code: string }).code), ["0027"]);
+  });
+});
+
+describe("SupplementFailures — 부가 작업 셋(업종 · 프로그램 · 지수 일별)의 같은 실패 규칙", () => {
+  const other = new Error("HTTP 500");
+  it("초과는 연달아 셋에 양보 · 다른 실패는 연달아 다섯에 멈춤 · 성공이 끼면 다시 센다", () => {
+    const table: Array<[Array<"rate" | "other" | "ok">, boolean, boolean]> = [
+      [["rate", "rate"], false, false],
+      [["rate", "rate", "rate"], true, true],
+      [["rate", "rate", "ok", "rate", "rate"], false, false],
+      [["other", "other", "other", "other"], false, false],
+      [["other", "other", "other", "other", "other"], true, false],
+      [["rate", "other", "rate", "other"], false, false],
+    ];
+    for (const [steps, stop, yielded] of table) {
+      const c = new SupplementFailures();
+      let stopped = false;
+      for (const step of steps) {
+        if (step === "ok") c.ok();
+        else stopped = c.fail(step === "rate" ? rateLimited : other, "t");
+      }
+      assert.deepEqual([stopped, c.yielded], [stop, yielded], steps.join(","));
+    }
+  });
+});
+
+describe("BackfillKrIndexDaily — 지수 · 업종 일별(β 재료)", () => {
+  /** 2026-11-06 부터 거슬러 평일만 n 거래일 종가(100 + 날짜 순번) */
+  const weekdays = (to: string, n: number) => {
+    const out: string[] = [];
+    for (let d = new Date(`${to}T00:00:00Z`); out.length < n; d = new Date(d.getTime() - 86_400_000)) {
+      if (d.getUTCDay() !== 0 && d.getUTCDay() !== 6) out.push(d.toISOString().slice(0, 10));
+    }
+    return out;
+  };
+  const all = weekdays("2026-11-06", 400);
+  const run = async (have: Record<string, number>, fail: Record<string, Error> = {}, at = kst("16:05", "2026-11-09"), dates = all) => {
+    const calls: Array<[string, string, string]> = [];
+    const upserts = new Map<string, Array<{ tradeDate: string; changeRate: number }>>();
+    const names: Array<{ code: string; name: string }> = [];
+    const kis = {
+      indexDailyCloses: async (code: string, from: string, to: string) => {
+        calls.push([code, from, to]);
+        if (fail[code]) throw fail[code];
+        return {
+          name: code === "0027" ? "제조" : null,
+          closes: dates.filter((d) => d >= from && d <= to).slice(0, 50).map((tradeDate) => ({ tradeDate, close: 1000 + dates.length - dates.indexOf(tradeDate) })),
+        };
+      },
+    } as unknown as KrMoveSourcePort;
+    const store = {
+      sectorIndexCodes: async () => new Map([["005930", "0027"], ["000660", "0027"]]),
+      indexDailyCoverage: async (codes: string[]) =>
+        new Map(codes.filter((c) => have[c]).map((c) => [c, { count: have[c]!, earliest: { tradeDate: "2025-11-01", close: 1 }, latest: { tradeDate: "2026-11-05", close: 1 } }])),
+      upsertIndexDaily: async (code: string, rows: Array<{ tradeDate: string; changeRate: number }>) => void upserts.set(code, rows),
+      upsertIndexNames: async (n: Array<{ code: string; name: string }>) => void names.push(...n),
+    } as unknown as KrMoveSourceStore;
+    const result = await new BackfillKrIndexDaily(kis, store, universe(["005930", "000660"]), () => at, async () => {}).execute();
+    return { calls, upserts, result, names };
+  };
+
+  it("처음이면 지수 셋 + 업종(중복 없이)을 250 거래일 넘게 거슬러 받는다 — 쪽마다 앞 쪽의 가장 이른 날 하루 전까지", async () => {
+    const { calls, upserts, names } = await run({});
+    assert.deepEqual([...new Set(calls.map((c) => c[0]))], ["0001", "1001", "2001", "0027"]);
+    assert.deepEqual(names, [{ code: "0027", name: "제조" }]); // 원천 이름 — 쪽마다가 아니라 지수마다 한 번
+    const kospi = calls.filter((c) => c[0] === "0001");
+    assert.equal(kospi.length, 5);
+    assert.equal(kospi[0]![2], "2026-11-09");
+    assert.equal(kospi[1]![2], "2026-08-30"); // 첫 쪽 가장 이른 날(평일 50일 앞 08-31) 하루 전
+    assert.equal(upserts.get("0001")!.length, 249); // 받은 250 중 맨 앞 하나는 앞 종가가 없어 빠진다
+  });
+
+  it("이미 250 거래일이 있으면 지수마다 최근 한 쪽만 — 등락률은 바로 앞 거래일 종가 대비", async () => {
+    const { calls, upserts } = await run({ "0001": 260, "1001": 260, "2001": 260, "0027": 260 });
+    assert.equal(calls.length, 4);
+    // 248행(원천 한 해 끝)도 한 쪽만 — 목표(250) 미만이라고 매일 깊게 넘기지 않는다(2026-11-09 95회). 200 미만이면 다시 거슬러
+    assert.equal((await run({ "0001": 248, "1001": 248, "2001": 248, "0027": 248 })).calls.length, 4);
+    assert.equal((await run({ "0001": 199, "1001": 248, "2001": 248, "0027": 248 })).calls.length, 8);
+    const rows = upserts.get("0001")!;
+    const last = rows[rows.length - 1]!;
+    assert.equal(last.tradeDate, "2026-11-06");
+    assert.ok(Math.abs(last.changeRate - (1400 / 1399 - 1) * 100) < 1e-9);
+  });
+
+  it("오늘 행은 16:00 KST 뒤에만 — 장 전 · 장중 응답의 오늘 행은 종가가 아니다(2026-11-09 08:43 기동 회차)", async () => {
+    const withToday = ["2026-11-09", ...all];
+    const have = { "0001": 260, "1001": 260, "2001": 260, "0027": 260 };
+    const morning = (await run(have, {}, kst("08:43", "2026-11-09"), withToday)).upserts.get("0001")!;
+    assert.equal(morning[morning.length - 1]!.tradeDate, "2026-11-06");
+    const evening = (await run(have, {}, kst("16:05", "2026-11-09"), withToday)).upserts.get("0001")!;
+    assert.equal(evening[evening.length - 1]!.tradeDate, "2026-11-09");
+  });
+
+  it("초과 한 건은 그 지수만 건너뛴다 · 다른 지수는 계속", async () => {
+    const { upserts, result } = await run({ "0001": 260, "1001": 260, "2001": 260, "0027": 260 }, { "1001": rateLimited });
+    assert.deepEqual([...upserts.keys()].sort(), ["0001", "0027", "1001", "2001"]);
+    assert.equal(upserts.get("1001")!.length, 0);
+    assert.equal(result.failed, 1);
   });
 });
 

@@ -47,6 +47,7 @@ import {
   type KrMoveSourceStore,
 } from "../domain";
 import { logger } from "../../shared/config/logger";
+import { krMoveEvents, moveCardFlags, type MoveDependencies } from "./moveCard";
 import { loadKrSession } from "./SyncKrStock";
 
 /**
@@ -262,10 +263,12 @@ export interface KrStockReadDependencies {
   orderbookSource: Pick<KrSupplementPort, "orderbook">;
   /** 시황/공시 제목 · 장중 프로그램 매매(F016 단계 B) */
   moveSources: KrMoveSourceStore;
+  /** 표 행 카드 표시 — β · σ 뷰 · 카드 문턱(F016 단계 C). 없으면 표시 없음(테스트 · 옛 조립) */
+  move?: Pick<MoveDependencies, "betas" | "policy">;
   now?: () => Date;
 }
 
-abstract class KrStockRead {
+export abstract class KrStockRead {
   protected readonly access: KrStockAccess;
   protected readonly now: () => Date;
 
@@ -325,9 +328,23 @@ export class ListKrStockQuotes extends KrStockRead {
     const ranked = rankKrQuotes(withPeriod, query.sort, query.order);
     const page = ranked.slice(query.offset, query.offset + limit);
     const status = await loadKrStatusContext(this.deps.status, page.map((q) => q.code), now, session);
+    const views = page.map((q) => ({ ...toQuoteView(q, now, session, this.deps.logoDevToken, status), periodChange: q.periodChange }));
+    // 행 카드 표시(FE-REQ-063 FR-6) — 상세 카드와 같은 판정(크기 · 그날 사건). β 뷰 한 번 읽기
+    const flags = this.deps.move
+      ? await moveCardFlags(
+          this.deps.move.betas,
+          this.deps.move.policy,
+          page.map((q, i) => ({
+            key: q.code,
+            changeRate: q.changeRate,
+            events: krMoveEvents(views[i]!.status, status.vi.has(q.code), status.actions, q.market),
+          })),
+          now
+        )
+      : null;
     return {
       session: toSessionResponse(session, now),
-      items: page.map((q) => ({ ...toQuoteView(q, now, session, this.deps.logoDevToken, status), periodChange: q.periodChange })),
+      items: views.map((v) => ({ ...v, moveCard: flags?.get(v.code) ?? false })),
       nextOffset: query.offset + limit < ranked.length ? query.offset + limit : null,
     };
   }

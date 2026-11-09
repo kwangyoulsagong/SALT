@@ -410,5 +410,28 @@ export const createKrStockRouter = (
    */
   router.get("/:code/flows/intraday", controller.intradayFlows);
 
+  /**
+   * @swagger
+   * /api/market/kr/{code}/why-moved:
+   *   get:
+   *     summary: 국내 종목 오늘 왜 움직였나 — ① 등락 분해 · ② 같은 날 사실 · 카드 조건(소유자 전용)
+   *     description: |
+   *       저장값만 읽는다(F016 단계 C). 원인을 고르지 않는다 — 몫은 뺄셈, 사실은 시각순.
+   *       `split` — 오늘 등락(%)을 시장 몫 = β_시장 × 지수 · 업종 몫 = β_업종 × (업종 − 지수) · 종목 몫 = 나머지(%p, 소수 둘째 자리)로.
+   *       β 는 예측 배치(`forecast.v_move_beta_export`) — 못 읽으면 β=1 · `method: market_adjusted`. 지수를 못 읽으면 `split: null`.
+   *       `show` — |등락| ≥ max(MOVE_CARD_MIN_RATE, MOVE_CARD_K × 평소 변동) 또는 그날 VI · 시장 조치 · 정지 · 경보이고 `split` 이 있을 때.
+   *       `facts` — 시황/공시 제목 · VI · 시장 조치 · 정지/경보 상태 · 프로그램 순매수(원). 원천 하나 실패면 그 kind 만 `unavailable`.
+   *     tags: [Market - KR Stock]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - { in: path, name: code, required: true, schema: { type: string, pattern: "^[0-9A-Z]{6}$" } }
+   *     responses:
+   *       200:
+   *         description: "`{ code, date, show, reasons[], usualRate, split: { total, market, sector, idio, method, marketIndex, sectorIndex, sectorName } | null, facts: [{ id, kind, at, source, title, value }], unavailable[] }`"
+   *       404: { description: 소유자가 아니거나 시세가 없는 종목 }
+   *       503: { description: KIS 키 없음 }
+   */
+  router.get("/:code/why-moved", controller.whyMoved);
+
   return router;
 };
