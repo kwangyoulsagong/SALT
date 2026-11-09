@@ -713,6 +713,9 @@ model SymbolJudgmentSnapshot {
   @@unique([symbol, mode, judgedAt])
   @@index([ruleVersion, signalType, outcome, judgedAt(sort: Desc)])
   @@index([evaluatedAt, judgedAt])
+  /// 성적 기저율 풀(같은 접두 `LIKE 'kr\_stock.long\_term.%'`) — live 풀이 백테스트 5만 행을 훑지 않게(2026-11-09 판단 상세 504).
+  /// 접두 LIKE 가 일반 btree 를 타는 건 DB 정렬이 `C` 라서다(로컬 실측). 운영 DB 정렬이 다르면 `text_pattern_ops` 가 필요하다 — Prisma 가 그 지정을 비교하지 못해 매 마이그레이션에 다시 만들기를 끼우므로 일반으로 둔다
+  @@index([sampleOrigin, signalType], map: "symbol_judgment_snapshots_pool_idx")
   @@map("symbol_judgment_snapshots")
 }
 
