@@ -108,3 +108,8 @@
 - 몫: `ZoneNavigation` 의 공개 경로 판정을 `@repo/core/auth` `isPublicPath` 로(같은 규칙 — 동작 무변경, `/home` · `/goals` 탭 4 · `/login` 0 실화면) (`cf93acb1`)
 - 검증: `@repo/core` 경계표 13(변이 — 정확히 같음 비교로 바꾸면 2 실패) · 모노레포 `check-types` · `lint` · `test`(core 184 · ui 46) · `test:layer-check` · zone 빌드 5(별도 worktree, main 과 나란히 — `/goals` 152 → 153 은 공용 청크 반올림 경계 · 페이지 3.35 kB 같음, 나머지 zone 무변화) · 실화면(만료 세션 → 제자리 · 실패 문구 → 다시 누르면 익명 채점 / 로그인 `/home` · `/goals` 탭 4 · `/login` 0)
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-09 — 검색 모달 · 머리 내비(주인 `FE-REQ-066` · `067`)
+
+- FR-1 정정 — 1024+ 왼쪽 레일 → 머리 글자 링크(`FE-REQ-067` D1 안 B) · 전환 이름 `rail` 삭제 · `appTabs.ts` 주석
+- 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Modal } from "./Modal";
 import { Button } from "../Button/Button";
@@ -10,7 +10,7 @@ const meta = {
   parameters: { layout: "fullscreen" },
   tags: ["autodocs"],
   argTypes: {
-    size: { control: "select", options: ["sm", "md", "lg"], description: "가로 최대 폭" },
+    size: { control: "select", options: ["sm", "md", "lg", "article", "search"], description: "가로 최대 폭" },
     hideCloseButton: { control: "boolean", description: "닫기 버튼 숨김" },
     disableBackdropClose: {
       control: "boolean",
@@ -120,6 +120,50 @@ export const Article: Story = {
           {Array.from({ length: 12 }, (_, i) => (
             <p key={i}>본문 문단 {i + 1} — 머리는 그대로 두고 본문 칸만 스크롤한다.</p>
           ))}
+        </Modal>
+      </div>
+    );
+  },
+};
+
+/**
+ * 검색 모달(`FE-REQ-066`) — 위 8 · 폭 640 · 배경 막 없음. 열면 검색칸에 포커스(`initialFocusRef`),
+ * ESC 두 단계(글자가 있으면 지우기 → 비면 닫기, `onEscape`). 본문 칸 나누기는 안이 한다.
+ */
+export const Search: Story = {
+  args: { open: false, onClose: () => {}, children: null },
+  render: function SearchStory() {
+    const [open, setOpen] = useState(false);
+    const [value, setValue] = useState("");
+    const inputRef = useRef<HTMLInputElement>(null);
+    return (
+      <div style={{ padding: 24 }}>
+        <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
+          검색 열기
+        </Button>
+        <Modal
+          open={open}
+          onClose={() => setOpen(false)}
+          onEscape={() => (value ? setValue("") : setOpen(false))}
+          initialFocusRef={inputRef}
+          size="search"
+          hideCloseButton
+          label="종목 검색"
+        >
+          <div style={{ padding: 12 }}>
+            <input
+              ref={inputRef}
+              aria-label="종목 검색"
+              value={value}
+              onChange={(event) => setValue(event.target.value)}
+              style={{ width: "100%", height: 40 }}
+            />
+          </div>
+          <div style={{ overflowY: "auto", padding: "0 12px 12px" }}>
+            {Array.from({ length: 20 }, (_, i) => (
+              <p key={i}>결과 {i + 1}</p>
+            ))}
+          </div>
         </Modal>
       </div>
     );

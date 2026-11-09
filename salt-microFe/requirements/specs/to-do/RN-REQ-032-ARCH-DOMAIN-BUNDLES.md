@@ -51,3 +51,4 @@ RN 앱은 코드가 없다(`apps/mobile` 없음, RN-REQ-001~031 전부 to-do). �
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — FR-2 — 웹 컴포넌트 이름 ~~`AppChrome`~~ **`AppNavigation`**(2026-11-03 사용자 결정). 순서 · 이름 · 아이콘 이름 한 벌은 `@repo/core/navigation` `APP_TABS` — 앱도 이것을 읽는다(아이콘 그림만 플랫폼 몫) |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — 웹은 앱 웹뷰(`data-embed=app`)에서 레일 · 하단 탭 · 머리를 숨긴다(`e0bce695` `AppShell.css.ts`) — 앱의 네이티브 탭과 겹치지 않게. 아이콘 이름 한 벌은 `home` · `coin` · `wallet` · `chart` |
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 커밋 대조 — `6ddcb284` 앱 웹뷰 태블릿에서 숨은 하단 탭 여백 56 → 0(`AppShell.css.ts`) |
+| 2026-11-09 | 변경 없음 — 웹 1024+ 내비가 머리 글자 링크로 바뀌었다(`FE-REQ-067`). 앱 하단 탭 4 · `APP_TABS` 한 벌 그대로(`appTabs.ts` 주석만) |

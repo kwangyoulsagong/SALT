@@ -27,3 +27,14 @@ export const pushRecentSearch = (current: readonly string[], query: string): str
   }
   return next;
 };
+
+/** 칩 하나 지우기(`FE-REQ-066` FR-3 — 칩마다 ×). 돌려준 목록이 새 상태다 — 저장 실패는 이번 화면에서만 기억한다 */
+export const removeRecentSearch = (current: readonly string[], value: string): string[] => {
+  const next = current.filter((item) => item !== value);
+  try {
+    window.localStorage.setItem(RECENT_SEARCH_STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // 저장소가 막혀도 화면 목록은 지운다
+  }
+  return next;
+};

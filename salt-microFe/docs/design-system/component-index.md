@@ -58,7 +58,7 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/iconButton` | `IconButton` | `icon`, `label`(필수), `variant`, `size`, `round` | `packages/ui/src/IconButton/IconButton.tsx` |
 | `@repo/ui/textField` | `TextField` | `value`, `onChange`, `label`, `variant('box'\|'filled'\|'line'\|'big'\|'hero'\|'compact')`, `error`, `helperText`, `leading`, `trailing` | `packages/ui/src/TextField/TextField.tsx` |
 | `@repo/ui/disclosureSlot` | `DisclosureSlot` | `lines`(세 줄 튜플 · 필수 · 끄는 prop 없음), `label` | `packages/ui/src/DisclosureSlot/DisclosureSlot.tsx` |
-| `@repo/ui/searchField` | `SearchField` | `value`, `onChange`, `onClear`, `onSubmit`, `label`, `placeholder` | `packages/ui/src/SearchField/SearchField.tsx` |
+| `@repo/ui/searchField` | `SearchField` | `value`, `onChange`, `onClear`, `onSubmit`, `label`, `placeholder` · `ref`(입력 — 2026-11-09) | `packages/ui/src/SearchField/SearchField.tsx` |
 | `@repo/ui/textArea` | `TextArea` | `value`, `onChange`, `label`, `variant('box'\|'line')`, `maxLength`, `autoResize`, `maxHeight`, `error` | `packages/ui/src/TextArea/TextArea.tsx` |
 | `@repo/ui/stepper` | `Stepper` | `label`, `value`, `onChange`, `min`, `max`, `step`, `unit`, `helperText`, `hideLabel` | `packages/ui/src/Stepper/Stepper.tsx` |
 | `@repo/ui/keypad` | `Keypad` | `value`, `onChange`, `maxLength`, `extraKey('00'\|'.'\|'none')` | `packages/ui/src/Keypad/Keypad.tsx` |
@@ -92,7 +92,7 @@ import { vars } from "@repo/ui/tokens";
 | 공개 경로 | 컴포넌트 | 주요 props | 소스 |
 | --- | --- | --- | --- |
 | `@repo/ui/appBar` | `AppBar` | `title`, `leading`, `onBack`, `logo`, `actions`, `sticky`, `bordered` | `packages/ui/src/AppBar/AppBar.tsx` |
-| `@repo/ui/app-navigation` | `AppNavigation` | `items`(`href` · `active` · `icon` = `AppNavigationIcon` · `disabledReason`), `renderLink`, `brand`, `headerEnd`, `label`(필수 — 문구는 부르는 쪽), `bare`(내비 없이 틀만 — 공개 화면), `children` — 왼쪽 레일 1024+ · 하단 탭 768~1023 · 머리 52, `data-app-navigation` 표지 · 아이콘 `AppNavigationIcon`(면 채운 단색 글리프 4 — `home` · `coin`(저축 — 동전에 W) · `wallet` · `chart`)(`FE-REQ-054`) | `packages/ui/src/AppNavigation/AppNavigation.tsx` |
+| `@repo/ui/app-navigation` | `AppNavigation` | `items`(`href` · `active` · `icon` = `AppNavigationIcon` · `disabledReason`), `renderLink`, `brand`, `headerEnd`, `headerSearch`(검색칸 자리 — `AppNavigationSearch`, `FE-REQ-067`), `label`(필수 — 문구는 부르는 쪽), `bare`(내비 없이 틀만 — 공개 화면), `children` — ~~왼쪽 레일 1024+~~ 머리 글자 링크 1024+(2026-11-09 `FE-REQ-067`) · 하단 탭 768~1023 · 머리 52, 검색칸 `AppNavigationSearch`(단추 · 링크, `/` 단축키, `isTypingTarget`), `data-app-navigation` 표지 · 아이콘 `AppNavigationIcon`(면 채운 단색 글리프 4 — `home` · `coin`(저축 — 동전에 W) · `wallet` · `chart`)(`FE-REQ-054`) | `packages/ui/src/AppNavigation/AppNavigation.tsx` |
 | `@repo/ui/logo` | `Logo` | `variant`(`full` 물방울 + "Salt" · `symbol`), `size`(높이 `xs 16` · `sm 20` · `md 24` · `lg 32`), `theme`(`light` · `dark`), `depth`(입체 — 기본 켬, 끄면 단색), `ripples`(물결 — 심볼 · 큰 자리), `decorative`(링크 안), `label` — 모양 `@repo/tokens` `BRAND_MARK` · 색 `colors.brand.mark`. 정적 아이콘은 `pnpm brand:icons`(`FE-REQ-051`) | `packages/ui/src/Logo/Logo.tsx` |
 | `@repo/ui/bottomTabBar` | `BottomTabBar` | `items`(최대 5개), `value`, `onChange`, `fixed`, `label` | `packages/ui/src/BottomTabBar/BottomTabBar.tsx` |
 | `@repo/ui/bottomCTA` | `BottomCTA` | `layout('single'\|'double')`, `fixed`, `leading`, `children` | `packages/ui/src/BottomCTA/BottomCTA.tsx` |
@@ -111,7 +111,7 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/progressScene` | `ProgressScene` | `kind`(`trip` · `car` · `umbrella` · `house` · `jar`), `step` · `steps`(서버 값), `size`(`sm` · `md`) — 저축 목표 진척 장면(2026-11-03 `FE-REQ-056` FR-8) | `packages/ui/src/ProgressScene/ProgressScene.tsx` |
 | `@repo/ui/motion` | `MotionProvider`, `usePlayAfterMount`, `useSlidingIndicator`, `useRolledNumber`, `useChangedAfterMount`, `usePresence`, `ease`, `springs`, `durations`, `motionTokens` | 앱 루트에 한 번(`LazyMotion` 동적 · 줄인 모션 존중) | `packages/ui/src/Motion/index.ts` |
 | `@repo/ui/skeleton` | `Skeleton` | `width`, `height`, `radius`, `lines` | `packages/ui/src/Skeleton/Skeleton.tsx` |
-| `@repo/ui/modal` | `Modal` | `open`, `onClose`, `title`, `footer`, `size`, `hideCloseButton`, `disableBackdropClose` | `packages/ui/src/Modal/Modal.tsx` |
+| `@repo/ui/modal` | `Modal` | `open`, `onClose`, `title`, `footer`, `size`(`sm` · `md` · `lg` · `article` · `search` — 검색 모달 640 · 위 8 · 배경 막 없음, `FE-REQ-066`), `hideCloseButton`, `disableBackdropClose`, `onEscape`(두 단계 ESC), `initialFocusRef`(첫 포커스) | `packages/ui/src/Modal/Modal.tsx` |
 | `@repo/ui/dialog` | `Dialog` | `open`, `title`, `description`, `confirmText`, `cancelText`, `tone`, `onConfirm`, `onCancel` | `packages/ui/src/Dialog/Dialog.tsx` |
 | `@repo/ui/dialogProvider` | `DialogProvider` | `children` | `packages/ui/src/Dialog/DialogProvider.tsx` |
 | `@repo/ui/useDialog` | `useDialog` → `{ alert, confirm }` | `packages/ui/src/Dialog/useDialog.ts` |

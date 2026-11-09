@@ -368,3 +368,8 @@ FR-11("인증 토큰을 클라이언트로 내리지 않는다 — 쿠키에서 
 
 - FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md`
 - 확인: lint · check-types(web · domain-invest) · 훅 사후 실행 · 실화면(해당 화면 200 · 401 미해결 0 · 수화 오류 0)
+
+## 2026-11-09 — 검색 모달 · 머리 내비(주인 `FE-REQ-066` · `067`)
+
+- `AppShell` 주석 · 머리 검색칸 자리(`headerSearch`) — 스트리밍 경계 변화 없음(검색 모달은 클라이언트 잎 · `Suspense` 안). 투자 화면 머리 "종목 검색 ›" 링크 삭제(`MarketBoard`)
+- 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)

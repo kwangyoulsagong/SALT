@@ -130,3 +130,5 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `@repo/core/marketKr`(머리에 이 REQ) 에 타입 넷(`KrNewsItem` · `KrStockNews` · `KrProgramFlow` · `KrIntradayFlows`) · 국내 상세에 오늘 소식 카드 · 투자자 카드 머리 프로그램 줄(`FE-REQ-063`). 기존 칸 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
 | 2026-11-09 | `@repo/core/marketKr` `KrQuote.moveCard?` · 국내 상세 머리 아래 "왜 움직였나" 카드 자리(F016 단계 C) |
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — 국내 오늘 소식 안내 문구 정정 — ~~제목만 모아요 · 원문은 제공처에서~~ 본문을 함께 보여 준다 |
+| 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `b37bf890` · `6a062b24`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — `entities/market` `ui/index` — `SearchOption` 더함 · `AssetSearchTable` 삭제(국내 결과 줄은 같은 판정 — 코드는 이름으로 로고 이니셜) |
+| 2026-11-09 | 확인 2회차 `6a062b24` — `useKrMarketStatus` `retryOnMount: false`: 실패한 장 상태를 새 소비자가 붙을 때마다 다시 부르지 않는다(검색 모달이 열 때마다 비소유자 404). 404 는 그대로 · 5xx 는 1분 주기. 소비 셋(`RealtimeMarketTable` · `KrStockAvailability` · `useTopTradeValue`) — 성공 경로 동작 같음 |

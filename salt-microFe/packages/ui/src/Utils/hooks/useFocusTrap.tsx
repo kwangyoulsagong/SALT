@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
 
 const FOCUSABLE_SELECTOR = [
@@ -15,6 +15,8 @@ const FOCUSABLE_SELECTOR = [
 export interface UseFocusTrapOptions {
   /** ESC를 눌렀을 때. 넘기지 않으면 ESC를 처리하지 않는다. */
   onEscape?: () => void;
+  /** 열릴 때 포커스를 줄 요소 — 없으면 컨테이너(`FE-REQ-066` FR-1: 검색 모달은 검색칸) */
+  initialFocusRef?: RefObject<HTMLElement | null>;
 }
 
 /**
@@ -24,19 +26,24 @@ export interface UseFocusTrapOptions {
 export const useFocusTrap = (
   containerRef: RefObject<HTMLElement | null>,
   active: boolean,
-  { onEscape }: UseFocusTrapOptions = {}
+  { onEscape, initialFocusRef }: UseFocusTrapOptions = {}
 ) => {
+  // ESC 처리기는 렌더마다 바뀌어도 가둠을 다시 걸지 않는다 — 다시 걸면 정리가 포커스를 연 자리로 돌렸다가 컨테이너로 다시 옮긴다
+  // (입력 중 모달 밖으로 포커스가 튀는 결함 — 2026-11-09 검색 모달). 최신 처리기는 ref 로 읽는다
+  const onEscapeRef = useRef(onEscape);
+  onEscapeRef.current = onEscape;
+
   useEffect(() => {
     if (!active) return;
 
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const container = containerRef.current;
-    container?.focus();
+    (initialFocusRef?.current ?? container)?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && onEscape) {
+      if (event.key === "Escape" && onEscapeRef.current) {
         event.preventDefault();
-        onEscape();
+        onEscapeRef.current();
         return;
       }
 
@@ -74,5 +81,5 @@ export const useFocusTrap = (
       document.removeEventListener("keydown", handleKeyDown);
       previouslyFocused?.focus();
     };
-  }, [containerRef, active, onEscape]);
+  }, [containerRef, active, initialFocusRef]);
 };

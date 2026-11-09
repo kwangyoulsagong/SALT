@@ -69,3 +69,7 @@
 
 - 몫: `ZoneNavigation` 의 공개 경로 판정을 `@repo/core/auth` `isPublicPath` 로(같은 규칙 — 동작 무변경, `/home` · `/goals` 탭 4 · `/login` 0 실화면)
 - **Action**: 같은 판정을 두 자리에서 하면 하나로 모은다 — 새 공개 zone 은 `PUBLIC_PATHS` 한 줄
+
+## 2026-11-09 — 검색 모달 · 머리 내비
+
+- 11-03 결정을 뒤집었다 — 주인 회고 `FE-REQ-067`

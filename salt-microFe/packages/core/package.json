@@ -18,7 +18,9 @@
     "./embed": "./src/embed/index.ts",
     "./home": "./src/home/homeSummaryCard.ts",
     "./navigation": "./src/navigation/index.ts",
-    "./input": "./src/input/numberText.ts"
+    "./input": "./src/input/numberText.ts",
+    "./search": "./src/search/searchList.ts",
+    "./format": "./src/format/price.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

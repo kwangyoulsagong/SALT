@@ -18,7 +18,7 @@ type AppTabLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href" | "o
 };
 
 /**
- * 탭으로 가는 링크 한 벌 (`FE-REQ-054` · `FE-REQ-051` FR-2) — 하단 탭 · 레일과 머리 로고(→ 홈)가 같이 쓴다.
+ * 탭으로 가는 링크 한 벌 (`FE-REQ-054` · `FE-REQ-051` FR-2) — 머리 링크 · 하단 탭과 머리 로고(→ 홈)가 같이 쓴다.
  *
  * 같은 앱이면 `next/link`. 다른 zone 이면 `CrossZoneLink` + prerender 표지(`prerenderRules.ts`) + 누른 시각 계측 표지,
  * 대기 문구는 끈다(탭 · 머리 칸이 흔들린다). 로고가 따로 링크를 짜면 이 셋이 빠진다 — 2026-11-04 로고 첫 판이 그랬다.

@@ -39,10 +39,10 @@ created: 2026-09-09
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-80 | 검색어 상태는 `features/search-asset` 의 로컬 상태 + URL `?q=` 동기화(뒤로가기 · 새로고침 복원). 전역 스토어에 두지 않는다 | Must |
+| FR-80 | 검색어 상태는 `features/search-asset` 의 로컬 상태 + URL `?q=` 동기화(뒤로가기 · 새로고침 복원). 전역 스토어에 두지 않는다. **정정 2026-11-09** — `?q=` 동기화는 `/search` 주소로 연 모달만(`syncUrl`). 다른 화면에서 연 모달은 주소를 바꾸지 않는다(`FE-REQ-066` FR-5) | Must |
 | FR-81 | 입력 **디바운스 300ms**. 이전 요청은 `AbortSignal` 로 취소한다. 응답이 뒤바뀌어 늦은 결과가 이기지 않게 한다 | Must |
 | FR-82 | 앞뒤 공백 제거 후 빈 문자열이면 요청하지 않고 최근 검색 · 추적 목록을 보여준다 | Must |
-| FR-83 | 최근 검색은 **결과 행을 눌렀을 때만** 저장한다(타이핑마다 저장하지 않는다). `localStorage` 접근은 try/catch — 실패해도 화면은 동작 | Could |
+| FR-83 | 최근 검색은 **결과 행을 눌렀을 때만** 저장한다(타이핑마다 저장하지 않는다). 2026-11-09 — 칩마다 × 로 하나씩 지운다 · 저장은 바로(모달이 닫혀도 남게). `localStorage` 접근은 try/catch — 실패해도 화면은 동작 | Could |
 | FR-84 | 검색은 클라이언트 컴포넌트다. 서버 컴포넌트에서 사용자별 검색을 미리 렌더하지 않는다(`isTracked` 가 캐시에 섞이지 않게) | Must |
 
 ## 뉴스 북마크 동작 (2026-09-21, D5)
@@ -199,3 +199,4 @@ created: 2026-09-09
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — **기존 결함 수정** `f6587a53` — 로그인 화면(`RedirectSignedIn`)이 Redux 사용자(`USER`)로, 셸 미들웨어 표지 쿠키는 토큰으로 판단해 토큰 없이 `USER` 만 남은 브라우저는 들어올 때마다 로그인 화면이 비쳤다가 홈으로 갔다(사용자 보고 "여전히 localhost:3000 들어가면 로그인 창 갔다가 홈으로"). 판단을 토큰(`useHasAccessToken`) 하나로 · 토큰 없는 `USER` 는 복원(`useInitializeAuth`) 때 지운다 — 이 REQ 의 로그인 화면 판단이 바뀌었다(FR-61 "보호는 미들웨어 몫"은 그대로) |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): FR-53 저장 위치가 **쿠키**가 됐다(머리 정정의 "아직 `localStorage`" 닫힘) · 갱신(FR-62)은 셸 Route Handler 로 · `RedirectSignedIn` 은 `useHasSession`(`721063fc`) |
 | 2026-11-05 | 금융 팁 S2b 확인 2회차(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: 세션 갱신 실패 뒤 로그인 이동(FR-62 후반)의 공개 경로 예외가 `isPublicPath`(접두) — 공개 금융 팁 글에서는 세션만 비우고 제자리 (`cf93acb1`) |
+| 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `b37bf890`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — FR-80 정정(`?q=` 는 `/search` 로 연 모달만) · FR-83 칩마다 × · **결함 고침** 최근 검색 저장이 setState 업데이터 안이라 모달 언마운트로 사라졌다 → 바로 저장 |

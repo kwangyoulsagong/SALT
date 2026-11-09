@@ -48,3 +48,7 @@
 
 - 몫: 빈 골격 `web-tips` 가 첫 화면을 서비스(`FE-REQ-058`) — 레이아웃 `PublicShell` · `app/tips/**` · `@repo/domain-tips` · tsconfig paths · vanilla-extract. 레지스트리 무변경(`hostedIn: web-tips` 그대로)
 - **Action**: 없음 — 기존 결정 위에 한 줄
+
+## 2026-11-09 — 검색 모달 · 머리 내비
+
+- 변화 없음

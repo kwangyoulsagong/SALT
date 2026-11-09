@@ -56,6 +56,14 @@ export const panelStyles = recipe({
       lg: { maxWidth: "720px" },
       // 읽는 모달 — 참고 화면 실측(폭 680 · 모서리 16 · 위아래 여백 40 → 높이 100vh − 80)
       article: { maxWidth: "680px", maxHeight: "calc(100vh - 80px)", borderRadius: vars.radius.large },
+      // 검색 모달 — 참고 화면 실측(2026-11-09): 폭 640 · 높이 최대 600 · 위 8 · 모서리 16 · 그림자 두 겹(배경 막이 없어 그림자가 판을 가른다)
+      search: {
+        maxWidth: "640px",
+        maxHeight: "min(600px, calc(100vh - 16px))",
+        borderRadius: vars.radius.large,
+        overflow: "hidden",
+        boxShadow: "0 12px 28px -4px rgba(0, 0, 0, 0.12), 0 8px 56px -4px rgba(0, 0, 0, 0.1)",
+      },
     },
   },
 
@@ -63,6 +71,14 @@ export const panelStyles = recipe({
     size: "md",
   },
 });
+
+/**
+ * `search` — 위 8 · 가로 가운데 · **배경 막 없음**(사용자 D2 2026-11-09 — 뒤 화면이 어두워지지 않는다). 바깥을 누르면 닫히는 면은 그대로 둔다
+ * (투명). 포커스 가둠 · `aria-modal` 은 그대로 — 키보드 · 화면 리더가 모달 밖을 읽지 않게(`FE-REQ-066` FR-6)
+ */
+export const searchOverlayStyles = style({ alignItems: "flex-start", paddingTop: "8px", background: "transparent", animation: "none" });
+/** `search` 본문 — 판이 칸을 나눈다(검색칸 · 스크롤 본문 · 안내 바). 여백 · 스크롤은 안이 정한다 */
+export const searchBodyStyles = style({ display: "flex", flexDirection: "column", padding: 0, overflow: "hidden" });
 
 /** `article` — 위아래 여백 40(실측) */
 export const articleOverlayStyles = style({ paddingTop: "40px", paddingBottom: "40px" });

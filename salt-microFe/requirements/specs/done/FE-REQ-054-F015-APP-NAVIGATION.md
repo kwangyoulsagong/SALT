@@ -14,6 +14,7 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 > ~~남은 것: 수용 기준 1(Chromium prerender **적중**)은 사람이 Chrome 에서 본다~~ **정정 2026-11-03 — 확인했다**: DevTools 세션이 붙어 있는 동안 시작된 prerender 만 꺼진다. 포인터를 올린 뒤 세션을 끊고 재면 운영 빌드 적중 10/10.
 > ~~남은 것: 공용 청크 캐시 공유(아래 FR-5) · 계측 수집처.~~ **2026-11-03 캐시 공유도 닫음**(운영 빌드 공용 `/_next` · `ADR-005` 규칙 7 개정). 남은 것: 계측 수집처 · 배포 정적 저장소(`OPS-001` FR-12).
 > 공용 청크는 해시는 같지만 URL prefix 가 달라 캐시를 공유하지 못한다(FR-5 행). 검증 `checklists/FE-REQ-054.md`.
+> **정정 2026-11-09 — 데스크톱(1024+) 도메인 내비는 왼쪽 레일이 아니라 머리 안 글자 링크**(사용자 D1 안 B, `FE-REQ-067` `334084aa`). 하단 탭(768~1023) · 탭 한 벌 · prerender · 전환은 그대로. 아래 FR-1 행 그 자리 정정
 
 ## Summary
 
@@ -23,7 +24,7 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 
 | FR | 내용 | FEATURE-015 | 상태(2026-11-03) |
 |---|---|---|---|
-| FR-1 | `@repo/ui` ~~`AppChrome`~~ **`AppNavigation`**(`@repo/ui/app-navigation`) — 탭 4개(홈 · 저축 · 가계부 · 투자), 금융 팁은 탭 아님. 데스크톱(1024+)은 왼쪽 내비 4항목 — `FE-REQ-047` 헤더 · 패널 위계와 맞춤 | FR-8 | ✅ 레일 72(1024+) · 하단 탭 56(768~1023) · 머리 52(오른쪽 계정 메뉴). **아이콘 = 면 채운 단색 글리프 `AppNavigationIcon`**(사용자 "저축 아이콘 별로야" — 선 아이콘 교체), **칸 = 기준 증권 웹 아이콘 레일 실측**(칸 58 · 판 32 · 모서리 8 · 아이콘 16 · 라벨 12/500 3단 · 선택 = 옅은 판 + 진한 아이콘). 기준 화면은 헤더 글자 탭 + 오른쪽 레일이지만 위치는 사용자 결정으로 왼쪽. 탭 한 벌은 `@repo/core/navigation` `APP_TABS`(앱과 같은 순서 · 이름 · 아이콘 이름). 첫 화면이 없는 저축 · 가계부는 `readyBy`(056 · 057)까지 비활성 "준비 중". 공개 화면(로그인 · 온보딩) · 앱 웹뷰에는 없다 |
+| FR-1 | `@repo/ui` ~~`AppChrome`~~ **`AppNavigation`**(`@repo/ui/app-navigation`) — 탭 4개(홈 · 저축 · 가계부 · 투자), 금융 팁은 탭 아님. 데스크톱(1024+)은 왼쪽 내비 4항목 — `FE-REQ-047` 헤더 · 패널 위계와 맞춤 | FR-8 | ✅ ~~레일 72(1024+)~~ **머리 글자 링크(1024+ — 정정 2026-11-09 `FE-REQ-067`)** · 하단 탭 56(768~1023) · 머리 52(오른쪽 계정 메뉴 · 검색칸). **아이콘 = 면 채운 단색 글리프 `AppNavigationIcon`**(사용자 "저축 아이콘 별로야" — 선 아이콘 교체), **칸 = 기준 증권 웹 아이콘 레일 실측**(칸 58 · 판 32 · 모서리 8 · 아이콘 16 · 라벨 12/500 3단 · 선택 = 옅은 판 + 진한 아이콘). 기준 화면은 헤더 글자 탭 + 오른쪽 레일이지만 위치는 사용자 결정으로 왼쪽(~~2026-11-03~~ **2026-11-09 사용자 결정으로 기준 화면처럼 머리 글자 탭** — 레일 칸 값은 하단 탭이 이어 쓴다). 탭 한 벌은 `@repo/core/navigation` `APP_TABS`(앱과 같은 순서 · 이름 · 아이콘 이름). 첫 화면이 없는 저축 · 가계부는 `readyBy`(056 · 057)까지 비활성 "준비 중". 공개 화면(로그인 · 온보딩) · 앱 웹뷰에는 없다 |
 | FR-2 | 탭 링크는 `CrossZoneLink`. 현재 zone 판정은 레지스트리 | FR-8 | ✅ 판정은 레지스트리(`activeAppTab` · `isCrossZonePath(href, ZONE_APP)`). 다른 zone 이면 `<a>`(대기 문구 없는 `CrossZoneLink` 꼴 — 탭 안에 "이동 중" 글자가 끼면 칸이 흔들린다), 같은 앱이면 `next/link` |
 | FR-3 | Speculation Rules — `<script type="speculationrules">` prerender, `eagerness: moderate`, 대상은 탭 4개 첫 화면만. 로그아웃 상태에서는 끔 | FR-8 | ✅ 문서 규칙(`[data-prerender-tab]:not([aria-current])` — 다른 zone 탭만). 로그인 표지 쿠키가 있을 때 마운트 뒤 붙인다. ~~Chrome 이 규칙을 읽고 시도까지 함(CDP). **적중은 미검증**(자동화 브라우저에서는 꺼진다)~~ **2026-11-03 운영 빌드 적중 10/10**(셸 ↔ 투자) · 누름 → 보임 중앙 0~1ms(미적중 101 · 145ms) |
 | FR-4 | 모든 zone CSS 에 `@view-transition { navigation: auto; }` · 탭 · 헤더에 같은 `view-transition-name`. `prefers-reduced-motion` 이면 전환 없음 | FR-8 | ✅ 화면이 있는 zone 2(셸 · 투자) `<head>` `<style>`(vanilla-extract 가 이 규칙을 못 만든다). Chromium `pagereveal.viewTransition` 있음 3/3 · 줄인 모션 0/3. 빈 zone 3 은 화면 REQ(056~058) 때 같은 레이아웃 |
@@ -61,3 +62,5 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 | 2026-11-05 | **기존 결함 수정** `99efcd15` — 앱 머리(`viewTransitionName` → 쌓임 맥락)에 z-index 가 없어 계정 메뉴가 홈 카드에 깔렸다(로그아웃 불가, `5a86dafa` 부터). 머리에 `zIndex: sticky`(레일 · 하단 탭과 같은 규칙) · `@repo/ui` `viewTransitionStacking.test.ts` 가 모든 `.css.ts` 를 센다. 같은 브랜치에 셸 rewrites `/api/*` → BFF(`config-next` `shellRewrites`) · 로그아웃이 쿠키 지움을 기다린다(`ProfileMenu`)(`721063fc`). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 팁 zone `next.config.js` 를 가계부와 같은 프리셋 꼴로(vanilla-extract). 금융 팁은 탭이 아니라 `AppShell` 을 쓰지 않는다(이 REQ 의 2026-11-03 메모 — 공개 화면 내비 · prerender 판단: 둘 다 없음) |
 | 2026-11-05 | 금융 팁 S2b 확인 2회차(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: `ZoneNavigation` 의 공개 경로 판정을 `@repo/core/auth` `isPublicPath` 로(같은 규칙 — 동작 무변경, `/home` · `/goals` 탭 4 · `/login` 0 실화면) (`cf93acb1`) |
+| 2026-11-09 | FR-1 정정 — 1024+ 도메인 내비 왼쪽 레일 → 머리 글자 링크(`FE-REQ-067` D1 안 B · `334084aa`). 전환 이름 `app-navigation-rail` 삭제. 판단은 `FE-REQ-067` |
+| 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `334084aa`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — FR-1 정정 — 1024+ 왼쪽 레일 → 머리 글자 링크(`FE-REQ-067` D1 안 B) · 전환 이름 `rail` 삭제 · `appTabs.ts` 주석 |

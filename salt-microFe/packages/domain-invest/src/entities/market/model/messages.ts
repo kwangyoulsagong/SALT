@@ -92,9 +92,6 @@ export const SEARCH_MESSAGES = {
   fieldLabel: "종목 검색",
   placeholder: "종목명 · 심볼 · 종목 코드",
   heldBadge: "보유",
-  /** 검색어가 없을 때 보이는 목록 머리 */
-  trackedHeading: "추적 중인 종목",
-  trackedEmpty: "추적 중인 종목이 없어요. 종목을 검색해 ★ 를 눌러 보세요",
   recentHeading: "최근 검색",
   resultHeading: "검색 결과",
   empty: (q: string) => `'${q}' 와 맞는 종목이 없어요`,
@@ -104,11 +101,28 @@ export const SEARCH_MESSAGES = {
   /** `aria-live` 로 한 번 알린다 (FR-78) */
   resultCount: (count: number) => `${count}개 종목`,
   signInRequired: "로그인하면 종목을 검색할 수 있어요.",
-  columns: { asset: "종목", price: "현재가", change: "변동률", assetType: "자산군" },
   /** 자산군 칩 (FR-77) — 결과에 실제로 있는 자산군만 보인다 */
   filterGroupLabel: "자산군",
   filterAll: "전체",
   searching: "검색하는 중이에요",
+  /** 검색 모달(`FE-REQ-066`) — 화면 리더 이름 · 결과 목록 이름 */
+  dialogLabel: "종목 검색",
+  listLabel: "검색 결과",
+  /** 첫 화면 순위(D3) — 조회 순위가 아니라 거래대금 순위다. "인기"라 하지 않는다 */
+  topHeading: "거래대금 상위",
+  topCrypto: "코인",
+  topKr: "국내 주식",
+  asOf: (time: string) => `${time} 기준`,
+  removeRecent: (value: string) => `최근 검색 '${value}' 지우기`,
+  /** 빈 결과 아래 한 줄(FR-4) */
+  emptyHint: "철자를 확인하거나 종목 코드 · 영문 이름으로 찾아 보세요.",
+  /** 아래 안내 바(FR-2) — 키 칩 + 하는 일 */
+  keys: { enter: "↵", escape: "ESC", arrows: "↑↓" },
+  footer: { enter: "종목으로 이동하기", escape: "지우기 · 닫기", arrows: "탐색하기" },
+  valueUnknown: "—",
+  price: (formatted: string) => `${formatted}원`,
+  /** 등락은 색 + 부호 글자(FR-6) — 내림은 빼기 부호 */
+  changeRate: (value: number) => `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(2)}%`,
 } as const;
 
 /**

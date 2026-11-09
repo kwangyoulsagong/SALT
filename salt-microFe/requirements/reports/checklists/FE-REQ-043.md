@@ -87,3 +87,8 @@
 - 몫: **제외 하나** — 공개 zone(`web-tips`)은 `PublicShell` 이라 768 미만 안내를 띄우지 않는다(`FE-REQ-058` FR-7). 문구 파일(머리 주인)에 `TIMELY_TIP_MESSAGES` 추가 — 기존 export 무변경
 - 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-09 — 검색 모달 · 머리 내비(주인 `FE-REQ-066` · `067`)
+
+- `AppNavigation.css.ts` 폭 주석 — 768 미만 안내 그대로(머리 · 하단 탭 없음). 390 웹뷰에서 검색 모달 358 폭 · 넘침 0
+- 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)
