@@ -1,4 +1,4 @@
-import type { InsightType } from "@prisma/client";
+import type { InsightType, Prisma } from "@prisma/client";
 
 import prisma from "../../shared/infrastructure/prisma";
 
@@ -10,6 +10,9 @@ import prisma from "../../shared/infrastructure/prisma";
 const toNumber = (value: { toString(): string } | null | undefined): number =>
   value == null ? 0 : Number(value.toString());
 
+/** 거래량 급증을 볼 최근 봉 수 */
+const WHALE_BARS = 30;
+
 export class WhaleSignalService {
   async generateWhaleSignals() {
     const markets = await prisma.marketAsset.findMany({
@@ -18,15 +21,26 @@ export class WhaleSignalService {
 
     const symbols = markets.map((m) => m.symbol);
 
-    // 🔥 priceHistory 한번에 가져오기
-    const histories = await prisma.priceHistory.findMany({
-      where: {
-        symbol: { in: symbols },
-      },
-      orderBy: {
-        timestamp: "desc",
-      },
-    });
+    // 심볼마다 최신 30봉(시간 단위 무관) — 단위마다 인덱스 `(symbol, timeframe, timestamp)` 로 30행씩 집고 합쳐 30행.
+    // 예전엔 50심볼의 **봉 전체**를 Node 로 옮겨 30행만 썼다(부팅 때 1초+ — 재기동 직후 판단 상세 504, 2026-11-09 DB-REQ-017)
+    const histories = await prisma.$queryRaw<
+      Array<{ symbol: string; timestamp: Date; close: Prisma.Decimal; volume: Prisma.Decimal | null }>
+    >`
+      SELECT symbol, timestamp, close, volume FROM (
+        SELECT s.symbol, b.timestamp, b.close, b.volume,
+               row_number() OVER (PARTITION BY s.symbol ORDER BY b.timestamp DESC, f.ord) AS rn
+        FROM unnest(${symbols}::text[]) AS s(symbol)
+        -- 봉 단위 전부 — 시장 PriceTimeframe 과 같은 값(단위가 늘면 같이 — PrismaPriceHistoryRepository 가 컴파일로 알린다)
+        CROSS JOIN unnest(${["5m", "15m", "1h", "1d"]}::text[]) WITH ORDINALITY AS f(timeframe, ord)
+        CROSS JOIN LATERAL (
+          SELECT p.timestamp, p.close, p.volume FROM price_history p
+          WHERE p.symbol = s.symbol AND p.timeframe = f.timeframe
+          ORDER BY p.timestamp DESC
+          LIMIT ${WHALE_BARS}
+        ) b
+      ) x
+      WHERE rn <= ${WHALE_BARS}
+      ORDER BY symbol, rn`;
 
     // 🔥 symbol 기준으로 그룹화
     const grouped: Record<string, typeof histories> = {};
@@ -39,7 +53,7 @@ export class WhaleSignalService {
     const insights = [];
 
     for (const market of markets) {
-      const priceHistory = grouped[market.symbol]?.slice(0, 30) ?? [];
+      const priceHistory = grouped[market.symbol]?.slice(0, WHALE_BARS) ?? [];
 
       if (priceHistory.length < 10) continue;
 

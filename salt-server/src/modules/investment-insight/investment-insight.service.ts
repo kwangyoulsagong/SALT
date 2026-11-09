@@ -1,3 +1,5 @@
+import type { AssetType } from "@prisma/client";
+
 import prisma from "../../shared/infrastructure/prisma";
 
 export class InvestmentInsightService {
@@ -94,15 +96,26 @@ export class InvestmentInsightService {
   }
 
   async generateSmartBuyZone() {
-    const indicators = await prisma.technicalIndicator.findMany({
-      where: {
-        timeframe: "m5",
-      },
-      orderBy: {
-        timestamp: "desc",
-      },
-      distinct: ["symbol"],
-    });
+    // 심볼마다 최신 5분봉 지표 한 행 — 심볼 목록은 인덱스를 건너뛰며(재귀) 모으고 각 심볼은 인덱스로 한 행만 집는다.
+    // 예전 Prisma `distinct` 는 5분봉 지표 35만 행을 Node 로 옮겨 메모리에서 걸렀다(부팅 때 판단 상세 504 의 원인 하나, 2026-11-09 DB-REQ-017)
+    const indicators = await prisma.$queryRaw<
+      Array<{ symbol: string; assetType: AssetType; rsi14: number | null; ma20: number | null }>
+    >`
+      WITH RECURSIVE syms AS (
+        (SELECT symbol FROM technical_indicators ORDER BY symbol LIMIT 1)
+        UNION ALL
+        SELECT (SELECT t.symbol FROM technical_indicators t WHERE t.symbol > syms.symbol ORDER BY t.symbol LIMIT 1)
+        FROM syms WHERE syms.symbol IS NOT NULL
+      )
+      SELECT i.symbol, i.asset_type AS "assetType", i.rsi_14 AS "rsi14", i.ma_20 AS "ma20"
+      FROM syms
+      CROSS JOIN LATERAL (
+        SELECT symbol, asset_type, rsi_14, ma_20 FROM technical_indicators x
+        WHERE x.symbol = syms.symbol AND x.timeframe = 'm5'
+        ORDER BY x.timestamp DESC
+        LIMIT 1
+      ) i
+      WHERE syms.symbol IS NOT NULL`;
 
     const sentiments = await prisma.marketSentiment.findMany({
       orderBy: { calculatedAt: "desc" },
@@ -110,6 +123,15 @@ export class InvestmentInsightService {
     });
 
     const sentimentMap = new Map(sentiments.map((s) => [s.symbol, s]));
+    // 현재가는 한 번에(루프 안 조회 N+1 — 심볼 358개면 358번이었다)
+    const prices = new Map(
+      (
+        await prisma.marketAsset.findMany({
+          where: { symbol: { in: indicators.map((i) => i.symbol) } },
+          select: { symbol: true, currentPrice: true },
+        })
+      ).map((a) => [a.symbol, a.currentPrice])
+    );
 
     const insights = [];
 
@@ -118,12 +140,7 @@ export class InvestmentInsightService {
 
       if (!indicator.rsi14 || !indicator.ma20) continue;
 
-      const asset = await prisma.marketAsset.findUnique({
-        where: { symbol: indicator.symbol },
-        select: { currentPrice: true },
-      });
-
-      const currentPrice = Number(asset?.currentPrice ?? 0);
+      const currentPrice = Number(prices.get(indicator.symbol) ?? 0);
       const fearGreed = sentiment?.fearGreedIndex ?? 50;
 
       const rsiSignal = indicator.rsi14 < 35;
