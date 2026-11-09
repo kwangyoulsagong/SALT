@@ -433,3 +433,7 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 
 - `entities/market` `ui/index` — `SearchOption` 더함 · `AssetSearchTable` 삭제(국내 결과 줄은 같은 판정 — 코드는 이름으로 로고 이니셜)
 - 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)
+
+## 2026-11-09 — 확인 2회차 `6a062b24`
+
+- 비소유자 토큰 투자 화면 + 검색 모달 3회 열기 — 장 상태 404: 화면 1 · 열기 3 → 0. 소유자 `/search` 직접 진입(시세 표 없음) 국내 묶음 있음 · 시세 표 국내 탭 그대로

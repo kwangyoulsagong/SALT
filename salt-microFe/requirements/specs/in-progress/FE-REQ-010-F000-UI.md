@@ -291,4 +291,5 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-11-06 | 서버 S3a 확인 2회차 — 온보딩 조회 `readApiError`(401 재시도 안 함) · 만료 세션이면 초대 단계 `698da12b` |
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `entities/market/api/endpoints.ts`(머리에 이 REQ)에 국내 경로 둘(`krNews` · `krIntradayFlows`, `FE-REQ-063`). 기존 경로 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
 | 2026-11-09 | 시세 엔드포인트 둘(`krWhyMoved` · `cryptoWhyMoved`) · 시장 개요 행 `moveCard` 타입(F016 단계 C) |
-| 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — FR-70 · 72 · 76 정정 — 검색은 모달(머리 칸 · `/`), 결과는 줄(격자), 빈 검색어 첫 화면은 최근 + 거래대금 상위. 검색 문구(`SEARCH_MESSAGES`) 더함 · `AssetSearchTable` 삭제 |
+| 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `b37bf890` · `6a062b24`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — FR-70 · 72 · 76 정정 — 검색은 모달(머리 칸 · `/`), 결과는 줄(격자), 빈 검색어 첫 화면은 최근 + 거래대금 상위. 검색 문구(`SEARCH_MESSAGES`) 더함 · `AssetSearchTable` 삭제 |
+| 2026-11-09 | 확인 2회차 `6a062b24` — **퇴행 고침**: 모달 결과 줄에서 FR-72 `보유` 배지가 빠졌다 → 다시 붙임. 쓰이지 않게 된 문구 셋(추적 목록 머리 · 빈 문구 · 표 열 이름) 삭제 |

@@ -63,4 +63,4 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 팁 zone `next.config.js` 를 가계부와 같은 프리셋 꼴로(vanilla-extract). 금융 팁은 탭이 아니라 `AppShell` 을 쓰지 않는다(이 REQ 의 2026-11-03 메모 — 공개 화면 내비 · prerender 판단: 둘 다 없음) |
 | 2026-11-05 | 금융 팁 S2b 확인 2회차(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: `ZoneNavigation` 의 공개 경로 판정을 `@repo/core/auth` `isPublicPath` 로(같은 규칙 — 동작 무변경, `/home` · `/goals` 탭 4 · `/login` 0 실화면) (`cf93acb1`) |
 | 2026-11-09 | FR-1 정정 — 1024+ 도메인 내비 왼쪽 레일 → 머리 글자 링크(`FE-REQ-067` D1 안 B · `334084aa`). 전환 이름 `app-navigation-rail` 삭제. 판단은 `FE-REQ-067` |
-| 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — FR-1 정정 — 1024+ 왼쪽 레일 → 머리 글자 링크(`FE-REQ-067` D1 안 B) · 전환 이름 `rail` 삭제 · `appTabs.ts` 주석 |
+| 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `334084aa`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — FR-1 정정 — 1024+ 왼쪽 레일 → 머리 글자 링크(`FE-REQ-067` D1 안 B) · 전환 이름 `rail` 삭제 · `appTabs.ts` 주석 |

@@ -344,3 +344,7 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 
 - FR-70 · 72 · 76 정정 — 검색은 모달(머리 칸 · `/`), 결과는 줄(격자), 빈 검색어 첫 화면은 최근 + 거래대금 상위. 검색 문구(`SEARCH_MESSAGES`) 더함 · `AssetSearchTable` 삭제
 - 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)
+
+## 2026-11-09 — 확인 2회차 `6a062b24`
+
+- FR-72 `보유` 배지 퇴행 고침 — 실화면(검색 응답 `isHeld` 를 Playwright route 로) 보유 줄 1 · axe 0

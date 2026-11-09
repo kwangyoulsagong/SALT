@@ -205,4 +205,4 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 | 2026-11-05 | 확인 단계 2회차 — 투자 zone · 웹뷰 · 쓰기 실화면 통과 · 낡은 주석 정정(`95829941`). 체크리스트 §4 |
 | 2026-11-05 | 금융 팁 S2b 확인 2회차(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: FR-80 쿠키 세션의 갱신 실패 처리 — 공개 경로 판정을 `isPublicPath` 하나로(공개 금융 팁 글 제자리) (`cf93acb1`) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음(이 REQ 몫) — `useAcceptInvite` 의 쿼리 키 이름만(`onboardingStatus` → `onboarding`) `c1baa77a` |
-| 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — 머리 내비 · 검색칸(`FE-REQ-067`) — `AppNavigation.css.ts` 더한 줄. 투자 zone 첫 로드 +1 kB(모달이 레이아웃) · `/search` −2 kB · 셸 같음(`FE-REQ-066` 체크리스트 번들) |
+| 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `334084aa` · `b37bf890`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — 머리 내비 · 검색칸(`FE-REQ-067`) — `AppNavigation.css.ts` 더한 줄. 투자 zone 첫 로드 +1 kB(모달이 레이아웃) · `/search` −2 kB · 셸 같음(`FE-REQ-066` 체크리스트 번들) |
