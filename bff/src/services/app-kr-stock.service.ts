@@ -2,6 +2,7 @@ import { logger } from "../config/logger";
 import { toUpstreamClientError } from "../utils/error.util";
 import { retryOnceOnGet } from "../utils/retry.util";
 import { backendApi } from "./backend-api.service";
+import { toWhyMovedVM, WhyMovedContractError } from "./why-moved.viewmodel";
 import {
   KrContractError,
   toKrChartVM,
@@ -84,7 +85,7 @@ export class AppKrStockService {
     } catch (error) {
       if (toUpstreamClientError(error) || options.signal?.aborted) throw error;
       logger.warn(`[kr-stock] ${label} unavailable`, {
-        reason: error instanceof KrContractError ? error.message : (error as Error)?.message,
+        reason: error instanceof KrContractError || error instanceof WhyMovedContractError ? error.message : (error as Error)?.message,
       });
       return { status: "unavailable" };
     }
@@ -183,6 +184,17 @@ export class AppKrStockService {
   /** 상세 오늘 소식 — 시황 · 공시 제목(F016 단계 B · `BFF-REQ-051` FR-3). 소유자 판정 응답이라 캐시 없음 */
   getNews(token: string, code: string, signal?: AbortSignal) {
     return this.read("news", `/market/kr/${encodeURIComponent(code)}/news`, token, toKrNewsVM, {
+      timeout: KR_READ_TIMEOUT_MS,
+      signal,
+    });
+  }
+
+  /**
+   * 상세 "왜 움직였나" — ① 분해 · ② 같은 날 사실 · 카드 조건(F016 단계 C · `BFF-REQ-051` FR-1). 저장값 읽기라 800ms 예산 안 ·
+   * 캐시 없음(소유자 판정 응답). 계약이 깨지면 `unavailable` — 화면이 카드를 숨긴다(①이 없으면 카드도 없다)
+   */
+  getWhyMoved(token: string, code: string, signal?: AbortSignal) {
+    return this.read("why-moved", `/market/kr/${encodeURIComponent(code)}/why-moved`, token, toWhyMovedVM, {
       timeout: KR_READ_TIMEOUT_MS,
       signal,
     });

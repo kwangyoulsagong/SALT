@@ -146,7 +146,8 @@ describe("toKrOverviewVM", () => {
       nextOffset: 50,
     });
     assert.equal(vm.items.length, 1);
-    assert.deepEqual(vm.items[0], { ...quote(), periodChange: 3.2 });
+    // moveCard — 서버 판정(F016 단계 C). 옛 서버(칸 없음)면 false
+    assert.deepEqual(vm.items[0], { ...quote(), periodChange: 3.2, moveCard: false });
     assert.equal(vm.nextOffset, 50);
     assert.deepEqual(vm.session, session);
   });

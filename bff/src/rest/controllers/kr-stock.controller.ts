@@ -123,6 +123,13 @@ export class AppKrStockController {
     return respond(res, next, (signal) => appKrStockService.getNews(req.token!, code, signal));
   };
 
+  /** 오늘 왜 움직였나(F016 단계 C) — 입력은 코드뿐 */
+  whyMoved = (req: Request, res: Response, next: NextFunction) => {
+    const code = String(req.params.code ?? "").toUpperCase();
+    if (!CODE_PATTERN.test(code)) return badRequest(res, "종목 코드 형식이 아닙니다");
+    return respond(res, next, (signal) => appKrStockService.getWhyMoved(req.token!, code, signal));
+  };
+
   /** 장중 수급(F016 단계 B) — 입력은 코드뿐 */
   intradayFlows = (req: Request, res: Response, next: NextFunction) => {
     const code = String(req.params.code ?? "").toUpperCase();
