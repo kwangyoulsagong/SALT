@@ -19,6 +19,11 @@ describe("기사 본문 뷰모델(BFF-REQ-053)", () => {
     assert.deepEqual(toArticleBodyVM({ status: "ok", paragraphs: [], originalUrl: null }), { status: "not_found" });
   });
 
+  it("원문 주소는 http(s) 만 — javascript: · 깨진 주소는 null", () => {
+    assert.equal((toArticleBodyVM({ status: "ok", paragraphs: ["가."], originalUrl: "javascript:alert(1)" }) as { originalUrl: string | null }).originalUrl, null);
+    assert.equal((toArticleBodyVM({ status: "ok", paragraphs: ["가."], originalUrl: "not a url" }) as { originalUrl: string | null }).originalUrl, null);
+  });
+
   it("모르는 status · 글자가 아닌 문단은 계약 깨짐", () => {
     assert.throws(() => toArticleBodyVM({ status: "partial", paragraphs: [] }));
     assert.throws(() => toArticleBodyVM({ status: "ok", paragraphs: [1], originalUrl: null }));
@@ -29,7 +34,7 @@ describe("기사 본문 뷰모델(BFF-REQ-053)", () => {
 describe("기사 본문 서비스 — 경로 · 실패 격리", () => {
   afterEach(() => mock.restoreAll());
 
-  it("코인 · 국내 경로를 그대로 부른다(15초 예산)", async () => {
+  it("코인 · 국내 경로를 그대로 부른다(20초 예산 — 서버 최악 16초보다 길게)", async () => {
     const calls: Array<{ path: string; timeout?: number }> = [];
     mock.method(backendApi, "proxyAuthRequest", async (_m: string, path: string, _t: string, _b: unknown, opts?: { timeout?: number }) => {
       calls.push({ path, timeout: opts?.timeout });
@@ -38,8 +43,8 @@ describe("기사 본문 서비스 — 경로 · 실패 격리", () => {
     await appArticleBodyService.coin("t", "3d374335-f59c-453e-b7da-ce437d4236c9");
     await appArticleBodyService.kr("t", "005930", "20261109100000000001");
     assert.deepEqual(calls, [
-      { path: "/news/3d374335-f59c-453e-b7da-ce437d4236c9/body", timeout: 15_000 },
-      { path: "/market/kr/005930/news/20261109100000000001/body", timeout: 15_000 },
+      { path: "/news/3d374335-f59c-453e-b7da-ce437d4236c9/body", timeout: 20_000 },
+      { path: "/market/kr/005930/news/20261109100000000001/body", timeout: 20_000 },
     ]);
   });
 

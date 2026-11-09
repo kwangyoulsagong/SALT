@@ -4,10 +4,11 @@ import { backendApi } from "./backend-api.service";
 import { ArticleBodyContractError, toArticleBodyVM, type ArticleBodyVM } from "./article-body.viewmodel";
 
 /**
- * 첫 조회는 서버가 포털 검색(5s) + 기사 페이지(8s)를 차례로 부른다 — 그 합보다 조금 길게. 두 번째부터는 캐시라 수십 ms.
+ * 첫 조회는 서버가 포털 검색(4s, 못 찾으면 한 번 더 4s) + 기사 페이지(8s)를 차례로 부른다 — 최악 16s 보다 길게.
+ * 15s 였을 때 두 번째 검색이 붙은 기사가 잘렸다(서버는 찾았는데 화면은 요약, 2026-11-09 확인 2회차). 두 번째부터는 캐시라 수십 ms.
  * 모달은 요약을 먼저 그리고 본문을 기다린다(`FE-REQ-068`) — 화면 첫 페인트 예산 밖
  */
-const BODY_TIMEOUT_MS = 15_000;
+const BODY_TIMEOUT_MS = 20_000;
 
 /**
  * 기사 본문(`BFF-REQ-053`) — 코인 `/news/:id/body`(로그인) · 국내 `/market/kr/:code/news/:serial/body`(소유자). 서버 판정 그대로 · 캐시 0

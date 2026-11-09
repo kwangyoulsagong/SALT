@@ -10,6 +10,17 @@ export type ArticleBodyVM =
 
 export class ArticleBodyContractError extends Error {}
 
+/** 원문 주소는 화면 링크가 된다 — http(s) 가 아니면 버린다(서버도 거르지만 화면 계약의 주인이 한 번 더) */
+const webUrl = (raw: string | null): string | null => {
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    return url.protocol === "http:" || url.protocol === "https:" ? raw : null;
+  } catch {
+    return null;
+  }
+};
+
 export const toArticleBodyVM = (data: unknown): ArticleBodyVM => {
   const d = data as { status?: unknown; paragraphs?: unknown; originalUrl?: unknown } | null;
   if (!d || typeof d !== "object") throw new ArticleBodyContractError("body: 응답이 객체가 아니다");
@@ -22,5 +33,5 @@ export const toArticleBodyVM = (data: unknown): ArticleBodyVM => {
   if (d.originalUrl !== null && typeof d.originalUrl !== "string") throw new ArticleBodyContractError("body: originalUrl 형식");
   // 문단이 비면 본문이 없는 것과 같다 — 빈 본문 칸을 그리지 않게
   if (d.paragraphs.length === 0) return { status: "not_found" };
-  return { status: "ok", paragraphs: d.paragraphs as string[], originalUrl: (d.originalUrl as string | null) ?? null };
+  return { status: "ok", paragraphs: d.paragraphs as string[], originalUrl: webUrl(d.originalUrl as string | null) };
 };
