@@ -84,7 +84,7 @@ Status: In Progress
 | `FE-REQ-051` | 로고 | 소금 물방울(은회색 · 입체 + 단색) · "Salt" · 머리 로고 · zone 5 파비콘 — **done 2026-11-04** |
 | `FE-REQ-052` | 도메인 zone (2026-10-30, `ADR-005`) | 규칙 개정 · 레지스트리 5 zone · lint 도메인 축 · `web-tax` 삭제 — **done 2026-11-02** |
 | `FE-REQ-053` | 투자 zone 분리 | `domain-invest` + `apps/web-investment`, 동작 변경 0 |
-| `FE-REQ-054` | 앱 내비게이션(F2) | `AppNavigation`(왼쪽 레일 · 하단 탭 · 머리) · prerender · 문서 간 전환 · 설정 프리셋 — **done 2026-11-03** |
+| `FE-REQ-054` | 앱 내비게이션(F2) | `AppNavigation`(~~왼쪽 레일~~ 머리 글자 링크 — 2026-11-09 `FE-REQ-067` · 하단 탭 · 머리) · prerender · 문서 간 전환 · 설정 프리셋 — **done 2026-11-03** |
 | `RN-REQ-032` | 모바일 도메인 정렬 | 번들 이름 · 4탭 · 네이티브/웹뷰 경계 · 기존 RN REQ 대체 블록 |
 | `SRV-REQ-043` | Kotlin 플랫폼 S0 (`ADR-006`) | Gradle 멀티모듈 · Spring Modulith · Compose · 규칙 Kotlin 판 — ~~**in-progress 2026-11-03**~~ **done 2026-11-03**(수용 기준 4/4 · FR-8 인스턴스 연결은 `SRV-REQ-049` S5 로) |
 | `SRV-REQ-044` | 도메인 이벤트 | 아웃박스 · RabbitMQ · `contracts/events` · 멱등 구독 — **in-progress 2026-11-03**(서비스 스키마별 아웃박스 · 수용 기준 3/3, 13종은 단계마다) |
@@ -477,7 +477,7 @@ RabbitMQ → 멱등 구독 → 같은 추적 ID 를 Testcontainers · Compose �
 BFF 는 서버 호출 한 곳에 라우팅 표 · 그림자(읽기만) · 골든 · traceparent — 기본 표는 `/platform` 만, 화면 경로 무변경. 사용자 질문(Kafka?)에 RabbitMQ 유지. Compose 실측이 실행 jar 결함(`kotlin-reflect` 누락)을 찾았다.
 
 **돈 관리 앱 F2 — 앱 내비게이션 (FE, 2026-11-03, `feat/fe-req-054-app-navigation`) — done** — 사용자 "새브랜치 파고 다음 파이프라인 진행". 3a 다음 칸 `FE-REQ-054`.
-범위 `MONEY-F2-app-navigation-slice.md`, 검증 `checklists/MONEY-F2-app-navigation.md`. 사용자 결정 2: 이름 `AppNavigation` · 탭은 왼쪽 레일 + 면 채운 단색 글리프(기준 증권 웹 아이콘 레일 실측).
+범위 `MONEY-F2-app-navigation-slice.md`, 검증 `checklists/MONEY-F2-app-navigation.md`. 사용자 결정 2: 이름 `AppNavigation` · 탭은 왼쪽 레일 + 면 채운 단색 글리프(기준 증권 웹 아이콘 레일 실측). **정정 2026-11-09** — 1024+ 탭은 머리 글자 링크(`FE-REQ-067` D1 안 B). 면 글리프는 하단 탭(768~1023)에 남는다.
 탭 · 머리를 zone 공용 레이아웃이 놓는다(화면별 프로필 메뉴 삭제). ~~prerender 적중은 자동화 브라우저에서 꺼져 사람 확인~~ **정정: 같은 날 적중 10/10 확인(DevTools 세션을 끊고 잼) · 계측 결함 1 수정**, ~~공용 청크는 해시는 같지만 URL 이 달라 캐시 공유 없음(`OPS-001`)~~ **정정: 운영 빌드 공용 `/_next` + 정적 파일 합치기로 캐시 공유(`ADR-005` 규칙 7 개정)**. 사용자 재보고 기존 결함(로그인 화면 비침)을 반쪽 세션으로 재현해 고쳤다.
 
 **돈 관리 앱 F1 — 투자 zone 분리 · 셸 홈 카드 (FE · BFF · 서버, 2026-11-02, `feat/fe-req-053-invest-zone-home-cards`)** — 사용자 "새 브랜치 파고 다음꺼 파이프라인 진행". 3a 다음 칸.
@@ -1055,3 +1055,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-09 | NEWS-BODY 확인 2회차 — 결함 일곱(SSRF 리다이렉트 · `javascript:` 원문 · 짧은 문장 손실 · 긴 제목 0건 · 줄인 제목 · 실패 로그 0 · BFF 예산 · 비로그인 요청) · 낡은 문장 여섯 · `DB-REQ-036` 부록 A 표 아홉. **판단 상세 504 고침**(`DB-REQ-017` — 성적 집계 한 쿼리 · 풀 인덱스 · 5분 들고 있기, 6~46ms) |
 | 2026-11-09 | 확인 3회차 — **판단 상세 504 진짜 원인**: API 프로세스 안 지표 갱신이 2분마다 49만 행 Decimal 해석(CPU 320%). `::float8` · `LATERAL … LIMIT` 로 같은 종류 다섯 · 달력 역산 유니버스로 · 기동 연결 채우기 · 워커 listen 뒤 15초 — 결과 대조 전부 같음 · BFF 460회 504 0(`DB-REQ-017` · `DB-REQ-033`, 규칙 `workers-external.md`) |
 | 2026-11-09 | 업종 지수 종가 회차 15:40 → 15:55 — 분봉 회차와 같은 분이라 KIS 한도에 밀려 업종 1/19 만 저장(`SRV-REQ-051`). 새 시각 실회차 11-10 |
+| 2026-11-09 | **FE-066 · 067 검색 모달 · 머리 내비 1단계** — `FE-REQ-067`(to-do → in-progress — D1 안 B: 왼쪽 레일 → 머리 글자 링크 · 검색칸 200×32 · `/`) · `FE-REQ-066`(to-do → in-progress — 1단계 FR-1~7: 모달 · 최근 검색 칩 × · 거래대금 상위 · 키보드 · `/search` 는 연 채로, FR-8 2단계 남음). 결정 D1~D5 기록. 정정 `FE-REQ-054` FR-1 · `047` FR-1 · `010` FR-70 · 72 · 76 · `011` FR-80 · 규칙 `screen-desktop` §1 · §3 · `layered-architecture` · `fsd-widgets`. 실화면 결함 넷 고침(최근 검색 저장 유실 · ★ 단추 axe · 등락 글자 대비 · 1원 밑 시세 "0원" — 공용 `formatPrice`). 계약 변경 0. 루트 `FE-066-067-search-header-slice.md` |

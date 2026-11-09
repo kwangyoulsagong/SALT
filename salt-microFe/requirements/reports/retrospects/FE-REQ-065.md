@@ -11,3 +11,7 @@
 ## 2026-11-09 — 기사 본문
 
 - 이 REQ 의 파일은 본문 경로를 잇는 자리만 바뀌었다(`NewsArticleView.bodyRef` · 모달 본문 칸(`ArticleBodyBlock`) · 국내 안내 문구). 판단 · 교훈은 주인 회고(`SRV-REQ-054` — 실측 먼저 · 영구 캐시엔 규칙 판 번호)
+
+## 2026-11-09 — 검색 모달 · 머리 내비
+
+- 공용 오버레이 훅을 고치면 소비처(`Modal` · `BottomSheet`) 둘 다 — `BottomSheet` 는 `onEscape` 를 넘기지 않아 동작 같음

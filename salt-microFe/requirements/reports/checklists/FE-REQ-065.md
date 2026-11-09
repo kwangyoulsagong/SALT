@@ -24,3 +24,8 @@
 ## 2026-11-09 — 기사 본문(주인 `SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068`)
 
 - `NewsArticleView.bodyRef` · 모달 본문 칸(`ArticleBodyBlock`) · 국내 안내 문구 — FR-4 · 5 정정 — 검증은 주인 체크리스트(서버 1031 · BFF 430 · 실화면 1440 · 훅 사후 실행)
+
+## 2026-11-09 — 검색 모달 · 머리 내비(주인 `FE-REQ-066` · `067`)
+
+- `Modal` 에 `size="search"` · `onEscape` · `initialFocusRef` · 포커스 가둠 안정화(처리기 ref · `open && mounted`) — 뉴스 모달(`article`)도 같은 가둠을 쓴다. 주소로 연 모달이 첫 렌더에 가둠을 놓치던 것도 같이 닫힘
+- 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)

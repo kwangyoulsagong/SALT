@@ -339,3 +339,8 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 ## 2026-11-09 — 기사 본문(주인 `SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068`)
 
 - `MARKET_ENDPOINTS` 본문 경로 둘 · `marketQueryKeys.articleBody` — 검증은 주인 체크리스트(서버 1031 · BFF 430 · 실화면 1440 · 훅 사후 실행)
+
+## 2026-11-09 — 검색 모달 · 머리 내비(주인 `FE-REQ-066` · `067`)
+
+- FR-70 · 72 · 76 정정 — 검색은 모달(머리 칸 · `/`), 결과는 줄(격자), 빈 검색어 첫 화면은 최근 + 거래대금 상위. 검색 문구(`SEARCH_MESSAGES`) 더함 · `AssetSearchTable` 삭제
+- 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)

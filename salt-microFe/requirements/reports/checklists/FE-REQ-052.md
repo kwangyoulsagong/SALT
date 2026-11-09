@@ -88,3 +88,8 @@
 - 몫: 빈 골격 `web-tips` 가 첫 화면을 서비스(`FE-REQ-058`) — 레이아웃 `PublicShell` · `app/tips/**` · `@repo/domain-tips` · tsconfig paths · vanilla-extract. 레지스트리 무변경(`hostedIn: web-tips` 그대로)
 - 검증: 슬라이스 검증 그대로(`requirements/reports/checklists/MONEY-S2a-tips-content.md`) — 이 REQ 의 수용 기준은 바뀌지 않았다
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-09 — 검색 모달 · 머리 내비(주인 `FE-REQ-066` · `067`)
+
+- 투자 zone 레이아웃이 `@repo/domain-invest/pages/search` `SearchLauncher` 를 `AppShell` `headerSearch` 로 꽂는다 — 자기 zone 의 도메인만 import(규칙 그대로)
+- 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)

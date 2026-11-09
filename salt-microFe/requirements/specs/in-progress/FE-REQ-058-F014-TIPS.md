@@ -73,3 +73,4 @@ source: pm/requirements/specs/in-progress/FEATURE-014-money-tips.md
 | 2026-11-05 | 금융 팁 S2b 확인 3회차 — 만료 세션 `/tips/cards` 는 로그아웃 안내("불러오지 못했어요" 아님) · `/tips` 에 "맞힌 카드 모음" 줄(모음으로 가는 길이 퀴즈 결과뿐이었다). `fd88af11` |
 | 2026-11-05 | 금융 팁 S2d — FR-3 done: `features/read-my-numbers`(지연 로딩 잎 — 글 첫 로드 115 → 121 → 117 kB) · 로그아웃 · 만료 세션 안내 한 줄 · 실패 = 글의 예시 그대로 · 서버 HTML 개인 숫자 0. 커밋 `c7508e54` · 레지스트리 features `read-my-numbers` |
 | 2026-11-05 | 금융 팁 S2d 확인 2회차 — 빈 사용자 머리 문구 결함 고침(숫자가 있을 때만) · `test:layer-check` · zone 5 빌드 |
+| 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — `PublicShell` 주석 — 공개 zone 은 앱 내비 · 검색칸 없음(변화 없음) |

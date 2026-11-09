@@ -135,3 +135,4 @@ flowchart LR
 | 2026-11-06 | 서버 S2c(`MONEY-S2c-notification`) — FR-4 구현: 도메인별 알림 설정 기본 꺼짐(설정 주인 notification 서비스) · 알림 원인 셋 · 셸 `/settings` 패널. 가계부 월 마감은 알리지 않는다(사용자가 한 일) |
 | 2026-11-06 | 서버 S3a(`MONEY-S3a-identity-shell`, 루트 `requirements/specs/done/MONEY-S3a-identity-shell-slice.md`) — FR-1 구현(도메인 선택 온보딩 · 옛 3스텝 은퇴) · FR-2 구현(순서 · 숨김 — 설정 패널). 수용 기준 1 · 2 충족. 남은 FR-3 · 5 · 6(S3c) · 토큰 발급 교체(S3b) |
 | 2026-11-06 | 서버 S3a 확인 2회차 — 결함 1(만료 세션 온보딩 멈춤) 고침 · 실패 · 만료 경로 실화면 |
+| 2026-11-09 | FE-067(루트 `FE-066-067-search-header-slice.md`) — 1024+ 앱 내비가 왼쪽 레일에서 머리 글자 링크로(사용자 D1 안 B) · 머리 검색칸 · FR-8 하단 탭(768~1023) · 앱 탭 그대로. `FE-REQ-054` FR-1 정정 |

@@ -65,3 +65,4 @@ source: salt-microFe/requirements/reports/research/2026-11-09-news-ui-measure.md
 | 2026-11-09 | to-do → in-progress — FR-1~7 · 9 done(FR-3 · 6 · 9 정정). 남은 것 FR-8(390 바텀 시트) |
 | 2026-11-09 | FR-4 · 5 정정 — 본문 0 → 본문은 `FE-REQ-068`(사용자 결정 · `ADR-009` 개정) |
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `NewsArticleView.bodyRef` · 모달 본문 칸(`ArticleBodyBlock`) · 국내 안내 문구 — FR-4 · 5 정정 |
+| 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — `Modal` 에 `size="search"` · `onEscape` · `initialFocusRef` · 포커스 가둠 안정화(처리기 ref · `open && mounted`) — 뉴스 모달(`article`)도 같은 가둠을 쓴다. 주소로 연 모달이 첫 렌더에 가둠을 놓치던 것도 같이 닫힘 |

@@ -425,3 +425,4 @@ flowchart TB
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`) — `FE-REQ-010` 공용 경로에 `ROUTES.tips` · `ROUTES.tip(slug)` — 기존 경로 무변경 |
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`) — `FE-REQ-010` `ROUTES.tipCards` · 확인 2회차 결함: 공개 금융 팁에서 세션이 죽으면 로그인으로 보내던 것 — `FE-REQ-011` · `013` 공개 경로 판정 하나(`isPublicPath`, `cf93acb1`) |
 | 2026-11-06 | 서버 S3a(`MONEY-S3a-identity-shell`) — 온보딩 3스텝(F000 `onboarding` 조합 컨텍스트 · `/api/onboarding/status` · `/api/app/onboarding/status`) 은퇴 → 도메인 선택(`FEATURE-015` FR-1). 초대 코드(`accept-invite`)는 그대로. 본문 그 자리 정정 |
+| 2026-11-09 | FE-066 1단계(루트 `FE-066-067-search-header-slice.md`) — 종목 검색이 페이지에서 모달로(머리 칸 · `/` · `/search` 는 연 채로) · 첫 화면 최근 검색 + 거래대금 상위(D3) · 키보드 · `FE-REQ-010` FR-70 · 72 · 76 · `011` FR-80 정정. 2단계(업종 · 뉴스 · 지수 탭 · 곁 칸) 남음 |
