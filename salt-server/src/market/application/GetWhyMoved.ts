@@ -138,7 +138,9 @@ export class GetKrWhyMoved extends KrStockRead {
       : null;
     const stockDate = kstDateOf(quote.priceUpdatedAt);
     const index = indexQuotes.find((q) => q.code === marketIndex);
-    const usableIndex = index && kstDateOf(index.updatedAt) === stockDate ? index : null;
+    // 지수가 종목 시세보다 **오래되면**(지수 수집 멈춤) 다른 날 등락을 빼게 된다 — 그때만 막는다. 같거나 늦으면 같은 마지막 거래일 값이다
+    // (~~같은 날만~~ 2026-11-09 정정: 주말 재기동 때 지수 첫 회차가 장 밖에서도 돌아 지수 시각이 토요일 · 종목은 금요일이라 주말 내내 분해가 사라졌다)
+    const usableIndex = index && kstDateOf(index.updatedAt) >= stockDate ? index : null;
     const usableSector = sectorQuote && isUsableSectorQuote(sectorQuote, stockDate, trading, now) ? sectorQuote : null;
 
     const raw = splitDailyMove({

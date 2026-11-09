@@ -168,6 +168,18 @@ latest() {
     select '국내 업종 지수 마지막 갱신', to_char(max(updated_at) + interval '9 hours','MM-DD HH24:MI'),
            round(extract(epoch from now() at time zone 'utc' - max(updated_at))/60) || '분 전', '·'
       from kr_sector_index_quote
+    union all
+    -- 지수 · 업종 일별(F016 단계 C — β 재료). 평일 16:05 하루 한 번 → 4일(주말 · 휴일 넘김) 넘으면 ✗
+    select '국내 지수 일별 마지막 갱신', to_char(max(updated_at) + interval '9 hours','MM-DD HH24:MI'),
+           round(extract(epoch from now() at time zone 'utc' - max(updated_at))/3600) || '시간 전',
+           case when max(updated_at) is null or max(updated_at) < now() at time zone 'utc' - interval '4 days' then '✗' else 'ok' end
+      from kr_sector_index_daily
+    union all
+    -- 등락 분해 β · σ(예측 move_beta) — 매일 회차. 3일 넘으면 서버가 β 를 버리기 전(7일)에 알린다
+    select '등락 분해 β 마지막 as_of', to_char(max(as_of) at time zone 'Asia/Seoul','MM-DD HH24:MI'),
+           round(extract(epoch from now() - max(as_of))/3600) || '시간 전',
+           case when max(as_of) is null or max(as_of) < now() - interval '3 days' then '✗' else 'ok' end
+      from forecast.move_beta
   " 2>/dev/null | while IFS='|' read -r label at ago mark; do printf "  %-2s %s %s (%s)\n" "$mark" "$label" "$at" "$ago"; done || say "  (DB 조회 실패)"
 }
 

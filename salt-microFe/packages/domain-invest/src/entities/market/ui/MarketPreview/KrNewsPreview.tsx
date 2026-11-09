@@ -1,5 +1,7 @@
 "use client";
 
+import { FlexBox } from "@repo/ui/flexBox";
+import { Heading } from "@repo/ui/heading";
 import { Skeleton } from "@repo/ui/skeleton";
 import { Text } from "@repo/ui/text";
 
@@ -20,16 +22,24 @@ const ROW_HEIGHT = 56;
 export const KrNewsPreview = ({ code }: { code: string }) => {
   const { data, isPending, isError } = useKrNews(code);
   const modal = useNewsModal();
-  if (isPending) return <Skeleton height={ROW_HEIGHT} />;
-  if (isError || !data || data.status === "disabled") return null;
-  const views = data.status === "ok" ? data.items.map((n) => krNewsToView(n, KR_STOCK_MESSAGES.news.kind[n.kind])) : [];
+  // 자리가 없을 때(404 · 꺼짐)는 제목도 없다 — 제목만 남은 빈 블록을 그리지 않는다(2026-11-09 확인 단계)
+  if (!isPending && (isError || !data || data.status === "disabled")) return null;
+  const views = data?.status === "ok" ? data.items.map((n) => krNewsToView(n, KR_STOCK_MESSAGES.news.kind[n.kind])) : [];
   const first = views[0];
-  if (!first) return <Text color="tertiary">{MARKET_MESSAGES.newsEmpty}</Text>;
   const open = views.find((v) => v.id === modal.openId) ?? null;
 
   return (
-    <>
-      <NewsRow article={first} onOpen={(el) => modal.open(first.id, el)} />
+    <FlexBox direction="column" gap="xl">
+      <Heading level={5} color="tertiary">
+        {MARKET_MESSAGES.krNewsHeading}
+      </Heading>
+      {isPending ? (
+        <Skeleton height={ROW_HEIGHT} />
+      ) : first ? (
+        <NewsRow article={first} onOpen={(el) => modal.open(first.id, el)} />
+      ) : (
+        <Text color="tertiary">{MARKET_MESSAGES.newsEmpty}</Text>
+      )}
       <NewsModal
         article={open}
         more={views.filter((v) => v.id !== open?.id).slice(0, 8)}
@@ -37,6 +47,6 @@ export const KrNewsPreview = ({ code }: { code: string }) => {
         onSelect={modal.select}
         onClose={modal.close}
       />
-    </>
+    </FlexBox>
   );
 };

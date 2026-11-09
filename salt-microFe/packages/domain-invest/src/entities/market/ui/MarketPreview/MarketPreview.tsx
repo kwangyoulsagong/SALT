@@ -96,14 +96,7 @@ export const MarketPreview = ({
                     <Text color="tertiary">{MARKET_MESSAGES.intelligenceUnavailable}</Text>
                   )}
                   {/* 국내 오늘 소식 — 코인 뉴스 블록과 같은 자리 · 같은 모양(코인은 위 묶음 안에 있다) */}
-                  {subject.assetType === MarketAssetClass.KrStock && (
-                    <FlexBox direction="column" gap="xl">
-                      <Heading level={5} color="tertiary">
-                        {MARKET_MESSAGES.krNewsHeading}
-                      </Heading>
-                      <KrNewsPreview code={subject.symbol} />
-                    </FlexBox>
-                  )}
+                  {subject.assetType === MarketAssetClass.KrStock && <KrNewsPreview code={subject.symbol} />}
                 </>
               ) : (
                 <>

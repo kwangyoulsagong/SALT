@@ -236,6 +236,9 @@ describe("GetKrWhyMoved — 소유자 전용 · 저장값만", () => {
     assert.equal(stale.split!.sector, null);
     assert.deepEqual([stale.split!.sectorIndex, stale.split!.sectorName], [null, null]); // 쓰지 않은 업종 이름은 싣지 않는다
     assert.equal(stale.split!.idio, -4.4);
+    // 지수가 종목보다 늦은 날(주말 재기동 첫 회차 — 마지막 거래일 값 그대로)은 쓴다
+    const weekendRestart = await runKr({ quote: quote({ priceUpdatedAt: new Date("2026-11-06T06:30:00Z") }), index: { changeRate: -3, updatedAt: new Date("2026-11-08T03:00:00Z") } });
+    assert.ok(weekendRestart.split);
     const noIndex = await runKr({ index: { changeRate: -1, updatedAt: new Date("2026-11-06T06:30:00Z") } });
     assert.equal(noIndex.split, null);
     assert.equal(noIndex.show, false);
