@@ -18,7 +18,7 @@ const ROW_HEIGHT = 100;
 
 /**
  * 코인 종목 뉴스 프리뷰(`FE-REQ-010` · `FE-REQ-065`) — 행 한 줄(제목 · 요약 두 줄 · `출처 ・ N분 전` · 썸네일). 누르면 상세 모달
- * (요약 · 원문 보기 새 탭 · 주요 뉴스). 기사 본문은 싣지 않는다(사용자 2026-11-09 — 요약 + 원문 링크). 없으면 없다고 말한다(더미 0)
+ * (요약 · 원문 보기 새 탭 · 주요 뉴스). 본문은 모달이 열 때 따로 받는다(`FE-REQ-068` — RSS `content` 조각은 싣지 않는다). 없으면 없다고 말한다(더미 0)
  */
 export const MarketNewsPreview = ({ symbol }: { symbol: string }) => {
   const { data, isPending, isError } = useSymbolNews(symbol, FETCH_LIMIT);

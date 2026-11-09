@@ -32,8 +32,9 @@ const OriginalLink = ({ article }: { article: NewsArticleView }) =>
  * 문단은 서버가 글자만 준다 — `<p>` 로만 그린다(HTML 해석 0)
  */
 const ArticleBodyBlock = ({ article }: { article: NewsArticleView }) => {
-  const { data, isPending } = useArticleBody(article.bodyRef);
-  if (article.bodyRef && isPending) {
+  // 받는 중일 때만 줄 자리 — 부르지 않는 기사(공시 · 비로그인)는 바로 예전 모양(v5 `isPending` 은 꺼진 쿼리도 참이다)
+  const { data, isLoading } = useArticleBody(article.bodyRef);
+  if (isLoading) {
     return (
       <div className={s.article} aria-busy="true" aria-label={M.bodyLoading}>
         <Skeleton lines={5} height={16} />
