@@ -105,6 +105,7 @@ pnpm test:layer-check           # layer-check 훅 위반 케이스 16(레이어 
 - `docs/design-system/style-tokens.md` — `packages/ui/src/styles/tokens.css.ts` 토큰 인덱스
 - `docs/design-system/component-index.md` — `@repo/ui` export별 컴포넌트 인덱스
 - `docs/study/study-report-template.md` — 스터디 보고서 템플릿
+- `docs/rule-candidates/` — **규칙 후보(아직 적용 안 함)**: 성능 "지금 필요한 것만 먼저" · 금융 입력 검증 "고칠 수 있게 알려 주기"(2026-11-10). 도입하면 `.claude/rules/` 로 옮기고 그 파일에 날짜
 - `packages/ui/CLAUDE.md` — `@repo/ui` 패키지 로컬 작업 규칙
 - `packages/ui/.claude/rules/storybook.md` — `@repo/ui` Storybook 작성 규칙
 
