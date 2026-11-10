@@ -34,4 +34,4 @@
 | 영역 검증 전체 | 충족 | 서버 1148/1148 · lint · build · 훅 · FE check-types · lint · test(core 295 · ui 63) · web-investment 운영 빌드(worktree) · BFF build · 443/443 · 예측 362 · 누수 37 |
 | 실화면 390 앱 웹뷰 · 로딩 · 실패 | 충족 | UA SALTApp · 390: ETH 장기 채움 문장 · 005930 단타(첫 회차 504 → 고친 뒤 정상) · 실패(route 500) "지금 판단을 불러올 수 없습니다." · 지연(route 8s) `aria-busy` |
 | 공용 함수 소비처 | 충족(결함 1 고침) | `JUDGMENT_MODES` → `missingData` 는 BFF 통과만 · FE 안 읽음 / 출처 선택 → 성적표 갈림 고침 / 통계 함수 → 국내 장기 리포트 불변 |
-| FR-61 v2 국내 판단 원장 행 | 미착수 | `judgment_ledger` 자산군 열 없음 — 마이그레이션 + 코인 라이브 표본 분리 | 다음 작업(1c 전) |
+| FR-61 v2 국내 판단 원장 행 | 충족 2026-11-10 | `c8de7501` — 자산군 열(기존 178행 crypto) · 국내 50 × 두 모드 100행 · 코인 rule-ic@1 라이브는 crypto 만 읽을 것(FC-REQ-028 Changelog) |

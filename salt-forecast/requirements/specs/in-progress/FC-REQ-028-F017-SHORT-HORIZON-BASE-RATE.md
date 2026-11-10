@@ -64,3 +64,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-10 | to-do → in-progress · **몫을 바꿈**(파일 이름도) — FR-0 결함 done(`eb0d6bea`) · FR-1 단타 방향 확률 · FR-2 기저율 · FR-3 사건 종류 반응 · FR-4 채점. 옛 FR 전부 뺌(Non-Goals) |
 | 2026-11-10 | F017 v2 단계 1(`d6105374`) — 서버 3종 채움(`judgmentTriadSource`)이 FR-5 코인 과거 검산 자리를 비워 둠. 그때까지 코인 · 국내 단타는 결함 꼬리표 `backtest_missing` |
 | 2026-11-10 밤(1b) | FR-5 done(`f38ca6ae` — 실행은 서버 스크립트: 채점 규칙 · 원장이 서버) · FR-6 `rule-ic-kr@1` done(`a52061dc`) — 장기 24시간 변화 가중 0, 나머지 유지. 등급은 단계 4 |
+| 2026-11-10 밤(FR-61) | 판단 원장에 국내 행(`c8de7501`) — `rule-ic-kr@1` 라이브 재료가 생김. **코인 `rule-ic@1` 라이브 읽기(첫 열람 2026-11-23)는 `asset_class = 'crypto'` 로 거른다** — 읽는 코드를 쓸 때 이 조건이 수용 기준 |
