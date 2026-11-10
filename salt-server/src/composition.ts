@@ -22,7 +22,7 @@ import { PrismaCoachProfileStore } from "./coach/infrastructure/PrismaCoachProfi
 import { PrismaForecastReader } from "./coach/infrastructure/PrismaForecastReader";
 import { PrismaGaugeTrackStore } from "./coach/infrastructure/PrismaGaugeTrackStore";
 import { PrismaJudgmentLedgerStore } from "./coach/infrastructure/PrismaJudgmentLedgerStore";
-import { PrismaSymbolJudgmentStore } from "./coach/infrastructure/PrismaSymbolJudgmentStore";
+import { BACKTEST_STATS_TTL_MS, PrismaSymbolJudgmentStore } from "./coach/infrastructure/PrismaSymbolJudgmentStore";
 import { PrismaRecommendationSnapshotStore } from "./coach/infrastructure/PrismaRecommendationSnapshotStore";
 import { PrismaTradePlanStore } from "./coach/infrastructure/PrismaTradePlanStore";
 import { PrismaDecisionOutcomeStore } from "./coach/infrastructure/PrismaDecisionOutcomeStore";
@@ -285,7 +285,7 @@ const coach = createCoachApplication({
   ),
   // 판단 과거 검산(`backtest_full` · `backtest_price_only`) — 라이브 표본이 모자랄 동안 3종을 채운다(사전등록 kr-judgment-backtest@2 ·
   // signal-skill@1, ADR-010 v2). `backtest_seen`(규칙을 고를 때 본 기간)은 세지 않는다
-  backtestJudgments: new PrismaSymbolJudgmentStore(BACKTEST_DISPLAY_ORIGINS, undefined, roundTripCosts),
+  backtestJudgments: new PrismaSymbolJudgmentStore(BACKTEST_DISPLAY_ORIGINS, undefined, roundTripCosts, BACKTEST_STATS_TTL_MS),
   roundTripCosts,
   ledger: new PrismaJudgmentLedgerStore(),
   recommendations: new PrismaRecommendationSnapshotStore(
