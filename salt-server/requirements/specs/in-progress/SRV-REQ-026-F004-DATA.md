@@ -210,3 +210,4 @@ src/coach/
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 신규 FR-70~80(관찰 구간 · 게이지 적중률 도메인 정책, 해설 입력 `confidence` 삭제(D3) · `validity` 주입 · 미렌더 시 LLM 미호출 · 뉴스 5줄(B3), 종목 판단 스냅샷 워커 · 게이지 집계 워커(B9 · B18), 관심 종목 분리(D4)). ACL 2개 추가. 개정: FR-3(`ledger` 없음) · FR-4(`BiasLabelQuery` 무효) · `TransactionAdapter` 가 `portfolio` 를 감싼다 — ADR-002 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-11-10 | v2 대체 표시 — FR-72 · FR-74 (`FEATURE-017` v2 · `ADR-010` v2) |
+| 2026-11-10 | F017 v2 단계 1(`d6105374`) — FR-72 구현: 성적 조회 실패 → 판단 그대로 + 결함 꼬리표 `track_record_unavailable` |

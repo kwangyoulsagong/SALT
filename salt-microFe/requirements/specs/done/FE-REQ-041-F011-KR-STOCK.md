@@ -138,6 +138,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 | 2026-11-10 | `ui/index.ts` 에 `NewsModalHost` · 국내 프리뷰 소식도 모달을 보드 호스트에(`FE-REQ-065` `87eb8083`) |
 | 2026-11-10 | 국내 자산군 탭이 본문에서 머리 메뉴 "주식"으로(`FE-REQ-069`) — 보이는 판정(장 상태 ok)은 그대로 · 비소유자 `?asset=kr_stock` 은 코인 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+- 2026-11-10 — F017 v2 단계 1(`f7ce96dc` · `a65d6abf`) — 국내 상세 단타 · 장기 전환 · 안내 문구 정정(국내 단타 채점 기준은 원장 채점 때)
   - `salt-microFe/packages/domain-invest/src/entities/market/api/useKrStockQueries.ts` — 시장 조회의 로그인 조건 제거(게스트 토큰으로 이어 봄)
   - `salt-microFe/packages/domain-invest/src/entities/market/model/krStockMessages.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrStockDetail.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)

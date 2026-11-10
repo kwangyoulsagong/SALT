@@ -21,3 +21,14 @@
 
 - MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 2 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
+
+
+## F017 v2 단계 1 — 판단 막지 않음 (2026-11-10, `feat/f017-s1a-judgment-caveats`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 해설 막힘 문구 삭제 | 충족 | `pnpm check-types` 13/13 · `lint` 13/13 · `test`(core 295 · ui 63) · 투자 zone 운영 빌드(worktree, `/investments/[symbol]` First Load 153 kB) · 레이어 훅 사후(음성 대조 exit 2) |
+
+| 미충족 · 미검증 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 3종 결함 160(코인 장기 100 · 국내 단타 50 · 코인 단타 10) | 채울 과거 검산 · 국내 단타 원장 채점이 아직 없다 — 숨기지 않고 결함 꼬리표 | 1b(`FC-REQ-028` FR-5 · `SRV-REQ-040` FR-63) |

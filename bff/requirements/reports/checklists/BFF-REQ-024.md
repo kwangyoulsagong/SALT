@@ -93,3 +93,14 @@
 
 - 파일만 걸침 — `packages/domain-invest/src/features/run-preflight/api/runPreflightApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
 - 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+
+## F017 v2 단계 1 — 판단 막지 않음 (2026-11-10, `feat/f017-s1a-judgment-caveats`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| FR-31 뒤집힘 — 판단 늘 · `observations` · `caveats` · 모르는 사유 `unknown` | 충족 | `npm test` 443/443 · `npm run build` |
+
+| 미충족 · 미검증 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 3종 결함 160(코인 장기 100 · 국내 단타 50 · 코인 단타 10) | 채울 과거 검산 · 국내 단타 원장 채점이 아직 없다 — 숨기지 않고 결함 꼬리표 | 1b(`FC-REQ-028` FR-5 · `SRV-REQ-040` FR-63) |

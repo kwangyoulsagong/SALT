@@ -176,6 +176,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `ReadKrStock` 에 `GetKrNewsBody`(소유자 · 그 종목 제목만 · 공시 검색 0) · 의존 `articleBody`(news ACL) |
 | 2026-11-10 | `market/application/api/index.ts` — 검색 모달 유스케이스 셋 조립(`krSearch` = 시세 · 업종 · 지수 저장소 + 소유자 목록, `SRV-REQ-055` `dd0bbdcc`) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+- 2026-11-10 — F017 v2 단계 1(`d6105374` · `a65d6abf`) — FR-62 · 66 꼬리표 · FR-63 국내 단타 막음 삭제(원장 채점 · 다음 거래일 종가는 1b — 남음) · 국내 판단 실측 100/100 보임
   - `bff/src/services/app-kr-stock.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
   - `salt-server/src/coach/application/GetKrBehaviorMirror.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/coach/domain/policy/krStockJudgment.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
