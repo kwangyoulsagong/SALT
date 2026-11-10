@@ -56,8 +56,8 @@ const modeView = (overrides: Partial<ServerModeView> = {}): ServerModeView => ({
     risks: [],
   },
   signalType: "scalp.wait",
-  renderable: true,
-  blockedReason: null,
+  observations: [{ item: "rsi", value: 48, lower: 35, upper: 70, distance: 13, points: 0, missing: false }],
+  caveats: [],
   trackRecord,
   failureCases: [failureCase],
   zone,
@@ -90,22 +90,20 @@ const serverCoach = (
   ...overrides,
 });
 
-describe("toModeViewModel", () => {
-  it("renderable: true 는 판단 · 성적표 · 실패사례 · 구간을 싣는다", () => {
+describe("toModeViewModel — 판단은 늘 있다 (ADR-010 v2 · BFF-REQ-052 FR-1)", () => {
+  it("판단 · 관측 · 성적표 · 실패사례 · 꼬리표 · 구간을 싣는다", () => {
     const vm = toModeViewModel(modeView());
-
-    assert.equal(vm?.renderable, true);
-    if (vm?.renderable !== true) return;
-    assert.equal(vm.judgment.score, 52);
-    assert.equal(vm.failureCases.length, 1);
-    assert.deepEqual(vm.zone, zone);
+    assert.equal(vm?.judgment.score, 52);
+    assert.equal(vm?.failureCases.length, 1);
+    assert.deepEqual(vm?.observations[0], { item: "rsi", value: 48, lower: 35, upper: 70, distance: 13, points: 0, missing: false });
+    assert.deepEqual(vm?.caveats, []);
+    assert.deepEqual(vm?.zone, zone);
   });
 
   it("성적 출처 — backtest 는 그대로, 없으면(옛 서버) live, 모르는 값은 모의 라벨 쪽 (F011 슬라이스 7b)", () => {
-    const origin = (sampleOrigin: unknown) => {
-      const vm = toModeViewModel(modeView({ trackRecord: { ...trackRecord, sampleOrigin } as ServerModeView["trackRecord"] }));
-      return vm && vm.renderable ? vm.trackRecord.sampleOrigin : null;
-    };
+    const origin = (sampleOrigin: unknown) =>
+      toModeViewModel(modeView({ trackRecord: { ...trackRecord, sampleOrigin } as ServerModeView["trackRecord"] }))
+        ?.trackRecord.sampleOrigin ?? null;
     assert.equal(origin("backtest"), "backtest");
     assert.equal(origin("live"), "live");
     assert.equal(origin(undefined), "live");
@@ -115,66 +113,48 @@ describe("toModeViewModel", () => {
   it("confidence 를 서버가 보내도 옮기지 않는다 (D3)", () => {
     const view = modeView();
     (view.judgment as unknown as Record<string, unknown>).confidence = 0.8;
-
     const vm = toModeViewModel(view);
-
-    assert.ok(vm?.renderable);
+    assert.ok(vm);
     assert.equal(JSON.stringify(vm).includes("confidence"), false);
   });
 
-  it("renderable: false 에는 판단 · 성적표가 없고 표본 수와 구간만 있다 (FR-31)", () => {
-    const vm = toModeViewModel(
-      modeView({ renderable: false, blockedReason: "insufficient_sample" }),
-    );
+  it("꼬리표는 서버 사실 그대로 · 모르는 사유는 unknown 으로 남긴다(버리지 않음)", () => {
+    const caveats = [
+      { reason: "live_sample_short", live: 12, min: 20, backtest: 2310 },
+      { reason: "stale_inputs", items: [{ item: "technical_indicator", lastAt: "2026-11-07T00:00:00.000Z" }] },
+      { reason: "brand_new_reason", x: 1 },
+    ];
+    const vm = toModeViewModel(modeView({ caveats }));
+    assert.deepEqual(vm?.caveats, [caveats[0], caveats[1], { reason: "unknown" }]);
+  });
 
-    assert.deepEqual(vm, {
-      renderable: false,
-      assetClass: "crypto",
-      blockedReason: "insufficient_sample",
-      trackSample: 24,
-      history: null,
-      zone,
-    });
+  it("3종 결함이면 실패사례가 비어도 판단을 내보낸다 — 숨기지 않는다", () => {
+    const vm = toModeViewModel(
+      modeView({ failureCases: [], caveats: [{ reason: "backtest_missing", live: 0, min: 20 }] }),
+    );
+    assert.ok(vm);
+    assert.equal(vm?.judgment.label, "관망");
+    assert.deepEqual(vm?.caveats, [{ reason: "backtest_missing", live: 0, min: 20 }]);
   });
 
   it("국내 주식 — 자산군 · 이력 수치를 옮기고, 모양이 틀린 이력은 null (F011 슬라이스 4)", () => {
     const history = { ready: false, dailyBars: 63, requiredDailyBars: 120, dailyIndicator: true };
-    const vm = toModeViewModel(
-      modeView({ renderable: false, blockedReason: "insufficient_history", assetClass: "kr_stock", history }),
-    );
-    assert.equal(vm?.renderable, false);
+    const vm = toModeViewModel(modeView({ assetClass: "kr_stock", history }));
     assert.equal(vm?.assetClass, "kr_stock");
-    assert.deepEqual(vm?.renderable === false && vm.history, history);
-
-    const broken = toModeViewModel(
-      modeView({ renderable: false, blockedReason: "insufficient_history", assetClass: "kr_stock", history: { dailyBars: "63" } }),
-    );
-    assert.equal(broken?.renderable === false && broken.history, null);
+    assert.deepEqual(vm?.history, history);
+    assert.equal(toModeViewModel(modeView({ assetClass: "kr_stock", history: { dailyBars: "63" } }))?.history, null);
     // 모르는 자산군은 코인으로 읽는다(서버가 옛 버전)
-    assert.equal(toModeViewModel(modeView({ renderable: false, blockedReason: "mode_not_open", assetClass: "x" }))?.assetClass, "crypto");
+    assert.equal(toModeViewModel(modeView({ assetClass: "x" }))?.assetClass, "crypto");
   });
 
-  it("성적표가 없으면 trackSample 은 null 이다 — 0 을 만들지 않는다", () => {
-    const vm = toModeViewModel(
-      modeView({
-        renderable: false,
-        blockedReason: "signal_track_record_missing",
-        trackRecord: null,
-      }),
-    );
-
-    assert.equal(vm?.renderable === false && vm.trackSample, null);
-  });
-
-  /** 게이트 필드가 없는 판단을 내보내지 않는다 (`BFF-REQ-025` FR-40) */
-  it("renderable 이 불리언이 아니면 null", () => {
-    assert.equal(toModeViewModel(modeView({ renderable: undefined })), null);
-    assert.equal(toModeViewModel(modeView({ renderable: "true" })), null);
+  /** 모양이 깨진 모드만 내보내지 않는다 (`BFF-REQ-025` FR-40 v2) — 판단을 숨기는 경로가 아니다 */
+  it("꼬리표가 배열이 아니면(옛 서버 · 깨짐) null", () => {
+    assert.equal(toModeViewModel(modeView({ caveats: undefined })), null);
+    assert.equal(toModeViewModel(modeView({ caveats: "none" })), null);
     assert.equal(toModeViewModel(undefined), null);
   });
 
-  /** 서버가 열었어도 3종 세트가 비었으면 막는다. BFF 가 여는 경로는 없다 */
-  it("renderable: true 인데 실패사례 · 성적표 · scoreNote 가 비면 null", () => {
+  it("결함 꼬리표 없이 실패사례가 비거나 · 성적표 · scoreNote 가 없으면 null", () => {
     assert.equal(toModeViewModel(modeView({ failureCases: [] })), null);
     assert.equal(toModeViewModel(modeView({ trackRecord: null })), null);
     const noNote = modeView();
@@ -182,7 +162,7 @@ describe("toModeViewModel", () => {
     assert.equal(toModeViewModel(noNote), null);
   });
 
-  it("보유 구간 basis 는 아는 값만 남긴다 — 막힌 모드도 같다(F010 슬라이스 3)", () => {
+  it("보유 구간 basis 는 아는 값만 남긴다(F010 슬라이스 3)", () => {
     const held = (basis: unknown) => ({
       kind: "held_rule" as const,
       notPrediction: true as const,
@@ -191,23 +171,14 @@ describe("toModeViewModel", () => {
       status: "hold_plan",
       basis,
     });
-    const open = toModeViewModel(modeView({ zone: held("volatility") as never }));
-    const blocked = toModeViewModel(
-      modeView({ renderable: false, blockedReason: "insufficient_sample", zone: held("atr") as never }),
-    );
-    assert.equal(open?.zone.kind === "held_rule" && open.zone.basis, "volatility");
-    assert.equal(blocked !== null && "basis" in blocked.zone, false);
+    const known = toModeViewModel(modeView({ zone: held("volatility") as never }));
+    const unknownBasis = toModeViewModel(modeView({ zone: held("atr") as never }));
+    assert.equal(known?.zone.kind === "held_rule" && known.zone.basis, "volatility");
+    assert.equal(unknownBasis !== null && "basis" in unknownBasis.zone, false);
   });
 
   it("zone 이 없으면 null (FR-45 계약)", () => {
     assert.equal(toModeViewModel(modeView({ zone: undefined })), null);
-  });
-
-  it("renderable: false 인데 blockedReason 이 없으면 null", () => {
-    assert.equal(
-      toModeViewModel(modeView({ renderable: false, blockedReason: null })),
-      null,
-    );
   });
 });
 
@@ -230,8 +201,8 @@ describe("toSymbolCoachViewModel", () => {
       { articles: [] },
     );
 
-    assert.equal(vm.modes.scalp?.renderable, true);
-    assert.equal(vm.modes.longTerm?.renderable, true);
+    assert.ok(vm.modes.scalp?.judgment);
+    assert.ok(vm.modes.longTerm?.judgment);
     assert.deepEqual(vm.gaugeTrackRecords, [{ ...gauge, baselinePositiveRate: null, claim: null }]);
     assert.deepEqual(vm.degradedFields, []);
     assert.ok(vm.disclaimer);
@@ -242,12 +213,12 @@ describe("toSymbolCoachViewModel", () => {
 
     assert.deepEqual(vm.evidence.news, []);
     assert.deepEqual(vm.degradedFields, ["news"]);
-    assert.equal(vm.modes.scalp?.renderable, true);
+    assert.ok(vm.modes.scalp?.judgment);
   });
 
   it("계약이 깨진 모드는 null 이고 degradedFields 에 이름이 있다", () => {
     const vm = toSymbolCoachViewModel(
-      serverCoach({ modes: { scalp: modeView({ renderable: undefined }) } }),
+      serverCoach({ modes: { scalp: modeView({ caveats: undefined }) } }),
       { articles: [] },
     );
 
@@ -333,38 +304,38 @@ describe("toSymbolCoachViewModel", () => {
 describe("거래소 표시 (F010 슬라이스 6 · FR-6)", () => {
   const AT = "2026-09-30T00:00:00.000Z";
 
-  it("서버가 막은 exchange_warning 은 그대로 막히고 표시가 실린다", () => {
-    const blocked = modeView({ renderable: false, blockedReason: "exchange_warning" });
+  it("서버가 단 exchange_warning 꼬리표는 그대로 · 판단도 그대로 · 표시가 실린다 (ADR-010 v2)", () => {
+    const warned = modeView({ caveats: [{ reason: "exchange_warning", cautions: [], checkedAt: AT }] });
     const vm = toSymbolCoachViewModel(
       serverCoach({
-        modes: { scalp: blocked, longTerm: blocked },
+        modes: { scalp: warned, longTerm: warned },
         exchangeFlag: { warning: true, cautions: [], fetchedAt: AT },
       }),
       { articles: [] },
     );
-    assert.equal(vm.modes.scalp?.renderable, false);
-    assert.equal(vm.modes.scalp?.renderable === false && vm.modes.scalp.blockedReason, "exchange_warning");
+    assert.equal(vm.modes.scalp?.judgment.label, "관망");
+    assert.deepEqual(vm.modes.scalp?.caveats, [{ reason: "exchange_warning", cautions: [], checkedAt: AT }]);
     assert.deepEqual(vm.exchangeFlag, { warning: true, cautions: [], fetchedAt: AT });
   });
 
-  it("투자유의인데 서버가 renderable: true 를 보내면 막는 쪽으로만 고친다", () => {
+  it("투자유의인데 서버 꼬리표에 없으면 꼬리표를 더하는 쪽으로만 고친다 — 판단은 숨기지 않는다", () => {
     const vm = toSymbolCoachViewModel(
       serverCoach({ exchangeFlag: { warning: true, cautions: [], fetchedAt: AT } }),
       { articles: [] },
     );
-    assert.equal(vm.modes.scalp?.renderable, false);
-    assert.equal(vm.modes.longTerm?.renderable === false && vm.modes.longTerm.blockedReason, "exchange_warning");
-    assert.equal(JSON.stringify(vm.modes).includes("reasons"), false, "막힌 모드에 판단이 남지 않는다");
+    assert.equal(vm.modes.scalp?.caveats[0].reason, "exchange_warning");
+    assert.equal(vm.modes.longTerm?.caveats[0].reason, "exchange_warning");
+    assert.equal(vm.modes.scalp?.judgment.label, "관망");
   });
 
-  it("주의만이면 판단은 그대로 · 모르는 주의 코드는 버린다", () => {
+  it("주의만이면 꼬리표 없음 · 모르는 주의 코드는 버린다", () => {
     const vm = toSymbolCoachViewModel(
       serverCoach({
         exchangeFlag: { warning: false, cautions: ["NEW_CODE", "PRICE_FLUCTUATIONS"], fetchedAt: AT },
       }),
       { articles: [] },
     );
-    assert.equal(vm.modes.scalp?.renderable, true);
+    assert.deepEqual(vm.modes.scalp?.caveats, []);
     assert.deepEqual(vm.exchangeFlag?.cautions, ["PRICE_FLUCTUATIONS"]);
   });
 

@@ -206,3 +206,11 @@ export const caseIdentityName = style({
   whiteSpace: "nowrap",
   color: vars.colors.text.primary,
 });
+
+/** 사례 0건 한 줄(`ADR-010` v2 — 빈 칸 0). 목록과 같은 글자 단 · 2단 색 */
+export const caseEmpty = style({
+  margin: 0,
+  fontSize: vars.typography.t7.fontSize,
+  lineHeight: vars.typography.t7.lineHeight,
+  color: vars.colors.text.secondary,
+});

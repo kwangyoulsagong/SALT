@@ -42,6 +42,13 @@ export const krTrackOrigin = (
     ? "live"
     : "backtest";
 
+/**
+ * 국내 과거 검산 성적을 3종 채움에 쓸 수 있나(`kr-judgment-backtest@1` [display] — 판단 달 ≥ 12). 표본 · 빗나간 사례 조건은
+ * `triadComplete` 가 따로 본다(`ADR-010` v2 — `judgmentTriadSource`)
+ */
+export const krBacktestUsable = (backtest: { judgedMonths?: number } | null): boolean =>
+  backtest !== null && (backtest.judgedMonths ?? 0) >= KR_BACKTEST_MIN_MONTHS;
+
 /** 종가 확정 시각 — 판단 시각 = 그날 16:00 KST */
 const CLOSE_CONFIRMED_MS = 16 * 3600_000;
 const DAY_MS = 24 * 3600_000;

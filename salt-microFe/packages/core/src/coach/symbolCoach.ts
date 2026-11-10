@@ -10,8 +10,8 @@
  * 바꾼다.** 한쪽만 바꾸면 화면이 조용히 깨진다. 모양을 고치는 PR 은 두 파일을 같이 연다.
  *
  * 타입이 강제하는 것:
- * - `renderable: false` 분기에 `judgment` · `trackRecord` 가 **없다** — 막힌 판단의 점수 ·
- *   라벨에 접근하면 컴파일이 실패한다(`FE-REQ-028` FR-89)
+ * - 판단은 **늘 있다**(`ADR-010` v2, 2026-11-10 — ~~`renderable: false` 분기에 `judgment` 가 없다, `FE-REQ-028` FR-89~~).
+ *   부족한 것은 `caveats[]` 꼬리표가 말한다
  * - `confidence` 필드가 없다(D3)
  * - `zone.notPrediction` 이 리터럴 `true` 다
  * - `preflightDefaults` 에 목표가가 없다(B1)
@@ -29,18 +29,32 @@ export type JudgmentAction =
   | "wait"
   | "avoid";
 
-export type JudgmentBlockedReason =
-  /** 이 자산군에 아직 열지 않은 모드 — 국내 주식 단타(F011 슬라이스 4) */
-  | "mode_not_open"
-  /** 국내 주식 종목 이력(일봉 120 거래일 · 일봉 지표)이 모자람 — 수치는 `history` */
-  | "insufficient_history"
-  | "exchange_warning"
-  /** 시세 · 지표가 기준보다 오래됐다(F010 슬라이스 7) */
-  | "stale_inputs"
-  | "reasons_missing"
-  | "signal_track_record_missing"
-  | "failure_cases_missing"
-  | "insufficient_sample";
+/**
+ * 판단 옆 꼬리표 — BFF `JudgmentCaveat` 사본(`SRV-REQ-053` FR-2 v2). 판단을 숨기지 않는다.
+ * 셋째 묶음(`inputs_missing` · `track_record_unavailable` · `backtest_missing`)은 3종 결함
+ */
+export type JudgmentCaveat =
+  | { reason: "insufficient_history"; have: number; need: number; dailyIndicator: boolean }
+  | { reason: "exchange_warning"; cautions: string[]; checkedAt: string | null }
+  | { reason: "stale_inputs"; items: Array<{ item: "price" | "technical_indicator"; lastAt: string | null }> }
+  | { reason: "live_sample_short"; live: number; min: number; backtest: number }
+  | { reason: "inputs_missing"; items: string[] }
+  | { reason: "track_record_unavailable" }
+  | { reason: "backtest_missing"; live: number; min: number }
+  | { reason: "unknown" };
+
+export type JudgmentCaveatReason = JudgmentCaveat["reason"];
+
+/** 엔진이 본 값 하나(`ADR-010`) — 서버가 문턱에 가까운 순으로 준다 */
+export interface JudgmentObservation {
+  item: "change24h" | "sentiment" | "rsi";
+  value: number | null;
+  lower: number;
+  upper: number;
+  distance: number | null;
+  points: number;
+  missing: boolean;
+}
 
 /** 거래소 투자주의 종류(원문 코드 — BFF 가 이 5종만 통과시킨다) */
 export type ExchangeCaution =
@@ -159,25 +173,20 @@ export interface JudgmentHistory {
   dailyIndicator: boolean;
 }
 
-export type ModeCoachViewModel =
-  | {
-      renderable: true;
-      assetClass: JudgmentAssetClass;
-      judgment: Judgment;
-      trackRecord: TrackRecord;
-      failureCases: [FailureCase, ...FailureCase[]];
-      zone: Zone;
-    }
-  | {
-      renderable: false;
-      assetClass: JudgmentAssetClass;
-      blockedReason: JudgmentBlockedReason;
-      /** "표본 N건" 표시용. 성적표가 없으면 `null` */
-      trackSample: number | null;
-      /** `insufficient_history` 의 수치. 국내 주식만 — 코인은 `null` */
-      history: JudgmentHistory | null;
-      zone: Zone;
-    };
+/**
+ * 모드 하나 — **판단은 늘 있다**(`ADR-010` v2). `failureCases` 가 비는 것은 `caveats` 에 3종 결함이 있을 때뿐.
+ */
+export interface ModeCoachViewModel {
+  assetClass: JudgmentAssetClass;
+  judgment: Judgment;
+  observations: JudgmentObservation[];
+  trackRecord: TrackRecord;
+  failureCases: FailureCase[];
+  caveats: JudgmentCaveat[];
+  /** 국내 주식 이력 수치. 코인은 `null` */
+  history: JudgmentHistory | null;
+  zone: Zone;
+}
 
 export interface GaugeTrackRecord {
   gauge: "sentiment" | "smart_money";

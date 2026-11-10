@@ -3,6 +3,7 @@ import { COACH_HORIZON } from "./horizon";
 import type { ModeDecisionAction } from "./modeDecision";
 import { claimBaseline, claimMisses, claimPeriod, type PerformanceClaim } from "./performanceClaim";
 import { DEFAULT_KR_STOCK_COMMISSION_PER_SIDE, krStockRoundTripCost } from "./krStockCost";
+import { observedEvidence, type JudgmentObservation } from "./judgmentObservation";
 
 /**
  * 종목 판단의 **사후 판정과 렌더 게이트** — F004 (감사 문서 D11 · B39).
@@ -300,82 +301,108 @@ export interface JudgmentCase {
   returnRate: number;
 }
 
-export type JudgmentBlockedReason =
-  | "mode_not_open"
+/**
+ * 판단에 붙는 **꼬리표** 사유 — 판단을 숨기지 않는다(`ADR-010` v2, 2026-11-10 사용자 *"막히는 게 말이 안 되잖아"*).
+ * 예전엔 이 중 첫째 하나로 판단 블록 전체를 비웠다(`judgmentGate`). 이제 판단 · 관측 · 성적 · 실패사례는 늘 나가고,
+ * 해당하는 사유가 **전부** 사실과 함께 붙는다(`JudgmentCaveat`).
+ *
+ * **3종(근거 · 적중률 · 실패사례)은 늘 다 있어야 한다**(사용자 *"하나라도 없으면 안 되잖아"*) — 성적이 모자라면 막지 않고
+ * 과거 검산으로 **채운다**(`judgmentTriadSource`). 아래 셋째 묶음(결함)은 채우지 못했다는 뜻이고 상태 점검이 센다(`OPS-003`).
+ */
+export type JudgmentCaveatReason =
+  // 판단 대상 · 재료
+  /** 국내 주식 일봉 이력이 모자라 장기 지표가 짧은 창에서 나왔다(F011 FR-62) */
   | "insufficient_history"
+  /** 거래소 투자유의 — 규칙 점수는 지정 사유를 모른다 */
   | "exchange_warning"
+  /** 재료가 기준보다 오래됐다 — 점수가 그 시각 값에서 나왔다 */
   | "stale_inputs"
-  | "reasons_missing"
-  | "insufficient_sample"
-  | "failure_cases_missing";
+  // 성적 — 채웠다
+  /** 라이브 표본이 모자라(또는 빗나간 사례 0) 같은 판단 유형의 과거 검산 성적 · 사례로 채웠다 — 숫자는 섞지 않는다 */
+  | "live_sample_short"
+  // 결함 — 3종을 다 채우지 못했다
+  /** 엔진이 본 재료가 하나도 없다(시세 · 지표 · 심리 전부 결측) */
+  | "inputs_missing"
+  /** 성적 · 실패사례를 읽지 못했다(저장소 실패) */
+  | "track_record_unavailable"
+  /** 라이브도 모자라고 쓸 수 있는 과거 검산도 없다 */
+  | "backtest_missing";
 
-export interface JudgmentGateInput {
+/** 결함 꼬리표 — 3종이 비었다는 뜻이라 세고 고친다 */
+export const TRIAD_DEFECTS: readonly JudgmentCaveatReason[] = [
+  "inputs_missing",
+  "track_record_unavailable",
+  "backtest_missing",
+];
+
+/** 성적 묶음 하나가 3종의 몫(적중률 · 실패사례)을 채우는가 — 표본 20 이상 · 빗나간 사례 1 이상 */
+export const triadComplete = (stats: Pick<JudgmentTrackStats, "sample" | "hits">): boolean =>
+  stats.sample >= MIN_JUDGMENT_SAMPLE && stats.sample - stats.hits >= 1;
+
+export type JudgmentTriadSource =
+  | { origin: "live"; caveat: null }
+  | { origin: "backtest"; caveat: "live_sample_short" }
+  | { origin: "live"; caveat: "backtest_missing" };
+
+/**
+ * 3종의 성적 몫을 어디서 채우나 — 라이브가 완전하면 라이브, 아니면 쓸 수 있는 과거 검산, 둘 다 아니면 결함.
+ *
+ * `backtestUsable` — 과거 검산 저장소 쪽 조건(국내 `kr-judgment-backtest@1` 의 판단 달 ≥ 12 등)을 통과했는가.
+ * 숫자를 섞지 않는다: 고른 출처의 성적 · 사례만 나간다(라이브 표본 수는 꼬리표 사실로만).
+ */
+export const judgmentTriadSource = (
+  live: Pick<JudgmentTrackStats, "sample" | "hits">,
+  backtest: Pick<JudgmentTrackStats, "sample" | "hits"> | null,
+  backtestUsable: boolean
+): JudgmentTriadSource => {
+  if (triadComplete(live)) return { origin: "live", caveat: null };
+  if (backtest && backtestUsable && triadComplete(backtest)) return { origin: "backtest", caveat: "live_sample_short" };
+  return { origin: "live", caveat: "backtest_missing" };
+};
+
+export interface JudgmentCaveatInput {
   action: ModeDecisionAction;
   reasons: string[];
   risks: string[];
-  trackRecord: JudgmentTrackRecord;
-  failureCases: JudgmentCase[];
-  /** 거래소가 투자유의로 지정한 종목(F010 슬라이스 6). 모르면 `false` — 수집이 멈췄다고 판정을 막지 않는다 */
+  /** 엔진이 본 값(`judgmentObservations`) — 결측 아닌 것이 하나라도 있으면 근거가 있다(`ADR-010`) */
+  observations: readonly JudgmentObservation[];
+  /** 성적 몫의 출처(`judgmentTriadSource`). 저장소를 못 읽었으면 `null` */
+  triad: JudgmentTriadSource | null;
+  /** 거래소가 투자유의로 지정한 종목(F010 슬라이스 6). 모르면 `false` */
   exchangeWarning?: boolean;
-  /**
-   * 이 모드 판정 재료 중 기준보다 오래된 것(F010 슬라이스 7 · `inputFreshness`). 하나라도 있으면 막는다 —
-   * 사흘 전 RSI 로 계산한 점수를 오늘 판정처럼 보이지 않는다. 비면 막지 않는다
-   */
+  /** 이 모드 판정 재료 중 기준보다 오래된 것(F010 슬라이스 7 · `inputFreshness`) */
   staleInputs?: readonly string[];
-  /** 이 자산군에 아직 열지 않은 모드(F011 FR-63 — 국내 주식 단타). 성적과 무관하게 막는다 */
-  modeNotOpen?: boolean;
   /** 이 종목의 판단 재료 이력이 모자람(F011 FR-62 — 국내 주식 일봉 120 거래일 · 일봉 지표) */
   historyShort?: boolean;
 }
-
-export type JudgmentGate =
-  | { renderable: true; blockedReason: null }
-  | { renderable: false; blockedReason: JudgmentBlockedReason };
 
 /**
  * 판단의 근거 문장.
  *
  * **피하기는 위험 신호가 곧 근거다**(2026-09-21 사용자 확정). `makeModeDecision` 은
- * 피하기의 이유를 `risks` 에 넣고, 긍정 신호가 없으면 `reasons` 는 빈다. `reasons` 만
- * 보면 피하기는 표본이 쌓여도 영영 렌더되지 않는다.
+ * 피하기의 이유를 `risks` 에 넣고, 긍정 신호가 없으면 `reasons` 는 빈다.
  */
 export const judgmentEvidence = (
-  input: Pick<JudgmentGateInput, "action" | "reasons" | "risks">
+  input: Pick<JudgmentCaveatInput, "action" | "reasons" | "risks">
 ): string[] =>
   input.action === "avoid" ? [...input.reasons, ...input.risks] : input.reasons;
 
 /**
- * 3종 게이트 — 근거 · 과거 적중률 · 실패사례 (공통 수용 기준 1).
+ * 꼬리표 — 해당하는 사유 **전부**를 화면에 읽힐 순서로(재료 → 성적 → 결함).
  *
- * 표본이 모자라면 적중률이 **없는 것과 같다.** 그리고 표본이 충분한데 빗나간 적이
- * 한 번도 없으면 그것도 막는다 — 실패 없는 성적은 표본이 치우쳤다는 신호다(FR-137).
- * 막혀도 **에러가 아니다.** 판단 블록만 비고 나머지 응답은 그대로 간다.
+ * 2026-11-10 전엔 사유 하나만 있어도 판단을 통째로 비웠다: 산 종목의 판단이 계속 비어 있으면 쓸 이유가 없다(사용자).
+ * 국내 단타는 더 이상 막는 사유가 아니다(`ADR-010` v2 — 열고 채점) — 성적이 없으면 아래 성적 꼬리표가 말한다.
  */
-export const judgmentGate = (input: JudgmentGateInput): JudgmentGate => {
-  // 열지 않은 모드 · 모자란 이력은 "판단 대상이 아직 아님"이다 — 아래 어떤 사유보다 앞선다
-  if (input.modeNotOpen) {
-    return { renderable: false, blockedReason: "mode_not_open" };
+export const judgmentCaveats = (input: JudgmentCaveatInput): JudgmentCaveatReason[] => {
+  const caveats: JudgmentCaveatReason[] = [];
+  if (input.historyShort) caveats.push("insufficient_history");
+  if (input.exchangeWarning) caveats.push("exchange_warning");
+  if (input.staleInputs && input.staleInputs.length > 0) caveats.push("stale_inputs");
+  if (input.triad?.caveat === "live_sample_short") caveats.push("live_sample_short");
+  if (judgmentEvidence(input).length === 0 && observedEvidence(input.observations).length === 0) {
+    caveats.push("inputs_missing");
   }
-  if (input.historyShort) {
-    return { renderable: false, blockedReason: "insufficient_history" };
-  }
-  // 투자유의 종목은 성적 · 근거와 무관하게 판정을 내지 않는다(리서치 §11 · `SRV-REQ-024` FR-191).
-  // 규칙 점수는 유의 지정의 이유(급등락 · 유통량 · 소명)를 모른다 — 그 위에서 "후보"를 말하면 규칙 밖의 말이다
-  if (input.exchangeWarning) {
-    return { renderable: false, blockedReason: "exchange_warning" };
-  }
-  // 재료가 멈췄으면 성적 · 근거를 보기 전에 막는다 — 근거 문장 자체가 오래된 값에서 나왔다
-  if (input.staleInputs && input.staleInputs.length > 0) {
-    return { renderable: false, blockedReason: "stale_inputs" };
-  }
-  if (judgmentEvidence(input).length === 0) {
-    return { renderable: false, blockedReason: "reasons_missing" };
-  }
-  if (input.trackRecord.lowSample) {
-    return { renderable: false, blockedReason: "insufficient_sample" };
-  }
-  if (input.failureCases.length === 0) {
-    return { renderable: false, blockedReason: "failure_cases_missing" };
-  }
-  return { renderable: true, blockedReason: null };
+  if (input.triad === null) caveats.push("track_record_unavailable");
+  else if (input.triad.caveat === "backtest_missing") caveats.push("backtest_missing");
+  return caveats;
 };

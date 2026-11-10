@@ -52,5 +52,6 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | 검증기 후속 — `prompt_label`(블라인드 3회차 "뉴스1과…" 누출) · FR-13 행 그 자리에 확장 기록. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `macroEvents.ts` 종류 표 `EVENT_KIND_META`(지역 · 범위) · 자산군별 지역 · 계약 위반 행 버림 · 종목 사건 → 시장 일정 순(`SRV-REQ-041` FR-1~3) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+- 2026-11-10 — F017 v2 단계 1(`d6105374`) — 해설은 판단 꼬리표로 막지 않는다(`ExplainBlockedReason` = `facts_unavailable` 하나)
   - `salt-server/src/coach/application/ExplainCoachDecision.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/coach/presentation/coachTools.controller.ts` — Swagger · 컨트롤러 — 국내 "소유자 전용 404" 문구 · 인자 정리

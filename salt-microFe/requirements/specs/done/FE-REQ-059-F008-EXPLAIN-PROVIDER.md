@@ -41,3 +41,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-050-F008-EXPLAIN-LLM-ROUTIN
 | 2026-11-02 | 작성 — `SRV-REQ-050` 짝 |
 | 2026-11-02 | 완료 — FR-5 더함(진짜 스트리밍 · 끊긴 스트림 정산). 실스택 화면(임시 사용자, 3100): 흘린 Claude 문장 · 끝 문구 확인 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 2 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
+| 2026-11-10 | F017 v2 단계 1(`f7ce96dc`) — 해설 문구 `judgmentBlocked` 삭제(판단이 해설을 막지 않음) |

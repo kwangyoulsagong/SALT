@@ -195,3 +195,4 @@ created: 2026-09-09
 | 2026-11-10 | 검색 모달 2단계(`19539c95`) — 투자 zone 운영 빌드 `/search` 첫 로드 158 → **167 kB**(+9, 예산 40 안) · `/investments` 153 · `/coach/report` 149 · `/investments/[symbol]` 153 그대로 |
 | 2026-11-10 | `FE-REQ-069`(`f193c6aa` · `29b9a212` · `c914fe2e`) 운영 빌드 — `/investments` 165(아침 `87eb8083`) → **156 kB** · `/portfolio` 148(새) · `/coach/report` 149 → 148 · `/search` 168 → 169 |
 | 2026-11-10 | v2 대체 표시 — FR-60 · FR-61 · FR-76(지표 이름) (`FEATURE-017` v2 · `ADR-010` v2) |
+| 2026-11-10 | F017 v2 단계 1(`f7ce96dc`) — 꼬리표 줄 스타일 `caveatLines`(AA 진한 회색). 지표 이름(미렌더율 → 꼬리표 비율)은 계측 붙일 때 |

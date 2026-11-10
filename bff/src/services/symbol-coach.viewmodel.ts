@@ -4,12 +4,10 @@
  * 투자 화면 우측 AI 코치 패널과 상세 분석 페이지가 같은 모양을 쓴다. 서버
  * `SymbolCoachView` 를 거의 그대로 싣고, BFF 가 하는 일은 셋뿐이다:
  *
- * 1. **모드 블록을 `renderable` 판별 union 으로 접는다.** 서버는 막힌 판단에도
- *    `judgment` · `trackRecord` 를 싣는다. 여기서 떨어뜨려야 막힌 판단의 점수 · 라벨이
- *    화면에 새어 나갈 길이 타입에서 사라진다(`BFF-REQ-024` FR-31)
- * 2. **계약이 깨진 모드를 `null` 로 막는다.** `renderable` 이 불리언이 아니거나, 렌더
- *    가능한데 3종 세트가 비어 있으면 그 모드는 내보내지 않는다(`BFF-REQ-025` FR-40).
- *    이것은 게이트 판정이 아니다 — **막을 수만 있고 열 수는 없다**
+ * 1. **모드 블록은 늘 판단 · 관측 · 성적 · 실패사례 · 꼬리표를 싣는다**(`ADR-010` v2 · `BFF-REQ-052` FR-1, 2026-11-10).
+ *    ~~`renderable` 판별 union 으로 접는다(`BFF-REQ-024` FR-31)~~ — 판단은 숨기지 않고, 부족한 것은 서버 `caveats[]` 가 말한다
+ * 2. **계약이 깨진 모드를 `null` 로 막는다.** 판단 · 성적 · 실패사례 칸이 없거나, 실패사례가 비었는데 서버가 결함 꼬리표를
+ *    붙이지 않았으면 그 모드는 내보내지 않는다(`BFF-REQ-025` FR-40 v2). 판정이 아니다 — **꼬리표를 더할 수만 있고 뺄 수는 없다**
  * 3. 뉴스를 합친다. 실패는 `degradedFields` 로 격리한다(FR-97)
  *
  * 하지 않는 것: `confidence` 옮기기(D3) · "관망" 같은 기본 라벨 · 표본 판정 · 문구 ·
@@ -29,18 +27,40 @@ export type JudgmentAction =
   | "wait"
   | "avoid";
 
-export type JudgmentBlockedReason =
-  /** 이 자산군에 아직 열지 않은 모드 — 국내 주식 단타(F011 슬라이스 4 · `BFF-REQ-040` FR-17) */
-  | "mode_not_open"
-  /** 국내 주식 종목의 이력(일봉 120 거래일 · 일봉 지표)이 모자람 — 수치는 `history` */
-  | "insufficient_history"
-  | "exchange_warning"
-  /** 시세 · 지표가 기준보다 오래됐다(F010 슬라이스 7 · `BFF-REQ-039` FR-7). 서버 게이트 값을 그대로 옮긴다 */
-  | "stale_inputs"
-  | "reasons_missing"
-  | "signal_track_record_missing"
-  | "failure_cases_missing"
-  | "insufficient_sample";
+/**
+ * 판단 옆 꼬리표 — 서버 `caveats[]` 그대로(`SRV-REQ-053` FR-2 v2). 판단을 숨기지 않는다.
+ * 셋째 묶음(`inputs_missing` · `track_record_unavailable` · `backtest_missing`)은 **3종 결함** — 서버가 셈하고 상태 점검이 본다(`OPS-003`)
+ */
+export type JudgmentCaveat =
+  | { reason: "insufficient_history"; have: number; need: number; dailyIndicator: boolean }
+  | { reason: "exchange_warning"; cautions: string[]; checkedAt: string | null }
+  | { reason: "stale_inputs"; items: Array<{ item: "price" | "technical_indicator"; lastAt: string | null }> }
+  | { reason: "live_sample_short"; live: number; min: number; backtest: number }
+  | { reason: "inputs_missing"; items: string[] }
+  | { reason: "track_record_unavailable" }
+  | { reason: "backtest_missing"; live: number; min: number }
+  /** 이 BFF 가 모르는 사유 — 버리지 않고(셈) 화면은 그리지 않는다 */
+  | { reason: "unknown" };
+
+export type JudgmentCaveatReason = JudgmentCaveat["reason"];
+
+/** 3종 결함 꼬리표 — 실패사례가 비어도 되는 유일한 경우 */
+export const TRIAD_DEFECT_REASONS: readonly JudgmentCaveatReason[] = [
+  "inputs_missing",
+  "track_record_unavailable",
+  "backtest_missing",
+];
+
+/** 엔진이 본 값 하나(`ADR-010`) — 서버가 문턱에 가까운 순으로 준다 */
+export interface JudgmentObservation {
+  item: "change24h" | "sentiment" | "rsi";
+  value: number | null;
+  lower: number;
+  upper: number;
+  distance: number | null;
+  points: number;
+  missing: boolean;
+}
 
 /** 업비트 투자주의 종류(원문 코드). 모르는 코드는 BFF 에서 버린다 — 화면이 문구를 지어내지 않게 */
 export const EXCHANGE_CAUTIONS = [
@@ -54,7 +74,7 @@ export type ExchangeCaution = (typeof EXCHANGE_CAUTIONS)[number];
 
 /** 거래소 표시(F010 슬라이스 6 · `BFF-REQ-039` FR-6). 표시가 없거나 오래됐으면 `null` */
 export interface ExchangeFlag {
-  /** 투자유의 — 두 모드가 `exchange_warning` 으로 막힌다 */
+  /** 투자유의 — 두 모드에 `exchange_warning` 꼬리표(판단은 그대로) */
   warning: boolean;
   cautions: ExchangeCaution[];
   fetchedAt: string;
@@ -158,25 +178,22 @@ export interface JudgmentHistory {
   dailyIndicator: boolean;
 }
 
-export type ModeCoachViewModel =
-  | {
-      renderable: true;
-      assetClass: JudgmentAssetClass;
-      judgment: Judgment;
-      trackRecord: TrackRecord;
-      failureCases: [FailureCase, ...FailureCase[]];
-      zone: Zone;
-    }
-  | {
-      renderable: false;
-      assetClass: JudgmentAssetClass;
-      blockedReason: JudgmentBlockedReason;
-      /** "표본 N건" 표시용. 성적표가 없으면 `null` */
-      trackSample: number | null;
-      /** `insufficient_history` 의 수치. 국내 주식만 */
-      history: JudgmentHistory | null;
-      zone: Zone;
-    };
+/**
+ * 모드 하나 — **판단은 늘 있다**(`ADR-010` v2). 판별 union 이 아니다(`BFF-REQ-024` FR-31 뒤집힘).
+ * `failureCases` 가 비는 것은 `caveats` 에 3종 결함이 있을 때뿐이다(그 밖엔 계약 깨짐 → 모드 `null`).
+ * `zone` 은 판단과 별개 — 과거 가격과 내 규칙이다.
+ */
+export interface ModeCoachViewModel {
+  assetClass: JudgmentAssetClass;
+  judgment: Judgment;
+  observations: JudgmentObservation[];
+  trackRecord: TrackRecord;
+  failureCases: FailureCase[];
+  caveats: JudgmentCaveat[];
+  /** 국내 주식 이력 수치. 코인 · 옛 서버는 `null` */
+  history: JudgmentHistory | null;
+  zone: Zone;
+}
 
 export interface GaugeTrackRecord {
   gauge: "sentiment" | "smart_money";
@@ -242,8 +259,8 @@ export interface SymbolCoachViewModel {
 export interface ServerModeView {
   judgment?: Judgment;
   signalType?: string;
-  renderable?: unknown;
-  blockedReason?: JudgmentBlockedReason | null;
+  observations?: unknown;
+  caveats?: unknown;
   trackRecord?: TrackRecord | null;
   failureCases?: FailureCase[];
   zone?: Zone;
@@ -303,44 +320,61 @@ const toHistory = (value: unknown): JudgmentHistory | null => {
   return { ready: raw.ready, dailyBars, requiredDailyBars, dailyIndicator: raw.dailyIndicator === true };
 };
 
+const KNOWN_CAVEATS: readonly string[] = [
+  "insufficient_history",
+  "exchange_warning",
+  "stale_inputs",
+  "live_sample_short",
+  "inputs_missing",
+  "track_record_unavailable",
+  "backtest_missing",
+];
+
+/** 꼬리표 배열 — 배열이 아니면 계약 깨짐(`null`). 모르는 사유는 `unknown` 으로 남긴다(셈만, 숫자를 지어내지 않는다) */
+const toCaveats = (value: unknown): JudgmentCaveat[] | null => {
+  if (!Array.isArray(value)) return null;
+  return value.map((raw) => {
+    const reason = (raw as { reason?: unknown } | null)?.reason;
+    return typeof reason === "string" && KNOWN_CAVEATS.includes(reason)
+      ? (raw as JudgmentCaveat)
+      : { reason: "unknown" as const };
+  });
+};
+
+const OBSERVED_ITEMS: readonly unknown[] = ["change24h", "sentiment", "rsi"];
+
+/** 관측 — 모양이 틀린 행만 버린다(숫자를 고치지 않는다). 없으면(옛 서버) 빈 배열 */
+const toObservations = (value: unknown): JudgmentObservation[] =>
+  Array.isArray(value)
+    ? value.filter(
+        (row): row is JudgmentObservation =>
+          typeof row === "object" &&
+          row !== null &&
+          OBSERVED_ITEMS.includes((row as JudgmentObservation).item) &&
+          typeof (row as JudgmentObservation).missing === "boolean" &&
+          typeof (row as JudgmentObservation).lower === "number" &&
+          typeof (row as JudgmentObservation).upper === "number",
+      )
+    : [];
+
 /**
  * 서버 모드 블록 → 화면 모드 블록. 계약이 깨졌으면 `null`.
  *
- * `renderable` 은 **서버 값만** 본다. 여기서 `true` 가 만들어지는 경로는 없다 —
- * 서버가 `true` 라고 했는데 3종 세트가 비었으면 오히려 `null` 로 막는다(FR-3 · FR-20).
+ * 판단은 서버가 늘 싣는다(`ADR-010` v2). 여기서 판단을 숨기는 경로는 없다 — `null` 은 **모양이 틀린 것**뿐이다:
+ * 판단 · `scoreNote` · 성적 · 실패사례 · 꼬리표 배열 · 구간이 없거나, 실패사례가 비었는데 3종 결함 꼬리표가 없을 때.
  */
 export const toModeViewModel = (
   view: ServerModeView | undefined,
 ): ModeCoachViewModel | null => {
-  if (!view || typeof view.renderable !== "boolean" || !hasZone(view.zone)) {
-    return null;
-  }
-
-  if (view.renderable === false) {
-    if (!view.blockedReason) return null;
-    return {
-      renderable: false,
-      assetClass: toAssetClass(view.assetClass),
-      blockedReason: view.blockedReason,
-      trackSample: view.trackRecord?.sample ?? null,
-      history: toHistory(view.history),
-      zone: toZone(view.zone),
-    };
-  }
-
+  if (!view || !hasZone(view.zone)) return null;
+  const caveats = toCaveats(view.caveats);
   const { judgment, trackRecord, failureCases } = view;
-  if (
-    !judgment?.scoreNote ||
-    !trackRecord ||
-    !failureCases ||
-    failureCases.length === 0
-  ) {
-    return null;
-  }
+  if (!caveats || !judgment?.scoreNote || !trackRecord || !Array.isArray(failureCases)) return null;
+  const defect = caveats.some((c) => TRIAD_DEFECT_REASONS.includes(c.reason));
+  if (failureCases.length === 0 && !defect) return null;
 
   // `confidence` 가 서버에 남아 있어도 여기서 끊긴다 — 필드를 골라 옮긴다(D3)
   return {
-    renderable: true,
     assetClass: toAssetClass(view.assetClass),
     judgment: {
       action: judgment.action,
@@ -353,13 +387,16 @@ export const toModeViewModel = (
       reasons: judgment.reasons,
       risks: judgment.risks,
     },
+    observations: toObservations(view.observations),
     trackRecord: {
       ...trackRecord,
       // 모르는 값은 라이브로 읽지 않는다 — 모의 라벨이 빠지는 쪽이 더 위험하다. 서버가 안 주면(옛 버전 = 라이브만) 라이브
       sampleOrigin: trackRecord.sampleOrigin === undefined || trackRecord.sampleOrigin === "live" ? "live" : "backtest",
       claim: toPerformanceClaim(trackRecord.claim),
     },
-    failureCases: failureCases as [FailureCase, ...FailureCase[]],
+    failureCases,
+    caveats,
+    history: toHistory(view.history),
     zone: toZone(view.zone),
   };
 };
@@ -377,21 +414,17 @@ export const toExchangeFlag = (
 };
 
 /**
- * 투자유의면 서버가 `renderable: true` 를 보냈더라도 막는다 — 계약이 어긋났을 때 **막는 쪽**으로만 고친다.
- * 여기서 `true` 가 만들어지는 경로는 여전히 없다(FR-3)
+ * 투자유의 표시가 있는데 서버 꼬리표에 `exchange_warning` 이 없으면 더한다 — 계약이 어긋났을 때 **꼬리표를 더하는 쪽**으로만 고친다.
+ * 판단을 숨기지 않는다(`ADR-010` v2 — 예전엔 판단 블록을 막았다)
  */
-const blockWarned = (
+const warnCaveat = (
   mode: ModeCoachViewModel | null,
   flag: ExchangeFlag | null,
 ): ModeCoachViewModel | null => {
-  if (!mode || !flag?.warning || !mode.renderable) return mode;
+  if (!mode || !flag?.warning || mode.caveats.some((c) => c.reason === "exchange_warning")) return mode;
   return {
-    renderable: false,
-    assetClass: mode.assetClass,
-    blockedReason: "exchange_warning",
-    trackSample: mode.trackRecord.sample,
-    history: null,
-    zone: mode.zone,
+    ...mode,
+    caveats: [{ reason: "exchange_warning", cautions: flag.cautions, checkedAt: flag.fetchedAt }, ...mode.caveats],
   };
 };
 
@@ -414,8 +447,8 @@ export const toSymbolCoachViewModel = (
 
   const degradedFields: string[] = [];
   const exchangeFlag = toExchangeFlag(coach.exchangeFlag);
-  const scalp = blockWarned(toModeViewModel(coach.modes?.scalp), exchangeFlag);
-  const longTerm = blockWarned(toModeViewModel(coach.modes?.longTerm), exchangeFlag);
+  const scalp = warnCaveat(toModeViewModel(coach.modes?.scalp), exchangeFlag);
+  const longTerm = warnCaveat(toModeViewModel(coach.modes?.longTerm), exchangeFlag);
   if (!scalp) degradedFields.push("modes.scalp");
   if (!longTerm) degradedFields.push("modes.longTerm");
   if (!news) degradedFields.push("news");

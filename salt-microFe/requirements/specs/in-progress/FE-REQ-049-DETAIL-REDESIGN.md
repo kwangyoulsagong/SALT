@@ -93,4 +93,5 @@ source: 사용자 스크린샷 6장(2026-10-30 09:18~09:20) · "국내주식 상
 | 2026-11-09 | to-do → in-progress — FR-12 만 done(+ 파비콘 = 종목 로고). 나머지 FR 은 디자인 단계 |
 | 2026-11-10 | v2 대체 표시 — Summary · FR-5 · 지키는 것 (`FEATURE-017` v2 · `ADR-010` v2) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+- 2026-11-10 — F017 v2 단계 1(`41447893`) — 문제 목록 "같은 숫자 두 번" 중 해설 칸 성적 3칸 제거
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리

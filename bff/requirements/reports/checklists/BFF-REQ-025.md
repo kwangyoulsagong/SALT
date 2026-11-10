@@ -117,3 +117,14 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
   - `bff/src/rest/routes/proxy.routes.ts` — `POST /api/auth/guest` 통과
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+
+## F017 v2 단계 1 — 판단 막지 않음 (2026-11-10, `feat/f017-s1a-judgment-caveats`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| FR-40 · 44 · 45 — 깨진 모양만 `null` · 3종 결함은 보임 | 충족 | `npm test` 443/443 · `npm run build` |
+
+| 미충족 · 미검증 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 3종 결함 160(코인 장기 100 · 국내 단타 50 · 코인 단타 10) | 채울 과거 검산 · 국내 단타 원장 채점이 아직 없다 — 숨기지 않고 결함 꼬리표 | 1b(`FC-REQ-028` FR-5 · `SRV-REQ-040` FR-63) |

@@ -131,7 +131,7 @@ const explainAt = (
 const input: CoachExplainRequest = { symbol: "btc", mode: "long_term" };
 
 describe("ExplainCoachDecision", () => {
-  it("판단이 게이트를 못 넘으면 LLM 을 부르지 않고 renderable:false 를 준다 (FR-50)", async () => {
+  it("판단 성적이 모자라도 해설은 나온다 — 판단이 해설을 막지 않는다 (FR-50 v2 · ADR-010 v2)", async () => {
     const { explainer, calls } = spyExplainer();
     const result = await explainAt(
       explainer,
@@ -141,11 +141,11 @@ describe("ExplainCoachDecision", () => {
       newsProbe
     ).execute("user-1", input);
 
-    assert.deepEqual(result, { renderable: false, blockedReason: "insufficient_sample" });
-    assert.equal(calls.length, 0);
+    assert.equal(result.renderable, true);
+    assert.equal(calls.length, 1);
   });
 
-  it("표본이 충분해도 실패사례가 없으면 막는다", async () => {
+  it("표본이 충분하고 실패사례가 없어도 해설은 나온다 (v2 — 성적 몫은 판단 꼬리표가 말한다)", async () => {
     const { explainer, calls } = spyExplainer();
     const result = await explainAt(
       explainer,
@@ -155,8 +155,8 @@ describe("ExplainCoachDecision", () => {
       newsProbe
     ).execute("user-1", input);
 
-    assert.equal(result.renderable, false);
-    assert.equal(calls.length, 0);
+    assert.equal(result.renderable, true);
+    assert.equal(calls.length, 1);
   });
 
   it("렌더되면 3종(성적표 · 실패사례 · 유효시간)을 같이 싣고, 면책은 판단 경로 문장이다", async () => {
@@ -284,11 +284,12 @@ describe("ExplainCoachDecision", () => {
       assert.ok(order.filter((n) => n === "message.delta").length > 0);
     });
 
-    it("게이트가 닫히면 blocked 로 끝나고 LLM 을 부르지 않는다", async () => {
+    it("판단 성적이 모자라도 스트림은 막히지 않고 done 으로 끝난다 (v2)", async () => {
       const { explainer, calls } = spyExplainer();
       const events = await collect(explainer, store({ sample: 3, hits: 2, avgReturn: 0.01, worstReturn: -0.05 }, 1));
-      assert.equal(names(events).at(-1), "message.blocked");
-      assert.equal(calls.length, 0);
+      assert.equal(names(events).includes("message.blocked"), false);
+      assert.equal(names(events).at(-1), "message.done");
+      assert.equal(calls.length, 1);
     });
 
     /** 토큰 스트림 공급자 흉내 — 줄을 하나씩 알린다(`SRV-REQ-050` FR-13) */
@@ -450,15 +451,15 @@ describe("ExplainCoachDecision", () => {
       usageSince: async () => ({ user: { calls: user, tokens: 0 }, total: { calls: total, tokens } }),
     });
 
-    it("재료가 오래됐으면 LLM 을 부르지 않고 stale_inputs", async () => {
+    it("재료가 오래돼도 해설은 나온다 — 오래됨은 판단 꼬리표가 말한다 (v2)", async () => {
       const { explainer, calls } = spyExplainer();
       const later = new Date(T0.getTime() + 4 * 86_400_000);
       const result = await explainAt(explainer, market, noHolding, passing(), newsProbe, { now: () => later }).execute(
         "user-1",
         input
       );
-      assert.deepEqual(result, { renderable: false, blockedReason: "stale_inputs" });
-      assert.equal(calls.length, 0);
+      assert.equal(result.renderable, true);
+      assert.equal(calls.length, 1);
     });
 
     it("상한 아래면 부르고, 누구의 요청인지 넘긴다", async () => {
@@ -602,12 +603,9 @@ describe("ExplainCoachDecision — 국내 주식 (F011 슬라이스 4)", () => {
     }
   });
 
-  it("소유자도 종목 판단과 같은 막음 — 이력 부족 · 단타 미개방, 성적은 국내 주식 그룹에서 읽는다", async () => {
-    assert.equal(((await run(63, "owner@salt.test").result) as { blockedReason: string }).blockedReason, "insufficient_history");
-    assert.equal(
-      ((await run(486, "owner@salt.test", "scalp").result) as { blockedReason: string }).blockedReason,
-      "mode_not_open"
-    );
+  it("이력 부족 · 국내 단타도 해설은 나온다(v2 — 막지 않음), 성적은 국내 주식 그룹에서 읽는다", async () => {
+    assert.equal((await run(63, "owner@salt.test").result).renderable, true);
+    assert.equal((await run(486, "owner@salt.test", "scalp").result).renderable, true);
     asked.length = 0;
     const { result, calls } = run(486, "owner@salt.test");
     assert.equal((await result).renderable, true);

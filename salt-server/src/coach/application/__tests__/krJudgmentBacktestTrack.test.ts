@@ -46,15 +46,15 @@ const avoid: ModeDecision = {
   risks: ["기술 지표가 과열권에 가깝습니다."],
 } as unknown as ModeDecision;
 
-describe("attachJudgmentTrack — 국내 백테스트 성적 출처", () => {
-  it("라이브 표본 0 · 백테스트 15,311건 48개월 → 백테스트 성적 · 백테스트 사례로 열린다", async () => {
+describe("attachJudgmentTrack — 3종 채우기 · 국내 백테스트 성적 출처 (ADR-010 v2)", () => {
+  it("라이브 표본 0 · 백테스트 15,311건 48개월 → 백테스트 성적 · 사례로 채우고 live_sample_short", async () => {
     const live = store(stats(0, 0), "LIVE");
     const backtest = store(stats(15_311, 48), "BT");
     const view = await attachJudgmentTrack(live, avoid, {}, "kr_stock", { backtest });
     assert.equal(view.trackRecord.sampleOrigin, "backtest");
     assert.equal(view.trackRecord.sample, 15_311);
     assert.equal(view.failureCases[0].symbol, "BT");
-    assert.equal(view.renderable, true);
+    assert.deepEqual(view.caveats, [{ reason: "live_sample_short", live: 0, min: 20, backtest: 15_311 }]);
     assert.deepEqual(backtest.asked, ["kr_stock.long_term.avoid"]);
   });
 
@@ -63,12 +63,34 @@ describe("attachJudgmentTrack — 국내 백테스트 성적 출처", () => {
     assert.equal(view.trackRecord.sampleOrigin, "live");
     assert.equal(view.trackRecord.sample, 20);
     assert.equal(view.failureCases[0].symbol, "LIVE");
+    assert.deepEqual(view.caveats, []);
   });
 
-  it("백테스트 판단 달이 12 미만이면 쓰지 않는다 → 표본 부족으로 막힘", async () => {
+  it("라이브 20 인데 빗나간 사례가 0 이면 백테스트로 채운다 — 3종의 실패사례 몫", async () => {
+    const perfect = { ...stats(25, 2), hits: 25 };
+    const view = await attachJudgmentTrack(store(perfect, "LIVE"), avoid, {}, "kr_stock", { backtest: store(stats(15_311, 48), "BT") });
+    assert.equal(view.trackRecord.sampleOrigin, "backtest");
+    assert.equal(view.failureCases[0].symbol, "BT");
+    assert.equal(view.caveats[0].reason, "live_sample_short");
+  });
+
+  it("저장소가 실패하면 판단은 나가고 결함 꼬리표 track_record_unavailable (SRV-REQ-026 FR-72 v2)", async () => {
+    const broken = {
+      summarize: async () => {
+        throw new Error("db");
+      },
+      recentCases: async () => [],
+    } as unknown as SymbolJudgmentStore;
+    const view = await attachJudgmentTrack(broken, avoid, {}, "kr_stock", { backtest: null });
+    assert.equal(view.judgment.action, "avoid");
+    assert.deepEqual(view.caveats, [{ reason: "track_record_unavailable" }]);
+    assert.equal(view.trackRecord.sample, 0);
+  });
+
+  it("백테스트 판단 달이 12 미만이면 쓰지 않는다 → 막지 않고 결함 꼬리표 backtest_missing", async () => {
     const view = await attachJudgmentTrack(store(stats(0, 0), "LIVE"), avoid, {}, "kr_stock", { backtest: store(stats(500, 11), "BT") });
     assert.equal(view.trackRecord.sampleOrigin, "live");
-    assert.equal(view.blockedReason, "insufficient_sample");
+    assert.deepEqual(view.caveats, [{ reason: "backtest_missing", live: 0, min: 20 }]);
   });
 
   it("코인은 백테스트 저장소가 있어도 묻지 않는다", async () => {

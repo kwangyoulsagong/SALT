@@ -191,3 +191,20 @@ export const claimItem = style({
     },
   },
 });
+
+/**
+ * 판단 꼬리표 · 관측 한 줄(`ADR-010` v2 · `FE-REQ-064` FR-1) — 배지가 아니라 숫자 문장이다. 막은 이유가 아니라 판단에 붙는 사실이라
+ * 거래소 줄과 같은 진한 회색(AA) · 한국어 끊김 방지. 목록이 아니라 문장 묶음이라 간격만 준다
+ */
+export const caveatLines = style({
+  margin: 0,
+  padding: 0,
+  listStyle: "none",
+  display: "flex",
+  flexDirection: "column",
+  gap: vars.space.small,
+  color: ds.colors.neutral[700],
+  fontSize: "13px",
+  lineHeight: "19px",
+  wordBreak: "keep-all",
+});

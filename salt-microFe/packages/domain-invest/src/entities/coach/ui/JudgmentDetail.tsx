@@ -9,6 +9,7 @@ import { Heading } from "@repo/ui/heading";
 import { formatRatio, formatSignedPoints, formatSignedRate } from "../lib";
 import { COACH_MESSAGES } from "../model";
 import {
+  caseEmpty,
   caseList,
   caseRow,
   detailSection,
@@ -87,6 +88,8 @@ export const JudgmentCases = ({
     <Heading level={5} as={4} color="tertiary">
       {backtest ? DETAIL.backtestFailureHeading : DETAIL.failureHeading}
     </Heading>
+    {/* 빈 칸 0(`ADR-010` v2) — 사례가 없으면 그 사실 한 줄. 왜 없는지는 판단 꼬리표 문장이 말한다 */}
+    {cases.length === 0 && <p className={caseEmpty}>{DETAIL.failureEmpty}</p>}
     <ul className={caseList}>
       {cases.map((item) => (
         <li key={`${item.date}-${item.symbol}-${item.event}`} className={caseRow}>
@@ -109,16 +112,16 @@ interface JudgmentDetailProps {
 /**
  * 상세 분석 코치 카드 — 판단 + 근거 · 위험 + 3종 (`FE-REQ-026` FR-134).
  *
- * ## 게이트는 패널과 **같은 컴포넌트**가 한다
+ * ## 판단은 늘 있다 (`ADR-010` v2)
  *
- * 막힘 · 계약 깨짐은 `JudgmentSummary` 가 그린다(FR-1 · FR-114). 이 카드는 `renderable: true`
- * 분기에만 근거 목록 · 성적 · 사례를 덧붙인다 — 막힌 분기에는 그 필드가 **타입에 없다.**
+ * 계약 깨짐(`null`)은 `JudgmentSummary` 가 그린다. 그 밖엔 늘 근거 목록 · 성적 · 사례를 덧붙인다 — 막힌 분기가 없다.
+ * 사례가 비는 것은 3종 결함 꼬리표가 있을 때뿐이고, 그 문장은 위 요약이 말한다.
  *
  * 맞았던 때 · 틀렸던 때는 **한 목록에 같은 크기로** 둔다. 틀렸던 때를 접거나 뒤로 미루지
  * 않는다(B2 · FR-142 의 원칙을 여기에도).
  */
 export const JudgmentDetail = ({ view, mode }: JudgmentDetailProps) => {
-  if (!view || !view.renderable) return <JudgmentSummary view={view} mode={mode} labelAs={3} />;
+  if (!view) return <JudgmentSummary view={view} mode={mode} labelAs={3} />;
 
   const { judgment, trackRecord, failureCases } = view;
 

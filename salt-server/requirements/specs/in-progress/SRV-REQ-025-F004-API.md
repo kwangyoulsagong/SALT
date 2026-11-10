@@ -334,6 +334,7 @@ type ExplainResult =
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 2 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-10 | v2 대체 표시 — `ModeCoachView` · FR-42 · `ExplainResult` · FR-50 · FR-59 메모 (`FEATURE-017` v2 · `ADR-010` v2) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+- 2026-11-10 — F017 v2 단계 1(`d6105374`) — `ModeCoach` 응답 `renderable` · `blockedReason` 삭제 · `observations` · `caveats` · FR-50 해설 `facts_unavailable` 만 · Swagger 정정
   - `salt-server/src/coach/application/GetSymbolCoach.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/coach/application/__tests__/explainCoachDecision.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
   - `salt-server/src/coach/application/__tests__/judgmentScoreboard.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로

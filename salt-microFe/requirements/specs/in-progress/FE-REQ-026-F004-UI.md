@@ -425,6 +425,7 @@ PC                                                   모바일(세로 스택)
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |
 | 2026-11-10 | v2 대체 표시 — 와이어프레임 ② · FR-114 · FR-117 · FR-134 · FR-135 · FR-143 범위 명시 (`FEATURE-017` v2 · `ADR-010` v2) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+- 2026-11-10 — F017 v2 단계 1(`f7ce96dc` · `a65d6abf` · `41447893`) — FR-114 판단 늘 · 꼬리표 문장 · FR-135 해설 막지 않음 · 빈 사례 사실 줄
   - `salt-microFe/packages/domain-invest/src/entities/coach/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/InvestmentDetailPage.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
   - `salt-microFe/packages/domain-invest/src/widgets/coach-panel/ui/CoachPanel.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)

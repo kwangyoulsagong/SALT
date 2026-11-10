@@ -168,4 +168,5 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`3e5e0d42`): `proxy.routes.ts` 의 `/goals*` 프록시 8줄 삭제 — 저축은 `/api/app/savings/*`(`BFF-REQ-047`), 옛 경로는 410 |
 | 2026-11-10 | v2 대체 표시 — FR-40 · FR-44 · FR-45 (`FEATURE-017` v2 · `ADR-010` v2) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+- 2026-11-10 — F017 v2 단계 1(`f843104e`) — FR-40 계약 가드: 꼬리표 배열 없음 · 결함 꼬리표 없이 빈 실패사례면 `null`, 3종 결함은 보인다
   - `bff/src/rest/routes/proxy.routes.ts` — `POST /api/auth/guest` 통과

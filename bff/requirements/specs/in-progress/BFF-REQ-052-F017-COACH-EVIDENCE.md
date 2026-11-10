@@ -23,7 +23,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | FR | 내용 | 단계 | 상태 |
 |---|---|---|---|
 | FR-0 | **결함(2026-11-10)** ① `ai-coach/detail` 서버 판단이 시간을 넘기면 같은 **토큰 해시** · 종목 · 모드의 마지막 판단(10분 안)을 `staleSince` 와 함께(`8baf8109` — 로그 시간 초과 157줄, 검증 안 한 사용자 id 키는 위조 토큰이 남의 판단을 읽어 금지) ② 국내 호가 뷰모델 `pending`(`001aac19`) ③ 국내 소식 뷰모델 `scope: today|recent`(`f73bbc9f`) | 0 | **done** |
-| FR-1 | `GET /api/app/ai-coach/detail` 모드 뷰모델에 `observations[]` · ~~보류면 `blockedReason` + `blockedFacts`~~ **v2**: `judgment` · `trackRecord{ sampleOrigin, liveSample, … }` · `failureCases` 늘 + `caveats[]`(서버 값 그대로 — 모르는 `reason` 은 버리지 않고 `unknown` 꼬리표로 셈만) · `tier`(모르는 값이면 `reference`). 판단 · 성적 · 사례 중 하나라도 비면 그 모드는 `unavailable` + `degradedFields`(3종 결함 — 서버 FR-8 과 같이 셈). 모양이 틀리면 그 모드만 `unavailable` | 1 | to-do |
+| FR-1 | `GET /api/app/ai-coach/detail` 모드 뷰모델에 `observations[]` · ~~보류면 `blockedReason` + `blockedFacts`~~ **v2**: `judgment` · `trackRecord{ sampleOrigin, liveSample, … }` · `failureCases` 늘 + `caveats[]`(서버 값 그대로 — 모르는 `reason` 은 버리지 않고 `unknown` 꼬리표로 셈만) · `tier`(모르는 값이면 `reference`). ~~판단 · 성적 · 사례 중 하나라도 비면 그 모드는 `unavailable`~~ **정정(구현 11-10)**: 그렇게 하면 판단이 다시 숨는다 — 3종 결함은 서버 결함 꼬리표를 단 채 **보인다**(실패사례가 빈 배열이어도). `null`(`unavailable`)은 모양이 깨졌을 때뿐: 꼬리표 배열 없음 · 판단 · `scoreNote` · 성적 없음 · 실패사례가 비었는데 결함 꼬리표 없음. 투자유의 표시가 있는데 꼬리표가 없으면 더하는 쪽으로만. 등급(`tier`)은 단계 4 | 1 | **done(`f843104e` — 등급 칸 제외)** |
 | FR-2 | `GET /api/app/ai-coach/explanation?symbol&mode` → `{ tier: latest|previous|template|none, sentences[{ text, citations[{ id, label, at }] }], generatedAt, aiGenerated }` — 서버 4단 그대로 · 캐시 0 | 1 | to-do |
 | FR-3 | `GET /api/app/ai-coach/check?symbol&side=buy|sell` — 서버 점검 그대로(조건 · 표본 · 분포 · 무효선 거리 · 보유 연장 분포). `no_condition` · 보유 없음(`side=sell`) 상태. **v2**: `summary`(서버 문장 그대로 — BFF 가 문장 · 숫자를 고치지 않음) · `status: ok | below_min | no_condition` · `upRange` · `sampleDays` 를 옮긴다. 화면 맨 위 칸이라 예산 p95 200ms | 2 | to-do |
 | FR-4 | `GET /api/app/ai-coach/scenario?symbol` — 1h · 4h · 1d `{ renderable, blockedReason, pUp, q10, q50, q90, invalidation, track }`. 비소유자 404 통과(자리 0) | 3 | to-do |
@@ -44,5 +44,6 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-09 | 신규(to-do) |
+| 2026-11-10 밤(구현) | FR-1 done `f843104e` — 판별 union 폐지 · 3종 결함은 보이고 깨진 모양만 `null`(문장 정정) · 테스트 443/443. 실측 2026-11-10(코인 거래대금 상위 100 + 국내 유니버스 50, BFF 150요청): 판단 보임 300/300 모드(전 코인 단타 33 · 장기 0 · 국내 단타 0 · 국내 장기 38/57) · 3종 다 있음 코인 단타 90 · 국내 장기 50(21 은 과거 검산으로 채움) · 3종 결함 160(코인 장기 100 · 국내 단타 50 · 코인 단타 10 — 코인 과거 검산 `FC-REQ-028` FR-5 · 국내 단타 원장 `SRV-REQ-040` FR-63 이 채운다) · BFF p50 33ms · p95 94ms |
 | 2026-11-10 밤 | **v2** — FR-1 모드 뷰모델 판별 union 폐지 · 3종 늘 · `caveats[]` · `tier` · 3종 결함은 `unavailable` + 셈 · FR-3 `summary` · `below_min`(`FEATURE-017` v2) |
 | 2026-11-10 | to-do → in-progress. **개정** — FR-0 결함 셋 done(`8baf8109` · `001aac19` · `f73bbc9f`) · FR-2 해설 4단 · FR-3 점검 · FR-4 시나리오 · FR-5 태그. 물어보기 뺌 |

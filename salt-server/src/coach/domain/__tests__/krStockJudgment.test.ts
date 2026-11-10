@@ -8,7 +8,7 @@ import {
   judgeOutcome,
   judgmentActionOf,
   judgmentAssetClassOf,
-  judgmentGate,
+  judgmentCaveats,
   judgmentModeOf,
   judgmentSignalType,
   krJudgmentExitWindow,
@@ -18,7 +18,6 @@ import {
   roundTripCostAt,
   sizingCosts,
   staleKrJudgmentInputs,
-  summarizeJudgmentTrack,
   toScoreboardGroup,
   weekdaysBetween,
 } from "../policy";
@@ -105,30 +104,23 @@ describe("매도 거래세 표 — 매도일(KST)로 고른다 (FR-44)", () => {
   });
 });
 
-describe("게이트 순서 — 열지 않은 모드 · 이력이 먼저 (FR-62 · 63)", () => {
-  const track = summarizeJudgmentTrack("long_term", "kr_stock.long_term.wait", {
-    sample: 0,
-    hits: 0,
-    aboveCost: 0,
-    poolSample: 0,
-    poolAboveCost: 0,
-    avgReturn: null,
-    worstReturn: null,
-    firstScoredAt: null,
-    lastScoredAt: null,
-  });
-  const base = { action: "wait" as const, reasons: [], risks: [], trackRecord: track, failureCases: [] };
+describe("국내 꼬리표 — 막지 않고 모두 붙는다 (FR-62 · 63 · ADR-010 v2)", () => {
+  const base = {
+    action: "wait" as const,
+    reasons: [] as string[],
+    risks: [] as string[],
+    observations: [],
+    triad: { origin: "live" as const, caveat: "backtest_missing" as const },
+  };
 
-  it("열지 않은 모드 > 이력 부족 > 투자유의 > 오래된 재료 > 근거 > 표본", () => {
-    assert.equal(
-      judgmentGate({ ...base, modeNotOpen: true, historyShort: true, exchangeWarning: true }).blockedReason,
-      "mode_not_open"
-    );
-    assert.equal(
-      judgmentGate({ ...base, historyShort: true, exchangeWarning: true, staleInputs: ["price"] }).blockedReason,
-      "insufficient_history"
-    );
-    assert.equal(judgmentGate({ ...base, reasons: ["r"] }).blockedReason, "insufficient_sample");
+  it("국내 단타는 막는 사유가 아니다 — 이력 · 투자유의 · 재료 · 성적 결함이 전부 순서대로 붙는다", () => {
+    assert.deepEqual(judgmentCaveats({ ...base, historyShort: true, exchangeWarning: true, staleInputs: ["price"] }), [
+      "insufficient_history",
+      "exchange_warning",
+      "stale_inputs",
+      "inputs_missing",
+      "backtest_missing",
+    ]);
   });
 });
 

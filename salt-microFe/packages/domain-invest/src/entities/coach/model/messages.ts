@@ -2,7 +2,7 @@ import type {
   CoachAction,
   CoachMode,
   ExchangeCaution,
-  JudgmentBlockedReason,
+  RecommendationBlockedReason,
   PriceBasis,
   Zone,
 } from "@repo/core/coach";
@@ -44,33 +44,52 @@ export const COACH_MESSAGES = {
   recentFailureCount: (count: number) => `최근 틀렸던 때 ${count}건`,
   lowSample: "표본 부족",
 
+  /** 저장 추천 카드의 막힘(`recommendationGate` — 그대로). 종목 판단은 막지 않는다(`ADR-010` v2) — 아래 `caveat` */
   blocked: {
-    mode_not_open: "국내 주식은 단타 판단을 하지 않아요.",
-    insufficient_history: "판단에 쓸 일봉 이력이 아직 모자라 보여 드리지 않아요.",
-    exchange_warning: "거래소가 투자유의 종목으로 지정해 판단을 보여 드리지 않아요.",
-    stale_inputs: "시세나 지표가 제때 갱신되지 않아 판단을 잠시 보여 드리지 않아요.",
-    reasons_missing: "근거가 부족해 이번엔 판단을 보여 드리지 않아요.",
-    signal_track_record_missing: "이 판단의 과거 성적이 아직 없어 보여 드리지 않아요.",
+    reasons_missing: "근거가 부족해 이번엔 추천을 보여 드리지 않아요.",
+    signal_track_record_missing: "이 추천의 과거 성적이 아직 없어 보여 드리지 않아요.",
     failure_cases_missing: "틀렸던 사례 기록이 아직 없어 보여 드리지 않아요.",
     insufficient_sample: "과거 표본이 아직 적어 보여 드리지 않아요.",
-  } satisfies Record<JudgmentBlockedReason, string>,
+  } satisfies Record<RecommendationBlockedReason, string>,
   blockedSample: (count: number) => `표본 ${count}건`,
-  /** 국내 주식 판단은 국내 주식 표본만 센다(F011 FR-61) — 코인 표본과 다른 수라는 것을 밝힌다 */
-  blockedKrSample: (count: number) => `국내 주식 표본 ${count}건`,
-  /** 국내 주식 단타 막힘의 둘째 줄(F011 FR-63) — 장이 닫혀 하루 뒤가 다음 거래일이 된다 */
-  blockedModeNotOpen: "장이 닫히는 시장이라 장기 관점만 판단해요",
-  /** 국내 주식 이력 막힘의 둘째 줄(F011 FR-62). 기준 수는 서버가 준다 */
-  blockedHistory: (dailyBars: number, required: number) => `일봉 ${dailyBars} / ${required}거래일`,
-  blockedHistoryIndicator: "일봉 지표 준비 중",
-  /** FR-2 — 막힌 판단은 고장이 아니다 */
+  /** FR-2 — 막힌 추천은 고장이 아니다 */
   blockedNormal: "정상 동작이에요",
+
   /**
-   * 투자유의 막힘의 둘째 줄(F010 슬라이스 6). 표본 이야기가 아니다 — 규칙 점수는 지정 사유를 모르고,
-   * 표시가 풀리면 판단이 다시 나온다
+   * 종목 판단 꼬리표 — **숫자가 쓰인 문장 안에** 사실로(`ADR-010` v2 · 리서치 v2 규칙 11 — 배지 · "신뢰도 낮음" 0).
+   * 숫자는 서버 사실 칸 그대로 끼운다. 시각은 KST 날짜 · 시각(지금 기준 "n일 전"은 렌더 중 시각을 읽어 쓰지 않는다).
+   * `unknown` 은 그리지 않는다
    */
-  blockedExchange: "코치 규칙은 지정 사유를 알지 못해요 · 표시가 풀리면 다시 보여 드려요",
-  /** 재료 정지 막힘의 둘째 줄(F010 슬라이스 7). 표본이 쌓이는 중이 아니라 "정상 동작"이라 하지 않는다 */
-  blockedStale: "데이터가 다시 갱신되면 바로 보여 드려요",
+  caveat: {
+    insufficient_history: (have: number, need: number, dailyIndicator: boolean) =>
+      `일봉이 ${have}/${need}거래일이라 짧은 기간 지표로 낸 판단이에요${dailyIndicator ? "" : " · 일봉 지표는 준비 중이에요"}`,
+    exchange_warning: "거래소가 투자유의로 지정한 종목이에요 — 규칙은 지정 사유를 알지 못해요",
+    stale_inputs: (items: string) => `${items} 값 기준이에요 — 새 값이 들어오면 바로 다시 판단해요`,
+    staleItem: { price: "시세", technical_indicator: "지표" } as Record<string, string>,
+    live_sample_short: (live: number, backtest: number) =>
+      `실제로 채점된 판단은 아직 ${live}건이라, 아래 성적은 같은 규칙을 과거 시세로 검산한 ${backtest.toLocaleString("ko-KR")}건이에요`,
+    inputs_missing: "판단 재료를 지금 하나도 받지 못해 기본 점수로 낸 판단이에요",
+    track_record_unavailable: "지금 이 판단의 성적을 불러오지 못했어요",
+    backtest_missing: (live: number) =>
+      `채점 기록이 아직 ${live}건뿐이고 과거 검산도 준비 중이라 성적을 다 채우지 못했어요`,
+  },
+  /** 시각 → "11월 7일 09:00"(KST). 모르면 "마지막" */
+  caveatTime: (iso: string | null) =>
+    iso === null
+      ? "마지막"
+      : new Intl.DateTimeFormat("ko-KR", {
+          timeZone: "Asia/Seoul",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23",
+        }).format(new Date(iso)),
+  /** 성적 한 줄 — 기준과 같은 문장에(리서치 v2 규칙 3). 관망은 기준이 없다 */
+  trackVsBaseline: (winRate: number, baseline: number | null) =>
+    baseline === null
+      ? `이 판단이 맞은 비율 ${Math.round(winRate * 100)}%`
+      : `이 판단 ${Math.round(winRate * 100)}% · 늘 같은 행동이었다면 ${Math.round(baseline * 100)}%`,
 
   /** 투자주의만 켜진 종목 — 판단 아래 한 줄. 코드가 여기 없으면 그 항목을 그리지 않는다 */
   exchangeCaution: {
@@ -154,6 +173,8 @@ export const COACH_MESSAGES = {
     horizon: (hours: number) => `판단 뒤 ${hours}시간 기준`,
     /** 서버는 틀렸던 때만 최근 3건 보낸다 — "맞았던 때"를 제목에 쓰지 않는다(F009 FR-33) */
     failureHeading: "최근 틀렸던 때",
+    /** 사례 0건 — 막지 않고 사실 한 줄(`ADR-010` v2). 이유는 판단 꼬리표가 말한다 */
+    failureEmpty: "아직 기록된 틀린 사례가 없어요",
     backtestFailureHeading: "되돌려 채점에서 틀렸던 때(모의)",
     outcome: { hit: "맞음", miss: "틀림" },
     emptyValue: "—",
