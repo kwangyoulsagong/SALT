@@ -3,6 +3,8 @@ import { createConcurrencyGate } from "../utils/concurrency.util";
 import { AppError } from "../utils/error.util";
 import { retryOnceOnGet } from "../utils/retry.util";
 import { createSseParser, type SseEvent } from "../utils/sse.util";
+import { createHash } from "node:crypto";
+
 import { backendApi } from "./backend-api.service";
 import {
   SymbolCoachContractError,
@@ -15,6 +17,21 @@ import {
 /** `BFF-REQ-025` 호출 맵 — 판단 · 뉴스 모두 300ms. 화면 예산 200ms(`BFF-REQ-026` FR-50) */
 const SYMBOL_COACH_TIMEOUT_MS = 300;
 const SYMBOL_NEWS_TIMEOUT_MS = 300;
+/**
+ * 판단 호출이 시간을 넘기면 마지막으로 받은 판단을 기준 시각과 함께 준다(`BFF-REQ-052` FR-2, 2026-11-10 — 장중 504 157줄).
+ * 키는 **토큰 해시** — 검증 안 한 사용자 id 로 키를 잡으면 위조 토큰이 남의 판단을 읽는다. 10분 넘은 판단은 주지 않는다(504 그대로)
+ */
+const DETAIL_STALE_MAX_MS = 10 * 60_000;
+const DETAIL_STALE_MAX_ENTRIES = 500;
+const lastDetail = new Map<string, { view: ReturnType<typeof toSymbolCoachViewModel>; at: number }>();
+const detailKey = (token: string, path: string) => createHash("sha256").update(token).update("\0").update(path).digest("hex");
+const rememberDetail = (key: string, view: ReturnType<typeof toSymbolCoachViewModel>, now: number) => {
+  lastDetail.delete(key);
+  lastDetail.set(key, { view, at: now });
+  if (lastDetail.size > DETAIL_STALE_MAX_ENTRIES) lastDetail.delete(lastDetail.keys().next().value!);
+};
+/** 테스트 전용 */
+export const __resetDetailMemory = () => lastDetail.clear();
 /** `BFF-REQ-025` FR-1 — LLM 호출이다. 재시도 0회(FR-2) */
 const EXPLAIN_TIMEOUT_MS = 20_000;
 /** `BFF-REQ-025` FR-7 — 동시 `explain` 상한. 넘으면 429 로 바로 돌려보낸다 */
@@ -116,7 +133,14 @@ export class AppAICoachService {
       ),
     ]);
 
-    if (coach.status === "rejected") throw coach.reason;
+    const key = detailKey(token, `${symbol}${mode}`);
+    if (coach.status === "rejected") {
+      const kept = lastDetail.get(key);
+      if (kept && Date.now() - kept.at <= DETAIL_STALE_MAX_MS) {
+        return { ...kept.view, staleSince: new Date(kept.at).toISOString() };
+      }
+      throw coach.reason;
+    }
 
     const data = (coach.value.data as BackendEnvelope<ServerSymbolCoach>).data;
     const newsData =
@@ -125,7 +149,9 @@ export class AppAICoachService {
         : null;
 
     try {
-      return toSymbolCoachViewModel(data, newsData);
+      const view = toSymbolCoachViewModel(data, newsData);
+      rememberDetail(key, view, Date.now());
+      return view;
     } catch (error) {
       if (error instanceof SymbolCoachContractError) {
         throw new AppError("coach_unavailable", 502);

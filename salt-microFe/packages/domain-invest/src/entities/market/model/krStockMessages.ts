@@ -193,9 +193,11 @@ export const KR_STOCK_MESSAGES = {
   /** 상세 오늘 소식(F016 단계 B · FR-4) — 시황 · 공시 **제목만**(원천에 본문 · 링크가 없다). 원인 단정 문구 없음 */
   news: {
     heading: "오늘 소식",
+    recentHeading: "최근 소식",
+    recentNote: "오늘 걸린 소식이 아직 없어 최근 7일 소식을 보여 줘요.",
     caption: "시황 · 공시를 모아요. 누르면 찾은 기사 본문을 함께 보여 줘요.",
     kind: { news: "시황", disclosure: "공시" },
-    empty: "오늘 이 종목에 걸린 소식이 아직 없어요.",
+    empty: "최근 7일 동안 이 종목에 걸린 소식이 없어요.",
     unavailable: "오늘 소식을 잠시 볼 수 없습니다.",
     collectedAt: (when: string) => `${when}까지 받은 소식`,
   },
@@ -209,6 +211,7 @@ export const KR_STOCK_MESSAGES = {
     stale: "지연",
     staleTitle: "호가를 새로 받지 못해 마지막으로 받은 값이에요",
     unavailable: "호가를 잠시 볼 수 없습니다.",
+    pending: "호가를 받고 있어요.",
     empty: "지금은 호가가 없습니다.",
     /** 스크린리더용 — 화면은 막대 길이와 숫자로 보인다 */
     rowLabel: (side: "ask" | "bid", level: number, price: string, quantity: string) =>

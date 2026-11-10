@@ -4,7 +4,7 @@ import { Heading } from "@repo/ui/heading";
 import { StatusLine } from "@repo/ui/statusLine";
 import { Text } from "@repo/ui/text";
 
-import { COACH_MESSAGES, CoachBlockSkeleton, JudgmentDetail, selectModeView, useSymbolCoach } from "@/entities/coach";
+import { COACH_MESSAGES, CoachBlockSkeleton, CoachStaleNote, JudgmentDetail, selectModeView, useSymbolCoach } from "@/entities/coach";
 import { KR_STOCK_MESSAGES as M } from "@/entities/market";
 
 import { krCoachCard } from "./SymbolHeader.css";
@@ -24,7 +24,12 @@ export const KrCoachJudgment = ({ code }: { code: string }) => {
   const body = () => {
     if (isError) return <StatusLine kind="error">{COACH_MESSAGES.judgmentUnavailable}</StatusLine>;
     if (isPending || !data) return <CoachBlockSkeleton block="judgment" />;
-    return <JudgmentDetail view={selectModeView(data, "long_term")} mode="long_term" />;
+    return (
+      <>
+        <CoachStaleNote staleSince={data.staleSince} />
+        <JudgmentDetail view={selectModeView(data, "long_term")} mode="long_term" />
+      </>
+    );
   };
 
   return (

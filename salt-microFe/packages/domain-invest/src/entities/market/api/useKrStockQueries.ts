@@ -167,6 +167,8 @@ export const useKrIntradayFlows = (code: string) => {
  * 호가가 바뀌지 않는다. 화면이 안 보이면 TanStack 이 멈춘다(`refetchIntervalInBackground` 기본 false)
  */
 const KR_ORDERBOOK_REFRESH_MS = 10_000;
+/** 서버가 처음 받는 중(`pending`)이면 곧 다시 — 서버 기다림 상한(2초)과 같은 박자 */
+const KR_ORDERBOOK_PENDING_RETRY_MS = 2_000;
 
 export const useKrOrderbook = (code: string, live: boolean) => {
   return useQuery({
@@ -174,7 +176,12 @@ export const useKrOrderbook = (code: string, live: boolean) => {
     queryFn: ({ signal }) => krStockApi.orderbook(code, signal),
     enabled: Boolean(code),
     staleTime: KR_ORDERBOOK_REFRESH_MS,
-    refetchInterval: (query) => (live && !isClientApiError(query.state.error) ? KR_ORDERBOOK_REFRESH_MS : false),
+    refetchInterval: (query) => {
+      if (isClientApiError(query.state.error)) return false;
+      const d = query.state.data;
+      if (d?.status === "ok" && d.pending) return KR_ORDERBOOK_PENDING_RETRY_MS;
+      return live ? KR_ORDERBOOK_REFRESH_MS : false;
+    },
     retry: retryUnlessClientError,
   });
 };

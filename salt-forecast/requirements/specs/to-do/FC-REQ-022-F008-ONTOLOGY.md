@@ -51,3 +51,4 @@ FEATURE-008 FR-25(Draft). `ontology/__init__.py` 0줄. 뉴스 · 일정 · 신�
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-10-30 | **FR-4 정정** — as-of 거르기 기준 `ingested_at <= as_of` → **`available_at <= as_of`**. `time-and-leakage.md` §1 "수집 시각은 available_at 이 아니다 — 백필하면 ingested_at 이 전부 오늘" 과 반대였다(백필 사실이 과거 as-of 에서 사라져 백테스트가 틀린다). 테이블에 `available_at` 열 추가 · `ingested_at` 은 감사용. 규칙 `ontology.md` §3 |
+| 2026-11-10 | `FEATURE-017` 개정 — F017 은 온톨로지 전체를 기다리지 않는다. 필요한 것(소식 → 종목 · 사건 종류)만 `FC-REQ-028` FR-3 이 이미 있는 연결로 한다. 이 REQ 는 to-do 그대로(우선순위 뒤) |

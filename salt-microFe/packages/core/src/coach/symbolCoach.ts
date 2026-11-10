@@ -234,6 +234,8 @@ export interface SymbolCoachViewModel {
   };
   /** `'news'` · `'modes.scalp'` · `'modes.longTerm'` */
   degradedFields: string[];
+  /** 판단을 새로 못 받아 마지막 판단을 보여 줄 때 그 판단을 받은 시각(`BFF-REQ-052` FR-2). 새 판단이면 null */
+  staleSince: string | null;
   exchangeFlag: ExchangeFlag | null;
   disclaimer: string;
 }

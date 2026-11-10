@@ -86,6 +86,8 @@ export const COACH_MESSAGES = {
 
   /** 판단 조회 실패 · 모드 계약 깨짐. 구간 · 게이지 · 뉴스는 그대로 둔다 */
   judgmentUnavailable: "지금 판단을 불러올 수 없습니다.",
+  /** 새 판단을 못 받아 마지막 판단을 보여 줄 때 — 시각은 KST 시:분 */
+  judgmentStale: (clock: string) => `${clock}에 받은 판단이에요 · 새 판단을 받는 중`,
   signedOut: "로그인하면 이 종목의 판단을 볼 수 있습니다.",
 
   notPrediction: "예측 아님",

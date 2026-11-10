@@ -11,6 +11,7 @@ import { SignInRequired } from "@repo/web-shared/ui";
 import {
   COACH_MESSAGES,
   CoachBlockSkeleton,
+  CoachStaleNote,
   ExchangeCautionNote,
   findGaugeTrackRecord,
   GaugeTrackRecordLine,
@@ -121,6 +122,7 @@ export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
         <div className={modeRow}>
           <CoachModeSwitch value={mode} onChange={setMode} />
         </div>
+        <CoachStaleNote staleSince={data.staleSince} />
         <JudgmentAndZone view={data} mode={mode} />
         {isKr && <Text color="tertiary">{KR_STOCK_MESSAGES.detail.coachNote}</Text>}
       </>

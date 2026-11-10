@@ -42,8 +42,9 @@ class Settings(BaseSettings):
     naver_client_id: SecretStr | None = None
     naver_client_secret: SecretStr | None = None
     fred_api_key: SecretStr | None = None
-    # 주요 사건 반응을 계산할 종목(FC-REQ-005) — 화면 초점이 BTC
-    event_symbols: str = "KRW-BTC"
+    # 주요 사건 반응을 계산할 종목(FC-REQ-005). 비우면 업비트 일봉이 있는 코인 전부 — 처음엔 BTC 하나라
+    # 미국 거시 일정이 나머지 코인 99/100 에서 비었다(2026-11-10 실측, `SRV-REQ-053` FR-2)
+    event_symbols: str = ""
     # 국내 종목 사건 반응(FC-REQ-021 FR-6) — 비우면 보유 · 관심 국내 종목 + 거래대금 상위 N(최근 30일)
     # + 시장 대용(KR-EW)
     kr_event_symbols: str = ""

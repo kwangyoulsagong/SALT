@@ -40,6 +40,7 @@ Status: In Progress
 | **F015** | 셸 — 홈 요약 카드 · 도메인 선택 온보딩 · 내 데이터 · 4탭 IA(홈 · 저축 · 가계부 · 투자) — 2026-10-30 | `FEATURE-015-shell-home-onboarding.md` |
 | **F016** | 오늘 왜 움직였나 — 등락 분해 · 같은 날 사실 · 근거 인용 한 줄 · 시장 상태 태그(서킷브레이커 · 사이드카 · VI) · 국내 뉴스(제목) · 장중 수급 — 2026-11-06, **투자 동결 위 사용자 요청** · `ADR-009` | `FEATURE-016-why-moved.md` |
 | **F018** | 로그인 없이 시세 보기 — 게스트 토큰(서버 발급 · 30분 · httpOnly) · 시장 데이터 전부 공개(국내 포함) · ★ · 포트폴리오 · 거래 · AI 는 로그인(유리막) · 전망은 소유자 — 2026-11-10, **투자 동결 위 사용자 요청** · `ADR-011`(`FEATURE-011` §정책 뒤집음) | `FEATURE-018-public-market-guest.md` |
+| **F017** | AI 코치 — 잘 사고 잘 팔기: 늘 보이는 판단 · 해설(4단) · 사기/팔기 점검 · 단타 방향 확률(변동 범위 자리) · 측정 태그 — 2026-11-09 · **개정 2026-11-10**, **투자 동결 위 사용자 요청** · `ADR-010`(채택) · `ADR-009` 개정 | `FEATURE-017-ai-coach-best-case.md` |
 
 > **2026-10-30 투자 동결** — 투자 기능(F000 투자 FR · F003 · F004 · F006 · F008 · F009 · F010 · F011)은 지금 기획된 것까지만 만든다. 새 투자 FR 추가 0. 남은 목록은 `pm/docs/2026-10-30-money-domains-spec.html` "투자 — 동결 범위". 전 영역 계획은 `requirements/specs/to-do/MONEY-domains-global-plan.md`.
 
@@ -111,6 +112,7 @@ Status: In Progress
 | **F015** | `DB-040` | `SRV-048` | `BFF-046` | `FE-054` `FE-055` | `RN-035` |
 | **F016** | `DB-041` | `SRV-051`(market) `SRV-052`(coach) | `BFF-051` | `FE-063` | (웹뷰) + FC `FC-027` |
 | **F018** | 없음 | `SRV-056` | `BFF-055` | `FE-070` | (웹뷰 — 늘 로그인) |
+| **F017** | `DB-043` | `SRV-053`(coach · market) | `BFF-052` | `FE-064` | (웹뷰) + FC `FC-028` |
 
 F012~F015 는 영역당 한 파일(F011 이후 관례) — 종류는 파일 안 FR 표로 나눈다. F008 온톨로지 · 에이전트는 `FC-REQ-022` · `023`.
 
@@ -214,6 +216,7 @@ flowchart TB
 | 3a | 예측 바탕 | `FC-REQ-022` 온톨로지(O1 · O2) → `FC-REQ-023` 에이전트(O3) · `FC-REQ-024` 개인 재무 채점(S1 과 같이) | `ADR-007`. F008 FR-25 · FR-41 |
 | **3b** | 투자 동결 위 사용자 요청(2026-11-06) | **F016** ~~단계 A 시장 상태 태그~~ **A done 2026-11-06**(`feat/f016-a-market-status-tags`, `F016-A-market-status-tags-slice.md` — VI · 서킷브레이커 추정 · 상태 칩 · 마지막 체결) → ~~B 국내 소식 · 수급~~ **B done 2026-11-06**(`feat/f016-b-kr-news-flows`, `F016-B-kr-news-flows-slice.md` — 시황 제목 · 업종 지수 · 장중 프로그램) → ~~다음 C 분해 · 사실 카드~~ **C done 2026-11-09**(`feat/f016-c-move-breakdown`, `F016-C-move-split-facts-slice.md` — 분해 · 카드 조건 · 같은 날 사실 · 프리뷰 한 줄) → 다음 D 한 줄(평가 뒤) — ~~`requirements/specs/to-do/F016-why-moved-global-plan.md`~~ `requirements/specs/in-progress/F016-why-moved-global-plan.md` | `ADR-009` · `FEATURE-016` Open Questions 1~6 |
 | 3b | 투자 동결 위 사용자 요청(2026-11-10) | ~~**F018** 로그인 없이 시세 보기 — `SRV-REQ-056` → `BFF-REQ-055` → `FE-REQ-070`~~ **done 2026-11-10**(`docs/feature-018-public-market-guest`, `F018-public-market-guest-slice.md` — 게스트 토큰 · 국내 공개 · 유리막 · 실화면 중 본 장중 504 5회차 고침), `requirements/specs/in-progress/F018-public-market-guest-global-plan.md` | `ADR-011` · `FEATURE-018` |
+| **3c** | 투자 동결 위 사용자 요청(2026-11-09 · 11-10) | **F017** AI 코치 — ~~기획 끝~~ **11-10 개정(범위 "잘 사고 잘 팔기")** · 단계 0 결함 여섯 **done 2026-11-10**(`feat/f017-ai-coach-best-case`) → 1 판단 · 해설 늘 보이게 → 2 사기/팔기 점검 → 3 단타 방향 확률 → 시나리오 카드 → 4 측정 태그 — `requirements/specs/in-progress/F017-ai-coach-best-case-global-plan.md` · 정리 화면 `pm/docs/2026-11-10-ai-coach-scenario.html` | `ADR-010` · `ADR-009` 개정 · 결정 D1~D8 |
 | **4** | 착수 전 기능 | F006 코치 대화 + 3탭 IA(`FE-REQ-030`~`033` · `BFF-REQ-027`~`030`) · F003 적립(`FEATURE-003`, to-do) | 범위가 커서 3 다음. 시작 전에 기획서 재확인 |
 | **5** | 디자인 | `FE-REQ-051` 로고 → `FE-REQ-047` 틀(헤더 · 뒤로 · 탭 주소 · **2026-11-04 개정**: 도메인 사이드 · 글자색 대비 · 글꼴 · 모바일 분리) → `FE-REQ-049` 상세 재설계(국내 깨짐 B1~B11 · 탭 제목 실시간 가격) → **`FE-REQ-060` 돈 관리 화면(저축 · 가계부 · 팁, 데스크톱 + 모바일 따로 — 2026-11-04)** → `FE-REQ-048` 홈(카드 홈 데스크톱/모바일로 정정) · 함께 **`FE-REQ-061` 좁은 화면 안내 · `FE-REQ-062` 화면 움직임** — REQ 2026-11-04. ~~**당김 2026-11-04**(사용자 "베스트 케이스"): 다음 칸 = 디자인 D1 — D1 `FE-REQ-051` 로고 + `FE-REQ-047` 틀 → D2 `FE-REQ-049` 상세 → D3 `FE-REQ-060` 돈 관리 화면 → D4 `FE-REQ-048` 홈 + `FE-REQ-061` 좁은 화면 안내. `FE-REQ-062` 움직임은 단계마다 그 화면에 같이~~ **정정 2026-11-04: 당김 취소**(사용자 "기능부터 만들어야지") — 디자인은 다시 기능 뒤. ~~`FE-REQ-051` 로고~~ **done 2026-11-04**(사용자 "로고는 필요하니까", `F000-brand-logo-slice.md`) | 기능이 화면 칸을 정한 뒤에 틀을 입힌다. 규칙 `salt-microFe/.claude/rules/screen-desktop.md` · 지도 `requirements/specs/to-do/DESIGN-desktop-redesign-plan.md` |
 | **6** | 모바일 | F007 RN(`RN-REQ-001`~) · `screen-mobile.md` 규칙 | 웹 계약 확정 뒤(P4 원칙 그대로) |
@@ -234,7 +237,7 @@ flowchart TB
 
 기능별 수용 기준과 별도로, **모든 REQ가 이것을 만족해야 done**이다.
 
-- [ ] 추천을 렌더하는 모든 화면에 **근거 · 과거 적중률 · 실패사례** 3종이 함께 있다. 하나라도 없으면 렌더하지 않는다 (글로벌 플랜 1-3절)
+- [ ] 추천을 렌더하는 모든 화면에 **근거 · 과거 적중률 · 실패사례** 3종이 함께 있다. 하나라도 없으면 렌더하지 않는다 (글로벌 플랜 1-3절) — **근거 = 엔진이 이 판단에 실제로 본 사실(관측 값 · 문턱까지 거리) 포함**(`ADR-010`, 2026-11-10 채택 — 관망도 판단)
 - [ ] **주문을 실행하는 코드 경로가 없다.** 거래소 API 키를 받지 않는다(계좌 연동은 영구 Non-Goal)
 - [ ] 금액 계산은 **서버에서** 한다. 프론트는 표시만, LLM은 문장만
 - [ ] 확신 표현("확실", "무조건", "보장", "100%") · 한 점 목표가 · 명령형 매매 지시가 0건이다. 전망은 `ADR-003`(2026-09-23)의 확률 · 구간 + 전망 3종만, 소유자 전용
@@ -1064,3 +1067,5 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-10 | **남은 결함 둘**(사용자 "남은 건 지금 버그") — 장중 ai-coach 504 = 주기 작업이 연결 풀(17)을 통째로 잡음 → 시세 · 캔들 쓰기 한 문장 · 지표 동시 20 → 4 · 기계 검사 `noParallelRowWrites.test.ts`(`DB-REQ-017` 4회차 · `SRV-REQ-007` · `006`, p99 719 → 70ms) · 프리뷰 뉴스 모달 새로고침(`FE-REQ-065` — 주소에 종목 `?newsOf=`). 규칙 `done-checklist` §1 · `prisma-database` · `workers-external` |
 | 2026-11-10 | **FE-066 · 067 슬라이스 done** — `FE-REQ-067` in-progress → done: zone 전환 A/B(머리 내비 전 · 뒤, 운영 빌드 · Chrome 157) prerender 적중 10/10 · 10/10 · 누름→보임 중앙 1~2ms · 미적중 80~119ms — 퇴행 0. 재는 법 보완(올린 직후 끊기 · 설치된 Chrome) `microfrontend.md` §5 · `FE-REQ-054` FR-6. 루트 슬라이스 done/ |
 | 2026-11-10 | **FE-069 투자 머리 메뉴 · 레일 복원 · 포트폴리오 done** — `FE-REQ-069`(신규 · done): 왼쪽 레일 복원(`FE-REQ-067` D1 되돌림 · `FE-REQ-054` FR-1) · 투자 zone 머리 = 코인 · 주식 · 포트폴리오 · 리포트 · 코치 설정 + 검색칸(다른 zone 검색칸 없음 — `FE-REQ-066` FR-1 정정) · `/portfolio`(보유를 리포트에서 뗌) · 자산군은 `?asset=`. 리서치(참고 증권 웹 둘). 번들 `/investments` 166 → 156 kB. 규칙 `screen-desktop` · `layered-architecture` · `fsd-widgets` · `fsd-pages` · `microfrontend`. 루트 `FE-069-invest-header-portfolio-slice.md`. 다음: 비로그인 공개 시세(사용자 결정) |
+| 2026-11-09 | **F017 기획**(`docs/ai-coach-best-case`) — 진단: 코치 판단이 관망 날 근거 문장 0개로 `reasons_missing` 막힘(표본 문제 아님). 딥리서치 `2026-11-09-ai-coach-best-case.md` · `ADR-010`(제안 — 근거 = 엔진이 본 사실) · `FEATURE-017` · `SRV-REQ-053` · `BFF-REQ-052` · `FE-REQ-064` · `FC-REQ-028` · 전 영역 계획 `F017-ai-coach-best-case-global-plan.md`. 사용자 결정 대기 D1~D5 |
+| 2026-11-10 | **F017 개정 — 범위 "잘 사고 잘 팔기"** — 전 종목 실측(코인 100 · 국내 57, 1,056 요청) 결함 여섯 고침(호가 1.5~22초 → 15~190ms · 코인 상세 1.9 → 0.04~0.16초 · 판단 상세 504 → 마지막 판단 · 거시 일정 전 코인 · 국내 표 멈춘 7행 · 국내 소식 최근 7일). `FEATURE-017` · 전 영역 계획 다시 씀 · `SRV-053` · `BFF-052` · `FE-064` · `FC-028`(몫 바꿈) in-progress · `DB-043` 신규 · `ADR-010` 채택 · `ADR-009` 개정(측정 태그) · 리서치 `2026-11-10-ai-coach-scenario.md` · 정리 화면 `pm/docs/2026-11-10-ai-coach-scenario.html` |

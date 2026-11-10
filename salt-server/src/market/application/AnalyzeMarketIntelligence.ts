@@ -240,3 +240,57 @@ export class ListWhaleTransactions {
     return this.whales.findRecent(symbol, limit);
   }
 }
+
+/** 코인 상세 대시보드를 다시 계산하지 않는 시간 — 업비트 체결 · 호가는 초 단위로 바뀌지만 화면 점수는 15초면 충분하다 */
+export const MARKET_DASHBOARD_FRESH_MS = 15_000;
+
+type Dashboard = {
+  symbol: string;
+  sentiment: Awaited<ReturnType<CalculateSentiment["execute"]>>;
+  smartMoney: Awaited<ReturnType<TrackSmartMoney["execute"]>>;
+  timestamp: Date;
+};
+
+/**
+ * 코인 상세 대시보드(심리 + 스마트 머니) — `SRV-REQ-053` FR-3(2026-11-10).
+ *
+ * 불변식: **계산해 둔 값이 있으면 화면은 외부 호출(업비트 4건 · 공포탐욕)을 기다리지 않는다.** 15초가 지났으면 계산해 둔 값을 바로 주고
+ * 뒤에서 다시 계산한다. 처음 보는 종목만 계산을 기다린다. 같은 순간 겹친 요청은 계산 한 번.
+ * 전에는 요청마다 외부 4건 + 저장 2건이라 한 건 0.4~0.7초 · 동시 요청에서 1.9초(실측)였다.
+ * 캐시는 프로세스 메모리(단일 프로세스) · 무효화는 시간뿐
+ */
+export class GetMarketDashboard {
+  private readonly cache = new Map<string, Dashboard>();
+  private readonly inflight = new Map<string, Promise<Dashboard>>();
+
+  constructor(
+    private readonly sentiment: Pick<CalculateSentiment, "execute">,
+    private readonly smartMoney: Pick<TrackSmartMoney, "execute">,
+    private readonly now: () => Date = () => new Date()
+  ) {}
+
+  async execute(symbol: string): Promise<Dashboard> {
+    const cached = this.cache.get(symbol);
+    if (!cached) return this.compute(symbol);
+    if (this.now().getTime() - cached.timestamp.getTime() >= MARKET_DASHBOARD_FRESH_MS) {
+      void this.compute(symbol).catch((error) =>
+        logger.warn(`대시보드 뒤 갱신 실패 — ${symbol}: ${(error as Error).message}`)
+      );
+    }
+    return cached;
+  }
+
+  private compute(symbol: string) {
+    const running = this.inflight.get(symbol);
+    if (running) return running;
+    const call = Promise.all([this.sentiment.execute(symbol), this.smartMoney.execute(symbol)])
+      .then(([sentiment, smartMoney]) => {
+        const dashboard = { symbol, sentiment, smartMoney, timestamp: this.now() };
+        this.cache.set(symbol, dashboard);
+        return dashboard;
+      })
+      .finally(() => this.inflight.delete(symbol));
+    this.inflight.set(symbol, call);
+    return call;
+  }
+}

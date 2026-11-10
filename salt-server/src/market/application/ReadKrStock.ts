@@ -14,6 +14,8 @@ import {
   KR_INDEX_NAMES,
   KR_INVESTOR_MAX_DAYS,
   KR_ORDERBOOK_CACHE_MS,
+  KR_ORDERBOOK_STALE_MS,
+  KR_ORDERBOOK_WAIT_MS,
   KR_QUOTE_STALE_MS,
   type Candle,
   type KrAfterHoursQuote,
@@ -249,6 +251,11 @@ export interface KrStockReadDependencies {
   status: KrMarketStatusStore;
   /** 호가는 저장하지 않고 요청 시점에 부른다(슬라이스 6b FR-28) */
   orderbookSource: Pick<KrSupplementPort, "orderbook">;
+  /**
+   * 지금 받는 종목(보유 ∪ 관심 ∪ 시총 상위 N). 시세 표는 이것만 보인다 — 시세 행은 한 번 받은 종목이 다 남아 있어서,
+   * 상위 N 에서 밀려난 종목이 10월 가격으로 멈춘 채 표에 섞였다(2026-11-10 57행 중 7행, `SRV-REQ-053` FR-2). 없으면 행 전부(테스트 · 옛 조립)
+   */
+  universe?: { execute(): Promise<string[]> };
   /** 시황/공시 제목 · 장중 프로그램 매매(F016 단계 B) */
   moveSources: KrMoveSourceStore;
   /** 표 행 카드 표시 — β · σ 뷰 · 카드 문턱(F016 단계 C). 없으면 표시 없음(테스트 · 옛 조립) */
@@ -297,7 +304,10 @@ export class ListKrStockQuotes extends KrStockRead {
     const limit = Math.min(query.limit, KR_LIST_MAX_LIMIT);
     const [session, quotes] = await Promise.all([
       loadKrSession(this.deps.calendar, now),
-      this.deps.store.quotes({ codes: query.codes, limit: KR_LIST_SCAN_LIMIT, offset: 0 }),
+      (async () => {
+        const codes = query.codes ?? (this.deps.universe ? await this.deps.universe.execute() : undefined);
+        return this.deps.store.quotes({ codes, limit: KR_LIST_SCAN_LIMIT, offset: 0 });
+      })(),
     ]);
     // 실시간이면 기간 변동률 = 전일 대비(코인이 실시간에 `periodChange = change24h` 를 주는 것과 같다)
     const closes =
@@ -500,38 +510,50 @@ const toLevelView = (l: KrOrderbookLevel) => ({ price: won(l.price), quantity: l
 
 /**
  * 호가 10단계(FR-28) — **저장하지 않는 요청 시점 조회**. 같은 종목은 10초 안이면 받아 둔 값을 준다(`KR_ORDERBOOK_CACHE_MS`),
- * 같은 순간 겹친 요청은 KIS 한 번을 같이 기다린다. KIS 가 실패하면 받아 둔 값을 `stale` 로, 그것도 없으면
- * `available: false` 빈 호가로 준다 — 500 으로 상세 화면 전체를 깨지 않는다(부가 정보).
+ * 같은 순간 겹친 요청은 KIS 한 번을 같이 기다린다.
+ *
+ * 불변식(`SRV-REQ-053` FR-3, 2026-11-10): **받아 둔 값이 있으면 화면은 KIS 를 기다리지 않는다.** 10초가 지났으면 받아 둔 값을 바로 주고
+ * 뒤에서 새로 받는다(다음 요청이 새 값을 본다). 처음 보는 종목만 `KR_ORDERBOOK_WAIT_MS` 까지 기다리고, 넘으면 `pending` 빈 호가로
+ * 답한다 — 받던 호출은 끝나면 캐시를 채운다. 받아 둔 값이 30초 넘게 낡았거나 마지막 받기가 실패했으면 `stale`.
+ * 처음 받기마저 실패하면 `available: false` — 500 으로 상세 화면 전체를 깨지 않는다(부가 정보).
  * 캐시는 프로세스 메모리다(단일 프로세스). 무효화는 시간뿐이다
  */
 export class GetKrOrderbook extends KrStockRead {
   private readonly cache = new Map<string, { fact: KrOrderbookFact; fetchedAt: Date }>();
   private readonly inflight = new Map<string, Promise<KrOrderbookFact>>();
+  private readonly failedAt = new Map<string, number>();
 
   async execute(code: string) {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const listing = await this.deps.store.findListing(code);
     if (!listing) throw new KrStockNotAvailableError();
 
-    const now = this.now();
+    const now = this.now().getTime();
     let cached = this.cache.get(code);
-    let stale = false;
-    if (!cached || now.getTime() - cached.fetchedAt.getTime() >= KR_ORDERBOOK_CACHE_MS) {
-      try {
-        const fact = await this.fetch(code);
-        cached = { fact, fetchedAt: this.now() };
-        this.cache.set(code, cached);
-      } catch {
-        stale = true;
+    let pending = false;
+    if (!cached || now - cached.fetchedAt.getTime() >= KR_ORDERBOOK_CACHE_MS) {
+      const call = this.fetch(code);
+      if (cached) {
+        void call.catch(() => {}); // 뒤 갱신 — 실패는 failedAt 이 기록한다
+      } else {
+        const outcome = await Promise.race([
+          call.then(() => "done" as const, () => "failed" as const),
+          new Promise<"waiting">((resolve) => setTimeout(() => resolve("waiting"), KR_ORDERBOOK_WAIT_MS).unref?.()),
+        ]);
+        if (outcome === "waiting") pending = true;
+        cached = this.cache.get(code);
       }
     }
     if (!cached) {
-      return { code, available: false, asks: [], bids: [], totalAskQuantity: null, totalBidQuantity: null, at: null, fetchedAt: null, stale: true };
+      return { code, available: false, pending, asks: [], bids: [], totalAskQuantity: null, totalBidQuantity: null, at: null, fetchedAt: null, stale: !pending };
     }
     const { fact, fetchedAt } = cached;
+    const lastFailed = this.failedAt.get(code) ?? 0;
+    const stale = this.now().getTime() - fetchedAt.getTime() >= KR_ORDERBOOK_STALE_MS || lastFailed > fetchedAt.getTime();
     return {
       code,
       available: true,
+      pending: false,
       asks: fact.asks.map(toLevelView),
       bids: fact.bids.map(toLevelView),
       totalAskQuantity: fact.totalAskQuantity.toString(),
@@ -542,10 +564,23 @@ export class GetKrOrderbook extends KrStockRead {
     };
   }
 
+  /** 겹친 요청은 한 번 · 성공하면 캐시를 채우고 실패하면 시각을 남긴다 — 기다린 요청이 떠나도 결과는 버리지 않는다 */
   private fetch(code: string) {
     const running = this.inflight.get(code);
     if (running) return running;
-    const call = this.deps.orderbookSource.orderbook(code).finally(() => this.inflight.delete(code));
+    const call = this.deps.orderbookSource
+      .orderbook(code)
+      .then(
+        (fact) => {
+          this.cache.set(code, { fact, fetchedAt: this.now() });
+          return fact;
+        },
+        (error) => {
+          this.failedAt.set(code, this.now().getTime());
+          throw error;
+        }
+      )
+      .finally(() => this.inflight.delete(code));
     this.inflight.set(code, call);
     return call;
   }
@@ -556,19 +591,30 @@ export class GetKrOrderbook extends KrStockRead {
  * 광고성 제외 · 최대 `KR_NEWS_READ_LIMIT`건. 제목 · 제공처 · 시각 · 공시/시황 구분뿐 — 본문 · 링크는 원천에 없다.
  * `collectedAt` 은 시장 전체 마지막 수집 시각(신선도 — 빈 목록이 "소식 없음"인지 "수집 멈춤"인지 가른다)
  */
+/** 오늘 소식이 없을 때 거슬러 보는 날 수 */
+export const KR_NEWS_RECENT_DAYS = 7;
+
 export class GetKrStockNews extends KrStockRead {
   async execute(code: string) {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const listing = await this.deps.store.findListing(code);
     if (!listing) throw new KrStockNotAvailableError();
     const now = this.now();
-    const [items, collectedAt] = await Promise.all([
+    const [today, collectedAt] = await Promise.all([
       this.deps.moveSources.newsTitles(code, kstStartOfDay(now), KR_NEWS_READ_LIMIT),
       this.deps.moveSources.newsCollectedAt(),
     ]);
+    // 오늘 소식이 없으면 최근 7일 안의 마지막 소식 — 빈 칸 대신 날짜가 붙은 사실(`SRV-REQ-053` FR-2, 11-10 57종목 중 11 빈 칸)
+    const recent =
+      today.length > 0
+        ? null
+        : await this.deps.moveSources.newsTitles(code, new Date(now.getTime() - KR_NEWS_RECENT_DAYS * 86_400_000), KR_NEWS_READ_LIMIT);
+    const items = recent ?? today;
     return {
       code,
       date: kstDateOf(now),
+      /** today = 오늘 소식 · recent = 오늘이 비어 최근 7일 소식 */
+      scope: recent ? ("recent" as const) : ("today" as const),
       collectedAt: collectedAt?.toISOString() ?? null,
       items: items.map((n) => ({
         id: n.serial,

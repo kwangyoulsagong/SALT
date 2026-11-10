@@ -226,10 +226,10 @@ describe("한도 나눠 쓰기 순서 (FR-91 · 슬라이스 6b)", () => {
     assert.equal(await priorities((c) => c.dayMinuteCandles("005930", "2026-10-27", "153000")), KIS_PRIORITY.candles);
     assert.equal(await priorities((c) => c.indexQuote("0001")), KIS_PRIORITY.supplement);
     assert.equal(await priorities((c) => c.investorFlows("005930")), KIS_PRIORITY.supplement);
-    // 호가는 화면이 기다린다 — 폴링 줄(동시 6건 뒤)
-    assert.equal(await priorities((c) => c.orderbook("005930")), KIS_PRIORITY.poll);
+    // 호가는 화면이 기다린다 — 폴링보다 앞(2026-11-10 폴링 줄에서 1.5~10초)
+    assert.equal(await priorities((c) => c.orderbook("005930")), KIS_PRIORITY.viewer);
     assert.equal(await priorities((c) => c.afterHoursQuote("005930")), KIS_PRIORITY.supplement);
-    assert.ok(KIS_PRIORITY.realtime < KIS_PRIORITY.poll && KIS_PRIORITY.poll < KIS_PRIORITY.candles && KIS_PRIORITY.candles < KIS_PRIORITY.supplement);
+    assert.ok(KIS_PRIORITY.realtime < KIS_PRIORITY.viewer && KIS_PRIORITY.viewer < KIS_PRIORITY.poll && KIS_PRIORITY.poll < KIS_PRIORITY.candles && KIS_PRIORITY.candles < KIS_PRIORITY.supplement);
   });
 });
 
