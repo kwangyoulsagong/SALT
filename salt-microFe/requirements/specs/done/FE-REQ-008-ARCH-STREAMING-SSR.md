@@ -222,3 +222,4 @@ RSC에서는 그 근거가 달라진다. 서버 컴포넌트가 BFF를 여러 �
 | 2026-11-10 | `MarketBoard` — `?asset=kr_stock` 을 읽는 잎(`AssetParamSync`)을 Suspense 로 감쌌다 — 보드 전체가 `useSearchParams` 로 클라이언트에 미뤄지지 않게(검색 모달 업종 · 지수 줄, `FE-REQ-066` `19539c95`) |
 | 2026-11-10 | `MarketBoard` — 주소를 읽는 Suspense 잎에 `NewsModalHost` 를 같이(보드 전체가 클라이언트로 미뤄지지 않게, `FE-REQ-065` `87eb8083`) |
 | 2026-11-10 | `MarketBoard` 주소 잎이 자산군 · 뉴스 모달을 함께 — 모달은 `?news=` 있을 때만 dynamic(`c914fe2e`) · 투자 zone 레이아웃 머리 메뉴는 Suspense 잎(`FE-REQ-069`) |
+| 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |

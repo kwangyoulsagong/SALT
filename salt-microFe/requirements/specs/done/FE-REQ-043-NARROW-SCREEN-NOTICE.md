@@ -50,3 +50,4 @@ source: 사용자 결정 2026-09-30 — 휴대폰 화면은 RN 앱(`RN-REQ-001`)
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: **제외 하나** — 공개 zone(`web-tips`)은 `PublicShell` 이라 768 미만 안내를 띄우지 않는다(`FE-REQ-058` FR-7). 문구 파일(머리 주인)에 `TIMELY_TIP_MESSAGES` 추가 — 기존 export 무변경 |
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `334084aa`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — `AppNavigation.css.ts` 폭 주석 — 768 미만 안내 그대로(머리 · 하단 탭 없음). 390 웹뷰에서 검색 모달 358 폭 · 넘침 0 |
 | 2026-11-10 | `AppNavigation.css.ts` 폭 주석(레일 복원) — 768 미만 안내 그대로 · 390 웹뷰 머리 · 레일 숨김 확인(`FE-REQ-069`) |
+| 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `f193c6aa` |
