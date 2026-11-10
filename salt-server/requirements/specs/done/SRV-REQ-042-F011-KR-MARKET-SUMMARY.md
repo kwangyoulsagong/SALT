@@ -53,3 +53,4 @@ source: 사용자 "국내주식도 주식 홈에서 코인처럼 주요 그게 �
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-server/src/composition.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/market/application/__tests__/krMarketSummary.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
+- 2026-11-10 밤(1b): `composition.ts` — 과거 검산 저장소가 세는 출처를 `BACKTEST_DISPLAY_ORIGINS` 로(`f38ca6ae`). 이 REQ 의 몫(요약 띠) 무변경 — 조립 파일이 이 REQ 를 가리켜 기록만

@@ -431,3 +431,4 @@ PC                                                   모바일(세로 스택)
   - `salt-microFe/packages/domain-invest/src/widgets/coach-panel/ui/CoachPanel.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
   - `salt-microFe/packages/domain-invest/src/widgets/symbol-analysis/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
   - `salt-microFe/packages/domain-invest/src/widgets/symbol-analysis/ui/SymbolAnalysis.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+- 2026-11-10 밤(1b): 문구 — 코치 리포트 제외 사유 "국내는 장기 판단만" 삭제 · 과거 검산 설명에 "과거 기록이 없는 재료(심리 · 1시간 지표)는 빼고 셌어요"(`f4ac1427`). 실화면 셸 3000 경유 ETH 장기 · 005930 단타

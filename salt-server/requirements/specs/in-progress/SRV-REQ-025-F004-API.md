@@ -340,3 +340,4 @@ type ExplainResult =
   - `salt-server/src/coach/application/__tests__/judgmentScoreboard.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
   - `salt-server/src/coach/presentation/aiCoach.routes.ts` — Swagger · 컨트롤러 — 국내 "소유자 전용 404" 문구 · 인자 정리
   - `salt-server/src/coach/presentation/coachReport.routes.ts` — Swagger · 컨트롤러 — 국내 "소유자 전용 404" 문구 · 인자 정리
+- 2026-11-10 밤(1b): `GetSymbolCoach` 기본 모드 — 국내는 장기 그대로(국내 단타를 열어도 프로필 기본 모드는 코인에서 고른 것이라 국내엔 안 건다, `326a0553`). 응답 모양 무변경

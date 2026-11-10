@@ -398,3 +398,4 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 - 2026-11-10 — F017 v2 단계 1(`d6105374`) — FR-104 · 106 · 137 · 141 · 191(게이트 부분) · 194 v2 구현: `judgmentCaveats` · 3종 채움 · 해설 막지 않음
   - `salt-server/src/coach/application/GetJudgmentScoreboard.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/coach/application/api/index.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+- 2026-11-10 밤(1b): `RecordSymbolJudgments` — 국내 단타 스냅샷 · 다음 거래일 종가 채점(`SRV-REQ-040` FR-63 v2, `326a0553`)
