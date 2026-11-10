@@ -33,3 +33,5 @@ source: salt-server/requirements/specs/done/SRV-REQ-054-NEWS-ARTICLE-BODY.md
 |---|---|
 | 2026-11-09 | 신규 · done |
 | 2026-11-09 | 확인 2회차 — 예산 15 → 20초(서버 두 번째 검색 뒤 첫 조회가 잘림 — 결함) · 원문 주소 http(s) 만 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `bff/src/services/app-article-body.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)

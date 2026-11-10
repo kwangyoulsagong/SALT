@@ -24,3 +24,9 @@
 
 - 결함: 서버가 두 번째 검색을 더한 뒤 첫 조회가 15초를 넘어 잘렸다(서버는 찾았는데 화면은 요약) → 20초 · 서버 검색 4초. 테스트 431/431 · build
 - 원문 주소 http(s) 만 — 테스트
+
+## 2026-11-10 — F018 걸침
+
+  - `bff/src/services/app-article-body.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

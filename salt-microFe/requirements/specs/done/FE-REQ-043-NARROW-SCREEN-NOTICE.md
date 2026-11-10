@@ -51,3 +51,5 @@ source: 사용자 결정 2026-09-30 — 휴대폰 화면은 RN 앱(`RN-REQ-001`)
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `334084aa`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — `AppNavigation.css.ts` 폭 주석 — 768 미만 안내 그대로(머리 · 하단 탭 없음). 390 웹뷰에서 검색 모달 358 폭 · 넘침 0 |
 | 2026-11-10 | `AppNavigation.css.ts` 폭 주석(레일 복원) — 768 미만 안내 그대로 · 390 웹뷰 머리 · 레일 숨김 확인(`FE-REQ-069`) |
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `f193c6aa` |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/web-shared/src/i18n/messages.ts` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"

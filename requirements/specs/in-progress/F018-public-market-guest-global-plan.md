@@ -31,6 +31,8 @@ created: 2026-11-10
 서버(SRV-056) → BFF(BFF-055) → FE(FE-070) — 한 브랜치, 영역별 커밋
 ```
 
+- **done 2026-11-10**(`F018-public-market-guest-slice.md`) — 셋 다 done. BFF 경로는 그대로(정정) · 실화면 중 본 장중 504 는 원인(봉 다시 쓰기 · 예측 트랜잭션 8시간)까지 고침
+
 - 계약 변경이 세 영역에 걸쳐 한 PR(`pr-convention.md` §7 — 계약 변경이 있을 때만 정당)
 - 서버는 Express(auth S3b · market S5 전) — 이전을 막는 새 의존 0. 게스트 발급은 S3b 에 identity 로 옮길 것(`msa-services.md` §2)
 

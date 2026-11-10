@@ -49,3 +49,5 @@ source: 사용자 2026-11-09 "상세 모달에 뉴스 기사 렌더링" · "국�
 | 2026-11-09 | 신규 · done — FR-1~8. 실측 뒤 뽑기 규칙 판 3(포털 본문 칸이 글자를 직접 품음 · 언론사 관련 기사 목록 · 꼬리 줄) |
 | 2026-11-09 | 확인 2회차 — 결함 다섯: 리다이렉트 숫자 사설 주소 통과(SSRF) · 원문 `javascript:` 주소 · 짧은 본문 문장 손실("구독자가" 등) · 긴 제목 검색 0건 · 줄인 제목 판정 실패 · 실패 이유 로그 0. 규칙 판 3 → 7 |
 | 2026-11-10 | `news` 공개 API 에 `searchArticleTitles` · `symbolTagLists`(검색 모달 `SRV-REQ-055` `dd0bbdcc`) — 본문 경로 무변경 · 본문은 여전히 AI 입력 0 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-server/src/market/presentation/krStock.routes.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자

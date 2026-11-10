@@ -158,3 +158,10 @@ Swagger(`failOnErrors`) 생성 · 실검증 · 실화면 상세는 루트 `requi
 | 시장 개요 응답에 `moveCard`(추가만 — 계약 테스트 목록에 더함, F016 단계 C) | 반영 · 영역 검증 전체 통과 |
 
 루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-server/src/auth/domain/errors.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
+  - `salt-server/src/auth/presentation/auth.controller.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

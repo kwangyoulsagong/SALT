@@ -75,3 +75,5 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-06 | in-progress — 단계 A(FR-2 · 5) done. FR-2 를 별도 경로 대신 요약 · 상세 응답 칸으로 정정 |
 | 2026-11-09 | 단계 C — FR-1(①② · summary 는 D) · FR-7 · 표 행 `moveCard` |
 | 2026-11-09 | FR-3 — 오늘 소식 `related` 칸(칸 셋 · 옛 서버 빈 배열, `FE-REQ-065`) |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `bff/src/services/app-kr-stock.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)

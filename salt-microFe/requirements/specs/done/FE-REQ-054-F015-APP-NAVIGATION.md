@@ -66,3 +66,6 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `334084aa`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — FR-1 정정 — 1024+ 왼쪽 레일 → 머리 글자 링크(`FE-REQ-067` D1 안 B) · 전환 이름 `rail` 삭제 · `appTabs.ts` 주석 |
 | 2026-11-10 | FR-6 다시 잼 — 머리 내비(`FE-REQ-067`) 뒤 운영 빌드 A/B · Chrome 157: 적중 10/10 · 누름→보임 중앙 2 · 1ms · 미적중 80 · 73ms(전 119 · 73) — 퇴행 0. 재는 법: 올린 직후(200ms 전) 세션을 끊는다 |
 | 2026-11-10 | FR-1 레일 복원 — 11-09 머리 글자 링크(`FE-REQ-067`)를 되돌렸다(`FE-REQ-069` `f193c6aa`). 레일 칸 값 그대로 · 머리는 zone 메뉴 자리 · 레일 링크 zone 전환 적중 9/10 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/web-shared/src/layout/ProfileMenu.css.ts` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"
+  - `salt-microFe/packages/web-shared/src/layout/ProfileMenu.tsx` — 유리막(`SignInGlass` · `SignInRequired`) · 머리 프로필 자리 "로그인"

@@ -211,3 +211,11 @@ BFF 295 pass · build. 실검증은 새 코드 BFF 4011(기존 4001 은 watch �
 
 - `rest/controllers/search.controller.ts` · `routes/search.routes.ts` 에 `BFF-REQ-054` 경로 셋 — 기존 검색 경계(q 30 · limit 30) 그대로. 검증은 주인 체크리스트(`BFF-REQ-054` — build · 434 · 실호출)
 - 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`
+
+## 2026-11-10 — F018 걸침
+
+  - `bff/src/rest/routes/search.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `bff/src/services/__tests__/asset-search.viewmodel.test.ts` — 검색 `isTracked` · `isHeld` 를 `boolean | null` 로 — 게스트는 null(지어내지 않음)
+  - `bff/src/services/asset-search.viewmodel.ts` — 검색 `isTracked` · `isHeld` 를 `boolean | null` 로 — 게스트는 null(지어내지 않음)
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

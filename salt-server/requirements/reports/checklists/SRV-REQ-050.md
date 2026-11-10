@@ -43,3 +43,9 @@
 |---|---|---|
 | Codex 실호출 스트림 · 품질 | 이 맥은 `auto` 가 Claude 를 고른다. Codex 는 `exec` 가 토큰 스트림을 주지 않아(실측) 예전 길 — 단위 테스트 · CLI 실측(6초 · 1회)만 | `COACH_LLM_LOCAL=codex` 로 평가지를 돌릴 때 |
 | 모바일 실기기 | 앱 실기기 경로는 QA 몫. 헤더 판별은 단위 · 중계 테스트 | `QA-001` |
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-server/src/shared/infrastructure/__tests__/ownerGateScope.test.ts` — 기계 검사 — 소유자 판정(`isForecastOwner`)은 전망 셋 + 해설 라우팅만 · `isKrStockViewer` 0
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

@@ -223,3 +223,5 @@ RSC에서는 그 근거가 달라진다. 서버 컴포넌트가 BFF를 여러 �
 | 2026-11-10 | `MarketBoard` — 주소를 읽는 Suspense 잎에 `NewsModalHost` 를 같이(보드 전체가 클라이언트로 미뤄지지 않게, `FE-REQ-065` `87eb8083`) |
 | 2026-11-10 | `MarketBoard` 주소 잎이 자산군 · 뉴스 모달을 함께 — 모달은 `?news=` 있을 때만 dynamic(`c914fe2e`) · 투자 zone 레이아웃 머리 메뉴는 Suspense 잎(`FE-REQ-069`) |
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/domain-invest/src/widgets/market-board/ui/MarketBoard.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)

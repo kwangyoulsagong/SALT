@@ -50,3 +50,5 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 - 2026-10-06: 초판 · FR-1~6 완료
 - 2026-11-02: F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `ops/daily.sh` 주석 — `events` 가 `kr_daily` 뒤에 도는 이유(국내 일봉을 읽는다, `FC-REQ-021` FR-10). 단계 목록 무변경
 | 2026-11-09 | `daily.sh` 단계에 `move_beta`(volatility 뒤) — 뉴스 단계 무변경(F016 단계 C) |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-forecast/src/salt_forecast/jobs/news.py` — 뉴스 작업 20분 상한(`run_job(max_seconds)`) — 05:07 부터 외부 연결에 매달려 8시간

@@ -296,3 +296,7 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-11-10 | 검색 모달 2단계 — 경로 셋(`endpoints.ts` `searchGroups` · `risingSectors` · `searchRelated`) · 자산군 칩은 전체 · 종목 탭에서만(`FE-REQ-066` FR-8 `19539c95`) |
 | 2026-11-10 | `MarketNewsPreview` — 모달을 그리지 않고 열기만(`?newsOf=` 같이) · 받는 건수 `NEWS_PREVIEW_FETCH_LIMIT`(호스트와 같은 쿼리 키) — `FE-REQ-065` 새로고침 결함 `87eb8083` |
 | 2026-11-10 | 투자 화면 본문 자산군 탭 · 리포트 링크 삭제 · `market-board` 문구(`coachReportLink`) 정리 — 머리 메뉴로(`FE-REQ-069`) `29b9a212` |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/domain-invest/src/entities/market/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
+  - `salt-microFe/packages/domain-invest/src/widgets/asset-search/ui/AssetSearchDialog.tsx` — 게스트 검색 결과 대기 결함(꺼진 관심 조회 `isPending`) 고침 · 주석 정정
+  - `salt-microFe/packages/domain-invest/src/widgets/market-board/ui/WatchlistTab.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)

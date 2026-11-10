@@ -55,3 +55,6 @@ source: 사용자 2026-11-09 — "우리도 검색 국내 코인 둘 다 이 방
 | 2026-11-09 | 확인 2회차 `6a062b24` — 결함 넷 고침: `보유` 배지 퇴행(FR-4) · ★ · 칩에 포커스가 있으면 Esc 한 번에 닫힘(FR-5 — 모달 Esc 한 곳으로) · 다른 모달 위 `/` 로 겹쳐 열림(FR-1) · 비소유자 열 때마다 국내 404(FR-3) |
 | 2026-11-10 | in-progress → done — FR-8 `19539c95`(곁 칸 근거 정정 · 업종 이동 결정 — 사용자). 실화면에서 고친 것: 새 탭 줄 미선택 글자 대비(2단) · 뉴스 · 지수 줄 고를 때 곁 칸 안내 문구가 사실과 어긋남 · 이니셜 판 색 대비(공용 `e00053f8`, 주인 `FE-REQ-005`) |
 | 2026-11-10 | FR-1 정정 — 검색칸 · `/` 는 투자 zone 만(`FE-REQ-069` `f193c6aa`). 업종 · 지수 줄의 `?asset=kr_stock` 은 이제 머리 메뉴 "주식"과 같은 주소 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/domain-invest/src/entities/market/api/useSearchExtras.ts` — 시장 조회의 로그인 조건 제거(게스트 토큰으로 이어 봄)
+  - `salt-microFe/packages/domain-invest/src/widgets/asset-search/ui/AssetSearchDialog.tsx` — 게스트 검색 결과 대기 결함(꺼진 관심 조회 `isPending`) 고침 · 주석 정정

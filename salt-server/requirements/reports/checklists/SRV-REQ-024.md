@@ -333,3 +333,10 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 - `coach/application/api/index.ts`(이 REQ 가 머리 주석 주인) 조립에 `llmEnabled` 한 칸. `npm run build` · `test` 889 통과
 
 미검증: 없음.
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-server/src/coach/application/GetJudgmentScoreboard.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+  - `salt-server/src/coach/application/api/index.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

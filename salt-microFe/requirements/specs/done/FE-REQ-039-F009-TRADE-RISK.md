@@ -97,3 +97,6 @@ source: pm/requirements/specs/in-progress/FEATURE-009-behavior-risk-coach.md
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-invest/src/entities/coach/api/useBehaviorMirror.ts` `packages/domain-invest/src/entities/coach/api/useCoachProfile.ts` `packages/domain-invest/src/entities/coach/api/useRiskBudget.ts` `packages/domain-invest/src/entities/coach/api/useTradePlans.ts` `packages/domain-invest/src/features/record-transaction/ui/RecordTradeCard.tsx`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
 | 2026-11-10 | 매입가 숨김 토글 — 리포트 위험 칸에서 빼고 포트폴리오 · 코치 설정에 · 문구 "포트폴리오와 홈 투자 카드"(`FE-REQ-069`) |
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/domain-invest/src/features/record-transaction/ui/RecordTradeCard.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+  - `salt-microFe/packages/domain-invest/src/widgets/coach-console/ui/MonthlyReviewPanel.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)

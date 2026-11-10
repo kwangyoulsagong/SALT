@@ -213,3 +213,5 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | 2026-10-30 | 파일만 걸침 — `error.util.ts` 에 `trackedCount` · `trackedLimit` 옮김 추가(`retryAfterSeconds` 옆). 쿨다운 전달 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 1개(경로 이동 내용 무변경 1 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 후속 — `c5ec66ed` — 이 REQ 를 머리에 적은 `coach-console` 위젯 model 에 문구 파일 하나(`COACH_CONSOLE_MESSAGES` "내 보유"). BFF 계약 무변경 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `bff/src/rest/routes/coach.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)

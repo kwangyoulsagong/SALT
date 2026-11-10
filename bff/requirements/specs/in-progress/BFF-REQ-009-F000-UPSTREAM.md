@@ -167,3 +167,8 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-05 | **FR-54 추가 · done** — 웹 세션 쿠키(`salt_at`) → `Authorization`(헤더가 있으면 보지 않는다 — 앱). 같은 origin 요청(`Sec-Fetch-Site` same-origin · none / 없으면 `Origin` 허용 목록)에서만 · 웹소켓은 `Origin` ∈ `WEB_ORIGINS` 일 때만 연결 쿠키를 토큰으로. 서버로 쿠키를 넘기지 않는다. 국내 중계 서버 401 → `KR_STOCK_AUTH_REQUIRED`(`fb9c85b3`). 웹 쪽 `FE-REQ-013` FR-80 2단계. 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-10 | 호출 맵에 `searchGroups` · `risingSectors` · `searchRelated` — 각 400ms · GET 재시도 1 · 캐시 0(국내 칸 소유자 판정, `BFF-REQ-054` `1110aa9b`) |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `bff/src/rest/middleware/cookieSession.middleware.ts` — 쿠키 → `Authorization` 순서: 사람(`salt_at`) → 게스트(`salt_gt`), `sessionTokenFromCookie` 한 곳
+  - `bff/src/services/app-search.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `bff/src/utils/session-cookie.util.ts` — 쿠키 → `Authorization` 순서: 사람(`salt_at`) → 게스트(`salt_gt`), `sessionTokenFromCookie` 한 곳
+  - `salt-microFe/packages/web-shared/src/api/websocket/wsClient.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정

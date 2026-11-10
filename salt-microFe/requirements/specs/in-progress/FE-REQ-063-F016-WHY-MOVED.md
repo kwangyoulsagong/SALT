@@ -82,3 +82,7 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-09 | FR-4 오늘 소식 · 국내 프리뷰 — 뉴스 행 한 벌 · 상세 모달로(`FE-REQ-065`) |
 | 2026-11-09 | 확인 2회차 — 결함 1: 국내 프리뷰 "오늘 소식" 제목이 블록 밖이라 꺼짐 · 404 때 제목만 남았다 → 블록 안으로 |
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `KrStockNews` 가 `krNewsToView` 에 종목 코드를 넘긴다(본문 경로 `bodyRef`) |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrInvestorFlows.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrStockNews.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrWhyMoved.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)

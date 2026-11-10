@@ -25,3 +25,9 @@
 | 대표 선 · degraded | 14:35 대표 선 7점(5분 칸) · 선 없는 칸 0 · `degraded: false` |
 | 지난 거래일 라벨 | `sessionWindow` 같은 날 "오늘 장중" · 10-31 "10/31 장중" |
 | 실시간 | 장중 25초 종목 칸 8 중 5 갱신 |
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-server/src/market/application/__tests__/krSupplement.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

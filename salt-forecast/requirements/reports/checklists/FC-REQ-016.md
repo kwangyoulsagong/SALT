@@ -50,3 +50,9 @@
 | `daily.sh` 단계에 `move_beta`(volatility 뒤) — 뉴스 단계 무변경(F016 단계 C) | 반영 · 영역 검증 전체 통과 |
 
 루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-forecast/src/salt_forecast/jobs/news.py` — 뉴스 작업 20분 상한(`run_job(max_seconds)`) — 05:07 부터 외부 연결에 매달려 8시간
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
