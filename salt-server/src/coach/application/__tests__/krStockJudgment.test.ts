@@ -17,7 +17,7 @@ import type {
   SymbolJudgmentStore,
   TrackedAssetProbe,
 } from "../../domain";
-import { krScalpSnapshotDue } from "../../domain";
+import { krLedgerSessionClosed, krScalpSnapshotDue } from "../../domain";
 import { GetSymbolCoach } from "../GetSymbolCoach";
 import { PublishJudgmentLedger } from "../PublishJudgmentLedger";
 import { EvaluateSymbolJudgments, SnapshotSymbolJudgments } from "../RecordSymbolJudgments";
@@ -288,6 +288,21 @@ describe("PublishJudgmentLedger — 국내 행 · 자산군 열 (FR-61 v2)", () 
       "BTC:scalp:crypto",
     ]);
   });
+});
+
+describe("krLedgerSessionClosed — 국내 원장은 거래일 종가 확정 뒤에만 (FR-61 v2)", () => {
+  const thuClose = new Date("2026-10-08T06:30:00Z"); // 목 15:30 KST
+  const cases: Array<[string, Date | null, Date, boolean]> = [
+    ["목 16:00 · 그날 시세 → 남김", thuClose, new Date("2026-10-08T07:00:00Z"), true],
+    ["목 15:59 · 종가 확정 전 → 안 남김", thuClose, new Date("2026-10-08T06:59:00Z"), false],
+    ["금 09:30 · 시세가 목요일 것 → 안 남김", thuClose, new Date("2026-10-09T00:30:00Z"), false],
+    ["토 17:00 · 주말 → 안 남김", new Date("2026-10-10T06:30:00Z"), new Date("2026-10-10T08:00:00Z"), false],
+    ["평일 휴장(시세가 전 거래일) 17:00 → 안 남김", thuClose, new Date("2026-10-09T08:00:00Z"), false],
+    ["시세 시각 모름 → 안 남김", null, new Date("2026-10-08T08:00:00Z"), false],
+  ];
+  for (const [name, priceAt, now, expected] of cases) {
+    it(name, () => assert.equal(krLedgerSessionClosed(priceAt, now), expected));
+  }
 });
 
 describe("국내 단타 — 다음 거래일 종가 채점 · 스냅샷 간격 (FR-63 v2 · signal-skill@1)", () => {

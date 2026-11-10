@@ -169,3 +169,14 @@ export const krScalpExitDays = (judgedAt: Date): KrScalpExitDay[] => {
 export const krScalpSnapshotDue = (lastJudgedAt: Date | null, now: Date): boolean =>
   lastJudgedAt === null ||
   krScalpExitDays(lastJudgedAt)[0].barAt.getTime() !== krScalpExitDays(now)[0].barAt.getTime();
+
+/**
+ * 국내 판단 원장 행을 남길 때인가(SRV-REQ-040 FR-61 v2) — 평일 · 정규장 종가 확정(16시 KST) 뒤 · 시세가 그날 것. 원장은 하루 한 번 도는데
+ * 주말 · 휴장일 · 장 전엔 전 거래일 종가가 그대로라 같은 표본이 날마다 다시 남는다(국내 IC · `kr-long-change24h@1` 은 거래일 표본)
+ */
+export const krLedgerSessionClosed = (priceUpdatedAt: Date | null, now: Date): boolean => {
+  if (priceUpdatedAt === null || kstHour(now) < KR_CLOSE_CONFIRMED_HOUR_KST) return false;
+  const today = KstDate.fromInstant(now);
+  return !isWeekend(today) && KstDate.fromInstant(priceUpdatedAt).toString() === today.toString();
+};
+

@@ -1,4 +1,5 @@
 import {
+  krLedgerSessionClosed,
   COACH_INDICATOR_TIMEFRAME,
   detectMarketRegime,
   LEDGER_REGIME_SYMBOL,
@@ -140,6 +141,8 @@ export class PublishJudgmentLedger {
       // 국내 행도 남긴다(SRV-REQ-040 FR-61 v2 · `rule-ic-kr@1` 라이브) — 자산군 열로 가른다. 코인 rule-ic@1 라이브 표본은 `asset_class = 'crypto'`
       // 만 읽어야 한다(예전엔 "원장은 코인만"으로 막았다). 국내 표본은 스냅샷과 같은 조건(이력 · 거래일 신선도)일 때만
       if (krSampleNotReady(material, now)) continue;
+      // 국내는 거래일 종가가 확정된 뒤에만 — 주말 · 휴장 · 장 전엔 같은 표본이 되풀이된다
+      if (material.assetClass === "kr_stock" && !krLedgerSessionClosed(material.quote?.priceUpdatedAt ?? null, now)) continue;
       // 보유 여부는 점수에 들어가지 않는다(`makeModeDecision`) — 스냅샷과 같이 false
       const judgment = judgeSymbol(symbol, material, false);
       const byMode = { scalp: judgment.scalp, long_term: judgment.longTerm };
