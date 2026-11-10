@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { clampActiveIndex, escapeStep, isSearchListKey, moveActiveIndex, splitHighlight } from "./searchList";
+import {
+  ALL_TAB_ASSET_COUNT,
+  availableSearchTabs,
+  clampActiveIndex,
+  effectiveSearchTab,
+  escapeStep,
+  isSearchListKey,
+  moveActiveIndex,
+  SearchResultTab,
+  splitHighlight,
+  visibleSearchResults,
+} from "./searchList";
 
 describe("moveActiveIndex — 허용 · 거절 경계", () => {
   it.each([
@@ -74,5 +85,51 @@ describe("splitHighlight", () => {
     const parts = splitHighlight(text, query);
     expect(parts.map((part) => [part.text, part.match])).toEqual(expected);
     expect(join(parts)).toBe(text);
+  });
+});
+
+describe("검색 결과 탭 · 묶음(FR-8)", () => {
+  const groups = { sectors: ["전기·전자"], news: [], indices: ["코스피"] };
+  const assets = ["a", "b", "c", "d", "e", "f"];
+
+  it("탭 — 전체 · 종목은 늘, 빈 묶음 탭은 없다", () => {
+    expect(availableSearchTabs(undefined)).toEqual([SearchResultTab.All, SearchResultTab.Assets]);
+    expect(availableSearchTabs(groups)).toEqual([
+      SearchResultTab.All,
+      SearchResultTab.Assets,
+      SearchResultTab.Sectors,
+      SearchResultTab.Indices,
+    ]);
+  });
+
+  it("사라진 탭은 전체로", () => {
+    const tabs = availableSearchTabs(groups);
+    expect(effectiveSearchTab(SearchResultTab.News, tabs)).toBe(SearchResultTab.All);
+    expect(effectiveSearchTab(SearchResultTab.Indices, tabs)).toBe(SearchResultTab.Indices);
+  });
+
+  it.each([
+    // [탭, 종목 수, 더 보기, 업종 수, 지수 수]
+    [SearchResultTab.All, ALL_TAB_ASSET_COUNT, true, 1, 1],
+    [SearchResultTab.Assets, 6, false, 0, 0],
+    [SearchResultTab.Sectors, 0, false, 1, 0],
+    [SearchResultTab.Indices, 0, false, 0, 1],
+    [SearchResultTab.News, 0, false, 0, 0],
+  ])("%s 탭 — 종목 %d · 더 보기 %s · 업종 %d · 지수 %d", (tab, assetCount, more, sectorCount, indexCount) => {
+    const v = visibleSearchResults(tab, assets, groups);
+    expect(v.assets).toHaveLength(assetCount);
+    expect(v.moreAssets).toBe(more);
+    expect(v.sectors).toHaveLength(sectorCount);
+    expect(v.indices).toHaveLength(indexCount);
+  });
+
+  it("전체 탭 — 종목이 5 이하면 더 보기 없음 · 묶음 없음도 된다", () => {
+    expect(visibleSearchResults(SearchResultTab.All, ["a"], undefined)).toEqual({
+      assets: ["a"],
+      moreAssets: false,
+      sectors: [],
+      news: [],
+      indices: [],
+    });
   });
 });

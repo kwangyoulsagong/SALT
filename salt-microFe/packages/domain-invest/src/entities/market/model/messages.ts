@@ -126,6 +126,30 @@ export const SEARCH_MESSAGES = {
 } as const;
 
 /**
+ * 검색 모달 2단계 문구(`FE-REQ-066` FR-8). 업종 순위는 **업종 지수 등락률** 순위다 — "인기"라 하지 않는다(D3 과 같은 정직한 라벨).
+ * 곁 칸 근거는 원천 그대로 부른다: 국내 = 같은 업종(지수업종 분류) · 코인 = 같은 기사에 함께 태그(뉴스 언급이라 하지 않는다 — 국내 제목은 종목 하나라)
+ */
+export const SEARCH_EXTRA_MESSAGES = {
+  risingHeading: "지금 뜨는 업종",
+  risingHint: "업종 지수 등락률 순",
+  tabsLabel: "검색 결과 종류",
+  tabs: { all: "전체", assets: "종목", sectors: "업종", news: "뉴스", indices: "지수" },
+  moreAssets: "종목 더 보기",
+  sectorMeta: "업종",
+  indexMeta: (value: string) => `${value}pt`,
+  newsMeta: (source: string, ago: string) => `${ago} · ${source}`,
+  sideLabel: "고른 항목의 관련 종목",
+  sideEmpty: "줄을 고르면 관련 종목이 여기에 보여요.",
+  sideNone: "함께 볼 종목이 없어요.",
+  sideLoading: "관련 종목을 불러오는 중이에요",
+  sideSectorPeers: (sector: string) => `같은 업종 · ${sector}`,
+  sideSectorMembers: (sector: string) => `${sector} 업종 종목`,
+  sideCoTagged: "같은 기사에 함께 나온 코인",
+  footerOpen: "열기",
+  resultCount: (count: number) => `${count}개 결과`,
+} as const;
+
+/**
  * 자산군 배지 문구.
  *
  * 모르는 값이 오면 배지를 만들지 않는다 — `DB-REQ-003` 이 enum 을 넓히면 여기에

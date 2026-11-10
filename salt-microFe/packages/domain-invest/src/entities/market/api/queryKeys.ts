@@ -17,6 +17,9 @@ export const marketQueryKeys = {
    * 사용자별 판정이라 로그아웃 때 `queryClient.clear()` 가 지운다
    */
   search: ["MarketAssetSearch"] as const,
+  searchGroups: ["MarketSearchGroups"] as const,
+  risingSectors: ["MarketRisingSectors"] as const,
+  searchRelated: ["MarketSearchRelated"] as const,
   /** 시장 요약 띠. 서버가 종목을 정하므로 파라미터가 없다 */
   summary: ["MarketSummary"] as const,
   /** 국내 주식(F011). 응답이 사용자(소유자 판정)에 걸려 있다 — 로그아웃 때 `queryClient.clear()` 가 지운다 */

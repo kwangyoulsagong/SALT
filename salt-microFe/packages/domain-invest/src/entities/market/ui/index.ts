@@ -5,6 +5,7 @@ export type { MarketFilterValue } from "./MarketFilterTabs";
 export { PriceCell } from "./PriceCell";
 export { WatchlistTable } from "./WatchlistTable";
 export { SearchOption } from "./SearchOption/SearchOption";
+export { SearchTextOption } from "./SearchOption/SearchTextOption";
 export { MarketPreview } from "./MarketPreview/MarketPreview";
 export { MarketIntelligencePreview } from "./MarketPreview/MarketIntelligencePreview";
 export type { GaugeFooters } from "./MarketPreview/MarketIntelligencePreview";

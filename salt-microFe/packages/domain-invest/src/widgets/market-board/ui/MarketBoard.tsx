@@ -9,9 +9,10 @@ import { ServiceIcon } from "@repo/ui/serviceicon";
 import { Tabs } from "@repo/ui/tabs";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import React, { type ReactNode, Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import React, { type ReactNode, Suspense, useEffect, useState } from "react";
 
-import { ROUTES } from "@repo/web-shared/config";
+import { INVESTMENTS_ASSET_PARAM, ROUTES } from "@repo/web-shared/config";
 import { NavChevron } from "@repo/web-shared/ui";
 
 import {
@@ -81,6 +82,18 @@ interface MarketBoardProps {
   renderLead?: (assetClass: string) => ReactNode;
 }
 
+/**
+ * `?asset=kr_stock` 으로 들어오면 그 자산군 탭으로(검색 모달 업종 · 지수 줄 — `FE-REQ-066` FR-8). 주소를 읽는 잎을 따로 두고 Suspense 로
+ * 감싼다 — 보드 전체가 `useSearchParams` 때문에 클라이언트로 미뤄지지 않게. 국내가 안 열리는 사람(비소유자)은 아래 판정이 코인으로 되돌린다
+ */
+const AssetParamSync = ({ onAsset }: { onAsset: (asset: string) => void }) => {
+  const asset = useSearchParams()?.get(INVESTMENTS_ASSET_PARAM) ?? null;
+  useEffect(() => {
+    if (asset && ASSET_CLASS_TABS.some((tab) => tab.id === asset)) onAsset(asset);
+  }, [asset, onAsset]);
+  return null;
+};
+
 /** 조합만 한다. 비즈니스 로직은 `entities/market` 과 그 위의 feature 가 갖는다. */
 export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => {
   const [activeTab, setActiveTab] = useState(DEFAULT_MARKET_BOARD_TAB);
@@ -90,6 +103,9 @@ export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => 
   const assetClass = krAvailable ? assetTab : DEFAULT_ASSET_CLASS_TAB;
   return (
     <Section noContainer>
+      <Suspense fallback={null}>
+        <AssetParamSync onAsset={setAssetTab} />
+      </Suspense>
       <FlexBox direction="column">
         <div className={headingRow}>
           <FlexBox direction="row" align="center" gap="lg">

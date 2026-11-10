@@ -22,6 +22,7 @@ globalStyle(`${field} input`, { fontSize: "15px", fontWeight: vars.fontWeights.s
 
 export const body = style({
   flex: 1,
+  minWidth: 0,
   minHeight: 0,
   overflowY: "auto",
   padding: `0 ${vars.space.md} ${vars.space.md}`,
@@ -141,3 +142,28 @@ export const srOnly = style({
   clip: "rect(0 0 0 0)",
   whiteSpace: "nowrap",
 });
+
+/** 결과 탭 줄(`FE-REQ-066` FR-8 — 실측: 전체 · 종목 · 산업 · 뉴스 · 지수, 글자 + 밑줄) */
+export const tabs = style({ flexShrink: 0, padding: `0 ${vars.space.md}` });
+/**
+ * 미선택 탭 글자 — 공용 Tabs 의 3단 색은 흰 판 위 대비 미달(2026-11-10 axe color-contrast 4). 공용 색은 다른 화면 결정이라 두고
+ * 새 요소인 이 탭 줄만 2단(`screen-desktop.md` §2 — 4.5:1 이상)
+ */
+globalStyle(`${tabs} [role="tab"][aria-selected="false"], ${tabs} [role="tab"][aria-selected="false"] *`, {
+  color: "rgba(22, 31, 46, 0.64)",
+});
+
+/** 두 칸 — 왼쪽 결과(스크롤) · 오른쪽 곁 칸(실측 두 칸). 768 밑은 곁 칸이 숨어 한 열 */
+export const split = style({ display: "flex", flex: 1, minHeight: 0 });
+
+/** 묶음 머리(종목 · 업종 · 뉴스 · 지수) — 실측 14/500 2단 */
+export const groupHeadRow = style({ display: "flex" });
+export const groupHead = style({
+  padding: `${vars.space.sm} ${vars.space.md} ${vars.space.xs}`,
+  fontSize: vars.fontSizes.base,
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.medium,
+  color: "rgba(22, 31, 46, 0.64)",
+});
+
+export const more = style({ alignSelf: "flex-start", marginLeft: vars.space.md });

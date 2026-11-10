@@ -34,6 +34,8 @@ const optionBase = style({
 export const option = styleVariants({
   result: [optionBase, { minHeight: "54px" }],
   rank: [optionBase, { minHeight: "44px" }],
+  /** 업종 순위 행 36(실측 — 로고 없음) */
+  text: [optionBase, { minHeight: "36px" }],
 });
 
 export const rank = style({
@@ -102,3 +104,14 @@ export const enterChip = style({
 export const action = style({ flexShrink: 0, paddingRight: vars.space.sm });
 /** 격자 줄의 고르는 칸 — 링크가 칸을 채운다 */
 export const cell = style({ display: "flex", flex: 1, minWidth: 0 });
+
+/** 글자 행 제목(업종 · 지수 · 뉴스) — 뉴스 제목이 길어 두 줄까지(넘으면 말줄임) */
+export const nameClamp = style({
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 2,
+  overflow: "hidden",
+  fontSize: vars.fontSizes.base,
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.semibold,
+});

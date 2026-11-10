@@ -12,6 +12,10 @@ import {
   NewsPreviewResponse,
   WatchlistResponse,
   AssetSearchResponse,
+  RisingSectors,
+  SearchGroups,
+  SearchRelated,
+  SearchRelatedTarget,
 } from "../model/types";
 import { MARKET_ENDPOINTS } from "./endpoints";
 
@@ -114,6 +118,13 @@ export const marketApi = {
     });
     return body.data;
   },
+  /** 검색 모달 결과 묶음(`FE-REQ-066` FR-8) — 업종 · 지수 · 뉴스 */
+  searchGroups: async (q: string, signal?: AbortSignal): Promise<SearchGroups> =>
+    (await getJson<{ data: SearchGroups }>("searchGroups", MARKET_ENDPOINTS.searchGroups(q), { signal })).data,
+  risingSectors: async (limit: number, signal?: AbortSignal): Promise<RisingSectors> =>
+    (await getJson<{ data: RisingSectors }>("risingSectors", MARKET_ENDPOINTS.risingSectors(limit), { signal })).data,
+  searchRelated: async (target: SearchRelatedTarget, signal?: AbortSignal): Promise<SearchRelated> =>
+    (await getJson<{ data: SearchRelated }>("searchRelated", MARKET_ENDPOINTS.searchRelated(target), { signal })).data,
   watchlist: async (signal?: AbortSignal): Promise<WatchlistResponse> => {
     return getJson("watchlist", MARKET_ENDPOINTS.watchlist(), {
       signal,

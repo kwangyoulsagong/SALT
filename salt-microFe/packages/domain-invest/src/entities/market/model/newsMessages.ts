@@ -16,6 +16,8 @@ export const NEWS_MESSAGES = {
   openOriginalLabel: (source: string) => `${source} 원문 보기(새 탭)`,
   moreKr: "이 종목 오늘 소식",
   moreCoin: "주요 뉴스",
+  /** 검색 모달에서 연 소식 — 같은 검색의 다른 뉴스(`FE-REQ-066` FR-8) */
+  moreSearch: "같은 검색의 다른 소식",
   /** 모달 이름(제목이 없을 때) */
   dialogLabel: "소식 자세히",
 } as const;
