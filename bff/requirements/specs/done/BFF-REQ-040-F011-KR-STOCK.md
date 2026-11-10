@@ -112,3 +112,11 @@ REST 5경로 뷰모델과, 서버 SSE 를 연결별로 받아 코인과 같은 W
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `kr-stock` 경로 · 서비스 · 컨트롤러 테스트(머리에 이 REQ)에 F016 경로 둘(`/:code/news` · `/:code/flows/intraday`, `BFF-REQ-051`). 기존 국내 경로 · 응답 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
 | 2026-11-09 | 국내 표 뷰모델 `moveCard` 칸(서버 판정 · 옛 서버 false) · why-moved 경로를 국내 서비스 `read` 규칙 그대로(F016 단계 C) |
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `kr-stock.controller` · `kr-stock.routes` 에 국내 시황 본문 `/:code/news/:serial/body`(형식 400 · 소유자 판정은 서버) · `respond` 가 `KrResult` 아닌 뷰모델도 받게 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `bff/src/rest/routes/coach.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `bff/src/rest/routes/kr-stock.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `bff/src/services/app-behavior-mirror.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `bff/src/websocket/handlers/kr-stock.handler.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
+  - `bff/src/websocket/managers/__tests__/kr-stream.manager.test.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
+  - `bff/src/websocket/managers/kr-stream.manager.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
+  - `salt-microFe/packages/domain-invest/src/entities/coach/api/endpoints.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)

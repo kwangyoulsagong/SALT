@@ -3,6 +3,8 @@
 import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
+import { SIGN_IN_NEXT_PARAM, safeNextPath } from "@repo/core/auth";
+
 import { setUser } from "@/entities/auth";
 import { type ApiError, writeSession } from "@repo/web-shared/api";
 import { ROUTES, USER_KEY } from "@repo/web-shared/config";
@@ -51,7 +53,11 @@ export const useSignIn = (): UseMutationResult<
       dispatch(setUser(data.user));
 
       void queryClient.invalidateQueries();
-      router.replace(ROUTES.home);
+      // 유리막에서 왔으면 그 자리로(`FE-REQ-070` FR-6) — 투자 zone 이라 문서 이동. 우리 경로가 아니면 홈.
+      // 주소는 콜백 안에서 읽는다 — `useSearchParams` 는 정적 로그인 페이지 빌드에 Suspense 를 요구한다
+      const next = safeNextPath(new URLSearchParams(window.location.search).get(SIGN_IN_NEXT_PARAM));
+      if (next) window.location.assign(next);
+      else router.replace(ROUTES.home);
     },
   });
 };

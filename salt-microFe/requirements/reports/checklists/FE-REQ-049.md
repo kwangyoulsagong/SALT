@@ -14,3 +14,9 @@
 |---|---|---|
 | 장 마감 · 거래정지 접미사 "장 마감" | 11-09 장중 | 장 마감 뒤 |
 | 나머지 FR(상세 개편) | 디자인 단계 | 디자인 스펙 |
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

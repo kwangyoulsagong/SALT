@@ -60,7 +60,7 @@ const isPositive = (value: unknown): value is number =>
 const parseRecordTrade = (body: Raw): RecordTradeInput | string => {
   const symbol = typeof body.symbol === "string" ? body.symbol.trim() : "";
   if (!SYMBOL_PATTERN.test(symbol)) return "symbol 형식이 아닙니다";
-  // F011 슬라이스 3b — 주지 않으면 코인. 국내 주식 코드 · 소유자 판정은 서버(404 · 503 그대로 올라간다)
+  // F011 슬라이스 3b — 주지 않으면 코인. 국내 주식 코드 판정은 서버(404 · 503 그대로 올라간다)
   if (body.assetType !== undefined && body.assetType !== "crypto" && body.assetType !== "kr_stock") {
     return "assetType 은 crypto · kr_stock 입니다";
   }

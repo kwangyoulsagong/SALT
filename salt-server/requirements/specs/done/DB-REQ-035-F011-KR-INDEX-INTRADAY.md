@@ -33,3 +33,5 @@ source: salt-server/requirements/specs/done/SRV-REQ-042-F011-KR-MARKET-SUMMARY.m
 |---|---|
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-02 | 구현 · done. FR-2 보존을 달력 10일 · 하루 한 번 정리로 정정, FR-3 "오늘" → 마지막 기록 날짜, FR-5(지수 고가 · 저가 · 거래대금 열) 추가. 원장 3종 무관 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-server/src/market/application/__tests__/krSupplement.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로

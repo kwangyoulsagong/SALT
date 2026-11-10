@@ -26,3 +26,10 @@
 | 비로그인 공개 시세 · 게스트 토큰 · 글래스 | 사용자 결정 2026-11-10 — 다음 REQ(서버 · BFF · FE 짝) | 다음 REQ |
 | 오른쪽 레일 "내 투자" 요약(참고 웹 A 패턴) | 투자 화면 오른쪽 칸은 코치 패널 — 범위 밖 | 별도 기획 |
 | ai-coach 504 세 번(10:30 · 10:51 · 11:03) | 서버 처리 26~31ms(코인) · 기계 부하(평균 18 — 운영 빌드 열 번 · dev 재기동) 때 BFF 300ms 초과. 같은 부하에서 KR 30회 p90 86ms · 0 실패 | 부하 없는 장중에 다시 셈(`DB-REQ-017`) |
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-microFe/packages/domain-invest/src/pages/investments/ui/InvestHeaderNav.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+  - `salt-microFe/packages/domain-invest/src/pages/portfolio/ui/PortfolioBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

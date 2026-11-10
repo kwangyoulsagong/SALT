@@ -78,3 +78,11 @@
 ## 2026-11-09 — 기사 본문(주인 `SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068`)
 
 - `KrStockNews` 가 `krNewsToView` 에 종목 코드를 넘긴다(본문 경로 `bodyRef`) — 검증은 주인 체크리스트(서버 1031 · BFF 430 · 실화면 1440 · 훅 사후 실행)
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrInvestorFlows.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrStockNews.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrWhyMoved.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

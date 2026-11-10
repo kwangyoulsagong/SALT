@@ -270,3 +270,15 @@
 ## 2026-11-09 — 기사 본문(주인 `SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068`)
 
 - `kr-stock.controller` · `kr-stock.routes` 에 국내 시황 본문 `/:code/news/:serial/body`(형식 400 · 소유자 판정은 서버) · `respond` 가 `KrResult` 아닌 뷰모델도 받게 — 검증은 주인 체크리스트(서버 1031 · BFF 430 · 실화면 1440 · 훅 사후 실행)
+
+## 2026-11-10 — F018 걸침
+
+  - `bff/src/rest/routes/coach.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `bff/src/rest/routes/kr-stock.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `bff/src/services/app-behavior-mirror.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `bff/src/websocket/handlers/kr-stock.handler.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
+  - `bff/src/websocket/managers/__tests__/kr-stream.manager.test.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
+  - `bff/src/websocket/managers/kr-stream.manager.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
+  - `salt-microFe/packages/domain-invest/src/entities/coach/api/endpoints.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

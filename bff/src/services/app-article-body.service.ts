@@ -11,7 +11,7 @@ import { ArticleBodyContractError, toArticleBodyVM, type ArticleBodyVM } from ".
 const BODY_TIMEOUT_MS = 20_000;
 
 /**
- * 기사 본문(`BFF-REQ-053`) — 코인 `/news/:id/body`(로그인) · 국내 `/market/kr/:code/news/:serial/body`(소유자). 서버 판정 그대로 · 캐시 0
+ * 기사 본문(`BFF-REQ-053`) — 코인 `/news/:id/body` · 국내 `/market/kr/:code/news/:serial/body` — 둘 다 사람 · 게스트 토큰(`ADR-011`). 서버 판정 그대로 · 캐시 0
  * (서버가 캐시한다). 4xx(401 · 404)는 그대로 올리고, 503(키 없음 · 국내 꺼짐) · 5xx · 시간 초과 · 계약 깨짐은 `unavailable` —
  * 화면은 요약 · 원문 링크로 돌아간다. 다시 시도하지 않는다(서버가 실패를 캐시하고 30분 뒤 다시 찾는다)
  */

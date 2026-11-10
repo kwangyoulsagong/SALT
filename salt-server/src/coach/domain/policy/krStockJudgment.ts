@@ -1,4 +1,4 @@
-import { DomainError, ErrorKind, KstDate } from "../../../shared/domain";
+import { KstDate } from "../../../shared/domain";
 import type { StaleInput } from "./inputFreshness";
 import { JUDGMENT_HORIZON_MS } from "./symbolJudgment";
 
@@ -11,16 +11,6 @@ import { JUDGMENT_HORIZON_MS } from "./symbolJudgment";
  * 휴장일 달력은 **미래를 모른다**(`SRV-REQ-040` FR-14 — 이 앱 키로 휴장일 조회가 거부된다). 그래서 여기 기준은 평일이고,
  * 평일 휴장 하루는 허용 폭 안에 들어간다.
  */
-
-/**
- * 국내 주식 판단을 볼 수 없다 — 404. 시세 경로와 같은 규칙(재배포 약관 확인 전 소유자 전용, F011 §정책): 비소유자에겐
- * 국내 주식 종목이 있다는 사실 자체를 주지 않는다
- */
-export class KrStockJudgmentNotAvailableError extends DomainError {
-  constructor() {
-    super("COACH_KR_STOCK_NOT_AVAILABLE", ErrorKind.NotFound, "Kr stock judgment not available");
-  }
-}
 
 const HOUR_MS = 3600_000;
 const DAY_MS = 24 * HOUR_MS;

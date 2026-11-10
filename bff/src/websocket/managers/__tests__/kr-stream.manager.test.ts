@@ -3,7 +3,7 @@ import { PassThrough } from "node:stream";
 import { describe, it } from "node:test";
 
 import type { ExtendedWebSocket } from "../../../types/websocket.types";
-import { KrStreamManager, MAX_KR_CODES, type KrStreamOpener } from "../kr-stream.manager";
+import { KrStreamManager, MAX_KR_CODES, MAX_RELAYS, type KrStreamOpener } from "../kr-stream.manager";
 
 /**
  * 국내 주식 실시간 중계 (F011 · `BFF-REQ-040` FR-6~9).
@@ -169,6 +169,18 @@ describe("KrStreamManager", () => {
     const codes = Array.from({ length: MAX_KR_CODES + 1 }, (_, i) => String(i).padStart(6, "0"));
     assert.equal(m.subscribe(ws, codes, "tok"), null);
     assert.equal(sent[0]!.code, "KR_STREAM_LIMIT");
+    m.releaseAll();
+  });
+
+  it("게스트 중계는 따로 센다 — 게스트가 상한에 차도 사람은 연다(BFF-REQ-055 FR-4)", () => {
+    const m = setup(async () => new PassThrough());
+    for (let i = 0; i < MAX_RELAYS.guest; i += 1) {
+      assert.ok(m.subscribe(fakeSocket(`g${i}`).ws, ["005930"], "gt", "guest"));
+    }
+    const over = fakeSocket("g-over");
+    assert.equal(m.subscribe(over.ws, ["005930"], "gt", "guest"), null);
+    assert.equal(over.sent[0]!.code, "KR_STREAM_LIMIT");
+    assert.deepEqual(m.subscribe(fakeSocket("u1").ws, ["005930"], "at", "user"), ["005930"]);
     m.releaseAll();
   });
 });

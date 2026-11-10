@@ -24,7 +24,6 @@ import { ReadRisingSectors, ReadSearchRelated, SearchResultGroups, type SearchKr
  * 검색 모달 2단계(`SRV-REQ-055` · `FE-REQ-066` FR-8) — 업종 · 지수 · 뉴스 묶음 · 뜨는 업종 · 곁 칸.
  */
 
-const OWNER = "owner@example.com";
 const NOW = new Date("2026-11-10T03:00:00Z");
 const at = (iso: string) => new Date(iso);
 
@@ -155,18 +154,17 @@ const setup = (o: { tagLists?: string[][]; coin?: TaggedNewsItem[]; kr?: StoredK
       indexQuotes: async (codes: string[]) =>
         codes.filter((c) => c !== "2001").map((code) => ({ code, value: 4000, changeRate: 0.5, updatedAt: NOW })),
     } as unknown as KrSupplementStore,
-    viewerEmails: [OWNER],
   };
   return { news, assets, kr, calls };
 };
 
 describe("SearchResultGroups", () => {
-  it("소유자 — 지수 · 뉴스(국내 + 코인, 최신 순) · 뉴스 창은 일주일", async () => {
+  it("누구나(ADR-011) — 지수 · 뉴스(국내 + 코인, 최신 순) · 뉴스 창은 일주일", async () => {
     const { news, assets, kr, calls } = setup({
       kr: [krTitle("1", "코스피 마감 시황", "2026-11-10T01:00:00Z")],
       coin: [coinArticle("a", "코스피 따라 코인도", "2026-11-10T02:00:00Z", ["BTC", "UNLISTED"])],
     });
-    const result = await new SearchResultGroups(news, assets, kr, () => NOW).execute({ email: OWNER, q: " 코스피 " });
+    const result = await new SearchResultGroups(news, assets, kr, () => NOW).execute({ q: " 코스피 " });
     assert.deepEqual(result.sectors, []);
     assert.deepEqual(
       result.indices.map((i) => [i.code, i.name]),
@@ -179,13 +177,13 @@ describe("SearchResultGroups", () => {
 
   it("업종 이름 일치 — 지난 날 업종은 빠진다", async () => {
     const { news, assets, kr } = setup();
-    const result = await new SearchResultGroups(news, assets, kr, () => NOW).execute({ email: OWNER, q: "금" });
+    const result = await new SearchResultGroups(news, assets, kr, () => NOW).execute({ q: "금" });
     assert.deepEqual(result.sectors.map((s) => s.code), ["0021"]); // 금속(11-06)은 빠짐
   });
 
-  it("비소유자 — 국내 칸은 읽지도 않는다, 코인 기사만", async () => {
-    const { news, assets, kr, calls } = setup({ coin: [coinArticle("a", "전기차 코인", "2026-11-10T02:00:00Z", [])] });
-    const result = await new SearchResultGroups(news, assets, kr, () => NOW).execute({ email: "friend@example.com", q: "전기" });
+  it("국내 키 없음 — 국내 칸은 읽지도 않는다, 코인 기사만", async () => {
+    const { news, assets, calls } = setup({ coin: [coinArticle("a", "전기차 코인", "2026-11-10T02:00:00Z", [])] });
+    const result = await new SearchResultGroups(news, assets, null, () => NOW).execute({ q: "전기" });
     assert.deepEqual(result.sectors, []);
     assert.deepEqual(result.indices, []);
     assert.equal(calls.krSearch, 0);
@@ -194,24 +192,22 @@ describe("SearchResultGroups", () => {
 
   it("빈 검색어 — 아무것도 읽지 않는다", async () => {
     const { news, assets, kr, calls } = setup();
-    const result = await new SearchResultGroups(news, assets, kr, () => NOW).execute({ email: OWNER, q: "  " });
+    const result = await new SearchResultGroups(news, assets, kr, () => NOW).execute({ q: "  " });
     assert.deepEqual(result, { sectors: [], indices: [], news: [] });
     assert.equal(calls.newsSince.length, 0);
   });
 });
 
 describe("ReadRisingSectors", () => {
-  it("소유자 — 순위 + 기준 시각(가장 늦은 값)", async () => {
+  it("누구나(ADR-011) — 순위 + 기준 시각(가장 늦은 값)", async () => {
     const { kr } = setup();
-    const result = await new ReadRisingSectors(kr).execute({ email: OWNER, limit: 2 });
+    const result = await new ReadRisingSectors(kr).execute({ limit: 2 });
     assert.deepEqual(result.items.map((s) => s.name), ["전기·전자", "보험"]);
     assert.equal(result.asOf?.toISOString(), "2026-11-10T02:25:00.000Z");
   });
 
-  it("비소유자 · 키 없음 — 빈 목록(404 아님)", async () => {
-    const { kr } = setup();
-    assert.deepEqual(await new ReadRisingSectors(kr).execute({ email: "x@example.com", limit: 5 }), { asOf: null, items: [] });
-    assert.deepEqual(await new ReadRisingSectors(null).execute({ email: OWNER, limit: 5 }), { asOf: null, items: [] });
+  it("국내 키 없음 — 빈 목록(404 아님)", async () => {
+    assert.deepEqual(await new ReadRisingSectors(null).execute({ limit: 5 }), { asOf: null, items: [] });
   });
 });
 
@@ -219,7 +215,6 @@ describe("ReadSearchRelated", () => {
   it("국내 종목 — 같은 업종 유니버스 종목 · 자기 제외 · 등락률 높은 순 · 업종 등락률 같이", async () => {
     const { news, assets, kr } = setup();
     const result = await new ReadSearchRelated(news, assets, kr, () => NOW).execute({
-      email: OWNER,
       assetType: "kr_stock",
       symbol: "005930",
     });
@@ -232,16 +227,17 @@ describe("ReadSearchRelated", () => {
   it("업종 — 구성 종목, 지금 순위에 없는 업종은 none", async () => {
     const { news, assets, kr } = setup();
     const read = new ReadSearchRelated(news, assets, kr, () => NOW);
-    const members = await read.execute({ email: OWNER, sector: "0013" });
+    const members = await read.execute({ sector: "0013" });
     assert.deepEqual(members.items.map((i) => i.symbol), ["000660", "005930", "066570"]);
-    assert.equal((await read.execute({ email: OWNER, sector: "0011" })).basis, "none"); // 11-06 에 멈춘 업종
+    assert.equal((await read.execute({ sector: "0011" })).basis, "none"); // 11-06 에 멈춘 업종
   });
 
-  it("업종 분류가 없는 종목 · 비소유자 — none", async () => {
+  it("업종 분류가 없는 종목 · 국내 키 없음 — none", async () => {
     const { news, assets, kr } = setup();
     const read = new ReadSearchRelated(news, assets, kr, () => NOW);
-    assert.equal((await read.execute({ email: OWNER, assetType: "kr_stock", symbol: "999999" })).basis, "none");
-    assert.equal((await read.execute({ email: "x@example.com", assetType: "kr_stock", symbol: "005930" })).basis, "none");
+    assert.equal((await read.execute({ assetType: "kr_stock", symbol: "999999" })).basis, "none");
+    const disabled = new ReadSearchRelated(news, assets, null, () => NOW);
+    assert.equal((await disabled.execute({ assetType: "kr_stock", symbol: "005930" })).basis, "none");
   });
 
   it("코인 — 함께 태그된 코인 3, 시세 표에 없는 태그는 건너뛴다, 없으면 none", async () => {
@@ -249,7 +245,7 @@ describe("ReadSearchRelated", () => {
       tagLists: [["BTC", "UNLISTED"], ["BTC", "UNLISTED", "ETH"], ["BTC", "ETH", "SOL"], ["BTC", "XRP"], ["BTC", "ADA"]],
     });
     const read = new ReadSearchRelated(news, assets, kr, () => NOW);
-    const result = await read.execute({ email: "x@example.com", assetType: "crypto", symbol: "BTC" });
+    const result = await read.execute({ assetType: "crypto", symbol: "BTC" });
     assert.equal(result.basis, "co_tagged");
     assert.deepEqual(result.items.map((i) => i.symbol), ["ETH", "ADA", "SOL"]);
     const empty = await new ReadSearchRelated(setup().news, assets, kr, () => NOW).execute({ assetType: "crypto", symbol: "BTC" });

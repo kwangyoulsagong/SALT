@@ -45,7 +45,7 @@ export const createPortfolioRouter = (useCases: PortfolioUseCases): Router => {
    *                 type: string
    *                 enum: [crypto, kr_stock]
    *                 default: crypto
-   *                 description: 국내 주식(`kr_stock`)은 소유자 전용 · 마스터에 있는 6자리 코드만. 단가는 호가 단위 배수가 아니어도 받는다
+   *                 description: 국내 주식(`kr_stock`)은 마스터에 있는 6자리 코드만. 단가는 호가 단위 배수가 아니어도 받는다
    *               symbol:
    *                 type: string
    *                 example: BTC

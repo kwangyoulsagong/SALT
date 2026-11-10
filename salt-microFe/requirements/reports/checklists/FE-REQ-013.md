@@ -167,3 +167,18 @@
 
 - 머리 내비 · 검색칸(`FE-REQ-067`) — `AppNavigation.css.ts` 더한 줄. 투자 zone 첫 로드 +1 kB(모달이 레이아웃) · `/search` −2 kB · 셸 같음(`FE-REQ-066` 체크리스트 번들)
 - 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-microFe/apps/web/middleware.ts` — 게스트 쿠키 발급 경로 · 로그인 때 게스트 쿠키 지움 · 로그인 뒤 `?next=` 로 돌아오기(`safeNextPath`)
+  - `salt-microFe/apps/web/src/app/api-routes/session.ts` — 게스트 쿠키 발급 경로 · 로그인 때 게스트 쿠키 지움 · 로그인 뒤 `?next=` 로 돌아오기(`safeNextPath`)
+  - `salt-microFe/apps/web/src/features/sign-in/api/useSignIn.ts` — 게스트 쿠키 발급 경로 · 로그인 때 게스트 쿠키 지움 · 로그인 뒤 `?next=` 로 돌아오기(`safeNextPath`)
+  - `salt-microFe/packages/core/src/auth/authRefresh.test.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
+  - `salt-microFe/packages/core/src/auth/authRefresh.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
+  - `salt-microFe/packages/domain-invest/src/pages/coach/ui/CoachReportBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+  - `salt-microFe/packages/domain-invest/src/pages/coach/ui/SignalEvidenceBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrStockDetailBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+  - `salt-microFe/packages/web-shared/src/api/session.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
+  - `salt-microFe/packages/web-shared/src/config/auth.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

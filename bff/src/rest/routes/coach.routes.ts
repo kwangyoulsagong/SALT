@@ -36,13 +36,13 @@ router.post("/trades", appTradeRiskController.recordTrade);
  * F009 슬라이스 5 — 내 거래 미러 · 결정 결과 · 태그 확정 (`BFF-REQ-038` FR-7~9). 판정 · 비용 · 엣지 없음은 서버가 센다.
  */
 router.get("/mirror", appBehaviorMirrorController.mirror);
-// F011 FR-47 — 국내 주식 미러(거래일 창 · 소유자 전용, `BFF-REQ-040` FR-24)
+// F011 FR-47 — 국내 주식 미러(거래일 창 · 로그인 전체 — `ADR-011`, `BFF-REQ-040` FR-24)
 router.get("/mirror/kr-stock", appBehaviorMirrorController.krMirror);
 router.get("/outcomes", appBehaviorMirrorController.listOutcomes);
 router.put("/outcomes/:id/tags", appBehaviorMirrorController.confirmOutcomeTags);
 // F009 슬라이스 6 — 월간 복기(`BFF-REQ-038` FR-10)
 router.get("/review/monthly", appBehaviorMirrorController.monthlyReview);
-// F011 FR-48 — 월간 복기 국내판(소유자 전용, `BFF-REQ-040` FR-26)
+// F011 FR-48 — 월간 복기 국내판(로그인 전체 — `ADR-011`, `BFF-REQ-040` FR-26)
 router.get("/review/monthly/kr-stock", appBehaviorMirrorController.krMonthlyReview);
 
 /** F010 슬라이스 3 — 판정 성적표(신호 유형별, 사용자별 아님). `/investments` 카드(`BFF-REQ-039` FR-5) */

@@ -34,3 +34,6 @@ source: 사용자 2026-11-09 "상세 모달에 뉴스 기사 렌더링 해야지
 | 2026-11-09 | 신규 · done |
 | 2026-11-09 | 확인 2회차 — 로그인일 때만 부름(비로그인 401 요청 0) · 줄 자리는 받는 중일 때만 · 코인 미리보기 주석 정정 |
 | 2026-11-10 | 코인 프리뷰가 모달을 직접 그리지 않는다 — 본문 칸은 그대로 `NewsModal` 이 받는다(그리는 자리만 시세 보드 `NewsModalHost`, `FE-REQ-065` `87eb8083`) |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `bff/src/services/app-article-body.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `salt-microFe/packages/domain-invest/src/entities/market/api/useArticleBody.ts` — 시장 조회의 로그인 조건 제거(게스트 토큰으로 이어 봄)

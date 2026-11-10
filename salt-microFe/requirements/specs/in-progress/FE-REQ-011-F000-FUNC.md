@@ -200,3 +200,7 @@ created: 2026-09-09
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): FR-53 저장 위치가 **쿠키**가 됐다(머리 정정의 "아직 `localStorage`" 닫힘) · 갱신(FR-62)은 셸 Route Handler 로 · `RedirectSignedIn` 은 `useHasSession`(`721063fc`) |
 | 2026-11-05 | 금융 팁 S2b 확인 2회차(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: 세션 갱신 실패 뒤 로그인 이동(FR-62 후반)의 공개 경로 예외가 `isPublicPath`(접두) — 공개 금융 팁 글에서는 세션만 비우고 제자리 (`cf93acb1`) |
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `b37bf890`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — FR-80 정정(`?q=` 는 `/search` 로 연 모달만) · FR-83 칩마다 × · **결함 고침** 최근 검색 저장이 setState 업데이터 안이라 모달 언마운트로 사라졌다 → 바로 저장 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/domain-invest/src/features/toggle-watchlist/ui/WatchlistStarButton.tsx` — 게스트 ★ → 로그인 링크(모든 ★ 자리 한 곳)
+  - `salt-microFe/packages/web-shared/src/api/apiFetch.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
+  - `salt-microFe/packages/web-shared/src/api/refreshSession.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용

@@ -109,3 +109,8 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-09 | 업종 지수 종가 회차 15:40 → **15:55** — 분봉 보정(`kr-minute-bars` 15:40)과 같은 분이라 KIS 한도에 밀려 25회 중 24 초과 · 업종 1개만 저장(실측). 15:52 뒤 KIS 호출 0 · 장후 시간외 종가 창(~16:00) 안 |
 | 2026-11-10 | **제목 글자 정리** — 원천 시황 제목에 줄바꿈 · `0x1A`(원천 문자셋이 못 옮긴 글자)가 섞여 와 화면에 깨진 글자(3,059건 중 39). `cleanKrNewsTitle`(0x1A → 가운뎃점 · 나머지 제어 문자 → 띄어쓰기) 를 받을 때 한 번 · 저장 39행 같은 규칙 SQL(`0df7784e`). 검색 모달 실호출에서 발견 |
 | 2026-11-10 | `KrMoveSourceStore` 포트에 `sectorBoard` · `searchNewsTitles`(검색 모달 2단계 `SRV-REQ-055`) — 이 REQ 의 수집 · 저장 무변경 `dd0bbdcc` |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-server/src/market/application/GetKrMarketSummary.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+  - `salt-server/src/market/application/GetWhyMoved.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+  - `salt-server/src/market/application/__tests__/krMoveSources.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
+  - `salt-server/src/market/application/__tests__/whyMoved.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로

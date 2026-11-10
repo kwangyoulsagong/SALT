@@ -16,7 +16,7 @@ import {
 
 /**
  * 국내 주식 조회(F011 · `SRV-REQ-040`). 키가 없어 꺼져 있으면 모든 경로가 503 이다(FR-6).
- * 볼 수 있는지(소유자) 판정은 유스케이스가 한다 — 컨트롤러는 신원만 넘긴다.
+ * 누가 읽는지는 라우터 `marketReaderMiddleware` 가 본다(사람 · 게스트) — 시세 유스케이스는 신원을 받지 않는다(`ADR-011`).
  */
 export class KrStockController {
   constructor(
@@ -24,7 +24,7 @@ export class KrStockController {
     private readonly getSchedule: MarketUseCases["getKrMarketSchedule"]
   ) {}
 
-  /** 다가오는 국내 시장 일정 — 키가 꺼져 있어도 · 소유자가 아니어도 된다(공개 사실, `SRV-REQ-041` FR-5) */
+  /** 다가오는 국내 시장 일정 — 키가 꺼져 있어도 된다(공개 사실, `SRV-REQ-041` FR-5) */
   schedule = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { days } = krScheduleQuerySchema.parse(req.query);
@@ -39,17 +39,13 @@ export class KrStockController {
     return this.useCases;
   }
 
-  private viewer(req: Request) {
-    return { userId: req.user!.userId, email: req.user!.email };
-  }
-
   /**
    * 국내 요약 띠(`SRV-REQ-042`) — 반올림은 여기 한 번: 종목 가격 · 등락 금액 · 거래대금은 원 정수, 지수는 포인트 소수 둘째 자리
    * (KIS 가 주는 자릿수)
    */
   summary = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const view = await this.enabled().getSummary.execute(this.viewer(req));
+      const view = await this.enabled().getSummary.execute();
       const toDto = (item: KrSummaryItem) => {
         const round = item.kind === "index" ? (v: number) => Math.round(v * 100) / 100 : (v: number) => Math.round(v) || 0;
         const roundOrNull = (v: number | null) => (v === null ? null : round(v));
@@ -75,7 +71,7 @@ export class KrStockController {
 
   session = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      return ResponseUtil.success(res, await this.enabled().getSession.execute(this.viewer(req)));
+      return ResponseUtil.success(res, await this.enabled().getSession.execute());
     } catch (error) {
       next(error);
     }
@@ -84,7 +80,7 @@ export class KrStockController {
   assets = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = krListQuerySchema.parse(req.query);
-      return ResponseUtil.success(res, await this.enabled().listQuotes.execute(this.viewer(req), query));
+      return ResponseUtil.success(res, await this.enabled().listQuotes.execute(query));
     } catch (error) {
       next(error);
     }
@@ -93,7 +89,7 @@ export class KrStockController {
   search = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { q } = krSearchQuerySchema.parse(req.query);
-      return ResponseUtil.success(res, await this.enabled().search.execute(this.viewer(req), q));
+      return ResponseUtil.success(res, await this.enabled().search.execute(q));
     } catch (error) {
       next(error);
     }
@@ -102,7 +98,7 @@ export class KrStockController {
   detail = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { code } = krCodeParamSchema.parse(req.params);
-      return ResponseUtil.success(res, await this.enabled().getDetail.execute(this.viewer(req), code));
+      return ResponseUtil.success(res, await this.enabled().getDetail.execute(code));
     } catch (error) {
       next(error);
     }
@@ -115,7 +111,6 @@ export class KrStockController {
   stream = (req: Request, res: Response, next: NextFunction) => {
     try {
       const kr = this.enabled();
-      kr.assertViewer(this.viewer(req));
       res.writeHead(200, {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
@@ -140,7 +135,7 @@ export class KrStockController {
     try {
       const { code } = krCodeParamSchema.parse(req.params);
       const { period, count } = krChartQuerySchema.parse(req.query);
-      return ResponseUtil.success(res, await this.enabled().getChart.execute(this.viewer(req), code, period, count));
+      return ResponseUtil.success(res, await this.enabled().getChart.execute(code, period, count));
     } catch (error) {
       next(error);
     }
@@ -148,7 +143,7 @@ export class KrStockController {
 
   indices = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      return ResponseUtil.success(res, await this.enabled().getIndices.execute(this.viewer(req)));
+      return ResponseUtil.success(res, await this.enabled().getIndices.execute());
     } catch (error) {
       next(error);
     }
@@ -158,7 +153,7 @@ export class KrStockController {
     try {
       const { code } = krCodeParamSchema.parse(req.params);
       const { days } = krInvestorQuerySchema.parse(req.query);
-      return ResponseUtil.success(res, await this.enabled().getInvestorFlows.execute(this.viewer(req), code, days));
+      return ResponseUtil.success(res, await this.enabled().getInvestorFlows.execute(code, days));
     } catch (error) {
       next(error);
     }
@@ -167,7 +162,7 @@ export class KrStockController {
   news = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { code } = krCodeParamSchema.parse(req.params);
-      return ResponseUtil.success(res, await this.enabled().getNews.execute(this.viewer(req), code));
+      return ResponseUtil.success(res, await this.enabled().getNews.execute(code));
     } catch (error) {
       next(error);
     }
@@ -176,7 +171,7 @@ export class KrStockController {
   newsBody = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { code, serial } = krNewsBodyParamSchema.parse(req.params);
-      return ResponseUtil.success(res, await this.enabled().getNewsBody.execute(this.viewer(req), code, serial));
+      return ResponseUtil.success(res, await this.enabled().getNewsBody.execute(code, serial));
     } catch (error) {
       next(error);
     }
@@ -185,7 +180,7 @@ export class KrStockController {
   whyMoved = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { code } = krCodeParamSchema.parse(req.params);
-      return ResponseUtil.success(res, await this.enabled().getWhyMoved.execute(this.viewer(req), code));
+      return ResponseUtil.success(res, await this.enabled().getWhyMoved.execute(code));
     } catch (error) {
       next(error);
     }
@@ -194,7 +189,7 @@ export class KrStockController {
   intradayFlows = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { code } = krCodeParamSchema.parse(req.params);
-      return ResponseUtil.success(res, await this.enabled().getIntradayFlows.execute(this.viewer(req), code));
+      return ResponseUtil.success(res, await this.enabled().getIntradayFlows.execute(code));
     } catch (error) {
       next(error);
     }
@@ -203,7 +198,7 @@ export class KrStockController {
   orderbook = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { code } = krCodeParamSchema.parse(req.params);
-      return ResponseUtil.success(res, await this.enabled().getOrderbook.execute(this.viewer(req), code));
+      return ResponseUtil.success(res, await this.enabled().getOrderbook.execute(code));
     } catch (error) {
       next(error);
     }

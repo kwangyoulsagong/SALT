@@ -81,3 +81,11 @@ export interface InviteAttemptLog {
     clientKey?: string;
   }): Promise<void>;
 }
+
+/**
+ * 게스트 토큰 발급(`SRV-REQ-056` · `ADR-011`) — 로그인 없이 시장 데이터를 읽는 짧은 토큰. 사람 정보 0.
+ * 사람 토큰과 서명 비밀이 달라 사람 경로를 지나지 못한다(구현 `JwtUtil.generateGuestToken`).
+ */
+export interface GuestTokenIssuer {
+  issueGuest(): { guestToken: string; expiresIn: number };
+}

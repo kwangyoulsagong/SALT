@@ -361,3 +361,11 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 ## 2026-11-10 — 투자 머리 메뉴(주인 `FE-REQ-069`, `29b9a212`)
 
 - 확인은 `FE-REQ-069` 체크리스트(본문 자산군 탭 없음 · 코인 ↔ 주식 · 뒤로가기)
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-microFe/packages/domain-invest/src/entities/market/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
+  - `salt-microFe/packages/domain-invest/src/widgets/asset-search/ui/AssetSearchDialog.tsx` — 게스트 검색 결과 대기 결함(꺼진 관심 조회 `isPending`) 고침 · 주석 정정
+  - `salt-microFe/packages/domain-invest/src/widgets/market-board/ui/WatchlistTab.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

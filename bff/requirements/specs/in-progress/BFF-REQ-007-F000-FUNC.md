@@ -205,3 +205,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`3e5e0d42`): 동면 목록 파일(`gone.middleware.ts`)에 **은퇴** 목록 `RETIRED_PATHS` 를 더했다 — 동면(되살릴 수 있음 · `revivable: true`)과 은퇴(새 계약으로 대체 · `replacement`)를 섞지 않는다. 기존 동면 경로 410 무변경(테스트 그대로 통과) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-62(온보딩 상태 중계) 은퇴 — `RETIRED_PATHS` 에 `/api/app/onboarding/status` → `/api/app/onboarding`(410) `066ba971` |
 | 2026-11-10 | 검색 모달 2단계(`BFF-REQ-054` · `1110aa9b`) — H절 검색 경로 파일에 묶음 · 뜨는 업종 · 곁 칸 컨트롤러가 같이 산다. `/api/app/search` 무변경 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `bff/src/rest/routes/search.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `bff/src/services/__tests__/asset-search.viewmodel.test.ts` — 검색 `isTracked` · `isHeld` 를 `boolean | null` 로 — 게스트는 null(지어내지 않음)
+  - `bff/src/services/asset-search.viewmodel.ts` — 검색 `isTracked` · `isHeld` 를 `boolean | null` 로 — 게스트는 null(지어내지 않음)

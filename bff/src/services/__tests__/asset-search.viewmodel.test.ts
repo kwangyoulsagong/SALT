@@ -28,7 +28,18 @@ describe("toAssetSearchVM — 종목 검색 화면 계약(BFF-REQ-007 H절)", ()
     assert.equal(vm.items.length, 1);
     assert.equal(vm.items[0]!.currentPrice, null);
     assert.equal(vm.items[0]!.changeRate, null);
-    assert.equal(vm.items[0]!.isTracked, false);
+    // 플래그가 없으면(게스트 — `BFF-REQ-055` FR-3) null — false 로 지어내지 않는다
+    assert.equal(vm.items[0]!.isTracked, null);
+    assert.equal(vm.tracked, null);
+  });
+
+  it("게스트 응답 — 서버가 준 null 을 그대로(★ 는 화면이 자물쇠로)", () => {
+    const vm = toAssetSearchVM({
+      items: [{ assetType: "crypto", symbol: "BTC", name: "비트코인", logoUrl: null, currentPrice: 1, changeRate: 0, isTracked: null, isHeld: null }],
+      tracked: null,
+    });
+    assert.equal(vm.items[0]!.isTracked, null);
+    assert.equal(vm.items[0]!.isHeld, null);
     assert.equal(vm.tracked, null);
   });
 

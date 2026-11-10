@@ -98,3 +98,12 @@
 | 저장 39행 | 원본 로컬 백업(csv) · `UPDATE 39` · 정리 뒤 제어 문자 0행 |
 | 소비처 | 종목 상세 소식 · 뉴스 모달 · 검색 뉴스 묶음 · 기사 본문 검색어(같은 열) |
 - 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-server/src/market/application/GetKrMarketSummary.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+  - `salt-server/src/market/application/GetWhyMoved.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+  - `salt-server/src/market/application/__tests__/krMoveSources.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
+  - `salt-server/src/market/application/__tests__/whyMoved.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

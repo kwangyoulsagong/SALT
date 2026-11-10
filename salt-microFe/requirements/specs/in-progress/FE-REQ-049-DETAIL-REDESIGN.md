@@ -89,3 +89,5 @@ source: 사용자 스크린샷 6장(2026-10-30 09:18~09:20) · "국내주식 상
 | 2026-10-30 | FR-12 탭 제목 실시간 가격 추가(사용자 요구 "탭에 상세 페이지 들어가면 실시간 주가 반영") |
 | 2026-11-04 | 지금 상태 다시 봄 — B1~B6 · B8 그대로 · B7 판단 막힘 상태라 미대조 · 새로 B9(왼쪽 빈칸 500) · B10(세그먼트 1,240) · B11(고정 띠 겹침). 모바일 상세는 이 격자가 아님을 명시 |
 | 2026-11-09 | to-do → in-progress — FR-12 만 done(+ 파비콘 = 종목 로고). 나머지 FR 은 디자인 단계 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리

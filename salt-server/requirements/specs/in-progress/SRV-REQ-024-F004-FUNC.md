@@ -391,3 +391,6 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-10-30 | 파일만 걸침 — 서버 `market/domain/ports.ts` 에 `ExchangeQuotePort.weeklyCandles`. 이 REQ 의 판단 · 설정 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
 | 2026-11-02 | **FR-108 정정** — 헤드라인 "진입하지 마세요" · "잡으세요" 를 사실 서술로(규칙 버전 무변경 — 점수 · 행동 무관). 같은 날 `behavior.ts` 규칙 문장 4 · `profitPlan.ts` 1 도 사실 서술로(이 REQ 가 아니라 `SRV-REQ-025` 주인 파일 · 주인 없는 파일). F008 해설 근거 슬라이스. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
 | 2026-11-02 | 파일만 걸침 — `coach/application/api/index.ts`(이 REQ 가 머리 주석 주인) 조립에 `llmEnabled` 한 칸. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-server/src/coach/application/GetJudgmentScoreboard.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+  - `salt-server/src/coach/application/api/index.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자

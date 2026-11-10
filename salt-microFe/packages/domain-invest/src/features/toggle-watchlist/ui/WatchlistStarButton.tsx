@@ -4,6 +4,10 @@ import { IconButton } from "@repo/ui/iconButton";
 import { StarIcon } from "@repo/ui/starIcon";
 import React, { useCallback } from "react";
 
+import { useHasSession } from "@repo/web-shared/api";
+import { GUEST_GLASS_MESSAGES } from "@repo/web-shared/i18n";
+import { useSignInHref } from "@repo/web-shared/ui";
+
 import {
   AddWatchlistRequest,
   WATCHLIST_MESSAGES,
@@ -11,6 +15,7 @@ import {
 } from "@/entities/market";
 
 import { isTrackedLimitError, useToggleWatchlist } from "../api/useToggleWatchlist";
+import { guestStar } from "./watchlistStarButton.css";
 
 interface WatchlistStarButtonProps {
   /** 이미 담겨 있으면 그 항목. `undefined` 면 빈 별이고 누르면 추가다 */
@@ -39,6 +44,9 @@ interface WatchlistStarButtonProps {
 export const WatchlistStarButton = React.memo(
   ({ entry, request, displayName, held = false, onTrackedLimit }: WatchlistStarButtonProps) => {
     const toggle = useToggleWatchlist();
+    // 게스트(`FE-REQ-070` FR-7) — ★ 는 사람 칸이다. 누르면 로그인 뒤 같은 자리로. 세션을 모를 때(null)는 평소 별(비활성 아님)
+    const signedIn = useHasSession();
+    const signInHref = useSignInHref();
 
     const onClick = useCallback((event: React.MouseEvent) => {
       // 별은 시세 표 행 안에 있고 행 클릭은 상세로 간다 — 멈추지 않으면 별을 누를 때 화면이 넘어간다(2026-10-08 실측)
@@ -56,6 +64,21 @@ export const WatchlistStarButton = React.memo(
         },
       );
     }, [entry, request, toggle, held, onTrackedLimit]);
+
+    if (signedIn === false) {
+      return (
+        <a
+          className={guestStar}
+          href={signInHref}
+          aria-label={GUEST_GLASS_MESSAGES.watchlistAction(displayName)}
+          title={GUEST_GLASS_MESSAGES.watchlistAction(displayName)}
+          // 별은 시세 표 행 안 — 행 클릭(상세 이동)으로 번지지 않게
+          onClick={(event) => event.stopPropagation()}
+        >
+          <StarIcon filled={false} />
+        </a>
+      );
+    }
 
     const tracked = held || Boolean(entry);
     const label = held

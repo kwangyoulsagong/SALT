@@ -74,7 +74,8 @@ export const WATCHLIST_MESSAGES = {
   add: (name: string) => `${name} 관심 종목 추가`,
   remove: (name: string) => `${name} 관심 종목 제거`,
   removeFailed: "관심 종목을 바꾸지 못했습니다.",
-  signInRequired: "로그인하면 관심 종목을 볼 수 있습니다.",
+  /** 로그인 없이 볼 때 유리막 칸 이름(`FE-REQ-070`) */
+  guestWhat: "관심 종목",
   /** 빈 상태에서 검색으로 (`FE-REQ-010` FR-33 · 70) */
   searchEntry: "종목 검색",
   /** 표 위 카운터 (`FE-REQ-010` FR-37) — `n` 은 보유 제외 관심 수 */
@@ -100,7 +101,6 @@ export const SEARCH_MESSAGES = {
   retry: "다시 시도",
   /** `aria-live` 로 한 번 알린다 (FR-78) */
   resultCount: (count: number) => `${count}개 종목`,
-  signInRequired: "로그인하면 종목을 검색할 수 있어요.",
   /** 자산군 칩 (FR-77) — 결과에 실제로 있는 자산군만 보인다 */
   filterGroupLabel: "자산군",
   filterAll: "전체",

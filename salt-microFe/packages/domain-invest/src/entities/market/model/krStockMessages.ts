@@ -19,7 +19,6 @@ export const KR_STOCK_MESSAGES = {
   unavailable: "국내 주식 시세를 잠시 볼 수 없습니다. 잠시 뒤 다시 불러와요.",
   retry: "다시 불러오기",
   empty: "보여 줄 국내 주식이 아직 없습니다.",
-  signInRequired: "로그인하면 국내 주식 시세를 볼 수 있습니다.",
   tableHeaders: {
     name: "종목",
     price: "현재가",

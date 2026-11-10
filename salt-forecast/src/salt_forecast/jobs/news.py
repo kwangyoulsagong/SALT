@@ -29,6 +29,8 @@ JOB = "news"
 SOURCE = "news_rss"
 # 한 번에 매기는 최대 기사 수 — CPU 로 32건 묶음이 1~2초. 밀린 것은 다음 실행이 잇는다
 SCORE_LIMIT = 2000
+# 매시 작업 — 수집 수 분 · 점수(모델 로드 포함) 수 분. 20분을 넘으면 매달린 것으로 보고 끊는다(2026-11-10 8시간 멈춤)
+MAX_SECONDS = 20 * 60
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -87,7 +89,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             return total + written
 
-    return run_job(JOB, args, body)
+    return run_job(JOB, args, body, max_seconds=MAX_SECONDS)
 
 
 if __name__ == "__main__":

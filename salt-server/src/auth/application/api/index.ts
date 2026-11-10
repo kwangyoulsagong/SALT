@@ -1,5 +1,6 @@
 import type {
   AccountStore,
+  GuestTokenIssuer,
   InviteAttemptLog,
   InviteCodeStore,
   PasswordHasher,
@@ -9,6 +10,7 @@ import type {
 import { AcceptInviteCode } from "../AcceptInviteCode";
 import { CheckInviteCode } from "../CheckInviteCode";
 import { GetAccount } from "../GetAccount";
+import { IssueGuestToken } from "../IssueGuestToken";
 import { Login } from "../Login";
 import { RefreshSession } from "../RefreshSession";
 
@@ -31,6 +33,10 @@ export interface AuthDependencies {
   userCount: UserCountProbe;
   hasher: PasswordHasher;
   tokens: TokenIssuer;
+  /** 게스트 토큰(`SRV-REQ-056`) — 운영 조립은 `JwtTokenIssuer` 하나가 둘 다 */
+  guestTokens: GuestTokenIssuer;
+  /** `PUBLIC_MARKET_GUEST` — 꺼지면 게스트 발급 403 */
+  publicMarketGuest: boolean;
   attempts: InviteAttemptLog;
   /** 활성 계정 상한 (FR-6 — 설정값이다). */
   maxAccounts: number;
@@ -42,6 +48,7 @@ export interface AuthUseCases {
   login: Login;
   refreshSession: RefreshSession;
   getAccount: GetAccount;
+  issueGuestToken: IssueGuestToken;
 }
 
 export const createAuthApplication = (deps: AuthDependencies) => {
@@ -63,6 +70,7 @@ export const createAuthApplication = (deps: AuthDependencies) => {
     login: new Login(deps.accounts, deps.hasher, deps.tokens),
     refreshSession: new RefreshSession(deps.tokens),
     getAccount: new GetAccount(deps.accounts),
+    issueGuestToken: new IssueGuestToken(deps.guestTokens, deps.publicMarketGuest),
   };
 
   return { useCases };

@@ -4,7 +4,6 @@ import {
   countTowardTrackingLimit,
   isKrStockCode,
   trackedAssetKey,
-  isKrStockViewer,
   KrStockDisabledError,
   KrStockNotAvailableError,
   krStockLogoUrl,
@@ -25,8 +24,6 @@ import {
 
 export interface AddToWatchlistCommand {
   userId: string;
-  /** 국내 주식은 소유자만 담을 수 있다(시세가 소유자 전용 — F011 §정책) */
-  email?: string;
   assetType: MarketAssetType;
   symbol: string;
   name: string;
@@ -38,7 +35,6 @@ export interface AddToWatchlistCommand {
  */
 export interface WatchlistKrSource {
   store: KrStockStore;
-  viewerEmails: readonly string[];
   /** logo.dev 퍼블리셔블 키 — 시세표와 같은 로고(`krStockLogoUrl`) */
   logoDevToken?: string;
 }
@@ -68,8 +64,8 @@ export const readTrackedSummary = async (
   return { watched, held, summary: { count: countTowardTrackingLimit(watched, held), limit: tracking.limit } };
 };
 
-const canViewKr = (kr: WatchlistKrSource | null, email: string | undefined): kr is WatchlistKrSource =>
-  kr !== null && isKrStockViewer(email, kr.viewerEmails);
+/** 국내 키가 켜져 있으면 로그인한 누구나(`ADR-011` — 전에는 소유자만) */
+const canViewKr = (kr: WatchlistKrSource | null): kr is WatchlistKrSource => kr !== null;
 
 /**
  * 관심 목록 추가.
@@ -124,12 +120,12 @@ export class AddToWatchlist {
   }
 
   /**
-   * 국내 주식 — 이름은 **마스터 것**을 쓴다(클라이언트가 보낸 이름을 믿지 않는다). 마스터에 없는 코드 · 비소유자는 같은
-   * 404 다(국내 주식이 있다는 사실을 비소유자에게 주지 않는다). 담으면 다음 시세 회차부터 유니버스(관심 ∪ 시총 상위)에 든다
+   * 국내 주식 — 이름은 **마스터 것**을 쓴다(클라이언트가 보낸 이름을 믿지 않는다). 마스터에 없는 코드는
+   * 404 다. 담으면 다음 시세 회차부터 유니버스(관심 ∪ 시총 상위)에 든다
    */
   private async addKrStock(command: AddToWatchlistCommand, code: string) {
     if (!this.kr) throw new KrStockDisabledError();
-    if (!canViewKr(this.kr, command.email) || !isKrStockCode(code)) throw new KrStockNotAvailableError();
+    if (!canViewKr(this.kr) || !isKrStockCode(code)) throw new KrStockNotAvailableError();
     const listing = await this.kr.store.findListing(code);
     if (!listing) throw new KrStockNotAvailableError();
     if (await this.watchlist.exists(command.userId, "kr_stock", code)) throw new WatchlistDuplicateError();
@@ -221,13 +217,12 @@ export class ListWatchlist {
 
   async execute(
     userId: string,
-    query: { assetType?: MarketAssetType; page?: number; limit?: number } = {},
-    viewer: { email?: string } = {}
+    query: { assetType?: MarketAssetType; page?: number; limit?: number } = {}
   ) {
     const page = query.page || 1;
     const limit = query.limit || 20;
-    // 국내 주식 시세를 볼 수 없는 사람(비소유자 · 키 없음)에게는 국내 주식 행 자체를 주지 않는다
-    const krVisible = canViewKr(this.kr, viewer.email);
+    // 국내 키가 꺼져 있으면 국내 주식 행 자체를 주지 않는다
+    const krVisible = canViewKr(this.kr);
     // 카운터는 필터 · 페이지와 무관한 사용자 전체 값이다(`BFF-REQ-007` FR-74). 상한이 없으면 싣지 않는다
     const trackedRead = this.tracking ? await readTrackedSummary(this.watchlist, this.tracking, userId) : undefined;
     const tracked: TrackedSummary | undefined = trackedRead?.summary;

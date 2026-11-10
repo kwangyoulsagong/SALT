@@ -77,7 +77,11 @@ const RETENTION = [
   { timeframe: "1d", interval: "2 years", exceptAssetType: "kr_stock" as const },
 ];
 
-const SYMBOL_BATCH = 10;
+/**
+ * 동시에 받는 종목 수 — 4(`workers-external.md` "종목 동시 처리는 4 안팎"). 10 일 때 5분마다 300여 종목 캔들 회차가
+ * 문장 하나에 7~8초씩 DB 를 잡아 장중 2~3분 동안 판단 상세 · 시세가 16초까지 밀렸다(2026-11-10 실측, `DB-REQ-017`)
+ */
+const SYMBOL_BATCH = 4;
 const SYMBOL_BATCH_PAUSE_MS = 150;
 const TIMEFRAME_PAUSE_MS = 50;
 

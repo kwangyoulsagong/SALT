@@ -254,8 +254,7 @@ export class KrStockDisabledError extends DomainError {
 }
 
 /**
- * 국내 주식 시세를 볼 수 없다 — 소유자가 아니거나 없는 종목. **둘을 구분하지 않는다**: 비소유자에게
- * 국내 주식이 있다는 사실 자체를 주지 않는다(재배포 약관 확인 전 소유자 전용, F011 §정책)
+ * 없는 종목 · 시세 없는 종목(404). ~~소유자가 아닌 사람도 같은 답~~ — 2026-11-10 소유자 판정을 걷었다(`ADR-011`)
  */
 export class KrStockNotAvailableError extends DomainError {
   constructor() {
@@ -269,9 +268,6 @@ export class KrArticleBodyUnavailableError extends DomainError {
     super("NEWS_BODY_UNAVAILABLE", ErrorKind.Unavailable, "Article body source is not configured");
   }
 }
-
-export const isKrStockViewer = (email: string | undefined, owners: readonly string[]): boolean =>
-  !!email && owners.some((owner) => owner.trim().toLowerCase() === email.trim().toLowerCase());
 
 // ==================== 장 상태 (FR-26) ====================
 

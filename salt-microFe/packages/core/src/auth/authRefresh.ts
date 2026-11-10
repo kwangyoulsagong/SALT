@@ -52,6 +52,11 @@ export interface SessionRefreshDeps {
    * 화면마다 처리가 갈린다. 단일 비행은 만드는 쪽에서 `singleFlight` 로 감싼다.
    */
   refreshSession: () => Promise<boolean>;
+  /**
+   * 게스트 토큰을 받는다(`FE-REQ-070` FR-2 · `ADR-011`) — 로그인 없이(또는 세션이 막 죽은 뒤) 시장 데이터를 읽게. 성공이면 `true`,
+   * **던지지 않는다.** 없으면 게스트 경로를 쓰지 않는다(RN — 앱은 늘 로그인). 단일 비행은 만드는 쪽이.
+   */
+  issueGuest?: () => Promise<boolean>;
 }
 
 /**
@@ -75,9 +80,14 @@ export const withSessionRefresh = (
 ): typeof fetch => async (input, init) => {
   const sentWithSession = deps.hasSession();
   const response = await deps.fetchImpl(input, init);
-  if (response.status !== UNAUTHORIZED || !sentWithSession) return response;
+  if (response.status !== UNAUTHORIZED) return response;
 
-  // 갱신이 안 되면 401 을 그대로 올린다. 화면이 "로그인이 필요하다"를 판단하는 근거다.
-  if (!(await deps.refreshSession())) return response;
+  if (sentWithSession) {
+    if (await deps.refreshSession()) return deps.fetchImpl(input, init);
+    // 갱신이 안 됐는데 세션이 남았다(네트워크 · 5xx — 세션을 비우지 않았다) — 401 그대로. 게스트로 내리지 않는다
+    if (deps.hasSession()) return response;
+  }
+  // 로그인이 없다(처음부터 · 방금 죽었다) — 게스트 토큰을 받아 한 번만 다시(`FE-REQ-070`). 보낸 수는 여전히 최대 둘
+  if (!deps.issueGuest || !(await deps.issueGuest())) return response;
   return deps.fetchImpl(input, init);
 };

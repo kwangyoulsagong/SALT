@@ -132,3 +132,11 @@
 
 - 파일만 걸침(포트 선언) — 검증은 `SRV-REQ-055` 체크리스트(테스트 · EXPLAIN)
 - 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-server/src/market/domain/ports.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+  - `salt-server/src/market/infrastructure/PrismaKrStockStore.ts` — 504 5회차 — 봉 upsert 는 바뀐 행만(`IS DISTINCT FROM`) · 캔들 동시 10 → 4 · 표 자동 청소 2%(`DB-REQ-017`)
+  - `salt-server/src/portfolio/domain/ports.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

@@ -6,6 +6,8 @@ import { Text } from "@repo/ui/text";
 import { StatusLine } from "@repo/ui/statusLine";
 import { memo, useMemo } from "react";
 
+import { SignInRequired } from "@repo/web-shared/ui";
+
 import {
   COACH_MESSAGES,
   CoachBlockSkeleton,
@@ -100,7 +102,8 @@ export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
   }, [data, mode]);
 
   const renderBlocks = () => {
-    if (isSignedOut) return <Text color="tertiary">{COACH_MESSAGES.signedOut}</Text>;
+    // 판단은 AI 칸 — 유리막(`FE-REQ-070`)
+    if (isSignedOut) return <SignInRequired what={COACH_MESSAGES.guestWhat} minHeight={160}>{null}</SignInRequired>;
     if (isError) {
       return <StatusLine kind="error">{COACH_MESSAGES.judgmentUnavailable}</StatusLine>;
     }

@@ -16,10 +16,18 @@ from salt_forecast.store.tables import job_run, source_status
 
 @contextmanager
 def advisory_lock(engine: Engine, name: str) -> Generator[bool]:
-    """겹치면 False 를 준다 — 호출자는 즉시 종료한다(architecture.md §3)."""
+    """겹치면 False 를 준다 — 호출자는 즉시 종료한다(architecture.md §3).
+
+    락을 잡은 **바로 뒤 커밋한다.** SQLAlchemy 는 첫 문장에서 트랜잭션을 저절로 열고, 닫지 않으면
+    작업이 끝날 때까지 이 연결이 "idle in transaction" 으로 스냅샷을 쥔다 — 그동안 DB 전체의 VACUUM 이
+    죽은 행을 못 지운다. 뉴스 작업 하나가 8시간 쥐고 있어 `price_history` 죽은 행이 510만(산 행 365만)까지
+    쌓였고 서버 장중 조회가 수 초로 밀렸다(2026-11-10, `DB-REQ-017`).
+    세션 수준 advisory lock 은 커밋해도 풀리지 않는다 — 연결이 닫히거나 `pg_advisory_unlock` 을 부를 때만.
+    """
     key = zlib.crc32(f"salt_forecast:{name}".encode())
     with engine.connect() as conn:
         got = bool(conn.execute(text("SELECT pg_try_advisory_lock(:k)"), {"k": key}).scalar())
+        conn.commit()
         try:
             yield got
         finally:

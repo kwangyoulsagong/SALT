@@ -31,15 +31,15 @@ const holding = (over: Partial<Holding>): Holding => ({
 
 const fakes = (opts: { held?: Holding | null; price?: number | null; tradable?: boolean } = {}) => {
   const calls = {
-    assert: [] as Array<{ email?: string; code: string }>,
+    assert: [] as string[],
     findOne: [] as PortfolioAssetType[],
     created: [] as Array<{ assetType: PortfolioAssetType; symbol: string }>,
     saved: [] as PortfolioAssetType[],
     valued: [] as Array<{ id: string; currentPrice: number; currentValue: number }>,
   };
   const krStock: KrStockQuoteSource = {
-    assertTradable: async (email, code) => {
-      calls.assert.push({ email, code });
+    assertTradable: async (code) => {
+      calls.assert.push(code);
       if (opts.tradable === false) throw new Error("not available");
     },
     prices: async (codes) =>
@@ -70,7 +70,7 @@ const fakes = (opts: { held?: Holding | null; price?: number | null; tradable?: 
   return { calls, useCase: new RecordTransaction(transactions, holdings, krStock) };
 };
 
-const buy = { userId: "u1", email: "owner@x.com", transactionType: "buy" as const, quantity: 10, price: 70_000, fee: 0 };
+const buy = { userId: "u1", transactionType: "buy" as const, quantity: 10, price: 70_000, fee: 0 };
 
 describe("RecordTransaction — 국내 주식", () => {
   it("assetType 을 주지 않으면 코인이고 국내 주식 확인을 부르지 않는다", async () => {
@@ -81,10 +81,10 @@ describe("RecordTransaction — 국내 주식", () => {
     assert.equal(calls.valued.length, 0, "코인 평가는 BFF 가 밀어 넣는다");
   });
 
-  it("kr_stock 은 종목을 확인하고 저장된 현재가로 바로 평가한다", async () => {
+  it("kr_stock 은 종목을 확인하고 저장된 현재가로 바로 평가한다 — 확인은 코드만(소유자 판정 없음, ADR-011)", async () => {
     const { calls, useCase } = fakes({ price: 72_000 });
     await useCase.execute({ ...buy, assetType: "kr_stock", symbol: "005930" });
-    assert.deepEqual(calls.assert, [{ email: "owner@x.com", code: "005930" }]);
+    assert.deepEqual(calls.assert, ["005930"]);
     assert.deepEqual(calls.created, [{ assetType: "kr_stock", symbol: "005930" }]);
     assert.deepEqual(calls.saved, ["kr_stock"]);
     assert.deepEqual(calls.valued, [{ id: "h1", currentPrice: 72_000, currentValue: 720_000 }]);

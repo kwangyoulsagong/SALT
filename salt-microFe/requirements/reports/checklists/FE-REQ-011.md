@@ -218,3 +218,11 @@
 
 - FR-80 정정(`?q=` 는 `/search` 로 연 모달만) · FR-83 칩마다 × · **결함 고침** 최근 검색 저장이 setState 업데이터 안이라 모달 언마운트로 사라졌다 → 바로 저장
 - 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-microFe/packages/domain-invest/src/features/toggle-watchlist/ui/WatchlistStarButton.tsx` — 게스트 ★ → 로그인 링크(모든 ★ 자리 한 곳)
+  - `salt-microFe/packages/web-shared/src/api/apiFetch.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
+  - `salt-microFe/packages/web-shared/src/api/refreshSession.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

@@ -9,7 +9,6 @@ import {
   LLM_BUDGET_WINDOW_MS,
   llmBudgetVerdict,
   resolveLlmLimits,
-  isForecastOwner,
   completeExplanation,
   guardExplanationLine,
   templateExplanation,
@@ -54,8 +53,6 @@ export interface ExplainOptions {
    * 없으면 켜짐. 운영 조립은 env `COACH_EXPLAIN_LLM`(기본 on)
    */
   llmEnabled?: boolean;
-  /** 국내 주식 해설을 받을 수 있는 이메일 — 종목 판단과 같은 소유자 목록(F011 §정책). 없으면 아무도 */
-  krViewerEmails?: readonly string[];
   /**
    * 국내 주식 백테스트 성적(F011 슬라이스 7b, 사용자 결정 2026-10-26) — 종목 판단 카드와 같은 출처 선택. 해설 문장(LLM)
    * 입력엔 성적 숫자가 없다 — 카드(`trackRecord`)에 `sampleOrigin` 이 붙어 화면이 모의 라벨을 단다
@@ -478,13 +475,6 @@ export class ExplainCoachDecision {
       this.news.recentForSymbol(symbol, EXPLANATION_NEWS_MAX).catch(() => []),
     ]);
     const materials = materialsBySymbol.get(symbol)!;
-    // 국내 주식은 소유자만 — 비소유자에겐 사실을 모으지 못한 것과 같은 답(종목이 있다는 것도 알리지 않는다)
-    if (
-      materials.assetClass === "kr_stock" &&
-      !isForecastOwner(request.viewerEmail, this.options.krViewerEmails ?? [])
-    ) {
-      return { ok: false, blockedReason: "facts_unavailable" };
-    }
     const judged = judgeSymbol(symbol, materials, Boolean(holding));
     const decision = request.mode === "scalp" ? judged.scalp : judged.longTerm;
     // 종목 판단과 같은 막음 — 오래된 재료 · 국내 주식 단타 · 이력 · 국내 주식 표본(F010 슬라이스 7 · F011 슬라이스 4)

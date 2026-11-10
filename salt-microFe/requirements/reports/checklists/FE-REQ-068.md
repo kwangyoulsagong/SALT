@@ -35,3 +35,10 @@
 ## 2026-11-10 — 모달 그리는 자리 이동(주인 `FE-REQ-065`)
 
 - 본문 칸 무변경 — 새로고침 뒤 다시 연 모달에서도 본문(코인 XRP 기사) 그대로. 확인은 `FE-REQ-065` 체크리스트
+
+## 2026-11-10 — F018 걸침
+
+  - `bff/src/services/app-article-body.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `salt-microFe/packages/domain-invest/src/entities/market/api/useArticleBody.ts` — 시장 조회의 로그인 조건 제거(게스트 토큰으로 이어 봄)
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

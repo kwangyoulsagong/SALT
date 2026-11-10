@@ -1,4 +1,4 @@
-import { KrStockDisabledError, KrStockNotAvailableError, isKrStockCode, isKrStockViewer, krStockLogoUrl } from "../../domain";
+import { KrStockDisabledError, KrStockNotAvailableError, isKrStockCode, krStockLogoUrl } from "../../domain";
 import type { KrCompanyHomepageSource, KrHeldCodesSource, KrLogoImageProbe } from "../../domain";
 import type { KrArticleBodyPort, MarketScheduleReader } from "../../domain";
 import { GetKrMarketSchedule } from "../GetKrMarketSchedule";
@@ -232,10 +232,10 @@ export interface MarketApi {
   krJudgmentUniverse(): Promise<string[]>;
   /**
    * 거래 기록이 국내 주식 코드를 받기 전 확인(F011 슬라이스 3b) — 꺼져 있으면 `KrStockDisabledError`(503),
-   * 비소유자 · 코드 형식 · 마스터에 없음은 같은 `KrStockNotAvailableError`(404 — 관심 종목 추가와 같은 규칙).
+   * 코드 형식 · 마스터에 없음은 같은 `KrStockNotAvailableError`(404 — 관심 종목 추가와 같은 규칙).
    * 통과하면 마스터 이름
    */
-  krStockListing(email: string | undefined, code: string): Promise<{ code: string; name: string }>;
+  krStockListing(code: string): Promise<{ code: string; name: string }>;
   /** 저장된 국내 주식 현재가(`kr_stock_quotes`). 꺼져 있거나 시세가 없는 코드는 빠진다 — 보유 평가가 쓴다 */
   krStockPrices(codes: string[]): Promise<Array<{ code: string; price: number; priceUpdatedAt: Date }>>;
 }
@@ -299,8 +299,6 @@ export interface KrStockDependencies {
   logoImages: KrLogoImageProbe;
   /** DART 기업개황 홈페이지 — 키(`DART_API_KEY`)가 없으면 `null`(도메인 조회 없이 티커만) */
   homepages: KrCompanyHomepageSource | null;
-  /** 볼 수 있는 계정 — 소유자 전용(`FORECAST_OWNER_EMAILS`) */
-  viewerEmails: readonly string[];
   /** 지수 · 투자자 동향 · 호가 조회(슬라이스 6 · 6b) — 같은 `KisClient` 라 한도를 같은 페이서가 지킨다 */
   supplementSource: KrSupplementPort;
   supplement: KrSupplementStore;
@@ -333,8 +331,6 @@ export interface KrStockUseCases {
   reportMetrics: ReportKrProviderMetrics;
   /** 종목별 로고 출처 판정(도메인 → 티커 → 없음) — 하루 한 번 · 30일마다 다시 */
   resolveLogos: ResolveKrStockLogos;
-  /** SSE 를 열기 전 소유자 판정 — 스트림도 시세다 */
-  assertViewer: (viewer: { userId: string; email?: string }) => void;
   getSession: GetKrMarketSession;
   listQuotes: ListKrStockQuotes;
   getDetail: GetKrStockDetail;
@@ -394,7 +390,6 @@ const createKrStockUseCases = (
   const read = {
     store: deps.store,
     calendar: deps.calendar,
-    viewerEmails: deps.viewerEmails,
     provider,
     logoDevToken: deps.logoDevToken,
     supplement: deps.supplement,
@@ -421,9 +416,6 @@ const createKrStockUseCases = (
       homepages: deps.homepages,
       logoDevToken: deps.logoDevToken,
     }),
-    assertViewer: (viewer) => {
-      if (!isKrStockViewer(viewer.email, deps.viewerEmails)) throw new KrStockNotAvailableError();
-    },
     getSession: new GetKrMarketSession(read),
     listQuotes: new ListKrStockQuotes(read),
     getDetail: new GetKrStockDetail(read),
@@ -441,7 +433,6 @@ const createKrStockUseCases = (
       policy: deps.summaryPolicy,
       status: deps.status,
       calendar: deps.calendar,
-      viewerEmails: deps.viewerEmails,
       logoDevToken: deps.logoDevToken,
     }),
     pruneIndexTicks: new PruneKrIndexTicks(deps.supplement),
@@ -500,14 +491,13 @@ export interface MarketUseCases {
 export const createMarketApplication = (deps: MarketDependencies) => {
   // 국내 주식 관심 종목 — 키가 없으면 `null`(담을 수 없고 목록에서도 빠진다, F011 슬라이스 3)
   const krWatchlist = deps.krStock
-    ? { store: deps.krStock.store, viewerEmails: deps.krStock.viewerEmails, logoDevToken: deps.krStock.logoDevToken }
+    ? { store: deps.krStock.store, logoDevToken: deps.krStock.logoDevToken }
     : null;
   const krSearch = deps.krStock
     ? {
         store: deps.krStock.store,
         moveSources: deps.krStock.moveSources,
         supplement: deps.krStock.supplement,
-        viewerEmails: deps.krStock.viewerEmails,
         logoDevToken: deps.krStock.logoDevToken,
       }
     : null;
@@ -647,10 +637,10 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.prices.krDailyReturnProfiles(from, to, minReturns, bounds),
     watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),
     krJudgmentUniverse: async () => (krUniverse ? krUniverse.execute() : []),
-    krStockListing: async (email, code) => {
+    krStockListing: async (code) => {
       const kr = deps.krStock;
       if (!kr) throw new KrStockDisabledError();
-      if (!isKrStockViewer(email, kr.viewerEmails) || !isKrStockCode(code)) throw new KrStockNotAvailableError();
+      if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
       const listing = await kr.store.findListing(code);
       if (!listing) throw new KrStockNotAvailableError();
       return { code: listing.code, name: listing.name };

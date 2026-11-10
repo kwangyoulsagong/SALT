@@ -42,3 +42,12 @@
 
 - `services/app-search.service.ts` `AppSearchExtrasService` — 예산 400ms(서버 실측 10ms) · `retryOnceOnGet` · 끊김 전파. 주인 체크리스트 `BFF-REQ-054`
 - 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`
+
+## 2026-11-10 — F018 걸침
+
+  - `bff/src/rest/middleware/cookieSession.middleware.ts` — 쿠키 → `Authorization` 순서: 사람(`salt_at`) → 게스트(`salt_gt`), `sessionTokenFromCookie` 한 곳
+  - `bff/src/services/app-search.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `bff/src/utils/session-cookie.util.ts` — 쿠키 → `Authorization` 순서: 사람(`salt_at`) → 게스트(`salt_gt`), `sessionTokenFromCookie` 한 곳
+  - `salt-microFe/packages/web-shared/src/api/websocket/wsClient.ts` — 국내 실시간 — 게스트 쿠키로도 열기 · 중계 상한 사람/게스트 따로 · 주석 정정
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

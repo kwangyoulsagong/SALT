@@ -420,3 +420,9 @@ PC                                                   모바일(세로 스택)
 | 2026-11-09 | `MarketPreview` 에 "왜 떨어졌을까?" 한 줄 · 국내 오늘 소식(코인 뉴스와 같은 카드) — 코인 블록 무변경(F016 단계 C) |
 | 2026-11-10 | 코치 리포트 진입이 투자 화면 머리 링크 → 머리 메뉴 "리포트"(`FE-REQ-069`) · `coach-console` 공개 API 에 `HoldingsPanel`(포트폴리오 페이지) |
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/domain-invest/src/entities/coach/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/InvestmentDetailPage.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+  - `salt-microFe/packages/domain-invest/src/widgets/coach-panel/ui/CoachPanel.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+  - `salt-microFe/packages/domain-invest/src/widgets/symbol-analysis/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
+  - `salt-microFe/packages/domain-invest/src/widgets/symbol-analysis/ui/SymbolAnalysis.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)

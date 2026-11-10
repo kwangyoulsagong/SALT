@@ -102,7 +102,7 @@ export const InvestmentDetailPage = async ({
 
 /**
  * 국내 주식 상세(F011 `FE-REQ-041` FR-46) — 같은 라우트, 숫자로 시작하는 6자리 코드면 여기로 온다(F011 OQ). 서버는 껍데기만
- * 그린다: 코인처럼 공개 시세로 머리를 서버 렌더하면 비회원 HTML 에 국내 주식 시세가 들어간다. JSON-LD · 코치 본문도 없다.
+ * 그린다: (2026-11-10 국내 시세 공개 — `ADR-011`. 서버 렌더 · 색인은 `FEATURE-018` OQ2 까지 안 한다.) JSON-LD · 코치 본문도 없다.
  */
 const KrStockDetailPage = ({ code }: { code: string }) => (
   <Root background="transparent">

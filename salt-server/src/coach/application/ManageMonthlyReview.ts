@@ -4,12 +4,10 @@ import {
   buildMonthlyReview,
   combinedIpsSource,
   DEFAULT_MAX_SINGLE_ASSET_WEIGHT,
-  isForecastOwner,
   isReviewMonthClosed,
   judgmentAssetClassFor,
   krTradingDays,
   krWallClock,
-  KrStockJudgmentNotAvailableError,
   previousReviewMonth,
   reviewMonthWindow,
   type CoachProfileStore,
@@ -37,7 +35,7 @@ import { loadTradeHistory } from "./lib/loadTradeHistory";
  *
  * 코인판 · 국내판을 따로 만든다 — 거래 · 결과 · 연결 계획 · "오를 확률" 계획을 그 자산군 것만 읽는다(계획 자산군은
  * 종목 시세의 자산군, 모르면 코인 — 사이즈 점검과 같은 규칙). 국내판은 모든 시각을 KST 벽시계로 옮기고 거래일만 걷는다
- * (`domain/policy/monthlyReview` 머리 주석). 국내 화면은 소유자 전용이다(`GetMonthlyReview`) — 배치는 거르지 않고
+ * (`domain/policy/monthlyReview` 머리 주석). 국내 화면은 로그인 전체(`ADR-011` — 전에는 소유자) — 배치는 거르지 않고
  * 만들어 두되(국내 거래가 없으면 `no_ledger` 로 안 만든다) 보여 주는 쪽이 막는다.
  *
  * IPS 이탈만은 두 자산군을 합쳐 센다 — 그달 말까지 두 자산군 거래가 다 있으면 다른 자산군 기록도 읽어
@@ -181,15 +179,13 @@ export interface MonthlyReviewView {
 }
 
 /**
- * `GET /api/coach/review/monthly?month=` (코인) · `GET /api/coach/review/monthly/kr-stock?month=` (국내, 소유자 전용 404)
+ * `GET /api/coach/review/monthly?month=` (코인) · `GET /api/coach/review/monthly/kr-stock?month=` (국내)
  * — 없으면 그 자리에서 만든다(끝난 달만)
  */
 export class GetMonthlyReview {
   constructor(
     private readonly reviews: MonthlyReviewStore,
     private readonly build: BuildMonthlyReview,
-    /** 국내 주식을 볼 수 있는 이메일 — 시세 · 국내 미러와 같은 목록(FR-37) */
-    private readonly krViewerEmails: readonly string[] = [],
     private readonly labels: Pick<MarketProbe, "assetLabels"> | null = null,
     private readonly now: () => Date = () => new Date()
   ) {}
@@ -200,9 +196,6 @@ export class GetMonthlyReview {
     options: { assetType?: OutcomeAssetType; viewerEmail?: string } = {}
   ): Promise<MonthlyReviewView> {
     const assetType = options.assetType ?? "crypto";
-    if (assetType === "kr_stock" && !isForecastOwner(options.viewerEmail, this.krViewerEmails)) {
-      throw new KrStockJudgmentNotAvailableError();
-    }
     const target = month ?? previousReviewMonth(this.now());
     const result = await this.build.execute(userId, target, assetType);
     const review = result.status === "ok" ? result.review : null;

@@ -27,7 +27,6 @@ import { EvaluateSymbolJudgments, SnapshotSymbolJudgments } from "../RecordSymbo
 const NOW = new Date("2026-10-08T07:00:00Z");
 const CLOSE_TODAY = new Date("2026-10-08T06:30:00Z"); // 15:30 KST
 const DAILY_BAR_TODAY = new Date("2026-10-07T15:00:00Z"); // 10-08 00:00 KST — 일봉 시각
-const OWNER = "owner@salt.test";
 
 type Row = JudgmentSnapshotDraft & { id: string; returnRate?: number; outcome?: JudgmentOutcome; exitPrice?: number };
 
@@ -279,18 +278,18 @@ describe("GetSymbolCoach — 국내 주식", () => {
     },
   } as unknown as PortfolioProbe;
   const coach = (kr: Record<string, KrFixture>) =>
-    new GetSymbolCoach(market(kr), portfolio, profiles, new MemoryStore(), gauges, () => NOW, null, [OWNER]);
+    new GetSymbolCoach(market(kr), portfolio, profiles, new MemoryStore(), gauges, () => NOW, null);
 
-  it("비소유자에겐 국내 주식 판단이 없다 — 시세 경로와 같은 404", async () => {
-    await assert.rejects(
-      coach({ "005930": {} }).execute("u2", { symbol: "005930", viewerEmail: "other@salt.test" }),
-      (error: { code?: string }) => error.code === "COACH_KR_STOCK_NOT_AVAILABLE"
-    );
+  it("소유자 목록과 무관하게 로그인한 누구나 국내 주식 판단을 받는다 — 소유자 판정은 전망만(ADR-011)", async () => {
+    for (const viewerEmail of ["other@salt.test", undefined]) {
+      const view = await coach({ "005930": {} }).execute("u2", { symbol: "005930", viewerEmail });
+      assert.equal(view.modes.longTerm.assetClass, "kr_stock");
+    }
   });
 
   it("일봉 63 이면 장기는 insufficient_history + 수치, 단타는 mode_not_open, 기본 모드는 장기 (FR-62 · 63)", async () => {
     holdingCalls.length = 0;
-    const view = await coach({ "005930": { dailyBars: 63 } }).execute("u1", { symbol: "005930", viewerEmail: OWNER });
+    const view = await coach({ "005930": { dailyBars: 63 } }).execute("u1", { symbol: "005930" });
 
     assert.equal(view.mode, "long_term");
     assert.equal(view.modes.longTerm.blockedReason, "insufficient_history");
@@ -326,15 +325,14 @@ describe("GetSymbolCoach — 국내 주식", () => {
       new MemoryStore(),
       gauges,
       () => saturday,
-      null,
-      [OWNER]
-    ).execute("u1", { symbol: "005930", viewerEmail: OWNER });
+      null
+    ).execute("u1", { symbol: "005930" });
     assert.equal(view.modes.longTerm.blockedReason, "insufficient_sample");
     assert.equal(view.modes.longTerm.history?.ready, true);
   });
 
   it("사용자가 단타를 골라도 국내 주식 단타는 열리지 않는다", async () => {
-    const view = await coach({ "005930": {} }).execute("u1", { symbol: "005930", mode: "scalp", viewerEmail: OWNER });
+    const view = await coach({ "005930": {} }).execute("u1", { symbol: "005930", mode: "scalp" });
     assert.equal(view.mode, "scalp");
     assert.equal(view.modes.scalp.blockedReason, "mode_not_open");
   });

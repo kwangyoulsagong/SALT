@@ -59,7 +59,7 @@ export interface ScoreboardGroup {
   signalType: string;
   /** 성적 출처 — `backtest` 면 과거 시세로 되돌려 채점한 모의(국내만, 라이브 20 전). 모르는 값은 모의 쪽(F011 슬라이스 7b) */
   sampleOrigin: "live" | "backtest";
-  /** 자산군(F011 FR-65) — 화면은 코인 옆에 국내 주식을 **나란히** 놓고 합산하지 않는다. 국내 주식은 소유자에게만 온다 */
+  /** 자산군(F011 FR-65) — 화면은 코인 옆에 국내 주식을 **나란히** 놓고 합산하지 않는다. 국내 주식도 로그인 전체(`ADR-011` — 전에는 소유자만) */
   assetClass: "crypto" | "kr_stock";
   mode: "scalp" | "long_term";
   sample: number;

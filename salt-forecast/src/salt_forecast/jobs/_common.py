@@ -6,6 +6,7 @@ import argparse
 import json
 import logging
 import resource
+import signal
 import sys
 import time
 from collections.abc import Callable
@@ -50,9 +51,25 @@ def base_parser(description: str) -> argparse.ArgumentParser:
     return p
 
 
-def run_job(name: str, args: argparse.Namespace, body: Callable[[], int]) -> int:
-    """body 는 쓴 행 수를 돌려준다. 락이 잡혀 있으면 0 으로 끝낸다."""
+class JobTimeoutError(TimeoutError):
+    """작업이 시간 상한을 넘었다 — `job_run` 에 실패로 남기고 끝낸다."""
+
+
+def _on_alarm(_signum: int, _frame: object) -> None:
+    raise JobTimeoutError("작업 시간 상한을 넘었다")
+
+
+def run_job(name: str, args: argparse.Namespace, body: Callable[[], int], *, max_seconds: int | None = None) -> int:
+    """body 는 쓴 행 수를 돌려준다. 락이 잡혀 있으면 0 으로 끝낸다.
+
+    `max_seconds` — 넘으면 `JobTimeoutError` 로 끊는다(실패로 기록, 락은 연결과 함께 풀린다).
+    외부 호출이 응답 없이 매달리면 작업이 끝나지 않고 다음 회차 · 일일 순서를 통째로 막는다
+    (2026-11-10 뉴스 작업 8시간 · CPU 0%)
+    """
     log = logger(name)
+    if max_seconds is not None:
+        signal.signal(signal.SIGALRM, _on_alarm)
+        signal.alarm(max_seconds)
     eng = engine()
     with advisory_lock(eng, name) as got:
         if not got:
@@ -68,6 +85,9 @@ def run_job(name: str, args: argparse.Namespace, body: Callable[[], int]) -> int
             if rid is not None:
                 finish_run(eng, rid, ok=False, error=f"{type(e).__name__}: {str(e)[:300]}")
             raise
+        finally:
+            if max_seconds is not None:
+                signal.alarm(0)
         ms = int((time.perf_counter() - t0) * 1000)
         if rid is not None:
             finish_run(eng, rid, ok=True, rows=rows)

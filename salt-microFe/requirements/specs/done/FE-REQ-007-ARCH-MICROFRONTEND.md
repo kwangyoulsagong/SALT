@@ -251,3 +251,5 @@ Multi-Zones의 대가는 **zone 간 이동이 hard navigation**이라는 것이�
 | 2026-11-04 | 로고(`FE-REQ-051`) — 파일만 걸침(`25f182f6`): `@repo/tokens` 에 `colors.brand.mark`(로고 은회색) · `BRAND_MARK`(로고 경로 — 토큰 객체 밖 export, 웹 테마 변수 대상 아님) 추가. 기존 토큰 값 diff 0 |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 인증 키(FR-32) — 토큰 키를 `LEGACY_*`(이관용)로 · `REFRESH_COOKIE` · `SESSION_REFRESH_ROUTE` 추가(`721063fc`) |
 | 2026-11-05 | 금융 팁 S2b 확인 2회차(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: `@repo/core/auth` 에 `isPublicPath` · `PUBLIC_PATHS` 에 `/tips`(공개 zone) (`cf93acb1`) |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/core/src/auth/keys.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)

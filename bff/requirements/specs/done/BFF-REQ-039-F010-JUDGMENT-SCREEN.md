@@ -45,3 +45,5 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §9-4 ·
 - 2026-10-29: F009 슬라이스 9 — **변경 없음.** 같은 뷰모델 파일(`trade-risk.viewmodel.ts`)에 `portfolioVolatility` 두 칸이 붙었고(주인 `BFF-REQ-038` FR-14), 프론트가 BTC 베타 덮은 몫 표시를 내림으로 고쳤다(`FE-REQ-040` FR-2) — FR-1 `btcBeta` · FR-2 `market` 뷰모델 · 테스트 무변경(288/0)
 - 2026-10-30: FR-8 추가 · 완료 — 성적표 그룹 `returnDistribution` 전달(F004 슬라이스 17 판정 근거 상세). 예전 주석 "분포는 화면이 아직 안 써서 옮기지 않는다"를 지웠고 결정 4 를 개정했다. 근거 `requirements/specs/done/F004-fe-signal-evidence-slice.md`
 - 2026-10-30: 파일만 걸침 — 같은 `@repo/core` 파일(`tradeRisk.ts`)에 설정 타입이 늘었다. 이 REQ 계약 무변경
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `bff/src/services/judgment-scoreboard.viewmodel.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)

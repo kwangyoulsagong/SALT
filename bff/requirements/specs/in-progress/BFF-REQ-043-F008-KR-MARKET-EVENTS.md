@@ -32,3 +32,6 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-02 | 1단계 구현 · in-progress. `/schedule` 은 `/:code` 앞(라우터 순서가 계약). 일정 뷰모델은 모르는 종류 · 깨진 행을 버린다. 캐시 없음(국내 경로 규칙 그대로) |
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): **변경 없음**(짝 영역) — 웹은 이제 `/schedule` 을 부르지 않는다(일정 3건은 요약 응답 `schedule` 안, `FE-REQ-046` FR-5 정정). 경로는 남긴다 — 공개 일정이라 앱 · 다른 화면이 쓸 수 있다 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `bff/src/rest/routes/kr-stock.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `bff/src/services/app-kr-stock.service.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)

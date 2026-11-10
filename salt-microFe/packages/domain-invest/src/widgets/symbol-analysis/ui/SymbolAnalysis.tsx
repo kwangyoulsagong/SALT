@@ -34,6 +34,7 @@ import {
   useCoachModeParam,
 } from "@/features/switch-coach-mode";
 import { useLivePrice } from "@repo/web-shared/api";
+import { SignInRequired } from "@repo/web-shared/ui";
 
 import { SYMBOL_ANALYSIS_MESSAGES } from "../model";
 import {
@@ -174,7 +175,10 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                   <CoachModeSwitch value={mode} onChange={setMode} />
                 )}
               </div>
-              {renderCoach()}
+              {/* 로그인 없이 보면 유리막(`FE-REQ-070`) — 판단은 AI 칸 */}
+              <SignInRequired what={SYMBOL_ANALYSIS_MESSAGES.guestWhat.coach} placeholder={<CoachBlockSkeleton block="judgment" />}>
+                {renderCoach()}
+              </SignInRequired>
             </section>
 
             <section className={card}>
@@ -228,6 +232,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
               </>
             )}
             {/* F004 FR-30 — 수익 플랜 다음 주문 전 체크(FR-25 순서). 사기 전 계산이라 이미 한 거래를 적는 폼보다 위 */}
+            <SignInRequired what={SYMBOL_ANALYSIS_MESSAGES.guestWhat.preflight} minHeight={120}>
             {preflightMode && (
               <PreflightCard
                 className={card}
@@ -237,6 +242,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                 livePrice={livePrice ?? listing.item?.currentPrice ?? null}
               />
             )}
+            </SignInRequired>
             {/* F009 — 변동 범위 카드 아래 "내 계획", 그 아래 거래 기록(시나리오 1 · 2). 새 화면이 아니다 */}
             {plans.data && (
               <TradePlanCard
@@ -252,11 +258,13 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                 livePrice={livePrice}
               />
             )}
-            <RecordTradeCard
-              className={card}
-              symbol={symbol}
-              livePrice={livePrice}
-            />
+            <SignInRequired what={SYMBOL_ANALYSIS_MESSAGES.guestWhat.record} minHeight={120}>
+              <RecordTradeCard
+                className={card}
+                symbol={symbol}
+                livePrice={livePrice}
+              />
+            </SignInRequired>
           </div>
         </div>
       </div>

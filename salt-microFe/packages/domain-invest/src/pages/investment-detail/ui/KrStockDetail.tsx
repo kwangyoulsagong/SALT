@@ -27,7 +27,8 @@ import { KrOrderbook } from "./KrOrderbook";
 import { KrStockNews } from "./KrStockNews";
 import { useLiveTabIdentity } from "../lib/useLiveTabIdentity";
 import { KrWhyMoved } from "./KrWhyMoved";
-import { hasApiStatus, useHasSession } from "@repo/web-shared/api";
+import { hasApiStatus } from "@repo/web-shared/api";
+import { SignInRequired } from "@repo/web-shared/ui";
 import { HTTP_STATUS_CODE, PREFLIGHT_ANCHOR_ID } from "@repo/web-shared/config";
 import { formatKrwCompact, formatPrice } from "@repo/web-shared/lib";
 
@@ -65,7 +66,7 @@ const stopReasonOf = (quote: Pick<KrQuote, "status">) => {
 
 /**
  * 국내 주식 상세(F011 `FE-REQ-041` FR-42 · 43 · 44 · 46) — **클라이언트 잎.** 코인 상세와 달리 머리를 서버에서 그리지 않는다:
- * 시세가 소유자 전용이라 토큰이 필요하고(브라우저 `localStorage`), 공개 HTML · 메타데이터에 국내 주식 시세를 넣으면 안 된다
+ * ~~시세가 소유자 전용이라~~(2026-11-10 공개 — `ADR-011`) 클라이언트 조회 그대로 — 서버 렌더 · 색인은 `FEATURE-018` OQ2(색인이 필요할 때)
  * (KRX 재배포 약관 — F011 §정책).
  * (2026-11-05 정정: 토큰은 이제 httpOnly 쿠키라 서버도 읽는다 — `FE-REQ-013` FR-80 2단계. 그래도 국내 시세는 약관상 서버 HTML 에 넣지 않으므로 클라이언트에 남는다 — FR-81 대상 아님)
  *
@@ -74,7 +75,6 @@ const stopReasonOf = (quote: Pick<KrQuote, "status">) => {
  * (`KrCoachJudgment`, 슬라이스 4). 변동 범위는 오른쪽 열 "자세히"(`KrForecast`, 슬라이스 5d — 소유자만). 해설은 아직 열지 않았다.
  */
 export const KrStockDetail = ({ code }: { code: string }) => {
-  const signedIn = useHasSession();
   const { data, isPending, error } = useKrDetail(code);
   const ok = data?.status === "ok" ? data : null;
   // 거래정지 종목은 체결이 없다 — 구독하지 않는다
@@ -88,11 +88,10 @@ export const KrStockDetail = ({ code }: { code: string }) => {
     closed: ok !== null && ok.session.session !== "regular" && ok.session.session !== "closing_auction",
   });
 
-  if (signedIn === false) return <StatusLine kind="blocked">{M.signInRequired}</StatusLine>;
   if (hasApiStatus(error, HTTP_STATUS_CODE.NOT_FOUND)) {
     return <StatusLine kind="empty">{M.detail.notFound}</StatusLine>;
   }
-  if (isPending || signedIn === null) {
+  if (isPending) {
     return <Skeleton height={INVESTMENT_DETAIL_BLOCK_MIN_HEIGHT} radius="base" />;
   }
   if (!ok) {
@@ -181,15 +180,19 @@ export const KrStockDetail = ({ code }: { code: string }) => {
           {/* 코인 상세 오른쪽 열과 같은 순서 — 자세히(변동 범위) → 거래 기록. 차트 선 끝은 실시간 현재가 */}
           <KrForecast code={quote.code} livePrice={quote.price} />
           {/* 주문 전 체크(F004 FR-30) — 코인 상세와 같은 자리. 국내 주식 판단은 장기 한 모드라 장기로 계산한다 */}
-          <PreflightCard className={krSideCard} symbol={quote.code} mode="long_term" livePrice={quote.price} />
+          <SignInRequired what={INVESTMENT_DETAIL_PAGE_MESSAGES.guestWhat.preflight} minHeight={120}>
+            <PreflightCard className={krSideCard} symbol={quote.code} mode="long_term" livePrice={quote.price} />
+          </SignInRequired>
           {/* 현재가는 실시간 구독이 갱신한 값 — [현재가] 버튼이 옮겨 적기만 한다. 호가 단위는 안내만(FR-42) */}
-          <RecordTradeCard
-            className={krSideCard}
-            symbol={quote.code}
-            assetType="kr_stock"
-            tickSize={detail.tickSize}
-            livePrice={quote.price}
-          />
+          <SignInRequired what={INVESTMENT_DETAIL_PAGE_MESSAGES.guestWhat.record} minHeight={120}>
+            <RecordTradeCard
+              className={krSideCard}
+              symbol={quote.code}
+              assetType="kr_stock"
+              tickSize={detail.tickSize}
+              livePrice={quote.price}
+            />
+          </SignInRequired>
         </div>
       </div>
       {/*
@@ -209,7 +212,9 @@ export const KrStockDetail = ({ code }: { code: string }) => {
       </div>
       {/* 오늘 소식(F016 단계 B · `FE-REQ-063` FR-4) — 시세 사실 줄 아래 · 코치 판단 위. 제목만(링크 없음) */}
       <KrStockNews code={quote.code} />
-      <KrCoachJudgment code={quote.code} />
+      <SignInRequired what={INVESTMENT_DETAIL_PAGE_MESSAGES.guestWhat.coach} minHeight={160}>
+        <KrCoachJudgment code={quote.code} />
+      </SignInRequired>
       {/* 주요 사건(F008 슬라이스 24) — 국내 판단 카드 아래(`FE-REQ-046` FR-1). 소유자만 */}
       <KrEvents code={quote.code} />
     </>

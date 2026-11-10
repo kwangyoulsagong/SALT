@@ -57,7 +57,7 @@ export class AppBehaviorMirrorController {
     }
   };
 
-  /** 국내 주식 미러(F011 FR-47) — 소유자 전용 404 는 그대로 */
+  /** 국내 주식 미러(F011 FR-47) — 로그인 전체(`ADR-011`), 서버 4xx 는 그대로 */
   krMirror = async (req: Request, res: Response, next: NextFunction) => {
     const aborter = abortOnClose(res);
     try {
@@ -89,7 +89,7 @@ export class AppBehaviorMirrorController {
   /** 월간 복기 — `month` 가 없으면 서버가 KST 지난달을 고른다 */
   monthlyReview = (req: Request, res: Response, next: NextFunction) => this.review(req, res, next, "crypto");
 
-  /** 월간 복기 국내판(F011 FR-48) — 소유자 전용 404 는 그대로 */
+  /** 월간 복기 국내판(F011 FR-48) — 로그인 전체(`ADR-011`), 서버 4xx 는 그대로 */
   krMonthlyReview = (req: Request, res: Response, next: NextFunction) => this.review(req, res, next, "kr_stock");
 
   private review = async (req: Request, res: Response, next: NextFunction, assetType: "crypto" | "kr_stock") => {

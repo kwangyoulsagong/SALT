@@ -90,3 +90,9 @@
 - 변경 · 검증: 요약 띠 위 시장 조치 띠(국내만). 실화면 1280 넘침 0 · axe 새 요소 0
 - 미검증 · 범위 밖: 없음
 - 루트 슬라이스 `requirements/specs/done/F016-A-market-status-tags-slice.md` · 체크리스트 `requirements/reports/checklists/F016-A-market-status-tags.md`
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-microFe/packages/domain-invest/src/entities/market/api/useMarketQueries.ts` — 시장 조회의 로그인 조건 제거(게스트 토큰으로 이어 봄)
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

@@ -184,3 +184,6 @@ created: 2026-09-09
 | 2026-11-03 | `d69c310e` — `app.ts` 에서 `/api/goals` 등록 삭제(Express 404 · BFF 410) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): `GET /api/onboarding/status` 경로 삭제(`app.ts`) `7f2ba1ed` |
 | 2026-11-09 | 시장 개요 응답에 `moveCard`(추가만 — 계약 테스트 목록에 더함, F016 단계 C) |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-server/src/auth/domain/errors.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
+  - `salt-server/src/auth/presentation/auth.controller.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)

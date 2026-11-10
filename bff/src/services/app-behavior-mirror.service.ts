@@ -67,7 +67,7 @@ export class AppBehaviorMirrorService {
   }
 
   /**
-   * 국내 주식 미러. 소유자가 아니면 서버 404(`COACH_KR_STOCK_NOT_AVAILABLE`)가 그대로 올라간다 — 화면은 섹션을 숨긴다.
+   * 국내 주식 미러 — 로그인 전체(`ADR-011`, 전에는 소유자). 서버 4xx 는 그대로 올라간다.
    * 재시도 없음 — 느린 첫 요청을 두 번 기다리게 하지 않는다(서버가 이미 캐시를 채우는 중이다)
    */
   async getKrMirror(token: string, signal?: AbortSignal): Promise<KrBehaviorMirrorResult> {
@@ -115,7 +115,7 @@ export class AppBehaviorMirrorService {
   /**
    * 월간 복기(슬라이스 6, `BFF-REQ-038` FR-10). GET 이지만 서버가 없던 복기를 만들 수 있다 — 만드는 쪽이 멱등이라
    * (있으면 읽고 끝) 재시도 1회는 안전하다.
-   * 국내판(F011 `BFF-REQ-040` FR-26)은 서버 경로가 따로다 — 소유자가 아니면 서버 404 가 그대로 올라간다(국내 미러와 같다)
+   * 국내판(F011 `BFF-REQ-040` FR-26)은 서버 경로가 따로다 — 서버 4xx 는 그대로 올라간다(국내 미러와 같다)
    */
   async getMonthlyReview(
     token: string,

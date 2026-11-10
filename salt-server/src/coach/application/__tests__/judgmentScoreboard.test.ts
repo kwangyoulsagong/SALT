@@ -91,15 +91,13 @@ describe("GetJudgmentScoreboard", () => {
     assert.equal(only.returnDistribution.horizonDays, 1);
   });
 
-  it("국내 주식 그룹은 자산군 라벨을 달고 나란히 — 소유자에게만 (F011 FR-65)", async () => {
+  it("국내 주식 그룹은 자산군 라벨을 달고 나란히 — 로그인한 누구나(소유자 판정 없음, ADR-011 · F011 FR-65)", async () => {
     const store = fakeStore([group({ signalType: "long_term.wait" }), group({ signalType: "kr_stock.long_term.wait" })]);
-    const owner = await new GetJudgmentScoreboard(store, ["owner@salt.test"]).execute("owner@salt.test");
+    const view = await new GetJudgmentScoreboard(store).execute();
     assert.deepEqual(
-      owner.groups.map((item) => `${item.assetClass}:${item.signalType}:${item.returnDistribution.horizonDays}`),
+      view.groups.map((item) => `${item.assetClass}:${item.signalType}:${item.returnDistribution.horizonDays}`),
       ["crypto:long_term.wait:30", "kr_stock:kr_stock.long_term.wait:30"]
     );
-    const other = await new GetJudgmentScoreboard(store, ["owner@salt.test"]).execute("other@salt.test");
-    assert.deepEqual(other.groups.map((item) => item.signalType), ["long_term.wait"]);
   });
 
   it("`<mode>.<action>` 이 아닌 그룹은 뺀다 — 기간을 말할 수 없다", async () => {
@@ -142,7 +140,7 @@ describe("GetJudgmentScoreboard", () => {
         return [{ symbol: "024850", name: "국내종목A", logoUrl: null }];
       },
     };
-    const view = await new GetJudgmentScoreboard(live, ["owner@salt.test"], backtest, market).execute("owner@salt.test");
+    const view = await new GetJudgmentScoreboard(live, backtest, market).execute();
     assert.deepEqual(
       view.groups.map((item) => `${item.signalType}:${item.sampleOrigin}:${item.sample}`),
       ["long_term.wait:live:22", "kr_stock.long_term.wait:backtest:35994", "kr_stock.long_term.avoid:backtest:15311"]
@@ -151,8 +149,11 @@ describe("GetJudgmentScoreboard", () => {
     assert.equal(avoid?.misses[0].name, "국내종목A");
     assert.deepEqual(asked, [["024850"]]);
 
-    // 비소유자는 국내 그룹이 없고 백테스트를 묻지도 않는다
-    const other = await new GetJudgmentScoreboard(live, ["owner@salt.test"], backtest, market).execute("x@salt.test");
-    assert.deepEqual(other.groups.map((item) => item.signalType), ["long_term.wait"]);
+    // 경계: 백테스트 저장소가 없으면 국내 그룹은 라이브 표본 그대로 — 숨기지도 지어내지도 않는다
+    const liveOnly = await new GetJudgmentScoreboard(live, null, market).execute();
+    assert.deepEqual(
+      liveOnly.groups.map((item) => `${item.signalType}:${item.sampleOrigin}:${item.sample}`),
+      ["long_term.wait:live:22", "kr_stock.long_term.wait:live:3"]
+    );
   });
 });

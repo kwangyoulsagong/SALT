@@ -9,6 +9,8 @@ created: 2026-10-08
 source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/프론트엔드 영향 · §슬라이스 순서 3
 ---
 
+> **정정 2026-11-10 (`ADR-011` · `FE-REQ-070`)** — 판단 2 "소유자 전용(KRX 재배포 약관)"은 뒤집혔다: 국내 탭 · 시세는 비로그인 포함 공개(게스트 토큰), 비로그인 · 비소유자 숨김은 키 없음(`disabled`)만 남는다. FR-23 변동 범위 카드(전망)는 소유자 그대로.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - 범위 밖 "국내 거래 폼 · 해설 · 전망은 국내 주식을 받지 않는다"는 지난 일 — FR-16 · 22(거래 폼) · FR-23(`KrForecast.tsx`) · FR-25 완료
 
@@ -24,7 +26,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 1. **같은 화면, 데이터만 다르다**(사용자 2026-10-08: "실시간 차트에 국내주식 비트코인 이렇게 탭을 나눠야" · "똑같은 ui 똑같은 인터랙션" ·
    "위에 투자분석 아래 탭 두개" · "똑같은 화면이고 데이터만 다른거지"). 표 · 필터 · 미리보기 · 관심 종목 탭을 **자산군 하나로 매개변수화**한다.
    국내 주식 행은 `krQuoteToOverviewItem` 으로 코인 행 모양에 맞추고 코인에 없는 것(배지 · 장 상태)만 `kr` 필드로 싣는다
-2. **소유자 전용**(KRX 재배포 약관, F011 §정책). 자산군 탭은 장 상태 응답이 `ok` · `unavailable` 일 때만. 비로그인 · 비소유자(404) · 키 없음(`disabled`)은
+2. ~~**소유자 전용**(KRX 재배포 약관, F011 §정책).~~ (정정 2026-11-10 위 머리 블록) 자산군 탭은 장 상태 응답이 `ok` · `unavailable` 일 때만. 비로그인 · 비소유자(404) · 키 없음(`disabled`)은
    탭 없음. 상세 `/investments/{6자리}` 는 서버 HTML · 메타데이터에 시세를 넣지 않고 `noindex`
 3. **값은 전부 서버 것** — 원 정수 · 등락 · 당일 시가/고가/저가 · 기간 수익률 · 상하한 도달 · 종목 상태 · 시세 출처 · 호가 단위. 프론트는 KST 글자 표시만(`@repo/core/marketKr`)
 4. **가격에 깜빡임 없음**(`motion.md` §5) — 코인과 같게 변동률 칸만 깜빡인다
@@ -135,3 +137,9 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 | 2026-11-10 | `entities/market/ui/index.ts` 에 `SearchTextOption` · 국내 탭 주소 진입(`ROUTES.investmentsKr`, `?asset=kr_stock` — 비소유자는 코인으로 되돌아감) — `FE-REQ-066` `19539c95` |
 | 2026-11-10 | `ui/index.ts` 에 `NewsModalHost` · 국내 프리뷰 소식도 모달을 보드 호스트에(`FE-REQ-065` `87eb8083`) |
 | 2026-11-10 | 국내 자산군 탭이 본문에서 머리 메뉴 "주식"으로(`FE-REQ-069`) — 보이는 판정(장 상태 ok)은 그대로 · 비소유자 `?asset=kr_stock` 은 코인 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/packages/domain-invest/src/entities/market/api/useKrStockQueries.ts` — 시장 조회의 로그인 조건 제거(게스트 토큰으로 이어 봄)
+  - `salt-microFe/packages/domain-invest/src/entities/market/model/krStockMessages.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrStockDetail.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+  - `salt-microFe/packages/domain-invest/src/widgets/coach-console/ui/KrMirrorPanel.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+  - `salt-microFe/packages/domain-invest/src/widgets/coach-console/ui/MonthlyReviewPanel.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)

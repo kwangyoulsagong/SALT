@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
+import { readerUser } from "../../shared/presentation/marketReaderMiddleware";
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import {
   ChartPeriod,
@@ -31,7 +32,6 @@ export class InvestmentController {
       const data = addToWatchlistSchema.parse(req.body);
       const result = await this.useCases.addToWatchlist.execute({
         userId: req.user!.userId,
-        email: req.user!.email,
         ...data,
       });
 
@@ -50,8 +50,7 @@ export class InvestmentController {
       const query = queryWatchlistSchema.parse(req.query);
       const result = await this.useCases.listWatchlist.execute(
         req.user!.userId,
-        query,
-        { email: req.user!.email }
+        query
       );
       return ResponseUtil.success(res, result);
     } catch (error) {
@@ -62,11 +61,8 @@ export class InvestmentController {
   searchAssets = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = searchAssetsSchema.parse(req.query);
-      const result = await this.useCases.searchAssets.execute({
-        userId: req.user!.userId,
-        email: req.user!.email,
-        ...query,
-      });
+      // 게스트(`ADR-011`)는 사람 칸 없이 — ★ · 보유 · 추적 카운터가 `null`
+      const result = await this.useCases.searchAssets.execute({ userId: readerUser(req)?.userId ?? null, ...query });
       return ResponseUtil.success(res, result);
     } catch (error) {
       next(error);
@@ -77,7 +73,7 @@ export class InvestmentController {
   searchGroups = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { q } = searchGroupsSchema.parse(req.query);
-      return ResponseUtil.success(res, await this.useCases.searchResultGroups.execute({ email: req.user!.email, q }));
+      return ResponseUtil.success(res, await this.useCases.searchResultGroups.execute({ q }));
     } catch (error) {
       next(error);
     }
@@ -87,7 +83,7 @@ export class InvestmentController {
   risingSectors = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { limit } = risingSectorsSchema.parse(req.query);
-      return ResponseUtil.success(res, await this.useCases.readRisingSectors.execute({ email: req.user!.email, limit }));
+      return ResponseUtil.success(res, await this.useCases.readRisingSectors.execute({ limit }));
     } catch (error) {
       next(error);
     }
@@ -97,7 +93,7 @@ export class InvestmentController {
   searchRelated = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const target = searchRelatedSchema.parse(req.query);
-      return ResponseUtil.success(res, await this.useCases.readSearchRelated.execute({ email: req.user!.email, ...target }));
+      return ResponseUtil.success(res, await this.useCases.readSearchRelated.execute(target));
     } catch (error) {
       next(error);
     }

@@ -11,6 +11,23 @@ import type { IncomingHttpHeaders } from "http";
 
 /** 셸 Route Handler 가 쓰는 이름 — `@repo/core/auth` `ACCESS_COOKIE` 와 같아야 한다 */
 export const ACCESS_COOKIE = "salt_at";
+/** 게스트 토큰 쿠키(`BFF-REQ-055` · `ADR-011`) — `@repo/core/auth` `GUEST_COOKIE` 와 같아야 한다 */
+export const GUEST_COOKIE = "salt_gt";
+
+export type SessionTokenKind = "user" | "guest";
+
+/**
+ * 쿠키에서 토큰 하나 — **사람이 먼저**(`BFF-REQ-055` FR-1). 둘 다 있으면(로그인 직후 게스트 쿠키가 남은 탭) 사람 토큰을 쓴다 —
+ * 게스트로 내리면 ★ · 코치가 401 이 된다. 어느 쪽인지는 실시간 중계 상한이 센다(게스트 몫)
+ */
+export const sessionTokenFromCookie = (
+  header: string | undefined
+): { token: string; kind: SessionTokenKind } | undefined => {
+  const user = readCookie(header, ACCESS_COOKIE);
+  if (user) return { token: user, kind: "user" };
+  const guest = readCookie(header, GUEST_COOKIE);
+  return guest ? { token: guest, kind: "guest" } : undefined;
+};
 
 const MAX_TOKEN_LENGTH = 4096;
 

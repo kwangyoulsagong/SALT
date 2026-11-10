@@ -2,7 +2,6 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import { useHasSession } from "@repo/web-shared/api";
 
 import type { SearchRelatedTarget } from "../model/types";
 import { marketApi } from "./marketApi";
@@ -20,11 +19,10 @@ const RELATED_STALE_MS = 60_000;
  * `q` 는 이미 디바운스 · 공백 제거된 값. 비면 부르지 않는다(빈 검색어의 첫 화면은 순위다)
  */
 export const useSearchGroups = (q: string) => {
-  const signedIn = useHasSession() === true;
   return useQuery({
     queryKey: [...marketQueryKeys.searchGroups, q],
     queryFn: ({ signal }) => marketApi.searchGroups(q, signal),
-    enabled: signedIn && q !== "",
+    enabled: q !== "",
     placeholderData: keepPreviousData,
     staleTime: SEARCH_EXTRAS_STALE_MS,
   });
@@ -49,11 +47,10 @@ const targetKey = (target: SearchRelatedTarget | null) =>
 
 /** 곁 칸 — 고른 줄의 관련 종목. 대상이 없으면(뉴스 · 지수 줄 · 아무것도 안 고름) 부르지 않는다 */
 export const useSearchRelated = (target: SearchRelatedTarget | null) => {
-  const signedIn = useHasSession() === true;
   return useQuery({
     queryKey: [...marketQueryKeys.searchRelated, targetKey(target)],
     queryFn: ({ signal }) => marketApi.searchRelated(target!, signal),
-    enabled: signedIn && target !== null,
+    enabled: target !== null,
     staleTime: RELATED_STALE_MS,
   });
 };

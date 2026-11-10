@@ -17,3 +17,7 @@
 
 - 공개 API 를 늘리기 전에 이벤트로 될 일인지 물었다 — 조회라 API 가 맞다(`ddd-application.md` §6)
 - 루트 회고 `requirements/reports/retrospects/FE-066-067-search-header.md`
+
+## 2026-11-10 — F018
+
+- F018 이 이 REQ 의 파일을 걸쳤다(위 체크리스트 2026-11-10 절). 국내 소유자 전용(F011 §정책)을 전제로 쓴 주석 · 단언이 여러 곳에 흩어져 있었다 — 전제가 바뀌면 그 문장을 grep 으로 한 번에 찾는다

@@ -316,7 +316,10 @@ export class PrismaKrStockStore implements KrStockStore {
         ${col((c) => c.close)}::numeric[], ${col((c) => c.volume)}::numeric[], ${col((c) => c.timestamp)}::timestamptz[]
       ) AS u(open, high, low, close, volume, ts)
       ON CONFLICT (symbol, timeframe, timestamp) DO UPDATE SET
-        open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume`;
+        open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume
+        -- 값이 같으면 쓰지 않는다 — 창 전체를 다시 받아도 바뀐 봉(마지막 몇 개)만 쓴다(장중 504, 2026-11-10 DB-REQ-017)
+        WHERE (price_history.open, price_history.high, price_history.low, price_history.close, price_history.volume)
+          IS DISTINCT FROM (EXCLUDED.open, EXCLUDED.high, EXCLUDED.low, EXCLUDED.close, EXCLUDED.volume)`;
   }
 
   async upsertDailyCandles(code: string, candles: Candle[]) {
@@ -331,7 +334,10 @@ export class PrismaKrStockStore implements KrStockStore {
         ${col((c) => c.close)}::numeric[], ${col((c) => c.volume)}::numeric[], ${col((c) => c.timestamp)}::timestamptz[]
       ) AS u(open, high, low, close, volume, ts)
       ON CONFLICT (symbol, timeframe, timestamp) DO UPDATE SET
-        open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume`;
+        open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume
+        -- 값이 같으면 쓰지 않는다 — 창 전체를 다시 받아도 바뀐 봉(마지막 몇 개)만 쓴다(장중 504, 2026-11-10 DB-REQ-017)
+        WHERE (price_history.open, price_history.high, price_history.low, price_history.close, price_history.volume)
+          IS DISTINCT FROM (EXCLUDED.open, EXCLUDED.high, EXCLUDED.low, EXCLUDED.close, EXCLUDED.volume)`;
   }
 
   /**
@@ -375,7 +381,10 @@ export class PrismaKrStockStore implements KrStockStore {
       -- 시가는 먼저 쓴 값, 고 · 저는 넓은 쪽, 거래량은 큰 쪽(같은 프로세스 안에서는 늘기만 한다)
       ON CONFLICT (symbol, timeframe, timestamp) DO UPDATE SET
         high = GREATEST(price_history.high, EXCLUDED.high), low = LEAST(price_history.low, EXCLUDED.low),
-        close = EXCLUDED.close, volume = GREATEST(price_history.volume, EXCLUDED.volume)`;
+        close = EXCLUDED.close, volume = GREATEST(price_history.volume, EXCLUDED.volume)
+      -- 바뀔 것이 없으면 쓰지 않는다(위 합치기 규칙 결과가 지금 값과 같은 경우 — DB-REQ-017 2026-11-10)
+      WHERE EXCLUDED.high > price_history.high OR EXCLUDED.low < price_history.low
+        OR EXCLUDED.close IS DISTINCT FROM price_history.close OR EXCLUDED.volume > price_history.volume`;
   }
 
   async realtimeFreshCodes(since: Date) {
@@ -418,7 +427,10 @@ export class PrismaKrStockStore implements KrStockStore {
         ${col((c) => c.close)}::numeric[], ${col((c) => c.volume)}::numeric[], ${col((c) => c.timestamp)}::timestamptz[]
       ) AS u(open, high, low, close, volume, ts)
       ON CONFLICT (symbol, timeframe, timestamp) DO UPDATE SET
-        open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume`;
+        open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume
+        -- 값이 같으면 쓰지 않는다 — 창 전체를 다시 받아도 바뀐 봉(마지막 몇 개)만 쓴다(장중 504, 2026-11-10 DB-REQ-017)
+        WHERE (price_history.open, price_history.high, price_history.low, price_history.close, price_history.volume)
+          IS DISTINCT FROM (EXCLUDED.open, EXCLUDED.high, EXCLUDED.low, EXCLUDED.close, EXCLUDED.volume)`;
   }
 
   /**

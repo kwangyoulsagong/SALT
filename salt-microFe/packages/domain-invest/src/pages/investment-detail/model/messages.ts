@@ -4,6 +4,8 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   tabTitle: (price: string, rate: string, name: string, closed: boolean) =>
     `${price} ${rate}${closed ? " 장 마감" : ""} | ${name}`,
   back: "투자로 돌아가기",
+  /** 로그인 없이 볼 때 유리막 칸 이름(`FE-REQ-070` FR-7) */
+  guestWhat: { coach: "코치 판단", preflight: "주문 전 체크", record: "거래 기록" },
 
   /** 요약 지표 (`FE-REQ-026` FR-131 헤더). 값은 전부 서버가 준 것이다. */
   statRange: "24시간 범위",

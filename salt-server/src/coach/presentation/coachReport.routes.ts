@@ -758,7 +758,6 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       200:
    *         description: "`{ status, turnover, disposition, nextDaySell, chase, lottery, adherence, tagCosts[], streak, timing, lossAsymmetry, outcomeCount, outcomesComputedAt, tradeCount, minSample, asOf }`"
    *       401: { description: 인증 실패 }
-   *       404: { description: "`COACH_KR_STOCK_NOT_AVAILABLE` — 국내 주식을 볼 수 없다(소유자 전용)" }
    */
   router.get("/mirror/kr-stock", risk.getKrBehaviorMirror);
 
@@ -883,7 +882,6 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *         description: "코인판과 같은 모양 — `assetType: kr_stock`"
    *       400: { description: month 형식 오류 }
    *       401: { description: 인증 실패 }
-   *       404: { description: "`COACH_KR_STOCK_NOT_AVAILABLE` — 국내 주식을 볼 수 없다(소유자 전용)" }
    */
   router.get("/review/monthly/kr-stock", risk.getKrMonthlyReview);
 

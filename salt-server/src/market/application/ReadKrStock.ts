@@ -2,7 +2,6 @@ import {
   KrStockNotAvailableError,
   isKrQuoteWindow,
   isKrStockCode,
-  isKrStockViewer,
   KR_PERIOD_TRADING_DAYS,
   krAfterHoursVisible,
   krFeedState,
@@ -57,14 +56,9 @@ import { loadKrSession } from "./SyncKrStock";
  * 국내 주식 읽기(F011 · `SRV-REQ-040`) — **저장값만 읽는다.** KIS 를 동기로 부르지 않아 응답 시간이
  * 외부에 묶이지 않는다(시장표 p95 < 80ms 목표).
  *
- * 볼 수 있는 사람은 소유자뿐이다(`FORECAST_OWNER_EMAILS` 재사용, 재배포 약관 확인 전 — F011 §정책).
- * 비소유자에게는 404 하나로 답해 국내 주식 시세가 있다는 사실도 주지 않는다.
+ * ~~볼 수 있는 사람은 소유자뿐이다~~ **정정 2026-11-10(`ADR-011` · `SRV-REQ-056`)**: 시세는 읽는 사람(사람 · 게스트 토큰)이면 누구나 —
+ * 판정은 라우터의 `marketReaderMiddleware` 한 곳이다. 유스케이스는 누가 읽는지 받지 않는다(시세는 누구에게나 같다).
  */
-
-export interface KrStockViewer {
-  userId: string;
-  email?: string;
-}
 
 export interface KrStockQuoteView {
   code: string;
@@ -240,18 +234,9 @@ const toQuoteBase = (
 const toAfterHoursView = (q: KrAfterHoursQuote | null): KrStockQuoteView["afterHours"] =>
   q && { price: won(q.price), change: won(q.change), changeRate: q.changeRate, volume: q.volume.toString(), at: q.at.toISOString() };
 
-class KrStockAccess {
-  constructor(private readonly viewers: readonly string[]) {}
-
-  assert(viewer: KrStockViewer) {
-    if (!isKrStockViewer(viewer.email, this.viewers)) throw new KrStockNotAvailableError();
-  }
-}
-
 export interface KrStockReadDependencies {
   store: KrStockStore;
   calendar: KrMarketCalendarStore;
-  viewerEmails: readonly string[];
   /** KIS 상태(FR-92) — 화면의 "시세 제공 지연 중 · {since}" 근거 */
   provider: () => KrProviderView;
   /** logo.dev 퍼블리셔블 키(`KR_LOGO_DEV_TOKEN`) — 없으면 로고 없음(화면 이니셜) */
@@ -274,18 +259,15 @@ export interface KrStockReadDependencies {
 }
 
 export abstract class KrStockRead {
-  protected readonly access: KrStockAccess;
   protected readonly now: () => Date;
 
   constructor(protected readonly deps: KrStockReadDependencies) {
-    this.access = new KrStockAccess(deps.viewerEmails);
     this.now = deps.now ?? (() => new Date());
   }
 }
 
 export class GetKrMarketSession extends KrStockRead {
-  async execute(viewer: KrStockViewer): Promise<KrSessionResponse & { provider: KrProviderView }> {
-    this.access.assert(viewer);
+  async execute(): Promise<KrSessionResponse & { provider: KrProviderView }> {
     const now = this.now();
     return { ...toSessionResponse(await loadKrSession(this.deps.calendar, now), now), provider: this.deps.provider() };
   }
@@ -310,8 +292,7 @@ export interface KrListQuery {
 }
 
 export class ListKrStockQuotes extends KrStockRead {
-  async execute(viewer: KrStockViewer, query: KrListQuery) {
-    this.access.assert(viewer);
+  async execute(query: KrListQuery) {
     const now = this.now();
     const limit = Math.min(query.limit, KR_LIST_MAX_LIMIT);
     const [session, quotes] = await Promise.all([
@@ -356,8 +337,7 @@ export class ListKrStockQuotes extends KrStockRead {
 }
 
 export class GetKrStockDetail extends KrStockRead {
-  async execute(viewer: KrStockViewer, code: string) {
-    this.access.assert(viewer);
+  async execute(code: string) {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const now = this.now();
     const [session, quote] = await Promise.all([loadKrSession(this.deps.calendar, now), this.deps.store.quote(code)]);
@@ -388,8 +368,7 @@ export type KrChartPeriod = "1d" | "5m";
 export const KR_CHART_MAX_COUNT = 500;
 
 export class GetKrStockChart extends KrStockRead {
-  async execute(viewer: KrStockViewer, code: string, period: KrChartPeriod, count: number) {
-    this.access.assert(viewer);
+  async execute(code: string, period: KrChartPeriod, count: number) {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const candles: Candle[] = await this.deps.store.candles(code, period, Math.min(count, KR_CHART_MAX_COUNT));
     // 5분봉은 슬라이스 1 의 실시간 집계부터 쌓인다 — 몇 거래일치인지를 같이 줘서 화면이 숨기지 않게(FR-46)
@@ -416,8 +395,7 @@ export class GetKrStockChart extends KrStockRead {
 export const KR_SEARCH_LIMIT = 20;
 
 export class SearchKrStocks extends KrStockRead {
-  async execute(viewer: KrStockViewer, q: string) {
-    this.access.assert(viewer);
+  async execute(q: string) {
     const items = await this.deps.store.search(q.trim(), KR_SEARCH_LIMIT);
     const inUniverse = new Set(
       (await this.deps.store.quotes({ codes: items.map((i) => i.code), limit: KR_SEARCH_LIMIT, offset: 0 })).map((q) => q.code)
@@ -450,8 +428,7 @@ const points = (v: number) => Math.round(v * 100) / 100;
  * 아직 한 번도 못 받은 지수는 빠진다(빈 칸을 그리지 않는다)
  */
 export class GetKrIndices extends KrStockRead {
-  async execute(viewer: KrStockViewer) {
-    this.access.assert(viewer);
+  async execute() {
     const now = this.now();
     const codes = [...this.deps.summaryIndices];
     const [session, stored] = await Promise.all([loadKrSession(this.deps.calendar, now), this.deps.supplement.indexQuotes(codes)]);
@@ -486,8 +463,7 @@ const toNetView = (n: KrInvestorNet) => ({ quantity: n.quantity.toString(), valu
  * 마스터에 없는 종목은 404 — 있는데 아직 안 모였으면 빈 `rows`(다음 개장일 저녁 수집이 채운다)
  */
 export class GetKrInvestorFlows extends KrStockRead {
-  async execute(viewer: KrStockViewer, code: string, days: number) {
-    this.access.assert(viewer);
+  async execute(code: string, days: number) {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const listing = await this.deps.store.findListing(code);
     if (!listing) throw new KrStockNotAvailableError();
@@ -532,8 +508,7 @@ export class GetKrOrderbook extends KrStockRead {
   private readonly cache = new Map<string, { fact: KrOrderbookFact; fetchedAt: Date }>();
   private readonly inflight = new Map<string, Promise<KrOrderbookFact>>();
 
-  async execute(viewer: KrStockViewer, code: string) {
-    this.access.assert(viewer);
+  async execute(code: string) {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const listing = await this.deps.store.findListing(code);
     if (!listing) throw new KrStockNotAvailableError();
@@ -582,8 +557,7 @@ export class GetKrOrderbook extends KrStockRead {
  * `collectedAt` 은 시장 전체 마지막 수집 시각(신선도 — 빈 목록이 "소식 없음"인지 "수집 멈춤"인지 가른다)
  */
 export class GetKrStockNews extends KrStockRead {
-  async execute(viewer: KrStockViewer, code: string) {
-    this.access.assert(viewer);
+  async execute(code: string) {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const listing = await this.deps.store.findListing(code);
     if (!listing) throw new KrStockNotAvailableError();
@@ -617,8 +591,7 @@ const KR_NEWS_SERIAL = /^\d{8,24}$/;
  * 포털에 같은 글이 없다 — 검색 없이 `not_found`. 본문 찾기 · 캐시는 `news` 컨텍스트
  */
 export class GetKrNewsBody extends KrStockRead {
-  async execute(viewer: KrStockViewer, code: string, serial: string): Promise<KrArticleBodyView> {
-    this.access.assert(viewer);
+  async execute(code: string, serial: string): Promise<KrArticleBodyView> {
     if (!isKrStockCode(code) || !KR_NEWS_SERIAL.test(serial)) throw new KrStockNotAvailableError();
     const title = await this.deps.moveSources.newsTitle(serial, code);
     if (!title) throw new KrStockNotAvailableError();
@@ -636,8 +609,7 @@ export class GetKrNewsBody extends KrStockRead {
  * (모의 키 거부, 2026-11-06) 응답에 칸을 두지 않는다 — 일별 투자자 동향(`/investors`)이 그 몫이다
  */
 export class GetKrIntradayFlows extends KrStockRead {
-  async execute(viewer: KrStockViewer, code: string) {
-    this.access.assert(viewer);
+  async execute(code: string) {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const listing = await this.deps.store.findListing(code);
     if (!listing) throw new KrStockNotAvailableError();

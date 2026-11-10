@@ -4,7 +4,7 @@ import type { IncomingHttpHeaders } from "http";
 import type { Request, Response } from "express";
 
 import { cookieSessionMiddleware } from "../../rest/middleware/cookieSession.middleware";
-import { isAllowedSocketOrigin, isSameOriginRequest, readCookie, webOrigins } from "../session-cookie.util";
+import { isAllowedSocketOrigin, isSameOriginRequest, readCookie, sessionTokenFromCookie, webOrigins } from "../session-cookie.util";
 
 const ORIGINS = ["http://localhost:3000"];
 
@@ -76,5 +76,24 @@ describe("cookieSessionMiddleware", () => {
   });
   it("쿠키가 없으면 그대로", () => {
     assert.equal(run({ "sec-fetch-site": "same-origin" }), undefined);
+  });
+
+  // BFF-REQ-055 FR-1 — 사람이 먼저, 없으면 게스트. 같은 origin 규칙은 게스트에도 같다
+  const table: Array<[string, IncomingHttpHeaders, string | undefined]> = [
+    ["게스트만", { cookie: "salt_gt=guest", "sec-fetch-site": "same-origin" }, "Bearer guest"],
+    ["둘 다 — 사람", { cookie: "salt_gt=guest; salt_at=web", "sec-fetch-site": "same-origin" }, "Bearer web"],
+    ["게스트 + 다른 사이트", { cookie: "salt_gt=guest", "sec-fetch-site": "cross-site" }, undefined],
+    ["헤더 + 게스트 — 헤더", { authorization: "Bearer app", cookie: "salt_gt=guest" }, "Bearer app"],
+  ];
+  for (const [name, headers, expected] of table) {
+    it(`${name} → ${expected}`, () => assert.equal(run(headers), expected));
+  }
+});
+
+describe("sessionTokenFromCookie", () => {
+  it("종류를 같이 준다 — 실시간 중계 상한이 센다", () => {
+    assert.deepEqual(sessionTokenFromCookie("salt_gt=g"), { token: "g", kind: "guest" });
+    assert.deepEqual(sessionTokenFromCookie("salt_gt=g; salt_at=u"), { token: "u", kind: "user" });
+    assert.equal(sessionTokenFromCookie("other=x"), undefined);
   });
 });

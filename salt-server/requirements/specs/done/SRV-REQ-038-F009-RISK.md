@@ -90,3 +90,7 @@ FEATURE-009 슬라이스 1 — "이 크기가 내 예산에서 몇 %인가"를 �
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-29 | F009 슬라이스 10(FR-27 매입가 숨김 화면) — **변경 없음.** S1 저장(`hidePurchasePrice` · PATCH 검증 `z.boolean()`)을 그대로 쓴다 |
 | 2026-10-30 | 파일만 걸침 — 웹 `@repo/core` `tradeRisk.ts`(이 REQ 를 언급) 설정 타입 추가. 서버 무변경 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `bff/src/rest/controllers/trade-risk.controller.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+  - `salt-server/src/coach/application/ManageMonthlyReview.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+  - `salt-server/src/coach/application/__tests__/monthlyReview.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로

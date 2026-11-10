@@ -19,8 +19,10 @@
  */
 import { withSessionRefresh } from "@repo/core/auth";
 
-import { refreshSession } from "./refreshSession";
-import { hasSession } from "./session";
+import { isGuestReadablePath } from "@repo/core/auth";
+
+import { issueGuestSession, refreshSession } from "./refreshSession";
+import { hasGuestHint, hasSession } from "./session";
 
 const GONE = 410;
 
@@ -32,8 +34,22 @@ const warnIfGone = (input: RequestInfo | URL, response: Response): Response => {
   return response;
 };
 
+/**
+ * 로그인도 게스트 표지도 없이 게스트 화면(투자)에서 첫 호출이면 게스트 토큰부터 받는다(`FE-REQ-070` FR-2) — 그러지 않으면 첫 요청이
+ * 401 을 한 번 내고(브라우저 콘솔 오류) 받는다. 받기는 단일 비행이라 동시 호출이 한 번만 부르고, 실패해도 그냥 보낸다(401 → 재시도 경로)
+ */
+const ensureGuest = async (): Promise<void> => {
+  if (typeof window === "undefined" || hasSession() || hasGuestHint()) return;
+  if (!isGuestReadablePath(window.location.pathname)) return;
+  await issueGuestSession();
+};
+
 export const apiFetch: typeof fetch = withSessionRefresh({
-  fetchImpl: async (input, init) => warnIfGone(input, await fetch(input, { credentials: "same-origin", ...init })),
+  fetchImpl: async (input, init) => {
+    await ensureGuest();
+    return warnIfGone(input, await fetch(input, { credentials: "same-origin", ...init }));
+  },
   hasSession,
   refreshSession,
+  issueGuest: issueGuestSession,
 });

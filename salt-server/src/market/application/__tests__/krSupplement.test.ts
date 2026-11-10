@@ -7,6 +7,7 @@ import {
   krAfterHoursVisible,
   krMarketSession,
   isSettledInvestorDay,
+  KrStockNotAvailableError,
   latestInvestorSettleAt,
   parseKrSummaryIndices,
   type KrInvestorFlowFact,
@@ -210,16 +211,14 @@ describe("GetKrInvestorFlows", () => {
     new GetKrInvestorFlows({
       store: { findListing: async (code: string) => (listed ? { code, name: "x", market: "KOSPI" } : null) } as unknown as KrStockStore,
       calendar: calendar(true),
-      viewerEmails: ["owner@x.com"],
       provider: () => ({ status: "ok", since: null, lastSuccessAt: null, realtime: { state: "idle", subscribed: 0, lastTickAt: null } }),
       supplement: { investorFlows: async () => ({ rows, collectedAt: rows.length ? new Date("2026-10-26T09:40:00Z") : null }) } as unknown as KrSupplementStore,
       summaryIndices: [],
       orderbookSource: { orderbook: async () => assert.fail("호가를 부르지 않는다") },
     });
-  const owner = { userId: "u", email: "owner@x.com" };
 
   it("기간 합계를 서버가 낸다 · 수량은 문자열 · 금액은 원 정수", async () => {
-    const r = await read([flow("2026-10-26", 2), flow("2026-10-23", 3)]).execute(owner, "005930", 20);
+    const r = await read([flow("2026-10-26", 2), flow("2026-10-23", 3)]).execute("005930", 20);
     assert.deepEqual(r.totals!.individual, { quantity: "5", value: 5_000_000 });
     assert.deepEqual(r.totals!.foreign, { quantity: "-5", value: -5_000_000 });
     assert.equal(r.rows[0]!.date, "2026-10-26");
@@ -227,14 +226,14 @@ describe("GetKrInvestorFlows", () => {
   });
 
   it("아직 안 모였으면 합계는 null — 0 을 순매수 0 으로 읽게 두지 않는다", async () => {
-    const r = await read([]).execute(owner, "005930", 20);
+    const r = await read([]).execute("005930", 20);
     assert.equal(r.totals, null);
     assert.equal(r.collectedAt, null);
   });
 
-  it("비소유자 · 마스터에 없는 종목은 404 하나", async () => {
-    await assert.rejects(read([]).execute({ userId: "u", email: "other@x.com" }, "005930", 20));
-    await assert.rejects(read([], false).execute(owner, "005930", 20));
+  it("읽는 사람을 받지 않는다(소유자 판정 없음, ADR-011) — 마스터에 없는 종목만 404", async () => {
+    assert.equal(GetKrInvestorFlows.prototype.execute.length, 2);
+    await assert.rejects(read([], false).execute("005930", 20), KrStockNotAvailableError);
   });
 });
 
@@ -253,7 +252,6 @@ describe("GetKrOrderbook (FR-28 · 슬라이스 6b)", () => {
     const read = new GetKrOrderbook({
       store: { findListing: async (code: string) => (listed ? { code, name: "x", market: "KOSPI" } : null) } as unknown as KrStockStore,
       calendar: calendar(true),
-      viewerEmails: ["owner@x.com"],
       provider: () => ({ status: "ok", since: null, lastSuccessAt: null, realtime: { state: "idle", subscribed: 0, lastTickAt: null } }),
       supplement: {} as KrSupplementStore,
       summaryIndices: [],
@@ -268,11 +266,10 @@ describe("GetKrOrderbook (FR-28 · 슬라이스 6b)", () => {
     });
     return { read, calls: () => calls, advance: (ms: number) => void (t += ms) };
   };
-  const owner = { userId: "u", email: "owner@x.com" };
 
   it("가격은 원 정수 · 잔량은 문자열 · 1단계부터", async () => {
     const { read } = setup();
-    const r = await read.execute(owner, "005930");
+    const r = await read.execute("005930");
     assert.equal(r.available, true);
     assert.deepEqual(r.asks, [{ price: 223_500, quantity: "20134" }]);
     assert.equal(r.totalBidQuantity, "457349");
@@ -282,34 +279,33 @@ describe("GetKrOrderbook (FR-28 · 슬라이스 6b)", () => {
 
   it("10초 안 · 같은 순간 겹친 요청은 KIS 한 번", async () => {
     const { read, calls, advance } = setup();
-    await Promise.all([read.execute(owner, "005930"), read.execute(owner, "005930")]);
+    await Promise.all([read.execute("005930"), read.execute("005930")]);
     advance(9_000);
-    await read.execute(owner, "005930");
+    await read.execute("005930");
     assert.equal(calls(), 1);
     advance(1_000);
-    await read.execute(owner, "005930");
+    await read.execute("005930");
     assert.equal(calls(), 2);
   });
 
   it("KIS 가 실패하면 받아 둔 값을 stale 로, 그것도 없으면 빈 호가(500 아님)", async () => {
     let failing = false;
     const { read, advance } = setup(() => failing);
-    await read.execute(owner, "005930");
+    await read.execute("005930");
     failing = true;
     advance(10_000);
-    const stale = await read.execute(owner, "005930");
+    const stale = await read.execute("005930");
     assert.deepEqual([stale.available, stale.stale, stale.asks.length], [true, true, 1]);
 
-    const empty = await setup(() => true).read.execute(owner, "005930");
+    const empty = await setup(() => true).read.execute("005930");
     assert.deepEqual([empty.available, empty.stale, empty.asks.length, empty.totalAskQuantity], [false, true, 0, null]);
   });
 
-  it("비소유자 · 마스터에 없는 종목은 404 하나 — KIS 를 부르지 않는다", async () => {
-    const other = setup();
-    await assert.rejects(other.read.execute({ userId: "u", email: "other@x.com" }, "005930"));
+  it("읽는 사람을 받지 않는다(ADR-011) · 마스터에 없는 종목만 404 — KIS 를 부르지 않는다", async () => {
+    assert.equal(GetKrOrderbook.prototype.execute.length, 1);
     const unlisted = setup(() => false, false);
-    await assert.rejects(unlisted.read.execute(owner, "005930"));
-    assert.equal(other.calls() + unlisted.calls(), 0);
+    await assert.rejects(unlisted.read.execute("005930"), KrStockNotAvailableError);
+    assert.equal(unlisted.calls(), 0);
   });
 });
 

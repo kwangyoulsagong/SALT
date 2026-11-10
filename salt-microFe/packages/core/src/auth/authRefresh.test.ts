@@ -37,6 +37,52 @@ const ROWS: Row[] = [
   { name: "403 은 갱신 대상이 아니다", signedIn: true, statuses: [403], refreshed: true, sends: 1, refreshes: 0, final: 403 },
 ];
 
+/**
+ * 게스트 발급(`FE-REQ-070` FR-2) — (보낼 때 세션 · 갱신 뒤 세션 · 첫 응답 · 갱신 · 발급) → (보낸 수 · 발급 수 · 최종).
+ * 불변식: 보낸 수 ≤ 2 · 세션이 남아 있으면 게스트로 내리지 않는다 · 401 이 아니면 아무것도 안 한다.
+ */
+interface GuestRow {
+  name: string;
+  signedIn: boolean;
+  signedInAfter: boolean;
+  statuses: number[];
+  refreshed: boolean;
+  issued: boolean;
+  sends: number;
+  issues: number;
+  final: number;
+}
+
+const GUEST_ROWS: GuestRow[] = [
+  { name: "로그인 없이 401 → 게스트 받고 한 번 다시", signedIn: false, signedInAfter: false, statuses: [401, 200], refreshed: false, issued: true, sends: 2, issues: 1, final: 200 },
+  { name: "발급 실패면 401 그대로", signedIn: false, signedInAfter: false, statuses: [401], refreshed: false, issued: false, sends: 1, issues: 1, final: 401 },
+  { name: "게스트로 다시 보내도 401 이면 그대로(사람 경로) — 무한 없음", signedIn: false, signedInAfter: false, statuses: [401, 401], refreshed: false, issued: true, sends: 2, issues: 1, final: 401 },
+  { name: "세션이 죽었다(갱신 실패 · 세션 비움) → 게스트", signedIn: true, signedInAfter: false, statuses: [401, 200], refreshed: false, issued: true, sends: 2, issues: 1, final: 200 },
+  { name: "갱신 실패인데 세션이 남았다(네트워크) → 게스트로 내리지 않는다", signedIn: true, signedInAfter: true, statuses: [401], refreshed: false, issued: true, sends: 1, issues: 0, final: 401 },
+  { name: "갱신 성공이면 게스트를 부르지 않는다", signedIn: true, signedInAfter: true, statuses: [401, 200], refreshed: true, issued: true, sends: 2, issues: 0, final: 200 },
+  { name: "200 이면 아무것도", signedIn: false, signedInAfter: false, statuses: [200], refreshed: false, issued: true, sends: 1, issues: 0, final: 200 },
+];
+
+describe("withSessionRefresh — 게스트", () => {
+  it.each(GUEST_ROWS)("$name", async (row) => {
+    const { fetchImpl, seen } = recordingFetch(row.statuses);
+    let signedIn = row.signedIn;
+    const issueGuest = vi.fn(async () => row.issued);
+    const response = await withSessionRefresh({
+      fetchImpl,
+      hasSession: () => signedIn,
+      refreshSession: async () => {
+        signedIn = row.signedInAfter;
+        return row.refreshed;
+      },
+      issueGuest,
+    })("/api/app/x");
+    expect(seen).toHaveLength(row.sends);
+    expect(issueGuest).toHaveBeenCalledTimes(row.issues);
+    expect(response.status).toBe(row.final);
+  });
+});
+
 describe("withSessionRefresh", () => {
   it.each(ROWS)("$name", async (row) => {
     const { fetchImpl, seen } = recordingFetch(row.statuses);

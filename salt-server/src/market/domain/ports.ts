@@ -291,7 +291,7 @@ export interface WatchlistRepository {
     assetType: MarketAssetType | undefined,
     page: number,
     limit: number,
-    /** 이 자산군 행은 빼고 센다 — 국내 주식을 볼 수 없는 사람(F011 소유자 전용) */
+    /** 이 자산군 행은 빼고 센다 — 국내 키가 꺼져 있을 때 */
     excludeAssetTypes?: MarketAssetType[]
   ): Promise<{ items: WatchlistItem[]; total: number }>;
   /**

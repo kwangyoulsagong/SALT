@@ -50,6 +50,8 @@ const GENERATE_TIMEOUT_MS = 1_000;
 // 프론트가 죽은 경로를 계속 부르게 된다.
 router.post("/auth/login", proxyHandler);
 router.post("/auth/refresh", proxyHandler);
+// 게스트 토큰 — 로그인 없이 시장 데이터를 읽는다(`BFF-REQ-055` · 서버 `SRV-REQ-056` FR-1). 셸 Route Handler 가 부른다
+router.post("/auth/guest", proxyHandler);
 router.get("/auth/me", authMiddleware, proxyHandler);
 
 // Goals — 은퇴(2026-11-03). 저축은 Kotlin savings 서비스 `/api/app/savings/*`(`BFF-REQ-047`). 옛 경로는 410 `ENDPOINT_RETIRED`(`gone.middleware.ts`)

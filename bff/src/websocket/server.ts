@@ -8,7 +8,7 @@ import { krStockHandler } from "./handlers/kr-stock.handler";
 import { krStreamManager } from "./managers/kr-stream.manager";
 import { env } from "../config/env";
 import { logger } from "../config/logger";
-import { ACCESS_COOKIE, isAllowedSocketOrigin, readCookie, webOrigins } from "../utils/session-cookie.util";
+import { isAllowedSocketOrigin, sessionTokenFromCookie, webOrigins, type SessionTokenKind } from "../utils/session-cookie.util";
 
 const SOCKET_ORIGINS = webOrigins();
 
@@ -23,7 +23,8 @@ const wss = new WebSocketServer({ port: PORT });
  * 받는다 — 토큰은 "들고 왔는가"만 기록한다. 원래는 토큰 원문을 `userId` 로 써서
  * 연결 로그와 환영 메시지에 그대로 찍었다.
  *
- * 국내 주식(F011)은 소유자 전용이라 예외다 — 토큰을 **해석하지 않고 서버로 넘겨** 서버가 판정한다.
+ * 국내 주식(F011)은 토큰을 **해석하지 않고 서버로 넘겨** 서버가 판정한다 — 사람 또는 게스트 토큰(`ADR-011`, 전에는 소유자 전용).
+ * 웹은 사람 쿠키가 없으면 게스트 쿠키(`salt_gt`) — 게스트 중계는 따로 센다(`BFF-REQ-055` FR-4).
  * 토큰은 이 연결의 클로저와 `krStreamManager` 안에만 둔다(소켓 객체 · 로그에 없다).
  */
 wss.on("connection", (ws: ExtendedWebSocket, req) => {
@@ -32,8 +33,10 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
   ws.connectionId = randomUUID();
   // 앱은 URL `?token=`(기존 계약), 웹은 연결 요청의 세션 쿠키(`BFF-REQ-009` FR-54) — 허용 origin 에서 온 연결만(웹소켓 가로채기)
   const queryToken = typeof query.token === "string" && query.token.length > 0 ? query.token : undefined;
-  const cookieToken = isAllowedSocketOrigin(req.headers, SOCKET_ORIGINS) ? readCookie(req.headers.cookie, ACCESS_COOKIE) : undefined;
-  const connectionToken = queryToken ?? cookieToken;
+  const cookieSession = isAllowedSocketOrigin(req.headers, SOCKET_ORIGINS) ? sessionTokenFromCookie(req.headers.cookie) : undefined;
+  const connectionToken = queryToken ?? cookieSession?.token;
+  // 앱의 `?token=` 은 늘 사람이다(앱은 로그인 뒤에만 연다)
+  const connectionKind: SessionTokenKind = queryToken ? "user" : (cookieSession?.kind ?? "user");
   ws.authenticated = connectionToken !== undefined;
   ws.isAlive = true;
   ws.subscribedSymbols = new Set();
@@ -62,7 +65,7 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
       switch (message.type) {
         // `assetType` 이 없으면 코인이다 — 기존 화면은 그대로 동작한다
         case "subscribe":
-          if (message.assetType === "kr_stock") krStockHandler.handleSubscribe(ws, message, connectionToken);
+          if (message.assetType === "kr_stock") krStockHandler.handleSubscribe(ws, message, connectionToken, connectionKind);
           else cryptoHandler.handleSubscribe(ws, message);
           break;
 

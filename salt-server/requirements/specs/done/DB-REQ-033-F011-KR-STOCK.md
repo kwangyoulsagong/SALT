@@ -59,3 +59,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
 | 2026-11-09 | `kr_stock_master.sector_mid_code`(지수업종 중분류) — 마스터 파싱 · upsert 에 칸 추가(F016 단계 C, `DB-REQ-041`) |
 | 2026-11-09 | 달력 역산(`daysFromDailyCandles`) — 유니버스 종목 일봉만(전 종목 5년 일봉이 같은 표에 들어온 뒤 67만 행 순차 0.74초 → 인덱스 132ms · 2년 결과 같음, `DB-REQ-017` 504 3회차) |
 | 2026-11-10 | `market/domain/ports.ts` — `SymbolNewsPort` 에 `searchTitles` · `tagLists`(검색 모달, `SRV-REQ-055` `dd0bbdcc`). 이 REQ 의 표 · 쿼리는 무변경 |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-server/src/market/domain/ports.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+  - `salt-server/src/market/infrastructure/PrismaKrStockStore.ts` — 504 5회차 — 봉 upsert 는 바뀐 행만(`IS DISTINCT FROM`) · 캔들 동시 10 → 4 · 표 자동 청소 2%(`DB-REQ-017`)
+  - `salt-server/src/portfolio/domain/ports.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자

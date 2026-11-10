@@ -55,8 +55,6 @@ const recalculate = async (
 
 export interface RecordTransactionCommand {
   userId: string;
-  /** 국내 주식 소유자 판정(`FORECAST_OWNER_EMAILS`) — 코인은 보지 않는다 */
-  email?: string;
   assetType?: RecordableAssetType;
   symbol: string;
   transactionType: "buy" | "sell";
@@ -98,7 +96,7 @@ export class RecordTransaction {
      * 국내 주식은 마스터에 있는 6자리 코드만 — 오타 코드가 보유로 남으면 평가 · 유니버스가 없는 종목을 쫓는다.
      * 단가가 호가 단위 배수가 아니어도 **막지 않는다**(수동 입력 원칙, FR-42 — 안내는 화면 몫)
      */
-    if (assetType === "kr_stock") await this.krStock.assertTradable(command.email, symbol);
+    if (assetType === "kr_stock") await this.krStock.assertTradable(symbol);
 
     if (command.transactionType === "sell") {
       const holding = await this.holdings.findOne(

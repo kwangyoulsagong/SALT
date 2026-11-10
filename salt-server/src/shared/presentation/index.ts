@@ -4,5 +4,7 @@ export * from "./goneMiddleware";
 export * from "./healthRouter";
 export * from "./httpErrors";
 export * from "./loggerMiddleware";
+export * from "./marketReaderMiddleware";
+export * from "./ownerOnlyMiddleware";
 export * from "./rateLimit";
 export * from "./ResponseUtil";

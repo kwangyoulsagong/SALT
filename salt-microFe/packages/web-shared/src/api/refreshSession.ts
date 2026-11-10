@@ -12,9 +12,9 @@
  * 리프레시 토큰은 httpOnly 쿠키이고 경로가 `SESSION_ROUTE` 로 좁다. 같은 origin `SESSION_REFRESH_ROUTE` 가 그 쿠키로
  * BFF `POST /api/auth/refresh` 를 부르고 새 액세스 쿠키를 심는다. 이 함수는 성공 여부만 안다.
  */
-import { isPublicPath, singleFlight } from "@repo/core/auth";
+import { isGuestReadablePath, isPublicPath, singleFlight } from "@repo/core/auth";
 
-import { ROUTES, SESSION_REFRESH_ROUTE } from "../config";
+import { ROUTES, SESSION_GUEST_ROUTE, SESSION_REFRESH_ROUTE } from "../config";
 
 import { clearSession } from "./session";
 
@@ -33,8 +33,8 @@ import { clearSession } from "./session";
  */
 const leaveForLogin = () => {
   if (typeof window === "undefined") return;
-  // 공개 화면(로그인 · 공개 금융 팁 글)에서는 세션만 비우고 제자리 — 읽던 사람을 로그인으로 보내지 않는다
-  if (isPublicPath(window.location.pathname)) return;
+  // 공개 화면(로그인 · 공개 금융 팁 글) · 게스트 화면(투자 — `FE-REQ-070`)에서는 세션만 비우고 제자리 — 다음 요청이 게스트로 이어 본다
+  if (isGuestReadablePath(window.location.pathname)) return;
 
   window.location.replace(ROUTES.login);
 };
@@ -61,3 +61,23 @@ const requestRefresh = async (): Promise<boolean> => {
 
 /** 동시에 뜬 401 여러 건이 갱신을 한 번만 부르게 한다(`RN-REQ-018` FR-13 과 같은 규칙). */
 export const refreshSession = singleFlight(requestRefresh);
+
+/**
+ * 게스트 토큰 받기(`FE-REQ-070` FR-2 · `ADR-011`) — 게스트 화면(투자)에서만. 셸 Route Handler 가 서버 발급을 받아 httpOnly 쿠키로 심는다 —
+ * 브라우저는 토큰을 보지 않는다. 다른 화면(홈 · 저축 …)의 401 은 사람 경로라 게스트로 풀리지 않으니 부르지 않는다.
+ * 403(공개 꺼짐)이면 로그인으로 — 예전 동작 그대로.
+ */
+const requestGuest = async (): Promise<boolean> => {
+  if (typeof window === "undefined" || !isGuestReadablePath(window.location.pathname)) return false;
+  let response: Response;
+  try {
+    response = await fetch(SESSION_GUEST_ROUTE, { method: "POST", credentials: "same-origin" });
+  } catch {
+    return false;
+  }
+  // 공개 꺼짐 — 투자 화면은 로그인으로(예전 동작). 공개 화면(로그인 · 팁)은 제자리
+  if (response.status === 403 && !isPublicPath(window.location.pathname)) window.location.replace(ROUTES.login);
+  return response.ok;
+};
+
+export const issueGuestSession = singleFlight(requestGuest);

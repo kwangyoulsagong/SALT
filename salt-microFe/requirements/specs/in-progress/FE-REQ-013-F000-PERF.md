@@ -206,3 +206,14 @@ F000의 성능 급소는 **실시간 테이블**이다. 100행 × WS 초당 수�
 | 2026-11-05 | 금융 팁 S2b 확인 2회차(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: FR-80 쿠키 세션의 갱신 실패 처리 — 공개 경로 판정을 `isPublicPath` 하나로(공개 금융 팁 글 제자리) (`cf93acb1`) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음(이 REQ 몫) — `useAcceptInvite` 의 쿼리 키 이름만(`onboardingStatus` → `onboarding`) `c1baa77a` |
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `334084aa` · `b37bf890`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — 머리 내비 · 검색칸(`FE-REQ-067`) — `AppNavigation.css.ts` 더한 줄. 투자 zone 첫 로드 +1 kB(모달이 레이아웃) · `/search` −2 kB · 셸 같음(`FE-REQ-066` 체크리스트 번들) |
+- 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
+  - `salt-microFe/apps/web/middleware.ts` — 게스트 쿠키 발급 경로 · 로그인 때 게스트 쿠키 지움 · 로그인 뒤 `?next=` 로 돌아오기(`safeNextPath`)
+  - `salt-microFe/apps/web/src/app/api-routes/session.ts` — 게스트 쿠키 발급 경로 · 로그인 때 게스트 쿠키 지움 · 로그인 뒤 `?next=` 로 돌아오기(`safeNextPath`)
+  - `salt-microFe/apps/web/src/features/sign-in/api/useSignIn.ts` — 게스트 쿠키 발급 경로 · 로그인 때 게스트 쿠키 지움 · 로그인 뒤 `?next=` 로 돌아오기(`safeNextPath`)
+  - `salt-microFe/packages/core/src/auth/authRefresh.test.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
+  - `salt-microFe/packages/core/src/auth/authRefresh.ts` — 게스트 토큰 발급 · 읽는 사람 판정(사람 또는 게스트 — 게스트 토큰은 서명 비밀이 달라 사람 경로 401)
+  - `salt-microFe/packages/domain-invest/src/pages/coach/ui/CoachReportBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+  - `salt-microFe/packages/domain-invest/src/pages/coach/ui/SignalEvidenceBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrStockDetailBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+  - `salt-microFe/packages/web-shared/src/api/session.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용
+  - `salt-microFe/packages/web-shared/src/config/auth.ts` — 401 → 게스트 발급 · 첫 호출 전 미리 받기 · WS 국내 구독 게스트 허용

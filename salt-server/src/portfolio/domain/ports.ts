@@ -147,10 +147,10 @@ export interface PriceHistorySource {
  */
 export interface KrStockQuoteSource {
   /**
-   * 거래를 받을 수 있는 코드인지 — 꺼져 있으면 503, 비소유자 · 형식 · 마스터에 없음은 404 를 던진다
-   * (관심 종목 추가와 같은 규칙). 국내 주식이 있다는 사실을 비소유자에게 주지 않는다
+   * 거래를 받을 수 있는 코드인지 — 꺼져 있으면 503, 형식 · 마스터에 없음은 404 를 던진다
+   * (관심 종목 추가와 같은 규칙). 로그인한 누구나(`ADR-011` — 전에는 소유자만)
    */
-  assertTradable(email: string | undefined, code: string): Promise<void>;
+  assertTradable(code: string): Promise<void>;
   /** 저장된 현재가. 시세가 없는 코드는 빠진다 — 그 보유는 평가를 건드리지 않는다 */
   prices(codes: string[]): Promise<Array<{ symbol: string; currentPrice: number }>>;
 }

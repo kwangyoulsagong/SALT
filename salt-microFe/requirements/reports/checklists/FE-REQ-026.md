@@ -334,3 +334,13 @@
 ## 2026-11-10 — 투자 머리 메뉴 · 레일 복원 · 포트폴리오(주인 `FE-REQ-069`)
 
 - 확인은 `FE-REQ-069` 체크리스트(실화면 24칸 · 넘침 0 · axe 0 · 운영 빌드 · zone 전환 9/10)
+
+## 2026-11-10 — F018 걸침
+
+  - `salt-microFe/packages/domain-invest/src/entities/coach/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
+  - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/InvestmentDetailPage.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
+  - `salt-microFe/packages/domain-invest/src/widgets/coach-panel/ui/CoachPanel.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+  - `salt-microFe/packages/domain-invest/src/widgets/symbol-analysis/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리
+  - `salt-microFe/packages/domain-invest/src/widgets/symbol-analysis/ui/SymbolAnalysis.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
+
+검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)

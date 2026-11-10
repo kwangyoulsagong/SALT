@@ -1,7 +1,6 @@
 import {
   byChangeRateDesc,
   currentSectors,
-  isKrStockViewer,
   KR_INDEX_NAMES,
   krStockLogoUrl,
   latestAsOf,
@@ -37,7 +36,6 @@ export interface SearchKrSource {
   store: KrStockStore;
   moveSources: KrMoveSourceStore;
   supplement: KrSupplementStore;
-  viewerEmails: readonly string[];
   logoDevToken?: string;
 }
 
@@ -148,7 +146,7 @@ const sectorOf = (view: SectorView | undefined) =>
 
 /**
  * 검색 모달 결과 묶음 — 업종 · 지수 · 뉴스(`SRV-REQ-055` FR-1 · `FE-REQ-066` FR-8). 종목 묶음은 기존 `SearchAssets`.
- * 국내(업종 · 지수 · 시황 제목)는 소유자만 — 국내 시세가 소유자 전용이다(F011). 코인 기사는 로그인 사용자 모두.
+ * 국내(업종 · 지수 · 시황 제목)는 국내 키가 켜져 있을 때. 읽는 사람(사람 · 게스트)이면 누구나(`ADR-011`).
  * 요청당 읽기: 업종 표 1 · 지수 1 · 국내 제목 1 · 코인 제목 1 · 코인 태그 이름 1. **검색어를 로그에 남기지 않는다**
  */
 export class SearchResultGroups {
@@ -159,10 +157,10 @@ export class SearchResultGroups {
     private readonly now: () => Date = () => new Date()
   ) {}
 
-  async execute(query: { email?: string; q: string }): Promise<SearchGroups> {
+  async execute(query: { q: string }): Promise<SearchGroups> {
     const q = query.q.trim();
     if (q === "") return { sectors: [], indices: [], news: [] };
-    const kr = this.kr && isKrStockViewer(query.email, this.kr.viewerEmails) ? this.kr : null;
+    const kr = this.kr;
     const since = new Date(this.now().getTime() - SEARCH_NEWS_WINDOW_DAYS * DAY_MS);
     const indexCodes = kr ? matchKrIndexCodes(q) : [];
 
@@ -196,12 +194,12 @@ export class SearchResultGroups {
   }
 }
 
-/** 첫 화면 "지금 뜨는 업종"(`SRV-REQ-055` FR-2) — 국내 소유자만. 비소유자 · 키 없음은 빈 목록(404 가 아니다 — 첫 화면이 열 때마다 부른다) */
+/** 첫 화면 "지금 뜨는 업종"(`SRV-REQ-055` FR-2) — 국내 키가 없으면 빈 목록(404 가 아니다 — 첫 화면이 열 때마다 부른다) */
 export class ReadRisingSectors {
   constructor(private readonly kr: SearchKrSource | null) {}
 
-  async execute(query: { email?: string; limit: number }): Promise<{ asOf: Date | null; items: SearchSectorItem[] }> {
-    if (!this.kr || !isKrStockViewer(query.email, this.kr.viewerEmails)) return { asOf: null, items: [] };
+  async execute(query: { limit: number }): Promise<{ asOf: Date | null; items: SearchSectorItem[] }> {
+    if (!this.kr) return { asOf: null, items: [] };
     const items = currentSectors(await this.kr.moveSources.sectorBoard()).slice(0, query.limit);
     return { asOf: latestAsOf(items), items };
   }
@@ -212,7 +210,7 @@ export class ReadRisingSectors {
  * - 국내 종목: 같은 업종(지수업종 중분류 먼저)의 유니버스 종목 · 등락률 높은 순 3(자기 제외)
  * - 업종: 그 업종 유니버스 종목 5
  * - 코인: 같은 기사에 함께 태그된 코인 3(30일)
- * 원천이 없으면 `basis: none`(빈 칸 — 지어내지 않는다). 국내는 소유자만(비소유자는 `none`)
+ * 원천이 없으면 `basis: none`(빈 칸 — 지어내지 않는다). 국내 키가 없으면 `none`
  */
 export class ReadSearchRelated {
   constructor(
@@ -223,11 +221,11 @@ export class ReadSearchRelated {
   ) {}
 
   async execute(
-    query: { email?: string } & ({ assetType: "crypto" | "kr_stock"; symbol: string } | { sector: string })
+    query: ({ assetType: "crypto" | "kr_stock"; symbol: string } | { sector: string })
   ): Promise<SearchRelated> {
     const none: SearchRelated = { basis: "none", sector: null, items: [] };
     if ("assetType" in query && query.assetType === "crypto") return this.coTagged(query.symbol);
-    const kr = this.kr && isKrStockViewer(query.email, this.kr.viewerEmails) ? this.kr : null;
+    const kr = this.kr;
     if (!kr) return none;
 
     const sectorCode =
