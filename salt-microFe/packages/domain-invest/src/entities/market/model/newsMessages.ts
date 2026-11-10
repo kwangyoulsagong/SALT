@@ -1,3 +1,5 @@
+import { INVESTMENTS_NEWS_PARAM } from "@repo/web-shared/config";
+
 /**
  * 뉴스 행 · 상세 모달 문구(`FE-REQ-065`). 제목 · 요약은 원문 그대로 — 여기엔 틀 문구만. 해요체
  */
@@ -23,7 +25,7 @@ export const NEWS_MESSAGES = {
 } as const;
 
 /** 주소 쿼리 이름 — `?news=<id>`(새로고침 · 뒤로가기로 열고 닫힌다) */
-export const NEWS_QUERY_PARAM = "news";
+export const NEWS_QUERY_PARAM = INVESTMENTS_NEWS_PARAM;
 /**
  * 그 기사가 속한 종목 — `?newsOf=<심볼 · 국내 코드>`(2026-11-10). 프리뷰 종목은 hover 라 새로고침하면 바뀐다 — 모달이 어느 목록에서
  * 찾을지 주소가 말한다(`NewsModalHost`)

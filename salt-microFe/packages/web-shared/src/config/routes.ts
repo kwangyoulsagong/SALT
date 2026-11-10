@@ -17,6 +17,8 @@ export type CoachReportSection = (typeof COACH_REPORT_SECTIONS)[keyof typeof COA
 
 /** 투자 화면 자산군 탭을 주소로 고르는 쿼리(`?asset=kr_stock`) — 첫 진입 탭만 정한다. 탭을 누르면 주소는 그대로 */
 export const INVESTMENTS_ASSET_PARAM = "asset";
+/** 시세 화면 뉴스 모달을 주소로 여는 쿼리(`?news=<id>` — `FE-REQ-065`). 위젯이 엔티티 barrel 없이 읽도록 여기 둔다(번들, 2026-11-10) */
+export const INVESTMENTS_NEWS_PARAM = "news";
 
 export const ROUTES = {
   login: "/",

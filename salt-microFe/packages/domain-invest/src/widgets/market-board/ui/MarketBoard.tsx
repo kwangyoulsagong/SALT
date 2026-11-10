@@ -11,9 +11,8 @@ import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import React, { type ReactNode, Suspense, useEffect, useState } from "react";
 
-import { INVESTMENTS_ASSET_PARAM } from "@repo/web-shared/config";
+import { INVESTMENTS_ASSET_PARAM, INVESTMENTS_NEWS_PARAM } from "@repo/web-shared/config";
 
-import { NewsModalHost } from "@/entities/market";
 
 import {
   ASSET_CLASS_TABS,
@@ -65,6 +64,15 @@ const MarketSummaryStrip = dynamic(
   }
 );
 
+/**
+ * 시세 화면 뉴스 모달 하나(`FE-REQ-065`) — 엔티티 barrel 을 쓰므로 늦게 온다. 정적으로 부르면 모달 · 본문 조회가 첫 로드에 실려
+ * `/investments` 가 153 → 165 kB 였다(2026-11-10 운영 빌드 대조, `87eb8083`). 주소에 `?news=` 가 있을 때만 그린다
+ */
+const NewsModalHost = dynamic(() => import("@/entities/market").then((mod) => mod.NewsModalHost), {
+  ssr: false,
+  loading: () => null,
+});
+
 /** 국내 주식(F011) 자산군 탭을 보일지 정하는 잎 — 엔티티 barrel 을 쓰므로 늦게 온다 */
 const KrStockAvailability = dynamic(
   () => import("./KrStockAvailability").then((mod) => mod.KrStockAvailability),
@@ -88,11 +96,13 @@ interface MarketBoardProps {
  * 클라이언트로 미뤄지지 않게. 국내가 안 열리는 사람(비소유자)은 아래 판정이 코인으로 되돌린다
  */
 const AssetParamSync = ({ onAsset }: { onAsset: (asset: string) => void }) => {
-  const asset = useSearchParams()?.get(INVESTMENTS_ASSET_PARAM) ?? null;
+  const params = useSearchParams();
+  const asset = params?.get(INVESTMENTS_ASSET_PARAM) ?? null;
   useEffect(() => {
     onAsset(asset && ASSET_CLASS_TABS.some((tab) => tab.id === asset) ? asset : DEFAULT_ASSET_CLASS_TAB);
   }, [asset, onAsset]);
-  return null;
+  // 뉴스 모달은 주소에 `?news=` 가 있을 때만 싣는다 — 없는 동안 그 청크를 받지 않는다
+  return params?.get(INVESTMENTS_NEWS_PARAM) ? <NewsModalHost /> : null;
 };
 
 /** 조합만 한다. 비즈니스 로직은 `entities/market` 과 그 위의 feature 가 갖는다. */
@@ -105,9 +115,8 @@ export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => 
   return (
     <Section noContainer>
       <Suspense fallback={null}>
+        {/* 자산군 · 뉴스 모달 — 주소(`?asset=` · `?news=&newsOf=`)가 상태라 새로고침 · 뒤로가기에도 같은 화면(`FE-REQ-069` · `FE-REQ-065`) */}
         <AssetParamSync onAsset={setAssetTab} />
-        {/* 시세 화면 뉴스 모달 하나 — 주소(`?news=&newsOf=`)가 상태라 프리뷰 선택 · 탭과 무관하게 새로고침에도 열린다(`FE-REQ-065`) */}
-        <NewsModalHost />
       </Suspense>
       <FlexBox direction="column">
         <div className={headingRow}>
