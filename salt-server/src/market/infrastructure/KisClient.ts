@@ -133,11 +133,12 @@ const isRetryableKisError = (error: unknown): boolean => {
 
 /**
  * 한도를 나눠 쓰는 순서(F011 FR-91): 실시간 유지 > 보유 · 관심 · 시총 폴링 > 일봉 · 분봉 > 부가(지수 · 투자자).
- * 호가는 부가 정보지만 **화면이 기다리는** 요청 시점 조회라 폴링 줄에 선다 — 폴링은 동시 6건이라 앞에 많아야 6건이다.
+ * 호가는 부가 정보지만 **화면이 기다리는** 요청 시점 조회라 폴링보다 앞(`viewer`)에 선다. 처음엔 폴링 줄이었다 — "앞에 많아야 6건"이라 봤지만
+ * 2026-11-10 실측 한 건 1.5~2.6초 · 동시 4건 7~10초(57종목 폴링이 늘 줄을 채운다, `SRV-REQ-053` FR-3).
  * 페이서가 출발 자리가 날 때마다 작은 값부터 보낸다. 폴링 안의 보유 → 관심 → 시총 순서는 유니버스 순서가 정한다
  * (같은 우선순위는 요청 순서). 실시간(WS) 자체는 REST 를 쓰지 않는다 — 승인키 · 토큰 발급이 그 자리다
  */
-export const KIS_PRIORITY = { realtime: 0, poll: 1, candles: 2, supplement: 3 } as const;
+export const KIS_PRIORITY = { realtime: 0, viewer: 1, poll: 2, candles: 3, supplement: 4 } as const;
 type KisPriority = (typeof KIS_PRIORITY)[keyof typeof KIS_PRIORITY];
 
 /**
@@ -464,7 +465,7 @@ export class KisClient
       "/uapi/domestic-stock/v1/quotations/inquire-asking-price-exp-ccn",
       KIS_QUERY_TR.askingPrice,
       { FID_COND_MRKT_DIV_CODE: "J", FID_INPUT_ISCD: code },
-      KIS_PRIORITY.poll
+      KIS_PRIORITY.viewer
     );
     const o = body.output1 ?? {};
     const side = (price: string, qty: string): KrOrderbookLevel[] =>

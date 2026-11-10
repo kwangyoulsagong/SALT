@@ -14,6 +14,8 @@ import {
   KR_INDEX_NAMES,
   KR_INVESTOR_MAX_DAYS,
   KR_ORDERBOOK_CACHE_MS,
+  KR_ORDERBOOK_STALE_MS,
+  KR_ORDERBOOK_WAIT_MS,
   KR_QUOTE_STALE_MS,
   type Candle,
   type KrAfterHoursQuote,
@@ -500,38 +502,50 @@ const toLevelView = (l: KrOrderbookLevel) => ({ price: won(l.price), quantity: l
 
 /**
  * 호가 10단계(FR-28) — **저장하지 않는 요청 시점 조회**. 같은 종목은 10초 안이면 받아 둔 값을 준다(`KR_ORDERBOOK_CACHE_MS`),
- * 같은 순간 겹친 요청은 KIS 한 번을 같이 기다린다. KIS 가 실패하면 받아 둔 값을 `stale` 로, 그것도 없으면
- * `available: false` 빈 호가로 준다 — 500 으로 상세 화면 전체를 깨지 않는다(부가 정보).
+ * 같은 순간 겹친 요청은 KIS 한 번을 같이 기다린다.
+ *
+ * 불변식(`SRV-REQ-053` FR-3, 2026-11-10): **받아 둔 값이 있으면 화면은 KIS 를 기다리지 않는다.** 10초가 지났으면 받아 둔 값을 바로 주고
+ * 뒤에서 새로 받는다(다음 요청이 새 값을 본다). 처음 보는 종목만 `KR_ORDERBOOK_WAIT_MS` 까지 기다리고, 넘으면 `pending` 빈 호가로
+ * 답한다 — 받던 호출은 끝나면 캐시를 채운다. 받아 둔 값이 30초 넘게 낡았거나 마지막 받기가 실패했으면 `stale`.
+ * 처음 받기마저 실패하면 `available: false` — 500 으로 상세 화면 전체를 깨지 않는다(부가 정보).
  * 캐시는 프로세스 메모리다(단일 프로세스). 무효화는 시간뿐이다
  */
 export class GetKrOrderbook extends KrStockRead {
   private readonly cache = new Map<string, { fact: KrOrderbookFact; fetchedAt: Date }>();
   private readonly inflight = new Map<string, Promise<KrOrderbookFact>>();
+  private readonly failedAt = new Map<string, number>();
 
   async execute(code: string) {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const listing = await this.deps.store.findListing(code);
     if (!listing) throw new KrStockNotAvailableError();
 
-    const now = this.now();
+    const now = this.now().getTime();
     let cached = this.cache.get(code);
-    let stale = false;
-    if (!cached || now.getTime() - cached.fetchedAt.getTime() >= KR_ORDERBOOK_CACHE_MS) {
-      try {
-        const fact = await this.fetch(code);
-        cached = { fact, fetchedAt: this.now() };
-        this.cache.set(code, cached);
-      } catch {
-        stale = true;
+    let pending = false;
+    if (!cached || now - cached.fetchedAt.getTime() >= KR_ORDERBOOK_CACHE_MS) {
+      const call = this.fetch(code);
+      if (cached) {
+        void call.catch(() => {}); // 뒤 갱신 — 실패는 failedAt 이 기록한다
+      } else {
+        const outcome = await Promise.race([
+          call.then(() => "done" as const, () => "failed" as const),
+          new Promise<"waiting">((resolve) => setTimeout(() => resolve("waiting"), KR_ORDERBOOK_WAIT_MS).unref?.()),
+        ]);
+        if (outcome === "waiting") pending = true;
+        cached = this.cache.get(code);
       }
     }
     if (!cached) {
-      return { code, available: false, asks: [], bids: [], totalAskQuantity: null, totalBidQuantity: null, at: null, fetchedAt: null, stale: true };
+      return { code, available: false, pending, asks: [], bids: [], totalAskQuantity: null, totalBidQuantity: null, at: null, fetchedAt: null, stale: !pending };
     }
     const { fact, fetchedAt } = cached;
+    const lastFailed = this.failedAt.get(code) ?? 0;
+    const stale = this.now().getTime() - fetchedAt.getTime() >= KR_ORDERBOOK_STALE_MS || lastFailed > fetchedAt.getTime();
     return {
       code,
       available: true,
+      pending: false,
       asks: fact.asks.map(toLevelView),
       bids: fact.bids.map(toLevelView),
       totalAskQuantity: fact.totalAskQuantity.toString(),
@@ -542,10 +556,23 @@ export class GetKrOrderbook extends KrStockRead {
     };
   }
 
+  /** 겹친 요청은 한 번 · 성공하면 캐시를 채우고 실패하면 시각을 남긴다 — 기다린 요청이 떠나도 결과는 버리지 않는다 */
   private fetch(code: string) {
     const running = this.inflight.get(code);
     if (running) return running;
-    const call = this.deps.orderbookSource.orderbook(code).finally(() => this.inflight.delete(code));
+    const call = this.deps.orderbookSource
+      .orderbook(code)
+      .then(
+        (fact) => {
+          this.cache.set(code, { fact, fetchedAt: this.now() });
+          return fact;
+        },
+        (error) => {
+          this.failedAt.set(code, this.now().getTime());
+          throw error;
+        }
+      )
+      .finally(() => this.inflight.delete(code));
     this.inflight.set(code, call);
     return call;
   }

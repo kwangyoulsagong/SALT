@@ -209,6 +209,7 @@ export const KR_STOCK_MESSAGES = {
     stale: "지연",
     staleTitle: "호가를 새로 받지 못해 마지막으로 받은 값이에요",
     unavailable: "호가를 잠시 볼 수 없습니다.",
+    pending: "호가를 받고 있어요.",
     empty: "지금은 호가가 없습니다.",
     /** 스크린리더용 — 화면은 막대 길이와 숫자로 보인다 */
     rowLabel: (side: "ask" | "bid", level: number, price: string, quantity: string) =>

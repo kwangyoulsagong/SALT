@@ -630,6 +630,8 @@ export const toKrOrderbookVM = (raw: unknown) => {
   return {
     code: str(r, "code"),
     available: bool(r, "available"),
+    /** 처음 보는 종목을 서버가 아직 받는 중(`SRV-REQ-053` FR-3) — 실패가 아니다. 옛 서버는 칸이 없어 false */
+    pending: r.pending === true,
     asks: arr(r, "asks").map(toLevelVM),
     bids: arr(r, "bids").map(toLevelVM),
     totalAskQuantity: strOrNull(r, "totalAskQuantity"),

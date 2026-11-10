@@ -413,6 +413,8 @@ export interface KrOrderbookLevel {
 export interface KrOrderbook {
   code: string;
   available: boolean;
+  /** 처음 보는 종목을 서버가 아직 받는 중 — 실패가 아니다. 곧 다시 부른다(`SRV-REQ-053` FR-3) */
+  pending: boolean;
   asks: KrOrderbookLevel[];
   bids: KrOrderbookLevel[];
   totalAskQuantity: string | null;

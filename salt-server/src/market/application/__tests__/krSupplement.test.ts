@@ -16,6 +16,8 @@ import {
   type KrSupplementPort,
   type KrSupplementStore,
   type KrStockStore,
+  KR_ORDERBOOK_STALE_MS,
+  KR_ORDERBOOK_WAIT_MS,
 } from "../../domain";
 import { GetKrInvestorFlows, GetKrOrderbook } from "../ReadKrStock";
 import type { ResolveKrStockUniverse } from "../SyncKrStock";
@@ -246,7 +248,7 @@ describe("GetKrOrderbook (FR-28 · 슬라이스 6b)", () => {
     totalBidQuantity: 457_349n,
     at: new Date("2026-10-27T01:11:45Z"),
   };
-  const setup = (fail: () => boolean = () => false, listed = true) => {
+  const setup = (fail: () => boolean = () => false, listed = true, hold?: Promise<void>) => {
     let t = Date.parse("2026-10-27T01:12:00Z");
     let calls = 0;
     const read = new GetKrOrderbook({
@@ -258,6 +260,7 @@ describe("GetKrOrderbook (FR-28 · 슬라이스 6b)", () => {
       orderbookSource: {
         orderbook: async () => {
           calls++;
+          if (hold) await hold;
           if (fail()) throw rateLimited;
           return book;
         },
@@ -277,6 +280,8 @@ describe("GetKrOrderbook (FR-28 · 슬라이스 6b)", () => {
     assert.equal(r.stale, false);
   });
 
+  const settle = () => new Promise((resolve) => setImmediate(resolve));
+
   it("10초 안 · 같은 순간 겹친 요청은 KIS 한 번", async () => {
     const { read, calls, advance } = setup();
     await Promise.all([read.execute("005930"), read.execute("005930")]);
@@ -285,20 +290,59 @@ describe("GetKrOrderbook (FR-28 · 슬라이스 6b)", () => {
     assert.equal(calls(), 1);
     advance(1_000);
     await read.execute("005930");
+    await settle();
     assert.equal(calls(), 2);
   });
 
-  it("KIS 가 실패하면 받아 둔 값을 stale 로, 그것도 없으면 빈 호가(500 아님)", async () => {
+  it("받아 둔 값이 있으면 KIS 를 기다리지 않는다 — 낡은 값을 바로 주고 뒤에서 새로 받는다(SRV-REQ-053 FR-3)", async () => {
+    let release!: () => void;
+    let held = false;
+    const gate = new Promise<void>((r) => (release = r));
+    const { read, calls, advance } = setup(() => false, true, { then: (ok: () => void) => (held ? gate.then(ok) : ok()) } as Promise<void>);
+    await read.execute("005930");
+    held = true; // 이제부터 KIS 가 영영 답하지 않는다
+    advance(10_000);
+    const r = await read.execute("005930");
+    assert.deepEqual([r.available, r.pending, r.stale], [true, false, false]);
+    assert.equal(calls(), 2);
+    release();
+  });
+
+  it("처음 보는 종목은 상한까지만 기다리고 pending — 받던 호출이 끝나면 캐시를 채운다", async (t) => {
+    t.mock.timers.enable({ apis: ["setTimeout"] });
+    let release!: () => void;
+    const { read, calls } = setup(() => false, true, new Promise<void>((r) => (release = r)));
+    const waiting = read.execute("005930");
+    await settle();
+    t.mock.timers.tick(KR_ORDERBOOK_WAIT_MS);
+    const r = await waiting;
+    assert.deepEqual([r.available, r.pending, r.stale, r.asks.length], [false, true, false, 0]);
+    release();
+    await settle();
+    const next = await read.execute("005930");
+    assert.deepEqual([next.available, next.pending], [true, false]);
+    assert.equal(calls(), 1);
+  });
+
+  it("뒤 갱신이 실패하면 다음 응답부터 stale · 30초 넘게 낡아도 stale · 처음부터 실패면 빈 호가(500 아님)", async () => {
     let failing = false;
     const { read, advance } = setup(() => failing);
     await read.execute("005930");
     failing = true;
     advance(10_000);
+    const first = await read.execute("005930");
+    assert.deepEqual([first.available, first.stale], [true, false]);
+    await settle();
     const stale = await read.execute("005930");
     assert.deepEqual([stale.available, stale.stale, stale.asks.length], [true, true, 1]);
 
+    const old = setup(() => false);
+    await old.read.execute("005930");
+    old.advance(KR_ORDERBOOK_STALE_MS);
+    assert.equal((await old.read.execute("005930")).stale, true);
+
     const empty = await setup(() => true).read.execute("005930");
-    assert.deepEqual([empty.available, empty.stale, empty.asks.length, empty.totalAskQuantity], [false, true, 0, null]);
+    assert.deepEqual([empty.available, empty.pending, empty.stale, empty.asks.length, empty.totalAskQuantity], [false, false, true, 0, null]);
   });
 
   it("읽는 사람을 받지 않는다(ADR-011) · 마스터에 없는 종목만 404 — KIS 를 부르지 않는다", async () => {

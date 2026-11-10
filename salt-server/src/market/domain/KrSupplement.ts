@@ -103,6 +103,15 @@ export const KR_ORDERBOOK_DEPTH = 10;
  */
 export const KR_ORDERBOOK_CACHE_MS = 10_000;
 
+/**
+ * 화면이 KIS 를 기다리는 상한(`SRV-REQ-053` FR-3, 2026-11-10). 불변식: **받아 둔 호가가 있으면 화면은 KIS 를 기다리지 않는다** —
+ * 낡았으면 그 값을 바로 주고 뒤에서 새로 받는다. 처음 보는 종목만 이 시간까지 기다리고, 넘으면 `pending` 으로 답한 뒤 받던 것은 캐시를 채운다.
+ * 한도 초과 쿨다운(최대 8초)이 겹치면 한 건이 13~22초까지 갔다(실측)
+ */
+export const KR_ORDERBOOK_WAIT_MS = 2_000;
+/** 받아 둔 값이 이만큼 낡으면 `stale` 표시 — 뒤 갱신이 두 번 넘게 못 따라온 것 */
+export const KR_ORDERBOOK_STALE_MS = 30_000;
+
 export interface KrOrderbookLevel {
   price: number;
   /** 잔량(주) */

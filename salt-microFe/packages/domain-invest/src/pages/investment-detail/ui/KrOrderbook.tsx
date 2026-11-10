@@ -95,7 +95,11 @@ export const KrOrderbook = ({ code, session, basePrice, currentPrice }: KrOrderb
         <h2 id="kr-orderbook-heading" className={heading}>
           {M.heading}
         </h2>
-        <StatusLine kind="error">{M.unavailable}</StatusLine>
+        {data.status === "ok" && data.pending ? (
+          <StatusLine kind="progress">{M.pending}</StatusLine>
+        ) : (
+          <StatusLine kind="error">{M.unavailable}</StatusLine>
+        )}
       </section>
     );
   }
