@@ -22,8 +22,8 @@ import { readZoneNavigationMetric } from "./zoneNavigationMetrics";
 
 /**
  * 아이콘은 면을 채운 단색 글리프(`@repo/ui` `AppNavigationIcon`, 이름은 `APP_TABS` 의 것 그대로) — 선 아이콘은 탭 크기에서 흐렸다
- * (2026-11-03 사용자) — 하단 탭(768~1023)만 쓴다. 머리 링크(1024 이상)는 글자만, 진하기로 가른다(`FE-REQ-067`).
- * 도메인 색은 탭에 쓰지 않는다 — 하단 탭의 지금 탭은 진한 아이콘 + 옅은 판으로 가른다(기준 레일 실측).
+ * (2026-11-03 사용자) — 레일(1024 이상) · 하단 탭(768~1023). ~~머리 링크(1024 이상)는 글자만(`FE-REQ-067`)~~ 2026-11-10 레일 복원(`FE-REQ-069`).
+ * 도메인 색은 탭에 쓰지 않는다 — 지금 탭은 진한 아이콘 + 옅은 판으로 가른다(기준 레일 실측).
  */
 const toItem = (tab: AppTab, active: boolean): AppNavigationItem => ({
   id: tab.id,
@@ -45,11 +45,14 @@ const toItem = (tab: AppTab, active: boolean): AppNavigationItem => ({
  */
 export const ZoneNavigation = ({
   headerEnd,
+  headerNav,
   headerSearch,
   children,
 }: {
   headerEnd?: ReactNode;
-  /** 머리 검색칸(`FE-REQ-067` FR-2) — `AppShell` 이 zone 몫을 넘긴다 */
+  /** zone 머리 메뉴(`FE-REQ-069` FR-2) — `AppShell` 이 zone 몫을 넘긴다(투자 zone 만) */
+  headerNav?: ReactNode;
+  /** 머리 검색칸(`FE-REQ-067` FR-2) — 투자 zone 만(`FE-REQ-069` FR-3) */
   headerSearch?: ReactNode;
   children: ReactNode;
 }) => {
@@ -73,6 +76,7 @@ export const ZoneNavigation = ({
       label={NAVIGATION_FRAME_MESSAGES.navLabel}
       brand={<HeaderBrand />}
       headerEnd={headerEnd}
+      headerNav={headerNav}
       headerSearch={headerSearch}
       renderLink={(item, { children: body, className, "aria-current": current }) => {
         const tab = APP_TABS.find((candidate) => candidate.id === item.id);

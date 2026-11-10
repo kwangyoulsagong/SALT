@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
 import { Container } from "./AppShell.css";
-import { HeaderSearchLink } from "./HeaderSearchLink";
 import { appContent } from "./NarrowScreenNotice.css";
 import { NarrowScreenNotice } from "./NarrowScreenNotice";
 import { ProfileMenu } from "./ProfileMenu";
@@ -17,17 +16,28 @@ import { ZoneNavigation } from "./ZoneNavigation";
  * 폭이 768 미만이면 본문 대신 좁은 화면 안내를 보인다(`FE-REQ-043`) — CSS 로만 가르므로 본문도 렌더는 된다
  * (숨겨질 뿐). 휴대폰 화면은 앱이 맡는다.
  *
- * 본문 바깥은 앱 내비게이션(`FE-REQ-054` → `FE-REQ-067`) — 머리 52(로고 · 1024 이상 도메인 링크 · 검색칸 · 계정 메뉴) · 768~1023 하단 탭.
- * 검색칸은 `headerSearch` 로 zone 이 바꿔 꽂는다 — 기본은 투자 zone `/search` 링크, 투자 zone 은 모달을 여는 칸(`FE-REQ-066`).
+ * 본문 바깥은 앱 내비게이션(`FE-REQ-054` · `FE-REQ-069`) — 1024 이상 왼쪽 레일 · 768~1023 하단 탭(도메인) · 머리 52(로고 · zone 메뉴 · 검색칸 · 계정 메뉴).
+ * 메뉴(`headerNav`) · 검색칸(`headerSearch`)은 zone 이 꽂는다 — **투자 zone 만**(`FE-REQ-069` FR-2 · 3). 다른 zone 머리는 로고 · 계정
+ * (~~기본은 투자 zone `/search` 링크~~ 2026-11-10 — 사용자 "검색은 투자에서만").
  * 공개 화면(로그인 · 온보딩)에는 없다. 앱 웹뷰는 네이티브 탭이 따로 있어 숨긴다(`AppShell.css.ts`).
  * zone 간 탭 prerender 규칙도 여기서 단다(로그인 상태 · Chromium 만).
  */
-export const AppShell = ({ children, headerSearch }: { children: ReactNode; headerSearch?: ReactNode }) => {
+export const AppShell = ({
+  children,
+  headerNav,
+  headerSearch,
+}: {
+  children: ReactNode;
+  /** zone 머리 메뉴(`@repo/ui` `AppNavigationHeaderNav`) — 투자 zone 만 */
+  headerNav?: ReactNode;
+  /** 머리 검색칸 — 투자 zone 만 */
+  headerSearch?: ReactNode;
+}) => {
   return (
     <div className={Container}>
       {/* 모든 라우트의 main 랜드마크는 여기 하나다 — 페이지는 <main> 을 두지 않는다(중첩 금지). 좁은 화면에서는
           숨고 안내가 main 이 된다(axe landmark-one-main) */}
-      <ZoneNavigation headerEnd={<ProfileMenu />} headerSearch={headerSearch ?? <HeaderSearchLink />}>
+      <ZoneNavigation headerEnd={<ProfileMenu />} headerNav={headerNav} headerSearch={headerSearch}>
         <main className={appContent}>{children}</main>
       </ZoneNavigation>
       <NarrowScreenNotice />

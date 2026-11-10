@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { AppNavigation } from "./AppNavigation";
+import { AppNavigation, AppNavigationHeaderNav } from "./AppNavigation";
 import type { AppNavigationItem } from "./AppNavigation";
 import { AppNavigationIcon } from "./AppNavigationIcon";
 import { AppNavigationSearch } from "./AppNavigationSearch";
@@ -32,6 +32,18 @@ const meta = {
     children: <Body />,
     brand: <Logo decorative />,
     headerEnd: <span style={{ fontSize: 14 }}>계정</span>,
+    headerNav: (
+      <AppNavigationHeaderNav
+        label="투자 메뉴"
+        items={["코인", "주식", "포트폴리오", "리포트", "코치 설정"].map((menu, index) => ({
+          id: menu,
+          label: menu,
+          href: "#",
+          icon: null,
+          active: index === 0,
+        }))}
+      />
+    ),
     headerSearch: <AppNavigationSearch label="종목 검색" hint=" 를 눌러 검색해요" shortcut={false} />,
   },
 } satisfies Meta<typeof AppNavigation>;
@@ -39,15 +51,15 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** 데스크톱(1024 이상) — 머리 안 글자 링크(선택은 진하기만) · 오른쪽 검색칸 */
+/** 데스크톱(1024 이상) — 왼쪽 레일(도메인) · 머리 = zone 메뉴(글자 · 선택은 진하기만) + 검색칸(투자 zone 판, `FE-REQ-069`) */
 export const Default: Story = {};
 
-/** 태블릿 폭(768~1023) — 하단 탭 */
+/** 태블릿 폭(768~1023) — 하단 탭(도메인) · 머리 메뉴는 그대로 */
 export const Tablet: Story = {
   parameters: { viewport: { defaultViewport: "tablet" } },
 };
 
-/** 지금 탭이 없는 화면(설정 등) — 모든 링크가 2단 색 */
+/** 지금 탭이 없는 화면(설정 등) — 레일에 지금 탭 없음 */
 export const NoActiveTab: Story = {
   args: { items: items.map((item) => ({ ...item, active: false })) },
 };
@@ -57,7 +69,7 @@ export const Bare: Story = {
   args: { bare: true },
 };
 
-/** 긴 이름 — 머리 링크는 늘어나고 하단 탭은 칸 폭에서 말줄임 */
+/** 긴 이름 — 레일 · 하단 탭은 칸 폭에서 말줄임 */
 export const LongLabel: Story = {
   args: {
     items: items.map((item) => (item.id === "invest" ? { ...item, label: "투자 포트폴리오" } : item)),
