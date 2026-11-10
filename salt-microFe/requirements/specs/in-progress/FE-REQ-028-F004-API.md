@@ -9,6 +9,8 @@ labels: [fe, api, fsd, rsc, polling, llm]
 created: 2026-09-09
 ---
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 FR: FR-86 · FR-89 (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - ~~FR-80 의 "쿠키 세션 · `localStorage` 에 두지 않는다"는 아직 아님~~ **2026-11-05 충족** — httpOnly 쿠키(`FE-REQ-013` FR-80 2단계 `721063fc`)
 
@@ -132,10 +134,10 @@ created: 2026-09-09
 | FR-84 | 상세 분석 페이지는 라우트 `/investments/[symbol]` 서버 컴포넌트가 1회 조회한다. 패널에서 넘어올 때 React Query 캐시를 **초기 데이터로 재사용하지 않는다**(서버 컴포넌트가 새로 받는다 — 두 경로가 섞이면 staleness 가 갈린다) | Should |
 | FR-85 | `mode` 쿼리가 URL 에 없으면 **BFF 에 `mode` 를 보내지 않는다**(서버 `defaultMode`, B16) | Must |
 | FR-86a | 해설 요청 본문은 **`{ symbol, mode }` 뿐이다**(개정 2026-09-24, C01 · 서버 `SRV-REQ-025` FR-58). 화면이 시세 · 근거 · 뉴스를 옮겨 적지 않는다 — 시세 목록에 종목이 없어도 해설을 부를 수 있다("시세 정보를 찾지 못해" 경로 삭제) | Must |
-| FR-86 | 해설 요청 본문에 `mode` 를 싣는다. 응답이 판별 union 이므로 `renderable: false` 분기를 타입으로 처리한다(B3) | Must |
+| FR-86 | 해설 요청 본문에 `mode` 를 싣는다. 응답이 판별 union 이므로 `renderable: false` 분기를 타입으로 처리한다(B3). **v2(11-10):** 판단 막힘으로는 이 분기가 안 온다 — 해설 4단 대체 단계를 받는다 (`FEATURE-017` v2) | Must |
 | FR-87 | preflight 요청에 `stopLossRate` 를 싣고 `takeProfitPrices` 는 사용자가 입력했을 때만 싣는다(B1) | Must |
 | FR-88 | 관심 추가는 기존 watchlist mutation. 성공 시 관심 종목 쿼리만 무효화한다 — 코치 쿼리를 건드리지 않는다(D4) | Must |
-| FR-89 | 뷰모델 타입 `SymbolCoachViewModel` · `ModeCoachViewModel` 은 `packages/core`(BFF-REQ-024 FR-30). **`renderable: false` 분기에서 `judgment` 접근이 컴파일 실패**한다 · `confidence` 필드가 타입에 없다 | Must |
+| FR-89 | 뷰모델 타입 `SymbolCoachViewModel` · `ModeCoachViewModel` 은 `packages/core`(BFF-REQ-024 FR-30). ~~**`renderable: false` 분기에서 `judgment` 접근이 컴파일 실패**한다~~ · `confidence` 필드가 타입에 없다 **v2(11-10):** 뒤집힘 — `judgment` · `trackRecord` · `failureCases` · `caveats[]` 가 늘 있는 타입(분기 없음) (`FEATURE-017` v2) | Must |
 
 ## Acceptance Criteria
 
@@ -205,5 +207,6 @@ created: 2026-09-09
 | 2026-11-04 | `useRegenerateCoach` 의 `now` 초기값을 렌더 중 `Date.now()` 대신 0 으로 — 쿨다운을 받은 뒤에만 쓰는 값이라 화면은 같다(`DEV-001` `no-render-read`) |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): FR-80 "토큰을 클라이언트 번들 · `localStorage` 에 두지 않는다" 충족(머리 정정 닫힘) — 조회 훅은 `useHasSession` · API 는 헤더 없이(`721063fc`) |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
+| 2026-11-10 | v2 대체 표시 — FR-86 · FR-89 (`FEATURE-017` v2 · `ADR-010` v2) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/entities/coach/api/endpoints.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)

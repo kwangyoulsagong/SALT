@@ -9,6 +9,8 @@ labels: [bff, performance, budget, llm, concurrency]
 created: 2026-09-09
 ---
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 FR: FR-40(종목 판단 몫) · FR-54 (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 ## Summary
 
 F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 잡는 것**이다. `explain`은 20s 타임아웃이고, 그 동안 커넥션 하나가 묶인다.
@@ -61,7 +63,7 @@ F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 �
 | FR-51 | 모드 전환이 BFF 호출을 만들지 않는다 — 두 모드가 한 응답에 있다 | Must |
 | FR-52 | 행 선택이 빠르게 바뀌면 이전 요청을 끊는다. **BFF 는 클라이언트 연결이 닫히면 upstream 요청도 `AbortSignal` 로 취소**한다 | Should |
 | FR-53 | 캐시를 새로 만들지 않는다(FR-20). 관찰 구간 캐시는 서버 몫이다 | Must |
-| FR-54 | 관측: `/ai-coach/detail` p95 · 호출률(분당), **모드별 게이트 미렌더율**, `degradedFields: news` 비율 | Must |
+| FR-54 | 관측: `/ai-coach/detail` p95 · 호출률(분당), **모드별 ~~게이트 미렌더율~~**, `degradedFields: news` 비율 **v2(11-10):** 종목 판단은 미렌더가 없다 — 모드별 · 사유별 꼬리표 비율(`caveats[].reason`) (`FEATURE-017` v2) | Must |
 
 ## 캐시
 
@@ -89,7 +91,7 @@ F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 �
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-40 | **게이트 미렌더 카운터를 BFF에서도 남긴다**: `blockedReason`별. 서버와 BFF 양쪽에서 보면 전달 과정의 유실을 잡는다 | Must |
+| FR-40 | **게이트 미렌더 카운터를 BFF에서도 남긴다**: `blockedReason`별. 서버와 BFF 양쪽에서 보면 전달 과정의 유실을 잡는다. **v2(11-10):** 저장 추천은 그대로, 종목 판단은 꼬리표 비율 카운터(사유별)로 — `track_record_unavailable` 은 결함으로 센다 (`FEATURE-017` v2) | Must |
 | FR-41 | 측정: 엔드포인트별 p95, **`explain` 동시 호출 수·대기 시간**, `generate` 202 비율, 429 발생률, LLM 실패 전달률(`explanation.source: 'rule'` 비율) | Must |
 | FR-42 | **`explanation.source: 'rule'` 비율이 높으면 LLM이 자주 실패하고 있다는 신호**다. 알림 임계를 둔다 | Must |
 | FR-43 | **BFF가 얹는 지연**을 별도 측정한다 | Must |
@@ -110,7 +112,7 @@ F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 �
 - [ ] ~~`detail` p95 < 450ms~~ `coach/report` p95 < 450ms · **`ai-coach/detail`(종목 판단) p95 < 200ms** (측정값 기록, 개정 2026-09-21)
 - [ ] 종목 판단 · 뉴스 호출이 병렬이다
 - [ ] 모드 전환이 BFF 호출 0건이다
-- [ ] 모드별 게이트 미렌더율이 측정된다
+- [ ] 모드별 ~~게이트 미렌더율~~ 꼬리표 비율(사유별, v2 11-10)이 측정된다
 - [ ] `generation-status` p95 < 50ms
 - [ ] **게이트 미렌더 카운터가 `blockedReason`별로 있다**
 - [ ] `explanation.source: 'rule'` 비율이 측정되고 알림 임계가 있다
@@ -139,5 +141,6 @@ F004의 BFF 성능 급소는 **LLM이 걸린 경로가 BFF 커넥션을 오래 �
 | 2026-11-02 | 파일만 걸침 — `ai-coach.controller` 가 UA 로 클라이언트를 정해 서비스에 넘긴다. 근거 `BFF-REQ-050`. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-invest/src/entities/coach/api/coachApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
+| 2026-11-10 | v2 대체 표시 — FR-40(종목 판단 몫) · FR-54 (`FEATURE-017` v2 · `ADR-010` v2) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/entities/coach/api/coachApi.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)

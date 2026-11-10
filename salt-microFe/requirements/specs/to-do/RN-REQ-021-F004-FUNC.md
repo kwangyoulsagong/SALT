@@ -9,6 +9,8 @@ labels: [rn, func, fsd, render-gate, offline, cooldown]
 created: 2026-09-09
 ---
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다(꼬리표 `caveats[]`). 앱의 투자 화면은 웹뷰(`RN-REQ-032`)라 이 문서의 종목 판단 게이트 FR 은 고쳐 쓰지 않고 **대체됨** 으로 둔다: FR-97. 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 > **2026-10-30 — 도메인 구조 전환(`ADR-005` · `RN-REQ-032`)으로 바뀌는 것** — 서비스 번들 이름은 `invest` · `savings` · `household` · `tips` + 셸(`tax` 삭제), 앱 탭은 홈 · 저축 · 가계부 · 투자 4개, 투자 기능은 동결 범위 안에서만, 알림은 도메인별 · 기본 꺼짐. 본문과 다르면 `RN-REQ-032` 가 우선한다.
 
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
@@ -123,7 +125,7 @@ created: 2026-09-09
 | FR-94 | **신뢰도 · 점수 `%` 표기 0건(D3).** 유효시간은 `validity.code` → i18n 하나. "25분"·"30일" 상수 0건 | Must |
 | FR-95 | 구간 · 오버레이 · 거리 · 게이지 적중률 **계산 0건.** `예측 아님` 배지를 끄는 prop 0건 | Must |
 | FR-96 | 금지 표현에 "매수존" · "매수 적정가" · "목표가" · "상승 여력" · "신뢰도" · "기대 수익" 6개를 더한다(웹과 같은 17개) | Must |
-| FR-97 | 해설 버튼은 `modes[mode].renderable === true` 일 때만. 응답 `{ renderable: false }` 는 `BlockedNotice` 문구 | Must |
+| FR-97 | ~~해설 버튼은 `modes[mode].renderable === true` 일 때만. 응답 `{ renderable: false }` 는 `BlockedNotice` 문구~~ **대체됨(앱 웹뷰 — `RN-REQ-032`)** — v2(11-10) 종목 판단은 늘 보이고 꼬리표(`FEATURE-017` v2) · 해설 4단 대체 | Must |
 | FR-98 | 주문 전 체크: 목표가 초기값 빈칸 · 손절 칩은 `stopLossRate` 전송 · "전액" · 잔여 현금 0건(B1) | Must |
 | FR-99 | 시장 · 관심 종목 목록이 코치 뷰모델을 읽지 않는다(D4) | Must |
 | FR-100 | 코치 리포트 전부 미렌더(B18)는 정상 분기 — 오류 토스트 · 에러 화면 0건 | Must |
@@ -193,3 +195,4 @@ created: 2026-09-09
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 신규 FR-90~101(모드 navigation param 공유(D3) · `defaultMode` 위임(B16) · 모드 전환 무요청 · 모드별 게이트(B10) · 신뢰도/유효시간 상수 금지 · 무계산(D2 · B9) · 금지 표현 6개 · 해설 게이트(B3) · 주문 전 체크(B1) · 목록 분리(D4) · 초기 미렌더 정상(B18) · 오프라인 모드 전환). 개정: FR-85 |
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` D11 ~ D13 반영. `distancePct` → `priceGap`(D13) |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-10 | v2 대체 표시 — FR-97 대체됨(앱 웹뷰 — `RN-REQ-032`) (`FEATURE-017` v2 · `ADR-010` v2) |

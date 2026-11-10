@@ -9,6 +9,8 @@ labels: [ddd, domain, coach, render-gate, llm, signal-performance]
 created: 2026-09-09
 ---
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 FR: FR-104 · FR-106 · FR-137 · FR-141 · FR-191(게이트 부분) · FR-194 (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - FR-140~142(해설 3종 동봉 · `newsSummary` · 미렌더면 LLM 미호출) · FR-150~153(preflight `stopLossRate` · `maxLossOfTotalRate` · 목표가 선택)은 **2026-09-22 슬라이스 10 으로 구현**(`ExplainCoachDecision.ts` · `domain/policy/preflight.ts`) — 기록이 `SRV-REQ-025` 에만 있었다
 > - FR-107 스냅샷은 `InvestmentInsight(kind: symbol_judgment)` upsert 가 아니라 별도 표 `SymbolJudgmentSnapshot`(`symbol_judgment_snapshots`) — 매핑 표의 성적 표본도 그 표
@@ -162,9 +164,9 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-101 | 판단 라벨은 서버 **중립 라벨 4종**이다: `review_short_opportunity`(단타 기회 후보) · `review_accumulation`(장기 모아가기 후보) · `wait`(관망) · `avoid`(지금은 피하기). **"매수"·"매도" 명령형 라벨을 만들지 않는다**(`modeDecision.ts` 기존) | Must |
 | FR-102 | **신뢰도를 없앤다.** `makeModeDecision` 의 `confidence`(`0.45 + score/200`) 필드를 응답 타입에서 제거하고, `CoachExplanationInput.confidence`(Gemini 입력)도 뺀다. 점수 + `scoreNote` + 3종이 대체한다 | Must |
 | FR-103 | **유효시간은 서버가 정한 하나의 표기**다. 기존 `timeframe`(~~`5m-24h` · `1w-1y`~~ → **`24h` · `30d`**, 개정 2026-09-24 C05 — 채점 기간과 같게)을 `validity.code` 로 싣고, 해설(`CoachExplanation.timeframe`)도 **LLM 이 만들지 않고 이 값을 주입**한다. 화면 자체 값(프로토타입 "25분 / 30일") 금지 | Must |
-| FR-104 | 모드별로 **3종 게이트**를 적용한다: `renderable` · `blockedReason` · `trackRecord` · `failureCases`. 게이트 함수는 FR-10 의 `renderGate.ts` 를 그대로 쓴다 — 저장 추천과 종목 판단이 **같은 함수**를 지난다 | Must |
+| FR-104 | 모드별로 ~~**3종 게이트**를 적용한다: `renderable` · `blockedReason` ·~~ `trackRecord` · `failureCases`. ~~게이트 함수는 FR-10 의 `renderGate.ts` 를 그대로 쓴다 — 저장 추천과 종목 판단이 **같은 함수**를 지난다~~ **v2(11-10):** 종목 판단은 3종을 늘 싣고 막힘 대신 `caveats[]`(`judgmentCaveats`) — 저장 추천 `renderGate` 는 그대로 (`FEATURE-017` v2) | Must |
 | FR-105 | 근거 = `reasons[]`(비어 있지 않음). 적중률 = 매핑 표(FR-130)로 찾은 `<mode>.<action>` 성적표. 실패사례 = 같은 `<mode>.<action>` 스냅샷 중 **빗나간 것**(FR-134 · D11). `IndicatorTrackRecord` 를 쓰지 않는다 | Must |
-| FR-106 | `renderable: false` 여도 **200** 이고, 게이지 · 뉴스 · 바이존은 그대로 응답한다. 게이트는 **판단 블록**에만 걸린다 | Must |
+| FR-106 | ~~`renderable: false` 여도~~ **200** 이고, 게이지 · 뉴스 · 바이존은 그대로 응답한다. ~~게이트는 **판단 블록**에만 걸린다~~ **v2(11-10):** 판단 블록도 늘 응답하고 꼬리표만 붙는다 (`FEATURE-017` v2) | Must |
 | FR-107 | **종목 판단 스냅샷을 남긴다.** 워커가 추적 자산(D8 — 최대 10 + 보유) × 2모드 판단을 `InvestmentInsight(kind: symbol_judgment, mode, signalType)` 로 upsert 한다(`DB-REQ-017` FR-50~53). 스냅샷이 없으면 종목 경로 성적표 표본이 영원히 0이다 | Must |
 | FR-108 | 헤드라인 문구(`headline`)에 확신 표현 · 목표가 · 수익률이 없다. ~~기존 문구("손절 기준 없이 진입하지 마세요")는 행동 서술이라 유지한다~~ **정정 2026-11-02 — 명령형 매매 지시였다**(공통 수용 기준 4). 사실 서술로: 단타 "손절 기준이 없는 진입은 손실 폭을 미리 정하지 못합니다." · 장기 "나눠 들어가면 한 번에 들어갈 때보다 가격 변동 위험이 작습니다." 검증기가 부정 명령을 몰라 통과했다(`SRV-REQ-037` FR-13) | Must |
 
@@ -212,7 +214,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-134 | **(D11) 종목 판단의 적중률 · 실패사례는 `symbol_judgment` 스냅샷의 사후 결과에서 온다.** 관찰 기간이 끝난 스냅샷마다 진입가(스냅샷 시각 종가)와 기간 끝 종가로 결과를 매긴다. `IndicatorTrackRecord` 를 읽지 않는다 — 판단 근거(RSI · 심리 · 대량 체결)와 다른 신호의 실패를 붙이지 않는다 | Must |
 | FR-135 | **적중 판정 (B39 — 2026-09-21 사용자 확정).** 관찰 기간 = 단타 24시간 · 장기 30일. `review_*` 는 기간 수익률 > 0, `avoid` 는 ≤ 0, `wait` 는 절댓값이 단타 2% · 장기 10% 안이면 적중. 규칙은 `domain/policy` 순수 함수 하나에 둔다 | Must |
 | FR-136 | **표본 독립성.** 같은 종목 · 모드 스냅샷은 관찰 기간 안에서 **첫 1건만** 표본으로 센다(1시간 버킷이 겹쳐 표본이 부풀지 않게) | Must |
-| FR-137 | **표본 < 20 이면 `renderable: false` · `blockedReason: insufficient_sample`** 이고 `trackRecord.sample` 은 실제 값을 싣는다. 표본 ≥ 20 인데 빗나간 것이 0건이면 `failure_cases_missing` 으로 막는다 — 실패 없는 성적은 표본이 치우친 신호다 | Must |
+| FR-137 | **표본 < 20 이면 ~~`renderable: false` · `blockedReason: insufficient_sample`~~** 이고 `trackRecord.sample` 은 실제 값을 싣는다. 표본 ≥ 20 인데 빗나간 것이 0건이면 `failure_cases_missing` ~~으로 막는다~~ — 실패 없는 성적은 표본이 치우친 신호다 **v2(11-10):** 막지 않고 같은 판단 유형의 과거 검산 성적 · 사례로 채운다("과거 시세로 검산" 라벨 · 라이브 수와 섞지 않음) — 검산까지 비면 결함 꼬리표 (`ADR-010` v2) | Must |
 | FR-138 | **피하기의 근거 = `reasons ∪ risks`** (2026-09-21 사용자 확정). 피하기는 위험 신호가 곧 이유라 `makeModeDecision` 이 `risks` 에만 넣는다. 나머지 판단은 `reasons` 만 근거로 센다. 규칙은 `judgmentEvidence` 한 곳 | Must |
 
 ### E. 해설 (B3)
@@ -220,7 +222,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-140 | 즉석 해설(`POST /api/ai-coach/explain`)은 `modeReasoning` · `keyDrivers` · `risks` · **`newsSummary`(최대 5줄)** · `disclaimer` 를 준다. **예상 수익 범위는 없다**(`GeminiCoachExplainer` · `CoachExplanation` 에서 2026-09-18 제거 — 되살리지 않는다) | Must |
-| FR-141 | 해설 응답에 같은 종목 · 모드의 `renderable` · `trackRecord` · `failureCases` 를 함께 싣는다. **판단이 `renderable: false` 면 해설을 생성하지 않는다**(LLM 을 부르지 않는다) — 3종 없는 해설이 추천처럼 읽힌다 | Must |
+| FR-141 | 해설 응답에 같은 종목 · 모드의 `renderable` · `trackRecord` · `failureCases` 를 함께 싣는다. ~~**판단이 `renderable: false` 면 해설을 생성하지 않는다**(LLM 을 부르지 않는다) — 3종 없는 해설이 추천처럼 읽힌다~~ **v2(11-10):** 해설은 판단에 걸리지 않고 늘 나간다 — 4단 대체(최신 AI → 직전 AI + 시각 → 사실 표 틀 문장 → "특이 소식 없음" + 판정 근거), 3종 · `caveats[]` 를 함께 싣는다(`FEATURE-017` v2 FR-2) | Must |
 | FR-142 | `newsSummary` 는 입력으로 준 기사(`news[]`)만 요약한다. 기사가 0건이면 빈 배열이다 | Must |
 
 ### F. 주문 전 체크 (B1)
@@ -265,10 +267,10 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | FR-188 | **부족분은 쓸 수 있는 돈 안에서만.** `fundable` = max(0, 전체 − 코인 평가금) + core 초과분. 부족 합이 넘치면 부족 행의 원 · 수량을 같은 비율로 줄이고 `gapCapped: true`. 줄인 값이 최소 주문(5,000원) 미만이면 `status: no_room`. 목표 비중 자체는 줄이지 않는다 — 알트를 팔아 core 를 채우는 계산이 나오지 않게 | Must |
 | FR-189 | **알트 몫 판정 기록 상수** `TARGET_WEIGHT_ALT_SHARE_RECORD` — 리포트 `target-weight-target-weight-2-2026-09-29.md` 의 0.15 행(a 0.10 · 0.20 ΔCalmar [점, 하한, 상한] · CAGR · core CAGR) · `adopted: null` · `survivorshipBias: true`. 테스트가 리포트 판정 줄 · CI 칸과 대조(소수 2자리 허용). 응답 `altShare` | Must |
 | FR-190 | **core 모델 포트폴리오 라이브 성적** — `ForecastReader.targetWeightLive(target)` 가 `forecast.v_target_weight_live`(`DB-REQ-029` FR-21) 의 사용자 목표 σ 에 가장 가까운 등록 목표 한 행을 읽는다(PK 인덱스 · 0.015ms). 응답 `live`(첫 리밸런스 2026-10-05 전이면 `null`) · `liveMinWeeks` 30 · `recordSource` = 라이브 `nWeeks ≥ 30` 이면 `live`, 아니면 `backtest` | Must |
-| FR-191 | **거래소 투자유의 종목은 판정을 내지 않는다**(F010 슬라이스 6). `judgmentGate` 의 첫 검사 — `exchangeWarning` 이면 근거 · 표본 · 실패사례와 무관하게 `blockedReason: exchange_warning`. `GetSymbolCoach` 가 `ForecastReader.marketWarnings([symbol])`(`forecast.v_market_warning`, `DB-REQ-029` FR-22, 3일 신선도)로 읽는다. 읽기 실패 · 스냅샷 없음 · 3일 넘음은 **막지 않는다**(fail-open — 모르는 것을 유의로 지어내지 않는다). 원장(`judgment_ledger` · 판단 스냅샷)은 그대로 쓴다 — 규칙을 재는 기록이지 화면이 아니다 | Must |
+| FR-191 | **거래소 투자유의 종목은 판정을 내지 않는다**(F010 슬라이스 6). ~~`judgmentGate` 의 첫 검사 — `exchangeWarning` 이면 근거 · 표본 · 실패사례와 무관하게 `blockedReason: exchange_warning`.~~ **v2(11-10):** 판정은 내고 꼬리표 `{reason: exchange_warning, cautions, checkedAt}` (`FEATURE-017` v2). `GetSymbolCoach` 가 `ForecastReader.marketWarnings([symbol])`(`forecast.v_market_warning`, `DB-REQ-029` FR-22, 3일 신선도)로 읽는다. 읽기 실패 · 스냅샷 없음 · 3일 넘음은 **막지 않는다**(fail-open — 모르는 것을 유의로 지어내지 않는다). 원장(`judgment_ledger` · 판단 스냅샷)은 그대로 쓴다 — 규칙을 재는 기록이지 화면이 아니다 | Must |
 | FR-192 | 응답 `exchangeFlag: { warning, cautions[], fetchedAt } \| null` — 주의(caution)만 켜졌으면 판정은 그대로 나가고 소비처가 코드로 한 줄을 고른다. 코드는 업비트 원문 5종 그대로(`PRICE_FLUCTUATIONS` 등) | Must |
 | FR-193 | **추천 후보에서 투자유의 종목을 뺀다** — `withoutExchangeWarning(ranked, flags)`(순위 유지, 보유 종목의 매도 후보 포함). `GenerateCoachRecommendation` 이 같은 포트로 읽고 실패는 빈 맵 | Must |
-| FR-194 | **(F010 슬라이스 7) 재료가 멈추면 판단을 보이지 않는다.** `judgmentGate` 에 `stale_inputs` — 투자유의(FR-191) 다음, 3종 게이트 앞. 기준 `domain/policy/inputFreshness.ts`: 시세 30분(`PRICE_STALE_AFTER_MS`) · 단타 1시간봉 지표 3시간 · 장기 일봉 지표 3일(`INDICATOR_STALE_AFTER_MS`), 지표는 봉 시작 시각 기준. 근거 2026-10-07 로컬 실측 — 1시간봉 지표 ≤ 2시간 · 일봉 ≤ 48시간 · 시세 ≤ 1분. **점수 계산은 바꾸지 않는다** — 사전등록 `rule-ic@1` · `mode-decision@2` 라이브 채점이 화면과 같은 규칙이어야 해서 표시만 막는다. 시각을 모르는(`null`) 재료는 오래됐다고 하지 않는다(없음은 `missingData`). `GetSymbolCoach` 와 `ExplainCoachDecision`(해설)이 같은 게이트 — 오래된 재료엔 LLM 을 부르지 않는다. 판단 원장(`PublishJudgmentLedger`)은 신선도와 무관하게 그대로 발행(사전등록 표본 선택을 바꾸지 않는다). 시장 심리는 넣지 않았다 — 워커가 아니라 market-intelligence API 호출 때만 계산돼 로컬에서 2026-09-30 뒤로 멈춰 있다(넣으면 판정 전부 막힘) | Must |
+| FR-194 | **(F010 슬라이스 7) 재료가 멈추면 ~~판단을 보이지 않는다~~.** ~~`judgmentGate` 에 `stale_inputs` — 투자유의(FR-191) 다음, 3종 게이트 앞.~~ **v2(11-10):** 판단은 보이고 꼬리표 `{reason: stale_inputs, items: [{item, lastAt}]}` — 화면은 "n일 전 값" 문장. 해설도 막지 않는다(4단 대체) (`FEATURE-017` v2). 기준 `domain/policy/inputFreshness.ts`: 시세 30분(`PRICE_STALE_AFTER_MS`) · 단타 1시간봉 지표 3시간 · 장기 일봉 지표 3일(`INDICATOR_STALE_AFTER_MS`), 지표는 봉 시작 시각 기준. 근거 2026-10-07 로컬 실측 — 1시간봉 지표 ≤ 2시간 · 일봉 ≤ 48시간 · 시세 ≤ 1분. **점수 계산은 바꾸지 않는다** — 사전등록 `rule-ic@1` · `mode-decision@2` 라이브 채점이 화면과 같은 규칙이어야 해서 표시만 막는다. 시각을 모르는(`null`) 재료는 오래됐다고 하지 않는다(없음은 `missingData`). `GetSymbolCoach` 와 `ExplainCoachDecision`(해설)이 같은 게이트 — 오래된 재료엔 LLM 을 부르지 않는다. 판단 원장(`PublishJudgmentLedger`)은 신선도와 무관하게 그대로 발행(사전등록 표본 선택을 바꾸지 않는다). 시장 심리는 넣지 않았다 — 워커가 아니라 market-intelligence API 호출 때만 계산돼 로컬에서 2026-09-30 뒤로 멈춰 있다(넣으면 판정 전부 막힘) | Must |
 | FR-195 | **목표 비중(`GetTargetWeights`) — 30분 넘은 시세는 없는 것으로.** 그 종목은 `excluded`(`price_unavailable`), 보유 평가가도 같은 시세라 대신 쓰지 않는다 | Must |
 | FR-196 | **목표 비중이 하나도 안 나오면 사유를 가른다** — 멈춘 시세가 있었거나 σ 배치(`v_realized_vol` 최대 `as_of`, 새 reader 메서드 `volatilityAsOf()`)가 3일 넘게 멈췄으면 `blockedReason: stale_inputs`, 아니면 `no_volatility`. `volatilityAsOf` 는 σ 가 하나도 없을 때만 읽는다(정상 경로 쿼리 추가 0) | Must |
 
@@ -277,9 +279,9 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 - [ ] `coach` 컨텍스트가 5개 모듈을 통합한다
 - [ ] **점수 엔진 계산이 바뀌지 않았다** (이관 전/후 응답 스냅샷 동일)
 - [ ] 게이트가 `policy/renderGate.ts`의 순수 함수다
-- [ ] **`signalTrackRecord`를 null로 만들면 `renderable: false`다**
-- [ ] **`failureCases`를 빈 배열로 만들면 `renderable: false`다**
-- [ ] `reasons`가 비면 `renderable: false`다
+- [ ] **`signalTrackRecord`를 null로 만들면 `renderable: false`다** (저장 추천 — 그대로)
+- [ ] **`failureCases`를 빈 배열로 만들면 `renderable: false`다** (저장 추천 — 그대로)
+- [ ] `reasons`가 비면 `renderable: false`다 (저장 추천 — 그대로. 종목 판단 `reasons_missing` 은 v2 에서 삭제)
 - [ ] `blockedReason` 3종이 구분된다
 - [ ] 게이트 차단이 에러가 아니다 (200 응답)
 - [ ] **우회 플래그가 0건이다**
@@ -320,8 +322,8 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 - [ ] **종목 판단 응답 · 해설 입력에 `confidence` 가 0건이다**
 - [ ] 판단 라벨이 중립 4종이고 "매수"·"매도" 라벨이 0건이다
 - [ ] 유효시간이 `validity.code` 하나이고 해설의 `timeframe` 이 그 값과 같다
-- [ ] **종목 판단에서 `trackRecord` 를 null 로 만들면 `renderable: false` 다** (모드별)
-- [ ] 종목 판단 `renderable: false` 에서도 게이지 · 뉴스 · 바이존이 응답된다
+- [ ] ~~**종목 판단에서 `trackRecord` 를 null 로 만들면 `renderable: false` 다** (모드별)~~ **v2(11-10):** 성적 조회 실패면 판단은 나가고 꼬리표 `track_record_unavailable` (`FEATURE-017` v2)
+- [ ] ~~종목 판단 `renderable: false` 에서도~~ 게이지 · 뉴스 · 바이존이 응답된다 **v2(11-10):** 판단 블록도 늘 응답 (`FEATURE-017` v2)
 - [ ] 워커가 종목 판단 스냅샷을 (종목 · 모드 · 버킷)당 1건 남긴다
 - [ ] 보유 종목 `zone.kind = held_rule` 이고 가격이 `calculateProfitPlan` 과 같다
 - [ ] 미보유 크립토 `zone.kind = observation` 이고 하단 ≤ 중앙 ≤ 상단이다
@@ -332,7 +334,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 - [ ] 표본 0 이 `sample: 0` 으로 오고 `null` 과 구분된다
 - [ ] 게이트 카운터가 경로 · 모드별이다
 - [ ] 해설에 `newsSummary` ≤ 5 가 있고 예상 수익 필드가 0건이다
-- [ ] 판단 `renderable: false` 에서 해설 요청이 LLM 을 부르지 않는다
+- [ ] ~~판단 `renderable: false` 에서 해설 요청이 LLM 을 부르지 않는다~~ **v2(11-10):** 해설은 4단 대체로 늘 나간다 (`FEATURE-017` v2)
 - [ ] preflight 목표가를 비우면 `riskRewardRatio: null` 이고 서버 기본값이 0건이다
 - [ ] 성적표 그룹에 30일 수익률 분포가 있다
 - [ ] 적중 · 실패 이력이 같은 구조 · 같은 상한이다
@@ -391,6 +393,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-10-30 | 파일만 걸침 — 서버 `market/domain/ports.ts` 에 `ExchangeQuotePort.weeklyCandles`. 이 REQ 의 판단 · 설정 무변경. 이 REQ 내용 무변경 — F004 슬라이스 19 차트 1주 탭. 루트 `requirements/specs/done/F004-chart-week-tab-slice.md` |
 | 2026-11-02 | **FR-108 정정** — 헤드라인 "진입하지 마세요" · "잡으세요" 를 사실 서술로(규칙 버전 무변경 — 점수 · 행동 무관). 같은 날 `behavior.ts` 규칙 문장 4 · `profitPlan.ts` 1 도 사실 서술로(이 REQ 가 아니라 `SRV-REQ-025` 주인 파일 · 주인 없는 파일). F008 해설 근거 슬라이스. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
 | 2026-11-02 | 파일만 걸침 — `coach/application/api/index.ts`(이 REQ 가 머리 주석 주인) 조립에 `llmEnabled` 한 칸. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
+| 2026-11-10 | v2 대체 표시 — FR-104 · FR-106 · FR-137 · FR-141 · FR-191(게이트 부분) · FR-194 (`FEATURE-017` v2 · `ADR-010` v2) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-server/src/coach/application/GetJudgmentScoreboard.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/coach/application/api/index.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자

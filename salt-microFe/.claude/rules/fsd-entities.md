@@ -61,5 +61,5 @@ export function RecommendationCard({ data, onWhy }: Props) {
 }
 ```
 
-- **3종 세트 렌더 게이트(`renderable`)는 표시 규칙이므로 여기 있다.** 판정은 서버가 하고, 엔티티는 그 결과를 존중한다.
+- **3종 세트 렌더 게이트(`renderable`)는 표시 규칙이므로 여기 있다.** 판정은 서버가 하고, 엔티티는 그 결과를 존중한다. 종목 판단은 게이트가 없다(`ADR-010` v2) — 늘 그리고 서버 `caveats[]` 를 숫자 문장 안에 끼운다.
 - `onWhy` 안에서 API를 부르지 않는다. 부르는 것은 `features/ask-coach`다.

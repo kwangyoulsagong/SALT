@@ -1,5 +1,7 @@
 # FEATURE-011: 국내 주식 시세 · 분석 연동 (한국투자증권 Open API)
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 FR: FR-62 · FR-63 · 화면 표 `entities/coach` 행 · API 표 `/api/coach/detail` 행 · 수용 기준 코치 상세 줄 (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로. **재개 — FR-63**(국내 단타 개방 · 원장 국내 행 · `rule-ic-kr@1`).
+
 > **정정 2026-11-10 (`ADR-011` · `FEATURE-018`)** — §정책 "시세 재배포 — 비회원 · 비소유자 국내 0건 · 소유자 전용으로 시작"을 뒤집었다. 국내 시세는 게스트 토큰으로 누구나, 국내 판단 · 거래는 로그인 전체, 전망만 소유자(`ADR-003`). 본문 해당 줄은 그 자리에 줄을 그었다.
 
 ## TL;DR
@@ -107,8 +109,8 @@
 |---|---|---|---|
 | FR-60 | `RefreshTechnicalIndicators` 가 `assetType` 별로 돈다. 국내주식 d1 은 거래일 봉만, h1 은 정규장 5m(09:00~15:30) 만 묶는다 — 시간외 봉은 지표에 넣지 않는다 | Must | 완료(S4) |
 | FR-61 | 판단 · 스냅샷 · 성적표 그룹 키에 자산군을 넣는다 — `signalType = "kr_stock.<mode>.<action>"`. 코인 기존 행은 그대로(`"<mode>.<action>"`), 읽기가 접두 없음 = crypto 로 해석. **국내주식 적중률은 국내주식 표본만** 으로 센다 | Must | 완료(S4) |
-| FR-62 | `COACH_EXCLUDED` 의 `kr_stock` 해제 조건(**종목별 · 모드별**): ① 일봉 ≥ 120 거래일 ② d1 지표 존재 ③ 그 모드 · 자산군 라이브 표본(`sample_origin = live`) ≥ 20. 전까지 `reasonCode` 를 `no_realtime_data` → `insufficient_history` 로 바꾸고 현재 수치(일봉 N · 표본 N) 를 응답에 넣는다 | Must | 완료(S4) |
-| FR-63 | **장기 모드(30일) 부터** 연다. 단타 모드(채점 24시간) 는 주식에선 다음 거래일로 넘어가 의미가 다르다 — 단타 해제는 Open Question 이 닫힌 뒤 | Must | 완료(S4) |
+| FR-62 | `COACH_EXCLUDED` 의 `kr_stock` 해제 조건(**종목별 · 모드별**): ① 일봉 ≥ 120 거래일 ② d1 지표 존재 ③ 그 모드 · 자산군 라이브 표본(`sample_origin = live`) ≥ 20. 전까지 `reasonCode` 를 `no_realtime_data` → `insufficient_history` 로 바꾸고 현재 수치(일봉 N · 표본 N) 를 응답에 넣는다 **v2(11-10):** 종목 판단은 ①~③ 전에도 보인다 — ① ② 미달은 꼬리표 `insufficient_history {have, need}`, ③ 라이브 표본 < 20 은 국내 과거 검산 성적 · 사례로 채운다("과거 시세로 검산" 라벨, `ADR-010` v2). `excluded` 는 저장 추천 리포트에만 (`FEATURE-017` v2) | Must | 완료(S4) · v2 표시 |
+| FR-63 | ~~**장기 모드(30일) 부터** 연다. 단타 모드(채점 24시간) 는 주식에선 다음 거래일로 넘어가 의미가 다르다 — 단타 해제는 Open Question 이 닫힌 뒤~~ **v2(11-10):** 국내 단타도 연다(사용자 "보여 주고 채점도 지금 시작") — 꼬리표와 함께 보이고 `judgment_ledger` 에 남겨 다음 거래일 종가로 채점, 사전등록 `rule-ic-kr@1` (`FEATURE-017` v2) | Must | 재개(v2) — ~~완료(S4)~~ |
 | FR-64 | 채점 종가 조회는 거래일 기준 — 30일 뒤가 휴장이면 **직전 거래일 종가**. 왕복 수수료는 국내주식 값(위탁 수수료 + 매도 거래세 · 서버 상수 아닌 env `KR_STOCK_ROUND_TRIP_FEE_RATE` → 2026-10-26 수수료 env `KR_STOCK_COMMISSION_RATE_PER_SIDE` + 매도일 거래세 표, FR-85) | Must | 완료(S4) |
 | FR-65 | 성적표 화면(성적 · 기저율 · 초과 적중률) 에 자산군 라벨 — 코인 성적 옆에 국내주식 성적을 나란히, 합산 숫자 없음 | Must | 완료(S4) |
 | FR-66 | 재료가 1 거래일 넘게 오래됐으면(`priceUpdatedAt` · 마지막 일봉) 판단을 `stale_data` 로 막는다 — 3종 세트 게이트 앞단 | Must | 완료(S4) |
@@ -221,7 +223,7 @@
 | `apps/web` | `/investments/[symbol]` `widgets/symbol-analysis` | 6자리 코드 라우트 · 상하한가 · 기준가 · 종목 상태 · 호가(Should) · 투자자(Should) · 5분봉 누적 안내 |
 | `apps/web` | `entities/market` | `KrStockQuote` 타입 · 세션 · 이니셜 아이콘 · 원화 정수 포맷터(표시만) |
 | `apps/web` | `features/manage-watchlist` · `features/record-transaction` | 종목 검색(마스터) · 자산군 `kr_stock` · 호가 단위 안내 |
-| `apps/web` | `entities/coach` messages | `insufficient_history` · `stale_data` 문구, 성적표 자산군 라벨 |
+| `apps/web` | `entities/coach` messages | `insufficient_history` · `stale_data` 문구, 성적표 자산군 라벨. **v2(11-10):** 종목 판단은 꼬리표 사실 문장("이력 80/120일" · "n일 전 값") (`FEATURE-017` v2) |
 | `apps/mobile` | — | 이번 범위 밖(웹 계약 확정 뒤) |
 
 영역 REQ: `FE-REQ-041-F011-KR-STOCK`. FSD 슬라이스 이름은 서버 컨텍스트 `market` 과 같다.
@@ -242,7 +244,7 @@
 | GET | `/api/market/kr/search?q=` | `/api/app/market/kr/search` | 필수 | `q`(2자 이상) | `{ items: [{ code, name, market, inUniverse }] }` 최대 20 | 완료(S2) |
 | GET | `/api/market/kr/stream` (SSE) | — (BFF 가 **WS 연결마다** 그 연결의 토큰으로 소비 → WS `price_update`) | 사용자 JWT · 소유자 | — | `event: status` 1회 · `event: tick` `[{ code, price, change, changeRate, volume, at }]` · 15초 하트비트 | 완료(S1 · S2) |
 | POST | `/api/investment/watchlist` (기존) | 기존 | 필수 | `assetType: "kr_stock"` 허용 | 기존 | 변경 |
-| GET | `/api/coach/detail` (기존) | 기존 | 필수 | — | `excluded[].reasonCode` 에 `insufficient_history` · `stale_data`, `progress: { dailyBars, liveSamples }` | 변경 |
+| GET | `/api/coach/detail` (기존) | 기존 | 필수 | — | `excluded[].reasonCode` 에 `insufficient_history` · `stale_data`, `progress: { dailyBars, liveSamples }`(v2 11-10: 저장 추천 리포트만 — 종목 판단은 늘 보이고 꼬리표) | 변경 |
 
 WS `price_update` 메시지에 `assetType` 필드 추가(코인 `crypto` 기본) — 기존 소비처는 무시해도 깨지지 않는다. 국내 주식 구독은 `{ type: "subscribe", assetType: "kr_stock", symbols: ["005930"], token }` — 소유자 판정이 연결마다 필요해 토큰을 메시지에 싣는다(브라우저 WS 는 헤더를 못 단다 · 만료 뒤 새 토큰으로 다시 구독). 체결 `data` 는 `{ assetType, symbol, currentPrice, change24h(전일 대비 %), change24hAmount, timestamp }` · 500ms 묶음. 거부는 `error { assetType: "kr_stock", code }`(`KR_STOCK_NOT_AVAILABLE` · `KR_STOCK_DISABLED` · `HTTP_401` · `KR_STREAM_LIMIT`).
 
@@ -324,7 +326,7 @@ WS `price_update` 메시지에 `assetType` 필드 추가(코인 `crypto` 기본)
 - [x] 21:00 KST 조회 시 `session = closed` · `lastTradeAt` 이 15:30 봉, 휴장일엔 `holiday` + 이름 — **2026-10-30** 필드 이름은 `lastCloseAt` · `holidayName`(공시 표에 있는 평일 휴장만, 실 유스케이스 12-25 → "성탄절")
 - [ ] 거래정지 · 관리종목 · 상한가 종목이 배지와 함께 렌더되고 색만으로 구분하지 않는다
 - [ ] ~~비회원 · 공개 SEO 응답에 국내주식 시세 0건. 소유자 전용 시작 시 비소유자 응답에 `kr` 항목 자체가 없다~~ **정정 2026-11-10** — `ADR-011` 로 뒤집음, 새 기준은 `FEATURE-018` 수용 기준
-- [x] 코치 상세 — 조건 미달 종목은 `insufficient_history` + 수치, 충족 종목은 장기 모드 판단 + 3종 세트(국내주식 표본만). 코인 적중률 숫자가 변하지 않는다(회귀) — 슬라이스 4(2026-10-08). 실 DB 코인 성적표 `above_cost` 무변경 확인. 충족 종목의 **렌더**는 표본 20 뒤(재시작 + 2~3개월)
+- [x] 코치 상세 — 조건 미달 종목은 `insufficient_history` + 수치, 충족 종목은 장기 모드 판단 + 3종 세트(국내주식 표본만). 코인 적중률 숫자가 변하지 않는다(회귀) — 슬라이스 4(2026-10-08). 실 DB 코인 성적표 `above_cost` 무변경 확인. ~~충족 종목의 **렌더**는 표본 20 뒤(재시작 + 2~3개월)~~ **v2(11-10):** 지금 렌더 — 꼬리표와 함께, 라이브 표본 20 전엔 과거 검산 성적 · 사례(라벨) (`FEATURE-017` v2)
 - [ ] KIS 목 서버 429 · 5xx · WS 끊김 시나리오에서 마지막 값 유지 · `stale` 배지 · 코인 시세 영향 0
 - [ ] 키 없이 기동 → 워커 미등록 · `/api/market/kr/*` 503 · 탭 없음
 - [ ] 마스터 인덱스 §6 공통 기준 전부(주문 경로 0 · 금액 서버 · 3종 · 확신 0 · 원장 3종 row 보존)
@@ -437,3 +439,4 @@ WS `price_update` 메시지에 `assetType` 필드 추가(코인 `crypto` 기본)
 | 2026-11-06 | F016(`FEATURE-016`) 기획 — 국내에 시황/공시 제목 · VI · 시장 조치(서킷브레이커 · 사이드카) · 업종 지수 · 장중 수급(프로그램 포함) 수집을 연다(`SRV-REQ-051`). 스마트머니 · 심리 점수는 옮기지 않는다 — 원천 없음 · 코인판 채점 0 과 구별 안 됨. 조회 TR 허용 목록 넷 추가 예정 |
 | 2026-11-09 | F016 단계 C — 국내 지수 · 업종 일별 1년(KIS 기간별 시세 `FHKUP03500100` — 허용 목록 +1) · 마스터 지수업종 중분류 칸 · 업종 회차 실패 셈(초과 한 건에 회차 안 접음) |
 | 2026-11-09 | 국내 상세 브라우저 탭 = 실시간 가격 · 종목 로고 파비콘(`FE-REQ-049` FR-12) |
+| 2026-11-10 | v2 대체 표시 — FR-62 · FR-63 재개 · 화면 · API 표 행 · 수용 기준 줄 (`FEATURE-017` v2 · `ADR-010` v2) |

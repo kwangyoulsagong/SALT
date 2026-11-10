@@ -9,6 +9,8 @@ labels: [ddd, infrastructure, worker, llm, gemini, projection]
 created: 2026-09-09
 ---
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 FR: FR-72 · FR-74 (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - 5개 경로가 `coach` 컨텍스트에 있다 · 게이지 워커(`investment-insight.worker.ts`) · 판단 스냅샷(`RecordSymbolJudgments.ts`, 10분) · 생성 로그 — `SRV-REQ-024` · `025` · F004 슬라이스가 구현 → to-do → **in-progress**
 > - 실패사례 출처 `IndicatorTrackAdapter` · FR-30~36 의 N+1 · `payload` fallback 은 지난 일(스냅샷 원장)
@@ -123,9 +125,9 @@ src/coach/
 |---|---|---|
 | FR-70 | 도메인에 `policy/observationZone.ts`(순수 함수: 백분위 결과 → `Zone`) · `policy/gaugeTrackRecord.ts`(구간 분류 · 30일 수익률 분포 요약)를 둔다. **입력은 숫자, Prisma 타입 0건** | Must |
 | FR-71 | 백분위수 계산은 **DB 에서**(`percentile_cont`) 하고 어댑터가 결과 3개만 올린다. 도메인은 경계 검증(`lower ≤ mid ≤ upper`)과 `unavailable` 판정만 한다 | Must |
-| FR-72 | `GetSymbolCoach` 가 두 모드 × (판단 · 게이트 · 성적표 · 실패 이력 · 구간)과 게이지 적중률을 **병렬**로 조립한다. 하나가 실패하면 그 필드만 비고(`zone.kind = unavailable` · 게이지 항목 제외), **판단 게이트는 실패 쪽으로 닫힌다**(성적표 · 실패 이력 조회 실패 → `renderable: false`) | Must |
+| FR-72 | `GetSymbolCoach` 가 두 모드 × (판단 · 게이트 · 성적표 · 실패 이력 · 구간)과 게이지 적중률을 **병렬**로 조립한다. 하나가 실패하면 그 필드만 비고(`zone.kind = unavailable` · 게이지 항목 제외), ~~**판단 게이트는 실패 쪽으로 닫힌다**(성적표 · 실패 이력 조회 실패 → `renderable: false`)~~ **v2(11-10):** 성적표 · 실패 이력 조회 실패여도 판단은 나가고 꼬리표 `track_record_unavailable`(결함으로 센다) (`FEATURE-017` v2) | Must |
 | FR-73 | **`CoachExplanationInput.confidence` 를 지운다(D3).** 프롬프트에 신뢰도를 주입하지 않는다. `validity.code` 를 주입하고 `CoachExplanation.timeframe` 은 그 값을 그대로 돌려준다 — LLM 이 기간을 만들지 않는다 | Must |
-| FR-74 | 해설 요청 전에 판단 게이트를 먼저 본다. `renderable: false` 면 `CoachExplainer` 를 부르지 않는다(B3 · `SRV-REQ-025` FR-50) | Must |
+| FR-74 | ~~해설 요청 전에 판단 게이트를 먼저 본다. `renderable: false` 면 `CoachExplainer` 를 부르지 않는다(B3 · `SRV-REQ-025` FR-50)~~ **v2(11-10):** 해설은 판단에 걸리지 않는다 — 최신 AI → 직전 AI + 시각 → 사실 표 틀 문장 → "특이 소식 없음" + 판정 근거 4단 대체 (`FEATURE-017` v2) | Must |
 | FR-75 | `newsSummary` 는 입력 기사(`NewsProbe`)만 요약하고 **최대 5줄**로 자른다. 후처리 검사(FR-16)를 `newsSummary` 에도 건다 | Must |
 | FR-76 | **`symbol-judgment-snapshot` 워커**: 추적 자산 목록(D8 — 사용자당 최대 10, 보유 종목은 상한과 무관하게 포함)을 읽고 `GetSymbolCoach` 유스케이스를 불러 스냅샷을 남긴다. 워커가 직접 계산하지 않는다(FR-50 원칙) | Must |
 | FR-77 | 스냅샷 워커는 **LLM 을 부르지 않는다.** 판단은 규칙 계산이라 초 단위다 — LLM 큐(FR-54)와 분리할 필요가 없지만, 종목 단위로 커밋한다 | Must |
@@ -175,10 +177,10 @@ src/coach/
 - [ ] `Float` 입력이 `Decimal`로 승격된다
 - [ ] `policy/observationZone.ts` · `policy/gaugeTrackRecord.ts` 가 순수 함수이고 Prisma import 가 0건이다
 - [ ] 백분위수가 DB 에서 계산된다
-- [ ] 종목 판단 조립이 병렬이고 성적표 · 실패 이력 조회 실패가 `renderable: false` 로 닫힌다
+- [ ] 종목 판단 조립이 병렬이고 성적표 · 실패 이력 조회 실패가 ~~`renderable: false` 로 닫힌다~~ **v2(11-10):** 꼬리표 `track_record_unavailable` 로 붙는다 (`FEATURE-017` v2)
 - [ ] **`CoachExplanationInput` 에 `confidence` 가 0건이다**
 - [ ] 해설 `timeframe` 이 주입값과 같다 (LLM 생성 0건)
-- [ ] 판단 미렌더 시 `CoachExplainer` 호출이 0건이다
+- [ ] ~~판단 미렌더 시 `CoachExplainer` 호출이 0건이다~~ **v2(11-10):** 해설 4단 대체 (`FEATURE-017` v2)
 - [ ] `newsSummary` 가 5줄 이하이고 후처리 검사를 지난다
 - [ ] 스냅샷 워커가 유스케이스를 부르고 추적 자산 + 보유 종목을 덮는다
 - [ ] 게이지 워커가 종목당 범위 조회 각 1회이고 최근 30일 시점을 뺀다
@@ -207,3 +209,4 @@ src/coach/
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 신규 FR-70~80(관찰 구간 · 게이지 적중률 도메인 정책, 해설 입력 `confidence` 삭제(D3) · `validity` 주입 · 미렌더 시 LLM 미호출 · 뉴스 5줄(B3), 종목 판단 스냅샷 워커 · 게이지 집계 워커(B9 · B18), 관심 종목 분리(D4)). ACL 2개 추가. 개정: FR-3(`ledger` 없음) · FR-4(`BiasLabelQuery` 무효) · `TransactionAdapter` 가 `portfolio` 를 감싼다 — ADR-002 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-10 | v2 대체 표시 — FR-72 · FR-74 (`FEATURE-017` v2 · `ADR-010` v2) |

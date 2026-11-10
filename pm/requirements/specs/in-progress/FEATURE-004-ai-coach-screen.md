@@ -1,5 +1,7 @@
 # FEATURE-004: AI 코치 추천 화면 (매수·매도 타이밍)
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 FR: FR-20 · `ModeCoach` 타입 · 흐름도 `G2` · 추적 표 FR-20 행 (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - Q2(자산군 3종 · `us_stock`)는 **2026-10-07 닫힘** — F011 이 `kr_stock` 을 채택했고(`DB-REQ-033`, `schema.prisma` enum `crypto · stock · kr_stock`), `us_stock` 은 미국 주식 착수 때. 아래 "보류(Q2) · Q2 결정 전 실행 안 함" 문장은 이 결정으로 읽는다
 
@@ -90,7 +92,7 @@
 | FR-17 | **우측 AI 코치 패널**: 자산 탭 `시장` 세그먼트(`/investments`, D7)의 우측 패널을 ① 모드 스위치 ② 지금의 판단 ③ 스마트 바이존 ④ 심리 온도계 ⑤ 스마트 머니(④⑤ 아래 적중률 한 줄) ⑥ 관련 뉴스 ⑦ [상세 분석 보기] 순서로 만든다. 기존 차트 · ④⑤⑥ 은 그대로 둔다. **PC 는 지금 2컬럼 그대로, 모바일 폭은 표 아래로 접는다.** F000 FR-33 을 이관받음 | Must | 완료 2026-09-22 — `widgets/coach-panel` ①~⑥(슬라이스 4, `FE-REQ-026` K절). ⑦ 버튼은 2026-09-23 삭제(FR-24) |
 | FR-18 | **단타 / 장기 모드 스위치** (D3): 판단 · 유효시간 · 바이존 · 해설이 모드에 따라 바뀐다. 패널과 상세 분석 페이지가 **같은 상태를 공유**하고 웹은 URL `?mode=`, RN 은 navigation param 에 남는다. 없으면 `defaultMode`(FR-12). 서버가 두 모드를 한 번에 주므로 전환에 요청이 없다 | Must | 부분 — 웹 `?mode=` · `history.replaceState` · 전환 요청 0건(슬라이스 4) · 기본 모드(슬라이스 13) 완료. RN(`RN-REQ-020`~`023` to-do) 미착수 |
 | FR-19 | **지금의 판단** (D3): 서버 **중립 라벨**(단타 기회 후보 · 장기 모아가기 후보 · 관망 · 지금은 피하기) + 모드 + 유효시간 + 점수 · "점수는 확률이 아닙니다" + 근거 · 적중률 · 실패사례. **"매수"·"매도" 명령형 라벨 금지. 신뢰도 % 는 화면에서도 응답에서도 뺀다.** 유효시간은 서버가 정한 하나의 표기(`validity`)만 — 프로토타입의 "25분 / 30일" 같은 화면 자체 값 금지 | Must | 완료 2026-09-22 — `JudgmentSummary` 중립 라벨 · `validity` · 점수 · 3종, 신뢰도 0(슬라이스 4). 판단 규칙은 F010 슬라이스 1 `mode-decision@2` 로 바뀜 |
-| FR-20 | **종목 경로 3종 게이트** (B10 · D11): `GET /api/ai-coach?symbol&mode` 응답이 모드별로 `renderable` · `blockedReason` · 적중률 · 실패사례를 싣는다. 적중률 · 실패사례는 **`symbol_judgment` 스냅샷의 사후 결과**에서 오고, 표본 < 20 이면 `insufficient_sample` 로 막는다(표본 N건은 보인다). 미충족이면 ② 대신 회색 박스(FR-2 · UX Blocked 와 같은 규칙). 게이트는 ② 에만 걸고 ③~⑥ 은 막지 않는다 | Must | 완료 2026-09-22 — 모드별 `renderable` · `BlockedNotice`, 스냅샷 사후 결과 · 표본 20(슬라이스 1 · 4, F010 슬라이스 0 `SRV-REQ-024` FR-176) |
+| FR-20 | **종목 경로 3종 ~~게이트~~** (B10 · D11): `GET /api/ai-coach?symbol&mode` 응답이 모드별로 ~~`renderable` · `blockedReason` ·~~ 적중률 · 실패사례를 싣는다. 적중률 · 실패사례는 **`symbol_judgment` 스냅샷의 사후 결과**에서 오고, ~~표본 < 20 이면 `insufficient_sample` 로 막는다(표본 N건은 보인다). 미충족이면 ② 대신 회색 박스(FR-2 · UX Blocked 와 같은 규칙). 게이트는 ② 에만 걸고 ③~⑥ 은 막지 않는다~~ **v2(11-10):** ② 는 늘 보인다 — 판단 · 관측 · 3종 + 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 라이브 표본 < 20 · 빗나간 사례 0 이면 막지 않고 같은 판단 유형의 과거 검산 성적 · 사례로 채운다("과거 시세로 검산" 라벨) · 그래도 비면 결함 꼬리표 (`ADR-010` v2) | Must | 완료 2026-09-22 — 모드별 `renderable` · `BlockedNotice`, 스냅샷 사후 결과 · 표본 20(슬라이스 1 · 4, F010 슬라이스 0 `SRV-REQ-024` FR-176) |
 | FR-21 | **스마트 바이존** (D2): **보유 종목 = 서버 `profit-plan` 이 계산한 내 규칙 가격**(손실 제한 · 1차 익절 검토 · 추세 유지 — 스토리보드의 손절 · 1차 · 2차). **미보유 종목 = 관찰 구간** — 가격 목표가 아니라 과거 가격 분포 기반 하단 · 중앙 · 상단 + 규칙 설명. 둘 다 서버 계산 · `예측 아님` 라벨 · **수익률 % 표기 없음**(현재가와의 거리만). 화면 이름은 "내 규칙 가격" / "관찰 구간" — "매수존 · 매수 적정가 · 목표가" 문구 금지. 모드별 값 | Must | 완료 2026-09-22 — `ZoneSummary` 내 규칙 가격 / 관찰 구간 · `예측 아님` · 거리 % 0(슬라이스 2 · 4, `FE-REQ-026` FR-115 · 116). 규칙 가격은 F010 슬라이스 2 σ 기준 |
 | FR-22 | **미보유 관찰 구간은 ETF · 지수 · 코인만 (D12).** 미보유 개별 주식은 사유 한 줄 — 글로벌 플랜 §1-3 | Must | 부분 — 관찰 구간은 코인만. 미보유 주식은 ETF · 지수까지 전부 `out_of_scope`(`resolveZones.ts` — 자산군 enum 미분리, `DB-REQ-003`) |
 | FR-23 | **게이지 아래 적중률 한 줄** (B9): 심리 온도계가 지금 구간에 있던 과거 시점들의 **30일 뒤 수익률 분포**(중앙값 · 하위 25% ~ 상위 25% · 표본 수) + `예측 아님`. 표본 < 20 이면 `표본 부족` 배지. 서버 신규 집계(`MarketSentiment` 이력 + `PriceHistory`). 스마트 머니 게이지는 같은 방식 Should | Must | 완료 2026-09-22 — `GaugeTrackRecordLine`(심리 · 스마트 머니) + 서버 `RefreshGaugeTrackRecords`(슬라이스 2 · 4) |
@@ -258,6 +260,7 @@ type SymbolCoachViewModel = {
   disclaimer: string;
   // confidence 없음 (D3)
 };
+// v2(11-10, FEATURE-017 v2 · ADR-010 v2): 아래 union 대체 — 판별 없음 { judgment; trackRecord; failureCases; caveats: Caveat[]; tier; zone }. 막힘 갈래 없음
 type ModeCoach =
   | { renderable: true; judgment: { action: 'review_short_opportunity' | 'review_accumulation' | 'wait' | 'avoid';
         label: string; score: number; scoreNote: string; validity: { code: string }; reasons: string[]; risks: string[] };
@@ -323,6 +326,7 @@ flowchart TB
   U -->|자산 탭 · 시장| P[우측 AI 코치 패널]
   P -->|GET /api/app/ai-coach/detail?symbol| BFF
   BFF --> SC[GetSymbolCoach] --> G2{모드별 renderable?}
+  %% v2(11-10): G2 분기 없음 — 판단은 늘 나가고 caveats[] 를 붙인다(FEATURE-017 v2)
   SC --> ZN[zone: 규칙 가격 / 관찰 구간] --> PH
   SC --> GTR[(GaugeTrackRecord)]
   SNAP[symbol-judgment-snapshot worker] --> II
@@ -354,7 +358,7 @@ flowchart TB
 | FR-15 | [새로 생성] | `POST generate` | 기존 + 쿨다운 | — | 5분 내 2회 → 429 |
 | FR-16 | `DisclaimerBanner` | `disclaimer` | 동일 | — | 상시 노출 |
 | FR-17~19 | `widgets/coach-panel` | `/ai-coach/detail?symbol` `modes` | `GetSymbolCoach` | — | 순서 ①~⑦ · 모드 전환 요청 0 · 신뢰도 0건 |
-| FR-20 | `BlockedNotice`(패널) | 모드별 `renderable` | `renderGate` | `symbol_judgment` 스냅샷 | 성적표 제거 시 ② 미렌더, ③~⑥ 유지 |
+| FR-20 | ~~`BlockedNotice`(패널)~~ 판단 + 꼬리표(v2) | 모드별 ~~`renderable`~~ `caveats[]`(v2) | ~~`renderGate`~~ `judgmentCaveats`(v2) | `symbol_judgment` 스냅샷 | ~~성적표 제거 시 ② 미렌더, ③~⑥ 유지~~ v2(11-10): 성적표 조회 실패 시 ② 유지 + 꼬리표 `track_record_unavailable` |
 | FR-21~22 | `ZoneSummary` | `zone` | `profitPlan` · `observationZone` | `PortfolioHolding` · `PriceHistory` | 보유/미보유 분기 · 수익률 필드 0 · 미보유 개별주식 `unavailable` |
 | FR-23 | `GaugeTrackRecordLine` | `gaugeTrackRecords` | 사전 집계 조회 | `GaugeTrackRecord` · `gauge-track-record` worker | 표본 19/20 경계 |
 | FR-24~27 | `/investments/[symbol]` | 동일 뷰모델 | 동일 | — | Hero 알림 버튼 0 · 오버레이 3선 = 서버 가격 |
@@ -474,3 +478,4 @@ flowchart TB
 | 2026-11-04 | 상세 재설계 `FE-REQ-049` 지금 상태 다시 봄(B1~B6 · B8 그대로 · 새 B9 왼쪽 빈칸 · B10 세그먼트 늘어남 · B11 고정 띠 겹침) |
 | 2026-11-10 | 장중 종목 판단(`/api/ai-coach`) 504 고침 — 주기 작업이 연결 풀을 잡던 쓰기 셋(`DB-REQ-017` 4회차 `c602e97c`, p99 719 → 70ms). 기계 검사로 같은 꼴 차단 |
 | 2026-11-10 | 보유(내 보유 · 매입가 숨김)를 코치 리포트에서 `/portfolio` 로 · 리포트 진입은 머리 메뉴 "리포트"(`FE-REQ-069`) |
+| 2026-11-10 | v2 대체 표시 — FR-20 · `ModeCoach` 타입 · 흐름도 `G2` · 추적 표 FR-20 행 (`FEATURE-017` v2 · `ADR-010` v2) |

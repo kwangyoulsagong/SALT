@@ -9,6 +9,8 @@ labels: [bff, upstream, backend-integration, coach, llm]
 created: 2026-09-09
 ---
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 FR: FR-40 · FR-44 · FR-45 · 계약 의존 표 `modes.*` 행 (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - FR-42 의 "지금 순차 호출"은 고쳐짐 — `allSettled` 병렬(`app-ai-coach.service.ts`)
 
@@ -70,7 +72,7 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | `behaviorFacts[].factCode`·`params` | 행동 기록 문구 |
 | `excluded[]` | 국내주식 제외 문구 |
 | `lowSample` | 표본 부족 배지 |
-| **`modes.*.renderable` · `blockedReason`** (2026-09-21) | 종목 판단 게이트. 누락되면 패널이 게이트를 우회한다 |
+| **`modes.*.renderable` · `blockedReason`** (2026-09-21) | 종목 판단 게이트. 누락되면 패널이 게이트를 우회한다. **v2(11-10):** `modes.*.caveats[]` — 없거나 배열이 아니면 그 모드 `unavailable` (`FEATURE-017` v2) |
 | **`confidence` 제거** (2026-09-21) | BFF `mapDecision` 이 옮기던 필드. 서버 제거와 **BFF 제거가 짝**이다 |
 | `modes.*.zone` (`kind` · `notPrediction`) | 바이존 · 관찰 구간 · 차트 오버레이 |
 | `gaugeTrackRecords` | 게이지 아래 적중률 한 줄 |
@@ -90,12 +92,12 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-40 | `symbolCoach` 응답에 **`modes.scalp.renderable` · `modes.longTerm.renderable` 이 없으면 그 모드를 `unavailable` 로** 처리한다(FR-20 과 같은 판단 — 게이트 없는 판단을 내보내지 않는다) | Must |
+| FR-40 | `symbolCoach` 응답에 **~~`modes.scalp.renderable` · `modes.longTerm.renderable`~~ 이 없으면 그 모드를 `unavailable` 로** 처리한다(FR-20 과 같은 판단 — 게이트 없는 판단을 내보내지 않는다) **v2(11-10):** 계약 가드는 `caveats` — 모드에 `caveats` 가 없거나 배열이 아니거나 항목에 `reason` 이 없으면 그 모드 `unavailable`(꼬리표가 빠진 판단을 내보내지 않는다) (`FEATURE-017` v2) | Must |
 | FR-41 | **`confidence` 제거 순서**: BFF 가 먼저 `confidence` 를 **읽지 않게** 배포하고(서버가 보내도 무시), 그다음 서버가 필드를 뺀다. 반대 순서면 BFF 가 `undefined` 를 옮길 뿐 깨지지는 않지만, 계약 스냅샷이 먼저 깨진다 | Must |
 | FR-42 | `symbolCoach` 와 `symbolNews` 를 **병렬**로 부른다. 지금 `getDetail` 은 순차다 | Must |
 | FR-43 | `mode` 쿼리가 없으면 **서버에 보내지 않는다**(서버가 `defaultMode` 적용 — B16) | Must |
-| FR-44 | `explain` 응답이 `{ renderable: false }` 면 그대로 200 으로 전달한다. 에러로 바꾸지 않는다 | Must |
-| FR-45 | 계약 스냅샷에 **`modes.*.renderable` · `zone.kind` · `zone.notPrediction` · `confidence` 부재**를 고정한다 | Must |
+| FR-44 | `explain` 응답이 `{ renderable: false }` 면 그대로 200 으로 전달한다. 에러로 바꾸지 않는다. **v2(11-10):** 판단 막힘으로는 이 갈래가 안 온다 — 해설 4단 대체 단계를 그대로 전달 (`FEATURE-017` v2) | Must |
+| FR-45 | 계약 스냅샷에 **~~`modes.*.renderable`~~ · `zone.kind` · `zone.notPrediction` · `confidence` 부재**를 고정한다 **v2(11-10):** `modes.*.renderable` 대신 `modes.*.caveats[]`(사유 + 사실) 모양을 고정 (`FEATURE-017` v2) | Must |
 | FR-46 | 관심 종목 upstream(`/api/watchlist`) 호출에 코치 호출을 섞지 않는다(D4) | Must |
 
 ## 하지 않는 것
@@ -126,11 +128,11 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 - [ ] BFF에 LLM 직접 호출·점수 계산·게이트 판정 코드가 0건이다
 - [ ] 주문 중계 경로가 0건이다
 - [ ] `explain` 요청·응답이 로그에 0건이다
-- [ ] 종목 판단 모드별 `renderable` 누락 시 그 모드가 `unavailable` 이다
+- [ ] 종목 판단 모드별 ~~`renderable`~~ 누락 시 그 모드가 `unavailable` 이다 **v2(11-10):** `caveats` 누락 · 형식 불량 (`FEATURE-017` v2)
 - [ ] BFF 가 `confidence` 를 읽지 않는 배포가 서버 제거보다 먼저다
 - [ ] `symbolCoach` · `symbolNews` 가 병렬이다
 - [ ] `mode` 없는 요청이 서버로 `mode` 없이 간다
-- [ ] 계약 스냅샷이 `modes.*.renderable` · `zone.kind` · `notPrediction` · `confidence` 부재를 고정한다
+- [ ] 계약 스냅샷이 ~~`modes.*.renderable`~~ `modes.*.caveats[]`(v2 11-10) · `zone.kind` · `notPrediction` · `confidence` 부재를 고정한다
 
 ## Dependencies
 
@@ -164,5 +166,6 @@ BFF가 부르는 서버 엔드포인트. **LLM이 걸린 경로(`generate`·`exp
 | 2026-11-03 | S0(`feat/srv-req-043-s0-platform`, 루트 `MONEY-S0-platform-slice.md`) — 서버 호출 클라이언트(`backend-api.service.ts`) 인터셉터에 스트랭글러 장치(`BFF-REQ-045`) — 경로별 주소(legacy | platform | shadow) · traceparent. 경로별 타임아웃 · 신호(호출 맵)는 그대로, 기본 표에서 모든 F004 경로 legacy |
 | 2026-11-03 | 커밋 대조 — 걸친 파일 `backend-api.service.ts`: `4bc746f1`(인터셉터) · `cc184c3a`(녹화 주소 · 그림자 상한) |
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`3e5e0d42`): `proxy.routes.ts` 의 `/goals*` 프록시 8줄 삭제 — 저축은 `/api/app/savings/*`(`BFF-REQ-047`), 옛 경로는 410 |
+| 2026-11-10 | v2 대체 표시 — FR-40 · FR-44 · FR-45 (`FEATURE-017` v2 · `ADR-010` v2) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `bff/src/rest/routes/proxy.routes.ts` — `POST /api/auth/guest` 통과

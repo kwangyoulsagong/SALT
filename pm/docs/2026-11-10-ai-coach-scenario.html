@@ -2,8 +2,8 @@
 <html lang="ko">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- F017 AI 코치 개선안 정리 화면(2026-11-10, 사용자 확인 "좋다 이걸로"). 숫자는 예시 · 목업은 기준 앱 실측값 -->
-<title>Salt AI 코치 개선안</title>
+<!-- F017 AI 코치 개선안 정리 화면 — v1 2026-11-10(사용자 확인 "좋다 이걸로") · v2.1 같은 날 밤(막지 않기 · 3종 늘 · 쉬운 한 줄 · 점검 주인공 · 국내 = 코인 · 수집). 숫자는 예시 · 목업은 기준 앱 실측값 -->
+<title>Salt AI 코치 개선안 v2.1</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
 <style>
@@ -284,6 +284,33 @@ a{color:var(--accent)}
 .app-price b{font-size:20px}
 .app-chg{color:#2272EB}
 .app-logo{background:linear-gradient(135deg,#7ea6ff,#2272EB)}
+
+/* v2 — 맨 위 쉬운 한 줄 · 꼬리표 · 시장 전환 */
+.v2{border:1px solid var(--accent);background:var(--surface);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.v2 ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:8px}
+.v2 li b{font-weight:700}
+.verdict{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.verdict{grid-template-columns:1fr}}
+.verdict div{background:var(--sunk);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:4px;font-size:.92rem}
+.verdict b{font-size:.98rem}
+.easy{border-radius:16px;background:var(--pc);box-shadow:inset 0 0 0 1.5px rgba(34,114,235,.35);padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.easy-line{font-size:15px;line-height:24px;font-weight:600;color:var(--pi);margin:0}
+.easy-line em{font-style:normal;color:#2272EB}
+.easy-line .neg{color:#2272EB}
+.easy-sub{font-size:12.5px;color:var(--pt);margin:0}
+.waf{display:grid;grid-template-columns:repeat(20,1fr);gap:3px}
+.waf i{display:block;aspect-ratio:1;border-radius:2px;background:rgba(7,25,76,.08);transition:background .25s var(--ease)}
+.waf i.u{background:#DE2B39}
+.cav{display:flex;gap:6px;flex-wrap:wrap}
+.cav span{font-size:12px;font-weight:600;padding:2px 8px;border-radius:7px;background:rgba(232,140,0,.1);color:#B35C00}
+.cav span.info{background:rgba(7,25,76,.05);color:var(--ps)}
+.trk{display:grid;grid-template-columns:72px 1fr 44px;gap:8px;align-items:center;font-size:12.5px}
+.trk .bar{height:6px;border-radius:999px;background:rgba(7,25,76,.05);overflow:hidden}
+.trk .bar i{display:block;height:100%;border-radius:999px;transition:width .4s var(--ease-in)}
+.mkt{display:flex;gap:6px}
+.mkt button{border:0;cursor:pointer;font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;background:rgba(7,25,76,.05);color:var(--ps)}
+.mkt button[aria-pressed="true"]{background:rgba(26,31,41,.89);color:#fff}
+.step.v2new .node{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
 </style>
 
 <div class="tip" id="tip" role="tooltip"></div>
@@ -292,9 +319,9 @@ a{color:var(--accent)}
 <header class="band hero">
   <div class="inner">
     <div class="head">
-      <span class="eyebrow">F017 · 2026-11-10 · feat/f017-ai-coach-best-case</span>
+      <span class="eyebrow">F017 v2.1 · 2026-11-10 · feat/f017-s1-always-visible</span>
       <h1>누구나 그리는 범위에서<br>판단을 돕는 카드로</h1>
-      <p class="lede">코인 100개 · 국내 57개 종목을 전부 실제로 불러 봤습니다(요청 1,056건). 여기에 리서치 네 건과 오늘 정한 것을 한 장에 모았습니다.</p>
+      <p class="lede">코인 100개 · 국내 57개 종목을 전부 실제로 불러 봤습니다(요청 1,056건). 여기에 리서치 네 건과 오늘 정한 것을 한 장에 모았습니다. <b style="color:#5fd3b0">v2.1(11-10 밤)</b> — 막지 않기 · 3종은 늘 다 · 쉬운 한 줄 · 점검이 주인공 · 국내도 같이 · 수집 먼저. 리서치 세 갈래와 결정 넷을 반영했습니다.</p>
     </div>
     <div class="hero-grid">
       <div class="app" style="padding:14px">
@@ -336,6 +363,33 @@ a{color:var(--accent)}
       </a>
   </div>
 </header>
+
+<!-- v2 바뀐 우선순위 -->
+<section class="band" id="v2">
+  <div class="inner">
+    <div class="head">
+      <span class="eyebrow">v2 · 바뀐 우선순위 · 2026-11-10 저녁</span>
+      <h2>막히면 아무도 안 쓴다 — 늘 보이고, 쉽고, 국내도 같이</h2>
+      <p class="lede">"어떤 사람이 종목을 샀는데 계속 그 종목이 막히고 기능이 동작을 안 하면 누가 이걸 쓸까" · "쉽고 이해되고 좋은 기능이 되어야" · "국내도 해야 돼" · "돈이랑 관련된 거라 정확하게".</p>
+    </div>
+    <div class="v2">
+      <h3>바뀐 요구사항 다섯</h3>
+      <ol>
+        <li><b>판단은 막지 않고, 3종(근거 · 적중률 · 틀린 사례)은 늘 다 있다.</b> 라이브 성적이 모자라면 <b>과거 시세로 되돌려 채점한 성적 · 사례</b>로 채운다(코인도 새로 · "과거 시세로 검산" 표시 · 라이브와 숫자 안 섞음). 그래도 비면 결함 — 상태 점검이 센다. 오래된 재료 · 투자유의 같은 것은 숫자가 쓰인 <b>문장 안에</b>("3일 전 RSI 기준이에요")</li>
+        <li><b>맨 위에 쉬운 한 줄.</b> "비슷한 상황 212번 — 4시간 뒤 100번 중 42번 올랐어요(35~49) · 나빴을 땐 −3.1%". 조건 · 기간을 같은 문장에, 범위를 같이(자연빈도: 정답률 4% → 24%). 유효 표본 100건 미만이면 %를 지우고 "아직 38번뿐이에요". 첫 화면은 3칸 — ① 판단 한 줄 + 성적 ② 점검 ③ 왜 움직였나, 나머지는 펼치면</li>
+        <li><b>주인공 = 사기 전 · 팔기 전 점검.</b> 과거 실제 결과라 엔진 실력에 기대지 않는다. 팔기 전 첫 줄엔 매입가 · 내 손익을 두지 않는다(강조하면 이익을 일찍 파는 경향 +17%, 가리면 −25%). 판단 라벨은 등급 <b>참고 → 검증됨 → 주의</b> — 라이브 성적이 같은 시각 시장을 확실히 이겨야(유효 620건 · 국면 2개) 검증됨</li>
+        <li><b>국내 = 코인.</b> 같은 카드 골격, 기준만 다르게. 국내 단타도 연다 — 보이고 오늘부터 채점(국내 규칙 시험 <code>rule-ic-kr@1</code> 등록 · 지금은 코인 결과를 빌려 쓰고 있었다). 시간 단위는 "오늘 장 마감까지 · 다음 거래일 종가까지", 조건은 VI · 갭 · 상한가 · 큰 하락. 수급은 방향 근거가 아니라 사실 한 줄</li>
+        <li><b>기본기 먼저 — 수집.</b> 실측 결함 넷: ① 코인 5분봉 요청 288개 → 거래소 상한 200개라 16시간 40분 넘게 자면 구멍이 안 메워짐(BTC 구멍 3개) ② 지표가 봉 50개 미만이면 통째로 안 만들어짐(RSI는 15개면 됨 — 최근 상장 코인 14개) ③ 국내 KIS 요청 초당 3건 vs 모의 한도 약 2건 → 한도 오류 로그 15,644줄 ④ 국내 분봉 보정이 기동 · 깰 때 안 돎 → 8종목 지표 1~5일 묵음</li>
+      </ol>
+    </div>
+    <div class="verdict">
+      <div><b>정직한 판정 ①</b><span class="muted">규칙 판단의 성적은 아직 기준과 큰 차이가 없다 — 그래서 라벨이 아니라 점검을 앞에</span></div>
+      <div><b>정직한 판정 ②</b><span class="muted">관측 · 기저율 · 분위 · 태그는 맞지만 어렵다 — 3초 안에 읽히는 한 줄이 먼저</span></div>
+      <div><b>정직한 판정 ③</b><span class="muted">빈 칸 · 막힘 · 잠든 수집 · 느린 응답이 먼저 보이면 혁신까지 가지 않는다</span></div>
+    </div>
+    <p class="muted" style="font-size:.88rem">딥리서치 세 갈래(쉬운 화면 · 실력 증명 · 수집 신뢰성)와 결정 넷으로 숫자 · 문턱을 정했고 REQ로 내렸다(<code>FEATURE-017</code> v2 · <code>ADR-010</code> v2 · <code>SRV-REQ-057</code> · <code>DB-REQ-044</code> · <code>OPS-003</code>). 아래 실제 화면의 숫자는 예시다.</p>
+  </div>
+</section>
 
 <!-- 1 문제 -->
 <section class="band">
@@ -388,6 +442,10 @@ a{color:var(--accent)}
       <div class="stat"><b>1~4주</b><span>지금 예측 모델이 보는 기간. 몇 시간~하루 앞 단타 모델은 없음</span></div>
       <div class="stat"><b>≈ 50%</b><span>주 단위 방향 적중. 그래서 화면엔 "방향 예측 아님"</span></div>
       <div class="stat"><b>대칭</b><span>변동 범위는 위아래 거의 같은 폭. 오를지 내릴지 말하지 않음</span></div>
+    </div>
+    <div class="grid2">
+      <div class="fix"><h3>v2 · 막힘 자체가 문제</h3><p class="why">위 빨간 막대는 "판단 없음"이 아니라 "판단을 숨김"이다. 엔진은 매번 판단을 냈다</p><div class="ba"><span class="b">사유 하나면 판단 블록 전체 비움</span><span aria-hidden="true">→</span><span class="a">늘 보이고 사유는 꼬리표</span></div></div>
+      <div class="fix"><h3>v2 · 수집 실측(11-10)</h3><p class="why">잠이 길면 5분봉 구멍이 안 메워지고, 지표는 50봉 미만이면 통째로 빠지고, 국내는 요청 한도를 넘는다</p><div class="ba"><span class="b">BTC 구멍 3 · 코인 14개 RSI 없음 · KIS 한도 오류 15,644줄</span><span aria-hidden="true">→</span><span class="a">따라잡기 · 지표별 최소 봉 · 초당 1.8</span></div></div>
     </div>
   </div>
 </section>
@@ -514,8 +572,8 @@ a{color:var(--accent)}
   <div class="inner">
     <div class="head">
       <span class="eyebrow">5 · 실제 화면에서</span>
-      <h2>종목 상세 오른쪽, 변동 범위 자리에 들어간다</h2>
-      <p class="lede">지금 제품의 종목 상세 화면을 그대로 본떴습니다. 기간 탭 · 줄 · 사기/팔기 점검을 직접 눌러 보세요. 숫자는 예시입니다.</p>
+      <h2>v2 · 맨 위는 쉬운 한 줄과 점검, 판단은 막히지 않고 꼬리표</h2>
+      <p class="lede">지금 제품의 종목 상세 화면을 그대로 본떴습니다. 코인 · 국내 예시를 바꾸고, 사기/팔기 점검 · 기간 탭 · 줄을 직접 눌러 보세요. 숫자는 예시입니다.</p>
     </div>
 
     <div class="app" id="app">
@@ -533,14 +591,34 @@ a{color:var(--accent)}
           <svg id="candles" viewBox="0 0 640 300" preserveAspectRatio="none" role="img" aria-label="예시 종목 5분 봉 차트"></svg>
         </div>
         <div class="app-side">
-          <div class="app-card app-mini">
-            <div class="row-between"><b class="t6">AI 코치 판단</b><span class="pill gray">관망</span></div>
-            <p class="t7 sub">규칙이 신호를 내지 않았어요 · RSI 48 (침체 35 · 과열 70 사이)</p>
+          <div class="easy" id="easy">
+            <div class="row-between">
+              <div class="sc-title"><span class="ptitle">사기 전 · 팔기 전 점검</span><span class="t8 ter">과거 실제 결과</span></div>
+              <div class="mkt" role="group" aria-label="예시 시장"><button type="button" data-m="coin" aria-pressed="true">코인</button><button type="button" data-m="kr" aria-pressed="false">국내</button></div>
+            </div>
+            <div class="seg seg2" role="tablist" aria-label="점검">
+              <span class="seg-ind" aria-hidden="true"></span>
+              <button role="tab" data-c="buy" aria-selected="true">사기 전</button>
+              <button role="tab" data-c="sell" aria-selected="false">팔기 전</button>
+            </div>
+            <p class="easy-line" id="easyLine" aria-live="polite"></p>
+            <div class="waf" id="waf" aria-hidden="true"></div>
+            <p class="easy-sub" id="easySub"></p>
+            <div class="check" id="check" style="min-height:0"></div>
+          </div>
+
+          <div class="app-card app-mini" id="judg">
+            <div class="row-between"><b class="t6">AI 코치 판단</b><span class="pill gray" id="jLabel">관망</span></div>
+            <p class="t7 sub" id="jObs" style="margin:0"></p>
+            <div class="cav" id="jCav"></div>
+            <div class="trk"><span>이 판단</span><span class="bar"><i id="jHit" style="background:rgba(26,31,41,.89)"></i></span><b id="jHitT"></b></div>
+            <div class="trk"><span>늘 오른다</span><span class="bar"><i id="jBase" style="background:rgba(2,32,59,.17)"></i></span><b id="jBaseT"></b></div>
+            <p class="t8 ter" id="jTrk" style="margin:0"></p>
           </div>
 
           <div class="app-card sc" id="sc">
             <div class="row-between">
-              <div class="sc-title"><span class="ptitle">다음 시나리오</span><span class="ai-mark">✦ AI</span></div><span class="t8 ter">10:42 기준</span>
+              <div class="sc-title"><span class="ptitle">다음 시나리오</span><span class="ai-mark">✦ AI</span><span class="pill gray">소유자 · 시험 통과만</span></div><span class="t8 ter">10:42 기준</span>
             </div>
             <div class="seg" role="tablist" aria-label="기간">
               <span class="seg-ind" aria-hidden="true"></span>
@@ -654,17 +732,11 @@ a{color:var(--accent)}
               </div>
             </div>
 
-            <div class="seg seg2" role="tablist" aria-label="점검">
-              <span class="seg-ind" aria-hidden="true"></span>
-              <button role="tab" data-c="buy" aria-selected="true">사기 전 점검</button>
-              <button role="tab" data-c="sell" aria-selected="false">팔기 전 점검</button>
-            </div>
-            <div class="check" id="check"></div>
           </div>
         </div>
       </div>
     </div>
-    <p class="muted" style="font-size:.88rem">AI 해설과 점검은 "사세요 · 파세요"라고 말하지 않습니다. 조건과 과거 결과까지만 보여 주고, 그 점검이 맞았는지 채점합니다.</p>
+    <p class="muted" style="font-size:.88rem">AI 해설과 점검은 "사세요 · 파세요"라고 말하지 않습니다. 조건과 과거 결과까지만 보여 주고, 그 점검이 맞았는지 채점합니다. 판단 카드는 늘 3종이 다 있고(라이브가 모자라면 과거 시세로 검산한 성적 — 표시), 등급(참고 · 검증됨 · 주의)이 라벨의 무게를 정합니다. 첫 화면은 점검 · 판단 · 왜 움직였나 셋이고, 시나리오 팬 · 점 그림 · 표는 펼치면 보입니다.</p>
   </div>
 </section>
 
@@ -855,6 +927,11 @@ a{color:var(--accent)}
       <h2>잠든 동안은 멈추고, 깨면 밀린 구간을 채운다</h2>
       <p class="lede">수집 7개는 로그인하면 자동 시작하고 죽으면 다시 뜹니다. 오늘 아침 배터리로 쓸 때 여러 번 잠들어 그동안 멈췄습니다.</p>
     </div>
+    <div class="grid3">
+      <div class="stat"><b>200</b><span>업비트가 한 번에 주는 5분봉 상한. 우리는 288개를 요청해 16시간 40분 넘게 자면 구멍이 남았다(BTC 구멍 3개)</span><em>→ 채운 위치부터 거꾸로 따라잡기 · 깬 뒤 30분 안</em></div>
+      <div class="stat"><b>14</b><span>RSI가 없는 최근 상장 코인. 거래소 원화 이력이 6~44일뿐인데 지표가 50봉 미만이면 통째로 안 만들어졌다(수집 결함 아님 — 정정)</span><em>→ 지표별 최소 봉(RSI 15)</em></div>
+      <div class="stat"><b>15,644</b><span>국내 KIS 요청 한도 오류 로그 줄 수. 초당 3건 요청 vs 모의 한도 약 2건 · 국내 8종목 지표 1~5일 묵음</span><em>→ 초당 1.8 · 분봉 보정을 기동 · 깰 때도</em></div>
+    </div>
     <div class="panel svgwrap">
       <svg viewBox="0 0 900 150" style="min-width:640px;width:100%" role="img" aria-label="수집 중, 잠으로 멈춤, 깨어나서 밀린 구간 보충, 다시 수집 중. 전원 연결 중에는 잠들지 않게 막는다">
         <g font-size="12">
@@ -914,15 +991,17 @@ a{color:var(--accent)}
   <div class="inner narrow">
     <div class="head">
       <span class="eyebrow">11 · 순서</span>
-      <h2>이번에 하는 것은 넷뿐</h2>
-      <p class="lede">기능이 많으면 오히려 우습습니다. "잘 사고 잘 팔기"에 직접 닿는 것만 남겼습니다. 화면에는 카드 하나만 늘어납니다.</p>
+      <h2>v2 순서 · 기본기 → 점검 → 해설 → 실력 증명</h2>
+      <p class="lede">기능이 많으면 오히려 우습습니다. "잘 사고 잘 팔기"에 직접 닿는 것만 남겼습니다. v2는 같은 것들을 <b>순서</b>만 바꿨습니다 — 막히지 않고 쉽게 읽히는 것이 먼저입니다. 모든 단계에 코인 · 국내가 같이 들어갑니다.</p>
     </div>
     <div class="road">
       <div class="step done"><div class="node">0</div><div class="body"><h3>결함 6개 <span class="chip">끝</span></h3><p>남은 것: 실화면 확인</p></div></div>
-      <div class="step next"><div class="node">1</div><div class="body"><h3>AI 해설 · 판단 늘 보이게</h3><p>관망도 판단 · 보류는 이유를 한 줄로 · 해설은 미리 만들어 두고 비면 대체 문장</p></div></div>
-      <div class="step"><div class="node">2</div><div class="body"><h3>사기 전 · 팔기 전 점검</h3><p>지금 사면 / 지금 팔면 과거 비슷한 상황에서 어땠나 · 무효선. 이미 있는 주문 전 체크 · 이익 실현 플랜 자리에 붙임</p></div></div>
-      <div class="step"><div class="node">3</div><div class="body"><h3>단타 방향 확률 → 변동 범위 자리 교체</h3><p>오를 확률 · 비대칭 폭. 시험을 통과한 신호만, 못 넘으면 "방향 안 보여요"</p></div></div>
-      <div class="step"><div class="node">4</div><div class="body"><h3>소식 태그 (측정값)</h3><p>사건 종류 + 과거 반응 + 선반영. 이를 위한 최소 연결(소식 → 종목 · 사건 종류)만, 온톨로지는 이만큼만</p></div></div>
+      <div class="step next"><div class="node">1</div><div class="body"><h3>기본기 — 막지 않기 · 3종 늘 · 수집 <span class="chip warn">v2 새로</span></h3><p>판단 늘 보임 · 3종 늘 다(코인도 과거 시세 검산 채점 · 국내 단타 채점 시작) · 꼬리표는 문장 안. 수집 결함 넷 수정 · 잠 감지 따라잡기 · 추적 목록 일별 스냅샷 · 상태 점검 시장별 4줄 + 3종 결함 수</p></div></div>
+      <div class="step"><div class="node">2</div><div class="body"><h3>사기 전 · 팔기 전 점검 + 맨 위 쉬운 한 줄 <span class="chip warn">주인공으로 당김</span></h3><p>"100번 중 n번" · 나빴을 때 · 무효선. 코인 · 국내(장 시간 · VI · 상하한가 · 수급) 같이. 점검도 채점</p></div></div>
+      <div class="step"><div class="node">3</div><div class="body"><h3>해설 늘 보이게</h3><p>점검 · 판단 · 꼬리표 사실로 쓴 문장. 미리 만들어 두고 비면 4단 대체</p></div></div>
+      <div class="step"><div class="node">4</div><div class="body"><h3>실력 증명 — 등급 <span class="chip warn">v2 새로</span></h3><p>국내 규칙 시험 rule-ic-kr@1 · 같은 시각 시장 대비 spread · 참고 → 검증됨(라이브 유효 620 · 국면 2개) → 주의. 매주 강등 검사</p></div></div>
+      <div class="step"><div class="node">5</div><div class="body"><h3>단타 방향 확률 → 변동 범위 자리</h3><p>시험(사전등록 · 비용 · 우연 보정 · 보정도)을 통과한 신호만. 소유자</p></div></div>
+      <div class="step"><div class="node">6</div><div class="body"><h3>소식 태그 (측정값)</h3><p>사건 종류 + 과거 반응 + 선반영 — 국내 공시 · 시황 · 코인 뉴스</p></div></div>
     </div>
     <div class="panel">
       <h3>뺀 것 (나중에 · 필요해지면)</h3>
@@ -935,7 +1014,7 @@ a{color:var(--accent)}
 <!-- 12 결정 -->
 <section class="band" style="background:var(--sunk)">
   <div class="inner narrow">
-    <div class="head"><span class="eyebrow">12 · 정한 것 · 남은 질문</span><h2>결정</h2></div>
+    <div class="head"><span class="eyebrow">12 · 정한 것 · 남은 질문</span><h2>결정 <span class="faint" style="font-weight:400;font-size:.7em">· v2 넷 · v2.1 다섯 — 남은 질문 없음</span></h2></div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <div class="dec"><span class="mk" aria-hidden="true">✓</span><span>관망도 판단이다. 근거 = 엔진이 본 값과 문턱까지 거리 ("해설을 매번 볼 수 있어야")</span></div>
       <div class="dec"><span class="mk" aria-hidden="true">✓</span><span>소식 태그는 측정 문구. "보통 올랐던 소식 · 1일 +2.1% · 64% · 34건", 호재 · 악재 단어 없음</span></div>
@@ -946,6 +1025,15 @@ a{color:var(--accent)}
       <div class="dec"><span class="mk" aria-hidden="true">✓</span><span>방향 확률 · 시나리오 카드는 소유자 전용. 계산은 종목마다 한 번이라 나중에 여는 건 보이는 범위만 바꾸면 됨</span></div>
       <div class="dec"><span class="mk" aria-hidden="true">✓</span><span>시장 층(방향 확률 · 기저율 · 태그 · 해설)은 누구에게나 같은 값, 내 층(팔기 전 점검 · 내 성적)만 사람마다. 해설은 종목마다 한 번 만들어 모두가 같은 문장 → 사람이 늘어도 LLM 호출 0</span></div>
       <div class="dec"><span class="mk" aria-hidden="true">✓</span><span>AI 입력에 보유 · 금액 · 이메일 0. 내 층 숫자는 서버 계산만</span></div>
+      <div class="dec"><span class="mk" aria-hidden="true">✓</span><span><b>v2</b> 판단은 막지 않는다 — 사유는 꼬리표, 3종(근거 · 성적 · 틀린 사례)은 0건이어도 숫자로 늘 ("막히는 게 말이 안 되잖아")</span></div>
+      <div class="dec"><span class="mk" aria-hidden="true">✓</span><span><b>v2</b> 맨 위 쉬운 한 줄 · 주인공은 사기 · 팔기 전 점검 ("쉽고 이해하고 좋은 기능")</span></div>
+      <div class="dec"><span class="mk" aria-hidden="true">✓</span><span><b>v2</b> 국내 = 코인, 모든 단계에 같이 ("자꾸 코인만 하는데 국내도")</span></div>
+      <div class="dec"><span class="mk" aria-hidden="true">✓</span><span><b>v2</b> 수집 먼저 · 돈이라 숫자는 원장 대조 테스트 ("정확하게" · "수집도 제대로 되는지")</span></div>
+      <div class="dec"><span class="mk" aria-hidden="true">✓</span><span><b>v2.1</b> 3종은 늘 다 있어야 — 비면 막지 않고 과거 시세 검산으로 채운다(표시 · 숫자 안 섞음 · 승격 근거 아님), 그래도 비면 결함 ("하나라도 없으면 안 되잖아")</span></div>
+      <div class="dec"><span class="mk" aria-hidden="true">✓</span><span><b>v2.1</b> 국내 단타 — 보여 주고 채점도 지금 시작 · rule-ic-kr@1</span></div>
+      <div class="dec"><span class="mk" aria-hidden="true">✓</span><span><b>v2.1</b> 라벨 등급 3단계 — 참고 · 검증됨(라이브 유효 620 · Holm · 국면 2개) · 주의</span></div>
+      <div class="dec"><span class="mk" aria-hidden="true">✓</span><span><b>v2.1</b> 점검 숫자는 유효 표본 100건부터 · 미만이면 이유 문장 · 조건 코인 8 · 국내 8 사전등록</span></div>
+      <div class="dec"><span class="mk" aria-hidden="true">✓</span><span><b>v2.1</b> 실시간 칸 밖 국내 종목도 장중 5분봉을 돌아가며 받는다</span></div>
     </div>
   </div>
 </section>
@@ -1056,7 +1144,6 @@ a{color:var(--accent)}
     var sel=seg.querySelector('[aria-selected="true"]');requestAnimationFrame(function(){place(sel)});window.addEventListener('resize',function(){place(seg.querySelector('[aria-selected="true"]'))});}
   var segs=document.querySelectorAll('#sc .seg');
   segInit(segs[0],function(b){var h=H[+b.dataset.h];var lab=document.querySelector('.sc-hero .t8');if(lab)lab.textContent='다음 '+h.label+' 오를 확률';go(h);document.getElementById('baseRate').textContent=h.base+'%';replayAI();});
-  segInit(segs[1],function(b){renderCheck(b.dataset.c)});
 
   // 펼치는 줄
   document.querySelectorAll('#sc .cell').forEach(function(c){c.addEventListener('click',function(){c.setAttribute('aria-expanded',c.getAttribute('aria-expanded')!=='true')})});
@@ -1069,21 +1156,64 @@ a{color:var(--accent)}
     var sh=document.createElement('div');sh.className='shimmer';lines.prepend(sh);
     setTimeout(function(){sh.remove();lines.classList.remove('wait');ps.forEach(function(p,i){p.classList.remove('in');p.style.visibility='hidden';setTimeout(function(){p.style.visibility='';p.classList.add('in')},i*300)})},500);}
 
-  // 사기 · 팔기 점검
+  // v2 — 시장 예시 · 쉬운 한 줄 · 판단 꼬리표
+  var M={
+    coin:{
+      buy:{line:'지금과 비슷한 상황이 과거 <em>212번</em> 있었어요. 4시간 뒤 오른 건 <em>100번 중 42번</em>, 나빴을 땐 <span class="neg">−3.1%</span>까지 내렸어요.',up:42,sub:'조건 · 30분에 +3% 넘게 오른 뒤 · 업비트 원화 코인 1년'},
+      sell:{line:'최근 5일 +9% 오른 비슷한 상황이 <em>128번</em> 있었어요. 하루 더 뒤 <em>100번 중 52번</em> 더 올랐고(43~61), 나빴을 땐 <span class="neg">−3.4%</span>까지 내렸어요.',up:52,sub:'조건 · 5일 +9% 넘게 오른 뒤 하루 더 · 매입가 · 내 손익은 첫 줄에 두지 않아요'},
+      j:{label:'관망',tier:'참고',obs:'규칙이 신호를 내지 않았어요 · RSI 48 (과열 70까지 22) · 24시간 +1.2% (기준 ±3%)',cav:[],hit:57,base:51,trk:'라이브 412건 · 빗나간 31건 · 늘 오른다보다 6%p — 아직 검증 전이라 참고'}
+    },
+    kr:{
+      buy:{line:'지금과 비슷한 상황이 과거 <em>96번</em> 있었어요. 다음 거래일 종가까지 오른 건 <em>100번 중 38번</em>, 나빴을 땐 <span class="neg">−4.6%</span>까지 내렸어요.',up:38,sub:'조건 · 장중 +4% 넘게 오른 날 · VI 발동 · 국내 유니버스 3년'},
+      sell:{line:'3거래일 −8% 넘게 내린 비슷한 상황이 <em>74번</em> 있었어요. 5거래일 더 뒤 <em>100번 중 47번</em> 올랐고(36~59), 나빴을 땐 <span class="neg">−6.2%</span>까지 내렸어요.',up:47,sub:'조건 · 3거래일 −8% 뒤 5거래일 더 · 비용(거래세 포함 왕복 0.24%) 뒤'},
+      j:{label:'관망',tier:'참고',obs:'규칙이 신호를 내지 않았어요 · 일봉 RSI 61 (과열 70까지 9) · 전일 대비 +4.3% (기준 ±3% 넘음)',cav:['라이브 12건뿐 — 성적은 과거 시세로 검산한 2,310건으로 채웠어요'],info:['외국인 순매수 3일째 (사실)'],hit:58,base:55,trk:'과거 시세로 검산 2,310건 · 빗나간 사례 412건 보기 · 라이브 12건(따로)'}
+    }
+  };
+  var mkt='coin',side='buy';
+  var waf=document.getElementById('waf');
+  for(var wi=0;wi<100;wi++){var cell=document.createElement('i');waf.appendChild(cell);}
+  function renderEasy(){
+    var d=M[mkt][side];document.getElementById('easyLine').innerHTML=d.line;document.getElementById('easySub').textContent=d.sub+' · 예시';
+    waf.querySelectorAll('i').forEach(function(c,i){c.classList.toggle('u',i<d.up)});
+    renderCheck(side);
+  }
+  function renderJudg(){
+    var j=M[mkt].j;document.getElementById('jLabel').textContent=j.label+' · '+j.tier;document.getElementById('jObs').textContent=j.obs;
+    var cav=document.getElementById('jCav');cav.innerHTML='';
+    (j.cav||[]).forEach(function(t){var e=document.createElement('span');e.textContent=t;cav.appendChild(e)});
+    (j.info||[]).forEach(function(t){var e=document.createElement('span');e.className='info';e.textContent=t;cav.appendChild(e)});
+    cav.style.display=cav.children.length?'flex':'none';
+    document.getElementById('jHit').style.width=j.hit+'%';document.getElementById('jHitT').textContent=j.hit+'%';
+    document.getElementById('jBase').style.width=j.base+'%';document.getElementById('jBaseT').textContent=j.base+'%';
+    document.getElementById('jTrk').textContent=j.trk;
+  }
+  document.querySelectorAll('#easy .mkt button').forEach(function(b){b.addEventListener('click',function(){
+    mkt=b.dataset.m;document.querySelectorAll('#easy .mkt button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+    document.querySelector('.app-name').firstChild.textContent=mkt==='kr'?'국내 예시 종목 ':'예시 코인 ';
+    document.querySelector('.app-code').textContent=mkt==='kr'?'000000':'KRW-EX';
+    renderEasy();renderJudg();})});
+  segInit(document.querySelector('#easy .seg2'),function(b){side=b.dataset.c;renderEasy()});
+
+  // 사기 · 팔기 점검 — 펼친 숫자
   var check=document.getElementById('check');
   function renderCheck(kind){
-    if(kind==='buy'){
-      check.innerHTML='<div class="row-between fadein"><b class="t6">지금 사면 · 과거 비슷한 상황 4시간 뒤</b><span class="t8 ter">212건</span></div>'+
-        '<div class="kv fadein"><div><span class="t8 ter">오른 비율</span><b>42%</b></div><div><span class="t8 ter">평균</span><b style="color:#1677EE">−0.4%</b></div><div><span class="t8 ter">최악 10%</span><b style="color:#1677EE">−3.1%</b></div></div>'+
+    var kr=mkt==='kr';
+    if(kind==='buy'&&kr){
+      check.innerHTML='<div class="kv fadein"><div><span class="t8 ter">100번 중</span><b>38번</b></div><div><span class="t8 ter">평균</span><b style="color:#1677EE">−0.9%</b></div><div><span class="t8 ter">나빴을 때(하위 10%)</span><b style="color:#1677EE">−4.6%</b></div></div>'+
+        '<div class="t7 sub fadein">오늘 VI가 한 번 걸렸고 장 마감 뒤 갭이 있을 수 있어요. 무효선까지 −2.0%.</div>';
+    }else if(kind==='sell'&&kr){
+      check.innerHTML='<div class="sellrow"><span class="t7">5일 더 들면</span><div class="rng"><span class="track"></span><span class="band" style="left:8%;width:78%"></span><span class="dot" style="left:46%"></span><span class="lbl" style="left:8%">−6.2%</span><span class="lbl" style="left:46%">중앙 −0.3%</span><span class="lbl" style="left:86%">+7.1%</span></div></div>'+
+        '<div class="t7 sub fadein">판 뒤 더 오른 사례 5건 · 들고 있다 더 내린 사례 5건을 같이 보여 드려요.</div>';
+    }else if(kind==='buy'){
+      check.innerHTML='<div class="kv fadein"><div><span class="t8 ter">100번 중</span><b>42번</b></div><div><span class="t8 ter">평균</span><b style="color:#1677EE">−0.4%</b></div><div><span class="t8 ter">나빴을 때(하위 10%)</span><b style="color:#1677EE">−3.1%</b></div></div>'+
         '<div class="t7 sub fadein">30분에 +3% 넘게 오른 뒤라 추격에 가까워요. 무효선까지 −1.1%.</div>';
     }else{
-      check.innerHTML='<div class="row-between fadein"><b class="t6">보유 중 · 지금 팔면 vs 1일 더 들면</b><span class="t8 ter">비슷한 보유 128건</span></div>'+
-        '<div class="sellrow"><span class="t7">지금 팔면</span><span class="sellbar" style="width:62%">+4.2% 확정</span></div>'+
-        '<div class="sellrow"><span class="t7">1일 더 들면</span><div class="rng"><span class="track"></span><span class="band" style="left:24%;width:64%"></span><span class="dot" style="left:66%"></span><span class="lbl" style="left:24%">+1.6%</span><span class="lbl" style="left:66%">중앙 +5.2%</span><span class="lbl" style="left:88%">+7.6%</span></div></div>'+
-        '<div class="t7 sub fadein">이익이 난 종목을 일찍 파는 경향을 숫자로 보여 드려요. 결정은 직접 하세요.</div>';
+      check.innerHTML='<div class="t7 sub fadein">판 뒤 더 오른 사례 5건 · 들고 있다 되돌린 사례 5건을 같이 보여 드려요.</div>'+
+        '<div class="sellrow"><span class="t7">하루 더 들면</span><div class="rng"><span class="track"></span><span class="band" style="left:10%;width:76%"></span><span class="dot" style="left:52%"></span><span class="lbl" style="left:10%">−3.4%</span><span class="lbl" style="left:52%">중앙 +0.2%</span><span class="lbl" style="left:86%">+4.8%</span></div></div>'+
+        '';
     }
   }
-  renderCheck('buy');
+  renderEasy();renderJudg();
 })();
 
 (function(){

@@ -14,6 +14,9 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 `FEATURE-017` 서버 몫. 서비스 = **coach**(판단 · 해설 · 점검 · 시나리오) + **market**(호가 · 대시보드 · 국내 표 · 소식 — FR-0 · 태그 읽기). 둘 다 Express(S6 전, `msa-services.md` §3).
 결정 `ADR-010`(채택 11-10) · `ADR-009` 개정(측정 태그) · `ADR-003`(시나리오 소유자 전용). 판정 · 확률은 채점된 규칙 · 모델(예측 뷰) — LLM 은 문장만.
 
+> **v2 (2026-11-10 밤, `FEATURE-017` v2 · `ADR-010` v2)** — 판단을 막지 않는다: `renderable` · `blockedReason` 대신 `caveats[]`, 3종은 늘 다(라이브 모자라면 과거 검산 성적 · 사례로 채움 — 라벨, 그래도 비면 결함 꼬리표).
+> FR-1 · 2 · 4 를 그 자리에서 고쳤고 FR-7(라벨 등급) · FR-8(3종 결함 세기)을 더했다. 국내 단타 포함. 수집은 `SRV-REQ-057`.
+>
 > **2026-11-10 개정 — 범위 "잘 사고 잘 팔기"**(`FEATURE-017` 머리 블록). 11-09 FR-6(짧게 먼저) · FR-7(물어보기) · FR-8(해설 채점 지표) · FR-9(엔진 v3)는 뺐다(Non-Goals).
 > FR-0(결함 — 오늘 고침) · FR-4(점검) · FR-5(시나리오) · FR-6(태그)을 새로 둔다. 번호는 다시 매겼다.
 
@@ -31,23 +34,29 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 1. **요청 경로는 저장값만 읽는다** — 외부 API · LLM 호출 0. 늦으면 받아 둔 값 + 기준 시각(FR-0 이 처음 박은 선, FR-3~6 에도)
 2. **시장 층은 사람마다 같다** — 확률 · 기저율 · 태그 · 해설은 종목(· 모드)마다 한 번. 사람별 값은 내 층(팔기 전 점검 · 내 성적)뿐이고 LLM 입력에 0
 3. **명령 0** — 응답에 "사세요 · 파세요" 같은 행동 지시 칸이 없다(조건 · 분포 · 표본 · 무효선만)
+4. **v2 판단은 숨기지 않는다 · 3종은 늘 다** — 모드 판단 응답에 판정 · 관측 · 성적 · 빗나간 사례가 언제나 있다. 성적 출처 `live` 가 표본 < 20 이면 `backtest`(국내 `kr-judgment-backtest@1` · 코인 `FC-REQ-028` FR-5)로 채우고 출처를 칸에 적는다 — 두 출처 숫자를 합치지 않는다
+5. **v2 라이브만 승격** — 등급 "검증됨"은 라이브 성적으로만(FR-7)
 
 ## FR
 
 | FR | 내용 | 단계 | 상태 |
 |---|---|---|---|
 | FR-0 | **결함(2026-11-10 전 종목 실측)** ① 국내 호가 — KIS 우선순위 `viewer`(폴링 앞) + 받아 둔 값을 바로 주고 뒤에서 새로 받기 · 처음 보는 종목만 2초 상한 → `pending`(`001aac19`, 1.5~22초 → 15~190ms) ② 코인 상세 대시보드 15초 캐시 · 지나면 받아 둔 값 + 뒤 계산(`7e0e9174`, 1.9초 → 37~157ms) ③ 국내 시세 표 = 유니버스만(`432f5d38`, 멈춘 7행 → 0) ④ 국내 소식 오늘이 비면 최근 7일 `scope: recent`(`f73bbc9f`, 빈 칸 11/57 → 표본 3종목 채움) | 0 | **done** |
-| FR-1 | **관측 근거** — 모드 판단 응답에 `observations[]`: `{ item, value, lower, upper, distance, points, missing }`(문턱은 규칙 버전 상수). 같은 판정의 `components` 와 같은 값(원장 대조 테스트). `judgmentEvidence` = 문장 ∪ 관측(결측 아님) — 관측 ≥ 1 이면 근거(`ADR-010`) | 1 | to-do |
-| FR-2 | **보류 사실** — `reasons_missing` 삭제. 남은 사유마다 `blockedFacts`: 재료 멈춤 `{ item, lastAt }` · 이력 `{ have, need }` · 표본 `{ sample, min }` · 투자유의 `{ since }` · 열지 않은 모드 `{ assetClass, mode }` · 실패사례 0 `{ sample }` | 1 | to-do |
+| FR-1 | **관측 근거 · v2 3종 늘** — 모드 판단 응답에 `observations[]`: `{ item, value, lower, upper, distance, points, missing }`(문턱은 규칙 버전 상수). 같은 판정의 `components` 와 같은 값(원장 대조 테스트). `judgmentEvidence` = 문장 ∪ 관측(결측 아님) — 관측 ≥ 1 이면 근거(`ADR-010`). **v2**: 판정 · 관측 · `trackRecord` · `failureCases` 는 늘 실린다(국내 단타 포함 — `SRV-REQ-040` FR-63 재개). 라이브 표본 < 20 · 빗나간 사례 0 이면 같은 판단 유형의 과거 검산 성적 · 사례로 채우고 `trackRecord.sampleOrigin` + `liveSample` 을 같이 — 숫자 합산 0 | 1 | in-progress(1a 도메인 · 테스트 54 — 미커밋) |
+| FR-2 | ~~**보류 사실** — `reasons_missing` 삭제. 남은 사유마다 `blockedFacts`: 재료 멈춤 `{ item, lastAt }` · 이력 `{ have, need }` · 표본 `{ sample, min }` · 투자유의 `{ since }` · 열지 않은 모드 `{ assetClass, mode }` · 실패사례 0 `{ sample }`~~ **v2 꼬리표 `caveats[]`** — `reasons_missing` 삭제 · `renderable` · `blockedReason` 은 모드 판단에서 없앤다. 해당하는 것 **전부**: 재료 멈춤 `{ reason: stale_inputs, items[{ item, lastAt }] }` · 이력 짧음 `{ insufficient_history, have, need, dailyIndicator }` · 라이브 적음 `{ live_sample_short, live, min, backtest }` · 투자유의 `{ exchange_warning, cautions, checkedAt }`(지정 시각은 모른다 — 지어내지 않음) · 결함: 재료 전부 결측 `{ inputs_missing, items }` · 성적 조회 실패 `{ track_record_unavailable }` · 과거 검산도 없음 `{ backtest_missing }`. 순서 = 대상 → 재료 → 성적. 경계 표 테스트 | 1 | in-progress(1a) |
 | FR-3 | **해설 늘 보이게** — ① 사실표 조립(관측 · 성적 · 실패 사례 · 같은 날 사실(`FEATURE-016` ②) · 점검 · 태그 — id 붙임) ② **스냅샷 배치**: 종목 지문(판정 · 관측 구간 · 확률 구간 · 태그 · 규칙 · 프롬프트 · 검증기 버전 해시)이 바뀐 종목만 생성(로컬 → 대체 공급자 → 템플릿) → 검증기(숫자 · 인용 id · 금지어 · 명령형 — `FEATURE-008` FR-49 · `ADR-009` 표 한 벌) → `explanation_snapshot` 저장. 실패한 생성은 쓰지 않고 이전 성공본 유지 ③ **읽기 4단**: 최신 AI → 이전 AI + `generatedAt` → 사실표 템플릿(`tier: template`, AI 표시 없음) → "특이 소식 없음" + 판정 근거(`tier: none`) — 빈 칸 0 | 1 | to-do |
-| FR-4 | **사기 전 · 팔기 전 점검** `GET /api/coach/check?symbol&side` — 사기 전: 지금 상태가 맞는 사전등록 조건(`v_base_rate` — `FC-REQ-028` FR-2)의 분포 `{ condition, horizon, sample, upRate, mean, q10, invalidationGap, chase, preMove }`. 팔기 전: 보유(포트폴리오 공개 API — 서버 계산) 확정 손익 + 같은 조건 보유 연장 분포 `{ realizedPct, hold: { sample, q10, q50, q90 } }`. 조건에 맞는 행이 없으면 `status: no_condition`(지어내지 않음). 점검마다 원장에 한 줄(나중 채점) | 2 | to-do |
+| FR-4 | **v2 주인공 — 사기 전 · 팔기 전 점검 + 쉬운 한 줄** `GET /api/coach/check?symbol&side` — **v2**: 응답 머리에 `summary`(서버가 실제 숫자로 만든 한 문장 — 조건 · 기간 · 시장 단위를 같은 문장에, 국내 "다음 거래일 종가까지" · 코인 "4시간 뒤") · `status: ok | below_min | no_condition` · `sample` · `sampleDays` · `upRange`(Wilson, 클러스터 유효 n). 유효 n < 100 이면 `below_min` + 비율 0 · "비슷한 상황이 아직 n번뿐이에요". 팔기 전 `summary` 에 매입가 · 내 손익 0(리서치 v2 규칙 9 — 확정 손익은 펼침 칸 `realizedPct` 에만). `differsFromUsual` 은 수축 · Holm 통과 때만. 기존: 사기 전: 지금 상태가 맞는 사전등록 조건(`v_base_rate` — `FC-REQ-028` FR-2)의 분포 `{ condition, horizon, sample, upRate, mean, q10, invalidationGap, chase, preMove }`. 팔기 전: 보유(포트폴리오 공개 API — 서버 계산) 확정 손익 + 같은 조건 보유 연장 분포 `{ realizedPct, hold: { sample, q10, q50, q90 } }`. 조건에 맞는 행이 없으면 `status: no_condition`(지어내지 않음). 점검마다 원장에 한 줄(나중 채점) | 2 | to-do |
 | FR-5 | **시나리오** `GET /api/coach/scenario?symbol` — `v_short_horizon_card`(`FC-REQ-028` FR-1) 1h · 4h · 1d `{ renderable, blockedReason, pUp, q10, q50, q90, invalidation, track{ calls, hits, baseline, misses[] } }`. 시험 통과 표지가 없는 모델 · 지난 예측(기준 시각 + 수평선 지남)은 `renderable: false` + 사유. **소유자 판정**(`ADR-003` — `ownerGateScope.test.ts` 허용표에 이 경로 추가) | 3 | to-do |
+| FR-7 | **v2 라벨 등급** — 모드 판단에 `tier: reference | verified | caution` + `tierBasis{ liveEffectiveN, spreadCi, regimes }`. 값은 예측 뷰(`FC-REQ-028` FR-6 `v_judgment_tier`)를 읽기만 — 서버가 문턱을 다시 계산하지 않는다. 뷰가 없거나 늦으면 `reference`(지어내지 않음). 등급은 판단을 숨기지 않는다 | 4 | to-do |
+| FR-8 | **v2 3종 결함 세기** — 판단 응답을 만들 때 결함 꼬리표(`inputs_missing` · `track_record_unavailable` · `backtest_missing`)가 붙은 수를 시장 · 모드별로 셈(10분 로그 한 줄 `coach-triad-gaps`) — `OPS-003` 상태 점검이 읽는다. 수용 기준은 0 | 1 | to-do |
 | FR-6 | **측정 태그** — 국내 소식(`GetKrStockNews`) · 코인 뉴스 · 일정 응답 행에 `eventKind` · `reaction{ days, sample, upRate, mean }` · `preMove5d` · `label`(`up_usually` · `down_usually` · `mixed` — 표본 · 엇갈림 문턱은 서버 설정). `v_news_reaction`(`FC-REQ-028` FR-3) 읽기만. 호재 · 악재 단어 0 | 4 | to-do |
 
 ## Acceptance Criteria
 
 - [x] FR-0 — 호가 경계 표 테스트(받아 둔 값 · 처음 보는 종목 상한 · 뒤 갱신 실패 → stale · 30초) · 대시보드 테스트 4 · 국내 표 유니버스 · 소식 recent 테스트 · 실측 전후 수치(커밋 본문)
-- [ ] 관측 = 원장 `components`(경계 표: 결측 · 문턱 위 · 아래 · 같음) · `reasons_missing` 0 · 보류 사유마다 사실 칸
+- [x] 관측 = 원장 `components`(경계 표: 결측 · 문턱 위 · 아래 · 같음) — `judgmentObservation.test.ts`(1a, 미커밋)
+- [ ] **v2** 판단 응답에 판정 · 관측 · 성적 · 빗나간 사례가 100%(코인 · 국내 · 단타 · 장기) · `renderable` · `blockedReason` 0 · 꼬리표 경계 표 · 라이브/과거 검산 합산 0 · 3종 결함 0(실측)
+- [ ] **v2** 점검 `summary` 숫자 = 기저율 뷰 · n < 100 이면 비율 0 · 팔기 전 `summary` 매입가 · 손익 0(테스트) · 등급 = 뷰 값
 - [ ] 해설 4단 경계 표(최신 · 이전 · 템플릿 · 없음) · 검증기 거절 표 · 실패 생성은 저장 0 · 요청 경로 LLM 0(테스트로 셈)
 - [ ] 점검 · 시나리오 · 태그 숫자 = 예측 뷰 값 · 명령형 칸 0 · 시나리오 비소유자 404
 - [ ] LLM 입력 타입에 보유 · 금액 · 이메일 칸 0
@@ -63,4 +72,5 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-09 | 신규(to-do) — `FEATURE-017` · `ADR-010`(제안) |
+| 2026-11-10 밤 | **v2** — FR-1 3종 늘(과거 검산으로 채움) · FR-2 보류 사실 → 꼬리표 `caveats[]`(결함 셋 포함) · FR-4 쉬운 한 줄 `summary` · `below_min` · FR-7 등급 · FR-8 3종 결함 세기 신규 · 불변식 4 · 5. 1a 도메인 진행(미커밋) |
 | 2026-11-10 | to-do → in-progress. **개정 — 범위 "잘 사고 잘 팔기"**: FR-0 결함 넷 done(`001aac19` · `7e0e9174` · `432f5d38` · `f73bbc9f`) · FR-3 해설 = 스냅샷 배치 + 4단 · FR-4 점검 · FR-5 시나리오(소유자) · FR-6 측정 태그 신규. 뺀 것: 짧게 먼저 · 물어보기 · 채점 지표 · 엔진 v3. 불변식 셋 |
