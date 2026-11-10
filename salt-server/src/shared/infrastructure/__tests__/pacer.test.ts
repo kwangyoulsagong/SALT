@@ -124,3 +124,24 @@ describe("createRatePacer — 우선순위(F011 FR-91)", () => {
     assert.deepEqual(order, ["a", "urgent", "b"]);
   });
 });
+
+describe("createRatePacer — 쉬기 (SRV-REQ-057 FR-3)", () => {
+  it("쉬는 동안 아무것도 안 나가고, 끝나면 몰리지 않고 간격대로 나간다", async () => {
+    const clock = fakeClock();
+    const pacer = createRatePacer({ perSecond: 2, now: clock.now, sleep: clock.sleep });
+    pacer.pauseUntil(5_000);
+
+    const startedAt = await Promise.all(Array.from({ length: 4 }, () => pacer.run(async () => clock.t)));
+
+    // 예전(호출 안에서 쉬기)이면 넷이 5000 에 한꺼번에 나갔다
+    assert.deepEqual(startedAt, [5_000, 5_500, 6_000, 6_500]);
+  });
+
+  it("쉬기를 짧게 덮어쓰지 않는다 — 더 늦은 쪽", async () => {
+    const clock = fakeClock();
+    const pacer = createRatePacer({ perSecond: 10, now: clock.now, sleep: clock.sleep });
+    pacer.pauseUntil(3_000);
+    pacer.pauseUntil(1_000);
+    assert.equal(await pacer.run(async () => clock.t), 3_000);
+  });
+});

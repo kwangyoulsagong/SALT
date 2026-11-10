@@ -717,9 +717,8 @@ export class KisClient
     priority: KisPriority,
     trCont: "" | "N"
   ): Promise<{ body: any; trCont: string }> {
+    // 쉬기는 페이서가 한다(`pauseUntil`) — 출발한 호출 안에서 기다리면 쉬기가 끝날 때 줄이 한꺼번에 나간다
     return this.pacer.run(async () => {
-      const wait = this.cooldownUntil - Date.now();
-      if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
       try {
         const response = await this.http.get(path, {
           params,
@@ -746,6 +745,7 @@ export class KisClient
         this.record(trId, sanitized.msgCode === RATE_LIMITED ? "rate" : "fail");
         if (sanitized.msgCode === RATE_LIMITED) {
           this.cooldownUntil = Date.now() + this.cooldownMs;
+          this.pacer.pauseUntil(this.cooldownUntil);
           this.cooldownMs = Math.min(this.cooldownMs * 2, COOLDOWN_MAX_MS);
         }
         throw sanitized;

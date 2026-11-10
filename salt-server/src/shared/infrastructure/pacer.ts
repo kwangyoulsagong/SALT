@@ -34,6 +34,12 @@ import { setTimeout as delay } from "node:timers/promises";
  */
 export interface RatePacer {
   run<T>(operation: () => Promise<T>, priority?: number): Promise<T>;
+  /**
+   * 이 시각까지 아무것도 출발시키지 않는다 — 상대가 한도 초과를 알렸을 때(KIS EGW00201). 쉬는 동안 줄은 그대로 쌓이고,
+   * 끝나면 **간격대로** 다시 나간다. 예전엔 쉬기를 출발한 호출 안에서 했다 — 페이서는 그동안에도 자리를 내줘
+   * 쉬기가 끝나는 순간 줄 전체가 한꺼번에 나가 다시 초과했다(2026-11-11, `SRV-REQ-057` FR-3)
+   */
+  pauseUntil(at: number): void;
 }
 
 export interface RatePacerOptions {
@@ -51,6 +57,7 @@ export const createRatePacer = ({
 }: RatePacerOptions): RatePacer => {
   const intervalMs = 1_000 / perSecond;
   let nextStart = 0;
+  let pausedUntil = 0;
   /** 우선순위별 대기 줄 — 출발시키는 함수만 담는다 */
   const queues = new Map<number, Array<() => void>>();
   let pumping = false;
@@ -69,8 +76,12 @@ export const createRatePacer = ({
     pumping = true;
     try {
       while ([...queues.values()].some((queue) => queue.length > 0)) {
-        const wait = nextStart - now();
-        if (wait > 0) await sleep(wait);
+        // 기다린 사이 쉬기가 늘었을 수 있다 — 깨면 다시 잰다
+        const wait = Math.max(nextStart, pausedUntil) - now();
+        if (wait > 0) {
+          await sleep(wait);
+          continue;
+        }
         const start = takeNext()!;
         nextStart = Math.max(now(), nextStart) + intervalMs;
         start();
@@ -95,6 +106,9 @@ export const createRatePacer = ({
         });
         void pump();
       });
+    },
+    pauseUntil(at) {
+      pausedUntil = Math.max(pausedUntil, at);
     },
   };
 };
