@@ -25,6 +25,7 @@
 | `pnpm test` | core 295 · ui 63 |
 | zone 운영 빌드(worktree) | 셸 · 투자 성공. 투자 첫 로드 전 → 후: `/investments` 156 → 157 · 상세 152 → 153 · `/search` 169 → 171 · `/portfolio` 148 → 149 kB(예산 +40 kB 안) |
 | `build-storybook` | 성공 |
+| 공용 코드 소비처(§3-3) | `web-shared` apiFetch · 세션 갱신 · ProfileMenu 를 다른 zone 도 쓴다 — 저축 · 가계부 · 팁 운영 빌드 성공(worktree, 공용 첫 로드 102~103 kB). 팁은 `PublicShell`(계정 메뉴 없음) · 셸 로그인 화면은 bare(머리 없음)라 "로그인" 단추 영향 0. 저축 · 가계부는 로그아웃이면 원래 로그인으로 보내짐(`isGuestReadablePath` 밖) — 동작 변화 없음 |
 | 레이어 훅 사후 실행 | Bash 로 쓴 파일 44 위반 0(음성 대조 exit 2) |
 | 390 앱 웹뷰 UA | 국내 상세 그려짐 · API 4xx 0 |
 | 로그인 비소유자 | 임시 사용자(만들고 지움) — 유리막 0 · 주문 전 체크 · 거래 기록 보임 |
