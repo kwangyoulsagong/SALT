@@ -37,13 +37,14 @@ export const KrStockNews = ({ code }: { code: string }) => {
   return (
     <section className={krSideCard} aria-labelledby="kr-stock-news-heading">
       <h2 id="kr-stock-news-heading" className={heading}>
-        {M.heading}
+        {data.status === "ok" && data.scope === "recent" ? M.recentHeading : M.heading}
       </h2>
       {data.status !== "ok" ? (
         <StatusLine kind="error">{M.unavailable}</StatusLine>
       ) : (
         <>
           <p className={caption}>{M.caption}</p>
+          {data.scope === "recent" && views.length > 0 && <p className={caption}>{M.recentNote}</p>}
           {views.length === 0 ? (
             <StatusLine kind="empty">{M.empty}</StatusLine>
           ) : (

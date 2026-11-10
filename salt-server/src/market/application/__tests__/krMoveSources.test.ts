@@ -417,6 +417,21 @@ describe("읽기 — 오늘 소식 · 장중 수급(읽는 사람 누구나 · �
     assert.equal(r.collectedAt, "2026-11-06T02:42:00.000Z");
   });
 
+  it("오늘 소식이 있으면 today · 없으면 최근 7일을 recent 로(SRV-REQ-053 FR-2) — 7일 안에도 없으면 빈 recent", async () => {
+    assert.equal((await new GetKrStockNews(deps() as never).execute("005930")).scope, "today");
+    const sinces: string[] = [];
+    const only = (since: Date) => (sinces.push(since.toISOString()), since.getTime() < kst("00:00").getTime());
+    const base = deps();
+    const old = [{ serial: "9", kind: "news" as const, providerName: "이데일리", publishedAt: new Date("2026-11-04T01:00:00Z"), title: "지난주", related: [] }];
+    const withOld = { ...base, moveSources: { ...base.moveSources, newsTitles: async (_c: string, since: Date) => (only(since) ? old : []) } };
+    const r = await new GetKrStockNews(withOld as never).execute("005930");
+    assert.deepEqual([r.scope, r.items.map((i) => i.id)], ["recent", ["9"]]);
+    assert.deepEqual(sinces, ["2026-11-05T15:00:00.000Z", "2026-10-30T02:45:00.000Z"]);
+    const none = { ...base, moveSources: { ...base.moveSources, newsTitles: async () => [] } };
+    const e = await new GetKrStockNews(none as never).execute("005930");
+    assert.deepEqual([e.scope, e.items.length], ["recent", 0]);
+  });
+
   it("기사 본문(SRV-REQ-054) — 그 종목 시황만 news 로 · 공시는 검색 없이 not_found · 남의 일련번호 · 형식 오류 404 · 원천 없음 503", async () => {
     const asks: Array<{ key: string; title: string }> = [];
     const titles: Record<string, { kind: "news" | "disclosure"; title: string; publishedAt: Date }> = {

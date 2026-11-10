@@ -556,6 +556,8 @@ export const toKrNewsVM = (raw: unknown) => {
   return {
     code: str(r, "code"),
     date: str(r, "date"),
+    /** 오늘이 비어 최근 7일 소식을 줬으면 recent(`SRV-REQ-053` FR-2). 옛 서버는 칸이 없어 today */
+    scope: r.scope === "recent" ? ("recent" as const) : ("today" as const),
     collectedAt: strOrNull(r, "collectedAt"),
     items: arr(r, "items").flatMap((d): KrNewsItemVM[] => {
       const x = obj(d, "item");

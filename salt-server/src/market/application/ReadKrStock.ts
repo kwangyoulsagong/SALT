@@ -591,19 +591,30 @@ export class GetKrOrderbook extends KrStockRead {
  * 광고성 제외 · 최대 `KR_NEWS_READ_LIMIT`건. 제목 · 제공처 · 시각 · 공시/시황 구분뿐 — 본문 · 링크는 원천에 없다.
  * `collectedAt` 은 시장 전체 마지막 수집 시각(신선도 — 빈 목록이 "소식 없음"인지 "수집 멈춤"인지 가른다)
  */
+/** 오늘 소식이 없을 때 거슬러 보는 날 수 */
+export const KR_NEWS_RECENT_DAYS = 7;
+
 export class GetKrStockNews extends KrStockRead {
   async execute(code: string) {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const listing = await this.deps.store.findListing(code);
     if (!listing) throw new KrStockNotAvailableError();
     const now = this.now();
-    const [items, collectedAt] = await Promise.all([
+    const [today, collectedAt] = await Promise.all([
       this.deps.moveSources.newsTitles(code, kstStartOfDay(now), KR_NEWS_READ_LIMIT),
       this.deps.moveSources.newsCollectedAt(),
     ]);
+    // 오늘 소식이 없으면 최근 7일 안의 마지막 소식 — 빈 칸 대신 날짜가 붙은 사실(`SRV-REQ-053` FR-2, 11-10 57종목 중 11 빈 칸)
+    const recent =
+      today.length > 0
+        ? null
+        : await this.deps.moveSources.newsTitles(code, new Date(now.getTime() - KR_NEWS_RECENT_DAYS * 86_400_000), KR_NEWS_READ_LIMIT);
+    const items = recent ?? today;
     return {
       code,
       date: kstDateOf(now),
+      /** today = 오늘 소식 · recent = 오늘이 비어 최근 7일 소식 */
+      scope: recent ? ("recent" as const) : ("today" as const),
       collectedAt: collectedAt?.toISOString() ?? null,
       items: items.map((n) => ({
         id: n.serial,
