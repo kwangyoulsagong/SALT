@@ -220,3 +220,4 @@ RSC에서는 그 근거가 달라진다. 서버 컴포넌트가 BFF를 여러 �
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `b37bf890`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — `AppShell` 주석 · 머리 검색칸 자리(`headerSearch`) — 스트리밍 경계 변화 없음(검색 모달은 클라이언트 잎 · `Suspense` 안). 투자 화면 머리 "종목 검색 ›" 링크 삭제(`MarketBoard`) |
 | 2026-11-10 | `MarketBoard` — `?asset=kr_stock` 을 읽는 잎(`AssetParamSync`)을 Suspense 로 감쌌다 — 보드 전체가 `useSearchParams` 로 클라이언트에 미뤄지지 않게(검색 모달 업종 · 지수 줄, `FE-REQ-066` `19539c95`) |
+| 2026-11-10 | `MarketBoard` — 주소를 읽는 Suspense 잎에 `NewsModalHost` 를 같이(보드 전체가 클라이언트로 미뤄지지 않게, `FE-REQ-065` `87eb8083`) |

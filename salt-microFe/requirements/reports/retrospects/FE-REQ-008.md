@@ -157,3 +157,7 @@ Action item 1은 원래 "빠진 미러 9개를 채운다"였다. 실제 결정�
 
 - 주소를 읽는 훅은 그것만 하는 잎에 두고 Suspense — 1단계 런처와 같은 꼴
 - 루트 회고 `requirements/reports/retrospects/FE-066-067-search-header.md`
+
+## 2026-11-10 — 뉴스 모달 새로고침
+
+- 파일만 걸침 — 판단은 `FE-REQ-065` 회고

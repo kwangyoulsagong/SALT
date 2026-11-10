@@ -353,3 +353,7 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 
 - `entities/market/api/endpoints.ts` 경로 셋 — 실화면 확인은 `FE-REQ-066` 체크리스트
 - 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`
+
+## 2026-11-10 — 뉴스 모달 새로고침(주인 `FE-REQ-065`)
+
+- 파일만 걸침 — 실화면 확인은 `FE-REQ-065` 체크리스트

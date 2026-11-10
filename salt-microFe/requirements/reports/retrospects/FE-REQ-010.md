@@ -206,3 +206,7 @@ watchlist 슬라이스 회고가 적은 실수를 초대 슬라이스가 되풀�
 
 - 파일만 걸침 — 판단은 `FE-REQ-066` 회고
 - 루트 회고 `requirements/reports/retrospects/FE-066-067-search-header.md`
+
+## 2026-11-10 — 뉴스 모달 새로고침
+
+- 파일만 걸침 — 판단은 `FE-REQ-065` 회고

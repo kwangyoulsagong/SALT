@@ -378,3 +378,7 @@ FR-11("인증 토큰을 클라이언트로 내리지 않는다 — 쿠키에서 
 
 - `/investments` 정적(○) 그대로 · 첫 로드 153 kB 그대로(worktree 운영 빌드)
 - 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`
+
+## 2026-11-10 — 뉴스 모달 새로고침(주인 `FE-REQ-065`)
+
+- 파일만 걸침 — 실화면 확인은 `FE-REQ-065` 체크리스트

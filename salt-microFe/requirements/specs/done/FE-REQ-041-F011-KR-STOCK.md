@@ -133,3 +133,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §화면/�
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `b37bf890` · `6a062b24`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — `entities/market` `ui/index` — `SearchOption` 더함 · `AssetSearchTable` 삭제(국내 결과 줄은 같은 판정 — 코드는 이름으로 로고 이니셜) |
 | 2026-11-09 | 확인 2회차 `6a062b24` — `useKrMarketStatus` `retryOnMount: false`: 실패한 장 상태를 새 소비자가 붙을 때마다 다시 부르지 않는다(검색 모달이 열 때마다 비소유자 404). 404 는 그대로 · 5xx 는 1분 주기. 소비 셋(`RealtimeMarketTable` · `KrStockAvailability` · `useTopTradeValue`) — 성공 경로 동작 같음 |
 | 2026-11-10 | `entities/market/ui/index.ts` 에 `SearchTextOption` · 국내 탭 주소 진입(`ROUTES.investmentsKr`, `?asset=kr_stock` — 비소유자는 코인으로 되돌아감) — `FE-REQ-066` `19539c95` |
+| 2026-11-10 | `ui/index.ts` 에 `NewsModalHost` · 국내 프리뷰 소식도 모달을 보드 호스트에(`FE-REQ-065` `87eb8083`) |
