@@ -39,7 +39,6 @@ import {
   title,
   titleBlock,
 } from "./CoachReport.css";
-import { HoldingsPanel } from "./HoldingsPanel";
 import { KrMirrorPanel } from "./KrMirrorPanel";
 import { MirrorPanel } from "./MirrorPanel";
 import { MonthlyReviewPanel } from "./MonthlyReviewPanel";
@@ -117,8 +116,7 @@ const ReportBody = ({ report }: { report: CoachReportViewModel }) => {
           </div>
         </section>
 
-        {/* 내 보유 — 홈에서 옮겼다(2026-11-02, 홈은 도메인 카드만). 따로 부르고 따로 실패한다 */}
-        <HoldingsPanel />
+        {/* ~~내 보유~~ 2026-11-10 포트폴리오 페이지로(`FE-REQ-069` FR-4 — 머리 메뉴 "포트폴리오") */}
 
         {/* F010 — 투자 화면 요약 띠의 본문 셋(목표 비중 → 위험 · 내 기준 → 판정 성적표). 각자 부르고 각자 실패한다 */}
         <TargetWeightPanel />
@@ -219,7 +217,6 @@ export const CoachReport = () => {
     return notice(
       <EmptyState iconFrame="none" icon={<Illustration scene="coachBubble" size="sm" />} title={REPORT.unavailable} />,
       <>
-        <HoldingsPanel />
         <TargetWeightPanel />
         <RiskBudgetPanel />
         <ScoreboardPanel />

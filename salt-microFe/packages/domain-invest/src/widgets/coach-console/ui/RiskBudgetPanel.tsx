@@ -13,7 +13,6 @@ import {
   useRiskBudget,
 } from "@/entities/coach";
 import { RiskBudgetForm } from "@/features/set-risk-budget";
-import { PurchasePriceToggle } from "@/features/toggle-purchase-price";
 import { COACH_REPORT_SECTIONS } from "@repo/web-shared/config";
 import { panel, panelDescription, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
@@ -61,8 +60,7 @@ export const RiskBudgetPanel = () => {
       </div>
       <p className={panelDescription}>{GAUGE.description}</p>
       {body()}
-      {/* 매입가 숨김(FR-27) — 예산 응답과 따로 부르고 따로 실패한다. 숨는 곳은 홈 보유 요약 */}
-      <PurchasePriceToggle />
+      {/* ~~매입가 숨김(FR-27)~~ 2026-11-10 숨는 보유 칸과 함께 포트폴리오 페이지로(`FE-REQ-069` FR-4) — 코치 설정에도 그대로 */}
       <CoachDisclosure />
     </section>
   );
