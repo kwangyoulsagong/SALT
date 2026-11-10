@@ -231,3 +231,19 @@
 | 검증 | build 0 · lint 0 · test 1059 · layer-check |
 
 측정 주의: 시험 토큰은 15분에 만료 — 한 번 401 을 잰 회차(p50 6ms)는 버렸다. 응답 코드를 같이 찍는다
+
+## 2026-11-10 — 504 5회차: 봉 다시 쓰기 · 막힌 VACUUM(F018 실화면에서 봄)
+
+| 단계 | 결과 |
+|---|---|
+| 전(장중 12:38~12:44, 서버 직접 `/api/ai-coach` 비소유자 시험 신원, 4초 간격) | 국내 51회 p50 148 · p90 9,349 · 최대 16,644ms · 코인 최대 7,599ms. 12:40~12:42 에 몰림 |
+| 원인 1 | `pg_stat_activity` 0.2s 표본 — `INSERT INTO price_history … ON CONFLICT DO UPDATE`(코인 캔들 회차) 2,189 표본 · 문장 하나 최대 8.3s. 창 전체(5분봉 288 · 일봉 120)를 **조건 없이** 다시 씀 · 동시 10 |
+| 원인 2 | 국내 판단의 관찰 구간 `closePercentiles`(005930 5분봉 하루 71행)가 페이지 4,843개를 읽음 — 표 누적 갱신 315M · 죽은 행 5.1M(산 행 3.6M). `VACUUM` 이 2초 만에 끝나도 죽은 행 그대로 → 예측 `jobs.news`(05:07 시작, CPU 0%로 외부 연결에 매달림)가 `advisory_lock` 트랜잭션을 8시간 열어 둠(`idle in transaction`) |
+| 고침 | `price_history` upsert 5곳 `WHERE … IS DISTINCT FROM` · 캔들 동시 10 → 4 · `price_history` 자동 청소 문턱 2%(마이그레이션, 로컬 적용) · 예측 `advisory_lock` 락 직후 커밋 · `run_job(max_seconds)` 뉴스 20분 |
+| 기계 검사 | 서버 `noBlindCandleRewrite.test.ts`(5곳 이상 · 전부 WHERE — 조건을 지운 사본으로 실패 확인 뒤 사본으로 되돌림) · 예측 `tests/store/test_advisory_lock.py`(실 Postgres — 커밋 줄을 지운 사본으로 실패 확인) · `tests/test_job_timeout.py` |
+| 후(12:47~12:55, 캔들 회차 둘 포함) | 코인 p50 24 · 최대 128ms · 캔들 쓰기 80ms 넘는 표본 6. 국내 p50 82 · p90 317 · **최대 4,077ms**(12:54 — 죽은 행이 남은 5분봉 읽기) |
+| 검증 | 서버 build · lint 0 · test 1080 / 예측 ruff · pyright 0 · lint-imports 3 kept · pytest 전부 · leakage 전부 |
+
+| 미검증 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 국내 판단 최대 4s(죽은 행 남음) | 매달린 `jobs.news`(pid 31569)를 끝내야 VACUUM 이 죽은 행을 지운다 — 프로세스 종료가 이 세션에서 권한 거절 | 사용자가 그 작업을 끝낸 뒤 `VACUUM (ANALYZE) price_history` + 장중 재측정 |

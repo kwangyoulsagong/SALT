@@ -46,7 +46,10 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
           ${col((c) => c.close)}::numeric[], ${col((c) => c.volume)}::numeric[], ${col((c) => c.timestamp)}::timestamptz[]
         ) AS u(open, high, low, close, volume, ts)
         ON CONFLICT (symbol, timeframe, timestamp) DO UPDATE SET
-          open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume`;
+          open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume
+        -- 값이 같으면 쓰지 않는다 — 창 전체를 다시 받아도 바뀐 봉(마지막 몇 개)만 쓴다(장중 504, 2026-11-10 DB-REQ-017)
+        WHERE (price_history.open, price_history.high, price_history.low, price_history.close, price_history.volume)
+          IS DISTINCT FROM (EXCLUDED.open, EXCLUDED.high, EXCLUDED.low, EXCLUDED.close, EXCLUDED.volume)`;
     }
   }
 
