@@ -15,6 +15,7 @@ import type {
   SymbolJudgmentStore,
   TrackedAssetProbe,
 } from "../../domain";
+import { krScalpSnapshotDue } from "../../domain";
 import { GetSymbolCoach } from "../GetSymbolCoach";
 import { EvaluateSymbolJudgments, SnapshotSymbolJudgments } from "../RecordSymbolJudgments";
 
@@ -147,7 +148,7 @@ const market = (kr: Record<string, KrFixture>, extra: Partial<Record<keyof Marke
 const tracked = (symbols: string[]): TrackedAssetProbe => ({ listTrackedSymbols: async () => symbols });
 
 describe("SnapshotSymbolJudgments — 국내 주식", () => {
-  it("국내 주식은 장기만, 자산군 접두로 남긴다 — 코인은 그대로 두 모드 (FR-61 · 63)", async () => {
+  it("국내 주식도 두 모드, 자산군 접두로 남긴다 — 코인은 그대로 두 모드 (FR-61 · 63 v2)", async () => {
     const store = new MemoryStore();
     const result = await new SnapshotSymbolJudgments(
       tracked(["005930", "BTC"]),
@@ -156,9 +157,10 @@ describe("SnapshotSymbolJudgments — 국내 주식", () => {
       () => NOW
     ).execute();
 
-    assert.equal(result.written, 3);
+    assert.equal(result.written, 4);
     assert.deepEqual(store.rows.map((row) => row.signalType).sort(), [
       "kr_stock.long_term.wait",
+      "kr_stock.scalp.wait",
       "long_term.wait",
       "scalp.wait",
     ]);
@@ -182,7 +184,7 @@ describe("SnapshotSymbolJudgments — 국내 주식", () => {
     ).execute();
 
     assert.deepEqual(result.skippedNotReady.sort(), ["000660", "035420", "051910"]);
-    assert.deepEqual(store.rows.map((row) => row.symbol), ["005930"]);
+    assert.deepEqual(store.rows.map((row) => row.symbol), ["005930", "005930"]);
   });
 });
 
@@ -261,6 +263,83 @@ describe("EvaluateSymbolJudgments — 국내 주식 거래일 채점 (FR-64)", (
   });
 });
 
+describe("국내 단타 — 다음 거래일 종가 채점 · 스냅샷 간격 (FR-63 v2 · signal-skill@1)", () => {
+  const judgedScalp = (store: MemoryStore, judgedAt: Date) =>
+    store.rows.push({
+      id: `${store.rows.length + 1}`,
+      symbol: "005930",
+      mode: "scalp",
+      action: "avoid",
+      signalType: "kr_stock.scalp.avoid",
+      score: 38,
+      reasons: [],
+      entryPrice: 100,
+      judgedAt,
+      ruleVersion: "mode-decision@2",
+    });
+
+  it("금요일 장중 판단 → 다음 거래일(월) 봉 하나만 · 월 16시 KST 전엔 묻지 않는다", async () => {
+    const store = new MemoryStore();
+    judgedScalp(store, new Date("2026-10-09T01:00:00Z")); // 금 10:00 KST
+    const asked: string[] = [];
+    const probe = market(
+      {},
+      {
+        closeAtOrBefore: async (_symbol: string, at: Date, _tf: string, notBefore: Date) => {
+          asked.push(`${at.toISOString()}|${notBefore.toISOString()}`);
+          return { close: 99, timestamp: at };
+        },
+        closeAtOrAfter: async () => {
+          throw new Error("국내 단타는 만기 뒤 첫 종가를 쓰지 않는다");
+        },
+      }
+    );
+    const early = await new EvaluateSymbolJudgments(probe, store, () => new Date("2026-10-12T06:00:00Z")).execute();
+    assert.equal(early.evaluated, 0);
+    assert.deepEqual(asked, []);
+
+    const ready = await new EvaluateSymbolJudgments(probe, store, () => new Date("2026-10-12T07:30:00Z")).execute();
+    assert.equal(ready.evaluated, 1);
+    // 10-12(월) 00:00 KST 봉 하나 — 앞뒤 다른 봉을 받지 않는다
+    assert.deepEqual(asked, ["2026-10-11T15:00:00.000Z|2026-10-11T15:00:00.000Z"]);
+    assert.equal(store.rows[0].outcome, "hit"); // 피하기 · −1% ≤ 비용
+  });
+
+  it("다음 평일 봉이 없으면 사흘 기다린 뒤 휴장으로 보고 그다음 평일 봉", async () => {
+    const store = new MemoryStore();
+    judgedScalp(store, new Date("2026-10-08T07:00:00Z")); // 목 16:00 KST → 금 10-09 한글날 휴장
+    const asked: string[] = [];
+    const probe = market(
+      {},
+      {
+        closeAtOrBefore: async (_symbol: string, at: Date) => {
+          asked.push(at.toISOString());
+          return at.toISOString() === "2026-10-11T15:00:00.000Z" ? { close: 103, timestamp: at } : null;
+        },
+      }
+    );
+    const waiting = await new EvaluateSymbolJudgments(probe, store, () => new Date("2026-10-10T01:00:00Z")).execute();
+    assert.equal(waiting.evaluated, 0);
+
+    // 금 16시 + 사흘 = 10-12(월) 16시 — 그 전엔 금요일 봉을 기다린다
+    const graceLeft = await new EvaluateSymbolJudgments(probe, store, () => new Date("2026-10-12T06:00:00Z")).execute();
+    assert.equal(graceLeft.evaluated, 0);
+
+    const settled = await new EvaluateSymbolJudgments(probe, store, () => new Date("2026-10-12T08:00:00Z")).execute();
+    assert.equal(settled.evaluated, 1);
+    assert.equal(asked.at(-1), "2026-10-11T15:00:00.000Z");
+    assert.equal(store.rows[0].outcome, "miss"); // 피하기 · +3% > 비용
+  });
+
+  it("금요일 판단 뒤 토 · 일은 같은 다음 거래일(월)이라 남기지 않는다 — 월요일엔 남긴다", () => {
+    const friday = new Date("2026-10-09T01:00:00Z");
+    assert.equal(krScalpSnapshotDue(null, friday), true);
+    assert.equal(krScalpSnapshotDue(friday, new Date("2026-10-10T02:00:00Z")), false);
+    assert.equal(krScalpSnapshotDue(friday, new Date("2026-10-11T02:00:00Z")), false);
+    assert.equal(krScalpSnapshotDue(friday, new Date("2026-10-12T02:00:00Z")), true);
+  });
+});
+
 describe("GetSymbolCoach — 국내 주식", () => {
   const profiles = {
     findByUser: async () => ({ defaultMode: "scalp" }),
@@ -304,8 +383,8 @@ describe("GetSymbolCoach — 국내 주식", () => {
     // 국내 단타는 막지 않는다(ADR-010 v2) — 판정이 있고, 성적은 아직 없어 결함 꼬리표
     assert.ok(view.modes.scalp.judgment.label);
     assert.ok(view.modes.scalp.caveats.some((c) => c.reason === "backtest_missing"));
-    // 심리 · 대량 체결은 국내 주식에 없는 재료다 — 빠졌다고 하지 않는다
-    assert.deepEqual(view.missingData, []);
+    // 심리 · 대량 체결은 국내 주식에 없는 재료다 — 빠졌다고 하지 않는다. 1시간 지표는 이제 연 단타의 재료라 고정값(1시간 지표 없음)에선 빠졌다고 한다
+    assert.deepEqual(view.missingData, ["technical_indicator"]);
     // 보유는 국내 주식 자산군으로 읽는다
     assert.deepEqual(holdingCalls, ["005930:crypto", "005930:kr_stock"]);
   });

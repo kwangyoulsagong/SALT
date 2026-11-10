@@ -190,10 +190,10 @@ export class GetSymbolCoach {
         this.sentimentTrack(symbol, sentiment),
       ]);
 
-    // 요청 → 사용자가 고른 기본 모드 → 단타 (`SRV-REQ-025` FR-48 · B16). 국내 주식은 연 모드(장기)가 기본이다 —
-    // 사용자의 기본 모드가 단타여도 열지 않은 모드를 먼저 보여 주지 않는다(F011 FR-63)
+    // 요청 → 사용자가 고른 기본 모드 → 단타 (`SRV-REQ-025` FR-48 · B16). 국내 주식은 장기가 기본이다 — 단타는 2026-11-10 열었지만
+    // (F011 FR-63 v2) 프로필 기본 모드는 코인에서 고른 것이라 국내엔 걸지 않는다. 단타는 요청(모드 전환)으로 본다
     const openModes = JUDGMENT_MODES[assetClass];
-    const preferred = query.mode ?? profile?.defaultMode ?? DEFAULT_COACH_MODE;
+    const preferred = query.mode ?? (assetClass === "kr_stock" ? openModes[0] : profile?.defaultMode ?? DEFAULT_COACH_MODE);
     const selectedMode: CoachMode =
       query.mode ?? (openModes.includes(preferred) ? preferred : openModes[0]);
     const modeDecision = selectedMode === "scalp" ? scalp : longTerm;

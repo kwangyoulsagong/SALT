@@ -68,12 +68,12 @@ export const roundTripCostAt = (
   assetClass === "kr_stock" ? krStockRoundTripCost(soldAt, costs.krStockCommissionPerSide) : costs.crypto;
 
 /**
- * 자산군마다 여는 모드(F011 FR-63). 국내 주식은 **장기(30일)만** — 단타의 24시간은 주식에선 다음 거래일로
- * 넘어가 다른 질문이 된다. 단타는 스냅샷도 남기지 않는다(나중에 열 때 규칙을 정하고 그때부터 센다)
+ * 자산군마다 여는 모드 — 판단 · 스냅샷 · 채점이 같은 표를 읽는다. 국내 단타는 2026-11-10 열었다(F011 FR-63 v2 · `FEATURE-017` v2):
+ * 24시간은 주식에선 **다음 거래일 종가**로 채점한다(`krScalpExitDays`). 순서는 기본 모드 고르기 순서다(국내 = 장기 먼저)
  */
 export const JUDGMENT_MODES: Record<JudgmentAssetClass, readonly CoachMode[]> = {
   crypto: ["scalp", "long_term"],
-  kr_stock: ["long_term"],
+  kr_stock: ["long_term", "scalp"],
 };
 
 export type JudgmentOutcome = "hit" | "miss";
