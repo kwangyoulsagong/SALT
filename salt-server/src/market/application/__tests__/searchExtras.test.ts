@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  cleanKrNewsTitle,
   currentSectors,
   matchesName,
   matchKrIndexCodes,
@@ -253,5 +254,17 @@ describe("ReadSearchRelated", () => {
     assert.deepEqual(result.items.map((i) => i.symbol), ["ETH", "ADA", "SOL"]);
     const empty = await new ReadSearchRelated(setup().news, assets, kr, () => NOW).execute({ assetType: "crypto", symbol: "BTC" });
     assert.deepEqual(empty, { basis: "none", sector: null, items: [] });
+  });
+});
+
+describe("cleanKrNewsTitle", () => {
+  it("줄바꿈 → 띄어쓰기 · 0x1A → 가운뎃점 · 겹친 띄어쓰기 하나 · 보통 제목은 그대로", () => {
+    const table: Array<[string, string]> = [
+      ["삼성전기\x1aAI 기판", "삼성전기·AI 기판"],
+      ["[리포트 브리핑]KB금융, '주주환원 4조'\n 목표가 220,000원", "[리포트 브리핑]KB금융, '주주환원 4조' 목표가 220,000원"],
+      ["  앞뒤\t탭\r\n  ", "앞뒤 탭"],
+      ["노브랜드 버거, 기안84 모델 발탁", "노브랜드 버거, 기안84 모델 발탁"],
+    ];
+    for (const [raw, expected] of table) assert.equal(cleanKrNewsTitle(raw), expected, JSON.stringify(raw));
   });
 });

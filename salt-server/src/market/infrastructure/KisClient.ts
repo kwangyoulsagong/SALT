@@ -29,6 +29,7 @@ import {
   krViKindOf,
   type KrMoveSourcePort,
   type KrIndexDailyClose,
+  cleanKrNewsTitle,
   type KrNewsTitleFact,
   type KrProgramFlowFact,
 } from "../domain";
@@ -586,7 +587,7 @@ export class KisClient
     const rows: any[] = Array.isArray(body.output) ? body.output : [];
     return rows.flatMap((row): KrNewsTitleFact[] => {
       const serial = typeof row?.cntt_usiq_srno === "string" ? row.cntt_usiq_srno.trim() : "";
-      const title = typeof row?.hts_pbnt_titl_cntt === "string" ? row.hts_pbnt_titl_cntt.trim() : "";
+      const title = typeof row?.hts_pbnt_titl_cntt === "string" ? cleanKrNewsTitle(row.hts_pbnt_titl_cntt) : "";
       const publishedAt = kstWallClock(row?.data_dt, row?.data_tm);
       if (!serial || !title || !publishedAt) return [];
       const codes = [...new Set(

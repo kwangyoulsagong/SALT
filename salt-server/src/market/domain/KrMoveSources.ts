@@ -43,6 +43,17 @@ export const isKrNewsPromo = (title: string, patterns: readonly RegExp[]): boole
 export const KR_NEWS_MAX_PAGES = 5;
 /** 보관 일수(`DB-REQ-041` FR-1) — 정리 워커가 나눠 지운다 */
 export const KR_NEWS_RETENTION_DAYS = 30;
+
+/**
+ * 시황 제목 글자 정리 — 원천 제목에 줄바꿈과 `0x1A`(원천 문자셋이 못 옮긴 글자 — "삼성전기␚AI 기판"처럼 가운뎃점 자리)가 섞여 온다
+ * (2026-11-10 저장 3,059건 중 39건 — 화면에 깨진 글자로 보였다). `0x1A` 는 가운뎃점으로, 나머지 제어 문자는 띄어쓰기 하나로
+ */
+export const cleanKrNewsTitle = (raw: string): string =>
+  raw
+    .replace(/\x1a/g, "·")
+    .replace(/[\x00-\x1f\x7f]+/g, " ")
+    .replace(/ {2,}/g, " ")
+    .trim();
 /** 상세 "오늘 소식" 한 번에 보이는 최대 건수 — 응답 크기 상한(삼성전자 하루 약 40건) */
 export const KR_NEWS_READ_LIMIT = 30;
 
