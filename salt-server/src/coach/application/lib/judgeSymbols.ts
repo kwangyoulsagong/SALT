@@ -144,6 +144,19 @@ export const materialGuards = (
   };
 };
 
+/**
+ * 국내 주식 표본을 남기지 않는가 — 이력(일봉 120 · 일봉 지표)이 모자라거나 재료가 1 거래일 넘게 밀렸다(F011 FR-62 · 66).
+ * 화면은 막지 않고 꼬리표지만(`ADR-010` v2), **표본**(스냅샷 · 판단 원장)은 그 상태로 남기지 않는다 — 두 곳이 이 함수 하나를 쓴다
+ */
+export const krSampleNotReady = (materials: SymbolJudgmentMaterials, now: Date): boolean =>
+  materials.assetClass === "kr_stock" &&
+  (!materials.krHistory?.ready ||
+    staleKrJudgmentInputs({
+      priceUpdatedAt: materials.quote?.priceUpdatedAt ?? null,
+      dailyIndicatorAt: materials.indicators.long_term?.timestamp ?? null,
+      now,
+    }).length > 0);
+
 /** 두 모드 판단. 순수 계산이고 재료만 본다. */
 export const judgeSymbol = (
   symbol: string,

@@ -7,7 +7,6 @@ import {
   krJudgmentExitWindow,
   krScalpExitDays,
   krScalpSnapshotDue,
-  staleKrJudgmentInputs,
   judgeOutcome,
   judgmentMaturesAt,
   judgmentReturnRate,
@@ -27,7 +26,7 @@ import {
   type SymbolJudgmentStore,
   type TrackedAssetProbe,
 } from "../domain";
-import { collectJudgmentMaterials, judgeSymbol } from "./lib/judgeSymbols";
+import { collectJudgmentMaterials, judgeSymbol, krSampleNotReady } from "./lib/judgeSymbols";
 
 const MODES: CoachMode[] = ["scalp", "long_term"];
 
@@ -85,15 +84,7 @@ export class SnapshotSymbolJudgments {
         skippedNoPrice.push(symbol);
         continue;
       }
-      if (
-        material.assetClass === "kr_stock" &&
-        (!material.krHistory?.ready ||
-          staleKrJudgmentInputs({
-            priceUpdatedAt: material.quote?.priceUpdatedAt ?? null,
-            dailyIndicatorAt: material.indicators.long_term?.timestamp ?? null,
-            now,
-          }).length > 0)
-      ) {
+      if (krSampleNotReady(material, now)) {
         skippedNotReady.push(symbol);
         continue;
       }

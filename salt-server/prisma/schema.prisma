@@ -738,7 +738,9 @@ model JudgmentLedgerEntry {
   components      Json // [{ item, points, value }] — 점수에 들어간 항목별 기여
   materials       Json // 재료 값 + 각 재료의 발생 시각(observedAt)
   missingData     String[]  @map("missing_data")
-  regime          String // BTC 기준 시장 국면(detectMarketRegime)
+  regime          String // BTC 기준 시장 국면(detectMarketRegime) — 국내 행도 그날 BTC 값. 국내 국면은 읽는 쪽이 날짜로(`kr_regime`)
+  // 자산군 — 코인 · 국내 표본을 가른다(SRV-REQ-040 FR-61 v2). 기본값 없음 — 쓰는 쪽이 말한다
+  assetClass      String    @map("asset_class")
   entryPrice      Decimal   @map("entry_price")
   entryObservedAt DateTime? @map("entry_observed_at")
   sampleOrigin    String    @map("sample_origin")

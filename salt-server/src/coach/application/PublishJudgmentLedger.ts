@@ -20,6 +20,7 @@ import {
   collectJudgmentMaterials,
   judgeSymbol,
   type SymbolJudgmentMaterials,
+  krSampleNotReady,
 } from "./lib/judgeSymbols";
 
 const MODES: CoachMode[] = ["scalp", "long_term"];
@@ -136,9 +137,9 @@ export class PublishJudgmentLedger {
         skippedNoPrice.push(symbol);
         continue;
       }
-      // 원장은 코인만 — 사전등록(`rule-ic@1`)의 표본 정의 · 국면(BTC) · 비교 기준이 코인 시장의 것이다. 추적 자산에 국내 주식
-      // 유니버스가 들어온 뒤(F011 슬라이스 4)에도 원장 표본은 바뀌지 않는다
-      if (material.assetClass !== "crypto") continue;
+      // 국내 행도 남긴다(SRV-REQ-040 FR-61 v2 · `rule-ic-kr@1` 라이브) — 자산군 열로 가른다. 코인 rule-ic@1 라이브 표본은 `asset_class = 'crypto'`
+      // 만 읽어야 한다(예전엔 "원장은 코인만"으로 막았다). 국내 표본은 스냅샷과 같은 조건(이력 · 거래일 신선도)일 때만
+      if (krSampleNotReady(material, now)) continue;
       // 보유 여부는 점수에 들어가지 않는다(`makeModeDecision`) — 스냅샷과 같이 false
       const judgment = judgeSymbol(symbol, material, false);
       const byMode = { scalp: judgment.scalp, long_term: judgment.longTerm };
@@ -147,6 +148,7 @@ export class PublishJudgmentLedger {
         drafts.push(
           ledgerDraft({
             decision: byMode[mode],
+            assetClass: material.assetClass,
             components: judgment.components[mode],
             materials: ledgerMaterials(material, mode, { market, risk: risk?.get(symbol) ?? null }),
             missingData: judgment.missingByMode[mode],

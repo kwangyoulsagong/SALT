@@ -22,6 +22,7 @@ export class PrismaJudgmentLedgerStore implements JudgmentLedgerStore {
     const result = await prisma.judgmentLedgerEntry.createMany({
       data: drafts.map((draft) => ({
         symbol: draft.symbol,
+        assetClass: draft.assetClass,
         mode: draft.mode,
         asOfDate: draft.asOfDate,
         decidedAt: draft.decidedAt,

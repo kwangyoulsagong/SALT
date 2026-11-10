@@ -6,6 +6,8 @@ import type {
   GaugeTrackStore,
   JudgmentCase,
   JudgmentEvaluation,
+  JudgmentLedgerDraft,
+  JudgmentLedgerStore,
   JudgmentOutcome,
   JudgmentSnapshotDraft,
   JudgmentTrackStats,
@@ -17,6 +19,7 @@ import type {
 } from "../../domain";
 import { krScalpSnapshotDue } from "../../domain";
 import { GetSymbolCoach } from "../GetSymbolCoach";
+import { PublishJudgmentLedger } from "../PublishJudgmentLedger";
 import { EvaluateSymbolJudgments, SnapshotSymbolJudgments } from "../RecordSymbolJudgments";
 
 /**
@@ -135,8 +138,8 @@ const market = (kr: Record<string, KrFixture>, extra: Partial<Record<keyof Marke
     recentWhales: async (symbols: string[]) =>
       symbols.includes("BTC")
         ? [
-            { transactionType: "buy", amountKRW: 100 },
-            { transactionType: "sell", amountKRW: 100 },
+            { transactionType: "buy", amountKRW: 100, detectedAt: NOW },
+            { transactionType: "sell", amountKRW: 100, detectedAt: NOW },
           ]
         : [],
     dailyBarCounts: async (symbols: string[]) =>
@@ -260,6 +263,30 @@ describe("EvaluateSymbolJudgments — 국내 주식 거래일 채점 (FR-64)", (
     const result = await new EvaluateSymbolJudgments(probe, store, () => new Date("2026-10-08T05:00:00Z")).execute();
     assert.equal(result.evaluated, 0);
     assert.equal(asked, 0);
+  });
+});
+
+describe("PublishJudgmentLedger — 국내 행 · 자산군 열 (FR-61 v2)", () => {
+  it("국내도 두 모드를 남기고 자산군을 적는다 — 이력 · 신선도가 모자란 국내 종목은 스냅샷처럼 남기지 않는다", async () => {
+    const saved: JudgmentLedgerDraft[] = [];
+    const ledger: JudgmentLedgerStore = {
+      publishedOn: async () => new Set(),
+      saveEntries: async (drafts) => (saved.push(...drafts), drafts.length),
+    };
+    const result = await new PublishJudgmentLedger(
+      tracked(["005930", "BTC", "000660"]),
+      market({ "005930": {}, "000660": { dailyBars: 63 } }),
+      ledger,
+      () => NOW
+    ).execute();
+
+    assert.equal(result.written, 4);
+    assert.deepEqual(saved.map((row) => `${row.symbol}:${row.mode}:${row.assetClass}`).sort(), [
+      "005930:long_term:kr_stock",
+      "005930:scalp:kr_stock",
+      "BTC:long_term:crypto",
+      "BTC:scalp:crypto",
+    ]);
   });
 });
 
