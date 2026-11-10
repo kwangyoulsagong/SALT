@@ -279,6 +279,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
         pool_sample: number;
         pool_above_cost: number;
         months: number;
+        days: number;
         avg_return: Prisma.Decimal | null;
         worst_return: Prisma.Decimal | null;
         first_scored_at: Date | null;
@@ -295,6 +296,8 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
         COUNT(*) FILTER (WHERE ${above})::int AS pool_above_cost,
         -- 판단 달(KST) 수 — 국내 백테스트 표시 조건. \`judged_at\` 은 UTC 벽시계 TIMESTAMP 라 시간대를 두 번 옮긴다
         COUNT(DISTINCT date_trunc('month', (judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul')) FILTER (WHERE ${own})::int AS months,
+        -- 판단 날(KST) 수 — 과거 검산 3종 채움 조건(signal-skill@1 [display])
+        COUNT(DISTINCT ((judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul')::date) FILTER (WHERE ${own})::int AS days,
         AVG(return_rate) FILTER (WHERE ${own}) AS avg_return,
         MIN(return_rate) FILTER (WHERE ${own}) AS worst_return,
         MIN(evaluated_at) FILTER (WHERE ${own}) AS first_scored_at,
@@ -310,6 +313,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       poolSample: r.pool_sample,
       poolAboveCost: r.pool_above_cost,
       judgedMonths: r.months,
+      judgedDays: r.days,
       avgReturn: r.avg_return === null ? null : Number(r.avg_return),
       worstReturn: r.worst_return === null ? null : Number(r.worst_return),
       firstScoredAt: r.first_scored_at,

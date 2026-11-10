@@ -93,10 +93,27 @@ describe("attachJudgmentTrack — 3종 채우기 · 국내 백테스트 성적 �
     assert.deepEqual(view.caveats, [{ reason: "backtest_missing", live: 0, min: 20 }]);
   });
 
-  it("코인은 백테스트 저장소가 있어도 묻지 않는다", async () => {
-    const backtest = store(stats(15_311, 48), "BT");
-    const view = await attachJudgmentTrack(store(stats(0, 0), "LIVE"), { ...avoid, symbol: "BTC" }, {}, "crypto", { backtest });
-    assert.equal(view.trackRecord.sampleOrigin, "live");
-    assert.equal(backtest.asked.length, 0);
+  // signal-skill@1 [display] — 코인 · 국내 단타는 판단 달이 아니라 판단 날 ≥ 10 (2026-11-10 코인 과거 검산이 같은 저장소로 들어옴)
+  it("코인도 과거 검산으로 채운다 — 판단 날 ≥ 10 이면 채움, 9 면 결함", async () => {
+    const filled = await attachJudgmentTrack(store(stats(0, 0), "LIVE"), { ...avoid, symbol: "BTC" }, {}, "crypto", {
+      backtest: store({ ...stats(1_496, 2), judgedDays: 42 }, "ETH"),
+    });
+    assert.equal(filled.trackRecord.sampleOrigin, "backtest");
+    assert.deepEqual(filled.failureCases.map((item) => item.symbol), ["ETH"]);
+    assert.ok(filled.caveats.some((caveat) => caveat.reason === "live_sample_short"));
+
+    const short = await attachJudgmentTrack(store(stats(0, 0), "LIVE"), { ...avoid, symbol: "BTC" }, {}, "crypto", {
+      backtest: store({ ...stats(23, 1), judgedDays: 9 }, "ETH"),
+    });
+    assert.equal(short.trackRecord.sampleOrigin, "live");
+    assert.ok(short.caveats.some((caveat) => caveat.reason === "backtest_missing"));
+  });
+
+  it("국내 단타도 판단 날로 — 국내 장기의 판단 달 조건을 쓰지 않는다", async () => {
+    const view = await attachJudgmentTrack(store(stats(0, 0), "LIVE"), { ...avoid, mode: "scalp" }, {}, "kr_stock", {
+      backtest: store({ ...stats(14_859, 1), judgedDays: 988 }, "000660"),
+    });
+    assert.equal(view.trackRecord.sampleOrigin, "backtest");
+    assert.equal(view.signalType, "kr_stock.scalp.avoid");
   });
 });

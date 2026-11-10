@@ -1,4 +1,5 @@
 import { KstDate } from "../../../shared/domain";
+import type { CoachMode } from "../model";
 import { scoreModeDecision, type ModeDecisionAction } from "./modeDecision";
 import { krJudgmentExitWindow } from "./krStockJudgment";
 import { JUDGMENT_HORIZON_MS, judgeOutcome, MIN_JUDGMENT_SAMPLE, type JudgmentOutcome } from "./symbolJudgment";
@@ -41,13 +42,6 @@ export const krTrackOrigin = (
   (backtest.judgedMonths ?? 0) < KR_BACKTEST_MIN_MONTHS
     ? "live"
     : "backtest";
-
-/**
- * 국내 과거 검산 성적을 3종 채움에 쓸 수 있나(`kr-judgment-backtest@1` [display] — 판단 달 ≥ 12). 표본 · 빗나간 사례 조건은
- * `triadComplete` 가 따로 본다(`ADR-010` v2 — `judgmentTriadSource`)
- */
-export const krBacktestUsable = (backtest: { judgedMonths?: number } | null): boolean =>
-  backtest !== null && (backtest.judgedMonths ?? 0) >= KR_BACKTEST_MIN_MONTHS;
 
 /** 종가 확정 시각 — 판단 시각 = 그날 16:00 KST */
 const CLOSE_CONFIRMED_MS = 16 * 3600_000;
@@ -236,6 +230,8 @@ const pushTo = <K, V>(map: Map<K, V[]>, key: K, value: V): void => {
 };
 
 const monthOf = (at: Date): string => KstDate.fromInstant(at).toString().slice(0, 7);
+/** 판단 날(KST) — 짧은 기간 과거 검산의 부트스트랩 블록(`signal-skill@1` [report].ci) */
+export const judgedDayOf = (at: Date): string => KstDate.fromInstant(at).toString();
 
 const naiveFor = (action: ModeDecisionAction, alwaysUp: number): number | null =>
   action === "wait" ? null : action === "avoid" ? 1 - alwaysUp : alwaysUp;
@@ -288,17 +284,19 @@ const quantile = (sorted: readonly number[], q: number): number => {
 
 /**
  * 초과 적중률 95% 구간 — 판단 달 단위 블록 부트스트랩. 같은 달 판단은 같은 장세를 함께 겪는다(종목 사이 상관) —
- * 표본 하나씩 다시 뽑으면 구간이 거짓으로 좁다. 기저율도 다시 뽑은 풀에서 센다
+ * 표본 하나씩 다시 뽑으면 구간이 거짓으로 좁다. 기저율도 다시 뽑은 풀에서 센다.
+ * `blockOf` — 블록 키(기본 판단 달). 몇 주짜리 과거 검산은 달 블록이 둘뿐이라 판단 날로 바꾼다(`signal-skill@1`)
  */
 export const krBacktestExcessInterval = (
   samples: readonly KrBacktestSample[],
   action: ModeDecisionAction,
   iterations: number,
-  random: () => number
+  random: () => number,
+  blockOf: (at: Date) => string = monthOf
 ): { low: number; high: number } | null => {
   if (action === "wait") return null;
   const byMonth = new Map<string, KrBacktestSample[]>();
-  for (const sample of samples) pushTo(byMonth, monthOf(sample.judgedAt), sample);
+  for (const sample of samples) pushTo(byMonth, blockOf(sample.judgedAt), sample);
   const months = [...byMonth.values()];
   const draws: number[] = [];
   for (let it = 0; it < iterations; it += 1) {
@@ -326,13 +324,15 @@ export const krBacktestExcessInterval = (
 
 /**
  * 플라시보 — 같은 판단일 안에서 종목끼리 행동 라벨을 맞바꾼다. 규칙이 그날 종목을 고르는 실력이 없다면 실제 초과
- * 적중률이 이 분포의 흔한 값이어야 한다. 단측 p = (귀무 ≥ 실제 수 + 1) ÷ (반복 + 1). 행동 비율 · 날짜 · 장세는 그대로다
+ * 적중률이 이 분포의 흔한 값이어야 한다. 단측 p = (귀무 ≥ 실제 수 + 1) ÷ (반복 + 1). 행동 비율 · 날짜 · 장세는 그대로다.
+ * `mode` — 적중 경계(관망 폭)가 모드마다 다르다(기본 장기)
  */
 export const krBacktestPlacebo = (
   samples: readonly KrBacktestSample[],
   action: ModeDecisionAction,
   iterations: number,
-  random: () => number
+  random: () => number,
+  mode: CoachMode = "long_term"
 ): { observed: number; nullMean: number; p: number } | null => {
   if (action === "wait") return null;
   const alwaysUp = krBacktestAlwaysUp(samples);
@@ -343,7 +343,7 @@ export const krBacktestPlacebo = (
     samples.forEach((sample, index) => {
       if (labels[index] !== action) return;
       group += 1;
-      if (judgeOutcome("long_term", action, sample.returnRate, sample.cost) === "hit") hits += 1;
+      if (judgeOutcome(mode, action, sample.returnRate, sample.cost) === "hit") hits += 1;
     });
     return group === 0 ? null : hits / group - naive;
   };

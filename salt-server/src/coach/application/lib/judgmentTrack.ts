@@ -9,7 +9,7 @@ import {
   type JudgmentCaveat,
   type JudgmentObservation,
   type ModeDecisionComponent,
-  krBacktestUsable,
+  backtestUsable,
   judgmentTriadSource,
   type JudgmentTrackStats,
   type JudgmentTriadSource,
@@ -142,8 +142,9 @@ export interface JudgmentGuards {
  * 성적은 **같은 판단 유형 전체**(`<mode>.<action>`)의 것이다 — 이 종목만의 성적이 아니다.
  * 종목 하나로는 장기 판단이 30일에 1표본이라 20건이 쌓이는 데 1년 반이 걸린다.
  *
- * `backtest` — 국내 주식만, 라이브 표본이 모자랄 동안 과거 시세로 되돌려 채점한 성적(`krTrackOrigin`, 사전등록
- * `kr-judgment-backtest@1`). 고르면 성적 · 실패사례 **둘 다** 백테스트다 — 섞지 않는다. 해설(LLM)은 넘기지 않는다(라이브만)
+ * `backtest` — 라이브 표본이 모자랄 동안 과거 시세로 되돌려 채점한 성적(`backtest_full` · `backtest_price_only` 만 세는 저장소 —
+ * 국내 장기 `kr-judgment-backtest@2` · 코인 장기 · 단타 · 국내 단타 `signal-skill@1`). 고르면 성적 · 실패사례 **둘 다** 과거 검산이다 —
+ * 섞지 않는다. 해설(LLM)은 넘기지 않는다(라이브만)
  */
 export const attachJudgmentTrack = async (
   store: SymbolJudgmentStore,
@@ -243,8 +244,8 @@ interface LoadedTriad {
 
 /**
  * 성적 · 빗나간 사례를 읽고 출처를 고른다(`judgmentTriadSource`). 고른 출처의 성적 · 사례만 돌려준다 — 라이브와 과거 검산을 섞지 않는다.
- * 과거 검산 저장소는 국내 주식만(`kr-judgment-backtest@1`) — 코인 과거 검산은 `FC-REQ-028` FR-5 뒤에 같은 자리로 들어온다.
- * 저장소가 실패하면 `null`(판단은 그대로, 결함 꼬리표)
+ * 과거 검산은 자산군 · 모드 무관 같은 저장소다(`signal-skill@1` — 2026-11-10 코인 · 국내 단타가 들어옴). 쓸 수 있는지는 판단 유형마다
+ * `backtestUsable`(국내 장기 = 판단 달 ≥ 12 · 나머지 = 판단 날 ≥ 10). 저장소가 실패하면 `null`(판단은 그대로, 결함 꼬리표)
  */
 const loadTriad = async (
   store: SymbolJudgmentStore,
@@ -252,14 +253,14 @@ const loadTriad = async (
   signalType: string,
   assetClass: JudgmentAssetClass
 ): Promise<LoadedTriad | null> => {
-  const fallback = assetClass === "kr_stock" ? backtest : null;
+  const fallback = backtest;
   try {
     const [live, liveMisses, backtestStats] = await Promise.all([
       store.summarize(signalType),
       store.recentCases(signalType, "miss", JUDGMENT_CASE_LIMIT),
       fallback ? fallback.summarize(signalType) : Promise.resolve(null),
     ]);
-    const source = judgmentTriadSource(live, backtestStats, krBacktestUsable(backtestStats));
+    const source = judgmentTriadSource(live, backtestStats, backtestUsable(signalType, backtestStats));
     const useBacktest = source.origin === "backtest" && fallback !== null && backtestStats !== null;
     return {
       source,

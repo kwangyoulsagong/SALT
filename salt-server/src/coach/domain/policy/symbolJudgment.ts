@@ -98,7 +98,17 @@ export const JUDGMENT_HORIZON_MS: Record<CoachMode, number> = {
  * **실측 성적(게이트 · 적중률 · 실패사례 · 성적표)은 `live` 만 센다.** 합성 실적이 섞이면 지어낸
  * 숫자가 추천을 연다. 개발 DB 를 운영으로 복사해도 마찬가지여야 해서 출처를 행에 적는다.
  */
-export type SampleOrigin = "live" | "backtest" | "synthetic";
+export type SampleOrigin =
+  | "live"
+  /** 옛 과거 검산 행(2026-11-10 전 국내 장기) — 마이그레이션이 `backtest_full` 로 옮겼다. 새로 쓰지 않는다 */
+  | "backtest"
+  /** 과거 검산 — 점수 항목 전부를 과거 값으로 재현(사전등록 `signal-skill@1`) */
+  | "backtest_full"
+  /** 과거 검산 — 과거가 없는 항목은 기여 0, 가격 항목만 */
+  | "backtest_price_only"
+  /** 규칙을 고를 때 본 기간 — 리포트만, 저장 · 화면 0 */
+  | "backtest_seen"
+  | "synthetic";
 
 /** 실측 성적이 세는 출처. 개발에서 `synthetic` 을 더하는 것은 조립 지점의 일이다(`composition.ts`). */
 export const LIVE_ORIGINS: readonly SampleOrigin[] = ["live"];
@@ -226,6 +236,8 @@ export interface JudgmentTrackStats {
   poolAboveCost: number;
   /** 표본의 판단 달(KST) 수 — 국내 백테스트 표시 조건(`kr-judgment-backtest@1` [display]). 세지 않은 저장소는 없음 */
   judgedMonths?: number;
+  /** 표본의 판단 날(KST) 수 — 과거 검산 3종 채움 조건(`signal-skill@1` [display] · `backtestUsable`). 세지 않은 저장소는 없음 */
+  judgedDays?: number;
   avgReturn: number | null;
   /** 가장 나빴던 기간 수익률. */
   worstReturn: number | null;
