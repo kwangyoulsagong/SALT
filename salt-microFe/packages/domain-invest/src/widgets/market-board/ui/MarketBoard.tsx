@@ -15,6 +15,8 @@ import React, { type ReactNode, Suspense, useEffect, useState } from "react";
 import { INVESTMENTS_ASSET_PARAM, ROUTES } from "@repo/web-shared/config";
 import { NavChevron } from "@repo/web-shared/ui";
 
+import { NewsModalHost } from "@/entities/market";
+
 import {
   ASSET_CLASS_TABS,
   DEFAULT_ASSET_CLASS_TAB,
@@ -105,6 +107,8 @@ export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => 
     <Section noContainer>
       <Suspense fallback={null}>
         <AssetParamSync onAsset={setAssetTab} />
+        {/* 시세 화면 뉴스 모달 하나 — 주소(`?news=&newsOf=`)가 상태라 프리뷰 선택 · 탭과 무관하게 새로고침에도 열린다(`FE-REQ-065`) */}
+        <NewsModalHost />
       </Suspense>
       <FlexBox direction="column">
         <div className={headingRow}>

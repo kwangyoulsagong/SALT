@@ -34,4 +34,4 @@ export { KrMarketActionBanner } from "./KrStock/KrMarketActionBanner";
 export { WhyMovedCard, WhyMovedRowChip, WHY_MOVED_ANCHOR_ID } from "./WhyMoved";
 export { KrChangeText } from "./KrStock/KrChangeText";
 export { KrStockChart } from "./KrStock/KrStockChart";
-export { NewsRow, NewsModal } from "./News";
+export { NewsRow, NewsModal, NewsModalHost } from "./News";
