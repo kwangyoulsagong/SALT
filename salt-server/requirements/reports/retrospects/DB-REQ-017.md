@@ -155,3 +155,8 @@ REQ 쪽이 틀렸다: FR-50~53 은 `InvestmentInsight` 의 소비처를 보지 �
 
 - 배운 것: 출처 열을 처음부터 문자열 + CHECK 로 둔 덕에 값 넓히기가 CHECK 교체 한 줄이었다
 - 액션: 없음
+
+## 1b 확인 2회차 — 2026-11-10
+
+- 문제: 10만 행을 넣고 집계 쿼리(`summarize`)만 `EXPLAIN` 했고 사례 쿼리는 안 봤다 — 실화면 390 에서 504 로 드러남
+- 액션: 행 수를 크게 바꾸는 쓰기 뒤엔 그 표를 읽는 쿼리 전부를 `EXPLAIN`(grep `symbolJudgmentSnapshot.`)
