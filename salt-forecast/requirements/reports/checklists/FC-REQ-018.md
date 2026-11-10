@@ -29,3 +29,10 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 문서 정정: FR-1 9 → 12단계 · done 이동. 근거는 코드(`ops/daily.sh` · `domain/ops_health.py` · `models/kr_stock.py`) · 같은 문서 결과 절 · 교차 REQ. 코드 무변경
+
+## 판단 원장 자산군 — 2026-11-10
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 원장 점검 코인만 | 충족 | ruff · format · pyright 0 · pytest 362 · `ops_monitor --dry-run` 새 쿼리 실행 · 발행일 27/27 같음 |
+| 국내 원장 빈 날 점검 | 미착수 | F017 1c(`OPS-003` 상태 점검) |

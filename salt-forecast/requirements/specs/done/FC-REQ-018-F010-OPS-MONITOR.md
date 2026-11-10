@@ -52,3 +52,4 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 - 2026-10-07: 초판 · FR-1~7 완료(`59c75db` · `42df20b`). 번호 009 는 F011 예약이라 018
 - 2026-10-29: 전수 조사 정정 — FR-1 기대표 9 → 12단계(`domain/ops_health.py:37-50` · `ops/daily.sh` 와 같음). FR-1~7 전부 완료 · 남은 행은 배포 · 별도 작업 → **done 으로 이동**
 - 2026-11-10: **작업 락 · 시간 상한 결함**(F018 실화면 중 서버 504 추적, 주인 기록 `DB-REQ-017` 5회차) — `advisory_lock` 이 락 문장으로 연 트랜잭션을 작업 끝까지 닫지 않아(`idle in transaction`) 뉴스 작업 하나가 8시간 DB 전체 VACUUM 을 막았다 → 락 직후 커밋(`tests/store/test_advisory_lock.py`). 그 작업은 외부 연결에 매달려 CPU 0%로 8시간 — `run_job(max_seconds)` · 뉴스 20분(`tests/test_job_timeout.py`). 운영 점검 FR 은 그대로 · done 유지
+- 2026-11-10 밤: 판단 원장 빈 날 점검(`judgment_ledger_dates`)을 `asset_class = 'crypto'` 로 — 국내 행(`SRV-REQ-040` FR-61 v2, `c8de7501`)이 코인 발행 빈 날을 가리지 않게(`32bd8e3f`). 국내 원장 빈 날 점검은 상태 점검 묶음(`OPS-003`, F017 1c)
