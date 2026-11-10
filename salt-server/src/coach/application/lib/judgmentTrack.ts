@@ -1,13 +1,21 @@
 import {
   COACH_HORIZON,
   JUDGMENT_CASE_LIMIT,
-  judgmentGate,
+  judgmentCaveatFacts,
+  judgmentCaveats,
+  judgmentObservations,
   judgmentSignalType,
-  krTrackOrigin,
+  MIN_JUDGMENT_SAMPLE,
+  type JudgmentCaveat,
+  type JudgmentObservation,
+  type ModeDecisionComponent,
+  krBacktestUsable,
+  judgmentTriadSource,
+  type JudgmentTrackStats,
+  type JudgmentTriadSource,
   summarizeJudgmentTrack,
   type CoachMode,
   type JudgmentAssetClass,
-  type JudgmentBlockedReason,
   type JudgmentCase,
   type JudgmentTrackRecord,
   type KrJudgmentHistory,
@@ -62,8 +70,15 @@ export interface ModeCoachView {
    * 코인은 없다
    */
   history?: KrJudgmentHistory;
-  renderable: boolean;
-  blockedReason: JudgmentBlockedReason | null;
+  /**
+   * 엔진이 본 값 — 문턱에 가까운 순(`SRV-REQ-053` FR-1 · `ADR-010`). 원장 `components` 와 같은 값이다.
+   */
+  observations: JudgmentObservation[];
+  /**
+   * 판단에 붙는 꼬리표 — 사유 + 사실(`SRV-REQ-053` FR-2 · 2026-11-10 개정). **판단은 늘 나간다**: 예전 `renderable` ·
+   * `blockedReason` 은 꼬리표 하나로 판단 블록을 비웠다(사용자 *"막히는 게 말이 안 되잖아"*). 비면 꼬리표 없음
+   */
+  caveats: JudgmentCaveat[];
   trackRecord: JudgmentTrackRecord;
   failureCases: JudgmentCaseView[];
 }
@@ -114,8 +129,10 @@ export const loadCaseLabels = async (
  */
 export interface JudgmentGuards {
   exchangeWarning?: boolean;
+  /** 투자유의 표시의 주의 종류 · 확인 시각 — 보류 사실(지정 시각은 모른다) */
+  exchangeFlag?: { cautions: readonly string[]; checkedAt: Date | null };
   staleInputs?: readonly StaleInput[];
-  modeNotOpen?: boolean;
+  inputTimes?: Record<StaleInput, Date | null>;
   history?: KrJudgmentHistory;
 }
 
@@ -137,34 +154,37 @@ export const attachJudgmentTrack = async (
     backtest?: SymbolJudgmentStore | null;
     /** 사례 종목 이름 · 로고(없으면 이름 칸 `null`) */
     market?: Pick<MarketProbe, "assetLabels"> | null;
+    /**
+     * 이 모드의 항목 기여 · 빠진 재료(`judgeSymbol` 의 `components` · `missingByMode`) — 관측 근거를 만든다.
+     * 없으면 관측 0(근거는 문장만)
+     */
+    scored?: { components: readonly ModeDecisionComponent[]; missingInputs: readonly string[] } | null;
   } = {}
 ): Promise<ModeCoachView> => {
   const backtest = extras.backtest ?? null;
   const signalType = judgmentSignalType(decision.mode, decision.action, assetClass);
-  const fallback = assetClass === "kr_stock" ? backtest : null;
 
-  const [live, liveMisses, backtestStats] = await Promise.all([
-    store.summarize(signalType),
-    store.recentCases(signalType, "miss", JUDGMENT_CASE_LIMIT),
-    fallback ? fallback.summarize(signalType) : Promise.resolve(null),
-  ]);
-  const origin = krTrackOrigin(live.sample, backtestStats);
-  const [stats, misses] =
-    origin === "backtest" && fallback && backtestStats
-      ? [backtestStats, await fallback.recentCases(signalType, "miss", JUDGMENT_CASE_LIMIT)]
-      : [live, liveMisses];
+  // 3종의 성적 몫 — 라이브가 완전하면 라이브, 아니면 과거 검산으로 채운다(`ADR-010` v2). 저장소를 못 읽으면 판단은 그대로 나가고
+  // 결함 꼬리표(`track_record_unavailable`) — 예전엔 이 실패가 판단 전체를 막았다(`SRV-REQ-026` FR-72)
+  const loaded = await loadTriad(store, backtest, signalType, assetClass);
+  const triad = loaded?.source ?? null;
+  const stats = loaded?.stats ?? EMPTY_STATS;
+  const misses = loaded?.misses ?? [];
+  const origin = triad?.origin ?? "live";
 
   const trackRecord = summarizeJudgmentTrack(decision.mode, signalType, stats, origin);
   const labels = await loadCaseLabels(extras.market ?? null, misses.map((item) => item.symbol));
-  const gate = judgmentGate({
+  const observations = extras.scored
+    ? judgmentObservations(decision.mode, extras.scored.components, extras.scored.missingInputs)
+    : [];
+  const reasons = judgmentCaveats({
     action: decision.action,
     reasons: decision.reasons,
     risks: decision.risks,
-    trackRecord,
-    failureCases: misses,
+    observations,
+    triad,
     exchangeWarning: guards.exchangeWarning ?? false,
     staleInputs: guards.staleInputs ?? [],
-    modeNotOpen: guards.modeNotOpen ?? false,
     historyShort: guards.history ? !guards.history.ready : false,
   });
 
@@ -183,9 +203,73 @@ export const attachJudgmentTrack = async (
     signalType,
     assetClass,
     ...(guards.history ? { history: guards.history } : {}),
-    renderable: gate.renderable,
-    blockedReason: gate.blockedReason,
+    observations,
+    caveats: reasons.map((reason) =>
+      judgmentCaveatFacts(reason, {
+        history: guards.history,
+        staleInputs: guards.staleInputs ?? [],
+        inputTimes: guards.inputTimes ?? { price: null, technical_indicator: null },
+        exchange: guards.exchangeFlag,
+        observations,
+        liveSample: loaded?.liveSample ?? 0,
+        backtestSample: loaded?.backtestSample ?? 0,
+        minSample: MIN_JUDGMENT_SAMPLE,
+      })
+    ),
     trackRecord,
     failureCases: misses.map((item) => toCaseView(signalType, "miss", item, labels)),
   };
+};
+
+const EMPTY_STATS: JudgmentTrackStats = {
+  sample: 0,
+  hits: 0,
+  aboveCost: 0,
+  poolSample: 0,
+  poolAboveCost: 0,
+  avgReturn: null,
+  worstReturn: null,
+  firstScoredAt: null,
+  lastScoredAt: null,
+};
+
+interface LoadedTriad {
+  source: JudgmentTriadSource;
+  stats: JudgmentTrackStats;
+  misses: JudgmentCase[];
+  liveSample: number;
+  backtestSample: number;
+}
+
+/**
+ * 성적 · 빗나간 사례를 읽고 출처를 고른다(`judgmentTriadSource`). 고른 출처의 성적 · 사례만 돌려준다 — 라이브와 과거 검산을 섞지 않는다.
+ * 과거 검산 저장소는 국내 주식만(`kr-judgment-backtest@1`) — 코인 과거 검산은 `FC-REQ-028` FR-5 뒤에 같은 자리로 들어온다.
+ * 저장소가 실패하면 `null`(판단은 그대로, 결함 꼬리표)
+ */
+const loadTriad = async (
+  store: SymbolJudgmentStore,
+  backtest: SymbolJudgmentStore | null,
+  signalType: string,
+  assetClass: JudgmentAssetClass
+): Promise<LoadedTriad | null> => {
+  const fallback = assetClass === "kr_stock" ? backtest : null;
+  try {
+    const [live, liveMisses, backtestStats] = await Promise.all([
+      store.summarize(signalType),
+      store.recentCases(signalType, "miss", JUDGMENT_CASE_LIMIT),
+      fallback ? fallback.summarize(signalType) : Promise.resolve(null),
+    ]);
+    const source = judgmentTriadSource(live, backtestStats, krBacktestUsable(backtestStats));
+    const useBacktest = source.origin === "backtest" && fallback !== null && backtestStats !== null;
+    return {
+      source,
+      stats: useBacktest ? backtestStats : live,
+      misses: useBacktest ? await fallback.recentCases(signalType, "miss", JUDGMENT_CASE_LIMIT) : liveMisses,
+      liveSample: live.sample,
+      backtestSample: backtestStats?.sample ?? 0,
+    };
+  } catch (error) {
+    logger.warn(`판단 성적 조회 실패 ${signalType}: ${error instanceof Error ? error.name : "unknown"}`);
+    return null;
+  }
 };

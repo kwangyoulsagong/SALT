@@ -5,11 +5,10 @@ import {
   DEFAULT_LLM_BUDGET,
   isForecastStale,
   isPriceFresh,
-  judgmentGate,
+  judgmentCaveats,
   llmBudgetVerdict,
   resolveLlmLimits,
   staleJudgmentInputs,
-  type JudgmentTrackRecord,
 } from "../index";
 
 /** 운영 게이트 — 재료 신선도 · LLM 비용 상한 (F010 슬라이스 7 · `SRV-REQ-024` FR-194~196 · `SRV-REQ-025` FR-62~64) */
@@ -55,27 +54,23 @@ describe("staleJudgmentInputs — 모드별 기준", () => {
   });
 });
 
-describe("judgmentGate — stale_inputs", () => {
-  const record = { lowSample: false } as JudgmentTrackRecord;
+describe("judgmentCaveats — stale_inputs (ADR-010 v2: 막지 않고 꼬리표)", () => {
   const full = {
     action: "wait" as const,
     reasons: ["근거"],
-    risks: [],
-    trackRecord: record,
-    failureCases: [{ symbol: "BTC", judgedAt: NOW, action: "wait" as const, returnRate: -0.1 }],
+    risks: [] as string[],
+    observations: [],
+    triad: { origin: "live" as const, caveat: null },
   };
 
-  it("오래된 재료가 하나라도 있으면 성적과 무관하게 막는다 · 투자유의가 먼저다", () => {
-    assert.deepEqual(judgmentGate(full), { renderable: true, blockedReason: null });
-    assert.deepEqual(judgmentGate({ ...full, staleInputs: ["price"] }), {
-      renderable: false,
-      blockedReason: "stale_inputs",
-    });
-    assert.equal(judgmentGate({ ...full, staleInputs: [] }).renderable, true);
-    assert.equal(
-      judgmentGate({ ...full, staleInputs: ["price"], exchangeWarning: true }).blockedReason,
-      "exchange_warning"
-    );
+  it("오래된 재료는 판단을 숨기지 않고 꼬리표 · 투자유의가 먼저 온다", () => {
+    assert.deepEqual(judgmentCaveats(full), []);
+    assert.deepEqual(judgmentCaveats({ ...full, staleInputs: ["price"] }), ["stale_inputs"]);
+    assert.deepEqual(judgmentCaveats({ ...full, staleInputs: [] }), []);
+    assert.deepEqual(judgmentCaveats({ ...full, staleInputs: ["price"], exchangeWarning: true }), [
+      "exchange_warning",
+      "stale_inputs",
+    ]);
   });
 });
 

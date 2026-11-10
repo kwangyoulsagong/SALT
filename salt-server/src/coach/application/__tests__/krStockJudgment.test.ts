@@ -287,12 +287,12 @@ describe("GetSymbolCoach — 국내 주식", () => {
     }
   });
 
-  it("일봉 63 이면 장기는 insufficient_history + 수치, 단타는 mode_not_open, 기본 모드는 장기 (FR-62 · 63)", async () => {
+  it("일봉 63 이면 장기는 insufficient_history 꼬리표 + 수치, 단타도 판단이 나간다, 기본 모드는 장기 (FR-62 · 63 v2)", async () => {
     holdingCalls.length = 0;
     const view = await coach({ "005930": { dailyBars: 63 } }).execute("u1", { symbol: "005930" });
 
     assert.equal(view.mode, "long_term");
-    assert.equal(view.modes.longTerm.blockedReason, "insufficient_history");
+    assert.deepEqual(view.modes.longTerm.caveats[0], { reason: "insufficient_history", have: 63, need: 120, dailyIndicator: true });
     assert.equal(view.modes.longTerm.signalType, "kr_stock.long_term.wait");
     assert.equal(view.modes.longTerm.assetClass, "kr_stock");
     assert.deepEqual(view.modes.longTerm.history, {
@@ -301,14 +301,16 @@ describe("GetSymbolCoach — 국내 주식", () => {
       requiredDailyBars: 120,
       dailyIndicator: true,
     });
-    assert.equal(view.modes.scalp.blockedReason, "mode_not_open");
+    // 국내 단타는 막지 않는다(ADR-010 v2) — 판정이 있고, 성적은 아직 없어 결함 꼬리표
+    assert.ok(view.modes.scalp.judgment.label);
+    assert.ok(view.modes.scalp.caveats.some((c) => c.reason === "backtest_missing"));
     // 심리 · 대량 체결은 국내 주식에 없는 재료다 — 빠졌다고 하지 않는다
     assert.deepEqual(view.missingData, []);
     // 보유는 국내 주식 자산군으로 읽는다
     assert.deepEqual(holdingCalls, ["005930:crypto", "005930:kr_stock"]);
   });
 
-  it("이력이 차면 그다음 게이트(표본 20)로 막힌다 — 주말엔 금요일 종가가 오래된 재료가 아니다", async () => {
+  it("이력이 차면 이력 꼬리표가 빠진다 — 주말엔 금요일 종가가 오래된 재료가 아니다", async () => {
     const saturday = new Date("2026-10-10T03:00:00Z");
     const view = await new GetSymbolCoach(
       // 금요일 15:30 종가 · 금요일 일봉 — 토요일엔 밀린 거래일이 없다
@@ -327,13 +329,17 @@ describe("GetSymbolCoach — 국내 주식", () => {
       () => saturday,
       null
     ).execute("u1", { symbol: "005930" });
-    assert.equal(view.modes.longTerm.blockedReason, "insufficient_sample");
+    const reasons = view.modes.longTerm.caveats.map((c) => c.reason);
+    assert.equal(reasons.includes("insufficient_history"), false);
+    assert.equal(reasons.includes("stale_inputs"), false);
+    assert.deepEqual(reasons, ["backtest_missing"], "라이브 0 · 과거 검산 저장소 없음 → 결함만");
     assert.equal(view.modes.longTerm.history?.ready, true);
   });
 
-  it("사용자가 단타를 골라도 국내 주식 단타는 열리지 않는다", async () => {
+  it("사용자가 단타를 고르면 국내 주식 단타 판단이 나간다 (ADR-010 v2 — 열고 채점)", async () => {
     const view = await coach({ "005930": {} }).execute("u1", { symbol: "005930", mode: "scalp" });
     assert.equal(view.mode, "scalp");
-    assert.equal(view.modes.scalp.blockedReason, "mode_not_open");
+    assert.equal(view.modes.scalp.signalType, "kr_stock.scalp.wait");
+    assert.equal(view.modes.scalp.caveats.some((c) => (c.reason as string) === "mode_not_open"), false);
   });
 });

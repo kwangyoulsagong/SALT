@@ -241,7 +241,10 @@ describe("EvaluateSymbolJudgments", () => {
   });
 });
 
-describe("GetSymbolCoach — 모드별 게이트", () => {
+/** 모드 판단의 꼬리표 사유 — `ADR-010` v2: 판단은 늘 나가고 사유는 꼬리표다 */
+const caveatsOf = (mode: { caveats: Array<{ reason: string }> }) => mode.caveats.map((c) => c.reason);
+
+describe("GetSymbolCoach — 모드별 꼬리표 (ADR-010 v2)", () => {
   const portfolio = {
     getHolding: async () => null,
   } as unknown as PortfolioProbe;
@@ -262,8 +265,10 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
     assert.equal(view.modes.scalp.judgment.validity.code, "scalp_24h");
     assert.equal(view.modes.scalp.trackRecord.sample, 0);
     assert.equal(view.modes.scalp.trackRecord.winRate, null);
-    // 중립 재료라 근거 문장이 없다 → 표본보다 근거가 먼저 막는다
-    assert.equal(view.modes.scalp.blockedReason, "reasons_missing");
+    // 중립 재료라 근거 문장은 없지만 관측이 근거다(예전 reasons_missing) — 판단은 나가고, 코인엔 과거 검산이 아직 없어 결함 꼬리표
+    assert.ok(view.modes.scalp.observations.some((o) => !o.missing));
+    assert.deepEqual(caveatsOf(view.modes.scalp), ["backtest_missing"]);
+    assert.deepEqual(view.modes.scalp.caveats[0], { reason: "backtest_missing", live: 0, min: 20 });
     assert.ok(view.disclaimer.length > 0);
   });
 
@@ -287,12 +292,13 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
       ).execute("user-1", { symbol: "BTC" });
 
     const warned = await run(reader({ BTC: { warning: true, cautions: [] } }));
-    assert.equal(warned.modes.scalp.blockedReason, "exchange_warning");
-    assert.equal(warned.modes.longTerm.blockedReason, "exchange_warning");
+    assert.ok(caveatsOf(warned.modes.scalp).includes("exchange_warning"));
+    assert.ok(caveatsOf(warned.modes.longTerm).includes("exchange_warning"));
+    assert.ok(warned.modes.scalp.judgment.label, "투자유의여도 판단은 나간다");
     assert.deepEqual(warned.exchangeFlag, { warning: true, cautions: [], fetchedAt: T0.toISOString() });
 
     const caution = await run(reader({ BTC: { warning: false, cautions: ["PRICE_FLUCTUATIONS"] } }));
-    assert.equal(caution.modes.scalp.blockedReason, "reasons_missing", "주의만으로는 막지 않는다");
+    assert.equal(caveatsOf(caution.modes.scalp).includes("exchange_warning"), false, "주의만으로는 꼬리표가 없다");
     assert.deepEqual(caution.exchangeFlag?.cautions, ["PRICE_FLUCTUATIONS"]);
 
     // 표시를 못 읽으면 지금까지와 같다 — 유의를 지어내지 않는다
@@ -303,7 +309,7 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
       },
     });
     assert.equal(broken.exchangeFlag, null);
-    assert.equal(broken.modes.scalp.blockedReason, "reasons_missing");
+    assert.equal(caveatsOf(broken.modes.scalp).includes("exchange_warning"), false);
     assert.equal((await run(null)).exchangeFlag, null);
   });
 
@@ -324,7 +330,7 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
     assert.equal((await run(withMode("long_term"), "scalp")).mode, "scalp", "요청이 이긴다");
   });
 
-  it("근거가 있어도 표본이 20 미만이면 insufficient_sample 이다", async () => {
+  it("라이브 표본이 20 미만이고 과거 검산도 없으면 판단은 나가고 결함 꼬리표 backtest_missing (3종 늘 — 채우지 못함)", async () => {
     const market = {
       ...fakeMarket({ BTC: 100 }),
       // 일봉 RSI 침체 → 장기 근거 문장이 생긴다(@2 는 장기 심리를 쓰지 않는다)
@@ -343,11 +349,11 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
     ).execute("user-1", { symbol: "BTC" });
 
     assert.ok(view.modes.longTerm.judgment.reasons.length > 0);
-    assert.equal(view.modes.longTerm.blockedReason, "insufficient_sample");
+    assert.deepEqual(caveatsOf(view.modes.longTerm), ["backtest_missing"]);
     assert.deepEqual(view.modes.longTerm.failureCases, []);
   });
 
-  it("같은 판단 유형에 표본 20 + 실패가 있으면 렌더하고 실패사례를 싣는다", async () => {
+  it("같은 판단 유형에 표본 20 + 실패가 있으면 3종이 다 있고 꼬리표 0 · 실패사례를 싣는다", async () => {
     const store = new MemoryJudgmentStore();
     for (let i = 0; i < 20; i++) {
       store.rows.push({
@@ -399,25 +405,25 @@ describe("GetSymbolCoach — 모드별 게이트", () => {
     assert.equal(longTerm.signalType, "long_term.wait");
     assert.equal(longTerm.trackRecord.sample, 20);
     assert.equal(longTerm.trackRecord.winRate, 15 / 20);
-    assert.equal(longTerm.renderable, true);
+    assert.deepEqual(longTerm.caveats, []);
     assert.equal(longTerm.failureCases.length, 3);
     assert.equal(longTerm.failureCases[0].outcome, "miss");
     assert.equal(longTerm.failureCases[0].event, "long_term.wait");
   });
 
-  it("같은 재료라도 오래되면 stale_inputs — 점수는 그대로, 표시만 막는다 (F010 슬라이스 7 · FR-194)", async () => {
+  it("같은 재료라도 오래되면 stale_inputs 꼬리표 — 점수 · 판단은 그대로 나간다 (F010 슬라이스 7 · FR-194 · ADR-010 v2)", async () => {
     const at = (hours: number) =>
       new GetSymbolCoach(fakeMarket({ BTC: 100 }), portfolio, profiles, new MemoryJudgmentStore(), noGauges, () =>
         hoursAfter(hours)
       ).execute("user-1", { symbol: "BTC" });
 
     const fresh = await at(0);
-    // 4시간 뒤 — 단타 1시간봉(3시간)만 넘었다. 시세(30분)도 넘었으니 두 모드 다 막힌다
+    // 4시간 뒤 — 단타 1시간봉(3시간)만 넘었다. 시세(30분)도 넘었으니 두 모드 다 꼬리표
     const later = await at(4);
-    assert.equal(later.modes.scalp.blockedReason, "stale_inputs");
-    assert.equal(later.modes.longTerm.blockedReason, "stale_inputs");
+    assert.ok(caveatsOf(later.modes.scalp).includes("stale_inputs"));
+    assert.ok(caveatsOf(later.modes.longTerm).includes("stale_inputs"));
     assert.equal(later.modes.scalp.judgment.score, fresh.modes.scalp.judgment.score, "점수 계산은 바뀌지 않는다");
-    assert.notEqual(fresh.modes.scalp.blockedReason, "stale_inputs");
+    assert.equal(caveatsOf(fresh.modes.scalp).includes("stale_inputs"), false);
   });
 });
 

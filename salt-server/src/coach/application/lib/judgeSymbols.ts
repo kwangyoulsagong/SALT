@@ -104,10 +104,11 @@ export const collectJudgmentMaterials = async (
   );
 };
 
-/** 모드 하나의 표시 막음 재료 — 판단 화면 · 해설이 **같은 함수**로 만든다(`attachJudgmentTrack` 의 `JudgmentGuards`) */
+/** 모드 하나의 꼬리표 재료 — 판단 화면 · 해설이 **같은 함수**로 만든다(`attachJudgmentTrack` 의 `JudgmentGuards`). 막는 데 쓰지 않는다(`ADR-010` v2) */
 export interface MaterialGuards {
   staleInputs: StaleInput[];
-  modeNotOpen: boolean;
+  /** 재료의 마지막 시각 — 꼬리표 사실 "언제부터 못 받았나"(`SRV-REQ-053` FR-2). 국내 주식 지표는 일봉 */
+  inputTimes: Record<StaleInput, Date | null>;
   history?: KrJudgmentHistory;
 }
 
@@ -134,9 +135,11 @@ export const materialGuards = (
           indicatorTimestamp: materials.indicators[mode]?.timestamp ?? null,
           now,
         });
+  const indicatorAt =
+    (materials.assetClass === "kr_stock" ? materials.indicators.long_term : materials.indicators[mode])?.timestamp ?? null;
   return {
     staleInputs,
-    modeNotOpen: !JUDGMENT_MODES[materials.assetClass].includes(mode),
+    inputTimes: { price: priceUpdatedAt, technical_indicator: indicatorAt },
     ...(materials.krHistory ? { history: materials.krHistory } : {}),
   };
 };

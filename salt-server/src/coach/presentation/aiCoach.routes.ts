@@ -34,11 +34,9 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *     description: |
    *       종목·모드만 받는다. 시세·근거·뉴스는 **서버가 판단 게이트와 같은 재료로 조립한다**(C01 · SRV-REQ-025 FR-58) —
    *       예전 본문 필드를 보내도 무시된다. 한국어 해설(왜 단타/장기, 관찰 기간, 뉴스 요약 — 뉴스 수 이하, 최대 5줄)을
-   *       생성한다. 판단이 3종 게이트를 못 넘으면 LLM 을 부르지 않고 `{ renderable false, blockedReason }` 을 200 으로
-   *       준다(현재가가 없으면 `facts_unavailable`). 렌더되면 `facts: { asOf, hash }` — 어떤 사실로 만든 해설인지.
+   *       생성한다. **판단 꼬리표(표본 · 재료 멈춤 · 이력 · 투자유의 · 국내 단타)는 해설을 막지 않는다**(`ADR-010` v2, 2026-11-10) —
+   *       막히는 것은 사실표를 못 만들 때(현재가 없음) `{ renderable false, blockedReason: facts_unavailable }` 하나다. 렌더되면 `facts: { asOf, hash }` — 어떤 사실로 만든 해설인지.
    *       수익률·목표가 예측은 생성하지 않는다. 5분 캐시(키 = 모델이 받은 입력 전체의 해시).
-   *       시세가 30분 · 지표 봉이 단타 3시간 · 장기 3일 넘게 멈췄으면 `blockedReason: stale_inputs`(F010 슬라이스 7).
-   *       국내 주식은 종목 판단과 같은 막음(`mode_not_open` · `insufficient_history` · 거래일 신선도)이고, 비소유자는 `facts_unavailable`(F011 슬라이스 4).
    *       LLM 비용 상한(지난 24시간 사용자 · 전체 시도, 전체 토큰)에 닿으면 에러가 아니라 `source: template` 이다.
    *       다듬기 공급자(SRV-REQ-050) — 서버 맥에 로컬 CLI(Claude Code · Codex)가 있고 허용 사용자(`COACH_LLM_LOCAL_USERS`, 비우면
    *       소유자)이고 `X-Salt-Client` 가 `mobile` 이 아니면 로컬 CLI, 아니면 Gemini. 응답 `provider` — `local_claude` · `local_codex` ·
@@ -349,10 +347,15 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *
    *       국내 주식 6자리 코드(F011 슬라이스 4):
    *       - 로그인한 누구나(`ADR-011` — 2026-11-10 전에는 소유자만)
-   *       - 장기만 연다. `modes.scalp.blockedReason: mode_not_open`, mode 를 안 주면 장기
-   *       - 일봉 120 거래일 · 일봉 지표 전엔 `modes.longTerm.blockedReason: insufficient_history` + `history { dailyBars, requiredDailyBars, dailyIndicator, ready }`
+   *       - 단타 · 장기 둘 다 판단이 나간다(`ADR-010` v2 — 국내 단타 개방). mode 를 안 주면 장기
+   *       - 일봉 120 거래일 · 일봉 지표 전엔 꼬리표 `insufficient_history { have, need, dailyIndicator }` + `history { dailyBars, requiredDailyBars, dailyIndicator, ready }`
    *       - `modes.*.assetClass: kr_stock` · `signalType: kr_stock.long_term.<action>` — 성적은 국내 주식 표본만
-   *       - 재료가 1 거래일 넘게 밀렸으면 `stale_inputs`(코인은 시세 30분 · 지표 봉 기준)
+   *       - 재료가 1 거래일 넘게 밀렸으면 꼬리표 `stale_inputs`(코인은 시세 30분 · 지표 봉 기준)
+   *
+   *       **모드 판단은 늘 나간다**(`ADR-010` v2 · `SRV-REQ-053` FR-1 · 2) — `renderable` · `blockedReason` 없음. 판정 · `observations[]`(엔진이 본 값 · 문턱 · 거리,
+   *       문턱에 가까운 순) · `trackRecord`(`sampleOrigin` live | backtest — 라이브가 모자라면 과거 검산으로 채움, 숫자 안 섞음) · `failureCases` + `caveats[]`:
+   *       `insufficient_history` · `exchange_warning { cautions, checkedAt }` · `stale_inputs { items[{ item, lastAt }] }` · `live_sample_short { live, min, backtest }` ·
+   *       결함(3종을 다 채우지 못함) `inputs_missing { items }` · `track_record_unavailable` · `backtest_missing { live, min }`
    *     tags: [AI Coach]
    *     security:
    *       - bearerAuth: []

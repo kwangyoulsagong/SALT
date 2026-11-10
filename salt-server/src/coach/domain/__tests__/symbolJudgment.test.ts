@@ -4,7 +4,9 @@ import { describe, it } from "node:test";
 import {
   isJudgmentSnapshotDue,
   judgeOutcome,
-  judgmentGate,
+  judgmentCaveats,
+  judgmentTriadSource,
+  judgmentObservations,
   judgmentMaturesAt,
   judgmentReturnRate,
   judgmentSignalType,
@@ -148,67 +150,69 @@ describe("성적 4요소 claim (F009 FR-33)", () => {
   });
 });
 
-describe("judgmentGate — 3종 게이트 (FR-137)", () => {
-  const record = (sample: number) =>
-    summarizeJudgmentTrack("scalp", "scalp.wait", {
-      sample,
-      hits: sample,
-      aboveCost: 0,
-      avgReturn: 0,
-      worstReturn: 0,
-    });
+describe("judgmentTriadSource — 3종은 늘 다: 라이브 → 과거 검산 → 결함 (ADR-010 v2)", () => {
+  const st = (sample: number, misses: number) => ({ sample, hits: sample - misses });
+  const table: Array<[string, ReturnType<typeof st>, ReturnType<typeof st> | null, boolean, unknown]> = [
+    ["라이브 20 · 빗나감 1 → 라이브", st(20, 1), st(500, 100), true, { origin: "live", caveat: null }],
+    ["라이브 19 → 과거 검산으로 채움", st(19, 3), st(500, 100), true, { origin: "backtest", caveat: "live_sample_short" }],
+    ["라이브 25 · 빗나감 0 → 과거 검산으로 채움", st(25, 0), st(500, 100), true, { origin: "backtest", caveat: "live_sample_short" }],
+    ["라이브 0 · 과거 검산 없음 → 결함", st(0, 0), null, false, { origin: "live", caveat: "backtest_missing" }],
+    ["과거 검산이 쓸 수 없음(판단 달 < 12) → 결함", st(3, 1), st(500, 100), false, { origin: "live", caveat: "backtest_missing" }],
+    ["과거 검산도 19 → 결함", st(3, 1), st(19, 5), true, { origin: "live", caveat: "backtest_missing" }],
+    ["과거 검산 빗나감 0 → 결함", st(3, 1), st(40, 0), true, { origin: "live", caveat: "backtest_missing" }],
+  ];
+  for (const [name, live, backtest, usable, expected] of table) {
+    it(name, () => assert.deepEqual(judgmentTriadSource(live, backtest, usable), expected));
+  }
+});
 
-  const wait = { action: "wait" as const, risks: ["r"] };
+describe("judgmentCaveats — 판단은 늘 나가고 꼬리표가 붙는다 (ADR-010 v2)", () => {
+  const seen = judgmentObservations(
+    "scalp",
+    [
+      { item: "change24h", points: 0, value: 1.2 },
+      { item: "sentiment", points: 0, value: 50 },
+      { item: "rsi", points: 0, value: 48 },
+      { item: "whale_flow", points: 0, value: null },
+      { item: "missing_data", points: 0, value: 0 },
+    ],
+    []
+  );
+  const unseen = judgmentObservations(
+    "scalp",
+    [
+      { item: "change24h", points: 0, value: 0 },
+      { item: "sentiment", points: 0, value: null },
+      { item: "rsi", points: 0, value: null },
+    ],
+    ["price", "sentiment", "technical_indicator"]
+  );
+  const live = { origin: "live" as const, caveat: null };
+  const filled = { origin: "backtest" as const, caveat: "live_sample_short" as const };
+  const missing = { origin: "live" as const, caveat: "backtest_missing" as const };
+  const wait = { action: "wait" as const, reasons: [] as string[], risks: ["r"] };
+  const full = { ...wait, observations: seen, triad: live };
 
-  it("근거가 없으면 막는다 — 피하기가 아니면 risks 는 근거가 아니다", () => {
-    assert.deepEqual(
-      judgmentGate({ ...wait, reasons: [], trackRecord: record(30), failureCases: [miss] }),
-      { renderable: false, blockedReason: "reasons_missing" }
-    );
-  });
-
-  it("투자유의 종목은 근거 · 표본 · 실패사례가 다 있어도 막는다 — 가장 먼저 (FR-191)", () => {
-    const full = { ...wait, reasons: ["x"], trackRecord: record(30), failureCases: [miss] };
-    assert.deepEqual(judgmentGate({ ...full, exchangeWarning: true }), {
-      renderable: false,
-      blockedReason: "exchange_warning",
-    });
-    assert.deepEqual(judgmentGate({ ...full, reasons: [], exchangeWarning: true }).blockedReason, "exchange_warning");
-    assert.equal(judgmentGate({ ...full, exchangeWarning: false }).renderable, true);
-  });
-
-  it("표본이 20 미만이면 insufficient_sample — 초기 상태가 이것이다", () => {
-    assert.deepEqual(
-      judgmentGate({ ...wait, reasons: ["x"], trackRecord: record(19), failureCases: [miss] }),
-      { renderable: false, blockedReason: "insufficient_sample" }
-    );
-  });
-
-  it("표본이 충분해도 실패가 0건이면 막는다", () => {
-    assert.deepEqual(
-      judgmentGate({ ...wait, reasons: ["x"], trackRecord: record(25), failureCases: [] }),
-      { renderable: false, blockedReason: "failure_cases_missing" }
-    );
-  });
-
-  it("피하기는 risks 도 근거로 센다 (2026-09-21 사용자 확정)", () => {
-    const avoid = { action: "avoid" as const, reasons: [], trackRecord: record(25), failureCases: [miss] };
-    assert.deepEqual(judgmentGate({ ...avoid, risks: ["과열"] }), {
-      renderable: true,
-      blockedReason: null,
-    });
-    assert.deepEqual(judgmentGate({ ...avoid, risks: [] }), {
-      renderable: false,
-      blockedReason: "reasons_missing",
-    });
-  });
-
-  it("셋이 다 있으면 렌더한다", () => {
-    assert.deepEqual(
-      judgmentGate({ ...wait, reasons: ["x"], trackRecord: record(25), failureCases: [miss] }),
-      { renderable: true, blockedReason: null }
-    );
-  });
+  // 경계 표 — 입력 하나씩 바꿔 꼬리표가 정확히 그것만 붙는지
+  const table: Array<[string, Parameters<typeof judgmentCaveats>[0], string[]]> = [
+    ["관망 · 문장 0 · 관측 있음 · 라이브 완전 → 꼬리표 0 (예전 reasons_missing)", full, []],
+    ["관측이 전부 결측이고 문장도 0 → inputs_missing(결함)", { ...full, observations: unseen }, ["inputs_missing"]],
+    ["관측이 결측이어도 문장이 있으면 근거가 있다", { ...full, observations: unseen, reasons: ["x"] }, []],
+    ["피하기는 risks 도 근거(2026-09-21)", { ...full, action: "avoid", observations: unseen }, []],
+    ["과거 검산으로 채움 → live_sample_short", { ...full, triad: filled }, ["live_sample_short"]],
+    ["과거 검산도 없음 → backtest_missing(결함)", { ...full, triad: missing }, ["backtest_missing"]],
+    ["성적 조회 실패 → track_record_unavailable(결함)", { ...full, triad: null }, ["track_record_unavailable"]],
+    ["투자유의", { ...full, exchangeWarning: true }, ["exchange_warning"]],
+    ["오래된 재료", { ...full, staleInputs: ["technical_indicator"] }, ["stale_inputs"]],
+    [
+      "전부 겹치면 전부 · 순서는 재료 → 성적 → 결함",
+      { ...full, historyShort: true, exchangeWarning: true, staleInputs: ["price"], observations: unseen, triad: null },
+      ["insufficient_history", "exchange_warning", "stale_inputs", "inputs_missing", "track_record_unavailable"],
+    ],
+  ];
+  for (const [name, input, expected] of table) {
+    it(name, () => assert.deepEqual(judgmentCaveats(input), expected));
+  }
 });
 
 describe("기저율 · 초과 적중률 (F010 슬라이스 0)", () => {

@@ -24,7 +24,6 @@ import type {
   CoachMode,
   ExplainCaller,
   ExplainHooks,
-  JudgmentBlockedReason,
   LlmBudgetLimits,
   LlmUsageStore,
   MarketProbe,
@@ -80,7 +79,11 @@ export interface ExplanationFactsRef {
  * 판단은 열렸는데 사실을 못 모았다 — 지금은 현재가가 없을 때뿐이다. 가격 없는 해설은 만들지 않는다.
  * 판단 게이트의 사유(`JudgmentBlockedReason`)와 섞지 않는다 — 그건 성적표의 사유다.
  */
-export type ExplainBlockedReason = JudgmentBlockedReason | "facts_unavailable";
+/**
+ * 해설이 못 나오는 사유 — 사실표를 못 만들었을 때 하나(2026-11-10). 판단 꼬리표(표본 · 재료 · 투자유의)로는 막지 않는다:
+ * 판단이 늘 나가니 해설도 늘 나간다 — 꼬리표는 사실표에 같이 실려 문장이 그것을 말한다
+ */
+export type ExplainBlockedReason = "facts_unavailable";
 
 /**
  * 해설 결과 (`SRV-REQ-025` FR-50 · FR-51).
@@ -483,9 +486,12 @@ export class ExplainCoachDecision {
       decision,
       materialGuards(materials, request.mode, this.now()),
       materials.assetClass,
-      { backtest: this.options.backtestJudgments ?? null, market: this.market }
+      {
+        backtest: this.options.backtestJudgments ?? null,
+        market: this.market,
+        scored: { components: judged.components[request.mode], missingInputs: judged.missingByMode[request.mode] },
+      }
     );
-    if (!view.renderable) return { ok: false, blockedReason: view.blockedReason! };
 
     const input = assembleExplanationFacts({
       symbol,

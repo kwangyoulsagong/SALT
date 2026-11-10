@@ -5,6 +5,7 @@ export * from "./explain";
 export * from "./explanationFacts";
 export * from "./explanationTemplate";
 export * from "./forecast";
+export * from "./judgmentObservation";
 export * from "./gauge";
 export * from "./horizon";
 export * from "./generationCooldown";

@@ -68,6 +68,27 @@ export const SCORED_ITEMS: Record<CoachMode, readonly ModeDecisionItem[]> = {
 };
 
 /**
+ * 항목별 문턱 — 점수 계산과 관측 근거(`judgmentObservations`, `ADR-010`)가 **같은 상수**를 읽는다.
+ * 값을 바꾸면 규칙이 바뀐 것이다(`MODE_DECISION_RULE_VERSION` 을 올린다).
+ *
+ * | 항목 | 아래 문턱 | 위 문턱 | 넘음 |
+ * |---|---|---|---|
+ * | `change24h`(%) | −3 | 3 | 바깥(같음은 안) |
+ * | `sentiment`(0~100, 단타만) | 35 | 70 | 같음 포함 |
+ * | `rsi` | 35 | 70 | 같음 포함 |
+ */
+export const MODE_DECISION_THRESHOLDS = {
+  change24h: { lower: -3, upper: 3, inclusive: false },
+  sentiment: { lower: 35, upper: 70, inclusive: true },
+  rsi: { lower: 35, upper: 70, inclusive: true },
+} as const;
+
+/** 판단 데이터 부족 감점이 걸리는 빠진 재료 수 */
+export const MISSING_DATA_PENALTY_AT = 3;
+
+const T = MODE_DECISION_THRESHOLDS;
+
+/**
  * 항목 하나의 기여 — 발동하지 않았으면 `points` 0. `value` 는 그 항목이 본 재료 값이고 없으면 `null`
  * (기여 0 과 재료 없음을 가른다 — 슬라이스 0 회고: "지표 없이 낸 판단"을 나중에 걸러야 한다).
  */
@@ -109,7 +130,7 @@ export const scoreModeDecision = (input: ModeDecisionInput): ScoredModeDecision 
 
   // 24시간 변화 — 단타는 @1 에서 부호가 거꾸로였다(IC −0.038, 급등 다음 날 되돌림이 더 잦다). 장기는 그대로(+0.017)
   let change = 0;
-  if (input.change24h > 3) {
+  if (input.change24h > T.change24h.upper) {
     change += scalp ? -12 : -6;
     risks.push(
       scalp
@@ -117,7 +138,7 @@ export const scoreModeDecision = (input: ModeDecisionInput): ScoredModeDecision 
         : "단기 급등 구간이라 장기 분할 기준으로는 서두를 이유가 적습니다."
     );
   }
-  if (input.change24h < -3) {
+  if (input.change24h < T.change24h.lower) {
     change += scalp ? 10 : 6;
     reasons.push(
       scalp
@@ -127,20 +148,20 @@ export const scoreModeDecision = (input: ModeDecisionInput): ScoredModeDecision 
   }
   // 심리 — 단타는 부호 반전(IC −0.009). 장기는 0 과 구별되지 않아 **점수에서 뺀다**(근거 문장도 싣지 않는다)
   let sentiment = 0;
-  if (scalp && input.sentimentScore !== undefined && input.sentimentScore >= 70) {
+  if (scalp && input.sentimentScore !== undefined && input.sentimentScore >= T.sentiment.upper) {
     sentiment -= 5;
     risks.push("시장 심리가 과열권입니다.");
   }
-  if (scalp && input.sentimentScore !== undefined && input.sentimentScore <= 35) {
+  if (scalp && input.sentimentScore !== undefined && input.sentimentScore <= T.sentiment.lower) {
     sentiment += 4;
     reasons.push("공포 구간 뒤에는 단기 되돌림이 더 잦았습니다.");
   }
   let rsi = 0;
-  if (input.rsi !== undefined && input.rsi >= 70) {
+  if (input.rsi !== undefined && input.rsi >= T.rsi.upper) {
     rsi -= scalp ? 6 : 12;
     risks.push("기술 지표가 과열권에 가깝습니다.");
   }
-  if (input.rsi !== undefined && input.rsi <= 35) {
+  if (input.rsi !== undefined && input.rsi <= T.rsi.lower) {
     rsi += scalp ? 4 : 8;
     reasons.push("단기 침체 신호가 일부 있습니다.");
   }
@@ -148,7 +169,7 @@ export const scoreModeDecision = (input: ModeDecisionInput): ScoredModeDecision 
   // 값은 기여(`value`)로 계속 남겨 라이브 원장이 업비트 원문으로 다시 잰다(사전등록 rule-ic@1 [live])
   const whale = 0;
   let missing = 0;
-  if (input.missingData.length >= 3) {
+  if (input.missingData.length >= MISSING_DATA_PENALTY_AT) {
     missing -= 12;
     risks.push("판단 데이터가 부족합니다.");
   }

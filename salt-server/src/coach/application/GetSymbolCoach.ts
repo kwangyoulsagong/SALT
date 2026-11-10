@@ -155,7 +155,7 @@ export class GetSymbolCoach {
     const { quote, sentiment, whales, assetClass } = materials;
     const holding =
       assetClass === "kr_stock" ? await this.portfolio.getHolding(userId, symbol, "kr_stock") : cryptoHolding;
-    const { scalp, longTerm, whaleBuy, whaleSell, missingData } = judgeSymbol(
+    const { scalp, longTerm, whaleBuy, whaleSell, missingData, components, missingByMode } = judgeSymbol(
       symbol,
       materials,
       Boolean(holding)
@@ -163,14 +163,23 @@ export class GetSymbolCoach {
 
     // 점수는 그대로 계산하고 표시만 막는다 — 오래된 재료로 낸 판정을 오늘 것처럼 보이지 않는다(FR-194).
     // 막음 재료는 해설과 같은 함수다(국내 주식 거래일 신선도 · 연 모드 · 이력, F011 슬라이스 4)
-    const guardsFor = (mode: CoachMode) => ({ exchangeWarning: warned, ...materialGuards(materials, mode, now) });
+    const guardsFor = (mode: CoachMode) => ({
+      exchangeWarning: warned,
+      ...(flag ? { exchangeFlag: { cautions: flag.cautions, checkedAt: flag.fetchedAt } } : {}),
+      ...materialGuards(materials, mode, now),
+    });
+    // 관측 근거(`ADR-010`) — 원장에 남는 같은 기여에서
+    const extrasFor = (mode: CoachMode) => ({
+      ...this.trackExtras,
+      scored: { components: components[mode], missingInputs: missingByMode[mode] },
+    });
 
     // 게이트는 `preview` 에서도 생략하지 않는다 (`SRV-REQ-025` FR-49).
     // `zone` 도 싣는다 — 생략은 "할 수 있다"이고, 모양이 둘이 되면 소비처가 둘을 다룬다
     const [scalpView, longTermView, zones, gaugeTrackRecords] =
       await Promise.all([
-        attachJudgmentTrack(this.judgments, scalp, guardsFor("scalp"), assetClass, this.trackExtras),
-        attachJudgmentTrack(this.judgments, longTerm, guardsFor("long_term"), assetClass, this.trackExtras),
+        attachJudgmentTrack(this.judgments, scalp, guardsFor("scalp"), assetClass, extrasFor("scalp")),
+        attachJudgmentTrack(this.judgments, longTerm, guardsFor("long_term"), assetClass, extrasFor("long_term")),
         resolveZones(this.market, {
           symbol,
           holding,
