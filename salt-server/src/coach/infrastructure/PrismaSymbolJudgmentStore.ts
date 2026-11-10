@@ -32,6 +32,7 @@ interface ScoreboardRow extends Record<string, unknown> {
   pool_sample: number;
   pool_above_cost: number;
   judged_months: number;
+  judged_days: number;
   avg_return: Prisma.Decimal | null;
   worst_return: Prisma.Decimal | null;
   first_scored_at: Date | null;
@@ -65,6 +66,11 @@ const poolPrefixOf = (signalType: string): string => signalType.slice(0, signalT
  */
 /** 성적 집계를 들고 있는 시간 — 성적은 채점(하루 한 번) · 백테스트 때만 바뀐다. 5분 늦게 보여도 같은 날 같은 숫자다 */
 export const JUDGMENT_STATS_TTL_MS = 5 * 60_000;
+/**
+ * 과거 검산 저장소의 성적 집계 시간 — 행은 스크립트(`judgments:kr-backtest` · `judgments:signal-skill`)만 바꾸고, 스크립트를 돌리면
+ * 서버를 다시 띄운다. 5분마다 10만 행 풀을 다시 훑으면 그 첫 요청이 BFF 300ms 를 넘었다(2026-11-10 국내 판단 상세 504)
+ */
+export const BACKTEST_STATS_TTL_MS = 6 * 3600_000;
 
 /**
  * 키별로 결과를 `ttlMs` 동안 들고 있다 — 같은 키를 동시에 부르면 한 번만 계산한다(진행 중인 약속을 나눈다). 실패는 들고 있지 않는다(다음 요청이 다시)
@@ -112,9 +118,13 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
     countedOrigins: readonly SampleOrigin[] = LIVE_ORIGINS,
     private readonly ruleVersion: string = MODE_DECISION_RULE_VERSION,
     /** 기저율 분자의 비용 경계 — 자산군마다 다르다(F011 FR-64, 국내 주식은 env) */
-    private readonly costs: RoundTripCosts = DEFAULT_ROUND_TRIP_COSTS
+    private readonly costs: RoundTripCosts = DEFAULT_ROUND_TRIP_COSTS,
+    /** 성적 집계를 들고 있는 시간 — 과거 검산 저장소는 길게(`BACKTEST_STATS_TTL_MS`) */
+    statsTtlMs: number = JUDGMENT_STATS_TTL_MS
   ) {
     this.counted = [...countedOrigins];
+    // 생성자 몸에서 — 필드 초기화는 매개변수 속성보다 먼저 돌 수 있다(useDefineForClassFields)
+    this.statsMemo = memoizeFor<JudgmentTrackStats>(statsTtlMs);
   }
 
   private get countedSql(): Prisma.Sql {
@@ -261,7 +271,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
    * 종목 판단 한 번이 이것을 세 번 불러 요청당 집계 18개였다 — 연결 풀이 작은 서버에서 부하가 조금만 와도 줄을 서서 BFF 300ms 예산을
    * 넘겼다(`/api/app/ai-coach/detail` 504, 2026-11-09). 신호 행은 풀의 부분집합(같은 접두)이라 결과는 같다 — 전후 대조는 체크리스트
    */
-  private readonly statsMemo = memoizeFor<JudgmentTrackStats>(JUDGMENT_STATS_TTL_MS);
+  private readonly statsMemo: ReturnType<typeof memoizeFor<JudgmentTrackStats>>;
 
   /** 성적 — 종목 판단 한 번이 네 번 부른다(모드 둘 × live · 백테스트). 5분 들고 있다(`JUDGMENT_STATS_TTL_MS`) */
   summarize(signalType: string): Promise<JudgmentTrackStats> {
@@ -279,6 +289,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
         pool_sample: number;
         pool_above_cost: number;
         months: number;
+        days: number;
         avg_return: Prisma.Decimal | null;
         worst_return: Prisma.Decimal | null;
         first_scored_at: Date | null;
@@ -295,6 +306,8 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
         COUNT(*) FILTER (WHERE ${above})::int AS pool_above_cost,
         -- 판단 달(KST) 수 — 국내 백테스트 표시 조건. \`judged_at\` 은 UTC 벽시계 TIMESTAMP 라 시간대를 두 번 옮긴다
         COUNT(DISTINCT date_trunc('month', (judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul')) FILTER (WHERE ${own})::int AS months,
+        -- 판단 날(KST) 수 — 과거 검산 3종 채움 조건(signal-skill@1 [display])
+        COUNT(DISTINCT ((judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul')::date) FILTER (WHERE ${own})::int AS days,
         AVG(return_rate) FILTER (WHERE ${own}) AS avg_return,
         MIN(return_rate) FILTER (WHERE ${own}) AS worst_return,
         MIN(evaluated_at) FILTER (WHERE ${own}) AS first_scored_at,
@@ -310,6 +323,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       poolSample: r.pool_sample,
       poolAboveCost: r.pool_above_cost,
       judgedMonths: r.months,
+      judgedDays: r.days,
       avgReturn: r.avg_return === null ? null : Number(r.avg_return),
       worstReturn: r.worst_return === null ? null : Number(r.worst_return),
       firstScoredAt: r.first_scored_at,
@@ -354,6 +368,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
              AVG(return_rate) AS avg_return,
              MIN(return_rate) AS worst_return,
              COUNT(DISTINCT date_trunc('month', (judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul'))::int AS judged_months,
+             COUNT(DISTINCT ((judged_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Seoul')::date)::int AS judged_days,
              MIN(evaluated_at) AS first_scored_at,
              MAX(evaluated_at) AS last_scored_at,
              PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY return_rate) AS p25,
@@ -375,6 +390,7 @@ export class PrismaSymbolJudgmentStore implements SymbolJudgmentStore {
       poolSample: row.pool_sample,
       poolAboveCost: row.pool_above_cost,
       judgedMonths: row.judged_months,
+      judgedDays: row.judged_days,
       avgReturn: toNumberOrNull(row.avg_return),
       worstReturn: toNumberOrNull(row.worst_return),
       firstScoredAt: row.first_scored_at,

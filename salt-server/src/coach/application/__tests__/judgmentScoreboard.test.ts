@@ -156,4 +156,30 @@ describe("GetJudgmentScoreboard", () => {
       ["long_term.wait:live:22", "kr_stock.long_term.wait:live:3"]
     );
   });
+
+  // 불변식: 성적표와 판단 카드가 같은 그룹에 같은 출처를 고른다(둘 다 `judgmentTriadSource` + `backtestUsable`). 2026-11-10 코인 단타 피하기가
+  // 카드는 과거 검산 1,496 · 성적표는 라이브 10 으로 갈렸다 — 성적표가 국내만 · 옛 규칙(`krTrackOrigin`)을 보고 있었다
+  it("코인 · 국내 단타도 카드와 같은 출처 — 판단 날 ≥ 10 이면 과거 검산, 9 면 라이브 그대로 (signal-skill@1)", async () => {
+    const live = fakeStore([
+      group({ signalType: "scalp.avoid", sample: 10, hits: 7 }),
+      group({ signalType: "long_term.avoid", sample: 3, hits: 3 }),
+    ]);
+    const backtest = fakeStore([
+      group({ signalType: "scalp.avoid", sample: 1_496, hits: 978, judgedMonths: 2, judgedDays: 42 }),
+      group({ signalType: "long_term.avoid", sample: 23, hits: 21, judgedMonths: 1, judgedDays: 8 }),
+      group({ signalType: "kr_stock.scalp.avoid", sample: 14_859, hits: 8_827, judgedMonths: 1, judgedDays: 988 }),
+    ]);
+    const view = await new GetJudgmentScoreboard(live, backtest).execute();
+    assert.deepEqual(
+      view.groups.map((item) => `${item.signalType}:${item.sampleOrigin}:${item.sample}`),
+      ["scalp.avoid:backtest:1496", "long_term.avoid:live:3", "kr_stock.scalp.avoid:backtest:14859"]
+    );
+  });
+
+  it("라이브 20 건이라도 빗나감 0 이면 카드처럼 과거 검산으로 채운다(3종 — 빗나간 사례 ≥ 1)", async () => {
+    const live = fakeStore([group({ signalType: "kr_stock.long_term.wait", sample: 20, hits: 20 })]);
+    const backtest = fakeStore([group({ signalType: "kr_stock.long_term.wait", sample: 35_994, hits: 21_141, judgedMonths: 48 })]);
+    const view = await new GetJudgmentScoreboard(live, backtest).execute();
+    assert.deepEqual(view.groups.map((item) => item.sampleOrigin), ["backtest"]);
+  });
 });

@@ -143,7 +143,7 @@ const main = async () => {
 유니버스 \`kr-universe@1\` · 30일 간격 · 만기 라이브 시작(2026-10-08) 전 · 비용 = 수수료 한쪽
 ${(costs.krStockCommissionPerSide * 100).toFixed(4)}% × 2 + **매도일 거래세**(${KR_STOCK_SELL_TAX.map((band) => `${band.from.slice(0, 4)}~ ${(band.rate * 100).toFixed(2)}%`).join(" · ")}).
 명시 비용만 — 스프레드 · 슬리피지는 넣지 않았다(근거 수치 없음, 넣으면 후보가 그만큼 불리해진다). 세전.
-${write ? "DB 에 썼다(`sample_origin = 'backtest'`)." : "dry-run — DB 에 쓰지 않았다."}
+${write ? "DB 에 썼다(`sample_origin = 'backtest_full'` — 장기 항목 전부를 과거로 재현, 사전등록 signal-skill@1 라벨)." : "dry-run — DB 에 쓰지 않았다."}
 
 ## 표본
 
@@ -224,7 +224,8 @@ ${[...years.entries()]
   console.log(`리포트: ${path}`);
 
   if (!write) return;
-  const kr = Prisma.sql`sample_origin = 'backtest' AND signal_type LIKE 'kr_stock.%'`;
+  // 국내 장기 과거 검산만 — 국내 단타 · 코인 과거 검산(signal-skill@1, scripts/backtest-signal-skill.ts)은 조건 밖
+  const kr = Prisma.sql`sample_origin IN ('backtest', 'backtest_full') AND signal_type LIKE 'kr\\_stock.long\\_term.%'`;
   const data = samples.map((sample) => ({
     symbol: sample.symbol,
     mode: "long_term",
@@ -234,7 +235,7 @@ ${[...years.entries()]
     reasons: sample.reasons,
     entryPrice: new Prisma.Decimal(sample.entryPrice),
     judgedAt: sample.judgedAt,
-    sampleOrigin: "backtest",
+    sampleOrigin: "backtest_full",
     ruleVersion: MODE_DECISION_RULE_VERSION,
     exitPrice: new Prisma.Decimal(sample.exitPrice),
     returnRate: new Prisma.Decimal(sample.returnRate.toFixed(6)),

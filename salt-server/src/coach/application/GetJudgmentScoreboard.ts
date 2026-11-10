@@ -1,7 +1,8 @@
 import {
   JUDGMENT_CASE_LIMIT,
   judgmentModeOf,
-  krTrackOrigin,
+  backtestUsable,
+  judgmentTriadSource,
   toScoreboardGroup,
   type JudgmentCase,
   type JudgmentGroupStats,
@@ -55,8 +56,9 @@ export class GetJudgmentScoreboard {
   constructor(
     private readonly judgments: SymbolJudgmentStore,
     /**
-     * 국내 주식 백테스트 성적(`backtest` 출처만, F011 슬라이스 7b · 사용자 결정 2026-10-26) — 국내 그룹마다 판단 카드와
-     * **같은 출처 선택**(`krTrackOrigin`). 라이브 그룹과 합산하지 않는다
+     * 과거 검산 성적(`backtest_full` · `backtest_price_only`) — 그룹마다 판단 카드와 **같은 출처 선택 함수**(`judgmentTriadSource` +
+     * `backtestUsable`, `ADR-010` v2 · `signal-skill@1`). 라이브 그룹과 합산하지 않는다. 2026-11-10 전엔 국내만 · 옛 규칙(`krTrackOrigin`)이라
+     * 코인 · 국내 단타가 들어오자 카드는 과거 검산, 성적표는 라이브 10건으로 갈렸다
      */
     private readonly backtest: SymbolJudgmentStore | null = null,
     /** 사례 종목 이름 · 로고 */
@@ -74,18 +76,21 @@ export class GetJudgmentScoreboard {
       fallback ? fallback.recentCasesByGroup(JUDGMENT_CASE_LIMIT) : Promise.resolve(noCases),
     ]);
 
-    // 국내 그룹은 라이브 · 백테스트 중 하나(판단 카드와 같은 규칙 — 합산 없음). 라이브에 없는 국내 그룹은 백테스트가
+    // 그룹마다 라이브 · 과거 검산 중 하나(판단 카드와 같은 함수 — 합산 없음). 라이브에 없는 그룹은 과거 검산이
     // 조건을 넘을 때만 온다(빈 라이브 행을 만들지 않는다)
     const live = new Map(stats.map((group) => [group.signalType, group]));
-    const backtestByType = new Map(
-      backtestStats.filter((group) => group.signalType.startsWith("kr_stock.")).map((group) => [group.signalType, group])
-    );
+    const backtestByType = new Map(backtestStats.map((group) => [group.signalType, group]));
     const chosen: Array<{ group: JudgmentGroupStats; origin: JudgmentTrackOrigin }> = [];
     // 순서는 저장소 순서(SQL 정렬) 그대로, 백테스트에만 있는 그룹은 뒤에
     for (const signalType of new Set([...live.keys(), ...backtestByType.keys()])) {
       const liveGroup = live.get(signalType);
       const backtestGroup = backtestByType.get(signalType);
-      if (backtestGroup && krTrackOrigin(liveGroup?.sample ?? 0, backtestGroup) === "backtest") {
+      const source = judgmentTriadSource(
+        liveGroup ?? { sample: 0, hits: 0 },
+        backtestGroup ?? null,
+        backtestUsable(signalType, backtestGroup ?? null)
+      );
+      if (backtestGroup && source.origin === "backtest") {
         chosen.push({ group: backtestGroup, origin: "backtest" });
       } else if (liveGroup) {
         chosen.push({ group: liveGroup, origin: "live" });

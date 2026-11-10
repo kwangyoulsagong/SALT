@@ -68,12 +68,12 @@ export const roundTripCostAt = (
   assetClass === "kr_stock" ? krStockRoundTripCost(soldAt, costs.krStockCommissionPerSide) : costs.crypto;
 
 /**
- * 자산군마다 여는 모드(F011 FR-63). 국내 주식은 **장기(30일)만** — 단타의 24시간은 주식에선 다음 거래일로
- * 넘어가 다른 질문이 된다. 단타는 스냅샷도 남기지 않는다(나중에 열 때 규칙을 정하고 그때부터 센다)
+ * 자산군마다 여는 모드 — 판단 · 스냅샷 · 채점이 같은 표를 읽는다. 국내 단타는 2026-11-10 열었다(F011 FR-63 v2 · `FEATURE-017` v2):
+ * 24시간은 주식에선 **다음 거래일 종가**로 채점한다(`krScalpExitDays`). 순서는 기본 모드 고르기 순서다(국내 = 장기 먼저)
  */
 export const JUDGMENT_MODES: Record<JudgmentAssetClass, readonly CoachMode[]> = {
   crypto: ["scalp", "long_term"],
-  kr_stock: ["long_term"],
+  kr_stock: ["long_term", "scalp"],
 };
 
 export type JudgmentOutcome = "hit" | "miss";
@@ -98,7 +98,17 @@ export const JUDGMENT_HORIZON_MS: Record<CoachMode, number> = {
  * **실측 성적(게이트 · 적중률 · 실패사례 · 성적표)은 `live` 만 센다.** 합성 실적이 섞이면 지어낸
  * 숫자가 추천을 연다. 개발 DB 를 운영으로 복사해도 마찬가지여야 해서 출처를 행에 적는다.
  */
-export type SampleOrigin = "live" | "backtest" | "synthetic";
+export type SampleOrigin =
+  | "live"
+  /** 옛 과거 검산 행(2026-11-10 전 국내 장기) — 마이그레이션이 `backtest_full` 로 옮겼다. 새로 쓰지 않는다 */
+  | "backtest"
+  /** 과거 검산 — 점수 항목 전부를 과거 값으로 재현(사전등록 `signal-skill@1`) */
+  | "backtest_full"
+  /** 과거 검산 — 과거가 없는 항목은 기여 0, 가격 항목만 */
+  | "backtest_price_only"
+  /** 규칙을 고를 때 본 기간 — 리포트만, 저장 · 화면 0 */
+  | "backtest_seen"
+  | "synthetic";
 
 /** 실측 성적이 세는 출처. 개발에서 `synthetic` 을 더하는 것은 조립 지점의 일이다(`composition.ts`). */
 export const LIVE_ORIGINS: readonly SampleOrigin[] = ["live"];
@@ -226,6 +236,8 @@ export interface JudgmentTrackStats {
   poolAboveCost: number;
   /** 표본의 판단 달(KST) 수 — 국내 백테스트 표시 조건(`kr-judgment-backtest@1` [display]). 세지 않은 저장소는 없음 */
   judgedMonths?: number;
+  /** 표본의 판단 날(KST) 수 — 과거 검산 3종 채움 조건(`signal-skill@1` [display] · `backtestUsable`). 세지 않은 저장소는 없음 */
+  judgedDays?: number;
   avgReturn: number | null;
   /** 가장 나빴던 기간 수익률. */
   worstReturn: number | null;

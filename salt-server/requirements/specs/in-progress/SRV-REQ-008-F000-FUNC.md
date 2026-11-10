@@ -267,3 +267,4 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
   - `salt-server/src/market/application/SearchAssets.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/market/application/__tests__/searchAssets.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
   - `salt-server/src/market/presentation/investment.routes.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+- 2026-11-10 밤: `schema.prisma` — `SymbolJudgmentSnapshot` 인덱스 하나(빗나간 사례 조회, 마이그레이션 `20261110210000`, `a7e63e9d` — 주인 `DB-REQ-017`). 스키마 파일이 이 REQ 를 가리켜 기록만

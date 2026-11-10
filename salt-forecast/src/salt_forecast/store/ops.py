@@ -58,12 +58,16 @@ def weekly_recorded(engine: Engine, as_of: datetime) -> dict[datetime, datetime]
 
 
 def judgment_ledger_dates(engine: Engine, since: date, as_of: datetime) -> set[date]:
-    """서버 판단 원장의 라이브 발행일 — `public` 읽기(db-contract.md §1). as_of 뒤에 쓰인 행은 보지 않는다."""
+    """서버 판단 원장의 라이브 **코인** 발행일 — `public` 읽기(db-contract.md §1). as_of 뒤에 쓰인 행은 보지 않는다.
+
+    코인 rule-ic@1 라이브 표본을 지키는 점검이라 `asset_class = 'crypto'` 만 센다 — 2026-11-10 국내 행이 들어온 뒤
+    (SRV-REQ-040 FR-61 v2) 날짜만 세면 코인 발행이 빈 날도 국내 행 때문에 "있음"으로 보인다."""
     with engine.connect() as conn:
         rows = conn.execute(
             text(
                 "SELECT DISTINCT as_of_date FROM public.judgment_ledger "
-                "WHERE sample_origin = 'live' AND as_of_date >= :since AND created_at <= :as_of"
+                "WHERE sample_origin = 'live' AND asset_class = 'crypto' "
+                "AND as_of_date >= :since AND created_at <= :as_of"
             ),
             {"since": since, "as_of": as_of.replace(tzinfo=None)},
         ).all()

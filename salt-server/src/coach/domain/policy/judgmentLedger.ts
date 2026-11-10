@@ -1,5 +1,6 @@
 import type { CoachMode, MarketRegime } from "../model";
 import type { ModeDecision, ModeDecisionComponent } from "./modeDecision";
+import type { JudgmentAssetClass } from "./symbolJudgment";
 import { MODE_DECISION_RULE_VERSION } from "./modeDecision";
 
 /**
@@ -62,6 +63,8 @@ export interface LedgerMaterials {
 
 export interface JudgmentLedgerDraft {
   symbol: string;
+  /** 표본을 가르는 자산군(SRV-REQ-040 FR-61 v2) — 코인 rule-ic@1 라이브 표본에 국내 행이 섞이지 않게 */
+  assetClass: JudgmentAssetClass;
   mode: CoachMode;
   asOfDate: Date;
   decidedAt: Date;
@@ -78,6 +81,7 @@ export interface JudgmentLedgerDraft {
 
 export const ledgerDraft = (input: {
   decision: ModeDecision;
+  assetClass: JudgmentAssetClass;
   components: ModeDecisionComponent[];
   materials: LedgerMaterials;
   missingData: string[];
@@ -87,6 +91,7 @@ export const ledgerDraft = (input: {
   now: Date;
 }): JudgmentLedgerDraft => ({
   symbol: input.decision.symbol,
+  assetClass: input.assetClass,
   mode: input.decision.mode,
   asOfDate: ledgerDate(input.now),
   decidedAt: input.now,

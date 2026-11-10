@@ -129,3 +129,54 @@ export const isKrExitSettled = (window: KrJudgmentExitWindow, barAt: Date, now: 
   if (barAt.getTime() >= expected.startOfDayUtc().getTime()) return true;
   return now.getTime() >= window.readyAt.getTime() + KR_EXIT_HOLIDAY_GRACE_MS;
 };
+
+/** 국내 단타 채점 — 다음 거래일 후보 하나(평일). 휴장이면 그다음 평일로 넘어간다 */
+export interface KrScalpExitDay {
+  /** 그 평일 일봉 시각(00:00 KST) — 이 시각 봉 **하나만** 판정 가격이다 */
+  barAt: Date;
+  /** 그날 종가 확정 시각. 그 전엔 채점하지 않는다 */
+  readyAt: Date;
+  /** 이 시각이 지나도 봉이 없으면 휴장으로 받아 다음 평일을 본다 */
+  holidayAfter: Date;
+}
+
+/** 다음 거래일 후보 수 상한 — 최장 연휴(추석 · 설 5~6일)를 넘긴다 */
+const KR_SCALP_EXIT_CANDIDATES = 6;
+
+/**
+ * 국내 단타의 채점 창(F011 FR-63 v2 · 사전등록 `signal-skill@1` [scoring].exit_kr_scalp) — 판단 날(KST) **다음 거래일 종가**.
+ * 장중 판단이든 장 마감 뒤 판단이든 같은 질문("다음 거래일까지")이다 — 코인 24시간과 이름은 같지만 밤 갭을 먹는다.
+ * 휴장 달력은 코치가 읽지 않는다(장기 `isKrExitSettled` 와 같은 이유) — 평일 후보를 차례로 주고, 봉이 없는 평일은 사흘 기다린 뒤 넘긴다
+ */
+export const krScalpExitDays = (judgedAt: Date): KrScalpExitDay[] => {
+  const days: KrScalpExitDay[] = [];
+  let date = addDays(KstDate.fromInstant(judgedAt), 1);
+  while (days.length < KR_SCALP_EXIT_CANDIDATES) {
+    if (!isWeekend(date)) {
+      const barAt = date.startOfDayUtc();
+      const readyAt = new Date(barAt.getTime() + KR_CLOSE_CONFIRMED_HOUR_KST * HOUR_MS);
+      days.push({ barAt, readyAt, holidayAfter: new Date(readyAt.getTime() + KR_EXIT_HOLIDAY_GRACE_MS) });
+    }
+    date = addDays(date, 1);
+  }
+  return days;
+};
+
+/**
+ * 국내 단타 스냅샷을 남길 차례인가 — 24시간 간격에 더해 **다음 거래일이 앞 판단과 달라야** 한다. 금요일 판단과 토요일 판단은
+ * 진입 종가(금) · 채점 종가(월)가 같은 표본 둘이 된다(표본 독립성 B39)
+ */
+export const krScalpSnapshotDue = (lastJudgedAt: Date | null, now: Date): boolean =>
+  lastJudgedAt === null ||
+  krScalpExitDays(lastJudgedAt)[0].barAt.getTime() !== krScalpExitDays(now)[0].barAt.getTime();
+
+/**
+ * 국내 판단 원장 행을 남길 때인가(SRV-REQ-040 FR-61 v2) — 평일 · 정규장 종가 확정(16시 KST) 뒤 · 시세가 그날 것. 원장은 하루 한 번 도는데
+ * 주말 · 휴장일 · 장 전엔 전 거래일 종가가 그대로라 같은 표본이 날마다 다시 남는다(국내 IC · `kr-long-change24h@1` 은 거래일 표본)
+ */
+export const krLedgerSessionClosed = (priceUpdatedAt: Date | null, now: Date): boolean => {
+  if (priceUpdatedAt === null || kstHour(now) < KR_CLOSE_CONFIRMED_HOUR_KST) return false;
+  const today = KstDate.fromInstant(now);
+  return !isWeekend(today) && KstDate.fromInstant(priceUpdatedAt).toString() === today.toString();
+};
+

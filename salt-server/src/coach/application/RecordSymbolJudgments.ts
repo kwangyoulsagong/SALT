@@ -5,7 +5,8 @@ import {
   judgmentAssetClassOf,
   JUDGMENT_MODES,
   krJudgmentExitWindow,
-  staleKrJudgmentInputs,
+  krScalpExitDays,
+  krScalpSnapshotDue,
   judgeOutcome,
   judgmentMaturesAt,
   judgmentReturnRate,
@@ -25,7 +26,7 @@ import {
   type SymbolJudgmentStore,
   type TrackedAssetProbe,
 } from "../domain";
-import { collectJudgmentMaterials, judgeSymbol } from "./lib/judgeSymbols";
+import { collectJudgmentMaterials, judgeSymbol, krSampleNotReady } from "./lib/judgeSymbols";
 
 const MODES: CoachMode[] = ["scalp", "long_term"];
 
@@ -83,15 +84,7 @@ export class SnapshotSymbolJudgments {
         skippedNoPrice.push(symbol);
         continue;
       }
-      if (
-        material.assetClass === "kr_stock" &&
-        (!material.krHistory?.ready ||
-          staleKrJudgmentInputs({
-            priceUpdatedAt: material.quote?.priceUpdatedAt ?? null,
-            dailyIndicatorAt: material.indicators.long_term?.timestamp ?? null,
-            now,
-          }).length > 0)
-      ) {
+      if (krSampleNotReady(material, now)) {
         skippedNotReady.push(symbol);
         continue;
       }
@@ -103,10 +96,11 @@ export class SnapshotSymbolJudgments {
         long_term: judgment.longTerm,
       };
 
-      // 국내 주식은 장기만 남긴다(F011 FR-63)
+      // 자산군에 연 모드만(F011 FR-63 v2 — 국내 단타는 2026-11-10 부터 남겨 다음 거래일 종가로 채점)
       for (const mode of JUDGMENT_MODES[material.assetClass]) {
         const lastAt = last.get(judgmentKey(symbol, mode)) ?? null;
         if (!isJudgmentSnapshotDue(mode, lastAt, now)) continue;
+        if (material.assetClass === "kr_stock" && mode === "scalp" && !krScalpSnapshotDue(lastAt, now)) continue;
 
         const decision = byMode[mode];
         drafts.push({
@@ -143,8 +137,9 @@ const EVALUATION_BATCH = 200;
  * 판정 가격은 **관찰 기간이 끝난 시각 이후 첫 종가**다. 그 종가가 아직 없으면 건너뛰고
  * 다음 회차에 다시 본다 — 추정값으로 채우지 않는다.
  *
- * 국내 주식(`kr_stock.` 접두)은 **만기일 이전 마지막 거래일 종가**다(F011 FR-64 · `krJudgmentExitWindow`) —
- * 만기일 종가가 확정되기 전이거나, 평일 봉이 아직 안 왔으면 기다린다. 적중 경계는 그 자산군 왕복 비용이다.
+ * 국내 주식(`kr_stock.` 접두) 장기는 **만기일 이전 마지막 거래일 종가**다(F011 FR-64 · `krJudgmentExitWindow`) —
+ * 만기일 종가가 확정되기 전이거나, 평일 봉이 아직 안 왔으면 기다린다. 국내 단타는 **다음 거래일 종가**(FR-63 v2 ·
+ * `krScalpExitDays`). 적중 경계는 그 자산군 왕복 비용이다.
  */
 export class EvaluateSymbolJudgments {
   constructor(
@@ -156,6 +151,16 @@ export class EvaluateSymbolJudgments {
 
   /** 판정 가격. 아직 정할 수 없으면 `null` — 다음 회차에 다시 본다 */
   private async exitPrice(item: PendingJudgment, now: Date): Promise<number | null> {
+    if (judgmentAssetClassOf(item.signalType) === "kr_stock" && item.mode === "scalp") {
+      // 평일 후보를 차례로 — 그날 봉이 있으면 그 종가, 없는데 사흘이 지났으면 휴장으로 보고 다음 평일, 아니면 기다린다
+      for (const day of krScalpExitDays(item.judgedAt)) {
+        if (now < day.readyAt) return null;
+        const bar = await this.market.closeAtOrBefore(item.symbol, day.barAt, "d1", day.barAt);
+        if (bar) return bar.close;
+        if (now < day.holidayAfter) return null;
+      }
+      return null;
+    }
     if (judgmentAssetClassOf(item.signalType) === "kr_stock") {
       const window = krJudgmentExitWindow(item.judgedAt);
       if (now < window.readyAt) return null;

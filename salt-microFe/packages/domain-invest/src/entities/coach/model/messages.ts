@@ -36,7 +36,7 @@ export const COACH_MESSAGES = {
   scoreAccessible: (score: number) => `100점 중 ${score}점`,
   reasonCount: (count: number) => `근거 ${count}`,
   trackSample: (count: number) => `이 판단 성적 ${count}회`,
-  /** 국내 주식 — 라이브 표본이 모자랄 동안 과거 시세로 되돌려 채점한 성적(F011 슬라이스 7b). 라이브와 합산하지 않는다 */
+  /** 라이브 표본이 모자랄 동안 과거 시세로 되돌려 채점한 성적(국내 장기 F011 슬라이스 7b · 코인 · 국내 단타 2026-11-10). 라이브와 합산하지 않는다 */
   backtestTrackSample: (count: number) => `과거 시세로 되돌려 채점 ${count.toLocaleString("ko-KR")}회 · 모의`,
   /** 표본 전체에서 빗나간 수(성적 4요소, F009 FR-33) — 사례 목록 길이가 아니다 */
   failureCount: (count: number) => `틀렸던 때 ${count}건`,
@@ -162,7 +162,8 @@ export const COACH_MESSAGES = {
     trackRecordHeading: "이 판단의 과거 성적",
     /** 사전등록 kr-judgment-backtest@1 [display] — 모의 라벨 · 언제 바뀌는지 · 한계 */
     backtestHeading: "이 판단의 과거 성적 — 모의(과거 시세로 되돌려 채점)",
-    backtestNote: "실제로 낸 판단의 기록이 아니라, 같은 규칙을 지난 시세에 적용해 채점한 값이에요. 실제와 다를 수 있고, 실제 판단 기록이 20건 쌓이면 그 기록으로 바뀌어요",
+    // 2026-11-10 코인 · 국내 단타 과거 검산(signal-skill@1) — 단타는 과거 기록이 없는 심리 · 1시간 지표를 빼고 채점한다. 장기 규칙은 둘을 원래 안 쓴다
+    backtestNote: "실제로 낸 판단의 기록이 아니라, 같은 규칙을 지난 시세에 적용해 채점한 값이에요. 과거 기록이 없는 재료(심리 · 1시간 지표)는 빼고 셌어요. 실제와 다를 수 있고, 실제 판단 기록이 20건 쌓이면 그 기록으로 바뀌어요",
     trackSample: (count: number) => `표본 ${count}회`,
     winRate: "적중률",
     avgReturn: "평균",
@@ -279,8 +280,9 @@ export const COACH_MESSAGES = {
 
     /** 추천 대상에서 빠진 자산군 (FR-91). `assetType:reasonCode` */
     excluded: {
-      "kr_stock:insufficient_history": "국내 주식은 종목 화면에서 장기 판단만 해요. 판단 성적이 쌓이는 중이에요.",
-      "kr_stock:symbol_judgment_only": "국내 주식은 종목 화면에서 장기 판단만 하고, 이 추천에는 들어가지 않아요.",
+      // 2026-11-10 국내 단타도 열었다(SRV-REQ-040 FR-63 v2) — "장기 판단만"은 틀린 문장이 됐다
+      "kr_stock:insufficient_history": "국내 주식은 종목 화면에서 판단해요. 판단 성적이 쌓이는 중이에요.",
+      "kr_stock:symbol_judgment_only": "국내 주식은 종목 화면에서 판단하고, 이 추천에는 들어가지 않아요.",
     } as Record<string, string | undefined>,
     /** 제외 사유 뒤 수치 — 국내 주식 장기 판단 유형 중 가장 많이 쌓인 표본 / 기준(서버 값) */
     excludedProgress: (sample: number, required: number) => `표본 ${sample} / ${required}`,

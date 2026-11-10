@@ -716,6 +716,8 @@ model SymbolJudgmentSnapshot {
   /// 성적 기저율 풀(같은 접두 `LIKE 'kr\_stock.long\_term.%'`) — live 풀이 백테스트 5만 행을 훑지 않게(2026-11-09 판단 상세 504).
   /// 접두 LIKE 가 일반 btree 를 타는 건 DB 정렬이 `C` 라서다(로컬 실측). 운영 DB 정렬이 다르면 `text_pattern_ops` 가 필요하다 — Prisma 가 그 지정을 비교하지 못해 매 마이그레이션에 다시 만들기를 끼우므로 일반으로 둔다
   @@index([sampleOrigin, signalType], map: "symbol_judgment_snapshots_pool_idx")
+  // 빗나간 사례 3건 — 조건 + 정렬 그대로(2026-11-10 과거 검산 10만 행 뒤 정렬 103ms → 504, `recentCases`)
+  @@index([signalType, outcome, judgedAt(sort: Desc), symbol], map: "symbol_judgment_snapshots_recent_cases_idx")
   @@map("symbol_judgment_snapshots")
 }
 
@@ -736,7 +738,9 @@ model JudgmentLedgerEntry {
   components      Json // [{ item, points, value }] — 점수에 들어간 항목별 기여
   materials       Json // 재료 값 + 각 재료의 발생 시각(observedAt)
   missingData     String[]  @map("missing_data")
-  regime          String // BTC 기준 시장 국면(detectMarketRegime)
+  regime          String // BTC 기준 시장 국면(detectMarketRegime) — 국내 행도 그날 BTC 값. 국내 국면은 읽는 쪽이 날짜로(`kr_regime`)
+  // 자산군 — 코인 · 국내 표본을 가른다(SRV-REQ-040 FR-61 v2). 기본값 없음 — 쓰는 쪽이 말한다
+  assetClass      String    @map("asset_class")
   entryPrice      Decimal   @map("entry_price")
   entryObservedAt DateTime? @map("entry_observed_at")
   sampleOrigin    String    @map("sample_origin")

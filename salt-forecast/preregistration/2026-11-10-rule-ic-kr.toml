@@ -1,0 +1,68 @@
+# 사전등록 — 코치 규칙 점수 항목별 IC, 국내 주식 (F017 v2 단계 1b · FC-REQ-028 FR-6 · FC-REQ-008 같은 프로토콜)
+#
+# 이 파일은 **결과를 보기 전에** 커밋한다. 바꾸려면 새 키(`rule-ic-kr@2`).
+#
+# 왜: 국내 판단(장기 · 2026-11-10 열린 단타)은 mode-decision@2 를 쓰고, 그 부호 · 가중은 코인 데이터(rule-ic@1)로 골랐다.
+# 국내에서도 규칙이 뜻하는 방향으로 맞히는지 국내 데이터로 따로 잰다 — "코인 결과 차용"을 끝낸다.
+# 이 등록은 **재는 것까지**다. 판정이 규칙을 바꾸면(국내 가중 0 · 부호 반전) 그것은 새 규칙 버전이고 새 표본이다 — 서버 REQ 로 따로.
+
+key = "rule-ic-kr@1"
+registered = 2026-11-10
+rule_version = "mode-decision@2"   # salt-server coach/domain/policy/modeDecision.ts (2026-11-10 main) — domain/rule_items.py 재현
+
+[question]
+text = """
+mode-decision@2 의 항목이 국내 주식에서 각각 **규칙이 뜻하는 방향으로** 이후 수익률의 종목 간 순위를 맞히는가.
+"""
+
+[protocol]
+source = "forecast.price_bar kis 1d(수정주가, 2021-10 ~). available_at = 그 거래일 16:00 KST"
+grid = "거래일 행(모든 종목 봉이 없는 날은 행이 없다) — 1행 = 1 거래일. 코인 rule-ic@1 의 달력 하루 격자와 다르다"
+universe = "kr-universe@1 — 그 거래일까지 봉 ≥ 250 · 최근 20 거래일 전부 봉 · 20일 평균 (종가 × 거래량) ≥ 10억"
+breaks = "domain/kr_breaks 상향 끊김(직전 봉 대비 > 1.31) — 신호 창 [t−14, t] 에 끊김이 있으면 그날 그 종목 제외, 라벨 창 (t, t+h] 에 있으면 라벨 없음"
+as_of = "거래일 마감 매일. 피처는 available_at <= as_of 만"
+period = "패널 2021-10 ~ 실행일 − 지평. 대상은 봉 250 이 차는 2022-10 무렵부터"
+label_primary = "고정 지평 로그수익률 ln(C[t+h]/C[t]), h 는 거래일"
+label_secondary = "삼중 장벽 — rule-ic@1 과 같다(상단 +2σ_h · 하단 −1σ_h · 수직 h 거래일)"
+ic = "거래일마다 종목 간 스피어만(표본 < 20 종목이거나 한쪽 상수면 그날 제외) → 날짜 평균"
+ci = "이동 블록 부트스트랩(거래일 단위) 95% — 블록 max(7, 2h), 반복 2000, seed 20260927(rule-ic@1 과 같다)"
+min_dates = 250
+contribution = "항목의 점수 기여(mode-decision@2 가점 · 감점, 발동 안 하면 0)를 신호로. 양의 IC = 규칙 방향이 맞다"
+items_absent = "sentiment · whale_flow — 국내 판단에 없는 재료(서버 judgeSymbols cryptoOnly). 재지 않는다"
+scalp_rsi = "단타의 라이브 RSI 는 1시간봉 — 국내 1시간 과거가 없어 일봉 RSI 대리(탐색만, 1차 아님)"
+total_score = "50 + change24h + rsi_d1(단타는 일봉 대리), 0~100 자름"
+
+[decision]
+keep = "CI 하한 > 0"
+reverse = "CI 상한 < 0"
+zero_weight = "CI 가 0 포함"
+insufficient = "유효 날짜 < min_dates"
+apply = "판정은 리포트까지. 국내 규칙을 바꾸는 것은 새 규칙 버전(서버 REQ) — 바꾸면 국내 표본은 새로 쌓인다"
+
+# 지평: 단타 1 거래일(다음 거래일 종가 — 서버 국내 단타 채점과 같다) · 장기 21 거래일(달력 30일 ≈ 21 거래일)
+[[primary]]
+item = "change24h"
+mode = "scalp"
+horizon_days = 1
+[[primary]]
+item = "change24h"
+mode = "long_term"
+horizon_days = 21
+[[primary]]
+item = "rsi_d1"
+mode = "long_term"
+horizon_days = 21
+[[primary]]
+item = "total_score"
+mode = "scalp"
+horizon_days = 1
+[[primary]]
+item = "total_score"
+mode = "long_term"
+horizon_days = 21
+
+[exploratory]
+horizons_days = [1, 5, 21]
+label_kinds = ["fixed", "barrier"]
+challengers = ["mom_20d"]   # 20 거래일 수익률(마지막 1일 제외) — 규칙에 없는 도전자
+regime_split = "domain/kr_regime — 평시 · 공매도 금지(2023-11-06 ~ 2025-03-30) · 2026 고변동(2026-01-01 ~). 경계는 공개 일정(2026-10-26 고정)"
