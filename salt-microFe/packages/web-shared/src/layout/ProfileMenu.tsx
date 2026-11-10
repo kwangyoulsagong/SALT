@@ -3,10 +3,11 @@
 import { Menu } from "@repo/ui/menu";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { clearSession, useSessionUser } from "../api";
+import { clearSession, useHasSession, useSessionUser } from "../api";
 import { ROUTES } from "../config";
 import { PROFILE_MENU_ITEM, PROFILE_MENU_MESSAGES as MESSAGES } from "./messages";
-import { header, trigger } from "./ProfileMenu.css";
+import { useSignInHref } from "../ui";
+import { header, signInLink, trigger } from "./ProfileMenu.css";
 import { ProfileImage } from "./ProfileImage";
 import { ProfileSection } from "./ProfileSection";
 
@@ -31,6 +32,8 @@ import { ProfileSection } from "./ProfileSection";
 export const ProfileMenu = () => {
   const user = useSessionUser();
   const queryClient = useQueryClient();
+  const signedIn = useHasSession();
+  const signInHref = useSignInHref();
 
   const signOut = async () => {
     // 쿠키는 Route Handler 가 지운다 — 응답을 기다린 뒤 이동해야 로그인 화면 요청에 세션이 실리지 않는다
@@ -39,6 +42,17 @@ export const ProfileMenu = () => {
     queryClient.clear();
     window.location.assign(ROUTES.login);
   };
+
+  // 로그인 없이 보는 화면(투자 — `FE-REQ-070`)은 프로필 대신 로그인 — 누르면 같은 자리로 돌아온다. 모를 때(null)는 프로필 자리 그대로
+  if (signedIn === false) {
+    return (
+      <div className={header}>
+        <a className={signInLink} href={signInHref}>
+          {MESSAGES.signIn}
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className={header}>

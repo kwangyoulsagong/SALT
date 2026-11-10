@@ -72,7 +72,7 @@ export const buildDetailBreadcrumb = (symbol: string, listing: MarketOverviewIte
 });
 
 /**
- * 국내 주식 상세 메타데이터 — **시세 · 이름 없음, 색인 안 함.** 국내 주식 시세는 소유자 전용이고 공개 응답에 0건이어야 한다
+ * 국내 주식 상세 메타데이터 — **시세 · 이름 없음, 색인 안 함.** ~~국내 주식 시세는 소유자 전용~~(2026-11-10 화면은 공개 — `ADR-011`) 색인 · 서버 렌더는 아직 안 한다(`FEATURE-018` OQ2)
  * (KRX 재배포 약관, F011 §정책). 이름도 서버(토큰 필요)에서만 받으므로 코드만 쓴다. sitemap 에도 올리지 않는다(코인 목록만 싣는다)
  */
 export const buildKrStockMetadata = (code: string): Metadata => ({

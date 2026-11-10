@@ -93,7 +93,7 @@ interface MarketBoardProps {
 /**
  * 자산군은 **주소가 정한다** — `?asset=kr_stock` = 주식, 없으면 코인(머리 메뉴 코인 · 주식 · 검색 모달 업종 · 지수 줄이 같은 주소, `FE-REQ-069` FR-5).
  * ~~본문 자산군 탭~~ 2026-11-10 머리 메뉴로 올라갔다. 주소를 읽는 잎을 따로 두고 Suspense 로 감싼다 — 보드 전체가 `useSearchParams` 때문에
- * 클라이언트로 미뤄지지 않게. 국내가 안 열리는 사람(비소유자)은 아래 판정이 코인으로 되돌린다
+ * 클라이언트로 미뤄지지 않게. 국내가 안 열리면(키 꺼짐) 아래 판정이 코인으로 되돌린다
  */
 const AssetParamSync = ({ onAsset }: { onAsset: (asset: string) => void }) => {
   const params = useSearchParams();
@@ -110,7 +110,7 @@ export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => 
   const [activeTab, setActiveTab] = useState(DEFAULT_MARKET_BOARD_TAB);
   const [assetTab, setAssetTab] = useState(DEFAULT_ASSET_CLASS_TAB);
   const [krAvailable, setKrAvailable] = useState(false);
-  // 자산군 탭이 사라지면(로그아웃 · 소유자 아님) 코인으로 돌아온다 — 빈 국내 주식 화면에 남지 않는다
+  // 자산군 탭이 사라지면(키 꺼짐) 코인으로 돌아온다 — 빈 국내 주식 화면에 남지 않는다
   const assetClass = krAvailable ? assetTab : DEFAULT_ASSET_CLASS_TAB;
   return (
     <Section noContainer>
@@ -131,7 +131,7 @@ export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => 
         </div>
         {/*
           ~~자산군 탭(F011 `FE-REQ-041`)~~ 2026-11-10 머리 메뉴 코인 · 주식(`FE-REQ-069`) — 여기는 국내를 볼 수 있는지만 판정한다
-          (비로그인 · 소유자 아님 · 키 없음이면 `?asset=kr_stock` 이어도 코인)
+          (키 없음이면 `?asset=kr_stock` 이어도 코인)
         */}
         <KrStockAvailability onChange={setKrAvailable} />
         {/*

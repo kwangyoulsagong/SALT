@@ -3,6 +3,10 @@
 // 클라이언트 잎: `ssr:false` 는 서버 컴포넌트에서 쓸 수 없다(`CoachReportBody` 와 같은 이유).
 import dynamic from "next/dynamic";
 
+import { SignInRequired } from "@repo/web-shared/ui";
+
+import { SIGNAL_EVIDENCE_PAGE } from "../model";
+
 /**
  * 판정 근거 본문. **`ssr:false` 다** — 성적표 조회에 토큰이 필요하고 토큰은 브라우저 `localStorage` 에만 있다
  * (`CoachReportBody` 와 같은 이유 · 같은 위젯 청크).
@@ -13,6 +17,11 @@ const SignalEvidence = dynamic(
   { ssr: false, loading: () => null },
 );
 
-export const SignalEvidenceBody = ({ signalType }: { signalType: string }) => <SignalEvidence signalType={signalType} />;
+/** 로그인 없이 오면 유리막(`FE-REQ-070` FR-7) */
+export const SignalEvidenceBody = ({ signalType }: { signalType: string }) => (
+  <SignInRequired what={SIGNAL_EVIDENCE_PAGE.blockName} minHeight={SIGNAL_EVIDENCE_PAGE.blockMinHeight}>
+    <SignalEvidence signalType={signalType} />
+  </SignInRequired>
+);
 
 export default SignalEvidenceBody;

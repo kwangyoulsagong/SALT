@@ -21,6 +21,8 @@ type UnavailableReason = Extract<Zone, { kind: "unavailable" }>["reasonCode"];
  * 매핑이 없는 코드는 원문을 보여주지 않고 그 줄을 그리지 않는다.
  */
 export const COACH_MESSAGES = {
+  /** 로그인 없이 볼 때 유리막 칸 이름(`FE-REQ-070`) */
+  guestWhat: "코치 판단",
   modeGroupLabel: "판단 관점",
   judgmentHeading: "지금의 판단",
   modes: { scalp: "단타", long_term: "장기" } satisfies Record<CoachMode, string>,

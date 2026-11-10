@@ -106,6 +106,7 @@ import { vars } from "@repo/ui/tokens";
 | `@repo/ui/emptyState` | `EmptyState` | `title`, `description`, `icon`, `action`, `tone`, `iconFrame`(`badge` · `none` — 그래픽은 `none`) | `packages/ui/src/EmptyState/EmptyState.tsx` |
 | `@repo/ui/statusGraphic` | `StatusGraphic` | `kind`(`success` · `progress` · `empty` · `error` · `blocked`), `size`(`sm` 40 · `md` 72 · `lg` 120) | `packages/ui/src/StatusGraphic/StatusGraphic.tsx` |
 | `@repo/ui/statusLine` | `StatusLine` | `kind`, `children`, `live` | `packages/ui/src/StatusLine/StatusLine.tsx` |
+| `@repo/ui/signInGlass` | `SignInGlass` | `actionLabel`, `description`, `href`, `children`(흐린 자리 표시 — 실데이터 0), `minHeight` | `packages/ui/src/SignInGlass/SignInGlass.tsx` — 로그인 칸 유리막(`FE-REQ-070`). 화면은 `@repo/web-shared/ui` `SignInRequired` 로 쓴다(세션 판정 · 돌아올 주소) |
 | `@repo/ui/statusToast` | `StatusToast` | `trigger`, `children`, `kind`, `duration` — 패널 위에 잠깐 떴다 사라지는 완료 알림(부모 `position: relative`) | `packages/ui/src/StatusToast/StatusToast.tsx` |
 | `@repo/ui/illustration` | `Illustration` | `scene`(`coinPouch` · `candles` · `scale` · `coachBubble` · `target` · `ledger`), `size`(`sm` · `md` · `lg`) | `packages/ui/src/Illustration/Illustration.tsx` |
 | `@repo/ui/progressScene` | `ProgressScene` | `kind`(`trip` · `car` · `umbrella` · `house` · `jar`), `step` · `steps`(서버 값), `size`(`sm` · `md`) — 저축 목표 진척 장면(2026-11-03 `FE-REQ-056` FR-8) | `packages/ui/src/ProgressScene/ProgressScene.tsx` |
@@ -166,6 +167,7 @@ toast({ message: "닫기 전까지 유지", duration: 0 });
 | 그룹과 그룹 사이 위계 | `ListGroup` + `SectionBand` | 카드 남발 (`Card` 기본 그림자는 `none`이다) |
 | 큰 세로 여백을 가진 페이지 섹션 | `Section` | `SectionBand`는 8px 구분 밴드다 |
 | 그룹 안 항목 사이 선 | `Divider` | `SectionBand`는 그룹과 그룹 사이용이다 |
+| 로그인해야 보는 칸(★ · 판단 · 거래 · 포트폴리오) | `SignInRequired`(`@repo/web-shared/ui`) — 로그인 없으면 `SignInGlass` | 칸을 숨기기 · "로그인하세요" 회색 한 줄(`FE-REQ-070`) |
 | 완료 · 진행 · 빈 상태 · 오류 · 막힘 그래픽 | `StatusGraphic`(화면 단위는 `EmptyState` `icon` + `iconFrame="none"`, 카드 안 한 줄은 `StatusLine`) | 글자만 바뀌는 완료 · 회색 한 줄 오류. 규칙은 `.claude/rules/motion.md` |
 | 기능 의미를 보여 주는 장면 | `Illustration` | 앱에 SVG 를 흩지 않는다. 새 장면은 `scene` 추가 |
 | 화면 단위 빈 상태·결과 | `@repo/ui/emptyState`의 `EmptyState` | `@repo/ui/table`의 `EmptyState`는 표 안 `<tr><td>` 전용이다. 이름이 같으니 import 경로를 확인한다 |

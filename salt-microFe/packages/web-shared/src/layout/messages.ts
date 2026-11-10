@@ -4,6 +4,8 @@ export const PROFILE_MENU_MESSAGES = {
   menuLabel: "내 계정 메뉴",
   settings: "설정",
   signOut: "로그아웃",
+  /** 로그인 없이 보는 화면(`FE-REQ-070`) — 프로필 자리 */
+  signIn: "로그인",
   profileImageAlt: "프로필 이미지",
 } as const;
 

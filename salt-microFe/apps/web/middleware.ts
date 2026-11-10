@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { SESSION_HINT_COOKIE } from "@repo/core/auth";
+import { SESSION_HINT_COOKIE, SIGN_IN_NEXT_PARAM, safeNextPath } from "@repo/core/auth";
 
 /**
  * 로그인한 사람이 `/`(로그인 화면)에 오면 **서버에서** 바로 홈으로 보낸다(2026-11-02).
@@ -15,7 +15,9 @@ import { SESSION_HINT_COOKIE } from "@repo/core/auth";
  */
 export function middleware(request: NextRequest) {
   if (request.cookies.get(SESSION_HINT_COOKIE)?.value === "1") {
-    return NextResponse.redirect(new URL("/home", request.url));
+    // 유리막에서 로그인하러 왔는데 이미 로그인돼 있으면 그 자리로(`FE-REQ-070` FR-6) — 우리 경로만
+    const next = safeNextPath(request.nextUrl.searchParams.get(SIGN_IN_NEXT_PARAM));
+    return NextResponse.redirect(new URL(next ?? "/home", request.url));
   }
   return NextResponse.next();
 }

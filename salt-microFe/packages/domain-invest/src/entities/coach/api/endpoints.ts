@@ -25,7 +25,7 @@ export const COACH_ENDPOINTS = {
   plans: (symbol: string) => `/api/app/coach/plans?symbol=${encodeURIComponent(symbol)}`,
   /** 내 거래 미러 (F009 슬라이스 5 `BFF-REQ-038` FR-7) */
   mirror: "/api/app/coach/mirror",
-  /** 국내 주식 미러(F011 FR-47) — 소유자 전용, 아니면 404 */
+  /** 국내 주식 미러(F011 FR-47) — 로그인 전체(`ADR-011`) */
   krMirror: "/api/app/coach/mirror/kr-stock",
   /** 청산별 결과 · 태그. 확정은 `outcomeTags` 에 PUT(`features/confirm-outcome-tags`) */
   /** `assetType` 이 없으면 코인(BFF · 서버 기본). 국내 미러는 `kr_stock`(F011 FR-47) */
@@ -39,7 +39,7 @@ export const COACH_ENDPOINTS = {
   /** 월간 복기(F009 슬라이스 6 `BFF-REQ-038` FR-10). 달이 없으면 서버가 KST 지난달을 고른다 */
   monthlyReview: (month: string | null) =>
     month ? `/api/app/coach/review/monthly?month=${encodeURIComponent(month)}` : "/api/app/coach/review/monthly",
-  /** 월간 복기 국내판(F011 FR-48 `BFF-REQ-040` FR-26) — 소유자 전용 404 */
+  /** 월간 복기 국내판(F011 FR-48 `BFF-REQ-040` FR-26) — 로그인 전체(`ADR-011`) */
   krMonthlyReview: (month: string | null) =>
     month
       ? `/api/app/coach/review/monthly/kr-stock?month=${encodeURIComponent(month)}`

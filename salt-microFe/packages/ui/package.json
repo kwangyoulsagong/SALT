@@ -101,6 +101,7 @@
     "./illustration": "./src/Illustration/Illustration.tsx",
     "./progressScene": "./src/ProgressScene/ProgressScene.tsx",
     "./statusLine": "./src/StatusLine/StatusLine.tsx",
+    "./signInGlass": "./src/SignInGlass/SignInGlass.tsx",
     "./enterReveal": "./src/Motion/enterReveal.css.ts",
     "./statusToast": "./src/StatusToast/StatusToast.tsx"
   },

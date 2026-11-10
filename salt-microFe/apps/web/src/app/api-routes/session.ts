@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   ACCESS_COOKIE,
   BFF_SERVER_URL,
+  GUEST_COOKIE,
+  GUEST_HINT_COOKIE,
   REFRESH_COOKIE,
   SESSION_HINT_COOKIE,
   SESSION_HINT_MAX_AGE_SECONDS,
@@ -20,6 +22,8 @@ import {
  * | `ACCESS_COOKIE` | 예 | `/` | 액세스 `exp` |
  * | `REFRESH_COOKIE` | 예 | `SESSION_ROUTE` — BFF 요청마다 실리지 않는다 | 리프레시 `exp`(상한 30일) |
  * | `SESSION_HINT_COOKIE`(값 `1`) | 아니오 — 화면 · 미들웨어가 읽는다 | `/` | 리프레시와 같다 |
+ * | `GUEST_COOKIE` | 예 | `/` | 게스트 `exp`(30분 — `FE-REQ-070`). 사람 쿠키가 생기면 지운다 |
+ * | `GUEST_HINT_COOKIE`(값 `1`) | 아니오 — 첫 호출 전 미리 받기 판정 | `/` | 게스트와 같다 |
  *
  * - 토큰을 검증하지 않는다 — 운반만 한다. 검증은 BFF · 서버가 요청마다 한다. 모양(JWT 세 조각 · 길이 · `exp`)만 본다
  * - **다른 사이트가 남의 토큰을 심거나 갱신을 부르지 못하게** 같은 origin 요청만 받는다(`Sec-Fetch-Site` · `Origin`) — 로그인 CSRF
@@ -29,6 +33,9 @@ const ACCESS_MAX_AGE_CAP_SECONDS = 60 * 60 * 24;
 /** 갱신 호출 상한 — BFF 통과 예산 1s(`BFF-REQ-009`)에 여유 */
 const REFRESH_TIMEOUT_MS = 3_000;
 const REFRESH_PATH = "/api/auth/refresh";
+const GUEST_PATH = "/api/auth/guest";
+/** 게스트 쿠키 수명 상한 — 서버 기본 30분, 설정이 길어져도 하루 */
+const GUEST_MAX_AGE_CAP_SECONDS = 60 * 60 * 24;
 
 const isSameOrigin = (request: NextRequest): boolean => {
   const site = request.headers.get("sec-fetch-site");
@@ -70,7 +77,13 @@ const setRefreshAndHint = (response: NextResponse, token: string, maxAge: number
   response.cookies.set(SESSION_HINT_COOKIE, "1", { httpOnly: false, sameSite: "lax", secure: secure(), path: "/", maxAge });
 };
 
+const clearGuest = (response: NextResponse) => {
+  response.cookies.set(GUEST_COOKIE, "", { httpOnly: true, sameSite: "lax", secure: secure(), path: "/", maxAge: 0 });
+  response.cookies.set(GUEST_HINT_COOKIE, "", { httpOnly: false, sameSite: "lax", secure: secure(), path: "/", maxAge: 0 });
+};
+
 const clearAll = (response: NextResponse) => {
+  clearGuest(response);
   response.cookies.set(ACCESS_COOKIE, "", { httpOnly: true, sameSite: "lax", secure: secure(), path: "/", maxAge: 0 });
   response.cookies.set(REFRESH_COOKIE, "", { httpOnly: true, sameSite: "strict", secure: secure(), path: SESSION_ROUTE, maxAge: 0 });
   response.cookies.set(SESSION_HINT_COOKIE, "", { httpOnly: false, sameSite: "lax", secure: secure(), path: "/", maxAge: 0 });
@@ -87,6 +100,8 @@ export const writeSessionCookie = async (request: NextRequest): Promise<NextResp
   const refreshAge = secondsUntilExpiry(body?.refreshToken, SESSION_HINT_MAX_AGE_SECONDS);
   if (refreshAge === null) return NextResponse.json({ code: "SESSION_TOKEN_INVALID" }, { status: 400 });
   const response = new NextResponse(null, { status: 204 });
+  // 로그인하면 게스트 쿠키는 버린다 — BFF 가 사람 쿠키를 먼저 쓰지만, 남겨 둘 이유가 없다(`FE-REQ-070` FR-1)
+  clearGuest(response);
   setRefreshAndHint(response, body?.refreshToken as string, refreshAge);
   const accessAge = secondsUntilExpiry(body?.accessToken, ACCESS_MAX_AGE_CAP_SECONDS);
   if (accessAge !== null) setAccess(response, body?.accessToken as string, accessAge);
@@ -135,5 +150,40 @@ export const refreshSessionCookie = async (request: NextRequest): Promise<NextRe
   }
   const response = new NextResponse(null, { status: 204 });
   setAccess(response, accessToken as string, accessAge);
+  return response;
+};
+
+/**
+ * `POST /api/session/guest` — 게스트 토큰(`FE-REQ-070` FR-1 · 서버 `SRV-REQ-056` FR-1)을 받아 httpOnly 쿠키로 심는다. 브라우저는 토큰을 보지 않는다.
+ *
+ * | BFF 답 | 이 응답 | 쿠키 |
+ * |---|---|---|
+ * | 2xx + `guestToken` | 204 | 게스트 새로 |
+ * | 403(공개 꺼짐) | 403 | 그대로 — 화면이 로그인으로 |
+ * | 429 | 429 | 그대로 |
+ * | 그 밖(5xx · 연결 실패 · 모양 틀림) | 502 | 그대로 |
+ */
+export const issueGuestCookie = async (request: NextRequest): Promise<NextResponse> => {
+  if (!isSameOrigin(request)) return crossSite();
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${BFF_SERVER_URL}${GUEST_PATH}`, {
+      method: "POST",
+      cache: "no-store",
+      signal: AbortSignal.timeout(REFRESH_TIMEOUT_MS),
+    });
+  } catch {
+    return NextResponse.json({ code: "GUEST_UNAVAILABLE" }, { status: 502 });
+  }
+  if (upstream.status === 403) return NextResponse.json({ code: "GUEST_DISABLED" }, { status: 403 });
+  if (upstream.status === 429) return NextResponse.json({ code: "GUEST_RATE_LIMITED" }, { status: 429 });
+  const body = (await upstream.json().catch(() => null)) as { data?: { guestToken?: unknown } } | null;
+  const guestToken = body?.data?.guestToken;
+  const guestAge = secondsUntilExpiry(guestToken, GUEST_MAX_AGE_CAP_SECONDS);
+  if (!upstream.ok || guestAge === null) return NextResponse.json({ code: "GUEST_UNAVAILABLE" }, { status: 502 });
+  const response = new NextResponse(null, { status: 204 });
+  response.cookies.set(GUEST_COOKIE, guestToken as string, { httpOnly: true, sameSite: "lax", secure: secure(), path: "/", maxAge: guestAge });
+  // 표지(값 1, 토큰 아님) — 화면이 첫 호출 전에 게스트를 미리 받을지 정한다
+  response.cookies.set(GUEST_HINT_COOKIE, "1", { httpOnly: false, sameSite: "lax", secure: secure(), path: "/", maxAge: guestAge });
   return response;
 };

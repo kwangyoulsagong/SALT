@@ -3,6 +3,10 @@
 // 클라이언트 잎: `ssr:false` 는 서버 컴포넌트에서 쓸 수 없다(`InvestmentDetailBody` 와 같은 이유).
 import dynamic from "next/dynamic";
 
+import { SignInRequired } from "@repo/web-shared/ui";
+
+import { COACH_REPORT_PAGE } from "../model";
+
 /**
  * 리포트 본문. **`ssr:false` 다** — 조회에 토큰이 필요하고 토큰은 브라우저 `localStorage` 에만
  * 있다(`FE-REQ-013` 전). 서버에서 그리면 "로그인 안 됨"을 그렸다가 브라우저에서 바뀌어
@@ -14,6 +18,11 @@ const CoachReport = dynamic(
   { ssr: false, loading: () => null },
 );
 
-export const CoachReportBody = () => <CoachReport />;
+/** 로그인 없이 오면 본문 전체가 유리막(`FE-REQ-070` FR-7) — 판단 · 성적 · 리스크는 AI · 사람 칸 */
+export const CoachReportBody = () => (
+  <SignInRequired what={COACH_REPORT_PAGE.blockName} minHeight={COACH_REPORT_PAGE.blockMinHeight}>
+    <CoachReport />
+  </SignInRequired>
+);
 
 export default CoachReportBody;

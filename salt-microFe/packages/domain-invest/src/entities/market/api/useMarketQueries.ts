@@ -211,12 +211,12 @@ export const useAssetSearch = (
   /** 자산군 칩(`FE-REQ-010` FR-77) — 없으면 전체. 서버가 거른다(상한 20 안에서 한 자산군이 다른 쪽을 밀어내지 않게) */
   assetType?: MarketAssetClass,
 ): UseQueryResult<AssetSearchResponse> & { isSignedOut: boolean } => {
-  // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 부르지도, 로그아웃이라 하지도 않는다(`/search` 수화 불일치, 2026-11-02)
+  // 수화에 안전하게 — 서버 · 첫 렌더는 "모름"(null): 로그아웃이라 하지 않는다(`/search` 수화 불일치, 2026-11-02).
+  // 부르기는 누구나(`FE-REQ-070`) — 게스트는 ★ 칸(`isTracked`)이 null 로 오고 화면이 자물쇠를 그린다
   const signedIn = useHasSession();
   const query = useQuery({
     queryKey: [...marketQueryKeys.search, q, assetType ?? "all"],
     queryFn: ({ signal }) => marketApi.search(q, ASSET_SEARCH_LIMIT, assetType, signal),
-    enabled: signedIn === true,
     placeholderData: keepPreviousData,
     staleTime: ASSET_SEARCH_STALE_TIME_MS,
   });

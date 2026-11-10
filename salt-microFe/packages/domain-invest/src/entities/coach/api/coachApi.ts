@@ -167,7 +167,7 @@ export const coachApi = {
   },
 
   /**
-   * 국내 주식 미러 (`GET /api/app/coach/mirror/kr-stock`, F011 FR-47). 소유자가 아니면 404 — 부르는 쪽이 상태로 읽는다.
+   * 국내 주식 미러 (`GET /api/app/coach/mirror/kr-stock`, F011 FR-47). 로그인 전체(`ADR-011`) — 4xx 는 부르는 쪽이 상태로 읽는다.
    * 서버 장애는 BFF 가 200 `unavailable`
    */
   krMirror: async (signal?: AbortSignal): Promise<KrBehaviorMirrorResult> => {

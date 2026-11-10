@@ -1,5 +1,7 @@
 import { style } from "@vanilla-extract/css";
 
+import { vars as uiVars } from "@repo/ui/tokens";
+
 import { vars } from "../ui/tokens.css";
 
 /** 머리 오른쪽 칸 — 높이는 머리(52, `AppNavigation`)가 정한다. 전의 화면별 80px 줄은 지웠다(`FE-REQ-054`) */
@@ -26,5 +28,23 @@ export const trigger = style({
   selectors: {
     "&:hover": { background: vars.colors.background.third },
     "&:focus-visible": { outline: `2px solid ${vars.colors.brand.primary}`, outlineOffset: "2px" },
+  },
+});
+
+/** 로그인 없이 볼 때 프로필 자리(`FE-REQ-070`) — 머리 주 버튼(32 · 모서리 8 · 14/600, `screen-desktop.md` §3) */
+export const signInLink = style({
+  display: "inline-flex",
+  alignItems: "center",
+  height: 32,
+  padding: "0 12px",
+  borderRadius: 8,
+  background: uiVars.colors.brand.primary,
+  color: uiVars.colors.text.white,
+  fontSize: 14,
+  fontWeight: 600,
+  textDecoration: "none",
+  selectors: {
+    "&:hover": { background: uiVars.colors.brand.hover },
+    "&:focus-visible": { outline: `2px solid ${uiVars.colors.brand.active}`, outlineOffset: 2 },
   },
 });

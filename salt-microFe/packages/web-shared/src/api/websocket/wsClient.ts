@@ -1,6 +1,6 @@
 import { RECONNECT_TIME_PENDING, WEBSOCKET_URL } from "../../config";
 
-import { refreshSession } from "../refreshSession";
+import { issueGuestSession, refreshSession } from "../refreshSession";
 import { hasSession } from "../session";
 
 import { dispatchMessage } from "./handlers";
@@ -85,10 +85,11 @@ class WSClient {
 
   private reconnectWithFreshSession(): boolean {
     const now = Date.now();
-    if (!hasSession()) return false;
     if (this.lastAuthReconnectAt !== null && now - this.lastAuthReconnectAt < AUTH_RECONNECT_INTERVAL_MS) return false;
     this.lastAuthReconnectAt = now;
-    void refreshSession().then((ok) => {
+    // 로그인했으면 갱신, 아니면 게스트 토큰(`FE-REQ-070` FR-5 — 투자 화면에서만 받는다). REST 와 같은 단일 비행을 나눠 쓴다
+    const renew = hasSession() ? refreshSession : issueGuestSession;
+    void renew().then((ok) => {
       if (!ok) {
         this.krErrorListeners.forEach((fn) => fn(KR_AUTH_REQUIRED));
         return;
@@ -263,14 +264,11 @@ class WSClient {
 
   /**
    * 토큰은 메시지에 없다 — BFF 가 이 연결 요청에 실린 세션 쿠키를 쓴다. 만료로 거부되면 `notifyKrError` 가 세션을 갱신하고
-   * 연결을 새로 맺는다. 로그인 표지가 없으면 보내지 않는다 — BFF 가 어차피 `KR_STOCK_AUTH_REQUIRED` 로 거부한다
+   * 연결을 새로 맺는다. ~~로그인 표지가 없으면 보내지 않는다~~ 2026-11-10 로그인이 없어도 보낸다 — 게스트 쿠키가 있으면 BFF 가 그것으로 연다
+   * (`FE-REQ-070` · `BFF-REQ-055`). 없으면 `KR_STOCK_AUTH_REQUIRED` → `notifyKrError` 가 게스트 토큰을 받고 다시 연결한다
    */
   private sendKrSubscribe(codes: string[]) {
     if (codes.length === 0) return;
-    if (!hasSession()) {
-      this.krErrorListeners.forEach((fn) => fn(KR_AUTH_REQUIRED));
-      return;
-    }
     // 토큰을 싣지 않는다 — BFF 가 연결 요청의 세션 쿠키를 쓴다(`BFF-REQ-009` FR-54)
     this.send({ type: WSMessageType.Subscribe, assetType: WSAssetType.KrStock, symbols: codes });
   }

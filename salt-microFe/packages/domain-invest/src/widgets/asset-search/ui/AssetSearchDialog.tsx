@@ -82,9 +82,9 @@ const risingEntries = (rising: RisingSectors | undefined): OptionEntry[] =>
   rising?.items.map((sector) => ({ key: `rising:${sector.code}`, href: KR_BOARD_HREF, remember: false })) ?? [];
 
 /**
- * 종목 검색 모달 (`FE-REQ-066` 1단계 — 화면 틀이 바뀌고 결과 · 추적(★) · 소유자 판정은 서버 값 그대로, `FE-REQ-010` · `011`).
+ * 종목 검색 모달 (`FE-REQ-066` 1단계 — 화면 틀이 바뀌고 결과 · 추적(★) 은 서버 값 그대로 — 게스트는 ★ 칸이 null(`FE-REQ-070`), `FE-REQ-010` · `011`).
  *
- * - 첫 화면: 최근 검색 칩(칩마다 × · 기기 저장) → 거래대금 상위(코인 · 국내 — 국내는 소유자만, D3 라벨)
+ * - 첫 화면: 최근 검색 칩(칩마다 × · 기기 저장) → 거래대금 상위(코인 · 국내, D3 라벨)
  * - 입력 중: 결과 행(로고 · 하이라이트 · 코드 · 현재가 · 등락률 · ★) + 자산군 칩(결과에 실제로 있는 것만, `FE-REQ-010` FR-77)
  * - 키보드: 포커스는 검색칸 고정 · ↑↓ 고른 행(`aria-activedescendant`) · Enter 상세 · Esc 두 단계(지우기 → 닫기)
  * - 주소: 바뀌지 않는다(`syncUrl` 이 아니면) — 열고 닫아도 그 화면 그대로
@@ -138,7 +138,9 @@ const SearchBody = ({
   const assetType = filter?.query === query ? filter.assetType : undefined;
   const search = useAssetSearch(query, assetType);
   const [types, setTypes] = useState<{ query: string; list: string[] }>({ query: "", list: [] });
-  const { data: watchlist, isPending: watchlistPending } = useWatchlist();
+  const { data: watchlist, isPending: watchlistLoading, isSignedOut: watchlistSignedOut } = useWatchlist();
+  // 게스트는 관심 목록 조회가 꺼져 있다 — 꺼진 조회는 `isPending` 이 계속 참이라 기다리면 결과가 영영 안 뜬다(2026-11-10 실화면, `FE-REQ-070`)
+  const watchlistPending = watchlistLoading && !watchlistSignedOut;
   const [limitNotice, setLimitNotice] = useState(false);
   const top = useTopTradeValue(query === "");
   const rising = useRisingSectors(query === "");
@@ -286,7 +288,6 @@ const SearchBody = ({
       <div className={styles.split}>
       {/* 본문만 스크롤 — 키보드로도 굴릴 수 있게 칸이 포커스를 받는다(axe scrollable-region-focusable) */}
       <div className={styles.body} tabIndex={0} aria-label={SEARCH_MESSAGES.dialogLabel}>
-        {search.isSignedOut ? <StatusLine kind="blocked">{SEARCH_MESSAGES.signInRequired}</StatusLine> : null}
 
         {limitNotice ? (
           <StatusLine kind="blocked" live>
@@ -399,7 +400,7 @@ type OptionPropsOf = (index: number) => {
   onHover: () => void;
 };
 
-/** 첫 화면 순위 — 코인 · 국내 두 묶음이 한 목록(키보드는 이어서 내려간다). 국내 묶음은 소유자에게만 온다 */
+/** 첫 화면 순위 — 코인 · 국내 두 묶음이 한 목록(키보드는 이어서 내려간다). 국내 묶음은 국내 키가 켜져 있을 때 온다 */
 const TopTradeValue = ({
   listId,
   crypto,
@@ -411,7 +412,7 @@ const TopTradeValue = ({
   listId: string;
   crypto: TopTradeValueGroup | null;
   kr: TopTradeValueGroup | null;
-  /** 지금 뜨는 업종(FR-8) — 국내 소유자만 온다. 같은 목록에 이어 둬 ↑↓ 가 끝까지 내려간다 */
+  /** 지금 뜨는 업종(FR-8) — 국내 키가 켜져 있을 때 온다. 같은 목록에 이어 둬 ↑↓ 가 끝까지 내려간다 */
   rising: RisingSectors | undefined;
   isPending: boolean;
   optionProps: OptionPropsOf;

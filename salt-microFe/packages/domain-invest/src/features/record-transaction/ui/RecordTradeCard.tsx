@@ -41,7 +41,7 @@ import {
 const SIZE_CHECK_DEBOUNCE_MS = 300;
 const THESIS_MAX_LENGTH = 200;
 const INSUFFICIENT_QUANTITY = "PORTFOLIO_INSUFFICIENT_QUANTITY";
-/** 국내 주식 — 비소유자 · 마스터에 없는 코드(서버 `KrStockNotAvailableError`) */
+/** 국내 주식 — 마스터에 없는 코드(서버 `KrStockNotAvailableError`. 2026-11-10 소유자 판정은 걷었다 — `ADR-011`) */
 const KR_STOCK_NOT_AVAILABLE = "KR_STOCK_NOT_AVAILABLE";
 const HTTP_UNAUTHORIZED = 401;
 

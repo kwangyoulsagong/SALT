@@ -28,7 +28,7 @@ const monthLabel = (month: string) => R.month(month.slice(0, 4), month.slice(5, 
  * 리포트 · 게이지 · 미러와 따로 부르고 따로 실패한다. 처음엔 서버가 고른 지난달(KST)이고, 저장된 달이 둘 이상이면
  * 고를 수 있다 — 고른 달은 이 화면의 상태일 뿐 저장하지 않는다.
  *
- * `kr_stock` 이면 국내판(F011 FR-48 · `FE-REQ-041` FR-30) — 코인판 바로 아래 섹션 하나. 소유자 전용이라 비소유자(404) ·
+ * `kr_stock` 이면 국내판(F011 FR-48 · `FE-REQ-041` FR-30) — 코인판 바로 아래 섹션 하나. 로그인 전체(`ADR-011` — 전에는 소유자 전용, 404) ·
  * 로그아웃이면 **섹션 자체가 없다**(국내 미러와 같은 규칙).
  */
 export const MonthlyReviewPanel = ({ assetType = "crypto" }: { assetType?: "crypto" | "kr_stock" }) => {

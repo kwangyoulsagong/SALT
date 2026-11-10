@@ -22,12 +22,19 @@ import {
   SESSION_HINT_COOKIE,
   SESSION_ROUTE,
   USER_KEY,
+  GUEST_HINT_COOKIE,
 } from "../config";
 
 /** 표지 쿠키가 있나 — 렌더 중에 부르지 않는다(서버는 모른다 — `useHasSession`) */
 export const hasSession = (): boolean => {
   if (typeof document === "undefined") return false;
   return document.cookie.split("; ").some((pair) => pair === `${SESSION_HINT_COOKIE}=1`);
+};
+
+/** 게스트 표지 쿠키가 있나(`FE-REQ-070`) — 첫 호출 전에 게스트 토큰을 미리 받을지 */
+export const hasGuestHint = (): boolean => {
+  if (typeof document === "undefined") return false;
+  return document.cookie.split("; ").some((pair) => pair === `${GUEST_HINT_COOKIE}=1`);
 };
 
 const removeLegacyTokens = (): void => {

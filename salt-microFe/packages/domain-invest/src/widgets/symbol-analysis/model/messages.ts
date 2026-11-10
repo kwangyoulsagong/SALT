@@ -1,5 +1,7 @@
 /** 상세 분석 페이지 조립 문구 (`FE-REQ-026` L) */
 export const SYMBOL_ANALYSIS_MESSAGES = {
+  /** 로그인 없이 볼 때 유리막 칸 이름(`FE-REQ-070` FR-7) — "로그인하고 {이름} 보기" */
+  guestWhat: { coach: "코치 판단", preflight: "주문 전 체크", record: "거래 기록" },
   /** 패널 제목. 카드 안에서 가장 큰 것은 내용이어야 하므로 짧게 둔다. */
   chartHeading: "차트 · 구간",
   coachHeading: "코치 판단",

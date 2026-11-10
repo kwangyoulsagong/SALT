@@ -7,3 +7,6 @@ export { NavChevron } from "./NavChevron/NavChevron";
 export { ZoneLink } from "./ZoneLink/ZoneLink";
 export { TimelyTip } from "./TimelyTip/TimelyTip";
 export { TimelyTipContext } from "./TimelyTip/context";
+export { SignInRequired } from "./SignInRequired/SignInRequired";
+export type { SignInRequiredProps } from "./SignInRequired/SignInRequired";
+export { useSignInHref } from "./SignInRequired/useSignInHref";

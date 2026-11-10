@@ -69,3 +69,11 @@ export const TIMELY_TIP_MESSAGES = {
   official: "공식 안내 보기",
   dismiss: "이 팁 닫기",
 } as const;
+
+/** 로그인 칸 유리막(`FE-REQ-070` FR-6 · `ADR-011`) — 로그인 없이 보는 투자 화면의 사람 · AI 칸 */
+export const GUEST_GLASS_MESSAGES = {
+  action: (what: string) => `로그인하고 ${what} 보기`,
+  description: "로그인한 사람만 볼 수 있는 칸이에요",
+  /** ★ 자리 — 누르면 로그인 */
+  watchlistAction: (name: string) => `로그인하고 ${name} 관심 종목에 담기`,
+} as const;

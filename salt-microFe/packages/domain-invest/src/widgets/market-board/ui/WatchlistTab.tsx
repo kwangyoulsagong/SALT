@@ -22,7 +22,7 @@ import {
 } from "@/entities/market";
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
 import { ROUTES } from "@repo/web-shared/config";
-import { NavChevron } from "@repo/web-shared/ui";
+import { NavChevron, SignInRequired } from "@repo/web-shared/ui";
 
 import { useDetailLink } from "../lib";
 import { DEFAULT_MARKET_PARAMS } from "../model/previewParams";
@@ -121,7 +121,8 @@ export const WatchlistTab = ({
   );
 
   if (isSignedOut) {
-    return <StatusLine kind="blocked">{WATCHLIST_MESSAGES.signInRequired}</StatusLine>;
+    // 관심 종목은 사람 칸 — 유리막(`FE-REQ-070`)
+    return <SignInRequired what={WATCHLIST_MESSAGES.guestWhat} minHeight={240}>{null}</SignInRequired>;
   }
 
   if (isPending) {
