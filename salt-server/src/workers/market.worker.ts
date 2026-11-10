@@ -1,6 +1,7 @@
 import { contextUseCases } from "../composition";
 import { logger } from "../shared/config/logger";
-import { schedule } from "../shared/infrastructure/scheduler";
+import { runGuarded, schedule } from "../shared/infrastructure/scheduler";
+import { onWake } from "../shared/infrastructure/wake";
 
 /**
  * `market` 컨텍스트의 주기 작업.
@@ -24,6 +25,8 @@ interface MarketJob {
   expression: string;
   /** 부팅 직후 1회 돌릴지. 원문 워커가 전부 그렇게 했다. */
   runAtBoot: boolean;
+  /** 놓친 회차를 깬 자리에서 한 번(`scheduler.ts` 머리) — 하루 한 번 작업만 */
+  catchUp?: boolean;
   run: () => Promise<unknown>;
 }
 
@@ -50,6 +53,21 @@ const jobs = (): MarketJob[] => {
       expression: "*/5 * * * *",
       runAtBoot: true,
       run: () => market.collectPriceHistory.execute(),
+    },
+    {
+      // 5분봉 따라잡기(SRV-REQ-057 FR-2) — 정기 수집 창 밖으로 밀린 종목만. 정기 회차와 2분 어긋나게(같은 거래소 한도)
+      name: "price-history-catchup",
+      expression: "2-59/5 * * * *",
+      runAtBoot: false,
+      run: () => market.catchUpPriceHistory.execute(),
+    },
+    {
+      // 추적 목록 일별 스냅샷(SRV-REQ-057 FR-7) — 하루 한 번 · 멱등이라 부팅에도(그날 행이 없으면 쓴다)
+      name: "universe-snapshot",
+      expression: "10 0 * * *",
+      runAtBoot: true,
+      catchUp: true,
+      run: () => market.captureUniverseSnapshot.execute(),
     },
     {
       // 대형 체결 — 거래대금 상위 50 + 관심 종목, 마지막 저장 체결 뒤부터(F010 슬라이스 1)
@@ -79,9 +97,14 @@ const runAtBoot = (job: MarketJob) => {
 
 export const startMarketWorkers = () => {
   for (const job of jobs()) {
-    schedule(job.name, job.expression, () => job.run().then(() => undefined));
+    schedule(job.name, job.expression, () => job.run().then(() => undefined), { catchUp: job.catchUp });
     if (job.runAtBoot) runAtBoot(job);
   }
+
+  // 깸(SRV-REQ-057 FR-6) — 코인 5분봉 따라잡기 · 그날 스냅샷. 같은 이름 = cron 과 같은 락
+  const market = contextUseCases.market;
+  onWake("price-history-catchup", () => runGuarded("price-history-catchup", () => market.catchUpPriceHistory.execute()));
+  onWake("universe-snapshot", () => runGuarded("universe-snapshot", () => market.captureUniverseSnapshot.execute()));
 
   logger.info("📈 Market workers scheduled");
 };

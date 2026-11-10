@@ -13,7 +13,9 @@ import { startKrStockWorkers } from "./workers/kr-stock.worker";
 import { ForecastRunnerWorker } from "./workers/forecast-runner.worker";
 
 // 이관된 컨텍스트의 라우터는 조립 지점에서 온다 (`composition.ts`)
-import { contextRouters } from "./composition";
+import { contextRouters, contextUseCases } from "./composition";
+import { runGuarded } from "./shared/infrastructure/scheduler";
+import { onWake, startWakeWatch } from "./shared/infrastructure/wake";
 
 // Routes (이관 전 모듈)
 import userRoutes from "./modules/user/user.routes";
@@ -31,6 +33,11 @@ export const startWorkers = () => {
   startMarketWorkers();
   // 국내 주식(F011) — 키가 없으면 등록하지 않는다
   startKrStockWorkers();
+  // 깸 따라잡기(SRV-REQ-057 FR-6) — 지표는 맨 뒤 한 번(코인 · 국내 봉이 다 들어온 뒤). 구독 순서 = 실행 순서
+  onWake("technical-indicators", () =>
+    runGuarded("technical-indicators", () => contextUseCases.market.refreshTechnicalIndicators.execute())
+  );
+  startWakeWatch();
 
   const insightsWorker = new InvestmentInsightWorker();
   insightsWorker.start();

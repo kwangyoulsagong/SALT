@@ -48,6 +48,8 @@ import { PrismaKrSupplementStore } from "./market/infrastructure/PrismaKrSupplem
 import { PrismaKrMarketStatusStore } from "./market/infrastructure/PrismaKrMarketStatusStore";
 import { PrismaKrMoveSourceStore } from "./market/infrastructure/PrismaKrMoveSourceStore";
 import { PrismaCryptoWarningReader, PrismaMoveBetaReader } from "./market/infrastructure/PrismaForecastMoveReader";
+import { PrismaPriceFillMarkStore } from "./market/infrastructure/PrismaPriceFillMarkStore";
+import { PrismaUniverseSnapshotStore } from "./market/infrastructure/PrismaUniverseSnapshotStore";
 import { PrismaMarketScheduleReader } from "./market/infrastructure/PrismaMarketScheduleReader";
 import { PrismaIndicatorRepository } from "./market/infrastructure/PrismaIndicatorRepository";
 import { PrismaMarketAssetRepository } from "./market/infrastructure/PrismaMarketAssetRepository";
@@ -206,6 +208,12 @@ const market = createMarketApplication({
   // 보유는 `portfolio` 공개 API 로 — `portfolio` 가 아래에서 조립되므로 부를 때 찾는다(`held` 와 같은 이유)
   tracking: { held: new HeldAssetsAdapter(() => portfolio.api), limit: env.TRACKED_ASSET_LIMIT },
   // 오늘 왜 움직였나(F016 단계 C) — 예측 배치 뷰 둘 · 카드 문턱(설정)
+  // 수집 따라잡기 · 추적 목록 스냅샷(SRV-REQ-057) — 코인 보유도 `held` 와 같은 이유로 부를 때 찾는다
+  collection: {
+    fillMarks: new PrismaPriceFillMarkStore(),
+    universeSnapshots: new PrismaUniverseSnapshotStore(),
+    heldCryptoSymbols: () => portfolio.api.heldSymbols("crypto"),
+  },
   move: {
     betas: new PrismaMoveBetaReader(),
     warnings: new PrismaCryptoWarningReader(),

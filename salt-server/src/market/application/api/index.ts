@@ -1,6 +1,6 @@
 import { KrStockDisabledError, KrStockNotAvailableError, isKrStockCode, krStockLogoUrl } from "../../domain";
 import type { KrCompanyHomepageSource, KrHeldCodesSource, KrLogoImageProbe } from "../../domain";
-import type { KrArticleBodyPort, MarketScheduleReader } from "../../domain";
+import type { KrArticleBodyPort, MarketScheduleReader, PriceFillMarkStore, UniverseSnapshotStore } from "../../domain";
 import { GetKrMarketSchedule } from "../GetKrMarketSchedule";
 import type {
   KrProviderHealthPort,
@@ -68,8 +68,10 @@ import {
   ListMarketSymbols,
 } from "../ReadMarketData";
 import { GetMarketSummary } from "../GetMarketSummary";
+import { CaptureUniverseSnapshot } from "../CaptureUniverseSnapshot";
 import {
   BackfillDailyHistory,
+  CatchUpPriceHistory,
   CollectPriceHistory,
   SyncMarketListings,
   UpdateAllMarketPrices,
@@ -95,6 +97,8 @@ import {
   PollKrStockQuotes,
   ReportKrProviderMetrics,
   SyncKrMinuteBars,
+  SyncKrSlotlessMinuteBars,
+  BackfillKrUniverseJoiners,
   ResolveKrStockUniverse,
   SyncKrDailyCandles,
   SyncKrFullDailyCandles,
@@ -279,6 +283,12 @@ export interface MarketDependencies {
   tracking: { held: HoldingProbe; limit: number };
   /** 오늘 왜 움직였나(F016 단계 C) — 예측 배치 β · σ 뷰 · 코인 경보 스냅샷 · 카드 문턱(설정) */
   move: MoveDependencies;
+  /** 수집 따라잡기 · 추적 목록 스냅샷(`SRV-REQ-057` FR-2 · 7, `DB-REQ-044`) — 코인 보유는 `portfolio` 의 사실이라 조립 지점이 넣는다 */
+  collection: {
+    fillMarks: PriceFillMarkStore;
+    universeSnapshots: UniverseSnapshotStore;
+    heldCryptoSymbols: () => Promise<string[]>;
+  };
 }
 
 export interface KrStockDependencies {
@@ -328,6 +338,10 @@ export interface KrStockUseCases {
   syncFullDailyCandles: SyncKrFullDailyCandles;
   pollQuotes: PollKrStockQuotes;
   syncMinuteBars: SyncKrMinuteBars;
+  /** 실시간 슬롯 밖 종목 장중 5분봉(`SRV-REQ-057` FR-5) */
+  syncSlotlessMinuteBars: SyncKrSlotlessMinuteBars;
+  /** 유니버스에 새로 든 종목 즉시 백필(`SRV-REQ-057` FR-4) */
+  backfillUniverseJoiners: BackfillKrUniverseJoiners;
   realtime: RunKrRealtime;
   reportMetrics: ReportKrProviderMetrics;
   /** 종목별 로고 출처 판정(도메인 → 티커 → 없음) — 하루 한 번 · 30일마다 다시 */
@@ -375,10 +389,13 @@ export interface KrStockUseCases {
 const createKrStockUseCases = (
   deps: KrStockDependencies,
   schedule: MarketScheduleReader,
-  move: MoveDependencies
+  move: MoveDependencies,
+  snapshots: UniverseSnapshotStore
 ): KrStockUseCases => {
   const universe = new ResolveKrStockUniverse(deps.store, deps.held, deps.universeTopN);
   const realtime = new RunKrRealtime(deps.realtime, deps.store, deps.calendar, universe);
+  const syncDailyCandles = new SyncKrDailyCandles(deps.kis, deps.store, universe);
+  const syncMinuteBars = new SyncKrMinuteBars(deps.kis, deps.store, deps.calendar, universe);
   const provider = () => {
     const h = deps.health.snapshot();
     return {
@@ -405,10 +422,14 @@ const createKrStockUseCases = (
   return {
     syncMaster: new SyncKrStockMaster(deps.master, deps.store),
     syncCalendar: new SyncKrMarketCalendar(deps.kis, deps.calendar),
-    syncDailyCandles: new SyncKrDailyCandles(deps.kis, deps.store, universe),
+    syncDailyCandles,
     syncFullDailyCandles: new SyncKrFullDailyCandles(deps.kis, deps.store),
     pollQuotes: new PollKrStockQuotes(deps.kis, deps.store, deps.calendar, universe),
-    syncMinuteBars: new SyncKrMinuteBars(deps.kis, deps.store, deps.calendar, universe),
+    syncMinuteBars,
+    syncSlotlessMinuteBars: new SyncKrSlotlessMinuteBars(deps.kis, deps.store, deps.calendar, universe, () =>
+      deps.realtime.subscribed()
+    ),
+    backfillUniverseJoiners: new BackfillKrUniverseJoiners(universe, snapshots, syncDailyCandles, syncMinuteBars),
     realtime,
     reportMetrics: new ReportKrProviderMetrics(deps.health),
     resolveLogos: new ResolveKrStockLogos({
@@ -483,6 +504,10 @@ export interface MarketUseCases {
   syncMarketListings: SyncMarketListings;
   updateAllMarketPrices: UpdateAllMarketPrices;
   collectPriceHistory: CollectPriceHistory;
+  /** 코인 5분봉 따라잡기(`SRV-REQ-057` FR-2) — 정기 회차 뒤 · 깸 */
+  catchUpPriceHistory: CatchUpPriceHistory;
+  /** 추적 목록 일별 스냅샷(`SRV-REQ-057` FR-7) */
+  captureUniverseSnapshot: CaptureUniverseSnapshot;
   backfillDailyHistory: BackfillDailyHistory;
   refreshTechnicalIndicators: RefreshTechnicalIndicators;
   /** 키가 없으면 `null`(FR-6) */
@@ -555,7 +580,21 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     collectPriceHistory: new CollectPriceHistory(
       deps.assets,
       deps.exchange,
-      deps.prices
+      deps.prices,
+      deps.collection.fillMarks
+    ),
+    catchUpPriceHistory: new CatchUpPriceHistory(
+      deps.assets,
+      deps.exchange,
+      deps.prices,
+      deps.collection.fillMarks,
+      deps.watchlist,
+      deps.collection.heldCryptoSymbols
+    ),
+    captureUniverseSnapshot: new CaptureUniverseSnapshot(
+      deps.assets,
+      deps.collection.universeSnapshots,
+      deps.krStock ? { store: deps.krStock.store, held: deps.krStock.held, topN: deps.krStock.universeTopN } : null
     ),
     backfillDailyHistory: new BackfillDailyHistory(
       deps.assets,
@@ -569,7 +608,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.indicators,
       krUniverse ? () => krUniverse.execute() : null
     ),
-    krStock: deps.krStock ? createKrStockUseCases(deps.krStock, deps.schedule, deps.move) : null,
+    krStock: deps.krStock ? createKrStockUseCases(deps.krStock, deps.schedule, deps.move, deps.collection.universeSnapshots) : null,
     getKrMarketSchedule: new GetKrMarketSchedule(deps.schedule),
   };
 

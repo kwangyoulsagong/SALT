@@ -22,6 +22,7 @@ import {
   type KrStockStore,
   type Candle,
   type KrDailyRewrite,
+  type UniverseSnapshotStore,
 } from "../domain";
 
 /**
@@ -225,9 +226,10 @@ export class SyncKrDailyCandles {
     private readonly now: () => Date = () => new Date()
   ) {}
 
-  async execute() {
+  /** `only` — 이 코드만(유니버스에 새로 든 종목 즉시 백필, `SRV-REQ-057` FR-4). 없으면 유니버스 전부 */
+  async execute(only?: string[]) {
     const today = kstDateOf(this.now());
-    const codes = await this.universe.execute();
+    const codes = only ?? (await this.universe.execute());
     const [range, stored] = await Promise.all([
       this.store.dailyCandleRange(codes),
       this.store.edgeDailyCloses(codes, "latest", REWRITE_OVERLAP_DAYS),
@@ -594,7 +596,8 @@ export class SyncKrMinuteBars {
     private readonly now: () => Date = () => new Date()
   ) {}
 
-  async execute() {
+  /** `only` — 이 코드만(유니버스에 새로 든 종목 즉시 백필, `SRV-REQ-057` FR-4). 없으면 유니버스 전부 */
+  async execute(only?: string[]) {
     const at = this.now();
     const today = kstDateOf(at);
     const kstMinutes = Math.floor(((at.getTime() + 9 * 3_600_000) % 86_400_000) / 60_000);
@@ -606,7 +609,7 @@ export class SyncKrMinuteBars {
       .map((d) => d.date)
       .sort()
       .reverse();
-    const codes = await this.universe.execute();
+    const codes = only ?? (await this.universe.execute());
     const coverage = await this.store.minuteBarCoverage(codes, from);
 
     const work: Array<{ code: string; date: string }> = [];
@@ -652,5 +655,89 @@ export class SyncKrMinuteBars {
     const remaining = work.length - days;
     logger.info(`🧱 국내 주식 5분봉 보정: 종목·일 ${days} · 호출 ${calls} · 봉 ${bars} · 실패 ${failed} · 남은 ${remaining}(실패 포함)`);
     return { days, calls, bars, failed, remaining };
+  }
+}
+
+/**
+ * 실시간 슬롯 밖 종목의 장중 5분봉(`SRV-REQ-057` FR-5 — 사용자 결정 "장중에도 돌아가며"). 10분마다.
+ *
+ * 실시간 41칸 밖 종목은 5분봉이 장 마감 보정(15:40)에서만 생겨 장중 m5 · h1 지표가 하루 묵었다. 종목마다 지금부터 1분봉
+ * 한 쪽(120개 = 2시간)을 받아 5분봉으로 묶어 병합 저장한다(`upsertMinuteCandles` — 시가는 먼저 쓴 값 · 고저 넓은 쪽).
+ * 창 시작이 버킷 중간이면 첫 버킷은 반쪽이라 버린다. 슬롯 안 종목은 실시간 집계가 쓴다 — 건드리지 않는다
+ */
+export class SyncKrSlotlessMinuteBars {
+  constructor(
+    private readonly kis: KrStockQuotePort,
+    private readonly store: KrStockStore,
+    private readonly calendar: KrMarketCalendarStore,
+    private readonly universe: ResolveKrStockUniverse,
+    private readonly subscribed: () => string[],
+    private readonly now: () => Date = () => new Date()
+  ) {}
+
+  async execute() {
+    const at = this.now();
+    const session = await loadKrSession(this.calendar, at);
+    if (session.session !== "regular" && session.session !== "closing_auction") {
+      return { skipped: true as const, session: session.session };
+    }
+    const inSlot = new Set(this.subscribed());
+    const codes = (await this.universe.execute()).filter((code) => !inSlot.has(code));
+    const today = kstDateOf(at);
+    const cursor = new Date(at.getTime() + 9 * 3_600_000).toISOString().slice(11, 19).replaceAll(":", "");
+
+    const bars: Array<{ code: string; candle: Candle }> = [];
+    let failed = 0;
+    await mapConcurrent(codes, KIS_CONCURRENCY, async (code) => {
+      try {
+        const minutes = await this.kis.dayMinuteCandles(code, today, cursor);
+        bars.push(...completeFiveMinuteBars(minutes).map((candle) => ({ code, candle })));
+      } catch (error) {
+        failed++;
+        logger.warn(`국내 주식 슬롯 밖 5분봉 실패 — ${code}: ${(error as Error).message}`);
+      }
+    });
+    // 한 문장 — 종목마다 흩지 않는다(`noParallelRowWrites`)
+    await this.store.upsertMinuteCandles(bars);
+    logger.info(`🧩 국내 슬롯 밖 5분봉: 종목 ${codes.length} · 봉 ${bars.length} · 실패 ${failed}`);
+    return { skipped: false as const, codes: codes.length, bars: bars.length, failed };
+  }
+}
+
+/** 1분봉 창 → 5분봉. 창 시작이 버킷 중간이면 첫(가장 오래된) 버킷은 반쪽이라 뺀다 */
+export const completeFiveMinuteBars = (minutes: Candle[]): Candle[] => {
+  if (minutes.length === 0) return [];
+  const five = krMinutesToFiveMinute(minutes);
+  const earliest = Math.min(...minutes.map((m) => m.timestamp.getTime()));
+  return five.filter((bar) => bar.timestamp.getTime() >= earliest);
+};
+
+/**
+ * 유니버스에 새로 든 종목 즉시 백필(`SRV-REQ-057` FR-4) — 직전 날 스냅샷(`DB-REQ-044` FR-1)에 없던 코드만 일봉 2년 + 5분봉 29일.
+ * 예전엔 다음 15:45 · 15:40 회차까지 비었고, 그 전에 빠지면 영영 비었다(10-29 KODEX 인버스 — 일봉 0 · 5분봉 2).
+ * 직전 스냅샷이 없으면(첫날) 고를 수 없다 — 0. 같은 날 다시 돌아도 멱등(일봉은 이어 받기 · 5분봉은 찬 날을 건너뛴다)
+ */
+export class BackfillKrUniverseJoiners {
+  constructor(
+    private readonly universe: ResolveKrStockUniverse,
+    private readonly snapshots: UniverseSnapshotStore,
+    private readonly daily: SyncKrDailyCandles,
+    private readonly minute: SyncKrMinuteBars,
+    private readonly now: () => Date = () => new Date()
+  ) {}
+
+  async execute() {
+    const [codes, previous] = await Promise.all([
+      this.universe.execute(),
+      this.snapshots.latestBefore("kr_stock", kstDateOf(this.now())),
+    ]);
+    if (!previous) return { joiners: [] as string[] };
+    const known = new Set(previous);
+    const joiners = codes.filter((code) => !known.has(code));
+    if (joiners.length === 0) return { joiners };
+    logger.info(`🆕 국내 유니버스 새 종목 ${joiners.length} — 즉시 백필: ${joiners.join(", ")}`);
+    await this.daily.execute(joiners);
+    await this.minute.execute(joiners);
+    return { joiners };
   }
 }
