@@ -64,3 +64,4 @@ zone 이 5개면 하단 탭이 가장 잦은 zone 간 이동이다. ~~크롬을~
 | 2026-11-05 | 금융 팁 S2b 확인 2회차(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: `ZoneNavigation` 의 공개 경로 판정을 `@repo/core/auth` `isPublicPath` 로(같은 규칙 — 동작 무변경, `/home` · `/goals` 탭 4 · `/login` 0 실화면) (`cf93acb1`) |
 | 2026-11-09 | FR-1 정정 — 1024+ 도메인 내비 왼쪽 레일 → 머리 글자 링크(`FE-REQ-067` D1 안 B · `334084aa`). 전환 이름 `app-navigation-rail` 삭제. 판단은 `FE-REQ-067` |
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `334084aa`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — FR-1 정정 — 1024+ 왼쪽 레일 → 머리 글자 링크(`FE-REQ-067` D1 안 B) · 전환 이름 `rail` 삭제 · `appTabs.ts` 주석 |
+| 2026-11-10 | FR-6 다시 잼 — 머리 내비(`FE-REQ-067`) 뒤 운영 빌드 A/B · Chrome 157: 적중 10/10 · 누름→보임 중앙 2 · 1ms · 미적중 80 · 73ms(전 119 · 73) — 퇴행 0. 재는 법: 올린 직후(200ms 전) 세션을 끊는다 |

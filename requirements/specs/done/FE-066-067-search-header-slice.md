@@ -4,7 +4,7 @@ title: "검색 모달 · 머리 내비 — 1단계(FE 만) · 2단계(결과 탭
 priority: medium
 labels: [F000, F015, frontend, slice, invest]
 created: 2026-11-09
-status: in-progress
+status: done
 ---
 
 ## Summary
@@ -14,14 +14,16 @@ status: in-progress
 
 > **1단계 2026-11-09** — FE 만, 계약 변경 0. 검증 `requirements/reports/checklists/FE-066-067-search-header.md`. 남은 것: ~~2단계(`FE-REQ-066` FR-8 — BFF · 서버 짝 REQ)~~ · zone 전환 계측(`FE-REQ-067`).
 >
+> **done 2026-11-10** — zone 전환 계측까지(`FE-REQ-067` done — A/B 운영 빌드 퇴행 0). 남은 것 없음.
+>
 > **2단계 2026-11-10** — `FE-REQ-066` FR-8 done(→ `FE-REQ-066` done) · 서버 `SRV-REQ-055` · BFF `BFF-REQ-054`(신규 · done). 곁 칸 근거는 사용자 결정(국내 = 같은 업종 · 코인 = 함께 태그 — 국내 제목은 종목 하나만 붙어 온다) · 업종 · 지수 줄은 국내 시세 표로. 남은 것: zone 전환 계측(`FE-REQ-067`)
 
 ## 범위
 
 | REQ | 몫 | 상태 |
 |---|---|---|
-| `FE-REQ-067` | 레일 삭제 · 머리 글자 링크 · 검색칸 · `AppShell` `headerSearch` | in-progress(전환 계측 남음) |
-| `FE-REQ-066` | 검색 모달 1단계 — 최근 검색 · 거래대금 상위 · 결과 줄 · 키보드 · 390 | in-progress(FR-8 남음) |
+| `FE-REQ-067` | 레일 삭제 · 머리 글자 링크 · 검색칸 · `AppShell` `headerSearch` | ~~in-progress(전환 계측 남음)~~ done(2026-11-10 — 퇴행 0) |
+| `FE-REQ-066` | 검색 모달 1단계 — 최근 검색 · 거래대금 상위 · 결과 줄 · 키보드 · 390 | ~~in-progress(FR-8 남음)~~ done(2026-11-10) |
 | BFF · 서버 | 1단계 변경 없음(`/api/app/search` · 시세 개요 · 국내 표 그대로) | — |
 | `SRV-REQ-055` | 2단계 서버 — 결과 묶음 · 뜨는 업종 · 곁 칸 경로 셋(DDL 0) | done(2026-11-10) |
 | `BFF-REQ-054` | 2단계 BFF — `/api/app/search/{groups,rising-sectors,related}` 뷰모델 · 캐시 0 | done(2026-11-10) |
@@ -63,3 +65,4 @@ status: in-progress
 | 2026-11-09 | 확인 2회차 — 결함 넷 고침(`6a062b24`) |
 | 2026-11-10 | 2단계 — `SRV-REQ-055` · `BFF-REQ-054` 신규 · done, `FE-REQ-066` done |
 | 2026-11-10 | 남은 결함 둘 고침(사용자 "남은 건 지금 버그") — 장중 504(`c602e97c`) · 뉴스 모달 새로고침(`87eb8083`) |
+| 2026-11-10 | `FE-REQ-067` done(zone 전환 A/B 퇴행 0) — 슬라이스 done |
