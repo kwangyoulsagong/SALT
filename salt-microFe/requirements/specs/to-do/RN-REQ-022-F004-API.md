@@ -9,6 +9,8 @@ labels: [rn, api, react-query, polling, llm, offline]
 created: 2026-09-09
 ---
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다(꼬리표 `caveats[]`). 앱의 투자 화면은 웹뷰(`RN-REQ-032`)라 이 문서의 종목 판단 게이트 FR 은 고쳐 쓰지 않고 **대체됨** 으로 둔다: FR-64 · FR-67. 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 > **2026-10-30 — 도메인 구조 전환(`ADR-005` · `RN-REQ-032`)으로 바뀌는 것** — 서비스 번들 이름은 `invest` · `savings` · `household` · `tips` + 셸(`tax` 삭제), 앱 탭은 홈 · 저축 · 가계부 · 투자 4개, 투자 기능은 동결 범위 안에서만, 알림은 도메인별 · 기본 꺼짐. 본문과 다르면 `RN-REQ-032` 가 우선한다.
 
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
@@ -112,10 +114,10 @@ created: 2026-09-09
 | FR-61 | navigation param 에 `mode` 가 없으면 요청에도 `mode` 를 싣지 않는다(서버 `defaultMode`, B16) | Must |
 | FR-62 | 화면 이탈 · 다른 종목 push 시 진행 중 요청을 `AbortSignal` 로 끊는다 | Must |
 | FR-63 | 상세 판단을 persist 한다(`detail` 과 같은 정책, FR-30). **persist 키는 종목별**, 최근 10종목까지(추적 상한 D8 과 같은 수) | Should |
-| FR-64 | 해설 요청에 `mode` 를 싣고 응답 판별 union 의 `renderable: false` 를 타입으로 처리한다(B3) | Must |
+| FR-64 | 해설 요청에 `mode` 를 싣고 ~~응답 판별 union 의 `renderable: false` 를 타입으로 처리한다(B3)~~ **대체됨(앱 웹뷰 — `RN-REQ-032`)** — v2(11-10) 종목 판단은 늘 보이고 꼬리표(`FEATURE-017` v2) | Must |
 | FR-65 | preflight 요청에 `stopLossRate` 를 싣고 목표가는 입력 시에만(B1) | Must |
 | FR-66 | 관심 추가 성공 시 관심 종목 쿼리만 무효화 — 코치 쿼리를 건드리지 않는다(D4) | Must |
-| FR-67 | `SymbolCoachViewModel` · `ModeCoachViewModel` 타입은 `packages/core` 에서 웹과 공유. `renderable: false` 에서 `judgment` 접근 컴파일 실패 · `confidence` 필드 없음 | Must |
+| FR-67 | `SymbolCoachViewModel` · `ModeCoachViewModel` 타입은 `packages/core` 에서 웹과 공유. ~~`renderable: false` 에서 `judgment` 접근 컴파일 실패~~ · `confidence` 필드 없음 **대체됨(앱 웹뷰 — `RN-REQ-032`)** — v2(11-10) 종목 판단은 늘 보이고 꼬리표(`FEATURE-017` v2) | Must |
 
 ## Acceptance Criteria
 
@@ -171,3 +173,4 @@ created: 2026-09-09
 |---|---|
 | 2026-09-21 | `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` 반영. 호출 배치 개정 — 코치 리포트 `/api/app/coach/report`, 상세 분석 화면 `/api/app/ai-coach/detail?symbol&mode`. 신규 G 절 FR-60~67(모드 무관 쿼리 키 · `defaultMode` 위임(B16) · 취소 · 종목별 persist · 해설 union(B3) · `stopLossRate`(B1) · 관심 추가 분리(D4) · 판별 union 타입(B10)) |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
+| 2026-11-10 | v2 대체 표시 — FR-64 · FR-67 대체됨(앱 웹뷰 — `RN-REQ-032`) (`FEATURE-017` v2 · `ADR-010` v2) |

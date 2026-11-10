@@ -9,6 +9,8 @@ created: 2026-10-07
 source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 ---
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 FR: FR-11 · FR-60 · FR-61 · FR-62 · FR-63 · FR-66 (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로. **재개 — FR-60 · 61 · 63**(국내 단타 개방 · 원장 국내 행 · 지표가 지금 유니버스 전부를 덮게 — 고침 주인 `SRV-REQ-057`), FR-11 도 같이 재개.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - "BFF 짝 `BFF-REQ-040` — 아직 소비처 없음"은 지난 일 — `bff/src/services/app-kr-stock.service.ts` · `websocket/managers/kr-stream.manager.ts` 가 소비한다
 > - FR-3 허용 TR 5개 이후 FR-49~53 이 `FHPUP02100000` · `FHKST01010900` · `FHKST01010200` · `FHPST02300000` 을 더했다 — 현재 목록은 `KisClient` `KIS_QUERY_TR`(코드가 진실)
@@ -33,7 +35,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | FR-5 | axios 원본 오류(요청 헤더에 시크릿)를 밖으로 내보내지 않고 `KisApiError` 로 정제 · 토큰 · 키 · 승인키 마스킹 | 완료 |
 | FR-6 | 키 없으면(빈 값 포함) 워커 미등록 · `/api/market/kr/*` 503 `KR_STOCK_DISABLED`(Shared Kernel `ErrorKind.Unavailable` 신설, `d6f9ce6`). 빈 값이 기동을 막던 것 수정(`89ff9d9`) | 완료 · 실측 |
 | FR-10 | 종목 마스터 `.mst` 매일 07:30 KST · 4,400종목 배치 upsert · 사라진 종목 `delisted_at`. 반쪽 마스터(< 500)면 중단 | 완료 · 2026-10-23 정리매매 칸(`is_liquidation`, 거래정지 다음 칸) 추가 — `FC-REQ-020` FR-9 상태 억제 원천(슬라이스 5e) |
-| FR-11 | 유니버스 = **보유 → 관심 → 주권 시총 상위 N**(`KIS_UNIVERSE_TOP_N`=50, 우선주 제외) — 보유는 `portfolio` 공개 API `heldSymbols("kr_stock")` 를 조립 지점이 넣는다(`KrHeldCodesSource`, `market` 이 `portfolio` 표를 읽지 않는다) | 완료(`422bc14`, 슬라이스 3b) |
+| FR-11 | 유니버스 = **보유 → 관심 → 주권 시총 상위 N**(`KIS_UNIVERSE_TOP_N`=50, 우선주 제외) — 보유는 `portfolio` 공개 API `heldSymbols("kr_stock")` 를 조립 지점이 넣는다(`KrHeldCodesSource`, `market` 이 `portfolio` 표를 읽지 않는다) **v2(11-10):** 유니버스가 바뀌면 지표 · 판단이 지금 유니버스 전부를 따라와야 한다(밀려난 · 새로 든 종목) — `SRV-REQ-057` (`FEATURE-017` v2) | 재개(v2) — ~~완료(`422bc14`, 슬라이스 3b)~~ |
 | FR-12 | WS 41 슬롯 — 보유 → 관심 → 시총 순(슬라이스 3b). 나머지는 1분 폴링. 42번째는 `OPSP0008 MAX SUBSCRIBE OVER`(실측) → 구독에서 빼고 폴링 | 완료(`7689823`) |
 | FR-13 | `GET /api/market/kr/search?q=` 마스터 전체 · 코드 접두 · 이름 부분 일치 · 시총 순 20건 | 완료 |
 | FR-14 | 개장일 달력 — KIS 휴장일 조회 1순위, **이 키로 거부(EGW02004)** 라 일봉 역산(지난날) + 평일 09:10 당일 봉 관측(오늘) + **KRX 휴장일 공시 표(미래)**. ~~미래는 `calendarKnown=false`~~ **정정 2026-10-30** 공시 표가 덮는 날(지금 ~2027-01-01)은 미래도 안다, 표 밖만 `false` | **완료 2026-10-30** — `KRX_NOTICE_CLOSURES`(2026 평일 휴장 17 + 2027-01-01 신정) · `krxNoticeDays` · 동기화 4단계 `krx_notice`(오늘 ~ 표 끝). 우선순위 kis > candles · probe > krx_notice(공시 뒤 임시공휴일은 그날 09:10 관측이 덮는다). 지난날 역산과 매일 대조 → 어긋나면 경고 · 표 끝 31일 전 경고. 2026 지난 줄 15개 = 역산과 같음(실측). 사유 이름은 표에만 — 응답은 FR-41 다음 줄 |
@@ -55,13 +57,13 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | FR-34 | 국내 주식 보유 평가 — 서버가 가진 `kr_stock_quotes` 로 **읽어서** 평가(`KrStockQuoteSource` ACL). 기록 · 수정 · 삭제 직후 그 보유 · 시세 회차(`kr-quote-poll`) 뒤 전체(`RevalueKrStockHoldings`, 쿼리 3) · 부팅. 시세 없는 보유는 건드리지 않음(FR-90). BFF 업비트 반영(`/internal/update-prices`)은 `crypto` 만 | 완료(`422bc14`) |
 | FR-35 | `GET /api/market/kr/assets?codes=`(쉼표 · 최대 100 · 형식 검증) — 보유 요약 이름 · 로고. 유니버스가 100을 넘으면 첫 페이지에 보유가 없을 수 있다 | 완료(`13cde7e`) |
 | FR-36 | 장 밖에도 **시세가 한 번도 없는 유니버스 종목**은 현재가를 받는다(시간외 단일가 중 제외) — 밤에 처음 기록한 보유가 아침까지 평가 0 으로 남던 것(통합 확인에서 발견) | 완료(`2449834`) |
-| FR-60 | 지표 갱신이 국내 주식 시세 유니버스도 돈다(m5 · h1 · d1). 5분봉이 정규장 체결만 저장돼 h1 도 정규장만 묶이고 일봉은 거래일 봉만 있다 — 거를 것이 없다. 유니버스 실패는 코인 지표를 막지 않는다 | 완료(`f5bf406`) — 로컬 49 · 49 · 50종목, 342종목 3.1초 |
-| FR-61 | `signalType = kr_stock.<mode>.<action>`. 코인 행 그대로 · 접두 없음 = 코인. 성적 · 게이트 · 성적표가 그룹 키로 갈려 국내 주식 표본만 센다. 판단 원장(`judgment_ledger`, rule-ic@1)은 코인만 그대로 | 완료(`c4580b8`) |
-| FR-62 | 종목별 일봉 ≥ 120 거래일 + 일봉 지표 전엔 `blockedReason: insufficient_history` + `history { ready, dailyBars, requiredDailyBars, dailyIndicator }`. ③ 표본 20 은 기존 `insufficient_sample`(국내 주식 그룹). 코치 상세 `excluded` = `insufficient_history` \| `symbol_judgment_only` + `progress`(`no_realtime_data` 삭제). 이력이 모자란 종목은 표본도 남기지 않는다 | 완료(`c4580b8`) |
-| FR-63 | 장기만. 단타는 스냅샷 없음 · 화면 `mode_not_open` · 기본 모드 장기 | 완료(`c4580b8`) |
+| FR-60 | 지표 갱신이 국내 주식 시세 유니버스도 돈다(m5 · h1 · d1). 5분봉이 정규장 체결만 저장돼 h1 도 정규장만 묶이고 일봉은 거래일 봉만 있다 — 거를 것이 없다. 유니버스 실패는 코인 지표를 막지 않는다 **v2(11-10):** 지표 덮음 = 지금 유니버스 전부(보유 · 관심 포함 빠짐 0) — 고침 주인 `SRV-REQ-057` (`FEATURE-017` v2) | 재개(v2) — ~~완료(`f5bf406`) — 로컬 49 · 49 · 50종목, 342종목 3.1초~~ |
+| FR-61 | `signalType = kr_stock.<mode>.<action>`. 코인 행 그대로 · 접두 없음 = 코인. 성적 · 게이트 · 성적표가 그룹 키로 갈려 국내 주식 표본만 센다. ~~판단 원장(`judgment_ledger`, rule-ic@1)은 코인만 그대로~~ **v2(11-10):** 국내 행도 `judgment_ledger` 에 남긴다(국내 단타 채점 시작 · `rule-ic-kr@1`) (`FEATURE-017` v2) | 재개(v2) — ~~완료(`c4580b8`)~~ |
+| FR-62 | 종목별 일봉 ≥ 120 거래일 + 일봉 지표 전엔 ~~`blockedReason: insufficient_history`~~ **v2(11-10):** 판단은 나가고 꼬리표 `{reason: insufficient_history, have, need}` (`FEATURE-017` v2) + `history { ready, dailyBars, requiredDailyBars, dailyIndicator }`. ③ 표본 20 은 기존 `insufficient_sample`(국내 주식 그룹). 코치 상세 `excluded` = `insufficient_history` \| `symbol_judgment_only` + `progress`(`no_realtime_data` 삭제). 이력이 모자란 종목은 표본도 남기지 않는다 | 완료(`c4580b8`) |
+| FR-63 | ~~장기만. 단타는 스냅샷 없음 · 화면 `mode_not_open` · 기본 모드 장기~~ **v2(11-10):** 국내 단타를 연다 — 꼬리표와 함께 보이고 원장에 남겨 다음 거래일 종가로 채점, 사전등록 `rule-ic-kr@1` (`FEATURE-017` v2) | 재개(v2) — ~~완료(`c4580b8`)~~ |
 | FR-64 | 채점 = 만기일(판단 + 30일, KST 날짜) **이전 마지막 거래일 종가**(`closeAtOrBefore`). 16시 KST 전엔 채점 안 함, 평일인데 그날 봉이 없으면 사흘 기다린 뒤 직전 거래일(평일 휴장). 왕복 비용 env `KR_STOCK_ROUND_TRIP_FEE_RATE`(기본 0.0023) — 적중 경계 · 기저율(성적표 SQL `CASE`) · 사이즈 수수료(절반씩) | 완료(`c4580b8` · `f410c42`) — 2026-10-26 FR-44 로 env 를 수수료 한쪽(`KR_STOCK_COMMISSION_RATE_PER_SIDE`) + 매도일 거래세 표로 나눴다 |
 | FR-65 | 성적표 그룹 `assetClass` — 국내 주식 그룹은 소유자에게만 | 완료(`c4580b8`) |
-| FR-66 | 신선도를 거래일로 — 종가 확정(16시) 기준 마지막 장보다 1 거래일 넘게 밀리면 `stale_inputs`(기획의 `stale_data` → 기존 사유 재사용) | 완료(`c4580b8`) |
+| FR-66 | 신선도를 거래일로 — 종가 확정(16시) 기준 마지막 장보다 1 거래일 넘게 밀리면 `stale_inputs`(기획의 `stale_data` → 기존 사유 재사용) **v2(11-10):** 막지 않고 꼬리표 `stale_inputs`("n일 전 값") (`FEATURE-017` v2) | 완료(`c4580b8`) |
 | FR-37 | 소유자 전용 — 종목 코치 404 `COACH_KR_STOCK_NOT_AVAILABLE` · 해설 `facts_unavailable` · 성적표 국내 주식 그룹 숨김(시세 경로와 같은 `FORECAST_OWNER_EMAILS`) | 완료(`c4580b8`) |
 | FR-38 | 리스크 예산 · 사이즈 · 계획 연결에 국내 주식 — 보유 · 거래(365일)를 코인 + 국내 주식으로(미국 주식 제외), 예산 % 분모도 둘의 합. 계획은 국내 주식 거래에 연결된다. 행동 분석은 코인 그대로 | 완료(`f410c42`) — 2026-10-26 정정: "행동 분석은 코인 그대로"는 FR-47 후속으로 바뀌었다 — 판정 배치 · 미러가 국내 거래도 따로 본다 |
 | FR-39 | 전망 읽기에 국내 주식 — `PrismaForecastReader` 가 `KRW-X` 와 `X` 두 키를 묻고 걸린 행 키로 자산군을 안다(6글자 코인 때문에 코드 모양으로 추측 안 함). 국내 주식 일봉 `open_time`(거래일 00:00 KST) → 그날 00:00 UTC(+9h) · 범위 필터는 9시간 넓게 읽고 보정 뒤 가른다. `GetSymbolForecast` 보유는 카드 행의 자산군으로. 효과: 사이즈 변동성 타깃 · 리스크 예산 · 익절 계획이 국내 주식 σ · 일봉을 받는다 | 완료(`e6b9983`, 슬라이스 5b). **국내 주식 변동 범위 화면은 열지 않는다** — 실력 검증 전(FC-REQ-020) |
@@ -119,6 +121,7 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 
 ## Changelog
 
+- 2026-11-10: v2 대체 표시 — FR-11 · FR-60 · FR-61 · FR-62 · FR-63 · FR-66 · 재개 FR-11 · 60 · 61 · 63 (`FEATURE-017` v2 · `ADR-010` v2)
 - 2026-10-27: 슬라이스 6b — FR-50 개정(놓친 회차 · 이어 받기 · 21:40) · FR-51 호가 · FR-52 시간외 단일가 · FR-53 우선순위 줄 · 놓친 회차(기본 속도 감속은 효과 없어 되돌림). 테스트 796 → 818. 공용 인프라 `SRV-REQ-006`(체크리스트 · 회고) · 조립 · 스키마 `SRV-REQ-008` · 설정 파일 `SRV-REQ-024`(Changelog 같이)
 - 2026-10-26: 슬라이스 6 — FR-49 지수 요약 · FR-50 투자자 순매수(조회 TR 2개 · 새 표 2개 · 경로 2개 · 워커 1개 + 현재가 회차 끝 지수). 한도 초과면 회차를 접는다(F011 FR-91 부분). 테스트 779 → 796. 조립 `SRV-REQ-006` · 설정 `SRV-REQ-008` · 요약 정책 `SRV-REQ-036`(Changelog 같이)
 - 2026-10-26: 슬라이스 7f 후속 — FR-48 IPS 이탈 두 자산군 합산(`combinedIpsSource` · `scope`). 테스트 776 → 779

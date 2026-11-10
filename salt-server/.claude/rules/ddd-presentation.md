@@ -62,7 +62,7 @@ Aggregate·VO를 그대로 응답에 담지 않는다. 담으면 도메인 리�
 |---|---|
 | `degraded` | 계산이 불완전할 때 500이 아니라 `degraded: true` + `degradedReasons[]`로 준다. 원장 불일치 · 일봉 결측 · 환율 결측 |
 | `reconciliation` | 청구서 응답은 항등식 잔차를 **항상 포함**한다. 잔차를 숨기지 않는다 |
-| 렌더 게이트 | 추천 응답은 `renderable` + `blockedReason`을 담는다. 3종 세트(근거·적중률·실패사례) 중 하나라도 없으면 `false` |
+| 렌더 게이트 | 저장 추천 응답은 `renderable` + `blockedReason`을 담는다. 3종 세트(근거·적중률·실패사례) 중 하나라도 없으면 `false`. **종목 판단은 게이트가 아니다**(`ADR-010` v2) — 판정 · 관측 · 3종이 늘 실리고 부족한 것은 `caveats[]` |
 | 계산 전제 노출 | 세금 응답은 세율·공제·시행일·기준일·환율 소스를 `lawConfigShown`으로 함께 준다 |
 | 면책 | 세금·추천 응답에 `disclaimer` 문자열을 포함한다 |
 | 410 Gone | 동면된 경로는 404가 아니라 **410 + 1회 로그**로 1주 유지해 잔여 호출을 탐지한다. 목록은 `shared/presentation/goneMiddleware` `DORMANT_PATHS` 한 곳. **제거**(계약에서 뺀 것 — `register` 등)는 404, **동면**(코드를 남기고 되살릴 수 있는 것)은 410 |

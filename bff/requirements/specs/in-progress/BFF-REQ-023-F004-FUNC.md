@@ -9,6 +9,8 @@ labels: [bff, viewmodel, render-gate, coach]
 created: 2026-09-09
 ---
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 FR: FR-92 · FR-100 (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - 재생성 경로는 프록시 `POST /api/ai-coach/generate`(`proxy.routes.ts`) — 본문을 정정했다
 > - FR-91 · 93 · 94 · 97 의 "지금 mapDecision 이 confidence 복사 / '관망' 생성 / scalp 로 채움 / 순차 호출"은 **모두 고쳐짐** — confidence 차단(`symbol-coach.viewmodel.ts`) · `badge ?? null` · mode 는 보낼 때만 · `allSettled` 병렬(`app-ai-coach.service.ts`)
@@ -124,7 +126,7 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 |---|---|---|
 | FR-90 | `/api/app/ai-coach/detail?symbol&mode` 가 서버 `modes.scalp` · `modes.longTerm` 을 **둘 다** 전달한다. 화면이 모드를 바꿔도 BFF 를 다시 부르지 않는다 | Must |
 | FR-91 | **`confidence` 를 옮기지 않는다(D3).** 지금 `mapDecision` 이 `confidence: decision.confidence` 를 복사한다 — 이 줄을 지운다. 서버가 보내더라도 뷰모델에 싣지 않는다 | Must |
-| FR-92 | 모드별 `renderable` · `blockedReason` · `trackRecord` · `failureCases` 를 **그대로** 전달한다. 게이트 판정 · 기본값 채우기 0건(FR-1~6 과 같은 규칙) | Must |
+| FR-92 | 모드별 ~~`renderable` · `blockedReason`~~ · `trackRecord` · `failureCases` 를 **그대로** 전달한다. **v2(11-10):** `renderable` · `blockedReason` 대신 판단 · `caveats[]` · 라벨 등급을 그대로 전달 — 꼬리표 판정 · 기본값 채우기 0건 (`FEATURE-017` v2). 게이트 판정 · 기본값 채우기 0건(FR-1~6 과 같은 규칙) | Must |
 | FR-93 | **라벨을 지어내지 않는다.** 지금 `getPreview` 는 `badge: data.modeDecision?.label ?? "관망"` 으로 판단이 없을 때 "관망"을 만든다 — 판단이 없으면 `null` 이다 | Must |
 | FR-94 | `mode` 가 없으면 **서버에 넘기지 않는다.** 지금은 BFF 가 `scalp` 로 채운다 — 서버가 `defaultMode`(B16)를 보고 정한다 | Must |
 | FR-95 | `zone`(판별 union)을 그대로 전달한다. `priceGap` 을 계산하지 않고 % 로 바꾸지 않으며(D13), 구간 · 가격을 만들지 않는다. `notPrediction` 을 떨어뜨리지 않는다 | Must |
@@ -132,7 +134,7 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | FR-97 | 뉴스는 지금처럼 `/market-intelligence/:symbol/news?limit=3` 을 합친다. 단 **판단 호출과 병렬**로(지금은 순차). 뉴스 실패는 `degradedFields: ['news']` 이고 판단은 응답한다. 기사 감정 · 종목 연결(B11)은 F000 소관 | Must |
 | FR-98 | `validity.code` 를 전달한다. BFF 가 "25분" 같은 문구로 바꾸지 않는다 | Must |
 | FR-99 | `preflightDefaults` 는 `{ symbol, entryPrice: 현재가, mode }` 만 준다. **목표가 기본값을 넣지 않는다**(B1) | Must |
-| FR-100 | 즉석 해설 `POST /api/app/ai-coach/explain` 은 `authMiddleware` 뒤로 옮기고(FR-70~71) 서버 응답(`renderable` 분기 · `newsSummary` · 3종)을 그대로 전달한다 | Must |
+| FR-100 | 즉석 해설 `POST /api/app/ai-coach/explain` 은 `authMiddleware` 뒤로 옮기고(FR-70~71) 서버 응답(~~`renderable` 분기~~ · `newsSummary` · 3종)을 그대로 전달한다 **v2(11-10):** 해설은 판단에 걸리지 않고 4단 대체로 늘 온다 — 단계 표시까지 그대로 전달 (`FEATURE-017` v2) | Must |
 | FR-101 | 주문 전 체크 `POST /api/app/trade-preflight` 는 `stopLossRate` 를 전달하고 `maxLossOfTotalRate` 를 그대로 돌려준다. **주문 · 외부 링크 필드를 만들지 않는다**(B1) | Must |
 | FR-102 | 관심 종목 뷰모델(`watchlist.viewmodel.ts`)에 판단 · 신호 필드를 붙이지 않는다(D4). 관심 추가는 기존 watchlist 라우트를 쓴다(B23) | Must |
 | FR-103 | 코치 리포트의 성적표 그룹 `returnDistribution` · `hits` · `misses` 를 그대로 전달한다(B17 · B2). 한쪽만 자르지 않는다 | Must |
@@ -213,5 +215,6 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | 2026-10-30 | 파일만 걸침 — `error.util.ts` 에 `trackedCount` · `trackedLimit` 옮김 추가(`retryAfterSeconds` 옆). 쿨다운 전달 무변경 — F000 종목 검색 슬라이스. 루트 `requirements/specs/in-progress/F000-asset-search-slice.md` |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 1개(경로 이동 내용 무변경 1 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 후속 — `c5ec66ed` — 이 REQ 를 머리에 적은 `coach-console` 위젯 model 에 문구 파일 하나(`COACH_CONSOLE_MESSAGES` "내 보유"). BFF 계약 무변경 |
+| 2026-11-10 | v2 대체 표시 — FR-92 · FR-100 (`FEATURE-017` v2 · `ADR-010` v2) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `bff/src/rest/routes/coach.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)

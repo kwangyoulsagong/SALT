@@ -1,5 +1,7 @@
 # SALT 현재 기능 맵
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 곳: 제품 방향 3종 줄 · FEATURE-004 행 · FEATURE-017 행 (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 Last audited: 2026-05-25
 Direction updated: 2026-09-08 (아래 '제품 방향 재정의' 참조)
 Requirements mapped: 2026-09-10 (아래 '요구사항 지도 반영' 참조)
@@ -99,7 +101,7 @@ flowchart LR
 
 - 자금은 SALT에 들어오지 않는다. 매매는 업비트/증권사에서 직접 하고 SALT는 **조회 전용** 연동만 한다.
 - 자산군을 **크립토 + 국내주식 + 미국주식** 3종으로 확장한다(`AssetType` 확장).
-- AI 추천(매수·매도 타이밍)은 **유지**하되, 모든 추천 카드에 **근거 · 과거 적중률 · 틀렸던 사례** 3종이 없으면 렌더하지 않는다.
+- AI 추천(매수·매도 타이밍)은 **유지**하되, 모든 추천 카드에 **근거 · 과거 적중률 · 틀렸던 사례** 3종이 없으면 렌더하지 않는다. **v2(11-10):** 저장 추천 카드는 그대로. 종목 판단은 늘 보인다 — 3종은 늘 다 있어야 한다, 비면 막지 않고 과거 검산으로 채운다(라벨) · 부족한 것은 꼬리표 `caveats[]` (`ADR-010` v2)
 - 게이미피케이션(미션/포인트/업적/랭킹/게임)·소셜·뉴스·시장 인텔리전스 알림 3종은 **제거**한다.
 - 화면 24개 → **탭 5개**(홈/코치/청구서/세금/포지션).
 - **서약 카드 / 쿨다운 타이머는 범위에서 제외**한다(사용자 결정). 앱이 사용자 행동을 통제·차단하는 메커니즘 전체를 뺀다.
@@ -122,7 +124,7 @@ flowchart LR
 | ~~FEATURE-001~~ | ~~개입 청구서 (My Alpha)~~ | **폐기 2026-09-21 (`ADR-002`).** 문서 삭제 |
 | ~~FEATURE-002~~ | ~~연말 세금 마감 콕핏~~ | **폐기 2026-09-21 (`ADR-002`).** 문서 삭제 |
 | FEATURE-003 | 밸류에이션 밴드 적립 | "이번 주 얼마 넣을지" 단일 숫자. BTC는 MVRV Z, 미국 지수는 CAPE 백분위로 배수 0~3x. 김프를 매수 비용으로 환산 |
-| FEATURE-004 | AI 코치 추천 화면 | 이미 서버에만 있던 `ai-coach`/`signal-performance`/`profit-plan`/`trade-preflight`/`behavior-coach`를 화면으로. 3종 세트 렌더 게이트 |
+| FEATURE-004 | AI 코치 추천 화면 | 이미 서버에만 있던 `ai-coach`/`signal-performance`/`profit-plan`/`trade-preflight`/`behavior-coach`를 화면으로. 3종 세트 렌더 게이트(v2 11-10: 저장 추천만 — 종목 판단은 늘 보이고 꼬리표, `FEATURE-017` v2) |
 | FEATURE-005 | ~~홈 브리핑 & 5탭 IA~~ | **결번.** 5탭 IA는 2026-09-09 결정(탭 축소·대화 중심)으로 FEATURE-006이 대체한다. 홈 5블록 요구사항만 FEATURE-006으로 흡수 |
 | FEATURE-006 | 코치 대화 & 3탭 IA | 대화가 제품의 핵심. 3탭(홈/코치/자산) + PC 전용 `MovableGrid`. 홈 **3블록**(2026-09-21 개정) · 자산 탭 = 포지션 / 시장 / 관심 종목 |
 | FEATURE-007 | 모바일 앱 (React Native) | iOS+Android. 푸시(지표 · 추천 갱신 1종 — 세금 D-Day 는 `ADR-002` 로 소멸). TestFlight/Play 내부 테스트, OTA |
@@ -207,7 +209,7 @@ flowchart LR
 | 셸 · 홈 · 온보딩 · 내 데이터 (FEATURE-015) | Partially Implemented(2026-11-06 — S2c 알림 설정 · S3a 온보딩 · 홈 배치) | 홈 = `entities/home` 도메인 요약 카드 · `/onboarding` 도메인 선택(`choose-domains`) · `/settings` 홈 카드 순서 · 숨김 · 알림 설정 | `/api/app/home` · `/home/layout` · `/api/app/onboarding*` · `/api/app/me/notifications` | Kotlin `identity`(셸 설정) · `notification` | `identity.user_domain_pref` · `notification.notification_pref` | ~~옛 투자 3스텝~~ 은퇴(2026-11-06). 내보내기 · 삭제 · JWKS 는 S3b · S3c |
 | 오늘 왜 움직였나 (FEATURE-016) | Planned(2026-11-06) | 없음 — 계획: 국내 · 코인 상세 카드 · 시장 상태 띠 · 상태 칩 · 국내 오늘 소식 · 장중 수급 | 없음 — 계획 `BFF-REQ-051` | 없음 — 계획 market `SRV-REQ-051` · coach `SRV-REQ-052` | 계획 `DB-REQ-041` · β `FC-REQ-027` | 투자 동결 위 사용자 요청 · `ADR-009`. 지금 있는 것: 국내 종목 상태 · 경보 칩(`krStatusBadges`) · 일별 투자자 수급 |
 | 로그인 없이 시세 보기 (FEATURE-018) | Implemented(2026-11-10) | 투자 zone 비로그인 열림(`isGuestReadablePath`) · `SignInGlass` · `SignInRequired` · ★ 자물쇠 · 머리 "로그인" · 로그인 `?next=` — `FE-REQ-070` | 게스트 쿠키(`salt_gt`) → `Authorization` · `POST /api/auth/guest` 통과 · 검색 `isTracked` null · 국내 실시간 사람/게스트 상한 — `BFF-REQ-055` | `POST /api/auth/guest` · `marketReaderMiddleware`(시장 경로) · 국내 소유자 판정 걷음(전망만 소유자) — `SRV-REQ-056` | 상태 0(토큰) | `ADR-011` — `FEATURE-011` §정책(비회원 국내 0건) 뒤집음. 출시(상업)로 바뀌면 먼저 되돌린다 |
-| AI 코치 — 잘 사고 잘 팔기 (FEATURE-017) | Partial(2026-11-10 — 결함 여섯 고침, 기능 단계 1~4 계획) | 지금: 판단 블록 · AI 해설(판단이 열려야) · `CoachStaleNote`(마지막 판단) · 호가 받는 중 · 최근 소식 — 계획: 관망 판단 · 해설 4단 · 시나리오 카드(변동 범위 자리) · 사기/팔기 점검 · 측정 태그 `FE-REQ-064` | 지금 `ai-coach/detail`(`staleSince`) — 계획 `/api/app/ai-coach/{explanation,scenario,check}` `BFF-REQ-052` | 지금 coach 규칙 엔진 · 해설 · 호가 viewer 우선 + 받아 둔 값 · 대시보드 15초 · 국내 표 = 유니버스 · 소식 recent — 계획 `SRV-REQ-053` | 지금 거시 일정 반응 전 코인 — 계획 해설 스냅샷 · 단타 확률 · 기저율 · 사건 종류 `DB-REQ-043` · `FC-REQ-028` | 투자 동결 위 사용자 요청 · `ADR-010` 채택 · `ADR-009` 개정. 시나리오 카드는 소유자 전용(`ADR-003`) |
+| AI 코치 — 잘 사고 잘 팔기 (FEATURE-017) | Partial(2026-11-10 — 결함 여섯 고침, 기능 단계 1~4 계획) | 지금: 판단 블록 · AI 해설(~~판단이 열려야~~ v2: 늘 — 4단 대체) · `CoachStaleNote`(마지막 판단) · 호가 받는 중 · 최근 소식 — 계획: 관망 판단 · 해설 4단 · 시나리오 카드(변동 범위 자리) · 사기/팔기 점검 · 측정 태그 `FE-REQ-064` | 지금 `ai-coach/detail`(`staleSince`) — 계획 `/api/app/ai-coach/{explanation,scenario,check}` `BFF-REQ-052` | 지금 coach 규칙 엔진 · 해설 · 호가 viewer 우선 + 받아 둔 값 · 대시보드 15초 · 국내 표 = 유니버스 · 소식 recent — 계획 `SRV-REQ-053` | 지금 거시 일정 반응 전 코인 — 계획 해설 스냅샷 · 단타 확률 · 기저율 · 사건 종류 `DB-REQ-043` · `FC-REQ-028` | 투자 동결 위 사용자 요청 · `ADR-010` 채택 · `ADR-009` 개정. 시나리오 카드는 소유자 전용(`ADR-003`). **v2(11-10):** 판단 · 해설은 늘 보인다(꼬리표 · 라벨 등급 참고/검증됨/주의) · 주인공 = 사기/팔기 전 점검 + 맨 위 쉬운 한 줄 · 국내 = 코인과 같은 기능(국내 단타 개방 · 채점) (`FEATURE-017` v2) |
 
 ### 관련 문서 (2026-10-30)
 
@@ -216,3 +218,9 @@ flowchart LR
 - 프론트 도메인 zone 설계: `salt-microFe/docs/architecture/2026-10-30-domain-zones.html`
 - 서버 MSA · Kotlin 이전 설계: `salt-server/docs/2026-10-30-msa-kotlin-migration.html`
 - 예측 · 온톨로지 설계: `salt-forecast/docs/2026-10-30-ontology-agent.html`
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-10 | v2 대체 표시 — 제품 방향 3종 줄 · FEATURE-004 행 · FEATURE-017 행 (`FEATURE-017` v2 · `ADR-010` v2) |

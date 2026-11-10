@@ -9,6 +9,8 @@ labels: [bff, api, contract, viewmodel, coach, render-gate]
 created: 2026-09-09
 ---
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 FR: `ModeCoachViewModel` 타입 · FR-31 · FR-37 · 수용 기준 (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - `@repo/core/coach/symbolCoach.ts` 가 있다(FR-30) · explain 인증 · 20s · 동시 2(`app-ai-coach.service.ts`) — 수용 기준 미체크는 체크리스트가 진실. 미구현: `stopLossRate` 표시
 
@@ -133,6 +135,8 @@ type GenerationStatusViewModel = {
 enum CoachMode { Scalp = 'scalp', LongTerm = 'long_term' }
 enum JudgmentAction { ReviewShortOpportunity = 'review_short_opportunity', ReviewAccumulation = 'review_accumulation', Wait = 'wait', Avoid = 'avoid' }
 
+// v2(11-10, FEATURE-017 v2 · ADR-010 v2): 아래 union 대체 — 판별 없음. { judgment; trackRecord; failureCases; caveats: Caveat[]; tier: '참고' | '검증됨' | '주의'; zone }
+//   판단은 늘 있고 막힘 갈래(renderable: false)는 없다. reasons_missing 은 사유째 삭제
 type ModeCoachViewModel =
   | { renderable: true;
       judgment: { action: JudgmentAction; label: string; score: number; scoreNote: string;
@@ -168,13 +172,13 @@ type SymbolCoachViewModel = {
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-30 | `SymbolCoachViewModel` 을 **`packages/core`** 에 두고 웹 · RN 이 공유한다 | Must |
-| FR-31 | **`ModeCoachViewModel` 은 `renderable` 판별 union 이다.** `renderable: false` 에 `judgment` · `trackRecord` 가 **없다** — 막힌 판단의 점수 · 라벨이 화면에 새어 나갈 수 없다. 이것이 Open Question(아래)의 답이다 | Must |
+| FR-31 | ~~**`ModeCoachViewModel` 은 `renderable` 판별 union 이다.** `renderable: false` 에 `judgment` · `trackRecord` 가 **없다** — 막힌 판단의 점수 · 라벨이 화면에 새어 나갈 수 없다. 이것이 Open Question(아래)의 답이다~~ **v2(11-10):** 뒤집힘 — `judgment` · `trackRecord` · `failureCases` 가 **늘** 있고 `caveats[]`(빈 배열 포함) · 라벨 등급(참고 · 검증됨 · 주의)이 붙는다 (`FEATURE-017` v2) | Must |
 | FR-32 | `confidence` 필드가 타입에 **없다.** 추가하면 리뷰에서 막는다(D3) | Must |
 | FR-33 | `zone` 은 판정과 무관하게 싣는다. `notPrediction: true` 가 타입 리터럴이다 | Must |
 | FR-34 | `validity.code` 는 문자열 코드다. 문구 0건 | Must |
 | FR-35 | `preflightDefaults` 에 목표가 필드가 **없다**(B1) | Must |
 | FR-36 | 관심 종목 뷰모델에 판단 필드가 없다(D4) | Must |
-| FR-37 | 해설 응답(`POST /explain`)도 판별 union 이다: `{ renderable: true; modeReasoning; validity; keyDrivers; risks; newsSummary (≤5); trackRecord; failureCases; disclaimer; generatedAt; source } \| { renderable: false; blockedReason }`. 예상 수익 필드 0건(B3) | Must |
+| FR-37 | 해설 응답(`POST /explain`)도 판별 union 이다: `{ renderable: true; modeReasoning; validity; keyDrivers; risks; newsSummary (≤5); trackRecord; failureCases; disclaimer; generatedAt; source } \| { renderable: false; blockedReason }`. 예상 수익 필드 0건(B3). **v2(11-10):** 판단 막힘으로는 `renderable: false` 갈래가 안 나온다 — 해설 4단 대체(최신 AI → 직전 AI + 시각 → 사실 표 틀 문장 → "특이 소식 없음" + 판정 근거) (`FEATURE-017` v2) | Must |
 | FR-38 | preflight 응답에 `maxLossOfTotalRate` 를 더한다. 게이트 · 차단 · 주문 필드 0건 유지(FR-17) | Must |
 | FR-39 | 성적표 뷰모델의 최저값 필드는 `worstObservedReturn` 이다(개정 2026-09-24, `SRV-REQ-025` FR-55 짝). 옛 `maxDrawdown` 을 별칭으로 남기지 않는다 — 서버가 옛 이름을 보내지 않으니 남기면 늘 `null` 이다. 대상: `symbolCoach` · `coachReport` 뷰모델 · `/api/app/signal-performance` `metrics` | Must |
 | FR-40 | **(F010 슬라이스 0) 성적표 계약 통과** — `SRV-REQ-025` FR-59 의 짝. 코치 리포트 뷰모델: 사유 `insufficient_sample` 을 정상 사유로(모르는 사유는 여전히 계약 깨짐), `signalTrackRecord` 에 `horizonHours` · `alwaysUpRate` · `excessWinRate`(없으면 `null`), `failureCases` 는 그대로 통과(`symbol` · `returnRate` 포함). 종목 판단 `trackRecord` 타입에 `alwaysUpRate` · `excessWinRate`. `/api/app/signal-performance` 는 `signalType` · `metrics.{lowSample, horizonHours, alwaysUpRate, excessWinRate}` 추가, `samples` 는 서버 모양 그대로 | Must |
@@ -198,7 +202,7 @@ type SymbolCoachViewModel = {
 - [ ] `explain`이 인증을 요구한다
 - [ ] **`trade-preflight` 응답에 게이트·차단 필드가 0건이다**
 - [ ] `/ai-coach/detail` 이 `SymbolCoachViewModel` 이고 `packages/core` 에서 공유된다
-- [ ] **`ModeCoachViewModel` 의 `renderable: false` 분기에 `judgment` · `trackRecord` 가 없다** (타입)
+- [ ] ~~**`ModeCoachViewModel` 의 `renderable: false` 분기에 `judgment` · `trackRecord` 가 없다** (타입)~~ **v2(11-10):** `judgment` · `trackRecord` · `failureCases` · `caveats[]` 가 늘 있다(타입) (`FEATURE-017` v2)
 - [ ] **`confidence` 가 모든 뷰모델에서 0건이다**
 - [ ] `zone` 이 판정과 무관하게 있고 `notPrediction: true` 다
 - [ ] `preflightDefaults` 에 목표가가 0건이다
@@ -237,3 +241,4 @@ type SymbolCoachViewModel = {
 | 2026-10-30 | F004 슬라이스 18 — **변경 없음.** `GET/PATCH /api/app/ai-coach/profile` 이 6필드 + 숨김을 이미 그대로 넘긴다. 웹 설정 화면이 그중 `defaultMode` · `panicSellWindowHours` 를 새로 읽는다 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 1 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-invest/src/features/run-preflight/api/runPreflightApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
+| 2026-11-10 | v2 대체 표시 — `ModeCoachViewModel` 타입 · FR-31 · FR-37 · 수용 기준 (`FEATURE-017` v2 · `ADR-010` v2) |

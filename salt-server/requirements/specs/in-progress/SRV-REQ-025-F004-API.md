@@ -9,6 +9,8 @@ labels: [api, rest, contract, coach, render-gate]
 created: 2026-09-09
 ---
 
+> **v2 대체 (2026-11-10, `FEATURE-017` v2 · `ADR-010` v2)** — 종목 판단은 숨기지 않는다: 판단 · 관측 · 성적 · 실패사례는 늘 나가고 예전 막힘 사유는 꼬리표 `caveats[]`. 3종은 늘 다 있어야 한다 — 비면 막지 않고 과거 검산으로 채운다. 이 문서에서 바뀐 FR: `ModeCoachView` 타입 · FR-42 · `ExplainResult` 타입 · FR-50 · FR-59(등급 재사용 메모) (아래 그 자리에 표시). 저장 추천 카드 게이트 · 전망 게이트는 그대로.
+
 > **2026-10-29 전수 조사 — 아래 본문 중 지금과 다른 것** (본문은 당시 기록으로 둔다)
 > - `explain` 은 "현재 public · TODO"가 아니다 — `aiCoach.routes.ts` 에 `authMiddleware` + `rateLimit`(2026-09-22 닫힘)
 > - 수용 기준은 Changelog 상 FR-1~18 · 20 · 32 · 40~64 가 닫혔다. 남은 것: FR-31(계약 테스트) · 54 · 19 부분 → 그래서 in-progress 유지
@@ -28,7 +30,7 @@ created: 2026-09-09
 | POST | `/api/ai-coach/generate` | **쿨다운 429** + `retryAfterSeconds` |
 | GET/PATCH | `/api/ai-coach/profile` | `defaultMode`·`notificationLevel` **실제 영속화**(`unsupportedPersistedFields` 제거) |
 | POST | `/api/ai-coach/feedback` | `reasonCode` 4종 |
-| POST | `/api/ai-coach/explain` | **인증 추가**(현재 public + TODO 주석) + rate limit. 2026-09-21: 3종 동봉 · `newsSummary` ≤ 5 · 예상 수익 없음 · 판단 미렌더면 생성 안 함 |
+| POST | `/api/ai-coach/explain` | **인증 추가**(현재 public + TODO 주석) + rate limit. 2026-09-21: 3종 동봉 · `newsSummary` ≤ 5 · 예상 수익 없음 · ~~판단 미렌더면 생성 안 함~~ **v2(11-10):** 판단과 무관하게 4단 대체로 늘 나감 (`FEATURE-017` v2) |
 | GET | `/api/profit-plan` | `gapFromCurrent` · 3자산군 지원 |
 | GET | `/api/signal-performance` | `?groupBy=signalType` · `lowSample` · 2026-09-21: `returnDistribution`(30일, B17) |
 | POST | `/api/trade-preflight` | ~~변경 없음~~ **개정 2026-09-21 (B1)**: 요청 `stopLossRate?` · 응답 `maxLossOfTotalRate` 추가. **게이트 · 차단 · 주문 필드 추가 금지는 그대로** |
@@ -147,8 +149,10 @@ type Zone =
 
 type ModeCoachView = {
   judgment: ModeJudgment;
-  renderable: boolean;
-  blockedReason: 'reasons_missing' | 'signal_track_record_missing' | 'failure_cases_missing' | 'insufficient_sample' | null;  // insufficient_sample = 표본 < 20 (D11)
+  renderable: boolean;   // ~~v2(11-10) 삭제~~
+  blockedReason: 'reasons_missing' | 'signal_track_record_missing' | 'failure_cases_missing' | 'insufficient_sample' | null;  // insufficient_sample = 표본 < 20 (D11) — v2(11-10) 삭제(reasons_missing 은 사유째 없어짐)
+  // v2(11-10, FEATURE-017 v2 · ADR-010 v2): 위 두 칸 대신 caveats: Array<{ reason: 'mode_not_open' | 'insufficient_history' | 'exchange_warning' | 'stale_inputs'
+  //   | 'inputs_missing' | 'insufficient_sample' | 'failure_cases_missing' | 'track_record_unavailable'; ...사실 }> — 판단 · 3종은 늘 실린다(비면 과거 검산으로 채움)
   trackRecord: { signalType: string; sample: number; winRate: number | null; avgReturn: number | null;
                  worstObservedReturn: number | null; lowSample: boolean } | null;
   failureCases: Array<{ date: string; event: string; outcome: string }>;
@@ -178,7 +182,7 @@ type SymbolCoachResult = {
 |---|---|---|
 | FR-40 | 종목 경로 응답에 **`modes.scalp` · `modes.longTerm` 을 항상** 싣는다. 요청 `mode` 는 기본 선택일 뿐이다 | Must |
 | FR-41 | **`confidence` 를 응답에서 뺀다** — `modes.*` 에 없고, 하위 호환으로 남기는 `modeDecision` · `dualDecision` 에서도 뺀다(D3). 이것은 **필드 제거**이므로 FR-30 의 예외다 — BFF `mapDecision` 이 `confidence` 를 옮기고 있어 BFF 와 동시 변경이다(`BFF-REQ-025`) | Must |
-| FR-42 | 모드마다 `renderable` · `blockedReason` 을 **항상** 싣는다. `renderable: false` 도 200 | Must |
+| FR-42 | 모드마다 ~~`renderable` · `blockedReason`~~ 을 **항상** 싣는다. ~~`renderable: false` 도 200~~ **v2(11-10):** 모드마다 판단 · 3종 · `caveats[]`(빈 배열 포함)를 **항상** 싣는다 — 막힘 상태 없음 (`FEATURE-017` v2) | Must |
 | FR-43 | `trackRecord` 는 표본 0 이면 `{ sample: 0, winRate: null, ... }` 이고, 매핑 자체가 없으면 `null` 이다. 둘을 구분한다(SRV-REQ-024 FR-132) | Must |
 | FR-44 | `zone` 은 판별 union 이다. `held_rule` 의 `stages` 는 3개 고정, `observation` 은 `lower ≤ mid ≤ upper`. **수익률 · 목표가 · 확률 필드 0건** | Must |
 | FR-45 | `validity.code` 가 유효시간의 유일한 출처다. 사람이 읽는 문구는 프론트 i18n | Must |
@@ -196,7 +200,7 @@ type ExplainResult =
       newsSummary: string[];          // 최대 5
       trackRecord: ModeCoachView['trackRecord']; failureCases: ModeCoachView['failureCases'];
       disclaimer: string; generatedAt: string; cached: boolean; source: 'llm' | 'rule' }
-  | { renderable: false; blockedReason: string };           // LLM 을 부르지 않았다
+  | { renderable: false; blockedReason: string };           // LLM 을 부르지 않았다 — v2(11-10): 판단 막힘으로는 이 갈래가 안 나온다(해설 4단 대체, FEATURE-017 v2 FR-2)
 
 // POST /api/trade-preflight — 추가 (B1)
 // 요청: stopLossRate?: number   (칩 −1.5 ~ −12%; stopPrice 가 있으면 stopPrice 우선)
@@ -213,7 +217,7 @@ type ExplainResult =
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-50 | `explain` 은 요청 종목 · 모드의 판단이 `renderable: false` 면 **LLM 을 부르지 않고** `{ renderable: false, blockedReason }` 을 200 으로 준다 | Must |
+| FR-50 | ~~`explain` 은 요청 종목 · 모드의 판단이 `renderable: false` 면 **LLM 을 부르지 않고** `{ renderable: false, blockedReason }` 을 200 으로 준다~~ **v2(11-10):** 해설은 판단에 걸리지 않는다 — 최신 AI → 직전 AI + 시각 → 사실 표 틀 문장 → "특이 소식 없음" + 판정 근거 4단 대체로 늘 나간다 (`FEATURE-017` v2) | Must |
 | FR-51 | `explain` 응답에 `expectedReturn` 류 필드 0건(2026-09-18 제거 유지). `newsSummary` 최대 5 | Must |
 | FR-52 | `trade-preflight` 에 `stopLossRate` 입력 · `maxLossOfTotalRate` 출력을 추가한다. **목표가 기본값을 서버가 만들지 않는다.** 주문 · 외부 링크 필드 0건 | Must |
 | FR-53 | `signal-performance?groupBy=signalType` 그룹에 `returnDistribution` · `hits` · `misses` 를 추가한다. 무인자 호출은 하위 호환 | Must |
@@ -230,7 +234,7 @@ type ExplainResult =
 | FR-30 | 기존 5경로의 응답에 **필드 추가만** 한다. 제거·이름 변경 0건. **개정 2026-09-21**: 예외 1건 — 종목 경로의 `confidence` 제거(FR-41, D3). BFF 와 동시 변경. **개정 2026-09-24**: 예외 2건째 — `maxDrawdown` → `worstObservedReturn`(FR-55). 이름이 값을 거짓으로 말해 옛 이름을 남기지 않는다. BFF · 프론트 동시 변경 | Must |
 | FR-31 | 프론트가 아직 없는 경로이므로 **파괴적 변경이 안전하지만**, BFF가 이미 프록시하고 있으므로 계약 테스트를 둔다 | Must |
 | FR-32 | `explain`에 인증을 추가하면 **BFF 프록시가 토큰을 전달해야 한다.** BFF 변경이 짝이다 | Must |
-| FR-59 | **(F010 슬라이스 0) 성적표 계약 개정.** ① 종목 판단 `trackRecord` · 성적표 그룹 · 저장 추천 `signalTrackRecord` 에 `alwaysUpRate: number \| null` · `excessWinRate: number \| null` 추가(저장 추천은 `horizonHours: 720` 도). ② 저장 추천 `blockedReason` enum 에 `insufficient_sample`(표본 < 20). ③ `failureCases[]` 에 `symbol` · `returnRate`(30일 뒤 채점) 추가. ④ `GET /api/signal-performance` 응답 모양 변경 — `status` 는 표본 ≥ 20 일 때만 `active`, `signalType`(`coach` 또는 `coach.<action>`) · `lowSample` · `horizonHours` · `alwaysUpRate` · `excessWinRate` 추가, `samples[]` 는 `{symbol, action, judgedAt, entryPrice, exitPrice, returnRate, outcome}`(`latestPrice` · `win` 삭제). `signalKey` 는 `coach.` 접두가 없으면 붙여 해석(하위 호환). FR-30 예외 3건째 — 원장이 생겨 옛 필드가 뜻을 잃었다. BFF · 프론트 동시 변경(`BFF-REQ-024` FR-40 · `FE-REQ-026` FR-165) | Must |
+| FR-59 | **(F010 슬라이스 0) 성적표 계약 개정.** ① 종목 판단 `trackRecord` · 성적표 그룹 · 저장 추천 `signalTrackRecord` 에 `alwaysUpRate: number \| null` · `excessWinRate: number \| null` 추가(저장 추천은 `horizonHours: 720` 도). ② 저장 추천 `blockedReason` enum 에 `insufficient_sample`(표본 < 20). ③ `failureCases[]` 에 `symbol` · `returnRate`(30일 뒤 채점) 추가. ④ `GET /api/signal-performance` 응답 모양 변경 — `status` 는 표본 ≥ 20 일 때만 `active`, `signalType`(`coach` 또는 `coach.<action>`) · `lowSample` · `horizonHours` · `alwaysUpRate` · `excessWinRate` 추가, `samples[]` 는 `{symbol, action, judgedAt, entryPrice, exitPrice, returnRate, outcome}`(`latestPrice` · `win` 삭제). `signalKey` 는 `coach.` 접두가 없으면 붙여 해석(하위 호환). FR-30 예외 3건째 — 원장이 생겨 옛 필드가 뜻을 잃었다. BFF · 프론트 동시 변경(`BFF-REQ-024` FR-40 · `FE-REQ-026` FR-165). **v2(11-10):** ① `excessWinRate` 를 종목 판단 라벨 등급(참고 · 검증됨 · 주의, `SRV-REQ-053` FR-7)에 다시 쓴다 — 계약 무변경 (`FEATURE-017` v2) | Must |
 | FR-60 | **(F010 슬라이스 2) 익절 가격선 근거.** `GET /api/profit-plan` 계획마다 · 종목 코치 `modes.*.zone`(`held_rule`) · 코치 상세 `exitPlans[]` 에 `basis: "volatility" \| "fixed"` **추가**(`SRV-REQ-024` FR-180). 가격 · 상태 값의 계산이 바뀐다(모양은 추가만). 경고는 계획 상태에서 나온다(문구 무변화). BFF 는 필드를 걸러 내지 않는다 — 화면 표시는 F010 슬라이스 3 | Must |
 | FR-61 | **(F010 슬라이스 6) LLM 가드 · 인젝션 방어** — 리서치 §2-4 8 · 9. ① 뉴스 제목 · 요약 숫자는 **뉴스 요약 칸에서만** 허용 숫자다(판단 · 근거 · 주의 칸은 시세 · 근거 사실만) ② 영어 확신 · 명령형 매매 · 목표가 패턴 ③ **판단 극성 대조** — 해설 입력에 `stance`(`candidate` · `wait` · `avoid`, 규칙 `action` 에서), 관망 · 피하기에 강세 전망 · 후보에 약세 전망이면 `judgment_polarity` 로 떨어뜨린다(판단 · 근거 칸만, 주의 칸 제외) ④ 뉴스는 표식 블록 안에만 · 줄바꿈 · 제어 문자 · 꺾쇠 · 백틱 제거 · 지시형 구절 `[지시문 삭제]` · 시스템 지시 7 · 8 ⑤ Gemini `responseSchema` + Zod 재검사, 모양이 다르면 템플릿. 모델에게 면책을 받지 않는다(서버 상수 `JUDGMENT_DISCLAIMER`). **응답 계약 변경 없음** — `droppedSentences` 값만 늘 수 있다 | Must |
 | FR-62 | **(F010 슬라이스 7) 해설 LLM 비용 상한.** `POST /api/ai-coach/explain` · `/explain/stream` 이 부르기 전에 지난 24시간(rolling, 달력 경계 없음) 사용량을 본다 — 사용자 30 시도 · 전체 300 시도 · 전체 150만 토큰(`domain/policy/llmBudget.ts` `DEFAULT_LLM_BUDGET`). env `LLM_USER_DAILY_CALL_LIMIT` · `LLM_DAILY_CALL_LIMIT` · `LLM_DAILY_TOKEN_LIMIT` 로 덮는다(비운 칸은 기준값). 상한에 닿으면 **에러가 아니라 템플릿 해설**(`source: "template"`) — 응답 모양 무변화, 화면은 기존 "규칙 기반 설명" 배지. 스트림은 polish · verify 단계 `skipped`. 확인과 호출 사이 동시 요청은 한두 건 넘을 수 있다(락 없음 — 초대제 10명) | Must |
@@ -264,12 +268,12 @@ type ExplainResult =
 - [ ] 기존 경로 응답 스냅샷이 하위 호환이다 (`confidence` 제거 1건 제외)
 - [ ] 종목 경로가 `modes.scalp` · `modes.longTerm` 을 항상 싣는다
 - [ ] **종목 경로 응답 전체에서 `confidence` 가 0건이다** (`modes` · `modeDecision` · `dualDecision`)
-- [ ] 모드별 `renderable` · `blockedReason` 이 항상 있다
+- [ ] ~~모드별 `renderable` · `blockedReason` 이 항상 있다~~ **v2(11-10):** 모드별 판단 · 3종 · `caveats[]` 가 항상 있다 (`FEATURE-017` v2)
 - [ ] `trackRecord` 표본 0 과 매핑 없음(`null`)이 구분된다
 - [ ] `zone` 이 판별 union 이고 수익률 · 목표가 · 확률 필드가 0건이다
 - [ ] `mode` 없는 요청이 `defaultMode` 를 따른다
 - [ ] `preview=true` 에서도 게이트 필드가 있다
-- [ ] `explain` 이 판단 미렌더 시 LLM 호출 0건 · 200 이다
+- [ ] ~~`explain` 이 판단 미렌더 시 LLM 호출 0건 · 200 이다~~ **v2(11-10):** 해설이 4단 대체로 늘 나간다 (`FEATURE-017` v2)
 - [ ] `explain` 에 `newsSummary` ≤ 5 가 있고 예상 수익 필드가 0건이다
 - [ ] preflight 에 `stopLossRate` · `maxLossOfTotalRate` 가 있고 목표가 서버 기본값이 0건이다
 - [ ] 성적표 그룹에 `returnDistribution` · `hits` · `misses` 가 있다
@@ -328,6 +332,7 @@ type ExplainResult =
 | 2026-11-02 | 파일만 걸침 — `aiCoach.routes.ts` Swagger: `/explain` · `/explain/stream` 에 `X-Salt-Client` 헤더 · `provider` · 흘림 방식 서술(`failOnErrors` 생성 확인). 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `/api/coach/events` Swagger — 국내 종목 · `scope` · `region` · 응답 스키마(`SRV-REQ-041` FR-7) |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 2 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
+| 2026-11-10 | v2 대체 표시 — `ModeCoachView` · FR-42 · `ExplainResult` · FR-50 · FR-59 메모 (`FEATURE-017` v2 · `ADR-010` v2) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-server/src/coach/application/GetSymbolCoach.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/coach/application/__tests__/explainCoachDecision.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
