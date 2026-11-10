@@ -530,6 +530,15 @@ export class PollKrStockQuotes {
 }
 
 /**
+ * 한도 초과율 — 전체 호출 중 초과(EGW00201) 비율. 수용 기준 "장중 1시간 ≤ 1%"(`SRV-REQ-057` FR-3)를 이 줄로 센다. 호출 0 이면 0
+ */
+export const krRateLimitRatio = (byTr: Record<string, { calls: number; rateLimited: number }>): number => {
+  const all = Object.values(byTr);
+  const calls = all.reduce((sum, m) => sum + m.calls, 0);
+  return calls === 0 ? 0 : all.reduce((sum, m) => sum + m.rateLimited, 0) / calls;
+};
+
+/**
  * KIS 관측 지표(FR-94) — 10분마다 TR 별 호출 · 실패 · 초과 수를 한 줄로 남긴다. 토큰 발급이 하루 3회를 넘으면 경고
  * (재시작이 발급을 늘리면 DB 캐시가 깨진 것이다). 지표 저장소가 없어 로그가 지표다
  */
@@ -540,13 +549,14 @@ export class ReportKrProviderMetrics {
     const { byTr, tokensIssuedToday } = this.health.drainMetrics();
     const snapshot = this.health.snapshot();
     const parts = Object.entries(byTr).map(([tr, m]) => `${tr} ${m.calls}/${m.failures}/${m.rateLimited}`);
+    const rateLimitRatio = krRateLimitRatio(byTr);
     logger.info(
-      `📊 KIS 10분(호출/실패/초과): ${parts.join(" · ") || "호출 없음"} · 상태 ${snapshot.status} · 연속 실패 ${snapshot.consecutiveFailures} · 오늘 토큰 ${tokensIssuedToday}`
+      `📊 KIS 10분(호출/실패/초과): ${parts.join(" · ") || "호출 없음"} · 초과율 ${(rateLimitRatio * 100).toFixed(1)}% · 상태 ${snapshot.status} · 연속 실패 ${snapshot.consecutiveFailures} · 오늘 토큰 ${tokensIssuedToday}`
     );
     if (tokensIssuedToday > KR_TOKEN_ISSUE_WARN_PER_DAY) {
       logger.warn(`KIS 접근 토큰이 오늘 ${tokensIssuedToday}회 발급됐다 — DB 캐시를 확인한다`);
     }
-    return { byTr, tokensIssuedToday, status: snapshot.status };
+    return { byTr, tokensIssuedToday, status: snapshot.status, rateLimitRatio };
   }
 }
 
