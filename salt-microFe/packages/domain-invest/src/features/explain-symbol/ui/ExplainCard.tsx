@@ -9,7 +9,7 @@ import { Heading } from "@repo/ui/heading";
 import { StatusToast } from "@repo/ui/statusToast";
 import { Text } from "@repo/ui/text";
 
-import { JudgmentCases, selectModeView, TrackRecordStats } from "@/entities/coach";
+import { selectModeView } from "@/entities/coach";
 import { formatClockTime, formatRelativeTime } from "@repo/web-shared/lib";
 
 import { useExplainStream } from "../api";
@@ -126,7 +126,8 @@ interface ExplainCardProps {
  *   모드가 계약 깨짐일 때만 그리지 않는다
  * - 누르면 단계가 하나씩 켜지고(실제 서버 작업), 근거 문장이 타자처럼 흐른다. 검사를 통과한 AI 문장이
  *   오면 한 번에 바뀌고 그 사실을 알린다. AI 가 실패하면 흐른 문장이 최종이고 "규칙 기반 설명" 배지가 붙는다
- * - 같은 카드 안에 **적중률 · 사례**(3종의 나머지 둘)를 둔다. 해설만 떼어 읽히지 않게
+ * - ~~같은 카드 안에 **적중률 · 사례**(3종의 나머지 둘)를 둔다~~ — 2026-11-10 뺐다: 같은 화면의 판단 카드(`JudgmentDetail`)가
+ *   3종을 **늘** 보여 준다(`ADR-010` v2). 두 번 그리면 같은 숫자 두 번(`screen-desktop.md` §5 · `FE-REQ-049` 문제 목록)
  * - 모드가 바뀌면 부르는 쪽이 `key={mode}` 로 새로 만든다 — 진행 중 스트림은 끊긴다
  */
 export const ExplainCard = ({ view, mode, className }: ExplainCardProps) => {
@@ -216,8 +217,6 @@ export const ExplainCard = ({ view, mode, className }: ExplainCardProps) => {
           헤더에 계속 남기면 판단 옆 장식이 된다. 규칙 기반 대체면 띄우지 않는다 */}
       <StatusToast trigger={finished && !ruleBased ? (state.generatedAt ?? "done") : null}>{M.finished}</StatusToast>
       {renderBody()}
-      <TrackRecordStats record={modeView.trackRecord} />
-      <JudgmentCases cases={modeView.failureCases} backtest={modeView.trackRecord.sampleOrigin === "backtest"} />
     </section>
   );
 };
