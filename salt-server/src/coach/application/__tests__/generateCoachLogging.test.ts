@@ -39,6 +39,7 @@ const build = (
     { findByUser: async () => null } as unknown as CoachProfileStore,
     { findActiveForScoring: async () => [] } as unknown as CoachInsightStore,
     {
+      dailyBarCounts: async (symbols: string[]) => new Map(symbols.map((s) => [s, 365])),
       latestIndicators: async () => new Map(),
       latestSentiments: async () => new Map(),
     } as unknown as MarketProbe,
