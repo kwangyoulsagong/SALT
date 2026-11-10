@@ -1,0 +1,97 @@
+# 사전등록 — 종목 판단 과거 검산 · 출처 라벨 (F017 v2 단계 1b · FC-REQ-028 FR-5 · ADR-010 v2)
+#
+# 이 파일은 **한 번도 돌려 보기 전에** 커밋한다. 커밋 시각 · 해시가 등록 증거다. 바꾸려면 새 키(@2)로 새 파일.
+#
+# 왜: 종목 판단의 3종(근거 · 성적 · 빗나간 사례)은 늘 다 있어야 한다(ADR-010 v2). 라이브 표본이 모자란 유형
+# (코인 장기 · 코인 단타 피하기 · 국내 단타)을 같은 규칙 · 같은 입력으로 과거에 되돌려 채점해 채운다. 숫자는 라이브와 섞지 않는다.
+#
+# 리서치 초안 `requirements/reports/research/2026-11-10-v2-signal-validation.md` §6 을 옮겼다. 초안은 이 파일을 `salt-forecast/` 에
+# 두자고 했지만 채점하는 규칙(`scoreModeDecision`)과 원장(`symbol_judgment_snapshots`)이 서버에 있어 서버에 둔다 —
+# 국내 장기 `kr-judgment-backtest@2` 와 같은 자리 · 같은 방식(운영 코드를 그대로 부른다).
+
+key = "signal-skill@1"
+registered = 2026-11-10
+rule = "mode-decision@2 — 운영 코드 `scoreModeDecision` 그대로(두 곳에 적지 않는다)"
+markets = ["upbit_krw", "kr_stock"]
+
+# ─── 칸 ────────────────────────────────────────────────────────────────────────────────
+# 출처 라벨 — 입력을 과거에 얼마나 재현했나.
+#   backtest_full       점수 항목 전부를 과거 값으로 재현
+#   backtest_price_only 과거가 없는 항목을 빼고(기여 0) 가격 항목만
+#   backtest_seen       규칙을 고를 때 본 기간 — 리포트만, 화면 0 · 저장 0
+[[cell]]
+market = "upbit_krw"
+mode = "long_term"
+label = "backtest_full"
+items = "change24h(일봉 종가 ÷ 전 봉 종가) · rsi_d1(일봉 100개 창, 라이브 RefreshTechnicalIndicators 와 같은 계산 · 50봉 미만이면 표본 없음)"
+
+[[cell]]
+market = "upbit_krw"
+mode = "scalp"
+label = "backtest_price_only"
+items = "change24h 만"
+omitted = "sentiment — 라이브 값은 24시간 변화 · 고저 폭 · 거래대금 대비 · 공포탐욕 합성이고 서버에 과거가 없다 / rsi_h1 — 1시간봉 과거가 없다(5분봉 30일 보관). 둘 다 기여 0"
+
+[[cell]]
+market = "kr_stock"
+mode = "scalp"
+label = "backtest_price_only"
+items = "change24h 만(국내는 심리 없음)"
+omitted = "rsi_h1 — 국내 1시간봉 과거가 없다(5분봉 2026-10~). 기여 0"
+
+[[cell]]
+market = "kr_stock"
+mode = "long_term"
+label = "backtest_full"
+same_as = "kr-judgment-backtest@2 전부 — 이 등록은 그 행의 라벨을 `backtest` → `backtest_full` 로 바꿀 뿐(판정 · 표본 같음)"
+
+# ─── 본 기간 ───────────────────────────────────────────────────────────────────────────
+[seen]
+upbit_krw = "판단 시각 < 2026-09-29T00:00:00Z — mode-decision@2 는 rule-ic@1(업비트 일봉 2018-01-01 ~ 2026-09-27) 결과로 부호 · 가중을 골랐다. 그 기간은 표본 밖이 아니다 → backtest_seen(리포트 표 하나, 저장 · 화면 0)"
+kr_stock = "없음 — 규칙을 코인 데이터로 골랐다. 국내 전 기간이 표본 밖"
+
+# ─── 표본 ─────────────────────────────────────────────────────────────────────────────
+[universe]
+upbit_krw = "서버 `price_history`(crypto, 1d)에 그 날 봉이 있고 그 날까지 봉 ≥ 60(rule-ic@1 의 '상장 60일')"
+kr_stock = "kr-universe@1(20 거래일 연속 봉 · 20일 평균 거래대금 ≥ 10억 · 봉 ≥ 250)"
+survivorship = "서버가 지금 모으는 종목만 일봉이 있다 — 폐지 종목 없음(생존 편향). 리포트에 적는다"
+
+[schedule]
+upbit_scalp = "종목마다 일봉 마감(00:00 UTC = 09:00 KST)마다 — 라이브 24시간 간격과 같다"
+upbit_long = "종목마다 30일 간격. 첫 판단 = 본 기간 끝(2026-09-29) + FNV-1a(심볼) % 30 일"
+kr_scalp = "종목마다 10 거래일 간격(행 수 예산 — 하루 종목 수만 줄고 날짜는 전부 덮인다). 첫 판단 = 2022-01-01 뒤 첫 거래일부터 FNV-1a(심볼) % 10 번째 거래일. 판단 시각 = 그날 16:00 KST"
+end = "만기가 실행 시각 이전(코인) · 국내 단타 라이브 시작(2026-11-11 00:00 KST) 이전(국내)인 판단만"
+
+[scoring]
+entry = "판단 봉 종가"
+exit_upbit_scalp = "다음 일봉 종가(+24시간)"
+exit_upbit_long = "판단 + 30일 이후 첫 일봉 종가"
+exit_kr_scalp = "시장 다음 거래일 종가 — 그 종목 봉이 그 거래일에 없으면 표본 제외(만기 없음으로 센다)"
+breaks_kr = "kr-judgment-backtest@2 와 같다(종가 비 0.69 미만 · 1.31 초과가 [판단 전 봉, 만기]에 있으면 제외)"
+cost = "코인 0.001(라이브 ROUND_TRIP_COST) · 국내 수수료 한쪽 × 2 + 매도일 거래세(krStockCost.ts). 스프레드 · 슬리피지 0 — 리포트에 적는다"
+outcome = "judgeOutcome(mode, action, r, cost) — 라이브 채점과 같은 함수(단타 관망 ±2% · 장기 관망 ±10%)"
+evaluated_at = "만기 종가 확정 시각(코인 = 봉 마감 · 국내 = 그날 16:00 KST)"
+
+# ─── 화면 — 3종 채움 ───────────────────────────────────────────────────────────────────
+[display]
+labels = ["backtest_full", "backtest_price_only"]
+fill = "같은 판단 유형(<자산군>.<mode>.<action>) 라이브가 3종을 못 채울 때만(라이브 표본 < 20 또는 빗나간 사례 0)"
+min = "표본 ≥ 20 · 빗나간 사례 ≥ 1 · 판단 날(KST) ≥ 10 — 하루 장세가 성적이 되지 않게"
+kr_long = "kr-judgment-backtest@2 [display] 그대로(판단 달 ≥ 12)"
+mix = "라이브와 합산 0 — 고른 출처의 성적 · 사례만"
+
+# ─── 리포트 — 판정이 아니라 보고 ───────────────────────────────────────────────────────
+[report]
+path = "salt-server/requirements/reports/backtests/signal-skill-v1-<실행일>.md"
+per_group = "칸 × 행동: 표본 · 판단 날 · 적중률 · 기저율(풀 '항상 오른다', 자기 비용 넘겨 오름) · 초과 · 평균 · 최악"
+ci = "날짜 블록 부트스트랩 95% · 2,000회 · seed 20261110(코인 · 국내 단타 = 판단 날 블록, 국내 장기는 @2 그대로 달 블록)"
+placebo = "같은 판단 날 안에서 종목끼리 행동 라벨 순열 1,000회 · 단측 p"
+spread = "후보 평균 (r − 비용) − 피하기 평균 r. 한쪽 행동이 0 건이면 '없음'(mode-decision@2 는 코인 장기 · 코인 단타 · 국내 단타에서 후보 점수 70 에 닿는 조합이 없다 — 판정 전에 적어 둔다)"
+seen_table = "업비트 본 기간 같은 표 — 참고, 화면 0"
+
+# ─── 등급 (FR-6) — 이 등록으로는 실행하지 않는다 ─────────────────────────────────────
+[decision]
+verified = "라이브만 · Holm 뒤 spread CI 하한 > 0 · 유효 n ≥ 620 · 국면 2개 같은 부호"
+caution = "spread CI 상한 < 0 (라이브 또는 backtest_full)"
+reference = "그 외 — 숨기지 않음"
+promotion_from = "live 만 — 과거 검산은 '검증됨'을 만들지 않는다"
