@@ -6,7 +6,7 @@ as_of 는 **UTC 자정으로 내린다** — 일봉이 00:00 UTC 에 닫히므�
 
 | 묶음 | 일봉 | 사건 종류 |
 |---|---|---|
-| 코인(`event_symbols`) | 업비트 1d | 미국 거시 3 |
+| 코인(`event_symbols`, 비우면 업비트 일봉 전부) | 업비트 1d | 미국 거시 3 |
 | 국내(`kr_event_symbols` 또는 보유 · 관심 + 거래대금 상위 + `KR-EW`) | KIS 1d | 국내 4 + 미국 거시 3(FR-8) |
 """
 
@@ -45,6 +45,7 @@ from salt_forecast.store.db import engine
 from salt_forecast.store.events import events_known, upsert_events, upsert_reactions, upsert_stats
 from salt_forecast.store.kr_stock import kr_tracked_symbols, krx_closed_dates
 from salt_forecast.store.prices import load_ohlcv_series, top_by_value
+from salt_forecast.store.prices import symbols as price_symbols
 from salt_forecast.store.runs import mark_source
 
 JOB = "events"
@@ -151,7 +152,7 @@ def main(argv: list[str] | None = None) -> int:
         all_reactions: list[Reaction] = []
         all_stats: list[ReactionStats] = []
 
-        wanted = symbols_arg(args.symbols) or cfg.event_symbol_list()
+        wanted = symbols_arg(args.symbols) or cfg.event_symbol_list() or price_symbols(eng, "upbit", "1d")
         bars_by_symbol = load_ohlcv_series(eng, "upbit", "1d", wanted)
         for symbol in wanted:
             bars = bars_by_symbol.get(symbol)
