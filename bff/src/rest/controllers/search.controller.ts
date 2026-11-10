@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { appSearchService } from "../../services/app-search.service";
+import { appSearchExtrasService, appSearchService, type SearchRelatedTarget } from "../../services/app-search.service";
 
 /** 서버 DTO(`search.dto.ts`)와 같은 경계 — 서버를 부르기 전에 막는다 */
 const MAX_QUERY_LENGTH = 30;
@@ -46,3 +46,78 @@ class AppSearchController {
 }
 
 export const appSearchController = new AppSearchController();
+
+/** 서버 DTO(`search.dto.ts` `risingSectorsSchema` · `searchRelatedSchema`)와 같은 경계 */
+const RISING_DEFAULT_LIMIT = 5;
+const RISING_MAX_LIMIT = 20;
+const SECTOR_CODE = /^\d{4}$/;
+const KR_CODE = /^[0-9A-Z]{6}$/;
+const COIN_SYMBOL = /^[0-9A-Za-z]{1,15}$/;
+
+/** 클라이언트가 떠나면(다음 글자 · 다음 행) upstream 도 끊는다 */
+const abortOnClose = (res: Response) => {
+  const aborter = new AbortController();
+  res.on("close", () => {
+    if (!res.writableFinished) aborter.abort();
+  });
+  return aborter;
+};
+
+const relatedTarget = (query: Request["query"]): SearchRelatedTarget | null => {
+  const { assetType, symbol, sector } = query;
+  if (sector !== undefined) {
+    return assetType === undefined && symbol === undefined && typeof sector === "string" && SECTOR_CODE.test(sector)
+      ? { sector }
+      : null;
+  }
+  if (typeof symbol !== "string") return null;
+  if (assetType === "kr_stock" && KR_CODE.test(symbol)) return { assetType, symbol };
+  if (assetType === "crypto" && COIN_SYMBOL.test(symbol)) return { assetType, symbol: symbol.toUpperCase() };
+  return null;
+};
+
+/**
+ * 검색 모달 2단계(`BFF-REQ-054`) — 결과 묶음(업종 · 지수 · 뉴스) · 뜨는 업종 · 곁 칸. 요청 파싱 · 서비스 호출 · 응답만
+ */
+class AppSearchExtrasController {
+  groups = async (req: Request, res: Response, next: NextFunction) => {
+    const q = req.query.q === undefined ? "" : req.query.q;
+    if (typeof q !== "string" || q.length > MAX_QUERY_LENGTH) {
+      return badRequest(res, `q 는 ${MAX_QUERY_LENGTH}자 이하 문자열입니다`);
+    }
+    const aborter = abortOnClose(res);
+    try {
+      return res.json({ success: true, data: await appSearchExtrasService.groups(req.token!, q, aborter.signal) });
+    } catch (error) {
+      if (aborter.signal.aborted) return;
+      return next(error);
+    }
+  };
+
+  risingSectors = async (req: Request, res: Response, next: NextFunction) => {
+    const raw = req.query.limit;
+    const limit = raw === undefined ? RISING_DEFAULT_LIMIT : typeof raw === "string" && /^\d+$/.test(raw) ? Number(raw) : NaN;
+    if (!(limit >= 1 && limit <= RISING_MAX_LIMIT)) return badRequest(res, `limit 은 1~${RISING_MAX_LIMIT} 정수입니다`);
+    const aborter = abortOnClose(res);
+    try {
+      return res.json({ success: true, data: await appSearchExtrasService.risingSectors(req.token!, limit, aborter.signal) });
+    } catch (error) {
+      if (aborter.signal.aborted) return;
+      return next(error);
+    }
+  };
+
+  related = async (req: Request, res: Response, next: NextFunction) => {
+    const target = relatedTarget(req.query);
+    if (!target) return badRequest(res, "assetType+symbol(crypto · kr_stock) 또는 sector(네 자리) 하나입니다");
+    const aborter = abortOnClose(res);
+    try {
+      return res.json({ success: true, data: await appSearchExtrasService.related(req.token!, target, aborter.signal) });
+    } catch (error) {
+      if (aborter.signal.aborted) return;
+      return next(error);
+    }
+  };
+}
+
+export const appSearchExtrasController = new AppSearchExtrasController();
