@@ -173,6 +173,8 @@ export const COACH_MESSAGES = {
     horizon: (hours: number) => `판단 뒤 ${hours}시간 기준`,
     /** 서버는 틀렸던 때만 최근 3건 보낸다 — "맞았던 때"를 제목에 쓰지 않는다(F009 FR-33) */
     failureHeading: "최근 틀렸던 때",
+    /** 사례 0건 — 막지 않고 사실 한 줄(`ADR-010` v2). 이유는 판단 꼬리표가 말한다 */
+    failureEmpty: "아직 기록된 틀린 사례가 없어요",
     backtestFailureHeading: "되돌려 채점에서 틀렸던 때(모의)",
     outcome: { hit: "맞음", miss: "틀림" },
     emptyValue: "—",

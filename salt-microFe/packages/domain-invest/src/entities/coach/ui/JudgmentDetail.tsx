@@ -9,6 +9,7 @@ import { Heading } from "@repo/ui/heading";
 import { formatRatio, formatSignedPoints, formatSignedRate } from "../lib";
 import { COACH_MESSAGES } from "../model";
 import {
+  caseEmpty,
   caseList,
   caseRow,
   detailSection,
@@ -87,6 +88,8 @@ export const JudgmentCases = ({
     <Heading level={5} as={4} color="tertiary">
       {backtest ? DETAIL.backtestFailureHeading : DETAIL.failureHeading}
     </Heading>
+    {/* 빈 칸 0(`ADR-010` v2) — 사례가 없으면 그 사실 한 줄. 왜 없는지는 판단 꼬리표 문장이 말한다 */}
+    {cases.length === 0 && <p className={caseEmpty}>{DETAIL.failureEmpty}</p>}
     <ul className={caseList}>
       {cases.map((item) => (
         <li key={`${item.date}-${item.symbol}-${item.event}`} className={caseRow}>
