@@ -43,3 +43,8 @@
 | `npm test` · build · lint | 1039/1039(504 고침 포함) |
 | 실데이터(캐시 비우고, BFF 거쳐) | 코인 21/25 ok · 3 못 찾음 · 1 일시 실패(바로 다시 받으면 0.3초 정상 — 30분 뒤 다시) · 국내 14/25(자동 시황 9 제외 14/16) · 최악 13.2초 · 평균 4.2초 |
 | 찾은 36건 제목 ↔ 첫 문단 대조 | 남의 기사 0 |
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- 공개 API 둘 — 유스케이스 `SearchArticleTitles` · `ListSymbolTagLists`(태그 목록 상한 300). 검증 `SRV-REQ-055`
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`

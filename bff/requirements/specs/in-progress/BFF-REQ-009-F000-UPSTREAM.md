@@ -166,3 +166,4 @@ F000에서 BFF가 부르는 서버 엔드포인트. **제거되는 호출**과 *
 | 2026-11-02 | 실행 스크립트 `bff/ops/run.sh` 가 공용 `ops/lib-run.sh` 를 쓴다 — 종료 신호에 프로세스 그룹 전체 · 시작 때 같은 폴더 옛 프로세스 정리 · (REST · WS) 포트 대기. 재시작 고아 0. 코드 무변경. 루트 `requirements/specs/done/OPS-002-local-process-supervisor.md` FR-6 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`). 파일 1개(경로 이동 내용 무변경 0 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-05 | **FR-54 추가 · done** — 웹 세션 쿠키(`salt_at`) → `Authorization`(헤더가 있으면 보지 않는다 — 앱). 같은 origin 요청(`Sec-Fetch-Site` same-origin · none / 없으면 `Origin` 허용 목록)에서만 · 웹소켓은 `Origin` ∈ `WEB_ORIGINS` 일 때만 연결 쿠키를 토큰으로. 서버로 쿠키를 넘기지 않는다. 국내 중계 서버 401 → `KR_STOCK_AUTH_REQUIRED`(`fb9c85b3`). 웹 쪽 `FE-REQ-013` FR-80 2단계. 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
+| 2026-11-10 | 호출 맵에 `searchGroups` · `risingSectors` · `searchRelated` — 각 400ms · GET 재시도 1 · 캐시 0(국내 칸 소유자 판정, `BFF-REQ-054` `1110aa9b`) |

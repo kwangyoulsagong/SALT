@@ -293,3 +293,4 @@ F000의 UI 작업은 **깨진 것을 고치는 것**이다. 새 화면은 초대
 | 2026-11-09 | 시세 엔드포인트 둘(`krWhyMoved` · `cryptoWhyMoved`) · 시장 개요 행 `moveCard` 타입(F016 단계 C) |
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `b37bf890` · `6a062b24`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — FR-70 · 72 · 76 정정 — 검색은 모달(머리 칸 · `/`), 결과는 줄(격자), 빈 검색어 첫 화면은 최근 + 거래대금 상위. 검색 문구(`SEARCH_MESSAGES`) 더함 · `AssetSearchTable` 삭제 |
 | 2026-11-09 | 확인 2회차 `6a062b24` — **퇴행 고침**: 모달 결과 줄에서 FR-72 `보유` 배지가 빠졌다 → 다시 붙임. 쓰이지 않게 된 문구 셋(추적 목록 머리 · 빈 문구 · 표 열 이름) 삭제 |
+| 2026-11-10 | 검색 모달 2단계 — 경로 셋(`endpoints.ts` `searchGroups` · `risingSectors` · `searchRelated`) · 자산군 칩은 전체 · 종목 탭에서만(`FE-REQ-066` FR-8 `19539c95`) |

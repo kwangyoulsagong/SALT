@@ -373,3 +373,8 @@ FR-11("인증 토큰을 클라이언트로 내리지 않는다 — 쿠키에서 
 
 - `AppShell` 주석 · 머리 검색칸 자리(`headerSearch`) — 스트리밍 경계 변화 없음(검색 모달은 클라이언트 잎 · `Suspense` 안). 투자 화면 머리 "종목 검색 ›" 링크 삭제(`MarketBoard`)
 - 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- `/investments` 정적(○) 그대로 · 첫 로드 153 kB 그대로(worktree 운영 빌드)
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`

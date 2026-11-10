@@ -127,3 +127,8 @@
 ## 2026-11-09 — 달력 역산 유니버스로
 
 - `PrismaKrMarketCalendarStore.daysFromDailyCandles` — 2024-11-09 ~ 2026-11-08 520 평일 옛 SQL 과 같음 · 개장 484 · 132ms. 시세 행이 없으면(새 환경) 전 종목으로
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- 파일만 걸침(포트 선언) — 검증은 `SRV-REQ-055` 체크리스트(테스트 · EXPLAIN)
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`

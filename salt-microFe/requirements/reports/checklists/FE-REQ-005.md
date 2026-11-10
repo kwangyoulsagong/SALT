@@ -119,3 +119,8 @@ validated: 2026-09-09
 ## 2026-11-04 — 로고(`FE-REQ-051`) · `25f182f6`
 
 - 파일만 걸침 — 이 REQ 의 동작 · 값 diff 0. 모노레포 check-types · lint · test · zone 5 빌드 · 훅 통과(`checklists/FE-REQ-051.md`)
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- `ui/src/AssetIcon/fallbackPalette.ts` · `.test.ts` — 판 색 여섯 모두 ≥ 4.5:1 · 자리 수 6(해시 자리 유지). `@repo/ui` unit 63 통과 · 검색 모달 곁 칸 axe 0
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`

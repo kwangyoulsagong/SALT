@@ -55,3 +55,8 @@
 ## 2026-11-09 — 기사 본문(주인 `SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068`)
 
 - `PrismaKrMoveSourceStore.newsTitle(serial, code)` — 연결 PK(serial, code) → 제목 PK, 광고성 제외(본문 찾기 입력) — 검증은 주인 체크리스트(서버 1031 · BFF 430 · 실화면 1440 · 훅 사후 실행)
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- 새 읽기 둘의 `EXPLAIN` 은 `SRV-REQ-055` 체크리스트. 제목 39행 정리 — 원본 로컬 백업 · 정리 뒤 제어 문자 0행
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`

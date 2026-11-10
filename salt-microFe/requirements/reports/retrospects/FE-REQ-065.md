@@ -15,3 +15,8 @@
 ## 2026-11-09 — 검색 모달 · 머리 내비
 
 - 공용 오버레이 훅을 고치면 소비처(`Modal` · `BottomSheet`) 둘 다 — `BottomSheet` 는 `onEscape` 를 넘기지 않아 동작 같음
+
+## 2026-11-10 — 검색 모달 2단계
+
+- 모달 주소(`?news=`)는 그 소식이 실린 화면만 읽는다 — 검색 결과는 목록에 없을 수 있어 런처 상태로 열었다. 남은 행(코인 프리뷰 새로고침)은 그대로
+- 루트 회고 `requirements/reports/retrospects/FE-066-067-search-header.md`

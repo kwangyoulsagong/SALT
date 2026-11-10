@@ -29,3 +29,8 @@
 
 - `Modal` 에 `size="search"` · `onEscape` · `initialFocusRef` · 포커스 가둠 안정화(처리기 ref · `open && mounted`) — 뉴스 모달(`article`)도 같은 가둠을 쓴다. 주소로 연 모달이 첫 렌더에 가둠을 놓치던 것도 같이 닫힘
 - 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- 검색 → 뉴스 줄 Enter → 모달 1개 · 본문 · Esc → 0개 · 주소 그대로. axe(다이얼로그) 0
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`

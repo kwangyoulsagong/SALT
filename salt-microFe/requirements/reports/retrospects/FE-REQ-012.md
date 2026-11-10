@@ -128,3 +128,8 @@ FR-36 은 Should 였고 "끊겨 있으면 잇는다"였다. 확인해 보니 끊
 
 - 변경 칸 하나 — 소비처 테스트(계약 목록 · 뷰모델)가 같이 고쳐졌다
 - 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`
+
+## 2026-11-10 — 검색 모달 2단계
+
+- 곁 칸은 고른 행마다 묻는다 — 화면 쪽 150ms 머묾 + 1분 staleTime 둘로 요청 수를 묶었다
+- 루트 회고 `requirements/reports/retrospects/FE-066-067-search-header.md`

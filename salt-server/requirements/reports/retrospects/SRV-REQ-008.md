@@ -159,3 +159,8 @@ Action: 없음(남은 F006 몫은 `SRV-REQ-028` Changelog 에)
 ## 2026-11-09 — 기사 본문
 
 - 이 REQ 의 파일은 본문 경로를 잇는 자리만 바뀌었다(`schema.prisma` 에 `NewsArticleBody`(`news_article_body`). 판단 · 교훈은 주인 회고(`SRV-REQ-054` — 실측 먼저 · 영구 캐시엔 규칙 판 번호)
+
+## 2026-11-10 — 검색 모달 2단계
+
+- 파일만 걸침 — 판단은 `SRV-REQ-055` 회고
+- 루트 회고 `requirements/reports/retrospects/FE-066-067-search-header.md`

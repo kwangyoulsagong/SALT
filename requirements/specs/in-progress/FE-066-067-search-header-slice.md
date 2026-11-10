@@ -1,6 +1,6 @@
 ---
 id: SLICE-FE-066-067-SEARCH-HEADER
-title: "검색 모달 · 머리 내비 — 1단계(FE 만)"
+title: "검색 모달 · 머리 내비 — 1단계(FE 만) · 2단계(결과 탭 · 곁 칸 · 뜨는 업종 — 서버 · BFF 짝)"
 priority: medium
 labels: [F000, F015, frontend, slice, invest]
 created: 2026-11-09
@@ -12,7 +12,9 @@ status: in-progress
 사용자 2026-11-09: "우리도 검색 국내 코인 둘 다 이 방식으로 바꾸고 우리도 투자 탭은 헤더로 하는 게 맞아 보인다" · 결정 D1~D5(D1 안 B — 도메인 레일을 머리로 · D2 배경 막 없음 · D3 "거래대금 상위" · D4 2단계 포함 · D5 `/search` 유지).
 리서치 `salt-microFe/requirements/reports/research/2026-11-09-search-modal-header-nav.md`.
 
-> **1단계 2026-11-09** — FE 만, 계약 변경 0. 검증 `requirements/reports/checklists/FE-066-067-search-header.md`. 남은 것: 2단계(`FE-REQ-066` FR-8 — BFF · 서버 짝 REQ) · zone 전환 계측(`FE-REQ-067`).
+> **1단계 2026-11-09** — FE 만, 계약 변경 0. 검증 `requirements/reports/checklists/FE-066-067-search-header.md`. 남은 것: ~~2단계(`FE-REQ-066` FR-8 — BFF · 서버 짝 REQ)~~ · zone 전환 계측(`FE-REQ-067`).
+>
+> **2단계 2026-11-10** — `FE-REQ-066` FR-8 done(→ `FE-REQ-066` done) · 서버 `SRV-REQ-055` · BFF `BFF-REQ-054`(신규 · done). 곁 칸 근거는 사용자 결정(국내 = 같은 업종 · 코인 = 함께 태그 — 국내 제목은 종목 하나만 붙어 온다) · 업종 · 지수 줄은 국내 시세 표로. 남은 것: zone 전환 계측(`FE-REQ-067`)
 
 ## 범위
 
@@ -21,6 +23,9 @@ status: in-progress
 | `FE-REQ-067` | 레일 삭제 · 머리 글자 링크 · 검색칸 · `AppShell` `headerSearch` | in-progress(전환 계측 남음) |
 | `FE-REQ-066` | 검색 모달 1단계 — 최근 검색 · 거래대금 상위 · 결과 줄 · 키보드 · 390 | in-progress(FR-8 남음) |
 | BFF · 서버 | 1단계 변경 없음(`/api/app/search` · 시세 개요 · 국내 표 그대로) | — |
+| `SRV-REQ-055` | 2단계 서버 — 결과 묶음 · 뜨는 업종 · 곁 칸 경로 셋(DDL 0) | done(2026-11-10) |
+| `BFF-REQ-054` | 2단계 BFF — `/api/app/search/{groups,rising-sectors,related}` 뷰모델 · 캐시 0 | done(2026-11-10) |
+| `FE-REQ-066` FR-8 | 2단계 화면 — 탭 · 묶음 · 곁 칸 · 뜨는 업종 · 뉴스 모달 · 국내 탭 진입 | done(2026-11-10) |
 
 ## 판단
 
@@ -29,6 +34,9 @@ status: in-progress
 3. **"인기"라 하지 않는다** — 조회 순위 원천이 없다. 시세 표와 같은 거래대금 정렬을 그대로 쓰고 이름도 그렇게
 4. **★ 가 있는 줄은 격자** — 선택지 안이나 목록 바로 밑에 단추를 둘 수 없다(axe)
 5. **실화면에서 본 공용 결함은 공용에서** — 1원 밑 "0원"을 `formatPrice` 에서 고쳤다(소비 33 파일)
+6. **(2단계) 곁 칸 원천을 구현 전에 셌다** — "시황 제목 관련 종목"은 제목 하나에 종목 하나라 만들 수 없었다 → 사용자 결정으로 같은 업종 · 함께 태그. 라벨은 원천 그대로
+7. **(2단계) 모달은 늘 하나** — 뉴스 줄은 검색 모달을 닫고 런처가 뉴스 모달을 연다
+8. **(2단계) 판정은 테스트가 있는 곳에** — 탭 · 묶음은 `@repo/core/search`, 업종 순위 · 함께 태그는 서버 도메인
 
 ## 커밋
 
@@ -39,6 +47,11 @@ status: in-progress
 | `fae4cf7b` | 1원 밑 시세 표시(공용 포맷터) |
 | `b37bf890` | 검색 모달 · 런처 · 순위 · 키보드 |
 | `6a062b24` | 확인 2회차 — 보유 배지 · Esc · `/` 겹침 · 비소유자 404 |
+| `dd0bbdcc` | (2단계) 서버 경로 셋 |
+| `0df7784e` | (2단계 실호출에서 발견) 국내 시황 제목 제어 문자 정리 — 주인 `SRV-REQ-051` |
+| `1110aa9b` | (2단계) BFF 경로 셋 |
+| `e00053f8` | (2단계 실화면) 공용 `AssetIcon` 이니셜 판 대비 — 주인 `FE-REQ-005` |
+| `19539c95` | (2단계) 화면 |
 
 ## Changelog
 
@@ -46,3 +59,4 @@ status: in-progress
 |---|---|
 | 2026-11-09 | 신규 · 1단계 |
 | 2026-11-09 | 확인 2회차 — 결함 넷 고침(`6a062b24`) |
+| 2026-11-10 | 2단계 — `SRV-REQ-055` · `BFF-REQ-054` 신규 · done, `FE-REQ-066` done |

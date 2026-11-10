@@ -201,3 +201,8 @@
 | `MarketOverviewItem.moveCard?` — 서버 판정 칸(F016 단계 C) | 반영 · 영역 검증 전체 통과 |
 
 루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- `model/types.ts` · `api/marketApi.ts` · `api/queryKeys.ts` · `api/useSearchExtras.ts` — 실패 모양은 `ApiError` 그대로 · 곁 칸 staleTime 60s · 뜨는 업종은 장 상태 ok 일 때만
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`

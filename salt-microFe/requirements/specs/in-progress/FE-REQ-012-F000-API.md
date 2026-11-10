@@ -188,3 +188,4 @@ F000의 API 작업은 **① 동면 호출 제거 ② `period` 오타 정정 ③ 
 | 2026-11-02 | MONEY-F1 전수 점검 — `0440a654` — BFF 가 시간 초과를 504 `UPSTREAM_TIMEOUT` 으로 준다(전 500). `ApiError` retriable(5xx) 판정 그대로 — 화면 재시도 동작 무변경. 프론트에 500 숫자 의존 0 |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `web-shared/src/api/index.ts` 머리 주석 한 줄(토큰은 호출하는 쪽이 붙이지 않는다)(`721063fc`). `ApiError` 무변경 |
 | 2026-11-09 | `MarketOverviewItem.moveCard?` — 서버 판정 칸(F016 단계 C) |
+| 2026-11-10 | 타입 — `SearchSector` · `SearchIndex` · `SearchNews` · `SearchGroups` · `RisingSectors` · `SearchRelatedTarget` · `SearchRelated`(BFF `BFF-REQ-054` 계약) · `marketApi` 세 조회 · 쿼리 키 셋 · 훅 `useSearchExtras.ts`(`19539c95`) |

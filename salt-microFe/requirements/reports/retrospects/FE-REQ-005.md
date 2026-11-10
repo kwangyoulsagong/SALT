@@ -55,3 +55,8 @@ date: 2026-09-09
 ## 2026-11-04 — 로고(`FE-REQ-051`)
 
 - 없음 — 파일만 걸침
+
+## 2026-11-10 — 검색 모달 2단계
+
+- 주석에만 적은 불변식은 아무도 세지 않았다 — 값 목록을 순수 함수로 떼어 토큰 hex 로 테스트한다(`done-checklist` §1 같은 꼴)
+- 루트 회고 `requirements/reports/retrospects/FE-066-067-search-header.md`

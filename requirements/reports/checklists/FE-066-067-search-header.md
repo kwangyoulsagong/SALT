@@ -22,3 +22,21 @@
 ## 2026-11-09 — 확인 2회차 `6a062b24`
 
 - 결함 넷 더 고침(보유 배지 퇴행 · ★ 포커스 Esc · 모달 위 `/` · 비소유자 404 반복) — 영역 체크리스트 `FE-REQ-066` 확인 2회차 표
+
+## 2단계 — 2026-11-10
+
+| 영역 | REQ | 체크리스트 | 결과 |
+|---|---|---|---|
+| 서버 | `SRV-REQ-055` | `salt-server/requirements/reports/checklists/SRV-REQ-055.md` | build · lint · 1057 · layer · EXPLAIN · 실호출 |
+| BFF | `BFF-REQ-054` | `bff/requirements/reports/checklists/BFF-REQ-054.md` | build · 434 · 실호출 4011 |
+| 화면 | `FE-REQ-066` FR-8 | `salt-microFe/requirements/reports/checklists/FE-REQ-066.md` §2단계 | 모노레포 types · lint · test · zone 다섯 운영 빌드 · 실화면(소유자 · 비소유자 · 390) axe 0 |
+| 실화면에서 고친 공용 | `SRV-REQ-051`(제목 제어 문자 39행) · `FE-REQ-005`(이니셜 판 대비) | 각 체크리스트 | 통과 |
+| 걸친 주인 | `BFF-007` · `009` · `DB-033` · `041` · `FE-008` · `010` · `012` · `029` · `041` · `065` · `SRV-008` · `040` · `054` | 각 체크리스트 2026-11-10 절 | `check-done.mjs` |
+
+## 미검증 · 범위 밖(2단계)
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 장중 `/api/app/ai-coach/detail` 504 | 사용자 지시 — AI 코치 개선 세션 첫 항목(측정값은 메모리) | 다음 세션 |
+| zone 전환 계측(`FE-REQ-067`) | 1단계부터 남은 것 — 운영 빌드 · CDP 절차 | `FE-REQ-067` |
+| 배경 투자 화면 axe `heading-order` · `image-redundant-alt` | 이전부터 있던 것(`FE-REQ-044` 기록) | 표면 대비 정리 REQ |
