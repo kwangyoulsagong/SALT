@@ -75,17 +75,8 @@ export class MarketIntelligenceController {
     try {
       const symbol = req.params.symbol.toUpperCase();
 
-      const [sentiment, smartMoney] = await Promise.all([
-        this.useCases.calculateSentiment.execute(symbol),
-        this.useCases.trackSmartMoney.execute(symbol),
-      ]);
-
-      return ResponseUtil.success(res, {
-        symbol,
-        sentiment,
-        smartMoney,
-        timestamp: new Date(),
-      });
+      // 계산해 둔 값이 있으면 외부 호출을 기다리지 않는다(SRV-REQ-053 FR-3) — timestamp 는 계산한 시각
+      return ResponseUtil.success(res, await this.useCases.getMarketDashboard.execute(symbol));
     } catch (error) {
       next(error);
     }

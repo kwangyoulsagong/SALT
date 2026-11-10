@@ -47,6 +47,7 @@ import {
   GetSentimentHistory,
   ListWhaleTransactions,
   TrackSmartMoney,
+  GetMarketDashboard,
   CollectWhaleTrades,
 } from "../AnalyzeMarketIntelligence";
 import { GetSymbolNews } from "../GetSymbolNews";
@@ -455,6 +456,7 @@ const createKrStockUseCases = (
 export interface MarketUseCases {
   calculateSentiment: CalculateSentiment;
   trackSmartMoney: TrackSmartMoney;
+  getMarketDashboard: GetMarketDashboard;
   collectWhaleTrades: CollectWhaleTrades;
   getSentimentHistory: GetSentimentHistory;
   listWhaleTransactions: ListWhaleTransactions;
@@ -504,13 +506,12 @@ export const createMarketApplication = (deps: MarketDependencies) => {
   const krUniverse = deps.krStock
     ? new ResolveKrStockUniverse(deps.krStock.store, deps.krStock.held, deps.krStock.universeTopN)
     : null;
+  const calculateSentiment = new CalculateSentiment(deps.exchange, deps.fearGreed, deps.sentiments);
+  const trackSmartMoney = new TrackSmartMoney(deps.exchange, deps.whales);
   const useCases: MarketUseCases = {
-    calculateSentiment: new CalculateSentiment(
-      deps.exchange,
-      deps.fearGreed,
-      deps.sentiments
-    ),
-    trackSmartMoney: new TrackSmartMoney(deps.exchange, deps.whales),
+    calculateSentiment,
+    trackSmartMoney,
+    getMarketDashboard: new GetMarketDashboard(calculateSentiment, trackSmartMoney),
     collectWhaleTrades: new CollectWhaleTrades(
       deps.trades,
       deps.assets,
