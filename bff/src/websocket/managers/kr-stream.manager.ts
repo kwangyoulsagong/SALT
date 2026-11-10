@@ -4,18 +4,19 @@ import { toKrPriceUpdate, type KrPriceUpdate } from "../../services/kr-stock.vie
 import { ExtendedWebSocket } from "../../types/websocket.types";
 import { toUpstreamClientError } from "../../utils/error.util";
 import { createSseParser } from "../../utils/sse.util";
+import type { SessionTokenKind } from "../../utils/session-cookie.util";
 
 /**
  * 국내 주식 실시간 중계 (F011 슬라이스 2 · `BFF-REQ-040` FR-6~9).
  *
  * ```
- * salt-server GET /api/market/kr/stream (SSE, 사용자 JWT · 소유자 전용)
+ * salt-server GET /api/market/kr/stream (SSE, 사람 · 게스트 JWT — `ADR-011`)
  *   → 연결별 중계 → 그 연결이 구독한 코드만 · 500ms 묶음 → WS price_update { assetType: "kr_stock" }
  * ```
  *
- * **왜 연결마다 upstream 을 따로 여는가.** 서버 스트림은 소유자만 열 수 있다(슬라이스 1 판단 8 — 내부 토큰 대신 사용자
- * JWT). 하나를 열어 모두에게 뿌리면 비소유자 연결에도 국내 주식 시세가 간다. 연결이 자기 토큰으로 열면 소유자 판정을
- * 서버가 연결마다 한다. 사용자 ≤10명 · 소유자 전용이라 실제 동시 스트림은 소유자 탭 수다 — 상한 `MAX_RELAYS` 로 막는다.
+ * **왜 연결마다 upstream 을 따로 여는가.** 서버 스트림은 그 연결의 토큰으로 연다(슬라이스 1 판단 8 — 내부 토큰 대신 사용자
+ * JWT) — 판정은 서버가 연결마다 한다. ~~소유자 전용~~ 2026-11-10 사람 · 게스트 토큰 누구나(`ADR-011`) — 그래서 상한을
+ * **사람 · 게스트로 나눠** 센다(`BFF-REQ-055` FR-4): 로그아웃 탭이 많아도 로그인한 사람의 실시간이 밀리지 않는다.
  *
  * 업비트 경로(`price-updater.worker` · `upbit-ws.service`)와 **섞지 않는다.** 6자리 코드를 업비트에 보내면 업비트가
  * 모르는 코드라 구독 요청이 통째로 거부될 수 있다(실측 안 함) — 그러면 코인 시세까지 끊긴다.
@@ -28,8 +29,14 @@ const FLUSH_MS = 500;
 /** 서버 하트비트가 15초 — 세 번 놓치면 끊긴 것으로 본다 */
 const IDLE_TIMEOUT_MS = 45_000;
 const BACKOFF_MS = [1_000, 2_000, 5_000, 10_000, 30_000];
-/** 동시 upstream 상한(`performance-bff.md` §7). 소유자 1~2명 × 탭 몇 개 */
-export const MAX_RELAYS = 20;
+/**
+ * 동시 upstream 상한(`performance-bff.md` §7) — 종류마다. 사람(친구 ≤10 × 탭 몇 개) · 게스트(로그인 안 한 탭) 각각.
+ * 설정 `KR_RELAYS_USER` · `KR_RELAYS_GUEST`(기본 20 · 20)
+ */
+export const MAX_RELAYS: Record<SessionTokenKind, number> = {
+  user: Number(process.env.KR_RELAYS_USER) || 20,
+  guest: Number(process.env.KR_RELAYS_GUEST) || 20,
+};
 /** 연결 하나가 구독할 수 있는 코드 수 — 서버 수집 유니버스 상한(100)과 같다 */
 export const MAX_KR_CODES = 100;
 
@@ -38,6 +45,7 @@ export type KrStreamOpener = (token: string, signal: AbortSignal) => Promise<Nod
 interface Relay {
   ws: ExtendedWebSocket;
   token: string;
+  kind: SessionTokenKind;
   codes: Set<string>;
   aborter: AbortController | null;
   pending: Map<string, KrPriceUpdate>;
@@ -53,7 +61,7 @@ const send = (ws: ExtendedWebSocket, message: unknown) => {
 /** 토큰 없음 · 만료(서버 401) — 핸들러의 "토큰 없음"과 같은 코드 */
 const KR_AUTH_REQUIRED = "KR_STOCK_AUTH_REQUIRED";
 
-/** 화면이 받는 오류 — `code` 로 분기한다. 404 = 소유자 아님 · 503 = 꺼짐 · 401 = 토큰 만료(새 토큰으로 다시 구독) */
+/** 화면이 받는 오류 — `code` 로 분기한다. 404 = 없는 종목 · 503 = 꺼짐 · 401 = 토큰 만료(새 토큰으로 다시 구독) */
 const sendError = (ws: ExtendedWebSocket, code: string, message: string) =>
   send(ws, { type: "error", assetType: "kr_stock", code, message });
 
@@ -72,21 +80,22 @@ export class KrStreamManager {
    * 구독 추가. 토큰은 매번 바꿔 둔다 — 만료로 끊긴 뒤 화면이 새 토큰으로 다시 구독하면 그 토큰으로 다시 연다.
    * @returns 이 연결이 지금 구독 중인 코드 전체. 상한에 걸렸으면 `null`
    */
-  subscribe(ws: ExtendedWebSocket, codes: string[], token: string): string[] | null {
+  subscribe(ws: ExtendedWebSocket, codes: string[], token: string, kind: SessionTokenKind = "user"): string[] | null {
     const existing = this.relays.get(ws.connectionId);
     const current = existing?.codes ?? new Set<string>();
     if (current.size + codes.filter((c) => !current.has(c)).length > MAX_KR_CODES) {
       sendError(ws, "KR_STREAM_LIMIT", `up to ${MAX_KR_CODES} codes per connection`);
       return null;
     }
-    if (!existing && this.relays.size >= MAX_RELAYS) {
-      logger.warn(`[kr-stream] 상한 ${MAX_RELAYS} — ${ws.connectionId} 거부`);
+    if (!existing && this.countOf(kind) >= MAX_RELAYS[kind]) {
+      logger.warn(`[kr-stream] ${kind} 상한 ${MAX_RELAYS[kind]} — ${ws.connectionId} 거부`);
       sendError(ws, "KR_STREAM_LIMIT", "too many kr_stock streams");
       return null;
     }
     const relay: Relay = existing ?? {
       ws,
       token,
+      kind,
       codes: current,
       aborter: null,
       pending: new Map(),
@@ -96,6 +105,7 @@ export class KrStreamManager {
     };
     this.relays.set(ws.connectionId, relay);
     relay.token = token;
+    relay.kind = kind;
     codes.forEach((c) => relay.codes.add(c));
     // 열려 있거나 다시 열기를 기다리는 중이면 그대로 둔다 — 새 코드는 같은 스트림에서 거른다
     if (!relay.aborter && !relay.reconnectTimer) void this.connect(relay);
@@ -130,6 +140,12 @@ export class KrStreamManager {
   /** 테스트 · 관측용 */
   activeCount() {
     return this.relays.size;
+  }
+
+  private countOf(kind: SessionTokenKind) {
+    let n = 0;
+    for (const relay of this.relays.values()) if (relay.kind === kind) n += 1;
+    return n;
   }
 
   private isCurrent(relay: Relay) {

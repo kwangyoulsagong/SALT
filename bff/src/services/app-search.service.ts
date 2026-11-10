@@ -45,8 +45,8 @@ class AppSearchService {
 export const appSearchService = new AppSearchService();
 
 /**
- * 검색 모달 2단계(`BFF-REQ-054` · 서버 `SRV-REQ-055`) 예산 — 서버 실측 10ms 안팎(2026-11-10, 소유자 · 국내 포함). 타이핑마다 · 고른 행마다
- * 부르므로 검색과 같은 400ms. **캐시하지 않는다** — 국내 칸이 소유자 판정에 걸려 공유 캐시는 비소유자에게 샌다
+ * 검색 모달 2단계(`BFF-REQ-054` · 서버 `SRV-REQ-055`) 예산 — 서버 실측 10ms 안팎(2026-11-10, 국내 포함). 타이핑마다 · 고른 행마다
+ * 부르므로 검색과 같은 400ms. **캐시하지 않는다** — 서버가 10ms 안팎이라 이득이 없다(~~국내 칸 소유자 판정~~ 2026-11-10 걷음)
  */
 const SEARCH_EXTRAS_TIMEOUT_MS = 400;
 

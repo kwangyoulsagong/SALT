@@ -1,4 +1,5 @@
 import { ExtendedWebSocket, WSMessage } from "../../types/websocket.types";
+import type { SessionTokenKind } from "../../utils/session-cookie.util";
 import { krStreamManager, KrStreamManager } from "../managers/kr-stream.manager";
 
 /** 서버 DTO(`krCodeParamSchema`)와 같은 규칙 */
@@ -13,7 +14,7 @@ const reply = (ws: ExtendedWebSocket, message: unknown) => ws.send(JSON.stringif
  * { "type": "subscribe", "assetType": "kr_stock", "symbols": ["005930"], "token": "<access token>" }
  * ```
  *
- * **토큰을 구독 메시지에 싣는다.** 소유자 전용이라 연결이 누구인지 서버가 판정해야 하는데, 브라우저 WebSocket 은 헤더를
+ * **토큰을 구독 메시지에 싣는다.** 연결이 누구인지(사람 · 게스트 토큰) 서버가 판정해야 하는데, 브라우저 WebSocket 은 헤더를
  * 못 단다. 연결 URL `?token=` 도 받지만(기존 계약) 메시지 쪽을 먼저 본다 — 토큰이 만료되면 화면이 새 토큰으로 다시
  * 구독해 이어 붙일 수 있고, URL 은 프록시 접근 로그에 남는다.
  */
@@ -34,15 +35,18 @@ export class KrStockHandler {
     return codes;
   }
 
-  handleSubscribe(ws: ExtendedWebSocket, message: WSMessage, connectionToken?: string) {
+  handleSubscribe(ws: ExtendedWebSocket, message: WSMessage, connectionToken?: string, connectionKind: SessionTokenKind = "user") {
     const codes = this.codes(ws, message);
     if (!codes) return;
-    const token = typeof message.token === "string" && message.token.length > 0 ? message.token : connectionToken;
+    const messageToken = typeof message.token === "string" && message.token.length > 0 ? message.token : undefined;
+    const token = messageToken ?? connectionToken;
+    // 메시지에 실린 토큰은 앱(사람)이다 — 연결 쿠키로 열 때만 그 쿠키의 종류를 따른다
+    const kind: SessionTokenKind = messageToken ? "user" : connectionKind;
     if (!token) {
       reply(ws, { type: "error", assetType: "kr_stock", code: "KR_STOCK_AUTH_REQUIRED", message: "token required" });
       return;
     }
-    const subscribed = this.streams.subscribe(ws, codes, token);
+    const subscribed = this.streams.subscribe(ws, codes, token, kind);
     if (subscribed) reply(ws, { type: "subscribed", assetType: "kr_stock", symbols: subscribed });
   }
 

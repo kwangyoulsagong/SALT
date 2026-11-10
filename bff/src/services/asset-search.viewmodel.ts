@@ -12,15 +12,16 @@ export interface TrackedCounterVM {
 }
 
 export interface AssetSearchItemVM {
-  /** `crypto` · `kr_stock`(소유자만) · `stock`(관심 목록에 남은 미국 주식 행 — 검색 결과로는 나오지 않는다) */
+  /** `crypto` · `kr_stock` · `stock`(관심 목록에 남은 미국 주식 행 — 검색 결과로는 나오지 않는다) */
   assetType: string;
   symbol: string;
   name: string;
   logoUrl: string | null;
   currentPrice: number | null;
   changeRate: number | null;
-  isTracked: boolean;
-  isHeld: boolean;
+  /** 게스트(로그인 없음, `BFF-REQ-055` FR-3)면 `null` — 모르는 것이지 "아님"이 아니다. 화면은 ★ 자리에 자물쇠 */
+  isTracked: boolean | null;
+  isHeld: boolean | null;
 }
 
 export interface AssetSearchVM {
@@ -58,8 +59,8 @@ export const toAssetSearchVM = (data: unknown): AssetSearchVM => {
           logoUrl: stringOrNull(item.logoUrl),
           currentPrice: numberOrNull(item.currentPrice),
           changeRate: numberOrNull(item.changeRate),
-          isTracked: item.isTracked === true,
-          isHeld: item.isHeld === true,
+          isTracked: typeof item.isTracked === "boolean" ? item.isTracked : null,
+          isHeld: typeof item.isHeld === "boolean" ? item.isHeld : null,
         },
       ];
     }),
