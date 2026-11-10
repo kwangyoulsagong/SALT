@@ -396,6 +396,7 @@ const createKrStockUseCases = (
     supplement: deps.supplement,
     summaryIndices: deps.summaryIndices,
     orderbookSource: deps.supplementSource,
+    universe,
     status: deps.status,
     moveSources: deps.moveSources,
     move,

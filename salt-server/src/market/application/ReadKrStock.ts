@@ -251,6 +251,11 @@ export interface KrStockReadDependencies {
   status: KrMarketStatusStore;
   /** 호가는 저장하지 않고 요청 시점에 부른다(슬라이스 6b FR-28) */
   orderbookSource: Pick<KrSupplementPort, "orderbook">;
+  /**
+   * 지금 받는 종목(보유 ∪ 관심 ∪ 시총 상위 N). 시세 표는 이것만 보인다 — 시세 행은 한 번 받은 종목이 다 남아 있어서,
+   * 상위 N 에서 밀려난 종목이 10월 가격으로 멈춘 채 표에 섞였다(2026-11-10 57행 중 7행, `SRV-REQ-053` FR-2). 없으면 행 전부(테스트 · 옛 조립)
+   */
+  universe?: { execute(): Promise<string[]> };
   /** 시황/공시 제목 · 장중 프로그램 매매(F016 단계 B) */
   moveSources: KrMoveSourceStore;
   /** 표 행 카드 표시 — β · σ 뷰 · 카드 문턱(F016 단계 C). 없으면 표시 없음(테스트 · 옛 조립) */
@@ -299,7 +304,10 @@ export class ListKrStockQuotes extends KrStockRead {
     const limit = Math.min(query.limit, KR_LIST_MAX_LIMIT);
     const [session, quotes] = await Promise.all([
       loadKrSession(this.deps.calendar, now),
-      this.deps.store.quotes({ codes: query.codes, limit: KR_LIST_SCAN_LIMIT, offset: 0 }),
+      (async () => {
+        const codes = query.codes ?? (this.deps.universe ? await this.deps.universe.execute() : undefined);
+        return this.deps.store.quotes({ codes, limit: KR_LIST_SCAN_LIMIT, offset: 0 });
+      })(),
     ]);
     // 실시간이면 기간 변동률 = 전일 대비(코인이 실시간에 `periodChange = change24h` 를 주는 것과 같다)
     const closes =

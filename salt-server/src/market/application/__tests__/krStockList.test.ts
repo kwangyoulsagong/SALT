@@ -110,6 +110,19 @@ describe("ListKrStockQuotes — 코인 표와 같은 필터", () => {
     assert.deepEqual(calls, [], "실시간은 일봉을 읽지 않는다");
   });
 
+  it("받는 종목(유니버스)만 보인다 — 상위에서 밀려나 시세가 멈춘 행은 빠진다(SRV-REQ-053 FR-2)", async () => {
+    const { store } = storeWith(quotes);
+    const r = await new ListKrStockQuotes({
+      store,
+      calendar,
+      status: noStatus,
+      provider: () => ({ status: "ok", since: null, lastSuccessAt: null, realtime: { state: "idle", subscribed: 0, lastTickAt: null } }),
+      universe: { execute: async () => ["000001", "000002"] },
+      now: () => new Date("2026-10-08T01:00:30Z"),
+    }).execute(base);
+    assert.deepEqual(r.items.map((i) => i.code), ["000001", "000002"]);
+  });
+
   it("거래대금 · 가격 · 이름 · 오름차순", async () => {
     const { store } = storeWith(quotes);
     const codes = async (sort: "trade_value" | "price" | "name", order: "asc" | "desc") =>
