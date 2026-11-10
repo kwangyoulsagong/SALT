@@ -2,7 +2,7 @@ import { KstDate } from "../../../shared/domain";
 import type { CoachMode } from "../model";
 import { scoreModeDecision, type ModeDecisionAction } from "./modeDecision";
 import { krJudgmentExitWindow } from "./krStockJudgment";
-import { JUDGMENT_HORIZON_MS, judgeOutcome, MIN_JUDGMENT_SAMPLE, type JudgmentOutcome } from "./symbolJudgment";
+import { JUDGMENT_HORIZON_MS, judgeOutcome, type JudgmentOutcome } from "./symbolJudgment";
 
 /**
  * 국내 주식 판단 백테스트 표본 — 사전등록 `kr-judgment-backtest@2`(`salt-server/preregistration/2026-10-26-kr-judgment-backtest-v2.toml`,
@@ -27,21 +27,6 @@ export const KR_BACKTEST_BREAK_BOUNDS = { min: 0.69, max: 1.31 } as const;
 export const KR_BACKTEST_START = new Date("2022-01-01T00:00:00+09:00");
 /** 백테스트 성적을 보이는 판단 달 하한(등록 [display]) — 표본 수만 보면 한두 달 장세가 성적이 된다 */
 export const KR_BACKTEST_MIN_MONTHS = 12;
-
-/**
- * 국내 판단 유형의 성적 출처(등록 [display]). 라이브 표본 ≥ 20 이면 라이브, 아니면 백테스트가 표본 ≥ 20 · 판단 달 ≥ 12 일 때만
- * 백테스트. 둘 다 아니면 라이브(→ `insufficient_sample` 로 막힌다). **합산하지 않는다**
- */
-export const krTrackOrigin = (
-  liveSample: number,
-  backtest: { sample: number; judgedMonths?: number } | null
-): "live" | "backtest" =>
-  liveSample >= MIN_JUDGMENT_SAMPLE ||
-  backtest === null ||
-  backtest.sample < MIN_JUDGMENT_SAMPLE ||
-  (backtest.judgedMonths ?? 0) < KR_BACKTEST_MIN_MONTHS
-    ? "live"
-    : "backtest";
 
 /** 종가 확정 시각 — 판단 시각 = 그날 16:00 KST */
 const CLOSE_CONFIRMED_MS = 16 * 3600_000;
