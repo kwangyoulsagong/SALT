@@ -147,6 +147,16 @@ export interface FearGreedPort {
 /** 종목 뉴스 — `news` 컨텍스트를 우리 언어로 번역하는 ACL 의 Port. */
 export interface SymbolNewsPort {
   recent(symbol: string, limit: number): Promise<SymbolNewsItem[]>;
+  /** 제목에 검색어가 든 코인 기사(`since` 뒤 · 최신순) — 검색 모달 뉴스 묶음(`SRV-REQ-055`) */
+  searchTitles(q: string, since: Date, limit: number): Promise<TaggedNewsItem[]>;
+  /** 한 코인이 붙은 기사들의 태그 목록 — 함께 태그된 코인(곁 칸, `SRV-REQ-055`) */
+  tagLists(symbol: string, since: Date, limit: number): Promise<string[][]>;
+}
+
+/** 검색 결과 기사 — 태그 · 이미지까지(모달이 그린다) */
+export interface TaggedNewsItem extends SymbolNewsItem {
+  imageUrl: string | null;
+  symbols: string[];
 }
 
 export interface SymbolNewsItem {

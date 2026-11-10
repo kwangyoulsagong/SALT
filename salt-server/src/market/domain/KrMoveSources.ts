@@ -5,6 +5,7 @@
  * 기사 본문 · 원문 링크는 원천(KIS)에 없고 우리도 만들지 않는다(`ADR-009` — 저작권 선).
  */
 
+import type { SectorBoardRow } from "./SearchExtras";
 import { kstDateOf } from "./KrStock";
 
 // ==================== 시황/공시 제목 (FR-1) ====================
@@ -195,6 +196,10 @@ export interface KrMoveSourceStore {
   /** 최신 값(업종마다 한 행) + 그날 일별 행(장 끝 값이 종가) — 한 문장씩 */
   upsertSectorIndices(facts: KrSectorIndexFact[], at: Date): Promise<void>;
   sectorIndices(codes: string[]): Promise<StoredKrSectorIndex[]>;
+  /** 업종 지수 최신 값 전부 + 원천 이름(없으면 `null`) — 뜨는 업종 · 업종 검색(`SRV-REQ-055`). 20행 안팎 */
+  sectorBoard(): Promise<SectorBoardRow[]>;
+  /** 제목에 검색어가 든 시황 · 공시(`since` 뒤 · 최신순 · 광고성 제외) — 검색 모달 뉴스 묶음(`SRV-REQ-055`) */
+  searchNewsTitles(q: string, since: Date, limit: number): Promise<StoredKrNewsTitle[]>;
   /** 일별 행 덮어쓰기(원천 공식 종가가 장중 마지막 값을 이긴다) — 한 문장 */
   upsertIndexDaily(code: string, rows: KrIndexDailyRow[], at: Date): Promise<void>;
   /** 지수 이름(원천 값) — 덮어쓴다 */

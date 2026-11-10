@@ -51,6 +51,7 @@ import {
 } from "../AnalyzeMarketIntelligence";
 import { GetSymbolNews } from "../GetSymbolNews";
 import { SearchAssets } from "../SearchAssets";
+import { ReadRisingSectors, ReadSearchRelated, SearchResultGroups } from "../SearchExtras";
 import { ResolveKrStockLogos } from "../ResolveKrStockLogos";
 import {
   AddToWatchlist,
@@ -471,6 +472,10 @@ export interface MarketUseCases {
   listWatchlist: ListWatchlist;
   /** 종목 검색 — 코인 + 국내 한 검색(`FEATURE-000` FR-40) */
   searchAssets: SearchAssets;
+  /** 검색 모달 2단계(`SRV-REQ-055`) — 업종 · 지수 · 뉴스 묶음 · 뜨는 업종 · 곁 칸 */
+  searchResultGroups: SearchResultGroups;
+  readRisingSectors: ReadRisingSectors;
+  readSearchRelated: ReadSearchRelated;
   removeFromWatchlist: RemoveFromWatchlist;
   listWatchlistSymbols: ListWatchlistSymbols;
   updateWatchlistPrices: UpdateWatchlistPrices;
@@ -497,6 +502,15 @@ export const createMarketApplication = (deps: MarketDependencies) => {
   const krWatchlist = deps.krStock
     ? { store: deps.krStock.store, viewerEmails: deps.krStock.viewerEmails, logoDevToken: deps.krStock.logoDevToken }
     : null;
+  const krSearch = deps.krStock
+    ? {
+        store: deps.krStock.store,
+        moveSources: deps.krStock.moveSources,
+        supplement: deps.krStock.supplement,
+        viewerEmails: deps.krStock.viewerEmails,
+        logoDevToken: deps.krStock.logoDevToken,
+      }
+    : null;
   const krUniverse = deps.krStock
     ? new ResolveKrStockUniverse(deps.krStock.store, deps.krStock.held, deps.krStock.universeTopN)
     : null;
@@ -521,6 +535,9 @@ export const createMarketApplication = (deps: MarketDependencies) => {
     // (`SRV-REQ-008` FR-33). 두 리포지토리 다 이 컨텍스트 것이라 경계를 넘지 않는다.
     listWatchlist: new ListWatchlist(deps.watchlist, deps.assets, krWatchlist, deps.tracking),
     searchAssets: new SearchAssets(deps.watchlist, deps.assets, deps.tracking, krWatchlist),
+    searchResultGroups: new SearchResultGroups(deps.news, deps.assets, krSearch),
+    readRisingSectors: new ReadRisingSectors(krSearch),
+    readSearchRelated: new ReadSearchRelated(deps.news, deps.assets, krSearch),
     removeFromWatchlist: new RemoveFromWatchlist(deps.watchlist),
     listWatchlistSymbols: new ListWatchlistSymbols(deps.watchlist),
     updateWatchlistPrices: new UpdateWatchlistPrices(deps.watchlist),
