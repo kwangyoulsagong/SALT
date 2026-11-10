@@ -29,3 +29,4 @@ export { ScoreboardList } from "./ScoreboardList";
 export { ReturnDistributionBars, SignalCaseColumns, SignalMetrics, signalTypeLabel } from "./SignalEvidence";
 export { TargetWeightList } from "./TargetWeightList";
 export { TargetWeightSummary } from "./TargetWeightSummary";
+export { CoachStaleNote } from "./CoachStaleNote";

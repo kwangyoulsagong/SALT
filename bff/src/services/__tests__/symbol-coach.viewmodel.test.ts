@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, describe, it, mock } from "node:test";
+
+import { __resetDetailMemory, appAICoachService } from "../app-ai-coach.service";
+import { backendApi } from "../backend-api.service";
 
 import {
   SymbolCoachContractError,
@@ -319,6 +322,7 @@ describe("toSymbolCoachViewModel", () => {
       "modes",
       "preflightDefaults",
       "riskGuard",
+      "staleSince",
       "symbol",
     ]);
     assert.equal(JSON.stringify(vm).includes("confidence"), false);
@@ -371,5 +375,54 @@ describe("거래소 표시 (F010 슬라이스 6 · FR-6)", () => {
         .exchangeFlag,
       null,
     );
+  });
+});
+
+/** BFF-REQ-052 FR-2 — 판단 호출이 시간을 넘기면 마지막 판단을 기준 시각과 함께(10분 안 · 토큰마다) */
+describe("AppAICoachService.getDetail — 마지막 판단", () => {
+  afterEach(() => {
+    mock.restoreAll();
+    mock.timers.reset();
+    __resetDetailMemory();
+  });
+  const timeout = Object.assign(new Error("timeout of 300ms exceeded"), { code: "ECONNABORTED" });
+  const backend = (fail: () => boolean) =>
+    mock.method(backendApi, "proxyAuthRequest", async (_m: string, url: string) => {
+      if (url.startsWith("/market-intelligence")) return { data: { success: true, data: { items: [] } } } as never;
+      if (fail()) throw timeout;
+      return { data: { success: true, data: serverCoach() } } as never;
+    });
+
+  it("새 판단이면 staleSince null · 실패하면 마지막 판단과 받은 시각", async () => {
+    let failing = false;
+    backend(() => failing);
+    const fresh = await appAICoachService.getDetail("tok-a", { symbol: "BTC" });
+    assert.equal(fresh.staleSince, null);
+    failing = true;
+    const kept = await appAICoachService.getDetail("tok-a", { symbol: "BTC" });
+    assert.equal(kept.symbol, "BTC");
+    assert.ok(kept.staleSince && !Number.isNaN(Date.parse(kept.staleSince)));
+  });
+
+  it("다른 토큰 · 다른 종목 · 다른 모드에는 주지 않는다 — 504 그대로", async () => {
+    let failing = false;
+    backend(() => failing);
+    await appAICoachService.getDetail("tok-a", { symbol: "BTC" });
+    failing = true;
+    await assert.rejects(appAICoachService.getDetail("tok-b", { symbol: "BTC" }), /timeout/);
+    await assert.rejects(appAICoachService.getDetail("tok-a", { symbol: "ETH" }), /timeout/);
+    await assert.rejects(appAICoachService.getDetail("tok-a", { symbol: "BTC", mode: "scalp" }), /timeout/);
+  });
+
+  it("10분 넘은 판단은 주지 않는다", async () => {
+    mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-11-10T05:00:00Z") });
+    let failing = false;
+    backend(() => failing);
+    await appAICoachService.getDetail("tok-a", { symbol: "BTC" });
+    failing = true;
+    mock.timers.tick(10 * 60_000);
+    assert.ok((await appAICoachService.getDetail("tok-a", { symbol: "BTC" })).staleSince);
+    mock.timers.tick(1);
+    await assert.rejects(appAICoachService.getDetail("tok-a", { symbol: "BTC" }), /timeout/);
   });
 });
