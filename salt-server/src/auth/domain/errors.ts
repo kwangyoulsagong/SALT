@@ -88,3 +88,10 @@ export class AccountNotFoundError extends DomainError {
     );
   }
 }
+
+/** 게스트 공개가 꺼짐(`PUBLIC_MARKET_GUEST=false`, `SRV-REQ-056` FR-1) — 화면은 로그인으로 */
+export class GuestAccessDisabledError extends DomainError {
+  constructor() {
+    super("GUEST_DISABLED", ErrorKind.Forbidden, "Guest access is disabled");
+  }
+}

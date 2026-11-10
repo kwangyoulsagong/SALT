@@ -24,8 +24,6 @@ import { SearchAssets } from "../SearchAssets";
  * F000 FR-40 · 41 — 종목 검색(코인 + 국내) · 추적 자산 상한(`SRV-REQ-008` FR-80~87).
  */
 
-const OWNER = "owner@example.com";
-
 const row = (assetType: MarketAssetType, symbol: string, name = symbol): WatchlistItem => ({
   id: `w-${symbol}`,
   userId: "u1",
@@ -228,11 +226,11 @@ describe("SearchAssets", () => {
       fakeWatchlist(watched).repo,
       assetsWith([view("BTC", "비트코인"), view("SAND", "샌드박스"), view("NEW", "신규", { priceUpdatedAt: null, currentPrice: 0 })]),
       { held: heldProbe(held), limit: 10 },
-      { store: kr.store, viewerEmails: [OWNER] }
+      { store: kr.store }
     );
 
   it("코인과 국내를 한 목록으로 — 같음 · 시작이 포함보다 앞", async () => {
-    const result = await search().execute({ userId: "u1", email: OWNER, q: "삼성전자", limit: 20 });
+    const result = await search().execute({ userId: "u1", q: "삼성전자", limit: 20 });
     assert.deepEqual(
       result.items.map((i) => [i.assetType, i.symbol]),
       [
@@ -256,17 +254,46 @@ describe("SearchAssets", () => {
     assert.deepEqual(result.items.map((i) => i.symbol), ["SAND", "XSAND"]);
   });
 
-  it("국내 주식은 소유자에게만 — 비소유자는 마스터를 읽지도 않는다", async () => {
+  it("국내 주식은 국내 키가 켜져 있으면 누구에게나 · 꺼져 있으면 마스터를 읽지도 않는다(ADR-011)", async () => {
+    const on = await search().execute({ userId: "u1", q: "삼성", limit: 20 });
+    assert.ok(on.items.some((i) => i.assetType === "kr_stock"));
+
     const before = kr.searched.length;
-    const result = await search().execute({ userId: "u1", email: "other@example.com", q: "삼성", limit: 20 });
-    assert.equal(result.items.length, 0);
+    const off = await new SearchAssets(
+      fakeWatchlist([]).repo,
+      assetsWith([view("BTC", "비트코인")]),
+      { held: heldProbe([]), limit: 10 },
+      null
+    ).execute({ userId: "u1", q: "삼성", limit: 20 });
+    assert.equal(off.items.length, 0);
     assert.equal(kr.searched.length, before);
+  });
+
+  it("게스트(userId null) — 관심 · 보유를 읽지 않고 ★ · 보유 · 추적 카운터는 null(모름, '아님'이 아니다)", async () => {
+    const untouchable = {
+      listAll: async () => assert.fail("게스트는 관심 목록을 읽지 않는다"),
+    } as unknown as WatchlistRepository;
+    const noHoldings: HoldingProbe = { heldAssets: async () => assert.fail("게스트는 보유를 읽지 않는다") };
+    const guest = new SearchAssets(
+      untouchable,
+      assetsWith([view("BTC", "비트코인"), view("SAND", "샌드박스")]),
+      { held: noHoldings, limit: 10 },
+      { store: kr.store }
+    );
+    const result = await guest.execute({ userId: null, q: "삼성", limit: 20 });
+    assert.ok(result.items.length > 0);
+    assert.ok(result.items.every((i) => i.isTracked === null && i.isHeld === null));
+    assert.equal(result.tracked, null);
+
+    const coin = await guest.execute({ userId: null, q: "BTC", limit: 20 });
+    assert.deepEqual(coin.items.map((i) => [i.symbol, i.isTracked, i.isHeld]), [["BTC", null, null]]);
+    // 빈 검색어 = 추적 목록 — 게스트는 추적이 없다
+    assert.deepEqual((await guest.execute({ userId: null, q: "", limit: 20 })).items, []);
   });
 
   it("isTracked = 관심 ∪ 보유, isHeld = 보유 · 시세가 안 들어온 코인은 null", async () => {
     const result = await search([{ assetType: "kr_stock", symbol: "000660" }], [row("crypto", "BTC")]).execute({
       userId: "u1",
-      email: OWNER,
       q: "",
       limit: 20,
     });
@@ -287,7 +314,7 @@ describe("SearchAssets", () => {
 
   it("limit 을 넘기지 않는다", async () => {
     // 후보 둘(코인 SAND · 국내 SK하이닉스)에서 하나만
-    const result = await search().execute({ userId: "u1", email: OWNER, q: "S", limit: 1 });
+    const result = await search().execute({ userId: "u1", q: "S", limit: 1 });
     assert.equal(result.items.length, 1);
   });
 });

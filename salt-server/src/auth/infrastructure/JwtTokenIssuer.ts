@@ -1,5 +1,5 @@
 import { JwtUtil } from "../../shared/lib/jwt";
-import type { TokenIssuer } from "../domain";
+import type { GuestTokenIssuer, TokenIssuer } from "../domain";
 
 /**
  * JWT 발급·검증.
@@ -7,7 +7,7 @@ import type { TokenIssuer } from "../domain";
  * `readRefresh` 가 **예외 대신 `null`** 을 주는 것은 Port 의 계약이다 — 만료는 정상
  * 경로이고, 유스케이스가 `try/catch` 로 흐름을 만들지 않게 한다.
  */
-export class JwtTokenIssuer implements TokenIssuer {
+export class JwtTokenIssuer implements TokenIssuer, GuestTokenIssuer {
   issue(userId: string, email: string) {
     return {
       accessToken: JwtUtil.generateAccessToken(userId, email),
@@ -17,6 +17,11 @@ export class JwtTokenIssuer implements TokenIssuer {
 
   issueAccess(userId: string, email: string): string {
     return JwtUtil.generateAccessToken(userId, email);
+  }
+
+  issueGuest() {
+    const guestToken = JwtUtil.generateGuestToken();
+    return { guestToken, expiresIn: JwtUtil.guestExpiresInSeconds(guestToken) };
   }
 
   readRefresh(token: string): { userId: string; email: string } | null {

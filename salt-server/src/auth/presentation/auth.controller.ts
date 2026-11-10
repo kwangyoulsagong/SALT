@@ -54,6 +54,15 @@ export class AuthController {
     }
   };
 
+  /** 게스트 토큰(`SRV-REQ-056` FR-1) — 본문 없음 */
+  issueGuest = (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      return ResponseUtil.success(res, this.useCases.issueGuestToken.execute());
+    } catch (error) {
+      next(error);
+    }
+  };
+
   refreshToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = refreshTokenSchema.parse(req.body);

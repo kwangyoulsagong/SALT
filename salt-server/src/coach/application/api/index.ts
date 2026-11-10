@@ -169,7 +169,6 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.gauges,
     undefined,
     deps.forecasts,
-    deps.forecastOwnerEmails,
     deps.backtestJudgments ?? null
   );
   const analyzeNewsSentiment = new AnalyzeNewsSentiment(deps.news);
@@ -241,7 +240,6 @@ export const createCoachApplication = (deps: CoachDependencies) => {
         usage: deps.llmUsage,
         limits: deps.llmLimits,
         llmEnabled: deps.llmEnabled,
-        krViewerEmails: deps.forecastOwnerEmails,
         backtestJudgments: deps.backtestJudgments ?? null,
       }
     ),
@@ -257,7 +255,6 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     getSignalPerformance: new GetSignalPerformance(deps.recommendations),
     getJudgmentScoreboard: new GetJudgmentScoreboard(
       deps.judgments,
-      deps.forecastOwnerEmails,
       deps.backtestJudgments ?? null,
       deps.market
     ),
@@ -323,8 +320,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.forecasts,
       deps.market,
       deps.tradePlans,
-      deps.decisionOutcomes,
-      deps.forecastOwnerEmails
+      deps.decisionOutcomes
     ),
     listDecisionOutcomes: new ListDecisionOutcomes(deps.decisionOutcomes, deps.market),
     confirmOutcomeTags: new ConfirmOutcomeTags(deps.decisionOutcomes),
@@ -332,7 +328,6 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     getMonthlyReview: new GetMonthlyReview(
       deps.monthlyReviews,
       buildMonthlyReview,
-      deps.forecastOwnerEmails,
       deps.market
     ),
   };

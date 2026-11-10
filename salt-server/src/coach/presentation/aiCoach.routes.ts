@@ -348,7 +348,7 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *       쿼리가 없으면 최신 AI 코치를 조회하고, symbol/mode/preview 쿼리가 있으면 선택 종목의 단타/장기 판단을 조회합니다.
    *
    *       국내 주식 6자리 코드(F011 슬라이스 4):
-   *       - 소유자만 — 비소유자는 404 `COACH_KR_STOCK_NOT_AVAILABLE`(시세 경로와 같은 판정)
+   *       - 로그인한 누구나(`ADR-011` — 2026-11-10 전에는 소유자만)
    *       - 장기만 연다. `modes.scalp.blockedReason: mode_not_open`, mode 를 안 주면 장기
    *       - 일봉 120 거래일 · 일봉 지표 전엔 `modes.longTerm.blockedReason: insufficient_history` + `history { dailyBars, requiredDailyBars, dailyIndicator, ready }`
    *       - `modes.*.assetClass: kr_stock` · `signalType: kr_stock.long_term.<action>` — 성적은 국내 주식 표본만

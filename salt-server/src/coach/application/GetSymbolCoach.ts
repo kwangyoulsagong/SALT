@@ -3,9 +3,7 @@ import {
   GAUGE_HORIZON_DAYS,
   gaugeBucketCode,
   gaugeBucketIndex,
-  isForecastOwner,
   JUDGMENT_MODES,
-  KrStockJudgmentNotAvailableError,
   toGaugeTrackRecord,
   type Clock,
   type CoachMode,
@@ -109,8 +107,6 @@ export class GetSymbolCoach {
     private readonly clock: Clock = () => new Date(),
     /** 보유 익절 계획의 실현 변동성(F010 슬라이스 2). 없으면 고정 비율 */
     private readonly forecasts: Pick<ForecastReader, "symbolRisk" | "marketWarnings"> | null = null,
-    /** 국내 주식 판단을 볼 수 있는 이메일 — 시세 경로와 같은 목록(`FORECAST_OWNER_EMAILS`) */
-    private readonly krViewerEmails: readonly string[] = [],
     /** 국내 주식 백테스트 성적(`backtest` 출처만 세는 저장소) — 라이브 표본이 모자랄 동안. 없으면 라이브만 */
     private readonly backtestJudgments: SymbolJudgmentStore | null = null
   ) {}
@@ -157,9 +153,6 @@ export class GetSymbolCoach {
 
     const materials = materialsBySymbol.get(symbol)!;
     const { quote, sentiment, whales, assetClass } = materials;
-    if (assetClass === "kr_stock" && !isForecastOwner(query.viewerEmail, this.krViewerEmails)) {
-      throw new KrStockJudgmentNotAvailableError();
-    }
     const holding =
       assetClass === "kr_stock" ? await this.portfolio.getHolding(userId, symbol, "kr_stock") : cryptoHolding;
     const { scalp, longTerm, whaleBuy, whaleSell, missingData } = judgeSymbol(

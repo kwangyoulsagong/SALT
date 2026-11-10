@@ -1,6 +1,8 @@
 import { Router } from "express";
 
 import { authMiddleware } from "../../shared/presentation/authMiddleware";
+import { marketReaderMiddleware } from "../../shared/presentation/marketReaderMiddleware";
+import { ownerOnlyMiddleware } from "../../shared/presentation/ownerOnlyMiddleware";
 import type { NewsUseCases } from "../application/api";
 import { NewsController } from "./news.controller";
 
@@ -10,7 +12,8 @@ import { NewsController } from "./news.controller";
  * 라우터를 모듈 최상위에서 만들지 않고 팩토리로 준다 — 유스케이스가 밖에서 주입되기
  * 때문이다. 조립은 진입점(`src/composition.ts`) 한 곳에서만 일어난다.
  */
-export const createNewsRouter = (useCases: NewsUseCases): Router => {
+/** @param ownerEmails 관리 경로(수집 실행)를 부를 수 있는 계정 — `FORECAST_OWNER_EMAILS`(`SRV-REQ-056` FR-7) */
+export const createNewsRouter = (useCases: NewsUseCases, ownerEmails: readonly string[] = []): Router => {
   const router = Router();
   const newsController = new NewsController(useCases);
 
@@ -170,7 +173,7 @@ export const createNewsRouter = (useCases: NewsUseCases): Router => {
    *       404: { description: 없는 기사 }
    *       503: { description: 포털 검색 키 없음(NEWS_BODY_UNAVAILABLE) }
    */
-  router.get("/:id/body", authMiddleware, newsController.getNewsBody);
+  router.get("/:id/body", marketReaderMiddleware, newsController.getNewsBody);
 
   /**
    * @swagger
@@ -229,8 +232,10 @@ export const createNewsRouter = (useCases: NewsUseCases): Router => {
    *     responses:
    *       200:
    *         description: 크롤링 완료
+   *       403:
+   *         description: 소유자(`FORECAST_OWNER_EMAILS`)가 아님
    */
-  router.post("/admin/crawl", authMiddleware, newsController.crawlNews);
+  router.post("/admin/crawl", authMiddleware, ownerOnlyMiddleware(ownerEmails), newsController.crawlNews);
 
   return router;
 };

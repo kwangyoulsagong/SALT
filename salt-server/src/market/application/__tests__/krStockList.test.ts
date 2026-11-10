@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  KrStockDisabledError,
   KrStockNotAvailableError,
   type KrMarketCalendarStore,
   type KrMarketAction,
@@ -18,7 +19,6 @@ import { GetKrStockDetail, ListKrStockQuotes } from "../ReadKrStock";
  * F011 슬라이스 3 — 국내 주식 표가 코인 표와 같은 필터(정렬 · 순서 · 기간)를 받고, 관심 종목에 국내 주식을 담는다.
  */
 
-const OWNER = "owner@example.com";
 
 const quote = (code: string, o: Partial<StoredKrStockQuote> = {}): StoredKrStockQuote => ({
   code,
@@ -87,12 +87,10 @@ const list = (store: KrStockStore, status: KrMarketStatusStore = noStatus) =>
     store,
     calendar,
     status,
-    viewerEmails: [OWNER],
     provider: () => ({ status: "ok", since: null, lastSuccessAt: null, realtime: { state: "idle", subscribed: 0, lastTickAt: null } }),
     now: () => new Date("2026-10-08T01:00:30Z"),
   });
 
-const viewer = { userId: "u1", email: OWNER };
 const base = { limit: 50, offset: 0, sort: "all" as const, order: "desc" as const, period: "realtime" as const };
 
 describe("ListKrStockQuotes — 코인 표와 같은 필터", () => {
@@ -104,7 +102,7 @@ describe("ListKrStockQuotes — 코인 표와 같은 필터", () => {
 
   it("기본은 시가총액 내림차순 · 당일 시 · 고 · 저를 원 정수로 · 실시간이면 기간 변동률 = 전일 대비", async () => {
     const { store, calls } = storeWith(quotes);
-    const r = await list(store).execute(viewer, base);
+    const r = await list(store).execute(base);
     assert.deepEqual(r.items.map((i) => i.code), ["000001", "000003", "000002"]);
     assert.equal(r.items[0]!.lowPrice, 9_800);
     assert.equal(r.items[0]!.highPrice, 10_200);
@@ -115,7 +113,7 @@ describe("ListKrStockQuotes — 코인 표와 같은 필터", () => {
   it("거래대금 · 가격 · 이름 · 오름차순", async () => {
     const { store } = storeWith(quotes);
     const codes = async (sort: "trade_value" | "price" | "name", order: "asc" | "desc") =>
-      (await list(store).execute(viewer, { ...base, sort, order })).items.map((i) => i.code);
+      (await list(store).execute({ ...base, sort, order })).items.map((i) => i.code);
     assert.deepEqual(await codes("trade_value", "desc"), ["000002", "000003", "000001"]);
     assert.deepEqual(await codes("price", "asc"), ["000003", "000001", "000002"]);
     assert.deepEqual(await codes("name", "asc"), ["000002", "000001", "000003"]);
@@ -123,7 +121,7 @@ describe("ListKrStockQuotes — 코인 표와 같은 필터", () => {
 
   it("기간 변동률 — 7d 는 5 거래일 전 종가, 기준 없는 종목은 null 이고 정렬에서 뒤로", async () => {
     const { store, calls } = storeWith(quotes, new Map([["000001", 400], ["000002", 1_000]]));
-    const r = await list(store).execute(viewer, { ...base, sort: "change", order: "asc", period: "7d" });
+    const r = await list(store).execute({ ...base, sort: "change", order: "asc", period: "7d" });
     assert.deepEqual(calls, [5]);
     assert.deepEqual(r.items.map((i) => [i.code, i.periodChange]), [
       ["000002", -10],
@@ -134,20 +132,21 @@ describe("ListKrStockQuotes — 코인 표와 같은 필터", () => {
 
   it("codes 를 주면 그 종목만 — 보유 요약 이름 · 로고(슬라이스 3b)", async () => {
     const { store } = storeWith(quotes);
-    const r = await list(store).execute(viewer, { ...base, codes: ["000002", "999999"] });
+    const r = await list(store).execute({ ...base, codes: ["000002", "999999"] });
     assert.deepEqual(r.items.map((i) => [i.code, i.name]), [["000002", "가"]]);
   });
 
   it("페이지는 정렬 뒤에 자른다", async () => {
     const { store } = storeWith(quotes);
-    const r = await list(store).execute(viewer, { ...base, limit: 2, offset: 1, sort: "trade_value" });
+    const r = await list(store).execute({ ...base, limit: 2, offset: 1, sort: "trade_value" });
     assert.deepEqual(r.items.map((i) => i.code), ["000003", "000001"]);
     assert.equal(r.nextOffset, null);
   });
 
-  it("소유자가 아니면 404", async () => {
+  it("읽는 사람을 받지 않는다 — 소유자 판정 없이 누구에게나 같은 표(ADR-011)", async () => {
     const { store } = storeWith(quotes);
-    await assert.rejects(list(store).execute({ userId: "u2", email: "x@example.com" }, base), KrStockNotAvailableError);
+    assert.equal(ListKrStockQuotes.prototype.execute.length, 1);
+    assert.equal((await list(store).execute(base)).items.length, quotes.length);
   });
 });
 
@@ -175,12 +174,11 @@ const fakeWatchlist = (rows: WatchlistItem[] = []) => {
 const noExchange = {} as never;
 
 describe("AddToWatchlist — 국내 주식", () => {
-  it("소유자 · 마스터에 있는 코드면 마스터 이름과 저장 시세로 담는다", async () => {
+  it("로그인한 누구나 · 마스터에 있는 코드면 마스터 이름과 저장 시세로 담는다(ADR-011 — 소유자 판정 없음)", async () => {
     const w = fakeWatchlist();
     const { store } = storeWith([quote("005930", { price: 269_000, changeRate: 0.19 })]);
-    await new AddToWatchlist(w.repo, noExchange, { store, viewerEmails: [OWNER] }).execute({
+    await new AddToWatchlist(w.repo, noExchange, { store }).execute({
       userId: "u1",
-      email: OWNER,
       assetType: "kr_stock",
       symbol: "005930",
       name: "아무 이름",
@@ -190,12 +188,13 @@ describe("AddToWatchlist — 국내 주식", () => {
     assert.equal(w.added[0]!.priceChange24h, 0.19);
   });
 
-  it("비소유자 · 마스터에 없는 코드는 같은 404", async () => {
+  it("마스터에 없는 코드는 404 · 국내 키가 꺼져 있으면 503", async () => {
     const { store } = storeWith([]);
-    const add = new AddToWatchlist(fakeWatchlist().repo, noExchange, { store, viewerEmails: [OWNER] });
+    const add = new AddToWatchlist(fakeWatchlist().repo, noExchange, { store });
     const cmd = { userId: "u1", assetType: "kr_stock" as const, name: "" };
-    await assert.rejects(add.execute({ ...cmd, email: "x@example.com", symbol: "005930" }), KrStockNotAvailableError);
-    await assert.rejects(add.execute({ ...cmd, email: OWNER, symbol: "999999" }), KrStockNotAvailableError);
+    await assert.rejects(add.execute({ ...cmd, symbol: "999999" }), KrStockNotAvailableError);
+    const disabled = new AddToWatchlist(fakeWatchlist().repo, noExchange, null);
+    await assert.rejects(disabled.execute({ ...cmd, symbol: "005930" }), KrStockDisabledError);
   });
 });
 
@@ -217,7 +216,7 @@ describe("ListWatchlist — 국내 주식", () => {
   it("국내 주식 시세는 kr_stock_quotes 에서 · 로고는 시세표와 같은 규칙(krStockLogoUrl, 키 없으면 null)", async () => {
     const w = fakeWatchlist([row({})]);
     const { store } = storeWith([quote("005930", { price: 269_000.4, changeRate: 0.19 })]);
-    const r = await new ListWatchlist(w.repo, assets, { store, viewerEmails: [OWNER] }).execute("u1", {}, { email: OWNER });
+    const r = await new ListWatchlist(w.repo, assets, { store }).execute("u1", {});
     assert.equal(r.items[0]!.currentPrice, 269_000);
     assert.equal(r.items[0]!.priceChange24h, 0.19);
     assert.deepEqual(r.items[0]!.priceUpdatedAt, new Date("2026-10-08T01:00:00Z"));
@@ -225,16 +224,18 @@ describe("ListWatchlist — 국내 주식", () => {
     assert.equal(r.items[0]!.logoUrl, null);
   });
 
-  it("비소유자에게는 국내 주식 행을 빼고 센다", async () => {
-    const w = fakeWatchlist([row({}), row({ id: "c", assetType: "crypto", symbol: "BTC" })]);
+  it("국내 키가 켜져 있으면 누구에게나 국내 행을 준다 · 꺼져 있으면 국내 주식 행을 빼고 센다", async () => {
+    const rows = [row({}), row({ id: "c", assetType: "crypto", symbol: "BTC" })];
+    const on = fakeWatchlist(rows);
     const { store } = storeWith([]);
-    const r = await new ListWatchlist(w.repo, assets, { store, viewerEmails: [OWNER] }).execute(
-      "u1",
-      {},
-      { email: "x@example.com" }
-    );
-    assert.deepEqual(w.excluded(), ["kr_stock"]);
-    assert.deepEqual(r.items.map((i) => i.assetType), ["crypto"]);
+    const visible = await new ListWatchlist(on.repo, assets, { store }).execute("u1", {});
+    assert.deepEqual(on.excluded(), []);
+    assert.deepEqual(visible.items.map((i) => i.assetType).sort(), ["crypto", "kr_stock"]);
+
+    const off = fakeWatchlist(rows);
+    const hidden = await new ListWatchlist(off.repo, assets, null).execute("u1", {});
+    assert.deepEqual(off.excluded(), ["kr_stock"]);
+    assert.deepEqual(hidden.items.map((i) => i.assetType), ["crypto"]);
   });
 });
 
@@ -255,7 +256,7 @@ describe("ListKrStockQuotes — 상태 칩 · VI · 마지막 체결(F016 단계
     const r = await list(store, status([
       ["000001", new Date(now.getTime() - 60_000), null],
       ["000002", new Date(now.getTime() - 300_000), new Date(now.getTime() - 180_000)],
-    ])).execute(viewer, base);
+    ])).execute(base);
     const by = Object.fromEntries(r.items.map((i) => [i.code, i]));
     assert.deepEqual(by["000001"]!.status, ["vi"]);
     assert.deepEqual(by["000001"]!.vi, { kind: "static", triggeredAt: new Date(now.getTime() - 60_000).toISOString(), count: 2 });
@@ -273,7 +274,7 @@ describe("ListKrStockQuotes — 상태 칩 · VI · 마지막 체결(F016 단계
       market: "KOSPI", tradeDate: "2026-10-08", kind: "circuit_breaker", stage: 1, direction: "down",
       startedAt: new Date("2026-10-08T00:04:00Z"), endedAt: null, source: "inferred",
     };
-    const r = await list(store, status([], [cb])).execute(viewer, base);
+    const r = await list(store, status([], [cb])).execute(base);
     const by = Object.fromEntries(r.items.map((i) => [i.code, i]));
     assert.equal(by["000001"]!.lastTradeAt, lastTradeAt.toISOString());
     assert.equal(by["000002"]!.lastTradeAt, null);
@@ -282,7 +283,7 @@ describe("ListKrStockQuotes — 상태 칩 · VI · 마지막 체결(F016 단계
   it("상태 읽기가 실패해도 표는 선다 — 현재가 상태 칸만으로 칩", async () => {
     const { store } = storeWith([quote("000001", { viCode: "Y", lastTradeAt })]);
     const broken = { latestViEvents: async () => { throw new Error("db"); }, marketActions: async () => [] } as unknown as KrMarketStatusStore;
-    const r = await list(store, broken).execute(viewer, base);
+    const r = await list(store, broken).execute(base);
     assert.deepEqual(r.items[0]!.status, ["vi"]);
     assert.deepEqual(r.items[0]!.vi, { kind: null, triggeredAt: null, count: null });
     assert.equal(r.items[0]!.lastTradeAt, lastTradeAt.toISOString());
@@ -301,14 +302,14 @@ describe("GetKrStockDetail — 그 종목 시장의 오늘 조치만(F016 단계
     ]);
     const status = { latestViEvents: async () => new Map(), marketActions: async () => [kospiCb] } as unknown as KrMarketStatusStore;
     const detail = new GetKrStockDetail({
-      store, calendar, status, viewerEmails: [OWNER],
+      store, calendar, status,
       provider: () => ({ status: "ok", since: null, lastSuccessAt: null, realtime: { state: "idle", subscribed: 0, lastTickAt: null } }),
       now: () => new Date("2026-10-08T01:00:30Z"),
     } as never);
-    const kospi = await detail.execute(viewer, "005930");
+    const kospi = await detail.execute("005930");
     assert.deepEqual(kospi.marketActions.map((a) => [a.market, a.active, a.resumesAt]), [["KOSPI", true, "2026-10-08T00:24:00.000Z"]]);
     assert.equal(kospi.quote.lastTradeAt, "2026-10-08T00:03:32.000Z");
-    const kosdaq = await detail.execute(viewer, "035720");
+    const kosdaq = await detail.execute("035720");
     assert.deepEqual(kosdaq.marketActions, []);
     assert.equal(kosdaq.quote.lastTradeAt, null);
   });

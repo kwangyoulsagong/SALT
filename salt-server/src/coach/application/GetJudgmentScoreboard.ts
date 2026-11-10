@@ -1,5 +1,4 @@
 import {
-  isForecastOwner,
   JUDGMENT_CASE_LIMIT,
   judgmentModeOf,
   krTrackOrigin,
@@ -55,8 +54,6 @@ export interface JudgmentScoreboardView {
 export class GetJudgmentScoreboard {
   constructor(
     private readonly judgments: SymbolJudgmentStore,
-    /** 국내 주식 그룹을 볼 수 있는 이메일 — 시세 경로와 같은 목록 */
-    private readonly krViewerEmails: readonly string[] = [],
     /**
      * 국내 주식 백테스트 성적(`backtest` 출처만, F011 슬라이스 7b · 사용자 결정 2026-10-26) — 국내 그룹마다 판단 카드와
      * **같은 출처 선택**(`krTrackOrigin`). 라이브 그룹과 합산하지 않는다
@@ -66,9 +63,9 @@ export class GetJudgmentScoreboard {
     private readonly market: Pick<MarketProbe, "assetLabels"> | null = null
   ) {}
 
-  async execute(viewerEmail?: string): Promise<JudgmentScoreboardView> {
-    const krVisible = isForecastOwner(viewerEmail, this.krViewerEmails);
-    const fallback = krVisible ? this.backtest : null;
+  /** 국내 그룹도 로그인한 누구나(`ADR-011` — 전에는 소유자만) */
+  async execute(): Promise<JudgmentScoreboardView> {
+    const fallback = this.backtest;
     const noCases = new Map<string, Record<JudgmentOutcome, JudgmentCase[]>>();
     const [stats, casesByGroup, backtestStats, backtestCases] = await Promise.all([
       this.judgments.scoreboard(),
@@ -112,7 +109,6 @@ export class GetJudgmentScoreboard {
       if (!mode) return [];
 
       const view = toScoreboardGroup(mode, group, origin);
-      if (view.assetClass === "kr_stock" && !krVisible) return [];
 
       const cases = casesFor(group.signalType, origin);
       return [

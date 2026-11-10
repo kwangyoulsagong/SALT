@@ -22,7 +22,6 @@ export class PortfolioController {
 
       const result = await this.useCases.recordTransaction.execute({
         userId: req.user!.userId,
-        email: req.user!.email,
         assetType: data.assetType,
         symbol: data.symbol,
         transactionType: data.transactionType,

@@ -120,7 +120,6 @@ describe("isUsableSectorQuote — 업종은 30분 박자라 장중엔 40분 안�
 
 // ==================== 유스케이스 ====================
 
-const OWNER = "owner@example.com";
 const NOW = new Date("2026-11-09T02:00:00Z"); // 11:00 KST 장중
 const quote = (o: Partial<StoredKrStockQuote> = {}): StoredKrStockQuote => ({
   code: "005930", name: "삼성전자", market: "KOSPI", homepage: null, logoSource: null,
@@ -167,7 +166,6 @@ const krDeps = (w: KrWorld): { read: KrStockReadDependencies; move: MoveDependen
   const read = {
     store: { quote: async () => q, quotes: async () => (q ? [q] : []), baselineCloses: async () => new Map() } as unknown as KrStockStore,
     calendar: openCalendar,
-    viewerEmails: [OWNER],
     provider: () => ({ status: "ok", since: null, lastSuccessAt: null, realtime: null }) as never,
     supplement: {
       indexQuotes: async () =>
@@ -201,12 +199,12 @@ const krDeps = (w: KrWorld): { read: KrStockReadDependencies; move: MoveDependen
   };
   return { read, move };
 };
-const runKr = (w: KrWorld, email = OWNER) => {
+const runKr = (w: KrWorld) => {
   const { read, move } = krDeps(w);
-  return new GetKrWhyMoved(read, move).execute({ email } as never, "005930");
+  return new GetKrWhyMoved(read, move).execute("005930");
 };
 
-describe("GetKrWhyMoved — 소유자 전용 · 저장값만", () => {
+describe("GetKrWhyMoved — 읽는 사람 누구나(ADR-011) · 저장값만", () => {
   it("큰 하락 — 세 단 분해(%p 둘째 자리) · 카드 · 평소 변동 · 사실 시각순(제목 · 프로그램 원 정수)", async () => {
     const r = await runKr({});
     assert.equal(r.show, true);
@@ -271,11 +269,11 @@ describe("GetKrWhyMoved — 소유자 전용 · 저장값만", () => {
     assert.equal(r.facts.find((f) => f.kind === "warning")!.at, "2026-11-08T15:00:00.000Z");
   });
 
-  it("비소유자 · 없는 종목 · 형식 틀림은 같은 404", async () => {
-    await assert.rejects(runKr({}, "friend@example.com"), KrStockNotAvailableError);
+  it("읽는 사람을 받지 않는다(소유자 판정 없음) · 없는 종목 · 형식 틀림만 404", async () => {
+    assert.equal(GetKrWhyMoved.prototype.execute.length, 1);
     await assert.rejects(runKr({ quote: null }), KrStockNotAvailableError);
     const { read, move } = krDeps({});
-    await assert.rejects(new GetKrWhyMoved(read, move).execute({ email: OWNER } as never, "../x"), KrStockNotAvailableError);
+    await assert.rejects(new GetKrWhyMoved(read, move).execute("../x"), KrStockNotAvailableError);
   });
 });
 
@@ -291,7 +289,7 @@ describe("ListKrStockQuotes — 행 카드 표시(상세와 같은 판정)", () 
         status: { latestViEvents: async () => new Map(), marketActions: async () => [] } as unknown as KrMarketStatusStore,
         move: { betas: betaReader(betas), policy: { k: 2.5, minRate: 3 } },
       };
-      const r = await new ListKrStockQuotes(deps).execute({ email: OWNER } as never, { limit: 10, offset: 0, sort: "marketCap", order: "desc", period: "realtime" } as never);
+      const r = await new ListKrStockQuotes(deps).execute({ limit: 10, offset: 0, sort: "marketCap", order: "desc", period: "realtime" } as never);
       return Object.fromEntries(r.items.map((i) => [i.code, i.moveCard]));
     };
     // σ 2% → 문턱 5% · 000660 σ 1% → 문턱 3%

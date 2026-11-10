@@ -1,5 +1,4 @@
 import {
-  isKrStockViewer,
   krStockLogoUrl,
   MarketOverviewSort,
   trackedAssetKey,
@@ -19,9 +18,8 @@ import {
 export const ASSET_SEARCH_MAX_LIMIT = 30;
 
 export interface SearchAssetsQuery {
-  userId: string;
-  /** 국내 주식은 소유자만 본다(F011 — 시세가 소유자 전용) */
-  email?: string;
+  /** 게스트(로그인 없음, `ADR-011`)면 `null` — 사람 칸(★ · 보유 · 추적 카운터)을 계산하지 않는다(관심 · 보유 읽기 0) */
+  userId: string | null;
   /** 앞뒤 공백은 여기서 지운다. 비면 추적 목록(관심 ∪ 보유)을 준다(FR-86) */
   q: string;
   assetType?: Extract<MarketAssetType, "crypto" | "kr_stock">;
@@ -38,14 +36,20 @@ export interface AssetSearchItem {
   currentPrice: number | null;
   /** 24시간(코인) · 전일 대비(국내) 변동률 % */
   changeRate: number | null;
-  isTracked: boolean;
-  isHeld: boolean;
+  /** 게스트면 `null` — 모르는 것이지 "아님"이 아니다 */
+  isTracked: boolean | null;
+  isHeld: boolean | null;
 }
 
 export interface AssetSearchResult {
   items: AssetSearchItem[];
-  tracked: TrackedSummary;
+  /** 게스트면 `null` */
+  tracked: TrackedSummary | null;
 }
+
+type TrackFlags = (assetType: MarketAssetType, symbol: string) => { isTracked: boolean | null; isHeld: boolean | null };
+
+const GUEST_FLAGS = { isTracked: null, isHeld: null } as const;
 
 /**
  * 맞음 정도 — 0 이 먼저다. 심볼 · 코드 · 이름이 검색어와 **같으면** 0, 그것으로 **시작하면** 1, 나머지는 2.
@@ -69,7 +73,7 @@ const cryptoQuote = (view: MarketAssetView | undefined) =>
 /**
  * 종목 검색 — 코인 + 국내 주식 한 검색(`SRV-REQ-008` FR-80 · 86 · 87, `FEATURE-000` FR-40).
  *
- * 요청당 읽기: 관심 목록 1 · 보유 1(`HoldingProbe`) · 코인 자산 1 · (국내 소유자면) 마스터 1 · 이름 · 로고 1 · 시세 1.
+ * 요청당 읽기: 관심 목록 1 · 보유 1(`HoldingProbe`) · 코인 자산 1 · (국내 키가 켜져 있으면) 마스터 1 · 이름 · 로고 1 · 시세 1.
  * 결과 행마다 조회하지 않는다(FR-84). **검색어를 로그에 남기지 않는다** — 관심 종목은 투자 의도다(FR-86)
  */
 export class SearchAssets {
@@ -82,14 +86,20 @@ export class SearchAssets {
 
   async execute(query: SearchAssetsQuery): Promise<AssetSearchResult> {
     const q = query.q.trim();
-    const krVisible = this.kr !== null && isKrStockViewer(query.email, this.kr.viewerEmails);
-    const { watched, held, summary } = await readTrackedSummary(this.watchlist, this.tracking, query.userId);
+    const krVisible = this.kr !== null; // 국내 키가 켜져 있으면 누구나(`ADR-011`)
+    const { watched, held, summary } =
+      query.userId === null
+        ? { watched: [], held: [], summary: null }
+        : await readTrackedSummary(this.watchlist, this.tracking, query.userId);
     const trackedKeys = new Set(watched.map(trackedAssetKey));
     const heldKeys = new Set(held.map(trackedAssetKey));
-    const flags = (assetType: MarketAssetType, symbol: string) => {
-      const key = trackedAssetKey({ assetType, symbol });
-      return { isTracked: trackedKeys.has(key) || heldKeys.has(key), isHeld: heldKeys.has(key) };
-    };
+    const flags: TrackFlags =
+      query.userId === null
+        ? () => GUEST_FLAGS
+        : (assetType, symbol) => {
+            const key = trackedAssetKey({ assetType, symbol });
+            return { isTracked: trackedKeys.has(key) || heldKeys.has(key), isHeld: heldKeys.has(key) };
+          };
 
     const wants = (assetType: MarketAssetType) =>
       (query.assetType === undefined || query.assetType === assetType) && (assetType !== "kr_stock" || krVisible);
@@ -127,7 +137,7 @@ export class SearchAssets {
     watched: Awaited<ReturnType<WatchlistRepository["listAll"]>>,
     held: Array<{ assetType: MarketAssetType; symbol: string }>,
     wants: (assetType: MarketAssetType) => boolean,
-    flags: (assetType: MarketAssetType, symbol: string) => { isTracked: boolean; isHeld: boolean },
+    flags: TrackFlags,
     limit: number
   ): Promise<AssetSearchItem[]> {
     const seen = new Set<string>();
@@ -181,7 +191,7 @@ export class SearchAssets {
   /** 국내 주식 행 — 이름 · 로고는 마스터 전체(유니버스 밖 포함), 시세는 저장값(유니버스 안만). 입력 순서를 지킨다 */
   private async krItems(
     codes: string[],
-    flags: (assetType: MarketAssetType, symbol: string) => { isTracked: boolean; isHeld: boolean }
+    flags: TrackFlags
   ): Promise<AssetSearchItem[]> {
     if (!this.kr || codes.length === 0) return [];
     const [labels, quotes] = await Promise.all([

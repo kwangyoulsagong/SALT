@@ -21,7 +21,7 @@ source: "`FEATURE-018` · `ADR-011`(사용자 결정 2026-11-10)"
 | FR | 내용 | 상태 |
 |---|---|---|
 | FR-1 | **발급** `POST /api/auth/guest`(인증 없음) → `{ guestToken, expiresIn }`. 서명 비밀 = `HMAC(JWT_SECRET, "salt-guest")`(새 필수 env 0) · `aud: "guest"` · 수명 `GUEST_TOKEN_TTL`(기본 30분) · 사람 식별자 0. 설정 `PUBLIC_MARKET_GUEST`(기본 켬) 꺼짐 → 403 `GUEST_DISABLED` | Draft |
-| FR-2 | **발급 상한** — IP 당 `GUEST_ISSUE_PER_IP`(기본 30) / 10분, 서버 메모리 창. 넘으면 429. 로그는 수 · 거절만(토큰 · IP 원문 0 — 앞 두 옥텟) | Draft |
+| FR-2 | **발급 상한** — `GUEST_ISSUE_PER_WINDOW`(기본 300) / 10분, 서버 메모리 창(`rateLimit`). 넘으면 429. ~~IP 당~~ 요청이 전부 BFF 를 거쳐 와 키(`req.ip`)가 하나 — **사실상 서버 전체 상한**(초대 경로 상한과 같은 처지). 클라이언트 IP 상한은 `X-Forwarded-For` 사슬 + `trust proxy` 가 먼저 — 배포(`OPS-001`) 때 | Draft |
 | FR-3 | **`marketReaderMiddleware`** — 사람 토큰 검증 성공 → `req.reader = { kind: "user", userId, email }` + `req.user`(기존 소비처), 실패 시 게스트 비밀로 검증 → `{ kind: "guest" }`, 둘 다 실패 → 401. **불변식: 게스트 토큰은 `authMiddleware` 를 통과하지 못한다**(비밀이 달라 서명 불일치 — 테스트로 고정) | Draft |
 | FR-4 | **시장 경로 교체** — `krStock.routes.ts` 전체(일정 · 장 상태 · 목록 · 검색 · 지수 · 요약 · 상세 · 차트 · 투자자 · 호가 · 장중 수급 · 뉴스 · 본문 · 왜 움직였나 · SSE) · `investment.routes.ts` 왜 움직였나 · 검색 넷 · `news.routes.ts` 본문 → `marketReaderMiddleware`. ★ · 관심 · 포트폴리오 · 코치 · 북마크는 `authMiddleware` 그대로 | Draft |
 | FR-5 | **사람 칸** — 검색 `isTracked` 는 게스트에게 `null`(계산 0, 관심 표 읽기 0). 다른 시장 응답엔 사람 칸 없음(확인) | Draft |

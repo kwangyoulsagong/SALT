@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { env } from "../../shared/config/env";
 import { authMiddleware } from "../../shared/presentation/authMiddleware";
 import { rateLimit } from "../../shared/presentation/rateLimit";
 import type { AuthUseCases } from "../application/api";
@@ -14,6 +15,8 @@ import { AuthController } from "./auth.controller";
  */
 const CHECK_RATE_LIMIT = { windowMs: 60_000, max: 30 };
 const ACCEPT_RATE_LIMIT = { windowMs: 60_000, max: 10 };
+/** 게스트 발급 — 10분 창(`GUEST_ISSUE_PER_WINDOW` — BFF 뒤라 사실상 서버 전체, env 주석). 정상 탭은 30분에 한 번 받는다 */
+const GUEST_RATE_LIMIT = { windowMs: 10 * 60_000, max: env.GUEST_ISSUE_PER_WINDOW };
 
 export const createAuthRouter = (useCases: AuthUseCases): Router => {
   const router = Router();
@@ -104,6 +107,25 @@ export const createAuthRouter = (useCases: AuthUseCases): Router => {
    *         description: 로그인 성공
    */
   router.post("/login", authController.login);
+
+  /**
+   * @swagger
+   * /api/auth/guest:
+   *   post:
+   *     summary: 게스트 토큰 발급 — 로그인 없이 시장 데이터를 읽는다(`ADR-011`)
+   *     description: |
+   *       사람 정보가 없는 짧은 토큰(기본 30분). 시장 경로(시세 · 실시간 · 차트 · 호가 · 투자자 · 업종 · 뉴스 · 왜 움직였나 · 검색)만
+   *       받는다 — ★ · 포트폴리오 · 코치 경로에서는 401. 10분에 `GUEST_ISSUE_PER_WINDOW` 번(BFF 뒤라 서버 전체 상한).
+   *     tags: [Auth]
+   *     responses:
+   *       200:
+   *         description: "`{ guestToken, expiresIn }`(초)"
+   *       403:
+   *         description: 게스트 공개가 꺼짐(`GUEST_DISABLED`)
+   *       429:
+   *         description: 발급이 너무 잦다
+   */
+  router.post("/guest", rateLimit(GUEST_RATE_LIMIT), authController.issueGuest);
 
   /**
    * @swagger

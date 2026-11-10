@@ -590,15 +590,16 @@ describe("ExplainCoachDecision — 국내 주식 (F011 슬라이스 4)", () => {
     const spy = spyExplainer();
     const result = new ExplainCoachDecision(spy.explainer, krMarket(dailyBars), noHolding, krStore, newsProbe, {
       now: () => NOW,
-      krViewerEmails: ["owner@salt.test"],
     }).execute("u1", { symbol: "005930", mode, viewerEmail });
     return { result, calls: spy.calls };
   };
 
-  it("비소유자는 사실을 모으지 못한 것과 같은 답 — 국내 주식이 있다는 것도 알리지 않는다", async () => {
-    const { result, calls } = run(486, "other@salt.test");
-    assert.deepEqual(await result, { renderable: false, blockedReason: "facts_unavailable" });
-    assert.equal(calls.length, 0);
+  it("소유자 목록에 없는 로그인 사용자 · 이메일 없는 사용자도 국내 해설을 받는다 — 소유자 판정은 전망만(ADR-011)", async () => {
+    for (const viewerEmail of ["other@salt.test", undefined]) {
+      const { result, calls } = run(486, viewerEmail);
+      assert.equal((await result).renderable, true);
+      assert.equal(calls.length, 1);
+    }
   });
 
   it("소유자도 종목 판단과 같은 막음 — 이력 부족 · 단타 미개방, 성적은 국내 주식 그룹에서 읽는다", async () => {

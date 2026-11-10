@@ -67,7 +67,6 @@ describe("국내 요약 도메인 함수", () => {
   });
 });
 
-const OWNER = "owner@example.com";
 const indexRow = (code: string, over: Partial<StoredKrIndexQuote> = {}): StoredKrIndexQuote => ({
   code,
   value: 5892.25,
@@ -146,36 +145,36 @@ const setup = (
         ["2026-10-30", "2026-11-02", "2026-11-03"].filter((d) => d >= from && d <= to)
           .map((date) => ({ date, isOpen: true, isTradingDay: true, isBusinessDay: true, isSettlementDay: true })),
     } as KrMarketCalendarStore,
-    viewerEmails: [OWNER],
     now: () => new Date("2026-11-02T05:00:00Z"),
   });
 };
 
 describe("GetKrMarketSummary", () => {
-  const viewer = { userId: "u1", email: OWNER };
-
   it("시장 조치(F016 단계 A) — 끝을 못 본 오늘 조치는 active · 재개 예정은 서버가 · 못 읽으면 빈 배열 + degraded", async () => {
     const startedAt = new Date("2026-11-02T04:50:00Z"); // 13:50 KST
     const view = await setup({
       actions: [{ market: "KOSPI", tradeDate: "2026-11-02", kind: "circuit_breaker", stage: 1, direction: "down", startedAt, endedAt: null, source: "inferred" }],
-    }).execute(viewer);
+    }).execute();
     assert.deepEqual(view.marketActions, [
       {
         market: "KOSPI", kind: "circuit_breaker", stage: 1, direction: "down", startedAt: startedAt.toISOString(), endedAt: null,
         resumesAt: "2026-11-02T05:10:00.000Z", source: "inferred", active: true,
       },
     ]);
-    const failed = await setup({ actionsFail: true }).execute(viewer);
+    const failed = await setup({ actionsFail: true }).execute();
     assert.deepEqual(failed.marketActions, []);
     assert.equal(failed.degraded, true);
   });
 
-  it("소유자가 아니면 404 오류", async () => {
-    await assert.rejects(setup().execute({ userId: "u2", email: "x@example.com" }), { code: "KR_STOCK_NOT_AVAILABLE" });
+  it("읽는 사람을 받지 않는다 — 소유자 판정 없이 누구에게나 같은 요약(ADR-011)", async () => {
+    const useCase = setup();
+    assert.equal(useCase.execute.length, 0);
+    const view = await useCase.execute();
+    assert.equal(view.assetClass, "kr_stock");
   });
 
   it("대표 코스피 · 지수 칸 코스닥 · 종목은 유니버스 순서 · 등락 기준은 전일 종가", async () => {
-    const view = await setup().execute(viewer);
+    const view = await setup().execute();
     assert.equal(view.assetClass, "kr_stock");
     assert.equal(view.changeBasis, "prev_close");
     assert.equal(view.featured?.symbol, "0001");
@@ -193,7 +192,7 @@ describe("GetKrMarketSummary", () => {
   });
 
   it("태그는 코인과 같은 함수 — 절댓값 5% 이상", async () => {
-    const view = await setup().execute(viewer);
+    const view = await setup().execute();
     const tags = Object.fromEntries(view.items.map((i) => [i.symbol, i.tags]));
     assert.deepEqual(tags["1001"], ["wide_move"]);
     assert.deepEqual(tags["000660"], ["wide_move"]);
@@ -201,7 +200,7 @@ describe("GetKrMarketSummary", () => {
   });
 
   it("오늘의 시장 = 지수 행 합 · 소식 자리는 일정 3건 · 뉴스는 지어내지 않는다", async () => {
-    const view = await setup().execute(viewer);
+    const view = await setup().execute();
     assert.equal(view.breadth?.total, (640 + 37 + 235) * 2);
     assert.equal(view.schedule.length, 3);
     assert.deepEqual(view.headlines, []);
@@ -209,7 +208,7 @@ describe("GetKrMarketSummary", () => {
   });
 
   it("분 기록 · 일정이 실패해도 띠는 선다 — 그 칸만 비우고 degraded", async () => {
-    const view = await setup({ ticksFail: true, scheduleFail: true }).execute(viewer);
+    const view = await setup({ ticksFail: true, scheduleFail: true }).execute();
     assert.equal(view.featured?.sparkline, null);
     assert.equal(view.featured?.currentPrice, 5892.25);
     assert.deepEqual(view.schedule, []);
@@ -217,7 +216,7 @@ describe("GetKrMarketSummary", () => {
   });
 
   it("5분봉이 없는 종목은 칸이 남고 선만 null", async () => {
-    const view = await setup({ noBars: ["035420"] }).execute(viewer);
+    const view = await setup({ noBars: ["035420"] }).execute();
     const item = view.items.find((i) => i.symbol === "035420");
     assert.equal(item?.sparkline, null);
     assert.equal(view.degraded, true);
@@ -225,7 +224,7 @@ describe("GetKrMarketSummary", () => {
 
   it("작은 칸은 9개를 넘지 않는다", async () => {
     const universe = Array.from({ length: 30 }, (_, i) => String(100000 + i));
-    const view = await setup({ universe }).execute(viewer);
+    const view = await setup({ universe }).execute();
     assert.equal(view.items.length, KR_SUMMARY_SLOTS);
   });
 });

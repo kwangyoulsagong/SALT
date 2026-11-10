@@ -101,7 +101,7 @@ export class CoachToolsController {
    */
   getScoreboard = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await this.useCases.getJudgmentScoreboard.execute(req.user!.email);
+      const result = await this.useCases.getJudgmentScoreboard.execute();
 
       return ResponseUtil.success(res, result);
     } catch (error) {

@@ -34,7 +34,7 @@ import {
   UnknownMarketSymbolError,
 } from "../domain";
 import { cryptoMoveEvents, freshCryptoWarning, KR_STATE_BADGES, krMoveEvents, loadBetas, type MoveDependencies } from "./moveCard";
-import { KrStockRead, type KrStockReadDependencies, type KrStockViewer } from "./ReadKrStock";
+import { KrStockRead, type KrStockReadDependencies } from "./ReadKrStock";
 import { loadKrSession } from "./SyncKrStock";
 
 /**
@@ -114,8 +114,7 @@ export class GetKrWhyMoved extends KrStockRead {
     super(deps);
   }
 
-  async execute(viewer: KrStockViewer, code: string): Promise<WhyMovedView & { code: string }> {
-    this.access.assert(viewer);
+  async execute(code: string): Promise<WhyMovedView & { code: string }> {
     if (!isKrStockCode(code)) throw new KrStockNotAvailableError();
     const now = this.now();
     const [session, quote] = await Promise.all([loadKrSession(this.deps.calendar, now), this.deps.store.quote(code)]);

@@ -106,12 +106,15 @@ import { logger } from "./shared/config/logger";
  * 상한은 **여기서 주입한다**. 유스케이스가 `env` 를 읽으면 그 값이 테스트에서
  * 바뀌지 않는다 (FR-6).
  */
+const jwtTokens = new JwtTokenIssuer();
 const auth = createAuthApplication({
   invites: new PrismaInviteCodeStore(),
   accounts: new PrismaAccountStore(),
   userCount: new PrismaUserCountProbe(),
   hasher: new BcryptPasswordHasher(),
-  tokens: new JwtTokenIssuer(),
+  tokens: jwtTokens,
+  guestTokens: jwtTokens,
+  publicMarketGuest: env.PUBLIC_MARKET_GUEST,
   attempts: new PrismaInviteAttemptLog(),
   maxAccounts: env.INVITE_MAX_ACCOUNTS,
 });
@@ -164,7 +167,6 @@ const krStock =
         logoDevToken: env.KR_LOGO_DEV_TOKEN,
         logoImages: new LogoDevImageProbe(),
         homepages: env.DART_API_KEY ? new DartHomepageSource(env.DART_API_KEY) : null,
-        viewerEmails: env.FORECAST_OWNER_EMAILS,
         supplementSource: kis,
         supplement: new PrismaKrSupplementStore(),
         statusSource: kis,
@@ -318,7 +320,7 @@ export const contextUseCases = {
 /** `app.ts` 가 등록하는 라우터. 경로는 `app.ts` 가 정한다. */
 export const contextRouters = {
   auth: createAuthRouter(auth.useCases),
-  news: createNewsRouter(news.useCases),
+  news: createNewsRouter(news.useCases, env.FORECAST_OWNER_EMAILS),
   investment: createInvestmentRouter(market.useCases),
   marketIntelligence: createMarketIntelligenceRouter(market.useCases),
   krStock: createKrStockRouter(market.useCases.krStock, market.useCases.getKrMarketSchedule),

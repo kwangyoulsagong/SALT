@@ -6,7 +6,6 @@ import {
   tagCosts,
   tradeTimingMirror,
   dispositionMirror,
-  isForecastOwner,
   krClosingHoldings,
   krTradingDays,
   krTurnoverMirror,
@@ -14,7 +13,6 @@ import {
   KR_LOTTERY_BUY_WINDOW_DAYS,
   KR_LOTTERY_MIN_RETURNS,
   KR_RETURN_BREAK_BOUNDS,
-  KrStockJudgmentNotAvailableError,
   lotteryMirror,
   lotteryWindowFor,
   MIRROR_MIN_SAMPLE,
@@ -92,8 +90,6 @@ export class GetKrBehaviorMirror {
     private readonly market: MarketProbe,
     private readonly tradePlans: TradePlanStore,
     private readonly outcomes: DecisionOutcomeStore,
-    /** 국내 주식을 볼 수 있는 이메일 — 시세 경로와 같은 목록 */
-    private readonly krViewerEmails: readonly string[] = [],
     private readonly now: () => Date = () => new Date()
   ) {}
 
@@ -113,7 +109,6 @@ export class GetKrBehaviorMirror {
   }
 
   async execute(query: { userId: string; viewerEmail?: string }): Promise<KrBehaviorMirrorView> {
-    if (!isForecastOwner(query.viewerEmail, this.krViewerEmails)) throw new KrStockJudgmentNotAvailableError();
     const now = this.now();
     const [ledger, stored, linked] = await Promise.all([
       this.portfolio.listLedgerSince(query.userId, new Date(0), TRADE_HISTORY_LIMIT, ["kr_stock"]),

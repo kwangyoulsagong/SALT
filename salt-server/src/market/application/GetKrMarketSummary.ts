@@ -1,7 +1,6 @@
 import { logger } from "../../shared/config/logger";
 import {
   bucketLastValues,
-  isKrStockViewer,
   KR_INDEX_NAMES,
   KR_REGULAR_SESSION_MINUTES,
   KR_SPARKLINE_BUCKET_MINUTES,
@@ -10,7 +9,6 @@ import {
   krBreadthOf,
   krSessionDateOf,
   krStockLogoUrl,
-  KrStockNotAvailableError,
   pickKrSummaryStocks,
   summaryTagsOf,
   toKrSchedule,
@@ -88,7 +86,6 @@ export interface GetKrMarketSummaryDependencies {
   /** 시장 조치 · 장 상태(F016 단계 A) */
   status: KrMarketStatusStore;
   calendar: KrMarketCalendarStore;
-  viewerEmails: readonly string[];
   logoDevToken?: string;
   now?: () => Date;
 }
@@ -106,8 +103,7 @@ export class GetKrMarketSummary {
     this.now = deps.now ?? (() => new Date());
   }
 
-  async execute(viewer: { userId: string; email?: string }): Promise<KrMarketSummaryView> {
-    if (!isKrStockViewer(viewer.email, this.deps.viewerEmails)) throw new KrStockNotAvailableError();
+  async execute(): Promise<KrMarketSummaryView> {
     const now = this.now();
     const { policy } = this.deps;
     const indexCodes = [...new Set([policy.featured, ...policy.indexItems])];

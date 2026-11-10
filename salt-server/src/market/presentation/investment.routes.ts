@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { authMiddleware } from "../../shared/presentation/authMiddleware";
+import { marketReaderMiddleware } from "../../shared/presentation/marketReaderMiddleware";
 import type { MarketUseCases } from "../application/api";
 import { InvestmentController } from "./investment.controller";
 
@@ -164,7 +165,7 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *       401: { description: 로그인 필요 }
    *       404: { description: 모르는 종목(`MARKET_SYMBOL_NOT_FOUND`) }
    */
-  router.get("/crypto/:symbol/why-moved", authMiddleware, investmentController.getCryptoWhyMoved);
+  router.get("/crypto/:symbol/why-moved", marketReaderMiddleware, investmentController.getCryptoWhyMoved);
 
   // ==================== 🔒 PROTECTED ENDPOINTS (인증 필요) ====================
 
@@ -174,8 +175,8 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *   post:
    *     summary: 관심 목록에 추가
    *     description: |
-   *       `kr_stock`(F011) 은 6자리 코드 · 소유자 전용(아니면 404) · 이름은 서버가 마스터 이름으로 정한다(`name` 생략 가능).
-   *       KIS 키가 없으면 503. 조회도 비소유자에게는 국내 주식 행을 빼고 준다.
+   *       `kr_stock`(F011) 은 6자리 코드(마스터에 없으면 404) · 이름은 서버가 마스터 이름으로 정한다(`name` 생략 가능).
+   *       KIS 키가 없으면 503 · 조회는 국내 행을 빼고 준다.
    *     tags: [Investment - Protected]
    *     security:
    *       - bearerAuth: []
@@ -213,7 +214,7 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *     summary: 종목 검색 — 코인 + 국내 주식 한 검색(추적 자산 고르기)
    *     description: |
    *       심볼 · 코드 · 한글명 · 영문명 부분 일치. 같음 → 시작 → 포함 순, 같은 순위 안은 코인 거래대금 · 국내 시총 순.
-   *       국내 주식은 소유자에게만 나온다. `q` 가 비면 추적 목록(관심 ∪ 보유)을 준다. 검색어는 로그에 남기지 않는다.
+   *       읽는 사람(사람 · 게스트 토큰)이면 누구나 — 게스트는 `isTracked` · `isHeld` · `tracked` 가 `null`. `q` 가 비면 추적 목록(관심 ∪ 보유)을 준다. 검색어는 로그에 남기지 않는다.
    *       `isTracked` = 관심 또는 보유, `isHeld` = 보유(수량 > 0). `tracked.count` = 보유가 아닌 관심 수, `tracked.limit` = 설정값.
    *     tags: [Investment - Protected]
    *     security:
@@ -255,7 +256,7 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *       400: { description: q · assetType · limit 형식 오류 }
    *       401: { description: 인증 실패 }
    */
-  router.get("/search", authMiddleware, investmentController.searchAssets);
+  router.get("/search", marketReaderMiddleware, investmentController.searchAssets);
 
   /**
    * @swagger
@@ -265,7 +266,7 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *     description: |
    *       `SRV-REQ-055` FR-1. 종목 묶음은 `/api/investment/search`. 업종 = 업종 지수 이름 부분 일치(가장 늦은 거래일 값 · 등락률 높은 순 5),
    *       지수 = 코스피 · 코스닥 · 코스피 200 이름 · 별칭(KOSPI 등), 뉴스 = 일주일 안 제목 부분 일치(국내 시황 · 공시 + 코인 기사, 최신 6).
-   *       업종 · 지수 · 국내 제목은 국내 시세 소유자에게만(아니면 빈 배열). `q` 가 비면 셋 다 빈 배열. 검색어는 로그에 남기지 않는다.
+   *       업종 · 지수 · 국내 제목은 국내 키가 켜져 있을 때(아니면 빈 배열). 게스트 토큰도 받는다. `q` 가 비면 셋 다 빈 배열. 검색어는 로그에 남기지 않는다.
    *     tags: [Investment - Protected]
    *     security:
    *       - bearerAuth: []
@@ -328,7 +329,7 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *       400: { description: q 형식 오류 }
    *       401: { description: 인증 실패 }
    */
-  router.get("/search/groups", authMiddleware, investmentController.searchGroups);
+  router.get("/search/groups", marketReaderMiddleware, investmentController.searchGroups);
 
   /**
    * @swagger
@@ -337,7 +338,7 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *     summary: 지금 뜨는 업종 — 검색 모달 첫 화면
    *     description: |
    *       `SRV-REQ-055` FR-2. 업종 지수(유니버스 종목의 지수업종) 중 가장 늦은 거래일 값 · 이름 있는 것 · 등락률 높은 순.
-   *       국내 시세 소유자에게만 — 아니면 `{ asOf: null, items: [] }`(404 아님).
+   *       국내 키가 없으면 `{ asOf: null, items: [] }`(404 아님). 게스트 토큰도 받는다.
    *     tags: [Investment - Protected]
    *     security:
    *       - bearerAuth: []
@@ -368,7 +369,7 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *       400: { description: limit 형식 오류 }
    *       401: { description: 인증 실패 }
    */
-  router.get("/search/rising-sectors", authMiddleware, investmentController.risingSectors);
+  router.get("/search/rising-sectors", marketReaderMiddleware, investmentController.risingSectors);
 
   /**
    * @swagger
@@ -378,7 +379,7 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *     description: |
    *       `SRV-REQ-055` FR-3. 종목(`assetType` + `symbol`) 또는 업종(`sector`) 중 하나.
    *       국내 종목 = 같은 업종 유니버스 종목 3(등락률 높은 순 · 자기 제외) · 업종 = 구성 종목 5 · 코인 = 30일 안 같은 기사에 함께 태그된 코인 3.
-   *       원천이 없거나 국내 비소유자면 `basis: none` · 빈 목록.
+   *       원천이 없거나 국내 키가 없으면 `basis: none` · 빈 목록.
    *     tags: [Investment - Protected]
    *     security:
    *       - bearerAuth: []
@@ -420,7 +421,7 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
    *       400: { description: 종목 · 업종 둘 다 또는 둘 다 없음 · 형식 오류 }
    *       401: { description: 인증 실패 }
    */
-  router.get("/search/related", authMiddleware, investmentController.searchRelated);
+  router.get("/search/related", marketReaderMiddleware, investmentController.searchRelated);
 
   /**
    * @swagger

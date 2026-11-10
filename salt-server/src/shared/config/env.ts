@@ -18,6 +18,21 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default("15m"),
   JWT_REFRESH_SECRET: z.string(),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
+  /**
+   * 게스트 토큰(`SRV-REQ-056` · `ADR-011`) — 로그인 없이 시장 데이터를 읽는 30분짜리 토큰. 비밀은 `JWT_SECRET` 에서 파생(새 비밀 0).
+   * `PUBLIC_MARKET_GUEST=false` 면 발급 403 — 시장 경로는 사람 토큰만 남는다(되돌리는 한 줄)
+   */
+  GUEST_TOKEN_TTL: z.string().default("30m"),
+  /**
+   * 게스트 발급 상한(10분 창). 키는 `req.ip` 지만 요청이 전부 BFF 를 거쳐 와서 **사실상 서버 전체 상한**이다 — 클라이언트 IP 로
+   * 세려면 셸 → BFF → 서버에 `X-Forwarded-For` 사슬 + `trust proxy` 가 먼저(초대 경로 상한도 같은 처지, 배포 `OPS-001` 때).
+   * 브라우저는 토큰을 30분 쿠키로 들므로 발급 수 ≈ 30분 안의 서로 다른 게스트 브라우저 수
+   */
+  GUEST_ISSUE_PER_WINDOW: z.string().default("300").transform(Number).pipe(z.number().int().min(1)),
+  PUBLIC_MARKET_GUEST: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
   LOG_LEVEL: z.string().default("info"),
   GEMINI_API_KEY: z.string().min(10),
   GEMINI_MODEL: z.string().default("gemini-2.5-flash-lite"),

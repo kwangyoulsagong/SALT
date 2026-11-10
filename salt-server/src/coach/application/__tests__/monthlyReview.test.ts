@@ -121,7 +121,7 @@ const setup = (options: { ledger?: CoachLedgerEntry[]; truncated?: boolean; now?
   const now = () => new Date(options.now ?? "2026-02-02T00:00:00Z");
   const market = { quotes: async () => new Map() } as unknown as MarketProbe;
   const build = new BuildMonthlyReview(reviews, profiles, portfolio, plans, outcomes, forecasts, market, now);
-  return { state, reviews, build, get: new GetMonthlyReview(reviews, build, [], null, now) };
+  return { state, reviews, build, get: new GetMonthlyReview(reviews, build, null, now) };
 };
 
 describe("BuildMonthlyReview · GetMonthlyReview", () => {
@@ -224,21 +224,20 @@ describe("월간 복기 국내판 (F011 FR-48)", () => {
     const now = () => new Date("2026-02-02T00:00:00Z");
     const build = new BuildMonthlyReview(reviews, profiles, portfolio, plans, outcomes, forecasts, market, now);
     const labels = { assetLabels: async () => [{ symbol: "005930", name: "삼성전자", logoUrl: null }] };
-    return { calls, reviews, build, get: new GetMonthlyReview(reviews, build, ["owner@salt.dev"], labels, now) };
+    return { calls, reviews, build, get: new GetMonthlyReview(reviews, build, labels, now) };
   };
 
-  it("소유자가 아니면 404 오류 — 만들지도 않는다", async () => {
+  it("소유자 목록과 무관하게 로그인한 누구나 국내판을 받는다 — 만들어 저장한다(ADR-011)", async () => {
     const ctx = setupKr();
-    await assert.rejects(
-      ctx.get.execute("u1", "2026-01", { assetType: "kr_stock", viewerEmail: "guest@salt.dev" }),
-      { name: "KrStockJudgmentNotAvailableError" }
-    );
-    assert.equal(ctx.reviews.saves, 0);
+    const view = await ctx.get.execute("u1", "2026-01", { assetType: "kr_stock", viewerEmail: "guest@salt.dev" });
+    assert.equal(view.assetType, "kr_stock");
+    assert.equal(view.status, "ok");
+    assert.equal(ctx.reviews.saves, 1);
   });
 
   it("국내 거래 · 결과 · 계획만 · 코인판과 따로 저장 · 날은 거래일 · 보유는 거래일", async () => {
     const ctx = setupKr();
-    const view = await ctx.get.execute("u1", "2026-01", { assetType: "kr_stock", viewerEmail: "owner@salt.dev" });
+    const view = await ctx.get.execute("u1", "2026-01", { assetType: "kr_stock" });
     assert.equal(view.assetType, "kr_stock");
     assert.equal(view.status, "ok");
     // 이 판 원장 · 결과는 국내, IPS 합산용으로 코인 원장도 읽는다

@@ -387,13 +387,11 @@ describe("PruneKrMoveSources — 보관 기한", () => {
   });
 });
 
-describe("읽기 — 오늘 소식 · 장중 수급(소유자 전용 · 저장값만)", () => {
-  const OWNER = { userId: "u", email: "owner@x.com" };
+describe("읽기 — 오늘 소식 · 장중 수급(읽는 사람 누구나 · 저장값만)", () => {
   const asked: Array<{ code: string; since: string }> = [];
   const deps = (listed = true) => ({
     store: { findListing: async (code: string) => (listed ? { code, name: "삼성전자", market: "KOSPI" } : null) } as unknown as KrStockStore,
     calendar: calendar(true),
-    viewerEmails: ["owner@x.com"],
     provider: () => ({ status: "ok" as const, since: null, lastSuccessAt: null, realtime: { state: "idle", subscribed: 0, lastTickAt: null } }),
     supplement: {} as never,
     summaryIndices: [],
@@ -411,7 +409,7 @@ describe("읽기 — 오늘 소식 · 장중 수급(소유자 전용 · 저장�
   });
 
   it("오늘 소식 — KST 00:00 뒤 · 본문 · 링크 칸 없음", async () => {
-    const r = await new GetKrStockNews(deps() as never).execute(OWNER, "005930");
+    const r = await new GetKrStockNews(deps() as never).execute("005930");
     assert.deepEqual(asked.at(-1), { code: "005930", since: "2026-11-05T15:00:00.000Z" });
     assert.deepEqual(Object.keys(r.items[0]!).sort(), ["id", "kind", "provider", "publishedAt", "related", "title"]);
     // 관련 종목 칩(FE-REQ-065) — 이름 · 등락률 서버 값, 시세 없으면 null(0 으로 채우지 않는다)
@@ -432,7 +430,7 @@ describe("읽기 — 오늘 소식 · 장중 수급(소유자 전용 · 저장�
       articleBody,
     });
     const port = { read: async (q: { key: string; title: string }) => (asks.push(q), { status: "ok" as const, paragraphs: ["본문"], originalUrl: "https://press.example/1", fetchedAt: "t" }) };
-    const run = (d: unknown, code: string, serial: string) => new GetKrNewsBody(d as never).execute(OWNER, code, serial);
+    const run = (d: unknown, code: string, serial: string) => new GetKrNewsBody(d as never).execute(code, serial);
 
     assert.deepEqual((await run(withBody(port), "005930", "20261109100000000001")).paragraphs, ["본문"]);
     assert.deepEqual(asks.map((a) => a.key), ["kr:20261109100000000001"]);
@@ -441,16 +439,18 @@ describe("읽기 — 오늘 소식 · 장중 수급(소유자 전용 · 저장�
     await assert.rejects(run(withBody(port), "000660", "20261109100000000001"), KrStockNotAvailableError);
     await assert.rejects(run(withBody(port), "005930", "../etc"), KrStockNotAvailableError);
     await assert.rejects(run(withBody(undefined), "005930", "20261109100000000001"), KrArticleBodyUnavailableError);
-    await assert.rejects(new GetKrNewsBody(withBody(port) as never).execute({ userId: "x", email: "other@x.com" }, "005930", "20261109100000000001"), KrStockNotAvailableError);
   });
 
-  it("비소유자 · 마스터에 없는 종목은 같은 404", async () => {
-    await assert.rejects(new GetKrStockNews(deps() as never).execute({ userId: "x", email: "other@x.com" }, "005930"), KrStockNotAvailableError);
-    await assert.rejects(new GetKrIntradayFlows(deps(false) as never).execute(OWNER, "005930"));
+  it("읽는 사람을 받지 않는다(소유자 판정 없음, ADR-011) — 마스터에 없는 종목만 404", async () => {
+    assert.equal(GetKrStockNews.prototype.execute.length, 1);
+    assert.equal(GetKrIntradayFlows.prototype.execute.length, 1);
+    assert.equal(GetKrNewsBody.prototype.execute.length, 2);
+    await assert.rejects(new GetKrStockNews(deps(false) as never).execute("005930"), KrStockNotAvailableError);
+    await assert.rejects(new GetKrIntradayFlows(deps(false) as never).execute("005930"), KrStockNotAvailableError);
   });
 
   it("장중 수급 — 오늘 값이 없으면 program null(0 으로 채우지 않는다)", async () => {
-    const r = await new GetKrIntradayFlows(deps() as never).execute(OWNER, "005930");
+    const r = await new GetKrIntradayFlows(deps() as never).execute("005930");
     assert.equal(r.program, null);
   });
 });
