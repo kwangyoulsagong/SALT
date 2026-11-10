@@ -48,3 +48,7 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 없음
+
+## 2026-11-10 — 투자 머리 메뉴(`FE-REQ-069`)
+
+- 판단은 `FE-REQ-069` 회고

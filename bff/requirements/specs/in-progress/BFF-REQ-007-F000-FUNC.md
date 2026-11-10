@@ -204,3 +204,4 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 - 2026-11-03: 커밋 대조 — 걸친 파일 `app.ts`: `4bc746f1`(추적 미들웨어 한 줄)
 | 2026-11-03 | MONEY-S1a — 이 REQ 에 걸린 몫(`3e5e0d42`): 동면 목록 파일(`gone.middleware.ts`)에 **은퇴** 목록 `RETIRED_PATHS` 를 더했다 — 동면(되살릴 수 있음 · `revivable: true`)과 은퇴(새 계약으로 대체 · `replacement`)를 섞지 않는다. 기존 동면 경로 410 무변경(테스트 그대로 통과) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-62(온보딩 상태 중계) 은퇴 — `RETIRED_PATHS` 에 `/api/app/onboarding/status` → `/api/app/onboarding`(410) `066ba971` |
+| 2026-11-10 | 검색 모달 2단계(`BFF-REQ-054` · `1110aa9b`) — H절 검색 경로 파일에 묶음 · 뜨는 업종 · 곁 칸 컨트롤러가 같이 산다. `/api/app/search` 무변경 |

@@ -52,3 +52,5 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-04 | 가계부 S1a(`MONEY-S1-household-entry`) — 가계부 zone 이 골격 → 화면 서비스(`web-household` 레이아웃 `AppShell` · vanilla-extract · `domain-household` 경로 · README 정정)(`df45ae7d`). 레지스트리 값은 그대로 |
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 빈 골격 `web-tips` 가 첫 화면을 서비스(`FE-REQ-058`) — 레이아웃 `PublicShell` · `app/tips/**` · `@repo/domain-tips` · tsconfig paths · vanilla-extract. 레지스트리 무변경(`hostedIn: web-tips` 그대로) |
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `b37bf890`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — 투자 zone 레이아웃이 `@repo/domain-invest/pages/search` `SearchLauncher` 를 `AppShell` `headerSearch` 로 꽂는다 — 자기 zone 의 도메인만 import(규칙 그대로) |
+| 2026-11-10 | 투자 zone 레이아웃이 `pages/investments` `InvestHeaderNav` 를 `AppShell` `headerNav` 로 꽂는다 · 레지스트리 투자 경로 `/portfolio`(`FE-REQ-069`) |
+| 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` · `f193c6aa` |

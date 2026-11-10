@@ -197,6 +197,26 @@ export class PrismaArticleRepository implements ArticleRepository {
     });
   }
 
+  searchTitles(q: string, since: Date, limit: number): Promise<ArticleSummary[]> {
+    // 제목만 · 일주일 창 — published_at 인덱스로 창을 먼저 자르고 그 안에서 ILIKE(Prisma 가 % _ 를 이스케이프한다)
+    return prisma.newsArticle.findMany({
+      where: { publishedAt: { gte: since }, title: { contains: q, mode: "insensitive" } },
+      orderBy: [{ publishedAt: "desc" }, { id: "asc" }],
+      take: limit,
+      select: { id: true, title: true, summary: true, url: true, imageUrl: true, source: true, symbols: true, publishedAt: true },
+    });
+  }
+
+  async symbolTagLists(symbol: string, since: Date, limit: number): Promise<string[][]> {
+    const rows = await prisma.newsArticle.findMany({
+      where: { publishedAt: { gte: since }, symbols: { has: symbol } },
+      orderBy: { publishedAt: "desc" },
+      take: limit,
+      select: { symbols: true },
+    });
+    return rows.map((row) => row.symbols);
+  }
+
   findTrending(limit: number, language?: NewsLanguage) {
     const where: Prisma.NewsArticleWhereInput = {
       publishedAt: { gte: new Date(Date.now() - TRENDING_WINDOW_MS) },

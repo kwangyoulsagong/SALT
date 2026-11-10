@@ -180,6 +180,8 @@ const REGISTRY = {
     "quiz-cards",
     "investments",
     "investment-detail",
+    // 투자 포트폴리오 `/portfolio` — 내 보유를 코치 리포트에서 뗐다(`FE-REQ-069`, 2026-11-10)
+    "portfolio",
     "search",
     "settings",
     "onboarding",

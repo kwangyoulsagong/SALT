@@ -37,3 +37,8 @@
 - [x] FR-54 — `cookieSession.middleware` · `session-cookie.util` · 웹소켓 연결 쿠키 · 국내 401 한 코드(`fb9c85b3`)
 - 검증: 테스트 383(새 경계 표 — 쿠키 읽기 8 · 같은 origin 7 · 소켓 origin 3 · 미들웨어 4 · 국내 401 행 둘) · tsc · build · 실스택: 같은 origin 쿠키 200 · 다른 사이트 쿠키 401 · 웹소켓 네 경우(허용 origin 쿠키 → 서버 판정 · 다른 origin · 쿠키 없음 · 깨진 토큰 → `KR_STOCK_AUTH_REQUIRED`) — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
 - 미검증: 운영 `WEB_ORIGINS` 값 — 배포 도메인 미정(`OPS-001`)
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- `services/app-search.service.ts` `AppSearchExtrasService` — 예산 400ms(서버 실측 10ms) · `retryOnceOnGet` · 끊김 전파. 주인 체크리스트 `BFF-REQ-054`
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`

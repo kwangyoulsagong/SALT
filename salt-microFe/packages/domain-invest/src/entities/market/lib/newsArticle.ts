@@ -1,7 +1,7 @@
 import type { KrNewsItem } from "@repo/core/marketKr";
 import type { ArticleBodyRef } from "@repo/core/newsBody";
 
-import type { NewsPreviewItem } from "../model/types";
+import type { NewsPreviewItem, SearchNews } from "../model/types";
 
 /**
  * 뉴스 행 · 모달이 그리는 한 모양(`FE-REQ-065`) — 국내(KIS 제목) · 코인(크롤러 기사)을 같은 칸으로. 없는 칸은 `null`(그리지 않는다).
@@ -65,3 +65,28 @@ export const coinNewsToView = (n: NewsPreviewItem, symbol: string, name: string)
   related: [{ symbol, name, changeRate: null }],
   bodyRef: { kind: "coin", id: n.id },
 });
+
+/**
+ * 검색 모달 뉴스 결과 → 모달 한 모양(`FE-REQ-066` FR-8). 국내 본문은 관련 종목 첫 코드로 찾는다(서버 경로가 종목에 걸린 제목만 받는다) —
+ * 종목이 없거나 공시면 본문을 찾지 않는다
+ */
+export const searchNewsToView = (n: SearchNews, kindLabel: (kind: "news" | "disclosure") => string): NewsArticleView => {
+  const firstCode = n.related[0]?.symbol ?? null;
+  return {
+    id: n.id,
+    title: n.title,
+    source: n.source,
+    publishedAt: n.publishedAt,
+    summary: n.market === "crypto" ? meaningfulSummary(n.title, n.summary) : null,
+    imageUrl: n.imageUrl,
+    url: n.url,
+    badge: n.kind ? { label: kindLabel(n.kind), tone: n.kind === "disclosure" ? "brand" : "neutral" } : null,
+    related: n.related.map((r) => ({ symbol: r.symbol, name: r.name, changeRate: r.changeRate })),
+    bodyRef:
+      n.market === "crypto"
+        ? { kind: "coin", id: n.id }
+        : n.kind === "news" && firstCode
+          ? { kind: "kr", code: firstCode, serial: n.id }
+          : null,
+  };
+};

@@ -107,3 +107,5 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-09 | 확인 2회차 — 결함 1: 주말 재기동 때 지수 첫 회차가 장 밖에서도 돌아 지수 시각(토)이 종목(금)보다 늦어 "같은 날만" 판정이 주말 내내 분해를 지웠다 → 지수가 **오래될 때만** 막는다(테스트). FR-4 · FR-8 본문 정정 |
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `KrMoveSourceStore.newsTitle` 포트 · `GetKrNewsBody` 테스트(`krMoveSources.test.ts`) |
 | 2026-11-09 | 업종 지수 종가 회차 15:40 → **15:55** — 분봉 보정(`kr-minute-bars` 15:40)과 같은 분이라 KIS 한도에 밀려 25회 중 24 초과 · 업종 1개만 저장(실측). 15:52 뒤 KIS 호출 0 · 장후 시간외 종가 창(~16:00) 안 |
+| 2026-11-10 | **제목 글자 정리** — 원천 시황 제목에 줄바꿈 · `0x1A`(원천 문자셋이 못 옮긴 글자)가 섞여 와 화면에 깨진 글자(3,059건 중 39). `cleanKrNewsTitle`(0x1A → 가운뎃점 · 나머지 제어 문자 → 띄어쓰기) 를 받을 때 한 번 · 저장 39행 같은 규칙 SQL(`0df7784e`). 검색 모달 실호출에서 발견 |
+| 2026-11-10 | `KrMoveSourceStore` 포트에 `sectorBoard` · `searchNewsTitles`(검색 모달 2단계 `SRV-REQ-055`) — 이 REQ 의 수집 · 저장 무변경 `dd0bbdcc` |

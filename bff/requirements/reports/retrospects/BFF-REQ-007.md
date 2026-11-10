@@ -127,3 +127,8 @@ A절(동면 410) · B절(홈 조립) · C절(알림)은 손대지 않았다.
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 온보딩 라우터 뒤에 걸려도 `/status` 만 은퇴 미들웨어로 떨어진다 — 라우터 순서를 그대로 둔 채 하위 경로 하나를 은퇴할 수 있다
+
+## 2026-11-10 — 검색 모달 2단계
+
+- 파일만 걸침 — 판단은 `BFF-REQ-054` 회고
+- 루트 회고 `requirements/reports/retrospects/FE-066-067-search-header.md`

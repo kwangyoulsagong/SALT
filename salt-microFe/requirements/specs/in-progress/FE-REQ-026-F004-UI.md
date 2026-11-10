@@ -418,3 +418,5 @@ PC                                                   모바일(세로 스택)
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-invest/src/features/run-preflight/ui/PreflightCard.tsx`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-09 | `MarketPreview` 에 "왜 떨어졌을까?" 한 줄 · 국내 오늘 소식(코인 뉴스와 같은 카드) — 코인 블록 무변경(F016 단계 C) |
+| 2026-11-10 | 코치 리포트 진입이 투자 화면 머리 링크 → 머리 메뉴 "리포트"(`FE-REQ-069`) · `coach-console` 공개 API 에 `HoldingsPanel`(포트폴리오 페이지) |
+| 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |

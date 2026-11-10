@@ -13,3 +13,4 @@ export * from "./KrMarketSummary";
 export * from "./KrMarketStatus";
 export * from "./KrMoveSources";
 export * from "./MoveSplit";
+export * from "./SearchExtras";

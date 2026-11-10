@@ -30,7 +30,12 @@ const TARGETS: ReadonlyArray<{
   { indicator: "d1", candle: "1d", take: CANDLE_WINDOW, bucketMs: null },
 ];
 /** 심볼 배치 크기. 원문 워커 상수다. */
-const BATCH = 20;
+/**
+ * 동시에 갱신하는 종목 수 — **연결 풀(17)의 일부만**. 종목마다 대상 넷을 차례로 읽고 쓰므로 동시 쿼리 ≈ 이 값.
+ * 20 이던 때 갱신 내내 풀이 차 API 요청이 줄을 섰다(2026-11-10 — `applyQuotes` 와 같은 원인). API 프로세스 안 주기 작업 규칙
+ * (`workers-external.md`)
+ */
+const BATCH = 4;
 
 /**
  * 기술 지표 갱신.

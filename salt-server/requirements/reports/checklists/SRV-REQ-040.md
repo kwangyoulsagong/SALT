@@ -470,3 +470,8 @@
 ## 2026-11-09 — 기사 본문(주인 `SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068`)
 
 - `ReadKrStock` 에 `GetKrNewsBody`(소유자 · 그 종목 제목만 · 공시 검색 0) · 의존 `articleBody`(news ACL) — 검증은 주인 체크리스트(서버 1031 · BFF 430 · 실화면 1440 · 훅 사후 실행)
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- 조립만 — 검증은 `SRV-REQ-055` 체크리스트
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`

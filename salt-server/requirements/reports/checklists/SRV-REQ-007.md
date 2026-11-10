@@ -51,3 +51,7 @@
 - **FR-2 정정 → 닫힘** — 서버 `market-price-update` = `market_assets`, BFF 워커 = `investment_watchlist` · `portfolio_holdings`. 겹치는 쓰기 0. 실측 같은 시각 `market_assets` 29초 · 관심 목록 · 보유 5시간 20분(BFF 워커 미기동). 잡 유지 · `market.worker.ts` 주석 1줄
 - 게이트: `prisma:generate` · `build` · `lint` · `test` fail 0 · `test:layer-check` · 상시 서버 재시작 `/health` 200 · 재시작 뒤 시세 잡 1초 안 갱신
 - 미검증: BFF 워커 상시 실행(운영 구성 — `ADR-008`) · FR-5 README · FR-14 1주 로그(2026-11-03)
+
+## 2026-11-10 — 장중 504(주인 `DB-REQ-017` 4회차)
+
+- 쓰기 한 문장으로 — 검증 · 전후 수치는 `DB-REQ-017` 체크리스트(시세 300 · 캔들 실데이터 쓰기 확인)

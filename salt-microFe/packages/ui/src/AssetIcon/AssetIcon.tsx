@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { vars } from "../styles/tokens.css";
 import { assetIconStyles, imageStyles } from "./styles/assetIcon.css";
+import { fallbackPalette } from "./fallbackPalette";
 
 export type AssetIconSize = "sm" | "md" | "lg" | "xl";
 
@@ -18,15 +19,8 @@ export interface AssetIconProps {
   className?: string;
 }
 
-/** 흰 글자 대비 4.5:1 이상인 값만 넣는다. */
-const FALLBACK_PALETTE = [
-  vars.colors.brand.primary,
-  vars.colors.neutral[600],
-  vars.colors.neutral[700],
-  vars.colors.status.infoDark,
-  vars.colors.status.successDark,
-  vars.colors.status.errorDark,
-];
+/** 흰 글자 대비 4.5:1 이상인 값만 — 목록 · 불변식은 `fallbackPalette.ts` */
+const FALLBACK_PALETTE = fallbackPalette(vars.colors);
 
 /** 같은 심볼이면 항상 같은 색이 나오게 하는 결정적 해시. */
 const pickColor = (symbol: string) => {

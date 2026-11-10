@@ -259,6 +259,171 @@ export const createInvestmentRouter = (useCases: MarketUseCases): Router => {
 
   /**
    * @swagger
+   * /api/investment/search/groups:
+   *   get:
+   *     summary: 검색 모달 결과 묶음 — 업종 · 지수 · 뉴스
+   *     description: |
+   *       `SRV-REQ-055` FR-1. 종목 묶음은 `/api/investment/search`. 업종 = 업종 지수 이름 부분 일치(가장 늦은 거래일 값 · 등락률 높은 순 5),
+   *       지수 = 코스피 · 코스닥 · 코스피 200 이름 · 별칭(KOSPI 등), 뉴스 = 일주일 안 제목 부분 일치(국내 시황 · 공시 + 코인 기사, 최신 6).
+   *       업종 · 지수 · 국내 제목은 국내 시세 소유자에게만(아니면 빈 배열). `q` 가 비면 셋 다 빈 배열. 검색어는 로그에 남기지 않는다.
+   *     tags: [Investment - Protected]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - { in: query, name: q, schema: { type: string, maxLength: 30, default: "" } }
+   *     responses:
+   *       200:
+   *         description: 묶음 셋
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     sectors:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           code: { type: string, description: KIS 업종 지수 코드 }
+   *                           name: { type: string }
+   *                           changeRate: { type: number, description: "% 전일 대비" }
+   *                           asOf: { type: string, format: date-time }
+   *                     indices:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           code: { type: string }
+   *                           name: { type: string }
+   *                           value: { type: number, description: 포인트 }
+   *                           changeRate: { type: number }
+   *                           asOf: { type: string, format: date-time }
+   *                     news:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           id: { type: string, description: "국내 = 원천 일련번호 · 코인 = 기사 id" }
+   *                           market: { type: string, enum: [kr, crypto] }
+   *                           kind: { type: string, enum: [news, disclosure], nullable: true, description: 국내만 }
+   *                           title: { type: string }
+   *                           source: { type: string }
+   *                           publishedAt: { type: string, format: date-time }
+   *                           url: { type: string, nullable: true, description: 코인만 }
+   *                           summary: { type: string, nullable: true }
+   *                           imageUrl: { type: string, nullable: true }
+   *                           related:
+   *                             type: array
+   *                             items:
+   *                               type: object
+   *                               properties:
+   *                                 assetType: { type: string, enum: [crypto, kr_stock] }
+   *                                 symbol: { type: string }
+   *                                 name: { type: string }
+   *                                 changeRate: { type: number, nullable: true }
+   *       400: { description: q 형식 오류 }
+   *       401: { description: 인증 실패 }
+   */
+  router.get("/search/groups", authMiddleware, investmentController.searchGroups);
+
+  /**
+   * @swagger
+   * /api/investment/search/rising-sectors:
+   *   get:
+   *     summary: 지금 뜨는 업종 — 검색 모달 첫 화면
+   *     description: |
+   *       `SRV-REQ-055` FR-2. 업종 지수(유니버스 종목의 지수업종) 중 가장 늦은 거래일 값 · 이름 있는 것 · 등락률 높은 순.
+   *       국내 시세 소유자에게만 — 아니면 `{ asOf: null, items: [] }`(404 아님).
+   *     tags: [Investment - Protected]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 20, default: 5 } }
+   *     responses:
+   *       200:
+   *         description: 순위
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     asOf: { type: string, format: date-time, nullable: true, description: 줄 값 중 가장 늦은 시각 }
+   *                     items:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           code: { type: string }
+   *                           name: { type: string }
+   *                           changeRate: { type: number }
+   *                           asOf: { type: string, format: date-time }
+   *       400: { description: limit 형식 오류 }
+   *       401: { description: 인증 실패 }
+   */
+  router.get("/search/rising-sectors", authMiddleware, investmentController.risingSectors);
+
+  /**
+   * @swagger
+   * /api/investment/search/related:
+   *   get:
+   *     summary: 검색 모달 곁 칸 — 고른 줄의 관련 종목
+   *     description: |
+   *       `SRV-REQ-055` FR-3. 종목(`assetType` + `symbol`) 또는 업종(`sector`) 중 하나.
+   *       국내 종목 = 같은 업종 유니버스 종목 3(등락률 높은 순 · 자기 제외) · 업종 = 구성 종목 5 · 코인 = 30일 안 같은 기사에 함께 태그된 코인 3.
+   *       원천이 없거나 국내 비소유자면 `basis: none` · 빈 목록.
+   *     tags: [Investment - Protected]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - { in: query, name: assetType, schema: { type: string, enum: [crypto, kr_stock] } }
+   *       - { in: query, name: symbol, schema: { type: string, maxLength: 15 } }
+   *       - { in: query, name: sector, schema: { type: string, pattern: "^\\d{4}$" } }
+   *     responses:
+   *       200:
+   *         description: 관련 종목
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     basis: { type: string, enum: [sector, co_tagged, none] }
+   *                     sector:
+   *                       type: object
+   *                       nullable: true
+   *                       properties:
+   *                         code: { type: string }
+   *                         name: { type: string }
+   *                         changeRate: { type: number }
+   *                     items:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           assetType: { type: string, enum: [crypto, kr_stock] }
+   *                           symbol: { type: string }
+   *                           name: { type: string }
+   *                           logoUrl: { type: string, nullable: true }
+   *                           currentPrice: { type: number, nullable: true }
+   *                           changeRate: { type: number, nullable: true }
+   *       400: { description: 종목 · 업종 둘 다 또는 둘 다 없음 · 형식 오류 }
+   *       401: { description: 인증 실패 }
+   */
+  router.get("/search/related", authMiddleware, investmentController.searchRelated);
+
+  /**
+   * @swagger
    * /api/investment/watchlist:
    *   get:
    *     summary: 관심 목록 조회

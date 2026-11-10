@@ -388,3 +388,74 @@ export interface MarketSummaryResponse {
   headlines: MarketSummaryHeadline[];
   degraded: boolean;
 }
+
+// ==================== 검색 모달 2단계 (`FE-REQ-066` FR-8 · BFF `BFF-REQ-054`) ====================
+
+/** 업종 한 줄 — 순위 · 업종 결과 */
+export interface SearchSector {
+  code: string;
+  name: string;
+  changeRate: number;
+  /** ISO */
+  asOf: string;
+}
+
+export interface SearchIndex {
+  code: string;
+  name: string;
+  /** 포인트 */
+  value: number;
+  changeRate: number;
+  asOf: string;
+}
+
+export interface SearchRelatedAsset {
+  assetType: "crypto" | "kr_stock";
+  symbol: string;
+  name: string;
+  changeRate: number | null;
+}
+
+/** 뉴스 결과 한 줄 — 국내 시황 · 공시(제목만) · 코인 기사(원문 · 요약 · 이미지) */
+export interface SearchNews {
+  id: string;
+  market: "kr" | "crypto";
+  kind: "news" | "disclosure" | null;
+  title: string;
+  source: string;
+  publishedAt: string;
+  url: string | null;
+  summary: string | null;
+  imageUrl: string | null;
+  related: SearchRelatedAsset[];
+}
+
+export interface SearchGroups {
+  sectors: SearchSector[];
+  indices: SearchIndex[];
+  news: SearchNews[];
+}
+
+export interface RisingSectors {
+  asOf: string | null;
+  items: SearchSector[];
+}
+
+/** 곁 칸을 물을 대상 — 고른 종목 또는 업종 */
+export type SearchRelatedTarget = { assetType: "crypto" | "kr_stock"; symbol: string } | { sector: string };
+
+export interface SearchRelatedRow {
+  assetType: "crypto" | "kr_stock";
+  symbol: string;
+  name: string;
+  logoUrl: string | null;
+  currentPrice: number | null;
+  changeRate: number | null;
+}
+
+/** `sector` = 같은 업종(국내) · `co_tagged` = 같은 기사에 함께 태그된 코인 · `none` = 원천 없음(빈 칸) */
+export interface SearchRelated {
+  basis: "sector" | "co_tagged" | "none";
+  sector: { code: string; name: string; changeRate: number } | null;
+  items: SearchRelatedRow[];
+}

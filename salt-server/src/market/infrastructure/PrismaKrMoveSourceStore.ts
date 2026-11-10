@@ -67,6 +67,59 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
     return { kind: (row.kind === "disclosure" ? "disclosure" : "news") as KrNewsKind, title: row.title, publishedAt: row.published_at };
   }
 
+  async searchNewsTitles(q: string, since: Date, limit: number) {
+    // published_at 인덱스로 창(일주일, 수천 행)을 자르고 그 안에서 ILIKE. % _ \ 는 글자로(검색어는 사용자 입력)
+    const pattern = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+    const rows = await prisma.$queryRaw<
+      Array<{
+        serial: string;
+        kind: string;
+        provider_name: string;
+        published_at: Date;
+        title: string;
+        related: Array<{ code: string; name: string; change_rate: string | null }> | null;
+      }>
+    >`
+      SELECT t.serial, t.kind, t.provider_name, t.published_at, t.title,
+        (SELECT json_agg(json_build_object('code', r.code, 'name', m.name, 'change_rate', q.change_rate::text) ORDER BY r.code)
+           FROM kr_news_title_symbol r
+           JOIN kr_stock_master m ON m.code = r.code
+           LEFT JOIN kr_stock_quotes q ON q.code = r.code
+          WHERE r.serial = t.serial) AS related
+      FROM kr_news_title t
+      WHERE t.published_at >= (${since}::timestamptz AT TIME ZONE 'UTC') AND NOT t.promo AND t.title ILIKE ${pattern}
+      ORDER BY t.published_at DESC, t.serial DESC
+      LIMIT ${limit}`;
+    return rows.map((r) => ({
+      serial: r.serial,
+      kind: (r.kind === "disclosure" ? "disclosure" : "news") as KrNewsKind,
+      providerName: r.provider_name,
+      publishedAt: r.published_at,
+      title: r.title,
+      related: (r.related ?? []).map((x) => ({
+        code: x.code,
+        name: x.name,
+        changeRate: x.change_rate === null ? null : Number(x.change_rate),
+      })),
+    }));
+  }
+
+  async sectorBoard() {
+    const rows = await prisma.$queryRaw<
+      Array<{ code: string; name: string | null; trade_date: Date; change_rate: number; updated_at: Date }>
+    >`
+      SELECT q.code, n.name, q.trade_date, q.change_rate::float8 AS change_rate, q.updated_at
+      FROM kr_sector_index_quote q
+      LEFT JOIN kr_index_name n ON n.code = q.code`;
+    return rows.map((r) => ({
+      code: r.code,
+      name: r.name,
+      tradeDate: r.trade_date.toISOString().slice(0, 10),
+      changeRate: r.change_rate,
+      updatedAt: r.updated_at,
+    }));
+  }
+
   async newsTitles(code: string, since: Date, limit: number) {
     // (code, published_at desc) 인덱스로 그 종목 오늘 연결만 → 제목 PK. 광고성은 여기서 뺀다
     const rows = await prisma.$queryRaw<

@@ -101,12 +101,12 @@ vanilla-extract 그래프에 들어와 빌드가 깨진다.
 | widget | 엮는 것 |
 |---|---|
 | `home-briefing` | 셸 홈 — 도메인 요약 카드(`entities/home`) + 목표 목록(임시, `FE-REQ-056` 까지) + 저축 팁. 도메인 엔티티를 읽지 않는다 |
-| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio — 코치 리포트 맨 위 "내 보유"(보유 요약 + 매입가 숨김, 2026-11-02 홈에서 옮김) |
+| `coach-console` | coach + market(종목 로고 · 이름) + indicator + portfolio — ~~코치 리포트 맨 위 "내 보유"(2026-11-02 홈에서 옮김)~~ 내 보유 패널은 2026-11-10 포트폴리오 페이지(`/portfolio`, `FE-REQ-069`)가 이 위젯에서 가져다 쓴다 |
 | `asset-workspace` | 포지션 / 시장 / 관심 종목 세그먼트 |
 | `position-overview` | portfolio (Hero · 평가금 흐름 · 보유 · 리스크 레이더) |
 | `coach-panel` · `symbol-analysis` | market + coach + indicator (투자 우측 패널 · 상세 분석) |
 | `judgment-overview` | coach — 투자 화면 머리 아래 **요약 띠**(목표 비중 · 위험 · 판정 성적표 한 줄씩 → 코치 리포트 섹션). 본문은 `coach-console` (F010, 2026-09-29) |
-| `app-header` · `alert-list` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 거래 목록 — **2026-11-03: 헤더 틀은 위젯이 아니라 zone 공용 레이아웃(`@repo/ui` `AppNavigation` 머리, `FE-REQ-054`). 검색 진입은 그 머리 칸에 들어갔다(2026-11-09 `FE-REQ-067` `headerSearch`) · 알림도 같은 자리** |
+| `app-header` · `alert-list` · `transaction-list` | 공통 헤더(검색 · 알림 진입) · 알림 · 거래 목록 — **2026-11-03: 헤더 틀은 위젯이 아니라 zone 공용 레이아웃(`@repo/ui` `AppNavigation` 머리, `FE-REQ-054`). 검색 진입은 그 머리 칸에 들어갔다(2026-11-09 `FE-REQ-067` `headerSearch` — 2026-11-10 투자 zone 만, 메뉴는 `headerNav` `FE-REQ-069`) · 알림도 같은 자리** |
 | `settings-panel` | coach + 코치 설정(`edit-coach-profile`) + 매입가 숨김(`toggle-purchase-price`) — 투자 코치 설정 `/coach/settings` (F004 FR-12 · 2026-11-02 셸 `/settings` 에서 옮김) |
 | `market-list` | 모바일 시장 목록 (웹은 `market-board`) |
 | `market-board` | market + news + indicator — 자산군(코인 · 국내 주식)은 매개변수, 화면은 하나(요약 띠까지 — `FE-REQ-050`) |

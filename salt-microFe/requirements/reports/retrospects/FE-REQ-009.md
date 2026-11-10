@@ -200,3 +200,7 @@ re-export 껍데기가 필요하고(FR-38), 껍데기가 남으면 done이 아�
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 레지스트리에만 있고 폴더가 없던 슬라이스(`skip-onboarding-step`)를 같은 기능이 대체하면 지운다
+
+## 2026-11-10 — 투자 머리 메뉴(`FE-REQ-069`)
+
+- 판단은 `FE-REQ-069` 회고

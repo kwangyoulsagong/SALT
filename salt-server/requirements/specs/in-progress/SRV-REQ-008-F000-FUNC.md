@@ -261,3 +261,4 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-13 · 14(온보딩 3스텝 판정 · 조합 컨텍스트 `onboarding`) **은퇴** — 도메인 선택 온보딩(`SRV-REQ-048` FR-1)으로 대체, Express `src/onboarding` 삭제 `7f2ba1ed`. 본문 그 자리 정정 |
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `schema.prisma`(머리에 이 REQ) 에 국내 등락 원천 표 다섯(`DB-REQ-041`). 이 REQ 몫 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
 | 2026-11-09 | `schema.prisma` — `KrIndexName` · 마스터 중분류 칸(F016 단계 C `DB-REQ-041`) |
+| 2026-11-10 | `presentation/dto/search.dto.ts` 에 `searchGroupsSchema` · `risingSectorsSchema` · `searchRelatedSchema` · 컨트롤러 셋 · 라우트 셋(`SRV-REQ-055` `dd0bbdcc`). 기존 `/api/investment/search` 무변경 |

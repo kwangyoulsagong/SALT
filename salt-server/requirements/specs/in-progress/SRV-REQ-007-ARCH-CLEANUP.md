@@ -158,3 +158,4 @@ Prisma 모델 삭제는 `DB-REQ-003` M4가 한다. **이 REQ는 `User`의 관계
 | 2026-10-28 | **FR-11 닫힘**(루트 `F000-notification-kind-gate`, `3320883`). `modules/investment-notification` → `notification` 컨텍스트(FR-33 이관 하나). 생성 worker 중단은 이미 0건이었다. 동면 `feed.service` 는 `title`/`message` nullable 에 맞춰 타입만(`?? ""`) — 동작 무변경 |
 | 2026-10-29 | 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠 |
 | 2026-10-30 | **FR-1 닫힘 · FR-2 정정**(`chore/f000-legacy-cleanup`, 루트 `F000-legacy-cleanup`). FR-1 = 마이그레이션 `20261030160000_drop_legacy_ai_analysis`(테이블 2 · enum 2, 행 0, 스냅샷 + 복원 테스트). FR-2 = 이중 갱신이 아니었다 — 서버 잡과 BFF 워커가 쓰는 테이블이 다르고 `market_assets` 의 유일한 정기 쓰기가 서버 잡이다. 지우면 코치 판정 가격 신선도 게이트가 막힌다 → 잡 유지, 수용 기준을 "중복 없음 확인"으로. 남은 것: FR-5 README · 1주 로그(11-03) |
+| 2026-11-10 | `market-price-update`(매분 · `market_assets` 의 유일한 정기 쓰기)의 쓰기를 한 문장으로 — 행마다 `updateMany` `Promise.all` 이 연결 풀을 잡아 장중 504(`DB-REQ-017` 4회차, `c602e97c`). 워커 · 주기 무변경 |

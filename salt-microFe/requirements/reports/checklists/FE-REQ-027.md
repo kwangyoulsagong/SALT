@@ -75,3 +75,7 @@ FR-80~93 · 95 는 `FE-REQ-026` 체크리스트 §2 · §5 가 근거다. FR-95(
 - 확인: 모노레포 check-types · lint · test · zone 5 빌드 · layer-check · 훅 사후 실행(바뀐 TS 전부) · 실화면 — `salt-microFe/requirements/reports/checklists/FE-REQ-053.md` §2
 
 - 2026-11-02 MONEY-F1 후속 — `c5ec66ed` — 코치 리포트 맨 위 "내 보유" 패널(`HoldingsPanel` — 보유 요약 + 매입가 숨김, 사용자 결정). 리포트가 unavailable 이어도 보인다(카드 단위 격리 그대로). 실화면 숨김 끔 손익률 · 켬 숨김 + 물음 줄 · 넘침 0
+
+## 2026-11-10 — 투자 머리 메뉴 · 레일 복원 · 포트폴리오(주인 `FE-REQ-069`)
+
+- 확인은 `FE-REQ-069` 체크리스트(실화면 24칸 · 넘침 0 · axe 0 · 운영 빌드 · zone 전환 9/10)

@@ -24,10 +24,9 @@ const PRICE_TIMEFRAMES = (Object.keys(PRICE_TIMEFRAME_ORDER) as PriceTimeframe[]
 
 export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
   /**
-   * 캔들 저장.
-   *
-   * `(symbol, timeframe, timestamp)` 유니크 위에서 upsert 한다 — **워커가 겹쳐 돌아도
-   * 행이 늘지 않는다**(멱등). Prisma 의 upsert 는 단건이라 배치로 나눠 병렬 처리한다.
+   * 캔들 저장 — `(symbol, timeframe, timestamp)` 유니크 위에서 **한 문장** `INSERT … ON CONFLICT DO UPDATE`(묶음마다 연결 하나).
+   * 워커가 겹쳐 돌아도 행이 늘지 않는다(멱등). 전에는 단건 upsert 100개를 `Promise.all` 로 흩어 연결 풀을 다 잡았다
+   * (`applyQuotes` 와 같은 원인, 2026-11-10). 꼴은 국내 일봉 `PrismaKrStockStore.upsertDailyCandles` 와 같다
    */
   async upsertCandles(
     symbol: string,
@@ -35,42 +34,19 @@ export class PrismaPriceHistoryRepository implements PriceHistoryRepository {
     timeframe: PriceTimeframe,
     candles: Candle[]
   ) {
-    if (candles.length === 0) return;
-
     for (let i = 0; i < candles.length; i += UPSERT_BATCH) {
       const chunk = candles.slice(i, i + UPSERT_BATCH);
-
-      await Promise.all(
-        chunk.map((candle) =>
-          prisma.priceHistory.upsert({
-            where: {
-              symbol_timeframe_timestamp: {
-                symbol,
-                timeframe,
-                timestamp: candle.timestamp,
-              },
-            },
-            update: {
-              open: candle.open,
-              high: candle.high,
-              low: candle.low,
-              close: candle.close,
-              volume: candle.volume,
-            },
-            create: {
-              symbol,
-              assetType,
-              timeframe,
-              open: candle.open,
-              high: candle.high,
-              low: candle.low,
-              close: candle.close,
-              volume: candle.volume,
-              timestamp: candle.timestamp,
-            },
-          })
-        )
-      );
+      const col = <T,>(pick: (c: Candle) => T) => chunk.map(pick);
+      await prisma.$executeRaw`
+        INSERT INTO price_history (id, symbol, asset_type, timeframe, open, high, low, close, volume, timestamp)
+        SELECT gen_random_uuid()::text, ${symbol}, ${assetType}::"AssetType", ${timeframe}, u.open, u.high, u.low, u.close, u.volume,
+          u.ts AT TIME ZONE 'UTC'
+        FROM unnest(
+          ${col((c) => c.open)}::numeric[], ${col((c) => c.high)}::numeric[], ${col((c) => c.low)}::numeric[],
+          ${col((c) => c.close)}::numeric[], ${col((c) => c.volume)}::numeric[], ${col((c) => c.timestamp)}::timestamptz[]
+        ) AS u(open, high, low, close, volume, ts)
+        ON CONFLICT (symbol, timeframe, timestamp) DO UPDATE SET
+          open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume`;
     }
   }
 

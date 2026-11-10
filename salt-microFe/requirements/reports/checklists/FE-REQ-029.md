@@ -124,3 +124,12 @@
 
 - 검색 모달 번들(worktree 운영 빌드 main ↔ HEAD 첫 로드) — `/investments` 152 → 153 · 상세 152 → 153 · `/coach/report` 148 → 149 · `/search` 160 → 158 kB
 - 검증은 주인 체크리스트(실화면 네 zone × 네 폭 · 모달 흐름 · axe 0 · 모노레포 검증 · zone 빌드 다섯 · 훅 사후 실행)
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- worktree `19539c95` 운영 빌드 — 위 수치
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`
+
+## 2026-11-10 — 투자 머리 메뉴 · 레일 복원 · 포트폴리오(주인 `FE-REQ-069`)
+
+- 확인은 `FE-REQ-069` 체크리스트(실화면 24칸 · 넘침 0 · axe 0 · 운영 빌드 · zone 전환 9/10)

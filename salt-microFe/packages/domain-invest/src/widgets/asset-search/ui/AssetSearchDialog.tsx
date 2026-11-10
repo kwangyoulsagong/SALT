@@ -1,6 +1,12 @@
 "use client";
 
-import { escapeStep } from "@repo/core/search";
+import {
+  availableSearchTabs as availableTabs,
+  effectiveSearchTab as effectiveTab,
+  escapeStep,
+  SearchResultTab as ResultTab,
+  visibleSearchResults as visibleResults,
+} from "@repo/core/search";
 import { Chip } from "@repo/ui/chip";
 import { Modal } from "@repo/ui/modal";
 import { Skeleton } from "@repo/ui/skeleton";
@@ -13,12 +19,20 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import {
   type AssetSearchItem,
   indexWatchlistBySymbol,
+  KR_STOCK_MESSAGES,
   MarketAssetClass,
   type MarketOverviewItem,
+  type NewsArticleView,
+  type RisingSectors,
+  SEARCH_EXTRA_MESSAGES,
   SEARCH_MESSAGES,
   SearchOption,
+  searchNewsToView,
+  SearchTextOption,
   type TopTradeValueGroup,
   useAssetSearch,
+  useRisingSectors,
+  useSearchGroups,
   useTopTradeValue,
   useWatchlist,
   WATCHLIST_ASSET_LABELS,
@@ -28,9 +42,18 @@ import {
 import { AssetSearchField, useAssetSearchQuery, useSearchListKeys } from "@/features/search-asset";
 import { WatchlistStarButton } from "@/features/toggle-watchlist";
 import { ROUTES } from "@repo/web-shared/config";
-import { formatClockTime } from "@repo/web-shared/lib";
+import { formatClockTime, formatRelativeTime, useDebouncedValue } from "@repo/web-shared/lib";
+import { Tabs } from "@repo/ui/tabs";
 
+import { EntryKind, type ResultEntry, resultEntries, type VisibleResults } from "../lib/searchEntries";
 import * as styles from "./AssetSearchDialog.css";
+import { SearchSidePanel } from "./SearchSidePanel";
+
+/** 업종 · 지수 줄이 가는 곳 — 국내 시세 표(투자 화면 국내 탭). 업종 · 지수 상세 화면은 없다(사용자 2026-11-10) */
+const KR_BOARD_HREF = ROUTES.investmentsKr;
+/** 곁 칸 — ↑↓ 로 줄을 훑는 동안 줄마다 묻지 않게 잠깐 머문 줄만 묻는다 */
+const SIDE_SETTLE_MS = 150;
+const kindLabel = (kind: "news" | "disclosure") => KR_STOCK_MESSAGES.news.kind[kind];
 
 export interface AssetSearchDialogProps {
   open: boolean;
@@ -40,6 +63,8 @@ export interface AssetSearchDialogProps {
   onNavigate: (href: string) => void;
   /** `/search` 주소로 연 모달만 `?q=` 를 읽고 쓴다(`FE-REQ-066` FR-5 · D5) */
   syncUrl: boolean;
+  /** 뉴스 줄을 골랐다 — 검색 모달을 닫고 뉴스 모달을 연다(부르는 쪽이 쥔다 — 모달 둘이 겹치지 않게, `FE-REQ-066` FR-8) */
+  onOpenNews: (article: NewsArticleView, more: NewsArticleView[]) => void;
 }
 
 /** 키보드가 고르는 한 행 — 첫 화면 순위와 결과가 같은 모양으로 줄 선다 */
@@ -53,6 +78,9 @@ interface OptionEntry {
 const rankEntries = (group: TopTradeValueGroup | null, prefix: string): OptionEntry[] =>
   group?.items.map((item) => ({ key: `${prefix}:${item.symbol}`, href: ROUTES.investmentDetail(item.symbol), remember: false })) ?? [];
 
+const risingEntries = (rising: RisingSectors | undefined): OptionEntry[] =>
+  rising?.items.map((sector) => ({ key: `rising:${sector.code}`, href: KR_BOARD_HREF, remember: false })) ?? [];
+
 /**
  * 종목 검색 모달 (`FE-REQ-066` 1단계 — 화면 틀이 바뀌고 결과 · 추적(★) · 소유자 판정은 서버 값 그대로, `FE-REQ-010` · `011`).
  *
@@ -62,7 +90,7 @@ const rankEntries = (group: TopTradeValueGroup | null, prefix: string): OptionEn
  * - 주소: 바뀌지 않는다(`syncUrl` 이 아니면) — 열고 닫아도 그 화면 그대로
  * - 클라이언트 컴포넌트다 — 사용자별 `isTracked` 를 서버 렌더 캐시에 섞지 않는다(`FE-REQ-011` FR-84)
  */
-export const AssetSearchDialog = ({ open, onDismiss, onNavigate, syncUrl }: AssetSearchDialogProps) => {
+export const AssetSearchDialog = ({ open, onDismiss, onNavigate, syncUrl, onOpenNews }: AssetSearchDialogProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   // Esc 두 단계(FR-5)는 포커스가 어디 있든(검색칸 · ★ · 칩) 같다 — 모달의 Esc 한 곳에서 본문이 정한 다음 단계를 부른다
   const escapeRef = useRef<(() => void) | null>(null);
@@ -85,6 +113,7 @@ export const AssetSearchDialog = ({ open, onDismiss, onNavigate, syncUrl }: Asse
           onDismiss={onDismiss}
           onNavigate={onNavigate}
           syncUrl={syncUrl}
+          onOpenNews={onOpenNews}
         />
       ) : null}
     </Modal>
@@ -97,6 +126,7 @@ const SearchBody = ({
   onDismiss,
   onNavigate,
   syncUrl,
+  onOpenNews,
 }: Omit<AssetSearchDialogProps, "open"> & {
   inputRef: React.RefObject<HTMLInputElement>;
   escapeRef: React.MutableRefObject<(() => void) | null>;
@@ -111,6 +141,13 @@ const SearchBody = ({
   const { data: watchlist, isPending: watchlistPending } = useWatchlist();
   const [limitNotice, setLimitNotice] = useState(false);
   const top = useTopTradeValue(query === "");
+  const rising = useRisingSectors(query === "");
+  const groups = useSearchGroups(query);
+  const groupData = query === "" ? undefined : groups.data;
+  // 결과 탭(FR-8) — 검색어가 바뀌면 전체로. 고른 탭의 묶음이 비면 전체로
+  const [tabState, setTabState] = useState<{ query: string; tab: ResultTab }>({ query: "", tab: ResultTab.All });
+  const tabs = useMemo(() => availableTabs(groupData), [groupData]);
+  const tab = effectiveTab(tabState.query === query ? tabState.tab : ResultTab.All, tabs);
 
   const bySymbol = useMemo(() => indexWatchlistBySymbol(watchlist?.items ?? []), [watchlist?.items]);
   const tracked = search.data?.tracked ?? watchlist?.tracked ?? null;
@@ -127,33 +164,52 @@ const SearchBody = ({
     if (limitNotice && tracked && tracked.count < tracked.limit) setLimitNotice(false);
   }, [limitNotice, tracked]);
 
+  const visible = useMemo(() => visibleResults(tab, results, groupData), [tab, results, groupData]);
+  const resultRows = useMemo<ResultEntry[]>(
+    () => resultEntries(visible, { detail: ROUTES.investmentDetail, krBoard: KR_BOARD_HREF }),
+    [visible],
+  );
   const entries = useMemo<OptionEntry[]>(
     () =>
       query === ""
-        ? [...rankEntries(top.crypto, "crypto"), ...rankEntries(top.kr, "kr")]
-        : results.map((item) => ({
-            key: `${item.assetType}:${item.symbol}`,
-            href: ROUTES.investmentDetail(item.symbol),
-            remember: true,
-          })),
-    [query, results, top.crypto, top.kr],
+        ? [...rankEntries(top.crypto, "crypto"), ...rankEntries(top.kr, "kr"), ...risingEntries(rising.data)]
+        : resultRows.map((entry) => ({ key: entry.key, href: entry.href ?? "", remember: true })),
+    [query, resultRows, top.crypto, top.kr, rising.data],
   );
   const optionId = useCallback((index: number) => `${listId}-${index}`, [listId]);
 
+  const newsViews = useMemo(() => (groupData?.news ?? []).map((n) => searchNewsToView(n, kindLabel)), [groupData]);
+
   const openEntry = useCallback(
-    (entry: OptionEntry | undefined) => {
+    (index: number) => {
+      const entry = entries[index];
       if (!entry) return;
       if (entry.remember) remember(input);
+      const result = query === "" ? undefined : resultRows[index];
+      if (result?.kind === EntryKind.News) {
+        const article = newsViews.find((view) => view.id === result.newsId);
+        if (article) onOpenNews(article, newsViews.filter((view) => view.id !== article.id));
+        return;
+      }
       onNavigate(entry.href);
     },
-    [input, onNavigate, remember],
+    [entries, input, newsViews, onNavigate, onOpenNews, query, remember, resultRows],
   );
 
   const keys = useSearchListKeys({
     count: entries.length,
-    resetKey: `${query}|${assetType ?? ""}|${entries.length}`,
-    onOpen: (index) => openEntry(entries[index]),
+    resetKey: `${query}|${assetType ?? ""}|${tab}|${entries.length}`,
+    onOpen: openEntry,
   });
+
+  // 곁 칸 대상 — 고른 줄이 종목 · 업종일 때만. 잠깐 머문 줄만 묻는다
+  const activeResult = query === "" ? undefined : resultRows[keys.activeIndex];
+  const sideTarget = useDebouncedValue(activeResult?.side ?? null, SIDE_SETTLE_MS);
+  const sideIsSector = sideTarget !== null && "sector" in sideTarget;
+  const selectTab = (next: string) => {
+    setTabState({ query, tab: next as ResultTab });
+    inputRef.current?.focus();
+  };
 
   // Esc 두 단계(FR-5) — 글자가 있으면 지우고 검색칸으로, 비면 닫는다. 모달이 부른다(위)
   useEffect(() => {
@@ -187,7 +243,7 @@ const SearchBody = ({
     id: optionId(index),
     active: keys.activeIndex === index,
     href: entries[index]?.href ?? "",
-    onSelect: () => openEntry(entries[index]),
+    onSelect: () => openEntry(index),
     onHover: () => keys.setActiveIndex(index),
   });
 
@@ -217,6 +273,17 @@ const SearchBody = ({
         ) : null}
       </div>
 
+      {query !== "" && tabs.length > 1 ? (
+        <div className={styles.tabs}>
+          <Tabs
+            tabs={tabs.map((id) => ({ id, label: SEARCH_EXTRA_MESSAGES.tabs[id] }))}
+            activeTab={tab}
+            onTabChange={selectTab}
+          />
+        </div>
+      ) : null}
+
+      <div className={styles.split}>
       {/* 본문만 스크롤 — 키보드로도 굴릴 수 있게 칸이 포커스를 받는다(axe scrollable-region-focusable) */}
       <div className={styles.body} tabIndex={0} aria-label={SEARCH_MESSAGES.dialogLabel}>
         {search.isSignedOut ? <StatusLine kind="blocked">{SEARCH_MESSAGES.signInRequired}</StatusLine> : null}
@@ -252,7 +319,7 @@ const SearchBody = ({
           </section>
         ) : null}
 
-        {query !== "" && shownTypes.length > 1 ? (
+        {query !== "" && (tab === ResultTab.All || tab === ResultTab.Assets) && shownTypes.length > 1 ? (
           <div role="group" aria-label={SEARCH_MESSAGES.filterGroupLabel} className={styles.chips}>
             <Chip size="sm" selected={!assetType} onPress={() => setFilter(null)}>
               {SEARCH_MESSAGES.filterAll}
@@ -275,6 +342,7 @@ const SearchBody = ({
             listId={listId}
             crypto={top.crypto}
             kr={top.kr}
+            rising={rising.data}
             isPending={top.isPending}
             optionProps={optionProps}
           />
@@ -282,10 +350,11 @@ const SearchBody = ({
           <Results
             listId={listId}
             query={query}
-            items={results}
+            visible={visible}
             isPending={search.isPending || watchlistPending}
             isError={search.isError && !search.data}
             onRetry={() => void search.refetch()}
+            onMoreAssets={() => selectTab(ResultTab.Assets)}
             optionProps={optionProps}
             renderAction={renderAction}
           />
@@ -293,8 +362,15 @@ const SearchBody = ({
 
         {/* 결과 수를 한 번 알린다 — 타이핑마다가 아니라 확정된 검색어의 결과가 바뀔 때만(FR-6 · `FE-REQ-010` FR-78) */}
         <p aria-live="polite" className={styles.srOnly}>
-          {query !== "" && search.data && !search.isPlaceholderData ? SEARCH_MESSAGES.resultCount(results.length) : ""}
+          {query !== "" && search.data && !search.isPlaceholderData ? SEARCH_EXTRA_MESSAGES.resultCount(entries.length) : ""}
         </p>
+      </div>
+      {query !== "" ? <SearchSidePanel
+          target={sideTarget}
+          isSector={sideIsSector}
+          hasSelection={keys.activeIndex >= 0}
+          onNavigate={onNavigate}
+        /> : null}
       </div>
 
       <div className={styles.footer} aria-hidden="true">
@@ -328,12 +404,15 @@ const TopTradeValue = ({
   listId,
   crypto,
   kr,
+  rising,
   isPending,
   optionProps,
 }: {
   listId: string;
   crypto: TopTradeValueGroup | null;
   kr: TopTradeValueGroup | null;
+  /** 지금 뜨는 업종(FR-8) — 국내 소유자만 온다. 같은 목록에 이어 둬 ↑↓ 가 끝까지 내려간다 */
+  rising: RisingSectors | undefined;
   isPending: boolean;
   optionProps: OptionPropsOf;
 }) => {
@@ -344,11 +423,12 @@ const TopTradeValue = ({
       </div>
     );
   }
-  if (!crypto && !kr) return null;
+  if (!crypto && !kr && !rising?.items.length) return null;
   const groups = [
     { id: "crypto", label: SEARCH_MESSAGES.topCrypto, group: crypto, offset: 0 },
     { id: "kr", label: SEARCH_MESSAGES.topKr, group: kr, offset: crypto?.items.length ?? 0 },
   ];
+  const risingOffset = (crypto?.items.length ?? 0) + (kr?.items.length ?? 0);
   return (
     <section aria-labelledby={`${listId}-top`}>
       <h2 id={`${listId}-top`} className={styles.sectionHead}>
@@ -379,28 +459,54 @@ const TopTradeValue = ({
             </ul>
           ) : null,
         )}
+        {rising && rising.items.length > 0 ? (
+          <ul role="group" aria-labelledby={`${listId}-rising`} className={styles.group}>
+            <li role="presentation" id={`${listId}-rising`} className={styles.sectionHead}>
+              <span>{SEARCH_EXTRA_MESSAGES.risingHeading}</span>
+              <span className={styles.sectionMeta}>
+                {rising.asOf
+                  ? `${SEARCH_EXTRA_MESSAGES.risingHint} · ${SEARCH_MESSAGES.asOf(formatClockTime(new Date(rising.asOf)))}`
+                  : SEARCH_EXTRA_MESSAGES.risingHint}
+              </span>
+            </li>
+            {rising.items.map((sector, index) => (
+              <SearchTextOption
+                key={sector.code}
+                {...optionProps(risingOffset + index)}
+                title={sector.name}
+                rank={index + 1}
+                changeRate={sector.changeRate}
+              />
+            ))}
+          </ul>
+        ) : null}
       </div>
     </section>
   );
 };
 
-/** 입력 중 — 첫 요청만 스켈레톤 · 이후는 이전 결과 유지 · 실패는 다시 시도 · 0건은 문구 + 한 줄(`FE-REQ-010` FR-103) */
+/**
+ * 입력 중 — 첫 요청만 스켈레톤 · 이후는 이전 결과 유지 · 실패는 다시 시도 · 0건은 문구 + 한 줄(`FE-REQ-010` FR-103).
+ * 묶음(FR-8): 종목 → 업종 → 뉴스 → 지수. 한 격자 안 줄 묶음(`rowgroup`) — 종목 줄은 ★ 칸이 있어 격자다(선택지 안 단추 금지)
+ */
 const Results = ({
   listId,
   query,
-  items,
+  visible,
   isPending,
   isError,
   onRetry,
+  onMoreAssets,
   optionProps,
   renderAction,
 }: {
   listId: string;
   query: string;
-  items: AssetSearchItem[];
+  visible: VisibleResults;
   isPending: boolean;
   isError: boolean;
   onRetry: () => void;
+  onMoreAssets: () => void;
   optionProps: OptionPropsOf;
   renderAction: (item: AssetSearchItem) => React.ReactNode;
 }) => {
@@ -411,7 +517,8 @@ const Results = ({
       </div>
     );
   }
-  if (isError) {
+  const total = visible.assets.length + visible.sectors.length + visible.news.length + visible.indices.length;
+  if (isError && total === 0) {
     return (
       <div className={styles.empty}>
         <StatusLine kind="error">{SEARCH_MESSAGES.failed}</StatusLine>
@@ -419,7 +526,7 @@ const Results = ({
       </div>
     );
   }
-  if (items.length === 0) {
+  if (total === 0) {
     return (
       <div className={styles.empty}>
         <StatusLine kind="empty">{SEARCH_MESSAGES.empty(query)}</StatusLine>
@@ -427,29 +534,95 @@ const Results = ({
       </div>
     );
   }
+  const sectorStart = visible.assets.length;
+  const newsStart = sectorStart + visible.sectors.length;
+  const indexStart = newsStart + visible.news.length;
+  const groupHead = (id: string, label: string) => (
+    <div role="row" className={styles.groupHeadRow}>
+      <span role="columnheader" id={id} className={styles.groupHead}>
+        {label}
+      </span>
+    </div>
+  );
   return (
     <section aria-labelledby={`${listId}-results`}>
-      <h2 id={`${listId}-results`} className={styles.sectionHead}>
+      <h2 id={`${listId}-results`} className={styles.srOnly}>
         {SEARCH_MESSAGES.resultHeading}
       </h2>
-      {/* 결과는 격자 — 줄마다 고르는 칸 + ★ 칸(단추를 선택지 안에 둘 수 없다). 첫 화면 순위는 ★ 가 없어 목록(listbox) */}
       <div id={listId} role="grid" aria-labelledby={`${listId}-results`} className={styles.list}>
-        {items.map((item, index) => (
-          <SearchOption
-            key={`${item.assetType}:${item.symbol}`}
-            {...optionProps(index)}
-            assetType={item.assetType}
-            symbol={item.symbol}
-            name={item.name}
-            logoUrl={item.logoUrl}
-            highlight={query}
-            currentPrice={item.currentPrice}
-            changeRate={item.changeRate}
-            held={item.isHeld}
-            action={renderAction(item)}
-          />
-        ))}
+        {visible.assets.length > 0 ? (
+          <div role="rowgroup" aria-labelledby={`${listId}-g-assets`} className={styles.group}>
+            {groupHead(`${listId}-g-assets`, SEARCH_EXTRA_MESSAGES.tabs.assets)}
+            {visible.assets.map((item, index) => (
+              <SearchOption
+                key={`${item.assetType}:${item.symbol}`}
+                {...optionProps(index)}
+                assetType={item.assetType}
+                symbol={item.symbol}
+                name={item.name}
+                logoUrl={item.logoUrl}
+                highlight={query}
+                currentPrice={item.currentPrice}
+                changeRate={item.changeRate}
+                held={item.isHeld}
+                action={renderAction(item)}
+              />
+            ))}
+          </div>
+        ) : null}
+        {visible.sectors.length > 0 ? (
+          <div role="rowgroup" aria-labelledby={`${listId}-g-sectors`} className={styles.group}>
+            {groupHead(`${listId}-g-sectors`, SEARCH_EXTRA_MESSAGES.tabs.sectors)}
+            {visible.sectors.map((sector, index) => (
+              <SearchTextOption
+                key={sector.code}
+                {...optionProps(sectorStart + index)}
+                inGrid
+                title={sector.name}
+                highlight={query}
+                meta={SEARCH_EXTRA_MESSAGES.sectorMeta}
+                changeRate={sector.changeRate}
+              />
+            ))}
+          </div>
+        ) : null}
+        {visible.news.length > 0 ? (
+          <div role="rowgroup" aria-labelledby={`${listId}-g-news`} className={styles.group}>
+            {groupHead(`${listId}-g-news`, SEARCH_EXTRA_MESSAGES.tabs.news)}
+            {visible.news.map((news, index) => (
+              <SearchTextOption
+                key={`${news.market}:${news.id}`}
+                {...optionProps(newsStart + index)}
+                inGrid
+                title={news.title}
+                highlight={query}
+                meta={SEARCH_EXTRA_MESSAGES.newsMeta(news.source, formatRelativeTime(news.publishedAt))}
+              />
+            ))}
+          </div>
+        ) : null}
+        {visible.indices.length > 0 ? (
+          <div role="rowgroup" aria-labelledby={`${listId}-g-indices`} className={styles.group}>
+            {groupHead(`${listId}-g-indices`, SEARCH_EXTRA_MESSAGES.tabs.indices)}
+            {visible.indices.map((index, i) => (
+              <SearchTextOption
+                key={index.code}
+                {...optionProps(indexStart + i)}
+                inGrid
+                title={index.name}
+                highlight={query}
+                meta={SEARCH_EXTRA_MESSAGES.indexMeta(index.value.toLocaleString("ko-KR", { maximumFractionDigits: 2 }))}
+                changeRate={index.changeRate}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
+      {visible.moreAssets ? (
+        <TextButton className={styles.more} onClick={onMoreAssets}>
+          {SEARCH_EXTRA_MESSAGES.moreAssets}
+        </TextButton>
+      ) : null}
     </section>
   );
 };

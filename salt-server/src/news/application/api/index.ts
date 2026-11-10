@@ -16,6 +16,8 @@ import { GetArticleBody, ReadArticleBody } from "../ReadArticleBody";
 import {
   FindArticlesBySymbol,
   FindArticlesForSentiment,
+  ListSymbolTagLists,
+  SearchArticleTitles,
 } from "../FindArticlesBySymbol";
 import {
   BookmarkArticle,
@@ -49,6 +51,10 @@ export interface NewsApi {
    * 키가 없으면 `NEWS_BODY_UNAVAILABLE`(503)
    */
   readArticleBody(query: ArticleBodyQuery): Promise<ArticleBodyView>;
+  /** 제목 검색(`SRV-REQ-055`) — `market` 의 검색 모달 뉴스 묶음. 비어 있는 검색어는 빈 목록 */
+  searchArticleTitles(q: string, since: Date, limit: number): Promise<ArticleSummary[]>;
+  /** 한 종목이 붙은 기사들의 태그 목록(`SRV-REQ-055`) — `market` 이 함께 태그된 종목을 센다 */
+  symbolTagLists(symbol: string, since: Date, limit: number): Promise<string[][]>;
 }
 
 export type { ArticleBodyQuery, ArticleBodyView, ArticleSummary, ArticleText, SentimentArticleQuery } from "../../domain";
@@ -88,6 +94,8 @@ export const createNewsApplication = (deps: NewsDependencies) => {
   const findArticlesBySymbol = new FindArticlesBySymbol(deps.articles);
   const findArticlesForSentiment = new FindArticlesForSentiment(deps.articles);
   const readArticleBody = new ReadArticleBody(deps.body);
+  const searchArticleTitles = new SearchArticleTitles(deps.articles);
+  const listSymbolTagLists = new ListSymbolTagLists(deps.articles);
 
   const useCases: NewsUseCases = {
     crawlNews: new CrawlNews(deps.articles, deps.feed),
@@ -107,6 +115,8 @@ export const createNewsApplication = (deps: NewsDependencies) => {
       findArticlesBySymbol.execute(symbol, limit),
     findArticlesForSentiment: (query) => findArticlesForSentiment.execute(query),
     readArticleBody: (query) => readArticleBody.execute(query),
+    searchArticleTitles: (q, since, limit) => searchArticleTitles.execute(q, since, limit),
+    symbolTagLists: (symbol, since, limit) => listSymbolTagLists.execute(symbol, since, limit),
   };
 
   return { api, useCases };

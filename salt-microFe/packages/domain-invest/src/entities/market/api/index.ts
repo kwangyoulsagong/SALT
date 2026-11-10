@@ -7,3 +7,4 @@ export * from "./useKrStockQueries";
 export * from "./useBoardOverview";
 export * from "./useArticleBody";
 export * from "./useTopTradeValue";
+export * from "./useSearchExtras";

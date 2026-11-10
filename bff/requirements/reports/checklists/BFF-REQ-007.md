@@ -206,3 +206,8 @@ BFF 295 pass · build. 실검증은 새 코드 BFF 4011(기존 4001 은 watch �
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 은퇴 목록 한 줄 · 실스택 410 확인
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- `rest/controllers/search.controller.ts` · `routes/search.routes.ts` 에 `BFF-REQ-054` 경로 셋 — 기존 검색 경계(q 30 · limit 30) 그대로. 검증은 주인 체크리스트(`BFF-REQ-054` — build · 434 · 실호출)
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`

@@ -437,3 +437,16 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 ## 2026-11-09 — 확인 2회차 `6a062b24`
 
 - 비소유자 토큰 투자 화면 + 검색 모달 3회 열기 — 장 상태 404: 화면 1 · 열기 3 → 0. 소유자 `/search` 직접 진입(시세 표 없음) 국내 묶음 있음 · 시세 표 국내 탭 그대로
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- 지수 줄 Enter → `/investments?asset=kr_stock` · 국내 주식 탭 선택(소유자 실화면)
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`
+
+## 2026-11-10 — 뉴스 모달 새로고침(주인 `FE-REQ-065`)
+
+- 파일만 걸침 — 실화면 확인은 `FE-REQ-065` 체크리스트
+
+## 2026-11-10 — 투자 머리 메뉴 · 레일 복원 · 포트폴리오(주인 `FE-REQ-069`)
+
+- 확인은 `FE-REQ-069` 체크리스트(실화면 24칸 · 넘침 0 · axe 0 · 운영 빌드 · zone 전환 9/10)

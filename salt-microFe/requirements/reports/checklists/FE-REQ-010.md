@@ -348,3 +348,16 @@ check-types · lint · layer-check · 훅 · web · web-tax build(`/search` 156 
 ## 2026-11-09 — 확인 2회차 `6a062b24`
 
 - FR-72 `보유` 배지 퇴행 고침 — 실화면(검색 응답 `isHeld` 를 Playwright route 로) 보유 줄 1 · axe 0
+
+## 2026-11-10 — 검색 모달 2단계(주인 `FE-REQ-066` FR-8 · `SRV-REQ-055` · `BFF-REQ-054`)
+
+- `entities/market/api/endpoints.ts` 경로 셋 — 실화면 확인은 `FE-REQ-066` 체크리스트
+- 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`
+
+## 2026-11-10 — 뉴스 모달 새로고침(주인 `FE-REQ-065`)
+
+- 파일만 걸침 — 실화면 확인은 `FE-REQ-065` 체크리스트
+
+## 2026-11-10 — 투자 머리 메뉴(주인 `FE-REQ-069`, `29b9a212`)
+
+- 확인은 `FE-REQ-069` 체크리스트(본문 자산군 탭 없음 · 코인 ↔ 주식 · 뒤로가기)

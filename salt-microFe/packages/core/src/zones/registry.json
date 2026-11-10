@@ -17,11 +17,11 @@
       "domain": "invest",
       "domainPackage": "@repo/domain-invest",
       "devPort": 3002,
-      "pathPrefixes": ["/investments", "/coach", "/search"],
+      "pathPrefixes": ["/investments", "/coach", "/search", "/portfolio"],
       "assetPrefix": "/investment-static",
       "hostedIn": "web-investment",
       "hostedUntil": null,
-      "reason": "투자 — 시세 · 상세 · 코치 · 검색. 동결(기획된 것까지)"
+      "reason": "투자 — 시세 · 상세 · 코치 · 검색 · 포트폴리오(2026-11-10 FE-REQ-069). 동결(기획된 것까지)"
     },
     "savings": {
       "app": "web-savings",

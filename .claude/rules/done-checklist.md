@@ -16,6 +16,7 @@
 | `.claude/rules/**` 200줄 초과 | 같은 스크립트 5번 | done 전 |
 | 참고한 외부 서비스 이름이 문서 · 커밋에 | 같은 스크립트 6번(목록은 `.git/info/reference-brands`, 레포에 없다) | done 전 |
 | DB 오류 코드(`P2002`)로 흐름 가르기 | `salt-server` lint `no-restricted-syntax` | 저장 · `pnpm lint` |
+| 행마다 DB 쓰기를 `Promise.all` 로 흩어 연결 풀을 다 잡음(장중 504 — 11-02 · 11-10) | `salt-server` `noParallelRowWrites.test.ts` | `npm test` |
 | 렌더 중 토큰 · 지금 시각 · 난수 · 브라우저 저장소 읽기(수화 갈림) | 웹 lint `@repo/fsd/no-render-read` — 브라우저에서만 그려지는 자리는 이유를 적은 예외 주석 | 저장 · `pnpm lint` |
 | 원본(토큰)과 생성물(아이콘)이 갈라짐 | `@repo/ui` `brandIcons.test.ts` | `pnpm test` |
 | `viewTransitionName` 쌓임 맥락에 떠 있는 메뉴가 갇힘(머리 메뉴가 본문에 깔림) | `@repo/ui` `viewTransitionStacking.test.ts` — 그 블록에 `zIndex` | `pnpm test` |

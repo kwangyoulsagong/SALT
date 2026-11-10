@@ -190,3 +190,5 @@ created: 2026-09-09
 | 2026-11-03 | MONEY-F2(`FE-REQ-054`) — 번들 최종(`378d8a1c`) — 앱 탭이 `CrossZoneLink` 를 쓰며 0.1~0.2 KB 더: `/investments` 196.7(+3.6) · `/coach/report` 192.2(+2.7) · `/search` 209.6(+3.7) KB |
 | 2026-11-09 | F016 단계 C + FE-065 번들(worktree 운영 빌드, main 대조) — `/investments` 5.28 → 5.3 → 5.31 kB · `/investments/[symbol]` 4.08 → 4.09 → 4.12 kB · 첫 로드 152 · 151 kB 그대로 |
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `b37bf890`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — 검색 모달 번들(worktree 운영 빌드 main ↔ HEAD 첫 로드) — `/investments` 152 → 153 · 상세 152 → 153 · `/coach/report` 148 → 149 · `/search` 160 → 158 kB |
+| 2026-11-10 | 검색 모달 2단계(`19539c95`) — 투자 zone 운영 빌드 `/search` 첫 로드 158 → **167 kB**(+9, 예산 40 안) · `/investments` 153 · `/coach/report` 149 · `/investments/[symbol]` 153 그대로 |
+| 2026-11-10 | `FE-REQ-069`(`f193c6aa` · `29b9a212` · `c914fe2e`) 운영 빌드 — `/investments` 165(아침 `87eb8083`) → **156 kB** · `/portfolio` 148(새) · `/coach/report` 149 → 148 · `/search` 168 → 169 |

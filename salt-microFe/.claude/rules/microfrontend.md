@@ -23,7 +23,7 @@ REQ 는 셸 라우트를 지우고 `hostedIn` 을 자기 앱으로 바꾸는 것
 | zone 앱 | 도메인 | 경로 | 화면 코드 | 포트 · assetPrefix |
 |---|---|---|---|---|
 | `apps/web` | 셸(default) | `/` `/home` `/login` `/onboarding` `/settings`(도메인별 설정 링크) | 셸 전용 | 3000 · — |
-| `apps/web-investment` | 투자 `invest` | `/investments` `/coach` `/search` | `packages/domain-invest` | 3002 · `/investment-static` |
+| `apps/web-investment` | 투자 `invest` | `/investments` `/coach` `/search` `/portfolio` | `packages/domain-invest` | 3002 · `/investment-static` |
 | `apps/web-savings` | 저축 `savings` | `/goals` | `packages/domain-savings` | 3003 · `/savings-static` |
 | `apps/web-household` | 가계부 `household` | `/household` | `packages/domain-household` | 3004 · `/household-static` |
 | `apps/web-tips` | 금융 팁 `tips` | `/tips`(공개 · ISR) | `packages/domain-tips` | 3005 · `/tips-static` |
@@ -85,7 +85,7 @@ zone 을 넘는 이동은 문서 이동이다. 하단 탭이 가장 잦은 zone 
 | 첫 화면 숫자 서버 렌더 | 캐시가 비어도 숫자가 HTML 에 — 가격 깜빡임 금지 유지 | — |
 | 공용 청크 같은 해시 · 같은 URL(`packages/config-next` 프리셋 하나 · 운영 공용 `/_next`) | React · 디자인 시스템 캐시 공유 — 실측 셸 → 투자 같은 청크 5개 캐시 · 네트워크 0(전 117 KB) | zone 별 설정이 같아야 · 배포가 정적 파일을 합쳐야 |
 
-- 셸 → 도메인 탭 전환 시간 · prerender 적중률을 브라우저별로 잰다(`FE-REQ-054` FR-6) — `performance.mark("salt:zone-nav")`. **DevTools 세션이 붙어 있는 동안 시작되는 prerender 는 꺼진다**(`PrerenderingDisabledByDevTools` — Playwright 도 마찬가지). 재는 법: 순수 CDP 로 포인터를 올린 뒤 세션을 끊고 기다렸다 다시 붙어 누른다(`FE-REQ-054` 체크리스트 §2). 2026-11-03 운영 빌드 적중 10/10
+- 셸 → 도메인 탭 전환 시간 · prerender 적중률을 브라우저별로 잰다(`FE-REQ-054` FR-6) — `performance.mark("salt:zone-nav")`. **DevTools 세션이 붙어 있는 동안 시작되는 prerender 는 꺼진다**(`PrerenderingDisabledByDevTools` — Playwright 도 마찬가지). 재는 법: 순수 CDP 로 포인터를 올린 **직후**(moderate 가 시작하는 약 200ms 전) 세션을 끊고 3초 기다렸다 다시 붙어 누른다(`FE-REQ-054` 체크리스트 §2). 브라우저는 설치된 Chrome(버리는 프로필) — Playwright 헤드리스 셸은 prerender 를 안 하고 Chromium 133 은 활성화 때 죽었다. 2026-11-03 · 11-10 운영 빌드 적중 10/10(11-10 머리 내비 A/B 퇴행 0, `FE-REQ-067`)
 - 첫 화면이 없는 도메인 탭은 보이되 눌리지 않는다(`@repo/core/navigation` `readyBy`) — 없는 경로로 보내 404 를 보이지 않는다
 
 ## 6. Server Actions

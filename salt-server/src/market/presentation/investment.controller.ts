@@ -18,7 +18,7 @@ import {
   queryWatchlistSchema,
 } from "./dto/watchlist.dto";
 import { cryptoSymbolParamSchema } from "./dto/krStock.dto";
-import { searchAssetsSchema } from "./dto/search.dto";
+import { risingSectorsSchema, searchAssetsSchema, searchGroupsSchema, searchRelatedSchema } from "./dto/search.dto";
 
 /** 분봉에서 거래소가 받는 단위. 그 외 값은 5분으로 떨어뜨린다(원문). */
 const ALLOWED_UNITS = [1, 3, 5, 15, 30, 60, 240];
@@ -68,6 +68,36 @@ export class InvestmentController {
         ...query,
       });
       return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** 검색 모달 결과 묶음 — 업종 · 지수 · 뉴스(`SRV-REQ-055` FR-1). 검색어는 로그에 남기지 않는다 */
+  searchGroups = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { q } = searchGroupsSchema.parse(req.query);
+      return ResponseUtil.success(res, await this.useCases.searchResultGroups.execute({ email: req.user!.email, q }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** 첫 화면 뜨는 업종(`SRV-REQ-055` FR-2) */
+  risingSectors = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { limit } = risingSectorsSchema.parse(req.query);
+      return ResponseUtil.success(res, await this.useCases.readRisingSectors.execute({ email: req.user!.email, limit }));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** 곁 칸 — 같은 업종 종목 · 함께 태그된 코인 · 업종 구성 종목(`SRV-REQ-055` FR-3) */
+  searchRelated = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const target = searchRelatedSchema.parse(req.query);
+      return ResponseUtil.success(res, await this.useCases.readSearchRelated.execute({ email: req.user!.email, ...target }));
     } catch (error) {
       next(error);
     }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ZONES, zoneOfPath } from "../zones/registry";
+import { activeInvestMenu, INVEST_MENU, InvestMenuId } from "./investMenu";
 import {
   APP_TABS,
   activeAppTab,
@@ -87,5 +88,31 @@ describe("zone 간 이동 계측 (FE-REQ-054 FR-6)", () => {
     expect(buildZoneNavigationMetric({ ...base, currentApp: "web-investment", arrivedAt: 40_000 })).toBeNull();
     expect(buildZoneNavigationMetric({ ...base, currentApp: "web-investment", arrivedAt: 900 })).toBeNull();
     expect(buildZoneNavigationMetric({ ...base, start: null, currentApp: "web-investment", arrivedAt: 1_100 })).toBeNull();
+  });
+});
+
+describe("투자 zone 머리 메뉴(FE-REQ-069 FR-2)", () => {
+  it.each([
+    // [경로, asset, 지금 메뉴]
+    ["/investments", null, InvestMenuId.Crypto],
+    ["/investments/", null, InvestMenuId.Crypto],
+    ["/investments", "kr_stock", InvestMenuId.Stock],
+    ["/investments", "crypto", InvestMenuId.Crypto],
+    ["/investments/BTC", null, InvestMenuId.Crypto],
+    ["/investments/005930", null, InvestMenuId.Stock],
+    ["/investments/0126Z0", null, InvestMenuId.Stock],
+    ["/portfolio", null, InvestMenuId.Portfolio],
+    ["/coach/report", null, InvestMenuId.Report],
+    ["/coach/signals/whale_buy", null, InvestMenuId.Report],
+    ["/coach/settings", null, InvestMenuId.CoachSettings],
+    ["/search", null, null],
+    ["/home", null, null],
+  ])("%s ?asset=%s → %s", (path, asset, expected) => {
+    expect(activeInvestMenu(path, asset)).toBe(expected);
+  });
+
+  it("메뉴 순서 · 주식만 국내 소유자", () => {
+    expect(INVEST_MENU.map((m) => m.label)).toEqual(["코인", "주식", "포트폴리오", "리포트", "코치 설정"]);
+    expect(INVEST_MENU.filter((m) => m.requiresKrViewer).map((m) => m.id)).toEqual([InvestMenuId.Stock]);
   });
 });

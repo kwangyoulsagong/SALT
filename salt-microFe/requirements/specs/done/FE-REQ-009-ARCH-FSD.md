@@ -317,3 +317,5 @@ export { importLedger as POST } from '@/app/api-routes';
 | 2026-11-05 | 금융 팁 S2b(`MONEY-S2b-tips-quiz-diff`, 루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: 레이어 표에 features `answer-quiz` · pages `quiz-cards` + `fsd-features.md` · `fsd-pages.md` 표(`d59efa9c`) |
 | 2026-11-05 | 금융 팁 S2d(`MONEY-S2d-tips-my-numbers`, 루트 `requirements/specs/done/MONEY-S2d-tips-my-numbers-slice.md`) — 이 REQ 에 걸린 몫: 레이어 표에 features `read-my-numbers` + `fsd-features.md` 표 · 지연 로딩 잎은 배럴에 올리지 않음(자리 컴포넌트만, `c7508e54`) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 레지스트리(`layer-rules.cjs`) features 에 `choose-domains` · `arrange-home`, `skip-onboarding-step` 은 만들지 않음 `c1baa77a` |
+| 2026-11-10 | 페이지 슬라이스 레지스트리에 `portfolio`(`FE-REQ-069`) |
+| 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `f193c6aa` |

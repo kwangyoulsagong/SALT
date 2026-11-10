@@ -1,3 +1,5 @@
+import { INVESTMENTS_NEWS_PARAM } from "@repo/web-shared/config";
+
 /**
  * 뉴스 행 · 상세 모달 문구(`FE-REQ-065`). 제목 · 요약은 원문 그대로 — 여기엔 틀 문구만. 해요체
  */
@@ -16,9 +18,18 @@ export const NEWS_MESSAGES = {
   openOriginalLabel: (source: string) => `${source} 원문 보기(새 탭)`,
   moreKr: "이 종목 오늘 소식",
   moreCoin: "주요 뉴스",
+  /** 검색 모달에서 연 소식 — 같은 검색의 다른 뉴스(`FE-REQ-066` FR-8) */
+  moreSearch: "같은 검색의 다른 소식",
   /** 모달 이름(제목이 없을 때) */
   dialogLabel: "소식 자세히",
 } as const;
 
 /** 주소 쿼리 이름 — `?news=<id>`(새로고침 · 뒤로가기로 열고 닫힌다) */
-export const NEWS_QUERY_PARAM = "news";
+export const NEWS_QUERY_PARAM = INVESTMENTS_NEWS_PARAM;
+/**
+ * 그 기사가 속한 종목 — `?newsOf=<심볼 · 국내 코드>`(2026-11-10). 프리뷰 종목은 hover 라 새로고침하면 바뀐다 — 모달이 어느 목록에서
+ * 찾을지 주소가 말한다(`NewsModalHost`)
+ */
+export const NEWS_OF_QUERY_PARAM = "newsOf";
+/** 코인 뉴스 프리뷰가 받는 건수 — 프리뷰와 모달 호스트가 같은 쿼리 키를 쓰도록 한 곳에 */
+export const NEWS_PREVIEW_FETCH_LIMIT = 6;

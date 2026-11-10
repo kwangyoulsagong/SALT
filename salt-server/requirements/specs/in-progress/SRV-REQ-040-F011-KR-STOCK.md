@@ -171,3 +171,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — BFF `app-kr-stock.service.ts`(머리에 이 REQ) 에 F016 읽기 둘 · 서버 국내 읽기(`ReadKrStock`)에 `GetKrStockNews` · `GetKrIntradayFlows`(`SRV-REQ-051`). 기존 국내 경로 · 응답 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
 | 2026-11-09 | 국내 표 응답에 `moveCard`(추가만) · 국내 상세 why-moved 경로(F016 단계 C `SRV-REQ-051`) |
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `ReadKrStock` 에 `GetKrNewsBody`(소유자 · 그 종목 제목만 · 공시 검색 0) · 의존 `articleBody`(news ACL) |
+| 2026-11-10 | `market/application/api/index.ts` — 검색 모달 유스케이스 셋 조립(`krSearch` = 시세 · 업종 · 지수 저장소 + 소유자 목록, `SRV-REQ-055` `dd0bbdcc`) |

@@ -46,3 +46,47 @@
 | zone 운영 빌드 다섯 · Storybook(worktree, `6a062b24`) | 통과 · 첫 로드 같음(`/investments` 153 · `/coach/report` 149 · `/search` 158 kB — `/search` 쪽 9.76 → 9.91 kB) |
 | 다른 zone `/`(저축 · 가계부 · 홈) | `/search` 로 가서 모달 열림 · 검색칸 포커스 |
 
+## 2단계 FR-8 — 2026-11-10 (`19539c95` · 서버 `dd0bbdcc` · BFF `1110aa9b` · 공용 `e00053f8`)
+
+| 항목 | 구현 | 확인 |
+|---|---|---|
+| 결과 탭(결과 있는 것만 · 사라지면 전체로) | `@repo/core/search` `availableSearchTabs` · `effectiveSearchTab` · `visibleSearchResults` | vitest 표(탭 · 묶음 다섯) |
+| 묶음 · 키보드 줄 순서 · 갈 곳 | `widgets/asset-search/lib/searchEntries.ts` `resultEntries` · `AssetSearchDialog` `Results`(격자 안 `rowgroup`) | ↑↓ · Enter · 클릭 |
+| 업종 · 지수 · 뉴스 줄 | `entities/market` `SearchTextOption`(로고 없는 글자 행 — 같은 고른 면 · ↵ 칩) | 1440 스크린샷 |
+| 곁 칸 | `SearchSidePanel` · `useSearchRelated`(150ms 머문 줄만) | 005930 → 같은 업종 3 · 업종 → 구성 5 · BTC → 함께 태그 3 |
+| 지금 뜨는 업종 | `useRisingSectors`(장 상태 ok 일 때만) · 첫 화면 같은 listbox 에 이어 둠 | 5줄 · "업종 지수 등락률 순 · 시각 기준" |
+| 뉴스 → 뉴스 모달 | `SearchLauncher` 가 쥔다 · `searchNewsToView`(국내 본문은 관련 종목 첫 코드) | 대화상자 1개 · 본문 · Esc 뒤 0 · 주소 그대로 |
+| 업종 · 지수 → 국내 탭 | `ROUTES.investmentsKr` · `MarketBoard` `AssetParamSync`(Suspense 잎) | `/investments?asset=kr_stock` · 국내 주식 탭 선택 |
+
+| 실화면(소유자, 1440 · dev) | 결과 |
+|---|---|
+| axe(다이얼로그 범위) 첫 화면 · 결과 · 뉴스 모달 | 0 · 0 · 0 |
+| 콘솔 오류 · 4xx/5xx(검색 · 국내 경로) | 0 · 0 |
+| 넘침 1024 · 1280 · 1440 · 1600 | 0 |
+| 390 앱 웹뷰 `/search?q=삼성` | 넘침 0 · 곁 칸 숨김(한 열) · 콘솔 0 |
+| 비소유자(DB 에 없는 시험 신원) | 첫 화면 코인만 · 탭 전체 · 종목 · 뉴스 · 국내 경로 요청 0(장 상태 판정 404 1회 — 1단계 그대로) |
+
+| 실화면에서 고친 것 | 고침 |
+|---|---|
+| 새 탭 줄 미선택 글자 대비(axe 4 — 공용 Tabs 3단 색) | 이 탭 줄만 2단 색 — 공용 색은 다른 화면 결정이라 그대로 |
+| 이니셜 판 "LS" 대비 4.37:1 | 공용 `AssetIcon` 판 색 — 불변식 테스트(`FE-REQ-005`, `e00053f8`) |
+| 뉴스 · 지수 줄을 골라도 곁 칸이 "줄을 고르면…" | 골랐는데 대상이 없으면 빈 칸 |
+| 실호출에서 본 제목 깨짐("삼성전기␚AI") | 서버 수집 규칙 + 저장 39행(`SRV-REQ-051`, `0df7784e`) |
+
+| 검증 | 결과 |
+|---|---|
+| 모노레포 `check-types` · `lint` · `test` | 13/13 · 13/13 · 통과 |
+| `test:layer-check` · Bash 로 쓴 파일 26 훅 사후 실행 | 통과 · 0(음성 대조 exit 2) |
+| zone 운영 빌드 다섯(worktree `19539c95`) | 통과 — `/search` 158 → 167 kB(+9) · `/investments` 153 · `/coach/report` 149 그대로 |
+| `@repo/ui` `build-storybook`(worktree `19539c95`) | 통과 |
+
+## 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 배경 투자 화면 axe `heading-order` · `image-redundant-alt` | 1단계 전부터 있던 것 — `FE-REQ-044` 체크리스트에 기록된 것과 같은 자리 | 표면 대비 정리 REQ |
+| ~~장중 `/api/app/ai-coach/detail` 504(배경 화면)~~ **닫힘 2026-11-10 `c602e97c`** | ~~사용자 지시로 AI 코치 개선 세션으로 넘김~~ 정정 — 사용자는 "개선"만 다음 세션이라 했다. 결함이라 이번에(`DB-REQ-017` 4회차) | — |
+
+## 2026-11-10 — 투자 머리 메뉴 · 레일 복원 · 포트폴리오(주인 `FE-REQ-069`)
+
+- 확인은 `FE-REQ-069` 체크리스트(실화면 24칸 · 넘침 0 · axe 0 · 운영 빌드 · zone 전환 9/10)

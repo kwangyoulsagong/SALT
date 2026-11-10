@@ -8,11 +8,11 @@ import { Section } from "@repo/ui/section";
 import { ServiceIcon } from "@repo/ui/serviceicon";
 import { Tabs } from "@repo/ui/tabs";
 import dynamic from "next/dynamic";
-import Link from "next/link";
-import React, { type ReactNode, Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import React, { type ReactNode, Suspense, useEffect, useState } from "react";
 
-import { ROUTES } from "@repo/web-shared/config";
-import { NavChevron } from "@repo/web-shared/ui";
+import { INVESTMENTS_ASSET_PARAM, INVESTMENTS_NEWS_PARAM } from "@repo/web-shared/config";
+
 
 import {
   ASSET_CLASS_TABS,
@@ -23,7 +23,7 @@ import {
   WATCH_LIST_TAB,
   type PreviewRenderer,
 } from "../model";
-import { headingRow, reportLink } from "./MarketBoardLayout.css";
+import { headingRow } from "./MarketBoardLayout.css";
 import { placeholder as summaryPlaceholder } from "./MarketSummaryStrip.css";
 
 const RealtimeMarketTable = dynamic(
@@ -64,6 +64,15 @@ const MarketSummaryStrip = dynamic(
   }
 );
 
+/**
+ * 시세 화면 뉴스 모달 하나(`FE-REQ-065`) — 엔티티 barrel 을 쓰므로 늦게 온다. 정적으로 부르면 모달 · 본문 조회가 첫 로드에 실려
+ * `/investments` 가 153 → 165 kB 였다(2026-11-10 운영 빌드 대조, `87eb8083`). 주소에 `?news=` 가 있을 때만 그린다
+ */
+const NewsModalHost = dynamic(() => import("@/entities/market").then((mod) => mod.NewsModalHost), {
+  ssr: false,
+  loading: () => null,
+});
+
 /** 국내 주식(F011) 자산군 탭을 보일지 정하는 잎 — 엔티티 barrel 을 쓰므로 늦게 온다 */
 const KrStockAvailability = dynamic(
   () => import("./KrStockAvailability").then((mod) => mod.KrStockAvailability),
@@ -81,6 +90,21 @@ interface MarketBoardProps {
   renderLead?: (assetClass: string) => ReactNode;
 }
 
+/**
+ * 자산군은 **주소가 정한다** — `?asset=kr_stock` = 주식, 없으면 코인(머리 메뉴 코인 · 주식 · 검색 모달 업종 · 지수 줄이 같은 주소, `FE-REQ-069` FR-5).
+ * ~~본문 자산군 탭~~ 2026-11-10 머리 메뉴로 올라갔다. 주소를 읽는 잎을 따로 두고 Suspense 로 감싼다 — 보드 전체가 `useSearchParams` 때문에
+ * 클라이언트로 미뤄지지 않게. 국내가 안 열리는 사람(비소유자)은 아래 판정이 코인으로 되돌린다
+ */
+const AssetParamSync = ({ onAsset }: { onAsset: (asset: string) => void }) => {
+  const params = useSearchParams();
+  const asset = params?.get(INVESTMENTS_ASSET_PARAM) ?? null;
+  useEffect(() => {
+    onAsset(asset && ASSET_CLASS_TABS.some((tab) => tab.id === asset) ? asset : DEFAULT_ASSET_CLASS_TAB);
+  }, [asset, onAsset]);
+  // 뉴스 모달은 주소에 `?news=` 가 있을 때만 싣는다 — 없는 동안 그 청크를 받지 않는다
+  return params?.get(INVESTMENTS_NEWS_PARAM) ? <NewsModalHost /> : null;
+};
+
 /** 조합만 한다. 비즈니스 로직은 `entities/market` 과 그 위의 feature 가 갖는다. */
 export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => {
   const [activeTab, setActiveTab] = useState(DEFAULT_MARKET_BOARD_TAB);
@@ -90,6 +114,10 @@ export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => 
   const assetClass = krAvailable ? assetTab : DEFAULT_ASSET_CLASS_TAB;
   return (
     <Section noContainer>
+      <Suspense fallback={null}>
+        {/* 자산군 · 뉴스 모달 — 주소(`?asset=` · `?news=&newsOf=`)가 상태라 새로고침 · 뒤로가기에도 같은 화면(`FE-REQ-069` · `FE-REQ-065`) */}
+        <AssetParamSync onAsset={setAssetTab} />
+      </Suspense>
       <FlexBox direction="column">
         <div className={headingRow}>
           <FlexBox direction="row" align="center" gap="lg">
@@ -99,25 +127,13 @@ export const MarketBoard = ({ renderPreview, renderLead }: MarketBoardProps) => 
               {MARKET_BOARD_MESSAGES.heading}
             </Heading>
           </FlexBox>
-          <FlexBox direction="row" align="center" gap="lg">
-            {/* 종목 검색 진입은 머리 검색칸으로 옮겼다(2026-11-09 `FE-REQ-066` · `067` — 어느 투자 화면에서나 `/` · 머리 칸) */}
-            {/* 코치 리포트 진입(`FE-REQ-026` FR-140). 보유 전체의 리포트라 종목 패널이 아니라 화면 머리에 둔다 */}
-            <Link href={ROUTES.coachReport} className={reportLink}>
-              {MARKET_BOARD_MESSAGES.coachReportLink}
-              <NavChevron />
-            </Link>
-          </FlexBox>
+          {/* 종목 검색 · 코치 리포트 진입은 머리로 옮겼다(검색 2026-11-09 `FE-REQ-066` · 리포트 2026-11-10 `FE-REQ-069` 머리 메뉴) */}
         </div>
         {/*
-          자산군 탭(F011 `FE-REQ-041`) — 제목 바로 아래. 아래 화면은 탭마다 같고 데이터만 다르다. 국내 주식을 볼 수 없는
-          사용자(비로그인 · 소유자 아님 · 키 없음)에겐 이 줄이 없다 — 화면이 지금과 같다
+          ~~자산군 탭(F011 `FE-REQ-041`)~~ 2026-11-10 머리 메뉴 코인 · 주식(`FE-REQ-069`) — 여기는 국내를 볼 수 있는지만 판정한다
+          (비로그인 · 소유자 아님 · 키 없음이면 `?asset=kr_stock` 이어도 코인)
         */}
         <KrStockAvailability onChange={setKrAvailable} />
-        {krAvailable && (
-          <Margin top="lg">
-            <Tabs tabs={ASSET_CLASS_TABS} activeTab={assetClass} onTabChange={setAssetTab} />
-          </Margin>
-        )}
         {/*
           머리 띠 · 시장 요약 띠는 자산군마다 같은 자리 · 같은 컴포넌트, 데이터만 다르다(`FE-REQ-050` FR-1 · FR-5). 국내 탭에 코인
           숫자를 두지 않는다 — 머리 띠는 국내 성적만, 요약 띠는 국내 요약(대표 지수 · 작은 칸 · 오늘의 시장 + 다가오는 일정).

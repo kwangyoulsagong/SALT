@@ -70,6 +70,13 @@ export const MARKET_ENDPOINTS = {
   search: (q: string, limit: number, assetType?: string) =>
     `/api/app/search?q=${encodeURIComponent(q)}&limit=${limit}` +
     (assetType ? `&assetType=${encodeURIComponent(assetType)}` : ""),
+  /** 검색 모달 2단계(`FE-REQ-066` FR-8 · `BFF-REQ-054`) — 업종 · 지수 · 뉴스 묶음. 인증 필수(국내 칸은 소유자만 채워 온다) */
+  searchGroups: (q: string) => `/api/app/search/groups?q=${encodeURIComponent(q)}`,
+  /** 첫 화면 "지금 뜨는 업종" — 비소유자는 빈 목록(404 아님) */
+  risingSectors: (limit: number) => `/api/app/search/rising-sectors?limit=${limit}`,
+  /** 곁 칸 — 종목(같은 업종 · 함께 태그) 또는 업종(구성 종목) */
+  searchRelated: (target: { assetType: string; symbol: string } | { sector: string }) =>
+    `/api/app/search/related?${new URLSearchParams("sector" in target ? { sector: target.sector } : target).toString()}`,
   watchlistItem: (id: string) => `/api/app/watchlist/${encodeURIComponent(id)}`,
   /**
    * 국내 주식(F011 `FE-REQ-041`) — BFF 뷰모델 `BFF-REQ-040`. **전부 인증 필수 · 소유자 전용**(KRX 재배포 약관 —

@@ -47,6 +47,13 @@ export interface ArticleRepository {
   findHead(newsId: string): Promise<{ title: string; publishedAt: Date } | null>;
   findBySymbol(symbol: string, limit: number): Promise<ArticleSummary[]>;
   /**
+   * 제목에 검색어가 든 기사(`since` 뒤 · 최신순 · `limit` 건) — 검색 모달 뉴스 묶음(`SRV-REQ-055`). 본문은 뒤지지 않는다
+   * (검색은 타이핑마다 부른다 — 본문 `contains` 는 표 전체를 읽는다)
+   */
+  searchTitles(q: string, since: Date, limit: number): Promise<ArticleSummary[]>;
+  /** 한 종목이 붙은 기사들의 태그 목록(`since` 뒤 · 최신순 · `limit` 건) — 함께 태그된 종목 세기(`SRV-REQ-055`) */
+  symbolTagLists(symbol: string, since: Date, limit: number): Promise<string[][]>;
+  /**
    * 감성 분석용 조회. 종목 태그(`symbols`)나 **검색어**로 찾고 본문까지 준다.
    *
    * 검색어 목록은 부르는 쪽(`coach`)이 준다 — "무엇을 그 종목 기사로 볼 것인가"는

@@ -5,6 +5,7 @@
  * 기사 본문 · 원문 링크는 원천(KIS)에 없고 우리도 만들지 않는다(`ADR-009` — 저작권 선).
  */
 
+import type { SectorBoardRow } from "./SearchExtras";
 import { kstDateOf } from "./KrStock";
 
 // ==================== 시황/공시 제목 (FR-1) ====================
@@ -42,6 +43,17 @@ export const isKrNewsPromo = (title: string, patterns: readonly RegExp[]): boole
 export const KR_NEWS_MAX_PAGES = 5;
 /** 보관 일수(`DB-REQ-041` FR-1) — 정리 워커가 나눠 지운다 */
 export const KR_NEWS_RETENTION_DAYS = 30;
+
+/**
+ * 시황 제목 글자 정리 — 원천 제목에 줄바꿈과 `0x1A`(원천 문자셋이 못 옮긴 글자 — "삼성전기␚AI 기판"처럼 가운뎃점 자리)가 섞여 온다
+ * (2026-11-10 저장 3,059건 중 39건 — 화면에 깨진 글자로 보였다). `0x1A` 는 가운뎃점으로, 나머지 제어 문자는 띄어쓰기 하나로
+ */
+export const cleanKrNewsTitle = (raw: string): string =>
+  raw
+    .replace(/\x1a/g, "·")
+    .replace(/[\x00-\x1f\x7f]+/g, " ")
+    .replace(/ {2,}/g, " ")
+    .trim();
 /** 상세 "오늘 소식" 한 번에 보이는 최대 건수 — 응답 크기 상한(삼성전자 하루 약 40건) */
 export const KR_NEWS_READ_LIMIT = 30;
 
@@ -195,6 +207,10 @@ export interface KrMoveSourceStore {
   /** 최신 값(업종마다 한 행) + 그날 일별 행(장 끝 값이 종가) — 한 문장씩 */
   upsertSectorIndices(facts: KrSectorIndexFact[], at: Date): Promise<void>;
   sectorIndices(codes: string[]): Promise<StoredKrSectorIndex[]>;
+  /** 업종 지수 최신 값 전부 + 원천 이름(없으면 `null`) — 뜨는 업종 · 업종 검색(`SRV-REQ-055`). 20행 안팎 */
+  sectorBoard(): Promise<SectorBoardRow[]>;
+  /** 제목에 검색어가 든 시황 · 공시(`since` 뒤 · 최신순 · 광고성 제외) — 검색 모달 뉴스 묶음(`SRV-REQ-055`) */
+  searchNewsTitles(q: string, since: Date, limit: number): Promise<StoredKrNewsTitle[]>;
   /** 일별 행 덮어쓰기(원천 공식 종가가 장중 마지막 값을 이긴다) — 한 문장 */
   upsertIndexDaily(code: string, rows: KrIndexDailyRow[], at: Date): Promise<void>;
   /** 지수 이름(원천 값) — 덮어쓴다 */

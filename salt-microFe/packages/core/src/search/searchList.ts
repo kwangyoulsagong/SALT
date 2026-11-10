@@ -58,3 +58,70 @@ export const splitHighlight = (text: string, query: string): HighlightPart[] => 
   if (at + needle.length < text.length) parts.push({ text: text.slice(at + needle.length), match: false });
   return parts;
 };
+
+// ==================== 결과 묶음 · 탭 (`FE-REQ-066` FR-8) ====================
+
+/** 결과 탭(실측: 전체 · 종목 · 산업 · 뉴스 · 지수). 우리 이름은 "업종"(원천이 업종 지수다) */
+export enum SearchResultTab {
+  All = "all",
+  Assets = "assets",
+  Sectors = "sectors",
+  News = "news",
+  Indices = "indices",
+}
+
+/** "전체" 탭의 종목 줄 수 — 넘으면 "종목 더 보기"(실측 5). 화면 칸 수다 — 무엇을 보일지는 서버 순서 그대로 */
+export const ALL_TAB_ASSET_COUNT = 5;
+
+export interface SearchResultGroups<S, N, I> {
+  sectors: S[];
+  news: N[];
+  indices: I[];
+}
+
+export interface VisibleSearchResults<A, S, N, I> extends SearchResultGroups<S, N, I> {
+  assets: A[];
+  /** 전체 탭에서 종목이 잘렸다 — "종목 더 보기" */
+  moreAssets: boolean;
+}
+
+/** 보일 탭 — 전체 · 종목은 늘, 나머지는 결과가 있을 때만(빈 탭을 누르게 하지 않는다) */
+export const availableSearchTabs = (groups: SearchResultGroups<unknown, unknown, unknown> | undefined): SearchResultTab[] => [
+  SearchResultTab.All,
+  SearchResultTab.Assets,
+  ...(groups?.sectors.length ? [SearchResultTab.Sectors] : []),
+  ...(groups?.news.length ? [SearchResultTab.News] : []),
+  ...(groups?.indices.length ? [SearchResultTab.Indices] : []),
+];
+
+/** 고른 탭이 사라졌으면(검색어가 바뀌어 그 묶음이 비었다) 전체로 */
+export const effectiveSearchTab = (tab: SearchResultTab, tabs: readonly SearchResultTab[]): SearchResultTab =>
+  tabs.includes(tab) ? tab : SearchResultTab.All;
+
+/** 탭 하나에서 그릴 묶음 — 전체 탭은 종목 앞 5 + 업종 · 뉴스 · 지수 전부(줄 수는 서버가 이미 정했다) */
+export const visibleSearchResults = <A, S, N, I>(
+  tab: SearchResultTab,
+  assets: A[],
+  groups: SearchResultGroups<S, N, I> | undefined,
+): VisibleSearchResults<A, S, N, I> => {
+  const g: SearchResultGroups<S, N, I> = groups ?? { sectors: [], news: [], indices: [] };
+  const none: VisibleSearchResults<A, S, N, I> = { assets: [], moreAssets: false, sectors: [], news: [], indices: [] };
+  switch (tab) {
+    case SearchResultTab.Assets:
+      return { ...none, assets };
+    case SearchResultTab.Sectors:
+      return { ...none, sectors: g.sectors };
+    case SearchResultTab.News:
+      return { ...none, news: g.news };
+    case SearchResultTab.Indices:
+      return { ...none, indices: g.indices };
+    default:
+      return {
+        assets: assets.slice(0, ALL_TAB_ASSET_COUNT),
+        moreAssets: assets.length > ALL_TAB_ASSET_COUNT,
+        sectors: g.sectors,
+        news: g.news,
+        indices: g.indices,
+      };
+  }
+};

@@ -1,5 +1,5 @@
 import type { NewsApi } from "../../news/application/api";
-import type { SymbolNewsItem, SymbolNewsPort } from "../domain";
+import type { SymbolNewsItem, SymbolNewsPort, TaggedNewsItem } from "../domain";
 
 /**
  * `news` 를 우리 언어로 번역하는 **ACL** (`ddd-infrastructure.md` §5).
@@ -27,5 +27,23 @@ export class SymbolNewsAdapter implements SymbolNewsPort {
       sentiment: article.sentiment,
       publishedAt: article.publishedAt,
     }));
+  }
+
+  async searchTitles(q: string, since: Date, limit: number): Promise<TaggedNewsItem[]> {
+    const articles = await this.news.searchArticleTitles(q, since, limit);
+    return articles.map((article) => ({
+      id: article.id,
+      title: article.title,
+      summary: article.summary,
+      url: article.url,
+      source: article.source,
+      publishedAt: article.publishedAt,
+      imageUrl: article.imageUrl ?? null,
+      symbols: article.symbols ?? [],
+    }));
+  }
+
+  tagLists(symbol: string, since: Date, limit: number): Promise<string[][]> {
+    return this.news.symbolTagLists(symbol, since, limit);
   }
 }

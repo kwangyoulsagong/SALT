@@ -257,3 +257,4 @@ F001은 `behavior-coach`의 편향 판정을 **거래 단위 라벨러로 재사
 | 2026-11-04 | lint 에 `no-restricted-syntax` — DB 오류 코드(`P2002` 등)로 흐름을 가르는 꼴 3가지를 막는다(`DEV-001` FR-3). 레이어 규칙(FR-12)은 그대로 |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 훅 레지스트리(`layer-rules.cjs`)에서 은퇴한 컨텍스트 둘 — 조합 `onboarding`(S3a) · `notification`(S2c, Kotlin 이전 뒤 남아 있던 것) `81b418c4` |
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `news` 유스케이스 테스트 가짜 저장소에 `findHead` · 조립에 `body` 의존 |
+| 2026-11-10 | `PrismaPriceHistoryRepository.upsertCandles` — 단건 upsert 100개 `Promise.all` → 한 문장 `INSERT … ON CONFLICT`(포트 · 멱등 그대로, `DB-REQ-017` 4회차 `c602e97c`) |

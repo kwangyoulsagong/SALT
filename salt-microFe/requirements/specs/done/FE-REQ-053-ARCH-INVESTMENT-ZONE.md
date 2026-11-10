@@ -63,3 +63,5 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-05 | 금융 팁 S2a(`MONEY-S2a-tips-content`, 루트 `requirements/specs/done/MONEY-S2a-tips-content-slice.md`) — 이 REQ 에 걸린 몫: 공용 레이아웃에 `PublicShell`(공개 zone 껍데기 — 로고 머리 + main, 앱 내비 · 안내 · prerender 없음) export 추가 |
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): 파일만 걸침 — 셸 `/settings`(머리 주석 주인)에 알림 패널 |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음(이 REQ 몫) — BFF `home-card.viewmodel` 에 `INVEST_HREF` 상수(투자 카드 · 첫 입력이 같은 경로를 쓰게) `066ba971` |
+| 2026-11-10 | 보유 요약 자리 홈 → 리포트(이 REQ) → `/portfolio`(`FE-REQ-069`) · `coach-console` 문구 주석 |
+| 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |
