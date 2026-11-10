@@ -7,10 +7,10 @@ import type { ExplainSymbolRequest } from "./types";
 /**
  * 해설 요청 본문 — 종목과 관점뿐이다. 사실은 서버가 모은다(`SRV-REQ-025` FR-58).
  *
- * 판단이 막힌 모드는 부르는 쪽이 버튼을 그리지 않는다(FR-135). 그래도 여기 오면 `null` 이다.
+ * 판단 꼬리표는 해설을 막지 않는다(`ADR-010` v2 — `FE-REQ-026` FR-135 대체). 모드가 계약 깨짐(`null`)일 때만 `null`.
  */
 export const buildExplainRequest = (
   view: SymbolCoachViewModel,
   mode: CoachMode,
 ): ExplainSymbolRequest | null =>
-  selectModeView(view, mode)?.renderable ? { symbol: view.symbol, mode } : null;
+  selectModeView(view, mode) ? { symbol: view.symbol, mode } : null;

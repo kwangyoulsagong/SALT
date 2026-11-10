@@ -122,8 +122,8 @@ interface ExplainCardProps {
 /**
  * AI 해설 카드 — **스트림** (F008 `FE-REQ-038` FR-7 · FEATURE-008 FR-47 · FR-60~64, 이전 `FE-REQ-026` FR-135).
  *
- * - 판단이 막힌 모드에는 버튼 · 성적 · 사례가 없다(FR-135). 자리와 이유 한 줄만 남긴다 — 카드째 지우면
- *   표본이 모자란 동안 기능이 사라진 것처럼 보였다(2026-09-27, C06 이후 live 표본만 센다)
+ * - 판단 꼬리표(표본 · 재료 · 투자유의 · 국내 단타)는 해설을 막지 않는다(`ADR-010` v2, 2026-11-10 — ~~FR-135 막힌 모드엔 버튼 없음~~).
+ *   모드가 계약 깨짐일 때만 그리지 않는다
  * - 누르면 단계가 하나씩 켜지고(실제 서버 작업), 근거 문장이 타자처럼 흐른다. 검사를 통과한 AI 문장이
  *   오면 한 번에 바뀌고 그 사실을 알린다. AI 가 실패하면 흐른 문장이 최종이고 "규칙 기반 설명" 배지가 붙는다
  * - 같은 카드 안에 **적중률 · 사례**(3종의 나머지 둘)를 둔다. 해설만 떼어 읽히지 않게
@@ -133,21 +133,6 @@ export const ExplainCard = ({ view, mode, className }: ExplainCardProps) => {
   const { state, request } = useExplainStream();
   const modeView = selectModeView(view, mode);
   if (!modeView) return null;
-  if (!modeView.renderable) {
-    // 판단이 막힌 모드 — 버튼 · 성적 · 사례는 없다(FR-135 · 3종 규칙). 자리와 이유만 남긴다
-    return (
-      <section className={className ? `${s.card} ${className}` : s.card}>
-        <div className={s.cardHeader}>
-          <Heading level={4}>{M.heading}</Heading>
-        </div>
-        <p className={s.note}>{M.judgmentBlocked}</p>
-        {modeView.trackSample !== null && (
-          <p className={s.note}>{M.judgmentBlockedSample(modeView.trackSample)}</p>
-        )}
-      </section>
-    );
-  }
-
   const body = buildExplainRequest(view, mode);
   const started = state.status !== "idle" && state.status !== "busy";
   const finished = state.status === "done";
