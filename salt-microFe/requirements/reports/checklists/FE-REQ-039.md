@@ -226,3 +226,7 @@ FR 전부 완료. 남은 것은 `QA-001`(소유자 실계정 · 200% 확대 · �
 
 - 파일만 걸침 — `packages/domain-invest/src/entities/coach/api/useBehaviorMirror.ts` `packages/domain-invest/src/entities/coach/api/useCoachProfile.ts` `packages/domain-invest/src/entities/coach/api/useRiskBudget.ts` `packages/domain-invest/src/entities/coach/api/useTradePlans.ts` `packages/domain-invest/src/features/record-transaction/ui/RecordTradeCard.tsx`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경
 - 확인: check-types · lint · test · zone 4 빌드 · 훅 사후 실행 · 실스택 — `salt-microFe/requirements/reports/checklists/FE-REQ-013.md` 2026-11-05
+
+## 2026-11-10 — 투자 머리 메뉴 · 레일 복원 · 포트폴리오(주인 `FE-REQ-069`)
+
+- 확인은 `FE-REQ-069` 체크리스트(실화면 24칸 · 넘침 0 · axe 0 · 운영 빌드 · zone 전환 9/10)

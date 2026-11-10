@@ -204,3 +204,4 @@ F004의 기능 규칙은 거의 전부 **"하지 않는 것"** 이다. 게이트
 | 2026-10-30 | F004 슬라이스 18 — FR-62 완료(다르게: `router.refresh()` 대신 쿼리 무효화 — 조회가 클라이언트에 있다). FR-82(모드 스위치는 저장하지 않는다) 그대로 — 저장은 설정 화면에서만. 루트 `requirements/specs/done/F004-fe-coach-profile-settings-slice.md` |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — shared 레이어 → `@repo/web-shared`(import 경로 치환)(`20971abf`) · 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 1 · 수정 1 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 후속 — `c5ec66ed` — 코치 리포트 맨 위 "내 보유" 패널(`HoldingsPanel` — 보유 요약 + 매입가 숨김, 사용자 결정). 리포트가 unavailable 이어도 보인다(카드 단위 격리 그대로). 실화면 숨김 끔 손익률 · 켬 숨김 + 물음 줄 · 넘침 0 |
+| 2026-11-10 | 코치 리포트 맨 위 "내 보유" 칸을 `/portfolio` 로(`FE-REQ-069` FR-4) — 리포트 = 목표 비중 · 위험 · 성적 · 추천 · 미러 · 월 리뷰 |

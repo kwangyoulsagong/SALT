@@ -14,7 +14,7 @@
 
 > **아키텍처 전환 3개가 끝났다.** `FE-REQ-007`(Multi-Zones) · `FE-REQ-008`(App Router +
 > 스트리밍 SSR) · `FE-REQ-009`(FSD 6레이어). 다음은 기능 REQ(F000~)다.
-> **2026-11-03 `FE-REQ-054`: 앱 내비게이션 — `@repo/ui/app-navigation` `AppNavigation`(~~왼쪽 레일 1024+~~ 머리 글자 링크 1024+ — 2026-11-09 `FE-REQ-067` · 하단 탭 768~1023 · 머리 52 + 검색칸) + 탭 한 벌 `@repo/core/navigation` `APP_TABS`. 화면이 머리 · 프로필을 놓지 않는다(공용 `AppShell`).**
+> **2026-11-03 `FE-REQ-054`: 앱 내비게이션 — `@repo/ui/app-navigation` `AppNavigation`(왼쪽 레일 1024+ — ~~2026-11-09 머리 글자 링크 `FE-REQ-067`~~ 2026-11-10 되돌림 `FE-REQ-069` · 하단 탭 768~1023 · 머리 52 = zone 메뉴 + 검색칸, 투자 zone 만) + 탭 한 벌 `@repo/core/navigation` `APP_TABS`. 화면이 머리 · 프로필을 놓지 않는다(공용 `AppShell`).**
 > **2026-11-02 `FE-REQ-053`: 투자 슬라이스(`market` · `portfolio` · `coach` 와 그 위 features · widgets · pages)는 `packages/domain-invest/src` 에 있다. 셸에 `entities/home` 이 생겼고 `sign-out` 은 `@repo/web-shared/layout` `ProfileMenu` 로 대체됐다. `settings-panel` 은 `/coach/settings`.**
 > 현재 실재하는 슬라이스는 `auth`·`goal`·`home`·`market`·`portfolio`·`coach`(entities),
 > `sign-in`·`add-goal`·`accept-invite`·`toggle-watchlist`·`switch-coach-mode`·`explain-symbol`·`regenerate-coach`·`record-transaction`·`set-risk-budget`·`confirm-outcome-tags`·`toggle-purchase-price`·`run-preflight`·`search-asset`·`edit-coach-profile`(features, `toggle-purchase-price` 까지 뒤 넷은 F009 2026-09-24 · 09-27 · 10-29, 그다음 둘은 F004 2026-10-29 · F000 2026-10-30, 마지막은 F004 2026-10-30),

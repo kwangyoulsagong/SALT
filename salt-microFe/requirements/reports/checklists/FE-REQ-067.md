@@ -41,3 +41,7 @@
 | 끊는 때 | 포인터를 올리고 300ms 기다린 뒤 끊으면 적중 0 — moderate 는 약 200ms 에 시작해 그때 세션이 붙어 있으면 `PrerenderingDisabledByDevTools`(Preload 이벤트로 확인). **올린 직후 끊는다** |
 | 브라우저 | Playwright 헤드리스 셸 141 은 prerender 를 하지 않는다(적중 0/20) · Playwright Chromium 133 은 prerender 활성화 때 두 번 죽었다 → 설치된 Chrome 157(버리는 프로필) |
 | 정리 | 서버 넷 · 브라우저 · worktree 둘 지움 |
+
+## 2026-11-10 — 투자 머리 메뉴 · 레일 복원 · 포트폴리오(주인 `FE-REQ-069`)
+
+- 확인은 `FE-REQ-069` 체크리스트(실화면 24칸 · 넘침 0 · axe 0 · 운영 빌드 · zone 전환 9/10)

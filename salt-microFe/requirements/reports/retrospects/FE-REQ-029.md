@@ -76,3 +76,7 @@
 
 - +9 kB 는 곁 칸 · 탭 · 글자 행 · 뉴스 모달이 런처에 실린 몫 — 런처는 투자 zone 레이아웃이라 `/investments` 첫 로드가 같은 이유는 레이아웃 청크가 이미 공용이기 때문
 - 루트 회고 `requirements/reports/retrospects/FE-066-067-search-header.md`
+
+## 2026-11-10 — 투자 머리 메뉴(`FE-REQ-069`)
+
+- 판단은 `FE-REQ-069` 회고

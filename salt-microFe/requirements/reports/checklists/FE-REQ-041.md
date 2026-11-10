@@ -446,3 +446,7 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 ## 2026-11-10 — 뉴스 모달 새로고침(주인 `FE-REQ-065`)
 
 - 파일만 걸침 — 실화면 확인은 `FE-REQ-065` 체크리스트
+
+## 2026-11-10 — 투자 머리 메뉴 · 레일 복원 · 포트폴리오(주인 `FE-REQ-069`)
+
+- 확인은 `FE-REQ-069` 체크리스트(실화면 24칸 · 넘침 0 · axe 0 · 운영 빌드 · zone 전환 9/10)

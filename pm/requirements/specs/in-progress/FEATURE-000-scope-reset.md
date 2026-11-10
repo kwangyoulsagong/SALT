@@ -427,3 +427,4 @@ flowchart TB
 | 2026-11-06 | 서버 S3a(`MONEY-S3a-identity-shell`) — 온보딩 3스텝(F000 `onboarding` 조합 컨텍스트 · `/api/onboarding/status` · `/api/app/onboarding/status`) 은퇴 → 도메인 선택(`FEATURE-015` FR-1). 초대 코드(`accept-invite`)는 그대로. 본문 그 자리 정정 |
 | 2026-11-09 | FE-066 1단계(루트 `FE-066-067-search-header-slice.md`) — 종목 검색이 페이지에서 모달로(머리 칸 · `/` · `/search` 는 연 채로) · 첫 화면 최근 검색 + 거래대금 상위(D3) · 키보드 · `FE-REQ-010` FR-70 · 72 · 76 · `011` FR-80 정정. 2단계(업종 · 뉴스 · 지수 탭 · 곁 칸) 남음 |
 | 2026-11-10 | FE-066 2단계(루트 `FE-066-067-search-header-slice.md`) — FR-40 검색에 업종 · 지수 · 뉴스 결과 · 곁 칸 · 지금 뜨는 업종. 새 경로 `/api/investment/search/{groups,rising-sectors,related}` → `/api/app/search/*`(`SRV-REQ-055` · `BFF-REQ-054`) · `FE-REQ-066` done. 공용 이니셜 판 대비(`FE-REQ-005`) |
+| 2026-11-10 | 검색칸 · `/` 는 투자 zone 만(`FE-REQ-069` · `FE-REQ-066` FR-1 정정) |

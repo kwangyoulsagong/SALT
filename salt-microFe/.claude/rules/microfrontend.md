@@ -23,7 +23,7 @@ REQ 는 셸 라우트를 지우고 `hostedIn` 을 자기 앱으로 바꾸는 것
 | zone 앱 | 도메인 | 경로 | 화면 코드 | 포트 · assetPrefix |
 |---|---|---|---|---|
 | `apps/web` | 셸(default) | `/` `/home` `/login` `/onboarding` `/settings`(도메인별 설정 링크) | 셸 전용 | 3000 · — |
-| `apps/web-investment` | 투자 `invest` | `/investments` `/coach` `/search` | `packages/domain-invest` | 3002 · `/investment-static` |
+| `apps/web-investment` | 투자 `invest` | `/investments` `/coach` `/search` `/portfolio` | `packages/domain-invest` | 3002 · `/investment-static` |
 | `apps/web-savings` | 저축 `savings` | `/goals` | `packages/domain-savings` | 3003 · `/savings-static` |
 | `apps/web-household` | 가계부 `household` | `/household` | `packages/domain-household` | 3004 · `/household-static` |
 | `apps/web-tips` | 금융 팁 `tips` | `/tips`(공개 · ISR) | `packages/domain-tips` | 3005 · `/tips-static` |

@@ -68,3 +68,4 @@ source: salt-microFe/requirements/reports/research/2026-11-09-news-ui-measure.md
 | 2026-11-09 | FE-066 · 067(검색 모달 · 머리 내비 — 커밋 `f91a5061`, 루트 `requirements/specs/in-progress/FE-066-067-search-header-slice.md`) — `Modal` 에 `size="search"` · `onEscape` · `initialFocusRef` · 포커스 가둠 안정화(처리기 ref · `open && mounted`) — 뉴스 모달(`article`)도 같은 가둠을 쓴다. 주소로 연 모달이 첫 렌더에 가둠을 놓치던 것도 같이 닫힘 |
 | 2026-11-10 | `searchNewsToView` — 검색 결과 뉴스를 같은 모달 모양으로(국내 본문은 관련 종목 첫 코드, 공시 · 종목 없음은 본문 찾기 0). 뉴스 모달 "다른 소식" 제목 `moreSearch` · `NEWS_MESSAGES` 를 model barrel 로(`FE-REQ-066` `19539c95`) |
 | 2026-11-10 | **새로고침 결함 고침**(`87eb8083`) — 모달 주소에 종목(`?newsOf=`)을 같이 쓰고, 시세 보드의 `NewsModalHost` 하나가 그 종목 목록으로 그린다(프리뷰는 열기만). 코인 · 국내 둘 다 — 프리뷰 hover 종목이 바뀌어도 열린다. 미검증 행 닫음 |
+| 2026-11-10 | 번들 — 보드가 `NewsModalHost` 를 `?news=` 있을 때만 dynamic 으로(`c914fe2e`): `/investments` 첫 로드 166 → 156 kB(`87eb8083` 의 정적 barrel import 가 +12) |
