@@ -39,6 +39,7 @@ Status: In Progress
 | **F014** | 금융 팁 (공적 제도 설명만 · 유효기한 · 때맞춘 한 줄 · 제도 파라미터 표의 주인) — 2026-10-30, 법무 확인 전 공개 금지 | `FEATURE-014-money-tips.md` |
 | **F015** | 셸 — 홈 요약 카드 · 도메인 선택 온보딩 · 내 데이터 · 4탭 IA(홈 · 저축 · 가계부 · 투자) — 2026-10-30 | `FEATURE-015-shell-home-onboarding.md` |
 | **F016** | 오늘 왜 움직였나 — 등락 분해 · 같은 날 사실 · 근거 인용 한 줄 · 시장 상태 태그(서킷브레이커 · 사이드카 · VI) · 국내 뉴스(제목) · 장중 수급 — 2026-11-06, **투자 동결 위 사용자 요청** · `ADR-009` | `FEATURE-016-why-moved.md` |
+| **F018** | 로그인 없이 시세 보기 — 게스트 토큰(서버 발급 · 30분 · httpOnly) · 시장 데이터 전부 공개(국내 포함) · ★ · 포트폴리오 · 거래 · AI 는 로그인(유리막) · 전망은 소유자 — 2026-11-10, **투자 동결 위 사용자 요청** · `ADR-011`(`FEATURE-011` §정책 뒤집음) | `FEATURE-018-public-market-guest.md` |
 
 > **2026-10-30 투자 동결** — 투자 기능(F000 투자 FR · F003 · F004 · F006 · F008 · F009 · F010 · F011)은 지금 기획된 것까지만 만든다. 새 투자 FR 추가 0. 남은 목록은 `pm/docs/2026-10-30-money-domains-spec.html` "투자 — 동결 범위". 전 영역 계획은 `requirements/specs/to-do/MONEY-domains-global-plan.md`.
 
@@ -109,6 +110,7 @@ Status: In Progress
 | **F014** | `DB-039` | `SRV-047` | `BFF-049` | `FE-058` | (웹뷰) |
 | **F015** | `DB-040` | `SRV-048` | `BFF-046` | `FE-054` `FE-055` | `RN-035` |
 | **F016** | `DB-041` | `SRV-051`(market) `SRV-052`(coach) | `BFF-051` | `FE-063` | (웹뷰) + FC `FC-027` |
+| **F018** | 없음 | `SRV-056` | `BFF-055` | `FE-070` | (웹뷰 — 늘 로그인) |
 
 F012~F015 는 영역당 한 파일(F011 이후 관례) — 종류는 파일 안 FR 표로 나눈다. F008 온톨로지 · 에이전트는 `FC-REQ-022` · `023`.
 
@@ -211,6 +213,7 @@ flowchart TB
 | 3a | 돈 관리 앱 재정의 | F012 저축(S1 · F3) → F013 가계부(S1 · F4) → F014 금융 팁(S2 · F5, 법무 확인 뒤 공개) → F015 나머지(S3) | 투자 남은 작업과 **번갈아** — 투자만 연속으로 잡지 않는다 |
 | 3a | 예측 바탕 | `FC-REQ-022` 온톨로지(O1 · O2) → `FC-REQ-023` 에이전트(O3) · `FC-REQ-024` 개인 재무 채점(S1 과 같이) | `ADR-007`. F008 FR-25 · FR-41 |
 | **3b** | 투자 동결 위 사용자 요청(2026-11-06) | **F016** ~~단계 A 시장 상태 태그~~ **A done 2026-11-06**(`feat/f016-a-market-status-tags`, `F016-A-market-status-tags-slice.md` — VI · 서킷브레이커 추정 · 상태 칩 · 마지막 체결) → ~~B 국내 소식 · 수급~~ **B done 2026-11-06**(`feat/f016-b-kr-news-flows`, `F016-B-kr-news-flows-slice.md` — 시황 제목 · 업종 지수 · 장중 프로그램) → ~~다음 C 분해 · 사실 카드~~ **C done 2026-11-09**(`feat/f016-c-move-breakdown`, `F016-C-move-split-facts-slice.md` — 분해 · 카드 조건 · 같은 날 사실 · 프리뷰 한 줄) → 다음 D 한 줄(평가 뒤) — ~~`requirements/specs/to-do/F016-why-moved-global-plan.md`~~ `requirements/specs/in-progress/F016-why-moved-global-plan.md` | `ADR-009` · `FEATURE-016` Open Questions 1~6 |
+| 3b | 투자 동결 위 사용자 요청(2026-11-10) | **F018** 로그인 없이 시세 보기 — `SRV-REQ-056` → `BFF-REQ-055` → `FE-REQ-070`(한 브랜치 `docs/feature-018-public-market-guest`), `requirements/specs/in-progress/F018-public-market-guest-global-plan.md` | `ADR-011` · `FEATURE-018` |
 | **4** | 착수 전 기능 | F006 코치 대화 + 3탭 IA(`FE-REQ-030`~`033` · `BFF-REQ-027`~`030`) · F003 적립(`FEATURE-003`, to-do) | 범위가 커서 3 다음. 시작 전에 기획서 재확인 |
 | **5** | 디자인 | `FE-REQ-051` 로고 → `FE-REQ-047` 틀(헤더 · 뒤로 · 탭 주소 · **2026-11-04 개정**: 도메인 사이드 · 글자색 대비 · 글꼴 · 모바일 분리) → `FE-REQ-049` 상세 재설계(국내 깨짐 B1~B11 · 탭 제목 실시간 가격) → **`FE-REQ-060` 돈 관리 화면(저축 · 가계부 · 팁, 데스크톱 + 모바일 따로 — 2026-11-04)** → `FE-REQ-048` 홈(카드 홈 데스크톱/모바일로 정정) · 함께 **`FE-REQ-061` 좁은 화면 안내 · `FE-REQ-062` 화면 움직임** — REQ 2026-11-04. ~~**당김 2026-11-04**(사용자 "베스트 케이스"): 다음 칸 = 디자인 D1 — D1 `FE-REQ-051` 로고 + `FE-REQ-047` 틀 → D2 `FE-REQ-049` 상세 → D3 `FE-REQ-060` 돈 관리 화면 → D4 `FE-REQ-048` 홈 + `FE-REQ-061` 좁은 화면 안내. `FE-REQ-062` 움직임은 단계마다 그 화면에 같이~~ **정정 2026-11-04: 당김 취소**(사용자 "기능부터 만들어야지") — 디자인은 다시 기능 뒤. ~~`FE-REQ-051` 로고~~ **done 2026-11-04**(사용자 "로고는 필요하니까", `F000-brand-logo-slice.md`) | 기능이 화면 칸을 정한 뒤에 틀을 입힌다. 규칙 `salt-microFe/.claude/rules/screen-desktop.md` · 지도 `requirements/specs/to-do/DESIGN-desktop-redesign-plan.md` |
 | **6** | 모바일 | F007 RN(`RN-REQ-001`~) · `screen-mobile.md` 규칙 | 웹 계약 확정 뒤(P4 원칙 그대로) |
