@@ -199,28 +199,25 @@ export class PrismaMarketAssetRepository implements MarketAssetRepository {
   }
 
   /**
-   * 시세 반영.
+   * 시세 반영 — **한 문장**(`UPDATE … FROM unnest`). 없는 심볼은 0행(동기화 전 신규 상장 — 다음 `market-sync` 가 행을 만든다).
    *
-   * `update` 는 행이 없으면 던진다. 거래소가 우리 DB 에 없는 심볼을 주는 경우
-   * (동기화 전 신규 상장) 배치 전체가 죽지 않도록 **`updateMany` 로 바꿨다** —
-   * 없으면 0행이 갱신되고 다음 `market-sync` 가 행을 만든다.
+   * 전에는 시세마다 `updateMany` 를 `Promise.all` 로 흩었다 — 매분 300종목(100개씩 세 묶음)이 묶음마다 연결 풀(17)을 거의 다 잡아
+   * 그동안 API 요청이 줄을 섰다(장중 `/api/ai-coach` 0.2~0.9s · BFF 예산 300ms 넘어 504, 2026-11-10 실측 — 느린 요청의 읽기 다섯이
+   * 같은 순간에 끝났다). 같은 사고 `PrismaWatchlistRepository.applyPrices`(2026-11-02). 시각은 Prisma 관례대로 UTC
    */
   async applyQuotes(quotes: Quote[]) {
-    await Promise.all(
-      quotes.map((quote) =>
-        prisma.marketAsset.updateMany({
-          where: { symbol: quote.symbol },
-          data: {
-            currentPrice: quote.currentPrice,
-            change24h: quote.change24h,
-            high24h: quote.high24h,
-            low24h: quote.low24h,
-            volume24h: quote.volume24h,
-            tradeValue24h: quote.tradeValue24h,
-            priceUpdatedAt: new Date(),
-          },
-        })
-      )
-    );
+    if (quotes.length === 0) return;
+    const col = <T,>(pick: (q: Quote) => T) => quotes.map(pick);
+    await prisma.$executeRaw`
+      UPDATE market_assets AS a
+      SET current_price = u.current_price, change_24h = u.change_24h, high_24h = u.high_24h, low_24h = u.low_24h,
+          volume_24h = u.volume_24h, trade_value_24h = u.trade_value_24h, price_updated_at = (now() AT TIME ZONE 'UTC')
+      FROM unnest(
+        ${col((q) => q.symbol)}::text[], ${col((q) => q.currentPrice)}::numeric[], ${col((q) => q.change24h)}::numeric[],
+        ${col((q) => q.high24h)}::numeric[], ${col((q) => q.low24h)}::numeric[], ${col((q) => q.volume24h)}::numeric[],
+        ${col((q) => q.tradeValue24h)}::numeric[]
+      ) AS u(symbol, current_price, change_24h, high_24h, low_24h, volume_24h, trade_value_24h)
+      WHERE a.symbol = u.symbol`;
   }
+
 }
