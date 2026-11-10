@@ -959,6 +959,32 @@ model KrViEvent {
   @@map("kr_vi_event")
 }
 
+/// 추적 목록 일별 스냅샷(DB-REQ-044 FR-1 · SRV-REQ-057 FR-7) — 생존 편향 차단. 불변(UPDATE 트리거) · 하루 한 번
+model MarketUniverseSnapshot {
+  asOfDate   DateTime  @map("as_of_date") @db.Date
+  assetType  AssetType @map("asset_type")
+  symbol     String
+  source     String // active_market | top_market_cap | holding | watch
+  rank       Int?
+  capturedAt DateTime  @map("captured_at") @db.Timestamptz(6)
+
+  @@id([asOfDate, assetType, symbol])
+  @@index([assetType, asOfDate], map: "market_universe_snapshot_type_date")
+  @@map("market_universe_snapshot")
+}
+
+/// 5분봉을 거래소에 어디까지 물어봤나(DB-REQ-044 FR-2 · SRV-REQ-057 FR-2) — 앞으로만 옮긴다
+model PriceFillMark {
+  assetType     AssetType @map("asset_type")
+  symbol        String
+  timeframe     String
+  filledThrough DateTime  @map("filled_through") @db.Timestamptz(6)
+  updatedAt     DateTime  @map("updated_at") @db.Timestamptz(6)
+
+  @@id([assetType, symbol, timeframe])
+  @@map("price_fill_mark")
+}
+
 /// 시장 조치 — 서킷브레이커 · 사이드카(F016 단계 A · DB-REQ-041 FR-3). 단계마다 하루 한 번
 model KrMarketAction {
   market    String // KOSPI | KOSDAQ
