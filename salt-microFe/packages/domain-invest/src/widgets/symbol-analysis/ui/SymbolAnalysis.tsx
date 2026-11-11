@@ -26,6 +26,7 @@ import {
   zoneToPriceLines,
 } from "@/entities/coach";
 import { MarketDetailChart, useMarketListing, useWhyMoved, WhyMovedCard } from "@/entities/market";
+import { TradeCheckCard } from "@/features/check-trade-odds";
 import { ExplainCard } from "@/features/explain-symbol";
 import { RecordTradeCard } from "@/features/record-transaction";
 import { PreflightCard } from "@/features/run-preflight";
@@ -177,6 +178,8 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
               </div>
               {/* 로그인 없이 보면 유리막(`FE-REQ-070`) — 판단은 AI 칸 */}
               <SignInRequired what={SYMBOL_ANALYSIS_MESSAGES.guestWhat.coach} placeholder={<CoachBlockSkeleton block="judgment" />}>
+                {/* 맨 위 쉬운 한 줄 — 판단보다 먼저(F017 v2 단계 2 · FE-REQ-064 FR-3) */}
+                <TradeCheckCard symbol={symbol} />
                 {renderCoach()}
               </SignInRequired>
             </section>

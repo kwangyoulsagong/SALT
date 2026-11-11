@@ -6,6 +6,7 @@ import { Text } from "@repo/ui/text";
 
 import { COACH_MESSAGES, CoachBlockSkeleton, CoachStaleNote, JudgmentDetail, selectModeView, useSymbolCoach } from "@/entities/coach";
 import { KR_STOCK_MESSAGES as M } from "@/entities/market";
+import { TradeCheckCard } from "@/features/check-trade-odds";
 import { CoachModeSwitch, useCoachModeParam } from "@/features/switch-coach-mode";
 
 import { krCoachCard } from "./SymbolHeader.css";
@@ -40,6 +41,8 @@ export const KrCoachJudgment = ({ code }: { code: string }) => {
       <Heading level={5} color="tertiary">
         {COACH_MESSAGES.judgmentHeading}
       </Heading>
+      {/* 맨 위 쉬운 한 줄 — 판단보다 먼저(F017 v2 단계 2 · FE-REQ-064 FR-3). 코인과 같은 칸 */}
+      <TradeCheckCard symbol={code} />
       {data && mode && <CoachModeSwitch value={mode} onChange={setMode} />}
       {body()}
       <Text color="tertiary">{M.detail.coachNote}</Text>

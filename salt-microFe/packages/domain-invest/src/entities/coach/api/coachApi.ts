@@ -14,6 +14,8 @@ import type {
   RiskBudgetResult,
   SymbolForecastResult,
   TradePlanListResult,
+  TradeCheckResult,
+  TradeCheckSide,
 } from "@repo/core/coach";
 
 import { apiFetch, readApiError } from "@repo/web-shared/api";
@@ -94,6 +96,15 @@ export const coachApi = {
     if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<SymbolForecastResult>;
+    return body.data;
+  },
+
+  /** 사기 전 · 팔기 전 점검 (`GET /api/app/ai-coach/check`) — 서버 문장 그대로. 로그인만 */
+  tradeCheck: async (symbol: string, side: TradeCheckSide, signal?: AbortSignal): Promise<TradeCheckResult> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.tradeCheck(symbol, side)}`, { signal });
+    if (!response.ok) throw await readApiError(response, "coach");
+
+    const body = (await response.json()) as AppEnvelope<TradeCheckResult>;
     return body.data;
   },
 

@@ -7,6 +7,9 @@
 export const COACH_ENDPOINTS = {
   symbolDetail: (symbol: string) =>
     `/api/app/ai-coach/detail?symbol=${encodeURIComponent(symbol)}`,
+  /** 사기 전 · 팔기 전 점검 — AI 패널 맨 위 쉬운 한 줄(F017 v2 단계 2 · `BFF-REQ-052` FR-3) */
+  tradeCheck: (symbol: string, side: "buy" | "sell") =>
+    `/api/app/ai-coach/check?symbol=${encodeURIComponent(symbol)}&side=${side}`,
   /** 코치 리포트 (`BFF-REQ-023`). 종목 판단과 다른 화면 · 다른 경로다 */
   report: "/api/app/coach/report",
   /** 재생성 버튼 상태 · 202 뒤 폴링 (`BFF-REQ-023` FR-61~63) */
