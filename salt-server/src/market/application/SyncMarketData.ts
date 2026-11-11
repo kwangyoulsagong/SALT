@@ -153,6 +153,7 @@ export class CollectPriceHistory {
     const upper = symbol.toUpperCase();
     for (const target of COLLECT_TARGETS) {
       try {
+        const askedAt = this.now();
         const candles = await this.exchange.candlesByTimeframe(
           symbol,
           target.timeframe,
@@ -160,7 +161,7 @@ export class CollectPriceHistory {
         );
         await this.prices.upsertCandles(upper, "crypto", target.timeframe, candles);
         if (target.timeframe === "5m") {
-          const next = regularWindowAdvance(marks.get(upper), candles.map((c) => c.timestamp));
+          const next = regularWindowAdvance(marks.get(upper), candles.map((c) => c.timestamp), askedAt);
           if (next) advanced.push({ symbol: upper, filledThrough: next });
         }
       } catch (error) {
@@ -226,11 +227,8 @@ export class CatchUpPriceHistory {
           // 거래 없는 구간은 봉이 없다 — 물어본 것으로 끝(위치는 옮긴다)
           await this.prices.upsertCandles(symbol, "crypto", "5m", page);
           candles += page.length;
-          // 마지막 쪽(지금)은 진행 중인 봉이 있다 — 그 봉 시작까지만 물어본 것으로 둔다
-          const through = to.getTime() >= now.getTime() && page.length > 0
-            ? new Date(Math.max(...page.map((c) => c.timestamp.getTime())))
-            : to;
-          await this.fillMarks.advance("crypto", "5m", [{ symbol, filledThrough: through }], now);
+          // 위치 = 물은 구간의 끝(`to`). 마지막 쪽의 진행 중 봉은 정기 수집이 다음 회차에 다시 받는다(창 안)
+          await this.fillMarks.advance("crypto", "5m", [{ symbol, filledThrough: to }], now);
           cursor = to;
         }
         if (cursor.getTime() >= now.getTime()) done++;

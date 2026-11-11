@@ -182,11 +182,12 @@ describe("따라잡기 규칙 — 경계", () => {
     const mark = new Date(now.getTime() - 2 * HOUR);
     const window = (oldestAgoMs: number, n = 200) =>
       Array.from({ length: n }, (_, i) => new Date(now.getTime() - oldestAgoMs + (i * oldestAgoMs) / n));
-    assert.equal(regularWindowAdvance(undefined, window(3 * HOUR)), null, "위치가 없으면 따라잡기 몫");
-    assert.ok(regularWindowAdvance(mark, window(3 * HOUR)), "창이 위치를 덮는다");
-    assert.equal(regularWindowAdvance(mark, window(HOUR)), null, "창이 위치에 못 닿는다");
-    assert.ok(regularWindowAdvance(mark, window(HOUR, 50)), "200 개 미만 = 거래소 이력 끝");
-    assert.equal(regularWindowAdvance(now, window(3 * HOUR)), null, "뒤로 가지 않는다");
+    assert.equal(regularWindowAdvance(undefined, window(3 * HOUR), now), null, "위치가 없으면 따라잡기 몫");
+    assert.deepEqual(regularWindowAdvance(mark, window(3 * HOUR), now), now, "창이 위치를 덮는다 — 위치 = 물은 시각");
+    assert.equal(regularWindowAdvance(mark, window(HOUR), now), null, "창이 위치에 못 닿는다");
+    assert.ok(regularWindowAdvance(mark, window(HOUR, 50), now), "200 개 미만 = 거래소 이력 끝");
+    assert.ok(regularWindowAdvance(mark, [], now), "0 개 = 거래 없음(물었다)");
+    assert.equal(regularWindowAdvance(now, window(3 * HOUR), now), null, "뒤로 가지 않는다");
   });
 
   it("순서 — 겹치면 앞 자리 · 대문자", () => {

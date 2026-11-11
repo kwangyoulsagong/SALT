@@ -26,17 +26,20 @@ export const catchUpStart = (mark: Date | undefined, now: Date): Date => {
   return new Date(Math.max(mark?.getTime() ?? floor, floor));
 };
 
-/** 정기 수집 한 쪽(최신 `CANDLE_PAGE` 개)이 위치를 옮길 수 있나 — 옮길 수 있으면 새 위치(가장 새 봉의 시작), 아니면 `null` */
+/**
+ * 정기 수집 한 쪽(최신 `CANDLE_PAGE` 개, `askedAt` 에 물음)이 위치를 옮길 수 있나 — 옮길 수 있으면 `askedAt`, 아니면 `null`.
+ * 위치는 **물은 시각**이다 — 가장 새 봉의 시작으로 두면 거래가 드문 코인은 방금 물어도 위치가 몇 시간 뒤에 남는다(11-11 상태 점검)
+ */
 export const regularWindowAdvance = (
   mark: Date | undefined,
-  candleStarts: readonly Date[]
+  candleStarts: readonly Date[],
+  askedAt: Date
 ): Date | null => {
-  if (!mark || candleStarts.length === 0) return null;
-  const times = candleStarts.map((t) => t.getTime());
-  const newest = Math.max(...times);
-  // 덜 왔으면 거래소 이력 끝에 닿았다 — 창이 처음부터 덮는다
-  const reaches = candleStarts.length < CANDLE_PAGE || Math.min(...times) <= mark.getTime();
-  return reaches && newest > mark.getTime() ? new Date(newest) : null;
+  if (!mark) return null;
+  // 0개 · 덜 왔으면 거래소 이력 끝에 닿았다 — 창이 처음부터 덮는다
+  const reaches =
+    candleStarts.length < CANDLE_PAGE || Math.min(...candleStarts.map((t) => t.getTime())) <= mark.getTime();
+  return reaches && askedAt.getTime() > mark.getTime() ? askedAt : null;
 };
 
 /** 따라잡기가 할 일이 있나 — 위치가 정기 수집 창 밖으로 밀렸다(창 안이면 정기 수집이 옮긴다) */
