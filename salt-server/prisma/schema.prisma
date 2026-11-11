@@ -751,6 +751,28 @@ model JudgmentLedgerEntry {
   @@map("judgment_ledger")
 }
 
+/// 사기 전 · 팔기 전 점검 원장(F017 v2 단계 2 · SRV-REQ-053 FR-4 · DB-REQ-043 FR-7). 사용자 열 0 — 종목 · 조건 · 기준 봉 단위로
+/// 처음 본 한 줄만(같은 키는 ON CONFLICT DO NOTHING). 나중 채점(FC-REQ-028 FR-4)이 첫 점검 가격 → h 뒤 종가를 본다
+model TradeCheckLedgerEntry {
+  id           String   @id @default(uuid())
+  preregKey    String   @map("prereg_key")
+  symbol       String
+  market       String // "kr" | "crypto"
+  side         String // "buy" | "sell"
+  conditionId  String   @map("condition_id") // 조건 없음 = "NONE"
+  horizon      Int
+  refAt        DateTime @map("ref_at") // 문턱 기준 봉 시각(예측 base_rate_trigger.ref_at)
+  status       String // "ok" | "below_min" | "no_condition"
+  upRate       Float?   @map("up_rate") // 그때 보여 준 비율(사기 전 비용 뒤 · 팔기 전 보유 연장)
+  sampleEff    Float?   @map("sample_eff")
+  priceAtCheck Decimal? @map("price_at_check")
+  checkedAt    DateTime @map("checked_at")
+
+  @@unique([preregKey, symbol, side, conditionId, horizon, refAt])
+  @@index([refAt])
+  @@map("trade_check_ledger")
+}
+
 // 게이지 아래 적중률 한 줄 (F004 · B9 · DB-REQ-017 FR-55).
 // 게이지가 어떤 구간에 있던 과거 날들의 **30일 뒤 수익률 분포** — 일 1회 워커가 다시 쓴다.
 // 과거 분포다. 예상 수익 · 목표가 컬럼을 두지 않는다(FR-58). 수익률은 비율(0.12 = 12%)
