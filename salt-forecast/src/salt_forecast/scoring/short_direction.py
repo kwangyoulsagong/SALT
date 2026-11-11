@@ -33,6 +33,7 @@ from salt_forecast.domain.short_direction import (
     evaluate,
     kr_cell_panel,
     live_quantiles,
+    narrow_to_universe,
     shuffle_within_day,
     walk_forward,
 )
@@ -87,7 +88,9 @@ def _ts(s: str) -> int:
 def crypto_panel(ohlcv: Mapping[str, OhlcvSeries], start: int, as_of: datetime) -> CellPanel:
     t_end = int(as_of.timestamp())
     p = build_panel({s: o.as_of(t_end) for s, o in ohlcv.items()}, start, t_end, step=HOUR)
-    return crypto_cell_panel(p)
+    narrow, universe = narrow_to_universe(p)
+    del p
+    return crypto_cell_panel(narrow, universe=universe)
 
 
 def kr_panel(ohlcv: Mapping[str, OhlcvSeries], start: int, as_of: datetime) -> tuple[CellPanel, np.ndarray]:

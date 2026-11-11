@@ -221,3 +221,20 @@ def test_live_underperforms_needs_300_confident() -> None:
     p_dn = np.full(300, 0.4)
     up_all = np.ones(300)  # '내림' 확신 전부 틀림 · 늘 오른다 전부 맞음 → 차 −1
     assert live_underperforms(p_dn, up_all, days, 7)
+
+
+def test_narrow_to_universe_keeps_rows_identical() -> None:
+    from salt_forecast.domain.panel import forward_log_return
+    from salt_forecast.domain.short_direction import cell_rows, narrow_to_universe
+
+    p = hourly_panel(24 * 40, 70)
+    full = crypto_cell_panel(p)
+    sub, u = narrow_to_universe(p)
+    assert len(sub.symbols) < len(p.symbols)  # 실제로 좁혔다
+    part = crypto_cell_panel(sub, universe=u)
+    day = ((p.dates - 1) // DAY).astype(np.int64)
+    a = cell_rows(full, 4, forward_log_return(p, 4), 0.0015, day)
+    b = cell_rows(part, 4, forward_log_return(sub, 4), 0.0015, day)
+    np.testing.assert_array_equal(a.x, b.x)
+    np.testing.assert_array_equal(a.y, b.y)
+    assert [p.symbols[i] for i in a.sym] == [sub.symbols[i] for i in b.sym]

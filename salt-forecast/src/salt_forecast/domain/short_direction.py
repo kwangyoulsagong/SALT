@@ -121,8 +121,27 @@ class CellPanel:
     universe: NDArray[np.bool_]
 
 
-def crypto_cell_panel(p: Panel, btc: str = "KRW-BTC") -> CellPanel:
-    """1시간 격자 패널(행 = 봉 마감 시각) → 피처 7 · σ · 유니버스(매일 00:00 UTC 에 다시 고른 상위 50)."""
+def narrow_to_universe(p: Panel, btc: str = "KRW-BTC") -> tuple[Panel, NDArray[np.bool_]]:
+    """유니버스(전 종목 순위로 고른다)를 먼저 정하고, 한 번도 들지 않은 종목 열을 버린다(BTC 는 피처라 남긴다).
+
+    피처는 자기 열 + BTC 열만 읽어 결과가 같다 — 메모리만 준다
+    (1시간봉 301종목 × 2년 피크 2GB → 예산 안, performance.md §1).
+    """
+    universe = crypto_universe(p)
+    keep = universe.any(axis=0)
+    if btc in p.symbols:
+        keep[p.column(btc)] = True
+    cols = np.flatnonzero(keep)
+    sub = Panel(
+        p.dates, tuple(p.symbols[j] for j in cols), p.high[:, cols], p.low[:, cols], p.close[:, cols],
+        p.volume[:, cols], p.listed_at[cols], None if p.open is None else p.open[:, cols],
+    )  # fmt: skip
+    return sub, universe[:, cols]
+
+
+def crypto_cell_panel(p: Panel, btc: str = "KRW-BTC", universe: NDArray[np.bool_] | None = None) -> CellPanel:
+    """1시간 격자 패널(행 = 봉 마감 시각) → 피처 7 · σ · 유니버스(매일 00:00 UTC 에 다시 고른 상위 50).
+    `universe` 를 주면(`narrow_to_universe` 뒤) 그것을 쓴다 — 좁힌 패널로 다시 순위를 매기면 상위 50 이 달라진다."""
     if p.open is None:
         raise ValueError("코인 피처는 시가가 필요하다")
     close = p.close
@@ -159,7 +178,7 @@ def crypto_cell_panel(p: Panel, btc: str = "KRW-BTC") -> CellPanel:
             btc_r1,
             (r24 - btc_r24) / (sigma * math.sqrt(24)),
         )
-    return CellPanel(p, tuple(_clip(f) for f in feats), sigma, crypto_universe(p))
+    return CellPanel(p, tuple(_clip(f) for f in feats), sigma, crypto_universe(p) if universe is None else universe)
 
 
 def crypto_universe(p: Panel) -> NDArray[np.bool_]:
