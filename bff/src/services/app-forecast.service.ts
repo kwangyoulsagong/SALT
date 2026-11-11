@@ -4,6 +4,7 @@ import { backendApi } from "./backend-api.service";
 import { toEventsViewModel, type EventsResult } from "./events.viewmodel";
 import { toForecastViewModel, type ForecastResult } from "./forecast.viewmodel";
 import { toPositioningViewModel, type PositioningResult } from "./positioning.viewmodel";
+import { toScenarioViewModel, type ScenarioResult } from "./scenario.viewmodel";
 
 /** 서버는 뷰 하나를 읽는다(실측 5ms) — 코치 리포트와 같은 800ms · 재시도 1회 */
 const FORECAST_TIMEOUT_MS = 800;
@@ -30,6 +31,27 @@ export class AppForecastService {
       );
       const data = (response.data as BackendEnvelope<Record<string, unknown>>).data;
       return toForecastViewModel(data ?? {});
+    } catch (error) {
+      if (toUpstreamClientError(error) || signal?.aborted) throw error;
+      return { status: "unavailable" };
+    }
+  }
+
+  /**
+   * 시나리오 카드 — 단타 방향 확률(F017 v2 단계 5 · `BFF-REQ-052` FR-4). 전망과 같은 규칙: 4xx(404 = 소유자 아님) 그대로,
+   * 5xx · 타임아웃 · 모양 깨짐은 200 `unavailable`. 서버는 뷰 두 개를 읽는다
+   */
+  async getScenario(token: string, symbol: string, signal?: AbortSignal): Promise<ScenarioResult> {
+    try {
+      const response = await retryOnceOnGet(
+        () =>
+          backendApi.proxyAuthRequest("GET", `/coach/scenario?symbol=${encodeURIComponent(symbol)}`, token, undefined, {
+            timeout: FORECAST_TIMEOUT_MS,
+            signal,
+          }),
+        signal,
+      );
+      return toScenarioViewModel((response.data as BackendEnvelope<unknown>).data);
     } catch (error) {
       if (toUpstreamClientError(error) || signal?.aborted) throw error;
       return { status: "unavailable" };
