@@ -1,8 +1,5 @@
-import { SALT_CLIENT_HEADER, type ExplainClient } from "../utils/client-kind.util";
-import { createConcurrencyGate } from "../utils/concurrency.util";
 import { AppError } from "../utils/error.util";
 import { retryOnceOnGet } from "../utils/retry.util";
-import { createSseParser, type SseEvent } from "../utils/sse.util";
 import { createHash } from "node:crypto";
 
 import { backendApi } from "./backend-api.service";
@@ -14,6 +11,7 @@ import {
   type ServerSymbolNews,
 } from "./symbol-coach.viewmodel";
 import { TradeCheckContractError, toTradeCheckViewModel } from "./trade-check.viewmodel";
+import { ExplanationContractError, toExplanationViewModel } from "./explanation.viewmodel";
 
 /** `BFF-REQ-025` 호출 맵 — 판단 · 뉴스 모두 300ms. 화면 예산 200ms(`BFF-REQ-026` FR-50) */
 const SYMBOL_COACH_TIMEOUT_MS = 300;
@@ -35,26 +33,11 @@ const rememberDetail = (key: string, view: ReturnType<typeof toSymbolCoachViewMo
 };
 /** 테스트 전용 */
 export const __resetDetailMemory = () => lastDetail.clear();
-/** `BFF-REQ-025` FR-1 — LLM 호출이다. 재시도 0회(FR-2) */
-const EXPLAIN_TIMEOUT_MS = 20_000;
-/** `BFF-REQ-025` FR-7 — 동시 `explain` 상한. 넘으면 429 로 바로 돌려보낸다 */
-const EXPLAIN_MAX_CONCURRENT = 2;
-
-const explainGate = createConcurrencyGate(EXPLAIN_MAX_CONCURRENT);
-/** 해설 스트림 대화당 상한(`streaming-sse.md` §7) · 소켓 유휴 상한(서버 ping 15초보다 길게) */
-const EXPLAIN_STREAM_MAX_MS = 60_000;
-const EXPLAIN_STREAM_IDLE_MS = 30_000;
-/** 화면 계약에 있는 이벤트만 옮긴다(`streaming-sse.md` §3). `ping` 은 BFF 가 스스로 보낸다 */
-const EXPLAIN_STREAM_EVENTS = new Set([
-  "message.start",
-  "message.step",
-  "message.blocked",
-  "message.card",
-  "message.delta",
-  "message.replace",
-  "message.done",
-  "message.error",
-]);
+/**
+ * 해설(F017 v2 단계 3 · `BFF-REQ-052` FR-2) — 서버는 저장값만 읽는다(LLM 0, 배치가 미리 만든다). 판단 · 점검과 같은 예산.
+ * 예전 즉석 해설(20초 · 동시 2 · SSE 중계)은 서버 경로와 함께 지웠다
+ */
+const EXPLANATION_TIMEOUT_MS = 300;
 
 type BackendEnvelope<T> = {
   success: boolean;
@@ -251,88 +234,32 @@ export class AppAICoachService {
   }
 
   /**
-   * 즉석 해설(LLM) — `BFF-REQ-023` FR-100 · `BFF-REQ-025` FR-1~12 · FR-34~35 · FR-44.
-   *
-   * - **토큰을 전달한다.** 서버 `explain` 은 아직 공개 경로라 토큰을 무시한다 — BFF 가 먼저
-   *   보내야 서버가 인증을 켜도 끊기지 않는다(FR-11 "BFF 먼저").
-   * - 20s · **재시도 0회.** 서버가 폴백을 갖고 있고 LLM 재시도는 비용이다.
-   * - 동시 2개. 넘으면 서버에 보내지 않고 429 `explain_busy`.
-   * - 본문을 가공 · 로깅하지 않는다. `{ renderable: false }` 도 200 으로 그대로 전달한다.
+   * 종목 해설 — 4단 중 하나(`latest` · `previous` · `template` · `none`), 빈 칸 0. 서버 그대로 · 캐시 0.
+   * GET 이라 한 번 재시도(`retryOnceOnGet`). 모양이 깨지면 502 — 문장을 지어내지 않는다
    */
-  async explain(token: string, body: unknown, signal?: AbortSignal, client: ExplainClient = "web") {
-    const release = explainGate.tryAcquire();
-    if (!release) throw new AppError("explain_busy", 429);
-
-    try {
-      const response = await backendApi.proxyAuthRequest(
-        "POST",
-        "/ai-coach/explain",
-        token,
-        body,
-        { timeout: EXPLAIN_TIMEOUT_MS, signal, headers: { [SALT_CLIENT_HEADER]: client } },
-      );
-      return (response.data as BackendEnvelope<unknown>).data;
-    } finally {
-      release();
+  async getExplanation(token: string, query: { symbol?: unknown; mode?: unknown }, signal?: AbortSignal) {
+    const symbol = typeof query.symbol === "string" ? query.symbol.trim().toUpperCase() : "";
+    if (!/^[A-Z0-9]{1,20}$/.test(symbol)) throw new AppError("symbol 형식이 다릅니다", 400, true, "INVALID_SYMBOL");
+    if (query.mode !== "scalp" && query.mode !== "long_term") {
+      throw new AppError("mode 는 scalp · long_term", 400, true, "INVALID_MODE");
     }
-  }
-
-  /**
-   * 해설 스트림(SSE) 중계 — F008 `BFF-REQ-037` FR-6 · `streaming-sse.md`.
-   *
-   * - 동시 상한은 단건 `explain` 과 **같은 문**을 쓴다 — 넘으면 스트림을 열기 전에 429
-   * - 서버 4xx 는 스트림을 열기 전에 그대로 던진다(400 · 401 · 429)
-   * - 이벤트는 **계약에 있는 이름만** 옮긴다. 토큰을 저장 · 변형 · 로깅하지 않는다(§2 · §8)
-   * - 대화당 60초 상한(§7) — 넘으면 끊고 `message.error`
-   *
-   * 반환된 `events` 를 다 읽거나 `close()` 하면 문이 열린다.
-   */
-  async openExplainStream(token: string, body: unknown, signal: AbortSignal, client: ExplainClient = "web") {
-    const release = explainGate.tryAcquire();
-    if (!release) throw new AppError("explain_busy", 429);
-
-    const upstreamAbort = new AbortController();
-    const onAbort = () => upstreamAbort.abort();
-    signal.addEventListener("abort", onAbort, { once: true });
-    const cap = setTimeout(() => upstreamAbort.abort(), EXPLAIN_STREAM_MAX_MS);
-    const close = () => {
-      clearTimeout(cap);
-      signal.removeEventListener("abort", onAbort);
-      release();
-    };
-
-    let stream: NodeJS.ReadableStream;
+    const response = await retryOnceOnGet(
+      () =>
+        backendApi.proxyAuthRequest(
+          "GET",
+          `/ai-coach/explanation?symbol=${encodeURIComponent(symbol)}&mode=${query.mode}`,
+          token,
+          undefined,
+          { timeout: EXPLANATION_TIMEOUT_MS, signal },
+        ),
+      signal,
+    );
     try {
-      stream = await backendApi.openAuthStream("/ai-coach/explain/stream", token, body, {
-        timeout: EXPLAIN_STREAM_IDLE_MS,
-        signal: upstreamAbort.signal,
-        // 모바일이면 서버가 로컬 CLI 를 고르지 않는다(`SRV-REQ-050` FR-4)
-        headers: { [SALT_CLIENT_HEADER]: client },
-      });
+      return toExplanationViewModel((response.data as BackendEnvelope<unknown>).data);
     } catch (error) {
-      close();
+      if (error instanceof ExplanationContractError) throw new AppError("explanation_unavailable", 502);
       throw error;
     }
-
-    async function* events(): AsyncGenerator<SseEvent> {
-      const queue: SseEvent[] = [];
-      const parse = createSseParser((e) => {
-        if (EXPLAIN_STREAM_EVENTS.has(e.event)) queue.push(e);
-      });
-      try {
-        for await (const chunk of stream) {
-          parse(chunk.toString());
-          while (queue.length > 0) yield queue.shift()!;
-        }
-        if (upstreamAbort.signal.aborted && !signal.aborted) {
-          yield { event: "message.error", data: JSON.stringify({ code: "LLM_TIMEOUT", fallback: "rule" }) };
-        }
-      } finally {
-        close();
-      }
-    }
-
-    return { events: events(), close: () => { upstreamAbort.abort(); close(); } };
   }
 
   private mapDecision(decision: any) {
