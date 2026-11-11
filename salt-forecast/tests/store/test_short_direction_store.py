@@ -18,8 +18,8 @@ from salt_forecast.config import Settings
 from salt_forecast.store.short_direction import (
     CellTestRow,
     PredictionRow,
+    active_cells,
     live_outcomes,
-    passed_cells,
     save_predictions,
     save_test,
     score_due,
@@ -53,13 +53,13 @@ def _row(status: str, reason: str | None) -> CellTestRow:
 
 
 @pytest.mark.skipif(not os.environ.get("FORECAST_DATABASE_URL"), reason="FORECAST_DATABASE_URL 없음")
-def test_passed_cells_reads_latest_only(eng: Engine) -> None:
+def test_active_cells_reads_latest_only(eng: Engine) -> None:
     save_test(eng, KEY, MV, T0, [_row("pass", None)], T0)
     save_test(eng, KEY, MV, T0, [_row("pass", None)], T0)  # 같은 as_of 재실행 = 행 수 같음
-    assert len(passed_cells(eng, KEY, T0)) == 1
+    assert len(active_cells(eng, KEY, T0)) == 1
     save_test(eng, KEY, MV, T0 + timedelta(days=1), [_row("fail", "no_skill")], T0)
-    assert passed_cells(eng, KEY, T0 + timedelta(days=1)) == []  # 최신이 못 넘었으면 예측 입력 0
-    assert len(passed_cells(eng, KEY, T0)) == 1  # 과거 as_of 로 돌리면 그때 결과(재현)
+    assert active_cells(eng, KEY, T0 + timedelta(days=1)) == []  # 최신이 fail 이면 예측 입력 0
+    assert len(active_cells(eng, KEY, T0)) == 1  # 과거 as_of 로 돌리면 그때 결과(재현)
     with eng.connect() as conn:
         n = conn.execute(text("SELECT count(*) FROM forecast.short_horizon_test WHERE prereg_key = :k"), {"k": KEY})
         assert n.scalar_one() == 2
@@ -68,7 +68,7 @@ def test_passed_cells_reads_latest_only(eng: Engine) -> None:
 @pytest.mark.skipif(not os.environ.get("FORECAST_DATABASE_URL"), reason="FORECAST_DATABASE_URL 없음")
 def test_prediction_scored_once_at_expiry_bar(eng: Engine) -> None:
     exp = T0 + timedelta(hours=1)
-    p = PredictionRow(SYM, "1h", T0, MV, "crypto", 0.61, -0.008, 0.002, 0.019, 100.0, 99.2, exp)
+    p = PredictionRow(SYM, "1h", T0, MV, "crypto", 0.61, -0.008, 0.002, 0.019, 100.0, 99.2, exp, 0.43)
     save_predictions(eng, KEY, [p], T0)
     assert score_due(eng, exp + timedelta(minutes=5)) == 0  # 끝 봉이 아직 없다 — 다음 실행에
     with eng.begin() as conn:
@@ -82,7 +82,7 @@ def test_prediction_scored_once_at_expiry_bar(eng: Engine) -> None:
     assert score_due(eng, exp + timedelta(minutes=5)) == 1
     assert score_due(eng, exp + timedelta(minutes=6)) == 0  # 한 줄 = 결과 한 줄
     out = live_outcomes(eng, "crypto", "1h", KEY)
-    assert len(out) == 1 and out[0].realized > 0
+    assert len(out) == 1 and out[0].realized > 0 and out[0].p_ref == pytest.approx(0.43)
     with eng.connect() as conn:
         r = conn.execute(
             text("SELECT renderable, blocked_reason FROM forecast.v_short_horizon_card WHERE symbol = :s"), {"s": SYM}

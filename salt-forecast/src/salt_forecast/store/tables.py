@@ -604,6 +604,7 @@ short_horizon_prediction = Table(
     Column("invalidation", Numeric, nullable=False),
     Column("expires_at", DateTime(timezone=True), nullable=False),
     Column("available_at", DateTime(timezone=True), nullable=False),
+    Column("p_ref", Float),
 )
 
 short_horizon_outcome = Table(

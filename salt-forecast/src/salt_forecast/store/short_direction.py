@@ -50,7 +50,7 @@ class CellTestRow:
     misses: list[dict[str, Any]]
     z_quantiles: dict[str, list[float]]
     live_params: dict[str, object] | None
-    live_ready: bool = False  # @2 화면 허가 — 등록 뒤 라이브 확신 ≥ 300 · (적중 − 늘 오른다) 하한 > 0
+    live_ready: bool = False  # 화면 허가 — @3 는 판정 날짜에 통과(pass)한 칸만 true
     bss_climatology: float = float("nan")  # 기후값 대비(참고)
 
 
@@ -112,32 +112,47 @@ def save_test(
 
 
 @dataclass(frozen=True, slots=True)
-class PassedCell:
+class ActiveCell:
     market: str
     horizon: str
     model_version: str
+    status: str
     live_params: dict[str, object]
     z_quantiles: dict[str, tuple[float, float, float]]
 
 
-def passed_cells(engine: Engine, key: str, as_of: datetime) -> list[PassedCell]:
-    """칸마다 as_of 까지의 최신 시험이 통과면 그 적합. 라이브 예측의 유일한 입력."""
+def active_cells(engine: Engine, key: str, as_of: datetime) -> list[ActiveCell]:
+    """칸마다 as_of 까지 최신 시험이 forward(전진 시험 중) · pass 면 그 적합 — 라이브 예측의 유일한 입력(@3)."""
     sql = text(
         """
         SELECT market, horizon, model_version, status, live_params, z_quantiles FROM (
           SELECT DISTINCT ON (market, horizon) market, horizon, model_version, status, live_params, z_quantiles
           FROM forecast.short_horizon_test WHERE prereg_key = :key AND run_as_of <= :as_of
           ORDER BY market, horizon, run_as_of DESC
-        ) t WHERE status = 'pass' AND live_params IS NOT NULL
+        ) t WHERE status IN ('pass', 'forward') AND live_params IS NOT NULL
         """
     )
     with engine.connect() as conn:
         rows = conn.execute(sql, {"key": key, "as_of": as_of}).all()
-    out: list[PassedCell] = []
-    for market, horizon, mv, _, params, zq in rows:
+    out: list[ActiveCell] = []
+    for market, horizon, mv, status, params, zq in rows:
         z = {str(k): (float(v[0]), float(v[1]), float(v[2])) for k, v in dict(zq).items()}
-        out.append(PassedCell(str(market), str(horizon), str(mv), dict(params), z))
+        out.append(ActiveCell(str(market), str(horizon), str(mv), str(status), dict(params), z))
     return out
+
+
+def previous_status(engine: Engine, key: str, before: datetime) -> dict[tuple[str, str], tuple[str, str | None]]:
+    """칸마다 이번 실행 직전 상태 — 판정 날짜에 정해진 pass · fail 은 다음 실행이 다시 forward 로 돌리지 않는다."""
+    sql = text(
+        """
+        SELECT DISTINCT ON (market, horizon) market, horizon, status, blocked_reason
+        FROM forecast.short_horizon_test WHERE prereg_key = :key AND run_as_of < :before
+        ORDER BY market, horizon, run_as_of DESC
+        """
+    )
+    with engine.connect() as conn:
+        rows = conn.execute(sql, {"key": key, "before": before}).all()
+    return {(str(m), str(h)): (str(st), None if r is None else str(r)) for m, h, st, r in rows}
 
 
 @dataclass(frozen=True, slots=True)
@@ -154,11 +169,12 @@ class PredictionRow:
     ref_price: float
     invalidation: float
     expires_at: datetime
+    p_ref: float | None = None  # 피처 없는 같은 모델(@3 판정 기준)
 
 
 _PRED_COLS = (
     "symbol", "horizon", "as_of", "model_version", "prereg_key", "market", "p_up", "q10", "q50", "q90",
-    "ref_price", "invalidation", "expires_at", "available_at",
+    "ref_price", "invalidation", "expires_at", "available_at", "p_ref",
 )  # fmt: skip
 
 
@@ -179,6 +195,7 @@ def save_predictions(engine: Engine, key: str, rows: Sequence[PredictionRow], no
             r.invalidation,
             r.expires_at,
             now,
+            r.p_ref,
         )
         for r in rows
     ]
@@ -216,18 +233,25 @@ class LiveOutcome:
     as_of: datetime
     symbol: str
     p_up: float
+    p_ref: float | None
     realized: float
+    ref_price: float
+    expires_at: datetime
 
 
 def live_outcomes(engine: Engine, market: str, horizon: str, prereg_key: str) -> list[LiveOutcome]:
-    """채점된 라이브 예측 — 소등 판정 · 라이브 성적(확신 행 ≥ 300 이면 화면 성적을 라이브로)의 입력. 시각 순."""
+    """이 키로 낸 예측 중 채점이 끝난 것 — 전진 판정 · 소등 · 라이브 성적의 입력. 시각 순."""
     sql = text(
         """
-        SELECT p.as_of, p.symbol, p.p_up, o.realized FROM forecast.short_horizon_outcome o
+        SELECT p.as_of, p.symbol, p.p_up, p.p_ref, o.realized, p.ref_price::float8, p.expires_at
+        FROM forecast.short_horizon_outcome o
         JOIN forecast.short_horizon_prediction p USING (symbol, horizon, as_of, model_version)
         WHERE p.market = :market AND p.horizon = :horizon AND p.prereg_key = :key ORDER BY p.as_of
         """
     )
     with engine.connect() as conn:
         rows = conn.execute(sql, {"market": market, "horizon": horizon, "key": prereg_key}).all()
-    return [LiveOutcome(r[0], str(r[1]), float(r[2]), float(r[3])) for r in rows]
+    return [
+        LiveOutcome(r[0], str(r[1]), float(r[2]), None if r[3] is None else float(r[3]), float(r[4]), float(r[5]), r[6])
+        for r in rows
+    ]

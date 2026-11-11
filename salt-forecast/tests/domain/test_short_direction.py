@@ -14,16 +14,19 @@ from salt_forecast.domain.short_direction import (
     HOUR,
     CellResult,
     Fit,
+    ForwardMetrics,
+    ForwardSample,
     Rows,
     WalkSpec,
     crypto_cell_panel,
     crypto_universe,
-    decide,
     evaluate,
     featureless,
+    forward_judge,
+    forward_metrics,
+    is_look,
     live_quantiles,
     live_underperforms,
-    shift_labels,
     walk_forward,
 )
 
@@ -123,69 +126,83 @@ def test_walk_forward_embargo_and_base_rate() -> None:
     assert np.isfinite(wf.p[-1])
 
 
-def test_planted_signal_passes_and_noise_fails() -> None:
+def test_planted_signal_shows_skill_and_noise_does_not() -> None:
     rng = np.random.default_rng(5)
     n = 24 * 260
     t = np.arange(n)
     x = rng.normal(size=(n, 2))
     signal = (rng.random(n) < 1 / (1 + np.exp(-1.2 * x[:, 0]))).astype(np.float64)
     noise = (rng.random(n) < 0.5).astype(np.float64)
-    cells: list[CellResult] = []
+    out: list[CellResult] = []
     for y in (signal, noise):
         rows = make_rows(x, y, t)
-        wf = walk_forward(rows, SPEC, n - 1)
-        res = evaluate("crypto", "1h", rows, wf, SPEC, walk_forward(featureless(rows), SPEC, n - 1))
-        pl = shift_labels(rows, 24)
-        s = evaluate(
-            "crypto", "1h", pl, walk_forward(pl, SPEC, n - 1), SPEC, walk_forward(featureless(pl), SPEC, n - 1)
-        )
-        res.placebo_lo, res.placebo_hi = s.bss_lo, s.bss_hi
-        cells.append(res)
-    decide(cells)
-    assert cells[0].bss_lo > 0
-    assert cells[0].confident >= 300
-    assert cells[0].placebo_lo <= 0 <= cells[0].placebo_hi  # 심은 신호는 라벨을 미루면 사라진다
-    assert cells[1].status == "fail" and cells[1].reason == "no_skill"
+        ref = walk_forward(featureless(rows), SPEC, n - 1)
+        out.append(evaluate("crypto", "1h", rows, walk_forward(rows, SPEC, n - 1), SPEC, ref))
+    assert out[0].bss_lo > 0 and out[0].confident >= 300
+    assert out[1].bss_lo <= 0
+
+
+def _m(**over: float) -> ForwardMetrics:
+    base: dict[str, float] = {
+        "rows": 5000, "days": 40, "bss": 0.01, "bss_lo": 0.001, "bss_hi": 0.02, "bss_p": 0.001, "ece": 0.02,
+        "confident": 400, "hits": 240, "majority_hits": 220, "edge_lo": 0.001, "edge_hi": 0.1, "up_calls": 50,
+        "net_mean": 0.001,
+    }  # fmt: skip
+    base.update(over)
+    return ForwardMetrics(
+        int(base["rows"]), int(base["days"]), base["bss"], base["bss_lo"], base["bss_hi"], base["bss_p"], base["ece"],
+        int(base["confident"]), int(base["hits"]), int(base["majority_hits"]), base["edge_lo"], base["edge_hi"],
+        int(base["up_calls"]), base["net_mean"],
+    )  # fmt: skip
 
 
 @pytest.mark.parametrize(
-    ("patch", "reason"),
+    ("over", "mid", "last"),
     [
-        ({"placebo_lo": 0.01}, "placebo_failed"),
-        ({"bss_lo": -0.01}, "no_skill"),
-        ({"bss_persistence": -0.01}, "no_skill"),
-        ({"bss_p": 0.2}, "no_skill"),
-        ({"ece": 0.031}, "miscalibrated"),
-        ({"confident": 299}, "no_edge_confident"),
-        ({"hit_diff_lo": -0.001}, "no_edge_confident"),
-        ({"net_mean": 0.0}, "cost"),
-        ({}, None),
-        ({"rows": 0}, "no_skill"),
-        ({"ece": 0.5, "net_mean": -1.0}, "miscalibrated"),  # 처음 걸린 것 하나
+        ({}, ("pass", None), ("pass", None)),
+        ({"days": 29}, ("forward", "awaiting_live"), ("fail", "no_skill")),  # 날 < 30 — 이번엔 보류
+        ({"bss_lo": 0.0}, ("forward", "awaiting_live"), ("fail", "no_skill")),
+        ({"bss_p": 0.02}, ("forward", "awaiting_live"), ("fail", "no_skill")),  # α 0.05/3 = 0.0167 넘음
+        ({"ece": 0.031}, ("forward", "awaiting_live"), ("fail", "miscalibrated")),
+        ({"confident": 299}, ("forward", "awaiting_live"), ("fail", "no_edge_confident")),
+        ({"edge_lo": 0.0}, ("forward", "awaiting_live"), ("fail", "no_edge_confident")),
+        ({"net_mean": 0.0}, ("forward", "awaiting_live"), ("fail", "cost")),
+        (
+            {"net_mean": -1.0, "up_calls": 29},
+            ("pass", None),
+            ("pass", None),
+        ),  # '오름'을 거의 말하지 않으면 비용 항목 없음
+        ({"ece": 0.5, "net_mean": -1.0}, ("forward", "awaiting_live"), ("fail", "miscalibrated")),  # 처음 걸린 것
     ],
 )
-def test_decide_boundary_table(patch: dict[str, float], reason: str | None) -> None:
-    base = {
-        "rows": 1000, "bss": 0.01, "bss_lo": 0.001, "bss_hi": 0.02, "bss_p": 0.001, "bss_persistence": 0.005,
-        "ece": 0.03,
-        "confident": 300, "hit_diff_lo": 0.001, "net_mean": 0.0001, "placebo_lo": -0.01, "placebo_hi": 0.01,
-    }  # fmt: skip
-    c = CellResult("crypto", "1h")
-    for k, v in {**base, **patch}.items():
-        setattr(c, k, v)
-    decide([c])
-    assert c.reason == reason
-    assert c.status == ("pass" if reason is None else "fail")
+def test_forward_judge_boundary_table(
+    over: dict[str, float], mid: tuple[str, str | None], last: tuple[str, str | None]
+) -> None:
+    assert forward_judge({"crypto:1h": _m(**over)}, 0)["crypto:1h"] == mid
+    assert forward_judge({"crypto:1h": _m(**over)}, 2)["crypto:1h"] == last
 
 
-def test_holm_family_raises_bar() -> None:
-    cells = [CellResult("crypto", h) for h in ("1h", "4h", "1d")]
-    for c, p in zip(cells, (0.02, 0.5, 0.5), strict=True):
-        c.rows, c.bss_p, c.bss_lo, c.bss_persistence, c.ece = 1000, p, 0.001, 0.01, 0.01
-        c.confident, c.hit_diff_lo, c.net_mean, c.placebo_lo, c.placebo_hi = 400, 0.01, 0.001, -1, 1
-    decide(cells)
-    assert cells[0].bss_p_holm == pytest.approx(0.06)
-    assert cells[0].reason == "no_skill"  # 혼자면 0.02 로 통과 — 가족 셋이라 못 넘는다
+def test_forward_judge_holm_across_cells() -> None:
+    cells = {"a": _m(bss_p=0.01), "b": _m(bss_p=0.5), "c": _m(bss_p=0.5)}
+    assert forward_judge(cells, 2)["a"] == ("fail", "no_skill")  # 혼자면 0.01 < 0.0167 — 셋이라 0.03
+    assert forward_judge({"a": _m(bss_p=0.01)}, 2)["a"] == ("pass", None)
+
+
+def test_look_dates() -> None:
+    assert is_look("2027-01-10") == 0 and is_look("2027-03-11") == 2 and is_look("2027-01-11") is None
+
+
+def test_forward_metrics_majority_side_not_always_up() -> None:
+    """오른 비율 30% · 모델이 늘 '안 오름'만 말하면 확신 적중 = 늘 많은 쪽 — 차 0 근처(@2 결함 회귀)."""
+    rng = np.random.default_rng(2)
+    n = 3000
+    y = (rng.random(n) < 0.3).astype(np.float64)
+    p = np.full(n, 0.3)
+    day = (np.arange(n) // 30).astype(np.int64)
+    m = forward_metrics(ForwardSample(p, np.full(n, 0.3), y, np.where(y > 0, 0.01, -0.01), np.zeros(n), day), 7)
+    assert m.hits == m.majority_hits
+    assert m.edge_lo <= 0 <= m.edge_hi
+    assert m.bss == pytest.approx(0.0)
 
 
 def test_regime_only_beats_climatology_but_not_reference() -> None:
@@ -203,26 +220,6 @@ def test_regime_only_beats_climatology_but_not_reference() -> None:
     res = evaluate("crypto", "1h", rows, wf, SPEC, walk_forward(featureless(rows), SPEC, n - 1))
     assert res.bss_climatology > 0  # @1 기준이었다면 '실력'으로 보였다
     assert res.bss_lo <= 0  # 피처 몫은 없다
-
-
-def test_shift_labels_moves_whole_days_per_symbol() -> None:
-    n = 24 * 60
-    t = np.tile(np.arange(n), 2)
-    sym = np.repeat(np.array([0, 1], dtype=np.intp), n)
-    order = np.lexsort((sym, t))
-    t, sym = t[order], sym[order]
-    y = (np.arange(t.size) % 2).astype(np.float64)
-    base = make_rows(np.zeros((t.size, 1)), y, t)
-    rows = Rows(base.t, base.when, base.day, sym, base.x, y, base.r, base.cost, base.sigma_h, base.persist)
-    out = shift_labels(rows, 24, seed=3)
-    for s in (0, 1):
-        idx = np.flatnonzero(sym == s)
-        have = idx[~np.isnan(out.y[idx])]
-        k = int(rows.t[have[0]] - 0)  # 첫 라벨이 생긴 행 = 미룬 폭
-        assert k % 24 == 0 and 8 * 24 <= k <= 30 * 24
-        assert np.isnan(out.y[idx[:k]]).all()  # 앞 k 행은 원천이 없다
-        src = {int(tt): i for tt, i in zip(rows.t[idx], idx, strict=True)}
-        assert all(out.y[i] == y[src[int(rows.t[i]) - k]] for i in have)
 
 
 def test_fit_json_roundtrip_predicts_same() -> None:

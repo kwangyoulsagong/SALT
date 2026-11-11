@@ -1,8 +1,9 @@
-"""단타 방향 확률 — 사전등록 short-direction@2(FC-REQ-028 FR-1 · FR-4) 의 순수 계산.
+"""단타 방향 확률 — 사전등록 short-direction@3(전진 시험, FC-REQ-028 FR-1 · FR-4) 의 순수 계산.
 
-@2(2026-11-11): 비교 기준 = 피처 없는 같은 보정 모델(`featureless`)
-· 플라시보 = 종목마다 라벨 8~30일 미룸(`shift_labels`).
-@1 의 기후값 기준 · 날짜 안 셔플은 시간봉에서 둘 다 과장했다(사전등록 @2 머리).
+@3(2026-11-11): 과거 구간(@1 · @2 · 진단으로 세 번 봄)은 참고 성적만.
+판정은 등록 뒤 낸 예측(`forward_metrics`)을 판정 날짜에(`forward_judge`)
+— 기준 = 피처 없는 같은 보정 모델(`featureless`) · 늘 많은 쪽.
+@1 의 기후값 기준 · 날짜 안 셔플, @2 의 '늘 오른다' 하나 기준은 시간봉에서 실력을 과장했다(사전등록 @2 · @3 머리).
 
 - 피처 · 라벨 · 유니버스는 패널 행렬로(행 t 는 available_at ≤ t 만 읽는다 — 라벨만 `forward_log_return`).
 - 모델: logit p = logit(b) + w·x, b = 학습 창 오른 비율(기후값).
@@ -16,7 +17,6 @@ from __future__ import annotations
 
 import math
 import warnings
-from collections.abc import Sequence
 from dataclasses import dataclass, field
 from itertools import pairwise
 
@@ -40,8 +40,12 @@ from salt_forecast.domain.series import DAY
 Vec = NDArray[np.float64]
 HOUR = 3_600
 
-KEY = "short-direction@2"
-PLACEBO_DAYS = (8, 30)
+KEY = "short-direction@3"
+# 전진 시험(@3) — 판정은 이 날짜의 매일 작업에서만 · α 를 본 횟수로 나눔 · 칸마다 서로 다른 예측 날 ≥ 30
+LOOKS = ("2027-01-10", "2027-02-09", "2027-03-11")
+ALPHA_PER_LOOK = 0.05 / 3
+MIN_LIVE_DAYS = 30
+MIN_UP_CALLS = 30
 CLIP = 5.0
 L2_LAMBDA = 1.0
 CONF_UP = 0.55
@@ -61,9 +65,6 @@ CRYPTO_UNIVERSE_SPAN = 720
 CRYPTO_UNIVERSE_MIN_BARS = 600
 KR_SIGMA_WINDOW = 20
 KR_UNIVERSE_TOP = 200
-
-# 화면 사유 — 처음 걸린 것 하나(사전등록 [decision] blocked_reasons 순서)
-REASONS = ("placebo_failed", "no_skill", "miscalibrated", "no_edge_confident", "cost")
 
 
 @dataclass(frozen=True, slots=True)
@@ -451,8 +452,6 @@ class CellResult:
     net_lo: float = float("nan")
     net_hi: float = float("nan")
     up_calls: int = 0
-    placebo_lo: float = float("nan")
-    placebo_hi: float = float("nan")
     misses: list[tuple[int, int, float, float]] = field(default_factory=lambda: [])  # (when, sym, p, r)
     z_quantiles: dict[str, tuple[float, float, float]] = field(default_factory=lambda: {})
     status: str = "fail"
@@ -467,23 +466,6 @@ def featureless(rows: Rows) -> Rows:
     """피처 없는 같은 모델 — x 를 상수 열 하나(0)로(오프셋 · walk-forward · Beta 보정은 그대로). @2 비교 기준."""
     return Rows(rows.t, rows.when, rows.day, rows.sym, np.zeros((rows.size, 1)), rows.y, rows.r, rows.cost,
                 rows.sigma_h, rows.persist)  # fmt: skip
-
-
-def shift_labels(rows: Rows, rows_per_day: int, seed: int = SEED) -> Rows:
-    """플라시보 — 종목마다 라벨을 k 일(k ~ U{8..30}) 통째로 미룬다.
-    행 t 라벨 ← 같은 종목 행 t − k·rows_per_day 라벨(없으면 없음).
-    k 는 종목 번호(= 이름 정렬) 순서로 seed 에서 뽑는다. 라벨 창이 어떤 피처 창(최장 σ 168시간)과도 겹치지 않는다."""
-    rng = np.random.default_rng(seed)
-    y = np.full(rows.size, np.nan)
-    r = np.full(rows.size, np.nan)
-    for s in np.unique(rows.sym):
-        idx = np.flatnonzero(rows.sym == s)
-        k = int(rng.integers(PLACEBO_DAYS[0], PLACEBO_DAYS[1] + 1)) * rows_per_day
-        src = np.searchsorted(rows.t[idx], rows.t[idx] - k)
-        ok = (src < idx.size) & (rows.t[idx][np.minimum(src, idx.size - 1)] == rows.t[idx] - k)
-        y[idx[ok]] = rows.y[idx[src[ok]]]
-        r[idx[ok]] = rows.r[idx[src[ok]]]
-    return Rows(rows.t, rows.when, rows.day, rows.sym, rows.x, y, r, rows.cost, rows.sigma_h, rows.persist)
 
 
 def evaluate(market: str, horizon: str, rows: Rows, wf: WalkResult, spec: WalkSpec, ref: WalkResult) -> CellResult:
@@ -521,7 +503,9 @@ def evaluate(market: str, horizon: str, rows: Rows, wf: WalkResult, spec: WalkSp
     if res.confident:
         n_d = _per_day(inv, nd, conf.astype(np.float64))
         h_d = _per_day(inv, nd, np.where(conf, hit, 0.0))
-        u_d = _per_day(inv, nd, np.where(conf, y, 0.0))
+        # 늘 많은 쪽(@3) — 오른 비율이 50% 가 아니면 늘 오른다만으론 기준이 약하다(@2 진단)
+        side = y if res.always_up_hits * 2 >= res.confident else 1.0 - y
+        u_d = _per_day(inv, nd, np.where(conf, side, 0.0))
         with np.errstate(invalid="ignore", divide="ignore"):
             diff = (counts @ h_d - counts @ u_d) / (counts @ n_d)
         res.hit_diff_lo, res.hit_diff_hi = (float(v) for v in np.nanquantile(diff, [0.025, 0.975]))
@@ -551,23 +535,6 @@ def evaluate(market: str, horizon: str, rows: Rows, wf: WalkResult, spec: WalkSp
     return res
 
 
-def decide(cells: Sequence[CellResult]) -> None:
-    """Holm(가족 = 시험한 칸) 뒤 칸마다 통과 · 사유 — 처음 걸린 것 하나."""
-    adj = holm([c.bss_p for c in cells])
-    for c, a in zip(cells, adj, strict=True):
-        c.bss_p_holm = a
-        checks = {
-            "placebo_failed": not (c.placebo_lo <= 0 <= c.placebo_hi),
-            "no_skill": not (a <= ALPHA and c.bss_lo > 0 and c.bss_persistence > 0),
-            "miscalibrated": not (c.ece <= MAX_ECE),
-            "no_edge_confident": not (c.confident >= MIN_CONFIDENT and c.hit_diff_lo > 0),
-            "cost": not (c.net_mean > 0),
-        }
-        # 평가 행이 없으면(보정 풀이 한 번도 안 찼다) 실력을 잴 수 없다 — 셔플 점검보다 먼저 no_skill
-        c.reason = "no_skill" if c.rows == 0 else next((r for r in REASONS if checks[r]), None)
-        c.status = "pass" if c.reason is None else "fail"
-
-
 def live_quantiles(
     zq: dict[str, tuple[float, float, float]], p: float, sigma_h: float
 ) -> tuple[float, float, float] | None:
@@ -580,35 +547,10 @@ def live_quantiles(
     return (out[0], out[1], out[2])
 
 
-def live_edge(p: Vec, up: Vec, days: NDArray[np.int64], block: int) -> tuple[int, float, float] | None:
-    """라이브 (확신 적중 − 늘 오른다) 95% CI — 확신 행 < 300 이면 None. (확신 행 수, 하한, 상한)."""
-    conf = (p >= CONF_UP) | (p <= CONF_DOWN)
-    if int(conf.sum()) < MIN_CONFIDENT:
-        return None
-    hit = np.where(p >= CONF_UP, up, 1.0 - up)
-    _, inv = date_index(days)
-    nd = int(inv.max()) + 1
-    counts = block_counts(nd, block, N_BOOT, SEED)
-    n_d = _per_day(inv, nd, conf.astype(np.float64))
-    h_d = _per_day(inv, nd, np.where(conf, hit, 0.0))
-    u_d = _per_day(inv, nd, np.where(conf, up, 0.0))
-    with np.errstate(invalid="ignore", divide="ignore"):
-        diff = (counts @ h_d - counts @ u_d) / (counts @ n_d)
-    lo, hi = np.nanquantile(diff, [0.025, 0.975])
-    return int(conf.sum()), float(lo), float(hi)
-
-
 def live_underperforms(p: Vec, up: Vec, days: NDArray[np.int64], block: int) -> bool:
-    """라이브 소등 — 확신 행 ≥ 300 이고 (확신 적중 − 늘 오른다) 95% CI 상한 < 0."""
-    e = live_edge(p, up, days, block)
+    """통과 뒤 소등 — 라이브 확신 행 ≥ 300 이고 (확신 적중 − 늘 많은 쪽) 95% CI 상한 < 0."""
+    e = live_majority_edge(p, up, days, block)
     return e is not None and e[2] < 0
-
-
-def live_ready(p: Vec, up: Vec, days: NDArray[np.int64], block: int) -> bool:
-    """화면 확률 허가(@2 [decision] display).
-    등록 뒤 라이브 확신 행 ≥ 300 이고 (확신 적중 − 늘 오른다) 95% CI 하한 > 0."""
-    e = live_edge(p, up, days, block)
-    return e is not None and e[1] > 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -631,3 +573,121 @@ def live_track(p: Vec, realized: Vec) -> Track | None:
     hit = np.where(p >= CONF_UP, up, 1.0 - up)
     wrong = np.flatnonzero(conf & (hit == 0))[::-1][:3]
     return Track(int(conf.sum()), int(hit[conf].sum()), int(up[conf].sum()), tuple(int(i) for i in wrong))
+
+
+# ── 전진 시험(@3) ─────────────────────────────────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class ForwardSample:
+    """등록 뒤 낸 예측 중 채점이 끝난 것 — 한 칸. y = 1[실현 > 0]."""
+
+    p: Vec
+    p_ref: Vec
+    y: Vec
+    r: Vec
+    cost: Vec
+    day: NDArray[np.int64]
+
+
+@dataclass(frozen=True, slots=True)
+class ForwardMetrics:
+    rows: int
+    days: int
+    bss: float
+    bss_lo: float
+    bss_hi: float
+    bss_p: float
+    ece: float
+    confident: int
+    hits: int
+    majority_hits: int
+    edge_lo: float
+    edge_hi: float
+    up_calls: int
+    net_mean: float
+
+
+def forward_metrics(s: ForwardSample, block: int) -> ForwardMetrics:
+    """판정 재료 — BSS(p vs p_ref) · ECE · 확신 적중 vs 늘 많은 쪽 · 비용 뒤 '오름'. CI 는 날짜 블록 부트스트랩."""
+    n = int(s.p.size)
+    if n == 0:
+        nan = float("nan")
+        return ForwardMetrics(0, 0, nan, nan, nan, 1.0, nan, 0, 0, 0, nan, nan, 0, nan)
+    uniq, inv = date_index(s.day)
+    nd = int(uniq.size)
+    b, lo, hi, boots = bss_ci(s.p, s.p_ref, s.y, s.day, block, N_BOOT, SEED)
+    pval = float(max(np.mean(boots <= 0), 1.0 / (N_BOOT + 1)))
+    up, down = s.p >= CONF_UP, s.p <= CONF_DOWN
+    conf = up | down
+    hit = np.where(up, s.y, 1.0 - s.y)
+    always_up = int(s.y[conf].sum())
+    confident = int(conf.sum())
+    side = s.y if always_up * 2 >= confident else 1.0 - s.y
+    majority = int(side[conf].sum())
+    counts = block_counts(nd, block, N_BOOT, SEED)
+    edge_lo = edge_hi = float("nan")
+    if confident:
+        n_d = _per_day(inv, nd, conf.astype(np.float64))
+        h_d = _per_day(inv, nd, np.where(conf, hit, 0.0))
+        m_d = _per_day(inv, nd, np.where(conf, side, 0.0))
+        with np.errstate(invalid="ignore", divide="ignore"):
+            diff = (counts @ h_d - counts @ m_d) / (counts @ n_d)
+        edge_lo, edge_hi = (float(v) for v in np.nanquantile(diff, [0.025, 0.975]))
+    up_calls = int(up.sum())
+    net = float((s.r - s.cost)[up].mean()) if up_calls else float("nan")
+    return ForwardMetrics(
+        n,
+        nd,
+        b,
+        lo,
+        hi,
+        pval,
+        ece(s.p, s.y),
+        confident,
+        int(hit[conf].sum()),
+        majority,
+        edge_lo,
+        edge_hi,
+        up_calls,
+        net,
+    )
+
+
+def is_look(day_iso: str) -> int | None:
+    """판정 날짜면 몇 번째(0부터), 아니면 None."""
+    return LOOKS.index(day_iso) if day_iso in LOOKS else None
+
+
+def forward_judge(cells: dict[str, ForwardMetrics], look: int) -> dict[str, tuple[str, str | None]]:
+    """판정 날짜의 칸들 → (상태, 사유). 날 < 30 인 칸은 이번엔 판정 보류(forward). Holm 가족 = 이번에 판정하는 칸들.
+    마지막 날짜에 못 넘으면 fail, 그 전이면 forward 유지(다음 날짜에 다시 — α 는 날짜마다 나눠 썼다)."""
+    judged = {k: m for k, m in cells.items() if m.days >= MIN_LIVE_DAYS}
+    keys = list(judged)
+    adj = dict(zip(keys, holm([judged[k].bss_p for k in keys]), strict=True))
+    last = look == len(LOOKS) - 1
+    out: dict[str, tuple[str, str | None]] = {}
+    for k, m in cells.items():
+        if k not in judged:
+            out[k] = ("fail", "no_skill") if last else ("forward", "awaiting_live")
+            continue
+        checks = (
+            ("no_skill", adj[k] <= ALPHA_PER_LOOK and m.bss_lo > 0),
+            ("miscalibrated", m.ece <= MAX_ECE),
+            ("no_edge_confident", m.confident >= MIN_CONFIDENT and m.edge_lo > 0),
+            ("cost", m.up_calls < MIN_UP_CALLS or m.net_mean > 0),
+        )
+        reason = next((name for name, ok in checks if not ok), None)
+        if reason is None:
+            out[k] = ("pass", None)
+        else:
+            out[k] = ("fail", reason) if last else ("forward", "awaiting_live")
+    return out
+
+
+def live_majority_edge(p: Vec, up: Vec, days: NDArray[np.int64], block: int) -> tuple[int, float, float] | None:
+    """통과 뒤 소등 판정 — 라이브 확신 행 ≥ 300 이면 (적중 − 늘 많은 쪽) 95% CI. 모자라면 None."""
+    if p.size == 0:
+        return None
+    m = forward_metrics(ForwardSample(p, np.full_like(p, 0.5), up, np.zeros_like(p), np.zeros_like(p), days), block)
+    return None if m.confident < MIN_CONFIDENT else (m.confident, m.edge_lo, m.edge_hi)

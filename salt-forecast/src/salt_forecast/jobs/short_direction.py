@@ -1,10 +1,9 @@
-"""단타 방향 확률 — 사전등록 short-direction@2 실행(FC-REQ-028 FR-1 · FR-4 · F017 v2 단계 5).
+"""단타 방향 확률 — 사전등록 short-direction@3(전진 시험) 실행(FC-REQ-028 FR-1 · FR-4 · F017 v2 단계 5).
 
-- `test`(매일): 등록 → 전 이력 walk-forward 시험(코인 1h · 4h · 1d
-  · 국내 1d) → 라이브 소등 → forecast.short_horizon_test · 리포트.
-- `live`(매시 :03
-  — 1시간봉 증분 뒤): 만료 예측 채점 → 통과한 칸만 마지막 격자 행 예측 → forecast.short_horizon_prediction.
-  통과한 칸이 없으면 채점만 하고 끝난다(확률을 만들지 않는다 — 불변식 1).
+- `test`(매일): 등록 → 전 이력 walk-forward(칸마다 마지막 적합 · 본 기간 검산 참고) → 라이브(등록 뒤 예측) 지표 →
+  **판정 날짜에만** 판정(`forward_judge`) · 통과 칸 소등 점검 → forecast.short_horizon_test · 리포트.
+- `live`(매시 — 1시간봉 증분 뒤): 만료 예측 채점 → 시험 칸 전부(forward · pass) 마지막 격자 행 예측 p · p_ref.
+  화면 확률은 pass 칸만(뷰 renderable) — forward 칸은 쌓기만 한다.
 """
 
 from __future__ import annotations
@@ -17,6 +16,7 @@ from pathlib import Path
 
 import numpy as np
 
+from salt_forecast.domain.base_rate import CRYPTO_ROUND_TRIP, kr_round_trip
 from salt_forecast.domain.series import DAY
 from salt_forecast.domain.short_direction import (
     CRYPTO_SPECS,
@@ -24,7 +24,11 @@ from salt_forecast.domain.short_direction import (
     KEY,
     KR_SPEC,
     Fit,
-    live_ready,
+    ForwardMetrics,
+    ForwardSample,
+    forward_judge,
+    forward_metrics,
+    is_look,
     live_track,
     live_underperforms,
 )
@@ -46,17 +50,20 @@ from salt_forecast.store.prices import load_ohlcv_series
 from salt_forecast.store.rule_ic import Registration, register
 from salt_forecast.store.short_direction import (
     CellTestRow,
+    LiveOutcome,
     PredictionRow,
+    active_cells,
     live_outcomes,
-    passed_cells,
+    previous_status,
     save_predictions,
     save_test,
     score_due,
 )
 
 JOB = "short_direction"
-DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-11-short-direction-2.toml"
+DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-11-short-direction-3.toml"
 HOURS = {"1h": 1, "4h": 4, "1d": 24}
+KST = timedelta(hours=9)
 
 
 def model_version(sha: str) -> str:
@@ -83,8 +90,22 @@ def _register(eng: object, path: Path, sha: str) -> None:
     register(eng, Registration(KEY, reg_at, sha, hashlib.sha256(raw).hexdigest(), stored))  # pyright: ignore[reportArgumentType]
 
 
+def sample_of(market: str, live: list[LiveOutcome]) -> ForwardSample:
+    """채점 끝난 라이브 예측 → 판정 표본. p_ref 가 없는 행(옛 키)은 없다 — 키로 거른 뒤라. 비용은 시장 규칙 그대로."""
+    keep = [x for x in live if x.p_ref is not None]
+    p = np.array([x.p_up for x in keep])
+    p_ref = np.array([x.p_ref for x in keep], dtype=np.float64)
+    r = np.array([x.realized for x in keep])
+    if market == "crypto":
+        cost = np.full(r.size, CRYPTO_ROUND_TRIP)
+    else:
+        cost = np.array([kr_round_trip((x.expires_at + KST).date(), x.ref_price) for x in keep])
+    day = np.array([int(x.as_of.timestamp()) // DAY for x in keep], dtype=np.int64)
+    return ForwardSample(p, p_ref, (r > 0).astype(np.float64), r, cost, day)
+
+
 def main(argv: list[str] | None = None) -> int:
-    p = base_parser("단타 방향 확률(사전등록 short-direction@2 실행)")
+    p = base_parser("단타 방향 확률(사전등록 short-direction@3 전진 시험)")
     p.add_argument("command", choices=("test", "live"))
     p.add_argument("--prereg", default=str(DEFAULT_PREREG), help="사전등록 TOML")
     p.add_argument("--market", choices=("crypto", "kr", "all"), default="all")
@@ -106,56 +127,80 @@ def main(argv: list[str] | None = None) -> int:
         stage("load")
         run = run_test(crypto, kr, as_of)
         stage("test")
+        prev = previous_status(eng, KEY, as_of)
+        look = is_look((as_of + KST).date().isoformat())
+        lives: dict[str, list[LiveOutcome]] = {}
+        forward: dict[str, ForwardMetrics] = {}
+        for c in run.cells:
+            r = c.result
+            if r.status == "not_tested":
+                continue
+            k = f"{r.market}:{r.horizon}"
+            spec = CRYPTO_SPECS[r.horizon] if r.market == "crypto" else KR_SPEC
+            lives[k] = live_outcomes(eng, r.market, r.horizon, KEY)
+            forward[k] = forward_metrics(sample_of(r.market, lives[k]), spec.boot_block)
+            # 판정 날짜에 정해진 pass · fail 은 그대로 — 판정은 날짜에만(사전등록 [looks])
+            before = prev.get((r.market, r.horizon))
+            if before is not None and before[0] in ("pass", "fail"):
+                r.status, r.reason = before
+        if look is not None:
+            pending = {k: m for k, m in forward.items() if k in {f"{c.result.market}:{c.result.horizon}" for c in
+                       run.cells if c.result.status == "forward"}}  # fmt: skip
+            verdict = forward_judge(pending, look)
+            for c in run.cells:
+                k = f"{c.result.market}:{c.result.horizon}"
+                if k in verdict:
+                    c.result.status, c.result.reason = verdict[k]
         rows: list[CellTestRow] = []
         for c in run.cells:
             r = c.result
+            k = f"{r.market}:{r.horizon}"
             syms = run.symbols.get(r.market, ())
             misses = [
                 {"asOf": datetime.fromtimestamp(w, tz=UTC).isoformat(), "symbol": syms[s], "pUp": pu, "realized": rr}
                 for w, s, pu, rr in r.misses
             ]
             origin, calls, hits, ups = "backtest", r.confident, r.confident_hits, r.always_up_hits
-            ready = False
-            if r.status == "pass":
-                # 라이브 = 이 키 등록 뒤 낸 예측 전부(커밋 해시가 바뀌어도 같은 프로토콜 — 표본을 0 으로 돌리지 않는다)
-                live = live_outcomes(eng, r.market, r.horizon, KEY)
-                if live:
-                    spec = CRYPTO_SPECS[r.horizon] if r.market == "crypto" else KR_SPEC
-                    pp = np.array([x.p_up for x in live])
-                    rr = np.array([x.realized for x in live])
-                    days = np.array([int(x.as_of.timestamp()) // DAY for x in live], dtype=np.int64)
-                    up = (rr > 0).astype(np.float64)
-                    if live_underperforms(pp, up, days, spec.boot_block):
-                        r.status, r.reason = "fail", "live_underperforms"
-                    ready = r.status == "pass" and live_ready(pp, up, days, spec.boot_block)
-                    track = live_track(pp, rr)
-                    if track is not None:  # 라이브가 300 을 넘으면 화면 성적은 라이브만(과거 검산과 합치지 않는다)
-                        origin, calls, hits, ups = "live", track.calls, track.hits, track.always_up
-                        misses = [
-                            {"asOf": live[i].as_of.isoformat(), "symbol": live[i].symbol, "pUp": live[i].p_up,
-                             "realized": live[i].realized}
-                            for i in track.misses
-                        ]  # fmt: skip
+            live = lives.get(k, [])
+            if live:
+                spec = CRYPTO_SPECS[r.horizon] if r.market == "crypto" else KR_SPEC
+                pp = np.array([x.p_up for x in live])
+                rr = np.array([x.realized for x in live])
+                days = np.array([int(x.as_of.timestamp()) // DAY for x in live], dtype=np.int64)
+                if r.status == "pass" and live_underperforms(pp, (rr > 0).astype(np.float64), days, spec.boot_block):
+                    r.status, r.reason = "fail", "live_underperforms"
+                track = live_track(pp, rr)
+                if track is not None:  # 라이브가 300 을 넘으면 화면 성적은 라이브만(본 기간 검산과 합치지 않는다)
+                    origin, calls, hits, ups = "live", track.calls, track.hits, track.always_up
+                    misses = [
+                        {"asOf": live[i].as_of.isoformat(), "symbol": live[i].symbol, "pUp": live[i].p_up,
+                         "realized": live[i].realized}
+                        for i in track.misses
+                    ]  # fmt: skip
+            params = None
+            if c.fit is not None:
+                params = c.fit.to_json()
+                if c.ref_fit is not None:
+                    params["ref"] = c.ref_fit.to_json()
             rows.append(
                 CellTestRow(
                     r.market, r.horizon, r.status, r.reason, r.window, r.rows, r.bss, r.bss_lo, r.bss_hi,
-                    None if r.status == "not_tested" else r.bss_p_holm, r.bss_persistence, r.ece, origin, calls,
-                    hits, ups, r.hit_diff_lo, r.hit_diff_hi, r.net_mean, r.placebo_lo, r.placebo_hi,
-                    [[n, pm, ym] for n, pm, ym in r.reliability], misses,
-                    {k: list(v) for k, v in r.z_quantiles.items()}, None if c.fit is None else c.fit.to_json(),
-                    ready, r.bss_climatology,
+                    None, r.bss_persistence, r.ece, origin, calls, hits, ups, r.hit_diff_lo, r.hit_diff_hi,
+                    r.net_mean, float("nan"), float("nan"), [[n, pm, ym] for n, pm, ym in r.reliability], misses,
+                    {kk: list(v) for kk, v in r.z_quantiles.items()}, params, r.status == "pass", r.bss_climatology,
                 )
             )  # fmt: skip
+            m = forward.get(k)
             log.info(
                 "칸",
                 extra={"fields": {"job": JOB, "market": r.market, "horizon": r.horizon, "status": r.status,
-                                  "reason": r.reason, "rows": r.rows, "bss": round(r.bss, 5) if r.rows else None,
-                                  "ece": round(r.ece, 4) if r.rows else None, "confident": r.confident}},
+                                  "reason": r.reason, "live_rows": m.rows if m else 0, "live_days": m.days if m else 0,
+                                  "look": look}},
             )  # fmt: skip
         written = len(rows) if args.dry_run else save_test(eng, KEY, mv, as_of, rows, datetime.now(UTC))
         if not args.no_report:
             path = REPORTS / f"short-direction-{KEY.replace('@', '-')}-{as_of.date().isoformat()}.md"
-            path.write_text(render_report(KEY, sha, as_of, run), encoding="utf-8")
+            path.write_text(render_report(KEY, sha, as_of, run, forward, look), encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return written
 
@@ -164,11 +209,12 @@ def main(argv: list[str] | None = None) -> int:
         as_of = parse_as_of(args.as_of)
         now = datetime.now(UTC)
         scored = 0 if args.dry_run else score_due(eng, now)
-        cells = [c for c in passed_cells(eng, KEY, as_of) if args.market in ("all", c.market)]
+        cells = [c for c in active_cells(eng, KEY, as_of) if args.market in ("all", c.market)]
         log.info(
-            "통과 칸",
-            extra={"fields": {"job": JOB, "cells": [f"{c.market}:{c.horizon}" for c in cells], "scored": scored}},
-        )
+            "예측 칸",
+            extra={"fields": {"job": JOB, "cells": [f"{c.market}:{c.horizon}:{c.status}" for c in cells],
+                              "scored": scored}},
+        )  # fmt: skip
         if not cells:
             return scored
         preds: list[PredictionRow] = []
@@ -176,25 +222,30 @@ def main(argv: list[str] | None = None) -> int:
         crypto_cp = None
         kr_cp = None
         for c in cells:
+            fit = Fit.from_json(c.live_params)
+            ref_raw = c.live_params.get("ref")
+            ref = Fit.from_json(ref_raw) if isinstance(ref_raw, dict) else None  # pyright: ignore[reportUnknownArgumentType]
             if c.market == "crypto":
                 if crypto_cp is None:
                     start = int((as_of - timedelta(hours=LIVE_HOURS)).timestamp())
                     crypto_cp = crypto_panel(load_ohlcv_series(eng, "upbit", "1h"), start, as_of)
                 h = HOURS[c.horizon]
-                out = live_predictions(crypto_cp, "crypto", c.horizon, h, Fit.from_json(c.live_params), c.z_quantiles)
+                out = live_predictions(crypto_cp, "crypto", c.horizon, h, fit, c.z_quantiles, ref)
                 preds += [
                     PredictionRow(x.symbol, x.horizon, x.as_of, c.model_version, "crypto", x.p_up, x.q10, x.q50, x.q90,
-                                  x.ref_price, x.invalidation, x.as_of + timedelta(seconds=h * HOUR))
+                                  x.ref_price, x.invalidation, x.as_of + timedelta(seconds=h * HOUR),
+                                  None if np.isnan(x.p_ref) else x.p_ref)
                     for x in out
                 ]  # fmt: skip
             else:
                 if kr_cp is None:
                     start = int((as_of - timedelta(days=KR_LIVE_SESSIONS * 7 // 5 + 30)).timestamp())
                     kr_cp, _ = kr_panel(load_ohlcv_series(eng, "kis", "1d"), start, as_of)
-                out = live_predictions(kr_cp, "kr", c.horizon, 1, Fit.from_json(c.live_params), c.z_quantiles)
+                out = live_predictions(kr_cp, "kr", c.horizon, 1, fit, c.z_quantiles, ref)
                 preds += [
                     PredictionRow(x.symbol, x.horizon, x.as_of, c.model_version, "kr", x.p_up, x.q10, x.q50, x.q90,
-                                  x.ref_price, x.invalidation, next_kr_close(x.as_of, closed))
+                                  x.ref_price, x.invalidation, next_kr_close(x.as_of, closed),
+                                  None if np.isnan(x.p_ref) else x.p_ref)
                     for x in out
                 ]  # fmt: skip
         if args.dry_run:
