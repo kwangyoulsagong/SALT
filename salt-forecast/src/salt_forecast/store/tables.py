@@ -502,3 +502,19 @@ base_rate_trigger = Table(
     Column("open_at_least", Numeric),
     Column("value_at_least", Numeric),
 )
+
+# F017 v2 단계 2 — 20261111140000_trade_check_export_and_outcome (FC-REQ-028 FR-4 점검 채점)
+trade_check_outcome = Table(
+    "trade_check_outcome",
+    metadata,
+    Column("ledger_id", Text, primary_key=True),
+    Column("market", Text, nullable=False),
+    Column("side", Text, nullable=False),
+    Column("condition_id", Text, nullable=False),
+    Column("horizon", Integer, nullable=False),
+    Column("shown_up_rate", Float),
+    Column("end_at", DateTime(timezone=True), nullable=False),
+    Column("realized", Float, nullable=False),
+    Column("went_up", Boolean, nullable=False),
+    Column("scored_at", DateTime(timezone=True), nullable=False),
+)
