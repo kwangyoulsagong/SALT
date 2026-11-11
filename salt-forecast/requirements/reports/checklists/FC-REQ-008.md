@@ -63,3 +63,9 @@
 ## 2026-10-29 REQ 전수 조사
 
 - 문서 정정: BY-FDR · DSR 부분 닫힘. 근거는 코드(`ops/daily.sh` · `domain/ops_health.py` · `models/kr_stock.py`) · 같은 문서 결과 절 · 교차 REQ. 코드 무변경
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `domain/panel.py` `Panel.open` 선택 열(기본 None — 기존 생성자 그대로) · `scoring/rule_ic_kr.py` 생성자 맞춤. `rule-ic-kr@1` 결과 불변(테스트 통과) · ruff · format · pyright 0 · lint-imports 3 kept · pytest 전체 · 누수 검사 |

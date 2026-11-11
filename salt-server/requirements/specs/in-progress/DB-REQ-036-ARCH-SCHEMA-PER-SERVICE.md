@@ -95,3 +95,4 @@ Express 쪽 raw SQL 로 남의 표를 읽는 곳은 0(같은 grep — `market` �
 | 2026-11-09 | 부록 A `market` 행에 F016 국내 표 여덟 · `news_article_body` 더함 — 단계 A~C 가 표를 만들고 주인 표에 안 적었다(기사 본문 확인 2회차에서 발견) |
 | 2026-11-11 | 부록 A market 행에 `market_universe_snapshot` · `price_fill_mark`(`DB-REQ-044`, F017 단계 1c) · 부록 B 에 B11(예측의 스냅샷 읽기 — S5 export 뷰) |
 | 2026-11-11 | `feat/f017-s1c-collection`: 부록 A market 행에 `market_universe_snapshot` · `price_fill_mark` · 부록 B11(예측 스냅샷 읽기 — S5 export 뷰) |
+| 2026-11-11 | `feat/f017-s2-checks-plain-line`: 마이그레이션 `20261111140000_trade_check_export_and_outcome` 이 export 뷰 `public.v_trade_check_ledger_export` 를 더해 예측이 점검 원장을 뷰로 읽는다 — FR-3 직접 읽기 목록은 늘리지 않았다. 주인 REQ 는 `DB-REQ-043` · 서버 `SRV-REQ-053` · 예측 `FC-REQ-028` |

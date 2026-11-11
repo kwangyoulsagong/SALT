@@ -264,3 +264,8 @@ Swagger 를 처음 문서 커밋에서 빠뜨렸다 — 주인 REQ 를 셀 때 �
 
 - 닿은 것: 해설 테스트 가짜 시장에 `dailyBarCounts`(위와 같은 이유). 해설 계약 변경 0
 - 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-057` · `DB-REQ-044`
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+- 닿은 것: `coachReport.routes.ts` 에 경로 `GET /api/coach/check`(Swagger 포함). 기존 경로 무변경
+- 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064`

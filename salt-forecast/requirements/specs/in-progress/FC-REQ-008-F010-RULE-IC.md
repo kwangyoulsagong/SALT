@@ -48,4 +48,10 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §6-3 ·
 | 생존 편향 — 상장폐지 종목 | 업비트 API 는 지금 상장된 마켓만 준다. 폐지 종목 일봉 원천이 없다 | 상폐 백필(리서치 §10 슬라이스 7) |
 | 대형 체결 1년 이전 | 사용자 결정 — 용량 | 1년 IC 가 경계선이면 재검토 |
 | 문턱 재추정(후보 70 · 관망 50) | 사전등록이 다루지 않았다 — 표본 안에서 고르면 엿보기다. @2 는 부호 · 가중만 바꿨다 | 라이브 원장 IC(2026-11-23) 뒤 사전등록 `rule-ic@2` |
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
 | 2026-10-29 | 전수 조사 정정 — BY-FDR · DSR 닫힘 조건(슬라이스 4 끝남 → 부분 닫힘) |
+| 2026-11-11 | `feat/f017-s2-checks-plain-line`: `domain/panel.py` `Panel.open` 선택 열(기본 None — 기존 생성자 그대로) · `scoring/rule_ic_kr.py` 생성자 맞춤. `rule-ic-kr@1` 결과 불변(테스트 통과). 주인 REQ 는 `FC-REQ-028` · DB `DB-REQ-043` |

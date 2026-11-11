@@ -306,3 +306,9 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
   - `salt-microFe/packages/domain-invest/src/widgets/market-board/model/tabs.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `layer-rules.cjs` 에 feature 슬라이스 `check-trade-odds` 등록. 레이어 규칙 무변경 · `pnpm check-types` · `pnpm lint` · `pnpm test`(core 298 · ui 63) · `pnpm test:layer-check` · 실화면(패널 · 코인 상세 · 국내 상세 · 390 웹뷰 · 로딩 · 실패) · 운영 빌드 첫 로드 증가 0 |

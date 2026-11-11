@@ -216,6 +216,7 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 1개(경로 이동 내용 무변경 1 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 후속 — `c5ec66ed` — 이 REQ 를 머리에 적은 `coach-console` 위젯 model 에 문구 파일 하나(`COACH_CONSOLE_MESSAGES` "내 보유"). BFF 계약 무변경 |
 | 2026-11-10 | v2 대체 표시 — FR-92 · FR-100 (`FEATURE-017` v2 · `ADR-010` v2) |
+| 2026-11-11 | `feat/f017-s2-checks-plain-line`: `ai-coach.routes.ts` 에 점검 경로 `GET /api/app/ai-coach/check`(`BFF-REQ-052` FR-3) 한 줄 추가. 기존 경로 무변경. 주인 REQ 는 `BFF-REQ-052`(FR-3) · 서버 `SRV-REQ-053` · FE `FE-REQ-064` |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`f843104e`) — FR-92 모드 판단은 서버 `caveats[]` 를 그대로(판별 union 폐지) · FR-100 해설은 판단 막힘으로 가르지 않는다
   - `bff/src/rest/routes/coach.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)

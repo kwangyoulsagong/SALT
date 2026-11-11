@@ -34,3 +34,8 @@
 ## 2026-11-10 — F018
 
 - F018 이 이 REQ 의 파일을 걸쳤다(위 체크리스트 2026-11-10 절). 국내 소유자 전용(F011 §정책)을 전제로 쓴 주석 · 단언이 여러 곳에 흩어져 있었다 — 전제가 바뀌면 그 문장을 grep 으로 한 번에 찾는다
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+- 닿은 것: `ops/daily.sh` 단계에 `base_rate` · `trade_check_score`(kr_volatility 뒤) · 주간 `trade_check_score --report`(`due --job trade_check_report --hours 156`). 뉴스 단계 무변경
+- 문제 · 액션: 없음 — 주인 REQ 는 `FC-REQ-028` · DB `DB-REQ-043`

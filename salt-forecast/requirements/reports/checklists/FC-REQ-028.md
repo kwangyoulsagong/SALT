@@ -28,3 +28,16 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | FR-5 의 as-of 종목 목록 원천이 생김 — 서버가 `market_universe_snapshot` 을 11-11 부터 하루 한 행/종목 씀(`SRV-REQ-057` FR-7 · `DB-REQ-044`). 예측 쪽 읽기 변경 0(과거 검산 재실행 때 이 표로 표본 — 쌓인 날만큼) · `npm test` 전체 · lint · build · 레이어 훅 사후(음성 대조 exit 2) |
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 사전등록이 첫 계산보다 앞 | 충족 | `base-rate@1` 커밋 `81a92d9d` → 계산 커밋 `2d7b1915` · `forecast.preregistration` 행(첫 실행 때 등록) |
+| FR-2 기저율 · `below_min` | 충족(일봉 조건) | 국내 12행 · 코인 9행 전부 ok · 유효 n(ICC) · Wilson · 수축 · Holm · 최근 다름. 장중 조건 다섯은 `@2`(2026-12 중순 — 5분봉 날 60) |
+| 라이브 문턱 = 다음 봉 조건 정의 | 충족 | `tests/scoring/test_base_rate.py` 계약 테스트 12(문턱 1e-6 안 · 밖) · K3 2025-03-04 전 갭 제외 |
+| 누수 | 충족 | `tests/leakage/test_base_rate_leakage.py`(as_of 뒤 봉 추가 → 통계 · 문턱 동일, 코인 · 국내) · 누수 전체 통과 |
+| 저장 멱등 · 뷰 최신 실행만 | 충족 | `tests/store/test_base_rate_store.py`(같은 as_of 재실행 · 끝난 조건 문턱 지움 · 옛 실행 끌려오지 않음) · 스키마 대조 |
+| FR-4 점검 채점 | 충족(점검 몫) | `tests/domain/test_trade_check.py` 경계 7(장중 · 마감 뒤 · 주말 · 자정 넘김 · 24시간 · 기간 전 · 비용) · 첫 결과는 11-12(오늘 원장 355줄 기간 전 = 0건 정상) |
+| 검증 | 충족 | ruff · format · pyright 0 · lint-imports 3 kept · pytest 전체 · 누수 · 실행 23초 · 1.1GB |
+| 단타 확률 · 태그 채점 | 미충족(범위 밖) | 단계 5 · 6 |

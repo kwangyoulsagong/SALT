@@ -231,6 +231,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): FR-20~25 알림 1종 · 코드만 · 금액 관문 — 규칙은 Kotlin notification 으로 옮겼다(종류는 도메인마다 하나로). Express `notification` · Prisma 모델 삭제 |
 | 2026-11-06 | 파일만 걸침(F016 단계 A) — `schema.prisma`(머리에 이 REQ) 에 국내 시장 상태 열 · 표(`DB-REQ-041`). 이 REQ 몫 무변경. 루트 `requirements/specs/done/F016-A-market-status-tags-slice.md` |
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `schema.prisma` 에 `NewsArticleBody`(`news_article_body` — `DB-REQ-042`) |
+| 2026-11-11 | `feat/f017-s2-checks-plain-line`: `schema.prisma` 에 모델 `TradeCheckLedgerEntry` → 표 `trade_check_ledger`(마이그레이션 `20261111130000_trade_check_ledger`, 추가만). 기존 모델 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` |
 
 
 ## 구현이 REQ와 다른 지점 (2026-10-28)
