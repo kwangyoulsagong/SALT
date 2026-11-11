@@ -26,6 +26,8 @@ class Panel:
     close: Mat
     volume: Mat
     listed_at: NDArray[np.int64]  # 종목별 첫 봉 행 번호
+    # 시가 — 시가 갭 조건(base-rate@1 K3)만 쓴다. 손으로 만든 패널(테스트 · 부분 패널)은 비워 둔다
+    open: Mat | None = None
 
     @property
     def shape(self) -> tuple[int, int]:
@@ -43,7 +45,7 @@ def build_panel(series: Mapping[str, OhlcvSeries], start: int, end: int) -> Pane
     dates = np.arange(start - start % DAY, end + 1, DAY, dtype=np.int64)
     syms = tuple(sorted(series))
     shape = (dates.size, len(syms))
-    high, low, close, volume = (np.full(shape, np.nan) for _ in range(4))
+    open_, high, low, close, volume = (np.full(shape, np.nan) for _ in range(5))
     listed = np.zeros(len(syms), dtype=np.int64)
     for j, s in enumerate(syms):
         o = series[s]
@@ -53,12 +55,13 @@ def build_panel(series: Mapping[str, OhlcvSeries], start: int, end: int) -> Pane
         idx = (o.available_at - dates[0]) // DAY
         ok = (idx >= 0) & (idx < dates.size) & (o.available_at % DAY == dates[0] % DAY)
         rows = idx[ok]
+        open_[rows, j] = o.open[ok]
         high[rows, j] = o.high[ok]
         low[rows, j] = o.low[ok]
         close[rows, j] = o.close[ok]
         volume[rows, j] = o.volume[ok]
         listed[j] = int((o.available_at[0] - dates[0]) // DAY)  # 음수 = 격자 전 상장
-    return Panel(dates, syms, high, low, close, volume, listed)
+    return Panel(dates, syms, high, low, close, volume, listed, open_)
 
 
 def lag(m: Mat, k: int) -> Mat:
