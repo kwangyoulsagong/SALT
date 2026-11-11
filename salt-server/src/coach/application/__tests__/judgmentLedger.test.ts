@@ -52,6 +52,7 @@ const market = {
         { sentimentScore: 50, fearGreedIndex: 20, sentimentLabel: "neutral", priceChange24h: 5, calculatedAt: T0 },
       ])
     ),
+  dailyBarCounts: async (symbols: string[]) => new Map(symbols.map((s) => [s, 365])),
   latestIndicators: async (symbols: string[], timeframe: string) =>
     new Map(
       symbols.map((s) => [

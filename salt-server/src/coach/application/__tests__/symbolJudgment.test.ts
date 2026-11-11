@@ -150,6 +150,7 @@ const fakeMarket = (
           { sentimentScore: 50, sentimentLabel: "neutral", priceChange24h: 0, calculatedAt: T0 },
         ])
       ),
+    dailyBarCounts: async (symbols: string[]) => new Map(symbols.map((s) => [s, 365])),
     latestIndicators: async (symbols: string[]) =>
       new Map(
         symbols.map((symbol) => [
@@ -334,6 +335,7 @@ describe("GetSymbolCoach — 모드별 꼬리표 (ADR-010 v2)", () => {
     const market = {
       ...fakeMarket({ BTC: 100 }),
       // 일봉 RSI 침체 → 장기 근거 문장이 생긴다(@2 는 장기 심리를 쓰지 않는다)
+      dailyBarCounts: async (symbols: string[]) => new Map(symbols.map((s) => [s, 365])),
       latestIndicators: async () =>
         new Map([
           ["BTC", { rsi14: 30, ma20: null, ma50: null, volumeAvg20: null, timestamp: T0 }],
@@ -387,6 +389,7 @@ describe("GetSymbolCoach — 모드별 꼬리표 (ADR-010 v2)", () => {
             },
           ],
         ]),
+      dailyBarCounts: async (symbols: string[]) => new Map(symbols.map((s) => [s, 365])),
       latestIndicators: async () =>
         new Map([
           ["BTC", { rsi14: 30, ma20: null, ma50: null, volumeAvg20: null, timestamp: T0 }],
@@ -627,6 +630,7 @@ describe("판단 · 채점의 봉 주기 (F010 슬라이스 0)", () => {
     const base = fakeMarket({ BTC: 100 });
     const market = {
       ...base,
+      dailyBarCounts: async (symbols: string[]) => new Map(symbols.map((s) => [s, 365])),
       latestIndicators: async (symbols: string[], timeframe: string) => {
         askedTimeframes.push(timeframe);
         // 일봉 지표만 있다 — 단타 쪽은 "technical_indicator" 가 빠진다

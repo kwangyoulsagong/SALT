@@ -61,3 +61,14 @@ describe("PollKrStockQuotes — 시세 없는 종목 채우기", () => {
     assert.deepEqual(asked.sort(), ["000660", "005930", "499790"]);
   });
 });
+
+describe("KIS 한도 초과율 (SRV-REQ-057 FR-3)", () => {
+  it("전체 호출 중 초과 비율 — 호출 0 이면 0", async () => {
+    const { krRateLimitRatio } = await import("../SyncKrStock");
+    assert.equal(krRateLimitRatio({}), 0);
+    assert.equal(
+      krRateLimitRatio({ A: { calls: 90, rateLimited: 1 }, B: { calls: 10, rateLimited: 0 } }),
+      0.01
+    );
+  });
+});

@@ -46,6 +46,25 @@ export const krJudgmentHistory = (input: { dailyBars: number; dailyIndicator: bo
   dailyIndicator: input.dailyIndicator,
 });
 
+/**
+ * 코인 장기 판단의 이력(`SRV-REQ-057` FR-1) — 일봉이 MA50 몫(50)보다 짧으면 꼬리표 `insufficient_history`.
+ * 원화 마켓이 생긴 지 얼마 안 된 코인은 거래소 이력 자체가 짧다(수집 결함 아님). 판단은 막지 않고(`ADR-010` v2) RSI 는 15봉부터 쓴다.
+ * 모양은 국내 이력과 같다 — 꼬리표 사실(`have/need/dailyIndicator`)을 한 함수가 만든다
+ */
+export const CRYPTO_LONG_MIN_DAILY_BARS = 50;
+
+export const cryptoLongTermHistory = (input: {
+  dailyBars: number;
+  /** 일봉 지표(RSI 등)가 하나라도 있나 */
+  dailyIndicator: boolean;
+}): KrJudgmentHistory => ({
+  // 봉 수로 정한다 — MA50 이 비었어도 봉이 50 이상이면 이력 탓이 아니다(지표 갱신이 밀린 것 — 신선도 꼬리표 몫)
+  ready: input.dailyBars >= CRYPTO_LONG_MIN_DAILY_BARS,
+  dailyBars: input.dailyBars,
+  requiredDailyBars: CRYPTO_LONG_MIN_DAILY_BARS,
+  dailyIndicator: input.dailyIndicator,
+});
+
 const isWeekend = (date: KstDate): boolean => {
   const day = new Date(`${date.toString()}T00:00:00Z`).getUTCDay();
   return day === 0 || day === 6;

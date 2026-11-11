@@ -1,7 +1,8 @@
 import { contextUseCases } from "../composition";
 import { env } from "../shared/config/env";
 import { logger } from "../shared/config/logger";
-import { schedule } from "../shared/infrastructure/scheduler";
+import { runGuarded, schedule } from "../shared/infrastructure/scheduler";
+import { crossedKst, onWake, type WakeEvent } from "../shared/infrastructure/wake";
 
 /**
  * 국내 주식 주기 작업(F011 슬라이스 0 · `SRV-REQ-040`). 스케줄과 순서만 갖고 절차는 `market/application`.
@@ -55,6 +56,10 @@ export const startKrStockWorkers = () => {
     { name: "kr-full-daily-candles-weekend", expression: "0 8 * * 0,6", run: () => kr.syncFullDailyCandles.execute() },
     // 장 마감 보정 · 30일 백필 — 호출 상한에 걸리면 다음 회차(밤 · 다음 날)가 잇는다
     { name: "kr-minute-bars", expression: "40 15,20 * * 1-5", run: () => kr.syncMinuteBars.execute(), catchUp: true },
+    // 실시간 슬롯 밖 종목 장중 5분봉(SRV-REQ-057 FR-5) — 장 밖이면 바로 끝난다
+    { name: "kr-slotless-minute-bars", expression: "*/10 9-15 * * 1-5", run: () => kr.syncSlotlessMinuteBars.execute() },
+    // 유니버스에 새로 든 종목 즉시 백필(FR-4) — 관심 추가 · 보유 · 시총 순위 변화. 새 종목이 없으면 조회 둘
+    { name: "kr-universe-joiners", expression: "7-59/15 * * * *", run: () => kr.backfillUniverseJoiners.execute() },
     // 보유 평가는 시세 회차 바로 뒤 — 같은 분에 같은 값을 본다(F011 슬라이스 3b)
     {
       name: "kr-quote-poll",
@@ -118,6 +123,8 @@ export const startKrStockWorkers = () => {
       // 실시간은 현재가 행이 생긴 뒤(체결은 기존 행만 갱신한다)
       () => kr.realtime.reconcile(),
       () => kr.syncDailyCandles.execute(),
+      // 5분봉 보정 — 부팅에도(SRV-REQ-057 FR-4). 15:40 · 20:40 회차가 꺼져 있던 날을 기동이 메운다(오늘은 15:35 전이면 빠진다)
+      () => runGuarded("kr-minute-bars", () => kr.syncMinuteBars.execute()),
       () => kr.syncCalendar.execute(),
       // 오늘 소식 — 기동 뒤 한 번(빈 목록으로 시작하지 않게)
       () => kr.pollNewsTitles.execute({ force: true }),
@@ -135,5 +142,13 @@ export const startKrStockWorkers = () => {
     }
   })();
 
+  // 깸(SRV-REQ-057 FR-6) — 일봉은 자는 동안 15:45 가 지났을 때만(장중 미확정 봉을 늘리지 않는다), 5분봉 보정 · 합류 백필은 늘
+  onWake("kr-daily-candles", (event: WakeEvent) =>
+    crossedKst(event, 15, 45) ? runGuarded("kr-daily-candles", () => kr.syncDailyCandles.execute()) : undefined
+  );
+  onWake("kr-minute-bars", () => runGuarded("kr-minute-bars", () => kr.syncMinuteBars.execute()));
+  onWake("kr-universe-joiners", () => runGuarded("kr-universe-joiners", () => kr.backfillUniverseJoiners.execute()));
+
   logger.info(`🇰🇷 국내 주식 워커 등록 (${jobs.length})`);
 };
+

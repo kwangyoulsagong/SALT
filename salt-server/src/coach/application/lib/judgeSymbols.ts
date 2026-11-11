@@ -2,6 +2,7 @@ import {
   COACH_INDICATOR_TIMEFRAME,
   JUDGMENT_MODES,
   judgmentAssetClassFor,
+  cryptoLongTermHistory,
   krJudgmentHistory,
   staleJudgmentInputs,
   staleKrJudgmentInputs,
@@ -27,6 +28,8 @@ export interface SymbolJudgmentMaterials {
   assetClass: JudgmentAssetClass;
   /** 국내 주식만 — 판단을 여는 이력(일봉 120 거래일 · 일봉 지표, F011 FR-62) */
   krHistory?: KrJudgmentHistory;
+  /** 코인만 — 일봉이 MA50 몫보다 짧다(`SRV-REQ-057` FR-1). 장기 판단에만 꼬리표. 이력이 찼으면 없다 */
+  cryptoLongHistory?: KrJudgmentHistory;
   quote: CoachQuote | undefined;
   sentiment: CoachSentiment | undefined;
   /** 모드별 지표 — 단타는 1시간봉, 장기는 일봉(`COACH_INDICATOR_TIMEFRAME`). */
@@ -77,7 +80,21 @@ export const collectJudgmentMaterials = async (
 
   // 국내 주식 일봉 수 — 시세로 자산군을 안 뒤 그 종목들만 한 번 더 센다(groupBy 1회)
   const krSymbols = symbols.filter((symbol) => quotes.get(symbol)?.assetType === "kr_stock");
-  const dailyBars = krSymbols.length > 0 ? await market.dailyBarCounts(krSymbols) : new Map<string, number>();
+  // 코인은 일봉 MA50 이 없는 종목만 센다 — 이력 짧음 꼬리표의 사실(`SRV-REQ-057` FR-1). 대부분 MA50 이 있어 0개
+  const shortCrypto = symbols.filter(
+    (symbol) => quotes.get(symbol)?.assetType !== "kr_stock" && longTermIndicators.get(symbol)?.ma50 == null
+  );
+  const counted = [...krSymbols, ...shortCrypto];
+  const dailyBars = counted.length > 0 ? await market.dailyBarCounts(counted) : new Map<string, number>();
+
+  const cryptoLong = new Map(
+    shortCrypto
+      .map((symbol) => [
+        symbol,
+        cryptoLongTermHistory({ dailyBars: dailyBars.get(symbol) ?? 0, dailyIndicator: longTermIndicators.has(symbol) }),
+      ] as const)
+      .filter(([, history]) => !history.ready)
+  );
 
   return new Map(
     symbols.map((symbol, index) => [
@@ -91,7 +108,9 @@ export const collectJudgmentMaterials = async (
                 dailyIndicator: longTermIndicators.has(symbol),
               }),
             }
-          : {}),
+          : cryptoLong.has(symbol)
+            ? { cryptoLongHistory: cryptoLong.get(symbol) }
+            : {}),
         quote: quotes.get(symbol),
         sentiment: sentiments.get(symbol),
         indicators: {
@@ -141,6 +160,7 @@ export const materialGuards = (
     staleInputs,
     inputTimes: { price: priceUpdatedAt, technical_indicator: indicatorAt },
     ...(materials.krHistory ? { history: materials.krHistory } : {}),
+    ...(mode === "long_term" && materials.cryptoLongHistory ? { history: materials.cryptoLongHistory } : {}),
   };
 };
 

@@ -90,7 +90,12 @@ const build = (deps: {
     trades: deps.trades ?? { tradesSince: async () => ({ trades: [], truncated: false }) },
     fearGreed: deps.fearGreed ?? { current: async () => null },
     news: deps.news ?? { recent: async () => [] },
-  });
+    collection: {
+      fillMarks: { marks: async () => new Map(), advance: async () => {} },
+      universeSnapshots: { capture: async () => 0 },
+      heldCryptoSymbols: async () => [],
+    },
+  } as unknown as Parameters<typeof createMarketApplication>[0]);
 
 describe("CalculateSentiment", () => {
   /**

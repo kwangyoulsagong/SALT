@@ -1,4 +1,12 @@
-import type { CoachMode, JudgmentCaveat, ModeCoachViewModel, TrackRecord } from "@repo/core/coach";
+import {
+  judgmentEvidenceCount,
+  nearestObservations,
+  type CoachMode,
+  type JudgmentCaveat,
+  type JudgmentObservation,
+  type ModeCoachViewModel,
+  type TrackRecord,
+} from "@repo/core/coach";
 import { Badge } from "@repo/ui/badge";
 import { Heading } from "@repo/ui/heading";
 import { StatusLine } from "@repo/ui/statusLine";
@@ -60,6 +68,18 @@ const trackSentence = (record: TrackRecord): string | null =>
     ? null
     : M.trackVsBaseline(record.winRate, record.excessWinRate === null ? null : record.winRate - record.excessWinRate);
 
+/** 관측 한 줄 — 본 값 · 문턱(서버 값). 값이 문턱 밖이면 넘은 쪽 */
+const observationSentence = (rows: readonly JudgmentObservation[]): string | null => {
+  const parts = rows.flatMap((row) => {
+    if (row.value === null) return [];
+    const side = row.value < row.lower ? "below" : row.value > row.upper ? "above" : "inside";
+    const label = M.observedItem[row.item] ?? row.item;
+    const range = M.observedRange(M.observedBound(row.item, row.lower), M.observedBound(row.item, row.upper), side);
+    return [`${label} ${M.observedValue(row.item, row.value)}(${range})`];
+  });
+  return parts.length > 0 ? M.observedLine(parts) : null;
+};
+
 /**
  * ② 지금의 판단 (`FE-REQ-026` FR-113 · `FE-REQ-064` FR-1 v2).
  *
@@ -79,11 +99,14 @@ export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProp
     );
   }
 
-  const { judgment, trackRecord, failureCases, caveats } = view;
+  const { judgment, trackRecord, failureCases, caveats, observations } = view;
   const validity = M.validity[judgment.validity.code];
   const meta = [M.modes[mode], validity].filter(Boolean).join(" · ");
   const caveatTexts = caveats.map(caveatSentence).filter((text): text is string => text !== null);
   const track = trackSentence(trackRecord);
+  const observed = observationSentence(nearestObservations(observations));
+  // 관망인데 근거 문장이 없으면 "신호 없음"을 먼저 — 본 값이 그 이유다(FR-1)
+  const noSignal = judgment.action === "wait" && judgment.reasons.length === 0;
 
   return (
     <div className={judgmentSlot}>
@@ -99,12 +122,8 @@ export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProp
         </p>
       )}
       <p className={summaryLine}>
-        {/* 피하기는 위험 신호가 곧 근거다 — 서버 `judgmentEvidence` 와 같은 수 */}
-        <span>
-          {M.reasonCount(
-            judgment.action === "avoid" ? judgment.reasons.length + judgment.risks.length : judgment.reasons.length,
-          )}
-        </span>
+        {/* 근거 = 문장(피하기는 위험 신호까지) + 결측 아닌 관측 — 서버 근거 판정과 같은 셈 */}
+        <span>{M.reasonCount(judgmentEvidenceCount(judgment, observations))}</span>
         <span aria-hidden="true">·</span>
         <span>
           {trackRecord.sampleOrigin === "backtest"
@@ -123,8 +142,10 @@ export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProp
             : M.recentFailureCount(failureCases.length)}
         </span>
       </p>
-      {(track || caveatTexts.length > 0) && (
+      {(noSignal || observed || track || caveatTexts.length > 0) && (
         <ul className={caveatLines}>
+          {noSignal && <li>{M.noSignal}</li>}
+          {observed && <li>{observed}</li>}
           {track && <li>{track}</li>}
           {caveatTexts.map((text) => (
             <li key={text}>{text}</li>

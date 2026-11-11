@@ -248,3 +248,22 @@ export interface SymbolCoachViewModel {
   exchangeFlag: ExchangeFlag | null;
   disclaimer: string;
 }
+
+/**
+ * 관측 한 줄의 재료(`FE-REQ-064` FR-1) — 서버가 **문턱에 가까운 순**으로 준 관측에서 결측을 빼고 앞의 둘.
+ * 고르는 순서는 서버 몫(`judgmentObservations`)이고 여기는 자르기만 한다
+ */
+export const OBSERVATION_LINE_ITEMS = 2;
+export const nearestObservations = (observations: readonly JudgmentObservation[]): JudgmentObservation[] =>
+  observations.filter((row) => !row.missing && row.value !== null).slice(0, OBSERVATION_LINE_ITEMS);
+
+/**
+ * 근거 수 — 서버 `judgmentCaveats` 의 근거 판정과 같은 셈: 근거 문장(피하기는 위험 신호까지) + 결측 아닌 관측.
+ * 문장만 세면 관망(문장 0)이 엔진이 본 값이 있는데도 "근거 0" 으로 보였다(2026-11-11 실화면 — RSI 49.3 이 있는 RSR)
+ */
+export const judgmentEvidenceCount = (
+  judgment: Pick<ModeCoachViewModel["judgment"], "action" | "reasons" | "risks">,
+  observations: readonly JudgmentObservation[],
+): number =>
+  (judgment.action === "avoid" ? judgment.reasons.length + judgment.risks.length : judgment.reasons.length) +
+  observations.filter((row) => !row.missing && row.value !== null).length;

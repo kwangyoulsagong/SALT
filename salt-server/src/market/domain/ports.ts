@@ -440,6 +440,34 @@ export interface DailyReturnProfile {
   skewness: number | null;
 }
 
+/**
+ * 5분봉 채운 위치(`DB-REQ-044` FR-2) — "이 시각 전의 봉은 거래소에 물어봤다". 규칙은 `policy/priceCatchUp.ts`
+ */
+export interface PriceFillMarkStore {
+  marks(assetType: MarketAssetType, timeframe: PriceTimeframe, symbols: string[]): Promise<Map<string, Date>>;
+  /** 앞으로만 옮긴다(뒤로 가는 값은 무시) — 한 문장 */
+  advance(
+    assetType: MarketAssetType,
+    timeframe: PriceTimeframe,
+    marks: Array<{ symbol: string; filledThrough: Date }>,
+    at: Date
+  ): Promise<void>;
+}
+
+/** 추적 목록 일별 스냅샷(`DB-REQ-044` FR-1) — 불변 · 하루 한 번. 재실행은 그대로 둔다 */
+export interface UniverseSnapshotRow {
+  symbol: string;
+  assetType: MarketAssetType;
+  source: "active_market" | "top_market_cap" | "holding" | "watch";
+  rank: number | null;
+}
+export interface UniverseSnapshotStore {
+  /** 새로 쓴 행 수(이미 있던 행은 0) */
+  capture(asOfDate: string, rows: UniverseSnapshotRow[], capturedAt: Date): Promise<number>;
+  /** `asOfDate` 앞 가장 최근 날의 그 자산군 종목 — 없으면 `null`(유니버스 합류 감지, `SRV-REQ-057` FR-4) */
+  latestBefore(assetType: MarketAssetType, asOfDate: string): Promise<string[] | null>;
+}
+
 export interface PriceHistoryRepository {
   upsertCandles(
     symbol: string,

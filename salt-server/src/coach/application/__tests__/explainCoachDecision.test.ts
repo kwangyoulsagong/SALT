@@ -51,6 +51,7 @@ const market = {
     new Map([
       ["BTC", { sentimentScore: 30, sentimentLabel: "fear", priceChange24h: 0, calculatedAt: T0 }],
     ]),
+  dailyBarCounts: async (symbols: string[]) => new Map(symbols.map((s) => [s, 365])),
   latestIndicators: async () =>
     new Map([["BTC", { rsi14: 30, ma20: null, ma50: null, volumeAvg20: null, timestamp: T0 }]]),
   recentWhales: async () => [{ transactionType: "buy", amountKRW: 1000 }],

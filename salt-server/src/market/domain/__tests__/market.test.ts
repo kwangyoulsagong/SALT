@@ -5,6 +5,9 @@ import {
   calculateIndicators,
   calculateSentimentScore,
   calculateSmartMoneyIndex,
+  INDICATOR_MIN_CANDLES,
+  macdOf,
+  MIN_CANDLES_FOR_INDICATORS,
   interpretSentiment,
   interpretSmartMoney,
   movingAverage,
@@ -169,6 +172,44 @@ describe("기술 지표", () => {
     assert.equal(set.volumeAvg20, 1000);
     assert.equal(set.ma20, movingAverage(closes, 20));
     assert.equal(set.ma50, movingAverage(closes, 50));
-    assert.ok(set.ma20 > set.ma50, "상승 구간에서 단기 이평이 위에 있다");
+    assert.ok(set.ma20! > set.ma50!, "상승 구간에서 단기 이평이 위에 있다");
+  });
+
+  /**
+   * 지표별 문턱 경계(`SRV-REQ-057` FR-1) — 봉 수마다 어떤 지표가 살아 있나. 예전엔 50 미만이면 넷 다 없었다
+   * (원화 마켓이 생긴 지 6~44일인 코인 14개가 RSI 까지 잃음, 2026-11-10)
+   */
+  it("봉이 모자란 지표만 null 이다 — 문턱 경계 표", () => {
+    const table: Array<[number, Array<keyof typeof INDICATOR_MIN_CANDLES>]> = [
+      [14, []],
+      [15, ["rsi14"]],
+      [19, ["rsi14"]],
+      [20, ["rsi14", "ma20", "volumeAvg20"]],
+      [34, ["rsi14", "ma20", "volumeAvg20"]],
+      [35, ["rsi14", "ma20", "volumeAvg20", "macd"]],
+      [49, ["rsi14", "ma20", "volumeAvg20", "macd"]],
+      [50, ["rsi14", "ma20", "volumeAvg20", "macd", "ma50"]],
+    ];
+    for (const [n, alive] of table) {
+      const closes = Array.from({ length: n }, (_, i) => 100 + (i % 7));
+      const set = calculateIndicators(closes, closes.map(() => 1000));
+      const present = (Object.keys(INDICATOR_MIN_CANDLES) as Array<keyof typeof INDICATOR_MIN_CANDLES>).filter(
+        (key) => set[key] !== null
+      );
+      assert.deepEqual(present.sort(), [...alive].sort(), `봉 ${n}개`);
+      assert.equal(set.macdSignal === null, set.macd === null, `봉 ${n}개 — MACD 셋은 함께 있거나 함께 없다`);
+    }
+    assert.equal(MIN_CANDLES_FOR_INDICATORS, 15);
+  });
+
+  it("MACD — 일정한 상승이면 양수 · 신호선과 거의 같다, 하락 전환이면 히스토그램 음수", () => {
+    const rising = Array.from({ length: 100 }, (_, i) => 100 + i);
+    const up = macdOf(rising);
+    assert.ok(up && up.macd > 0);
+    assert.ok(up && Math.abs(up.hist) < 1e-6, `기울기가 같으면 선 = 신호선: ${up?.hist}`);
+
+    const turned = [...rising, ...Array.from({ length: 10 }, (_, i) => 199 - i * 3)];
+    const down = macdOf(turned);
+    assert.ok(down && down.hist < 0);
   });
 });

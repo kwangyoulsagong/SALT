@@ -40,6 +40,14 @@ const guarded = (name: string, task: () => Promise<void> | void) => async () => 
   }
 };
 
+/**
+ * cron 밖에서(깸 — `wake.ts`) 같은 작업을 부를 때 — 같은 이름이면 같은 락이다. 도는 중이면 건너뛴다(그 회차가 따라잡는다)
+ */
+export const runGuarded = (name: string, task: () => Promise<unknown>) =>
+  guarded(name, async () => {
+    await task();
+  })();
+
 /** 놓친 회차를 한 번 따라 돈다. 이미 도는 중이면 그 회차가 따라잡는다 */
 export const attachCatchUp = (
   task: Pick<ScheduledTask, "on">,

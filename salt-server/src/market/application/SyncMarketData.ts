@@ -1,9 +1,18 @@
 import { logger } from "../../shared/config/logger";
-import type {
-  ExchangeQuotePort,
-  MarketAssetRepository,
-  PriceHistoryRepository,
-  PriceTimeframe,
+import {
+  CANDLE_PAGE,
+  CATCH_UP_CALLS_PER_RUN,
+  catchUpOrder,
+  catchUpStart,
+  FIVE_MINUTE_PAGE_MS,
+  needsCatchUp,
+  regularWindowAdvance,
+  type ExchangeQuotePort,
+  type MarketAssetRepository,
+  type PriceFillMarkStore,
+  type PriceHistoryRepository,
+  type PriceTimeframe,
+  type WatchlistRepository,
 } from "../domain";
 
 /**
@@ -62,9 +71,12 @@ export class UpdateAllMarketPrices {
   }
 }
 
-/** 수집 대상 타임프레임과 개수. 원문 워커 상수다. */
+/**
+ * 수집 대상 타임프레임과 개수. 5분봉은 거래소 상한 200 — 원문 288 은 말없이 200 으로 잘려 16시간 40분만 덮었다
+ * (`SRV-REQ-057` FR-2). 그보다 긴 공백은 `CatchUpPriceHistory` 가 채운 위치부터 메운다
+ */
 const COLLECT_TARGETS: Array<{ timeframe: PriceTimeframe; count: number }> = [
-  { timeframe: "5m", count: 288 },
+  { timeframe: "5m", count: CANDLE_PAGE },
   { timeframe: "1d", count: 120 },
 ];
 
@@ -96,20 +108,29 @@ export class CollectPriceHistory {
   constructor(
     private readonly assets: MarketAssetRepository,
     private readonly exchange: ExchangeQuotePort,
-    private readonly prices: PriceHistoryRepository
+    private readonly prices: PriceHistoryRepository,
+    /** 5분봉 채운 위치(`SRV-REQ-057` FR-2) — 받은 창이 위치에 닿을 때만 앞으로. 없으면 위치를 안 옮긴다 */
+    private readonly fillMarks: PriceFillMarkStore | null = null,
+    private readonly now: () => Date = () => new Date()
   ) {}
 
   async execute() {
     const symbols = await this.assets.activeSymbols("crypto");
+    const marks = this.fillMarks
+      ? await this.fillMarks.marks("crypto", "5m", symbols.map((s) => s.toUpperCase()))
+      : new Map<string, Date>();
+    const advanced: Array<{ symbol: string; filledThrough: Date }> = [];
 
     for (let i = 0; i < symbols.length; i += SYMBOL_BATCH) {
       const batch = symbols.slice(i, i + SYMBOL_BATCH);
-      await Promise.all(batch.map((symbol) => this.collectSymbol(symbol)));
+      await Promise.all(batch.map((symbol) => this.collectSymbol(symbol, marks, advanced)));
       await sleep(SYMBOL_BATCH_PAUSE_MS);
     }
 
+    // 회차 끝에 한 문장(행마다 흩지 않는다 — `noParallelRowWrites`)
+    if (this.fillMarks) await this.fillMarks.advance("crypto", "5m", advanced, this.now());
     await this.prices.purgeOlderThan(RETENTION);
-    return { symbols: symbols.length };
+    return { symbols: symbols.length, marksAdvanced: advanced.length };
   }
 
   /**
@@ -124,25 +145,106 @@ export class CollectPriceHistory {
    * > `workers-external.md` — "실패한 batch 는 로그를 남기고 다음 batch 또는 다음 주기
    * > 실행이 가능해야 한다".
    */
-  private async collectSymbol(symbol: string) {
+  private async collectSymbol(
+    symbol: string,
+    marks: Map<string, Date>,
+    advanced: Array<{ symbol: string; filledThrough: Date }>
+  ) {
+    const upper = symbol.toUpperCase();
     for (const target of COLLECT_TARGETS) {
       try {
+        const askedAt = this.now();
         const candles = await this.exchange.candlesByTimeframe(
           symbol,
           target.timeframe,
           target.count
         );
-        await this.prices.upsertCandles(
-          symbol.toUpperCase(),
-          "crypto",
-          target.timeframe,
-          candles
-        );
+        await this.prices.upsertCandles(upper, "crypto", target.timeframe, candles);
+        if (target.timeframe === "5m") {
+          const next = regularWindowAdvance(marks.get(upper), candles.map((c) => c.timestamp), askedAt);
+          if (next) advanced.push({ symbol: upper, filledThrough: next });
+        }
       } catch (error) {
         logger.warn(`캔들 수집 실패 — ${symbol} ${target.timeframe}`, error);
       }
       await sleep(TIMEFRAME_PAUSE_MS);
     }
+  }
+}
+
+/**
+ * 코인 5분봉 따라잡기(`SRV-REQ-057` FR-2) — 정기 수집 창(16시간 40분) 밖으로 밀린 종목을 채운 위치부터 **앞으로** 200칸씩.
+ *
+ * 쪽마다 위치를 옮긴다 — 회차 상한(600호출 ≈ 75초)에 잘려도 다음 회차가 그 자리부터 잇는다(멱등 · 같은 봉 재쓰기 0 —
+ * 저장은 값이 같으면 쓰지 않는 upsert). 순서 보유 · 관심 → 거래대금 상위 → 나머지. 순차다 — 거래소 한도는 페이서가 지키고
+ * 정기 수집 · 화면 요청이 같은 한도를 쓴다.
+ *
+ * 처음 도는 종목(위치 없음)은 보관 창 30일 시작부터 — 그동안 남은 구멍(11-07 · 11-08 BTC 4~5시간)까지 한 번 메운다.
+ * 하룻밤(16시간 40분 이내)은 0호출 — 정기 수집이 위치를 옮긴다
+ */
+export class CatchUpPriceHistory {
+  constructor(
+    private readonly assets: MarketAssetRepository,
+    private readonly exchange: ExchangeQuotePort,
+    private readonly prices: PriceHistoryRepository,
+    private readonly fillMarks: PriceFillMarkStore,
+    private readonly watchlist: WatchlistRepository,
+    /** 코인 보유 종목 — `portfolio` 의 사실이라 조립 지점이 넣는다. 못 읽으면 관심 · 거래대금 순서만 */
+    private readonly heldSymbols: () => Promise<string[]>,
+    private readonly now: () => Date = () => new Date(),
+    private readonly callsPerRun: number = CATCH_UP_CALLS_PER_RUN
+  ) {}
+
+  async execute() {
+    const active = (await this.assets.activeSymbols("crypto")).map((s) => s.toUpperCase());
+    const activeSet = new Set(active);
+    const [held, watched, top, marks] = await Promise.all([
+      this.heldSymbols().catch((error) => {
+        logger.warn("5분봉 따라잡기 — 보유 종목을 못 읽었다(순서만 바뀐다)", error);
+        return [] as string[];
+      }),
+      this.watchlist.distinctSymbols("crypto"),
+      this.assets.topByTradeValue("crypto", active.length),
+      this.fillMarks.marks("crypto", "5m", active),
+    ]);
+    const now = this.now();
+    const order = catchUpOrder(held, watched, top, active).filter(
+      (symbol) => activeSet.has(symbol) && needsCatchUp(marks.get(symbol), now)
+    );
+
+    let calls = 0;
+    let candles = 0;
+    let done = 0;
+    let failed = 0;
+    for (const symbol of order) {
+      if (calls >= this.callsPerRun) break;
+      let cursor = catchUpStart(marks.get(symbol), now);
+      try {
+        while (calls < this.callsPerRun && cursor.getTime() < now.getTime()) {
+          const to = new Date(Math.min(cursor.getTime() + FIVE_MINUTE_PAGE_MS, now.getTime()));
+          const page = await this.exchange.candlesByTimeframe(symbol, "5m", CANDLE_PAGE, to);
+          calls++;
+          // 거래 없는 구간은 봉이 없다 — 물어본 것으로 끝(위치는 옮긴다)
+          await this.prices.upsertCandles(symbol, "crypto", "5m", page);
+          candles += page.length;
+          // 위치 = 물은 구간의 끝(`to`). 마지막 쪽의 진행 중 봉은 정기 수집이 다음 회차에 다시 받는다(창 안)
+          await this.fillMarks.advance("crypto", "5m", [{ symbol, filledThrough: to }], now);
+          cursor = to;
+        }
+        if (cursor.getTime() >= now.getTime()) done++;
+      } catch (error) {
+        failed++;
+        logger.warn(`5분봉 따라잡기 실패 — ${symbol}`, error);
+      }
+    }
+
+    const pending = order.length - done;
+    if (order.length > 0) {
+      logger.info(
+        `🧩 5분봉 따라잡기: 대상 ${order.length} · 끝 ${done} · 남음 ${pending} · 호출 ${calls} · 봉 ${candles} · 실패 ${failed}`
+      );
+    }
+    return { targets: order.length, done, pending, calls, candles, failed };
   }
 }
 

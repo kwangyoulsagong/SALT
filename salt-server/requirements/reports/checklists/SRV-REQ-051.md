@@ -107,3 +107,9 @@
   - `salt-server/src/market/application/__tests__/whyMoved.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## F017 단계 1c 수집 따라잡기 (2026-11-11, `feat/f017-s1c-collection`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `KisClient` — 한도 초과 쉬기를 페이서로(쉬기 끝에 줄이 몰려 나가던 것) · 동시 대기 상한(`SRV-REQ-057` FR-3). 업종 · 프로그램 회차 변경 0 · `npm test` 전체 · lint · build · 레이어 훅 사후(음성 대조 exit 2) |

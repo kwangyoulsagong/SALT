@@ -434,3 +434,8 @@ LLM 해설이 `expectedReturn.lowPercent/highPercent` 를 만든다. 전 영역 
 ## 2026-11-10 — 장중 504
 
 - 파일만 걸침 — 판단은 `DB-REQ-017` 회고(같은 꼴 세 번째 → 기계 검사)
+
+## F017 단계 1c 수집 따라잡기 (2026-11-11, `feat/f017-s1c-collection`)
+
+- 닿은 것: `pacer.ts` — 쉬기 `pauseUntil` · 동시 대기 상한 `maxInFlight`(KIS 모의 한도, `SRV-REQ-057` FR-3). 기존 간격 · 우선순위 동작 그대로(테스트 그대로 통과)
+- 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-057` · `DB-REQ-044`

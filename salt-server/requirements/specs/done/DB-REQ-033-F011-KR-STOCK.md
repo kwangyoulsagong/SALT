@@ -63,3 +63,4 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
   - `salt-server/src/market/domain/ports.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/market/infrastructure/PrismaKrStockStore.ts` — 504 5회차 — 봉 upsert 는 바뀐 행만(`IS DISTINCT FROM`) · 캔들 동시 10 → 4 · 표 자동 청소 2%(`DB-REQ-017`)
   - `salt-server/src/portfolio/domain/ports.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
+- 2026-11-11(1c): `feat/f017-s1c-collection`: `ports.ts` 에 채운 위치 · 스냅샷 포트(`DB-REQ-044`). 국내 표 · 열 변경 0

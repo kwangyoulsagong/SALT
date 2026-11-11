@@ -31,3 +31,9 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 게스트 발급 클라이언트 IP 상한 | 셸 → BFF → 서버에 `X-Forwarded-For` 사슬 · `trust proxy` 가 없다(초대 경로 상한도 같은 처지) | 배포 라우팅(`OPS-001`) 때 |
+
+## F017 단계 1c 수집 따라잡기 (2026-11-11, `feat/f017-s1c-collection`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `env.ts` — `KIS_REQUESTS_PER_SECOND` 비우면 주소로(모의 1 · 실 3) · `KIS_MAX_IN_FLIGHT`(`SRV-REQ-057` FR-3). 손님 시세 변경 0 · `npm test` 전체 · lint · build · 레이어 훅 사후(음성 대조 exit 2) |

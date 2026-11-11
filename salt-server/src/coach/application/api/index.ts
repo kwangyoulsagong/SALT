@@ -1,3 +1,4 @@
+import { ReportTriadGaps } from "../ReportTriadGaps";
 import type {
   CoachExplainer,
   LlmBudgetLimits,
@@ -112,6 +113,8 @@ export interface CoachDependencies {
 }
 
 export interface CoachUseCases {
+  /** 3종 결함 10분 줄(`SRV-REQ-053` FR-8) */
+  reportTriadGaps: ReportTriadGaps;
   generateRecommendation: GenerateCoachRecommendation;
   requestGeneration: RequestCoachGeneration;
   getGenerationStatus: GetCoachGenerationStatus;
@@ -205,6 +208,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
   );
 
   const useCases: CoachUseCases = {
+    reportTriadGaps: new ReportTriadGaps(),
     generateRecommendation,
     requestGeneration: new RequestCoachGeneration(
       deps.generationLogs,

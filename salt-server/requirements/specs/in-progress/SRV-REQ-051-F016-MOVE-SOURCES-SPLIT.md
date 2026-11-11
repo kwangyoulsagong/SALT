@@ -114,3 +114,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
   - `salt-server/src/market/application/GetWhyMoved.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/market/application/__tests__/krMoveSources.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
   - `salt-server/src/market/application/__tests__/whyMoved.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로
+- 2026-11-11(1c): `feat/f017-s1c-collection`: `KisClient` — 한도 초과 쉬기를 페이서로(쉬기 끝에 줄이 몰려 나가던 것) · 동시 대기 상한(`SRV-REQ-057` FR-3). 업종 · 프로그램 회차 변경 0

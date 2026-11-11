@@ -41,3 +41,4 @@ source: "`FEATURE-018` · `ADR-011`(사용자 결정 2026-11-10)"
 
 ## Changelog
 - 2026-11-10: 초안 · 구현 · 실화면 확인 → **done**
+- 2026-11-11(1c): `feat/f017-s1c-collection`: `env.ts` — `KIS_REQUESTS_PER_SECOND` 비우면 주소로(모의 1 · 실 3) · `KIS_MAX_IN_FLIGHT`(`SRV-REQ-057` FR-3). 손님 시세 변경 0

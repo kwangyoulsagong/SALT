@@ -35,6 +35,28 @@ export const COACH_MESSAGES = {
   /** 스크린리더용. "점수 72 / 100" 을 "72 슬래시 100" 으로 읽지 않게 (FR-13) */
   scoreAccessible: (score: number) => `100점 중 ${score}점`,
   reasonCount: (count: number) => `근거 ${count}`,
+  /** 관망이고 근거 문장이 없을 때(`FE-REQ-064` FR-1) — 규칙이 문턱을 넘은 값을 못 봤다는 사실 */
+  noSignal: "규칙이 신호를 내지 않았어요",
+  /**
+   * 관측 한 줄(`FE-REQ-064` FR-1) — 엔진이 본 값과 그 문턱(서버 `lower` · `upper`). 문턱 밖이면 넘은 쪽을 말한다.
+   * 무엇을 몇 개 보여 줄지는 서버 순서 + `nearestObservations`
+   */
+  observedLine: (parts: string[]) => `본 값 — ${parts.join(" · ")}`,
+  observedItem: { rsi: "RSI", change24h: "24시간 변화", sentiment: "심리 점수" } as Record<string, string>,
+  observedValue: (item: string, value: number) =>
+    item === "change24h"
+      ? `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(1)}%`
+      : item === "rsi"
+        ? value.toFixed(1)
+        : String(Math.round(value)),
+  /** 문턱은 정수면 정수로(35~70) — 값만 소수 */
+  observedBound: (item: string, bound: number) => {
+    const text = Number.isInteger(bound) ? String(Math.abs(bound)) : Math.abs(bound).toFixed(1);
+    if (item !== "change24h") return bound < 0 ? `−${text}` : text;
+    return `${bound > 0 ? "+" : bound < 0 ? "−" : ""}${text}%`;
+  },
+  observedRange: (lower: string, upper: string, side: "inside" | "below" | "above") =>
+    side === "inside" ? `${lower}~${upper} 사이` : side === "below" ? `${lower} 아래` : `${upper} 위`,
   trackSample: (count: number) => `이 판단 성적 ${count}회`,
   /** 라이브 표본이 모자랄 동안 과거 시세로 되돌려 채점한 성적(국내 장기 F011 슬라이스 7b · 코인 · 국내 단타 2026-11-10). 라이브와 합산하지 않는다 */
   backtestTrackSample: (count: number) => `과거 시세로 되돌려 채점 ${count.toLocaleString("ko-KR")}회 · 모의`,

@@ -183,6 +183,35 @@ latest() {
   " 2>/dev/null | while IFS='|' read -r label at ago mark; do printf "  %-2s %s %s (%s)\n" "$mark" "$label" "$at" "$ago"; done || say "  (DB 조회 실패)"
 }
 
+# 수집 · 판단 점검(OPS-003) — "프로세스는 떠 있고 시각도 최신인데 구멍이 있다"를 센다. 코인 · 국내 같은 줄 넷 + 3종 결함 · KIS 한도 · 수면.
+# 쿼리는 읽기 전용 · 실패하면 그 줄만 `?`. 국내 유니버스 = 오늘 추적 목록 스냅샷(DB-REQ-044 — kr_stock_quotes 는 밀려난 종목이 남는다)
+collection() {
+  local KR_TOP_N; KR_TOP_N=$(sed -n 's/^KIS_UNIVERSE_TOP_N=\([0-9]*\).*/\1/p' "$ROOT/salt-server/.env" 2>/dev/null | head -1); KR_TOP_N=${KR_TOP_N:-50}
+  local url; url=$(sed -n 's/^DATABASE_URL="\{0,1\}\([^"?]*\).*/\1/p' "$ROOT/salt-server/.env" 2>/dev/null | head -1)
+  [[ -z $url ]] && return
+  say "  — 수집 점검 (코인 | 국내)"
+  psql "$url" -At -F '|' -v ON_ERROR_STOP=0 -v kr_top_n="$KR_TOP_N" -f "$ROOT/ops/collection-status.sql" 2>/dev/null | while IFS='|' read -r label crypto kr; do printf "  %-14s %-34s | %s\n" "$label" "${crypto:-?}" "${kr:-?}"; done
+  # 서버 로그 줄 — 지표 저장소가 없어 로그가 지표다(재시작하면 그 뒤부터)
+  local log; log=$(ls -t "$LOGS"/salt-server.log* 2>/dev/null | head -1)
+  [[ -z $log ]] && return
+  local plain; plain=$(sed 's/\x1b\[[0-9;]*m//g' "$log" 2>/dev/null)
+  local triad; triad=$(print -r -- "$plain" | grep -a '3종 결함 10분' | tail -1)
+  if [[ -z $triad ]]; then say "  ?  3종 결함 — 서버 줄 없음(재시작 뒤 10분 안)"
+  else local n=${triad##*합 }; [[ $n == 0 ]] && say "  ok 3종 결함 0 (${triad[1,16]})" || say "  ✗  3종 결함 $n — ${triad#*10분: }"; fi
+  # KIS 한도 — 최근 6줄(1시간) 호출 · 초과 합
+  local kis; kis=$(print -r -- "$plain" | grep -a 'KIS 10분' | tail -6 | grep -oE '[A-Z0-9]+ [0-9]+/[0-9]+/[0-9]+' | awk '{split($2,a,"/"); c+=a[1]; r+=a[3]} END {if (c>0) printf "%d %d %.1f", c, r, r*100/c}')
+  if [[ -z $kis ]]; then say "  ·  KIS 한도 — 최근 1시간 호출 없음"
+  else local parts=(${=kis}); (( ${parts[2]} * 100 > ${parts[1]} )) && m="✗" || m="ok"; say "  $m KIS 한도 초과 ${parts[3]}% (최근 1시간 호출 ${parts[1]} · 초과 ${parts[2]})"; fi
+  # 수면 — 마지막 깸과 그 뒤 따라잡기 끝
+  local wake end; wake=$(print -r -- "$plain" | grep -a '💤→☀️' | tail -1); end=$(print -r -- "$plain" | grep -a '깸 따라잡기 끝' | tail -1)
+  if [[ -z $wake ]]; then say "  ·  수면 — 재시작 뒤 없음"
+  elif [[ -n $end && ${end[1,19]} > ${wake[1,19]} ]] || [[ ${end[1,19]} == ${wake[1,19]} ]]; then say "  ok ${${wake#*수면 }%% —*} — 따라잡기 끝 ${end[12,16]}"
+  else
+    local ws; ws=$(date -j -f '%Y-%m-%d %H:%M:%S' "${wake[1,19]}" +%s 2>/dev/null || echo 0)
+    (( $(date +%s) - ws > 1800 )) && say "  ✗  ${${wake#*수면 }%% —*} — 깬 지 30분 넘게 따라잡기 안 끝남" || say "  ·  ${${wake#*수면 }%% —*} — 따라잡는 중"
+  fi
+}
+
 status() {
   say "SALT 상태 — $(date '+%m-%d %H:%M')"
   printf "  %-15s %-8s %-8s %-6s %s\n" 이름 방식 PID 포트 헬스
@@ -207,6 +236,7 @@ status() {
   done
   pg_isready -q -h localhost -p 5432 && say "  postgres    ok" || say "  postgres    ✗ 꺼짐 — brew services start postgresql"
   latest
+  collection
 }
 
 down_one() {

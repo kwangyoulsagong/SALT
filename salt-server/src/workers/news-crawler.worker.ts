@@ -1,5 +1,6 @@
 import { contextUseCases } from "../composition";
 import { logger } from "../shared/config/logger";
+import { onWake, startWakeWatch } from "../shared/infrastructure/wake";
 
 /**
  * 워커는 **스케줄만** 갖는다 (FR-5). 수집 절차는 `news` 컨텍스트의 유스케이스이고,
@@ -23,6 +24,10 @@ class NewsCrawlerWorker {
       },
       60 * 60 * 1000 // 1시간
     );
+
+    // 깨면 바로 한 번(SRV-REQ-057 FR-6) — 1시간 타이머는 자는 동안 멈춰 깬 뒤 최대 1시간 비었다(11-11 04:27 → 08:27 깸 뒤 무수집)
+    onWake('news-crawl', () => this.crawlNews());
+    startWakeWatch();
 
     logger.info('✅ News Crawler Worker running (interval: 1 hour)');
   }

@@ -449,3 +449,9 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 국내 기본 모드 장기 | 충족 | `krStockJudgment.test.ts` "기본 모드는 장기" · `npm test` 1133/1133 · lint · build · 레이어 훅 사후(음성 대조 exit 2) · 서버 150요청 · 300모드 실측: 3종 결함 160 → 6 · p95 40ms(재시작 직후 292) |
+
+## F017 단계 1c 수집 따라잡기 (2026-11-11, `feat/f017-s1c-collection`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | 해설 테스트 가짜 시장에 `dailyBarCounts`(위와 같은 이유). 해설 계약 변경 0 · `npm test` 전체 · lint · build · 레이어 훅 사후(음성 대조 exit 2) |

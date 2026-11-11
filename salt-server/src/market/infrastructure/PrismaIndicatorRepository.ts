@@ -46,12 +46,18 @@ export class PrismaIndicatorRepository implements IndicatorRepository {
         ma20: input.indicators.ma20,
         ma50: input.indicators.ma50,
         volumeAvg20: input.indicators.volumeAvg20,
+        macd: input.indicators.macd,
+        macdSignal: input.indicators.macdSignal,
+        macdHist: input.indicators.macdHist,
       },
       update: {
         rsi14: input.indicators.rsi14,
         ma20: input.indicators.ma20,
         ma50: input.indicators.ma50,
         volumeAvg20: input.indicators.volumeAvg20,
+        macd: input.indicators.macd,
+        macdSignal: input.indicators.macdSignal,
+        macdHist: input.indicators.macdHist,
       },
     });
   }

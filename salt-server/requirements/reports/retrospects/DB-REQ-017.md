@@ -160,3 +160,8 @@ REQ 쪽이 틀렸다: FR-50~53 은 `InvestmentInsight` 의 소비처를 보지 �
 
 - 문제: 10만 행을 넣고 집계 쿼리(`summarize`)만 `EXPLAIN` 했고 사례 쿼리는 안 봤다 — 실화면 390 에서 504 로 드러남
 - 액션: 행 수를 크게 바꾸는 쓰기 뒤엔 그 표를 읽는 쿼리 전부를 `EXPLAIN`(grep `symbolJudgmentSnapshot.`)
+
+## F017 단계 1c 수집 따라잡기 (2026-11-11, `feat/f017-s1c-collection`)
+
+- 닿은 것: `app.ts` 워커 시작에 깸 감시(`SRV-REQ-057` FR-6) — 지표 갱신을 깸 구독 맨 뒤에 한 번. 풀 규칙(종목 동시 4 · 행 쓰기 한 문장) 그대로 — 새 쓰기 둘(채운 위치 · 스냅샷)도 한 문장
+- 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-057` · `DB-REQ-044`
