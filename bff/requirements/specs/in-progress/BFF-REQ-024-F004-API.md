@@ -243,3 +243,4 @@ type SymbolCoachViewModel = {
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-invest/src/features/run-preflight/api/runPreflightApi.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
 | 2026-11-10 | v2 대체 표시 — `ModeCoachViewModel` 타입 · FR-31 · FR-37 · 수용 기준 (`FEATURE-017` v2 · `ADR-010` v2) |
 | 2026-11-10 | F017 v2 단계 1(`f843104e`) — FR-31 뒤집힘 구현: 모드 뷰모델 판단 늘 · `observations` · `caveats`(모르는 사유 `unknown`) |
+| 2026-11-11 | `feat/f017-s1c-collection`: `@repo/core` `symbolCoach.ts` 에 `nearestObservations` · `judgmentEvidenceCount`(`FE-REQ-064` FR-1 — 관망 본 값 줄 · 근거 수). 뷰모델 계약 변경 0(이미 내려오던 `observations`) |

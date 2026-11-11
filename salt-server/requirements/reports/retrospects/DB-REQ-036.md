@@ -35,3 +35,8 @@
 ## 2026-11-09
 
 - 새 표를 만드는 REQ 가 주인 표(부록 A)를 같이 고치지 않았다 — 단계 A~C 세 번 연속. 표를 만드는 마이그레이션의 체크리스트에 "부록 A 행" 칸을 둔다
+
+## F017 단계 1c 수집 따라잡기 (2026-11-11, `feat/f017-s1c-collection`)
+
+- 닿은 것: 부록 A market 행에 `market_universe_snapshot` · `price_fill_mark` · 부록 B11(예측 스냅샷 읽기 — S5 export 뷰)
+- 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-057` · `DB-REQ-044`

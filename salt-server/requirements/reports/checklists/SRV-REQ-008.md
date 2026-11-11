@@ -271,3 +271,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 판단 표 인덱스 하나 | 충족 | 마이그레이션 적용 · 스키마 ↔ DB 차이 0 · `prisma:generate` · build |
+
+## F017 단계 1c 수집 따라잡기 (2026-11-11, `feat/f017-s1c-collection`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `schema.prisma` 에 `MarketUniverseSnapshot` · `PriceFillMark`(`DB-REQ-044`). 관심 추가는 5분봉 따라잡기 순서(보유 · 관심 먼저)에 반영 — FR-80~87 계약 변경 0 · `npm test` 전체 · lint · build · 레이어 훅 사후(음성 대조 exit 2) |

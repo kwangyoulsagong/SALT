@@ -110,3 +110,9 @@
 | 항목 | 결과 |
 |---|---|
 | `ops/salt.sh status` 신선도 두 줄 — 국내 지수 일별(4일 넘으면 ✗) · 등락 분해 β as_of(3일 넘으면 ✗, 서버가 7일에 버리기 전). F016 단계 C `SRV-REQ-051` FR-12 | `ops/salt.sh status` 출력 두 줄 ok(11-09 10:49) |
+
+## F017 단계 1c (2026-11-11, `feat/f017-s1c-collection`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `ops/salt.sh` `status` 아래 수집 점검(`OPS-003`) — 쿼리 `ops/collection-status.sql` · 결함 주입 시험. 저축 서비스 기동 · 이름 표 변경 0 · 영역 검증 |

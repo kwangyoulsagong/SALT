@@ -341,3 +341,4 @@ type ExplainResult =
   - `salt-server/src/coach/presentation/aiCoach.routes.ts` — Swagger · 컨트롤러 — 국내 "소유자 전용 404" 문구 · 인자 정리
   - `salt-server/src/coach/presentation/coachReport.routes.ts` — Swagger · 컨트롤러 — 국내 "소유자 전용 404" 문구 · 인자 정리
 - 2026-11-10 밤(1b): `GetSymbolCoach` 기본 모드 — 국내는 장기 그대로(국내 단타를 열어도 프로필 기본 모드는 코인에서 고른 것이라 국내엔 안 건다, `326a0553`). 응답 모양 무변경
+- 2026-11-11(1c): `feat/f017-s1c-collection`: 해설 테스트 가짜 시장에 `dailyBarCounts`(위와 같은 이유). 해설 계약 변경 0

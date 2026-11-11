@@ -27,7 +27,7 @@ BFF 작업은 `bff/**`를 작업 범위로 보고, `bff/.claude/rules/`의 관�
 | `.claude/rules/pr-convention.md` | PR 본문 규칙. 무엇을·왜 / 리뷰 초점 / **미검증·범위 밖** / 계약 변경 |
 | `.github/pull_request_template.md` | GitHub이 새 PR 본문에 자동으로 채운다 |
 | `.claude/skills/pr-summary/SKILL.md` | 현재 브랜치의 PR 본문을 템플릿대로 채워 출력한다 (`/pr-summary`) |
-| `ops/salt.sh` | **로컬 전체 기동 · 상태**(`up` · `status` · `down` · `restart` · `logs`). 데이터를 모으는 프로세스(서버 · 뉴스 · BFF 시세 워커 · 예측)는 launchd 상시. 새 수집 워커는 이 스크립트 이름 표 · 신선도 쿼리에 같이 넣는다(`OPS-002`) |
+| `ops/salt.sh` | **로컬 전체 기동 · 상태**(`up` · `status` · `down` · `restart` · `logs`). 데이터를 모으는 프로세스(서버 · 뉴스 · BFF 시세 워커 · 예측)는 launchd 상시. 새 수집 워커는 이 스크립트 이름 표 · 신선도 쿼리에 같이 넣는다(`OPS-002`). `status` 아래 수집 점검(코인 | 국내 구멍 · 지표 묵음 · 3종 결함 · KIS 한도 · 수면) 쿼리는 `ops/collection-status.sql` · 결함 주입 시험 `ops/collection-status.test.sh`(`OPS-003`) |
 | `scripts/check-done.mjs` · `.claude/rules/done-checklist.md` | **done 전 검사**(`DEV-001`). 주인 REQ 문서 · 루트 슬라이스 · 마스터 인덱스 · 규칙 200줄 · 외부 서비스 이름을 기계가 센다. 사람 몫(구현 전 기존 코드 찾기 · 실화면)은 체크리스트. **코드 리뷰 스킬은 쓰지 않는다**(2026-11-04) |
 | `.claude/settings.json` `hooks.PreToolUse` | `salt-microFe/.claude/hooks/layer-check.mjs` 를 Edit/Write 직전에 돌린다. FSD 레이어 위반이면 **exit 2로 쓰기를 막는다** |
 

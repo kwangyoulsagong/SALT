@@ -47,3 +47,9 @@
 ## 2026-11-09 — 부록 A 보강
 
 - `market` 행에 F016 국내 표 여덟 · `news_article_body` — 마이그레이션 `202611*` 의 `CREATE TABLE` 전부와 대조(grep)
+
+## F017 단계 1c 수집 따라잡기 (2026-11-11, `feat/f017-s1c-collection`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | 부록 A market 행에 `market_universe_snapshot` · `price_fill_mark` · 부록 B11(예측 스냅샷 읽기 — S5 export 뷰) · `npm test` 전체 · lint · build · 레이어 훅 사후(음성 대조 exit 2) |

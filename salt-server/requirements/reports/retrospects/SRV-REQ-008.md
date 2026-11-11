@@ -173,3 +173,8 @@ Action: 없음(남은 F006 몫은 `SRV-REQ-028` Changelog 에)
 
 - 배운 것: 스키마 파일 한 줄이 이 REQ 에 걸린다 — 주인 REQ(`DB-REQ-017`)에 내용, 여기엔 기록만
 - 액션: 없음
+
+## F017 단계 1c 수집 따라잡기 (2026-11-11, `feat/f017-s1c-collection`)
+
+- 닿은 것: `schema.prisma` 에 `MarketUniverseSnapshot` · `PriceFillMark`(`DB-REQ-044`). 관심 추가는 5분봉 따라잡기 순서(보유 · 관심 먼저)에 반영 — FR-80~87 계약 변경 0
+- 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-057` · `DB-REQ-044`

@@ -39,3 +39,8 @@
 
 - 배운 것: "막힌 판단의 점수가 새지 않게" 타입으로 막던 장치가 반대 요구가 됐다 — 타입 계약은 요구가 바뀌면 통째로 뒤집힌다
 - 액션: 3종 결함 수를 상태 점검(`OPS-003`)에 넣어 0 이 될 때까지 센다
+
+## F017 단계 1c (2026-11-11, `feat/f017-s1c-collection`)
+
+- 닿은 것: `@repo/core` `symbolCoach.ts` 에 `nearestObservations` · `judgmentEvidenceCount`(`FE-REQ-064` FR-1 — 관망 본 값 줄 · 근거 수). 뷰모델 계약 변경 0(이미 내려오던 `observations`)
+- 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-057` · `OPS-003` · `FE-REQ-064`
