@@ -25,6 +25,7 @@ import {
   type SymbolJudgmentStore,
 } from "../../domain";
 import { logger } from "../../../shared/config/logger";
+import { recordTriad } from "./triadGaps";
 
 /** 점수 옆에 늘 붙는 문장 (공통 수용 기준 4 — 확신 표현 0건). */
 export const SCORE_NOTE = "점수는 확률이 아닙니다";
@@ -188,6 +189,7 @@ export const attachJudgmentTrack = async (
     staleInputs: guards.staleInputs ?? [],
     historyShort: guards.history ? !guards.history.ready : false,
   });
+  recordTriad(assetClass, decision.mode, decision.symbol, reasons);
 
   return {
     judgment: {

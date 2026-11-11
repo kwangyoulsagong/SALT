@@ -14,7 +14,7 @@ import { ForecastRunnerWorker } from "./workers/forecast-runner.worker";
 
 // 이관된 컨텍스트의 라우터는 조립 지점에서 온다 (`composition.ts`)
 import { contextRouters, contextUseCases } from "./composition";
-import { runGuarded } from "./shared/infrastructure/scheduler";
+import { runGuarded, schedule } from "./shared/infrastructure/scheduler";
 import { onWake, startWakeWatch } from "./shared/infrastructure/wake";
 
 // Routes (이관 전 모듈)
@@ -38,6 +38,10 @@ export const startWorkers = () => {
     runGuarded("technical-indicators", () => contextUseCases.market.refreshTechnicalIndicators.execute())
   );
   startWakeWatch();
+  // 3종 결함 10분 줄(SRV-REQ-053 FR-8) — 상태 점검(OPS-003)이 읽는다
+  schedule("coach-triad-gaps", "*/10 * * * *", () => {
+    contextUseCases.coach.reportTriadGaps.execute();
+  });
 
   const insightsWorker = new InvestmentInsightWorker();
   insightsWorker.start();
