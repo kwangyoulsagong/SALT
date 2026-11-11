@@ -49,3 +49,9 @@
   - `salt-server/src/shared/infrastructure/__tests__/ownerGateScope.test.ts` — 기계 검사 — 소유자 판정(`isForecastOwner`)은 전망 셋 + 해설 라우팅만 · `isKrStockViewer` 0
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 라우팅 | 충족 | `explainRouting.test.ts` 배치 표 · 실데이터 첫 회차 로컬 Claude 12/12 |

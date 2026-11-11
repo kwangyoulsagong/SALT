@@ -9,6 +9,8 @@ created: 2026-09-24
 source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 ---
 
+> **정정 2026-11-11 — 해설 스트림 은퇴**(F017 v2 단계 3, `feat/f017-s3-explain-always`). 해설은 배치가 미리 만든 것을 읽는다 — `GET /api/app/ai-coach/explanation`(4단, `BFF-REQ-052` FR-2 · `SRV-REQ-053` FR-3 · `FE-REQ-064` FR-2). 아래 `POST …/explain` · `…/explain/stream` 과 그 중계 · 화면은 지웠다(소비처가 같은 PR 에서 옮겨 감 — 제거 = 404). 기록으로 둔다.
+
 | FR | 내용 | FEATURE-008 | 상태 |
 |---|---|---|---|
 | FR-1 | 기간별 90% 범위 띠(가운데 50% 굵게 · 중앙값 · 기준가 점선) + 가격 표 | FR-65 | FR-8 로 대체 |
@@ -44,3 +46,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-04 | `ForecastFanChart` 의 렌더 중 `Date.now()` 두 줄에 `no-render-read` 예외 주석 — 전망은 소유자 전용 조회라 마운트 뒤 브라우저에서만 그려진다(서버 렌더에 없음, `DEV-001`) |
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 쿠키 세션(`feat/fe-req-013-fr80-cookie-session`, 루트 `requirements/specs/done/F000-cookie-session-slice.md`): 파일만 걸침 — `packages/domain-invest/src/entities/coach/api/useSymbolEvents.ts` `packages/domain-invest/src/entities/coach/api/useSymbolForecast.ts` `packages/domain-invest/src/entities/coach/api/useSymbolPositioning.ts`(이 REQ 가 머리 주석 주인)에서 토큰 헤더(`authHeader()`)를 뺐다 · 로그인 여부 `useHasSession`. 토큰은 httpOnly 쿠키 · 같은 origin 이라 브라우저가 싣는다(`721063fc`). 화면 · 동작 무변경 |
 | 2026-11-10 | F017 v2 단계 1(`f7ce96dc` · `41447893`) — 해설 카드 막힌 모드 분기 삭제 · 성적 · 사례 중복 제거(판단 카드가 3종을 늘 보임) |
+| 2026-11-11 | 해설 스트림 카드 **은퇴** — 늘 보이는 4단 해설 칸(`FE-REQ-064` FR-2). `@repo/core` `explainStream.ts` → `explanation.ts` — F017 v2 단계 3(`feat/f017-s3-explain-always`) |

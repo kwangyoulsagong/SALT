@@ -23,3 +23,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `coach/domain/ports.ts` 에 포트 `BaseRateReader` · `TradeCheckLedger`. 기존 포트 무변경 · `npm run build` · `npm run lint` · `npm test` 1200 통과 · `npm run test:layer-check` · 레이어 훅 사후 실행(음성 대조 exit 2) · `prisma migrate diff` 0 |
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| Port | 충족 | build · 테스트 |

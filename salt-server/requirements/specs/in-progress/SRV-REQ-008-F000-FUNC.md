@@ -263,6 +263,7 @@ F000은 신규 엔진이 아니라 **기존 것을 고치고 좁히는 것**이�
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `schema.prisma`(머리에 이 REQ) 에 국내 등락 원천 표 다섯(`DB-REQ-041`). 이 REQ 몫 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
 | 2026-11-09 | `schema.prisma` — `KrIndexName` · 마스터 중분류 칸(F016 단계 C `DB-REQ-041`) |
 | 2026-11-10 | `presentation/dto/search.dto.ts` 에 `searchGroupsSchema` · `risingSectorsSchema` · `searchRelatedSchema` · 컨트롤러 셋 · 라우트 셋(`SRV-REQ-055` `dd0bbdcc`). 기존 `/api/investment/search` 무변경 |
+| 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — `schema.prisma` 에 `ExplanationSnapshot`(`DB-REQ-043` FR-1) — 기존 모델 변경 0 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-server/src/market/application/ManageWatchlist.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/market/application/SearchAssets.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자

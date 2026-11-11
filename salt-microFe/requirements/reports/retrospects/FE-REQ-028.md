@@ -91,3 +91,7 @@
 
 - 닿은 것: `entities/coach/api` 에 엔드포인트 `tradeCheck` · 쿼리 키 `tradeCheck(symbol, side)` · `coachApi.tradeCheck` · 훅 `useTradeCheck`(staleTime 60초). 기존 API 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `FE-REQ-064` · BFF `BFF-REQ-052` · 서버 `SRV-REQ-053`
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+- 액션: 없음

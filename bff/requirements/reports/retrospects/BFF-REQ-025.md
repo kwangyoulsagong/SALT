@@ -75,3 +75,8 @@ FR-6(4xx · `Retry-After` 전달) · FR-7(동시 2) · FR-10~12(토큰 전달)�
 
 - 닿은 것: `app-ai-coach.service.ts` 에 `getTradeCheck` — 서버 `GET /api/coach/check` 호출(제한 200ms · 재시도 1회 · 응답 모양이 깨지면 502). 기존 업스트림 호출 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `BFF-REQ-052`(FR-3) · 서버 `SRV-REQ-053` · FE `FE-REQ-064`
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+- 배운 것: LLM 을 요청 경로에서 빼니 동시 상한 · 취소 전파 · 긴 타임아웃이 같이 사라졌다 — 지켜야 할 것이 줄었다
+- 액션: 없음

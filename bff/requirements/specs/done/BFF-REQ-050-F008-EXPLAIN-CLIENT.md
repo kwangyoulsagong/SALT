@@ -8,6 +8,8 @@ created: 2026-11-02
 source: salt-server/requirements/specs/to-do/SRV-REQ-050-F008-EXPLAIN-LLM-ROUTING.md
 ---
 
+> **정정 2026-11-11 — 해설 스트림 은퇴**(F017 v2 단계 3, `feat/f017-s3-explain-always`). 해설은 배치가 미리 만든 것을 읽는다 — `GET /api/app/ai-coach/explanation`(4단, `BFF-REQ-052` FR-2 · `SRV-REQ-053` FR-3 · `FE-REQ-064` FR-2). 아래 `POST …/explain` · `…/explain/stream` 과 그 중계 · 화면은 지웠다(소비처가 같은 PR 에서 옮겨 감 — 제거 = 404). 기록으로 둔다.
+
 ## Summary
 
 서버가 해설 다듬기 공급자를 고를 때 "모바일이면 Gemini"(`SRV-REQ-050` FR-4)를 알려면 요청이 어디서 왔는지가 필요하다. 그 판단은 BFF 가 이미 한다
@@ -41,3 +43,4 @@ source: salt-server/requirements/specs/to-do/SRV-REQ-050-F008-EXPLAIN-LLM-ROUTIN
 | 2026-11-02 | 완료 — UA 판별은 BFF 유틸(`@repo/core` `isAppWebView` 와 같은 정규식, BFF 는 core 를 import 하지 않는다). FR-3 타입은 `@repo/core/coach` `ExplainProvider` · `message.step.provider`(스트림 시작에 공급자, `SRV-REQ-050` FR-13) |
 | 2026-11-03 | S0(`feat/srv-req-043-s0-platform`, 루트 `MONEY-S0-platform-slice.md`) — `proxyAuthRequest` 의 `headers`(BFF 가 정한 것만)에 BFF 가 만든 `traceparent` 가 하나 더 실린다(`BFF-REQ-045` FR-7). 해설 공급자 헤더 동작 무변경 |
 | 2026-11-03 | 커밋 대조 — 걸친 파일 `backend-api.service.ts`: `4bc746f1`(인터셉터) · `cc184c3a`(녹화 주소 · 그림자 상한) |
+| 2026-11-11 | `X-Salt-Client` 헤더 **은퇴** — 해설이 요청 경로에서 빠져 공급자를 요청마다 고를 일이 없다(배치는 공용 문장 하나 — `SRV-REQ-050` 배치 표지). `client-kind.util` 삭제 — F017 v2 단계 3(`feat/f017-s3-explain-always`) |

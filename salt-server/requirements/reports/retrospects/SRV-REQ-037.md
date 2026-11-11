@@ -68,3 +68,8 @@ FR-47("LLM 원문 무스트림")은 '검사 전 원문을 흘리지 않는다'�
 
 - 닿은 것: `coachTools.controller.ts` 에 `getTradeCheck` 핸들러. 기존 핸들러 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064`
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+- 배운 것: 템플릿이 바닥이라는 설계가 그대로 4단의 셋째 단이 됐다
+- 액션: 없음

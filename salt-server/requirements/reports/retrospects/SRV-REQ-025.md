@@ -269,3 +269,7 @@ Swagger 를 처음 문서 커밋에서 빠뜨렸다 — 주인 REQ 를 셀 때 �
 
 - 닿은 것: `coachReport.routes.ts` 에 경로 `GET /api/coach/check`(Swagger 포함). 기존 경로 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064`
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+- 액션: 없음

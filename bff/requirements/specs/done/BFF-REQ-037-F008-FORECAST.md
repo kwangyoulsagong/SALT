@@ -9,6 +9,8 @@ created: 2026-09-24
 source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 ---
 
+> **정정 2026-11-11 — 해설 스트림 은퇴**(F017 v2 단계 3, `feat/f017-s3-explain-always`). 해설은 배치가 미리 만든 것을 읽는다 — `GET /api/app/ai-coach/explanation`(4단, `BFF-REQ-052` FR-2 · `SRV-REQ-053` FR-3 · `FE-REQ-064` FR-2). 아래 `POST …/explain` · `…/explain/stream` 과 그 중계 · 화면은 지웠다(소비처가 같은 PR 에서 옮겨 감 — 제거 = 404). 기록으로 둔다.
+
 | FR | 내용 | 상태 |
 |---|---|---|
 | FR-1 | `GET /api/app/coach/forecast?symbol=` — 인증, 심볼 형식 400 | 완료 |
@@ -34,3 +36,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | **변경 없음.** 해설 스트림 `message.card.citations[]` 에 서버가 `url` · `publishedAt` 을 더했다(`SRV-REQ-037` FR-12). BFF 는 이벤트 이름만 걸러 데이터는 그대로 옮긴다 — 코드 무변경. F008 해설 근거 슬라이스. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
 | 2026-11-02 | 해설 스트림 중계 — `provider`(`replace` · `done` · `polish:active` 단계)가 데이터 그대로 지난다(테스트 고정). `@repo/core` `ExplainStreamEvent` 에 `ExplainProvider` · 계약 주석(흐르는 글자가 검사한 LLM 문장일 수 있다). 근거 `BFF-REQ-050` · `SRV-REQ-050` FR-13. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 주요 사건 뷰모델에 국내 종류 4 · `scope` · `region`(옛 응답은 `market` · `us`)(`BFF-REQ-043` FR-1 · 2) |
+| 2026-11-11 | FR-6 해설 스트림 중계 **은퇴** — 해설은 저장값 읽기(`BFF-REQ-052` FR-2) — F017 v2 단계 3(`feat/f017-s3-explain-always`) |

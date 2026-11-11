@@ -461,3 +461,9 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `coachReport.routes.ts` 에 경로 `GET /api/coach/check`(Swagger 포함). 기존 경로 무변경 · `npm run build` · `npm run lint` · `npm test` 1200 통과 · `npm run test:layer-check` · 레이어 훅 사후 실행(음성 대조 exit 2) · `prisma migrate diff` 0 |
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| DTO · 경로 | 충족 | `explainDto.test.ts` · Swagger · `npm test` 1209 |
