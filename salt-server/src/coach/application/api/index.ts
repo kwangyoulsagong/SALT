@@ -20,12 +20,15 @@ import type {
   MonthlyReviewStore,
   RecommendationSnapshotStore,
   RoundTripCosts,
+  BaseRateReader,
+  TradeCheckLedger,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
 import {
   AnalyzeTradingBehavior,
   GetBehaviorCoach,
 } from "../AnalyzeTradingBehavior";
+import { CheckTradeOdds } from "../CheckTradeOdds";
 import { CheckTradePreflight } from "../CheckTradePreflight";
 import { CheckTradeSize } from "../CheckTradeSize";
 import { PreviewTradeBehavior } from "../PreviewTradeBehavior";
@@ -110,6 +113,10 @@ export interface CoachDependencies {
   decisionOutcomes: DecisionOutcomeStore;
   /** 월간 복기(F009 슬라이스 6) — `monthly_reviews` */
   monthlyReviews: MonthlyReviewStore;
+  /** 조건부 기저율(F017 v2 단계 2) — `forecast.v_base_rate` · `v_base_rate_trigger` */
+  baseRates: BaseRateReader;
+  /** 점검 원장(F017 v2 단계 2) — `trade_check_ledger` */
+  tradeCheckLedger: TradeCheckLedger;
 }
 
 export interface CoachUseCases {
@@ -129,6 +136,8 @@ export interface CoachUseCases {
   analyzeTradingBehavior: AnalyzeTradingBehavior;
   getBehaviorCoach: GetBehaviorCoach;
   checkTradePreflight: CheckTradePreflight;
+  /** 사기 전 · 팔기 전 점검 + 맨 위 쉬운 한 줄(F017 v2 단계 2 · `SRV-REQ-053` FR-4) */
+  checkTradeOdds: CheckTradeOdds;
   listProfitPlans: ListProfitPlans;
   getSignalPerformance: GetSignalPerformance;
   getJudgmentScoreboard: GetJudgmentScoreboard;
@@ -264,6 +273,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     ),
     getSymbolForecast: new GetSymbolForecast(deps.forecasts, deps.portfolio, deps.forecastOwnerEmails),
     getSymbolEvents: new GetSymbolEvents(deps.forecasts, deps.forecastOwnerEmails),
+    checkTradeOdds: new CheckTradeOdds(deps.market, deps.portfolio, deps.baseRates, deps.tradeCheckLedger),
     getSymbolPositioning: new GetSymbolPositioning(deps.forecasts, deps.forecastOwnerEmails),
     snapshotSymbolJudgments: new SnapshotSymbolJudgments(
       deps.tracked,

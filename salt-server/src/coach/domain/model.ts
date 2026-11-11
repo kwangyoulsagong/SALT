@@ -43,6 +43,8 @@ export interface CoachQuote {
   change24h: number | null;
   tradeValue24h: number | null;
   priceUpdatedAt: Date | null;
+  /** 오늘 시가 — 국내 주식만(점검 K3). 코인은 없다 */
+  openPrice?: number | null;
 }
 
 /**

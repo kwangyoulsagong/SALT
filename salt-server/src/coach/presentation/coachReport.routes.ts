@@ -49,6 +49,83 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
 
   /**
    * @swagger
+   * /api/coach/check:
+   *   get:
+   *     summary: 사기 전 · 팔기 전 점검 — 맨 위 쉬운 한 줄 (F017 v2)
+   *     description: |
+   *       지금 시세가 사전등록 조건(`base-rate@1` — 국내 K1~K8 · 코인 C1~C8 중 일봉 조건)에 맞는지 보고, 그 조건에서 과거에
+   *       가격이 어떻게 움직였는지 **분포**로 준다. 예측이 아니다 — 목표가 · 매매 지시 필드는 없다.
+   *
+   *       - `summary` 는 서버가 실제 숫자로 만든 한 문장이다(조건 · 기간 · 시장 단위가 같은 문장에). BFF · 화면은 고치지 않는다
+   *       - `status`: `ok` · `below_min`(유효 표본 < 100 또는 서로 다른 날 < 60 — 비율 없음) · `no_condition`(맞는 조건 없음 —
+   *         `conditionReason` 이 이유, 숫자는 평소 값)
+   *       - 사기 전 비율은 **비용 뒤**(국내 수수료 · 그날 거래세 · 반 틱, 코인 0.15%), 팔기 전 보유 연장은 비용 전
+   *       - `differsFromUsual` 은 예측이 Holm 보정을 통과시킨 조건만. 서술 조건(RSI 류)은 늘 `null`
+   *       - `side=sell` 이고 보유가 있으면 `holding.realizedPct`(지금 팔면 확정되는 수익률 %) — 요약 문장에는 넣지 않는다
+   *       - 사용자마다 다른 것은 `holding` 뿐 — 나머지는 종목 단위다. 점검마다 원장에 한 줄(사용자 열 없음, 나중 채점)
+   *     tags: [Coach Report]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: symbol
+   *         required: true
+   *         schema: { type: string, example: "BTC" }
+   *         description: 코인 심볼(`BTC`) 또는 국내 종목 코드(`005930`)
+   *       - in: query
+   *         name: side
+   *         required: false
+   *         schema: { type: string, enum: [buy, sell], default: buy }
+   *     responses:
+   *       200:
+   *         description: 점검. 예측 배치가 없는 DB 여도 200(`no_condition` · `not_covered`)
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     symbol: { type: string }
+   *                     market: { type: string, enum: [kr, crypto] }
+   *                     side: { type: string, enum: [buy, sell] }
+   *                     status: { type: string, enum: [ok, below_min, no_condition] }
+   *                     summary: { type: string }
+   *                     conditionReason: { type: string, nullable: true, enum: [none_matched, stale_reference, not_covered] }
+   *                     condition:
+   *                       type: object
+   *                       nullable: true
+   *                       properties:
+   *                         id: { type: string }
+   *                         phrase: { type: string }
+   *                         describeOnly: { type: boolean }
+   *                     alsoMatched: { type: array, items: { type: object, properties: { id: { type: string }, phrase: { type: string } } } }
+   *                     horizon: { type: integer }
+   *                     horizonLabel: { type: string }
+   *                     sample: { type: integer, nullable: true }
+   *                     sampleDays: { type: integer, nullable: true }
+   *                     sampleEffective: { type: integer, nullable: true }
+   *                     upRate: { type: number, nullable: true, description: "0~1" }
+   *                     upRange: { type: object, nullable: true, properties: { low: { type: number }, high: { type: number } } }
+   *                     differsFromUsual: { type: string, nullable: true, enum: [higher, lower] }
+   *                     recentDiffers: { type: boolean, nullable: true }
+   *                     usual: { type: object, nullable: true }
+   *                     distributions: { type: array, items: { type: object } }
+   *                     holding: { type: object, nullable: true, properties: { realizedPct: { type: number } } }
+   *                     reference: { type: object }
+   *                     disclaimer: { type: string }
+   *       400:
+   *         description: symbol · side 형식 오류
+   *       401:
+   *         description: 인증 실패
+   */
+  router.get("/check", controller.getTradeCheck);
+
+  /**
+   * @swagger
    * /api/coach/forecast:
    *   get:
    *     summary: 가격 변동 범위 (소유자 전용) — F008

@@ -19,6 +19,7 @@ import { PrismaLlmUsageStore } from "./coach/infrastructure/PrismaLlmUsageStore"
 import { PrismaCoachInsightStore } from "./coach/infrastructure/PrismaCoachInsightStore";
 import { OutboxDecisionChangeNotifier } from "./coach/infrastructure/OutboxDecisionChangeNotifier";
 import { PrismaCoachProfileStore } from "./coach/infrastructure/PrismaCoachProfileStore";
+import { PrismaBaseRateReader, PrismaTradeCheckLedger } from "./coach/infrastructure/PrismaBaseRateReader";
 import { PrismaForecastReader } from "./coach/infrastructure/PrismaForecastReader";
 import { PrismaGaugeTrackStore } from "./coach/infrastructure/PrismaGaugeTrackStore";
 import { PrismaJudgmentLedgerStore } from "./coach/infrastructure/PrismaJudgmentLedgerStore";
@@ -304,6 +305,8 @@ const coach = createCoachApplication({
   generationLogs: new PrismaCoachGenerationLogStore(),
   regenerateCooldownSeconds: env.COACH_REGENERATE_COOLDOWN_SECONDS,
   forecasts: new PrismaForecastReader(),
+  baseRates: new PrismaBaseRateReader(),
+  tradeCheckLedger: new PrismaTradeCheckLedger(),
   tradePlans: new PrismaTradePlanStore(),
   decisionOutcomes: new PrismaDecisionOutcomeStore(),
   monthlyReviews: new PrismaMonthlyReviewStore(),
