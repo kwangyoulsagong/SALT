@@ -24,6 +24,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from salt_forecast.domain.base_rate import holm
+from salt_forecast.domain.calendar import KRX_CLOSE_AVAILABLE
 from salt_forecast.domain.logistic import LogitFit, Standardizer, fit_logistic, sigmoid
 from salt_forecast.domain.panel import Mat, Panel, forward_log_return, lag, rolling_sum
 from salt_forecast.domain.prob_calibration import (
@@ -57,6 +58,19 @@ def written_in_time(market: str, as_of: int, expires_at: int, now: int) -> bool:
     if market == "crypto":
         return 0 <= now - as_of <= CRYPTO_WRITE_LAG_S
     return as_of <= now < expires_at - KR_OPEN_BEFORE_CLOSE_S
+
+
+def kr_bar_move_due(open_dates: list[int], last_moved_at: int | None, now: int) -> bool:
+    """매시 회차가 국내 일봉을 지금 옮겨야 하나 — 공개된(그날 16:00 KST) 마지막 거래일 봉을 그 뒤에 옮긴 적이 없을 때.
+
+    `open_dates` 는 거래일 as_of(`calendar.krx_session`, 그날 09:00 KST) 오름차순. 국내 예측은 다음 장 09:00 전에만
+    쓴다(`written_in_time`) — 일봉 옮기기를 매일 배치(마지막 성공 20시간 뒤, 맥이 깨는 아침으로 밀림)에만 두면 그 창을
+    매번 놓친다(2026-11-12 실측: 국내 예측 0, 늦은 예측 347 버림).
+    """
+    published = [d + KRX_CLOSE_AVAILABLE for d in open_dates if d + KRX_CLOSE_AVAILABLE <= now]
+    if not published:
+        return False
+    return last_moved_at is None or last_moved_at < published[-1]
 
 
 CLIP = 5.0
