@@ -10,6 +10,9 @@ export const COACH_ENDPOINTS = {
   /** 사기 전 · 팔기 전 점검 — AI 패널 맨 위 쉬운 한 줄(F017 v2 단계 2 · `BFF-REQ-052` FR-3) */
   tradeCheck: (symbol: string, side: "buy" | "sell") =>
     `/api/app/ai-coach/check?symbol=${encodeURIComponent(symbol)}&side=${side}`,
+  /** 해설 — 서버가 미리 만든 것을 읽는다, 4단(F017 v2 단계 3 · `BFF-REQ-052` FR-2). 모드마다 다른 문장이라 모드를 싣는다 */
+  explanation: (symbol: string, mode: "scalp" | "long_term") =>
+    `/api/app/ai-coach/explanation?symbol=${encodeURIComponent(symbol)}&mode=${mode}`,
   /** 코치 리포트 (`BFF-REQ-023`). 종목 판단과 다른 화면 · 다른 경로다 */
   report: "/api/app/coach/report",
   /** 재생성 버튼 상태 · 202 뒤 폴링 (`BFF-REQ-023` FR-61~63) */

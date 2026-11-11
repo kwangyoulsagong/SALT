@@ -283,3 +283,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `schema.prisma` 에 모델 `TradeCheckLedgerEntry` → 표 `trade_check_ledger`(마이그레이션 `20261111130000_trade_check_ledger`, 추가만). 기존 모델 무변경 · `npm run build` · `npm run lint` · `npm test` 1200 통과 · `npm run test:layer-check` · 레이어 훅 사후 실행(음성 대조 exit 2) · `prisma migrate diff` 0 |
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 모델 추가 · generate | 충족 | `npm run prisma:generate` · `migrate deploy` · build |

@@ -183,3 +183,7 @@ Action: 없음(남은 F006 몫은 `SRV-REQ-028` Changelog 에)
 
 - 닿은 것: `schema.prisma` 에 모델 `TradeCheckLedgerEntry` → 표 `trade_check_ledger`(마이그레이션 `20261111130000_trade_check_ledger`, 추가만). 기존 모델 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064`
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+- 액션: 없음

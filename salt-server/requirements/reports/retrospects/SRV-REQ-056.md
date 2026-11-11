@@ -12,3 +12,7 @@
 
 - 닿은 것: `env.ts` — `KIS_REQUESTS_PER_SECOND` 비우면 주소로(모의 1 · 실 3) · `KIS_MAX_IN_FLIGHT`(`SRV-REQ-057` FR-3). 손님 시세 변경 0
 - 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-057` · `DB-REQ-044`
+
+## F017 v2 단계 3 (2026-11-11, `feat/f017-s3-explain-always`)
+
+- 액션: 없음

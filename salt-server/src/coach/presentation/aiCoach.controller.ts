@@ -2,17 +2,13 @@ import { NextFunction, Request, Response } from "express";
 
 import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { CoachUseCases } from "../application/api";
-import { explainClientOf } from "../domain";
 import {
   coachFeedbackSchema,
-  explainCoachSchema,
+  explanationQuerySchema,
   generateCoachSchema,
   getCoachQuerySchema,
   updateCoachProfileSchema,
 } from "./dto/coach.dto";
-
-/** 프록시 · 로드밸런서가 유휴 연결을 끊지 않게(`bff/.claude/rules/streaming-sse.md` §5) */
-const SSE_HEARTBEAT_MS = 15_000;
 
 /**
  * `/api/ai-coach` 의 컨트롤러.
@@ -114,82 +110,14 @@ export class AICoachController {
     }
   };
 
-  /**
-   * 요청한 쪽이 끊으면 LLM 호출도 끊는다. `req` 가 아니라 `res` 의 `close` 를 본다 —
-   * `req` 의 `close` 는 본문을 다 읽은 순간에도 온다. 응답을 다 쓴 뒤의 `close` 는 무시한다.
-   */
-  explain = async (req: Request, res: Response, next: NextFunction) => {
-    const controller = new AbortController();
-    const onClose = () => {
-      if (!res.writableEnded) controller.abort();
-    };
-    res.on("close", onClose);
-
+  /** 해설 — 저장값 읽기(4단). LLM 을 부르지 않으니 끊김 처리 · 요청 한도가 없다(F017 v2 단계 3) */
+  explanation = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = explainCoachSchema.parse(req.body ?? {});
-      const result = await this.useCases.explainDecision.execute(
-        req.user!.userId,
-        { ...data, viewerEmail: req.user!.email, client: explainClientOf(req.get("X-Salt-Client")) },
-        controller.signal
-      );
-      if (controller.signal.aborted) return;
-
+      const { symbol, mode } = explanationQuerySchema.parse(req.query);
+      const result = await this.useCases.getSymbolExplanation.execute(symbol, mode);
       return ResponseUtil.success(res, result, "AI Coach Explanation Success");
     } catch (error) {
-      // 끊긴 요청에는 응답할 곳이 없다 — 에러로 올리면 로그만 쌓인다
-      if (controller.signal.aborted) return;
       next(error);
-    } finally {
-      res.off("close", onClose);
-    }
-  };
-
-  /**
-   * 해설 스트림 (SSE, F008 `SRV-REQ-037` FR-8).
-   *
-   * - 본문 검증은 스트림을 열기 **전에** 한다 — 400 은 평범한 JSON 오류로 나간다
-   * - 연결이 끊기면 LLM 호출까지 끊는다(`streaming-sse.md` §4). 15초마다 `ping`(§5)
-   * - 스트림을 연 뒤의 실패는 `message.error` 한 건 — 화면은 이미 받은 템플릿 문장을 그대로 둔다
-   */
-  explainStream = async (req: Request, res: Response, next: NextFunction) => {
-    let data;
-    try {
-      data = explainCoachSchema.parse(req.body ?? {});
-    } catch (error) {
-      return next(error);
-    }
-
-    const controller = new AbortController();
-    res.on("close", () => {
-      if (!res.writableEnded) controller.abort();
-    });
-
-    res.status(200).set({
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-      "X-Accel-Buffering": "no",
-    });
-    res.flushHeaders();
-
-    const write = (event: string, payload: unknown) => {
-      if (!res.writableEnded) res.write(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`);
-    };
-    const heartbeat = setInterval(() => write("ping", {}), SSE_HEARTBEAT_MS);
-
-    try {
-      await this.useCases.explainDecision.stream(
-        req.user!.userId,
-        { ...data, viewerEmail: req.user!.email, client: explainClientOf(req.get("X-Salt-Client")) },
-        ({ event, data: payload }) => write(event, payload),
-        controller.signal
-      );
-    } catch {
-      // 원인은 싣지 않는다 — 모델 원문이 섞일 수 있다(`ddd-infrastructure.md` §6)
-      if (!controller.signal.aborted) write("message.error", { code: "EXPLAIN_FAILED", fallback: "rule" });
-    } finally {
-      clearInterval(heartbeat);
-      if (!res.writableEnded) res.end();
     }
   };
 }

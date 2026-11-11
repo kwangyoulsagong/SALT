@@ -4,6 +4,7 @@ export * from "./coachDetail";
 export * from "./explain";
 export * from "./explanationFacts";
 export * from "./explanationTemplate";
+export * from "./explanationSnapshot";
 export * from "./judgmentBacktest";
 export * from "./forecast";
 export * from "./judgmentObservation";

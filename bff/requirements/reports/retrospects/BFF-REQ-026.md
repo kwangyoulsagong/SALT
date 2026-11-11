@@ -48,3 +48,7 @@
 
 - 닿은 것: `ai-coach.controller.ts` 에 `tradeCheck` — 요청 취소(abort)를 서버 호출까지 전파. 기존 핸들러 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `BFF-REQ-052`(FR-3) · 서버 `SRV-REQ-053` · FE `FE-REQ-064`
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+- 액션: 없음 — 예산 표의 "코치 대화 첫 토큰"은 대화(F006) 몫으로 남는다

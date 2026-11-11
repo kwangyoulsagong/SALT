@@ -5,9 +5,8 @@ import { appAICoachController } from "../controllers/ai-coach.controller";
 const router = Router();
 
 router.use(authMiddleware);
-// 인증 뒤로 옮겼다(`BFF-REQ-023` FR-71). 요청 제한은 서버가 한다(FR-72) — BFF 는 동시 수만 막는다
-router.post("/explain", appAICoachController.explain);
-router.post("/explain/stream", appAICoachController.explainStream);
+// 해설 — 4단 저장값 읽기(F017 v2 단계 3 · `BFF-REQ-052` FR-2). 옛 즉석 해설 `POST /explain` · `/explain/stream` 은 지웠다
+router.get("/explanation", appAICoachController.explanation);
 router.get("/profile", appAICoachController.getProfile);
 router.patch("/profile", appAICoachController.updateProfile);
 router.post("/feedback", appAICoachController.feedback);

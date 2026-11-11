@@ -153,3 +153,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `entities/coach/api` 에 엔드포인트 `tradeCheck` · 쿼리 키 `tradeCheck(symbol, side)` · `coachApi.tradeCheck` · 훅 `useTradeCheck`(staleTime 60초). 기존 API 무변경 · `pnpm check-types` · `pnpm lint` · `pnpm test`(core 298 · ui 63) · `pnpm test:layer-check` · 실화면(패널 · 코인 상세 · 국내 상세 · 390 웹뷰 · 로딩 · 실패) · 운영 빌드 첫 로드 증가 0 |
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 해설 조회 · 쿼리 키 | 충족 | `endpoints.ts` · `queryKeys.ts` · `coachApi.ts` · `useSymbolExplanation.ts` · check-types · lint |

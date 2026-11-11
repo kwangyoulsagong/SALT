@@ -42,3 +42,4 @@ source: "`FEATURE-018` · `ADR-011`(사용자 결정 2026-11-10)"
 ## Changelog
 - 2026-11-10: 초안 · 구현 · 실화면 확인 → **done**
 - 2026-11-11(1c): `feat/f017-s1c-collection`: `env.ts` — `KIS_REQUESTS_PER_SECOND` 비우면 주소로(모의 1 · 실 3) · `KIS_MAX_IN_FLIGHT`(`SRV-REQ-057` FR-3). 손님 시세 변경 0
+- 2026-11-11(F017 v2 단계 3, `feat/f017-s3-explain-always`): `env.ts` — `COACH_LLM_LOCAL_USERS` · `LLM_USER_DAILY_CALL_LIMIT` 삭제(해설이 배치 하나 — 사람마다 고르거나 세지 않는다, `.env` 에 남아도 스키마가 무시). 손님 시세 변경 0

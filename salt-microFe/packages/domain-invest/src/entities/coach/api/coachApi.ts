@@ -1,5 +1,6 @@
 import type {
   BehaviorMirrorResult,
+  CoachMode,
   CoachProfileSettings,
   KrBehaviorMirrorResult,
   CoachGenerationStatus,
@@ -14,6 +15,7 @@ import type {
   RiskBudgetResult,
   SymbolForecastResult,
   TradePlanListResult,
+  SymbolExplanation,
   TradeCheckResult,
   TradeCheckSide,
 } from "@repo/core/coach";
@@ -96,6 +98,15 @@ export const coachApi = {
     if (!response.ok) throw await readApiError(response, "coach");
 
     const body = (await response.json()) as AppEnvelope<SymbolForecastResult>;
+    return body.data;
+  },
+
+  /** 해설 (`GET /api/app/ai-coach/explanation`) — 4단 중 하나, 문장 · 인용은 서버 그대로. 로그인만 */
+  explanation: async (symbol: string, mode: CoachMode, signal?: AbortSignal): Promise<SymbolExplanation> => {
+    const response = await apiFetch(`${INVESTMENTS_BASE_URL}${COACH_ENDPOINTS.explanation(symbol, mode)}`, { signal });
+    if (!response.ok) throw await readApiError(response, "coach");
+
+    const body = (await response.json()) as AppEnvelope<SymbolExplanation>;
     return body.data;
   },
 

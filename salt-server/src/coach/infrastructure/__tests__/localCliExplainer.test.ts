@@ -66,7 +66,7 @@ const ledger = () => {
   const store: LlmUsageStore = {
     record: async (row) => void rows.push(row),
     markDropped: async () => undefined,
-    usageSince: async () => ({ user: { calls: 0, tokens: 0 }, total: { calls: 0, tokens: 0 } }),
+    usageSince: async () => ({ calls: 0, tokens: 0 }),
   };
   return { rows, store };
 };
@@ -215,13 +215,12 @@ describe("RoutingCoachExplainer (FR-3 · 6 · 7)", () => {
     const g = { calls: 0, explain: async () => (g.calls++, explanation("gemini")) };
     return g;
   };
-  const owner = { userId: "u", email: "owner@salt.test", client: "web" as const };
+  const owner = { userId: null };
 
-  it("허용 사용자 · 웹 → 로컬 · 같은 요청 모바일 → Gemini", async () => {
-    const router = new RoutingCoachExplainer(fake("local_claude"), gemini(), { localUsers: ["owner@salt.test"] });
+  it("로컬 CLI 가 있으면 로컬 — 배치 하나가 부른다(사용자 · 클라이언트로 고르지 않는다)", async () => {
+    const router = new RoutingCoachExplainer(fake("local_claude"), gemini());
     assert.equal((await router.explain(input, undefined, owner)).provider, "local_claude");
-    assert.equal((await router.explain(input, undefined, { ...owner, client: "mobile" })).provider, "gemini");
-    assert.equal((await router.explain(input, undefined, { ...owner, email: "x@salt.test" })).provider, "gemini");
+    assert.equal((await new RoutingCoachExplainer(null, gemini()).explain(input, undefined, owner)).provider, "gemini");
   });
 
   it("로컬 실패 → 같은 요청 Gemini 한 번 · 연속 3번이면 10분 쉼", async () => {
@@ -229,7 +228,7 @@ describe("RoutingCoachExplainer (FR-3 · 6 · 7)", () => {
     const local = fake("local_claude", true);
     const g = gemini();
     const providers: string[] = [];
-    const router = new RoutingCoachExplainer(local, g, { localUsers: ["owner@salt.test"], now: () => now });
+    const router = new RoutingCoachExplainer(local, g, { now: () => now });
     for (let i = 0; i < 4; i += 1) {
       const r = await router.explain(input, undefined, owner, { onProvider: (p) => providers.push(p) });
       assert.equal(r.provider, "gemini");
@@ -245,14 +244,14 @@ describe("RoutingCoachExplainer (FR-3 · 6 · 7)", () => {
     let release!: () => void;
     const gate = new Promise<void>((r) => (release = r));
     const slow = { provider: "local_claude" as const, streams: true, explain: async () => (await gate, explanation("local_claude")) };
-    const router = new RoutingCoachExplainer(slow, gemini(), { localUsers: ["owner@salt.test"] });
+    const router = new RoutingCoachExplainer(slow, gemini());
     const a = router.explain(input, undefined, owner);
     const b = router.explain(input, undefined, owner);
     assert.equal((await router.explain(input, undefined, owner)).provider, "gemini");
     release();
     await Promise.all([a, b]);
 
-    const noGemini = new RoutingCoachExplainer(null, gemini(), { localUsers: [] });
+    const noGemini = new RoutingCoachExplainer(null, gemini());
     await assert.rejects(noGemini.explain(input, undefined, { ...owner, geminiAllowed: false }), /Gemini 토큰 상한/);
   });
 });

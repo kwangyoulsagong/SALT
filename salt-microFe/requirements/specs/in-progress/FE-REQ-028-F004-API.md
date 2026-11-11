@@ -209,6 +209,7 @@ created: 2026-09-09
 | 2026-11-05 | FE-REQ-013 FR-80 2단계 확인 단계: 이 REQ 가 주인인 화면 파일의 낡은 이유 주석("토큰이 `localStorage` 라 클라이언트")에 정정 문장(`95829941`, 주석만 · 동작 0). 서버 조회 이관은 `FE-REQ-013` FR-81(국내 주식은 약관상 대상 아님). 루트 `requirements/specs/done/F000-cookie-session-slice.md` |
 | 2026-11-10 | v2 대체 표시 — FR-86 · FR-89 (`FEATURE-017` v2 · `ADR-010` v2) |
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `entities/coach/api` 에 엔드포인트 `tradeCheck` · 쿼리 키 `tradeCheck(symbol, side)` · `coachApi.tradeCheck` · 훅 `useTradeCheck`(staleTime 60초). 기존 API 무변경. 주인 REQ 는 `FE-REQ-064` · BFF `BFF-REQ-052` · 서버 `SRV-REQ-053` |
+| 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — 해설 경로 `COACH_ENDPOINTS.explanation` · 쿼리 키 `coachQueryKeys.explanation`(GET). **모드를 싣는다** — 해설은 모드마다 다른 문장이다(FR-85 "모드를 싣지 않는다"는 판단 조회 한정) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`f7ce96dc`) — FR-89 뒤집힘: `@repo/core` `ModeCoachViewModel` 한 모양(판단 늘 · `caveats`)
   - `salt-microFe/packages/domain-invest/src/entities/coach/api/endpoints.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)

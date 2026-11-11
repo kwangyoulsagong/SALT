@@ -73,3 +73,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `ai-coach.controller.ts` 에 `tradeCheck` — 요청 취소(abort)를 서버 호출까지 전파. 기존 핸들러 무변경 · `npm run build` · `npm test` 450 통과 · 실호출 200 |
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 스트림 컨트롤러 삭제 · 새 경로 예산 | 충족 | `ai-coach.controller.ts` · 실호출 3~115ms |

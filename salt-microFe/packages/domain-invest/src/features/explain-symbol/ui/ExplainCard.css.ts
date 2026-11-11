@@ -1,12 +1,16 @@
-import { keyframes, style, styleVariants } from "@vanilla-extract/css";
+import { keyframes, style } from "@vanilla-extract/css";
+
 import { vars } from "@repo/ui/tokens";
 
+/**
+ * 해설 칸 — 4단(F017 v2 단계 3 · `FE-REQ-064` FR-2 · FR-6). 문장 한 줄은 720 까지(`screen-desktop.md` §2).
+ * 움직임은 transform · opacity 만, 줄인 모션이면 멈춘다(`motion.md` §5 · §7)
+ */
 export const card = style({
-  // 완료 알림(StatusToast)이 이 카드 윗변 가운데에 뜬다
-  position: "relative",
   display: "flex",
   flexDirection: "column",
-  gap: vars.space.lg,
+  gap: vars.space.md,
+  minWidth: 0,
 });
 
 export const cardHeader = style({
@@ -16,187 +20,109 @@ export const cardHeader = style({
   gap: vars.space.sm,
 });
 
-export const section = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: vars.space.xs,
-});
-
-export const list = style({
+/** 패널 이름 칩 13/600 모서리 7 — 점검 칸과 같은 실측값(FR-6) */
+export const nameChip = style({
   margin: 0,
-  paddingLeft: vars.space.lg,
-  display: "flex",
-  flexDirection: "column",
-  gap: vars.space.xs,
-  color: vars.colors.text.secondary,
-  fontSize: vars.fontSizes.base,
-  lineHeight: 1.5,
+  display: "inline-flex",
+  alignItems: "center",
+  height: "24px",
+  padding: "0 8px",
+  borderRadius: "7px",
+  background: "rgba(7,25,76,.04)",
+  fontSize: "13px",
+  lineHeight: "20px",
+  fontWeight: vars.fontWeights.semibold,
+  color: vars.colors.text.primary,
 });
 
+/** 정리 시각 · 단 설명 — 라벨 12/500 2단(`screen-desktop.md` §2) */
 export const note = style({
   margin: 0,
-  color: vars.colors.text.tertiary,
-  fontSize: vars.fontSizes.sm,
-  lineHeight: 1.5,
+  color: vars.colors.text.secondary,
+  fontSize: "12px",
+  lineHeight: "16px",
+  fontWeight: vars.fontWeights.medium,
 });
 
-/* ── 스트림 (FEATURE-008 FR-60~64) — 움직임은 transform · opacity 만, 줄인 모션이면 멈춘다 ── */
+export const block = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: vars.space.xs,
+  maxWidth: "720px",
+});
+
+export const blockHeading = style({
+  margin: 0,
+  color: vars.colors.text.secondary,
+  fontSize: "12px",
+  lineHeight: "16px",
+  fontWeight: vars.fontWeights.medium,
+});
 
 const still = { "@media": { "(prefers-reduced-motion: reduce)": { animation: "none" } } } as const;
-const fadeUp = keyframes({ from: { opacity: 0, transform: "translateY(4px)" }, to: { opacity: 1, transform: "none" } });
-const pulse = keyframes({ "0%, 100%": { transform: "scale(1)", opacity: 1 }, "50%": { transform: "scale(0.6)", opacity: 0.5 } });
-const blink = keyframes({ "0%, 49%": { opacity: 1 }, "50%, 100%": { opacity: 0 } });
-const pop = keyframes({ from: { transform: "scale(0.4)" }, to: { transform: "scale(1)" } });
+const rise = keyframes({ from: { opacity: 0, transform: "translateY(4px)" }, to: { opacity: 1, transform: "none" } });
 
-export const steps = style({
+/** 문장 하나 — 13/600/20 본문. 차례 등장은 `animationDelay`(인라인 — 몇 번째 문장인지는 실행 값) */
+export const sentence = style({
   margin: 0,
-  padding: vars.space.md,
-  listStyle: "none",
-  display: "grid",
-  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-  gap: `${vars.space.xs} ${vars.space.md}`,
-  borderRadius: vars.radius.medium,
-  background: vars.colors.background.secondary,
+  color: vars.colors.text.primary,
+  fontSize: "13px",
+  lineHeight: "20px",
+  wordBreak: "keep-all",
+  animation: `${rise} ${vars.motion.duration.base} ${vars.motion.easing.enter} both`,
+  ...still,
 });
 
-const stepBase = {
-  display: "flex",
-  alignItems: "center",
-  gap: vars.space.sm,
-  fontSize: vars.fontSizes.sm,
-  lineHeight: 1.5,
-  transition: "color 200ms ease",
-} as const;
-
-export const step = styleVariants({
-  pending: { ...stepBase, color: vars.colors.text.lightGray },
-  active: { ...stepBase, color: vars.colors.text.primary, fontWeight: vars.fontWeights.semibold },
-  done: { ...stepBase, color: vars.colors.text.secondary },
-  skipped: { ...stepBase, color: vars.colors.text.lightGray },
-});
-
-const iconBase = {
-  flex: "none",
-  width: "16px",
-  height: "16px",
-  borderRadius: vars.radius.full,
+/** 문장 끝 번호 칩 — 누르면 그 사실(이름 · 시각 · 원문) */
+export const chip = style({
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: "10px",
-  fontWeight: vars.fontWeights.bold,
-  lineHeight: 1,
-} as const;
-
-export const stepIcon = styleVariants({
-  pending: { ...iconBase, border: `1.5px solid ${vars.colors.border.default}` },
-  /** 진행 중 — 숨 쉬는 점. 로딩 표시라 줄인 모션에서도 멈추지 않고 느려진다(`performance-frontend.md` §8) */
-  active: {
-    ...iconBase,
-    background: vars.colors.text.primary,
-    transform: "scale(0.6)",
-    animation: `${pulse} 1s ease-in-out infinite`,
-    "@media": { "(prefers-reduced-motion: reduce)": { animationDuration: "2.4s" } },
-  },
-  done: {
-    ...iconBase,
-    ...still,
-    background: vars.colors.text.primary,
-    color: vars.colors.background.white,
-    animation: `${pop} 220ms cubic-bezier(0.3, 1.4, 0.5, 1) both`,
-  },
-  skipped: { ...iconBase, color: vars.colors.text.lightGray, border: `1.5px solid ${vars.colors.border.light}` },
-});
-
-export const stepHint = style({ color: vars.colors.text.lightGray, fontSize: vars.typography.t8.fontSize });
-
-export const srOnly = style({
-  position: "absolute",
-  width: "1px",
-  height: "1px",
-  margin: "-1px",
-  overflow: "hidden",
-  clip: "rect(0 0 0 0)",
-  whiteSpace: "nowrap",
-});
-
-export const body = style({ display: "flex", flexDirection: "column", gap: vars.space.xs });
-
-/** 검사를 통과한 AI 문장으로 바뀐 본문 — 새로 마운트돼 한 번 떠오른다 */
-export const bodyReplaced = style([body, { ...still, animation: `${fadeUp} 360ms ease both` }]);
-
-export const block = style({ ...still, animation: `${fadeUp} 200ms ease both` });
-export const blockFirst = style([block, { display: "flex", flexDirection: "column", gap: vars.space.xs, marginTop: vars.space.sm }]);
-
-export const paragraph = style({
-  margin: 0,
-  color: vars.colors.text.primary,
-  fontSize: vars.fontSizes.base,
-  lineHeight: 1.6,
-});
-
-export const bullet = style({
-  margin: 0,
-  paddingLeft: vars.space.lg,
-  position: "relative",
+  minWidth: "18px",
+  height: "18px",
+  marginLeft: "4px",
+  padding: "0 4px",
+  border: "none",
+  borderRadius: "6px",
+  background: "rgba(2,32,71,.05)",
   color: vars.colors.text.secondary,
-  fontSize: vars.fontSizes.base,
-  lineHeight: 1.5,
-  selectors: {
-    "&::before": {
-      content: "\"\"",
-      position: "absolute",
-      left: "6px",
-      top: "0.65em",
-      width: "4px",
-      height: "4px",
-      borderRadius: vars.radius.full,
-      background: vars.colors.text.lightGray,
-    },
-  },
-});
-
-/** 커서 — 드러나는 중인 줄 끝. 깜빡임은 장식이라 줄인 모션에서는 멈춘다 */
-export const caret = style({
-  ...still,
-  display: "inline-block",
-  width: "2px",
-  height: "1em",
-  marginLeft: "2px",
-  verticalAlign: "-0.15em",
-  background: vars.colors.text.primary,
-  animation: `${blink} 1s steps(1) infinite`,
-});
-
-export const chips = style({
-  margin: `${vars.space.xs} 0 0`,
-  padding: 0,
-  listStyle: "none",
-  display: "flex",
-  flexWrap: "wrap",
-  gap: vars.space.xs,
-});
-
-export const chip = style({
-  ...still,
-  padding: `2px ${vars.space.sm}`,
-  borderRadius: vars.radius.full,
-  background: vars.colors.background.tertiary,
-  color: vars.colors.text.tertiary,
-  fontSize: vars.typography.t8.fontSize,
+  fontSize: "11px",
+  lineHeight: "18px",
   fontWeight: vars.fontWeights.semibold,
-  animation: `${fadeUp} ${vars.motion.duration.base} ease both`,
-});
-
-/** 출처 칩 안의 원문 링크 — 칩 색을 그대로 쓰고 밑줄은 가리킬 때만 */
-export const chipLink = style({
-  color: "inherit",
-  textDecoration: "none",
+  fontVariantNumeric: "tabular-nums",
+  verticalAlign: "1px",
+  cursor: "pointer",
+  transition: `background ${vars.motion.duration.instant} ${vars.motion.easing.enter}`,
   selectors: {
-    "&:hover": { textDecoration: "underline" },
-    // 다른 폼 · 링크와 같은 초점 표시(`RiskBudgetForm` · `Preflight`) — 보라 초점색을 새로 들이지 않는다
-    "&:focus-visible": { outline: `2px solid ${vars.colors.neutral[800]}`, outlineOffset: "2px", borderRadius: vars.radius.full },
+    "&:hover": { background: "rgba(2,32,71,.09)" },
+    '&[aria-expanded="true"]': { background: "rgba(2,32,71,.12)", color: vars.colors.text.primary },
   },
 });
 
-export const flash = style([note, { ...still, animation: `${fadeUp} 300ms ease both` }]);
+/** 펼친 출처 — 정보 상자(`screen-desktop.md` §3) */
+export const sources = style({
+  margin: "4px 0 0",
+  padding: "8px 10px",
+  listStyle: "none",
+  borderRadius: "8px",
+  background: "rgba(13,25,74,.02)",
+  display: "flex",
+  flexDirection: "column",
+  gap: "2px",
+  animation: `${rise} ${vars.motion.duration.instant} ${vars.motion.easing.enter} both`,
+  ...still,
+});
+
+export const sourceRow = style({
+  display: "flex",
+  alignItems: "baseline",
+  gap: vars.space.sm,
+  color: vars.colors.text.secondary,
+  fontSize: "12px",
+  lineHeight: "16px",
+});
+
+export const sourceLink = style({
+  color: vars.colors.text.secondary,
+  textDecoration: "underline",
+});

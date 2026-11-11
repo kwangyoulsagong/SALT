@@ -223,7 +223,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
                 <ExplainCard
                   key={mode}
                   className={card}
-                  view={coach.data}
+                  symbol={symbol}
                   mode={mode}
                 />
                 {/* 제목을 붙이지 않는다 — `ProfitPlan` 이 자기 제목을 그린다(두 번 나온다) */}

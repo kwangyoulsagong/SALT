@@ -83,5 +83,7 @@ source: 사용자 결정 2026-11-02 "로컬 llm 이 있는 사람은 터미널�
 |---|---|
 | 2026-11-02 | 작성 — 사용자 결정. 블라인드 A/B · Gemini 할당량 소진(같은 날)이 근거 |
 | 2026-11-02 | 구현(`feat/f008-explain-llm-routing`) · 블라인드 3회 · 라벨 누출 검사(`prompt_label`) — 라우터 · 로컬 CLI(격리 · 그룹 종료) · 원장 `provider` · `dropped_sentences`(마이그레이션 `20261102120000_llm_call_provider`) · 토큰 상한은 Gemini 만. 사용자 추가 요구로 **FR-13 진짜 스트리밍 · FR-14 깊은 분석** 더함. launchd PATH 에 `~/.local/bin`(`OPS-002`) |
+| 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — FR-3 배치 표지 — 해설 스냅샷 배치는 로컬 CLI 가 쓴다(사용자 · 클라이언트 무관, 공용 문장 하나 — 쉬는 중 · 바쁨이면 Gemini). FR-4 모바일 → Gemini 는 요청 경로 해설이 없어져 쓰는 곳 0 — `explainClientOf` 삭제 |
+| 2026-11-11 | **F017 v2 단계 3 정리**(`feat/f017-s3-explain-always`) — FR-3 허용 사용자 · FR-4 모바일 → Gemini 분기 **삭제** — 부르는 곳이 해설 스냅샷 배치 하나라 고를 사람 · 클라이언트가 없다. `ExplainRouteInput` = 로컬 있음 · 쉬는 중 · 바쁨뿐 · env `COACH_LLM_LOCAL_USERS` 삭제 · 소유자 판정 허용 목록에서 빠짐(`ownerGateScope.test.ts`) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-server/src/shared/infrastructure/__tests__/ownerGateScope.test.ts` — 기계 검사 — 소유자 판정(`isForecastOwner`)은 전망 셋 + 해설 라우팅만 · `isKrStockViewer` 0

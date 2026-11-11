@@ -1,111 +1,81 @@
 import { Router } from "express";
 
 import { authMiddleware } from "../../shared/presentation/authMiddleware";
-import { rateLimit } from "../../shared/presentation/rateLimit";
 import type { CoachUseCases } from "../application/api";
 import { AICoachController } from "./aiCoach.controller";
 
 /**
  * `/api/ai-coach` — **경로를 그대로 유지한다** (FR-35).
  *
- * ## `/explain` 도 인증 뒤에 있다 (`SRV-REQ-025` FR-11, 2026-09-22)
+ * ## 해설은 저장값 읽기다 (F017 v2 단계 3, 2026-11-11)
  *
- * 원래는 프로토타입 데모용으로 `authMiddleware` 위에 있는 공개 경로였다. BFF 가 먼저
- * 토큰을 보내게 됐고(`BFF-REQ-025` FR-32) 프론트도 로그인 사용자만 부른다 — 이제 인증을
- * 붙여도 끊기는 소비처가 없다. 게이트 판정에 보유 여부가 들어가서 `userId` 도 필요하다.
- *
- * ## 요청 제한은 남긴다 (FR-12)
- *
- * **LLM 을 부르는 경로**다. 호출마다 비용이 들고 캐시는 5분이다. **분당 10회** —
- * 사용자 ≤10명 서버에서 정상 사용이 닿지 않는 수이고, 자동 호출은 여기서 걸린다.
+ * 예전 `POST /explain` · `/explain/stream` 은 요청마다 LLM 을 불렀다(분당 10회 한도 · 5분 캐시). 이제 배치가 종목 지문이 바뀐
+ * 종목만 미리 만들어 두고(`GenerateExplanationSnapshots`) 이 경로는 저장본만 읽는다 — 요청 경로 LLM 0(`SRV-REQ-053` 불변식 1).
+ * 두 옛 경로는 소비처(BFF · 화면)가 같은 PR 에서 옮겨 가서 지웠다(제거 = 404, `ddd-presentation.md` §5).
  */
-const EXPLAIN_RATE_LIMIT = { windowMs: 60_000, max: 10 };
 export const createAICoachRouter = (useCases: CoachUseCases): Router => {
   const router = Router();
   const controller = new AICoachController(useCases);
-  // 단건 · 스트림이 **한 한도**를 나눠 쓴다 — 따로 두면 분당 20회가 된다
-  const explainLimit = rateLimit(EXPLAIN_RATE_LIMIT);
+
+  router.use(authMiddleware);
 
   /**
    * @swagger
-   * /api/ai-coach/explain:
-   *   post:
-   *     summary: AI 코치 해설 (로컬 CLI · Gemini)
+   * /api/ai-coach/explanation:
+   *   get:
+   *     summary: 종목 해설 — 저장값 읽기, 4단 중 하나(빈 칸 0)
    *     description: |
-   *       종목·모드만 받는다. 시세·근거·뉴스는 **서버가 판단 게이트와 같은 재료로 조립한다**(C01 · SRV-REQ-025 FR-58) —
-   *       예전 본문 필드를 보내도 무시된다. 한국어 해설(왜 단타/장기, 관찰 기간, 뉴스 요약 — 뉴스 수 이하, 최대 5줄)을
-   *       생성한다. **판단 꼬리표(표본 · 재료 멈춤 · 이력 · 투자유의 · 국내 단타)는 해설을 막지 않는다**(`ADR-010` v2, 2026-11-10) —
-   *       막히는 것은 사실표를 못 만들 때(현재가 없음) `{ renderable false, blockedReason: facts_unavailable }` 하나다. 렌더되면 `facts: { asOf, hash }` — 어떤 사실로 만든 해설인지.
-   *       수익률·목표가 예측은 생성하지 않는다. 5분 캐시(키 = 모델이 받은 입력 전체의 해시).
-   *       LLM 비용 상한(지난 24시간 사용자 · 전체 시도, 전체 토큰)에 닿으면 에러가 아니라 `source: template` 이다.
-   *       다듬기 공급자(SRV-REQ-050) — 서버 맥에 로컬 CLI(Claude Code · Codex)가 있고 허용 사용자(`COACH_LLM_LOCAL_USERS`, 비우면
-   *       소유자)이고 `X-Salt-Client` 가 `mobile` 이 아니면 로컬 CLI, 아니면 Gemini. 응답 `provider` — `local_claude` · `local_codex` ·
-   *       `gemini` · 템플릿이면 `null`. 토큰 상한은 Gemini 만 센다.
-   *     tags: [AI Coach]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: header
-   *         name: X-Salt-Client
-   *         required: false
-   *         description: BFF 가 정한 요청 클라이언트(UA `SALTApp/` → mobile). 없으면 web
-   *         schema: { type: string, enum: [web, mobile] }
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required: [symbol, mode]
-   *             properties:
-   *               symbol: { type: string, example: BTC }
-   *               mode: { type: string, enum: [scalp, long_term] }
-   *     responses:
-   *       200: { description: 해설 생성 성공 }
-   *       400: { description: 요청 검증 실패 }
-   *       401: { description: 인증 필요 }
-   *       429: { description: 분당 10회 초과 }
-   *       500: { description: LLM 호출 실패 }
-   */
-  router.post(
-    "/explain",
-    authMiddleware,
-    explainLimit,
-    controller.explain
-  );
-
-  /**
-   * @swagger
-   * /api/ai-coach/explain/stream:
-   *   post:
-   *     summary: 해설 스트림 (SSE) — 검사를 통과한 문장만 흘린다
+   *       F017 v2 단계 3(`SRV-REQ-053` FR-3). LLM 을 부르지 않는다 — 배치가 종목 지문(판정 · 관측이 문턱 어느 쪽인가 · 꼬리표 ·
+   *       맨 위 뉴스 · 규칙 · 프롬프트 · 검증기 버전)이 바뀐 종목만 미리 만든다. `tier` —
+   *       `latest`(지문 같은 AI 해설) · `previous`(같은 방향 · 판단 기간 안의 이전 AI 해설 — `generatedAt` 을 같이 보인다) ·
+   *       `template`(사실표 문장 — AI 표시 없음) · `none`(현재가가 없어 사실표를 못 만듦 — 규칙 판단 한 줄 · 근거).
+   *       `sentences` 는 늘 하나 이상, 문장마다 `citations`(사실표 id · 이름 · 시각 · 뉴스 주소) 하나 이상.
+   *       AI 단이 아니면 이 종목 · 모드를 배치에 알려 다음 회차(10분)에 만든다. 시장 층 — 사람마다 같은 답(보유 무관)
    *     tags: [AI Coach]
    *     security: [{ bearerAuth: [] }]
    *     parameters:
-   *       - in: header
-   *         name: X-Salt-Client
-   *         required: false
-   *         schema: { type: string, enum: [web, mobile] }
-   *     description: |
-   *       본문 · 헤더는 `/explain` 과 같다. 이벤트 — message.start · message.step · message.blocked · message.card ·
-   *       message.delta · message.replace · message.done · message.error · ping. 분당 한도는 `/explain` 과 같다.
-   *       토큰 스트림 공급자(로컬 Claude)는 문장마다 검사해 통과한 것을 바로 `delta` 로 흘리고 빈 칸만 끝에 `replace`
-   *       (`polish:active` 단계에 `provider`). 그 밖(Gemini · Codex)은 템플릿을 먼저 흘리고 검사를 통과한 LLM 문장으로
-   *       `replace`. `replace` · `done` 에 `provider`(SRV-REQ-050 FR-10 · FR-13).
+   *       - { in: query, name: symbol, required: true, schema: { type: string, example: BTC } }
+   *       - { in: query, name: mode, required: true, schema: { type: string, enum: [scalp, long_term] } }
    *     responses:
-   *       200: { description: text/event-stream }
+   *       200:
+   *         description: 해설
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     symbol: { type: string }
+   *                     mode: { type: string, enum: [scalp, long_term] }
+   *                     tier: { type: string, enum: [latest, previous, template, none] }
+   *                     aiGenerated: { type: boolean }
+   *                     provider: { type: string, nullable: true, enum: [local_claude, local_codex, gemini] }
+   *                     generatedAt: { type: string, format: date-time }
+   *                     disclaimer: { type: string }
+   *                     sentences:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           section: { type: string, enum: [modeReasoning, keyDrivers, risks, newsSummary] }
+   *                           text: { type: string }
+   *                           citations:
+   *                             type: array
+   *                             items:
+   *                               type: object
+   *                               properties:
+   *                                 id: { type: string, example: rsi }
+   *                                 label: { type: string, example: RSI }
+   *                                 at: { type: string, format: date-time, nullable: true }
+   *                                 url: { type: string, nullable: true }
    *       400: { description: 요청 검증 실패 }
    *       401: { description: 인증 필요 }
-   *       429: { description: 분당 10회 초과 }
    */
-  router.post(
-    "/explain/stream",
-    authMiddleware,
-    explainLimit,
-    controller.explainStream
-  );
-
-  router.use(authMiddleware);
+  router.get("/explanation", controller.explanation);
 
   /**
    * @swagger

@@ -161,3 +161,8 @@
 
 - 닿은 것: `CoachPanel.tsx` AI 패널 맨 위에 `TradeCheckCard`(판단 조회를 기다리지 않는 자기 조회). 기존 패널 구성 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `FE-REQ-064` · BFF `BFF-REQ-052` · 서버 `SRV-REQ-053`
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+- 문제: 버튼을 눌러야 보이는 해설은 "늘 보이게"와 반대였다
+- 액션: 없음

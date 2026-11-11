@@ -134,3 +134,9 @@ preflight `stopLossRate` · `maxLossOfTotalRate` 도 `calculation` 통째 전달
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `app-ai-coach.service.ts` 에 `getTradeCheck` — 서버 `GET /api/coach/check` 호출(제한 200ms · 재시도 1회 · 응답 모양이 깨지면 502). 기존 업스트림 호출 무변경 · `npm run build` · `npm test` 450 통과 · 실호출 200 |
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 즉석 해설 경로 · 동시 상한 삭제 | 충족 | `app-ai-coach.service.ts` · 테스트 `explanation.test.ts` 8 · `npm test` 448 · build |

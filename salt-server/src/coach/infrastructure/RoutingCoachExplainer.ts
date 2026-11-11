@@ -24,8 +24,6 @@ type LocalExplainer = CoachExplainer & { provider: Exclude<ExplainProvider, "gem
 export const LOCAL_CLI_MAX_CONCURRENT = 2;
 
 export interface RoutingOptions {
-  /** 로컬 CLI 를 쓸 이메일. 비우면 아무도 */
-  localUsers: readonly string[];
   maxConcurrent?: number;
   now?: () => number;
 }
@@ -33,7 +31,7 @@ export interface RoutingOptions {
 /**
  * 다듬기 공급자 라우터 (`SRV-REQ-050` FR-1 · FR-3 · FR-6 · FR-7).
  *
- * `ExplainCoachDecision` 은 이것 하나만 본다 — 어느 공급자인지 모른다. 고르는 규칙은 도메인(`pickExplainProvider`),
+ * 해설 배치(`GenerateExplanationSnapshots`)는 이것 하나만 본다 — 어느 공급자인지 모른다. 고르는 규칙은 도메인(`pickExplainProvider`),
  * 여기는 상태(동시 실행 수 · 연속 실패 · 쉬는 시각)만 든다.
  *
  * 로컬 CLI 실패 · 시간 초과 · 모양 불일치 → 같은 요청을 Gemini 로 한 번. 그것도 실패면 유스케이스가 템플릿으로 간다.
@@ -47,7 +45,7 @@ export class RoutingCoachExplainer implements CoachExplainer {
   constructor(
     private local: LocalExplainer | null,
     private readonly gemini: CoachExplainer,
-    private readonly options: RoutingOptions
+    private readonly options: RoutingOptions = {}
   ) {}
 
   /** 부팅 감지(FR-2)는 비동기라 조립 뒤에 꽂는다 — 그 전 요청은 Gemini */
@@ -69,9 +67,6 @@ export class RoutingCoachExplainer implements CoachExplainer {
       local: this.local?.provider ?? null,
       localPaused: this.now() < this.pausedUntil,
       localBusy: this.inFlight >= (this.options.maxConcurrent ?? LOCAL_CLI_MAX_CONCURRENT),
-      email: caller?.email,
-      localUsers: this.options.localUsers,
-      client: caller?.client ?? "web",
     });
 
     if (choice !== "gemini" && this.local) {

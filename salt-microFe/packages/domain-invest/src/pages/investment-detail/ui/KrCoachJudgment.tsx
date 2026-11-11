@@ -7,6 +7,7 @@ import { Text } from "@repo/ui/text";
 import { COACH_MESSAGES, CoachBlockSkeleton, CoachStaleNote, JudgmentDetail, selectModeView, useSymbolCoach } from "@/entities/coach";
 import { KR_STOCK_MESSAGES as M } from "@/entities/market";
 import { TradeCheckCard } from "@/features/check-trade-odds";
+import { ExplainCard } from "@/features/explain-symbol";
 import { CoachModeSwitch, useCoachModeParam } from "@/features/switch-coach-mode";
 
 import { krCoachCard } from "./SymbolHeader.css";
@@ -45,6 +46,8 @@ export const KrCoachJudgment = ({ code }: { code: string }) => {
       <TradeCheckCard symbol={code} />
       {data && mode && <CoachModeSwitch value={mode} onChange={setMode} />}
       {body()}
+      {/* 해설 — 판단 바로 아래, 코인 상세와 같은 칸(F017 v2 단계 3 · FE-REQ-064 FR-2). 모드가 바뀌면 새로 만든다 */}
+      {mode && <ExplainCard key={mode} symbol={code} mode={mode} />}
       <Text color="tertiary">{M.detail.coachNote}</Text>
     </section>
   );

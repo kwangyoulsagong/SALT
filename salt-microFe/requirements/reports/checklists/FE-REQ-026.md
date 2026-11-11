@@ -373,3 +373,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `CoachPanel.tsx` AI 패널 맨 위에 `TradeCheckCard`(판단 조회를 기다리지 않는 자기 조회). 기존 패널 구성 무변경 · `pnpm check-types` · `pnpm lint` · `pnpm test`(core 298 · ui 63) · `pnpm test:layer-check` · 실화면(패널 · 코인 상세 · 국내 상세 · 390 웹뷰 · 로딩 · 실패) · 운영 빌드 첫 로드 증가 0 |
+
+## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 상세 분석 해설 칸 | 충족 | `SymbolAnalysis.tsx` · 실화면 BTC(사실표 단) · 이전 · 없음 · 실패 · 느림 |

@@ -20,6 +20,7 @@ import { PrismaCoachInsightStore } from "./coach/infrastructure/PrismaCoachInsig
 import { OutboxDecisionChangeNotifier } from "./coach/infrastructure/OutboxDecisionChangeNotifier";
 import { PrismaCoachProfileStore } from "./coach/infrastructure/PrismaCoachProfileStore";
 import { PrismaBaseRateReader, PrismaTradeCheckLedger } from "./coach/infrastructure/PrismaBaseRateReader";
+import { PrismaExplanationSnapshotStore } from "./coach/infrastructure/PrismaExplanationSnapshotStore";
 import { PrismaForecastReader } from "./coach/infrastructure/PrismaForecastReader";
 import { PrismaGaugeTrackStore } from "./coach/infrastructure/PrismaGaugeTrackStore";
 import { PrismaJudgmentLedgerStore } from "./coach/infrastructure/PrismaJudgmentLedgerStore";
@@ -242,12 +243,10 @@ const portfolio = createPortfolioApplication({
  */
 const llmUsage = new PrismaLlmUsageStore();
 /**
- * 해설 다듬기 라우터(`SRV-REQ-050`) — 로컬 CLI(허용 사용자 · 웹) / 아니면 Gemini. 감지는 부팅 때 한 번, 끝나면 꽂는다.
+ * 해설 다듬기 라우터(`SRV-REQ-050`) — 로컬 CLI 가 있으면 로컬, 아니면 Gemini. 부르는 곳은 해설 스냅샷 배치 하나(`SRV-REQ-053` FR-3). 감지는 부팅 때 한 번, 끝나면 꽂는다.
  * 기동 로그 한 줄: 버전 · 경로만(계정 · 토큰 0)
  */
-const explainer = new RoutingCoachExplainer(null, new GeminiCoachExplainer(llmUsage), {
-  localUsers: env.COACH_LLM_LOCAL_USERS.length > 0 ? env.COACH_LLM_LOCAL_USERS : env.FORECAST_OWNER_EMAILS,
-});
+const explainer = new RoutingCoachExplainer(null, new GeminiCoachExplainer(llmUsage));
 if (env.COACH_EXPLAIN_LLM === "on") {
   void detectLocalCli(env.COACH_LLM_LOCAL)
     .then((found) => {
@@ -274,12 +273,13 @@ const coach = createCoachApplication({
   // 판단 변화 = 이벤트 `coach.DecisionChanged`(coach.outbox → 플랫폼 릴레이 → notification, `SRV-REQ-048` FR-5)
   notifier: new OutboxDecisionChangeNotifier(),
   explainer,
+  // 해설 스냅샷 — 배치가 쓰고 화면 읽기가 읽는다(F017 v2 단계 3)
+  explanations: new PrismaExplanationSnapshotStore(),
   llmUsage,
-  // 기본 켜짐(지금 동작). `COACH_EXPLAIN_LLM=off` 면 템플릿만(`SRV-REQ-037` FR-16)
+  // 기본 켜짐. `COACH_EXPLAIN_LLM=off` 면 배치가 해설을 만들지 않는다 — 화면은 사실표 문장(`SRV-REQ-037` FR-16 · `SRV-REQ-053` FR-3)
   llmEnabled: env.COACH_EXPLAIN_LLM === "on",
   // 비운 칸은 코드 기준(`DEFAULT_LLM_BUDGET`)
   llmLimits: {
-    userCalls: env.LLM_USER_DAILY_CALL_LIMIT,
     totalCalls: env.LLM_DAILY_CALL_LIMIT,
     totalTokens: env.LLM_DAILY_TOKEN_LIMIT,
   },

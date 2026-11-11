@@ -20,18 +20,13 @@ export class PrismaLlmUsageStore implements LlmUsageStore {
    * 시도 수는 공급자 전부, 토큰은 `gemini` 만(`SRV-REQ-050` FR-9) — 로컬 CLI 는 구독이라 토큰 비용이 없다.
    * 집계 넷이지만 창 안 행이 수백 개라 인덱스(`requested_at`) 범위 스캔 하나씩이다
    */
-  async usageSince(since: Date, userId: string): Promise<{ user: LlmUsage; total: LlmUsage }> {
+  async usageSince(since: Date): Promise<LlmUsage> {
     const window = { requestedAt: { gte: since } };
-    const gemini = { provider: "gemini" };
-    const [total, user, totalTokens, userTokens] = await Promise.all([
+    const [calls, tokens] = await Promise.all([
       prisma.llmCallLog.count({ where: window }),
-      prisma.llmCallLog.count({ where: { ...window, userId } }),
-      prisma.llmCallLog.aggregate({ where: { ...window, ...gemini }, _sum: { totalTokens: true } }),
-      prisma.llmCallLog.aggregate({ where: { ...window, ...gemini, userId }, _sum: { totalTokens: true } }),
+      prisma.llmCallLog.aggregate({ where: { ...window, provider: "gemini" }, _sum: { totalTokens: true } }),
     ]);
-    return {
-      user: { calls: user, tokens: userTokens._sum.totalTokens ?? 0 },
-      total: { calls: total, tokens: totalTokens._sum.totalTokens ?? 0 },
-    };
+    return { calls, tokens: tokens._sum.totalTokens ?? 0 };
   }
+
 }

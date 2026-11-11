@@ -1,222 +1,174 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 
-import type { CoachMode, ExplainSections, SymbolCoachViewModel } from "@repo/core/coach";
+import type { CoachMode, ExplainSection, ExplanationCitation, SymbolExplanation } from "@repo/core/coach";
 import { Badge } from "@repo/ui/badge";
-import { Button } from "@repo/ui/button";
-import { Heading } from "@repo/ui/heading";
-import { StatusToast } from "@repo/ui/statusToast";
-import { Text } from "@repo/ui/text";
+import { Skeleton } from "@repo/ui/skeleton";
+import { StatusLine } from "@repo/ui/statusLine";
 
-import { selectModeView } from "@/entities/coach";
+import { useSymbolExplanation } from "@/entities/coach";
 import { formatClockTime, formatRelativeTime } from "@repo/web-shared/lib";
 
-import { useExplainStream } from "../api";
-import { buildExplainRequest, EXPLAIN_MESSAGES, type ExplainStreamState } from "../model";
-import { ExplainSteps } from "./ExplainSteps";
+import { EXPLAIN_MESSAGES as M } from "../model";
 import * as s from "./ExplainCard.css";
-import { useReveal } from "./useReveal";
 
-const M = EXPLAIN_MESSAGES;
+/** 짧은 대기엔 아무것도 그리지 않는다 — 반짝임이 깜빡 지나가면 더 느려 보인다(`FE-REQ-064` FR-2) */
+const SKELETON_DELAY_MS = 1_000;
+/** 문장 차례 등장 간격 · 상한 — 다 합쳐 1초 안(`motion.md` §4-1) */
+const SENTENCE_STAGGER_MS = 60;
+const SENTENCE_STAGGER_MAX = 12;
 
-type Block = { key: string; heading: string | null; text: string; list: boolean };
-
-/** 본문 칸을 드러낼 순서로 편다. 제목은 그 칸의 첫 줄에만 붙는다 */
-const toBlocks = (sections: ExplainSections): Block[] => [
-  ...(sections.modeReasoning
-    ? [{ key: "mode", heading: M.modeReasoningHeading, text: sections.modeReasoning, list: false }]
-    : []),
-  ...(
-    [
-      ["keyDrivers", M.keyDriversHeading],
-      ["risks", M.risksHeading],
-      ["newsSummary", M.newsHeading],
-    ] as const
-  ).flatMap(([field, heading]) =>
-    sections[field].slice(0, 5).map((text, i) => ({ key: `${field}-${i}`, heading: i === 0 ? heading : null, text, list: true })),
-  ),
+const SECTION_ORDER: { section: ExplainSection; heading: string }[] = [
+  { section: "modeReasoning", heading: M.modeReasoningHeading },
+  { section: "keyDrivers", heading: M.keyDriversHeading },
+  { section: "risks", heading: M.risksHeading },
+  { section: "newsSummary", heading: M.newsHeading },
 ];
 
-/** 흐르는 해설 본문 — 도착한 글자를 타자처럼 드러내고, 드러나는 중인 줄 끝에 커서를 둔다 */
-const StreamedBody = ({ state, footer }: { state: ExplainStreamState; footer: ReactNode }) => {
-  const blocks = toBlocks(state.sections);
-  const total = blocks.reduce((sum, b) => sum + b.text.length, 0);
-  // 바뀐 문장(replace)은 다시 치지 않는다 — 이미 읽은 사람이 처음부터 기다리지 않게 한 번에 바꾼다
-  const shown = useReveal(total, state.replaced);
-  const typing = shown < total || state.status === "streaming";
+/** 출처 번호 — 해설 전체에서 처음 나온 순서로 1, 2, 3 … (같은 사실은 같은 번호) */
+const numberCitations = (view: SymbolExplanation): Map<string, number> => {
+  const numbers = new Map<string, number>();
+  for (const sentence of view.sentences) {
+    for (const c of sentence.citations) if (!numbers.has(c.id)) numbers.set(c.id, numbers.size + 1);
+  }
+  return numbers;
+};
 
-  let budget = shown;
-  const visible = blocks.map((b) => {
-    const count = Math.max(0, Math.min(b.text.length, budget));
-    budget -= b.text.length;
-    return { ...b, visible: b.text.slice(0, count), started: count > 0, finished: count === b.text.length };
-  });
-  const cursorAt = visible.findIndex((b) => !b.finished);
-  const newsDone = visible.filter((b) => b.key.startsWith("newsSummary")).every((b) => b.finished);
+const whenOf = (at: string | null): string => (at ? formatRelativeTime(at) : "");
 
+const Sources = ({ citations }: { citations: ExplanationCitation[] }) => (
+  <ul className={s.sources} aria-label={M.citationListLabel}>
+    {citations.map((c) => (
+      <li key={c.id} className={s.sourceRow}>
+        <span>{M.citationLine(c.label, whenOf(c.at))}</span>
+        {c.url && (
+          // 새 탭 + `noopener` — 없으면 열린 문서가 `window.opener` 로 이 탭을 조작할 수 있다
+          <a className={s.sourceLink} href={c.url} target="_blank" rel="noopener noreferrer" aria-label={M.citationLinkLabel(c.label)}>
+            {M.citationOpen}
+          </a>
+        )}
+      </li>
+    ))}
+  </ul>
+);
+
+const Sentence = ({
+  text,
+  citations,
+  numbers,
+  order,
+}: {
+  text: string;
+  citations: ExplanationCitation[];
+  numbers: Map<string, number>;
+  order: number;
+}) => {
+  const [open, setOpen] = useState(false);
+  const delay = `${Math.min(order, SENTENCE_STAGGER_MAX) * SENTENCE_STAGGER_MS}ms`;
   return (
-    <div className={state.replaced ? s.bodyReplaced : s.body} key={state.replaced ? "replaced" : "draft"}>
-      {visible.map((b, i) =>
-        b.started ? (
-          <div key={b.key} className={b.heading ? s.blockFirst : s.block}>
-            {b.heading && (
-              <Heading level={5} color="tertiary">
-                {b.heading}
-              </Heading>
-            )}
-            <p className={b.list ? s.bullet : s.paragraph}>
-              {b.visible}
-              {typing && i === (cursorAt === -1 ? visible.length - 1 : cursorAt) && (
-                <span className={s.caret} aria-hidden="true" />
-              )}
-            </p>
-          </div>
-        ) : null,
-      )}
-      {state.citations.length > 0 && state.sections.newsSummary.length > 0 && newsDone && (
-        <ul className={s.chips} aria-label={M.citationsLabel}>
-          {state.citations
-            .filter((c) => c.source)
-            .map((c) => {
-              // 출처마다 원문 주소 · 게시 시각(FEATURE-008 FR-44). 주소가 없으면 이름만 — 링크를 지어내지 않는다
-              const when = c.publishedAt ? formatRelativeTime(c.publishedAt) : "";
-              const label = when ? `${c.source} · ${when}` : c.source;
-              return (
-                <li key={`${c.source}-${c.title}`} className={s.chip} title={c.title}>
-                  {c.url ? (
-                    // 새 탭 + `noopener` — 없으면 열린 문서가 `window.opener` 로 이 탭을 조작할 수 있다
-                    <a
-                      className={s.chipLink}
-                      href={c.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={M.citationLinkLabel(c.source ?? "", c.title)}
-                    >
-                      {label}
-                    </a>
-                  ) : (
-                    label
-                  )}
-                </li>
-              );
-            })}
-        </ul>
-      )}
-      {/* 알림(바뀜 · 규칙 기반)은 글자가 다 드러난 뒤에 — 읽는 중에 끼어들지 않는다 */}
-      {!typing && footer}
+    <div>
+      <p className={s.sentence} style={{ animationDelay: delay }}>
+        {text}
+        {citations.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            className={s.chip}
+            aria-expanded={open}
+            aria-label={M.citationChipLabel(numbers.get(c.id) ?? 0, c.label)}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {numbers.get(c.id)}
+          </button>
+        ))}
+      </p>
+      {open && <Sources citations={citations} />}
     </div>
   );
 };
 
+const Body = ({ view }: { view: SymbolExplanation }) => {
+  const numbers = numberCitations(view);
+  let order = 0;
+  return (
+    <>
+      {SECTION_ORDER.map(({ section, heading }) => {
+        const rows = view.sentences.filter((x) => x.section === section);
+        if (rows.length === 0) return null;
+        return (
+          <div key={section} className={s.block}>
+            <h5 className={s.blockHeading}>{heading}</h5>
+            {rows.map((row, i) => (
+              <Sentence key={`${section}-${i}`} text={row.text} citations={row.citations} numbers={numbers} order={order++} />
+            ))}
+          </div>
+        );
+      })}
+    </>
+  );
+};
+
+/** 머리 오른쪽 — 단마다 한 줄. AI 표시는 AI 가 쓴 단(`latest` · `previous`)에만 */
+const TierNote = ({ view }: { view: SymbolExplanation }) => {
+  const at = new Date(view.generatedAt);
+  if (view.tier === "latest") return <span className={s.note}>{M.latestAt(formatClockTime(at), view.provider)}</span>;
+  if (view.tier === "previous") return <span className={s.note}>{M.previousAt(formatClockTime(at))}</span>;
+  if (view.tier === "template") return <span className={s.note}>{M.templateNote}</span>;
+  return <span className={s.note}>{M.noneNote}</span>;
+};
+
 interface ExplainCardProps {
-  view: SymbolCoachViewModel;
+  symbol: string;
   mode: CoachMode;
-  /**
-   * 카드 상자 스타일. 부르는 쪽이 준다 — 상자를 바깥에 두면 판단이 막혀 이 카드가 `null` 일 때
-   * **빈 상자가 남는다**(2026-09-22 실측). 게이트가 상자까지 가져간다
-   */
+  /** 카드 상자 스타일 — 부르는 쪽이 준다 */
   className?: string;
 }
 
 /**
- * AI 해설 카드 — **스트림** (F008 `FE-REQ-038` FR-7 · FEATURE-008 FR-47 · FR-60~64, 이전 `FE-REQ-026` FR-135).
+ * AI 해설 칸 — **늘 보인다**(F017 v2 단계 3 · `FE-REQ-064` FR-2). 버튼 · 스트림 · 기다림이 없다: 서버가 미리 만든 해설을 읽는다.
  *
- * - 판단 꼬리표(표본 · 재료 · 투자유의 · 국내 단타)는 해설을 막지 않는다(`ADR-010` v2, 2026-11-10 — ~~FR-135 막힌 모드엔 버튼 없음~~).
- *   모드가 계약 깨짐일 때만 그리지 않는다
- * - 누르면 단계가 하나씩 켜지고(실제 서버 작업), 근거 문장이 타자처럼 흐른다. 검사를 통과한 AI 문장이
- *   오면 한 번에 바뀌고 그 사실을 알린다. AI 가 실패하면 흐른 문장이 최종이고 "규칙 기반 설명" 배지가 붙는다
- * - ~~같은 카드 안에 **적중률 · 사례**(3종의 나머지 둘)를 둔다~~ — 2026-11-10 뺐다: 같은 화면의 판단 카드(`JudgmentDetail`)가
- *   3종을 **늘** 보여 준다(`ADR-010` v2). 두 번 그리면 같은 숫자 두 번(`screen-desktop.md` §5 · `FE-REQ-049` 문제 목록)
- * - 모드가 바뀌면 부르는 쪽이 `key={mode}` 로 새로 만든다 — 진행 중 스트림은 끊긴다
+ * 4단 — 최신 AI(정리 시각 · 공급자) · 이전 AI("HH:MM에 정리") · 사실표 문장(AI 표시 없음) · "특이 소식이 없어요" + 판단 근거.
+ * 문장마다 끝에 출처 번호 칩 — 누르면 그 사실의 이름 · 시각(· 기사 원문). 1초 안의 대기엔 아무것도 그리지 않고, 그 뒤 반짝임.
+ * 문장은 차례로 짧게 떠오른다(줄인 모션이면 바로). 로그아웃이면 그리지 않는다 — 패널이 이미 로그인 안내를 둔다
  */
-export const ExplainCard = ({ view, mode, className }: ExplainCardProps) => {
-  const { state, request } = useExplainStream();
-  const modeView = selectModeView(view, mode);
-  if (!modeView) return null;
-  const body = buildExplainRequest(view, mode);
-  const started = state.status !== "idle" && state.status !== "busy";
-  const finished = state.status === "done";
-  const ruleBased = finished && state.source === "template";
+export const ExplainCard = ({ symbol, mode, className }: ExplainCardProps) => {
+  const { data, isPending, isError, isSignedOut } = useSymbolExplanation(symbol, mode);
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (!isPending) return;
+    setSlow(false);
+    const timer = setTimeout(() => setSlow(true), SKELETON_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isPending]);
 
-  const renderBody = () => {
-    if (state.status === "blocked") return <p className={s.note}>{M.blocked}</p>;
-    if (state.status === "failed") {
-      // 글자 하나 못 받았다 — 서버가 만든 판단의 headline · 근거를 그대로 보여 준다(FR-62)
-      return (
-        <>
-          <p className={s.note}>{M.ruleBasedNote}</p>
-          <Text>{modeView.judgment.headline}</Text>
-          <ul className={s.list}>
-            {modeView.judgment.reasons.map((reason) => (
-              <li key={reason}>{reason}</li>
-            ))}
-          </ul>
-        </>
-      );
-    }
-    if (started) {
-      return (
-        <>
-          <ExplainSteps steps={state.steps} />
-          <StreamedBody
-            state={state}
-            footer={
-              state.replaced ? (
-                <p className={s.flash} role="status">
-                  {state.droppedSentences > 0 ? M.droppedNote(state.droppedSentences) : M.replacedNote(state.provider)}
-                </p>
-              ) : ruleBased ? (
-                <p className={s.flash}>{M.templateNote}</p>
-              ) : finished && state.provider ? (
-                <p className={s.flash} role="status">
-                  {state.droppedSentences > 0
-                    ? `${M.streamedNote(state.provider)} ${M.streamedDroppedNote(state.droppedSentences)}`
-                    : M.streamedNote(state.provider)}
-                </p>
-              ) : null
-            }
-          />
-        </>
-      );
-    }
+  if (isSignedOut) return null;
+
+  const body = () => {
+    if (isError && !data) return <StatusLine kind="error">{M.unavailable}</StatusLine>;
+    if (!data) return slow ? <Skeleton lines={4} height={16} /> : null;
     return (
       <>
-        <Button variant="primary" fullWidth disabled={!body} onClick={() => body && request(body)}>
-          {M.open}
-        </Button>
-        {state.status === "busy" && <p className={s.note}>{M.busy}</p>}
+        {data.tier === "none" && <p className={s.sentence}>{M.noneHeading}</p>}
+        {/* 면책은 판단 카드가 이미 그린다 — 같은 문장 두 번 0 */}
+        <Body view={data} />
       </>
     );
   };
 
   return (
-    <section
-      className={className ? `${s.card} ${className}` : s.card}
-      aria-busy={state.status === "streaming" || undefined}
-    >
+    <section className={className ? `${s.card} ${className}` : s.card} aria-label={M.heading} aria-busy={isPending || undefined}>
       <div className={s.cardHeader}>
-        <Heading level={4}>{M.heading}</Heading>
-        {finished && !ruleBased && (
-          <>
-            <Badge size="sm" tone="ai">
-              {M.aiBadge}
-            </Badge>
-            {state.generatedAt && (
-              <span className={s.note}>{M.generatedAt(formatClockTime(new Date(state.generatedAt)))}</span>
-            )}
-          </>
-        )}
-        {(ruleBased || state.status === "failed") && (
-          <Badge size="sm" tone="neutral">
-            {M.ruleBasedBadge}
+        {/* 제목 단 — 칸 안 묶음 제목이 h5 라 이름 칩이 h4(axe heading-order, 2026-11-11 실화면) */}
+        <h4 className={s.nameChip}>{M.heading}</h4>
+        {data?.aiGenerated && (
+          <Badge size="sm" tone="ai">
+            {M.aiBadge}
           </Badge>
         )}
+        {data && <TierNote view={data} />}
       </div>
-      {/* 스트림이 끝난 순간 패널 위에 잠깐 떴다가 사라진다 (FE-REQ-044 P-6 · 사용자 QA 2026-09-30) —
-          헤더에 계속 남기면 판단 옆 장식이 된다. 규칙 기반 대체면 띄우지 않는다 */}
-      <StatusToast trigger={finished && !ruleBased ? (state.generatedAt ?? "done") : null}>{M.finished}</StatusToast>
-      {renderBody()}
+      {body()}
     </section>
   );
 };

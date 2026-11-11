@@ -753,6 +753,26 @@ model JudgmentLedgerEntry {
 
 /// 사기 전 · 팔기 전 점검 원장(F017 v2 단계 2 · SRV-REQ-053 FR-4 · DB-REQ-043 FR-7). 사용자 열 0 — 종목 · 조건 · 기준 봉 단위로
 /// 처음 본 한 줄만(같은 키는 ON CONFLICT DO NOTHING). 나중 채점(FC-REQ-028 FR-4)이 첫 점검 가격 → h 뒤 종가를 본다
+// 해설 스냅샷 (F017 v2 단계 3 · DB-REQ-043 FR-1 · SRV-REQ-053 FR-3). 시장 층 — 사용자 열 0.
+// 배치가 종목 지문이 바뀐 것만 만들고 요청 경로는 읽기만 한다. 불변(UPDATE 트리거 차단) · 보존 종목 · 모드당 최근 N
+model ExplanationSnapshot {
+  id          String   @id @default(uuid())
+  symbol      String
+  mode        String // "scalp" | "long_term"
+  fingerprint String
+  action      String // 만들 때 판단 행동 — 이전 해설은 같은 방향일 때만 보인다
+  source      String // "llm" | "llm_checked"
+  provider    String
+  sentences   Json // [{section, text, citations:[{id,label,at}]}]
+  verifier    Json // {sentences, dropped, promptVersion, verifierVersion}
+  factsHash   String   @map("facts_hash")
+  generatedAt DateTime @map("generated_at")
+
+  @@unique([symbol, mode, fingerprint])
+  @@index([symbol, mode, generatedAt(sort: Desc)], map: "explanation_snapshot_latest_idx")
+  @@map("explanation_snapshot")
+}
+
 model TradeCheckLedgerEntry {
   id           String   @id @default(uuid())
   preregKey    String   @map("prereg_key")
