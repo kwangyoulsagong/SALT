@@ -21,3 +21,5 @@
 | 관망 신호 없음 · 본 값 둘 · 근거 수 | 충족 | `@repo/core` `symbolCoach.test.ts` 3 · check-types · lint · core test 298 · 실화면 RSR 장기(3000 셸 경유, 스타일 적용 확인) |
 | 390 앱 웹뷰 · web-investment 운영 빌드 | 아래 행 | — |
 | 390 앱 웹뷰 · 운영 빌드 | 충족 | Playwright(Chrome · SALTApp UA · 쿠키) RSR 장기 — 본 값 줄 줄바꿈 · 가로 넘침 0 · 머리 버튼 카드 안(결함 1 고침 `02191232`) · `web-investment` 운영 빌드 worktree 통과 |
+| 소비처 · 로딩 · 실패 | 충족 | 오른쪽 코치 패널(RSR 단타 근거 4 · 본 값 RSI 34.8 35 아래) · BTC 단타 상세 · 국내 005930 장기(사용자 실 세션 Chrome — 근거 2 · 본 값 RSI 43.4) · Playwright route: 500 → "지금 판단을 불러올 수 없습니다." · 응답 없음 → 스켈레톤 · 페이지 오류 0 |
+| 운영 빌드(마지막 FE 수정 포함) | 충족 | web-investment worktree `3a361d86` 빌드 통과 |
