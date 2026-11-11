@@ -121,11 +121,18 @@ export const price = style({
  * 자동 줄바꿈으로 흐르게 둔다 — 좁은 화면에서 가로 스크롤이 생기지 않는다.
  */
 /** 지표 줄 + 관심 버튼. 버튼은 **헤더 오른쪽 끝**이다 — 이름 옆에 붙이면 제목의 일부로 보인다. */
+/**
+ * 지표 · 관심 별 · 주문 전 체크. 좁은 화면에선 지표가 폭 100% 라 줄을 넘겨야 한다 — 안 넘기면 별 · 버튼이 카드 밖으로
+ * 밀려 나갔다(2026-11-11 390 앱 웹뷰 실측, `FE-REQ-064` 확인 중 발견)
+ */
 export const statsRow = style({
   display: "flex",
   alignItems: "center",
   gap: vars.space.lg,
   minWidth: 0,
+  "@media": {
+    [NARROW]: { flexWrap: "wrap", width: "100%" },
+  },
 });
 
 export const stats = style({
