@@ -518,3 +518,33 @@ trade_check_outcome = Table(
     Column("went_up", Boolean, nullable=False),
     Column("scored_at", DateTime(timezone=True), nullable=False),
 )
+
+# F017 v2 단계 4 — 20261111160000_judgment_tier (FC-REQ-028 FR-6 · DB-REQ-043 FR-6)
+judgment_tier = Table(
+    "judgment_tier",
+    metadata,
+    Column("prereg_key", Text, primary_key=True),
+    Column("run_as_of", DateTime(timezone=True), primary_key=True),
+    Column("market", Text, primary_key=True),
+    Column("mode", Text, primary_key=True),
+    Column("rule_version", Text, nullable=False),
+    Column("tier", Text, nullable=False),
+    Column("reason", Text),
+    Column("basis_source", Text),
+    Column("live_rows", Integer, nullable=False),
+    Column("live_days", Integer, nullable=False),
+    Column("live_candidates", Integer, nullable=False),
+    Column("live_avoids", Integer, nullable=False),
+    Column("live_effective_n", Float, nullable=False),
+    Column("live_spread", Float),
+    Column("live_ci_low", Float),
+    Column("live_ci_high", Float),
+    Column("live_p_holm", Float),
+    Column("regime_first", Float),
+    Column("regime_second", Float),
+    Column("backtest_spread", Float),
+    Column("backtest_ci_low", Float),
+    Column("backtest_ci_high", Float),
+    Column("demoted_at", DateTime(timezone=True)),
+    Column("computed_at", DateTime(timezone=True), nullable=False),
+)
