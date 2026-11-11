@@ -9,10 +9,10 @@
  */
 
 /**
- * 사전등록 @2 — @1(365일 기후값 기준 · 날짜 안 셔플)이 시간봉에서 실력을 부풀렸다. @2 는 같은 기간을 이미 봤으므로 시험 통과는
- * 라이브 원장 발행 허가일 뿐이고, 화면 확률은 예측 배치가 정한 `live_ready`(등록 뒤 라이브 확신 ≥ 300 · 늘 오른다보다 나음 하한 > 0) 뒤
+ * 사전등록 @3 = 전진 시험 — @1 · @2 · 진단으로 과거 기간을 세 번 봐서, 등록 뒤 실제로 낸 예측만으로 판정 날짜(2027-01-10 · 02-09 · 03-11)에
+ * 판정한다. 그 전 칸은 status `forward` · 사유 `awaiting_live`(예측은 쌓되 확률 없음). 통과하면 예측 배치가 `live_ready` 를 켠다
  */
-export const SHORT_DIRECTION_KEY = "short-direction@2";
+export const SHORT_DIRECTION_KEY = "short-direction@3";
 export const SCENARIO_HORIZONS = ["1h", "4h", "1d"] as const;
 export type ScenarioHorizon = (typeof SCENARIO_HORIZONS)[number];
 export type ScenarioMarket = "crypto" | "kr";
@@ -29,7 +29,7 @@ export const SCENARIO_BLOCKED_REASONS = [
   "cost",
   "insufficient_history",
   "live_underperforms",
-  /** 시험은 넘었지만 등록 뒤 라이브 성적이 아직 증명 전(확신 300 · 늘 오른다보다 나음) — 확률 없이 과거 검산 성적만 */
+  /** 전진 시험 중 — 등록 뒤 낸 예측을 쌓아 판정 날짜에 판정(@3). 그 전엔 확률 없이 본 기간 검산 성적만 */
   "awaiting_live",
   /** 칸은 통과했는데 이 종목 예측이 없다 — 시험한 범위(코인 거래대금 상위 50 · 국내 상위 200) 밖 */
   "outside_universe",

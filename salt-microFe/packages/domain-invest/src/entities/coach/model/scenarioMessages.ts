@@ -33,7 +33,7 @@ export const SCENARIO_MESSAGES = {
     cost: "수수료를 빼면 남는 게 없었어요",
     placebo_failed: "시험 점검을 통과하지 못해 결과를 쓰지 않아요",
     shuffle_failed: "시험 점검을 통과하지 못해 결과를 쓰지 않아요",
-    awaiting_live: "과거 검산은 넘었지만, 실제로 낸 예측 성적이 쌓일 때까지 확률은 보여 드리지 않아요",
+    awaiting_live: "실제로 낸 예측을 쌓아 채점하는 중이에요 — 정한 날짜에 증명되면 확률을 보여 드려요",
     insufficient_history: "국내 장중 기록이 아직 짧아 이 기간은 시험하지 않았어요",
     live_underperforms: "실제로 써 보니 '늘 오른다'보다 못해서 껐어요",
     outside_universe: "시험한 종목(거래가 많은 종목) 밖이에요",
