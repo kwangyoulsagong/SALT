@@ -164,3 +164,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 스트림 삭제 · 켜고 끄기 | 충족 | `explanationSnapshots.test.ts` "LLM 꺼짐 → 아무것도 하지 않는다" |
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 전망 경로 | 충족 | 변경 0 · `getSymbolForecast.test` 통과 |

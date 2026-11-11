@@ -237,3 +237,9 @@ FR 전부 완료. 남은 것은 `QA-001`(소유자 실계정 · 200% 확대 · �
   - `salt-microFe/packages/domain-invest/src/widgets/coach-console/ui/MonthlyReviewPanel.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 동작 | 충족 | 주석만 |

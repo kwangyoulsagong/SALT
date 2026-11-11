@@ -387,3 +387,9 @@
 | 이 REQ 에 걸린 몫 | 반영 | `salt-microFe/packages/domain-invest/src/entities/coach/model/messages.ts` — 등급 문구 `tier`(글자 셋 · 참고 이유 다섯 + 계산 못 함 · 검증됨 · 주의 문장 — '실력 있음' 같은 말 0). 주인 `FE-REQ-064` FR-1 |
 | 영역 검증 | 통과 | 서버 build · lint · test 1219 · test:layer-check / BFF test 449 · build / FE check-types · lint · test · test:layer-check / 예측 ruff · pyright · lint-imports · pytest · leakage |
 | 이 REQ 의 기존 계약 | 변화 없음 | 칸을 더하기만 했다 — 지우거나 바꾼 필드 0 |
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 문구 | 충족 | `moreSummary` 한 줄 · 타입 · lint 통과 |

@@ -55,3 +55,4 @@ source: requirements/reports/research/2026-09-27-ai-judgment-upgrade.md §6-3 ·
 |---|---|
 | 2026-10-29 | 전수 조사 정정 — BY-FDR · DSR 닫힘 조건(슬라이스 4 끝남 → 부분 닫힘) |
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `domain/panel.py` `Panel.open` 선택 열(기본 None — 기존 생성자 그대로) · `scoring/rule_ic_kr.py` 생성자 맞춤. `rule-ic-kr@1` 결과 불변(테스트 통과). 주인 REQ 는 `FC-REQ-028` · DB `DB-REQ-043` |
+| 2026-11-11 | F017 v2 단계 5 — `domain/panel.build_panel` 에 `step`(기본 하루, 3600 = 1시간). 일봉 호출 결과 변화 0 |

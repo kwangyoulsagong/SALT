@@ -49,3 +49,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `coach/domain/ports.ts` 에 포트 `BaseRateReader` · `TradeCheckLedger`. 기존 포트 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` |
 | 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — coach `ports.ts` — `ExplanationSnapshotStore` · `ExplanationSnapshotRecord` · `ExplainCaller.userId` 가 `null` 가능(배치) · `batch` 표지 · `LlmUsageStore.usageSince` 사용자 `null` |
 | 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-server/src/coach/domain/ports.ts` 에 걸린 몫: 포트 `JudgmentTierReader` 추가. 주인 `SRV-REQ-053` FR-7. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
+| 2026-11-11 | F017 v2 단계 5 — `coach/domain/ports.ts` 에 `ShortHorizonReader` 포트(머리 주석 주인) |

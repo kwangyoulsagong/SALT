@@ -37,3 +37,4 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | 해설 스트림 중계 — `provider`(`replace` · `done` · `polish:active` 단계)가 데이터 그대로 지난다(테스트 고정). `@repo/core` `ExplainStreamEvent` 에 `ExplainProvider` · 계약 주석(흐르는 글자가 검사한 LLM 문장일 수 있다). 근거 `BFF-REQ-050` · `SRV-REQ-050` FR-13. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): 주요 사건 뷰모델에 국내 종류 4 · `scope` · `region`(옛 응답은 `market` · `us`)(`BFF-REQ-043` FR-1 · 2) |
 | 2026-11-11 | FR-6 해설 스트림 중계 **은퇴** — 해설은 저장값 읽기(`BFF-REQ-052` FR-2) — F017 v2 단계 3(`feat/f017-s3-explain-always`) |
+| 2026-11-11 | F017 v2 단계 5 — 같은 서비스 파일에 `getScenario`(전망과 같은 규칙: 4xx 그대로 · 5xx 200 unavailable). 변동 범위 경로 `/api/app/coach/forecast` 는 그대로 둔다(화면 소비처는 지움 — `FE-REQ-064` FR-4) |

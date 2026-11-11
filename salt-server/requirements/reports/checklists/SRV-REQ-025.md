@@ -481,3 +481,9 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 | 이 REQ 에 걸린 몫 | 반영 | `salt-server/src/coach/application/GetSymbolCoach.ts` — 등급 리더(선택 생성자 인자)를 판단 재료와 나란히 한 번 읽어 모드마다 `tier` 를 붙인다 — 실패하면 참고, 판단 · 게이트 흐름 그대로. 주인 `SRV-REQ-053` FR-7 |
 | 영역 검증 | 통과 | 서버 build · lint · test 1219 · test:layer-check / BFF test 449 · build / FE check-types · lint · test · test:layer-check / 예측 ruff · pyright · lint-imports · pytest · leakage |
 | 이 REQ 의 기존 계약 | 변화 없음 | 칸을 더하기만 했다 — 지우거나 바꾼 필드 0 |
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 기존 경로 | 충족 | 경로 하나 추가 · 서버 테스트 1236/1236 |

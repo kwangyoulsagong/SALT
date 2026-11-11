@@ -426,6 +426,7 @@ PC                                                   모바일(세로 스택)
 | 2026-11-10 | v2 대체 표시 — 와이어프레임 ② · FR-114 · FR-117 · FR-134 · FR-135 · FR-143 범위 명시 (`FEATURE-017` v2 · `ADR-010` v2) |
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `CoachPanel.tsx` AI 패널 맨 위에 `TradeCheckCard`(판단 조회를 기다리지 않는 자기 조회). 기존 패널 구성 무변경. 주인 REQ 는 `FE-REQ-064` · BFF `BFF-REQ-052` · 서버 `SRV-REQ-053` |
 | 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — FR-135 [해설 보기] 버튼 → 늘 보이는 해설 칸(`FE-REQ-064` FR-2). `ExplainCard` 는 `view` 대신 `symbol` · `mode` 를 받는다 |
+| 2026-11-11 | F017 v2 단계 5 — 종목 상세 '자세히' 문구 `변동 범위 · …` → `시나리오 · …`(카드 교체 `FE-REQ-064` FR-4) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`f7ce96dc` · `a65d6abf` · `41447893`) — FR-114 판단 늘 · 꼬리표 문장 · FR-135 해설 막지 않음 · 빈 사례 사실 줄
   - `salt-microFe/packages/domain-invest/src/entities/coach/model/messages.ts` — 유리막 칸 이름 · 안 쓰게 된 "로그인하면 …" 문구 정리

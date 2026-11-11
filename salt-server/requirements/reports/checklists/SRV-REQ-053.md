@@ -73,3 +73,14 @@
 |---|---|---|
 | main 나란히 대조 | 충족 | main worktree 의 `app` 을 워커 없이 4100 에 띄워 같은 요청 — BTC · ETH · 005930 · 000270 × 단타 · 장기 8응답, **등급 칸(`tier` · `tierBasis`)을 빼면 main 과 같음** · main 엔 등급 칸 없음 |
 | 공용 함수 소비처 | 충족 | `attachJudgmentTrack` — 종목 판단(위 대조) · 해설 재료(판단 · 관측 · 꼬리표만 골라 써 등급이 LLM 입력 · 지문에 안 들어감) |
+
+## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 서버 검증 | 충족 | build · lint · test 1236/1236 · test:layer-check · 훅 사후 8파일(대조군 exit 2) · Swagger JSDoc |
+| 막힘 경계 표 | 충족 | `shortHorizon.test.ts` 11행(칸 없음 · 3일 넘음 · 정확히 3일 · 못 넘음 · 모르는 사유 · 국내 장중 · 예측 없음 · 만료 = now · 뷰 false · 버전 다름 · 통과) + % 변환 · 깨진 사례 버림 · 막혀도 성적 · 지평 셋 |
+| 소유자 판정 | 충족 | `ownerGateScope` 허용표 넷 · 실 BFF 소유자 200 · 비소유자 404 |
+| 실호출 | 충족 | 재시작 뒤 BTC · 005930 → 지평 셋(시험 행 전 `not_tested` · 시험 뒤 칸 사유) |
+| EXPLAIN | 충족 | 칸 뷰 2.5ms(작은 표 순차) · 종목 뷰 0.3ms(인덱스 스캔) — `DB-REQ-043` |
+| 소비처 | 충족 | 새 경로 — 기존 `/api/coach/forecast` 코드 변경 0 |

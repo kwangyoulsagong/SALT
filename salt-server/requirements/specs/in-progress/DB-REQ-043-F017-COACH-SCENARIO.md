@@ -6,7 +6,7 @@ kind: MIGRATION
 title: "AI 코치 — 해설 스냅샷 · 단타 확률 · 기저율 · 사건 종류 표와 계약 뷰"
 priority: high
 created: 2026-11-10
-status: in-progress (2026-11-10 FR-6 출처 라벨 · 2026-11-11 FR-3 기저율 · FR-7 점검 원장 · FR-1 해설 스냅샷 · FR-6 등급 — 나머지 to-do)
+status: in-progress (2026-11-10 FR-6 출처 라벨 · 2026-11-11 FR-3 기저율 · FR-7 점검 원장 · FR-1 해설 스냅샷 · FR-6 등급 · FR-2 단타 확률(단계 5) — 나머지 to-do)
 source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 ---
 
@@ -20,7 +20,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | FR | 내용 |
 |---|---|
 | FR-1 | **coach `explanation_snapshot`** — `(symbol, mode, fingerprint)` 유일 · `tier` · `sentences jsonb`(문장 · 인용 id — 쿼리 조건 아님) · `provider` · `verifier jsonb`(문장 수 · 탈락 · 대체 · 원문 0) · `generated_at`. 읽기 인덱스 `(symbol, mode, generated_at desc)`. 불변(UPDATE 0 — 새 지문 = 새 행) · 보존 종목 · 모드당 최근 N — **done 2026-11-11** 마이그레이션 `20261111150000_explanation_snapshot`(추가만 · 롤백 = DROP TABLE · 주인 coach · 사용자 열 0). 정정: 칸 `tier` 대신 `source`(`llm` · `llm_checked` — 저장은 AI 단만, 템플릿 · 없음은 읽기 때 사실표로) · `action`(이전 단은 같은 방향일 때만) · `facts_hash`. UPDATE 차단 = 기존 `judgment_ledger_immutable()` 트리거 · 보존 최근 5 · `EXPLAIN` 읽기 = `explanation_snapshot_latest_idx` 인덱스 스캔 |
-| FR-2 | **forecast `short_horizon_prediction`** — `(symbol, horizon, as_of, model_version)` PK · `p_up` · `q10` · `q50` · `q90` · `invalidation` · `available_at` · CHECK(분위 순서 · 0≤p≤1). 뷰 `v_short_horizon_card`(최신 · 시험 통과 표지 · 성적 · 빗나간 사례 · 지난 예측은 `renderable=false`) |
+| FR-2 | **forecast `short_horizon_prediction`** — `(symbol, horizon, as_of, model_version)` PK · `p_up` · `q10` · `q50` · `q90` · `invalidation` · `available_at` · CHECK(분위 순서 · 0≤p≤1). 뷰 `v_short_horizon_card`(최신 · 시험 통과 표지 · 성적 · 빗나간 사례 · 지난 예측은 `renderable=false`) — **done 2026-11-11**(단계 5 `d0e79ff6`) 마이그레이션 `20261111170000_short_horizon`(추가만 · 롤백 SQL 머리). **정정**: 표 셋 — 시험 `short_horizon_test`(실행마다 칸마다 · 안 한 칸도 `not_tested` · 성적 출처 `track_origin` backtest\|live 하나 · 라이브 적합 `live_params` jsonb) · 예측 `short_horizon_prediction`(+ `ref_price` · `expires_at` · CHECK 분위 순서 · 0≤p≤1) · 결과 `short_horizon_outcome`(예측 한 줄 = 한 줄). 뷰 둘 — 칸 `v_short_horizon_cell` · 종목 `v_short_horizon_card`(renderable = 칸 통과 · 같은 모델 · 만료 전). `EXPLAIN (ANALYZE)` 칸 2.5ms(시험 표 순차 — 하루 6행) · 종목 0.3ms(`short_horizon_prediction_latest_idx` 인덱스 스캔) |
 | FR-3 | **forecast `base_rate_stat`** — ~~`(condition_id, symbol, horizon, as_of)`~~ **`(prereg_key, market, condition_id, horizon, as_of)` — 시장 풀링(2026-11-11: 종목 하나의 조건 표본은 유효 n 100 · 날 60 을 거의 못 넘는다)** · 표본 · 유효 n · 날 · 오른 비율 · 수축 · Wilson · 평균 · 분위 · 보유 연장 분위 · Holm 표지 · 최근 다름. 조건 정의는 `preregistration`. 뷰 `v_base_rate` + **라이브 문턱 `base_rate_trigger` · 뷰 `v_base_rate_trigger`**(종목 · 조건 · `next`/`closed` · 기준 종가 · 기준 봉 시각 · 가격/시가/거래대금 문턱 — 시장마다 최신 실행만) — **done 2026-11-11** `e9bbb8f4` |
 | FR-7 | **v2 점검 원장 · 채점** — `public.trade_check_ledger`(사용자 열 0 · 유일 (사전등록, 종목, 방향, 조건, 지평, 기준 봉) · 조건 없음 `NONE`) · export 뷰 `public.v_trade_check_ledger_export`(예측은 이 뷰만 — `DB-REQ-036` FR-3 직접 읽기 목록 고정) · `forecast.trade_check_outcome`(원장 한 줄 = 결과 한 줄) — **done 2026-11-11** `cc8d1713` · `093a494f` |
 | FR-4 | **forecast 사건 종류** — 소식 행 → `event_kind` 매핑 표(`news_event_kind` — 원천 키 · 종류 · 규칙 버전) · 반응 통계는 `event_reaction_stats` 를 종류 축으로 넓힘(새 표 대신 열/키 추가 — 마이그레이션 때 정함) · 뷰 `v_news_reaction`(종류 · 수평선 · 표본 · 오른 비율 · 평균 · 선반영) |
@@ -41,6 +41,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-11 | **단계 5**(`feat/f017-s5-short-direction`) FR-2 done `d0e79ff6` — 표 셋 · 뷰 둘. 정정: 시험 표 · 결과 표가 계획에 없었다(사유 · 성적 · 라이브 채점 자리). 롤백 실제로 한 번 돌림(개발 중 칸 추가 두 번 — drop · 다시 적용) |
 | 2026-11-11 | **단계 3**(`feat/f017-s3-explain-always`) — FR-1 done(해설 스냅샷 표 · 트리거 · 인덱스) |
 | 2026-11-11 | **단계 2**(`feat/f017-s2-checks-plain-line`) — FR-3 done(키를 시장 풀링으로 · 라이브 문턱 표 · `applies_to` · `ref_at`) · FR-7 신규 done(점검 원장 · export 뷰 · 채점 표). 마이그레이션 셋 전부 추가만(`20261111120000` · `130000` · `140000`) |
 | 2026-11-10 밤 | **v2** — FR-6 등급 표 · 뷰 · 원장 출처 라벨 · 기저율 `below_min` 칸(`FEATURE-017` v2) |
