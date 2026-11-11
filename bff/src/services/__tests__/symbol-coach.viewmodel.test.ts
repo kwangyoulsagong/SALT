@@ -100,6 +100,31 @@ describe("toModeViewModel — 판단은 늘 있다 (ADR-010 v2 · BFF-REQ-052 FR
     assert.deepEqual(vm?.zone, zone);
   });
 
+  it("라벨 등급 — 서버 값 그대로, 모르는 값 · 옛 서버 · 출처가 어긋나면 참고(not_computed) (BFF-REQ-052 FR-1)", () => {
+    const basis = { source: null, reason: "no_candidate", liveEffectiveN: 7, minEffectiveN: 620, spreadCi: null, regimes: { first: null, second: null } };
+    const ref = toModeViewModel(modeView({ tier: "reference", tierBasis: basis }));
+    assert.equal(ref?.tier, "reference");
+    assert.deepEqual(ref?.tierBasis, { source: null, reason: "no_candidate", liveEffectiveN: 7, minEffectiveN: 620, spreadCi: null });
+    const caution = toModeViewModel(
+      modeView({ tier: "caution", tierBasis: { ...basis, source: "backtest_full", reason: null, spreadCi: { low: -0.02, high: -0.001 } } }),
+    );
+    assert.equal(caution?.tier, "caution");
+    assert.deepEqual(caution?.tierBasis.spreadCi, { low: -0.02, high: -0.001 });
+    const cases: Array<[unknown, unknown]> = [
+      [undefined, undefined],
+      ["gold", basis],
+      ["verified", { ...basis, source: "backtest_full" }],
+      ["caution", basis],
+      ["reference", { ...basis, liveEffectiveN: "7" }],
+    ];
+    for (const [tier, tierBasis] of cases) {
+      const vm = toModeViewModel(modeView({ tier, tierBasis }));
+      assert.equal(vm?.tier, "reference", String(tier));
+      assert.equal(vm?.tierBasis.reason, "not_computed");
+    }
+    assert.equal(toModeViewModel(modeView({ tier: "reference", tierBasis: { ...basis, reason: "weird" } }))?.tierBasis.reason, "not_computed");
+  });
+
   it("성적 출처 — backtest 는 그대로, 없으면(옛 서버) live, 모르는 값은 모의 라벨 쪽 (F011 슬라이스 7b)", () => {
     const origin = (sampleOrigin: unknown) =>
       toModeViewModel(modeView({ trackRecord: { ...trackRecord, sampleOrigin } as ServerModeView["trackRecord"] }))

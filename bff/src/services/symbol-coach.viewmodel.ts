@@ -192,7 +192,25 @@ export interface ModeCoachViewModel {
   caveats: JudgmentCaveat[];
   /** 국내 주식 이력 수치. 코인 · 옛 서버는 `null` */
   history: JudgmentHistory | null;
+  /**
+   * 라벨 등급 — 참고 · 검증됨 · 주의(`BFF-REQ-052` FR-1 · 서버 `SRV-REQ-053` FR-7). 서버 값 그대로, **모르는 값 · 옛 서버면 `reference`**
+   * (지어내지 않는다 — 검증됨을 만들 수 있는 것은 서버뿐). 등급은 판단을 숨기지 않는다
+   */
+  tier: JudgmentTier;
+  tierBasis: JudgmentTierBasis;
   zone: Zone;
+}
+
+export type JudgmentTier = "reference" | "verified" | "caution";
+
+export interface JudgmentTierBasis {
+  /** 등급을 정한 출처 — 참고면 `null` */
+  source: "live" | "backtest_full" | null;
+  /** 참고인 이유(`no_candidate` · `no_avoid` · `below_effective_n` · `ci_includes_zero` · `regimes_disagree` · `not_computed`). 모르는 값은 `not_computed` */
+  reason: string | null;
+  liveEffectiveN: number;
+  minEffectiveN: number;
+  spreadCi: { low: number; high: number } | null;
 }
 
 export interface GaugeTrackRecord {
@@ -266,6 +284,8 @@ export interface ServerModeView {
   zone?: Zone;
   assetClass?: unknown;
   history?: unknown;
+  tier?: unknown;
+  tierBasis?: unknown;
 }
 
 export interface ServerSymbolCoach {
@@ -357,6 +377,42 @@ const toObservations = (value: unknown): JudgmentObservation[] =>
       )
     : [];
 
+const TIER_REASONS = ["no_candidate", "no_avoid", "below_effective_n", "ci_includes_zero", "regimes_disagree", "not_computed"];
+const VERIFIED_MIN_EFFECTIVE_N = 620;
+
+const unknownTier = (): { tier: JudgmentTier; tierBasis: JudgmentTierBasis } => ({
+  tier: "reference",
+  tierBasis: { source: null, reason: "not_computed", liveEffectiveN: 0, minEffectiveN: VERIFIED_MIN_EFFECTIVE_N, spreadCi: null },
+});
+
+/**
+ * 서버 등급 → 화면 등급. 모양이 틀리면 참고(`not_computed`) — 모르는 값을 "검증됨"으로 읽는 길이 없다.
+ * 검증됨은 출처가 라이브일 때만 · 주의는 출처가 있을 때만(서버 `toJudgmentTier` 와 같은 불변식 — 한쪽만 바뀌면 여기서 참고로 접힌다)
+ */
+export const toTier = (tier: unknown, basis: unknown): { tier: JudgmentTier; tierBasis: JudgmentTierBasis } => {
+  const b = (basis ?? {}) as Record<string, unknown>;
+  const n = b.liveEffectiveN;
+  const min = b.minEffectiveN;
+  if ((tier !== "reference" && tier !== "verified" && tier !== "caution") || typeof n !== "number" || !Number.isFinite(n)) {
+    return unknownTier();
+  }
+  const source = b.source === "live" || b.source === "backtest_full" ? b.source : null;
+  if (tier === "verified" && source !== "live") return unknownTier();
+  if (tier === "caution" && source === null) return unknownTier();
+  const ci = b.spreadCi as { low?: unknown; high?: unknown } | null | undefined;
+  const reason = tier === "reference" ? (typeof b.reason === "string" && TIER_REASONS.includes(b.reason) ? b.reason : "not_computed") : null;
+  return {
+    tier,
+    tierBasis: {
+      source: tier === "reference" ? null : source,
+      reason,
+      liveEffectiveN: n,
+      minEffectiveN: typeof min === "number" && min > 0 ? min : VERIFIED_MIN_EFFECTIVE_N,
+      spreadCi: ci && typeof ci.low === "number" && typeof ci.high === "number" ? { low: ci.low, high: ci.high } : null,
+    },
+  };
+};
+
 /**
  * 서버 모드 블록 → 화면 모드 블록. 계약이 깨졌으면 `null`.
  *
@@ -397,6 +453,7 @@ export const toModeViewModel = (
     failureCases,
     caveats,
     history: toHistory(view.history),
+    ...toTier(view.tier, view.tierBasis),
     zone: toZone(view.zone),
   };
 };
