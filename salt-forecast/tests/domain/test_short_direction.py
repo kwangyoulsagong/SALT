@@ -266,3 +266,37 @@ def test_narrow_to_universe_keeps_rows_identical() -> None:
     np.testing.assert_array_equal(a.x, b.x)
     np.testing.assert_array_equal(a.y, b.y)
     assert [p.symbols[i] for i in a.sym] == [sub.symbols[i] for i in b.sym]
+
+
+def test_sigma_skips_holes_like_preregistration() -> None:
+    """σ = 값이 있는 마지막 168개 — 점검 시간처럼 봉이 빈 칸을 건너뛴다(구멍 하나로 일주일 NaN 이던 결함 회귀)."""
+    from salt_forecast.domain.short_direction import _last_n_std  # pyright: ignore[reportPrivateUsage]
+
+    rng = np.random.default_rng(4)
+    m = rng.normal(size=(400, 1))
+    m[250:255, 0] = np.nan  # 점검 다섯 시간
+    out = _last_n_std(m, 168)
+    vals = m[np.isfinite(m[:, 0]), 0]
+    assert np.isnan(out[166, 0]) and np.isfinite(out[167, 0])
+    assert out[260, 0] == pytest.approx(np.std(vals[260 - 5 - 167 : 260 - 5 + 1], ddof=1))
+    assert np.isnan(out[252, 0])  # 값이 없는 행은 NaN
+    assert np.isfinite(out[399, 0])
+
+
+@pytest.mark.parametrize(
+    ("market", "as_of", "exp", "now", "ok"),
+    [
+        ("crypto", 0, 3600, 0, True),
+        ("crypto", 0, 3600, 900, True),
+        ("crypto", 0, 3600, 901, False),  # 15분 넘으면 버림 — 봉 1시간의 4분의 1을 이미 봤다
+        ("crypto", 100, 3700, 50, False),  # 기준 봉보다 먼저 쓸 수 없다
+        ("kr", 0, 86400, 3600, True),  # 16:00 기준 · 다음 날 16:00 만기 · 17:00 기록
+        ("kr", 0, 86400, 86400 - 7 * 3600 - 1, True),  # 다음 날 08:59:59
+        ("kr", 0, 86400, 86400 - 7 * 3600, False),  # 다음 날 09:00 — 장이 열렸다
+        ("kr", 0, 86400, 86400 + 3600, False),  # 만기 뒤(11-11 에 실제로 났던 결함)
+    ],
+)
+def test_written_in_time_boundary_table(market: str, as_of: int, exp: int, now: int, ok: bool) -> None:
+    from salt_forecast.domain.short_direction import written_in_time
+
+    assert written_in_time(market, as_of, exp, now) is ok

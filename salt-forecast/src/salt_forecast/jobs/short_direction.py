@@ -31,6 +31,7 @@ from salt_forecast.domain.short_direction import (
     is_look,
     live_track,
     live_underperforms,
+    written_in_time,
 )
 from salt_forecast.jobs._common import base_parser, logger, parse_as_of, run_job, stage_logger
 from salt_forecast.jobs.rule_ic import REPORTS, ROOT, _git_sha  # pyright: ignore[reportPrivateUsage]
@@ -248,6 +249,16 @@ def main(argv: list[str] | None = None) -> int:
                                   None if np.isnan(x.p_ref) else x.p_ref)
                     for x in out
                 ]  # fmt: skip
+        # 결과를 조금이라도 알 수 있는 시각이면 쓰지 않는다(늦은 회차 · 국내 장 열린 뒤 — 전진 시험 표본 무결성)
+        t_now = int(now.timestamp())
+        late = [
+            x
+            for x in preds
+            if not written_in_time(x.market, int(x.as_of.timestamp()), int(x.expires_at.timestamp()), t_now)
+        ]
+        preds = [x for x in preds if x not in late]
+        if late:
+            log.info("늦은 예측 버림", extra={"fields": {"job": JOB, "late": len(late), "kept": len(preds)}})
         if args.dry_run:
             return scored + len(preds)
         return scored + save_predictions(eng, KEY, preds, now)

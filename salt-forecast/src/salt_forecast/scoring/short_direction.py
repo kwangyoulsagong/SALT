@@ -40,7 +40,6 @@ from salt_forecast.domain.short_direction import (
 )
 from salt_forecast.scoring.base_rate import kr_costs
 from salt_forecast.scoring.rule_ic_kr import (
-    KR_CLOSE_UTC_OFFSET,
     kr_universe,
     label_without_breaks,
     session_panel,
@@ -159,11 +158,8 @@ def live_predictions(
         return out
     p = fit.predict(rows.x[sel])
     p_ref = ref_fit.predict(np.zeros((sel.size, 1))) if ref_fit is not None else np.full(sel.size, np.nan)
+    # 격자 시각 = 그 봉을 알 수 있게 된 시각(코인 봉 마감 · 국내 16:00 KST — session_panel 이 이미 되돌려 준다)
     when = datetime.fromtimestamp(int(cp.panel.dates[last]), tz=UTC)
-    if market == "kr":
-        when = datetime.fromtimestamp(
-            int(cp.panel.dates[last]) + KR_CLOSE_UTC_OFFSET, tz=UTC
-        )  # 거래일 격자 00:00 → 16:00 KST
     for k, i in enumerate(sel):
         q = live_quantiles(dict(zq), float(p[k]), float(rows.sigma_h[i]))
         if q is None:

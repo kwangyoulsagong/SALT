@@ -13,7 +13,7 @@
 # 나머지는 사람이 기억해서 띄웠다. 2026-11-02 뉴스 워커가 09-29 부터 · BFF 시세 워커도 꺼진 채 발견 — 사용자 "계속 머 까먹어서".
 # 데이터를 모으는 프로세스(뉴스 · 시세)는 전부 상시로 둔다. 웹 dev 만 상시가 아니다(빌드 · 재시작이 잦다).
 #
-# 이름: server · platform · news · bff-rest · bff-ws · bff-worker · forecast · web · web-investment · web-savings · web-household
+# 이름: server · platform · news · bff-rest · bff-ws · bff-worker · forecast · forecast-live · web · web-investment · web-savings · web-household
 # platform = Kotlin(`salt-platform`, :4010) — S1 저축부터 화면 경로가 있다(`SRV-REQ-045`). RabbitMQ 는 그 스크립트가 Compose 로 띄운다
 # 웹 dev 는 zone 마다 하나(셸 web 3000 · 투자 web-investment 3002 — `FE-REQ-053` · 저축 web-savings 3003 — `FE-REQ-056` · 가계부 web-household 3004 — `FE-REQ-057`). 셸이 도메인 경로를 각 zone 으로 프록시한다
 # 웹은 dev 로만 띄운다 — dev 정적 경로는 zone 별(`/investment-static`). 운영 빌드(`next start`)를 여기에 넣으려면 빌드 뒤
@@ -30,24 +30,24 @@ LAUNCH_PATH="$NODE_DIR:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bi
 
 # 이름 → launchd 라벨 · 실행 스크립트 · 포트(없으면 -) · 헬스 주소(없으면 -) · 로그
 typeset -A LABEL SCRIPT PORT HEALTH LOG
-LABEL=(server com.salt.server platform com.salt.platform news com.salt.news bff-rest com.salt.bff-rest bff-ws com.salt.bff-ws bff-worker com.salt.bff-worker forecast com.salt.forecast-daily)
+LABEL=(server com.salt.server platform com.salt.platform news com.salt.news bff-rest com.salt.bff-rest bff-ws com.salt.bff-ws bff-worker com.salt.bff-worker forecast com.salt.forecast-daily forecast-live com.salt.forecast-live)
 SCRIPT=(server "$ROOT/salt-server/ops/run-server.sh" platform "$ROOT/salt-platform/ops/run-platform.sh" news "$ROOT/salt-server/ops/run-news.sh"
         bff-rest "$ROOT/bff/ops/run.sh rest" bff-ws "$ROOT/bff/ops/run.sh ws" bff-worker "$ROOT/bff/ops/run.sh worker"
-        forecast "$ROOT/salt-forecast/ops/daily.sh")
-PORT=(server 4000 platform 4010 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - web 3000 web-investment 3002 web-savings 3003 web-household 3004)
+        forecast "$ROOT/salt-forecast/ops/daily.sh" forecast-live "$ROOT/salt-forecast/ops/live.sh")
+PORT=(server 4000 platform 4010 news - bff-rest 4001 bff-ws 4002 bff-worker - forecast - forecast-live - web 3000 web-investment 3002 web-savings 3003 web-household 3004)
 HEALTH=(server http://localhost:4000/health platform http://localhost:4010/actuator/health bff-rest http://localhost:4001/health)
 LOG=(server "$LOGS/salt-server.log" platform "$LOGS/salt-platform.log" news "$LOGS/salt-news.log" bff-rest "$LOGS/salt-bff-rest.log" bff-ws "$LOGS/salt-bff-ws.log"
-     bff-worker "$LOGS/salt-bff-worker.log" forecast "$LOGS/salt-forecast-daily.log" web "$LOGS/salt-web.log"
+     bff-worker "$LOGS/salt-bff-worker.log" forecast "$LOGS/salt-forecast-daily.log" forecast-live "$LOGS/salt-forecast-live.log" web "$LOGS/salt-web.log"
      web-investment "$LOGS/salt-web-investment.log" web-savings "$LOGS/salt-web-savings.log"
      web-household "$LOGS/salt-web-household.log")
 # 포트 없는 상시 프로세스를 수동으로 띄웠는지 알아보는 명령줄 조각
 typeset -A PATTERN
 PATTERN=(news "workers/news-crawler.worker" bff-worker "workers/price-updater.worker")
-ORDER=(server platform news bff-rest bff-ws bff-worker forecast web web-investment web-savings web-household)
+ORDER=(server platform news bff-rest bff-ws bff-worker forecast forecast-live web web-investment web-savings web-household)
 # launchd 가 아니라 pnpm dev 로 띄우는 zone 앱(이름 = pnpm 필터)
 DEV_APPS=(web web-investment web-savings web-household)
 is_dev() { (( ${DEV_APPS[(Ie)$1]} )); }
-SERVICES=(server platform news bff-rest bff-ws bff-worker forecast)
+SERVICES=(server platform news bff-rest bff-ws bff-worker forecast forecast-live)
 
 say() { print -r -- "$*"; }
 
@@ -62,6 +62,9 @@ write_plist() {
   local schedule
   if [[ $name == forecast ]]; then
     schedule="  <key>StartInterval</key><integer>3600</integer>"
+  elif [[ $name == forecast-live ]]; then
+    # 정각 기준 매시 2분 — 단타 예측은 봉 마감 뒤 15분 안에만 쓴다(FC-REQ-028 FR-1)
+    schedule="  <key>StartCalendarInterval</key><dict><key>Minute</key><integer>2</integer></dict>"
   else
     schedule="  <key>KeepAlive</key><true/>
   <key>ThrottleInterval</key><integer>30</integer>"
@@ -69,6 +72,7 @@ write_plist() {
   local stdlog="$LOGS/$label.launchd.log"
   [[ $name == server ]] && stdlog="$LOGS/salt-server.launchd.log"
   [[ $name == forecast ]] && stdlog="$LOGS/salt-forecast-daily.log"
+  [[ $name == forecast-live ]] && stdlog="$LOGS/salt-forecast-live.log"
   cat > "$out" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -242,6 +246,7 @@ status() {
     elif loaded "$name"; then
       pid=$(agent_pid "$name"); how=launchd
       [[ -z $pid && $name == forecast ]] && pid="(매시)"
+      [[ -z $pid && $name == forecast-live ]] && pid="(매시 2분)"
     else
       pid=$(manual_pid "$name"); how=수동
       [[ -n $pid ]] && ! is_salt "$pid" && how=남의것

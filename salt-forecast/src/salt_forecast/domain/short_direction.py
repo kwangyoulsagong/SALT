@@ -46,6 +46,19 @@ LOOKS = ("2027-01-10", "2027-02-09", "2027-03-11")
 ALPHA_PER_LOOK = 0.05 / 3
 MIN_LIVE_DAYS = 30
 MIN_UP_CALLS = 30
+# 전진 시험의 생명 — 예측은 결과를 알기 전에 기록한다.
+# 코인: 기준 봉 마감 뒤 이 안에만 · 국내: 다음 거래일 장 시작(09:00 KST) 전에만
+CRYPTO_WRITE_LAG_S = 15 * 60
+KR_OPEN_BEFORE_CLOSE_S = 7 * 3600  # 16:00 만기 − 7시간 = 그날 09:00 KST
+
+
+def written_in_time(market: str, as_of: int, expires_at: int, now: int) -> bool:
+    """이 예측을 지금 써도 되나 — 결과의 어느 부분도 아직 모를 때만(전진 시험 표본 무결성)."""
+    if market == "crypto":
+        return 0 <= now - as_of <= CRYPTO_WRITE_LAG_S
+    return as_of <= now < expires_at - KR_OPEN_BEFORE_CLOSE_S
+
+
 CLIP = 5.0
 L2_LAMBDA = 1.0
 CONF_UP = 0.55
@@ -96,12 +109,27 @@ def _log_return(close: Mat, k: int) -> Mat:
         return np.log(close / lag(close, k))
 
 
-def _rolling_std(m: Mat, w: int) -> Mat:
-    s1 = rolling_sum(m, w)
-    s2 = rolling_sum(m * m, w)
-    with np.errstate(invalid="ignore"):
-        var = (s2 - s1 * s1 / w) / (w - 1)
-    return np.sqrt(np.maximum(var, 0.0))
+def _last_n_std(m: Mat, n: int) -> Mat:
+    """열마다 행 t 까지(포함) **값이 있는** 마지막 n 개의 표본 표준편차(ddof 1). n 개 미만이면 NaN. 값이 없는 행은 NaN.
+
+    사전등록 σ 정의("직전 168개 1시간 수익 — 168개 미만이면 없음") 그대로
+    — 구멍(거래소 점검 시간 등 봉 없음)은 건너뛴다.
+    2026-11-11 정정: 처음 구현은 168칸 창에 구멍이 하나라도 있으면 NaN 이라
+    업비트 정기 점검(월 03~07시 KST) 뒤 일주일 동안
+    코인 행이 전부 사라졌다(라이브 예측 0 으로 드러남)."""
+    out = np.full_like(m, np.nan)
+    for j in range(m.shape[1]):
+        idx = np.flatnonzero(np.isfinite(m[:, j]))
+        if idx.size < n:
+            continue
+        v = m[idx, j]
+        c1 = np.concatenate(([0.0], np.cumsum(v)))
+        c2 = np.concatenate(([0.0], np.cumsum(v * v)))
+        k = np.arange(n - 1, idx.size)
+        s1 = c1[k + 1] - c1[k + 1 - n]
+        s2 = c2[k + 1] - c2[k + 1 - n]
+        out[idx[k], j] = np.sqrt(np.maximum((s2 - s1 * s1 / n) / (n - 1), 0.0))
+    return out
 
 
 def _nan_rolling_sum(m: Mat, w: int) -> Mat:
@@ -152,7 +180,7 @@ def crypto_cell_panel(p: Panel, btc: str = "KRW-BTC", universe: NDArray[np.bool_
         raise ValueError("코인 피처는 시가가 필요하다")
     close = p.close
     r1 = _log_return(close, 1)
-    sigma = _rolling_std(r1, CRYPTO_SIGMA_WINDOW)
+    sigma = _last_n_std(r1, CRYPTO_SIGMA_WINDOW)
     r4 = _log_return(close, 4)
     r24 = _log_return(close, 24)
     # 일중 모멘텀 — 그날 00:00 UTC 봉 시가 대비. 행 i 의 봉 시작 = dates[i] − 1시간
@@ -215,7 +243,7 @@ def kr_cell_panel(p: Panel, universe: NDArray[np.bool_]) -> CellPanel:
         raise ValueError("국내 피처는 시가가 필요하다")
     close = p.close
     r1 = _log_return(close, 1)
-    sigma = _rolling_std(r1, KR_SIGMA_WINDOW)
+    sigma = _last_n_std(r1, KR_SIGMA_WINDOW)
     value = close * p.volume
     mean20 = lag(rolling_sum(value, 20) / 20.0, 1)
     with np.errstate(divide="ignore", invalid="ignore"):
