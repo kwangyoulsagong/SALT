@@ -24,8 +24,6 @@ type LocalExplainer = CoachExplainer & { provider: Exclude<ExplainProvider, "gem
 export const LOCAL_CLI_MAX_CONCURRENT = 2;
 
 export interface RoutingOptions {
-  /** 로컬 CLI 를 쓸 이메일. 비우면 아무도 */
-  localUsers: readonly string[];
   maxConcurrent?: number;
   now?: () => number;
 }
@@ -47,7 +45,7 @@ export class RoutingCoachExplainer implements CoachExplainer {
   constructor(
     private local: LocalExplainer | null,
     private readonly gemini: CoachExplainer,
-    private readonly options: RoutingOptions
+    private readonly options: RoutingOptions = {}
   ) {}
 
   /** 부팅 감지(FR-2)는 비동기라 조립 뒤에 꽂는다 — 그 전 요청은 Gemini */
@@ -69,10 +67,6 @@ export class RoutingCoachExplainer implements CoachExplainer {
       local: this.local?.provider ?? null,
       localPaused: this.now() < this.pausedUntil,
       localBusy: this.inFlight >= (this.options.maxConcurrent ?? LOCAL_CLI_MAX_CONCURRENT),
-      email: caller?.email,
-      localUsers: this.options.localUsers,
-      client: caller?.client ?? "web",
-      batch: caller?.batch,
     });
 
     if (choice !== "gemini" && this.local) {

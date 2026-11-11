@@ -243,12 +243,10 @@ const portfolio = createPortfolioApplication({
  */
 const llmUsage = new PrismaLlmUsageStore();
 /**
- * 해설 다듬기 라우터(`SRV-REQ-050`) — 로컬 CLI(허용 사용자 · 웹) / 아니면 Gemini. 감지는 부팅 때 한 번, 끝나면 꽂는다.
+ * 해설 다듬기 라우터(`SRV-REQ-050`) — 로컬 CLI 가 있으면 로컬, 아니면 Gemini. 부르는 곳은 해설 스냅샷 배치 하나(`SRV-REQ-053` FR-3). 감지는 부팅 때 한 번, 끝나면 꽂는다.
  * 기동 로그 한 줄: 버전 · 경로만(계정 · 토큰 0)
  */
-const explainer = new RoutingCoachExplainer(null, new GeminiCoachExplainer(llmUsage), {
-  localUsers: env.COACH_LLM_LOCAL_USERS.length > 0 ? env.COACH_LLM_LOCAL_USERS : env.FORECAST_OWNER_EMAILS,
-});
+const explainer = new RoutingCoachExplainer(null, new GeminiCoachExplainer(llmUsage));
 if (env.COACH_EXPLAIN_LLM === "on") {
   void detectLocalCli(env.COACH_LLM_LOCAL)
     .then((found) => {
@@ -282,7 +280,6 @@ const coach = createCoachApplication({
   llmEnabled: env.COACH_EXPLAIN_LLM === "on",
   // 비운 칸은 코드 기준(`DEFAULT_LLM_BUDGET`)
   llmLimits: {
-    userCalls: env.LLM_USER_DAILY_CALL_LIMIT,
     totalCalls: env.LLM_DAILY_CALL_LIMIT,
     totalTokens: env.LLM_DAILY_TOKEN_LIMIT,
   },

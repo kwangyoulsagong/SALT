@@ -162,13 +162,13 @@ describe("GetSymbolExplanation — 4단, 빈 칸 0", () => {
 });
 
 describe("GenerateExplanationSnapshots — 지문이 바뀐 것만 · 실패는 저장 0", () => {
-  it("추적 종목 × 두 모드를 배치 몫으로 만든다(사용자 null · batch)", async () => {
+  it("추적 종목 × 두 모드를 배치 몫으로 만든다(사용자 null)", async () => {
     const { batch, rows } = setup();
     const spy = spyExplainer(() => llmText);
     const r = await batch(spy.explainer).execute();
     assert.equal(r.generated, 2);
     assert.equal(rows.length, 2);
-    assert.ok(spy.calls.every((c) => c?.userId === null && c?.batch === true));
+    assert.ok(spy.calls.every((c) => c?.userId === null));
     assert.ok(rows.every((row) => row.sentences.every((s) => s.citations.length > 0)));
   });
 

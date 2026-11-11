@@ -28,7 +28,7 @@ export const CopyPcLinkButton = () => {
 
   return (
     <>
-      {/* 앱의 기본 버튼(보라 · 흰 글자 4.99:1) — 해설 보기와 같은 컴포넌트(2026-09-30 사용자) */}
+      {/* 앱의 기본 버튼(보라 · 흰 글자 4.99:1) — 앱 주 버튼과 같은 컴포넌트(2026-09-30 사용자) */}
       <Button variant="primary" size="lg" fullWidth onClick={copy}>
         {M.copy}
       </Button>

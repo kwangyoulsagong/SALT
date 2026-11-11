@@ -68,16 +68,14 @@ export class GenerateExplanationSnapshots {
     return this.deps.now?.() ?? new Date();
   }
 
-  /** 이번 시도에 LLM 을 불러도 되나 — 배치 몫(사용자 null)과 전체를 같은 상한으로 본다. 원장을 못 읽으면 막는다 */
+  /** 이번 시도에 LLM 을 불러도 되나 — 서버 전체 24시간 상한. 원장을 못 읽으면 막는다 */
   private async budget(): Promise<{ allowed: boolean; geminiAllowed: boolean }> {
     const usage = this.deps.usage;
     if (!usage) return { allowed: true, geminiAllowed: true };
     try {
-      const limits = resolveLlmLimits(this.deps.limits);
       const verdict = llmBudgetVerdict(
-        await usage.usageSince(new Date(this.now().getTime() - LLM_BUDGET_WINDOW_MS), null),
-        // 배치는 사람 한 명이 아니라 서버 전체 몫이다 — 사용자 상한 대신 전체 상한
-        { ...limits, userCalls: limits.totalCalls }
+        await usage.usageSince(new Date(this.now().getTime() - LLM_BUDGET_WINDOW_MS)),
+        resolveLlmLimits(this.deps.limits)
       );
       if (verdict.exceeded === "total_tokens") return { allowed: true, geminiAllowed: false };
       return { allowed: verdict.allowed, geminiAllowed: verdict.allowed };
@@ -149,12 +147,7 @@ export class GenerateExplanationSnapshots {
       attempts += 1;
       const input = prepared.input;
       try {
-        const llm = await this.deps.explainer.explain(input, undefined, {
-          userId: null,
-          client: "web",
-          geminiAllowed: budget.geminiAllowed,
-          batch: true,
-        });
+        const llm = await this.deps.explainer.explain(input, undefined, { userId: null, geminiAllowed: budget.geminiAllowed });
         const generatedAt = this.now();
         const verified = verifyExplanation(llm, input, generatedAt);
         if (llm.callId && this.deps.usage) {

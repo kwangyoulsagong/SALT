@@ -39,7 +39,6 @@ import type {
   JudgmentLedgerDraft,
   TargetWeightLiveRecord,
   LlmUsage,
-  ExplainClient,
   ExplainProvider,
   ExplanationSentence,
   ExplanationLineSection,
@@ -364,16 +363,10 @@ export interface CoachExplanation {
  * Gemini 토큰 상한에 닿았다는 뜻이다 — 로컬 CLI 는 구독이라 토큰 상한을 세지 않는다(FR-9)
  */
 export interface ExplainCaller {
-  /** 배치(해설 스냅샷)는 `null` — 사람 몫이 아니라 시장 층이다(F017 v2 단계 3) */
+  /** 배치(해설 스냅샷)는 `null` — 사람 몫이 아니라 시장 층이다(F017 v2 단계 3). 시도 원장에 그대로 */
   userId: string | null;
-  email?: string;
-  client?: ExplainClient;
+  /** `false` 면 Gemini 토큰 상한에 닿았다 — 로컬 CLI 만(구독이라 토큰을 세지 않는다, FR-9) */
   geminiAllowed?: boolean;
-  /**
-   * 해설 스냅샷 배치(`SRV-REQ-053` FR-3) — 종목마다 한 번 만들어 모두가 같은 문장을 본다(`FEATURE-017` D2).
-   * 로컬 CLI 가 있으면 사람 대신 이것이 쓴다(소유자 기기 · 구독 — 다른 사람이 구독을 쓰는 것이 아니라 공용 문장 하나)
-   */
-  batch?: boolean;
 }
 
 /** 저장된 해설 한 벌(`explanation_snapshot`, `DB-REQ-043` FR-1) — 시장 층, 사용자 0 */
@@ -468,8 +461,8 @@ export interface LlmUsageStore {
   /** 검사기가 버린 문장 수를 그 시도에 단다(`SRV-REQ-050` FR-8 — 공급자 비교의 근거) */
   markDropped(callId: string, droppedSentences: number): Promise<void>;
   /** `since` 뒤 시도 수(전 공급자) · 토큰 합(`gemini` 만, FR-9) — 전체와 사용자 한 명 */
-  /** `userId = null` — 배치(해설 스냅샷) 몫 */
-  usageSince(since: Date, userId: string | null): Promise<{ user: LlmUsage; total: LlmUsage }>;
+  /** 지난 창의 서버 전체 시도 수(전 공급자) · Gemini 토큰 — 사용자별 상한은 없다(요청 경로 해설이 사라짐, 2026-11-11) */
+  usageSince(since: Date): Promise<LlmUsage>;
 }
 
 export interface JudgmentSnapshotDraft {

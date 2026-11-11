@@ -95,9 +95,9 @@ describe("errorMiddleware", () => {
 
   it("AppError 는 그 status 그대로", () => {
     const { res, out } = fakeRes();
-    errorMiddleware(new AppError("explain_busy", 429), req, res, next);
+    errorMiddleware(new AppError("busy", 429), req, res, next);
     assert.equal(out.status, 429);
-    assert.deepEqual(out.body, { success: false, message: "explain_busy" });
+    assert.deepEqual(out.body, { success: false, message: "busy" });
   });
 
   it("AppError 에 code 가 있으면 본문에 싣는다 — 없으면 위처럼 본문 모양 그대로", () => {

@@ -178,9 +178,9 @@ const envSchema = z.object({
   FORECAST_RUNNER_SCRIPT: z.string().optional(),
   /**
    * LLM 비용 상한 덮어쓰기(F010 슬라이스 7 · `SRV-REQ-025` FR-62). 비우면 코드 기준(`DEFAULT_LLM_BUDGET`) —
-   * 지난 24시간 사용자 시도 · 전체 시도 · 전체 토큰
+   * 지난 24시간 전체 시도 · 전체 토큰(`LLM_DAILY_*`). ~~사용자 시도 `LLM_USER_DAILY_CALL_LIMIT`~~ · ~~`COACH_LLM_LOCAL_USERS`~~ 는
+   * 2026-11-11 지웠다 — 해설이 배치 하나가 돼 사람마다 세거나 고를 일이 없다(`SRV-REQ-053` FR-3)
    */
-  LLM_USER_DAILY_CALL_LIMIT: z.coerce.number().int().positive().optional(),
   /**
    * 해설 LLM 다듬기 켜기(`SRV-REQ-037` FR-16 · FEATURE-008 FR-45). 기본 켜짐 — 지금 동작(Gemini) 그대로. `off` 면 템플릿만.
    * 블라인드 A/B(2026-11-02, 독립 평가자 3 다수결 템플릿 20/20)는 끄는 근거였지만, 사용자 결정(같은 날)으로 다듬기 계층은
@@ -192,11 +192,6 @@ const envSchema = z.object({
    * 배포 컨테이너엔 CLI 가 없어 감지 실패 → Gemini(`OPS-001`)
    */
   COACH_LLM_LOCAL: z.enum(["auto", "claude", "codex", "off"]).default("auto"),
-  /** 로컬 CLI 를 쓸 이메일(쉼표). 비우면 `FORECAST_OWNER_EMAILS` — 소유자 구독을 다른 초대 사용자가 쓰지 않게(FR-3) */
-  COACH_LLM_LOCAL_USERS: z
-    .string()
-    .default("")
-    .transform((raw) => raw.split(",").map((email) => email.trim()).filter((email) => email !== "")),
   /** CLI 기본 모델을 덮는다(선택) */
   COACH_LLM_LOCAL_MODEL: z.string().min(1).optional(),
   LLM_DAILY_CALL_LIMIT: z.coerce.number().int().positive().optional(),

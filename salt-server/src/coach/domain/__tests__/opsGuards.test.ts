@@ -74,27 +74,15 @@ describe("judgmentCaveats — stale_inputs (ADR-010 v2: 막지 않고 꼬리표)
   });
 });
 
-describe("llmBudgetVerdict — 24시간 시도 · 토큰", () => {
-  const usage = (user: number, total: number, tokens = 0) => ({
-    user: { calls: user, tokens: 0 },
-    total: { calls: total, tokens },
-  });
-
+describe("llmBudgetVerdict — 24시간 서버 전체 시도 · 토큰", () => {
   it("상한에 닿으면(같으면) 막고, 어느 상한인지 말한다", () => {
-    assert.deepEqual(llmBudgetVerdict(usage(29, 299, 1_499_999), DEFAULT_LLM_BUDGET), {
-      allowed: true,
-      exceeded: null,
-    });
-    assert.equal(llmBudgetVerdict(usage(30, 30), DEFAULT_LLM_BUDGET).exceeded, "user_calls");
-    assert.equal(llmBudgetVerdict(usage(0, 300), DEFAULT_LLM_BUDGET).exceeded, "total_calls");
-    assert.equal(llmBudgetVerdict(usage(0, 0, 1_500_000), DEFAULT_LLM_BUDGET).exceeded, "total_tokens");
+    assert.deepEqual(llmBudgetVerdict({ calls: 299, tokens: 1_499_999 }, DEFAULT_LLM_BUDGET), { allowed: true, exceeded: null });
+    assert.equal(llmBudgetVerdict({ calls: 300, tokens: 0 }, DEFAULT_LLM_BUDGET).exceeded, "total_calls");
+    assert.equal(llmBudgetVerdict({ calls: 0, tokens: 1_500_000 }, DEFAULT_LLM_BUDGET).exceeded, "total_tokens");
   });
 
   it("env 덮어쓰기는 준 칸만 바꾼다", () => {
-    assert.deepEqual(resolveLlmLimits({ userCalls: 5, totalCalls: undefined }), {
-      ...DEFAULT_LLM_BUDGET,
-      userCalls: 5,
-    });
+    assert.deepEqual(resolveLlmLimits({ totalCalls: 5, totalTokens: undefined }), { ...DEFAULT_LLM_BUDGET, totalCalls: 5 });
     assert.deepEqual(resolveLlmLimits(), DEFAULT_LLM_BUDGET);
   });
 });

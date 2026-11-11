@@ -17,32 +17,18 @@ const base: ExplainRouteInput = {
   local: "local_claude",
   localPaused: false,
   localBusy: false,
-  email: "owner@salt.test",
-  localUsers: ["Owner@salt.test"],
-  client: "web",
 };
 
-describe("pickExplainProvider", () => {
-  it("로컬 CLI 있음 · 허용 사용자 · 웹 → 로컬(이메일 대소문자 무관)", () => {
+describe("pickExplainProvider — 해설 배치 하나가 부른다", () => {
+  it("로컬 CLI 있음 → 로컬", () => {
     assert.equal(pickExplainProvider(base), "local_claude");
     assert.equal(pickExplainProvider({ ...base, local: "local_codex" }), "local_codex");
   });
 
-  it("모바일 · 허용 밖 · CLI 없음 · 쉬는 중 · 상한 → Gemini", () => {
-    assert.equal(pickExplainProvider({ ...base, client: "mobile" }), "gemini");
-    assert.equal(pickExplainProvider({ ...base, email: "guest@salt.test" }), "gemini");
-    assert.equal(pickExplainProvider({ ...base, email: undefined }), "gemini");
-    assert.equal(pickExplainProvider({ ...base, localUsers: [] }), "gemini");
+  it("없음 · 쉬는 중 · 바쁨 → Gemini", () => {
     assert.equal(pickExplainProvider({ ...base, local: null }), "gemini");
     assert.equal(pickExplainProvider({ ...base, localPaused: true }), "gemini");
     assert.equal(pickExplainProvider({ ...base, localBusy: true }), "gemini");
-  });
-
-  it("배치는 로컬 CLI — 사용자 · 클라이언트와 무관(공용 문장 하나), 쉬는 중 · 바쁨이면 Gemini", () => {
-    assert.equal(pickExplainProvider({ ...base, email: undefined, client: "mobile", batch: true }), "local_claude");
-    assert.equal(pickExplainProvider({ ...base, batch: true, localPaused: true }), "gemini");
-    assert.equal(pickExplainProvider({ ...base, batch: true, localBusy: true }), "gemini");
-    assert.equal(pickExplainProvider({ ...base, batch: true, local: null }), "gemini");
   });
 });
 
