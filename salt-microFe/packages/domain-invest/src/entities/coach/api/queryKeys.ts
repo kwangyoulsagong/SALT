@@ -7,6 +7,8 @@ export const coachQueryKeys = {
   symbol: (symbol: string) => ["coach", "symbol", symbol] as const,
   /** 점검 — 방향(사기 전 · 팔기 전)마다 다른 응답이라 키에 있다. 문턱 · 기저율은 하루 1회, 시세만 움직인다 */
   tradeCheck: (symbol: string, side: "buy" | "sell") => ["coach", "trade-check", symbol, side] as const,
+  /** 해설 — 모드마다 다른 문장이라 키에 모드가 있다. 배치가 10분마다 바뀐 종목만 다시 만든다 */
+  explanation: (symbol: string, mode: "scalp" | "long_term") => ["coach", "explanation", symbol, mode] as const,
   /** 종목 판단 전체 — 기본 모드를 저장하면 버린다(주소에 모드가 없을 때 서버가 고른 모드가 바뀐다) */
   symbolAll: () => ["coach", "symbol"] as const,
   /** 코치 리포트. 재생성이 끝나면 이 키만 무효화한다 */

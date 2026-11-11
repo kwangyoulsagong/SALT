@@ -72,7 +72,7 @@ const stopReasonOf = (quote: Pick<KrQuote, "status">) => {
  *
  * 값은 전부 서버 것이다 — 원 정수 · 전일 대비 · 상하한가 · 기준가 · 호가 단위 · 상태 배지. 거래정지면 가격 자리에 마지막 체결
  * 일시를 같이 쓴다(FR-44). 거래 기록은 코인과 같은 폼 — 계획 · 크기 계산까지(슬라이스 4). 코치 판단은 장기 한 모드
- * (`KrCoachJudgment`, 슬라이스 4). 변동 범위는 오른쪽 열 "자세히"(`KrForecast`, 슬라이스 5d — 소유자만). 해설은 아직 열지 않았다.
+ * (`KrCoachJudgment`, 슬라이스 4). 변동 범위는 오른쪽 열 "자세히"(`KrForecast`, 슬라이스 5d — 소유자만). 해설은 판단 블록 안 판단 아래(F017 v2 단계 3).
  */
 export const KrStockDetail = ({ code }: { code: string }) => {
   const { data, isPending, error } = useKrDetail(code);
