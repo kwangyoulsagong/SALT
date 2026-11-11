@@ -47,6 +47,7 @@ describe("toScenarioViewModel", () => {
     assert.equal(v.horizons[0]!.upOutOf100, 61);
     assert.equal(v.horizons[0]!.track?.hitRate, 230 / 400);
     assert.equal(v.horizons[0]!.track?.alwaysUpRate, 0.5);
+    assert.equal(v.horizons[0]!.track?.alwaysNotUpRate, 0.5); // 늘 안 오른다 = 확신 행 − 늘 오른다 맞힘
   });
 
   it("막을 수만 있다 — 열린 지평에 재료가 하나라도 없으면 contract_incomplete", () => {

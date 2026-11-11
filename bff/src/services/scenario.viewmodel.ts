@@ -19,9 +19,12 @@ export interface ScenarioTrack {
   calls: number;
   hits: number;
   alwaysUpHits: number;
-  /** 확신 적중률 · 같은 때 늘 오른다 비율(0~1). calls 0 이면 null */
+  /** 확신 적중률 · 같은 때 늘 오른다 · 늘 안 오른다 비율(0~1). calls 0 이면 null.
+   * '안 오른다' = 내렸거나 그대로(라벨이 r > 0 이라 그대로는 '안 오름'). 오른 비율이 50% 가 아니면 늘 오른다만으로는
+   * 기준이 약하다 — 둘 중 큰 쪽이 '늘 같은 쪽을 말하기'의 성적(2026-11-11 @2 진단: 확신 99% 가 '안 오름' 쪽) */
   hitRate: number | null;
   alwaysUpRate: number | null;
+  alwaysNotUpRate: number | null;
   window: { from: string; to: string } | null;
   misses: { asOf: string; symbol: string; pUp: number; realizedPct: number }[];
 }
@@ -80,6 +83,7 @@ const track = (raw: unknown): ScenarioTrack | null => {
     alwaysUpHits,
     hitRate: calls > 0 ? hits / calls : null,
     alwaysUpRate: calls > 0 ? alwaysUpHits / calls : null,
+    alwaysNotUpRate: calls > 0 ? (calls - alwaysUpHits) / calls : null,
     window,
     misses,
   };
