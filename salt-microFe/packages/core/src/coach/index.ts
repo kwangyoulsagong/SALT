@@ -1,6 +1,6 @@
 export * from "./symbolCoach";
 export * from "./coachReport";
-export * from "./symbolForecast";
+export * from "./shortScenario";
 export * from "./explanation";
 export * from "./macroEvents";
 export * from "./positioning";

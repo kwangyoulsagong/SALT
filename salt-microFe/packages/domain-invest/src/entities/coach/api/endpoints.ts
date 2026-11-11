@@ -17,8 +17,8 @@ export const COACH_ENDPOINTS = {
   report: "/api/app/coach/report",
   /** 재생성 버튼 상태 · 202 뒤 폴링 (`BFF-REQ-023` FR-61~63) */
   generationStatus: "/api/app/coach/generation-status",
-  /** 가격 변동 범위 — 소유자 전용, 아니면 404 (`BFF-REQ-037`) */
-  forecast: (symbol: string) => `/api/app/coach/forecast?symbol=${encodeURIComponent(symbol)}`,
+  /** 시나리오 카드 — 단타 방향 확률, 소유자만(F017 v2 단계 5) */
+  scenario: (symbol: string) => `/api/app/ai-coach/scenario?symbol=${encodeURIComponent(symbol)}`,
   /** 주요 사건(거시 일정) · 과거 반응 — 소유자 전용, 아니면 404 (`BFF-REQ-037` FR-8) */
   events: (symbol: string) => `/api/app/coach/events?symbol=${encodeURIComponent(symbol)}`,
   /** 쏠림 신호(펀딩비 · 김치 프리미엄) · 과거 반응 — 소유자 전용, 아니면 404 (`BFF-REQ-037` FR-9) */

@@ -28,8 +28,8 @@ export const INVESTMENT_DETAIL_PAGE_MESSAGES = {
   krBack: "투자로 돌아가기",
   krBlockName: "국내 주식 상세",
   krMetaTitle: (code: string) => `국내 주식 ${code}`,
-  /** 소유자 카드 접기(F011 슬라이스 5d) — 코인 상세와 같은 "자세히" 자리. 국내 주식은 변동 범위 하나 */
-  krMoreSummary: "자세히 — 변동 범위",
+  /** 소유자 카드 접기(F011 슬라이스 5d) — 코인 상세와 같은 "자세히" 자리. 국내 주식은 시나리오 하나(F017 v2 단계 5 — 옛 변동 범위 자리) */
+  krMoreSummary: "자세히 — 다음 몇 시간 시나리오",
   krMoreHint: "펼쳐 보기",
 } as const;
 

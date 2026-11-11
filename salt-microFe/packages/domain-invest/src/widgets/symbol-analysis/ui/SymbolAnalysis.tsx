@@ -10,7 +10,7 @@ import {
   EventsCard,
   ExchangeCautionNote,
   PositioningCard,
-  ForecastCard,
+  DirectionScenarioCard,
   JudgmentDetail,
   ProfitPlan,
   selectModeView,
@@ -18,7 +18,7 @@ import {
   useSymbolCoach,
   useSymbolEvents,
   useSymbolPositioning,
-  useSymbolForecast,
+  useSymbolScenario,
   useTradePlans,
   ZoneLegend,
   ZoneSummary,
@@ -69,13 +69,13 @@ import {
  * 볼 수 없다(`FE-REQ-013` 전). 경로가 하나라 FR-84 가 걱정한 "두 경로의 staleness 차이"도 없다.
  * (2026-11-05 정정: 토큰은 이제 httpOnly 쿠키라 서버도 읽는다 — `FE-REQ-013` FR-80 2단계. 이 자리가 클라이언트에 남은 것은 아직 서버 조회로 옮기지 않아서다 — 목록은 `FE-REQ-013` FR-81)
  *
- * 레이아웃(F010 슬라이스 3 재배치 · 리서치 §9-4): PC 는 좌(코치 판단 → 차트 · 구간) / 우(자세히[변동 범위 · 주요 사건 ·
+ * 레이아웃(F010 슬라이스 3 재배치 · 리서치 §9-4): PC 는 좌(코치 판단 → 차트 · 구간) / 우(자세히[시나리오 · 주요 사건 ·
  * 쏠림] → 해설 → 수익 플랜 → 주문 전 체크 → 내 계획 → 거래 기록), 1024px 이하는 그 순서 그대로 한 줄이다. 첫 화면에 판정이 있다. 머리(뒤로 · 종목 · 가격)는 서버에서도 그려지도록 페이지(`pages/investment-detail`)에 있다.
  */
 export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   const coach = useSymbolCoach(symbol);
-  // 가격 변동 범위 — 소유자만(F008 `FE-REQ-038`). 404 는 "없는 섹션"이다 — 자리도 문구도 없다
-  const forecast = useSymbolForecast(symbol);
+  // 시나리오 카드(단타 방향 확률) — 소유자만(F017 v2 단계 5 · `FE-REQ-064` FR-4, 변동 범위 자리 교체). 404 는 "없는 섹션"이다
+  const forecast = useSymbolScenario(symbol);
   // 오늘 왜 움직였나(F016 단계 C) — 로그인 사용자. 실패 · 불러오는 중엔 자리가 없다(카드가 숨는다)
   const whyMoved = useWhyMoved({ kind: "crypto", symbol });
   const showForecast = !forecast.isSignedOut && !forecast.notOwner;
@@ -85,7 +85,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
   // 쏠림 신호(펀딩비 · 김치 프리미엄) — 같은 소유자 규칙(F008 슬라이스 23)
   const positioning = useSymbolPositioning(symbol);
   const showPositioning = !positioning.isSignedOut && !positioning.notOwner;
-  // 현재가 — 전망 차트 선 끝 · 거래 기록의 [현재가] · 내 계획 카드가 같이 쓴다(F009). 구독은 머리 가격과
+  // 현재가 — 거래 기록의 [현재가] · 내 계획 카드가 같이 쓴다(F009). 구독은 머리 가격과
   // 참조 카운트로 합쳐져 소켓 메시지가 늘지 않는다
   const livePrice = useLivePrice(symbol)?.currentPrice ?? null;
   // 내 계획(F009 `FE-REQ-039`) — 모든 계정. 로그인 안 했으면 부르지 않는다
@@ -105,7 +105,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
     [modeView],
   );
 
-  // 소유자 카드(변동 범위 · 주요 사건 · 쏠림)는 "자세히" 뒤로 접는다(F010 `FE-REQ-040` FR-8 · 리서치 §9-4 ⑤).
+  // 소유자 카드(시나리오 · 주요 사건 · 쏠림)는 "자세히" 뒤로 접는다(F010 `FE-REQ-040` FR-8 · 리서치 §9-4 ⑤).
   // 판정 · 차트 · 내 계획보다 먼저 보일 이유가 없다. 셋 다 그릴 것이 없으면(비소유자 · 불러오는 중) 접는 자리도 없다 —
   // 비소유자에게 "자세히"가 스치면 기능이 있다는 것이 드러난다(ADR-003)
   const hasOwnerCards =
@@ -125,13 +125,9 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
         */}
         {showForecast &&
           (forecast.data ? (
-            <ForecastCard
-              className={card}
-              result={forecast.data}
-              livePrice={livePrice}
-            />
+            <DirectionScenarioCard className={card} result={forecast.data} />
           ) : forecast.isError ? (
-            <ForecastCard className={card} result={{ status: "unavailable" }} />
+            <DirectionScenarioCard className={card} result={{ status: "unavailable" }} />
           ) : null)}
         {showEvents && events.data && (
           <EventsCard className={card} result={events.data} />
@@ -246,7 +242,7 @@ export const SymbolAnalysis = ({ symbol }: { symbol: string }) => {
               />
             )}
             </SignInRequired>
-            {/* F009 — 변동 범위 카드 아래 "내 계획", 그 아래 거래 기록(시나리오 1 · 2). 새 화면이 아니다 */}
+            {/* F009 — 시나리오 카드 아래 "내 계획", 그 아래 거래 기록(시나리오 1 · 2). 새 화면이 아니다 */}
             {plans.data && (
               <TradePlanCard
                 className={card}

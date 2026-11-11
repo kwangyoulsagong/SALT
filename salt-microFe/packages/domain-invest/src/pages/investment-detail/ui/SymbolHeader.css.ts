@@ -265,7 +265,7 @@ export const krCell = style({
   minWidth: 0,
 });
 
-/** 국내 주식 오른쪽 열 — 자세히(변동 범위) 위, 거래 기록 아래. 코인 상세 오른쪽 열과 같은 순서(F011 슬라이스 5d) */
+/** 국내 주식 오른쪽 열 — 자세히(시나리오) 위, 거래 기록 아래. 코인 상세 오른쪽 열과 같은 순서(F011 슬라이스 5d) */
 export const krSideColumn = style({
   display: "flex",
   flexDirection: "column",

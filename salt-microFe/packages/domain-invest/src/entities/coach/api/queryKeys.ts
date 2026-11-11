@@ -15,7 +15,7 @@ export const coachQueryKeys = {
   report: () => ["coach", "report"] as const,
   generationStatus: () => ["coach", "generation-status"] as const,
   /** 가격 변동 범위. 배치가 하루 1회 만든다 */
-  forecast: (symbol: string) => ["coach", "forecast", symbol] as const,
+  scenario: (symbol: string) => ["coach", "scenario", symbol] as const,
   /** 주요 사건(거시 일정) · 과거 반응. 배치가 하루 1회 만든다 */
   events: (symbol: string) => ["coach", "events", symbol] as const,
   positioning: (symbol: string) => ["coach", "positioning", symbol] as const,
