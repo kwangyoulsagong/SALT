@@ -116,3 +116,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `ops/salt.sh`(머리에 이 REQ) 신선도 쿼리에 국내 시황 제목 · 프로그램 · 업종 세 줄(`OPS-002`, `SRV-REQ-051` FR-12). 저축 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
 | 2026-11-09 | `ops/salt.sh status` 신선도 두 줄 — 국내 지수 일별(4일 넘으면 ✗) · 등락 분해 β as_of(3일 넘으면 ✗, 서버가 7일에 버리기 전). F016 단계 C `SRV-REQ-051` FR-12 |
 | 2026-11-11 | `feat/f017-s1c-collection`: `ops/salt.sh` `status` 아래 수집 점검(`OPS-003`) — 쿼리 `ops/collection-status.sql` · 결함 주입 시험. 저축 서비스 기동 · 이름 표 변경 0 |
+| 2026-11-11 | `feat/f017-s2-checks-plain-line`: `ops/salt.sh` `status` 에 "기저율 마지막 as_of" 줄(`forecast.base_rate_stat`, 3일 넘으면 ✗). 기존 줄 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` · 예측 `FC-REQ-028` |

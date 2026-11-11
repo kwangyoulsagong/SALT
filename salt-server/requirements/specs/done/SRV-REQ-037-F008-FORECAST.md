@@ -51,6 +51,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | 해설 스트림 의미 변경 — 토큰 스트림 공급자(로컬 Claude)는 검사를 통과한 문장을 즉시 `delta`(템플릿 선흘림 없음), 그 밖은 예전 길. FR-13 완곡 권유 확장("보는 게 중요해요" · "필요가 있어요/생겨요" · "열어 둘 필요") · 판단 문단 문장 단위 · 금액 사실 방향 없음. 평가지 `--provider` · 관찰 기간 줄 · 이름 버그. 근거 `SRV-REQ-050` FR-11 · 13 · 14. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | 검증기 후속 — `prompt_label`(블라인드 3회차 "뉴스1과…" 누출) · FR-13 행 그 자리에 확장 기록. 루트 `requirements/specs/done/F008-explain-llm-routing-slice.md` |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `macroEvents.ts` 종류 표 `EVENT_KIND_META`(지역 · 범위) · 자산군별 지역 · 계약 위반 행 버림 · 종목 사건 → 시장 일정 순(`SRV-REQ-041` FR-1~3) |
+| 2026-11-11 | `feat/f017-s2-checks-plain-line`: `coachTools.controller.ts` 에 `getTradeCheck` 핸들러. 기존 핸들러 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`d6105374`) — 해설은 판단 꼬리표로 막지 않는다(`ExplainBlockedReason` = `facts_unavailable` 하나)
   - `salt-server/src/coach/application/ExplainCoachDecision.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자

@@ -13,5 +13,7 @@ router.patch("/profile", appAICoachController.updateProfile);
 router.post("/feedback", appAICoachController.feedback);
 router.get("/preview", appAICoachController.preview);
 router.get("/detail", appAICoachController.detail);
+// 사기 전 · 팔기 전 점검(F017 v2 단계 2 · `BFF-REQ-052` FR-3) — 서버 `/api/coach/check`
+router.get("/check", appAICoachController.tradeCheck);
 
 export default router;

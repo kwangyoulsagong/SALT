@@ -56,8 +56,9 @@ def session_panel(ohlcv: Mapping[str, OhlcvSeries], start: int, end: int) -> Pan
     has = ~np.isnan(p.close[rows])
     first = np.where(has.any(axis=0), has.argmax(axis=0), rows.size).astype(np.int64)
     return Panel(
-        p.dates[rows] + KR_CLOSE_UTC_OFFSET, p.symbols, p.high[rows], p.low[rows], p.close[rows], p.volume[rows], first
-    )
+        p.dates[rows] + KR_CLOSE_UTC_OFFSET, p.symbols, p.high[rows], p.low[rows], p.close[rows], p.volume[rows], first,
+        None if p.open is None else p.open[rows],
+    )  # fmt: skip
 
 
 def up_breaks(p: Panel) -> NDArray[np.bool_]:

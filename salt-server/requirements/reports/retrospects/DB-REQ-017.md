@@ -165,3 +165,8 @@ REQ 쪽이 틀렸다: FR-50~53 은 `InvestmentInsight` 의 소비처를 보지 �
 
 - 닿은 것: `app.ts` 워커 시작에 깸 감시(`SRV-REQ-057` FR-6) — 지표 갱신을 깸 구독 맨 뒤에 한 번. 풀 규칙(종목 동시 4 · 행 쓰기 한 문장) 그대로 — 새 쓰기 둘(채운 위치 · 스냅샷)도 한 문장
 - 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-057` · `DB-REQ-044`
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+- 닿은 것: `coach/domain/model.ts` `CoachQuote` 에 선택 필드 `openPrice?`(국내 시가 — 점검 시가 갭 조건 K3). 표 · 열 변경 0
+- 문제 · 액션: 없음 — 주인 REQ 는 `DB-REQ-043` · 서버 `SRV-REQ-053` · 예측 `FC-REQ-028`

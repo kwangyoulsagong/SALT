@@ -17,3 +17,9 @@
 - 은퇴: Express `onboarding` 조합 컨텍스트(5파일) · `/api/onboarding/status` · `PLATFORM_API_URL` · 저축 `/savings/goals/exists`(유스케이스 · 포트 · 저장소 · 테스트) — 삭제 251줄
 - 검증: `./gradlew check` 통과(`ShellPrefsSpec` 6 · `IdentityShellEndToEndTest` 6 — 투자 미선택 · 거절 400 · 409 · DB 모양 검사 · `svc_identity` 남의 스키마 권한 오류) · Express build · lint · test 925 · `test:layer-check` · 실스택 · 실화면(루트 체크리스트)
 - 수용 기준 1 충족 · 4 는 S2c · 2 · 3 은 S3c · S3b
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `coach/domain/ports.ts` 에 포트 `BaseRateReader` · `TradeCheckLedger`. 기존 포트 무변경 · `npm run build` · `npm run lint` · `npm test` 1200 통과 · `npm run test:layer-check` · 레이어 훅 사후 실행(음성 대조 exit 2) · `prisma migrate diff` 0 |

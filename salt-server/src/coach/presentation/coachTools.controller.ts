@@ -4,6 +4,7 @@ import { ResponseUtil } from "../../shared/presentation/ResponseUtil";
 import type { CoachUseCases } from "../application/api";
 import {
   forecastQuerySchema,
+  tradeCheckQuerySchema,
   profitPlanQuerySchema,
   signalPerformanceQuerySchema,
   tradePreflightSchema,
@@ -158,6 +159,16 @@ export class CoachToolsController {
         { userId: req.user!.userId, email: req.user!.email },
         query.symbol
       );
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getTradeCheck = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = tradeCheckQuerySchema.parse(req.query);
+      const result = await this.useCases.checkTradeOdds.execute(req.user!.userId, query);
       return ResponseUtil.success(res, result);
     } catch (error) {
       next(error);

@@ -50,6 +50,7 @@ source: 사용자 "국내주식도 주식 홈에서 코인처럼 주요 그게 �
 | 2026-11-06 | 파일만 걸침(F016 단계 B) — `composition.ts`(머리에 이 REQ) 에 등락 원천 저장소 · 광고성 패턴 조립(`SRV-REQ-051`). 요약 띠 무변경. 루트 `requirements/specs/done/F016-B-kr-news-flows-slice.md` |
 | 2026-11-09 | 조립 지점에 예측 뷰 어댑터 둘 · 카드 문턱 설정(F016 단계 C) — 요약 띠 무변경 |
 | 2026-11-09 | 기사 본문(`SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068` 주인) — `composition.ts` — news 본문 조립(포털 검색 · 페이지 · 캐시) · 국내에 `ArticleBodyAdapter` |
+| 2026-11-11 | `feat/f017-s2-checks-plain-line`: `composition.ts` 에 `PrismaBaseRateReader` · `PrismaTradeCheckLedger` 연결. 기존 연결 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-server/src/composition.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
   - `salt-server/src/market/application/__tests__/krMarketSummary.test.ts` — 테스트를 새 계약으로 — 비소유자 거절 단언을 "누구나 · 키 꺼짐만 숨김"으로

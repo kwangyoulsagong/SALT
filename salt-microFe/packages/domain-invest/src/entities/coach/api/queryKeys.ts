@@ -5,6 +5,8 @@ export const coachQueryKeys = {
    * 모드 전환은 같은 캐시를 다르게 읽을 뿐이다.
    */
   symbol: (symbol: string) => ["coach", "symbol", symbol] as const,
+  /** 점검 — 방향(사기 전 · 팔기 전)마다 다른 응답이라 키에 있다. 문턱 · 기저율은 하루 1회, 시세만 움직인다 */
+  tradeCheck: (symbol: string, side: "buy" | "sell") => ["coach", "trade-check", symbol, side] as const,
   /** 종목 판단 전체 — 기본 모드를 저장하면 버린다(주소에 모드가 없을 때 서버가 고른 모드가 바뀐다) */
   symbolAll: () => ["coach", "symbol"] as const,
   /** 코치 리포트. 재생성이 끝나면 이 키만 무효화한다 */

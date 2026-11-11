@@ -36,6 +36,21 @@ export class AppAICoachController {
     }
   };
 
+  /** 점검 — 화면이 종목 · 방향을 빨리 바꾸면 이전 요청을 끊는다(upstream 도) */
+  tradeCheck = async (req: Request, res: Response, next: NextFunction) => {
+    const aborter = new AbortController();
+    res.on("close", () => {
+      if (!res.writableFinished) aborter.abort();
+    });
+    try {
+      const data = await appAICoachService.getTradeCheck(req.token!, req.query, aborter.signal);
+      return res.json({ success: true, data });
+    } catch (error) {
+      if (aborter.signal.aborted) return;
+      next(error);
+    }
+  };
+
   getProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await appAICoachService.getProfile(req.token!);

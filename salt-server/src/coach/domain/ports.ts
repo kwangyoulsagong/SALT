@@ -1,6 +1,14 @@
 import type Decimal from "decimal.js";
 
 import type {
+  BaseRateRow,
+  BaseRateTriggerRow,
+  TradeCheckMarket,
+  TradeCheckSide,
+  TradeCheckStatus,
+} from "./policy/tradeCheck";
+
+import type {
   BehaviorFinding,
   CloseDistribution,
   CoachGenerationEntry,
@@ -839,4 +847,37 @@ export interface StoredMonthlyReview {
   month: string;
   payload: Jsonified<MonthlyReview>;
   generatedAt: Date;
+}
+
+/**
+ * 조건부 기저율(F017 v2 단계 2 · `SRV-REQ-053` FR-4) — 예측 뷰 `forecast.v_base_rate` · `v_base_rate_trigger` 읽기.
+ * 뷰가 없는 DB 면 던진다 — 유스케이스가 `no_condition`(not_covered)으로 받는다
+ */
+export interface BaseRateReader {
+  /** 시장의 조건 · 지평 행 전부(평소 ALL 포함) — 시장마다 20행 안쪽 */
+  stats(market: TradeCheckMarket): Promise<BaseRateRow[]>;
+  /** 한 종목의 최신 실행 문턱. 코치 심볼(`BTC` · `005930`)로 묻는다 */
+  triggers(symbol: string, market: TradeCheckMarket): Promise<BaseRateTriggerRow[]>;
+}
+
+/** 점검 원장 한 줄 — 사용자 열 0(종목 · 조건 · 기준 봉 단위). 같은 줄이면 처음 것만 남는다(나중 채점은 첫 점검 가격 기준) */
+export interface TradeCheckRecord {
+  symbol: string;
+  market: TradeCheckMarket;
+  side: TradeCheckSide;
+  /** 조건 없음은 'NONE' — 유일 키에 NULL 을 넣으면 중복이 막히지 않는다 */
+  conditionId: string;
+  horizon: number;
+  refAt: Date;
+  preregKey: string;
+  status: TradeCheckStatus;
+  upRate: number | null;
+  sampleEff: number | null;
+  priceAtCheck: number | null;
+  checkedAt: Date;
+}
+
+export interface TradeCheckLedger {
+  /** `ON CONFLICT DO NOTHING` — 요청 경로의 쓰기 한 문장 */
+  record(entry: TradeCheckRecord): Promise<void>;
 }

@@ -25,15 +25,22 @@ rc=0
 # 등락 분해 β · σ(move_beta, FC-REQ-027)는 volatility 뒤 — 코인 β 가 그 작업의 btc_beta 다. 지수 · 업종 일별은 서버가 16:05 KST 에 채운다.
 # 국내 주식(FC-REQ-009)은 서버가 채운 일봉을 옮기고(ingest_kr_stock) 예측 · 채점 · 게이트(kr_daily) · 실현 변동성(kr_volatility). 서버 KIS 가
 # 꺼져 있으면 0건 — 실패로 남지만 코인 단계는 막지 않는다
-steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily kr_volatility events signals volatility market_regime move_beta target_weight_live)
+# 조건부 기저율(base_rate, FC-REQ-028 FR-2)은 국내 일봉 옮긴 뒤 — 문턱의 기준 종가가 그 일봉이다. 23초
+steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily kr_volatility base_rate trade_check_score events signals volatility market_regime move_beta target_weight_live)
 # 규칙 IC 백테스트는 주 1회 — 매일 돌 이유가 없고 48초 걸린다(FC-REQ-008). 요일이 아니라 "마지막 성공 6.5일 전"으로 고른다:
 # 월요일에만 돌게 했더니 2026-10-05 월요일에 배치가 한 번도 돌지 않아 그 주를 통째로 건너뛰었다(FC-REQ-018)
 "$UV" run --frozen python -m salt_forecast.jobs.due --job rule_ic --hours 156 >/dev/null && steps+=(rule_ic)
+# 점검 채점(trade_check_score, FC-REQ-028 FR-4)은 매일 돌고, 주간 리포트(short-horizon-*.md)는 6.5일마다 한 번
+weekly_check_report=0
+"$UV" run --frozen python -m salt_forecast.jobs.due --job trade_check_report --hours 156 >/dev/null && weekly_check_report=1
 # 운영 점검은 일일 작업 뒤에도 한 번 — 방금 돈 결과를 같은 시간 행에 덮어쓴다
 steps+=(ops_monitor)
 for step in "${steps[@]}"; do
   echo "[$(date -u +%FT%TZ)] ${step} 시작"
   "$UV" run --frozen python -m "salt_forecast.jobs.${step}" || { echo "[$(date -u +%FT%TZ)] ${step} 실패"; rc=1; }
 done
+if [[ $weekly_check_report == 1 ]]; then
+  "$UV" run --frozen python -m salt_forecast.jobs.trade_check_score --report || rc=1
+fi
 echo "[$(date -u +%FT%TZ)] 끝 rc=${rc}"
 exit $rc

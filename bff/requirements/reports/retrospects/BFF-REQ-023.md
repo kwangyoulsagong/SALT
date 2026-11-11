@@ -71,3 +71,8 @@
 
 - 배운 것: 판단을 숨기는 BFF 분기가 없어졌다 — 막을 수만 있던 자리가 이제 꼬리표를 더할 수만 있다
 - 액션: 3종 결함 수를 상태 점검(`OPS-003`)에 넣어 0 이 될 때까지 센다
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+- 닿은 것: `ai-coach.routes.ts` 에 점검 경로 `GET /api/app/ai-coach/check`(`BFF-REQ-052` FR-3) 한 줄 추가. 기존 경로 무변경
+- 문제 · 액션: 없음 — 주인 REQ 는 `BFF-REQ-052`(FR-3) · 서버 `SRV-REQ-053` · FE `FE-REQ-064`

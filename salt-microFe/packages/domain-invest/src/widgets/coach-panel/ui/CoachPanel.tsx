@@ -30,6 +30,7 @@ import {
   MarketAssetClass,
   type MarketPreviewSubject,
 } from "@/entities/market";
+import { TradeCheckCard } from "@/features/check-trade-odds";
 import { CoachModeSwitch, useCoachModeParam } from "@/features/switch-coach-mode";
 
 import { coachBlocks, modeRow } from "./CoachPanel.css";
@@ -132,7 +133,13 @@ export const CoachPanel = memo(({ subject }: CoachPanelProps) => {
   return (
     <MarketPreview
       subject={subject}
-      coachSlot={<div className={coachBlocks}>{renderBlocks()}</div>}
+      coachSlot={
+        <div className={coachBlocks}>
+          {/* 맨 위 쉬운 한 줄 — 판단 조회를 기다리지 않는 자기 조회(F017 v2 단계 2 · FE-REQ-064 FR-3) */}
+          <TradeCheckCard symbol={subject?.symbol} />
+          {renderBlocks()}
+        </div>
+      }
       gaugeFooters={gaugeFooters}
       chartOverlay={chartOverlay}
     />

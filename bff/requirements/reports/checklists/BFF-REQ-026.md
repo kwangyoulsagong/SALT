@@ -67,3 +67,9 @@
   - `salt-microFe/packages/domain-invest/src/entities/coach/api/coachApi.ts` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `ai-coach.controller.ts` 에 `tradeCheck` — 요청 취소(abort)를 서버 호출까지 전파. 기존 핸들러 무변경 · `npm run build` · `npm test` 450 통과 · 실호출 200 |

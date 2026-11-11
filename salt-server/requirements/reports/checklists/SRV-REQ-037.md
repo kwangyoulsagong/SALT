@@ -152,3 +152,9 @@
 | 미충족 · 미검증 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 3종 결함 ~~160~~ → **6**(1b 2026-11-10 — 코인 · 국내 단타 과거 검산 `signal-skill@1` `f38ca6ae` · 국내 단타 원장 `326a0553`, 서버 150요청 · 300모드 실측). 남은 6 = 코인 장기 피하기 — 과거 검산 판단 날 8 < 등록 10(본 기간 뒤 9-29 ~ 만기가 온 판단만) | 규칙을 고른 기간(2018 ~ 2026-09)은 등록상 화면에 못 쓴다 — 날이 쌓이길 기다림(숨기지 않고 결함 꼬리표) | 판단 날 ≥ 10 이 차면 `npm run judgments:signal-skill -- --write` 재실행 — 코인 장기 격자상 11월 중 |
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `coachTools.controller.ts` 에 `getTradeCheck` 핸들러. 기존 핸들러 무변경 · `npm run build` · `npm run lint` · `npm test` 1200 통과 · `npm run test:layer-check` · 레이어 훅 사후 실행(음성 대조 exit 2) · `prisma migrate diff` 0 |

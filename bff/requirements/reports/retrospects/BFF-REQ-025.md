@@ -70,3 +70,8 @@ FR-6(4xx · `Retry-After` 전달) · FR-7(동시 2) · FR-10~12(토큰 전달)�
 
 - 배운 것: 결함과 계약 깨짐을 같은 `null` 로 접으면 결함이 다시 숨는다 — 둘을 가르는 조건(결함 꼬리표 유무)을 테스트로
 - 액션: 3종 결함 수를 상태 점검(`OPS-003`)에 넣어 0 이 될 때까지 센다
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+- 닿은 것: `app-ai-coach.service.ts` 에 `getTradeCheck` — 서버 `GET /api/coach/check` 호출(제한 200ms · 재시도 1회 · 응답 모양이 깨지면 502). 기존 업스트림 호출 무변경
+- 문제 · 액션: 없음 — 주인 REQ 는 `BFF-REQ-052`(FR-3) · 서버 `SRV-REQ-053` · FE `FE-REQ-064`

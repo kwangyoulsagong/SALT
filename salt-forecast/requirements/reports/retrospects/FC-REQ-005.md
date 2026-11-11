@@ -27,3 +27,8 @@
 
 - 변경 칸 하나 — 소비처 테스트(계약 목록 · 뷰모델)가 같이 고쳐졌다
 - 루트 회고 `requirements/reports/retrospects/F016-C-move-split-facts.md`
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+- 닿은 것: `store/tables.py` 에 표 선언 `base_rate_stat` · `base_rate_trigger` · `trade_check_outcome`(스키마 대조 테스트 통과). 거시 일정 표 무변경
+- 문제 · 액션: 없음 — 주인 REQ 는 `FC-REQ-028` · DB `DB-REQ-043`

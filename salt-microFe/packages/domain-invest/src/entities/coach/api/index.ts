@@ -12,3 +12,4 @@ export * from "./useTradePlans";
 export * from "./useBehaviorMirror";
 export * from "./useJudgmentScoreboard";
 export * from "./useTargetWeights";
+export * from "./useTradeCheck";

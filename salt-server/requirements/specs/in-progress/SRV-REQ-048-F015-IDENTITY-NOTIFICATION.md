@@ -46,3 +46,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): to-do → in-progress. FR-5 done — Kotlin notification(설정 기본 꺼짐 · 구독 셋 · 2시간 억제 · 만료 정리) · coach 발행 창구(`coach.outbox`) · Express notification 은퇴 · 옛 표 drop. 수용 기준 4 충족. 나머지 FR 은 identity(S3) |
 | 2026-11-06 | 서버 S2c 확인 2회차 — 국내 종목 코드 관문 · `enabled` 타입 · 쓰기 실패 격리(루트 `requirements/reports/checklists/MONEY-S2c-notification.md`) |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-1 · FR-2 done — identity 서비스가 셸 설정 표 하나로 플랫폼에서 태어남(사용자 · 토큰은 S3b). 옛 3스텝 · 저축 `/goals/exists` 프로브 은퇴. 수용 기준 1 충족. 커밋 `fc0207cb` · `7f2ba1ed`. 남은 FR-3 · 4 · 6 · 7(S3c) · 8 · 9(S3b) |
+| 2026-11-11 | `feat/f017-s2-checks-plain-line`: `coach/domain/ports.ts` 에 포트 `BaseRateReader` · `TradeCheckLedger`. 기존 포트 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` |

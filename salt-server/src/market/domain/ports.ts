@@ -181,6 +181,8 @@ export interface AssetQuote {
   /** 24시간 거래대금(원). 해설 사실의 하나 */
   tradeValue24h: number | null;
   priceUpdatedAt: Date | null;
+  /** 오늘 시가 — 국내 주식만(코치 점검 K3 시가 갭, F017 v2 단계 2). 코인은 없다(24시간 시장) */
+  openPrice?: number | null;
 }
 
 /**

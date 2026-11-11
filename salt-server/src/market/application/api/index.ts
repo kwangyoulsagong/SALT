@@ -640,6 +640,7 @@ export const createMarketApplication = (deps: MarketDependencies) => {
           change24h: q.changeRate,
           tradeValue24h: q.tradeValue,
           priceUpdatedAt: q.priceUpdatedAt,
+          openPrice: q.openPrice,
         })),
       ];
     },

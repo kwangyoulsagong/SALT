@@ -54,3 +54,9 @@
 | `tables.py` 에 `move_beta` 선언(F016 단계 C `FC-REQ-027`) — 사건 표 무변경 | 반영 · 영역 검증 전체 통과 |
 
 루트 체크리스트 `requirements/reports/checklists/F016-C-move-split-facts.md`
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `store/tables.py` 에 표 선언 `base_rate_stat` · `base_rate_trigger` · `trade_check_outcome`(스키마 대조 테스트 통과). 거시 일정 표 무변경 · ruff · format · pyright 0 · lint-imports 3 kept · pytest 전체 · 누수 검사 |

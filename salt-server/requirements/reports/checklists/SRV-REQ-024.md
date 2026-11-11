@@ -363,3 +363,9 @@ FR-103 — `timeframe` 값 `24h` · `30d`, 해설 `timeframe` 주입 **pass**. �
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | 판단 원장 테스트 가짜 시장에 `dailyBarCounts` — 코인 장기 이력 꼬리표(`SRV-REQ-057` FR-1)가 MA50 없는 코인의 일봉을 센다. 원장 동작 변경 0 · `npm test` 전체 · lint · build · 레이어 훅 사후(음성 대조 exit 2) |
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `coach/application/api/index.ts` 에 의존 `baseRates` · `tradeCheckLedger` 와 유스케이스 `checkTradeOdds` 조립. 기존 유스케이스 무변경 · `npm run build` · `npm run lint` · `npm test` 1200 통과 · `npm run test:layer-check` · 레이어 훅 사후 실행(음성 대조 exit 2) · `prisma migrate diff` 0 |

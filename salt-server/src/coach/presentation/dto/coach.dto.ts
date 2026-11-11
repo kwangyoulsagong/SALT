@@ -248,3 +248,15 @@ export type SizeCheckDto = z.infer<typeof sizeCheckSchema>;
 export type UpdateRiskBudgetDto = z.infer<typeof updateRiskBudgetSchema>;
 export type CreateTradePlanDto = z.infer<typeof createTradePlanSchema>;
 export type UpdateTradePlanDto = z.infer<typeof updateTradePlanSchema>;
+
+/** 사기 전 · 팔기 전 점검(F017 v2 단계 2) — `GET /api/coach/check?symbol&side` */
+export const tradeCheckQuerySchema = z.object({
+  symbol: z
+    .string()
+    .trim()
+    .min(1)
+    .max(20)
+    .regex(/^[A-Za-z0-9]+$/),
+  side: z.enum(["buy", "sell"]).default("buy"),
+});
+export type TradeCheckQueryDto = z.infer<typeof tradeCheckQuerySchema>;

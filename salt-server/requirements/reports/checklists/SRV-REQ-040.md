@@ -520,3 +520,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | F017 단계 1c(`SRV-REQ-057`): 국내 5분봉 보정이 부팅 · 깸에도 · 유니버스에 새로 든 코드는 직전 날 스냅샷과 비교해 그 자리에서 일봉 2년 + 5분봉 29일 · 슬롯 밖 장중 5분봉 10분마다 · 코인 장기 이력 꼬리표가 국내와 같은 `KrJudgmentHistory` 모양(`cryptoLongTermHistory`). 실측: 지난 5개장일 (종목, 날) 5분봉 < 70 → 0 · 11-06 · 11-09 종목 48 · 46 → 50 · `npm test` 전체 · lint · build · 레이어 훅 사후(음성 대조 exit 2) |
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 이 REQ 에 닿은 변경 | 충족 | `market/application/api/index.ts` `assetQuotes` 국내 행에 `openPrice`(시가)를 싣는다 — 점검 K3. 기존 필드 무변경 · `npm run build` · `npm run lint` · `npm test` 1200 통과 · `npm run test:layer-check` · 레이어 훅 사후 실행(음성 대조 exit 2) · `prisma migrate diff` 0 |

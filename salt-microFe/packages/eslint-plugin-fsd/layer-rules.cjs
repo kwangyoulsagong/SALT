@@ -88,6 +88,8 @@ const REGISTRY = {
     "search-asset",
     "toggle-news-bookmark",
     "switch-coach-mode",
+    // 사기 전 · 팔기 전 점검 — 방향 전환 · 펼침(F017 v2 단계 2 `FE-REQ-064` FR-3, 2026-11-11). 숫자 · 문장은 서버
+    "check-trade-odds",
     "explain-symbol",
     "regenerate-coach",
     "record-transaction",

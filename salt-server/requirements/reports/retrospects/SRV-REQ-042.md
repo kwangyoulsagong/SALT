@@ -46,3 +46,8 @@
 
 - 닿은 것: `composition.ts` — 수집 의존(`collection`) · KIS 동시 대기 상한 설정. 요약 띠 변경 0
 - 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-057` · `DB-REQ-044`
+
+## F017 v2 단계 2 점검 (2026-11-11, `feat/f017-s2-checks-plain-line`)
+
+- 닿은 것: `composition.ts` 에 `PrismaBaseRateReader` · `PrismaTradeCheckLedger` 연결. 기존 연결 무변경
+- 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064`

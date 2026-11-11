@@ -333,6 +333,7 @@ type ExplainResult =
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `/api/coach/events` Swagger — 국내 종목 · `scope` · `region` · 응답 스키마(`SRV-REQ-041` FR-7) |
 | 2026-11-02 | MONEY-F1(`FE-REQ-053`) 에서 이 REQ 가 걸렸다 — 투자 화면 `apps/web/src` → `packages/domain-invest/src`(내용 무변경) · 투자 zone 조립(`b00b0cea`). 파일 2개(경로 이동 내용 무변경 2 · 수정 0 · 추가 0 · 삭제 0). 계약 · 동작 무변경 |
 | 2026-11-10 | v2 대체 표시 — `ModeCoachView` · FR-42 · `ExplainResult` · FR-50 · FR-59 메모 (`FEATURE-017` v2 · `ADR-010` v2) |
+| 2026-11-11 | `feat/f017-s2-checks-plain-line`: `coachReport.routes.ts` 에 경로 `GET /api/coach/check`(Swagger 포함). 기존 경로 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`d6105374`) — `ModeCoach` 응답 `renderable` · `blockedReason` 삭제 · `observations` · `caveats` · FR-50 해설 `facts_unavailable` 만 · Swagger 정정
   - `salt-server/src/coach/application/GetSymbolCoach.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
