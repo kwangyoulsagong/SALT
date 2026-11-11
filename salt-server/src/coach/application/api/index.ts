@@ -22,6 +22,7 @@ import type {
   RecommendationSnapshotStore,
   RoundTripCosts,
   BaseRateReader,
+  JudgmentTierReader,
   TradeCheckLedger,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
@@ -120,6 +121,8 @@ export interface CoachDependencies {
   monthlyReviews: MonthlyReviewStore;
   /** 조건부 기저율(F017 v2 단계 2) — `forecast.v_base_rate` · `v_base_rate_trigger` */
   baseRates: BaseRateReader;
+  /** 라벨 등급(예측 뷰 `v_judgment_tier`, F017 v2 단계 4) — 없으면 참고 */
+  judgmentTiers?: JudgmentTierReader | null;
   /** 점검 원장(F017 v2 단계 2) — `trade_check_ledger` */
   tradeCheckLedger: TradeCheckLedger;
 }
@@ -189,7 +192,8 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.gauges,
     undefined,
     deps.forecasts,
-    deps.backtestJudgments ?? null
+    deps.backtestJudgments ?? null,
+    deps.judgmentTiers ?? null
   );
   const analyzeNewsSentiment = new AnalyzeNewsSentiment(deps.news);
   const analyzeTradingBehavior = new AnalyzeTradingBehavior(

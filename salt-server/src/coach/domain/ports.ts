@@ -7,6 +7,7 @@ import type {
   TradeCheckSide,
   TradeCheckStatus,
 } from "./policy/tradeCheck";
+import type { JudgmentTierRow } from "./policy/judgmentTier";
 
 import type {
   BehaviorFinding,
@@ -890,6 +891,14 @@ export interface BaseRateReader {
   stats(market: TradeCheckMarket): Promise<BaseRateRow[]>;
   /** 한 종목의 최신 실행 문턱. 코치 심볼(`BTC` · `005930`)로 묻는다 */
   triggers(symbol: string, market: TradeCheckMarket): Promise<BaseRateTriggerRow[]>;
+}
+
+/**
+ * 판단 라벨 등급(F017 v2 단계 4 · `SRV-REQ-053` FR-7) — 예측 뷰 `forecast.v_judgment_tier` 읽기. 칸(시장 × 모드) 4행.
+ * 뷰가 없거나 실패하면 던진다 — 유스케이스가 참고로 받는다(판단은 그대로)
+ */
+export interface JudgmentTierReader {
+  latest(): Promise<JudgmentTierRow[]>;
 }
 
 /** 점검 원장 한 줄 — 사용자 열 0(종목 · 조건 · 기준 봉 단위). 같은 줄이면 처음 것만 남는다(나중 채점은 첫 점검 가격 기준) */

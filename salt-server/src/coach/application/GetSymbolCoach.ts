@@ -12,6 +12,10 @@ import {
   type ForecastReader,
   type GaugeTrackRecordView,
   type GaugeTrackStore,
+  type JudgmentTierReader,
+  type JudgmentTierView,
+  judgmentTierMarket,
+  toJudgmentTier,
   type MarketProbe,
   type ModeDecision,
   type PortfolioProbe,
@@ -108,7 +112,9 @@ export class GetSymbolCoach {
     /** 보유 익절 계획의 실현 변동성(F010 슬라이스 2). 없으면 고정 비율 */
     private readonly forecasts: Pick<ForecastReader, "symbolRisk" | "marketWarnings"> | null = null,
     /** 국내 주식 백테스트 성적(`backtest` 출처만 세는 저장소) — 라이브 표본이 모자랄 동안. 없으면 라이브만 */
-    private readonly backtestJudgments: SymbolJudgmentStore | null = null
+    private readonly backtestJudgments: SymbolJudgmentStore | null = null,
+    /** 라벨 등급(예측 뷰, `SRV-REQ-053` FR-7). 없거나 실패하면 두 모드 다 참고 */
+    private readonly tiers: JudgmentTierReader | null = null
   ) {}
 
   /** 성적 출처(국내 백테스트) · 사례 종목 이름(F011 슬라이스 7b) */
@@ -138,7 +144,7 @@ export class GetSymbolCoach {
     const symbol = query.symbol.toUpperCase();
     const now = this.clock();
 
-    const [materialsBySymbol, cryptoHolding, profile, risk, warnings] = await Promise.all([
+    const [materialsBySymbol, cryptoHolding, profile, risk, warnings, tierRows] = await Promise.all([
       collectJudgmentMaterials(this.market, [symbol]),
       // 자산군은 시세를 읽어야 안다 — 코인 보유를 같이 읽고, 국내 주식이면 아래에서 그 자산군으로 한 번 더(행 1개 조회)
       this.portfolio.getHolding(userId, symbol),
@@ -147,6 +153,8 @@ export class GetSymbolCoach {
       this.forecasts ? this.forecasts.symbolRisk([symbol]).catch(() => null) : null,
       // 표시를 못 읽어도 판정은 나간다(FR-191) — 지금까지와 같은 화면. 모르는 것을 "유의"로 지어내지 않는다
       this.forecasts ? this.forecasts.marketWarnings([symbol]).catch(() => null) : null,
+      // 등급을 못 읽어도 판단은 나간다 — 참고로(지어내지 않음)
+      this.tiers ? this.tiers.latest().catch(() => []) : [],
     ]);
     const flag = warnings?.get(symbol) ?? null;
     const warned = flag?.warning === true;
@@ -168,10 +176,15 @@ export class GetSymbolCoach {
       ...(flag ? { exchangeFlag: { cautions: flag.cautions, checkedAt: flag.fetchedAt } } : {}),
       ...materialGuards(materials, mode, now),
     });
+    // 라벨 등급 — 칸(시장 × 모드)마다 예측이 정한 값 그대로(`SRV-REQ-053` FR-7)
+    const tierMarket = judgmentTierMarket(assetClass);
+    const tierFor = (mode: CoachMode): JudgmentTierView =>
+      toJudgmentTier(tierRows.find((row) => row.market === tierMarket && row.mode === mode) ?? null, now);
     // 관측 근거(`ADR-010`) — 원장에 남는 같은 기여에서
     const extrasFor = (mode: CoachMode) => ({
       ...this.trackExtras,
       scored: { components: components[mode], missingInputs: missingByMode[mode] },
+      tier: tierFor(mode),
     });
 
     // 게이트는 `preview` 에서도 생략하지 않는다 (`SRV-REQ-025` FR-49).
