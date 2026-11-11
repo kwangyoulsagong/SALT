@@ -66,6 +66,37 @@ export const COACH_MESSAGES = {
   recentFailureCount: (count: number) => `최근 틀렸던 때 ${count}건`,
   lowSample: "표본 부족",
 
+  /**
+   * 라벨 등급(`FE-REQ-064` FR-1 · 사전등록 `judgment-tier@1`) — 라벨 옆 글자 + 한 줄. 색만으로 말하지 않는다.
+   * "실력 있음 · 신뢰도 높음" 같은 말은 쓰지 않는다(리서치 v2 §8) — 검증됨도 "같은 날 시장보다 나았다"는 사실만
+   */
+  tier: {
+    label: { reference: "참고", verified: "검증됨", caution: "주의" } as Record<string, string>,
+    accessible: "판단 등급 ",
+    verified: (n: number) => `등록 뒤 실제 판단이 같은 날 시장보다 나았어요 · 유효 표본 ${n.toLocaleString("ko-KR")}`,
+    caution: (backtest: boolean) =>
+      backtest
+        ? "과거 시세로 검산해 보니 이 규칙과 반대로 간 때가 더 많았어요"
+        : "실제 판단에서 이 규칙과 반대로 간 때가 더 많았어요",
+    reference: (reason: string | null, n: number, min: number) => {
+      const progress = `유효 표본 ${Math.floor(n).toLocaleString("ko-KR")}/${min.toLocaleString("ko-KR")}`;
+      switch (reason) {
+        case "no_candidate":
+          return `이 규칙은 아직 '살 만함' 판단을 낸 적이 없어 시장보다 나았는지 잴 수 없어요 · ${progress}`;
+        case "no_avoid":
+          return `이 규칙은 아직 '피하기' 판단을 낸 적이 없어 시장보다 나았는지 잴 수 없어요 · ${progress}`;
+        case "below_effective_n":
+          return `검증 중이에요 · ${progress}`;
+        case "ci_includes_zero":
+          return `지금까지는 시장과 구별되지 않아요 · ${progress}`;
+        case "regimes_disagree":
+          return `앞뒤 기간의 결과가 엇갈려 검증 중이에요 · ${progress}`;
+        default:
+          return "등급을 아직 계산하지 못했어요 — 판단은 그대로예요";
+      }
+    },
+  },
+
   /** 저장 추천 카드의 막힘(`recommendationGate` — 그대로). 종목 판단은 막지 않는다(`ADR-010` v2) — 아래 `caveat` */
   blocked: {
     reasons_missing: "근거가 부족해 이번엔 추천을 보여 드리지 않아요.",

@@ -62,3 +62,11 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `ops/daily.sh` 단계에 `base_rate` · `trade_check_score`(kr_volatility 뒤) · 주간 `trade_check_score --report`(`due --job trade_check_report --hours 156`). 뉴스 단계 무변경 · ruff · format · pyright 0 · lint-imports 3 kept · pytest 전체 · 누수 검사 |
+
+## F017 v2 단계 4 등급 (2026-11-11, `feat/f017-s4-grade`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 이 REQ 에 걸린 몫 | 반영 | `salt-forecast/ops/daily.sh` — 매일 배치 순서에 `judgment_tier`(점검 채점 뒤 · 1초). 뉴스 매시 경로는 그대로. 주인 `FC-REQ-028` FR-6 |
+| 영역 검증 | 통과 | 서버 build · lint · test 1219 · test:layer-check / BFF test 449 · build / FE check-types · lint · test · test:layer-check / 예측 ruff · pyright · lint-imports · pytest · leakage |
+| 이 REQ 의 기존 계약 | 변화 없음 | 칸을 더하기만 했다 — 지우거나 바꾼 필드 0 |

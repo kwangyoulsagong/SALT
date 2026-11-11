@@ -326,6 +326,11 @@ export const createAICoachRouter = (useCases: CoachUseCases): Router => {
    *       문턱에 가까운 순) · `trackRecord`(`sampleOrigin` live | backtest — 라이브가 모자라면 과거 검산으로 채움, 숫자 안 섞음) · `failureCases` + `caveats[]`:
    *       `insufficient_history` · `exchange_warning { cautions, checkedAt }` · `stale_inputs { items[{ item, lastAt }] }` · `live_sample_short { live, min, backtest }` ·
    *       결함(3종을 다 채우지 못함) `inputs_missing { items }` · `track_record_unavailable` · `backtest_missing { live, min }`
+   *
+   *       라벨 등급(`SRV-REQ-053` FR-7 · 사전등록 `judgment-tier@1`) — `modes.*.tier`: `reference`(참고 · 기본) | `verified`(검증됨 — 라이브만) | `caution`(주의) +
+   *       `tierBasis { source: live | backtest_full | null, reason: no_candidate | no_avoid | below_effective_n | ci_includes_zero | regimes_disagree | not_computed | null,
+   *       liveEffectiveN, minEffectiveN(620), spreadCi { low, high } | null, regimes { first, second }, asOf }`. 예측 뷰 `forecast.v_judgment_tier` 값 그대로 —
+   *       못 읽거나 3일 넘으면 `reference` + `not_computed`. 등급은 판단을 숨기지 않는다
    *     tags: [AI Coach]
    *     security:
    *       - bearerAuth: []

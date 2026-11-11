@@ -44,3 +44,8 @@
 
 - 닿은 것: `@repo/core` `symbolCoach.ts` 에 `nearestObservations` · `judgmentEvidenceCount`(`FE-REQ-064` FR-1 — 관망 본 값 줄 · 근거 수). 뷰모델 계약 변경 0(이미 내려오던 `observations`)
 - 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-057` · `OPS-003` · `FE-REQ-064`
+
+## F017 v2 단계 4 등급 (2026-11-11)
+
+- 이 REQ 의 파일에 등급 칸 · 줄을 더하기만 했다(`salt-microFe/packages/core/src/coach/symbolCoach.ts`). 주인 판단은 F017 REQ 에 있다 — 여기 적는 것은 "이 파일이 왜 바뀌었나"를 6개월 뒤 찾게 하기 위해서다
+- 문제 · 액션 없음

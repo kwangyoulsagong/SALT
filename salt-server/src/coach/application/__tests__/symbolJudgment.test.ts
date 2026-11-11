@@ -10,6 +10,7 @@ import type {
   JudgmentEvaluation,
   JudgmentOutcome,
   JudgmentSnapshotDraft,
+  JudgmentTierReader,
   JudgmentTrackStats,
   MarketProbe,
   PendingJudgment,
@@ -271,6 +272,36 @@ describe("GetSymbolCoach — 모드별 꼬리표 (ADR-010 v2)", () => {
     assert.deepEqual(caveatsOf(view.modes.scalp), ["backtest_missing"]);
     assert.deepEqual(view.modes.scalp.caveats[0], { reason: "backtest_missing", live: 0, min: 20 });
     assert.ok(view.disclaimer.length > 0);
+  });
+
+  it("라벨 등급 — 칸(시장 × 모드)마다 예측 값 그대로 · 못 읽으면 참고, 판단은 그대로 (SRV-REQ-053 FR-7)", async () => {
+    const tierRow = (mode: CoachMode, tier: string, basisSource: string | null) => ({
+      market: "crypto" as const, mode, asOf: T0, tier, reason: tier === "reference" ? "no_candidate" : null, basisSource,
+      liveEffectiveN: 12, liveCiLow: -0.01, liveCiHigh: -0.001, regimeFirst: null, regimeSecond: null,
+      backtestCiLow: null, backtestCiHigh: null,
+    });
+    const run = (tiers: JudgmentTierReader | null) =>
+      new GetSymbolCoach(
+        fakeMarket({ BTC: 100 }), portfolio, profiles, new MemoryJudgmentStore(), noGauges, () => T0,
+        null, null, tiers
+      ).execute("user-1", { symbol: "BTC" });
+    const both = await run({
+      latest: async () => [
+        tierRow("scalp", "caution", "live"),
+        tierRow("long_term", "reference", null),
+        { ...tierRow("scalp", "verified", "live"), market: "kr" as const },
+      ],
+    });
+    assert.equal(both.modes.scalp.tier, "caution");
+    assert.equal(both.modes.scalp.tierBasis.source, "live");
+    assert.equal(both.modes.longTerm.tier, "reference");
+    assert.equal(both.modes.longTerm.tierBasis.reason, "no_candidate");
+    const failed = await run({ latest: async () => { throw new Error("view missing"); } });
+    assert.equal(failed.modes.scalp.tier, "reference");
+    assert.equal(failed.modes.scalp.tierBasis.reason, "not_computed");
+    assert.equal(failed.modes.scalp.judgment.action, both.modes.scalp.judgment.action);
+    const none = await run(null);
+    assert.equal(none.modes.longTerm.tierBasis.reason, "not_computed");
   });
 
   it("투자유의면 두 모드 다 exchange_warning · 주의만이면 판정 그대로 + exchangeFlag (FR-191 · 192)", async () => {

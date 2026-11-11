@@ -110,3 +110,11 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `@repo/core` `symbolCoach.ts` 에 `nearestObservations` · `judgmentEvidenceCount`(`FE-REQ-064` FR-1 — 관망 본 값 줄 · 근거 수). 뷰모델 계약 변경 0(이미 내려오던 `observations`) · 영역 검증 |
+
+## F017 v2 단계 4 등급 (2026-11-11, `feat/f017-s4-grade`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 이 REQ 에 걸린 몫 | 반영 | `salt-microFe/packages/core/src/coach/symbolCoach.ts` — 공유 계약 `ModeCoachViewModel` 에 `tier` · `tierBasis` · 타입 `JudgmentTier` · `JudgmentTierBasis`(BFF 와 같은 모양). 주인 `BFF-REQ-052` FR-1 · `FE-REQ-064` FR-1 |
+| 영역 검증 | 통과 | 서버 build · lint · test 1219 · test:layer-check / BFF test 449 · build / FE check-types · lint · test · test:layer-check / 예측 ruff · pyright · lint-imports · pytest · leakage |
+| 이 REQ 의 기존 계약 | 변화 없음 | 칸을 더하기만 했다 — 지우거나 바꾼 필드 0 |

@@ -59,3 +59,10 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | 마이그레이션 `20261111140000_trade_check_export_and_outcome` 이 export 뷰 `public.v_trade_check_ledger_export` 를 더해 예측이 점검 원장을 뷰로 읽는다 — FR-3 직접 읽기 목록은 늘리지 않았다 · `npm run build` · `npm run lint` · `npm test` 1200 통과 · `npm run test:layer-check` · 레이어 훅 사후 실행(음성 대조 exit 2) · `prisma migrate diff` 0 |
+
+## F017 v2 단계 4 등급 (2026-11-11, `feat/f017-s4-grade`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 직접 읽기 목록(FR-3) | 늘리지 않음 | 예측은 `public.v_judgment_outcome_export` 로만 판단 원장을 읽는다(`store/judgment_tier.py`) |
+| 새 표 주인 | forecast | `forecast.judgment_tier` — 서버는 뷰만 SELECT |

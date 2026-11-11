@@ -97,3 +97,4 @@ Express 쪽 raw SQL 로 남의 표를 읽는 곳은 0(같은 grep — `market` �
 | 2026-11-11 | `feat/f017-s1c-collection`: 부록 A market 행에 `market_universe_snapshot` · `price_fill_mark` · 부록 B11(예측 스냅샷 읽기 — S5 export 뷰) |
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: 마이그레이션 `20261111140000_trade_check_export_and_outcome` 이 export 뷰 `public.v_trade_check_ledger_export` 를 더해 예측이 점검 원장을 뷰로 읽는다 — FR-3 직접 읽기 목록은 늘리지 않았다. 주인 REQ 는 `DB-REQ-043` · 서버 `SRV-REQ-053` · 예측 `FC-REQ-028` |
 | 2026-11-11 | 부록 A coach 행에 `ExplanationSnapshot` 추가(F017 v2 단계 3, `feat/f017-s3-explain-always`) — 주인 coach · 다른 스키마 조인 0(부록 B 변화 없음) |
+| 2026-11-11 | `feat/f017-s4-grade`: 마이그레이션 `20261111160000_judgment_tier` 가 export 뷰 `public.v_judgment_outcome_export`(채점된 판단만 · 사용자 열 0)를 더해 예측이 판단 원장을 뷰로 읽는다 — FR-3 직접 읽기 목록은 늘리지 않았다. 새 표 `forecast.judgment_tier` 주인 forecast. 주인 REQ `DB-REQ-043` FR-6 |

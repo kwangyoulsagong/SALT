@@ -41,3 +41,18 @@
 | FR-4 점검 채점 | 충족(점검 몫) | `tests/domain/test_trade_check.py` 경계 7(장중 · 마감 뒤 · 주말 · 자정 넘김 · 24시간 · 기간 전 · 비용) · 첫 결과는 11-12(오늘 원장 355줄 기간 전 = 0건 정상) |
 | 검증 | 충족 | ruff · format · pyright 0 · lint-imports 3 kept · pytest 전체 · 누수 · 실행 23초 · 1.1GB |
 | 단타 확률 · 태그 채점 | 미충족(범위 밖) | 단계 5 · 6 |
+
+## 단계 4 등급 — FR-6 (2026-11-11, `feat/f017-s4-grade`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 사전등록이 먼저 | 충족 | `judgment-tier@1` 커밋 `996117c2` → 첫 계산 `4bd03b63`(등록 행 `forecast.preregistration`) |
+| 결정 표 | 충족 | `tests/domain/test_judgment_tier.py` 17 — 유효 n(ρ) · 후보 비용(코인 · 국내 연도 세율) · 같은 날 대비 초과 · 후보 0 → spread 없음 · 부트스트랩 재현 · 두 반 · Holm · 검증됨 · 유효 n 619.9 · Holm p 0.05 · 두 반 엇갈림 · 주의(라이브 · 과거 검산 · 상한 0 은 주의 아님) · 검증됨이 과거 검산 주의를 이김 · 강등 · 강등 시각 이어짐 |
+| 출처 경계 | 충족 | `tests/scoring/test_judgment_tier.py` 3 — 네 칸 기본 참고 · `backtest_price_only` 는 주의를 못 만듦 · 강등 뒤 행만 승격에 셈 |
+| ruff · format · pyright · lint-imports | 통과 | 0 오류 · 344 파일 · 계약 3 유지 |
+| pytest 전체 · leakage | 통과 | 실 DB(`FORECAST_DATABASE_URL`) 포함 전체 · `tests/leakage` |
+| dry-run | 통과 | 4행 · 0.7초 |
+| 실행 · 예산 | 통과 | 4행 · 0.73초. 리포트 `reports/judgment-tier-judgment-tier-1-2026-11-11.md` |
+| 결과 | 네 칸 참고 | 후보 0 건(라이브 · 과거 검산 전부) → `no_candidate`. 라이브 유효 n 코인 단타 7 · 국내 장기 2 · 나머지 0 |
+| 매일 배치 · 상태 점검 | 반영 | `ops/daily.sh` 점검 채점 뒤 · `ops/salt.sh status` '등급 마지막 as_of' ok |
+| 누수 | 해당 없음 | 피처 · 학습 없음 — 채점이 끝난 행(`evaluated_at ≤ as_of`)만 읽는다 |

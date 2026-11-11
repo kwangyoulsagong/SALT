@@ -60,3 +60,11 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `store/tables.py` 에 표 선언 `base_rate_stat` · `base_rate_trigger` · `trade_check_outcome`(스키마 대조 테스트 통과). 거시 일정 표 무변경 · ruff · format · pyright 0 · lint-imports 3 kept · pytest 전체 · 누수 검사 |
+
+## F017 v2 단계 4 등급 (2026-11-11, `feat/f017-s4-grade`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 이 REQ 에 걸린 몫 | 반영 | `salt-forecast/src/salt_forecast/store/tables.py` — 손 선언 표 `judgment_tier` 추가(스키마 계약 테스트가 DB 와 대조). 사건 표 선언은 그대로. 주인 `FC-REQ-028` FR-6 |
+| 영역 검증 | 통과 | 서버 build · lint · test 1219 · test:layer-check / BFF test 449 · build / FE check-types · lint · test · test:layer-check / 예측 ruff · pyright · lint-imports · pytest · leakage |
+| 이 REQ 의 기존 계약 | 변화 없음 | 칸을 더하기만 했다 — 지우거나 바꾼 필드 0 |

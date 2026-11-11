@@ -92,3 +92,11 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 조립 | 충족 | build · 실서버 기동 · 배치 회차 로그 |
+
+## F017 v2 단계 4 등급 (2026-11-11, `feat/f017-s4-grade`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 이 REQ 에 걸린 몫 | 반영 | `salt-server/src/composition.ts` — `judgmentTiers: new PrismaJudgmentTierReader()` 조립 한 줄. 주인 `SRV-REQ-053` FR-7 |
+| 영역 검증 | 통과 | 서버 build · lint · test 1219 · test:layer-check / BFF test 449 · build / FE check-types · lint · test · test:layer-check / 예측 ruff · pyright · lint-imports · pytest · leakage |
+| 이 REQ 의 기존 계약 | 변화 없음 | 칸을 더하기만 했다 — 지우거나 바꾼 필드 0 |

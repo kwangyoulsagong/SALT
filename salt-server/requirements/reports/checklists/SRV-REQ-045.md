@@ -122,3 +122,11 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `ops/salt.sh` `status` 에 "기저율 마지막 as_of" 줄(`forecast.base_rate_stat`, 3일 넘으면 ✗). 기존 줄 무변경 · `npm run build` · `npm run lint` · `npm test` 1200 통과 · `npm run test:layer-check` · 레이어 훅 사후 실행(음성 대조 exit 2) · `prisma migrate diff` 0 |
+
+## F017 v2 단계 4 등급 (2026-11-11, `feat/f017-s4-grade`)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 이 REQ 에 걸린 몫 | 반영 | `ops/salt.sh` — 상태 점검 신선도에 '등급 마지막 as_of' 줄(3일 넘으면 ✗ — 서버가 전부 참고로 읽는 경계와 같다). 주인 `FC-REQ-028` FR-6 |
+| 영역 검증 | 통과 | 서버 build · lint · test 1219 · test:layer-check / BFF test 449 · build / FE check-types · lint · test · test:layer-check / 예측 ruff · pyright · lint-imports · pytest · leakage |
+| 이 REQ 의 기존 계약 | 변화 없음 | 칸을 더하기만 했다 — 지우거나 바꾼 필드 0 |

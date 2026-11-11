@@ -53,3 +53,4 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `ops/daily.sh` 단계에 `base_rate` · `trade_check_score`(kr_volatility 뒤) · 주간 `trade_check_score --report`(`due --job trade_check_report --hours 156`). 뉴스 단계 무변경. 주인 REQ 는 `FC-REQ-028` · DB `DB-REQ-043` |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-forecast/src/salt_forecast/jobs/news.py` — 뉴스 작업 20분 상한(`run_job(max_seconds)`) — 05:07 부터 외부 연결에 매달려 8시간
+| 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-forecast/ops/daily.sh` 에 걸린 몫: 매일 배치 순서에 `judgment_tier`(점검 채점 뒤 · 1초). 뉴스 매시 경로는 그대로. 주인 `FC-REQ-028` FR-6. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |

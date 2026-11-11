@@ -244,3 +244,4 @@ type SymbolCoachViewModel = {
 | 2026-11-10 | v2 대체 표시 — `ModeCoachViewModel` 타입 · FR-31 · FR-37 · 수용 기준 (`FEATURE-017` v2 · `ADR-010` v2) |
 | 2026-11-10 | F017 v2 단계 1(`f843104e`) — FR-31 뒤집힘 구현: 모드 뷰모델 판단 늘 · `observations` · `caveats`(모르는 사유 `unknown`) |
 | 2026-11-11 | `feat/f017-s1c-collection`: `@repo/core` `symbolCoach.ts` 에 `nearestObservations` · `judgmentEvidenceCount`(`FE-REQ-064` FR-1 — 관망 본 값 줄 · 근거 수). 뷰모델 계약 변경 0(이미 내려오던 `observations`) |
+| 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-microFe/packages/core/src/coach/symbolCoach.ts` 에 걸린 몫: 공유 계약 `ModeCoachViewModel` 에 `tier` · `tierBasis` · 타입 `JudgmentTier` · `JudgmentTierBasis`(BFF 와 같은 모양). 주인 `BFF-REQ-052` FR-1 · `FE-REQ-064` FR-1. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |

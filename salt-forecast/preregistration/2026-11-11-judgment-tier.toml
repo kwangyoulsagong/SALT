@@ -1,0 +1,57 @@
+# 사전등록 — 종목 판단 라벨 등급 참고 · 검증됨 · 주의 (F017 v2 단계 4 · FC-REQ-028 FR-6 · ADR-010 v2)
+#
+# 이 파일은 **한 번도 돌려 보기 전에** 커밋한다. 정의 · 문턱을 바꾸려면 새 키(`judgment-tier@2`).
+#
+# 왜: 판단은 늘 보인다(ADR-010 v2). 그 판단을 얼마나 믿어도 되는지는 라벨 하나로 말한다 — 기본은 "참고",
+# 등록 뒤 라이브 성적이 시장보다 나았다는 증거가 쌓였을 때만 "검증됨", 반대로 맞았으면 "주의".
+# 결정 규칙은 서버 `preregistration/2026-11-10-signal-skill.toml` [decision] 그대로다 — 여기는 그 숫자를 **어떻게 세는지**를 고정한다.
+# 리서치 `requirements/reports/research/2026-11-10-v2-signal-validation.md` §1-2 · 1-3 · 1-5 · 1-7.
+
+key = "judgment-tier@1"
+registered = 2026-11-11
+rule = "mode-decision@2 — 다른 규칙 버전 행은 세지 않는다(버전을 섞어 지표를 내지 않는다)"
+
+# 미리 적어 둔다(signal-skill@1 [report] 와 같은 사실): mode-decision@2 는 등록 시점까지 후보(review_*) 판단을 한 번도 내지 않았다.
+# 후보가 0 건이면 spread 가 없고 등급은 "참고"(사유 no_candidate)다 — 지어내지 않는다.
+
+[cells]
+markets = ["crypto", "kr"]
+modes = ["scalp", "long_term"]
+family = "라이브 spread 가 정의된 칸(≤ 4) — Holm 가족(≤ 10, FC-REQ-028 FR-6)"
+
+[source]
+view = "public.v_judgment_outcome_export — symbol_judgment_snapshots 의 채점된 행(outcome 있음)만 · 사용자 열 0. 예측은 이 뷰로만 읽는다"
+origins = "live(승격 · 강등 근거) · backtest_full(주의 근거로만) · backtest_price_only(리포트만 — 등급 근거 아님)"
+market = "signal_type 이 'kr_stock.' 로 시작하면 kr, 아니면 crypto"
+date = "판단 시각(judged_at, UTC)의 KST 날짜 — 군집 단위"
+as_of = "evaluated_at <= 실행 시각인 행만(채점이 끝난 것만)"
+
+[measure]
+return = "r = return_rate(판단 가격 → 만기 가격, 비용 전) — 원장의 채점과 같은 값"
+cost = "후보만 순수익 r_net = r − 왕복 비용. 코인 0.001(라이브 ROUND_TRIP_COST) · 국내 수수료 0.0186% × 2 + 판단 날 연도의 거래세(2021 0.23 · 2023 0.20 · 2024 0.18 · 2025 0.15 · 2026 0.20%). 피하기는 비용 없음(안 사는 것은 공짜)"
+benchmark = "m_d = 같은 칸 · 같은 출처 · 같은 날(KST) 채점 행 전부(행동 무관)의 r 동일가중 평균"
+excess = "후보 e = r_net − m_d · 피하기 e = r − m_d"
+spread = "mean(후보 e) − mean(피하기 e). 둘 중 하나가 0 건이면 spread 없음(no_candidate · no_avoid)"
+ci = "날짜 군집 부트스트랩 95% 백분위 — 날짜를 통째로 복원 추출 2,000회 · seed 20261111. 한 회차에 후보나 피하기가 0 건이면 그 회차는 버리고 버린 수를 리포트에"
+p = "단측 p = (spread_b ≤ 0 인 회차 + 1) / (유효 회차 + 1)"
+holm = "라이브 칸 p 를 Holm 으로 보정(가족 α 0.05). '검증됨'의 'Holm 뒤 CI 하한 > 0' = 보정 p < 0.05"
+n_eff = "유효 n = 판단 날 수 × m̄ / (1 + (m̄ − 1)ρ), m̄ = 날마다 후보 + 피하기 행 수의 평균, ρ = 코인 0.5 · 국내 0.3(FC-REQ-028 FR-6 고정값)"
+regimes = "라이브 판단 날을 시간순으로 반 나눔(앞 절반 · 뒤 절반 — 날 수가 홀수면 가운데 날은 앞에). 두 반 모두 spread 가 정의되고 같은 부호면 '같은 부호'"
+
+[decision]
+verified = "라이브만 — Holm 보정 p < 0.05 · 유효 n ≥ 620 · 두 반 spread > 0. 마지막 강등 뒤의 라이브 행만 센다(재승격은 새 데이터로만)"
+caution = "spread 95% CI 상한 < 0 — 라이브 또는 backtest_full(어느 쪽이 정했는지 basis 에)"
+reference = "그 외 전부 — 기본값. 판단을 숨기지 않는다"
+order = "verified 가 caution 보다 먼저(라이브가 과거 검산을 이긴다). backtest_price_only 는 어떤 등급도 만들지 않는다"
+reason = "참고일 때 이유 하나 — no_candidate · no_avoid · below_effective_n · ci_includes_zero · regimes_disagree(이 순서로 첫 번째)"
+
+[demotion]
+window = "실행마다(매일) 최근 91일(13주) 라이브 행만으로 spread · CI 를 다시 잰다"
+rule = "직전 등급이 verified 이고 13주 CI 상한 < 0 이면 한 단계 내림(verified → reference) · demoted_at = 실행 시각. 이후 verified 는 demoted_at 뒤 행만으로 다시 넘어야 한다"
+note = "reference → caution 은 강등이 아니라 caution 정의(전체 CI 상한 < 0)로만 간다"
+
+[output]
+table = "forecast.judgment_tier — 실행마다 칸마다 한 행(지우지 않는다 · 강등 이력)"
+view = "forecast.v_judgment_tier — 칸마다 최신 실행 한 행. 서버는 이 뷰만 읽고 문턱을 다시 계산하지 않는다(SRV-REQ-053 FR-7)"
+stale = "서버는 as_of 가 3일 넘은 행 · 행 없음 · 모르는 값이면 reference 로 읽는다(지어내지 않음)"
+report = "salt-forecast/reports/judgment-tier-judgment-tier-1-<실행일>.md — 칸 × 출처: 행 · 날 · 후보 · 피하기 · spread · CI · p · Holm p · 유효 n · 두 반 · 등급"

@@ -23,6 +23,8 @@ import {
   type ModeDecision,
   type StaleInput,
   type SymbolJudgmentStore,
+  type JudgmentTierView,
+  unknownJudgmentTier,
 } from "../../domain";
 import { logger } from "../../../shared/config/logger";
 import { recordTriad } from "./triadGaps";
@@ -82,6 +84,11 @@ export interface ModeCoachView {
   caveats: JudgmentCaveat[];
   trackRecord: JudgmentTrackRecord;
   failureCases: JudgmentCaseView[];
+  /**
+   * 라벨 등급 — 참고 · 검증됨 · 주의(`SRV-REQ-053` FR-7). 예측 뷰 값을 읽기만 한다 — 못 읽으면 참고. **판단을 숨기지 않는다**
+   */
+  tier: JudgmentTierView["tier"];
+  tierBasis: JudgmentTierView["tierBasis"];
 }
 
 /**
@@ -161,6 +168,8 @@ export const attachJudgmentTrack = async (
      * 없으면 관측 0(근거는 문장만)
      */
     scored?: { components: readonly ModeDecisionComponent[]; missingInputs: readonly string[] } | null;
+    /** 이 칸(시장 × 모드)의 라벨 등급 — 없으면 참고(`not_computed`) */
+    tier?: JudgmentTierView | null;
   } = {}
 ): Promise<ModeCoachView> => {
   const backtest = extras.backtest ?? null;
@@ -221,6 +230,7 @@ export const attachJudgmentTrack = async (
     ),
     trackRecord,
     failureCases: misses.map((item) => toCaseView(signalType, "miss", item, labels)),
+    ...(extras.tier ?? unknownJudgmentTier()),
   };
 };
 
