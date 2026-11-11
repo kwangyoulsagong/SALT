@@ -37,12 +37,13 @@ class Panel:
         return self.symbols.index(symbol)
 
 
-def build_panel(series: Mapping[str, OhlcvSeries], start: int, end: int) -> Panel:
-    """[start, end] 날짜 격자(하루)에 봉을 맞춘다. 봉이 없는 칸은 NaN — 앞 값으로 채우지 않는다.
+def build_panel(series: Mapping[str, OhlcvSeries], start: int, end: int, step: int = DAY) -> Panel:
+    """[start, end] 날짜 격자(기본 하루, `step` = 3600 이면 1시간 — short-direction@1)에 봉을 맞춘다.
+    봉이 없는 칸은 NaN — 앞 값으로 채우지 않는다.
 
     `listed_at` 은 격자 **이전** 이력까지 본 첫 봉이라, 격자 시작 전에 상장한 종목을 새 상장으로 오인하지 않는다.
     """
-    dates = np.arange(start - start % DAY, end + 1, DAY, dtype=np.int64)
+    dates = np.arange(start - start % step, end + 1, step, dtype=np.int64)
     syms = tuple(sorted(series))
     shape = (dates.size, len(syms))
     open_, high, low, close, volume = (np.full(shape, np.nan) for _ in range(5))
@@ -52,15 +53,15 @@ def build_panel(series: Mapping[str, OhlcvSeries], start: int, end: int) -> Pane
         if o.available_at.size == 0:
             listed[j] = dates.size
             continue
-        idx = (o.available_at - dates[0]) // DAY
-        ok = (idx >= 0) & (idx < dates.size) & (o.available_at % DAY == dates[0] % DAY)
+        idx = (o.available_at - dates[0]) // step
+        ok = (idx >= 0) & (idx < dates.size) & (o.available_at % step == dates[0] % step)
         rows = idx[ok]
         open_[rows, j] = o.open[ok]
         high[rows, j] = o.high[ok]
         low[rows, j] = o.low[ok]
         close[rows, j] = o.close[ok]
         volume[rows, j] = o.volume[ok]
-        listed[j] = int((o.available_at[0] - dates[0]) // DAY)  # 음수 = 격자 전 상장
+        listed[j] = int((o.available_at[0] - dates[0]) // step)  # 음수 = 격자 전 상장
     return Panel(dates, syms, high, low, close, volume, listed, open_)
 
 

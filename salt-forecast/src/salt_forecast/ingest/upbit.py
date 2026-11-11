@@ -1,6 +1,9 @@
-"""업비트 일봉 — 공개 시세 API. 키 없음.
+"""업비트 일봉 · 1시간봉 — 공개 시세 API. 키 없음.
 
-available_at = 봉 마감(= 다음 날 00:00 UTC). 아직 닫히지 않은 오늘 봉은 버린다(time-and-leakage.md §1).
+available_at = 봉 마감(일봉 = 다음 날 00:00 UTC · 1시간봉 = 시작 + 1시간).
+닫히지 않은 봉은 버린다(time-and-leakage.md §1).
+1시간봉은 단타 방향 확률(`short-direction@1`,
+FC-REQ-028 FR-1)의 재료다 — 체결이 없던 시간은 원천에 봉이 없다(채우지 않는다).
 """
 
 from __future__ import annotations
@@ -19,7 +22,9 @@ from salt_forecast.store.prices import Bar
 
 SOURCE = "upbit"
 INTERVAL = "1d"
+HOUR = "1h"
 PAGE = 200
+_PATHS = {INTERVAL: ("/candles/days", timedelta(days=1)), HOUR: ("/candles/minutes/60", timedelta(hours=1))}
 
 
 class _Market(BaseModel):
@@ -122,12 +127,15 @@ class UpbitDaily:
             raise SourceError("market_event 원화 마켓 0건", retryable=False)  # 조용히 비우지 않는다
         return out
 
-    def fetch(self, symbol: str, since: datetime, until: datetime, now: datetime) -> Iterator[Bar]:
+    def fetch(
+        self, symbol: str, since: datetime, until: datetime, now: datetime, interval: str = INTERVAL
+    ) -> Iterator[Bar]:
         """until 부터 거꾸로 since 까지. 닫히지 않은 봉(마감 > now)은 버린다."""
+        path, length = _PATHS[interval]
         cursor = until
         while cursor > since:
             rows = self._get(
-                "/candles/days",
+                path,
                 {"market": symbol, "count": PAGE, "to": cursor.strftime("%Y-%m-%dT%H:%M:%SZ")},
             )
             if not rows:
@@ -135,13 +143,13 @@ class UpbitDaily:
             candles = [_DayCandle.model_validate(r) for r in rows]
             for c in candles:
                 open_time = c.candle_date_time_utc.replace(tzinfo=UTC)
-                close_time = open_time + timedelta(days=1)
+                close_time = open_time + length
                 if close_time > now or open_time < since:
                     continue
                 yield Bar(
                     SOURCE,
                     symbol,
-                    INTERVAL,
+                    interval,
                     open_time,
                     close_time,
                     close_time,

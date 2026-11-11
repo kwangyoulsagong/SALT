@@ -192,6 +192,12 @@ latest() {
            round(extract(epoch from now() - max(run_as_of))/3600) || '시간 전',
            case when max(run_as_of) is null or max(run_as_of) < now() - interval '3 days' then '✗' else 'ok' end
       from forecast.judgment_tier
+    union all
+    -- 단타 방향 확률 시험(예측 short_direction, FC-REQ-028 FR-1) — 매일 회차. 3일 넘으면 서버가 시나리오 칸을 stale 로 닫는다
+    select '단타 확률 시험 마지막', to_char(max(run_as_of) at time zone 'Asia/Seoul','MM-DD HH24:MI'),
+           round(extract(epoch from now() - max(run_as_of))/3600) || '시간 전',
+           case when max(run_as_of) is null or max(run_as_of) < now() - interval '3 days' then '✗' else 'ok' end
+      from forecast.short_horizon_test
   " 2>/dev/null | while IFS='|' read -r label at ago mark; do printf "  %-2s %s %s (%s)\n" "$mark" "$label" "$at" "$ago"; done || say "  (DB 조회 실패)"
 }
 

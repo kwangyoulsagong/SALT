@@ -11,6 +11,12 @@ if "$UV" run --frozen python -m salt_forecast.jobs.due --job news --hours 0.75 >
   echo "[$(date -u +%FT%TZ)] news 시작"
   "$UV" run --frozen --group nlp python -m salt_forecast.jobs.news || echo "[$(date -u +%FT%TZ)] news 실패"
 fi
+# 단타 방향 확률(short-direction@1, FC-REQ-028 FR-1 · FR-4)은 매시 — 1시간봉 증분(최근 6시간 · 원화 전 종목 약 40초) 뒤
+# 만료 예측 채점 · 통과한 칸만 예측. 통과한 칸이 없으면 채점만 하고 끝난다. 막지 않는다
+if "$UV" run --frozen python -m salt_forecast.jobs.due --job short_direction_live --hours 0.75 >/dev/null; then
+  "$UV" run --frozen python -m salt_forecast.jobs.ingest_prices --interval 1h --days 0.25 >/dev/null || echo "[$(date -u +%FT%TZ)] 1시간봉 증분 실패"
+  "$UV" run --frozen python -m salt_forecast.jobs.short_direction live || echo "[$(date -u +%FT%TZ)] short_direction live 실패"
+fi
 # 운영 점검은 매시(FC-REQ-018) — 일일 작업이 건너뛰어도 "왜 안 돌았나"가 남아야 한다. 막지 않는다
 if "$UV" run --frozen python -m salt_forecast.jobs.due --job ops_monitor --hours 0.75 >/dev/null; then
   "$UV" run --frozen python -m salt_forecast.jobs.ops_monitor || echo "[$(date -u +%FT%TZ)] ops_monitor 실패"
@@ -40,6 +46,9 @@ for step in "${steps[@]}"; do
   echo "[$(date -u +%FT%TZ)] ${step} 시작"
   "$UV" run --frozen python -m "salt_forecast.jobs.${step}" || { echo "[$(date -u +%FT%TZ)] ${step} 실패"; rc=1; }
 done
+# 단타 방향 확률 시험(short-direction@1)은 매일 — 판단 등급 뒤. 전 이력 walk-forward(코인 1시간봉 2년 · 국내 일봉) — 인자가 있어 루프 밖
+echo "[$(date -u +%FT%TZ)] short_direction test 시작"
+"$UV" run --frozen python -m salt_forecast.jobs.short_direction test || { echo "[$(date -u +%FT%TZ)] short_direction test 실패"; rc=1; }
 if [[ $weekly_check_report == 1 ]]; then
   "$UV" run --frozen python -m salt_forecast.jobs.trade_check_score --report || rc=1
 fi
