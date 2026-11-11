@@ -28,6 +28,14 @@
 | 로컬 DB 적용 | 충족 | `prisma migrate deploy` — pending 0 · export 뷰 칸 13행 대조 |
 | CHECK | 충족 | 등급 3값 · 이유 5값 · 참고면 출처 NULL · 검증됨/주의면 출처 있음 · CI 하한 ≤ 상한 |
 | 계약 대조 | 충족 | `tests/store/test_schema_contract.py` — 손 선언 `judgment_tier` 와 DB 칸 같음 |
-| 읽기 쿼리 | 충족 | 서버는 `v_judgment_tier` 한 문장(칸 4행 — 표 행 = 실행 수 × 4, 하루 4행) |
+| 읽기 쿼리 | 충족 | 서버는 `v_judgment_tier` 한 문장(칸 4행 — 표 행 = 실행 수 × 4, 하루 4행). `EXPLAIN (ANALYZE, BUFFERS)` 는 확인 2회차에 돌림(아래) |
 | 사용자 열 | 0 | export 뷰 · 등급 표 모두 |
 | 정정 | 기록 | 계획의 '행동' 열 없음 — spread 는 칸의 성질 |
+
+### 확인 2회차 (2026-11-11, 사용자 "이번 태스크 다한겨?" — 아니었다)
+
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| `EXPLAIN (ANALYZE, BUFFERS)` 서버 읽기 | 충족 | `v_judgment_tier` — `judgment_tier_pkey` Index Scan → Sort → Unique · 4행 · 0.45ms |
+| `EXPLAIN` 배치 읽기 | 충족 | `v_judgment_outcome_export` — 원장 Seq Scan 163,157행 · 67ms. 매일 한 번 전부 읽는다(필터가 거의 안 거름) — 인덱스 불필요 |
+| 정정 | 기록 | 1회차 체크리스트 · Changelog 에 `EXPLAIN` 을 돌리지 않고 '한 문장'이라고만 적었다 — 실측으로 바꿈 |
