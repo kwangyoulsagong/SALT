@@ -1,0 +1,145 @@
+# 사전등록 — 조건부 기저율 (F017 v2 단계 2 · FC-REQ-028 FR-2 · 리서치 2026-11-10-v2-signal-validation §3)
+#
+# 이 파일은 **결과를 보기 전에** 커밋한다. 조건 · 임계 · 지평 · 비용 · 문턱을 바꾸려면 새 키(`base-rate@2`).
+#
+# 왜: 사기 전 · 팔기 전 점검(화면 맨 위 쉬운 한 줄)은 "지금과 비슷한 상황에서 과거에 어떻게 됐나"를 숫자로 말한다.
+# 그 숫자는 엔진 실력에 기대지 않는 **서술**이다 — 그래서 조건을 보고 고르면(데이터 스누핑) 서술이 아니라 주장이 된다.
+# 조건은 문헌 근거가 있거나 사용자가 실제로 겪는 장면(추격 · 물타기 · 익절 고민)만, 시장마다 같은 수로 정했다.
+
+key = "base-rate@1"
+registered = 2026-11-11
+
+[question]
+text = """
+사전등록한 조건이 성립한 날, 그 종목의 이후 수익(비용 뒤)은 어떤 분포였나 — 오른 비율 · 평균 · q10 · q50 · q90 · 표본.
+'평소'(같은 시장 · 같은 지평 전체)와 다르다고 말하는 것은 Holm 보정 뒤에만.
+"""
+
+[protocol]
+kr_source = "forecast.price_bar kis 1d(수정주가, 2021-10 ~). available_at = 그 거래일 16:00 KST. 격자 = 거래일(scoring/rule_ic_kr.session_panel)"
+kr_universe = "kr-universe@1(scoring/rule_ic_kr.kr_universe) — 봉 ≥ 250 · 20 거래일 연속 봉 · 20일 평균 거래대금 ≥ 10억"
+kr_breaks = "domain/kr_breaks 상향 끊김(> 1.31) — 신호 창 [t−21, t] 에 끊김이 있으면 그날 그 종목 제외, 라벨 창 (t, t+h] 에 있으면 라벨 없음"
+crypto_source = "forecast.price_bar upbit 1d(원화 마켓, 2017-09 ~). available_at = 다음 날 09:00 KST. 격자 = 달력 하루"
+crypto_universe = "그날 봉이 있고 직전 20일 봉이 전부 있는 업비트 원화 종목 전부(폐지 종목 포함 — 원천에 남은 만큼). 선택 방식은 리포트에"
+as_of = "봉 마감 뒤. 조건 · 문턱은 available_at <= as_of 봉만"
+return = "r_t = ln(C_t / C_{t−1})"
+sigma = "σ_t = 직전 20개 r(t−20 … t−1)의 표본 표준편차(ddof 1) — 오늘 수익은 넣지 않는다(라이브 문턱과 같은 정의)"
+value = "거래대금 ≈ 종가 × 거래량. 평균 = 직전 20일(오늘 제외)"
+rsi = "domain/rule_items.rsi_simple(14) — 서버 calculateRSI 그대로(단순 합, 손실 합 0 이면 1 로 나눔). 오늘 봉 포함"
+size_group = "코인만. 그날 대상 종목을 직전 20일 평균 거래대금으로 순위 — 상위 10 = 대형, 하위 2/3 = 소형, 나머지는 C1 ~ C3 에 안 든다"
+label = "로그수익 ln(C_{t+h} / C_t), h 는 거래일(국내) · 하루(코인). 진입 = 조건이 성립한 날 종가(라이브는 지금 가격) — 근사를 리포트에 적는다"
+cooldown = "같은 종목 · 같은 조건은 h 행 안에 한 번만 센다(겹치는 라벨로 표본을 부풀리지 않는다). '평소' 행은 쿨다운 없음"
+cost_kr = "왕복 = 수수료 0.0186% × 2 + 그 매도일 거래세(salt-server krStockCost.ts 표: 2021 0.23 · 2023 0.20 · 2024 0.18 · 2025 0.15 · 2026 0.20%) + 반 틱 × 2(KRX 호가 단위 / 진입가)"
+cost_crypto = "왕복 = 수수료 0.05% × 2 + 스프레드 근사 0.05% = 0.15%"
+net = "사기 전 분포 = 라벨 − 왕복 비용(오른 비율 = 비용 뒤 > 0). 팔기 전 보유 연장 분포 = 라벨 그대로(파는 비용은 지금 팔든 나중 팔든 같다)"
+n_eff = "같은 날 몰림 보정 — 날짜 군집 ICC(일원 분산분석, [0, 1] 자름) · 설계 효과 1 + (m̄ − 1)ρ, m̄ = Σm²/Σm. 유효 n = n / 설계 효과"
+min_sample = "유효 n ≥ 100 그리고 서로 다른 날 ≥ 60 — 못 넘으면 status = below_min, 비율 · 평균 · 분위 null(행은 낸다)"
+wilson = "오른 비율 95% Wilson 구간 — n = 유효 n"
+shrink = "베타–이항 수축 p̃ = (k_eff + κ·p₀)/(n_eff + κ), κ = 100(조건 수가 적어 적률 추정이 불안정 — 고정값으로 등록), p₀ = 같은 시장 · 같은 지평 '평소' 원비율"
+differs = "유효 n 으로 원비율 vs p₀ 양측 z 검정(p₀ 는 '평소' 표본이 커서 고정으로 본다) → 시장마다 조건 × 지평 가족 Holm, α 0.05. 통과 + 수축 차이 부호 = higher | lower. 서술 조건(K8 · C8)은 검정하지 않는다(null)"
+recent = "최근 365일 사건만의 원비율이 전체 Wilson 구간 밖이면 recent_differs = true(최근 유효 n < 30 이면 null). 숨기지 않고 태그만"
+trigger = "라이브 판정용 — 종목마다 마지막 봉 기준 가격 문턱(price_at_least · price_at_most) · 시가 문턱 · 거래대금 문턱을 낸다. 서버는 숫자 비교만 한다(조건 정의는 이 파일 · domain/base_rate 한 곳)"
+
+[decision]
+show = "status = ok 행만 비율 · 분위를 화면에(서술). 'differs' 는 표지만 — 판정 · 명령 아님"
+below_min = "화면은 '비슷한 상황이 아직 n번뿐이에요' — 숫자 0"
+apply = "조건 추가 · 임계 변경 = 새 키. 장중 조건(K5 VI · K7 첫 30분 · C4 1시간 펌프 · C5 첫 집중 30분 · C6 거시 일정 직후)은 5분봉 이력(2026-10-12 ~)이 서로 다른 날 60일을 넘는 2026-12 중순에 base-rate@2 로"
+
+# ── 국내 주식 (리서치 §3-3 K 표) ──
+[[condition]]
+id = "K1"
+market = "kr"
+text = "오늘 크게 내림 — 오늘 수익 ≤ −2σ"
+rule = "r_t <= -2 * sigma_t"
+horizons = [1, 5]
+kind = "test"
+
+[[condition]]
+id = "K2"
+market = "kr"
+text = "거래대금 몰리며 크게 오름(추격 장면) — 오늘 수익 ≥ +2σ 그리고 거래대금 ≥ 평균 3배"
+rule = "r_t >= 2 * sigma_t and value_t >= 3 * value_avg20"
+horizons = [1, 5]
+kind = "test"
+
+[[condition]]
+id = "K3"
+market = "kr"
+text = "시가가 어제 종가보다 3% 넘게 높게 시작"
+rule = "O_t >= 1.03 * C_{t-1}"
+horizons = [1]
+since = 2025-03-04   # 대체거래소 출범 — 시가 갭의 뜻이 바뀌었다(리서치 §5-1). 그 전 표본은 섞지 않는다
+kind = "test"
+
+[[condition]]
+id = "K4"
+market = "kr"
+text = "상한가 근처 마감 — 오늘 ≥ +29%"
+rule = "C_t >= 1.29 * C_{t-1}"
+horizons = [1, 5]
+kind = "test"
+
+[[condition]]
+id = "K6"
+market = "kr"
+text = "3거래일 연속 내리며 8% 넘게 빠짐(물타기 장면)"
+rule = "C_t < C_{t-1} < C_{t-2} < C_{t-3} and C_t <= 0.92 * C_{t-3}"
+horizons = [1, 5]
+kind = "test"
+
+[[condition]]
+id = "K8"
+market = "kr"
+text = "RSI 70 이상이고 오늘 5% 넘게 오름"
+rule = "rsi14_t >= 70 and C_t >= 1.05 * C_{t-1}"
+horizons = [1]
+kind = "describe"   # 효과 주장 금지(리서치 §3-2 등급 A) — 분포만, differs 검정 안 함
+
+# ── 코인 (리서치 §3-3 C 표) ──
+[[condition]]
+id = "C1"
+market = "crypto"
+text = "작은 코인이 하루 크게 오름 — 24시간 ≥ +2σ, 거래대금 하위 2/3"
+rule = "r_t >= 2 * sigma_t and size = small"
+horizons = [1]
+kind = "test"
+
+[[condition]]
+id = "C2"
+market = "crypto"
+text = "큰 코인이 하루 크게 오름 — 24시간 ≥ +2σ, 거래대금 상위 10"
+rule = "r_t >= 2 * sigma_t and size = large"
+horizons = [1]
+kind = "test"
+
+[[condition]]
+id = "C3S"
+market = "crypto"
+text = "작은 코인이 하루 크게 내림 — 24시간 ≤ −2σ, 거래대금 하위 2/3"
+rule = "r_t <= -2 * sigma_t and size = small"
+horizons = [1]
+kind = "test"
+
+[[condition]]
+id = "C3L"
+market = "crypto"
+text = "큰 코인이 하루 크게 내림 — 24시간 ≤ −2σ, 거래대금 상위 10"
+rule = "r_t <= -2 * sigma_t and size = large"
+horizons = [1]
+kind = "test"
+
+[[condition]]
+id = "C7"
+market = "crypto"
+text = "새로 상장한 날"
+rule = "그 종목의 첫 봉"   # 유의 지정 · 해제는 스냅샷 이력(2026-09-30 ~)이 짧아 @2 로
+horizons = [1, 5]
+kind = "test"
+
+[[condition]]
+id = "C8"
+market = "crypto"
+text = "RSI 70 이상이고 24시간 5% 넘게 오름"
+rule = "rsi14_t >= 70 and C_t >= 1.05 * C_{t-1}"
+horizons = [1]
+kind = "describe"
