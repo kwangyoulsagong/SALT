@@ -9,7 +9,7 @@ import { RiskAlertService } from "../modules/investment-insight/risk-alert.servi
 // 이관된 컨텍스트의 유스케이스는 조립 지점에서 온다 (`composition.ts`).
 // 워커는 **스케줄과 락만** 갖고 절차는 유스케이스에 있다 (`server-architecture.md` §7).
 import { contextUseCases } from "../composition";
-import { schedule } from "../shared/infrastructure/scheduler";
+import { runGuarded, schedule } from "../shared/infrastructure/scheduler";
 
 export class InvestmentInsightWorker {
   private insightService = new InvestmentInsightService();
@@ -32,6 +32,19 @@ export class InvestmentInsightWorker {
     cron.schedule("*/10 * * * *", () => {
       this.run();
     });
+
+    // 해설 스냅샷 (F017 v2 단계 3 · SRV-REQ-053 FR-3). LLM 을 부르는 작업이라 DB 만 훑는 10분 회차와 **따로** 돈다
+    // (performance-server.md §6 — 앞의 것이 수십 초를 잡으면 뒤가 기다린다). :05 · :15 … — 판단 스냅샷 회차(:00 …) 뒤.
+    // 지문이 바뀐 종목만 만들고 회차 상한이 있다. 부팅 때 한 번 — 재기동 직후 화면이 템플릿에 오래 머물지 않게(15초 뒤 startWorkers)
+    const generateExplanations = async () => {
+      const r = await this.coach.generateExplanationSnapshots.execute();
+      console.log(
+        `🗒️ Explanation snapshots — 후보 ${r.candidates} · 생성 ${r.generated} · 같음 ${r.unchanged} · 실패 ${r.failed}` +
+          ` · 사실 없음 ${r.noFacts} · 다음 회차 ${r.deferred}`
+      );
+    };
+    schedule("explanation-snapshots", "5-59/10 * * * *", generateExplanations);
+    void runGuarded("explanation-snapshots", generateExplanations);
 
     // 게이지 적중률 (F004 · B9). 입력이 일봉이라 **일 1회**면 된다 — 10분 회차에 넣지 않는다.
     // 부팅 때도 한 번 돈다: 서버가 매일 그 시각 전에 재기동되면 영영 비어 있게 된다

@@ -1,6 +1,7 @@
 import { ReportTriadGaps } from "../ReportTriadGaps";
 import type {
   CoachExplainer,
+  ExplanationSnapshotStore,
   LlmBudgetLimits,
   LlmUsageStore,
   CoachGenerationLogStore,
@@ -33,7 +34,9 @@ import { CheckTradePreflight } from "../CheckTradePreflight";
 import { CheckTradeSize } from "../CheckTradeSize";
 import { PreviewTradeBehavior } from "../PreviewTradeBehavior";
 import { EvaluateTradeDecisions } from "../EvaluateTradeDecisions";
-import { ExplainCoachDecision } from "../ExplainCoachDecision";
+import { GenerateExplanationSnapshots } from "../GenerateExplanationSnapshots";
+import { GetSymbolExplanation } from "../GetSymbolExplanation";
+import { ExplanationDemand } from "../lib/explanationDemand";
 import { GenerateCoachRecommendation } from "../GenerateCoachRecommendation";
 import { GetBehaviorMirror } from "../GetBehaviorMirror";
 import { GetKrBehaviorMirror } from "../GetKrBehaviorMirror";
@@ -85,6 +88,8 @@ export interface CoachDependencies {
   news: NewsProbe;
   notifier: CoachNotifier;
   explainer: CoachExplainer;
+  /** 해설 스냅샷(`explanation_snapshot`, `DB-REQ-043` FR-1) — 배치가 쓰고 읽기가 읽는다 */
+  explanations: ExplanationSnapshotStore;
   /** LLM 시도 원장 — 해설 비용 상한(F010 슬라이스 7). 같은 원장을 `explainer` 구현도 받아 시도마다 쓴다 */
   llmUsage?: LlmUsageStore;
   llmLimits?: Partial<LlmBudgetLimits>;
@@ -131,7 +136,10 @@ export interface CoachUseCases {
   getProfile: GetCoachProfile;
   updateProfile: UpdateCoachProfile;
   recordFeedback: RecordCoachFeedback;
-  explainDecision: ExplainCoachDecision;
+  /** 해설 읽기 — 저장값만, 4단(F017 v2 단계 3 · `SRV-REQ-053` FR-3) */
+  getSymbolExplanation: GetSymbolExplanation;
+  /** 해설 스냅샷 배치 — 워커가 부른다. 지문이 바뀐 종목만 LLM(FR-3 ②) */
+  generateExplanationSnapshots: GenerateExplanationSnapshots;
   analyzeNewsSentiment: AnalyzeNewsSentiment;
   analyzeTradingBehavior: AnalyzeTradingBehavior;
   getBehaviorCoach: GetBehaviorCoach;
@@ -216,6 +224,15 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     deps.market
   );
 
+  // 해설 — 배치와 읽기가 같은 재료 함수 · 같은 "본 종목" 기억을 쓴다(F017 v2 단계 3)
+  const explanationMaterials = {
+    market: deps.market,
+    news: deps.news,
+    judgments: deps.judgments,
+    backtestJudgments: deps.backtestJudgments ?? null,
+  };
+  const explanationDemand = new ExplanationDemand();
+
   const useCases: CoachUseCases = {
     reportTriadGaps: new ReportTriadGaps(),
     generateRecommendation,
@@ -243,19 +260,18 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     getProfile: new GetCoachProfile(deps.profiles),
     updateProfile: new UpdateCoachProfile(deps.profiles),
     recordFeedback: new RecordCoachFeedback(deps.insights),
-    explainDecision: new ExplainCoachDecision(
-      deps.explainer,
-      deps.market,
-      deps.portfolio,
-      deps.judgments,
-      deps.news,
-      {
-        usage: deps.llmUsage,
-        limits: deps.llmLimits,
-        llmEnabled: deps.llmEnabled,
-        backtestJudgments: deps.backtestJudgments ?? null,
-      }
-    ),
+    getSymbolExplanation: new GetSymbolExplanation({ ...explanationMaterials, store: deps.explanations, demand: explanationDemand }),
+    generateExplanationSnapshots: new GenerateExplanationSnapshots({
+      ...explanationMaterials,
+      explainer: deps.explainer,
+      store: deps.explanations,
+      tracked: deps.tracked,
+      demand: explanationDemand,
+      usage: deps.llmUsage,
+      limits: deps.llmLimits,
+      // 없으면 켜짐(지금 동작). `COACH_EXPLAIN_LLM=off` 면 배치가 만들지 않는다 — 화면은 사실표 문장
+      llmEnabled: deps.llmEnabled !== false,
+    }),
     analyzeNewsSentiment,
     analyzeTradingBehavior,
     getBehaviorCoach: new GetBehaviorCoach(deps.portfolio, analyzeTradingBehavior),

@@ -50,10 +50,9 @@ export const coachFeedbackSchema = z.object({
 });
 
 /**
- * 해설 요청 — **종목과 관점뿐이다**(C01 · `SRV-REQ-025` FR-58). 시세 · 근거 · 뉴스는 서버가 조립한다.
- * 예전 본문(`currentPrice` · `evidence` · `news` …)을 보내도 Zod 가 버린다 — 옛 화면이 깨지지 않고, 그 값은 쓰이지 않는다.
+ * 해설 읽기 — **종목과 관점뿐이다**(C01). 사실은 서버가 조립하고, 문장은 배치가 미리 만들어 둔 것이다(F017 v2 단계 3)
  */
-export const explainCoachSchema = z.object({
+export const explanationQuerySchema = z.object({
   symbol: z.string().trim().min(1).max(20),
   mode: coachModeSchema,
 });
@@ -94,7 +93,7 @@ export type GetCoachQueryDto = z.infer<typeof getCoachQuerySchema>;
 export type GenerateCoachDto = z.infer<typeof generateCoachSchema>;
 export type UpdateCoachProfileDto = z.infer<typeof updateCoachProfileSchema>;
 export type CoachFeedbackDto = z.infer<typeof coachFeedbackSchema>;
-export type ExplainCoachDto = z.infer<typeof explainCoachSchema>;
+export type ExplanationQueryDto = z.infer<typeof explanationQuerySchema>;
 export type TradePreflightDto = z.infer<typeof tradePreflightSchema>;
 export type ProfitPlanQueryDto = z.infer<typeof profitPlanQuerySchema>;
 export type SignalPerformanceQueryDto = z.infer<

@@ -41,6 +41,7 @@ import type {
   LlmUsage,
   ExplainClient,
   ExplainProvider,
+  ExplanationSentence,
   ExplanationLineSection,
 } from "./policy";
 import type {
@@ -363,10 +364,47 @@ export interface CoachExplanation {
  * Gemini 토큰 상한에 닿았다는 뜻이다 — 로컬 CLI 는 구독이라 토큰 상한을 세지 않는다(FR-9)
  */
 export interface ExplainCaller {
-  userId: string;
+  /** 배치(해설 스냅샷)는 `null` — 사람 몫이 아니라 시장 층이다(F017 v2 단계 3) */
+  userId: string | null;
   email?: string;
   client?: ExplainClient;
   geminiAllowed?: boolean;
+  /**
+   * 해설 스냅샷 배치(`SRV-REQ-053` FR-3) — 종목마다 한 번 만들어 모두가 같은 문장을 본다(`FEATURE-017` D2).
+   * 로컬 CLI 가 있으면 사람 대신 이것이 쓴다(소유자 기기 · 구독 — 다른 사람이 구독을 쓰는 것이 아니라 공용 문장 하나)
+   */
+  batch?: boolean;
+}
+
+/** 저장된 해설 한 벌(`explanation_snapshot`, `DB-REQ-043` FR-1) — 시장 층, 사용자 0 */
+export interface ExplanationSnapshotRecord {
+  symbol: string;
+  mode: CoachMode;
+  fingerprint: string;
+  action: string;
+  source: "llm" | "llm_checked";
+  provider: ExplainProvider;
+  sentences: ExplanationSentence[];
+  verifier: {
+    sentences: number;
+    dropped: number;
+    promptVersion: string;
+    verifierVersion: string;
+  };
+  factsHash: string;
+  generatedAt: Date;
+}
+
+/**
+ * 해설 스냅샷 저장소. 요청 경로는 `find` 만 — 그 지문이 있으면 그것, 없으면 가장 최근 것(이전 단).
+ * 행은 불변이다(새 지문 = 새 행, DB 트리거가 UPDATE 를 막는다)
+ */
+export interface ExplanationSnapshotStore {
+  find(symbol: string, mode: CoachMode, fingerprint: string): Promise<ExplanationSnapshotRecord | null>;
+  /** 같은 (종목, 모드, 지문)이 이미 있으면 아무것도 하지 않는다 — 두 회차가 겹쳐도 오류 0(ON CONFLICT DO NOTHING) */
+  save(record: ExplanationSnapshotRecord): Promise<boolean>;
+  /** 종목 · 모드마다 최근 `keep` 벌만 남긴다 */
+  prune(symbol: string, mode: CoachMode, keep: number): Promise<number>;
 }
 
 /**
@@ -430,7 +468,8 @@ export interface LlmUsageStore {
   /** 검사기가 버린 문장 수를 그 시도에 단다(`SRV-REQ-050` FR-8 — 공급자 비교의 근거) */
   markDropped(callId: string, droppedSentences: number): Promise<void>;
   /** `since` 뒤 시도 수(전 공급자) · 토큰 합(`gemini` 만, FR-9) — 전체와 사용자 한 명 */
-  usageSince(since: Date, userId: string): Promise<{ user: LlmUsage; total: LlmUsage }>;
+  /** `userId = null` — 배치(해설 스냅샷) 몫 */
+  usageSince(since: Date, userId: string | null): Promise<{ user: LlmUsage; total: LlmUsage }>;
 }
 
 export interface JudgmentSnapshotDraft {

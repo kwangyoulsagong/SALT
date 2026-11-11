@@ -13,10 +13,6 @@ export type ExplainProvider = "local_claude" | "local_codex" | "gemini";
 /** 요청이 온 곳 — BFF 가 정해 `X-Salt-Client` 로 넘긴다(`BFF-REQ-050`). 클라이언트가 고르지 못한다 */
 export type ExplainClient = "web" | "mobile";
 
-/** 헤더 값 → 클라이언트. `mobile` 만 모바일이다 — 없거나 다른 값은 `web`(FR-3) */
-export const explainClientOf = (header: unknown): ExplainClient =>
-  typeof header === "string" && header.trim().toLowerCase() === "mobile" ? "mobile" : "web";
-
 export interface ExplainRouteInput {
   /** 부팅 때 감지한 로컬 CLI. 없으면 `null`(FR-2) */
   local: Exclude<ExplainProvider, "gemini"> | null;
@@ -27,6 +23,8 @@ export interface ExplainRouteInput {
   /** 로컬 CLI 를 쓸 수 있는 이메일 — 소유자 구독을 다른 초대 사용자가 쓰지 않게 */
   localUsers: readonly string[];
   client: ExplainClient;
+  /** 해설 스냅샷 배치 — 사람이 아니라 공용 문장 하나(`SRV-REQ-053` FR-3) */
+  batch?: boolean;
 }
 
 /**
@@ -37,6 +35,8 @@ export interface ExplainRouteInput {
  */
 export const pickExplainProvider = (input: ExplainRouteInput): ExplainProvider => {
   if (!input.local || input.localPaused || input.localBusy) return "gemini";
+  // 배치는 종목마다 한 번 만들어 모두가 같은 문장을 본다 — 소유자 기기의 로컬 CLI 가 쓴다(F017 v2 단계 3)
+  if (input.batch) return input.local;
   if (input.client !== "web") return "gemini";
   if (!isForecastOwner(input.email, input.localUsers)) return "gemini";
   return input.local;

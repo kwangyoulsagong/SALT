@@ -33,7 +33,7 @@ export interface RoutingOptions {
 /**
  * 다듬기 공급자 라우터 (`SRV-REQ-050` FR-1 · FR-3 · FR-6 · FR-7).
  *
- * `ExplainCoachDecision` 은 이것 하나만 본다 — 어느 공급자인지 모른다. 고르는 규칙은 도메인(`pickExplainProvider`),
+ * 해설 배치(`GenerateExplanationSnapshots`)는 이것 하나만 본다 — 어느 공급자인지 모른다. 고르는 규칙은 도메인(`pickExplainProvider`),
  * 여기는 상태(동시 실행 수 · 연속 실패 · 쉬는 시각)만 든다.
  *
  * 로컬 CLI 실패 · 시간 초과 · 모양 불일치 → 같은 요청을 Gemini 로 한 번. 그것도 실패면 유스케이스가 템플릿으로 간다.
@@ -72,6 +72,7 @@ export class RoutingCoachExplainer implements CoachExplainer {
       email: caller?.email,
       localUsers: this.options.localUsers,
       client: caller?.client ?? "web",
+      batch: caller?.batch,
     });
 
     if (choice !== "gemini" && this.local) {

@@ -4,7 +4,6 @@ import { describe, it } from "node:test";
 import {
   assembleExplanationFacts,
   completeExplanation,
-  explainClientOf,
   guardExplanationLine,
   pickExplainProvider,
   verifyExplanation,
@@ -39,11 +38,11 @@ describe("pickExplainProvider", () => {
     assert.equal(pickExplainProvider({ ...base, localBusy: true }), "gemini");
   });
 
-  it("헤더는 mobile 만 모바일 — 없거나 다른 값은 web", () => {
-    assert.equal(explainClientOf("mobile"), "mobile");
-    assert.equal(explainClientOf(" Mobile "), "mobile");
-    assert.equal(explainClientOf(undefined), "web");
-    assert.equal(explainClientOf("local_claude"), "web");
+  it("배치는 로컬 CLI — 사용자 · 클라이언트와 무관(공용 문장 하나), 쉬는 중 · 바쁨이면 Gemini", () => {
+    assert.equal(pickExplainProvider({ ...base, email: undefined, client: "mobile", batch: true }), "local_claude");
+    assert.equal(pickExplainProvider({ ...base, batch: true, localPaused: true }), "gemini");
+    assert.equal(pickExplainProvider({ ...base, batch: true, localBusy: true }), "gemini");
+    assert.equal(pickExplainProvider({ ...base, batch: true, local: null }), "gemini");
   });
 });
 
