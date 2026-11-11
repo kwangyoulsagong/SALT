@@ -582,6 +582,8 @@ short_horizon_test = Table(
     Column("misses", JSONB, nullable=False),
     Column("z_quantiles", JSONB, nullable=False),
     Column("live_params", JSONB),
+    Column("live_ready", Boolean, nullable=False),
+    Column("bss_climatology", Float),
     Column("computed_at", DateTime(timezone=True), nullable=False),
 )
 

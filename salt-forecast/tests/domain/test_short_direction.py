@@ -20,9 +20,10 @@ from salt_forecast.domain.short_direction import (
     crypto_universe,
     decide,
     evaluate,
+    featureless,
     live_quantiles,
     live_underperforms,
-    shuffle_within_day,
+    shift_labels,
     walk_forward,
 )
 
@@ -133,22 +134,24 @@ def test_planted_signal_passes_and_noise_fails() -> None:
     for y in (signal, noise):
         rows = make_rows(x, y, t)
         wf = walk_forward(rows, SPEC, n - 1)
-        res = evaluate("crypto", "1h", rows, wf, SPEC)
-        sh = shuffle_within_day(y, rows.day, 7)
-        srows = make_rows(x, sh, t)
-        s = evaluate("crypto", "1h", srows, walk_forward(srows, SPEC, n - 1), SPEC)
-        res.shuffle_lo, res.shuffle_hi = s.bss_lo, s.bss_hi
+        res = evaluate("crypto", "1h", rows, wf, SPEC, walk_forward(featureless(rows), SPEC, n - 1))
+        pl = shift_labels(rows, 24)
+        s = evaluate(
+            "crypto", "1h", pl, walk_forward(pl, SPEC, n - 1), SPEC, walk_forward(featureless(pl), SPEC, n - 1)
+        )
+        res.placebo_lo, res.placebo_hi = s.bss_lo, s.bss_hi
         cells.append(res)
     decide(cells)
     assert cells[0].bss_lo > 0
     assert cells[0].confident >= 300
+    assert cells[0].placebo_lo <= 0 <= cells[0].placebo_hi  # 심은 신호는 라벨을 미루면 사라진다
     assert cells[1].status == "fail" and cells[1].reason == "no_skill"
 
 
 @pytest.mark.parametrize(
     ("patch", "reason"),
     [
-        ({"shuffle_lo": 0.01}, "shuffle_failed"),
+        ({"placebo_lo": 0.01}, "placebo_failed"),
         ({"bss_lo": -0.01}, "no_skill"),
         ({"bss_persistence": -0.01}, "no_skill"),
         ({"bss_p": 0.2}, "no_skill"),
@@ -165,7 +168,7 @@ def test_decide_boundary_table(patch: dict[str, float], reason: str | None) -> N
     base = {
         "rows": 1000, "bss": 0.01, "bss_lo": 0.001, "bss_hi": 0.02, "bss_p": 0.001, "bss_persistence": 0.005,
         "ece": 0.03,
-        "confident": 300, "hit_diff_lo": 0.001, "net_mean": 0.0001, "shuffle_lo": -0.01, "shuffle_hi": 0.01,
+        "confident": 300, "hit_diff_lo": 0.001, "net_mean": 0.0001, "placebo_lo": -0.01, "placebo_hi": 0.01,
     }  # fmt: skip
     c = CellResult("crypto", "1h")
     for k, v in {**base, **patch}.items():
@@ -179,19 +182,47 @@ def test_holm_family_raises_bar() -> None:
     cells = [CellResult("crypto", h) for h in ("1h", "4h", "1d")]
     for c, p in zip(cells, (0.02, 0.5, 0.5), strict=True):
         c.rows, c.bss_p, c.bss_lo, c.bss_persistence, c.ece = 1000, p, 0.001, 0.01, 0.01
-        c.confident, c.hit_diff_lo, c.net_mean, c.shuffle_lo, c.shuffle_hi = 400, 0.01, 0.001, -1, 1
+        c.confident, c.hit_diff_lo, c.net_mean, c.placebo_lo, c.placebo_hi = 400, 0.01, 0.001, -1, 1
     decide(cells)
     assert cells[0].bss_p_holm == pytest.approx(0.06)
     assert cells[0].reason == "no_skill"  # 혼자면 0.02 로 통과 — 가족 셋이라 못 넘는다
 
 
-def test_shuffle_keeps_day_multiset_and_nans() -> None:
-    y = np.array([1, 0, 1, np.nan, 0, 0, 1, 1], dtype=np.float64)
-    day = np.array([0, 0, 0, 0, 1, 1, 1, 1], dtype=np.int64)
-    s = shuffle_within_day(y, day, 1)
-    assert np.isnan(s[3])
-    for d in (0, 1):
-        assert sorted(s[(day == d) & ~np.isnan(s)]) == sorted(y[(day == d) & ~np.isnan(y)])
+def test_regime_only_beats_climatology_but_not_reference() -> None:
+    """@1 결함 회귀 — 피처 정보 0 · 오른 비율만 몇 주씩 오르내리는 데이터.
+
+    기후값(365일)은 이기지만 @2 기준(피처 없는 같은 보정)으론 실력 0."""
+    rng = np.random.default_rng(11)
+    n = 24 * 300
+    t = np.arange(n)
+    x = rng.normal(size=(n, 3))
+    regime = 0.5 + 0.12 * np.sin(2 * np.pi * t / (24 * 70))  # 70일 주기 '요즘 분위기'
+    y = (rng.random(n) < regime).astype(np.float64)
+    rows = make_rows(x, y, t)
+    wf = walk_forward(rows, SPEC, n - 1)
+    res = evaluate("crypto", "1h", rows, wf, SPEC, walk_forward(featureless(rows), SPEC, n - 1))
+    assert res.bss_climatology > 0  # @1 기준이었다면 '실력'으로 보였다
+    assert res.bss_lo <= 0  # 피처 몫은 없다
+
+
+def test_shift_labels_moves_whole_days_per_symbol() -> None:
+    n = 24 * 60
+    t = np.tile(np.arange(n), 2)
+    sym = np.repeat(np.array([0, 1], dtype=np.intp), n)
+    order = np.lexsort((sym, t))
+    t, sym = t[order], sym[order]
+    y = (np.arange(t.size) % 2).astype(np.float64)
+    base = make_rows(np.zeros((t.size, 1)), y, t)
+    rows = Rows(base.t, base.when, base.day, sym, base.x, y, base.r, base.cost, base.sigma_h, base.persist)
+    out = shift_labels(rows, 24, seed=3)
+    for s in (0, 1):
+        idx = np.flatnonzero(sym == s)
+        have = idx[~np.isnan(out.y[idx])]
+        k = int(rows.t[have[0]] - 0)  # 첫 라벨이 생긴 행 = 미룬 폭
+        assert k % 24 == 0 and 8 * 24 <= k <= 30 * 24
+        assert np.isnan(out.y[idx[:k]]).all()  # 앞 k 행은 원천이 없다
+        src = {int(tt): i for tt, i in zip(rows.t[idx], idx, strict=True)}
+        assert all(out.y[i] == y[src[int(rows.t[i]) - k]] for i in have)
 
 
 def test_fit_json_roundtrip_predicts_same() -> None:

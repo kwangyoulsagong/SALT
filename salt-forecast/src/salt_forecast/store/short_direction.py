@@ -50,6 +50,8 @@ class CellTestRow:
     misses: list[dict[str, Any]]
     z_quantiles: dict[str, list[float]]
     live_params: dict[str, object] | None
+    live_ready: bool = False  # @2 화면 허가 — 등록 뒤 라이브 확신 ≥ 300 · (적중 − 늘 오른다) 하한 > 0
+    bss_climatology: float = float("nan")  # 기후값 대비(참고)
 
 
 _TEST_COLS = (
@@ -57,7 +59,7 @@ _TEST_COLS = (
     "window_to", "eval_rows", "bss", "bss_ci_low", "bss_ci_high", "bss_p_holm", "bss_persistence", "ece",
     "track_origin", "confident_calls", "confident_hits", "always_up_hits", "hit_diff_ci_low", "hit_diff_ci_high",
     "net_mean", "shuffle_ci_low", "shuffle_ci_high", "reliability", "misses", "z_quantiles", "live_params",
-    "computed_at",
+    "live_ready", "bss_climatology", "computed_at",
 )  # fmt: skip
 
 
@@ -100,6 +102,8 @@ def save_test(
             json.dumps(r.misses),
             json.dumps(r.z_quantiles),
             None if r.live_params is None else json.dumps(r.live_params),
+            r.live_ready,
+            _f(r.bss_climatology),
             computed_at,
         )
         for r in rows
@@ -215,15 +219,15 @@ class LiveOutcome:
     realized: float
 
 
-def live_outcomes(engine: Engine, market: str, horizon: str, model_version: str) -> list[LiveOutcome]:
+def live_outcomes(engine: Engine, market: str, horizon: str, prereg_key: str) -> list[LiveOutcome]:
     """채점된 라이브 예측 — 소등 판정 · 라이브 성적(확신 행 ≥ 300 이면 화면 성적을 라이브로)의 입력. 시각 순."""
     sql = text(
         """
         SELECT p.as_of, p.symbol, p.p_up, o.realized FROM forecast.short_horizon_outcome o
         JOIN forecast.short_horizon_prediction p USING (symbol, horizon, as_of, model_version)
-        WHERE p.market = :market AND p.horizon = :horizon AND p.model_version = :mv ORDER BY p.as_of
+        WHERE p.market = :market AND p.horizon = :horizon AND p.prereg_key = :key ORDER BY p.as_of
         """
     )
     with engine.connect() as conn:
-        rows = conn.execute(sql, {"market": market, "horizon": horizon, "mv": model_version}).all()
+        rows = conn.execute(sql, {"market": market, "horizon": horizon, "key": prereg_key}).all()
     return [LiveOutcome(r[0], str(r[1]), float(r[2]), float(r[3])) for r in rows]

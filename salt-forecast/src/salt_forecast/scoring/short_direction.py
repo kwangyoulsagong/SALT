@@ -1,4 +1,4 @@
-"""단타 방향 확률 시험 · 라이브 예측 — 사전등록 short-direction@1 을 그대로 실행한다(FC-REQ-028 FR-1 · FR-4).
+"""단타 방향 확률 시험 · 라이브 예측 — 사전등록 short-direction@2 를 그대로 실행한다(FC-REQ-028 FR-1 · FR-4).
 
 시험은 매일(전 이력 walk-forward — 칸마다 마지막 블록 적합을 같이 남긴다),
 라이브 예측은 매시 그 적합으로 마지막 격자 행만.
@@ -31,10 +31,11 @@ from salt_forecast.domain.short_direction import (
     crypto_cell_panel,
     decide,
     evaluate,
+    featureless,
     kr_cell_panel,
     live_quantiles,
     narrow_to_universe,
-    shuffle_within_day,
+    shift_labels,
     walk_forward,
 )
 from salt_forecast.scoring.base_rate import kr_costs
@@ -104,13 +105,14 @@ def kr_panel(ohlcv: Mapping[str, OhlcvSeries], start: int, as_of: datetime) -> t
 def _cell(market: str, horizon: str, rows: Rows, n_grid: int, spec_key: str) -> tuple[CellResult, WalkResult]:
     spec = CRYPTO_SPECS[spec_key] if market == "crypto" else KR_SPEC
     wf = walk_forward(rows, spec, n_grid)
-    res = evaluate(market, horizon, rows, wf, spec)
-    shuffled = Rows(
-        rows.t, rows.when, rows.day, rows.sym, rows.x, shuffle_within_day(rows.y, rows.day, 7), rows.r,
-        rows.cost, rows.sigma_h, rows.persist,
+    res = evaluate(market, horizon, rows, wf, spec, walk_forward(featureless(rows), spec, n_grid))
+    # 플라시보(@2) — 라벨을 종목마다 8~30일 미뤄 피처 몫이 사라지나(같은 기준: 피처 없는 모델 · 같은 플라시보 라벨)
+    placebo = shift_labels(rows, 24 if market == "crypto" else 1)
+    pl = evaluate(
+        market, horizon, placebo, walk_forward(placebo, spec, n_grid), spec,
+        walk_forward(featureless(placebo), spec, n_grid),
     )  # fmt: skip
-    sh = evaluate(market, horizon, shuffled, walk_forward(shuffled, spec, n_grid), spec)
-    res.shuffle_lo, res.shuffle_hi = sh.bss_lo, sh.bss_hi
+    res.placebo_lo, res.placebo_hi = pl.bss_lo, pl.bss_hi
     return res, wf
 
 
@@ -184,9 +186,15 @@ def render_report(key: str, git_sha: str, as_of: datetime, run: TestRun) -> str:
     lines = [
         f"# 단타 방향 확률 시험 — `{key}` ({as_of.date().isoformat()})",
         "",
-        f"- 사전등록 `preregistration/2026-11-11-short-direction.toml` · 코드 `{git_sha}` · as_of {as_of.isoformat()}",
+        f"- 사전등록 `preregistration/2026-11-11-short-direction-2.toml` · 코드 `{git_sha}`"
+        f" · as_of {as_of.isoformat()}",
         "- 모델: logit p = logit(기후값 b) + w·x(피처 7 · L2 1.0) · Beta 보정(직전 60일 OOS ≥ 2,000행) · 칸마다 변형 1",
-        "- 기준: 기후값 b(학습 창 오른 비율 — '늘 오른다'의 확률판) · 직전 방향(sign(r_h) 하나)",
+        "- 기준(@2): **피처 없는 같은 모델**(같은 오프셋 · 같은 Beta 보정 — '요즘 분위기'까지 아는 기준)"
+        " — BSS = 피처가 더한 몫 ·"
+        " 직전 방향(sign(r_h) 하나). 기후값 대비 BSS 는 참고 열(@1 과 이어 보기)",
+        "- 플라시보(@2): 종목마다 라벨을 8~30일 통째로 미뤄 같은 기준으로 잰 피처 몫 CI 가 0 을 포함해야 한다",
+        "- **표본 재사용**: @1 · 진단에서 같은 기간을 봤다 — 통과 = 라이브 원장 발행 허가뿐,"
+        " 화면 확률은 등록 뒤 라이브 확신 300 · 하한 > 0",
         "- 표본 선택: 코인 = 매일 직전 720시간 거래대금 상위 50"
         "(지금 상장된 원화 마켓만 — 폐지 종목 1시간봉은 원천에 없다, 생존 편향) ·"
         " 국내 = kr-universe@1 + 끊김 제외 중 20일 거래대금 상위 200(시점 고정)",
@@ -194,14 +202,14 @@ def render_report(key: str, git_sha: str, as_of: datetime, run: TestRun) -> str:
         "",
         "## 판정",
         "",
-        "| 칸 | 상태 | 사유 | 평가 행 | 기간 | BSS(기후값) | 95% | Holm p | BSS(직전 방향) | ECE | 확신 행"
-        " | 확신 적중 | 늘 오른다 | 차 95% | 비용 뒤 오름 평균 | 95% | 셔플 BSS 95% |",
+        "| 칸 | 상태 | 사유 | 평가 행 | 기간 | BSS(피처 몫) | 95% | Holm p | BSS(기후값, 참고) | BSS(직전 방향) | ECE"
+        " | 확신 행 | 확신 적중 | 늘 오른다 | 차 95% | 비용 뒤 오름 평균 | 95% | 플라시보 피처 몫 95% |",
         "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for c in run.cells:
         r = c.result
         if r.status == "not_tested":
-            lines.append(f"| {r.market}:{r.horizon} | 시험 안 함 | {r.reason} |" + " — |" * 14)
+            lines.append(f"| {r.market}:{r.horizon} | 시험 안 함 | {r.reason} |" + " — |" * 15)
             continue
         win = "—"
         if r.rows:
@@ -212,14 +220,15 @@ def render_report(key: str, git_sha: str, as_of: datetime, run: TestRun) -> str:
         up = r.always_up_hits / r.confident if r.confident else float("nan")
         lines.append(
             f"| {r.market}:{r.horizon} | {r.status} | {r.reason or '—'} | {r.rows:,} | {win} | {_num(r.bss)} | "
-            f"{_num(r.bss_lo)} ~ {_num(r.bss_hi)} | {r.bss_p_holm:.3f} | {_num(r.bss_persistence)} | {r.ece:.4f} | "
+            f"{_num(r.bss_lo)} ~ {_num(r.bss_hi)} | {r.bss_p_holm:.3f} | {_num(r.bss_climatology)} | "
+            f"{_num(r.bss_persistence)} | {r.ece:.4f} | "
             f"{r.confident:,} | {_pct(hit)} | {_pct(up)} | {_pct(r.hit_diff_lo)} ~ {_pct(r.hit_diff_hi)} | "
             f"{_pct(r.net_mean, 3)} | {_pct(r.net_lo, 3)} ~ {_pct(r.net_hi, 3)} | "
-            f"{_num(r.shuffle_lo)} ~ {_num(r.shuffle_hi)} |"
+            f"{_num(r.placebo_lo)} ~ {_num(r.placebo_hi)} |"
         )
     lines += ["", "통과 = (1) Holm p ≤ 0.05 · BSS 하한 > 0 · 직전 방향 대비 > 0 (2) ECE ≤ 0.03"
               " (3) 확신 행 ≥ 300 · 차 하한 > 0"
-              " (4) 비용 뒤 오름 평균 > 0 (5) 셔플 CI 가 0 포함.", ""]  # fmt: skip
+              " (4) 비용 뒤 오름 평균 > 0 (5) 플라시보 피처 몫 CI 가 0 포함.", ""]  # fmt: skip
     lines += ["## 신뢰도 표(10 등빈도 구간 — 말한 확률 · 실제 · 행 수)", ""]
     for c in run.cells:
         r = c.result

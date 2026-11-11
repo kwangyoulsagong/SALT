@@ -1,4 +1,4 @@
-"""단타 방향 확률 — 사전등록 short-direction@1 실행(FC-REQ-028 FR-1 · FR-4 · F017 v2 단계 5).
+"""단타 방향 확률 — 사전등록 short-direction@2 실행(FC-REQ-028 FR-1 · FR-4 · F017 v2 단계 5).
 
 - `test`(매일): 등록 → 전 이력 walk-forward 시험(코인 1h · 4h · 1d
   · 국내 1d) → 라이브 소등 → forecast.short_horizon_test · 리포트.
@@ -24,6 +24,7 @@ from salt_forecast.domain.short_direction import (
     KEY,
     KR_SPEC,
     Fit,
+    live_ready,
     live_track,
     live_underperforms,
 )
@@ -54,7 +55,7 @@ from salt_forecast.store.short_direction import (
 )
 
 JOB = "short_direction"
-DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-11-short-direction.toml"
+DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-11-short-direction-2.toml"
 HOURS = {"1h": 1, "4h": 4, "1d": 24}
 
 
@@ -83,7 +84,7 @@ def _register(eng: object, path: Path, sha: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = base_parser("단타 방향 확률(사전등록 short-direction@1 실행)")
+    p = base_parser("단타 방향 확률(사전등록 short-direction@2 실행)")
     p.add_argument("command", choices=("test", "live"))
     p.add_argument("--prereg", default=str(DEFAULT_PREREG), help="사전등록 TOML")
     p.add_argument("--market", choices=("crypto", "kr", "all"), default="all")
@@ -114,15 +115,19 @@ def main(argv: list[str] | None = None) -> int:
                 for w, s, pu, rr in r.misses
             ]
             origin, calls, hits, ups = "backtest", r.confident, r.confident_hits, r.always_up_hits
+            ready = False
             if r.status == "pass":
-                live = live_outcomes(eng, r.market, r.horizon, mv)
+                # 라이브 = 이 키 등록 뒤 낸 예측 전부(커밋 해시가 바뀌어도 같은 프로토콜 — 표본을 0 으로 돌리지 않는다)
+                live = live_outcomes(eng, r.market, r.horizon, KEY)
                 if live:
                     spec = CRYPTO_SPECS[r.horizon] if r.market == "crypto" else KR_SPEC
                     pp = np.array([x.p_up for x in live])
                     rr = np.array([x.realized for x in live])
                     days = np.array([int(x.as_of.timestamp()) // DAY for x in live], dtype=np.int64)
-                    if live_underperforms(pp, (rr > 0).astype(np.float64), days, spec.boot_block):
+                    up = (rr > 0).astype(np.float64)
+                    if live_underperforms(pp, up, days, spec.boot_block):
                         r.status, r.reason = "fail", "live_underperforms"
+                    ready = r.status == "pass" and live_ready(pp, up, days, spec.boot_block)
                     track = live_track(pp, rr)
                     if track is not None:  # 라이브가 300 을 넘으면 화면 성적은 라이브만(과거 검산과 합치지 않는다)
                         origin, calls, hits, ups = "live", track.calls, track.hits, track.always_up
@@ -135,9 +140,10 @@ def main(argv: list[str] | None = None) -> int:
                 CellTestRow(
                     r.market, r.horizon, r.status, r.reason, r.window, r.rows, r.bss, r.bss_lo, r.bss_hi,
                     None if r.status == "not_tested" else r.bss_p_holm, r.bss_persistence, r.ece, origin, calls,
-                    hits, ups, r.hit_diff_lo, r.hit_diff_hi, r.net_mean, r.shuffle_lo, r.shuffle_hi,
+                    hits, ups, r.hit_diff_lo, r.hit_diff_hi, r.net_mean, r.placebo_lo, r.placebo_hi,
                     [[n, pm, ym] for n, pm, ym in r.reliability], misses,
                     {k: list(v) for k, v in r.z_quantiles.items()}, None if c.fit is None else c.fit.to_json(),
+                    ready, r.bss_climatology,
                 )
             )  # fmt: skip
             log.info(

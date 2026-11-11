@@ -81,7 +81,7 @@ def test_prediction_scored_once_at_expiry_bar(eng: Engine) -> None:
         )
     assert score_due(eng, exp + timedelta(minutes=5)) == 1
     assert score_due(eng, exp + timedelta(minutes=6)) == 0  # 한 줄 = 결과 한 줄
-    out = live_outcomes(eng, "crypto", "1h", MV)
+    out = live_outcomes(eng, "crypto", "1h", KEY)
     assert len(out) == 1 and out[0].realized > 0
     with eng.connect() as conn:
         r = conn.execute(
