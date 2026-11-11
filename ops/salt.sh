@@ -180,6 +180,12 @@ latest() {
            round(extract(epoch from now() - max(as_of))/3600) || '시간 전',
            case when max(as_of) is null or max(as_of) < now() - interval '3 days' then '✗' else 'ok' end
       from forecast.move_beta
+    union all
+    -- 조건부 기저율 · 점검 문턱(예측 base_rate, FC-REQ-028 FR-2) — 매일 회차. 3일 넘으면 점검이 묵은 종가로 조건을 판정한다
+    select '기저율 마지막 as_of', to_char(max(as_of) at time zone 'Asia/Seoul','MM-DD HH24:MI'),
+           round(extract(epoch from now() - max(as_of))/3600) || '시간 전',
+           case when max(as_of) is null or max(as_of) < now() - interval '3 days' then '✗' else 'ok' end
+      from forecast.base_rate_stat
   " 2>/dev/null | while IFS='|' read -r label at ago mark; do printf "  %-2s %s %s (%s)\n" "$mark" "$label" "$at" "$ago"; done || say "  (DB 조회 실패)"
 }
 
