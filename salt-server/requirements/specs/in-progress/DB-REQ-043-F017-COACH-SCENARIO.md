@@ -6,7 +6,7 @@ kind: MIGRATION
 title: "AI 코치 — 해설 스냅샷 · 단타 확률 · 기저율 · 사건 종류 표와 계약 뷰"
 priority: high
 created: 2026-11-10
-status: in-progress (2026-11-10 FR-6 출처 라벨 · 2026-11-11 FR-3 기저율 · FR-7 점검 원장 · FR-1 해설 스냅샷 — 나머지 to-do)
+status: in-progress (2026-11-10 FR-6 출처 라벨 · 2026-11-11 FR-3 기저율 · FR-7 점검 원장 · FR-1 해설 스냅샷 · FR-6 등급 — 나머지 to-do)
 source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 ---
 
@@ -24,7 +24,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | FR-3 | **forecast `base_rate_stat`** — ~~`(condition_id, symbol, horizon, as_of)`~~ **`(prereg_key, market, condition_id, horizon, as_of)` — 시장 풀링(2026-11-11: 종목 하나의 조건 표본은 유효 n 100 · 날 60 을 거의 못 넘는다)** · 표본 · 유효 n · 날 · 오른 비율 · 수축 · Wilson · 평균 · 분위 · 보유 연장 분위 · Holm 표지 · 최근 다름. 조건 정의는 `preregistration`. 뷰 `v_base_rate` + **라이브 문턱 `base_rate_trigger` · 뷰 `v_base_rate_trigger`**(종목 · 조건 · `next`/`closed` · 기준 종가 · 기준 봉 시각 · 가격/시가/거래대금 문턱 — 시장마다 최신 실행만) — **done 2026-11-11** `e9bbb8f4` |
 | FR-7 | **v2 점검 원장 · 채점** — `public.trade_check_ledger`(사용자 열 0 · 유일 (사전등록, 종목, 방향, 조건, 지평, 기준 봉) · 조건 없음 `NONE`) · export 뷰 `public.v_trade_check_ledger_export`(예측은 이 뷰만 — `DB-REQ-036` FR-3 직접 읽기 목록 고정) · `forecast.trade_check_outcome`(원장 한 줄 = 결과 한 줄) — **done 2026-11-11** `cc8d1713` · `093a494f` |
 | FR-4 | **forecast 사건 종류** — 소식 행 → `event_kind` 매핑 표(`news_event_kind` — 원천 키 · 종류 · 규칙 버전) · 반응 통계는 `event_reaction_stats` 를 종류 축으로 넓힘(새 표 대신 열/키 추가 — 마이그레이션 때 정함) · 뷰 `v_news_reaction`(종류 · 수평선 · 표본 · 오른 비율 · 평균 · 선반영) |
-| FR-6 | **v2 등급 · 출처 라벨** — `forecast.judgment_tier`(시장 · 모드 · 행동 · 규칙 버전 · as_of · tier · live_effective_n · spread_ci_low · spread_ci_high · regimes) + 뷰 `v_judgment_tier`. `coach.judgment_ledger` 출처 열에 `backtest_full` · `backtest_price_only` · `backtest_seen` 값 허용(CHECK 넓힘 — 기존 `live` · `backtest` · `synthetic` 유지). `base_rate_stat` 에 `status`(`ok` · `below_min`) · `sample_days` · `up_low` · `up_high` · 비율 nullable(FR-3 개정) — **상태(2026-11-10): 출처 라벨 done** `f38ca6ae`(마이그레이션 `20261110200000_judgment_backtest_labels` — 원장은 지금 주인 `public.symbol_judgment_snapshots` 에 · CHECK 넓힘 · 국내 장기 `backtest` → `backtest_full` 51,305행 · 롤백 SQL 은 파일 머리). `judgment_tier` · 뷰 · 기저율 칸은 to-do |
+| FR-6 | **v2 등급 · 출처 라벨** — `forecast.judgment_tier`(시장 · 모드 · 행동 · 규칙 버전 · as_of · tier · live_effective_n · spread_ci_low · spread_ci_high · regimes) + 뷰 `v_judgment_tier`. `coach.judgment_ledger` 출처 열에 `backtest_full` · `backtest_price_only` · `backtest_seen` 값 허용(CHECK 넓힘 — 기존 `live` · `backtest` · `synthetic` 유지). `base_rate_stat` 에 `status`(`ok` · `below_min`) · `sample_days` · `up_low` · `up_high` · 비율 nullable(FR-3 개정) — **상태(2026-11-10): 출처 라벨 done** `f38ca6ae`(마이그레이션 `20261110200000_judgment_backtest_labels` — 원장은 지금 주인 `public.symbol_judgment_snapshots` 에 · CHECK 넓힘 · 국내 장기 `backtest` → `backtest_full` 51,305행 · 롤백 SQL 은 파일 머리). 기저율 칸은 FR-3 에서 done. **등급 done 2026-11-11**(단계 4) `fa1877a1` — 마이그레이션 `20261111160000_judgment_tier`(추가만 · 롤백 SQL 머리): `forecast.judgment_tier`(실행마다 칸마다 한 행 — 강등 이력 · CHECK 참고면 출처 없음 · 검증됨/주의면 출처 있음) · 뷰 `forecast.v_judgment_tier`(칸마다 최신) · export 뷰 `public.v_judgment_outcome_export`(채점된 판단만 · 사용자 열 0). **정정**: 계획의 '행동' 열은 없다 — spread(후보 − 피하기)는 칸(시장 × 모드)의 성질이라 행동마다 따로 셀 수 없다 |
 | FR-5 | 권한 — coach 는 forecast 뷰 SELECT 만 · forecast 는 coach 표 권한 0(`DB-REQ-036` 주인 표에 행 추가) |
 
 ## Acceptance Criteria
@@ -46,3 +46,4 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | 2026-11-10 밤 | **v2** — FR-6 등급 표 · 뷰 · 원장 출처 라벨 · 기저율 `below_min` 칸(`FEATURE-017` v2) |
 | 2026-11-10 | 신규(to-do) — `FEATURE-017` 개정(범위 "잘 사고 잘 팔기") |
 | 2026-11-10 밤(1b) | to-do → in-progress — FR-6 출처 라벨 done(`f38ca6ae`, 마이그레이션 `20261110200000_judgment_backtest_labels`). 라벨을 단 원장은 계획의 `coach.judgment_ledger` 가 아니라 지금 3종이 읽는 `public.symbol_judgment_snapshots` — 계획 문장 정정 |
+| 2026-11-11 | **단계 4**(`feat/f017-s4-grade`) — FR-6 등급 표 · 계약 뷰 · 판단 원장 export 뷰 done(`fa1877a1`). 정정: 행동 열 없음. `EXPLAIN` — 서버 읽기는 칸 4행 뷰 한 문장 |

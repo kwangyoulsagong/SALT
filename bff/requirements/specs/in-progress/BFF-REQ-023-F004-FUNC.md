@@ -220,3 +220,4 @@ BFF는 이미 `/api/app/ai-coach/*` · `/profit-plan` · `/signal-performance` �
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`f843104e`) — FR-92 모드 판단은 서버 `caveats[]` 를 그대로(판별 union 폐지) · FR-100 해설은 판단 막힘으로 가르지 않는다
   - `bff/src/rest/routes/coach.routes.ts` — "국내 소유자 전용" 주석 · Swagger 문구 정정(판정은 서버 — 이제 사람 · 게스트 누구나)
+| 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `bff/src/services/symbol-coach.viewmodel.ts` 에 걸린 몫: 모드 뷰모델에 `tier` · `tierBasis`(`toTier` — 모르는 값 · 옛 서버면 참고). 주인 판단은 `BFF-REQ-052` FR-1 — 이 REQ 의 기존 계약(판단 · 성적 · 사례)은 그대로. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |

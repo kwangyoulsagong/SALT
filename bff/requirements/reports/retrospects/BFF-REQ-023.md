@@ -76,3 +76,8 @@
 
 - 닿은 것: `ai-coach.routes.ts` 에 점검 경로 `GET /api/app/ai-coach/check`(`BFF-REQ-052` FR-3) 한 줄 추가. 기존 경로 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `BFF-REQ-052`(FR-3) · 서버 `SRV-REQ-053` · FE `FE-REQ-064`
+
+## F017 v2 단계 4 등급 (2026-11-11)
+
+- 이 REQ 의 파일에 등급 칸 · 줄을 더하기만 했다(`bff/src/services/symbol-coach.viewmodel.ts`). 주인 판단은 F017 REQ 에 있다 — 여기 적는 것은 "이 파일이 왜 바뀌었나"를 6개월 뒤 찾게 하기 위해서다
+- 문제 · 액션 없음

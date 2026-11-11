@@ -48,3 +48,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-1 · FR-2 done — identity 서비스가 셸 설정 표 하나로 플랫폼에서 태어남(사용자 · 토큰은 S3b). 옛 3스텝 · 저축 `/goals/exists` 프로브 은퇴. 수용 기준 1 충족. 커밋 `fc0207cb` · `7f2ba1ed`. 남은 FR-3 · 4 · 6 · 7(S3c) · 8 · 9(S3b) |
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `coach/domain/ports.ts` 에 포트 `BaseRateReader` · `TradeCheckLedger`. 기존 포트 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` |
 | 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — coach `ports.ts` — `ExplanationSnapshotStore` · `ExplanationSnapshotRecord` · `ExplainCaller.userId` 가 `null` 가능(배치) · `batch` 표지 · `LlmUsageStore.usageSince` 사용자 `null` |
+| 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-server/src/coach/domain/ports.ts` 에 걸린 몫: 포트 `JudgmentTierReader` 추가. 주인 `SRV-REQ-053` FR-7. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |

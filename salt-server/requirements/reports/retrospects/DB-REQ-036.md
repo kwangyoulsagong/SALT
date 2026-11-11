@@ -45,3 +45,7 @@
 
 - 닿은 것: 마이그레이션 `20261111140000_trade_check_export_and_outcome` 이 export 뷰 `public.v_trade_check_ledger_export` 를 더해 예측이 점검 원장을 뷰로 읽는다 — FR-3 직접 읽기 목록은 늘리지 않았다
 - 문제 · 액션: 없음 — 주인 REQ 는 `DB-REQ-043` · 서버 `SRV-REQ-053` · 예측 `FC-REQ-028`
+
+## F017 v2 단계 4 등급 (2026-11-11)
+
+- export 뷰 하나로 예측이 판단 원장을 읽게 했다 — S6 에 coach 스키마로 옮길 때 이 뷰 이름만 옮긴다. 문제 · 액션 없음

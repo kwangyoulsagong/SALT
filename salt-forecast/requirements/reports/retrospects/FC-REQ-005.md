@@ -32,3 +32,8 @@
 
 - 닿은 것: `store/tables.py` 에 표 선언 `base_rate_stat` · `base_rate_trigger` · `trade_check_outcome`(스키마 대조 테스트 통과). 거시 일정 표 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `FC-REQ-028` · DB `DB-REQ-043`
+
+## F017 v2 단계 4 등급 (2026-11-11)
+
+- 이 REQ 의 파일에 등급 칸 · 줄을 더하기만 했다(`salt-forecast/src/salt_forecast/store/tables.py`). 주인 판단은 F017 REQ 에 있다 — 여기 적는 것은 "이 파일이 왜 바뀌었나"를 6개월 뒤 찾게 하기 위해서다
+- 문제 · 액션 없음

@@ -435,3 +435,4 @@ PC                                                   모바일(세로 스택)
   - `salt-microFe/packages/domain-invest/src/widgets/symbol-analysis/ui/SymbolAnalysis.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
 - 2026-11-10 밤(1b): 문구 — 코치 리포트 제외 사유 "국내는 장기 판단만" 삭제 · 과거 검산 설명에 "과거 기록이 없는 재료(심리 · 1시간 지표)는 빼고 셌어요"(`f4ac1427`). 실화면 셸 3000 경유 ETH 장기 · 005930 단타
 - 2026-11-11(1c): `feat/f017-s1c-collection`: `messages.ts` · `JudgmentSummary` — 관망 "규칙이 신호를 내지 않았어요" · 본 값 한 줄 · 근거 수에 관측(`FE-REQ-064` FR-1, `80d82128`)
+| 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-microFe/packages/domain-invest/src/entities/coach/model/messages.ts` 에 걸린 몫: 등급 문구 `tier`(글자 셋 · 참고 이유 다섯 + 계산 못 함 · 검증됨 · 주의 문장 — '실력 있음' 같은 말 0). 주인 `FE-REQ-064` FR-1. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
