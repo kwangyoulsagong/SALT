@@ -308,20 +308,21 @@ _PUB = 7 * 3600  # 16:00 KST 공개
 
 
 @pytest.mark.parametrize(
-    ("last_moved", "now", "due"),
+    ("moved_last", "now", "due"),
     [
         (None, _PUB - 1, False),  # 첫 거래일 16:00 전 — 공개된 봉 없음
-        (None, _PUB, True),  # 옮긴 적 없음
-        (_PUB - 1, _PUB, True),  # 공개 전에 옮김 — 그 봉은 안 들어왔다
-        (_PUB, _PUB + 3600, False),  # 공개 뒤 옮김
-        (_PUB, D + _PUB - 1, False),  # 다음 날 16:00 전 — 새 봉 없음
-        (_PUB, D + _PUB, True),  # 다음 날 봉 공개
-        (D + _PUB, 3 * D, False),  # 휴장일 — 새 봉 없음
-        (D + _PUB, 4 * D + _PUB + 60, True),  # 휴장 뒤 첫 거래일 공개
-        (D + _PUB - 600, D + 15 * 3600, True),  # 11-12 실측 모양 — 아침에만 옮겨 그날 저녁 봉을 놓침
+        (None, _PUB, True),  # 옮긴 봉 없음
+        (-D, _PUB, True),  # 전날 봉까지만 — 오늘 봉 공개됨
+        (-D, _PUB - 1, False),  # 오늘 봉 공개 전
+        (0, _PUB + 3600, False),  # 오늘 봉 있음
+        (0, D + _PUB - 1, False),  # 다음 날 16:00 전 — 새 봉 없음
+        (0, D + _PUB, True),  # 다음 날 봉 공개
+        (D, 3 * D, False),  # 휴장일 — 새 봉 없음
+        (D, 4 * D + _PUB + 60, True),  # 휴장 뒤 첫 거래일 공개
+        (0, D + 15 * 3600, True),  # 작업이 16:00 뒤에 돌았어도 봉이 없으면 다시(11-12 확인 회차)
     ],
 )
-def test_kr_bar_move_due_boundary_table(last_moved: int | None, now: int, due: bool) -> None:
+def test_kr_bar_move_due_boundary_table(moved_last: int | None, now: int, due: bool) -> None:
     from salt_forecast.domain.short_direction import kr_bar_move_due
 
-    assert kr_bar_move_due(_OPEN, last_moved, now) is due
+    assert kr_bar_move_due(_OPEN, moved_last, now) is due

@@ -255,3 +255,14 @@ def live_outcomes(engine: Engine, market: str, horizon: str, prereg_key: str) ->
         LiveOutcome(r[0], str(r[1]), float(r[2]), None if r[3] is None else float(r[3]), float(r[4]), float(r[5]), r[6])
         for r in rows
     ]
+
+
+def kr_moved_last_open(engine: Engine) -> datetime | None:
+    """forecast 에 옮겨진 마지막 국내 일봉 시작(거래일 00:00 KST) — 매시 회차가 일봉을 옮길 때인지(`due --kr-bar`).
+
+    피처용 as-of 조회가 아니다. 약 2.5초(전 종목 훑음) — 매시 한 번.
+    """
+    with engine.connect() as conn:
+        return conn.execute(
+            text("SELECT max(open_time) FROM forecast.price_bar WHERE source = 'kis' AND interval = '1d'")
+        ).scalar()

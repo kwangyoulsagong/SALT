@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.." || exit 1
 UV="${UV:-$(command -v uv || echo /opt/homebrew/bin/uv)}"
 echo "[$(date -u +%FT%TZ)] live 시작"
 "$UV" run --frozen python -m salt_forecast.jobs.ingest_prices --interval 1h --days 0.25 >/dev/null || echo "[$(date -u +%FT%TZ)] 1시간봉 증분 실패"
-# 국내 일봉 옮기기 — 16:00 KST 공개 뒤 아직 안 옮겼으면 여기서. 매일 배치(20시간 게이트)는 맥이 깨는 아침으로 밀려
+# 국내 일봉 옮기기 — 16:00 KST 에 공개된 마지막 거래일 봉이 forecast 에 아직 없으면 여기서(서버가 채울 때까지 매시). 매일 배치(20시간 게이트)는 맥이 깨는 아침으로 밀려
 # 국내 예측의 09:00 전 기록 창을 매번 놓쳤다(2026-11-12 국내 예측 0 · 늦은 예측 347). 약 1~2분, 하루 한 번
 if "$UV" run --frozen python -m salt_forecast.jobs.due --job ingest_kr_stock --kr-bar >/dev/null; then
   "$UV" run --frozen python -m salt_forecast.jobs.ingest_kr_stock >/dev/null || echo "[$(date -u +%FT%TZ)] 국내 일봉 옮기기 실패"
