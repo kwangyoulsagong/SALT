@@ -69,3 +69,4 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `domain/panel.py` `Panel.open` 선택 열(기본 None — 기존 생성자 그대로) · `scoring/rule_ic_kr.py` 생성자 맞춤. `rule-ic-kr@1` 결과 불변(테스트 통과) · ruff · format · pyright 0 · lint-imports 3 kept · pytest 전체 · 누수 검사 |
+| 결과 불변 대조(확인 2회차) | 충족 | `rule_ic_kr` · `rule_ic` `--dry-run --as-of 2026-11-10T08:00:00Z` 1차 줄을 main worktree 와 바이트 대조 — 같음 |
