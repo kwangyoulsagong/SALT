@@ -145,3 +145,23 @@ describe("createRatePacer — 쉬기 (SRV-REQ-057 FR-3)", () => {
     assert.equal(await pacer.run(async () => clock.t), 3_000);
   });
 });
+
+describe("createRatePacer — 동시 대기 상한 (SRV-REQ-057 FR-3)", () => {
+  it("상한 1 이면 앞 호출이 끝나야 다음이 나간다 — 실패도 자리를 돌려준다", async () => {
+    const clock = fakeClock();
+    const pacer = createRatePacer({ perSecond: 100, now: clock.now, sleep: clock.sleep, maxInFlight: 1 });
+    let live = 0;
+    let peak = 0;
+    const op = (fail: boolean) => async () => {
+      live++;
+      peak = Math.max(peak, live);
+      await new Promise((r) => setImmediate(r));
+      live--;
+      if (fail) throw new Error("x");
+      return 1;
+    };
+    const results = await Promise.allSettled([pacer.run(op(false)), pacer.run(op(true)), pacer.run(op(false))]);
+    assert.equal(peak, 1);
+    assert.deepEqual(results.map((r) => r.status), ["fulfilled", "rejected", "fulfilled"]);
+  });
+});

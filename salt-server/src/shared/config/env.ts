@@ -55,9 +55,15 @@ const envSchema = z.object({
    * 2026-10-27 장중 10분 창 현재가 초과율: 3건/s 23% · 2건/s 19% · 1.5건/s 21% — 속도로 줄지 않아 3 그대로 둔다(F011 슬라이스 6b).
    * 초과는 5분 전체 갱신 분 머리에 몰린다 — 원인은 미확인
    */
-  // 2026-11-11 정정(`SRV-REQ-057` FR-3) — 3 에서 80분 EGW00201 1,087건 · 기동 일봉 50 중 8 실패(11-10). 비우면 모의 주소 1.8 · 실 주소 3
+  // 2026-11-11 정정(`SRV-REQ-057` FR-3) — 3 에서 80분 EGW00201 1,087건 · 기동 일봉 50 중 8 실패(11-10). 비우면 모의 주소 1 · 실 주소 3
+  // (장중 실측: 1.8 초과 31% → 1 초과 6.5% · 기동 일봉 실패 0)
   // (`kisDefaultRequestsPerSecond`). 위 10-27 실험은 같은 키로 다른 프로세스가 돌던 때일 수 있다 — 초과율은 `kr-provider-metrics` 줄로 다시 잰다
   KIS_REQUESTS_PER_SECOND: z.preprocess((v) => (v === "" ? undefined : v), z.coerce.number().positive().max(15).optional()),
+  /**
+   * KIS 동시 대기 호출 상한(`SRV-REQ-057` FR-3) — 비우면 무제한(기본). 2026-11-11 장중 실측(1건/s): 무제한 초과 6.5% · 시세 폴링 170건/10분,
+   * 2 → 초과 2.6% · 폴링 112건, 1 → 초과 0 · 폴링이 매분 밀림. 초과는 줄지만 받는 양이 줄어 무제한을 둔다 — 실 키에서 다시 잰다
+   */
+  KIS_MAX_IN_FLIGHT: z.preprocess((v) => (v === "" ? undefined : v), z.coerce.number().int().positive().max(20).optional()),
   KIS_UNIVERSE_TOP_N: z.coerce.number().int().min(0).max(200).default(50),
   /**
    * 시간외 단일가 수집(F011 FR-27 · `SRV-REQ-040` FR-52)을 돌릴지. 기본 끔 — 앱 키가 모의투자용이라 KIS 가 시간외 단일가를
@@ -217,11 +223,12 @@ const envSchema = z.object({
 const parsedEnv = envSchema.parse(process.env);
 
 /**
- * KIS 출발 상한 기본값 — 모의 서버(`openapivts`)는 실처리량이 약 2건/s 라 1.8, 실 서버는 3(실전 한도 20건/s — 근거 약해 보수적으로).
+ * KIS 출발 상한 기본값 — 모의 서버(`openapivts`)는 1(11-11 장중 실측: 1.8 이면 초과 31%, 1 이면 6.5% — 받은 양은 같은 수준),
+ * 실 서버는 3(실전 한도 20건/s — 근거 약해 보수적으로).
  * 한도가 앱 키 단위라 정확한 값은 실측 · 설정이 정한다(`SRV-REQ-057` FR-3)
  */
 export const kisDefaultRequestsPerSecond = (baseUrl: string): number =>
-  new URL(baseUrl).hostname.includes("openapivts") ? 1.8 : 3;
+  new URL(baseUrl).hostname.includes("openapivts") ? 1 : 3;
 
 if (parsedEnv.NODE_ENV === "production" && parsedEnv.JUDGMENT_COUNT_SYNTHETIC) {
   throw new Error("JUDGMENT_COUNT_SYNTHETIC 는 운영에서 켤 수 없다 — 합성 표본이 판단 게이트를 연다");

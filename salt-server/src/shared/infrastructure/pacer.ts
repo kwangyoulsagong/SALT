@@ -48,16 +48,23 @@ export interface RatePacerOptions {
   /** 테스트용 주입. */
   now?: () => number;
   sleep?: (ms: number) => Promise<unknown>;
+  /**
+   * 동시에 응답을 기다리는 호출 상한 — 없으면 무제한(출발 간격만 지킨다). 상대가 출발 수가 아니라 **동시 처리 수**로 막을 때
+   * (KIS 모의: 출발 0.54건/s 인데도 EGW00201 6.5%, 2026-11-11 `SRV-REQ-057` FR-3)
+   */
+  maxInFlight?: number;
 }
 
 export const createRatePacer = ({
   perSecond,
   now = Date.now,
   sleep = delay,
+  maxInFlight = Number.POSITIVE_INFINITY,
 }: RatePacerOptions): RatePacer => {
   const intervalMs = 1_000 / perSecond;
   let nextStart = 0;
   let pausedUntil = 0;
+  let inFlight = 0;
   /** 우선순위별 대기 줄 — 출발시키는 함수만 담는다 */
   const queues = new Map<number, Array<() => void>>();
   let pumping = false;
@@ -75,7 +82,8 @@ export const createRatePacer = ({
     if (pumping) return;
     pumping = true;
     try {
-      while ([...queues.values()].some((queue) => queue.length > 0)) {
+      // 자리가 다 찼으면 멈춘다 — 끝난 호출이 다시 깨운다(`run` 의 settle)
+      while (inFlight < maxInFlight && [...queues.values()].some((queue) => queue.length > 0)) {
         // 기다린 사이 쉬기가 늘었을 수 있다 — 깨면 다시 잰다
         const wait = Math.max(nextStart, pausedUntil) - now();
         if (wait > 0) {
@@ -97,10 +105,25 @@ export const createRatePacer = ({
         const queue = queues.get(priority) ?? [];
         queues.set(priority, queue);
         // 출발은 동기로 — 출발 시각이 곧 자리를 받은 시각이다. 앞 호출의 실패는 뒤 호출을 막지 않는다
+        const settle = () => {
+          inFlight--;
+          void pump();
+        };
         queue.push(() => {
+          inFlight++;
           try {
-            operation().then(resolve, reject);
+            operation().then(
+              (value) => {
+                settle();
+                resolve(value);
+              },
+              (error) => {
+                settle();
+                reject(error);
+              }
+            );
           } catch (error) {
+            settle();
             reject(error);
           }
         });

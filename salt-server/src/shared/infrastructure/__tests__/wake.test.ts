@@ -26,6 +26,7 @@ describe("잠 감지", () => {
       sleptMs: 4 * 3600_000,
     });
     assert.equal(line, "💤→☀️ 수면 04:27~08:27(4.0시간) — 따라잡기 시작");
+    assert.match(describeSleep({ from: new Date(0), to: new Date(100_000), sleptMs: 100_000 }), /\(2분\)/);
   });
 
   it("구독 넷이 등록 순서로 한 번씩 — 실패해도 다음이 돈다", async () => {

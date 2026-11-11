@@ -52,7 +52,11 @@ const hhmm = (at: Date) =>
 
 /** 로그 한 줄 — "수면 HH:MM~HH:MM(n시간)" */
 export const describeSleep = (event: WakeEvent): string =>
-  `💤→☀️ 수면 ${hhmm(event.from)}~${hhmm(event.to)}(${(event.sleptMs / 3600_000).toFixed(1)}시간) — 따라잡기 시작`;
+  `💤→☀️ 수면 ${hhmm(event.from)}~${hhmm(event.to)}(${sleptText(event.sleptMs)}) — 따라잡기 시작`;
+
+/** 한 시간 미만은 분, 그 위는 시간(소수 한 자리) */
+const sleptText = (ms: number): string =>
+  ms < 3600_000 ? `${Math.round(ms / 60_000)}분` : `${(ms / 3600_000).toFixed(1)}시간`;
 
 const handlers: Array<{ name: string; run: WakeHandler }> = [];
 let timer: NodeJS.Timeout | null = null;

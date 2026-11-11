@@ -145,7 +145,7 @@ const upbit = new UpbitClient();
  */
 const kis =
   env.KIS_APP_KEY && env.KIS_APP_SECRET
-    ? new KisClient({ appKey: env.KIS_APP_KEY, appSecret: env.KIS_APP_SECRET, baseUrl: env.KIS_BASE_URL, requestsPerSecond: env.KIS_REQUESTS_PER_SECOND })
+    ? new KisClient({ appKey: env.KIS_APP_KEY, appSecret: env.KIS_APP_SECRET, baseUrl: env.KIS_BASE_URL, requestsPerSecond: env.KIS_REQUESTS_PER_SECOND, maxInFlight: env.KIS_MAX_IN_FLIGHT })
     : null;
 const krStock =
   kis
