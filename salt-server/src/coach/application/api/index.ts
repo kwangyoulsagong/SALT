@@ -23,6 +23,7 @@ import type {
   RoundTripCosts,
   BaseRateReader,
   JudgmentTierReader,
+  ShortHorizonReader,
   TradeCheckLedger,
 } from "../../domain";
 import { AnalyzeNewsSentiment } from "../AnalyzeNewsSentiment";
@@ -47,6 +48,7 @@ import { GetCoachRecommendation } from "../GetCoachRecommendation";
 import { GetJudgmentScoreboard } from "../GetJudgmentScoreboard";
 import { GetSymbolEvents } from "../GetSymbolEvents";
 import { GetSymbolForecast } from "../GetSymbolForecast";
+import { GetSymbolScenario } from "../GetSymbolScenario";
 import { GetSymbolPositioning } from "../GetSymbolPositioning";
 import { GetSignalPerformance } from "../GetSignalPerformance";
 import { GetSymbolCoach } from "../GetSymbolCoach";
@@ -123,6 +125,8 @@ export interface CoachDependencies {
   baseRates: BaseRateReader;
   /** 라벨 등급(예측 뷰 `v_judgment_tier`, F017 v2 단계 4) — 없으면 참고 */
   judgmentTiers?: JudgmentTierReader | null;
+  /** 단타 방향 확률 뷰(F017 v2 단계 5) */
+  shortHorizons: ShortHorizonReader;
   /** 점검 원장(F017 v2 단계 2) — `trade_check_ledger` */
   tradeCheckLedger: TradeCheckLedger;
 }
@@ -153,6 +157,8 @@ export interface CoachUseCases {
   getSignalPerformance: GetSignalPerformance;
   getJudgmentScoreboard: GetJudgmentScoreboard;
   getSymbolForecast: GetSymbolForecast;
+  /** 시나리오 카드 — 단타 방향 확률, 소유자만(F017 v2 단계 5 · `SRV-REQ-053` FR-5) */
+  getSymbolScenario: GetSymbolScenario;
   /** 주요 사건(거시 일정) · 과거 반응 — 소유자만(F008 슬라이스 22) */
   getSymbolEvents: GetSymbolEvents;
   /** 쏠림 신호(펀딩비 · 김치 프리미엄) · 과거 반응 — 소유자만(F008 슬라이스 23) */
@@ -292,6 +298,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
       deps.market
     ),
     getSymbolForecast: new GetSymbolForecast(deps.forecasts, deps.portfolio, deps.forecastOwnerEmails),
+    getSymbolScenario: new GetSymbolScenario(deps.shortHorizons, deps.market, deps.forecastOwnerEmails),
     getSymbolEvents: new GetSymbolEvents(deps.forecasts, deps.forecastOwnerEmails),
     checkTradeOdds: new CheckTradeOdds(deps.market, deps.portfolio, deps.baseRates, deps.tradeCheckLedger),
     getSymbolPositioning: new GetSymbolPositioning(deps.forecasts, deps.forecastOwnerEmails),

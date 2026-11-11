@@ -150,6 +150,22 @@ export class CoachToolsController {
   };
 
   /**
+   * 시나리오 카드 — 단타 방향 확률, 소유자만(아니면 404). F017 v2 단계 5 `SRV-REQ-053` FR-5.
+   */
+  getScenario = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = forecastQuerySchema.parse(req.query);
+      const result = await this.useCases.getSymbolScenario.execute(
+        { userId: req.user!.userId, email: req.user!.email },
+        query.symbol
+      );
+      return ResponseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
    * 주요 사건(거시 일정) · 과거 반응 — 소유자만(아니면 404). F008 `SRV-REQ-037` FR-10.
    */
   getPositioning = async (req: Request, res: Response, next: NextFunction) => {
