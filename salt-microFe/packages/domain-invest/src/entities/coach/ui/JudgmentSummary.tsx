@@ -4,6 +4,8 @@ import {
   type CoachMode,
   type JudgmentCaveat,
   type JudgmentObservation,
+  type JudgmentTier,
+  type JudgmentTierBasis,
   type ModeCoachViewModel,
   type TrackRecord,
 } from "@repo/core/coach";
@@ -68,6 +70,21 @@ const trackSentence = (record: TrackRecord): string | null =>
     ? null
     : M.trackVsBaseline(record.winRate, record.excessWinRate === null ? null : record.winRate - record.excessWinRate);
 
+const TIER_TONE: Record<JudgmentTier, "neutral" | "success" | "warning"> = {
+  reference: "neutral",
+  verified: "success",
+  caution: "warning",
+};
+
+/** 등급 한 줄 — 서버가 정한 등급 · 이유 · 유효 표본을 그대로(새 판정 0) */
+const tierSentence = (tier: JudgmentTier, basis: JudgmentTierBasis | undefined): string => {
+  // 옛 BFF(등급 칸 없음)면 참고 — 지어내지 않는다
+  if (!basis) return M.tier.reference(null, 0, 0);
+  if (tier === "verified") return M.tier.verified(basis.liveEffectiveN);
+  if (tier === "caution") return M.tier.caution(basis.source === "backtest_full");
+  return M.tier.reference(basis.reason, basis.liveEffectiveN, basis.minEffectiveN);
+};
+
 /** 관측 한 줄 — 본 값 · 문턱(서버 값). 값이 문턱 밖이면 넘은 쪽 */
 const observationSentence = (rows: readonly JudgmentObservation[]): string | null => {
   const parts = rows.flatMap((row) => {
@@ -99,7 +116,8 @@ export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProp
     );
   }
 
-  const { judgment, trackRecord, failureCases, caveats, observations } = view;
+  const { judgment, trackRecord, failureCases, caveats, observations, tier, tierBasis } = view;
+  const tierLabel = M.tier.label[tier] ?? M.tier.label.reference ?? "";
   const validity = M.validity[judgment.validity.code];
   const meta = [M.modes[mode], validity].filter(Boolean).join(" · ");
   const caveatTexts = caveats.map(caveatSentence).filter((text): text is string => text !== null);
@@ -113,7 +131,14 @@ export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProp
       <Heading level={4} as={labelAs}>
         {judgment.label}
       </Heading>
-      <p className={metaLine}>{meta}</p>
+      <p className={metaLine}>
+        {/* 등급은 라벨 옆 글자 — 색만으로 말하지 않는다(FR-1). 읽기 순서: 등급 → 모드 · 유효 기간 */}
+        <span className={srOnly}>{M.tier.accessible}</span>
+        <Badge size="sm" tone={TIER_TONE[tier] ?? "neutral"}>
+          {tierLabel}
+        </Badge>{" "}
+        {meta}
+      </p>
       {judgment.scoreNote && (
         <p className={scoreLine}>
           <span aria-hidden="true">{M.score(judgment.score)}</span>
@@ -142,16 +167,16 @@ export const JudgmentSummary = ({ view, mode, labelAs = 4 }: JudgmentSummaryProp
             : M.recentFailureCount(failureCases.length)}
         </span>
       </p>
-      {(noSignal || observed || track || caveatTexts.length > 0) && (
-        <ul className={caveatLines}>
-          {noSignal && <li>{M.noSignal}</li>}
-          {observed && <li>{observed}</li>}
-          {track && <li>{track}</li>}
-          {caveatTexts.map((text) => (
-            <li key={text}>{text}</li>
-          ))}
-        </ul>
-      )}
+      {/* 등급 한 줄은 늘 있다 — 목록도 늘 그린다 */}
+      <ul className={caveatLines}>
+        {noSignal && <li>{M.noSignal}</li>}
+        {observed && <li>{observed}</li>}
+        {track && <li>{track}</li>}
+        <li>{tierSentence(tier, tierBasis)}</li>
+        {caveatTexts.map((text) => (
+          <li key={text}>{text}</li>
+        ))}
+      </ul>
     </div>
   );
 };

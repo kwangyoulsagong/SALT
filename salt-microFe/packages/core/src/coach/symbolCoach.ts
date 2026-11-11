@@ -185,7 +185,25 @@ export interface ModeCoachViewModel {
   caveats: JudgmentCaveat[];
   /** 국내 주식 이력 수치. 코인은 `null` */
   history: JudgmentHistory | null;
+  /**
+   * 라벨 등급 — 참고 · 검증됨 · 주의(`FE-REQ-064` FR-1 · BFF `BFF-REQ-052` FR-1). 판단을 숨기지 않는다 — 라벨 무게만.
+   * 검증됨은 등록 뒤 라이브 성적이 같은 날 시장보다 나았을 때만(서버가 정한다 — 화면은 문턱을 모른다)
+   */
+  tier: JudgmentTier;
+  tierBasis: JudgmentTierBasis;
   zone: Zone;
+}
+
+export type JudgmentTier = "reference" | "verified" | "caution";
+
+export interface JudgmentTierBasis {
+  /** 등급을 정한 출처 — 참고면 `null` */
+  source: "live" | "backtest_full" | null;
+  /** 참고인 이유. 모르는 값은 `not_computed` */
+  reason: string | null;
+  liveEffectiveN: number;
+  minEffectiveN: number;
+  spreadCi: { low: number; high: number } | null;
 }
 
 export interface GaugeTrackRecord {
