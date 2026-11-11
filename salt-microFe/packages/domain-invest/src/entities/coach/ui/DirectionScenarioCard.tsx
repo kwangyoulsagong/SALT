@@ -36,7 +36,7 @@ const Band = ({ low, mid, high }: { low: number; mid: number; high: number }) =>
 
 const Track = ({ view }: { view: ScenarioHorizonView }) => {
   const t = view.track;
-  if (!t || t.hitRate === null || t.alwaysUpRate === null) return null;
+  if (!t || t.hitRate === null || t.alwaysUpRate === null || t.alwaysNotUpRate === null) return null;
   return (
     <>
       <p className={s.meta}>
@@ -47,6 +47,7 @@ const Track = ({ view }: { view: ScenarioHorizonView }) => {
           [
             [M.trackThis, t.hitRate, s.trackFill.model],
             [M.trackAlwaysUp, t.alwaysUpRate, s.trackFill.baseline],
+            [M.trackAlwaysNotUp, t.alwaysNotUpRate, s.trackFill.baseline],
           ] as const
         ).map(([label, rate, fill]) => (
           <div key={label} className={s.trackRow}>
@@ -115,8 +116,10 @@ const Blocked = ({ view }: { view: ScenarioHorizonView }) => {
     <>
       <p className={s.blockedTitle}>{M.blockedTitle}</p>
       <p className={s.meta}>{M.reasons[view.blockedReason ?? "not_tested"] ?? M.reasons.not_tested}</p>
-      {t && t.hitRate !== null && t.alwaysUpRate !== null && (
-        <p className={s.meta}>{M.blockedTrack(t.calls, formatRatio(t.hitRate), formatRatio(t.alwaysUpRate))}</p>
+      {t && t.hitRate !== null && t.alwaysUpRate !== null && t.alwaysNotUpRate !== null && (
+        <p className={s.meta}>
+          {M.blockedTrack(t.calls, formatRatio(t.hitRate), formatRatio(t.alwaysUpRate), formatRatio(t.alwaysNotUpRate))}
+        </p>
       )}
       <Misses view={view} />
     </>

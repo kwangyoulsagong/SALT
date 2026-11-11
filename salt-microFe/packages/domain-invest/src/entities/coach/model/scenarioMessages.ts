@@ -9,7 +9,8 @@ export const SCENARIO_MESSAGES = {
   horizonGroupLabel: "기간 고르기",
   horizons: { "1h": "1시간", "4h": "4시간", "1d": "1일" } as const,
   upProbability: "오를 확률",
-  oddsLine: (up: number) => `이렇게 말한 때 100번 중 ${up}번쯤 올랐어요 · ${100 - up}번 내렸어요`,
+  // '안 올랐어요' = 내렸거나 그대로 — 라벨이 오름(r > 0)이라 그대로는 오름이 아니다(2026-11-11 @2 진단 — 1시간 11.5% 가 그대로)
+  oddsLine: (up: number) => `이렇게 말한 때 100번 중 ${up}번쯤 올랐어요 · ${100 - up}번은 안 올랐어요(내렸거나 그대로)`,
   rangeLine: (label: string, low: string, high: string, mid: string) =>
     `${label} 가격은 보통 ${low} ~ ${high} 사이였어요(가운데 ${mid})`,
   rangeLabel: "10번 중 8번 들어온 폭",
@@ -18,12 +19,13 @@ export const SCENARIO_MESSAGES = {
   trackLine: (calls: number, hits: number) => `확신할 때 ${calls.toLocaleString("ko-KR")}번 말해 ${hits.toLocaleString("ko-KR")}번 맞혔어요`,
   trackThis: "이 시나리오",
   trackAlwaysUp: "늘 오른다",
+  trackAlwaysNotUp: "늘 안 오른다",
   trackWindow: (from: string, to: string) => `${from} ~ ${to} · 확신 = 오를 확률 55% 이상 또는 45% 이하`,
   missesSummary: "빗나간 때",
   missLine: (date: string, symbol: string, p: string, realized: string) => `${date} ${symbol} — 오를 확률 ${p}였는데 ${realized}`,
   blockedTitle: "지금은 방향이 안 보여요",
-  blockedTrack: (calls: number, hitRate: string, alwaysUp: string) =>
-    `시험 성적: 확신할 때 ${calls.toLocaleString("ko-KR")}번 중 ${hitRate} 맞힘 · 늘 오른다 ${alwaysUp}`,
+  blockedTrack: (calls: number, hitRate: string, alwaysUp: string, alwaysNotUp: string) =>
+    `시험 성적: 확신할 때 ${calls.toLocaleString("ko-KR")}번 중 ${hitRate} 맞힘 · 같은 때 늘 오른다 ${alwaysUp} · 늘 안 오른다 ${alwaysNotUp}`,
   reasons: {
     no_skill: "시험에서 '늘 오른다'보다 잘 맞히지 못했어요",
     miscalibrated: "말한 확률과 실제 결과가 맞지 않았어요",

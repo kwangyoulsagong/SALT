@@ -16,6 +16,8 @@ export interface ScenarioTrack {
   alwaysUpHits: number;
   hitRate: number | null;
   alwaysUpRate: number | null;
+  /** 같은 확신 행에서 늘 '안 오른다'(내렸거나 그대로)를 말했을 때 — 오른 비율이 50% 가 아니면 이쪽이 더 센 기준일 수 있다 */
+  alwaysNotUpRate: number | null;
   window: { from: string; to: string } | null;
   misses: { asOf: string; symbol: string; pUp: number; realizedPct: number }[];
 }
