@@ -169,7 +169,8 @@ export const createCoachReportRouter = (useCases: CoachUseCases): Router => {
    *       - **소유자 계정만.** 아니면 404 — 존재 자체를 알리지 않는다(`ADR-003`)
    *       - 지평은 **늘 셋**(`1h` · `4h` · `1d`). 시험(사전등록 · 정화된 기간 나눔 · 비용 차감 · 다중검정 · 보정도)을 넘은 칸만
    *         `renderable: true` 와 `pUp` · `range` · `invalidation` 을 싣는다. 아니면 그 셋은 `null` 이고 `blockedReason` 하나
-   *       - `blockedReason`: `no_skill` · `miscalibrated` · `no_edge_confident` · `cost` · `shuffle_failed`(시험) ·
+   *       - 사전등록 `short-direction@2` — 시험을 넘어도 등록 뒤 라이브 성적(확신 300 · 늘 오른다보다 나음)이 증명되기 전엔 `awaiting_live`
+   *       - `blockedReason`: `no_skill` · `miscalibrated` · `no_edge_confident` · `cost` · `placebo_failed`(시험) · `awaiting_live` ·
    *         `insufficient_history`(국내 1h · 4h — 장중 이력 부족) · `live_underperforms` · `outside_universe`(시험한 범위 밖 종목) ·
    *         `stale`(예측 만료 · 시험 3일 넘음) · `not_tested`(시험 행 없음)
    *       - `track` 은 막혀도 싣는다(시험 성적 — 확신 구간 p ≥ 0.55 · ≤ 0.45 에서 말한 수 · 맞힌 수 · 같은 때 늘 오른다가 맞은 수).

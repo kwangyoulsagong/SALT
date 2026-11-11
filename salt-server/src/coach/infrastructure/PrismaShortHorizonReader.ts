@@ -25,6 +25,7 @@ export class PrismaShortHorizonReader implements ShortHorizonReader {
         model_version: string | null;
         status: string;
         blocked_reason: string | null;
+        live_ready: boolean;
         window_from: Date | null;
         window_to: Date | null;
         eval_rows: number;
@@ -35,7 +36,7 @@ export class PrismaShortHorizonReader implements ShortHorizonReader {
         misses: unknown;
       }>
     >`
-      SELECT market, horizon, as_of, model_version, status, blocked_reason, window_from, window_to, eval_rows,
+      SELECT market, horizon, as_of, model_version, status, blocked_reason, live_ready, window_from, window_to, eval_rows,
              track_origin, confident_calls, confident_hits, always_up_hits, misses
       FROM forecast.v_short_horizon_cell WHERE prereg_key = ${SHORT_DIRECTION_KEY} AND market = ${market}`;
     return rows.map((r) => ({
@@ -45,6 +46,7 @@ export class PrismaShortHorizonReader implements ShortHorizonReader {
       modelVersion: r.model_version,
       status: r.status,
       blockedReason: r.blocked_reason,
+      liveReady: r.live_ready === true,
       windowFrom: r.window_from,
       windowTo: r.window_to,
       evalRows: Number(r.eval_rows),
@@ -75,7 +77,8 @@ export class PrismaShortHorizonReader implements ShortHorizonReader {
     >`
       SELECT horizon, as_of, model_version, p_up, q10, q50, q90, ref_price::float8 AS ref_price,
              invalidation::float8 AS invalidation, expires_at, renderable, blocked_reason
-      FROM forecast.v_short_horizon_card WHERE symbol = ${forecastKey(symbol, market)}`;
+      FROM forecast.v_short_horizon_card
+      WHERE prereg_key = ${SHORT_DIRECTION_KEY} AND symbol = ${forecastKey(symbol, market)}`;
     return rows.map((r) => ({
       horizon: r.horizon,
       asOf: r.as_of,

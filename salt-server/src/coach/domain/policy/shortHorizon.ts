@@ -8,13 +8,20 @@
  * 시험 성적(`track`)은 막혀도 싣는다 — "왜 방향을 말하지 않나"의 근거다. 출처(`backtest` · `live`)는 칸마다 하나, 합치지 않는다.
  */
 
-export const SHORT_DIRECTION_KEY = "short-direction@1";
+/**
+ * 사전등록 @2 — @1(365일 기후값 기준 · 날짜 안 셔플)이 시간봉에서 실력을 부풀렸다. @2 는 같은 기간을 이미 봤으므로 시험 통과는
+ * 라이브 원장 발행 허가일 뿐이고, 화면 확률은 예측 배치가 정한 `live_ready`(등록 뒤 라이브 확신 ≥ 300 · 늘 오른다보다 나음 하한 > 0) 뒤
+ */
+export const SHORT_DIRECTION_KEY = "short-direction@2";
 export const SCENARIO_HORIZONS = ["1h", "4h", "1d"] as const;
 export type ScenarioHorizon = (typeof SCENARIO_HORIZONS)[number];
 export type ScenarioMarket = "crypto" | "kr";
 
 /** 칸 사유(예측 시험 — 사전등록 [decision] 순서) + 서버가 붙이는 셋 */
 export const SCENARIO_BLOCKED_REASONS = [
+  /** 라벨을 종목마다 8~30일 미뤄도 '실력'이 남는다 — 결과 무효(@2) */
+  "placebo_failed",
+  /** @1 의 셔플 점검 — @1 행을 읽을 일은 없지만 값 목록은 DB CHECK 와 같게 */
   "shuffle_failed",
   "no_skill",
   "miscalibrated",
@@ -22,6 +29,8 @@ export const SCENARIO_BLOCKED_REASONS = [
   "cost",
   "insufficient_history",
   "live_underperforms",
+  /** 시험은 넘었지만 등록 뒤 라이브 성적이 아직 증명 전(확신 300 · 늘 오른다보다 나음) — 확률 없이 과거 검산 성적만 */
+  "awaiting_live",
   /** 칸은 통과했는데 이 종목 예측이 없다 — 시험한 범위(코인 거래대금 상위 50 · 국내 상위 200) 밖 */
   "outside_universe",
   /** 예측이 만료됐거나 칸 시험이 3일 넘게 안 돌았다 */
@@ -49,6 +58,8 @@ export interface ShortHorizonCellRow {
   modelVersion: string | null;
   status: string;
   blockedReason: string | null;
+  /** 화면 허가 — 예측 배치가 정한다(서버는 라이브 표본을 다시 세지 않는다) */
+  liveReady: boolean;
   windowFrom: Date | null;
   windowTo: Date | null;
   evalRows: number;
@@ -141,7 +152,7 @@ const track = (cell: ShortHorizonCellRow): ScenarioTrack | null =>
       };
 
 /**
- * 칸 하나 + 그 종목 예측 하나 → 화면 지평 하나. 막힘 순서: 칸 없음 → 칸 늦음 → 칸 못 넘음 → 예측 없음 → 예측 만료/버전 다름.
+ * 칸 하나 + 그 종목 예측 하나 → 화면 지평 하나. 막힘 순서: 칸 없음 → 칸 늦음 → 칸 못 넘음 → 라이브 증명 전 → 예측 없음 → 예측 만료/버전 다름.
  */
 export const toScenarioHorizon = (
   market: ScenarioMarket,
@@ -166,6 +177,7 @@ export const toScenarioHorizon = (
   if (!cell) return blocked("not_tested", undefined);
   if (now.getTime() - cell.asOf.getTime() > SCENARIO_CELL_MAX_AGE_MS) return blocked("stale", cell);
   if (cell.status !== "pass") return blocked(isReason(cell.blockedReason) ? cell.blockedReason : "not_tested", cell);
+  if (!cell.liveReady) return blocked("awaiting_live", cell);
   if (!prediction) return blocked("outside_universe", cell);
   const expired = prediction.expiresAt.getTime() <= now.getTime();
   if (!prediction.renderable || expired || prediction.modelVersion !== cell.modelVersion) return blocked("stale", cell);
