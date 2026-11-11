@@ -466,4 +466,10 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 
 | 항목 | 상태 | 근거 |
 |---|---|---|
-| DTO · 경로 | 충족 | `explainDto.test.ts` · Swagger · `npm test` 1209 |
+| DTO · 경로 | 충족 | `explainDto.test.ts` · Swagger · `npm test` 1208 |
+
+## F017 v2 단계 3 — 죽은 분기 정리 (2026-11-11, `feat/f017-s3-explain-always`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 사용자별 상한 삭제 | 충족 | `opsGuards.test.ts` 개정(서버 전체 시도 · 토큰 경계) · build · lint |

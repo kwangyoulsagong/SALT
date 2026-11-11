@@ -55,3 +55,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 라우팅 | 충족 | `explainRouting.test.ts` 배치 표 · 실데이터 첫 회차 로컬 Claude 12/12 |
+
+## F017 v2 단계 3 — 죽은 분기 정리 (2026-11-11, `feat/f017-s3-explain-always`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 사용자 · 클라이언트 분기 · env 삭제 | 충족 | `explainRouting.test.ts` · `localCliExplainer.test.ts` 개정 · `ownerGateScope.test.ts` 허용 목록 셋 · `npm test` 1208 |

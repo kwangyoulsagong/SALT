@@ -37,3 +37,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `env.ts` — `KIS_REQUESTS_PER_SECOND` 비우면 주소로(모의 1 · 실 3) · `KIS_MAX_IN_FLIGHT`(`SRV-REQ-057` FR-3). 손님 시세 변경 0 · `npm test` 전체 · lint · build · 레이어 훅 사후(음성 대조 exit 2) |
+
+## F017 v2 단계 3 (2026-11-11, `feat/f017-s3-explain-always`)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| env 두 키 삭제 | 충족 | build · 실서버 재기동 · 배치 회차 |

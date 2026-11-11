@@ -204,3 +204,7 @@ FR-104 는 `renderGate.ts`(FR-10)를 쓰라고 했지만 그 파일은 없다. �
 
 - 닿은 것: `coach/application/api/index.ts` 에 의존 `baseRates` · `tradeCheckLedger` 와 유스케이스 `checkTradeOdds` 조립. 기존 유스케이스 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064`
+
+## F017 v2 단계 3 (2026-11-11, `feat/f017-s3-explain-always`)
+
+- 액션: 없음

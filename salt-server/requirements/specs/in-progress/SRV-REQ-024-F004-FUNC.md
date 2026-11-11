@@ -395,6 +395,7 @@ blockedReason = 'reasons_missing' | 'signal_track_record_missing' | 'failure_cas
 | 2026-11-02 | 파일만 걸침 — `coach/application/api/index.ts`(이 REQ 가 머리 주석 주인) 조립에 `llmEnabled` 한 칸. 루트 `requirements/specs/done/F008-explain-citations-slice.md` |
 | 2026-11-10 | v2 대체 표시 — FR-104 · FR-106 · FR-137 · FR-141 · FR-191(게이트 부분) · FR-194 (`FEATURE-017` v2 · `ADR-010` v2) |
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `coach/application/api/index.ts` 에 의존 `baseRates` · `tradeCheckLedger` 와 유스케이스 `checkTradeOdds` 조립. 기존 유스케이스 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` |
+| 2026-11-11 | **F017 v2 단계 3**(`feat/f017-s3-explain-always`) — `opsGuards.test.ts` LLM 상한 경계 — 사용자별 상한 삭제에 맞춰 서버 전체 시도 · 토큰 경계만(`SRV-REQ-025` FR-62~64 정리) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
 - 2026-11-10 — F017 v2 단계 1(`d6105374`) — FR-104 · 106 · 137 · 141 · 191(게이트 부분) · 194 v2 구현: `judgmentCaveats` · 3종 채움 · 해설 막지 않음
   - `salt-server/src/coach/application/GetJudgmentScoreboard.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
