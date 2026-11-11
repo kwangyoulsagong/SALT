@@ -13,10 +13,13 @@ import {
   type ServerSymbolCoach,
   type ServerSymbolNews,
 } from "./symbol-coach.viewmodel";
+import { TradeCheckContractError, toTradeCheckViewModel } from "./trade-check.viewmodel";
 
 /** `BFF-REQ-025` 호출 맵 — 판단 · 뉴스 모두 300ms. 화면 예산 200ms(`BFF-REQ-026` FR-50) */
 const SYMBOL_COACH_TIMEOUT_MS = 300;
 const SYMBOL_NEWS_TIMEOUT_MS = 300;
+/** 점검(F017 v2 단계 2) — 화면 맨 위 칸이라 예산 p95 200ms(`BFF-REQ-052` FR-3). 서버 실측 30~65ms */
+const TRADE_CHECK_TIMEOUT_MS = 200;
 /**
  * 판단 호출이 시간을 넘기면 마지막으로 받은 판단을 기준 시각과 함께 준다(`BFF-REQ-052` FR-2, 2026-11-10 — 장중 504 157줄).
  * 키는 **토큰 해시** — 검증 안 한 사용자 id 로 키를 잡으면 위조 토큰이 남의 판단을 읽는다. 10분 넘은 판단은 주지 않는다(504 그대로)
@@ -60,6 +63,33 @@ type BackendEnvelope<T> = {
 };
 
 export class AppAICoachService {
+  /**
+   * 사기 전 · 팔기 전 점검 — AI 패널 맨 위 쉬운 한 줄(`BFF-REQ-052` FR-3). 서버 문장 · 숫자를 고치지 않는다.
+   * 모양이 깨졌으면 502 — 지어낸 문장을 주지 않는다. 조회라 1회 재시도
+   */
+  async getTradeCheck(token: string, query: { symbol?: unknown; side?: unknown }, signal?: AbortSignal) {
+    const symbol = typeof query.symbol === "string" ? query.symbol.trim().toUpperCase() : "";
+    if (!/^[A-Z0-9]{1,20}$/.test(symbol)) throw new AppError("symbol 형식이 다릅니다", 400, true, "INVALID_SYMBOL");
+    const side = query.side === "sell" ? "sell" : "buy";
+    const response = await retryOnceOnGet(
+      () =>
+        backendApi.proxyAuthRequest(
+          "GET",
+          `/coach/check?symbol=${encodeURIComponent(symbol)}&side=${side}`,
+          token,
+          undefined,
+          { timeout: TRADE_CHECK_TIMEOUT_MS, signal },
+        ),
+      signal,
+    );
+    try {
+      return toTradeCheckViewModel((response.data as BackendEnvelope<unknown>).data);
+    } catch (error) {
+      if (error instanceof TradeCheckContractError) throw new AppError("trade_check_unavailable", 502);
+      throw error;
+    }
+  }
+
   async getPreview(token: string, query: any) {
     const symbol = (query.symbol || "BTC").toString().toUpperCase();
     const response = await retryOnceOnGet(() =>
