@@ -88,3 +88,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrStockNews.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrWhyMoved.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 | 2026-11-12 | 단계 D — FR-1 ③ done. 실화면 1440 · 390(앱 웹뷰 UA) · 코인 상세 · 프리뷰 · 상태 5종(route) · 넘침 0 |
+| 2026-11-12 | 단계 D 마무리 — FR-7 문구 grep 0 · `i18n-policy` 원인 단정어 줄(`ADR-009` §5) · AI 표시 대비(axe) |

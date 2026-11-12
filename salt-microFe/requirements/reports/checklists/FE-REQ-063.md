@@ -119,3 +119,11 @@
 |---|---|
 | axe(wcag2a · aa · 21aa) | 카드 1440 · 390 · 정리하는 중 · 프리뷰 — 처음 color-contrast 셋(AI 표시) → 카드는 캡션 색 · 프리뷰는 `secondary` → 0(`9380e0a1`) |
 | 패키지 검증 | `tsc` · `eslint src/entities/market` 0 · 훅 사후 실행 0 |
+
+## 단계 D 마무리(2026-11-12) — 문구 · 규칙
+
+| 항목 | 결과 |
+|---|---|
+| FR-7 문구 grep(원인 단정어) | 화면 문구 0 — 나온 것은 주석 · 부정형("호재 · 악재 판정 아님")뿐 |
+| `i18n-policy` | 원인 단정어 줄 추가(`ADR-009` §5) |
+| 대비 수정 뒤 전체 | `pnpm check-types` 13 · `lint` 13 · `test`(core 298 · ui 63) · 투자 zone 운영 빌드(worktree) 상세 153kB |

@@ -63,4 +63,4 @@
 ## 5. 영향 목록
 
 `FEATURE-016` · `FEATURE-008`(해설 인프라 재사용) · `FEATURE-011`(국내 원천) · 마스터 인덱스 §6(공통 수용 기준 4 에 "설명 3종" 추가 후보) ·
-`i18n-policy`(금지 표현 목록에 인과 단정어) · 영역 REQ(`FEATURE-016` 표)
+`i18n-policy`(금지 표현 목록에 인과 단정어) · 영역 REQ(`FEATURE-016` 표). **반영 2026-11-12**(F016 단계 D): 마스터 인덱스 §6 공통 기준 4 에 설명 3종 · `salt-microFe/.claude/rules/i18n-policy.md` 원인 단정어 줄 · 서버 검사 `verifyMoveSummary`
