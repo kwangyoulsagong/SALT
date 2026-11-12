@@ -50,3 +50,18 @@ export const more = style({
   color: vars.colors.text.secondary,
   textDecoration: "none",
 });
+
+/** ③ 한 줄 — 문장이라 두 줄까지(사실 제목 한 줄과 달리 끝이 잘리면 뜻이 바뀐다), 넘치면 말줄임 */
+export const summary = style({
+  margin: 0,
+  fontSize: vars.typography.t7.fontSize,
+  lineHeight: vars.typography.t7.lineHeight,
+  color: vars.colors.text.primary,
+  display: "-webkit-box",
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: "vertical",
+  overflow: "hidden",
+  wordBreak: "keep-all",
+  overflowWrap: "anywhere",
+});
+export const aiLabel = style({ margin: 0, fontSize: "11px", lineHeight: "14px", color: vars.colors.text.tertiary });

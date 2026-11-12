@@ -29,6 +29,14 @@ export const WHY_MOVED_MESSAGES = {
   partHeader: "구분",
   valueHeader: "몫",
 
+  /** ③ 한 줄(F016 단계 D) — AI 표시 문구는 `ADR-009` §3 그대로(설명 3종 게이트의 셋째) */
+  summary: {
+    aiLabel: "AI 가 같은 날 소식으로 정리했어요 — 원인을 단정하지 않아요",
+    pending: "같은 날 소식을 정리하는 중이에요",
+    citationLabel: (n: number, title: string) => `출처 ${n}: ${title}`,
+    headingSr: "한 줄 정리",
+  },
+
   factsHeading: "같은 날 있었던 일",
   factsEmpty: "오늘 이 종목에 걸린 소식은 아직 없어요.",
   kind: {

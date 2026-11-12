@@ -163,3 +163,46 @@ export const srOnly = style({
   clip: "rect(0 0 0 0)",
   whiteSpace: "nowrap",
 });
+
+/** ③ 한 줄 — 분해 표 아래 · 사실 목록 위. 본문보다 한 단계 굵게(카드의 요지) */
+export const summaryBlock = style({ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0 });
+export const summaryText = style({
+  margin: 0,
+  fontSize: vars.typography.t6.fontSize,
+  lineHeight: vars.typography.t6.lineHeight,
+  fontWeight: vars.fontWeights.medium,
+  color: vars.colors.text.primary,
+  wordBreak: "keep-all",
+  overflowWrap: "anywhere",
+});
+/** 번호 칩 — 해설 칸(`ExplainCard`)과 같은 모양. 누르면 아래 그 사실 줄로 */
+export const citeChip = style({
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minWidth: "18px",
+  height: "18px",
+  marginLeft: "2px",
+  padding: "0 4px",
+  borderRadius: "6px",
+  background: "rgba(2,32,71,.05)",
+  color: vars.colors.text.secondary,
+  fontSize: "11px",
+  lineHeight: "18px",
+  fontWeight: vars.fontWeights.semibold,
+  fontVariantNumeric: "tabular-nums",
+  verticalAlign: "1px",
+  textDecoration: "none",
+  selectors: { "&:hover": { background: "rgba(2,32,71,.09)" } },
+});
+export const aiLabel = style({
+  margin: 0,
+  fontSize: "12px",
+  lineHeight: "16px",
+  color: vars.colors.text.tertiary,
+});
+/** 인용 칩이 가리킨 사실 줄 — 잠깐 바탕색(앵커 :target) */
+export const factTarget = style({
+  scrollMarginTop: "80px",
+  selectors: { "&:target": { background: "rgba(2,32,71,.05)", borderRadius: "8px" } },
+});

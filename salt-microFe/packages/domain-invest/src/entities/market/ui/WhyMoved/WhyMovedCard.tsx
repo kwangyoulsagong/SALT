@@ -106,11 +106,13 @@ const WhyMovedBody = ({ data, cautionLabel }: { data: WhyMoved & { split: MoveSp
       {split.method !== "regression" && <p className={s.caption}>{M.method[split.method]}</p>}
       <p className={s.caption}>{M.caption}</p>
 
+      <MoveSummaryLine data={data} />
+
       <h3 className={s.subheading}>{M.factsHeading}</h3>
       {data.facts.length > 0 ? (
         <ul className={s.factList}>
           {data.facts.map((f) => (
-            <li key={f.id} className={s.fact}>
+            <li key={f.id} id={factAnchor(f.id)} className={`${s.fact} ${s.factTarget}`}>
               <span className={s.factMeta}>
                 {isState(f.kind) ? null : <time dateTime={f.at}>{kstClock(f.at)}</time>}
                 <Badge size="sm" tone={f.kind === "disclosure" ? "brand" : "neutral"}>
@@ -131,6 +133,42 @@ const WhyMovedBody = ({ data, cautionLabel }: { data: WhyMoved & { split: MoveSp
           {M.unavailable(label)}
         </StatusLine>
       ))}
+    </div>
+  );
+};
+
+/** 사실 줄 앵커 — 인용 칩이 여기로 온다. id 의 `:` 등은 그대로 두면 CSS `:target` 이 안 맞을 수 있어 안전한 글자로 */
+const factAnchor = (id: string) => `why-moved-fact-${id.replace(/[^A-Za-z0-9_-]/g, "_")}`;
+
+/**
+ * ③ 한 줄(F016 단계 D · `FE-REQ-063` FR-1 ③) — 서버가 고른 문장을 그대로. `[k]` → 번호 칩(누르면 아래 그 사실 줄).
+ * `ai` 면 AI 생성 표시(설명 3종 게이트 — 없으면 그리지 않는다), `server`(조용한 날)는 표시 없이 문장만. `pending` 은 "정리하는 중" 한 줄.
+ * 그 밖의 게이트(검사 막음 · 꺼짐 · 못 읽음)는 아무것도 그리지 않는다 — ①② 만(UX 상태 표 "빈칸 · 안내 없음")
+ */
+const MoveSummaryLine = ({ data }: { data: WhyMoved }) => {
+  const summary = data.summary;
+  if (data.gate === "pending") return <StatusLine kind="progress">{M.summary.pending}</StatusLine>;
+  if (!summary) return null;
+  const byId = new Map(data.facts.map((f) => [f.id, f]));
+  if (summary.label === "ai" && (summary.citations.length === 0 || !summary.citations.every((id) => byId.has(id)))) return null;
+  const parts = summary.text.split(/(\[\d{1,2}\])/g).filter(Boolean);
+  return (
+    <div className={s.summaryBlock}>
+      <h3 className={s.srOnly}>{M.summary.headingSr}</h3>
+      <p className={s.summaryText}>
+        {parts.map((part, i) => {
+          const m = /^\[(\d{1,2})\]$/.exec(part);
+          const fact = m ? byId.get(summary.citations[Number(m[1]) - 1] ?? "") : undefined;
+          if (!m) return <span key={i}>{part}</span>;
+          if (!fact) return null;
+          return (
+            <a key={i} href={`#${factAnchor(fact.id)}`} className={s.citeChip} aria-label={M.summary.citationLabel(Number(m[1]), factText(fact))}>
+              {m[1]}
+            </a>
+          );
+        })}
+      </p>
+      {summary.label === "ai" && <p className={s.aiLabel}>{M.summary.aiLabel}</p>}
     </div>
   );
 };
