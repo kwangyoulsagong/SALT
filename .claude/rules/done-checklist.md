@@ -26,6 +26,7 @@
 | 예측 작업 락이 트랜잭션을 열어 둔 채 DB 전체 VACUUM 을 막음(8시간, 2026-11-10) | `salt-forecast` `tests/store/test_advisory_lock.py` · `test_job_timeout.py` | `uv run pytest` |
 | 인용이 가리키는 사실 id 에 회차 시각 — 장중 10분마다 ③ 이 사라짐(2026-11-12 F016 D) | `salt-server` `whyMoved.test.ts` 불변식(회차 · 값이 바뀌어도 같은 날 id 같음) | `npm test` |
 | 같은 LLM 상한을 앞 배치가 다 써 뒤 배치 시도 0(2026-11-12) | `salt-server` `opsGuards.test.ts` 예약 경계 | `npm test` |
+| 빨강(`danger`)이 되돌릴 수 있는 일에 붙음(로그아웃 빨간 메뉴, 2026-11-12) | 웹 lint `@repo/fsd/danger-only-irreversible` — 바로 위 주석에 되돌릴 수 없는 이유 | 저장 · `pnpm lint` |
 | FSD 레이어 · 도메인 경계 · zone 을 넘는 `<Link>` · `axios` · `motion` import | 레이어 훅 · lint(기존) | 쓰기 시점 |
 
 CI 는 두지 않는다(사용자 2026-11-04) — 영역 deliver 단계가 이 명령들을 부른다.

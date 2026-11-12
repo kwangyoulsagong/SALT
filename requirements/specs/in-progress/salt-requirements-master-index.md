@@ -1103,3 +1103,4 @@ ACL** 로 바뀌었다. 남은 것은 FR-33(`auth`·`goal`·`notification`·동�
 | 2026-11-12 | **서버 S3c done**(`MONEY-S3c-identity-my-data`) — `SRV-REQ-048` FR-3 · 4 · `DB-REQ-040` FR-4 · `BFF-REQ-046` FR-7 · `FE-REQ-055` FR-5 · FEATURE-015 FR-3. 짝 `DB-REQ-037` · `038`(원장 지우기 예외) · `SRV-REQ-045` · `046` · `047` · `BFF-REQ-045` · `DB-REQ-017` · `FE-REQ-009` · `053`. 분류 · 계측은 S3d |
 | 2026-11-12 | 서버 S3c 확인 2회차 — 새 패널 대비 결함 셋 고침 · EXPLAIN · 로딩 · 실패 · 갱신 소비처 · 경로 충돌 0 |
 | 2026-11-12 | 서버 S3c 확인 3회차 — 지워지는 범위 BFF 소유(결함 1) · main 나란히 · 운영 빌드 |
+| 2026-11-12 | S3c 브랜치 — 로그아웃 빨강 뺌 · lint `danger-only-irreversible` · done 체크리스트 §1 한 줄 |
