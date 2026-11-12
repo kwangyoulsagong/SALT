@@ -37,12 +37,12 @@
 | 발급 스크립트 표 없음 | 서비스 계정 기본 search_path 가 public | `PGOPTIONS=-c search_path=identity` |
 | 사람 경로의 만료 게스트 토큰이 `Token expired` | 만료 판정이 종류 판정보다 먼저 | 게스트 모양이면 만료여도 `Invalid token`(옛 동작) |
 | 새 계정의 Express 쓰기 FK 위반(Whale Signals) | 마이그레이션(FK 끊기) 미적용 상태 | 적용은 승인 대기 — 임시 계정 삭제로 일관성 복귀 |
-| 리밸런스 P2002(이 브랜치 전부터 374회) | Prisma `upsert` = 조회 → 생성, 같은 사람 회차가 겹침 | 없으면 넣기(ON CONFLICT DO NOTHING) → 갱신 → 읽기 |
+| 리밸런스 P2002(이 브랜치 전부터 374회) | Prisma `upsert` = 조회 → 생성, 같은 사람 회차가 겹침 | 없으면 넣기(ON CONFLICT DO NOTHING) → 갱신 → 읽기 · 16:10 회차 `✅ Investment insights generated successfully`(리밸런스 실패 0) |
+| Smart Buy Zones FK 위반(이 브랜치 전부터 73회) | 전역 인사이트를 `userId: "global"` 로 쓰는데 그런 사용자 행이 없다 — `users` FK 가 막음 | FK 끊기 마이그레이션(`DB-REQ-036` B1)이 이 꼴 전체를 닫는다 — 적용 승인 대기 |
 
 ## 미검증 · 범위 밖
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| Prisma 마이그레이션 적용 · 적용 뒤 새 가입자의 Express 쓰기 | 되돌리기 어려운 DB 작업 — 자동 모드가 막음, 사용자 승인 필요 | 승인 즉시(적용 → 임시 사용자로 관심 · 인사이트 쓰기 확인) |
+| Prisma 마이그레이션 적용 · 적용 뒤 새 가입자의 Express 쓰기 · Smart Buy Zones `global` 쓰기 | 되돌리기 어려운 DB 작업 — 자동 모드가 막음, 사용자 승인 필요 | 승인 즉시(적용 → 임시 사용자로 관심 · 인사이트 쓰기 확인) |
 | 옛 HS 종료 실측(서명 맞는 옛 토큰 401) | 끝 시각이 11-27 | 2026-11-27 — HS 코드 · 비밀 삭제와 같이 |
-| 리밸런스 고침 서버 회차 | 다음 10분 회차 대기 | 같은 날 회차 로그 |
