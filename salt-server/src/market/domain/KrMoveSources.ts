@@ -41,8 +41,23 @@ export const isKrNewsPromo = (title: string, patterns: readonly RegExp[]): boole
  * 맥 수면으로 회차를 놓쳐도 깨어난 회차가 200건(약 8분 · 장외엔 수 시간)까지 메운다. 그 앞은 버린다(소식은 그날 것이 중요하다)
  */
 export const KR_NEWS_MAX_PAGES = 5;
-/** 보관 일수(`DB-REQ-041` FR-1) — 정리 워커가 나눠 지운다 */
-export const KR_NEWS_RETENTION_DAYS = 30;
+/**
+ * 보관 일수(`DB-REQ-041` FR-1) — 정리 워커가 나눠 지운다. ~~30~~ **400**(2026-11-12 F017 단계 6 `SRV-REQ-053` FR-6): 측정 태그의
+ * "같은 종류 과거 반응"은 1년 표본이 있어야 선다 — 30일이면 공시 종류마다 수십 건뿐이다. 하루 약 1,400행(관련 종목 있는 것만) → 56만 행
+ */
+export const KR_NEWS_RETENTION_DAYS = 400;
+/** 과거 제목 백필 목표(F017 단계 6) — 원천이 1년 전 쪽도 준다(2026-11-12 실측 2025-11-03 15:00 쪽 40건) */
+export const KR_NEWS_BACKFILL_DAYS = 365;
+
+/**
+ * 백필 한 회차 쪽 수 — 장 시간(평일 08:30~16:00 KST)엔 2쪽만(현재가 · 호가가 한도를 쓴다), 그 밖엔 30쪽(1건/s 에서 한 회차가 1분 안에 끝난다).
+ * 하루 약 35쪽 × 365일 ≈ 1.3만 쪽 — 장 밖 매분 30쪽이면 약 7시간. 쪽은 KIS 한도 맨 뒤(`backfill`)라 다른 호출을 밀지 않는다
+ */
+export const krNewsBackfillPages = (now: Date): number => {
+  const { hour, minute, weekday } = kstClock(now);
+  const hm = hour * 60 + minute;
+  return weekday >= 1 && weekday <= 5 && hm >= 8 * 60 + 30 && hm < 16 * 60 ? 2 : 30;
+};
 
 /**
  * 시황 제목 글자 정리 — 원천 제목에 줄바꿈과 `0x1A`(원천 문자셋이 못 옮긴 글자 — "삼성전기␚AI 기판"처럼 가운뎃점 자리)가 섞여 온다
@@ -172,7 +187,7 @@ export interface KrMoveSourcePort {
    * 시장 전체 시황/공시 제목 한 쪽(최신이 앞, 40건). `before` 가 있으면 그 시각(KST 날짜 · hhmmss) 이하부터 — 쪽 넘김.
    * 같은 시각 경계 행은 두 쪽에 겹쳐 올 수 있다(일련번호로 하나로)
    */
-  newsTitlesPage(before: { date: string; hhmmss: string } | null): Promise<KrNewsTitleFact[]>;
+  newsTitlesPage(before: { date: string; hhmmss: string } | null, opts?: { backfill?: boolean }): Promise<KrNewsTitleFact[]>;
   /** 업종 현재지수 — 지수 TR 그대로 */
   indexQuote(code: string): Promise<KrSectorIndexFact>;
   /** 종목 프로그램 매매 누적 최신 행. 그날 체결이 없으면 `null` */
@@ -196,6 +211,8 @@ export interface KrMoveSourceStore {
   saveNewsTitles(facts: Array<KrNewsTitleFact & { kind: KrNewsKind; promo: boolean }>, at: Date): Promise<number>;
   /** 가장 늦게 받은 제목의 게시 시각 — 쪽 넘김이 어디서 멈출지 */
   latestNewsPublishedAt(): Promise<Date | null>;
+  /** 가장 이른 제목의 게시 시각 — 과거 백필이 어디서 이어질지(F017 단계 6) */
+  earliestNewsPublishedAt(): Promise<Date | null>;
   /** 한 종목 `since` 뒤 제목(최신이 앞) · 광고성 제외 · `limit` 건 */
   newsTitles(code: string, since: Date, limit: number): Promise<StoredKrNewsTitle[]>;
   /** 제목 하나 — 그 종목에 걸린 것만(광고성 제외). 기사 본문 찾기(`SRV-REQ-054`)의 입력. 없으면 `null` */
@@ -232,7 +249,7 @@ export interface KrMoveSourceStore {
 
 const kstClock = (now: Date) => {
   const kst = new Date(now.getTime() + 9 * 3_600_000);
-  return { hour: kst.getUTCHours(), minute: kst.getUTCMinutes() };
+  return { hour: kst.getUTCHours(), minute: kst.getUTCMinutes(), weekday: kst.getUTCDay() };
 };
 
 /** KST 그날 00:00 — "오늘 소식"의 시작 */

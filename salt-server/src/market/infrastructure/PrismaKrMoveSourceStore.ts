@@ -50,6 +50,11 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
     return row?.publishedAt ?? null;
   }
 
+  async earliestNewsPublishedAt() {
+    const row = await prisma.krNewsTitle.findFirst({ orderBy: { publishedAt: "asc" }, select: { publishedAt: true } });
+    return row?.publishedAt ?? null;
+  }
+
   async newsCollectedAt() {
     const row = await prisma.krNewsTitle.aggregate({ _max: { collectedAt: true } });
     return row._max.collectedAt ?? null;

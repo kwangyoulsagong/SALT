@@ -138,7 +138,8 @@ const isRetryableKisError = (error: unknown): boolean => {
  * 페이서가 출발 자리가 날 때마다 작은 값부터 보낸다. 폴링 안의 보유 → 관심 → 시총 순서는 유니버스 순서가 정한다
  * (같은 우선순위는 요청 순서). 실시간(WS) 자체는 REST 를 쓰지 않는다 — 승인키 · 토큰 발급이 그 자리다
  */
-export const KIS_PRIORITY = { realtime: 0, viewer: 1, poll: 2, candles: 3, supplement: 4 } as const;
+/** `backfill` — 과거 제목 백필(F017 단계 6) 같은 밀려도 되는 일. 줄의 맨 뒤 */
+export const KIS_PRIORITY = { realtime: 0, viewer: 1, poll: 2, candles: 3, supplement: 4, backfill: 5 } as const;
 type KisPriority = (typeof KIS_PRIORITY)[keyof typeof KIS_PRIORITY];
 
 /**
@@ -574,7 +575,7 @@ export class KisClient
    * 시황/공시 제목 한 쪽(F016 단계 B · FR-1) — 종목 칸을 비우면 **시장 전체**(2026-11-06 11:42 실측 40건 ≈ 4분치). `before` 를 주면 그 시각
    * 이하부터(쪽 넘김 — 같은 날 09:00 을 주면 09:00:00 ~ 08:58:26 40건). 시각은 그날 KST 벽시계 → UTC. 관련 종목은 `iscd1`~`iscd10`
    */
-  async newsTitlesPage(before: { date: string; hhmmss: string } | null): Promise<KrNewsTitleFact[]> {
+  async newsTitlesPage(before: { date: string; hhmmss: string } | null, opts: { backfill?: boolean } = {}): Promise<KrNewsTitleFact[]> {
     const body = await this.get(
       "/uapi/domestic-stock/v1/quotations/news-title",
       KIS_QUERY_TR.newsTitle,
@@ -588,7 +589,7 @@ export class KisClient
         FID_RANK_SORT_CLS_CODE: "",
         FID_INPUT_SRNO: "",
       },
-      KIS_PRIORITY.supplement
+      opts.backfill ? KIS_PRIORITY.backfill : KIS_PRIORITY.supplement
     );
     const rows: any[] = Array.isArray(body.output) ? body.output : [];
     return rows.flatMap((row): KrNewsTitleFact[] => {

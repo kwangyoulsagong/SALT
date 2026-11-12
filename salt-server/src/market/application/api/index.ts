@@ -109,6 +109,7 @@ import { PollKrAfterHours, PollKrIndices, PruneKrIndexTicks, SyncKrInvestorFlows
 import { InferKrMarketActions, PollKrViEvents } from "../SyncKrMarketStatus";
 import {
   BackfillKrIndexDaily,
+  BackfillKrNewsTitles,
   PollKrNewsTitles,
   PollKrProgramFlows,
   PollKrSectorIndices,
@@ -371,6 +372,7 @@ export interface KrStockUseCases {
   inferMarketActions: InferKrMarketActions;
   /** 시황/공시 제목 — 시장 전체 한 번(07~20시 2분 · 그 밖 30분, F016 단계 B) */
   pollNewsTitles: PollKrNewsTitles;
+  backfillNewsTitles: BackfillKrNewsTitles;
   /** 업종 지수 — 지수 회차와 같은 박자 */
   pollSectorIndices: PollKrSectorIndices;
   /** 장중 프로그램 매매 — 유니버스 10분마다 */
@@ -464,6 +466,7 @@ const createKrStockUseCases = (
     pollViEvents: new PollKrViEvents(deps.statusSource, deps.status, deps.calendar),
     inferMarketActions: new InferKrMarketActions(deps.supplement, deps.status, deps.calendar),
     pollNewsTitles: new PollKrNewsTitles(deps.moveSourceSource, deps.moveSources, deps.newsPromoPatterns),
+    backfillNewsTitles: new BackfillKrNewsTitles(deps.moveSourceSource, deps.moveSources, deps.newsPromoPatterns),
     pollSectorIndices: new PollKrSectorIndices(deps.moveSourceSource, deps.moveSources, deps.calendar, universe),
     pollProgramFlows: new PollKrProgramFlows(deps.moveSourceSource, deps.moveSources, deps.calendar, universe),
     pruneMoveSources: new PruneKrMoveSources(deps.moveSources),

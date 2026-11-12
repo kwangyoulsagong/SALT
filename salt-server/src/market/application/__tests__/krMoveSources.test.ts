@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import {
   isKrNewsPollMinute,
   isKrNewsPromo,
+  krNewsBackfillPages,
   krNewsKindOf,
   krSectorIndexCodeOf,
   type KrMarketCalendarStore,
@@ -18,6 +19,7 @@ import { GetKrIntradayFlows, GetKrNewsBody, GetKrStockNews } from "../ReadKrStoc
 import type { ResolveKrStockUniverse } from "../SyncKrStock";
 import {
   BackfillKrIndexDaily,
+  BackfillKrNewsTitles,
   PollKrNewsTitles,
   PollKrProgramFlows,
   PollKrSectorIndices,
@@ -173,6 +175,83 @@ describe("PollKrNewsTitles — 시장 전체 한 번 · 이미 받은 시각까�
   it("회차가 아니면 부르지 않는다 · 기동 실행(force)은 부른다", async () => {
     assert.equal((await run({ pages: [], latest: null, at: kst("11:41") })).asked.length, 0);
     assert.equal((await run({ pages: [[]], latest: null, at: kst("11:41"), force: true })).asked.length, 1);
+  });
+});
+
+describe("BackfillKrNewsTitles — 표의 가장 이른 제목에서 뒤로 · 1년 앞까지(F017 단계 6)", () => {
+  const run = async (opts: { pages: Array<KrNewsTitleFact[] | Error>; earliest: Date | null; at?: Date }) => {
+    const asked: Array<{ before: { date: string; hhmmss: string } | null; backfill?: boolean }> = [];
+    const saved: string[] = [];
+    const kis = {
+      newsTitlesPage: async (before: { date: string; hhmmss: string } | null, o?: { backfill?: boolean }) => {
+        const page = opts.pages[asked.length];
+        asked.push({ before, backfill: o?.backfill });
+        if (page instanceof Error) throw page;
+        return page ?? [];
+      },
+    } as unknown as KrMoveSourcePort;
+    const store = {
+      earliestNewsPublishedAt: async () => opts.earliest,
+      saveNewsTitles: async (facts: KrNewsTitleFact[]) => {
+        saved.push(...facts.map((f) => f.serial));
+        return facts.length;
+      },
+    } as unknown as KrMoveSourceStore;
+    // 기본 시각 = 장 밖(토요일) — 한 회차 30쪽
+    const result = await new BackfillKrNewsTitles(kis, store, [], () => opts.at ?? kst("11:00", "2026-11-07")).execute();
+    return { asked, saved, result };
+  };
+
+  it("쪽 수 경계 — 평일 08:30~16:00 KST 만 2쪽, 그 밖(평일 08:29 · 16:00 · 주말)은 30쪽", () => {
+    const table: Array<[string, string, number]> = [
+      ["2026-11-06", "08:29", 30],
+      ["2026-11-06", "08:30", 2],
+      ["2026-11-06", "15:59", 2],
+      ["2026-11-06", "16:00", 30],
+      ["2026-11-07", "11:00", 30],
+      ["2026-11-08", "11:00", 30],
+    ];
+    for (const [d, hm, n] of table) assert.equal(krNewsBackfillPages(kst(hm, d)), n, `${d} ${hm}`);
+  });
+
+  it("가장 이른 제목 시각(KST)부터 뒤로 · KIS 한도 맨 뒤 · 관련 종목 있는 제목만", async () => {
+    const { asked, saved } = await run({
+      pages: [[title("3", "10:59", ["005930"]), title("2", "10:50", [])], [title("1", "10:40")], []],
+      earliest: kst("11:00", "2026-11-06"),
+    });
+    assert.deepEqual(asked.map((a) => a.before), [
+      { date: "2026-11-06", hhmmss: "110000" },
+      { date: "2026-11-06", hhmmss: "105000" },
+      { date: "2026-11-06", hhmmss: "104000" },
+    ]);
+    assert.ok(asked.every((a) => a.backfill === true));
+    assert.deepEqual(saved, ["3", "1"]);
+  });
+
+  it("1년 앞에 닿았으면 부르지 않는다 · 표가 비었으면 부르지 않는다(매분 수집이 먼저)", async () => {
+    const at = kst("11:00", "2026-11-07");
+    const yearAgo = new Date(at.getTime() - 365 * 86_400_000);
+    assert.equal((await run({ pages: [], earliest: yearAgo, at })).asked.length, 0);
+    assert.equal((await run({ pages: [], earliest: null, at })).asked.length, 0);
+    const older = { ...title("1", "10:00"), publishedAt: new Date(yearAgo.getTime() - 60_000) };
+    const near = await run({ pages: [[older], [title("0", "09:00")]], earliest: new Date(yearAgo.getTime() + 60_000), at });
+    assert.equal(near.asked.length, 1);
+    assert.equal(near.result.done, true);
+  });
+
+  it("같은 초에 쪽이 꽉 차면 1초 앞으로 — 멈춰 서지 않는다", async () => {
+    const page = [title("b", "10:40"), title("a", "10:40")];
+    const { asked } = await run({ pages: [page, page, []], earliest: kst("10:40", "2026-11-06") });
+    assert.deepEqual(asked.slice(0, 2).map((a) => a.before?.hhmmss), ["104000", "103959"]);
+  });
+
+  it("장 시간이면 2쪽에서 멈춘다 · 한도 초과면 받은 쪽만 저장하고 접는다", async () => {
+    const pages = [[title("3", "10:30")], [title("2", "10:20")], [title("1", "10:10")]];
+    const market = await run({ pages, earliest: kst("10:40", "2026-11-06"), at: kst("11:00", "2026-11-12") });
+    assert.equal(market.asked.length, 2);
+    const limited = await run({ pages: [[title("3", "10:30")], rateLimited], earliest: kst("10:40", "2026-11-06") });
+    assert.deepEqual(limited.saved, ["3"]);
+    assert.equal(limited.result.done, false);
   });
 });
 
@@ -372,7 +451,7 @@ describe("PollKrProgramFlows — 장중만 · 오늘 체결만 · 한도 양보"
 });
 
 describe("PruneKrMoveSources — 보관 기한", () => {
-  it("제목 30일 · 장중 수급 7일 · VI 30일 앞을 지운다", async () => {
+  it("제목 400일(F017 단계 6 — 태그 표본) · 장중 수급 7일 · VI 30일 앞을 지운다", async () => {
     let cutoffs: { news: Date; flows: Date; viEvents: Date } | null = null;
     const store = {
       prune: async (c: typeof cutoffs) => {
@@ -381,7 +460,7 @@ describe("PruneKrMoveSources — 보관 기한", () => {
       },
     } as unknown as KrMoveSourceStore;
     await new PruneKrMoveSources(store, () => new Date("2026-11-06T06:55:00Z")).execute();
-    assert.equal(cutoffs!.news.toISOString(), "2026-10-07T06:55:00.000Z");
+    assert.equal(cutoffs!.news.toISOString(), "2025-10-02T06:55:00.000Z");
     assert.equal(cutoffs!.flows.toISOString(), "2026-10-30T06:55:00.000Z");
     assert.equal(cutoffs!.viEvents.toISOString(), "2026-10-07T06:55:00.000Z");
   });

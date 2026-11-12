@@ -7,8 +7,10 @@ import {
   krNewsKindOf,
   kstDateOf,
   KR_FLOW_INTRADAY_RETENTION_DAYS,
+  KR_NEWS_BACKFILL_DAYS,
   KR_NEWS_MAX_PAGES,
   KR_NEWS_RETENTION_DAYS,
+  krNewsBackfillPages,
   KR_VI_RETENTION_DAYS,
   KR_INDEX_DAILY_PAGE,
   KR_INDEX_DAILY_REFILL_BELOW,
@@ -91,6 +93,61 @@ export class PollKrNewsTitles {
       this.now()
     );
     return { skipped: false as const, pages, received: facts.length, linked: linked.length, saved };
+  }
+}
+
+/**
+ * 과거 제목 백필(F017 단계 6 · `SRV-REQ-053` FR-6) — 측정 태그의 "같은 종류 과거 반응"은 1년 표본이 있어야 선다.
+ * 표의 가장 이른 제목에서 **뒤로** 쪽을 넘겨 `KR_NEWS_BACKFILL_DAYS` 앞까지 간다(이어 하기 위치 = 표 안의 가장 이른 시각 — 따로 적지 않는다).
+ * 쪽은 KIS 한도 맨 뒤(`backfill`), 한 회차 쪽 수는 장 시간이면 2 · 밖이면 30(`krNewsBackfillPages`). 저장 규칙은 매분 수집과 같다
+ * (관련 종목 있는 것만 · 광고성 표시). 같은 초에 40건이 몰려 쪽이 안 넘어가면 1초 앞으로 건너뛴다 — 멈춰 서지 않게(그 초의 나머지는 놓친다, 기록만)
+ */
+export class BackfillKrNewsTitles {
+  constructor(
+    private readonly kis: KrMoveSourcePort,
+    private readonly store: KrMoveSourceStore,
+    private readonly promoPatterns: readonly RegExp[],
+    private readonly now: () => Date = () => new Date()
+  ) {}
+
+  async execute() {
+    const at = this.now();
+    const target = new Date(at.getTime() - KR_NEWS_BACKFILL_DAYS * DAY_MS);
+    const earliest = await this.store.earliestNewsPublishedAt();
+    // 표가 비면 매분 수집이 먼저 선다 — 백필은 그 뒤에 잇는다
+    if (!earliest || earliest.getTime() <= target.getTime()) return { done: true as const, pages: 0, saved: 0 };
+
+    const budget = krNewsBackfillPages(at);
+    let before = kstHhmmss(earliest);
+    let pages = 0;
+    let saved = 0;
+    let reached = false;
+    try {
+      while (pages < budget) {
+        const page = await this.kis.newsTitlesPage(before, { backfill: true });
+        pages++;
+        if (page.length === 0) {
+          reached = true; // 원천 끝
+          break;
+        }
+        const linked = page.filter((f) => f.codes.length > 0);
+        saved += await this.store.saveNewsTitles(
+          linked.map((f) => ({ ...f, kind: krNewsKindOf(f.providerName), promo: isKrNewsPromo(f.title, this.promoPatterns) })),
+          this.now()
+        );
+        const oldest = page.reduce((a, b) => (a.publishedAt.getTime() <= b.publishedAt.getTime() ? a : b)).publishedAt;
+        if (oldest.getTime() <= target.getTime()) {
+          reached = true;
+          break;
+        }
+        const next = kstHhmmss(oldest);
+        before = next.date === before.date && next.hhmmss === before.hhmmss ? kstHhmmss(new Date(oldest.getTime() - 1_000)) : next;
+      }
+    } catch (error) {
+      if (!isKrRateLimited(error)) logger.warn(`국내 시황 제목 백필 실패: ${(error as Error).message}`);
+    }
+    if (pages > 0) logger.info(`🇰🇷 국내 제목 백필: ${pages}쪽 · 새 ${saved}건 · 위치 ${before.date} ${before.hhmmss}`);
+    return { done: reached, pages, saved };
   }
 }
 
