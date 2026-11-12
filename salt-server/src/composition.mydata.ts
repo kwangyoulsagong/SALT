@@ -52,6 +52,16 @@ class EraseGrantRequired extends DomainError {
   }
 }
 
+/**
+ * 지우기 허가 판정 — 허가가 있고 · 유효하고 · **접근 토큰과 같은 사람**이어야 그 사람 id. 아니면 `ERASE_GRANT_REQUIRED`(403).
+ * 플랫폼 `EraseGrants.require` 와 같은 판정(`userRows.test.ts` 경계 표)
+ */
+export const grantedUserId = async (verifier: Pick<TokenVerifier, "eraseGrant">, header: unknown, userId: string): Promise<string> => {
+  const grant = typeof header === "string" && header.length > 0 ? await verifier.eraseGrant(header) : null;
+  if (!grant || grant.userId !== userId) throw new EraseGrantRequired();
+  return grant.userId;
+};
+
 export const createMyDataRouter = (verifier: TokenVerifier = tokenVerifier): Router => {
   const router = Router();
 
@@ -91,10 +101,8 @@ export const createMyDataRouter = (verifier: TokenVerifier = tokenVerifier): Rou
 
   router.delete("/", authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const header = req.headers[ERASE_HEADER];
-      const grant = typeof header === "string" && header.length > 0 ? await verifier.eraseGrant(header) : null;
-      if (!grant || grant.userId !== req.user!.userId) throw new EraseGrantRequired();
-      const deleted = await prisma.$transaction((tx) => eraseUserRows(tx, INVESTMENT_USER_ROWS, grant.userId));
+      const userId = await grantedUserId(verifier, req.headers[ERASE_HEADER], req.user!.userId);
+      const deleted = await prisma.$transaction((tx) => eraseUserRows(tx, INVESTMENT_USER_ROWS, userId));
       ResponseUtil.success(res, { service: SERVICE, deleted });
     } catch (error) {
       next(error);

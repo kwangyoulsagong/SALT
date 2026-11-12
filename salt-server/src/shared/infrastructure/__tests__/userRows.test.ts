@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 
 import { Prisma } from "@prisma/client";
 
-import { INVESTMENT_USER_ROWS } from "../../../composition.mydata";
+import { grantedUserId, INVESTMENT_USER_ROWS } from "../../../composition.mydata";
 import { checkUserRowSets, eraseUserRows } from "../userRows";
 
 /**
@@ -47,5 +47,13 @@ describe("투자 쪽 내 데이터 목록", () => {
     const counts = await eraseUserRows(db, [{ table: "a" }, { table: "logs", nullify: "user_id" }], "u1");
     assert.deepEqual(sql, ["DELETE FROM a WHERE user_id = $1", "UPDATE logs SET user_id = NULL WHERE user_id = $1"]);
     assert.deepEqual(counts, { a: 1, logs: 1 });
+  });
+
+  it("지우기 허가 — 같은 사람 허가만 통과 · 없음 · 빈 값 · 다른 사람 · 무효는 ERASE_GRANT_REQUIRED", async () => {
+    const verifier = { eraseGrant: async (t: string) => (t === "g-u1" ? { userId: "u1", email: "" } : t === "g-u2" ? { userId: "u2", email: "" } : null) };
+    assert.equal(await grantedUserId(verifier, "g-u1", "u1"), "u1");
+    for (const header of [undefined, "", ["g-u1"], "g-u2", "access-token"]) {
+      await assert.rejects(grantedUserId(verifier, header, "u1"), (e: { code?: string }) => e.code === "ERASE_GRANT_REQUIRED");
+    }
   });
 });

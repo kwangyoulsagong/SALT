@@ -186,6 +186,15 @@ class MyDataEndToEndTest : ContentHttp() {
         // 덧붙이기만 원장은 허가된 지우기 밖에서는 여전히 못 고치고 못 지운다
         shouldThrow<Exception> { householdDatabase.dsl.execute("DELETE FROM landing_issued WHERE user_id = ?", other.id) }.message!! shouldContain "append-only"
         shouldThrow<Exception> { savingsDatabase.dsl.execute("UPDATE projection_issued SET reason = 'x'") }.message!! shouldContain "append-only"
+        // 지우기 표지를 켠 트랜잭션에서도 고치기는 막힌다 — 예외는 DELETE 하나뿐
+        for (db in listOf(savingsDatabase to "UPDATE projection_issued SET reason = 'x'", householdDatabase to "UPDATE landing_issued SET reason = 'x'")) {
+            shouldThrow<Exception> {
+                db.first.dsl.transaction { tx ->
+                    tx.dsl().execute("SET LOCAL salt.erase = 'on'")
+                    tx.dsl().execute(db.second)
+                }
+            }.message!! shouldContain "append-only"
+        }
 
         val identity = ok(raw("DELETE", "/api/identity/me", me.access, """{"deleted":${jsonMapper.writeValueAsString(counts)}}""", grant)).path("deleted")
         identity.path("users").asInt() shouldBe 1
