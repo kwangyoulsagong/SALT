@@ -135,3 +135,11 @@ def test_선반영_봉마다_5봉_초과() -> None:
     a = align(series("A", [100, 100, 100, 100, 100, 100, 120]), flat_market(7), kr_breaks=False)
     rows = recent_pre_moves(a, T0 + 6 * DAY, keep=3)
     assert [round(r.pre_move_5d, 6) for r in rows] == [0.0, round(float(np.log(1.2)), 6)]
+
+
+def test_평소는_as_of_에_닫힌_창만() -> None:
+    """봉 10 까지 평평 · 그 뒤 매일 오름 — as_of 가 봉 10 이면 오른 창이 안 들어간다(봉을 잘라 주지 않아도)."""
+    closes = [100.0] * 11 + [100.0 * 1.05**k for k in range(1, 20)]
+    a = {"A": align(series("A", closes), flat_market(len(closes)), kr_breaks=False)}
+    assert baseline_up_rate(a, 1, T0 + 10 * DAY) == 0.0
+    assert (baseline_up_rate(a, 1, T0 + 40 * DAY) or 0) > 0.5
