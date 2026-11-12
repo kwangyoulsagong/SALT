@@ -14,6 +14,7 @@
     "./marketKr": "./src/market/krStock.ts",
     "./whyMoved": "./src/market/whyMoved.ts",
     "./newsBody": "./src/market/newsBody.ts",
+    "./newsTag": "./src/market/newsTag.ts",
     "./sse": "./src/sse/parser.ts",
     "./embed": "./src/embed/index.ts",
     "./home": "./src/home/homeSummaryCard.ts",

@@ -15,6 +15,7 @@ import { NEWS_MESSAGES as M } from "../../model/newsMessages";
 
 import * as s from "./News.css";
 import { NewsRow } from "./NewsRow";
+import { NewsTagReaction } from "./NewsTagReaction";
 
 const MINUS = "−";
 const rateTone = (v: number) => (Number(Math.abs(v).toFixed(2)) === 0 ? "flat" : v > 0 ? "up" : "down");
@@ -105,6 +106,8 @@ export const NewsModal = ({
           </nav>
         )}
         {article.imageUrl && <Image className={s.hero} src={article.imageUrl} alt="" width="100%" radius={16} />}
+        {/* 측정 태그는 본문 위 — 본문이 길면 아래 칸은 안 보인다(2026-11-12 실화면) */}
+        {article.tag && <NewsTagReaction tag={article.tag} />}
         <ArticleBodyBlock key={article.id} article={article} />
         {more.length > 0 && (
           <>
