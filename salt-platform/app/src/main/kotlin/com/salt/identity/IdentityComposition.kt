@@ -6,6 +6,9 @@ import com.salt.identity.api.FixedWindowLimit
 import com.salt.identity.application.AcceptInviteCode
 import com.salt.identity.application.ArrangeHome
 import com.salt.identity.application.CheckInviteCode
+import com.salt.identity.application.DeleteAccount
+import com.salt.identity.application.ExportAccount
+import com.salt.identity.application.IssueEraseGrant
 import com.salt.identity.application.ChooseDomains
 import com.salt.identity.application.FinishOnboarding
 import com.salt.identity.application.GetAccount
@@ -19,6 +22,9 @@ import com.salt.identity.application.RefreshSession
 import com.salt.identity.application.UpdateProfile
 import com.salt.identity.infrastructure.BcryptPasswordHasher
 import com.salt.identity.infrastructure.IdentityEvents
+import com.salt.identity.infrastructure.IdentityPersonalRecords
+import com.salt.identity.infrastructure.IdentityUserRows
+import com.salt.identity.infrastructure.JooqDeletionLog
 import com.salt.identity.infrastructure.JooqAccounts
 import com.salt.identity.infrastructure.JooqInviteAttempts
 import com.salt.identity.infrastructure.JooqInviteCodes
@@ -157,7 +163,7 @@ class IdentityComposition {
     fun identityLogin(accounts: JooqAccounts, tokens: RsaTokenIssuer, clock: Clock): Login = Login(accounts, BcryptPasswordHasher(), tokens, clock)
 
     @Bean
-    fun identityRefresh(tokens: RsaTokenIssuer): RefreshSession = RefreshSession(tokens)
+    fun identityRefresh(tokens: RsaTokenIssuer, accounts: JooqAccounts): RefreshSession = RefreshSession(tokens, accounts)
 
     @Bean
     fun identityGuest(tokens: RsaTokenIssuer, properties: IdentityProperties): IssueGuestToken = IssueGuestToken(tokens, properties.publicMarketGuest)
@@ -170,6 +176,29 @@ class IdentityComposition {
 
     @Bean
     fun identityUpdateProfile(accounts: JooqAccounts, clock: Clock): UpdateProfile = UpdateProfile(accounts, clock)
+
+    // ── 내 데이터(S3c) — 내보내기 · 지우기 허가 · 계정 지우기 ──
+    @Bean
+    fun identityPersonalRecords(@Qualifier("identityDatabase") database: ServiceDatabase): IdentityPersonalRecords =
+        IdentityPersonalRecords(IdentityUserRows.of(database.dsl))
+
+    @Bean
+    fun identityExportAccount(records: IdentityPersonalRecords): ExportAccount = ExportAccount(records)
+
+    @Bean
+    fun identityEraseGrant(accounts: JooqAccounts, tokens: RsaTokenIssuer): IssueEraseGrant = IssueEraseGrant(accounts, BcryptPasswordHasher(), tokens)
+
+    @Bean
+    fun identityDeleteAccount(
+        records: IdentityPersonalRecords,
+        @Qualifier("identityDatabase") database: ServiceDatabase,
+        jsonMapper: JsonMapper,
+        clock: Clock,
+    ): DeleteAccount = DeleteAccount(records, JooqDeletionLog(database.dsl, jsonMapper), clock)
+
+    /** 지우기 허가 요청 — 사용자당 10분 5번(비밀번호 대입 막기) */
+    @Bean
+    fun identityEraseGrantLimit(clock: Clock): FixedWindowLimit = FixedWindowLimit(Duration.ofMinutes(10), 5, clock)
 
     /** 요청 제한 — 옛 Express 와 같은 수(코드 확인 1분 30 · 수락 1분 10 · 게스트 10분 설정값) */
     @Bean

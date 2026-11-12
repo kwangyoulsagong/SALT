@@ -21,6 +21,9 @@ object SaltTokens {
     const val AUDIENCE_API = "salt-api"
     const val AUDIENCE_REFRESH = "salt-refresh"
     const val AUDIENCE_GUEST = "salt-guest"
+
+    /** 계정 삭제 허가 — 비밀번호를 다시 확인한 뒤 5분(서버 S3c, [EraseGrants]). API · 갱신 경로를 지나지 못한다 */
+    const val AUDIENCE_ERASE = "salt-erase"
 }
 
 /** 믿는 공개키 — identity 의 JWKS(지금 키 + 아직 은퇴 안 한 옛 키). 한 프로세스(S0~S2 · §8)라 identity 조립이 꽂는다 */

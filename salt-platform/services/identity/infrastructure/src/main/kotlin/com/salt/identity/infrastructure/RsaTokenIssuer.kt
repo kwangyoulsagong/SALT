@@ -18,8 +18,8 @@ import java.time.Duration
 import java.time.Instant
 import java.util.Date
 
-/** 토큰 수명 — 옛 Express 기본과 같다(접근 15분 · 갱신 7일 · 게스트 30분) */
-data class TokenLifetimes(val access: Duration, val refresh: Duration, val guest: Duration)
+/** 토큰 수명 — 옛 Express 기본과 같다(접근 15분 · 갱신 7일 · 게스트 30분). 지우기 허가는 S3c 새것(5분 — 비밀번호를 친 뒤 지우기까지) */
+data class TokenLifetimes(val access: Duration, val refresh: Duration, val guest: Duration, val erase: Duration = Duration.ofMinutes(5))
 
 /**
  * RS256 발급(`SRV-REQ-048` FR-8) — 접근 · 갱신 · 게스트가 **같은 키, 다른 `aud`**(`SaltTokens` 불변식).
@@ -49,6 +49,9 @@ class RsaTokenIssuer(
         val claims = base(SaltTokens.AUDIENCE_GUEST, lifetimes.guest).claim("kind", "guest").build()
         return sign(claims) to lifetimes.guest.seconds
     }
+
+    override fun issueErase(subject: TokenSubject): Pair<String, Long> =
+        sign(person(subject, SaltTokens.AUDIENCE_ERASE, lifetimes.erase)) to lifetimes.erase.seconds
 
     private fun person(subject: TokenSubject, audience: String, ttl: Duration): JWTClaimsSet =
         base(audience, ttl).subject(subject.userId).claim("userId", subject.userId).claim("email", subject.email).build()

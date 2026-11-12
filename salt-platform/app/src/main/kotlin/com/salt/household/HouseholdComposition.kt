@@ -1,5 +1,7 @@
 package com.salt.household
 
+import com.salt.household.infrastructure.HouseholdUserRows
+import com.salt.support.persistence.PersonalData
 import com.salt.app.SaltDbProperties
 import com.salt.household.api.RecurringWorker
 import com.salt.household.application.AddCategory
@@ -337,6 +339,11 @@ class HouseholdComposition {
 
     /** 월 화면과 쓰기가 같은 계산 — 빈이 아니라 조립 함수(상태 없음) */
     private fun fixedCostReader(database: ServiceDatabase) = FixedCostReader(JooqSpendingPatterns(database.dsl), JooqRecurringTemplates(database.dsl))
+
+    /** 내 데이터 — 내보내기 · 지우기(`SRV-REQ-048` FR-3 · 4, 서버 S3c). 경로는 앱 하나(`MyDataController`) */
+    @Bean
+    fun householdPersonalData(@Qualifier("householdDatabase") database: ServiceDatabase): PersonalData =
+        PersonalData(HouseholdUserRows.of(database.dsl), database.transactionManager)
 
     companion object {
         const val SCHEMA = "household"

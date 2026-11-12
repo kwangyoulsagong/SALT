@@ -54,6 +54,9 @@ interface TokenIssuer {
 
     /** 게스트 토큰(사람 정보 0) · 수명(초) */
     fun issueGuest(): Pair<String, Long>
+
+    /** 계정 삭제 허가(`aud` salt-erase) · 수명(초) — 비밀번호를 다시 확인한 뒤에만 부른다(서버 S3c) */
+    fun issueErase(subject: TokenSubject): Pair<String, Long>
 }
 
 /** 실패한 코드 시도 기록 — **실패해도 요청을 막지 않는다**(감사 로그가 가용성을 좌우하지 않게, 구현이 삼킨다) */
