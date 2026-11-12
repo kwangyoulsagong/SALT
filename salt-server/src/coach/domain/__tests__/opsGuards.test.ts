@@ -6,6 +6,7 @@ import {
   isForecastStale,
   isPriceFresh,
   judgmentCaveats,
+  LLM_RESERVED_CALLS,
   llmBudgetVerdict,
   resolveLlmLimits,
   staleJudgmentInputs,
@@ -79,6 +80,14 @@ describe("llmBudgetVerdict — 24시간 서버 전체 시도 · 토큰", () => {
     assert.deepEqual(llmBudgetVerdict({ calls: 299, tokens: 1_499_999 }, DEFAULT_LLM_BUDGET), { allowed: true, exceeded: null });
     assert.equal(llmBudgetVerdict({ calls: 300, tokens: 0 }, DEFAULT_LLM_BUDGET).exceeded, "total_calls");
     assert.equal(llmBudgetVerdict({ calls: 0, tokens: 1_500_000 }, DEFAULT_LLM_BUDGET).exceeded, "total_tokens");
+  });
+
+  it("남길 몫(reservedCalls) — 해설은 상한 끝 30회 앞에서 멈추고, 한 줄은 상한까지(F016 단계 D)", () => {
+    const r = LLM_RESERVED_CALLS.moveSummary;
+    assert.equal(llmBudgetVerdict({ calls: 300 - r - 1, tokens: 0 }, DEFAULT_LLM_BUDGET, r).allowed, true);
+    assert.equal(llmBudgetVerdict({ calls: 300 - r, tokens: 0 }, DEFAULT_LLM_BUDGET, r).exceeded, "total_calls");
+    assert.equal(llmBudgetVerdict({ calls: 300 - r, tokens: 0 }, DEFAULT_LLM_BUDGET).allowed, true);
+    assert.equal(llmBudgetVerdict({ calls: 0, tokens: 0 }, { totalCalls: 5, totalTokens: 1 }, 99).allowed, false);
   });
 
   it("env 덮어쓰기는 준 칸만 바꾼다", () => {

@@ -11,6 +11,7 @@ import {
   isStorableExplanation,
   llmSentenceCount,
   LLM_BUDGET_WINDOW_MS,
+  LLM_RESERVED_CALLS,
   llmBudgetVerdict,
   resolveLlmLimits,
   verifyExplanation,
@@ -75,7 +76,9 @@ export class GenerateExplanationSnapshots {
     try {
       const verdict = llmBudgetVerdict(
         await usage.usageSince(new Date(this.now().getTime() - LLM_BUDGET_WINDOW_MS)),
-        resolveLlmLimits(this.deps.limits)
+        resolveLlmLimits(this.deps.limits),
+        // 같은 워커 뒤에 도는 오늘 등락 한 줄 몫을 남긴다(F016 단계 D — 해설이 상한을 다 써 한 줄이 굶었다)
+        LLM_RESERVED_CALLS.moveSummary
       );
       if (verdict.exceeded === "total_tokens") return { allowed: true, geminiAllowed: false };
       return { allowed: verdict.allowed, geminiAllowed: verdict.allowed };
