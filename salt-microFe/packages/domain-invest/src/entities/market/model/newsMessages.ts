@@ -22,6 +22,30 @@ export const NEWS_MESSAGES = {
   moreSearch: "같은 검색의 다른 소식",
   /** 모달 이름(제목이 없을 때) */
   dialogLabel: "소식 자세히",
+  /**
+   * 측정 태그(F017 단계 6 · `FE-REQ-064` FR-5) — 측정 이름만(호재 · 악재 단어 0, `ADR-009` 개정). 숫자는 서버 값, 문구는 여기.
+   * 라벨 = 1거래일 동안 시장보다 더 오른 비율이 평소와 달랐나(사전등록 `news-reaction@1` 이 정한다)
+   */
+  tag: {
+    label: {
+      up_usually: "보통 올랐던 소식",
+      down_usually: "보통 내렸던 소식",
+      mixed: "반응 엇갈림",
+    },
+    few: (n: number) => (n > 0 ? `같은 종류 ${n}건뿐` : "같은 종류 기록 쌓는 중"),
+    preMove: (pct: string) => `선반영 ${pct}`,
+    /** 행 칩 묶음 이름 — 스크린리더가 한 번에 읽는다 */
+    groupLabel: (kind: string, label: string) => `측정 태그: ${kind}, ${label}`,
+    heading: "같은 종류 과거 반응",
+    /** 모달 — 숫자 한 줄씩(n · 1일 평균 · 오른 비율 · 평소) */
+    sample: (n: number) => `과거 같은 종류 ${n}건`,
+    day: (days: number) => (days === 1 ? "1일 뒤" : `${days}일 뒤`),
+    mean: (pct: string) => `시장 대비 평균 ${pct}`,
+    upRate: (rate: string, base: string) => `시장보다 더 오른 비율 ${rate} · 평소 ${base}`,
+    belowMin: "표본이 적어 비율은 아직 안 보여요",
+    preMoveLine: (pct: string) => `소식 전 5일 동안 시장보다 ${pct}`,
+    note: "시장 전체 움직임을 뺀 값이에요. 과거 기록이고 앞으로를 말하지 않아요.",
+  },
 } as const;
 
 /** 주소 쿼리 이름 — `?news=<id>`(새로고침 · 뒤로가기로 열고 닫힌다) */

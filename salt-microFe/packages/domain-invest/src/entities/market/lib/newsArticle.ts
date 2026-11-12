@@ -1,5 +1,6 @@
 import type { KrNewsItem } from "@repo/core/marketKr";
 import type { ArticleBodyRef } from "@repo/core/newsBody";
+import type { NewsTag } from "@repo/core/newsTag";
 
 import type { NewsPreviewItem, SearchNews } from "../model/types";
 
@@ -23,6 +24,8 @@ export interface NewsArticleView {
   related: Array<{ symbol: string; name: string; changeRate: number | null }>;
   /** 본문을 찾을 기사 — 공시는 기사가 아니라 `null`(`FE-REQ-068`) */
   bodyRef: ArticleBodyRef | null;
+  /** 측정 태그(F017 단계 6) — 행 칩 · 모달 "같은 종류 과거 반응". 없으면 그리지 않는다 */
+  tag: NewsTag | null;
 }
 
 export const krNewsToView = (n: KrNewsItem, kindLabel: string, code: string): NewsArticleView => ({
@@ -36,6 +39,7 @@ export const krNewsToView = (n: KrNewsItem, kindLabel: string, code: string): Ne
   badge: { label: kindLabel, tone: n.kind === "disclosure" ? "brand" : "neutral" },
   related: (n.related ?? []).map((r) => ({ symbol: r.code, name: r.name, changeRate: r.changeRate })),
   bodyRef: n.kind === "news" ? { kind: "kr", code, serial: n.id } : null,
+  tag: n.tag ?? null,
 });
 
 /** 글자 · 숫자만 남긴 비교용 문자열 */
@@ -64,6 +68,7 @@ export const coinNewsToView = (n: NewsPreviewItem, symbol: string, name: string)
   badge: null,
   related: [{ symbol, name, changeRate: null }],
   bodyRef: { kind: "coin", id: n.id },
+  tag: n.tag ?? null,
 });
 
 /**
@@ -88,5 +93,7 @@ export const searchNewsToView = (n: SearchNews, kindLabel: (kind: "news" | "disc
         : n.kind === "news" && firstCode
           ? { kind: "kr", code: firstCode, serial: n.id }
           : null,
+    // 검색 결과엔 태그가 없다(검색 뉴스 묶음은 F017 단계 6 범위 밖 — 모달은 태그 칸 없이)
+    tag: null,
   };
 };

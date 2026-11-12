@@ -26,6 +26,8 @@ import {
   type MoveCardPolicy,
   type MoveCardReason,
   type MoveFact,
+  type NewsOrigin,
+  type NewsTagMarket,
   type MoveFactGroup,
   type MoveFactKind,
   type MoveSplit,
@@ -33,6 +35,7 @@ import {
   type SymbolNewsPort,
   UnknownMarketSymbolError,
 } from "../domain";
+import type { TagNews } from "./TagNews";
 import { cryptoMoveEvents, freshCryptoWarning, KR_STATE_BADGES, krMoveEvents, loadBetas, type MoveDependencies } from "./moveCard";
 import { KrStockRead, type KrStockReadDependencies } from "./ReadKrStock";
 import { loadKrSession } from "./SyncKrStock";
@@ -106,6 +109,29 @@ const group = async (kinds: MoveFactKind[], read: () => Promise<MoveFact[]>): Pr
 
 // ==================== 국내 ====================
 
+/**
+ * 같은 날 사실 중 소식에 측정 태그(F017 단계 6) — 목록 상한으로 남은 행만 · 태그는 덧붙임(실패면 TagNews 가 빈 Map).
+ * `related` = 사실 id → 원천 관련 종목(묶음 기사를 거를 때 센다)
+ */
+const attachNewsTags = async (
+  tagNews: Pick<TagNews, "execute"> | undefined,
+  market: NewsTagMarket,
+  symbol: string,
+  facts: MoveFact[],
+  related: ReadonlyMap<string, readonly string[]>
+): Promise<MoveFact[]> => {
+  if (!tagNews) return facts;
+  const items = facts.flatMap((f) => {
+    const codes = related.get(f.id);
+    return codes
+      ? [{ id: f.id, symbol, origin: (f.kind === "disclosure" ? "disclosure" : "news") as NewsOrigin, related: codes, title: f.title, publishedAt: f.at }]
+      : [];
+  });
+  if (items.length === 0) return facts;
+  const tags = await tagNews.execute(market, items);
+  return facts.map((f) => (related.has(f.id) ? { ...f, tag: tags.get(f.id) ?? null } : f));
+};
+
 export class GetKrWhyMoved extends KrStockRead {
   constructor(
     deps: KrStockReadDependencies,
@@ -165,16 +191,21 @@ export class GetKrWhyMoved extends KrStockRead {
     const events = krMoveEvents(badges, vi !== null || isKrViCodeActive(quote.viCode), marketActions, quote.market);
     const reasons = moveCardReasons(quote.changeRate, beta?.sigmaRate ?? null, events, this.move.policy);
 
+    const related = new Map<string, string[]>();
     const merged = mergeMoveFacts([
       await group(["news", "disclosure"], async () =>
-        (await this.deps.moveSources.newsTitles(code, since, MOVE_FACTS_LIMIT)).map((n) => ({
+        {
+          const titles = await this.deps.moveSources.newsTitles(code, since, MOVE_FACTS_LIMIT);
+          for (const n of titles) related.set(`kr-news:${n.serial}`, n.related.map((r) => r.code));
+          return titles.map((n) => ({
           id: `kr-news:${n.serial}`,
           kind: n.kind,
           at: n.publishedAt,
           source: n.providerName,
           title: n.title,
           value: null,
-        }))
+          }));
+        }
       ),
       { kinds: ["vi"], facts: viResult.ok ? (vi ? [viFact(vi)] : []) : null },
       {
@@ -199,7 +230,8 @@ export class GetKrWhyMoved extends KrStockRead {
       }),
     ]);
 
-    return { code, ...toView(today, split, reasons, beta?.sigmaRate ?? null, merged) };
+    const facts = await attachNewsTags(this.deps.tagNews, "kr", code, merged.facts, related);
+    return { code, ...toView(today, split, reasons, beta?.sigmaRate ?? null, { ...merged, facts }) };
   }
 }
 
@@ -246,7 +278,9 @@ export class GetCryptoWhyMoved {
     private readonly assets: MarketAssetRepository,
     private readonly news: SymbolNewsPort,
     private readonly move: MoveDependencies,
-    private readonly now: () => Date = () => new Date()
+    private readonly now: () => Date = () => new Date(),
+    /** 소식 측정 태그(F017 단계 6). 없으면 태그 없음(테스트) */
+    private readonly tagNews?: Pick<TagNews, "execute">
   ) {}
 
   /** 없는 종목은 `UnknownMarketSymbolError`(404) */
@@ -286,12 +320,13 @@ export class GetCryptoWhyMoved {
     const reasons =
       quote.change24h === null ? [] : moveCardReasons(quote.change24h, beta?.sigmaRate ?? null, cryptoMoveEvents(warning), this.move.policy);
 
+    const related = new Map<string, string[]>();
     const merged = mergeMoveFacts([
-      await group(["crypto_news"], async () =>
-        (await this.news.recent(symbol, CRYPTO_NEWS_SCAN))
-          .filter((n) => n.publishedAt.getTime() >= since.getTime())
-          .map((n) => ({ id: `crypto-news:${n.id}`, kind: "crypto_news" as const, at: n.publishedAt, source: n.source, title: n.title, value: null }))
-      ),
+      await group(["crypto_news"], async () => {
+        const today = (await this.news.recent(symbol, CRYPTO_NEWS_SCAN)).filter((n) => n.publishedAt.getTime() >= since.getTime());
+        for (const n of today) related.set(`crypto-news:${n.id}`, n.symbols ?? [symbol]);
+        return today.map((n) => ({ id: `crypto-news:${n.id}`, kind: "crypto_news" as const, at: n.publishedAt, source: n.source, title: n.title, value: null }));
+      }),
       {
         kinds: ["crypto_warning"],
         facts: warnings.ok
@@ -305,7 +340,8 @@ export class GetCryptoWhyMoved {
       },
     ]);
 
-    return { symbol, ...toView(kstDateOf(now), split, reasons, beta?.sigmaRate ?? null, merged) };
+    const facts = await attachNewsTags(this.tagNews, "crypto", symbol, merged.facts, related);
+    return { symbol, ...toView(kstDateOf(now), split, reasons, beta?.sigmaRate ?? null, { ...merged, facts }) };
   }
 }
 

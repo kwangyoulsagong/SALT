@@ -235,3 +235,7 @@
 
 - 닿은 것: `market/application/api/index.ts` `assetQuotes` 국내 행에 `openPrice`(시가)를 싣는다 — 점검 K3. 기존 필드 무변경
 - 문제 · 액션: 없음 — 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064`
+
+## 2026-11-12 — F017 단계 6 덧붙임
+
+- 이 REQ 의 코드에 측정 태그 칸을 더했다(덧붙임 — 없거나 실패면 이전과 같은 화면). 새 교훈은 주인 REQ(`SRV-REQ-053` 회고)에

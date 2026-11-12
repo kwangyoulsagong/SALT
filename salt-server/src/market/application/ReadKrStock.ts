@@ -49,8 +49,10 @@ import {
   type KrArticleBodyPort,
   type KrArticleBodyView,
   KrArticleBodyUnavailableError,
+  type NewsTag,
 } from "../domain";
 import { logger } from "../../shared/config/logger";
+import type { TagNews } from "./TagNews";
 import { krMoveEvents, moveCardFlags, type MoveDependencies } from "./moveCard";
 import { loadKrSession } from "./SyncKrStock";
 
@@ -262,6 +264,8 @@ export interface KrStockReadDependencies {
   move?: Pick<MoveDependencies, "betas" | "policy">;
   /** 기사 본문(`SRV-REQ-054`) — `news` 공개 API ACL. 없으면 본문 경로가 503(테스트 · 옛 조립) */
   articleBody?: KrArticleBodyPort;
+  /** 소식 측정 태그(F017 단계 6). 없으면 태그 없음(테스트 · 옛 조립) */
+  tagNews?: Pick<TagNews, "execute">;
   now?: () => Date;
 }
 
@@ -610,6 +614,19 @@ export class GetKrStockNews extends KrStockRead {
         ? null
         : await this.deps.moveSources.newsTitles(code, new Date(now.getTime() - KR_NEWS_RECENT_DAYS * 86_400_000), KR_NEWS_READ_LIMIT);
     const items = recent ?? today;
+    const tags = this.deps.tagNews
+      ? await this.deps.tagNews.execute(
+          "kr",
+          items.map((n) => ({
+            id: n.serial,
+            symbol: code,
+            origin: n.kind,
+            related: n.related.map((r) => r.code),
+            title: n.title,
+            publishedAt: n.publishedAt,
+          }))
+        )
+      : new Map<string, NewsTag>();
     return {
       code,
       date: kstDateOf(now),
@@ -624,6 +641,8 @@ export class GetKrStockNews extends KrStockRead {
         publishedAt: n.publishedAt.toISOString(),
         // 뉴스 모달 칩(FE-REQ-065) — 이름 · 등락률(%, 서버 값). 이 종목 자신도 들어 있다(원천 그대로)
         related: n.related,
+        /** 측정 태그(F017 단계 6) — 종류를 못 맞히면 null(행만) */
+        tag: tags.get(n.serial) ?? null,
       })),
     };
   }

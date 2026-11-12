@@ -80,6 +80,7 @@ Express 쪽 raw SQL 로 남의 표를 읽는 곳은 0(같은 grep — `market` �
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — 예측의 public 읽기를 export 뷰 둘로 더했다(`v_kr_news_title_export` · `v_news_article_export`) — FR-3 직접 읽기 목록은 늘리지 않음. S5 에 market 스키마로 옮길 때 이 뷰 이름만 옮긴다 |
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-02 | 국내 탭 요약 띠(`feat/kr-market-summary`, 루트 `F011-kr-market-summary-slice.md`): FR-2 주인 표 대상 모델 42 → **43** — `KrIndexTick`(`kr_index_ticks`, 주인 `market`). `KrIndexQuote` 열 3 추가(주인 그대로) |
 | 2026-11-03 | **S0**(`feat/srv-req-043-s0-platform`, 루트 `MONEY-S0-platform-slice.md`) — to-do → in-progress. FR-1 첫 판: `salt-platform/db/roles.sql`(스키마 9 + `ping`, 계정 `svc_<service>` · 스키마 주인 = 서비스 계정 · `REVOKE ALL FROM PUBLIC` · 아직 안 옮긴 서비스는 NOLOGIN) — Compose · Testcontainers 에서 실측, **로컬 운영 DB 에는 아직 안 돌림**(S1). FR-2 부록 A(41 — 42 정정) · FR-3 부록 B(10줄, 예측 추적 종목 읽기 B9 는 FR-7 에 뷰가 없던 빈칸). FR-5 서비스별 `V1__baseline.sql` 은 `ping` 에서 형태 확정(아웃박스 · 멱등 · ShedLock 표 셋이 모든 서비스 스키마 공통). FR-4 · 6 · 8 · 9 와 나머지 FR-7 은 각 이전 단계 |

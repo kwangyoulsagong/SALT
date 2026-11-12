@@ -282,7 +282,7 @@ describe("오늘 소식 · 장중 수급 (F016 단계 B · BFF-REQ-051 FR-3 · 4
       ],
     });
     assert.equal(vm.items.length, 2);
-    assert.deepEqual(Object.keys(vm.items[0]!).sort(), ["id", "kind", "provider", "publishedAt", "related", "title"]);
+    assert.deepEqual(Object.keys(vm.items[0]!).sort(), ["id", "kind", "provider", "publishedAt", "related", "tag", "title"]);
     // 관련 종목(FE-REQ-065) — 칸 셋만 · 등락률 null 그대로 · 옛 서버(칸 없음)는 빈 배열
     assert.deepEqual(vm.items[0]!.related, [{ code: "005930", name: "삼성전자", changeRate: -1.2 }, { code: "000660", name: "SK하이닉스", changeRate: null }]);
     assert.deepEqual(vm.items[1]!.related, []);

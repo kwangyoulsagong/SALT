@@ -70,6 +70,7 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — 왜 움직였나 사실 뷰모델에 `tag`(소식만) — 사실 판정 · 모르는 kind 버리기는 그대로 |
 | 2026-11-06 | 신규(to-do) |
 | 2026-11-06 | 단계 B done — FR-3 · FR-4(정정: 프로그램만) |
 | 2026-11-06 | in-progress — 단계 A(FR-2 · 5) done. FR-2 를 별도 경로 대신 요약 · 상세 응답 칸으로 정정 |

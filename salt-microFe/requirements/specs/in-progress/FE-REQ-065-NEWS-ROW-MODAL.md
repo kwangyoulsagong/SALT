@@ -61,6 +61,7 @@ source: salt-microFe/requirements/reports/research/2026-11-09-news-ui-measure.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — 뉴스 행(`NewsRow`)에 측정 태그 칩 · `NewsArticleView.tag`. 검색 모달 뉴스는 태그 없음(범위 밖) |
 | 2026-11-09 | 신규(to-do) — 참고 화면 실측 · 데이터 제약 · 설계(`2026-11-09-news-ui-measure.md`) |
 | 2026-11-09 | to-do → in-progress — FR-1~7 · 9 done(FR-3 · 6 · 9 정정). 남은 것 FR-8(390 바텀 시트) |
 | 2026-11-09 | FR-4 · 5 정정 — 본문 0 → 본문은 `FE-REQ-068`(사용자 결정 · `ADR-009` 개정) |

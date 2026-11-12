@@ -11,6 +11,8 @@
  * ③ 한 줄(`summary` · `gate`)은 단계 D 가 칸과 같이 넣는다 — 쓰지 않는 칸을 미리 두지 않는다.
  */
 
+import { toNewsTagVM, type NewsTagVM } from "./news-tag.viewmodel";
+
 export const MOVE_FACT_KINDS = [
   "news",
   "disclosure",
@@ -53,6 +55,8 @@ export interface MoveFactVM {
   title: string;
   /** 숫자 사실 — 프로그램 순매수(원) · VI 발동가(원) · 없으면 `null` */
   value: number | null;
+  /** 측정 태그(F017 단계 6 · `BFF-REQ-052` FR-5) — 소식만 · 종류를 못 맞히거나 모르는 라벨이면 null */
+  tag: NewsTagVM | null;
 }
 
 export interface WhyMovedVM {
@@ -125,7 +129,7 @@ export const toWhyMovedVM = (raw: unknown): WhyMovedVM => {
     facts: arr(r, "facts").flatMap((d): MoveFactVM[] => {
       const f = obj(d, "fact");
       if (!known(MOVE_FACT_KINDS, f.kind)) return [];
-      return [{ id: str(f, "id"), kind: f.kind, at: str(f, "at"), source: str(f, "source"), title: str(f, "title"), value: numOrNull(f, "value") }];
+      return [{ id: str(f, "id"), kind: f.kind, at: str(f, "at"), source: str(f, "source"), title: str(f, "title"), value: numOrNull(f, "value"), tag: toNewsTagVM(f.tag) }];
     }),
     unavailable: arr(r, "unavailable").filter((x): x is MoveFactKindVM => known(MOVE_FACT_KINDS, x)),
   };

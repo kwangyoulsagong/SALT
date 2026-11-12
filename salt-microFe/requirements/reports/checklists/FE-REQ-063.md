@@ -86,3 +86,9 @@
   - `salt-microFe/packages/domain-invest/src/pages/investment-detail/ui/KrWhyMoved.tsx` — "국내 소유자 전용" 주석 정정(`ADR-011`)
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-12 — F017 단계 6 덧붙임
+
+- [x] 왜 움직였나 사실 줄 아래 측정 태그 칩(소식만 · `NewsTagChips` 한 벌). 분해 · 사실 순서는 그대로
+- [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
+- 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`

@@ -526,3 +526,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `market/application/api/index.ts` `assetQuotes` 국내 행에 `openPrice`(시가)를 싣는다 — 점검 K3. 기존 필드 무변경 · `npm run build` · `npm run lint` · `npm test` 1200 통과 · `npm run test:layer-check` · 레이어 훅 사후 실행(음성 대조 exit 2) · `prisma migrate diff` 0 |
+
+## 2026-11-12 — F017 단계 6 덧붙임
+
+- [x] `GetKrStockNews` 항목에 `tag`(측정 태그 — 덧붙임, 실패면 null). 읽기 경로 · 범위(오늘 · 최근 7일)는 그대로
+- [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
+- 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`

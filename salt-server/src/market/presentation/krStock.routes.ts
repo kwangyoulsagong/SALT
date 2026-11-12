@@ -377,13 +377,16 @@ export const createKrStockRouter = (
    *       저장값만 읽는다(KIS 종합 시황/공시 제목 — 시장 전체를 07~20시 2분마다 수집). 오늘(KST 00:00 뒤) 이 종목에 걸린 제목, 최신이 앞 ·
    *       최대 30건 · 광고성 제외. **본문 · 원문 링크 없음**(원천에 없다 — 시황 본문은 `/{code}/news/{serial}/body`). `kind` 는 `disclosure`(공시) | `news`(시황).
    *       `collectedAt` 은 시장 전체 마지막 수집 시각 — 빈 목록이 "소식 없음"인지 "수집 멈춤"인지 가른다.
+   *       `tag`(F017 단계 6 측정 태그, 사전등록 `news-reaction@2`) — 사건 종류를 못 맞히면 null. `label` 은 `up_usually` · `down_usually` ·
+   *       `mixed` · `few`(같은 종류 표본 미달) — 1거래일 초과 반응(시장 몫을 뺀)의 오른 비율이 평소와 다른가(Holm). 호재 · 악재 단어 0.
+   *       `reaction`(1일) · `reaction5d` = `{ days, sample, upRate, mean, baseUpRate }`(below_min 이면 비율 · 평균 null) · `preMove5d` = 소식 전 5거래일 초과 수익. `mean` · `preMove5d` 는 단순 비율(0.012 = +1.2%).
    *     tags: [Market - KR Stock]
    *     security: [{ bearerAuth: [] }]
    *     parameters:
    *       - { in: path, name: code, required: true, schema: { type: string, pattern: "^[0-9A-Z]{6}$" } }
    *     responses:
    *       200:
-   *         description: "`{ code, date, collectedAt, items: [{ id, kind, provider, title, publishedAt, related: [{ code, name, changeRate }] }] }` — related 는 관련 종목(마스터에 있는 것만 · 등락률 % 또는 null)"
+   *         description: "`{ code, date, collectedAt, items: [{ id, kind, provider, title, publishedAt, related: [{ code, name, changeRate }], tag: { eventKind, eventKindText, label, reaction, reaction5d, preMove5d, asOf, preregKey } | null }] }` — related 는 관련 종목(마스터에 있는 것만 · 등락률 % 또는 null)"
    *       404: { description: 마스터에 없는 종목 }
    *       503: { description: KIS 키 없음 }
    */

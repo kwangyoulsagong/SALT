@@ -133,3 +133,7 @@ FR-36 은 Should 였고 "끊겨 있으면 잇는다"였다. 확인해 보니 끊
 
 - 곁 칸은 고른 행마다 묻는다 — 화면 쪽 150ms 머묾 + 1분 staleTime 둘로 요청 수를 묶었다
 - 루트 회고 `requirements/reports/retrospects/FE-066-067-search-header.md`
+
+## 2026-11-12 — F017 단계 6 덧붙임
+
+- 이 REQ 의 코드에 측정 태그 칸을 더했다(덧붙임 — 없거나 실패면 이전과 같은 화면). 새 교훈은 주인 REQ(`SRV-REQ-053` 회고)에

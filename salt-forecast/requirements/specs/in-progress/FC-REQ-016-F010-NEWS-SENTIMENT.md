@@ -55,3 +55,9 @@ source: pm/requirements/specs/in-progress/FEATURE-010-judgment-engine-v2.md 기�
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-forecast/src/salt_forecast/jobs/news.py` — 뉴스 작업 20분 상한(`run_job(max_seconds)`) — 05:07 부터 외부 연결에 매달려 8시간
 | 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `salt-forecast/ops/daily.sh` 에 걸린 몫: 매일 배치 순서에 `judgment_tier`(점검 채점 뒤 · 1초). 뉴스 매시 경로는 그대로. 주인 `FC-REQ-028` FR-6. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — `ops/daily.sh` 에 `news_reaction`(국내 일봉 옮긴 뒤 · 22초) — 뉴스 원장 · 감성(`news_item`)은 건드리지 않음 |

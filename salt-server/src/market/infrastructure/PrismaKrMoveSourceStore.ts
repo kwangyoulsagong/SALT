@@ -1,5 +1,7 @@
 import prisma from "../../shared/infrastructure/prisma";
 import {
+  KR_NEWS_FRESHNESS_WINDOW_DAYS,
+  KR_NEWS_LIVE_LAG_MS,
   KR_PRUNE_BATCH,
   kstDateOf,
   krSectorIndexCodeOf,
@@ -50,9 +52,19 @@ export class PrismaKrMoveSourceStore implements KrMoveSourceStore {
     return row?.publishedAt ?? null;
   }
 
+  async earliestNewsPublishedAt() {
+    const row = await prisma.krNewsTitle.findFirst({ orderBy: { publishedAt: "asc" }, select: { publishedAt: true } });
+    return row?.publishedAt ?? null;
+  }
+
   async newsCollectedAt() {
-    const row = await prisma.krNewsTitle.aggregate({ _max: { collectedAt: true } });
-    return row._max.collectedAt ?? null;
+    // 매분 수집 행만(게시 뒤 하루 안에 받은 것) · 최근 8일 게시 범위만 — `KR_NEWS_LIVE_LAG_MS` 머리 주석
+    const since = new Date(Date.now() - KR_NEWS_FRESHNESS_WINDOW_DAYS * 86_400_000);
+    const rows = await prisma.$queryRaw<Array<{ at: Date | null }>>`
+      SELECT max(collected_at) AS at FROM kr_news_title
+      WHERE published_at > (${since}::timestamptz AT TIME ZONE 'UTC')
+        AND collected_at < published_at + (${KR_NEWS_LIVE_LAG_MS} * interval '1 millisecond')`;
+    return rows[0]?.at ?? null;
   }
 
   async newsTitle(serial: string, code: string) {

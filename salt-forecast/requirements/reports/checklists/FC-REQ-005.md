@@ -74,3 +74,9 @@
 | 항목 | 결과 | 근거 |
 |---|---|---|
 | 사건 표 영향 | 충족 | 선언 추가만 · `test_schema_contract` 통과(실 DB 대조) |
+
+## 2026-11-12 — F017 단계 6 덧붙임
+
+- [x] `store/tables.py` 에 소식 태그 표 셋(`news_kind_dict` · `news_reaction_stat` · `news_pre_move`) 선언 — 스키마 계약 테스트가 실 DB 와 대조. 사건 반응(일정) 표는 그대로
+- [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
+- 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`

@@ -13,6 +13,8 @@
  * 하지 않는 것: 금액 · 등락 · 호가 단위 · 상하한 판정(공통 수용 기준 3), 장 상태 판정, 문구.
  */
 
+import { toNewsTagVM, type NewsTagVM } from "./news-tag.viewmodel";
+
 export const KR_SESSIONS = [
   "pre_open",
   "regular",
@@ -543,6 +545,8 @@ export interface KrNewsItemVM {
   publishedAt: string;
   /** 관련 종목 — 뉴스 상세 모달 칩(`FE-REQ-065`). 이름 · 등락률(%) 서버 값 그대로 · 옛 서버면 빈 배열 */
   related: Array<{ code: string; name: string; changeRate: number | null }>;
+  /** 측정 태그(F017 단계 6 · `BFF-REQ-052` FR-5) — 종류를 못 맞히거나 모르는 라벨 · 옛 서버면 null */
+  tag: NewsTagVM | null;
 }
 
 const KR_NEWS_KINDS: readonly KrNewsKindVM[] = ["news", "disclosure"];
@@ -574,6 +578,7 @@ export const toKrNewsVM = (raw: unknown) => {
             const r = obj(rel, "related");
             return { code: str(r, "code"), name: str(r, "name"), changeRate: numOrNull(r, "changeRate") };
           }),
+          tag: toNewsTagVM(x.tag),
         },
       ];
     }),

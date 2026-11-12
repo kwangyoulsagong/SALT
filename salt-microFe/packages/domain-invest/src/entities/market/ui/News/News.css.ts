@@ -127,3 +127,31 @@ export const paragraph = style({
 });
 /** 출처 줄 — 본문 끝 · 원문 단추와 한 줄 */
 export const sourceRow = style({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: vars.space.md, flexWrap: "wrap" });
+
+/** 측정 태그 칩(F017 단계 6) — 색 없이 옅은 면 · 12/500(라벨 단). 방향 색을 쓰지 않는다(측정이 신호로 읽히지 않게) */
+export const tagChips = style({ display: "inline-flex", flexWrap: "wrap", gap: "4px", minWidth: 0 });
+export const tagChip = style({
+  display: "inline-flex",
+  alignItems: "center",
+  height: "20px",
+  padding: "0 6px",
+  borderRadius: "6px",
+  background: "rgba(2,32,71,.05)",
+  fontSize: vars.fontSizes.sm,
+  lineHeight: "16px",
+  fontWeight: vars.fontWeights.medium,
+  color: META_COLOR,
+  whiteSpace: "nowrap",
+});
+/** 모달 "같은 종류 과거 반응" */
+export const tagBlock = style({ display: "flex", flexDirection: "column", gap: vars.space.sm });
+export const tagLines = style({ display: "flex", flexDirection: "column", gap: "4px", margin: 0, padding: 0, listStyle: "none" });
+export const tagLine = style({
+  display: "flex",
+  gap: "8px",
+  fontSize: vars.typography.t7.fontSize,
+  lineHeight: "20px",
+  color: vars.colors.text.primary,
+  fontVariantNumeric: "tabular-nums",
+});
+export const tagLineHead = style({ flexShrink: 0, minWidth: "48px", color: META_COLOR });

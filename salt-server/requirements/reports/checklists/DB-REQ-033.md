@@ -152,3 +152,9 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `market/domain/ports.ts` `AssetQuote` 에 선택 필드 `openPrice?`(국내 시가). 국내 표 · 열 변경 0 · `npm run build` · `npm run lint` · `npm test` 1200 통과 · `npm run test:layer-check` · 레이어 훅 사후 실행(음성 대조 exit 2) · `prisma migrate diff` 0 |
+
+## 2026-11-12 — F017 단계 6 덧붙임
+
+- [x] `SymbolNewsItem` 에 `imageUrl` · `symbols`(선택 칸) — market 종목 뉴스가 코인 뉴스 BFF 경로의 upstream 이 되며 카드 이미지 · 측정 태그의 관련 종목 수에 쓴다
+- [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
+- 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`

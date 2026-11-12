@@ -1,0 +1,293 @@
+{
+  "prereg_key": "news-reaction@2",
+  "rules": [
+    {
+      "id": "analyst_report",
+      "text": "증권사 리포트",
+      "markets": [
+        "kr"
+      ],
+      "include": [
+        "리포트 브리핑",
+        "목표가",
+        "목표주가"
+      ],
+      "exclude": []
+    },
+    {
+      "id": "earnings",
+      "text": "실적",
+      "markets": [
+        "kr"
+      ],
+      "include": [
+        "영업실적",
+        "잠정실적",
+        "(잠정)실적",
+        "영업이익",
+        "영업익",
+        "순이익",
+        "매출액",
+        "실적 발표",
+        "어닝"
+      ],
+      "exclude": []
+    },
+    {
+      "id": "contract",
+      "text": "수주 · 공급계약",
+      "markets": [
+        "kr"
+      ],
+      "include": [
+        "단일판매",
+        "공급계약",
+        "수주"
+      ],
+      "exclude": []
+    },
+    {
+      "id": "rights_offering",
+      "text": "유상증자",
+      "markets": [
+        "kr"
+      ],
+      "include": [
+        "유상증자"
+      ],
+      "exclude": []
+    },
+    {
+      "id": "convertible",
+      "text": "전환사채 · 신주인수권부사채 발행",
+      "markets": [
+        "kr"
+      ],
+      "include": [
+        "전환사채권발행",
+        "전환사채 발행",
+        "신주인수권부사채",
+        "교환사채권발행"
+      ],
+      "exclude": [
+        "만기전",
+        "취득"
+      ]
+    },
+    {
+      "id": "buyback",
+      "text": "자사주 취득 · 소각",
+      "markets": [
+        "kr"
+      ],
+      "include": [
+        "자기주식취득",
+        "자기주식 취득",
+        "자사주 취득",
+        "자사주 매입",
+        "주식소각",
+        "주식 소각",
+        "자사주 소각"
+      ],
+      "exclude": [
+        "처분"
+      ]
+    },
+    {
+      "id": "dividend",
+      "text": "배당 결정",
+      "markets": [
+        "kr"
+      ],
+      "include": [
+        "배당 결정",
+        "배당결정",
+        "현금ㆍ현물배당",
+        "현금·현물배당"
+      ],
+      "exclude": [
+        "배당락",
+        "주주명부"
+      ]
+    },
+    {
+      "id": "mna",
+      "text": "합병 · 인수 · 분할",
+      "markets": [
+        "kr"
+      ],
+      "include": [
+        "합병",
+        "타법인주식",
+        "타법인 주식",
+        "인수합병",
+        "회사분할",
+        "물적분할",
+        "인적분할"
+      ],
+      "exclude": []
+    },
+    {
+      "id": "control_change",
+      "text": "최대주주 변경",
+      "markets": [
+        "kr"
+      ],
+      "include": [
+        "최대주주 변경",
+        "최대주주변경"
+      ],
+      "exclude": [
+        "담보"
+      ]
+    },
+    {
+      "id": "clinical",
+      "text": "임상 · 허가",
+      "markets": [
+        "kr"
+      ],
+      "include": [
+        "임상",
+        "품목허가",
+        "허가 신청",
+        "fda"
+      ],
+      "exclude": []
+    },
+    {
+      "id": "legal",
+      "text": "제재 · 소송",
+      "markets": [
+        "kr",
+        "crypto"
+      ],
+      "include": [
+        "벌금",
+        "과징금",
+        "제재",
+        "불성실공시",
+        "소송",
+        "압수수색",
+        "기소",
+        "lawsuit",
+        "sues",
+        "sec charges"
+      ],
+      "exclude": []
+    },
+    {
+      "id": "delisting_risk",
+      "text": "거래정지 · 관리종목 · 상장폐지",
+      "markets": [
+        "kr",
+        "crypto"
+      ],
+      "include": [
+        "상장폐지",
+        "관리종목",
+        "매매거래정지",
+        "거래정지",
+        "상장적격성",
+        "투자주의환기",
+        "유의종목",
+        "거래지원 종료",
+        "delist"
+      ],
+      "exclude": []
+    },
+    {
+      "id": "ir",
+      "text": "기업설명회",
+      "markets": [
+        "kr"
+      ],
+      "include": [
+        "기업설명회"
+      ],
+      "exclude": []
+    },
+    {
+      "id": "listing",
+      "text": "거래소 상장",
+      "markets": [
+        "crypto"
+      ],
+      "include": [
+        "신규 상장",
+        "상장 확정",
+        "원화 마켓 추가",
+        "lists ",
+        "listing"
+      ],
+      "exclude": [
+        "상장폐지",
+        "delist"
+      ]
+    },
+    {
+      "id": "hack",
+      "text": "해킹 · 보안 사고",
+      "markets": [
+        "crypto"
+      ],
+      "include": [
+        "해킹",
+        "hack",
+        "exploit",
+        "탈취"
+      ],
+      "exclude": []
+    },
+    {
+      "id": "etf",
+      "text": "ETF 승인 · 자금",
+      "markets": [
+        "crypto"
+      ],
+      "include": [
+        "etf 승인",
+        "etf 유입",
+        "etf 유출",
+        "etf approval",
+        "etf inflow",
+        "etf outflow",
+        "현물 etf"
+      ],
+      "exclude": []
+    }
+  ],
+  "exclude": {
+    "kr": [
+      "가격제한폭",
+      "괴리율",
+      "상장지수",
+      "etf",
+      "etn",
+      "예고",
+      "해제",
+      "해지",
+      "특징주",
+      "상승세",
+      "하락세",
+      "급등",
+      "급락",
+      "상한가",
+      "하한가",
+      "강세",
+      "약세",
+      "소폭"
+    ],
+    "crypto": [
+      "특징주",
+      "급등",
+      "급락",
+      "상승세",
+      "하락세",
+      "강세",
+      "약세",
+      "시황"
+    ]
+  },
+  "news_max_codes": 2
+}

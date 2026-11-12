@@ -1,3 +1,5 @@
+import type { NewsTag } from "./newsTag";
+
 /**
  * 국내 주식 화면 계약 — `GET /api/app/market/kr/*` 응답 `data` · WS `price_update`(`assetType: "kr_stock"`)
  * (F011 슬라이스 3 · `FE-REQ-041`).
@@ -321,6 +323,8 @@ export interface KrNewsItem {
   publishedAt: string;
   /** 관련 종목 — 이름 · 지금 등락률(%, 시세 없으면 `null`). 뉴스 상세 모달 칩(`FE-REQ-065`) */
   related: Array<{ code: string; name: string; changeRate: number | null }>;
+  /** 측정 태그(F017 단계 6) — 종류를 못 맞히면 null · 옛 BFF 면 없음 */
+  tag?: NewsTag | null;
 }
 
 /** 종목 오늘 소식 — 최신이 앞 · 광고성 제외는 서버. `collectedAt` 은 시장 전체 마지막 수집(신선도) */

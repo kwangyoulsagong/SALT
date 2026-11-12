@@ -206,3 +206,9 @@
 
 - `model/types.ts` · `api/marketApi.ts` · `api/queryKeys.ts` · `api/useSearchExtras.ts` — 실패 모양은 `ApiError` 그대로 · 곁 칸 staleTime 60s · 뜨는 업종은 장 상태 ok 일 때만
 - 루트 체크리스트 `requirements/reports/checklists/FE-066-067-search-header.md`
+
+## 2026-11-12 — F017 단계 6 덧붙임
+
+- [x] `NewsPreviewItem` 에 `tag`(선택 — 측정 태그). 에러 정규화 · 호출 경로는 그대로
+- [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
+- 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`

@@ -618,3 +618,50 @@ short_horizon_outcome = Table(
     Column("up", Boolean, nullable=False),
     Column("scored_at", DateTime(timezone=True), nullable=False),
 )
+
+# 소식 측정 태그(F017 단계 6 · FC-REQ-028 FR-3 · DB-REQ-043 FR-4) — 마이그레이션 20261112100000_news_reaction
+news_kind_dict = Table(
+    "news_kind_dict",
+    metadata,
+    Column("prereg_key", Text, primary_key=True),
+    Column("registered", Date, nullable=False),
+    Column("dict", JSONB, nullable=False),
+    Column("written_at", DateTime(timezone=True), nullable=False),
+)
+
+news_reaction_stat = Table(
+    "news_reaction_stat",
+    metadata,
+    Column("prereg_key", Text, primary_key=True),
+    Column("market", Text, primary_key=True),
+    Column("origin", Text, primary_key=True),
+    Column("kind", Text, primary_key=True),
+    Column("horizon", SmallInteger, primary_key=True),
+    Column("as_of", DateTime(timezone=True), primary_key=True),
+    Column("status", Text, nullable=False),
+    Column("sample", Integer, nullable=False),
+    Column("sample_eff", Float, nullable=False),
+    Column("sample_days", Integer, nullable=False),
+    Column("up_rate", Float),
+    Column("up_low", Float),
+    Column("up_high", Float),
+    Column("mean", Float),
+    Column("q10", Float),
+    Column("q50", Float),
+    Column("q90", Float),
+    Column("pre_move_median", Float),
+    Column("base_up_rate", Float),
+    Column("differs", Text),
+    Column("window_from", DateTime(timezone=True)),
+    Column("window_to", DateTime(timezone=True)),
+)
+
+news_pre_move = Table(
+    "news_pre_move",
+    metadata,
+    Column("market", Text, primary_key=True),
+    Column("symbol", Text, primary_key=True),
+    Column("bar_at", DateTime(timezone=True), primary_key=True),
+    Column("pre_move_5d", Float, nullable=False),
+    Column("written_at", DateTime(timezone=True), nullable=False),
+)

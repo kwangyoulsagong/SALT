@@ -106,3 +106,9 @@
 | 항목 | 결과 | 근거 |
 |---|---|---|
 | 조립 | 충족 | 빌드 · 서버 재시작 · `/health` 200 |
+
+## 2026-11-12 — F017 단계 6 덧붙임
+
+- [x] `composition.ts` 에 `PrismaNewsTagReader`(예측 뷰 셋) 조립 — market 의존 하나 더
+- [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
+- 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`

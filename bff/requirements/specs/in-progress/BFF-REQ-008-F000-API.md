@@ -190,6 +190,7 @@ type AlertVM = {
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — `/api/app/news?symbol=` 의 upstream 을 서버 `/news?symbol` → `/market-intelligence/:symbol/news` 로(측정 태그가 붙는 market 종목 뉴스, 둘 다 공개 경로). 같은 기사 · 순서 대조(5종목). `viewCount` 는 그 경로에 없고 화면이 쓰지 않는다 |
 | 2026-09-18 | **신규 계약 중 다섯을 열고 `in-progress` 로 옮겼다.** 닫힌 것: `GET·POST·DELETE /api/app/watchlist` · `GET /api/app/news` · `GET /api/app/portfolio/summary`. **남은 것**: 온보딩 3개(`invite/check` · `invite` · `status`) · 제거 목록(`/api/auth/register` 등). 근거: `requirements/reports/checklists/BFF-REQ-008.md` |
 | 2026-09-18 | **온보딩 3계약을 열고 제거 목록을 닫았다.** `invite/check`(무인증·rate limit) · `invite`(무인증·`403 { reasonCode }`) · `status`(인증). FR-9·10 통과, **FR-13(`packages/core` 공유)은 미충족** — `bff` 가 workspace 밖이다. **남은 것**: 동면 경로 410(FR-11). 근거: `requirements/reports/checklists/BFF-REQ-008.md` |
 | 2026-09-21 | **스토리보드 갭 감사 + ADR-002 반영.** 신규 계약 3개: `GET /api/app/search`(`AssetSearchResultVM`, D8) · `GET /api/app/news/bookmarks` · `POST·DELETE /api/app/news/:id/bookmark`(D5). 기존 계약 변경: watchlist `409 TRACKED_ASSET_LIMIT` · `tracked` · 뉴스 `sentiment` · `symbols` · `isBookmarked?`(B11) · 목표 수량 통과(B5). 규약 FR-15~21 추가. 개정: FR-1 · `AlertVM.kind` 2종 → **1종**. 관심 종목 뷰모델에 신호 필드 없음(D4) 명시. 근거: `pm/requirements/reports/feature-audits/2026-09-21-storyboard-gap.md` |

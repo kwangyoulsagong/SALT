@@ -123,3 +123,9 @@
 ## 2026-11-09 — 기사 본문(주인 `SRV-REQ-054` · `BFF-REQ-053` · `FE-REQ-068`)
 
 - `news.controller` · `news.routes` 에 코인 기사 본문 `/api/app/news/:id/body`(로그인 · uuid 아니면 400) — 검증은 주인 체크리스트(서버 1031 · BFF 430 · 실화면 1440 · 훅 사후 실행)
+
+## 2026-11-12 — F017 단계 6 덧붙임
+
+- [x] `/api/app/news?symbol=` 의 upstream 을 서버 `/news?symbol` → `/market-intelligence/:symbol/news` 로(측정 태그가 붙는 market 종목 뉴스, 둘 다 공개 경로). 같은 기사 · 순서 대조(5종목). `viewCount` 는 그 경로에 없고 화면이 쓰지 않는다
+- [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
+- 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`

@@ -65,3 +65,9 @@ source: pm/requirements/specs/in-progress/FEATURE-011-kr-stock-kis.md §서버/D
   - `salt-server/src/market/infrastructure/PrismaKrStockStore.ts` — 504 5회차 — 봉 upsert 는 바뀐 행만(`IS DISTINCT FROM`) · 캔들 동시 10 → 4 · 표 자동 청소 2%(`DB-REQ-017`)
   - `salt-server/src/portfolio/domain/ports.ts` — 국내 소유자 판정 걷기(`ADR-011`) — 시세 · 관심 · 거래 · 국내 판단 · 미러 · 복기 · 해설은 로그인 전체(시세는 게스트 포함), 전망 셋만 소유자
 - 2026-11-11(1c): `feat/f017-s1c-collection`: `ports.ts` 에 채운 위치 · 스냅샷 포트(`DB-REQ-044`). 국내 표 · 열 변경 0
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — `SymbolNewsItem` 에 `imageUrl` · `symbols`(선택 칸) — market 종목 뉴스가 코인 뉴스 BFF 경로의 upstream 이 되며 카드 이미지 · 측정 태그의 관련 종목 수에 쓴다 |

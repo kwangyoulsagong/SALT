@@ -357,3 +357,40 @@ describe("GetCryptoWhyMoved — 로그인 사용자 · BTC 몫 + 종목 몫", ()
     assert.equal(r!.show, false);
   });
 });
+
+describe("같은 날 사실 측정 태그(F017 단계 6) — 소식에만 · 원천 관련 종목으로 · 실패해도 사실은 그대로", () => {
+  const fakeTag = (calls: Array<{ market: string; ids: string[]; related: string[][] }>) => ({
+    execute: async (market: "kr" | "crypto", items: ReadonlyArray<{ id: string; related: readonly string[] }>) => {
+      calls.push({ market, ids: items.map((i) => i.id), related: items.map((i) => [...i.related]) });
+      return new Map(
+        items.map((i) => [i.id, { eventKind: "contract", eventKindText: "수주 · 공급계약", label: "few" as const, reaction: { days: 1 as const, sample: 0, upRate: null, mean: null, baseUpRate: null }, reaction5d: null, preMove5d: null, asOf: null, preregKey: "news-reaction@1" }])
+      );
+    },
+  });
+
+  it("국내: 제목 사실에만 tag · 프로그램 매매 사실엔 칸 없음", async () => {
+    const calls: Array<{ market: string; ids: string[]; related: string[][] }> = [];
+    const { read, move } = krDeps({});
+    const r = await new GetKrWhyMoved({ ...read, tagNews: fakeTag(calls) }, move).execute("005930");
+    assert.deepEqual(calls, [{ market: "kr", ids: ["kr-news:s1"], related: [[]] }]);
+    assert.equal(r.facts.find((f) => f.kind === "news")!.tag?.eventKind, "contract");
+    assert.equal("tag" in r.facts.find((f) => f.kind === "flow")!, false);
+  });
+
+  it("코인: 그날 기사만 태그에 · 원천 심볼 없으면 그 종목 하나로 센다", async () => {
+    const calls: Array<{ market: string; ids: string[]; related: string[][] }> = [];
+    const assets = { findQuotes: async (s: string[]) => [coin("ETH", -12), coin("BTC", -3)].filter((q) => s.includes(q.symbol)) } as unknown as MarketAssetRepository;
+    const news: SymbolNewsPort = {
+      recent: async () => [{ id: "n1", title: "ETH 해킹", summary: null, url: "u", source: "s", publishedAt: new Date("2026-11-09T01:00:00Z") }],
+    } as unknown as SymbolNewsPort;
+    const r = await new GetCryptoWhyMoved(
+      assets,
+      news,
+      { betas: betaReader([]), warnings: { latest: async () => new Map() }, policy: { k: 2.5, minRate: 3 } },
+      () => NOW,
+      fakeTag(calls)
+    ).execute("ETH");
+    assert.deepEqual(calls, [{ market: "crypto", ids: ["crypto-news:n1"], related: [["ETH"]] }]);
+    assert.equal(r.facts[0]!.tag?.label, "few");
+  });
+});

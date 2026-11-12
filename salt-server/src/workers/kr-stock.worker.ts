@@ -94,6 +94,8 @@ export const startKrStockWorkers = () => {
     { name: "kr-program-flows", expression: "3-59/10 * * * 1-5", run: () => kr.pollProgramFlows.execute() },
     // 시황/공시 제목 — 시장 전체 한 번이라 시세 회차에 묶지 않는다(장 밖 공시도 받는다). 놓친 구간은 쪽 넘김이 메운다
     { name: "kr-news-titles", expression: "* * * * *", run: () => kr.pollNewsTitles.execute() },
+    // 과거 제목 백필(F017 단계 6) — 1년 앞까지 닿으면 회차가 바로 끝난다(쿼리 한 번). 매분 수집과 30초 엇갈린다
+    { name: "kr-news-backfill", expression: "30 * * * * *", run: () => kr.backfillNewsTitles.execute() },
     { name: "kr-move-sources-prune", expression: "55 15 * * 1-5", run: () => kr.pruneMoveSources.execute(), catchUp: true },
     // 지수 · 업종 일별(F016 단계 C β 재료) — 장 마감 뒤 공식 종가로. 15:55 업종 회차가 초과로 접혀도 여기서 다시 덮는다
     { name: "kr-index-daily", expression: "5 16 * * 1-5", run: () => kr.backfillIndexDaily.execute(), catchUp: true },

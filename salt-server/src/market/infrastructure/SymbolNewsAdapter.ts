@@ -26,6 +26,8 @@ export class SymbolNewsAdapter implements SymbolNewsPort {
       source: article.source,
       sentiment: article.sentiment,
       publishedAt: article.publishedAt,
+      imageUrl: article.imageUrl ?? null,
+      symbols: article.symbols ?? [],
     }));
   }
 

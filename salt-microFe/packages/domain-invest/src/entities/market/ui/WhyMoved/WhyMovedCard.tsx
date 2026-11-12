@@ -5,6 +5,7 @@ import { StatusLine } from "@repo/ui/statusLine";
 import { formatKrwCompact, formatPrice } from "@repo/web-shared/lib";
 
 import { WHY_MOVED_MESSAGES as M } from "../../model/whyMovedMessages";
+import { NewsTagChips } from "../News/NewsTagChips";
 
 import * as s from "./WhyMovedCard.css";
 import { MINUS, moveTone, signedText } from "./whyMovedFormat";
@@ -118,6 +119,7 @@ const WhyMovedBody = ({ data, cautionLabel }: { data: WhyMoved & { split: MoveSp
                 <span>{M.source[f.source] ?? f.source}</span>
               </span>
               <p className={s.factText}>{factText(f, cautionLabel)}</p>
+              {f.tag && <NewsTagChips tag={f.tag} />}
             </li>
           ))}
         </ul>

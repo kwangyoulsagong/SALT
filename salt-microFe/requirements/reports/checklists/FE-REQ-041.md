@@ -483,3 +483,9 @@ Playwright 시스템 Chrome · `page.route` 로 `/api/app/market/kr/{session,ove
 | 항목 | 결과 | 근거 |
 |---|---|---|
 | 국내 상세 | 충족 | 실화면은 `FE-REQ-064` 체크리스트(국내 1h · 4h = 장중 기록 짧아 시험 안 함 문장) |
+
+## 2026-11-12 — F017 단계 6 덧붙임
+
+- [x] 국내 소식 계약 `KrNewsItem` 에 `tag`(선택 — `@repo/core/newsTag`)
+- [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
+- 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`

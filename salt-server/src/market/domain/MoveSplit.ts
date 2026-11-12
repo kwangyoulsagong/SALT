@@ -1,3 +1,4 @@
+import type { NewsTag } from "./NewsTag";
 /**
  * 오늘 왜 움직였나 — ① 숫자 분해 · 카드 조건 · ② 같은 날 사실(F016 단계 C · `SRV-REQ-051` FR-7~10 · `ADR-009`).
  *
@@ -125,6 +126,8 @@ export interface MoveFact {
   /** 제목 또는 사건 코드(`vi:static` · `circuit_breaker:1` · `halt` · `warn:02` · `caution:PRICE_FLUCTUATIONS`) */
   title: string;
   value: number | null;
+  /** 측정 태그(F017 단계 6) — 소식(국내 시황 · 공시 · 코인 뉴스)만, 종류를 못 맞히면 없음 */
+  tag?: NewsTag | null;
 }
 
 /** 한 kind 의 원천 읽기 결과 — 실패는 `null`(그 kind 를 `unavailable` 로) */

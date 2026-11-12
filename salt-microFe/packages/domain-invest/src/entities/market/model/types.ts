@@ -7,6 +7,7 @@
  */
 
 import type { KrQuote, KrSessionView } from "@repo/core/marketKr";
+import type { NewsTag } from "@repo/core/newsTag";
 
 /**
  * 시세 보드의 자산군(F011 `FE-REQ-041`). **화면은 하나고 데이터만 다르다** — 표 · 필터 · 미리보기 · 관심 종목이 이 값 하나로
@@ -310,6 +311,8 @@ export interface NewsPreviewItem {
   publishedAt: string;
   /** 서버가 줄 때만 있다. 없으면 그 칸을 그리지 않는다 */
   viewCount?: number;
+  /** 측정 태그(F017 단계 6) — 종류를 못 맞히면 null · 옛 BFF 면 없음 */
+  tag?: NewsTag | null;
 }
 
 export interface NewsPreviewResponse {

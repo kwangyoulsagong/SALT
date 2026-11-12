@@ -49,3 +49,18 @@
 | 계약 대조 | 충족 | `test_schema_contract`(실 DB) · 저장 테스트 2(재실행 행 수 · 최신만 · 끝 봉 없으면 다음 실행 · 한 줄 한 번 · 만료 renderable false) |
 | EXPLAIN | 충족 | 칸 뷰 2.5ms · 종목 뷰 0.3ms 인덱스 스캔 |
 | `DB-REQ-036` 주인 표 | 충족 | Changelog 행 — 주인 forecast · 서버 뷰 SELECT 만 · public 직접 읽기 추가 0 |
+
+## 단계 6 — FR-4 (2026-11-12)
+
+| 항목 | 구현 | 확인 |
+|---|---|---|
+| 사전 · 서술 · 선반영 표 + 뷰 | `20261112100000_news_reaction` — `news_kind_dict` · `news_reaction_stat` · `news_pre_move` · 뷰 셋 | `prisma migrate deploy` · 예측 스키마 계약 테스트(실 DB) |
+| 원천 읽기는 export 뷰 | `public.v_kr_news_title_export` · `v_news_article_export` | 예측 store 가 이 둘만 읽음(grep) |
+| 서버 읽기 경로 | 선반영은 PK (market, symbol, bar_at) 역순 한 행 · 사전 · 서술은 한 번 읽고 10분 캐시 | 실 응답 |
+
+### 미검증
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 첫 "ok" 서술(숫자 있는 칩) 실화면 | 국내 제목 이력이 11-06 ~ 뿐이라 첫 실행은 전부 `below_min` — 서버 1년 백필이 장 밖 30쪽/분으로 채우는 중 | 백필이 1년 앞에 닿은 뒤 매일 배치(`daily.sh` news_reaction) 다음 회차 — 2026-11-13 |
+| ~~응답 시간(p95) 실측~~ | **닫힘 2026-11-12 11:2x**(부하 평균 13 로 내려간 뒤) — 20회씩 p50 / p95: 국내 소식 14 / 207ms · 12 / 24ms · 코인 뉴스 5 / 10ms · 국내 왜 움직였나 19 / 51ms · 코인 9 / 21ms. 선반영 조회 `EXPLAIN` 인덱스 1.5ms · 서술 뷰 2ms | — |

@@ -162,7 +162,10 @@ latest() {
     select '국내 시황 제목 마지막 수집', to_char(max(collected_at) + interval '9 hours','MM-DD HH24:MI'),
            round(extract(epoch from now() at time zone 'utc' - max(collected_at))/3600) || '시간 전',
            case when max(collected_at) is null or max(collected_at) < now() at time zone 'utc' - interval '6 hours' then '✗' else 'ok' end
+      -- 매분 수집만 — 백필(F017 단계 6)은 옛 제목을 지금 받아 max 를 덮는다. 게시 뒤 하루 안에 받은 행 · 최근 8일 게시(KR_NEWS_LIVE_LAG_MS)
       from kr_news_title
+     where published_at > now() at time zone 'utc' - interval '8 days'
+       and collected_at < published_at + interval '1 day'
     union all
     -- 국내 장중 수급 · 업종 지수 — 장중에만 돈다. 장 밖엔 멈춘 게 정상이라 ✗ 없이 시각만(·)
     select '국내 프로그램 매매 마지막 수집', to_char(max(collected_at) + interval '9 hours','MM-DD HH24:MI'),

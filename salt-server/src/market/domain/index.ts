@@ -14,3 +14,4 @@ export * from "./KrMarketStatus";
 export * from "./KrMoveSources";
 export * from "./MoveSplit";
 export * from "./SearchExtras";
+export * from "./NewsTag";

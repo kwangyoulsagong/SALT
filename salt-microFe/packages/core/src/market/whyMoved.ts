@@ -1,3 +1,5 @@
+import type { NewsTag } from "./newsTag";
+
 /**
  * 오늘 왜 움직였나 — 화면 계약(F016 단계 C · `BFF-REQ-051` FR-1 · `FE-REQ-063` FR-1). BFF `services/why-moved.viewmodel.ts` 와 같은 모양.
  *
@@ -51,6 +53,8 @@ export interface MoveFact {
   title: string;
   /** 숫자 사실 — 프로그램 순매수(원) · VI 발동가(원) */
   value: number | null;
+  /** 측정 태그(F017 단계 6) — 소식만 · 옛 BFF 면 없음 */
+  tag?: NewsTag | null;
 }
 
 export interface WhyMoved {

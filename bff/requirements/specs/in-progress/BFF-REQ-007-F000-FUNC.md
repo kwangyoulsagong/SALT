@@ -178,6 +178,7 @@ BFF에서 F000이 하는 일은 **① 동면 route 제거 + 410 ② 알림 2종 
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — 뉴스 프리뷰 뷰모델에 `tag`(측정 태그 — `news-tag.viewmodel`)를 더했다. 카드 칸 판정(전문 끊기 · 플레이스홀더 0)은 그대로 |
 | 2026-10-28 | FR-52 차트 주기 422 가 `code: MARKET_CHART_PERIOD_UNSUPPORTED`(서버와 같은 코드)를 싣는다(`3f38160`) |
 | 2026-09-18 | **D·E·F절을 구현하고 `in-progress` 로 옮겼다.** 닫힌 것: FR-30~34(뉴스 프리뷰 실데이터) · FR-40~43(관심 종목 조립 · `priceStale` · 0건 빈 배열) · FR-50~52(`period` 교정하지 않고 422). **남은 것**: A절 FR-1~6(동면 route 410) · B절 FR-10~15(홈 조립 재작성) · C절 FR-20~24(알림 2종) · G절 FR-60~64(온보딩·인증). 근거: `requirements/reports/checklists/BFF-REQ-007.md` |
 | 2026-09-18 | **G절을 구현했다.** 닫힌 것: FR-60~64(proxy `register` 제거 · 온보딩 3라우트 · `check` 무인증 + rate limit · `403` + `reasonCode` 그대로). `users/password`·`users/account` proxy 도 함께 제거. **남은 것**: A절(동면 410) · B절(홈 조립) · C절(알림 2종). 근거: `requirements/reports/checklists/BFF-REQ-007.md` §6~§8 |
