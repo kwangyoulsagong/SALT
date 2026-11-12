@@ -66,6 +66,11 @@ describe("라우팅 표 (FR-1)", () => {
     const routes = new RoutingTableFile(path.resolve("config/server-routes.json"));
     assert.equal(routes.modeFor("/platform/ping"), "platform");
     assert.equal(routes.modeFor("/goals"), "legacy");
+    // 서버 S3b(2026-11-12) — 인증 · 프로필은 identity(Kotlin). 포인트 · 업적 · 대시보드(동면 410)는 그 앞에서 막혀 여기 오지 않는다
+    for (const p of ["/auth/login", "/auth/refresh", "/auth/guest", "/auth/me", "/auth/invite/check", "/auth/invite/accept", "/users/profile"]) {
+      assert.equal(routes.modeFor(p), "platform", p);
+    }
+    assert.equal(routes.modeFor("/users/points"), "legacy");
   });
 });
 
