@@ -12,10 +12,13 @@ status: in-progress
 사용자 "새브랜치 파고 다음 파이프라인 진행" — F016 · F017 · F018 이 끝나 마스터 인덱스 §4-1 3a 다음 칸 **서버 S3b**(투자 작업과 번갈아).
 한 줄 — **토큰 발급자를 Express 에서 Kotlin identity 로 바꾸고, 2주 동안 옛 토큰과 새 토큰을 둘 다 받는다.**
 
-> **2026-11-12 구현 · 로컬 운영 적용(마이그레이션 제외)** — Kotlin 계정 · 토큰 · JWKS · Flyway V2 · 가져오기(사용자 5 · 코드 6 · 시도 6 대조 통과) ·
+> **2026-11-12 마이그레이션 적용(사용자 "다해")** — `prisma migrate deploy` 둘: 사용자 FK 0 · 옛 표 셋 삭제 · 원장 행 그대로(거래 2 · 보유 2 · 봉 477만).
+> 새 가입자(identity 에만 있는 계정)의 Express 쓰기(관심 201) 확인 · 임시 계정 양쪽 삭제. 남은 것은 옛 HS 삭제(2026-11-27) 하나.
+>
+> ~~**2026-11-12 구현 · 로컬 운영 적용(마이그레이션 제외)** — Kotlin 계정 · 토큰 · JWKS · Flyway V2 · 가져오기(사용자 5 · 코드 6 · 시도 6 대조 통과) ·
 > Express 검증기 · BFF 라우팅 둘. **남은 것 하나: Prisma 마이그레이션 적용(FK 18 끊기 · 옛 표 셋 삭제) — 되돌리기 어려운 DB 작업이라 사용자 승인 대기.**
 > 그 전에는 새로 가입한 계정이 Express 표(관심 · 인사이트 등)에 쓰지 못한다(FK) — 실스택에서 확인함, 임시 계정은 지웠다.
-> 검증 `requirements/reports/checklists/MONEY-S3b-identity-accounts.md`.
+> 검증 `requirements/reports/checklists/MONEY-S3b-identity-accounts.md`.~~
 
 ## 범위
 
@@ -43,7 +46,7 @@ status: in-progress
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| Prisma 마이그레이션 적용(로컬 운영 DB) | FK 18 끊기 · 옛 표 셋 삭제 — 덤프 · 복원 시험은 끝(`~/Library/Application Support/SALT/backups/backup-identity-s3b-2026-11-12.dump`), 적용은 사용자 승인 | 사용자 승인 즉시 |
+| ~~Prisma 마이그레이션 적용(로컬 운영 DB)~~ | **닫힘 2026-11-12** — 사용자 승인 뒤 적용(덤프 `~/Library/Application Support/SALT/backups/backup-identity-s3b-2026-11-12.dump`) | — |
 | 옛 HS 코드 · 비밀 삭제 | 이중 기간 2주(FR-8) | 2026-11-27 |
 | 내보내기 · 계정 삭제 · 분류 · 계측 | S3c | 서버 S3c(`SRV-REQ-048` FR-3 · 4 · 6 · 7) |
 | 클라이언트 IP 요청 제한 | BFF 뒤라 키가 BFF 주소(옛것과 같은 처지) | 배포 `OPS-001`(X-Forwarded-For) |
@@ -54,3 +57,4 @@ status: in-progress
 | 날짜 | 변경 |
 |---|---|
 | 2026-11-12 | 신규 · 구현 · 로컬 운영 적용(마이그레이션 제외, 승인 대기) |
+| 2026-11-12 | 마이그레이션 적용(사용자 승인) · 새 가입자 Express 쓰기 확인 · 임시 계정 삭제 |

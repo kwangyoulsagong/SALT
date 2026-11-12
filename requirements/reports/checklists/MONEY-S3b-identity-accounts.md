@@ -44,5 +44,7 @@
 
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
-| Prisma 마이그레이션 적용 · 적용 뒤 새 가입자의 Express 쓰기 · Smart Buy Zones `global` 쓰기 | 되돌리기 어려운 DB 작업 — 자동 모드가 막음, 사용자 승인 필요 | 승인 즉시(적용 → 임시 사용자로 관심 · 인사이트 쓰기 확인) |
+| ~~Prisma 마이그레이션 적용 · 적용 뒤 새 가입자의 Express 쓰기~~ | **닫힘 2026-11-12** — 사용자 "다해" 뒤 적용: 사용자 FK 0 · 옛 표 셋 없음 · 원장 행 그대로 · identity 에만 있는 임시 계정의 관심 추가 201(전엔 FK 위반) · 임시 계정 양쪽 삭제(5 · 6 복귀) | — |
 | 옛 HS 종료 실측(서명 맞는 옛 토큰 401) | 끝 시각이 11-27 | 2026-11-27 — HS 코드 · 비밀 삭제와 같이 |
+| Smart Buy Zones `global` 행이 실제로 쓰이는 것 | 적용 뒤 16:20 회차는 실패 0(`✅ Investment insights generated successfully`)이지만 후보가 없어 `global` 행 0 — FK 는 이제 없어 막을 것이 없다 | 후보가 생기는 회차(`investment_insights` user_id='global' 행) |
+

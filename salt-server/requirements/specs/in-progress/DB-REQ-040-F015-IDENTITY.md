@@ -41,3 +41,4 @@ source: pm/requirements/specs/in-progress/FEATURE-015-shell-home-onboarding.md
 | 2026-11-06 | 서버 S2c(notification, 루트 `requirements/specs/done/MONEY-S2c-notification-slice.md`): to-do → in-progress. FR-3 done · 주인 정정(identity → notification 스키마). 수용 기준 2 충족. 나머지는 S3 |
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): FR-2 done(`identity.user_domain_pref`) · FR-1 정정(옛 3스텝 상태 보존 불필요 — 은퇴). 로컬 운영 DB 적용(`svc_identity` 로그인 · Flyway V1). 커밋 `fc0207cb` |
 | 2026-11-12 | 서버 S3b(`MONEY-S3b-identity-accounts`): FR-1 이동 · FR-5 서명 키 done. 로컬 운영 DB Flyway V2 · 가져오기 적용. 옛 public 표 drop 마이그레이션은 승인 대기. 수용 기준 1 충족 |
+| 2026-11-12 | 옛 public 표 drop 마이그레이션 로컬 운영 적용(사용자 승인). FR-1 남은 것 0 |
