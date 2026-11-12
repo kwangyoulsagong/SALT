@@ -183,7 +183,7 @@ export class PrismaArticleRepository implements ArticleRepository {
   findBySymbol(symbol: string, limit: number): Promise<ArticleSummary[]> {
     return prisma.newsArticle.findMany({
       where: { symbols: { has: symbol } },
-      orderBy: { publishedAt: "desc" },
+      orderBy: [{ publishedAt: "desc" }, { id: "asc" }], // 같은 시각 기사 순서가 매번 같게(측정 태그 경로 전환 대조 때 발견)
       take: limit,
       select: {
         id: true,
