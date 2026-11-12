@@ -121,3 +121,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `ops/salt.sh` 에 걸린 몫: 상태 점검 신선도에 '등급 마지막 as_of' 줄(3일 넘으면 ✗ — 서버가 전부 참고로 읽는 경계와 같다). 주인 `FC-REQ-028` FR-6. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
 | 2026-11-11 | F017 v2 단계 5 — `ops/salt.sh` 상태 신선도에 '단타 확률 시험 마지막' 줄(3일 넘으면 ✗) |
 | 2026-11-12 | F016 단계 D 짝(이 REQ 가 머리 주인인 `ops/salt.sh`): status 에 오늘 등락 한 줄 줄 하나(통과 · 검사 막음 · LLM 실패 — `SRV-REQ-052` FR-8) |
+| 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): 저축 조립에 `PersonalData` 빈 · `SavingsUserRows`(자식 먼저 · `ProjectionIssued` 아웃박스는 목표로 고름). 이 REQ 몫 기능 변경 0 |

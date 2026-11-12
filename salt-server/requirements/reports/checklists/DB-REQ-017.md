@@ -304,3 +304,17 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 없음 | — | — |
+
+## 2026-11-12 — 서버 S3c 내 데이터(짝)
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `app.ts` 에 `/api/investment/me/data` 라우터 하나(`/api/investment` 보다 먼저) | Express build · lint · test 1294 · 실스택 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

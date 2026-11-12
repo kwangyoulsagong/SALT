@@ -175,3 +175,8 @@ REQ 쪽이 틀렸다: FR-50~53 은 `InvestmentInsight` 의 소비처를 보지 �
 
 - 짝 — `app.ts` 라우터 등록 둘 삭제. 회고 본문은 루트 `requirements/reports/retrospects/MONEY-S3b-identity-accounts.md` — 플랫폼 단독 종단이 BFF 의 `Bearer undefined` 를 몰랐다 · 반쯤 옮긴 상태의 FK 틈
 - Action: 경로를 옮기면 BFF 를 거친 실스택을 첫 확인으로
+
+## 2026-11-12 — 서버 S3c 내 데이터(짝)
+
+- 이 REQ 몫 기능 변경 0 — `app.ts` 에 `/api/investment/me/data` 라우터 하나(`/api/investment` 보다 먼저)
+- 배운 것: 사람 칸이 있는 표는 지우기 목록에 들어가야 한다(목록에 없으면 통합 테스트가 깬다) — 새 표를 만들 때 목록부터

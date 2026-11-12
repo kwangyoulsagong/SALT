@@ -312,3 +312,17 @@ blink 2초는 `RealtimeMarketTable`의 `setTimeout(..., 2000)`으로 그대로 �
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 이 REQ 에 닿은 변경 | 충족 | `layer-rules.cjs` 에 feature 슬라이스 `check-trade-odds` 등록. 레이어 규칙 무변경 · `pnpm check-types` · `pnpm lint` · `pnpm test`(core 298 · ui 63) · `pnpm test:layer-check` · 실화면(패널 · 코인 상세 · 국내 상세 · 390 웹뷰 · 로딩 · 실패) · 운영 빌드 첫 로드 증가 0 |
+
+## 2026-11-12 — 서버 S3c 내 데이터(짝)
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| FSD 레지스트리(`layer-rules.cjs`)에 기능 슬라이스 둘(`export-my-data` · `delete-account`) | 웹 lint · 레이어 훅 사후 실행(음성 대조 exit 2 → 새 파일 exit 0) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

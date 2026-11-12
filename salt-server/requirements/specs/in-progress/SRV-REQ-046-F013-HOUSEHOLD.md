@@ -176,3 +176,4 @@ API 실제 목록: `POST /expenses` · `POST /expenses/batch` · `DELETE /expens
 | 2026-11-05 | 금융 팁 S2b(루트 `requirements/specs/done/MONEY-S2b-tips-quiz-diff-slice.md`) — 이 REQ 에 걸린 몫: 가계부 이벤트 어댑터 주석 한 줄 — `FixedCostIncreased` 구독은 ~~금융 팁 S2b~~ 금융 팁 S2d(S2b 는 퀴즈 · 줄 diff 로 좁혔다). 코드 · 계약 무변경 (`a1938bb2`) |
 | 2026-11-05 | 금융 팁 S2d(루트 `requirements/specs/done/MONEY-S2d-tips-my-numbers-slice.md`) — 이 REQ 에 걸린 몫: 가계부 이벤트 어댑터 주석 — `FixedCostIncreased` 의 "구독 예정" → **구독**(content — 주거 분류만 신호, 분류 · 시각만 읽는다). 코드 · 계약 필드 무변경 (`1a85dd2b`) |
 | 2026-11-05 | 금융 팁 S2d(루트 `requirements/specs/done/MONEY-S2d-tips-my-numbers-slice.md`) — 이 REQ 에 걸린 몫(둘째): **계약 무변경 · 새 소비자** — BFF 금융 팁 내 숫자가 `GET /api/household/settings/work-hours`(FR-15) 를 읽는다. 켜 둔 급여만 쓰고 끈 칸은 `not_set` — 사용자가 끈 값을 다른 화면이 쓰지 않는다 |
+| 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): 가계부 조립에 `PersonalData` 빈 · `HouseholdUserRows`(표 20 · 연쇄 아닌 FK 순서). 이 REQ 몫 기능 변경 0 |

@@ -78,3 +78,17 @@
   - `salt-microFe/packages/domain-invest/src/pages/coach/ui/CoachSettingsBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)
 
 검증은 F018 체크리스트(`SRV-REQ-056` · `BFF-REQ-055` · `FE-REQ-070` · 루트 `requirements/reports/checklists/F018-public-market-guest.md`) — 이 REQ 의 기존 확인 항목은 다시 열지 않음(동작이 바뀐 것은 국내 소유자 판정 · 로그인 조건뿐)
+
+## 2026-11-12 — 서버 S3c 내 데이터(짝)
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 셸 `/settings` 페이지에 패널 둘을 붙임(투자 링크 아래 — 지우기가 맨 끝) | 웹 타입 · lint · 셸 운영 빌드(worktree, `/settings` 153kB) · 실화면 390 · 1440 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

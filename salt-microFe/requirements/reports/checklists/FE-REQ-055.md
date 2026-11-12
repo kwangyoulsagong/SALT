@@ -79,3 +79,18 @@
 - 다시 돌림(마지막 코드 커밋 `698da12b` 기준): `./gradlew check`(저축 `/goals/exists` 삭제 뒤 처음 — app 91 · 서비스 159, 실패 0) · FE `check-types` · `lint` · `test` · `test:layer-check` · springdoc 에 identity 경로 넷 · 저축 `/goals/exists` 0 · Express 옛 `/api/onboarding/status` 404
 - 실패 · 만료 경로(Playwright `route` · 만료 토큰, 셸 3001 — 3000 은 사용자 회사 작업): 불러오기 500 → 재시도 뒤 "불러오지 못했어요" · 고르기 500 → 문구 · 끝내기 500 → 문구 + 이동 안 함 · 배치 저장 500 → 토글 되돌림 + 문구 · 만료 세션 `/settings` · `/home` → 로그인 · 새 홈 카드 패널 axe 0
 - **결함 1** — 만료 세션으로 `/onboarding`(공개 경로)을 열면 "불러오는 중"에 머물렀다: 조회가 일반 `Error` 를 던져 401 도 재시도 대상. `readApiError` + 401 = 세션 없음 → 초대 단계 `698da12b`. 같은 원인 grep — 초대 확인(`acceptInviteApi.check`)도 일반 `Error` 지만 `retry: false` 라 결함 아님
+
+## 2026-11-12 — 서버 S3c 내 데이터
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| FR-5 `export-my-data` · `delete-account` · `/settings` | 타입 · lint · 셸 운영 빌드(worktree) · 레이어 훅 사후 실행 · 실화면(Playwright — 내려받기 파일 이름 · 틀린 비밀번호 · 지움 결과 · 쿠키 0 · 처음 화면 · 390 · 1440 · 콘솔 오류는 일부러 친 403 하나) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| FR-7 LLM 전송 필드 화면 | 서버 분류 표가 S3d | 서버 S3d |
+| 앱(RN) 내 데이터 화면 | 앱 셸 미착수 | `RN-REQ-035` |

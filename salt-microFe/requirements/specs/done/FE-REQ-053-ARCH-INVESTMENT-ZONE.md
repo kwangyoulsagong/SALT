@@ -65,5 +65,6 @@ source: requirements/decisions/ADR-005-domain-zones.md
 | 2026-11-06 | 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`): 변경 없음(이 REQ 몫) — BFF `home-card.viewmodel` 에 `INVEST_HREF` 상수(투자 카드 · 첫 입력이 같은 경로를 쓰게) `066ba971` |
 | 2026-11-10 | 보유 요약 자리 홈 → 리포트(이 REQ) → `/portfolio`(`FE-REQ-069`) · `coach-console` 문구 주석 |
 | 2026-11-10 | 커밋 대조 — 위 `FE-REQ-069` 줄의 커밋 `29b9a212` |
+| 2026-11-12 | 서버 S3c 내 데이터(짝 — 루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`): 셸 `/settings` 페이지에 패널 둘을 붙임(투자 링크 아래 — 지우기가 맨 끝). 이 REQ 몫 기능 변경 0 |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-microFe/packages/domain-invest/src/pages/coach/ui/CoachSettingsBody.tsx` — 사람 · AI 칸 유리막(`SignInRequired`)

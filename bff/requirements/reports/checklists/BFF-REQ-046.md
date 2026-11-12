@@ -62,3 +62,17 @@
 - FR-6: `onboarding.viewmodel` 새로 · `app-onboarding.service` `get` · `chooseDomains` · `finish` · 라우트 셋 · 옛 `/status` 은퇴(`RETIRED_PATHS`)
 - FR-4: 홈 배치를 identity 에서 — 카드와 나란히 `allSettled`, 배치 실패 = 기본 순서(카드 실패 아님) · 401 = 홈 전체
 - 검증: `npm test` 412 · `npm run build` · 실스택(옛 경로 410 · 배치 저장 PUT 본문 셋 차례로)
+
+## 2026-11-12 — 서버 S3c 내 데이터
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| FR-7 내보내기 zip · 계정 삭제 | `npm test` 465 · build · 변이(일부만 내보내기 · 중간 실패 삼킴 · 서비스 하나 빠짐 → 깸) · 실스택(내보내기 0.17s · 삭제 0.54s · 틀린 비밀번호 403 · 빈 비밀번호 400) · zip 을 `unzip -t` 로 품 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

@@ -75,3 +75,18 @@
 ## 2026-11-12 — 서버 S3b 확인 2회차
 
 - 변이 11/11 · EXPLAIN · 429 · 소유자 판정 · 국내 스트림 · 게스트 실화면 · identity 중단 중 검증 — 새 결함 0. 상세 루트 체크리스트 `requirements/reports/checklists/MONEY-S3b-identity-accounts.md`
+
+## 2026-11-12 — 서버 S3c 내 데이터(`MONEY-S3c-identity-my-data`)
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md` · 체크리스트 `requirements/reports/checklists/MONEY-S3c-identity-my-data.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| FR-3 내보내기 · FR-4 계정 삭제(지우기 허가 · 서비스마다 · 계정 마지막 · 삭제 기록 · 갱신 401) | `./gradlew check` · `MyDataEndToEndTest` 5 · Express 1294 · BFF 465 · 변이 8/8 · 실스택 · 실화면 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| FR-6 분류 · FR-7 계측 | S3c 를 내보내기 · 삭제로 좁힘 | 서버 S3d |
+| 삭제 직후 남은 접근 토큰(최대 15분) | 접근 토큰은 서명만 본다 — 지운 기기 쿠키는 그 자리에서 지움 · 갱신은 401 | 토큰 폐기 목록이 필요해질 때(배포 `OPS-001`) |

@@ -41,3 +41,17 @@
 - 결함(고침): 내 숫자 경로 — 없는 날짜 500 → 400 `INVALID_GOAL_FACT`(종단 테스트 추가). 입력 경계 다섯 · Swagger 9 확인
 - 검증: `./gradlew check` 다시(최종 HEAD) · 실화면 22/22
 - 미검증: 없음(이 몫 안)
+
+## 2026-11-12 — 서버 S3c 내 데이터(짝)
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 금융 팁 조립에 `PersonalData` 빈 · `ContentUserRows`(퀴즈 답 · 닫은 팁 · 신호 / 글 · 정책 값은 개인 데이터 아님) | `MyDataEndToEndTest` · `./gradlew check` |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

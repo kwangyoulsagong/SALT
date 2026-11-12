@@ -25,3 +25,17 @@
 | 항목 | 사유 | 언제 닫히나 |
 |---|---|---|
 | 옛 표 drop 적용(승인 대기) | 되돌리기 어려운 DB 작업 · 이중 기간 | 승인 즉시 · 2026-11-27 |
+
+## 2026-11-12 — 서버 S3c(`MONEY-S3c-identity-my-data`)
+
+루트 `requirements/specs/done/MONEY-S3c-identity-my-data-slice.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| identity V3 `account_deletion_log` · 저축 V4 · 가계부 V9(원장 지우기 예외) | Testcontainers 종단 · 로컬 운영 DB 적용(identity 3 · savings 4 · household 9) · 기록에 사람 값 0 · 시험 기록 3행 지움 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| FR-6 `data_classification` | S3c 범위 밖 | 서버 S3d |
