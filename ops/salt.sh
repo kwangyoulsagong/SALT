@@ -205,6 +205,15 @@ latest() {
            round(extract(epoch from now() - max(run_as_of))/3600) || '시간 전',
            case when max(run_as_of) is null or max(run_as_of) < now() - interval '3 days' then '✗' else 'ok' end
       from forecast.short_horizon_test
+    union all
+    -- 오늘 등락 한 줄(③ — F016 단계 D · FEATURE-016 관측). 카드 날에만 생기는 행이라 ✗ 없이 개수만(·) — 통과 · 검사 막음 · LLM 실패(오늘 KST).
+    -- 나빠짐 판정은 주간 리포트 move-explain-*.md(시도 ≥ 10 · 막은 비율 > 30%)
+    select '오늘 등락 한 줄(오늘)', coalesce(to_char(max(generated_at) at time zone 'Asia/Seoul','MM-DD HH24:MI'), '없음'),
+           '통과 ' || count(*) filter (where gate = 'ok') || ' · 검사 막음 ' || count(*) filter (where gate <> 'ok')
+             || ' · LLM 실패 ' || (select count(*) from llm_call_logs where purpose = 'move_summary' and not ok
+                                    and requested_at >= date_trunc('day', now() at time zone 'Asia/Seoul') - interval '9 hours'),
+           '·'
+      from move_explanation where trade_date = (now() at time zone 'Asia/Seoul')::date
   " 2>/dev/null | while IFS='|' read -r label at ago mark; do printf "  %-2s %s %s (%s)\n" "$mark" "$label" "$at" "$ago"; done || say "  (DB 조회 실패)"
 }
 
