@@ -9,11 +9,11 @@ import { TextField } from "@repo/ui/textField";
 
 import { clearSession, useHasSession, type ApiError } from "@repo/web-shared/api";
 import { ROUTES } from "@repo/web-shared/config";
-import { panel, panelDescription, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
+import { panel, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
 import { useDeleteAccount } from "../api";
 import { DELETE_ACCOUNT_MESSAGES as MSG } from "../model";
-import { field, form, scopeList, scopeTitle } from "./DeleteAccountPanel.css";
+import { description, field, form, scopeList, scopeTitle } from "./DeleteAccountPanel.css";
 
 const errorText = (error: ApiError): string => {
   if (error.status === 429) return MSG.errors.tooMany;
@@ -59,14 +59,14 @@ export const DeleteAccountPanel = () => {
             {MSG.done(deletedTotal)}
           </StatusLine>
           <div>
-            <Button variant="secondary" onClick={() => window.location.assign(ROUTES.login)}>
+            <Button variant="primary" onClick={() => window.location.assign(ROUTES.login)}>
               {MSG.goHome}
             </Button>
           </div>
         </>
       ) : (
         <>
-          <p className={panelDescription}>{MSG.description}</p>
+          <p className={description}>{MSG.description}</p>
           <div>
             <p className={scopeTitle}>{MSG.scopeLabel}</p>
             <ul className={scopeList}>
@@ -87,7 +87,8 @@ export const DeleteAccountPanel = () => {
                 onChange={setPassword}
               />
             </div>
-            <Button type="submit" variant="danger" disabled={password.length === 0 || signedIn !== true} loading={deletion.isPending}>
+            {/* 공용 변형 중 흰 패널 위 AA 를 넘는 것은 `primary` 뿐(2026-11-12 axe — `danger` · `outline` 3:1 · `weak` · `secondary` 3.9:1). 공용 색은 기존 결정이라 고치지 않는다. 지운다는 뜻은 제목 · 설명 · 범위 줄이 전한다 */}
+            <Button type="submit" variant="primary" disabled={password.length === 0 || signedIn !== true} loading={deletion.isPending}>
               {deletion.isPending ? MSG.pending : MSG.action}
             </Button>
           </form>
