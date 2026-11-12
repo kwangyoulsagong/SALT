@@ -151,4 +151,11 @@ export class PrismaTransactionRepository implements TransactionRepository {
       where: { userId, ...(assetType ? { assetType } : {}) },
     });
   }
+
+  /** `(user_id, …)` 인덱스 앞머리 — 사용자 ≤10명이라 결과는 몇 행. Prisma `distinct` 는 메모리에서 거르므로 SQL 로(`workers-external.md`) */
+  async distinctUserIds(): Promise<string[]> {
+    const rows = await prisma.$queryRaw<Array<{ user_id: string }>>`
+      SELECT DISTINCT user_id FROM portfolio_transactions ORDER BY user_id`;
+    return rows.map((row) => row.user_id);
+  }
 }

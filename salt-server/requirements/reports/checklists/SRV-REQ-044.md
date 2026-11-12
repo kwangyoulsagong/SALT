@@ -71,3 +71,17 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - `application.yml` 은 서비스 계정 줄만 추가 — 메시징 설정 그대로
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+루트 `requirements/specs/in-progress/MONEY-S3b-identity-accounts-slice.md` · 체크리스트 `requirements/reports/checklists/MONEY-S3b-identity-accounts.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 짝 — `identity.UserRegistered` 첫 발행 · application.yml identity 설정 | 종단(아웃박스 한 행 · 경합 4 동시에 하나) · 실스택 발행됨 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |

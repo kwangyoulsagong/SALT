@@ -7,6 +7,8 @@
     "/household": "platform",
     "/content": "platform",
     "/notifications": "platform",
-    "/identity": "platform"
+    "/identity": "platform",
+    "/auth": "platform",
+    "/users/profile": "platform"
   }
 }

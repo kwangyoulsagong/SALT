@@ -114,3 +114,8 @@ PR #43 · #47 에는 이 REQ 몫의 변경이 없다.
 ## 2026-11-10 — F018
 
 - F018 이 이 REQ 의 파일을 걸쳤다(위 체크리스트 2026-11-10 절). 국내 소유자 전용(F011 §정책)을 전제로 쓴 주석 · 단언이 여러 곳에 흩어져 있었다 — 전제가 바뀌면 그 문장을 grep 으로 한 번에 찾는다
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+- 짝 — 초대 규칙 Kotlin 이전. 회고 본문은 루트 `requirements/reports/retrospects/MONEY-S3b-identity-accounts.md` — 플랫폼 단독 종단이 BFF 의 `Bearer undefined` 를 몰랐다 · 반쯤 옮긴 상태의 FK 틈
+- Action: 경로를 옮기면 BFF 를 거친 실스택을 첫 확인으로

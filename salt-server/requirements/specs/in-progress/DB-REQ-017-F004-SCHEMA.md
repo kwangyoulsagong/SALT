@@ -283,3 +283,4 @@ F004의 **3종 세트 렌더 게이트**(근거·적중률·실패사례) 중 �
 | 2026-11-10 밤(FR-61) | `judgment_ledger.asset_class` 추가(마이그레이션 `20261110220000` — 불변 트리거 안 돎 · 기존 178행 crypto · CHECK 두 값 · 기본값 지움, `c8de7501`) |
 | 2026-11-11 | `feat/f017-s1c-collection`: `app.ts` 워커 시작에 깸 감시(`SRV-REQ-057` FR-6) — 지표 갱신을 깸 구독 맨 뒤에 한 번. 풀 규칙(종목 동시 4 · 행 쓰기 한 문장) 그대로 — 새 쓰기 둘(채운 위치 · 스냅샷)도 한 문장 |
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `coach/domain/model.ts` `CoachQuote` 에 선택 필드 `openPrice?`(국내 시가 — 점검 시가 갭 조건 K3). 표 · 열 변경 0. 주인 REQ 는 `DB-REQ-043` · 서버 `SRV-REQ-053` · 예측 `FC-REQ-028` |
+| 2026-11-12 | 서버 S3b 짝(`MONEY-S3b-identity-accounts`): `salt-server/src/app.ts`(머리 주인) — `/api/auth` · `/api/users` 라우터 등록 삭제(경로는 Kotlin identity). 스키마 몫 변경 0 |

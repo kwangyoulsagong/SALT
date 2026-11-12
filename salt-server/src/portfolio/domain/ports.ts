@@ -84,6 +84,8 @@ export interface TransactionRepository {
   ): Promise<TransactionFact[]>;
   /** `assetType` 을 주면 그 자산군만 센다. 행을 옮겨 와서 세지 않는다. */
   countByUser(userId: string, assetType?: PortfolioAssetType): Promise<number>;
+  /** 거래가 하나라도 있는 사용자 id(정렬) — 사람마다 도는 배치의 대상. 서버 S3b 에 사용자 표가 identity 로 가서 그 표를 읽지 않는다 */
+  distinctUserIds(): Promise<string[]>;
 }
 
 export interface HoldingRepository {

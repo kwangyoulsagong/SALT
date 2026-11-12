@@ -46,3 +46,8 @@
 ## 2026-11-06 — 서버 S3a identity 셸 설정(`MONEY-S3a-identity-shell`)
 
 - 없음 — 새 서비스는 표 한 줄
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+- FR-5 — 라우팅 `/auth` · `/users/profile` → platform. 회고 본문은 루트 `requirements/reports/retrospects/MONEY-S3b-identity-accounts.md` — 플랫폼 단독 종단이 BFF 의 `Bearer undefined` 를 몰랐다 · 반쯤 옮긴 상태의 FK 틈
+- Action: 경로를 옮기면 BFF 를 거친 실스택을 첫 확인으로

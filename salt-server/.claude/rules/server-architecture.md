@@ -54,7 +54,7 @@ presentation → application → domain ← infrastructure
 
 | 컨텍스트 | 책임 | 근거 기능 |
 |---|---|---|
-| `auth` | 초대 코드 검증 · 세션 · 토큰 발급/갱신 | F000 |
+| ~~`auth`~~ | ~~초대 코드 검증 · 세션 · 토큰 발급/갱신~~ **2026-11-12 Kotlin identity 로 이전(`SRV-REQ-048` S3b)** — Express 는 토큰 검증만(`shared/lib/tokenVerifier`) | F000 |
 | `portfolio` | 보유 거래 기록 · 보유 재계산 · 평가 · 평가금 흐름 · 리스크 레이더 | F006 |
 | `market` | 시세 동기화 · 관심 종목 · 추적 자산 · 검색 · 차트 · 기술 지표 | F000 |
 | `coach` | 점수 엔진 · 추천 · 종목 판단 · 바이존/관찰 구간 · 근거 3종 조립 · 대화 · 성적표 · 피드백 | F004 F006 |

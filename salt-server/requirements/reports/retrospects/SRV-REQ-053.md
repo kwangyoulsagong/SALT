@@ -66,3 +66,8 @@
 
 - 이 REQ 의 기능 변경은 없다 — 머리 주인인 공유 파일에 F016 단계 D(`SRV-REQ-052`)가 닿았다: 해설 배치 `GenerateExplanationSnapshots` 가 LLM 상한 끝 30회를 남긴다(오늘 등락 한 줄 몫) — 해설 회차 상한 · 지문 규칙 그대로
 - 배운 것: 같은 LLM 상한을 두 배치가 나눠 쓰면 앞 배치가 다 쓴다 — 나중에 붙인 배치는 첫 실측에서 "다음 회차"만 세고 시도 0 이었다. 상한을 나눌 땐 뒤 배치 몫을 앞 배치가 남기게(예약)
+
+## 2026-11-12 — 서버 S3b(`MONEY-S3b-identity-accounts`)
+
+- 짝 — 워커 사람마다 배치 대상 교체. 회고 본문은 루트 `requirements/reports/retrospects/MONEY-S3b-identity-accounts.md` — 플랫폼 단독 종단이 BFF 의 `Bearer undefined` 를 몰랐다 · 반쯤 옮긴 상태의 FK 틈
+- Action: 경로를 옮기면 BFF 를 거친 실스택을 첫 확인으로

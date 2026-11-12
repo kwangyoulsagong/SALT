@@ -14,25 +14,14 @@ const envSchema = z.object({
     .default("development"),
   PORT: z.string().default("4000").transform(Number),
   DATABASE_URL: z.string(),
+  /**
+   * 토큰 검증(`SRV-REQ-048` FR-8, 서버 S3b 2026-11-12) — **Express 는 토큰을 만들지 않는다.** 발급은 identity(Kotlin), 여기는 검증만.
+   * - `IDENTITY_JWKS_URL` — identity 공개키(RS256). 기본값 0 — 서비스 주소는 운영 설정이 정한다
+   * - `JWT_SECRET` · `LEGACY_HS_UNTIL` — 옛 HS 토큰(이중 기간). 끝 시각부터 HS 는 401 — 그 뒤 이 둘을 지운다
+   */
+  IDENTITY_JWKS_URL: z.string().url(),
   JWT_SECRET: z.string(),
-  JWT_EXPIRES_IN: z.string().default("15m"),
-  JWT_REFRESH_SECRET: z.string(),
-  JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
-  /**
-   * 게스트 토큰(`SRV-REQ-056` · `ADR-011`) — 로그인 없이 시장 데이터를 읽는 30분짜리 토큰. 비밀은 `JWT_SECRET` 에서 파생(새 비밀 0).
-   * `PUBLIC_MARKET_GUEST=false` 면 발급 403 — 시장 경로는 사람 토큰만 남는다(되돌리는 한 줄)
-   */
-  GUEST_TOKEN_TTL: z.string().default("30m"),
-  /**
-   * 게스트 발급 상한(10분 창). 키는 `req.ip` 지만 요청이 전부 BFF 를 거쳐 와서 **사실상 서버 전체 상한**이다 — 클라이언트 IP 로
-   * 세려면 셸 → BFF → 서버에 `X-Forwarded-For` 사슬 + `trust proxy` 가 먼저(초대 경로 상한도 같은 처지, 배포 `OPS-001` 때).
-   * 브라우저는 토큰을 30분 쿠키로 들므로 발급 수 ≈ 30분 안의 서로 다른 게스트 브라우저 수
-   */
-  GUEST_ISSUE_PER_WINDOW: z.string().default("300").transform(Number).pipe(z.number().int().min(1)),
-  PUBLIC_MARKET_GUEST: z
-    .enum(["true", "false"])
-    .default("true")
-    .transform((v) => v === "true"),
+  LEGACY_HS_UNTIL: z.coerce.date(),
   LOG_LEVEL: z.string().default("info"),
   GEMINI_API_KEY: z.string().min(10),
   GEMINI_MODEL: z.string().default("gemini-2.5-flash-lite"),
@@ -128,13 +117,6 @@ const envSchema = z.object({
     (v) => (v === "" ? undefined : v),
     z.string().startsWith("pk_", "logo.dev 퍼블리셔블 키(pk_)만 넣는다").optional(),
   ),
-  /**
-   * 활성 계정 상한 (`SRV-REQ-008` FR-6 — **코드 상수 금지**).
-   *
-   * 제품 정의는 본인 + 최대 10명이다(글로벌 플랜 1-1절). 설정값인 이유는 상한이 찼을 때
-   * 기존 계정을 지우는 것 말고 **늘리는 선택지**가 있어야 하기 때문이다.
-   */
-  INVITE_MAX_ACCOUNTS: z.coerce.number().int().positive().default(10),
   /**
    * 코치 수동 재생성 쿨다운(초) — `SRV-REQ-024` FR-82 **설정값**. 기본 5분(FR-80).
    * 워커 생성에는 걸리지 않는다(FR-83).
@@ -238,6 +220,4 @@ export const env = {
   ...parsedEnv,
   KIS_REQUESTS_PER_SECOND: parsedEnv.KIS_REQUESTS_PER_SECOND ?? kisDefaultRequestsPerSecond(parsedEnv.KIS_BASE_URL),
   FORECAST_RUNNER_ENABLED: parsedEnv.FORECAST_RUNNER_ENABLED ?? parsedEnv.NODE_ENV === "development",
-  JWT_EXPIRES_IN: parsedEnv.JWT_EXPIRES_IN as string | number,
-  JWT_REFRESH_EXPIRES_IN: parsedEnv.JWT_REFRESH_EXPIRES_IN as string | number,
 };

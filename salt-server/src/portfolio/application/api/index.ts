@@ -74,6 +74,11 @@ export interface PortfolioApi {
    */
   heldSymbols(assetType: PortfolioAssetType): Promise<string[]>;
   /**
+   * 거래가 하나라도 있는 사용자 id. 코치의 사람마다 배치(준수 판정 · 월간 복기 · 리밸런스)가 대상을 고른다 —
+   * 서버 S3b(2026-11-12)에 `users` 가 identity 로 가서 "모든 사용자"를 읽을 곳이 없다(`DB-REQ-036` 부록 B5 — 프로젝션은 S6)
+   */
+  ledgerOwnerIds(): Promise<string[]>;
+  /**
    * 거래 한 건. **남의 거래면 `null`** — 없는 것과 구분하지 않는다.
    *
    * `coach` 의 거래 계획(F009)이 계획을 거래에 연결할 때 소유 · 종목 · 방향을 확인한다.
@@ -141,6 +146,7 @@ export const createPortfolioApplication = (deps: PortfolioDependencies) => {
     countTransactions: (userId, assetType) =>
       deps.transactions.countByUser(userId, assetType),
     heldSymbols: (assetType) => deps.holdings.distinctSymbols(assetType),
+    ledgerOwnerIds: () => deps.transactions.distinctUserIds(),
     getTransaction: async (userId, transactionId) => {
       const transaction = await deps.transactions.findById(transactionId);
       return transaction && transaction.userId === userId ? transaction : null;

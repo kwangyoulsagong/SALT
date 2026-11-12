@@ -1,11 +1,3 @@
-import { createAuthApplication } from "./auth/application/api";
-import { BcryptPasswordHasher } from "./auth/infrastructure/BcryptPasswordHasher";
-import { JwtTokenIssuer } from "./auth/infrastructure/JwtTokenIssuer";
-import { PrismaAccountStore } from "./auth/infrastructure/PrismaAccountStore";
-import { PrismaInviteAttemptLog } from "./auth/infrastructure/PrismaInviteAttemptLog";
-import { PrismaInviteCodeStore } from "./auth/infrastructure/PrismaInviteCodeStore";
-import { PrismaUserCountProbe } from "./auth/infrastructure/PrismaUserCountProbe";
-import { createAuthRouter } from "./auth/presentation/auth.routes";
 import { BACKTEST_DISPLAY_ORIGINS, DEFAULT_ROUND_TRIP_COSTS, type RoundTripCosts } from "./coach/domain";
 import { createCoachApplication } from "./coach/application/api";
 import { ArticleTextAdapter } from "./coach/infrastructure/ArticleTextAdapter";
@@ -35,6 +27,7 @@ import { PrismaRecommendationSnapshotStore } from "./coach/infrastructure/Prisma
 import { PrismaTradePlanStore } from "./coach/infrastructure/PrismaTradePlanStore";
 import { PrismaDecisionOutcomeStore } from "./coach/infrastructure/PrismaDecisionOutcomeStore";
 import { PrismaMonthlyReviewStore } from "./coach/infrastructure/PrismaMonthlyReviewStore";
+import { CoachedUsersAdapter } from "./coach/infrastructure/CoachedUsersAdapter";
 import { TrackedAssetAdapter } from "./coach/infrastructure/TrackedAssetAdapter";
 import { createAICoachRouter } from "./coach/presentation/aiCoach.routes";
 import { createCoachReportRouter } from "./coach/presentation/coachReport.routes";
@@ -110,25 +103,7 @@ import { logger } from "./shared/config/logger";
  * > 잡혀 훅이 막는다. `src/composition.<context>.ts` 로 나눈다.
  */
 
-/**
- * `auth` 는 아무도 읽지 않는다 — 공개 API 가 없고 다른 컨텍스트를 받지도 않는다.
- * 그래서 조립 순서의 맨 앞이다.
- *
- * 상한은 **여기서 주입한다**. 유스케이스가 `env` 를 읽으면 그 값이 테스트에서
- * 바뀌지 않는다 (FR-6).
- */
-const jwtTokens = new JwtTokenIssuer();
-const auth = createAuthApplication({
-  invites: new PrismaInviteCodeStore(),
-  accounts: new PrismaAccountStore(),
-  userCount: new PrismaUserCountProbe(),
-  hasher: new BcryptPasswordHasher(),
-  tokens: jwtTokens,
-  guestTokens: jwtTokens,
-  publicMarketGuest: env.PUBLIC_MARKET_GUEST,
-  attempts: new PrismaInviteAttemptLog(),
-  maxAccounts: env.INVITE_MAX_ACCOUNTS,
-});
+// `auth` 는 서버 S3b(2026-11-12)에 Kotlin identity 로 옮겼다(`SRV-REQ-048` FR-8) — Express 는 토큰 검증만(`shared/lib/tokenVerifier`)
 
 const news = createNewsApplication({
   articles: new PrismaArticleRepository(),
@@ -316,6 +291,8 @@ const coach = createCoachApplication({
     env.JUDGMENT_COUNT_SYNTHETIC ? ["live", "synthetic"] : ["live"]
   ),
   tracked: new TrackedAssetAdapter(market.api, portfolio.api),
+  // 사람마다 배치의 대상 — `users` 가 identity 로 가서(서버 S3b) 거래 · 계획 · 결과가 있는 사람으로(`CoachedUsersReader`)
+  coachedUsers: new CoachedUsersAdapter(portfolio.api),
   // 오늘 등락 한 줄(③) — 재료는 market 카드(공개 API), 문장 · 스냅샷은 coach(`SRV-REQ-052`). `MOVE_SUMMARY=off` 면 배치 0 · 읽기 disabled
   moveSummary: {
     cards: new MoveCardAdapter(market.api),
@@ -348,7 +325,6 @@ export const contextApis = {
 
 /** 컨텍스트가 자기 유스케이스를 직접 돌려야 하는 곳(워커·관리 작업)이 쓴다. */
 export const contextUseCases = {
-  auth: auth.useCases,
   news: news.useCases,
   market: market.useCases,
   portfolio: portfolio.useCases,
@@ -357,7 +333,6 @@ export const contextUseCases = {
 
 /** `app.ts` 가 등록하는 라우터. 경로는 `app.ts` 가 정한다. */
 export const contextRouters = {
-  auth: createAuthRouter(auth.useCases),
   news: createNewsRouter(news.useCases, env.FORECAST_OWNER_EMAILS),
   investment: createInvestmentRouter(market.useCases),
   marketIntelligence: createMarketIntelligenceRouter(market.useCases),

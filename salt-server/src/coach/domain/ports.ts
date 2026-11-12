@@ -609,6 +609,15 @@ export interface TrackedAssetProbe {
   listTrackedSymbols(): Promise<string[]>;
 }
 
+/**
+ * 코치가 사람마다 도는 배치의 대상(서버 S3b 2026-11-12) — 거래가 있는 사람 ∪ 거래 계획 · 결정 결과가 남은 사람.
+ * 옛것은 `users` 전체였다. 그 표가 identity 로 가 읽을 수 없고(`DB-REQ-036` 부록 B5), 이 셋 밖의 사람은 세 배치 모두 쓰는 것이 0 이다
+ * (월간 복기 `no_ledger` · 리밸런스 보유 0 · 준수 판정 계획 · 결과 0). 계획 · 결과를 더하는 이유: 거래를 다 지운 사람의 남은 결과를 지워야 한다
+ */
+export interface CoachedUsersReader {
+  userIds(): Promise<string[]>;
+}
+
 export interface GaugeForwardReturn {
   symbol: string;
   bucketIndex: number;

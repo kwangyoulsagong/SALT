@@ -1,5 +1,4 @@
 import cron from "node-cron";
-import prisma from "../shared/infrastructure/prisma";
 
 import { InvestmentInsightService } from "../modules/investment-insight/investment-insight.service";
 import { WhaleSignalService } from "../modules/investment-insight/whale-signal.service";
@@ -67,7 +66,7 @@ export class InvestmentInsightWorker {
     // 6시간마다 :35 — 전망 러너(매시 :05)가 새 일봉을 넣은 뒤이고, 서버 TZ 가 KST 든 UTC 든 하루 안에 새 봉을 본다.
     // 멱등이라 부팅 때도 돈다
     const evaluateDecisions = async () => {
-      const users = await prisma.user.findMany({ select: { id: true } });
+      const users = (await this.coach.listCoachedUsers.execute()).map((id) => ({ id }));
       const totals = { outcomes: 0, removed: 0, truncated: 0, failed: 0, unmatchedSells: 0, chasingUnknown: 0 };
       const labels: Record<string, number> = {};
       for (const { id } of users) {
@@ -97,7 +96,7 @@ export class InvestmentInsightWorker {
     // 06:40 — 준수 판정(:35, 6시간마다)의 새 결과 뒤. 부팅 때도 돈다
     // 자산군마다 한 벌(F011 FR-48) — 국내 거래가 없는 사용자는 국내판이 `no_ledger` 로 끝난다
     const buildMonthlyReviews = async () => {
-      const users = await prisma.user.findMany({ select: { id: true } });
+      const users = (await this.coach.listCoachedUsers.execute()).map((id) => ({ id }));
       const counts: Record<string, number> = { failed: 0 };
       for (const { id } of users) {
         for (const assetType of ["crypto", "kr_stock"] as const) {
@@ -226,8 +225,8 @@ export class InvestmentInsightWorker {
         );
       });
 
-      const users = await prisma.user.findMany({ select: { id: true } });
-      const userIds = users.map((user) => user.id);
+      // 대상 = 거래 · 계획 · 결과가 있는 사람(서버 S3b — `users` 는 identity). 보유 0 인 사람의 리밸런스는 빈 목록이었다
+      const userIds = await this.coach.listCoachedUsers.execute();
 
       await this.forEachUser(
         "⚖️ Generating Rebalance Insights...",

@@ -1,4 +1,4 @@
-// 어댑터 — jOOQ(이 서비스 스키마만 생성). 포트는 domain, 꽂는 곳은 app 의 IdentityComposition. S3a 는 발행하는 이벤트가 없어 아웃박스 쓰기 0(UserRegistered 는 S3b)
+// 어댑터 — jOOQ(이 서비스 스키마만 생성) · bcrypt · RS256 발급(nimbus — support:web 의 리소스 서버 의존이 싣는다). 포트는 domain, 꽂는 곳은 app 의 IdentityComposition. 발행 identity.UserRegistered(S3b)
 plugins {
     id("salt.spring")
     alias(libs.plugins.jooq.codegen)
@@ -7,7 +7,9 @@ plugins {
 dependencies {
     api(project(":services:identity:domain"))
     implementation(project(":support:messaging"))
+    implementation(project(":support:web"))
     implementation("org.springframework.boot:spring-boot-starter-json")
+    implementation("org.springframework.security:spring-security-crypto")
     jooqCodegen(libs.jooq.meta.extensions)
 }
 

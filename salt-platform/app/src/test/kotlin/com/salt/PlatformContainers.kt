@@ -19,6 +19,15 @@ object PlatformContainers {
     const val COACH_PASSWORD = "coach-test-password"
     const val IDENTITY_PASSWORD = "identity-test-password"
     const val JWT_SECRET = "test-secret-at-least-32-bytes-long-0123456789"
+    const val JWT_REFRESH_SECRET = "test-refresh-secret-at-least-32-bytes-long-01234"
+
+    /** 옛 HS 를 받는 마지막 시각 — 테스트 동안은 열려 있다(끝난 뒤 401 은 `DualTokenVerifierSpec` 이 시계를 옮겨 본다) */
+    const val LEGACY_HS_UNTIL = "2099-01-01T00:00:00Z"
+
+    /** 테스트마다 새 RSA 키(PKCS#8 PEM) — 운영 키와 무관 */
+    val SIGNING_KEY: java.security.KeyPair = java.security.KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair()
+    val SIGNING_KEY_PEM: String = "-----BEGIN PRIVATE KEY-----\n" +
+        java.util.Base64.getMimeEncoder(64, "\n".toByteArray()).encodeToString(SIGNING_KEY.private.encoded) + "\n-----END PRIVATE KEY-----"
 
     /** 기본 14 = 로컬 운영 DB 와 같은 판. 관리형 DB 후보 판은 `-Dsalt.test.postgres=postgres:17-alpine` 로 같은 테스트를 돌린다 */
     private val postgresImage = System.getProperty("salt.test.postgres") ?: "postgres:14-alpine"
@@ -53,6 +62,11 @@ object PlatformContainers {
         registry.add("salt.db.accounts.coach.password") { COACH_PASSWORD }
         registry.add("salt.db.accounts.identity.password") { IDENTITY_PASSWORD }
         registry.add("salt.auth.jwt-secret") { JWT_SECRET }
+        registry.add("salt.auth.legacy-hs-until") { LEGACY_HS_UNTIL }
+        registry.add("salt.identity.signing-key") { SIGNING_KEY_PEM }
+        registry.add("salt.identity.legacy-refresh-secret") { JWT_REFRESH_SECRET }
+        // 통합 테스트가 한 DB 에 계정을 여럿 만든다 — 상한(운영 10)은 `InviteAcceptanceSpec` 이 본다
+        registry.add("salt.identity.max-accounts") { "100000" }
         // 금융 팁 공개 플래그 — 기본은 꺼짐(법무 확인 전). 통합 테스트는 켠 채로 한 컨텍스트를 같이 쓴다(꺼짐 동작은 `ContentSettingsSpec`)
         registry.add("salt.content.public-enabled") { "true" }
         registry.add("spring.rabbitmq.host") { rabbit.host }
