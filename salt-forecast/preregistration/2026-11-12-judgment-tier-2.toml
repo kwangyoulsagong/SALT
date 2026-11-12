@@ -1,0 +1,19 @@
+# 사전등록 — 종목 판단 라벨 등급 judgment-tier@2: mode-decision@3 행으로 (F017 v2 단계 4b · FC-REQ-028 FR-6 · ADR-010 v2)
+#
+# 이 파일은 **한 번도 돌려 보기 전에** 커밋한다. 바꾸려면 새 키(@3).
+#
+# 왜: judgment-tier@1 은 mode-decision@2 행만 셌고 그 규칙은 후보를 낼 수 없어 네 칸 전부 참고(no_candidate)였다.
+# 서버 규칙이 mode-decision@3(후보 문턱 60, salt-server/preregistration/2026-11-12-mode-decision-3.toml)으로 바뀐다. 같은 측정을 @3 행으로 센다.
+
+key = "judgment-tier@2"
+registered = 2026-11-12
+rule = "mode-decision@3 — 다른 규칙 버전 행은 세지 않는다"
+same_as = "judgment-tier@1 의 [cells] · [source] · [measure] · [decision] · [demotion] · [output] 전부 — 숫자 · 문턱 · seed 같음"
+
+[changes]
+rule_rows = "rule_version = 'mode-decision@3' 행만(라이브 · backtest_full · backtest_price_only 모두)"
+backtest_source = "backtest_full · backtest_price_only 는 signal-skill@2 가 쓴 @3 행"
+live_start = "@3 라이브는 서버 배포 뒤 첫 판단부터 — 검증됨은 그 행만으로(유효 n ≥ 620 이 될 때까지 몇 달은 참고). 미리 적어 둔다"
+caution_basis = "backtest_full 칸(코인 장기 · 국내 장기)은 과거 검산만으로 '주의'가 될 수 있다(judgment-tier@1 [decision].caution 그대로)"
+report = "salt-forecast/reports/judgment-tier-judgment-tier-2-<실행일>.md"
+retire = "judgment-tier@1 은 더 돌리지 않는다 — 매일 배치가 @2 를 돌린다. forecast.judgment_tier 의 @1 행은 지우지 않는다(이력)"

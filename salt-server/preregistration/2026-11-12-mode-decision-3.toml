@@ -1,0 +1,47 @@
+# 사전등록 — 종목 판단 규칙 mode-decision@3: 후보 문턱 70 → 60 (F017 v2 단계 4b · SRV-REQ-053 FR-7 · ADR-010 v2)
+#
+# 이 파일은 **@3 판단 · 과거 검산 · 성적을 한 번도 보기 전에** 커밋한다. 커밋 시각 · 해시가 등록 증거다. 바꾸려면 새 키(@4).
+#
+# 왜: 등급(judgment-tier@1, 2026-11-11)이 네 칸 전부 "참고 no_candidate" 였다. mode-decision@2 는 rule-ic@1 판정으로 가점 항목을
+# 0 으로 만든 뒤에도 후보 문턱 70 을 그대로 뒀다 — 가점 합의 최대가 단타 68(코인) · 64(국내) · 장기 64 라 **후보에 산술적으로 닿을 수 없다**.
+# 후보가 없으면 "잘 사기" 쪽 판단이 없고, 후보 − 피하기 spread 를 잴 수 없어 등급이 영원히 "참고"다. 이것은 @2 의 결함이다(의도한 동작이 아님).
+#
+# 무엇을 봤나(등록 전, 2026-11-12): symbol_judgment_snapshots 의 mode-decision@2 행 **점수 분포(점수 값별 행 수)만** — outcome · return_rate ·
+# exit_price 열은 읽지 않았다. 문턱은 아래 [rule].why 의 구조 이유로 정했고, 점수 분포는 "후보가 칸마다 실제로 나오나"만 확인했다.
+
+key = "mode-decision@3"
+registered = 2026-11-12
+base = "mode-decision@2 — 항목 · 가중 · 문턱(change24h ±3 · sentiment 35/70 · rsi 35/70) · 감점 전부 그대로. 바뀌는 것은 점수 → 행동 대응 하나"
+
+[rule]
+candidate = "점수 ≥ 60 → 후보(단타 review_short_opportunity · 장기 review_accumulation)"
+wait = "50 ≤ 점수 < 60 → 관망"
+avoid = "점수 < 50 → 피하기(@2 와 같다)"
+why = """
+60 = 기준 50 + 10. 가점 하나가 가장 큰 항목(단타 하락 반등 +10)을 넘거나, 서로 다른 항목 둘이 같은 쪽을 가리킬 때(장기 +6 +8 = 64 ·
+단타 +4 +4 = 58 은 못 넘음) 후보다. 피하기(< 50 — 감점 하나라도)와 대칭이 아니다: 사는 쪽에 더 많은 근거를 요구한다(손해를 먼저 피한다).
+"""
+reachable = "코인 단타 60 · 64 · 68 · 국내 단타 60 · 64 · 코인 장기 64 · 국내 장기 64 — 칸 넷 모두 후보가 나올 수 있다"
+
+[seen_counts]
+# 등록 전 본 점수 분포(≥ 60 행 수) — 결과 열 없이. 이 숫자로 문턱을 고르지 않았다(구조 이유가 먼저)
+backtest_full_kr_long = "64: 2,418"
+backtest_full_crypto_long = "64: 3"
+backtest_price_only_kr_scalp = "60: 15,748"
+backtest_price_only_crypto_scalp = "60: 2,961"
+live = "국내 장기 64: 32 · 국내 단타 60: 2 · 64: 3 · 코인 단타 64: 7 · 코인 장기 0"
+
+[ledger]
+# 예측 원장(judgment_ledger)은 점수 항목의 IC 를 재는 표다. 진행 중인 전진 시험 둘이 rule_version = 'mode-decision@2' 원장 행을 읽는다
+# (rule-ic@1 라이브 첫 열람 2026-11-23 · kr-long-change24h@1 첫 열람 2027-06-14). @3 은 점수가 같으므로 원장은 @2 그대로 적는다.
+rule_version = "mode-decision@2 — 점수 · 기여 그대로"
+action = "@2 대응(70 · 50)으로 계산한 행동 — 원장 행은 통째로 @2 와 같다(한 행에 두 규칙을 섞지 않는다)"
+
+[snapshot]
+rule_version = "mode-decision@3 — 성적표 · 3종 · 등급 표본(symbol_judgment_snapshots)"
+mix = "@2 · @3 행을 합산하지 않는다 — 점수 < 60 행이 두 규칙에서 같아도 버전이 다르면 세지 않는다"
+start = "배포 뒤 첫 판단부터. 라이브 @3 은 0 에서 시작 — 3종은 signal-skill@2 과거 검산으로 채운다(라벨)"
+
+[display]
+label = "후보 이름은 @1 때 쓰던 것 그대로(단타 기회 후보 · 장기 모아가기 후보) — 주문 경로 0 · 명령형 0(공통 수용 기준 2 · 4)"
+tier = "등급은 judgment-tier@2(salt-forecast) — 검증됨은 등록 뒤 라이브만"

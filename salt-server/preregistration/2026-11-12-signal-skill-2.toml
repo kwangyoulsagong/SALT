@@ -1,0 +1,24 @@
+# 사전등록 — 종목 판단 과거 검산 signal-skill@2: mode-decision@3 으로 다시 (F017 v2 단계 4b · FC-REQ-028 FR-5 · ADR-010 v2)
+#
+# 이 파일은 **한 번도 돌려 보기 전에** 커밋한다. 바꾸려면 새 키(@3).
+#
+# 왜: 규칙이 mode-decision@3 으로 바뀌면 성적표 · 3종은 @3 행만 센다. 라이브 @3 은 0 에서 시작하므로 같은 규칙으로 과거에 되돌려 채점한
+# 행이 3종을 채운다(ADR-010 v2 "3종은 늘 다"). 방법은 signal-skill@1 · kr-judgment-backtest@2 와 **같고** 규칙만 다르다.
+
+key = "signal-skill@2"
+registered = 2026-11-12
+rule = "mode-decision@3 — 운영 코드 scoreModeDecision 그대로"
+same_as = "signal-skill@1(코인 장기 · 코인 단타 · 국내 단타) + kr-judgment-backtest@2(국내 장기)의 [cell] · [universe] · [schedule] · [scoring] · [display] 전부"
+
+[seen]
+upbit_krw = "판단 시각 < 2026-09-29T00:00:00Z — @2 의 부호 · 가중을 고른 기간(rule-ic@1). @3 는 그 점수를 그대로 쓰므로 여전히 본 기간 → backtest_seen(리포트만)"
+kr_stock = "없음 — 국내 데이터로 고른 것은 0. 문턱 60 은 점수 분포 행 수만 보고 구조 이유로 정했다(mode-decision@3 [seen_counts])"
+
+[store]
+rule_version = "mode-decision@3"
+keep_v2 = "mode-decision@2 과거 검산 행은 지우지 않는다(이력 · judgment-tier@1 리포트 재현). 지우기 + 넣기 범위 = 같은 칸 · rule_version @3 만"
+
+[report]
+path = "salt-server/requirements/reports/backtests/signal-skill-v2-<실행일>.md · kr-judgment-backtest-v2-<실행일>.md(국내 장기 — 규칙 @3)"
+spread = "후보 평균 (r − 비용) − 피하기 평균 r · 날짜 블록 부트스트랩 95%(signal-skill@1 [report] 그대로). 판정이 아니라 보고 — 등급은 judgment-tier@2"
+note = "코인 장기 후보는 등록 전 분포상 몇 건뿐이다(64: 3) — spread 가 없거나 넓으면 그대로 적는다"
