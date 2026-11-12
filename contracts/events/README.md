@@ -24,6 +24,7 @@
 | `household.ExpenseRecorded` `category` | `household` | (구독자 0) — 기본 12 또는 사용자 분류 키(이름 0) | 가계부 S1f 개정 |
 | `household.FixedCostIncreased` | `household` | `content` 때맞춘 팁 — 주거 분류만 신호 · 월세 세액공제 글(금융 팁 S2d 2026-11-05) — 가맹점 · 달마다 한 번 · 가맹점 이름 0 | 가계부 S1e |
 | `content.PolicyParamChanged` | `content` | (저축 제도 계산 F012 FR-12 · 가계부 공제 F013 FR-11 — 법무 확인 뒤) — 원문 표 동기화 때 줄마다 | 금융 팁 S2a |
+| `identity.UserRegistered` | `identity`(초대 수락 — 서버 S3b 2026-11-12) | (구독자 0) — savings · household · content 는 첫 요청에 상태를 만들어 초기 상태가 필요 없다(2026-11-12 확인). 코치 사용자 목록 프로젝션(`DB-REQ-036` B5)은 S6 | S3b |
 
 `SRV-REQ-044` FR-4 의 첫 이벤트 13종은 **발행하는 서비스가 생기는 단계에** 이 표에 행과 파일을 더한다(S1 savings · household …).
 본문 필드는 그 서비스 REQ 가 정한다 — 서비스보다 먼저 쓰면 짐작이다.

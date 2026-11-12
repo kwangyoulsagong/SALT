@@ -11,13 +11,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm
+import org.springframework.security.oauth2.jwt.BadJwtException
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.oauth2.jwt.JwtTimestampValidator
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
@@ -28,13 +28,14 @@ import org.springframework.web.method.support.ModelAndViewContainer
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
 import tools.jackson.databind.json.JsonMapper
-import java.time.Duration
-import javax.crypto.spec.SecretKeySpec
+import java.time.Clock
 
 /**
  * 리소스 서버(JWT 검증) — Express `authMiddleware` 의 Kotlin 판.
  *
  * - 공개 경로 밖은 전부 인증 필요(Express 는 경로마다 붙였다 — 여기서는 기본이 닫힘)
+ * - **이중 검증(서버 S3b 2026-11-12)** — identity 가 발급하는 RS256(`aud` = salt-api) + 옛 Express HS256 을 `salt.auth.legacy-hs-until` 까지.
+ *   판정은 [DualTokenVerifier] 한 곳(identity 의 갱신 토큰 읽기도 같은 것을 쓴다). 키는 [TrustedKeys] — identity 조립이 꽂는다
  * - 시계 오차 허용 0 — `jsonwebtoken` 기본과 같다. Nimbus 기본 60초를 쓰면 Express 가 거부한 만료 토큰을 1분 더 받는다
  * - 401 바디 문구 셋은 Express 와 같다: `No token provided` · `Invalid token` · `Token expired`
  * - **없는 경로는 토큰이 없어도 404** — Express 는 인증을 경로마다 붙여서 없는 경로가 401 이 아니라 404 다.
@@ -44,10 +45,23 @@ import javax.crypto.spec.SecretKeySpec
 @EnableConfigurationProperties(AuthProperties::class)
 class PlatformSecurity(private val properties: AuthProperties) : WebMvcConfigurer {
     @Bean
-    fun jwtDecoder(): JwtDecoder {
-        val key = SecretKeySpec(properties.jwtSecret.toByteArray(Charsets.UTF_8), "HmacSHA256")
-        return NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build().apply {
-            setJwtValidator(DelegatingOAuth2TokenValidator(JwtTimestampValidator(Duration.ZERO)))
+    fun jwtDecoder(trusted: TrustedKeys, clock: Clock): JwtDecoder {
+        val verifier = DualTokenVerifier(trusted, SaltTokens.AUDIENCE_API, properties.jwtSecret, properties.legacyHsUntil, clock)
+        return JwtDecoder { token ->
+            when (val check = verifier.check(token)) {
+                // 문구에 expired 가 있어야 진입점이 `Token expired` 로 답한다(아래 ExpressStyleEntryPoint)
+                TokenCheck.Expired -> throw BadJwtException("Jwt expired")
+                TokenCheck.Invalid -> throw BadJwtException("Invalid token")
+                is TokenCheck.Valid -> Jwt.withTokenValue(token)
+                    .header("alg", if (check.legacy) "HS256" else "RS256")
+                    .claims { claims ->
+                        claims["userId"] = check.claims.getStringClaim("userId")
+                        claims["email"] = check.claims.getStringClaim("email")
+                        claims["exp"] = check.claims.expirationTime.toInstant()
+                        check.claims.issueTime?.let { claims["iat"] = it.toInstant() }
+                    }
+                    .build()
+            }
         }
     }
 
@@ -65,9 +79,20 @@ class PlatformSecurity(private val properties: AuthProperties) : WebMvcConfigure
                 it.requestMatchers(*properties.publicPaths.toTypedArray()).permitAll()
                 it.anyRequest().authenticated()
             }
-            .oauth2ResourceServer { it.jwt { } .authenticationEntryPoint(entryPoint) }
+            .oauth2ResourceServer { it.jwt { }.bearerTokenResolver(bearerOutsidePublicPaths()).authenticationEntryPoint(entryPoint) }
             .exceptionHandling { it.authenticationEntryPoint(entryPoint) }
         return http.build()
+    }
+
+    /**
+     * 공개 경로에서는 `Authorization` 을 읽지 않는다 — Express 는 인증을 경로마다 붙여 공개 경로가 헤더를 보지 않았다.
+     * Spring 기본은 공개 경로라도 실린 토큰을 검증해 401 을 준다. BFF 프록시는 토큰 없는 로그인에도 `Bearer undefined` 를 싣는다
+     * (서버 S3b 2026-11-12 실스택에서 로그인 401 로 드러남) — BFF 무변경이 합격 기준이라 여기서 Express 와 같게 한다
+     */
+    private fun bearerOutsidePublicPaths(): BearerTokenResolver {
+        val defaults = DefaultBearerTokenResolver()
+        val matchers = properties.publicPaths.map { PathPatternRequestMatcher.withDefaults().matcher(it) }
+        return BearerTokenResolver { request -> if (matchers.any { it.matches(request) }) null else defaults.resolve(request) }
     }
 
     override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
