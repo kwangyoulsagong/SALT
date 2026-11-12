@@ -72,6 +72,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | 확인 2회차 결함 — 국내 제목 신선도를 매분 수집 행만으로(`69f37627`, 백필이 덮고 400일 표를 훑던 자리) |
 | 2026-11-12 | **FR-6 done**(단계 6 · `feat/f017-s6-measure-tags`) — 국내 제목 1년 백필(`BackfillKrNewsTitles` · KIS 한도 맨 뒤 `backfill` · 장중 2쪽/분 · 밖 30쪽/분) · 보관 400일 · `TagNews`(태그는 덧붙임 — 뷰가 없거나 실패면 행만) · `PrismaNewsTagReader`(사전 · 서술 10분 캐시 · 선반영은 행마다 게시 전 마지막 봉) · 국내 소식 · 코인 종목 뉴스 · 왜 움직였나 사실. 종목 뉴스 같은 시각 순서 고정(id 둘째 정렬 — 경로 전환 대조에서 발견) |
 | 2026-11-12 | `GET /api/coach/forecast`(주간 변동 범위) 서버 · BFF 경로 삭제 — 화면 소비처 0(F017 v2 단계 5 가 시나리오 카드로 교체) · 코치 도구 · 해설 읽기 0 확인. 서버 `GetSymbolForecast` · `toForecastHorizon` · 리더 `cards` · `recentCloses`, BFF `getForecast` · `forecast.viewmodel` · 라우트. 예측 쪽 생성은 그대로. 서버 test 1238 → 1223 · BFF 456 → 447(지운 기능의 테스트만) |
 | 2026-11-09 | 신규(to-do) — `FEATURE-017` · `ADR-010`(제안) |

@@ -60,6 +60,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | 확인 2회차 — 평소 p₀ 함수 경계 테스트(`a385cb2b`, 살아남은 변이) · 과거 as_of 재현 · 누수 따로 |
 | 2026-11-12 | 등록 `news-reaction@2`(`befbb44f`) — @1 + 사전 한 낱말("허가 신청"). 실화면에서 같은 사건이 제목마다 칩이 갈렸다. 반응 숫자가 나오기 전 · 등록 행 불변이라 새 키. 배치 · 공용 사례 · 서버 사전 계약이 @2 |
 | 2026-11-12 | **FR-3 done**(단계 6 · `feat/f017-s6-measure-tags`) — 사전등록 `news-reaction@1`(반응 계산 전 커밋 · 평소 p₀ 정정도 계산 전) · `domain/news_kind`(부분 문자열 사전 — 서버와 공용 사례 표 `contracts/news-kind/cases.json` 39건) · `domain/news_reaction`(게시 전 마지막 봉 · 같은 봉 하나 · 5봉 쿨다운 · 날짜 군집 유효 n · Holm) · 누수 테스트(as_of 뒤 제목 · 봉 더해도 같음) · 매일 배치 22초. 결함 하나(`p or 1.0` 이 p = 0 을 1 로 — 같은 꼴 `judgment_tier` 에도, 잠복) |
 | 2026-11-12 | 리포트 파일 날짜를 실행 시각의 **KST 날짜**로(`domain/calendar.report_day`, 작업 17곳 한 번에 — 원인 `FC-REQ-028` 11-12). UTC 날짜면 KST 09:00 전 회차가 전날 오후 회차의 커밋된 리포트를 같은 이름으로 덮는다(11-12 base-rate · judgment-tier 11-11 리포트 덮임 → 복원). 이 REQ 의 결과 · 판정 변화 0 |
