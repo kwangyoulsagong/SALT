@@ -108,3 +108,10 @@
 - 변경: `v_event_card` 를 `DB-REQ-034` 가 넓혔다(`event_symbol` 열 · 종목 사건 필터) · `PrismaForecastReader.eventCards` 두 키 조회
 - 검증: 스키마 계약 테스트 · 실서버 통과
 - 미검증 · 범위 밖: 없음(슬라이스 2단계는 `FC-REQ-021` · `FE-REQ-046` 표)
+
+## 2026-11-12 `/coach/forecast` 경로 삭제
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 소비처 0 확인 | 충족 | FE · 모바일 · BFF 다른 경로 · 서버 코치 도구 · 해설 grep 0 |
+| 검증 | 충족 | 서버 tsc · lint · build · test 1223 · BFF build · test 447 · 404 통과 · 5xx 규칙은 시나리오 · 사건 테스트가 지킴 · 실호출 404(경로 없음) |

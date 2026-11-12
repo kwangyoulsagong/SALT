@@ -72,6 +72,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | `GET /api/coach/forecast`(주간 변동 범위) 서버 · BFF 경로 삭제 — 화면 소비처 0(F017 v2 단계 5 가 시나리오 카드로 교체) · 코치 도구 · 해설 읽기 0 확인. 서버 `GetSymbolForecast` · `toForecastHorizon` · 리더 `cards` · `recentCloses`, BFF `getForecast` · `forecast.viewmodel` · 라우트. 예측 쪽 생성은 그대로. 서버 test 1238 → 1223 · BFF 456 → 447(지운 기능의 테스트만) |
 | 2026-11-09 | 신규(to-do) — `FEATURE-017` · `ADR-010`(제안) |
 | 2026-11-10 밤(구현) | FR-1 · 2 done `d6105374` · Swagger 정정. 실측 2026-11-10(코인 거래대금 상위 100 + 국내 유니버스 50, BFF 150요청): 판단 보임 300/300 모드(전 코인 단타 33 · 장기 0 · 국내 단타 0 · 국내 장기 38/57) · 3종 다 있음 코인 단타 90 · 국내 장기 50(21 은 과거 검산으로 채움) · 3종 결함 160(코인 장기 100 · 국내 단타 50 · 코인 단타 10 — 코인 과거 검산 `FC-REQ-028` FR-5 · 국내 단타 원장 `SRV-REQ-040` FR-63 이 채운다) · BFF p50 33ms · p95 94ms. 판단 상세 504 오늘 10시 이후 6건(약 710요청 · 1건은 재시작 직후 첫 연결 — 프로세스 첫 요청 약 170ms 연결 열기) — FR-0 잔여, 관찰 |
 | 2026-11-10 밤 | **v2** — FR-1 3종 늘(과거 검산으로 채움) · FR-2 보류 사실 → 꼬리표 `caveats[]`(결함 셋 포함) · FR-4 쉬운 한 줄 `summary` · `below_min` · FR-7 등급 · FR-8 3종 결함 세기 신규 · 불변식 4 · 5. 1a 도메인 진행(미커밋) |

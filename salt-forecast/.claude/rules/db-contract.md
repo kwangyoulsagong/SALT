@@ -52,7 +52,7 @@
 
 ## 4. 서버가 읽는 계약
 
-`v_forecast_card` 가 서버 전망 도구 `getForecast` 의 유일한 입력이다.
+`v_forecast_card` 는 **지금 서버가 읽지 않는다** — 유일한 소비처(`GET /api/coach/forecast`, 주간 변동 범위 카드)를 2026-11-12 삭제했다(화면이 시나리오 카드로 바뀜, F017 단계 5). 아래 모양은 다시 읽을 때(에이전트 도구 `get_forecast_card`, `ontology.md` §6)의 계약이다.
 
 ```
 symbol, horizon_weeks, as_of, model_version,

@@ -25,6 +25,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 
 ## Changelog
 
+- 2026-11-12: `GET /api/coach/forecast`(주간 변동 범위) 서버 · BFF 경로 삭제 — 화면 소비처 0(F017 v2 단계 5 가 시나리오 카드로 교체) · 코치 도구 · 해설 읽기 0 확인. 서버 `GetSymbolForecast` · `toForecastHorizon` · 리더 `cards` · `recentCloses`, BFF `getForecast` · `forecast.viewmodel` · 라우트. 예측 쪽 생성은 그대로. 서버 test 1238 → 1223 · BFF 456 → 447(지운 기능의 테스트만)
 - 2026-10-23: F011 5e — **변경 없음.** `forecast.viewmodel` 이 막힘 사유를 문자열 그대로 옮긴다(새 국내 상태 사유 4개도). 실 BFF 4101 경유 000650 `investment_warning` 확인 · build · 251/251
 
 | 날짜 | 변경 |

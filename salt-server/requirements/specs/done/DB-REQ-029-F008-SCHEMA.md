@@ -75,3 +75,9 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `v_event_card` 를 `DB-REQ-034` 가 넓혔다(`event_symbol` 열 · 종목 사건 필터) · `PrismaForecastReader.eventCards` 두 키 조회 |
 - 2026-10-09: `v_daily_close` 에 국내 주식(`source = 'kis'`) — 열 그대로, 행만 늘어남. 롤백 = `20260924100000` 정의. 마이그레이션 `20261009100000_forecast_daily_close_kr_stock` · 로컬 적용 · `EXPLAIN` 0.6ms(4키 ANY · 60일) (F011 슬라이스 5b)
 - 2026-10-29: 전수 조사 — 현재와 다른 서술 정정(머리 블록). 본문은 당시 기록으로 둠
+
+## Changelog
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-11-12 | `GET /api/coach/forecast`(주간 변동 범위) 서버 · BFF 경로 삭제 — 화면 소비처 0(F017 v2 단계 5 가 시나리오 카드로 교체) · 코치 도구 · 해설 읽기 0 확인. 서버 `GetSymbolForecast` · `toForecastHorizon` · 리더 `cards` · `recentCloses`, BFF `getForecast` · `forecast.viewmodel` · 라우트. 예측 쪽 생성은 그대로. 서버 test 1238 → 1223 · BFF 456 → 447(지운 기능의 테스트만) |

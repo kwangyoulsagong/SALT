@@ -43,6 +43,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | `GET /api/coach/forecast`(주간 변동 범위) 서버 · BFF 경로 삭제 — 화면 소비처 0(F017 v2 단계 5 가 시나리오 카드로 교체) · 코치 도구 · 해설 읽기 0 확인. 서버 `GetSymbolForecast` · `toForecastHorizon` · 리더 `cards` · `recentCloses`, BFF `getForecast` · `forecast.viewmodel` · 라우트. 예측 쪽 생성은 그대로. 서버 test 1238 → 1223 · BFF 456 → 447(지운 기능의 테스트만) |
 | 2026-11-09 | 신규(to-do) |
 | 2026-11-10 밤(구현) | FR-1 done `f843104e` — 판별 union 폐지 · 3종 결함은 보이고 깨진 모양만 `null`(문장 정정) · 테스트 443/443. 실측 2026-11-10(코인 거래대금 상위 100 + 국내 유니버스 50, BFF 150요청): 판단 보임 300/300 모드(전 코인 단타 33 · 장기 0 · 국내 단타 0 · 국내 장기 38/57) · 3종 다 있음 코인 단타 90 · 국내 장기 50(21 은 과거 검산으로 채움) · 3종 결함 160(코인 장기 100 · 국내 단타 50 · 코인 단타 10 — 코인 과거 검산 `FC-REQ-028` FR-5 · 국내 단타 원장 `SRV-REQ-040` FR-63 이 채운다) · BFF p50 33ms · p95 94ms |
 | 2026-11-10 밤 | **v2** — FR-1 모드 뷰모델 판별 union 폐지 · 3종 늘 · `caveats[]` · `tier` · 3종 결함은 `unavailable` + 셈 · FR-3 `summary` · `below_min`(`FEATURE-017` v2) |
