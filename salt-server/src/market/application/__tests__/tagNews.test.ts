@@ -32,7 +32,7 @@ describe("TagNews", () => {
       { id: "b", symbol: "BTC", origin: "news", related: ["BTC", "ETH", "XRP"], title: "거래소 해킹", publishedAt: at },
     ]);
     assert.equal(tags.get("a")?.eventKind, "hack");
-    assert.equal(tags.get("a")?.preMove5d, 0.02);
+    assert.equal(tags.get("a")?.preMove5d, Math.expm1(0.02)); // 로그 → 단순 비율
     assert.equal(tags.has("b"), false); // 실제 코인 셋 = 묶음 기사
   });
 

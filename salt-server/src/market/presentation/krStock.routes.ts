@@ -379,7 +379,7 @@ export const createKrStockRouter = (
    *       `collectedAt` 은 시장 전체 마지막 수집 시각 — 빈 목록이 "소식 없음"인지 "수집 멈춤"인지 가른다.
    *       `tag`(F017 단계 6 측정 태그, 사전등록 `news-reaction@1`) — 사건 종류를 못 맞히면 null. `label` 은 `up_usually` · `down_usually` ·
    *       `mixed` · `few`(같은 종류 표본 미달) — 1거래일 초과 반응(시장 몫을 뺀)의 오른 비율이 평소와 다른가(Holm). 호재 · 악재 단어 0.
-   *       `reaction`(1일) · `reaction5d` = `{ days, sample, upRate, mean, baseUpRate }`(below_min 이면 비율 · 평균 null) · `preMove5d` = 소식 전 5거래일 초과 수익(로그).
+   *       `reaction`(1일) · `reaction5d` = `{ days, sample, upRate, mean, baseUpRate }`(below_min 이면 비율 · 평균 null) · `preMove5d` = 소식 전 5거래일 초과 수익. `mean` · `preMove5d` 는 단순 비율(0.012 = +1.2%).
    *     tags: [Market - KR Stock]
    *     security: [{ bearerAuth: [] }]
    *     parameters:

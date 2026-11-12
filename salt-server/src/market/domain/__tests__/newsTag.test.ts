@@ -78,9 +78,11 @@ describe("toNewsTag — 종류 · 1봉 라벨 · 5봉 펼침 · 선반영", () =
     assert.equal(tag?.eventKind, "contract");
     assert.equal(tag?.eventKindText, "수주 · 공급계약");
     assert.equal(tag?.label, "up_usually");
-    assert.deepEqual(tag?.reaction, { days: 1, sample: 120, upRate: 0.55, mean: 0.004, baseUpRate: 0.447 });
+    assert.deepEqual(tag?.reaction, { days: 1, sample: 120, upRate: 0.55, mean: Math.expm1(0.004), baseUpRate: 0.447 });
     assert.equal(tag?.reaction5d?.upRate, 0.4);
-    assert.equal(tag?.preMove5d, 0.031);
+    // 로그 → 단순 비율(화면은 퍼센트만) — ln 2 는 +100%
+    assert.equal(tag?.preMove5d, Math.expm1(0.031));
+    assert.equal(toNewsTag(DICT, [], item, Math.log(2))?.preMove5d, 1);
   });
 
   it("종류는 맞았는데 서술이 아직 없으면(첫 배치 전) few · 표본 0 — 막지 않는다", () => {

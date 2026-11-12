@@ -12,7 +12,7 @@ export interface NewsReactionVM {
   sample: number;
   /** 시장보다 더 오른 비율(0~1) — 표본 미달이면 null */
   upRate: number | null;
-  /** 평균 초과 반응(로그) — 표본 미달이면 null */
+  /** 평균 초과 반응 — 단순 비율(0.012 = +1.2%, 서버가 바꿔 준다) · 표본 미달이면 null */
   mean: number | null;
   /** 평소 시장보다 더 오른 비율(0~1) */
   baseUpRate: number | null;
@@ -24,7 +24,7 @@ export interface NewsTagVM {
   label: NewsTagLabelVM;
   reaction: NewsReactionVM;
   reaction5d: NewsReactionVM | null;
-  /** 소식 전 5봉 초과 수익(로그) — 없으면 null */
+  /** 소식 전 5봉 초과 수익 — 단순 비율 · 없으면 null */
   preMove5d: number | null;
 }
 

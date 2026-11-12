@@ -72,7 +72,7 @@ export interface NewsReactionView {
   sample: number;
   /** 시장보다 더 오른 비율 — below_min 이면 null */
   upRate: number | null;
-  /** 평균 초과 반응(로그) — below_min 이면 null */
+  /** 평균 초과 반응 — **단순 비율**(0.012 = +1.2%, 예측의 로그값을 e^x − 1 로). below_min 이면 null */
   mean: number | null;
   /** 평소(같은 시장 · 모든 종목 · 모든 날) 시장보다 더 오른 비율 */
   baseUpRate: number | null;
@@ -84,14 +84,17 @@ export interface NewsTag {
   label: NewsTagLabel;
   reaction: NewsReactionView | null;
   reaction5d: NewsReactionView | null;
-  /** 소식 전 5봉 초과 수익(로그) — 게시 전 마지막 봉까지. 봉이 없으면 null */
+  /** 소식 전 5봉 초과 수익 — **단순 비율**(e^x − 1). 게시 전 마지막 봉까지. 봉이 없으면 null */
   preMove5d: number | null;
   asOf: string | null;
   preregKey: string;
 }
 
+/** 로그 → 단순 비율 — 화면은 퍼센트만 그린다(변환을 화면에 두지 않는다) */
+const simple = (x: number | null): number | null => (x === null ? null : Math.expm1(x));
+
 const toView = (s: NewsReactionStat | undefined): NewsReactionView | null =>
-  s ? { days: s.horizon, sample: s.sample, upRate: s.upRate, mean: s.mean, baseUpRate: s.baseUpRate } : null;
+  s ? { days: s.horizon, sample: s.sample, upRate: s.upRate, mean: simple(s.mean), baseUpRate: s.baseUpRate } : null;
 
 /**
  * 한 행의 태그. 종류가 `other` 면 `null`(행만 — 화면은 칩 없이). 종류는 맞았는데 통계가 아직 없으면(첫 배치 전)
@@ -115,7 +118,7 @@ export const toNewsTag = (
     label: one ? newsTagLabel(one) : "few",
     reaction: toView(one) ?? { days: 1, sample: 0, upRate: null, mean: null, baseUpRate: null },
     reaction5d: toView(five),
-    preMove5d,
+    preMove5d: simple(preMove5d),
     asOf: one?.asOf.toISOString() ?? null,
     preregKey: dict.preregKey,
   };
