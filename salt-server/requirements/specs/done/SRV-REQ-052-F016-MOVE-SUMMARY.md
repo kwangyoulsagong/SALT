@@ -37,9 +37,9 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | FR-3 | done | 프롬프트 `moveSummaryPrompt.ts` — 번호 사실 · 몫은 말로만("무엇이 가장 컸나"). 검사 `verifyMoveSummary` — 인용 ⊂ 입력 · 인용 없는 문장 버림 · 원인 단정(해설보다 엄함 — 근거 숫자가 있어도) · 앞날 · 공용 말투 검사 · **숫자는 인용한 사실 글에 있는 것만**(분해 숫자 포함 버림) · 120자 |
 | FR-4 | done | `selectMoveSummary` — 분해 · 인용 ≥1 · AI 표시(`label: ai`). 사유 `no_split` · `no_card` · `no_citation` · `guard_blocked` · `disabled` · `pending` · `quiet` |
 | FR-5 | done | `move_explanation`(`DB-REQ-041` FR-8) — 실패 시도도 행(같은 지문 LLM 1회). 지문 = 버전 · 자산 · 종목 · 거래일 · 사실 id(최신 12). 읽기는 성공본 인용이 지금 사실에 다 있으면 보임 |
-| FR-6 | done | 24시간 LLM 상한 공유 + **해설 배치가 끝 30회를 남김**(`LLM_RESERVED_CALLS` — 실측 해설이 300 을 다 써 한 줄이 굶었다) · 종목 · 거래일당 4회 · 회차 6 · 해설 배치 뒤 같은 LLM 워커(순서대로) |
+| FR-6 | done | 24시간 LLM 상한 공유 + **해설 배치가 끝 30회를 남김**(`LLM_RESERVED_CALLS` — 실측 해설이 300 을 다 써 한 줄이 굶었다) · 종목 · 거래일당 ~~4~~ **8**회 · **보이는 성공본이 있으면 60분 간격**(확인 2회차) · 회차 6 · 해설 배치 뒤 같은 LLM 워커(순서대로) · 로컬 CLI 상태는 해설과 한 `LocalCliGate` |
 | FR-7 | done | `MOVE_SUMMARY=off`(해설 LLM 을 끄면 같이 꺼짐) — 배치 0 · 읽기 `disabled` · ①② 그대로 |
-| FR-8 | done | 로그는 개수 · 사유 코드만 · 사용량 원장 `purpose: move_summary` · 원문 0 |
+| FR-8 | done | 로그는 개수 · 사유 코드만 · 사용량 원장 `purpose: move_summary` · 원문 0 · `ops/salt.sh status` 줄(통과 · 검사 막음 · LLM 실패 — 확인 2회차) |
 
 - 실측(2026-11-12 13:3x, 국내 카드 날 3종목): 로컬 Claude 3건 전부 통과 · 인용 2~4 · 읽기 24~66ms · BFF 경유 54~159ms. 리포트 `salt-forecast/reports/move-explain-2026-11-12.md`
 - 루트 `requirements/specs/done/F016-D-move-summary-slice.md`
@@ -63,3 +63,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-06 | 신규(to-do) — `ADR-009` |
 | 2026-11-06 | 사용자 결정 — ③ 평가 문턱 없이 켬(비상업 · 본인 + 친구용). 게이트 · 가드 · AI 표시 유지 |
 | 2026-11-12 | **done** — 단계 D. FR-1~8. 정정: 조용한 날 문장은 저장하지 않는다(요청 때 같은 규칙) · 문장에 분해 숫자를 넣지 않는다(숫자는 인용한 사실 글의 것만) · LLM 상한에 한 줄 몫 30 예약 |
+| 2026-11-12 | 확인 2회차 — 결함 다섯 고침: 프로그램 사실 id(`SRV-REQ-051`) · FR-5/6 정정 **보이는 성공본 60분 간격 · 하루 상한 8**(4 였다) · 로컬 CLI 상태를 해설과 한 게이트로 · FR-8 `salt.sh status` 줄 · FE AI 표시 대비 |

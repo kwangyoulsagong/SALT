@@ -119,3 +119,16 @@
 - [x] 왜 움직였나 같은 날 사실(국내 제목 · 코인 기사)에 측정 태그 — 목록 상한으로 남은 행만 · 원천 관련 종목으로 묶음 기사 거름
 - [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
 - 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`
+
+## F016 단계 D 확인 2회차(2026-11-12) — FR-9 사실 id
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 프로그램 매매 사실 id `kr-flow:program:<시각>` → `kr-flow:program:<종목>:<거래일>` | 불변식 테스트(회차 · 값이 바뀌어도 id 같음 · 시각 · 값은 최신) · 실경로 3종목 id 고정 · 다른 사실 id(VI = 발동 시각 · 상태 · 조치 · 코인)는 사건마다 고정이라 그대로 |
+| main 나란히 | BFF 뷰모델 main vs 브랜치 같은 실응답 4개 — ①② 칸 같음(id 값만 다름) |
+
+### 미검증 · 범위 밖
+
+없음
