@@ -9,6 +9,9 @@
     "/notifications": "platform",
     "/identity": "platform",
     "/auth": "platform",
-    "/users/profile": "platform"
+    "/users/profile": "platform",
+    "/coach/me/data": "platform",
+    "/ping/me/data": "platform",
+    "/notification/me/data": "platform"
   }
 }
