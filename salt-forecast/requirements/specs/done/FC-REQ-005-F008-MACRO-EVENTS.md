@@ -51,6 +51,7 @@ source: pm/requirements/specs/in-progress/FEATURE-008-forecast-intelligence.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — `store/tables.py` 에 소식 태그 표 셋(`news_kind_dict` · `news_reaction_stat` · `news_pre_move`) 선언 — 스키마 계약 테스트가 실 DB 와 대조. 사건 반응(일정) 표는 그대로 |
 | 2026-11-02 | F008 슬라이스 24 국내 증시 일정(`feat/f008-slice24-kr-market-events`): `domain/events` · `store/events` · `jobs/events` 를 국내로 넓혔다 — 종류 4 · KST 발표 시각 · 규칙 종류 30일 전 · 끊김 `break_cum` · 사건 종목 키(`FC-REQ-021` · `DB-REQ-034`). 코인 묶음 결과 무변화(`ref_bar_open` 식 · `_closed_by` 조건은 업비트 봉에서 전과 같다) |
 | 2026-11-09 | `tables.py` 에 `move_beta` 선언(F016 단계 C `FC-REQ-027`) — 사건 표 무변경 |
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `store/tables.py` 에 표 선언 `base_rate_stat` · `base_rate_trigger` · `trade_check_outcome`(스키마 대조 테스트 통과). 거시 일정 표 무변경. 주인 REQ 는 `FC-REQ-028` · DB `DB-REQ-043` |

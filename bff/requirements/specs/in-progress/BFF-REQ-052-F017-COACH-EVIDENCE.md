@@ -27,7 +27,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 | FR-2 | `GET /api/app/ai-coach/explanation?symbol&mode` → `{ symbol, mode, tier: latest|previous|template|none, aiGenerated, provider, generatedAt, sentences[{ section, text, citations[{ id, label, at, url }] }], disclaimer }` — 서버 4단 그대로 · 캐시 0 · 300ms · GET 재시도 1 · 모양 깨짐 502(빈 문장 · 인용 없는 문장도 깨짐) · 인용 주소 `http(s)` 만. 옛 `POST /explain` · `/explain/stream`(즉석 · SSE 중계 · 동시 상한)은 지움 | 3 | **done 2026-11-11** |
 | FR-3 | `GET /api/app/ai-coach/check?symbol&side=buy|sell` — 서버 점검 그대로(조건 · 표본 · 분포 · 무효선 거리 · 보유 연장 분포). `no_condition` · 보유 없음(`side=sell`) 상태. **v2**: `summary`(서버 문장 그대로 — BFF 가 문장 · 숫자를 고치지 않음) · `status: ok | below_min | no_condition` · `upRange` · `sampleDays` 를 옮긴다. 화면 맨 위 칸이라 예산 p95 200ms | 2 | **done 2026-11-11** `aa3c1393` — 실호출 15~120ms · 표본 미달에 비율이 실려 오면 막음 · 모양 깨짐 502 |
 | FR-4 | `GET /api/app/ai-coach/scenario?symbol` — 1h · 4h · 1d `{ renderable, blockedReason, pUp, q10, q50, q90, invalidation, track }`. 비소유자 404 통과(자리 0) | 3 | **done 2026-11-11**(단계 5 `33d1c061`) — 서비스는 전망과 같은 자리(`app-forecast.service`: 4xx 그대로 · 5xx 200 `unavailable`). 뷰모델은 **막을 수만** — 열린 지평에 확률 · 범위 · 무효선 · 성적 · 빗나간 사례 중 하나라도 없으면 그 지평만 `contract_incomplete`. 화면 재료 `upOutOf100` · `hitRate` · `alwaysUpRate`. 칸 이름은 서버 정정 그대로(`range{lowPct,…}` · `track.alwaysUpHits`) |
-| FR-5 | 국내 · 코인 소식 뷰모델 행에 `eventKind` · `reaction` · `preMove5d` · `label` — 모르는 `label` 은 태그 없이 행만 | 4 | to-do |
+| FR-5 | 국내 · 코인 소식 뷰모델 행에 `eventKind` · `reaction` · `preMove5d` · `label` — 모르는 `label` 은 태그 없이 행만 | 4 | **done 2026-11-12** `55fba89c` · `95f9a35e` — `news-tag.viewmodel`(순수 매퍼 한 벌 — 국내 소식 · 코인 뉴스 · 왜 움직였나 사실). 라벨 넷(`few` 더함) · 깨진 모양이면 태그 null. 코인 뉴스 upstream `/news?symbol` → `/market-intelligence/:symbol/news`(같은 기사 · 5종목 id 순서 대조 — `viewCount` 는 화면이 안 써 빠짐) |
 
 ## Acceptance Criteria
 
@@ -43,6 +43,7 @@ source: pm/requirements/specs/in-progress/FEATURE-017-ai-coach-best-case.md
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | **FR-5 done**(단계 6) — 측정 태그 뷰모델 · 코인 뉴스 upstream 전환. 테스트 453 |
 | 2026-11-12 | `GET /api/coach/forecast`(주간 변동 범위) 서버 · BFF 경로 삭제 — 화면 소비처 0(F017 v2 단계 5 가 시나리오 카드로 교체) · 코치 도구 · 해설 읽기 0 확인. 서버 `GetSymbolForecast` · `toForecastHorizon` · 리더 `cards` · `recentCloses`, BFF `getForecast` · `forecast.viewmodel` · 라우트. 예측 쪽 생성은 그대로. 서버 test 1238 → 1223 · BFF 456 → 447(지운 기능의 테스트만) |
 | 2026-11-09 | 신규(to-do) |
 | 2026-11-10 밤(구현) | FR-1 done `f843104e` — 판별 union 폐지 · 3종 결함은 보이고 깨진 모양만 `null`(문장 정정) · 테스트 443/443. 실측 2026-11-10(코인 거래대금 상위 100 + 국내 유니버스 50, BFF 150요청): 판단 보임 300/300 모드(전 코인 단타 33 · 장기 0 · 국내 단타 0 · 국내 장기 38/57) · 3종 다 있음 코인 단타 90 · 국내 장기 50(21 은 과거 검산으로 채움) · 3종 결함 160(코인 장기 100 · 국내 단타 50 · 코인 단타 10 — 코인 과거 검산 `FC-REQ-028` FR-5 · 국내 단타 원장 `SRV-REQ-040` FR-63 이 채운다) · BFF p50 33ms · p95 94ms |

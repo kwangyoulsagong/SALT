@@ -40,6 +40,7 @@ source: 사용자 "국내주식도 주식 홈에서 코인처럼 주요 그게 �
 
 | 날짜 | 변경 |
 |---|---|
+| 2026-11-12 | F017 단계 6(측정 태그 · `SRV-REQ-053` FR-6)이 이 REQ 자리에 더함 — `composition.ts` 에 `PrismaNewsTagReader`(예측 뷰 셋) 조립 — market 의존 하나 더 |
 | 2026-10-30 | 신규(to-do) |
 | 2026-11-02 | 구현 · in-progress. FR-3 원/달러 미구현(모의 키 거부) · FR-4 코드 변경 없음 · FR-5 `schedule` 필드 · FR-8 쿼리 수 정정. 같은 커밋에서 KIS 지수 고가 · 저가 · 거래대금(`KisClient.indexQuote`) · 분 기록 쓰기(`PollKrIndices`) · 정리 작업(`PruneKrIndexTicks`, 워커 15:50) |
 | 2026-11-02 | done. FR-3 원/달러 칸을 범위에서 뺌(사용자 "안되는 것들은 빼 실전키 안할거니까" — 실전 키 미사용은 2026-10-29 결정) |
