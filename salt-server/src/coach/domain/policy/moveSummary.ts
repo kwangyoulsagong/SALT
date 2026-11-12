@@ -41,8 +41,17 @@ export const MOVE_SUMMARY_POLICY = {
 /** 프롬프트에 넣는 사실 수 — 최신 순 상한(market 목록은 30). 지문도 이 범위만 본다 */
 export const MOVE_SUMMARY_FACTS_MAX = 12;
 
-/** 종목 · 거래일당 LLM 시도 상한(FR-6) — 새 사실이 계속 와도 하루 이만큼만 */
-export const MOVE_SUMMARY_DAILY_ATTEMPTS = 4;
+/**
+ * 종목 · 거래일당 LLM 시도 상한(FR-6). 새 사실 때문에 다시 만드는 건 `MOVE_SUMMARY_REFRESH_MS` 간격이라 장중(08~16시) 매시 한 번이 들어간다.
+ * ~~4~~ → 8(2026-11-12): 4 였을 땐 아침 소식 몰림(035420 08~10시 20건)에 회차마다 다시 만들어 오전에 다 썼다
+ */
+export const MOVE_SUMMARY_DAILY_ATTEMPTS = 8;
+
+/**
+ * 보이는 성공본이 있으면 새 사실이 와도 이 간격 안엔 다시 만들지 않는다 — 문장이 10분마다 바뀌지 않게 · 상한을 아침에 다 쓰지 않게.
+ * 성공본이 안 보이게 되면(인용한 사실이 목록에서 빠짐) 간격 없이 다시 만든다
+ */
+export const MOVE_SUMMARY_REFRESH_MS = 60 * 60 * 1000;
 
 /** 배치 한 회차 LLM 시도 상한 — 해설 배치와 같은 워커를 나눠 쓴다 */
 export const MOVE_SUMMARY_BATCH_MAX_PER_RUN = 6;
@@ -307,9 +316,8 @@ export const selectMoveSummary = (input: {
   if (moveQuietReason(card)) {
     return { gate: "quiet", summary: { text: MOVE_SUMMARY_QUIET_TEXT, citations: [], label: "server", generatedAt: null } };
   }
-  const ids = new Set(card.facts.map((f) => f.id));
   const ok = input.latestOk;
-  if (ok && ok.gate === "ok" && ok.text && ok.citations.length > 0 && ok.citations.every((id) => ids.has(id))) {
+  if (ok && ok.text && isDisplayableMoveSummary(ok, card.facts)) {
     return {
       gate: "ok",
       summary: { text: ok.text, citations: ok.citations, label: "ai", generatedAt: ok.generatedAt.toISOString() },
@@ -319,17 +327,31 @@ export const selectMoveSummary = (input: {
   return { gate: "pending", summary: null };
 };
 
+/** 성공본이 지금 카드에 보일 수 있나 — 인용이 지금 사실에 다 있다(`selectMoveSummary` 와 같은 선) */
+export const isDisplayableMoveSummary = (stored: StoredMoveSummary | null, facts: readonly Pick<MoveSummaryFact, "id">[]): boolean => {
+  if (!stored || stored.gate !== "ok" || !stored.text || stored.citations.length === 0) return false;
+  const ids = new Set(facts.map((f) => f.id));
+  return stored.citations.every((id) => ids.has(id));
+};
+
 /**
- * 배치가 LLM 을 불러야 하나 — 카드가 서고 · 조용하지 않고 · 이 지문의 시도가 없고 · 오늘 시도 상한 안
+ * 배치가 LLM 을 불러야 하나 — 경계 표 테스트(`moveSummary.test.ts`).
+ * 카드가 서고 · 조용하지 않고 · 이 지문의 시도가 없고 · (보이는 성공본이 없거나 그것이 간격보다 오래됐고) · 오늘 시도 상한 안
  */
 export const needsMoveSummary = (input: {
   card: MoveCard;
   current: StoredMoveSummary | null;
+  latestOk: StoredMoveSummary | null;
   attemptsToday: number;
-}): "generate" | "skip_no_card" | "skip_quiet" | "skip_same" | "skip_daily_cap" => {
+  now: Date;
+}): "generate" | "skip_no_card" | "skip_quiet" | "skip_same" | "skip_recent" | "skip_daily_cap" => {
   if (!input.card.show || !input.card.split) return "skip_no_card";
   if (moveQuietReason(input.card)) return "skip_quiet";
   if (input.current) return "skip_same";
+  const ok = input.latestOk;
+  if (ok && isDisplayableMoveSummary(ok, input.card.facts) && input.now.getTime() - ok.generatedAt.getTime() < MOVE_SUMMARY_REFRESH_MS) {
+    return "skip_recent";
+  }
   if (input.attemptsToday >= MOVE_SUMMARY_DAILY_ATTEMPTS) return "skip_daily_cap";
   return "generate";
 };

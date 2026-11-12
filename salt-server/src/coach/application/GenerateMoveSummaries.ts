@@ -134,7 +134,7 @@ export class GenerateMoveSummaries {
         continue;
       }
       const day = await this.deps.store.day(asset, card.symbol, card.date, fingerprint);
-      const need = needsMoveSummary({ card, current: day.current, attemptsToday: day.attempts });
+      const need = needsMoveSummary({ card, current: day.current, latestOk: day.latestOk, attemptsToday: day.attempts, now: this.now() });
       if (need !== "generate") {
         result.skipped += 1;
         continue;

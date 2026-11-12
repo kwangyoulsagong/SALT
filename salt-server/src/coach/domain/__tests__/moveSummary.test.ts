@@ -178,13 +178,23 @@ describe("selectMoveSummary — 설명 3종 게이트", () => {
   });
 });
 
-describe("needsMoveSummary — 같은 지문 LLM 1회 · 하루 상한", () => {
-  it("경계", () => {
-    assert.equal(needsMoveSummary({ card: card(), current: null, attemptsToday: 0 }), "generate");
-    assert.equal(needsMoveSummary({ card: card(), current: stored(), attemptsToday: 0 }), "skip_same");
-    assert.equal(needsMoveSummary({ card: card({ show: false }), current: null, attemptsToday: 0 }), "skip_no_card");
-    assert.equal(needsMoveSummary({ card: card({ facts: [] }), current: null, attemptsToday: 0 }), "skip_quiet");
-    assert.equal(needsMoveSummary({ card: card(), current: null, attemptsToday: MOVE_SUMMARY_DAILY_ATTEMPTS - 1 }), "generate");
-    assert.equal(needsMoveSummary({ card: card(), current: null, attemptsToday: MOVE_SUMMARY_DAILY_ATTEMPTS }), "skip_daily_cap");
-  });
+describe("needsMoveSummary — 같은 지문 LLM 1회 · 보이는 성공본은 60분 · 하루 상한", () => {
+  const NOW = at("12:00");
+  const base = { card: card(), current: null, latestOk: null, attemptsToday: 0, now: NOW };
+  const okAt = (hm: string, citations = ["kr-news:1"]) => stored({ generatedAt: at(hm), citations });
+  const cases: Array<[string, Partial<typeof base> & { latestOk?: StoredMoveSummary | null }, string]> = [
+    ["처음", {}, "generate"],
+    ["같은 지문 시도 있음", { current: stored() }, "skip_same"],
+    ["카드 아님", { card: card({ show: false }) }, "skip_no_card"],
+    ["조용한 날", { card: card({ facts: [] }) }, "skip_quiet"],
+    ["보이는 성공본 59분 전 → 다시 안 만듦", { latestOk: okAt("11:01") }, "skip_recent"],
+    ["보이는 성공본 정확히 60분 전 → 다시", { latestOk: okAt("11:00") }, "generate"],
+    ["성공본이 안 보임(인용한 사실이 빠짐) → 간격 없이 다시", { latestOk: okAt("11:59", ["gone"]) }, "generate"],
+    ["상한 직전", { attemptsToday: MOVE_SUMMARY_DAILY_ATTEMPTS - 1 }, "generate"],
+    ["상한", { attemptsToday: MOVE_SUMMARY_DAILY_ATTEMPTS }, "skip_daily_cap"],
+    ["간격 안이면 상한보다 먼저 skip_recent", { latestOk: okAt("11:30"), attemptsToday: MOVE_SUMMARY_DAILY_ATTEMPTS }, "skip_recent"],
+  ];
+  for (const [name, over, want] of cases) {
+    it(name, () => assert.equal(needsMoveSummary({ ...base, ...over }), want));
+  }
 });
