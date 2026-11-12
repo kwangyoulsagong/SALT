@@ -198,13 +198,7 @@ export class MissionService {
         },
       });
 
-      // 사용자 총 포인트 업데이트
-      await tx.user.update({
-        where: { id: userId },
-        data: {
-          totalPoints: { increment: progress.mission.pointsReward },
-        },
-      });
+      // 옛 "사용자 총 포인트" 갱신은 뺐다 — `users` 는 서버 S3b(2026-11-12)에 identity 로 갔고 이 모듈은 동면(410, S7 삭제)이다
 
       return updatedProgress;
     });

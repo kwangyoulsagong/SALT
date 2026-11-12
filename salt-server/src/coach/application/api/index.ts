@@ -16,6 +16,7 @@ import type {
   SymbolJudgmentStore,
   ForecastReader,
   TrackedAssetProbe,
+  CoachedUsersReader,
   TradePlanStore,
   DecisionOutcomeStore,
   MonthlyReviewStore,
@@ -39,6 +40,7 @@ import { CheckTradePreflight } from "../CheckTradePreflight";
 import { CheckTradeSize } from "../CheckTradeSize";
 import { PreviewTradeBehavior } from "../PreviewTradeBehavior";
 import { EvaluateTradeDecisions } from "../EvaluateTradeDecisions";
+import { ListCoachedUsers } from "../ListCoachedUsers";
 import { GenerateExplanationSnapshots } from "../GenerateExplanationSnapshots";
 import { GenerateMoveSummaries } from "../GenerateMoveSummaries";
 import { GetMoveSummary } from "../GetMoveSummary";
@@ -110,6 +112,8 @@ export interface CoachDependencies {
   /** 저장 추천 스냅샷 원장(F010 슬라이스 0) */
   recommendations: RecommendationSnapshotStore;
   tracked: TrackedAssetProbe;
+  /** 사람마다 배치의 대상(서버 S3b — `users` 를 읽지 않는다) */
+  coachedUsers: CoachedUsersReader;
   /**
    * 오늘 등락 한 줄(F016 단계 D). 없으면 꺼짐(`disabled`) — 테스트 조립 · `MOVE_SUMMARY=off`
    */
@@ -198,6 +202,8 @@ export interface CoachUseCases {
   getTargetWeights: GetTargetWeights;
   /** F009 슬라이스 4 — 준수 판정 · 결정 결과 배치 · 미러 · 태그 확정 */
   evaluateTradeDecisions: EvaluateTradeDecisions;
+  /** 사람마다 배치의 대상 — 워커가 준수 판정 · 월간 복기 · 리밸런스 전에 부른다 */
+  listCoachedUsers: ListCoachedUsers;
   getBehaviorMirror: GetBehaviorMirror;
   getKrBehaviorMirror: GetKrBehaviorMirror;
   listDecisionOutcomes: ListDecisionOutcomes;
@@ -376,6 +382,7 @@ export const createCoachApplication = (deps: CoachDependencies) => {
     getRiskBudget,
     updateRiskBudget: new UpdateRiskBudget(deps.profiles, getRiskBudget),
     getTargetWeights: new GetTargetWeights(deps.profiles, deps.portfolio, deps.market, deps.forecasts),
+    listCoachedUsers: new ListCoachedUsers(deps.coachedUsers),
     evaluateTradeDecisions: new EvaluateTradeDecisions(
       deps.portfolio,
       deps.tradePlans,

@@ -1,35 +1,46 @@
 import assert from "node:assert/strict";
-import { createHmac } from "node:crypto";
+import { createHmac, generateKeyPairSync } from "node:crypto";
 import { describe, it } from "node:test";
 
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-import { env } from "../../config/env";
-import { GUEST_AUDIENCE, JwtUtil } from "../../lib/jwt";
-import { authMiddleware } from "../authMiddleware";
-import { marketReaderMiddleware } from "../marketReaderMiddleware";
+import { AUDIENCE_API, AUDIENCE_GUEST, TOKEN_ISSUER, TokenVerifier } from "../../lib/tokenVerifier";
+import { createAuthMiddleware } from "../authMiddleware";
+import { createMarketReaderMiddleware } from "../marketReaderMiddleware";
 import { ownerOnlyMiddleware } from "../ownerOnlyMiddleware";
 
 /**
  * `SRV-REQ-056` · `ADR-011` — 시장 경로는 사람 토큰 **또는** 게스트 토큰, 나머지(★ · 포트폴리오 · 코치)는 사람 토큰만.
  *
- * 핵심 불변식: **게스트 토큰은 `authMiddleware` 를 지나지 못한다.** 비밀이 달라서다(`jwt.ts` `guestSecret`) —
- * 이 표가 그 사실을 토큰 종류 × 미들웨어 전부로 잰다. 발급 유스케이스 테스트는 `auth/application/__tests__/issueGuestToken.test.ts`.
+ * 핵심 불변식: **게스트 토큰은 `authMiddleware` 를 지나지 못한다.** 서버 S3b(2026-11-12)부터 발급은 identity(RS256) —
+ * 새 토큰은 받는 쪽(`aud`)으로, 이중 기간의 옛 HS 는 비밀이 달라서 막힌다. 이 표가 토큰 종류 × 미들웨어 전부로 잰다.
+ * 판정 경계(만료 정각 · 끝 시각 · kid)는 `shared/lib/__tests__/tokenVerifier.test.ts`.
  */
 
-const past = () => Math.floor(Date.now() / 1000) - 60;
+const SECRET = "legacy-secret-at-least-32-bytes-long-0123";
+const KID = "kid-1";
+const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+const verifier = new TokenVerifier({ key: async (kid) => (kid === KID ? publicKey : null) }, SECRET, new Date("2099-01-01T00:00:00Z"));
+const authMiddleware = createAuthMiddleware(verifier);
+const marketReaderMiddleware = createMarketReaderMiddleware(verifier);
 
-/** 게스트 비밀 파생은 `jwt.ts` 와 같은 식이다 — 만료된 게스트 토큰을 만들려면 비밀이 필요하다(발급 함수는 지금 시각만 쓴다) */
-const guestSecret = createHmac("sha256", env.JWT_SECRET).update("salt-guest-token").digest("hex");
+const now = () => Math.floor(Date.now() / 1000);
+const person = { userId: "u1", email: "friend@example.com" };
+const rs = (payload: Record<string, unknown>, aud: string, exp = now() + 900) =>
+  jwt.sign({ ...payload, aud, iss: TOKEN_ISSUER, exp }, privateKey, { algorithm: "RS256", keyid: KID });
+const guestSecret = createHmac("sha256", SECRET).update("salt-guest-token").digest("hex");
 
 const tokens = {
-  "사람 토큰": () => JwtUtil.generateAccessToken("u1", "friend@example.com"),
-  "게스트 토큰": () => JwtUtil.generateGuestToken(),
-  "만료된 게스트 토큰": () => jwt.sign({ kind: "guest", exp: past() }, guestSecret, { audience: GUEST_AUDIENCE }),
+  "사람 토큰": () => rs(person, AUDIENCE_API),
+  "게스트 토큰": () => rs({ kind: "guest" }, AUDIENCE_GUEST),
+  "만료된 게스트 토큰": () => rs({ kind: "guest" }, AUDIENCE_GUEST, now() - 60),
+  "갱신 토큰": () => rs(person, "salt-refresh"),
+  "옛 HS 사람 토큰": () => jwt.sign(person, SECRET, { expiresIn: "15m" }),
+  "옛 HS 게스트 토큰": () => jwt.sign({ kind: "guest" }, guestSecret, { expiresIn: "30m", audience: AUDIENCE_GUEST }),
   "토큰 없음": () => null,
-  "다른 비밀로 서명": () => jwt.sign({ userId: "u1", email: "friend@example.com" }, "not-the-server-secret"),
-  "만료된 사람 토큰": () => jwt.sign({ userId: "u1", email: "friend@example.com", exp: past() }, env.JWT_SECRET),
+  "다른 비밀로 서명": () => jwt.sign(person, "not-the-server-secret-at-least-32-bytes"),
+  "만료된 사람 토큰": () => rs(person, AUDIENCE_API, now() - 60),
 } as const;
 
 type TokenKind = keyof typeof tokens;
@@ -38,26 +49,27 @@ type Outcome =
   | { pass: true; reader?: Request["reader"]; user?: Request["user"] }
   | { pass: false; status: number; message: string };
 
-const run = (middleware: (req: Request, res: Response, next: NextFunction) => void, token: string | null): Outcome => {
-  const req = { headers: token ? { authorization: `Bearer ${token}` } : {} } as Request;
-  let outcome: Outcome | undefined;
-  middleware(req, {} as Response, (error?: unknown) => {
-    if (error) {
-      const e = error as { statusCode: number; message: string };
-      outcome = { pass: false, status: e.statusCode, message: e.message };
-    } else {
-      outcome = { pass: true, reader: req.reader, user: req.user };
-    }
+const run = (middleware: (req: Request, res: Response, next: NextFunction) => void, token: string | null): Promise<Outcome> =>
+  new Promise((resolve) => {
+    const req = { headers: token ? { authorization: `Bearer ${token}` } : {} } as Request;
+    middleware(req, {} as Response, (error?: unknown) => {
+      if (error) {
+        const e = error as { statusCode: number; message: string };
+        resolve({ pass: false, status: e.statusCode, message: e.message });
+      } else {
+        resolve({ pass: true, reader: req.reader, user: req.user });
+      }
+    });
   });
-  assert.ok(outcome, "next 를 반드시 한 번 부른다");
-  return outcome;
-};
 
 /** 경계 표 — 토큰 종류 × {시장 읽기, 사람만}. 기대값은 통과(true) 또는 401 메시지 */
 const table: Array<{ token: TokenKind; market: true | string; auth: true | string }> = [
   { token: "사람 토큰", market: true, auth: true },
   { token: "게스트 토큰", market: true, auth: "Invalid token" },
   { token: "만료된 게스트 토큰", market: "Token expired", auth: "Invalid token" },
+  { token: "갱신 토큰", market: "Invalid token", auth: "Invalid token" },
+  { token: "옛 HS 사람 토큰", market: true, auth: true },
+  { token: "옛 HS 게스트 토큰", market: true, auth: "Invalid token" },
   { token: "토큰 없음", market: "No token provided", auth: "No token provided" },
   { token: "다른 비밀로 서명", market: "Invalid token", auth: "Invalid token" },
   { token: "만료된 사람 토큰", market: "Token expired", auth: "Token expired" },
@@ -65,57 +77,46 @@ const table: Array<{ token: TokenKind; market: true | string; auth: true | strin
 
 const verdict = (v: true | string) => (v === true ? "통과" : `401 ${v}`);
 
-describe("marketReaderMiddleware × authMiddleware — 토큰 경계 표(ADR-011)", () => {
+describe("marketReaderMiddleware × authMiddleware — 토큰 경계 표(ADR-011 · SRV-REQ-048 FR-8)", () => {
   for (const row of table) {
-    it(`${row.token} — 시장 읽기 ${verdict(row.market)} · 사람만 ${verdict(row.auth)}`, () => {
+    it(`${row.token} — 시장 읽기 ${verdict(row.market)} · 사람만 ${verdict(row.auth)}`, async () => {
       const token = tokens[row.token]();
       const cases = [
         ["marketReaderMiddleware", marketReaderMiddleware, row.market],
         ["authMiddleware", authMiddleware, row.auth],
       ] as const;
       for (const [name, middleware, expected] of cases) {
-        const outcome = run(middleware, token);
+        const outcome = await run(middleware, token);
         if (expected === true) assert.equal(outcome.pass, true, `${name} 는 통과해야 한다`);
         else assert.deepEqual(outcome, { pass: false, status: 401, message: expected }, name);
       }
     });
   }
 
-  it("핵심 불변식 — 게스트 토큰은 사람 경로에서 401 이고 req.user 를 채우지 않는다", () => {
-    const req = { headers: { authorization: `Bearer ${JwtUtil.generateGuestToken()}` } } as Request;
-    let status: number | undefined;
-    authMiddleware(req, {} as Response, (error?: unknown) => {
-      status = (error as { statusCode?: number } | undefined)?.statusCode;
-    });
+  it("핵심 불변식 — 게스트 토큰은 사람 경로에서 401 이고 req.user 를 채우지 않는다", async () => {
+    const req = { headers: { authorization: `Bearer ${tokens["게스트 토큰"]()}` } } as Request;
+    const status = await new Promise<number | undefined>((resolve) =>
+      authMiddleware(req, {} as Response, (error?: unknown) => resolve((error as { statusCode?: number } | undefined)?.statusCode)),
+    );
     assert.equal(status, 401);
     assert.equal(req.user, undefined);
   });
 
-  it("게스트 → 시장 읽기는 reader.kind 'guest' · 사람 칸(req.user)은 비어 있다", () => {
-    const outcome = run(marketReaderMiddleware, JwtUtil.generateGuestToken());
-    assert.deepEqual(outcome, { pass: true, reader: { kind: "guest" }, user: undefined });
+  it("게스트 → 시장 읽기는 reader.kind 'guest' · 사람 칸(req.user)은 비어 있다", async () => {
+    assert.deepEqual(await run(marketReaderMiddleware, tokens["게스트 토큰"]()), { pass: true, reader: { kind: "guest" }, user: undefined });
   });
 
-  it("사람 → 시장 읽기는 reader.kind 'user' 와 req.user 를 함께 채운다(검색 ★ 같은 사람 칸)", () => {
-    const outcome = run(marketReaderMiddleware, JwtUtil.generateAccessToken("u1", "friend@example.com"));
+  it("사람 → 시장 읽기는 reader.kind 'user' 와 req.user 를 함께 채운다(검색 ★ 같은 사람 칸)", async () => {
+    const outcome = await run(marketReaderMiddleware, tokens["사람 토큰"]());
     assert.equal(outcome.pass, true);
     if (!outcome.pass) return;
     assert.deepEqual(outcome.reader, { kind: "user", userId: "u1", email: "friend@example.com" });
     assert.equal(outcome.user?.userId, "u1");
   });
 
-  it("만료된 사람 토큰은 게스트로 내려가지 않는다 — 401 Token expired(화면이 갱신해야 ★ · 코치가 돌아온다)", () => {
-    assert.deepEqual(run(marketReaderMiddleware, tokens["만료된 사람 토큰"]()), {
-      pass: false,
-      status: 401,
-      message: "Token expired",
-    });
-  });
-
-  it("게스트 토큰 본문엔 사람 정보가 없다 — kind · aud · 시각뿐", () => {
-    const decoded = jwt.decode(JwtUtil.generateGuestToken()) as Record<string, unknown>;
-    assert.deepEqual(Object.keys(decoded).sort(), ["aud", "exp", "iat", "kind"]);
-    assert.equal(decoded.aud, GUEST_AUDIENCE);
+  it("검증 키를 못 읽으면 401 이 아니라 503 — 화면이 로그인으로 튕기지 않는다", async () => {
+    const down = createAuthMiddleware(new TokenVerifier({ key: async () => "unavailable" }, SECRET, new Date("2099-01-01T00:00:00Z")));
+    assert.deepEqual(await run(down, tokens["사람 토큰"]()), { pass: false, status: 503, message: "Token keys unavailable" });
   });
 });
 

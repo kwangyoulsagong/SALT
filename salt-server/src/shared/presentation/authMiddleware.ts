@@ -1,50 +1,56 @@
 /**
- * 인증 미들웨어.
+ * 인증 미들웨어 — 사람 토큰만(게스트 · 갱신 토큰은 401).
  *
- * **왜 `auth` 컨텍스트가 아니라 여기 있는가.** 모든 컨텍스트의 라우터가 이것을 건다.
- * `auth/presentation` 에 두면 다른 컨텍스트의 `presentation` 이 남의 컨텍스트를 부르게 되고
- * 그건 규칙 위반이다(`server-architecture.md` §4).
- *
- * 여기 있는 것은 **토큰 전송 계층**이다 — 초대 코드 검증·세션 수명 같은 `auth` 도메인
- * 규칙은 들어오지 않는다. 그 경계가 흐려지면(예: 여기서 사용자 상태를 조회하기 시작하면)
- * 그때는 `auth/application/api` 를 부르는 조합 지점으로 옮겨야 한다.
+ * **왜 `auth` 컨텍스트가 아니라 여기 있는가.** 모든 컨텍스트의 라우터가 이것을 건다. 토큰 **전송 · 검증 계층**만 —
+ * 서버 S3b(2026-11-12)부터 발급은 identity(Kotlin)이고 Express 는 리소스 서버다. 판정은 `shared/lib/tokenVerifier` 한 곳
+ * (새 RS256 + 옛 HS256 을 `LEGACY_HS_UNTIL` 까지). 401 문구 셋은 그대로: `No token provided` · `Invalid token` · `Token expired`.
  */
-import { Request, Response, NextFunction } from "express";
-import { JwtUtil, JwtPayload } from "../lib/jwt";
-import { UnauthorizedError } from "./httpErrors";
+import { NextFunction, Request, Response } from "express";
+
+import { tokenVerifier, type TokenCheck, type TokenPerson, type TokenVerifier } from "../lib/tokenVerifier";
+import { ServiceUnavailableError, UnauthorizedError } from "./httpErrors";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: JwtPayload;
+      user?: TokenPerson;
     }
   }
 }
 
-export const authMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const authHeader = req.headers.authorization;
+export const bearerOf = (req: Request): string | null => {
+  const header = req.headers.authorization;
+  return header && header.startsWith("Bearer ") ? header.slice("Bearer ".length) : null;
+};
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new UnauthorizedError("No token provided");
-    }
-
-    const token = authHeader.split(" ")[1];
-    const decoded = JwtUtil.verifyAccessToken(token);
-
-    req.user = decoded;
-    next();
-  } catch (error: any) {
-    if (error.name === "JsonWebTokenError") {
-      next(new UnauthorizedError("Invalid token"));
-    } else if (error.name === "TokenExpiredError") {
-      next(new UnauthorizedError("Token expired"));
-    } else {
-      next(error);
-    }
+/** 실패 판정 → HTTP 오류. 통과면 null */
+export const rejectionOf = (check: TokenCheck): Error | null => {
+  switch (check.kind) {
+    case "expired":
+      return new UnauthorizedError("Token expired");
+    case "invalid":
+      return new UnauthorizedError("Invalid token");
+    case "unavailable":
+      return new ServiceUnavailableError("Token keys unavailable");
+    default:
+      return null;
   }
 };
+
+/** 검증기를 받는 판 — 시험이 고정 키로 만든다. 라우터는 아래 [authMiddleware] */
+export const createAuthMiddleware = (verifier: TokenVerifier) => (req: Request, _res: Response, next: NextFunction) => {
+  const token = bearerOf(req);
+  if (!token) return next(new UnauthorizedError("No token provided"));
+  verifier
+    .person(token)
+    .then((check) => {
+      if (check.kind === "person") {
+        req.user = check.person;
+        return next();
+      }
+      return next(rejectionOf(check));
+    })
+    .catch(next);
+};
+
+export const authMiddleware = createAuthMiddleware(tokenVerifier);

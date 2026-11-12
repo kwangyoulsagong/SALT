@@ -18,7 +18,6 @@ import { runGuarded, schedule } from "./shared/infrastructure/scheduler";
 import { onWake, startWakeWatch } from "./shared/infrastructure/wake";
 
 // Routes (이관 전 모듈)
-import userRoutes from "./modules/user/user.routes";
 import investmentInsightRoutes from "./modules/investment-insight/investment-insight.routes";
 
 const app: Application = express();
@@ -75,9 +74,7 @@ app.use(healthRouter);
 app.use([...DORMANT_PATHS], goneMiddleware);
 
 // API Routes
-app.use("/api/auth", contextRouters.auth);
 app.use("/api/investment", contextRouters.investment);
-app.use("/api/users", userRoutes);
 app.use("/api/portfolio", contextRouters.portfolio);
 app.use("/api/news", contextRouters.news);
 app.use("/api/market-intelligence", contextRouters.marketIntelligence);
