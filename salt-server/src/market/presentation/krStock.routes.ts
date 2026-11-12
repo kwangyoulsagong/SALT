@@ -377,7 +377,7 @@ export const createKrStockRouter = (
    *       저장값만 읽는다(KIS 종합 시황/공시 제목 — 시장 전체를 07~20시 2분마다 수집). 오늘(KST 00:00 뒤) 이 종목에 걸린 제목, 최신이 앞 ·
    *       최대 30건 · 광고성 제외. **본문 · 원문 링크 없음**(원천에 없다 — 시황 본문은 `/{code}/news/{serial}/body`). `kind` 는 `disclosure`(공시) | `news`(시황).
    *       `collectedAt` 은 시장 전체 마지막 수집 시각 — 빈 목록이 "소식 없음"인지 "수집 멈춤"인지 가른다.
-   *       `tag`(F017 단계 6 측정 태그, 사전등록 `news-reaction@1`) — 사건 종류를 못 맞히면 null. `label` 은 `up_usually` · `down_usually` ·
+   *       `tag`(F017 단계 6 측정 태그, 사전등록 `news-reaction@2`) — 사건 종류를 못 맞히면 null. `label` 은 `up_usually` · `down_usually` ·
    *       `mixed` · `few`(같은 종류 표본 미달) — 1거래일 초과 반응(시장 몫을 뺀)의 오른 비율이 평소와 다른가(Holm). 호재 · 악재 단어 0.
    *       `reaction`(1일) · `reaction5d` = `{ days, sample, upRate, mean, baseUpRate }`(below_min 이면 비율 · 평균 null) · `preMove5d` = 소식 전 5거래일 초과 수익. `mean` · `preMove5d` 는 단순 비율(0.012 = +1.2%).
    *     tags: [Market - KR Stock]

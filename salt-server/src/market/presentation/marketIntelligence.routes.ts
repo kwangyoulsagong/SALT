@@ -60,7 +60,7 @@ export const createMarketIntelligenceRouter = (
    *       200:
    *         description: |
    *           `{ symbol, articles: [{ id, title, summary, url, source, sentiment, imageUrl, publishedAt, tag }], status, generatedAt }`.
-   *           `tag` 는 측정 태그(F017 단계 6 · 사전등록 `news-reaction@1`) — `/api/market/kr/{code}/news` 와 같은 모양. 종류를 못 맞히면 null
+   *           `tag` 는 측정 태그(F017 단계 6 · 사전등록 `news-reaction@2`) — `/api/market/kr/{code}/news` 와 같은 모양. 종류를 못 맞히면 null
    */
   router.get("/:symbol/news", controller.getSymbolNews);
 

@@ -1,7 +1,7 @@
 /**
  * 소식 측정 태그(F017 단계 6 · `SRV-REQ-053` FR-6 · `ADR-009` 개정 11-10) — 사건 종류 · 같은 종류 과거 초과 반응 · 선반영.
  *
- * 숫자와 사전의 주인은 예측(`forecast.v_news_kind_dict` · `v_news_reaction` · `v_news_pre_move`, 사전등록 `news-reaction@1`).
+ * 숫자와 사전의 주인은 예측(`forecast.v_news_kind_dict` · `v_news_reaction` · `v_news_pre_move`, 사전등록 `news-reaction@2` — @1 + 사전 한 낱말).
  * 서버는 **새 제목을 같은 사전으로 바로 분류**하고 숫자를 옮긴다. 분류는 부분 문자열 대조(정규식 아님) — 파이썬과 같은 답을
  * 공용 사례 표 `contracts/news-kind/cases.json` 이 양쪽에서 확인한다. 칩 문구의 문턱(표본 · 엇갈림)도 사전등록이 정한다 —
  * 서버 설정으로 두면 등록과 화면이 갈라진다(`SRV-REQ-053` FR-6 초안 "서버 설정" 정정).

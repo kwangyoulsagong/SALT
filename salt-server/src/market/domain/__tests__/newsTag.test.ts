@@ -16,7 +16,7 @@ import {
 /** F017 단계 6 — 소식 측정 태그(SRV-REQ-053 FR-6). 사전 · 사례는 예측과 같은 계약 파일(contracts/news-kind) */
 
 const CONTRACTS = join(__dirname, "../../../../../contracts/news-kind");
-const raw = JSON.parse(readFileSync(join(CONTRACTS, "dict-news-reaction-1.json"), "utf8"));
+const raw = JSON.parse(readFileSync(join(CONTRACTS, "dict-news-reaction-2.json"), "utf8"));
 const DICT: NewsKindDict = {
   preregKey: raw.prereg_key,
   rules: raw.rules,

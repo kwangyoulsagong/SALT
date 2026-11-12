@@ -20,6 +20,7 @@
     { "market": "kr", "origin": "disclosure", "codes": 1, "title": "(주)모아라이프플러스 (정정)최대주주 변경을 수반하는 주식 담보제공 계약 체결", "kind": "other" },
     { "market": "kr", "origin": "disclosure", "codes": 1, "title": "(주)OO 최대주주변경", "kind": "control_change" },
     { "market": "kr", "origin": "news", "codes": 1, "title": "한올 신약 반전 신호탄 쐈지만…FDA 설득이 다음 고비", "kind": "clinical" },
+    { "market": "kr", "origin": "news", "codes": 1, "title": "셀트리온, 호주에 자가면역질환 치료제 '비세큐마' 허가 신청", "kind": "clinical" },
     { "market": "kr", "origin": "disclosure", "codes": 1, "title": "(주)OO 벌금등의부과", "kind": "legal" },
     { "market": "kr", "origin": "disclosure", "codes": 1, "title": "동일제강(주) 관리종목지정", "kind": "delisting_risk" },
     { "market": "kr", "origin": "disclosure", "codes": 1, "title": "(주)OO 주권매매거래정지해제", "kind": "other" },

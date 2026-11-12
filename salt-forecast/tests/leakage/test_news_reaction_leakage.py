@@ -13,7 +13,7 @@ from salt_forecast.domain.series import OhlcvSeries
 from salt_forecast.scoring.news_reaction import run_market
 from salt_forecast.store.news_reaction import RawTitle
 
-PREREG = Path(__file__).resolve().parents[2] / "preregistration" / "2026-11-12-news-reaction.toml"
+PREREG = Path(__file__).resolve().parents[2] / "preregistration" / "2026-11-12-news-reaction-2.toml"
 DICT = from_prereg(tomllib.loads(PREREG.read_text()))
 DAY = 86_400
 T0 = datetime(2025, 1, 1, 7, tzinfo=UTC)

@@ -1,5 +1,5 @@
 {
-  "prereg_key": "news-reaction@1",
+  "prereg_key": "news-reaction@2",
   "rules": [
     {
       "id": "analyst_report",
@@ -150,6 +150,7 @@
       "include": [
         "임상",
         "품목허가",
+        "허가 신청",
         "fda"
       ],
       "exclude": []

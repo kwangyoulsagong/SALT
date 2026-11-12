@@ -21,7 +21,7 @@ from salt_forecast.domain.base_rate import effective_n, holm, two_sided_p, wilso
 from salt_forecast.domain.kr_breaks import up_limit_breaks
 from salt_forecast.domain.series import OhlcvSeries
 
-KEY = "news-reaction@1"
+KEY = "news-reaction@2"  # @1 과 프로토콜 같음 — 사전 한 낱말만 다르다
 HORIZONS = (1, 5)
 PRE_BARS = 5
 COOLDOWN_BARS = 5

@@ -1,4 +1,4 @@
-"""소식 측정 태그 — 사전등록 news-reaction@1 실행(FC-REQ-028 FR-3 · F017 v2 단계 6).
+"""소식 측정 태그 — 사전등록 news-reaction@2(@1 + 사전 한 낱말) 실행(FC-REQ-028 FR-3 · F017 v2 단계 6).
 
 등록 → 사전을 forecast.news_kind_dict 로(서버가 같은 사전으로 새 제목을 바로 분류)
 → 국내 · 코인 반응 통계 · 선반영 → 리포트.
@@ -30,7 +30,8 @@ from salt_forecast.store.prices import load_ohlcv_series
 from salt_forecast.store.rule_ic import Registration, register
 
 JOB = "news_reaction"
-DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-12-news-reaction.toml"
+# @2 = @1 + 사전 한 낱말("허가 신청"). 등록은 불변이라 새 키(@1 은 반응 계산 전에 대체)
+DEFAULT_PREREG = ROOT / "preregistration" / "2026-11-12-news-reaction-2.toml"
 
 
 def server_dict(spec: dict[str, object]) -> dict[str, object]:
@@ -53,7 +54,7 @@ def server_dict(spec: dict[str, object]) -> dict[str, object]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = base_parser("소식 측정 태그(사전등록 news-reaction@1 실행)")
+    p = base_parser("소식 측정 태그(사전등록 news-reaction@2 실행)")
     p.add_argument("--prereg", default=str(DEFAULT_PREREG), help="사전등록 TOML")
     p.add_argument("--market", choices=("kr", "crypto", "all"), default="all")
     p.add_argument("--no-report", action="store_true", help="리포트 파일을 쓰지 않는다")
@@ -106,7 +107,7 @@ def main(argv: list[str] | None = None) -> int:
                 rows += save_pre_moves(eng, run.market, run.pre_moves, now)
         if not args.no_report:
             path = REPORTS / f"news-reaction-{key.replace('@', '-')}-{report_day(as_of)}.md"
-            path.write_text(render_report(key, sha, as_of, runs, d), encoding="utf-8")
+            path.write_text(render_report(key, sha, as_of, runs, d, Path(args.prereg).name), encoding="utf-8")
             log.info("리포트", extra={"fields": {"job": JOB, "path": str(path)}})
         return rows
 

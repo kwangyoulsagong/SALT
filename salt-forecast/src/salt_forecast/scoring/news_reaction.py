@@ -1,4 +1,4 @@
-"""소식 측정 태그 실행 — 사전등록 `news-reaction@1`(FC-REQ-028 FR-3 · F017 단계 6).
+"""소식 측정 태그 실행 — 사전등록 `news-reaction@2`(@1 + 사전 한 낱말)(FC-REQ-028 FR-3 · F017 단계 6).
 
 제목 → 사건 종류(사전) → 사건(기준 봉 · 쿨다운) → (출처, 종류, 지평) 서술 + 종목 봉마다 선반영.
 """
@@ -96,12 +96,14 @@ def _rate(x: float | None) -> str:
 LABEL = {"higher": "보통 올랐던 소식", "lower": "보통 내렸던 소식"}
 
 
-def render_report(key: str, git_sha: str, as_of: datetime, runs: Sequence[MarketRun], d: Dictionary) -> str:
+def render_report(
+    key: str, git_sha: str, as_of: datetime, runs: Sequence[MarketRun], d: Dictionary, prereg_file: str
+) -> str:
     text = {r.id: r.text for r in d.rules}
     lines = [
         f"# 소식 측정 태그 — `{key}` ({as_of.date().isoformat()})",
         "",
-        f"- 사전등록 `preregistration/2026-11-12-news-reaction.toml` · 코드 `{git_sha}` · as_of {as_of.isoformat()}",
+        f"- 사전등록 `preregistration/{prereg_file}` · 코드 `{git_sha}` · as_of {as_of.isoformat()}",
         "- 초과 반응 = 종목 로그수익 − 시장 대용(국내 KR-EW · 코인 업비트 원화 동일가중) 로그수익,"
         " 기준 = 게시 전 마지막 일봉 종가",
         "- 장중 기사는 기준이 전 거래일 종가라 기사 전 장중 움직임이 1봉 반응에 섞인다(근사)",

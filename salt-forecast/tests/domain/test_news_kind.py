@@ -11,7 +11,7 @@ import pytest
 from salt_forecast.domain.news_kind import OTHER, classify, from_prereg
 
 ROOT = Path(__file__).resolve().parents[3]
-PREREG = ROOT / "salt-forecast" / "preregistration" / "2026-11-12-news-reaction.toml"
+PREREG = ROOT / "salt-forecast" / "preregistration" / "2026-11-12-news-reaction-2.toml"
 CASES = json.loads((ROOT / "contracts" / "news-kind" / "cases.json").read_text())["cases"]
 DICT = from_prereg(tomllib.loads(PREREG.read_text()))
 
@@ -41,5 +41,5 @@ def test_서버_사전_계약이_등록과_같다() -> None:
     from salt_forecast.jobs.news_reaction import server_dict
 
     spec = tomllib.loads(PREREG.read_text())
-    contract = json.loads((ROOT / "contracts" / "news-kind" / "dict-news-reaction-1.json").read_text())
+    contract = json.loads((ROOT / "contracts" / "news-kind" / "dict-news-reaction-2.json").read_text())
     assert contract == {"prereg_key": spec["key"], **server_dict(spec)}
