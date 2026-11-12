@@ -60,3 +60,20 @@
 - [x] 왜 움직였나 사실 뷰모델에 `tag`(소식만) — 사실 판정 · 모르는 kind 버리기는 그대로
 - [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
 - 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`
+
+## 단계 D(2026-11-12) — FR-1 `summary` · `gate` · FR-7
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 요구 | 확인 |
+|---|---|
+| 서버 두 경로 병렬 · ③ 실패는 카드를 막지 않음 | 테스트 — ③ 5xx · 401 → `gate: unavailable` · ①② 그대로 |
+| 인용이 이 응답 사실에 없으면 문장 0 | `withMoveSummary` 표 — 하나라도 없으면 `pending` · AI 인데 인용 0 이면 0 · 서버 문장 그대로 |
+| 계약 깨짐 | 모르는 gate · label · 인용 모양 → `unavailable` |
+| 계산 0 | 뷰모델 파일 산술 연산자 grep 0(기존 테스트) |
+| 실경로 | BFF 4001 경유 035420 · 138040 `ok` 54~159ms · 005930 `no_card` |
+| 영역 검증 | `npm run build` · `npm test` 457(lint 스크립트 없음) |
+
+### 미검증 · 범위 밖
+
+없음

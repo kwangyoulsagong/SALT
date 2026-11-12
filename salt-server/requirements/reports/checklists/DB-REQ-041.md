@@ -66,3 +66,22 @@
 - [x] FR-1 시황 · 공시 제목 보관 30 → 400일 — 측정 태그의 1년 표본(`SRV-REQ-053` FR-6). 하루 약 1,400행(관련 종목 있는 것만) → 약 56만 행. 정리는 같은 워커가 나눠 지운다
 - [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
 - 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`
+
+## 단계 D(2026-11-12) — FR-8 · 9
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 요구 | 확인 |
+|---|---|
+| 목적 하나 · 롤백 SQL | `20261112120000_move_explanation` 머리 롤백 · 추가만(표 · 뷰) |
+| UPDATE 실패 | 로컬 DB 실측 `UPDATE` → `public.move_explanation 는 불변이다` |
+| 게이트 CHECK | `ok` 인데 문장 NULL · 인용 0 넣기 → `move_explanation_check` 위반(트랜잭션 되돌림) |
+| 새 쿼리 EXPLAIN | 그날 시도 `move_explanation_day_idx` 인덱스 스캔 0.15ms |
+| 본문 · 원문 열 0 | 열 목록 — 문장(검사 통과본) · 인용 id · 사유 코드뿐 |
+| 교차 스키마 0 | coach 는 market 공개 API 로 카드를 읽는다 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 보존 정리 | 종목 · 하루 최대 4행(카드 날만) — 한 해 수천 행. 정리 작업 없이 둔다 | 행 수가 10만을 넘으면(주간 리포트 시도 수로 본다) |

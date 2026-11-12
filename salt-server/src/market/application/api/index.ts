@@ -1,4 +1,4 @@
-import { KrStockDisabledError, KrStockNotAvailableError, isKrStockCode, krStockLogoUrl } from "../../domain";
+import { KrStockDisabledError, KrStockNotAvailableError, UnknownMarketSymbolError, isKrStockCode, krStockLogoUrl } from "../../domain";
 import type { KrCompanyHomepageSource, KrHeldCodesSource, KrLogoImageProbe } from "../../domain";
 import type { KrArticleBodyPort, MarketScheduleReader, NewsTagReader, PriceFillMarkStore, UniverseSnapshotStore } from "../../domain";
 import { GetKrMarketSchedule } from "../GetKrMarketSchedule";
@@ -238,6 +238,11 @@ export interface MarketApi {
    */
   krJudgmentUniverse(): Promise<string[]>;
   /**
+   * 오늘 왜 움직였나 카드(① 분해 · ② 같은 날 사실 · 카드 조건) — coach 의 ③ 한 줄 재료(F016 단계 D · `SRV-REQ-052` FR-1).
+   * 화면 경로와 같은 유스케이스 그대로(저장값만 · 외부 호출 0). 없는 종목 · 국내 꺼짐이면 `null`
+   */
+  whyMovedCard(asset: "kr" | "crypto", symbol: string): Promise<WhyMovedCardView | null>;
+  /**
    * 거래 기록이 국내 주식 코드를 받기 전 확인(F011 슬라이스 3b) — 꺼져 있으면 `KrStockDisabledError`(503),
    * 코드 형식 · 마스터에 없음은 같은 `KrStockNotAvailableError`(404 — 관심 종목 추가와 같은 규칙).
    * 통과하면 마스터 이름
@@ -260,6 +265,14 @@ export type {
   StoredSentiment,
   StoredWhaleTransaction,
 };
+
+/** `whyMovedCard` 응답 — 도메인 타입 0(`ddd-application.md` §6). 시각은 ISO 문자열 */
+export interface WhyMovedCardView {
+  date: string;
+  show: boolean;
+  split: { total: number; market: number; sector: number | null; idio: number; method: "regression" | "market_adjusted" | "benchmark" } | null;
+  facts: Array<{ id: string; kind: string; at: string; source: string; title: string; value: number | null }>;
+}
 
 export interface MarketDependencies {
   assets: MarketAssetRepository;
@@ -688,6 +701,27 @@ export const createMarketApplication = (deps: MarketDependencies) => {
       deps.prices.krDailyReturnProfiles(from, to, minReturns, bounds),
     watchedSymbols: () => deps.watchlist.distinctSymbols("crypto"),
     krJudgmentUniverse: async () => (krUniverse ? krUniverse.execute() : []),
+    whyMovedCard: async (asset, symbol) => {
+      try {
+        const view =
+          asset === "kr"
+            ? useCases.krStock
+              ? await useCases.krStock.getWhyMoved.execute(symbol)
+              : null
+            : await useCases.getCryptoWhyMoved.execute(symbol);
+        if (!view) return null;
+        return {
+          date: view.date,
+          show: view.show,
+          split: view.split && { total: view.split.total, market: view.split.market, sector: view.split.sector, idio: view.split.idio, method: view.split.method },
+          facts: view.facts.map((f) => ({ id: f.id, kind: f.kind, at: f.at, source: f.source, title: f.title, value: f.value })),
+        };
+      } catch (error) {
+        // 없는 종목 · 국내 마스터에 없음은 "카드 없음" — 그 밖은 부르는 쪽이 회차 실패로 센다
+        if (error instanceof KrStockNotAvailableError || error instanceof UnknownMarketSymbolError) return null;
+        throw error;
+      }
+    },
     krStockListing: async (code) => {
       const kr = deps.krStock;
       if (!kr) throw new KrStockDisabledError();

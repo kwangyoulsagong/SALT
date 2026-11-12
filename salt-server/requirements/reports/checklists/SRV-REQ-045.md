@@ -141,3 +141,17 @@
 
 - [x] `ops/salt.sh status` 의 "국내 시황 제목 마지막 수집" 줄을 매분 수집 행만으로(게시 뒤 하루 안 · 최근 8일 게시) — F017 단계 6 백필이 받은 시각을 덮어 멈춤이 가려지던 자리(`69f37627`)
 - [x] `bash -n ops/salt.sh` · 같은 SQL 을 되돌린 트랜잭션에서 백필 모양 행 · 매분 모양 행으로 확인
+
+## F016 단계 D 짝(2026-11-12) — `ops/salt.sh` status 한 줄
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `latest()` 에 `오늘 등락 한 줄(오늘)` 줄 | `zsh -n` · 쿼리 단독 실행 · `salt.sh status` 실행에서 "통과 3 · 검사 막음 0 · LLM 실패 0" |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| status 전체 시간 | 이번 실행 4분 24초 — 맥 부하 평균 300+ 시각(psql 하나 16초). 부하 4 에선 1.5초였다(F017 단계 6) | 부하가 내려간 때 한 번 |

@@ -31,3 +31,8 @@
 ## F017 v2 단계 5 시나리오(`feat/f017-s5-short-direction`) (2026-11-11)
 
 - 문제 없음
+
+## F016 단계 D 짝(2026-11-12)
+
+- 이 REQ 의 기능 변경은 없다 — 머리 주인인 공유 파일에 F016 단계 D(`SRV-REQ-052`)가 닿았다: coach `domain/ports.ts`(머리 주인) — 포트 셋(`MoveCardReader` · `MoveSummaryStore` · `MoveSummaryWriter`) · 사용량 `purpose` 에 `move_summary` 추가. 알림 · identity 몫 변경 0
+- 배운 것: 공유 파일을 바꾸면 그 파일 소비처를 grep 으로 전부 — 이번엔 소비처 변경 0

@@ -56,3 +56,4 @@ export * from "./krStockCost";
 export * from "./portfolioVolatility";
 export * from "./explainRouting";
 export * from "./tradeCheck";
+export * from "./moveSummary";

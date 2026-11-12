@@ -87,3 +87,5 @@ source: 사용자 결정 2026-11-02 "로컬 llm 이 있는 사람은 터미널�
 | 2026-11-11 | **F017 v2 단계 3 정리**(`feat/f017-s3-explain-always`) — FR-3 허용 사용자 · FR-4 모바일 → Gemini 분기 **삭제** — 부르는 곳이 해설 스냅샷 배치 하나라 고를 사람 · 클라이언트가 없다. `ExplainRouteInput` = 로컬 있음 · 쉬는 중 · 바쁨뿐 · env `COACH_LLM_LOCAL_USERS` 삭제 · 소유자 판정 허용 목록에서 빠짐(`ownerGateScope.test.ts`) |
 - 2026-11-10: F018 로그인 없이 시세 보기(`ADR-011` · 루트 `requirements/specs/done/F018-public-market-guest-slice.md`)가 이 REQ 의 파일을 걸침 — 이 REQ 의 FR 은 그대로, 바뀐 몫:
   - `salt-server/src/shared/infrastructure/__tests__/ownerGateScope.test.ts` — 기계 검사 — 소유자 판정(`isForecastOwner`)은 전망 셋 + 해설 라우팅만 · `isKrStockViewer` 0
+| 2026-11-12 | F016 단계 D(짝 — 이 REQ 가 머리 주인인 파일): 로컬 CLI 격리 인자를 함수 하나로 뺐다(`localCliArgs`) — 해설 · 한 줄이 같은 격리(도구 0 · 설정 · MCP 0 · stdin 프롬프트). 해설은 그대로 `stream-json`, 한 줄은 `text` |
+| 2026-11-12 | F016 단계 D 확인 2회차 — 라우터 상태(동시 · 연속 실패 · 쉬기)를 `LocalCliGate` 로 빼 오늘 등락 한 줄 작성기와 공유(`c518c96f`). 동작 그대로 |

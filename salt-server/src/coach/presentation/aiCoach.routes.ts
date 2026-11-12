@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { authMiddleware } from "../../shared/presentation/authMiddleware";
+import { marketReaderMiddleware } from "../../shared/presentation/marketReaderMiddleware";
 import type { CoachUseCases } from "../application/api";
 import { AICoachController } from "./aiCoach.controller";
 
@@ -16,6 +17,49 @@ import { AICoachController } from "./aiCoach.controller";
 export const createAICoachRouter = (useCases: CoachUseCases): Router => {
   const router = Router();
   const controller = new AICoachController(useCases);
+
+  /**
+   * @swagger
+   * /api/ai-coach/move-summary:
+   *   get:
+   *     summary: 오늘 등락 한 줄(③) — 같은 날 사실만 인용하는 문장, 저장값 읽기
+   *     description: |
+   *       F016 단계 D(`SRV-REQ-052`). LLM 을 부르지 않는다 — 배치가 카드가 서는 날 · 사실 목록이 바뀐 종목만 미리 만든다.
+   *       `gate` — `ok`(AI 문장 · 인용 ≥1 — 화면은 AI 생성 표시와 함께) · `quiet`(고유 몫이 작거나 소식 없음 — 서버 문장, AI 표시 없음) ·
+   *       `pending`(아직 — 다음 배치 회차) · `no_citation` · `guard_blocked`(검사가 막음 — ①② 만) · `no_split` · `no_card` · `disabled`.
+   *       문장의 `[k]` 는 `citations[k-1]` — "오늘 왜 움직였나" 응답 `facts[].id`. 시장 층 — 사람마다 같은 답. 시세 경로와 같은 읽는 사람(게스트 포함)
+   *     tags: [AI Coach]
+   *     parameters:
+   *       - { in: query, name: asset, required: true, schema: { type: string, enum: [kr, crypto] } }
+   *       - { in: query, name: symbol, required: true, schema: { type: string, example: "005930" } }
+   *     responses:
+   *       200:
+   *         description: 한 줄
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 message: { type: string }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     date: { type: string, example: "2026-11-12" }
+   *                     gate: { type: string, enum: [ok, quiet, pending, no_citation, guard_blocked, no_split, no_card, disabled] }
+   *                     summary:
+   *                       type: object
+   *                       nullable: true
+   *                       properties:
+   *                         text: { type: string, example: "같은 날 공급계약 체결 공시가 있었어요[1]." }
+   *                         citations: { type: array, items: { type: string, example: "kr-news:20261112000123" } }
+   *                         label: { type: string, enum: [ai, server] }
+   *                         generatedAt: { type: string, format: date-time, nullable: true }
+   *       400: { description: 요청 검증 실패 }
+   *       401: { description: 읽는 사람 토큰 없음 }
+   *       404: { description: 카드가 없는 종목 }
+   */
+  router.get("/move-summary", marketReaderMiddleware, controller.moveSummary);
 
   router.use(authMiddleware);
 

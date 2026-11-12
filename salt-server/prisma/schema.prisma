@@ -773,6 +773,30 @@ model ExplanationSnapshot {
   @@map("explanation_snapshot")
 }
 
+// 오늘 등락 한 줄(③) 스냅샷 (F016 단계 D · DB-REQ-041 FR-8 · SRV-REQ-052 FR-5). 시장 층 — 사용자 열 0.
+// 시도 하나 = 한 행(실패도 — 같은 지문 LLM 1회). 불변(UPDATE 트리거 차단)
+model MoveExplanation {
+  id              String   @id @default(uuid())
+  assetClass      String   @map("asset_class") // "kr" | "crypto"
+  symbol          String
+  tradeDate       DateTime @map("trade_date") @db.Date
+  fingerprint     String
+  gate            String // "ok" | "no_citation" | "guard_blocked"
+  text            String?
+  citations       String[] @default([])
+  factCount       Int      @map("fact_count")
+  rejections      String[] @default([])
+  provider        String
+  model           String?
+  promptVersion   String   @map("prompt_version")
+  verifierVersion String   @map("verifier_version")
+  generatedAt     DateTime @map("generated_at")
+
+  @@unique([assetClass, symbol, tradeDate, fingerprint])
+  @@index([assetClass, symbol, tradeDate, generatedAt(sort: Desc)], map: "move_explanation_day_idx")
+  @@map("move_explanation")
+}
+
 model TradeCheckLedgerEntry {
   id           String   @id @default(uuid())
   preregKey    String   @map("prereg_key")

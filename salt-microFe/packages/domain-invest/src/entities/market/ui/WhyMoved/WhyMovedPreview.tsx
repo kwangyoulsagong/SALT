@@ -15,7 +15,8 @@ import { value as valueStyle } from "./WhyMovedCard.css";
 
 /**
  * 우측 프리뷰 "왜 떨어졌을까?"(F016 단계 C · `FE-REQ-063` FR-1 — 사용자 2026-11-09 "프리뷰에도 나와야지") — **카드가 서는 날만**.
- * 한 줄은 가장 큰 몫 둘(숫자 사실) · 아래 같은 날 사실 하나 · 누르면 상세 카드. 단계 D 가 오면 이 한 줄 자리에 ③ 문장이 들어간다.
+ * 한 줄은 가장 큰 몫 둘(숫자 사실) · 아래 ③ 한 줄(F016 단계 D — 없으면 같은 날 사실 하나) · 누르면 상세 카드.
+ * ③ 은 번호 표시를 뺀다(여기엔 사실 목록이 없다 — 상세 카드가 칩으로 잇는다). AI 문장이면 AI 생성 표시를 같이(`ADR-009` §3).
  * 불러오는 중 · 실패 · 비소유자 · 카드 조건 아님 → 자리 없음(높이 0 — 프리뷰가 흔들리지 않게 블록 하나만 생긴다)
  */
 export const WhyMovedPreview = ({ symbol, assetType, name }: { symbol: string; assetType: string; name: string }) => {
@@ -32,6 +33,11 @@ export const WhyMovedPreview = ({ symbol, assetType, name }: { symbol: string; a
     .slice(0, 2);
   const tone = moveTone(split.total);
   const firstFact = data.facts.find((f) => f.kind === "news" || f.kind === "disclosure" || f.kind === "crypto_news");
+  const ids = new Set(data.facts.map((f) => f.id));
+  const summary =
+    data.summary && (data.summary.label === "server" || (data.summary.citations.length > 0 && data.summary.citations.every((id) => ids.has(id))))
+      ? data.summary
+      : null;
 
   return (
     <section className={s.box} aria-labelledby={`why-moved-preview-${symbol}`}>
@@ -46,7 +52,14 @@ export const WhyMovedPreview = ({ symbol, assetType, name }: { symbol: string; a
           </span>
         ))}
       </p>
-      {firstFact && <p className={s.fact}>{firstFact.title}</p>}
+      {summary ? (
+        <>
+          <p className={s.summary}>{summary.text.replace(/\s*\[\d{1,2}\]/g, "")}</p>
+          {summary.label === "ai" && <p className={s.aiLabel}>{M.summary.aiLabel}</p>}
+        </>
+      ) : (
+        firstFact && <p className={s.fact}>{firstFact.title}</p>
+      )}
       <Link
         href={`${ROUTES.investmentDetail(symbol)}#${WHY_MOVED_ANCHOR_ID}`}
         prefetch={false}

@@ -31,7 +31,7 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | FR-1 국내 β | done | `domain/move_beta.py` `regression_betas` — 종목 일간 로그수익률 = a + β_시장 × 지수 + β_업종 × (업종 − 지수), 세 시계열 공통일만 · 끊김을 건너는 수익률 제외 · 창 120 / 최소 60(설정 `move_beta_*`). 업종 이력이 모자라면 시장 한 요인(시장 β 까지 버리지 않는다). 업종 = 중분류 우선(서버와 같은 표 테스트) |
 | FR-2 코인 β | done | `realized_vol.btc_beta` as_of 이하 최신을 옮긴다(새 계산 0) |
 | FR-3 export 뷰 | done | `forecast.v_move_beta_export` — + 평소 변동 σ60(일간 단순수익률 표준편차, 서버 카드 조건 재료 — 요청 때 집계하지 않게) |
-| FR-4~6 | 단계 D 뒤 | — |
+| FR-4~6 | done(2026-11-12 단계 D) | `jobs/move_explanation_report` — 지난 7일 시도(export 뷰 `v_move_explanation_export`)로 `reports/move-explain-<KST 날짜>.md`: 게이트 분포 · 걸린 사유 · 인용 수 · 인용 / 넣은 사실 · **나빠짐 판정**(코드 상수 — 시도 ≥ 10 · 막은 비율 > 30%) · 사람 표시 양식(성공 문장 고르게 10, 난수 0). 매일 배치가 6.5일마다. "소식 없음" 정직률 · 분해 몫 분포는 이 뷰로 못 잰다(조용한 날 문장을 저장하지 않음 — 서버 경계 표 테스트 몫) |
 
 - 작업 `jobs/move_beta.py` — `daily.sh` 의 `volatility` 뒤. 2,920종목 11초(dry-run) · 국내 β 2,588 · 업종 β 794 · σ 2,595 · 코인 β 286
 - 읽기 원천 `public.kr_sector_index_daily`(서버가 KIS 에서 받은 지수 · 업종 일별) · `kr_stock_master`(시장 · 업종) — `security-sources.md` 표 행
@@ -41,7 +41,7 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 
 - [x] β 시점 고정 테스트(as_of 다음 날 자료 0) — `tests/leakage/test_move_beta_leakage.py`
 - [x] 뷰가 사용자 열 0 · 서버 계정 읽기 권한만(로컬은 한 계정 — 운영 권한은 `DB-REQ-036`)
-- [ ] 평가 리포트 한 번 — 국내 · 코인 표본 · 문턱 대비 결과
+- [x] 평가 리포트 한 번 — `reports/move-explain-2026-11-12.md`(국내 3 · 코인 0 — 첫날, 판정은 시도 10 부터). ~~문턱 대비~~ 켜기 문턱 없음(2026-11-06) → 나빠짐 기준 대비
 
 ## 계약 영향
 
@@ -54,3 +54,4 @@ source: pm/requirements/specs/in-progress/FEATURE-016-why-moved.md
 | 2026-11-06 | 신규(to-do) |
 | 2026-11-06 | 사용자 결정 — 평가는 켜기 문턱이 아니라 운영 모니터링 |
 | 2026-11-09 | in-progress — 단계 C(FR-1~3) done. σ60 을 export 뷰에 더함(카드 조건 재료) |
+| 2026-11-12 | **done** — 단계 D FR-4~6(운영 주간 리포트). 정정: FR-5 의 정직률 · 몫 분포는 이 뷰 밖(위 표) |

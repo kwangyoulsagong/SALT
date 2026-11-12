@@ -2,7 +2,8 @@ import { logger } from "../config/logger";
 import { toUpstreamClientError } from "../utils/error.util";
 import { retryOnceOnGet } from "../utils/retry.util";
 import { backendApi } from "./backend-api.service";
-import { toWhyMovedVM, WhyMovedContractError } from "./why-moved.viewmodel";
+import { moveSummaryService } from "./move-summary.service";
+import { toWhyMovedVM, WhyMovedContractError, withMoveSummary } from "./why-moved.viewmodel";
 import {
   KrContractError,
   toKrChartVM,
@@ -193,11 +194,22 @@ export class AppKrStockService {
    * 상세 "왜 움직였나" — ① 분해 · ② 같은 날 사실 · 카드 조건(F016 단계 C · `BFF-REQ-051` FR-1). 저장값 읽기라 800ms 예산 안 ·
    * 캐시 없음. 계약이 깨지면 `unavailable` — 화면이 카드를 숨긴다(①이 없으면 카드도 없다)
    */
-  getWhyMoved(token: string, code: string, signal?: AbortSignal) {
-    return this.read("why-moved", `/market/kr/${encodeURIComponent(code)}/why-moved`, token, toWhyMovedVM, {
+  async getWhyMoved(token: string, code: string, signal?: AbortSignal) {
+    // ③(F016 단계 D)은 ①② 와 병렬 — 던지지 않는다(실패면 gate unavailable, 카드는 선다)
+    const third = moveSummaryService.get(token, "kr", code, signal);
+    const card = await this.read("why-moved", `/market/kr/${encodeURIComponent(code)}/why-moved`, token, toWhyMovedVM, {
       timeout: KR_READ_TIMEOUT_MS,
       signal,
+    }).catch((error: unknown) => {
+      void third.catch(() => undefined);
+      throw error;
     });
+    if (card.status !== "ok") {
+      void third.catch(() => undefined);
+      return card;
+    }
+    const { status, ...rest } = card;
+    return { status, ...withMoveSummary(rest, await third) };
   }
 
   /** 상세 장중 수급 — 오늘 프로그램 매매 누적(F016 단계 B · FR-4) */

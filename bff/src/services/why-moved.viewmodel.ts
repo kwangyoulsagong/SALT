@@ -8,7 +8,8 @@
  * 2. **계약이 깨지면 던진다**(`WhyMovedContractError`) — 서비스가 `unavailable` 로 바꾼다. 분해 칸을 0 으로 채우지 않는다
  * 3. **열거값은 아는 것만** — 모르는 사실 kind · 이유는 버린다(화면에 문구가 없다). 분해 `method` 는 모르면 계약 깨짐(라벨이 걸려 있다)
  *
- * ③ 한 줄(`summary` · `gate`)은 단계 D 가 칸과 같이 넣는다 — 쓰지 않는 칸을 미리 두지 않는다.
+ * ③ 한 줄(`summary` · `gate`, F016 단계 D) — 서버 coach `GET /api/ai-coach/move-summary` 를 같이 읽어 붙인다(`withMoveSummary`).
+ * 인용이 이 응답의 사실에 하나라도 없으면 문장을 싣지 않는다(`pending`) — 화면의 `[k]` 칩이 가리킬 줄이 없다.
  */
 
 import { toNewsTagVM, type NewsTagVM } from "./news-tag.viewmodel";
@@ -59,6 +60,28 @@ export interface MoveFactVM {
   tag: NewsTagVM | null;
 }
 
+export const MOVE_SUMMARY_GATES = [
+  "ok",
+  "quiet",
+  "pending",
+  "no_citation",
+  "guard_blocked",
+  "no_split",
+  "no_card",
+  "disabled",
+  /** BFF 가 정함 — 서버 ③ 경로를 못 읽음(시간 초과 · 5xx · 계약 깨짐). ①② 는 그대로 */
+  "unavailable",
+] as const;
+export type MoveSummaryGateVM = (typeof MOVE_SUMMARY_GATES)[number];
+
+/** ③ 한 줄 — `[k]` 는 `citations[k-1]`(= `facts[].id`). `ai` 면 화면이 AI 생성 표시를 붙인다(설명 3종 게이트 — `ADR-009` §3) */
+export interface MoveSummaryVM {
+  text: string;
+  citations: string[];
+  label: "ai" | "server";
+  generatedAt: string | null;
+}
+
 export interface WhyMovedVM {
   date: string;
   show: boolean;
@@ -68,6 +91,8 @@ export interface WhyMovedVM {
   split: MoveSplitVM | null;
   facts: MoveFactVM[];
   unavailable: MoveFactKindVM[];
+  summary: MoveSummaryVM | null;
+  gate: MoveSummaryGateVM;
 }
 
 export class WhyMovedContractError extends Error {
@@ -117,7 +142,7 @@ const toSplitVM = (raw: unknown): MoveSplitVM | null => {
 };
 
 /** 서버 `data` → 화면 계약. 국내 · 코인 같은 모양 */
-export const toWhyMovedVM = (raw: unknown): WhyMovedVM => {
+export const toWhyMovedVM = (raw: unknown): Omit<WhyMovedVM, "summary" | "gate"> => {
   const r = obj(raw, "data");
   if (typeof r.show !== "boolean") throw new WhyMovedContractError("show");
   return {
@@ -133,4 +158,35 @@ export const toWhyMovedVM = (raw: unknown): WhyMovedVM => {
     }),
     unavailable: arr(r, "unavailable").filter((x): x is MoveFactKindVM => known(MOVE_FACT_KINDS, x)),
   };
+};
+
+/** 서버 ③ 응답 → `{summary, gate}`. 모르는 gate · 깨진 모양은 계약 깨짐(서비스가 `unavailable` 로) */
+export const toMoveSummaryVM = (raw: unknown): { summary: MoveSummaryVM | null; gate: MoveSummaryGateVM } => {
+  const r = obj(raw, "data");
+  if (!known(MOVE_SUMMARY_GATES, r.gate) || r.gate === "unavailable") throw new WhyMovedContractError("gate");
+  if (r.summary === null || r.summary === undefined) return { summary: null, gate: r.gate };
+  const s = obj(r.summary, "summary");
+  const label = s.label;
+  if (label !== "ai" && label !== "server") throw new WhyMovedContractError("summary.label");
+  const citations = arr(s, "citations").map((c) => {
+    if (typeof c !== "string") throw new WhyMovedContractError("summary.citations");
+    return c;
+  });
+  return { summary: { text: str(s, "text"), citations, label, generatedAt: strOrNull(s, "generatedAt") }, gate: r.gate };
+};
+
+/**
+ * ①② 응답에 ③을 붙인다 — 인용이 지금 사실 목록에 다 있을 때만 문장을 싣는다. 하나라도 없으면 `pending`
+ * (두 경로를 따로 읽는 사이 사실이 바뀐 경우 — 다음 요청에 맞는다). `ai` 인데 인용 0 이면 게이트 위반이라 싣지 않는다
+ */
+export const withMoveSummary = (
+  card: Omit<WhyMovedVM, "summary" | "gate">,
+  third: { summary: MoveSummaryVM | null; gate: MoveSummaryGateVM },
+): WhyMovedVM => {
+  const s = third.summary;
+  if (!s) return { ...card, summary: null, gate: third.gate };
+  const ids = new Set(card.facts.map((f) => f.id));
+  const cited = s.citations.every((id) => ids.has(id));
+  if (s.label === "ai" && (s.citations.length === 0 || !cited)) return { ...card, summary: null, gate: "pending" };
+  return { ...card, summary: s, gate: third.gate };
 };

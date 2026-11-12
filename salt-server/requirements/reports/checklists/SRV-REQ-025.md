@@ -487,3 +487,17 @@ Swagger `failOnErrors` 생성 — `/api/ai-coach/explain` 파라미터 `X-Salt-C
 | 항목 | 결과 | 근거 |
 |---|---|---|
 | 기존 경로 | 충족 | 경로 하나 추가 · 서버 테스트 1236/1236 |
+
+## F016 단계 D 짝(2026-11-12) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `llmBudget.ts` FR-62 — `llmBudgetVerdict` 에 `reservedCalls`(기본 0) · `LLM_RESERVED_CALLS.moveSummary` 30. 상한 값 그대로 | 경계 표 테스트 · 실측(지난 24시간 300 = 상한 — 해설이 다 썼다) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 예약을 둔 날이 이미 상한이라 첫 효과는 창이 굴러간 뒤(해설이 270 에서 멈춤) — 다음 카드 날 배치 로그 `Move summaries` 로 본다 | 아래 회고 | 다음 카드 날 배치 로그 |

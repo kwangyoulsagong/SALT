@@ -225,7 +225,8 @@ export class GetKrWhyMoved extends KrStockRead {
       await group(["flow"], async () => {
         const flow = await this.deps.moveSources.latestProgramFlow(code, since);
         return flow
-          ? [{ id: `kr-flow:program:${flow.at.toISOString()}`, kind: "flow" as const, at: flow.at, source: "KRX", title: "program", value: Math.round(flow.netValue) }]
+          ? // id 는 종목 · 거래일 — 회차(10분)마다 시각 · 값이 바뀌어도 같은 사실이다. 시각을 넣으면 ③ 인용이 10분마다 끊긴다(F016 단계 D 실측)
+            [{ id: `kr-flow:program:${code}:${today}`, kind: "flow" as const, at: flow.at, source: "KRX", title: "program", value: Math.round(flow.netValue) }]
           : [];
       }),
     ]);

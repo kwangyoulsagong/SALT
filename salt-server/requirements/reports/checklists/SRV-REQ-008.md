@@ -289,3 +289,17 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 모델 추가 · generate | 충족 | `npm run prisma:generate` · `migrate deploy` · build |
+
+## F016 단계 D 짝(2026-11-12) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `prisma/schema.prisma` 에 모델 `MoveExplanation` 하나 더함(주인 `DB-REQ-041` FR-8) — 기존 모델 변경 0 | `prisma generate` · 서버 빌드 · 마이그레이션 적용(로컬) |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 — 모델 추가만 | 아래 회고 | 다음 카드 날 배치 로그 |

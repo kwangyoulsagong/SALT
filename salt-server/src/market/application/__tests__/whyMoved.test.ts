@@ -159,6 +159,8 @@ interface KrWorld {
   sector?: { changeRate: number; updatedAt: Date; tradeDate: string } | null;
   actions?: KrMarketAction[] | Error;
   news?: Error;
+  /** 프로그램 매매 회차 — 10분마다 새 시각 · 새 값 */
+  flow?: { at: Date; netValue: number };
 }
 
 const krDeps = (w: KrWorld): { read: KrStockReadDependencies; move: MoveDependencies } => {
@@ -188,7 +190,7 @@ const krDeps = (w: KrWorld): { read: KrStockReadDependencies; move: MoveDependen
         return [{ serial: "s1", kind: "news", providerName: "연합뉴스", publishedAt: new Date("2026-11-09T01:30:00Z"), title: "반도체 약세", related: [] }];
       },
       indexNames: async (codes: string[]) => new Map([["0001", "코스피"], ["0013", "전기전자"]].filter(([c]) => codes.includes(c!)) as Array<[string, string]>),
-      latestProgramFlow: async () => ({ code: "005930", at: new Date("2026-11-09T01:53:00Z"), netQuantity: -1n, netValue: -60_550_831_650.4, buyValue: 1, sellValue: 2, collectedAt: NOW }),
+      latestProgramFlow: async () => ({ code: "005930", at: w.flow?.at ?? new Date("2026-11-09T01:53:00Z"), netQuantity: -1n, netValue: w.flow?.netValue ?? -60_550_831_650.4, buyValue: 1, sellValue: 2, collectedAt: NOW }),
     } as unknown as KrMoveSourceStore,
     now: () => NOW,
   } satisfies KrStockReadDependencies;
@@ -217,6 +219,16 @@ describe("GetKrWhyMoved — 읽는 사람 누구나(ADR-011) · 저장값만", (
     assert.deepEqual(r.facts.map((f) => f.kind), ["flow", "news"]);
     assert.equal(r.facts[0]!.value, -60_550_831_650);
     assert.deepEqual(r.unavailable, []);
+  });
+
+  it("사실 id 는 같은 날 같은 사실이면 회차가 바뀌어도 같다 — ③ 인용이 가리키는 자리(F016 단계 D 결함: 프로그램 id 에 시각이 있어 10분마다 인용이 끊겼다)", async () => {
+    const a = await runKr({ flow: { at: new Date("2026-11-09T01:53:00Z"), netValue: -1e9 } });
+    const b = await runKr({ flow: { at: new Date("2026-11-09T02:03:00Z"), netValue: 2e9 } });
+    assert.deepEqual(a.facts.map((f) => f.id), b.facts.map((f) => f.id));
+    const flow = b.facts.find((f) => f.kind === "flow")!;
+    assert.equal(flow.id, "kr-flow:program:005930:2026-11-09");
+    assert.equal(flow.at, "2026-11-09T02:03:00.000Z", "시각 · 값은 최신 회차 그대로");
+    assert.equal(flow.value, 2e9);
   });
 
   it("β 못 읽음(뷰 없음 · 7일 넘음) → 시장 조정 라벨 · 업종 몫 없음", async () => {

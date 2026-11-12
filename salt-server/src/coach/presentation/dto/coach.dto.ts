@@ -93,6 +93,14 @@ export type GetCoachQueryDto = z.infer<typeof getCoachQuerySchema>;
 export type GenerateCoachDto = z.infer<typeof generateCoachSchema>;
 export type UpdateCoachProfileDto = z.infer<typeof updateCoachProfileSchema>;
 export type CoachFeedbackDto = z.infer<typeof coachFeedbackSchema>;
+/** 오늘 등락 한 줄(F016 단계 D) — 국내 6자리 코드 · 코인 심볼 */
+export const moveSummaryQuerySchema = z
+  .object({
+    asset: z.enum(["kr", "crypto"]),
+    symbol: z.string().trim().min(1).max(20),
+  })
+  .refine((q) => q.asset !== "kr" || /^\d{6}$/.test(q.symbol), { message: "국내 종목 코드는 6자리 숫자", path: ["symbol"] });
+
 export type ExplanationQueryDto = z.infer<typeof explanationQuerySchema>;
 export type TradePreflightDto = z.infer<typeof tradePreflightSchema>;
 export type ProfitPlanQueryDto = z.infer<typeof profitPlanQuerySchema>;

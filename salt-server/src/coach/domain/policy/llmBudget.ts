@@ -5,7 +5,14 @@
  * 그래서 상한에 닿으면 **에러가 아니라 다음 회차**다 — 화면은 이전 해설이나 사실표 문장을 그린다(해설 4단, `SRV-REQ-053` FR-3).
  *
  * 세는 단위는 **시도**다 — 재시도 한 번도 과금된다. 창은 지난 24시간(달력 경계가 없어 자정에 한꺼번에 풀리지 않는다).
- * 부르는 곳은 해설 스냅샷 배치 하나다(순서대로 하나씩, F017 v2 단계 3) — 확인과 호출 사이에 끼어들 동시 요청이 없다.
+ * 부르는 곳은 같은 LLM 워커의 배치 둘이다 — 해설 스냅샷(F017 v2 단계 3) 뒤에 오늘 등락 한 줄(F016 단계 D), 순서대로 하나씩이라
+ * 확인과 호출 사이에 끼어들 동시 요청이 없다.
+ *
+ * ## 한 줄 몫을 남겨 둔다 (2026-11-12)
+ *
+ * 해설 배치는 지문이 바뀔 때마다 시도해 하루 상한 300 을 다 쓴다(실측 지난 24시간 300). 그 뒤에 도는 한 줄 배치가 매번 상한에 막혀
+ * 카드 날 ③이 하루 내내 `pending` 이었다. 한 줄은 카드가 서는 날 · 종목당 하루 4회까지라 몇 건뿐이다 — 해설은 상한 끝
+ * `LLM_RESERVED_CALLS.moveSummary` 만큼을 남기고 멈춘다(`reservedCalls`). 상한 자체는 그대로다
  */
 
 export const LLM_BUDGET_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -43,9 +50,14 @@ export type LlmBudgetVerdict =
   | { allowed: true; exceeded: null }
   | { allowed: false; exceeded: LlmBudgetExceeded };
 
-/** 다음 시도를 해도 되나. 이미 상한에 **닿았으면**(같거나 크면) 막는다 */
-export const llmBudgetVerdict = (usage: LlmUsage, limits: LlmBudgetLimits): LlmBudgetVerdict => {
-  if (usage.calls >= limits.totalCalls) return { allowed: false, exceeded: "total_calls" };
+/** 다른 배치 몫으로 남기는 시도 수 — 해설 배치가 이만큼 덜 쓴다 */
+export const LLM_RESERVED_CALLS = { moveSummary: 30 } as const;
+
+/**
+ * 다음 시도를 해도 되나. 이미 상한에 **닿았으면**(같거나 크면) 막는다. `reservedCalls` — 다른 배치 몫으로 남길 시도 수(해설 배치가 준다)
+ */
+export const llmBudgetVerdict = (usage: LlmUsage, limits: LlmBudgetLimits, reservedCalls = 0): LlmBudgetVerdict => {
+  if (usage.calls >= Math.max(0, limits.totalCalls - reservedCalls)) return { allowed: false, exceeded: "total_calls" };
   if (usage.tokens >= limits.totalTokens) return { allowed: false, exceeded: "total_tokens" };
   return { allowed: true, exceeded: null };
 };

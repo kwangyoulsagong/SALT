@@ -61,3 +61,23 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | 사용자 · 클라이언트 분기 · env 삭제 | 충족 | `explainRouting.test.ts` · `localCliExplainer.test.ts` 개정 · `ownerGateScope.test.ts` 허용 목록 셋 · `npm test` 1208 |
+
+## F016 단계 D 짝(2026-11-12) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 로컬 CLI 격리 인자를 함수 하나로 뺐다(`localCliArgs`) — 해설 · 한 줄이 같은 격리(도구 0 · 설정 · MCP 0 · stdin 프롬프트). 해설은 그대로 `stream-json`, 한 줄은 `text` | `localCliExplainer.test.ts` 35 통과 · 한 줄 작성기 테스트(argv 에 프롬프트 0) · 실호출 로컬 Claude 3건 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |
+
+## F016 단계 D 확인 2회차(2026-11-12) — 게이트 공유
+
+| 바뀐 것 | 확인 |
+|---|---|
+| 라우터 상태 → `LocalCliGate`(해설 · 한 줄 공유) | 기존 라우터 테스트 35 통과(동작 그대로) · 공유 테스트(한 줄 쪽 3번 실패 → 해설도 10분 Gemini) · 변이(쉬기 제거) 잡힘 · CLI 인자 main 과 같음 |

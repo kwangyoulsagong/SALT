@@ -120,3 +120,4 @@ source: pm/requirements/specs/in-progress/FEATURE-012-savings-goals.md
 | 2026-11-11 | `feat/f017-s2-checks-plain-line`: `ops/salt.sh` `status` 에 "기저율 마지막 as_of" 줄(`forecast.base_rate_stat`, 3일 넘으면 ✗). 기존 줄 무변경. 주인 REQ 는 `SRV-REQ-053` · BFF `BFF-REQ-052` · FE `FE-REQ-064` · 예측 `FC-REQ-028` |
 | 2026-11-11 | F017 v2 단계 4 등급(`feat/f017-s4-grade`) — 이 REQ 머리 주석 파일 `ops/salt.sh` 에 걸린 몫: 상태 점검 신선도에 '등급 마지막 as_of' 줄(3일 넘으면 ✗ — 서버가 전부 참고로 읽는 경계와 같다). 주인 `FC-REQ-028` FR-6. 루트 슬라이스 `F017-v2-stage4-tier-slice.md` |
 | 2026-11-11 | F017 v2 단계 5 — `ops/salt.sh` 상태 신선도에 '단타 확률 시험 마지막' 줄(3일 넘으면 ✗) |
+| 2026-11-12 | F016 단계 D 짝(이 REQ 가 머리 주인인 `ops/salt.sh`): status 에 오늘 등락 한 줄 줄 하나(통과 · 검사 막음 · LLM 실패 — `SRV-REQ-052` FR-8) |

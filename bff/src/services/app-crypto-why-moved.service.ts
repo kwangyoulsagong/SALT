@@ -2,7 +2,8 @@ import { logger } from "../config/logger";
 import { toUpstreamClientError } from "../utils/error.util";
 import { retryOnceOnGet } from "../utils/retry.util";
 import { backendApi } from "./backend-api.service";
-import { toWhyMovedVM, WhyMovedContractError, type WhyMovedVM } from "./why-moved.viewmodel";
+import { moveSummaryService } from "./move-summary.service";
+import { toWhyMovedVM, WhyMovedContractError, withMoveSummary, type WhyMovedVM } from "./why-moved.viewmodel";
 
 /** 저장값 읽기 — 국내 상세와 같은 예산(`performance-bff.md` · `BFF-REQ-051` FR-7) */
 const WHY_MOVED_TIMEOUT_MS = 800;
@@ -16,6 +17,8 @@ export type CryptoWhyMovedResult = ({ status: "ok" } & WhyMovedVM) | { status: "
  */
 class AppCryptoWhyMovedService {
   async get(token: string, symbol: string, signal?: AbortSignal): Promise<CryptoWhyMovedResult> {
+    // ③ 은 ①② 와 병렬 — 던지지 않는다(실패면 gate unavailable)
+    const third = moveSummaryService.get(token, "crypto", symbol, signal);
     try {
       const response = await retryOnceOnGet(
         () =>
@@ -25,8 +28,10 @@ class AppCryptoWhyMovedService {
           }),
         signal,
       );
-      return { status: "ok", ...toWhyMovedVM((response.data as { data?: unknown })?.data) };
+      const card = toWhyMovedVM((response.data as { data?: unknown })?.data);
+      return { status: "ok", ...withMoveSummary(card, await third) };
     } catch (error) {
+      void third.catch(() => undefined);
       if (toUpstreamClientError(error) || signal?.aborted) throw error;
       logger.warn("[crypto] why-moved unavailable", {
         reason: error instanceof WhyMovedContractError ? error.message : (error as Error)?.message,

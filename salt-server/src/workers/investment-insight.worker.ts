@@ -36,11 +36,17 @@ export class InvestmentInsightWorker {
     // 해설 스냅샷 (F017 v2 단계 3 · SRV-REQ-053 FR-3). LLM 을 부르는 작업이라 DB 만 훑는 10분 회차와 **따로** 돈다
     // (performance-server.md §6 — 앞의 것이 수십 초를 잡으면 뒤가 기다린다). :05 · :15 … — 판단 스냅샷 회차(:00 …) 뒤.
     // 지문이 바뀐 종목만 만들고 회차 상한이 있다. 부팅 때 한 번 — 재기동 직후 화면이 템플릿에 오래 머물지 않게(15초 뒤 startWorkers)
+    // 오늘 등락 한 줄(③ — F016 단계 D · SRV-REQ-052)도 같은 LLM 회차에서 해설 **뒤에** 순서대로 — 두 배치가 로컬 CLI · 상한을 동시에 쓰지 않는다
     const generateExplanations = async () => {
       const r = await this.coach.generateExplanationSnapshots.execute();
       console.log(
         `🗒️ Explanation snapshots — 후보 ${r.candidates} · 생성 ${r.generated} · 같음 ${r.unchanged} · 실패 ${r.failed}` +
           ` · 사실 없음 ${r.noFacts} · 다음 회차 ${r.deferred}`
+      );
+      const m = await this.coach.generateMoveSummaries.execute();
+      console.log(
+        `🧾 Move summaries — 후보 ${m.candidates} · 생성 ${m.generated} · 검사 막음 ${m.blocked} · 건너뜀 ${m.skipped}` +
+          ` · 실패 ${m.failed} · 다음 회차 ${m.deferred}`
       );
     };
     schedule("explanation-snapshots", "5-59/10 * * * *", generateExplanations);

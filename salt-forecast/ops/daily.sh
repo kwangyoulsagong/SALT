@@ -36,6 +36,9 @@ steps=(ingest_prices ingest_market backfill_whale daily ingest_kr_stock kr_daily
 # 점검 채점(trade_check_score, FC-REQ-028 FR-4)은 매일 돌고, 주간 리포트(short-horizon-*.md)는 6.5일마다 한 번
 weekly_check_report=0
 "$UV" run --frozen python -m salt_forecast.jobs.due --job trade_check_report --hours 156 >/dev/null && weekly_check_report=1
+# 오늘 등락 한 줄(③) 운영 리포트(move-explain-*.md, FC-REQ-027 FR-4~6)도 6.5일마다 — 켜기 문턱이 아니라 나빠짐 감시
+weekly_move_report=0
+"$UV" run --frozen python -m salt_forecast.jobs.due --job move_explanation_report --hours 156 >/dev/null && weekly_move_report=1
 # 운영 점검은 일일 작업 뒤에도 한 번 — 방금 돈 결과를 같은 시간 행에 덮어쓴다
 steps+=(ops_monitor)
 for step in "${steps[@]}"; do
@@ -47,6 +50,9 @@ echo "[$(date -u +%FT%TZ)] short_direction test 시작"
 "$UV" run --frozen python -m salt_forecast.jobs.short_direction test || { echo "[$(date -u +%FT%TZ)] short_direction test 실패"; rc=1; }
 if [[ $weekly_check_report == 1 ]]; then
   "$UV" run --frozen python -m salt_forecast.jobs.trade_check_score --report || rc=1
+fi
+if [[ $weekly_move_report == 1 ]]; then
+  "$UV" run --frozen python -m salt_forecast.jobs.move_explanation_report || rc=1
 fi
 echo "[$(date -u +%FT%TZ)] 끝 rc=${rc}"
 exit $rc

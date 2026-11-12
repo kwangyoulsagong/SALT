@@ -187,3 +187,8 @@ Action: 없음(남은 F006 몫은 `SRV-REQ-028` Changelog 에)
 ## F017 v2 단계 3 해설 늘 (2026-11-11, `feat/f017-s3-explain-always`)
 
 - 액션: 없음
+
+## F016 단계 D 짝(2026-11-12)
+
+- 이 REQ 의 기능 변경은 없다 — 머리 주인인 공유 파일에 F016 단계 D(`SRV-REQ-052`)가 닿았다: `prisma/schema.prisma` 에 모델 `MoveExplanation` 하나 더함(주인 `DB-REQ-041` FR-8) — 기존 모델 변경 0
+- 배운 것: 공유 파일을 바꾸면 그 파일 소비처를 grep 으로 전부 — 이번엔 소비처 변경 0

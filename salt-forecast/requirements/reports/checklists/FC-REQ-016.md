@@ -82,3 +82,17 @@
 - [x] `ops/daily.sh` 에 `news_reaction`(국내 일봉 옮긴 뒤 · 22초) — 뉴스 원장 · 감성(`news_item`)은 건드리지 않음
 - [x] 회귀: 영역 테스트 전체 통과(서버 1236 · BFF 453 · FE check-types · lint) — 기존 동작 바뀐 것 없음(태그는 덧붙임)
 - 주인 REQ 의 체크리스트 · 미검증 표는 `SRV-REQ-053` · `FE-REQ-064` · `BFF-REQ-052` · `FC-REQ-028` · `DB-REQ-043`
+
+## F016 단계 D 짝(2026-11-12) — 이 REQ 가 머리 주인인 파일
+
+루트 `requirements/specs/done/F016-D-move-summary-slice.md` · 체크리스트 `requirements/reports/checklists/F016-D-move-summary.md`
+
+| 바뀐 것 | 확인 |
+|---|---|
+| `ops/daily.sh`(머리 주인)에 주간 단계 하나 — `move_explanation_report`(6.5일마다, `due`) | `bash -n` · `due` 판정(방금 성공 → 건너뜀) · 작업 실행 1회 |
+
+### 미검증 · 범위 밖
+
+| 항목 | 사유 | 언제 닫히나 |
+|---|---|---|
+| 없음 | — | — |
