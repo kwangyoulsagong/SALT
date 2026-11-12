@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, it, mock } from "node:test";
 
-import { appMyDataService, MY_DATA_SERVICES, toCsv, toServiceExport } from "../app-my-data.service";
+import { appMyDataService, MY_DATA_SCOPE, MY_DATA_SERVICES, toCsv, toServiceExport } from "../app-my-data.service";
 import { backendApi } from "../backend-api.service";
 import { zip } from "../../utils/zip.util";
 
@@ -121,5 +121,15 @@ describe("내 데이터 — 계정 삭제", () => {
     await assert.rejects(appMyDataService.deleteAccount("t", "pw"), (e: { statusCode?: number; code?: string }) => e.statusCode === 502 && e.code === "ACCOUNT_DELETE_INCOMPLETE");
     assert.equal(calls.at(-1), "/savings/me/data");
     assert.ok(!calls.includes("/identity/me"));
+  });
+});
+
+describe("내 데이터 — 지워지는 범위", () => {
+  it("지우는 순서 그대로 · 기술 서비스(코치 아웃박스 · 종단 확인) 제외 · 계정 마지막", () => {
+    assert.deepEqual(MY_DATA_SCOPE, ["investment", "household", "savings", "content", "notification", "identity"]);
+    const order = MY_DATA_SERVICES.map((s) => s.service);
+    const shown = MY_DATA_SCOPE.slice(0, -1);
+    assert.deepEqual([...shown].sort((a, b) => order.indexOf(a as never) - order.indexOf(b as never)), shown);
+    assert.deepEqual(appMyDataService.scope(), { services: [...MY_DATA_SCOPE] });
   });
 });

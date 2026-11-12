@@ -16,6 +16,10 @@ class MyDataController {
     }
   }
 
+  scope(_req: Request, res: Response) {
+    res.set("Cache-Control", "no-store").json(appMyDataService.scope());
+  }
+
   async deleteAccount(req: Request, res: Response, next: NextFunction) {
     try {
       res.set("Cache-Control", "no-store").json(await appMyDataService.deleteAccount(req.token!, req.body?.password));

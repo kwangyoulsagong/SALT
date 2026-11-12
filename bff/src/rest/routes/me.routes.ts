@@ -12,6 +12,7 @@ const router = Router();
 router.get("/notifications", authMiddleware, (req, res, next) => appAlertsController.getPrefs(req, res, next));
 router.put("/notifications/:domain", authMiddleware, (req, res, next) => appAlertsController.setPref(req, res, next));
 
+router.get("/data-scope", authMiddleware, (req, res) => myDataController.scope(req, res));
 router.get("/export", authMiddleware, (req, res, next) => myDataController.exportData(req, res, next));
 router.delete("/", authMiddleware, (req, res, next) => myDataController.deleteAccount(req, res, next));
 

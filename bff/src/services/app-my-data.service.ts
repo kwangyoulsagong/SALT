@@ -25,6 +25,16 @@ export const MY_DATA_SERVICES = [
   { service: "notification", path: "/notification/me/data" },
 ] as const;
 
+/**
+ * 화면에 보이는 "지워지는 것" — 지우는 순서 그대로, 사람이 알아볼 서비스만(코치 아웃박스 · 종단 확인은 기술 기록이라 뺀다) + 계정 마지막.
+ * 화면은 이 목록만 그리고 문구는 서비스 키로 고른다(`FE-REQ-055` FR-5 — 보여 줄 대상을 프론트에 정하지 않는다)
+ */
+const TECHNICAL_SERVICES: ReadonlySet<string> = new Set(["coach", "ping"]);
+export const MY_DATA_SCOPE: readonly string[] = [
+  ...MY_DATA_SERVICES.map((s) => s.service).filter((s) => !TECHNICAL_SERVICES.has(s)),
+  "identity",
+];
+
 const IDENTITY_DATA = "/identity/me/data";
 const ERASE_HEADER = "X-Salt-Erase";
 /** 사람 하나의 기록 — 표가 많아도 수백 행. 읽기 · 지우기 한 번에 넉넉히 */
@@ -93,6 +103,11 @@ const README = (exportedAt: string, exports: ServiceExport[]): string =>
 const incomplete = (code: string, message: string) => new AppError(message, 502, true, code);
 
 class AppMyDataService {
+  /** 지워지는 범위 — 서버를 부르지 않는다(지우는 순서가 BFF 에 있다) */
+  scope(): { services: string[] } {
+    return { services: [...MY_DATA_SCOPE] };
+  }
+
   /** 서비스마다 읽어 zip 하나 — 하나라도 실패하면 502(`EXPORT_INCOMPLETE`). 401 · 4xx 는 그대로 */
   async exportZip(token: string, now: Date = new Date()): Promise<{ fileName: string; body: Buffer }> {
     const paths = [IDENTITY_DATA, ...MY_DATA_SERVICES.map((s) => s.path)];

@@ -11,9 +11,9 @@ import { clearSession, useHasSession, type ApiError } from "@repo/web-shared/api
 import { ROUTES } from "@repo/web-shared/config";
 import { panel, panelHead, panelTitle } from "@repo/web-shared/ui/surface.css";
 
-import { useDeleteAccount } from "../api";
+import { useDeleteAccount, useEraseScope } from "../api";
 import { DELETE_ACCOUNT_MESSAGES as MSG } from "../model";
-import { description, field, form, scopeList, scopeTitle } from "./DeleteAccountPanel.css";
+import { description, field, form, scopeList, scopePlaceholder, scopeTitle } from "./DeleteAccountPanel.css";
 
 const errorText = (error: ApiError): string => {
   if (error.status === 429) return MSG.errors.tooMany;
@@ -29,6 +29,7 @@ export const DeleteAccountPanel = () => {
   const signedIn = useHasSession();
   const queryClient = useQueryClient();
   const deletion = useDeleteAccount();
+  const scope = useEraseScope();
   const [password, setPassword] = useState("");
   const [deletedTotal, setDeletedTotal] = useState<number | null>(null);
 
@@ -36,7 +37,8 @@ export const DeleteAccountPanel = () => {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (password.length === 0 || deletion.isPending) return;
+    // 범위를 보이지 않고는 지우지 않는다(FEATURE-015 FR-3 "범위 표시")
+    if (password.length === 0 || deletion.isPending || !scope.data) return;
     deletion.mutate(password, {
       onSuccess: async ({ total }) => {
         setPassword("");
@@ -69,11 +71,18 @@ export const DeleteAccountPanel = () => {
           <p className={description}>{MSG.description}</p>
           <div>
             <p className={scopeTitle}>{MSG.scopeLabel}</p>
-            <ul className={scopeList}>
-              {MSG.scope.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
+            {scope.isError ? (
+              <StatusLine kind="error">{MSG.scopeUnavailable}</StatusLine>
+            ) : !scope.data ? (
+              <div className={scopePlaceholder} aria-busy="true" />
+            ) : (
+              <ul className={scopeList}>
+                {scope.data.services.map((service) => {
+                  const line = MSG.scope[service];
+                  return line ? <li key={service}>{line}</li> : null;
+                })}
+              </ul>
+            )}
           </div>
           <form className={form} onSubmit={submit}>
             <div className={field}>
@@ -88,7 +97,7 @@ export const DeleteAccountPanel = () => {
               />
             </div>
             {/* 공용 변형 중 흰 패널 위 AA 를 넘는 것은 `primary` 뿐(2026-11-12 axe — `danger` · `outline` 3:1 · `weak` · `secondary` 3.9:1). 공용 색은 기존 결정이라 고치지 않는다. 지운다는 뜻은 제목 · 설명 · 범위 줄이 전한다 */}
-            <Button type="submit" variant="primary" disabled={password.length === 0 || signedIn !== true} loading={deletion.isPending}>
+            <Button type="submit" variant="primary" disabled={password.length === 0 || signedIn !== true || !scope.data} loading={deletion.isPending}>
               {deletion.isPending ? MSG.pending : MSG.action}
             </Button>
           </form>

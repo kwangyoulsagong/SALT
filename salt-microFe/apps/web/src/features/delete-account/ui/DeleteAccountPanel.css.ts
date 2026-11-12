@@ -40,3 +40,8 @@ export const description = style({
   lineHeight: "20px",
   fontWeight: vars.fontWeights.medium,
 });
+
+/** 범위가 오기 전 자리 — 줄 여섯 높이(뒤집혀 보이지 않게) */
+export const scopePlaceholder = style({
+  height: "120px",
+});
